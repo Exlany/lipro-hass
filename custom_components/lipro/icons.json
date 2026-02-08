@@ -1,0 +1,138 @@
+{
+  "entity": {
+    "binary_sensor": {
+      "connectivity": {
+        "default": "mdi:lan-connect",
+        "state": {
+          "on": "mdi:lan-connect",
+          "off": "mdi:lan-disconnect"
+        }
+      },
+      "motion": {
+        "default": "mdi:motion-sensor",
+        "state": {
+          "on": "mdi:motion-sensor",
+          "off": "mdi:motion-sensor-off"
+        }
+      },
+      "door": {
+        "default": "mdi:door",
+        "state": {
+          "on": "mdi:door-open",
+          "off": "mdi:door-closed"
+        }
+      },
+      "light": {
+        "default": "mdi:brightness-6",
+        "state": {
+          "on": "mdi:brightness-7",
+          "off": "mdi:brightness-5"
+        }
+      },
+      "battery": {
+        "default": "mdi:battery",
+        "state": {
+          "on": "mdi:battery-alert",
+          "off": "mdi:battery"
+        }
+      }
+    },
+    "fan": {
+      "fan": {
+        "default": "mdi:fan",
+        "state": {
+          "on": "mdi:fan",
+          "off": "mdi:fan-off"
+        }
+      },
+      "ventilation_fan": {
+        "default": "mdi:fan",
+        "state": {
+          "on": "mdi:fan",
+          "off": "mdi:fan-off"
+        }
+      }
+    },
+    "cover": {
+      "curtain": {
+        "default": "mdi:curtains",
+        "state": {
+          "open": "mdi:curtains",
+          "opening": "mdi:curtains",
+          "closed": "mdi:curtains-closed",
+          "closing": "mdi:curtains-closed"
+        }
+      }
+    },
+    "climate": {
+      "heater": {
+        "default": "mdi:heat-wave",
+        "state": {
+          "heat": "mdi:heat-wave",
+          "off": "mdi:hvac-off"
+        },
+        "state_attributes": {
+          "preset_mode": {
+            "default": "mdi:heat-wave",
+            "state": {
+              "default": "mdi:heat-wave",
+              "demist": "mdi:weather-fog",
+              "dry": "mdi:water-off",
+              "gentle_wind": "mdi:weather-windy"
+            }
+          }
+        }
+      }
+    },
+    "switch": {
+      "switch": {
+        "default": "mdi:light-switch",
+        "state": {
+          "on": "mdi:light-switch",
+          "off": "mdi:light-switch-off"
+        }
+      },
+      "outlet": {
+        "default": "mdi:power-socket-eu",
+        "state": {
+          "on": "mdi:power-plug",
+          "off": "mdi:power-plug-off"
+        }
+      },
+      "fade": {
+        "default": "mdi:transition"
+      },
+      "sleep_aid": {
+        "default": "mdi:sleep"
+      },
+      "wake_up": {
+        "default": "mdi:weather-sunny"
+      },
+      "focus_mode": {
+        "default": "mdi:head-lightbulb"
+      },
+      "body_reactive": {
+        "default": "mdi:motion-sensor"
+      }
+    },
+    "select": {
+      "wind_direction": {
+        "default": "mdi:rotate-3d-variant"
+      },
+      "heater_light": {
+        "default": "mdi:lightbulb"
+      },
+      "light_gear": {
+        "default": "mdi:tune-variant"
+      }
+    }
+  },
+  "services": {
+    "send_command": "mdi:console",
+    "get_schedules": "mdi:calendar-clock",
+    "add_schedule": "mdi:calendar-plus",
+    "delete_schedules": "mdi:calendar-remove",
+    "submit_anonymous_share": "mdi:upload",
+    "get_anonymous_share_report": "mdi:file-document-outline"
+  }
+}

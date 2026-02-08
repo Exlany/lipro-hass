@@ -1,0 +1,63 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+build/
+dist/
+*.egg-info/
+*.egg
+
+# Virtual Environment
+.venv/
+venv/
+
+# Testing & Coverage
+.coverage
+.coverage.*
+htmlcov/
+.pytest_cache/
+coverage.xml
+
+# Type Checking
+.mypy_cache/
+
+# Linting
+.ruff_cache/
+
+# IDE
+.vscode/
+.idea/
+*.code-workspace
+
+# OS
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Home Assistant Development
+config/*
+!config/configuration.yaml
+home-assistant_v2.db*
+home-assistant.log*
+
+# Claude Code
+.claude/
+.specstory/
+.specify/
+
+# Secrets
+secrets.yaml
+secrets.json
+*.key
+.env
+
+# Temporary
+*.tmp
+*.bak
+*.swp
+*~
+
+# Generated Reports
+CODE_REVIEW_REPORT.md
+CODE_REVIEW_PLAN.md

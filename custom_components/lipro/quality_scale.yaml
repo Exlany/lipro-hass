@@ -1,0 +1,214 @@
+# Home Assistant Integration Quality Scale
+# https://developers.home-assistant.io/docs/core/integration-quality-scale/
+#
+# This file tracks the quality scale compliance for the Lipro integration.
+# Target: Platinum level
+
+rules:
+  # ============================================================================
+  # Bronze (Baseline for all integrations)
+  # ============================================================================
+
+  # Config flow
+  config-flow:
+    status: done
+    comment: Full config flow with user, reauth, and reconfigure steps
+
+  test-before-configure:
+    status: done
+    comment: Login is tested in async_step_user before creating entry
+
+  unique-config-entry:
+    status: done
+    comment: Uses async_set_unique_id with user_id to prevent duplicates
+
+  config-flow-test-coverage:
+    status: todo
+    comment: Need to add pytest tests for config flow
+
+  runtime-data:
+    status: done
+    comment: Uses entry.runtime_data to store coordinator
+
+  appropriate-polling:
+    status: done
+    comment: Uses DataUpdateCoordinator with configurable interval
+
+  entity-unique-id:
+    status: done
+    comment: All entities have unique_id based on device serial
+
+  has-entity-name:
+    status: done
+    comment: LiproEntity base class sets _attr_has_entity_name = True
+
+  entity-event-setup:
+    status: done
+    comment: Uses CoordinatorEntity pattern for state updates
+
+  dependency-transparency:
+    status: done
+    comment: All dependencies listed in manifest.json requirements
+
+  action-setup:
+    status: done
+    comment: Services registered in async_setup (domain-level)
+
+  common-modules:
+    status: done
+    comment: Uses homeassistant.helpers modules appropriately
+
+  docs-high-level-description:
+    status: todo
+    comment: Need comprehensive README documentation
+
+  docs-installation-instructions:
+    status: todo
+    comment: Need HACS installation guide
+
+  docs-removal-instructions:
+    status: todo
+    comment: Need removal instructions in docs
+
+  # ============================================================================
+  # Silver (Reliability and robustness)
+  # ============================================================================
+
+  config-entry-unloading:
+    status: done
+    comment: async_unload_entry properly cleans up resources
+
+  log-when-unavailable:
+    status: done
+    comment: Logs connection errors without flooding
+
+  reauthentication-flow:
+    status: done
+    comment: Full reauth flow with async_step_reauth
+
+  parallel-updates:
+    status: done
+    comment: PARALLEL_UPDATES set appropriately per platform
+
+  test-coverage:
+    status: todo
+    comment: Need comprehensive test suite
+
+  integration-owner:
+    status: done
+    comment: "@Exlany in codeowners"
+
+  docs-troubleshooting:
+    status: todo
+    comment: Need troubleshooting section in docs
+
+  docs-supported-devices:
+    status: todo
+    comment: Need list of supported Lipro devices
+
+  docs-supported-functions:
+    status: todo
+    comment: Need documentation of supported features
+
+  # ============================================================================
+  # Gold (Best end-user experience)
+  # ============================================================================
+
+  entity-translations:
+    status: done
+    comment: Full translations in en.json and zh-Hans.json
+
+  reconfiguration-flow:
+    status: done
+    comment: async_step_reconfigure implemented
+
+  dynamic-devices:
+    status: done
+    comment: Devices discovered and updated via coordinator
+
+  discovery:
+    status: exempt
+    comment: Cloud-based integration, local discovery not applicable
+
+  stale-devices:
+    status: done
+    comment: _async_remove_stale_devices removes orphaned devices
+
+  diagnostics:
+    status: done
+    comment: Full diagnostics.py with sensitive data redaction
+
+  exception-translations:
+    status: done
+    comment: All exceptions use translation keys
+
+  icon-translations:
+    status: done
+    comment: icons.json with entity and service icons
+
+  entity-category:
+    status: done
+    comment: EntityCategory.DIAGNOSTIC used for battery sensors
+
+  entity-disabled-by-default:
+    status: done
+    comment: Noisy entities disabled by default (light_level)
+
+  docs-data-update:
+    status: todo
+    comment: Need documentation on polling and MQTT updates
+
+  docs-examples:
+    status: todo
+    comment: Need automation examples in docs
+
+  docs-known-limitations:
+    status: todo
+    comment: Need known limitations section
+
+  docs-use-cases:
+    status: todo
+    comment: Need use case examples
+
+  # ============================================================================
+  # Platinum (Technical excellence)
+  # ============================================================================
+
+  async-dependency:
+    status: done
+    comment: Uses aiohttp, aiomqtt - all async dependencies
+
+  inject-websession:
+    status: done
+    comment: Uses async_get_clientsession(hass)
+
+  strict-typing:
+    status: done
+    comment: Full type annotations with Python 3.12+ syntax
+
+  # ============================================================================
+  # Additional Quality Indicators
+  # ============================================================================
+
+  # Code quality
+  ruff-compliance:
+    status: done
+    comment: Passes all ruff checks with HA 2026 configuration
+
+  # Security
+  sensitive-data-redaction:
+    status: done
+    comment: Diagnostics redacts phone, tokens, MAC addresses
+
+  # Performance
+  debounce-support:
+    status: done
+    comment: Slider controls use debouncing to prevent API flooding
+
+  optimistic-updates:
+    status: done
+    comment: Commands apply optimistic state for responsive UI
+
+  mqtt-realtime:
+    status: done
+    comment: MQTT client for real-time device status updates

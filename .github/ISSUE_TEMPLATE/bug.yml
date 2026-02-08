@@ -1,0 +1,70 @@
+---
+name: Bug Report / 错误报告
+description: Report a bug with the integration / 报告集成的错误
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Before you open a new issue, search through the existing issues to see if others have had the same problem.
+        在提交新问题之前，请先搜索现有问题，看看是否有人遇到过相同的问题。
+
+  - type: textarea
+    attributes:
+      label: System Health details / 系统健康信息
+      description: |
+        Paste the data from the System Health card in Home Assistant (https://www.home-assistant.io/more-info/system-health#github-issues)
+        粘贴 Home Assistant 中系统健康卡片的数据
+      validations:
+        required: true
+
+  - type: checkboxes
+    attributes:
+      label: Checklist / 检查清单
+      options:
+        - label: I have enabled debug logging for my installation. / 我已为安装启用调试日志。
+          required: true
+        - label: I have filled out the issue template to the best of my ability. / 我已尽可能填写了问题模板。
+          required: true
+        - label: This issue only contains 1 issue (if you have multiple issues, open one issue for each). / 此问题只包含1个问题（如有多个问题，请分别提交）。
+          required: true
+        - label: This issue is not a duplicate of any previous issues. / 此问题不是之前任何问题的重复。
+          required: true
+
+  - type: textarea
+    attributes:
+      label: Describe the issue / 问题描述
+      description: A clear and concise description of what the issue is. / 清晰简洁地描述问题。
+      validations:
+        required: true
+
+  - type: textarea
+    attributes:
+      label: Reproduction steps / 复现步骤
+      description: |
+        Without steps to reproduce, it will be hard to fix. It is very important that you fill out this part. Issues without it will be closed.
+        没有复现步骤将很难修复。填写这部分非常重要。没有复现步骤的问题将被关闭。
+      value: |
+        1.
+        2.
+        3.
+        ...
+      validations:
+        required: true
+
+  - type: textarea
+    attributes:
+      label: Debug logs / 调试日志
+      description: |
+        To enable debug logs check this https://www.home-assistant.io/integrations/logger/, this **needs** to include _everything_ from startup of Home Assistant to the point where you encounter the issue.
+        要启用调试日志，请查看 https://www.home-assistant.io/integrations/logger/，这**必须**包含从 Home Assistant 启动到遇到问题时的所有内容。
+      render: text
+      validations:
+        required: true
+
+  - type: textarea
+    attributes:
+      label: Diagnostics dump / 诊断信息
+      description: |
+        Drag the diagnostics dump file here. (see https://www.home-assistant.io/integrations/diagnostics/ for info)
+        将诊断信息文件拖放到此处。（有关信息请参见 https://www.home-assistant.io/integrations/diagnostics/）

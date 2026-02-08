@@ -1,0 +1,48 @@
+---
+name: Feature Request / 功能请求
+description: Suggest an idea for this project / 为此项目提出建议
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Before you open a new feature request, search through the existing feature requests to see if others have had the same idea.
+        在提交新的功能请求之前，请先搜索现有的功能请求，看看是否有人有过相同的想法。
+
+  - type: checkboxes
+    attributes:
+      label: Checklist / 检查清单
+      options:
+        - label: I have filled out the template to the best of my ability. / 我已尽可能填写了模板。
+          required: true
+        - label: This only contains 1 feature request (if you have multiple feature requests, open one for each). / 这只包含1个功能请求（如有多个，请分别提交）。
+          required: true
+        - label: This issue is not a duplicate of any previous feature requests. / 此问题不是之前任何功能请求的重复。
+          required: true
+
+  - type: textarea
+    attributes:
+      label: Is your feature request related to a problem? / 您的功能请求是否与问题有关？
+      description: A clear and concise description of what the problem is. / 清晰简洁地描述问题。
+      placeholder: I'm always frustrated when [...] / 当 [...] 时我总是很沮丧
+      validations:
+        required: true
+
+  - type: textarea
+    attributes:
+      label: Describe the solution you'd like / 描述您想要的解决方案
+      description: A clear and concise description of what you want to happen. / 清晰简洁地描述您希望发生什么。
+      validations:
+        required: true
+
+  - type: textarea
+    attributes:
+      label: Describe alternatives you've considered / 描述您考虑过的替代方案
+      description: A clear and concise description of any alternative solutions or features you've considered. / 清晰简洁地描述您考虑过的任何替代解决方案或功能。
+      validations:
+        required: true
+
+  - type: textarea
+    attributes:
+      label: Additional context / 其他上下文
+      description: Add any other context or screenshots about the feature request here. / 在此添加有关功能请求的任何其他上下文或截图。

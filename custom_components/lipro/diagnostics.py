@@ -1,0 +1,125 @@
+"""Diagnostics support for Lipro integration."""
+
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any
+
+from homeassistant.components.diagnostics import async_redact_data
+
+from .const import (
+    CONF_PHONE,
+    CONF_PHONE_ID,
+    PROP_BLE_MAC,
+    PROP_IP,
+    PROP_MAC,
+    PROP_WIFI_SSID,
+)
+from .core.anonymous_share import get_anonymous_share_manager
+
+if TYPE_CHECKING:
+    from homeassistant.core import HomeAssistant
+
+    from . import LiproConfigEntry
+
+# Keys to redact from diagnostics
+TO_REDACT = {
+    CONF_PHONE,
+    CONF_PHONE_ID,
+    "password",
+    "access_token",
+    "refresh_token",
+    "user_id",
+    "serial",
+    "device_id",
+    "deviceId",
+    "groupId",
+    "iotName",
+    "gatewayDeviceId",
+    "password_hash",
+}
+
+# Keys to redact from device properties
+PROPERTY_KEYS_TO_REDACT = {
+    PROP_MAC,
+    PROP_IP,
+    PROP_BLE_MAC,
+    PROP_WIFI_SSID,
+    "macAddress",
+    "ipAddress",
+}
+
+# Pre-computed lowercase set for efficient lookup
+_PROPERTY_KEYS_LOWER = frozenset(key.lower() for key in PROPERTY_KEYS_TO_REDACT)
+
+
+def _redact_device_properties(properties: dict[str, Any]) -> dict[str, Any]:
+    """Redact sensitive keys from device properties."""
+    return {
+        k: "**REDACTED**" if k.lower() in _PROPERTY_KEYS_LOWER else v
+        for k, v in properties.items()
+    }
+
+
+async def async_get_config_entry_diagnostics(
+    hass: HomeAssistant,
+    entry: LiproConfigEntry,
+) -> dict[str, Any]:
+    """Return diagnostics for a config entry."""
+    coordinator = entry.runtime_data
+
+    # Collect device information (redacted)
+    devices_info = []
+    for device in coordinator.devices.values():
+        device_info = {
+            "name": device.name,
+            "device_type": device.device_type,
+            "device_type_hex": device.device_type_hex,
+            "category": device.category.value,
+            "physical_model": device.physical_model,
+            "is_group": device.is_group,
+            "room_name": device.room_name,
+            "available": device.available,
+            "is_connected": device.is_connected,
+            "properties": _redact_device_properties(device.properties),
+        }
+        # Add network info (non-sensitive)
+        if device.firmware_version:
+            device_info["firmware_version"] = device.firmware_version
+        if device.wifi_rssi is not None:
+            device_info["wifi_rssi"] = device.wifi_rssi
+        if device.net_type:
+            device_info["net_type"] = device.net_type
+        # Add Mesh info
+        if device.mesh_address is not None:
+            device_info["mesh_address"] = device.mesh_address
+        if device.mesh_type is not None:
+            device_info["mesh_type"] = device.mesh_type
+        if device.is_mesh_gateway:
+            device_info["is_mesh_gateway"] = True
+
+        devices_info.append(device_info)
+
+    # Get anonymous share status
+    share_manager = get_anonymous_share_manager()
+    device_count, error_count = share_manager.pending_count
+    anonymous_share_info = {
+        "enabled": share_manager.is_enabled,
+        "pending_devices": device_count,
+        "pending_errors": error_count,
+    }
+
+    return {
+        "entry": {
+            "title": entry.title,
+            "data": async_redact_data(entry.data, TO_REDACT),
+            "options": entry.options,
+        },
+        "coordinator": {
+            "last_update_success": coordinator.last_update_success,
+            "update_interval": str(coordinator.update_interval),
+            "device_count": len(coordinator.devices),
+            "mqtt_connected": coordinator.mqtt_connected,
+        },
+        "anonymous_share": anonymous_share_info,
+        "devices": devices_info,
+    }

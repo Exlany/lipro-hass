@@ -1,0 +1,301 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Lipro 账号",
+        "description": "请输入您的 Lipro 账号信息。",
+        "data": {
+          "phone": "手机号",
+          "password": "密码"
+        }
+      },
+      "reauth_confirm": {
+        "title": "重新认证",
+        "description": "请输入 {phone} 的密码。",
+        "data": {
+          "password": "密码"
+        }
+      },
+      "reconfigure": {
+        "title": "重新配置 Lipro",
+        "description": "更新您的 Lipro 账号信息。",
+        "data": {
+          "phone": "手机号",
+          "password": "密码"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "无法连接到 Lipro 服务器",
+      "invalid_auth": "手机号或密码错误",
+      "unknown": "发生未知错误"
+    },
+    "abort": {
+      "already_configured": "该账号已配置",
+      "reauth_successful": "重新认证成功",
+      "reconfigure_successful": "重新配置成功"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Lipro 选项",
+        "description": "配置 Lipro 集成设置。",
+        "data": {
+          "scan_interval": "更新间隔（秒）",
+          "anonymous_share_enabled": "匿名分享设备信息（帮助改进支持）",
+          "anonymous_share_errors": "匿名分享错误报告"
+        },
+        "data_description": {
+          "anonymous_share_enabled": "匿名分享设备信息，帮助开发者支持更多设备类型。",
+          "anonymous_share_errors": "匿名分享错误报告，帮助更快修复问题。"
+        }
+      }
+    }
+  },
+  "entity": {
+    "light": {
+      "light": {
+        "name": "灯"
+      }
+    },
+    "fan": {
+      "fan": {
+        "name": "风扇",
+        "state_attributes": {
+          "preset_mode": {
+            "state": {
+              "natural": "自然风",
+              "sleep": "睡眠",
+              "normal": "正常"
+            }
+          }
+        }
+      },
+      "ventilation_fan": {
+        "name": "换气扇",
+        "state_attributes": {
+          "preset_mode": {
+            "state": {
+              "strong": "强风",
+              "weak": "弱风"
+            }
+          }
+        }
+      }
+    },
+    "cover": {
+      "curtain": {
+        "name": "窗帘"
+      }
+    },
+    "switch": {
+      "switch": {
+        "name": "开关"
+      },
+      "outlet": {
+        "name": "插座"
+      },
+      "fade": {
+        "name": "渐变效果"
+      },
+      "sleep_aid": {
+        "name": "助眠"
+      },
+      "wake_up": {
+        "name": "唤醒"
+      },
+      "focus_mode": {
+        "name": "专注模式"
+      },
+      "body_reactive": {
+        "name": "人体感应"
+      }
+    },
+    "climate": {
+      "heater": {
+        "name": "取暖器",
+        "state_attributes": {
+          "preset_mode": {
+            "state": {
+              "default": "默认",
+              "demist": "除雾",
+              "dry": "干燥",
+              "gentle_wind": "柔风"
+            }
+          }
+        }
+      }
+    },
+    "binary_sensor": {
+      "connectivity": {
+        "name": "连接状态"
+      },
+      "motion": {
+        "name": "人体感应"
+      },
+      "door": {
+        "name": "门窗"
+      },
+      "light": {
+        "name": "光照"
+      },
+      "battery": {
+        "name": "电池"
+      }
+    },
+    "sensor": {
+      "power": {
+        "name": "功率"
+      },
+      "energy": {
+        "name": "用电量"
+      },
+      "battery": {
+        "name": "电量"
+      },
+      "wifi_signal": {
+        "name": "WiFi 信号"
+      }
+    },
+    "select": {
+      "wind_direction": {
+        "name": "风向",
+        "state": {
+          "auto": "自动",
+          "fixed": "固定"
+        }
+      },
+      "heater_light": {
+        "name": "浴霸灯",
+        "state": {
+          "off": "关闭",
+          "main": "主灯",
+          "night": "夜灯"
+        }
+      },
+      "light_gear": {
+        "name": "灯光档位",
+        "state": {
+          "gear_1": "档位 1",
+          "gear_2": "档位 2",
+          "gear_3": "档位 3"
+        }
+      }
+    }
+  },
+  "services": {
+    "send_command": {
+      "name": "发送命令",
+      "description": "向 Lipro 设备发送原始命令。这是一个高级服务，供高级用户测试新命令或访问集成尚未支持的功能。",
+      "fields": {
+        "device_id": {
+          "name": "设备 ID",
+          "description": "设备序列号。如果未提供，将从目标实体中确定设备。"
+        },
+        "command": {
+          "name": "命令",
+          "description": "要发送到设备的命令。"
+        },
+        "properties": {
+          "name": "属性",
+          "description": "可选的属性键值对列表，与命令一起发送。"
+        }
+      }
+    },
+    "get_schedules": {
+      "name": "获取定时任务",
+      "description": "获取设备的定时任务列表。",
+      "fields": {
+        "device_id": {
+          "name": "设备 ID",
+          "description": "设备序列号。如果未提供，将从目标实体中确定设备。"
+        }
+      }
+    },
+    "add_schedule": {
+      "name": "添加定时任务",
+      "description": "为设备添加或更新定时任务。",
+      "fields": {
+        "device_id": {
+          "name": "设备 ID",
+          "description": "设备序列号。如果未提供，将从目标实体中确定设备。"
+        },
+        "days": {
+          "name": "星期",
+          "description": "定时任务执行的星期几（1=周一，7=周日）。"
+        },
+        "times": {
+          "name": "时间",
+          "description": "从午夜开始的秒数列表（0-86399）。"
+        },
+        "events": {
+          "name": "事件",
+          "description": "与每个时间对应的事件代码列表。"
+        }
+      }
+    },
+    "delete_schedules": {
+      "name": "删除定时任务",
+      "description": "通过 ID 删除设备的定时任务。",
+      "fields": {
+        "device_id": {
+          "name": "设备 ID",
+          "description": "设备序列号。如果未提供，将从目标实体中确定设备。"
+        },
+        "schedule_ids": {
+          "name": "定时任务 ID",
+          "description": "要删除的定时任务 ID 列表。"
+        }
+      }
+    },
+    "submit_anonymous_share": {
+      "name": "提交匿名分享报告",
+      "description": "手动提交匿名设备分享报告。这会发送匿名的设备信息和错误报告，以帮助改进集成。"
+    },
+    "get_anonymous_share_report": {
+      "name": "获取匿名分享报告",
+      "description": "预览将要提交的匿名分享报告数据。使用此功能查看将分享哪些信息。"
+    }
+  },
+  "exceptions": {
+    "auth_expired": {
+      "title": "Lipro 认证已过期",
+      "message": "您的 Lipro 会话已过期，请重新认证。"
+    },
+    "auth_error": {
+      "title": "Lipro 认证错误",
+      "message": "Lipro 认证失败：{error}"
+    },
+    "no_device_specified": {
+      "message": "未指定设备 ID 或目标实体。"
+    },
+    "cannot_determine_device": {
+      "message": "无法从目标实体确定设备。"
+    },
+    "device_not_found": {
+      "message": "未找到设备：{device_id}"
+    },
+    "command_failed": {
+      "message": "向设备发送命令失败。"
+    },
+    "schedule_fetch_failed": {
+      "message": "获取设备定时任务失败。"
+    },
+    "schedule_add_failed": {
+      "message": "添加设备定时任务失败。"
+    },
+    "schedule_delete_failed": {
+      "message": "删除设备定时任务失败。"
+    },
+    "times_events_mismatch": {
+      "message": "时间数量必须与事件数量匹配。"
+    },
+    "anonymous_share_not_enabled": {
+      "message": "匿名分享功能未启用。请先在集成选项中启用。"
+    },
+    "anonymous_share_submit_failed": {
+      "message": "提交匿名分享报告失败。"
+    }
+  }
+}

@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+# Start Home Assistant with Lipro integration for development
+
+set -e
+
+cd "$(dirname "$0")/.."
+
+# Check if virtual environment exists
+if [ ! -d "venv" ]; then
+    echo "Virtual environment not found. Running setup first..."
+    ./scripts/setup
+fi
+
+# Activate virtual environment
+source venv/bin/activate
+
+# Create config directory if it doesn't exist
+mkdir -p config
+
+# Copy custom_components to config directory
+echo "Copying custom_components to config directory..."
+rm -rf config/custom_components
+mkdir -p config/custom_components
+cp -r custom_components/lipro config/custom_components/
+
+echo "Starting Home Assistant..."
+echo ""
+echo "Access the UI at: http://localhost:8123"
+echo ""
+
+# Start Home Assistant
+cd config && hass -c .

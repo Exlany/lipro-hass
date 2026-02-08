@@ -1,0 +1,9 @@
+{
+  "name": "Lipro Smart Home",
+  "content_in_root": false,
+  "filename": "lipro.zip",
+  "country": ["CN"],
+  "homeassistant": "2024.1.0",
+  "render_readme": true,
+  "iot_class": "cloud_push"
+}
