@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 from datetime import timedelta
+import hashlib
 import logging
 from typing import TYPE_CHECKING, Any
 
@@ -114,8 +115,6 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         installation_id = None
         storage_path = None
         if self.config_entry:
-            import hashlib
-
             installation_id = hashlib.sha256(
                 self.config_entry.entry_id.encode()
             ).hexdigest()[:16]
@@ -382,19 +381,19 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
             share_manager = get_anonymous_share_manager()
             if share_manager.is_enabled:
                 await share_manager.submit_report()
-        except (OSError, asyncio.TimeoutError):
+        except (OSError, TimeoutError):
             _LOGGER.exception("Failed to submit anonymous share report on shutdown")
 
         # Stop MQTT client
         try:
             await self.async_stop_mqtt()
-        except (OSError, asyncio.TimeoutError):
+        except (OSError, TimeoutError):
             _LOGGER.exception("Failed to stop MQTT client on shutdown")
 
         # Close API client session
         try:
             await self.client.close()
-        except (OSError, asyncio.TimeoutError):
+        except (OSError, TimeoutError):
             _LOGGER.exception("Failed to close API client on shutdown")
 
         # Clear all data structures to break circular references

@@ -13,6 +13,7 @@ from typing import TYPE_CHECKING, Any
 import aiohttp
 
 from ..const import APP_VERSION_CODE, APP_VERSION_NAME, DEVICE_TYPE_MAP
+from .anonymous_share import get_anonymous_share_manager
 from .const import (
     CONTENT_TYPE_FORM,
     CONTENT_TYPE_JSON,
@@ -1088,11 +1089,5 @@ def _record_api_error(
         method: The HTTP method (e.g., "POST").
 
     """
-    try:
-        from .anonymous_share import get_anonymous_share_manager
-
-        share_manager = get_anonymous_share_manager()
-        share_manager.record_api_error(endpoint, code, message, method=method)
-    except Exception:
-        # Silently ignore errors in anonymous share
-        pass
+    share_manager = get_anonymous_share_manager()
+    share_manager.record_api_error(endpoint, code, message, method=method)

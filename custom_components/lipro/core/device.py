@@ -57,6 +57,7 @@ from ..const import (
     get_platforms_for_category,
     percent_to_kelvin,
 )
+from .anonymous_share import get_anonymous_share_manager
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -690,11 +691,5 @@ def _record_unknown_device_type(
         iot_name: The IoT name/model.
 
     """
-    try:
-        from .anonymous_share import get_anonymous_share_manager
-
-        share_manager = get_anonymous_share_manager()
-        share_manager.record_unknown_device_type(physical_model, type_id, iot_name)
-    except (ImportError, AttributeError, RuntimeError):
-        # Silently ignore if anonymous share module is not available
-        _LOGGER.debug("Anonymous share not available for recording unknown device type")
+    share_manager = get_anonymous_share_manager()
+    share_manager.record_unknown_device_type(physical_model, type_id, iot_name)
