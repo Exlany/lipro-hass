@@ -343,18 +343,17 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
             )
 
             # Get device IDs to subscribe
+            # For mesh groups: use their serial (mesh_group_xxx) as the topic
             # For non-group devices: use their iot_device_id directly
-            # For mesh groups: use their gateway_device_id (if available)
             device_ids: list[str] = []
             for dev in self._devices.values():
                 if dev.is_group:
-                    # Mesh group: subscribe to gateway device
-                    gateway_id = dev.extra_data.get("gateway_device_id")
-                    if gateway_id and gateway_id not in device_ids:
-                        device_ids.append(gateway_id)
+                    # Mesh group: subscribe to group serial (mesh_group_xxx)
+                    # MQTT messages are published to Topic_Device_State/{biz_id}/{mesh_group_xxx}
+                    if dev.serial not in device_ids:
+                        device_ids.append(dev.serial)
                         _LOGGER.debug(
-                            "MQTT: subscribing to gateway %s for group %s",
-                            gateway_id[:8] + "...",
+                            "MQTT: subscribing to mesh group %s",
                             dev.serial,
                         )
                 elif dev.iot_device_id not in device_ids:

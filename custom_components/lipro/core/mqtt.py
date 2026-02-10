@@ -139,11 +139,12 @@ class MqttCredentials:
 def build_topic(biz_id: str, device_id: str) -> str:
     """Build MQTT topic for device status subscription.
 
-    Format: Topic_Device_State/{bizId}/{iotDeviceId}
+    Format: Topic_Device_State/{bizId}/{deviceId}
 
     Args:
         biz_id: Business ID (alphanumeric and hyphens only).
-        device_id: IoT device ID (alphanumeric only).
+        device_id: Device ID - can be IoT device ID (e.g., "03ab5ccd7cxxxxxx")
+                   or mesh group serial (e.g., "mesh_group_10001").
 
     Returns:
         MQTT topic string.
