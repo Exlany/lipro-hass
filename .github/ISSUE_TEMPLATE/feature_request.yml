@@ -1,0 +1,95 @@
+---
+name: ✨ Feature Request / 功能请求
+description: Suggest a new feature or improvement / 提出新功能或改进建议
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢你的建议！请描述你希望添加的功能。
+        Thanks for suggesting a new feature!
+
+  - type: checkboxes
+    attributes:
+      label: Checklist / 检查清单
+      options:
+        - label: I have searched existing issues/feature requests and this is not a duplicate. / 我已搜索现有问题，确认这不是重复的。
+          required: true
+
+  - type: dropdown
+    id: feature-type
+    attributes:
+      label: Feature Type / 功能类型
+      description: What kind of feature are you requesting? / 你请求的是什么类型的功能？
+      options:
+        - "New device support / 支持新设备类型"
+        - "New device feature / 新设备功能 (如新属性/新控制)"
+        - "UI/UX improvement / 界面体验改进"
+        - "Performance improvement / 性能优化"
+        - "Integration with other services / 与其他服务集成"
+        - "Other / 其他"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: device-type
+    attributes:
+      label: Related Device Type / 相关设备类型
+      description: Which device type is this feature for? / 这个功能是针对哪种设备？
+      options:
+        - "Light (灯具: 筒灯/吸顶灯/灯带/台灯)"
+        - "Fan Light (风扇灯)"
+        - "Curtain (窗帘)"
+        - "Switch Panel (开关面板)"
+        - "Outlet (插座)"
+        - "Heater (浴霸/暖风机)"
+        - "Motion Sensor (人体传感器)"
+        - "Door Sensor (门窗传感器)"
+        - "New device type / 新设备类型"
+        - "All devices / 所有设备"
+        - "Not device specific / 与设备无关"
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem / 问题背景
+      description: Is your feature request related to a problem? / 这个功能请求是否与某个问题有关？
+      placeholder: |
+        例如：每次调节亮度都需要等很久才能看到效果...
+        Example: Every time I adjust brightness, it takes too long to see the effect...
+    validations:
+      required: false
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution / 期望的解决方案
+      description: Describe the solution you'd like. / 描述你希望实现的功能。
+      placeholder: |
+        例如：希望能支持场景模式，一键切换多个设备状态...
+        Example: I'd like scene mode support to switch multiple device states with one click...
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered / 备选方案
+      description: Have you considered any alternative solutions? / 你考虑过其他替代方案吗？
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Context / 其他信息
+      description: |
+        Any other context, screenshots, or references.
+        如果是请求支持新设备，请提供设备型号和 Lipro App 中的截图。
+      placeholder: |
+        设备型号 / Device model:
+        Lipro App 截图 / Lipro App screenshot:
+    validations:
+      required: false

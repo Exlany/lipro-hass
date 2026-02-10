@@ -1,0 +1,139 @@
+---
+name: 🐛 Bug Report / 错误报告
+description: Report a bug with the Lipro integration / 报告 Lipro 集成的错误
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢你提交 Bug 报告！请尽量详细描述问题，以便我们快速定位和修复。
+        Thanks for taking the time to fill out this bug report!
+
+  - type: checkboxes
+    attributes:
+      label: Checklist / 检查清单
+      options:
+        - label: I have searched existing issues and this is not a duplicate. / 我已搜索现有问题，确认这不是重复的。
+          required: true
+        - label: I am using the latest version of this integration. / 我正在使用此集成的最新版本。
+          required: true
+        - label: I have enabled debug logging. / 我已启用调试日志。
+          required: true
+
+  - type: dropdown
+    id: problem-type
+    attributes:
+      label: Problem Type / 问题类型
+      description: What kind of problem are you experiencing? / 你遇到了什么类型的问题？
+      options:
+        - "Login/Authentication failed / 登录认证失败"
+        - "Device not discovered / 设备未发现"
+        - "Device state not syncing / 设备状态不同步"
+        - "Control command not working / 控制命令无效"
+        - "MQTT connection issue / MQTT 连接问题"
+        - "Integration setup failed / 集成配置失败"
+        - "Other / 其他"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: device-type
+    attributes:
+      label: Affected Device Type / 受影响的设备类型
+      description: Which device type is affected? / 哪种设备类型受影响？
+      options:
+        - "Light (灯具: 筒灯/吸顶灯/灯带/台灯)"
+        - "Fan Light (风扇灯)"
+        - "Curtain (窗帘)"
+        - "Switch Panel (开关面板)"
+        - "Outlet (插座)"
+        - "Heater (浴霸/暖风机)"
+        - "Motion Sensor (人体传感器)"
+        - "Door Sensor (门窗传感器)"
+        - "All devices / 所有设备"
+        - "Not device specific / 与设备无关"
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Problem Description / 问题描述
+      description: A clear and concise description of what the bug is. / 清晰简洁地描述问题。
+      placeholder: |
+        例如：开灯后 Home Assistant 中的状态没有同步更新，需要手动刷新...
+        Example: After turning on the light, the state in Home Assistant doesn't sync...
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce / 复现步骤
+      description: How can we reproduce this issue? / 如何复现这个问题？
+      value: |
+        1.
+        2.
+        3.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior / 期望行为
+      description: What did you expect to happen? / 你期望发生什么？
+    validations:
+      required: false
+
+  - type: input
+    id: ha-version
+    attributes:
+      label: Home Assistant Version / Home Assistant 版本
+      description: "Minimum required: 2025.10.2 / 最低要求: 2025.10.2"
+      placeholder: "e.g., 2025.10.2"
+    validations:
+      required: true
+
+  - type: input
+    id: integration-version
+    attributes:
+      label: Lipro Integration Version / Lipro 集成版本
+      placeholder: "e.g., 1.0.0"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: install-method
+    attributes:
+      label: Installation Method / 安装方式
+      options:
+        - "HACS"
+        - "Manual / 手动安装"
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Debug Logs / 调试日志
+      description: |
+        Enable debug logging by adding this to configuration.yaml:
+        在 configuration.yaml 中添加以下内容启用调试日志：
+        ```yaml
+        logger:
+          default: info
+          logs:
+            custom_components.lipro: debug
+        ```
+      render: text
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Context / 其他信息
+      description: Any other context, screenshots, or device info. / 任何其他上下文、截图或设备信息。
+    validations:
+      required: false

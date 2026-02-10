@@ -1,0 +1,940 @@
+"""Tests for Lipro API client."""
+
+from __future__ import annotations
+
+import hashlib
+from unittest.mock import AsyncMock, MagicMock, patch
+
+import aiohttp
+import pytest
+
+from custom_components.lipro.core.api import (
+    LiproApiError,
+    LiproAuthError,
+    LiproClient,
+    LiproConnectionError,
+    _mask_sensitive_data,
+)
+
+
+class TestMaskSensitiveData:
+    """Tests for sensitive data masking."""
+
+    def test_mask_access_token(self):
+        """Test masking access token."""
+        data = '{"access_token": "secret123", "other": "value"}'
+        result = _mask_sensitive_data(data)
+        assert '"access_token": "***"' in result
+        assert "secret123" not in result
+        assert '"other": "value"' in result
+
+    def test_mask_refresh_token(self):
+        """Test masking refresh token."""
+        data = '{"refresh_token": "refresh_secret"}'
+        result = _mask_sensitive_data(data)
+        assert '"refresh_token": "***"' in result
+        assert "refresh_secret" not in result
+
+    def test_mask_password(self):
+        """Test masking password."""
+        data = '{"password": "mypassword123"}'
+        result = _mask_sensitive_data(data)
+        assert '"password": "***"' in result
+        assert "mypassword123" not in result
+
+    def test_mask_phone(self):
+        """Test masking phone number (keep first 3 and last 4)."""
+        data = '{"phone": "13800001234"}'
+        result = _mask_sensitive_data(data)
+        assert '"phone": "138****1234"' in result
+        assert "13800001234" not in result
+
+    def test_mask_camel_case_tokens(self):
+        """Test masking camelCase token fields."""
+        data = '{"accessToken": "token1", "refreshToken": "token2"}'
+        result = _mask_sensitive_data(data)
+        assert '"accessToken": "***"' in result
+        assert '"refreshToken": "***"' in result
+
+
+class TestLiproClientInit:
+    """Tests for LiproClient initialization."""
+
+    def test_init_with_session(self):
+        """Test initialization with provided session."""
+        session = MagicMock(spec=aiohttp.ClientSession)
+        client = LiproClient("550e8400-e29b-41d4-a716-446655440000", session)
+
+        assert client.phone_id == "550e8400-e29b-41d4-a716-446655440000"
+        assert client.access_token is None
+        assert client.refresh_token is None
+        assert client.user_id is None
+
+    def test_init_without_session(self):
+        """Test initialization without session."""
+        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+
+        assert client.phone_id == "550e8400-e29b-41d4-a716-446655440000"
+        assert client._session is None
+        assert client._own_session is True
+
+
+class TestLiproClientTokens:
+    """Tests for token management."""
+
+    def test_set_tokens(self):
+        """Test setting tokens."""
+        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client.set_tokens(
+            access_token="access123",
+            refresh_token="refresh456",
+            user_id=10001,
+            biz_id="lip_biz001",
+        )
+
+        assert client.access_token == "access123"
+        assert client.refresh_token == "refresh456"
+        assert client.user_id == 10001
+
+    def test_set_token_refresh_callback(self):
+        """Test setting token refresh callback."""
+        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        callback = AsyncMock()
+        client.set_token_refresh_callback(callback)
+
+        assert client._on_token_refresh is callback
+
+
+class TestLiproClientSignature:
+    """Tests for API signature generation."""
+
+    def test_smart_home_sign(self):
+        """Test Smart Home API signature generation."""
+        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        sign = client._smart_home_sign()
+
+        # Verify it's a valid MD5 hash (32 hex chars)
+        assert len(sign) == 32
+        assert all(c in "0123456789abcdef" for c in sign)
+
+    def test_iot_sign(self):
+        """Test IoT API signature generation."""
+        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client.set_tokens("access_token_123", "refresh_token")
+
+        sign = client._iot_sign(1234567890, '{"test": "body"}')
+
+        # Verify it's a valid MD5 hash
+        assert len(sign) == 32
+        assert all(c in "0123456789abcdef" for c in sign)
+
+
+class TestLiproClientLogin:
+    """Tests for login functionality."""
+
+    @pytest.mark.asyncio
+    async def test_login_success(self):
+        """Test successful login."""
+        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+
+        mock_response = {
+            "code": 0,
+            "value": {
+                "access_token": "new_access_token",
+                "refresh_token": "new_refresh_token",
+                "userId": 10001,
+                "bizId": "lip_biz001",
+                "phone": "13800000000",
+                "userName": "Test User",
+            },
+        }
+
+        with patch.object(
+            client, "_smart_home_request", new_callable=AsyncMock
+        ) as mock_request:
+            mock_request.return_value = mock_response["value"]
+
+            result = await client.login("13800000000", "password123")
+
+            assert result["access_token"] == "new_access_token"
+            assert result["refresh_token"] == "new_refresh_token"
+            assert result["user_id"] == 10001
+            assert client.access_token == "new_access_token"
+            assert client.refresh_token == "new_refresh_token"
+
+    @pytest.mark.asyncio
+    async def test_login_password_hashed(self):
+        """Test that password is MD5 hashed before sending."""
+        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+
+        captured_data = {}
+
+        async def capture_request(path, data, require_auth=True):
+            captured_data.update(data)
+            return {
+                "access_token": "token",
+                "refresh_token": "refresh",
+                "userId": 1,
+            }
+
+        with patch.object(client, "_smart_home_request", side_effect=capture_request):
+            await client.login("13800000000", "mypassword")
+
+            # Verify password was MD5 hashed
+            expected_hash = hashlib.md5(b"mypassword").hexdigest()
+            assert captured_data.get("password") == expected_hash
+
+
+class TestLiproClientRefreshToken:
+    """Tests for token refresh functionality."""
+
+    @pytest.mark.asyncio
+    async def test_refresh_token_success(self):
+        """Test successful token refresh."""
+        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client.set_tokens("old_access", "old_refresh")
+
+        with patch.object(
+            client, "_smart_home_request", new_callable=AsyncMock
+        ) as mock_request:
+            mock_request.return_value = {
+                "access_token": "new_access_token",
+                "refresh_token": "new_refresh_token",
+                "userId": 10001,
+            }
+
+            result = await client.refresh_access_token()
+
+            assert result["access_token"] == "new_access_token"
+            assert client.access_token == "new_access_token"
+
+    @pytest.mark.asyncio
+    async def test_refresh_token_no_token(self):
+        """Test refresh fails without refresh token."""
+        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+
+        with pytest.raises(LiproAuthError, match="No refresh token"):
+            await client.refresh_access_token()
+
+
+class TestLiproClientDevices:
+    """Tests for device-related API calls."""
+
+    @pytest.mark.asyncio
+    async def test_get_devices(self):
+        """Test getting devices."""
+        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client.set_tokens("access_token", "refresh_token")
+
+        mock_response = {
+            "code": 0,
+            "value": {
+                "devices": [
+                    {"deviceId": 1, "deviceName": "Light 1"},
+                    {"deviceId": 2, "deviceName": "Light 2"},
+                ],
+            },
+        }
+
+        with patch.object(
+            client, "_smart_home_request", new_callable=AsyncMock
+        ) as mock_request:
+            mock_request.return_value = mock_response["value"]
+
+            result = await client.get_devices(offset=0, limit=100)
+
+            assert "devices" in result
+            mock_request.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_query_device_status_empty(self):
+        """Test querying status with empty device list."""
+        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client.set_tokens("access_token", "refresh_token")
+
+        result = await client.query_device_status([])
+
+        assert result == []
+
+
+class TestLiproClientCommands:
+    """Tests for command sending."""
+
+    @pytest.mark.asyncio
+    async def test_send_command(self):
+        """Test sending command to device."""
+        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client.set_tokens("access_token", "refresh_token")
+
+        with patch.object(
+            client, "_iot_request", new_callable=AsyncMock
+        ) as mock_request:
+            mock_request.return_value = {"success": True}
+
+            result = await client.send_command(
+                device_id="03ab5ccd7caaaaaa",
+                command="POWER_ON",
+                device_type=1,
+                properties=[{"key": "powerState", "value": "1"}],
+            )
+
+            assert result["success"] is True
+            mock_request.assert_called_once()
+
+            # Verify the body structure
+            call_args = mock_request.call_args
+            body = call_args[0][1]
+            assert body["command"] == "POWER_ON"
+            assert body["deviceId"] == "03ab5ccd7caaaaaa"
+            assert body["deviceType"] == "ff000001"
+
+    @pytest.mark.asyncio
+    async def test_send_command_hex_device_type(self):
+        """Test sending command with hex device type."""
+        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client.set_tokens("access_token", "refresh_token")
+
+        with patch.object(
+            client, "_iot_request", new_callable=AsyncMock
+        ) as mock_request:
+            mock_request.return_value = {"success": True}
+
+            await client.send_command(
+                device_id="03ab5ccd7caaaaaa",
+                command="POWER_ON",
+                device_type="ff000002",  # Hex string
+            )
+
+            call_args = mock_request.call_args
+            body = call_args[0][1]
+            assert body["deviceType"] == "ff000002"
+
+    @pytest.mark.asyncio
+    async def test_send_group_command(self):
+        """Test sending command to mesh group."""
+        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client.set_tokens("access_token", "refresh_token")
+
+        with patch.object(
+            client, "_iot_request", new_callable=AsyncMock
+        ) as mock_request:
+            mock_request.return_value = {"success": True}
+
+            result = await client.send_group_command(
+                group_id="mesh_group_10001",
+                command="POWER_ON",
+                device_type=1,
+            )
+
+            assert result["success"] is True
+            call_args = mock_request.call_args
+            body = call_args[0][1]
+            assert body["groupId"] == "mesh_group_10001"
+
+
+class TestLiproClientErrorHandling:
+    """Tests for error handling."""
+
+    @pytest.mark.asyncio
+    async def test_connection_error(self):
+        """Test handling connection errors."""
+        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+
+        with patch.object(
+            client, "_get_session", new_callable=AsyncMock
+        ) as mock_get_session:
+            mock_session = MagicMock()
+            mock_session.post = MagicMock(
+                return_value=AsyncMock(
+                    __aenter__=AsyncMock(
+                        side_effect=aiohttp.ClientError("Connection failed")
+                    )
+                )
+            )
+            mock_get_session.return_value = mock_session
+
+            with pytest.raises(LiproConnectionError, match="Connection error"):
+                await client.login("phone", "password")
+
+    @pytest.mark.asyncio
+    async def test_timeout_error(self):
+        """Test handling timeout errors."""
+        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+
+        with patch.object(
+            client, "_get_session", new_callable=AsyncMock
+        ) as mock_get_session:
+            mock_session = MagicMock()
+            mock_session.post = MagicMock(
+                return_value=AsyncMock(__aenter__=AsyncMock(side_effect=TimeoutError()))
+            )
+            mock_get_session.return_value = mock_session
+
+            with pytest.raises(LiproConnectionError, match="timeout"):
+                await client.login("phone", "password")
+
+    @pytest.mark.asyncio
+    async def test_api_error(self):
+        """Test handling API errors."""
+        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+
+        mock_response = {
+            "code": 500,
+            "message": "Internal server error",
+        }
+
+        with patch.object(
+            client, "_get_session", new_callable=AsyncMock
+        ) as mock_get_session:
+            mock_session = MagicMock()
+            mock_response_obj = AsyncMock()
+            mock_response_obj.json = AsyncMock(return_value=mock_response)
+            mock_session.post = MagicMock(
+                return_value=AsyncMock(
+                    __aenter__=AsyncMock(return_value=mock_response_obj)
+                )
+            )
+            mock_get_session.return_value = mock_session
+
+            with pytest.raises(LiproApiError, match="Internal server error"):
+                await client.login("phone", "password")
+
+
+class TestLiproClient401Handling:
+    """Tests for 401 error handling and token refresh."""
+
+    @pytest.mark.asyncio
+    async def test_401_triggers_refresh(self):
+        """Test that 401 triggers token refresh callback."""
+        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client.set_tokens("old_access", "old_refresh")
+
+        refresh_callback = AsyncMock()
+        client.set_token_refresh_callback(refresh_callback)
+
+        # Test the _handle_401_with_refresh method directly
+        result = await client._handle_401_with_refresh("old_access")
+
+        # Verify refresh was called
+        assert result is True
+        refresh_callback.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_401_double_check_skips_if_token_changed(self):
+        """Test that refresh is skipped if token already changed."""
+        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client.set_tokens("new_access", "refresh")  # Token already changed
+
+        refresh_callback = AsyncMock()
+        client.set_token_refresh_callback(refresh_callback)
+
+        # Call with old token - should detect token already changed
+        result = await client._handle_401_with_refresh("old_access")
+
+        # Should return True (token was refreshed) but not call callback
+        assert result is True
+        refresh_callback.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_401_no_infinite_retry(self):
+        """Test that 401 doesn't cause infinite retry loop."""
+        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client.set_tokens("access", "refresh")
+
+        refresh_callback = AsyncMock()
+        client.set_token_refresh_callback(refresh_callback)
+
+        # Always return 401
+        mock_response = {"code": 401, "message": "Unauthorized"}
+
+        with patch.object(
+            client, "_get_session", new_callable=AsyncMock
+        ) as mock_get_session:
+            mock_session = MagicMock()
+            mock_response_obj = AsyncMock()
+            mock_response_obj.json = AsyncMock(return_value=mock_response)
+            mock_session.post = MagicMock(
+                return_value=AsyncMock(
+                    __aenter__=AsyncMock(return_value=mock_response_obj)
+                )
+            )
+            mock_get_session.return_value = mock_session
+
+            with pytest.raises(LiproAuthError):
+                await client.get_devices()
+
+            # Refresh should only be called once (not infinite)
+            assert refresh_callback.call_count == 1
+
+
+class TestLiproClientMqtt:
+    """Tests for MQTT configuration."""
+
+    @pytest.mark.asyncio
+    async def test_get_mqtt_config(self):
+        """Test getting MQTT configuration."""
+        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client.set_tokens("access_token", "refresh_token")
+
+        with patch.object(
+            client, "_iot_request", new_callable=AsyncMock
+        ) as mock_request:
+            mock_request.return_value = {
+                "accessKey": "encrypted_access_key",
+                "secretKey": "encrypted_secret_key",
+            }
+
+            result = await client.get_mqtt_config()
+
+            assert "accessKey" in result
+            assert "secretKey" in result
+            mock_request.assert_called_once()
+
+
+class TestLiproClientClose:
+    """Tests for client cleanup."""
+
+    @pytest.mark.asyncio
+    async def test_close_own_session(self):
+        """Test closing own session."""
+        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client._session = MagicMock(spec=aiohttp.ClientSession)
+        client._session.closed = False
+        client._own_session = True
+
+        await client.close()
+
+        client._session.close.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_close_external_session(self):
+        """Test not closing external session."""
+        session = MagicMock(spec=aiohttp.ClientSession)
+        client = LiproClient("550e8400-e29b-41d4-a716-446655440000", session)
+
+        await client.close()
+
+        # External session should not be closed
+        session.close.assert_not_called()
+
+
+class TestLiproClientDeviceStatus:
+    """Tests for device status queries."""
+
+    @pytest.mark.asyncio
+    async def test_query_device_status_success(self):
+        """Test querying device status successfully."""
+        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client.set_tokens("access_token", "refresh_token")
+
+        mock_result = [
+            {"deviceId": "03ab5ccd7cxxxxxx", "powerState": "1"},
+            {"deviceId": "03ab5ccd7cyyyyyy", "powerState": "0"},
+        ]
+
+        with patch.object(
+            client, "_iot_request", new_callable=AsyncMock
+        ) as mock_request:
+            mock_request.return_value = mock_result
+
+            result = await client.query_device_status(
+                ["03ab5ccd7cxxxxxx", "03ab5ccd7cyyyyyy"]
+            )
+
+            assert len(result) == 2
+            assert result[0]["deviceId"] == "03ab5ccd7cxxxxxx"
+
+    @pytest.mark.asyncio
+    async def test_query_device_status_with_dict_response(self):
+        """Test querying device status with dict response containing data key."""
+        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client.set_tokens("access_token", "refresh_token")
+
+        mock_result = {
+            "data": [
+                {"deviceId": "03ab5ccd7cxxxxxx", "powerState": "1"},
+            ]
+        }
+
+        with patch.object(
+            client, "_iot_request", new_callable=AsyncMock
+        ) as mock_request:
+            mock_request.return_value = mock_result
+
+            result = await client.query_device_status(["03ab5ccd7cxxxxxx"])
+
+            assert len(result) == 1
+
+    @pytest.mark.asyncio
+    async def test_query_device_status_offline_fallback(self):
+        """Test fallback to individual queries when batch fails with 140003."""
+        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client.set_tokens("access_token", "refresh_token")
+
+        call_count = 0
+
+        async def mock_request(path, body):
+            nonlocal call_count
+            call_count += 1
+            if call_count == 1:
+                # First batch call fails
+                raise LiproApiError("Device offline", 140003)
+            # Individual calls succeed
+            device_id = body["deviceIdList"][0]
+            return [{"deviceId": device_id, "powerState": "1"}]
+
+        with patch.object(client, "_iot_request", side_effect=mock_request):
+            result = await client.query_device_status(
+                ["03ab5ccd7cxxxxxx", "03ab5ccd7cyyyyyy"]
+            )
+
+            # Should have results from individual queries
+            assert len(result) == 2
+            # First call (batch) + 2 individual calls
+            assert call_count == 3
+
+    @pytest.mark.asyncio
+    async def test_query_device_status_other_error_raises(self):
+        """Test that non-140003 errors are re-raised."""
+        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client.set_tokens("access_token", "refresh_token")
+
+        with patch.object(
+            client, "_iot_request", new_callable=AsyncMock
+        ) as mock_request:
+            mock_request.side_effect = LiproApiError("Server error", 500)
+
+            with pytest.raises(LiproApiError, match="Server error"):
+                await client.query_device_status(["03ab5ccd7cxxxxxx"])
+
+
+class TestLiproClientMeshGroupStatus:
+    """Tests for mesh group status queries."""
+
+    @pytest.mark.asyncio
+    async def test_query_mesh_group_status_empty(self):
+        """Test querying status with empty group list."""
+        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client.set_tokens("access_token", "refresh_token")
+
+        result = await client.query_mesh_group_status([])
+
+        assert result == []
+
+    @pytest.mark.asyncio
+    async def test_query_mesh_group_status_success(self):
+        """Test querying mesh group status successfully."""
+        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client.set_tokens("access_token", "refresh_token")
+
+        mock_result = [
+            {"groupId": "mesh_group_10001", "powerState": "1"},
+        ]
+
+        with patch.object(
+            client, "_iot_request", new_callable=AsyncMock
+        ) as mock_request:
+            mock_request.return_value = mock_result
+
+            result = await client.query_mesh_group_status(["mesh_group_10001"])
+
+            assert len(result) == 1
+            assert result[0]["groupId"] == "mesh_group_10001"
+
+    @pytest.mark.asyncio
+    async def test_query_mesh_group_status_non_list_response(self):
+        """Test querying mesh group status with non-list response."""
+        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client.set_tokens("access_token", "refresh_token")
+
+        with patch.object(
+            client, "_iot_request", new_callable=AsyncMock
+        ) as mock_request:
+            mock_request.return_value = {"status": "ok"}  # Not a list
+
+            result = await client.query_mesh_group_status(["mesh_group_10001"])
+
+            assert result == []
+
+    @pytest.mark.asyncio
+    async def test_query_mesh_group_status_offline_fallback(self):
+        """Test fallback to individual queries when batch fails with 140003."""
+        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client.set_tokens("access_token", "refresh_token")
+
+        call_count = 0
+
+        async def mock_request(path, body):
+            nonlocal call_count
+            call_count += 1
+            if call_count == 1:
+                raise LiproApiError("Device offline", 140003)
+            group_id = body["groupIdList"][0]
+            return [{"groupId": group_id, "powerState": "1"}]
+
+        with patch.object(client, "_iot_request", side_effect=mock_request):
+            result = await client.query_mesh_group_status(
+                ["mesh_group_10001", "mesh_group_10002"]
+            )
+
+            assert len(result) == 2
+            assert call_count == 3
+
+
+class TestLiproClientCommandsExtended:
+    """Extended tests for command sending."""
+
+    @pytest.mark.asyncio
+    async def test_send_command_with_properties(self):
+        """Test sending command with properties."""
+        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client.set_tokens("access_token", "refresh_token")
+
+        with patch.object(
+            client, "_iot_request", new_callable=AsyncMock
+        ) as mock_request:
+            mock_request.return_value = {"success": True}
+
+            await client.send_command(
+                device_id="03ab5ccd7caaaaaa",
+                command="CHANGE_STATE",
+                device_type=1,
+                properties=[
+                    {"key": "brightness", "value": "80"},
+                    {"key": "temperature", "value": "4000"},
+                ],
+                iot_name="lipro_led",
+            )
+
+            call_args = mock_request.call_args
+            body = call_args[0][1]
+            assert body["properties"] == [
+                {"key": "brightness", "value": "80"},
+                {"key": "temperature", "value": "4000"},
+            ]
+            assert body["iotName"] == "lipro_led"
+
+    @pytest.mark.asyncio
+    async def test_send_command_without_properties(self):
+        """Test sending command without properties."""
+        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client.set_tokens("access_token", "refresh_token")
+
+        with patch.object(
+            client, "_iot_request", new_callable=AsyncMock
+        ) as mock_request:
+            mock_request.return_value = {"success": True}
+
+            await client.send_command(
+                device_id="03ab5ccd7caaaaaa",
+                command="POWER_ON",
+                device_type=1,
+            )
+
+            call_args = mock_request.call_args
+            body = call_args[0][1]
+            assert "properties" not in body
+
+    @pytest.mark.asyncio
+    async def test_send_group_command_with_properties(self):
+        """Test sending group command with properties."""
+        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client.set_tokens("access_token", "refresh_token")
+
+        with patch.object(
+            client, "_iot_request", new_callable=AsyncMock
+        ) as mock_request:
+            mock_request.return_value = {"success": True}
+
+            await client.send_group_command(
+                group_id="mesh_group_10001",
+                command="CHANGE_STATE",
+                device_type=1,
+                properties=[{"key": "powerState", "value": "1"}],
+            )
+
+            call_args = mock_request.call_args
+            body = call_args[0][1]
+            assert body["properties"] == [{"key": "powerState", "value": "1"}]
+            assert body["groupId"] == "mesh_group_10001"
+            assert body["deviceId"] == "mesh_group_10001"
+
+
+class TestLiproClientIotRequest:
+    """Tests for IoT API request handling."""
+
+    @pytest.mark.asyncio
+    async def test_iot_request_no_access_token(self):
+        """Test IoT request fails without access token."""
+        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        # No tokens set
+
+        with pytest.raises(LiproAuthError, match="No access token"):
+            await client._iot_request("/test", {})
+
+    @pytest.mark.asyncio
+    async def test_iot_request_auth_error_codes(self):
+        """Test IoT request handles various auth error codes."""
+        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client.set_tokens("access_token", "refresh_token")
+
+        # Test different auth error codes
+        for code in [401, "401", 2001, 2002]:
+            with patch.object(
+                client, "_get_session", new_callable=AsyncMock
+            ) as mock_get_session:
+                mock_session = MagicMock()
+                mock_response_obj = AsyncMock()
+                mock_response_obj.status = 200
+                mock_response_obj.json = AsyncMock(
+                    return_value={
+                        "code": code,
+                        "message": "Auth error",
+                    }
+                )
+                mock_session.post = MagicMock(
+                    return_value=AsyncMock(
+                        __aenter__=AsyncMock(return_value=mock_response_obj)
+                    )
+                )
+                mock_get_session.return_value = mock_session
+
+                with pytest.raises(LiproAuthError):
+                    await client._iot_request("/test", {})
+
+
+class TestLiproClientBizId:
+    """Tests for biz_id handling."""
+
+    def test_biz_id_stored(self):
+        """Test that biz_id is stored when setting tokens."""
+        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client.set_tokens(
+            access_token="access",
+            refresh_token="refresh",
+            user_id=123,
+            biz_id="lip_biz001",
+        )
+
+        assert client._biz_id == "lip_biz001"
+
+    def test_biz_id_default(self):
+        """Test that biz_id defaults to None."""
+        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client.set_tokens("access", "refresh")
+
+        assert client._biz_id is None
+
+
+class TestExtractDataList:
+    """Tests for _extract_data_list static method."""
+
+    def test_list_input(self):
+        """Test with list input returns as-is."""
+        data = [{"deviceId": "abc"}, {"deviceId": "def"}]
+        assert LiproClient._extract_data_list(data) == data
+
+    def test_dict_with_data_key(self):
+        """Test with dict containing 'data' key."""
+        data = {"data": [{"deviceId": "abc"}]}
+        assert LiproClient._extract_data_list(data) == [{"deviceId": "abc"}]
+
+    def test_dict_without_data_key(self):
+        """Test with dict missing 'data' key returns empty list."""
+        assert LiproClient._extract_data_list({"status": "ok"}) == []
+
+    def test_none_input(self):
+        """Test with None returns empty list."""
+        assert LiproClient._extract_data_list(None) == []
+
+    def test_string_input(self):
+        """Test with string returns empty list."""
+        assert LiproClient._extract_data_list("unexpected") == []
+
+
+class TestIsRetriableDeviceError:
+    """Tests for _is_retriable_device_error static method."""
+
+    def test_error_140003_int(self):
+        """Test error code 140003 (int) is retriable."""
+        assert LiproClient._is_retriable_device_error(LiproApiError("offline", 140003))
+
+    def test_error_140003_str(self):
+        """Test error code '140003' (str) is retriable."""
+        assert LiproClient._is_retriable_device_error(
+            LiproApiError("offline", "140003")
+        )
+
+    def test_error_140101_int(self):
+        """Test error code 140101 (int) is retriable."""
+        assert LiproClient._is_retriable_device_error(
+            LiproApiError("no permission", 140101)
+        )
+
+    def test_error_140101_str(self):
+        """Test error code '140101' (str) is retriable."""
+        assert LiproClient._is_retriable_device_error(
+            LiproApiError("no permission", "140101")
+        )
+
+    def test_error_500_not_retriable(self):
+        """Test error code 500 is not retriable."""
+        assert not LiproClient._is_retriable_device_error(
+            LiproApiError("server error", 500)
+        )
+
+    def test_error_none_not_retriable(self):
+        """Test error with no code is not retriable."""
+        assert not LiproClient._is_retriable_device_error(LiproApiError("unknown"))
+
+
+class TestDeviceStatusFallback140101:
+    """Tests for 140101 (no permission) fallback in device/group queries."""
+
+    @pytest.mark.asyncio
+    async def test_query_device_status_140101_fallback(self):
+        """Test fallback to individual queries when batch fails with 140101."""
+        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client.set_tokens("access_token", "refresh_token")
+
+        call_count = 0
+
+        async def mock_request(path, body):
+            nonlocal call_count
+            call_count += 1
+            if call_count == 1:
+                raise LiproApiError("No permission", 140101)
+            device_id = body["deviceIdList"][0]
+            return [{"deviceId": device_id, "powerState": "1"}]
+
+        with patch.object(client, "_iot_request", side_effect=mock_request):
+            result = await client.query_device_status(
+                ["03ab5ccd7cxxxxxx", "03ab5ccd7cyyyyyy"]
+            )
+
+            assert len(result) == 2
+            assert call_count == 3
+
+    @pytest.mark.asyncio
+    async def test_query_mesh_group_status_140101_fallback(self):
+        """Test fallback to individual queries when group batch fails with 140101."""
+        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client.set_tokens("access_token", "refresh_token")
+
+        call_count = 0
+
+        async def mock_request(path, body):
+            nonlocal call_count
+            call_count += 1
+            if call_count == 1:
+                raise LiproApiError("No permission", 140101)
+            group_id = body["groupIdList"][0]
+            return [{"groupId": group_id, "powerState": "1"}]
+
+        with patch.object(client, "_iot_request", side_effect=mock_request):
+            result = await client.query_mesh_group_status(
+                ["mesh_group_10001", "mesh_group_10002"]
+            )
+
+            assert len(result) == 2
+            assert call_count == 3

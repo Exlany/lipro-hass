@@ -1,0 +1,170 @@
+send_command:
+  name: Send Command
+  description: >-
+    Send a raw command to a Lipro device. This is an advanced service for
+    power users who want to test new commands or access features not yet
+    supported by the integration.
+  target:
+    entity:
+      integration: lipro
+  fields:
+    device_id:
+      name: Device ID (Optional)
+      description: >-
+        The device serial number. If not provided, the device will be
+        determined from the target entity.
+      required: false
+      example: "a4c138123456"
+      selector:
+        text:
+    command:
+      name: Command
+      description: >-
+        The command to send to the device.
+      required: true
+      example: "CHANGE_STATE"
+      selector:
+        select:
+          options:
+            - "POWER_ON"
+            - "POWER_OFF"
+            - "CHANGE_STATE"
+            - "CURTAIN_OPEN"
+            - "CURTAIN_CLOSE"
+            - "CURTAIN_STOP"
+          custom_value: true
+    properties:
+      name: Properties
+      description: >-
+        Optional list of property key-value pairs to send with the command.
+        Each property should have a "key" and "value" field.
+      required: false
+      example:
+        - key: "powerState"
+          value: "1"
+        - key: "brightness"
+          value: "80"
+      selector:
+        object:
+
+get_schedules:
+  name: Get Schedules
+  description: >-
+    Get the list of timing schedules for a device. Schedules are stored on the
+    device and execute even when Home Assistant is offline.
+  target:
+    entity:
+      integration: lipro
+  fields:
+    device_id:
+      name: Device ID (Optional)
+      description: >-
+        The device serial number. If not provided, the device will be
+        determined from the target entity.
+      required: false
+      example: "a4c138123456"
+      selector:
+        text:
+
+add_schedule:
+  name: Add Schedule
+  description: >-
+    Add or update a timing schedule for a device. The schedule is stored on the
+    device and will execute even when Home Assistant is offline. Each time entry
+    corresponds to an event (action) at that time.
+  target:
+    entity:
+      integration: lipro
+  fields:
+    device_id:
+      name: Device ID (Optional)
+      description: >-
+        The device serial number. If not provided, the device will be
+        determined from the target entity.
+      required: false
+      example: "a4c138123456"
+      selector:
+        text:
+    days:
+      name: Days
+      description: >-
+        List of weekdays when the schedule should run (1=Monday, 7=Sunday).
+      required: true
+      example: [1, 2, 3, 4, 5, 6, 7]
+      selector:
+        select:
+          multiple: true
+          options:
+            - label: "Monday"
+              value: 1
+            - label: "Tuesday"
+              value: 2
+            - label: "Wednesday"
+              value: 3
+            - label: "Thursday"
+              value: 4
+            - label: "Friday"
+              value: 5
+            - label: "Saturday"
+              value: 6
+            - label: "Sunday"
+              value: 7
+    times:
+      name: Times
+      description: >-
+        List of times in seconds from midnight (0-86399). For example, 28800 = 08:00,
+        61200 = 17:00. Each time corresponds to an event in the events list.
+      required: true
+      example: [28800, 61200]
+      selector:
+        object:
+    events:
+      name: Events
+      description: >-
+        List of event codes corresponding to each time. Common codes:
+        0=Light ON, 1=Light OFF, 200=Outlet ON, 201=Outlet OFF,
+        400=Fan ON, 401=Fan OFF.
+      required: true
+      example: [0, 1]
+      selector:
+        object:
+
+delete_schedules:
+  name: Delete Schedules
+  description: >-
+    Delete timing schedules from a device by their IDs. Use get_schedules first
+    to find the schedule IDs.
+  target:
+    entity:
+      integration: lipro
+  fields:
+    device_id:
+      name: Device ID (Optional)
+      description: >-
+        The device serial number. If not provided, the device will be
+        determined from the target entity.
+      required: false
+      example: "a4c138123456"
+      selector:
+        text:
+    schedule_ids:
+      name: Schedule IDs
+      description: >-
+        List of schedule IDs to delete. Get these from the get_schedules service.
+      required: true
+      example: [123, 124]
+      selector:
+        object:
+
+submit_anonymous_share:
+  name: Submit Anonymous Share Report
+  description: >-
+    Manually submit the anonymous device share report. This sends anonymized device
+    information and error reports to help improve the integration. Anonymous share
+    must be enabled in the integration options.
+
+get_anonymous_share_report:
+  name: Get Anonymous Share Report
+  description: >-
+    Preview the anonymous share report data that would be submitted. Use this to
+    review what information will be shared before enabling anonymous share.

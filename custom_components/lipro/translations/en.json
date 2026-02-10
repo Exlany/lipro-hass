@@ -1,0 +1,301 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Lipro Account",
+        "description": "Please enter your Lipro account credentials.",
+        "data": {
+          "phone": "Phone Number",
+          "password": "Password"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Re-authenticate",
+        "description": "Please enter the password for {phone}.",
+        "data": {
+          "password": "Password"
+        }
+      },
+      "reconfigure": {
+        "title": "Reconfigure Lipro",
+        "description": "Update your Lipro account credentials.",
+        "data": {
+          "phone": "Phone Number",
+          "password": "Password"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Unable to connect to Lipro server",
+      "invalid_auth": "Invalid phone number or password",
+      "unknown": "An unknown error occurred"
+    },
+    "abort": {
+      "already_configured": "This account is already configured",
+      "reauth_successful": "Re-authentication successful",
+      "reconfigure_successful": "Reconfiguration successful"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Lipro Options",
+        "description": "Configure Lipro integration settings.",
+        "data": {
+          "scan_interval": "Update interval (seconds)",
+          "anonymous_share_enabled": "Share device info (help improve support)",
+          "anonymous_share_errors": "Share error reports"
+        },
+        "data_description": {
+          "anonymous_share_enabled": "Anonymously share device information to help developers support more device types.",
+          "anonymous_share_errors": "Share anonymous error reports to help fix issues faster."
+        }
+      }
+    }
+  },
+  "entity": {
+    "light": {
+      "light": {
+        "name": "Light"
+      }
+    },
+    "fan": {
+      "fan": {
+        "name": "Fan",
+        "state_attributes": {
+          "preset_mode": {
+            "state": {
+              "natural": "Natural",
+              "sleep": "Sleep",
+              "normal": "Normal"
+            }
+          }
+        }
+      },
+      "ventilation_fan": {
+        "name": "Ventilation Fan",
+        "state_attributes": {
+          "preset_mode": {
+            "state": {
+              "strong": "Strong",
+              "weak": "Weak"
+            }
+          }
+        }
+      }
+    },
+    "cover": {
+      "curtain": {
+        "name": "Curtain"
+      }
+    },
+    "switch": {
+      "switch": {
+        "name": "Switch"
+      },
+      "outlet": {
+        "name": "Outlet"
+      },
+      "fade": {
+        "name": "Fade Effect"
+      },
+      "sleep_aid": {
+        "name": "Sleep Aid"
+      },
+      "wake_up": {
+        "name": "Wake Up"
+      },
+      "focus_mode": {
+        "name": "Focus Mode"
+      },
+      "body_reactive": {
+        "name": "Motion Reactive"
+      }
+    },
+    "climate": {
+      "heater": {
+        "name": "Heater",
+        "state_attributes": {
+          "preset_mode": {
+            "state": {
+              "default": "Default",
+              "demist": "Demist",
+              "dry": "Dry",
+              "gentle_wind": "Gentle Wind"
+            }
+          }
+        }
+      }
+    },
+    "binary_sensor": {
+      "connectivity": {
+        "name": "Connectivity"
+      },
+      "motion": {
+        "name": "Motion"
+      },
+      "door": {
+        "name": "Door/Window"
+      },
+      "light": {
+        "name": "Light Level"
+      },
+      "battery": {
+        "name": "Battery"
+      }
+    },
+    "sensor": {
+      "power": {
+        "name": "Power"
+      },
+      "energy": {
+        "name": "Energy"
+      },
+      "battery": {
+        "name": "Battery"
+      },
+      "wifi_signal": {
+        "name": "WiFi Signal"
+      }
+    },
+    "select": {
+      "wind_direction": {
+        "name": "Wind Direction",
+        "state": {
+          "auto": "Auto",
+          "fixed": "Fixed"
+        }
+      },
+      "heater_light": {
+        "name": "Heater Light",
+        "state": {
+          "off": "Off",
+          "main": "Main Light",
+          "night": "Night Light"
+        }
+      },
+      "light_gear": {
+        "name": "Color Temp Preset",
+        "state": {
+          "gear_1": "Warm White",
+          "gear_2": "Neutral",
+          "gear_3": "Cool White"
+        }
+      }
+    }
+  },
+  "services": {
+    "send_command": {
+      "name": "Send Command",
+      "description": "Send a raw command to a Lipro device. This is an advanced service for power users who want to test new commands or access features not yet supported by the integration.",
+      "fields": {
+        "device_id": {
+          "name": "Device ID",
+          "description": "The device serial number. If not provided, the device will be determined from the target entity."
+        },
+        "command": {
+          "name": "Command",
+          "description": "The command to send to the device."
+        },
+        "properties": {
+          "name": "Properties",
+          "description": "Optional list of property key-value pairs to send with the command."
+        }
+      }
+    },
+    "get_schedules": {
+      "name": "Get Schedules",
+      "description": "Get the list of timing schedules for a device.",
+      "fields": {
+        "device_id": {
+          "name": "Device ID",
+          "description": "The device serial number. If not provided, the device will be determined from the target entity."
+        }
+      }
+    },
+    "add_schedule": {
+      "name": "Add Schedule",
+      "description": "Add or update a timing schedule for a device.",
+      "fields": {
+        "device_id": {
+          "name": "Device ID",
+          "description": "The device serial number. If not provided, the device will be determined from the target entity."
+        },
+        "days": {
+          "name": "Days",
+          "description": "List of weekdays when the schedule should run (1=Monday, 7=Sunday)."
+        },
+        "times": {
+          "name": "Times",
+          "description": "List of times in seconds from midnight (0-86399)."
+        },
+        "events": {
+          "name": "Events",
+          "description": "List of event codes corresponding to each time."
+        }
+      }
+    },
+    "delete_schedules": {
+      "name": "Delete Schedules",
+      "description": "Delete timing schedules from a device by their IDs.",
+      "fields": {
+        "device_id": {
+          "name": "Device ID",
+          "description": "The device serial number. If not provided, the device will be determined from the target entity."
+        },
+        "schedule_ids": {
+          "name": "Schedule IDs",
+          "description": "List of schedule IDs to delete."
+        }
+      }
+    },
+    "submit_anonymous_share": {
+      "name": "Submit Anonymous Share Report",
+      "description": "Manually submit the anonymous device share report. This sends anonymized device information and error reports to help improve the integration."
+    },
+    "get_anonymous_share_report": {
+      "name": "Get Anonymous Share Report",
+      "description": "Preview the anonymous share report data that would be submitted. Use this to review what information will be shared."
+    }
+  },
+  "exceptions": {
+    "auth_expired": {
+      "title": "Lipro Authentication Expired",
+      "message": "Your Lipro session has expired. Please re-authenticate."
+    },
+    "auth_error": {
+      "title": "Lipro Authentication Error",
+      "message": "Lipro authentication failed: {error}"
+    },
+    "no_device_specified": {
+      "message": "No device_id or target entity specified."
+    },
+    "cannot_determine_device": {
+      "message": "Could not determine device from target entity."
+    },
+    "device_not_found": {
+      "message": "Device not found: {device_id}"
+    },
+    "command_failed": {
+      "message": "Failed to send command to device."
+    },
+    "schedule_fetch_failed": {
+      "message": "Failed to fetch device schedules."
+    },
+    "schedule_add_failed": {
+      "message": "Failed to add device schedule."
+    },
+    "schedule_delete_failed": {
+      "message": "Failed to delete device schedules."
+    },
+    "times_events_mismatch": {
+      "message": "The number of times must match the number of events."
+    },
+    "anonymous_share_not_enabled": {
+      "message": "Anonymous share is not enabled. Enable it in the integration options first."
+    },
+    "anonymous_share_submit_failed": {
+      "message": "Failed to submit anonymous share report."
+    }
+  }
+}

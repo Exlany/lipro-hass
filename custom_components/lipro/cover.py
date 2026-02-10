@@ -1,0 +1,130 @@
+"""Cover platform for Lipro integration."""
+
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any
+
+from homeassistant.components.cover import (
+    CoverDeviceClass,
+    CoverEntity,
+    CoverEntityFeature,
+)
+
+from .const import (
+    CMD_CHANGE_STATE,
+    CMD_CURTAIN_CLOSE,
+    CMD_CURTAIN_OPEN,
+    CMD_CURTAIN_STOP,
+    PROP_DIRECTION,
+    PROP_MOVING,
+    PROP_POSITION,
+)
+from .entities.base import LiproEntity
+from .helpers import create_platform_entities
+
+if TYPE_CHECKING:
+    from homeassistant.core import HomeAssistant
+    from homeassistant.helpers.entity_platform import AddEntitiesCallback
+
+    from . import LiproConfigEntry
+
+# Limit parallel updates to avoid overwhelming the API
+PARALLEL_UPDATES = 1
+
+
+async def async_setup_entry(
+    hass: HomeAssistant,
+    entry: LiproConfigEntry,
+    async_add_entities: AddEntitiesCallback,
+) -> None:
+    """Set up Lipro covers."""
+    entities = create_platform_entities(
+        entry.runtime_data,
+        device_filter=lambda d: d.is_curtain,
+        entity_factory=LiproCover,
+    )
+    async_add_entities(entities)
+
+
+class LiproCover(LiproEntity, CoverEntity):
+    """Representation of a Lipro curtain."""
+
+    _attr_device_class = CoverDeviceClass.CURTAIN
+    _attr_supported_features = (
+        CoverEntityFeature.OPEN
+        | CoverEntityFeature.CLOSE
+        | CoverEntityFeature.STOP
+        | CoverEntityFeature.SET_POSITION
+    )
+    _attr_name = None  # Use device name
+
+    @property
+    def current_cover_position(self) -> int | None:
+        """Return current position of cover (0-100).
+
+        Lipro API: position 0=fully closed, 100=fully open
+        Home Assistant: same convention (0=closed, 100=open)
+        No conversion needed.
+        """
+        if PROP_POSITION not in self.device.properties:
+            return None
+        return self.device.position
+
+    @property
+    def is_closed(self) -> bool | None:
+        """Return if the cover is closed.
+
+        Lipro API: position=0 means fully closed.
+        """
+        if PROP_POSITION not in self.device.properties:
+            return None
+        return self.device.position == 0
+
+    @property
+    def is_opening(self) -> bool:
+        """Return if the cover is opening."""
+        direction = self.device.direction
+        return self.device.is_moving and direction == "opening"
+
+    @property
+    def is_closing(self) -> bool:
+        """Return if the cover is closing."""
+        direction = self.device.direction
+        return self.device.is_moving and direction == "closing"
+
+    async def async_open_cover(self, **kwargs: Any) -> None:
+        """Open the cover."""
+        await self.async_send_command(
+            CMD_CURTAIN_OPEN,
+            None,
+            {PROP_MOVING: "1", PROP_DIRECTION: "1"},
+        )
+
+    async def async_close_cover(self, **kwargs: Any) -> None:
+        """Close the cover."""
+        await self.async_send_command(
+            CMD_CURTAIN_CLOSE,
+            None,
+            {PROP_MOVING: "1", PROP_DIRECTION: "0"},
+        )
+
+    async def async_stop_cover(self, **kwargs: Any) -> None:
+        """Stop the cover."""
+        await self.async_send_command(CMD_CURTAIN_STOP, None, {PROP_MOVING: "0"})
+
+    async def async_set_cover_position(self, **kwargs: Any) -> None:
+        """Set cover position."""
+        raw_position = kwargs.get("position", 0)
+        # Safely convert to int with type validation
+        try:
+            position = int(raw_position)
+        except (ValueError, TypeError):
+            position = 0
+        # Clamp position to valid range (0-100)
+        position = max(0, min(100, position))
+        # Use debounce for position slider to avoid flooding API
+        await self.async_send_command_debounced(
+            CMD_CHANGE_STATE,
+            [{"key": PROP_POSITION, "value": str(position)}],
+            {PROP_POSITION: str(position)},
+        )

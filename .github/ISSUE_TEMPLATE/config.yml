@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 📖 Documentation / 文档
+    url: https://github.com/Exlany/lipro-hass#readme
+    about: Read the documentation before opening an issue / 提交问题前请先阅读文档
+  - name: 💬 Discussions / 讨论
+    url: https://github.com/Exlany/lipro-hass/discussions
+    about: Ask questions and share ideas / 提问和分享想法
