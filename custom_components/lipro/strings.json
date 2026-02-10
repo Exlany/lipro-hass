@@ -43,12 +43,33 @@
         "description": "Configure Lipro integration settings.",
         "data": {
           "scan_interval": "Update interval (seconds)",
+          "mqtt_enabled": "Enable MQTT real-time updates",
+          "enable_power_monitoring": "Enable power monitoring (outlets)",
           "anonymous_share_enabled": "Share device info (help improve support)",
-          "anonymous_share_errors": "Share error reports"
+          "anonymous_share_errors": "Share error reports",
+          "show_advanced": "Show advanced settings"
         },
         "data_description": {
+          "scan_interval": "How often to poll device status from the cloud (10-300 seconds).",
+          "mqtt_enabled": "Use MQTT for instant device state updates. Disable if you experience connection issues.",
+          "enable_power_monitoring": "Query power consumption for outlet devices. Disable to reduce API calls.",
           "anonymous_share_enabled": "Anonymously share device information to help developers support more device types.",
-          "anonymous_share_errors": "Share anonymous error reports to help fix issues faster."
+          "anonymous_share_errors": "Share anonymous error reports to help fix issues faster.",
+          "show_advanced": "Configure advanced settings like timeouts, query intervals, and debug logging."
+        }
+      },
+      "advanced": {
+        "title": "Advanced Settings",
+        "description": "These settings are for advanced users. Default values work well for most setups.",
+        "data": {
+          "power_query_interval": "Power query interval (seconds)",
+          "request_timeout": "API request timeout (seconds)",
+          "debug_mode": "Enable debug logging"
+        },
+        "data_description": {
+          "power_query_interval": "How often to query power data for outlets (30-300 seconds). Only applies when power monitoring is enabled.",
+          "request_timeout": "Timeout for API requests (10-60 seconds). Increase if you have a slow network.",
+          "debug_mode": "Enable verbose logging for troubleshooting. Check Home Assistant logs for details."
         }
       }
     }

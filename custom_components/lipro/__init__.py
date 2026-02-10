@@ -23,7 +23,9 @@ from .config_flow import CONF_PASSWORD_HASH
 from .const import (
     CONF_PHONE,
     CONF_PHONE_ID,
+    CONF_REQUEST_TIMEOUT,
     CONF_SCAN_INTERVAL,
+    DEFAULT_REQUEST_TIMEOUT,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
 )
@@ -141,8 +143,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: LiproConfigEntry) -> boo
     phone = entry.data[CONF_PHONE]
     password_hash = entry.data[CONF_PASSWORD_HASH]
 
+    # Get request timeout from options
+    request_timeout = entry.options.get(CONF_REQUEST_TIMEOUT, DEFAULT_REQUEST_TIMEOUT)
+
     session = async_get_clientsession(hass)
-    client = LiproClient(phone_id, session)
+    client = LiproClient(phone_id, session, request_timeout=request_timeout)
     auth_manager = LiproAuthManager(client)
 
     # Set stored tokens if available

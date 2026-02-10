@@ -115,17 +115,20 @@ class LiproClient:
         self,
         phone_id: str,
         session: aiohttp.ClientSession | None = None,
+        request_timeout: int = REQUEST_TIMEOUT,
     ) -> None:
         """Initialize the client.
 
         Args:
             phone_id: Device UUID for API signing.
             session: Optional aiohttp session to use.
+            request_timeout: Request timeout in seconds.
 
         """
         self._phone_id = phone_id
         self._session = session
         self._own_session = session is None
+        self._request_timeout = request_timeout
         self._access_token: str | None = None
         self._refresh_token: str | None = None
         self._user_id: int | None = None
@@ -338,7 +341,7 @@ class LiproClient:
                     HEADER_CONTENT_TYPE: CONTENT_TYPE_FORM,
                     HEADER_USER_AGENT: USER_AGENT,
                 },
-                timeout=aiohttp.ClientTimeout(total=REQUEST_TIMEOUT),
+                timeout=aiohttp.ClientTimeout(total=self._request_timeout),
             ),
             path,
         )
@@ -425,7 +428,7 @@ class LiproClient:
                 url,
                 data=body,
                 headers=headers,
-                timeout=aiohttp.ClientTimeout(total=REQUEST_TIMEOUT),
+                timeout=aiohttp.ClientTimeout(total=self._request_timeout),
             ),
             path,
         )

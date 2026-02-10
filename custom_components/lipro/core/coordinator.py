@@ -5,7 +5,9 @@ from __future__ import annotations
 import asyncio
 from datetime import timedelta
 import hashlib
+import json
 import logging
+import time
 from typing import TYPE_CHECKING, Any
 
 from homeassistant.components.persistent_notification import async_create
@@ -17,9 +19,19 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Upda
 from ..const import (
     CONF_ANONYMOUS_SHARE_ENABLED,
     CONF_ANONYMOUS_SHARE_ERRORS,
+    CONF_DEBUG_MODE,
+    CONF_ENABLE_POWER_MONITORING,
+    CONF_MQTT_ENABLED,
     CONF_PHONE_ID,
+    CONF_POWER_QUERY_INTERVAL,
+    CONF_REQUEST_TIMEOUT,
     DEFAULT_ANONYMOUS_SHARE_ENABLED,
     DEFAULT_ANONYMOUS_SHARE_ERRORS,
+    DEFAULT_DEBUG_MODE,
+    DEFAULT_ENABLE_POWER_MONITORING,
+    DEFAULT_MQTT_ENABLED,
+    DEFAULT_POWER_QUERY_INTERVAL,
+    DEFAULT_REQUEST_TIMEOUT,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
 )
@@ -97,9 +109,48 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         self._biz_id: str | None = None
         # Product configs cache (iotName -> config)
         self._product_configs: dict[str, dict[str, Any]] = {}
+        # MQTT message deduplication cache: device_id -> (properties_hash, timestamp)
+        self._mqtt_message_cache: dict[str, tuple[str, float]] = {}
+        # Deduplication window in seconds (ignore duplicate messages within this window)
+        self._mqtt_dedup_window: float = 0.5
+        # Power query tracking
+        self._last_power_query_time: float = 0.0
+
+        # Load options from config entry
+        self._load_options()
 
         # Initialize anonymous share system based on config
         self._setup_anonymous_share()
+
+    def _load_options(self) -> None:
+        """Load options from config entry."""
+        options = self.config_entry.options if self.config_entry else {}
+
+        # MQTT enabled
+        self._mqtt_enabled = options.get(CONF_MQTT_ENABLED, DEFAULT_MQTT_ENABLED)
+
+        # Power monitoring
+        self._power_monitoring_enabled = options.get(
+            CONF_ENABLE_POWER_MONITORING, DEFAULT_ENABLE_POWER_MONITORING
+        )
+        self._power_query_interval = options.get(
+            CONF_POWER_QUERY_INTERVAL, DEFAULT_POWER_QUERY_INTERVAL
+        )
+
+        # Request timeout
+        self._request_timeout = options.get(
+            CONF_REQUEST_TIMEOUT, DEFAULT_REQUEST_TIMEOUT
+        )
+
+        # Debug mode
+        self._debug_mode = options.get(CONF_DEBUG_MODE, DEFAULT_DEBUG_MODE)
+
+        # Apply debug mode to all lipro loggers
+        if self._debug_mode:
+            # Set debug level for all lipro modules
+            lipro_logger = logging.getLogger("custom_components.lipro")
+            lipro_logger.setLevel(logging.DEBUG)
+            _LOGGER.debug("Debug mode enabled for all Lipro modules")
 
     def _setup_anonymous_share(self) -> None:
         """Set up the anonymous share system based on config options."""
@@ -414,6 +465,7 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         self._devices.clear()
         self._iot_id_to_device.clear()
         self._product_configs.clear()
+        self._mqtt_message_cache.clear()
 
         _LOGGER.debug("Coordinator shutdown complete")
 
@@ -433,6 +485,9 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         This callback is invoked from aiomqtt's async message iterator,
         which runs on the event loop, so no thread-safety wrapper is needed.
 
+        Implements deduplication to handle duplicate MQTT messages that may
+        arrive in quick succession (common with Lipro devices).
+
         Args:
             device_id: IoT device ID.
             properties: Flattened device properties.
@@ -444,6 +499,39 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         if not device:
             _LOGGER.debug("MQTT message for unknown device: %s...", device_id[:8])
             return
+
+        # Deduplication: check if this is a duplicate message
+        current_time = time.monotonic()
+        props_hash = hashlib.md5(
+            json.dumps(properties, sort_keys=True).encode()
+        ).hexdigest()[:16]
+
+        cache_key = f"{device_id}:{props_hash}"
+        cached = self._mqtt_message_cache.get(cache_key)
+
+        if cached:
+            _last_hash, last_time = cached
+            if current_time - last_time < self._mqtt_dedup_window:
+                # Duplicate message within dedup window, skip
+                if self._debug_mode:
+                    _LOGGER.debug(
+                        "MQTT: skipping duplicate message for %s (%.2fs ago)",
+                        device.name,
+                        current_time - last_time,
+                    )
+                return
+
+        # Update cache
+        self._mqtt_message_cache[cache_key] = (props_hash, current_time)
+
+        # Clean up old cache entries (older than 5 seconds)
+        stale_keys = [
+            k
+            for k, (_, t) in self._mqtt_message_cache.items()
+            if current_time - t > 5.0
+        ]
+        for k in stale_keys:
+            del self._mqtt_message_cache[k]
 
         self._apply_properties_update(device, properties)
 
@@ -530,8 +618,10 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
             await self._update_device_status()
 
             # Ensure MQTT client is running (retry if previous setup failed)
+            # Only if MQTT is enabled in options
             if (
-                not self._mqtt_client
+                self._mqtt_enabled
+                and not self._mqtt_client
                 and not self._mqtt_setup_in_progress
                 and self._devices
             ):
@@ -752,8 +842,12 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         if self._group_ids_to_query:
             tasks.append(self._query_group_status())
 
-        # Query outlet power info
-        if self._outlet_ids_to_query:
+        # Query outlet power info (if enabled and interval has passed)
+        if (
+            self._power_monitoring_enabled
+            and self._outlet_ids_to_query
+            and self._should_query_power()
+        ):
             tasks.append(self._query_outlet_power())
 
         # Query real-time connection status (more accurate than cached connectState)
@@ -766,6 +860,19 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
             for result in results:
                 if isinstance(result, Exception):
                     _LOGGER.debug("Task failed during status update: %s", result)
+
+    def _should_query_power(self) -> bool:
+        """Check if power query should be executed based on interval.
+
+        Returns:
+            True if power query should be executed.
+
+        """
+        current_time = time.monotonic()
+        if current_time - self._last_power_query_time >= self._power_query_interval:
+            self._last_power_query_time = current_time
+            return True
+        return False
 
     async def _query_device_status(self) -> None:
         """Query status for individual devices."""

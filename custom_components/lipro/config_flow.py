@@ -24,14 +24,28 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from .const import (
     CONF_ANONYMOUS_SHARE_ENABLED,
     CONF_ANONYMOUS_SHARE_ERRORS,
+    CONF_DEBUG_MODE,
+    CONF_ENABLE_POWER_MONITORING,
+    CONF_MQTT_ENABLED,
     CONF_PHONE,
     CONF_PHONE_ID,
+    CONF_POWER_QUERY_INTERVAL,
+    CONF_REQUEST_TIMEOUT,
     CONF_SCAN_INTERVAL,
     DEFAULT_ANONYMOUS_SHARE_ENABLED,
     DEFAULT_ANONYMOUS_SHARE_ERRORS,
+    DEFAULT_DEBUG_MODE,
+    DEFAULT_ENABLE_POWER_MONITORING,
+    DEFAULT_MQTT_ENABLED,
+    DEFAULT_POWER_QUERY_INTERVAL,
+    DEFAULT_REQUEST_TIMEOUT,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
+    MAX_POWER_QUERY_INTERVAL,
+    MAX_REQUEST_TIMEOUT,
     MAX_SCAN_INTERVAL,
+    MIN_POWER_QUERY_INTERVAL,
+    MIN_REQUEST_TIMEOUT,
     MIN_SCAN_INTERVAL,
 )
 from .core.api import LiproApiError, LiproAuthError, LiproClient, LiproConnectionError
@@ -264,26 +278,29 @@ class LiproConfigFlow(ConfigFlow, domain=DOMAIN):
 class LiproOptionsFlow(OptionsFlow):
     """Handle Lipro options."""
 
+    def __init__(self) -> None:
+        """Initialize options flow."""
+        super().__init__()
+        self._options: dict[str, Any] = {}
+
     async def async_step_init(
         self,
         user_input: dict[str, Any] | None = None,
     ) -> ConfigFlowResult:
-        """Manage the options."""
+        """Manage basic options."""
         if user_input is not None:
-            return self.async_create_entry(title="", data=user_input)
+            # Store basic options and check if user wants advanced settings
+            show_advanced = user_input.pop("show_advanced", False)
+            self._options.update(user_input)
 
-        current_interval = self.config_entry.options.get(
-            CONF_SCAN_INTERVAL,
-            DEFAULT_SCAN_INTERVAL,
-        )
-        current_anonymous_share = self.config_entry.options.get(
-            CONF_ANONYMOUS_SHARE_ENABLED,
-            DEFAULT_ANONYMOUS_SHARE_ENABLED,
-        )
-        current_anonymous_share_errors = self.config_entry.options.get(
-            CONF_ANONYMOUS_SHARE_ERRORS,
-            DEFAULT_ANONYMOUS_SHARE_ERRORS,
-        )
+            if show_advanced:
+                return await self.async_step_advanced()
+
+            # Merge with existing advanced options (keep previous values)
+            return self._save_options()
+
+        # Get current values with defaults
+        options = self.config_entry.options
 
         return self.async_show_form(
             step_id="init",
@@ -291,19 +308,90 @@ class LiproOptionsFlow(OptionsFlow):
                 {
                     vol.Required(
                         CONF_SCAN_INTERVAL,
-                        default=current_interval,
+                        default=options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL),
                     ): vol.All(
                         vol.Coerce(int),
                         vol.Range(min=MIN_SCAN_INTERVAL, max=MAX_SCAN_INTERVAL),
                     ),
                     vol.Required(
+                        CONF_MQTT_ENABLED,
+                        default=options.get(CONF_MQTT_ENABLED, DEFAULT_MQTT_ENABLED),
+                    ): bool,
+                    vol.Required(
+                        CONF_ENABLE_POWER_MONITORING,
+                        default=options.get(
+                            CONF_ENABLE_POWER_MONITORING,
+                            DEFAULT_ENABLE_POWER_MONITORING,
+                        ),
+                    ): bool,
+                    vol.Required(
                         CONF_ANONYMOUS_SHARE_ENABLED,
-                        default=current_anonymous_share,
+                        default=options.get(
+                            CONF_ANONYMOUS_SHARE_ENABLED,
+                            DEFAULT_ANONYMOUS_SHARE_ENABLED,
+                        ),
                     ): bool,
                     vol.Required(
                         CONF_ANONYMOUS_SHARE_ERRORS,
-                        default=current_anonymous_share_errors,
+                        default=options.get(
+                            CONF_ANONYMOUS_SHARE_ERRORS,
+                            DEFAULT_ANONYMOUS_SHARE_ERRORS,
+                        ),
+                    ): bool,
+                    vol.Optional(
+                        "show_advanced",
+                        default=False,
                     ): bool,
                 },
             ),
         )
+
+    async def async_step_advanced(
+        self,
+        user_input: dict[str, Any] | None = None,
+    ) -> ConfigFlowResult:
+        """Manage advanced options."""
+        if user_input is not None:
+            self._options.update(user_input)
+            return self._save_options()
+
+        options = self.config_entry.options
+
+        return self.async_show_form(
+            step_id="advanced",
+            data_schema=vol.Schema(
+                {
+                    vol.Required(
+                        CONF_POWER_QUERY_INTERVAL,
+                        default=options.get(
+                            CONF_POWER_QUERY_INTERVAL, DEFAULT_POWER_QUERY_INTERVAL
+                        ),
+                    ): vol.All(
+                        vol.Coerce(int),
+                        vol.Range(
+                            min=MIN_POWER_QUERY_INTERVAL, max=MAX_POWER_QUERY_INTERVAL
+                        ),
+                    ),
+                    vol.Required(
+                        CONF_REQUEST_TIMEOUT,
+                        default=options.get(
+                            CONF_REQUEST_TIMEOUT, DEFAULT_REQUEST_TIMEOUT
+                        ),
+                    ): vol.All(
+                        vol.Coerce(int),
+                        vol.Range(min=MIN_REQUEST_TIMEOUT, max=MAX_REQUEST_TIMEOUT),
+                    ),
+                    vol.Required(
+                        CONF_DEBUG_MODE,
+                        default=options.get(CONF_DEBUG_MODE, DEFAULT_DEBUG_MODE),
+                    ): bool,
+                },
+            ),
+        )
+
+    def _save_options(self) -> ConfigFlowResult:
+        """Save options, merging with existing advanced options if not visited."""
+        # Merge: start with existing options, overlay with new selections
+        merged = dict(self.config_entry.options)
+        merged.update(self._options)
+        return self.async_create_entry(title="", data=merged)
