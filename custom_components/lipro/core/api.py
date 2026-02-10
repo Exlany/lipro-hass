@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import asyncio
+from datetime import datetime
+from email.utils import parsedate_to_datetime
 import hashlib
 import json
 import logging
@@ -106,6 +108,24 @@ class LiproRefreshTokenExpiredError(LiproAuthError):
 
 class LiproConnectionError(LiproApiError):
     """Connection error."""
+
+
+class LiproRateLimitError(LiproApiError):
+    """Rate limit error (429 Too Many Requests)."""
+
+    def __init__(
+        self, message: str, retry_after: float | None = None, code: int | str = 429
+    ) -> None:
+        """Initialize the exception.
+
+        Args:
+            message: Error message.
+            retry_after: Seconds to wait before retrying (from Retry-After header).
+            code: Error code (default 429).
+
+        """
+        super().__init__(message, code)
+        self.retry_after = retry_after
 
 
 class LiproClient:
@@ -257,7 +277,7 @@ class LiproClient:
         self,
         request_ctx: Any,
         path: str,
-    ) -> tuple[int, dict[str, Any]]:
+    ) -> tuple[int, dict[str, Any], dict[str, str]]:
         """Execute an HTTP request with common error handling.
 
         Args:
@@ -265,7 +285,7 @@ class LiproClient:
             path: API path (for logging).
 
         Returns:
-            Tuple of (HTTP status code, parsed JSON response body).
+            Tuple of (HTTP status code, parsed JSON response body, response headers).
 
         Raises:
             LiproConnectionError: If connection fails or times out.
@@ -274,6 +294,7 @@ class LiproClient:
         try:
             async with request_ctx as response:
                 status = response.status
+                headers = dict(response.headers)
                 result = await response.json()
         except aiohttp.ClientError as err:
             msg = f"Connection error: {err}"
@@ -287,7 +308,7 @@ class LiproClient:
             path,
             _mask_sensitive_data(json.dumps(result, ensure_ascii=False)[:500]),
         )
-        return status, result
+        return status, result, headers
 
     async def _smart_home_request(
         self,
@@ -295,14 +316,16 @@ class LiproClient:
         data: dict[str, Any],
         require_auth: bool = True,
         _is_retry: bool = False,
+        _retry_count: int = 0,
     ) -> dict[str, Any]:
-        """Make a Smart Home API request with automatic 401 handling.
+        """Make a Smart Home API request with automatic 401/429 handling.
 
         Args:
             path: API path.
             data: Request data.
             require_auth: Whether authentication is required.
             _is_retry: Internal flag to prevent infinite retry loops.
+            _retry_count: Internal counter for rate limit retries.
 
         Returns:
             Response data.
@@ -310,6 +333,7 @@ class LiproClient:
         Raises:
             LiproAuthError: If authentication fails.
             LiproConnectionError: If connection fails.
+            LiproRateLimitError: If rate limited after max retries.
             LiproApiError: If API returns an error.
 
         """
@@ -333,7 +357,7 @@ class LiproClient:
 
         url = f"{SMART_HOME_API_URL}{path}"
 
-        _status, result = await self._execute_request(
+        status, result, headers = await self._execute_request(
             session.post(
                 url,
                 data=request_data,
@@ -345,6 +369,30 @@ class LiproClient:
             ),
             path,
         )
+
+        # Handle 429 Rate Limit
+        if status == 429:
+            retry_after = self._parse_retry_after(headers)
+            if _retry_count < 2:  # Max 2 retries (3 total requests)
+                # Ensure wait_time is non-negative
+                wait_time = max(0.1, retry_after or (2**_retry_count))
+                _LOGGER.debug(
+                    "Rate limited on %s, waiting %.1fs before retry %d/2",
+                    path,
+                    wait_time,
+                    _retry_count + 1,
+                )
+                await asyncio.sleep(wait_time)
+                return await self._smart_home_request(
+                    path,
+                    data,
+                    require_auth,
+                    _is_retry,
+                    _retry_count=_retry_count + 1,
+                )
+            _LOGGER.warning("Rate limited on %s after 2 retries", path)
+            msg = "Rate limited after 2 retries"
+            raise LiproRateLimitError(msg, retry_after)
 
         code = result.get("code")
         if code == RESPONSE_SUCCESS:
@@ -384,13 +432,15 @@ class LiproClient:
         path: str,
         body_data: dict[str, Any],
         _is_retry: bool = False,
+        _retry_count: int = 0,
     ) -> dict[str, Any]:
-        """Make an IoT API request with automatic 401 handling.
+        """Make an IoT API request with automatic 401/429 handling.
 
         Args:
             path: API path.
             body_data: Request body data.
             _is_retry: Internal flag to prevent infinite retry loops.
+            _retry_count: Internal counter for rate limit retries.
 
         Returns:
             Response data.
@@ -398,6 +448,7 @@ class LiproClient:
         Raises:
             LiproAuthError: If authentication fails.
             LiproConnectionError: If connection fails.
+            LiproRateLimitError: If rate limited after max retries.
             LiproApiError: If API returns an error.
 
         """
@@ -411,7 +462,7 @@ class LiproClient:
         body = json.dumps(body_data, separators=(",", ":"), ensure_ascii=False)
         sign = self._iot_sign(nonce, body)
 
-        headers = {
+        req_headers = {
             HEADER_CONTENT_TYPE: CONTENT_TYPE_JSON,
             HEADER_CACHE_CONTROL: "no-cache",
             HEADER_USER_AGENT: USER_AGENT,
@@ -423,15 +474,38 @@ class LiproClient:
 
         url = f"{IOT_API_URL}{path}"
 
-        status, result = await self._execute_request(
+        status, result, resp_headers = await self._execute_request(
             session.post(
                 url,
                 data=body,
-                headers=headers,
+                headers=req_headers,
                 timeout=aiohttp.ClientTimeout(total=self._request_timeout),
             ),
             path,
         )
+
+        # Handle 429 Rate Limit
+        if status == 429:
+            retry_after = self._parse_retry_after(resp_headers)
+            if _retry_count < 2:  # Max 2 retries (3 total requests)
+                # Ensure wait_time is non-negative
+                wait_time = max(0.1, retry_after or (2**_retry_count))
+                _LOGGER.debug(
+                    "Rate limited on %s, waiting %.1fs before retry %d/2",
+                    path,
+                    wait_time,
+                    _retry_count + 1,
+                )
+                await asyncio.sleep(wait_time)
+                return await self._iot_request(
+                    path,
+                    body_data,
+                    _is_retry,
+                    _retry_count=_retry_count + 1,
+                )
+            _LOGGER.warning("Rate limited on %s after 2 retries", path)
+            msg = "Rate limited after 2 retries"
+            raise LiproRateLimitError(msg, retry_after)
 
         # Check HTTP status code for 401 (IoT API style)
         if status == 401:
@@ -476,6 +550,39 @@ class LiproClient:
         # Record API error for anonymous share
         _record_api_error(path, code, message, method="POST")
         raise LiproApiError(message, code)
+
+    @staticmethod
+    def _parse_retry_after(headers: dict[str, str]) -> float | None:
+        """Parse Retry-After header value.
+
+        Supports both formats per RFC 7231:
+        - Seconds: "Retry-After: 120"
+        - HTTP-date: "Retry-After: Wed, 21 Oct 2015 07:28:00 GMT"
+
+        Args:
+            headers: Response headers dict.
+
+        Returns:
+            Seconds to wait, or None if header not present/invalid.
+
+        """
+        retry_after = headers.get("Retry-After") or headers.get("retry-after")
+        if not retry_after:
+            return None
+
+        # Try parsing as seconds first (most common)
+        try:
+            return float(retry_after)
+        except ValueError:
+            pass
+
+        # Try parsing as HTTP-date (RFC 7231)
+        try:
+            retry_dt = parsedate_to_datetime(retry_after)
+            delta = (retry_dt - datetime.now(tz=retry_dt.tzinfo)).total_seconds()
+            return max(0.0, delta)  # Don't return negative values
+        except (ValueError, TypeError):
+            return None
 
     async def _handle_401_with_refresh(self, old_token: str | None) -> bool:
         """Handle 401 error by refreshing token with concurrency control.

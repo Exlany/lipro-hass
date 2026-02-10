@@ -388,6 +388,8 @@ class TestLiproClientErrorHandling:
         ) as mock_get_session:
             mock_session = MagicMock()
             mock_response_obj = AsyncMock()
+            mock_response_obj.status = 200
+            mock_response_obj.headers = {}
             mock_response_obj.json = AsyncMock(return_value=mock_response)
             mock_session.post = MagicMock(
                 return_value=AsyncMock(
@@ -452,6 +454,8 @@ class TestLiproClient401Handling:
         ) as mock_get_session:
             mock_session = MagicMock()
             mock_response_obj = AsyncMock()
+            mock_response_obj.status = 200
+            mock_response_obj.headers = {}
             mock_response_obj.json = AsyncMock(return_value=mock_response)
             mock_session.post = MagicMock(
                 return_value=AsyncMock(
@@ -681,6 +685,147 @@ class TestLiproClientMeshGroupStatus:
             assert call_count == 3
 
 
+class TestLiproClient429Handling:
+    """Tests for 429 rate limit handling."""
+
+    @pytest.mark.asyncio
+    async def test_429_with_retry_after_seconds(self):
+        """Test 429 handling with Retry-After header in seconds."""
+        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client.set_tokens("access_token", "refresh_token")
+
+        call_count = 0
+
+        async def mock_execute_request(request_ctx, path):
+            nonlocal call_count
+            call_count += 1
+            if call_count == 1:
+                # First call returns 429
+                return (
+                    429,
+                    {"code": 429, "message": "Too Many Requests"},
+                    {"Retry-After": "0.01"},
+                )
+            # Second call succeeds (code 200 is RESPONSE_SUCCESS)
+            return 200, {"code": 200, "value": {"devices": []}}, {}
+
+        with (
+            patch.object(client, "_execute_request", side_effect=mock_execute_request),
+            patch.object(
+                client, "_get_session", new_callable=AsyncMock
+            ) as mock_session,
+        ):
+            mock_session.return_value = MagicMock()
+            result = await client.get_devices()
+
+        assert call_count == 2
+        assert "devices" in result
+
+    @pytest.mark.asyncio
+    async def test_429_max_retries_exceeded(self):
+        """Test 429 raises error after max retries."""
+        from custom_components.lipro.core.api import LiproRateLimitError
+
+        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client.set_tokens("access_token", "refresh_token")
+
+        async def mock_execute_request(request_ctx, path):
+            # Always return 429
+            return (
+                429,
+                {"code": 429, "message": "Too Many Requests"},
+                {"Retry-After": "0.01"},
+            )
+
+        with (
+            patch.object(client, "_execute_request", side_effect=mock_execute_request),
+            patch.object(
+                client, "_get_session", new_callable=AsyncMock
+            ) as mock_session,
+        ):
+            mock_session.return_value = MagicMock()
+            with pytest.raises(
+                LiproRateLimitError, match="Rate limited after 2 retries"
+            ):
+                await client.get_devices()
+
+    def test_parse_retry_after_seconds(self):
+        """Test parsing Retry-After header with seconds value."""
+        result = LiproClient._parse_retry_after({"Retry-After": "30"})
+        assert result == 30.0
+
+    def test_parse_retry_after_float(self):
+        """Test parsing Retry-After header with float value."""
+        result = LiproClient._parse_retry_after({"Retry-After": "1.5"})
+        assert result == 1.5
+
+    def test_parse_retry_after_missing(self):
+        """Test parsing missing Retry-After header."""
+        result = LiproClient._parse_retry_after({})
+        assert result is None
+
+    def test_parse_retry_after_invalid(self):
+        """Test parsing invalid Retry-After header."""
+        result = LiproClient._parse_retry_after({"Retry-After": "invalid"})
+        # Invalid string that's not a number and not a valid HTTP date
+        assert result is None
+
+    def test_parse_retry_after_http_date(self):
+        """Test parsing Retry-After header with HTTP date format."""
+        # Use a date in the future
+        from datetime import UTC, datetime, timedelta
+
+        future = datetime.now(UTC) + timedelta(seconds=60)
+        http_date = future.strftime("%a, %d %b %Y %H:%M:%S GMT")
+        result = LiproClient._parse_retry_after({"Retry-After": http_date})
+        # Should return approximately 60 seconds (allow some tolerance)
+        assert result is not None
+        assert 55 <= result <= 65
+
+    def test_parse_retry_after_lowercase_header(self):
+        """Test parsing lowercase retry-after header."""
+        result = LiproClient._parse_retry_after({"retry-after": "10"})
+        assert result == 10.0
+
+    def test_parse_retry_after_negative(self):
+        """Test parsing negative Retry-After value."""
+        # Negative values should still be parsed (clamping happens at usage site)
+        result = LiproClient._parse_retry_after({"Retry-After": "-5"})
+        assert result == -5.0
+
+    def test_parse_retry_after_zero(self):
+        """Test parsing zero Retry-After value."""
+        result = LiproClient._parse_retry_after({"Retry-After": "0"})
+        assert result == 0.0
+
+
+class TestLiproRateLimitError:
+    """Tests for LiproRateLimitError exception."""
+
+    def test_rate_limit_error_with_retry_after(self):
+        """Test LiproRateLimitError stores retry_after value."""
+        from custom_components.lipro.core.api import LiproRateLimitError
+
+        error = LiproRateLimitError("Rate limited", retry_after=30.0)
+        assert error.retry_after == 30.0
+        assert str(error) == "Rate limited"
+        assert error.code == 429
+
+    def test_rate_limit_error_without_retry_after(self):
+        """Test LiproRateLimitError without retry_after."""
+        from custom_components.lipro.core.api import LiproRateLimitError
+
+        error = LiproRateLimitError("Rate limited")
+        assert error.retry_after is None
+
+    def test_rate_limit_error_is_api_error(self):
+        """Test LiproRateLimitError inherits from LiproApiError."""
+        from custom_components.lipro.core.api import LiproRateLimitError
+
+        error = LiproRateLimitError("Rate limited")
+        assert isinstance(error, LiproApiError)
+
+
 class TestLiproClientCommandsExtended:
     """Extended tests for command sending."""
 
@@ -786,6 +931,7 @@ class TestLiproClientIotRequest:
                 mock_session = MagicMock()
                 mock_response_obj = AsyncMock()
                 mock_response_obj.status = 200
+                mock_response_obj.headers = {}
                 mock_response_obj.json = AsyncMock(
                     return_value={
                         "code": code,

@@ -502,36 +502,46 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
 
         # Deduplication: check if this is a duplicate message
         current_time = time.monotonic()
-        props_hash = hashlib.md5(
-            json.dumps(properties, sort_keys=True).encode()
-        ).hexdigest()[:16]
+        # Use sha256 for better collision resistance (md5 has known weaknesses)
+        try:
+            props_hash = hashlib.sha256(
+                json.dumps(properties, sort_keys=True, separators=(",", ":")).encode()
+            ).hexdigest()[:16]
+        except (TypeError, ValueError):
+            # Properties contain non-serializable objects, skip dedup but log once
+            _LOGGER.debug(
+                "MQTT: cannot hash properties for %s, skipping dedup", device.name
+            )
+            props_hash = None
 
-        cache_key = f"{device_id}:{props_hash}"
-        cached = self._mqtt_message_cache.get(cache_key)
+        # Only perform deduplication if we have a valid hash
+        if props_hash is not None:
+            cache_key = f"{device_id}:{props_hash}"
+            cached = self._mqtt_message_cache.get(cache_key)
 
-        if cached:
-            _last_hash, last_time = cached
-            if current_time - last_time < self._mqtt_dedup_window:
-                # Duplicate message within dedup window, skip
-                if self._debug_mode:
-                    _LOGGER.debug(
-                        "MQTT: skipping duplicate message for %s (%.2fs ago)",
-                        device.name,
-                        current_time - last_time,
-                    )
-                return
+            if cached:
+                _last_hash, last_time = cached
+                if current_time - last_time < self._mqtt_dedup_window:
+                    # Duplicate message within dedup window, skip
+                    if self._debug_mode:
+                        _LOGGER.debug(
+                            "MQTT: skipping duplicate message for %s (%.2fs ago)",
+                            device.name,
+                            current_time - last_time,
+                        )
+                    return
 
-        # Update cache
-        self._mqtt_message_cache[cache_key] = (props_hash, current_time)
+            # Update cache
+            self._mqtt_message_cache[cache_key] = (props_hash, current_time)
 
-        # Clean up old cache entries (older than 5 seconds)
-        stale_keys = [
-            k
-            for k, (_, t) in self._mqtt_message_cache.items()
-            if current_time - t > 5.0
-        ]
-        for k in stale_keys:
-            del self._mqtt_message_cache[k]
+            # Clean up old cache entries (older than 5 seconds)
+            stale_keys = [
+                k
+                for k, (_, t) in self._mqtt_message_cache.items()
+                if current_time - t > 5.0
+            ]
+            for k in stale_keys:
+                del self._mqtt_message_cache[k]
 
         self._apply_properties_update(device, properties)
 

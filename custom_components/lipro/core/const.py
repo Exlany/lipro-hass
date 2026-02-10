@@ -105,7 +105,8 @@ MQTT_INSTANCE_ID: Final = "post-cn-li93yvd5304"
 MQTT_KEEP_ALIVE: Final = 60
 MQTT_QOS: Final = 2  # EXACTLY_ONCE
 MQTT_RECONNECT_MIN_DELAY: Final = 1  # seconds
-MQTT_RECONNECT_MAX_DELAY: Final = 32  # seconds
+MQTT_RECONNECT_MAX_DELAY: Final = 300  # 5 minutes (was 32s)
+MQTT_RECONNECT_JITTER: Final = 0.2  # ±20% random jitter
 
 # MQTT credential decryption key (from libmqtt.so)
 MQTT_AES_KEY: Final = "fprd#huy1n!&d8d6"

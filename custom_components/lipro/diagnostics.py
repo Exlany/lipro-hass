@@ -22,20 +22,31 @@ if TYPE_CHECKING:
     from . import LiproConfigEntry
 
 # Keys to redact from diagnostics
+# Note: Both snake_case (internal storage) and camelCase (API response) formats
+# are included because async_redact_data may encounter either format.
 TO_REDACT = {
+    # Auth & identity
     CONF_PHONE,
     CONF_PHONE_ID,
     "password",
+    "password_hash",
     "access_token",
     "refresh_token",
+    # User ID (API: userId, internal: user_id)
     "user_id",
+    "userId",
+    # Business ID (API: bizId, internal: biz_id)
+    "biz_id",
+    "bizId",
+    # Device identifiers
     "serial",
     "device_id",
     "deviceId",
+    "iot_device_id",
+    "iotDeviceId",
     "groupId",
     "iotName",
     "gatewayDeviceId",
-    "password_hash",
 }
 
 # Keys to redact from device properties

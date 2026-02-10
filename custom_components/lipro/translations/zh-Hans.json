@@ -43,12 +43,33 @@
         "description": "配置 Lipro 集成设置。",
         "data": {
           "scan_interval": "更新间隔（秒）",
+          "mqtt_enabled": "启用 MQTT 实时更新",
+          "enable_power_monitoring": "启用功率监测（插座）",
           "anonymous_share_enabled": "匿名分享设备信息（帮助改进支持）",
-          "anonymous_share_errors": "匿名分享错误报告"
+          "anonymous_share_errors": "匿名分享错误报告",
+          "show_advanced": "显示高级设置"
         },
         "data_description": {
+          "scan_interval": "从云端轮询设备状态的频率（10-300 秒）。",
+          "mqtt_enabled": "使用 MQTT 获取即时设备状态更新。如遇连接问题可禁用。",
+          "enable_power_monitoring": "查询插座设备的功耗。禁用可减少 API 调用。",
           "anonymous_share_enabled": "匿名分享设备信息，帮助开发者支持更多设备类型。",
-          "anonymous_share_errors": "匿名分享错误报告，帮助更快修复问题。"
+          "anonymous_share_errors": "匿名分享错误报告，帮助更快修复问题。",
+          "show_advanced": "配置高级设置，如超时、查询间隔和调试日志。"
+        }
+      },
+      "advanced": {
+        "title": "高级设置",
+        "description": "这些设置适用于高级用户。默认值适用于大多数场景。",
+        "data": {
+          "power_query_interval": "功率查询间隔（秒）",
+          "request_timeout": "API 请求超时（秒）",
+          "debug_mode": "启用调试日志"
+        },
+        "data_description": {
+          "power_query_interval": "查询插座功率数据的频率（30-300 秒）。仅在启用功率监测时生效。",
+          "request_timeout": "API 请求超时时间（10-60 秒）。网络较慢时可增加此值。",
+          "debug_mode": "启用详细日志以便排查问题。请查看 Home Assistant 日志了解详情。"
         }
       }
     }

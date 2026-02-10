@@ -20,6 +20,7 @@ import hashlib
 import hmac
 import json
 import logging
+import random
 from typing import TYPE_CHECKING, Any
 
 import aiomqtt
@@ -32,6 +33,7 @@ from .const import (
     MQTT_INSTANCE_ID,
     MQTT_KEEP_ALIVE,
     MQTT_QOS,
+    MQTT_RECONNECT_JITTER,
     MQTT_RECONNECT_MAX_DELAY,
     MQTT_RECONNECT_MIN_DELAY,
     MQTT_TOPIC_PREFIX,
@@ -371,7 +373,7 @@ class LiproMqttClient:
                 _LOGGER.exception("Failed to unsubscribe from %s", topic)
 
     async def _connection_loop(self) -> None:
-        """Main connection loop with auto-reconnect."""
+        """Main connection loop with auto-reconnect and jitter."""
         while self._running:
             try:
                 await self._connect_and_listen()
@@ -382,10 +384,15 @@ class LiproMqttClient:
             except OSError as err:
                 self._handle_disconnect(f"Connection error: {err}")
 
-            # Wait before reconnecting
+            # Wait before reconnecting with jitter to prevent thundering herd
             if self._running:
-                _LOGGER.info("Reconnecting in %ds...", self._reconnect_delay)
-                await asyncio.sleep(self._reconnect_delay)
+                # Add ±20% jitter to prevent synchronized reconnects
+                jitter = 1 + random.uniform(
+                    -MQTT_RECONNECT_JITTER, MQTT_RECONNECT_JITTER
+                )
+                wait_time = self._reconnect_delay * jitter
+                _LOGGER.info("Reconnecting in %.1fs...", wait_time)
+                await asyncio.sleep(wait_time)
                 self._reconnect_delay = min(
                     self._reconnect_delay * 2,
                     MQTT_RECONNECT_MAX_DELAY,
