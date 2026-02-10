@@ -91,8 +91,9 @@ PHYSICAL_MODEL_TO_DEVICE_TYPE: Final = {
 
 # iotName -> phyModel mapping from App's res/raw/device_models.txt (v2.24.3)
 # Used as fallback when API doesn't return physicalModel field
+# Note: iotName matching is case-insensitive (normalized to lowercase in coordinator)
 IOT_NAME_TO_PHYSICAL_MODEL: Final = {
-    # light (30 devices)
+    # light - ceiling lamps (吸顶灯)
     "T2G2": "light",
     "T2T3": "light",
     "21O2": "light",
@@ -103,41 +104,60 @@ IOT_NAME_TO_PHYSICAL_MODEL: Final = {
     "T2P8": "light",
     "22Q1": "light",
     "21A1": "light",
+    "20X1": "light",  # 客厅吸顶灯E2 Max
+    "23x1": "light",  # 客厅吸顶灯E2
+    "23x2": "light",  # 客厅吸顶灯E2 Pro
+    "23x3": "light",  # 卧室吸顶灯E2
+    "24x1": "light",  # 智能吸顶灯A1 Pro
+    "24x2": "light",  # 客厅吸顶灯A1 Pro
+    "24x3": "light",  # 智能吸顶灯A1 Air
+    "24x4": "light",  # 客厅吸顶灯E2S Pro
+    # light - downlights/spotlights (筒灯/射灯)
     "T2P4": "light",
     "T2P5": "light",
     "T2P6": "light",
-    "E3B1": "light",
     "T2P3": "light",
-    "T2S2": "light",
-    "20X1": "light",
-    "21P3": "light",
-    "T2PD": "light",
-    "T2PC": "light",
-    "23x3": "light",
-    "21P1": "light",
-    "T2PB": "light",
-    "21P2": "light",
     "T2PA": "light",
-    "23x1": "light",
-    "23x2": "light",
+    "T2PB": "light",
+    "T2PC": "light",
+    "T2PD": "light",
+    "r3p3": "light",  # 筒灯/射灯 E2 Pro
+    "r3p5": "light",  # 灯带 E Pro
+    "r4t2": "light",  # 明装筒灯E2 Pro
+    # light - track lights (磁吸轨道灯)
+    "r3g2": "light",  # 磁吸轨道灯 S 系列 (射灯/线条灯/格栅灯)
+    "r3g3": "light",  # 磁吸轨道灯单色温系列
+    # light - pendant lamps (吊灯)
+    "T2S2": "light",
+    "21P3": "light",
+    "21P1": "light",
+    "21P2": "light",
     "21G1": "light",
     "22Z1": "light",
     "23T2": "light",
-    # fanLight (2)
+    "24a2": "light",  # 护眼餐厅吊灯
+    "25A1": "light",  # 护眼餐厅吊灯 Ultra
+    # light - panel lights (面板灯)
+    "E3B1": "light",
+    "e4b1": "light",  # 面板灯 Pro
+    # light - floor lamps (落地灯)
+    "e4z3": "light",  # 护眼落地灯 Max (also supports floorLight features)
+    # fanLight (风扇灯)
     "21F1": "fanLight",
-    "23f4": "fanLight",
-    # switch (2)
+    "23f4": "fanLight",  # 智能风扇灯E2 Pro
+    # switch (开关面板)
     "21J8": "switch",
     "21JD": "switch",
-    # outlet (1)
+    # outlet (插座)
     "21J9": "outlet",
-    # curtain (1)
+    # curtain (窗帘)
     "21L1": "curtain",
-    # sensor (2)
+    # sensor (传感器)
     "22N1": "doorSensor",
     "T2N2": "bodySensor",
-    # heater (1)
+    # heater (浴霸)
     "E3U1": "heater",
-    # gateway (1)
+    "e3u1": "heater",  # 柔风浴霸E2 Pro (lowercase variant)
+    # gateway (网关)
     "M2W1": "gateway",
 }

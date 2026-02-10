@@ -107,7 +107,10 @@ AERATION_WEAK: Final = 2
 WIND_DIRECTION_AUTO: Final = 1
 WIND_DIRECTION_FIX: Final = 2
 
-# Color temperature range (Kelvin)
+# Color temperature range (Kelvin) - DEFAULT fallback values
+# Note: Actual device ranges vary by product (e.g., 3000-4000K, 3000-5000K)
+# Device-specific ranges are loaded from product configs and stored in
+# device.min_color_temp_kelvin / device.max_color_temp_kelvin
 MIN_COLOR_TEMP_KELVIN: Final = 2700
 MAX_COLOR_TEMP_KELVIN: Final = 6500
 COLOR_TEMP_RANGE: Final = MAX_COLOR_TEMP_KELVIN - MIN_COLOR_TEMP_KELVIN  # 3800
