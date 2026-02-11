@@ -114,14 +114,7 @@ class LiproCover(LiproEntity, CoverEntity):
 
     async def async_set_cover_position(self, **kwargs: Any) -> None:
         """Set cover position."""
-        raw_position = kwargs.get("position", 0)
-        # Safely convert to int with type validation
-        try:
-            position = int(raw_position)
-        except (ValueError, TypeError):
-            position = 0
-        # Clamp position to valid range (0-100)
-        position = max(0, min(100, position))
+        position = max(0, min(100, kwargs.get("position", 0)))
         # Use debounce for position slider to avoid flooding API
         await self.async_send_command_debounced(
             CMD_CHANGE_STATE,

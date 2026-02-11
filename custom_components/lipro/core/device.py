@@ -101,8 +101,8 @@ def is_valid_mesh_group_id(group_id: str) -> bool:
 class LiproDevice:
     """Represents a Lipro device."""
 
-    device_id: int
-    serial: str  # IoT Device ID, format: "03ab" + MAC (e.g., "03ab5ccd7cxxxxxx")
+    device_number: int  # API "deviceId" (numeric), NOT a unique identifier
+    serial: str  # "03ab"+MAC for devices, "mesh_group_xxxxx" for groups
     name: str
     device_type: int
     iot_name: str
@@ -118,6 +118,8 @@ class LiproDevice:
     # 0 means single color temperature (no adjustment supported)
     min_color_temp_kelvin: int = 2700
     max_color_temp_kelvin: int = 6500
+    # Fan gear range (from product config or default)
+    max_fan_gear: int = 6
     # Cache for parsed gear_list (cleared on property update)
     _gear_list_cache: list[dict[str, int]] | None = field(
         default=None, repr=False, compare=False
@@ -318,6 +320,16 @@ class LiproDevice:
         except (ValueError, TypeError):
             return default
 
+    def get_optional_int_property(self, key: str) -> int | None:
+        """Get an optional integer property value (returns None if missing)."""
+        value = self.properties.get(key)
+        if value is None:
+            return None
+        try:
+            return int(value)
+        except (ValueError, TypeError):
+            return None
+
     # Common state properties
     @property
     def is_on(self) -> bool:
@@ -483,9 +495,15 @@ class LiproDevice:
         )
 
     @property
+    def fan_speed_range(self) -> tuple[int, int]:
+        """Get fan speed range (min_gear, max_gear)."""
+        return (1, self.max_fan_gear)
+
+    @property
     def fan_gear(self) -> int:
-        """Get fan gear/speed (1-6)."""
-        return self.get_int_property(PROP_FAN_GEAR, 1)
+        """Get fan gear/speed, clamped to device range."""
+        gear = self.get_int_property(PROP_FAN_GEAR, 1)
+        return max(1, min(self.max_fan_gear, gear))
 
     @property
     def fan_mode(self) -> int:
@@ -566,13 +584,7 @@ class LiproDevice:
     @property
     def wifi_rssi(self) -> int | None:
         """Get WiFi signal strength (RSSI in dBm)."""
-        value = self.get_property(PROP_WIFI_RSSI)
-        if value is None:
-            return None
-        try:
-            return int(value)
-        except (ValueError, TypeError):
-            return None
+        return self.get_optional_int_property(PROP_WIFI_RSSI)
 
     @property
     def net_type(self) -> str | None:
@@ -592,13 +604,7 @@ class LiproDevice:
     @property
     def latest_sync_timestamp(self) -> int | None:
         """Get latest sync timestamp (milliseconds)."""
-        value = self.get_property(PROP_LATEST_SYNC_TIMESTAMP)
-        if value is None:
-            return None
-        try:
-            return int(value)
-        except (ValueError, TypeError):
-            return None
+        return self.get_optional_int_property(PROP_LATEST_SYNC_TIMESTAMP)
 
     # =========================================================================
     # Mesh Network Properties (Mesh 网络拓扑)
@@ -607,24 +613,12 @@ class LiproDevice:
     @property
     def mesh_address(self) -> int | None:
         """Get Mesh network address."""
-        value = self.get_property(PROP_MESH_ADDRESS)
-        if value is None:
-            return None
-        try:
-            return int(value)
-        except (ValueError, TypeError):
-            return None
+        return self.get_optional_int_property(PROP_MESH_ADDRESS)
 
     @property
     def mesh_type(self) -> int | None:
         """Get Mesh device type (1=standard)."""
-        value = self.get_property(PROP_MESH_TYPE)
-        if value is None:
-            return None
-        try:
-            return int(value)
-        except (ValueError, TypeError):
-            return None
+        return self.get_optional_int_property(PROP_MESH_TYPE)
 
     @property
     def is_mesh_gateway(self) -> bool:
@@ -664,7 +658,7 @@ class LiproDevice:
 
         """
         return cls(
-            device_id=data.get("deviceId", 0),
+            device_number=data.get("deviceId", 0),
             serial=data.get("serial", ""),
             name=data.get("deviceName", "Unknown"),
             device_type=data.get("type", 1),

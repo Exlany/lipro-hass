@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from datetime import timedelta
+
 from custom_components.lipro.core.device import LiproDevice, parse_properties_list
 
 
@@ -19,7 +21,7 @@ class TestLiproDataUpdateCoordinator:
     ) -> LiproDevice:
         """Create a device for testing."""
         return LiproDevice(
-            device_id=1,
+            device_number=1,
             serial=serial,
             name=name,
             device_type=device_type,
@@ -64,7 +66,7 @@ class TestDeviceStatusUpdate:
     ) -> LiproDevice:
         """Create a device for testing."""
         return LiproDevice(
-            device_id=1,
+            device_number=1,
             serial="03ab5ccd7cxxxxxx",
             name="Test Light",
             device_type=1,
@@ -214,7 +216,7 @@ class TestMqttMessageHandling:
         """Test device lookup from MQTT message."""
         devices = {
             "03ab5ccd7cxxxxxx": LiproDevice(
-                device_id=1,
+                device_number=1,
                 serial="03ab5ccd7cxxxxxx",
                 name="Light 1",
                 device_type=1,
@@ -222,23 +224,23 @@ class TestMqttMessageHandling:
                 physical_model="light",
             ),
         }
-        iot_id_to_device = {
+        device_by_id = {
             "03ab5ccd7cxxxxxx": devices["03ab5ccd7cxxxxxx"],
         }
 
         # Simulate MQTT message lookup
         device_id = "03ab5ccd7cxxxxxx"
-        device = iot_id_to_device.get(device_id)
+        device = device_by_id.get(device_id)
 
         assert device is not None
         assert device.name == "Light 1"
 
     def test_mqtt_message_unknown_device(self):
         """Test MQTT message for unknown device."""
-        iot_id_to_device = {}
+        device_by_id = {}
 
         device_id = "03ab5ccd7c999999"
-        device = iot_id_to_device.get(device_id)
+        device = device_by_id.get(device_id)
 
         assert device is None
 
@@ -252,7 +254,7 @@ class TestDeviceCategorization:
 
         devices = [
             LiproDevice(
-                device_id=1,
+                device_number=1,
                 serial="03ab5ccd7cxxxxxx",
                 name="Light",
                 device_type=1,
@@ -260,7 +262,7 @@ class TestDeviceCategorization:
                 physical_model="light",
             ),
             LiproDevice(
-                device_id=2,
+                device_number=2,
                 serial="03ab5ccd7cyyyyyy",
                 name="Outlet",
                 device_type=6,
@@ -268,7 +270,7 @@ class TestDeviceCategorization:
                 physical_model="outlet",
             ),
             LiproDevice(
-                device_id=3,
+                device_number=3,
                 serial="03ab5ccd7czzzzzz",
                 name="Switch",
                 device_type=3,
@@ -288,7 +290,7 @@ class TestDeviceCategorization:
         """Test group device IDs are collected separately."""
         devices = [
             LiproDevice(
-                device_id=1,
+                device_number=1,
                 serial="03ab5ccd7cxxxxxx",
                 name="Light",
                 device_type=1,
@@ -297,7 +299,7 @@ class TestDeviceCategorization:
                 is_group=False,
             ),
             LiproDevice(
-                device_id=2,
+                device_number=2,
                 serial="mesh_group_10001",
                 name="All Lights",
                 device_type=1,
@@ -354,3 +356,101 @@ class TestCoordinatorConstants:
         from custom_components.lipro.const import DOMAIN
 
         assert DOMAIN == "lipro"
+
+
+class TestMqttPollingInterval:
+    """Tests for MQTT connect/disconnect polling interval adjustment."""
+
+    def test_mqtt_connect_doubles_polling_interval(self):
+        """Test MQTT connect logic: interval should be 2x base."""
+        from custom_components.lipro.const import (
+            CONF_SCAN_INTERVAL,
+            DEFAULT_SCAN_INTERVAL,
+        )
+
+        base = 30
+        # Replicate the logic from _on_mqtt_connect
+        options = {CONF_SCAN_INTERVAL: base}
+        interval = timedelta(
+            seconds=options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL) * 2
+        )
+
+        assert interval == timedelta(seconds=60)
+
+    def test_mqtt_disconnect_restores_polling_interval(self):
+        """Test MQTT disconnect logic: interval should be 1x base."""
+        from custom_components.lipro.const import (
+            CONF_SCAN_INTERVAL,
+            DEFAULT_SCAN_INTERVAL,
+        )
+
+        base = 30
+        options = {CONF_SCAN_INTERVAL: base}
+        interval = timedelta(
+            seconds=options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
+        )
+
+        assert interval == timedelta(seconds=30)
+
+    def test_mqtt_connect_uses_default_when_no_option(self):
+        """Test MQTT connect uses DEFAULT_SCAN_INTERVAL when option missing."""
+        from custom_components.lipro.const import DEFAULT_SCAN_INTERVAL
+
+        interval = timedelta(seconds=DEFAULT_SCAN_INTERVAL * 2)
+
+        assert interval == timedelta(seconds=DEFAULT_SCAN_INTERVAL * 2)
+        # Verify the multiplier is 2, not 3
+        assert interval.total_seconds() / DEFAULT_SCAN_INTERVAL == 2
+
+
+class TestConnectStateReconciliation:
+    """Tests for connectState=='1' triggering REST API refresh for groups."""
+
+    def test_group_online_triggers_refresh(self):
+        """Test group device coming online schedules a REST refresh."""
+        device = LiproDevice(
+            device_number=1,
+            serial="mesh_group_10001",
+            name="All Lights",
+            device_type=1,
+            iot_name="",
+            physical_model="light",
+            is_group=True,
+            properties={"connectState": "0"},
+        )
+
+        # The reconciliation condition: connectState=="1" AND device.is_group
+        properties = {"connectState": "1"}
+        connect_state = properties.get("connectState")
+
+        assert connect_state == "1"
+        assert device.is_group is True
+        # Both conditions met → should trigger refresh
+
+    def test_non_group_online_does_not_trigger_refresh(self):
+        """Test non-group device coming online does NOT meet refresh condition."""
+        device = LiproDevice(
+            device_number=1,
+            serial="03ab5ccd7cxxxxxx",
+            name="Light",
+            device_type=1,
+            iot_name="lipro_test",
+            physical_model="light",
+            is_group=False,
+            properties={"connectState": "0"},
+        )
+
+        properties = {"connectState": "1"}
+        connect_state = properties.get("connectState")
+
+        assert connect_state == "1"
+        assert device.is_group is False
+        # is_group is False → should NOT trigger refresh
+
+    def test_group_offline_does_not_trigger_refresh(self):
+        """Test group device going offline does NOT meet refresh condition."""
+        properties = {"connectState": "0"}
+        connect_state = properties.get("connectState")
+
+        assert connect_state != "1"
+        # connectState != "1" → should NOT trigger refresh

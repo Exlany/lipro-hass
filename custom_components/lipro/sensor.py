@@ -90,10 +90,16 @@ class LiproOutletPowerSensor(LiproSensor):
 
 
 class LiproOutletEnergySensor(LiproSensor):
-    """Sensor for outlet total energy consumption."""
+    """Sensor for outlet total energy consumption.
+
+    Uses TOTAL (not TOTAL_INCREASING) because the value is a sum of daily
+    records from a sliding window (up to 90 days). When old days fall off,
+    the total decreases — which TOTAL_INCREASING would misinterpret as a
+    meter reset.
+    """
 
     _attr_device_class = SensorDeviceClass.ENERGY
-    _attr_state_class = SensorStateClass.TOTAL_INCREASING
+    _attr_state_class = SensorStateClass.TOTAL
     _attr_native_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
     _attr_suggested_display_precision = 2
     _attr_translation_key = "energy"

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-import time
+from time import monotonic
 from typing import TYPE_CHECKING, Any
 
 from homeassistant.helpers.device_registry import DeviceInfo
@@ -69,25 +69,26 @@ class LiproEntity(CoordinatorEntity[LiproDataUpdateCoordinator]):
     @property
     def device_info(self) -> DeviceInfo:
         """Return device info."""
+        device = self.device  # Fresh data from coordinator
         info = DeviceInfo(
             identifiers={(DOMAIN, self._device.serial)},
-            name=self._device.name,
+            name=device.name,
             manufacturer="Lipro",
-            model=self._device.physical_model or self._device.iot_name,
-            suggested_area=self._device.room_name,
+            model=device.physical_model or device.iot_name,
+            suggested_area=device.room_name,
         )
 
         # Add serial number for non-group devices
-        if not self._device.is_group and self._device.serial:
-            info["serial_number"] = self._device.serial
+        if not device.is_group and device.serial:
+            info["serial_number"] = device.serial
 
         # Add firmware version if available from device
-        if self._device.firmware_version:
-            info["sw_version"] = self._device.firmware_version
+        if device.firmware_version:
+            info["sw_version"] = device.firmware_version
 
         # Add hardware model info if available (iot_name is the internal model code)
-        if self._device.iot_name:
-            info["hw_version"] = self._device.iot_name
+        if device.iot_name:
+            info["hw_version"] = device.iot_name
 
         return info
 
@@ -110,7 +111,7 @@ class LiproEntity(CoordinatorEntity[LiproDataUpdateCoordinator]):
     @property
     def is_debouncing(self) -> bool:
         """Check if entity is currently in debounce protection window."""
-        return time.time() < self._debounce_protected_until
+        return monotonic() < self._debounce_protected_until
 
     def get_protected_keys(self) -> set[str]:
         """Get the set of property keys currently protected by debounce.
@@ -189,7 +190,7 @@ class LiproEntity(CoordinatorEntity[LiproDataUpdateCoordinator]):
 
             # Set protection window to prevent coordinator from overwriting
             # these properties during slider drag
-            self._debounce_protected_until = time.time() + DEBOUNCE_PROTECTION_WINDOW
+            self._debounce_protected_until = monotonic() + DEBOUNCE_PROTECTION_WINDOW
             self._debounce_protected_keys = set(optimistic_state.keys())
 
         # Debounce the actual API call
@@ -222,7 +223,7 @@ class LiproEntity(CoordinatorEntity[LiproDataUpdateCoordinator]):
         )
 
         # Clear protection after command is sent (with small buffer for response)
-        self._debounce_protected_until = time.time() + 1.0
+        self._debounce_protected_until = monotonic() + 1.0
 
         # If command failed, request refresh to restore actual state
         if not success and optimistic_state:

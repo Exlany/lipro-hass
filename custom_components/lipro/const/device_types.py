@@ -44,21 +44,6 @@ DEVICE_TYPE_MAP: Final = {
     11: DEVICE_TYPE_GATEWAY,
 }
 
-# Device type to HA platform mapping
-DEVICE_TYPE_TO_PLATFORM: Final = {
-    DEVICE_TYPE_LED: ["light"],
-    DEVICE_TYPE_CURTAIN: ["cover"],
-    DEVICE_TYPE_PANEL: ["switch"],
-    DEVICE_TYPE_FAN_LIGHT: ["light", "fan"],
-    DEVICE_TYPE_CEILING_LAMP: ["light"],
-    DEVICE_TYPE_OUTLET: ["switch"],
-    DEVICE_TYPE_HEATER: ["climate"],
-    DEVICE_TYPE_SENSOR_M1: ["binary_sensor"],
-    DEVICE_TYPE_DESK_LAMP: ["light"],
-    DEVICE_TYPE_SENSOR_D1: ["binary_sensor"],
-    DEVICE_TYPE_GATEWAY: [],
-}
-
 # Physical model to device type mapping
 # physicalModel is the ONLY reliable source for determining device category
 # The 'type' field is Mesh protocol classification, NOT device function type!

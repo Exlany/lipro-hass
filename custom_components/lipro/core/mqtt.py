@@ -293,6 +293,11 @@ class LiproMqttClient:
         return self._connected
 
     @property
+    def subscribed_devices(self) -> set[str]:
+        """Return a snapshot of currently subscribed device IDs."""
+        return self._subscribed_devices.copy()
+
+    @property
     def subscribed_count(self) -> int:
         """Return number of subscribed devices."""
         return len(self._subscribed_devices)
@@ -332,45 +337,56 @@ class LiproMqttClient:
         self._subscribed_devices.clear()
         _LOGGER.info("MQTT client stopped")
 
-    async def subscribe_device(self, device_id: str) -> None:
-        """Subscribe to a new device's status updates.
+    async def sync_subscriptions(self, device_ids: set[str]) -> None:
+        """Sync subscriptions to match the given device ID set.
+
+        Subscribes to new devices and unsubscribes from removed devices.
 
         Args:
-            device_id: IoT device ID to subscribe.
+            device_ids: Expected set of device IDs to be subscribed.
 
         """
-        if device_id in self._subscribed_devices:
+        to_add = device_ids - self._subscribed_devices
+        to_remove = self._subscribed_devices - device_ids
+
+        if not to_add and not to_remove:
             return
 
-        self._subscribed_devices.add(device_id)
+        added = 0
+        for device_id in to_add:
+            if self._client and self._connected:
+                topic = build_topic(self._biz_id, device_id)
+                try:
+                    await self._client.subscribe(topic, qos=MQTT_QOS)
+                    self._subscribed_devices.add(device_id)
+                    added += 1
+                    _LOGGER.debug("Subscribed to: %s", topic)
+                except aiomqtt.MqttError:
+                    _LOGGER.exception("Failed to subscribe to %s", topic)
+            else:
+                # Not connected yet; record for subscription on next connect
+                self._subscribed_devices.add(device_id)
+                added += 1
 
-        if self._client and self._connected:
-            topic = build_topic(self._biz_id, device_id)
-            try:
-                await self._client.subscribe(topic, qos=MQTT_QOS)
-                _LOGGER.debug("Subscribed to: %s", topic)
-            except aiomqtt.MqttError:
-                _LOGGER.exception("Failed to subscribe to %s", topic)
+        removed = 0
+        for device_id in to_remove:
+            self._subscribed_devices.discard(device_id)
+            removed += 1
+            if self._client and self._connected:
+                topic = build_topic(self._biz_id, device_id)
+                try:
+                    await self._client.unsubscribe(topic)
+                    _LOGGER.debug("Unsubscribed from: %s", topic)
+                except aiomqtt.MqttError:
+                    _LOGGER.exception("Failed to unsubscribe from %s", topic)
 
-    async def unsubscribe_device(self, device_id: str) -> None:
-        """Unsubscribe from a device's status updates.
-
-        Args:
-            device_id: IoT device ID to unsubscribe.
-
-        """
-        if device_id not in self._subscribed_devices:
-            return
-
-        self._subscribed_devices.discard(device_id)
-
-        if self._client and self._connected:
-            topic = build_topic(self._biz_id, device_id)
-            try:
-                await self._client.unsubscribe(topic)
-                _LOGGER.debug("Unsubscribed from: %s", topic)
-            except aiomqtt.MqttError:
-                _LOGGER.exception("Failed to unsubscribe from %s", topic)
+        if added or removed:
+            _LOGGER.info(
+                "MQTT subscriptions synced: +%d -%d (total %d)",
+                added,
+                removed,
+                len(self._subscribed_devices),
+            )
 
     async def _connection_loop(self) -> None:
         """Main connection loop with auto-reconnect and jitter."""
@@ -413,18 +429,19 @@ class LiproMqttClient:
             keepalive=MQTT_KEEP_ALIVE,
         ) as client:
             self._client = client
-            self._connected = True
             self._reconnect_delay = MQTT_RECONNECT_MIN_DELAY
 
-            _LOGGER.info("Connected to MQTT broker")
-            if self._on_connect:
-                self._on_connect()
-
-            # Subscribe to all device topics
-            for device_id in self._subscribed_devices:
+            # Subscribe BEFORE marking connected to avoid race with sync_subscriptions
+            for device_id in list(self._subscribed_devices):
                 topic = build_topic(self._biz_id, device_id)
                 await client.subscribe(topic, qos=MQTT_QOS)
                 _LOGGER.debug("Subscribed to: %s", topic)
+
+            # Now mark connected and fire callback
+            self._connected = True
+            _LOGGER.info("Connected to MQTT broker")
+            if self._on_connect:
+                self._on_connect()
 
             # Process incoming messages
             async for message in client.messages:

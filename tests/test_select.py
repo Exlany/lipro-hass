@@ -243,7 +243,7 @@ class TestSelectDeviceDetection:
     def test_heater_device_detection(self):
         """Test heater device is correctly detected."""
         device = LiproDevice(
-            device_id=1,
+            device_number=1,
             serial="03ab5ccd7cxxxxxx",
             name="Heater",
             device_type=7,
@@ -255,7 +255,7 @@ class TestSelectDeviceDetection:
     def test_light_with_gear_detection(self):
         """Test light with gear presets is correctly detected."""
         device = LiproDevice(
-            device_id=1,
+            device_number=1,
             serial="03ab5ccd7cxxxxxx",
             name="Light",
             device_type=1,

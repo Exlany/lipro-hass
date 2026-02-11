@@ -119,7 +119,6 @@ class LiproLight(LiproEntity, LightEntity):
         """Turn on the light."""
         properties: list[dict[str, str]] = []
         optimistic: dict[str, Any] = {PROP_POWER_STATE: "1"}
-        use_debounce = False
 
         # Handle brightness
         if ATTR_BRIGHTNESS in kwargs:
@@ -128,7 +127,6 @@ class LiproLight(LiproEntity, LightEntity):
             brightness = max(MIN_BRIGHTNESS, min(MAX_BRIGHTNESS, brightness))
             properties.append({"key": PROP_BRIGHTNESS, "value": str(brightness)})
             optimistic[PROP_BRIGHTNESS] = str(brightness)
-            use_debounce = True
 
         # Handle color temperature (only if device supports it)
         if ATTR_COLOR_TEMP_KELVIN in kwargs and self.device.supports_color_temp:
@@ -150,18 +148,15 @@ class LiproLight(LiproEntity, LightEntity):
                 temp_percent = 50  # Default to middle if range is 0 or negative
             properties.append({"key": PROP_TEMPERATURE, "value": str(temp_percent)})
             optimistic[PROP_TEMPERATURE] = str(temp_percent)
-            use_debounce = True
 
         # Use debounce for slider controls (brightness, color_temp)
         # to avoid flooding API when user drags the slider
-        if properties and use_debounce:
+        if properties:
             await self.async_send_command_debounced(
                 CMD_CHANGE_STATE,
                 properties,
                 optimistic,
             )
-        elif properties:
-            await self.async_send_command(CMD_CHANGE_STATE, properties, optimistic)
         else:
             # Just turn on (no debounce needed for simple on/off)
             await self.async_send_command(CMD_POWER_ON, None, optimistic)

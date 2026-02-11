@@ -64,10 +64,32 @@ class TestLiproFan:
         device = make_device("fanLight")
         assert device.fan_mode == 0
 
-    def test_is_fan_light(self, make_device):
-        """Test device is identified as fan light."""
+    def test_fan_speed_range_default(self, make_device):
+        """Test default fan speed range is (1, 6)."""
         device = make_device("fanLight")
-        assert device.is_fan_light is True
+        assert device.fan_speed_range == (1, 6)
+        assert device.max_fan_gear == 6
+
+    def test_fan_speed_range_custom(self, make_device):
+        """Test custom fan speed range via max_fan_gear."""
+        device = make_device("fanLight", max_fan_gear=10)
+        assert device.fan_speed_range == (1, 10)
+        assert device.max_fan_gear == 10
+
+    def test_fan_gear_clamped_to_max(self, make_device):
+        """Test fan gear is clamped to max_fan_gear."""
+        device = make_device("fanLight", properties={"fanGear": "8"}, max_fan_gear=6)
+        assert device.fan_gear == 6
+
+    def test_fan_gear_clamped_to_custom_max(self, make_device):
+        """Test fan gear is clamped to custom max_fan_gear."""
+        device = make_device("fanLight", properties={"fanGear": "5"}, max_fan_gear=3)
+        assert device.fan_gear == 3
+
+    def test_fan_gear_clamped_to_min(self, make_device):
+        """Test fan gear is clamped to min 1."""
+        device = make_device("fanLight", properties={"fanGear": "0"})
+        assert device.fan_gear == 1
 
     def test_icon_on(self):
         """Test icon when fan is on."""
@@ -85,32 +107,52 @@ class TestLiproFan:
 class TestLiproFanPercentage:
     """Tests for fan speed percentage conversion."""
 
-    def test_speed_range_constants(self):
-        """Test speed range constants."""
-        # SPEED_RANGE from fan.py = (1, 10)
-        speed_range = (1, 10)
-        assert speed_range == (1, 10)
+    def test_gear_to_percentage_default_range(self, make_device):
+        """Test gear to percentage with default range (1-6)."""
+        # HA formula: ((value - low) / (high - low)) * 100, rounded
+        device = make_device("fanLight")
+        low, high = device.fan_speed_range
+        assert (low, high) == (1, 6)
+        # gear 6 -> 100%
+        assert round((6 - low) / (high - low) * 100) == 100
+        # gear 1 -> 0%
+        assert round((1 - low) / (high - low) * 100) == 0
+        # gear 3 -> 40%
+        assert round((3 - low) / (high - low) * 100) == 40
 
-    def test_gear_to_percentage(self):
-        """Test gear to percentage conversion."""
-        # gear 10 -> 100%
-        assert round((10 - 1) / (10 - 1) * 100) == 100
-        # gear 5 -> ~44%
-        pct = round((5 - 1) / (10 - 1) * 100)
-        assert 40 <= pct <= 50
-
-    def test_percentage_to_gear(self):
-        """Test percentage to gear conversion."""
+    def test_percentage_to_gear_default_range(self, make_device):
+        """Test percentage to gear with default range (1-6)."""
         import math
 
-        def pct_to_ranged(low, high, pct):
-            return low + (high - low) * pct / 100
+        device = make_device("fanLight")
+        low, high = device.fan_speed_range
+        # 100% -> gear 6
+        assert math.ceil(low + (high - low) * 100 / 100) == 6
+        # 50% -> gear 4
+        assert math.ceil(low + (high - low) * 50 / 100) == 4
 
+    def test_gear_to_percentage_custom_range(self, make_device):
+        """Test gear to percentage with custom range (1-10)."""
+        device = make_device("fanLight", max_fan_gear=10)
+        low, high = device.fan_speed_range
+        assert (low, high) == (1, 10)
+        # gear 10 -> 100%
+        assert round((10 - low) / (high - low) * 100) == 100
+        # gear 1 -> 0%
+        assert round((1 - low) / (high - low) * 100) == 0
+        # gear 5 -> ~44%
+        assert round((5 - low) / (high - low) * 100) == 44
+
+    def test_percentage_to_gear_custom_range(self, make_device):
+        """Test percentage to gear with custom range (1-10)."""
+        import math
+
+        device = make_device("fanLight", max_fan_gear=10)
+        low, high = device.fan_speed_range
         # 100% -> gear 10
-        assert math.ceil(pct_to_ranged(1, 10, 100)) == 10
-        # 50% -> gear 5 or 6
-        gear = math.ceil(pct_to_ranged(1, 10, 50))
-        assert 5 <= gear <= 6
+        assert math.ceil(low + (high - low) * 100 / 100) == 10
+        # 50% -> gear 6
+        assert math.ceil(low + (high - low) * 50 / 100) == 6
 
 
 class TestLiproFanPresetModes:

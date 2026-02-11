@@ -7,7 +7,7 @@ from datetime import timedelta
 import hashlib
 import json
 import logging
-import time
+from time import monotonic
 from typing import TYPE_CHECKING, Any
 
 from homeassistant.components.persistent_notification import async_create
@@ -96,8 +96,8 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         self.client = client
         self.auth_manager = auth_manager
         self._devices: dict[str, LiproDevice] = {}
-        self._iot_id_to_device: dict[str, LiproDevice] = {}  # IoT ID -> Device mapping
-        self._device_ids_to_query: list[str] = []
+        self._device_by_id: dict[str, LiproDevice] = {}  # Any known ID -> Device
+        self._iot_ids_to_query: list[str] = []
         self._group_ids_to_query: list[str] = []
         self._outlet_ids_to_query: list[str] = []  # Outlet device IDs for power query
         # Track entities for debounce protection (indexed by device serial)
@@ -110,8 +110,8 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         self._biz_id: str | None = None
         # Product configs cache (iotName -> config)
         self._product_configs: dict[str, dict[str, Any]] = {}
-        # MQTT message deduplication cache: device_id -> (properties_hash, timestamp)
-        self._mqtt_message_cache: dict[str, tuple[str, float]] = {}
+        # MQTT message deduplication cache: "device_id:hash" -> timestamp
+        self._mqtt_message_cache: dict[str, float] = {}
         # Deduplication window in seconds (ignore duplicate messages within this window)
         self._mqtt_dedup_window: float = 0.5
         # Power query tracking
@@ -322,23 +322,22 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         """
         return self._devices.get(serial)
 
-    def get_device_by_iot_id(self, iot_id: str) -> LiproDevice | None:
-        """Get a device by IoT device ID.
+    def get_device_by_id(self, device_id: str) -> LiproDevice | None:
+        """Look up a device by any known identifier.
+
+        Supports:
+        - serial / iot_device_id: "03ab5ccd7cxxxxxx"
+        - mesh group serial: "mesh_group_xxxxx"
+        - gateway device ID (mapped via _query_group_status)
 
         Args:
-            iot_id: IoT device ID (e.g., "03ab5ccd7cxxxxxx").
+            device_id: Any known device identifier.
 
         Returns:
             Device or None if not found.
 
         """
-        # First try direct lookup in mapping
-        device = self._iot_id_to_device.get(iot_id)
-        if device:
-            return device
-
-        # Fallback to serial lookup (for groups or legacy)
-        return self._devices.get(iot_id)
+        return self._device_by_id.get(device_id)
 
     @property
     def mqtt_connected(self) -> bool:
@@ -439,6 +438,15 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
             self._mqtt_connected = False
             _LOGGER.info("MQTT client stopped")
 
+    async def _sync_mqtt_subscriptions(self) -> None:
+        """Sync MQTT subscriptions with current device list."""
+        if not self._mqtt_client:
+            return
+
+        # serial works for both: mesh_group_xxx (groups) and iot_device_id (non-groups)
+        expected = {dev.serial for dev in self._devices.values()}
+        await self._mqtt_client.sync_subscriptions(expected)
+
     async def async_shutdown(self) -> None:
         """Shutdown coordinator and release all resources."""
         # Submit anonymous share report before shutdown (if enabled)
@@ -465,7 +473,7 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         self._entities.clear()
         self._entities_by_device.clear()
         self._devices.clear()
-        self._iot_id_to_device.clear()
+        self._device_by_id.clear()
         self._product_configs.clear()
         self._mqtt_message_cache.clear()
 
@@ -478,29 +486,27 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         """Handle MQTT connection."""
         self._mqtt_connected = True
         # Reduce polling frequency when MQTT provides real-time updates
-        base_interval = (
-            self.config_entry.options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
-            if self.config_entry
-            else DEFAULT_SCAN_INTERVAL
-        )
-        self.update_interval = timedelta(seconds=base_interval * 3)
-        _LOGGER.info(
-            "MQTT connected, polling interval relaxed to %ds", base_interval * 3
-        )
+        # Use 2x (not higher) to still catch sub-device state drift in mesh groups
+        base = self._base_scan_interval
+        self.update_interval = timedelta(seconds=base * 2)
+        _LOGGER.info("MQTT connected, polling interval relaxed to %ds", base * 2)
 
     def _on_mqtt_disconnect(self) -> None:
         """Handle MQTT disconnection."""
         self._mqtt_connected = False
         # Restore normal polling frequency
-        base_interval = (
-            self.config_entry.options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
-            if self.config_entry
-            else DEFAULT_SCAN_INTERVAL
-        )
-        self.update_interval = timedelta(seconds=base_interval)
-        _LOGGER.warning(
-            "MQTT disconnected, polling interval restored to %ds", base_interval
-        )
+        base = self._base_scan_interval
+        self.update_interval = timedelta(seconds=base)
+        _LOGGER.warning("MQTT disconnected, polling interval restored to %ds", base)
+
+    @property
+    def _base_scan_interval(self) -> int:
+        """Get the configured base scan interval in seconds."""
+        if self.config_entry:
+            return self.config_entry.options.get(
+                CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
+            )
+        return DEFAULT_SCAN_INTERVAL
 
     def _on_mqtt_message(self, device_id: str, properties: dict[str, Any]) -> None:
         """Handle MQTT message with device status update.
@@ -517,14 +523,14 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
 
         """
         # Find device using IoT ID mapping
-        device = self.get_device_by_iot_id(device_id)
+        device = self.get_device_by_id(device_id)
 
         if not device:
             _LOGGER.debug("MQTT message for unknown device: %s...", device_id[:8])
             return
 
         # Deduplication: check if this is a duplicate message
-        current_time = time.monotonic()
+        current_time = monotonic()
         # Use sha256 for better collision resistance (md5 has known weaknesses)
         try:
             props_hash = hashlib.sha256(
@@ -540,10 +546,9 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         # Only perform deduplication if we have a valid hash
         if props_hash is not None:
             cache_key = f"{device_id}:{props_hash}"
-            cached = self._mqtt_message_cache.get(cache_key)
+            last_time = self._mqtt_message_cache.get(cache_key)
 
-            if cached:
-                _, last_time = cached
+            if last_time is not None:
                 if current_time - last_time < self._mqtt_dedup_window:
                     # Duplicate message within dedup window, skip
                     if self._debug_mode:
@@ -555,13 +560,11 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
                     return
 
             # Update cache
-            self._mqtt_message_cache[cache_key] = (props_hash, current_time)
+            self._mqtt_message_cache[cache_key] = current_time
 
             # Clean up old cache entries (older than 5 seconds)
             stale_keys = [
-                k
-                for k, (_, t) in self._mqtt_message_cache.items()
-                if current_time - t > 5.0
+                k for k, t in self._mqtt_message_cache.items() if current_time - t > 5.0
             ]
             for k in stale_keys:
                 del self._mqtt_message_cache[k]
@@ -573,6 +576,17 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
             # Note: async_set_updated_data won't trigger updates when always_update=False
             # and the same dict object is passed, so we use async_update_listeners directly
             self.async_update_listeners()
+
+            # Fallback: when a device comes back online, schedule an immediate
+            # REST API refresh to reconcile state. In mesh groups, sub-devices
+            # may reconnect with a different state than the group reports.
+            connect_state = properties.get("connectState")
+            if connect_state == "1" and device.is_group:
+                _LOGGER.debug(
+                    "MQTT: device %s online, scheduling REST API reconciliation",
+                    device.name,
+                )
+                self.hass.async_create_task(self.async_request_refresh())
 
     async def _async_show_auth_notification(
         self,
@@ -691,8 +705,8 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         previous_serials = set(self._devices.keys())
 
         self._devices.clear()
-        self._iot_id_to_device.clear()
-        self._device_ids_to_query.clear()
+        self._device_by_id.clear()
+        self._iot_ids_to_query.clear()
         self._group_ids_to_query.clear()
         self._outlet_ids_to_query.clear()
 
@@ -707,8 +721,9 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
             self._devices[device.serial] = device
 
             # Build IoT ID to device mapping for fast lookup
-            if not device.is_group:
-                self._iot_id_to_device[device.iot_device_id] = device
+            # Groups use serial (mesh_group_xxx) as MQTT topic device ID
+            # Non-groups use serial which equals iot_device_id (03ab...)
+            self._device_by_id[device.serial] = device
 
             # Collect IDs for status query
             if device.is_group:
@@ -722,7 +737,7 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
                         device.name,
                         device.serial,
                     )
-                self._device_ids_to_query.append(device.iot_device_id)
+                self._iot_ids_to_query.append(device.iot_device_id)
 
                 # Collect outlet device IDs for power monitoring
                 if device.category == DeviceCategory.OUTLET:
@@ -732,7 +747,7 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
             "Fetched %d devices (%d groups, %d individual, %d outlets)",
             len(self._devices),
             len(self._group_ids_to_query),
-            len(self._device_ids_to_query),
+            len(self._iot_ids_to_query),
             len(self._outlet_ids_to_query),
         )
 
@@ -746,6 +761,10 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         stale_serials = previous_serials - current_serials
         if stale_serials:
             await self._async_remove_stale_devices(stale_serials)
+
+        # Sync MQTT subscriptions with current device list
+        if self._mqtt_client and self._mqtt_connected:
+            await self._sync_mqtt_subscriptions()
 
     async def _async_remove_stale_devices(self, stale_serials: set[str]) -> None:
         """Remove devices that no longer exist in the cloud.
@@ -859,6 +878,16 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
                             device.name,
                         )
 
+                    # Apply fan gear range if available
+                    max_fan_gear = config.get("maxFanGear", 0)
+                    if max_fan_gear > 0:
+                        device.max_fan_gear = max_fan_gear
+                        _LOGGER.debug(
+                            "Device %s: fan gear range 1-%d",
+                            device.name,
+                            device.max_fan_gear,
+                        )
+
         except LiproApiError as err:
             _LOGGER.warning("Failed to load product configs: %s", err)
             # Continue with default values
@@ -868,7 +897,7 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         tasks = []
 
         # Query individual devices
-        if self._device_ids_to_query:
+        if self._iot_ids_to_query:
             tasks.append(self._query_device_status())
 
         # Query mesh groups
@@ -884,7 +913,7 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
             tasks.append(self._query_outlet_power())
 
         # Query real-time connection status (more accurate than cached connectState)
-        if self._device_ids_to_query:
+        if self._iot_ids_to_query:
             tasks.append(self._query_connect_status())
 
         if tasks:
@@ -901,7 +930,7 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
             True if power query should be executed.
 
         """
-        current_time = time.monotonic()
+        current_time = monotonic()
         if current_time - self._last_power_query_time >= self._power_query_interval:
             self._last_power_query_time = current_time
             return True
@@ -911,7 +940,7 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         """Query status for individual devices."""
         try:
             status_list = await self.client.query_device_status(
-                self._device_ids_to_query,
+                self._iot_ids_to_query,
             )
 
             for status_data in status_list:
@@ -920,7 +949,7 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
                     continue
 
                 # Find device using IoT ID mapping
-                device = self.get_device_by_iot_id(device_id)
+                device = self.get_device_by_id(device_id)
 
                 if device:
                     properties = parse_properties_list(
@@ -970,12 +999,13 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
                     )
                     continue
 
-                # Save gateway device ID for MQTT subscription
+                # Save gateway device ID for API-level lookups
+                # Note: MQTT messages use mesh_group_xxx topics, not gateway IDs
                 gateway_id = status_data.get("gatewayDeviceId")
                 if gateway_id:
                     device.extra_data["gateway_device_id"] = gateway_id
-                    # Also add to IoT ID mapping for MQTT message routing
-                    self._iot_id_to_device[gateway_id] = device
+                    # Map gateway ID -> device for API responses that reference it
+                    self._device_by_id[gateway_id] = device
 
                 # Parse group-level properties (powerState, brightness, etc.)
                 properties = parse_properties_list(status_data.get("properties", []))
@@ -1001,7 +1031,7 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
                 if not power_data:
                     continue
 
-                device = self.get_device_by_iot_id(device_id)
+                device = self.get_device_by_id(device_id)
                 if device:
                     device.extra_data["power_info"] = power_data
                     _LOGGER.debug(
@@ -1019,19 +1049,19 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         This provides more accurate online/offline status than the cached
         connectState property from device status queries.
         """
-        if not self._device_ids_to_query:
+        if not self._iot_ids_to_query:
             return
 
         try:
             connect_status = await self.client.query_connect_status(
-                self._device_ids_to_query,
+                self._iot_ids_to_query,
             )
 
             if not connect_status:
                 return
 
             for device_id, is_online in connect_status.items():
-                device = self.get_device_by_iot_id(device_id)
+                device = self.get_device_by_id(device_id)
                 if device:
                     # Update connectState property
                     device.update_properties(

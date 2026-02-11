@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import re
 from typing import TYPE_CHECKING, Any
 
 import voluptuous as vol
@@ -248,9 +249,12 @@ async def _get_device_and_coordinator(
             if entity_entry and entity_entry.unique_id:
                 unique_id = entity_entry.unique_id
                 if unique_id.startswith("lipro_") and len(unique_id) > 6:
-                    parts = unique_id[6:].split("_")
-                    if parts and parts[0]:
-                        device_id = parts[0]
+                    # Extract serial from unique_id: "lipro_{serial}[_{suffix}]"
+                    # Serial formats: "03ab" + 12 hex, or "mesh_group_" + digits
+                    raw = unique_id[6:]
+                    match = re.match(r"(03ab[0-9a-f]{12}|mesh_group_\d+)", raw)
+                    if match:
+                        device_id = match.group(1)
                         break
 
         if not device_id:
@@ -296,7 +300,7 @@ async def _async_handle_send_command(
                 translation_domain=DOMAIN,
                 translation_key="command_failed",
             )
-        return {"success": True, "device_id": device.serial}
+        return {"success": True, "serial": device.serial}
     except HomeAssistantError:
         raise
     except LiproApiError as err:
@@ -346,7 +350,7 @@ async def _async_handle_get_schedules(
             )
 
         return {
-            "device_id": device.serial,
+            "serial": device.serial,
             "schedules": formatted,
         }
     except LiproApiError as err:
@@ -392,7 +396,7 @@ async def _async_handle_add_schedule(
 
         return {
             "success": True,
-            "device_id": device.serial,
+            "serial": device.serial,
             "schedule_count": len(schedules),
         }
     except LiproApiError as err:
@@ -426,7 +430,7 @@ async def _async_handle_delete_schedules(
 
         return {
             "success": True,
-            "device_id": device.serial,
+            "serial": device.serial,
             "remaining_count": len(remaining),
         }
     except LiproApiError as err:

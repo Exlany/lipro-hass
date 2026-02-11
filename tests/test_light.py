@@ -160,7 +160,7 @@ class TestLiproLightFadeState:
     def test_fade_state_property(self):
         """Test fade state property."""
         device = LiproDevice(
-            device_id=1,
+            device_number=1,
             serial="03ab5ccd7cxxxxxx",
             name="Light",
             device_type=1,
@@ -184,7 +184,7 @@ class TestLiproLightGearPresets:
     def test_gear_list_property(self):
         """Test gear list property."""
         device = LiproDevice(
-            device_id=1,
+            device_number=1,
             serial="03ab5ccd7cxxxxxx",
             name="Light",
             device_type=1,
@@ -203,7 +203,7 @@ class TestLiproLightGearPresets:
     def test_gear_list_empty(self):
         """Test empty gear list."""
         device = LiproDevice(
-            device_id=1,
+            device_number=1,
             serial="03ab5ccd7cxxxxxx",
             name="Light",
             device_type=1,
@@ -218,7 +218,7 @@ class TestLiproLightGearPresets:
     def test_gear_list_invalid_json(self):
         """Test invalid JSON in gear list."""
         device = LiproDevice(
-            device_id=1,
+            device_number=1,
             serial="03ab5ccd7cxxxxxx",
             name="Light",
             device_type=1,
@@ -232,7 +232,7 @@ class TestLiproLightGearPresets:
     def test_last_gear_index(self):
         """Test last gear index property."""
         device = LiproDevice(
-            device_id=1,
+            device_number=1,
             serial="03ab5ccd7cxxxxxx",
             name="Light",
             device_type=1,
@@ -250,7 +250,7 @@ class TestLiproLightGearPresets:
     def test_has_gear_presets(self):
         """Test has_gear_presets property."""
         device = LiproDevice(
-            device_id=1,
+            device_number=1,
             serial="03ab5ccd7cxxxxxx",
             name="Light",
             device_type=1,
@@ -263,7 +263,7 @@ class TestLiproLightGearPresets:
 
         # Create a new device without gear_list to test False case
         device_no_gear = LiproDevice(
-            device_id=2,
+            device_number=2,
             serial="03ab5ccd7cyyyyyy",
             name="Light 2",
             device_type=1,

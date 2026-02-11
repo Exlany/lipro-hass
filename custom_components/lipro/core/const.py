@@ -16,7 +16,6 @@ MERCHANT_CODE: Final = "LP0002"
 # API paths - Smart Home
 PATH_LOGIN: Final = "/v1/user/token/login-by-password.do"
 PATH_REFRESH_TOKEN: Final = "/v1/user/token/refresh.do"
-PATH_GET_ACCOUNT_INFO: Final = "/v1/user/token/get-account-info.do"
 PATH_FETCH_DEVICES: Final = "/v1/user/index.do"
 PATH_GET_PRODUCT_CONFIGS: Final = "/v1/iot/product/index/list.do"
 
@@ -69,22 +68,14 @@ ERROR_NO_PERMISSION_STR: Final = "140101"
 ERROR_AUTH_CODES: Final = (401, "401", 2001, 2002)  # Authentication errors
 
 # Error codes - from API docs, not yet verified in real responses
-ERROR_DEVICE_BUSY: Final = 250001  # Device busy (unverified)
-ERROR_DEVICE_NOT_FOUND: Final = 140013  # Device not found (unverified)
-ERROR_DEVICE_UPDATING: Final = 140014  # Device updating firmware (unverified)
 # Refresh token expired
 ERROR_REFRESH_TOKEN_EXPIRED: Final = (20002, 1202, "20002", "1202")
-
-# HTTP error codes - from API docs
-ERROR_FORBIDDEN: Final = 403  # No permission
-ERROR_RATE_LIMITED: Final = 429  # Too many requests
 
 # Token expiry settings
 # Note: API does not return expires_in, so we use conservative estimates
 # accessToken: estimated 2 hours (7200 seconds)
 # refreshToken: estimated 30 days
 ACCESS_TOKEN_EXPIRY_SECONDS: Final = 7200  # 2 hours (conservative estimate)
-REFRESH_TOKEN_EXPIRY_SECONDS: Final = 30 * 24 * 60 * 60  # 30 days
 TOKEN_REFRESH_BUFFER: Final = 300  # Refresh accessToken 5 minutes before expiry
 
 # Adaptive adjustment for accessToken

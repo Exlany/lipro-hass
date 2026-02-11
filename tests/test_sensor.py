@@ -147,7 +147,7 @@ class TestSensorDeviceCategory:
         from custom_components.lipro.const.categories import DeviceCategory
 
         device = LiproDevice(
-            device_id=1,
+            device_number=1,
             serial="03ab5ccd7cxxxxxx",
             name="Outlet",
             device_type=6,

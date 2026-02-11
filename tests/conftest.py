@@ -98,7 +98,7 @@ def make_device():
     def _make(
         kind: str = "light",
         *,
-        device_id: int = 1,
+        device_number: int = 1,
         serial: str = "03ab5ccd7cxxxxxx",
         name: str | None = None,
         properties: dict | None = None,
@@ -109,7 +109,7 @@ def make_device():
 
         defaults = _DEVICE_TYPE_DEFAULTS.get(kind, _DEVICE_TYPE_DEFAULTS["light"])
         return LiproDevice(
-            device_id=device_id,
+            device_number=device_number,
             serial=serial,
             name=name or f"Test {kind.capitalize()}",
             device_type=overrides.pop("device_type", defaults["device_type"]),

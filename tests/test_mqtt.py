@@ -305,68 +305,6 @@ class TestLiproMqttClient:
         assert client._connected is False
         assert client._task is None
 
-    @pytest.mark.asyncio
-    async def test_subscribe_device(self):
-        """Test subscribing to a device."""
-        client = LiproMqttClient(
-            access_key="access",
-            secret_key="secret",
-            biz_id="lip_biz001",
-            phone_id="550e8400-e29b-41d4-a716-446655440000",
-        )
-
-        await client.subscribe_device("03ab5ccd7cxxxxxx")
-
-        assert "03ab5ccd7cxxxxxx" in client._subscribed_devices
-
-    @pytest.mark.asyncio
-    async def test_subscribe_device_already_subscribed(self):
-        """Test subscribing to already subscribed device."""
-        client = LiproMqttClient(
-            access_key="access",
-            secret_key="secret",
-            biz_id="lip_biz001",
-            phone_id="550e8400-e29b-41d4-a716-446655440000",
-        )
-        client._subscribed_devices.add("03ab5ccd7cxxxxxx")
-
-        await client.subscribe_device("03ab5ccd7cxxxxxx")
-
-        # Should still only have one entry
-        assert (
-            client._subscribed_devices.count("03ab5ccd7cxxxxxx")
-            if hasattr(client._subscribed_devices, "count")
-            else list(client._subscribed_devices).count("03ab5ccd7cxxxxxx") == 1
-        )
-
-    @pytest.mark.asyncio
-    async def test_unsubscribe_device(self):
-        """Test unsubscribing from a device."""
-        client = LiproMqttClient(
-            access_key="access",
-            secret_key="secret",
-            biz_id="lip_biz001",
-            phone_id="550e8400-e29b-41d4-a716-446655440000",
-        )
-        client._subscribed_devices.add("03ab5ccd7cxxxxxx")
-
-        await client.unsubscribe_device("03ab5ccd7cxxxxxx")
-
-        assert "03ab5ccd7cxxxxxx" not in client._subscribed_devices
-
-    @pytest.mark.asyncio
-    async def test_unsubscribe_device_not_subscribed(self):
-        """Test unsubscribing from non-subscribed device."""
-        client = LiproMqttClient(
-            access_key="access",
-            secret_key="secret",
-            biz_id="lip_biz001",
-            phone_id="550e8400-e29b-41d4-a716-446655440000",
-        )
-
-        # Should not raise
-        await client.unsubscribe_device("03ab5ccd7cxxxxxx")
-
     def test_handle_disconnect(self):
         """Test disconnect handling."""
         on_disconnect = MagicMock()
@@ -499,3 +437,104 @@ class TestLiproMqttClientProperties:
 
         client._subscribed_devices = {"device1", "device2", "device3"}
         assert client.subscribed_count == 3
+
+    def test_subscribed_devices_returns_copy(self):
+        """Test subscribed_devices returns a copy, not the internal set."""
+        client = LiproMqttClient(
+            access_key="access",
+            secret_key="secret",
+            biz_id="lip_biz001",
+            phone_id="550e8400-e29b-41d4-a716-446655440000",
+        )
+        client._subscribed_devices = {"device1", "device2"}
+
+        snapshot = client.subscribed_devices
+        snapshot.add("injected")
+
+        # Internal set must not be affected
+        assert "injected" not in client._subscribed_devices
+        assert len(client._subscribed_devices) == 2
+
+
+class TestSyncSubscriptions:
+    """Tests for sync_subscriptions method."""
+
+    @pytest.mark.asyncio
+    async def test_sync_add_devices(self):
+        """Test adding new device subscriptions."""
+        client = LiproMqttClient(
+            access_key="access",
+            secret_key="secret",
+            biz_id="lip_biz001",
+            phone_id="550e8400-e29b-41d4-a716-446655440000",
+        )
+        # Not connected — devices should be recorded for later subscription
+        await client.sync_subscriptions({"dev_a", "dev_b"})
+
+        assert client._subscribed_devices == {"dev_a", "dev_b"}
+
+    @pytest.mark.asyncio
+    async def test_sync_remove_devices(self):
+        """Test removing device subscriptions."""
+        client = LiproMqttClient(
+            access_key="access",
+            secret_key="secret",
+            biz_id="lip_biz001",
+            phone_id="550e8400-e29b-41d4-a716-446655440000",
+        )
+        client._subscribed_devices = {"dev_a", "dev_b", "dev_c"}
+
+        await client.sync_subscriptions({"dev_a"})
+
+        assert client._subscribed_devices == {"dev_a"}
+
+    @pytest.mark.asyncio
+    async def test_sync_no_change(self):
+        """Test sync with no changes is a no-op."""
+        client = LiproMqttClient(
+            access_key="access",
+            secret_key="secret",
+            biz_id="lip_biz001",
+            phone_id="550e8400-e29b-41d4-a716-446655440000",
+        )
+        client._subscribed_devices = {"dev_a", "dev_b"}
+
+        await client.sync_subscriptions({"dev_a", "dev_b"})
+
+        assert client._subscribed_devices == {"dev_a", "dev_b"}
+
+    @pytest.mark.asyncio
+    async def test_sync_add_and_remove(self):
+        """Test simultaneous add and remove."""
+        client = LiproMqttClient(
+            access_key="access",
+            secret_key="secret",
+            biz_id="lip_biz001",
+            phone_id="550e8400-e29b-41d4-a716-446655440000",
+        )
+        client._subscribed_devices = {"dev_a", "dev_b"}
+
+        await client.sync_subscriptions({"dev_b", "dev_c"})
+
+        assert client._subscribed_devices == {"dev_b", "dev_c"}
+
+    @pytest.mark.asyncio
+    async def test_sync_connected_subscribes_to_broker(self):
+        """Test sync actually subscribes/unsubscribes when connected."""
+        client = LiproMqttClient(
+            access_key="access",
+            secret_key="secret",
+            biz_id="lip_biz001",
+            phone_id="550e8400-e29b-41d4-a716-446655440000",
+        )
+        mock_mqtt = AsyncMock()
+        client._client = mock_mqtt
+        client._connected = True
+        client._subscribed_devices = {"dev_old"}
+
+        await client.sync_subscriptions({"dev_new"})
+
+        # Should subscribe to new and unsubscribe from old
+        mock_mqtt.subscribe.assert_called_once()
+        mock_mqtt.unsubscribe.assert_called_once()
+        assert client._subscribed_devices == {"dev_new"}

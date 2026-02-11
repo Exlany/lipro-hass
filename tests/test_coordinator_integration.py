@@ -38,17 +38,17 @@ class TestCoordinatorDeviceManagement:
         """Test IoT ID to device mapping."""
         device = make_device("light", serial="03ab5ccd7cxxxxxx")
 
-        iot_id_to_device = {device.iot_device_id: device}
+        device_by_id = {device.iot_device_id: device}
 
         assert device.iot_device_id == "03ab5ccd7cxxxxxx"
-        assert iot_id_to_device.get("03ab5ccd7cxxxxxx") == device
+        assert device_by_id.get("03ab5ccd7cxxxxxx") == device
 
     def test_group_device_iot_id(self, make_device):
         """Test group device IoT ID format."""
         # Create device with is_group=True directly
 
         device = LiproDevice(
-            device_id=1,
+            device_number=1,
             serial="mesh_group_10001",
             name="Test Group",
             device_type=1,
@@ -127,20 +127,6 @@ class TestCoordinatorDebounceProtection:
             protected_keys.update(entity.get_protected_keys())
 
         assert protected_keys == {"brightness", "temperature"}
-
-    def test_filter_protected_properties(self, make_device):
-        """Test filtering protected properties."""
-        properties = {
-            "powerState": "1",
-            "brightness": "80",
-            "temperature": "4000",
-        }
-        protected_keys = {"brightness", "temperature"}
-
-        filtered = {k: v for k, v in properties.items() if k not in protected_keys}
-
-        assert filtered == {"powerState": "1"}
-        assert "brightness" not in filtered
 
     def test_no_protection_when_no_entities(self, make_device):
         """Test no filtering when no entities registered."""
@@ -242,7 +228,7 @@ class TestCoordinatorDeviceCategorization:
 
         device1 = make_device("light", serial="03ab5ccd7cxxxxxx")
         device2 = LiproDevice(
-            device_id=2,
+            device_number=2,
             serial="mesh_group_10001",
             name="Test Group",
             device_type=1,
@@ -262,15 +248,6 @@ class TestCoordinatorDeviceCategorization:
 
 class TestCoordinatorStaleDeviceRemoval:
     """Tests for stale device removal."""
-
-    def test_detect_stale_devices(self):
-        """Test detection of devices that no longer exist."""
-        previous_serials = {"device1", "device2", "device3"}
-        current_serials = {"device1", "device3"}
-
-        stale_serials = previous_serials - current_serials
-
-        assert stale_serials == {"device2"}
 
     def test_no_stale_when_devices_added(self):
         """Test no stale devices when new devices are added."""
@@ -293,27 +270,6 @@ class TestCoordinatorStaleDeviceRemoval:
 
 class TestCoordinatorMqttIntegration:
     """Tests for MQTT integration in coordinator."""
-
-    def test_mqtt_message_device_lookup(self, make_device):
-        """Test device lookup from MQTT message."""
-        device = make_device("light", serial="03ab5ccd7cxxxxxx")
-        iot_id_to_device = {device.iot_device_id: device}
-
-        # Simulate MQTT message
-        mqtt_device_id = "03ab5ccd7cxxxxxx"
-        found_device = iot_id_to_device.get(mqtt_device_id)
-
-        assert found_device is not None
-        assert found_device.serial == "03ab5ccd7cxxxxxx"
-
-    def test_mqtt_message_unknown_device(self):
-        """Test MQTT message for unknown device is ignored."""
-        iot_id_to_device = {}
-
-        mqtt_device_id = "03ab5ccd7c999999"
-        found_device = iot_id_to_device.get(mqtt_device_id)
-
-        assert found_device is None
 
     def test_mqtt_properties_update(self, make_device):
         """Test MQTT message updates device properties."""

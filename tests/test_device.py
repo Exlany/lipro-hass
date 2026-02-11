@@ -50,7 +50,7 @@ class TestLiproDevice:
     def test_create_device(self):
         """Test creating a device."""
         device = LiproDevice(
-            device_id=123,
+            device_number=123,
             serial="03ab5ccd7caaaaaa",
             name="Test Light",
             device_type=1,
@@ -59,7 +59,7 @@ class TestLiproDevice:
             room_name="Living Room",
         )
 
-        assert device.device_id == 123
+        assert device.device_number == 123
         assert device.serial == "03ab5ccd7caaaaaa"
         assert device.name == "Test Light"
         assert device.device_type == 1
@@ -70,7 +70,7 @@ class TestLiproDevice:
     def test_device_type_hex_from_physical_model(self):
         """Test device type hex is determined by physical_model."""
         device = LiproDevice(
-            device_id=1,
+            device_number=1,
             serial="03ab5ccd7caaaaaa",
             name="Light Strip",
             device_type=6,  # This is outlet type in Mesh protocol
@@ -86,7 +86,7 @@ class TestLiproDevice:
     def test_device_type_hex_fallback(self):
         """Test device type hex falls back to type field when not in map."""
         device = LiproDevice(
-            device_id=1,
+            device_number=1,
             serial="03ab5ccd7caaaaaa",
             name="Unknown Device",
             device_type=99,  # Unknown type not in DEVICE_TYPE_MAP
@@ -100,7 +100,7 @@ class TestLiproDevice:
     def test_unique_id(self):
         """Test unique ID generation."""
         device = LiproDevice(
-            device_id=1,
+            device_number=1,
             serial="03ab5ccd7caaaaaa",
             name="Test",
             device_type=1,
@@ -112,7 +112,7 @@ class TestLiproDevice:
     def test_iot_device_id(self):
         """Test IoT device ID is alias for serial."""
         device = LiproDevice(
-            device_id=1,
+            device_number=1,
             serial="03ab5ccd7caaaaaa",
             name="Test",
             device_type=1,
@@ -125,7 +125,7 @@ class TestLiproDevice:
     def test_has_valid_iot_id_device(self):
         """Test valid IoT ID check for regular device."""
         device = LiproDevice(
-            device_id=1,
+            device_number=1,
             serial="03ab5ccd7caaaaaa",
             name="Test",
             device_type=1,
@@ -138,7 +138,7 @@ class TestLiproDevice:
     def test_has_valid_iot_id_group(self):
         """Test valid IoT ID check for mesh group."""
         device = LiproDevice(
-            device_id=1,
+            device_number=1,
             serial="mesh_group_10001",
             name="Test Group",
             device_type=1,
@@ -152,7 +152,7 @@ class TestLiproDevice:
         """Test device type check properties."""
         # Light
         light = LiproDevice(
-            device_id=1,
+            device_number=1,
             serial="03ab5ccd7cxxxxxx",
             name="Light",
             device_type=1,
@@ -164,7 +164,7 @@ class TestLiproDevice:
 
         # Fan light
         fan_light = LiproDevice(
-            device_id=2,
+            device_number=2,
             serial="03ab5ccd7cyyyyyy",
             name="Fan Light",
             device_type=4,
@@ -176,7 +176,7 @@ class TestLiproDevice:
 
         # Curtain
         curtain = LiproDevice(
-            device_id=3,
+            device_number=3,
             serial="03ab5ccd7czzzzzz",
             name="Curtain",
             device_type=2,
@@ -187,7 +187,7 @@ class TestLiproDevice:
 
         # Switch
         switch = LiproDevice(
-            device_id=4,
+            device_number=4,
             serial="03ab000000000004",
             name="Switch",
             device_type=3,
@@ -198,7 +198,7 @@ class TestLiproDevice:
 
         # Outlet
         outlet = LiproDevice(
-            device_id=5,
+            device_number=5,
             serial="03ab000000000005",
             name="Outlet",
             device_type=6,
@@ -209,7 +209,7 @@ class TestLiproDevice:
 
         # Heater
         heater = LiproDevice(
-            device_id=6,
+            device_number=6,
             serial="03ab000000000006",
             name="Heater",
             device_type=7,
@@ -220,7 +220,7 @@ class TestLiproDevice:
 
         # Body sensor
         body_sensor = LiproDevice(
-            device_id=7,
+            device_number=7,
             serial="03ab000000000007",
             name="Motion",
             device_type=8,
@@ -232,7 +232,7 @@ class TestLiproDevice:
 
         # Door sensor
         door_sensor = LiproDevice(
-            device_id=8,
+            device_number=8,
             serial="03ab000000000008",
             name="Door",
             device_type=10,
@@ -244,7 +244,7 @@ class TestLiproDevice:
 
         # Gateway
         gateway = LiproDevice(
-            device_id=9,
+            device_number=9,
             serial="03ab000000000009",
             name="Gateway",
             device_type=11,
@@ -260,7 +260,7 @@ class TestDeviceProperties:
     def test_get_property(self):
         """Test getting raw property value."""
         device = LiproDevice(
-            device_id=1,
+            device_number=1,
             serial="03ab5ccd7cxxxxxx",
             name="Test",
             device_type=1,
@@ -276,7 +276,7 @@ class TestDeviceProperties:
     def test_get_bool_property(self):
         """Test getting boolean property value."""
         device = LiproDevice(
-            device_id=1,
+            device_number=1,
             serial="03ab5ccd7cxxxxxx",
             name="Test",
             device_type=1,
@@ -307,7 +307,7 @@ class TestDeviceProperties:
     def test_get_int_property(self):
         """Test getting integer property value."""
         device = LiproDevice(
-            device_id=1,
+            device_number=1,
             serial="03ab5ccd7cxxxxxx",
             name="Test",
             device_type=1,
@@ -328,7 +328,7 @@ class TestDeviceProperties:
     def test_get_float_property(self):
         """Test getting float property value."""
         device = LiproDevice(
-            device_id=1,
+            device_number=1,
             serial="03ab5ccd7cxxxxxx",
             name="Test",
             device_type=1,
@@ -353,7 +353,7 @@ class TestDeviceStateProperties:
     def test_light_properties(self):
         """Test light state properties."""
         device = LiproDevice(
-            device_id=1,
+            device_number=1,
             serial="03ab5ccd7cxxxxxx",
             name="Light",
             device_type=1,
@@ -375,7 +375,7 @@ class TestDeviceStateProperties:
     def test_curtain_properties(self):
         """Test curtain state properties."""
         device = LiproDevice(
-            device_id=1,
+            device_number=1,
             serial="03ab5ccd7cxxxxxx",
             name="Curtain",
             device_type=2,
@@ -403,7 +403,7 @@ class TestDeviceStateProperties:
     def test_fan_properties(self):
         """Test fan state properties."""
         device = LiproDevice(
-            device_id=1,
+            device_number=1,
             serial="03ab5ccd7cxxxxxx",
             name="Fan Light",
             device_type=4,
@@ -423,7 +423,7 @@ class TestDeviceStateProperties:
     def test_heater_properties(self):
         """Test heater state properties."""
         device = LiproDevice(
-            device_id=1,
+            device_number=1,
             serial="03ab5ccd7cxxxxxx",
             name="Heater",
             device_type=7,
@@ -446,7 +446,7 @@ class TestDeviceStateProperties:
         """Test sensor state properties."""
         # Body sensor
         body_sensor = LiproDevice(
-            device_id=1,
+            device_number=1,
             serial="03ab5ccd7cxxxxxx",
             name="Motion",
             device_type=8,
@@ -465,7 +465,7 @@ class TestDeviceStateProperties:
 
         # Door sensor
         door_sensor = LiproDevice(
-            device_id=2,
+            device_number=2,
             serial="03ab5ccd7cyyyyyy",
             name="Door",
             device_type=10,
@@ -489,7 +489,7 @@ class TestDeviceUpdateProperties:
     def test_update_properties(self):
         """Test updating device properties."""
         device = LiproDevice(
-            device_id=1,
+            device_number=1,
             serial="03ab5ccd7cxxxxxx",
             name="Light",
             device_type=1,
@@ -506,7 +506,7 @@ class TestDeviceUpdateProperties:
     def test_update_properties_availability(self):
         """Test availability is updated based on connectState."""
         device = LiproDevice(
-            device_id=1,
+            device_number=1,
             serial="03ab5ccd7cxxxxxx",
             name="Light",
             device_type=1,
@@ -543,7 +543,7 @@ class TestDeviceFromApiData:
 
         device = LiproDevice.from_api_data(api_data)
 
-        assert device.device_id == 10001
+        assert device.device_number == 10001
         assert device.serial == "03ab5ccd7caaaaaa"
         assert device.name == "Living Room Light"
         assert device.device_type == 1
@@ -560,7 +560,7 @@ class TestDeviceFromApiData:
 
         device = LiproDevice.from_api_data(api_data)
 
-        assert device.device_id == 0
+        assert device.device_number == 0
         assert device.serial == ""
         assert device.name == "Unknown"
         assert device.device_type == 1
@@ -624,7 +624,7 @@ class TestDeviceGearList:
     def test_gear_list_from_string(self):
         """Test parsing gear list from JSON string."""
         device = LiproDevice(
-            device_id=1,
+            device_number=1,
             serial="03ab5ccd7cxxxxxx",
             name="Light",
             device_type=1,
@@ -642,7 +642,7 @@ class TestDeviceGearList:
     def test_gear_list_from_list(self):
         """Test gear list when already a list."""
         device = LiproDevice(
-            device_id=1,
+            device_number=1,
             serial="03ab5ccd7cxxxxxx",
             name="Light",
             device_type=1,
@@ -659,7 +659,7 @@ class TestDeviceGearList:
     def test_gear_list_empty(self):
         """Test gear list when empty or missing."""
         device = LiproDevice(
-            device_id=1,
+            device_number=1,
             serial="03ab5ccd7cxxxxxx",
             name="Light",
             device_type=1,
@@ -672,7 +672,7 @@ class TestDeviceGearList:
     def test_gear_list_invalid_json(self):
         """Test gear list with invalid JSON."""
         device = LiproDevice(
-            device_id=1,
+            device_number=1,
             serial="03ab5ccd7cxxxxxx",
             name="Light",
             device_type=1,
@@ -687,7 +687,7 @@ class TestDeviceGearList:
     def test_gear_list_caching(self):
         """Test gear list caching."""
         device = LiproDevice(
-            device_id=1,
+            device_number=1,
             serial="03ab5ccd7cxxxxxx",
             name="Light",
             device_type=1,
@@ -707,7 +707,7 @@ class TestDeviceGearList:
     def test_gear_list_cache_cleared_on_update(self):
         """Test gear list cache is cleared when gearList property is updated."""
         device = LiproDevice(
-            device_id=1,
+            device_number=1,
             serial="03ab5ccd7cxxxxxx",
             name="Light",
             device_type=1,
@@ -736,7 +736,7 @@ class TestDeviceGearList:
     def test_has_gear_presets(self):
         """Test has_gear_presets property."""
         device_with_presets = LiproDevice(
-            device_id=1,
+            device_number=1,
             serial="03ab5ccd7cxxxxxx",
             name="Light",
             device_type=1,
@@ -748,7 +748,7 @@ class TestDeviceGearList:
         assert device_with_presets.has_gear_presets is True
 
         device_without_presets = LiproDevice(
-            device_id=2,
+            device_number=2,
             serial="03ab5ccd7cyyyyyy",
             name="Light",
             device_type=1,
@@ -760,7 +760,7 @@ class TestDeviceGearList:
     def test_last_gear_index(self):
         """Test last_gear_index property."""
         device = LiproDevice(
-            device_id=1,
+            device_number=1,
             serial="03ab5ccd7cxxxxxx",
             name="Light",
             device_type=1,
@@ -772,7 +772,7 @@ class TestDeviceGearList:
         assert device.last_gear_index == 2
 
         device_no_index = LiproDevice(
-            device_id=2,
+            device_number=2,
             serial="03ab5ccd7cyyyyyy",
             name="Light",
             device_type=1,
@@ -788,7 +788,7 @@ class TestDeviceSpecialFeatures:
     def test_sleep_wake_features(self):
         """Test sleep/wake feature detection."""
         device_with_sleep = LiproDevice(
-            device_id=1,
+            device_number=1,
             serial="03ab5ccd7cxxxxxx",
             name="Natural Light",
             device_type=1,
@@ -801,7 +801,7 @@ class TestDeviceSpecialFeatures:
         assert device_with_sleep.sleep_aid_enabled is True
 
         device_with_wake = LiproDevice(
-            device_id=2,
+            device_number=2,
             serial="03ab5ccd7cyyyyyy",
             name="Natural Light",
             device_type=1,
@@ -814,7 +814,7 @@ class TestDeviceSpecialFeatures:
         assert device_with_wake.wake_up_enabled is True
 
         device_without = LiproDevice(
-            device_id=3,
+            device_number=3,
             serial="03ab5ccd7czzzzzz",
             name="Regular Light",
             device_type=1,
@@ -826,7 +826,7 @@ class TestDeviceSpecialFeatures:
     def test_floor_lamp_features(self):
         """Test floor lamp feature detection."""
         device_with_focus = LiproDevice(
-            device_id=1,
+            device_number=1,
             serial="03ab5ccd7cxxxxxx",
             name="Floor Lamp",
             device_type=9,
@@ -839,7 +839,7 @@ class TestDeviceSpecialFeatures:
         assert device_with_focus.focus_mode_enabled is True
 
         device_with_body = LiproDevice(
-            device_id=2,
+            device_number=2,
             serial="03ab5ccd7cyyyyyy",
             name="Floor Lamp",
             device_type=9,
@@ -852,7 +852,7 @@ class TestDeviceSpecialFeatures:
         assert device_with_body.body_reactive_enabled is True
 
         device_without = LiproDevice(
-            device_id=3,
+            device_number=3,
             serial="03ab5ccd7czzzzzz",
             name="Regular Light",
             device_type=1,
@@ -864,7 +864,7 @@ class TestDeviceSpecialFeatures:
     def test_battery_properties(self):
         """Test battery-related properties."""
         device_with_battery = LiproDevice(
-            device_id=1,
+            device_number=1,
             serial="03ab5ccd7cxxxxxx",
             name="Sensor",
             device_type=8,
@@ -879,7 +879,7 @@ class TestDeviceSpecialFeatures:
         assert device_with_battery.has_battery is True
 
         device_charging = LiproDevice(
-            device_id=2,
+            device_number=2,
             serial="03ab5ccd7cyyyyyy",
             name="Sensor",
             device_type=8,
@@ -892,7 +892,7 @@ class TestDeviceSpecialFeatures:
         assert device_charging.is_charging is True
 
         device_no_battery = LiproDevice(
-            device_id=3,
+            device_number=3,
             serial="03ab5ccd7czzzzzz",
             name="Light",
             device_type=1,
@@ -909,7 +909,7 @@ class TestDeviceHeaterExtended:
     def test_wind_direction_mode(self):
         """Test wind direction mode property."""
         device = LiproDevice(
-            device_id=1,
+            device_number=1,
             serial="03ab5ccd7cxxxxxx",
             name="Heater",
             device_type=7,
@@ -921,7 +921,7 @@ class TestDeviceHeaterExtended:
         assert device.wind_direction_mode == 2
 
         device_default = LiproDevice(
-            device_id=2,
+            device_number=2,
             serial="03ab5ccd7cyyyyyy",
             name="Heater",
             device_type=7,
@@ -933,7 +933,7 @@ class TestDeviceHeaterExtended:
     def test_aeration_gear(self):
         """Test aeration/ventilation gear property."""
         device = LiproDevice(
-            device_id=1,
+            device_number=1,
             serial="03ab5ccd7cxxxxxx",
             name="Heater",
             device_type=7,
@@ -946,7 +946,7 @@ class TestDeviceHeaterExtended:
         assert device.aeration_is_on is True
 
         device_off = LiproDevice(
-            device_id=2,
+            device_number=2,
             serial="03ab5ccd7cyyyyyy",
             name="Heater",
             device_type=7,
@@ -965,7 +965,7 @@ class TestDeviceTypeHexEdgeCases:
     def test_unknown_physical_model(self):
         """Test unknown physical model falls back to type field."""
         device = LiproDevice(
-            device_id=1,
+            device_number=1,
             serial="03ab5ccd7cxxxxxx",
             name="Unknown Device",
             device_type=99,
@@ -979,7 +979,7 @@ class TestDeviceTypeHexEdgeCases:
     def test_device_type_hex_with_known_type(self):
         """Test device_type_hex with known type but no physical_model."""
         device = LiproDevice(
-            device_id=1,
+            device_number=1,
             serial="03ab5ccd7cxxxxxx",
             name="Light",
             device_type=1,
@@ -996,7 +996,7 @@ class TestDeviceIotId:
     def test_iot_device_id_alias(self):
         """Test iot_device_id is alias for serial."""
         device = LiproDevice(
-            device_id=1,
+            device_number=1,
             serial="03ab5ccd7caaaaaa",
             name="Light",
             device_type=1,
@@ -1005,3 +1005,289 @@ class TestDeviceIotId:
 
         assert device.iot_device_id == "03ab5ccd7caaaaaa"
         assert device.iot_device_id == device.serial
+
+
+class TestGetOptionalIntProperty:
+    """Tests for get_optional_int_property method."""
+
+    def test_returns_int_for_valid_string(self):
+        """Test returns int when property is a valid numeric string."""
+        device = LiproDevice(
+            device_number=1,
+            serial="03ab5ccd7cxxxxxx",
+            name="Test",
+            device_type=1,
+            iot_name="",
+            properties={"wifiRssi": "-65"},
+        )
+        assert device.get_optional_int_property("wifiRssi") == -65
+
+    def test_returns_int_for_int_value(self):
+        """Test returns int when property is already an int."""
+        device = LiproDevice(
+            device_number=1,
+            serial="03ab5ccd7cxxxxxx",
+            name="Test",
+            device_type=1,
+            iot_name="",
+            properties={"meshAddress": 42},
+        )
+        assert device.get_optional_int_property("meshAddress") == 42
+
+    def test_returns_none_for_missing_key(self):
+        """Test returns None when property key is missing."""
+        device = LiproDevice(
+            device_number=1,
+            serial="03ab5ccd7cxxxxxx",
+            name="Test",
+            device_type=1,
+            iot_name="",
+            properties={},
+        )
+        assert device.get_optional_int_property("wifiRssi") is None
+
+    def test_returns_none_for_invalid_string(self):
+        """Test returns None when property is not a valid int."""
+        device = LiproDevice(
+            device_number=1,
+            serial="03ab5ccd7cxxxxxx",
+            name="Test",
+            device_type=1,
+            iot_name="",
+            properties={"wifiRssi": "not_a_number"},
+        )
+        assert device.get_optional_int_property("wifiRssi") is None
+
+
+class TestDeviceColorTempRange:
+    """Tests for device-specific color temperature range."""
+
+    def test_custom_color_temp_range(self):
+        """Test color_temp uses device-specific range."""
+        device = LiproDevice(
+            device_number=1,
+            serial="03ab5ccd7cxxxxxx",
+            name="Light",
+            device_type=1,
+            iot_name="",
+            min_color_temp_kelvin=3000,
+            max_color_temp_kelvin=5700,
+            properties={"temperature": "0"},
+        )
+        assert device.color_temp == 3000
+
+        device.properties["temperature"] = "100"
+        assert device.color_temp == 5700
+
+        device.properties["temperature"] = "50"
+        assert device.color_temp == 3000 + int(50 * 2700 / 100)
+
+    def test_single_color_temp_device(self):
+        """Test supports_color_temp is False when range is 0."""
+        device = LiproDevice(
+            device_number=1,
+            serial="03ab5ccd7cxxxxxx",
+            name="Light",
+            device_type=1,
+            iot_name="",
+            min_color_temp_kelvin=0,
+            max_color_temp_kelvin=0,
+        )
+        assert device.supports_color_temp is False
+
+    def test_default_color_temp_range(self):
+        """Test default color temp range is 2700-6500K."""
+        device = LiproDevice(
+            device_number=1,
+            serial="03ab5ccd7cxxxxxx",
+            name="Light",
+            device_type=1,
+            iot_name="",
+        )
+        assert device.min_color_temp_kelvin == 2700
+        assert device.max_color_temp_kelvin == 6500
+        assert device.supports_color_temp is True
+
+
+class TestDeviceNetworkProperties:
+    """Tests for network/diagnostic properties."""
+
+    def test_ip_address(self):
+        """Test IP address property."""
+        device = LiproDevice(
+            device_number=1,
+            serial="03ab5ccd7cxxxxxx",
+            name="Light",
+            device_type=1,
+            iot_name="",
+            properties={"ip": "192.168.1.100"},
+        )
+        assert device.ip_address == "192.168.1.100"
+
+    def test_ip_address_missing(self):
+        """Test IP address returns None when missing."""
+        device = LiproDevice(
+            device_number=1,
+            serial="03ab5ccd7cxxxxxx",
+            name="Light",
+            device_type=1,
+            iot_name="",
+        )
+        assert device.ip_address is None
+
+    def test_wifi_ssid(self):
+        """Test WiFi SSID property."""
+        device = LiproDevice(
+            device_number=1,
+            serial="03ab5ccd7cxxxxxx",
+            name="Light",
+            device_type=1,
+            iot_name="",
+            properties={"wifi_ssid": "MyNetwork"},
+        )
+        assert device.wifi_ssid == "MyNetwork"
+
+    def test_wifi_rssi(self):
+        """Test WiFi RSSI property."""
+        device = LiproDevice(
+            device_number=1,
+            serial="03ab5ccd7cxxxxxx",
+            name="Light",
+            device_type=1,
+            iot_name="",
+            properties={"wifi_rssi": "-55"},
+        )
+        assert device.wifi_rssi == -55
+
+    def test_wifi_rssi_missing(self):
+        """Test WiFi RSSI returns None when missing."""
+        device = LiproDevice(
+            device_number=1,
+            serial="03ab5ccd7cxxxxxx",
+            name="Light",
+            device_type=1,
+            iot_name="",
+        )
+        assert device.wifi_rssi is None
+
+    def test_mac_address(self):
+        """Test MAC address property."""
+        device = LiproDevice(
+            device_number=1,
+            serial="03ab5ccd7cxxxxxx",
+            name="Light",
+            device_type=1,
+            iot_name="",
+            properties={"mac": "AA:BB:CC:DD:EE:FF"},
+        )
+        assert device.mac_address == "AA:BB:CC:DD:EE:FF"
+
+    def test_firmware_version(self):
+        """Test firmware version property."""
+        device = LiproDevice(
+            device_number=1,
+            serial="03ab5ccd7cxxxxxx",
+            name="Light",
+            device_type=1,
+            iot_name="",
+            properties={"version": "1.2.3"},
+        )
+        assert device.firmware_version == "1.2.3"
+
+    def test_net_type(self):
+        """Test network type property."""
+        device = LiproDevice(
+            device_number=1,
+            serial="03ab5ccd7cxxxxxx",
+            name="Light",
+            device_type=1,
+            iot_name="",
+            properties={"net_type": "wifi"},
+        )
+        assert device.net_type == "wifi"
+
+
+class TestDeviceMeshProperties:
+    """Tests for Mesh network properties."""
+
+    def test_mesh_address(self):
+        """Test Mesh address property."""
+        device = LiproDevice(
+            device_number=1,
+            serial="03ab5ccd7cxxxxxx",
+            name="Light",
+            device_type=1,
+            iot_name="",
+            properties={"address": "256"},
+        )
+        assert device.mesh_address == 256
+
+    def test_mesh_address_missing(self):
+        """Test Mesh address returns None when missing."""
+        device = LiproDevice(
+            device_number=1,
+            serial="03ab5ccd7cxxxxxx",
+            name="Light",
+            device_type=1,
+            iot_name="",
+        )
+        assert device.mesh_address is None
+
+    def test_mesh_type(self):
+        """Test Mesh type property."""
+        device = LiproDevice(
+            device_number=1,
+            serial="03ab5ccd7cxxxxxx",
+            name="Light",
+            device_type=1,
+            iot_name="",
+            properties={"meshType": "1"},
+        )
+        assert device.mesh_type == 1
+
+    def test_is_mesh_gateway(self):
+        """Test Mesh gateway detection."""
+        device = LiproDevice(
+            device_number=1,
+            serial="03ab5ccd7cxxxxxx",
+            name="Gateway",
+            device_type=1,
+            iot_name="",
+            properties={"gateway": "1"},
+        )
+        assert device.is_mesh_gateway is True
+
+    def test_ble_mac(self):
+        """Test BLE MAC address property."""
+        device = LiproDevice(
+            device_number=1,
+            serial="03ab5ccd7cxxxxxx",
+            name="Light",
+            device_type=1,
+            iot_name="",
+            properties={"bleMac": "5C:CD:7C:XX:XX:XX"},
+        )
+        assert device.ble_mac == "5C:CD:7C:XX:XX:XX"
+
+    def test_latest_sync_timestamp(self):
+        """Test latest sync timestamp property."""
+        device = LiproDevice(
+            device_number=1,
+            serial="03ab5ccd7cxxxxxx",
+            name="Light",
+            device_type=1,
+            iot_name="",
+            properties={"latestSyncTimestamp": "1700000000000"},
+        )
+        assert device.latest_sync_timestamp == 1700000000000
+
+    def test_latest_sync_timestamp_missing(self):
+        """Test latest sync timestamp returns None when missing."""
+        device = LiproDevice(
+            device_number=1,
+            serial="03ab5ccd7cxxxxxx",
+            name="Light",
+            device_type=1,
+            iot_name="",
+        )
+        assert device.latest_sync_timestamp is None

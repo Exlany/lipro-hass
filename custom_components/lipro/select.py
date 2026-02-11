@@ -261,26 +261,21 @@ class LiproLightGearSelect(LiproSelect):
             percent_to_kelvin(temp_pct),
         )
 
-        # Send brightness and temperature (percentage) together
-        # Use optimistic state to update device properties immediately
-        optimistic_state = {
+        optimistic = {
             PROP_BRIGHTNESS: str(brightness),
             PROP_TEMPERATURE: str(temp_pct),
         }
 
-        # Update device properties and notify all listeners (including light entity)
-        self.device.update_properties(optimistic_state)
-        self.coordinator.async_update_listeners()
-
-        # Send command to device
-        success = await self.coordinator.async_send_command(
-            self.device,
+        # Use async_send_command for consistent optimistic update + error recovery.
+        await self.async_send_command(
             CMD_CHANGE_STATE,
             [
                 {"key": PROP_BRIGHTNESS, "value": str(brightness)},
                 {"key": PROP_TEMPERATURE, "value": str(temp_pct)},
             ],
+            optimistic,
         )
 
-        if not success:
-            await self.coordinator.async_request_refresh()
+        # Notify other entities (e.g., light) sharing this device about the
+        # brightness/temperature change applied by optimistic state above.
+        self.coordinator.async_update_listeners()

@@ -54,6 +54,9 @@ REDACT_KEYS = frozenset(
     }
 )
 
+# Pre-computed lowercase version for efficient lookups in sanitization
+_REDACT_KEYS_LOWER: frozenset[str] = frozenset(k.lower() for k in REDACT_KEYS)
+
 # Maximum items to keep in memory before forcing upload
 MAX_PENDING_ERRORS = 50
 MAX_PENDING_DEVICES = 20
@@ -578,7 +581,7 @@ class AnonymousShareManager:
         result = {}
         for key, value in properties.items():
             # Skip known sensitive keys
-            if key.lower() in {k.lower() for k in REDACT_KEYS}:
+            if key.lower() in _REDACT_KEYS_LOWER:
                 continue
             # Keep the value, only sanitize if it looks sensitive
             result[key] = self._sanitize_value(value, preserve_structure=True)
@@ -604,7 +607,7 @@ class AnonymousShareManager:
                 return {
                     k: self._sanitize_value(v, preserve_structure=True)
                     for k, v in value.items()
-                    if k.lower() not in {kk.lower() for kk in REDACT_KEYS}
+                    if k.lower() not in _REDACT_KEYS_LOWER
                 }
             if isinstance(value, list):
                 return [

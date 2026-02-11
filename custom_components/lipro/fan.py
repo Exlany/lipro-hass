@@ -36,9 +36,6 @@ if TYPE_CHECKING:
 # Limit parallel updates to avoid overwhelming the API
 PARALLEL_UPDATES = 1
 
-# Fan speed range (1-6 gears for fan light)
-SPEED_RANGE = (1, 6)
-
 # Preset modes for fan light
 PRESET_MODE_NATURAL = "natural"
 PRESET_MODE_SLEEP = "sleep"
@@ -110,9 +107,13 @@ class LiproFan(LiproEntity, FanEntity):
         | FanEntityFeature.TURN_OFF
     )
     _attr_preset_modes = PRESET_MODES
-    _attr_speed_count = 6
     _attr_translation_key = "fan"
     _entity_suffix = "fan"
+
+    @property
+    def speed_count(self) -> int:
+        """Return the number of speeds the fan supports."""
+        return self.device.max_fan_gear
 
     @property
     def is_on(self) -> bool:
@@ -129,8 +130,9 @@ class LiproFan(LiproEntity, FanEntity):
         """Return the current speed percentage."""
         if not self.is_on:
             return 0
-        gear = self.device.fan_gear
-        return ranged_value_to_percentage(SPEED_RANGE, gear)
+        return ranged_value_to_percentage(
+            self.device.fan_speed_range, self.device.fan_gear
+        )
 
     @property
     def preset_mode(self) -> str | None:
@@ -149,12 +151,9 @@ class LiproFan(LiproEntity, FanEntity):
         optimistic: dict[str, Any] = {PROP_FAN_ONOFF: "1"}
 
         if percentage is not None:
-            ranged_value = percentage_to_ranged_value(SPEED_RANGE, percentage)
-            if ranged_value is not None:
-                gear = math.ceil(ranged_value)
-            else:
-                gear = SPEED_RANGE[0]
-            gear = max(SPEED_RANGE[0], min(SPEED_RANGE[1], gear))
+            speed_range = self.device.fan_speed_range
+            gear = math.ceil(percentage_to_ranged_value(speed_range, percentage))
+            gear = max(speed_range[0], min(speed_range[1], gear))
             properties.append({"key": PROP_FAN_GEAR, "value": str(gear)})
             optimistic[PROP_FAN_GEAR] = str(gear)
 
@@ -179,9 +178,9 @@ class LiproFan(LiproEntity, FanEntity):
             await self.async_turn_off()
             return
 
-        ranged_value = percentage_to_ranged_value(SPEED_RANGE, percentage)
-        gear = math.ceil(ranged_value) if ranged_value is not None else SPEED_RANGE[0]
-        gear = max(SPEED_RANGE[0], min(SPEED_RANGE[1], gear))
+        speed_range = self.device.fan_speed_range
+        gear = math.ceil(percentage_to_ranged_value(speed_range, percentage))
+        gear = max(speed_range[0], min(speed_range[1], gear))
         properties = [{"key": PROP_FAN_GEAR, "value": str(gear)}]
         optimistic: dict[str, Any] = {PROP_FAN_GEAR: str(gear)}
 
