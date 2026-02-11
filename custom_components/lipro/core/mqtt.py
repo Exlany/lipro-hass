@@ -467,7 +467,7 @@ class LiproMqttClient:
             if self._on_message and properties:
                 self._on_message(device_id, properties)
 
-        except json.JSONDecodeError:
-            _LOGGER.exception("Invalid JSON payload")
+        except (json.JSONDecodeError, UnicodeDecodeError):
+            _LOGGER.exception("Failed to decode MQTT payload")
         except (TypeError, AttributeError):
             _LOGGER.exception("Error processing message")

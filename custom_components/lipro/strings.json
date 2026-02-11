@@ -196,11 +196,11 @@
         }
       },
       "light_gear": {
-        "name": "Light Preset",
+        "name": "Color Temp Preset",
         "state": {
-          "gear_1": "Preset 1",
-          "gear_2": "Preset 2",
-          "gear_3": "Preset 3"
+          "gear_1": "Warm White",
+          "gear_2": "Neutral",
+          "gear_3": "Cool White"
         }
       }
     }

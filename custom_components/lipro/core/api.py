@@ -295,7 +295,12 @@ class LiproClient:
             async with request_ctx as response:
                 status = response.status
                 headers = dict(response.headers)
-                result = await response.json()
+                try:
+                    result = await response.json()
+                except (json.JSONDecodeError, aiohttp.ContentTypeError) as err:
+                    body = await response.text()
+                    msg = f"Invalid JSON response from {path} (status={status}): {body[:200]}"
+                    raise LiproApiError(msg) from err
         except aiohttp.ClientError as err:
             msg = f"Connection error: {err}"
             raise LiproConnectionError(msg) from err
@@ -390,7 +395,9 @@ class LiproClient:
                     _is_retry,
                     _retry_count=_retry_count + 1,
                 )
-            _LOGGER.warning("Rate limited on %s after 2 retries", path)
+            _LOGGER.warning(
+                "Rate limited on %s after 2 retries (retry_after=%s)", path, retry_after
+            )
             msg = "Rate limited after 2 retries"
             raise LiproRateLimitError(msg, retry_after)
 
@@ -503,7 +510,9 @@ class LiproClient:
                     _is_retry,
                     _retry_count=_retry_count + 1,
                 )
-            _LOGGER.warning("Rate limited on %s after 2 retries", path)
+            _LOGGER.warning(
+                "Rate limited on %s after 2 retries (retry_after=%s)", path, retry_after
+            )
             msg = "Rate limited after 2 retries"
             raise LiproRateLimitError(msg, retry_after)
 

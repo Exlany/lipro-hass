@@ -235,6 +235,11 @@ class LiproDevice:
         return self.category in (DeviceCategory.SWITCH, DeviceCategory.OUTLET)
 
     @property
+    def is_outlet(self) -> bool:
+        """Check if device is an outlet."""
+        return self.category == DeviceCategory.OUTLET
+
+    @property
     def is_heater(self) -> bool:
         """Check if device is a heater."""
         return self.category == DeviceCategory.HEATER

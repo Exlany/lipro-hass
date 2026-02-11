@@ -28,6 +28,8 @@ from .const import (
     DEFAULT_REQUEST_TIMEOUT,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
+    MAX_REQUEST_TIMEOUT,
+    MIN_REQUEST_TIMEOUT,
 )
 from .core import (
     LiproApiError,
@@ -143,8 +145,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: LiproConfigEntry) -> boo
     phone = entry.data[CONF_PHONE]
     password_hash = entry.data[CONF_PASSWORD_HASH]
 
-    # Get request timeout from options
+    # Get request timeout from options (clamp to valid range)
     request_timeout = entry.options.get(CONF_REQUEST_TIMEOUT, DEFAULT_REQUEST_TIMEOUT)
+    request_timeout = max(
+        MIN_REQUEST_TIMEOUT, min(MAX_REQUEST_TIMEOUT, request_timeout)
+    )
 
     session = async_get_clientsession(hass)
     client = LiproClient(phone_id, session, request_timeout=request_timeout)
@@ -547,11 +552,7 @@ async def _async_setup_services(hass: HomeAssistant) -> None:
 
 async def async_unload_entry(hass: HomeAssistant, entry: LiproConfigEntry) -> bool:
     """Unload a config entry."""
-    # Shutdown coordinator (stops MQTT, closes API session, clears data)
-    coordinator = entry.runtime_data
-    if coordinator:
-        await coordinator.async_shutdown()
-
+    # Note: HA automatically calls coordinator.async_shutdown() during unload
     return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
 
 

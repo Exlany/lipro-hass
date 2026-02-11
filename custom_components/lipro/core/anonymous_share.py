@@ -758,7 +758,7 @@ class AnonymousShareManager:
                         # Mark device models as reported
                         for device in self._devices.values():
                             self._reported_device_keys.add(device.iot_name)
-                        self._save_reported_devices()
+                        await asyncio.to_thread(self._save_reported_devices)
                         # Clear pending data
                         self.clear()
                         return True

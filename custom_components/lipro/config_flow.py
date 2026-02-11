@@ -206,6 +206,20 @@ class LiproConfigFlow(ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             phone = reauth_entry.data.get(CONF_PHONE, "")
             phone_id = reauth_entry.data.get(CONF_PHONE_ID, "")
+            if not phone or not phone_id:
+                _LOGGER.error(
+                    "Missing phone or phone_id in reauth entry, "
+                    "please remove and re-add the integration"
+                )
+                errors["base"] = "unknown"
+                return self.async_show_form(
+                    step_id="reauth_confirm",
+                    data_schema=vol.Schema({vol.Required(CONF_PASSWORD): str}),
+                    errors=errors,
+                    description_placeholders={
+                        "phone": reauth_entry.data.get(CONF_PHONE, "")
+                    },
+                )
             password_hash = _hash_password(user_input[CONF_PASSWORD])
 
             try:
@@ -220,6 +234,9 @@ class LiproConfigFlow(ConfigFlow, domain=DOMAIN):
 
             except LiproApiError as err:
                 errors["base"] = _map_login_error(err)
+            except Exception:
+                _LOGGER.exception("Unexpected error during reauth")
+                errors["base"] = "unknown"
 
         return self.async_show_form(
             step_id="reauth_confirm",
@@ -259,6 +276,11 @@ class LiproConfigFlow(ConfigFlow, domain=DOMAIN):
 
             except LiproApiError as err:
                 errors["base"] = _map_login_error(err)
+            except AbortFlow:
+                raise
+            except Exception:
+                _LOGGER.exception("Unexpected error during reconfigure")
+                errors["base"] = "unknown"
 
         return self.async_show_form(
             step_id="reconfigure",

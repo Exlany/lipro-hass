@@ -25,6 +25,7 @@ from ..const import (
     CONF_PHONE_ID,
     CONF_POWER_QUERY_INTERVAL,
     CONF_REQUEST_TIMEOUT,
+    CONF_SCAN_INTERVAL,
     DEFAULT_ANONYMOUS_SHARE_ENABLED,
     DEFAULT_ANONYMOUS_SHARE_ERRORS,
     DEFAULT_DEBUG_MODE,
@@ -146,11 +147,12 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         self._debug_mode = options.get(CONF_DEBUG_MODE, DEFAULT_DEBUG_MODE)
 
         # Apply debug mode to all lipro loggers
+        lipro_logger = logging.getLogger("custom_components.lipro")
         if self._debug_mode:
-            # Set debug level for all lipro modules
-            lipro_logger = logging.getLogger("custom_components.lipro")
             lipro_logger.setLevel(logging.DEBUG)
             _LOGGER.debug("Debug mode enabled for all Lipro modules")
+        else:
+            lipro_logger.setLevel(logging.NOTSET)
 
     def _setup_anonymous_share(self) -> None:
         """Set up the anonymous share system based on config options."""
@@ -469,15 +471,36 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
 
         _LOGGER.debug("Coordinator shutdown complete")
 
+        # Call parent shutdown to cancel update timer and other base cleanup
+        await super().async_shutdown()
+
     def _on_mqtt_connect(self) -> None:
         """Handle MQTT connection."""
         self._mqtt_connected = True
-        _LOGGER.info("MQTT connected, real-time updates enabled")
+        # Reduce polling frequency when MQTT provides real-time updates
+        base_interval = (
+            self.config_entry.options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
+            if self.config_entry
+            else DEFAULT_SCAN_INTERVAL
+        )
+        self.update_interval = timedelta(seconds=base_interval * 3)
+        _LOGGER.info(
+            "MQTT connected, polling interval relaxed to %ds", base_interval * 3
+        )
 
     def _on_mqtt_disconnect(self) -> None:
         """Handle MQTT disconnection."""
         self._mqtt_connected = False
-        _LOGGER.warning("MQTT disconnected, falling back to polling")
+        # Restore normal polling frequency
+        base_interval = (
+            self.config_entry.options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
+            if self.config_entry
+            else DEFAULT_SCAN_INTERVAL
+        )
+        self.update_interval = timedelta(seconds=base_interval)
+        _LOGGER.warning(
+            "MQTT disconnected, polling interval restored to %ds", base_interval
+        )
 
     def _on_mqtt_message(self, device_id: str, properties: dict[str, Any]) -> None:
         """Handle MQTT message with device status update.
@@ -520,7 +543,7 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
             cached = self._mqtt_message_cache.get(cache_key)
 
             if cached:
-                _last_hash, last_time = cached
+                _, last_time = cached
                 if current_time - last_time < self._mqtt_dedup_window:
                     # Duplicate message within dedup window, skip
                     if self._debug_mode:
