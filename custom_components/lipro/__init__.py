@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import functools
 import logging
 import re
 from typing import TYPE_CHECKING, Any
@@ -22,10 +23,14 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .config_flow import CONF_PASSWORD_HASH
 from .const import (
+    CONF_ACCESS_TOKEN,
+    CONF_EXPIRES_AT,
     CONF_PHONE,
     CONF_PHONE_ID,
+    CONF_REFRESH_TOKEN,
     CONF_REQUEST_TIMEOUT,
     CONF_SCAN_INTERVAL,
+    CONF_USER_ID,
     DEFAULT_REQUEST_TIMEOUT,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
@@ -157,12 +162,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: LiproConfigEntry) -> boo
     auth_manager = LiproAuthManager(client)
 
     # Set stored tokens if available
-    if "access_token" in entry.data and "refresh_token" in entry.data:
+    if CONF_ACCESS_TOKEN in entry.data and CONF_REFRESH_TOKEN in entry.data:
         auth_manager.set_tokens(
-            entry.data["access_token"],
-            entry.data["refresh_token"],
-            entry.data.get("user_id"),
-            entry.data.get("expires_at"),
+            entry.data[CONF_ACCESS_TOKEN],
+            entry.data[CONF_REFRESH_TOKEN],
+            entry.data.get(CONF_USER_ID),
+            entry.data.get(CONF_EXPIRES_AT),
         )
 
     # Store credentials for re-auth (using hash)
@@ -198,16 +203,16 @@ async def async_setup_entry(hass: HomeAssistant, entry: LiproConfigEntry) -> boo
 
     # Update stored tokens if they changed
     auth_data = auth_manager.get_auth_data()
-    if auth_data["access_token"] != entry.data.get("access_token") or auth_data[
-        "refresh_token"
-    ] != entry.data.get("refresh_token"):
+    if auth_data[CONF_ACCESS_TOKEN] != entry.data.get(CONF_ACCESS_TOKEN) or auth_data[
+        CONF_REFRESH_TOKEN
+    ] != entry.data.get(CONF_REFRESH_TOKEN):
         hass.config_entries.async_update_entry(
             entry,
             data={
                 **entry.data,
-                "access_token": auth_data["access_token"],
-                "refresh_token": auth_data["refresh_token"],
-                "expires_at": auth_data["expires_at"],
+                CONF_ACCESS_TOKEN: auth_data[CONF_ACCESS_TOKEN],
+                CONF_REFRESH_TOKEN: auth_data[CONF_REFRESH_TOKEN],
+                CONF_EXPIRES_AT: auth_data[CONF_EXPIRES_AT],
             },
         )
 
@@ -505,11 +510,11 @@ async def _async_setup_services(hass: HomeAssistant) -> None:
     if hass.services.has_service(DOMAIN, SERVICE_SEND_COMMAND):
         return  # Services already registered
 
-    # Register services with lambda wrappers to pass hass
+    # Register services with functools.partial to avoid lambda closures
     hass.services.async_register(
         DOMAIN,
         SERVICE_SEND_COMMAND,
-        lambda call: _async_handle_send_command(hass, call),
+        functools.partial(_async_handle_send_command, hass),
         schema=SERVICE_SEND_COMMAND_SCHEMA,
         supports_response=SupportsResponse.OPTIONAL,
     )
@@ -517,7 +522,7 @@ async def _async_setup_services(hass: HomeAssistant) -> None:
     hass.services.async_register(
         DOMAIN,
         SERVICE_GET_SCHEDULES,
-        lambda call: _async_handle_get_schedules(hass, call),
+        functools.partial(_async_handle_get_schedules, hass),
         schema=SERVICE_GET_SCHEDULES_SCHEMA,
         supports_response=SupportsResponse.ONLY,
     )
@@ -525,7 +530,7 @@ async def _async_setup_services(hass: HomeAssistant) -> None:
     hass.services.async_register(
         DOMAIN,
         SERVICE_ADD_SCHEDULE,
-        lambda call: _async_handle_add_schedule(hass, call),
+        functools.partial(_async_handle_add_schedule, hass),
         schema=SERVICE_ADD_SCHEDULE_SCHEMA,
         supports_response=SupportsResponse.OPTIONAL,
     )
@@ -533,7 +538,7 @@ async def _async_setup_services(hass: HomeAssistant) -> None:
     hass.services.async_register(
         DOMAIN,
         SERVICE_DELETE_SCHEDULES,
-        lambda call: _async_handle_delete_schedules(hass, call),
+        functools.partial(_async_handle_delete_schedules, hass),
         schema=SERVICE_DELETE_SCHEDULES_SCHEMA,
         supports_response=SupportsResponse.OPTIONAL,
     )
@@ -542,14 +547,14 @@ async def _async_setup_services(hass: HomeAssistant) -> None:
     hass.services.async_register(
         DOMAIN,
         SERVICE_SUBMIT_ANONYMOUS_SHARE,
-        lambda call: _async_handle_submit_anonymous_share(hass, call),
+        functools.partial(_async_handle_submit_anonymous_share, hass),
         supports_response=SupportsResponse.OPTIONAL,
     )
 
     hass.services.async_register(
         DOMAIN,
         SERVICE_GET_ANONYMOUS_SHARE_REPORT,
-        lambda call: _async_handle_get_anonymous_share_report(hass, call),
+        functools.partial(_async_handle_get_anonymous_share_report, hass),
         supports_response=SupportsResponse.ONLY,
     )
 
@@ -557,7 +562,25 @@ async def _async_setup_services(hass: HomeAssistant) -> None:
 async def async_unload_entry(hass: HomeAssistant, entry: LiproConfigEntry) -> bool:
     """Unload a config entry."""
     # Note: HA automatically calls coordinator.async_shutdown() during unload
-    return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
+    result = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
+
+    # Unregister services when the last config entry is being unloaded
+    if result and not any(
+        e
+        for e in hass.config_entries.async_entries(DOMAIN)
+        if e.entry_id != entry.entry_id
+    ):
+        for service_name in (
+            SERVICE_SEND_COMMAND,
+            SERVICE_GET_SCHEDULES,
+            SERVICE_ADD_SCHEDULE,
+            SERVICE_DELETE_SCHEDULES,
+            SERVICE_SUBMIT_ANONYMOUS_SHARE,
+            SERVICE_GET_ANONYMOUS_SHARE_REPORT,
+        ):
+            hass.services.async_remove(DOMAIN, service_name)
+
+    return result
 
 
 async def async_reload_entry(hass: HomeAssistant, entry: LiproConfigEntry) -> None:

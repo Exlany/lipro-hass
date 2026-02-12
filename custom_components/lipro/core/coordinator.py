@@ -19,6 +19,7 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Upda
 from ..const import (
     CONF_ANONYMOUS_SHARE_ENABLED,
     CONF_ANONYMOUS_SHARE_ERRORS,
+    CONF_BIZ_ID,
     CONF_DEBUG_MODE,
     CONF_ENABLE_POWER_MONITORING,
     CONF_MQTT_ENABLED,
@@ -26,6 +27,7 @@ from ..const import (
     CONF_POWER_QUERY_INTERVAL,
     CONF_REQUEST_TIMEOUT,
     CONF_SCAN_INTERVAL,
+    CONF_USER_ID,
     DEFAULT_ANONYMOUS_SHARE_ENABLED,
     DEFAULT_ANONYMOUS_SHARE_ERRORS,
     DEFAULT_DEBUG_MODE,
@@ -35,6 +37,7 @@ from ..const import (
     DEFAULT_REQUEST_TIMEOUT,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
+    PROP_CONNECT_STATE,
 )
 from ..const.categories import DeviceCategory
 from .anonymous_share import get_anonymous_share_manager
@@ -45,6 +48,7 @@ from .api import (
     LiproConnectionError,
     LiproRefreshTokenExpiredError,
 )
+from .const import MAX_MQTT_CACHE_SIZE
 from .device import LiproDevice, parse_properties_list
 from .mqtt import LiproMqttClient, decrypt_mqtt_credential
 
@@ -116,6 +120,8 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         self._mqtt_dedup_window: float = 0.5
         # Power query tracking
         self._last_power_query_time: float = 0.0
+        # Flag to force device list re-fetch on next update
+        self._force_device_refresh: bool = False
 
         # Load options from config entry
         self._load_options()
@@ -367,10 +373,10 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
             secret_key = decrypt_mqtt_credential(encrypted_secret_key)
 
             # Get biz_id from config entry data
-            biz_id = self.config_entry.data.get("biz_id")
+            biz_id = self.config_entry.data.get(CONF_BIZ_ID)
             if not biz_id:
                 # Try to get from user_id (fallback)
-                user_id = self.config_entry.data.get("user_id")
+                user_id = self.config_entry.data.get(CONF_USER_ID)
                 if user_id is not None:
                     biz_id = str(user_id)
                 else:
@@ -396,20 +402,19 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
 
             # Get device IDs to subscribe
             # For mesh groups: use their serial (mesh_group_xxx) as the topic
-            # For non-group devices: use their iot_device_id directly
-            device_ids: list[str] = []
+            # For non-group devices: use their serial directly
+            # Note: iot_device_id is an alias for serial, so we always use serial
+            device_id_set: set[str] = set()
             for dev in self._devices.values():
-                if dev.is_group:
-                    # Mesh group: subscribe to group serial (mesh_group_xxx)
-                    # MQTT messages are published to Topic_Device_State/{biz_id}/{mesh_group_xxx}
-                    if dev.serial not in device_ids:
-                        device_ids.append(dev.serial)
+                if dev.serial not in device_id_set:
+                    device_id_set.add(dev.serial)
+                    if dev.is_group:
                         _LOGGER.debug(
                             "MQTT: subscribing to mesh group %s",
                             dev.serial,
                         )
-                elif dev.iot_device_id not in device_ids:
-                    device_ids.append(dev.iot_device_id)
+
+            device_ids = list(device_id_set)
 
             # Start MQTT client
             await self._mqtt_client.start(device_ids)
@@ -449,6 +454,11 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
 
     async def async_shutdown(self) -> None:
         """Shutdown coordinator and release all resources."""
+        # Cancel update timer FIRST to prevent polls during cleanup.
+        # Without this, a scheduled poll could fire after _devices is cleared,
+        # triggering _fetch_devices() and unnecessary API calls during shutdown.
+        await super().async_shutdown()
+
         # Submit anonymous share report before shutdown (if enabled)
         try:
             share_manager = get_anonymous_share_manager()
@@ -478,9 +488,6 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         self._mqtt_message_cache.clear()
 
         _LOGGER.debug("Coordinator shutdown complete")
-
-        # Call parent shutdown to cancel update timer and other base cleanup
-        await super().async_shutdown()
 
     def _on_mqtt_connect(self) -> None:
         """Handle MQTT connection."""
@@ -562,12 +569,9 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
             # Update cache
             self._mqtt_message_cache[cache_key] = current_time
 
-            # Clean up old cache entries (older than 5 seconds)
-            stale_keys = [
-                k for k, t in self._mqtt_message_cache.items() if current_time - t > 5.0
-            ]
-            for k in stale_keys:
-                del self._mqtt_message_cache[k]
+            # Periodic cleanup: only run when cache exceeds threshold
+            if len(self._mqtt_message_cache) > MAX_MQTT_CACHE_SIZE:
+                self._cleanup_mqtt_cache(current_time)
 
         self._apply_properties_update(device, properties)
 
@@ -580,13 +584,35 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
             # Fallback: when a device comes back online, schedule an immediate
             # REST API refresh to reconcile state. In mesh groups, sub-devices
             # may reconnect with a different state than the group reports.
-            connect_state = properties.get("connectState")
+            connect_state = properties.get(PROP_CONNECT_STATE)
             if connect_state == "1" and device.is_group:
                 _LOGGER.debug(
                     "MQTT: device %s online, scheduling REST API reconciliation",
                     device.name,
                 )
                 self.hass.async_create_task(self.async_request_refresh())
+
+    def _cleanup_mqtt_cache(self, current_time: float) -> None:
+        """Clean up stale MQTT dedup cache entries.
+
+        Removes entries older than 5 seconds. If cache still exceeds limit,
+        keeps the newest half.
+
+        Args:
+            current_time: Current monotonic time.
+
+        """
+        # Remove entries older than 5 seconds
+        stale_keys = [
+            k for k, t in self._mqtt_message_cache.items() if current_time - t > 5.0
+        ]
+        for k in stale_keys:
+            del self._mqtt_message_cache[k]
+
+        # Hard cap: if cache still exceeds limit, keep newest half
+        if len(self._mqtt_message_cache) > MAX_MQTT_CACHE_SIZE:
+            sorted_items = sorted(self._mqtt_message_cache.items(), key=lambda x: x[1])
+            self._mqtt_message_cache = dict(sorted_items[len(sorted_items) // 2 :])
 
     async def _async_show_auth_notification(
         self,
@@ -655,8 +681,9 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
             # Ensure we have a valid token
             await self.auth_manager.ensure_valid_token()
 
-            # Fetch device list if we don't have devices yet
-            if not self._devices:
+            # Fetch device list if we don't have devices yet or refresh was forced
+            if not self._devices or self._force_device_refresh:
+                self._force_device_refresh = False
                 await self._fetch_devices()
                 # Load product configs and apply color temp ranges
                 await self._load_product_configs()
@@ -704,11 +731,12 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         # Track previous device serials for stale device detection
         previous_serials = set(self._devices.keys())
 
-        self._devices.clear()
-        self._device_by_id.clear()
-        self._iot_ids_to_query.clear()
-        self._group_ids_to_query.clear()
-        self._outlet_ids_to_query.clear()
+        # Build new data structures atomically — only swap on success
+        new_devices: dict[str, LiproDevice] = {}
+        new_device_by_id: dict[str, LiproDevice] = {}
+        new_iot_ids: list[str] = []
+        new_group_ids: list[str] = []
+        new_outlet_ids: list[str] = []
 
         for device_data in devices_data:
             device = LiproDevice.from_api_data(device_data)
@@ -718,16 +746,16 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
                 _LOGGER.debug("Skipping gateway device: %s", device.name)
                 continue
 
-            self._devices[device.serial] = device
+            new_devices[device.serial] = device
 
             # Build IoT ID to device mapping for fast lookup
             # Groups use serial (mesh_group_xxx) as MQTT topic device ID
             # Non-groups use serial which equals iot_device_id (03ab...)
-            self._device_by_id[device.serial] = device
+            new_device_by_id[device.serial] = device
 
             # Collect IDs for status query
             if device.is_group:
-                self._group_ids_to_query.append(device.serial)
+                new_group_ids.append(device.serial)
             else:
                 # Use iot_device_id for IoT API queries
                 # Log warning if format is unexpected (for debugging only)
@@ -737,11 +765,18 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
                         device.name,
                         device.serial,
                     )
-                self._iot_ids_to_query.append(device.iot_device_id)
+                new_iot_ids.append(device.iot_device_id)
 
                 # Collect outlet device IDs for power monitoring
                 if device.category == DeviceCategory.OUTLET:
-                    self._outlet_ids_to_query.append(device.iot_device_id)
+                    new_outlet_ids.append(device.iot_device_id)
+
+        # Atomic swap — all-or-nothing update
+        self._devices = new_devices
+        self._device_by_id = new_device_by_id
+        self._iot_ids_to_query = new_iot_ids
+        self._group_ids_to_query = new_group_ids
+        self._outlet_ids_to_query = new_outlet_ids
 
         _LOGGER.info(
             "Fetched %d devices (%d groups, %d individual, %d outlets)",
@@ -754,6 +789,7 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         # Record devices for anonymous share (if enabled)
         share_manager = get_anonymous_share_manager()
         if share_manager.is_enabled:
+            await share_manager.async_ensure_loaded()
             share_manager.record_devices(list(self._devices.values()))
 
         # Remove stale devices that no longer exist in the cloud
@@ -810,8 +846,8 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
             _LOGGER.debug("Loaded %d product configurations", len(configs))
 
             # Build lookups for both matching methods
-            configs_by_id: dict[int, dict] = {}
-            configs_by_iot_name: dict[str, dict] = {}
+            configs_by_id: dict[int, dict[str, Any]] = {}
+            configs_by_iot_name: dict[str, dict[str, Any]] = {}
 
             for config in configs:
                 # Index by id (for productId matching)
@@ -1066,7 +1102,7 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
                     # Update connectState property
                     device.update_properties(
                         {
-                            "connectState": "1" if is_online else "0",
+                            PROP_CONNECT_STATE: "1" if is_online else "0",
                         }
                     )
                     _LOGGER.debug(
@@ -1079,8 +1115,15 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
             _LOGGER.debug("Failed to query connect status: %s", err)
 
     async def async_refresh_devices(self) -> None:
-        """Force refresh of device list."""
-        self._devices.clear()
+        """Force refresh of device list.
+
+        Sets a flag so the next _async_update_data call re-fetches devices.
+        Uses atomic swap in _fetch_devices, so the old device list remains
+        intact if the refresh fails.
+        """
+        self._force_device_refresh = True
+        # Clear product configs so new device types can be matched
+        self._product_configs.clear()
         await self.async_refresh()
 
     async def async_send_command(
@@ -1104,14 +1147,15 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
             await self.auth_manager.ensure_valid_token()
 
             if device.is_group:
-                await self.client.send_group_command(
+                result = await self.client.send_group_command(
                     device.serial,
                     command,
                     device.device_type,
                     properties,
+                    device.iot_name,
                 )
             else:
-                await self.client.send_command(
+                result = await self.client.send_command(
                     device.serial,
                     command,
                     device.device_type,
@@ -1119,11 +1163,32 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
                     device.iot_name,
                 )
 
+            # Check pushSuccess from API response
+            # Real response: {"msgSn": "...", "pushSuccess": true, "pushTimestamp": ...}
+            if isinstance(result, dict) and result.get("pushSuccess") is False:
+                _LOGGER.warning(
+                    "Command %s sent to %s but push failed (device may be offline)",
+                    command,
+                    device.name,
+                )
+
             # Schedule a refresh to get updated state
             self.hass.async_create_task(self.async_request_refresh())
 
             return True
 
+        except LiproRefreshTokenExpiredError:
+            _LOGGER.warning(
+                "Refresh token expired while sending command to %s", device.name
+            )
+            await self._trigger_reauth("auth_expired")
+            return False
+        except LiproAuthError:
+            _LOGGER.warning(
+                "Auth error sending command to %s, triggering reauth", device.name
+            )
+            await self._trigger_reauth("auth_error")
+            return False
         except LiproApiError:
             _LOGGER.exception("Failed to send command to %s", device.name)
             return False

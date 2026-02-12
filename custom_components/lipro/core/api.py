@@ -15,6 +15,12 @@ from typing import TYPE_CHECKING, Any
 import aiohttp
 
 from ..const import APP_VERSION_CODE, APP_VERSION_NAME, DEVICE_TYPE_MAP
+from ..const.config import (
+    CONF_ACCESS_TOKEN,
+    CONF_BIZ_ID,
+    CONF_REFRESH_TOKEN,
+    CONF_USER_ID,
+)
 from .anonymous_share import get_anonymous_share_manager
 from .const import (
     CONTENT_TYPE_FORM,
@@ -34,6 +40,7 @@ from .const import (
     IOT_API_URL,
     IOT_SIGN_KEY,
     MAX_DEVICES_PER_QUERY,
+    MAX_RETRY_AFTER,
     MERCHANT_CODE,
     PATH_FETCH_DEVICES,
     PATH_GET_MQTT_CONFIG,
@@ -51,7 +58,7 @@ from .const import (
     PATH_SEND_GROUP_COMMAND,
     REQUEST_TIMEOUT,
     RESPONSE_SUCCESS,
-    RESPONSE_SUCCESS_STR,
+    RESPONSE_SUCCESS_CODES,
     SMART_HOME_API_URL,
     SMART_HOME_SIGN_KEY,
     USER_AGENT,
@@ -315,6 +322,67 @@ class LiproClient:
         )
         return status, result, headers
 
+    async def _handle_rate_limit(
+        self,
+        path: str,
+        headers: dict[str, str],
+        retry_count: int,
+    ) -> float:
+        """Handle 429 rate limit with exponential backoff.
+
+        Args:
+            path: API path (for logging).
+            headers: Response headers (may contain Retry-After).
+            retry_count: Current retry attempt (0-based).
+
+        Returns:
+            Wait time in seconds.
+
+        Raises:
+            LiproRateLimitError: If max retries exceeded.
+
+        """
+        retry_after = self._parse_retry_after(headers)
+        if retry_count >= 2:  # Max 2 retries (3 total requests)
+            _LOGGER.warning(
+                "Rate limited on %s after 2 retries (retry_after=%s)", path, retry_after
+            )
+            msg = "Rate limited after 2 retries"
+            raise LiproRateLimitError(msg, retry_after)
+
+        # Cap wait_time to prevent hanging on malicious Retry-After values
+        wait_time = min(MAX_RETRY_AFTER, max(0.1, retry_after or (2**retry_count)))
+        _LOGGER.debug(
+            "Rate limited on %s, waiting %.1fs before retry %d/2",
+            path,
+            wait_time,
+            retry_count + 1,
+        )
+        await asyncio.sleep(wait_time)
+        return wait_time
+
+    async def _handle_auth_error_and_retry(
+        self,
+        path: str,
+        old_token: str | None,
+        is_retry: bool,
+    ) -> bool:
+        """Handle auth error by refreshing token.
+
+        Args:
+            path: API path (for logging).
+            old_token: Token used in the failed request.
+            is_retry: Whether this is already a retry attempt.
+
+        Returns:
+            True if token was refreshed and request should be retried.
+
+        """
+        if is_retry or not self._on_token_refresh:
+            return False
+        _LOGGER.info("Received auth error from %s, attempting token refresh", path)
+        return await self._handle_401_with_refresh(old_token)
+
     async def _smart_home_request(
         self,
         path: str,
@@ -377,29 +445,10 @@ class LiproClient:
 
         # Handle 429 Rate Limit
         if status == 429:
-            retry_after = self._parse_retry_after(headers)
-            if _retry_count < 2:  # Max 2 retries (3 total requests)
-                # Ensure wait_time is non-negative
-                wait_time = max(0.1, retry_after or (2**_retry_count))
-                _LOGGER.debug(
-                    "Rate limited on %s, waiting %.1fs before retry %d/2",
-                    path,
-                    wait_time,
-                    _retry_count + 1,
-                )
-                await asyncio.sleep(wait_time)
-                return await self._smart_home_request(
-                    path,
-                    data,
-                    require_auth,
-                    _is_retry,
-                    _retry_count=_retry_count + 1,
-                )
-            _LOGGER.warning(
-                "Rate limited on %s after 2 retries (retry_after=%s)", path, retry_after
+            await self._handle_rate_limit(path, headers, _retry_count)
+            return await self._smart_home_request(
+                path, data, require_auth, _is_retry, _retry_count=_retry_count + 1
             )
-            msg = "Rate limited after 2 retries"
-            raise LiproRateLimitError(msg, retry_after)
 
         code = result.get("code")
         if code == RESPONSE_SUCCESS:
@@ -413,26 +462,37 @@ class LiproClient:
         is_auth_error = code == 401 or error_code in ("401", "token_expired")
 
         if is_auth_error:
-            # Try to refresh token and retry (only once)
-            if not _is_retry and require_auth and self._on_token_refresh:
-                _LOGGER.info(
-                    "Received 401 from %s, attempting token refresh",
-                    path,
+            if require_auth and await self._handle_auth_error_and_retry(
+                path, old_token, _is_retry
+            ):
+                return await self._smart_home_request(
+                    path, data, require_auth, _is_retry=True
                 )
-                refreshed = await self._handle_401_with_refresh(old_token)
-                if refreshed:
-                    # Retry with new token
-                    return await self._smart_home_request(
-                        path,
-                        data,
-                        require_auth,
-                        _is_retry=True,
-                    )
             raise LiproAuthError(message, code)
 
         # Record API error for anonymous share
         _record_api_error(path, code or error_code, message, method="POST")
         raise LiproApiError(message, code)
+
+    def _build_iot_headers(self, body: str) -> tuple[int, str, dict[str, str]]:
+        """Build common IoT API request headers.
+
+        Returns:
+            Tuple of (nonce, body_json_str, headers_dict).
+
+        """
+        nonce = self._get_timestamp_ms()
+        sign = self._iot_sign(nonce, body)
+        headers = {
+            HEADER_CONTENT_TYPE: CONTENT_TYPE_JSON,
+            HEADER_CACHE_CONTROL: "no-cache",
+            HEADER_USER_AGENT: USER_AGENT,
+            HEADER_ACCESS_TOKEN: self._access_token,
+            HEADER_MERCHANT_CODE: MERCHANT_CODE,
+            HEADER_NONCE: str(nonce),
+            HEADER_SIGN: sign,
+        }
+        return nonce, body, headers
 
     async def _iot_request(
         self,
@@ -465,19 +525,8 @@ class LiproClient:
 
         old_token = self._access_token
         session = await self._get_session()
-        nonce = self._get_timestamp_ms()
         body = json.dumps(body_data, separators=(",", ":"), ensure_ascii=False)
-        sign = self._iot_sign(nonce, body)
-
-        req_headers = {
-            HEADER_CONTENT_TYPE: CONTENT_TYPE_JSON,
-            HEADER_CACHE_CONTROL: "no-cache",
-            HEADER_USER_AGENT: USER_AGENT,
-            HEADER_ACCESS_TOKEN: self._access_token,
-            HEADER_MERCHANT_CODE: MERCHANT_CODE,
-            HEADER_NONCE: str(nonce),
-            HEADER_SIGN: sign,
-        }
+        _nonce, body, req_headers = self._build_iot_headers(body)
 
         url = f"{IOT_API_URL}{path}"
 
@@ -493,67 +542,28 @@ class LiproClient:
 
         # Handle 429 Rate Limit
         if status == 429:
-            retry_after = self._parse_retry_after(resp_headers)
-            if _retry_count < 2:  # Max 2 retries (3 total requests)
-                # Ensure wait_time is non-negative
-                wait_time = max(0.1, retry_after or (2**_retry_count))
-                _LOGGER.debug(
-                    "Rate limited on %s, waiting %.1fs before retry %d/2",
-                    path,
-                    wait_time,
-                    _retry_count + 1,
-                )
-                await asyncio.sleep(wait_time)
-                return await self._iot_request(
-                    path,
-                    body_data,
-                    _is_retry,
-                    _retry_count=_retry_count + 1,
-                )
-            _LOGGER.warning(
-                "Rate limited on %s after 2 retries (retry_after=%s)", path, retry_after
+            await self._handle_rate_limit(path, resp_headers, _retry_count)
+            return await self._iot_request(
+                path, body_data, _is_retry, _retry_count=_retry_count + 1
             )
-            msg = "Rate limited after 2 retries"
-            raise LiproRateLimitError(msg, retry_after)
 
         # Check HTTP status code for 401 (IoT API style)
         if status == 401:
-            if not _is_retry and self._on_token_refresh:
-                _LOGGER.info(
-                    "Received HTTP 401 from %s, attempting token refresh",
-                    path,
-                )
-                refreshed = await self._handle_401_with_refresh(old_token)
-                if refreshed:
-                    return await self._iot_request(
-                        path,
-                        body_data,
-                        _is_retry=True,
-                    )
+            if await self._handle_auth_error_and_retry(path, old_token, _is_retry):
+                return await self._iot_request(path, body_data, _is_retry=True)
             msg = "HTTP 401 Unauthorized"
             raise LiproAuthError(msg, 401)
 
         code = result.get("code")
-        if code in (RESPONSE_SUCCESS, RESPONSE_SUCCESS_STR, "200"):
+        if code in RESPONSE_SUCCESS_CODES:
             return result.get("data") or result
 
         message = result.get("message", "Unknown error")
 
         # Check for auth errors in response body
         if code in ERROR_AUTH_CODES:
-            if not _is_retry and self._on_token_refresh:
-                _LOGGER.info(
-                    "Received code %s from %s, attempting token refresh",
-                    code,
-                    path,
-                )
-                refreshed = await self._handle_401_with_refresh(old_token)
-                if refreshed:
-                    return await self._iot_request(
-                        path,
-                        body_data,
-                        _is_retry=True,
-                    )
+            if await self._handle_auth_error_and_retry(path, old_token, _is_retry):
+                return await self._iot_request(path, body_data, _is_retry=True)
             raise LiproAuthError(message, code)
 
         # Record API error for anonymous share
@@ -678,10 +688,10 @@ class LiproClient:
         _LOGGER.info("Login successful")
 
         return {
-            "access_token": self._access_token,
-            "refresh_token": self._refresh_token,
-            "user_id": self._user_id,
-            "biz_id": self._biz_id,
+            CONF_ACCESS_TOKEN: self._access_token,
+            CONF_REFRESH_TOKEN: self._refresh_token,
+            CONF_USER_ID: self._user_id,
+            CONF_BIZ_ID: self._biz_id,
             "phone": result.get("phone"),
             "user_name": result.get("userName"),
         }
@@ -734,9 +744,9 @@ class LiproClient:
         _LOGGER.info("Token refreshed successfully")
 
         return {
-            "access_token": self._access_token,
-            "refresh_token": self._refresh_token,
-            "user_id": self._user_id,
+            CONF_ACCESS_TOKEN: self._access_token,
+            CONF_REFRESH_TOKEN: self._refresh_token,
+            CONF_USER_ID: self._user_id,
         }
 
     async def get_devices(self, offset: int = 0, limit: int = 100) -> dict[str, Any]:
@@ -981,12 +991,10 @@ class LiproClient:
             "deviceId": device_id,
             "deviceType": device_type_hex,
             "iotName": iot_name,
+            "properties": properties or [],
             "skuId": "",
             "hasMacRule": False,
         }
-
-        if properties:
-            body["properties"] = properties
 
         return await self._iot_request(PATH_SEND_COMMAND, body)
 
@@ -996,6 +1004,7 @@ class LiproClient:
         command: str,
         device_type: int | str,
         properties: list[dict[str, str]] | None = None,
+        iot_name: str = "",
     ) -> dict[str, Any]:
         """Send a command to a Mesh group.
 
@@ -1004,6 +1013,7 @@ class LiproClient:
             command: Command name.
             device_type: Device type of devices in the group.
             properties: Optional list of property key-value pairs.
+            iot_name: Optional IoT name/model (e.g., "20X1").
 
         Returns:
             Command result.
@@ -1016,13 +1026,11 @@ class LiproClient:
             "deviceId": group_id,
             "deviceType": device_type_hex,
             "groupId": group_id,
-            "iotName": "",
+            "iotName": iot_name,
+            "properties": properties or [],
             "skuId": "",
             "hasMacRule": False,
         }
-
-        if properties:
-            body["properties"] = properties
 
         return await self._iot_request(PATH_SEND_GROUP_COMMAND, body)
 
@@ -1037,9 +1045,48 @@ class LiproClient:
             LiproAuthError: If authentication fails.
             LiproApiError: If API returns an error.
 
+        Note:
+            This endpoint returns a non-standard response format:
+            ``{"accessKey": "...", "secretKey": "..."}``
+            without the usual ``code``/``data`` wrapper, so we bypass
+            ``_iot_request`` and issue the HTTP call directly.
+
         """
-        # Request body must be empty JSON object, but required for signing
-        return await self._iot_request(PATH_GET_MQTT_CONFIG, {})
+        if not self._access_token:
+            msg = "No access token available"
+            raise LiproAuthError(msg)
+
+        session = await self._get_session()
+        body = json.dumps({}, separators=(",", ":"), ensure_ascii=False)
+        _nonce, body, req_headers = self._build_iot_headers(body)
+
+        url = f"{IOT_API_URL}{PATH_GET_MQTT_CONFIG}"
+
+        status, result, _headers = await self._execute_request(
+            session.post(
+                url,
+                data=body,
+                headers=req_headers,
+                timeout=aiohttp.ClientTimeout(total=self._request_timeout),
+            ),
+            PATH_GET_MQTT_CONFIG,
+        )
+
+        if status == 401:
+            msg = "HTTP 401 Unauthorized"
+            raise LiproAuthError(msg, 401)
+
+        # This endpoint returns {"accessKey": "...", "secretKey": "..."} directly
+        if "accessKey" in result and "secretKey" in result:
+            return result
+
+        # Fallback: if the API ever wraps it in standard format
+        code = result.get("code")
+        if code in RESPONSE_SUCCESS_CODES:
+            return result.get("data") or result
+
+        message = result.get("message", "Unknown error")
+        raise LiproApiError(message, code)
 
     async def fetch_outlet_power_info(
         self,

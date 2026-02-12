@@ -475,24 +475,91 @@ class TestLiproClientMqtt:
     """Tests for MQTT configuration."""
 
     @pytest.mark.asyncio
-    async def test_get_mqtt_config(self):
-        """Test getting MQTT configuration."""
+    async def test_get_mqtt_config_direct_response(self):
+        """Test getMqttConfig with real non-standard response (no code wrapper).
+
+        Real API returns: {"accessKey": "hex64", "secretKey": "hex64"}
+        without the usual {"code": "0000", "data": {...}} wrapper.
+        """
+        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client.set_tokens("access_token", "refresh_token")
+
+        # Simulate the real API response (no code field)
+        raw_response = {
+            "accessKey": "36783B02D66A07777BE171E1C241F3C52421169D555E60F09ECFE13B6E6DD73A",
+            "secretKey": "8A5103E4419C495F7CD109536F621576C293B8FA0BFC2269D725A83E32F7C286",
+        }
+
+        with patch.object(
+            client, "_execute_request", new_callable=AsyncMock
+        ) as mock_exec:
+            mock_exec.return_value = (200, raw_response, {})
+
+            with patch.object(
+                client, "_get_session", new_callable=AsyncMock
+            ) as mock_session:
+                mock_session.return_value = MagicMock()
+                result = await client.get_mqtt_config()
+
+        assert result["accessKey"] == raw_response["accessKey"]
+        assert result["secretKey"] == raw_response["secretKey"]
+        assert "code" not in result
+
+    @pytest.mark.asyncio
+    async def test_get_mqtt_config_standard_wrapped_response(self):
+        """Test getMqttConfig fallback for standard wrapped response."""
+        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client.set_tokens("access_token", "refresh_token")
+
+        # Hypothetical future response with standard wrapper
+        wrapped_response = {
+            "code": "0000",
+            "data": {
+                "accessKey": "encrypted_ak",
+                "secretKey": "encrypted_sk",
+            },
+        }
+
+        with patch.object(
+            client, "_execute_request", new_callable=AsyncMock
+        ) as mock_exec:
+            mock_exec.return_value = (200, wrapped_response, {})
+
+            with patch.object(
+                client, "_get_session", new_callable=AsyncMock
+            ) as mock_session:
+                mock_session.return_value = MagicMock()
+                result = await client.get_mqtt_config()
+
+        assert result["accessKey"] == "encrypted_ak"
+
+    @pytest.mark.asyncio
+    async def test_get_mqtt_config_401_raises_auth_error(self):
+        """Test getMqttConfig raises LiproAuthError on 401."""
         client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("access_token", "refresh_token")
 
         with patch.object(
-            client, "_iot_request", new_callable=AsyncMock
-        ) as mock_request:
-            mock_request.return_value = {
-                "accessKey": "encrypted_access_key",
-                "secretKey": "encrypted_secret_key",
-            }
+            client, "_execute_request", new_callable=AsyncMock
+        ) as mock_exec:
+            mock_exec.return_value = (401, {"message": "Unauthorized"}, {})
 
-            result = await client.get_mqtt_config()
+            with patch.object(
+                client, "_get_session", new_callable=AsyncMock
+            ) as mock_session:
+                mock_session.return_value = MagicMock()
 
-            assert "accessKey" in result
-            assert "secretKey" in result
-            mock_request.assert_called_once()
+                with pytest.raises(LiproAuthError):
+                    await client.get_mqtt_config()
+
+    @pytest.mark.asyncio
+    async def test_get_mqtt_config_no_token(self):
+        """Test getMqttConfig raises LiproAuthError without token."""
+        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        # No tokens set
+
+        with pytest.raises(LiproAuthError, match="No access token"):
+            await client.get_mqtt_config()
 
 
 class TestLiproClientClose:
@@ -861,7 +928,7 @@ class TestLiproClientCommandsExtended:
 
     @pytest.mark.asyncio
     async def test_send_command_without_properties(self):
-        """Test sending command without properties."""
+        """Test sending command without properties sends empty list."""
         client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("access_token", "refresh_token")
 
@@ -878,7 +945,8 @@ class TestLiproClientCommandsExtended:
 
             call_args = mock_request.call_args
             body = call_args[0][1]
-            assert "properties" not in body
+            # Real API always sends properties field (empty list for POWER_ON/OFF)
+            assert body["properties"] == []
 
     @pytest.mark.asyncio
     async def test_send_group_command_with_properties(self):
@@ -1084,3 +1152,75 @@ class TestDeviceStatusFallback140101:
 
             assert len(result) == 2
             assert call_count == 3
+
+
+class TestRetryAfterCap:
+    """Tests for retry-after value capping."""
+
+    def test_retry_after_capped_to_max(self):
+        """Test that extremely large Retry-After values are capped."""
+        from custom_components.lipro.core.const import MAX_RETRY_AFTER
+
+        # Simulate the capping logic used in _smart_home_request / _iot_request
+        retry_after = 999999.0
+        wait_time = min(MAX_RETRY_AFTER, max(0.1, retry_after))
+        assert wait_time == MAX_RETRY_AFTER
+        assert wait_time == 60
+
+    def test_retry_after_normal_value_not_capped(self):
+        """Test that normal Retry-After values pass through."""
+        from custom_components.lipro.core.const import MAX_RETRY_AFTER
+
+        retry_after = 5.0
+        wait_time = min(MAX_RETRY_AFTER, max(0.1, retry_after))
+        assert wait_time == 5.0
+
+    def test_retry_after_none_uses_exponential_backoff(self):
+        """Test that None retry_after falls back to exponential backoff."""
+        from custom_components.lipro.core.const import MAX_RETRY_AFTER
+
+        for retry_count in range(3):
+            wait_time = min(MAX_RETRY_AFTER, max(0.1, None or (2**retry_count)))
+            assert wait_time == 2**retry_count
+
+    def test_retry_after_negative_clamped_to_minimum(self):
+        """Test that negative Retry-After is clamped to 0.1."""
+        from custom_components.lipro.core.const import MAX_RETRY_AFTER
+
+        retry_after = -10.0
+        wait_time = min(MAX_RETRY_AFTER, max(0.1, retry_after))
+        assert wait_time == 0.1
+
+    @pytest.mark.asyncio
+    async def test_429_with_huge_retry_after_is_capped(self):
+        """Test that 429 with huge Retry-After doesn't hang (integration test)."""
+        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client.set_tokens("access_token", "refresh_token")
+
+        call_count = 0
+
+        async def mock_execute_request(request_ctx, path):
+            nonlocal call_count
+            call_count += 1
+            if call_count == 1:
+                return (
+                    429,
+                    {"code": 429, "message": "Too Many Requests"},
+                    {"Retry-After": "999999"},
+                )
+            return 200, {"code": 200, "value": {"devices": []}}, {}
+
+        with (
+            patch.object(client, "_execute_request", side_effect=mock_execute_request),
+            patch.object(
+                client, "_get_session", new_callable=AsyncMock
+            ) as mock_session,
+            patch("asyncio.sleep", new_callable=AsyncMock) as mock_sleep,
+        ):
+            mock_session.return_value = MagicMock()
+            await client.get_devices()
+
+        # Verify sleep was called with capped value (60), not 999999
+        mock_sleep.assert_called_once()
+        actual_wait = mock_sleep.call_args[0][0]
+        assert actual_wait == 60.0

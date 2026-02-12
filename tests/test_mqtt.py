@@ -29,10 +29,16 @@ class TestDecryptMqttCredential:
             decrypt_mqtt_credential("invalid_hex")
 
     def test_decrypt_empty_credential(self):
-        """Test decrypting empty credential."""
-        # Empty string causes IndexError when accessing padding
-        with pytest.raises((ValueError, IndexError)):
+        """Test decrypting empty credential raises ValueError (not IndexError)."""
+        # After fix: IndexError from empty decrypt is caught and wrapped as ValueError
+        with pytest.raises(ValueError, match="Failed to decrypt"):
             decrypt_mqtt_credential("")
+
+    def test_decrypt_short_hex_credential(self):
+        """Test decrypting very short hex that produces empty decrypt output."""
+        # "00" is valid hex but too short for valid AES — triggers padding error
+        with pytest.raises(ValueError):
+            decrypt_mqtt_credential("00")
 
     def test_decrypt_odd_length_hex(self):
         """Test decrypting odd-length hex string."""
@@ -202,6 +208,66 @@ class TestParseMqttPayload:
         result = parse_mqtt_payload(payload)
 
         assert result == {"connectState": "1"}
+
+    def test_parse_real_light_payload(self):
+        """Test parsing real MQTT payload captured from Lipro 20X1 light.
+
+        This payload was captured from a real device after POWER_ON command.
+        Noise values like "-1" and "" should be filtered out.
+        """
+        payload = {
+            "common": {
+                "connectState": "1",
+                "deviceInfo": '{"wifi_ssid":"Tide IoT","wifi_rssi":-80}',
+                "devicePhysicalMode": "light",
+                "latestSyncTimestamp": "1770854728432",
+                "version": "11.2.54",
+            },
+            "light": {
+                "beepSwitch": "-1",
+                "brightness": "50",
+                "brightnessDecimal": "-1",
+                "fadeState": "1",
+                "gearList": '[{"temperature":0,"brightness":50}]',
+                "ldrAutoSwitch": "-1",
+                "powerState": "1",
+                "seatSwitch": "-1",
+                "temperature": "30",
+                "upperLed": "",
+            },
+        }
+
+        result = parse_mqtt_payload(payload)
+
+        # Real values should be present
+        assert result["connectState"] == "1"
+        assert result["powerState"] == "1"
+        assert result["brightness"] == "50"
+        assert result["temperature"] == "30"
+        assert result["fadeState"] == "1"
+        assert result["version"] == "11.2.54"
+        assert result["devicePhysicalMode"] == "light"
+
+        # Noise values ("-1" and "") should be filtered out
+        assert "beepSwitch" not in result
+        assert "brightnessDecimal" not in result
+        assert "ldrAutoSwitch" not in result
+        assert "seatSwitch" not in result
+        assert "upperLed" not in result
+
+    def test_parse_payload_preserves_zero_values(self):
+        """Test that "0" values are NOT filtered (they are valid states)."""
+        payload = {
+            "light": {
+                "powerState": "0",  # Off — valid
+                "brightness": "0",  # Min brightness — valid
+            },
+        }
+
+        result = parse_mqtt_payload(payload)
+
+        assert result["powerState"] == "0"
+        assert result["brightness"] == "0"
 
 
 class TestLiproMqttClient:

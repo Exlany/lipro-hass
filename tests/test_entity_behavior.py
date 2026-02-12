@@ -5,6 +5,17 @@ These tests verify the actual entity behavior with mocked coordinators.
 
 from __future__ import annotations
 
+import pytest
+
+try:
+    from pytest_homeassistant_custom_component.common import (
+        MockConfigEntry,  # noqa: F401
+    )
+
+    HAS_HA_TEST_ENV = True
+except ImportError:
+    HAS_HA_TEST_ENV = False
+
 
 class TestLightEntityBehavior:
     """Tests for light entity behavior."""
@@ -168,46 +179,34 @@ class TestFanEntityBehavior:
 
         assert device.fan_gear == 5
 
-    def test_fan_gear_to_percentage(self):
-        """Test fan gear to percentage conversion."""
-        # Fan gear range is 1-10
-        SPEED_RANGE = (1, 10)
+    @pytest.mark.skipif(
+        not HAS_HA_TEST_ENV, reason="Requires HA test env for homeassistant.util"
+    )
+    def test_fan_gear_to_percentage(self, make_device):
+        """Test fan gear to percentage conversion using HA utility."""
+        from homeassistant.util.percentage import ranged_value_to_percentage
 
-        def ranged_value_to_percentage(low_high_range, value):
-            """Convert ranged value to percentage."""
-            low, high = low_high_range
-            return int((value - low) / (high - low) * 100)
+        device = make_device("fanLight", max_fan_gear=10)
+        speed_range = device.fan_speed_range
 
-        test_values = [
-            (1, 0),  # Gear 1 = 0%
-            (5, 44),  # Gear 5 = ~44%
-            (10, 100),  # Gear 10 = 100%
-        ]
+        assert ranged_value_to_percentage(speed_range, 1) == 0
+        assert ranged_value_to_percentage(speed_range, 10) == 100
+        assert abs(ranged_value_to_percentage(speed_range, 5) - 44) <= 5
 
-        for gear, expected_pct in test_values:
-            pct = ranged_value_to_percentage(SPEED_RANGE, gear)
-            assert abs(pct - expected_pct) <= 5  # Allow small variance
-
-    def test_percentage_to_fan_gear(self):
-        """Test percentage to fan gear conversion."""
+    @pytest.mark.skipif(
+        not HAS_HA_TEST_ENV, reason="Requires HA test env for homeassistant.util"
+    )
+    def test_percentage_to_fan_gear(self, make_device):
+        """Test percentage to fan gear conversion using HA utility."""
         import math
 
-        SPEED_RANGE = (1, 10)
+        from homeassistant.util.percentage import percentage_to_ranged_value
 
-        def percentage_to_ranged_value(low_high_range, percentage):
-            """Convert percentage to ranged value."""
-            low, high = low_high_range
-            return low + (high - low) * percentage / 100
+        device = make_device("fanLight", max_fan_gear=10)
+        speed_range = device.fan_speed_range
 
-        test_values = [
-            (10, 1),  # 10% = Gear 1-2
-            (50, 5),  # 50% = Gear 5-6
-            (100, 10),  # 100% = Gear 10
-        ]
-
-        for pct, expected_gear in test_values:
-            gear = math.ceil(percentage_to_ranged_value(SPEED_RANGE, pct))
-            assert abs(gear - expected_gear) <= 1  # Allow small variance
+        assert math.ceil(percentage_to_ranged_value(speed_range, 100)) == 10
+        assert math.ceil(percentage_to_ranged_value(speed_range, 50)) in (5, 6)
 
 
 class TestClimateEntityBehavior:
@@ -334,26 +333,24 @@ class TestEntityAvailability:
 class TestEntityDebounce:
     """Tests for entity debounce behavior."""
 
-    def test_debounce_protection_window(self):
-        """Test debounce protection window timing."""
-        import time
+    def test_debounce_default_delay(self):
+        """Test Debouncer default delay value."""
+        from custom_components.lipro.helpers.debounce import Debouncer
 
-        DEBOUNCE_PROTECTION_WINDOW = 2.0
+        debouncer = Debouncer()
+        assert debouncer._delay > 0
 
-        # Simulate setting protection
-        protected_until = time.time() + DEBOUNCE_PROTECTION_WINDOW
+    def test_debounce_custom_delay(self):
+        """Test Debouncer with custom delay."""
+        from custom_components.lipro.helpers.debounce import Debouncer
 
-        # Should be protected now
-        assert time.time() < protected_until
+        debouncer = Debouncer(delay=1.5)
+        assert debouncer._delay == 1.5
 
-    def test_debounce_protected_keys(self):
-        """Test debounce protected keys tracking."""
-        protected_keys = set()
+    def test_debounce_cancel_when_not_pending(self):
+        """Test canceling debounce when nothing is pending."""
+        from custom_components.lipro.helpers.debounce import Debouncer
 
-        # Simulate adding protected keys during debounce
-        protected_keys.add("brightness")
-        protected_keys.add("temperature")
-
-        assert "brightness" in protected_keys
-        assert "temperature" in protected_keys
-        assert "powerState" not in protected_keys
+        debouncer = Debouncer()
+        # Should not raise
+        debouncer.cancel()

@@ -128,11 +128,11 @@ class TestCoverPositionEdgeCases:
 class TestFanGearEdgeCases:
     """Tests for fan gear boundary conditions."""
 
-    def test_gear_zero_percentage_turns_off(self):
-        """Test 0% percentage should turn off fan."""
-        percentage = 0
-        # 0% means turn off, not set gear
-        assert percentage == 0
+    def test_gear_zero_percentage_turns_off(self, make_device):
+        """Test 0% percentage means fan gear at minimum."""
+        device = make_device("fanLight", properties={"fanGear": "0"})
+        # Fan gear 0 is clamped to min (1)
+        assert device.fan_gear == 1
 
     def test_gear_range_boundaries(self):
         """Test gear range boundaries (1-10)."""
@@ -268,12 +268,18 @@ class TestDeviceAvailabilityEdgeCases:
         assert device.available is True
 
     def test_availability_with_invalid_connect_state(self, make_device):
-        """Test availability with invalid connectState value."""
-        device = make_device("light", properties={"connectState": "invalid"})
+        """Test availability with invalid connectState via update_properties.
 
-        # Should handle gracefully (likely default to available)
-        # The actual behavior depends on implementation
-        assert device.available in (True, False)
+        available is only recalculated when update_properties() is called
+        with connectState, not at construction time.
+        """
+        device = make_device("light")
+        assert device.available is True
+
+        # update_properties triggers availability recalculation
+        device.update_properties({"connectState": "invalid"})
+        # "invalid" is not in ("1", "true", "yes", "on"), so is_connected=False
+        assert device.available is False
 
 
 class TestMqttMessageEdgeCases:
@@ -302,37 +308,25 @@ class TestSignatureEdgeCases:
     """Tests for API signature edge cases."""
 
     def test_iot_sign_with_empty_body(self):
-        """Test IoT signature with empty body."""
-        import hashlib
+        """Test IoT signature with empty body produces valid MD5."""
+        from custom_components.lipro.core.api import LiproClient
 
-        from custom_components.lipro.core.const import IOT_SIGN_KEY, MERCHANT_CODE
-
-        access_token = "test_token"
-        nonce = 1000167890
-        body = ""
-
-        trimmed_body = body.strip() if body else ""
-        sign_data = f"{access_token}{nonce}{MERCHANT_CODE}{trimmed_body}{IOT_SIGN_KEY}"
-        signature = hashlib.md5(sign_data.encode("utf-8")).hexdigest()
-
+        client = LiproClient(phone_id="test_id")
+        client._access_token = "test_token"
+        signature = client._iot_sign(1000167890, "")
         assert len(signature) == 32  # MD5 produces 32 hex chars
 
     def test_iot_sign_with_whitespace_body(self):
-        """Test IoT signature with whitespace body."""
-        import hashlib
+        """Test IoT signature trims whitespace from body."""
+        from custom_components.lipro.core.api import LiproClient
 
-        from custom_components.lipro.core.const import IOT_SIGN_KEY, MERCHANT_CODE
-
-        access_token = "test_token"
+        client = LiproClient(phone_id="test_id")
+        client._access_token = "test_token"
         nonce = 1000167890
-        body = '  {"key": "value"}  '
-
-        trimmed_body = body.strip() if body else ""
-        sign_data = f"{access_token}{nonce}{MERCHANT_CODE}{trimmed_body}{IOT_SIGN_KEY}"
-        _ = hashlib.md5(sign_data.encode("utf-8")).hexdigest()
-
-        # Verify whitespace was trimmed
-        assert "  " not in sign_data
+        sig_trimmed = client._iot_sign(nonce, '{"key": "value"}')
+        sig_padded = client._iot_sign(nonce, '  {"key": "value"}  ')
+        # Both should produce the same signature (whitespace trimmed)
+        assert sig_trimmed == sig_padded
 
 
 class TestDebounceEdgeCases:

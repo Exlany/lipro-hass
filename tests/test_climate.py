@@ -2,6 +2,17 @@
 
 from __future__ import annotations
 
+import pytest
+
+try:
+    from pytest_homeassistant_custom_component.common import (
+        MockConfigEntry,  # noqa: F401
+    )
+
+    HAS_HA_TEST_ENV = True
+except ImportError:
+    HAS_HA_TEST_ENV = False
+
 
 class TestLiproHeaterState:
     """Tests for heater state properties."""
@@ -37,43 +48,61 @@ class TestLiproHeaterState:
         assert device.is_heater is True
 
 
+@pytest.mark.skipif(
+    not HAS_HA_TEST_ENV, reason="Requires HA test env for entity class import"
+)
 class TestLiproHeaterHvacMode:
     """Tests for heater HVAC mode logic."""
 
-    def test_hvac_mode_heat(self):
+    def test_hvac_mode_heat(self, make_device, mock_coordinator):
         """Test HVAC mode is HEAT when heater is on."""
-        heater_is_on = True
-        hvac_mode = "heat" if heater_is_on else "off"
-        assert hvac_mode == "heat"
+        from custom_components.lipro.climate import LiproHeater
 
-    def test_hvac_mode_off(self):
+        device = make_device("heater", properties={"heaterSwitch": "1"})
+        heater = LiproHeater(mock_coordinator, device)
+        assert heater.hvac_mode.value == "heat"
+
+    def test_hvac_mode_off(self, make_device, mock_coordinator):
         """Test HVAC mode is OFF when heater is off."""
-        heater_is_on = False
-        hvac_mode = "heat" if heater_is_on else "off"
-        assert hvac_mode == "off"
+        from custom_components.lipro.climate import LiproHeater
+
+        device = make_device("heater", properties={"heaterSwitch": "0"})
+        heater = LiproHeater(mock_coordinator, device)
+        assert heater.hvac_mode.value == "off"
 
 
+@pytest.mark.skipif(
+    not HAS_HA_TEST_ENV, reason="Requires HA test env for entity class import"
+)
 class TestLiproHeaterIcon:
     """Tests for heater icon logic."""
 
-    def test_icon_heating(self):
+    def test_icon_heating(self, make_device, mock_coordinator):
         """Test icon when heating."""
-        hvac_mode = "heat"
-        icon = "mdi:radiator" if hvac_mode == "heat" else "mdi:radiator-off"
-        assert icon == "mdi:radiator"
+        from custom_components.lipro.climate import LiproHeater
 
-    def test_icon_off(self):
+        device = make_device("heater", properties={"heaterSwitch": "1"})
+        heater = LiproHeater(mock_coordinator, device)
+        assert heater.icon == "mdi:radiator"
+
+    def test_icon_off(self, make_device, mock_coordinator):
         """Test icon when off."""
-        hvac_mode = "off"
-        icon = "mdi:radiator" if hvac_mode == "heat" else "mdi:radiator-off"
-        assert icon == "mdi:radiator-off"
+        from custom_components.lipro.climate import LiproHeater
+
+        device = make_device("heater", properties={"heaterSwitch": "0"})
+        heater = LiproHeater(mock_coordinator, device)
+        assert heater.icon == "mdi:radiator-off"
 
 
+@pytest.mark.skipif(
+    not HAS_HA_TEST_ENV, reason="Requires HA test env for entity class import"
+)
 class TestLiproHeaterPresetModes:
     """Tests for heater preset mode mappings."""
 
     def test_mode_to_preset_mapping(self):
-        """Test MODE_TO_PRESET mapping."""
+        """Test MODE_TO_PRESET mapping from real source."""
+        from custom_components.lipro.climate import MODE_TO_PRESET
         from custom_components.lipro.const import (
             HEATER_MODE_DEFAULT,
             HEATER_MODE_DEMIST,
@@ -81,21 +110,14 @@ class TestLiproHeaterPresetModes:
             HEATER_MODE_GENTLE_WIND,
         )
 
-        # Replicate the mapping from climate.py
-        mode_to_preset = {
-            HEATER_MODE_DEFAULT: "default",
-            HEATER_MODE_DEMIST: "demist",
-            HEATER_MODE_DRY: "dry",
-            HEATER_MODE_GENTLE_WIND: "gentle_wind",
-        }
-
-        assert mode_to_preset[HEATER_MODE_DEFAULT] == "default"
-        assert mode_to_preset[HEATER_MODE_DEMIST] == "demist"
-        assert mode_to_preset[HEATER_MODE_DRY] == "dry"
-        assert mode_to_preset[HEATER_MODE_GENTLE_WIND] == "gentle_wind"
+        assert MODE_TO_PRESET[HEATER_MODE_DEFAULT] == "default"
+        assert MODE_TO_PRESET[HEATER_MODE_DEMIST] == "demist"
+        assert MODE_TO_PRESET[HEATER_MODE_DRY] == "dry"
+        assert MODE_TO_PRESET[HEATER_MODE_GENTLE_WIND] == "gentle_wind"
 
     def test_preset_to_mode_mapping(self):
-        """Test PRESET_TO_MODE mapping."""
+        """Test PRESET_TO_MODE mapping from real source."""
+        from custom_components.lipro.climate import PRESET_TO_MODE
         from custom_components.lipro.const import (
             HEATER_MODE_DEFAULT,
             HEATER_MODE_DEMIST,
@@ -103,42 +125,27 @@ class TestLiproHeaterPresetModes:
             HEATER_MODE_GENTLE_WIND,
         )
 
-        preset_to_mode = {
-            "default": HEATER_MODE_DEFAULT,
-            "demist": HEATER_MODE_DEMIST,
-            "dry": HEATER_MODE_DRY,
-            "gentle_wind": HEATER_MODE_GENTLE_WIND,
-        }
-
-        assert preset_to_mode["default"] == HEATER_MODE_DEFAULT
-        assert preset_to_mode["demist"] == HEATER_MODE_DEMIST
-        assert preset_to_mode["dry"] == HEATER_MODE_DRY
-        assert preset_to_mode["gentle_wind"] == HEATER_MODE_GENTLE_WIND
+        assert PRESET_TO_MODE["default"] == HEATER_MODE_DEFAULT
+        assert PRESET_TO_MODE["demist"] == HEATER_MODE_DEMIST
+        assert PRESET_TO_MODE["dry"] == HEATER_MODE_DRY
+        assert PRESET_TO_MODE["gentle_wind"] == HEATER_MODE_GENTLE_WIND
 
     def test_bidirectional_consistency(self):
         """Test MODE_TO_PRESET and PRESET_TO_MODE are consistent."""
-        from custom_components.lipro.const import (
-            HEATER_MODE_DEFAULT,
-            HEATER_MODE_DEMIST,
-            HEATER_MODE_DRY,
-            HEATER_MODE_GENTLE_WIND,
-        )
+        from custom_components.lipro.climate import MODE_TO_PRESET, PRESET_TO_MODE
 
-        mode_to_preset = {
-            HEATER_MODE_DEFAULT: "default",
-            HEATER_MODE_DEMIST: "demist",
-            HEATER_MODE_DRY: "dry",
-            HEATER_MODE_GENTLE_WIND: "gentle_wind",
-        }
-        preset_to_mode = {v: k for k, v in mode_to_preset.items()}
-
-        for mode, preset in mode_to_preset.items():
-            assert preset_to_mode[preset] == mode
+        for mode, preset in MODE_TO_PRESET.items():
+            assert PRESET_TO_MODE[preset] == mode
 
     def test_preset_modes_list(self):
-        """Test all preset modes are defined."""
-        preset_modes = ["default", "demist", "dry", "gentle_wind"]
-        assert len(preset_modes) == 4
+        """Test all preset modes are defined in real source."""
+        from custom_components.lipro.climate import PRESET_MODES
+
+        assert len(PRESET_MODES) == 4
+        assert "default" in PRESET_MODES
+        assert "demist" in PRESET_MODES
+        assert "dry" in PRESET_MODES
+        assert "gentle_wind" in PRESET_MODES
 
 
 class TestLiproHeaterConstants:

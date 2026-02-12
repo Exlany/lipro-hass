@@ -2,6 +2,17 @@
 
 from __future__ import annotations
 
+import pytest
+
+try:
+    from pytest_homeassistant_custom_component.common import (
+        MockConfigEntry,  # noqa: F401
+    )
+
+    HAS_HA_TEST_ENV = True
+except ImportError:
+    HAS_HA_TEST_ENV = False
+
 
 class TestLiproConnectivitySensor:
     """Tests for LiproConnectivitySensor entity."""
@@ -21,15 +32,15 @@ class TestLiproConnectivitySensor:
         device = make_device("light")
         assert device.is_connected is True
 
-    def test_icon_connected(self):
-        """Test icon when connected."""
-        icon = "mdi:lan-connect" if True else "mdi:lan-disconnect"
-        assert icon == "mdi:lan-connect"
+    @pytest.mark.skipif(
+        not HAS_HA_TEST_ENV, reason="Requires HA test env for entity class import"
+    )
+    def test_icon_class_attributes(self):
+        """Test icon class attributes match expected values."""
+        from custom_components.lipro.binary_sensor import LiproConnectivitySensor
 
-    def test_icon_disconnected(self):
-        """Test icon when disconnected."""
-        icon = "mdi:lan-connect" if False else "mdi:lan-disconnect"
-        assert icon == "mdi:lan-disconnect"
+        assert LiproConnectivitySensor._icon_on == "mdi:lan-connect"
+        assert LiproConnectivitySensor._icon_off == "mdi:lan-disconnect"
 
 
 class TestLiproMotionSensor:
@@ -50,17 +61,15 @@ class TestLiproMotionSensor:
         device = make_device("bodySensor")
         assert device.is_activated is False
 
-    def test_icon_motion(self):
-        """Test icon when motion detected."""
-        is_on = True
-        icon = "mdi:motion-sensor" if is_on else "mdi:motion-sensor-off"
-        assert icon == "mdi:motion-sensor"
+    @pytest.mark.skipif(
+        not HAS_HA_TEST_ENV, reason="Requires HA test env for entity class import"
+    )
+    def test_icon_class_attributes(self):
+        """Test icon class attributes match expected values."""
+        from custom_components.lipro.binary_sensor import LiproMotionSensor
 
-    def test_icon_no_motion(self):
-        """Test icon when no motion."""
-        is_on = False
-        icon = "mdi:motion-sensor" if is_on else "mdi:motion-sensor-off"
-        assert icon == "mdi:motion-sensor-off"
+        assert LiproMotionSensor._icon_on == "mdi:motion-sensor"
+        assert LiproMotionSensor._icon_off == "mdi:motion-sensor-off"
 
     def test_is_body_sensor(self, make_device):
         """Test device is identified as body sensor."""
@@ -86,17 +95,15 @@ class TestLiproDoorSensor:
         device = make_device("doorSensor")
         assert device.door_is_open is False
 
-    def test_icon_open(self):
-        """Test icon when door is open."""
-        is_on = True
-        icon = "mdi:door-open" if is_on else "mdi:door-closed"
-        assert icon == "mdi:door-open"
+    @pytest.mark.skipif(
+        not HAS_HA_TEST_ENV, reason="Requires HA test env for entity class import"
+    )
+    def test_icon_class_attributes(self):
+        """Test icon class attributes match expected values."""
+        from custom_components.lipro.binary_sensor import LiproDoorSensor
 
-    def test_icon_closed(self):
-        """Test icon when door is closed."""
-        is_on = False
-        icon = "mdi:door-open" if is_on else "mdi:door-closed"
-        assert icon == "mdi:door-closed"
+        assert LiproDoorSensor._icon_on == "mdi:door-open"
+        assert LiproDoorSensor._icon_off == "mdi:door-closed"
 
     def test_is_door_sensor(self, make_device):
         """Test device is identified as door sensor."""
@@ -110,7 +117,6 @@ class TestLiproLightLevelSensor:
     def test_is_on_bright(self, make_device):
         """Test is_on when bright (not dark)."""
         device = make_device("bodySensor", properties={"dark": "0"})
-        # is_on = not is_dark
         assert device.is_dark is False
 
     def test_is_on_dark(self, make_device):
@@ -123,17 +129,16 @@ class TestLiproLightLevelSensor:
         device = make_device("bodySensor")
         assert device.is_dark is False
 
-    def test_icon_bright(self):
-        """Test icon when bright."""
-        is_on = True  # not dark
-        icon = "mdi:brightness-7" if is_on else "mdi:brightness-3"
-        assert icon == "mdi:brightness-7"
+    @pytest.mark.skipif(
+        not HAS_HA_TEST_ENV, reason="Requires HA test env for entity class import"
+    )
+    def test_icon_and_invert_class_attributes(self):
+        """Test icon and _invert class attributes match expected values."""
+        from custom_components.lipro.binary_sensor import LiproLightLevelSensor
 
-    def test_icon_dark(self):
-        """Test icon when dark."""
-        is_on = False  # dark
-        icon = "mdi:brightness-7" if is_on else "mdi:brightness-3"
-        assert icon == "mdi:brightness-3"
+        assert LiproLightLevelSensor._icon_on == "mdi:brightness-7"
+        assert LiproLightLevelSensor._icon_off == "mdi:brightness-3"
+        assert LiproLightLevelSensor._invert is True
 
 
 class TestLiproBatteryLowSensor:
@@ -154,14 +159,12 @@ class TestLiproBatteryLowSensor:
         device = make_device("bodySensor")
         assert device.low_battery is False
 
-    def test_icon_low(self):
-        """Test icon when battery is low."""
-        is_on = True
-        icon = "mdi:battery-alert" if is_on else "mdi:battery"
-        assert icon == "mdi:battery-alert"
+    @pytest.mark.skipif(
+        not HAS_HA_TEST_ENV, reason="Requires HA test env for entity class import"
+    )
+    def test_icon_class_attributes(self):
+        """Test icon class attributes match expected values."""
+        from custom_components.lipro.binary_sensor import LiproBatteryLowSensor
 
-    def test_icon_normal(self):
-        """Test icon when battery is normal."""
-        is_on = False
-        icon = "mdi:battery-alert" if is_on else "mdi:battery"
-        assert icon == "mdi:battery"
+        assert LiproBatteryLowSensor._icon_on == "mdi:battery-alert"
+        assert LiproBatteryLowSensor._icon_off == "mdi:battery"

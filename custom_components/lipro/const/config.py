@@ -7,6 +7,13 @@ CONF_PHONE: Final = "phone"
 CONF_PASSWORD: Final = "password"
 CONF_PHONE_ID: Final = "phone_id"
 
+# Config entry data keys (stored in entry.data)
+CONF_ACCESS_TOKEN: Final = "access_token"
+CONF_REFRESH_TOKEN: Final = "refresh_token"
+CONF_USER_ID: Final = "user_id"
+CONF_BIZ_ID: Final = "biz_id"
+CONF_EXPIRES_AT: Final = "expires_at"
+
 # Options - Polling interval
 CONF_SCAN_INTERVAL: Final = "scan_interval"
 DEFAULT_SCAN_INTERVAL: Final = 30

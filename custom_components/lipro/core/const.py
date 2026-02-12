@@ -59,6 +59,7 @@ CONTENT_TYPE_JSON: Final = "application/json"
 # Response codes
 RESPONSE_SUCCESS: Final = 200
 RESPONSE_SUCCESS_STR: Final = "0000"
+RESPONSE_SUCCESS_CODES: Final = (200, "0000", "200")  # All known success code variants
 
 # Error codes - verified in real API responses
 ERROR_DEVICE_OFFLINE: Final = 140003  # Device not found / offline
@@ -83,8 +84,17 @@ TOKEN_REFRESH_BUFFER: Final = 300  # Refresh accessToken 5 minutes before expiry
 TOKEN_EXPIRY_MIN: Final = 1800  # Minimum: 30 minutes
 TOKEN_EXPIRY_REDUCTION_FACTOR: Final = 0.5  # Reduce by 50% on 401
 
+# Minimum interval between token refreshes to prevent duplicate refresh storms
+TOKEN_REFRESH_DEDUP_WINDOW: Final = 5  # seconds
+
 # Request timeout (seconds)
 REQUEST_TIMEOUT: Final = 30
+
+# Maximum Retry-After value (seconds) to prevent hanging on malicious/abnormal headers
+MAX_RETRY_AFTER: Final = 60
+
+# Maximum MQTT dedup cache entries before forced cleanup
+MAX_MQTT_CACHE_SIZE: Final = 500
 
 # Max devices per status query
 MAX_DEVICES_PER_QUERY: Final = 100

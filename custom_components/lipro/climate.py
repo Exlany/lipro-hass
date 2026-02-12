@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import logging
 from typing import TYPE_CHECKING, ClassVar
 
 from homeassistant.components.climate import (
@@ -31,8 +30,6 @@ if TYPE_CHECKING:
     from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
     from . import LiproConfigEntry
-
-_LOGGER = logging.getLogger(__name__)
 
 # Limit parallel updates to avoid overwhelming the API
 PARALLEL_UPDATES = 1

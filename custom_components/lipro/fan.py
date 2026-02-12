@@ -184,10 +184,11 @@ class LiproFan(LiproEntity, FanEntity):
         properties = [{"key": PROP_FAN_GEAR, "value": str(gear)}]
         optimistic: dict[str, Any] = {PROP_FAN_GEAR: str(gear)}
 
-        # Turn on if not already on
+        # Turn on if not already on — send fanOnOff in properties but NOT in
+        # optimistic, so it won't be debounce-protected (same pattern as light powerState)
         if not self.is_on:
             properties.insert(0, {"key": PROP_FAN_ONOFF, "value": "1"})
-            optimistic[PROP_FAN_ONOFF] = "1"
+            self.device.update_properties({PROP_FAN_ONOFF: "1"})
 
         # Use debounce for speed slider to avoid flooding API
         await self.async_send_command_debounced(

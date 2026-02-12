@@ -21,12 +21,41 @@ from typing import TYPE_CHECKING, Any
 
 import aiohttp
 
-from ..const import VERSION
+from ..const import (
+    PROP_AERATION_GEAR,
+    PROP_BATTERY,
+    PROP_BODY_REACTIVE,
+    PROP_BRIGHTNESS,
+    PROP_DARK,
+    PROP_DOOR_OPEN,
+    PROP_FADE_STATE,
+    PROP_FAN_GEAR,
+    PROP_FAN_MODE,
+    PROP_FOCUS_MODE,
+    PROP_HEATER_MODE,
+    PROP_LIGHT_MODE,
+    PROP_MOVING,
+    PROP_POSITION,
+    PROP_SLEEP_AID_ENABLE,
+    PROP_TEMPERATURE,
+    PROP_WAKE_UP_ENABLE,
+    PROP_WIND_GEAR,
+    VERSION,
+)
 
 if TYPE_CHECKING:
     from .device import LiproDevice
 
 _LOGGER = logging.getLogger(__name__)
+
+# Pre-compiled patterns for sensitive data detection and sanitization
+_RE_MAC_ADDRESS = re.compile(r"([0-9A-Fa-f]{2}[:-]){5}[0-9A-Fa-f]{2}")
+_RE_MAC_EXACT = re.compile(r"^([0-9A-Fa-f]{2}[:-]){5}[0-9A-Fa-f]{2}$")
+_RE_IP_ADDRESS = re.compile(r"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}")
+_RE_IP_EXACT = re.compile(r"^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$")
+_RE_DEVICE_ID = re.compile(r"03ab[0-9a-f]{12}")
+_RE_DEVICE_ID_EXACT = re.compile(r"^03ab[0-9a-f]{12}$")
+_RE_TOKEN_LIKE = re.compile(r"^[a-zA-Z0-9_-]{32,}$")
 
 # Anonymous share server endpoint
 SHARE_URL = "https://lipro-share.lany.me/api/report"
@@ -158,6 +187,7 @@ class AnonymousShareManager:
         # Track already reported devices to avoid duplicates
         self._reported_device_keys: set[str] = set()
         self._storage_path: str | None = None
+        self._cache_loaded: bool = True  # True = no load needed
 
     def set_enabled(
         self,
@@ -183,7 +213,8 @@ class AnonymousShareManager:
         self._storage_path = storage_path
         self._ha_version = ha_version
         if enabled and storage_path:
-            self._load_reported_devices()
+            # Defer loading to async context to avoid blocking the event loop
+            self._cache_loaded = False
         if not enabled:
             self.clear()
 
@@ -203,6 +234,13 @@ class AnonymousShareManager:
         self._errors.clear()
         self._unknown_properties.clear()
         self._unknown_device_types.clear()
+
+    async def async_ensure_loaded(self) -> None:
+        """Load reported device cache in a thread to avoid blocking the event loop."""
+        if self._cache_loaded:
+            return
+        self._cache_loaded = True
+        await asyncio.to_thread(self._load_reported_devices)
 
     def _load_reported_devices(self) -> None:
         """Load previously reported device keys from storage."""
@@ -299,57 +337,57 @@ class AnonymousShareManager:
         # Light capabilities
         if device.is_light:
             caps.append("light")
-            if "brightness" in props:
+            if PROP_BRIGHTNESS in props:
                 caps.append("brightness")
-            if "temperature" in props:
+            if PROP_TEMPERATURE in props:
                 caps.append("color_temp")
             if device.has_gear_presets:
                 caps.append("gear_presets")
-            if "fadeState" in props:
+            if PROP_FADE_STATE in props:
                 caps.append("fade")
-            if "focusMode" in props:
+            if PROP_FOCUS_MODE in props:
                 caps.append("focus_mode")
-            if "sleepAidEnable" in props:
+            if PROP_SLEEP_AID_ENABLE in props:
                 caps.append("sleep_aid")
-            if "wakeUpEnable" in props:
+            if PROP_WAKE_UP_ENABLE in props:
                 caps.append("wake_up")
 
         # Fan capabilities
         if device.is_fan_light:
             caps.append("fan")
-            if "fanGear" in props:
+            if PROP_FAN_GEAR in props:
                 caps.append("fan_speed")
-            if "fanMode" in props:
+            if PROP_FAN_MODE in props:
                 caps.append("fan_mode")
 
         # Cover capabilities
         if device.is_curtain:
             caps.append("cover")
-            if "position" in props:
+            if PROP_POSITION in props:
                 caps.append("position")
 
         # Sensor capabilities
         if device.is_sensor:
             caps.append("sensor")
-            if "battery" in props:
+            if PROP_BATTERY in props:
                 caps.append("battery")
-            if "doorOpen" in props:
+            if PROP_DOOR_OPEN in props:
                 caps.append("door_sensor")
-            if "bodyReactive" in props or "moving" in props:
+            if PROP_BODY_REACTIVE in props or PROP_MOVING in props:
                 caps.append("motion_sensor")
-            if "dark" in props:
+            if PROP_DARK in props:
                 caps.append("light_sensor")
 
         # Heater capabilities
         if device.is_heater:
             caps.append("heater")
-            if "heaterMode" in props:
+            if PROP_HEATER_MODE in props:
                 caps.append("heater_mode")
-            if "windGear" in props:
+            if PROP_WIND_GEAR in props:
                 caps.append("wind_speed")
-            if "aerationGear" in props:
+            if PROP_AERATION_GEAR in props:
                 caps.append("aeration")
-            if "lightMode" in props:
+            if PROP_LIGHT_MODE in props:
                 caps.append("heater_light")
 
         # Switch/outlet capabilities
@@ -642,11 +680,11 @@ class AnonymousShareManager:
 
         """
         # Remove potential MAC addresses
-        value = re.sub(r"([0-9A-Fa-f]{2}[:-]){5}[0-9A-Fa-f]{2}", "[MAC]", value)
+        value = _RE_MAC_ADDRESS.sub("[MAC]", value)
         # Remove potential IP addresses
-        value = re.sub(r"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}", "[IP]", value)
+        value = _RE_IP_ADDRESS.sub("[IP]", value)
         # Remove potential device IDs (03ab + hex)
-        return re.sub(r"03ab[0-9a-f]{12}", "[DEVICE_ID]", value)
+        return _RE_DEVICE_ID.sub("[DEVICE_ID]", value)
 
     def _looks_sensitive(self, value: str) -> bool:
         """Check if a value looks like sensitive data.
@@ -659,16 +697,16 @@ class AnonymousShareManager:
 
         """
         # MAC address pattern
-        if re.match(r"^([0-9A-Fa-f]{2}[:-]){5}[0-9A-Fa-f]{2}$", value):
+        if _RE_MAC_EXACT.match(value):
             return True
         # IP address pattern
-        if re.match(r"^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$", value):
+        if _RE_IP_EXACT.match(value):
             return True
         # Device ID pattern (03ab + 12 hex chars)
-        if re.match(r"^03ab[0-9a-f]{12}$", value):
+        if _RE_DEVICE_ID_EXACT.match(value):
             return True
         # Token-like pattern (long hex or base64)
-        if re.match(r"^[a-zA-Z0-9_-]{32,}$", value):
+        if _RE_TOKEN_LIKE.match(value):
             return True
 
         return False

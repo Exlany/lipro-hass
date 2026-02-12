@@ -50,7 +50,7 @@ LIGHT_MODE_TO_VALUE = {
 }
 VALUE_TO_LIGHT_MODE = {v: k for k, v in LIGHT_MODE_TO_VALUE.items()}
 
-# Light gear preset options
+# Light gear preset options (max 3)
 GEAR_OPTIONS = ["gear_1", "gear_2", "gear_3"]
 
 
@@ -156,6 +156,14 @@ class LiproLightGearSelect(LiproSelect):
     _attr_options = GEAR_OPTIONS
     _attr_translation_key = "light_gear"
     _entity_suffix = "gear"
+
+    @property
+    def options(self) -> list[str]:
+        """Return gear options based on actual device gear count."""
+        count = len(self.device.gear_list)
+        if 0 < count < len(GEAR_OPTIONS):
+            return GEAR_OPTIONS[:count]
+        return GEAR_OPTIONS
 
     @property
     def current_option(self) -> str | None:

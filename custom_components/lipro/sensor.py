@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import logging
 from typing import TYPE_CHECKING, Any
 
 from homeassistant.components.sensor import (
@@ -26,8 +25,6 @@ if TYPE_CHECKING:
     from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
     from . import LiproConfigEntry
-
-_LOGGER = logging.getLogger(__name__)
 
 # No parallel update limit needed for read-only sensors using coordinator
 PARALLEL_UPDATES = 0
@@ -175,6 +172,7 @@ class LiproWifiSignalSensor(LiproSensor):
     _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_native_unit_of_measurement = SIGNAL_STRENGTH_DECIBELS_MILLIWATT
     _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_entity_registry_enabled_default = False
     _attr_translation_key = "wifi_signal"
     _entity_suffix = "wifi_signal"
 

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import logging
 from typing import TYPE_CHECKING, Any
 
 from homeassistant.components.switch import SwitchDeviceClass, SwitchEntity
@@ -30,8 +29,6 @@ if TYPE_CHECKING:
     from . import LiproConfigEntry
     from .core.coordinator import LiproDataUpdateCoordinator
     from .core.device import LiproDevice
-
-_LOGGER = logging.getLogger(__name__)
 
 # Limit parallel updates to avoid overwhelming the API
 PARALLEL_UPDATES = 1

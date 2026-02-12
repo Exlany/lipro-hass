@@ -3,6 +3,9 @@
 from __future__ import annotations
 
 from datetime import timedelta
+from unittest.mock import patch
+
+import pytest
 
 from custom_components.lipro.core.device import LiproDevice, parse_properties_list
 
@@ -454,3 +457,92 @@ class TestConnectStateReconciliation:
 
         assert connect_state != "1"
         # connectState != "1" → should NOT trigger refresh
+
+
+class TestMqttDedupCacheLimit:
+    """Tests for MQTT dedup cache size limit."""
+
+    def test_cache_hard_cap_enforced(self):
+        """Test that cache is trimmed when exceeding MAX_MQTT_CACHE_SIZE."""
+        from custom_components.lipro.core.const import MAX_MQTT_CACHE_SIZE
+
+        # Simulate a cache that exceeds the limit
+        cache: dict[str, float] = {}
+        for i in range(MAX_MQTT_CACHE_SIZE + 100):
+            cache[f"device_{i}:hash_{i}"] = float(i)
+
+        assert len(cache) > MAX_MQTT_CACHE_SIZE
+
+        # Apply the same cleanup logic as coordinator._on_mqtt_message
+        sorted_items = sorted(cache.items(), key=lambda x: x[1])
+        cache = dict(sorted_items[len(sorted_items) // 2 :])
+
+        # Should be reduced to half
+        assert len(cache) == (MAX_MQTT_CACHE_SIZE + 100) // 2 + (
+            (MAX_MQTT_CACHE_SIZE + 100) % 2
+        )
+        assert len(cache) <= MAX_MQTT_CACHE_SIZE
+
+    def test_cache_under_limit_not_trimmed(self):
+        """Test that cache under limit is not affected."""
+        from custom_components.lipro.core.const import MAX_MQTT_CACHE_SIZE
+
+        cache: dict[str, float] = {}
+        for i in range(10):
+            cache[f"device_{i}:hash_{i}"] = float(i)
+
+        # Under limit — no trimming needed
+        assert len(cache) < MAX_MQTT_CACHE_SIZE
+        # The condition check would skip trimming
+        should_trim = len(cache) > MAX_MQTT_CACHE_SIZE
+        assert should_trim is False
+
+    def test_cache_trim_keeps_newest_entries(self):
+        """Test that trimming keeps the newest (highest timestamp) entries."""
+        cache: dict[str, float] = {}
+        for i in range(100):
+            cache[f"key_{i}"] = float(i)
+
+        sorted_items = sorted(cache.items(), key=lambda x: x[1])
+        trimmed = dict(sorted_items[len(sorted_items) // 2 :])
+
+        # Newest entries (50-99) should be kept
+        assert "key_99" in trimmed
+        assert "key_50" in trimmed
+        # Oldest entries (0-49) should be removed
+        assert "key_0" not in trimmed
+        assert "key_49" not in trimmed
+
+
+class TestAnonymousShareAsyncLoad:
+    """Tests for anonymous share deferred async loading."""
+
+    @pytest.mark.asyncio
+    async def test_async_ensure_loaded_calls_load(self):
+        """Test async_ensure_loaded triggers _load_reported_devices in thread."""
+        from custom_components.lipro.core.anonymous_share import AnonymousShareManager
+
+        manager = AnonymousShareManager()
+        manager._cache_loaded = False
+
+        with patch.object(manager, "_load_reported_devices") as mock_load:
+            await manager.async_ensure_loaded()
+            mock_load.assert_called_once()
+
+        # Second call should be a no-op
+        with patch.object(manager, "_load_reported_devices") as mock_load:
+            await manager.async_ensure_loaded()
+            mock_load.assert_not_called()
+
+    def test_set_enabled_defers_load(self):
+        """Test set_enabled sets _cache_loaded=False instead of loading sync."""
+        from custom_components.lipro.core.anonymous_share import AnonymousShareManager
+
+        manager = AnonymousShareManager()
+
+        with patch.object(manager, "_load_reported_devices") as mock_load:
+            manager.set_enabled(True, storage_path="/var/lib/test")
+            # Should NOT call sync load
+            mock_load.assert_not_called()
+            # Should mark cache as needing load
+            assert manager._cache_loaded is False

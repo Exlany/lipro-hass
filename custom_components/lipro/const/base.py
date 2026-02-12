@@ -5,6 +5,9 @@ from typing import Final
 # Domain
 DOMAIN: Final = "lipro"
 
+# Manufacturer name (used in device_info)
+MANUFACTURER: Final = "Lipro"
+
 # Integration version (should match manifest.json)
 VERSION: Final = "1.0.0"
 

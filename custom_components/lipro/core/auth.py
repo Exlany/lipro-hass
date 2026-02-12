@@ -7,6 +7,13 @@ import logging
 import time
 from typing import Any
 
+from ..const.config import (
+    CONF_ACCESS_TOKEN,
+    CONF_EXPIRES_AT,
+    CONF_PHONE_ID,
+    CONF_REFRESH_TOKEN,
+    CONF_USER_ID,
+)
 from .api import LiproAuthError, LiproClient, LiproRefreshTokenExpiredError
 from .const import (
     ACCESS_TOKEN_EXPIRY_SECONDS,
@@ -14,6 +21,7 @@ from .const import (
     TOKEN_EXPIRY_MIN,
     TOKEN_EXPIRY_REDUCTION_FACTOR,
     TOKEN_REFRESH_BUFFER,
+    TOKEN_REFRESH_DEDUP_WINDOW,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -247,7 +255,7 @@ class LiproAuthManager:
         async with self._refresh_lock:
             # Check if token was already refreshed recently (within last 5 seconds)
             # This prevents multiple concurrent 401s from triggering duplicate refreshes
-            if time.time() - self._last_refresh_time < 5:
+            if time.time() - self._last_refresh_time < TOKEN_REFRESH_DEDUP_WINDOW:
                 _LOGGER.debug(
                     "Token was refreshed %d seconds ago, skipping",
                     int(time.time() - self._last_refresh_time),
@@ -286,11 +294,14 @@ class LiproAuthManager:
 
         # Refresh if token expires within buffer time
         if time.time() >= self._token_expires_at - TOKEN_REFRESH_BUFFER:
-            _LOGGER.debug(
-                "Token expiring in %d seconds, refreshing proactively",
-                int(self._token_expires_at - time.time()),
-            )
-            await self.refresh_token()
+            async with self._refresh_lock:
+                # Double-check after acquiring lock (another coroutine may have refreshed)
+                if time.time() >= self._token_expires_at - TOKEN_REFRESH_BUFFER:
+                    _LOGGER.debug(
+                        "Token expiring in %d seconds, refreshing proactively",
+                        int(self._token_expires_at - time.time()),
+                    )
+                    await self.refresh_token()
 
         return True
 
@@ -302,9 +313,9 @@ class LiproAuthManager:
 
         """
         return {
-            "access_token": self._client.access_token,
-            "refresh_token": self._client.refresh_token,
-            "user_id": self._client.user_id,
-            "phone_id": self._client.phone_id,
-            "expires_at": self._token_expires_at,
+            CONF_ACCESS_TOKEN: self._client.access_token,
+            CONF_REFRESH_TOKEN: self._client.refresh_token,
+            CONF_USER_ID: self._client.user_id,
+            CONF_PHONE_ID: self._client.phone_id,
+            CONF_EXPIRES_AT: self._token_expires_at,
         }

@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, Any
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from ..const import DOMAIN
+from ..const import DOMAIN, MANUFACTURER
 from ..core.coordinator import LiproDataUpdateCoordinator
 from ..helpers.debounce import Debouncer
 
@@ -55,6 +55,22 @@ class LiproEntity(CoordinatorEntity[LiproDataUpdateCoordinator]):
         else:
             self._attr_unique_id = device.unique_id
 
+        # Cache device_info (static per device, built once)
+        info = DeviceInfo(
+            identifiers={(DOMAIN, device.serial)},
+            name=device.name,
+            manufacturer=MANUFACTURER,
+            model=device.physical_model or device.iot_name,
+            suggested_area=device.room_name,
+        )
+        if not device.is_group and device.serial:
+            info["serial_number"] = device.serial
+        if device.firmware_version:
+            info["sw_version"] = device.firmware_version
+        if device.iot_name:
+            info["hw_version"] = device.iot_name
+        self._attr_device_info = info
+
     @property
     def device(self) -> LiproDevice:
         """Return the device."""
@@ -65,32 +81,6 @@ class LiproEntity(CoordinatorEntity[LiproDataUpdateCoordinator]):
     def available(self) -> bool:
         """Return if entity is available."""
         return self.coordinator.last_update_success and self.device.available
-
-    @property
-    def device_info(self) -> DeviceInfo:
-        """Return device info."""
-        device = self.device  # Fresh data from coordinator
-        info = DeviceInfo(
-            identifiers={(DOMAIN, self._device.serial)},
-            name=device.name,
-            manufacturer="Lipro",
-            model=device.physical_model or device.iot_name,
-            suggested_area=device.room_name,
-        )
-
-        # Add serial number for non-group devices
-        if not device.is_group and device.serial:
-            info["serial_number"] = device.serial
-
-        # Add firmware version if available from device
-        if device.firmware_version:
-            info["sw_version"] = device.firmware_version
-
-        # Add hardware model info if available (iot_name is the internal model code)
-        if device.iot_name:
-            info["hw_version"] = device.iot_name
-
-        return info
 
     async def async_added_to_hass(self) -> None:
         """When entity is added to hass."""

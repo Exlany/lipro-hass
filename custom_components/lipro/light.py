@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import logging
 from typing import TYPE_CHECKING, Any
 
 from homeassistant.components.light import (
@@ -32,8 +31,6 @@ if TYPE_CHECKING:
     from . import LiproConfigEntry
     from .core.coordinator import LiproDataUpdateCoordinator
     from .core.device import LiproDevice
-
-_LOGGER = logging.getLogger(__name__)
 
 # Limit parallel updates to avoid overwhelming the API
 PARALLEL_UPDATES = 1
@@ -71,14 +68,25 @@ class LiproLight(LiproEntity, LightEntity):
         else:
             self._attr_name = None  # Use device name
 
-        # Set color mode based on device capability
-        if device.supports_color_temp:
-            self._attr_supported_color_modes = {ColorMode.COLOR_TEMP}
-            self._attr_color_mode = ColorMode.COLOR_TEMP
-        else:
-            # Single color temperature - brightness only mode
-            self._attr_supported_color_modes = {ColorMode.BRIGHTNESS}
-            self._attr_color_mode = ColorMode.BRIGHTNESS
+    @property
+    def supported_color_modes(self) -> set[ColorMode]:
+        """Return supported color modes based on device capability.
+
+        Dynamic property so it reflects product config changes after init.
+        """
+        if self.device.supports_color_temp:
+            return {ColorMode.COLOR_TEMP}
+        return {ColorMode.BRIGHTNESS}
+
+    @property
+    def color_mode(self) -> ColorMode:
+        """Return the current color mode.
+
+        Dynamic property matching supported_color_modes.
+        """
+        if self.device.supports_color_temp:
+            return ColorMode.COLOR_TEMP
+        return ColorMode.BRIGHTNESS
 
     @property
     def min_color_temp_kelvin(self) -> int:
@@ -118,7 +126,7 @@ class LiproLight(LiproEntity, LightEntity):
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn on the light."""
         properties: list[dict[str, str]] = []
-        optimistic: dict[str, Any] = {PROP_POWER_STATE: "1"}
+        optimistic: dict[str, Any] = {}
 
         # Handle brightness
         if ATTR_BRIGHTNESS in kwargs:
@@ -150,8 +158,16 @@ class LiproLight(LiproEntity, LightEntity):
             optimistic[PROP_TEMPERATURE] = str(temp_percent)
 
         # Use debounce for slider controls (brightness, color_temp)
-        # to avoid flooding API when user drags the slider
+        # to avoid flooding API when user drags the slider.
+        # Don't include powerState in debounced optimistic state — it would
+        # block coordinator from reflecting external power changes during drag.
         if properties:
+            # Turn on if not already on — send powerState in properties but NOT
+            # in optimistic, so it won't be debounce-protected (same as fan.py)
+            if not self.is_on:
+                properties.insert(0, {"key": PROP_POWER_STATE, "value": "1"})
+                self.device.update_properties({PROP_POWER_STATE: "1"})
+
             await self.async_send_command_debounced(
                 CMD_CHANGE_STATE,
                 properties,
@@ -159,7 +175,7 @@ class LiproLight(LiproEntity, LightEntity):
             )
         else:
             # Just turn on (no debounce needed for simple on/off)
-            await self.async_send_command(CMD_POWER_ON, None, optimistic)
+            await self.async_send_command(CMD_POWER_ON, None, {PROP_POWER_STATE: "1"})
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn off the light."""

@@ -8,6 +8,7 @@ import logging
 from typing import Any
 import uuid
 
+import aiohttp
 import voluptuous as vol
 
 from homeassistant.config_entries import (
@@ -22,16 +23,20 @@ from homeassistant.data_entry_flow import AbortFlow
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .const import (
+    CONF_ACCESS_TOKEN,
     CONF_ANONYMOUS_SHARE_ENABLED,
     CONF_ANONYMOUS_SHARE_ERRORS,
+    CONF_BIZ_ID,
     CONF_DEBUG_MODE,
     CONF_ENABLE_POWER_MONITORING,
     CONF_MQTT_ENABLED,
     CONF_PHONE,
     CONF_PHONE_ID,
     CONF_POWER_QUERY_INTERVAL,
+    CONF_REFRESH_TOKEN,
     CONF_REQUEST_TIMEOUT,
     CONF_SCAN_INTERVAL,
+    CONF_USER_ID,
     DEFAULT_ANONYMOUS_SHARE_ENABLED,
     DEFAULT_ANONYMOUS_SHARE_ERRORS,
     DEFAULT_DEBUG_MODE,
@@ -94,10 +99,10 @@ class LoginResult:
             CONF_PHONE: phone,
             CONF_PASSWORD_HASH: password_hash,
             CONF_PHONE_ID: phone_id,
-            "access_token": self.access_token,
-            "refresh_token": self.refresh_token,
-            "user_id": self.user_id,
-            "biz_id": self.biz_id,
+            CONF_ACCESS_TOKEN: self.access_token,
+            CONF_REFRESH_TOKEN: self.refresh_token,
+            CONF_USER_ID: self.user_id,
+            CONF_BIZ_ID: self.biz_id,
         }
 
 
@@ -146,10 +151,10 @@ class LiproConfigFlow(ConfigFlow, domain=DOMAIN):
         result = await client.login_with_hash(phone, password_hash)
 
         return LoginResult(
-            access_token=result["access_token"],
-            refresh_token=result["refresh_token"],
-            user_id=result["user_id"],
-            biz_id=result.get("biz_id"),
+            access_token=result[CONF_ACCESS_TOKEN],
+            refresh_token=result[CONF_REFRESH_TOKEN],
+            user_id=result[CONF_USER_ID],
+            biz_id=result.get(CONF_BIZ_ID),
         )
 
     async def async_step_user(
@@ -181,7 +186,7 @@ class LiproConfigFlow(ConfigFlow, domain=DOMAIN):
                 errors["base"] = _map_login_error(err)
             except AbortFlow:
                 raise
-            except Exception:
+            except (TimeoutError, aiohttp.ClientError, OSError):
                 _LOGGER.exception("Unexpected error during login")
                 errors["base"] = "unknown"
 
@@ -234,7 +239,7 @@ class LiproConfigFlow(ConfigFlow, domain=DOMAIN):
 
             except LiproApiError as err:
                 errors["base"] = _map_login_error(err)
-            except Exception:
+            except (TimeoutError, aiohttp.ClientError, OSError):
                 _LOGGER.exception("Unexpected error during reauth")
                 errors["base"] = "unknown"
 
@@ -278,7 +283,7 @@ class LiproConfigFlow(ConfigFlow, domain=DOMAIN):
                 errors["base"] = _map_login_error(err)
             except AbortFlow:
                 raise
-            except Exception:
+            except (TimeoutError, aiohttp.ClientError, OSError):
                 _LOGGER.exception("Unexpected error during reconfigure")
                 errors["base"] = "unknown"
 

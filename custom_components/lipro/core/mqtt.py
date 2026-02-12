@@ -83,7 +83,7 @@ def decrypt_mqtt_credential(encrypted_hex: str) -> str:
         decrypted = decrypted[:-padding_len]
 
         return decrypted.decode("utf-8")
-    except (ValueError, binascii.Error) as err:
+    except (ValueError, binascii.Error, IndexError) as err:
         msg = f"Failed to decrypt MQTT credential: {err}"
         raise ValueError(msg) from err
 
@@ -193,6 +193,21 @@ _PROPERTY_KEY_MAP: dict[str, str] = {
     "state": "moving",
 }
 
+# Values that indicate "not supported" in MQTT payloads — skip these
+_NOISE_VALUES: frozenset[str] = frozenset({"-1", ""})
+
+
+# MQTT payload property groups that contain device state
+_MQTT_PROPERTY_GROUPS: tuple[str, ...] = (
+    "common",
+    "light",
+    "fanLight",
+    "switchs",
+    "outlet",
+    "curtain",
+    "gateway",
+)
+
 
 def parse_mqtt_payload(payload: dict[str, Any]) -> dict[str, Any]:
     """Parse MQTT payload and flatten properties.
@@ -210,14 +225,15 @@ def parse_mqtt_payload(payload: dict[str, Any]) -> dict[str, Any]:
     properties: dict[str, Any] = {}
 
     # Process each property group
-    groups = ("common", "light", "fanLight", "switchs", "outlet", "curtain", "gateway")
-
-    for group_name in groups:
+    for group_name in _MQTT_PROPERTY_GROUPS:
         group_data = payload.get(group_name)
         if not isinstance(group_data, dict):
             continue
 
         for mqtt_key, value in group_data.items():
+            # Skip noise values: "-1" means unsupported, "" means empty
+            if isinstance(value, str) and value in _NOISE_VALUES:
+                continue
             # Map to REST API key if needed, otherwise use original
             rest_key = _PROPERTY_KEY_MAP.get(mqtt_key, mqtt_key)
             properties[rest_key] = value
@@ -469,6 +485,10 @@ class LiproMqttClient:
 
             if not device_id:
                 _LOGGER.warning("Invalid topic format: %s", topic)
+                return
+
+            if not message.payload:
+                _LOGGER.debug("MQTT: empty payload on topic %s, skipping", topic)
                 return
 
             payload = json.loads(message.payload.decode("utf-8"))

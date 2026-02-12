@@ -2,7 +2,18 @@
 
 from __future__ import annotations
 
+import pytest
+
 from custom_components.lipro.core.device import LiproDevice
+
+try:
+    from pytest_homeassistant_custom_component.common import (
+        MockConfigEntry,  # noqa: F401
+    )
+
+    HAS_HA_TEST_ENV = True
+except ImportError:
+    HAS_HA_TEST_ENV = False
 
 
 class TestLiproHeaterWindDirectionSelect:
@@ -33,28 +44,33 @@ class TestLiproHeaterWindDirectionSelect:
         device = make_device("heater")
         assert device.wind_direction_mode == 1
 
+    @pytest.mark.skipif(
+        not HAS_HA_TEST_ENV, reason="Requires HA test env for entity class import"
+    )
     def test_wind_direction_options(self):
-        """Test wind direction options."""
-        wind_direction_options = ["auto", "fixed"]
-        assert wind_direction_options == ["auto", "fixed"]
+        """Test wind direction options from real source."""
+        from custom_components.lipro.select import WIND_DIRECTION_OPTIONS
 
+        assert WIND_DIRECTION_OPTIONS == ["auto", "fixed"]
+
+    @pytest.mark.skipif(
+        not HAS_HA_TEST_ENV, reason="Requires HA test env for entity class import"
+    )
     def test_wind_direction_value_mapping(self):
-        """Test wind direction value mapping."""
+        """Test wind direction value mapping from real source."""
         from custom_components.lipro.const import (
             WIND_DIRECTION_AUTO,
             WIND_DIRECTION_FIX,
         )
+        from custom_components.lipro.select import (
+            VALUE_TO_WIND_DIRECTION,
+            WIND_DIRECTION_TO_VALUE,
+        )
 
-        wind_direction_to_value = {
-            "auto": WIND_DIRECTION_AUTO,
-            "fixed": WIND_DIRECTION_FIX,
-        }
-        value_to_wind_direction = {v: k for k, v in wind_direction_to_value.items()}
-
-        assert wind_direction_to_value["auto"] == WIND_DIRECTION_AUTO
-        assert wind_direction_to_value["fixed"] == WIND_DIRECTION_FIX
-        assert value_to_wind_direction[WIND_DIRECTION_AUTO] == "auto"
-        assert value_to_wind_direction[WIND_DIRECTION_FIX] == "fixed"
+        assert WIND_DIRECTION_TO_VALUE["auto"] == WIND_DIRECTION_AUTO
+        assert WIND_DIRECTION_TO_VALUE["fixed"] == WIND_DIRECTION_FIX
+        assert VALUE_TO_WIND_DIRECTION[WIND_DIRECTION_AUTO] == "auto"
+        assert VALUE_TO_WIND_DIRECTION[WIND_DIRECTION_FIX] == "fixed"
 
 
 class TestLiproHeaterLightModeSelect:
@@ -95,41 +111,49 @@ class TestLiproHeaterLightModeSelect:
         device = make_device("heater")
         assert device.light_mode == 0
 
+    @pytest.mark.skipif(
+        not HAS_HA_TEST_ENV, reason="Requires HA test env for entity class import"
+    )
     def test_light_mode_options(self):
-        """Test light mode options."""
-        light_mode_options = ["off", "main", "night"]
-        assert light_mode_options == ["off", "main", "night"]
+        """Test light mode options from real source."""
+        from custom_components.lipro.select import LIGHT_MODE_OPTIONS
 
+        assert LIGHT_MODE_OPTIONS == ["off", "main", "night"]
+
+    @pytest.mark.skipif(
+        not HAS_HA_TEST_ENV, reason="Requires HA test env for entity class import"
+    )
     def test_light_mode_value_mapping(self):
-        """Test light mode value mapping."""
+        """Test light mode value mapping from real source."""
         from custom_components.lipro.const import (
             HEATER_LIGHT_MAIN,
             HEATER_LIGHT_NIGHT,
             HEATER_LIGHT_OFF,
         )
+        from custom_components.lipro.select import (
+            LIGHT_MODE_TO_VALUE,
+            VALUE_TO_LIGHT_MODE,
+        )
 
-        light_mode_to_value = {
-            "off": HEATER_LIGHT_OFF,
-            "main": HEATER_LIGHT_MAIN,
-            "night": HEATER_LIGHT_NIGHT,
-        }
-        value_to_light_mode = {v: k for k, v in light_mode_to_value.items()}
-
-        assert light_mode_to_value["off"] == HEATER_LIGHT_OFF
-        assert light_mode_to_value["main"] == HEATER_LIGHT_MAIN
-        assert light_mode_to_value["night"] == HEATER_LIGHT_NIGHT
-        assert value_to_light_mode[HEATER_LIGHT_OFF] == "off"
-        assert value_to_light_mode[HEATER_LIGHT_MAIN] == "main"
-        assert value_to_light_mode[HEATER_LIGHT_NIGHT] == "night"
+        assert LIGHT_MODE_TO_VALUE["off"] == HEATER_LIGHT_OFF
+        assert LIGHT_MODE_TO_VALUE["main"] == HEATER_LIGHT_MAIN
+        assert LIGHT_MODE_TO_VALUE["night"] == HEATER_LIGHT_NIGHT
+        assert VALUE_TO_LIGHT_MODE[HEATER_LIGHT_OFF] == "off"
+        assert VALUE_TO_LIGHT_MODE[HEATER_LIGHT_MAIN] == "main"
+        assert VALUE_TO_LIGHT_MODE[HEATER_LIGHT_NIGHT] == "night"
 
 
 class TestLiproLightGearSelect:
     """Tests for LiproLightGearSelect entity."""
 
+    @pytest.mark.skipif(
+        not HAS_HA_TEST_ENV, reason="Requires HA test env for entity class import"
+    )
     def test_gear_options(self):
-        """Test gear options."""
-        gear_options = ["gear_1", "gear_2", "gear_3"]
-        assert gear_options == ["gear_1", "gear_2", "gear_3"]
+        """Test gear options from real source."""
+        from custom_components.lipro.select import GEAR_OPTIONS
+
+        assert GEAR_OPTIONS == ["gear_1", "gear_2", "gear_3"]
 
     def test_gear_list_parsing(self, make_device):
         """Test gear list parsing from JSON string."""

@@ -91,17 +91,27 @@ class TestLiproFan:
         device = make_device("fanLight", properties={"fanGear": "0"})
         assert device.fan_gear == 1
 
-    def test_icon_on(self):
+    @pytest.mark.skipif(
+        not HAS_HA_TEST_ENV, reason="Requires HA test env for entity class import"
+    )
+    def test_icon_on(self, make_device, mock_coordinator):
         """Test icon when fan is on."""
-        is_on = True
-        icon = "mdi:fan" if is_on else "mdi:fan-off"
-        assert icon == "mdi:fan"
+        from custom_components.lipro.fan import LiproFan
 
-    def test_icon_off(self):
+        device = make_device("fanLight", properties={"fanOnoff": "1"})
+        fan = LiproFan(mock_coordinator, device)
+        assert fan.icon == "mdi:fan"
+
+    @pytest.mark.skipif(
+        not HAS_HA_TEST_ENV, reason="Requires HA test env for entity class import"
+    )
+    def test_icon_off(self, make_device, mock_coordinator):
         """Test icon when fan is off."""
-        is_on = False
-        icon = "mdi:fan" if is_on else "mdi:fan-off"
-        assert icon == "mdi:fan-off"
+        from custom_components.lipro.fan import LiproFan
+
+        device = make_device("fanLight", properties={"fanOnoff": "0"})
+        fan = LiproFan(mock_coordinator, device)
+        assert fan.icon == "mdi:fan-off"
 
 
 class TestLiproFanPercentage:
@@ -155,62 +165,44 @@ class TestLiproFanPercentage:
         assert math.ceil(low + (high - low) * 50 / 100) == 6
 
 
+@pytest.mark.skipif(
+    not HAS_HA_TEST_ENV, reason="Requires HA test env for entity class import"
+)
 class TestLiproFanPresetModes:
     """Tests for fan preset mode mappings."""
 
     def test_mode_to_preset_mapping(self):
-        """Test MODE_TO_PRESET mapping."""
+        """Test MODE_TO_PRESET mapping from real source."""
         from custom_components.lipro.const import (
             FAN_MODE_NATURAL,
             FAN_MODE_NORMAL,
             FAN_MODE_SLEEP,
         )
+        from custom_components.lipro.fan import MODE_TO_PRESET
 
-        mode_to_preset = {
-            FAN_MODE_NATURAL: "natural",
-            FAN_MODE_SLEEP: "sleep",
-            FAN_MODE_NORMAL: "normal",
-        }
-
-        assert mode_to_preset[FAN_MODE_NATURAL] == "natural"
-        assert mode_to_preset[FAN_MODE_SLEEP] == "sleep"
-        assert mode_to_preset[FAN_MODE_NORMAL] == "normal"
+        assert MODE_TO_PRESET[FAN_MODE_NATURAL] == "natural"
+        assert MODE_TO_PRESET[FAN_MODE_SLEEP] == "sleep"
+        assert MODE_TO_PRESET[FAN_MODE_NORMAL] == "normal"
 
     def test_preset_to_mode_mapping(self):
-        """Test PRESET_TO_MODE mapping."""
+        """Test PRESET_TO_MODE mapping from real source."""
         from custom_components.lipro.const import (
             FAN_MODE_NATURAL,
             FAN_MODE_NORMAL,
             FAN_MODE_SLEEP,
         )
+        from custom_components.lipro.fan import PRESET_TO_MODE
 
-        preset_to_mode = {
-            "natural": FAN_MODE_NATURAL,
-            "sleep": FAN_MODE_SLEEP,
-            "normal": FAN_MODE_NORMAL,
-        }
-
-        assert preset_to_mode["natural"] == FAN_MODE_NATURAL
-        assert preset_to_mode["sleep"] == FAN_MODE_SLEEP
-        assert preset_to_mode["normal"] == FAN_MODE_NORMAL
+        assert PRESET_TO_MODE["natural"] == FAN_MODE_NATURAL
+        assert PRESET_TO_MODE["sleep"] == FAN_MODE_SLEEP
+        assert PRESET_TO_MODE["normal"] == FAN_MODE_NORMAL
 
     def test_bidirectional_consistency(self):
         """Test MODE_TO_PRESET and PRESET_TO_MODE are consistent."""
-        from custom_components.lipro.const import (
-            FAN_MODE_NATURAL,
-            FAN_MODE_NORMAL,
-            FAN_MODE_SLEEP,
-        )
+        from custom_components.lipro.fan import MODE_TO_PRESET, PRESET_TO_MODE
 
-        mode_to_preset = {
-            FAN_MODE_NATURAL: "natural",
-            FAN_MODE_SLEEP: "sleep",
-            FAN_MODE_NORMAL: "normal",
-        }
-        preset_to_mode = {v: k for k, v in mode_to_preset.items()}
-
-        for mode, preset in mode_to_preset.items():
-            assert preset_to_mode[preset] == mode
+        for mode, preset in MODE_TO_PRESET.items():
+            assert PRESET_TO_MODE[preset] == mode
 
 
 class TestLiproHeaterVentFan:
@@ -245,62 +237,44 @@ class TestLiproHeaterVentFan:
         assert device.is_heater is True
 
 
+@pytest.mark.skipif(
+    not HAS_HA_TEST_ENV, reason="Requires HA test env for entity class import"
+)
 class TestLiproHeaterVentPresetModes:
     """Tests for heater ventilation preset mode mappings."""
 
     def test_aeration_to_preset_mapping(self):
-        """Test AERATION_TO_PRESET mapping."""
+        """Test AERATION_TO_PRESET mapping from real source."""
         from custom_components.lipro.const import (
             AERATION_OFF,
             AERATION_STRONG,
             AERATION_WEAK,
         )
+        from custom_components.lipro.fan import AERATION_TO_PRESET
 
-        aeration_to_preset = {
-            AERATION_OFF: "off",
-            AERATION_STRONG: "strong",
-            AERATION_WEAK: "weak",
-        }
-
-        assert aeration_to_preset[AERATION_OFF] == "off"
-        assert aeration_to_preset[AERATION_STRONG] == "strong"
-        assert aeration_to_preset[AERATION_WEAK] == "weak"
+        assert AERATION_TO_PRESET[AERATION_OFF] == "off"
+        assert AERATION_TO_PRESET[AERATION_STRONG] == "strong"
+        assert AERATION_TO_PRESET[AERATION_WEAK] == "weak"
 
     def test_preset_to_aeration_mapping(self):
-        """Test PRESET_TO_AERATION mapping."""
+        """Test PRESET_TO_AERATION mapping from real source."""
         from custom_components.lipro.const import (
             AERATION_OFF,
             AERATION_STRONG,
             AERATION_WEAK,
         )
+        from custom_components.lipro.fan import PRESET_TO_AERATION
 
-        preset_to_aeration = {
-            "off": AERATION_OFF,
-            "strong": AERATION_STRONG,
-            "weak": AERATION_WEAK,
-        }
-
-        assert preset_to_aeration["off"] == AERATION_OFF
-        assert preset_to_aeration["strong"] == AERATION_STRONG
-        assert preset_to_aeration["weak"] == AERATION_WEAK
+        assert PRESET_TO_AERATION["off"] == AERATION_OFF
+        assert PRESET_TO_AERATION["strong"] == AERATION_STRONG
+        assert PRESET_TO_AERATION["weak"] == AERATION_WEAK
 
     def test_bidirectional_consistency(self):
         """Test AERATION_TO_PRESET and PRESET_TO_AERATION are consistent."""
-        from custom_components.lipro.const import (
-            AERATION_OFF,
-            AERATION_STRONG,
-            AERATION_WEAK,
-        )
+        from custom_components.lipro.fan import AERATION_TO_PRESET, PRESET_TO_AERATION
 
-        aeration_to_preset = {
-            AERATION_OFF: "off",
-            AERATION_STRONG: "strong",
-            AERATION_WEAK: "weak",
-        }
-        preset_to_aeration = {v: k for k, v in aeration_to_preset.items()}
-
-        for aeration, preset in aeration_to_preset.items():
-            assert preset_to_aeration[preset] == aeration
+        for aeration, preset in AERATION_TO_PRESET.items():
+            assert PRESET_TO_AERATION[preset] == aeration
 
     def test_aeration_constants(self):
         """Test aeration gear constants."""
@@ -360,3 +334,42 @@ class TestLiproFanEntityCommands:
         assert call_args[0][1] == "CHANGE_STATE"
         props = call_args[0][2]
         assert any(p["key"] == "fanOnoff" and p["value"] == "0" for p in props)
+
+    @pytest.mark.asyncio
+    async def test_set_percentage_debounce_does_not_protect_fan_onoff(
+        self, mock_coordinator, make_device
+    ):
+        """Test set_percentage does NOT include fanOnOff in debounce-protected keys.
+
+        When fan is off and set_percentage is called, fanOnOff should be sent
+        in properties but NOT in the optimistic dict passed to debounce,
+        so it won't be protected during the debounce window.
+        """
+        device = make_device("fanLight", properties={"fanOnoff": "0"})
+        mock_coordinator.get_device = MagicMock(return_value=device)
+
+        from custom_components.lipro.fan import LiproFan
+
+        fan = LiproFan(mock_coordinator, device)
+        fan.async_write_ha_state = MagicMock()
+
+        # Mock async_send_command_debounced to capture arguments
+        captured_args = {}
+
+        async def capture_debounced(command, properties, optimistic):
+            captured_args["command"] = command
+            captured_args["properties"] = properties
+            captured_args["optimistic"] = optimistic
+
+        fan.async_send_command_debounced = capture_debounced
+
+        await fan.async_set_percentage(50)
+
+        # Properties should include fanOnoff (for the API)
+        props = captured_args["properties"]
+        assert any(p["key"] == "fanOnoff" and p["value"] == "1" for p in props)
+
+        # Optimistic dict should NOT include fanOnoff (to avoid debounce protection)
+        optimistic = captured_args["optimistic"]
+        assert "fanOnoff" not in optimistic
+        assert "fanGear" in optimistic

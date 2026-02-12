@@ -108,6 +108,16 @@ async def async_get_config_entry_diagnostics(
         if device.is_mesh_gateway:
             device_info["is_mesh_gateway"] = True
 
+        # Add extra_data (redact device identifiers, keep power info)
+        if device.extra_data:
+            safe_extra: dict[str, Any] = {}
+            if "power_info" in device.extra_data:
+                safe_extra["power_info"] = device.extra_data["power_info"]
+            if "gateway_device_id" in device.extra_data:
+                safe_extra["gateway_device_id"] = "**REDACTED**"
+            if safe_extra:
+                device_info["extra_data"] = safe_extra
+
         devices_info.append(device_info)
 
     # Get anonymous share status
