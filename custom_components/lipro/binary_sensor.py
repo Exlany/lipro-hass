@@ -100,6 +100,16 @@ class LiproConnectivitySensor(LiproPropertyBinarySensor):
     _icon_on = "mdi:lan-connect"
     _icon_off = "mdi:lan-disconnect"
 
+    @property
+    def available(self) -> bool:
+        """Return if entity is available.
+
+        Unlike other entities, the connectivity sensor should remain available
+        even when the device is offline, so it can correctly report the
+        disconnected (off) state instead of becoming unavailable.
+        """
+        return self.coordinator.last_update_success
+
 
 class LiproMotionSensor(LiproPropertyBinarySensor):
     """Representation of a Lipro motion sensor."""

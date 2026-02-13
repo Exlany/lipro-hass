@@ -42,6 +42,47 @@ class TestLiproConnectivitySensor:
         assert LiproConnectivitySensor._icon_on == "mdi:lan-connect"
         assert LiproConnectivitySensor._icon_off == "mdi:lan-disconnect"
 
+    @pytest.mark.skipif(
+        not HAS_HA_TEST_ENV, reason="Requires HA test env for entity class import"
+    )
+    def test_available_when_device_offline(self, mock_coordinator, make_device):
+        """Test connectivity sensor stays available when device goes offline.
+
+        The connectivity sensor must remain available even when the device is
+        disconnected, so it can correctly report the 'off' (disconnected) state
+        instead of becoming unavailable.
+        """
+        from custom_components.lipro.binary_sensor import LiproConnectivitySensor
+
+        device = make_device("light", properties={"connectState": "1"})
+        mock_coordinator.devices[device.serial] = device
+        sensor = LiproConnectivitySensor(mock_coordinator, device)
+
+        # Device goes offline
+        device.update_properties({"connectState": "0"})
+        assert device.available is False
+        assert device.is_connected is False
+
+        # Connectivity sensor should still be available
+        assert sensor.available is True
+        # And should report disconnected (off)
+        assert sensor.is_on is False
+
+    @pytest.mark.skipif(
+        not HAS_HA_TEST_ENV, reason="Requires HA test env for entity class import"
+    )
+    def test_unavailable_when_coordinator_fails(self, mock_coordinator, make_device):
+        """Test connectivity sensor is unavailable when coordinator fails."""
+        from custom_components.lipro.binary_sensor import LiproConnectivitySensor
+
+        device = make_device("light", properties={"connectState": "1"})
+        mock_coordinator.devices[device.serial] = device
+        sensor = LiproConnectivitySensor(mock_coordinator, device)
+
+        # Coordinator fails
+        mock_coordinator.last_update_success = False
+        assert sensor.available is False
+
 
 class TestLiproMotionSensor:
     """Tests for LiproMotionSensor entity."""
