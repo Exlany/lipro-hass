@@ -182,8 +182,8 @@ class LiproLightGearSelect(LiproSelect):
 
         # Exact match: brightness and temperature percentage must match exactly
         for i, gear in enumerate(gear_list[:3]):  # Max 3 gears
-            if not isinstance(gear, dict):
-                continue
+            if not isinstance(gear, dict):  # type: ignore[unreachable]
+                continue  # type: ignore[unreachable]
             gear_brightness = gear.get("brightness", 0)
             gear_temp_pct = gear.get("temperature", 0)
 
@@ -217,8 +217,8 @@ class LiproLightGearSelect(LiproSelect):
         temp_range = max_temp_k - min_temp_k
 
         for i, gear in enumerate(gear_list[:3]):
-            if not isinstance(gear, dict):
-                continue
+            if not isinstance(gear, dict):  # type: ignore[unreachable]
+                continue  # type: ignore[unreachable]
             brightness = gear.get("brightness", 0)
             temp_pct = gear.get("temperature", 0)
 

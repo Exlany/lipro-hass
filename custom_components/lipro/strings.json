@@ -322,5 +322,19 @@
       "title": "Lipro MQTT Disconnected",
       "message": "MQTT has been disconnected for {minutes} minutes. Real-time updates are unavailable, falling back to polling."
     }
+  },
+  "issues": {
+    "auth_expired": {
+      "title": "Lipro Authentication Expired",
+      "description": "Your Lipro session has expired. Please re-authenticate."
+    },
+    "auth_error": {
+      "title": "Lipro Authentication Error",
+      "description": "Lipro authentication failed: {error}"
+    },
+    "mqtt_disconnected": {
+      "title": "Lipro MQTT Disconnected",
+      "description": "MQTT has been disconnected for {minutes} minutes. Real-time updates are unavailable, falling back to polling."
+    }
   }
 }

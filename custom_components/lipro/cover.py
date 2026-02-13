@@ -56,6 +56,7 @@ class LiproCover(LiproEntity, CoverEntity):
         | CoverEntityFeature.STOP
         | CoverEntityFeature.SET_POSITION
     )
+    _attr_translation_key = "curtain"
     _attr_name = None  # Use device name
 
     @property

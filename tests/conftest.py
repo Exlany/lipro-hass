@@ -191,6 +191,7 @@ def pytest_configure(config):
         sys.modules["homeassistant.helpers.device_registry"] = MagicMock()
         sys.modules["homeassistant.helpers.entity"] = MagicMock()
         sys.modules["homeassistant.helpers.entity_platform"] = MagicMock()
+        sys.modules["homeassistant.helpers.issue_registry"] = MagicMock()
         sys.modules["homeassistant.helpers.translation"] = MagicMock()
 
         # Register components as a proper module with submodules

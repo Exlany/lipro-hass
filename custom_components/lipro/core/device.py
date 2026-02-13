@@ -393,7 +393,7 @@ class LiproDevice:
                 result = value
             # Cache the parsed result
             self._gear_list_cache = result
-            return result
+            return result  # type: ignore[no-any-return]
         except (json.JSONDecodeError, TypeError):
             return []
 
@@ -574,12 +574,12 @@ class LiproDevice:
     @property
     def ip_address(self) -> str | None:
         """Get device IP address."""
-        return self.get_property(PROP_IP)
+        return self.get_property(PROP_IP)  # type: ignore[no-any-return]
 
     @property
     def wifi_ssid(self) -> str | None:
         """Get connected WiFi SSID."""
-        return self.get_property(PROP_WIFI_SSID)
+        return self.get_property(PROP_WIFI_SSID)  # type: ignore[no-any-return]
 
     @property
     def wifi_rssi(self) -> int | None:
@@ -589,17 +589,17 @@ class LiproDevice:
     @property
     def net_type(self) -> str | None:
         """Get network type (e.g., 'wifi')."""
-        return self.get_property(PROP_NET_TYPE)
+        return self.get_property(PROP_NET_TYPE)  # type: ignore[no-any-return]
 
     @property
     def mac_address(self) -> str | None:
         """Get device MAC address."""
-        return self.get_property(PROP_MAC)
+        return self.get_property(PROP_MAC)  # type: ignore[no-any-return]
 
     @property
     def firmware_version(self) -> str | None:
         """Get device firmware version."""
-        return self.get_property(PROP_VERSION)
+        return self.get_property(PROP_VERSION)  # type: ignore[no-any-return]
 
     @property
     def latest_sync_timestamp(self) -> int | None:
@@ -628,7 +628,7 @@ class LiproDevice:
     @property
     def ble_mac(self) -> str | None:
         """Get BLE MAC address."""
-        return self.get_property(PROP_BLE_MAC)
+        return self.get_property(PROP_BLE_MAC)  # type: ignore[no-any-return]
 
     def update_properties(self, properties: dict[str, Any]) -> None:
         """Update device properties.

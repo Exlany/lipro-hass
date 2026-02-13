@@ -82,13 +82,13 @@ async def async_get_config_entry_diagnostics(
     devices_info = []
     for device in coordinator.devices.values():
         device_info = {
-            "name": device.name,
+            "name": "**REDACTED**",
             "device_type": device.device_type,
             "device_type_hex": device.device_type_hex,
             "category": device.category.value,
             "physical_model": device.physical_model,
             "is_group": device.is_group,
-            "room_name": device.room_name,
+            "room_name": "**REDACTED**",
             "available": device.available,
             "is_connected": device.is_connected,
             "properties": _redact_device_properties(device.properties),
@@ -121,7 +121,7 @@ async def async_get_config_entry_diagnostics(
         devices_info.append(device_info)
 
     # Get anonymous share status
-    share_manager = get_anonymous_share_manager()
+    share_manager = get_anonymous_share_manager(hass)
     device_count, error_count = share_manager.pending_count
     anonymous_share_info = {
         "enabled": share_manager.is_enabled,

@@ -268,11 +268,9 @@ class LiproConfigFlow(ConfigFlow, domain=DOMAIN):
                     phone, password_hash, phone_id
                 )
 
-                # Check unique_id if switching to different account
-                new_unique_id = f"lipro_{login_result.user_id}"
-                if reconfigure_entry.unique_id != new_unique_id:
-                    await self.async_set_unique_id(new_unique_id)
-                    self._abort_if_unique_id_configured()
+                # Verify unique_id matches when switching accounts
+                await self.async_set_unique_id(f"lipro_{login_result.user_id}")
+                self._abort_if_unique_id_mismatch()
 
                 return self.async_update_reload_and_abort(
                     reconfigure_entry,

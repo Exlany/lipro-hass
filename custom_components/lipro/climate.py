@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, ClassVar
+from typing import TYPE_CHECKING
 
 from homeassistant.components.climate import (
     ClimateEntity,
@@ -69,13 +69,13 @@ async def async_setup_entry(
 class LiproHeater(LiproEntity, ClimateEntity):
     """Representation of a Lipro heater."""
 
-    _attr_hvac_modes: ClassVar[list[HVACMode]] = [HVACMode.HEAT, HVACMode.OFF]
+    _attr_hvac_modes = [HVACMode.HEAT, HVACMode.OFF]
     _attr_supported_features = (
         ClimateEntityFeature.PRESET_MODE
         | ClimateEntityFeature.TURN_ON
         | ClimateEntityFeature.TURN_OFF
     )
-    _attr_preset_modes: ClassVar[list[str]] = PRESET_MODES
+    _attr_preset_modes = PRESET_MODES
     _attr_temperature_unit = UnitOfTemperature.CELSIUS
     _attr_translation_key = "heater"
     _enable_turn_on_off_backwards_compatibility = False

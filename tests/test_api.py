@@ -76,7 +76,6 @@ class TestLiproClientInit:
 
         assert client.phone_id == "550e8400-e29b-41d4-a716-446655440000"
         assert client._session is None
-        assert client._own_session is True
 
 
 class TestLiproClientTokens:
@@ -566,26 +565,25 @@ class TestLiproClientClose:
     """Tests for client cleanup."""
 
     @pytest.mark.asyncio
-    async def test_close_own_session(self):
-        """Test closing own session."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
-        client._session = MagicMock(spec=aiohttp.ClientSession)
-        client._session.closed = False
-        client._own_session = True
-
-        await client.close()
-
-        client._session.close.assert_called_once()
-
-    @pytest.mark.asyncio
-    async def test_close_external_session(self):
-        """Test not closing external session."""
+    async def test_close_clears_session(self):
+        """Test close clears session reference."""
         session = MagicMock(spec=aiohttp.ClientSession)
         client = LiproClient("550e8400-e29b-41d4-a716-446655440000", session)
 
         await client.close()
 
-        # External session should not be closed
+        # Session reference should be cleared (HA manages session lifecycle)
+        assert client._session is None
+
+    @pytest.mark.asyncio
+    async def test_close_external_session(self):
+        """Test close does not close HA-managed session."""
+        session = MagicMock(spec=aiohttp.ClientSession)
+        client = LiproClient("550e8400-e29b-41d4-a716-446655440000", session)
+
+        await client.close()
+
+        # External session should not be closed by client
         session.close.assert_not_called()
 
 

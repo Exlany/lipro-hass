@@ -236,7 +236,8 @@ def parse_mqtt_payload(payload: dict[str, Any]) -> dict[str, Any]:
             if isinstance(value, str) and value in _NOISE_VALUES:
                 continue
             # Map to REST API key if needed, otherwise use original
-            rest_key = _PROPERTY_KEY_MAP.get(mqtt_key, mqtt_key)
+            key = str(mqtt_key)
+            rest_key: str = _PROPERTY_KEY_MAP.get(key, key)
             properties[rest_key] = value
 
     return properties

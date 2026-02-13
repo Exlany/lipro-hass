@@ -84,11 +84,13 @@ class LiproSwitch(LiproEntity, SwitchEntity):
         """Initialize the switch."""
         super().__init__(coordinator, device)
 
-        # Set device class based on device type
+        # Set device class and translation key based on device type
         if device.device_type_hex == DEVICE_TYPE_OUTLET:
             self._attr_device_class = SwitchDeviceClass.OUTLET
+            self._attr_translation_key = "outlet"
         else:
             self._attr_device_class = SwitchDeviceClass.SWITCH
+            self._attr_translation_key = "switch"
 
     @property
     def is_on(self) -> bool:

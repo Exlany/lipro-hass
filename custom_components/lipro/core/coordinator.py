@@ -10,10 +10,14 @@ import logging
 from time import monotonic
 from typing import TYPE_CHECKING, Any
 
-from homeassistant.components.persistent_notification import async_create, async_dismiss
 from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers import device_registry as dr
-from homeassistant.helpers.translation import async_get_translations
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from homeassistant.helpers.issue_registry import (
+    IssueSeverity,
+    async_create_issue,
+    async_delete_issue,
+)
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from ..const import (
@@ -63,7 +67,9 @@ _LOGGER = logging.getLogger(__name__)
 
 # HA version for anonymous share reporting
 try:
-    from homeassistant.const import __version__ as HA_VERSION
+    from homeassistant.const import __version__ as _ha_ver
+
+    HA_VERSION: str | None = _ha_ver
 except ImportError:
     HA_VERSION = None
 
@@ -183,7 +189,7 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
             # Use HA config directory for storage
             storage_path = self.hass.config.config_dir
 
-        share_manager = get_anonymous_share_manager()
+        share_manager = get_anonymous_share_manager(self.hass)
         share_manager.set_enabled(
             enabled, errors, installation_id, storage_path, ha_version=HA_VERSION
         )
@@ -360,6 +366,7 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
             True if MQTT setup was successful.
 
         """
+        assert self.config_entry is not None
         try:
             # Get MQTT config from API
             mqtt_config = await self.client.get_mqtt_config()
@@ -371,9 +378,13 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
                 _LOGGER.warning("MQTT config missing accessKey or secretKey")
                 return False
 
-            # Decrypt credentials
-            access_key = decrypt_mqtt_credential(encrypted_access_key)
-            secret_key = decrypt_mqtt_credential(encrypted_secret_key)
+            # Decrypt credentials (C extension, run in thread for async safety)
+            access_key = await asyncio.to_thread(
+                decrypt_mqtt_credential, encrypted_access_key
+            )
+            secret_key = await asyncio.to_thread(
+                decrypt_mqtt_credential, encrypted_secret_key
+            )
 
             # Get biz_id from config entry data
             biz_id = self.config_entry.data.get(CONF_BIZ_ID)
@@ -464,9 +475,10 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
 
         # Submit anonymous share report before shutdown (if enabled)
         try:
-            share_manager = get_anonymous_share_manager()
+            share_manager = get_anonymous_share_manager(self.hass)
             if share_manager.is_enabled:
-                await share_manager.submit_report()
+                session = async_get_clientsession(self.hass)
+                await share_manager.submit_report(session)
         except (OSError, TimeoutError):
             _LOGGER.exception("Failed to submit anonymous share report on shutdown")
 
@@ -497,8 +509,8 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         self._mqtt_connected = True
         self._mqtt_disconnect_time = None
         self._mqtt_disconnect_notified = False
-        # Dismiss any previous disconnect notification
-        async_dismiss(self.hass, f"{DOMAIN}_mqtt_disconnected")
+        # Dismiss any previous disconnect issue
+        async_delete_issue(self.hass, DOMAIN, "mqtt_disconnected")
         # Reduce polling frequency when MQTT provides real-time updates
         # Use 2x (not higher) to still catch sub-device state drift in mesh groups
         base = self._base_scan_interval
@@ -534,40 +546,22 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
             )
 
     async def _async_show_mqtt_disconnect_notification(self, minutes: int) -> None:
-        """Show localized MQTT disconnect notification."""
-        title = "Lipro MQTT Disconnected"
-        message = (
-            f"MQTT has been disconnected for {minutes} minutes. "
-            "Real-time updates are unavailable, falling back to polling."
-        )
-
-        try:
-            translations = await async_get_translations(
-                self.hass,
-                self.hass.config.language,
-                "exceptions",
-                {DOMAIN},
-            )
-            title_key = f"component.{DOMAIN}.exceptions.mqtt_disconnected.title"
-            message_key = f"component.{DOMAIN}.exceptions.mqtt_disconnected.message"
-            title = translations.get(title_key, title)
-            msg_tpl = translations.get(message_key, message)
-            message = msg_tpl.replace("{minutes}", str(minutes))
-        except (KeyError, ValueError, TypeError):
-            pass
-
-        async_create(
+        """Create a repair issue for MQTT disconnect."""
+        async_create_issue(
             self.hass,
-            message,
-            title=title,
-            notification_id=f"{DOMAIN}_mqtt_disconnected",
+            domain=DOMAIN,
+            issue_id="mqtt_disconnected",
+            is_fixable=False,
+            severity=IssueSeverity.WARNING,
+            translation_key="mqtt_disconnected",
+            translation_placeholders={"minutes": str(minutes)},
         )
 
     @property
     def _base_scan_interval(self) -> int:
         """Get the configured base scan interval in seconds."""
         if self.config_entry:
-            return self.config_entry.options.get(
+            return self.config_entry.options.get(  # type: ignore[no-any-return]
                 CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
             )
         return DEFAULT_SCAN_INTERVAL
@@ -676,52 +670,21 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         key: str,
         **placeholders: str,
     ) -> None:
-        """Show a localized authentication notification.
+        """Create a repair issue for authentication errors.
 
         Args:
             key: The translation key (e.g., "auth_expired", "auth_error").
             **placeholders: Placeholder values for the translation string.
 
         """
-        # Default fallback values
-        if key == "auth_expired":
-            title = "Lipro Authentication Expired"
-            message = "Your Lipro session has expired. Please re-authenticate."
-        else:
-            title = "Lipro Authentication Error"
-            error_msg = placeholders.get("error", "Unknown error")
-            message = f"Lipro authentication failed: {error_msg}"
-
-        # Try to get localized translations
-        try:
-            translations = await async_get_translations(
-                self.hass,
-                self.hass.config.language,
-                "exceptions",
-                {DOMAIN},
-            )
-
-            # Build translation keys
-            title_key = f"component.{DOMAIN}.exceptions.{key}.title"
-            message_key = f"component.{DOMAIN}.exceptions.{key}.message"
-
-            # Get translated strings (use defaults if not found)
-            title = translations.get(title_key, title)
-            message = translations.get(message_key, message)
-
-            # Replace placeholders in message
-            for placeholder, value in placeholders.items():
-                message = message.replace(f"{{{placeholder}}}", value)
-
-        except (KeyError, ValueError, TypeError):
-            # Use fallback values already set above
-            _LOGGER.debug("Failed to get translations, using fallback")
-
-        async_create(
+        async_create_issue(
             self.hass,
-            message,
-            title=title,
-            notification_id=f"{DOMAIN}_{key}",
+            domain=DOMAIN,
+            issue_id=key,
+            is_fixable=True,
+            severity=IssueSeverity.ERROR,
+            translation_key=key,
+            translation_placeholders=placeholders or None,
         )
 
     async def _async_update_data(self) -> dict[str, LiproDevice]:
@@ -847,7 +810,7 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         )
 
         # Record devices for anonymous share (if enabled)
-        share_manager = get_anonymous_share_manager()
+        share_manager = get_anonymous_share_manager(self.hass)
         if share_manager.is_enabled:
             await share_manager.async_ensure_loaded()
             share_manager.record_devices(list(self._devices.values()))
@@ -926,33 +889,33 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
 
             # Apply color temp ranges to devices
             for device in self._devices.values():
-                config = None
+                matched_config: dict[str, Any] | None = None
 
                 # Priority 1: Match by productId -> config.id
                 if device.product_id:
-                    config = configs_by_id.get(device.product_id)
-                    if config:
+                    matched_config = configs_by_id.get(device.product_id)
+                    if matched_config:
                         _LOGGER.debug(
                             "Device %s: matched config by productId=%d -> %s",
                             device.name,
                             device.product_id,
-                            config.get("name"),
+                            matched_config.get("name"),
                         )
 
                 # Priority 2: Match by iotName -> config.fwIotName
-                if not config and device.iot_name:
-                    config = configs_by_iot_name.get(device.iot_name.lower())
-                    if config:
+                if not matched_config and device.iot_name:
+                    matched_config = configs_by_iot_name.get(device.iot_name.lower())
+                    if matched_config:
                         _LOGGER.debug(
                             "Device %s: matched config by iotName=%s -> %s",
                             device.name,
                             device.iot_name,
-                            config.get("name"),
+                            matched_config.get("name"),
                         )
 
-                if config:
-                    min_temp = config.get("minTemperature", 0)
-                    max_temp = config.get("maxTemperature", 0)
+                if matched_config:
+                    min_temp = matched_config.get("minTemperature", 0)
+                    max_temp = matched_config.get("maxTemperature", 0)
 
                     # Only update if we have valid values
                     # 0 means single color temp (no adjustment)
@@ -975,7 +938,7 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
                         )
 
                     # Apply fan gear range if available
-                    max_fan_gear = config.get("maxFanGear", 0)
+                    max_fan_gear = matched_config.get("maxFanGear", 0)
                     if max_fan_gear > 0:
                         device.max_fan_gear = max_fan_gear
                         _LOGGER.debug(

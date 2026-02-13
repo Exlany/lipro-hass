@@ -309,7 +309,7 @@ class AnonymousShareManager:
             device_type=device.device_type,
             product_id=device.product_id,
             is_group=device.is_group,
-            category=device.category.value,
+            category=str(device.category.value),
             firmware_version=device.firmware_version,
             property_keys=list(device.properties.keys()),
             properties=sanitized_props,
@@ -745,10 +745,15 @@ class AnonymousShareManager:
             return None
         return self.build_report()
 
-    async def submit_report(self, force: bool = False) -> bool:
+    async def submit_report(
+        self,
+        session: aiohttp.ClientSession,
+        force: bool = False,
+    ) -> bool:
         """Submit the anonymous share report to the server.
 
         Args:
+            session: aiohttp session (should be HA-injected session).
             force: Force upload even if interval hasn't passed.
 
         Returns:
@@ -781,14 +786,12 @@ class AnonymousShareManager:
             }
 
             try:
-                async with (
-                    aiohttp.ClientSession(headers=headers) as session,
-                    session.post(
-                        SHARE_URL,
-                        json=report,
-                        timeout=aiohttp.ClientTimeout(total=30),
-                    ) as response,
-                ):
+                async with session.post(
+                    SHARE_URL,
+                    json=report,
+                    headers=headers,
+                    timeout=aiohttp.ClientTimeout(total=30),
+                ) as response:
                     if response.status == 200:
                         _LOGGER.info(
                             "Anonymous share report submitted: %d devices, %d errors",
@@ -820,8 +823,11 @@ class AnonymousShareManager:
                 _LOGGER.exception("Unexpected error during anonymous share upload")
                 return False
 
-    async def submit_if_needed(self) -> bool:
+    async def submit_if_needed(self, session: aiohttp.ClientSession) -> bool:
         """Submit report if thresholds are met.
+
+        Args:
+            session: aiohttp session (should be HA-injected session).
 
         Returns:
             True if submitted successfully or no submission needed.
@@ -841,7 +847,7 @@ class AnonymousShareManager:
         )
 
         if should_upload:
-            return await self.submit_report()
+            return await self.submit_report(session)
 
         return True
 
@@ -850,14 +856,40 @@ class AnonymousShareManager:
 _share_manager: AnonymousShareManager | None = None
 
 
-def get_anonymous_share_manager() -> AnonymousShareManager:
-    """Get the global anonymous share manager instance.
+def get_anonymous_share_manager(
+    hass: Any = None,
+) -> AnonymousShareManager:
+    """Get the anonymous share manager for the given hass instance.
+
+    When hass is provided, the manager is stored in hass.data[DOMAIN]
+    and follows the config entry lifecycle. Falls back to a module-level
+    instance for contexts without hass (e.g. tests).
+
+    Args:
+        hass: Home Assistant instance (optional).
 
     Returns:
         The anonymous share manager.
 
     """
     global _share_manager  # noqa: PLW0603
+
+    if hass is not None:
+        from ..const import DOMAIN  # noqa: PLC0415
+
+        domain_data = hass.data.setdefault(DOMAIN, {})
+        manager: AnonymousShareManager | None = domain_data.get(
+            "anonymous_share_manager"
+        )
+        if manager is None:
+            manager = AnonymousShareManager()
+            domain_data["anonymous_share_manager"] = manager
+        # Keep global in sync so callers without hass (api.py, device.py)
+        # use the same instance managed by hass.data lifecycle.
+        _share_manager = manager
+        return manager
+
+    # Fallback for contexts without hass (tests, standalone usage)
     if _share_manager is None:
         _share_manager = AnonymousShareManager()
     return _share_manager

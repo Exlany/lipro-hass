@@ -154,7 +154,6 @@ class LiproClient:
         """
         self._phone_id = phone_id
         self._session = session
-        self._own_session = session is None
         self._request_timeout = request_timeout
         self._access_token: str | None = None
         self._refresh_token: str | None = None
@@ -219,16 +218,20 @@ class LiproClient:
         self._on_token_refresh = callback
 
     async def _get_session(self) -> aiohttp.ClientSession:
-        """Get or create an aiohttp session."""
+        """Get the aiohttp session.
+
+        Raises:
+            LiproConnectionError: If no session is available.
+
+        """
         if self._session is None or self._session.closed:
-            self._session = aiohttp.ClientSession()
-            self._own_session = True
+            msg = "No aiohttp session available (must be injected via constructor)"
+            raise LiproConnectionError(msg)
         return self._session
 
     async def close(self) -> None:
-        """Close the client session."""
-        if self._own_session and self._session and not self._session.closed:
-            await self._session.close()
+        """Close the client session (no-op: HA-injected session is managed by HA)."""
+        self._session = None
 
     def _smart_home_sign(self) -> str:
         """Generate Smart Home API signature.
@@ -471,7 +474,7 @@ class LiproClient:
             raise LiproAuthError(message, code)
 
         # Record API error for anonymous share
-        _record_api_error(path, code or error_code, message, method="POST")
+        _record_api_error(path, code or error_code or 0, message, method="POST")
         raise LiproApiError(message, code)
 
     def _build_iot_headers(self, body: str) -> tuple[int, str, dict[str, str]]:
@@ -487,7 +490,7 @@ class LiproClient:
             HEADER_CONTENT_TYPE: CONTENT_TYPE_JSON,
             HEADER_CACHE_CONTROL: "no-cache",
             HEADER_USER_AGENT: USER_AGENT,
-            HEADER_ACCESS_TOKEN: self._access_token,
+            HEADER_ACCESS_TOKEN: self._access_token or "",
             HEADER_MERCHANT_CODE: MERCHANT_CODE,
             HEADER_NONCE: str(nonce),
             HEADER_SIGN: sign,
@@ -567,7 +570,7 @@ class LiproClient:
             raise LiproAuthError(message, code)
 
         # Record API error for anonymous share
-        _record_api_error(path, code, message, method="POST")
+        _record_api_error(path, code or 0, message, method="POST")
         raise LiproApiError(message, code)
 
     @staticmethod
@@ -783,8 +786,8 @@ class LiproClient:
             {},
             require_auth=False,
         )
-        if isinstance(result, list):
-            return result
+        if isinstance(result, list):  # type: ignore[unreachable]
+            return result  # type: ignore[unreachable]
         return []
 
     @staticmethod
@@ -821,7 +824,7 @@ class LiproClient:
         if isinstance(result, list):
             return result
         if isinstance(result, dict) and "data" in result:
-            return result["data"]
+            return result["data"]  # type: ignore[no-any-return]
         return []
 
     async def _query_with_fallback(
@@ -954,7 +957,7 @@ class LiproClient:
                     k: v if isinstance(v, bool) else str(v).lower() == "true"
                     for k, v in result.items()
                 }
-            return {}
+            return {}  # type: ignore[unreachable]
         except LiproApiError as err:
             _LOGGER.debug(
                 "Failed to query connect status for %s: %s",
@@ -1144,7 +1147,7 @@ class LiproClient:
             },
         )
 
-        return result.get("timings", [])
+        return result.get("timings", [])  # type: ignore[no-any-return]  # type: ignore[no-any-return]
 
     async def add_device_schedule(
         self,
@@ -1204,7 +1207,7 @@ class LiproClient:
             },
         )
 
-        return result.get("timings", [])
+        return result.get("timings", [])  # type: ignore[no-any-return]
 
     async def delete_device_schedules(
         self,
@@ -1238,7 +1241,7 @@ class LiproClient:
             },
         )
 
-        return result.get("timings", [])
+        return result.get("timings", [])  # type: ignore[no-any-return]
 
 
 def _record_api_error(

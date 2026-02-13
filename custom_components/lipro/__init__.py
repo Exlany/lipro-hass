@@ -450,7 +450,7 @@ async def _async_handle_submit_anonymous_share(
     hass: HomeAssistant, call: ServiceCall
 ) -> dict[str, Any]:
     """Handle the submit_anonymous_share service call."""
-    share_manager = get_anonymous_share_manager()
+    share_manager = get_anonymous_share_manager(hass)
 
     if not share_manager.is_enabled:
         raise ServiceValidationError(
@@ -467,7 +467,8 @@ async def _async_handle_submit_anonymous_share(
             "errors": 0,
         }
 
-    success = await share_manager.submit_report(force=True)
+    session = async_get_clientsession(hass)
+    success = await share_manager.submit_report(session, force=True)
 
     if not success:
         raise HomeAssistantError(
@@ -486,7 +487,7 @@ async def _async_handle_get_anonymous_share_report(
     hass: HomeAssistant, call: ServiceCall
 ) -> dict[str, Any]:
     """Handle the get_anonymous_share_report service call."""
-    share_manager = get_anonymous_share_manager()
+    share_manager = get_anonymous_share_manager(hass)
     report = share_manager.get_pending_report()
 
     if report is None:
