@@ -317,6 +317,10 @@
     },
     "anonymous_share_submit_failed": {
       "message": "Failed to submit anonymous share report."
+    },
+    "mqtt_disconnected": {
+      "title": "Lipro MQTT Disconnected",
+      "message": "MQTT has been disconnected for {minutes} minutes. Real-time updates are unavailable, falling back to polling."
     }
   }
 }

@@ -317,6 +317,10 @@
     },
     "anonymous_share_submit_failed": {
       "message": "提交匿名分享报告失败。"
+    },
+    "mqtt_disconnected": {
+      "title": "Lipro MQTT 连接已断开",
+      "message": "MQTT 已断开连接 {minutes} 分钟，实时更新不可用，已回退到轮询模式。"
     }
   }
 }

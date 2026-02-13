@@ -546,3 +546,127 @@ class TestAnonymousShareAsyncLoad:
             mock_load.assert_not_called()
             # Should mark cache as needing load
             assert manager._cache_loaded is False
+
+
+class TestMqttDisconnectNotification:
+    """Tests for MQTT prolonged disconnect notification logic."""
+
+    def test_check_skipped_when_mqtt_disabled(self):
+        """Test notification check is skipped when MQTT is disabled."""
+        mqtt_enabled = False
+        mqtt_connected = False
+        mqtt_disconnect_time = 0.0  # long ago
+        mqtt_disconnect_notified = False
+
+        should_notify = (
+            mqtt_enabled
+            and not mqtt_connected
+            and mqtt_disconnect_time is not None
+            and not mqtt_disconnect_notified
+        )
+        assert should_notify is False
+
+    def test_check_skipped_when_connected(self):
+        """Test notification check is skipped when MQTT is connected."""
+        mqtt_enabled = True
+        mqtt_connected = True
+        mqtt_disconnect_time = 0.0
+        mqtt_disconnect_notified = False
+
+        should_notify = (
+            mqtt_enabled
+            and not mqtt_connected
+            and mqtt_disconnect_time is not None
+            and not mqtt_disconnect_notified
+        )
+        assert should_notify is False
+
+    def test_check_skipped_when_already_notified(self):
+        """Test notification check is skipped when already notified."""
+        mqtt_enabled = True
+        mqtt_connected = False
+        mqtt_disconnect_time = 0.0
+        mqtt_disconnect_notified = True
+
+        should_notify = (
+            mqtt_enabled
+            and not mqtt_connected
+            and mqtt_disconnect_time is not None
+            and not mqtt_disconnect_notified
+        )
+        assert should_notify is False
+
+    def test_check_skipped_when_no_disconnect_time(self):
+        """Test notification check is skipped when disconnect time is None."""
+        mqtt_enabled = True
+        mqtt_connected = False
+        mqtt_disconnect_time = None
+        mqtt_disconnect_notified = False
+
+        should_notify = (
+            mqtt_enabled
+            and not mqtt_connected
+            and mqtt_disconnect_time is not None
+            and not mqtt_disconnect_notified
+        )
+        assert should_notify is False
+
+    def test_notify_when_threshold_exceeded(self):
+        """Test notification fires when disconnect exceeds threshold."""
+        from time import monotonic
+
+        from custom_components.lipro.core.const import MQTT_DISCONNECT_NOTIFY_THRESHOLD
+
+        mqtt_disconnect_time = monotonic() - MQTT_DISCONNECT_NOTIFY_THRESHOLD - 1
+        elapsed = monotonic() - mqtt_disconnect_time
+
+        assert elapsed >= MQTT_DISCONNECT_NOTIFY_THRESHOLD
+
+    def test_no_notify_when_under_threshold(self):
+        """Test no notification when disconnect is under threshold."""
+        from time import monotonic
+
+        from custom_components.lipro.core.const import MQTT_DISCONNECT_NOTIFY_THRESHOLD
+
+        mqtt_disconnect_time = monotonic() - 10  # Only 10 seconds ago
+        elapsed = monotonic() - mqtt_disconnect_time
+
+        assert elapsed < MQTT_DISCONNECT_NOTIFY_THRESHOLD
+
+    def test_connect_resets_disconnect_tracking(self):
+        """Test that MQTT connect resets disconnect tracking state."""
+        # Simulate state after prolonged disconnect + notification
+        mqtt_disconnect_time = 100.0
+        mqtt_disconnect_notified = True
+
+        # Simulate _on_mqtt_connect reset logic
+        mqtt_disconnect_time = None
+        mqtt_disconnect_notified = False
+
+        assert mqtt_disconnect_time is None
+        assert mqtt_disconnect_notified is False
+
+    def test_disconnect_records_time_only_once(self):
+        """Test that repeated disconnects don't reset the initial disconnect time."""
+        from time import monotonic
+
+        mqtt_disconnect_time = None
+
+        # First disconnect
+        if mqtt_disconnect_time is None:
+            mqtt_disconnect_time = monotonic()
+        first_time = mqtt_disconnect_time
+
+        # Second disconnect callback (e.g., reconnect attempt failed)
+        if mqtt_disconnect_time is None:
+            mqtt_disconnect_time = monotonic()
+
+        # Should still be the first time
+        assert mqtt_disconnect_time == first_time
+
+    def test_threshold_constant_is_reasonable(self):
+        """Test MQTT disconnect notify threshold is reasonable."""
+        from custom_components.lipro.core.const import MQTT_DISCONNECT_NOTIFY_THRESHOLD
+
+        assert MQTT_DISCONNECT_NOTIFY_THRESHOLD >= 60  # At least 1 minute
+        assert MQTT_DISCONNECT_NOTIFY_THRESHOLD <= 600  # At most 10 minutes

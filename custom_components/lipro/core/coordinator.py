@@ -10,7 +10,7 @@ import logging
 from time import monotonic
 from typing import TYPE_CHECKING, Any
 
-from homeassistant.components.persistent_notification import async_create
+from homeassistant.components.persistent_notification import async_create, async_dismiss
 from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.translation import async_get_translations
@@ -48,7 +48,7 @@ from .api import (
     LiproConnectionError,
     LiproRefreshTokenExpiredError,
 )
-from .const import MAX_MQTT_CACHE_SIZE
+from .const import MAX_MQTT_CACHE_SIZE, MQTT_DISCONNECT_NOTIFY_THRESHOLD
 from .device import LiproDevice, parse_properties_list
 from .mqtt import LiproMqttClient, decrypt_mqtt_credential
 
@@ -122,6 +122,9 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         self._last_power_query_time: float = 0.0
         # Flag to force device list re-fetch on next update
         self._force_device_refresh: bool = False
+        # MQTT disconnect tracking for user notification
+        self._mqtt_disconnect_time: float | None = None
+        self._mqtt_disconnect_notified: bool = False
 
         # Load options from config entry
         self._load_options()
@@ -492,6 +495,10 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
     def _on_mqtt_connect(self) -> None:
         """Handle MQTT connection."""
         self._mqtt_connected = True
+        self._mqtt_disconnect_time = None
+        self._mqtt_disconnect_notified = False
+        # Dismiss any previous disconnect notification
+        async_dismiss(self.hass, f"{DOMAIN}_mqtt_disconnected")
         # Reduce polling frequency when MQTT provides real-time updates
         # Use 2x (not higher) to still catch sub-device state drift in mesh groups
         base = self._base_scan_interval
@@ -501,10 +508,60 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
     def _on_mqtt_disconnect(self) -> None:
         """Handle MQTT disconnection."""
         self._mqtt_connected = False
+        if self._mqtt_disconnect_time is None:
+            self._mqtt_disconnect_time = monotonic()
         # Restore normal polling frequency
         base = self._base_scan_interval
         self.update_interval = timedelta(seconds=base)
         _LOGGER.warning("MQTT disconnected, polling interval restored to %ds", base)
+
+    def _check_mqtt_disconnect_notification(self) -> None:
+        """Send persistent notification if MQTT has been disconnected too long."""
+        if (
+            not self._mqtt_enabled
+            or self._mqtt_connected
+            or self._mqtt_disconnect_time is None
+            or self._mqtt_disconnect_notified
+        ):
+            return
+
+        elapsed = monotonic() - self._mqtt_disconnect_time
+        if elapsed >= MQTT_DISCONNECT_NOTIFY_THRESHOLD:
+            self._mqtt_disconnect_notified = True
+            minutes = int(elapsed // 60)
+            self.hass.async_create_task(
+                self._async_show_mqtt_disconnect_notification(minutes)
+            )
+
+    async def _async_show_mqtt_disconnect_notification(self, minutes: int) -> None:
+        """Show localized MQTT disconnect notification."""
+        title = "Lipro MQTT Disconnected"
+        message = (
+            f"MQTT has been disconnected for {minutes} minutes. "
+            "Real-time updates are unavailable, falling back to polling."
+        )
+
+        try:
+            translations = await async_get_translations(
+                self.hass,
+                self.hass.config.language,
+                "exceptions",
+                {DOMAIN},
+            )
+            title_key = f"component.{DOMAIN}.exceptions.mqtt_disconnected.title"
+            message_key = f"component.{DOMAIN}.exceptions.mqtt_disconnected.message"
+            title = translations.get(title_key, title)
+            msg_tpl = translations.get(message_key, message)
+            message = msg_tpl.replace("{minutes}", str(minutes))
+        except (KeyError, ValueError, TypeError):
+            pass
+
+        async_create(
+            self.hass,
+            message,
+            title=title,
+            notification_id=f"{DOMAIN}_mqtt_disconnected",
+        )
 
     @property
     def _base_scan_interval(self) -> int:
@@ -701,6 +758,9 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
             ):
                 self._mqtt_setup_in_progress = True
                 self.hass.async_create_task(self._async_setup_mqtt_safe())
+
+            # Notify user if MQTT has been disconnected for too long
+            self._check_mqtt_disconnect_notification()
 
             return self._devices
 
