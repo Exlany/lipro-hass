@@ -115,9 +115,17 @@ class LiproCover(LiproEntity, CoverEntity):
     async def async_set_cover_position(self, **kwargs: Any) -> None:
         """Set cover position."""
         position = max(0, min(100, kwargs.get("position", 0)))
+        optimistic: dict[str, str] = {PROP_POSITION: str(position)}
+
+        # Optimistically update direction based on target vs current position
+        current = self.current_cover_position
+        if current is not None and position != current:
+            optimistic[PROP_DIRECTION] = "1" if position > current else "0"
+            optimistic[PROP_MOVING] = "1"
+
         # Use debounce for position slider to avoid flooding API
         await self.async_send_command_debounced(
             CMD_CHANGE_STATE,
             [{"key": PROP_POSITION, "value": str(position)}],
-            {PROP_POSITION: str(position)},
+            optimistic,
         )

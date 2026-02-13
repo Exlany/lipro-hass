@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from time import monotonic
 from typing import TYPE_CHECKING, Any
 
@@ -14,6 +15,8 @@ from ..helpers.debounce import Debouncer
 
 if TYPE_CHECKING:
     from ..core.device import LiproDevice
+
+_LOGGER = logging.getLogger(__name__)
 
 # Time window (seconds) after debounced command during which
 # coordinator updates should not overwrite optimistic state
@@ -138,6 +141,12 @@ class LiproEntity(CoordinatorEntity[LiproDataUpdateCoordinator]):
             True if successful.
 
         """
+        if not self.available:
+            _LOGGER.debug(
+                "Skipping command %s: %s unavailable", command, self.entity_id
+            )
+            return False
+
         # Apply optimistic state update immediately
         if optimistic_state:
             self.device.update_properties(optimistic_state)
@@ -173,6 +182,14 @@ class LiproEntity(CoordinatorEntity[LiproDataUpdateCoordinator]):
                               optimistically update before cloud confirmation.
 
         """
+        if not self.available:
+            _LOGGER.debug(
+                "Skipping debounced command %s: %s unavailable",
+                command,
+                self.entity_id,
+            )
+            return
+
         # Apply optimistic state update immediately (no debounce for UI feedback)
         if optimistic_state:
             self.device.update_properties(optimistic_state)
