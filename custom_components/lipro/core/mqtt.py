@@ -21,6 +21,7 @@ import hmac
 import json
 import logging
 import random
+import ssl
 from typing import TYPE_CHECKING, Any
 
 import aiomqtt
@@ -435,6 +436,7 @@ class LiproMqttClient:
 
     async def _connect_and_listen(self) -> None:
         """Connect to broker and listen for messages."""
+        tls_context = ssl.create_default_context()
         async with aiomqtt.Client(
             hostname=MQTT_BROKER_HOST,
             port=MQTT_BROKER_PORT,
@@ -443,6 +445,7 @@ class LiproMqttClient:
             identifier=self._credentials.client_id,
             clean_session=False,
             keepalive=MQTT_KEEP_ALIVE,
+            tls_context=tls_context,
         ) as client:
             self._client = client
             self._reconnect_delay = MQTT_RECONNECT_MIN_DELAY

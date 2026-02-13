@@ -101,7 +101,7 @@ MAX_DEVICES_PER_QUERY: Final = 100
 
 # MQTT configuration (Aliyun MQTT)
 MQTT_BROKER_HOST: Final = "post-cn-li93yvd5304.mqtt.aliyuncs.com"
-MQTT_BROKER_PORT: Final = 1883
+MQTT_BROKER_PORT: Final = 8883
 MQTT_INSTANCE_ID: Final = "post-cn-li93yvd5304"
 MQTT_KEEP_ALIVE: Final = 60
 MQTT_QOS: Final = 2  # EXACTLY_ONCE
