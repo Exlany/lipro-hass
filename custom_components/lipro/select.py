@@ -50,6 +50,7 @@ LIGHT_MODE_TO_VALUE: Final = {
 VALUE_TO_LIGHT_MODE: Final = {v: k for k, v in LIGHT_MODE_TO_VALUE.items()}
 
 # Light gear preset options (max 3)
+_MAX_GEAR_COUNT: Final = 3
 GEAR_OPTIONS: Final = ["gear_1", "gear_2", "gear_3"]
 
 # Descriptive names for gear presets (used in extra_state_attributes)
@@ -165,7 +166,7 @@ class LiproLightGearSelect(LiproSelect):
         current_temp_pct = self.device.get_int_property(PROP_TEMPERATURE, -1)
 
         # Exact match: brightness and temperature percentage must match exactly
-        for i, gear in enumerate(gear_list[:3]):  # Max 3 gears
+        for i, gear in enumerate(gear_list[:_MAX_GEAR_COUNT]):
             if not isinstance(gear, dict):
                 continue
             gear_brightness = gear.get("brightness", 0)
@@ -190,7 +191,7 @@ class LiproLightGearSelect(LiproSelect):
         attrs: dict[str, Any] = {}
         gear_list = self.device.gear_list
 
-        for i, gear in enumerate(gear_list[:3]):
+        for i, gear in enumerate(gear_list[:_MAX_GEAR_COUNT]):
             if not isinstance(gear, dict):
                 continue
             brightness = gear.get("brightness", 0)

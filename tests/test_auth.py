@@ -45,14 +45,19 @@ class TestLiproAuthManagerCredentials:
     """Tests for credential management."""
 
     def test_set_credentials(self):
-        """Test setting credentials."""
+        """Test setting credentials always stores MD5 hash."""
         client = MagicMock(spec=LiproClient)
         manager = LiproAuthManager(client)
 
         manager.set_credentials("13800000000", "password123")
 
         assert manager._phone == "13800000000"
-        assert manager._password == "password123"
+        # Password should be stored as MD5 hash, not plaintext
+        import hashlib
+
+        expected_hash = hashlib.md5(b"password123", usedforsecurity=False).hexdigest()
+        assert manager._password == expected_hash
+        assert manager._password_is_hashed is True
 
     def test_set_tokens(self):
         """Test setting tokens."""
@@ -106,7 +111,7 @@ class TestLiproAuthManagerLogin:
         assert result["refresh_token"] == "new_refresh"
         assert "expires_at" in result
         assert manager._phone == "13800000000"
-        assert manager._password == "password"
+        assert manager._password_is_hashed is True
 
     @pytest.mark.asyncio
     async def test_login_resets_expiry(self):
@@ -173,10 +178,11 @@ class TestLiproAuthManagerRefresh:
 
         result = await manager.refresh_token()
 
-        # Should have re-logged in (with password_is_hashed=False for plain password)
-        client.login.assert_called_once_with(
-            "phone", "password", password_is_hashed=False
-        )
+        # set_credentials hashes the password, so login is called with hash
+        client.login.assert_called_once()
+        call_args = client.login.call_args
+        assert call_args[0][0] == "phone"
+        assert call_args[1]["password_is_hashed"] is True
         assert result["access_token"] == "new_access"
 
     @pytest.mark.asyncio
@@ -258,7 +264,7 @@ class TestLiproAuthManagerEnsureValidToken:
 
         result = await manager.ensure_valid_token()
 
-        assert result is True
+        assert result is None
         client.login.assert_called_once()
 
     @pytest.mark.asyncio
@@ -283,7 +289,7 @@ class TestLiproAuthManagerEnsureValidToken:
 
         result = await manager.ensure_valid_token()
 
-        assert result is True
+        assert result is None
         # No refresh should be called
         client.refresh_access_token.assert_not_called()
 
@@ -306,7 +312,7 @@ class TestLiproAuthManagerEnsureValidToken:
 
         result = await manager.ensure_valid_token()
 
-        assert result is True
+        assert result is None
 
 
 class TestLiproAuthManagerAdaptiveExpiry:

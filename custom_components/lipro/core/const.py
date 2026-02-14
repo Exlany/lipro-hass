@@ -58,7 +58,6 @@ CONTENT_TYPE_JSON: Final = "application/json"
 
 # Response codes
 RESPONSE_SUCCESS: Final = 200
-RESPONSE_SUCCESS_STR: Final = "0000"
 RESPONSE_SUCCESS_CODES: Final = frozenset(
     (200, "0000", "200")
 )  # All known success code variants
@@ -95,6 +94,9 @@ REQUEST_TIMEOUT: Final = 30
 # Maximum Retry-After value (seconds) to prevent hanging on malicious/abnormal headers
 MAX_RETRY_AFTER: Final = 60
 
+# Maximum rate limit retries (total requests = MAX_RATE_LIMIT_RETRIES + 1)
+MAX_RATE_LIMIT_RETRIES: Final = 2
+
 # Maximum MQTT dedup cache entries before forced cleanup
 MAX_MQTT_CACHE_SIZE: Final = 500
 
@@ -122,3 +124,8 @@ MQTT_TOPIC_PREFIX: Final = "Topic_Device_State"
 PATH_GET_MQTT_CONFIG: Final = (
     "/app/oauth/api/v2/user/control/device/get_aliyun_mqtt_config.do"
 )
+
+# Device defaults
+DEFAULT_MIN_COLOR_TEMP_KELVIN: Final = 2700
+DEFAULT_MAX_COLOR_TEMP_KELVIN: Final = 6500
+DEFAULT_MAX_FAN_GEAR: Final = 6

@@ -202,7 +202,7 @@ class LiproEntity(CoordinatorEntity[LiproDataUpdateCoordinator]):
             # Set protection window to prevent coordinator from overwriting
             # these properties during slider drag
             self._debounce_protected_until = monotonic() + DEBOUNCE_PROTECTION_WINDOW
-            self._debounce_protected_keys = set(optimistic_state.keys())
+            self._debounce_protected_keys |= optimistic_state.keys()
 
         # Debounce the actual API call
         debouncer = self._get_debouncer()

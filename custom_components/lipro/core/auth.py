@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import hashlib
 import logging
 import time
 from typing import Any
@@ -82,6 +83,8 @@ class LiproAuthManager:
     ) -> None:
         """Store credentials for re-authentication.
 
+        Always stores the MD5 hash, never plaintext password.
+
         Args:
             phone: Phone number.
             password: Password (plain text or MD5 hash).
@@ -89,8 +92,13 @@ class LiproAuthManager:
 
         """
         self._phone = phone
-        self._password = password
-        self._password_is_hashed = password_is_hashed
+        if password_is_hashed:
+            self._password = password
+        else:
+            self._password = hashlib.md5(
+                password.encode("utf-8"), usedforsecurity=False
+            ).hexdigest()
+        self._password_is_hashed = True
 
     def set_tokens(
         self,
@@ -134,9 +142,7 @@ class LiproAuthManager:
             Login result with tokens.
 
         """
-        self._phone = phone
-        self._password = password
-        self._password_is_hashed = password_is_hashed
+        self.set_credentials(phone, password, password_is_hashed=password_is_hashed)
 
         result = await self._client.login(
             phone, password, password_is_hashed=password_is_hashed
@@ -269,13 +275,10 @@ class LiproAuthManager:
 
             await self.refresh_token()
 
-    async def ensure_valid_token(self) -> bool:
+    async def ensure_valid_token(self) -> None:
         """Ensure we have a valid token, refreshing if needed.
 
         Uses TOKEN_REFRESH_BUFFER to refresh before actual expiry.
-
-        Returns:
-            True if token is valid.
 
         Raises:
             LiproAuthError: If unable to get valid token.
@@ -288,7 +291,7 @@ class LiproAuthManager:
                     self._password,
                     password_is_hashed=self._password_is_hashed,
                 )
-                return True
+                return
             msg = "Not authenticated and no credentials available"
             raise LiproAuthError(msg)
 
@@ -302,8 +305,6 @@ class LiproAuthManager:
                         int(self._token_expires_at - time.time()),
                     )
                     await self.refresh_token()
-
-        return True
 
     def get_auth_data(self) -> dict[str, Any]:
         """Get authentication data for storage.

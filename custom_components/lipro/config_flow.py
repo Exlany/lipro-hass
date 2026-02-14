@@ -63,7 +63,7 @@ _CONF_SHOW_ADVANCED = "show_advanced"
 
 def _hash_password(password: str) -> str:
     """Hash password using MD5 (as required by Lipro API)."""
-    return hashlib.md5(password.encode("utf-8")).hexdigest()
+    return hashlib.md5(password.encode("utf-8"), usedforsecurity=False).hexdigest()
 
 
 def _map_login_error(err: LiproApiError) -> str:

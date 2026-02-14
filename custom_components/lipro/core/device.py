@@ -64,6 +64,11 @@ from ..const import (
     percent_to_kelvin,
 )
 from .anonymous_share import get_anonymous_share_manager
+from .const import (
+    DEFAULT_MAX_COLOR_TEMP_KELVIN,
+    DEFAULT_MAX_FAN_GEAR,
+    DEFAULT_MIN_COLOR_TEMP_KELVIN,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -122,10 +127,10 @@ class LiproDevice:
     available: bool = True
     # Color temperature range from product config (Kelvin)
     # 0 means single color temperature (no adjustment supported)
-    min_color_temp_kelvin: int = 2700
-    max_color_temp_kelvin: int = 6500
+    min_color_temp_kelvin: int = DEFAULT_MIN_COLOR_TEMP_KELVIN
+    max_color_temp_kelvin: int = DEFAULT_MAX_COLOR_TEMP_KELVIN
     # Fan gear range (from product config or default)
-    max_fan_gear: int = 6
+    max_fan_gear: int = DEFAULT_MAX_FAN_GEAR
     # Cache for parsed gear_list (cleared on property update)
     _gear_list_cache: list[Any] | None = field(default=None, repr=False, compare=False)
 

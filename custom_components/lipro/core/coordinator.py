@@ -52,6 +52,7 @@ from .api import (
     LiproRefreshTokenExpiredError,
 )
 from .const import (
+    DEFAULT_MIN_COLOR_TEMP_KELVIN,
     MAX_DEVICES_PER_QUERY,
     MAX_MQTT_CACHE_SIZE,
     MQTT_DISCONNECT_NOTIFY_THRESHOLD,
@@ -938,7 +939,9 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
                     # Only update if we have valid values
                     # 0 means single color temp (no adjustment)
                     if max_temp > 0:
-                        device.min_color_temp_kelvin = min_temp or 2700
+                        device.min_color_temp_kelvin = (
+                            min_temp or DEFAULT_MIN_COLOR_TEMP_KELVIN
+                        )
                         device.max_color_temp_kelvin = max_temp
                         _LOGGER.debug(
                             "Device %s: color temp range %d-%d K",

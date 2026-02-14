@@ -40,6 +40,7 @@ from .const import (
     IOT_API_URL,
     IOT_SIGN_KEY,
     MAX_DEVICES_PER_QUERY,
+    MAX_RATE_LIMIT_RETRIES,
     MAX_RETRY_AFTER,
     MERCHANT_CODE,
     PATH_FETCH_DEVICES,
@@ -241,7 +242,7 @@ class LiproClient:
 
         """
         sign_data = f"{self._phone_id}{SMART_HOME_SIGN_KEY}"
-        return hashlib.md5(sign_data.encode("utf-8")).hexdigest()
+        return hashlib.md5(sign_data.encode("utf-8"), usedforsecurity=False).hexdigest()
 
     def _iot_sign(self, nonce: int, body: str) -> str:
         """Generate IoT API signature.
@@ -263,7 +264,7 @@ class LiproClient:
         sign_data = (
             f"{self._access_token}{nonce}{MERCHANT_CODE}{trimmed_body}{IOT_SIGN_KEY}"
         )
-        return hashlib.md5(sign_data.encode("utf-8")).hexdigest()
+        return hashlib.md5(sign_data.encode("utf-8"), usedforsecurity=False).hexdigest()
 
     def _to_device_type_hex(self, device_type: int | str) -> str:
         """Convert device type to hex string format.
@@ -346,20 +347,24 @@ class LiproClient:
 
         """
         retry_after = self._parse_retry_after(headers)
-        if retry_count >= 2:  # Max 2 retries (3 total requests)
+        if retry_count >= MAX_RATE_LIMIT_RETRIES:
             _LOGGER.warning(
-                "Rate limited on %s after 2 retries (retry_after=%s)", path, retry_after
+                "Rate limited on %s after %d retries (retry_after=%s)",
+                path,
+                MAX_RATE_LIMIT_RETRIES,
+                retry_after,
             )
-            msg = "Rate limited after 2 retries"
+            msg = f"Rate limited after {MAX_RATE_LIMIT_RETRIES} retries"
             raise LiproRateLimitError(msg, retry_after)
 
         # Cap wait_time to prevent hanging on malicious Retry-After values
         wait_time = min(MAX_RETRY_AFTER, max(0.1, retry_after or (2**retry_count)))
         _LOGGER.debug(
-            "Rate limited on %s, waiting %.1fs before retry %d/2",
+            "Rate limited on %s, waiting %.1fs before retry %d/%d",
             path,
             wait_time,
             retry_count + 1,
+            MAX_RATE_LIMIT_RETRIES,
         )
         await asyncio.sleep(wait_time)
         return wait_time
@@ -674,7 +679,9 @@ class LiproClient:
         if password_is_hashed:
             password_hash = password
         else:
-            password_hash = hashlib.md5(password.encode("utf-8")).hexdigest()
+            password_hash = hashlib.md5(
+                password.encode("utf-8"), usedforsecurity=False
+            ).hexdigest()
 
         result = await self._smart_home_request(
             PATH_LOGIN,

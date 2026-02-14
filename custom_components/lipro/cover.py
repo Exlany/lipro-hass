@@ -16,6 +16,8 @@ from .const import (
     CMD_CURTAIN_CLOSE,
     CMD_CURTAIN_OPEN,
     CMD_CURTAIN_STOP,
+    DIRECTION_CLOSING,
+    DIRECTION_OPENING,
     PROP_DIRECTION,
     PROP_MOVING,
     PROP_POSITION,
@@ -99,7 +101,7 @@ class LiproCover(LiproEntity, CoverEntity):
         await self.async_send_command(
             CMD_CURTAIN_OPEN,
             None,
-            {PROP_MOVING: "1", PROP_DIRECTION: "1"},
+            {PROP_MOVING: "1", PROP_DIRECTION: DIRECTION_OPENING},
         )
 
     async def async_close_cover(self, **kwargs: Any) -> None:
@@ -107,7 +109,7 @@ class LiproCover(LiproEntity, CoverEntity):
         await self.async_send_command(
             CMD_CURTAIN_CLOSE,
             None,
-            {PROP_MOVING: "1", PROP_DIRECTION: "0"},
+            {PROP_MOVING: "1", PROP_DIRECTION: DIRECTION_CLOSING},
         )
 
     async def async_stop_cover(self, **kwargs: Any) -> None:
@@ -122,7 +124,9 @@ class LiproCover(LiproEntity, CoverEntity):
         # Optimistically update direction based on target vs current position
         current = self.current_cover_position
         if current is not None and position != current:
-            optimistic[PROP_DIRECTION] = "1" if position > current else "0"
+            optimistic[PROP_DIRECTION] = (
+                DIRECTION_OPENING if position > current else DIRECTION_CLOSING
+            )
             optimistic[PROP_MOVING] = "1"
 
         # Use debounce for position slider to avoid flooding API

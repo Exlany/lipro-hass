@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Final
 
 from homeassistant.components.light import (
     ATTR_BRIGHTNESS,
@@ -34,6 +34,9 @@ if TYPE_CHECKING:
 
 # Limit parallel updates to avoid overwhelming the API
 PARALLEL_UPDATES = 1
+
+# Home Assistant uses 0-255 brightness scale
+_HA_BRIGHTNESS_SCALE: Final = 255
 
 
 async def async_setup_entry(
@@ -114,7 +117,7 @@ class LiproLight(LiproEntity, LightEntity):
         """Return the brightness of the light (0-255)."""
         # Convert from 0-100 to 0-255
         brightness_pct = self.device.brightness
-        return round(brightness_pct * 255 / 100)
+        return round(brightness_pct * _HA_BRIGHTNESS_SCALE / 100)
 
     @property
     def color_temp_kelvin(self) -> int | None:
@@ -131,7 +134,7 @@ class LiproLight(LiproEntity, LightEntity):
         # Handle brightness
         if ATTR_BRIGHTNESS in kwargs:
             # Convert from 0-255 to 1-100
-            brightness = round(kwargs[ATTR_BRIGHTNESS] * 100 / 255)
+            brightness = round(kwargs[ATTR_BRIGHTNESS] * 100 / _HA_BRIGHTNESS_SCALE)
             brightness = max(MIN_BRIGHTNESS, min(MAX_BRIGHTNESS, brightness))
             properties.append({"key": PROP_BRIGHTNESS, "value": str(brightness)})
             optimistic[PROP_BRIGHTNESS] = str(brightness)
