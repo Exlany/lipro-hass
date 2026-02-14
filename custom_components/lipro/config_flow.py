@@ -8,7 +8,6 @@ import logging
 from typing import Any
 import uuid
 
-import aiohttp
 import voluptuous as vol
 
 from homeassistant.config_entries import (
@@ -239,7 +238,7 @@ class LiproConfigFlow(ConfigFlow, domain=DOMAIN):
 
             except LiproApiError as err:
                 errors["base"] = _map_login_error(err)
-            except (TimeoutError, aiohttp.ClientError, OSError):
+            except Exception:
                 _LOGGER.exception("Unexpected error during reauth")
                 errors["base"] = "unknown"
 
@@ -281,7 +280,7 @@ class LiproConfigFlow(ConfigFlow, domain=DOMAIN):
                 errors["base"] = _map_login_error(err)
             except AbortFlow:
                 raise
-            except (TimeoutError, aiohttp.ClientError, OSError):
+            except Exception:
                 _LOGGER.exception("Unexpected error during reconfigure")
                 errors["base"] = "unknown"
 
