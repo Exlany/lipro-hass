@@ -7,7 +7,7 @@ from datetime import timedelta
 import hashlib
 import logging
 from time import monotonic
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Final
 
 from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers import device_registry as dr
@@ -70,10 +70,10 @@ _LOGGER = logging.getLogger(__name__)
 
 # Polling interval multiplier when MQTT provides real-time updates.
 # Use 2x (not higher) to still catch sub-device state drift in mesh groups.
-_MQTT_POLLING_MULTIPLIER: int = 2
+_MQTT_POLLING_MULTIPLIER: Final[int] = 2
 
 # Time threshold (seconds) for cleaning stale MQTT dedup cache entries
-_MQTT_CACHE_STALE_SECONDS: float = 5.0
+_MQTT_CACHE_STALE_SECONDS: Final[float] = 5.0
 
 # HA version for anonymous share reporting
 try:

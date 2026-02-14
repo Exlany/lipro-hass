@@ -480,6 +480,9 @@ class LiproClient:
     def _build_iot_headers(self, body: str) -> dict[str, str]:
         """Build common IoT API request headers.
 
+        Args:
+            body: JSON-encoded request body (used for signature generation).
+
         Returns:
             Headers dict for the IoT API request.
 

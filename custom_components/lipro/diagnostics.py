@@ -60,7 +60,7 @@ PROPERTY_KEYS_TO_REDACT: Final = {
 }
 
 # Pre-computed lowercase set for efficient lookup
-_PROPERTY_KEYS_LOWER = frozenset(key.lower() for key in PROPERTY_KEYS_TO_REDACT)
+_PROPERTY_KEYS_LOWER: Final = frozenset(key.lower() for key in PROPERTY_KEYS_TO_REDACT)
 
 
 def _redact_device_properties(properties: dict[str, Any]) -> dict[str, Any]:

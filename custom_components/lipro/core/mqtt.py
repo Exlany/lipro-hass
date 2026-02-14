@@ -22,7 +22,7 @@ import json
 import logging
 import random
 import ssl
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Final
 
 import aiomqtt
 from Crypto.Cipher import AES
@@ -170,15 +170,20 @@ def build_topic(biz_id: str, device_id: str) -> str:
 def parse_topic(topic: str) -> str | None:
     """Extract device ID from MQTT topic.
 
+    Only accepts topics with the expected prefix to avoid extracting
+    device IDs from unexpected topic formats.
+
     Args:
         topic: MQTT topic string.
 
     Returns:
-        Device ID or None if invalid topic format.
+        Device ID or None if invalid topic format or wrong prefix.
 
     """
     parts = topic.split("/")
-    return parts[2] if len(parts) >= 3 else None
+    if len(parts) >= 3 and parts[0] == MQTT_TOPIC_PREFIX:
+        return parts[2]
+    return None
 
 
 # =============================================================================
@@ -186,7 +191,7 @@ def parse_topic(topic: str) -> str | None:
 # =============================================================================
 
 # MQTT to REST API property key mappings
-_PROPERTY_KEY_MAP: dict[str, str] = {
+_PROPERTY_KEY_MAP: Final[dict[str, str]] = {
     # Fan light (different casing)
     "fanOnOff": "fanOnoff",
     # Curtain (different naming)
@@ -195,11 +200,11 @@ _PROPERTY_KEY_MAP: dict[str, str] = {
 }
 
 # Values that indicate "not supported" in MQTT payloads — skip these
-_NOISE_VALUES: frozenset[str] = frozenset({"-1", ""})
+_NOISE_VALUES: Final[frozenset[str]] = frozenset({"-1", ""})
 
 
 # MQTT payload property groups that contain device state
-_MQTT_PROPERTY_GROUPS: tuple[str, ...] = (
+_MQTT_PROPERTY_GROUPS: Final[tuple[str, ...]] = (
     "common",
     "light",
     "fanLight",

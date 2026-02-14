@@ -110,6 +110,8 @@ class TestParseTopic:
         assert parse_topic("invalid") is None
         assert parse_topic("only/two") is None
         assert parse_topic("") is None
+        # Wrong prefix should also return None
+        assert parse_topic("Wrong_Prefix/biz/device") is None
 
     def test_parse_topic_extra_parts(self):
         """Test parsing topic with extra parts."""

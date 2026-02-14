@@ -277,7 +277,7 @@ async def _get_device_and_coordinator(
 
     # Find the device across all config entries
     for entry in hass.config_entries.async_entries(DOMAIN):
-        if hasattr(entry, "runtime_data") and entry.runtime_data:
+        if entry.runtime_data:
             device = entry.runtime_data.get_device(device_id)
             if device:
                 return device, entry.runtime_data

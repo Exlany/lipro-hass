@@ -53,7 +53,7 @@ VALUE_TO_LIGHT_MODE: Final = {v: k for k, v in LIGHT_MODE_TO_VALUE.items()}
 GEAR_OPTIONS: Final = ["gear_1", "gear_2", "gear_3"]
 
 # Descriptive names for gear presets (used in extra_state_attributes)
-_GEAR_PRESET_NAMES: tuple[str, ...] = ("warm", "neutral", "cool")
+_GEAR_PRESET_NAMES: Final[tuple[str, ...]] = ("warm", "neutral", "cool")
 
 
 async def async_setup_entry(

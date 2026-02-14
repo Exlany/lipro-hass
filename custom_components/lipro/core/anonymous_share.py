@@ -10,6 +10,7 @@ to help developers support more device types and fix issues.
 from __future__ import annotations
 
 import asyncio
+from collections import deque
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 import json
@@ -84,7 +85,7 @@ REDACT_KEYS: Final = frozenset(
 )
 
 # Pre-computed lowercase version for efficient lookups in sanitization
-_REDACT_KEYS_LOWER: frozenset[str] = frozenset(k.lower() for k in REDACT_KEYS)
+_REDACT_KEYS_LOWER: Final[frozenset[str]] = frozenset(k.lower() for k in REDACT_KEYS)
 
 # Maximum items to keep in memory before forcing upload
 MAX_PENDING_ERRORS: Final = 50
@@ -185,7 +186,7 @@ class AnonymousShareManager:
         self._enabled = False
         self._error_reporting_enabled = False
         self._devices: dict[str, SharedDevice] = {}  # Keyed by anonymized ID
-        self._errors: list[SharedError] = []
+        self._errors: deque[SharedError] = deque(maxlen=MAX_PENDING_ERRORS)
         self._unknown_properties: set[tuple[str, str]] = set()  # (device_type, key)
         self._unknown_device_types: set[tuple[str | None, int]] = set()
         self._last_upload_time: float = 0
@@ -596,10 +597,7 @@ class AnonymousShareManager:
                 existing.timestamp = time.time()
                 return
 
-        # Enforce maximum pending errors
-        if len(self._errors) >= MAX_PENDING_ERRORS:
-            self._errors.pop(0)  # Remove oldest
-
+        # deque(maxlen=MAX_PENDING_ERRORS) auto-evicts oldest on overflow
         self._errors.append(
             SharedError(
                 error_type=error_type,
