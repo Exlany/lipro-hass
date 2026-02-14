@@ -22,6 +22,7 @@ from typing import TYPE_CHECKING, Any
 import aiohttp
 
 from ..const import (
+    PROP_ACTIVATED,
     PROP_AERATION_GEAR,
     PROP_BATTERY,
     PROP_BODY_REACTIVE,
@@ -34,7 +35,6 @@ from ..const import (
     PROP_FOCUS_MODE,
     PROP_HEATER_MODE,
     PROP_LIGHT_MODE,
-    PROP_MOVING,
     PROP_POSITION,
     PROP_SLEEP_AID_ENABLE,
     PROP_TEMPERATURE,
@@ -376,7 +376,7 @@ class AnonymousShareManager:
                 caps.append("battery")
             if PROP_DOOR_OPEN in props:
                 caps.append("door_sensor")
-            if PROP_BODY_REACTIVE in props or PROP_MOVING in props:
+            if PROP_BODY_REACTIVE in props or PROP_ACTIVATED in props:
                 caps.append("motion_sensor")
             if PROP_DARK in props:
                 caps.append("light_sensor")

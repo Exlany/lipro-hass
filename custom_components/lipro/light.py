@@ -131,7 +131,7 @@ class LiproLight(LiproEntity, LightEntity):
         # Handle brightness
         if ATTR_BRIGHTNESS in kwargs:
             # Convert from 0-255 to 1-100
-            brightness = int(kwargs[ATTR_BRIGHTNESS] * 100 / 255)
+            brightness = round(kwargs[ATTR_BRIGHTNESS] * 100 / 255)
             brightness = max(MIN_BRIGHTNESS, min(MAX_BRIGHTNESS, brightness))
             properties.append({"key": PROP_BRIGHTNESS, "value": str(brightness)})
             optimistic[PROP_BRIGHTNESS] = str(brightness)
