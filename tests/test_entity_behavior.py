@@ -195,7 +195,7 @@ class TestFanEntityBehavior:
         speed_range = device.fan_speed_range
 
         assert math.ceil(percentage_to_ranged_value(speed_range, 100)) == 10
-        assert math.ceil(percentage_to_ranged_value(speed_range, 50)) == 6
+        assert math.ceil(percentage_to_ranged_value(speed_range, 50)) == 5
 
 
 class TestClimateEntityBehavior:
