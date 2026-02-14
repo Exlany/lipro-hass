@@ -110,6 +110,12 @@ class LiproFan(LiproEntity, FanEntity):
     _attr_translation_key = "fan"
     _entity_suffix = "fan"
 
+    def _percentage_to_gear(self, percentage: int) -> int:
+        """Convert percentage to gear value, clamped to device range."""
+        speed_range = self.device.fan_speed_range
+        gear = math.ceil(percentage_to_ranged_value(speed_range, percentage))
+        return max(speed_range[0], min(speed_range[1], gear))
+
     @property
     def speed_count(self) -> int:
         """Return the number of speeds the fan supports."""
@@ -146,9 +152,7 @@ class LiproFan(LiproEntity, FanEntity):
         optimistic: dict[str, Any] = {PROP_FAN_ONOFF: "1"}
 
         if percentage is not None:
-            speed_range = self.device.fan_speed_range
-            gear = math.ceil(percentage_to_ranged_value(speed_range, percentage))
-            gear = max(speed_range[0], min(speed_range[1], gear))
+            gear = self._percentage_to_gear(percentage)
             properties.append({"key": PROP_FAN_GEAR, "value": str(gear)})
             optimistic[PROP_FAN_GEAR] = str(gear)
 
@@ -173,9 +177,7 @@ class LiproFan(LiproEntity, FanEntity):
             await self.async_turn_off()
             return
 
-        speed_range = self.device.fan_speed_range
-        gear = math.ceil(percentage_to_ranged_value(speed_range, percentage))
-        gear = max(speed_range[0], min(speed_range[1], gear))
+        gear = self._percentage_to_gear(percentage)
         properties = [{"key": PROP_FAN_GEAR, "value": str(gear)}]
         optimistic: dict[str, Any] = {PROP_FAN_GEAR: str(gear)}
 

@@ -52,6 +52,9 @@ VALUE_TO_LIGHT_MODE = {v: k for k, v in LIGHT_MODE_TO_VALUE.items()}
 # Light gear preset options (max 3)
 GEAR_OPTIONS = ["gear_1", "gear_2", "gear_3"]
 
+# Descriptive names for gear presets (used in extra_state_attributes)
+_GEAR_PRESET_NAMES: tuple[str, ...] = ("warm", "neutral", "cool")
+
 
 async def async_setup_entry(
     hass: HomeAssistant,
@@ -197,8 +200,7 @@ class LiproLightGearSelect(LiproSelect):
             temp_k = self.device.percent_to_kelvin_for_device(temp_pct)
 
             # Use descriptive names matching the translations
-            names = ["warm", "neutral", "cool"]
-            attrs[f"preset_{names[i]}"] = f"{brightness}% / {temp_k}K"
+            attrs[f"preset_{_GEAR_PRESET_NAMES[i]}"] = f"{brightness}% / {temp_k}K"
 
         # Also show the device's color temp range
         if self.device.supports_color_temp:
