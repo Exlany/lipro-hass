@@ -64,6 +64,13 @@ if TYPE_CHECKING:
 
 _LOGGER = logging.getLogger(__name__)
 
+# Polling interval multiplier when MQTT provides real-time updates.
+# Use 2x (not higher) to still catch sub-device state drift in mesh groups.
+_MQTT_POLLING_MULTIPLIER: int = 2
+
+# Time threshold (seconds) for cleaning stale MQTT dedup cache entries
+_MQTT_CACHE_STALE_SECONDS: float = 5.0
+
 # HA version for anonymous share reporting
 try:
     from homeassistant.const import __version__ as _ha_ver
@@ -514,10 +521,10 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         # Dismiss any previous disconnect issue
         async_delete_issue(self.hass, DOMAIN, "mqtt_disconnected")
         # Reduce polling frequency when MQTT provides real-time updates
-        # Use 2x (not higher) to still catch sub-device state drift in mesh groups
         base = self._base_scan_interval
-        self.update_interval = timedelta(seconds=base * 2)
-        _LOGGER.info("MQTT connected, polling interval relaxed to %ds", base * 2)
+        relaxed = base * _MQTT_POLLING_MULTIPLIER
+        self.update_interval = timedelta(seconds=relaxed)
+        _LOGGER.info("MQTT connected, polling interval relaxed to %ds", relaxed)
 
     def _on_mqtt_disconnect(self) -> None:
         """Handle MQTT disconnection."""
@@ -653,9 +660,11 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
             current_time: Current monotonic time.
 
         """
-        # Remove entries older than 5 seconds
+        # Remove stale entries
         self._mqtt_message_cache = {
-            k: t for k, t in self._mqtt_message_cache.items() if current_time - t <= 5.0
+            k: t
+            for k, t in self._mqtt_message_cache.items()
+            if current_time - t <= _MQTT_CACHE_STALE_SECONDS
         }
 
         # Hard cap: if cache still exceeds limit, keep newest half
@@ -1221,6 +1230,6 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
             )
             await self._trigger_reauth("auth_error")
             return False
-        except LiproApiError:
-            _LOGGER.exception("Failed to send command to %s", device.name)
+        except LiproApiError as err:
+            _LOGGER.warning("Failed to send command to %s: %s", device.name, err)
             return False

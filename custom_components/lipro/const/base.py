@@ -8,6 +8,10 @@ DOMAIN: Final = "lipro"
 # Manufacturer name (used in device_info)
 MANUFACTURER: Final = "Lipro"
 
+# Lipro/Meizu manufacturer ID prefix for IoT device IDs (939 in decimal)
+# IoT device ID format: IOT_DEVICE_ID_PREFIX + 12 hex chars (BLE MAC without colons)
+IOT_DEVICE_ID_PREFIX: Final = "03ab"
+
 # Integration version (should match manifest.json)
 VERSION: Final = "1.0.0"
 

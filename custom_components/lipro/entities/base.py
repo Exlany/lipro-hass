@@ -22,6 +22,10 @@ _LOGGER = logging.getLogger(__name__)
 # coordinator updates should not overwrite optimistic state
 DEBOUNCE_PROTECTION_WINDOW = 2.0
 
+# Small buffer (seconds) after command is sent before clearing protection,
+# allowing the cloud response to arrive
+_POST_COMMAND_PROTECTION_BUFFER = 1.0
+
 
 class LiproEntity(CoordinatorEntity[LiproDataUpdateCoordinator]):
     """Base class for Lipro entities."""
@@ -230,7 +234,7 @@ class LiproEntity(CoordinatorEntity[LiproDataUpdateCoordinator]):
         )
 
         # Clear protection after command is sent (with small buffer for response)
-        self._debounce_protected_until = monotonic() + 1.0
+        self._debounce_protected_until = monotonic() + _POST_COMMAND_PROTECTION_BUFFER
 
         # If command failed, request refresh to restore actual state
         if not success and optimistic_state:

@@ -48,3 +48,7 @@ CONF_ANONYMOUS_SHARE_ENABLED: Final = "anonymous_share_enabled"
 CONF_ANONYMOUS_SHARE_ERRORS: Final = "anonymous_share_errors"
 DEFAULT_ANONYMOUS_SHARE_ENABLED: Final = False
 DEFAULT_ANONYMOUS_SHARE_ERRORS: Final = True
+
+# Key for storing password MD5 hash instead of plain password
+# This improves security as the API accepts MD5 hash directly
+CONF_PASSWORD_HASH: Final = "password_hash"

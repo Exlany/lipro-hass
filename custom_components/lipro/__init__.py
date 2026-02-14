@@ -21,10 +21,10 @@ from homeassistant.exceptions import (
 from homeassistant.helpers import config_validation as cv, entity_registry as er
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
-from .config_flow import CONF_PASSWORD_HASH
 from .const import (
     CONF_ACCESS_TOKEN,
     CONF_EXPIRES_AT,
+    CONF_PASSWORD_HASH,
     CONF_PHONE,
     CONF_PHONE_ID,
     CONF_REFRESH_TOKEN,
@@ -34,6 +34,7 @@ from .const import (
     DEFAULT_REQUEST_TIMEOUT,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
+    IOT_DEVICE_ID_PREFIX,
     MAX_REQUEST_TIMEOUT,
     MIN_REQUEST_TIMEOUT,
 )
@@ -84,7 +85,9 @@ ATTR_EVENTS = "events"
 ATTR_SCHEDULE_IDS = "schedule_ids"
 
 # Pre-compiled pattern for extracting device serial from entity unique_id
-_SERIAL_PATTERN = re.compile(r"(03ab[0-9a-f]{12}|mesh_group_\d+)")
+_SERIAL_PATTERN = re.compile(
+    rf"({re.escape(IOT_DEVICE_ID_PREFIX)}[0-9a-f]{{12}}|mesh_group_\d+)"
+)
 
 # Service schema - device_id is optional when entity target is used
 SERVICE_SEND_COMMAND_SCHEMA = vol.Schema(

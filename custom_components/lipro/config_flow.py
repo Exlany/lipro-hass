@@ -29,6 +29,7 @@ from .const import (
     CONF_DEBUG_MODE,
     CONF_ENABLE_POWER_MONITORING,
     CONF_MQTT_ENABLED,
+    CONF_PASSWORD_HASH,
     CONF_PHONE,
     CONF_PHONE_ID,
     CONF_POWER_QUERY_INTERVAL,
@@ -56,9 +57,8 @@ from .core.api import LiproApiError, LiproAuthError, LiproClient, LiproConnectio
 
 _LOGGER = logging.getLogger(__name__)
 
-# Key for storing password MD5 hash instead of plain password
-# This improves security as the API accepts MD5 hash directly
-CONF_PASSWORD_HASH = "password_hash"
+# Options flow key for toggling advanced settings step
+_CONF_SHOW_ADVANCED = "show_advanced"
 
 
 def _hash_password(password: str) -> str:
@@ -321,7 +321,7 @@ class LiproOptionsFlow(OptionsFlow):
         """Manage basic options."""
         if user_input is not None:
             # Store basic options and check if user wants advanced settings
-            show_advanced = user_input.pop("show_advanced", False)
+            show_advanced = user_input.pop(_CONF_SHOW_ADVANCED, False)
             self._options.update(user_input)
 
             if show_advanced:
@@ -370,7 +370,7 @@ class LiproOptionsFlow(OptionsFlow):
                         ),
                     ): bool,
                     vol.Optional(
-                        "show_advanced",
+                        _CONF_SHOW_ADVANCED,
                         default=False,
                     ): bool,
                 },

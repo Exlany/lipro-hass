@@ -10,6 +10,7 @@ from typing import Any
 
 from ..const import (
     DEVICE_TYPE_MAP,
+    IOT_DEVICE_ID_PREFIX,
     IOT_NAME_TO_PHYSICAL_MODEL,
     PHYSICAL_MODEL_TO_DEVICE_TYPE,
     PROP_ACTIVATED,
@@ -63,10 +64,11 @@ from .anonymous_share import get_anonymous_share_manager
 
 _LOGGER = logging.getLogger(__name__)
 
-# IoT Device ID format: "03ab" + 12 hex chars (MAC without colons)
-# "03ab" is Lipro/Meizu manufacturer ID (939 in decimal)
+# IoT Device ID format: IOT_DEVICE_ID_PREFIX + 12 hex chars (MAC without colons)
 # Example: "03ab5ccd7cxxxxxx" (5ccd7c is Meizu's OUI)
-_IOT_DEVICE_ID_PATTERN = re.compile(r"^03ab[0-9a-f]{12}$")
+_IOT_DEVICE_ID_PATTERN = re.compile(
+    rf"^{re.escape(IOT_DEVICE_ID_PREFIX)}[0-9a-f]{{12}}$"
+)
 
 # Mesh group ID format: "mesh_group_" + digits (e.g., "mesh_group_10001")
 _MESH_GROUP_ID_PATTERN = re.compile(r"^mesh_group_\d+$")

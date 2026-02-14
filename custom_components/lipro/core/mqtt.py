@@ -510,5 +510,5 @@ class LiproMqttClient:
 
         except (json.JSONDecodeError, UnicodeDecodeError):
             _LOGGER.exception("Failed to decode MQTT payload")
-        except (TypeError, AttributeError):
-            _LOGGER.exception("Error processing message")
+        except TypeError:
+            _LOGGER.exception("Error processing MQTT message")

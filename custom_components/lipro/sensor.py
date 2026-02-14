@@ -29,6 +29,12 @@ if TYPE_CHECKING:
 # No parallel update limit needed for read-only sensors using coordinator
 PARALLEL_UPDATES = 0
 
+# WiFi signal strength thresholds (dBm) for icon selection
+_WIFI_RSSI_EXCELLENT = -50
+_WIFI_RSSI_GOOD = -60
+_WIFI_RSSI_FAIR = -70
+_WIFI_RSSI_WEAK = -80
+
 
 async def async_setup_entry(
     hass: HomeAssistant,
@@ -188,13 +194,13 @@ class LiproWifiSignalSensor(LiproSensor):
         rssi = self.device.wifi_rssi
         if rssi is None:
             return "mdi:wifi-off"
-        if rssi >= -50:
+        if rssi >= _WIFI_RSSI_EXCELLENT:
             return "mdi:wifi-strength-4"
-        if rssi >= -60:
+        if rssi >= _WIFI_RSSI_GOOD:
             return "mdi:wifi-strength-3"
-        if rssi >= -70:
+        if rssi >= _WIFI_RSSI_FAIR:
             return "mdi:wifi-strength-2"
-        if rssi >= -80:
+        if rssi >= _WIFI_RSSI_WEAK:
             return "mdi:wifi-strength-1"
         return "mdi:wifi-strength-alert-outline"
 
