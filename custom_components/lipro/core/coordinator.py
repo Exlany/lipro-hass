@@ -288,7 +288,7 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
             _LOGGER.debug(
                 "Skipping protected keys for device %s: %s",
                 device_serial[:8] + "...",  # Redact for privacy
-                protected_keys & set(properties.keys()),
+                protected_keys & properties.keys(),
             )
 
         return filtered
@@ -997,7 +997,7 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
             results = await asyncio.gather(*tasks, return_exceptions=True)
             # Log any exceptions that occurred
             for result in results:
-                if isinstance(result, Exception):
+                if isinstance(result, BaseException):
                     _LOGGER.debug("Task failed during status update: %s", result)
 
     def _should_query_power(self) -> bool:
