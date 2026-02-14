@@ -83,6 +83,9 @@ ATTR_TIMES = "times"
 ATTR_EVENTS = "events"
 ATTR_SCHEDULE_IDS = "schedule_ids"
 
+# Pre-compiled pattern for extracting device serial from entity unique_id
+_SERIAL_PATTERN = re.compile(r"(03ab[0-9a-f]{12}|mesh_group_\d+)")
+
 # Service schema - device_id is optional when entity target is used
 SERVICE_SEND_COMMAND_SCHEMA = vol.Schema(
     {
@@ -258,7 +261,7 @@ async def _get_device_and_coordinator(
                     # Extract serial from unique_id: "lipro_{serial}[_{suffix}]"
                     # Serial formats: "03ab" + 12 hex, or "mesh_group_" + digits
                     raw = unique_id[6:]
-                    match = re.match(r"(03ab[0-9a-f]{12}|mesh_group_\d+)", raw)
+                    match = _SERIAL_PATTERN.match(raw)
                     if match:
                         device_id = match.group(1)
                         break

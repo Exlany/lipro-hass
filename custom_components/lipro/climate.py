@@ -79,7 +79,6 @@ class LiproHeater(LiproEntity, ClimateEntity):
     _attr_temperature_unit = UnitOfTemperature.CELSIUS
     _attr_translation_key = "heater"
     _attr_name = None  # Use device name (heater is the primary entity)
-    _enable_turn_on_off_backwards_compatibility = False
 
     @property
     def hvac_mode(self) -> HVACMode:

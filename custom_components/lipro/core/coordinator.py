@@ -481,19 +481,19 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
                 session = async_get_clientsession(self.hass)
                 await share_manager.submit_report(session)
         except (OSError, TimeoutError):
-            _LOGGER.exception("Failed to submit anonymous share report on shutdown")
+            _LOGGER.warning("Failed to submit anonymous share report on shutdown")
 
         # Stop MQTT client
         try:
             await self.async_stop_mqtt()
         except (OSError, TimeoutError):
-            _LOGGER.exception("Failed to stop MQTT client on shutdown")
+            _LOGGER.warning("Failed to stop MQTT client on shutdown")
 
         # Close API client session
         try:
             await self.client.close()
         except (OSError, TimeoutError):
-            _LOGGER.exception("Failed to close API client on shutdown")
+            _LOGGER.warning("Failed to close API client on shutdown")
 
         # Clear all data structures to break circular references
         self._entities.clear()
