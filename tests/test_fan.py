@@ -98,7 +98,7 @@ class TestLiproFan:
         """Test translation_key is set for icons.json mapping."""
         from custom_components.lipro.fan import LiproFan
 
-        assert LiproFan._attr_translation_key == "fan"
+        assert LiproFan.__dict__["__attr_translation_key"] == "fan"
 
 
 class TestLiproFanPercentage:

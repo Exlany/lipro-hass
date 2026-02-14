@@ -39,7 +39,9 @@ class TestLiproConnectivitySensor:
         """Test translation_key is set for icons.json mapping."""
         from custom_components.lipro.binary_sensor import LiproConnectivitySensor
 
-        assert LiproConnectivitySensor._attr_translation_key == "connectivity"
+        assert (
+            LiproConnectivitySensor.__dict__["__attr_translation_key"] == "connectivity"
+        )
 
     @pytest.mark.skipif(
         not HAS_HA_TEST_ENV, reason="Requires HA test env for entity class import"
@@ -108,7 +110,7 @@ class TestLiproMotionSensor:
         """Test translation_key is set for icons.json mapping."""
         from custom_components.lipro.binary_sensor import LiproMotionSensor
 
-        assert LiproMotionSensor._attr_translation_key == "motion"
+        assert LiproMotionSensor.__dict__["__attr_translation_key"] == "motion"
 
     def test_is_body_sensor(self, make_device):
         """Test device is identified as body sensor."""
@@ -141,7 +143,7 @@ class TestLiproDoorSensor:
         """Test translation_key is set for icons.json mapping."""
         from custom_components.lipro.binary_sensor import LiproDoorSensor
 
-        assert LiproDoorSensor._attr_translation_key == "door"
+        assert LiproDoorSensor.__dict__["__attr_translation_key"] == "door"
 
     def test_is_door_sensor(self, make_device):
         """Test device is identified as door sensor."""
@@ -175,7 +177,7 @@ class TestLiproLightLevelSensor:
         from custom_components.lipro.binary_sensor import LiproLightLevelSensor
 
         assert LiproLightLevelSensor._invert is True
-        assert LiproLightLevelSensor._attr_translation_key == "light"
+        assert LiproLightLevelSensor.__dict__["__attr_translation_key"] == "light"
 
 
 class TestLiproBatteryLowSensor:
@@ -203,4 +205,4 @@ class TestLiproBatteryLowSensor:
         """Test translation_key is set for icons.json mapping."""
         from custom_components.lipro.binary_sensor import LiproBatteryLowSensor
 
-        assert LiproBatteryLowSensor._attr_translation_key == "battery"
+        assert LiproBatteryLowSensor.__dict__["__attr_translation_key"] == "battery"

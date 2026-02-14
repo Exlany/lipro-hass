@@ -81,7 +81,7 @@ class TestLiproHeaterTranslationKey:
         """Test translation_key is set for icons.json mapping."""
         from custom_components.lipro.climate import LiproHeater
 
-        assert LiproHeater._attr_translation_key == "heater"
+        assert LiproHeater.__dict__["__attr_translation_key"] == "heater"
 
 
 @pytest.mark.skipif(
