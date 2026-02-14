@@ -6,6 +6,7 @@ from .api import (
     LiproAuthError,
     LiproClient,
     LiproConnectionError,
+    LiproRateLimitError,
     LiproRefreshTokenExpiredError,
 )
 from .auth import LiproAuthManager
@@ -23,6 +24,7 @@ __all__ = [
     "LiproDataUpdateCoordinator",
     "LiproDevice",
     "LiproMqttClient",
+    "LiproRateLimitError",
     "LiproRefreshTokenExpiredError",
     "decrypt_mqtt_credential",
     "get_anonymous_share_manager",

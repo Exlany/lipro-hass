@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from homeassistant.components.select import SelectEntity
 
@@ -180,12 +180,12 @@ class LiproLightGearSelect(LiproSelect):
         return None
 
     @property
-    def extra_state_attributes(self) -> dict[str, str]:
+    def extra_state_attributes(self) -> dict[str, Any]:
         """Return extra state attributes showing gear details.
 
         Shows brightness and color temperature (in Kelvin) for each preset.
         """
-        attrs: dict[str, str] = {}
+        attrs: dict[str, Any] = {}
         gear_list = self.device.gear_list
 
         for i, gear in enumerate(gear_list[:3]):
