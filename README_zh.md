@@ -56,10 +56,34 @@ Home Assistant 集成，用于控制 Lipro 智能家居设备。
 3. 重启 Home Assistant
 4. 添加集成：设置 → 设备与服务 → 添加集成 → Lipro
 
+### 脚本安装（通过 SSH / Terminal & SSH 插件）
+
+```shell
+wget -O - https://raw.githubusercontent.com/Exlany/lipro-hass/main/install.sh | bash -
+
+# 安装最新版本
+wget -O - https://raw.githubusercontent.com/Exlany/lipro-hass/main/install.sh | ARCHIVE_TAG=latest bash -
+
+# 使用镜像加速（国内用户推荐）
+wget -O - https://raw.githubusercontent.com/Exlany/lipro-hass/main/install.sh | HUB_DOMAIN=ghfast.top bash -
+```
+
+### shell_command 服务
+
+1. 将以下内容添加到 `configuration.yaml`：
+    ```yaml
+    shell_command:
+      update_lipro: |-
+        wget -O - https://raw.githubusercontent.com/Exlany/lipro-hass/main/install.sh | bash -
+    ```
+2. 重启 Home Assistant
+3. 在开发者工具中调用 `service: shell_command.update_lipro`
+4. 再次重启 Home Assistant
+
 ### 手动安装
 
-1. 下载最新版本的 `lipro` 文件夹
-2. 复制到 `config/custom_components/` 目录
+1. 从 [Releases](https://github.com/Exlany/lipro-hass/releases) 下载最新版本
+2. 将 `custom_components/lipro` 文件夹复制到 `config/custom_components/` 目录
 3. 重启 Home Assistant
 
 ## 配置
