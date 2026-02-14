@@ -94,9 +94,12 @@ MAX_PENDING_DEVICES: Final = 20
 MIN_UPLOAD_INTERVAL: Final = 3600  # 1 hour
 
 # Sanitization limits for privacy-preserving data truncation
-_MAX_LIST_ITEMS = 50  # Max items when sanitizing lists
-_MAX_STRING_LENGTH = 500  # Strings longer than this are truncated
-_TRUNCATED_STRING_PREFIX_LENGTH = 200  # Keep this many chars when truncating
+_MAX_LIST_ITEMS: Final = 50  # Max items when sanitizing lists
+_MAX_STRING_LENGTH: Final = 500  # Strings longer than this are truncated
+_TRUNCATED_STRING_PREFIX_LENGTH: Final = 200  # Keep this many chars when truncating
+
+# Auto-upload interval: force upload if no upload in 24 hours
+AUTO_UPLOAD_INTERVAL: Final = MIN_UPLOAD_INTERVAL * 24  # 24 hours
 
 
 @dataclass
@@ -851,7 +854,7 @@ class AnonymousShareManager:
         should_upload = (
             device_count >= MAX_PENDING_DEVICES
             or error_count >= MAX_PENDING_ERRORS
-            or (time.time() - self._last_upload_time) > MIN_UPLOAD_INTERVAL * 24
+            or (time.time() - self._last_upload_time) > AUTO_UPLOAD_INTERVAL
         )
 
         if should_upload:
