@@ -14,7 +14,7 @@ send_command:
         The device serial number. If not provided, the device will be
         determined from the target entity.
       required: false
-      example: "a4c138123456"
+      example: "03ab5ccd7c123456"
       selector:
         text:
     command:
@@ -62,7 +62,7 @@ get_schedules:
         The device serial number. If not provided, the device will be
         determined from the target entity.
       required: false
-      example: "a4c138123456"
+      example: "03ab5ccd7c123456"
       selector:
         text:
 
@@ -82,7 +82,7 @@ add_schedule:
         The device serial number. If not provided, the device will be
         determined from the target entity.
       required: false
-      example: "a4c138123456"
+      example: "03ab5ccd7c123456"
       selector:
         text:
     days:
@@ -144,7 +144,7 @@ delete_schedules:
         The device serial number. If not provided, the device will be
         determined from the target entity.
       required: false
-      example: "a4c138123456"
+      example: "03ab5ccd7c123456"
       selector:
         text:
     schedule_ids:

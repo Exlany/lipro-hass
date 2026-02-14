@@ -37,6 +37,15 @@
         }
       }
     },
+    "light": {
+      "light": {
+        "default": "mdi:ceiling-light",
+        "state": {
+          "on": "mdi:ceiling-light",
+          "off": "mdi:ceiling-light-outline"
+        }
+      }
+    },
     "fan": {
       "fan": {
         "default": "mdi:fan",
