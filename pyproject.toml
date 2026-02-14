@@ -19,8 +19,6 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Topic :: Home Automation",
 ]
@@ -80,7 +78,7 @@ ignore_missing_imports = true
 [tool.ruff]
 # Match Home Assistant Core's ruff configuration (2026.2)
 required-version = ">=0.14.13"
-target-version = "py312"
+target-version = "py313"
 
 [tool.ruff.lint]
 # Following Home Assistant Core's ruff configuration (2026.2)

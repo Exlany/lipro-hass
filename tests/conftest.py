@@ -219,7 +219,7 @@ if HAS_HA_TEST_ENV:
     @pytest.fixture(autouse=True)
     def auto_enable_custom_integrations(
         enable_custom_integrations: None,
-    ) -> Generator[None, None, None]:
+    ) -> Generator[None]:
         """Enable custom integrations for all tests."""
         return
 
@@ -228,7 +228,7 @@ if HAS_HA_TEST_ENV:
 
 
 @pytest.fixture
-def mock_setup_entry() -> Generator[AsyncMock, None, None]:
+def mock_setup_entry() -> Generator[AsyncMock]:
     """Override async_setup_entry."""
     with patch(
         "custom_components.lipro.async_setup_entry",
@@ -238,7 +238,7 @@ def mock_setup_entry() -> Generator[AsyncMock, None, None]:
 
 
 @pytest.fixture
-def mock_lipro_client() -> Generator[MagicMock, None, None]:
+def mock_lipro_client() -> Generator[MagicMock]:
     """Create a mock LiproClient."""
     with patch(
         "custom_components.lipro.config_flow.LiproClient",
@@ -258,7 +258,7 @@ def mock_lipro_client() -> Generator[MagicMock, None, None]:
 
 
 @pytest.fixture
-def mock_lipro_client_auth_error() -> Generator[MagicMock, None, None]:
+def mock_lipro_client_auth_error() -> Generator[MagicMock]:
     """Create a mock LiproClient that raises auth error."""
     with patch(
         "custom_components.lipro.config_flow.LiproClient",
@@ -274,7 +274,7 @@ def mock_lipro_client_auth_error() -> Generator[MagicMock, None, None]:
 
 
 @pytest.fixture
-def mock_lipro_client_connection_error() -> Generator[MagicMock, None, None]:
+def mock_lipro_client_connection_error() -> Generator[MagicMock]:
     """Create a mock LiproClient that raises connection error."""
     with patch(
         "custom_components.lipro.config_flow.LiproClient",
