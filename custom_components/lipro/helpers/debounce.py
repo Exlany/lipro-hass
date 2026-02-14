@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Final
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Coroutine
@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 _LOGGER = logging.getLogger(__name__)
 
 # Default debounce delay in seconds
-DEFAULT_DEBOUNCE_DELAY = 0.5
+DEFAULT_DEBOUNCE_DELAY: Final = 0.5
 
 
 class Debouncer:

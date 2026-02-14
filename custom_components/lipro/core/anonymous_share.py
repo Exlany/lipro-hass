@@ -17,7 +17,7 @@ import logging
 from pathlib import Path
 import re
 import time
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Final
 
 import aiohttp
 
@@ -58,11 +58,11 @@ _RE_DEVICE_ID_EXACT = re.compile(r"^03ab[0-9a-f]{12}$")
 _RE_TOKEN_LIKE = re.compile(r"^[a-zA-Z0-9_-]{32,}$")
 
 # Anonymous share server endpoint
-SHARE_URL = "https://lipro-share.lany.me/api/report"
-SHARE_API_KEY = "lipro-ha-share-2026"
+SHARE_URL: Final = "https://lipro-share.lany.me/api/report"
+SHARE_API_KEY: Final = "lipro-ha-share-2026"
 
 # Keys to always redact from reports
-REDACT_KEYS = frozenset(
+REDACT_KEYS: Final = frozenset(
     {
         "deviceId",
         "serial",
@@ -87,11 +87,11 @@ REDACT_KEYS = frozenset(
 _REDACT_KEYS_LOWER: frozenset[str] = frozenset(k.lower() for k in REDACT_KEYS)
 
 # Maximum items to keep in memory before forcing upload
-MAX_PENDING_ERRORS = 50
-MAX_PENDING_DEVICES = 20
+MAX_PENDING_ERRORS: Final = 50
+MAX_PENDING_DEVICES: Final = 20
 
 # Minimum interval between uploads (seconds)
-MIN_UPLOAD_INTERVAL = 3600  # 1 hour
+MIN_UPLOAD_INTERVAL: Final = 3600  # 1 hour
 
 # Sanitization limits for privacy-preserving data truncation
 _MAX_LIST_ITEMS = 50  # Max items when sanitizing lists
@@ -668,7 +668,7 @@ class AnonymousShareManager:
             return "[redacted]"
 
         # Keep numeric values as-is
-        if isinstance(value, (int, float, bool)):
+        if isinstance(value, int | float | bool):
             return value
 
         # Truncate very long strings

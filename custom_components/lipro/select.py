@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Final
 
 from homeassistant.components.select import SelectEntity
 
@@ -33,24 +33,24 @@ _LOGGER = logging.getLogger(__name__)
 PARALLEL_UPDATES = 1
 
 # Wind direction mode options
-WIND_DIRECTION_OPTIONS = ["auto", "fixed"]
-WIND_DIRECTION_TO_VALUE = {
+WIND_DIRECTION_OPTIONS: Final = ["auto", "fixed"]
+WIND_DIRECTION_TO_VALUE: Final = {
     "auto": WIND_DIRECTION_AUTO,
     "fixed": WIND_DIRECTION_FIX,
 }
-VALUE_TO_WIND_DIRECTION = {v: k for k, v in WIND_DIRECTION_TO_VALUE.items()}
+VALUE_TO_WIND_DIRECTION: Final = {v: k for k, v in WIND_DIRECTION_TO_VALUE.items()}
 
 # Light mode options for heater
-LIGHT_MODE_OPTIONS = ["off", "main", "night"]
-LIGHT_MODE_TO_VALUE = {
+LIGHT_MODE_OPTIONS: Final = ["off", "main", "night"]
+LIGHT_MODE_TO_VALUE: Final = {
     "off": HEATER_LIGHT_OFF,
     "main": HEATER_LIGHT_MAIN,
     "night": HEATER_LIGHT_NIGHT,
 }
-VALUE_TO_LIGHT_MODE = {v: k for k, v in LIGHT_MODE_TO_VALUE.items()}
+VALUE_TO_LIGHT_MODE: Final = {v: k for k, v in LIGHT_MODE_TO_VALUE.items()}
 
 # Light gear preset options (max 3)
-GEAR_OPTIONS = ["gear_1", "gear_2", "gear_3"]
+GEAR_OPTIONS: Final = ["gear_1", "gear_2", "gear_3"]
 
 # Descriptive names for gear presets (used in extra_state_attributes)
 _GEAR_PRESET_NAMES: tuple[str, ...] = ("warm", "neutral", "cool")

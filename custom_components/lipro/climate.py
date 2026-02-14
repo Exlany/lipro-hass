@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Final
 
 from homeassistant.components.climate import (
     ClimateEntity,
@@ -35,21 +35,21 @@ if TYPE_CHECKING:
 PARALLEL_UPDATES = 1
 
 # Preset modes
-PRESET_DEFAULT = "default"
-PRESET_DEMIST = "demist"
-PRESET_DRY = "dry"
-PRESET_GENTLE_WIND = "gentle_wind"
+PRESET_DEFAULT: Final = "default"
+PRESET_DEMIST: Final = "demist"
+PRESET_DRY: Final = "dry"
+PRESET_GENTLE_WIND: Final = "gentle_wind"
 
-PRESET_MODES = [PRESET_DEFAULT, PRESET_DEMIST, PRESET_DRY, PRESET_GENTLE_WIND]
+PRESET_MODES: Final = [PRESET_DEFAULT, PRESET_DEMIST, PRESET_DRY, PRESET_GENTLE_WIND]
 
-MODE_TO_PRESET = {
+MODE_TO_PRESET: Final = {
     HEATER_MODE_DEFAULT: PRESET_DEFAULT,
     HEATER_MODE_DEMIST: PRESET_DEMIST,
     HEATER_MODE_DRY: PRESET_DRY,
     HEATER_MODE_GENTLE_WIND: PRESET_GENTLE_WIND,
 }
 
-PRESET_TO_MODE = {v: k for k, v in MODE_TO_PRESET.items()}
+PRESET_TO_MODE: Final = {v: k for k, v in MODE_TO_PRESET.items()}
 
 
 async def async_setup_entry(

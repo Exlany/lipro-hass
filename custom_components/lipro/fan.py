@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import math
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Final
 
 from homeassistant.components.fan import FanEntity, FanEntityFeature
 from homeassistant.util.percentage import (
@@ -37,34 +37,34 @@ if TYPE_CHECKING:
 PARALLEL_UPDATES = 1
 
 # Preset modes for fan light
-PRESET_MODE_NATURAL = "natural"
-PRESET_MODE_SLEEP = "sleep"
-PRESET_MODE_NORMAL = "normal"
+PRESET_MODE_NATURAL: Final = "natural"
+PRESET_MODE_SLEEP: Final = "sleep"
+PRESET_MODE_NORMAL: Final = "normal"
 
-PRESET_MODES = [PRESET_MODE_NATURAL, PRESET_MODE_SLEEP, PRESET_MODE_NORMAL]
+PRESET_MODES: Final = [PRESET_MODE_NATURAL, PRESET_MODE_SLEEP, PRESET_MODE_NORMAL]
 
-MODE_TO_PRESET = {
+MODE_TO_PRESET: Final = {
     FAN_MODE_NATURAL: PRESET_MODE_NATURAL,
     FAN_MODE_SLEEP: PRESET_MODE_SLEEP,
     FAN_MODE_NORMAL: PRESET_MODE_NORMAL,
 }
 
-PRESET_TO_MODE = {v: k for k, v in MODE_TO_PRESET.items()}
+PRESET_TO_MODE: Final = {v: k for k, v in MODE_TO_PRESET.items()}
 
 # Preset modes for heater ventilation fan
-PRESET_VENT_OFF = "off"
-PRESET_VENT_STRONG = "strong"
-PRESET_VENT_WEAK = "weak"
+PRESET_VENT_OFF: Final = "off"
+PRESET_VENT_STRONG: Final = "strong"
+PRESET_VENT_WEAK: Final = "weak"
 
-VENT_PRESET_MODES = [PRESET_VENT_STRONG, PRESET_VENT_WEAK]
+VENT_PRESET_MODES: Final = [PRESET_VENT_STRONG, PRESET_VENT_WEAK]
 
-AERATION_TO_PRESET = {
+AERATION_TO_PRESET: Final = {
     AERATION_OFF: PRESET_VENT_OFF,
     AERATION_STRONG: PRESET_VENT_STRONG,
     AERATION_WEAK: PRESET_VENT_WEAK,
 }
 
-PRESET_TO_AERATION = {v: k for k, v in AERATION_TO_PRESET.items()}
+PRESET_TO_AERATION: Final = {v: k for k, v in AERATION_TO_PRESET.items()}
 
 
 async def async_setup_entry(

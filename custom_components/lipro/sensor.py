@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Final
 
 from homeassistant.components.sensor import (
     SensorDeviceClass,
@@ -30,10 +30,10 @@ if TYPE_CHECKING:
 PARALLEL_UPDATES = 0
 
 # WiFi signal strength thresholds (dBm) for icon selection
-_WIFI_RSSI_EXCELLENT = -50
-_WIFI_RSSI_GOOD = -60
-_WIFI_RSSI_FAIR = -70
-_WIFI_RSSI_WEAK = -80
+_WIFI_RSSI_EXCELLENT: Final = -50
+_WIFI_RSSI_GOOD: Final = -60
+_WIFI_RSSI_FAIR: Final = -70
+_WIFI_RSSI_WEAK: Final = -80
 
 
 async def async_setup_entry(

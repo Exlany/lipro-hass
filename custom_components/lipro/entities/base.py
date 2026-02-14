@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 from time import monotonic
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Final
 
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
@@ -20,11 +20,11 @@ _LOGGER = logging.getLogger(__name__)
 
 # Time window (seconds) after debounced command during which
 # coordinator updates should not overwrite optimistic state
-DEBOUNCE_PROTECTION_WINDOW = 2.0
+DEBOUNCE_PROTECTION_WINDOW: Final = 2.0
 
 # Small buffer (seconds) after command is sent before clearing protection,
 # allowing the cloud response to arrive
-_POST_COMMAND_PROTECTION_BUFFER = 1.0
+_POST_COMMAND_PROTECTION_BUFFER: Final = 1.0
 
 
 class LiproEntity(CoordinatorEntity[LiproDataUpdateCoordinator]):

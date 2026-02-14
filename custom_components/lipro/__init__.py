@@ -5,7 +5,7 @@ from __future__ import annotations
 import functools
 import logging
 import re
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Final
 
 import voluptuous as vol
 
@@ -69,20 +69,20 @@ PLATFORMS: list[Platform] = [
 type LiproConfigEntry = ConfigEntry[LiproDataUpdateCoordinator]
 
 # Service constants
-SERVICE_SEND_COMMAND = "send_command"
-SERVICE_GET_SCHEDULES = "get_schedules"
-SERVICE_ADD_SCHEDULE = "add_schedule"
-SERVICE_DELETE_SCHEDULES = "delete_schedules"
-SERVICE_SUBMIT_ANONYMOUS_SHARE = "submit_anonymous_share"
-SERVICE_GET_ANONYMOUS_SHARE_REPORT = "get_anonymous_share_report"
+SERVICE_SEND_COMMAND: Final = "send_command"
+SERVICE_GET_SCHEDULES: Final = "get_schedules"
+SERVICE_ADD_SCHEDULE: Final = "add_schedule"
+SERVICE_DELETE_SCHEDULES: Final = "delete_schedules"
+SERVICE_SUBMIT_ANONYMOUS_SHARE: Final = "submit_anonymous_share"
+SERVICE_GET_ANONYMOUS_SHARE_REPORT: Final = "get_anonymous_share_report"
 
-ATTR_DEVICE_ID = "device_id"
-ATTR_COMMAND = "command"
-ATTR_PROPERTIES = "properties"
-ATTR_DAYS = "days"
-ATTR_TIMES = "times"
-ATTR_EVENTS = "events"
-ATTR_SCHEDULE_IDS = "schedule_ids"
+ATTR_DEVICE_ID: Final = "device_id"
+ATTR_COMMAND: Final = "command"
+ATTR_PROPERTIES: Final = "properties"
+ATTR_DAYS: Final = "days"
+ATTR_TIMES: Final = "times"
+ATTR_EVENTS: Final = "events"
+ATTR_SCHEDULE_IDS: Final = "schedule_ids"
 
 # Pre-compiled pattern for extracting device serial from entity unique_id
 _SERIAL_PATTERN = re.compile(

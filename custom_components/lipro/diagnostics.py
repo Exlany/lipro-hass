@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Final
 
 from homeassistant.components.diagnostics import async_redact_data
 
@@ -24,7 +24,7 @@ if TYPE_CHECKING:
 # Keys to redact from diagnostics
 # Note: Both snake_case (internal storage) and camelCase (API response) formats
 # are included because async_redact_data may encounter either format.
-TO_REDACT = {
+TO_REDACT: Final = {
     # Auth & identity
     CONF_PHONE,
     CONF_PHONE_ID,
@@ -50,7 +50,7 @@ TO_REDACT = {
 }
 
 # Keys to redact from device properties
-PROPERTY_KEYS_TO_REDACT = {
+PROPERTY_KEYS_TO_REDACT: Final = {
     PROP_MAC,
     PROP_IP,
     PROP_BLE_MAC,
