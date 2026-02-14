@@ -26,7 +26,7 @@
         "default": "mdi:brightness-6",
         "state": {
           "on": "mdi:brightness-7",
-          "off": "mdi:brightness-5"
+          "off": "mdi:brightness-3"
         }
       },
       "battery": {
@@ -100,27 +100,56 @@
         }
       },
       "fade": {
-        "default": "mdi:transition"
+        "default": "mdi:transition",
+        "state": {
+          "on": "mdi:transition",
+          "off": "mdi:transition-masked"
+        }
       },
       "sleep_aid": {
-        "default": "mdi:sleep"
+        "default": "mdi:sleep",
+        "state": {
+          "on": "mdi:sleep",
+          "off": "mdi:sleep-off"
+        }
       },
       "wake_up": {
-        "default": "mdi:weather-sunny"
+        "default": "mdi:weather-sunny",
+        "state": {
+          "on": "mdi:weather-sunny",
+          "off": "mdi:weather-sunny-off"
+        }
       },
       "focus_mode": {
-        "default": "mdi:head-lightbulb"
+        "default": "mdi:head-lightbulb",
+        "state": {
+          "on": "mdi:head-lightbulb",
+          "off": "mdi:head-lightbulb-outline"
+        }
       },
       "body_reactive": {
-        "default": "mdi:motion-sensor"
+        "default": "mdi:motion-sensor",
+        "state": {
+          "on": "mdi:motion-sensor",
+          "off": "mdi:motion-sensor-off"
+        }
       }
     },
     "select": {
       "wind_direction": {
-        "default": "mdi:rotate-3d-variant"
+        "default": "mdi:rotate-3d-variant",
+        "state": {
+          "auto": "mdi:rotate-3d-variant",
+          "fixed": "mdi:arrow-down"
+        }
       },
       "heater_light": {
-        "default": "mdi:lightbulb"
+        "default": "mdi:lightbulb-off",
+        "state": {
+          "off": "mdi:lightbulb-off",
+          "main": "mdi:lightbulb",
+          "night": "mdi:lightbulb-night"
+        }
       },
       "light_gear": {
         "default": "mdi:tune-variant"

@@ -238,6 +238,8 @@ class LiproConfigFlow(ConfigFlow, domain=DOMAIN):
 
             except LiproApiError as err:
                 errors["base"] = _map_login_error(err)
+            except AbortFlow:
+                raise
             except Exception:
                 _LOGGER.exception("Unexpected error during reauth")
                 errors["base"] = "unknown"

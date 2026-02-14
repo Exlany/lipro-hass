@@ -89,13 +89,6 @@ class LiproHeater(LiproEntity, ClimateEntity):
         return HVACMode.OFF
 
     @property
-    def icon(self) -> str:
-        """Return the icon based on heater state."""
-        if self.hvac_mode == HVACMode.HEAT:
-            return "mdi:radiator"
-        return "mdi:radiator-off"
-
-    @property
     def preset_mode(self) -> str | None:
         """Return current preset mode."""
         mode = self.device.heater_mode

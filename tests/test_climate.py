@@ -74,24 +74,14 @@ class TestLiproHeaterHvacMode:
 @pytest.mark.skipif(
     not HAS_HA_TEST_ENV, reason="Requires HA test env for entity class import"
 )
-class TestLiproHeaterIcon:
-    """Tests for heater icon logic."""
+class TestLiproHeaterTranslationKey:
+    """Tests for heater translation_key (icons managed via icons.json)."""
 
-    def test_icon_heating(self, make_device, mock_coordinator):
-        """Test icon when heating."""
+    def test_translation_key(self, make_device, mock_coordinator):
+        """Test translation_key is set for icons.json mapping."""
         from custom_components.lipro.climate import LiproHeater
 
-        device = make_device("heater", properties={"heaterSwitch": "1"})
-        heater = LiproHeater(mock_coordinator, device)
-        assert heater.icon == "mdi:radiator"
-
-    def test_icon_off(self, make_device, mock_coordinator):
-        """Test icon when off."""
-        from custom_components.lipro.climate import LiproHeater
-
-        device = make_device("heater", properties={"heaterSwitch": "0"})
-        heater = LiproHeater(mock_coordinator, device)
-        assert heater.icon == "mdi:radiator-off"
+        assert LiproHeater._attr_translation_key == "heater"
 
 
 @pytest.mark.skipif(

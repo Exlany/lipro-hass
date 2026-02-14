@@ -92,13 +92,6 @@ class LiproHeaterWindDirectionSelect(LiproSelect):
         mode = self.device.wind_direction_mode
         return VALUE_TO_WIND_DIRECTION.get(mode, "auto")
 
-    @property
-    def icon(self) -> str:
-        """Return the icon based on wind direction."""
-        if self.current_option == "auto":
-            return "mdi:rotate-3d-variant"
-        return "mdi:arrow-down"
-
     async def async_select_option(self, option: str) -> None:
         """Set the wind direction mode."""
         value = WIND_DIRECTION_TO_VALUE.get(option, WIND_DIRECTION_AUTO)
@@ -121,16 +114,6 @@ class LiproHeaterLightModeSelect(LiproSelect):
         """Return the current light mode."""
         mode = self.device.light_mode
         return VALUE_TO_LIGHT_MODE.get(mode, "off")
-
-    @property
-    def icon(self) -> str:
-        """Return the icon based on light mode."""
-        mode = self.current_option
-        if mode == "main":
-            return "mdi:lightbulb"
-        if mode == "night":
-            return "mdi:lightbulb-night"
-        return "mdi:lightbulb-off"
 
     async def async_select_option(self, option: str) -> None:
         """Set the light mode."""
@@ -195,11 +178,6 @@ class LiproLightGearSelect(LiproSelect):
 
         # No match - return None to indicate custom/unknown state
         return None
-
-    @property
-    def icon(self) -> str:
-        """Return the icon."""
-        return "mdi:tune-variant"
 
     @property
     def extra_state_attributes(self) -> dict[str, str]:

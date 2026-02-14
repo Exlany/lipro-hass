@@ -35,12 +35,11 @@ class TestLiproConnectivitySensor:
     @pytest.mark.skipif(
         not HAS_HA_TEST_ENV, reason="Requires HA test env for entity class import"
     )
-    def test_icon_class_attributes(self):
-        """Test icon class attributes match expected values."""
+    def test_translation_key(self):
+        """Test translation_key is set for icons.json mapping."""
         from custom_components.lipro.binary_sensor import LiproConnectivitySensor
 
-        assert LiproConnectivitySensor._icon_on == "mdi:lan-connect"
-        assert LiproConnectivitySensor._icon_off == "mdi:lan-disconnect"
+        assert LiproConnectivitySensor._attr_translation_key == "connectivity"
 
     @pytest.mark.skipif(
         not HAS_HA_TEST_ENV, reason="Requires HA test env for entity class import"
@@ -105,12 +104,11 @@ class TestLiproMotionSensor:
     @pytest.mark.skipif(
         not HAS_HA_TEST_ENV, reason="Requires HA test env for entity class import"
     )
-    def test_icon_class_attributes(self):
-        """Test icon class attributes match expected values."""
+    def test_translation_key(self):
+        """Test translation_key is set for icons.json mapping."""
         from custom_components.lipro.binary_sensor import LiproMotionSensor
 
-        assert LiproMotionSensor._icon_on == "mdi:motion-sensor"
-        assert LiproMotionSensor._icon_off == "mdi:motion-sensor-off"
+        assert LiproMotionSensor._attr_translation_key == "motion"
 
     def test_is_body_sensor(self, make_device):
         """Test device is identified as body sensor."""
@@ -139,12 +137,11 @@ class TestLiproDoorSensor:
     @pytest.mark.skipif(
         not HAS_HA_TEST_ENV, reason="Requires HA test env for entity class import"
     )
-    def test_icon_class_attributes(self):
-        """Test icon class attributes match expected values."""
+    def test_translation_key(self):
+        """Test translation_key is set for icons.json mapping."""
         from custom_components.lipro.binary_sensor import LiproDoorSensor
 
-        assert LiproDoorSensor._icon_on == "mdi:door-open"
-        assert LiproDoorSensor._icon_off == "mdi:door-closed"
+        assert LiproDoorSensor._attr_translation_key == "door"
 
     def test_is_door_sensor(self, make_device):
         """Test device is identified as door sensor."""
@@ -173,13 +170,12 @@ class TestLiproLightLevelSensor:
     @pytest.mark.skipif(
         not HAS_HA_TEST_ENV, reason="Requires HA test env for entity class import"
     )
-    def test_icon_and_invert_class_attributes(self):
-        """Test icon and _invert class attributes match expected values."""
+    def test_invert_class_attribute(self):
+        """Test _invert class attribute is set for inverted light level logic."""
         from custom_components.lipro.binary_sensor import LiproLightLevelSensor
 
-        assert LiproLightLevelSensor._icon_on == "mdi:brightness-7"
-        assert LiproLightLevelSensor._icon_off == "mdi:brightness-3"
         assert LiproLightLevelSensor._invert is True
+        assert LiproLightLevelSensor._attr_translation_key == "light"
 
 
 class TestLiproBatteryLowSensor:
@@ -203,9 +199,8 @@ class TestLiproBatteryLowSensor:
     @pytest.mark.skipif(
         not HAS_HA_TEST_ENV, reason="Requires HA test env for entity class import"
     )
-    def test_icon_class_attributes(self):
-        """Test icon class attributes match expected values."""
+    def test_translation_key(self):
+        """Test translation_key is set for icons.json mapping."""
         from custom_components.lipro.binary_sensor import LiproBatteryLowSensor
 
-        assert LiproBatteryLowSensor._icon_on == "mdi:battery-alert"
-        assert LiproBatteryLowSensor._icon_off == "mdi:battery"
+        assert LiproBatteryLowSensor._attr_translation_key == "battery"

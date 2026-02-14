@@ -121,11 +121,6 @@ class LiproFan(LiproEntity, FanEntity):
         return self.device.fan_is_on
 
     @property
-    def icon(self) -> str:
-        """Return the icon based on fan state."""
-        return "mdi:fan" if self.is_on else "mdi:fan-off"
-
-    @property
     def percentage(self) -> int | None:
         """Return the current speed percentage."""
         if not self.is_on:
@@ -231,11 +226,6 @@ class LiproHeaterVentFan(LiproEntity, FanEntity):
     def is_on(self) -> bool:
         """Return true if ventilation fan is on."""
         return self.device.aeration_is_on
-
-    @property
-    def icon(self) -> str:
-        """Return the icon based on fan state."""
-        return "mdi:fan" if self.is_on else "mdi:fan-off"
 
     @property
     def preset_mode(self) -> str | None:

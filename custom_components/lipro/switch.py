@@ -97,13 +97,6 @@ class LiproSwitch(LiproEntity, SwitchEntity):
         """Return true if switch is on."""
         return self.device.is_on
 
-    @property
-    def icon(self) -> str:
-        """Return the icon based on switch state and type."""
-        if self._attr_device_class == SwitchDeviceClass.OUTLET:
-            return "mdi:power-plug" if self.is_on else "mdi:power-plug-off"
-        return "mdi:toggle-switch" if self.is_on else "mdi:toggle-switch-off"
-
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn on the switch."""
         await self.async_send_command(CMD_POWER_ON, None, {PROP_POWER_STATE: "1"})
@@ -120,25 +113,19 @@ class LiproPropertySwitch(LiproEntity, SwitchEntity):
     - _entity_suffix: Unique ID suffix for the entity
     - _property_key: The property key to control
     - _device_property: The device property name to read state from
-    - _icon_on / _icon_off: Icons for on/off states
     - _attr_translation_key: Translation key for i18n
+
+    Icons are managed declaratively via icons.json (HA best practice).
     """
 
     _attr_entity_category = EntityCategory.CONFIG
     _property_key: str
     _device_property: str
-    _icon_on: str
-    _icon_off: str
 
     @property
     def is_on(self) -> bool:
         """Return true if the feature is enabled."""
         return bool(getattr(self.device, self._device_property, False))
-
-    @property
-    def icon(self) -> str:
-        """Return the icon based on state."""
-        return self._icon_on if self.is_on else self._icon_off
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Enable the feature."""
@@ -168,8 +155,6 @@ class LiproFadeSwitch(LiproPropertySwitch):
     _entity_suffix = "fade"
     _property_key = PROP_FADE_STATE
     _device_property = "fade_state"
-    _icon_on = "mdi:transition"
-    _icon_off = "mdi:transition-masked"
 
 
 class LiproSleepAidSwitch(LiproPropertySwitch):
@@ -183,8 +168,6 @@ class LiproSleepAidSwitch(LiproPropertySwitch):
     _entity_suffix = "sleep_aid"
     _property_key = PROP_SLEEP_AID_ENABLE
     _device_property = "sleep_aid_enabled"
-    _icon_on = "mdi:sleep"
-    _icon_off = "mdi:sleep-off"
 
 
 class LiproWakeUpSwitch(LiproPropertySwitch):
@@ -198,8 +181,6 @@ class LiproWakeUpSwitch(LiproPropertySwitch):
     _entity_suffix = "wake_up"
     _property_key = PROP_WAKE_UP_ENABLE
     _device_property = "wake_up_enabled"
-    _icon_on = "mdi:weather-sunny"
-    _icon_off = "mdi:weather-sunny-off"
 
 
 class LiproFocusModeSwitch(LiproPropertySwitch):
@@ -213,8 +194,6 @@ class LiproFocusModeSwitch(LiproPropertySwitch):
     _entity_suffix = "focus_mode"
     _property_key = PROP_FOCUS_MODE
     _device_property = "focus_mode_enabled"
-    _icon_on = "mdi:head-lightbulb"
-    _icon_off = "mdi:head-lightbulb-outline"
 
 
 class LiproBodyReactiveSwitch(LiproPropertySwitch):
@@ -228,5 +207,3 @@ class LiproBodyReactiveSwitch(LiproPropertySwitch):
     _entity_suffix = "body_reactive"
     _property_key = PROP_BODY_REACTIVE
     _device_property = "body_reactive_enabled"
-    _icon_on = "mdi:motion-sensor"
-    _icon_off = "mdi:motion-sensor-off"

@@ -94,24 +94,11 @@ class TestLiproFan:
     @pytest.mark.skipif(
         not HAS_HA_TEST_ENV, reason="Requires HA test env for entity class import"
     )
-    def test_icon_on(self, make_device, mock_coordinator):
-        """Test icon when fan is on."""
+    def test_translation_key(self, make_device, mock_coordinator):
+        """Test translation_key is set for icons.json mapping."""
         from custom_components.lipro.fan import LiproFan
 
-        device = make_device("fanLight", properties={"fanOnoff": "1"})
-        fan = LiproFan(mock_coordinator, device)
-        assert fan.icon == "mdi:fan"
-
-    @pytest.mark.skipif(
-        not HAS_HA_TEST_ENV, reason="Requires HA test env for entity class import"
-    )
-    def test_icon_off(self, make_device, mock_coordinator):
-        """Test icon when fan is off."""
-        from custom_components.lipro.fan import LiproFan
-
-        device = make_device("fanLight", properties={"fanOnoff": "0"})
-        fan = LiproFan(mock_coordinator, device)
-        assert fan.icon == "mdi:fan-off"
+        assert LiproFan._attr_translation_key == "fan"
 
 
 class TestLiproFanPercentage:
