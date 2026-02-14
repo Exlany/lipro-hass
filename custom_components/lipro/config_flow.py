@@ -156,6 +156,38 @@ class LiproConfigFlow(ConfigFlow, domain=DOMAIN):
             biz_id=result.get(CONF_BIZ_ID),
         )
 
+    async def _async_try_login(
+        self,
+        phone: str,
+        password_hash: str,
+        phone_id: str,
+        errors: dict[str, str],
+        context_name: str,
+    ) -> LoginResult | None:
+        """Attempt login and populate errors dict on failure.
+
+        Args:
+            phone: Phone number.
+            password_hash: MD5 hashed password.
+            phone_id: Device UUID.
+            errors: Dict to populate with error keys on failure.
+            context_name: Name for logging (e.g. "login", "reauth").
+
+        Returns:
+            LoginResult on success, None on failure.
+
+        """
+        try:
+            return await self._async_do_login(phone, password_hash, phone_id)
+        except LiproApiError as err:
+            errors["base"] = _map_login_error(err)
+        except AbortFlow:
+            raise
+        except Exception:
+            _LOGGER.exception("Unexpected error during %s", context_name)
+            errors["base"] = "unknown"
+        return None
+
     async def async_step_user(
         self,
         user_input: dict[str, Any] | None = None,
@@ -168,11 +200,10 @@ class LiproConfigFlow(ConfigFlow, domain=DOMAIN):
             password_hash = _hash_password(user_input[CONF_PASSWORD])
             phone_id = str(uuid.uuid4())
 
-            try:
-                login_result = await self._async_do_login(
-                    phone, password_hash, phone_id
-                )
-
+            login_result = await self._async_try_login(
+                phone, password_hash, phone_id, errors, "login"
+            )
+            if login_result is not None:
                 await self.async_set_unique_id(f"lipro_{login_result.user_id}")
                 self._abort_if_unique_id_configured()
 
@@ -180,14 +211,6 @@ class LiproConfigFlow(ConfigFlow, domain=DOMAIN):
                     title=f"Lipro ({phone})",
                     data=login_result.to_entry_data(phone, password_hash, phone_id),
                 )
-
-            except LiproApiError as err:
-                errors["base"] = _map_login_error(err)
-            except AbortFlow:
-                raise
-            except Exception:
-                _LOGGER.exception("Unexpected error during login")
-                errors["base"] = "unknown"
 
         return self.async_show_form(
             step_id="user",
@@ -226,23 +249,14 @@ class LiproConfigFlow(ConfigFlow, domain=DOMAIN):
                 )
             password_hash = _hash_password(user_input[CONF_PASSWORD])
 
-            try:
-                login_result = await self._async_do_login(
-                    phone, password_hash, phone_id
-                )
-
+            login_result = await self._async_try_login(
+                phone, password_hash, phone_id, errors, "reauth"
+            )
+            if login_result is not None:
                 return self.async_update_reload_and_abort(
                     reauth_entry,
                     data=login_result.to_entry_data(phone, password_hash, phone_id),
                 )
-
-            except LiproApiError as err:
-                errors["base"] = _map_login_error(err)
-            except AbortFlow:
-                raise
-            except Exception:
-                _LOGGER.exception("Unexpected error during reauth")
-                errors["base"] = "unknown"
 
         return self.async_show_form(
             step_id="reauth_confirm",
@@ -264,11 +278,10 @@ class LiproConfigFlow(ConfigFlow, domain=DOMAIN):
             password_hash = _hash_password(user_input[CONF_PASSWORD])
             phone_id = reconfigure_entry.data.get(CONF_PHONE_ID, "")
 
-            try:
-                login_result = await self._async_do_login(
-                    phone, password_hash, phone_id
-                )
-
+            login_result = await self._async_try_login(
+                phone, password_hash, phone_id, errors, "reconfigure"
+            )
+            if login_result is not None:
                 # Verify unique_id matches when switching accounts
                 await self.async_set_unique_id(f"lipro_{login_result.user_id}")
                 self._abort_if_unique_id_mismatch()
@@ -277,14 +290,6 @@ class LiproConfigFlow(ConfigFlow, domain=DOMAIN):
                     reconfigure_entry,
                     data=login_result.to_entry_data(phone, password_hash, phone_id),
                 )
-
-            except LiproApiError as err:
-                errors["base"] = _map_login_error(err)
-            except AbortFlow:
-                raise
-            except Exception:
-                _LOGGER.exception("Unexpected error during reconfigure")
-                errors["base"] = "unknown"
 
         return self.async_show_form(
             step_id="reconfigure",

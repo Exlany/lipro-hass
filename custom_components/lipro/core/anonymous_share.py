@@ -239,8 +239,10 @@ class AnonymousShareManager:
         """Load reported device cache in a thread to avoid blocking the event loop."""
         if self._cache_loaded:
             return
-        self._cache_loaded = True
+        # Mark loaded after the actual load completes to avoid race conditions
+        # where a concurrent caller skips loading before data is ready.
         await asyncio.to_thread(self._load_reported_devices)
+        self._cache_loaded = True
 
     def _load_reported_devices(self) -> None:
         """Load previously reported device keys from storage."""

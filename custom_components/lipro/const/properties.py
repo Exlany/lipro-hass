@@ -65,21 +65,15 @@ PROP_WIFI_RSSI: Final = "wifi_rssi"
 PROP_NET_TYPE: Final = "net_type"
 PROP_MAC: Final = "mac"
 PROP_VERSION: Final = "version"
-PROP_DEVICE_INFO: Final = "deviceInfo"
 
 # Property keys - Mesh Network (Mesh 网络拓扑)
 PROP_MESH_ADDRESS: Final = "address"
 PROP_MESH_TYPE: Final = "meshType"
-PROP_MESH_GROUP_ROOT: Final = "groupRoot"
 PROP_MESH_GATEWAY: Final = "gateway"
 PROP_BLE_MAC: Final = "bleMac"
 
 # Property keys - Metadata (元数据)
 PROP_LATEST_SYNC_TIMESTAMP: Final = "latestSyncTimestamp"
-PROP_SCHEDULE: Final = "schedule"
-PROP_RC_LIST: Final = "rcList"
-PROP_SWITCH_GEAR_ON_REBOOT: Final = "switchGearOnReboot"
-PROP_EXTENSIONS: Final = "extensions"
 
 # Fan modes
 FAN_MODE_NATURAL: Final = 0

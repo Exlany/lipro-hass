@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 from homeassistant.components.cover import (
+    ATTR_POSITION,
     CoverDeviceClass,
     CoverEntity,
     CoverEntityFeature,
@@ -115,7 +116,7 @@ class LiproCover(LiproEntity, CoverEntity):
 
     async def async_set_cover_position(self, **kwargs: Any) -> None:
         """Set cover position."""
-        position = max(0, min(100, kwargs.get("position", 0)))
+        position = max(0, min(100, kwargs[ATTR_POSITION]))
         optimistic: dict[str, str] = {PROP_POSITION: str(position)}
 
         # Optimistically update direction based on target vs current position

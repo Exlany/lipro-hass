@@ -683,8 +683,14 @@ class LiproClient:
             require_auth=False,
         )
 
-        self._access_token = result.get("access_token")
-        self._refresh_token = result.get("refresh_token")
+        access_token = result.get("access_token")
+        refresh_token = result.get("refresh_token")
+        if not access_token or not refresh_token:
+            msg = "Login response missing access_token or refresh_token"
+            raise LiproAuthError(msg)
+
+        self._access_token = access_token
+        self._refresh_token = refresh_token
         self._user_id = result.get("userId")
         self._biz_id = result.get("bizId")
 
@@ -740,8 +746,14 @@ class LiproClient:
             require_auth=False,
         )
 
-        self._access_token = result.get("access_token")
-        self._refresh_token = result.get("refresh_token")
+        access_token = result.get("access_token")
+        refresh_token = result.get("refresh_token")
+        if not access_token or not refresh_token:
+            msg = "Refresh response missing access_token or refresh_token"
+            raise LiproAuthError(msg)
+
+        self._access_token = access_token
+        self._refresh_token = refresh_token
         self._user_id = result.get("userId")
 
         _LOGGER.info("Token refreshed successfully")
@@ -1037,8 +1049,16 @@ class LiproClient:
 
         return await self._iot_request(PATH_SEND_GROUP_COMMAND, body)
 
-    async def get_mqtt_config(self) -> dict[str, Any]:
+    async def get_mqtt_config(
+        self,
+        _is_retry: bool = False,
+        _retry_count: int = 0,
+    ) -> dict[str, Any]:
         """Get MQTT configuration for real-time status updates.
+
+        Args:
+            _is_retry: Internal flag to prevent infinite retry loops.
+            _retry_count: Internal counter for rate limit retries.
 
         Returns:
             Dict containing encrypted accessKey and secretKey.
@@ -1046,6 +1066,7 @@ class LiproClient:
 
         Raises:
             LiproAuthError: If authentication fails.
+            LiproRateLimitError: If rate limited after max retries.
             LiproApiError: If API returns an error.
 
         Note:
@@ -1059,13 +1080,14 @@ class LiproClient:
             msg = "No access token available"
             raise LiproAuthError(msg)
 
+        old_token = self._access_token
         session = await self._get_session()
         body = json.dumps({}, separators=(",", ":"), ensure_ascii=False)
         _nonce, body, req_headers = self._build_iot_headers(body)
 
         url = f"{IOT_API_URL}{PATH_GET_MQTT_CONFIG}"
 
-        status, result, _headers = await self._execute_request(
+        status, result, resp_headers = await self._execute_request(
             session.post(
                 url,
                 data=body,
@@ -1075,7 +1097,19 @@ class LiproClient:
             PATH_GET_MQTT_CONFIG,
         )
 
+        # Handle 429 Rate Limit
+        if status == 429:
+            await self._handle_rate_limit(
+                PATH_GET_MQTT_CONFIG, resp_headers, _retry_count
+            )
+            return await self.get_mqtt_config(_is_retry, _retry_count=_retry_count + 1)
+
+        # Handle 401 with token refresh retry
         if status == 401:
+            if await self._handle_auth_error_and_retry(
+                PATH_GET_MQTT_CONFIG, old_token, _is_retry
+            ):
+                return await self.get_mqtt_config(_is_retry=True)
             msg = "HTTP 401 Unauthorized"
             raise LiproAuthError(msg, 401)
 

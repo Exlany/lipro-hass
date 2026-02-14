@@ -34,6 +34,7 @@ coverage.xml
 .DS_Store
 Thumbs.db
 Desktop.ini
+NUL
 
 # Home Assistant Development
 config/*
