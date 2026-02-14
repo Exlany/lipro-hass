@@ -70,14 +70,14 @@ if TYPE_CHECKING:
 _LOGGER = logging.getLogger(__name__)
 
 # Patterns for sensitive data masking
-_SENSITIVE_PATTERNS = [
+_SENSITIVE_PATTERNS = (
     (re.compile(r'"access_token"\s*:\s*"[^"]*"'), '"access_token": "***"'),
     (re.compile(r'"refresh_token"\s*:\s*"[^"]*"'), '"refresh_token": "***"'),
     (re.compile(r'"accessToken"\s*:\s*"[^"]*"'), '"accessToken": "***"'),
     (re.compile(r'"refreshToken"\s*:\s*"[^"]*"'), '"refreshToken": "***"'),
     (re.compile(r'"password"\s*:\s*"[^"]*"'), '"password": "***"'),
     (re.compile(r'"phone"\s*:\s*"(\d{3})\d{4}(\d{4})"'), r'"phone": "\1****\2"'),
-]
+)
 
 
 def _mask_sensitive_data(data: str) -> str:
@@ -477,16 +477,16 @@ class LiproClient:
         _record_api_error(path, code or error_code or 0, message, method="POST")
         raise LiproApiError(message, code)
 
-    def _build_iot_headers(self, body: str) -> tuple[int, str, dict[str, str]]:
+    def _build_iot_headers(self, body: str) -> dict[str, str]:
         """Build common IoT API request headers.
 
         Returns:
-            Tuple of (nonce, body_json_str, headers_dict).
+            Headers dict for the IoT API request.
 
         """
         nonce = self._get_timestamp_ms()
         sign = self._iot_sign(nonce, body)
-        headers = {
+        return {
             HEADER_CONTENT_TYPE: CONTENT_TYPE_JSON,
             HEADER_CACHE_CONTROL: "no-cache",
             HEADER_USER_AGENT: USER_AGENT,
@@ -495,7 +495,6 @@ class LiproClient:
             HEADER_NONCE: str(nonce),
             HEADER_SIGN: sign,
         }
-        return nonce, body, headers
 
     async def _iot_request(
         self,
@@ -529,7 +528,7 @@ class LiproClient:
         old_token = self._access_token
         session = await self._get_session()
         body = json.dumps(body_data, separators=(",", ":"), ensure_ascii=False)
-        _nonce, body, req_headers = self._build_iot_headers(body)
+        req_headers = self._build_iot_headers(body)
 
         url = f"{IOT_API_URL}{path}"
 
@@ -1083,7 +1082,7 @@ class LiproClient:
         old_token = self._access_token
         session = await self._get_session()
         body = json.dumps({}, separators=(",", ":"), ensure_ascii=False)
-        _nonce, body, req_headers = self._build_iot_headers(body)
+        req_headers = self._build_iot_headers(body)
 
         url = f"{IOT_API_URL}{PATH_GET_MQTT_CONFIG}"
 

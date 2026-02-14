@@ -59,18 +59,20 @@ CONTENT_TYPE_JSON: Final = "application/json"
 # Response codes
 RESPONSE_SUCCESS: Final = 200
 RESPONSE_SUCCESS_STR: Final = "0000"
-RESPONSE_SUCCESS_CODES: Final = (200, "0000", "200")  # All known success code variants
+RESPONSE_SUCCESS_CODES: Final = frozenset(
+    (200, "0000", "200")
+)  # All known success code variants
 
 # Error codes - verified in real API responses
 ERROR_DEVICE_OFFLINE: Final = 140003  # Device not found / offline
 ERROR_DEVICE_OFFLINE_STR: Final = "140003"
 ERROR_NO_PERMISSION: Final = 140101  # No permission to view device
 ERROR_NO_PERMISSION_STR: Final = "140101"
-ERROR_AUTH_CODES: Final = (401, "401", 2001, 2002)  # Authentication errors
+ERROR_AUTH_CODES: Final = frozenset((401, "401", 2001, 2002))  # Authentication errors
 
 # Error codes - from API docs, not yet verified in real responses
 # Refresh token expired
-ERROR_REFRESH_TOKEN_EXPIRED: Final = (20002, 1202, "20002", "1202")
+ERROR_REFRESH_TOKEN_EXPIRED: Final = frozenset((20002, 1202, "20002", "1202"))
 
 # Token expiry settings
 # Note: API does not return expires_in, so we use conservative estimates

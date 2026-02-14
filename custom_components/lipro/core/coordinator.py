@@ -209,9 +209,10 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
             self._entities[entity.unique_id] = entity
             # Index by device serial for efficient lookup
             device_serial = entity.device.serial
-            if device_serial not in self._entities_by_device:
-                self._entities_by_device[device_serial] = []
-            self._entities_by_device[device_serial].append(entity)
+            entities = self._entities_by_device.setdefault(device_serial, [])
+            # Guard against duplicate registration (e.g., during reload race)
+            if entity not in entities:
+                entities.append(entity)
 
     def unregister_entity(self, entity: LiproEntity) -> None:
         """Unregister an entity.
@@ -1130,11 +1131,11 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
             for device_id, is_online in connect_status.items():
                 device = self.get_device_by_id(device_id)
                 if device:
-                    # Update connectState property
-                    device.update_properties(
-                        {
-                            PROP_CONNECT_STATE: "1" if is_online else "0",
-                        }
+                    # Update connectState property (via _apply_properties_update
+                    # for consistent debounce protection handling)
+                    self._apply_properties_update(
+                        device,
+                        {PROP_CONNECT_STATE: "1" if is_online else "0"},
                     )
                     _LOGGER.debug(
                         "Updated connect status for %s: %s",
