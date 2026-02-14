@@ -795,13 +795,16 @@ class LiproClient:
             List of product configurations.
 
         """
-        result = await self._smart_home_request(
+        # _smart_home_request extracts the "value" field from the response.
+        # For this endpoint, "value" is a JSON array, so the runtime type
+        # is list despite the dict[str, Any] return annotation.
+        result: Any = await self._smart_home_request(
             PATH_GET_PRODUCT_CONFIGS,
             {},
             require_auth=False,
         )
-        if isinstance(result, list):  # type: ignore[unreachable]
-            return result  # type: ignore[unreachable]
+        if isinstance(result, list):
+            return result
         return []
 
     @staticmethod
@@ -959,7 +962,9 @@ class LiproClient:
             return {}
 
         try:
-            result = await self._iot_request(
+            # _iot_request returns dict[str, Any], but we use Any to allow
+            # the defensive isinstance check below without type: ignore.
+            result: Any = await self._iot_request(
                 PATH_QUERY_CONNECT_STATUS,
                 {"deviceIdList": device_ids},
             )
@@ -971,7 +976,7 @@ class LiproClient:
                     k: v if isinstance(v, bool) else str(v).lower() == "true"
                     for k, v in result.items()
                 }
-            return {}  # type: ignore[unreachable]
+            return {}
         except LiproApiError as err:
             _LOGGER.debug(
                 "Failed to query connect status for %s: %s",

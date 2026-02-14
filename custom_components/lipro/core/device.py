@@ -127,9 +127,7 @@ class LiproDevice:
     # Fan gear range (from product config or default)
     max_fan_gear: int = 6
     # Cache for parsed gear_list (cleared on property update)
-    _gear_list_cache: list[dict[str, int]] | None = field(
-        default=None, repr=False, compare=False
-    )
+    _gear_list_cache: list[Any] | None = field(default=None, repr=False, compare=False)
 
     @property
     def device_type_hex(self) -> str:
@@ -414,7 +412,7 @@ class LiproDevice:
         return self.get_bool_property(PROP_FADE_STATE)
 
     @property
-    def gear_list(self) -> list[dict[str, int]]:
+    def gear_list(self) -> list[Any]:
         """Get light gear presets.
 
         Returns:
