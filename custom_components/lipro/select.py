@@ -135,7 +135,6 @@ class LiproLightGearSelect(LiproSelect):
     brightness and temperature percentage values to determine the current gear.
     """
 
-    _attr_options = GEAR_OPTIONS
     _attr_translation_key = "light_gear"
     _entity_suffix = "gear"
 
