@@ -7,7 +7,7 @@ Thank you for your interest in contributing to the Lipro Smart Home integration!
 
 ### Prerequisites / 前置条件
 
-- Python 3.11+
+- Python 3.13+
 - Git
 
 ### Quick Start / 快速开始
