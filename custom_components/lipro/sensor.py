@@ -110,24 +110,25 @@ class LiproOutletEnergySensor(LiproSensor):
             return None
 
         # Sum up all energy values from energyList
+        # API returns "v" for energy value (kWh), "t" for date (YYYYMMDD)
         energy_list = power_info.get("energyList", [])
         if not energy_list:
             return None
 
-        total_energy = 0.0
-        for item in energy_list:
-            # Skip non-dict items
-            if not isinstance(item, dict):
-                continue
-            # API returns "v" for energy value (kWh), "t" for date (YYYYMMDD)
-            energy_value = item.get("v")
-            if energy_value is not None:
-                try:
-                    total_energy += float(energy_value)
-                except (ValueError, TypeError):
-                    continue
+        return sum(
+            self._safe_energy_value(item)
+            for item in energy_list
+            if isinstance(item, dict)
+        )
 
-        return total_energy
+    @staticmethod
+    def _safe_energy_value(item: dict[str, Any]) -> float:
+        """Extract energy value from an energy list item, returning 0.0 on failure."""
+        try:
+            value = item.get("v")
+            return float(value) if value is not None else 0.0
+        except (ValueError, TypeError):
+            return 0.0
 
 
 class LiproBatterySensor(LiproSensor):

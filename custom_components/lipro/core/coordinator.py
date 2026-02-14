@@ -653,11 +653,9 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
 
         """
         # Remove entries older than 5 seconds
-        stale_keys = [
-            k for k, t in self._mqtt_message_cache.items() if current_time - t > 5.0
-        ]
-        for k in stale_keys:
-            del self._mqtt_message_cache[k]
+        self._mqtt_message_cache = {
+            k: t for k, t in self._mqtt_message_cache.items() if current_time - t <= 5.0
+        }
 
         # Hard cap: if cache still exceeds limit, keep newest half
         if len(self._mqtt_message_cache) > MAX_MQTT_CACHE_SIZE:

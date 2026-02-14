@@ -14,7 +14,7 @@ from dataclasses import dataclass, field
 from datetime import UTC, datetime
 import json
 import logging
-import os
+from pathlib import Path
 import re
 import time
 from typing import TYPE_CHECKING, Any
@@ -246,12 +246,11 @@ class AnonymousShareManager:
         """Load previously reported device keys from storage."""
         if not self._storage_path:
             return
-        cache_file = os.path.join(self._storage_path, ".lipro_reported_devices.json")
+        cache_file = Path(self._storage_path) / ".lipro_reported_devices.json"
         try:
-            if os.path.exists(cache_file):
-                with open(cache_file, encoding="utf-8") as f:
-                    data = json.load(f)
-                    self._reported_device_keys = set(data.get("devices", []))
+            if cache_file.exists():
+                data = json.loads(cache_file.read_text(encoding="utf-8"))
+                self._reported_device_keys = set(data.get("devices", []))
                 _LOGGER.debug(
                     "Loaded %d reported device keys from cache",
                     len(self._reported_device_keys),
@@ -263,11 +262,13 @@ class AnonymousShareManager:
         """Save reported device keys to storage."""
         if not self._storage_path:
             return
-        cache_file = os.path.join(self._storage_path, ".lipro_reported_devices.json")
+        cache_file = Path(self._storage_path) / ".lipro_reported_devices.json"
         try:
-            os.makedirs(self._storage_path, exist_ok=True)
-            with open(cache_file, "w", encoding="utf-8") as f:
-                json.dump({"devices": list(self._reported_device_keys)}, f)
+            cache_file.parent.mkdir(parents=True, exist_ok=True)
+            cache_file.write_text(
+                json.dumps({"devices": list(self._reported_device_keys)}),
+                encoding="utf-8",
+            )
         except OSError as err:
             _LOGGER.warning("Failed to save reported devices cache: %s", err)
 
