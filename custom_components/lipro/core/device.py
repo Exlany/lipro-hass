@@ -331,6 +331,13 @@ class LiproDevice:
         except (ValueError, TypeError):
             return None
 
+    def get_str_property(self, key: str) -> str | None:
+        """Get a string property value, or None if missing."""
+        value = self.properties.get(key)
+        if value is None:
+            return None
+        return str(value)
+
     # Common state properties
     @property
     def is_on(self) -> bool:
@@ -422,9 +429,11 @@ class LiproDevice:
                 result = json.loads(value)
             else:
                 result = value
+            if not isinstance(result, list):
+                return []
             # Cache the parsed result
             self._gear_list_cache = result
-            return result  # type: ignore[no-any-return]
+            return result
         except (json.JSONDecodeError, TypeError):
             return []
 
@@ -605,12 +614,12 @@ class LiproDevice:
     @property
     def ip_address(self) -> str | None:
         """Get device IP address."""
-        return self.get_property(PROP_IP)  # type: ignore[no-any-return]
+        return self.get_str_property(PROP_IP)
 
     @property
     def wifi_ssid(self) -> str | None:
         """Get connected WiFi SSID."""
-        return self.get_property(PROP_WIFI_SSID)  # type: ignore[no-any-return]
+        return self.get_str_property(PROP_WIFI_SSID)
 
     @property
     def wifi_rssi(self) -> int | None:
@@ -620,17 +629,17 @@ class LiproDevice:
     @property
     def net_type(self) -> str | None:
         """Get network type (e.g., 'wifi')."""
-        return self.get_property(PROP_NET_TYPE)  # type: ignore[no-any-return]
+        return self.get_str_property(PROP_NET_TYPE)
 
     @property
     def mac_address(self) -> str | None:
         """Get device MAC address."""
-        return self.get_property(PROP_MAC)  # type: ignore[no-any-return]
+        return self.get_str_property(PROP_MAC)
 
     @property
     def firmware_version(self) -> str | None:
         """Get device firmware version."""
-        return self.get_property(PROP_VERSION)  # type: ignore[no-any-return]
+        return self.get_str_property(PROP_VERSION)
 
     @property
     def latest_sync_timestamp(self) -> int | None:
@@ -659,7 +668,7 @@ class LiproDevice:
     @property
     def ble_mac(self) -> str | None:
         """Get BLE MAC address."""
-        return self.get_property(PROP_BLE_MAC)  # type: ignore[no-any-return]
+        return self.get_str_property(PROP_BLE_MAC)
 
     def update_properties(self, properties: dict[str, Any]) -> None:
         """Update device properties.

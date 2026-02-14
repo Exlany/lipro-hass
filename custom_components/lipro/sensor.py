@@ -203,6 +203,4 @@ class LiproWifiSignalSensor(LiproSensor):
         attrs: dict[str, Any] = {}
         if self.device.net_type:
             attrs["network_type"] = self.device.net_type
-        if self.device.firmware_version:
-            attrs["firmware_version"] = self.device.firmware_version
         return attrs

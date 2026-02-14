@@ -562,8 +562,8 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
     def _base_scan_interval(self) -> int:
         """Get the configured base scan interval in seconds."""
         if self.config_entry:
-            return self.config_entry.options.get(  # type: ignore[no-any-return]
-                CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
+            return int(
+                self.config_entry.options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
             )
         return DEFAULT_SCAN_INTERVAL
 
@@ -744,11 +744,20 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
             raise UpdateFailed(msg) from err
 
     async def _fetch_devices(self) -> None:
-        """Fetch all devices from API."""
+        """Fetch all devices from API with pagination."""
         _LOGGER.debug("Fetching device list")
 
-        result = await self.client.get_devices(offset=0, limit=100)
-        devices_data = result.get("devices", [])
+        page_size = 100
+        devices_data: list[dict[str, Any]] = []
+        offset = 0
+
+        while True:
+            result = await self.client.get_devices(offset=offset, limit=page_size)
+            page = result.get("devices", [])
+            devices_data.extend(page)
+            if len(page) < page_size:
+                break
+            offset += page_size
 
         # Track previous device serials for stale device detection
         previous_serials = set(self._devices.keys())
