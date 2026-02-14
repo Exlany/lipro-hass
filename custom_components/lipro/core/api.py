@@ -1147,7 +1147,7 @@ class LiproClient:
             },
         )
 
-        return result.get("timings", [])  # type: ignore[no-any-return]  # type: ignore[no-any-return]
+        return result.get("timings", [])  # type: ignore[no-any-return]
 
     async def add_device_schedule(
         self,
