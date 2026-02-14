@@ -186,7 +186,7 @@ class LiproConfigFlow(ConfigFlow, domain=DOMAIN):
                 errors["base"] = _map_login_error(err)
             except AbortFlow:
                 raise
-            except (TimeoutError, aiohttp.ClientError, OSError):
+            except Exception:
                 _LOGGER.exception("Unexpected error during login")
                 errors["base"] = "unknown"
 

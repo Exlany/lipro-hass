@@ -189,9 +189,9 @@ class TestFanEntityBehavior:
         device = make_device("fanLight", max_fan_gear=10)
         speed_range = device.fan_speed_range
 
-        assert ranged_value_to_percentage(speed_range, 1) == 0
+        assert ranged_value_to_percentage(speed_range, 1) == 10
         assert ranged_value_to_percentage(speed_range, 10) == 100
-        assert abs(ranged_value_to_percentage(speed_range, 5) - 44) <= 5
+        assert ranged_value_to_percentage(speed_range, 5) == 50
 
     @pytest.mark.skipif(
         not HAS_HA_TEST_ENV, reason="Requires HA test env for homeassistant.util"
