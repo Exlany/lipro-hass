@@ -60,7 +60,13 @@ markers = [
     "slow: tests that take longer to run",
 ]
 filterwarnings = [
-    "ignore::DeprecationWarning",
+    # Suppress DeprecationWarnings from third-party dependencies only;
+    # our own code should not trigger deprecation warnings.
+    "ignore::DeprecationWarning:homeassistant",
+    "ignore::DeprecationWarning:aiohttp",
+    "ignore::DeprecationWarning:aiomqtt",
+    "ignore::DeprecationWarning:voluptuous",
+    "ignore::DeprecationWarning:pytest_homeassistant_custom_component",
 ]
 
 [tool.mypy]

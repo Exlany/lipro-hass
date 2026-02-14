@@ -13,6 +13,8 @@ from custom_components.lipro.const import (
     MAX_COLOR_TEMP_KELVIN,
     MIN_BRIGHTNESS,
     MIN_COLOR_TEMP_KELVIN,
+    kelvin_to_percent,
+    percent_to_kelvin,
 )
 from custom_components.lipro.core.api import (
     LiproApiError,
@@ -23,106 +25,84 @@ from custom_components.lipro.core.device import parse_properties_list
 
 
 class TestBrightnessEdgeCases:
-    """Tests for brightness boundary conditions."""
+    """Tests for brightness boundary conditions via device properties."""
 
-    def test_brightness_zero_clamps_to_min(self):
-        """Test brightness 0 is clamped to minimum."""
-        brightness = 0
-        clamped = max(MIN_BRIGHTNESS, min(MAX_BRIGHTNESS, brightness))
-        assert clamped == MIN_BRIGHTNESS
+    @pytest.mark.parametrize(
+        ("raw_value", "expected"),
+        [
+            ("0", 0),  # "0" parsed as int 0
+            ("1", 1),
+            ("50", 50),
+            ("100", 100),
+            ("invalid", 100),  # Non-numeric falls back to default
+        ],
+    )
+    def test_brightness_property_values(self, make_device, raw_value, expected):
+        """Test brightness property returns correct values for various inputs."""
+        device = make_device("light", properties={"brightness": raw_value})
+        assert device.brightness == expected
 
-    def test_brightness_negative_clamps_to_min(self):
-        """Test negative brightness is clamped to minimum."""
-        brightness = -10
-        clamped = max(MIN_BRIGHTNESS, min(MAX_BRIGHTNESS, brightness))
-        assert clamped == MIN_BRIGHTNESS
-
-    def test_brightness_over_100_clamps_to_max(self):
-        """Test brightness over 100 is clamped to maximum."""
-        brightness = 150
-        clamped = max(MIN_BRIGHTNESS, min(MAX_BRIGHTNESS, brightness))
-        assert clamped == MAX_BRIGHTNESS
-
-    def test_brightness_at_boundaries(self):
-        """Test brightness at exact boundaries."""
-        assert (
-            max(MIN_BRIGHTNESS, min(MAX_BRIGHTNESS, MIN_BRIGHTNESS)) == MIN_BRIGHTNESS
-        )
-        assert (
-            max(MIN_BRIGHTNESS, min(MAX_BRIGHTNESS, MAX_BRIGHTNESS)) == MAX_BRIGHTNESS
-        )
-
-    def test_brightness_ha_to_lipro_conversion(self):
-        """Test HA brightness (0-255) to Lipro (1-100) conversion."""
-        # HA 0 -> Lipro 0 (but clamped to 1)
-        ha_brightness = 0
-        lipro_brightness = int(ha_brightness * 100 / 255)
-        lipro_brightness = max(MIN_BRIGHTNESS, min(MAX_BRIGHTNESS, lipro_brightness))
-        assert lipro_brightness == MIN_BRIGHTNESS
-
-        # HA 255 -> Lipro 100
-        ha_brightness = 255
-        lipro_brightness = int(ha_brightness * 100 / 255)
-        assert lipro_brightness == 100
-
-        # HA 128 -> Lipro ~50
-        ha_brightness = 128
-        lipro_brightness = int(ha_brightness * 100 / 255)
-        assert 49 <= lipro_brightness <= 51
+    def test_brightness_constants(self):
+        """Test brightness range constants are correct."""
+        assert MIN_BRIGHTNESS == 1
+        assert MAX_BRIGHTNESS == 100
+        assert MIN_BRIGHTNESS < MAX_BRIGHTNESS
 
 
 class TestColorTempEdgeCases:
-    """Tests for color temperature boundary conditions."""
+    """Tests for color temperature boundary conditions via production functions."""
 
-    def test_color_temp_below_min_clamps(self):
-        """Test color temp below minimum is clamped."""
-        color_temp = 2000
-        clamped = max(MIN_COLOR_TEMP_KELVIN, min(MAX_COLOR_TEMP_KELVIN, color_temp))
-        assert clamped == MIN_COLOR_TEMP_KELVIN
+    @pytest.mark.parametrize(
+        ("percent", "expected_kelvin"),
+        [
+            (0, MIN_COLOR_TEMP_KELVIN),  # 0% -> warmest
+            (100, MAX_COLOR_TEMP_KELVIN),  # 100% -> coolest
+            (50, 4600),  # 50% -> midpoint
+            (-10, MIN_COLOR_TEMP_KELVIN),  # Below 0 clamped
+            (150, MAX_COLOR_TEMP_KELVIN),  # Above 100 clamped
+        ],
+    )
+    def test_percent_to_kelvin(self, percent, expected_kelvin):
+        """Test percent_to_kelvin conversion with boundary values."""
+        assert percent_to_kelvin(percent) == expected_kelvin
 
-    def test_color_temp_above_max_clamps(self):
-        """Test color temp above maximum is clamped."""
-        color_temp = 8000
-        clamped = max(MIN_COLOR_TEMP_KELVIN, min(MAX_COLOR_TEMP_KELVIN, color_temp))
-        assert clamped == MAX_COLOR_TEMP_KELVIN
+    @pytest.mark.parametrize(
+        ("kelvin", "expected_percent"),
+        [
+            (MIN_COLOR_TEMP_KELVIN, 0),
+            (MAX_COLOR_TEMP_KELVIN, 100),
+            (4600, 50),
+            (2000, 0),  # Below min clamped
+            (8000, 100),  # Above max clamped
+        ],
+    )
+    def test_kelvin_to_percent(self, kelvin, expected_percent):
+        """Test kelvin_to_percent conversion with boundary values."""
+        assert kelvin_to_percent(kelvin) == expected_percent
 
-    def test_color_temp_at_boundaries(self):
-        """Test color temp at exact boundaries."""
-        assert (
-            max(
-                MIN_COLOR_TEMP_KELVIN, min(MAX_COLOR_TEMP_KELVIN, MIN_COLOR_TEMP_KELVIN)
-            )
-            == MIN_COLOR_TEMP_KELVIN
-        )
-        assert (
-            max(
-                MIN_COLOR_TEMP_KELVIN, min(MAX_COLOR_TEMP_KELVIN, MAX_COLOR_TEMP_KELVIN)
-            )
-            == MAX_COLOR_TEMP_KELVIN
-        )
+    def test_roundtrip_conversion(self):
+        """Test percent -> kelvin -> percent roundtrip is stable."""
+        for percent in (0, 25, 50, 75, 100):
+            kelvin = percent_to_kelvin(percent)
+            result = kelvin_to_percent(kelvin)
+            assert result == percent, f"Roundtrip failed for {percent}%"
 
 
 class TestCoverPositionEdgeCases:
-    """Tests for cover position boundary conditions."""
+    """Tests for cover position boundary conditions via device properties."""
 
-    def test_position_negative_clamps_to_zero(self):
-        """Test negative position is clamped to 0."""
-        position = -10
-        clamped = max(0, min(100, int(position)))
-        assert clamped == 0
-
-    def test_position_over_100_clamps(self):
-        """Test position over 100 is clamped."""
-        position = 150
-        clamped = max(0, min(100, int(position)))
-        assert clamped == 100
-
-    def test_position_float_converted_to_int(self):
-        """Test float position is converted to int."""
-        position = 50.7
-        clamped = max(0, min(100, int(position)))
-        assert clamped == 50
-        assert isinstance(clamped, int)
+    @pytest.mark.parametrize(
+        ("raw_value", "expected"),
+        [
+            ("0", 0),
+            ("50", 50),
+            ("100", 100),
+        ],
+    )
+    def test_position_property_values(self, make_device, raw_value, expected):
+        """Test cover position property returns correct values."""
+        device = make_device("curtain", properties={"position": raw_value})
+        assert device.position == expected
 
 
 class TestFanGearEdgeCases:
@@ -371,8 +351,8 @@ class TestDebounceEdgeCases:
 
         await asyncio.sleep(0.2)
 
-        # Should have been called at least once
-        assert call_count >= 1
+        # Should have been called exactly once (only last call executes)
+        assert call_count == 1
 
 
 class TestGearListEdgeCases:

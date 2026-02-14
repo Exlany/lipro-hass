@@ -82,54 +82,6 @@ class TestLiproCoverState:
         assert device.direction is None
 
 
-class TestLiproCoverIcon:
-    """Tests for cover icon logic."""
-
-    def test_icon_opening(self):
-        """Test icon when opening."""
-        is_opening = True
-        is_closed = False
-
-        if is_opening:
-            icon = "mdi:curtains"
-        elif is_closed:
-            icon = "mdi:curtains-closed"
-        else:
-            icon = "mdi:curtains"
-
-        assert icon == "mdi:curtains"
-
-    def test_icon_closing(self):
-        """Test icon when closing."""
-        is_closing = True
-        is_closed = False
-
-        if is_closing:
-            icon = "mdi:curtains"
-        elif is_closed:
-            icon = "mdi:curtains-closed"
-        else:
-            icon = "mdi:curtains"
-
-        assert icon == "mdi:curtains"
-
-    def test_icon_closed(self):
-        """Test icon when closed."""
-        is_closed = True
-
-        icon = "mdi:curtains-closed" if is_closed else "mdi:curtains"
-
-        assert icon == "mdi:curtains-closed"
-
-    def test_icon_open(self):
-        """Test icon when open."""
-        is_closed = False
-
-        icon = "mdi:curtains-closed" if is_closed else "mdi:curtains"
-
-        assert icon == "mdi:curtains"
-
-
 class TestLiproCoverDeviceFilter:
     """Tests for cover device filtering."""
 

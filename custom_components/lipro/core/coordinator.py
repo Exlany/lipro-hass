@@ -51,7 +51,11 @@ from .api import (
     LiproConnectionError,
     LiproRefreshTokenExpiredError,
 )
-from .const import MAX_MQTT_CACHE_SIZE, MQTT_DISCONNECT_NOTIFY_THRESHOLD
+from .const import (
+    MAX_DEVICES_PER_QUERY,
+    MAX_MQTT_CACHE_SIZE,
+    MQTT_DISCONNECT_NOTIFY_THRESHOLD,
+)
 from .device import LiproDevice, parse_properties_list
 from .mqtt import LiproMqttClient, decrypt_mqtt_credential
 
@@ -752,17 +756,18 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         """Fetch all devices from API with pagination."""
         _LOGGER.debug("Fetching device list")
 
-        page_size = 100
         devices_data: list[dict[str, Any]] = []
         offset = 0
 
         while True:
-            result = await self.client.get_devices(offset=offset, limit=page_size)
+            result = await self.client.get_devices(
+                offset=offset, limit=MAX_DEVICES_PER_QUERY
+            )
             page = result.get("devices", [])
             devices_data.extend(page)
-            if len(page) < page_size:
+            if len(page) < MAX_DEVICES_PER_QUERY:
                 break
-            offset += page_size
+            offset += MAX_DEVICES_PER_QUERY
 
         # Track previous device serials for stale device detection
         previous_serials = set(self._devices.keys())

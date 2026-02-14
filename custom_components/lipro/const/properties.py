@@ -130,6 +130,14 @@ def kelvin_to_percent(kelvin: int) -> int:
     )
 
 
+# Curtain direction values (from API)
+DIRECTION_OPENING: Final = "1"
+DIRECTION_CLOSING: Final = "0"
+
+# Default color temperature percentage when property is missing
+# 34% ≈ 4000K on the default 2700-6500K range (neutral white)
+DEFAULT_COLOR_TEMP_PERCENT: Final = 34
+
 # Brightness range
 MIN_BRIGHTNESS: Final = 1
 MAX_BRIGHTNESS: Final = 100

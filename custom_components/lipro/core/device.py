@@ -9,7 +9,10 @@ import re
 from typing import Any
 
 from ..const import (
+    DEFAULT_COLOR_TEMP_PERCENT,
     DEVICE_TYPE_MAP,
+    DIRECTION_CLOSING,
+    DIRECTION_OPENING,
     IOT_DEVICE_ID_PREFIX,
     IOT_NAME_TO_PHYSICAL_MODEL,
     PHYSICAL_MODEL_TO_DEVICE_TYPE,
@@ -363,7 +366,7 @@ class LiproDevice:
         API stores temperature as percentage (0=warmest, 100=coolest).
         Uses device-specific color temp range if available.
         """
-        percent = self.get_int_property(PROP_TEMPERATURE, 34)
+        percent = self.get_int_property(PROP_TEMPERATURE, DEFAULT_COLOR_TEMP_PERCENT)
         return self.percent_to_kelvin_for_device(percent)
 
     def percent_to_kelvin_for_device(self, percent: int) -> int:
@@ -519,9 +522,9 @@ class LiproDevice:
     def direction(self) -> str | None:
         """Get curtain movement direction."""
         direction = self.get_property(PROP_DIRECTION)
-        if direction == "1":
+        if direction == DIRECTION_OPENING:
             return "opening"
-        if direction == "0":
+        if direction == DIRECTION_CLOSING:
             return "closing"
         return None
 

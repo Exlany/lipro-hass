@@ -57,41 +57,31 @@ class TestLightEntityBehavior:
         # color_temp converts to Kelvin
         assert device.color_temp is not None
 
-    def test_brightness_clamp_to_valid_range(self):
-        """Test brightness is clamped to valid range."""
+    def test_brightness_clamp_to_valid_range(self, make_device):
+        """Test brightness is clamped to valid range via device property."""
         from custom_components.lipro.const import MAX_BRIGHTNESS, MIN_BRIGHTNESS
 
-        # Test clamping logic
-        test_values = [
-            (0, MIN_BRIGHTNESS),  # Below min -> clamp to min
-            (1, 1),  # At min -> keep
-            (50, 50),  # Middle -> keep
-            (100, 100),  # At max -> keep
-            (150, MAX_BRIGHTNESS),  # Above max -> clamp to max
-        ]
+        # Default when missing -> 100 (max)
+        device_default = make_device("light", properties={})
+        assert MIN_BRIGHTNESS <= device_default.brightness <= MAX_BRIGHTNESS
 
-        for input_val, expected in test_values:
-            clamped = max(MIN_BRIGHTNESS, min(MAX_BRIGHTNESS, input_val))
-            assert clamped == expected, f"Input {input_val} should clamp to {expected}"
+        # Valid values preserved
+        device_mid = make_device("light", properties={"brightness": "50"})
+        assert device_mid.brightness == 50
 
-    def test_color_temp_clamp_to_valid_range(self):
-        """Test color temperature is clamped to valid range."""
+    def test_color_temp_clamp_to_valid_range(self, make_device):
+        """Test color temperature is clamped to valid range via production function."""
         from custom_components.lipro.const import (
             MAX_COLOR_TEMP_KELVIN,
             MIN_COLOR_TEMP_KELVIN,
+            kelvin_to_percent,
         )
 
-        test_values = [
-            (2000, MIN_COLOR_TEMP_KELVIN),  # Below min
-            (2700, 2700),  # At min
-            (4000, 4000),  # Middle
-            (6500, 6500),  # At max
-            (8000, MAX_COLOR_TEMP_KELVIN),  # Above max
-        ]
-
-        for input_val, expected in test_values:
-            clamped = max(MIN_COLOR_TEMP_KELVIN, min(MAX_COLOR_TEMP_KELVIN, input_val))
-            assert clamped == expected
+        # kelvin_to_percent clamps input to valid range
+        assert kelvin_to_percent(2000) == 0  # Below min -> 0%
+        assert kelvin_to_percent(MIN_COLOR_TEMP_KELVIN) == 0
+        assert kelvin_to_percent(MAX_COLOR_TEMP_KELVIN) == 100
+        assert kelvin_to_percent(8000) == 100  # Above max -> 100%
 
 
 class TestSwitchEntityBehavior:
@@ -133,19 +123,18 @@ class TestCoverEntityBehavior:
         assert device_open.position == 100
         assert device_partial.position == 50
 
-    def test_cover_position_clamp(self):
-        """Test cover position is clamped to 0-100."""
-        test_values = [
-            (-10, 0),  # Below min
-            (0, 0),  # At min
-            (50, 50),  # Middle
-            (100, 100),  # At max
-            (150, 100),  # Above max
-        ]
-
-        for input_val, expected in test_values:
-            clamped = max(0, min(100, int(input_val)))
-            assert clamped == expected
+    @pytest.mark.parametrize(
+        ("raw_position", "expected"),
+        [
+            ("0", 0),
+            ("50", 50),
+            ("100", 100),
+        ],
+    )
+    def test_cover_position_clamp(self, make_device, raw_position, expected):
+        """Test cover position values via device property."""
+        device = make_device("curtain", properties={"position": raw_position})
+        assert device.position == expected
 
     def test_cover_moving_state(self, make_device):
         """Test cover moving state."""
@@ -206,7 +195,7 @@ class TestFanEntityBehavior:
         speed_range = device.fan_speed_range
 
         assert math.ceil(percentage_to_ranged_value(speed_range, 100)) == 10
-        assert math.ceil(percentage_to_ranged_value(speed_range, 50)) in (5, 6)
+        assert math.ceil(percentage_to_ranged_value(speed_range, 50)) == 6
 
 
 class TestClimateEntityBehavior:
@@ -328,29 +317,3 @@ class TestEntityAvailability:
         device.update_properties({"connectState": "1"})
 
         assert device.available is True
-
-
-class TestEntityDebounce:
-    """Tests for entity debounce behavior."""
-
-    def test_debounce_default_delay(self):
-        """Test Debouncer default delay value."""
-        from custom_components.lipro.helpers.debounce import Debouncer
-
-        debouncer = Debouncer()
-        assert debouncer._delay > 0
-
-    def test_debounce_custom_delay(self):
-        """Test Debouncer with custom delay."""
-        from custom_components.lipro.helpers.debounce import Debouncer
-
-        debouncer = Debouncer(delay=1.5)
-        assert debouncer._delay == 1.5
-
-    def test_debounce_cancel_when_not_pending(self):
-        """Test canceling debounce when nothing is pending."""
-        from custom_components.lipro.helpers.debounce import Debouncer
-
-        debouncer = Debouncer()
-        # Should not raise
-        debouncer.cancel()

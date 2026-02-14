@@ -93,6 +93,11 @@ MAX_PENDING_DEVICES = 20
 # Minimum interval between uploads (seconds)
 MIN_UPLOAD_INTERVAL = 3600  # 1 hour
 
+# Sanitization limits for privacy-preserving data truncation
+_MAX_LIST_ITEMS = 50  # Max items when sanitizing lists
+_MAX_STRING_LENGTH = 500  # Strings longer than this are truncated
+_TRUNCATED_STRING_PREFIX_LENGTH = 200  # Keep this many chars when truncating
+
 
 @dataclass
 class SharedError:
@@ -653,7 +658,7 @@ class AnonymousShareManager:
             if isinstance(value, list):
                 return [
                     self._sanitize_value(item, preserve_structure=True)
-                    for item in value[:50]  # Limit list length
+                    for item in value[:_MAX_LIST_ITEMS]
                 ]
 
         str_value = str(value)
@@ -667,8 +672,8 @@ class AnonymousShareManager:
             return value
 
         # Truncate very long strings
-        if len(str_value) > 500:
-            return str_value[:200] + "...[truncated]"
+        if len(str_value) > _MAX_STRING_LENGTH:
+            return str_value[:_TRUNCATED_STRING_PREFIX_LENGTH] + "...[truncated]"
 
         return value
 
