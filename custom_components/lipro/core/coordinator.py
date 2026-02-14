@@ -5,7 +5,6 @@ from __future__ import annotations
 import asyncio
 from datetime import timedelta
 import hashlib
-import json
 import logging
 from time import monotonic
 from typing import TYPE_CHECKING, Any
@@ -366,7 +365,9 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
             True if MQTT setup was successful.
 
         """
-        assert self.config_entry is not None
+        if self.config_entry is None:
+            _LOGGER.error("Cannot setup MQTT: config_entry is None")
+            return False
         try:
             # Get MQTT config from API
             mqtt_config = await self.client.get_mqtt_config()
@@ -589,13 +590,11 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
 
         # Deduplication: check if this is a duplicate message
         current_time = monotonic()
-        # Use sha256 for better collision resistance (md5 has known weaknesses)
+        # Use hash of sorted items tuple for fast dedup (no JSON serialization needed)
         try:
-            props_hash = hashlib.sha256(
-                json.dumps(properties, sort_keys=True, separators=(",", ":")).encode()
-            ).hexdigest()[:16]
-        except (TypeError, ValueError):
-            # Properties contain non-serializable objects, skip dedup but log once
+            props_hash = hash(tuple(sorted(properties.items())))
+        except TypeError:
+            # Properties contain unhashable values, skip dedup
             _LOGGER.debug(
                 "MQTT: cannot hash properties for %s, skipping dedup", device.name
             )
@@ -1078,18 +1077,17 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
 
         The API returns aggregated data (single nowPower + energyList) for all
         requested devices, so we query each outlet individually to get accurate
-        per-device power data.
+        per-device power data. Queries run concurrently for better performance.
         """
         if not self._outlet_ids_to_query:
             return
 
-        try:
-            for device_id in self._outlet_ids_to_query:
+        async def _query_single_outlet(device_id: str) -> None:
+            """Query power for a single outlet."""
+            try:
                 power_data = await self.client.fetch_outlet_power_info([device_id])
-
                 if not power_data:
-                    continue
-
+                    return
                 device = self.get_device_by_id(device_id)
                 if device:
                     device.extra_data["power_info"] = power_data
@@ -1098,9 +1096,12 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
                         device.name,
                         power_data.get("nowPower"),
                     )
+            except LiproApiError as err:
+                _LOGGER.debug("Failed to query power for %s: %s", device_id, err)
 
-        except LiproApiError as err:
-            _LOGGER.debug("Failed to query outlet power: %s", err)
+        await asyncio.gather(
+            *(_query_single_outlet(did) for did in self._outlet_ids_to_query),
+        )
 
     async def _query_connect_status(self) -> None:
         """Query real-time connection status for devices.

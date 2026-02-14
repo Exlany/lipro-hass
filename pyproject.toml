@@ -25,6 +25,8 @@ classifiers = [
 
 dependencies = [
     "aiohttp>=3.12.0",
+    "aiomqtt>=2.0.0",
+    "pycryptodome>=3.19.0",
     "voluptuous>=0.15.2",
 ]
 
@@ -41,10 +43,10 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/lipro-hass/lipro-hass"
-Repository = "https://github.com/lipro-hass/lipro-hass"
-Issues = "https://github.com/lipro-hass/lipro-hass/issues"
-Changelog = "https://github.com/lipro-hass/lipro-hass/blob/main/CHANGELOG.md"
+Homepage = "https://github.com/Exlany/lipro-hass"
+Repository = "https://github.com/Exlany/lipro-hass"
+Issues = "https://github.com/Exlany/lipro-hass/issues"
+Changelog = "https://github.com/Exlany/lipro-hass/blob/main/CHANGELOG.md"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

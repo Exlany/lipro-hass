@@ -44,6 +44,7 @@ from .core import (
     LiproClient,
     LiproConnectionError,
     LiproDataUpdateCoordinator,
+    LiproDevice,
     get_anonymous_share_manager,
 )
 
@@ -228,7 +229,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: LiproConfigEntry) -> boo
 async def _get_device_and_coordinator(
     hass: HomeAssistant,
     call: ServiceCall,
-) -> tuple[Any, LiproDataUpdateCoordinator]:
+) -> tuple[LiproDevice, LiproDataUpdateCoordinator]:
     """Get device and coordinator from service call.
 
     Helper function to extract device from service call data or entity target.

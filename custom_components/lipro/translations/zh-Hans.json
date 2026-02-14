@@ -322,5 +322,19 @@
       "title": "Lipro MQTT 连接已断开",
       "message": "MQTT 已断开连接 {minutes} 分钟，实时更新不可用，已回退到轮询模式。"
     }
+  },
+  "issues": {
+    "auth_expired": {
+      "title": "Lipro 认证已过期",
+      "description": "您的 Lipro 会话已过期，请重新认证。"
+    },
+    "auth_error": {
+      "title": "Lipro 认证错误",
+      "description": "Lipro 认证失败：{error}"
+    },
+    "mqtt_disconnected": {
+      "title": "Lipro MQTT 连接已断开",
+      "description": "MQTT 已断开连接 {minutes} 分钟，实时更新不可用，已回退到轮询模式。"
+    }
   }
 }

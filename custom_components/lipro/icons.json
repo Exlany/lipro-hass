@@ -125,6 +125,20 @@
       "light_gear": {
         "default": "mdi:tune-variant"
       }
+    },
+    "sensor": {
+      "power": {
+        "default": "mdi:flash"
+      },
+      "energy": {
+        "default": "mdi:lightning-bolt"
+      },
+      "battery": {
+        "default": "mdi:battery"
+      },
+      "wifi_signal": {
+        "default": "mdi:wifi"
+      }
     }
   },
   "services": {

@@ -18,7 +18,6 @@ from .const import (
     PROP_WIND_DIRECTION_MODE,
     WIND_DIRECTION_AUTO,
     WIND_DIRECTION_FIX,
-    percent_to_kelvin,
 )
 from .entities.base import LiproEntity
 
@@ -211,30 +210,24 @@ class LiproLightGearSelect(LiproSelect):
         attrs: dict[str, str] = {}
         gear_list = self.device.gear_list
 
-        # Get device color temp range
-        min_temp_k = self.device.min_color_temp_kelvin
-        max_temp_k = self.device.max_color_temp_kelvin
-        temp_range = max_temp_k - min_temp_k
-
         for i, gear in enumerate(gear_list[:3]):
             if not isinstance(gear, dict):
                 continue  # type: ignore[unreachable]
             brightness = gear.get("brightness", 0)
             temp_pct = gear.get("temperature", 0)
 
-            # Convert percentage to Kelvin using device-specific range
-            if temp_range > 0:
-                temp_k = min_temp_k + int(temp_pct * temp_range / 100)
-            else:
-                temp_k = percent_to_kelvin(temp_pct)
+            # Convert percentage to Kelvin using centralized device method
+            temp_k = self.device.percent_to_kelvin_for_device(temp_pct)
 
             # Use descriptive names matching the translations
             names = ["warm", "neutral", "cool"]
             attrs[f"preset_{names[i]}"] = f"{brightness}% / {temp_k}K"
 
         # Also show the device's color temp range
-        if temp_range > 0:
-            attrs["color_temp_range"] = f"{min_temp_k}K - {max_temp_k}K"
+        if self.device.supports_color_temp:
+            min_k = self.device.min_color_temp_kelvin
+            max_k = self.device.max_color_temp_kelvin
+            attrs["color_temp_range"] = f"{min_k}K - {max_k}K"
 
         return attrs
 
@@ -266,7 +259,7 @@ class LiproLightGearSelect(LiproSelect):
             self.device.name,
             brightness,
             temp_pct,
-            percent_to_kelvin(temp_pct),
+            self.device.percent_to_kelvin_for_device(temp_pct),
         )
 
         optimistic = {

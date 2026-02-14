@@ -4,7 +4,6 @@ from typing import Final
 
 # Configuration keys
 CONF_PHONE: Final = "phone"
-CONF_PASSWORD: Final = "password"
 CONF_PHONE_ID: Final = "phone_id"
 
 # Config entry data keys (stored in entry.data)

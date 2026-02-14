@@ -16,7 +16,6 @@ PROP_CONNECT_STATE: Final = "connectState"
 
 # Property keys - Light
 PROP_BRIGHTNESS: Final = "brightness"
-PROP_BRIGHTNESS_DECIMAL: Final = "brightnessDecimal"
 PROP_TEMPERATURE: Final = "temperature"
 PROP_FADE_STATE: Final = "fadeState"
 PROP_GEAR_LIST: Final = "gearList"

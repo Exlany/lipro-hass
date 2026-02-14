@@ -56,6 +56,7 @@ from ..const import (
     DeviceCategory,
     get_device_category,
     get_platforms_for_category,
+    kelvin_to_percent,
     percent_to_kelvin,
 )
 from .anonymous_share import get_anonymous_share_manager
@@ -354,16 +355,46 @@ class LiproDevice:
         Uses device-specific color temp range if available.
         """
         percent = self.get_int_property(PROP_TEMPERATURE, 34)
+        return self.percent_to_kelvin_for_device(percent)
 
-        # Use device-specific range if available
+    def percent_to_kelvin_for_device(self, percent: int) -> int:
+        """Convert API temperature percentage to Kelvin using device-specific range.
+
+        Args:
+            percent: Temperature percentage (0-100).
+
+        Returns:
+            Color temperature in Kelvin.
+
+        """
         if self.supports_color_temp:
             temp_range = self.max_color_temp_kelvin - self.min_color_temp_kelvin
             if temp_range <= 0:
                 return self.min_color_temp_kelvin
             return self.min_color_temp_kelvin + int(percent * temp_range / 100)
-
         # Fallback to global defaults (2700-6500K)
         return percent_to_kelvin(percent)
+
+    def kelvin_to_percent_for_device(self, kelvin: int) -> int:
+        """Convert Kelvin to API temperature percentage using device-specific range.
+
+        Args:
+            kelvin: Color temperature in Kelvin.
+
+        Returns:
+            Temperature percentage (0-100), clamped.
+
+        """
+        if self.supports_color_temp:
+            min_temp = self.min_color_temp_kelvin
+            max_temp = self.max_color_temp_kelvin
+            temp_range = max_temp - min_temp
+            if temp_range <= 0:
+                return 50
+            kelvin = max(min_temp, min(max_temp, kelvin))
+            return max(0, min(100, round((kelvin - min_temp) * 100 / temp_range)))
+        # Fallback to global defaults
+        return kelvin_to_percent(kelvin)
 
     @property
     def fade_state(self) -> bool:

@@ -144,16 +144,8 @@ class LiproLight(LiproEntity, LightEntity):
                 self.device.min_color_temp_kelvin,
                 min(self.device.max_color_temp_kelvin, color_temp),
             )
-            # Convert to percentage using device-specific range
-            min_temp = self.device.min_color_temp_kelvin
-            max_temp = self.device.max_color_temp_kelvin
-            temp_range = max_temp - min_temp
-            if temp_range > 0:
-                temp_percent = round((color_temp - min_temp) * 100 / temp_range)
-                # Clamp to valid percentage range
-                temp_percent = max(0, min(100, temp_percent))
-            else:
-                temp_percent = 50  # Default to middle if range is 0 or negative
+            # Convert to percentage using centralized device method
+            temp_percent = self.device.kelvin_to_percent_for_device(color_temp)
             properties.append({"key": PROP_TEMPERATURE, "value": str(temp_percent)})
             optimistic[PROP_TEMPERATURE] = str(temp_percent)
 
