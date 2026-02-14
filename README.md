@@ -56,10 +56,31 @@ This integration uses a **hybrid mode** to fetch device status:
 3. Restart Home Assistant
 4. Add integration: Settings → Devices & Services → Add Integration → Lipro
 
+### Shell (via SSH / Terminal & SSH Add-on)
+
+```shell
+wget -O - https://raw.githubusercontent.com/Exlany/lipro-hass/main/install.sh | bash -
+
+# Install the latest version
+wget -O - https://raw.githubusercontent.com/Exlany/lipro-hass/main/install.sh | ARCHIVE_TAG=latest bash -
+```
+
+### shell_command Service
+
+1. Add the following to your `configuration.yaml`:
+    ```yaml
+    shell_command:
+      update_lipro: |-
+        wget -O - https://raw.githubusercontent.com/Exlany/lipro-hass/main/install.sh | bash -
+    ```
+2. Restart Home Assistant
+3. Call `service: shell_command.update_lipro` in Developer Tools
+4. Restart Home Assistant again
+
 ### Manual Installation
 
-1. Download the latest `lipro` folder
-2. Copy to `config/custom_components/` directory
+1. Download the latest release from [Releases](https://github.com/Exlany/lipro-hass/releases)
+2. Copy `custom_components/lipro` folder to your `config/custom_components/` directory
 3. Restart Home Assistant
 
 ## Configuration
