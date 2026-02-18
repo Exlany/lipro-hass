@@ -6,14 +6,6 @@ import pytest
 
 from custom_components.lipro.core.device import LiproDevice
 
-try:
-    from pytest_homeassistant_custom_component.common import (
-        MockConfigEntry,  # noqa: F401
-    )
-
-    HAS_HA_TEST_ENV = True
-except ImportError:
-    HAS_HA_TEST_ENV = False
 
 
 class TestLiproHeaterWindDirectionSelect:
@@ -44,18 +36,12 @@ class TestLiproHeaterWindDirectionSelect:
         device = make_device("heater")
         assert device.wind_direction_mode == 1
 
-    @pytest.mark.skipif(
-        not HAS_HA_TEST_ENV, reason="Requires HA test env for entity class import"
-    )
     def test_wind_direction_options(self):
         """Test wind direction options from real source."""
         from custom_components.lipro.select import WIND_DIRECTION_OPTIONS
 
         assert WIND_DIRECTION_OPTIONS == ["auto", "fixed"]
 
-    @pytest.mark.skipif(
-        not HAS_HA_TEST_ENV, reason="Requires HA test env for entity class import"
-    )
     def test_wind_direction_value_mapping(self):
         """Test wind direction value mapping from real source."""
         from custom_components.lipro.const import (
@@ -111,18 +97,12 @@ class TestLiproHeaterLightModeSelect:
         device = make_device("heater")
         assert device.light_mode == 0
 
-    @pytest.mark.skipif(
-        not HAS_HA_TEST_ENV, reason="Requires HA test env for entity class import"
-    )
     def test_light_mode_options(self):
         """Test light mode options from real source."""
         from custom_components.lipro.select import LIGHT_MODE_OPTIONS
 
         assert LIGHT_MODE_OPTIONS == ["off", "main", "night"]
 
-    @pytest.mark.skipif(
-        not HAS_HA_TEST_ENV, reason="Requires HA test env for entity class import"
-    )
     def test_light_mode_value_mapping(self):
         """Test light mode value mapping from real source."""
         from custom_components.lipro.const import (
@@ -146,9 +126,6 @@ class TestLiproHeaterLightModeSelect:
 class TestLiproLightGearSelect:
     """Tests for LiproLightGearSelect entity."""
 
-    @pytest.mark.skipif(
-        not HAS_HA_TEST_ENV, reason="Requires HA test env for entity class import"
-    )
     def test_gear_options(self):
         """Test gear options from real source."""
         from custom_components.lipro.select import GEAR_OPTIONS

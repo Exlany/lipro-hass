@@ -6,14 +6,6 @@ from unittest.mock import MagicMock
 
 import pytest
 
-try:
-    from pytest_homeassistant_custom_component.common import (
-        MockConfigEntry,  # noqa: F401
-    )
-
-    HAS_HA_TEST_ENV = True
-except ImportError:
-    HAS_HA_TEST_ENV = False
 
 
 class TestLiproCoverPosition:
@@ -120,9 +112,6 @@ class TestLiproCoverCommands:
         assert PROP_DIRECTION == "direction"
 
 
-@pytest.mark.skipif(
-    not HAS_HA_TEST_ENV, reason="Requires pytest-homeassistant-custom-component"
-)
 class TestLiproCoverEntityCommands:
     """Tests for LiproCover entity command methods."""
 

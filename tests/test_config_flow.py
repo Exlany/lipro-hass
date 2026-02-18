@@ -11,20 +11,7 @@ from __future__ import annotations
 from unittest.mock import AsyncMock, patch
 
 import pytest
-
-# Check if full HA test environment is available
-try:
-    from pytest_homeassistant_custom_component.common import MockConfigEntry
-
-    HAS_HA_TEST_ENV = True
-except ImportError:
-    HAS_HA_TEST_ENV = False
-
-# Skip all tests if HA test environment is not available
-pytestmark = pytest.mark.skipif(
-    not HAS_HA_TEST_ENV,
-    reason="Requires pytest-homeassistant-custom-component",
-)
+from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.lipro.config_flow import CONF_PASSWORD_HASH
 from custom_components.lipro.const import CONF_PHONE, CONF_PHONE_ID, DOMAIN

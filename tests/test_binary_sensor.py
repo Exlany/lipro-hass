@@ -4,14 +4,6 @@ from __future__ import annotations
 
 import pytest
 
-try:
-    from pytest_homeassistant_custom_component.common import (
-        MockConfigEntry,  # noqa: F401
-    )
-
-    HAS_HA_TEST_ENV = True
-except ImportError:
-    HAS_HA_TEST_ENV = False
 
 
 class TestLiproConnectivitySensor:
@@ -32,9 +24,6 @@ class TestLiproConnectivitySensor:
         device = make_device("light")
         assert device.is_connected is True
 
-    @pytest.mark.skipif(
-        not HAS_HA_TEST_ENV, reason="Requires HA test env for entity class import"
-    )
     def test_translation_key(self):
         """Test translation_key is set for icons.json mapping."""
         from custom_components.lipro.binary_sensor import LiproConnectivitySensor
@@ -43,9 +32,6 @@ class TestLiproConnectivitySensor:
             LiproConnectivitySensor.__dict__["__attr_translation_key"] == "connectivity"
         )
 
-    @pytest.mark.skipif(
-        not HAS_HA_TEST_ENV, reason="Requires HA test env for entity class import"
-    )
     def test_available_when_device_offline(self, mock_coordinator, make_device):
         """Test connectivity sensor stays available when device goes offline.
 
@@ -69,9 +55,6 @@ class TestLiproConnectivitySensor:
         # And should report disconnected (off)
         assert sensor.is_on is False
 
-    @pytest.mark.skipif(
-        not HAS_HA_TEST_ENV, reason="Requires HA test env for entity class import"
-    )
     def test_unavailable_when_coordinator_fails(self, mock_coordinator, make_device):
         """Test connectivity sensor is unavailable when coordinator fails."""
         from custom_components.lipro.binary_sensor import LiproConnectivitySensor
@@ -103,9 +86,6 @@ class TestLiproMotionSensor:
         device = make_device("bodySensor")
         assert device.is_activated is False
 
-    @pytest.mark.skipif(
-        not HAS_HA_TEST_ENV, reason="Requires HA test env for entity class import"
-    )
     def test_translation_key(self):
         """Test translation_key is set for icons.json mapping."""
         from custom_components.lipro.binary_sensor import LiproMotionSensor
@@ -136,9 +116,6 @@ class TestLiproDoorSensor:
         device = make_device("doorSensor")
         assert device.door_is_open is False
 
-    @pytest.mark.skipif(
-        not HAS_HA_TEST_ENV, reason="Requires HA test env for entity class import"
-    )
     def test_translation_key(self):
         """Test translation_key is set for icons.json mapping."""
         from custom_components.lipro.binary_sensor import LiproDoorSensor
@@ -169,9 +146,6 @@ class TestLiproLightLevelSensor:
         device = make_device("bodySensor")
         assert device.is_dark is False
 
-    @pytest.mark.skipif(
-        not HAS_HA_TEST_ENV, reason="Requires HA test env for entity class import"
-    )
     def test_invert_class_attribute(self):
         """Test _invert class attribute is set for inverted light level logic."""
         from custom_components.lipro.binary_sensor import LiproLightLevelSensor
@@ -198,9 +172,6 @@ class TestLiproBatteryLowSensor:
         device = make_device("bodySensor")
         assert device.low_battery is False
 
-    @pytest.mark.skipif(
-        not HAS_HA_TEST_ENV, reason="Requires HA test env for entity class import"
-    )
     def test_translation_key(self):
         """Test translation_key is set for icons.json mapping."""
         from custom_components.lipro.binary_sensor import LiproBatteryLowSensor

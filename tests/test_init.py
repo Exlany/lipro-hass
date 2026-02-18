@@ -5,28 +5,12 @@ Tests cover:
 - Service schema structure (keys, required/optional)
 - Service constants definitions
 - Attribute constants definitions
-
-Schema validation tests that call the schema with data require
-homeassistant.helpers.config_validation (cv.string, cv.ensure_list),
-which is only available in the full HA test environment. Those tests
-are marked with skipif accordingly.
 """
 
 from __future__ import annotations
 
-import voluptuous as vol
-
-# Check if full HA test environment is available
-try:
-    from pytest_homeassistant_custom_component.common import (
-        MockConfigEntry,  # noqa: F401
-    )
-
-    HAS_HA_TEST_ENV = True
-except ImportError:
-    HAS_HA_TEST_ENV = False
-
 import pytest
+import voluptuous as vol
 
 from custom_components.lipro import (
     ATTR_COMMAND,
@@ -259,13 +243,7 @@ class TestSchemaValidation:
 
     These tests call the schemas with data, which requires cv.string and
     cv.ensure_list from homeassistant.helpers.config_validation to be real.
-    They only run in the full HA test environment.
     """
-
-    pytestmark = pytest.mark.skipif(
-        not HAS_HA_TEST_ENV,
-        reason="Requires pytest-homeassistant-custom-component",
-    )
 
     def test_send_command_valid_minimal(self):
         """Test send_command schema accepts minimal valid input."""

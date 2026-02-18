@@ -8,14 +8,6 @@ import pytest
 
 from custom_components.lipro.core.device import LiproDevice
 
-try:
-    from pytest_homeassistant_custom_component.common import (
-        MockConfigEntry,  # noqa: F401
-    )
-
-    HAS_HA_TEST_ENV = True
-except ImportError:
-    HAS_HA_TEST_ENV = False
 
 
 class TestLiproLight:
@@ -274,9 +266,6 @@ class TestLiproLightGearPresets:
         assert device_no_gear.has_gear_presets is False
 
 
-@pytest.mark.skipif(
-    not HAS_HA_TEST_ENV, reason="Requires pytest-homeassistant-custom-component"
-)
 class TestLiproLightEntityCommands:
     """Tests for LiproLight entity command methods."""
 

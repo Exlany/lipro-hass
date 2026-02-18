@@ -6,14 +6,6 @@ from unittest.mock import MagicMock
 
 import pytest
 
-try:
-    from pytest_homeassistant_custom_component.common import (
-        MockConfigEntry,  # noqa: F401
-    )
-
-    HAS_HA_TEST_ENV = True
-except ImportError:
-    HAS_HA_TEST_ENV = False
 
 
 class TestLiproSwitch:
@@ -209,9 +201,6 @@ class TestSwitchPropertyConstants:
         assert PROP_BODY_REACTIVE == "bodyReactive"
 
 
-@pytest.mark.skipif(
-    not HAS_HA_TEST_ENV, reason="Requires pytest-homeassistant-custom-component"
-)
 class TestLiproSwitchEntityCommands:
     """Tests for LiproSwitch entity command methods."""
 
