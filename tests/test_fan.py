@@ -6,14 +6,6 @@ from unittest.mock import MagicMock
 
 import pytest
 
-try:
-    from pytest_homeassistant_custom_component.common import (
-        MockConfigEntry,  # noqa: F401
-    )
-
-    HAS_HA_TEST_ENV = True
-except ImportError:
-    HAS_HA_TEST_ENV = False
 
 
 class TestLiproFan:
@@ -91,9 +83,6 @@ class TestLiproFan:
         device = make_device("fanLight", properties={"fanGear": "0"})
         assert device.fan_gear == 1
 
-    @pytest.mark.skipif(
-        not HAS_HA_TEST_ENV, reason="Requires HA test env for entity class import"
-    )
     def test_translation_key(self, make_device, mock_coordinator):
         """Test translation_key is set for icons.json mapping."""
         from custom_components.lipro.fan import LiproFan
@@ -152,9 +141,6 @@ class TestLiproFanPercentage:
         assert math.ceil(low + (high - low) * 50 / 100) == 6
 
 
-@pytest.mark.skipif(
-    not HAS_HA_TEST_ENV, reason="Requires HA test env for entity class import"
-)
 class TestLiproFanPresetModes:
     """Tests for fan preset mode mappings."""
 
@@ -224,9 +210,6 @@ class TestLiproHeaterVentFan:
         assert device.is_heater is True
 
 
-@pytest.mark.skipif(
-    not HAS_HA_TEST_ENV, reason="Requires HA test env for entity class import"
-)
 class TestLiproHeaterVentPresetModes:
     """Tests for heater ventilation preset mode mappings."""
 
@@ -276,9 +259,6 @@ class TestLiproHeaterVentPresetModes:
         assert AERATION_WEAK == 2
 
 
-@pytest.mark.skipif(
-    not HAS_HA_TEST_ENV, reason="Requires pytest-homeassistant-custom-component"
-)
 class TestLiproFanEntityCommands:
     """Tests for LiproFan entity command methods."""
 

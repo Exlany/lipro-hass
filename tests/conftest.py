@@ -1,14 +1,9 @@
 """Fixtures for Lipro tests.
 
 This module provides pytest fixtures for testing the Lipro integration.
+Requires pytest-homeassistant-custom-component to be installed.
 
-There are two testing modes:
-1. Standalone mode (default): Uses mocked homeassistant modules for testing
-   core modules (api, auth, device, mqtt) without requiring Home Assistant.
-2. Full HA mode: Requires pytest-homeassistant-custom-component for testing
-   config_flow, coordinator, and platform integrations.
-
-To install full HA test environment:
+To install:
     pip install pytest-homeassistant-custom-component
 
 Note: On Windows, this may require Microsoft C++ Build Tools.
@@ -17,25 +12,15 @@ Note: On Windows, this may require Microsoft C++ Build Tools.
 from __future__ import annotations
 
 from collections.abc import Generator
-import sys
-from types import ModuleType
+import pathlib
 from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+from pytest_homeassistant_custom_component.common import MockConfigEntry  # noqa: F401
 
-# Domain constant (avoid importing from main module which requires HA)
+# Domain constant
 DOMAIN = "lipro"
-
-# Check if pytest-homeassistant-custom-component is available
-try:
-    from pytest_homeassistant_custom_component.common import (
-        MockConfigEntry,  # noqa: F401
-    )
-
-    HAS_HA_TEST_ENV = True
-except ImportError:
-    HAS_HA_TEST_ENV = False
 
 
 # =========================================================================
@@ -137,94 +122,19 @@ def mock_coordinator():
     return coordinator
 
 
-def _create_mock_module(name: str) -> ModuleType:
-    """Create a mock module."""
-    module = ModuleType(name)
-    module.__dict__.update(MagicMock().__dict__)
-    return module
+@pytest.fixture(autouse=True)
+def auto_enable_custom_integrations(
+    enable_custom_integrations: None,
+) -> Generator[None]:
+    """Enable custom integrations for all tests."""
+    import custom_components
 
-
-def pytest_configure(config):
-    """Configure pytest to handle missing homeassistant module.
-
-    This creates mock modules for homeassistant when running in standalone mode.
-    When pytest-homeassistant-custom-component is installed, this is skipped.
-    """
-    # Register custom markers
-    config.addinivalue_line(
-        "markers", "github: tests specifically for GitHub Actions CI"
-    )
-    config.addinivalue_line("markers", "integration: tests requiring external services")
-    config.addinivalue_line("markers", "slow: tests that take longer to run")
-
-    if HAS_HA_TEST_ENV:
-        # Full HA test environment available, no mocking needed
-        return
-
-    # Create mock homeassistant module for tests that don't need it
-    if "homeassistant" not in sys.modules:
-        # Create base modules as proper ModuleType objects
-        mock_ha = _create_mock_module("homeassistant")
-        mock_helpers = _create_mock_module("homeassistant.helpers")
-        mock_components = _create_mock_module("homeassistant.components")
-
-        # Set up const with required attributes
-        mock_const = MagicMock()
-        mock_const.CONF_PASSWORD = "password"
-        mock_const.ATTR_ENTITY_ID = "entity_id"
-        mock_const.Platform = MagicMock()
-
-        # Register base modules
-        sys.modules["homeassistant"] = mock_ha
-        sys.modules["homeassistant.core"] = MagicMock()
-        sys.modules["homeassistant.config_entries"] = MagicMock()
-        sys.modules["homeassistant.const"] = mock_const
-        sys.modules["homeassistant.exceptions"] = MagicMock()
-
-        # Register helpers as a proper module with submodules
-        sys.modules["homeassistant.helpers"] = mock_helpers
-        sys.modules["homeassistant.helpers.aiohttp_client"] = MagicMock()
-        sys.modules["homeassistant.helpers.config_validation"] = MagicMock()
-        sys.modules["homeassistant.helpers.entity_registry"] = MagicMock()
-        sys.modules["homeassistant.helpers.update_coordinator"] = MagicMock()
-        sys.modules["homeassistant.helpers.debounce"] = MagicMock()
-        sys.modules["homeassistant.helpers.device_registry"] = MagicMock()
-        sys.modules["homeassistant.helpers.entity"] = MagicMock()
-        sys.modules["homeassistant.helpers.entity_platform"] = MagicMock()
-        sys.modules["homeassistant.helpers.issue_registry"] = MagicMock()
-        sys.modules["homeassistant.helpers.translation"] = MagicMock()
-
-        # Register components as a proper module with submodules
-        sys.modules["homeassistant.components"] = mock_components
-        sys.modules["homeassistant.components.persistent_notification"] = MagicMock()
-        sys.modules["homeassistant.components.light"] = MagicMock()
-        sys.modules["homeassistant.components.switch"] = MagicMock()
-        sys.modules["homeassistant.components.cover"] = MagicMock()
-        sys.modules["homeassistant.components.fan"] = MagicMock()
-        sys.modules["homeassistant.components.climate"] = MagicMock()
-        sys.modules["homeassistant.components.sensor"] = MagicMock()
-        sys.modules["homeassistant.components.binary_sensor"] = MagicMock()
-        sys.modules["homeassistant.components.select"] = MagicMock()
-        sys.modules["homeassistant.components.diagnostics"] = MagicMock()
-
-        # Register data_entry_flow module
-        mock_data_entry_flow = MagicMock()
-        mock_data_entry_flow.FlowResultType = MagicMock()
-        sys.modules["homeassistant.data_entry_flow"] = mock_data_entry_flow
-
-
-# Fixture to enable custom integrations (only used with full HA test env)
-if HAS_HA_TEST_ENV:
-
-    @pytest.fixture(autouse=True)
-    def auto_enable_custom_integrations(
-        enable_custom_integrations: None,
-    ) -> Generator[None]:
-        """Enable custom integrations for all tests."""
-        return
-
-
-# Fixtures for config_flow tests (require pytest-homeassistant-custom-component)
+    # Filter out editable-install placeholder paths that are not real directories.
+    # These are injected by setuptools editable installs and cause HA loader to crash
+    # when it tries to call pathlib.Path(path).iterdir() on them.
+    real_paths = [p for p in custom_components.__path__ if pathlib.Path(p).is_dir()]
+    with patch.object(custom_components, "__path__", real_paths):
+        yield
 
 
 @pytest.fixture

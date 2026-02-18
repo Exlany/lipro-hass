@@ -4,14 +4,6 @@ from __future__ import annotations
 
 import pytest
 
-try:
-    from pytest_homeassistant_custom_component.common import (
-        MockConfigEntry,  # noqa: F401
-    )
-
-    HAS_HA_TEST_ENV = True
-except ImportError:
-    HAS_HA_TEST_ENV = False
 
 
 class TestLiproHeaterState:
@@ -48,9 +40,6 @@ class TestLiproHeaterState:
         assert device.is_heater is True
 
 
-@pytest.mark.skipif(
-    not HAS_HA_TEST_ENV, reason="Requires HA test env for entity class import"
-)
 class TestLiproHeaterHvacMode:
     """Tests for heater HVAC mode logic."""
 
@@ -71,9 +60,6 @@ class TestLiproHeaterHvacMode:
         assert heater.hvac_mode.value == "off"
 
 
-@pytest.mark.skipif(
-    not HAS_HA_TEST_ENV, reason="Requires HA test env for entity class import"
-)
 class TestLiproHeaterTranslationKey:
     """Tests for heater translation_key (icons managed via icons.json)."""
 
@@ -84,9 +70,6 @@ class TestLiproHeaterTranslationKey:
         assert LiproHeater.__dict__["__attr_translation_key"] == "heater"
 
 
-@pytest.mark.skipif(
-    not HAS_HA_TEST_ENV, reason="Requires HA test env for entity class import"
-)
 class TestLiproHeaterPresetModes:
     """Tests for heater preset mode mappings."""
 

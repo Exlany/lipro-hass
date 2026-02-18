@@ -7,14 +7,6 @@ from __future__ import annotations
 
 import pytest
 
-try:
-    from pytest_homeassistant_custom_component.common import (
-        MockConfigEntry,  # noqa: F401
-    )
-
-    HAS_HA_TEST_ENV = True
-except ImportError:
-    HAS_HA_TEST_ENV = False
 
 
 class TestLightEntityBehavior:
@@ -168,9 +160,6 @@ class TestFanEntityBehavior:
 
         assert device.fan_gear == 5
 
-    @pytest.mark.skipif(
-        not HAS_HA_TEST_ENV, reason="Requires HA test env for homeassistant.util"
-    )
     def test_fan_gear_to_percentage(self, make_device):
         """Test fan gear to percentage conversion using HA utility."""
         from homeassistant.util.percentage import ranged_value_to_percentage
@@ -182,9 +171,6 @@ class TestFanEntityBehavior:
         assert ranged_value_to_percentage(speed_range, 10) == 100
         assert ranged_value_to_percentage(speed_range, 5) == 50
 
-    @pytest.mark.skipif(
-        not HAS_HA_TEST_ENV, reason="Requires HA test env for homeassistant.util"
-    )
     def test_percentage_to_fan_gear(self, make_device):
         """Test percentage to fan gear conversion using HA utility."""
         import math
