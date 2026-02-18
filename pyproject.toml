@@ -42,7 +42,7 @@ dev = [
     "pytest-homeassistant-custom-component>=0.13.0",
     "mypy>=1.0.0",
     "aiodns>=3.3.0",
-    "pycares<5.0.0",
+    "pycares<6.0.0",
 ]
 
 [project.urls]
