@@ -2,10 +2,16 @@
 
 from __future__ import annotations
 
+from datetime import timedelta
+from unittest.mock import MagicMock, patch
+
+import pytest
+
 from custom_components.lipro.diagnostics import (
     PROPERTY_KEYS_TO_REDACT,
     TO_REDACT,
     _redact_device_properties,
+    async_get_config_entry_diagnostics,
 )
 
 
@@ -99,3 +105,115 @@ class TestPropertyKeysToRedact:
     def test_count(self):
         """Test PROPERTY_KEYS_TO_REDACT has expected count."""
         assert len(PROPERTY_KEYS_TO_REDACT) == 6
+
+
+class TestAsyncGetConfigEntryDiagnostics:
+    """Tests for async_get_config_entry_diagnostics."""
+
+    @pytest.mark.asyncio
+    async def test_collects_and_redacts_diagnostics(self, hass, make_device):
+        """Test diagnostics payload structure and redaction behavior."""
+        device = make_device(
+            "outlet",
+            name="Office Outlet",
+            properties={
+                "mac": "5C:CD:7C:AA:BB:CC",
+                "ip": "192.168.1.2",
+                "wifi_ssid": "HomeWiFi",
+                "powerState": "1",
+                "version": "1.2.3",
+                "wifiRssi": "-58",
+                "netType": "wifi",
+                "meshAddress": "123",
+                "meshType": "1",
+                "meshGateway": "1",
+            },
+            extra_data={
+                "power_info": {"nowPower": 12.5, "energyList": []},
+                "gateway_device_id": "03abdeadbeefcafe",
+                "ignored": "secret",
+            },
+            room_name="Bedroom",
+        )
+        coordinator = MagicMock()
+        coordinator.devices = {device.serial: device}
+        coordinator.last_update_success = True
+        coordinator.update_interval = timedelta(seconds=30)
+        coordinator.mqtt_connected = True
+
+        entry = MagicMock()
+        entry.runtime_data = coordinator
+        entry.title = "Lipro (13800000000)"
+        entry.data = {
+            "phone": "13800000000",
+            "access_token": "token",
+            "refresh_token": "refresh",
+            "user_id": 10001,
+            "safe_value": "ok",
+        }
+        entry.options = {"debug_mode": False}
+
+        share_manager = MagicMock()
+        share_manager.is_enabled = True
+        share_manager.pending_count = (2, 1)
+
+        with patch(
+            "custom_components.lipro.diagnostics.get_anonymous_share_manager",
+            return_value=share_manager,
+        ):
+            result = await async_get_config_entry_diagnostics(hass, entry)
+
+        assert result["entry"]["data"]["phone"] == "**REDACTED**"
+        assert result["entry"]["data"]["access_token"] == "**REDACTED**"
+        assert result["entry"]["data"]["safe_value"] == "ok"
+        assert result["coordinator"]["device_count"] == 1
+        assert result["coordinator"]["mqtt_connected"] is True
+        assert result["anonymous_share"] == {
+            "enabled": True,
+            "pending_devices": 2,
+            "pending_errors": 1,
+        }
+
+        device_info = result["devices"][0]
+        assert device_info["name"] == "**REDACTED**"
+        assert device_info["room_name"] == "**REDACTED**"
+        assert device_info["properties"]["mac"] == "**REDACTED**"
+        assert device_info["properties"]["ip"] == "**REDACTED**"
+        assert device_info["properties"]["wifi_ssid"] == "**REDACTED**"
+        assert device_info["properties"]["powerState"] == "1"
+        assert device_info["extra_data"]["power_info"]["nowPower"] == 12.5
+        assert device_info["extra_data"]["gateway_device_id"] == "**REDACTED**"
+        assert "ignored" not in device_info["extra_data"]
+
+    @pytest.mark.asyncio
+    async def test_handles_no_devices(self, hass):
+        """Test diagnostics output when coordinator has no devices."""
+        coordinator = MagicMock()
+        coordinator.devices = {}
+        coordinator.last_update_success = False
+        coordinator.update_interval = timedelta(seconds=60)
+        coordinator.mqtt_connected = False
+
+        entry = MagicMock()
+        entry.runtime_data = coordinator
+        entry.title = "Lipro Empty"
+        entry.data = {"phone": "13800000000"}
+        entry.options = {}
+
+        share_manager = MagicMock()
+        share_manager.is_enabled = False
+        share_manager.pending_count = (0, 0)
+
+        with patch(
+            "custom_components.lipro.diagnostics.get_anonymous_share_manager",
+            return_value=share_manager,
+        ):
+            result = await async_get_config_entry_diagnostics(hass, entry)
+
+        assert result["devices"] == []
+        assert result["coordinator"]["last_update_success"] is False
+        assert result["anonymous_share"] == {
+            "enabled": False,
+            "pending_devices": 0,
+            "pending_errors": 0,
+        }

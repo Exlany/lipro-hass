@@ -121,8 +121,15 @@ async def test_binary_sensor_async_setup_entry_creates_composed_entities(
 @pytest.mark.asyncio
 async def test_sensor_and_select_platforms_entity_behavior(mock_coordinator, make_device):
     """Sensor/select platforms create entities and send select command."""
-    from custom_components.lipro.select import LiproLightGearSelect, async_setup_entry as setup_select
-    from custom_components.lipro.sensor import LiproBatterySensor, LiproOutletPowerSensor, async_setup_entry as setup_sensor
+    from custom_components.lipro.select import (
+        LiproLightGearSelect,
+        async_setup_entry as setup_select,
+    )
+    from custom_components.lipro.sensor import (
+        LiproBatterySensor,
+        LiproOutletPowerSensor,
+        async_setup_entry as setup_sensor,
+    )
 
     outlet = make_device(
         "outlet",

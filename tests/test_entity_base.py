@@ -5,11 +5,10 @@ from __future__ import annotations
 from time import monotonic
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
-
 from custom_components.lipro.const import DOMAIN, MANUFACTURER
 from custom_components.lipro.entities.base import DEBOUNCE_PROTECTION_WINDOW
 from custom_components.lipro.light import LiproLight
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 
 def _make_entity(coordinator, device):

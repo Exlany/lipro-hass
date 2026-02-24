@@ -10,17 +10,17 @@ from __future__ import annotations
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from homeassistant.exceptions import ConfigEntryAuthFailed
-from homeassistant.helpers.update_coordinator import UpdateFailed
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
+from custom_components.lipro.const.api import MAX_DEVICES_PER_QUERY
 from custom_components.lipro.core.api import (
     LiproApiError,
     LiproAuthError,
     LiproConnectionError,
     LiproRefreshTokenExpiredError,
 )
-from custom_components.lipro.core.const import MAX_DEVICES_PER_QUERY
+from homeassistant.exceptions import ConfigEntryAuthFailed
+from homeassistant.helpers.update_coordinator import UpdateFailed
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -77,14 +77,11 @@ def coordinator(hass, mock_lipro_api_client, mock_auth_manager):
         mock_share.return_value = MagicMock(
             is_enabled=False, set_enabled=MagicMock()
         )
-        from custom_components.lipro.core.coordinator import (
-            LiproDataUpdateCoordinator,
-        )
+        from custom_components.lipro.core.coordinator import LiproDataUpdateCoordinator
 
-        coord = LiproDataUpdateCoordinator(
+        return LiproDataUpdateCoordinator(
             hass, mock_lipro_api_client, mock_auth_manager, entry
         )
-    return coord
 
 
 # =========================================================================
@@ -675,4 +672,3 @@ class TestCoordinatorRefreshDevices:
 
         # get_devices should be called again because of the force flag
         mock_lipro_api_client.get_devices.assert_called_once()
-

@@ -240,9 +240,8 @@ class TestLiproSwitchEntityCommands:
     @pytest.mark.asyncio
     async def test_outlet_device_class(self, mock_coordinator, make_device):
         """Test outlet gets SwitchDeviceClass.OUTLET."""
-        from homeassistant.components.switch import SwitchDeviceClass
-
         from custom_components.lipro.switch import LiproSwitch
+        from homeassistant.components.switch import SwitchDeviceClass
 
         device = make_device("outlet")
         mock_coordinator.get_device = MagicMock(return_value=device)
@@ -253,9 +252,8 @@ class TestLiproSwitchEntityCommands:
     @pytest.mark.asyncio
     async def test_switch_device_class(self, mock_coordinator, make_device):
         """Test switch gets SwitchDeviceClass.SWITCH."""
-        from homeassistant.components.switch import SwitchDeviceClass
-
         from custom_components.lipro.switch import LiproSwitch
+        from homeassistant.components.switch import SwitchDeviceClass
 
         device = make_device("switch")
         mock_coordinator.get_device = MagicMock(return_value=device)

@@ -5,20 +5,13 @@ from __future__ import annotations
 import time
 from unittest.mock import AsyncMock, MagicMock, patch
 
-import pytest
-
 from custom_components.lipro.core.anonymous_share import (
+    _MAX_STRING_LENGTH,
     MAX_PENDING_DEVICES,
     MAX_PENDING_ERRORS,
-    MIN_UPLOAD_INTERVAL,
-    REDACT_KEYS,
     AnonymousShareManager,
-    SharedDevice,
-    SharedError,
-    _MAX_STRING_LENGTH,
     get_anonymous_share_manager,
 )
-
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -505,7 +498,7 @@ class TestSetEnabled:
         assert mgr.is_enabled is False
         assert mgr.pending_count == (0, 0)
 
-    def test_storage_path_defers_cache_load(self):
+    def test_storage_path_defers_cache_load(self, tmp_path):
         mgr = AnonymousShareManager()
-        mgr.set_enabled(True, storage_path="/tmp/test")
+        mgr.set_enabled(True, storage_path=str(tmp_path))
         assert mgr._cache_loaded is False

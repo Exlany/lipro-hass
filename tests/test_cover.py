@@ -180,9 +180,10 @@ class TestLiproCoverEntityCommands:
 
         # Mock the debouncer to call immediately
         cover._debouncer = MagicMock()
-        cover._debouncer.async_call = AsyncMock(
-            side_effect=lambda fn, *args: fn(*args)
-        )
+        async def _run_immediately(fn, *args):
+            await fn(*args)
+
+        cover._debouncer.async_call = AsyncMock(side_effect=_run_immediately)
 
         await cover.async_set_cover_position(position=75)
 
@@ -203,9 +204,10 @@ class TestLiproCoverEntityCommands:
         cover.async_write_ha_state = MagicMock()
 
         cover._debouncer = MagicMock()
-        cover._debouncer.async_call = AsyncMock(
-            side_effect=lambda fn, *args: fn(*args)
-        )
+        async def _run_immediately(fn, *args):
+            await fn(*args)
+
+        cover._debouncer.async_call = AsyncMock(side_effect=_run_immediately)
 
         await cover.async_set_cover_position(position=150)
 

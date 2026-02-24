@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import pytest
+
 
 class TestLiproHeaterState:
     """Tests for heater state properties."""
@@ -151,9 +153,8 @@ class TestLiproHeaterEntityCommands:
         """Test async_set_hvac_mode(HEAT) sends POWER_ON command."""
         from unittest.mock import MagicMock
 
-        from homeassistant.components.climate import HVACMode
-
         from custom_components.lipro.climate import LiproHeater
+        from homeassistant.components.climate import HVACMode
 
         device = make_device("heater", properties={"heaterSwitch": "0"})
         mock_coordinator.get_device = MagicMock(return_value=device)
@@ -171,9 +172,8 @@ class TestLiproHeaterEntityCommands:
         """Test async_set_hvac_mode(OFF) sends POWER_OFF command."""
         from unittest.mock import MagicMock
 
-        from homeassistant.components.climate import HVACMode
-
         from custom_components.lipro.climate import LiproHeater
+        from homeassistant.components.climate import HVACMode
 
         device = make_device("heater", properties={"heaterSwitch": "1"})
         mock_coordinator.get_device = MagicMock(return_value=device)

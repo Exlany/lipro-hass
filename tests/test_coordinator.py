@@ -22,7 +22,6 @@ from custom_components.lipro.const import (
 from custom_components.lipro.core.api import LiproAuthError
 from custom_components.lipro.core.device import LiproDevice
 
-
 # ---------------------------------------------------------------------------
 # Fixture: real coordinator with mocked deps
 # ---------------------------------------------------------------------------
@@ -51,10 +50,9 @@ def coordinator(hass, mock_lipro_api_client, mock_auth_manager):
         mock_share.return_value = MagicMock(is_enabled=False, set_enabled=MagicMock())
         from custom_components.lipro.core.coordinator import LiproDataUpdateCoordinator
 
-        coord = LiproDataUpdateCoordinator(
+        return LiproDataUpdateCoordinator(
             hass, mock_lipro_api_client, mock_auth_manager, entry
         )
-    return coord
 
 
 def _make_device(
