@@ -2,6 +2,11 @@
 
 from __future__ import annotations
 
+from types import SimpleNamespace
+from unittest.mock import AsyncMock, MagicMock
+
+import pytest
+
 from custom_components.lipro.core.device import LiproDevice
 
 
@@ -263,3 +268,205 @@ class TestSelectDeviceDetection:
         )
         assert device.is_light is True
         assert device.has_gear_presets is True
+
+
+class TestSelectEntityBehavior:
+    """Behavior tests for select entities."""
+
+    @pytest.mark.asyncio
+    async def test_async_setup_entry_creates_expected_entities(
+        self, make_device
+    ) -> None:
+        """Setup should create heater selects and gear select for eligible lights."""
+        from custom_components.lipro.select import (
+            LiproHeaterLightModeSelect,
+            LiproHeaterWindDirectionSelect,
+            LiproLightGearSelect,
+            async_setup_entry,
+        )
+
+        coordinator = SimpleNamespace(
+            devices={
+                "heater": make_device("heater"),
+                "gear_light": make_device(
+                    "light",
+                    properties={"gearList": '[{"temperature":50,"brightness":100}]'},
+                ),
+                "plain_light": make_device("light"),
+            }
+        )
+        entry = SimpleNamespace(runtime_data=coordinator)
+        captured: list[object] = []
+
+        def _add_entities(entities):
+            captured.extend(entities)
+
+        await async_setup_entry(None, entry, _add_entities)
+
+        assert any(isinstance(e, LiproHeaterWindDirectionSelect) for e in captured)
+        assert any(isinstance(e, LiproHeaterLightModeSelect) for e in captured)
+        assert any(isinstance(e, LiproLightGearSelect) for e in captured)
+        assert len(captured) == 3
+
+    @pytest.mark.asyncio
+    async def test_mapped_select_invalid_option_fallback_to_default(
+        self, mock_coordinator, make_device
+    ) -> None:
+        """Mapped select should fallback to default value for unknown option."""
+        from custom_components.lipro.select import LiproHeaterLightModeSelect
+
+        device = make_device("heater", properties={"lightMode": "1"})
+        mock_coordinator.devices = {device.serial: device}
+        mock_coordinator.get_device = lambda serial: mock_coordinator.devices.get(
+            serial
+        )
+        select = LiproHeaterLightModeSelect(mock_coordinator, device)
+        select.async_write_ha_state = lambda: None
+
+        await select.async_select_option("invalid")
+
+        call_args = mock_coordinator.async_send_command.call_args
+        properties = call_args[0][2]
+        assert any(p["key"] == "lightMode" and p["value"] == "0" for p in properties)
+
+    @pytest.mark.asyncio
+    async def test_light_gear_select_options_are_trimmed(
+        self, mock_coordinator, make_device
+    ) -> None:
+        """Options should be trimmed to actual gear count when less than 3."""
+        from custom_components.lipro.select import LiproLightGearSelect
+
+        device = make_device(
+            "light",
+            properties={
+                "gearList": '[{"temperature":50,"brightness":100},{"temperature":40,"brightness":80}]'
+            },
+        )
+        mock_coordinator.devices = {device.serial: device}
+        mock_coordinator.get_device = lambda serial: mock_coordinator.devices.get(
+            serial
+        )
+        select = LiproLightGearSelect(mock_coordinator, device)
+        assert select.options == ["gear_1", "gear_2"]
+
+    @pytest.mark.asyncio
+    async def test_light_gear_select_options_empty_without_presets(
+        self, mock_coordinator, make_device
+    ) -> None:
+        """Options should be empty when device has no gear presets."""
+        from custom_components.lipro.select import LiproLightGearSelect
+
+        device = make_device("light", properties={})
+        mock_coordinator.devices = {device.serial: device}
+        mock_coordinator.get_device = lambda serial: mock_coordinator.devices.get(
+            serial
+        )
+        select = LiproLightGearSelect(mock_coordinator, device)
+        assert select.options == []
+
+    @pytest.mark.asyncio
+    async def test_light_gear_select_current_option_no_match_returns_none(
+        self, mock_coordinator, make_device
+    ) -> None:
+        """Current option should be None when state does not match any gear."""
+        from custom_components.lipro.select import LiproLightGearSelect
+
+        device = make_device(
+            "light",
+            properties={
+                "brightness": "1",
+                "temperature": "99",
+                "gearList": '[{"temperature":50,"brightness":100}]',
+            },
+        )
+        mock_coordinator.devices = {device.serial: device}
+        mock_coordinator.get_device = lambda serial: mock_coordinator.devices.get(
+            serial
+        )
+        select = LiproLightGearSelect(mock_coordinator, device)
+        assert select.current_option is None
+
+    @pytest.mark.asyncio
+    async def test_light_gear_select_invalid_option_returns_early(
+        self, mock_coordinator, make_device
+    ) -> None:
+        """Invalid gear option should return without sending command."""
+        from custom_components.lipro.select import LiproLightGearSelect
+
+        device = make_device(
+            "light", properties={"gearList": '[{"temperature":50,"brightness":100}]'}
+        )
+        mock_coordinator.devices = {device.serial: device}
+        mock_coordinator.get_device = lambda serial: mock_coordinator.devices.get(
+            serial
+        )
+        mock_coordinator.async_send_command = AsyncMock(return_value=True)
+        select = LiproLightGearSelect(mock_coordinator, device)
+        select.async_write_ha_state = lambda: None
+
+        await select.async_select_option("invalid")
+        mock_coordinator.async_send_command.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_light_gear_select_index_out_of_range_returns_early(
+        self, mock_coordinator, make_device
+    ) -> None:
+        """Out-of-range gear index should return without sending command."""
+        from custom_components.lipro.select import LiproLightGearSelect
+
+        device = make_device(
+            "light", properties={"gearList": '[{"temperature":50,"brightness":100}]'}
+        )
+        mock_coordinator.devices = {device.serial: device}
+        mock_coordinator.get_device = lambda serial: mock_coordinator.devices.get(
+            serial
+        )
+        mock_coordinator.async_send_command = AsyncMock(return_value=True)
+        select = LiproLightGearSelect(mock_coordinator, device)
+        select.async_write_ha_state = lambda: None
+
+        await select.async_select_option("gear_3")
+        mock_coordinator.async_send_command.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_light_gear_select_invalid_gear_payload_returns_early(
+        self, mock_coordinator, make_device
+    ) -> None:
+        """Non-dict gear payload should return without sending command."""
+        from custom_components.lipro.select import LiproLightGearSelect
+
+        device = make_device("light", properties={"gearList": "[1]"})
+        mock_coordinator.devices = {device.serial: device}
+        mock_coordinator.get_device = lambda serial: mock_coordinator.devices.get(
+            serial
+        )
+        mock_coordinator.async_send_command = AsyncMock(return_value=True)
+        select = LiproLightGearSelect(mock_coordinator, device)
+        select.async_write_ha_state = lambda: None
+
+        await select.async_select_option("gear_1")
+        mock_coordinator.async_send_command.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_light_gear_select_valid_option_updates_and_notifies(
+        self, mock_coordinator, make_device
+    ) -> None:
+        """Valid gear option should send state change and notify listeners."""
+        from custom_components.lipro.select import LiproLightGearSelect
+
+        device = make_device(
+            "light", properties={"gearList": '[{"temperature":50,"brightness":100}]'}
+        )
+        mock_coordinator.devices = {device.serial: device}
+        mock_coordinator.get_device = lambda serial: mock_coordinator.devices.get(
+            serial
+        )
+        mock_coordinator.async_send_command = AsyncMock(return_value=True)
+        mock_coordinator.async_update_listeners = MagicMock()
+        select = LiproLightGearSelect(mock_coordinator, device)
+        select.async_write_ha_state = lambda: None
+
+        await select.async_select_option("gear_1")
+
+        mock_coordinator.async_send_command.assert_called_once()
+        assert mock_coordinator.async_update_listeners.called

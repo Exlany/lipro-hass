@@ -9,7 +9,11 @@ Tests cover:
 
 from __future__ import annotations
 
+from types import SimpleNamespace
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
+from pytest_homeassistant_custom_component.common import MockConfigEntry
 import voluptuous as vol
 
 from custom_components.lipro import (
@@ -31,8 +35,40 @@ from custom_components.lipro import (
     SERVICE_SEND_COMMAND,
     SERVICE_SEND_COMMAND_SCHEMA,
     SERVICE_SUBMIT_ANONYMOUS_SHARE,
+    _async_handle_add_schedule,
+    _async_handle_delete_schedules,
+    _async_handle_get_anonymous_share_report,
+    _async_handle_get_schedules,
+    _async_handle_send_command,
+    _async_handle_submit_anonymous_share,
+    _get_device_and_coordinator,
+    async_setup,
+    async_setup_entry,
+    async_unload_entry,
 )
-from homeassistant.const import Platform
+from custom_components.lipro.const import (
+    CONF_ACCESS_TOKEN,
+    CONF_EXPIRES_AT,
+    CONF_PASSWORD_HASH,
+    CONF_PHONE,
+    CONF_PHONE_ID,
+    CONF_REFRESH_TOKEN,
+    DOMAIN,
+)
+from custom_components.lipro.core import (
+    LiproApiError,
+    LiproAuthError,
+    LiproConnectionError,
+)
+from custom_components.lipro.core.device import LiproDevice
+from homeassistant.const import ATTR_ENTITY_ID, Platform
+from homeassistant.exceptions import (
+    ConfigEntryAuthFailed,
+    ConfigEntryNotReady,
+    HomeAssistantError,
+    ServiceValidationError,
+)
+from homeassistant.helpers import entity_registry as er
 
 
 class TestPlatforms:
@@ -357,3 +393,440 @@ class TestSchemaValidation:
         )
         assert result["device_id"] == "abc123"
         assert result["schedule_ids"] == [1]
+
+
+class TestInitRuntimeBehavior:
+    """Tests for __init__.py runtime behaviors."""
+
+    @staticmethod
+    def _create_device(serial: str = "03ab5ccd7c111111") -> LiproDevice:
+        """Create a minimal LiproDevice for runtime tests."""
+        return LiproDevice(
+            device_number=1,
+            serial=serial,
+            name="Test Device",
+            device_type=1,
+            iot_name="lipro_led",
+            physical_model="light",
+        )
+
+    async def test_async_setup_registers_services(self, hass) -> None:
+        """Services are registered by async_setup and idempotent."""
+        assert await async_setup(hass, {}) is True
+        assert hass.services.has_service(DOMAIN, SERVICE_SEND_COMMAND)
+        assert hass.services.has_service(DOMAIN, SERVICE_GET_SCHEDULES)
+        assert hass.services.has_service(DOMAIN, SERVICE_ADD_SCHEDULE)
+        assert hass.services.has_service(DOMAIN, SERVICE_DELETE_SCHEDULES)
+        assert hass.services.has_service(DOMAIN, SERVICE_SUBMIT_ANONYMOUS_SHARE)
+        assert hass.services.has_service(DOMAIN, SERVICE_GET_ANONYMOUS_SHARE_REPORT)
+
+        # Calling setup twice should keep registration stable.
+        assert await async_setup(hass, {}) is True
+        assert hass.services.has_service(DOMAIN, SERVICE_SEND_COMMAND)
+
+    async def test_async_setup_entry_success_with_token_update(self, hass) -> None:
+        """async_setup_entry builds coordinator and updates stored tokens when changed."""
+        entry = MockConfigEntry(
+            domain=DOMAIN,
+            data={
+                CONF_PHONE_ID: "phone-id",
+                CONF_PHONE: "13800000000",
+                CONF_PASSWORD_HASH: "hashed-password",
+                CONF_ACCESS_TOKEN: "old_access",
+                CONF_REFRESH_TOKEN: "old_refresh",
+            },
+        )
+        entry.add_to_hass(hass)
+        entry.add_update_listener = MagicMock(return_value=MagicMock())
+        entry.async_on_unload = MagicMock()
+
+        mock_auth = MagicMock()
+        mock_auth.set_tokens = MagicMock()
+        mock_auth.set_credentials = MagicMock()
+        mock_auth.ensure_valid_token = AsyncMock()
+        mock_auth.get_auth_data.return_value = {
+            CONF_ACCESS_TOKEN: "new_access",
+            CONF_REFRESH_TOKEN: "new_refresh",
+            CONF_EXPIRES_AT: 1234567890,
+        }
+
+        mock_coordinator = MagicMock()
+        mock_coordinator.async_config_entry_first_refresh = AsyncMock()
+
+        with (
+            patch(
+                "custom_components.lipro.async_get_clientsession",
+                return_value=MagicMock(),
+            ),
+            patch("custom_components.lipro.LiproClient", return_value=MagicMock()),
+            patch("custom_components.lipro.LiproAuthManager", return_value=mock_auth),
+            patch(
+                "custom_components.lipro.LiproDataUpdateCoordinator",
+                return_value=mock_coordinator,
+            ),
+            patch.object(
+                hass.config_entries,
+                "async_forward_entry_setups",
+                AsyncMock(return_value=True),
+            ) as mock_forward,
+            patch.object(hass.config_entries, "async_update_entry") as mock_update,
+        ):
+            assert await async_setup_entry(hass, entry) is True
+
+        mock_auth.set_tokens.assert_called_once()
+        mock_auth.ensure_valid_token.assert_awaited_once()
+        mock_coordinator.async_config_entry_first_refresh.assert_awaited_once()
+        assert entry.runtime_data is mock_coordinator
+        mock_forward.assert_awaited_once()
+        mock_update.assert_called_once()
+        entry.add_update_listener.assert_called_once()
+        entry.async_on_unload.assert_called_once()
+
+    async def test_async_setup_entry_auth_error_raises_config_entry_auth_failed(
+        self, hass
+    ) -> None:
+        """Auth failures are surfaced as ConfigEntryAuthFailed."""
+        entry = MockConfigEntry(
+            domain=DOMAIN,
+            data={
+                CONF_PHONE_ID: "phone-id",
+                CONF_PHONE: "13800000000",
+                CONF_PASSWORD_HASH: "hashed-password",
+            },
+        )
+        entry.add_to_hass(hass)
+
+        mock_auth = MagicMock()
+        mock_auth.set_credentials = MagicMock()
+        mock_auth.ensure_valid_token = AsyncMock(side_effect=LiproAuthError("bad auth"))
+
+        with (
+            patch(
+                "custom_components.lipro.async_get_clientsession",
+                return_value=MagicMock(),
+            ),
+            patch("custom_components.lipro.LiproClient", return_value=MagicMock()),
+            patch("custom_components.lipro.LiproAuthManager", return_value=mock_auth),
+            pytest.raises(ConfigEntryAuthFailed),
+        ):
+            await async_setup_entry(hass, entry)
+
+    async def test_async_setup_entry_connection_error_raises_not_ready(
+        self, hass
+    ) -> None:
+        """Connection failures are surfaced as ConfigEntryNotReady."""
+        entry = MockConfigEntry(
+            domain=DOMAIN,
+            data={
+                CONF_PHONE_ID: "phone-id",
+                CONF_PHONE: "13800000000",
+                CONF_PASSWORD_HASH: "hashed-password",
+            },
+        )
+        entry.add_to_hass(hass)
+
+        mock_auth = MagicMock()
+        mock_auth.set_credentials = MagicMock()
+        mock_auth.ensure_valid_token = AsyncMock(
+            side_effect=LiproConnectionError("offline")
+        )
+
+        with (
+            patch(
+                "custom_components.lipro.async_get_clientsession",
+                return_value=MagicMock(),
+            ),
+            patch("custom_components.lipro.LiproClient", return_value=MagicMock()),
+            patch("custom_components.lipro.LiproAuthManager", return_value=mock_auth),
+            pytest.raises(ConfigEntryNotReady),
+        ):
+            await async_setup_entry(hass, entry)
+
+    async def test_async_unload_entry_removes_services_on_last_entry(
+        self, hass
+    ) -> None:
+        """Service registrations are removed when last entry unloads."""
+        await async_setup(hass, {})
+        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry.add_to_hass(hass)
+
+        with patch.object(
+            hass.config_entries,
+            "async_unload_platforms",
+            AsyncMock(return_value=True),
+        ):
+            assert await async_unload_entry(hass, entry) is True
+
+        assert not hass.services.has_service(DOMAIN, SERVICE_SEND_COMMAND)
+        assert not hass.services.has_service(DOMAIN, SERVICE_GET_SCHEDULES)
+
+    async def test_get_device_from_entity_target(self, hass) -> None:
+        """Resolve target entity unique_id to device serial."""
+        device = self._create_device()
+        coordinator = MagicMock()
+        coordinator.get_device.return_value = device
+
+        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry.add_to_hass(hass)
+        entry.runtime_data = coordinator
+
+        entity_id = (
+            er.async_get(hass)
+            .async_get_or_create(
+                "light",
+                DOMAIN,
+                f"lipro_{device.serial}_light",
+                suggested_object_id="lipro_test_device",
+            )
+            .entity_id
+        )
+
+        call = SimpleNamespace(data={ATTR_ENTITY_ID: [entity_id]})
+        got_device, got_coordinator = await _get_device_and_coordinator(hass, call)
+
+        assert got_device is device
+        assert got_coordinator is coordinator
+
+    async def test_get_device_without_id_or_entity_raises(self, hass) -> None:
+        """Missing device_id and entity target should raise validation error."""
+        with pytest.raises(ServiceValidationError):
+            await _get_device_and_coordinator(hass, SimpleNamespace(data={}))
+
+    async def test_add_schedule_times_events_mismatch_raises(self, hass) -> None:
+        """Mismatched lengths in add_schedule should fail validation."""
+        device = self._create_device()
+        coordinator = MagicMock()
+        coordinator.get_device.return_value = device
+
+        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry.add_to_hass(hass)
+        entry.runtime_data = coordinator
+
+        call = SimpleNamespace(
+            data={
+                ATTR_DEVICE_ID: device.serial,
+                ATTR_DAYS: [1, 2],
+                ATTR_TIMES: [3600],
+                ATTR_EVENTS: [1, 0],
+            }
+        )
+
+        with pytest.raises(ServiceValidationError):
+            await _async_handle_add_schedule(hass, call)
+
+    async def test_submit_anonymous_share_disabled_raises(self, hass) -> None:
+        """submit_anonymous_share validates opt-in flag."""
+        share_manager = MagicMock()
+        share_manager.is_enabled = False
+
+        with (
+            patch(
+                "custom_components.lipro.get_anonymous_share_manager",
+                return_value=share_manager,
+            ),
+            pytest.raises(ServiceValidationError),
+        ):
+            await _async_handle_submit_anonymous_share(hass, SimpleNamespace(data={}))
+
+    async def test_get_anonymous_share_report_returns_data(self, hass) -> None:
+        """get_anonymous_share_report exposes pending report summary."""
+        report = {
+            "device_count": 1,
+            "error_count": 2,
+            "devices": ["a"],
+            "errors": ["b"],
+        }
+        share_manager = MagicMock()
+        share_manager.get_pending_report.return_value = report
+
+        with patch(
+            "custom_components.lipro.get_anonymous_share_manager",
+            return_value=share_manager,
+        ):
+            result = await _async_handle_get_anonymous_share_report(
+                hass, SimpleNamespace(data={})
+            )
+
+        assert result == {
+            "has_data": True,
+            "device_count": 1,
+            "error_count": 2,
+            "devices": ["a"],
+            "errors": ["b"],
+        }
+
+    async def test_send_command_handler_success(self, hass) -> None:
+        """send_command returns success payload on coordinator success."""
+        device = self._create_device()
+        coordinator = MagicMock()
+        coordinator.get_device.return_value = device
+        coordinator.async_send_command = AsyncMock(return_value=True)
+
+        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry.add_to_hass(hass)
+        entry.runtime_data = coordinator
+
+        result = await _async_handle_send_command(
+            hass,
+            SimpleNamespace(
+                data={
+                    ATTR_DEVICE_ID: device.serial,
+                    ATTR_COMMAND: "POWER_ON",
+                    ATTR_PROPERTIES: [{"key": "powerState", "value": "1"}],
+                }
+            ),
+        )
+        assert result == {"success": True, "serial": device.serial}
+
+    async def test_send_command_handler_failure_raises(self, hass) -> None:
+        """send_command raises HomeAssistantError when coordinator reports failure."""
+        device = self._create_device()
+        coordinator = MagicMock()
+        coordinator.get_device.return_value = device
+        coordinator.async_send_command = AsyncMock(return_value=False)
+
+        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry.add_to_hass(hass)
+        entry.runtime_data = coordinator
+
+        with pytest.raises(HomeAssistantError):
+            await _async_handle_send_command(
+                hass,
+                SimpleNamespace(
+                    data={ATTR_DEVICE_ID: device.serial, ATTR_COMMAND: "POWER_ON"}
+                ),
+            )
+
+    async def test_send_command_handler_api_error_raises(self, hass) -> None:
+        """send_command maps API errors to HomeAssistantError."""
+        device = self._create_device()
+        coordinator = MagicMock()
+        coordinator.get_device.return_value = device
+        coordinator.async_send_command = AsyncMock(side_effect=LiproApiError("boom"))
+
+        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry.add_to_hass(hass)
+        entry.runtime_data = coordinator
+
+        with pytest.raises(HomeAssistantError):
+            await _async_handle_send_command(
+                hass,
+                SimpleNamespace(
+                    data={ATTR_DEVICE_ID: device.serial, ATTR_COMMAND: "POWER_ON"}
+                ),
+            )
+
+    async def test_get_schedules_formats_response(self, hass) -> None:
+        """get_schedules returns normalized response payload."""
+        device = self._create_device()
+        client = MagicMock()
+        client.get_device_schedules = AsyncMock(
+            return_value=[
+                {
+                    "id": 5,
+                    "active": True,
+                    "schedule": {"days": [1], "time": [3600, 3661], "evt": [1, 0]},
+                }
+            ]
+        )
+        coordinator = MagicMock()
+        coordinator.get_device.return_value = device
+        coordinator.client = client
+
+        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry.add_to_hass(hass)
+        entry.runtime_data = coordinator
+
+        result = await _async_handle_get_schedules(
+            hass, SimpleNamespace(data={ATTR_DEVICE_ID: device.serial})
+        )
+
+        assert result == {
+            "serial": device.serial,
+            "schedules": [
+                {
+                    "id": 5,
+                    "active": True,
+                    "days": [1],
+                    "times": ["01:00", "01:01"],
+                    "events": [1, 0],
+                }
+            ],
+        }
+
+    async def test_delete_schedules_returns_summary(self, hass) -> None:
+        """delete_schedules returns remaining count on success."""
+        device = self._create_device()
+        client = MagicMock()
+        client.delete_device_schedules = AsyncMock(return_value=[{"id": 2}, {"id": 3}])
+        coordinator = MagicMock()
+        coordinator.get_device.return_value = device
+        coordinator.client = client
+
+        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry.add_to_hass(hass)
+        entry.runtime_data = coordinator
+
+        result = await _async_handle_delete_schedules(
+            hass,
+            SimpleNamespace(
+                data={ATTR_DEVICE_ID: device.serial, ATTR_SCHEDULE_IDS: [1]}
+            ),
+        )
+        assert result == {
+            "success": True,
+            "serial": device.serial,
+            "remaining_count": 2,
+        }
+
+    async def test_submit_anonymous_share_no_data_returns_noop(self, hass) -> None:
+        """submit_anonymous_share returns no-op when nothing pending."""
+        share_manager = MagicMock()
+        share_manager.is_enabled = True
+        share_manager.pending_count = (0, 0)
+
+        with patch(
+            "custom_components.lipro.get_anonymous_share_manager",
+            return_value=share_manager,
+        ):
+            result = await _async_handle_submit_anonymous_share(
+                hass, SimpleNamespace(data={})
+            )
+
+        assert result == {
+            "success": True,
+            "message": "No data to submit",
+            "devices": 0,
+            "errors": 0,
+        }
+
+    async def test_submit_anonymous_share_submit_failed_raises(self, hass) -> None:
+        """submit_anonymous_share raises when upload fails."""
+        share_manager = MagicMock()
+        share_manager.is_enabled = True
+        share_manager.pending_count = (1, 1)
+        share_manager.submit_report = AsyncMock(return_value=False)
+
+        with (
+            patch(
+                "custom_components.lipro.get_anonymous_share_manager",
+                return_value=share_manager,
+            ),
+            pytest.raises(HomeAssistantError),
+        ):
+            await _async_handle_submit_anonymous_share(hass, SimpleNamespace(data={}))
+
+    async def test_get_anonymous_share_report_returns_empty(self, hass) -> None:
+        """get_anonymous_share_report returns empty payload when no report."""
+        share_manager = MagicMock()
+        share_manager.get_pending_report.return_value = None
+
+        with patch(
+            "custom_components.lipro.get_anonymous_share_manager",
+            return_value=share_manager,
+        ):
+            result = await _async_handle_get_anonymous_share_report(
+                hass, SimpleNamespace(data={})
+            )
+
+        assert result == {"has_data": False, "devices": [], "errors": []}

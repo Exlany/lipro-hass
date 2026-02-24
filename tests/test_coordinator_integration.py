@@ -74,9 +74,7 @@ def coordinator(hass, mock_lipro_api_client, mock_auth_manager):
     with patch(
         "custom_components.lipro.core.coordinator.get_anonymous_share_manager"
     ) as mock_share:
-        mock_share.return_value = MagicMock(
-            is_enabled=False, set_enabled=MagicMock()
-        )
+        mock_share.return_value = MagicMock(is_enabled=False, set_enabled=MagicMock())
         from custom_components.lipro.core.coordinator import LiproDataUpdateCoordinator
 
         return LiproDataUpdateCoordinator(
@@ -175,9 +173,7 @@ class TestCoordinatorFetchDevices:
     @pytest.mark.asyncio
     async def test_single_page(self, coordinator, mock_lipro_api_client):
         """Fewer than MAX_DEVICES_PER_QUERY devices should require one page."""
-        devices = [
-            _make_api_device(serial=f"03ab5ccd7c{i:06x}") for i in range(3)
-        ]
+        devices = [_make_api_device(serial=f"03ab5ccd7c{i:06x}") for i in range(3)]
         mock_lipro_api_client.get_devices.return_value = {"devices": devices}
 
         with patch(
@@ -192,17 +188,13 @@ class TestCoordinatorFetchDevices:
         )
 
     @pytest.mark.asyncio
-    async def test_pagination_multiple_pages(
-        self, coordinator, mock_lipro_api_client
-    ):
+    async def test_pagination_multiple_pages(self, coordinator, mock_lipro_api_client):
         """When first page is full, coordinator should request a second page."""
         page1 = [
             _make_api_device(serial=f"03ab5ccd7c{i:06x}")
             for i in range(MAX_DEVICES_PER_QUERY)
         ]
-        page2 = [
-            _make_api_device(serial=f"03ab5ccd7d{i:06x}") for i in range(5)
-        ]
+        page2 = [_make_api_device(serial=f"03ab5ccd7d{i:06x}") for i in range(5)]
         mock_lipro_api_client.get_devices.side_effect = [
             {"devices": page1},
             {"devices": page2},
@@ -268,9 +260,7 @@ class TestCoordinatorFetchDevices:
         assert "mesh_group_10001" not in coordinator._iot_ids_to_query
 
     @pytest.mark.asyncio
-    async def test_outlet_ids_collected(
-        self, coordinator, mock_lipro_api_client
-    ):
+    async def test_outlet_ids_collected(self, coordinator, mock_lipro_api_client):
         """Outlet devices should appear in _outlet_ids_to_query."""
         devices = [
             _make_api_device(serial="03ab5ccd7c000001", physical_model="light"),
@@ -316,9 +306,7 @@ class TestCoordinatorErrorHandling:
         self, coordinator, mock_auth_manager
     ):
         """LiproAuthError -> ConfigEntryAuthFailed."""
-        mock_auth_manager.ensure_valid_token.side_effect = LiproAuthError(
-            "bad token"
-        )
+        mock_auth_manager.ensure_valid_token.side_effect = LiproAuthError("bad token")
         with pytest.raises(ConfigEntryAuthFailed):
             await coordinator._async_update_data()
 
@@ -327,8 +315,8 @@ class TestCoordinatorErrorHandling:
         self, coordinator, mock_auth_manager
     ):
         """LiproConnectionError -> UpdateFailed."""
-        mock_auth_manager.ensure_valid_token.side_effect = (
-            LiproConnectionError("timeout")
+        mock_auth_manager.ensure_valid_token.side_effect = LiproConnectionError(
+            "timeout"
         )
         with pytest.raises(UpdateFailed):
             await coordinator._async_update_data()
@@ -338,9 +326,7 @@ class TestCoordinatorErrorHandling:
         self, coordinator, mock_lipro_api_client
     ):
         """LiproApiError during device fetch -> UpdateFailed."""
-        mock_lipro_api_client.get_devices.side_effect = LiproApiError(
-            "server error"
-        )
+        mock_lipro_api_client.get_devices.side_effect = LiproApiError("server error")
         with pytest.raises(UpdateFailed):
             await coordinator._async_update_data()
 
@@ -349,9 +335,7 @@ class TestCoordinatorErrorHandling:
         self, coordinator, mock_lipro_api_client
     ):
         """LiproAuthError during get_devices -> ConfigEntryAuthFailed."""
-        mock_lipro_api_client.get_devices.side_effect = LiproAuthError(
-            "unauthorized"
-        )
+        mock_lipro_api_client.get_devices.side_effect = LiproAuthError("unauthorized")
         with pytest.raises(ConfigEntryAuthFailed):
             await coordinator._async_update_data()
 
@@ -444,15 +428,11 @@ class TestCoordinatorProductConfigs:
         assert device.max_color_temp_kelvin == 6500
 
     @pytest.mark.asyncio
-    async def test_single_color_temp_device(
-        self, coordinator, mock_lipro_api_client
-    ):
+    async def test_single_color_temp_device(self, coordinator, mock_lipro_api_client):
         """maxTemperature=0 means single color temp (no adjustment)."""
         mock_lipro_api_client.get_devices.return_value = {
             "devices": [
-                _make_api_device(
-                    serial="03ab5ccd7c000001", iot_name="lipro_led"
-                ),
+                _make_api_device(serial="03ab5ccd7c000001", iot_name="lipro_led"),
             ]
         }
         mock_lipro_api_client.get_product_configs.return_value = [
@@ -479,9 +459,7 @@ class TestCoordinatorProductConfigs:
         assert device.supports_color_temp is False
 
     @pytest.mark.asyncio
-    async def test_fan_gear_range_applied(
-        self, coordinator, mock_lipro_api_client
-    ):
+    async def test_fan_gear_range_applied(self, coordinator, mock_lipro_api_client):
         """maxFanGear from product config is applied to the device."""
         mock_lipro_api_client.get_devices.return_value = {
             "devices": [
@@ -547,9 +525,7 @@ class TestCoordinatorShutdown:
     """Test async_shutdown releases all resources."""
 
     @pytest.mark.asyncio
-    async def test_shutdown_clears_devices(
-        self, coordinator, mock_lipro_api_client
-    ):
+    async def test_shutdown_clears_devices(self, coordinator, mock_lipro_api_client):
         """After shutdown, _devices and related dicts must be empty."""
         # Populate some devices first
         mock_lipro_api_client.get_devices.return_value = {
@@ -577,9 +553,7 @@ class TestCoordinatorShutdown:
         assert len(coordinator._mqtt_message_cache) == 0
 
     @pytest.mark.asyncio
-    async def test_shutdown_closes_client(
-        self, coordinator, mock_lipro_api_client
-    ):
+    async def test_shutdown_closes_client(self, coordinator, mock_lipro_api_client):
         """async_shutdown must call client.close()."""
         with patch(
             "custom_components.lipro.core.coordinator.get_anonymous_share_manager"
@@ -592,9 +566,7 @@ class TestCoordinatorShutdown:
         mock_lipro_api_client.close.assert_awaited_once()
 
     @pytest.mark.asyncio
-    async def test_shutdown_stops_mqtt(
-        self, coordinator, mock_lipro_api_client
-    ):
+    async def test_shutdown_stops_mqtt(self, coordinator, mock_lipro_api_client):
         """async_shutdown must stop the MQTT client if one exists."""
         mock_mqtt = AsyncMock()
         coordinator._mqtt_client = mock_mqtt

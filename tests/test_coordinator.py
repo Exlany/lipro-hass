@@ -26,6 +26,7 @@ from custom_components.lipro.core.device import LiproDevice
 # Fixture: real coordinator with mocked deps
 # ---------------------------------------------------------------------------
 
+
 @pytest.fixture
 def coordinator(hass, mock_lipro_api_client, mock_auth_manager):
     """Create a real LiproDataUpdateCoordinator with mocked deps."""
@@ -207,7 +208,9 @@ class TestCoordinatorDebounceFiltering:
 
     def test_protected_keys_filtered_out(self, coordinator):
         dev = _make_device(serial="dev1")
-        entity = _make_mock_entity("e1", dev, protected_keys={"brightness", "temperature"})
+        entity = _make_mock_entity(
+            "e1", dev, protected_keys={"brightness", "temperature"}
+        )
         coordinator.register_entity(entity)
 
         props = {"powerState": "1", "brightness": "80", "temperature": "4000"}
@@ -246,7 +249,9 @@ class TestCoordinatorApplyPropertiesUpdate:
         assert dev.properties["brightness"] == "50"
 
     def test_apply_with_protection_filters_keys(self, coordinator):
-        dev = _make_device(serial="dev1", properties={"powerState": "0", "brightness": "30"})
+        dev = _make_device(
+            serial="dev1", properties={"powerState": "0", "brightness": "30"}
+        )
         entity = _make_mock_entity("e1", dev, protected_keys={"brightness"})
         coordinator.register_entity(entity)
 
@@ -472,7 +477,9 @@ class TestCoordinatorMqttSetupAndSync:
                 "custom_components.lipro.core.coordinator.decrypt_mqtt_credential",
                 side_effect=["ak", "sk"],
             ),
-            patch("custom_components.lipro.core.coordinator.LiproMqttClient") as mqtt_cls,
+            patch(
+                "custom_components.lipro.core.coordinator.LiproMqttClient"
+            ) as mqtt_cls,
         ):
             mqtt_cls.return_value = mock_mqtt
             ok = await coordinator.async_setup_mqtt()
@@ -598,7 +605,9 @@ class TestCoordinatorStatusQueriesAndNotifications:
             patch.object(
                 coordinator, "_async_show_auth_notification", new_callable=AsyncMock
             ) as show_auth,
-            patch.object(coordinator.config_entry, "async_start_reauth") as start_reauth,
+            patch.object(
+                coordinator.config_entry, "async_start_reauth"
+            ) as start_reauth,
         ):
             await coordinator._trigger_reauth("auth_error", error="401")
 

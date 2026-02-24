@@ -187,6 +187,7 @@ class TestParsePropertiesListEdgeCases:
         """Test parsing list with malformed items."""
         properties_list = [
             {"key": "valid", "value": "1"},
+            123,  # Non-dict item from malformed API payload
             {},  # Empty dict - key will be None, skipped
             {"value": "nokey"},  # Missing key - key will be None, skipped
             # Note: {"key": "novalue"} will include key with None value

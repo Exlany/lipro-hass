@@ -632,7 +632,10 @@ class TestConnectionLoop:
                 side_effect=[aiomqtt.MqttError("boom"), asyncio.CancelledError()],
             ),
             patch("custom_components.lipro.core.mqtt.random.uniform", return_value=0.0),
-            patch("custom_components.lipro.core.mqtt.asyncio.sleep", new_callable=AsyncMock) as sleep,
+            patch(
+                "custom_components.lipro.core.mqtt.asyncio.sleep",
+                new_callable=AsyncMock,
+            ) as sleep,
         ):
             await client._connection_loop()
 
@@ -660,7 +663,10 @@ class TestConnectionLoop:
                 side_effect=OSError("network down"),
             ),
             patch("custom_components.lipro.core.mqtt.random.uniform", return_value=0.0),
-            patch("custom_components.lipro.core.mqtt.asyncio.sleep", side_effect=_sleep_and_stop) as sleep,
+            patch(
+                "custom_components.lipro.core.mqtt.asyncio.sleep",
+                side_effect=_sleep_and_stop,
+            ) as sleep,
         ):
             await client._connection_loop()
 

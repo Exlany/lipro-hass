@@ -329,7 +329,9 @@ class TestLiproLightEntityCommands:
     @pytest.mark.asyncio
     async def test_turn_on_with_color_temp(self, mock_coordinator, make_device):
         """Test async_turn_on with color_temp sends debounced CHANGE_STATE."""
-        device = make_device("light", properties={"powerState": "1", "temperature": "50"})
+        device = make_device(
+            "light", properties={"powerState": "1", "temperature": "50"}
+        )
         mock_coordinator.get_device = MagicMock(return_value=device)
 
         from custom_components.lipro.light import LiproLight

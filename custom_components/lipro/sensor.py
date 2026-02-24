@@ -25,6 +25,7 @@ if TYPE_CHECKING:
     from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
     from . import LiproConfigEntry
+    from .core.coordinator import LiproDataUpdateCoordinator
     from .core.device import LiproDevice
 
 # No parallel update limit needed for read-only sensors using coordinator
@@ -52,7 +53,10 @@ async def async_setup_entry(
     async_add_entities(entities)
 
 
-def _build_device_sensors(coordinator, device: LiproDevice) -> list[SensorEntity]:
+def _build_device_sensors(
+    coordinator: LiproDataUpdateCoordinator,
+    device: LiproDevice,
+) -> list[SensorEntity]:
     """Build all sensor entities for one device."""
     entities: list[SensorEntity] = []
 

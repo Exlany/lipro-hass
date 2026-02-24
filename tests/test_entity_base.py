@@ -83,9 +83,7 @@ class TestLiproEntityAvailability:
 
         assert entity.available is True
 
-    def test_unavailable_when_coordinator_failed(
-        self, mock_coordinator, make_device
-    ):
+    def test_unavailable_when_coordinator_failed(self, mock_coordinator, make_device):
         """Entity is unavailable when coordinator last update failed."""
         device = make_device("light")
         mock_coordinator.get_device.return_value = device
@@ -95,9 +93,7 @@ class TestLiproEntityAvailability:
 
         assert entity.available is False
 
-    def test_unavailable_when_device_disconnected(
-        self, mock_coordinator, make_device
-    ):
+    def test_unavailable_when_device_disconnected(self, mock_coordinator, make_device):
         """Entity is unavailable when device itself is not available."""
         device = make_device("light")
         device.available = False
@@ -115,9 +111,7 @@ class TestLiproEntityAvailability:
 class TestLiproEntityDeviceProperty:
     """Tests for LiproEntity.device property."""
 
-    def test_device_returns_fresh_from_coordinator(
-        self, mock_coordinator, make_device
-    ):
+    def test_device_returns_fresh_from_coordinator(self, mock_coordinator, make_device):
         """device property returns fresh device from coordinator."""
         original = make_device("light", name="Original")
         updated = make_device("light", name="Updated")
@@ -147,15 +141,15 @@ class TestLiproEntityDeviceProperty:
 class TestLiproEntitySendCommand:
     """Tests for LiproEntity.async_send_command."""
 
-    async def test_send_command_calls_coordinator(
-        self, mock_coordinator, make_device
-    ):
+    async def test_send_command_calls_coordinator(self, mock_coordinator, make_device):
         """async_send_command delegates to coordinator.async_send_command."""
         device = make_device("light")
         mock_coordinator.get_device.return_value = device
         entity = _make_entity(mock_coordinator, device)
 
-        result = await entity.async_send_command("powerOn", [{"key": "powerState", "value": "1"}])
+        result = await entity.async_send_command(
+            "powerOn", [{"key": "powerState", "value": "1"}]
+        )
 
         assert result is True
         mock_coordinator.async_send_command.assert_awaited_once_with(
@@ -248,7 +242,9 @@ class TestLiproEntityDebounce:
 
         assert entity.is_debouncing is True
         assert entity._debounce_protected_until > monotonic()
-        assert entity._debounce_protected_until <= monotonic() + DEBOUNCE_PROTECTION_WINDOW
+        assert (
+            entity._debounce_protected_until <= monotonic() + DEBOUNCE_PROTECTION_WINDOW
+        )
 
     async def test_get_protected_keys_returns_keys_during_protection(
         self, mock_coordinator, make_device

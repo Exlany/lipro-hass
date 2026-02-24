@@ -12,7 +12,6 @@ from homeassistant.components.light import (
 )
 
 from .const import (
-    CMD_CHANGE_STATE,
     CMD_POWER_OFF,
     CMD_POWER_ON,
     MAX_BRIGHTNESS,
@@ -126,47 +125,53 @@ class LiproLight(LiproEntity, LightEntity):
             return None
         return self.device.color_temp
 
+    def _ha_brightness_to_device(self, brightness: int) -> int:
+        """Convert HA brightness (0-255) to clamped device value (1-100)."""
+        value = round(brightness * 100 / _HA_BRIGHTNESS_SCALE)
+        return max(MIN_BRIGHTNESS, min(MAX_BRIGHTNESS, value))
+
+    def _kelvin_to_device_temp_percent(self, kelvin: int) -> int:
+        """Convert Kelvin to clamped device temperature percent."""
+        clamped_kelvin = max(
+            self.device.min_color_temp_kelvin,
+            min(self.device.max_color_temp_kelvin, kelvin),
+        )
+        return self.device.kelvin_to_percent_for_device(clamped_kelvin)
+
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn on the light."""
-        properties: list[dict[str, str]] = []
-        optimistic: dict[str, Any] = {}
+        state_changes: dict[str, int | str] = {}
+        optimistic: dict[str, int | str] = {}
 
         # Handle brightness
         if ATTR_BRIGHTNESS in kwargs:
-            # Convert from 0-255 to 1-100
-            brightness = round(kwargs[ATTR_BRIGHTNESS] * 100 / _HA_BRIGHTNESS_SCALE)
-            brightness = max(MIN_BRIGHTNESS, min(MAX_BRIGHTNESS, brightness))
-            properties.append({"key": PROP_BRIGHTNESS, "value": str(brightness)})
-            optimistic[PROP_BRIGHTNESS] = str(brightness)
+            brightness = self._ha_brightness_to_device(kwargs[ATTR_BRIGHTNESS])
+            state_changes[PROP_BRIGHTNESS] = brightness
+            optimistic[PROP_BRIGHTNESS] = brightness
 
         # Handle color temperature (only if device supports it)
         if ATTR_COLOR_TEMP_KELVIN in kwargs and self.device.supports_color_temp:
-            color_temp = int(kwargs[ATTR_COLOR_TEMP_KELVIN])
-            # Clamp to device-specific range
-            color_temp = max(
-                self.device.min_color_temp_kelvin,
-                min(self.device.max_color_temp_kelvin, color_temp),
+            temp_percent = self._kelvin_to_device_temp_percent(
+                int(kwargs[ATTR_COLOR_TEMP_KELVIN])
             )
-            # Convert to percentage using centralized device method
-            temp_percent = self.device.kelvin_to_percent_for_device(color_temp)
-            properties.append({"key": PROP_TEMPERATURE, "value": str(temp_percent)})
-            optimistic[PROP_TEMPERATURE] = str(temp_percent)
+            state_changes[PROP_TEMPERATURE] = temp_percent
+            optimistic[PROP_TEMPERATURE] = temp_percent
 
         # Use debounce for slider controls (brightness, color_temp)
         # to avoid flooding API when user drags the slider.
         # Don't include powerState in debounced optimistic state — it would
         # block coordinator from reflecting external power changes during drag.
-        if properties:
+        if state_changes:
             # Turn on if not already on — send powerState in properties but NOT
             # in optimistic, so it won't be debounce-protected (same as fan.py)
             if not self.is_on:
-                properties.insert(0, {"key": PROP_POWER_STATE, "value": "1"})
+                state_changes[PROP_POWER_STATE] = 1
                 self.device.update_properties({PROP_POWER_STATE: "1"})
 
-            await self.async_send_command_debounced(
-                CMD_CHANGE_STATE,
-                properties,
-                optimistic,
+            await self.async_change_state(
+                state_changes,
+                optimistic_state=optimistic,
+                debounced=True,
             )
         else:
             # Just turn on (no debounce needed for simple on/off)

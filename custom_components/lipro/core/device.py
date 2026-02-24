@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 import json
 import logging
@@ -717,7 +718,9 @@ class LiproDevice:
         )
 
 
-def parse_properties_list(properties_list: list[dict[str, str]]) -> dict[str, Any]:
+def parse_properties_list(
+    properties_list: Sequence[Mapping[str, Any]] | None,
+) -> dict[str, Any]:
     """Parse properties list from API response.
 
     Args:
@@ -732,9 +735,11 @@ def parse_properties_list(properties_list: list[dict[str, str]]) -> dict[str, An
 
     result = {}
     for prop in properties_list:
+        if not isinstance(prop, Mapping):
+            continue
         key = prop.get("key")
         value = prop.get("value")
-        if key:
+        if isinstance(key, str) and key:
             result[key] = value
     return result
 

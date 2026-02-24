@@ -24,7 +24,9 @@ async def test_cover_async_setup_entry_and_command(mock_coordinator, make_device
     mock_coordinator.get_device = MagicMock(side_effect=mock_coordinator.devices.get)
     async_add_entities = MagicMock()
 
-    await async_setup_entry(None, _entry_with_runtime(mock_coordinator), async_add_entities)
+    await async_setup_entry(
+        None, _entry_with_runtime(mock_coordinator), async_add_entities
+    )
     entities = async_add_entities.call_args[0][0]
 
     assert len(entities) == 1
@@ -55,7 +57,9 @@ async def test_switch_async_setup_entry_builds_main_and_feature_switches(
     mock_coordinator.get_device = MagicMock(side_effect=mock_coordinator.devices.get)
     async_add_entities = MagicMock()
 
-    await async_setup_entry(None, _entry_with_runtime(mock_coordinator), async_add_entities)
+    await async_setup_entry(
+        None, _entry_with_runtime(mock_coordinator), async_add_entities
+    )
     entities = async_add_entities.call_args[0][0]
 
     assert any(isinstance(entity, LiproSwitch) for entity in entities)
@@ -64,13 +68,13 @@ async def test_switch_async_setup_entry_builds_main_and_feature_switches(
     main_switch = next(entity for entity in entities if isinstance(entity, LiproSwitch))
     main_switch.async_write_ha_state = MagicMock()
     await main_switch.async_turn_on()
-    mock_coordinator.async_send_command.assert_awaited_with(
-        outlet, "POWER_ON", None
-    )
+    mock_coordinator.async_send_command.assert_awaited_with(outlet, "POWER_ON", None)
 
 
 @pytest.mark.asyncio
-async def test_climate_async_setup_entry_and_preset_command(mock_coordinator, make_device):
+async def test_climate_async_setup_entry_and_preset_command(
+    mock_coordinator, make_device
+):
     """Climate platform creates heater entity and sends preset command."""
     from custom_components.lipro.climate import LiproHeater, async_setup_entry
     from custom_components.lipro.const import HEATER_MODE_DRY
@@ -80,7 +84,9 @@ async def test_climate_async_setup_entry_and_preset_command(mock_coordinator, ma
     mock_coordinator.get_device = MagicMock(side_effect=mock_coordinator.devices.get)
     async_add_entities = MagicMock()
 
-    await async_setup_entry(None, _entry_with_runtime(mock_coordinator), async_add_entities)
+    await async_setup_entry(
+        None, _entry_with_runtime(mock_coordinator), async_add_entities
+    )
     entities = async_add_entities.call_args[0][0]
 
     assert len(entities) == 1
@@ -111,7 +117,9 @@ async def test_binary_sensor_async_setup_entry_creates_composed_entities(
     mock_coordinator.get_device = MagicMock(side_effect=mock_coordinator.devices.get)
     async_add_entities = MagicMock()
 
-    await async_setup_entry(None, _entry_with_runtime(mock_coordinator), async_add_entities)
+    await async_setup_entry(
+        None, _entry_with_runtime(mock_coordinator), async_add_entities
+    )
     entities = async_add_entities.call_args[0][0]
 
     assert any(isinstance(entity, LiproConnectivitySensor) for entity in entities)
@@ -119,7 +127,9 @@ async def test_binary_sensor_async_setup_entry_creates_composed_entities(
 
 
 @pytest.mark.asyncio
-async def test_sensor_and_select_platforms_entity_behavior(mock_coordinator, make_device):
+async def test_sensor_and_select_platforms_entity_behavior(
+    mock_coordinator, make_device
+):
     """Sensor/select platforms create entities and send select command."""
     from custom_components.lipro.select import (
         LiproLightGearSelect,
@@ -134,7 +144,12 @@ async def test_sensor_and_select_platforms_entity_behavior(mock_coordinator, mak
     outlet = make_device(
         "outlet",
         serial="outlet_1",
-        extra_data={"power_info": {"nowPower": 18.2, "energyList": [{"t": "20240101", "v": 1.1}]}},
+        extra_data={
+            "power_info": {
+                "nowPower": 18.2,
+                "energyList": [{"t": "20240101", "v": 1.1}],
+            }
+        },
     )
     light = make_device(
         "light",
@@ -162,7 +177,9 @@ async def test_sensor_and_select_platforms_entity_behavior(mock_coordinator, mak
     select_add = MagicMock()
     await setup_select(None, _entry_with_runtime(mock_coordinator), select_add)
     select_entities = select_add.call_args[0][0]
-    gear = next(entity for entity in select_entities if isinstance(entity, LiproLightGearSelect))
+    gear = next(
+        entity for entity in select_entities if isinstance(entity, LiproLightGearSelect)
+    )
 
     mock_coordinator.async_request_refresh = AsyncMock()
     gear.async_write_ha_state = MagicMock()

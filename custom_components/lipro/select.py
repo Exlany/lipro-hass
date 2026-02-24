@@ -149,6 +149,8 @@ class LiproLightGearSelect(LiproSelect):
     def options(self) -> list[str]:
         """Return gear options based on actual device gear count."""
         count = len(self.device.gear_list)
+        if count <= 0:
+            return []
         if 0 < count < len(GEAR_OPTIONS):
             return GEAR_OPTIONS[:count]
         return GEAR_OPTIONS
@@ -233,6 +235,15 @@ class LiproLightGearSelect(LiproSelect):
             return
 
         gear = gear_list[gear_index]
+        if not isinstance(gear, dict):
+            _LOGGER.warning(
+                "Invalid gear preset at index %d for %s: %r",
+                gear_index,
+                self.device.name,
+                gear,
+            )
+            return
+
         brightness = gear.get("brightness", 100)
         temp_pct = gear.get("temperature", 50)
 

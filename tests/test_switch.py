@@ -373,7 +373,9 @@ class TestLiproFeatureSwitchEntityCommands:
             [{"key": "bodyReactive", "value": "1"}],
         )
 
-    def test_feature_switch_is_on_reads_device_property(self, mock_coordinator, make_device):
+    def test_feature_switch_is_on_reads_device_property(
+        self, mock_coordinator, make_device
+    ):
         """Test feature switch is_on reads from device property."""
         from custom_components.lipro.switch import LiproFadeSwitch
 

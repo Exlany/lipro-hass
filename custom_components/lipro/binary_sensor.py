@@ -17,6 +17,7 @@ if TYPE_CHECKING:
     from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
     from . import LiproConfigEntry
+    from .core.coordinator import LiproDataUpdateCoordinator
     from .core.device import LiproDevice
 
 # No parallel update limit needed for read-only sensors using coordinator
@@ -125,7 +126,7 @@ class LiproBatteryLowSensor(LiproPropertyBinarySensor):
 
 
 def _build_device_binary_sensors(
-    coordinator,
+    coordinator: LiproDataUpdateCoordinator,
     device: LiproDevice,
 ) -> list[LiproBinarySensor]:
     """Build all binary sensor entities for one device."""

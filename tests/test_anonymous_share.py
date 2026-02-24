@@ -2,9 +2,33 @@
 
 from __future__ import annotations
 
+import json
 import time
 from unittest.mock import AsyncMock, MagicMock, patch
 
+import aiohttp
+import pytest
+
+from custom_components.lipro.const import (
+    PROP_ACTIVATED,
+    PROP_AERATION_GEAR,
+    PROP_BATTERY,
+    PROP_BODY_REACTIVE,
+    PROP_BRIGHTNESS,
+    PROP_DARK,
+    PROP_DOOR_OPEN,
+    PROP_FADE_STATE,
+    PROP_FAN_GEAR,
+    PROP_FAN_MODE,
+    PROP_FOCUS_MODE,
+    PROP_HEATER_MODE,
+    PROP_LIGHT_MODE,
+    PROP_POSITION,
+    PROP_SLEEP_AID_ENABLE,
+    PROP_TEMPERATURE,
+    PROP_WAKE_UP_ENABLE,
+    PROP_WIND_GEAR,
+)
 from custom_components.lipro.core.anonymous_share import (
     _MAX_STRING_LENGTH,
     MAX_PENDING_DEVICES,
@@ -16,6 +40,7 @@ from custom_components.lipro.core.anonymous_share import (
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _make_manager(enabled: bool = True) -> AnonymousShareManager:
     """Create an enabled AnonymousShareManager for testing."""
@@ -321,6 +346,40 @@ class TestRecordError:
         _, error_count = mgr.pending_count
         assert error_count == 0
 
+    def test_record_unknown_property_and_deduplicate(self):
+        mgr = _make_manager()
+        mgr.record_unknown_property("light", "foo", "bar")
+        mgr.record_unknown_property("light", "foo", "bar")
+        _, error_count = mgr.pending_count
+        assert error_count == 1
+
+    def test_record_unknown_device_type_and_deduplicate(self):
+        mgr = _make_manager()
+        mgr.record_unknown_device_type("mystery", 999, "iot-x")
+        mgr.record_unknown_device_type("mystery", 999, "iot-x")
+        _, error_count = mgr.pending_count
+        assert error_count == 1
+
+    def test_record_command_error_creates_error(self):
+        mgr = _make_manager()
+        mgr.record_command_error(
+            command="set",
+            device_type="light",
+            code=500,
+            message="failed",
+            params="power=1",
+        )
+        _, error_count = mgr.pending_count
+        assert error_count == 1
+
+    def test_record_unknown_disabled_ignored(self):
+        mgr = AnonymousShareManager()
+        mgr.set_enabled(True, error_reporting=False, installation_id="test")
+        mgr.record_unknown_property("light", "x", 1)
+        mgr.record_unknown_device_type("mystery", 1)
+        _, error_count = mgr.pending_count
+        assert error_count == 0
+
 
 # ===========================================================================
 # TestBuildReport
@@ -371,6 +430,10 @@ class TestBuildReport:
         assert report["error_count"] == 0
         assert report["devices"] == []
         assert report["errors"] == []
+
+    def test_get_pending_report_none_when_empty(self):
+        mgr = _make_manager()
+        assert mgr.get_pending_report() is None
 
 
 # ===========================================================================
@@ -446,6 +509,54 @@ class TestSubmitLogic:
         # No data to report -> True
         assert result is True
 
+    async def test_submit_report_non_200_returns_false(self):
+        mgr = _make_manager()
+        mgr.record_device(_make_mock_device(iot_name="lipro_led"))
+
+        session = MagicMock()
+        response = MagicMock()
+        response.status = 500
+        context = AsyncMock()
+        context.__aenter__ = AsyncMock(return_value=response)
+        context.__aexit__ = AsyncMock(return_value=False)
+        session.post = MagicMock(return_value=context)
+
+        assert await mgr.submit_report(session, force=True) is False
+
+    async def test_submit_report_timeout_returns_false(self):
+        mgr = _make_manager()
+        mgr.record_device(_make_mock_device(iot_name="lipro_led"))
+
+        session = MagicMock()
+        session.post = MagicMock(side_effect=TimeoutError)
+
+        assert await mgr.submit_report(session, force=True) is False
+
+    async def test_submit_report_client_error_returns_false(self):
+        mgr = _make_manager()
+        mgr.record_device(_make_mock_device(iot_name="lipro_led"))
+
+        session = MagicMock()
+        session.post = MagicMock(side_effect=aiohttp.ClientError("network down"))
+
+        assert await mgr.submit_report(session, force=True) is False
+
+    @pytest.mark.parametrize("exc", [OSError("disk"), ValueError("bad")])
+    async def test_submit_report_unexpected_error_returns_false(self, exc):
+        mgr = _make_manager()
+        mgr.record_device(_make_mock_device(iot_name="lipro_led"))
+
+        session = MagicMock()
+        session.post = MagicMock(side_effect=exc)
+
+        assert await mgr.submit_report(session, force=True) is False
+
+    async def test_submit_if_needed_disabled_returns_true(self):
+        mgr = _make_manager(enabled=False)
+        session = AsyncMock()
+        assert await mgr.submit_if_needed(session) is True
+        session.post.assert_not_called()
+
 
 # ===========================================================================
 # TestGetAnonymousShareManager
@@ -502,3 +613,134 @@ class TestSetEnabled:
         mgr = AnonymousShareManager()
         mgr.set_enabled(True, storage_path=str(tmp_path))
         assert mgr._cache_loaded is False
+
+
+class TestReportedDeviceCache:
+    """Tests for reported device cache load/save paths."""
+
+    def test_load_reported_devices_success(self, tmp_path):
+        mgr = AnonymousShareManager()
+        mgr._storage_path = str(tmp_path)
+        cache_file = tmp_path / ".lipro_reported_devices.json"
+        cache_file.write_text(
+            json.dumps({"devices": ["lipro_led", "lipro_switch"]}),
+            encoding="utf-8",
+        )
+
+        mgr._load_reported_devices()
+
+        assert mgr._reported_device_keys == {"lipro_led", "lipro_switch"}
+
+    def test_load_reported_devices_invalid_json_logs_warning(self, tmp_path):
+        mgr = AnonymousShareManager()
+        mgr._storage_path = str(tmp_path)
+        cache_file = tmp_path / ".lipro_reported_devices.json"
+        cache_file.write_text("{invalid json", encoding="utf-8")
+
+        with patch(
+            "custom_components.lipro.core.anonymous_share._LOGGER.warning"
+        ) as warn:
+            mgr._load_reported_devices()
+
+        warn.assert_called_once()
+
+    def test_save_reported_devices_write_failure_logs_warning(self, tmp_path):
+        mgr = AnonymousShareManager()
+        mgr._storage_path = str(tmp_path)
+        mgr._reported_device_keys = {"lipro_led"}
+
+        with (
+            patch("pathlib.Path.write_text", side_effect=OSError("read-only")),
+            patch(
+                "custom_components.lipro.core.anonymous_share._LOGGER.warning"
+            ) as warn,
+        ):
+            mgr._save_reported_devices()
+
+        warn.assert_called_once()
+
+    async def test_async_ensure_loaded_short_circuit(self):
+        mgr = AnonymousShareManager()
+        mgr._cache_loaded = True
+        with patch("asyncio.to_thread", new=AsyncMock()) as to_thread:
+            await mgr.async_ensure_loaded()
+        to_thread.assert_not_called()
+
+    async def test_async_ensure_loaded_calls_loader_and_marks_loaded(self):
+        mgr = AnonymousShareManager()
+        mgr._cache_loaded = False
+        with patch("asyncio.to_thread", new=AsyncMock(return_value=None)) as to_thread:
+            await mgr.async_ensure_loaded()
+        to_thread.assert_awaited_once()
+        assert mgr._cache_loaded is True
+
+    def test_load_and_save_without_storage_path_noop(self):
+        mgr = AnonymousShareManager()
+        mgr._storage_path = None
+        mgr._load_reported_devices()
+        mgr._save_reported_devices()
+
+
+class TestCapabilities:
+    """Tests for capability detection matrix."""
+
+    def test_detect_capabilities_full_matrix(self):
+        mgr = _make_manager(enabled=False)
+        device = _make_mock_device(
+            properties={
+                PROP_BRIGHTNESS: 1,
+                PROP_TEMPERATURE: 5000,
+                PROP_FADE_STATE: 1,
+                PROP_FOCUS_MODE: 1,
+                PROP_SLEEP_AID_ENABLE: 1,
+                PROP_WAKE_UP_ENABLE: 1,
+                PROP_FAN_GEAR: 1,
+                PROP_FAN_MODE: 1,
+                PROP_POSITION: 1,
+                PROP_BATTERY: 99,
+                PROP_DOOR_OPEN: 1,
+                PROP_BODY_REACTIVE: 1,
+                PROP_ACTIVATED: 1,
+                PROP_DARK: 1,
+                PROP_HEATER_MODE: 1,
+                PROP_WIND_GEAR: 1,
+                PROP_AERATION_GEAR: 1,
+                PROP_LIGHT_MODE: 1,
+            },
+            is_light=True,
+            is_fan_light=True,
+            is_curtain=True,
+            is_sensor=True,
+            is_heater=True,
+            is_switch=True,
+            is_outlet=True,
+            has_gear_presets=True,
+        )
+        caps = mgr._detect_capabilities(device)
+        expected = {
+            "light",
+            "brightness",
+            "color_temp",
+            "gear_presets",
+            "fade",
+            "focus_mode",
+            "sleep_aid",
+            "wake_up",
+            "fan",
+            "fan_speed",
+            "fan_mode",
+            "cover",
+            "position",
+            "sensor",
+            "battery",
+            "door_sensor",
+            "motion_sensor",
+            "light_sensor",
+            "heater",
+            "heater_mode",
+            "wind_speed",
+            "aeration",
+            "heater_light",
+            "switch",
+        }
+        assert expected.issubset(set(caps))

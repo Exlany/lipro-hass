@@ -208,7 +208,9 @@ class TestLiproHeaterEntityCommands:
         )
 
     @pytest.mark.asyncio
-    async def test_turn_on_delegates_to_set_hvac_mode(self, mock_coordinator, make_device):
+    async def test_turn_on_delegates_to_set_hvac_mode(
+        self, mock_coordinator, make_device
+    ):
         """Test async_turn_on delegates to async_set_hvac_mode(HEAT)."""
         from unittest.mock import MagicMock
 
@@ -226,7 +228,9 @@ class TestLiproHeaterEntityCommands:
         )
 
     @pytest.mark.asyncio
-    async def test_turn_off_delegates_to_set_hvac_mode(self, mock_coordinator, make_device):
+    async def test_turn_off_delegates_to_set_hvac_mode(
+        self, mock_coordinator, make_device
+    ):
         """Test async_turn_off delegates to async_set_hvac_mode(OFF)."""
         from unittest.mock import MagicMock
 

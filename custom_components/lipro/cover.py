@@ -33,6 +33,9 @@ if TYPE_CHECKING:
 # Limit parallel updates to avoid overwhelming the API
 PARALLEL_UPDATES = 1
 
+_STATE_OPENING = "opening"
+_STATE_CLOSING = "closing"
+
 
 async def async_setup_entry(
     hass: HomeAssistant,
@@ -87,13 +90,13 @@ class LiproCover(LiproEntity, CoverEntity):
     def is_opening(self) -> bool:
         """Return if the cover is opening."""
         direction = self.device.direction
-        return self.device.is_moving and direction == "opening"
+        return self.device.is_moving and direction == _STATE_OPENING
 
     @property
     def is_closing(self) -> bool:
         """Return if the cover is closing."""
         direction = self.device.direction
-        return self.device.is_moving and direction == "closing"
+        return self.device.is_moving and direction == _STATE_CLOSING
 
     async def async_open_cover(self, **kwargs: Any) -> None:
         """Open the cover."""

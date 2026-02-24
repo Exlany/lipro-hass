@@ -180,6 +180,7 @@ class TestLiproCoverEntityCommands:
 
         # Mock the debouncer to call immediately
         cover._debouncer = MagicMock()
+
         async def _run_immediately(fn, *args):
             await fn(*args)
 
@@ -204,6 +205,7 @@ class TestLiproCoverEntityCommands:
         cover.async_write_ha_state = MagicMock()
 
         cover._debouncer = MagicMock()
+
         async def _run_immediately(fn, *args):
             await fn(*args)
 
@@ -227,7 +229,9 @@ class TestLiproCoverEntityProperties:
         cover = LiproCover(mock_coordinator, device)
         assert cover.current_cover_position == 42
 
-    def test_current_cover_position_none_when_missing(self, mock_coordinator, make_device):
+    def test_current_cover_position_none_when_missing(
+        self, mock_coordinator, make_device
+    ):
         """Test current_cover_position returns None when position not in properties."""
         device = make_device("curtain")
         mock_coordinator.get_device = MagicMock(return_value=device)
@@ -259,9 +263,7 @@ class TestLiproCoverEntityProperties:
 
     def test_is_opening(self, mock_coordinator, make_device):
         """Test is_opening when moving with opening direction."""
-        device = make_device(
-            "curtain", properties={"moving": "1", "direction": "1"}
-        )
+        device = make_device("curtain", properties={"moving": "1", "direction": "1"})
         mock_coordinator.get_device = MagicMock(return_value=device)
 
         from custom_components.lipro.cover import LiproCover
@@ -272,9 +274,7 @@ class TestLiproCoverEntityProperties:
 
     def test_is_closing(self, mock_coordinator, make_device):
         """Test is_closing when moving with closing direction."""
-        device = make_device(
-            "curtain", properties={"moving": "1", "direction": "0"}
-        )
+        device = make_device("curtain", properties={"moving": "1", "direction": "0"})
         mock_coordinator.get_device = MagicMock(return_value=device)
 
         from custom_components.lipro.cover import LiproCover
