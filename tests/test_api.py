@@ -1157,7 +1157,7 @@ class TestRetryAfterCap:
 
     def test_retry_after_capped_to_max(self):
         """Test that extremely large Retry-After values are capped."""
-        from custom_components.lipro.core.const import MAX_RETRY_AFTER
+        from custom_components.lipro.const.api import MAX_RETRY_AFTER
 
         # Simulate the capping logic used in _smart_home_request / _iot_request
         retry_after = 999999.0
@@ -1167,7 +1167,7 @@ class TestRetryAfterCap:
 
     def test_retry_after_normal_value_not_capped(self):
         """Test that normal Retry-After values pass through."""
-        from custom_components.lipro.core.const import MAX_RETRY_AFTER
+        from custom_components.lipro.const.api import MAX_RETRY_AFTER
 
         retry_after = 5.0
         wait_time = min(MAX_RETRY_AFTER, max(0.1, retry_after))
@@ -1175,7 +1175,7 @@ class TestRetryAfterCap:
 
     def test_retry_after_none_uses_exponential_backoff(self):
         """Test that None retry_after falls back to exponential backoff."""
-        from custom_components.lipro.core.const import MAX_RETRY_AFTER
+        from custom_components.lipro.const.api import MAX_RETRY_AFTER
 
         for retry_count in range(3):
             wait_time = min(MAX_RETRY_AFTER, max(0.1, None or (2**retry_count)))
@@ -1183,7 +1183,7 @@ class TestRetryAfterCap:
 
     def test_retry_after_negative_clamped_to_minimum(self):
         """Test that negative Retry-After is clamped to 0.1."""
-        from custom_components.lipro.core.const import MAX_RETRY_AFTER
+        from custom_components.lipro.const.api import MAX_RETRY_AFTER
 
         retry_after = -10.0
         wait_time = min(MAX_RETRY_AFTER, max(0.1, retry_after))

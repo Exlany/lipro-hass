@@ -8,6 +8,14 @@ import logging
 import time
 from typing import Any
 
+from ..const.api import (
+    ACCESS_TOKEN_EXPIRY_SECONDS,
+    ERROR_REFRESH_TOKEN_EXPIRED,
+    TOKEN_EXPIRY_MIN,
+    TOKEN_EXPIRY_REDUCTION_FACTOR,
+    TOKEN_REFRESH_BUFFER,
+    TOKEN_REFRESH_DEDUP_WINDOW,
+)
 from ..const.config import (
     CONF_ACCESS_TOKEN,
     CONF_EXPIRES_AT,
@@ -16,14 +24,6 @@ from ..const.config import (
     CONF_USER_ID,
 )
 from .api import LiproAuthError, LiproClient, LiproRefreshTokenExpiredError
-from .const import (
-    ACCESS_TOKEN_EXPIRY_SECONDS,
-    ERROR_REFRESH_TOKEN_EXPIRED,
-    TOKEN_EXPIRY_MIN,
-    TOKEN_EXPIRY_REDUCTION_FACTOR,
-    TOKEN_REFRESH_BUFFER,
-    TOKEN_REFRESH_DEDUP_WINDOW,
-)
 
 _LOGGER = logging.getLogger(__name__)
 

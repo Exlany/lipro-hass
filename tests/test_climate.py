@@ -2,9 +2,6 @@
 
 from __future__ import annotations
 
-import pytest
-
-
 
 class TestLiproHeaterState:
     """Tests for heater state properties."""

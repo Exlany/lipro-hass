@@ -7,7 +7,6 @@ from unittest.mock import MagicMock
 import pytest
 
 
-
 class TestLiproSwitch:
     """Tests for LiproSwitch entity."""
 

@@ -2,10 +2,7 @@
 
 from __future__ import annotations
 
-import pytest
-
 from custom_components.lipro.core.device import LiproDevice
-
 
 
 class TestLiproHeaterWindDirectionSelect:

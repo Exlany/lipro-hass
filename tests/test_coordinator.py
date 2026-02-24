@@ -464,7 +464,7 @@ class TestMqttDedupCacheLimit:
 
     def test_cache_hard_cap_enforced(self):
         """Test that cache is trimmed when exceeding MAX_MQTT_CACHE_SIZE."""
-        from custom_components.lipro.core.const import MAX_MQTT_CACHE_SIZE
+        from custom_components.lipro.const.api import MAX_MQTT_CACHE_SIZE
 
         # Simulate a cache that exceeds the limit
         cache: dict[str, float] = {}
@@ -485,7 +485,7 @@ class TestMqttDedupCacheLimit:
 
     def test_cache_under_limit_not_trimmed(self):
         """Test that cache under limit is not affected."""
-        from custom_components.lipro.core.const import MAX_MQTT_CACHE_SIZE
+        from custom_components.lipro.const.api import MAX_MQTT_CACHE_SIZE
 
         cache: dict[str, float] = {}
         for i in range(10):
@@ -615,7 +615,7 @@ class TestMqttDisconnectNotification:
         """Test notification fires when disconnect exceeds threshold."""
         from time import monotonic
 
-        from custom_components.lipro.core.const import MQTT_DISCONNECT_NOTIFY_THRESHOLD
+        from custom_components.lipro.const.api import MQTT_DISCONNECT_NOTIFY_THRESHOLD
 
         mqtt_disconnect_time = monotonic() - MQTT_DISCONNECT_NOTIFY_THRESHOLD - 1
         elapsed = monotonic() - mqtt_disconnect_time
@@ -626,7 +626,7 @@ class TestMqttDisconnectNotification:
         """Test no notification when disconnect is under threshold."""
         from time import monotonic
 
-        from custom_components.lipro.core.const import MQTT_DISCONNECT_NOTIFY_THRESHOLD
+        from custom_components.lipro.const.api import MQTT_DISCONNECT_NOTIFY_THRESHOLD
 
         mqtt_disconnect_time = monotonic() - 10  # Only 10 seconds ago
         elapsed = monotonic() - mqtt_disconnect_time
@@ -666,7 +666,7 @@ class TestMqttDisconnectNotification:
 
     def test_threshold_constant_is_reasonable(self):
         """Test MQTT disconnect notify threshold is reasonable."""
-        from custom_components.lipro.core.const import MQTT_DISCONNECT_NOTIFY_THRESHOLD
+        from custom_components.lipro.const.api import MQTT_DISCONNECT_NOTIFY_THRESHOLD
 
         assert MQTT_DISCONNECT_NOTIFY_THRESHOLD >= 60  # At least 1 minute
         assert MQTT_DISCONNECT_NOTIFY_THRESHOLD <= 600  # At most 10 minutes

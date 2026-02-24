@@ -131,7 +131,7 @@ class TestLiproAuthManagerLogin:
         await manager.login("phone", "password")
 
         # Should be reset to default
-        from custom_components.lipro.core.const import ACCESS_TOKEN_EXPIRY_SECONDS
+        from custom_components.lipro.const.api import ACCESS_TOKEN_EXPIRY_SECONDS
 
         assert manager._current_expiry_seconds == ACCESS_TOKEN_EXPIRY_SECONDS
 
@@ -346,7 +346,7 @@ class TestLiproAuthManagerAdaptiveExpiry:
         manager._adjust_expiry_on_401()
 
         # Should be reduced but not below minimum
-        from custom_components.lipro.core.const import TOKEN_EXPIRY_MIN
+        from custom_components.lipro.const.api import TOKEN_EXPIRY_MIN
 
         assert manager._current_expiry_seconds >= TOKEN_EXPIRY_MIN
         assert manager._current_expiry_seconds < 3600  # Should be reduced

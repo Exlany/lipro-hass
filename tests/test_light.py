@@ -9,7 +9,6 @@ import pytest
 from custom_components.lipro.core.device import LiproDevice
 
 
-
 class TestLiproLight:
     """Tests for LiproLight entity."""
 

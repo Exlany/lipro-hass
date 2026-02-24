@@ -15,14 +15,7 @@ from typing import TYPE_CHECKING, Any
 import aiohttp
 
 from ..const import APP_VERSION_CODE, APP_VERSION_NAME, DEVICE_TYPE_MAP
-from ..const.config import (
-    CONF_ACCESS_TOKEN,
-    CONF_BIZ_ID,
-    CONF_REFRESH_TOKEN,
-    CONF_USER_ID,
-)
-from .anonymous_share import get_anonymous_share_manager
-from .const import (
+from ..const.api import (
     CONTENT_TYPE_FORM,
     CONTENT_TYPE_JSON,
     ERROR_AUTH_CODES,
@@ -64,6 +57,13 @@ from .const import (
     SMART_HOME_SIGN_KEY,
     USER_AGENT,
 )
+from ..const.config import (
+    CONF_ACCESS_TOKEN,
+    CONF_BIZ_ID,
+    CONF_REFRESH_TOKEN,
+    CONF_USER_ID,
+)
+from .anonymous_share import get_anonymous_share_manager
 
 if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable

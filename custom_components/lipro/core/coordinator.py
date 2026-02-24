@@ -40,7 +40,13 @@ from ..const import (
     DEFAULT_REQUEST_TIMEOUT,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
+    MIN_COLOR_TEMP_KELVIN,
     PROP_CONNECT_STATE,
+)
+from ..const.api import (
+    MAX_DEVICES_PER_QUERY,
+    MAX_MQTT_CACHE_SIZE,
+    MQTT_DISCONNECT_NOTIFY_THRESHOLD,
 )
 from ..const.categories import DeviceCategory
 from .anonymous_share import get_anonymous_share_manager
@@ -50,12 +56,6 @@ from .api import (
     LiproClient,
     LiproConnectionError,
     LiproRefreshTokenExpiredError,
-)
-from .const import (
-    DEFAULT_MIN_COLOR_TEMP_KELVIN,
-    MAX_DEVICES_PER_QUERY,
-    MAX_MQTT_CACHE_SIZE,
-    MQTT_DISCONNECT_NOTIFY_THRESHOLD,
 )
 from .device import LiproDevice, parse_properties_list
 from .mqtt import LiproMqttClient, decrypt_mqtt_credential
@@ -939,9 +939,7 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
                     # Only update if we have valid values
                     # 0 means single color temp (no adjustment)
                     if max_temp > 0:
-                        device.min_color_temp_kelvin = (
-                            min_temp or DEFAULT_MIN_COLOR_TEMP_KELVIN
-                        )
+                        device.min_color_temp_kelvin = min_temp or MIN_COLOR_TEMP_KELVIN
                         device.max_color_temp_kelvin = max_temp
                         _LOGGER.debug(
                             "Device %s: color temp range %d-%d K",

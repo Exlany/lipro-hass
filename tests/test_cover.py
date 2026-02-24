@@ -7,7 +7,6 @@ from unittest.mock import MagicMock
 import pytest
 
 
-
 class TestLiproCoverPosition:
     """Tests for cover position properties."""
 

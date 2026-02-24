@@ -27,7 +27,7 @@ from typing import TYPE_CHECKING, Any, Final
 import aiomqtt
 from Crypto.Cipher import AES
 
-from .const import (
+from ..const.api import (
     MQTT_AES_KEY,
     MQTT_BROKER_HOST,
     MQTT_BROKER_PORT,
@@ -426,7 +426,7 @@ class LiproMqttClient:
             # Wait before reconnecting with jitter to prevent thundering herd
             if self._running:
                 # Add ±20% jitter to prevent synchronized reconnects
-                jitter = 1 + random.uniform(
+                jitter = 1 + random.uniform(  # noqa: S311 - not crypto, just reconnect jitter
                     -MQTT_RECONNECT_JITTER, MQTT_RECONNECT_JITTER
                 )
                 wait_time = self._reconnect_delay * jitter
