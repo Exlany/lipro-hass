@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 import logging
 from time import monotonic
 from typing import TYPE_CHECKING, Any, Final
@@ -9,7 +10,7 @@ from typing import TYPE_CHECKING, Any, Final
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from ..const import DOMAIN, MANUFACTURER
+from ..const import CMD_CHANGE_STATE, DOMAIN, MANUFACTURER
 from ..core.coordinator import LiproDataUpdateCoordinator
 from ..helpers.debounce import Debouncer
 
@@ -126,6 +127,54 @@ class LiproEntity(CoordinatorEntity[LiproDataUpdateCoordinator]):
         if self._debouncer is None:
             self._debouncer = Debouncer()
         return self._debouncer
+
+    @staticmethod
+    def _normalize_property_map(
+        properties: Mapping[str, Any],
+    ) -> tuple[list[dict[str, str]], dict[str, str]]:
+        """Convert a property mapping to API payload and optimistic state."""
+        property_dict = {key: str(value) for key, value in properties.items()}
+        payload = [{"key": key, "value": value} for key, value in property_dict.items()]
+        return payload, property_dict
+
+    async def async_change_state(
+        self,
+        properties: Mapping[str, Any],
+        *,
+        optimistic_state: Mapping[str, Any] | None = None,
+        debounced: bool = False,
+    ) -> bool | None:
+        """Send a CHANGE_STATE command with normalized property payload.
+
+        Args:
+            properties: Properties to send as key-value pairs.
+            optimistic_state: Optional optimistic state override.
+            debounced: Whether to debounce the command send.
+
+        Returns:
+            For non-debounced sends, True/False command result.
+            For debounced sends, None (send is scheduled by debouncer).
+
+        """
+        payload, default_optimistic = self._normalize_property_map(properties)
+        if optimistic_state is None:
+            optimistic = default_optimistic
+        else:
+            optimistic = {key: str(value) for key, value in optimistic_state.items()}
+
+        if debounced:
+            await self.async_send_command_debounced(
+                CMD_CHANGE_STATE,
+                payload,
+                optimistic,
+            )
+            return None
+
+        return await self.async_send_command(
+            CMD_CHANGE_STATE,
+            payload,
+            optimistic,
+        )
 
     async def async_send_command(
         self,

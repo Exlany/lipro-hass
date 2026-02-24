@@ -8,7 +8,6 @@ from homeassistant.components.switch import SwitchDeviceClass, SwitchEntity
 from homeassistant.const import EntityCategory
 
 from .const import (
-    CMD_CHANGE_STATE,
     CMD_POWER_OFF,
     CMD_POWER_ON,
     DEVICE_TYPE_OUTLET,
@@ -129,19 +128,11 @@ class LiproPropertySwitch(LiproEntity, SwitchEntity):
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Enable the feature."""
-        await self.async_send_command(
-            CMD_CHANGE_STATE,
-            [{"key": self._property_key, "value": "1"}],
-            {self._property_key: "1"},
-        )
+        await self.async_change_state({self._property_key: "1"})
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Disable the feature."""
-        await self.async_send_command(
-            CMD_CHANGE_STATE,
-            [{"key": self._property_key, "value": "0"}],
-            {self._property_key: "0"},
-        )
+        await self.async_change_state({self._property_key: "0"})
 
 
 class LiproFadeSwitch(LiproPropertySwitch):

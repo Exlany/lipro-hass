@@ -12,7 +12,6 @@ from homeassistant.components.climate import (
 from homeassistant.const import UnitOfTemperature
 
 from .const import (
-    CMD_CHANGE_STATE,
     CMD_POWER_OFF,
     CMD_POWER_ON,
     HEATER_MODE_DEFAULT,
@@ -107,11 +106,7 @@ class LiproHeater(LiproEntity, ClimateEntity):
     async def async_set_preset_mode(self, preset_mode: str) -> None:
         """Set preset mode."""
         mode = PRESET_TO_MODE.get(preset_mode, HEATER_MODE_DEFAULT)
-        await self.async_send_command(
-            CMD_CHANGE_STATE,
-            [{"key": PROP_HEATER_MODE, "value": str(mode)}],
-            {PROP_HEATER_MODE: str(mode)},
-        )
+        await self.async_change_state({PROP_HEATER_MODE: mode})
 
     async def async_turn_on(self) -> None:
         """Turn on the heater."""

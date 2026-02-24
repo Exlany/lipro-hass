@@ -8,7 +8,6 @@ from typing import TYPE_CHECKING, Any, Final
 from homeassistant.components.select import SelectEntity
 
 from .const import (
-    CMD_CHANGE_STATE,
     HEATER_LIGHT_MAIN,
     HEATER_LIGHT_NIGHT,
     HEATER_LIGHT_OFF,
@@ -83,50 +82,54 @@ class LiproSelect(LiproEntity, SelectEntity):
     """Base class for Lipro select entities."""
 
 
-class LiproHeaterWindDirectionSelect(LiproSelect):
+class LiproMappedPropertySelect(LiproSelect):
+    """Base select for option<->value mapped device properties."""
+
+    _option_to_value: dict[str, int]
+    _value_to_option: dict[int, str]
+    _default_option: str
+    _property_key: str
+    _device_property: str
+
+    @property
+    def current_option(self) -> str | None:
+        """Return the current option from device property value."""
+        value = getattr(self.device, self._device_property)
+        return self._value_to_option.get(value, self._default_option)
+
+    async def async_select_option(self, option: str) -> None:
+        """Set the option by mapped property value."""
+        value = self._option_to_value.get(
+            option,
+            self._option_to_value[self._default_option],
+        )
+        await self.async_change_state({self._property_key: value})
+
+
+class LiproHeaterWindDirectionSelect(LiproMappedPropertySelect):
     """Select entity for heater wind direction mode."""
 
     _attr_options = WIND_DIRECTION_OPTIONS
     _attr_translation_key = "wind_direction"
     _entity_suffix = "wind_direction"
-
-    @property
-    def current_option(self) -> str | None:
-        """Return the current wind direction mode."""
-        mode = self.device.wind_direction_mode
-        return VALUE_TO_WIND_DIRECTION.get(mode, "auto")
-
-    async def async_select_option(self, option: str) -> None:
-        """Set the wind direction mode."""
-        value = WIND_DIRECTION_TO_VALUE.get(option, WIND_DIRECTION_AUTO)
-        await self.async_send_command(
-            CMD_CHANGE_STATE,
-            [{"key": PROP_WIND_DIRECTION_MODE, "value": str(value)}],
-            {PROP_WIND_DIRECTION_MODE: str(value)},
-        )
+    _option_to_value = WIND_DIRECTION_TO_VALUE
+    _value_to_option = VALUE_TO_WIND_DIRECTION
+    _default_option = "auto"
+    _property_key = PROP_WIND_DIRECTION_MODE
+    _device_property = "wind_direction_mode"
 
 
-class LiproHeaterLightModeSelect(LiproSelect):
+class LiproHeaterLightModeSelect(LiproMappedPropertySelect):
     """Select entity for heater light mode."""
 
     _attr_options = LIGHT_MODE_OPTIONS
     _attr_translation_key = "heater_light"
     _entity_suffix = "light_mode"
-
-    @property
-    def current_option(self) -> str | None:
-        """Return the current light mode."""
-        mode = self.device.light_mode
-        return VALUE_TO_LIGHT_MODE.get(mode, "off")
-
-    async def async_select_option(self, option: str) -> None:
-        """Set the light mode."""
-        value = LIGHT_MODE_TO_VALUE.get(option, HEATER_LIGHT_OFF)
-        await self.async_send_command(
-            CMD_CHANGE_STATE,
-            [{"key": PROP_LIGHT_MODE, "value": str(value)}],
-            {PROP_LIGHT_MODE: str(value)},
-        )
+    _option_to_value = LIGHT_MODE_TO_VALUE
+    _value_to_option = VALUE_TO_LIGHT_MODE
+    _default_option = "off"
+    _property_key = PROP_LIGHT_MODE
+    _device_property = "light_mode"
 
 
 class LiproLightGearSelect(LiproSelect):
@@ -242,19 +245,15 @@ class LiproLightGearSelect(LiproSelect):
             self.device.percent_to_kelvin_for_device(temp_pct),
         )
 
-        optimistic = {
-            PROP_BRIGHTNESS: str(brightness),
-            PROP_TEMPERATURE: str(temp_pct),
-        }
+        optimistic = {PROP_BRIGHTNESS: brightness, PROP_TEMPERATURE: temp_pct}
 
         # Use async_send_command for consistent optimistic update + error recovery.
-        await self.async_send_command(
-            CMD_CHANGE_STATE,
-            [
-                {"key": PROP_BRIGHTNESS, "value": str(brightness)},
-                {"key": PROP_TEMPERATURE, "value": str(temp_pct)},
-            ],
-            optimistic,
+        await self.async_change_state(
+            {
+                PROP_BRIGHTNESS: brightness,
+                PROP_TEMPERATURE: temp_pct,
+            },
+            optimistic_state=optimistic,
         )
 
         # Notify other entities (e.g., light) sharing this device about the

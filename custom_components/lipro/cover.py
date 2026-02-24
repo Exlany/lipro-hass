@@ -12,7 +12,6 @@ from homeassistant.components.cover import (
 )
 
 from .const import (
-    CMD_CHANGE_STATE,
     CMD_CURTAIN_CLOSE,
     CMD_CURTAIN_OPEN,
     CMD_CURTAIN_STOP,
@@ -119,7 +118,7 @@ class LiproCover(LiproEntity, CoverEntity):
     async def async_set_cover_position(self, **kwargs: Any) -> None:
         """Set cover position."""
         position = max(0, min(100, kwargs[ATTR_POSITION]))
-        optimistic: dict[str, str] = {PROP_POSITION: str(position)}
+        optimistic: dict[str, str | int] = {PROP_POSITION: position}
 
         # Optimistically update direction based on target vs current position
         current = self.current_cover_position
@@ -130,8 +129,8 @@ class LiproCover(LiproEntity, CoverEntity):
             optimistic[PROP_MOVING] = "1"
 
         # Use debounce for position slider to avoid flooding API
-        await self.async_send_command_debounced(
-            CMD_CHANGE_STATE,
-            [{"key": PROP_POSITION, "value": str(position)}],
-            optimistic,
+        await self.async_change_state(
+            {PROP_POSITION: position},
+            optimistic_state=optimistic,
+            debounced=True,
         )

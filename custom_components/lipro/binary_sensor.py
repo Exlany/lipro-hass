@@ -17,6 +17,7 @@ if TYPE_CHECKING:
     from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
     from . import LiproConfigEntry
+    from .core.device import LiproDevice
 
 # No parallel update limit needed for read-only sensors using coordinator
 PARALLEL_UPDATES = 0
@@ -29,31 +30,11 @@ async def async_setup_entry(
 ) -> None:
     """Set up Lipro binary sensors."""
     coordinator = entry.runtime_data
-    entities: list[LiproBinarySensor] = []
-
-    for device in coordinator.devices.values():
-        # Add connectivity sensor for all devices (diagnostic)
-        entities.append(LiproConnectivitySensor(coordinator, device))
-
-        # Body sensor creates motion, light level, and battery sensors
-        if device.is_body_sensor:
-            entities.extend(
-                [
-                    LiproMotionSensor(coordinator, device),
-                    LiproLightLevelSensor(coordinator, device),
-                    LiproBatteryLowSensor(coordinator, device),
-                ]
-            )
-        # Door sensor creates door, light level, and battery sensors
-        elif device.is_door_sensor:
-            entities.extend(
-                [
-                    LiproDoorSensor(coordinator, device),
-                    LiproLightLevelSensor(coordinator, device),
-                    LiproBatteryLowSensor(coordinator, device),
-                ]
-            )
-
+    entities = [
+        entity
+        for device in coordinator.devices.values()
+        for entity in _build_device_binary_sensors(coordinator, device)
+    ]
     async_add_entities(entities)
 
 
@@ -141,3 +122,30 @@ class LiproBatteryLowSensor(LiproPropertyBinarySensor):
     _attr_entity_category = EntityCategory.DIAGNOSTIC
     _entity_suffix = "battery_low"
     _device_property = "low_battery"
+
+
+def _build_device_binary_sensors(
+    coordinator,
+    device: LiproDevice,
+) -> list[LiproBinarySensor]:
+    """Build all binary sensor entities for one device."""
+    entities: list[LiproBinarySensor] = [LiproConnectivitySensor(coordinator, device)]
+
+    if device.is_body_sensor:
+        entities.extend(
+            [
+                LiproMotionSensor(coordinator, device),
+                LiproLightLevelSensor(coordinator, device),
+                LiproBatteryLowSensor(coordinator, device),
+            ]
+        )
+    elif device.is_door_sensor:
+        entities.extend(
+            [
+                LiproDoorSensor(coordinator, device),
+                LiproLightLevelSensor(coordinator, device),
+                LiproBatteryLowSensor(coordinator, device),
+            ]
+        )
+
+    return entities

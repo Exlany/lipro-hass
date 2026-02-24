@@ -25,6 +25,7 @@ if TYPE_CHECKING:
     from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
     from . import LiproConfigEntry
+    from .core.device import LiproDevice
 
 # No parallel update limit needed for read-only sensors using coordinator
 PARALLEL_UPDATES = 0
@@ -43,23 +44,31 @@ async def async_setup_entry(
 ) -> None:
     """Set up Lipro sensors."""
     coordinator = entry.runtime_data
+    entities = [
+        entity
+        for device in coordinator.devices.values()
+        for entity in _build_device_sensors(coordinator, device)
+    ]
+    async_add_entities(entities)
+
+
+def _build_device_sensors(coordinator, device: LiproDevice) -> list[SensorEntity]:
+    """Build all sensor entities for one device."""
     entities: list[SensorEntity] = []
 
-    for device in coordinator.devices.values():
-        # Add power sensor for outlets
-        if device.category == DeviceCategory.OUTLET:
-            entities.append(LiproOutletPowerSensor(coordinator, device))
-            entities.append(LiproOutletEnergySensor(coordinator, device))
+    if device.category == DeviceCategory.OUTLET:
+        entities.extend(
+            [
+                LiproOutletPowerSensor(coordinator, device),
+                LiproOutletEnergySensor(coordinator, device),
+            ]
+        )
+    if device.has_battery:
+        entities.append(LiproBatterySensor(coordinator, device))
+    if device.wifi_rssi is not None:
+        entities.append(LiproWifiSignalSensor(coordinator, device))
 
-        # Add battery sensor for devices with battery (e.g., Bedside Light)
-        if device.has_battery:
-            entities.append(LiproBatterySensor(coordinator, device))
-
-        # Add WiFi signal strength sensor for devices with wifi_rssi
-        if device.wifi_rssi is not None:
-            entities.append(LiproWifiSignalSensor(coordinator, device))
-
-    async_add_entities(entities)
+    return entities
 
 
 class LiproSensor(LiproEntity, SensorEntity):

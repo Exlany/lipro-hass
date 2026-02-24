@@ -15,7 +15,6 @@ from .const import (
     AERATION_OFF,
     AERATION_STRONG,
     AERATION_WEAK,
-    CMD_CHANGE_STATE,
     FAN_MODE_NATURAL,
     FAN_MODE_NORMAL,
     FAN_MODE_SLEEP,
@@ -116,6 +115,23 @@ class LiproFan(LiproEntity, FanEntity):
         gear = math.ceil(percentage_to_ranged_value(speed_range, percentage))
         return max(speed_range[0], min(speed_range[1], gear))
 
+    def _add_power_on_if_needed(
+        self,
+        properties: dict[str, int],
+        optimistic: dict[str, int | str],
+        *,
+        optimistic_power: bool,
+    ) -> None:
+        """Ensure fan turns on when updating mode/speed while currently off."""
+        if self.is_on:
+            return
+        properties[PROP_FAN_ONOFF] = 1
+        if optimistic_power:
+            optimistic[PROP_FAN_ONOFF] = "1"
+        else:
+            # Keep UI responsive for slider, but avoid debounce protection on power key.
+            self.device.update_properties({PROP_FAN_ONOFF: "1"})
+
     @property
     def speed_count(self) -> int:
         """Return the number of speeds the fan supports."""
@@ -148,28 +164,21 @@ class LiproFan(LiproEntity, FanEntity):
         **kwargs: Any,
     ) -> None:
         """Turn on the fan."""
-        properties: list[dict[str, str]] = [{"key": PROP_FAN_ONOFF, "value": "1"}]
-        optimistic: dict[str, Any] = {PROP_FAN_ONOFF: "1"}
+        properties: dict[str, int] = {PROP_FAN_ONOFF: 1}
 
         if percentage is not None:
             gear = self._percentage_to_gear(percentage)
-            properties.append({"key": PROP_FAN_GEAR, "value": str(gear)})
-            optimistic[PROP_FAN_GEAR] = str(gear)
+            properties[PROP_FAN_GEAR] = gear
 
         if preset_mode is not None:
             mode = PRESET_TO_MODE.get(preset_mode, FAN_MODE_NORMAL)
-            properties.append({"key": PROP_FAN_MODE, "value": str(mode)})
-            optimistic[PROP_FAN_MODE] = str(mode)
+            properties[PROP_FAN_MODE] = mode
 
-        await self.async_send_command(CMD_CHANGE_STATE, properties, optimistic)
+        await self.async_change_state(properties)
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn off the fan."""
-        await self.async_send_command(
-            CMD_CHANGE_STATE,
-            [{"key": PROP_FAN_ONOFF, "value": "0"}],
-            {PROP_FAN_ONOFF: "0"},
-        )
+        await self.async_change_state({PROP_FAN_ONOFF: 0})
 
     async def async_set_percentage(self, percentage: int) -> None:
         """Set the speed percentage of the fan."""
@@ -178,34 +187,26 @@ class LiproFan(LiproEntity, FanEntity):
             return
 
         gear = self._percentage_to_gear(percentage)
-        properties = [{"key": PROP_FAN_GEAR, "value": str(gear)}]
-        optimistic: dict[str, Any] = {PROP_FAN_GEAR: str(gear)}
-
-        # Turn on if not already on — send fanOnOff in properties but NOT in
-        # optimistic, so it won't be debounce-protected (same pattern as light powerState)
-        if not self.is_on:
-            properties.insert(0, {"key": PROP_FAN_ONOFF, "value": "1"})
-            self.device.update_properties({PROP_FAN_ONOFF: "1"})
-
-        # Use debounce for speed slider to avoid flooding API
-        await self.async_send_command_debounced(
-            CMD_CHANGE_STATE,
+        properties: dict[str, int] = {PROP_FAN_GEAR: gear}
+        optimistic: dict[str, int | str] = {PROP_FAN_GEAR: str(gear)}
+        self._add_power_on_if_needed(
             properties,
             optimistic,
+            optimistic_power=False,
+        )
+        await self.async_change_state(
+            properties,
+            optimistic_state=optimistic,
+            debounced=True,
         )
 
     async def async_set_preset_mode(self, preset_mode: str) -> None:
         """Set the preset mode of the fan."""
         mode = PRESET_TO_MODE.get(preset_mode, FAN_MODE_NORMAL)
-        properties = [{"key": PROP_FAN_MODE, "value": str(mode)}]
-        optimistic: dict[str, Any] = {PROP_FAN_MODE: str(mode)}
-
-        # Turn on if not already on
-        if not self.is_on:
-            properties.insert(0, {"key": PROP_FAN_ONOFF, "value": "1"})
-            optimistic[PROP_FAN_ONOFF] = "1"
-
-        await self.async_send_command(CMD_CHANGE_STATE, properties, optimistic)
+        properties: dict[str, int] = {PROP_FAN_MODE: mode}
+        optimistic: dict[str, int | str] = {PROP_FAN_MODE: str(mode)}
+        self._add_power_on_if_needed(properties, optimistic, optimistic_power=True)
+        await self.async_change_state(properties, optimistic_state=optimistic)
 
 
 class LiproHeaterVentFan(LiproEntity, FanEntity):
@@ -246,25 +247,13 @@ class LiproHeaterVentFan(LiproEntity, FanEntity):
             preset_mode = PRESET_VENT_STRONG
 
         aeration = PRESET_TO_AERATION.get(preset_mode, AERATION_STRONG)
-        await self.async_send_command(
-            CMD_CHANGE_STATE,
-            [{"key": PROP_AERATION_GEAR, "value": str(aeration)}],
-            {PROP_AERATION_GEAR: str(aeration)},
-        )
+        await self.async_change_state({PROP_AERATION_GEAR: aeration})
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn off the ventilation fan."""
-        await self.async_send_command(
-            CMD_CHANGE_STATE,
-            [{"key": PROP_AERATION_GEAR, "value": str(AERATION_OFF)}],
-            {PROP_AERATION_GEAR: str(AERATION_OFF)},
-        )
+        await self.async_change_state({PROP_AERATION_GEAR: AERATION_OFF})
 
     async def async_set_preset_mode(self, preset_mode: str) -> None:
         """Set the preset mode of the ventilation fan."""
         aeration = PRESET_TO_AERATION.get(preset_mode, AERATION_STRONG)
-        await self.async_send_command(
-            CMD_CHANGE_STATE,
-            [{"key": PROP_AERATION_GEAR, "value": str(aeration)}],
-            {PROP_AERATION_GEAR: str(aeration)},
-        )
+        await self.async_change_state({PROP_AERATION_GEAR: aeration})
