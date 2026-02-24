@@ -22,6 +22,10 @@ echo "Running ruff format check..."
 ruff format --check custom_components/lipro tests
 
 echo ""
+echo "Running mypy..."
+mypy custom_components/lipro
+
+echo ""
 echo "Checking translations..."
 python scripts/check_translations.py
 

@@ -7,7 +7,7 @@ Thank you for your interest in contributing to the Lipro Smart Home integration!
 
 ### Prerequisites / 前置条件
 
-- Python 3.13+
+- Python 3.13.2+
 - Git
 
 ### Quick Start / 快速开始
@@ -47,6 +47,9 @@ ruff check custom_components/lipro tests --fix
 
 # Format code / 格式化代码
 ruff format custom_components/lipro tests
+
+# Type checking / 类型检查
+mypy custom_components/lipro
 ```
 
 ### Testing / 测试
@@ -88,6 +91,7 @@ async def async_turn_on(self, **kwargs: Any) -> None:
 3. **Run linting and tests / 运行代码检查和测试**
    ```bash
    ./scripts/lint
+   mypy custom_components/lipro
    pytest tests/
    ```
 

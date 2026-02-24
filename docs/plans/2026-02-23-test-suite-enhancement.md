@@ -1,7 +1,5 @@
 # Test Suite Enhancement Implementation Plan
 
-> **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
-
 **Goal:** Comprehensively enhance the test suite to cover coordinator core logic, entity lifecycle, auth manager edge cases, and anonymous share — filling all gaps identified in the test review.
 
 **Architecture:** Add a real `LiproDataUpdateCoordinator` fixture (mock hass + client + auth_manager), rewrite coordinator tests to call actual methods, add entity base class tests, enhance platform entity tests with real entity instantiation, and add missing module tests.

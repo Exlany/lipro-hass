@@ -707,6 +707,11 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
             translation_placeholders=placeholders or None,
         )
 
+    def _clear_auth_issues(self) -> None:
+        """Clear auth-related repair issues once authentication is healthy."""
+        async_delete_issue(self.hass, DOMAIN, "auth_expired")
+        async_delete_issue(self.hass, DOMAIN, "auth_error")
+
     async def _async_update_data(self) -> dict[str, LiproDevice]:
         """Fetch data from API.
 
@@ -720,6 +725,7 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         try:
             # Ensure we have a valid token
             await self.auth_manager.ensure_valid_token()
+            self._clear_auth_issues()
 
             # Fetch device list if we don't have devices yet or refresh was forced
             if not self._devices or self._force_device_refresh:
@@ -1203,6 +1209,7 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         """
         try:
             await self.auth_manager.ensure_valid_token()
+            self._clear_auth_issues()
 
             if device.is_group:
                 result = await self.client.send_group_command(

@@ -74,8 +74,7 @@ _LOGGER = logging.getLogger(__name__)
 # IoT Device ID format: IOT_DEVICE_ID_PREFIX + 12 hex chars (MAC without colons)
 # Example: "03ab5ccd7cxxxxxx" (5ccd7c is Meizu's OUI)
 _IOT_DEVICE_ID_PATTERN = re.compile(
-    rf"^{re.escape(IOT_DEVICE_ID_PREFIX)}[0-9a-f]{{12}}$",
-    flags=re.IGNORECASE,
+    rf"^{re.escape(IOT_DEVICE_ID_PREFIX)}[0-9a-f]{{12}}$"
 )
 
 # Mesh group ID format: "mesh_group_" + digits (e.g., "mesh_group_10001")
@@ -89,7 +88,7 @@ def is_valid_iot_device_id(device_id: str) -> bool:
         device_id: The device ID to validate.
 
     Returns:
-        True if valid IoT device ID format (03ab + 12 hex chars).
+        True if valid IoT device ID format (03ab + 12 lowercase hex chars).
 
     """
     return bool(_IOT_DEVICE_ID_PATTERN.match(device_id))
@@ -720,7 +719,7 @@ class LiproDevice:
 
 
 def parse_properties_list(
-    properties_list: Sequence[Mapping[str, Any]] | None,
+    properties_list: Sequence[object] | None,
 ) -> dict[str, Any]:
     """Parse properties list from API response.
 

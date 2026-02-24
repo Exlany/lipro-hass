@@ -17,7 +17,7 @@ rules:
     comment: UI-based config flow with user step, reauth, reconfigure, and options flow.
   config-flow-test-coverage:
     status: done
-    comment: tests/test_config_flow.py covers user, reauth, reconfigure, and options flows.
+    comment: tests/test_config_flow.py now has 100% coverage for user/reauth/reconfigure/options flows, including error-recovery paths and unique ID mismatch guard.
   dependency-transparency:
     status: done
     comment: manifest.json declares aiomqtt and pycryptodome as requirements.
@@ -85,7 +85,7 @@ rules:
     comment: async_step_reauth + async_step_reauth_confirm implemented in config_flow.py.
   test-coverage:
     status: done
-    comment: 22 test files covering all modules (api, auth, config_flow, coordinator, all platforms, diagnostics, etc.).
+    comment: 25 test files covering all modules (api, auth, config_flow, coordinator, all platforms, diagnostics, etc.).
 
   # Gold
   devices:
@@ -93,7 +93,7 @@ rules:
     comment: DeviceInfo with identifiers, name, manufacturer, model, serial_number, sw_version in base entity.
   diagnostics:
     status: done
-    comment: diagnostics.py implements async_get_config_entry_diagnostics with sensitive data redaction.
+    comment: diagnostics.py implements both config-entry and device diagnostics with sensitive data redaction; tests include explicit redaction assertions and snapshot coverage.
   discovery:
     status: exempt
     comment: Cloud-based integration (iot_class cloud_push). Devices require Lipro App pairing first; no local discovery protocol available.
@@ -147,7 +147,7 @@ rules:
     comment: async_step_reconfigure in config_flow.py allows account credential updates.
   repair-issues:
     status: done
-    comment: async_create_issue used for auth_expired, auth_error, and mqtt_disconnected issues.
+    comment: auth_expired/auth_error/mqtt_disconnected issues are created when needed and auth issues are cleared automatically after successful authentication.
   stale-devices:
     status: done
     comment: _async_remove_stale_devices in coordinator removes devices no longer present in cloud.

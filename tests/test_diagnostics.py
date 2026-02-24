@@ -6,12 +6,15 @@ from datetime import timedelta
 from unittest.mock import MagicMock, patch
 
 import pytest
+from syrupy.assertion import SnapshotAssertion
 
+from custom_components.lipro.const import DOMAIN
 from custom_components.lipro.diagnostics import (
     PROPERTY_KEYS_TO_REDACT,
     TO_REDACT,
     _redact_device_properties,
     async_get_config_entry_diagnostics,
+    async_get_device_diagnostics,
 )
 
 
@@ -223,3 +226,147 @@ class TestAsyncGetConfigEntryDiagnostics:
             "pending_devices": 0,
             "pending_errors": 0,
         }
+
+    @pytest.mark.asyncio
+    async def test_diagnostics_snapshot(
+        self,
+        hass,
+        make_device,
+        snapshot: SnapshotAssertion,
+    ) -> None:
+        """Test diagnostics payload with snapshot testing."""
+        device = make_device(
+            "light",
+            name="Bedroom Main Light",
+            serial="03ab5ccd7c123456",
+            properties={
+                "powerState": "1",
+                "brightness": "76",
+                "colorTemp": "4200",
+                "mac": "5C:CD:7C:AA:BB:CC",
+                "ipAddress": "192.168.1.8",
+            },
+            extra_data={
+                "power_info": {"nowPower": 0.0, "energyList": []},
+                "gateway_device_id": "03ab5ccd7c999999",
+            },
+            room_name="Master Bedroom",
+        )
+        coordinator = MagicMock()
+        coordinator.devices = {device.serial: device}
+        coordinator.last_update_success = True
+        coordinator.update_interval = timedelta(seconds=45)
+        coordinator.mqtt_connected = True
+
+        entry = MagicMock()
+        entry.runtime_data = coordinator
+        entry.title = "Lipro (13800000000)"
+        entry.data = {
+            "phone": "13800000000",
+            "access_token": "token",
+            "refresh_token": "refresh",
+            "user_id": 10001,
+            "safe_value": "ok",
+        }
+        entry.options = {
+            "scan_interval": 45,
+            "anonymous_share_enabled": True,
+        }
+
+        share_manager = MagicMock()
+        share_manager.is_enabled = True
+        share_manager.pending_count = (1, 0)
+
+        with patch(
+            "custom_components.lipro.diagnostics.get_anonymous_share_manager",
+            return_value=share_manager,
+        ):
+            result = await async_get_config_entry_diagnostics(hass, entry)
+
+        assert result == snapshot
+
+
+class TestAsyncGetDeviceDiagnostics:
+    """Tests for async_get_device_diagnostics."""
+
+    @pytest.mark.asyncio
+    async def test_collects_single_device_diagnostics(self, hass, make_device):
+        """Test device diagnostics returns redacted payload for one device."""
+        device = make_device(
+            "light",
+            serial="03ab5ccd7c654321",
+            properties={
+                "powerState": "1",
+                "mac": "5C:CD:7C:AA:BB:CC",
+            },
+            extra_data={"gateway_device_id": "03ab5ccd7c999999"},
+            room_name="Bedroom",
+        )
+
+        coordinator = MagicMock()
+        coordinator.devices = {device.serial: device}
+        coordinator.get_device = MagicMock(return_value=device)
+        coordinator.last_update_success = True
+        coordinator.update_interval = timedelta(seconds=30)
+        coordinator.mqtt_connected = True
+
+        entry = MagicMock()
+        entry.runtime_data = coordinator
+        entry.title = "Lipro (13800000000)"
+        entry.data = {
+            "phone": "13800000000",
+            "access_token": "token",
+            "refresh_token": "refresh",
+            "user_id": 10001,
+        }
+        entry.options = {"scan_interval": 30}
+
+        device_entry = MagicMock()
+        device_entry.identifiers = {(DOMAIN, device.serial)}
+
+        result = await async_get_device_diagnostics(hass, entry, device_entry)
+
+        assert result["entry"]["data"]["phone"] == "**REDACTED**"
+        assert result["device"]["name"] == "**REDACTED**"
+        assert result["device"]["room_name"] == "**REDACTED**"
+        assert result["device"]["properties"]["mac"] == "**REDACTED**"
+        assert result["device"]["properties"]["powerState"] == "1"
+        assert result["device"]["extra_data"]["gateway_device_id"] == "**REDACTED**"
+
+    @pytest.mark.asyncio
+    async def test_missing_lipro_identifier_returns_error(self, hass):
+        """Test diagnostics handles device entries outside lipro domain."""
+        coordinator = MagicMock()
+        coordinator.devices = {}
+        coordinator.get_device = MagicMock(return_value=None)
+
+        entry = MagicMock()
+        entry.runtime_data = coordinator
+        entry.title = "Lipro (13800000000)"
+        entry.data = {}
+        entry.options = {}
+
+        device_entry = MagicMock()
+        device_entry.identifiers = {("other_domain", "abc")}
+
+        result = await async_get_device_diagnostics(hass, entry, device_entry)
+        assert result == {"error": "device_not_in_lipro_domain"}
+
+    @pytest.mark.asyncio
+    async def test_unknown_lipro_device_returns_error(self, hass):
+        """Test diagnostics handles missing device in coordinator cache."""
+        coordinator = MagicMock()
+        coordinator.devices = {}
+        coordinator.get_device = MagicMock(return_value=None)
+
+        entry = MagicMock()
+        entry.runtime_data = coordinator
+        entry.title = "Lipro (13800000000)"
+        entry.data = {}
+        entry.options = {}
+
+        device_entry = MagicMock()
+        device_entry.identifiers = {(DOMAIN, "03ab5ccd7c111111")}
+
+        result = await async_get_device_diagnostics(hass, entry, device_entry)
+        assert result == {"error": "device_not_found"}

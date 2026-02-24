@@ -9,6 +9,7 @@ from homeassistant.components.diagnostics import async_redact_data
 from .const import (
     CONF_PHONE,
     CONF_PHONE_ID,
+    DOMAIN,
     PROP_BLE_MAC,
     PROP_IP,
     PROP_MAC,
@@ -18,8 +19,10 @@ from .core.anonymous_share import get_anonymous_share_manager
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
+    from homeassistant.helpers.device_registry import DeviceEntry
 
     from . import LiproConfigEntry
+    from .core.device import LiproDevice
 
 # Keys to redact from diagnostics
 # Note: Both snake_case (internal storage) and camelCase (API response) formats
@@ -72,6 +75,56 @@ def _redact_device_properties(properties: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _build_device_diagnostics(device: LiproDevice) -> dict[str, Any]:
+    """Build redacted diagnostics payload for a single device."""
+    device_info: dict[str, Any] = {
+        "name": "**REDACTED**",
+        "device_type": device.device_type,
+        "device_type_hex": device.device_type_hex,
+        "category": device.category.value,
+        "physical_model": device.physical_model,
+        "is_group": device.is_group,
+        "room_name": "**REDACTED**",
+        "available": device.available,
+        "is_connected": device.is_connected,
+        "properties": _redact_device_properties(device.properties),
+    }
+    # Add network info (non-sensitive)
+    if device.firmware_version:
+        device_info["firmware_version"] = device.firmware_version
+    if device.wifi_rssi is not None:
+        device_info["wifi_rssi"] = device.wifi_rssi
+    if device.net_type:
+        device_info["net_type"] = device.net_type
+    # Add Mesh info
+    if device.mesh_address is not None:
+        device_info["mesh_address"] = device.mesh_address
+    if device.mesh_type is not None:
+        device_info["mesh_type"] = device.mesh_type
+    if device.is_mesh_gateway:
+        device_info["is_mesh_gateway"] = True
+
+    # Add extra_data (redact device identifiers, keep power info)
+    if device.extra_data:
+        safe_extra: dict[str, Any] = {}
+        if "power_info" in device.extra_data:
+            safe_extra["power_info"] = device.extra_data["power_info"]
+        if "gateway_device_id" in device.extra_data:
+            safe_extra["gateway_device_id"] = "**REDACTED**"
+        if safe_extra:
+            device_info["extra_data"] = safe_extra
+
+    return device_info
+
+
+def _extract_device_serial(device: DeviceEntry) -> str | None:
+    """Extract Lipro serial from device identifiers."""
+    for domain, identifier in device.identifiers:
+        if domain == DOMAIN:
+            return identifier
+    return None
+
+
 async def async_get_config_entry_diagnostics(
     hass: HomeAssistant,
     entry: LiproConfigEntry,
@@ -80,46 +133,9 @@ async def async_get_config_entry_diagnostics(
     coordinator = entry.runtime_data
 
     # Collect device information (redacted)
-    devices_info = []
-    for device in coordinator.devices.values():
-        device_info = {
-            "name": "**REDACTED**",
-            "device_type": device.device_type,
-            "device_type_hex": device.device_type_hex,
-            "category": device.category.value,
-            "physical_model": device.physical_model,
-            "is_group": device.is_group,
-            "room_name": "**REDACTED**",
-            "available": device.available,
-            "is_connected": device.is_connected,
-            "properties": _redact_device_properties(device.properties),
-        }
-        # Add network info (non-sensitive)
-        if device.firmware_version:
-            device_info["firmware_version"] = device.firmware_version
-        if device.wifi_rssi is not None:
-            device_info["wifi_rssi"] = device.wifi_rssi
-        if device.net_type:
-            device_info["net_type"] = device.net_type
-        # Add Mesh info
-        if device.mesh_address is not None:
-            device_info["mesh_address"] = device.mesh_address
-        if device.mesh_type is not None:
-            device_info["mesh_type"] = device.mesh_type
-        if device.is_mesh_gateway:
-            device_info["is_mesh_gateway"] = True
-
-        # Add extra_data (redact device identifiers, keep power info)
-        if device.extra_data:
-            safe_extra: dict[str, Any] = {}
-            if "power_info" in device.extra_data:
-                safe_extra["power_info"] = device.extra_data["power_info"]
-            if "gateway_device_id" in device.extra_data:
-                safe_extra["gateway_device_id"] = "**REDACTED**"
-            if safe_extra:
-                device_info["extra_data"] = safe_extra
-
-        devices_info.append(device_info)
+    devices_info = [
+        _build_device_diagnostics(device) for device in coordinator.devices.values()
+    ]
 
     # Get anonymous share status
     share_manager = get_anonymous_share_manager(hass)
@@ -144,4 +160,35 @@ async def async_get_config_entry_diagnostics(
         },
         "anonymous_share": anonymous_share_info,
         "devices": devices_info,
+    }
+
+
+async def async_get_device_diagnostics(
+    hass: HomeAssistant,
+    entry: LiproConfigEntry,
+    device: DeviceEntry,
+) -> dict[str, Any]:
+    """Return diagnostics for a single device entry."""
+    coordinator = entry.runtime_data
+    serial = _extract_device_serial(device)
+    if serial is None:
+        return {"error": "device_not_in_lipro_domain"}
+
+    lipro_device = coordinator.get_device(serial)
+    if lipro_device is None:
+        return {"error": "device_not_found"}
+
+    return {
+        "entry": {
+            "title": entry.title,
+            "data": async_redact_data(entry.data, TO_REDACT),
+            "options": entry.options,
+        },
+        "coordinator": {
+            "last_update_success": coordinator.last_update_success,
+            "update_interval": str(coordinator.update_interval),
+            "device_count": len(coordinator.devices),
+            "mqtt_connected": coordinator.mqtt_connected,
+        },
+        "device": _build_device_diagnostics(lipro_device),
     }

@@ -21,6 +21,7 @@ from custom_components.lipro.const import (
 )
 from custom_components.lipro.core.api import LiproAuthError, LiproConnectionError
 from custom_components.lipro.core.device import LiproDevice
+from homeassistant.helpers.issue_registry import IssueSeverity
 
 # ---------------------------------------------------------------------------
 # Fixture: real coordinator with mocked deps
@@ -363,6 +364,16 @@ class TestCoordinatorMqttPollingInterval:
         assert coordinator._mqtt_disconnect_time is None
         assert coordinator._mqtt_disconnect_notified is False
 
+    def test_on_mqtt_connect_dismisses_disconnect_issue(self, coordinator):
+        with patch(
+            "custom_components.lipro.core.coordinator.async_delete_issue"
+        ) as delete_issue:
+            coordinator._on_mqtt_connect()
+
+        delete_issue.assert_called_once_with(
+            coordinator.hass, DOMAIN, "mqtt_disconnected"
+        )
+
     def test_on_mqtt_disconnect_records_time_once(self, coordinator):
         coordinator._mqtt_disconnect_time = None
         coordinator._on_mqtt_disconnect()
@@ -450,6 +461,24 @@ class TestCoordinatorSendCommand:
         result = await coordinator.async_send_command(dev, "turnOn")
 
         assert result is False
+
+    @pytest.mark.asyncio
+    async def test_send_command_clears_auth_issues_on_success(
+        self, coordinator, mock_lipro_api_client
+    ):
+        dev = _make_device(serial="dev1", is_group=False)
+
+        with patch(
+            "custom_components.lipro.core.coordinator.async_delete_issue"
+        ) as delete_issue:
+            result = await coordinator.async_send_command(dev, "turnOn")
+
+        assert result is True
+        delete_issue.assert_any_call(coordinator.hass, DOMAIN, "auth_expired")
+        delete_issue.assert_any_call(coordinator.hass, DOMAIN, "auth_error")
+        mock_lipro_api_client.send_command.assert_awaited_once_with(
+            "dev1", "turnOn", dev.device_type, None, dev.iot_name
+        )
 
 
 # ===========================================================================
@@ -594,8 +623,8 @@ class TestCoordinatorStatusQueriesAndNotifications:
         coordinator._devices[outlet.serial] = outlet
         coordinator._device_by_id[outlet.serial] = outlet
         coordinator._outlet_ids_to_query = [outlet.serial]
-        mock_lipro_api_client.fetch_outlet_power_info.side_effect = LiproConnectionError(
-            "timeout"
+        mock_lipro_api_client.fetch_outlet_power_info.side_effect = (
+            LiproConnectionError("timeout")
         )
 
         with pytest.raises(LiproConnectionError):
@@ -643,6 +672,52 @@ class TestCoordinatorStatusQueriesAndNotifications:
 
         show_auth.assert_awaited_once_with("auth_error", error="401")
         start_reauth.assert_called_once_with(coordinator.hass)
+
+    @pytest.mark.asyncio
+    async def test_async_update_data_clears_auth_issues_after_success(
+        self, coordinator
+    ):
+        with patch(
+            "custom_components.lipro.core.coordinator.async_delete_issue"
+        ) as delete_issue:
+            await coordinator._async_update_data()
+
+        delete_issue.assert_any_call(coordinator.hass, DOMAIN, "auth_expired")
+        delete_issue.assert_any_call(coordinator.hass, DOMAIN, "auth_error")
+
+    @pytest.mark.asyncio
+    async def test_show_mqtt_disconnect_notification_creates_issue(self, coordinator):
+        with patch(
+            "custom_components.lipro.core.coordinator.async_create_issue"
+        ) as create_issue:
+            await coordinator._async_show_mqtt_disconnect_notification(minutes=12)
+
+        create_issue.assert_called_once_with(
+            coordinator.hass,
+            domain=DOMAIN,
+            issue_id="mqtt_disconnected",
+            is_fixable=False,
+            severity=IssueSeverity.WARNING,
+            translation_key="mqtt_disconnected",
+            translation_placeholders={"minutes": "12"},
+        )
+
+    @pytest.mark.asyncio
+    async def test_show_auth_notification_creates_issue(self, coordinator):
+        with patch(
+            "custom_components.lipro.core.coordinator.async_create_issue"
+        ) as create_issue:
+            await coordinator._async_show_auth_notification("auth_error", error="401")
+
+        create_issue.assert_called_once_with(
+            coordinator.hass,
+            domain=DOMAIN,
+            issue_id="auth_error",
+            is_fixable=True,
+            severity=IssueSeverity.ERROR,
+            translation_key="auth_error",
+            translation_placeholders={"error": "401"},
+        )
 
     def test_check_mqtt_disconnect_notification_schedules_task(self, coordinator):
         coordinator._mqtt_enabled = True
