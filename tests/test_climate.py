@@ -141,3 +141,128 @@ class TestLiproHeaterConstants:
 
         assert PROP_HEATER_SWITCH == "heaterSwitch"
         assert PROP_HEATER_MODE == "heaterMode"
+
+
+class TestLiproHeaterEntityCommands:
+    """Tests for LiproHeater entity command methods."""
+
+    @pytest.mark.asyncio
+    async def test_set_hvac_mode_heat(self, mock_coordinator, make_device):
+        """Test async_set_hvac_mode(HEAT) sends POWER_ON command."""
+        from unittest.mock import MagicMock
+
+        from homeassistant.components.climate import HVACMode
+
+        from custom_components.lipro.climate import LiproHeater
+
+        device = make_device("heater", properties={"heaterSwitch": "0"})
+        mock_coordinator.get_device = MagicMock(return_value=device)
+        heater = LiproHeater(mock_coordinator, device)
+        heater.async_write_ha_state = MagicMock()
+
+        await heater.async_set_hvac_mode(HVACMode.HEAT)
+
+        mock_coordinator.async_send_command.assert_called_once_with(
+            device, "POWER_ON", None
+        )
+
+    @pytest.mark.asyncio
+    async def test_set_hvac_mode_off(self, mock_coordinator, make_device):
+        """Test async_set_hvac_mode(OFF) sends POWER_OFF command."""
+        from unittest.mock import MagicMock
+
+        from homeassistant.components.climate import HVACMode
+
+        from custom_components.lipro.climate import LiproHeater
+
+        device = make_device("heater", properties={"heaterSwitch": "1"})
+        mock_coordinator.get_device = MagicMock(return_value=device)
+        heater = LiproHeater(mock_coordinator, device)
+        heater.async_write_ha_state = MagicMock()
+
+        await heater.async_set_hvac_mode(HVACMode.OFF)
+
+        mock_coordinator.async_send_command.assert_called_once_with(
+            device, "POWER_OFF", None
+        )
+
+    @pytest.mark.asyncio
+    async def test_set_preset_mode(self, mock_coordinator, make_device):
+        """Test async_set_preset_mode sends CHANGE_STATE with heaterMode."""
+        from unittest.mock import MagicMock
+
+        from custom_components.lipro.climate import LiproHeater
+        from custom_components.lipro.const import HEATER_MODE_DRY
+
+        device = make_device("heater", properties={"heaterSwitch": "1"})
+        mock_coordinator.get_device = MagicMock(return_value=device)
+        heater = LiproHeater(mock_coordinator, device)
+        heater.async_write_ha_state = MagicMock()
+
+        await heater.async_set_preset_mode("dry")
+
+        mock_coordinator.async_send_command.assert_called_once_with(
+            device,
+            "CHANGE_STATE",
+            [{"key": "heaterMode", "value": str(HEATER_MODE_DRY)}],
+        )
+
+    @pytest.mark.asyncio
+    async def test_turn_on_delegates_to_set_hvac_mode(self, mock_coordinator, make_device):
+        """Test async_turn_on delegates to async_set_hvac_mode(HEAT)."""
+        from unittest.mock import MagicMock
+
+        from custom_components.lipro.climate import LiproHeater
+
+        device = make_device("heater", properties={"heaterSwitch": "0"})
+        mock_coordinator.get_device = MagicMock(return_value=device)
+        heater = LiproHeater(mock_coordinator, device)
+        heater.async_write_ha_state = MagicMock()
+
+        await heater.async_turn_on()
+
+        mock_coordinator.async_send_command.assert_called_once_with(
+            device, "POWER_ON", None
+        )
+
+    @pytest.mark.asyncio
+    async def test_turn_off_delegates_to_set_hvac_mode(self, mock_coordinator, make_device):
+        """Test async_turn_off delegates to async_set_hvac_mode(OFF)."""
+        from unittest.mock import MagicMock
+
+        from custom_components.lipro.climate import LiproHeater
+
+        device = make_device("heater", properties={"heaterSwitch": "1"})
+        mock_coordinator.get_device = MagicMock(return_value=device)
+        heater = LiproHeater(mock_coordinator, device)
+        heater.async_write_ha_state = MagicMock()
+
+        await heater.async_turn_off()
+
+        mock_coordinator.async_send_command.assert_called_once_with(
+            device, "POWER_OFF", None
+        )
+
+    def test_preset_mode_property(self, mock_coordinator, make_device):
+        """Test preset_mode returns correct preset for current heater mode."""
+        from unittest.mock import MagicMock
+
+        from custom_components.lipro.climate import LiproHeater
+
+        device = make_device("heater", properties={"heaterMode": "2"})
+        mock_coordinator.get_device = MagicMock(return_value=device)
+        heater = LiproHeater(mock_coordinator, device)
+
+        assert heater.preset_mode == "dry"
+
+    def test_preset_mode_default_fallback(self, mock_coordinator, make_device):
+        """Test preset_mode falls back to 'default' for unknown mode."""
+        from unittest.mock import MagicMock
+
+        from custom_components.lipro.climate import LiproHeater
+
+        device = make_device("heater", properties={"heaterMode": "99"})
+        mock_coordinator.get_device = MagicMock(return_value=device)
+        heater = LiproHeater(mock_coordinator, device)
+
+        assert heater.preset_mode == "default"

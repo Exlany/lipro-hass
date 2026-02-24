@@ -168,6 +168,36 @@ def mock_lipro_client() -> Generator[MagicMock]:
 
 
 @pytest.fixture
+def mock_lipro_api_client():
+    """Create a mock LiproClient with common API responses for coordinator tests."""
+    client = AsyncMock()
+    client.get_devices = AsyncMock(return_value={"devices": []})
+    client.query_device_status = AsyncMock(return_value=[])
+    client.query_mesh_group_status = AsyncMock(return_value=[])
+    client.query_connect_status = AsyncMock(return_value={})
+    client.get_mqtt_config = AsyncMock(return_value={})
+    client.get_product_configs = AsyncMock(return_value=[])
+    client.send_command = AsyncMock(return_value={"pushSuccess": True})
+    client.send_group_command = AsyncMock(return_value={"pushSuccess": True})
+    client.fetch_outlet_power_info = AsyncMock(return_value={})
+    client.close = AsyncMock()
+    client.access_token = "test_token"
+    client.refresh_token = "test_refresh"
+    client.user_id = 10001
+    client.phone_id = "test_phone_id"
+    return client
+
+
+@pytest.fixture
+def mock_auth_manager():
+    """Create a mock LiproAuthManager for coordinator tests."""
+    auth = AsyncMock()
+    auth.ensure_valid_token = AsyncMock()
+    auth.is_authenticated = True
+    return auth
+
+
+@pytest.fixture
 def mock_lipro_client_auth_error() -> Generator[MagicMock]:
     """Create a mock LiproClient that raises auth error."""
     with patch(

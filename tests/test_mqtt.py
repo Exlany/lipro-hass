@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+import asyncio
 from unittest.mock import AsyncMock, MagicMock, patch
 
+import aiomqtt
 import pytest
 
 from custom_components.lipro.core.mqtt import (
@@ -606,3 +608,61 @@ class TestSyncSubscriptions:
         mock_mqtt.subscribe.assert_called_once()
         mock_mqtt.unsubscribe.assert_called_once()
         assert client._subscribed_devices == {"dev_new"}
+
+
+class TestConnectionLoop:
+    """Tests for reconnection loop with backoff/jitter."""
+
+    @pytest.mark.asyncio
+    async def test_connection_loop_retries_after_mqtt_error(self):
+        client = LiproMqttClient(
+            access_key="access",
+            secret_key="secret",
+            biz_id="lip_biz001",
+            phone_id="550e8400-e29b-41d4-a716-446655440000",
+        )
+        client._running = True
+        client._connected = True
+        client._client = MagicMock()
+
+        with (
+            patch.object(
+                client,
+                "_connect_and_listen",
+                side_effect=[aiomqtt.MqttError("boom"), asyncio.CancelledError()],
+            ),
+            patch("custom_components.lipro.core.mqtt.random.uniform", return_value=0.0),
+            patch("custom_components.lipro.core.mqtt.asyncio.sleep", new_callable=AsyncMock) as sleep,
+        ):
+            await client._connection_loop()
+
+        sleep.assert_awaited_once()
+        assert client._connected is False
+        assert client._client is None
+
+    @pytest.mark.asyncio
+    async def test_connection_loop_handles_oserror(self):
+        client = LiproMqttClient(
+            access_key="access",
+            secret_key="secret",
+            biz_id="lip_biz001",
+            phone_id="550e8400-e29b-41d4-a716-446655440000",
+        )
+        client._running = True
+
+        async def _sleep_and_stop(_: float) -> None:
+            client._running = False
+
+        with (
+            patch.object(
+                client,
+                "_connect_and_listen",
+                side_effect=OSError("network down"),
+            ),
+            patch("custom_components.lipro.core.mqtt.random.uniform", return_value=0.0),
+            patch("custom_components.lipro.core.mqtt.asyncio.sleep", side_effect=_sleep_and_stop) as sleep,
+        ):
+            await client._connection_loop()
+
+        sleep.assert_called_once()
+        assert client._connected is False

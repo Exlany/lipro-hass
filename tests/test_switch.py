@@ -236,3 +236,154 @@ class TestLiproSwitchEntityCommands:
         mock_coordinator.async_send_command.assert_called_once_with(
             device, "POWER_OFF", None
         )
+
+    @pytest.mark.asyncio
+    async def test_outlet_device_class(self, mock_coordinator, make_device):
+        """Test outlet gets SwitchDeviceClass.OUTLET."""
+        from homeassistant.components.switch import SwitchDeviceClass
+
+        from custom_components.lipro.switch import LiproSwitch
+
+        device = make_device("outlet")
+        mock_coordinator.get_device = MagicMock(return_value=device)
+        switch = LiproSwitch(mock_coordinator, device)
+
+        assert switch.device_class == SwitchDeviceClass.OUTLET
+
+    @pytest.mark.asyncio
+    async def test_switch_device_class(self, mock_coordinator, make_device):
+        """Test switch gets SwitchDeviceClass.SWITCH."""
+        from homeassistant.components.switch import SwitchDeviceClass
+
+        from custom_components.lipro.switch import LiproSwitch
+
+        device = make_device("switch")
+        mock_coordinator.get_device = MagicMock(return_value=device)
+        switch = LiproSwitch(mock_coordinator, device)
+
+        assert switch.device_class == SwitchDeviceClass.SWITCH
+
+
+class TestLiproFeatureSwitchEntityCommands:
+    """Tests for feature switch entity command methods (fade, sleep_aid, etc.)."""
+
+    @pytest.mark.asyncio
+    async def test_fade_switch_turn_on(self, mock_coordinator, make_device):
+        """Test LiproFadeSwitch turn_on sends CHANGE_STATE with fadeState=1."""
+        from custom_components.lipro.switch import LiproFadeSwitch
+
+        device = make_device("light", properties={"fadeState": "0"})
+        mock_coordinator.get_device = MagicMock(return_value=device)
+        switch = LiproFadeSwitch(mock_coordinator, device)
+        switch.async_write_ha_state = MagicMock()
+
+        await switch.async_turn_on()
+
+        mock_coordinator.async_send_command.assert_called_once_with(
+            device,
+            "CHANGE_STATE",
+            [{"key": "fadeState", "value": "1"}],
+        )
+
+    @pytest.mark.asyncio
+    async def test_fade_switch_turn_off(self, mock_coordinator, make_device):
+        """Test LiproFadeSwitch turn_off sends CHANGE_STATE with fadeState=0."""
+        from custom_components.lipro.switch import LiproFadeSwitch
+
+        device = make_device("light", properties={"fadeState": "1"})
+        mock_coordinator.get_device = MagicMock(return_value=device)
+        switch = LiproFadeSwitch(mock_coordinator, device)
+        switch.async_write_ha_state = MagicMock()
+
+        await switch.async_turn_off()
+
+        mock_coordinator.async_send_command.assert_called_once_with(
+            device,
+            "CHANGE_STATE",
+            [{"key": "fadeState", "value": "0"}],
+        )
+
+    @pytest.mark.asyncio
+    async def test_sleep_aid_switch_turn_on(self, mock_coordinator, make_device):
+        """Test LiproSleepAidSwitch turn_on sends sleepAidEnable=1."""
+        from custom_components.lipro.switch import LiproSleepAidSwitch
+
+        device = make_device("light", properties={"sleepAidEnable": "0"})
+        mock_coordinator.get_device = MagicMock(return_value=device)
+        switch = LiproSleepAidSwitch(mock_coordinator, device)
+        switch.async_write_ha_state = MagicMock()
+
+        await switch.async_turn_on()
+
+        mock_coordinator.async_send_command.assert_called_once_with(
+            device,
+            "CHANGE_STATE",
+            [{"key": "sleepAidEnable", "value": "1"}],
+        )
+
+    @pytest.mark.asyncio
+    async def test_wake_up_switch_turn_on(self, mock_coordinator, make_device):
+        """Test LiproWakeUpSwitch turn_on sends wakeUpEnable=1."""
+        from custom_components.lipro.switch import LiproWakeUpSwitch
+
+        device = make_device("light", properties={"wakeUpEnable": "0"})
+        mock_coordinator.get_device = MagicMock(return_value=device)
+        switch = LiproWakeUpSwitch(mock_coordinator, device)
+        switch.async_write_ha_state = MagicMock()
+
+        await switch.async_turn_on()
+
+        mock_coordinator.async_send_command.assert_called_once_with(
+            device,
+            "CHANGE_STATE",
+            [{"key": "wakeUpEnable", "value": "1"}],
+        )
+
+    @pytest.mark.asyncio
+    async def test_focus_mode_switch_turn_on(self, mock_coordinator, make_device):
+        """Test LiproFocusModeSwitch turn_on sends focusMode=1."""
+        from custom_components.lipro.switch import LiproFocusModeSwitch
+
+        device = make_device("light", properties={"focusMode": "0"})
+        mock_coordinator.get_device = MagicMock(return_value=device)
+        switch = LiproFocusModeSwitch(mock_coordinator, device)
+        switch.async_write_ha_state = MagicMock()
+
+        await switch.async_turn_on()
+
+        mock_coordinator.async_send_command.assert_called_once_with(
+            device,
+            "CHANGE_STATE",
+            [{"key": "focusMode", "value": "1"}],
+        )
+
+    @pytest.mark.asyncio
+    async def test_body_reactive_switch_turn_on(self, mock_coordinator, make_device):
+        """Test LiproBodyReactiveSwitch turn_on sends bodyReactive=1."""
+        from custom_components.lipro.switch import LiproBodyReactiveSwitch
+
+        device = make_device("light", properties={"bodyReactive": "0"})
+        mock_coordinator.get_device = MagicMock(return_value=device)
+        switch = LiproBodyReactiveSwitch(mock_coordinator, device)
+        switch.async_write_ha_state = MagicMock()
+
+        await switch.async_turn_on()
+
+        mock_coordinator.async_send_command.assert_called_once_with(
+            device,
+            "CHANGE_STATE",
+            [{"key": "bodyReactive", "value": "1"}],
+        )
+
+    def test_feature_switch_is_on_reads_device_property(self, mock_coordinator, make_device):
+        """Test feature switch is_on reads from device property."""
+        from custom_components.lipro.switch import LiproFadeSwitch
+
+        device = make_device("light", properties={"fadeState": "1"})
+        mock_coordinator.get_device = MagicMock(return_value=device)
+        switch = LiproFadeSwitch(mock_coordinator, device)
+
+        assert switch.is_on is True
+
+        device.update_properties({"fadeState": "0"})
+        assert switch.is_on is False

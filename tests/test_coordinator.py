@@ -1,672 +1,622 @@
-"""Tests for Lipro data update coordinator."""
+"""Tests for Lipro data update coordinator.
+
+These tests instantiate a real LiproDataUpdateCoordinator with mocked
+dependencies and exercise its public and internal methods directly.
+"""
 
 from __future__ import annotations
 
 from datetime import timedelta
-from unittest.mock import patch
+from time import monotonic
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.lipro.core.device import LiproDevice, parse_properties_list
+from custom_components.lipro.const import (
+    DEFAULT_SCAN_INTERVAL,
+    DOMAIN,
+    MAX_MQTT_CACHE_SIZE,
+    MQTT_DISCONNECT_NOTIFY_THRESHOLD,
+)
+from custom_components.lipro.core.api import LiproAuthError
+from custom_components.lipro.core.device import LiproDevice
 
 
-class TestLiproDataUpdateCoordinator:
-    """Tests for LiproDataUpdateCoordinator."""
+# ---------------------------------------------------------------------------
+# Fixture: real coordinator with mocked deps
+# ---------------------------------------------------------------------------
 
-    def _create_device(
-        self,
-        serial: str = "03ab5ccd7cxxxxxx",
-        name: str = "Test Device",
-        device_type: int = 1,
-        physical_model: str = "light",
-        is_group: bool = False,
-        properties: dict | None = None,
-    ) -> LiproDevice:
-        """Create a device for testing."""
-        return LiproDevice(
-            device_number=1,
-            serial=serial,
-            name=name,
-            device_type=device_type,
-            iot_name="lipro_test",
-            physical_model=physical_model,
-            is_group=is_group,
-            properties=properties or {},
+@pytest.fixture
+def coordinator(hass, mock_lipro_api_client, mock_auth_manager):
+    """Create a real LiproDataUpdateCoordinator with mocked deps."""
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={
+            "phone": "13800000000",
+            "password_hash": "e10adc3949ba59abbe56e057f20f883e",
+            "phone_id": "test-phone-id",
+            "access_token": "test_token",
+            "refresh_token": "test_refresh",
+            "user_id": 10001,
+        },
+        options={},
+        unique_id="lipro_10001",
+    )
+    entry.add_to_hass(hass)
+
+    with patch(
+        "custom_components.lipro.core.coordinator.get_anonymous_share_manager"
+    ) as mock_share:
+        mock_share.return_value = MagicMock(is_enabled=False, set_enabled=MagicMock())
+        from custom_components.lipro.core.coordinator import LiproDataUpdateCoordinator
+
+        coord = LiproDataUpdateCoordinator(
+            hass, mock_lipro_api_client, mock_auth_manager, entry
         )
-
-    def test_device_lookup_by_serial(self):
-        """Test device lookup by serial number."""
-        device = self._create_device(serial="03ab5ccd7cxxxxxx")
-        devices = {device.serial: device}
-
-        assert devices.get("03ab5ccd7cxxxxxx") == device
-        assert devices.get("nonexistent") is None
-
-    def test_device_lookup_by_iot_id(self):
-        """Test device lookup by IoT device ID."""
-        device = self._create_device(serial="03ab5ccd7cxxxxxx")
-
-        # IoT ID is same as serial for non-group devices
-        assert device.iot_device_id == "03ab5ccd7cxxxxxx"
-
-    def test_group_device_serial(self):
-        """Test group device serial format."""
-        device = self._create_device(
-            serial="mesh_group_10001",
-            is_group=True,
-        )
-
-        assert device.is_group is True
-        assert device.serial == "mesh_group_10001"
+    return coord
 
 
-class TestDeviceStatusUpdate:
-    """Tests for device status update logic."""
-
-    def _create_device(
-        self,
-        properties: dict | None = None,
-    ) -> LiproDevice:
-        """Create a device for testing."""
-        return LiproDevice(
-            device_number=1,
-            serial="03ab5ccd7cxxxxxx",
-            name="Test Light",
-            device_type=1,
-            iot_name="lipro_led",
-            physical_model="light",
-            properties=properties or {},
-        )
-
-    def test_update_properties(self):
-        """Test updating device properties."""
-        device = self._create_device(properties={"powerState": "0"})
-
-        device.update_properties({"powerState": "1", "brightness": "80"})
-
-        assert device.properties["powerState"] == "1"
-        assert device.properties["brightness"] == "80"
-
-    def test_update_properties_preserves_existing(self):
-        """Test that update preserves existing properties."""
-        device = self._create_device(
-            properties={"powerState": "1", "brightness": "50", "temperature": "4000"}
-        )
-
-        device.update_properties({"brightness": "80"})
-
-        assert device.properties["powerState"] == "1"  # Unchanged
-        assert device.properties["brightness"] == "80"  # Updated
-        assert device.properties["temperature"] == "4000"  # Unchanged
-
-    def test_update_availability_on_connect_state(self):
-        """Test availability is updated based on connectState."""
-        device = self._create_device()
-        assert device.available is True
-
-        device.update_properties({"connectState": "0"})
-        assert device.available is False
-
-        device.update_properties({"connectState": "1"})
-        assert device.available is True
+def _make_device(
+    serial: str = "03ab5ccd7cxxxxxx",
+    name: str = "Test Light",
+    is_group: bool = False,
+    properties: dict | None = None,
+) -> LiproDevice:
+    """Helper to create a LiproDevice for tests."""
+    return LiproDevice(
+        device_number=1,
+        serial=serial,
+        name=name,
+        device_type=1,
+        iot_name="lipro_led",
+        physical_model="light",
+        is_group=is_group,
+        properties=properties or {},
+    )
 
 
-class TestParsePropertiesList:
-    """Tests for parse_properties_list function."""
+def _make_mock_entity(
+    unique_id: str,
+    device: LiproDevice,
+    protected_keys: set[str] | None = None,
+) -> MagicMock:
+    """Helper to create a mock LiproEntity."""
+    entity = MagicMock()
+    entity.unique_id = unique_id
+    entity.device = device
+    entity.get_protected_keys = MagicMock(return_value=protected_keys or set())
+    return entity
 
-    def test_parse_valid_list(self):
-        """Test parsing valid properties list."""
-        properties_list = [
-            {"key": "powerState", "value": "1"},
-            {"key": "brightness", "value": "80"},
-            {"key": "temperature", "value": "4000"},
-        ]
 
-        result = parse_properties_list(properties_list)
+# ===========================================================================
+# 1. Device management
+# ===========================================================================
 
-        assert result == {
-            "powerState": "1",
-            "brightness": "80",
-            "temperature": "4000",
-        }
 
-    def test_parse_empty_list(self):
-        """Test parsing empty list."""
-        assert parse_properties_list([]) == {}
-        assert parse_properties_list(None) == {}
+class TestCoordinatorDeviceManagement:
+    """Test get_device(), get_device_by_id(), devices property."""
 
-    def test_parse_list_with_missing_keys(self):
-        """Test parsing list with missing keys."""
-        properties_list = [
-            {"key": "powerState", "value": "1"},
-            {"value": "80"},  # Missing key
-            {"key": None, "value": "test"},  # None key
-        ]
+    def test_devices_property_returns_internal_dict(self, coordinator):
+        dev = _make_device()
+        coordinator._devices["03ab5ccd7cxxxxxx"] = dev
+        assert coordinator.devices is coordinator._devices
+        assert coordinator.devices["03ab5ccd7cxxxxxx"] is dev
 
-        result = parse_properties_list(properties_list)
+    def test_get_device_found(self, coordinator):
+        dev = _make_device(serial="aaa")
+        coordinator._devices["aaa"] = dev
+        assert coordinator.get_device("aaa") is dev
 
+    def test_get_device_not_found(self, coordinator):
+        assert coordinator.get_device("nonexistent") is None
+
+    def test_get_device_by_id_found(self, coordinator):
+        dev = _make_device(serial="bbb")
+        coordinator._device_by_id["bbb"] = dev
+        assert coordinator.get_device_by_id("bbb") is dev
+
+    def test_get_device_by_id_not_found(self, coordinator):
+        assert coordinator.get_device_by_id("missing") is None
+
+    def test_get_device_by_id_gateway_mapping(self, coordinator):
+        """Gateway ID mapped to a group device."""
+        dev = _make_device(serial="mesh_group_10001", is_group=True)
+        coordinator._device_by_id["gateway_abc"] = dev
+        assert coordinator.get_device_by_id("gateway_abc") is dev
+
+
+# ===========================================================================
+# 2. Entity registration
+# ===========================================================================
+
+
+class TestCoordinatorEntityRegistration:
+    """Test register_entity() and unregister_entity()."""
+
+    def test_register_entity(self, coordinator):
+        dev = _make_device()
+        entity = _make_mock_entity("light_1", dev)
+        coordinator.register_entity(entity)
+
+        assert "light_1" in coordinator._entities
+        assert coordinator._entities["light_1"] is entity
+        assert entity in coordinator._entities_by_device[dev.serial]
+
+    def test_register_duplicate_entity_no_double_add(self, coordinator):
+        dev = _make_device()
+        entity = _make_mock_entity("light_1", dev)
+        coordinator.register_entity(entity)
+        coordinator.register_entity(entity)
+
+        assert coordinator._entities_by_device[dev.serial].count(entity) == 1
+
+    def test_register_multiple_entities_same_device(self, coordinator):
+        dev = _make_device()
+        e1 = _make_mock_entity("light_1", dev)
+        e2 = _make_mock_entity("brightness_1", dev)
+        coordinator.register_entity(e1)
+        coordinator.register_entity(e2)
+
+        assert len(coordinator._entities_by_device[dev.serial]) == 2
+
+    def test_unregister_entity(self, coordinator):
+        dev = _make_device()
+        entity = _make_mock_entity("light_1", dev)
+        coordinator.register_entity(entity)
+        coordinator.unregister_entity(entity)
+
+        assert "light_1" not in coordinator._entities
+        assert dev.serial not in coordinator._entities_by_device
+
+    def test_unregister_one_of_two(self, coordinator):
+        dev = _make_device()
+        e1 = _make_mock_entity("light_1", dev)
+        e2 = _make_mock_entity("brightness_1", dev)
+        coordinator.register_entity(e1)
+        coordinator.register_entity(e2)
+        coordinator.unregister_entity(e1)
+
+        assert "light_1" not in coordinator._entities
+        assert "brightness_1" in coordinator._entities
+        assert len(coordinator._entities_by_device[dev.serial]) == 1
+
+    def test_unregister_nonexistent_is_noop(self, coordinator):
+        dev = _make_device()
+        entity = _make_mock_entity("ghost", dev)
+        coordinator.unregister_entity(entity)  # should not raise
+
+    def test_entity_with_no_unique_id_skipped(self, coordinator):
+        dev = _make_device()
+        entity = _make_mock_entity(None, dev)
+        entity.unique_id = None
+        coordinator.register_entity(entity)
+        assert len(coordinator._entities) == 0
+
+
+# ===========================================================================
+# 3. Debounce filtering
+# ===========================================================================
+
+
+class TestCoordinatorDebounceFiltering:
+    """Test _filter_protected_properties() and _get_protected_keys_for_device()."""
+
+    def test_no_entities_returns_all_properties(self, coordinator):
+        props = {"powerState": "1", "brightness": "80"}
+        result = coordinator._filter_protected_properties("serial_x", props)
+        assert result == props
+
+    def test_protected_keys_filtered_out(self, coordinator):
+        dev = _make_device(serial="dev1")
+        entity = _make_mock_entity("e1", dev, protected_keys={"brightness", "temperature"})
+        coordinator.register_entity(entity)
+
+        props = {"powerState": "1", "brightness": "80", "temperature": "4000"}
+        result = coordinator._filter_protected_properties("dev1", props)
         assert result == {"powerState": "1"}
 
+    def test_get_protected_keys_aggregates_multiple_entities(self, coordinator):
+        dev = _make_device(serial="dev1")
+        e1 = _make_mock_entity("e1", dev, protected_keys={"brightness"})
+        e2 = _make_mock_entity("e2", dev, protected_keys={"temperature"})
+        coordinator.register_entity(e1)
+        coordinator.register_entity(e2)
 
-class TestDebounceProtection:
-    """Tests for debounce protection logic."""
+        keys = coordinator._get_protected_keys_for_device("dev1")
+        assert keys == {"brightness", "temperature"}
 
-    def test_filter_protected_properties(self):
-        """Test filtering protected properties."""
-        properties = {
-            "powerState": "1",
-            "brightness": "80",
-            "temperature": "4000",
+    def test_get_protected_keys_empty_when_no_entities(self, coordinator):
+        keys = coordinator._get_protected_keys_for_device("no_such_device")
+        assert keys == set()
+
+
+# ===========================================================================
+# 4. Apply properties update
+# ===========================================================================
+
+
+class TestCoordinatorApplyPropertiesUpdate:
+    """Test _apply_properties_update() with and without protection."""
+
+    def test_apply_without_protection(self, coordinator):
+        dev = _make_device(properties={"powerState": "0"})
+        coordinator._apply_properties_update(
+            dev, {"powerState": "1", "brightness": "50"}, apply_protection=False
+        )
+        assert dev.properties["powerState"] == "1"
+        assert dev.properties["brightness"] == "50"
+
+    def test_apply_with_protection_filters_keys(self, coordinator):
+        dev = _make_device(serial="dev1", properties={"powerState": "0", "brightness": "30"})
+        entity = _make_mock_entity("e1", dev, protected_keys={"brightness"})
+        coordinator.register_entity(entity)
+
+        coordinator._apply_properties_update(
+            dev, {"powerState": "1", "brightness": "99"}, apply_protection=True
+        )
+        assert dev.properties["powerState"] == "1"
+        # brightness should NOT be overwritten because it's protected
+        assert dev.properties["brightness"] == "30"
+
+    def test_apply_empty_properties_is_noop(self, coordinator):
+        dev = _make_device(properties={"powerState": "0"})
+        coordinator._apply_properties_update(dev, {}, apply_protection=False)
+        assert dev.properties == {"powerState": "0"}
+
+
+# ===========================================================================
+# 5. MQTT message handling
+# ===========================================================================
+
+
+class TestCoordinatorMqttMessageHandling:
+    """Test _on_mqtt_message(): device lookup, property update, dedup."""
+
+    def test_known_device_updates_properties(self, coordinator):
+        dev = _make_device(serial="dev1", properties={"powerState": "0"})
+        coordinator._devices["dev1"] = dev
+        coordinator._device_by_id["dev1"] = dev
+
+        coordinator._on_mqtt_message("dev1", {"powerState": "1"})
+        assert dev.properties["powerState"] == "1"
+
+    def test_unknown_device_ignored(self, coordinator):
+        # Should not raise
+        coordinator._on_mqtt_message("unknown_id", {"powerState": "1"})
+
+    def test_dedup_within_window_skips_second_message(self, coordinator):
+        dev = _make_device(serial="dev1", properties={"brightness": "0"})
+        coordinator._devices["dev1"] = dev
+        coordinator._device_by_id["dev1"] = dev
+
+        coordinator._on_mqtt_message("dev1", {"brightness": "50"})
+        assert dev.properties["brightness"] == "50"
+
+        # Manually set brightness back to verify dedup blocks the second call
+        dev.properties["brightness"] = "0"
+        coordinator._on_mqtt_message("dev1", {"brightness": "50"})
+        # Dedup should have skipped the second identical message
+        assert dev.properties["brightness"] == "0"
+
+    def test_dedup_expired_allows_through(self, coordinator):
+        dev = _make_device(serial="dev1", properties={"brightness": "0"})
+        coordinator._devices["dev1"] = dev
+        coordinator._device_by_id["dev1"] = dev
+
+        coordinator._on_mqtt_message("dev1", {"brightness": "50"})
+        assert dev.properties["brightness"] == "50"
+
+        # Expire the cache entry by backdating its timestamp
+        for key in list(coordinator._mqtt_message_cache):
+            coordinator._mqtt_message_cache[key] = monotonic() - 10.0
+
+        dev.properties["brightness"] = "0"
+        coordinator._on_mqtt_message("dev1", {"brightness": "50"})
+        assert dev.properties["brightness"] == "50"
+
+    def test_different_properties_not_deduped(self, coordinator):
+        dev = _make_device(serial="dev1", properties={})
+        coordinator._devices["dev1"] = dev
+        coordinator._device_by_id["dev1"] = dev
+
+        coordinator._on_mqtt_message("dev1", {"brightness": "50"})
+        coordinator._on_mqtt_message("dev1", {"brightness": "80"})
+        assert dev.properties["brightness"] == "80"
+
+
+# ===========================================================================
+# 6. MQTT polling interval
+# ===========================================================================
+
+
+class TestCoordinatorMqttPollingInterval:
+    """Test _on_mqtt_connect() doubles interval, _on_mqtt_disconnect() restores."""
+
+    def test_on_mqtt_connect_doubles_interval(self, coordinator):
+        base = coordinator._base_scan_interval
+        coordinator._on_mqtt_connect()
+
+        assert coordinator._mqtt_connected is True
+        assert coordinator.update_interval == timedelta(seconds=base * 2)
+
+    def test_on_mqtt_disconnect_restores_interval(self, coordinator):
+        base = coordinator._base_scan_interval
+        # First connect to double it
+        coordinator._on_mqtt_connect()
+        assert coordinator.update_interval == timedelta(seconds=base * 2)
+
+        # Then disconnect to restore
+        coordinator._on_mqtt_disconnect()
+        assert coordinator._mqtt_connected is False
+        assert coordinator.update_interval == timedelta(seconds=base)
+
+    def test_on_mqtt_connect_resets_disconnect_tracking(self, coordinator):
+        coordinator._mqtt_disconnect_time = 123.0
+        coordinator._mqtt_disconnect_notified = True
+
+        coordinator._on_mqtt_connect()
+
+        assert coordinator._mqtt_disconnect_time is None
+        assert coordinator._mqtt_disconnect_notified is False
+
+    def test_on_mqtt_disconnect_records_time_once(self, coordinator):
+        coordinator._mqtt_disconnect_time = None
+        coordinator._on_mqtt_disconnect()
+        first_time = coordinator._mqtt_disconnect_time
+
+        coordinator._on_mqtt_disconnect()
+        assert coordinator._mqtt_disconnect_time == first_time
+
+    def test_default_base_scan_interval(self, coordinator):
+        assert coordinator._base_scan_interval == DEFAULT_SCAN_INTERVAL
+
+
+# ===========================================================================
+# 7. MQTT cache cleanup
+# ===========================================================================
+
+
+class TestCoordinatorMqttCacheCleanup:
+    """Test _cleanup_mqtt_cache() removes stale entries."""
+
+    def test_stale_entries_removed(self, coordinator):
+        now = monotonic()
+        coordinator._mqtt_message_cache = {
+            "old_key": now - 100.0,
+            "fresh_key": now - 1.0,
         }
-        protected_keys = {"brightness", "temperature"}
+        coordinator._cleanup_mqtt_cache(now)
 
-        # Simulate filtering logic
-        filtered = {k: v for k, v in properties.items() if k not in protected_keys}
+        assert "old_key" not in coordinator._mqtt_message_cache
+        assert "fresh_key" in coordinator._mqtt_message_cache
 
-        assert filtered == {"powerState": "1"}
-        assert "brightness" not in filtered
-        assert "temperature" not in filtered
-
-    def test_no_protected_keys(self):
-        """Test when no keys are protected."""
-        properties = {
-            "powerState": "1",
-            "brightness": "80",
+    def test_hard_cap_keeps_newest_half(self, coordinator):
+        now = monotonic()
+        # All entries are "fresh" (within 5s) but exceed MAX_MQTT_CACHE_SIZE
+        coordinator._mqtt_message_cache = {
+            f"key_{i}": now - (0.001 * i) for i in range(MAX_MQTT_CACHE_SIZE + 200)
         }
-        protected_keys = set()
+        coordinator._cleanup_mqtt_cache(now)
 
-        filtered = {k: v for k, v in properties.items() if k not in protected_keys}
+        assert len(coordinator._mqtt_message_cache) <= MAX_MQTT_CACHE_SIZE
 
-        assert filtered == properties
+    def test_empty_cache_is_noop(self, coordinator):
+        coordinator._mqtt_message_cache = {}
+        coordinator._cleanup_mqtt_cache(monotonic())
+        assert coordinator._mqtt_message_cache == {}
 
 
-class TestEntityRegistration:
-    """Tests for entity registration logic."""
+# ===========================================================================
+# 8. Send command
+# ===========================================================================
 
-    def test_entity_index_by_device(self):
-        """Test entity indexing by device serial."""
-        entities_by_device: dict[str, list] = {}
-        device_serial = "03ab5ccd7cxxxxxx"
 
-        # Simulate registration
-        if device_serial not in entities_by_device:
-            entities_by_device[device_serial] = []
-        entities_by_device[device_serial].append("entity1")
-        entities_by_device[device_serial].append("entity2")
-
-        assert len(entities_by_device[device_serial]) == 2
-
-    def test_entity_unregistration(self):
-        """Test entity unregistration."""
-        entities_by_device = {
-            "03ab5ccd7cxxxxxx": ["entity1", "entity2", "entity3"],
-        }
-        device_serial = "03ab5ccd7cxxxxxx"
-        entity_to_remove = "entity2"
-
-        # Simulate unregistration
-        entities_by_device[device_serial] = [
-            e for e in entities_by_device[device_serial] if e != entity_to_remove
-        ]
-
-        assert entities_by_device[device_serial] == ["entity1", "entity3"]
-
-
-class TestMqttMessageHandling:
-    """Tests for MQTT message handling logic."""
-
-    def test_mqtt_message_device_lookup(self):
-        """Test device lookup from MQTT message."""
-        devices = {
-            "03ab5ccd7cxxxxxx": LiproDevice(
-                device_number=1,
-                serial="03ab5ccd7cxxxxxx",
-                name="Light 1",
-                device_type=1,
-                iot_name="",
-                physical_model="light",
-            ),
-        }
-        device_by_id = {
-            "03ab5ccd7cxxxxxx": devices["03ab5ccd7cxxxxxx"],
-        }
-
-        # Simulate MQTT message lookup
-        device_id = "03ab5ccd7cxxxxxx"
-        device = device_by_id.get(device_id)
-
-        assert device is not None
-        assert device.name == "Light 1"
-
-    def test_mqtt_message_unknown_device(self):
-        """Test MQTT message for unknown device."""
-        device_by_id = {}
-
-        device_id = "03ab5ccd7c999999"
-        device = device_by_id.get(device_id)
-
-        assert device is None
-
-
-class TestDeviceCategorization:
-    """Tests for device categorization in coordinator."""
-
-    def test_outlet_device_ids_collection(self):
-        """Test outlet device IDs are collected for power query."""
-        from custom_components.lipro.const.categories import DeviceCategory
-
-        devices = [
-            LiproDevice(
-                device_number=1,
-                serial="03ab5ccd7cxxxxxx",
-                name="Light",
-                device_type=1,
-                iot_name="",
-                physical_model="light",
-            ),
-            LiproDevice(
-                device_number=2,
-                serial="03ab5ccd7cyyyyyy",
-                name="Outlet",
-                device_type=6,
-                iot_name="",
-                physical_model="outlet",
-            ),
-            LiproDevice(
-                device_number=3,
-                serial="03ab5ccd7czzzzzz",
-                name="Switch",
-                device_type=3,
-                iot_name="",
-                physical_model="switch",
-            ),
-        ]
-
-        outlet_ids = [
-            d.iot_device_id for d in devices if d.category == DeviceCategory.OUTLET
-        ]
-
-        assert len(outlet_ids) == 1
-        assert "03ab5ccd7cyyyyyy" in outlet_ids
-
-    def test_group_device_ids_collection(self):
-        """Test group device IDs are collected separately."""
-        devices = [
-            LiproDevice(
-                device_number=1,
-                serial="03ab5ccd7cxxxxxx",
-                name="Light",
-                device_type=1,
-                iot_name="",
-                physical_model="light",
-                is_group=False,
-            ),
-            LiproDevice(
-                device_number=2,
-                serial="mesh_group_10001",
-                name="All Lights",
-                device_type=1,
-                iot_name="",
-                physical_model="light",
-                is_group=True,
-            ),
-        ]
-
-        device_ids = [d.iot_device_id for d in devices if not d.is_group]
-        group_ids = [d.serial for d in devices if d.is_group]
-
-        assert len(device_ids) == 1
-        assert len(group_ids) == 1
-        assert "03ab5ccd7cxxxxxx" in device_ids
-        assert "mesh_group_10001" in group_ids
-
-
-class TestStaleDeviceRemoval:
-    """Tests for stale device removal logic."""
-
-    def test_detect_stale_devices(self):
-        """Test detection of stale devices."""
-        previous_serials = {"device1", "device2", "device3"}
-        current_serials = {"device1", "device3"}
-
-        stale_serials = previous_serials - current_serials
-
-        assert stale_serials == {"device2"}
-
-    def test_no_stale_devices(self):
-        """Test when no devices are stale."""
-        previous_serials = {"device1", "device2"}
-        current_serials = {"device1", "device2", "device3"}
-
-        stale_serials = previous_serials - current_serials
-
-        assert stale_serials == set()
-
-
-class TestCoordinatorConstants:
-    """Tests for coordinator-related constants."""
-
-    def test_default_scan_interval(self):
-        """Test default scan interval constant."""
-        from custom_components.lipro.const import DEFAULT_SCAN_INTERVAL
-
-        # Default should be reasonable (e.g., 30 seconds)
-        assert DEFAULT_SCAN_INTERVAL > 0
-        assert DEFAULT_SCAN_INTERVAL <= 300  # Not more than 5 minutes
-
-    def test_domain_constant(self):
-        """Test domain constant."""
-        from custom_components.lipro.const import DOMAIN
-
-        assert DOMAIN == "lipro"
-
-
-class TestMqttPollingInterval:
-    """Tests for MQTT connect/disconnect polling interval adjustment."""
-
-    def test_mqtt_connect_doubles_polling_interval(self):
-        """Test MQTT connect logic: interval should be 2x base."""
-        from custom_components.lipro.const import (
-            CONF_SCAN_INTERVAL,
-            DEFAULT_SCAN_INTERVAL,
-        )
-
-        base = 30
-        # Replicate the logic from _on_mqtt_connect
-        options = {CONF_SCAN_INTERVAL: base}
-        interval = timedelta(
-            seconds=options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL) * 2
-        )
-
-        assert interval == timedelta(seconds=60)
-
-    def test_mqtt_disconnect_restores_polling_interval(self):
-        """Test MQTT disconnect logic: interval should be 1x base."""
-        from custom_components.lipro.const import (
-            CONF_SCAN_INTERVAL,
-            DEFAULT_SCAN_INTERVAL,
-        )
-
-        base = 30
-        options = {CONF_SCAN_INTERVAL: base}
-        interval = timedelta(
-            seconds=options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
-        )
-
-        assert interval == timedelta(seconds=30)
-
-    def test_mqtt_connect_uses_default_when_no_option(self):
-        """Test MQTT connect uses DEFAULT_SCAN_INTERVAL when option missing."""
-        from custom_components.lipro.const import DEFAULT_SCAN_INTERVAL
-
-        interval = timedelta(seconds=DEFAULT_SCAN_INTERVAL * 2)
-
-        assert interval == timedelta(seconds=DEFAULT_SCAN_INTERVAL * 2)
-        # Verify the multiplier is 2, not 3
-        assert interval.total_seconds() / DEFAULT_SCAN_INTERVAL == 2
-
-
-class TestConnectStateReconciliation:
-    """Tests for connectState=='1' triggering REST API refresh for groups."""
-
-    def test_group_online_triggers_refresh(self):
-        """Test group device coming online schedules a REST refresh."""
-        device = LiproDevice(
-            device_number=1,
-            serial="mesh_group_10001",
-            name="All Lights",
-            device_type=1,
-            iot_name="",
-            physical_model="light",
-            is_group=True,
-            properties={"connectState": "0"},
-        )
-
-        # The reconciliation condition: connectState=="1" AND device.is_group
-        properties = {"connectState": "1"}
-        connect_state = properties.get("connectState")
-
-        assert connect_state == "1"
-        assert device.is_group is True
-        # Both conditions met → should trigger refresh
-
-    def test_non_group_online_does_not_trigger_refresh(self):
-        """Test non-group device coming online does NOT meet refresh condition."""
-        device = LiproDevice(
-            device_number=1,
-            serial="03ab5ccd7cxxxxxx",
-            name="Light",
-            device_type=1,
-            iot_name="lipro_test",
-            physical_model="light",
-            is_group=False,
-            properties={"connectState": "0"},
-        )
-
-        properties = {"connectState": "1"}
-        connect_state = properties.get("connectState")
-
-        assert connect_state == "1"
-        assert device.is_group is False
-        # is_group is False → should NOT trigger refresh
-
-    def test_group_offline_does_not_trigger_refresh(self):
-        """Test group device going offline does NOT meet refresh condition."""
-        properties = {"connectState": "0"}
-        connect_state = properties.get("connectState")
-
-        assert connect_state != "1"
-        # connectState != "1" → should NOT trigger refresh
-
-
-class TestMqttDedupCacheLimit:
-    """Tests for MQTT dedup cache size limit."""
-
-    def test_cache_hard_cap_enforced(self):
-        """Test that cache is trimmed when exceeding MAX_MQTT_CACHE_SIZE."""
-        from custom_components.lipro.const.api import MAX_MQTT_CACHE_SIZE
-
-        # Simulate a cache that exceeds the limit
-        cache: dict[str, float] = {}
-        for i in range(MAX_MQTT_CACHE_SIZE + 100):
-            cache[f"device_{i}:hash_{i}"] = float(i)
-
-        assert len(cache) > MAX_MQTT_CACHE_SIZE
-
-        # Apply the same cleanup logic as coordinator._on_mqtt_message
-        sorted_items = sorted(cache.items(), key=lambda x: x[1])
-        cache = dict(sorted_items[len(sorted_items) // 2 :])
-
-        # Should be reduced to half
-        assert len(cache) == (MAX_MQTT_CACHE_SIZE + 100) // 2 + (
-            (MAX_MQTT_CACHE_SIZE + 100) % 2
-        )
-        assert len(cache) <= MAX_MQTT_CACHE_SIZE
-
-    def test_cache_under_limit_not_trimmed(self):
-        """Test that cache under limit is not affected."""
-        from custom_components.lipro.const.api import MAX_MQTT_CACHE_SIZE
-
-        cache: dict[str, float] = {}
-        for i in range(10):
-            cache[f"device_{i}:hash_{i}"] = float(i)
-
-        # Under limit — no trimming needed
-        assert len(cache) < MAX_MQTT_CACHE_SIZE
-        # The condition check would skip trimming
-        should_trim = len(cache) > MAX_MQTT_CACHE_SIZE
-        assert should_trim is False
-
-    def test_cache_trim_keeps_newest_entries(self):
-        """Test that trimming keeps the newest (highest timestamp) entries."""
-        cache: dict[str, float] = {}
-        for i in range(100):
-            cache[f"key_{i}"] = float(i)
-
-        sorted_items = sorted(cache.items(), key=lambda x: x[1])
-        trimmed = dict(sorted_items[len(sorted_items) // 2 :])
-
-        # Newest entries (50-99) should be kept
-        assert "key_99" in trimmed
-        assert "key_50" in trimmed
-        # Oldest entries (0-49) should be removed
-        assert "key_0" not in trimmed
-        assert "key_49" not in trimmed
-
-
-class TestAnonymousShareAsyncLoad:
-    """Tests for anonymous share deferred async loading."""
+class TestCoordinatorSendCommand:
+    """Test async_send_command() dispatches to correct client method."""
 
     @pytest.mark.asyncio
-    async def test_async_ensure_loaded_calls_load(self):
-        """Test async_ensure_loaded triggers _load_reported_devices in thread."""
-        from custom_components.lipro.core.anonymous_share import AnonymousShareManager
+    async def test_send_command_non_group(self, coordinator, mock_lipro_api_client):
+        dev = _make_device(serial="dev1", is_group=False)
+        result = await coordinator.async_send_command(dev, "turnOn")
 
-        manager = AnonymousShareManager()
-        manager._cache_loaded = False
-
-        with patch.object(manager, "_load_reported_devices") as mock_load:
-            await manager.async_ensure_loaded()
-            mock_load.assert_called_once()
-
-        # Second call should be a no-op
-        with patch.object(manager, "_load_reported_devices") as mock_load:
-            await manager.async_ensure_loaded()
-            mock_load.assert_not_called()
-
-    def test_set_enabled_defers_load(self):
-        """Test set_enabled sets _cache_loaded=False instead of loading sync."""
-        from custom_components.lipro.core.anonymous_share import AnonymousShareManager
-
-        manager = AnonymousShareManager()
-
-        with patch.object(manager, "_load_reported_devices") as mock_load:
-            manager.set_enabled(True, storage_path="/var/lib/test")
-            # Should NOT call sync load
-            mock_load.assert_not_called()
-            # Should mark cache as needing load
-            assert manager._cache_loaded is False
-
-
-class TestMqttDisconnectNotification:
-    """Tests for MQTT prolonged disconnect notification logic."""
-
-    def test_check_skipped_when_mqtt_disabled(self):
-        """Test notification check is skipped when MQTT is disabled."""
-        mqtt_enabled = False
-        mqtt_connected = False
-        mqtt_disconnect_time = 0.0  # long ago
-        mqtt_disconnect_notified = False
-
-        should_notify = (
-            mqtt_enabled
-            and not mqtt_connected
-            and mqtt_disconnect_time is not None
-            and not mqtt_disconnect_notified
+        assert result is True
+        mock_lipro_api_client.send_command.assert_awaited_once_with(
+            "dev1", "turnOn", dev.device_type, None, dev.iot_name
         )
-        assert should_notify is False
+        mock_lipro_api_client.send_group_command.assert_not_awaited()
 
-    def test_check_skipped_when_connected(self):
-        """Test notification check is skipped when MQTT is connected."""
-        mqtt_enabled = True
-        mqtt_connected = True
-        mqtt_disconnect_time = 0.0
-        mqtt_disconnect_notified = False
+    @pytest.mark.asyncio
+    async def test_send_command_group(self, coordinator, mock_lipro_api_client):
+        dev = _make_device(serial="mesh_group_10001", is_group=True)
+        props = [{"key": "brightness", "value": "80"}]
+        result = await coordinator.async_send_command(dev, "setBrightness", props)
 
-        should_notify = (
-            mqtt_enabled
-            and not mqtt_connected
-            and mqtt_disconnect_time is not None
-            and not mqtt_disconnect_notified
+        assert result is True
+        mock_lipro_api_client.send_group_command.assert_awaited_once_with(
+            "mesh_group_10001", "setBrightness", dev.device_type, props, dev.iot_name
         )
-        assert should_notify is False
+        mock_lipro_api_client.send_command.assert_not_awaited()
 
-    def test_check_skipped_when_already_notified(self):
-        """Test notification check is skipped when already notified."""
-        mqtt_enabled = True
-        mqtt_connected = False
-        mqtt_disconnect_time = 0.0
-        mqtt_disconnect_notified = True
+    @pytest.mark.asyncio
+    async def test_send_command_auth_error_returns_false(
+        self, coordinator, mock_auth_manager
+    ):
+        mock_auth_manager.ensure_valid_token.side_effect = LiproAuthError("expired")
+        dev = _make_device()
+        result = await coordinator.async_send_command(dev, "turnOn")
 
-        should_notify = (
-            mqtt_enabled
-            and not mqtt_connected
-            and mqtt_disconnect_time is not None
-            and not mqtt_disconnect_notified
+        assert result is False
+
+
+# ===========================================================================
+# 9. Missing coordinator behaviors
+# ===========================================================================
+
+
+class TestCoordinatorMqttSetupAndSync:
+    """Test real MQTT setup/teardown/sync methods."""
+
+    @pytest.mark.asyncio
+    async def test_async_setup_mqtt_success(self, coordinator, mock_lipro_api_client):
+        coordinator._devices = {
+            "dev1": _make_device(serial="dev1"),
+            "mesh_group_1": _make_device(serial="mesh_group_1", is_group=True),
+        }
+        mock_lipro_api_client.get_mqtt_config.return_value = {
+            "accessKey": "enc-ak",
+            "secretKey": "enc-sk",
+        }
+
+        mock_mqtt = AsyncMock()
+        with (
+            patch(
+                "custom_components.lipro.core.coordinator.decrypt_mqtt_credential",
+                side_effect=["ak", "sk"],
+            ),
+            patch("custom_components.lipro.core.coordinator.LiproMqttClient") as mqtt_cls,
+        ):
+            mqtt_cls.return_value = mock_mqtt
+            ok = await coordinator.async_setup_mqtt()
+
+        assert ok is True
+        assert coordinator._biz_id == "10001"
+        mock_mqtt.start.assert_awaited_once_with(["dev1", "mesh_group_1"])
+
+    @pytest.mark.asyncio
+    async def test_async_setup_mqtt_missing_credential_returns_false(
+        self, coordinator, mock_lipro_api_client
+    ):
+        mock_lipro_api_client.get_mqtt_config.return_value = {"accessKey": "x"}
+        ok = await coordinator.async_setup_mqtt()
+        assert ok is False
+
+    @pytest.mark.asyncio
+    async def test_async_setup_mqtt_without_config_entry_returns_false(
+        self, coordinator
+    ):
+        coordinator.config_entry = None
+        assert await coordinator.async_setup_mqtt() is False
+
+    @pytest.mark.asyncio
+    async def test_async_stop_mqtt(self, coordinator):
+        mqtt_client = AsyncMock()
+        coordinator._mqtt_client = mqtt_client
+        coordinator._mqtt_connected = True
+
+        await coordinator.async_stop_mqtt()
+
+        mqtt_client.stop.assert_awaited_once()
+        assert coordinator._mqtt_client is None
+        assert coordinator._mqtt_connected is False
+
+    @pytest.mark.asyncio
+    async def test_sync_mqtt_subscriptions_uses_current_devices(self, coordinator):
+        mqtt_client = AsyncMock()
+        coordinator._mqtt_client = mqtt_client
+        coordinator._devices = {
+            "dev_a": _make_device(serial="dev_a"),
+            "mesh_group_1": _make_device(serial="mesh_group_1", is_group=True),
+        }
+
+        await coordinator._sync_mqtt_subscriptions()
+
+        mqtt_client.sync_subscriptions.assert_awaited_once_with(
+            {"dev_a", "mesh_group_1"}
         )
-        assert should_notify is False
 
-    def test_check_skipped_when_no_disconnect_time(self):
-        """Test notification check is skipped when disconnect time is None."""
-        mqtt_enabled = True
-        mqtt_connected = False
-        mqtt_disconnect_time = None
-        mqtt_disconnect_notified = False
 
-        should_notify = (
-            mqtt_enabled
-            and not mqtt_connected
-            and mqtt_disconnect_time is not None
-            and not mqtt_disconnect_notified
+class TestCoordinatorStatusQueriesAndNotifications:
+    """Test status query methods and notification/re-auth paths."""
+
+    @pytest.mark.asyncio
+    async def test_query_group_status_maps_gateway_and_updates_properties(
+        self, coordinator, mock_lipro_api_client
+    ):
+        group = _make_device(serial="mesh_group_10001", is_group=True)
+        coordinator._devices[group.serial] = group
+        coordinator._group_ids_to_query = [group.serial]
+        mock_lipro_api_client.query_mesh_group_status.return_value = [
+            {
+                "groupId": "mesh_group_10001",
+                "gatewayDeviceId": "03ab5ccd7cgw",
+                "properties": [{"key": "powerState", "value": "1"}],
+            }
+        ]
+
+        await coordinator._query_group_status()
+
+        assert group.properties["powerState"] == "1"
+        assert coordinator._device_by_id["03ab5ccd7cgw"] is group
+
+    @pytest.mark.asyncio
+    async def test_query_outlet_power_writes_extra_data(
+        self, coordinator, mock_lipro_api_client
+    ):
+        outlet = _make_device(serial="out1", properties={"powerState": "1"})
+        coordinator._devices[outlet.serial] = outlet
+        coordinator._device_by_id[outlet.serial] = outlet
+        coordinator._outlet_ids_to_query = [outlet.serial]
+        mock_lipro_api_client.fetch_outlet_power_info.return_value = {
+            "nowPower": 33.5,
+            "energyList": [{"t": "20240101", "v": 2.2}],
+        }
+
+        await coordinator._query_outlet_power()
+
+        assert outlet.extra_data["power_info"]["nowPower"] == 33.5
+
+    @pytest.mark.asyncio
+    async def test_query_connect_status_updates_connect_state(
+        self, coordinator, mock_lipro_api_client
+    ):
+        dev = _make_device(serial="dev1", properties={"connectState": "1"})
+        coordinator._devices[dev.serial] = dev
+        coordinator._device_by_id[dev.serial] = dev
+        coordinator._iot_ids_to_query = [dev.serial]
+        mock_lipro_api_client.query_connect_status.return_value = {dev.serial: False}
+
+        await coordinator._query_connect_status()
+
+        assert dev.properties["connectState"] == "0"
+
+    @pytest.mark.asyncio
+    async def test_async_remove_stale_devices(self, coordinator):
+        device_entry = MagicMock(id="reg-id", name="Stale Device")
+        registry = MagicMock()
+        registry.async_get_device.return_value = device_entry
+
+        with patch("custom_components.lipro.core.coordinator.dr.async_get") as dr_get:
+            dr_get.return_value = registry
+            await coordinator._async_remove_stale_devices({"03ab5ccd7cdead"})
+
+        registry.async_remove_device.assert_called_once_with("reg-id")
+
+    @pytest.mark.asyncio
+    async def test_trigger_reauth_creates_notification_and_starts_reauth(
+        self, coordinator
+    ):
+        with (
+            patch.object(
+                coordinator, "_async_show_auth_notification", new_callable=AsyncMock
+            ) as show_auth,
+            patch.object(coordinator.config_entry, "async_start_reauth") as start_reauth,
+        ):
+            await coordinator._trigger_reauth("auth_error", error="401")
+
+        show_auth.assert_awaited_once_with("auth_error", error="401")
+        start_reauth.assert_called_once_with(coordinator.hass)
+
+    def test_check_mqtt_disconnect_notification_schedules_task(self, coordinator):
+        coordinator._mqtt_enabled = True
+        coordinator._mqtt_connected = False
+        coordinator._mqtt_disconnect_notified = False
+        coordinator._mqtt_disconnect_time = monotonic() - (
+            MQTT_DISCONNECT_NOTIFY_THRESHOLD + 10
         )
-        assert should_notify is False
+        coordinator.hass.async_create_task = MagicMock()
 
-    def test_notify_when_threshold_exceeded(self):
-        """Test notification fires when disconnect exceeds threshold."""
-        from time import monotonic
+        coordinator._check_mqtt_disconnect_notification()
 
-        from custom_components.lipro.const.api import MQTT_DISCONNECT_NOTIFY_THRESHOLD
-
-        mqtt_disconnect_time = monotonic() - MQTT_DISCONNECT_NOTIFY_THRESHOLD - 1
-        elapsed = monotonic() - mqtt_disconnect_time
-
-        assert elapsed >= MQTT_DISCONNECT_NOTIFY_THRESHOLD
-
-    def test_no_notify_when_under_threshold(self):
-        """Test no notification when disconnect is under threshold."""
-        from time import monotonic
-
-        from custom_components.lipro.const.api import MQTT_DISCONNECT_NOTIFY_THRESHOLD
-
-        mqtt_disconnect_time = monotonic() - 10  # Only 10 seconds ago
-        elapsed = monotonic() - mqtt_disconnect_time
-
-        assert elapsed < MQTT_DISCONNECT_NOTIFY_THRESHOLD
-
-    def test_connect_resets_disconnect_tracking(self):
-        """Test that MQTT connect resets disconnect tracking state."""
-        # Simulate state after prolonged disconnect + notification
-        mqtt_disconnect_time = 100.0
-        mqtt_disconnect_notified = True
-
-        # Simulate _on_mqtt_connect reset logic
-        mqtt_disconnect_time = None
-        mqtt_disconnect_notified = False
-
-        assert mqtt_disconnect_time is None
-        assert mqtt_disconnect_notified is False
-
-    def test_disconnect_records_time_only_once(self):
-        """Test that repeated disconnects don't reset the initial disconnect time."""
-        from time import monotonic
-
-        mqtt_disconnect_time = None
-
-        # First disconnect
-        if mqtt_disconnect_time is None:
-            mqtt_disconnect_time = monotonic()
-        first_time = mqtt_disconnect_time
-
-        # Second disconnect callback (e.g., reconnect attempt failed)
-        if mqtt_disconnect_time is None:
-            mqtt_disconnect_time = monotonic()
-
-        # Should still be the first time
-        assert mqtt_disconnect_time == first_time
-
-    def test_threshold_constant_is_reasonable(self):
-        """Test MQTT disconnect notify threshold is reasonable."""
-        from custom_components.lipro.const.api import MQTT_DISCONNECT_NOTIFY_THRESHOLD
-
-        assert MQTT_DISCONNECT_NOTIFY_THRESHOLD >= 60  # At least 1 minute
-        assert MQTT_DISCONNECT_NOTIFY_THRESHOLD <= 600  # At most 10 minutes
+        assert coordinator._mqtt_disconnect_notified is True
+        coordinator.hass.async_create_task.assert_called_once()

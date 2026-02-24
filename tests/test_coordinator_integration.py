@@ -1,354 +1,678 @@
 """Integration tests for Lipro data update coordinator.
 
-These tests verify the actual coordinator behavior with mocked API responses.
+These tests exercise the real coordinator methods (_async_update_data,
+_fetch_devices, _update_device_status, _load_product_configs, etc.)
+with mocked API responses, verifying the coordinator's actual behavior.
 """
 
 from __future__ import annotations
 
-from unittest.mock import MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+from homeassistant.exceptions import ConfigEntryAuthFailed
+from homeassistant.helpers.update_coordinator import UpdateFailed
+from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.lipro.core.api import (
     LiproApiError,
     LiproAuthError,
     LiproConnectionError,
+    LiproRefreshTokenExpiredError,
 )
-from custom_components.lipro.core.device import LiproDevice
+from custom_components.lipro.core.const import MAX_DEVICES_PER_QUERY
+
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+
+_CONFIG_ENTRY_DATA = {
+    "phone": "13800000000",
+    "password_hash": "e10adc3949ba59abbe56e057f20f883e",
+    "phone_id": "test-phone-id",
+    "access_token": "test_token",
+    "refresh_token": "test_refresh",
+    "user_id": 10001,
+}
 
 
-class TestCoordinatorDeviceManagement:
-    """Tests for coordinator device management."""
+def _make_api_device(
+    *,
+    serial: str = "03ab5ccd7cxxxxxx",
+    name: str = "Test Light",
+    device_type: int = 1,
+    iot_name: str = "lipro_led",
+    physical_model: str = "light",
+    is_group: bool = False,
+    product_id: int | None = None,
+) -> dict:
+    """Build a device dict matching the API response format."""
+    d = {
+        "deviceId": 1,
+        "serial": serial,
+        "deviceName": name,
+        "type": device_type,
+        "iotName": iot_name,
+        "physicalModel": physical_model,
+        "isGroup": is_group,
+    }
+    if product_id is not None:
+        d["productId"] = product_id
+    return d
 
-    def test_device_mapping_by_serial(self, make_device):
-        """Test devices are correctly mapped by serial."""
-        device1 = make_device("light", serial="03ab5ccd7cxxxxxx")
-        device2 = make_device("switch", serial="03ab5ccd7cyyyyyy")
 
-        devices = {
-            device1.serial: device1,
-            device2.serial: device2,
-        }
-
-        assert len(devices) == 2
-        assert devices["03ab5ccd7cxxxxxx"].name == "Test Light"
-        assert devices["03ab5ccd7cyyyyyy"].name == "Test Switch"
-
-    def test_iot_id_mapping(self, make_device):
-        """Test IoT ID to device mapping."""
-        device = make_device("light", serial="03ab5ccd7cxxxxxx")
-
-        device_by_id = {device.iot_device_id: device}
-
-        assert device.iot_device_id == "03ab5ccd7cxxxxxx"
-        assert device_by_id.get("03ab5ccd7cxxxxxx") == device
-
-    def test_group_device_iot_id(self, make_device):
-        """Test group device IoT ID format."""
-        # Create device with is_group=True directly
-
-        device = LiproDevice(
-            device_number=1,
-            serial="mesh_group_10001",
-            name="Test Group",
-            device_type=1,
-            iot_name="lipro_led",
-            physical_model="light",
-            is_group=True,
+@pytest.fixture
+def coordinator(hass, mock_lipro_api_client, mock_auth_manager):
+    """Create a real LiproDataUpdateCoordinator wired to mock API/auth."""
+    entry = MockConfigEntry(
+        domain="lipro",
+        data=_CONFIG_ENTRY_DATA,
+        options={},
+        unique_id="lipro_10001",
+    )
+    entry.add_to_hass(hass)
+    with patch(
+        "custom_components.lipro.core.coordinator.get_anonymous_share_manager"
+    ) as mock_share:
+        mock_share.return_value = MagicMock(
+            is_enabled=False, set_enabled=MagicMock()
+        )
+        from custom_components.lipro.core.coordinator import (
+            LiproDataUpdateCoordinator,
         )
 
-        # Group devices use group_id as IoT ID
-        assert device.is_group is True
+        coord = LiproDataUpdateCoordinator(
+            hass, mock_lipro_api_client, mock_auth_manager, entry
+        )
+    return coord
 
 
-class TestCoordinatorEntityRegistration:
-    """Tests for entity registration in coordinator."""
+# =========================================================================
+# 1. _async_update_data happy-path flow
+# =========================================================================
 
-    def test_register_entity(self, mock_coordinator, make_device):
-        """Test entity registration."""
-        device = make_device("light")
-        mock_entity = MagicMock()
-        mock_entity.unique_id = "03ab5ccd7cxxxxxx"
-        mock_entity.device = device
 
-        # Simulate registration
-        entities = {}
-        entities_by_device = {}
+class TestCoordinatorUpdateFlow:
+    """Test _async_update_data fetches devices on first call then queries status."""
 
-        entities[mock_entity.unique_id] = mock_entity
-        device_serial = mock_entity.device.serial
-        if device_serial not in entities_by_device:
-            entities_by_device[device_serial] = []
-        entities_by_device[device_serial].append(mock_entity)
+    @pytest.mark.asyncio
+    async def test_first_update_fetches_devices_and_status(
+        self, coordinator, mock_lipro_api_client
+    ):
+        """First call should fetch devices, load product configs, then query status."""
+        mock_lipro_api_client.get_devices.return_value = {
+            "devices": [
+                _make_api_device(serial="03ab5ccd7c000001", name="Light 1"),
+            ]
+        }
+        mock_lipro_api_client.query_device_status.return_value = [
+            {
+                "deviceId": "03ab5ccd7c000001",
+                "properties": [{"key": "powerState", "value": "1"}],
+            }
+        ]
+        mock_lipro_api_client.query_connect_status.return_value = {
+            "03ab5ccd7c000001": True,
+        }
 
-        assert mock_entity.unique_id in entities
-        assert len(entities_by_device[device_serial]) == 1
+        with patch(
+            "custom_components.lipro.core.coordinator.get_anonymous_share_manager"
+        ) as mock_share:
+            mock_share.return_value = MagicMock(is_enabled=False)
+            result = await coordinator._async_update_data()
 
-    def test_unregister_entity(self, mock_coordinator, make_device):
-        """Test entity unregistration."""
-        device = make_device("light")
-        mock_entity = MagicMock()
-        mock_entity.unique_id = "03ab5ccd7cxxxxxx"
-        mock_entity.device = device
+        assert "03ab5ccd7c000001" in result
+        mock_lipro_api_client.get_devices.assert_called_once()
+        mock_lipro_api_client.query_device_status.assert_called_once()
+        mock_lipro_api_client.get_product_configs.assert_called_once()
 
-        # Setup
-        entities = {mock_entity.unique_id: mock_entity}
-        entities_by_device = {device.serial: [mock_entity]}
+    @pytest.mark.asyncio
+    async def test_second_update_skips_device_fetch(
+        self, coordinator, mock_lipro_api_client
+    ):
+        """Subsequent calls should NOT re-fetch devices."""
+        mock_lipro_api_client.get_devices.return_value = {
+            "devices": [_make_api_device(serial="03ab5ccd7c000001")]
+        }
+        mock_lipro_api_client.query_device_status.return_value = []
+        mock_lipro_api_client.query_connect_status.return_value = {}
 
-        # Unregister
-        del entities[mock_entity.unique_id]
-        entities_by_device[device.serial] = [
-            e
-            for e in entities_by_device[device.serial]
-            if e.unique_id != mock_entity.unique_id
+        with patch(
+            "custom_components.lipro.core.coordinator.get_anonymous_share_manager"
+        ) as mock_share:
+            mock_share.return_value = MagicMock(is_enabled=False)
+            await coordinator._async_update_data()
+            mock_lipro_api_client.get_devices.reset_mock()
+            await coordinator._async_update_data()
+
+        mock_lipro_api_client.get_devices.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_ensure_valid_token_called(
+        self, coordinator, mock_lipro_api_client, mock_auth_manager
+    ):
+        """_async_update_data must call ensure_valid_token before anything else."""
+        mock_lipro_api_client.get_devices.return_value = {
+            "devices": [_make_api_device()]
+        }
+        mock_lipro_api_client.query_device_status.return_value = []
+        mock_lipro_api_client.query_connect_status.return_value = {}
+
+        with patch(
+            "custom_components.lipro.core.coordinator.get_anonymous_share_manager"
+        ) as mock_share:
+            mock_share.return_value = MagicMock(is_enabled=False)
+            await coordinator._async_update_data()
+
+        mock_auth_manager.ensure_valid_token.assert_awaited()
+
+
+# =========================================================================
+# 2. _fetch_devices — pagination, gateway filtering, ID collection
+# =========================================================================
+
+
+class TestCoordinatorFetchDevices:
+    """Test _fetch_devices pagination, gateway filtering, and ID buckets."""
+
+    @pytest.mark.asyncio
+    async def test_single_page(self, coordinator, mock_lipro_api_client):
+        """Fewer than MAX_DEVICES_PER_QUERY devices should require one page."""
+        devices = [
+            _make_api_device(serial=f"03ab5ccd7c{i:06x}") for i in range(3)
+        ]
+        mock_lipro_api_client.get_devices.return_value = {"devices": devices}
+
+        with patch(
+            "custom_components.lipro.core.coordinator.get_anonymous_share_manager"
+        ) as mock_share:
+            mock_share.return_value = MagicMock(is_enabled=False)
+            await coordinator._fetch_devices()
+
+        assert len(coordinator.devices) == 3
+        mock_lipro_api_client.get_devices.assert_called_once_with(
+            offset=0, limit=MAX_DEVICES_PER_QUERY
+        )
+
+    @pytest.mark.asyncio
+    async def test_pagination_multiple_pages(
+        self, coordinator, mock_lipro_api_client
+    ):
+        """When first page is full, coordinator should request a second page."""
+        page1 = [
+            _make_api_device(serial=f"03ab5ccd7c{i:06x}")
+            for i in range(MAX_DEVICES_PER_QUERY)
+        ]
+        page2 = [
+            _make_api_device(serial=f"03ab5ccd7d{i:06x}") for i in range(5)
+        ]
+        mock_lipro_api_client.get_devices.side_effect = [
+            {"devices": page1},
+            {"devices": page2},
         ]
 
-        assert mock_entity.unique_id not in entities
-        assert len(entities_by_device[device.serial]) == 0
+        with patch(
+            "custom_components.lipro.core.coordinator.get_anonymous_share_manager"
+        ) as mock_share:
+            mock_share.return_value = MagicMock(is_enabled=False)
+            await coordinator._fetch_devices()
+
+        assert len(coordinator.devices) == MAX_DEVICES_PER_QUERY + 5
+        assert mock_lipro_api_client.get_devices.call_count == 2
+
+    @pytest.mark.asyncio
+    async def test_gateway_devices_filtered_out(
+        self, coordinator, mock_lipro_api_client
+    ):
+        """Gateway devices must be excluded from the device dict."""
+        devices = [
+            _make_api_device(serial="03ab5ccd7c000001", physical_model="light"),
+            _make_api_device(
+                serial="03ab5ccd7c000002",
+                physical_model="gateway",
+                device_type=11,
+            ),
+        ]
+        mock_lipro_api_client.get_devices.return_value = {"devices": devices}
+
+        with patch(
+            "custom_components.lipro.core.coordinator.get_anonymous_share_manager"
+        ) as mock_share:
+            mock_share.return_value = MagicMock(is_enabled=False)
+            await coordinator._fetch_devices()
+
+        assert len(coordinator.devices) == 1
+        assert "03ab5ccd7c000001" in coordinator.devices
+        assert "03ab5ccd7c000002" not in coordinator.devices
+
+    @pytest.mark.asyncio
+    async def test_group_vs_device_id_collection(
+        self, coordinator, mock_lipro_api_client
+    ):
+        """Groups go to _group_ids_to_query; non-groups to _iot_ids_to_query."""
+        devices = [
+            _make_api_device(serial="03ab5ccd7c000001"),
+            _make_api_device(
+                serial="mesh_group_10001",
+                name="All Lights",
+                is_group=True,
+            ),
+        ]
+        mock_lipro_api_client.get_devices.return_value = {"devices": devices}
+
+        with patch(
+            "custom_components.lipro.core.coordinator.get_anonymous_share_manager"
+        ) as mock_share:
+            mock_share.return_value = MagicMock(is_enabled=False)
+            await coordinator._fetch_devices()
+
+        assert "03ab5ccd7c000001" in coordinator._iot_ids_to_query
+        assert "mesh_group_10001" in coordinator._group_ids_to_query
+        assert "mesh_group_10001" not in coordinator._iot_ids_to_query
+
+    @pytest.mark.asyncio
+    async def test_outlet_ids_collected(
+        self, coordinator, mock_lipro_api_client
+    ):
+        """Outlet devices should appear in _outlet_ids_to_query."""
+        devices = [
+            _make_api_device(serial="03ab5ccd7c000001", physical_model="light"),
+            _make_api_device(
+                serial="03ab5ccd7c000002",
+                physical_model="outlet",
+                device_type=6,
+            ),
+        ]
+        mock_lipro_api_client.get_devices.return_value = {"devices": devices}
+
+        with patch(
+            "custom_components.lipro.core.coordinator.get_anonymous_share_manager"
+        ) as mock_share:
+            mock_share.return_value = MagicMock(is_enabled=False)
+            await coordinator._fetch_devices()
+
+        assert "03ab5ccd7c000002" in coordinator._outlet_ids_to_query
+        assert "03ab5ccd7c000001" not in coordinator._outlet_ids_to_query
 
 
-class TestCoordinatorDebounceProtection:
-    """Tests for debounce protection in coordinator."""
-
-    def test_get_protected_keys(self, make_device):
-        """Test getting protected keys from entities."""
-        device = make_device("light")
-
-        mock_entity = MagicMock()
-        mock_entity.unique_id = "03ab5ccd7cxxxxxx"
-        mock_entity.device = device
-        mock_entity.get_protected_keys.return_value = {"brightness", "temperature"}
-
-        entities_by_device = {device.serial: [mock_entity]}
-
-        # Simulate _get_protected_keys_for_device
-        protected_keys = set()
-        for entity in entities_by_device.get(device.serial, []):
-            protected_keys.update(entity.get_protected_keys())
-
-        assert protected_keys == {"brightness", "temperature"}
-
-    def test_no_protection_when_no_entities(self, make_device):
-        """Test no filtering when no entities registered."""
-        properties = {
-            "powerState": "1",
-            "brightness": "80",
-        }
-        protected_keys = set()
-
-        filtered = {k: v for k, v in properties.items() if k not in protected_keys}
-
-        assert filtered == properties
-
-
-class TestCoordinatorDeviceStatusUpdate:
-    """Tests for device status update logic."""
-
-    def test_update_device_properties(self, make_device):
-        """Test updating device properties from API response."""
-        device = make_device("light", properties={"powerState": "0"})
-
-        # Simulate API response
-        new_properties = {"powerState": "1", "brightness": "80"}
-        device.update_properties(new_properties)
-
-        assert device.properties["powerState"] == "1"
-        assert device.properties["brightness"] == "80"
-
-    def test_update_preserves_unmentioned_properties(self, make_device):
-        """Test that update preserves properties not in the update."""
-        device = make_device(
-            "light",
-            properties={"powerState": "1", "brightness": "50", "temperature": "4000"},
-        )
-
-        device.update_properties({"brightness": "80"})
-
-        assert device.properties["powerState"] == "1"  # Unchanged
-        assert device.properties["brightness"] == "80"  # Updated
-        assert device.properties["temperature"] == "4000"  # Unchanged
-
-    def test_availability_from_connect_state(self, make_device):
-        """Test device availability is updated from connectState."""
-        device = make_device("light")
-        assert device.available is True
-
-        device.update_properties({"connectState": "0"})
-        assert device.available is False
-
-        device.update_properties({"connectState": "1"})
-        assert device.available is True
+# =========================================================================
+# 3. Error handling — each Lipro error maps to the correct HA exception
+# =========================================================================
 
 
 class TestCoordinatorErrorHandling:
-    """Tests for coordinator error handling."""
-
-    def test_auth_error_detection(self):
-        """Test authentication error is properly detected."""
-        error = LiproAuthError("Token expired", code=401)
-
-        assert isinstance(error, LiproAuthError)
-        assert error.code == 401
-
-    def test_connection_error_detection(self):
-        """Test connection error is properly detected."""
-        error = LiproConnectionError("Network unreachable")
-
-        assert isinstance(error, LiproConnectionError)
-
-    def test_api_error_with_code(self):
-        """Test API error with error code."""
-        error = LiproApiError("Device offline", code=140003)
-
-        assert error.code == 140003
-
-
-class TestCoordinatorDeviceCategorization:
-    """Tests for device categorization."""
-
-    def test_collect_outlet_device_ids(self, make_device):
-        """Test outlet device IDs are collected for power query."""
-        from custom_components.lipro.const.categories import DeviceCategory
-
-        devices = [
-            make_device("light", serial="03ab5ccd7cxxxxxx"),
-            make_device("outlet", serial="03ab5ccd7cyyyyyy"),
-            make_device("switch", serial="03ab5ccd7czzzzzz"),
-        ]
-
-        outlet_ids = [
-            d.iot_device_id for d in devices if d.category == DeviceCategory.OUTLET
-        ]
-
-        assert len(outlet_ids) == 1
-        assert "03ab5ccd7cyyyyyy" in outlet_ids
-
-    def test_separate_group_and_device_ids(self, make_device):
-        """Test group and device IDs are collected separately."""
-
-        device1 = make_device("light", serial="03ab5ccd7cxxxxxx")
-        device2 = LiproDevice(
-            device_number=2,
-            serial="mesh_group_10001",
-            name="Test Group",
-            device_type=1,
-            iot_name="lipro_led",
-            physical_model="light",
-            is_group=True,
-        )
-
-        devices = [device1, device2]
-
-        device_ids = [d.iot_device_id for d in devices if not d.is_group]
-        group_ids = [d.serial for d in devices if d.is_group]
-
-        assert len(device_ids) == 1
-        assert len(group_ids) == 1
-
-
-class TestCoordinatorStaleDeviceRemoval:
-    """Tests for stale device removal."""
-
-    def test_no_stale_when_devices_added(self):
-        """Test no stale devices when new devices are added."""
-        previous_serials = {"device1", "device2"}
-        current_serials = {"device1", "device2", "device3"}
-
-        stale_serials = previous_serials - current_serials
-
-        assert stale_serials == set()
-
-    def test_all_devices_stale(self):
-        """Test when all previous devices are removed."""
-        previous_serials = {"device1", "device2"}
-        current_serials = set()
-
-        stale_serials = previous_serials - current_serials
-
-        assert stale_serials == {"device1", "device2"}
-
-
-class TestCoordinatorMqttIntegration:
-    """Tests for MQTT integration in coordinator."""
-
-    def test_mqtt_properties_update(self, make_device):
-        """Test MQTT message updates device properties."""
-        device = make_device("light", properties={"powerState": "0"})
-
-        # Simulate MQTT message with new state
-        mqtt_properties = {"powerState": "1", "brightness": "80"}
-        device.update_properties(mqtt_properties)
-
-        assert device.is_on is True
-        assert device.brightness == 80
-
-
-class TestCoordinatorSendCommand:
-    """Tests for command sending logic."""
+    """Test _async_update_data error-to-HA-exception mapping."""
 
     @pytest.mark.asyncio
-    async def test_send_command_to_device(self, mock_coordinator, make_device):
-        """Test sending command to a device."""
-        device = make_device("light", serial="03ab5ccd7cxxxxxx")
-        mock_coordinator.devices = {device.serial: device}
-
-        # Call mock
-        result = await mock_coordinator.async_send_command(
-            device.serial,
-            "power",
-            [{"key": "power_on", "value": True}],
+    async def test_refresh_token_expired_raises_config_entry_auth_failed(
+        self, coordinator, mock_auth_manager
+    ):
+        """LiproRefreshTokenExpiredError -> ConfigEntryAuthFailed."""
+        mock_auth_manager.ensure_valid_token.side_effect = (
+            LiproRefreshTokenExpiredError("expired")
         )
-
-        assert result is True
-        mock_coordinator.async_send_command.assert_called_once()
+        with pytest.raises(ConfigEntryAuthFailed):
+            await coordinator._async_update_data()
 
     @pytest.mark.asyncio
-    async def test_send_command_with_properties(self, mock_coordinator, make_device):
-        """Test sending command with multiple properties."""
-        device = make_device("light", serial="03ab5ccd7cxxxxxx")
+    async def test_auth_error_raises_config_entry_auth_failed(
+        self, coordinator, mock_auth_manager
+    ):
+        """LiproAuthError -> ConfigEntryAuthFailed."""
+        mock_auth_manager.ensure_valid_token.side_effect = LiproAuthError(
+            "bad token"
+        )
+        with pytest.raises(ConfigEntryAuthFailed):
+            await coordinator._async_update_data()
 
-        properties = [
-            {"key": "brightness", "value": "80"},
-            {"key": "temperature", "value": "4000"},
+    @pytest.mark.asyncio
+    async def test_connection_error_raises_update_failed(
+        self, coordinator, mock_auth_manager
+    ):
+        """LiproConnectionError -> UpdateFailed."""
+        mock_auth_manager.ensure_valid_token.side_effect = (
+            LiproConnectionError("timeout")
+        )
+        with pytest.raises(UpdateFailed):
+            await coordinator._async_update_data()
+
+    @pytest.mark.asyncio
+    async def test_api_error_raises_update_failed(
+        self, coordinator, mock_lipro_api_client
+    ):
+        """LiproApiError during device fetch -> UpdateFailed."""
+        mock_lipro_api_client.get_devices.side_effect = LiproApiError(
+            "server error"
+        )
+        with pytest.raises(UpdateFailed):
+            await coordinator._async_update_data()
+
+    @pytest.mark.asyncio
+    async def test_auth_error_during_fetch_raises_config_entry_auth_failed(
+        self, coordinator, mock_lipro_api_client
+    ):
+        """LiproAuthError during get_devices -> ConfigEntryAuthFailed."""
+        mock_lipro_api_client.get_devices.side_effect = LiproAuthError(
+            "unauthorized"
+        )
+        with pytest.raises(ConfigEntryAuthFailed):
+            await coordinator._async_update_data()
+
+
+# =========================================================================
+# 4. _load_product_configs — color temp ranges applied to devices
+# =========================================================================
+
+
+class TestCoordinatorProductConfigs:
+    """Test _load_product_configs applies color temp and fan gear ranges."""
+
+    @pytest.mark.asyncio
+    async def test_color_temp_range_applied_by_iot_name(
+        self, coordinator, mock_lipro_api_client
+    ):
+        """Product config matched by iotName sets min/max color temp."""
+        mock_lipro_api_client.get_devices.return_value = {
+            "devices": [
+                _make_api_device(
+                    serial="03ab5ccd7c000001",
+                    iot_name="lipro_led",
+                ),
+            ]
+        }
+        mock_lipro_api_client.get_product_configs.return_value = [
+            {
+                "id": 99,
+                "fwIotName": "lipro_led",
+                "name": "LED Panel",
+                "minTemperature": 3000,
+                "maxTemperature": 5700,
+            }
         ]
+        mock_lipro_api_client.query_device_status.return_value = []
+        mock_lipro_api_client.query_connect_status.return_value = {}
 
-        await mock_coordinator.async_send_command(
-            device.serial,
-            "change_state",
-            properties,
+        with patch(
+            "custom_components.lipro.core.coordinator.get_anonymous_share_manager"
+        ) as mock_share:
+            mock_share.return_value = MagicMock(is_enabled=False)
+            await coordinator._async_update_data()
+
+        device = coordinator.devices["03ab5ccd7c000001"]
+        assert device.min_color_temp_kelvin == 3000
+        assert device.max_color_temp_kelvin == 5700
+
+    @pytest.mark.asyncio
+    async def test_color_temp_range_applied_by_product_id(
+        self, coordinator, mock_lipro_api_client
+    ):
+        """Product config matched by productId takes priority over iotName."""
+        mock_lipro_api_client.get_devices.return_value = {
+            "devices": [
+                _make_api_device(
+                    serial="03ab5ccd7c000001",
+                    iot_name="lipro_led",
+                    product_id=42,
+                ),
+            ]
+        }
+        mock_lipro_api_client.get_product_configs.return_value = [
+            {
+                "id": 42,
+                "fwIotName": "lipro_led",
+                "name": "LED Panel v2",
+                "minTemperature": 2700,
+                "maxTemperature": 6500,
+            },
+            {
+                "id": 99,
+                "fwIotName": "lipro_led",
+                "name": "LED Panel v1",
+                "minTemperature": 3000,
+                "maxTemperature": 5000,
+            },
+        ]
+        mock_lipro_api_client.query_device_status.return_value = []
+        mock_lipro_api_client.query_connect_status.return_value = {}
+
+        with patch(
+            "custom_components.lipro.core.coordinator.get_anonymous_share_manager"
+        ) as mock_share:
+            mock_share.return_value = MagicMock(is_enabled=False)
+            await coordinator._async_update_data()
+
+        device = coordinator.devices["03ab5ccd7c000001"]
+        # productId=42 matches config id=42 (priority 1)
+        assert device.min_color_temp_kelvin == 2700
+        assert device.max_color_temp_kelvin == 6500
+
+    @pytest.mark.asyncio
+    async def test_single_color_temp_device(
+        self, coordinator, mock_lipro_api_client
+    ):
+        """maxTemperature=0 means single color temp (no adjustment)."""
+        mock_lipro_api_client.get_devices.return_value = {
+            "devices": [
+                _make_api_device(
+                    serial="03ab5ccd7c000001", iot_name="lipro_led"
+                ),
+            ]
+        }
+        mock_lipro_api_client.get_product_configs.return_value = [
+            {
+                "id": 1,
+                "fwIotName": "lipro_led",
+                "name": "Single Color",
+                "minTemperature": 0,
+                "maxTemperature": 0,
+            }
+        ]
+        mock_lipro_api_client.query_device_status.return_value = []
+        mock_lipro_api_client.query_connect_status.return_value = {}
+
+        with patch(
+            "custom_components.lipro.core.coordinator.get_anonymous_share_manager"
+        ) as mock_share:
+            mock_share.return_value = MagicMock(is_enabled=False)
+            await coordinator._async_update_data()
+
+        device = coordinator.devices["03ab5ccd7c000001"]
+        assert device.min_color_temp_kelvin == 0
+        assert device.max_color_temp_kelvin == 0
+        assert device.supports_color_temp is False
+
+    @pytest.mark.asyncio
+    async def test_fan_gear_range_applied(
+        self, coordinator, mock_lipro_api_client
+    ):
+        """maxFanGear from product config is applied to the device."""
+        mock_lipro_api_client.get_devices.return_value = {
+            "devices": [
+                _make_api_device(
+                    serial="03ab5ccd7c000001",
+                    iot_name="lipro_fan_light",
+                    physical_model="fanLight",
+                ),
+            ]
+        }
+        mock_lipro_api_client.get_product_configs.return_value = [
+            {
+                "id": 1,
+                "fwIotName": "lipro_fan_light",
+                "name": "Fan Light",
+                "minTemperature": 2700,
+                "maxTemperature": 6500,
+                "maxFanGear": 8,
+            }
+        ]
+        mock_lipro_api_client.query_device_status.return_value = []
+        mock_lipro_api_client.query_connect_status.return_value = {}
+
+        with patch(
+            "custom_components.lipro.core.coordinator.get_anonymous_share_manager"
+        ) as mock_share:
+            mock_share.return_value = MagicMock(is_enabled=False)
+            await coordinator._async_update_data()
+
+        device = coordinator.devices["03ab5ccd7c000001"]
+        assert device.max_fan_gear == 8
+
+    @pytest.mark.asyncio
+    async def test_product_config_api_error_is_non_fatal(
+        self, coordinator, mock_lipro_api_client
+    ):
+        """LiproApiError from get_product_configs should not abort the update."""
+        mock_lipro_api_client.get_devices.return_value = {
+            "devices": [_make_api_device(serial="03ab5ccd7c000001")]
+        }
+        mock_lipro_api_client.get_product_configs.side_effect = LiproApiError(
+            "server error"
         )
+        mock_lipro_api_client.query_device_status.return_value = []
+        mock_lipro_api_client.query_connect_status.return_value = {}
 
-        call_args = mock_coordinator.async_send_command.call_args
-        assert call_args[0][1] == "change_state"
-        assert call_args[0][2] == properties
+        with patch(
+            "custom_components.lipro.core.coordinator.get_anonymous_share_manager"
+        ) as mock_share:
+            mock_share.return_value = MagicMock(is_enabled=False)
+            result = await coordinator._async_update_data()
+
+        # Update should still succeed with default color temp values
+        assert "03ab5ccd7c000001" in result
 
 
-class TestCoordinatorOptimisticUpdate:
-    """Tests for optimistic update logic."""
+# =========================================================================
+# 5. async_shutdown — clears data, stops MQTT, closes client
+# =========================================================================
 
-    def test_optimistic_state_applied(self, make_device):
-        """Test optimistic state is applied immediately."""
-        device = make_device(
-            "light", properties={"powerState": "0", "brightness": "50"}
-        )
 
-        # Apply optimistic update
-        optimistic_state = {"powerState": "1", "brightness": "80"}
-        device.update_properties(optimistic_state)
+class TestCoordinatorShutdown:
+    """Test async_shutdown releases all resources."""
 
-        assert device.properties["powerState"] == "1"
-        assert device.properties["brightness"] == "80"
+    @pytest.mark.asyncio
+    async def test_shutdown_clears_devices(
+        self, coordinator, mock_lipro_api_client
+    ):
+        """After shutdown, _devices and related dicts must be empty."""
+        # Populate some devices first
+        mock_lipro_api_client.get_devices.return_value = {
+            "devices": [_make_api_device(serial="03ab5ccd7c000001")]
+        }
+        mock_lipro_api_client.query_device_status.return_value = []
+        mock_lipro_api_client.query_connect_status.return_value = {}
 
-    def test_optimistic_state_partial_update(self, make_device):
-        """Test optimistic state only updates specified properties."""
-        device = make_device(
-            "light",
-            properties={"powerState": "1", "brightness": "50", "temperature": "4000"},
-        )
+        with patch(
+            "custom_components.lipro.core.coordinator.get_anonymous_share_manager"
+        ) as mock_share:
+            mock_share.return_value = MagicMock(
+                is_enabled=False, submit_report=AsyncMock()
+            )
+            await coordinator._async_update_data()
+            assert len(coordinator.devices) == 1
 
-        # Only update brightness
-        device.update_properties({"brightness": "80"})
+            await coordinator.async_shutdown()
 
-        assert device.properties["powerState"] == "1"  # Unchanged
-        assert device.properties["brightness"] == "80"  # Updated
-        assert device.properties["temperature"] == "4000"  # Unchanged
+        assert len(coordinator._devices) == 0
+        assert len(coordinator._device_by_id) == 0
+        assert len(coordinator._entities) == 0
+        assert len(coordinator._entities_by_device) == 0
+        assert len(coordinator._product_configs) == 0
+        assert len(coordinator._mqtt_message_cache) == 0
+
+    @pytest.mark.asyncio
+    async def test_shutdown_closes_client(
+        self, coordinator, mock_lipro_api_client
+    ):
+        """async_shutdown must call client.close()."""
+        with patch(
+            "custom_components.lipro.core.coordinator.get_anonymous_share_manager"
+        ) as mock_share:
+            mock_share.return_value = MagicMock(
+                is_enabled=False, submit_report=AsyncMock()
+            )
+            await coordinator.async_shutdown()
+
+        mock_lipro_api_client.close.assert_awaited_once()
+
+    @pytest.mark.asyncio
+    async def test_shutdown_stops_mqtt(
+        self, coordinator, mock_lipro_api_client
+    ):
+        """async_shutdown must stop the MQTT client if one exists."""
+        mock_mqtt = AsyncMock()
+        coordinator._mqtt_client = mock_mqtt
+
+        with patch(
+            "custom_components.lipro.core.coordinator.get_anonymous_share_manager"
+        ) as mock_share:
+            mock_share.return_value = MagicMock(
+                is_enabled=False, submit_report=AsyncMock()
+            )
+            await coordinator.async_shutdown()
+
+        mock_mqtt.stop.assert_awaited_once()
+        assert coordinator._mqtt_client is None
+        assert coordinator._mqtt_connected is False
+
+
+# =========================================================================
+# 6. async_refresh_devices — sets force flag
+# =========================================================================
+
+
+class TestCoordinatorRefreshDevices:
+    """Test async_refresh_devices sets the force-refresh flag."""
+
+    @pytest.mark.asyncio
+    async def test_sets_force_flag_and_clears_product_configs(
+        self, coordinator, mock_lipro_api_client
+    ):
+        """async_refresh_devices should set _force_device_refresh and clear configs."""
+        # Pre-populate product configs cache
+        coordinator._product_configs = {"lipro_led": {"id": 1}}
+
+        mock_lipro_api_client.get_devices.return_value = {
+            "devices": [_make_api_device(serial="03ab5ccd7c000001")]
+        }
+        mock_lipro_api_client.query_device_status.return_value = []
+        mock_lipro_api_client.query_connect_status.return_value = {}
+        mock_lipro_api_client.get_product_configs.return_value = []
+
+        with patch(
+            "custom_components.lipro.core.coordinator.get_anonymous_share_manager"
+        ) as mock_share:
+            mock_share.return_value = MagicMock(is_enabled=False)
+            await coordinator.async_refresh_devices()
+
+        # After refresh, product configs should have been cleared (then reloaded)
+        # and get_devices should have been called because the flag was set
+        mock_lipro_api_client.get_devices.assert_called()
+
+    @pytest.mark.asyncio
+    async def test_force_flag_causes_device_refetch(
+        self, coordinator, mock_lipro_api_client
+    ):
+        """Setting _force_device_refresh=True causes _fetch_devices on next update."""
+        # First update populates devices
+        mock_lipro_api_client.get_devices.return_value = {
+            "devices": [_make_api_device(serial="03ab5ccd7c000001")]
+        }
+        mock_lipro_api_client.query_device_status.return_value = []
+        mock_lipro_api_client.query_connect_status.return_value = {}
+        mock_lipro_api_client.get_product_configs.return_value = []
+
+        with patch(
+            "custom_components.lipro.core.coordinator.get_anonymous_share_manager"
+        ) as mock_share:
+            mock_share.return_value = MagicMock(is_enabled=False)
+            await coordinator._async_update_data()
+            mock_lipro_api_client.get_devices.reset_mock()
+
+            # Set force flag manually
+            coordinator._force_device_refresh = True
+            coordinator._product_configs.clear()
+            await coordinator._async_update_data()
+
+        # get_devices should be called again because of the force flag
+        mock_lipro_api_client.get_devices.assert_called_once()
+

@@ -462,3 +462,95 @@ class TestLiproAuthManagerProperties:
         manager._current_expiry_seconds = 1800
 
         assert manager.current_expiry_seconds == 1800
+
+
+class TestLiproAuthManagerEdgeCases:
+    """Tests for auth manager edge cases."""
+
+    def test_set_credentials_with_already_hashed_password(self):
+        """Test set_credentials with pre-hashed password stores as-is."""
+        client = MagicMock(spec=LiproClient)
+        manager = LiproAuthManager(client)
+
+        hashed = "e10adc3949ba59abbe56e057f20f883e"
+        manager.set_credentials("13800000000", hashed, password_is_hashed=True)
+
+        assert manager._password == hashed
+        assert manager._password_is_hashed is True
+
+    @pytest.mark.asyncio
+    async def test_refresh_other_auth_error_no_credentials_raises(self):
+        """Test non-expired auth error without credentials re-raises."""
+        client = MagicMock(spec=LiproClient)
+        client.refresh_access_token = AsyncMock(
+            side_effect=LiproAuthError("Some error", 999)
+        )
+
+        manager = LiproAuthManager(client)
+        # No credentials set
+
+        with pytest.raises(LiproAuthError):
+            await manager.refresh_token()
+
+    @pytest.mark.asyncio
+    async def test_concurrent_ensure_valid_token_only_one_refresh(self):
+        """Test concurrent ensure_valid_token calls only trigger one refresh."""
+        client = MagicMock(spec=LiproClient)
+        client.access_token = "expiring_token"
+        client.refresh_access_token = AsyncMock(
+            return_value={
+                "access_token": "new_token",
+                "refresh_token": "new_refresh",
+                "user_id": 1,
+            }
+        )
+
+        manager = LiproAuthManager(client)
+        # Token expires in 10 seconds (within buffer)
+        manager._token_expires_at = time.time() + 10
+
+        tasks = [
+            asyncio.create_task(manager.ensure_valid_token()),
+            asyncio.create_task(manager.ensure_valid_token()),
+        ]
+
+        await asyncio.gather(*tasks)
+
+        # Only one refresh should happen due to double-checked locking
+        assert client.refresh_access_token.call_count == 1
+
+    def test_set_tokens_with_zero_expires_at_uses_default(self):
+        """Test set_tokens with expires_at=0 calculates default expiry."""
+        client = MagicMock(spec=LiproClient)
+        manager = LiproAuthManager(client)
+
+        before = time.time()
+        manager.set_tokens("access", "refresh", expires_at=0)
+
+        # Should use default expiry, not 0
+        assert manager._token_expires_at > before
+
+    def test_set_tokens_with_none_expires_at_uses_default(self):
+        """Test set_tokens with expires_at=None calculates default expiry."""
+        client = MagicMock(spec=LiproClient)
+        manager = LiproAuthManager(client)
+
+        before = time.time()
+        manager.set_tokens("access", "refresh", expires_at=None)
+
+        assert manager._token_expires_at > before
+
+    def test_adjust_expiry_no_change_when_after_expected(self):
+        """Test _adjust_expiry_on_401 doesn't change when 401 comes after expected expiry."""
+        client = MagicMock(spec=LiproClient)
+        manager = LiproAuthManager(client)
+
+        original_expiry = 3600
+        manager._current_expiry_seconds = original_expiry
+        # 401 came after expected expiry (4000 seconds since refresh)
+        manager._last_refresh_time = time.time() - 4000
+
+        manager._adjust_expiry_on_401()
+
+        # Should not change
+        assert manager._current_expiry_seconds == original_expiry

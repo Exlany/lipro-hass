@@ -164,3 +164,119 @@ class TestLiproCoverEntityCommands:
         mock_coordinator.async_send_command.assert_called_once_with(
             device, "CURTAIN_STOP", None
         )
+
+    @pytest.mark.asyncio
+    async def test_set_cover_position(self, mock_coordinator, make_device):
+        """Test async_set_cover_position sends debounced CHANGE_STATE command."""
+        from unittest.mock import AsyncMock
+
+        device = make_device("curtain", properties={"position": "30"})
+        mock_coordinator.get_device = MagicMock(return_value=device)
+
+        from custom_components.lipro.cover import LiproCover
+
+        cover = LiproCover(mock_coordinator, device)
+        cover.async_write_ha_state = MagicMock()
+
+        # Mock the debouncer to call immediately
+        cover._debouncer = MagicMock()
+        cover._debouncer.async_call = AsyncMock(
+            side_effect=lambda fn, *args: fn(*args)
+        )
+
+        await cover.async_set_cover_position(position=75)
+
+        # Verify optimistic state was set (position updated)
+        assert device.properties.get("position") == "75"
+
+    @pytest.mark.asyncio
+    async def test_set_cover_position_clamps_value(self, mock_coordinator, make_device):
+        """Test set_cover_position clamps position to 0-100."""
+        from unittest.mock import AsyncMock
+
+        device = make_device("curtain", properties={"position": "50"})
+        mock_coordinator.get_device = MagicMock(return_value=device)
+
+        from custom_components.lipro.cover import LiproCover
+
+        cover = LiproCover(mock_coordinator, device)
+        cover.async_write_ha_state = MagicMock()
+
+        cover._debouncer = MagicMock()
+        cover._debouncer.async_call = AsyncMock(
+            side_effect=lambda fn, *args: fn(*args)
+        )
+
+        await cover.async_set_cover_position(position=150)
+
+        assert device.properties.get("position") == "100"
+
+
+class TestLiproCoverEntityProperties:
+    """Tests for LiproCover entity property methods."""
+
+    def test_current_cover_position(self, mock_coordinator, make_device):
+        """Test current_cover_position returns device position."""
+        device = make_device("curtain", properties={"position": "42"})
+        mock_coordinator.get_device = MagicMock(return_value=device)
+
+        from custom_components.lipro.cover import LiproCover
+
+        cover = LiproCover(mock_coordinator, device)
+        assert cover.current_cover_position == 42
+
+    def test_current_cover_position_none_when_missing(self, mock_coordinator, make_device):
+        """Test current_cover_position returns None when position not in properties."""
+        device = make_device("curtain")
+        mock_coordinator.get_device = MagicMock(return_value=device)
+
+        from custom_components.lipro.cover import LiproCover
+
+        cover = LiproCover(mock_coordinator, device)
+        assert cover.current_cover_position is None
+
+    def test_is_closed(self, mock_coordinator, make_device):
+        """Test is_closed returns True when position is 0."""
+        device = make_device("curtain", properties={"position": "0"})
+        mock_coordinator.get_device = MagicMock(return_value=device)
+
+        from custom_components.lipro.cover import LiproCover
+
+        cover = LiproCover(mock_coordinator, device)
+        assert cover.is_closed is True
+
+    def test_is_not_closed(self, mock_coordinator, make_device):
+        """Test is_closed returns False when position > 0."""
+        device = make_device("curtain", properties={"position": "50"})
+        mock_coordinator.get_device = MagicMock(return_value=device)
+
+        from custom_components.lipro.cover import LiproCover
+
+        cover = LiproCover(mock_coordinator, device)
+        assert cover.is_closed is False
+
+    def test_is_opening(self, mock_coordinator, make_device):
+        """Test is_opening when moving with opening direction."""
+        device = make_device(
+            "curtain", properties={"moving": "1", "direction": "1"}
+        )
+        mock_coordinator.get_device = MagicMock(return_value=device)
+
+        from custom_components.lipro.cover import LiproCover
+
+        cover = LiproCover(mock_coordinator, device)
+        assert cover.is_opening is True
+        assert cover.is_closing is False
+
+    def test_is_closing(self, mock_coordinator, make_device):
+        """Test is_closing when moving with closing direction."""
+        device = make_device(
+            "curtain", properties={"moving": "1", "direction": "0"}
+        )
+        mock_coordinator.get_device = MagicMock(return_value=device)
+
+        from custom_components.lipro.cover import LiproCover
+
+        cover = LiproCover(mock_coordinator, device)
+        assert cover.is_closing is True
+        assert cover.is_opening is False
