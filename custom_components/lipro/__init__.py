@@ -86,7 +86,7 @@ ATTR_SCHEDULE_IDS: Final = "schedule_ids"
 
 # Pre-compiled pattern for extracting device serial from entity unique_id
 _SERIAL_PATTERN = re.compile(
-    rf"({re.escape(IOT_DEVICE_ID_PREFIX)}[0-9a-f]{{12}}|mesh_group_\d+)"
+    rf"({re.escape(IOT_DEVICE_ID_PREFIX)}[0-9A-Fa-f]{{12}}|mesh_group_\d+)"
 )
 
 # Service schema - device_id is optional when entity target is used

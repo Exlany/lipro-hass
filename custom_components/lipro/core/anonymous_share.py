@@ -670,7 +670,8 @@ class AnonymousShareManager:
             return "[redacted]"
 
         # Keep numeric values as-is
-        if isinstance(value, int | float | bool):
+        # Note: isinstance() does not accept PEP604 unions at runtime.
+        if isinstance(value, (bool, int, float)):
             return value
 
         # Truncate very long strings

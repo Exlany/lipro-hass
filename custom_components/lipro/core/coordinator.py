@@ -116,7 +116,11 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
             name="Lipro",
             update_interval=timedelta(seconds=update_interval),
             config_entry=config_entry,
-            always_update=False,  # Skip listener callbacks if data unchanged
+            # Lipro devices are updated in-place (mutable LiproDevice objects).
+            # With always_update=False, HA's default equality check may treat
+            # self.data as "unchanged" and skip listener callbacks, preventing
+            # entities from refreshing. Always notify on each refresh tick.
+            always_update=True,
         )
         self.client = client
         self.auth_manager = auth_manager

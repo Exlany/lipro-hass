@@ -74,7 +74,8 @@ _LOGGER = logging.getLogger(__name__)
 # IoT Device ID format: IOT_DEVICE_ID_PREFIX + 12 hex chars (MAC without colons)
 # Example: "03ab5ccd7cxxxxxx" (5ccd7c is Meizu's OUI)
 _IOT_DEVICE_ID_PATTERN = re.compile(
-    rf"^{re.escape(IOT_DEVICE_ID_PREFIX)}[0-9a-f]{{12}}$"
+    rf"^{re.escape(IOT_DEVICE_ID_PREFIX)}[0-9a-f]{{12}}$",
+    flags=re.IGNORECASE,
 )
 
 # Mesh group ID format: "mesh_group_" + digits (e.g., "mesh_group_10001")
