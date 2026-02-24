@@ -281,6 +281,89 @@ class TestCoordinatorFetchDevices:
         assert "03ab5ccd7c000002" in coordinator._outlet_ids_to_query
         assert "03ab5ccd7c000001" not in coordinator._outlet_ids_to_query
 
+    @pytest.mark.asyncio
+    async def test_stale_devices_removed_only_after_consecutive_misses(
+        self, coordinator, mock_lipro_api_client
+    ):
+        """Remove stale devices only after multiple consecutive missing fetches."""
+        device_entry = MagicMock(id="reg-id", name="Stale Device")
+        registry = MagicMock()
+        registry.async_get_device.return_value = device_entry
+
+        # Initial set: A + B, then B missing for 3 consecutive fetches
+        mock_lipro_api_client.get_devices.side_effect = [
+            {
+                "devices": [
+                    _make_api_device(serial="03ab5ccd7c000001"),
+                    _make_api_device(serial="03ab5ccd7c000002"),
+                ]
+            },
+            {"devices": [_make_api_device(serial="03ab5ccd7c000001")]},
+            {"devices": [_make_api_device(serial="03ab5ccd7c000001")]},
+            {"devices": [_make_api_device(serial="03ab5ccd7c000001")]},
+        ]
+
+        with (
+            patch(
+                "custom_components.lipro.core.coordinator.get_anonymous_share_manager"
+            ) as mock_share,
+            patch("custom_components.lipro.core.coordinator.dr.async_get") as dr_get,
+        ):
+            mock_share.return_value = MagicMock(is_enabled=False)
+            dr_get.return_value = registry
+
+            await coordinator._fetch_devices()  # seed baseline
+            await coordinator._fetch_devices()  # miss #1
+            await coordinator._fetch_devices()  # miss #2
+            registry.async_remove_device.assert_not_called()
+
+            await coordinator._fetch_devices()  # miss #3 -> remove
+
+        registry.async_remove_device.assert_called_once_with("reg-id")
+
+    @pytest.mark.asyncio
+    async def test_stale_device_counter_resets_when_device_reappears(
+        self, coordinator, mock_lipro_api_client
+    ):
+        """A reappearing device should reset missing counter and avoid removal."""
+        device_entry = MagicMock(id="reg-id", name="Flaky Device")
+        registry = MagicMock()
+        registry.async_get_device.return_value = device_entry
+
+        # A + B -> A only (miss B #1) -> A + B (reset) -> A only (miss B #1 again)
+        mock_lipro_api_client.get_devices.side_effect = [
+            {
+                "devices": [
+                    _make_api_device(serial="03ab5ccd7c000001"),
+                    _make_api_device(serial="03ab5ccd7c000002"),
+                ]
+            },
+            {"devices": [_make_api_device(serial="03ab5ccd7c000001")]},
+            {
+                "devices": [
+                    _make_api_device(serial="03ab5ccd7c000001"),
+                    _make_api_device(serial="03ab5ccd7c000002"),
+                ]
+            },
+            {"devices": [_make_api_device(serial="03ab5ccd7c000001")]},
+        ]
+
+        with (
+            patch(
+                "custom_components.lipro.core.coordinator.get_anonymous_share_manager"
+            ) as mock_share,
+            patch("custom_components.lipro.core.coordinator.dr.async_get") as dr_get,
+        ):
+            mock_share.return_value = MagicMock(is_enabled=False)
+            dr_get.return_value = registry
+
+            await coordinator._fetch_devices()
+            await coordinator._fetch_devices()
+            await coordinator._fetch_devices()
+            await coordinator._fetch_devices()
+
+        registry.async_remove_device.assert_not_called()
+
 
 # =========================================================================
 # 3. Error handling — each Lipro error maps to the correct HA exception
@@ -336,6 +419,64 @@ class TestCoordinatorErrorHandling:
     ):
         """LiproAuthError during get_devices -> ConfigEntryAuthFailed."""
         mock_lipro_api_client.get_devices.side_effect = LiproAuthError("unauthorized")
+        with pytest.raises(ConfigEntryAuthFailed):
+            await coordinator._async_update_data()
+
+    @pytest.mark.asyncio
+    async def test_connection_error_during_status_query_raises_update_failed(
+        self, coordinator, mock_lipro_api_client
+    ):
+        """LiproConnectionError during status query should fail the update."""
+        mock_lipro_api_client.get_devices.return_value = {
+            "devices": [_make_api_device(serial="03ab5ccd7c000001")]
+        }
+        mock_lipro_api_client.get_product_configs.return_value = []
+        mock_lipro_api_client.query_device_status.side_effect = LiproConnectionError(
+            "timeout"
+        )
+        mock_lipro_api_client.query_connect_status.return_value = {}
+
+        with pytest.raises(UpdateFailed):
+            await coordinator._async_update_data()
+
+    @pytest.mark.asyncio
+    async def test_auth_error_during_connect_status_raises_config_entry_auth_failed(
+        self, coordinator, mock_lipro_api_client
+    ):
+        """LiproAuthError during connect-status query should trigger reauth."""
+        mock_lipro_api_client.get_devices.return_value = {
+            "devices": [_make_api_device(serial="03ab5ccd7c000001")]
+        }
+        mock_lipro_api_client.get_product_configs.return_value = []
+        mock_lipro_api_client.query_device_status.return_value = []
+        mock_lipro_api_client.query_connect_status.side_effect = LiproAuthError(
+            "unauthorized"
+        )
+
+        with pytest.raises(ConfigEntryAuthFailed):
+            await coordinator._async_update_data()
+
+    @pytest.mark.asyncio
+    async def test_auth_error_during_outlet_power_query_raises_config_entry_auth_failed(
+        self, coordinator, mock_lipro_api_client
+    ):
+        """LiproAuthError during outlet power query should trigger reauth."""
+        mock_lipro_api_client.get_devices.return_value = {
+            "devices": [
+                _make_api_device(
+                    serial="03ab5ccd7c000001",
+                    physical_model="outlet",
+                    device_type=6,
+                )
+            ]
+        }
+        mock_lipro_api_client.get_product_configs.return_value = []
+        mock_lipro_api_client.query_device_status.return_value = []
+        mock_lipro_api_client.query_connect_status.return_value = {}
+        mock_lipro_api_client.fetch_outlet_power_info.side_effect = LiproAuthError(
+            "unauthorized"
+        )
+
         with pytest.raises(ConfigEntryAuthFailed):
             await coordinator._async_update_data()
 

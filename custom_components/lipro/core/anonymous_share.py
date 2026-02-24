@@ -70,6 +70,7 @@ REDACT_KEYS: Final = frozenset(
         "mac",
         "ip",
         "wifi_ssid",
+        "wifiSsid",
         "bleMac",
         "deviceName",
         "roomName",

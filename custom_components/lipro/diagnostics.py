@@ -55,6 +55,7 @@ PROPERTY_KEYS_TO_REDACT: Final = {
     PROP_IP,
     PROP_BLE_MAC,
     PROP_WIFI_SSID,
+    "wifiSsid",
     "macAddress",
     "ipAddress",
 }

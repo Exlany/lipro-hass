@@ -19,7 +19,7 @@ from custom_components.lipro.const import (
     MAX_MQTT_CACHE_SIZE,
     MQTT_DISCONNECT_NOTIFY_THRESHOLD,
 )
-from custom_components.lipro.core.api import LiproAuthError
+from custom_components.lipro.core.api import LiproAuthError, LiproConnectionError
 from custom_components.lipro.core.device import LiproDevice
 
 # ---------------------------------------------------------------------------
@@ -570,6 +570,36 @@ class TestCoordinatorStatusQueriesAndNotifications:
         await coordinator._query_outlet_power()
 
         assert outlet.extra_data["power_info"]["nowPower"] == 33.5
+
+    @pytest.mark.asyncio
+    async def test_query_outlet_power_raises_auth_error(
+        self, coordinator, mock_lipro_api_client
+    ):
+        outlet = _make_device(serial="out1", properties={"powerState": "1"})
+        coordinator._devices[outlet.serial] = outlet
+        coordinator._device_by_id[outlet.serial] = outlet
+        coordinator._outlet_ids_to_query = [outlet.serial]
+        mock_lipro_api_client.fetch_outlet_power_info.side_effect = LiproAuthError(
+            "unauthorized"
+        )
+
+        with pytest.raises(LiproAuthError):
+            await coordinator._query_outlet_power()
+
+    @pytest.mark.asyncio
+    async def test_query_outlet_power_raises_connection_error(
+        self, coordinator, mock_lipro_api_client
+    ):
+        outlet = _make_device(serial="out1", properties={"powerState": "1"})
+        coordinator._devices[outlet.serial] = outlet
+        coordinator._device_by_id[outlet.serial] = outlet
+        coordinator._outlet_ids_to_query = [outlet.serial]
+        mock_lipro_api_client.fetch_outlet_power_info.side_effect = LiproConnectionError(
+            "timeout"
+        )
+
+        with pytest.raises(LiproConnectionError):
+            await coordinator._query_outlet_power()
 
     @pytest.mark.asyncio
     async def test_query_connect_status_updates_connect_state(

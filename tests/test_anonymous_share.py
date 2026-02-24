@@ -199,6 +199,7 @@ class TestSanitizeProperties:
             "deviceId": "secret-id",
             "mac": "5C:CD:7C:AA:BB:CC",
             "serial": "some-serial",
+            "wifiSsid": "HomeWiFi-5G",
             "powerState": "1",
         }
         result = self.mgr._sanitize_properties(props)
@@ -206,6 +207,7 @@ class TestSanitizeProperties:
         assert "deviceId" not in result
         assert "mac" not in result
         assert "serial" not in result
+        assert "wifiSsid" not in result
         # Safe keys are preserved
         assert "powerState" in result
         assert result["powerState"] == "1"

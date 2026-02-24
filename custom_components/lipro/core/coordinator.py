@@ -76,6 +76,10 @@ _MQTT_POLLING_MULTIPLIER: Final[int] = 2
 # Time threshold (seconds) for cleaning stale MQTT dedup cache entries
 _MQTT_CACHE_STALE_SECONDS: Final[float] = 5.0
 
+# Number of consecutive full-device-list fetches a device can be missing
+# before being removed from HA device registry.
+_STALE_DEVICE_REMOVE_THRESHOLD: Final[int] = 3
+
 # HA version for anonymous share reporting
 try:
     from homeassistant.const import __version__ as _ha_ver
@@ -142,6 +146,8 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         # MQTT disconnect tracking for user notification
         self._mqtt_disconnect_time: float | None = None
         self._mqtt_disconnect_notified: bool = False
+        # Track consecutive missing counts for safe stale-device cleanup
+        self._missing_device_cycles: dict[str, int] = {}
 
         # Load options from config entry
         self._load_options()
@@ -512,6 +518,7 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         self._device_by_id.clear()
         self._product_configs.clear()
         self._mqtt_message_cache.clear()
+        self._missing_device_cycles.clear()
 
         _LOGGER.debug("Coordinator shutdown complete")
 
@@ -834,11 +841,26 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
             await share_manager.async_ensure_loaded()
             share_manager.record_devices(list(self._devices.values()))
 
-        # Remove stale devices that no longer exist in the cloud
+        # Remove stale devices that no longer exist in the cloud.
+        # To avoid accidental removals from transient backend inconsistencies,
+        # only remove after the device has been missing for several consecutive
+        # full device-list fetches.
         current_serials = set(self._devices.keys())
-        stale_serials = previous_serials - current_serials
+        tracked_missing_serials = set(self._missing_device_cycles)
+        stale_serials = (previous_serials | tracked_missing_serials) - current_serials
+        for serial in current_serials:
+            self._missing_device_cycles.pop(serial, None)
         if stale_serials:
-            await self._async_remove_stale_devices(stale_serials)
+            removable: set[str] = set()
+            for serial in stale_serials:
+                miss_count = self._missing_device_cycles.get(serial, 0) + 1
+                self._missing_device_cycles[serial] = miss_count
+                if miss_count >= _STALE_DEVICE_REMOVE_THRESHOLD:
+                    removable.add(serial)
+            if removable:
+                await self._async_remove_stale_devices(removable)
+                for serial in removable:
+                    self._missing_device_cycles.pop(serial, None)
 
         # Sync MQTT subscriptions with current device list
         if self._mqtt_client and self._mqtt_connected:
@@ -995,11 +1017,7 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
             tasks.append(self._query_connect_status())
 
         if tasks:
-            results = await asyncio.gather(*tasks, return_exceptions=True)
-            # Log any exceptions that occurred
-            for result in results:
-                if isinstance(result, BaseException):
-                    _LOGGER.debug("Task failed during status update: %s", result)
+            await asyncio.gather(*tasks)
 
     def _should_query_power(self) -> bool:
         """Check if power query should be executed based on interval.
@@ -1016,27 +1034,23 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
 
     async def _query_device_status(self) -> None:
         """Query status for individual devices."""
-        try:
-            status_list = await self.client.query_device_status(
-                self._iot_ids_to_query,
-            )
+        status_list = await self.client.query_device_status(
+            self._iot_ids_to_query,
+        )
 
-            for status_data in status_list:
-                device_id = status_data.get("deviceId")
-                if not device_id:
-                    continue
+        for status_data in status_list:
+            device_id = status_data.get("deviceId")
+            if not device_id:
+                continue
 
-                # Find device using IoT ID mapping
-                device = self.get_device_by_id(device_id)
+            # Find device using IoT ID mapping
+            device = self.get_device_by_id(device_id)
 
-                if device:
-                    properties = parse_properties_list(
-                        status_data.get("properties", []),
-                    )
-                    self._apply_properties_update(device, properties)
-
-        except LiproApiError as err:
-            _LOGGER.warning("Failed to query device status: %s", err)
+            if device:
+                properties = parse_properties_list(
+                    status_data.get("properties", []),
+                )
+                self._apply_properties_update(device, properties)
 
     async def _query_group_status(self) -> None:
         """Query status for mesh groups.
@@ -1054,43 +1068,39 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
             ]
         }
         """
-        try:
-            status_list = await self.client.query_mesh_group_status(
-                self._group_ids_to_query,
-            )
+        status_list = await self.client.query_mesh_group_status(
+            self._group_ids_to_query,
+        )
 
-            for status_data in status_list:
-                # Get groupId directly from response
-                group_id = status_data.get("groupId")
-                if not group_id:
-                    _LOGGER.warning(
-                        "Missing groupId in mesh group status response: %s",
-                        list(status_data.keys()),
-                    )
-                    continue
+        for status_data in status_list:
+            # Get groupId directly from response
+            group_id = status_data.get("groupId")
+            if not group_id:
+                _LOGGER.warning(
+                    "Missing groupId in mesh group status response: %s",
+                    list(status_data.keys()),
+                )
+                continue
 
-                device = self._devices.get(group_id)
-                if not device:
-                    _LOGGER.debug(
-                        "Unknown group in status response: %s",
-                        group_id,
-                    )
-                    continue
+            device = self._devices.get(group_id)
+            if not device:
+                _LOGGER.debug(
+                    "Unknown group in status response: %s",
+                    group_id,
+                )
+                continue
 
-                # Save gateway device ID for API-level lookups
-                # Note: MQTT messages use mesh_group_xxx topics, not gateway IDs
-                gateway_id = status_data.get("gatewayDeviceId")
-                if gateway_id:
-                    device.extra_data["gateway_device_id"] = gateway_id
-                    # Map gateway ID -> device for API responses that reference it
-                    self._device_by_id[gateway_id] = device
+            # Save gateway device ID for API-level lookups
+            # Note: MQTT messages use mesh_group_xxx topics, not gateway IDs
+            gateway_id = status_data.get("gatewayDeviceId")
+            if gateway_id:
+                device.extra_data["gateway_device_id"] = gateway_id
+                # Map gateway ID -> device for API responses that reference it
+                self._device_by_id[gateway_id] = device
 
-                # Parse group-level properties (powerState, brightness, etc.)
-                properties = parse_properties_list(status_data.get("properties", []))
-                self._apply_properties_update(device, properties)
-
-        except LiproApiError as err:
-            _LOGGER.warning("Failed to query group status: %s", err)
+            # Parse group-level properties (powerState, brightness, etc.)
+            properties = parse_properties_list(status_data.get("properties", []))
+            self._apply_properties_update(device, properties)
 
     async def _query_outlet_power(self) -> None:
         """Query power information for outlet devices.
@@ -1117,6 +1127,10 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
                         power_data.get("nowPower"),
                     )
             except LiproApiError as err:
+                # Auth/connection errors must bubble up so _async_update_data can
+                # trigger reauth or mark update failed.
+                if isinstance(err, (LiproAuthError, LiproConnectionError)):
+                    raise
                 _LOGGER.debug("Failed to query power for %s: %s", device_id, err)
 
         await asyncio.gather(
@@ -1132,31 +1146,27 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         if not self._iot_ids_to_query:
             return
 
-        try:
-            connect_status = await self.client.query_connect_status(
-                self._iot_ids_to_query,
-            )
+        connect_status = await self.client.query_connect_status(
+            self._iot_ids_to_query,
+        )
 
-            if not connect_status:
-                return
+        if not connect_status:
+            return
 
-            for device_id, is_online in connect_status.items():
-                device = self.get_device_by_id(device_id)
-                if device:
-                    # Update connectState property (via _apply_properties_update
-                    # for consistent debounce protection handling)
-                    self._apply_properties_update(
-                        device,
-                        {PROP_CONNECT_STATE: "1" if is_online else "0"},
-                    )
-                    _LOGGER.debug(
-                        "Updated connect status for %s: %s",
-                        device.name,
-                        "online" if is_online else "offline",
-                    )
-
-        except LiproApiError as err:
-            _LOGGER.debug("Failed to query connect status: %s", err)
+        for device_id, is_online in connect_status.items():
+            device = self.get_device_by_id(device_id)
+            if device:
+                # Update connectState property (via _apply_properties_update
+                # for consistent debounce protection handling)
+                self._apply_properties_update(
+                    device,
+                    {PROP_CONNECT_STATE: "1" if is_online else "0"},
+                )
+                _LOGGER.debug(
+                    "Updated connect status for %s: %s",
+                    device.name,
+                    "online" if is_online else "offline",
+                )
 
     async def async_refresh_devices(self) -> None:
         """Force refresh of device list.

@@ -252,6 +252,51 @@ async def test_reauth_flow_invalid_auth(
     assert result["errors"] == {"base": "invalid_auth"}
 
 
+async def test_reconfigure_flow_missing_phone_id(
+    hass: HomeAssistant,
+    mock_lipro_client,
+) -> None:
+    """Test reconfigure flow shows unknown error when phone_id is missing."""
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="Lipro (13800000000)",
+        data={
+            CONF_PHONE: "13800000000",
+            CONF_PASSWORD_HASH: "e10adc3949ba59abbe56e057f20f883e",
+            # phone_id intentionally missing
+            "access_token": "token",
+            "refresh_token": "refresh",
+            "user_id": 10001,
+        },
+        unique_id="lipro_10001",
+    )
+    entry.add_to_hass(hass)
+
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN,
+        context={
+            "source": config_entries.SOURCE_RECONFIGURE,
+            "entry_id": entry.entry_id,
+        },
+    )
+
+    assert result["type"] is FlowResultType.FORM
+    assert result["step_id"] == "reconfigure"
+
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        {
+            CONF_PHONE: "13800000000",
+            CONF_PASSWORD: "newpassword",
+        },
+    )
+
+    assert result["type"] is FlowResultType.FORM
+    assert result["step_id"] == "reconfigure"
+    assert result["errors"] == {"base": "unknown"}
+    mock_lipro_client.login_with_hash.assert_not_awaited()
+
+
 async def test_options_flow(
     hass: HomeAssistant,
 ) -> None:

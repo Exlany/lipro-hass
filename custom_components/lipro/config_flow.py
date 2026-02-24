@@ -277,6 +277,25 @@ class LiproConfigFlow(ConfigFlow, domain=DOMAIN):
             phone = user_input[CONF_PHONE]
             password_hash = _hash_password(user_input[CONF_PASSWORD])
             phone_id = reconfigure_entry.data.get(CONF_PHONE_ID, "")
+            if not phone_id:
+                _LOGGER.error(
+                    "Missing phone_id in reconfigure entry, "
+                    "please remove and re-add the integration"
+                )
+                errors["base"] = "unknown"
+                return self.async_show_form(
+                    step_id="reconfigure",
+                    data_schema=vol.Schema(
+                        {
+                            vol.Required(
+                                CONF_PHONE,
+                                default=reconfigure_entry.data.get(CONF_PHONE, ""),
+                            ): str,
+                            vol.Required(CONF_PASSWORD): str,
+                        },
+                    ),
+                    errors=errors,
+                )
 
             login_result = await self._async_try_login(
                 phone, password_hash, phone_id, errors, "reconfigure"

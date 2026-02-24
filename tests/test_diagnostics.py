@@ -53,6 +53,12 @@ class TestRedactDeviceProperties:
         result = _redact_device_properties(props)
         assert result == props
 
+    def test_redact_wifi_ssid_camel_case(self):
+        """Test wifiSsid is redacted."""
+        props = {"wifiSsid": "HomeWiFi-5G"}
+        result = _redact_device_properties(props)
+        assert result["wifiSsid"] == "**REDACTED**"
+
     def test_empty_properties(self):
         """Test empty properties dict."""
         result = _redact_device_properties({})
@@ -104,7 +110,7 @@ class TestPropertyKeysToRedact:
 
     def test_count(self):
         """Test PROPERTY_KEYS_TO_REDACT has expected count."""
-        assert len(PROPERTY_KEYS_TO_REDACT) == 6
+        assert len(PROPERTY_KEYS_TO_REDACT) == 7
 
 
 class TestAsyncGetConfigEntryDiagnostics:
