@@ -9,7 +9,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
+    from collections.abc import Callable, Iterable
 
     from homeassistant.helpers.entity import Entity
 
@@ -47,3 +47,21 @@ def create_platform_entities[EntityT: Entity](
         for device in coordinator.devices.values()
         if device_filter(device)
     ]
+
+
+def create_device_entities[EntityT: Entity](
+    coordinator: LiproDataUpdateCoordinator,
+    entity_builder: Callable[
+        [LiproDataUpdateCoordinator, LiproDevice],
+        Iterable[EntityT],
+    ],
+    *,
+    device_filter: Callable[[LiproDevice], bool] | None = None,
+) -> list[EntityT]:
+    """Create one or more entities per device using a shared builder."""
+    entities: list[EntityT] = []
+    for device in coordinator.devices.values():
+        if device_filter is not None and not device_filter(device):
+            continue
+        entities.extend(entity_builder(coordinator, device))
+    return entities

@@ -320,6 +320,22 @@ class LiproDevice:
         """Get a property value."""
         return self.properties.get(key, default)
 
+    @staticmethod
+    def _coerce_int(value: Any) -> int | None:
+        """Convert a value to int, returning None on failure."""
+        try:
+            return int(value)
+        except (TypeError, ValueError):
+            return None
+
+    @staticmethod
+    def _coerce_float(value: Any) -> float | None:
+        """Convert a value to float, returning None on failure."""
+        try:
+            return float(value)
+        except (TypeError, ValueError):
+            return None
+
     def get_bool_property(self, key: str, default: bool = False) -> bool:
         """Get a boolean property value.
 
@@ -331,42 +347,27 @@ class LiproDevice:
         value = self.properties.get(key)
         if value is None:
             return default
-        if isinstance(value, bool):
-            return value
-        if isinstance(value, str):
-            # Handle both "true"/"false" and "1"/"0" string formats
-            return value.strip().lower() in ("1", "true", "yes", "on")
+        if isinstance(value, (bool, int, float, str)):
+            return _coerce_api_bool(value)
         return bool(value)
 
     def get_int_property(self, key: str, default: int = 0) -> int:
         """Get an integer property value."""
-        value = self.properties.get(key)
+        value = self._coerce_int(self.properties.get(key))
         if value is None:
             return default
-        try:
-            return int(value)
-        except (ValueError, TypeError):
-            return default
+        return value
 
     def get_float_property(self, key: str, default: float = 0.0) -> float:
         """Get a float property value."""
-        value = self.properties.get(key)
+        value = self._coerce_float(self.properties.get(key))
         if value is None:
             return default
-        try:
-            return float(value)
-        except (ValueError, TypeError):
-            return default
+        return value
 
     def get_optional_int_property(self, key: str) -> int | None:
         """Get an optional integer property value (returns None if missing)."""
-        value = self.properties.get(key)
-        if value is None:
-            return None
-        try:
-            return int(value)
-        except (ValueError, TypeError):
-            return None
+        return self._coerce_int(self.properties.get(key))
 
     def get_str_property(self, key: str) -> str | None:
         """Get a string property value, or None if missing."""

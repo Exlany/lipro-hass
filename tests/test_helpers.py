@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
-from custom_components.lipro.helpers.platform import create_platform_entities
+from custom_components.lipro.helpers.platform import (
+    create_device_entities,
+    create_platform_entities,
+)
 
 
 class TestCreatePlatformEntities:
@@ -63,3 +66,48 @@ class TestCreatePlatformEntities:
         )
 
         assert len(entities) == 2
+
+
+class TestCreateDeviceEntities:
+    """Tests for create_device_entities helper."""
+
+    def test_builds_multiple_entities_per_device(self, make_device, mock_coordinator):
+        """Builder can return multiple entities and they are flattened."""
+        light = make_device("light", serial="03ab5ccd7cxxxxxx")
+        switch = make_device("switch", serial="03ab5ccd7cyyyyyy")
+        mock_coordinator.devices = {
+            light.serial: light,
+            switch.serial: switch,
+        }
+
+        entities = create_device_entities(
+            mock_coordinator,
+            entity_builder=lambda c, d: [f"{d.serial}_1", f"{d.serial}_2"]
+            if d.is_light
+            else [],
+        )
+
+        assert entities == [f"{light.serial}_1", f"{light.serial}_2"]
+
+    def test_applies_optional_device_filter(self, make_device, mock_coordinator):
+        """Filter should be applied before invoking builder."""
+        light = make_device("light", serial="03ab5ccd7cxxxxxx")
+        switch = make_device("switch", serial="03ab5ccd7cyyyyyy")
+        mock_coordinator.devices = {
+            light.serial: light,
+            switch.serial: switch,
+        }
+        built_for: list[str] = []
+
+        def _builder(c, d):
+            built_for.append(d.serial)
+            return [d.serial]
+
+        entities = create_device_entities(
+            mock_coordinator,
+            entity_builder=_builder,
+            device_filter=lambda d: d.is_light,
+        )
+
+        assert built_for == [light.serial]
+        assert entities == [light.serial]

@@ -1591,7 +1591,8 @@ class LiproClient:
         # Fallback: if the API ever wraps it in standard format
         code = result.get("code")
         if self._is_success_code(code):
-            return self._unwrap_iot_success_payload(result)
+            payload = self._unwrap_iot_success_payload(result)
+            return self._require_mapping_response(PATH_GET_MQTT_CONFIG, payload)
 
         message = result.get("message", "Unknown error")
         raise LiproApiError(message, code)
@@ -1625,10 +1626,11 @@ class LiproClient:
             return {}
 
         try:
-            return await self._iot_request(
+            result = await self._iot_request(
                 PATH_QUERY_OUTLET_POWER,
                 {"deviceIds": sanitized_ids},
             )
+            return self._require_mapping_response(PATH_QUERY_OUTLET_POWER, result)
         except LiproApiError as err:
             # Real-world API may return 100000 when device IDs are valid format
             # but unsupported by this endpoint. Degrade to empty power payload.
@@ -1709,7 +1711,7 @@ class LiproClient:
     @classmethod
     def _parse_mesh_schedule_json(cls, schedule_json: Any) -> dict[str, list[int]]:
         """Parse mesh ``scheduleJson`` into ``days/time/evt`` arrays."""
-        empty = {"days": [], "time": [], "evt": []}
+        empty: dict[str, list[int]] = {"days": [], "time": [], "evt": []}
         payload = schedule_json
 
         if isinstance(payload, str):
@@ -1719,7 +1721,11 @@ class LiproClient:
             try:
                 payload = json.loads(raw)
             except (json.JSONDecodeError, TypeError):
-                _LOGGER.debug("Invalid mesh scheduleJson payload: %r", payload)
+                _LOGGER.debug(
+                    "Invalid mesh scheduleJson payload (type=%s): %s",
+                    type(payload).__name__,
+                    _mask_sensitive_data(str(payload)[:200]),
+                )
                 return empty
 
         if isinstance(payload, dict) and isinstance(payload.get("schedule"), dict):
@@ -1772,7 +1778,7 @@ class LiproClient:
     @classmethod
     def _normalize_mesh_timing_rows(
         cls,
-        rows: list[dict[str, Any]],
+        rows: list[Any],
         *,
         fallback_device_id: str = "",
     ) -> list[dict[str, Any]]:

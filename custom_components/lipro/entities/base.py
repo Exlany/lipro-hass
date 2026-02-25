@@ -120,6 +120,8 @@ class LiproEntity(CoordinatorEntity[LiproDataUpdateCoordinator]):
         """
         if self.is_debouncing:
             return self._debounce_protected_keys
+        if self._debounce_protected_keys:
+            self._debounce_protected_keys.clear()
         return set()
 
     def _get_debouncer(self) -> Debouncer:
@@ -251,7 +253,7 @@ class LiproEntity(CoordinatorEntity[LiproDataUpdateCoordinator]):
             # Set protection window to prevent coordinator from overwriting
             # these properties during slider drag
             self._debounce_protected_until = monotonic() + DEBOUNCE_PROTECTION_WINDOW
-            self._debounce_protected_keys |= optimistic_state.keys()
+            self._debounce_protected_keys = set(optimistic_state.keys())
 
         # Debounce the actual API call
         debouncer = self._get_debouncer()

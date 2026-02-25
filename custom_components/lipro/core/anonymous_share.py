@@ -64,6 +64,14 @@ _RE_IP_EXACT = re.compile(r"^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$")
 _RE_DEVICE_ID = re.compile(r"03ab[0-9a-f]{12}", re.IGNORECASE)
 _RE_DEVICE_ID_EXACT = re.compile(r"^03ab[0-9a-f]{12}$", re.IGNORECASE)
 _RE_TOKEN_LIKE = re.compile(r"^[a-zA-Z0-9_-]{32,}$")
+_RE_TOKEN_EMBEDDED = re.compile(r"\b[a-zA-Z0-9_-]{32,}\b")
+_RE_AUTH_BEARER = re.compile(
+    r"(?i)(authorization\s*[:=]\s*bearer\s+)[^\s,;\"']+"
+)
+_RE_SECRET_KV = re.compile(
+    r"(?i)\b(access[_-]?token|refresh[_-]?token|api[_-]?key|secret|password)\b"
+    r"(\s*[:=]\s*)([^\s,;\"']+)"
+)
 
 # Anonymous share server endpoint
 SHARE_URL: Final = "https://lipro-share.lany.me/api/report"
@@ -109,6 +117,40 @@ _TRUNCATED_STRING_PREFIX_LENGTH: Final = 200  # Keep this many chars when trunca
 
 # Auto-upload interval: force upload if no upload in 24 hours
 AUTO_UPLOAD_INTERVAL: Final = MIN_UPLOAD_INTERVAL * 24  # 24 hours
+
+_LIGHT_PRIMARY_PROPERTY_CAPABILITIES: Final[tuple[tuple[str, str], ...]] = (
+    (PROP_BRIGHTNESS, "brightness"),
+    (PROP_TEMPERATURE, "color_temp"),
+)
+
+_LIGHT_SECONDARY_PROPERTY_CAPABILITIES: Final[tuple[tuple[str, str], ...]] = (
+    (PROP_FADE_STATE, "fade"),
+    (PROP_FOCUS_MODE, "focus_mode"),
+    (PROP_SLEEP_AID_ENABLE, "sleep_aid"),
+    (PROP_WAKE_UP_ENABLE, "wake_up"),
+)
+
+_FAN_PROPERTY_CAPABILITIES: Final[tuple[tuple[str, str], ...]] = (
+    (PROP_FAN_GEAR, "fan_speed"),
+    (PROP_FAN_MODE, "fan_mode"),
+)
+
+_SENSOR_PROPERTY_CAPABILITIES: Final[tuple[tuple[str, str], ...]] = (
+    (PROP_BATTERY, "battery"),
+    (PROP_DOOR_OPEN, "door_sensor"),
+    (PROP_DARK, "light_sensor"),
+)
+
+_HEATER_PROPERTY_CAPABILITIES: Final[tuple[tuple[str, str], ...]] = (
+    (PROP_HEATER_MODE, "heater_mode"),
+    (PROP_WIND_GEAR, "wind_speed"),
+    (PROP_AERATION_GEAR, "aeration"),
+    (PROP_LIGHT_MODE, "heater_light"),
+)
+
+_MOTION_SENSOR_TRIGGER_PROPERTIES: Final[frozenset[str]] = frozenset(
+    {PROP_BODY_REACTIVE, PROP_ACTIVATED}
+)
 
 
 @dataclass
@@ -341,6 +383,25 @@ class AnonymousShareManager:
             capabilities=capabilities,
         )
 
+    @staticmethod
+    def _append_capabilities_for_properties(
+        capabilities: list[str],
+        properties: dict[str, Any],
+        mappings: tuple[tuple[str, str], ...],
+    ) -> None:
+        """Append capabilities for present property keys in declared order."""
+        for prop_key, capability in mappings:
+            if prop_key in properties:
+                capabilities.append(capability)
+
+    @staticmethod
+    def _has_any_property(
+        properties: dict[str, Any],
+        candidates: frozenset[str],
+    ) -> bool:
+        """Return True when at least one candidate property is present."""
+        return any(prop_key in properties for prop_key in candidates)
+
     def _detect_capabilities(self, device: LiproDevice) -> list[str]:
         """Detect device capabilities from properties and category.
 
@@ -351,66 +412,55 @@ class AnonymousShareManager:
             List of capability strings.
 
         """
-        caps = []
+        caps: list[str] = []
         props = device.properties
 
-        # Light capabilities
         if device.is_light:
             caps.append("light")
-            if PROP_BRIGHTNESS in props:
-                caps.append("brightness")
-            if PROP_TEMPERATURE in props:
-                caps.append("color_temp")
+            self._append_capabilities_for_properties(
+                caps,
+                props,
+                _LIGHT_PRIMARY_PROPERTY_CAPABILITIES,
+            )
             if device.has_gear_presets:
                 caps.append("gear_presets")
-            if PROP_FADE_STATE in props:
-                caps.append("fade")
-            if PROP_FOCUS_MODE in props:
-                caps.append("focus_mode")
-            if PROP_SLEEP_AID_ENABLE in props:
-                caps.append("sleep_aid")
-            if PROP_WAKE_UP_ENABLE in props:
-                caps.append("wake_up")
+            self._append_capabilities_for_properties(
+                caps,
+                props,
+                _LIGHT_SECONDARY_PROPERTY_CAPABILITIES,
+            )
 
-        # Fan capabilities
         if device.is_fan_light:
             caps.append("fan")
-            if PROP_FAN_GEAR in props:
-                caps.append("fan_speed")
-            if PROP_FAN_MODE in props:
-                caps.append("fan_mode")
+            self._append_capabilities_for_properties(
+                caps,
+                props,
+                _FAN_PROPERTY_CAPABILITIES,
+            )
 
-        # Cover capabilities
         if device.is_curtain:
             caps.append("cover")
             if PROP_POSITION in props:
                 caps.append("position")
 
-        # Sensor capabilities
         if device.is_sensor:
             caps.append("sensor")
-            if PROP_BATTERY in props:
-                caps.append("battery")
-            if PROP_DOOR_OPEN in props:
-                caps.append("door_sensor")
-            if PROP_BODY_REACTIVE in props or PROP_ACTIVATED in props:
+            self._append_capabilities_for_properties(
+                caps,
+                props,
+                _SENSOR_PROPERTY_CAPABILITIES,
+            )
+            if self._has_any_property(props, _MOTION_SENSOR_TRIGGER_PROPERTIES):
                 caps.append("motion_sensor")
-            if PROP_DARK in props:
-                caps.append("light_sensor")
 
-        # Heater capabilities
         if device.is_heater:
             caps.append("heater")
-            if PROP_HEATER_MODE in props:
-                caps.append("heater_mode")
-            if PROP_WIND_GEAR in props:
-                caps.append("wind_speed")
-            if PROP_AERATION_GEAR in props:
-                caps.append("aeration")
-            if PROP_LIGHT_MODE in props:
-                caps.append("heater_light")
+            self._append_capabilities_for_properties(
+                caps,
+                props,
+                _HEATER_PROPERTY_CAPABILITIES,
+            )
 
-        # Switch/outlet capabilities
         if device.is_switch or device.is_outlet:
             caps.append("switch")
 
@@ -722,6 +772,11 @@ class AnonymousShareManager:
             Sanitized string.
 
         """
+        # Redact common auth/token string fragments before generic replacements.
+        value = _RE_AUTH_BEARER.sub(r"\1[TOKEN]", value)
+        value = _RE_SECRET_KV.sub(r"\1\2[REDACTED]", value)
+        value = _RE_TOKEN_EMBEDDED.sub("[TOKEN]", value)
+
         # Remove potential MAC addresses
         value = _RE_MAC_ADDRESS.sub("[MAC]", value)
         # Remove compact MAC-like identifiers

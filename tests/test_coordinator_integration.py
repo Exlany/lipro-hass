@@ -210,6 +210,41 @@ class TestCoordinatorFetchDevices:
         assert mock_lipro_api_client.get_devices.call_count == 2
 
     @pytest.mark.asyncio
+    async def test_fetch_devices_rejects_malformed_devices_payload(
+        self, coordinator, mock_lipro_api_client
+    ):
+        """Malformed devices payload should fail fast with a clear API error."""
+        mock_lipro_api_client.get_devices.return_value = {"devices": "invalid"}
+
+        with patch(
+            "custom_components.lipro.core.coordinator.get_anonymous_share_manager"
+        ) as mock_share:
+            mock_share.return_value = MagicMock(is_enabled=False)
+            with pytest.raises(LiproApiError, match="Malformed device list payload"):
+                await coordinator._fetch_devices()
+
+    @pytest.mark.asyncio
+    async def test_fetch_devices_skips_non_dict_rows(
+        self, coordinator, mock_lipro_api_client
+    ):
+        """Non-dict device rows should be ignored without breaking refresh."""
+        mock_lipro_api_client.get_devices.return_value = {
+            "devices": [
+                _make_api_device(serial="03ab5ccd7c000001"),
+                "bad-row",
+                123,
+            ]
+        }
+
+        with patch(
+            "custom_components.lipro.core.coordinator.get_anonymous_share_manager"
+        ) as mock_share:
+            mock_share.return_value = MagicMock(is_enabled=False)
+            await coordinator._fetch_devices()
+
+        assert set(coordinator.devices) == {"03ab5ccd7c000001"}
+
+    @pytest.mark.asyncio
     async def test_gateway_devices_filtered_out(
         self, coordinator, mock_lipro_api_client
     ):

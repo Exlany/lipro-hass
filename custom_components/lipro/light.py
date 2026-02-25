@@ -186,8 +186,8 @@ class LiproLight(LiproEntity, LightEntity):
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn on the light."""
-        state_changes: dict[str, int | str] = {}
-        optimistic: dict[str, int | str] = {}
+        state_changes: dict[str, int] = {}
+        optimistic: dict[str, int] = {}
 
         # Handle brightness
         if ATTR_BRIGHTNESS in kwargs:

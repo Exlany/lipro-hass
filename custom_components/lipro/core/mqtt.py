@@ -21,6 +21,7 @@ import hmac
 import json
 import logging
 import random
+import re
 import ssl
 from typing import TYPE_CHECKING, Any, Final
 
@@ -202,6 +203,60 @@ _PROPERTY_KEY_MAP: Final[dict[str, str]] = {
 # Values that indicate "not supported" in MQTT payloads — skip these
 _NOISE_VALUES: Final[frozenset[str]] = frozenset({"-1", ""})
 
+# Hard limit for incoming MQTT payloads to avoid excessive memory/log churn.
+_MAX_MQTT_PAYLOAD_BYTES: Final[int] = 64 * 1024
+# Max payload preview length in debug logs.
+_MAX_MQTT_LOG_CHARS: Final[int] = 200
+
+# Keys frequently carrying credentials/identifiers in MQTT payloads.
+_MQTT_LOG_SENSITIVE_KEYS: Final[frozenset[str]] = frozenset(
+    {
+        "authorization",
+        "accesstoken",
+        "refreshtoken",
+        "apikey",
+        "accesskey",
+        "secretkey",
+        "secret",
+        "password",
+        "wifissid",
+        "mac",
+        "macaddress",
+        "blemac",
+        "ip",
+        "ipaddress",
+        "deviceid",
+        "iotdeviceid",
+        "gatewaydeviceid",
+        "serial",
+    }
+)
+
+_MQTT_LOG_STRING_PATTERNS: Final[tuple[tuple[re.Pattern[str], str], ...]] = (
+    (
+        re.compile(r"(?i)(authorization\s*[:=]\s*bearer\s+)[^\s,;\"']+"),
+        r"\1***",
+    ),
+    (
+        re.compile(
+            r"(?i)\b(access[_-]?token|refresh[_-]?token|api[_-]?key|secret|password)\b(\s*[:=]\s*)([^\s,;\"']+)"
+        ),
+        r"\1\2***",
+    ),
+    (
+        re.compile(r"([0-9A-Fa-f]{2}[:-]){5}[0-9A-Fa-f]{2}"),
+        "***",
+    ),
+    (
+        re.compile(r"\b\d{1,3}(?:\.\d{1,3}){3}\b"),
+        "***",
+    ),
+    (
+        re.compile(r"(?<![A-Za-z0-9])[A-Za-z0-9._~+/=-]{32,}(?![A-Za-z0-9])"),
+        "***",
+    ),
+)
+
 
 # MQTT payload property groups that contain device state
 _MQTT_PROPERTY_GROUPS: Final[tuple[str, ...]] = (
@@ -249,6 +304,58 @@ def parse_mqtt_payload(payload: Any) -> dict[str, Any]:
             properties[rest_key] = value
 
     return properties
+
+
+def _sanitize_mqtt_log_value(value: Any, key: str | None = None) -> Any:
+    """Sanitize MQTT payload values before debug logging."""
+    if key is not None:
+        normalized_key = (
+            key.strip().lower().replace("_", "").replace("-", "")
+        )
+        if normalized_key in _MQTT_LOG_SENSITIVE_KEYS:
+            return "***"
+
+    if isinstance(value, dict):
+        return {
+            str(k): _sanitize_mqtt_log_value(v, str(k))
+            for k, v in value.items()
+        }
+
+    if isinstance(value, list):
+        return [_sanitize_mqtt_log_value(item) for item in value]
+
+    if isinstance(value, str):
+        stripped = value.strip()
+        if stripped and stripped[0] in "{[":
+            try:
+                parsed = json.loads(value)
+            except (TypeError, ValueError):
+                pass
+            else:
+                redacted = _sanitize_mqtt_log_value(parsed)
+                if isinstance(redacted, (dict, list)):
+                    return json.dumps(
+                        redacted,
+                        ensure_ascii=False,
+                        separators=(",", ":"),
+                    )
+
+        sanitized = value
+        for pattern, replacement in _MQTT_LOG_STRING_PATTERNS:
+            sanitized = pattern.sub(replacement, sanitized)
+        return sanitized
+
+    return value
+
+
+def _format_mqtt_payload_for_log(payload: dict[str, Any]) -> str:
+    """Return a redacted string representation suitable for debug logs."""
+    sanitized = _sanitize_mqtt_log_value(payload)
+    return json.dumps(
+        sanitized,
+        ensure_ascii=False,
+        separators=(",", ":"),
+    )
 
 
 # =============================================================================
@@ -525,7 +632,46 @@ class LiproMqttClient:
                 _LOGGER.debug("MQTT: empty payload on topic %s, skipping", topic)
                 return
 
-            payload = json.loads(message.payload.decode("utf-8"))
+            raw_payload: Any = message.payload
+            payload_text: str
+            if isinstance(raw_payload, memoryview):
+                raw_bytes = raw_payload.tobytes()
+                if len(raw_bytes) > _MAX_MQTT_PAYLOAD_BYTES:
+                    _LOGGER.warning(
+                        "MQTT [%s]: payload too large (%d bytes), skipping",
+                        device_id,
+                        len(raw_bytes),
+                    )
+                    return
+                payload_text = raw_bytes.decode("utf-8")
+            elif isinstance(raw_payload, (bytes, bytearray)):
+                raw_bytes = bytes(raw_payload)
+                if len(raw_bytes) > _MAX_MQTT_PAYLOAD_BYTES:
+                    _LOGGER.warning(
+                        "MQTT [%s]: payload too large (%d bytes), skipping",
+                        device_id,
+                        len(raw_bytes),
+                    )
+                    return
+                payload_text = raw_bytes.decode("utf-8")
+            elif isinstance(raw_payload, str):
+                if len(raw_payload) > _MAX_MQTT_PAYLOAD_BYTES:
+                    _LOGGER.warning(
+                        "MQTT [%s]: payload too large (%d chars), skipping",
+                        device_id,
+                        len(raw_payload),
+                    )
+                    return
+                payload_text = raw_payload
+            else:
+                _LOGGER.debug(
+                    "MQTT [%s]: unexpected payload type %s, skipping",
+                    device_id,
+                    type(raw_payload).__name__,
+                )
+                return
+
+            payload = json.loads(payload_text)
             if not isinstance(payload, dict):
                 _LOGGER.debug(
                     "MQTT [%s]: unexpected payload type %s, skipping",
@@ -533,11 +679,13 @@ class LiproMqttClient:
                     type(payload).__name__,
                 )
                 return
-            _LOGGER.debug(
-                "MQTT [%s]: %s",
-                device_id,
-                json.dumps(payload, ensure_ascii=False)[:200],
-            )
+
+            if _LOGGER.isEnabledFor(logging.DEBUG):
+                _LOGGER.debug(
+                    "MQTT [%s]: %s",
+                    device_id,
+                    _format_mqtt_payload_for_log(payload)[:_MAX_MQTT_LOG_CHARS],
+                )
 
             # Parse and flatten payload to REST API format
             properties = parse_mqtt_payload(payload)

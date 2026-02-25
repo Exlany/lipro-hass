@@ -8,12 +8,18 @@ from __future__ import annotations
 
 from datetime import timedelta
 from time import monotonic
+from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.lipro.const import (
+    CONF_DEBUG_MODE,
+    CONF_ENABLE_POWER_MONITORING,
+    CONF_MQTT_ENABLED,
+    CONF_POWER_QUERY_INTERVAL,
+    CONF_SCAN_INTERVAL,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
     MAX_MQTT_CACHE_SIZE,
@@ -491,6 +497,42 @@ class TestCoordinatorMqttPollingInterval:
 
     def test_default_base_scan_interval(self, coordinator):
         assert coordinator._base_scan_interval == DEFAULT_SCAN_INTERVAL
+
+    def test_base_scan_interval_invalid_option_falls_back_to_default(self, coordinator):
+        """Corrupted persisted scan_interval should not raise."""
+        coordinator.config_entry = SimpleNamespace(
+            options={CONF_SCAN_INTERVAL: "not-a-number"}
+        )
+        assert coordinator._base_scan_interval == DEFAULT_SCAN_INTERVAL
+
+
+class TestCoordinatorOptionsHardening:
+    """Test defensive option coercion for malformed persisted values."""
+
+    def test_load_options_coerces_string_booleans(self, coordinator):
+        coordinator.config_entry = SimpleNamespace(
+            options={
+                CONF_MQTT_ENABLED: "false",
+                CONF_ENABLE_POWER_MONITORING: "0",
+                CONF_DEBUG_MODE: "true",
+            }
+        )
+
+        coordinator._load_options()
+
+        assert coordinator._mqtt_enabled is False
+        assert coordinator._power_monitoring_enabled is False
+        assert coordinator._debug_mode is True
+
+    def test_should_query_power_handles_invalid_interval_option(self, coordinator):
+        coordinator.config_entry = SimpleNamespace(
+            options={CONF_POWER_QUERY_INTERVAL: "oops"}
+        )
+        coordinator._load_options()
+        coordinator._last_power_query_time = monotonic()
+
+        # Should not raise TypeError when interval option is malformed.
+        assert coordinator._should_query_power() is False
 
 
 # ===========================================================================

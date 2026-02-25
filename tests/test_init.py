@@ -60,7 +60,11 @@ from custom_components.lipro.const import (
     CONF_PHONE,
     CONF_PHONE_ID,
     CONF_REFRESH_TOKEN,
+    CONF_REQUEST_TIMEOUT,
+    CONF_SCAN_INTERVAL,
+    DEFAULT_REQUEST_TIMEOUT,
     DOMAIN,
+    MAX_SCAN_INTERVAL,
 )
 from custom_components.lipro.core import (
     LiproApiError,
@@ -562,6 +566,65 @@ class TestInitRuntimeBehavior:
         ):
             await async_setup_entry(hass, entry)
 
+    async def test_async_setup_entry_coerces_invalid_persisted_options(
+        self, hass
+    ) -> None:
+        """Persisted non-schema options should be coerced/clamped safely."""
+        entry = MockConfigEntry(
+            domain=DOMAIN,
+            data={
+                CONF_PHONE_ID: "phone-id",
+                CONF_PHONE: "13800000000",
+                CONF_PASSWORD_HASH: "hashed-password",
+                CONF_ACCESS_TOKEN: "access",
+                CONF_REFRESH_TOKEN: "refresh",
+            },
+            options={
+                CONF_REQUEST_TIMEOUT: "not-an-int",
+                CONF_SCAN_INTERVAL: 999999,
+            },
+        )
+        entry.add_to_hass(hass)
+        entry.add_update_listener = MagicMock(return_value=MagicMock())
+        entry.async_on_unload = MagicMock()
+
+        mock_auth = MagicMock()
+        mock_auth.set_tokens = MagicMock()
+        mock_auth.set_credentials = MagicMock()
+        mock_auth.ensure_valid_token = AsyncMock()
+        mock_auth.get_auth_data.return_value = {
+            CONF_ACCESS_TOKEN: "access",
+            CONF_REFRESH_TOKEN: "refresh",
+            CONF_EXPIRES_AT: 1234567890,
+        }
+
+        mock_client = MagicMock()
+        mock_coordinator = MagicMock()
+        mock_coordinator.async_config_entry_first_refresh = AsyncMock()
+
+        with (
+            patch(
+                "custom_components.lipro.async_get_clientsession",
+                return_value=MagicMock(),
+            ),
+            patch("custom_components.lipro.LiproClient", return_value=mock_client) as pc,
+            patch("custom_components.lipro.LiproAuthManager", return_value=mock_auth),
+            patch(
+                "custom_components.lipro.LiproDataUpdateCoordinator",
+                return_value=mock_coordinator,
+            ) as pcoord,
+            patch.object(
+                hass.config_entries,
+                "async_forward_entry_setups",
+                AsyncMock(return_value=True),
+            ),
+            patch.object(hass.config_entries, "async_update_entry"),
+        ):
+            assert await async_setup_entry(hass, entry) is True
+
+        assert pc.call_args.kwargs["request_timeout"] == DEFAULT_REQUEST_TIMEOUT
+        assert pcoord.call_args.kwargs["update_interval"] == MAX_SCAN_INTERVAL
+
     async def test_async_setup_entry_connection_error_raises_not_ready(
         self, hass
     ) -> None:
@@ -941,6 +1004,49 @@ class TestInitRuntimeBehavior:
                     "active": True,
                     "days": [1],
                     "times": ["01:00", "01:01"],
+                    "events": [1, 0],
+                }
+            ],
+        }
+
+    async def test_get_schedules_ignores_malformed_schedule_rows(self, hass) -> None:
+        """Malformed schedule rows should be ignored instead of raising."""
+        device = self._create_device()
+        client = MagicMock()
+        client.get_device_schedules = AsyncMock(
+            return_value=[
+                "invalid-row",
+                {
+                    "id": 9,
+                    "active": True,
+                    "schedule": {
+                        "days": ["1", "x"],
+                        "time": [3600, -1, 90000, "bad"],
+                        "evt": [1, "0", "bad"],
+                    },
+                },
+            ]
+        )
+        coordinator = MagicMock()
+        coordinator.get_device.return_value = device
+        coordinator.client = client
+
+        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry.add_to_hass(hass)
+        entry.runtime_data = coordinator
+
+        result = await _async_handle_get_schedules(
+            hass, SimpleNamespace(data={ATTR_DEVICE_ID: device.serial})
+        )
+
+        assert result == {
+            "serial": device.serial,
+            "schedules": [
+                {
+                    "id": 9,
+                    "active": True,
+                    "days": [1],
+                    "times": ["01:00"],
                     "events": [1, 0],
                 }
             ],

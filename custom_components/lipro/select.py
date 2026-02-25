@@ -19,12 +19,15 @@ from .const import (
     WIND_DIRECTION_FIX,
 )
 from .entities.base import LiproEntity
+from .helpers import create_device_entities
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
     from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
     from . import LiproConfigEntry
+    from .core.coordinator import LiproDataUpdateCoordinator
+    from .core.device import LiproDevice
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -63,19 +66,31 @@ async def async_setup_entry(
 ) -> None:
     """Set up Lipro select entities."""
     coordinator = entry.runtime_data
+    entities = create_device_entities(coordinator, _build_device_select_entities)
+    async_add_entities(entities)
+
+
+def _build_device_select_entities(
+    coordinator: LiproDataUpdateCoordinator,
+    device: LiproDevice,
+) -> list[SelectEntity]:
+    """Build all select entities for one device."""
     entities: list[SelectEntity] = []
 
-    for device in coordinator.devices.values():
-        # Add select entities for heaters
-        if device.is_heater:
-            entities.append(LiproHeaterWindDirectionSelect(coordinator, device))
-            entities.append(LiproHeaterLightModeSelect(coordinator, device))
+    # Add select entities for heaters.
+    if device.is_heater:
+        entities.extend(
+            [
+                LiproHeaterWindDirectionSelect(coordinator, device),
+                LiproHeaterLightModeSelect(coordinator, device),
+            ]
+        )
 
-        # Add gear preset select for lights with gear presets
-        if device.is_light and device.has_gear_presets:
-            entities.append(LiproLightGearSelect(coordinator, device))
+    # Add gear preset select for lights with gear presets.
+    if device.is_light and device.has_gear_presets:
+        entities.append(LiproLightGearSelect(coordinator, device))
 
-    async_add_entities(entities)
+    return entities
 
 
 class LiproSelect(LiproEntity, SelectEntity):

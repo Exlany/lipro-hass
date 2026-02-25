@@ -19,6 +19,7 @@ from homeassistant.const import (
 
 from .const.categories import DeviceCategory
 from .entities.base import LiproEntity
+from .helpers import create_device_entities
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
@@ -44,12 +45,7 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up Lipro sensors."""
-    coordinator = entry.runtime_data
-    entities = [
-        entity
-        for device in coordinator.devices.values()
-        for entity in _build_device_sensors(coordinator, device)
-    ]
+    entities = create_device_entities(entry.runtime_data, _build_device_sensors)
     async_add_entities(entities)
 
 

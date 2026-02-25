@@ -263,6 +263,39 @@ class TestLiproEntityDebounce:
         protected = entity.get_protected_keys()
         assert "brightness" in protected
 
+    async def test_debounce_protected_keys_replaced_on_new_call(
+        self, mock_coordinator, make_device
+    ):
+        """Newest debounced payload should replace protected keys, not accumulate."""
+        device = make_device("light")
+        mock_coordinator.get_device.return_value = device
+        entity = _make_entity(mock_coordinator, device)
+
+        await entity.async_send_command_debounced(
+            "changeState",
+            [{"key": "brightness", "value": "80"}],
+            optimistic_state={"brightness": "80"},
+        )
+        await entity.async_send_command_debounced(
+            "changeState",
+            [{"key": "temperature", "value": "60"}],
+            optimistic_state={"temperature": "60"},
+        )
+
+        assert entity.get_protected_keys() == {"temperature"}
+
+    def test_get_protected_keys_clears_stale_keys_after_window(
+        self, mock_coordinator, make_device
+    ):
+        """Expired debounce window should clear stale protected keys."""
+        device = make_device("light")
+        entity = _make_entity(mock_coordinator, device)
+        entity._debounce_protected_keys = {"brightness"}
+        entity._debounce_protected_until = monotonic() - 1
+
+        assert entity.get_protected_keys() == set()
+        assert entity._debounce_protected_keys == set()
+
 
 # =========================================================================
 # Lifecycle

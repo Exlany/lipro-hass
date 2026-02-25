@@ -6,7 +6,7 @@ from datetime import UTC, datetime
 import functools
 import logging
 import re
-from typing import TYPE_CHECKING, Any, Final
+from typing import TYPE_CHECKING, Any, Awaitable, Callable, Final, Iterator, NoReturn
 
 import voluptuous as vol
 
@@ -37,7 +37,9 @@ from .const import (
     DOMAIN,
     IOT_DEVICE_ID_PREFIX,
     MAX_REQUEST_TIMEOUT,
+    MAX_SCAN_INTERVAL,
     MIN_REQUEST_TIMEOUT,
+    MIN_SCAN_INTERVAL,
 )
 from .core import (
     LiproApiError,
@@ -172,6 +174,233 @@ def _summarize_service_properties(properties: Any) -> dict[str, Any]:
     return {"count": len(properties), "keys": keys}
 
 
+def _coerce_int_option(
+    value: Any,
+    *,
+    default: int,
+    option_name: str,
+    min_value: int | None = None,
+    max_value: int | None = None,
+) -> int:
+    """Coerce persisted option values to int with safe fallback/clamp."""
+    try:
+        parsed = int(value)
+    except (TypeError, ValueError):
+        _LOGGER.warning(
+            "Invalid option %s=%r, using default %d",
+            option_name,
+            value,
+            default,
+        )
+        parsed = default
+
+    if min_value is not None:
+        parsed = max(min_value, parsed)
+    if max_value is not None:
+        parsed = min(max_value, parsed)
+    return parsed
+
+
+def _get_entry_int_option(
+    entry: LiproConfigEntry,
+    *,
+    option_name: str,
+    default: int,
+    min_value: int,
+    max_value: int,
+) -> int:
+    """Read and coerce an integer option from a config entry."""
+    return _coerce_int_option(
+        entry.options.get(option_name, default),
+        default=default,
+        option_name=option_name,
+        min_value=min_value,
+        max_value=max_value,
+    )
+
+
+def _coerce_int_list(value: Any) -> list[int]:
+    """Coerce mixed list payloads into integers, skipping invalid items."""
+    if not isinstance(value, list):
+        return []
+
+    result: list[int] = []
+    for item in value:
+        if isinstance(item, bool):
+            continue
+        try:
+            result.append(int(item))
+        except (TypeError, ValueError):
+            continue
+    return result
+
+
+def _get_mesh_context(device: LiproDevice) -> tuple[str, list[Any]]:
+    """Extract mesh gateway and member IDs from device metadata."""
+    mesh_gateway_id = device.extra_data.get("gateway_device_id", "")
+    raw_mesh_member_ids = device.extra_data.get("group_member_ids", [])
+    mesh_member_ids = raw_mesh_member_ids if isinstance(raw_mesh_member_ids, list) else []
+    return mesh_gateway_id, mesh_member_ids
+
+
+def _raise_service_error(
+    translation_key: str,
+    *,
+    err: Exception | None = None,
+) -> NoReturn:
+    """Raise a translated HomeAssistantError, preserving the original cause."""
+    if err is None:
+        raise HomeAssistantError(
+            translation_domain=DOMAIN,
+            translation_key=translation_key,
+        )
+
+    raise HomeAssistantError(
+        translation_domain=DOMAIN,
+        translation_key=translation_key,
+    ) from err
+
+
+async def _async_call_schedule_client(
+    device: LiproDevice,
+    client_call: Callable[..., Awaitable[Any]],
+    *args: Any,
+    error_log: str,
+    error_translation_key: str,
+) -> Any:
+    """Call a schedule client API with mesh context and consistent error mapping."""
+    mesh_gateway_id, mesh_member_ids = _get_mesh_context(device)
+
+    try:
+        return await client_call(
+            device.iot_device_id,
+            device.device_type_hex,
+            *args,
+            mesh_gateway_id=mesh_gateway_id,
+            mesh_member_ids=mesh_member_ids,
+        )
+    except LiproApiError as err:
+        _LOGGER.warning(error_log, err)
+        _raise_service_error(error_translation_key, err=err)
+
+
+def _format_schedule_time(seconds: int) -> str | None:
+    """Convert seconds since midnight to HH:MM, ignoring invalid values."""
+    if seconds < 0 or seconds >= 86400:
+        return None
+
+    hours = seconds // 3600
+    minutes = (seconds % 3600) // 60
+    return f"{hours:02d}:{minutes:02d}"
+
+
+def _normalize_schedule_row(schedule: Any) -> dict[str, Any] | None:
+    """Normalize a raw schedule row into service response format."""
+    if not isinstance(schedule, dict):
+        return None
+
+    sched_info = schedule.get("schedule")
+    if not isinstance(sched_info, dict):
+        sched_info = {}
+
+    times = _coerce_int_list(sched_info.get("time"))
+    events = _coerce_int_list(sched_info.get("evt"))
+    days = _coerce_int_list(sched_info.get("days"))
+
+    time_strs: list[str] = []
+    for value in times:
+        time_str = _format_schedule_time(value)
+        if time_str is not None:
+            time_strs.append(time_str)
+
+    return {
+        "id": schedule.get("id"),
+        "active": schedule.get("active", True),
+        "days": days,
+        "times": time_strs,
+        "events": events,
+    }
+
+
+def _extract_device_id_from_entity_ids(
+    hass: HomeAssistant, entity_ids: Any
+) -> str | None:
+    """Resolve the first Lipro device ID from entity targets."""
+    ent_reg = er.async_get(hass)
+    for entity_id in entity_ids:
+        entity_entry = ent_reg.async_get(entity_id)
+        if not entity_entry or not entity_entry.unique_id:
+            continue
+
+        unique_id = entity_entry.unique_id
+        if not unique_id.startswith("lipro_") or len(unique_id) <= 6:
+            continue
+
+        # Extract serial from unique_id: "lipro_{serial}[_{suffix}]"
+        # Serial formats: "03ab" + 12 hex, or "mesh_group_" + digits
+        match = _SERIAL_PATTERN.match(unique_id[6:])
+        if match:
+            return match.group(1)
+
+    return None
+
+
+def _iter_runtime_coordinators(
+    hass: HomeAssistant,
+) -> Iterator[LiproDataUpdateCoordinator]:
+    """Iterate all active coordinators for the Lipro domain."""
+    for entry in hass.config_entries.async_entries(DOMAIN):
+        coordinator = entry.runtime_data
+        if coordinator is None:
+            continue
+        yield coordinator
+
+
+def _log_send_command_call(
+    requested_device_id: str | None,
+    resolved_serial: str,
+    command: str,
+    properties_summary: dict[str, Any],
+) -> bool:
+    """Log send_command call details and return whether alias resolution occurred."""
+    is_alias_resolution = bool(
+        requested_device_id and requested_device_id != resolved_serial
+    )
+
+    if is_alias_resolution:
+        _LOGGER.info(
+            "Service call: send_command requested_id=%s resolved_to=%s, "
+            "command=%s, property_summary=%s",
+            requested_device_id,
+            resolved_serial,
+            command,
+            properties_summary,
+        )
+    else:
+        _LOGGER.info(
+            "Service call: send_command to %s, command=%s, property_summary=%s",
+            resolved_serial,
+            command,
+            properties_summary,
+        )
+
+    return is_alias_resolution
+
+
+def _build_send_command_result(
+    resolved_serial: str,
+    *,
+    requested_device_id: str | None,
+    is_alias_resolution: bool,
+) -> dict[str, Any]:
+    """Build send_command service response payload."""
+    result: dict[str, Any] = {"success": True, "serial": resolved_serial}
+    if is_alias_resolution:
+        result["requested_device_id"] = requested_device_id
+        result["resolved_device_id"] = resolved_serial
+    return result
+
+
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """Set up the Lipro component."""
     await _async_setup_services(hass)
@@ -185,9 +414,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: LiproConfigEntry) -> boo
     password_hash = entry.data[CONF_PASSWORD_HASH]
 
     # Get request timeout from options (clamp to valid range)
-    request_timeout = entry.options.get(CONF_REQUEST_TIMEOUT, DEFAULT_REQUEST_TIMEOUT)
-    request_timeout = max(
-        MIN_REQUEST_TIMEOUT, min(MAX_REQUEST_TIMEOUT, request_timeout)
+    request_timeout = _get_entry_int_option(
+        entry,
+        option_name=CONF_REQUEST_TIMEOUT,
+        default=DEFAULT_REQUEST_TIMEOUT,
+        min_value=MIN_REQUEST_TIMEOUT,
+        max_value=MAX_REQUEST_TIMEOUT,
     )
 
     session = async_get_clientsession(hass)
@@ -217,7 +449,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: LiproConfigEntry) -> boo
         raise ConfigEntryNotReady(msg) from err
 
     # Get scan interval from options (or use default)
-    scan_interval = entry.options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
+    scan_interval = _get_entry_int_option(
+        entry,
+        option_name=CONF_SCAN_INTERVAL,
+        default=DEFAULT_SCAN_INTERVAL,
+        min_value=MIN_SCAN_INTERVAL,
+        max_value=MAX_SCAN_INTERVAL,
+    )
 
     # Create coordinator with configurable scan interval
     coordinator = LiproDataUpdateCoordinator(
@@ -280,20 +518,7 @@ async def _get_device_and_coordinator(
                 translation_key="no_device_specified",
             )
 
-        # Get device_id from the first entity's device
-        ent_reg = er.async_get(hass)
-        for entity_id in entity_ids:
-            entity_entry = ent_reg.async_get(entity_id)
-            if entity_entry and entity_entry.unique_id:
-                unique_id = entity_entry.unique_id
-                if unique_id.startswith("lipro_") and len(unique_id) > 6:
-                    # Extract serial from unique_id: "lipro_{serial}[_{suffix}]"
-                    # Serial formats: "03ab" + 12 hex, or "mesh_group_" + digits
-                    raw = unique_id[6:]
-                    match = _SERIAL_PATTERN.match(raw)
-                    if match:
-                        device_id = match.group(1)
-                        break
+        device_id = _extract_device_id_from_entity_ids(hass, entity_ids)
 
         if not device_id:
             raise ServiceValidationError(
@@ -301,12 +526,8 @@ async def _get_device_and_coordinator(
                 translation_key="cannot_determine_device",
             )
 
-    # Find the device across all config entries
-    for entry in hass.config_entries.async_entries(DOMAIN):
-        coordinator = entry.runtime_data
-        if not coordinator:
-            continue
-
+    # Find the device across all active coordinators.
+    for coordinator in _iter_runtime_coordinators(hass):
         # Prefer direct serial lookup, then fall back to alias lookup
         # (gateway ID / member device ID mapped by coordinator).
         device = coordinator.get_device(device_id)
@@ -333,23 +554,12 @@ async def _async_handle_send_command(
     requested_device_id = call.data.get(ATTR_DEVICE_ID)
 
     device, coordinator = await _get_device_and_coordinator(hass, call)
-
-    if requested_device_id and requested_device_id != device.serial:
-        _LOGGER.info(
-            "Service call: send_command requested_id=%s resolved_to=%s, "
-            "command=%s, property_summary=%s",
-            requested_device_id,
-            device.serial,
-            command,
-            properties_summary,
-        )
-    else:
-        _LOGGER.info(
-            "Service call: send_command to %s, command=%s, property_summary=%s",
-            device.serial,
-            command,
-            properties_summary,
-        )
+    is_alias_resolution = _log_send_command_call(
+        requested_device_id,
+        device.serial,
+        command,
+        properties_summary,
+    )
 
     try:
         success = await coordinator.async_send_command(
@@ -359,23 +569,17 @@ async def _async_handle_send_command(
             fallback_device_id=requested_device_id,
         )
         if not success:
-            raise HomeAssistantError(
-                translation_domain=DOMAIN,
-                translation_key="command_failed",
-            )
-        result: dict[str, Any] = {"success": True, "serial": device.serial}
-        if requested_device_id and requested_device_id != device.serial:
-            result["requested_device_id"] = requested_device_id
-            result["resolved_device_id"] = device.serial
-        return result
+            _raise_service_error("command_failed")
+        return _build_send_command_result(
+            device.serial,
+            requested_device_id=requested_device_id,
+            is_alias_resolution=is_alias_resolution,
+        )
     except HomeAssistantError:
         raise
     except LiproApiError as err:
         _LOGGER.warning("API error sending command: %s", err)
-        raise HomeAssistantError(
-            translation_domain=DOMAIN,
-            translation_key="command_failed",
-        ) from err
+        _raise_service_error("command_failed", err=err)
 
 
 async def _async_handle_get_schedules(
@@ -383,54 +587,28 @@ async def _async_handle_get_schedules(
 ) -> dict[str, Any]:
     """Handle the get_schedules service call."""
     device, coordinator = await _get_device_and_coordinator(hass, call)
-    mesh_gateway_id = device.extra_data.get("gateway_device_id", "")
-    raw_mesh_member_ids = device.extra_data.get("group_member_ids", [])
-    mesh_member_ids = raw_mesh_member_ids if isinstance(raw_mesh_member_ids, list) else []
 
     _LOGGER.info("Service call: get_schedules for %s", device.serial)
 
-    try:
-        schedules = await coordinator.client.get_device_schedules(
-            device.iot_device_id,
-            device.device_type_hex,
-            mesh_gateway_id=mesh_gateway_id,
-            mesh_member_ids=mesh_member_ids,
-        )
+    schedules = await _async_call_schedule_client(
+        device,
+        coordinator.client.get_device_schedules,
+        error_log="API error getting schedules: %s",
+        error_translation_key="schedule_fetch_failed",
+    )
 
-        # Format schedules for response
-        formatted = []
-        for schedule in schedules:
-            sched_info = schedule.get("schedule", {})
-            times = sched_info.get("time", [])
-            events = sched_info.get("evt", [])
+    # Format schedules for response
+    formatted: list[dict[str, Any]] = []
+    for schedule in schedules:
+        normalized = _normalize_schedule_row(schedule)
+        if normalized is None:
+            continue
+        formatted.append(normalized)
 
-            # Convert times to HH:MM format
-            time_strs = []
-            for t in times:
-                hours = t // 3600
-                minutes = (t % 3600) // 60
-                time_strs.append(f"{hours:02d}:{minutes:02d}")
-
-            formatted.append(
-                {
-                    "id": schedule.get("id"),
-                    "active": schedule.get("active", True),
-                    "days": sched_info.get("days", []),
-                    "times": time_strs,
-                    "events": events,
-                }
-            )
-
-        return {
-            "serial": device.serial,
-            "schedules": formatted,
-        }
-    except LiproApiError as err:
-        _LOGGER.warning("API error getting schedules: %s", err)
-        raise HomeAssistantError(
-            translation_domain=DOMAIN,
-            translation_key="schedule_fetch_failed",
-        ) from err
+    return {
+        "serial": device.serial,
+        "schedules": formatted,
+    }
 
 
 async def _async_handle_add_schedule(
@@ -438,9 +616,6 @@ async def _async_handle_add_schedule(
 ) -> dict[str, Any]:
     """Handle the add_schedule service call."""
     device, coordinator = await _get_device_and_coordinator(hass, call)
-    mesh_gateway_id = device.extra_data.get("gateway_device_id", "")
-    raw_mesh_member_ids = device.extra_data.get("group_member_ids", [])
-    mesh_member_ids = raw_mesh_member_ids if isinstance(raw_mesh_member_ids, list) else []
 
     days = call.data[ATTR_DAYS]
     times = call.data[ATTR_TIMES]
@@ -460,28 +635,21 @@ async def _async_handle_add_schedule(
         events,
     )
 
-    try:
-        schedules = await coordinator.client.add_device_schedule(
-            device.iot_device_id,
-            device.device_type_hex,
-            days,
-            times,
-            events,
-            mesh_gateway_id=mesh_gateway_id,
-            mesh_member_ids=mesh_member_ids,
-        )
+    schedules = await _async_call_schedule_client(
+        device,
+        coordinator.client.add_device_schedule,
+        days,
+        times,
+        events,
+        error_log="API error adding schedule: %s",
+        error_translation_key="schedule_add_failed",
+    )
 
-        return {
-            "success": True,
-            "serial": device.serial,
-            "schedule_count": len(schedules),
-        }
-    except LiproApiError as err:
-        _LOGGER.warning("API error adding schedule: %s", err)
-        raise HomeAssistantError(
-            translation_domain=DOMAIN,
-            translation_key="schedule_add_failed",
-        ) from err
+    return {
+        "success": True,
+        "serial": device.serial,
+        "schedule_count": len(schedules),
+    }
 
 
 async def _async_handle_delete_schedules(
@@ -489,9 +657,6 @@ async def _async_handle_delete_schedules(
 ) -> dict[str, Any]:
     """Handle the delete_schedules service call."""
     device, coordinator = await _get_device_and_coordinator(hass, call)
-    mesh_gateway_id = device.extra_data.get("gateway_device_id", "")
-    raw_mesh_member_ids = device.extra_data.get("group_member_ids", [])
-    mesh_member_ids = raw_mesh_member_ids if isinstance(raw_mesh_member_ids, list) else []
 
     schedule_ids = call.data[ATTR_SCHEDULE_IDS]
 
@@ -501,26 +666,19 @@ async def _async_handle_delete_schedules(
         schedule_ids,
     )
 
-    try:
-        remaining = await coordinator.client.delete_device_schedules(
-            device.iot_device_id,
-            device.device_type_hex,
-            schedule_ids,
-            mesh_gateway_id=mesh_gateway_id,
-            mesh_member_ids=mesh_member_ids,
-        )
+    remaining = await _async_call_schedule_client(
+        device,
+        coordinator.client.delete_device_schedules,
+        schedule_ids,
+        error_log="API error deleting schedules: %s",
+        error_translation_key="schedule_delete_failed",
+    )
 
-        return {
-            "success": True,
-            "serial": device.serial,
-            "remaining_count": len(remaining),
-        }
-    except LiproApiError as err:
-        _LOGGER.warning("API error deleting schedules: %s", err)
-        raise HomeAssistantError(
-            translation_domain=DOMAIN,
-            translation_key="schedule_delete_failed",
-        ) from err
+    return {
+        "success": True,
+        "serial": device.serial,
+        "remaining_count": len(remaining),
+    }
 
 
 async def _async_handle_submit_anonymous_share(
@@ -548,10 +706,7 @@ async def _async_handle_submit_anonymous_share(
     success = await share_manager.submit_report(session, force=True)
 
     if not success:
-        raise HomeAssistantError(
-            translation_domain=DOMAIN,
-            translation_key="anonymous_share_submit_failed",
-        )
+        _raise_service_error("anonymous_share_submit_failed")
 
     return {
         "success": True,
@@ -586,9 +741,8 @@ async def _async_handle_get_anonymous_share_report(
 def _collect_developer_reports(hass: HomeAssistant) -> list[dict[str, Any]]:
     """Collect developer reports from active config entries."""
     reports: list[dict[str, Any]] = []
-    for entry in hass.config_entries.async_entries(DOMAIN):
-        coordinator = entry.runtime_data
-        if coordinator is None or not hasattr(coordinator, "build_developer_report"):
+    for coordinator in _iter_runtime_coordinators(hass):
+        if not hasattr(coordinator, "build_developer_report"):
             continue
         reports.append(coordinator.build_developer_report())
     return reports
@@ -635,10 +789,7 @@ async def _async_handle_submit_developer_feedback(
         feedback_payload,
     )
     if not success:
-        raise HomeAssistantError(
-            translation_domain=DOMAIN,
-            translation_key="developer_feedback_submit_failed",
-        )
+        _raise_service_error("developer_feedback_submit_failed")
 
     return {
         "success": True,
@@ -646,73 +797,79 @@ async def _async_handle_submit_developer_feedback(
     }
 
 
+_SERVICE_REGISTRATIONS: Final = (
+    (
+        SERVICE_SEND_COMMAND,
+        _async_handle_send_command,
+        SERVICE_SEND_COMMAND_SCHEMA,
+        SupportsResponse.OPTIONAL,
+    ),
+    (
+        SERVICE_GET_SCHEDULES,
+        _async_handle_get_schedules,
+        SERVICE_GET_SCHEDULES_SCHEMA,
+        SupportsResponse.ONLY,
+    ),
+    (
+        SERVICE_ADD_SCHEDULE,
+        _async_handle_add_schedule,
+        SERVICE_ADD_SCHEDULE_SCHEMA,
+        SupportsResponse.OPTIONAL,
+    ),
+    (
+        SERVICE_DELETE_SCHEDULES,
+        _async_handle_delete_schedules,
+        SERVICE_DELETE_SCHEDULES_SCHEMA,
+        SupportsResponse.OPTIONAL,
+    ),
+    (
+        SERVICE_SUBMIT_ANONYMOUS_SHARE,
+        _async_handle_submit_anonymous_share,
+        None,
+        SupportsResponse.OPTIONAL,
+    ),
+    (
+        SERVICE_GET_ANONYMOUS_SHARE_REPORT,
+        _async_handle_get_anonymous_share_report,
+        None,
+        SupportsResponse.ONLY,
+    ),
+    (
+        SERVICE_GET_DEVELOPER_REPORT,
+        _async_handle_get_developer_report,
+        None,
+        SupportsResponse.ONLY,
+    ),
+    (
+        SERVICE_SUBMIT_DEVELOPER_FEEDBACK,
+        _async_handle_submit_developer_feedback,
+        SERVICE_SUBMIT_DEVELOPER_FEEDBACK_SCHEMA,
+        SupportsResponse.OPTIONAL,
+    ),
+)
+
+
 async def _async_setup_services(hass: HomeAssistant) -> None:
     """Set up Lipro services."""
     if hass.services.has_service(DOMAIN, SERVICE_SEND_COMMAND):
         return  # Services already registered
 
-    # Register services with functools.partial to avoid lambda closures
-    hass.services.async_register(
-        DOMAIN,
-        SERVICE_SEND_COMMAND,
-        functools.partial(_async_handle_send_command, hass),
-        schema=SERVICE_SEND_COMMAND_SCHEMA,
-        supports_response=SupportsResponse.OPTIONAL,
-    )
-
-    hass.services.async_register(
-        DOMAIN,
-        SERVICE_GET_SCHEDULES,
-        functools.partial(_async_handle_get_schedules, hass),
-        schema=SERVICE_GET_SCHEDULES_SCHEMA,
-        supports_response=SupportsResponse.ONLY,
-    )
-
-    hass.services.async_register(
-        DOMAIN,
-        SERVICE_ADD_SCHEDULE,
-        functools.partial(_async_handle_add_schedule, hass),
-        schema=SERVICE_ADD_SCHEDULE_SCHEMA,
-        supports_response=SupportsResponse.OPTIONAL,
-    )
-
-    hass.services.async_register(
-        DOMAIN,
-        SERVICE_DELETE_SCHEDULES,
-        functools.partial(_async_handle_delete_schedules, hass),
-        schema=SERVICE_DELETE_SCHEDULES_SCHEMA,
-        supports_response=SupportsResponse.OPTIONAL,
-    )
-
-    # Anonymous share services (no schema needed)
-    hass.services.async_register(
-        DOMAIN,
-        SERVICE_SUBMIT_ANONYMOUS_SHARE,
-        functools.partial(_async_handle_submit_anonymous_share, hass),
-        supports_response=SupportsResponse.OPTIONAL,
-    )
-
-    hass.services.async_register(
-        DOMAIN,
-        SERVICE_GET_ANONYMOUS_SHARE_REPORT,
-        functools.partial(_async_handle_get_anonymous_share_report, hass),
-        supports_response=SupportsResponse.ONLY,
-    )
-
-    hass.services.async_register(
-        DOMAIN,
-        SERVICE_GET_DEVELOPER_REPORT,
-        functools.partial(_async_handle_get_developer_report, hass),
-        supports_response=SupportsResponse.ONLY,
-    )
-
-    hass.services.async_register(
-        DOMAIN,
-        SERVICE_SUBMIT_DEVELOPER_FEEDBACK,
-        functools.partial(_async_handle_submit_developer_feedback, hass),
-        schema=SERVICE_SUBMIT_DEVELOPER_FEEDBACK_SCHEMA,
-        supports_response=SupportsResponse.OPTIONAL,
-    )
+    # Register services with functools.partial to avoid lambda closures.
+    for (
+        service_name,
+        service_handler,
+        service_schema,
+        supports_response,
+    ) in _SERVICE_REGISTRATIONS:
+        register_kwargs: dict[str, Any] = {"supports_response": supports_response}
+        if service_schema is not None:
+            register_kwargs["schema"] = service_schema
+        hass.services.async_register(
+            DOMAIN,
+            service_name,
+            functools.partial(service_handler, hass),
+            **register_kwargs,
+        )
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: LiproConfigEntry) -> bool:
@@ -726,16 +883,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: LiproConfigEntry) -> bo
         for e in hass.config_entries.async_entries(DOMAIN)
         if e.entry_id != entry.entry_id
     ):
-        for service_name in (
-            SERVICE_SEND_COMMAND,
-            SERVICE_GET_SCHEDULES,
-            SERVICE_ADD_SCHEDULE,
-            SERVICE_DELETE_SCHEDULES,
-            SERVICE_SUBMIT_ANONYMOUS_SHARE,
-            SERVICE_GET_ANONYMOUS_SHARE_REPORT,
-            SERVICE_GET_DEVELOPER_REPORT,
-            SERVICE_SUBMIT_DEVELOPER_FEEDBACK,
-        ):
+        for service_name, *_ in _SERVICE_REGISTRATIONS:
             hass.services.async_remove(DOMAIN, service_name)
 
     return result

@@ -19,7 +19,7 @@ from .const import (
     PROP_WAKE_UP_ENABLE,
 )
 from .entities.base import LiproEntity
-from .helpers import create_platform_entities
+from .helpers import create_device_entities, create_platform_entities
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
@@ -41,8 +41,6 @@ async def async_setup_entry(
     """Set up Lipro switches."""
     coordinator = entry.runtime_data
     entities: list[SwitchEntity] = []
-
-    # Add main switch entities for switch/outlet devices
     entities.extend(
         create_platform_entities(
             coordinator,
@@ -51,23 +49,44 @@ async def async_setup_entry(
         )
     )
 
-    # Add feature switches for lights
-    for device in coordinator.devices.values():
-        if device.is_light:
-            # Fade switch for all lights
-            entities.append(LiproFadeSwitch(coordinator, device))
-
-            # Natural Light features (自然光灯)
-            if device.has_sleep_wake_features:
-                entities.append(LiproSleepAidSwitch(coordinator, device))
-                entities.append(LiproWakeUpSwitch(coordinator, device))
-
-            # Floor Lamp features (落地灯)
-            if device.has_floor_lamp_features:
-                entities.append(LiproFocusModeSwitch(coordinator, device))
-                entities.append(LiproBodyReactiveSwitch(coordinator, device))
+    # Add feature switches for lights.
+    entities.extend(
+        create_device_entities(
+            coordinator,
+            _build_light_feature_switches,
+            device_filter=lambda d: d.is_light,
+        )
+    )
 
     async_add_entities(entities)
+
+
+def _build_light_feature_switches(
+    coordinator: LiproDataUpdateCoordinator,
+    device: LiproDevice,
+) -> list[SwitchEntity]:
+    """Build feature switches for one light device."""
+    entities: list[SwitchEntity] = [LiproFadeSwitch(coordinator, device)]
+
+    # Natural Light features (自然光灯)
+    if device.has_sleep_wake_features:
+        entities.extend(
+            [
+                LiproSleepAidSwitch(coordinator, device),
+                LiproWakeUpSwitch(coordinator, device),
+            ]
+        )
+
+    # Floor Lamp features (落地灯)
+    if device.has_floor_lamp_features:
+        entities.extend(
+            [
+                LiproFocusModeSwitch(coordinator, device),
+                LiproBodyReactiveSwitch(coordinator, device),
+            ]
+        )
+
+    return entities
 
 
 class LiproSwitch(LiproEntity, SwitchEntity):

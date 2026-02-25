@@ -55,15 +55,8 @@ class Debouncer:
 
         """
         async with self._lock:
-            # Cancel any pending timer
-            if self._timer is not None:
-                self._timer.cancel()
-                self._timer = None
-
-            # Cancel any pending task
-            if self._pending_task is not None and not self._pending_task.done():
-                self._pending_task.cancel()
-                self._pending_task = None
+            self._cancel_timer()
+            self._cancel_pending_task()
 
             # Schedule new execution
             loop = asyncio.get_running_loop()
@@ -113,11 +106,22 @@ class Debouncer:
         except Exception:
             _LOGGER.exception("Error in debounced call")
 
+    def _cancel_timer(self) -> None:
+        """Cancel pending timer handle if present."""
+        if self._timer is None:
+            return
+        self._timer.cancel()
+        self._timer = None
+
+    def _cancel_pending_task(self) -> None:
+        """Cancel pending execution task if still running."""
+        if self._pending_task is None:
+            return
+        if not self._pending_task.done():
+            self._pending_task.cancel()
+        self._pending_task = None
+
     def cancel(self) -> None:
         """Cancel any pending debounced call."""
-        if self._timer is not None:
-            self._timer.cancel()
-            self._timer = None
-        if self._pending_task is not None and not self._pending_task.done():
-            self._pending_task.cancel()
-            self._pending_task = None
+        self._cancel_timer()
+        self._cancel_pending_task()

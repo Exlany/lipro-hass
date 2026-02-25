@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import aiomqtt
 import pytest
 
 from custom_components.lipro.core.mqtt import (
+    _MAX_MQTT_PAYLOAD_BYTES,
     LiproMqttClient,
     MqttCredentials,
     build_topic,
@@ -496,6 +498,61 @@ class TestLiproMqttClient:
         message = MagicMock()
         message.topic = "Topic_Device_State/lip_biz001/03ab5ccd7cxxxxxx"
         message.payload = b'["not", "an", "object"]'
+
+        client._process_message(message)
+
+        on_message.assert_not_called()
+
+    def test_process_message_redacts_sensitive_debug_payload(self, caplog):
+        """Debug payload log should redact sensitive fields and identifiers."""
+        on_message = MagicMock()
+        client = LiproMqttClient(
+            access_key="access",
+            secret_key="secret",
+            biz_id="lip_biz001",
+            phone_id="550e8400-e29b-41d4-a716-446655440000",
+            on_message=on_message,
+        )
+
+        message = MagicMock()
+        message.topic = "Topic_Device_State/lip_biz001/03ab5ccd7cxxxxxx"
+        message.payload = (
+            b'{"common":{"wifi_ssid":"MyHome","ip":"192.168.1.8","mac":"AA:BB:CC:DD:EE:FF"},'
+            b'"light":{"accessToken":"very-secret-token-value-123456","powerState":"1"}}'
+        )
+
+        with caplog.at_level(logging.DEBUG):
+            client._process_message(message)
+
+        payload_logs = [
+            rec.message
+            for rec in caplog.records
+            if rec.name == "custom_components.lipro.core.mqtt" and "MQTT [" in rec.message
+        ]
+        assert payload_logs
+        combined = "\n".join(payload_logs)
+        assert "MyHome" not in combined
+        assert "192.168.1.8" not in combined
+        assert "AA:BB:CC:DD:EE:FF" not in combined
+        assert "very-secret-token-value-123456" not in combined
+
+    def test_process_message_skips_oversized_payload(self):
+        """Oversized MQTT payloads should be dropped defensively."""
+        on_message = MagicMock()
+        client = LiproMqttClient(
+            access_key="access",
+            secret_key="secret",
+            biz_id="lip_biz001",
+            phone_id="550e8400-e29b-41d4-a716-446655440000",
+            on_message=on_message,
+        )
+
+        message = MagicMock()
+        message.topic = "Topic_Device_State/lip_biz001/03ab5ccd7cxxxxxx"
+        oversize_blob = "x" * (_MAX_MQTT_PAYLOAD_BYTES + 1024)
+        message.payload = (
+            f'{{"light":{{"powerState":"1","blob":"{oversize_blob}"}}}}'
+        ).encode()
 
         client._process_message(message)
 

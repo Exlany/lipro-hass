@@ -191,6 +191,24 @@ class TestSanitizeString:
         text = "powerState changed to on"
         assert self.mgr._sanitize_string(text) == text
 
+    def test_replaces_bearer_token_fragments(self):
+        text = "request failed Authorization: Bearer abcDEF012345_-abcDEF012345_-abcDEF"
+        result = self.mgr._sanitize_string(text)
+        assert "Bearer [TOKEN]" in result
+        assert "abcDEF012345_-abcDEF012345_-abcDEF" not in result
+
+    def test_replaces_secret_key_value_fragments(self):
+        text = "api failed access_token=abcDEF012345_-abcDEF012345_-abcDEF"
+        result = self.mgr._sanitize_string(text)
+        assert "access_token=[REDACTED]" in result
+        assert "abcDEF012345_-abcDEF012345_-abcDEF" not in result
+
+    def test_replaces_embedded_long_token(self):
+        text = "payload trace token abcDEF012345_-abcDEF012345_-abcDEF leaked"
+        result = self.mgr._sanitize_string(text)
+        assert "[TOKEN]" in result
+        assert "abcDEF012345_-abcDEF012345_-abcDEF" not in result
+
     def test_truncates_long_strings(self):
         """_sanitize_string itself does not truncate; _sanitize_value does."""
         # Use a string with spaces so it doesn't match _RE_TOKEN_LIKE
@@ -770,6 +788,33 @@ class TestReportedDeviceCache:
 
 class TestCapabilities:
     """Tests for capability detection matrix."""
+
+    def test_detect_capabilities_light_order_stable(self):
+        """Light capability output order should remain stable."""
+        mgr = _make_manager(enabled=False)
+        device = _make_mock_device(
+            properties={
+                PROP_BRIGHTNESS: 1,
+                PROP_TEMPERATURE: 5000,
+                PROP_FADE_STATE: 1,
+                PROP_FOCUS_MODE: 1,
+                PROP_SLEEP_AID_ENABLE: 1,
+                PROP_WAKE_UP_ENABLE: 1,
+            },
+            is_light=True,
+            has_gear_presets=True,
+        )
+
+        assert mgr._detect_capabilities(device) == [
+            "light",
+            "brightness",
+            "color_temp",
+            "gear_presets",
+            "fade",
+            "focus_mode",
+            "sleep_aid",
+            "wake_up",
+        ]
 
     def test_detect_capabilities_full_matrix(self):
         mgr = _make_manager(enabled=False)

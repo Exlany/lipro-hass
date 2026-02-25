@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass
 import hashlib
 import logging
@@ -144,6 +145,41 @@ def _build_reconfigure_data_schema(default_phone: str) -> vol.Schema:
             vol.Required(CONF_PHONE, default=default_phone): _text_selector(),
             vol.Required(CONF_PASSWORD): _password_selector(),
         },
+    )
+
+
+def _build_bool_option_field(
+    options: Mapping[str, Any],
+    key: str,
+    default: bool,
+) -> tuple[vol.Marker, type[bool]]:
+    """Build a required boolean option field for options schema."""
+    return (
+        vol.Required(
+            key,
+            default=options.get(key, default),
+        ),
+        bool,
+    )
+
+
+def _build_int_option_field(
+    options: Mapping[str, Any],
+    key: str,
+    default: int,
+    min_value: int,
+    max_value: int,
+) -> tuple[vol.Marker, vol.All]:
+    """Build a required bounded integer option field for options schema."""
+    return (
+        vol.Required(
+            key,
+            default=options.get(key, default),
+        ),
+        vol.All(
+            vol.Coerce(int),
+            vol.Range(min=min_value, max=max_value),
+        ),
     )
 
 
@@ -406,73 +442,75 @@ class LiproOptionsFlow(OptionsFlow):
     def _build_init_schema(self) -> vol.Schema:
         """Build the basic options schema."""
         options = self.config_entry.options
-        return vol.Schema(
-            {
-                vol.Required(
-                    CONF_SCAN_INTERVAL,
-                    default=options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL),
-                ): vol.All(
-                    vol.Coerce(int),
-                    vol.Range(min=MIN_SCAN_INTERVAL, max=MAX_SCAN_INTERVAL),
-                ),
-                vol.Required(
-                    CONF_MQTT_ENABLED,
-                    default=options.get(CONF_MQTT_ENABLED, DEFAULT_MQTT_ENABLED),
-                ): bool,
-                vol.Required(
-                    CONF_ENABLE_POWER_MONITORING,
-                    default=options.get(
-                        CONF_ENABLE_POWER_MONITORING,
-                        DEFAULT_ENABLE_POWER_MONITORING,
-                    ),
-                ): bool,
-                vol.Required(
-                    CONF_ANONYMOUS_SHARE_ENABLED,
-                    default=options.get(
-                        CONF_ANONYMOUS_SHARE_ENABLED,
-                        DEFAULT_ANONYMOUS_SHARE_ENABLED,
-                    ),
-                ): bool,
-                vol.Required(
-                    CONF_ANONYMOUS_SHARE_ERRORS,
-                    default=options.get(
-                        CONF_ANONYMOUS_SHARE_ERRORS,
-                        DEFAULT_ANONYMOUS_SHARE_ERRORS,
-                    ),
-                ): bool,
-                vol.Optional(
-                    _CONF_SHOW_ADVANCED,
-                    default=False,
-                ): bool,
-            },
+        schema: dict[vol.Marker, Any] = {}
+
+        int_fields = (
+            (
+                CONF_SCAN_INTERVAL,
+                DEFAULT_SCAN_INTERVAL,
+                MIN_SCAN_INTERVAL,
+                MAX_SCAN_INTERVAL,
+            ),
         )
+        for key, default, min_value, max_value in int_fields:
+            int_field, int_validator = _build_int_option_field(
+                options,
+                key,
+                default,
+                min_value,
+                max_value,
+            )
+            schema[int_field] = int_validator
+
+        for key, default in (
+            (CONF_MQTT_ENABLED, DEFAULT_MQTT_ENABLED),
+            (CONF_ENABLE_POWER_MONITORING, DEFAULT_ENABLE_POWER_MONITORING),
+            (CONF_ANONYMOUS_SHARE_ENABLED, DEFAULT_ANONYMOUS_SHARE_ENABLED),
+            (CONF_ANONYMOUS_SHARE_ERRORS, DEFAULT_ANONYMOUS_SHARE_ERRORS),
+        ):
+            bool_field, bool_validator = _build_bool_option_field(
+                options,
+                key,
+                default,
+            )
+            schema[bool_field] = bool_validator
+
+        schema[vol.Optional(_CONF_SHOW_ADVANCED, default=False)] = bool
+        return vol.Schema(schema)
 
     def _build_advanced_schema(self) -> vol.Schema:
         """Build the advanced options schema."""
         options = self.config_entry.options
-        return vol.Schema(
-            {
-                vol.Required(
-                    CONF_POWER_QUERY_INTERVAL,
-                    default=options.get(
-                        CONF_POWER_QUERY_INTERVAL, DEFAULT_POWER_QUERY_INTERVAL
-                    ),
-                ): vol.All(
-                    vol.Coerce(int),
-                    vol.Range(
-                        min=MIN_POWER_QUERY_INTERVAL, max=MAX_POWER_QUERY_INTERVAL
-                    ),
-                ),
-                vol.Required(
-                    CONF_REQUEST_TIMEOUT,
-                    default=options.get(CONF_REQUEST_TIMEOUT, DEFAULT_REQUEST_TIMEOUT),
-                ): vol.All(
-                    vol.Coerce(int),
-                    vol.Range(min=MIN_REQUEST_TIMEOUT, max=MAX_REQUEST_TIMEOUT),
-                ),
-                vol.Required(
-                    CONF_DEBUG_MODE,
-                    default=options.get(CONF_DEBUG_MODE, DEFAULT_DEBUG_MODE),
-                ): bool,
-            },
+        schema: dict[vol.Marker, Any] = {}
+
+        for key, default, min_value, max_value in (
+            (
+                CONF_POWER_QUERY_INTERVAL,
+                DEFAULT_POWER_QUERY_INTERVAL,
+                MIN_POWER_QUERY_INTERVAL,
+                MAX_POWER_QUERY_INTERVAL,
+            ),
+            (
+                CONF_REQUEST_TIMEOUT,
+                DEFAULT_REQUEST_TIMEOUT,
+                MIN_REQUEST_TIMEOUT,
+                MAX_REQUEST_TIMEOUT,
+            ),
+        ):
+            int_field, int_validator = _build_int_option_field(
+                options,
+                key,
+                default,
+                min_value,
+                max_value,
+            )
+            schema[int_field] = int_validator
+
+        bool_field, bool_validator = _build_bool_option_field(
+            options,
+            CONF_DEBUG_MODE,
+            DEFAULT_DEBUG_MODE,
         )
+        schema[bool_field] = bool_validator
+
+        return vol.Schema(schema)

@@ -26,13 +26,15 @@ from .const import (
     PROP_FAN_ONOFF_ALT,
 )
 from .entities.base import LiproEntity
-from .helpers import create_platform_entities
+from .helpers import create_device_entities
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
     from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
     from . import LiproConfigEntry
+    from .core.coordinator import LiproDataUpdateCoordinator
+    from .core.device import LiproDevice
 
 # Limit parallel updates to avoid overwhelming the API
 PARALLEL_UPDATES = 1
@@ -87,27 +89,26 @@ async def async_setup_entry(
 ) -> None:
     """Set up Lipro fans."""
     coordinator = entry.runtime_data
+    entities = create_device_entities(coordinator, _build_device_fan_entities)
+    async_add_entities(entities)
+
+
+def _build_device_fan_entities(
+    coordinator: LiproDataUpdateCoordinator,
+    device: LiproDevice,
+) -> list[FanEntity]:
+    """Build all fan entities for one device."""
     entities: list[FanEntity] = []
 
-    # Add fan entities for fan lights
-    entities.extend(
-        create_platform_entities(
-            coordinator,
-            device_filter=lambda d: d.is_fan_light,
-            entity_factory=LiproFan,
-        )
-    )
+    # Add fan entity for fan lights.
+    if device.is_fan_light:
+        entities.append(LiproFan(coordinator, device))
 
-    # Add ventilation fan entities for heaters (bathroom heaters)
-    entities.extend(
-        create_platform_entities(
-            coordinator,
-            device_filter=lambda d: d.is_heater,
-            entity_factory=LiproHeaterVentFan,
-        )
-    )
+    # Add ventilation fan entity for heaters (bathroom heaters).
+    if device.is_heater:
+        entities.append(LiproHeaterVentFan(coordinator, device))
 
-    async_add_entities(entities)
+    return entities
 
 
 class LiproFan(LiproEntity, FanEntity):
@@ -293,6 +294,14 @@ class LiproHeaterVentFan(LiproEntity, FanEntity):
         """Return the current preset mode."""
         return AERATION_TO_PRESET.get(self.device.aeration_gear, PRESET_VENT_OFF)
 
+    async def _async_set_aeration_from_preset(
+        self,
+        preset_mode: str,
+    ) -> None:
+        """Apply preset by mapping to aeration gear, with strong as fallback."""
+        aeration = PRESET_TO_AERATION.get(preset_mode, AERATION_STRONG)
+        await self.async_change_state({PROP_AERATION_GEAR: aeration})
+
     async def async_turn_on(
         self,
         percentage: int | None = None,
@@ -304,8 +313,7 @@ class LiproHeaterVentFan(LiproEntity, FanEntity):
         if preset_mode is None:
             preset_mode = PRESET_VENT_STRONG
 
-        aeration = PRESET_TO_AERATION.get(preset_mode, AERATION_STRONG)
-        await self.async_change_state({PROP_AERATION_GEAR: aeration})
+        await self._async_set_aeration_from_preset(preset_mode)
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn off the ventilation fan."""
@@ -313,5 +321,4 @@ class LiproHeaterVentFan(LiproEntity, FanEntity):
 
     async def async_set_preset_mode(self, preset_mode: str) -> None:
         """Set the preset mode of the ventilation fan."""
-        aeration = PRESET_TO_AERATION.get(preset_mode, AERATION_STRONG)
-        await self.async_change_state({PROP_AERATION_GEAR: aeration})
+        await self._async_set_aeration_from_preset(preset_mode)

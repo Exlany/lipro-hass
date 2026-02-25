@@ -5,7 +5,33 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.0.0] - 2025-02-08
+## [Unreleased]
+
+### Added
+
+- One-click installation script for custom component setup.
+- Device diagnostics reporting and stronger diagnostics redaction test coverage.
+
+### Changed
+
+- Migrated project dependency metadata to `pyproject.toml` and added `uv.lock`.
+- Consolidated CI type-checking into lint workflow to reduce redundant setup.
+- Refactored coordinator update/command workflows for better maintainability.
+- Refactored anonymous share capability detection logic with clearer rule-based mapping.
+- Refactored shared sensor entity setup and applied broad type-safety/code-quality cleanup.
+
+### Fixed
+
+- Improved authentication issue lifecycle handling (repair notifications and reauth flow).
+- Prevented anonymous-share crash paths and improved refresh stability.
+- Redacted `wifiSsid` and related sensitive fields in diagnostics/anonymous share payloads.
+- Hardened property parsing against malformed API items.
+- Restored `PROP_FAN_ONOFF` export and cleaned import-order issues.
+- Corrected brightness rounding and motion sensor capability detection behavior.
+- Fixed aiodns/pycares compatibility by refining dependency constraints.
+- Added missing light platform icons and corrected command/device-id examples.
+
+## [1.0.0] - 2026-02-08
 
 ### Added
 
