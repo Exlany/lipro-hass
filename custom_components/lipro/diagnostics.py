@@ -91,6 +91,14 @@ _DEVICE_ID_EMBEDDED_RE: Final = re.compile(
     r"03ab[0-9a-f]{12}",
     re.IGNORECASE,
 )
+_PHONE_EMBEDDED_RE: Final = re.compile(r"(\d{3})\d{4}(\d{4})")
+
+
+def _redact_entry_title(title: Any) -> str:
+    """Redact sensitive identifiers from config-entry title."""
+    if not isinstance(title, str):
+        return ""
+    return _PHONE_EMBEDDED_RE.sub(r"\1****\2", title)
 
 
 def _redact_property_value(value: Any, key: str | None = None) -> Any:
@@ -220,7 +228,7 @@ async def async_get_config_entry_diagnostics(
 
     return {
         "entry": {
-            "title": entry.title,
+            "title": _redact_entry_title(entry.title),
             "data": async_redact_data(entry.data, TO_REDACT),
             "options": entry.options,
         },
@@ -252,7 +260,7 @@ async def async_get_device_diagnostics(
 
     return {
         "entry": {
-            "title": entry.title,
+            "title": _redact_entry_title(entry.title),
             "data": async_redact_data(entry.data, TO_REDACT),
             "options": entry.options,
         },

@@ -64,12 +64,14 @@
         "data": {
           "power_query_interval": "功率查询间隔（秒）",
           "request_timeout": "API 请求超时（秒）",
-          "debug_mode": "启用调试模式（诊断）"
+          "debug_mode": "启用调试模式（诊断）",
+          "light_turn_on_on_adjust": "关灯时调亮度/色温自动开灯"
         },
         "data_description": {
           "power_query_interval": "查询插座功率数据的频率（30-300 秒）。仅在启用功率监测时生效。",
           "request_timeout": "API 请求超时时间（10-60 秒）。网络较慢时可增加此值。",
-          "debug_mode": "采集脱敏运行诊断报告（包含最近命令轨迹）。启用后也会开启更详细的日志。"
+          "debug_mode": "采集脱敏运行诊断报告（包含最近命令轨迹）。启用后也会开启更详细的日志。",
+          "light_turn_on_on_adjust": "开启后，关灯状态下调节亮度或色温会自动开灯；关闭后，调节亮度或色温不会开灯。"
         }
       }
     }

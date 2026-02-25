@@ -21,6 +21,7 @@ from custom_components.lipro.config_flow import (
 )
 from custom_components.lipro.const import (
     CONF_DEBUG_MODE,
+    CONF_LIGHT_TURN_ON_ON_ADJUST,
     CONF_PHONE,
     CONF_PHONE_ID,
     DOMAIN,
@@ -651,6 +652,7 @@ async def test_options_flow(
 
     assert result["type"] is FlowResultType.CREATE_ENTRY
     assert result["data"]["scan_interval"] == 60
+    assert CONF_LIGHT_TURN_ON_ON_ADJUST not in result["data"]
 
 
 async def test_options_flow_advanced_step(
@@ -672,6 +674,7 @@ async def test_options_flow_advanced_step(
             "scan_interval": 45,
             "mqtt_enabled": True,
             "enable_power_monitoring": True,
+            CONF_LIGHT_TURN_ON_ON_ADJUST: True,
             "anonymous_share_enabled": True,
             "anonymous_share_errors": False,
             "power_query_interval": 60,
@@ -706,12 +709,14 @@ async def test_options_flow_advanced_step(
             "power_query_interval": 120,
             "request_timeout": 45,
             CONF_DEBUG_MODE: True,
+            CONF_LIGHT_TURN_ON_ON_ADJUST: False,
         },
     )
     assert result["type"] is FlowResultType.CREATE_ENTRY
     assert result["data"]["scan_interval"] == 30
     assert result["data"]["mqtt_enabled"] is False
     assert result["data"]["enable_power_monitoring"] is False
+    assert result["data"][CONF_LIGHT_TURN_ON_ON_ADJUST] is False
     assert result["data"]["power_query_interval"] == 120
     assert result["data"]["request_timeout"] == 45
     assert result["data"][CONF_DEBUG_MODE] is True

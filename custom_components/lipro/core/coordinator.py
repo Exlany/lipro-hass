@@ -27,6 +27,7 @@ from ..const import (
     CONF_BIZ_ID,
     CONF_DEBUG_MODE,
     CONF_ENABLE_POWER_MONITORING,
+    CONF_LIGHT_TURN_ON_ON_ADJUST,
     CONF_MQTT_ENABLED,
     CONF_PHONE,
     CONF_PHONE_ID,
@@ -38,6 +39,7 @@ from ..const import (
     DEFAULT_ANONYMOUS_SHARE_ERRORS,
     DEFAULT_DEBUG_MODE,
     DEFAULT_ENABLE_POWER_MONITORING,
+    DEFAULT_LIGHT_TURN_ON_ON_ADJUST,
     DEFAULT_MQTT_ENABLED,
     DEFAULT_POWER_QUERY_INTERVAL,
     DEFAULT_REQUEST_TIMEOUT,
@@ -92,6 +94,9 @@ _MQTT_CACHE_STALE_SECONDS: Final[float] = 5.0
 # Number of consecutive full-device-list fetches a device can be missing
 # before being removed from HA device registry.
 _STALE_DEVICE_REMOVE_THRESHOLD: Final[int] = 3
+
+# Periodic full device-list refresh to discover newly paired devices.
+_DEVICE_LIST_REFRESH_INTERVAL_SECONDS: Final[int] = 600
 
 # API status may lag after command push; schedule one delayed refresh fallback.
 _POST_COMMAND_REFRESH_DELAY_SECONDS: Final[float] = 3.0
@@ -414,6 +419,8 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         self._mqtt_message_cache: dict[str, float] = {}
         # Deduplication window in seconds (ignore duplicate messages within this window)
         self._mqtt_dedup_window: float = 0.5
+        # Last successful full device-list refresh timestamp.
+        self._last_device_refresh_at: float = 0.0
         # Power query tracking
         self._last_power_query_time: float = 0.0
         # Flag to force device list re-fetch on next update
@@ -592,6 +599,10 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
                 "power_monitoring_enabled": options.get(
                     CONF_ENABLE_POWER_MONITORING,
                     DEFAULT_ENABLE_POWER_MONITORING,
+                ),
+                "light_turn_on_on_adjust": options.get(
+                    CONF_LIGHT_TURN_ON_ON_ADJUST,
+                    DEFAULT_LIGHT_TURN_ON_ON_ADJUST,
                 ),
                 "power_query_interval": options.get(
                     CONF_POWER_QUERY_INTERVAL,
@@ -1132,6 +1143,7 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         self._missing_device_cycles.clear()
         self._pending_command_expectations.clear()
         self._device_state_latency_seconds.clear()
+        self._last_device_refresh_at = 0.0
 
         _LOGGER.debug("Coordinator shutdown complete")
 
@@ -1327,6 +1339,14 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         async_delete_issue(self.hass, DOMAIN, "auth_expired")
         async_delete_issue(self.hass, DOMAIN, "auth_error")
 
+    def _should_refresh_device_list(self) -> bool:
+        """Return True when a full device-list refresh should run."""
+        if not self._devices or self._force_device_refresh:
+            return True
+
+        elapsed = monotonic() - self._last_device_refresh_at
+        return elapsed >= _DEVICE_LIST_REFRESH_INTERVAL_SECONDS
+
     async def _async_update_data(self) -> dict[str, LiproDevice]:
         """Fetch data from API.
 
@@ -1342,8 +1362,8 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
             await self.auth_manager.ensure_valid_token()
             self._clear_auth_issues()
 
-            # Fetch device list if we don't have devices yet or refresh was forced
-            if not self._devices or self._force_device_refresh:
+            # Periodically refresh the full device list to discover newly paired devices.
+            if self._should_refresh_device_list():
                 self._force_device_refresh = False
                 await self._fetch_devices()
                 # Load product configs and apply color temp ranges
@@ -1393,11 +1413,31 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         devices_data = await self._fetch_all_device_pages()
         snapshot = self._build_fetched_device_snapshot(devices_data)
         self._apply_fetched_device_snapshot(snapshot)
+        self._last_device_refresh_at = monotonic()
+        self._schedule_reload_for_added_devices(previous_serials)
         await self._record_devices_for_anonymous_share()
         await self._reconcile_stale_devices(previous_serials)
 
         if self._mqtt_client and self._mqtt_connected:
             await self._sync_mqtt_subscriptions()
+
+    def _schedule_reload_for_added_devices(self, previous_serials: set[str]) -> None:
+        """Reload config entry when new devices are discovered after initial setup."""
+        if not previous_serials or self.config_entry is None:
+            return
+
+        current_serials = set(self._devices)
+        added_serials = current_serials - previous_serials
+        if not added_serials:
+            return
+
+        _LOGGER.info(
+            "Discovered %d new Lipro device(s), scheduling entry reload",
+            len(added_serials),
+        )
+        self.hass.async_create_task(
+            self.hass.config_entries.async_reload(self.config_entry.entry_id)
+        )
 
     async def _fetch_all_device_pages(self) -> list[dict[str, Any]]:
         """Fetch full device list from paginated API responses."""

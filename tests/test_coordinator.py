@@ -537,7 +537,79 @@ class TestCoordinatorOptionsHardening:
 
 
 # ===========================================================================
-# 7. MQTT cache cleanup
+# 7. Device-list refresh policy
+# ===========================================================================
+
+
+class TestCoordinatorDeviceListRefreshPolicy:
+    """Test periodic full device-list refresh decisions."""
+
+    def test_should_refresh_when_no_devices(self, coordinator):
+        coordinator._devices = {}
+        coordinator._force_device_refresh = False
+
+        assert coordinator._should_refresh_device_list() is True
+
+    def test_should_refresh_when_force_flag_is_set(self, coordinator):
+        coordinator._devices = {"dev1": _make_device(serial="dev1")}
+        coordinator._force_device_refresh = True
+
+        assert coordinator._should_refresh_device_list() is True
+
+    def test_should_not_refresh_within_interval(self, coordinator):
+        coordinator._devices = {"dev1": _make_device(serial="dev1")}
+        coordinator._force_device_refresh = False
+        coordinator._last_device_refresh_at = 100.0
+
+        with patch("custom_components.lipro.core.coordinator.monotonic", return_value=150.0):
+            assert coordinator._should_refresh_device_list() is False
+
+    def test_should_refresh_after_interval(self, coordinator):
+        coordinator._devices = {"dev1": _make_device(serial="dev1")}
+        coordinator._force_device_refresh = False
+        coordinator._last_device_refresh_at = 100.0
+
+        with patch("custom_components.lipro.core.coordinator.monotonic", return_value=1000.0):
+            assert coordinator._should_refresh_device_list() is True
+
+    def test_schedule_reload_for_added_devices(self, coordinator):
+        coordinator._devices = {
+            "dev1": _make_device(serial="dev1"),
+            "dev2": _make_device(serial="dev2"),
+        }
+        scheduled = []
+
+        def _create_task(coro):
+            scheduled.append(coro)
+            coro.close()
+            task = MagicMock()
+            task.done.return_value = True
+            return task
+
+        coordinator.hass.async_create_task = _create_task
+        coordinator._schedule_reload_for_added_devices({"dev1"})
+
+        assert len(scheduled) == 1
+
+    def test_schedule_reload_ignores_first_baseline_fetch(self, coordinator):
+        coordinator._devices = {"dev1": _make_device(serial="dev1")}
+        coordinator.hass.async_create_task = MagicMock()
+
+        coordinator._schedule_reload_for_added_devices(set())
+
+        coordinator.hass.async_create_task.assert_not_called()
+
+    def test_schedule_reload_ignores_removals_only(self, coordinator):
+        coordinator._devices = {"dev1": _make_device(serial="dev1")}
+        coordinator.hass.async_create_task = MagicMock()
+
+        coordinator._schedule_reload_for_added_devices({"dev1", "dev2"})
+
+        coordinator.hass.async_create_task.assert_not_called()
+
+
+# ===========================================================================
+# 8. MQTT cache cleanup
 # ===========================================================================
 
 
@@ -572,7 +644,7 @@ class TestCoordinatorMqttCacheCleanup:
 
 
 # ===========================================================================
-# 8. Send command
+# 9. Send command
 # ===========================================================================
 
 
@@ -1105,7 +1177,7 @@ class TestCoordinatorSendCommand:
 
 
 # ===========================================================================
-# 9. Missing coordinator behaviors
+# 10. Missing coordinator behaviors
 # ===========================================================================
 
 

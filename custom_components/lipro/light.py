@@ -14,6 +14,8 @@ from homeassistant.components.light import (
 from .const import (
     CMD_POWER_OFF,
     CMD_POWER_ON,
+    CONF_LIGHT_TURN_ON_ON_ADJUST,
+    DEFAULT_LIGHT_TURN_ON_ON_ADJUST,
     MAX_BRIGHTNESS,
     MIN_BRIGHTNESS,
     PROP_BRIGHTNESS,
@@ -36,12 +38,6 @@ PARALLEL_UPDATES = 1
 
 # Home Assistant uses 0-255 brightness scale
 _HA_BRIGHTNESS_SCALE: Final = 255
-_OFF_STATE_SLIDER_TIP_COLOR_TEMP: Final = (
-    "When off, brightness and color temperature sliders do not turn on the light."
-)
-_OFF_STATE_SLIDER_TIP_BRIGHTNESS: Final = (
-    "When off, brightness slider changes do not turn on the light."
-)
 
 
 async def async_setup_entry(
@@ -119,18 +115,8 @@ class LiproLight(LiproEntity, LightEntity):
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
-        """Return tip attributes for known Lipro light behavior."""
-        if self.is_on:
-            return {}
-
-        tip = (
-            _OFF_STATE_SLIDER_TIP_COLOR_TEMP
-            if self.device.supports_color_temp
-            else _OFF_STATE_SLIDER_TIP_BRIGHTNESS
-        )
-        return {
-            "slider_behavior_tip": tip,
-        }
+        """Return extra state attributes."""
+        return {}
 
     @property
     def brightness(self) -> int | None:
@@ -184,6 +170,26 @@ class LiproLight(LiproEntity, LightEntity):
 
         return merged
 
+    def _turn_on_when_adjusting_while_off(self) -> bool:
+        """Return whether slider adjust should power on when light is off."""
+        config_entry = getattr(self.coordinator, "config_entry", None)
+        options = getattr(config_entry, "options", {})
+        raw_value = options.get(
+            CONF_LIGHT_TURN_ON_ON_ADJUST,
+            DEFAULT_LIGHT_TURN_ON_ON_ADJUST,
+        )
+        if isinstance(raw_value, bool):
+            return raw_value
+        if isinstance(raw_value, (int, float)):
+            return raw_value != 0
+        if isinstance(raw_value, str):
+            normalized = raw_value.strip().lower()
+            if normalized in {"1", "true", "yes", "on"}:
+                return True
+            if normalized in {"0", "false", "no", "off", ""}:
+                return False
+        return DEFAULT_LIGHT_TURN_ON_ON_ADJUST
+
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn on the light."""
         state_changes: dict[str, int] = {}
@@ -205,10 +211,12 @@ class LiproLight(LiproEntity, LightEntity):
 
         # Use debounce for slider controls (brightness, color_temp)
         # to avoid flooding API when user drags the slider.
-        # Follow Lipro behavior: slider changes do not force power on when off.
         if state_changes:
             state_changes = self._merge_slider_state(state_changes)
             optimistic = dict(state_changes)
+            if not self.is_on and self._turn_on_when_adjusting_while_off():
+                state_changes[PROP_POWER_STATE] = 1
+                optimistic[PROP_POWER_STATE] = 1
             await self.async_change_state(
                 state_changes,
                 optimistic_state=optimistic,

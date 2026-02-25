@@ -43,6 +43,10 @@ MAX_REQUEST_TIMEOUT: Final = 60
 CONF_DEBUG_MODE: Final = "debug_mode"
 DEFAULT_DEBUG_MODE: Final = False
 
+# Options - light.turn_on semantic behavior when adjusting brightness/color temp
+CONF_LIGHT_TURN_ON_ON_ADJUST: Final = "light_turn_on_on_adjust"
+DEFAULT_LIGHT_TURN_ON_ON_ADJUST: Final = True
+
 # Anonymous share options (device info sharing)
 CONF_ANONYMOUS_SHARE_ENABLED: Final = "anonymous_share_enabled"
 CONF_ANONYMOUS_SHARE_ERRORS: Final = "anonymous_share_errors"

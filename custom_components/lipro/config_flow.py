@@ -31,6 +31,7 @@ from .const import (
     CONF_BIZ_ID,
     CONF_DEBUG_MODE,
     CONF_ENABLE_POWER_MONITORING,
+    CONF_LIGHT_TURN_ON_ON_ADJUST,
     CONF_MQTT_ENABLED,
     CONF_PASSWORD_HASH,
     CONF_PHONE,
@@ -44,6 +45,7 @@ from .const import (
     DEFAULT_ANONYMOUS_SHARE_ERRORS,
     DEFAULT_DEBUG_MODE,
     DEFAULT_ENABLE_POWER_MONITORING,
+    DEFAULT_LIGHT_TURN_ON_ON_ADJUST,
     DEFAULT_MQTT_ENABLED,
     DEFAULT_POWER_QUERY_INTERVAL,
     DEFAULT_REQUEST_TIMEOUT,
@@ -513,6 +515,13 @@ class LiproOptionsFlow(OptionsFlow):
             options,
             CONF_DEBUG_MODE,
             DEFAULT_DEBUG_MODE,
+        )
+        schema[bool_field] = bool_validator
+
+        bool_field, bool_validator = _build_bool_option_field(
+            options,
+            CONF_LIGHT_TURN_ON_ON_ADJUST,
+            DEFAULT_LIGHT_TURN_ON_ON_ADJUST,
         )
         schema[bool_field] = bool_validator
 

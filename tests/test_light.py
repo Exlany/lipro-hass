@@ -304,7 +304,7 @@ class TestLiproLightEntityCommands:
 
     @pytest.mark.asyncio
     async def test_turn_on_with_brightness(self, mock_coordinator, make_device):
-        """Test async_turn_on with brightness sends debounced CHANGE_STATE command."""
+        """Brightness turn_on should send CHANGE_STATE and ensure power on."""
         device = make_device("light", properties={"powerState": "0"})
         mock_coordinator.get_device = MagicMock(return_value=device)
 
@@ -324,7 +324,8 @@ class TestLiproLightEntityCommands:
         # Properties should include brightness with converted value
         # HA 128 -> int(128*100/255) = 50
         props = call_args[0][1]
-        assert all(p["key"] != "powerState" for p in props)
+        power_prop = next(p for p in props if p["key"] == "powerState")
+        assert power_prop["value"] == "1"
         brightness_prop = next(p for p in props if p["key"] == "brightness")
         assert brightness_prop["value"] == "50"
 
@@ -352,6 +353,101 @@ class TestLiproLightEntityCommands:
         # 4000K -> percent depends on device range, verify it's a valid string
         assert temp_prop["value"].isdigit()
         mock_coordinator.async_send_command.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_turn_on_with_color_temp_off_state_sets_power(
+        self, mock_coordinator, make_device
+    ):
+        """Color temp turn_on should also include powerState when currently off."""
+        device = make_device(
+            "light", properties={"powerState": "0", "temperature": "50"}
+        )
+        mock_coordinator.get_device = MagicMock(return_value=device)
+
+        from custom_components.lipro.light import LiproLight
+
+        light = LiproLight(mock_coordinator, device)
+        light.async_write_ha_state = MagicMock()
+        light.async_send_command_debounced = AsyncMock()
+
+        await light.async_turn_on(color_temp_kelvin=4000)
+
+        call_args = light.async_send_command_debounced.call_args
+        props = {p["key"]: p["value"] for p in call_args[0][1]}
+        assert props["powerState"] == "1"
+        assert props["temperature"].isdigit()
+
+    @pytest.mark.asyncio
+    async def test_fan_light_turn_on_with_brightness_off_state_sets_power(
+        self, mock_coordinator, make_device
+    ):
+        """Fan light should also follow HA turn_on semantics by default."""
+        device = make_device("fanLight", properties={"powerState": "0"})
+        mock_coordinator.get_device = MagicMock(return_value=device)
+
+        from custom_components.lipro.light import LiproLight
+
+        light = LiproLight(mock_coordinator, device)
+        light.async_write_ha_state = MagicMock()
+        light.async_send_command_debounced = AsyncMock()
+
+        await light.async_turn_on(brightness=128)
+
+        call_args = light.async_send_command_debounced.call_args
+        props = {p["key"]: p["value"] for p in call_args[0][1]}
+        assert props["powerState"] == "1"
+        assert props["brightness"] == "50"
+
+    @pytest.mark.asyncio
+    async def test_turn_on_with_brightness_off_state_can_skip_power_on_by_option(
+        self, mock_coordinator, make_device
+    ):
+        """Option can keep native behavior: adjust brightness without turning on."""
+        from custom_components.lipro.const import CONF_LIGHT_TURN_ON_ON_ADJUST
+        from custom_components.lipro.light import LiproLight
+
+        device = make_device("light", properties={"powerState": "0", "temperature": "50"})
+        mock_coordinator.get_device = MagicMock(return_value=device)
+        mock_coordinator.config_entry = MagicMock(
+            options={CONF_LIGHT_TURN_ON_ON_ADJUST: False}
+        )
+
+        light = LiproLight(mock_coordinator, device)
+        light.async_write_ha_state = MagicMock()
+        light.async_send_command_debounced = AsyncMock()
+
+        await light.async_turn_on(brightness=128)
+
+        call_args = light.async_send_command_debounced.call_args
+        props = {p["key"]: p["value"] for p in call_args[0][1]}
+        assert "powerState" not in props
+        assert props["brightness"] == "50"
+
+    @pytest.mark.asyncio
+    async def test_turn_on_with_color_temp_off_state_can_skip_power_on_by_option(
+        self, mock_coordinator, make_device
+    ):
+        """Option can keep native behavior: adjust color temp without turning on."""
+        from custom_components.lipro.const import CONF_LIGHT_TURN_ON_ON_ADJUST
+        from custom_components.lipro.light import LiproLight
+
+        device = make_device("fanLight", properties={"powerState": "0", "brightness": "60"})
+        mock_coordinator.get_device = MagicMock(return_value=device)
+        mock_coordinator.config_entry = MagicMock(
+            options={CONF_LIGHT_TURN_ON_ON_ADJUST: False}
+        )
+
+        light = LiproLight(mock_coordinator, device)
+        light.async_write_ha_state = MagicMock()
+        light.async_send_command_debounced = AsyncMock()
+
+        await light.async_turn_on(color_temp_kelvin=4200)
+
+        call_args = light.async_send_command_debounced.call_args
+        props = {p["key"]: p["value"] for p in call_args[0][1]}
+        assert "powerState" not in props
+        assert props["brightness"] == "60"
+        assert props["temperature"].isdigit()
 
     @pytest.mark.asyncio
     async def test_turn_on_with_brightness_merges_existing_temperature(
@@ -492,27 +588,22 @@ class TestLiproLightEntityProperties:
         light = LiproLight(mock_coordinator, device)
         assert light.is_on is True
 
-    def test_extra_state_attributes_off_state_tip_color_temp(
+    def test_extra_state_attributes_off_state_no_tip_color_temp(
         self, mock_coordinator, make_device
     ):
-        """Off-state tip includes brightness and color temperature behavior."""
+        """No slider tip attributes are exposed in off-state."""
         device = make_device("light", properties={"powerState": "0"})
         mock_coordinator.get_device = MagicMock(return_value=device)
 
         from custom_components.lipro.light import LiproLight
 
         light = LiproLight(mock_coordinator, device)
-        assert light.extra_state_attributes == {
-            "slider_behavior_tip": (
-                "When off, brightness and color temperature sliders "
-                "do not turn on the light."
-            )
-        }
+        assert light.extra_state_attributes == {}
 
-    def test_extra_state_attributes_off_state_tip_brightness_only(
+    def test_extra_state_attributes_off_state_no_tip_brightness_only(
         self, mock_coordinator, make_device
     ):
-        """Off-state tip only mentions brightness on single-color devices."""
+        """No slider tip attributes on single-color devices either."""
         device = make_device(
             "light",
             properties={"powerState": "0"},
@@ -524,11 +615,7 @@ class TestLiproLightEntityProperties:
         from custom_components.lipro.light import LiproLight
 
         light = LiproLight(mock_coordinator, device)
-        assert light.extra_state_attributes == {
-            "slider_behavior_tip": (
-                "When off, brightness slider changes do not turn on the light."
-            )
-        }
+        assert light.extra_state_attributes == {}
 
     def test_extra_state_attributes_on_state_no_tip(
         self, mock_coordinator, make_device

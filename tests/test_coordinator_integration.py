@@ -143,6 +143,34 @@ class TestCoordinatorUpdateFlow:
         mock_lipro_api_client.get_devices.assert_not_called()
 
     @pytest.mark.asyncio
+    async def test_periodic_update_refetches_device_list(
+        self, coordinator, mock_lipro_api_client
+    ):
+        """Periodic refresh should re-fetch devices even without force flag."""
+        mock_lipro_api_client.get_devices.return_value = {
+            "devices": [_make_api_device(serial="03ab5ccd7c000001")]
+        }
+        mock_lipro_api_client.query_device_status.return_value = []
+        mock_lipro_api_client.query_connect_status.return_value = {}
+
+        with patch(
+            "custom_components.lipro.core.coordinator.get_anonymous_share_manager"
+        ) as mock_share:
+            mock_share.return_value = MagicMock(is_enabled=False)
+            await coordinator._async_update_data()
+            mock_lipro_api_client.get_devices.reset_mock()
+
+            coordinator._force_device_refresh = False
+            coordinator._last_device_refresh_at = 0.0
+            with patch(
+                "custom_components.lipro.core.coordinator.monotonic",
+                return_value=9999.0,
+            ):
+                await coordinator._async_update_data()
+
+        mock_lipro_api_client.get_devices.assert_called_once()
+
+    @pytest.mark.asyncio
     async def test_ensure_valid_token_called(
         self, coordinator, mock_lipro_api_client, mock_auth_manager
     ):

@@ -232,6 +232,7 @@ class TestAsyncGetConfigEntryDiagnostics:
         ):
             result = await async_get_config_entry_diagnostics(hass, entry)
 
+        assert result["entry"]["title"] == "Lipro (138****0000)"
         assert result["entry"]["data"]["phone"] == "**REDACTED**"
         assert result["entry"]["data"]["access_token"] == "**REDACTED**"
         assert result["entry"]["data"]["safe_value"] == "ok"
@@ -279,6 +280,7 @@ class TestAsyncGetConfigEntryDiagnostics:
         ):
             result = await async_get_config_entry_diagnostics(hass, entry)
 
+        assert result["entry"]["title"] == "Lipro Empty"
         assert result["devices"] == []
         assert result["coordinator"]["last_update_success"] is False
         assert result["anonymous_share"] == {
@@ -386,6 +388,7 @@ class TestAsyncGetDeviceDiagnostics:
 
         result = await async_get_device_diagnostics(hass, entry, device_entry)
 
+        assert result["entry"]["title"] == "Lipro (138****0000)"
         assert result["entry"]["data"]["phone"] == "**REDACTED**"
         assert result["device"]["name"] == "**REDACTED**"
         assert result["device"]["room_name"] == "**REDACTED**"
