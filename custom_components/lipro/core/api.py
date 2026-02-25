@@ -14,15 +14,27 @@ from typing import TYPE_CHECKING, Any
 
 import aiohttp
 
-from ..const import APP_VERSION_CODE, APP_VERSION_NAME, DEVICE_TYPE_MAP
+from ..const import (
+    APP_VERSION_CODE,
+    APP_VERSION_NAME,
+    DEVICE_TYPE_MAP,
+    IOT_DEVICE_ID_PREFIX,
+)
 from ..const.api import (
     CONTENT_TYPE_FORM,
     CONTENT_TYPE_JSON,
     ERROR_AUTH_CODES,
+    ERROR_DEVICE_BUSY,
+    ERROR_DEVICE_BUSY_STR,
+    ERROR_DEVICE_NOT_CONNECTED,
+    ERROR_DEVICE_NOT_CONNECTED_STR,
     ERROR_DEVICE_OFFLINE,
     ERROR_DEVICE_OFFLINE_STR,
+    ERROR_INVALID_PARAM,
+    ERROR_INVALID_PARAM_STR,
     ERROR_NO_PERMISSION,
     ERROR_NO_PERMISSION_STR,
+    ERROR_REFRESH_TOKEN_EXPIRED,
     HEADER_ACCESS_TOKEN,
     HEADER_CACHE_CONTROL,
     HEADER_CONTENT_TYPE,
@@ -36,6 +48,9 @@ from ..const.api import (
     MAX_RATE_LIMIT_RETRIES,
     MAX_RETRY_AFTER,
     MERCHANT_CODE,
+    PATH_BLE_SCHEDULE_ADD,
+    PATH_BLE_SCHEDULE_DELETE,
+    PATH_BLE_SCHEDULE_GET,
     PATH_FETCH_DEVICES,
     PATH_GET_MQTT_CONFIG,
     PATH_GET_PRODUCT_CONFIGS,
@@ -51,7 +66,6 @@ from ..const.api import (
     PATH_SEND_COMMAND,
     PATH_SEND_GROUP_COMMAND,
     REQUEST_TIMEOUT,
-    RESPONSE_SUCCESS,
     RESPONSE_SUCCESS_CODES,
     SMART_HOME_API_URL,
     SMART_HOME_SIGN_KEY,
@@ -70,14 +84,33 @@ if TYPE_CHECKING:
 
 _LOGGER = logging.getLogger(__name__)
 
+# Retry settings for transient command-busy responses from device cloud.
+_COMMAND_BUSY_RETRY_MAX_ATTEMPTS = 3
+_COMMAND_BUSY_RETRY_BASE_DELAY_SECONDS = 0.25
+# Minimum interval between CHANGE_STATE sends to the same target.
+_CHANGE_STATE_MIN_INTERVAL_SECONDS = 0.2
+# Adaptive pacing tuning for CHANGE_STATE per target.
+_CHANGE_STATE_MAX_INTERVAL_SECONDS = 1.2
+_CHANGE_STATE_BUSY_MULTIPLIER = 1.6
+_CHANGE_STATE_RECOVERY_MULTIPLIER = 0.8
+# Max tracked targets for command pacing cache.
+_COMMAND_PACING_CACHE_MAX_SIZE = 256
+
 # Patterns for sensitive data masking
 _SENSITIVE_PATTERNS = (
     (re.compile(r'"access_token"\s*:\s*"[^"]*"'), '"access_token": "***"'),
     (re.compile(r'"refresh_token"\s*:\s*"[^"]*"'), '"refresh_token": "***"'),
     (re.compile(r'"accessToken"\s*:\s*"[^"]*"'), '"accessToken": "***"'),
     (re.compile(r'"refreshToken"\s*:\s*"[^"]*"'), '"refreshToken": "***"'),
+    (re.compile(r'"accessKey"\s*:\s*"[^"]*"'), '"accessKey": "***"'),
+    (re.compile(r'"secretKey"\s*:\s*"[^"]*"'), '"secretKey": "***"'),
     (re.compile(r'"password"\s*:\s*"[^"]*"'), '"password": "***"'),
     (re.compile(r'"phone"\s*:\s*"(\d{3})\d{4}(\d{4})"'), r'"phone": "\1****\2"'),
+)
+
+_IOT_DEVICE_ID_PATTERN = re.compile(
+    rf"^{re.escape(IOT_DEVICE_ID_PREFIX)}[0-9a-f]{{12}}$",
+    re.IGNORECASE,
 )
 
 
@@ -95,6 +128,77 @@ def _mask_sensitive_data(data: str) -> str:
     for pattern, replacement in _SENSITIVE_PATTERNS:
         result = pattern.sub(replacement, result)
     return result
+
+
+def _coerce_connect_status(value: Any) -> bool:
+    """Normalize backend connection-state variants to boolean."""
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, (int, float)):
+        return value != 0
+    if isinstance(value, str):
+        normalized = value.strip().lower()
+        if normalized in {"1", "true", "yes", "on"}:
+            return True
+        if normalized in {"0", "false", "no", "off", ""}:
+            return False
+        _LOGGER.debug("Unexpected connect-status string value: %r", value)
+        return False
+    if value is None:
+        return False
+    _LOGGER.debug(
+        "Unexpected connect-status value type: %s (%r)",
+        type(value).__name__,
+        value,
+    )
+    return False
+
+
+def _normalize_iot_device_id(device_id: Any) -> str | None:
+    """Normalize and validate IoT device IDs.
+
+    Returns canonical lowercase ID if valid, otherwise ``None``.
+    """
+    if not isinstance(device_id, str):
+        return None
+    normalized = device_id.strip().lower()
+    if not normalized:
+        return None
+    if not _IOT_DEVICE_ID_PATTERN.fullmatch(normalized):
+        return None
+    return normalized
+
+
+def _normalize_response_code(code: Any) -> int | str | None:
+    """Normalize API response codes for robust comparisons.
+
+    Handles backend differences such as:
+    - int codes (200, 401, 140003)
+    - numeric strings ("0000", "200", "2001")
+    - strings with accidental spaces (" 0000 ")
+    - symbolic string codes ("token_expired")
+    """
+    if code is None:
+        return None
+    if isinstance(code, bool):
+        return int(code)
+    if isinstance(code, int):
+        return code
+    if isinstance(code, float):
+        if code.is_integer():
+            return int(code)
+        return str(code).strip()
+    if isinstance(code, str):
+        normalized = code.strip()
+        if not normalized:
+            return None
+        if normalized.lstrip("+-").isdigit():
+            try:
+                return int(normalized, 10)
+            except ValueError:
+                return normalized
+        return normalized
+    return str(code).strip()
 
 
 class LiproApiError(Exception):
@@ -164,6 +268,11 @@ class LiproClient:
         self._on_token_refresh: Callable[[], Awaitable[None]] | None = None
         # Instance-level lock for preventing concurrent token refresh
         self._refresh_lock: asyncio.Lock = asyncio.Lock()
+        # Per-target pacing state for high-frequency CHANGE_STATE commands.
+        self._command_pacing_lock: asyncio.Lock = asyncio.Lock()
+        self._last_change_state_at: dict[str, float] = {}
+        self._change_state_min_interval: dict[str, float] = {}
+        self._change_state_busy_count: dict[str, int] = {}
 
     @property
     def phone_id(self) -> str:
@@ -391,6 +500,245 @@ class LiproClient:
         _LOGGER.info("Received auth error from %s, attempting token refresh", path)
         return await self._handle_401_with_refresh(old_token)
 
+    @staticmethod
+    def _is_auth_error_code(code: Any) -> bool:
+        """Check whether an API code represents an authentication failure."""
+        normalized = _normalize_response_code(code)
+        if isinstance(normalized, str) and normalized.lower() == "token_expired":
+            return True
+        return (
+            normalized in ERROR_AUTH_CODES
+            or normalized in ERROR_REFRESH_TOKEN_EXPIRED
+        )
+
+    @staticmethod
+    def _is_success_code(code: Any) -> bool:
+        """Check whether an API code represents success."""
+        normalized = _normalize_response_code(code)
+        return normalized in RESPONSE_SUCCESS_CODES
+
+    @classmethod
+    def _resolve_auth_error_code(
+        cls,
+        code: Any,
+        error_code: Any,
+    ) -> int | str | None:
+        """Pick the most relevant auth code from response code/errorCode fields."""
+        if cls._is_auth_error_code(code):
+            normalized = _normalize_response_code(code)
+            if isinstance(normalized, str) and normalized.lower() == "token_expired":
+                return "token_expired"
+            return normalized
+        if cls._is_auth_error_code(error_code):
+            normalized = _normalize_response_code(error_code)
+            if isinstance(normalized, str) and normalized.lower() == "token_expired":
+                return "token_expired"
+            return normalized
+        return None
+
+    @staticmethod
+    def _resolve_error_code(code: Any, error_code: Any) -> int | str | None:
+        """Pick the most specific error code from code/errorCode fields."""
+        normalized_error_code = _normalize_response_code(error_code)
+        if normalized_error_code not in (None, "", 0):
+            return normalized_error_code
+        normalized_code = _normalize_response_code(code)
+        if normalized_code not in (None, "", 0):
+            return normalized_code
+        return None
+
+    @staticmethod
+    def _is_invalid_param_error_code(code: Any) -> bool:
+        """Check whether error code represents invalid request payload/params."""
+        normalized = _normalize_response_code(code)
+        return normalized in (ERROR_INVALID_PARAM, ERROR_INVALID_PARAM_STR)
+
+    @staticmethod
+    def _is_command_busy_error(err: LiproApiError) -> bool:
+        """Check whether an API error is a transient command-busy response."""
+        normalized = _normalize_response_code(err.code)
+        if normalized in (ERROR_DEVICE_BUSY, ERROR_DEVICE_BUSY_STR):
+            return True
+
+        message = str(err)
+        if not message:
+            return False
+        lowered = message.lower()
+        return "设备繁忙" in message or "device busy" in lowered
+
+    @staticmethod
+    def _is_change_state_command(command: str) -> bool:
+        """Return True when command is CHANGE_STATE."""
+        return command.upper() == "CHANGE_STATE"
+
+    @staticmethod
+    def _normalize_pacing_target(target_id: str) -> str:
+        """Normalize command target ID for per-target pacing caches."""
+        return target_id.strip().lower()
+
+    def _enforce_command_pacing_cache_limit(self) -> None:
+        """Keep per-target pacing caches bounded."""
+        tracked_targets = set(self._last_change_state_at) | set(
+            self._change_state_min_interval
+        )
+        while len(tracked_targets) > _COMMAND_PACING_CACHE_MAX_SIZE:
+            if self._last_change_state_at:
+                oldest_target = min(
+                    self._last_change_state_at.items(),
+                    key=lambda item: item[1],
+                )[0]
+            else:
+                oldest_target = next(iter(tracked_targets))
+
+            self._last_change_state_at.pop(oldest_target, None)
+            self._change_state_min_interval.pop(oldest_target, None)
+            self._change_state_busy_count.pop(oldest_target, None)
+            tracked_targets.discard(oldest_target)
+
+    async def _record_change_state_busy(
+        self,
+        target_id: str,
+        command: str,
+    ) -> tuple[float, int]:
+        """Increase adaptive pacing interval when CHANGE_STATE hits busy error."""
+        if not self._is_change_state_command(command):
+            return _CHANGE_STATE_MIN_INTERVAL_SECONDS, 0
+
+        normalized_target = self._normalize_pacing_target(target_id)
+        if not normalized_target:
+            return _CHANGE_STATE_MIN_INTERVAL_SECONDS, 0
+
+        async with self._command_pacing_lock:
+            current_interval = max(
+                _CHANGE_STATE_MIN_INTERVAL_SECONDS,
+                self._change_state_min_interval.get(
+                    normalized_target,
+                    _CHANGE_STATE_MIN_INTERVAL_SECONDS,
+                ),
+            )
+            next_interval = min(
+                _CHANGE_STATE_MAX_INTERVAL_SECONDS,
+                current_interval * _CHANGE_STATE_BUSY_MULTIPLIER,
+            )
+            busy_count = self._change_state_busy_count.get(normalized_target, 0) + 1
+
+            self._change_state_min_interval[normalized_target] = next_interval
+            self._change_state_busy_count[normalized_target] = busy_count
+            self._enforce_command_pacing_cache_limit()
+            return next_interval, busy_count
+
+    async def _record_change_state_success(self, target_id: str, command: str) -> None:
+        """Recover adaptive pacing interval after successful CHANGE_STATE command."""
+        if not self._is_change_state_command(command):
+            return
+
+        normalized_target = self._normalize_pacing_target(target_id)
+        if not normalized_target:
+            return
+
+        async with self._command_pacing_lock:
+            current_interval = max(
+                _CHANGE_STATE_MIN_INTERVAL_SECONDS,
+                self._change_state_min_interval.get(
+                    normalized_target,
+                    _CHANGE_STATE_MIN_INTERVAL_SECONDS,
+                ),
+            )
+            recovered_interval = max(
+                _CHANGE_STATE_MIN_INTERVAL_SECONDS,
+                current_interval * _CHANGE_STATE_RECOVERY_MULTIPLIER,
+            )
+            self._change_state_min_interval[normalized_target] = recovered_interval
+            self._change_state_busy_count.pop(normalized_target, None)
+            self._enforce_command_pacing_cache_limit()
+
+    async def _iot_request_with_busy_retry(
+        self,
+        path: str,
+        body_data: dict[str, Any],
+        *,
+        target_id: str,
+        command: str,
+    ) -> dict[str, Any]:
+        """Send IoT command request with retry for transient busy errors."""
+        for attempt in range(_COMMAND_BUSY_RETRY_MAX_ATTEMPTS + 1):
+            await self._throttle_change_state(target_id, command)
+            try:
+                result = await self._iot_request(path, body_data)
+                await self._record_change_state_success(target_id, command)
+                if isinstance(result, dict):
+                    return result
+                return {}
+            except LiproApiError as err:
+                if not self._is_command_busy_error(err):
+                    raise
+
+                adaptive_interval, busy_count = await self._record_change_state_busy(
+                    target_id,
+                    command,
+                )
+                if attempt >= _COMMAND_BUSY_RETRY_MAX_ATTEMPTS:
+                    raise
+
+                wait_time = _COMMAND_BUSY_RETRY_BASE_DELAY_SECONDS * (2**attempt)
+                _LOGGER.debug(
+                    (
+                        "Command %s to %s busy (code=%s), retrying in %.2fs "
+                        "(%d/%d), adaptive_interval=%.2fs busy_count=%d"
+                    ),
+                    command,
+                    target_id,
+                    err.code,
+                    wait_time,
+                    attempt + 1,
+                    _COMMAND_BUSY_RETRY_MAX_ATTEMPTS,
+                    adaptive_interval,
+                    busy_count,
+                )
+                await asyncio.sleep(wait_time)
+
+        # Defensive fallback, loop should return or raise earlier.
+        return {}
+
+    async def _throttle_change_state(self, target_id: str, command: str) -> None:
+        """Pace high-frequency CHANGE_STATE sends for the same target."""
+        if not self._is_change_state_command(command):
+            return
+
+        normalized_target = self._normalize_pacing_target(target_id)
+        if not normalized_target:
+            return
+
+        async with self._command_pacing_lock:
+            now = time.monotonic()
+            last = self._last_change_state_at.get(normalized_target)
+            min_interval = max(
+                _CHANGE_STATE_MIN_INTERVAL_SECONDS,
+                self._change_state_min_interval.get(
+                    normalized_target,
+                    _CHANGE_STATE_MIN_INTERVAL_SECONDS,
+                ),
+            )
+            if last is not None:
+                wait_time = min_interval - (now - last)
+                if wait_time > 0:
+                    await asyncio.sleep(wait_time)
+                    now = time.monotonic()
+
+            self._last_change_state_at[normalized_target] = now
+            self._enforce_command_pacing_cache_limit()
+
+    @staticmethod
+    def _require_mapping_response(path: str, result: Any) -> dict[str, Any]:
+        """Validate that an API response payload is a JSON object."""
+        if isinstance(result, dict):
+            return result
+        msg = (
+            f"Invalid JSON response from {path}: "
+            f"expected object, got {type(result).__name__}"
+        )
+        raise LiproApiError(msg)
+
     async def _smart_home_request(
         self,
         path: str,
@@ -458,29 +806,37 @@ class LiproClient:
                 path, data, require_auth, _is_retry, _retry_count=_retry_count + 1
             )
 
+        result = self._require_mapping_response(path, result)
         code = result.get("code")
-        if code == RESPONSE_SUCCESS:
-            return result.get("value") or result.get("typedValue") or {}
+        if self._is_success_code(code):
+            if "value" in result:
+                payload = result.get("value")
+                return {} if payload is None else payload
+            if "typedValue" in result:
+                payload = result.get("typedValue")
+                return {} if payload is None else payload
+            return {}
 
         error_code = result.get("errorCode")
         message = result.get("message", "Unknown error")
 
-        # Check for 401 in response body (hilbert API style)
-        # Per docs: some APIs return HTTP 200 with code:401 in body
-        is_auth_error = code == 401 or error_code in ("401", "token_expired")
+        # Check for auth errors in response body (hilbert API style)
+        # Per docs: some APIs return HTTP 200 with auth errors in body.
+        auth_error_code = self._resolve_auth_error_code(code, error_code)
 
-        if is_auth_error:
+        if auth_error_code is not None:
             if require_auth and await self._handle_auth_error_and_retry(
                 path, old_token, _is_retry
             ):
                 return await self._smart_home_request(
                     path, data, require_auth, _is_retry=True
                 )
-            raise LiproAuthError(message, code)
+            raise LiproAuthError(message, auth_error_code)
 
+        effective_code = self._resolve_error_code(code, error_code)
         # Record API error for anonymous share
-        _record_api_error(path, code or error_code or 0, message, method="POST")
-        raise LiproApiError(message, code)
+        _record_api_error(path, effective_code or 0, message, method="POST")
+        raise LiproApiError(message, effective_code)
 
     def _build_iot_headers(self, body: str) -> dict[str, str]:
         """Build common IoT API request headers.
@@ -510,7 +866,7 @@ class LiproClient:
         body_data: dict[str, Any],
         _is_retry: bool = False,
         _retry_count: int = 0,
-    ) -> dict[str, Any]:
+    ) -> Any:
         """Make an IoT API request with automatic 401/429 handling.
 
         Args:
@@ -557,6 +913,8 @@ class LiproClient:
                 path, body_data, _is_retry, _retry_count=_retry_count + 1
             )
 
+        result = self._require_mapping_response(path, result)
+
         # Check HTTP status code for 401 (IoT API style)
         if status == 401:
             if await self._handle_auth_error_and_retry(path, old_token, _is_retry):
@@ -565,20 +923,36 @@ class LiproClient:
             raise LiproAuthError(msg, 401)
 
         code = result.get("code")
-        if code in RESPONSE_SUCCESS_CODES:
-            return result.get("data") or result
+        if self._is_success_code(code):
+            return self._unwrap_iot_success_payload(result)
 
+        error_code = result.get("errorCode")
         message = result.get("message", "Unknown error")
 
         # Check for auth errors in response body
-        if code in ERROR_AUTH_CODES:
+        auth_error_code = self._resolve_auth_error_code(code, error_code)
+        if auth_error_code is not None:
             if await self._handle_auth_error_and_retry(path, old_token, _is_retry):
                 return await self._iot_request(path, body_data, _is_retry=True)
-            raise LiproAuthError(message, code)
+            raise LiproAuthError(message, auth_error_code)
 
+        effective_code = self._resolve_error_code(code, error_code)
         # Record API error for anonymous share
-        _record_api_error(path, code or 0, message, method="POST")
-        raise LiproApiError(message, code)
+        _record_api_error(path, effective_code or 0, message, method="POST")
+        raise LiproApiError(message, effective_code)
+
+    @staticmethod
+    def _unwrap_iot_success_payload(result: dict[str, Any]) -> Any:
+        """Unwrap successful IoT API payload.
+
+        Most endpoints use ``{"code":"0000","data":...}``, but a few may return
+        direct payload objects. Keep empty ``data`` containers (for example `{}`)
+        and only coerce ``None`` to empty dict for call-site compatibility.
+        """
+        if "data" in result:
+            data = result["data"]
+            return {} if data is None else data
+        return result
 
     @staticmethod
     def _parse_retry_after(headers: dict[str, str]) -> float | None:
@@ -816,40 +1190,97 @@ class LiproClient:
 
     @staticmethod
     def _is_retriable_device_error(err: LiproApiError) -> bool:
-        """Check if the error is a retriable device error (offline/no permission).
+        """Check if the error is a retriable device error.
 
         Args:
             err: The API error to check.
 
         Returns:
             True if the error should trigger fallback to individual queries.
+            Includes offline/no-permission/not-connected variants observed
+            in real API traffic.
 
         """
-        return err.code in (
+        normalized = _normalize_response_code(err.code)
+        return normalized in (
             ERROR_DEVICE_OFFLINE,
             ERROR_DEVICE_OFFLINE_STR,
+            ERROR_DEVICE_NOT_CONNECTED,
+            ERROR_DEVICE_NOT_CONNECTED_STR,
             ERROR_NO_PERMISSION,
             ERROR_NO_PERMISSION_STR,
         )
 
     @staticmethod
-    def _extract_data_list(result: Any) -> list[dict[str, Any]]:
-        """Extract a list of data items from an API result.
-
-        The API may return either a list directly or a dict with a "data" key.
+    def _extract_list_payload(
+        result: Any,
+        *keys: str,
+    ) -> list[dict[str, Any]]:
+        """Extract list payload from direct or wrapped API responses.
 
         Args:
             result: API response data.
+            keys: Wrapper keys that may contain the list payload.
 
         Returns:
-            List of data items.
+            Parsed list payload, or empty list when unavailable/invalid.
 
         """
         if isinstance(result, list):
             return result
-        if isinstance(result, dict) and "data" in result:
-            return result["data"]  # type: ignore[no-any-return]
+        if isinstance(result, dict):
+            for key in keys:
+                value = result.get(key)
+                if isinstance(value, list):
+                    return value
         return []
+
+    @staticmethod
+    def _extract_data_list(result: Any) -> list[dict[str, Any]]:
+        """Extract list payload from ``data`` responses."""
+        return LiproClient._extract_list_payload(result, "data")
+
+    @staticmethod
+    def _extract_timings_list(result: Any) -> list[dict[str, Any]]:
+        """Extract timing-task rows from API response variants.
+
+        Real API responses are not fully consistent. Some endpoints return
+        a list directly, while others may wrap rows under ``timings`` or
+        ``data`` keys.
+        """
+        return LiproClient._extract_list_payload(result, "timings", "data")
+
+    @staticmethod
+    def _sanitize_iot_device_ids(
+        device_ids: list[str],
+        *,
+        endpoint: str,
+    ) -> list[str]:
+        """Keep only valid IoT device IDs for endpoint requests.
+
+        IDs are normalized to lowercase and de-duplicated while preserving order.
+        Invalid/group IDs are skipped to prevent business-level API errors.
+        """
+        valid_ids: list[str] = []
+        seen: set[str] = set()
+        skipped = 0
+        for raw_id in device_ids:
+            normalized = _normalize_iot_device_id(raw_id)
+            if normalized is None:
+                skipped += 1
+                continue
+            if normalized in seen:
+                continue
+            seen.add(normalized)
+            valid_ids.append(normalized)
+
+        if skipped:
+            _LOGGER.debug(
+                "Skipped %d non-IoT IDs for %s",
+                skipped,
+                endpoint,
+            )
+        return valid_ids
 
     async def _query_with_fallback(
         self,
@@ -908,7 +1339,8 @@ class LiproClient:
             List of device status data.
 
         Note:
-            If a device is offline, the API may return error 140003.
+            If a device is offline/unreachable, the API may return
+            140003 or 140004.
             In this case, we fall back to querying devices one by one.
 
         """
@@ -938,7 +1370,8 @@ class LiproClient:
             List of group status data.
 
         Note:
-            If a group has offline devices, the API may return error 140003.
+            If a group has offline/unreachable devices, the API may return
+            140003 or 140004.
             In this case, we fall back to querying groups one by one.
 
         """
@@ -968,21 +1401,33 @@ class LiproClient:
         if not device_ids:
             return {}
 
+        sanitized_ids = self._sanitize_iot_device_ids(
+            device_ids,
+            endpoint=PATH_QUERY_CONNECT_STATUS,
+        )
+        if not sanitized_ids:
+            return {}
+
         try:
             # _iot_request returns dict[str, Any], but we use Any to allow
             # the defensive isinstance check below without type: ignore.
             result: Any = await self._iot_request(
                 PATH_QUERY_CONNECT_STATUS,
-                {"deviceIdList": device_ids},
+                {"deviceIdList": sanitized_ids},
             )
 
             # API returns Map<String, Boolean>
             if isinstance(result, dict):
-                # Convert string "true"/"false" to bool if needed
-                return {
-                    k: v if isinstance(v, bool) else str(v).lower() == "true"
-                    for k, v in result.items()
-                }
+                # Defensive fallback for accidental wrapped payloads.
+                if "code" in result and "data" in result:
+                    wrapped_data = result.get("data")
+                    if isinstance(wrapped_data, dict):
+                        result = wrapped_data
+                    else:
+                        return {}
+                # Defensive conversion for backend variants:
+                # bool, int(1/0), and string("true"/"false"/"1"/"0").
+                return {k: _coerce_connect_status(v) for k, v in result.items()}
             return {}
         except LiproApiError as err:
             _LOGGER.debug(
@@ -1025,7 +1470,12 @@ class LiproClient:
             "hasMacRule": False,
         }
 
-        return await self._iot_request(PATH_SEND_COMMAND, body)
+        return await self._iot_request_with_busy_retry(
+            PATH_SEND_COMMAND,
+            body,
+            target_id=device_id,
+            command=command,
+        )
 
     async def send_group_command(
         self,
@@ -1061,7 +1511,12 @@ class LiproClient:
             "hasMacRule": False,
         }
 
-        return await self._iot_request(PATH_SEND_GROUP_COMMAND, body)
+        return await self._iot_request_with_busy_retry(
+            PATH_SEND_GROUP_COMMAND,
+            body,
+            target_id=group_id,
+            command=command,
+        )
 
     async def get_mqtt_config(
         self,
@@ -1127,14 +1582,16 @@ class LiproClient:
             msg = "HTTP 401 Unauthorized"
             raise LiproAuthError(msg, 401)
 
+        result = self._require_mapping_response(PATH_GET_MQTT_CONFIG, result)
+
         # This endpoint returns {"accessKey": "...", "secretKey": "..."} directly
         if "accessKey" in result and "secretKey" in result:
             return result
 
         # Fallback: if the API ever wraps it in standard format
         code = result.get("code")
-        if code in RESPONSE_SUCCESS_CODES:
-            return result.get("data") or result
+        if self._is_success_code(code):
+            return self._unwrap_iot_success_payload(result)
 
         message = result.get("message", "Unknown error")
         raise LiproApiError(message, code)
@@ -1160,23 +1617,249 @@ class LiproClient:
             LiproApiError: If API returns an error.
 
         """
-        return await self._iot_request(
-            PATH_QUERY_OUTLET_POWER,
-            {"deviceIds": device_ids},
+        sanitized_ids = self._sanitize_iot_device_ids(
+            device_ids,
+            endpoint=PATH_QUERY_OUTLET_POWER,
         )
+        if not sanitized_ids:
+            return {}
+
+        try:
+            return await self._iot_request(
+                PATH_QUERY_OUTLET_POWER,
+                {"deviceIds": sanitized_ids},
+            )
+        except LiproApiError as err:
+            # Real-world API may return 100000 when device IDs are valid format
+            # but unsupported by this endpoint. Degrade to empty power payload.
+            if self._is_invalid_param_error_code(err.code):
+                _LOGGER.debug(
+                    "Power-info endpoint rejected device IDs %s (code=%s), treating as empty",
+                    sanitized_ids,
+                    err.code,
+                )
+                return {}
+            raise
 
     # ==================== Timing Task APIs ====================
+
+    @staticmethod
+    def _is_mesh_group_id(device_id: str) -> bool:
+        """Check whether the identifier is a mesh-group ID."""
+        return isinstance(device_id, str) and device_id.strip().lower().startswith(
+            "mesh_group_"
+        )
+
+    @classmethod
+    def _resolve_mesh_schedule_candidate_ids(
+        cls,
+        device_id: str,
+        *,
+        mesh_gateway_id: str = "",
+        mesh_member_ids: list[str] | None = None,
+    ) -> list[str]:
+        """Resolve candidate IoT device IDs for mesh schedule APIs.
+
+        The mesh schedule endpoints use real device IoT IDs in practice,
+        not mesh-group IDs. Prefer gateway ID, then group members.
+        """
+        candidates: list[str] = []
+        seen: set[str] = set()
+
+        def _append_candidate(raw_id: Any) -> None:
+            normalized = _normalize_iot_device_id(raw_id)
+            if normalized is None or normalized in seen:
+                return
+            seen.add(normalized)
+            candidates.append(normalized)
+
+        _append_candidate(mesh_gateway_id)
+        if isinstance(mesh_member_ids, list):
+            for member_id in mesh_member_ids:
+                _append_candidate(member_id)
+        _append_candidate(device_id)
+        return candidates
+
+    @staticmethod
+    def _coerce_int_list(value: Any) -> list[int]:
+        """Convert mixed list payloads into a clean integer list."""
+        if not isinstance(value, list):
+            return []
+        result: list[int] = []
+        for item in value:
+            if isinstance(item, bool):
+                # Avoid treating bool as int.
+                continue
+            if isinstance(item, int):
+                result.append(item)
+                continue
+            if isinstance(item, float):
+                if item.is_integer():
+                    result.append(int(item))
+                continue
+            if isinstance(item, str):
+                normalized = item.strip()
+                if normalized.lstrip("+-").isdigit():
+                    try:
+                        result.append(int(normalized))
+                    except ValueError:
+                        continue
+        return result
+
+    @classmethod
+    def _parse_mesh_schedule_json(cls, schedule_json: Any) -> dict[str, list[int]]:
+        """Parse mesh ``scheduleJson`` into ``days/time/evt`` arrays."""
+        empty = {"days": [], "time": [], "evt": []}
+        payload = schedule_json
+
+        if isinstance(payload, str):
+            raw = payload.strip()
+            if not raw:
+                return empty
+            try:
+                payload = json.loads(raw)
+            except (json.JSONDecodeError, TypeError):
+                _LOGGER.debug("Invalid mesh scheduleJson payload: %r", payload)
+                return empty
+
+        if isinstance(payload, dict) and isinstance(payload.get("schedule"), dict):
+            payload = payload["schedule"]
+
+        if not isinstance(payload, dict):
+            return empty
+
+        days = cls._coerce_int_list(payload.get("days"))
+        times = cls._coerce_int_list(payload.get("time"))
+        events = cls._coerce_int_list(payload.get("evt"))
+
+        # Compatibility with richer scheduleJson variants from app docs.
+        if not days:
+            days = cls._coerce_int_list(payload.get("weekDays"))
+
+        if not times:
+            hhmm = payload.get("time")
+            if isinstance(hhmm, str):
+                match = re.fullmatch(r"(\d{1,2}):(\d{2})", hhmm.strip())
+                if match:
+                    hours = int(match.group(1))
+                    minutes = int(match.group(2))
+                    if 0 <= hours <= 23 and 0 <= minutes <= 59:
+                        times = [hours * 3600 + minutes * 60]
+
+        if not events:
+            action = payload.get("action")
+            if isinstance(action, dict) and str(action.get("command", "")).lower() == "power":
+                props = action.get("properties")
+                if isinstance(props, list):
+                    for prop in props:
+                        if not isinstance(prop, dict):
+                            continue
+                        if prop.get("key") == "power":
+                            events = [0 if _coerce_connect_status(prop.get("value")) else 1]
+                            break
+
+        if len(times) != len(events):
+            pair_count = min(len(times), len(events))
+            if pair_count > 0:
+                times = times[:pair_count]
+                events = events[:pair_count]
+            else:
+                times = []
+                events = []
+
+        return {"days": days, "time": times, "evt": events}
+
+    @classmethod
+    def _normalize_mesh_timing_rows(
+        cls,
+        rows: list[dict[str, Any]],
+        *,
+        fallback_device_id: str = "",
+    ) -> list[dict[str, Any]]:
+        """Normalize mesh timing rows to include ``schedule`` dict payload."""
+        normalized_rows: list[dict[str, Any]] = []
+        for row in rows:
+            if not isinstance(row, dict):
+                continue
+
+            schedule_payload = row.get("schedule", row.get("scheduleJson"))
+            schedule = cls._parse_mesh_schedule_json(schedule_payload)
+
+            normalized_row = dict(row)
+            normalized_row["schedule"] = schedule
+            normalized_row["active"] = _coerce_connect_status(row.get("active", True))
+            if not isinstance(normalized_row.get("deviceId"), str) and fallback_device_id:
+                normalized_row["deviceId"] = fallback_device_id
+            normalized_rows.append(normalized_row)
+
+        return normalized_rows
+
+    async def _get_mesh_schedules_by_candidates(
+        self,
+        candidate_device_ids: list[str],
+        *,
+        raise_on_total_failure: bool = True,
+    ) -> list[dict[str, Any]]:
+        """Query mesh schedule list from candidate device IDs."""
+        if not candidate_device_ids:
+            return []
+
+        last_error: LiproApiError | None = None
+        has_successful_call = False
+
+        for candidate_id in candidate_device_ids:
+            try:
+                result = await self._iot_request(
+                    PATH_BLE_SCHEDULE_GET,
+                    {
+                        "deviceId": candidate_id,
+                        "deviceType": "mesh",
+                    },
+                )
+            except LiproAuthError:
+                raise
+            except LiproApiError as err:
+                last_error = err
+                _LOGGER.debug(
+                    "Mesh schedule GET failed for %s: %s (code=%s)",
+                    candidate_id,
+                    err,
+                    err.code,
+                )
+                continue
+
+            has_successful_call = True
+            rows = self._extract_timings_list(result)
+            normalized_rows = self._normalize_mesh_timing_rows(
+                rows,
+                fallback_device_id=candidate_id,
+            )
+            if normalized_rows:
+                return normalized_rows
+
+        if has_successful_call:
+            return []
+
+        if raise_on_total_failure and last_error is not None:
+            raise last_error
+
+        return []
 
     async def get_device_schedules(
         self,
         device_id: str,
         device_type: int | str,
+        *,
+        mesh_gateway_id: str = "",
+        mesh_member_ids: list[str] | None = None,
     ) -> list[dict[str, Any]]:
         """Get timing schedules for a device.
 
         Args:
             device_id: Device IoT ID.
             device_type: Device type (integer or hex string).
+            mesh_gateway_id: Optional mesh gateway IoT ID.
+            mesh_member_ids: Optional mesh member IoT IDs.
 
         Returns:
             List of timing schedules, each containing:
@@ -1185,6 +1868,15 @@ class LiproClient:
                 - schedule: Dict with days, time, evt arrays
 
         """
+        if self._is_mesh_group_id(device_id):
+            candidate_ids = self._resolve_mesh_schedule_candidate_ids(
+                device_id,
+                mesh_gateway_id=mesh_gateway_id,
+                mesh_member_ids=mesh_member_ids,
+            )
+            if candidate_ids:
+                return await self._get_mesh_schedules_by_candidates(candidate_ids)
+
         device_type_hex = self._to_device_type_hex(device_type)
 
         result = await self._iot_request(
@@ -1195,7 +1887,7 @@ class LiproClient:
             },
         )
 
-        return result.get("timings", [])  # type: ignore[no-any-return]
+        return self._extract_timings_list(result)
 
     async def add_device_schedule(
         self,
@@ -1205,6 +1897,9 @@ class LiproClient:
         times: list[int],
         events: list[int],
         group_id: str = "",
+        *,
+        mesh_gateway_id: str = "",
+        mesh_member_ids: list[str] | None = None,
     ) -> list[dict[str, Any]]:
         """Add or update a timing schedule for a device.
 
@@ -1215,6 +1910,8 @@ class LiproClient:
             times: List of times in seconds from midnight.
             events: List of event codes (0=light on, 1=light off, etc.).
             group_id: Optional group ID for mesh devices.
+            mesh_gateway_id: Optional mesh gateway IoT ID.
+            mesh_member_ids: Optional mesh member IoT IDs.
 
         Returns:
             Updated list of timing schedules.
@@ -1238,6 +1935,47 @@ class LiproClient:
             msg = "times and events arrays must have the same length"
             raise ValueError(msg)
 
+        if self._is_mesh_group_id(device_id):
+            candidate_ids = self._resolve_mesh_schedule_candidate_ids(
+                device_id,
+                mesh_gateway_id=mesh_gateway_id,
+                mesh_member_ids=mesh_member_ids,
+            )
+            if candidate_ids:
+                schedule_json = json.dumps(
+                    {"days": days, "time": times, "evt": events},
+                    separators=(",", ":"),
+                    ensure_ascii=False,
+                )
+                last_error: LiproApiError | None = None
+                for candidate_id in candidate_ids:
+                    try:
+                        await self._iot_request(
+                            PATH_BLE_SCHEDULE_ADD,
+                            {
+                                "deviceId": candidate_id,
+                                "id": 0,
+                                "scheduleJson": schedule_json,
+                                "active": True,
+                            },
+                        )
+                        return await self._get_mesh_schedules_by_candidates(
+                            candidate_ids,
+                            raise_on_total_failure=False,
+                        )
+                    except LiproAuthError:
+                        raise
+                    except LiproApiError as err:
+                        last_error = err
+                        _LOGGER.debug(
+                            "Mesh schedule ADD failed for %s: %s (code=%s)",
+                            candidate_id,
+                            err,
+                            err.code,
+                        )
+                if last_error is not None:
+                    raise last_error
+
         device_type_hex = self._to_device_type_hex(device_type)
 
         result = await self._iot_request(
@@ -1255,7 +1993,7 @@ class LiproClient:
             },
         )
 
-        return result.get("timings", [])  # type: ignore[no-any-return]
+        return self._extract_timings_list(result)
 
     async def delete_device_schedules(
         self,
@@ -1263,6 +2001,9 @@ class LiproClient:
         device_type: int | str,
         schedule_ids: list[int],
         group_id: str = "",
+        *,
+        mesh_gateway_id: str = "",
+        mesh_member_ids: list[str] | None = None,
     ) -> list[dict[str, Any]]:
         """Delete timing schedules for a device.
 
@@ -1271,11 +2012,51 @@ class LiproClient:
             device_type: Device type (integer or hex string).
             schedule_ids: List of schedule IDs to delete.
             group_id: Optional group ID for mesh devices.
+            mesh_gateway_id: Optional mesh gateway IoT ID.
+            mesh_member_ids: Optional mesh member IoT IDs.
 
         Returns:
             Remaining list of timing schedules.
 
         """
+        if self._is_mesh_group_id(device_id):
+            candidate_ids = self._resolve_mesh_schedule_candidate_ids(
+                device_id,
+                mesh_gateway_id=mesh_gateway_id,
+                mesh_member_ids=mesh_member_ids,
+            )
+            if candidate_ids:
+                deleted = False
+                last_error: LiproApiError | None = None
+                for candidate_id in candidate_ids:
+                    try:
+                        await self._iot_request(
+                            PATH_BLE_SCHEDULE_DELETE,
+                            {
+                                "deviceId": candidate_id,
+                                "idList": schedule_ids,
+                            },
+                        )
+                        deleted = True
+                    except LiproAuthError:
+                        raise
+                    except LiproApiError as err:
+                        last_error = err
+                        _LOGGER.debug(
+                            "Mesh schedule DELETE failed for %s: %s (code=%s)",
+                            candidate_id,
+                            err,
+                            err.code,
+                        )
+
+                if deleted:
+                    return await self._get_mesh_schedules_by_candidates(
+                        candidate_ids,
+                        raise_on_total_failure=False,
+                    )
+                if last_error is not None:
+                    raise last_error
+
         device_type_hex = self._to_device_type_hex(device_type)
 
         result = await self._iot_request(
@@ -1289,7 +2070,7 @@ class LiproClient:
             },
         )
 
-        return result.get("timings", [])  # type: ignore[no-any-return]
+        return self._extract_timings_list(result)
 
 
 def _record_api_error(

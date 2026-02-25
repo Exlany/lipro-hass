@@ -184,6 +184,12 @@ class TestParseMqttPayload:
 
         assert result == {}
 
+    def test_parse_non_dict_payload(self):
+        """Test parsing payload safely ignores non-dict JSON types."""
+        assert parse_mqtt_payload([]) == {}
+        assert parse_mqtt_payload("not-an-object") == {}
+        assert parse_mqtt_payload(None) == {}
+
     def test_parse_payload_with_unknown_groups(self):
         """Test parsing payload ignores unknown groups."""
         payload = {
@@ -476,6 +482,25 @@ class TestLiproMqttClient:
         # Should not call callback for empty properties
         on_message.assert_not_called()
 
+    def test_process_message_payload_not_object(self):
+        """Test message processing ignores JSON payloads that are not objects."""
+        on_message = MagicMock()
+        client = LiproMqttClient(
+            access_key="access",
+            secret_key="secret",
+            biz_id="lip_biz001",
+            phone_id="550e8400-e29b-41d4-a716-446655440000",
+            on_message=on_message,
+        )
+
+        message = MagicMock()
+        message.topic = "Topic_Device_State/lip_biz001/03ab5ccd7cxxxxxx"
+        message.payload = b'["not", "an", "object"]'
+
+        client._process_message(message)
+
+        on_message.assert_not_called()
+
 
 class TestLiproMqttClientProperties:
     """Tests for MQTT client properties."""
@@ -609,6 +634,24 @@ class TestSyncSubscriptions:
         mock_mqtt.unsubscribe.assert_called_once()
         assert client._subscribed_devices == {"dev_new"}
 
+    @pytest.mark.asyncio
+    async def test_sync_connected_skips_invalid_device_id(self):
+        """Test sync skips invalid topic IDs without breaking valid subscriptions."""
+        client = LiproMqttClient(
+            access_key="access",
+            secret_key="secret",
+            biz_id="lip_biz001",
+            phone_id="550e8400-e29b-41d4-a716-446655440000",
+        )
+        mock_mqtt = AsyncMock()
+        client._client = mock_mqtt
+        client._connected = True
+
+        await client.sync_subscriptions({"valid_dev", "bad/dev"})
+
+        mock_mqtt.subscribe.assert_called_once()
+        assert client._subscribed_devices == {"valid_dev"}
+
 
 class TestConnectionLoop:
     """Tests for reconnection loop with backoff/jitter."""
@@ -661,6 +704,66 @@ class TestConnectionLoop:
                 client,
                 "_connect_and_listen",
                 side_effect=OSError("network down"),
+            ),
+            patch("custom_components.lipro.core.mqtt.random.uniform", return_value=0.0),
+            patch(
+                "custom_components.lipro.core.mqtt.asyncio.sleep",
+                side_effect=_sleep_and_stop,
+            ) as sleep,
+        ):
+            await client._connection_loop()
+
+        sleep.assert_called_once()
+        assert client._connected is False
+
+    @pytest.mark.asyncio
+    async def test_connection_loop_handles_value_error(self):
+        client = LiproMqttClient(
+            access_key="access",
+            secret_key="secret",
+            biz_id="lip_biz001",
+            phone_id="550e8400-e29b-41d4-a716-446655440000",
+        )
+        client._running = True
+
+        async def _sleep_and_stop(_: float) -> None:
+            client._running = False
+
+        with (
+            patch.object(
+                client,
+                "_connect_and_listen",
+                side_effect=ValueError("invalid topic"),
+            ),
+            patch("custom_components.lipro.core.mqtt.random.uniform", return_value=0.0),
+            patch(
+                "custom_components.lipro.core.mqtt.asyncio.sleep",
+                side_effect=_sleep_and_stop,
+            ) as sleep,
+        ):
+            await client._connection_loop()
+
+        sleep.assert_called_once()
+        assert client._connected is False
+
+    @pytest.mark.asyncio
+    async def test_connection_loop_handles_unexpected_exception(self):
+        client = LiproMqttClient(
+            access_key="access",
+            secret_key="secret",
+            biz_id="lip_biz001",
+            phone_id="550e8400-e29b-41d4-a716-446655440000",
+        )
+        client._running = True
+
+        async def _sleep_and_stop(_: float) -> None:
+            client._running = False
+
+        with (
+            patch.object(
+                client,
+                "_connect_and_listen",
+                side_effect=RuntimeError("unexpected"),
             ),
             patch("custom_components.lipro.core.mqtt.random.uniform", return_value=0.0),
             patch(

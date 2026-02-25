@@ -91,5 +91,6 @@ body:
       placeholder: |
         设备型号 / Device model:
         Lipro App 截图 / Lipro App screenshot:
+        开发者报告 / Developer report JSON (optional):
     validations:
       required: false

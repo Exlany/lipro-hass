@@ -64,12 +64,12 @@
         "data": {
           "power_query_interval": "Power query interval (seconds)",
           "request_timeout": "API request timeout (seconds)",
-          "debug_mode": "Enable debug logging"
+          "debug_mode": "Enable debug mode (diagnostics)"
         },
         "data_description": {
           "power_query_interval": "How often to query power data for outlets (30-300 seconds). Only applies when power monitoring is enabled.",
           "request_timeout": "Timeout for API requests (10-60 seconds). Increase if you have a slow network.",
-          "debug_mode": "Enable verbose logging for troubleshooting. Check Home Assistant logs for details."
+          "debug_mode": "Capture a sanitized runtime diagnostics report with recent command traces. Enabling this also enables verbose logging."
         }
       }
     }
@@ -86,9 +86,9 @@
         "state_attributes": {
           "preset_mode": {
             "state": {
+              "direct": "Direct",
               "natural": "Natural",
-              "sleep": "Sleep",
-              "normal": "Normal"
+              "cycle": "Cycle"
             }
           }
         }
@@ -277,6 +277,20 @@
     "get_anonymous_share_report": {
       "name": "Get Anonymous Share Report",
       "description": "Preview the anonymous share report data that would be submitted. Use this to review what information will be shared."
+    },
+    "get_developer_report": {
+      "name": "Get Developer Report",
+      "description": "Export a sanitized runtime diagnostics report for real-device debugging. Includes mesh topology snapshot, recent command traces, and runtime options."
+    },
+    "submit_developer_feedback": {
+      "name": "Submit Developer Feedback",
+      "description": "One-click submit sanitized developer diagnostics to the share worker. Optionally include a note for easier triage.",
+      "fields": {
+        "note": {
+          "name": "Note",
+          "description": "Extra context about what you observed during the test."
+        }
+      }
     }
   },
   "exceptions": {
@@ -317,6 +331,9 @@
     },
     "anonymous_share_submit_failed": {
       "message": "Failed to submit anonymous share report."
+    },
+    "developer_feedback_submit_failed": {
+      "message": "Failed to submit developer feedback report."
     },
     "mqtt_disconnected": {
       "title": "Lipro MQTT Disconnected",

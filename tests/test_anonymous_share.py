@@ -119,6 +119,15 @@ class TestLooksSensitive:
     def test_device_id_detected(self):
         assert self.mgr._looks_sensitive("03ab5ccd7c123456") is True
 
+    def test_device_id_uppercase_detected(self):
+        assert self.mgr._looks_sensitive("03AB5CCD7CABCDEF") is True
+
+    def test_compact_mac_detected(self):
+        assert self.mgr._looks_sensitive("5ccd7c5985f1") is True
+
+    def test_numeric_compact_mac_detected(self):
+        assert self.mgr._looks_sensitive("001122334455") is True
+
     def test_token_like_detected(self):
         token = "a" * 32
         assert self.mgr._looks_sensitive(token) is True
@@ -162,6 +171,21 @@ class TestSanitizeString:
         result = self.mgr._sanitize_string("device 03ab5ccd7c123456 offline")
         assert "[DEVICE_ID]" in result
         assert "03ab5ccd7c123456" not in result
+
+    def test_replaces_uppercase_device_ids(self):
+        result = self.mgr._sanitize_string("device 03AB5CCD7CABCDEF offline")
+        assert "[DEVICE_ID]" in result
+        assert "03AB5CCD7CABCDEF" not in result
+
+    def test_replaces_compact_mac(self):
+        result = self.mgr._sanitize_string("rc address 5ccd7c5985f1")
+        assert "[MAC]" in result
+        assert "5ccd7c5985f1" not in result
+
+    def test_replaces_numeric_compact_mac(self):
+        result = self.mgr._sanitize_string("rc address 001122334455")
+        assert "[MAC]" in result
+        assert "001122334455" not in result
 
     def test_preserves_normal_text(self):
         text = "powerState changed to on"
@@ -236,6 +260,24 @@ class TestSanitizeProperties:
         result = self.mgr._sanitize_properties(props)
         assert "DEVICEID" not in result
         assert "Mac" not in result
+
+    def test_sanitizes_json_string_payloads_recursively(self):
+        props = {
+            "deviceInfo": (
+                '{"wifi_ssid":"Lany","ip":"10.0.0.153","deviceId":"03AB5CCD7CABCDEF",'
+                '"rc":[{"address":"5ccd7c5985f1","name":"智能控制器"}]}'
+            )
+        }
+
+        result = self.mgr._sanitize_properties(props)
+        parsed = json.loads(result["deviceInfo"])
+
+        # Sensitive nested keys are removed by _sanitize_value.
+        assert "wifi_ssid" not in parsed
+        assert "ip" not in parsed
+        assert "deviceId" not in parsed
+        # Nested compact MAC-like address should be redacted.
+        assert parsed["rc"][0]["address"] == "[redacted]"
 
 
 # ===========================================================================
@@ -558,6 +600,49 @@ class TestSubmitLogic:
         session = AsyncMock()
         assert await mgr.submit_if_needed(session) is True
         session.post.assert_not_called()
+
+    async def test_submit_developer_feedback_success(self):
+        """Developer feedback submit should not require anonymous-share enabled."""
+        mgr = _make_manager(enabled=False)
+        mgr._ha_version = "2026.2.0"
+
+        session = MagicMock()
+        response = MagicMock()
+        response.status = 200
+        context = AsyncMock()
+        context.__aenter__ = AsyncMock(return_value=response)
+        context.__aexit__ = AsyncMock(return_value=False)
+        session.post = MagicMock(return_value=context)
+
+        result = await mgr.submit_developer_feedback(
+            session,
+            {"source": "test", "reports": [{"phone": "13800000000"}]},
+        )
+
+        assert result is True
+        session.post.assert_called_once()
+        payload = session.post.call_args.kwargs["json"]
+        assert payload["report_version"] == "1.2"
+        assert payload["integration_version"]
+        assert payload["devices"] == []
+        assert payload["errors"] == []
+        assert "developer_feedback" in payload
+
+    async def test_submit_developer_feedback_non_200_returns_false(self):
+        mgr = _make_manager(enabled=False)
+        session = MagicMock()
+        response = MagicMock()
+        response.status = 500
+        context = AsyncMock()
+        context.__aenter__ = AsyncMock(return_value=response)
+        context.__aexit__ = AsyncMock(return_value=False)
+        session.post = MagicMock(return_value=context)
+
+        result = await mgr.submit_developer_feedback(
+            session,
+            {"source": "test", "reports": []},
+        )
+        assert result is False
 
 
 # ===========================================================================

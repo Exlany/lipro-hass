@@ -39,6 +39,13 @@ PATH_SCHEDULE_ADD: Final = (
 )
 PATH_SCHEDULE_DELETE: Final = "/app/oauth/api/v1/user/control/device/schedule/delete.do"
 PATH_SCHEDULE_GET: Final = "/app/oauth/api/v1/user/control/device/schedule/get.do"
+PATH_BLE_SCHEDULE_ADD: Final = (
+    "/app/oauth/api/v1/user/control/device/bleSchedule/addOrUpdate.do"
+)
+PATH_BLE_SCHEDULE_DELETE: Final = (
+    "/app/oauth/api/v1/user/control/device/bleSchedule/delete.do"
+)
+PATH_BLE_SCHEDULE_GET: Final = "/app/oauth/api/v1/user/control/device/bleSchedule/get.do"
 
 # HTTP headers
 HEADER_CONTENT_TYPE: Final = "Content-Type"
@@ -59,15 +66,23 @@ CONTENT_TYPE_JSON: Final = "application/json"
 # Response codes
 RESPONSE_SUCCESS: Final = 200
 RESPONSE_SUCCESS_CODES: Final = frozenset(
-    (200, "0000", "200")
+    (0, 200)
 )  # All known success code variants
 
 # Error codes - verified in real API responses
 ERROR_DEVICE_OFFLINE: Final = 140003  # Device not found / offline
 ERROR_DEVICE_OFFLINE_STR: Final = "140003"
+ERROR_DEVICE_NOT_CONNECTED: Final = 140004  # Device/network not connected
+ERROR_DEVICE_NOT_CONNECTED_STR: Final = "140004"
 ERROR_NO_PERMISSION: Final = 140101  # No permission to view device
 ERROR_NO_PERMISSION_STR: Final = "140101"
-ERROR_AUTH_CODES: Final = frozenset((401, "401", 2001, 2002))  # Authentication errors
+# Device is temporarily busy, retry later.
+ERROR_DEVICE_BUSY: Final = 250001
+ERROR_DEVICE_BUSY_STR: Final = "250001"
+# Generic invalid parameter / unsupported payload for endpoint
+ERROR_INVALID_PARAM: Final = 100000
+ERROR_INVALID_PARAM_STR: Final = "100000"
+ERROR_AUTH_CODES: Final = frozenset((401, 2001, 2002))  # Authentication errors
 
 # Error codes - from API docs, not yet verified in real responses
 # Refresh token expired

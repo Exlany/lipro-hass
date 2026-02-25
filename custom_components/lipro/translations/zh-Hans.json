@@ -64,12 +64,12 @@
         "data": {
           "power_query_interval": "功率查询间隔（秒）",
           "request_timeout": "API 请求超时（秒）",
-          "debug_mode": "启用调试日志"
+          "debug_mode": "启用调试模式（诊断）"
         },
         "data_description": {
           "power_query_interval": "查询插座功率数据的频率（30-300 秒）。仅在启用功率监测时生效。",
           "request_timeout": "API 请求超时时间（10-60 秒）。网络较慢时可增加此值。",
-          "debug_mode": "启用详细日志以便排查问题。请查看 Home Assistant 日志了解详情。"
+          "debug_mode": "采集脱敏运行诊断报告（包含最近命令轨迹）。启用后也会开启更详细的日志。"
         }
       }
     }
@@ -86,9 +86,9 @@
         "state_attributes": {
           "preset_mode": {
             "state": {
+              "direct": "直吹风",
               "natural": "自然风",
-              "sleep": "睡眠",
-              "normal": "正常"
+              "cycle": "循环风"
             }
           }
         }
@@ -277,6 +277,20 @@
     "get_anonymous_share_report": {
       "name": "获取匿名分享报告",
       "description": "预览将要提交的匿名分享报告数据。使用此功能查看将分享哪些信息。"
+    },
+    "get_developer_report": {
+      "name": "获取开发者报告",
+      "description": "导出脱敏运行诊断报告，用于真实设备调试。包含 mesh 拓扑快照、最近命令轨迹和运行选项。"
+    },
+    "submit_developer_feedback": {
+      "name": "提交开发者反馈",
+      "description": "一键提交脱敏开发者诊断到 share worker，可附带备注便于排查。",
+      "fields": {
+        "note": {
+          "name": "备注",
+          "description": "补充你在实测中观察到的现象。"
+        }
+      }
     }
   },
   "exceptions": {
@@ -317,6 +331,9 @@
     },
     "anonymous_share_submit_failed": {
       "message": "提交匿名分享报告失败。"
+    },
+    "developer_feedback_submit_failed": {
+      "message": "提交开发者反馈报告失败。"
     },
     "mqtt_disconnected": {
       "title": "Lipro MQTT 连接已断开",

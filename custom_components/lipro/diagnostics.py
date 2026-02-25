@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import json
+import re
 from typing import TYPE_CHECKING, Any, Final
 
 from homeassistant.components.diagnostics import async_redact_data
@@ -66,11 +68,81 @@ PROPERTY_KEYS_TO_REDACT: Final = {
 # Pre-computed lowercase set for efficient lookup
 _PROPERTY_KEYS_LOWER: Final = frozenset(key.lower() for key in PROPERTY_KEYS_TO_REDACT)
 
+_NESTED_KEYS_TO_REDACT_LOWER: Final = _PROPERTY_KEYS_LOWER | frozenset(
+    {
+        "deviceid",
+        "serial",
+        "iotdeviceid",
+        "iot_device_id",
+        "groupid",
+        "gatewaydeviceid",
+    }
+)
+
+_MAC_LITERAL_RE: Final = re.compile(r"^([0-9A-Fa-f]{2}[:-]){5}[0-9A-Fa-f]{2}$")
+_IPV4_LITERAL_RE: Final = re.compile(r"^\d{1,3}(\.\d{1,3}){3}$")
+_DEVICE_ID_LITERAL_RE: Final = re.compile(
+    r"^03ab[0-9a-f]{12}$",
+    re.IGNORECASE,
+)
+_MAC_EMBEDDED_RE: Final = re.compile(r"([0-9A-Fa-f]{2}[:-]){5}[0-9A-Fa-f]{2}")
+_IPV4_EMBEDDED_RE: Final = re.compile(r"\d{1,3}(\.\d{1,3}){3}")
+_DEVICE_ID_EMBEDDED_RE: Final = re.compile(
+    r"03ab[0-9a-f]{12}",
+    re.IGNORECASE,
+)
+
+
+def _redact_property_value(value: Any, key: str | None = None) -> Any:
+    """Recursively redact sensitive values in property payloads."""
+    if key is not None and key.lower() in _NESTED_KEYS_TO_REDACT_LOWER:
+        return "**REDACTED**"
+
+    if isinstance(value, dict):
+        return {
+            k: _redact_property_value(v, str(k))
+            for k, v in value.items()
+        }
+
+    if isinstance(value, list):
+        return [_redact_property_value(item) for item in value]
+
+    if isinstance(value, str):
+        stripped = value.strip()
+
+        # deviceInfo/deviceExtra payloads may embed JSON as strings.
+        if stripped and stripped[0] in "{[":
+            try:
+                parsed = json.loads(value)
+            except (TypeError, ValueError):
+                pass
+            else:
+                redacted = _redact_property_value(parsed)
+                if isinstance(redacted, (dict, list)):
+                    return json.dumps(
+                        redacted, ensure_ascii=False, separators=(",", ":")
+                    )
+
+        if (
+            _MAC_LITERAL_RE.fullmatch(stripped)
+            or _IPV4_LITERAL_RE.fullmatch(stripped)
+            or _DEVICE_ID_LITERAL_RE.fullmatch(stripped)
+        ):
+            return "**REDACTED**"
+
+        sanitized = _MAC_EMBEDDED_RE.sub("**REDACTED**", value)
+        sanitized = _IPV4_EMBEDDED_RE.sub("**REDACTED**", sanitized)
+        sanitized = _DEVICE_ID_EMBEDDED_RE.sub("**REDACTED**", sanitized)
+        if sanitized != value:
+            return sanitized
+
+    return value
+
 
 def _redact_device_properties(properties: dict[str, Any]) -> dict[str, Any]:
     """Redact sensitive keys from device properties."""
     return {
-        k: "**REDACTED**" if k.lower() in _PROPERTY_KEYS_LOWER else v
+        k: _redact_property_value(v, k)
         for k, v in properties.items()
     }
 

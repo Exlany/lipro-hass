@@ -21,6 +21,7 @@ from custom_components.lipro import (
     ATTR_DAYS,
     ATTR_DEVICE_ID,
     ATTR_EVENTS,
+    ATTR_NOTE,
     ATTR_PROPERTIES,
     ATTR_SCHEDULE_IDS,
     ATTR_TIMES,
@@ -30,18 +31,24 @@ from custom_components.lipro import (
     SERVICE_DELETE_SCHEDULES,
     SERVICE_DELETE_SCHEDULES_SCHEMA,
     SERVICE_GET_ANONYMOUS_SHARE_REPORT,
+    SERVICE_GET_DEVELOPER_REPORT,
     SERVICE_GET_SCHEDULES,
     SERVICE_GET_SCHEDULES_SCHEMA,
     SERVICE_SEND_COMMAND,
     SERVICE_SEND_COMMAND_SCHEMA,
     SERVICE_SUBMIT_ANONYMOUS_SHARE,
+    SERVICE_SUBMIT_DEVELOPER_FEEDBACK,
+    SERVICE_SUBMIT_DEVELOPER_FEEDBACK_SCHEMA,
     _async_handle_add_schedule,
     _async_handle_delete_schedules,
     _async_handle_get_anonymous_share_report,
+    _async_handle_get_developer_report,
     _async_handle_get_schedules,
     _async_handle_send_command,
     _async_handle_submit_anonymous_share,
+    _async_handle_submit_developer_feedback,
     _get_device_and_coordinator,
+    _summarize_service_properties,
     async_setup,
     async_setup_entry,
     async_unload_entry,
@@ -146,6 +153,14 @@ class TestServiceConstants:
         """Test SERVICE_GET_ANONYMOUS_SHARE_REPORT is defined correctly."""
         assert SERVICE_GET_ANONYMOUS_SHARE_REPORT == "get_anonymous_share_report"
 
+    def test_service_get_developer_report(self):
+        """Test SERVICE_GET_DEVELOPER_REPORT is defined correctly."""
+        assert SERVICE_GET_DEVELOPER_REPORT == "get_developer_report"
+
+    def test_service_submit_developer_feedback(self):
+        """Test SERVICE_SUBMIT_DEVELOPER_FEEDBACK is defined correctly."""
+        assert SERVICE_SUBMIT_DEVELOPER_FEEDBACK == "submit_developer_feedback"
+
     def test_service_constants_are_strings(self):
         """Test all service constants are strings."""
         assert isinstance(SERVICE_SEND_COMMAND, str)
@@ -154,6 +169,8 @@ class TestServiceConstants:
         assert isinstance(SERVICE_DELETE_SCHEDULES, str)
         assert isinstance(SERVICE_SUBMIT_ANONYMOUS_SHARE, str)
         assert isinstance(SERVICE_GET_ANONYMOUS_SHARE_REPORT, str)
+        assert isinstance(SERVICE_GET_DEVELOPER_REPORT, str)
+        assert isinstance(SERVICE_SUBMIT_DEVELOPER_FEEDBACK, str)
 
 
 class TestAttributeConstants:
@@ -272,6 +289,12 @@ class TestSchemaStructure:
         assert keys[ATTR_DEVICE_ID] is False  # optional
         assert ATTR_SCHEDULE_IDS in keys
         assert keys[ATTR_SCHEDULE_IDS] is True  # required
+
+    def test_submit_developer_feedback_schema_keys(self):
+        """Test submit_developer_feedback schema has expected keys."""
+        keys = self._get_schema_keys(SERVICE_SUBMIT_DEVELOPER_FEEDBACK_SCHEMA)
+        assert ATTR_NOTE in keys
+        assert keys[ATTR_NOTE] is False
 
 
 class TestSchemaValidation:
@@ -394,6 +417,32 @@ class TestSchemaValidation:
         assert result["device_id"] == "abc123"
         assert result["schedule_ids"] == [1]
 
+    def test_submit_developer_feedback_valid_empty(self):
+        """Test submit_developer_feedback schema accepts empty input."""
+        result = SERVICE_SUBMIT_DEVELOPER_FEEDBACK_SCHEMA({})
+        assert isinstance(result, dict)
+
+    def test_submit_developer_feedback_valid_with_note(self):
+        """Test submit_developer_feedback schema accepts optional note."""
+        result = SERVICE_SUBMIT_DEVELOPER_FEEDBACK_SCHEMA(
+            {"note": "group command delayed in app"}
+        )
+        assert result["note"] == "group command delayed in app"
+
+    def test_summarize_service_properties_masks_values(self):
+        """Service properties summary should expose keys/count, not raw values."""
+        result = _summarize_service_properties(
+            [
+                {"key": "powerState", "value": "1"},
+                {"key": "token", "value": "secret-token"},
+                {"value": "ignored"},
+                "invalid-item",
+            ]
+        )
+
+        assert result == {"count": 4, "keys": ["powerState", "token"]}
+        assert "secret-token" not in str(result)
+
 
 class TestInitRuntimeBehavior:
     """Tests for __init__.py runtime behaviors."""
@@ -419,6 +468,8 @@ class TestInitRuntimeBehavior:
         assert hass.services.has_service(DOMAIN, SERVICE_DELETE_SCHEDULES)
         assert hass.services.has_service(DOMAIN, SERVICE_SUBMIT_ANONYMOUS_SHARE)
         assert hass.services.has_service(DOMAIN, SERVICE_GET_ANONYMOUS_SHARE_REPORT)
+        assert hass.services.has_service(DOMAIN, SERVICE_GET_DEVELOPER_REPORT)
+        assert hass.services.has_service(DOMAIN, SERVICE_SUBMIT_DEVELOPER_FEEDBACK)
 
         # Calling setup twice should keep registration stable.
         assert await async_setup(hass, {}) is True
@@ -559,6 +610,8 @@ class TestInitRuntimeBehavior:
 
         assert not hass.services.has_service(DOMAIN, SERVICE_SEND_COMMAND)
         assert not hass.services.has_service(DOMAIN, SERVICE_GET_SCHEDULES)
+        assert not hass.services.has_service(DOMAIN, SERVICE_GET_DEVELOPER_REPORT)
+        assert not hass.services.has_service(DOMAIN, SERVICE_SUBMIT_DEVELOPER_FEEDBACK)
 
     async def test_get_device_from_entity_target(self, hass) -> None:
         """Resolve target entity unique_id to device serial."""
@@ -586,6 +639,25 @@ class TestInitRuntimeBehavior:
 
         assert got_device is device
         assert got_coordinator is coordinator
+
+    async def test_get_device_falls_back_to_get_device_by_id(self, hass) -> None:
+        """Fallback to coordinator alias lookup when serial lookup misses."""
+        device = self._create_device(serial="mesh_group_10001")
+        coordinator = MagicMock()
+        coordinator.get_device.return_value = None
+        coordinator.get_device_by_id.return_value = device
+
+        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry.add_to_hass(hass)
+        entry.runtime_data = coordinator
+
+        call = SimpleNamespace(data={ATTR_DEVICE_ID: "03AB5CCD7C716177"})
+        got_device, got_coordinator = await _get_device_and_coordinator(hass, call)
+
+        assert got_device is device
+        assert got_coordinator is coordinator
+        coordinator.get_device.assert_called_once_with("03AB5CCD7C716177")
+        coordinator.get_device_by_id.assert_called_once_with("03AB5CCD7C716177")
 
     async def test_get_device_without_id_or_entity_raises(self, hass) -> None:
         """Missing device_id and entity target should raise validation error."""
@@ -655,6 +727,80 @@ class TestInitRuntimeBehavior:
             "errors": ["b"],
         }
 
+    async def test_get_developer_report_returns_entry_reports(self, hass) -> None:
+        """get_developer_report returns sanitized diagnostics per config entry."""
+        coordinator = MagicMock()
+        coordinator.build_developer_report.return_value = {"debug_mode": True}
+
+        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry.add_to_hass(hass)
+        entry.runtime_data = coordinator
+
+        result = await _async_handle_get_developer_report(hass, SimpleNamespace(data={}))
+
+        assert result == {
+            "entry_count": 1,
+            "reports": [{"debug_mode": True}],
+        }
+        coordinator.build_developer_report.assert_called_once()
+
+    async def test_submit_developer_feedback_success(self, hass) -> None:
+        """submit_developer_feedback uploads report to share worker."""
+        coordinator = MagicMock()
+        coordinator.build_developer_report.return_value = {"runtime": {"ok": True}}
+
+        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry.add_to_hass(hass)
+        entry.runtime_data = coordinator
+
+        share_manager = MagicMock()
+        share_manager.submit_developer_feedback = AsyncMock(return_value=True)
+
+        with (
+            patch(
+                "custom_components.lipro.get_anonymous_share_manager",
+                return_value=share_manager,
+            ),
+            patch(
+                "custom_components.lipro.async_get_clientsession",
+                return_value=MagicMock(),
+            ),
+        ):
+            result = await _async_handle_submit_developer_feedback(
+                hass, SimpleNamespace(data={"note": "manual validation run"})
+            )
+
+        assert result["success"] is True
+        assert result["submitted_entries"] == 1
+        share_manager.submit_developer_feedback.assert_awaited_once()
+
+    async def test_submit_developer_feedback_failure_raises(self, hass) -> None:
+        """submit_developer_feedback raises when upload fails."""
+        coordinator = MagicMock()
+        coordinator.build_developer_report.return_value = {"runtime": {"ok": True}}
+
+        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry.add_to_hass(hass)
+        entry.runtime_data = coordinator
+
+        share_manager = MagicMock()
+        share_manager.submit_developer_feedback = AsyncMock(return_value=False)
+
+        with (
+            patch(
+                "custom_components.lipro.get_anonymous_share_manager",
+                return_value=share_manager,
+            ),
+            patch(
+                "custom_components.lipro.async_get_clientsession",
+                return_value=MagicMock(),
+            ),
+            pytest.raises(HomeAssistantError),
+        ):
+            await _async_handle_submit_developer_feedback(
+                hass, SimpleNamespace(data={})
+            )
+
     async def test_send_command_handler_success(self, hass) -> None:
         """send_command returns success payload on coordinator success."""
         device = self._create_device()
@@ -677,6 +823,52 @@ class TestInitRuntimeBehavior:
             ),
         )
         assert result == {"success": True, "serial": device.serial}
+        coordinator.async_send_command.assert_awaited_once_with(
+            device,
+            "POWER_ON",
+            [{"key": "powerState", "value": "1"}],
+            fallback_device_id=device.serial,
+        )
+
+    async def test_send_command_handler_alias_resolution_metadata(self, hass) -> None:
+        """send_command response includes alias-resolution metadata when remapped."""
+        requested_id = "03ab0000000000f1"
+        group_device = self._create_device(serial="mesh_group_10001")
+        group_device.is_group = True
+
+        coordinator = MagicMock()
+        coordinator.get_device.return_value = None
+        coordinator.get_device_by_id.return_value = group_device
+        coordinator.async_send_command = AsyncMock(return_value=True)
+
+        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry.add_to_hass(hass)
+        entry.runtime_data = coordinator
+
+        result = await _async_handle_send_command(
+            hass,
+            SimpleNamespace(
+                data={
+                    ATTR_DEVICE_ID: requested_id,
+                    ATTR_COMMAND: "POWER_ON",
+                }
+            ),
+        )
+
+        assert result == {
+            "success": True,
+            "serial": "mesh_group_10001",
+            "requested_device_id": requested_id,
+            "resolved_device_id": "mesh_group_10001",
+        }
+        coordinator.get_device.assert_called_once_with(requested_id)
+        coordinator.get_device_by_id.assert_called_once_with(requested_id)
+        coordinator.async_send_command.assert_awaited_once_with(
+            group_device,
+            "POWER_ON",
+            None,
+            fallback_device_id=requested_id,
+        )
 
     async def test_send_command_handler_failure_raises(self, hass) -> None:
         """send_command raises HomeAssistantError when coordinator reports failure."""
@@ -754,6 +946,72 @@ class TestInitRuntimeBehavior:
             ],
         }
 
+    async def test_get_schedules_passes_mesh_context(self, hass) -> None:
+        """get_schedules should pass mesh gateway/member context to client."""
+        device = self._create_device(serial="mesh_group_10001")
+        device.extra_data["gateway_device_id"] = "03ab0000000000a1"
+        device.extra_data["group_member_ids"] = ["03ab0000000000a2"]
+
+        client = MagicMock()
+        client.get_device_schedules = AsyncMock(return_value=[])
+        coordinator = MagicMock()
+        coordinator.get_device.return_value = device
+        coordinator.client = client
+
+        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry.add_to_hass(hass)
+        entry.runtime_data = coordinator
+
+        await _async_handle_get_schedules(
+            hass, SimpleNamespace(data={ATTR_DEVICE_ID: device.serial})
+        )
+
+        client.get_device_schedules.assert_awaited_once_with(
+            device.iot_device_id,
+            device.device_type_hex,
+            mesh_gateway_id="03ab0000000000a1",
+            mesh_member_ids=["03ab0000000000a2"],
+        )
+
+    async def test_add_schedule_passes_mesh_context(self, hass) -> None:
+        """add_schedule should pass mesh gateway/member context to client."""
+        device = self._create_device(serial="mesh_group_10001")
+        device.extra_data["gateway_device_id"] = "03ab0000000000a1"
+        device.extra_data["group_member_ids"] = ["03ab0000000000a2"]
+
+        client = MagicMock()
+        client.add_device_schedule = AsyncMock(return_value=[{"id": 1}])
+        coordinator = MagicMock()
+        coordinator.get_device.return_value = device
+        coordinator.client = client
+
+        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry.add_to_hass(hass)
+        entry.runtime_data = coordinator
+
+        result = await _async_handle_add_schedule(
+            hass,
+            SimpleNamespace(
+                data={
+                    ATTR_DEVICE_ID: device.serial,
+                    ATTR_DAYS: [1, 2, 3],
+                    ATTR_TIMES: [3600],
+                    ATTR_EVENTS: [0],
+                }
+            ),
+        )
+
+        assert result["schedule_count"] == 1
+        client.add_device_schedule.assert_awaited_once_with(
+            device.iot_device_id,
+            device.device_type_hex,
+            [1, 2, 3],
+            [3600],
+            [0],
+            mesh_gateway_id="03ab0000000000a1",
+            mesh_member_ids=["03ab0000000000a2"],
+        )
+
     async def test_delete_schedules_returns_summary(self, hass) -> None:
         """delete_schedules returns remaining count on success."""
         device = self._create_device()
@@ -778,6 +1036,37 @@ class TestInitRuntimeBehavior:
             "serial": device.serial,
             "remaining_count": 2,
         }
+
+    async def test_delete_schedules_passes_mesh_context(self, hass) -> None:
+        """delete_schedules should pass mesh gateway/member context to client."""
+        device = self._create_device(serial="mesh_group_10001")
+        device.extra_data["gateway_device_id"] = "03ab0000000000a1"
+        device.extra_data["group_member_ids"] = ["03ab0000000000a2"]
+
+        client = MagicMock()
+        client.delete_device_schedules = AsyncMock(return_value=[])
+        coordinator = MagicMock()
+        coordinator.get_device.return_value = device
+        coordinator.client = client
+
+        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry.add_to_hass(hass)
+        entry.runtime_data = coordinator
+
+        await _async_handle_delete_schedules(
+            hass,
+            SimpleNamespace(
+                data={ATTR_DEVICE_ID: device.serial, ATTR_SCHEDULE_IDS: [1, 2]}
+            ),
+        )
+
+        client.delete_device_schedules.assert_awaited_once_with(
+            device.iot_device_id,
+            device.device_type_hex,
+            [1, 2],
+            mesh_gateway_id="03ab0000000000a1",
+            mesh_member_ids=["03ab0000000000a2"],
+        )
 
     async def test_submit_anonymous_share_no_data_returns_noop(self, hass) -> None:
         """submit_anonymous_share returns no-op when nothing pending."""

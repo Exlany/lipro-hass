@@ -146,3 +146,11 @@ IOT_NAME_TO_PHYSICAL_MODEL: Final = {
     # gateway (网关)
     "M2W1": "gateway",
 }
+
+# Model-level default fan gear upper-bounds.
+# Used when product config does not provide maxFanGear.
+# Keys are normalized lowercase iotName values.
+IOT_NAME_TO_DEFAULT_MAX_FAN_GEAR: Final = {
+    "21f1": 10,  # 智能风扇灯 E2 Max
+    "23f4": 10,  # 智能风扇灯 E2 Pro
+}

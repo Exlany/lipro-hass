@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from types import SimpleNamespace
-from unittest.mock import MagicMock
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
@@ -52,7 +52,7 @@ class TestLiproFan:
         assert device.fan_mode == 2
 
     def test_fan_mode_default(self, make_device):
-        """Test fan mode default is 0 (natural)."""
+        """Test fan mode default is 0 (direct)."""
         device = make_device("fanLight")
         assert device.fan_mode == 0
 
@@ -147,28 +147,28 @@ class TestLiproFanPresetModes:
     def test_mode_to_preset_mapping(self):
         """Test MODE_TO_PRESET mapping from real source."""
         from custom_components.lipro.const import (
+            FAN_MODE_CYCLE,
+            FAN_MODE_DIRECT,
             FAN_MODE_NATURAL,
-            FAN_MODE_NORMAL,
-            FAN_MODE_SLEEP,
         )
         from custom_components.lipro.fan import MODE_TO_PRESET
 
+        assert MODE_TO_PRESET[FAN_MODE_DIRECT] == "direct"
         assert MODE_TO_PRESET[FAN_MODE_NATURAL] == "natural"
-        assert MODE_TO_PRESET[FAN_MODE_SLEEP] == "sleep"
-        assert MODE_TO_PRESET[FAN_MODE_NORMAL] == "normal"
+        assert MODE_TO_PRESET[FAN_MODE_CYCLE] == "cycle"
 
     def test_preset_to_mode_mapping(self):
         """Test PRESET_TO_MODE mapping from real source."""
         from custom_components.lipro.const import (
+            FAN_MODE_CYCLE,
+            FAN_MODE_DIRECT,
             FAN_MODE_NATURAL,
-            FAN_MODE_NORMAL,
-            FAN_MODE_SLEEP,
         )
         from custom_components.lipro.fan import PRESET_TO_MODE
 
+        assert PRESET_TO_MODE["direct"] == FAN_MODE_DIRECT
         assert PRESET_TO_MODE["natural"] == FAN_MODE_NATURAL
-        assert PRESET_TO_MODE["sleep"] == FAN_MODE_SLEEP
-        assert PRESET_TO_MODE["normal"] == FAN_MODE_NORMAL
+        assert PRESET_TO_MODE["cycle"] == FAN_MODE_CYCLE
 
     def test_bidirectional_consistency(self):
         """Test MODE_TO_PRESET and PRESET_TO_MODE are consistent."""
@@ -280,6 +280,7 @@ class TestLiproFanEntityCommands:
         assert call_args[0][0] is device
         assert call_args[0][1] == "CHANGE_STATE"
         props = call_args[0][2]
+        assert any(p["key"] == "fanOnOff" and p["value"] == "1" for p in props)
         assert any(p["key"] == "fanOnoff" and p["value"] == "1" for p in props)
 
     @pytest.mark.asyncio
@@ -300,6 +301,7 @@ class TestLiproFanEntityCommands:
         assert call_args[0][0] is device
         assert call_args[0][1] == "CHANGE_STATE"
         props = call_args[0][2]
+        assert any(p["key"] == "fanOnOff" and p["value"] == "0" for p in props)
         assert any(p["key"] == "fanOnoff" and p["value"] == "0" for p in props)
 
     @pytest.mark.asyncio
@@ -332,12 +334,14 @@ class TestLiproFanEntityCommands:
 
         await fan.async_set_percentage(50)
 
-        # Properties should include fanOnoff (for the API)
+        # Properties should include both fanOnOff and fanOnoff (API compatibility).
         props = captured_args["properties"]
+        assert any(p["key"] == "fanOnOff" and p["value"] == "1" for p in props)
         assert any(p["key"] == "fanOnoff" and p["value"] == "1" for p in props)
 
-        # Optimistic dict should NOT include fanOnoff (to avoid debounce protection)
+        # Optimistic dict should NOT include fan power keys (to avoid debounce protection)
         optimistic = captured_args["optimistic"]
+        assert "fanOnOff" not in optimistic
         assert "fanOnoff" not in optimistic
         assert "fanGear" in optimistic
 
@@ -387,10 +391,11 @@ class TestLiproFanEntityBehavior:
         fan = LiproFan(mock_coordinator, device)
         fan.async_write_ha_state = MagicMock()
 
-        await fan.async_turn_on(percentage=50, preset_mode="sleep")
+        await fan.async_turn_on(percentage=50, preset_mode="natural")
 
         call_args = mock_coordinator.async_send_command.call_args
         properties = call_args[0][2]
+        assert any(p["key"] == "fanOnOff" and p["value"] == "1" for p in properties)
         assert any(p["key"] == "fanOnoff" and p["value"] == "1" for p in properties)
         assert any(p["key"] == "fanGear" for p in properties)
         assert any(p["key"] == "fanMode" for p in properties)
@@ -409,6 +414,7 @@ class TestLiproFanEntityBehavior:
 
         call_args = mock_coordinator.async_send_command.call_args
         properties = call_args[0][2]
+        assert any(p["key"] == "fanOnOff" and p["value"] == "0" for p in properties)
         assert any(p["key"] == "fanOnoff" and p["value"] == "0" for p in properties)
 
     @pytest.mark.asyncio
@@ -423,21 +429,57 @@ class TestLiproFanEntityBehavior:
         fan = LiproFan(mock_coordinator, device)
         fan.async_write_ha_state = MagicMock()
 
-        await fan.async_set_preset_mode("normal")
+        await fan.async_set_preset_mode("cycle")
 
         call_args = mock_coordinator.async_send_command.call_args
         properties = call_args[0][2]
+        assert any(p["key"] == "fanOnOff" and p["value"] == "1" for p in properties)
         assert any(p["key"] == "fanOnoff" and p["value"] == "1" for p in properties)
         assert any(p["key"] == "fanMode" for p in properties)
 
-    def test_preset_mode_fallbacks_to_normal(self, mock_coordinator, make_device):
-        """Unknown fan mode should fallback to normal preset."""
+    def test_preset_mode_fallbacks_to_cycle(self, mock_coordinator, make_device):
+        """Unknown fan mode should fallback to cycle preset."""
         from custom_components.lipro.fan import LiproFan
 
         device = make_device("fanLight", properties={"fanMode": "99"})
         mock_coordinator.get_device = MagicMock(return_value=device)
         fan = LiproFan(mock_coordinator, device)
-        assert fan.preset_mode == "normal"
+        assert fan.preset_mode == "cycle"
+
+    def test_supported_features_cycle_mode_disables_set_speed(
+        self, mock_coordinator, make_device
+    ):
+        """Cycle mode should not expose SET_SPEED feature."""
+        from custom_components.lipro.fan import LiproFan
+        from homeassistant.components.fan import FanEntityFeature
+
+        device = make_device("fanLight", properties={"fanMode": "2"})
+        mock_coordinator.get_device = MagicMock(return_value=device)
+        fan = LiproFan(mock_coordinator, device)
+
+        assert fan.supported_features & FanEntityFeature.PRESET_MODE
+        assert not (fan.supported_features & FanEntityFeature.SET_SPEED)
+
+    @pytest.mark.asyncio
+    async def test_set_percentage_cycle_mode_is_ignored(
+        self, mock_coordinator, make_device
+    ):
+        """Cycle mode should ignore speed-change commands."""
+        from custom_components.lipro.fan import LiproFan
+
+        device = make_device(
+            "fanLight",
+            properties={"fanOnoff": "1", "fanMode": "2", "fanGear": "10"},
+        )
+        mock_coordinator.get_device = MagicMock(return_value=device)
+        fan = LiproFan(mock_coordinator, device)
+        fan.async_write_ha_state = MagicMock()
+        fan.async_send_command_debounced = AsyncMock()
+
+        await fan.async_set_percentage(44)
+
+        fan.async_send_command_debounced.assert_not_awaited()
+        mock_coordinator.async_send_command.assert_not_called()
 
 
 class TestLiproHeaterVentFanBehavior:

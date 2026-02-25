@@ -15,6 +15,7 @@ from ..const import (
     DIRECTION_CLOSING,
     DIRECTION_OPENING,
     IOT_DEVICE_ID_PREFIX,
+    IOT_NAME_TO_DEFAULT_MAX_FAN_GEAR,
     IOT_NAME_TO_PHYSICAL_MODEL,
     MAX_COLOR_TEMP_KELVIN,
     MIN_COLOR_TEMP_KELVIN,
@@ -74,7 +75,8 @@ _LOGGER = logging.getLogger(__name__)
 # IoT Device ID format: IOT_DEVICE_ID_PREFIX + 12 hex chars (MAC without colons)
 # Example: "03ab5ccd7cxxxxxx" (5ccd7c is Meizu's OUI)
 _IOT_DEVICE_ID_PATTERN = re.compile(
-    rf"^{re.escape(IOT_DEVICE_ID_PREFIX)}[0-9a-f]{{12}}$"
+    rf"^{re.escape(IOT_DEVICE_ID_PREFIX)}[0-9a-f]{{12}}$",
+    re.IGNORECASE,
 )
 
 # Mesh group ID format: "mesh_group_" + digits (e.g., "mesh_group_10001")
@@ -88,7 +90,7 @@ def is_valid_iot_device_id(device_id: str) -> bool:
         device_id: The device ID to validate.
 
     Returns:
-        True if valid IoT device ID format (03ab + 12 lowercase hex chars).
+        True if valid IoT device ID format (03ab + 12 hex chars).
 
     """
     return bool(_IOT_DEVICE_ID_PATTERN.match(device_id))
@@ -105,6 +107,33 @@ def is_valid_mesh_group_id(group_id: str) -> bool:
 
     """
     return bool(_MESH_GROUP_ID_PATTERN.match(group_id))
+
+
+def _coerce_api_bool(value: Any) -> bool:
+    """Normalize API boolean-like values.
+
+    Handles backend variants such as bool, int(1/0), and strings.
+    """
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, (int, float)):
+        return value != 0
+    if isinstance(value, str):
+        normalized = value.strip().lower()
+        if normalized in {"1", "true", "yes", "on"}:
+            return True
+        if normalized in {"0", "false", "no", "off", ""}:
+            return False
+        _LOGGER.debug("Unexpected API bool-like string value: %r", value)
+        return False
+    if value is None:
+        return False
+    _LOGGER.debug(
+        "Unexpected API bool-like value type: %s (%r)",
+        type(value).__name__,
+        value,
+    )
+    return False
 
 
 @dataclass
@@ -129,6 +158,7 @@ class LiproDevice:
     min_color_temp_kelvin: int = MIN_COLOR_TEMP_KELVIN
     max_color_temp_kelvin: int = MAX_COLOR_TEMP_KELVIN
     # Fan gear range (from product config or default)
+    default_max_fan_gear_in_model: int = DEFAULT_MAX_FAN_GEAR
     max_fan_gear: int = DEFAULT_MAX_FAN_GEAR
     # Cache for parsed gear_list (cleared on property update)
     _gear_list_cache: list[Any] | None = field(default=None, repr=False, compare=False)
@@ -305,7 +335,7 @@ class LiproDevice:
             return value
         if isinstance(value, str):
             # Handle both "true"/"false" and "1"/"0" string formats
-            return value.lower() in ("1", "true", "yes", "on")
+            return value.strip().lower() in ("1", "true", "yes", "on")
         return bool(value)
 
     def get_int_property(self, key: str, default: int = 0) -> int:
@@ -537,9 +567,9 @@ class LiproDevice:
 
         Status query returns 'fanOnOff' (capital O), control uses 'fanOnoff'.
         """
-        return self.get_bool_property(PROP_FAN_ONOFF) or self.get_bool_property(
-            PROP_FAN_ONOFF_ALT
-        )
+        if PROP_FAN_ONOFF_ALT in self.properties:
+            return self.get_bool_property(PROP_FAN_ONOFF_ALT)
+        return self.get_bool_property(PROP_FAN_ONOFF)
 
     @property
     def fan_speed_range(self) -> tuple[int, int]:
@@ -554,7 +584,7 @@ class LiproDevice:
 
     @property
     def fan_mode(self) -> int:
-        """Get fan mode (0=natural, 1=sleep, 2=normal)."""
+        """Get fan mode (0=direct, 1=natural, 2=cycle)."""
         return self.get_int_property(PROP_FAN_MODE, 0)
 
     # Heater properties
@@ -704,17 +734,32 @@ class LiproDevice:
             LiproDevice instance.
 
         """
+        iot_name = data.get("iotName", "")
+        default_max_fan_gear_in_model = DEFAULT_MAX_FAN_GEAR
+        if isinstance(iot_name, str):
+            model_default_max_fan_gear = IOT_NAME_TO_DEFAULT_MAX_FAN_GEAR.get(
+                iot_name.lower()
+            )
+            if (
+                isinstance(model_default_max_fan_gear, int)
+                and model_default_max_fan_gear > 0
+            ):
+                default_max_fan_gear_in_model = model_default_max_fan_gear
+
         return cls(
             device_number=data.get("deviceId", 0),
             serial=data.get("serial", ""),
             name=data.get("deviceName", "Unknown"),
             device_type=data.get("type", 1),
-            iot_name=data.get("iotName", ""),
+            iot_name=iot_name,
             room_id=data.get("roomId"),
             room_name=data.get("roomName"),
-            is_group=data.get("isGroup", False) or data.get("group", False),
+            is_group=_coerce_api_bool(data.get("isGroup", False))
+            or _coerce_api_bool(data.get("group", False)),
             product_id=data.get("productId"),
             physical_model=data.get("physicalModel"),
+            default_max_fan_gear_in_model=default_max_fan_gear_in_model,
+            max_fan_gear=default_max_fan_gear_in_model,
         )
 
 

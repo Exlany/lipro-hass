@@ -145,6 +145,28 @@ class LiproLightGearSelect(LiproSelect):
     _attr_translation_key = "light_gear"
     _entity_suffix = "gear"
 
+    @staticmethod
+    def _coerce_gear_int(value: Any) -> int | None:
+        """Convert one gear field value to int safely."""
+        try:
+            if value is None:
+                return None
+            return int(value)
+        except (TypeError, ValueError):
+            return None
+
+    @classmethod
+    def _extract_gear_values(cls, gear: Any) -> tuple[int, int] | None:
+        """Extract (brightness, temperature_percent) from one gear payload."""
+        if not isinstance(gear, dict):
+            return None
+
+        brightness = cls._coerce_gear_int(gear.get("brightness"))
+        temp_pct = cls._coerce_gear_int(gear.get("temperature"))
+        if brightness is None or temp_pct is None:
+            return None
+        return brightness, temp_pct
+
     @property
     def options(self) -> list[str]:
         """Return gear options based on actual device gear count."""
@@ -172,10 +194,10 @@ class LiproLightGearSelect(LiproSelect):
 
         # Exact match: brightness and temperature percentage must match exactly
         for i, gear in enumerate(gear_list[:_MAX_GEAR_COUNT]):
-            if not isinstance(gear, dict):
+            values = self._extract_gear_values(gear)
+            if values is None:
                 continue
-            gear_brightness = gear.get("brightness", 0)
-            gear_temp_pct = gear.get("temperature", 0)
+            gear_brightness, gear_temp_pct = values
 
             # Exact match (no tolerance - API test confirmed this is correct)
             if (
@@ -197,10 +219,10 @@ class LiproLightGearSelect(LiproSelect):
         gear_list = self.device.gear_list
 
         for i, gear in enumerate(gear_list[:_MAX_GEAR_COUNT]):
-            if not isinstance(gear, dict):
+            values = self._extract_gear_values(gear)
+            if values is None:
                 continue
-            brightness = gear.get("brightness", 0)
-            temp_pct = gear.get("temperature", 0)
+            brightness, temp_pct = values
 
             # Convert percentage to Kelvin using centralized device method
             temp_k = self.device.percent_to_kelvin_for_device(temp_pct)
@@ -235,7 +257,8 @@ class LiproLightGearSelect(LiproSelect):
             return
 
         gear = gear_list[gear_index]
-        if not isinstance(gear, dict):
+        values = self._extract_gear_values(gear)
+        if values is None:
             _LOGGER.warning(
                 "Invalid gear preset at index %d for %s: %r",
                 gear_index,
@@ -244,8 +267,7 @@ class LiproLightGearSelect(LiproSelect):
             )
             return
 
-        brightness = gear.get("brightness", 100)
-        temp_pct = gear.get("temperature", 50)
+        brightness, temp_pct = values
 
         _LOGGER.debug(
             "Applying gear %d to %s: brightness=%d%%, temperature=%d%%(%dK)",

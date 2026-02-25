@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import timedelta
+import json
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -73,6 +74,65 @@ class TestRedactDeviceProperties:
         result = _redact_device_properties(props)
         assert result["MAC"] == "**REDACTED**"
         assert result["IP"] == "**REDACTED**"
+
+    def test_redact_nested_structures_and_json_string(self):
+        """Test recursive redaction for nested dict/list and JSON strings."""
+        props = {
+            "deviceInfo": (
+                '{"wifi_ssid":"MyWiFi","ip":"192.168.1.2",'
+                '"meta":{"iotDeviceId":"03ab5ccd7c123456"}}'
+            ),
+            "nested": {
+                "gatewayDeviceId": "03ab5ccd7c999999",
+                "list": [{"serial": "03ab5ccd7caaaaaa"}],
+            },
+            "plain": "ok",
+        }
+        result = _redact_device_properties(props)
+
+        parsed_info = json.loads(result["deviceInfo"])
+        assert parsed_info["wifi_ssid"] == "**REDACTED**"
+        assert parsed_info["ip"] == "**REDACTED**"
+        assert parsed_info["meta"]["iotDeviceId"] == "**REDACTED**"
+        assert result["nested"]["gatewayDeviceId"] == "**REDACTED**"
+        assert result["nested"]["list"][0]["serial"] == "**REDACTED**"
+        assert result["plain"] == "ok"
+
+    def test_redact_literal_identifier_values(self):
+        """Test literal MAC/IP/deviceId values are redacted even on non-sensitive keys."""
+        props = {
+            "note_ip": "10.0.0.8",
+            "note_mac": "AA:BB:CC:DD:EE:FF",
+            "note_device": "03ab5ccd7c123456",
+            "note_device_upper": "03AB5CCD7CABCDEF",
+            "safe": "hello",
+        }
+        result = _redact_device_properties(props)
+
+        assert result["note_ip"] == "**REDACTED**"
+        assert result["note_mac"] == "**REDACTED**"
+        assert result["note_device"] == "**REDACTED**"
+        assert result["note_device_upper"] == "**REDACTED**"
+        assert result["safe"] == "hello"
+
+    def test_redact_embedded_identifier_values(self):
+        """Test embedded IP/MAC/deviceId substrings are redacted."""
+        props = {
+            "note_ip": "peer=10.0.0.8 retry=1",
+            "note_mac": "src=AA:BB:CC:DD:EE:FF dst=11:22:33:44:55:66",
+            "note_device": "target=03AB5CCD7CABCDEF changed",
+            "safe": "hello world",
+        }
+        result = _redact_device_properties(props)
+
+        assert "10.0.0.8" not in result["note_ip"]
+        assert "AA:BB:CC:DD:EE:FF" not in result["note_mac"]
+        assert "11:22:33:44:55:66" not in result["note_mac"]
+        assert "03AB5CCD7CABCDEF" not in result["note_device"]
+        assert "**REDACTED**" in result["note_ip"]
+        assert "**REDACTED**" in result["note_mac"]
+        assert "**REDACTED**" in result["note_device"]
+        assert result["safe"] == "hello world"
 
 
 class TestToRedactKeys:

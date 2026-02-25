@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 import math
 from typing import TYPE_CHECKING, Any, Final
 
@@ -15,13 +16,14 @@ from .const import (
     AERATION_OFF,
     AERATION_STRONG,
     AERATION_WEAK,
+    FAN_MODE_CYCLE,
+    FAN_MODE_DIRECT,
     FAN_MODE_NATURAL,
-    FAN_MODE_NORMAL,
-    FAN_MODE_SLEEP,
     PROP_AERATION_GEAR,
     PROP_FAN_GEAR,
     PROP_FAN_MODE,
     PROP_FAN_ONOFF,
+    PROP_FAN_ONOFF_ALT,
 )
 from .entities.base import LiproEntity
 from .helpers import create_platform_entities
@@ -34,21 +36,33 @@ if TYPE_CHECKING:
 
 # Limit parallel updates to avoid overwhelming the API
 PARALLEL_UPDATES = 1
+_LOGGER = logging.getLogger(__name__)
 
 # Preset modes for fan light
+PRESET_MODE_DIRECT: Final = "direct"
 PRESET_MODE_NATURAL: Final = "natural"
-PRESET_MODE_SLEEP: Final = "sleep"
-PRESET_MODE_NORMAL: Final = "normal"
+PRESET_MODE_CYCLE: Final = "cycle"
 
-PRESET_MODES: Final = [PRESET_MODE_NATURAL, PRESET_MODE_SLEEP, PRESET_MODE_NORMAL]
+PRESET_MODES: Final = [PRESET_MODE_DIRECT, PRESET_MODE_NATURAL, PRESET_MODE_CYCLE]
 
 MODE_TO_PRESET: Final = {
+    # Runtime verification against App semantics:
+    # 0=直吹风, 1=自然风, 2=循环风
+    FAN_MODE_DIRECT: PRESET_MODE_DIRECT,
     FAN_MODE_NATURAL: PRESET_MODE_NATURAL,
-    FAN_MODE_SLEEP: PRESET_MODE_SLEEP,
-    FAN_MODE_NORMAL: PRESET_MODE_NORMAL,
+    FAN_MODE_CYCLE: PRESET_MODE_CYCLE,
 }
 
-PRESET_TO_MODE: Final = {v: k for k, v in MODE_TO_PRESET.items()}
+PRESET_TO_MODE: Final = {
+    PRESET_MODE_DIRECT: FAN_MODE_DIRECT,
+    PRESET_MODE_NATURAL: FAN_MODE_NATURAL,
+    PRESET_MODE_CYCLE: FAN_MODE_CYCLE,
+}
+
+FAN_FEATURES_BASE: Final = (
+    FanEntityFeature.PRESET_MODE | FanEntityFeature.TURN_ON | FanEntityFeature.TURN_OFF
+)
+FAN_FEATURES_WITH_SPEED: Final = FAN_FEATURES_BASE | FanEntityFeature.SET_SPEED
 
 # Preset modes for heater ventilation fan
 PRESET_VENT_OFF: Final = "off"
@@ -99,15 +113,26 @@ async def async_setup_entry(
 class LiproFan(LiproEntity, FanEntity):
     """Representation of a Lipro fan."""
 
-    _attr_supported_features = (
-        FanEntityFeature.SET_SPEED
-        | FanEntityFeature.PRESET_MODE
-        | FanEntityFeature.TURN_ON
-        | FanEntityFeature.TURN_OFF
-    )
+    _attr_supported_features = FAN_FEATURES_WITH_SPEED
     _attr_preset_modes = PRESET_MODES
     _attr_translation_key = "fan"
     _entity_suffix = "fan"
+
+    @staticmethod
+    def _set_power_properties(
+        properties: dict[str, int],
+        power: int,
+        optimistic: dict[str, int | str] | None = None,
+        *,
+        include_optimistic: bool = True,
+    ) -> None:
+        """Set fan power keys with backward-compatible dual-key payload."""
+        # Runtime tests show fanOnoff is the most reliable control key.
+        # Keep fanOnOff for compatibility with backend/status variants.
+        properties[PROP_FAN_ONOFF] = power
+        properties[PROP_FAN_ONOFF_ALT] = power
+        if optimistic is not None and include_optimistic:
+            optimistic[PROP_FAN_ONOFF_ALT] = str(power)
 
     def _percentage_to_gear(self, percentage: int) -> int:
         """Convert percentage to gear value, clamped to device range."""
@@ -125,17 +150,32 @@ class LiproFan(LiproEntity, FanEntity):
         """Ensure fan turns on when updating mode/speed while currently off."""
         if self.is_on:
             return
-        properties[PROP_FAN_ONOFF] = 1
+        self._set_power_properties(
+            properties,
+            1,
+            optimistic,
+            include_optimistic=optimistic_power,
+        )
         if optimistic_power:
             optimistic[PROP_FAN_ONOFF] = "1"
         else:
             # Keep UI responsive for slider, but avoid debounce protection on power key.
-            self.device.update_properties({PROP_FAN_ONOFF: "1"})
+            self.device.update_properties({PROP_FAN_ONOFF: "1", PROP_FAN_ONOFF_ALT: "1"})
 
     @property
     def speed_count(self) -> int:
         """Return the number of speeds the fan supports."""
         return self.device.max_fan_gear
+
+    @property
+    def supported_features(self) -> FanEntityFeature:
+        """Return supported features for current fan mode.
+
+        Runtime validation shows cycle mode does not support gear/speed adjustment.
+        """
+        if self.device.fan_mode == FAN_MODE_CYCLE:
+            return FAN_FEATURES_BASE
+        return FAN_FEATURES_WITH_SPEED
 
     @property
     def is_on(self) -> bool:
@@ -155,7 +195,7 @@ class LiproFan(LiproEntity, FanEntity):
     def preset_mode(self) -> str | None:
         """Return the current preset mode."""
         mode = self.device.fan_mode
-        return MODE_TO_PRESET.get(mode, PRESET_MODE_NORMAL)
+        return MODE_TO_PRESET.get(mode, PRESET_MODE_CYCLE)
 
     async def async_turn_on(
         self,
@@ -164,26 +204,44 @@ class LiproFan(LiproEntity, FanEntity):
         **kwargs: Any,
     ) -> None:
         """Turn on the fan."""
-        properties: dict[str, int] = {PROP_FAN_ONOFF: 1}
+        properties: dict[str, int] = {}
+        self._set_power_properties(properties, 1)
+
+        mode: int | None = None
+        if preset_mode is not None:
+            mode = PRESET_TO_MODE.get(preset_mode, FAN_MODE_CYCLE)
+            properties[PROP_FAN_MODE] = mode
 
         if percentage is not None:
-            gear = self._percentage_to_gear(percentage)
-            properties[PROP_FAN_GEAR] = gear
-
-        if preset_mode is not None:
-            mode = PRESET_TO_MODE.get(preset_mode, FAN_MODE_NORMAL)
-            properties[PROP_FAN_MODE] = mode
+            effective_mode = mode if mode is not None else self.device.fan_mode
+            if effective_mode != FAN_MODE_CYCLE:
+                gear = self._percentage_to_gear(percentage)
+                properties[PROP_FAN_GEAR] = gear
+            else:
+                _LOGGER.debug(
+                    "Ignoring speed percentage in cycle mode for %s",
+                    self.device.name,
+                )
 
         await self.async_change_state(properties)
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn off the fan."""
-        await self.async_change_state({PROP_FAN_ONOFF: 0})
+        properties: dict[str, int] = {}
+        self._set_power_properties(properties, 0)
+        await self.async_change_state(properties)
 
     async def async_set_percentage(self, percentage: int) -> None:
         """Set the speed percentage of the fan."""
         if percentage == 0:
             await self.async_turn_off()
+            return
+
+        if self.device.fan_mode == FAN_MODE_CYCLE:
+            _LOGGER.debug(
+                "Ignoring speed change in cycle mode for %s",
+                self.device.name,
+            )
             return
 
         gear = self._percentage_to_gear(percentage)
@@ -202,7 +260,7 @@ class LiproFan(LiproEntity, FanEntity):
 
     async def async_set_preset_mode(self, preset_mode: str) -> None:
         """Set the preset mode of the fan."""
-        mode = PRESET_TO_MODE.get(preset_mode, FAN_MODE_NORMAL)
+        mode = PRESET_TO_MODE.get(preset_mode, FAN_MODE_CYCLE)
         properties: dict[str, int] = {PROP_FAN_MODE: mode}
         optimistic: dict[str, int | str] = {PROP_FAN_MODE: str(mode)}
         self._add_power_on_if_needed(properties, optimistic, optimistic_power=True)

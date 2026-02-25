@@ -11,14 +11,66 @@ from __future__ import annotations
 from unittest.mock import AsyncMock, patch
 
 from pytest_homeassistant_custom_component.common import MockConfigEntry
+import voluptuous as vol
 
-from custom_components.lipro.config_flow import CONF_PASSWORD_HASH
-from custom_components.lipro.const import CONF_PHONE, CONF_PHONE_ID, DOMAIN
+from custom_components.lipro.config_flow import (
+    CONF_PASSWORD_HASH,
+    STEP_REAUTH_DATA_SCHEMA,
+    STEP_USER_DATA_SCHEMA,
+    _build_reconfigure_data_schema,
+)
+from custom_components.lipro.const import (
+    CONF_DEBUG_MODE,
+    CONF_PHONE,
+    CONF_PHONE_ID,
+    DOMAIN,
+)
 from custom_components.lipro.core.api import LiproApiError, LiproAuthError
 from homeassistant import config_entries
 from homeassistant.const import CONF_PASSWORD
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import AbortFlow, FlowResultType
+from homeassistant.helpers import selector
+
+
+def _get_schema_field(schema: vol.Schema, key: str):
+    """Return field validator for a voluptuous schema key."""
+    for field, validator in schema.schema.items():
+        if isinstance(field, (vol.Required, vol.Optional)) and field.schema == key:
+            return validator
+    return None
+
+
+def test_user_schema_uses_text_and_password_selectors() -> None:
+    """User step schema should keep HA selectors for regression safety."""
+    phone_field = _get_schema_field(STEP_USER_DATA_SCHEMA, CONF_PHONE)
+    password_field = _get_schema_field(STEP_USER_DATA_SCHEMA, CONF_PASSWORD)
+
+    assert isinstance(phone_field, selector.TextSelector)
+    assert isinstance(password_field, selector.TextSelector)
+    assert password_field.config.get("type") in {
+        selector.TextSelectorType.PASSWORD,
+        selector.TextSelectorType.PASSWORD.value,
+    }
+
+
+def test_reauth_and_reconfigure_schema_use_password_selector() -> None:
+    """Reauth/reconfigure schema should keep password selector."""
+    reauth_password = _get_schema_field(STEP_REAUTH_DATA_SCHEMA, CONF_PASSWORD)
+    reconfigure_password = _get_schema_field(
+        _build_reconfigure_data_schema("13800000000"), CONF_PASSWORD
+    )
+
+    assert isinstance(reauth_password, selector.TextSelector)
+    assert isinstance(reconfigure_password, selector.TextSelector)
+    assert reauth_password.config.get("type") in {
+        selector.TextSelectorType.PASSWORD,
+        selector.TextSelectorType.PASSWORD.value,
+    }
+    assert reconfigure_password.config.get("type") in {
+        selector.TextSelectorType.PASSWORD,
+        selector.TextSelectorType.PASSWORD.value,
+    }
 
 
 async def test_form_user(
@@ -147,18 +199,43 @@ async def test_form_cannot_connect(
     assert result["errors"] == {"base": "cannot_connect"}
 
 
-async def test_form_unknown_error(
+async def test_form_malformed_login_response(
     hass: HomeAssistant,
 ) -> None:
-    """Test form shows error on unknown exception."""
+    """Test form shows unknown error on malformed login response."""
     with patch(
         "custom_components.lipro.config_flow.LiproClient",
         autospec=True,
     ) as mock_client_class:
         mock_client = mock_client_class.return_value
-        mock_client.login_with_hash = AsyncMock(
-            side_effect=Exception("Unexpected error")
+        mock_client.login_with_hash = AsyncMock(side_effect=ValueError("bad payload"))
+
+        result = await hass.config_entries.flow.async_init(
+            DOMAIN, context={"source": config_entries.SOURCE_USER}
         )
+
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            {
+                CONF_PHONE: "13800000000",
+                CONF_PASSWORD: "testpassword",
+            },
+        )
+
+        assert result["type"] is FlowResultType.FORM
+        assert result["errors"] == {"base": "unknown"}
+
+
+async def test_form_unexpected_error_maps_to_unknown(
+    hass: HomeAssistant,
+) -> None:
+    """Test truly unexpected exceptions map to unknown form error."""
+    with patch(
+        "custom_components.lipro.config_flow.LiproClient",
+        autospec=True,
+    ) as mock_client_class:
+        mock_client = mock_client_class.return_value
+        mock_client.login_with_hash = AsyncMock(side_effect=RuntimeError("boom"))
 
         result = await hass.config_entries.flow.async_init(
             DOMAIN, context={"source": config_entries.SOURCE_USER}
@@ -599,7 +676,7 @@ async def test_options_flow_advanced_step(
             "anonymous_share_errors": False,
             "power_query_interval": 60,
             "request_timeout": 20,
-            "debug_mode": False,
+            CONF_DEBUG_MODE: False,
         },
         unique_id="lipro_10001",
     )
@@ -628,7 +705,7 @@ async def test_options_flow_advanced_step(
         {
             "power_query_interval": 120,
             "request_timeout": 45,
-            "debug_mode": True,
+            CONF_DEBUG_MODE: True,
         },
     )
     assert result["type"] is FlowResultType.CREATE_ENTRY
@@ -637,4 +714,4 @@ async def test_options_flow_advanced_step(
     assert result["data"]["enable_power_monitoring"] is False
     assert result["data"]["power_query_interval"] == 120
     assert result["data"]["request_timeout"] == 45
-    assert result["data"]["debug_mode"] is True
+    assert result["data"][CONF_DEBUG_MODE] is True

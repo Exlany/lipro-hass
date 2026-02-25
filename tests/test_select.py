@@ -448,6 +448,57 @@ class TestSelectEntityBehavior:
         mock_coordinator.async_send_command.assert_not_called()
 
     @pytest.mark.asyncio
+    async def test_light_gear_select_string_numeric_payload_supported(
+        self, mock_coordinator, make_device
+    ) -> None:
+        """String numeric gear values should be parsed and applied correctly."""
+        from custom_components.lipro.select import LiproLightGearSelect
+
+        device = make_device(
+            "light",
+            properties={
+                "brightness": "100",
+                "temperature": "50",
+                "gearList": '[{"temperature":"50","brightness":"100"}]',
+            },
+        )
+        mock_coordinator.devices = {device.serial: device}
+        mock_coordinator.get_device = lambda serial: mock_coordinator.devices.get(
+            serial
+        )
+        mock_coordinator.async_send_command = AsyncMock(return_value=True)
+        mock_coordinator.async_update_listeners = MagicMock()
+        select = LiproLightGearSelect(mock_coordinator, device)
+        select.async_write_ha_state = lambda: None
+
+        assert select.current_option == "gear_1"
+        await select.async_select_option("gear_1")
+        mock_coordinator.async_send_command.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_light_gear_select_invalid_numeric_payload_returns_early(
+        self, mock_coordinator, make_device
+    ) -> None:
+        """Non-numeric gear fields should return early without sending command."""
+        from custom_components.lipro.select import LiproLightGearSelect
+
+        device = make_device(
+            "light",
+            properties={"gearList": '[{"temperature":"bad","brightness":"100"}]'},
+        )
+        mock_coordinator.devices = {device.serial: device}
+        mock_coordinator.get_device = lambda serial: mock_coordinator.devices.get(
+            serial
+        )
+        mock_coordinator.async_send_command = AsyncMock(return_value=True)
+        select = LiproLightGearSelect(mock_coordinator, device)
+        select.async_write_ha_state = lambda: None
+
+        assert select.current_option is None
+        await select.async_select_option("gear_1")
+        mock_coordinator.async_send_command.assert_not_called()
+
+    @pytest.mark.asyncio
     async def test_light_gear_select_valid_option_updates_and_notifies(
         self, mock_coordinator, make_device
     ) -> None:

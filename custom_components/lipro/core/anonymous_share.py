@@ -52,10 +52,17 @@ _LOGGER = logging.getLogger(__name__)
 # Pre-compiled patterns for sensitive data detection and sanitization
 _RE_MAC_ADDRESS = re.compile(r"([0-9A-Fa-f]{2}[:-]){5}[0-9A-Fa-f]{2}")
 _RE_MAC_EXACT = re.compile(r"^([0-9A-Fa-f]{2}[:-]){5}[0-9A-Fa-f]{2}$")
+# Compact MAC-like identifiers seen in payloads (e.g., rcList.address).
+_RE_MAC_COMPACT = re.compile(
+    r"\b[0-9A-Fa-f]{12}\b"
+)
+_RE_MAC_COMPACT_EXACT = re.compile(
+    r"^[0-9A-Fa-f]{12}$"
+)
 _RE_IP_ADDRESS = re.compile(r"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}")
 _RE_IP_EXACT = re.compile(r"^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$")
-_RE_DEVICE_ID = re.compile(r"03ab[0-9a-f]{12}")
-_RE_DEVICE_ID_EXACT = re.compile(r"^03ab[0-9a-f]{12}$")
+_RE_DEVICE_ID = re.compile(r"03ab[0-9a-f]{12}", re.IGNORECASE)
+_RE_DEVICE_ID_EXACT = re.compile(r"^03ab[0-9a-f]{12}$", re.IGNORECASE)
 _RE_TOKEN_LIKE = re.compile(r"^[a-zA-Z0-9_-]{32,}$")
 
 # Anonymous share server endpoint
@@ -663,11 +670,36 @@ class AnonymousShareManager:
                     for item in value[:_MAX_LIST_ITEMS]
                 ]
 
+        if isinstance(value, str):
+            stripped = value.strip()
+            # Some payload fields (e.g., deviceInfo/rcList) are JSON strings.
+            # Parse and sanitize recursively to avoid leaking nested identifiers.
+            if preserve_structure and stripped and stripped[0] in "{[":
+                try:
+                    parsed = json.loads(value)
+                except (TypeError, ValueError):
+                    pass
+                else:
+                    if isinstance(parsed, (dict, list)):
+                        sanitized = self._sanitize_value(
+                            parsed,
+                            preserve_structure=True,
+                        )
+                        return json.dumps(
+                            sanitized,
+                            ensure_ascii=False,
+                            separators=(",", ":"),
+                        )
+
         str_value = str(value)
 
         # Check for potential sensitive patterns
         if self._looks_sensitive(str_value):
             return "[redacted]"
+
+        sanitized_value = self._sanitize_string(str_value)
+        if sanitized_value != str_value:
+            return sanitized_value
 
         # Keep numeric values as-is
         # Note: isinstance() does not accept PEP604 unions at runtime.
@@ -692,6 +724,8 @@ class AnonymousShareManager:
         """
         # Remove potential MAC addresses
         value = _RE_MAC_ADDRESS.sub("[MAC]", value)
+        # Remove compact MAC-like identifiers
+        value = _RE_MAC_COMPACT.sub("[MAC]", value)
         # Remove potential IP addresses
         value = _RE_IP_ADDRESS.sub("[IP]", value)
         # Remove potential device IDs (03ab + hex)
@@ -709,6 +743,9 @@ class AnonymousShareManager:
         """
         # MAC address pattern
         if _RE_MAC_EXACT.match(value):
+            return True
+        # Compact MAC-like pattern (12 hex chars)
+        if _RE_MAC_COMPACT_EXACT.match(value):
             return True
         # IP address pattern
         if _RE_IP_EXACT.match(value):
@@ -755,6 +792,76 @@ class AnonymousShareManager:
         if not self._devices and not self._errors:
             return None
         return self.build_report()
+
+    def _build_developer_feedback_report(
+        self,
+        feedback: dict[str, Any],
+    ) -> dict[str, Any]:
+        """Build one developer-feedback report payload.
+
+        The payload reuses the same endpoint/protocol as anonymous share reports
+        so server-side collection remains centralized.
+        """
+        sanitized_feedback = self._sanitize_value(feedback, preserve_structure=True)
+        if not isinstance(sanitized_feedback, dict):
+            sanitized_feedback = {"value": sanitized_feedback}
+
+        return {
+            "report_version": "1.2",
+            "integration_version": VERSION,
+            "ha_version": self._ha_version,
+            "generated_at": datetime.now(UTC).isoformat(),
+            "installation_id": self._installation_id or "manual",
+            "device_count": 0,
+            "error_count": 0,
+            "devices": [],
+            "errors": [],
+            "developer_feedback": sanitized_feedback,
+        }
+
+    async def submit_developer_feedback(
+        self,
+        session: aiohttp.ClientSession,
+        feedback: dict[str, Any],
+    ) -> bool:
+        """Submit one developer-feedback payload immediately.
+
+        This is an explicit user action from service call, so it does not
+        depend on anonymous-share opt-in switches.
+        """
+        async with self._upload_lock:
+            report = self._build_developer_feedback_report(feedback)
+            headers = {
+                "User-Agent": f"HomeAssistant/Lipro {VERSION}",
+                "X-API-Key": SHARE_API_KEY,
+            }
+
+            try:
+                async with session.post(
+                    SHARE_URL,
+                    json=report,
+                    headers=headers,
+                    timeout=aiohttp.ClientTimeout(total=30),
+                ) as response:
+                    if response.status == 200:
+                        _LOGGER.info("Developer feedback report submitted")
+                        return True
+
+                    _LOGGER.warning(
+                        "Developer feedback upload failed with status %d",
+                        response.status,
+                    )
+                    return False
+
+            except TimeoutError:
+                _LOGGER.warning("Developer feedback upload timed out")
+                return False
+            except aiohttp.ClientError as err:
+                _LOGGER.warning("Developer feedback upload failed: %s", err)
+                return False
+            except (OSError, ValueError):
+                _LOGGER.exception("Unexpected error during developer feedback upload")
+                return False
 
     async def submit_report(
         self,

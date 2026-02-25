@@ -215,7 +215,7 @@ _MQTT_PROPERTY_GROUPS: Final[tuple[str, ...]] = (
 )
 
 
-def parse_mqtt_payload(payload: dict[str, Any]) -> dict[str, Any]:
+def parse_mqtt_payload(payload: Any) -> dict[str, Any]:
     """Parse MQTT payload and flatten properties.
 
     The MQTT payload contains grouped properties (common, light, fanLight, etc.).
@@ -228,6 +228,9 @@ def parse_mqtt_payload(payload: dict[str, Any]) -> dict[str, Any]:
         Flattened properties dict compatible with REST API format.
 
     """
+    if not isinstance(payload, dict):
+        return {}
+
     properties: dict[str, Any] = {}
 
     # Process each property group
@@ -378,12 +381,14 @@ class LiproMqttClient:
         added = 0
         for device_id in to_add:
             if self._client and self._connected:
-                topic = build_topic(self._biz_id, device_id)
                 try:
+                    topic = build_topic(self._biz_id, device_id)
                     await self._client.subscribe(topic, qos=MQTT_QOS)
                     self._subscribed_devices.add(device_id)
                     added += 1
                     _LOGGER.debug("Subscribed to: %s", topic)
+                except ValueError as err:
+                    _LOGGER.warning("Skipping invalid MQTT device ID %s: %s", device_id, err)
                 except aiomqtt.MqttError:
                     _LOGGER.exception("Failed to subscribe to %s", topic)
             else:
@@ -396,10 +401,16 @@ class LiproMqttClient:
             self._subscribed_devices.discard(device_id)
             removed += 1
             if self._client and self._connected:
-                topic = build_topic(self._biz_id, device_id)
                 try:
+                    topic = build_topic(self._biz_id, device_id)
                     await self._client.unsubscribe(topic)
                     _LOGGER.debug("Unsubscribed from: %s", topic)
+                except ValueError as err:
+                    _LOGGER.warning(
+                        "Skipping MQTT unsubscribe for invalid device ID %s: %s",
+                        device_id,
+                        err,
+                    )
                 except aiomqtt.MqttError:
                     _LOGGER.exception("Failed to unsubscribe from %s", topic)
 
@@ -422,6 +433,11 @@ class LiproMqttClient:
                 break
             except OSError as err:
                 self._handle_disconnect(f"Connection error: {err}")
+            except ValueError as err:
+                self._handle_disconnect(f"MQTT value error: {err}")
+            except Exception:
+                _LOGGER.exception("Unexpected MQTT loop error")
+                self._handle_disconnect("Unexpected MQTT loop error")
 
             # Wait before reconnecting with jitter to prevent thundering herd
             if self._running:
@@ -458,7 +474,16 @@ class LiproMqttClient:
 
             # Subscribe BEFORE marking connected to avoid race with sync_subscriptions
             for device_id in list(self._subscribed_devices):
-                topic = build_topic(self._biz_id, device_id)
+                try:
+                    topic = build_topic(self._biz_id, device_id)
+                except ValueError as err:
+                    self._subscribed_devices.discard(device_id)
+                    _LOGGER.warning(
+                        "Skipping invalid MQTT subscription device ID %s: %s",
+                        device_id,
+                        err,
+                    )
+                    continue
                 await client.subscribe(topic, qos=MQTT_QOS)
                 _LOGGER.debug("Subscribed to: %s", topic)
 
@@ -501,6 +526,13 @@ class LiproMqttClient:
                 return
 
             payload = json.loads(message.payload.decode("utf-8"))
+            if not isinstance(payload, dict):
+                _LOGGER.debug(
+                    "MQTT [%s]: unexpected payload type %s, skipping",
+                    device_id,
+                    type(payload).__name__,
+                )
+                return
             _LOGGER.debug(
                 "MQTT [%s]: %s",
                 device_id,
@@ -515,5 +547,5 @@ class LiproMqttClient:
 
         except (json.JSONDecodeError, UnicodeDecodeError):
             _LOGGER.exception("Failed to decode MQTT payload")
-        except TypeError:
+        except Exception:
             _LOGGER.exception("Error processing MQTT message")

@@ -19,6 +19,7 @@ from homeassistant.config_entries import (
 from homeassistant.const import CONF_PASSWORD
 from homeassistant.core import callback
 from homeassistant.data_entry_flow import AbortFlow
+from homeassistant.helpers import selector
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .const import (
@@ -59,6 +60,24 @@ _LOGGER = logging.getLogger(__name__)
 
 # Options flow key for toggling advanced settings step
 _CONF_SHOW_ADVANCED = "show_advanced"
+
+
+def _text_selector() -> selector.TextSelector:
+    """Create a plain text selector."""
+    return selector.TextSelector(
+        selector.TextSelectorConfig(
+            type=selector.TextSelectorType.TEXT,
+        )
+    )
+
+
+def _password_selector() -> selector.TextSelector:
+    """Create a password selector."""
+    return selector.TextSelector(
+        selector.TextSelectorConfig(
+            type=selector.TextSelectorType.PASSWORD,
+        )
+    )
 
 
 def _hash_password(password: str) -> str:
@@ -107,10 +126,25 @@ class LoginResult:
 
 STEP_USER_DATA_SCHEMA = vol.Schema(
     {
-        vol.Required(CONF_PHONE): str,
-        vol.Required(CONF_PASSWORD): str,
+        vol.Required(CONF_PHONE): _text_selector(),
+        vol.Required(CONF_PASSWORD): _password_selector(),
     },
 )
+STEP_REAUTH_DATA_SCHEMA = vol.Schema(
+    {
+        vol.Required(CONF_PASSWORD): _password_selector()
+    }
+)
+
+
+def _build_reconfigure_data_schema(default_phone: str) -> vol.Schema:
+    """Build schema for the reconfigure step."""
+    return vol.Schema(
+        {
+            vol.Required(CONF_PHONE, default=default_phone): _text_selector(),
+            vol.Required(CONF_PASSWORD): _password_selector(),
+        },
+    )
 
 
 class LiproConfigFlow(ConfigFlow, domain=DOMAIN):
@@ -183,6 +217,9 @@ class LiproConfigFlow(ConfigFlow, domain=DOMAIN):
             errors["base"] = _map_login_error(err)
         except AbortFlow:
             raise
+        except (KeyError, TypeError, ValueError):
+            _LOGGER.exception("Malformed login response during %s", context_name)
+            errors["base"] = "unknown"
         except Exception:
             _LOGGER.exception("Unexpected error during %s", context_name)
             errors["base"] = "unknown"
@@ -239,14 +276,7 @@ class LiproConfigFlow(ConfigFlow, domain=DOMAIN):
                     "please remove and re-add the integration"
                 )
                 errors["base"] = "unknown"
-                return self.async_show_form(
-                    step_id="reauth_confirm",
-                    data_schema=vol.Schema({vol.Required(CONF_PASSWORD): str}),
-                    errors=errors,
-                    description_placeholders={
-                        "phone": reauth_entry.data.get(CONF_PHONE, "")
-                    },
-                )
+                return self._show_reauth_form(reauth_entry, errors)
             password_hash = _hash_password(user_input[CONF_PASSWORD])
 
             login_result = await self._async_try_login(
@@ -258,9 +288,17 @@ class LiproConfigFlow(ConfigFlow, domain=DOMAIN):
                     data=login_result.to_entry_data(phone, password_hash, phone_id),
                 )
 
+        return self._show_reauth_form(reauth_entry, errors)
+
+    def _show_reauth_form(
+        self,
+        reauth_entry: ConfigEntry,
+        errors: dict[str, str],
+    ) -> ConfigFlowResult:
+        """Show the reauth confirmation form."""
         return self.async_show_form(
             step_id="reauth_confirm",
-            data_schema=vol.Schema({vol.Required(CONF_PASSWORD): str}),
+            data_schema=STEP_REAUTH_DATA_SCHEMA,
             errors=errors,
             description_placeholders={"phone": reauth_entry.data.get(CONF_PHONE, "")},
         )
@@ -283,19 +321,7 @@ class LiproConfigFlow(ConfigFlow, domain=DOMAIN):
                     "please remove and re-add the integration"
                 )
                 errors["base"] = "unknown"
-                return self.async_show_form(
-                    step_id="reconfigure",
-                    data_schema=vol.Schema(
-                        {
-                            vol.Required(
-                                CONF_PHONE,
-                                default=reconfigure_entry.data.get(CONF_PHONE, ""),
-                            ): str,
-                            vol.Required(CONF_PASSWORD): str,
-                        },
-                    ),
-                    errors=errors,
-                )
+                return self._show_reconfigure_form(reconfigure_entry, errors)
 
             login_result = await self._async_try_login(
                 phone, password_hash, phone_id, errors, "reconfigure"
@@ -310,16 +336,18 @@ class LiproConfigFlow(ConfigFlow, domain=DOMAIN):
                     data=login_result.to_entry_data(phone, password_hash, phone_id),
                 )
 
+        return self._show_reconfigure_form(reconfigure_entry, errors)
+
+    def _show_reconfigure_form(
+        self,
+        reconfigure_entry: ConfigEntry,
+        errors: dict[str, str],
+    ) -> ConfigFlowResult:
+        """Show the reconfigure form."""
         return self.async_show_form(
             step_id="reconfigure",
-            data_schema=vol.Schema(
-                {
-                    vol.Required(
-                        CONF_PHONE,
-                        default=reconfigure_entry.data.get(CONF_PHONE, ""),
-                    ): str,
-                    vol.Required(CONF_PASSWORD): str,
-                },
+            data_schema=_build_reconfigure_data_schema(
+                reconfigure_entry.data.get(CONF_PHONE, "")
             ),
             errors=errors,
         )
@@ -349,51 +377,9 @@ class LiproOptionsFlow(OptionsFlow):
             # Merge with existing advanced options (keep previous values)
             return self._save_options()
 
-        # Get current values with defaults
-        options = self.config_entry.options
-
         return self.async_show_form(
             step_id="init",
-            data_schema=vol.Schema(
-                {
-                    vol.Required(
-                        CONF_SCAN_INTERVAL,
-                        default=options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL),
-                    ): vol.All(
-                        vol.Coerce(int),
-                        vol.Range(min=MIN_SCAN_INTERVAL, max=MAX_SCAN_INTERVAL),
-                    ),
-                    vol.Required(
-                        CONF_MQTT_ENABLED,
-                        default=options.get(CONF_MQTT_ENABLED, DEFAULT_MQTT_ENABLED),
-                    ): bool,
-                    vol.Required(
-                        CONF_ENABLE_POWER_MONITORING,
-                        default=options.get(
-                            CONF_ENABLE_POWER_MONITORING,
-                            DEFAULT_ENABLE_POWER_MONITORING,
-                        ),
-                    ): bool,
-                    vol.Required(
-                        CONF_ANONYMOUS_SHARE_ENABLED,
-                        default=options.get(
-                            CONF_ANONYMOUS_SHARE_ENABLED,
-                            DEFAULT_ANONYMOUS_SHARE_ENABLED,
-                        ),
-                    ): bool,
-                    vol.Required(
-                        CONF_ANONYMOUS_SHARE_ERRORS,
-                        default=options.get(
-                            CONF_ANONYMOUS_SHARE_ERRORS,
-                            DEFAULT_ANONYMOUS_SHARE_ERRORS,
-                        ),
-                    ): bool,
-                    vol.Optional(
-                        _CONF_SHOW_ADVANCED,
-                        default=False,
-                    ): bool,
-                },
-            ),
+            data_schema=self._build_init_schema(),
         )
 
     async def async_step_advanced(
@@ -405,38 +391,9 @@ class LiproOptionsFlow(OptionsFlow):
             self._options.update(user_input)
             return self._save_options()
 
-        options = self.config_entry.options
-
         return self.async_show_form(
             step_id="advanced",
-            data_schema=vol.Schema(
-                {
-                    vol.Required(
-                        CONF_POWER_QUERY_INTERVAL,
-                        default=options.get(
-                            CONF_POWER_QUERY_INTERVAL, DEFAULT_POWER_QUERY_INTERVAL
-                        ),
-                    ): vol.All(
-                        vol.Coerce(int),
-                        vol.Range(
-                            min=MIN_POWER_QUERY_INTERVAL, max=MAX_POWER_QUERY_INTERVAL
-                        ),
-                    ),
-                    vol.Required(
-                        CONF_REQUEST_TIMEOUT,
-                        default=options.get(
-                            CONF_REQUEST_TIMEOUT, DEFAULT_REQUEST_TIMEOUT
-                        ),
-                    ): vol.All(
-                        vol.Coerce(int),
-                        vol.Range(min=MIN_REQUEST_TIMEOUT, max=MAX_REQUEST_TIMEOUT),
-                    ),
-                    vol.Required(
-                        CONF_DEBUG_MODE,
-                        default=options.get(CONF_DEBUG_MODE, DEFAULT_DEBUG_MODE),
-                    ): bool,
-                },
-            ),
+            data_schema=self._build_advanced_schema(),
         )
 
     def _save_options(self) -> ConfigFlowResult:
@@ -445,3 +402,77 @@ class LiproOptionsFlow(OptionsFlow):
         merged = dict(self.config_entry.options)
         merged.update(self._options)
         return self.async_create_entry(title="", data=merged)
+
+    def _build_init_schema(self) -> vol.Schema:
+        """Build the basic options schema."""
+        options = self.config_entry.options
+        return vol.Schema(
+            {
+                vol.Required(
+                    CONF_SCAN_INTERVAL,
+                    default=options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL),
+                ): vol.All(
+                    vol.Coerce(int),
+                    vol.Range(min=MIN_SCAN_INTERVAL, max=MAX_SCAN_INTERVAL),
+                ),
+                vol.Required(
+                    CONF_MQTT_ENABLED,
+                    default=options.get(CONF_MQTT_ENABLED, DEFAULT_MQTT_ENABLED),
+                ): bool,
+                vol.Required(
+                    CONF_ENABLE_POWER_MONITORING,
+                    default=options.get(
+                        CONF_ENABLE_POWER_MONITORING,
+                        DEFAULT_ENABLE_POWER_MONITORING,
+                    ),
+                ): bool,
+                vol.Required(
+                    CONF_ANONYMOUS_SHARE_ENABLED,
+                    default=options.get(
+                        CONF_ANONYMOUS_SHARE_ENABLED,
+                        DEFAULT_ANONYMOUS_SHARE_ENABLED,
+                    ),
+                ): bool,
+                vol.Required(
+                    CONF_ANONYMOUS_SHARE_ERRORS,
+                    default=options.get(
+                        CONF_ANONYMOUS_SHARE_ERRORS,
+                        DEFAULT_ANONYMOUS_SHARE_ERRORS,
+                    ),
+                ): bool,
+                vol.Optional(
+                    _CONF_SHOW_ADVANCED,
+                    default=False,
+                ): bool,
+            },
+        )
+
+    def _build_advanced_schema(self) -> vol.Schema:
+        """Build the advanced options schema."""
+        options = self.config_entry.options
+        return vol.Schema(
+            {
+                vol.Required(
+                    CONF_POWER_QUERY_INTERVAL,
+                    default=options.get(
+                        CONF_POWER_QUERY_INTERVAL, DEFAULT_POWER_QUERY_INTERVAL
+                    ),
+                ): vol.All(
+                    vol.Coerce(int),
+                    vol.Range(
+                        min=MIN_POWER_QUERY_INTERVAL, max=MAX_POWER_QUERY_INTERVAL
+                    ),
+                ),
+                vol.Required(
+                    CONF_REQUEST_TIMEOUT,
+                    default=options.get(CONF_REQUEST_TIMEOUT, DEFAULT_REQUEST_TIMEOUT),
+                ): vol.All(
+                    vol.Coerce(int),
+                    vol.Range(min=MIN_REQUEST_TIMEOUT, max=MAX_REQUEST_TIMEOUT),
+                ),
+                vol.Required(
+                    CONF_DEBUG_MODE,
+                    default=options.get(CONF_DEBUG_MODE, DEFAULT_DEBUG_MODE),
+                ): bool,
+            },
+        )

@@ -19,7 +19,11 @@ from custom_components.lipro.const import (
     MAX_MQTT_CACHE_SIZE,
     MQTT_DISCONNECT_NOTIFY_THRESHOLD,
 )
-from custom_components.lipro.core.api import LiproAuthError, LiproConnectionError
+from custom_components.lipro.core.api import (
+    LiproApiError,
+    LiproAuthError,
+    LiproConnectionError,
+)
 from custom_components.lipro.core.device import LiproDevice
 from homeassistant.helpers.issue_registry import IssueSeverity
 
@@ -268,6 +272,109 @@ class TestCoordinatorApplyPropertiesUpdate:
         coordinator._apply_properties_update(dev, {}, apply_protection=False)
         assert dev.properties == {"powerState": "0"}
 
+    def test_apply_adapts_fan_gear_upper_bound(self, coordinator):
+        """Observed fanGear should raise unknown max_fan_gear bounds."""
+        fan = LiproDevice(
+            device_number=1,
+            serial="mesh_group_10001",
+            name="Fan Light",
+            device_type=4,
+            iot_name="unknown_model",
+            physical_model="fanLight",
+            properties={"fanGear": "1"},
+        )
+        assert fan.max_fan_gear == 6
+
+        coordinator._apply_properties_update(
+            fan,
+            {"fanGear": "10"},
+            apply_protection=False,
+        )
+
+        assert fan.max_fan_gear == 10
+        assert fan.fan_speed_range == (1, 10)
+        assert fan.fan_gear == 10
+
+    def test_apply_does_not_shrink_fan_gear_upper_bound(self, coordinator):
+        """Lower runtime fanGear values must not reduce learned upper-bound."""
+        fan = LiproDevice(
+            device_number=1,
+            serial="mesh_group_10001",
+            name="Fan Light",
+            device_type=4,
+            iot_name="21F1",
+            physical_model="fanLight",
+            properties={"fanGear": "10"},
+            max_fan_gear=10,
+        )
+
+        coordinator._apply_properties_update(
+            fan,
+            {"fanGear": "5"},
+            apply_protection=False,
+        )
+
+        assert fan.max_fan_gear == 10
+        assert fan.fan_gear == 5
+
+    def test_apply_ignores_invalid_fan_gear_values(self, coordinator):
+        """Malformed fanGear values should not mutate capability bounds."""
+        fan = LiproDevice(
+            device_number=1,
+            serial="mesh_group_10001",
+            name="Fan Light",
+            device_type=4,
+            iot_name="unknown_model",
+            physical_model="fanLight",
+            properties={"fanGear": "1"},
+        )
+
+        coordinator._apply_properties_update(
+            fan,
+            {"fanGear": "not-a-number"},
+            apply_protection=False,
+        )
+        assert fan.max_fan_gear == 6
+
+    def test_apply_filters_stale_values_while_command_pending(self, coordinator):
+        """Pending command keys should ignore stale mismatched values."""
+        from custom_components.lipro.core.coordinator import _PendingCommandExpectation
+
+        dev = _make_device(serial="dev1", properties={"brightness": "10"})
+        coordinator._pending_command_expectations["dev1"] = _PendingCommandExpectation(
+            sent_at=monotonic(),
+            expected={"brightness": "60"},
+        )
+
+        coordinator._apply_properties_update(
+            dev,
+            {"brightness": "30", "powerState": "1"},
+            apply_protection=True,
+        )
+
+        # stale brightness is filtered, unrelated key still updates
+        assert dev.properties["brightness"] == "10"
+        assert dev.properties["powerState"] == "1"
+
+    def test_apply_confirms_pending_command_and_learns_latency(self, coordinator):
+        """Matching update confirms expectation and updates adaptive latency."""
+        from custom_components.lipro.core.coordinator import _PendingCommandExpectation
+
+        dev = _make_device(serial="dev1", properties={"brightness": "10"})
+        coordinator._pending_command_expectations["dev1"] = _PendingCommandExpectation(
+            sent_at=monotonic() - 2.0,
+            expected={"brightness": "60"},
+        )
+
+        coordinator._apply_properties_update(
+            dev,
+            {"brightness": "60"},
+            apply_protection=True,
+        )
+
+        assert "dev1" not in coordinator._pending_command_expectations
+        assert 1.5 <= coordinator._device_state_latency_seconds["dev1"] <= 8.0
+
 
 # ===========================================================================
 # 5. MQTT message handling
@@ -453,6 +560,234 @@ class TestCoordinatorSendCommand:
         mock_lipro_api_client.send_command.assert_not_awaited()
 
     @pytest.mark.asyncio
+    async def test_send_command_group_change_state_power_on_normalized(
+        self, coordinator, mock_lipro_api_client
+    ):
+        dev = _make_device(serial="mesh_group_10001", is_group=True)
+        result = await coordinator.async_send_command(
+            dev,
+            "CHANGE_STATE",
+            [{"key": "powerState", "value": "1"}],
+        )
+
+        assert result is True
+        mock_lipro_api_client.send_group_command.assert_awaited_once_with(
+            "mesh_group_10001",
+            "POWER_ON",
+            dev.device_type,
+            None,
+            dev.iot_name,
+        )
+
+    @pytest.mark.asyncio
+    async def test_send_command_group_change_state_power_off_normalized(
+        self, coordinator, mock_lipro_api_client
+    ):
+        dev = _make_device(serial="mesh_group_10001", is_group=True)
+        result = await coordinator.async_send_command(
+            dev,
+            "CHANGE_STATE",
+            [{"key": "powerState", "value": "0"}],
+        )
+
+        assert result is True
+        mock_lipro_api_client.send_group_command.assert_awaited_once_with(
+            "mesh_group_10001",
+            "POWER_OFF",
+            dev.device_type,
+            None,
+            dev.iot_name,
+        )
+
+    @pytest.mark.asyncio
+    async def test_send_command_group_change_state_without_power_keeps_original(
+        self, coordinator, mock_lipro_api_client
+    ):
+        dev = _make_device(serial="mesh_group_10001", is_group=True)
+        props = [{"key": "brightness", "value": "80"}]
+        result = await coordinator.async_send_command(
+            dev,
+            "CHANGE_STATE",
+            props,
+        )
+
+        assert result is True
+        mock_lipro_api_client.send_group_command.assert_awaited_once_with(
+            "mesh_group_10001",
+            "CHANGE_STATE",
+            dev.device_type,
+            props,
+            dev.iot_name,
+        )
+
+    @pytest.mark.asyncio
+    async def test_send_command_group_change_state_power_and_brightness_keeps_original(
+        self, coordinator, mock_lipro_api_client
+    ):
+        """Mixed property updates must not be collapsed to POWER_ON/OFF."""
+        dev = _make_device(serial="mesh_group_10001", is_group=True)
+        props = [
+            {"key": "powerState", "value": "1"},
+            {"key": "brightness", "value": "80"},
+        ]
+        result = await coordinator.async_send_command(
+            dev,
+            "CHANGE_STATE",
+            props,
+        )
+
+        assert result is True
+        mock_lipro_api_client.send_group_command.assert_awaited_once_with(
+            "mesh_group_10001",
+            "CHANGE_STATE",
+            dev.device_type,
+            props,
+            dev.iot_name,
+        )
+
+    @pytest.mark.asyncio
+    async def test_send_command_group_error_non_gateway_fallback_returns_false(
+        self, coordinator, mock_lipro_api_client
+    ):
+        dev = _make_device(serial="mesh_group_10001", is_group=True)
+        dev.extra_data["group_member_ids"] = ["03ab5ccd7c654321"]
+        dev.extra_data["group_member_count"] = 1
+        fallback_id = "03ab5ccd7c123456"
+        mock_lipro_api_client.send_group_command.side_effect = LiproApiError(
+            "group failed", code=140003
+        )
+
+        result = await coordinator.async_send_command(
+            dev,
+            "POWER_ON",
+            fallback_device_id=fallback_id,
+        )
+
+        assert result is False
+        mock_lipro_api_client.send_group_command.assert_awaited_once_with(
+            "mesh_group_10001",
+            "POWER_ON",
+            dev.device_type,
+            None,
+            dev.iot_name,
+        )
+        mock_lipro_api_client.send_command.assert_not_awaited()
+
+    @pytest.mark.asyncio
+    async def test_send_command_group_error_single_member_fallback_succeeds(
+        self, coordinator, mock_lipro_api_client
+    ):
+        dev = _make_device(serial="mesh_group_10001", is_group=True)
+        member_id = "03ab5ccd7c123456"
+        dev.extra_data["group_member_ids"] = [member_id]
+        dev.extra_data["group_member_count"] = 1
+        mock_lipro_api_client.send_group_command.side_effect = LiproApiError(
+            "group failed", code=140003
+        )
+        mock_lipro_api_client.send_command.return_value = {"pushSuccess": True}
+
+        result = await coordinator.async_send_command(
+            dev,
+            "POWER_ON",
+            fallback_device_id=member_id,
+        )
+
+        assert result is True
+        mock_lipro_api_client.send_group_command.assert_awaited_once_with(
+            "mesh_group_10001",
+            "POWER_ON",
+            dev.device_type,
+            None,
+            dev.iot_name,
+        )
+        mock_lipro_api_client.send_command.assert_awaited_once_with(
+            member_id,
+            "POWER_ON",
+            dev.device_type,
+            None,
+            dev.iot_name,
+        )
+
+    @pytest.mark.asyncio
+    async def test_send_command_group_push_fail_multi_member_fallback_ignored(
+        self, coordinator, mock_lipro_api_client
+    ):
+        dev = _make_device(serial="mesh_group_10001", is_group=True)
+        dev.extra_data["group_member_ids"] = [
+            "03ab5ccd7c123456",
+            "03ab5ccd7c999999",
+        ]
+        dev.extra_data["group_member_count"] = 2
+        mock_lipro_api_client.send_group_command.return_value = {"pushSuccess": False}
+
+        result = await coordinator.async_send_command(
+            dev,
+            "POWER_ON",
+            fallback_device_id="03AB5CCD7C123456",
+        )
+
+        assert result is False
+        mock_lipro_api_client.send_group_command.assert_awaited_once()
+        mock_lipro_api_client.send_command.assert_not_awaited()
+
+    @pytest.mark.asyncio
+    async def test_send_command_group_push_fail_single_member_fallback_succeeds(
+        self, coordinator, mock_lipro_api_client
+    ):
+        dev = _make_device(serial="mesh_group_10001", is_group=True)
+        dev.extra_data["group_member_ids"] = ["03ab5ccd7c123456"]
+        dev.extra_data["group_member_count"] = 1
+        mock_lipro_api_client.send_group_command.return_value = {"pushSuccess": False}
+        mock_lipro_api_client.send_command.return_value = {"pushSuccess": True}
+
+        result = await coordinator.async_send_command(
+            dev,
+            "POWER_ON",
+            fallback_device_id="03AB5CCD7C123456",
+        )
+
+        assert result is True
+        mock_lipro_api_client.send_group_command.assert_awaited_once()
+        mock_lipro_api_client.send_command.assert_awaited_once_with(
+            "03ab5ccd7c123456",
+            "POWER_ON",
+            dev.device_type,
+            None,
+            dev.iot_name,
+        )
+
+    @pytest.mark.asyncio
+    async def test_send_command_group_error_without_valid_member_fallback_returns_false(
+        self, coordinator, mock_lipro_api_client
+    ):
+        dev = _make_device(serial="mesh_group_10001", is_group=True)
+        mock_lipro_api_client.send_group_command.side_effect = LiproApiError(
+            "group failed", code=140003
+        )
+
+        result = await coordinator.async_send_command(
+            dev,
+            "POWER_ON",
+            fallback_device_id="mesh_group_10001",
+        )
+
+        assert result is False
+        mock_lipro_api_client.send_group_command.assert_awaited_once()
+        mock_lipro_api_client.send_command.assert_not_awaited()
+
+    @pytest.mark.asyncio
+    async def test_send_command_non_group_push_fail_returns_false(
+        self, coordinator, mock_lipro_api_client
+    ):
+        dev = _make_device(serial="03ab5ccd7c123456", is_group=False)
+        mock_lipro_api_client.send_command.return_value = {"pushSuccess": False}
+
+        result = await coordinator.async_send_command(dev, "POWER_ON")
+
+        assert result is False
+        mock_lipro_api_client.send_command.assert_awaited_once()
+
+    @pytest.mark.asyncio
     async def test_send_command_auth_error_returns_false(
         self, coordinator, mock_auth_manager
     ):
@@ -479,6 +814,251 @@ class TestCoordinatorSendCommand:
         mock_lipro_api_client.send_command.assert_awaited_once_with(
             "dev1", "turnOn", dev.device_type, None, dev.iot_name
         )
+
+    @pytest.mark.asyncio
+    async def test_send_command_schedules_post_refresh(
+        self, coordinator, mock_lipro_api_client
+    ):
+        dev = _make_device(serial="dev1", is_group=False)
+        with patch.object(coordinator, "_schedule_post_command_refresh") as schedule:
+            result = await coordinator.async_send_command(dev, "turnOn")
+
+        assert result is True
+        schedule.assert_called_once_with(skip_immediate=False, device_serial="dev1")
+
+    @pytest.mark.asyncio
+    async def test_send_command_brightness_change_schedules_delayed_only_refresh(
+        self, coordinator, mock_lipro_api_client
+    ):
+        """Brightness-only CHANGE_STATE should skip immediate refresh."""
+        dev = _make_device(serial="dev1", is_group=False)
+        with patch.object(coordinator, "_schedule_post_command_refresh") as schedule:
+            result = await coordinator.async_send_command(
+                dev,
+                "CHANGE_STATE",
+                [{"key": "brightness", "value": "60"}],
+            )
+
+        assert result is True
+        schedule.assert_called_once_with(skip_immediate=True, device_serial="dev1")
+
+    @pytest.mark.asyncio
+    async def test_send_command_fan_gear_change_schedules_delayed_only_refresh(
+        self, coordinator, mock_lipro_api_client
+    ):
+        """fanGear-only CHANGE_STATE should skip immediate refresh."""
+        dev = _make_device(serial="dev1", is_group=False)
+        with patch.object(coordinator, "_schedule_post_command_refresh") as schedule:
+            result = await coordinator.async_send_command(
+                dev,
+                "CHANGE_STATE",
+                [{"key": "fanGear", "value": "3"}],
+            )
+
+        assert result is True
+        schedule.assert_called_once_with(skip_immediate=True, device_serial="dev1")
+
+    @pytest.mark.asyncio
+    async def test_send_command_position_change_schedules_delayed_only_refresh(
+        self, coordinator, mock_lipro_api_client
+    ):
+        """position-only CHANGE_STATE should skip immediate refresh."""
+        dev = _make_device(serial="dev1", is_group=False)
+        with patch.object(coordinator, "_schedule_post_command_refresh") as schedule:
+            result = await coordinator.async_send_command(
+                dev,
+                "CHANGE_STATE",
+                [{"key": "position", "value": "20"}],
+            )
+
+        assert result is True
+        schedule.assert_called_once_with(skip_immediate=True, device_serial="dev1")
+
+    def test_schedule_post_command_refresh_without_mqtt(self, coordinator):
+        coordinator._mqtt_connected = False
+        scheduled = []
+
+        def _create_task(coro):
+            scheduled.append(coro)
+            coro.close()
+            task = MagicMock()
+            task.done.return_value = True
+            return task
+
+        coordinator.hass.async_create_task = _create_task
+        coordinator._schedule_post_command_refresh()
+
+        assert len(scheduled) == 2
+
+    def test_schedule_post_command_refresh_skip_immediate_without_mqtt(self, coordinator):
+        coordinator._mqtt_connected = False
+        scheduled = []
+
+        def _create_task(coro):
+            scheduled.append(coro)
+            coro.close()
+            task = MagicMock()
+            task.done.return_value = True
+            return task
+
+        coordinator.hass.async_create_task = _create_task
+        coordinator._schedule_post_command_refresh(skip_immediate=True)
+
+        assert len(scheduled) == 1
+
+    def test_schedule_post_command_refresh_with_mqtt(self, coordinator):
+        coordinator._mqtt_connected = True
+        scheduled = []
+
+        def _create_task(coro):
+            scheduled.append(coro)
+            coro.close()
+            task = MagicMock()
+            task.done.return_value = True
+            return task
+
+        coordinator.hass.async_create_task = _create_task
+        coordinator._schedule_post_command_refresh()
+
+        assert len(scheduled) == 1
+
+    def test_schedule_post_command_refresh_skip_immediate_with_mqtt(self, coordinator):
+        coordinator._mqtt_connected = True
+        scheduled = []
+
+        def _create_task(coro):
+            scheduled.append(coro)
+            coro.close()
+            task = MagicMock()
+            task.done.return_value = True
+            return task
+
+        coordinator.hass.async_create_task = _create_task
+        coordinator._schedule_post_command_refresh(skip_immediate=True)
+
+        assert len(scheduled) == 0
+
+    def test_schedule_post_command_refresh_with_mqtt_and_pending_expectation(
+        self, coordinator
+    ):
+        from custom_components.lipro.core.coordinator import _PendingCommandExpectation
+
+        coordinator._mqtt_connected = True
+        coordinator._pending_command_expectations["dev1"] = _PendingCommandExpectation(
+            sent_at=monotonic(),
+            expected={"brightness": "50"},
+        )
+        scheduled = []
+
+        def _create_task(coro):
+            scheduled.append(coro)
+            coro.close()
+            task = MagicMock()
+            task.done.return_value = True
+            return task
+
+        coordinator.hass.async_create_task = _create_task
+        coordinator._schedule_post_command_refresh(
+            skip_immediate=True,
+            device_serial="dev1",
+        )
+
+        # MQTT connected, but pending command keeps one delayed fallback refresh.
+        assert len(scheduled) == 1
+
+    def test_schedule_post_command_refresh_cancels_previous_task(self, coordinator):
+        coordinator._mqtt_connected = False
+        previous = MagicMock()
+        previous.done.return_value = False
+        coordinator._post_command_refresh_task = previous
+
+        def _create_task(coro):
+            coro.close()
+            task = MagicMock()
+            task.done.return_value = True
+            return task
+
+        coordinator.hass.async_create_task = _create_task
+        coordinator._schedule_post_command_refresh()
+
+        previous.cancel.assert_called_once()
+
+    def test_get_adaptive_post_refresh_delay_uses_learned_latency(self, coordinator):
+        coordinator._device_state_latency_seconds["dev1"] = 4.0
+        assert coordinator._get_adaptive_post_refresh_delay("dev1") == pytest.approx(
+            4.6
+        )
+
+    def test_prune_runtime_state_for_devices(self, coordinator):
+        from custom_components.lipro.core.coordinator import _PendingCommandExpectation
+
+        coordinator._pending_command_expectations = {
+            "active": _PendingCommandExpectation(
+                sent_at=monotonic(),
+                expected={"brightness": "50"},
+            ),
+            "stale": _PendingCommandExpectation(
+                sent_at=monotonic(),
+                expected={"brightness": "10"},
+            ),
+        }
+        coordinator._device_state_latency_seconds = {"active": 2.0, "stale": 5.0}
+
+        coordinator._prune_runtime_state_for_devices({"active"})
+
+        assert set(coordinator._pending_command_expectations) == {"active"}
+        assert set(coordinator._device_state_latency_seconds) == {"active"}
+
+    def test_build_developer_report_disabled_mode_has_note(self, coordinator):
+        with patch(
+            "custom_components.lipro.core.coordinator.get_anonymous_share_manager"
+        ) as mock_share:
+            mock_share.return_value = MagicMock(pending_count=(0, 0))
+            report = coordinator.build_developer_report()
+
+        assert report["debug_mode_enabled"] is False
+        assert report["recent_commands"] == []
+        assert "note" in report
+        assert report["entry_id"] != coordinator.config_entry.entry_id
+        assert report["unique_id"] != coordinator.config_entry.unique_id
+        assert "***" in report["entry_id"]
+        assert "***" in report["unique_id"]
+
+    def test_load_options_debug_mode_enables_debug_logging(self, coordinator):
+        coordinator.hass.config_entries.async_update_entry(
+            coordinator.config_entry,
+            options={"debug_mode": True},
+        )
+        coordinator._load_options()
+        assert coordinator._debug_mode is True
+
+    @pytest.mark.asyncio
+    async def test_send_command_records_trace_when_debug_mode_enabled(
+        self, coordinator, mock_lipro_api_client
+    ):
+        coordinator._debug_mode = True
+        dev = _make_device(serial="dev1", is_group=False)
+        mock_lipro_api_client.send_command.return_value = {
+            "pushSuccess": True,
+            "msgSn": "trace-msg-sn",
+            "pushTimestamp": 1739942400,
+        }
+
+        result = await coordinator.async_send_command(
+            dev,
+            "POWER_ON",
+            [{"key": "powerState", "value": "1"}],
+        )
+
+        assert result is True
+        assert len(coordinator._command_traces) == 1
+        trace = coordinator._command_traces[0]
+        assert trace["success"] is True
+        assert trace["route"] == "device_direct"
+        assert trace["requested_command"] == "POWER_ON"
+        assert trace["push_success"] is True
+        assert trace["response_msg_sn"] == "trace-msg-sn"
+        assert trace["response_push_timestamp"] == 1739942400
 
 
 # ===========================================================================
@@ -574,6 +1154,10 @@ class TestCoordinatorStatusQueriesAndNotifications:
             {
                 "groupId": "mesh_group_10001",
                 "gatewayDeviceId": "03ab5ccd7cgw",
+                "devices": [
+                    {"deviceId": "03ab5ccd7c111111"},
+                    {"deviceId": "03AB5CCD7C222222"},
+                ],
                 "properties": [{"key": "powerState", "value": "1"}],
             }
         ]
@@ -582,6 +1166,14 @@ class TestCoordinatorStatusQueriesAndNotifications:
 
         assert group.properties["powerState"] == "1"
         assert coordinator._device_by_id["03ab5ccd7cgw"] is group
+        assert coordinator._device_by_id["03ab5ccd7c111111"] is group
+        assert coordinator.get_device_by_id("03AB5CCD7C222222") is group
+        assert coordinator.get_device_by_id("03ab5ccd7c222222") is group
+        assert group.extra_data["group_member_count"] == 2
+        assert group.extra_data["group_member_ids"] == [
+            "03ab5ccd7c111111",
+            "03AB5CCD7C222222",
+        ]
 
     @pytest.mark.asyncio
     async def test_query_outlet_power_writes_extra_data(

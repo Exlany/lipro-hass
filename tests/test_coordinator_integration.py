@@ -631,7 +631,89 @@ class TestCoordinatorProductConfigs:
             await coordinator._async_update_data()
 
         device = coordinator.devices["03ab5ccd7c000001"]
+        assert device.default_max_fan_gear_in_model == 8
         assert device.max_fan_gear == 8
+
+    @pytest.mark.asyncio
+    async def test_fan_gear_range_uses_model_default_when_product_max_missing(
+        self, coordinator, mock_lipro_api_client
+    ):
+        """None maxFanGear should keep model default upper-bound."""
+        mock_lipro_api_client.get_devices.return_value = {
+            "devices": [
+                _make_api_device(
+                    serial="03ab5ccd7c000001",
+                    iot_name="21F1",
+                    physical_model="fanLight",
+                ),
+            ]
+        }
+        mock_lipro_api_client.get_product_configs.return_value = [
+            {
+                "id": 1,
+                "fwIotName": "21F1",
+                "name": "Fan Light",
+                "minTemperature": 2700,
+                "maxTemperature": 6500,
+                "maxFanGear": None,
+            }
+        ]
+        mock_lipro_api_client.query_device_status.return_value = []
+        mock_lipro_api_client.query_connect_status.return_value = {}
+
+        with patch(
+            "custom_components.lipro.core.coordinator.get_anonymous_share_manager"
+        ) as mock_share:
+            mock_share.return_value = MagicMock(is_enabled=False)
+            await coordinator._async_update_data()
+
+        device = coordinator.devices["03ab5ccd7c000001"]
+        assert device.default_max_fan_gear_in_model == 10
+        assert device.max_fan_gear == 10
+
+    @pytest.mark.asyncio
+    async def test_fan_gear_range_adapts_when_product_max_missing(
+        self, coordinator, mock_lipro_api_client
+    ):
+        """When maxFanGear is missing, runtime fanGear should adapt upper-bound."""
+        mock_lipro_api_client.get_devices.return_value = {
+            "devices": [
+                _make_api_device(
+                    serial="03ab5ccd7c000001",
+                    iot_name="fan_unknown_model",
+                    physical_model="fanLight",
+                ),
+            ]
+        }
+        mock_lipro_api_client.get_product_configs.return_value = [
+            {
+                "id": 1,
+                "fwIotName": "fan_unknown_model",
+                "name": "Fan Light",
+                "minTemperature": 2700,
+                "maxTemperature": 6500,
+                "maxFanGear": None,
+            }
+        ]
+        mock_lipro_api_client.query_device_status.return_value = [
+            {
+                "deviceId": "03ab5ccd7c000001",
+                "properties": [{"key": "fanGear", "value": "10"}],
+            }
+        ]
+        mock_lipro_api_client.query_connect_status.return_value = {
+            "03ab5ccd7c000001": True
+        }
+
+        with patch(
+            "custom_components.lipro.core.coordinator.get_anonymous_share_manager"
+        ) as mock_share:
+            mock_share.return_value = MagicMock(is_enabled=False)
+            await coordinator._async_update_data()
+
+        device = coordinator.devices["03ab5ccd7c000001"]
+        assert device.default_max_fan_gear_in_model == 6
+        assert device.max_fan_gear == 10
 
     @pytest.mark.asyncio
     async def test_product_config_api_error_is_non_fatal(

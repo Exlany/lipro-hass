@@ -168,3 +168,24 @@ get_anonymous_share_report:
   description: >-
     Preview the anonymous share report data that would be submitted. Use this to
     review what information will be shared before enabling anonymous share.
+
+get_developer_report:
+  name: Get Developer Report
+  description: >-
+    Export a sanitized runtime diagnostics report for real-device debugging.
+    Includes mesh topology snapshot, recent command traces, and runtime options.
+
+submit_developer_feedback:
+  name: Submit Developer Feedback
+  description: >-
+    One-click submit sanitized developer diagnostics to the share worker.
+    Optionally include a note for easier triage.
+  fields:
+    note:
+      name: Note (Optional)
+      description: >-
+        Extra context about what you observed during the test.
+      required: false
+      example: "Group control returns pushSuccess but no visible state change"
+      selector:
+        text:

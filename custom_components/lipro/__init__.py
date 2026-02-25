@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import UTC, datetime
 import functools
 import logging
 import re
@@ -75,6 +76,8 @@ SERVICE_ADD_SCHEDULE: Final = "add_schedule"
 SERVICE_DELETE_SCHEDULES: Final = "delete_schedules"
 SERVICE_SUBMIT_ANONYMOUS_SHARE: Final = "submit_anonymous_share"
 SERVICE_GET_ANONYMOUS_SHARE_REPORT: Final = "get_anonymous_share_report"
+SERVICE_GET_DEVELOPER_REPORT: Final = "get_developer_report"
+SERVICE_SUBMIT_DEVELOPER_FEEDBACK: Final = "submit_developer_feedback"
 
 ATTR_DEVICE_ID: Final = "device_id"
 ATTR_COMMAND: Final = "command"
@@ -83,6 +86,7 @@ ATTR_DAYS: Final = "days"
 ATTR_TIMES: Final = "times"
 ATTR_EVENTS: Final = "events"
 ATTR_SCHEDULE_IDS: Final = "schedule_ids"
+ATTR_NOTE: Final = "note"
 
 # Pre-compiled pattern for extracting device serial from entity unique_id
 _SERIAL_PATTERN = re.compile(
@@ -144,6 +148,28 @@ SERVICE_DELETE_SCHEDULES_SCHEMA = vol.Schema(
         ),
     },
 )
+
+SERVICE_SUBMIT_DEVELOPER_FEEDBACK_SCHEMA = vol.Schema(
+    {
+        vol.Optional(ATTR_NOTE): cv.string,
+    },
+)
+
+
+def _summarize_service_properties(properties: Any) -> dict[str, Any]:
+    """Build a log-safe summary for service properties.
+
+    Avoid logging raw values to reduce accidental sensitive-data exposure.
+    """
+    if not isinstance(properties, list):
+        return {"count": 0, "keys": []}
+
+    keys = [
+        item.get("key")
+        for item in properties
+        if isinstance(item, dict) and isinstance(item.get("key"), str)
+    ]
+    return {"count": len(properties), "keys": keys}
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
@@ -277,10 +303,18 @@ async def _get_device_and_coordinator(
 
     # Find the device across all config entries
     for entry in hass.config_entries.async_entries(DOMAIN):
-        if entry.runtime_data:
-            device = entry.runtime_data.get_device(device_id)
-            if device:
-                return device, entry.runtime_data
+        coordinator = entry.runtime_data
+        if not coordinator:
+            continue
+
+        # Prefer direct serial lookup, then fall back to alias lookup
+        # (gateway ID / member device ID mapped by coordinator).
+        device = coordinator.get_device(device_id)
+        if not device:
+            device = coordinator.get_device_by_id(device_id)
+
+        if device:
+            return device, coordinator
 
     raise ServiceValidationError(
         translation_domain=DOMAIN,
@@ -295,24 +329,45 @@ async def _async_handle_send_command(
     """Handle the send_command service call."""
     command = call.data[ATTR_COMMAND]
     properties = call.data.get(ATTR_PROPERTIES)
+    properties_summary = _summarize_service_properties(properties)
+    requested_device_id = call.data.get(ATTR_DEVICE_ID)
 
     device, coordinator = await _get_device_and_coordinator(hass, call)
 
-    _LOGGER.info(
-        "Service call: send_command to %s, command=%s, properties=%s",
-        device.serial,
-        command,
-        properties,
-    )
+    if requested_device_id and requested_device_id != device.serial:
+        _LOGGER.info(
+            "Service call: send_command requested_id=%s resolved_to=%s, "
+            "command=%s, property_summary=%s",
+            requested_device_id,
+            device.serial,
+            command,
+            properties_summary,
+        )
+    else:
+        _LOGGER.info(
+            "Service call: send_command to %s, command=%s, property_summary=%s",
+            device.serial,
+            command,
+            properties_summary,
+        )
 
     try:
-        success = await coordinator.async_send_command(device, command, properties)
+        success = await coordinator.async_send_command(
+            device,
+            command,
+            properties,
+            fallback_device_id=requested_device_id,
+        )
         if not success:
             raise HomeAssistantError(
                 translation_domain=DOMAIN,
                 translation_key="command_failed",
             )
-        return {"success": True, "serial": device.serial}
+        result: dict[str, Any] = {"success": True, "serial": device.serial}
+        if requested_device_id and requested_device_id != device.serial:
+            result["requested_device_id"] = requested_device_id
+            result["resolved_device_id"] = device.serial
+        return result
     except HomeAssistantError:
         raise
     except LiproApiError as err:
@@ -328,6 +383,9 @@ async def _async_handle_get_schedules(
 ) -> dict[str, Any]:
     """Handle the get_schedules service call."""
     device, coordinator = await _get_device_and_coordinator(hass, call)
+    mesh_gateway_id = device.extra_data.get("gateway_device_id", "")
+    raw_mesh_member_ids = device.extra_data.get("group_member_ids", [])
+    mesh_member_ids = raw_mesh_member_ids if isinstance(raw_mesh_member_ids, list) else []
 
     _LOGGER.info("Service call: get_schedules for %s", device.serial)
 
@@ -335,6 +393,8 @@ async def _async_handle_get_schedules(
         schedules = await coordinator.client.get_device_schedules(
             device.iot_device_id,
             device.device_type_hex,
+            mesh_gateway_id=mesh_gateway_id,
+            mesh_member_ids=mesh_member_ids,
         )
 
         # Format schedules for response
@@ -378,6 +438,9 @@ async def _async_handle_add_schedule(
 ) -> dict[str, Any]:
     """Handle the add_schedule service call."""
     device, coordinator = await _get_device_and_coordinator(hass, call)
+    mesh_gateway_id = device.extra_data.get("gateway_device_id", "")
+    raw_mesh_member_ids = device.extra_data.get("group_member_ids", [])
+    mesh_member_ids = raw_mesh_member_ids if isinstance(raw_mesh_member_ids, list) else []
 
     days = call.data[ATTR_DAYS]
     times = call.data[ATTR_TIMES]
@@ -404,6 +467,8 @@ async def _async_handle_add_schedule(
             days,
             times,
             events,
+            mesh_gateway_id=mesh_gateway_id,
+            mesh_member_ids=mesh_member_ids,
         )
 
         return {
@@ -424,6 +489,9 @@ async def _async_handle_delete_schedules(
 ) -> dict[str, Any]:
     """Handle the delete_schedules service call."""
     device, coordinator = await _get_device_and_coordinator(hass, call)
+    mesh_gateway_id = device.extra_data.get("gateway_device_id", "")
+    raw_mesh_member_ids = device.extra_data.get("group_member_ids", [])
+    mesh_member_ids = raw_mesh_member_ids if isinstance(raw_mesh_member_ids, list) else []
 
     schedule_ids = call.data[ATTR_SCHEDULE_IDS]
 
@@ -438,6 +506,8 @@ async def _async_handle_delete_schedules(
             device.iot_device_id,
             device.device_type_hex,
             schedule_ids,
+            mesh_gateway_id=mesh_gateway_id,
+            mesh_member_ids=mesh_member_ids,
         )
 
         return {
@@ -513,6 +583,69 @@ async def _async_handle_get_anonymous_share_report(
     }
 
 
+def _collect_developer_reports(hass: HomeAssistant) -> list[dict[str, Any]]:
+    """Collect developer reports from active config entries."""
+    reports: list[dict[str, Any]] = []
+    for entry in hass.config_entries.async_entries(DOMAIN):
+        coordinator = entry.runtime_data
+        if coordinator is None or not hasattr(coordinator, "build_developer_report"):
+            continue
+        reports.append(coordinator.build_developer_report())
+    return reports
+
+
+async def _async_handle_get_developer_report(
+    hass: HomeAssistant, call: ServiceCall
+) -> dict[str, Any]:
+    """Handle the get_developer_report service call."""
+    reports = _collect_developer_reports(hass)
+
+    return {
+        "entry_count": len(reports),
+        "reports": reports,
+    }
+
+
+async def _async_handle_submit_developer_feedback(
+    hass: HomeAssistant, call: ServiceCall
+) -> dict[str, Any]:
+    """Handle the submit_developer_feedback service call."""
+    reports = _collect_developer_reports(hass)
+
+    if not reports:
+        return {
+            "success": False,
+            "message": "No active Lipro config entries",
+            "submitted_entries": 0,
+        }
+
+    feedback_payload = {
+        "source": "home_assistant_service",
+        "service": f"{DOMAIN}.{SERVICE_SUBMIT_DEVELOPER_FEEDBACK}",
+        "generated_at": datetime.now(UTC).isoformat(),
+        "entry_count": len(reports),
+        "note": call.data.get(ATTR_NOTE, ""),
+        "reports": reports,
+    }
+
+    share_manager = get_anonymous_share_manager(hass)
+    session = async_get_clientsession(hass)
+    success = await share_manager.submit_developer_feedback(
+        session,
+        feedback_payload,
+    )
+    if not success:
+        raise HomeAssistantError(
+            translation_domain=DOMAIN,
+            translation_key="developer_feedback_submit_failed",
+        )
+
+    return {
+        "success": True,
+        "submitted_entries": len(reports),
+    }
+
+
 async def _async_setup_services(hass: HomeAssistant) -> None:
     """Set up Lipro services."""
     if hass.services.has_service(DOMAIN, SERVICE_SEND_COMMAND):
@@ -566,6 +699,21 @@ async def _async_setup_services(hass: HomeAssistant) -> None:
         supports_response=SupportsResponse.ONLY,
     )
 
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_GET_DEVELOPER_REPORT,
+        functools.partial(_async_handle_get_developer_report, hass),
+        supports_response=SupportsResponse.ONLY,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SUBMIT_DEVELOPER_FEEDBACK,
+        functools.partial(_async_handle_submit_developer_feedback, hass),
+        schema=SERVICE_SUBMIT_DEVELOPER_FEEDBACK_SCHEMA,
+        supports_response=SupportsResponse.OPTIONAL,
+    )
+
 
 async def async_unload_entry(hass: HomeAssistant, entry: LiproConfigEntry) -> bool:
     """Unload a config entry."""
@@ -585,6 +733,8 @@ async def async_unload_entry(hass: HomeAssistant, entry: LiproConfigEntry) -> bo
             SERVICE_DELETE_SCHEDULES,
             SERVICE_SUBMIT_ANONYMOUS_SHARE,
             SERVICE_GET_ANONYMOUS_SHARE_REPORT,
+            SERVICE_GET_DEVELOPER_REPORT,
+            SERVICE_SUBMIT_DEVELOPER_FEEDBACK,
         ):
             hass.services.async_remove(DOMAIN, service_name)
 

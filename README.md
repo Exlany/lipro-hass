@@ -29,10 +29,19 @@ Home Assistant integration for controlling Lipro Smart Home devices.
 | Fan | Fans | On/Off, Speed, Preset Mode |
 | Climate | Bathroom Heater | On/Off, Preset Mode |
 | Binary Sensor | Sensors | Motion, Door, Light, Battery |
+| Sensor | Sensors | Power, Energy, Battery, WiFi Signal |
+| Select | Selects | Wind Direction, Heater Light, Color Temp Preset |
 
 ## Services
 
 - `lipro.send_command` - Send raw command to device
+- `lipro.get_schedules` - Get device schedules
+- `lipro.add_schedule` - Add or update schedule
+- `lipro.delete_schedules` - Delete schedules by IDs
+- `lipro.submit_anonymous_share` - Submit anonymous share report manually
+- `lipro.get_anonymous_share_report` - Preview anonymous share report
+- `lipro.get_developer_report` - Export sanitized runtime diagnostics report
+- `lipro.submit_developer_feedback` - One-click submit developer diagnostics report
 
 ## Data Update Mechanism
 
@@ -197,6 +206,14 @@ data:
 Available options in integration settings:
 
 - **Update Interval**: Device status polling interval (default 30 seconds, range 10-300 seconds)
+- **Enable MQTT Real-time Updates**: Use MQTT push updates (recommended)
+- **Enable Power Monitoring**: Query outlet power metrics
+- **Anonymous Share Device Info**: Opt-in device capability sharing
+- **Anonymous Share Error Reports**: Opt-in anonymized error reports
+- **Advanced Options**:
+  - **Power Query Interval**: Outlet power query frequency (30-300 seconds)
+  - **Request Timeout**: API request timeout (10-60 seconds)
+  - **Debug Mode (Diagnostics)**: Enable runtime diagnostics (mesh topology + command traces), and auto-enable verbose logging
 
 ## Known Limitations
 
@@ -214,6 +231,10 @@ Available options in integration settings:
 
 5. **Sensor Battery**
    - Sensors only provide low battery warning, not specific battery percentage
+
+6. **Brightness Slider While Off (Tip)**
+   - Dragging brightness when the light is off will not turn it on (Lipro behavior)
+   - Turn the light on first, then adjust brightness/color temperature
 
 ## Troubleshooting
 

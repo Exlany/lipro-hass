@@ -19,6 +19,8 @@ body:
           required: true
         - label: I have enabled debug logging. / 我已启用调试日志。
           required: true
+        - label: I have enabled debug mode and provided a developer report (or submitted one-click feedback). / 我已启用调试模式并提供开发者报告（或已一键提交反馈）。
+          required: true
 
   - type: dropdown
     id: problem-type
@@ -129,6 +131,29 @@ body:
       render: text
     validations:
       required: true
+
+  - type: dropdown
+    id: developer-feedback-method
+    attributes:
+      label: Developer Feedback Method / 开发者反馈方式
+      description: How did you provide the developer diagnostics? / 你通过哪种方式提供开发者诊断信息？
+      options:
+        - "Submitted via lipro.submit_developer_feedback / 已通过服务一键提交"
+        - "Pasted JSON from lipro.get_developer_report / 已粘贴 get_developer_report 导出"
+        - "Not available / 暂无"
+    validations:
+      required: true
+
+  - type: textarea
+    id: developer-report
+    attributes:
+      label: Developer Report JSON / 开发者报告 JSON
+      description: |
+        Paste output from `lipro.get_developer_report` (or key parts), or mention submission time if you used one-click feedback.
+        请粘贴 `lipro.get_developer_report` 输出（或关键片段），若使用一键反馈请注明提交时间。
+      render: json
+    validations:
+      required: false
 
   - type: textarea
     id: additional

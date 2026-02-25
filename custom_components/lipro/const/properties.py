@@ -76,9 +76,11 @@ PROP_BLE_MAC: Final = "bleMac"
 PROP_LATEST_SYNC_TIMESTAMP: Final = "latestSyncTimestamp"
 
 # Fan modes
-FAN_MODE_NATURAL: Final = 0
-FAN_MODE_SLEEP: Final = 1
-FAN_MODE_NORMAL: Final = 2
+# Runtime/App semantics:
+# 0 = 直吹风 (direct), 1 = 自然风 (natural), 2 = 循环风 (cycle)
+FAN_MODE_DIRECT: Final = 0
+FAN_MODE_NATURAL: Final = 1
+FAN_MODE_CYCLE: Final = 2
 
 # Heater modes
 HEATER_MODE_DEFAULT: Final = 0

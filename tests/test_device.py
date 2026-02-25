@@ -18,6 +18,7 @@ class TestDeviceIdValidation:
         assert is_valid_iot_device_id("03ab5ccd7caaaaaa")
         assert is_valid_iot_device_id("03abffffffffffff")
         assert is_valid_iot_device_id("03ab000000000000")
+        assert is_valid_iot_device_id("03AB5CCD7C123456")
 
     def test_invalid_iot_device_id(self):
         """Test invalid IoT device ID formats."""
@@ -26,7 +27,6 @@ class TestDeviceIdValidation:
         assert not is_valid_iot_device_id("03ab5ccd7c12345")  # Too short
         assert not is_valid_iot_device_id("03ab5ccd7caaaaaa7")  # Too long
         assert not is_valid_iot_device_id("04ab5ccd7c123456")  # Wrong prefix
-        assert not is_valid_iot_device_id("03AB5CCD7C123456")  # Uppercase
         assert not is_valid_iot_device_id("03ab5ccd7c12345g")  # Invalid hex
 
     def test_valid_mesh_group_id(self):
@@ -304,6 +304,27 @@ class TestDeviceProperties:
         assert device.get_bool_property("missing") is False
         assert device.get_bool_property("missing", True) is True
 
+    def test_get_bool_property_strips_whitespace(self):
+        """Test boolean string values are normalized with surrounding spaces."""
+        device = LiproDevice(
+            device_number=1,
+            serial="03ab5ccd7cxxxxxx",
+            name="Test",
+            device_type=1,
+            iot_name="",
+            properties={
+                "str_true_padded": "  true  ",
+                "str_one_padded": " 1 ",
+                "str_false_padded": " false ",
+                "str_zero_padded": " 0 ",
+            },
+        )
+
+        assert device.get_bool_property("str_true_padded") is True
+        assert device.get_bool_property("str_one_padded") is True
+        assert device.get_bool_property("str_false_padded") is False
+        assert device.get_bool_property("str_zero_padded") is False
+
     def test_get_int_property(self):
         """Test getting integer property value."""
         device = LiproDevice(
@@ -419,6 +440,24 @@ class TestDeviceStateProperties:
         assert device.fan_is_on is True
         assert device.fan_gear == 5
         assert device.fan_mode == 1
+
+    def test_fan_properties_prefer_fan_on_off_status_key(self):
+        """fanOnOff from status query should override legacy fanOnoff."""
+        device = LiproDevice(
+            device_number=1,
+            serial="03ab5ccd7cxxxxxx",
+            name="Fan Light",
+            device_type=4,
+            iot_name="",
+            physical_model="fanLight",
+            properties={
+                "fanOnoff": "1",
+                "fanOnOff": "0",
+                "fanGear": "5",
+            },
+        )
+
+        assert device.fan_is_on is False
 
     def test_heater_properties(self):
         """Test heater state properties."""
@@ -579,6 +618,64 @@ class TestDeviceFromApiData:
         device = LiproDevice.from_api_data(api_data)
 
         assert device.is_group is True
+
+    def test_from_api_data_group_string_false_values(self):
+        """Test string false-like values are not treated as True."""
+        device = LiproDevice.from_api_data(
+            {
+                "serial": "mesh_group_10001",
+                "isGroup": "0",
+                "group": "false",
+            }
+        )
+        assert device.is_group is False
+
+    def test_from_api_data_group_string_true_values(self):
+        """Test string true-like values are treated as True."""
+        from_is_group = LiproDevice.from_api_data({"isGroup": "1"})
+        from_group = LiproDevice.from_api_data({"group": "true"})
+        mixed = LiproDevice.from_api_data({"isGroup": "false", "group": "1"})
+
+        assert from_is_group.is_group is True
+        assert from_group.is_group is True
+        assert mixed.is_group is True
+
+    def test_from_api_data_group_unknown_values_default_false(self):
+        """Test unknown boolean-like values default to False."""
+        device = LiproDevice.from_api_data(
+            {
+                "serial": "mesh_group_10001",
+                "isGroup": "offline",
+                "group": {"value": True},
+            }
+        )
+        assert device.is_group is False
+
+    def test_from_api_data_fan_model_uses_model_default_max_gear(self):
+        """Known fan model should use iotName-based default max gear."""
+        device = LiproDevice.from_api_data(
+            {
+                "serial": "mesh_group_12345",
+                "deviceName": "Fan Light",
+                "iotName": "21F1",
+                "physicalModel": "fanLight",
+            }
+        )
+        assert device.default_max_fan_gear_in_model == 10
+        assert device.max_fan_gear == 10
+
+    def test_from_api_data_unknown_fan_model_uses_global_default_max_gear(self):
+        """Unknown fan model should fallback to integration default max gear."""
+        device = LiproDevice.from_api_data(
+            {
+                "serial": "mesh_group_67890",
+                "deviceName": "Fan Light",
+                "iotName": "unknown_model",
+                "physicalModel": "fanLight",
+            }
+        )
+        assert device.default_max_fan_gear_in_model == 6
+        assert device.max_fan_gear == 6
 
 
 class TestParsePropertiesList:

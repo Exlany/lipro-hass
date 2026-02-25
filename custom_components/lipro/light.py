@@ -36,6 +36,12 @@ PARALLEL_UPDATES = 1
 
 # Home Assistant uses 0-255 brightness scale
 _HA_BRIGHTNESS_SCALE: Final = 255
+_OFF_STATE_SLIDER_TIP_COLOR_TEMP: Final = (
+    "When off, brightness and color temperature sliders do not turn on the light."
+)
+_OFF_STATE_SLIDER_TIP_BRIGHTNESS: Final = (
+    "When off, brightness slider changes do not turn on the light."
+)
 
 
 async def async_setup_entry(
@@ -112,10 +118,25 @@ class LiproLight(LiproEntity, LightEntity):
         return self.device.is_on
 
     @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        """Return tip attributes for known Lipro light behavior."""
+        if self.is_on:
+            return {}
+
+        tip = (
+            _OFF_STATE_SLIDER_TIP_COLOR_TEMP
+            if self.device.supports_color_temp
+            else _OFF_STATE_SLIDER_TIP_BRIGHTNESS
+        )
+        return {
+            "slider_behavior_tip": tip,
+        }
+
+    @property
     def brightness(self) -> int | None:
         """Return the brightness of the light (0-255)."""
         # Convert from 0-100 to 0-255
-        brightness_pct = self.device.brightness
+        brightness_pct = max(0, min(100, self.device.brightness))
         return round(brightness_pct * _HA_BRIGHTNESS_SCALE / 100)
 
     @property
@@ -138,6 +159,31 @@ class LiproLight(LiproEntity, LightEntity):
         )
         return self.device.kelvin_to_percent_for_device(clamped_kelvin)
 
+    def _merge_slider_state(self, state_changes: dict[str, int]) -> dict[str, int]:
+        """Merge brightness/temperature into one payload when both are known.
+
+        Keeps brightness + color temperature paired for debounced light updates,
+        so rapid cross-slider operations do not drop the previous value.
+        """
+        merged = dict(state_changes)
+        has_brightness = PROP_BRIGHTNESS in merged
+        has_temperature = PROP_TEMPERATURE in merged
+
+        if has_brightness and not has_temperature and self.device.supports_color_temp:
+            temperature = self.device.get_optional_int_property(PROP_TEMPERATURE)
+            if temperature is not None:
+                merged[PROP_TEMPERATURE] = max(0, min(100, temperature))
+
+        if has_temperature and not has_brightness:
+            brightness = self.device.get_optional_int_property(PROP_BRIGHTNESS)
+            if brightness is not None:
+                merged[PROP_BRIGHTNESS] = max(
+                    MIN_BRIGHTNESS,
+                    min(MAX_BRIGHTNESS, brightness),
+                )
+
+        return merged
+
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn on the light."""
         state_changes: dict[str, int | str] = {}
@@ -159,15 +205,10 @@ class LiproLight(LiproEntity, LightEntity):
 
         # Use debounce for slider controls (brightness, color_temp)
         # to avoid flooding API when user drags the slider.
-        # Don't include powerState in debounced optimistic state — it would
-        # block coordinator from reflecting external power changes during drag.
+        # Follow Lipro behavior: slider changes do not force power on when off.
         if state_changes:
-            # Turn on if not already on — send powerState in properties but NOT
-            # in optimistic, so it won't be debounce-protected (same as fan.py)
-            if not self.is_on:
-                state_changes[PROP_POWER_STATE] = 1
-                self.device.update_properties({PROP_POWER_STATE: "1"})
-
+            state_changes = self._merge_slider_state(state_changes)
+            optimistic = dict(state_changes)
             await self.async_change_state(
                 state_changes,
                 optimistic_state=optimistic,
