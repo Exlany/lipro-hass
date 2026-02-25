@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
+from collections.abc import Awaitable, Callable, Iterator
 from datetime import UTC, datetime
 import functools
 import logging
 import re
-from typing import TYPE_CHECKING, Any, Awaitable, Callable, Final, Iterator, NoReturn
+from typing import TYPE_CHECKING, Any, Final, NoReturn
 
 import voluptuous as vol
 
@@ -284,6 +285,29 @@ async def _async_call_schedule_client(
         _raise_service_error(error_translation_key, err=err)
 
 
+async def _async_call_schedule_service(
+    device: LiproDevice,
+    *,
+    client_call: Callable[..., Awaitable[Any]],
+    call_args: tuple[Any, ...] = (),
+    service_log: str | None = None,
+    service_log_args: tuple[Any, ...] = (),
+    error_log: str,
+    error_translation_key: str,
+) -> Any:
+    """Invoke a schedule client method with consistent logging and error mapping."""
+    if service_log is not None:
+        _LOGGER.info(service_log, device.serial, *service_log_args)
+
+    return await _async_call_schedule_client(
+        device,
+        client_call,
+        *call_args,
+        error_log=error_log,
+        error_translation_key=error_translation_key,
+    )
+
+
 def _format_schedule_time(seconds: int) -> str | None:
     """Convert seconds since midnight to HH:MM, ignoring invalid values."""
     if seconds < 0 or seconds >= 86400:
@@ -343,6 +367,46 @@ def _extract_device_id_from_entity_ids(
             return match.group(1)
 
     return None
+
+
+def _resolve_device_id_from_service_call(
+    hass: HomeAssistant,
+    call: ServiceCall,
+) -> Any:
+    """Resolve device identifier from service data or targeted entities."""
+    device_id = call.data.get(ATTR_DEVICE_ID)
+    if device_id:
+        return device_id
+
+    entity_ids = call.data.get(ATTR_ENTITY_ID, [])
+    if isinstance(entity_ids, str):
+        entity_ids = [entity_ids]
+
+    if not entity_ids:
+        raise ServiceValidationError(
+            translation_domain=DOMAIN,
+            translation_key="no_device_specified",
+        )
+
+    resolved_device_id = _extract_device_id_from_entity_ids(hass, entity_ids)
+    if not resolved_device_id:
+        raise ServiceValidationError(
+            translation_domain=DOMAIN,
+            translation_key="cannot_determine_device",
+        )
+
+    return resolved_device_id
+
+
+def _find_device_in_coordinator(
+    coordinator: LiproDataUpdateCoordinator,
+    device_id: Any,
+) -> LiproDevice | None:
+    """Find device by serial first, then by alias mapping."""
+    device = coordinator.get_device(device_id)
+    if device is None:
+        return coordinator.get_device_by_id(device_id)
+    return device
 
 
 def _iter_runtime_coordinators(
@@ -504,36 +568,11 @@ async def _get_device_and_coordinator(
 
     Helper function to extract device from service call data or entity target.
     """
-    device_id = call.data.get(ATTR_DEVICE_ID)
-
-    # If no device_id provided, try to get it from target entities
-    if not device_id:
-        entity_ids = call.data.get(ATTR_ENTITY_ID, [])
-        if isinstance(entity_ids, str):
-            entity_ids = [entity_ids]
-
-        if not entity_ids:
-            raise ServiceValidationError(
-                translation_domain=DOMAIN,
-                translation_key="no_device_specified",
-            )
-
-        device_id = _extract_device_id_from_entity_ids(hass, entity_ids)
-
-        if not device_id:
-            raise ServiceValidationError(
-                translation_domain=DOMAIN,
-                translation_key="cannot_determine_device",
-            )
+    device_id = _resolve_device_id_from_service_call(hass, call)
 
     # Find the device across all active coordinators.
     for coordinator in _iter_runtime_coordinators(hass):
-        # Prefer direct serial lookup, then fall back to alias lookup
-        # (gateway ID / member device ID mapped by coordinator).
-        device = coordinator.get_device(device_id)
-        if not device:
-            device = coordinator.get_device_by_id(device_id)
-
+        device = _find_device_in_coordinator(coordinator, device_id)
         if device:
             return device, coordinator
 
@@ -588,22 +627,20 @@ async def _async_handle_get_schedules(
     """Handle the get_schedules service call."""
     device, coordinator = await _get_device_and_coordinator(hass, call)
 
-    _LOGGER.info("Service call: get_schedules for %s", device.serial)
-
-    schedules = await _async_call_schedule_client(
+    schedules = await _async_call_schedule_service(
         device,
-        coordinator.client.get_device_schedules,
+        client_call=coordinator.client.get_device_schedules,
+        service_log="Service call: get_schedules for %s",
         error_log="API error getting schedules: %s",
         error_translation_key="schedule_fetch_failed",
     )
 
     # Format schedules for response
-    formatted: list[dict[str, Any]] = []
-    for schedule in schedules:
-        normalized = _normalize_schedule_row(schedule)
-        if normalized is None:
-            continue
-        formatted.append(normalized)
+    formatted = [
+        normalized
+        for schedule in schedules
+        if (normalized := _normalize_schedule_row(schedule)) is not None
+    ]
 
     return {
         "serial": device.serial,
@@ -627,20 +664,12 @@ async def _async_handle_add_schedule(
             translation_key="times_events_mismatch",
         )
 
-    _LOGGER.info(
-        "Service call: add_schedule for %s, days=%s, times=%s, events=%s",
-        device.serial,
-        days,
-        times,
-        events,
-    )
-
-    schedules = await _async_call_schedule_client(
+    schedules = await _async_call_schedule_service(
         device,
-        coordinator.client.add_device_schedule,
-        days,
-        times,
-        events,
+        client_call=coordinator.client.add_device_schedule,
+        call_args=(days, times, events),
+        service_log="Service call: add_schedule for %s, days=%s, times=%s, events=%s",
+        service_log_args=(days, times, events),
         error_log="API error adding schedule: %s",
         error_translation_key="schedule_add_failed",
     )
@@ -660,16 +689,12 @@ async def _async_handle_delete_schedules(
 
     schedule_ids = call.data[ATTR_SCHEDULE_IDS]
 
-    _LOGGER.info(
-        "Service call: delete_schedules for %s, ids=%s",
-        device.serial,
-        schedule_ids,
-    )
-
-    remaining = await _async_call_schedule_client(
+    remaining = await _async_call_schedule_service(
         device,
-        coordinator.client.delete_device_schedules,
-        schedule_ids,
+        client_call=coordinator.client.delete_device_schedules,
+        call_args=(schedule_ids,),
+        service_log="Service call: delete_schedules for %s, ids=%s",
+        service_log_args=(schedule_ids,),
         error_log="API error deleting schedules: %s",
         error_translation_key="schedule_delete_failed",
     )

@@ -391,6 +391,65 @@ class TestLiproClientErrorHandling:
                 await client.login("phone", "password")
 
     @pytest.mark.asyncio
+    async def test_invalid_json_error_does_not_expose_raw_body(self):
+        """Invalid JSON exceptions should avoid leaking raw response body."""
+        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+
+        response = AsyncMock()
+        response.status = 500
+        response.headers = {}
+        response.json = AsyncMock(
+            side_effect=aiohttp.ContentTypeError(
+                request_info=MagicMock(),
+                history=(),
+                message="invalid content-type",
+            )
+        )
+        response.text = AsyncMock(return_value='{"access_token":"secret_token_value"}')
+        request_ctx = AsyncMock(
+            __aenter__=AsyncMock(return_value=response),
+            __aexit__=AsyncMock(return_value=None),
+        )
+
+        with pytest.raises(LiproApiError) as err_ctx:
+            await client._execute_request(request_ctx, "/test/path")
+
+        assert "secret_token_value" not in str(err_ctx.value)
+        assert "body_length=" in str(err_ctx.value)
+
+    @pytest.mark.asyncio
+    async def test_invalid_json_masks_only_truncated_body_preview(self):
+        """Invalid JSON logging should avoid masking the entire response body."""
+        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+
+        large_body = '{"access_token":"secret"}' * 2000
+        response = AsyncMock()
+        response.status = 500
+        response.headers = {}
+        response.json = AsyncMock(
+            side_effect=aiohttp.ContentTypeError(
+                request_info=MagicMock(),
+                history=(),
+                message="invalid content-type",
+            )
+        )
+        response.text = AsyncMock(return_value=large_body)
+        request_ctx = AsyncMock(
+            __aenter__=AsyncMock(return_value=response),
+            __aexit__=AsyncMock(return_value=None),
+        )
+
+        with patch(
+            "custom_components.lipro.core.api._mask_sensitive_data",
+            side_effect=lambda payload: payload,
+        ) as mock_mask:
+            with pytest.raises(LiproApiError):
+                await client._execute_request(request_ctx, "/test/path")
+
+        mock_mask.assert_called_once()
+        assert len(mock_mask.call_args.args[0]) < len(large_body)
+
+    @pytest.mark.asyncio
     async def test_api_error(self):
         """Test handling API errors."""
         client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
@@ -455,6 +514,18 @@ class TestLiproClient401Handling:
         refresh_callback.assert_not_called()
 
     @pytest.mark.asyncio
+    async def test_401_refresh_connection_error_bubbles(self):
+        """Transient refresh network errors should bubble as LiproConnectionError."""
+        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client.set_tokens("old_access", "old_refresh")
+
+        refresh_callback = AsyncMock(side_effect=LiproConnectionError("timeout"))
+        client.set_token_refresh_callback(refresh_callback)
+
+        with pytest.raises(LiproConnectionError, match="timeout"):
+            await client._handle_401_with_refresh("old_access")
+
+    @pytest.mark.asyncio
     async def test_401_no_infinite_retry(self):
         """Test that 401 doesn't cause infinite retry loop."""
         client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
@@ -486,6 +557,35 @@ class TestLiproClient401Handling:
 
             # Refresh should only be called once (not infinite)
             assert refresh_callback.call_count == 1
+
+    @pytest.mark.asyncio
+    async def test_401_refresh_connection_error_not_reclassified_as_auth(self):
+        """Refresh network failure should not be converted to auth failure."""
+        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client.set_tokens("access", "refresh")
+
+        refresh_callback = AsyncMock(side_effect=LiproConnectionError("timeout"))
+        client.set_token_refresh_callback(refresh_callback)
+
+        mock_response = {"code": 401, "message": "Unauthorized"}
+
+        with patch.object(
+            client, "_get_session", new_callable=AsyncMock
+        ) as mock_get_session:
+            mock_session = MagicMock()
+            mock_response_obj = AsyncMock()
+            mock_response_obj.status = 200
+            mock_response_obj.headers = {}
+            mock_response_obj.json = AsyncMock(return_value=mock_response)
+            mock_session.post = MagicMock(
+                return_value=AsyncMock(
+                    __aenter__=AsyncMock(return_value=mock_response_obj)
+                )
+            )
+            mock_get_session.return_value = mock_session
+
+            with pytest.raises(LiproConnectionError, match="timeout"):
+                await client.get_devices()
 
 
 class TestLiproClientMqtt:

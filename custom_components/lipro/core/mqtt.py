@@ -85,7 +85,7 @@ def decrypt_mqtt_credential(encrypted_hex: str) -> str:
         decrypted = decrypted[:-padding_len]
 
         return decrypted.decode("utf-8")
-    except (ValueError, binascii.Error, IndexError) as err:
+    except (ValueError, UnicodeDecodeError, binascii.Error, IndexError) as err:
         msg = f"Failed to decrypt MQTT credential: {err}"
         raise ValueError(msg) from err
 
@@ -613,6 +613,42 @@ class LiproMqttClient:
         if self._on_disconnect:
             self._on_disconnect()
 
+    @staticmethod
+    def _decode_payload_text(raw_payload: Any, device_id: str) -> str | None:
+        """Decode MQTT payload to UTF-8 text with unified size/type checks."""
+        if isinstance(raw_payload, memoryview):
+            raw_payload = raw_payload.tobytes()
+
+        if isinstance(raw_payload, (bytes, bytearray)):
+            raw_bytes = bytes(raw_payload)
+            payload_size = len(raw_bytes)
+            if payload_size > _MAX_MQTT_PAYLOAD_BYTES:
+                _LOGGER.warning(
+                    "MQTT [%s]: payload too large (%d bytes), skipping",
+                    device_id,
+                    payload_size,
+                )
+                return None
+            return raw_bytes.decode("utf-8")
+
+        if isinstance(raw_payload, str):
+            payload_size = len(raw_payload.encode("utf-8"))
+            if payload_size > _MAX_MQTT_PAYLOAD_BYTES:
+                _LOGGER.warning(
+                    "MQTT [%s]: payload too large (%d bytes), skipping",
+                    device_id,
+                    payload_size,
+                )
+                return None
+            return raw_payload
+
+        _LOGGER.debug(
+            "MQTT [%s]: unexpected payload type %s, skipping",
+            device_id,
+            type(raw_payload).__name__,
+        )
+        return None
+
     def _process_message(self, message: aiomqtt.Message) -> None:
         """Process incoming MQTT message.
 
@@ -632,43 +668,8 @@ class LiproMqttClient:
                 _LOGGER.debug("MQTT: empty payload on topic %s, skipping", topic)
                 return
 
-            raw_payload: Any = message.payload
-            payload_text: str
-            if isinstance(raw_payload, memoryview):
-                raw_bytes = raw_payload.tobytes()
-                if len(raw_bytes) > _MAX_MQTT_PAYLOAD_BYTES:
-                    _LOGGER.warning(
-                        "MQTT [%s]: payload too large (%d bytes), skipping",
-                        device_id,
-                        len(raw_bytes),
-                    )
-                    return
-                payload_text = raw_bytes.decode("utf-8")
-            elif isinstance(raw_payload, (bytes, bytearray)):
-                raw_bytes = bytes(raw_payload)
-                if len(raw_bytes) > _MAX_MQTT_PAYLOAD_BYTES:
-                    _LOGGER.warning(
-                        "MQTT [%s]: payload too large (%d bytes), skipping",
-                        device_id,
-                        len(raw_bytes),
-                    )
-                    return
-                payload_text = raw_bytes.decode("utf-8")
-            elif isinstance(raw_payload, str):
-                if len(raw_payload) > _MAX_MQTT_PAYLOAD_BYTES:
-                    _LOGGER.warning(
-                        "MQTT [%s]: payload too large (%d chars), skipping",
-                        device_id,
-                        len(raw_payload),
-                    )
-                    return
-                payload_text = raw_payload
-            else:
-                _LOGGER.debug(
-                    "MQTT [%s]: unexpected payload type %s, skipping",
-                    device_id,
-                    type(raw_payload).__name__,
-                )
+            payload_text = self._decode_payload_text(message.payload, device_id)
+            if payload_text is None:
                 return
 
             payload = json.loads(payload_text)
@@ -693,7 +694,7 @@ class LiproMqttClient:
             if self._on_message and properties:
                 self._on_message(device_id, properties)
 
-        except (json.JSONDecodeError, UnicodeDecodeError):
+        except (json.JSONDecodeError, UnicodeError):
             _LOGGER.exception("Failed to decode MQTT payload")
         except Exception:
             _LOGGER.exception("Error processing MQTT message")

@@ -95,6 +95,8 @@ _CHANGE_STATE_BUSY_MULTIPLIER = 1.6
 _CHANGE_STATE_RECOVERY_MULTIPLIER = 0.8
 # Max tracked targets for command pacing cache.
 _COMMAND_PACING_CACHE_MAX_SIZE = 256
+_INVALID_JSON_MASK_INPUT_MAX_CHARS = 2048
+_INVALID_JSON_LOG_PREVIEW_MAX_CHARS = 200
 
 # Patterns for sensitive data masking
 _SENSITIVE_PATTERNS = (
@@ -419,7 +421,18 @@ class LiproClient:
                     result = await response.json()
                 except (json.JSONDecodeError, aiohttp.ContentTypeError) as err:
                     body = await response.text()
-                    msg = f"Invalid JSON response from {path} (status={status}): {body[:200]}"
+                    masked_preview = _mask_sensitive_data(
+                        body[:_INVALID_JSON_MASK_INPUT_MAX_CHARS]
+                    )[:_INVALID_JSON_LOG_PREVIEW_MAX_CHARS]
+                    _LOGGER.debug(
+                        "Invalid JSON response preview from %s: %s",
+                        path,
+                        masked_preview,
+                    )
+                    msg = (
+                        f"Invalid JSON response from {path} "
+                        f"(status={status}, body_length={len(body)})"
+                    )
                     raise LiproApiError(msg) from err
         except aiohttp.ClientError as err:
             msg = f"Connection error: {err}"
@@ -1001,6 +1014,9 @@ class LiproClient:
         Returns:
             True if token was refreshed successfully, False otherwise.
 
+        Raises:
+            LiproConnectionError: If refresh fails due to transient network issues.
+
         """
         if not self._on_token_refresh:
             return False
@@ -1027,7 +1043,7 @@ class LiproClient:
                 return False
             except LiproConnectionError as err:
                 _LOGGER.warning("Connection error during token refresh: %s", err)
-                return False
+                raise
 
     async def login(
         self,

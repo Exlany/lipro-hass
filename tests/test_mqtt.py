@@ -7,8 +7,10 @@ import logging
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import aiomqtt
+from Crypto.Cipher import AES
 import pytest
 
+from custom_components.lipro.const.api import MQTT_AES_KEY
 from custom_components.lipro.core.mqtt import (
     _MAX_MQTT_PAYLOAD_BYTES,
     LiproMqttClient,
@@ -48,6 +50,15 @@ class TestDecryptMqttCredential:
         """Test decrypting odd-length hex string."""
         with pytest.raises(ValueError):
             decrypt_mqtt_credential("abc")  # Odd length
+
+    def test_decrypt_non_utf8_credential(self):
+        """Test decrypting payload with valid padding but invalid UTF-8 bytes."""
+        plaintext = (b"\xff" * 15) + b"\x01"
+        cipher = AES.new(MQTT_AES_KEY.encode("utf-8"), AES.MODE_ECB)
+        encrypted_hex = cipher.encrypt(plaintext).hex()
+
+        with pytest.raises(ValueError, match="Failed to decrypt"):
+            decrypt_mqtt_credential(encrypted_hex)
 
 
 class TestMqttCredentials:
@@ -425,6 +436,28 @@ class TestLiproMqttClient:
         assert call_args[0][0] == "03ab5ccd7cxxxxxx"
         assert call_args[0][1]["powerState"] == "1"
 
+    def test_process_message_memoryview_payload(self):
+        """Test message processing with memoryview payload."""
+        on_message = MagicMock()
+        client = LiproMqttClient(
+            access_key="access",
+            secret_key="secret",
+            biz_id="lip_biz001",
+            phone_id="550e8400-e29b-41d4-a716-446655440000",
+            on_message=on_message,
+        )
+
+        message = MagicMock()
+        message.topic = "Topic_Device_State/biz123/03ab5ccd7cxxxxxx"
+        message.payload = memoryview(b'{"light": {"powerState": "1"}}')
+
+        client._process_message(message)
+
+        on_message.assert_called_once()
+        call_args = on_message.call_args
+        assert call_args[0][0] == "03ab5ccd7cxxxxxx"
+        assert call_args[0][1]["powerState"] == "1"
+
     def test_process_message_invalid_json(self):
         """Test message processing with invalid JSON."""
         on_message = MagicMock()
@@ -553,6 +586,26 @@ class TestLiproMqttClient:
         message.payload = (
             f'{{"light":{{"powerState":"1","blob":"{oversize_blob}"}}}}'
         ).encode()
+
+        client._process_message(message)
+
+        on_message.assert_not_called()
+
+    def test_process_message_skips_oversized_unicode_string_payload(self):
+        """Oversized unicode string payloads should be checked by UTF-8 byte size."""
+        on_message = MagicMock()
+        client = LiproMqttClient(
+            access_key="access",
+            secret_key="secret",
+            biz_id="lip_biz001",
+            phone_id="550e8400-e29b-41d4-a716-446655440000",
+            on_message=on_message,
+        )
+
+        message = MagicMock()
+        message.topic = "Topic_Device_State/lip_biz001/03ab5ccd7cxxxxxx"
+        oversize_blob = "中" * ((_MAX_MQTT_PAYLOAD_BYTES // 3) + 1024)
+        message.payload = f'{{"light":{{"powerState":"1","blob":"{oversize_blob}"}}}}'
 
         client._process_message(message)
 

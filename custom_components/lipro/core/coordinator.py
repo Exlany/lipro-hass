@@ -340,6 +340,17 @@ def _coerce_option_bool(
     return default
 
 
+def _is_online_connect_state(value: Any) -> bool:
+    """Normalize connect-state payload variants to an online/offline boolean."""
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, (int, float)):
+        return value != 0
+    if isinstance(value, str):
+        return value.strip().lower() in {"1", "true", "yes", "on"}
+    return False
+
+
 # HA version for anonymous share reporting
 try:
     from homeassistant.const import __version__ as _ha_ver
@@ -1260,7 +1271,7 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
             # REST API refresh to reconcile state. In mesh groups, sub-devices
             # may reconnect with a different state than the group reports.
             connect_state = properties.get(PROP_CONNECT_STATE)
-            if connect_state == "1" and device.is_group:
+            if device.is_group and _is_online_connect_state(connect_state):
                 _LOGGER.debug(
                     "MQTT: device %s online, scheduling REST API reconciliation",
                     device.name,
@@ -1700,15 +1711,15 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
 
     async def _update_device_status(self) -> None:
         """Update status for all devices."""
-        tasks = []
+        status_tasks = []
 
         # Query individual devices
         if self._iot_ids_to_query:
-            tasks.append(self._query_device_status())
+            status_tasks.append(self._query_device_status())
 
         # Query mesh groups
         if self._group_ids_to_query:
-            tasks.append(self._query_group_status())
+            status_tasks.append(self._query_group_status())
 
         # Query outlet power info (if enabled and interval has passed)
         if (
@@ -1716,14 +1727,15 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
             and self._outlet_ids_to_query
             and self._should_query_power()
         ):
-            tasks.append(self._query_outlet_power())
+            status_tasks.append(self._query_outlet_power())
 
-        # Query real-time connection status (more accurate than cached connectState)
+        if status_tasks:
+            await asyncio.gather(*status_tasks)
+
+        # Query real-time connection status LAST so it deterministically
+        # overrides potentially stale connectState values from status APIs.
         if self._iot_ids_to_query:
-            tasks.append(self._query_connect_status())
-
-        if tasks:
-            await asyncio.gather(*tasks)
+            await self._query_connect_status()
 
     def _should_query_power(self) -> bool:
         """Check if power query should be executed based on interval.
@@ -1983,12 +1995,11 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
     ) -> tuple[Any, str]:
         """Execute direct/group command send with fallback routing."""
         if not device.is_group:
-            result = await self.client.send_command(
-                device.serial,
-                command,
-                device.device_type,
-                properties,
-                device.iot_name,
+            result = await self._send_member_command(
+                member_id=device.serial,
+                device=device,
+                command=command,
+                properties=properties,
             )
             return result, route
 
@@ -2011,12 +2022,11 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
                 err,
                 member_fallback_id,
             )
-            result = await self.client.send_command(
-                member_fallback_id,
-                command,
-                device.device_type,
-                properties,
-                device.iot_name,
+            result = await self._send_member_command(
+                member_id=member_fallback_id,
+                device=device,
+                command=command,
+                properties=properties,
             )
 
         if (
@@ -2032,15 +2042,31 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
                 device.serial,
                 member_fallback_id,
             )
-            result = await self.client.send_command(
-                member_fallback_id,
-                command,
-                device.device_type,
-                properties,
-                device.iot_name,
+            result = await self._send_member_command(
+                member_id=member_fallback_id,
+                device=device,
+                command=command,
+                properties=properties,
             )
 
         return result, route
+
+    async def _send_member_command(
+        self,
+        *,
+        member_id: str,
+        device: LiproDevice,
+        command: str,
+        properties: list[dict[str, str]] | None,
+    ) -> Any:
+        """Send a command to a specific member device."""
+        return await self.client.send_command(
+            member_id,
+            command,
+            device.device_type,
+            properties,
+            device.iot_name,
+        )
 
     def _update_trace_with_response(self, trace: dict[str, Any], result: Any) -> None:
         """Attach API response metadata to command trace."""

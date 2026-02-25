@@ -1009,6 +1009,43 @@ class TestInitRuntimeBehavior:
             ],
         }
 
+    async def test_get_schedules_resolves_device_from_entity_target(self, hass) -> None:
+        """get_schedules should resolve target entity when device_id is omitted."""
+        device = self._create_device()
+        client = MagicMock()
+        client.get_device_schedules = AsyncMock(return_value=[])
+        coordinator = MagicMock()
+        coordinator.get_device.return_value = device
+        coordinator.client = client
+
+        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry.add_to_hass(hass)
+        entry.runtime_data = coordinator
+
+        entity_id = (
+            er.async_get(hass)
+            .async_get_or_create(
+                "light",
+                DOMAIN,
+                f"lipro_{device.serial}_light",
+                suggested_object_id="lipro_test_device",
+            )
+            .entity_id
+        )
+
+        result = await _async_handle_get_schedules(
+            hass, SimpleNamespace(data={ATTR_ENTITY_ID: entity_id})
+        )
+
+        assert result == {"serial": device.serial, "schedules": []}
+        coordinator.get_device.assert_called_once_with(device.serial)
+        client.get_device_schedules.assert_awaited_once_with(
+            device.iot_device_id,
+            device.device_type_hex,
+            mesh_gateway_id="",
+            mesh_member_ids=[],
+        )
+
     async def test_get_schedules_ignores_malformed_schedule_rows(self, hass) -> None:
         """Malformed schedule rows should be ignored instead of raising."""
         device = self._create_device()
@@ -1118,6 +1155,58 @@ class TestInitRuntimeBehavior:
             mesh_member_ids=["03ab0000000000a2"],
         )
 
+    async def test_add_schedule_resolves_device_from_entity_target(self, hass) -> None:
+        """add_schedule should resolve target entity when device_id is omitted."""
+        device = self._create_device()
+        client = MagicMock()
+        client.add_device_schedule = AsyncMock(return_value=[{"id": 1}])
+        coordinator = MagicMock()
+        coordinator.get_device.return_value = device
+        coordinator.client = client
+
+        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry.add_to_hass(hass)
+        entry.runtime_data = coordinator
+
+        entity_id = (
+            er.async_get(hass)
+            .async_get_or_create(
+                "light",
+                DOMAIN,
+                f"lipro_{device.serial}_light",
+                suggested_object_id="lipro_test_device",
+            )
+            .entity_id
+        )
+
+        result = await _async_handle_add_schedule(
+            hass,
+            SimpleNamespace(
+                data={
+                    ATTR_ENTITY_ID: [entity_id],
+                    ATTR_DAYS: [1],
+                    ATTR_TIMES: [3600],
+                    ATTR_EVENTS: [1],
+                }
+            ),
+        )
+
+        assert result == {
+            "success": True,
+            "serial": device.serial,
+            "schedule_count": 1,
+        }
+        coordinator.get_device.assert_called_once_with(device.serial)
+        client.add_device_schedule.assert_awaited_once_with(
+            device.iot_device_id,
+            device.device_type_hex,
+            [1],
+            [3600],
+            [1],
+            mesh_gateway_id="",
+            mesh_member_ids=[],
+        )
+
     async def test_delete_schedules_returns_summary(self, hass) -> None:
         """delete_schedules returns remaining count on success."""
         device = self._create_device()
@@ -1172,6 +1261,49 @@ class TestInitRuntimeBehavior:
             [1, 2],
             mesh_gateway_id="03ab0000000000a1",
             mesh_member_ids=["03ab0000000000a2"],
+        )
+
+    async def test_delete_schedules_resolves_device_from_entity_target(self, hass) -> None:
+        """delete_schedules should resolve target entity when device_id is omitted."""
+        device = self._create_device()
+        client = MagicMock()
+        client.delete_device_schedules = AsyncMock(return_value=[])
+        coordinator = MagicMock()
+        coordinator.get_device.return_value = device
+        coordinator.client = client
+
+        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry.add_to_hass(hass)
+        entry.runtime_data = coordinator
+
+        entity_id = (
+            er.async_get(hass)
+            .async_get_or_create(
+                "light",
+                DOMAIN,
+                f"lipro_{device.serial}_light",
+                suggested_object_id="lipro_test_device",
+            )
+            .entity_id
+        )
+
+        result = await _async_handle_delete_schedules(
+            hass,
+            SimpleNamespace(data={ATTR_ENTITY_ID: entity_id, ATTR_SCHEDULE_IDS: [1, 2]}),
+        )
+
+        assert result == {
+            "success": True,
+            "serial": device.serial,
+            "remaining_count": 0,
+        }
+        coordinator.get_device.assert_called_once_with(device.serial)
+        client.delete_device_schedules.assert_awaited_once_with(
+            device.iot_device_id,
+            device.device_type_hex,
+            [1, 2],
+            mesh_gateway_id="",
+            mesh_member_ids=[],
         )
 
     async def test_submit_anonymous_share_no_data_returns_noop(self, hass) -> None:

@@ -6,6 +6,7 @@ dependencies and exercise its public and internal methods directly.
 
 from __future__ import annotations
 
+import asyncio
 from datetime import timedelta
 from time import monotonic
 from types import SimpleNamespace
@@ -1277,6 +1278,57 @@ class TestCoordinatorStatusQueriesAndNotifications:
         await coordinator._query_connect_status()
 
         assert dev.properties["connectState"] == "0"
+
+    @pytest.mark.asyncio
+    async def test_update_device_status_applies_connect_status_last(
+        self, coordinator, mock_lipro_api_client
+    ):
+        """connectState should converge to realtime connect-status result."""
+        dev = _make_device(serial="dev1", properties={"connectState": "1"})
+        coordinator._devices[dev.serial] = dev
+        coordinator._device_by_id[dev.serial] = dev
+        coordinator._iot_ids_to_query = [dev.serial]
+
+        async def delayed_device_status(_device_ids):
+            await asyncio.sleep(0.01)
+            return [
+                {
+                    "deviceId": dev.serial,
+                    "properties": [{"key": "connectState", "value": "0"}],
+                }
+            ]
+
+        async def fast_connect_status(_device_ids):
+            await asyncio.sleep(0)
+            return {dev.serial: True}
+
+        mock_lipro_api_client.query_device_status.side_effect = delayed_device_status
+        mock_lipro_api_client.query_connect_status.side_effect = fast_connect_status
+
+        await coordinator._update_device_status()
+
+        assert dev.properties["connectState"] == "1"
+
+    @pytest.mark.asyncio
+    async def test_group_mqtt_online_variants_schedule_reconciliation(self, coordinator):
+        """Numeric/boolean connectState payloads should trigger group reconciliation."""
+        group = _make_device(serial="mesh_group_10001", is_group=True, properties={})
+        coordinator._devices[group.serial] = group
+        coordinator._device_by_id[group.serial] = group
+        coordinator.async_request_refresh = AsyncMock()
+
+        created_tasks: list[asyncio.Task] = []
+
+        def _capture_task(coro):
+            task = asyncio.create_task(coro)
+            created_tasks.append(task)
+            return task
+
+        with patch.object(coordinator.hass, "async_create_task", side_effect=_capture_task):
+            coordinator._on_mqtt_message(group.serial, {"connectState": 1})
+
+        await asyncio.gather(*created_tasks)
+        coordinator.async_request_refresh.assert_awaited_once()
 
     @pytest.mark.asyncio
     async def test_async_remove_stale_devices(self, coordinator):

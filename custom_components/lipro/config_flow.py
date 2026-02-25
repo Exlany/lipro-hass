@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 from collections.abc import Mapping
 from dataclasses import dataclass
 import hashlib
@@ -251,6 +252,8 @@ class LiproConfigFlow(ConfigFlow, domain=DOMAIN):
             return await self._async_do_login(phone, password_hash, phone_id)
         except LiproApiError as err:
             errors["base"] = _map_login_error(err)
+        except asyncio.CancelledError:
+            raise
         except AbortFlow:
             raise
         except (KeyError, TypeError, ValueError):
