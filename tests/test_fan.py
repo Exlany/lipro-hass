@@ -164,7 +164,6 @@ class TestLiproFanPresetModes:
         from custom_components.lipro.const import (
             FAN_MODE_CYCLE,
             FAN_MODE_DIRECT,
-            FAN_MODE_GENTLE_WIND,
             FAN_MODE_NATURAL,
         )
         from custom_components.lipro.fan import PRESET_TO_MODE
@@ -172,14 +171,15 @@ class TestLiproFanPresetModes:
         assert PRESET_TO_MODE["direct"] == FAN_MODE_DIRECT
         assert PRESET_TO_MODE["natural"] == FAN_MODE_NATURAL
         assert PRESET_TO_MODE["cycle"] == FAN_MODE_CYCLE
-        assert PRESET_TO_MODE["gentle_wind"] == FAN_MODE_GENTLE_WIND
+        assert "gentle_wind" not in PRESET_TO_MODE
 
     def test_bidirectional_consistency(self):
         """Test MODE_TO_PRESET and PRESET_TO_MODE are consistent."""
         from custom_components.lipro.fan import MODE_TO_PRESET, PRESET_TO_MODE
 
         for mode, preset in MODE_TO_PRESET.items():
-            assert PRESET_TO_MODE[preset] == mode
+            if preset in PRESET_TO_MODE:
+                assert PRESET_TO_MODE[preset] == mode
 
 
 class TestLiproHeaterVentFan:
@@ -458,12 +458,13 @@ class TestLiproFanEntityBehavior:
         mock_coordinator.get_device = MagicMock(return_value=device)
         fan = LiproFan(mock_coordinator, device)
         assert fan.preset_mode == "gentle_wind"
+        assert "gentle_wind" not in (fan.preset_modes or [])
 
     @pytest.mark.asyncio
-    async def test_set_preset_mode_gentle_wind(
+    async def test_set_preset_mode_gentle_wind_fallback_to_cycle(
         self, mock_coordinator, make_device
     ) -> None:
-        """Setting gentle_wind should send fanMode=3."""
+        """Unsupported gentle_wind should fallback to cycle (fanMode=2)."""
         from custom_components.lipro.fan import LiproFan
 
         device = make_device("fanLight", properties={"fanOnoff": "1", "fanMode": "0"})
@@ -475,7 +476,7 @@ class TestLiproFanEntityBehavior:
 
         call_args = mock_coordinator.async_send_command.call_args
         properties = call_args[0][2]
-        assert any(p["key"] == "fanMode" and p["value"] == "3" for p in properties)
+        assert any(p["key"] == "fanMode" and p["value"] == "2" for p in properties)
 
     def test_supported_features_cycle_mode_disables_set_speed(
         self, mock_coordinator, make_device
