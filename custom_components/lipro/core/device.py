@@ -585,7 +585,7 @@ class LiproDevice:
 
     @property
     def fan_mode(self) -> int:
-        """Get fan mode (0=direct, 1=natural, 2=cycle)."""
+        """Get fan mode (0=direct, 1=natural, 2=cycle, 3=gentle_wind)."""
         return self.get_int_property(PROP_FAN_MODE, 0)
 
     # Heater properties

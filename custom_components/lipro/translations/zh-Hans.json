@@ -90,7 +90,8 @@
             "state": {
               "direct": "直吹风",
               "natural": "自然风",
-              "cycle": "循环风"
+              "cycle": "循环风",
+              "gentle_wind": "柔风"
             }
           }
         }

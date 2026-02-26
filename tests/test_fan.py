@@ -149,6 +149,7 @@ class TestLiproFanPresetModes:
         from custom_components.lipro.const import (
             FAN_MODE_CYCLE,
             FAN_MODE_DIRECT,
+            FAN_MODE_GENTLE_WIND,
             FAN_MODE_NATURAL,
         )
         from custom_components.lipro.fan import MODE_TO_PRESET
@@ -156,12 +157,14 @@ class TestLiproFanPresetModes:
         assert MODE_TO_PRESET[FAN_MODE_DIRECT] == "direct"
         assert MODE_TO_PRESET[FAN_MODE_NATURAL] == "natural"
         assert MODE_TO_PRESET[FAN_MODE_CYCLE] == "cycle"
+        assert MODE_TO_PRESET[FAN_MODE_GENTLE_WIND] == "gentle_wind"
 
     def test_preset_to_mode_mapping(self):
         """Test PRESET_TO_MODE mapping from real source."""
         from custom_components.lipro.const import (
             FAN_MODE_CYCLE,
             FAN_MODE_DIRECT,
+            FAN_MODE_GENTLE_WIND,
             FAN_MODE_NATURAL,
         )
         from custom_components.lipro.fan import PRESET_TO_MODE
@@ -169,6 +172,7 @@ class TestLiproFanPresetModes:
         assert PRESET_TO_MODE["direct"] == FAN_MODE_DIRECT
         assert PRESET_TO_MODE["natural"] == FAN_MODE_NATURAL
         assert PRESET_TO_MODE["cycle"] == FAN_MODE_CYCLE
+        assert PRESET_TO_MODE["gentle_wind"] == FAN_MODE_GENTLE_WIND
 
     def test_bidirectional_consistency(self):
         """Test MODE_TO_PRESET and PRESET_TO_MODE are consistent."""
@@ -445,6 +449,33 @@ class TestLiproFanEntityBehavior:
         mock_coordinator.get_device = MagicMock(return_value=device)
         fan = LiproFan(mock_coordinator, device)
         assert fan.preset_mode == "cycle"
+
+    def test_preset_mode_gentle_wind(self, mock_coordinator, make_device):
+        """fanMode=3 should map to gentle_wind preset."""
+        from custom_components.lipro.fan import LiproFan
+
+        device = make_device("fanLight", properties={"fanMode": "3"})
+        mock_coordinator.get_device = MagicMock(return_value=device)
+        fan = LiproFan(mock_coordinator, device)
+        assert fan.preset_mode == "gentle_wind"
+
+    @pytest.mark.asyncio
+    async def test_set_preset_mode_gentle_wind(
+        self, mock_coordinator, make_device
+    ) -> None:
+        """Setting gentle_wind should send fanMode=3."""
+        from custom_components.lipro.fan import LiproFan
+
+        device = make_device("fanLight", properties={"fanOnoff": "1", "fanMode": "0"})
+        mock_coordinator.get_device = MagicMock(return_value=device)
+        fan = LiproFan(mock_coordinator, device)
+        fan.async_write_ha_state = MagicMock()
+
+        await fan.async_set_preset_mode("gentle_wind")
+
+        call_args = mock_coordinator.async_send_command.call_args
+        properties = call_args[0][2]
+        assert any(p["key"] == "fanMode" and p["value"] == "3" for p in properties)
 
     def test_supported_features_cycle_mode_disables_set_speed(
         self, mock_coordinator, make_device

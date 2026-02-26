@@ -90,7 +90,8 @@
             "state": {
               "direct": "Direct",
               "natural": "Natural",
-              "cycle": "Cycle"
+              "cycle": "Cycle",
+              "gentle_wind": "Gentle Wind"
             }
           }
         }

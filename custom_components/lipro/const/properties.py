@@ -77,10 +77,11 @@ PROP_LATEST_SYNC_TIMESTAMP: Final = "latestSyncTimestamp"
 
 # Fan modes
 # Runtime/App semantics:
-# 0 = 直吹风 (direct), 1 = 自然风 (natural), 2 = 循环风 (cycle)
+# 0 = 直吹风 (direct), 1 = 自然风 (natural), 2 = 循环风 (cycle), 3 = 柔风 (gentle wind)
 FAN_MODE_DIRECT: Final = 0
 FAN_MODE_NATURAL: Final = 1
 FAN_MODE_CYCLE: Final = 2
+FAN_MODE_GENTLE_WIND: Final = 3
 
 # Heater modes
 HEATER_MODE_DEFAULT: Final = 0
