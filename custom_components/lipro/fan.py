@@ -219,8 +219,15 @@ class LiproFan(LiproEntity, FanEntity):
 
         mode: int | None = None
         if preset_mode is not None:
-            mode = PRESET_TO_MODE.get(preset_mode, FAN_MODE_CYCLE)
-            properties[PROP_FAN_MODE] = mode
+            mode = PRESET_TO_MODE.get(preset_mode)
+            if mode is not None:
+                properties[PROP_FAN_MODE] = mode
+            else:
+                _LOGGER.debug(
+                    "Ignoring unsupported preset mode '%s' for %s",
+                    preset_mode,
+                    self.device.name,
+                )
 
         if percentage is not None:
             effective_mode = mode if mode is not None else self.device.fan_mode
@@ -270,7 +277,14 @@ class LiproFan(LiproEntity, FanEntity):
 
     async def async_set_preset_mode(self, preset_mode: str) -> None:
         """Set the preset mode of the fan."""
-        mode = PRESET_TO_MODE.get(preset_mode, FAN_MODE_CYCLE)
+        mode = PRESET_TO_MODE.get(preset_mode)
+        if mode is None:
+            _LOGGER.debug(
+                "Ignoring unsupported preset mode '%s' for %s",
+                preset_mode,
+                self.device.name,
+            )
+            return
         properties: dict[str, int] = {PROP_FAN_MODE: mode}
         optimistic: dict[str, int | str] = {PROP_FAN_MODE: str(mode)}
         self._add_power_on_if_needed(properties, optimistic, optimistic_power=True)

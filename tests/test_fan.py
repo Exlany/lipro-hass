@@ -461,10 +461,10 @@ class TestLiproFanEntityBehavior:
         assert "gentle_wind" not in (fan.preset_modes or [])
 
     @pytest.mark.asyncio
-    async def test_set_preset_mode_gentle_wind_fallback_to_cycle(
+    async def test_set_preset_mode_gentle_wind_is_ignored(
         self, mock_coordinator, make_device
     ) -> None:
-        """Unsupported gentle_wind should fallback to cycle (fanMode=2)."""
+        """Unsupported gentle_wind should be ignored (keep current mode)."""
         from custom_components.lipro.fan import LiproFan
 
         device = make_device("fanLight", properties={"fanOnoff": "1", "fanMode": "0"})
@@ -474,9 +474,7 @@ class TestLiproFanEntityBehavior:
 
         await fan.async_set_preset_mode("gentle_wind")
 
-        call_args = mock_coordinator.async_send_command.call_args
-        properties = call_args[0][2]
-        assert any(p["key"] == "fanMode" and p["value"] == "2" for p in properties)
+        mock_coordinator.async_send_command.assert_not_called()
 
     def test_supported_features_cycle_mode_disables_set_speed(
         self, mock_coordinator, make_device
