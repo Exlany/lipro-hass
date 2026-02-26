@@ -55,7 +55,7 @@ Changelog = "https://github.com/Exlany/lipro-hass/blob/main/CHANGELOG.md"
 testpaths = ["tests"]
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
-pythonpath = ["custom_components"]
+pythonpath = ["."]
 markers = [
     "github: tests specifically for GitHub Actions CI",
     "integration: tests requiring external services or full HA environment",
