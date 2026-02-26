@@ -135,9 +135,7 @@ STEP_USER_DATA_SCHEMA = vol.Schema(
     },
 )
 STEP_REAUTH_DATA_SCHEMA = vol.Schema(
-    {
-        vol.Required(CONF_PASSWORD): _password_selector()
-    }
+    {vol.Required(CONF_PASSWORD): _password_selector()}
 )
 
 

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
@@ -406,7 +407,9 @@ class TestLiproLightEntityCommands:
         from custom_components.lipro.const import CONF_LIGHT_TURN_ON_ON_ADJUST
         from custom_components.lipro.light import LiproLight
 
-        device = make_device("light", properties={"powerState": "0", "temperature": "50"})
+        device = make_device(
+            "light", properties={"powerState": "0", "temperature": "50"}
+        )
         mock_coordinator.get_device = MagicMock(return_value=device)
         mock_coordinator.config_entry = MagicMock(
             options={CONF_LIGHT_TURN_ON_ON_ADJUST: False}
@@ -431,7 +434,9 @@ class TestLiproLightEntityCommands:
         from custom_components.lipro.const import CONF_LIGHT_TURN_ON_ON_ADJUST
         from custom_components.lipro.light import LiproLight
 
-        device = make_device("fanLight", properties={"powerState": "0", "brightness": "60"})
+        device = make_device(
+            "fanLight", properties={"powerState": "0", "brightness": "60"}
+        )
         mock_coordinator.get_device = MagicMock(return_value=device)
         mock_coordinator.config_entry = MagicMock(
             options={CONF_LIGHT_TURN_ON_ON_ADJUST: False}
@@ -629,9 +634,7 @@ class TestLiproLightEntityProperties:
         light = LiproLight(mock_coordinator, device)
         assert light.extra_state_attributes == {}
 
-    def test_supported_color_modes_with_color_temp(
-        self, mock_coordinator, make_device
-    ):
+    def test_supported_color_modes_with_color_temp(self, mock_coordinator, make_device):
         """Test supported_color_modes includes COLOR_TEMP when device supports it."""
         from homeassistant.components.light import ColorMode
 
@@ -688,3 +691,86 @@ class TestLiproLightEntityProperties:
 
         light = LiproLight(mock_coordinator, device)
         assert light.unique_id == device.unique_id
+
+
+class TestLiproLightAdditionalCoverage:
+    """Additional branch tests for light platform behavior."""
+
+    @pytest.mark.asyncio
+    async def test_async_setup_entry_adds_only_light_entities(self, make_device):
+        """Setup should create entities only for light and fan-light devices."""
+        from custom_components.lipro.light import LiproLight, async_setup_entry
+
+        coordinator = SimpleNamespace(
+            devices={
+                "light_1": make_device("light"),
+                "fan_light": make_device("fanLight"),
+                "switch_1": make_device("switch"),
+            }
+        )
+        entry = SimpleNamespace(runtime_data=coordinator)
+        captured: list[object] = []
+
+        def _add_entities(entities):
+            captured.extend(entities)
+
+        await async_setup_entry(None, entry, _add_entities)
+
+        assert len(captured) == 2
+        assert all(isinstance(entity, LiproLight) for entity in captured)
+
+    def test_brightness_only_device_color_mode_branches(
+        self, mock_coordinator, make_device
+    ):
+        """Brightness-only devices should expose BRIGHTNESS mode and no color temp."""
+        from custom_components.lipro.light import LiproLight
+        from homeassistant.components.light import ColorMode
+
+        device = make_device(
+            "light",
+            properties={"brightness": "50"},
+            min_color_temp_kelvin=0,
+            max_color_temp_kelvin=0,
+        )
+        mock_coordinator.get_device = MagicMock(return_value=device)
+        light = LiproLight(mock_coordinator, device)
+
+        assert light.supported_color_modes == {ColorMode.BRIGHTNESS}
+        assert light.color_mode == ColorMode.BRIGHTNESS
+        assert light.min_color_temp_kelvin == 0
+        assert light.max_color_temp_kelvin == 0
+        assert light.color_temp_kelvin is None
+
+    def test_turn_on_on_adjust_option_parsing_int_and_string(
+        self, mock_coordinator, make_device
+    ):
+        """turn_on_on_adjust option should parse int/string variants correctly."""
+        from custom_components.lipro.const import (
+            CONF_LIGHT_TURN_ON_ON_ADJUST,
+            DEFAULT_LIGHT_TURN_ON_ON_ADJUST,
+        )
+        from custom_components.lipro.light import LiproLight
+
+        device = make_device("light", properties={"powerState": "0"})
+        mock_coordinator.get_device = MagicMock(return_value=device)
+        mock_coordinator.config_entry = MagicMock(options={})
+        light = LiproLight(mock_coordinator, device)
+
+        mock_coordinator.config_entry.options = {CONF_LIGHT_TURN_ON_ON_ADJUST: 0}
+        assert light._turn_on_when_adjusting_while_off() is False
+
+        mock_coordinator.config_entry.options = {CONF_LIGHT_TURN_ON_ON_ADJUST: 2}
+        assert light._turn_on_when_adjusting_while_off() is True
+
+        mock_coordinator.config_entry.options = {CONF_LIGHT_TURN_ON_ON_ADJUST: "off"}
+        assert light._turn_on_when_adjusting_while_off() is False
+
+        mock_coordinator.config_entry.options = {CONF_LIGHT_TURN_ON_ON_ADJUST: "yes"}
+        assert light._turn_on_when_adjusting_while_off() is True
+
+        mock_coordinator.config_entry.options = {
+            CONF_LIGHT_TURN_ON_ON_ADJUST: "unexpected"
+        }
+        assert (
+            light._turn_on_when_adjusting_while_off() is DEFAULT_LIGHT_TURN_ON_ON_ADJUST
+        )

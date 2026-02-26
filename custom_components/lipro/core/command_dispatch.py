@@ -1,0 +1,232 @@
+"""Command routing and dispatch helpers for the coordinator."""
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+import logging
+from typing import TYPE_CHECKING, Any
+
+from .api import LiproApiError
+from .device import LiproDevice, is_valid_iot_device_id
+
+if TYPE_CHECKING:
+    from .api import LiproClient
+
+_LOGGER = logging.getLogger(__name__)
+
+
+@dataclass(frozen=True)
+class CommandDispatchPlan:
+    """Resolved command route and payload for one send operation."""
+
+    route: str
+    command: str
+    properties: list[dict[str, str]] | None
+    member_fallback_id: str | None
+
+
+def normalize_group_power_command(
+    command: str,
+    properties: list[dict[str, str]] | None,
+) -> tuple[str, list[dict[str, str]] | None]:
+    """Normalize group power CHANGE_STATE to POWER_ON/OFF for backend compatibility."""
+    if command.upper() != "CHANGE_STATE" or not properties:
+        return command, properties
+
+    power_value: str | None = None
+    has_non_power_properties = False
+    for prop in properties:
+        key = prop.get("key")
+        if not isinstance(key, str):
+            has_non_power_properties = True
+            continue
+        if key != "powerState":
+            has_non_power_properties = True
+            continue
+        value = prop.get("value")
+        if isinstance(value, str):
+            normalized = value.strip().lower()
+            if normalized in {"1", "true", "on"}:
+                power_value = "1"
+            elif normalized in {"0", "false", "off"}:
+                power_value = "0"
+
+    # Only collapse into POWER_ON/OFF when the payload is power-only.
+    # Mixed updates (e.g., power + brightness/colorTemp) must preserve
+    # CHANGE_STATE properties to avoid dropping non-power settings.
+    if has_non_power_properties:
+        return command, properties
+
+    if power_value == "1":
+        return "POWER_ON", None
+    if power_value == "0":
+        return "POWER_OFF", None
+    return command, properties
+
+
+def resolve_group_fallback_member_id(
+    device: LiproDevice,
+    fallback_device_id: str | None,
+) -> str | None:
+    """Resolve fallback target for single-member mesh groups only."""
+    if not device.is_group or not isinstance(fallback_device_id, str):
+        return None
+
+    candidate = fallback_device_id.strip().lower()
+    if (
+        not candidate
+        or candidate == device.serial.lower()
+        or not is_valid_iot_device_id(candidate)
+    ):
+        return None
+
+    member_ids = device.extra_data.get("group_member_ids")
+    if not isinstance(member_ids, list) or len(member_ids) != 1:
+        return None
+
+    only_member = member_ids[0]
+    if not isinstance(only_member, str):
+        return None
+
+    member_id = only_member.strip().lower()
+    if not member_id or not is_valid_iot_device_id(member_id):
+        return None
+
+    if candidate != member_id:
+        return None
+
+    return candidate
+
+
+def plan_command_dispatch(
+    device: LiproDevice,
+    command: str,
+    properties: list[dict[str, str]] | None,
+    fallback_device_id: str | None,
+) -> CommandDispatchPlan:
+    """Resolve command payload and route policy for one command call."""
+    member_fallback_id = resolve_group_fallback_member_id(device, fallback_device_id)
+    if not device.is_group:
+        return CommandDispatchPlan(
+            route="device_direct",
+            command=command,
+            properties=properties,
+            member_fallback_id=member_fallback_id,
+        )
+
+    route = "group_direct"
+    if (
+        isinstance(fallback_device_id, str)
+        and fallback_device_id.strip()
+        and fallback_device_id.strip().lower() != device.serial.lower()
+        and member_fallback_id is None
+    ):
+        _LOGGER.debug(
+            "Ignoring member fallback %s for group %s "
+            "(requires single-member mesh group)",
+            fallback_device_id,
+            device.serial,
+        )
+
+    actual_command, actual_properties = normalize_group_power_command(
+        command, properties
+    )
+    if actual_command != command:
+        _LOGGER.debug(
+            "Normalized group command %s to %s for %s",
+            command,
+            actual_command,
+            device.serial,
+        )
+    return CommandDispatchPlan(
+        route=route,
+        command=actual_command,
+        properties=actual_properties,
+        member_fallback_id=member_fallback_id,
+    )
+
+
+async def _send_member_command(
+    client: LiproClient,
+    *,
+    member_id: str,
+    device: LiproDevice,
+    command: str,
+    properties: list[dict[str, str]] | None,
+) -> Any:
+    """Send a command to a specific member device."""
+    return await client.send_command(
+        member_id,
+        command,
+        device.device_type_hex,
+        properties,
+        device.iot_name,
+    )
+
+
+async def execute_command_dispatch(
+    client: LiproClient,
+    *,
+    device: LiproDevice,
+    plan: CommandDispatchPlan,
+) -> tuple[Any, str]:
+    """Execute direct/group command send with fallback routing."""
+    route = plan.route
+    if not device.is_group:
+        result = await _send_member_command(
+            client,
+            member_id=device.serial,
+            device=device,
+            command=plan.command,
+            properties=plan.properties,
+        )
+        return result, route
+
+    try:
+        result = await client.send_group_command(
+            device.serial,
+            plan.command,
+            device.device_type_hex,
+            plan.properties,
+            device.iot_name,
+        )
+    except LiproApiError as err:
+        if not plan.member_fallback_id:
+            raise
+        route = "group_error_fallback_member"
+        _LOGGER.warning(
+            "Group command %s to %s failed (%s), fallback to member %s",
+            plan.command,
+            device.serial,
+            err,
+            plan.member_fallback_id,
+        )
+        result = await _send_member_command(
+            client,
+            member_id=plan.member_fallback_id,
+            device=device,
+            command=plan.command,
+            properties=plan.properties,
+        )
+
+    if (
+        plan.member_fallback_id
+        and isinstance(result, dict)
+        and result.get("pushSuccess") is False
+    ):
+        route = "group_push_fail_fallback_member"
+        _LOGGER.warning(
+            "Group command %s to %s returned pushSuccess=false, fallback to member %s",
+            plan.command,
+            device.serial,
+            plan.member_fallback_id,
+        )
+        result = await _send_member_command(
+            client,
+            member_id=plan.member_fallback_id,
+            device=device,
+            command=plan.command,
+            properties=plan.properties,
+        )
+
+    return result, route

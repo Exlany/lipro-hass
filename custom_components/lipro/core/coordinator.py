@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 from collections import deque
 from dataclasses import dataclass
-from datetime import UTC, datetime, timedelta
+from datetime import timedelta
 import hashlib
 import logging
 from time import monotonic
@@ -24,22 +24,17 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Upda
 from ..const import (
     CONF_ANONYMOUS_SHARE_ENABLED,
     CONF_ANONYMOUS_SHARE_ERRORS,
-    CONF_BIZ_ID,
     CONF_DEBUG_MODE,
     CONF_ENABLE_POWER_MONITORING,
-    CONF_LIGHT_TURN_ON_ON_ADJUST,
     CONF_MQTT_ENABLED,
-    CONF_PHONE,
     CONF_PHONE_ID,
     CONF_POWER_QUERY_INTERVAL,
     CONF_REQUEST_TIMEOUT,
     CONF_SCAN_INTERVAL,
-    CONF_USER_ID,
     DEFAULT_ANONYMOUS_SHARE_ENABLED,
     DEFAULT_ANONYMOUS_SHARE_ERRORS,
     DEFAULT_DEBUG_MODE,
     DEFAULT_ENABLE_POWER_MONITORING,
-    DEFAULT_LIGHT_TURN_ON_ON_ADJUST,
     DEFAULT_MQTT_ENABLED,
     DEFAULT_POWER_QUERY_INTERVAL,
     DEFAULT_REQUEST_TIMEOUT,
@@ -63,7 +58,6 @@ from ..const.api import (
     MAX_MQTT_CACHE_SIZE,
     MQTT_DISCONNECT_NOTIFY_THRESHOLD,
 )
-from ..const.categories import DeviceCategory
 from .anonymous_share import get_anonymous_share_manager
 from .api import (
     LiproApiError,
@@ -72,8 +66,52 @@ from .api import (
     LiproConnectionError,
     LiproRefreshTokenExpiredError,
 )
-from .device import LiproDevice, is_valid_iot_device_id, parse_properties_list
+from .command_dispatch import (
+    CommandDispatchPlan,
+    execute_command_dispatch,
+    plan_command_dispatch,
+)
+from .command_trace import (
+    build_command_trace,
+    update_trace_with_exception,
+    update_trace_with_resolved_request,
+    update_trace_with_response,
+)
+from .coordinator_runtime import (
+    should_refresh_device_list as should_refresh_device_list_runtime,
+    should_schedule_mqtt_setup,
+)
+from .developer_report import (
+    build_developer_report as build_coordinator_developer_report,
+)
+from .device import LiproDevice, parse_properties_list
+from .device_refresh import (
+    FetchedDeviceSnapshot,
+    build_fetched_device_snapshot,
+    plan_stale_device_reconciliation,
+    register_lookup_id,
+)
+from .group_status import resolve_mesh_group_lookup_ids
 from .mqtt import LiproMqttClient, decrypt_mqtt_credential
+from .mqtt_lifecycle import (
+    compute_relaxed_polling_seconds,
+    resolve_disconnect_notification_minutes,
+    resolve_disconnect_started_at,
+)
+from .mqtt_message import (
+    build_dedup_cache_key,
+    cleanup_dedup_cache,
+    compute_properties_hash,
+    is_duplicate_within_window,
+    is_online_connect_state,
+)
+from .mqtt_setup import (
+    build_mqtt_subscription_device_ids,
+    extract_mqtt_encrypted_credentials,
+    iter_mesh_group_serials,
+    resolve_mqtt_biz_id,
+)
+from .outlet_power import apply_outlet_power_info, should_reraise_outlet_power_error
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
@@ -143,71 +181,6 @@ class _PendingCommandExpectation:
         return not self.expected
 
 
-@dataclass
-class _FetchedDeviceSnapshot:
-    """Atomic container for refreshed device indexes."""
-
-    devices: dict[str, LiproDevice]
-    device_by_id: dict[str, LiproDevice]
-    iot_ids: list[str]
-    group_ids: list[str]
-    outlet_ids: list[str]
-
-
-def _register_lookup_id(
-    mapping: dict[str, LiproDevice],
-    device_id: Any,
-    device: LiproDevice,
-) -> None:
-    """Register a device lookup alias with case-insensitive compatibility."""
-    if not isinstance(device_id, str):
-        return
-    normalized = device_id.strip()
-    if not normalized:
-        return
-    mapping[normalized] = device
-    mapping[normalized.lower()] = device
-
-
-def _normalize_group_power_command(
-    command: str,
-    properties: list[dict[str, str]] | None,
-) -> tuple[str, list[dict[str, str]] | None]:
-    """Normalize group power CHANGE_STATE to POWER_ON/OFF for backend compatibility."""
-    if command.upper() != "CHANGE_STATE" or not properties:
-        return command, properties
-
-    power_value: str | None = None
-    has_non_power_properties = False
-    for prop in properties:
-        key = prop.get("key")
-        if not isinstance(key, str):
-            has_non_power_properties = True
-            continue
-        if key != "powerState":
-            has_non_power_properties = True
-            continue
-        value = prop.get("value")
-        if isinstance(value, str):
-            normalized = value.strip().lower()
-            if normalized in {"1", "true", "on"}:
-                power_value = "1"
-            elif normalized in {"0", "false", "off"}:
-                power_value = "0"
-
-    # Only collapse into POWER_ON/OFF when the payload is power-only.
-    # Mixed updates (e.g., power + brightness/colorTemp) must preserve
-    # CHANGE_STATE properties to avoid dropping non-power settings.
-    if has_non_power_properties:
-        return command, properties
-
-    if power_value == "1":
-        return "POWER_ON", None
-    if power_value == "0":
-        return "POWER_OFF", None
-    return command, properties
-
-
 _SLIDER_LIKE_PROPERTIES: Final[frozenset[str]] = frozenset(
     {
         PROP_BRIGHTNESS,
@@ -241,40 +214,6 @@ def _should_skip_immediate_post_refresh(
         return False
 
     return property_keys.issubset(_SLIDER_LIKE_PROPERTIES)
-
-
-def _resolve_group_fallback_member_id(
-    device: LiproDevice,
-    fallback_device_id: str | None,
-) -> str | None:
-    """Resolve fallback target for single-member mesh groups only."""
-    if not device.is_group or not isinstance(fallback_device_id, str):
-        return None
-
-    candidate = fallback_device_id.strip().lower()
-    if (
-        not candidate
-        or candidate == device.serial.lower()
-        or not is_valid_iot_device_id(candidate)
-    ):
-        return None
-
-    member_ids = device.extra_data.get("group_member_ids")
-    if not isinstance(member_ids, list) or len(member_ids) != 1:
-        return None
-
-    only_member = member_ids[0]
-    if not isinstance(only_member, str):
-        return None
-
-    member_id = only_member.strip().lower()
-    if not member_id or not is_valid_iot_device_id(member_id):
-        return None
-
-    if candidate != member_id:
-        return None
-
-    return candidate
 
 
 def _redact_identifier(identifier: str | None) -> str | None:
@@ -343,17 +282,6 @@ def _coerce_option_bool(
         default,
     )
     return default
-
-
-def _is_online_connect_state(value: Any) -> bool:
-    """Normalize connect-state payload variants to an online/offline boolean."""
-    if isinstance(value, bool):
-        return value
-    if isinstance(value, (int, float)):
-        return value != 0
-    if isinstance(value, str):
-        return value.strip().lower() in {"1", "true", "yes", "on"}
-    return False
 
 
 # HA version for anonymous share reporting
@@ -539,105 +467,29 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
 
     def build_developer_report(self) -> dict[str, Any]:
         """Build a sanitized runtime report for real-world troubleshooting."""
-        options = self.config_entry.options if self.config_entry else {}
         share_manager = get_anonymous_share_manager(self.hass)
         pending_devices, pending_errors = share_manager.pending_count
-
-        mesh_groups: list[dict[str, Any]] = []
-        for dev in self._devices.values():
-            if not dev.is_group:
-                continue
-
-            member_ids = dev.extra_data.get("group_member_ids")
-            safe_member_ids = (
-                [_redact_identifier(mid) for mid in member_ids if isinstance(mid, str)]
-                if isinstance(member_ids, list)
-                else []
-            )
-            member_count = dev.extra_data.get("group_member_count")
-            if not isinstance(member_count, int):
-                member_count = len(safe_member_ids)
-
-            mesh_groups.append(
-                {
-                    "group_id": _redact_identifier(dev.serial),
-                    "iot_name": dev.iot_name,
-                    "device_type": dev.device_type,
-                    "physical_model": dev.physical_model,
-                    "member_count": member_count,
-                    "gateway_device_id": _redact_identifier(
-                        dev.extra_data.get("gateway_device_id")
-                    ),
-                    "member_ids": safe_member_ids,
-                }
-            )
-
-        report: dict[str, Any] = {
-            "entry_id": _redact_identifier(
-                self.config_entry.entry_id if self.config_entry else None
-            ),
-            "unique_id": _redact_identifier(
-                self.config_entry.unique_id if self.config_entry else None
-            ),
-            "phone": _redact_identifier(
-                self.config_entry.data.get(CONF_PHONE) if self.config_entry else None
-            ),
-            "debug_mode_enabled": self._debug_mode,
-            "runtime": {
-                "mqtt_enabled": self._mqtt_enabled,
-                "mqtt_connected": self._mqtt_connected,
-                "polling_interval_seconds": (
-                    int(self.update_interval.total_seconds())
-                    if self.update_interval is not None
-                    else None
-                ),
-                "last_update_success": self.last_update_success,
-            },
-            "options": {
-                "scan_interval": options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL),
-                "mqtt_enabled": options.get(CONF_MQTT_ENABLED, DEFAULT_MQTT_ENABLED),
-                "power_monitoring_enabled": options.get(
-                    CONF_ENABLE_POWER_MONITORING,
-                    DEFAULT_ENABLE_POWER_MONITORING,
-                ),
-                "light_turn_on_on_adjust": options.get(
-                    CONF_LIGHT_TURN_ON_ON_ADJUST,
-                    DEFAULT_LIGHT_TURN_ON_ON_ADJUST,
-                ),
-                "power_query_interval": options.get(
-                    CONF_POWER_QUERY_INTERVAL,
-                    DEFAULT_POWER_QUERY_INTERVAL,
-                ),
-                "request_timeout": options.get(
-                    CONF_REQUEST_TIMEOUT,
-                    DEFAULT_REQUEST_TIMEOUT,
-                ),
-                "debug_mode": options.get(
-                    CONF_DEBUG_MODE,
-                    DEFAULT_DEBUG_MODE,
-                ),
-            },
-            "devices": {
-                "total": len(self._devices),
-                "group_count": len(self._group_ids_to_query),
-                "individual_count": len(self._iot_ids_to_query),
-                "outlet_count": len(self._outlet_ids_to_query),
-            },
-            "mesh_groups": mesh_groups,
-            "anonymous_share_pending": {
-                "devices": pending_devices,
-                "errors": pending_errors,
-            },
-            "recent_commands": list(self._command_traces),
-        }
-
-        if not self._debug_mode:
-            report["note"] = (
-                "Debug mode is disabled. Enable it in advanced options "
-                "to capture command traces."
-            )
-
-        return report
+        polling_interval_seconds = (
+            int(self.update_interval.total_seconds())
+            if self.update_interval is not None
+            else None
+        )
+        return build_coordinator_developer_report(
+            config_entry=self.config_entry,
+            debug_mode=self._debug_mode,
+            mqtt_enabled=self._mqtt_enabled,
+            mqtt_connected=self._mqtt_connected,
+            polling_interval_seconds=polling_interval_seconds,
+            last_update_success=self.last_update_success,
+            devices=self._devices,
+            group_count=len(self._group_ids_to_query),
+            individual_count=len(self._iot_ids_to_query),
+            outlet_count=len(self._outlet_ids_to_query),
+            pending_devices=pending_devices,
+            pending_errors=pending_errors,
+            command_traces=list(self._command_traces),
+            redact_identifier=_redact_identifier,
+        )
 
     def register_entity(self, entity: LiproEntity) -> None:
         """Register an entity for debounce protection tracking.
@@ -798,9 +650,9 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
             return
 
         alpha = _STATE_LATENCY_EWMA_ALPHA
-        self._device_state_latency_seconds[device_serial] = previous * (
-            1 - alpha
-        ) + bounded * alpha
+        self._device_state_latency_seconds[device_serial] = (
+            previous * (1 - alpha) + bounded * alpha
+        )
 
     def _observe_command_confirmation(
         self,
@@ -993,6 +845,59 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         """Return True if MQTT is connected."""
         return self._mqtt_connected
 
+    async def _resolve_mqtt_decrypted_credentials(self) -> tuple[str, str] | None:
+        """Fetch MQTT config and decrypt access credentials."""
+        mqtt_config = await self.client.get_mqtt_config()
+        credentials = extract_mqtt_encrypted_credentials(mqtt_config)
+        if credentials is None:
+            _LOGGER.warning("MQTT config missing accessKey or secretKey")
+            return None
+
+        encrypted_access_key, encrypted_secret_key = credentials
+        access_key = await asyncio.to_thread(
+            decrypt_mqtt_credential, encrypted_access_key
+        )
+        secret_key = await asyncio.to_thread(
+            decrypt_mqtt_credential, encrypted_secret_key
+        )
+        return access_key, secret_key
+
+    def _create_mqtt_client(
+        self,
+        *,
+        access_key: str,
+        secret_key: str,
+        biz_id: str,
+        phone_id: str,
+    ) -> LiproMqttClient:
+        """Create configured MQTT client instance."""
+        return LiproMqttClient(
+            access_key=access_key,
+            secret_key=secret_key,
+            biz_id=biz_id,
+            phone_id=phone_id,
+            on_message=self._on_mqtt_message,
+            on_connect=self._on_mqtt_connect,
+            on_disconnect=self._on_mqtt_disconnect,
+        )
+
+    async def _start_mqtt_for_current_devices(
+        self, mqtt_client: LiproMqttClient
+    ) -> None:
+        """Start MQTT client with subscriptions for current devices."""
+        # For mesh groups: use their serial (mesh_group_xxx) as the topic
+        # For non-group devices: use their serial directly
+        # Note: iot_device_id is an alias for serial, so we always use serial
+        device_ids = build_mqtt_subscription_device_ids(self._devices)
+        for mesh_group_serial in iter_mesh_group_serials(self._devices):
+            _LOGGER.debug("MQTT: subscribing to mesh group %s", mesh_group_serial)
+
+        await mqtt_client.start(device_ids)
+        _LOGGER.info(
+            "MQTT client setup complete, subscribing to %d devices",
+            len(device_ids),
+        )
+
     async def async_setup_mqtt(self) -> bool:
         """Set up MQTT client for real-time updates.
 
@@ -1004,71 +909,25 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
             _LOGGER.error("Cannot setup MQTT: config_entry is None")
             return False
         try:
-            # Get MQTT config from API
-            mqtt_config = await self.client.get_mqtt_config()
-
-            encrypted_access_key = mqtt_config.get("accessKey")
-            encrypted_secret_key = mqtt_config.get("secretKey")
-
-            if not encrypted_access_key or not encrypted_secret_key:
-                _LOGGER.warning("MQTT config missing accessKey or secretKey")
+            credentials = await self._resolve_mqtt_decrypted_credentials()
+            if credentials is None:
                 return False
+            access_key, secret_key = credentials
 
-            # Decrypt credentials (C extension, run in thread for async safety)
-            access_key = await asyncio.to_thread(
-                decrypt_mqtt_credential, encrypted_access_key
-            )
-            secret_key = await asyncio.to_thread(
-                decrypt_mqtt_credential, encrypted_secret_key
-            )
-
-            # Get biz_id from config entry data
-            biz_id = self.config_entry.data.get(CONF_BIZ_ID)
-            if not biz_id:
-                # Try to get from user_id (fallback)
-                user_id = self.config_entry.data.get(CONF_USER_ID)
-                if user_id is not None:
-                    biz_id = str(user_id)
-                else:
-                    _LOGGER.warning("No biz_id available for MQTT")
-                    return False
-
-            # Remove 'lip_' prefix if present
-            biz_id = biz_id.removeprefix("lip_")
-
+            biz_id = resolve_mqtt_biz_id(self.config_entry.data)
+            if biz_id is None:
+                _LOGGER.warning("No biz_id available for MQTT")
+                return False
             self._biz_id = biz_id
             phone_id = self.config_entry.data.get(CONF_PHONE_ID, "")
 
-            # Create MQTT client
-            self._mqtt_client = LiproMqttClient(
+            self._mqtt_client = self._create_mqtt_client(
                 access_key=access_key,
                 secret_key=secret_key,
                 biz_id=biz_id,
                 phone_id=phone_id,
-                on_message=self._on_mqtt_message,
-                on_connect=self._on_mqtt_connect,
-                on_disconnect=self._on_mqtt_disconnect,
             )
-
-            # Get device IDs to subscribe
-            # For mesh groups: use their serial (mesh_group_xxx) as the topic
-            # For non-group devices: use their serial directly
-            # Note: iot_device_id is an alias for serial, so we always use serial
-            device_ids = list(self._devices.keys())
-
-            for dev in self._devices.values():
-                if dev.is_group:
-                    _LOGGER.debug(
-                        "MQTT: subscribing to mesh group %s",
-                        dev.serial,
-                    )
-
-            # Start MQTT client
-            await self._mqtt_client.start(device_ids)
-            _LOGGER.info(
-                "MQTT client setup complete, subscribing to %d devices",
-                len(device_ids),
-            )
+            await self._start_mqtt_for_current_devices(self._mqtt_client)
             return True
 
         except (LiproApiError, ValueError) as err:
@@ -1107,7 +966,10 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         await super().async_shutdown()
 
         # Cancel pending delayed refresh task.
-        if self._post_command_refresh_task and not self._post_command_refresh_task.done():
+        if (
+            self._post_command_refresh_task
+            and not self._post_command_refresh_task.done()
+        ):
             self._post_command_refresh_task.cancel()
             self._post_command_refresh_task = None
 
@@ -1156,15 +1018,17 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         async_delete_issue(self.hass, DOMAIN, "mqtt_disconnected")
         # Reduce polling frequency when MQTT provides real-time updates
         base = self._base_scan_interval
-        relaxed = base * _MQTT_POLLING_MULTIPLIER
+        relaxed = compute_relaxed_polling_seconds(base, _MQTT_POLLING_MULTIPLIER)
         self.update_interval = timedelta(seconds=relaxed)
         _LOGGER.info("MQTT connected, polling interval relaxed to %ds", relaxed)
 
     def _on_mqtt_disconnect(self) -> None:
         """Handle MQTT disconnection."""
         self._mqtt_connected = False
-        if self._mqtt_disconnect_time is None:
-            self._mqtt_disconnect_time = monotonic()
+        self._mqtt_disconnect_time = resolve_disconnect_started_at(
+            self._mqtt_disconnect_time,
+            now=monotonic(),
+        )
         # Restore normal polling frequency
         base = self._base_scan_interval
         self.update_interval = timedelta(seconds=base)
@@ -1172,21 +1036,21 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
 
     def _check_mqtt_disconnect_notification(self) -> None:
         """Send persistent notification if MQTT has been disconnected too long."""
-        if (
-            not self._mqtt_enabled
-            or self._mqtt_connected
-            or self._mqtt_disconnect_time is None
-            or self._mqtt_disconnect_notified
-        ):
+        minutes = resolve_disconnect_notification_minutes(
+            mqtt_enabled=self._mqtt_enabled,
+            mqtt_connected=self._mqtt_connected,
+            disconnect_started_at=self._mqtt_disconnect_time,
+            disconnect_notified=self._mqtt_disconnect_notified,
+            now=monotonic(),
+            threshold_seconds=MQTT_DISCONNECT_NOTIFY_THRESHOLD,
+        )
+        if minutes is None:
             return
 
-        elapsed = monotonic() - self._mqtt_disconnect_time
-        if elapsed >= MQTT_DISCONNECT_NOTIFY_THRESHOLD:
-            self._mqtt_disconnect_notified = True
-            minutes = int(elapsed // 60)
-            self.hass.async_create_task(
-                self._async_show_mqtt_disconnect_notification(minutes)
-            )
+        self._mqtt_disconnect_notified = True
+        self.hass.async_create_task(
+            self._async_show_mqtt_disconnect_notification(minutes)
+        )
 
     async def _async_show_mqtt_disconnect_notification(self, minutes: int) -> None:
         """Create a repair issue for MQTT disconnect."""
@@ -1229,66 +1093,93 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
             properties: Flattened device properties.
 
         """
-        # Find device using IoT ID mapping
-        device = self.get_device_by_id(device_id)
-
+        device = self._resolve_mqtt_message_device(device_id)
         if not device:
-            _LOGGER.debug("MQTT message for unknown device: %s...", device_id[:8])
             return
 
-        # Deduplication: check if this is a duplicate message
         current_time = monotonic()
-        # Use hash of sorted items tuple for fast dedup (no JSON serialization needed)
-        try:
-            props_hash = hash(tuple(sorted(properties.items())))
-        except TypeError:
-            # Properties contain unhashable values, skip dedup
-            _LOGGER.debug(
-                "MQTT: cannot hash properties for %s, skipping dedup", device.name
-            )
-            props_hash = None
-
-        # Only perform deduplication if we have a valid hash
-        if props_hash is not None:
-            cache_key = f"{device_id}:{props_hash}"
-            last_time = self._mqtt_message_cache.get(cache_key)
-
-            if last_time is not None:
-                if current_time - last_time < self._mqtt_dedup_window:
-                    # Duplicate message within dedup window, skip
-                    if self._debug_mode:
-                        _LOGGER.debug(
-                            "MQTT: skipping duplicate message for %s (%.2fs ago)",
-                            device.name,
-                            current_time - last_time,
-                        )
-                    return
-
-            # Update cache
-            self._mqtt_message_cache[cache_key] = current_time
-
-            # Periodic cleanup: only run when cache exceeds threshold
-            if len(self._mqtt_message_cache) > MAX_MQTT_CACHE_SIZE:
-                self._cleanup_mqtt_cache(current_time)
+        if self._is_duplicate_mqtt_payload(
+            device_id=device_id,
+            device_name=device.name,
+            properties=properties,
+            current_time=current_time,
+        ):
+            return
 
         self._apply_properties_update(device, properties)
+        self._after_mqtt_properties_applied(device, properties)
 
-        if properties:
-            # Force notify all listeners of the update
-            # Note: async_set_updated_data won't trigger updates when always_update=False
-            # and the same dict object is passed, so we use async_update_listeners directly
-            self.async_update_listeners()
+    def _resolve_mqtt_message_device(self, device_id: str) -> LiproDevice | None:
+        """Resolve MQTT message target device by known identifier mappings."""
+        device = self.get_device_by_id(device_id)
+        if device is not None:
+            return device
 
-            # Fallback: when a device comes back online, schedule an immediate
-            # REST API refresh to reconcile state. In mesh groups, sub-devices
-            # may reconnect with a different state than the group reports.
-            connect_state = properties.get(PROP_CONNECT_STATE)
-            if device.is_group and _is_online_connect_state(connect_state):
-                _LOGGER.debug(
-                    "MQTT: device %s online, scheduling REST API reconciliation",
-                    device.name,
-                )
-                self.hass.async_create_task(self.async_request_refresh())
+        _LOGGER.debug("MQTT message for unknown device: %s...", device_id[:8])
+        return None
+
+    def _is_duplicate_mqtt_payload(
+        self,
+        *,
+        device_id: str,
+        device_name: str,
+        properties: dict[str, Any],
+        current_time: float,
+    ) -> bool:
+        """Return True when payload duplicates a recent MQTT message for the device."""
+        props_hash = compute_properties_hash(properties)
+        if props_hash is None:
+            _LOGGER.debug(
+                "MQTT: cannot hash properties for %s, skipping dedup", device_name
+            )
+            return False
+
+        cache_key = build_dedup_cache_key(device_id, props_hash)
+        if is_duplicate_within_window(
+            self._mqtt_message_cache,
+            cache_key=cache_key,
+            current_time=current_time,
+            dedup_window=self._mqtt_dedup_window,
+        ):
+            if self._debug_mode:
+                last_time = self._mqtt_message_cache.get(cache_key)
+                if last_time is not None:
+                    _LOGGER.debug(
+                        "MQTT: skipping duplicate message for %s (%.2fs ago)",
+                        device_name,
+                        current_time - last_time,
+                    )
+            return True
+
+        self._mqtt_message_cache[cache_key] = current_time
+        if len(self._mqtt_message_cache) > MAX_MQTT_CACHE_SIZE:
+            self._cleanup_mqtt_cache(current_time)
+        return False
+
+    def _after_mqtt_properties_applied(
+        self,
+        device: LiproDevice,
+        properties: dict[str, Any],
+    ) -> None:
+        """Run post-update notifications and reconciliation scheduling hooks."""
+        if not properties:
+            return
+
+        # Force notify all listeners of the update
+        # Note: async_set_updated_data won't trigger updates when always_update=False
+        # and the same dict object is passed, so we use async_update_listeners directly
+        self.async_update_listeners()
+
+        # Fallback: when a device comes back online, schedule an immediate
+        # REST API refresh to reconcile state. In mesh groups, sub-devices
+        # may reconnect with a different state than the group reports.
+        connect_state = properties.get(PROP_CONNECT_STATE)
+        if device.is_group and is_online_connect_state(connect_state):
+            _LOGGER.debug(
+                "MQTT: device %s online, scheduling REST API reconciliation",
+                device.name,
+            )
+            self.hass.async_create_task(self.async_request_refresh())
 
     def _cleanup_mqtt_cache(self, current_time: float) -> None:
         """Clean up stale MQTT dedup cache entries.
@@ -1300,17 +1191,12 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
             current_time: Current monotonic time.
 
         """
-        # Remove stale entries
-        self._mqtt_message_cache = {
-            k: t
-            for k, t in self._mqtt_message_cache.items()
-            if current_time - t <= _MQTT_CACHE_STALE_SECONDS
-        }
-
-        # Hard cap: if cache still exceeds limit, keep newest half
-        if len(self._mqtt_message_cache) > MAX_MQTT_CACHE_SIZE:
-            sorted_items = sorted(self._mqtt_message_cache.items(), key=lambda x: x[1])
-            self._mqtt_message_cache = dict(sorted_items[len(sorted_items) // 2 :])
+        self._mqtt_message_cache = cleanup_dedup_cache(
+            self._mqtt_message_cache,
+            current_time=current_time,
+            stale_seconds=_MQTT_CACHE_STALE_SECONDS,
+            max_entries=MAX_MQTT_CACHE_SIZE,
+        )
 
     async def _async_show_auth_notification(
         self,
@@ -1341,11 +1227,26 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
 
     def _should_refresh_device_list(self) -> bool:
         """Return True when a full device-list refresh should run."""
-        if not self._devices or self._force_device_refresh:
-            return True
+        return should_refresh_device_list_runtime(
+            has_devices=bool(self._devices),
+            force_device_refresh=self._force_device_refresh,
+            last_device_refresh_at=self._last_device_refresh_at,
+            now=monotonic(),
+            refresh_interval_seconds=_DEVICE_LIST_REFRESH_INTERVAL_SECONDS,
+        )
 
-        elapsed = monotonic() - self._last_device_refresh_at
-        return elapsed >= _DEVICE_LIST_REFRESH_INTERVAL_SECONDS
+    def _schedule_mqtt_setup_if_needed(self) -> None:
+        """Ensure MQTT setup task is scheduled when runtime conditions match."""
+        if not should_schedule_mqtt_setup(
+            mqtt_enabled=self._mqtt_enabled,
+            has_mqtt_client=self._mqtt_client is not None,
+            mqtt_setup_in_progress=self._mqtt_setup_in_progress,
+            has_devices=bool(self._devices),
+        ):
+            return
+
+        self._mqtt_setup_in_progress = True
+        self.hass.async_create_task(self._async_setup_mqtt_safe())
 
     async def _async_update_data(self) -> dict[str, LiproDevice]:
         """Fetch data from API.
@@ -1372,16 +1273,8 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
             # Query device status
             await self._update_device_status()
 
-            # Ensure MQTT client is running (retry if previous setup failed)
-            # Only if MQTT is enabled in options
-            if (
-                self._mqtt_enabled
-                and not self._mqtt_client
-                and not self._mqtt_setup_in_progress
-                and self._devices
-            ):
-                self._mqtt_setup_in_progress = True
-                self.hass.async_create_task(self._async_setup_mqtt_safe())
+            # Ensure MQTT client is running (retry if previous setup failed).
+            self._schedule_mqtt_setup_if_needed()
 
             # Notify user if MQTT has been disconnected for too long
             self._check_mqtt_disconnect_notification()
@@ -1411,7 +1304,7 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
 
         previous_serials = set(self._devices)
         devices_data = await self._fetch_all_device_pages()
-        snapshot = self._build_fetched_device_snapshot(devices_data)
+        snapshot = build_fetched_device_snapshot(devices_data)
         self._apply_fetched_device_snapshot(snapshot)
         self._last_device_refresh_at = monotonic()
         self._schedule_reload_for_added_devices(previous_serials)
@@ -1479,71 +1372,7 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
                 return devices_data
             offset += MAX_DEVICES_PER_QUERY
 
-    def _build_fetched_device_snapshot(
-        self,
-        devices_data: list[dict[str, Any]],
-    ) -> _FetchedDeviceSnapshot:
-        """Build refreshed device indexes from API payload."""
-        new_devices: dict[str, LiproDevice] = {}
-        new_device_by_id: dict[str, LiproDevice] = {}
-        new_iot_ids: list[str] = []
-        new_group_ids: list[str] = []
-        new_outlet_ids: list[str] = []
-
-        for device_data in devices_data:
-            try:
-                device = LiproDevice.from_api_data(device_data)
-            except (TypeError, ValueError, AttributeError):
-                _LOGGER.debug("Skipping malformed device payload row")
-                continue
-
-            if not isinstance(device.serial, str) or not device.serial.strip():
-                _LOGGER.debug("Skipping device with invalid serial type/value")
-                continue
-
-            try:
-                is_gateway = device.is_gateway
-            except (TypeError, ValueError):
-                _LOGGER.debug("Skipping device with malformed category payload")
-                continue
-
-            if is_gateway:
-                _LOGGER.debug("Skipping gateway device: %s", device.name)
-                continue
-
-            new_devices[device.serial] = device
-            _register_lookup_id(new_device_by_id, device.serial, device)
-
-            if device.is_group:
-                new_group_ids.append(device.serial)
-                continue
-
-            if not device.has_valid_iot_id:
-                _LOGGER.debug(
-                    "Device %s has unexpected IoT ID format: %s",
-                    device.name,
-                    device.serial,
-                )
-            new_iot_ids.append(device.iot_device_id)
-
-            try:
-                is_outlet = device.category == DeviceCategory.OUTLET
-            except (TypeError, ValueError):
-                _LOGGER.debug("Skipping outlet categorization for malformed device")
-                is_outlet = False
-
-            if is_outlet:
-                new_outlet_ids.append(device.iot_device_id)
-
-        return _FetchedDeviceSnapshot(
-            devices=new_devices,
-            device_by_id=new_device_by_id,
-            iot_ids=new_iot_ids,
-            group_ids=new_group_ids,
-            outlet_ids=new_outlet_ids,
-        )
-
-    def _apply_fetched_device_snapshot(self, snapshot: _FetchedDeviceSnapshot) -> None:
+    def _apply_fetched_device_snapshot(self, snapshot: FetchedDeviceSnapshot) -> None:
         """Apply refreshed device snapshot atomically."""
         self._devices = snapshot.devices
         self._device_by_id = snapshot.device_by_id
@@ -1573,26 +1402,19 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         current_serials = set(self._devices)
         self._prune_runtime_state_for_devices(current_serials)
 
-        tracked_missing_serials = set(self._missing_device_cycles)
-        stale_serials = (previous_serials | tracked_missing_serials) - current_serials
-        for serial in current_serials:
-            self._missing_device_cycles.pop(serial, None)
+        reconcile_plan = plan_stale_device_reconciliation(
+            previous_serials=previous_serials,
+            current_serials=current_serials,
+            missing_cycles=self._missing_device_cycles,
+            remove_threshold=_STALE_DEVICE_REMOVE_THRESHOLD,
+        )
+        self._missing_device_cycles = reconcile_plan.missing_cycles
 
-        if not stale_serials:
+        if not reconcile_plan.removable_serials:
             return
 
-        removable: set[str] = set()
-        for serial in stale_serials:
-            miss_count = self._missing_device_cycles.get(serial, 0) + 1
-            self._missing_device_cycles[serial] = miss_count
-            if miss_count >= _STALE_DEVICE_REMOVE_THRESHOLD:
-                removable.add(serial)
-
-        if not removable:
-            return
-
-        await self._async_remove_stale_devices(removable)
-        for serial in removable:
+        await self._async_remove_stale_devices(reconcile_plan.removable_serials)
+        for serial in reconcile_plan.removable_serials:
             self._missing_device_cycles.pop(serial, None)
 
     async def _async_remove_stale_devices(self, stale_serials: set[str]) -> None:
@@ -1831,49 +1653,53 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         )
 
         for status_data in status_list:
-            # Get groupId directly from response
-            group_id = status_data.get("groupId")
-            if not group_id:
-                _LOGGER.warning(
-                    "Missing groupId in mesh group status response: %s",
-                    list(status_data.keys()),
-                )
-                continue
+            self._apply_group_status_row(status_data)
 
-            device = self._devices.get(group_id)
-            if not device:
-                _LOGGER.debug(
-                    "Unknown group in status response: %s",
-                    group_id,
-                )
-                continue
+    def _apply_group_status_row(self, status_data: dict[str, Any]) -> None:
+        """Apply one mesh group status row to device mappings and properties."""
+        group_id = status_data.get("groupId")
+        if not group_id:
+            _LOGGER.warning(
+                "Missing groupId in mesh group status response: %s",
+                list(status_data.keys()),
+            )
+            return
 
-            # Save gateway device ID for API-level lookups
-            # Note: MQTT messages use mesh_group_xxx topics, not gateway IDs
-            gateway_id = status_data.get("gatewayDeviceId")
-            if gateway_id:
-                device.extra_data["gateway_device_id"] = gateway_id
-                # Map gateway ID -> device for API responses that reference it
-                _register_lookup_id(self._device_by_id, gateway_id, device)
+        device = self._devices.get(group_id)
+        if not device:
+            _LOGGER.debug(
+                "Unknown group in status response: %s",
+                group_id,
+            )
+            return
 
-            # Map group member IDs -> group device. Real API control often accepts
-            # group-level commands only, so member IDs should resolve to the group.
-            members = status_data.get("devices")
-            member_ids: list[str] = []
-            if isinstance(members, list):
-                for member in members:
-                    if not isinstance(member, dict):
-                        continue
-                    member_id = member.get("deviceId")
-                    if isinstance(member_id, str) and member_id.strip():
-                        member_ids.append(member_id.strip())
-                    _register_lookup_id(self._device_by_id, member_id, device)
-            device.extra_data["group_member_ids"] = member_ids
-            device.extra_data["group_member_count"] = len(member_ids)
+        self._apply_group_lookup_mappings(device, status_data)
 
-            # Parse group-level properties (powerState, brightness, etc.)
-            properties = parse_properties_list(status_data.get("properties", []))
-            self._apply_properties_update(device, properties)
+        # Parse group-level properties (powerState, brightness, etc.)
+        properties = parse_properties_list(status_data.get("properties", []))
+        self._apply_properties_update(device, properties)
+
+    def _apply_group_lookup_mappings(
+        self,
+        device: LiproDevice,
+        status_data: dict[str, Any],
+    ) -> None:
+        """Update lookup IDs and group-member metadata for a mesh group device."""
+        lookup_ids = resolve_mesh_group_lookup_ids(status_data)
+
+        # Save gateway device ID for API-level lookups
+        # Note: MQTT messages use mesh_group_xxx topics, not gateway IDs
+        if lookup_ids.gateway_id:
+            device.extra_data["gateway_device_id"] = lookup_ids.gateway_id
+            # Map gateway ID -> device for API responses that reference it
+            register_lookup_id(self._device_by_id, lookup_ids.gateway_id, device)
+
+        # Map group member IDs -> group device. Real API control often accepts
+        # group-level commands only, so member IDs should resolve to the group.
+        for member_lookup_id in lookup_ids.member_lookup_ids:
+            register_lookup_id(self._device_by_id, member_lookup_id, device)
+        device.extra_data["group_member_ids"] = lookup_ids.member_ids
+        device.extra_data["group_member_count"] = len(lookup_ids.member_ids)
 
     async def _query_outlet_power(self) -> None:
         """Query power information for outlet devices.
@@ -1885,30 +1711,32 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         if not self._outlet_ids_to_query:
             return
 
-        async def _query_single_outlet(device_id: str) -> None:
-            """Query power for a single outlet."""
-            try:
-                power_data = await self.client.fetch_outlet_power_info([device_id])
-                if not power_data:
-                    return
-                device = self.get_device_by_id(device_id)
-                if device:
-                    device.extra_data["power_info"] = power_data
-                    _LOGGER.debug(
-                        "Updated power info for %s: nowPower=%s",
-                        device.name,
-                        power_data.get("nowPower"),
-                    )
-            except LiproApiError as err:
-                # Auth/connection errors must bubble up so _async_update_data can
-                # trigger reauth or mark update failed.
-                if isinstance(err, (LiproAuthError, LiproConnectionError)):
-                    raise
-                _LOGGER.debug("Failed to query power for %s: %s", device_id, err)
-
         await asyncio.gather(
-            *(_query_single_outlet(did) for did in self._outlet_ids_to_query),
+            *(
+                self._query_single_outlet_power(did)
+                for did in self._outlet_ids_to_query
+            ),
         )
+
+    async def _query_single_outlet_power(self, device_id: str) -> None:
+        """Query and apply power info for one outlet device."""
+        try:
+            power_data = await self.client.fetch_outlet_power_info([device_id])
+            if not power_data:
+                return
+            device = self.get_device_by_id(device_id)
+            if device is not None and apply_outlet_power_info(device, power_data):
+                _LOGGER.debug(
+                    "Updated power info for %s: nowPower=%s",
+                    device.name,
+                    power_data.get("nowPower"),
+                )
+        except LiproApiError as err:
+            # Auth/connection errors must bubble up so _async_update_data can
+            # trigger reauth or mark update failed.
+            if should_reraise_outlet_power_error(err):
+                raise
+            _LOGGER.debug("Failed to query power for %s: %s", device_id, err)
 
     async def _query_connect_status(self) -> None:
         """Query real-time connection status for devices.
@@ -1953,172 +1781,6 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         self._product_configs.clear()
         await self.async_refresh()
 
-    @staticmethod
-    def _extract_property_keys(
-        properties: list[dict[str, str]] | None,
-    ) -> list[str]:
-        """Extract command property keys for trace logging."""
-        return [
-            key
-            for item in (properties or [])
-            if isinstance((key := item.get("key")), str)
-        ]
-
-    def _build_command_trace(
-        self,
-        device: LiproDevice,
-        command: str,
-        properties: list[dict[str, str]] | None,
-        fallback_device_id: str | None,
-    ) -> dict[str, Any]:
-        """Build initial command trace payload."""
-        return {
-            "timestamp": datetime.now(UTC).isoformat(),
-            "device_id": _redact_identifier(device.serial),
-            "is_group": device.is_group,
-            "iot_name": device.iot_name,
-            "device_type": device.device_type,
-            "physical_model": device.physical_model,
-            "requested_command": command,
-            "requested_property_count": len(properties or []),
-            "requested_property_keys": self._extract_property_keys(properties),
-            "requested_fallback_device_id": _redact_identifier(fallback_device_id),
-        }
-
-    def _resolve_command_request(
-        self,
-        device: LiproDevice,
-        command: str,
-        properties: list[dict[str, str]] | None,
-        fallback_device_id: str | None,
-    ) -> tuple[str, str, list[dict[str, str]] | None, str | None]:
-        """Resolve command payload and route policy for one command call."""
-        member_fallback_id = _resolve_group_fallback_member_id(device, fallback_device_id)
-        if not device.is_group:
-            return "device_direct", command, properties, member_fallback_id
-
-        route = "group_direct"
-        if (
-            isinstance(fallback_device_id, str)
-            and fallback_device_id.strip()
-            and fallback_device_id.strip().lower() != device.serial.lower()
-            and member_fallback_id is None
-        ):
-            _LOGGER.debug(
-                "Ignoring member fallback %s for group %s "
-                "(requires single-member mesh group)",
-                fallback_device_id,
-                device.serial,
-            )
-
-        actual_command, actual_properties = _normalize_group_power_command(
-            command,
-            properties,
-        )
-        if actual_command != command:
-            _LOGGER.debug(
-                "Normalized group command %s to %s for %s",
-                command,
-                actual_command,
-                device.serial,
-            )
-        return route, actual_command, actual_properties, member_fallback_id
-
-    async def _dispatch_command(
-        self,
-        *,
-        device: LiproDevice,
-        command: str,
-        properties: list[dict[str, str]] | None,
-        route: str,
-        member_fallback_id: str | None,
-    ) -> tuple[Any, str]:
-        """Execute direct/group command send with fallback routing."""
-        if not device.is_group:
-            result = await self._send_member_command(
-                member_id=device.serial,
-                device=device,
-                command=command,
-                properties=properties,
-            )
-            return result, route
-
-        try:
-            result = await self.client.send_group_command(
-                device.serial,
-                command,
-                device.device_type,
-                properties,
-                device.iot_name,
-            )
-        except LiproApiError as err:
-            if not member_fallback_id:
-                raise
-            route = "group_error_fallback_member"
-            _LOGGER.warning(
-                "Group command %s to %s failed (%s), fallback to member %s",
-                command,
-                device.serial,
-                err,
-                member_fallback_id,
-            )
-            result = await self._send_member_command(
-                member_id=member_fallback_id,
-                device=device,
-                command=command,
-                properties=properties,
-            )
-
-        if (
-            member_fallback_id
-            and isinstance(result, dict)
-            and result.get("pushSuccess") is False
-        ):
-            route = "group_push_fail_fallback_member"
-            _LOGGER.warning(
-                "Group command %s to %s returned pushSuccess=false, "
-                "fallback to member %s",
-                command,
-                device.serial,
-                member_fallback_id,
-            )
-            result = await self._send_member_command(
-                member_id=member_fallback_id,
-                device=device,
-                command=command,
-                properties=properties,
-            )
-
-        return result, route
-
-    async def _send_member_command(
-        self,
-        *,
-        member_id: str,
-        device: LiproDevice,
-        command: str,
-        properties: list[dict[str, str]] | None,
-    ) -> Any:
-        """Send a command to a specific member device."""
-        return await self.client.send_command(
-            member_id,
-            command,
-            device.device_type,
-            properties,
-            device.iot_name,
-        )
-
-    def _update_trace_with_response(self, trace: dict[str, Any], result: Any) -> None:
-        """Attach API response metadata to command trace."""
-        if not isinstance(result, dict):
-            return
-
-        trace["push_success"] = result.get("pushSuccess")
-        trace["response_code"] = result.get("code") or result.get("errorCode")
-        trace["response_message"] = result.get("message")
-        trace["response_msg_sn"] = result.get("msgSn")
-        trace["response_push_timestamp"] = result.get("pushTimestamp")
-
     def _record_push_failure_trace(
         self,
         trace: dict[str, Any],
@@ -2148,7 +1810,9 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         trace: dict[str, Any],
     ) -> None:
         """Finalize post-send refresh strategy and success trace fields."""
-        skip_immediate_refresh = _should_skip_immediate_post_refresh(command, properties)
+        skip_immediate_refresh = _should_skip_immediate_post_refresh(
+            command, properties
+        )
         self._track_command_expectation(device.serial, command, properties)
         adaptive_delay = self._get_adaptive_post_refresh_delay(device.serial)
         self._schedule_post_command_refresh(
@@ -2163,19 +1827,72 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         trace["success"] = True
         self._record_command_trace(trace)
 
-    def _record_command_exception_trace(
+    async def _handle_command_api_error(
         self,
+        *,
+        device: LiproDevice,
         trace: dict[str, Any],
         route: str,
         err: LiproApiError,
-    ) -> None:
-        """Record failed command trace from API exception."""
-        trace["route"] = route
-        trace["success"] = False
-        trace["error"] = type(err).__name__
-        trace["error_message"] = str(err)
-        trace["error_code"] = err.code
+    ) -> bool:
+        """Handle command-send API errors with consistent trace and reauth flows."""
+        update_trace_with_exception(trace, route=route, err=err)
         self._record_command_trace(trace)
+        if isinstance(err, LiproRefreshTokenExpiredError):
+            _LOGGER.warning(
+                "Refresh token expired while sending command to %s",
+                device.name,
+            )
+            await self._trigger_reauth("auth_expired")
+            return False
+        if isinstance(err, LiproAuthError):
+            _LOGGER.warning(
+                "Auth error sending command to %s, triggering reauth",
+                device.name,
+            )
+            await self._trigger_reauth("auth_error")
+            return False
+
+        _LOGGER.warning("Failed to send command to %s: %s", device.name, err)
+        return False
+
+    @staticmethod
+    def _is_command_push_failed(result: Any) -> bool:
+        """Return True when command dispatch explicitly reports push failure."""
+        return isinstance(result, dict) and result.get("pushSuccess") is False
+
+    async def _execute_command_plan_with_trace(
+        self,
+        *,
+        device: LiproDevice,
+        command: str,
+        properties: list[dict[str, str]] | None,
+        fallback_device_id: str | None,
+        trace: dict[str, Any],
+    ) -> tuple[CommandDispatchPlan, Any, str]:
+        """Plan, dispatch, and trace one command request."""
+        plan: CommandDispatchPlan = plan_command_dispatch(
+            device,
+            command,
+            properties,
+            fallback_device_id,
+        )
+        route = plan.route
+        update_trace_with_resolved_request(
+            trace,
+            command=plan.command,
+            properties=plan.properties,
+            fallback_device_id=plan.member_fallback_id,
+            redact_identifier=_redact_identifier,
+        )
+
+        result, route = await execute_command_dispatch(
+            self.client,
+            device=device,
+            plan=plan,
+        )
+        update_trace_with_response(trace, result)
+        return plan, result, route
 
     async def async_send_command(
         self,
@@ -2196,11 +1913,12 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
             True if command was sent successfully.
 
         """
-        trace = self._build_command_trace(
-            device,
-            command,
-            properties,
-            fallback_device_id,
+        trace = build_command_trace(
+            device=device,
+            command=command,
+            properties=properties,
+            fallback_device_id=fallback_device_id,
+            redact_identifier=_redact_identifier,
         )
         route = "device_direct"
 
@@ -2208,36 +1926,14 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
             await self.auth_manager.ensure_valid_token()
             self._clear_auth_issues()
 
-            (
-                route,
-                actual_command,
-                actual_properties,
-                member_fallback_id,
-            ) = self._resolve_command_request(
-                device,
-                command,
-                properties,
-                fallback_device_id,
-            )
-            trace["effective_fallback_device_id"] = _redact_identifier(
-                member_fallback_id
-            )
-            trace["resolved_command"] = actual_command
-            trace["resolved_property_count"] = len(actual_properties or [])
-            trace["resolved_property_keys"] = self._extract_property_keys(
-                actual_properties
-            )
-
-            result, route = await self._dispatch_command(
+            plan, result, route = await self._execute_command_plan_with_trace(
                 device=device,
-                command=actual_command,
-                properties=actual_properties,
-                route=route,
-                member_fallback_id=member_fallback_id,
+                command=command,
+                properties=properties,
+                fallback_device_id=fallback_device_id,
+                trace=trace,
             )
-
-            self._update_trace_with_response(trace, result)
-            if isinstance(result, dict) and result.get("pushSuccess") is False:
+            if self._is_command_push_failed(result):
                 self._record_push_failure_trace(
                     trace=trace,
                     route=route,
@@ -2248,32 +1944,21 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
 
             self._finalize_successful_command(
                 device=device,
-                command=actual_command,
-                properties=actual_properties,
+                command=plan.command,
+                properties=plan.properties,
                 route=route,
                 trace=trace,
             )
 
             return True
 
-        except LiproRefreshTokenExpiredError as err:
-            self._record_command_exception_trace(trace, route, err)
-            _LOGGER.warning(
-                "Refresh token expired while sending command to %s", device.name
-            )
-            await self._trigger_reauth("auth_expired")
-            return False
-        except LiproAuthError as err:
-            self._record_command_exception_trace(trace, route, err)
-            _LOGGER.warning(
-                "Auth error sending command to %s, triggering reauth", device.name
-            )
-            await self._trigger_reauth("auth_error")
-            return False
         except LiproApiError as err:
-            self._record_command_exception_trace(trace, route, err)
-            _LOGGER.warning("Failed to send command to %s: %s", device.name, err)
-            return False
+            return await self._handle_command_api_error(
+                device=device,
+                trace=trace,
+                route=route,
+                err=err,
+            )
 
     def _schedule_post_command_refresh(
         self,
@@ -2303,7 +1988,10 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
             return
 
         delay_seconds = self._get_adaptive_post_refresh_delay(device_serial)
-        if self._post_command_refresh_task and not self._post_command_refresh_task.done():
+        if (
+            self._post_command_refresh_task
+            and not self._post_command_refresh_task.done()
+        ):
             self._post_command_refresh_task.cancel()
 
         self._post_command_refresh_task = self.hass.async_create_task(

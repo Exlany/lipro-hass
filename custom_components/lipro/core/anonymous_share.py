@@ -53,21 +53,15 @@ _LOGGER = logging.getLogger(__name__)
 _RE_MAC_ADDRESS = re.compile(r"([0-9A-Fa-f]{2}[:-]){5}[0-9A-Fa-f]{2}")
 _RE_MAC_EXACT = re.compile(r"^([0-9A-Fa-f]{2}[:-]){5}[0-9A-Fa-f]{2}$")
 # Compact MAC-like identifiers seen in payloads (e.g., rcList.address).
-_RE_MAC_COMPACT = re.compile(
-    r"\b[0-9A-Fa-f]{12}\b"
-)
-_RE_MAC_COMPACT_EXACT = re.compile(
-    r"^[0-9A-Fa-f]{12}$"
-)
+_RE_MAC_COMPACT = re.compile(r"\b[0-9A-Fa-f]{12}\b")
+_RE_MAC_COMPACT_EXACT = re.compile(r"^[0-9A-Fa-f]{12}$")
 _RE_IP_ADDRESS = re.compile(r"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}")
 _RE_IP_EXACT = re.compile(r"^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$")
 _RE_DEVICE_ID = re.compile(r"03ab[0-9a-f]{12}", re.IGNORECASE)
 _RE_DEVICE_ID_EXACT = re.compile(r"^03ab[0-9a-f]{12}$", re.IGNORECASE)
 _RE_TOKEN_LIKE = re.compile(r"^[a-zA-Z0-9_-]{32,}$")
 _RE_TOKEN_EMBEDDED = re.compile(r"\b[a-zA-Z0-9_-]{32,}\b")
-_RE_AUTH_BEARER = re.compile(
-    r"(?i)(authorization\s*[:=]\s*bearer\s+)[^\s,;\"']+"
-)
+_RE_AUTH_BEARER = re.compile(r"(?i)(authorization\s*[:=]\s*bearer\s+)[^\s,;\"']+")
 _RE_SECRET_KV = re.compile(
     r"(?i)\b(access[_-]?token|refresh[_-]?token|api[_-]?key|secret|password)\b"
     r"(\s*[:=]\s*)([^\s,;\"']+)"
@@ -874,6 +868,45 @@ class AnonymousShareManager:
             "developer_feedback": sanitized_feedback,
         }
 
+    @staticmethod
+    def _build_upload_headers() -> dict[str, str]:
+        """Build common headers for share uploads."""
+        return {
+            "User-Agent": f"HomeAssistant/Lipro {VERSION}",
+            "X-API-Key": SHARE_API_KEY,
+        }
+
+    async def _submit_share_payload(
+        self,
+        session: aiohttp.ClientSession,
+        report: dict[str, Any],
+        *,
+        label: str,
+    ) -> bool:
+        """Submit one payload to share endpoint with unified error handling."""
+        try:
+            async with session.post(
+                SHARE_URL,
+                json=report,
+                headers=self._build_upload_headers(),
+                timeout=aiohttp.ClientTimeout(total=30),
+            ) as response:
+                if response.status != 200:
+                    _LOGGER.warning(
+                        "%s upload failed with status %d", label, response.status
+                    )
+                    return False
+                return True
+        except TimeoutError:
+            _LOGGER.warning("%s upload timed out", label)
+            return False
+        except aiohttp.ClientError as err:
+            _LOGGER.warning("%s upload failed: %s", label, err)
+            return False
+        except (OSError, ValueError):
+            _LOGGER.exception("Unexpected error during %s upload", label.lower())
+            return False
+
     async def submit_developer_feedback(
         self,
         session: aiohttp.ClientSession,
@@ -886,37 +919,14 @@ class AnonymousShareManager:
         """
         async with self._upload_lock:
             report = self._build_developer_feedback_report(feedback)
-            headers = {
-                "User-Agent": f"HomeAssistant/Lipro {VERSION}",
-                "X-API-Key": SHARE_API_KEY,
-            }
-
-            try:
-                async with session.post(
-                    SHARE_URL,
-                    json=report,
-                    headers=headers,
-                    timeout=aiohttp.ClientTimeout(total=30),
-                ) as response:
-                    if response.status == 200:
-                        _LOGGER.info("Developer feedback report submitted")
-                        return True
-
-                    _LOGGER.warning(
-                        "Developer feedback upload failed with status %d",
-                        response.status,
-                    )
-                    return False
-
-            except TimeoutError:
-                _LOGGER.warning("Developer feedback upload timed out")
+            if not await self._submit_share_payload(
+                session,
+                report,
+                label="Developer feedback",
+            ):
                 return False
-            except aiohttp.ClientError as err:
-                _LOGGER.warning("Developer feedback upload failed: %s", err)
-                return False
-            except (OSError, ValueError):
-                _LOGGER.exception("Unexpected error during developer feedback upload")
-                return False
+            _LOGGER.info("Developer feedback report submitted")
+            return True
 
     async def submit_report(
         self,
@@ -953,48 +963,25 @@ class AnonymousShareManager:
 
         async with self._upload_lock:
             report = self.build_report()
-            headers = {
-                "User-Agent": f"HomeAssistant/Lipro {VERSION}",
-                "X-API-Key": SHARE_API_KEY,
-            }
-
-            try:
-                async with session.post(
-                    SHARE_URL,
-                    json=report,
-                    headers=headers,
-                    timeout=aiohttp.ClientTimeout(total=30),
-                ) as response:
-                    if response.status == 200:
-                        _LOGGER.info(
-                            "Anonymous share report submitted: %d devices, %d errors",
-                            len(self._devices),
-                            len(self._errors),
-                        )
-                        self._last_upload_time = time.time()
-                        # Mark device models as reported
-                        for device in self._devices.values():
-                            self._reported_device_keys.add(device.iot_name)
-                        await asyncio.to_thread(self._save_reported_devices)
-                        # Clear pending data
-                        self.clear()
-                        return True
-
-                    _LOGGER.warning(
-                        "Anonymous share upload failed with status %d",
-                        response.status,
-                    )
-                    return False
-
-            except TimeoutError:
-                _LOGGER.warning("Anonymous share upload timed out")
+            if not await self._submit_share_payload(
+                session,
+                report,
+                label="Anonymous share",
+            ):
                 return False
-            except aiohttp.ClientError as err:
-                _LOGGER.warning("Anonymous share upload failed: %s", err)
-                return False
-            except (OSError, ValueError):
-                _LOGGER.exception("Unexpected error during anonymous share upload")
-                return False
+            _LOGGER.info(
+                "Anonymous share report submitted: %d devices, %d errors",
+                len(self._devices),
+                len(self._errors),
+            )
+            self._last_upload_time = time.time()
+            # Mark device models as reported
+            for device in self._devices.values():
+                self._reported_device_keys.add(device.iot_name)
+            await asyncio.to_thread(self._save_reported_devices)
+            # Clear pending data
+            self.clear()
+            return True
 
     async def submit_if_needed(self, session: aiohttp.ClientSession) -> bool:
         """Submit report if thresholds are met.

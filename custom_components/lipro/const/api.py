@@ -45,7 +45,9 @@ PATH_BLE_SCHEDULE_ADD: Final = (
 PATH_BLE_SCHEDULE_DELETE: Final = (
     "/app/oauth/api/v1/user/control/device/bleSchedule/delete.do"
 )
-PATH_BLE_SCHEDULE_GET: Final = "/app/oauth/api/v1/user/control/device/bleSchedule/get.do"
+PATH_BLE_SCHEDULE_GET: Final = (
+    "/app/oauth/api/v1/user/control/device/bleSchedule/get.do"
+)
 
 # HTTP headers
 HEADER_CONTENT_TYPE: Final = "Content-Type"
@@ -65,9 +67,7 @@ CONTENT_TYPE_JSON: Final = "application/json"
 
 # Response codes
 RESPONSE_SUCCESS: Final = 200
-RESPONSE_SUCCESS_CODES: Final = frozenset(
-    (0, 200)
-)  # All known success code variants
+RESPONSE_SUCCESS_CODES: Final = frozenset((0, 200))  # All known success code variants
 
 # Error codes - verified in real API responses
 ERROR_DEVICE_OFFLINE: Final = 140003  # Device not found / offline

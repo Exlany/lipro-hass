@@ -15,6 +15,7 @@ from custom_components.lipro.core.mqtt import (
     _MAX_MQTT_PAYLOAD_BYTES,
     LiproMqttClient,
     MqttCredentials,
+    _sanitize_mqtt_log_value,
     build_topic,
     decrypt_mqtt_credential,
     parse_mqtt_payload,
@@ -59,6 +60,32 @@ class TestDecryptMqttCredential:
 
         with pytest.raises(ValueError, match="Failed to decrypt"):
             decrypt_mqtt_credential(encrypted_hex)
+
+    def test_decrypt_invalid_padding_length(self):
+        """Invalid PKCS5 padding length should raise ValueError."""
+        mock_cipher = MagicMock()
+        mock_cipher.decrypt.return_value = b"invalid\x00"
+
+        with (
+            patch(
+                "custom_components.lipro.core.mqtt.AES.new", return_value=mock_cipher
+            ),
+            pytest.raises(ValueError, match="Invalid PKCS5 padding length"),
+        ):
+            decrypt_mqtt_credential("00")
+
+    def test_decrypt_invalid_padding_bytes(self):
+        """Mismatched PKCS5 padding bytes should raise ValueError."""
+        mock_cipher = MagicMock()
+        mock_cipher.decrypt.return_value = b"invalid\x01\x02"
+
+        with (
+            patch(
+                "custom_components.lipro.core.mqtt.AES.new", return_value=mock_cipher
+            ),
+            pytest.raises(ValueError, match="Invalid PKCS5 padding bytes"),
+        ):
+            decrypt_mqtt_credential("00")
 
 
 class TestMqttCredentials:
@@ -109,6 +136,40 @@ class TestBuildTopic:
         topic = build_topic("lip_biz001", "mesh_group_10001")
 
         assert topic == "Topic_Device_State/lip_biz001/mesh_group_10001"
+
+    def test_build_topic_invalid_biz_id_raises(self):
+        """Invalid biz_id should be rejected."""
+        with pytest.raises(ValueError, match="Invalid biz_id format"):
+            build_topic("biz/invalid", "03ab5ccd7cxxxxxx")
+
+
+class TestMqttLogSanitization:
+    """Tests for MQTT payload log sanitization."""
+
+    def test_sanitize_list_payload(self):
+        """List payloads should be sanitized recursively."""
+        payload = [{"accessToken": "secret-token"}, {"nested": {"ip": "192.168.0.2"}}]
+
+        sanitized = _sanitize_mqtt_log_value(payload)
+
+        assert isinstance(sanitized, list)
+        assert sanitized[0]["accessToken"] == "***"
+        assert sanitized[1]["nested"]["ip"] == "***"
+
+    def test_sanitize_json_string_payload(self):
+        """JSON string payloads should be parsed and sanitized."""
+        raw = '{"accessToken":"secret-token","nested":{"mac":"AA:BB:CC:DD:EE:FF"}}'
+
+        sanitized = _sanitize_mqtt_log_value(raw)
+
+        assert isinstance(sanitized, str)
+        assert "secret-token" not in sanitized
+        assert "AA:BB:CC:DD:EE:FF" not in sanitized
+        assert "***" in sanitized
+
+    def test_sanitize_non_string_value_passthrough(self):
+        """Non-container, non-string values should pass through unchanged."""
+        assert _sanitize_mqtt_log_value(42) == 42
 
 
 class TestParseTopic:
@@ -560,7 +621,8 @@ class TestLiproMqttClient:
         payload_logs = [
             rec.message
             for rec in caplog.records
-            if rec.name == "custom_components.lipro.core.mqtt" and "MQTT [" in rec.message
+            if rec.name == "custom_components.lipro.core.mqtt"
+            and "MQTT [" in rec.message
         ]
         assert payload_logs
         combined = "\n".join(payload_logs)
@@ -608,6 +670,48 @@ class TestLiproMqttClient:
         message.payload = f'{{"light":{{"powerState":"1","blob":"{oversize_blob}"}}}}'
 
         client._process_message(message)
+
+        on_message.assert_not_called()
+
+    def test_process_message_empty_payload(self):
+        """Empty payload should be skipped early."""
+        on_message = MagicMock()
+        client = LiproMqttClient(
+            access_key="access",
+            secret_key="secret",
+            biz_id="lip_biz001",
+            phone_id="550e8400-e29b-41d4-a716-446655440000",
+            on_message=on_message,
+        )
+
+        message = MagicMock()
+        message.topic = "Topic_Device_State/lip_biz001/03ab5ccd7cxxxxxx"
+        message.payload = b""
+
+        client._process_message(message)
+
+        on_message.assert_not_called()
+
+    def test_process_message_unexpected_exception(self):
+        """Unexpected errors should be swallowed and logged."""
+        on_message = MagicMock()
+        client = LiproMqttClient(
+            access_key="access",
+            secret_key="secret",
+            biz_id="lip_biz001",
+            phone_id="550e8400-e29b-41d4-a716-446655440000",
+            on_message=on_message,
+        )
+
+        message = MagicMock()
+        message.topic = "Topic_Device_State/lip_biz001/03ab5ccd7cxxxxxx"
+        message.payload = b'{"light":{"powerState":"1"}}'
+
+        with patch(
+            "custom_components.lipro.core.mqtt.parse_mqtt_payload",
+            side_effect=RuntimeError("boom"),
+        ):
+            client._process_message(message)
 
         on_message.assert_not_called()
 
@@ -761,6 +865,118 @@ class TestSyncSubscriptions:
 
         mock_mqtt.subscribe.assert_called_once()
         assert client._subscribed_devices == {"valid_dev"}
+
+    @pytest.mark.asyncio
+    async def test_sync_connected_subscribe_mqtt_error_keeps_running(self):
+        """Subscribe errors should be logged without breaking sync flow."""
+        client = LiproMqttClient(
+            access_key="access",
+            secret_key="secret",
+            biz_id="lip_biz001",
+            phone_id="550e8400-e29b-41d4-a716-446655440000",
+        )
+        mock_mqtt = AsyncMock()
+        mock_mqtt.subscribe.side_effect = aiomqtt.MqttError("subscribe failed")
+        client._client = mock_mqtt
+        client._connected = True
+
+        await client.sync_subscriptions({"dev_new"})
+
+        mock_mqtt.subscribe.assert_called_once()
+        assert client._subscribed_devices == set()
+
+    @pytest.mark.asyncio
+    async def test_sync_connected_unsubscribe_invalid_id_skips(self):
+        """Invalid unsubscribe device IDs should be skipped safely."""
+        client = LiproMqttClient(
+            access_key="access",
+            secret_key="secret",
+            biz_id="lip_biz001",
+            phone_id="550e8400-e29b-41d4-a716-446655440000",
+        )
+        client._client = AsyncMock()
+        client._connected = True
+        client._subscribed_devices = {"bad/dev"}
+
+        await client.sync_subscriptions(set())
+
+        assert client._subscribed_devices == set()
+
+    @pytest.mark.asyncio
+    async def test_sync_connected_unsubscribe_mqtt_error_keeps_running(self):
+        """Unsubscribe errors should not break synchronization."""
+        client = LiproMqttClient(
+            access_key="access",
+            secret_key="secret",
+            biz_id="lip_biz001",
+            phone_id="550e8400-e29b-41d4-a716-446655440000",
+        )
+        mock_mqtt = AsyncMock()
+        mock_mqtt.unsubscribe.side_effect = aiomqtt.MqttError("unsubscribe failed")
+        client._client = mock_mqtt
+        client._connected = True
+        client._subscribed_devices = {"dev_old"}
+
+        await client.sync_subscriptions(set())
+
+        mock_mqtt.unsubscribe.assert_called_once()
+        assert client._subscribed_devices == set()
+
+
+class TestConnectAndDecode:
+    """Tests for connect/listen and payload decoding paths."""
+
+    @pytest.mark.asyncio
+    async def test_connect_and_listen_subscribes_and_processes_messages(self):
+        """Connect/listen should subscribe valid IDs, skip invalid ones, and process stream."""
+        on_connect = MagicMock()
+        client = LiproMqttClient(
+            access_key="access",
+            secret_key="secret",
+            biz_id="lip_biz001",
+            phone_id="550e8400-e29b-41d4-a716-446655440000",
+            on_connect=on_connect,
+        )
+        client._subscribed_devices = {"valid_dev", "bad/dev"}
+
+        async def _messages():
+            yield MagicMock(topic="Topic_Device_State/lip_biz001/valid_dev")
+
+        mqtt_client = AsyncMock()
+        mqtt_client.messages = _messages()
+
+        with (
+            patch(
+                "custom_components.lipro.core.mqtt.ssl.create_default_context"
+            ) as mock_tls,
+            patch(
+                "custom_components.lipro.core.mqtt.aiomqtt.Client"
+            ) as mock_client_cls,
+            patch.object(client, "_process_message") as mock_process,
+        ):
+            context_manager = AsyncMock()
+            context_manager.__aenter__.return_value = mqtt_client
+            context_manager.__aexit__.return_value = False
+            mock_client_cls.return_value = context_manager
+
+            await client._connect_and_listen()
+
+        mock_tls.assert_called_once()
+        on_connect.assert_called_once()
+        mqtt_client.subscribe.assert_called_once()
+        mock_process.assert_called_once()
+        assert "bad/dev" not in client._subscribed_devices
+        assert client.is_connected is True
+
+    def test_decode_payload_text_string(self):
+        """String payload should pass through unchanged when size is valid."""
+        decoded = LiproMqttClient._decode_payload_text("{}", "dev1")
+        assert decoded == "{}"
+
+    def test_decode_payload_text_unexpected_type(self):
+        """Unexpected payload types should be ignored."""
+        decoded = LiproMqttClient._decode_payload_text(123, "dev1")
+        assert decoded is None
 
 
 class TestConnectionLoop:

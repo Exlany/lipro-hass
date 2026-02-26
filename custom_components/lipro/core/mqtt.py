@@ -309,17 +309,12 @@ def parse_mqtt_payload(payload: Any) -> dict[str, Any]:
 def _sanitize_mqtt_log_value(value: Any, key: str | None = None) -> Any:
     """Sanitize MQTT payload values before debug logging."""
     if key is not None:
-        normalized_key = (
-            key.strip().lower().replace("_", "").replace("-", "")
-        )
+        normalized_key = key.strip().lower().replace("_", "").replace("-", "")
         if normalized_key in _MQTT_LOG_SENSITIVE_KEYS:
             return "***"
 
     if isinstance(value, dict):
-        return {
-            str(k): _sanitize_mqtt_log_value(v, str(k))
-            for k, v in value.items()
-        }
+        return {str(k): _sanitize_mqtt_log_value(v, str(k)) for k, v in value.items()}
 
     if isinstance(value, list):
         return [_sanitize_mqtt_log_value(item) for item in value]
@@ -495,7 +490,9 @@ class LiproMqttClient:
                     added += 1
                     _LOGGER.debug("Subscribed to: %s", topic)
                 except ValueError as err:
-                    _LOGGER.warning("Skipping invalid MQTT device ID %s: %s", device_id, err)
+                    _LOGGER.warning(
+                        "Skipping invalid MQTT device ID %s: %s", device_id, err
+                    )
                 except aiomqtt.MqttError:
                     _LOGGER.exception("Failed to subscribe to %s", topic)
             else:

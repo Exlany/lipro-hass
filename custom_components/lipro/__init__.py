@@ -240,7 +240,9 @@ def _get_mesh_context(device: LiproDevice) -> tuple[str, list[Any]]:
     """Extract mesh gateway and member IDs from device metadata."""
     mesh_gateway_id = device.extra_data.get("gateway_device_id", "")
     raw_mesh_member_ids = device.extra_data.get("group_member_ids", [])
-    mesh_member_ids = raw_mesh_member_ids if isinstance(raw_mesh_member_ids, list) else []
+    mesh_member_ids = (
+        raw_mesh_member_ids if isinstance(raw_mesh_member_ids, list) else []
+    )
     return mesh_gateway_id, mesh_member_ids
 
 
@@ -899,8 +901,13 @@ async def _async_setup_services(hass: HomeAssistant) -> None:
 
 async def async_unload_entry(hass: HomeAssistant, entry: LiproConfigEntry) -> bool:
     """Unload a config entry."""
-    # Note: HA automatically calls coordinator.async_shutdown() during unload
     result = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
+
+    # Ensure coordinator resources are released on unload.
+    if result:
+        coordinator = getattr(entry, "runtime_data", None)
+        if coordinator is not None:
+            await coordinator.async_shutdown()
 
     # Unregister services when the last config entry is being unloaded
     if result and not any(

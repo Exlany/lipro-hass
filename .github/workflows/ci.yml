@@ -71,7 +71,7 @@ jobs:
         run: uv sync --frozen --extra dev
 
       - name: Run tests with coverage
-        run: uv run pytest tests/ -v --cov=custom_components/lipro --cov-fail-under=90 --cov-report=xml --cov-report=term-missing
+        run: uv run pytest tests/ -v --cov=custom_components/lipro --cov-fail-under=95 --cov-report=xml --cov-report=term-missing
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5

@@ -82,9 +82,9 @@ class TestCreateDeviceEntities:
 
         entities = create_device_entities(
             mock_coordinator,
-            entity_builder=lambda c, d: [f"{d.serial}_1", f"{d.serial}_2"]
-            if d.is_light
-            else [],
+            entity_builder=lambda c, d: (
+                [f"{d.serial}_1", f"{d.serial}_2"] if d.is_light else []
+            ),
         )
 
         assert entities == [f"{light.serial}_1", f"{light.serial}_2"]

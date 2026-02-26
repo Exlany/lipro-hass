@@ -161,7 +161,9 @@ class LiproFan(LiproEntity, FanEntity):
             optimistic[PROP_FAN_ONOFF] = "1"
         else:
             # Keep UI responsive for slider, but avoid debounce protection on power key.
-            self.device.update_properties({PROP_FAN_ONOFF: "1", PROP_FAN_ONOFF_ALT: "1"})
+            self.device.update_properties(
+                {PROP_FAN_ONOFF: "1", PROP_FAN_ONOFF_ALT: "1"}
+            )
 
     @property
     def speed_count(self) -> int:

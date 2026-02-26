@@ -607,7 +607,9 @@ class TestInitRuntimeBehavior:
                 "custom_components.lipro.async_get_clientsession",
                 return_value=MagicMock(),
             ),
-            patch("custom_components.lipro.LiproClient", return_value=mock_client) as pc,
+            patch(
+                "custom_components.lipro.LiproClient", return_value=mock_client
+            ) as pc,
             patch("custom_components.lipro.LiproAuthManager", return_value=mock_auth),
             patch(
                 "custom_components.lipro.LiproDataUpdateCoordinator",
@@ -675,6 +677,47 @@ class TestInitRuntimeBehavior:
         assert not hass.services.has_service(DOMAIN, SERVICE_GET_SCHEDULES)
         assert not hass.services.has_service(DOMAIN, SERVICE_GET_DEVELOPER_REPORT)
         assert not hass.services.has_service(DOMAIN, SERVICE_SUBMIT_DEVELOPER_FEEDBACK)
+
+    async def test_async_unload_entry_shuts_down_runtime_data_coordinator(
+        self, hass
+    ) -> None:
+        """Coordinator runtime data should be shut down on successful unload."""
+        await async_setup(hass, {})
+        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry.add_to_hass(hass)
+
+        coordinator = MagicMock()
+        coordinator.async_shutdown = AsyncMock()
+        entry.runtime_data = coordinator
+
+        with patch.object(
+            hass.config_entries,
+            "async_unload_platforms",
+            AsyncMock(return_value=True),
+        ):
+            assert await async_unload_entry(hass, entry) is True
+
+        coordinator.async_shutdown.assert_awaited_once()
+
+    async def test_async_unload_entry_does_not_shutdown_on_failed_unload(
+        self, hass
+    ) -> None:
+        """Coordinator shutdown should not run when platform unload fails."""
+        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry.add_to_hass(hass)
+
+        coordinator = MagicMock()
+        coordinator.async_shutdown = AsyncMock()
+        entry.runtime_data = coordinator
+
+        with patch.object(
+            hass.config_entries,
+            "async_unload_platforms",
+            AsyncMock(return_value=False),
+        ):
+            assert await async_unload_entry(hass, entry) is False
+
+        coordinator.async_shutdown.assert_not_awaited()
 
     async def test_get_device_from_entity_target(self, hass) -> None:
         """Resolve target entity unique_id to device serial."""
@@ -799,7 +842,9 @@ class TestInitRuntimeBehavior:
         entry.add_to_hass(hass)
         entry.runtime_data = coordinator
 
-        result = await _async_handle_get_developer_report(hass, SimpleNamespace(data={}))
+        result = await _async_handle_get_developer_report(
+            hass, SimpleNamespace(data={})
+        )
 
         assert result == {
             "entry_count": 1,
@@ -1263,7 +1308,9 @@ class TestInitRuntimeBehavior:
             mesh_member_ids=["03ab0000000000a2"],
         )
 
-    async def test_delete_schedules_resolves_device_from_entity_target(self, hass) -> None:
+    async def test_delete_schedules_resolves_device_from_entity_target(
+        self, hass
+    ) -> None:
         """delete_schedules should resolve target entity when device_id is omitted."""
         device = self._create_device()
         client = MagicMock()
@@ -1289,7 +1336,9 @@ class TestInitRuntimeBehavior:
 
         result = await _async_handle_delete_schedules(
             hass,
-            SimpleNamespace(data={ATTR_ENTITY_ID: entity_id, ATTR_SCHEDULE_IDS: [1, 2]}),
+            SimpleNamespace(
+                data={ATTR_ENTITY_ID: entity_id, ATTR_SCHEDULE_IDS: [1, 2]}
+            ),
         )
 
         assert result == {

@@ -107,10 +107,7 @@ def _redact_property_value(value: Any, key: str | None = None) -> Any:
         return "**REDACTED**"
 
     if isinstance(value, dict):
-        return {
-            k: _redact_property_value(v, str(k))
-            for k, v in value.items()
-        }
+        return {k: _redact_property_value(v, str(k)) for k, v in value.items()}
 
     if isinstance(value, list):
         return [_redact_property_value(item) for item in value]
@@ -149,10 +146,7 @@ def _redact_property_value(value: Any, key: str | None = None) -> Any:
 
 def _redact_device_properties(properties: dict[str, Any]) -> dict[str, Any]:
     """Redact sensitive keys from device properties."""
-    return {
-        k: _redact_property_value(v, k)
-        for k, v in properties.items()
-    }
+    return {k: _redact_property_value(v, k) for k, v in properties.items()}
 
 
 def _build_device_diagnostics(device: LiproDevice) -> dict[str, Any]:

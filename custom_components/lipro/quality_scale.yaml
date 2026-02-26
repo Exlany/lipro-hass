@@ -61,7 +61,7 @@ rules:
     comment: Service handlers raise HomeAssistantError and ServiceValidationError with translation keys.
   config-entry-unloading:
     status: done
-    comment: async_unload_entry unloads platforms and removes services when last entry unloaded.
+    comment: async_unload_entry unloads platforms, explicitly shuts down coordinator runtime resources, and removes services when last entry unloaded.
   docs-configuration-parameters:
     status: done
     comment: Options flow documented in strings.json with data_description for all parameters.
@@ -85,7 +85,7 @@ rules:
     comment: async_step_reauth + async_step_reauth_confirm implemented in config_flow.py.
   test-coverage:
     status: done
-    comment: 25 test files covering all modules (api, auth, config_flow, coordinator, all platforms, diagnostics, etc.).
+    comment: Current CI coverage is 97.55% (2026-02-26), verified with pytest --cov across 1169 passing tests.
 
   # Gold
   devices:
