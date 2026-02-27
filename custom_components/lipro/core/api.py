@@ -66,9 +66,11 @@ from ..const.api import (
     PATH_LOGIN,
     PATH_QUERY_COMMAND_RESULT,
     PATH_QUERY_CONNECT_STATUS,
+    PATH_QUERY_CONTROLLER_OTA,
     PATH_QUERY_DEVICE_STATUS,
     PATH_QUERY_MESH_GROUP_STATUS,
     PATH_QUERY_OTA_INFO,
+    PATH_QUERY_OTA_INFO_V2,
     PATH_QUERY_OUTLET_POWER,
     PATH_REFRESH_TOKEN,
     PATH_SCHEDULE_ADD,
@@ -1856,14 +1858,75 @@ class LiproClient:
         device_type: int | str,
     ) -> list[dict[str, Any]]:
         """Query firmware OTA info for a device/group."""
-        result = await self._iot_request(
-            PATH_QUERY_OTA_INFO,
-            {
-                "deviceId": device_id,
-                "deviceType": self._to_device_type_hex(device_type),
-            },
-        )
-        return self._extract_data_list(result)
+        ota_payload = {
+            "deviceId": device_id,
+            "deviceType": self._to_device_type_hex(device_type),
+        }
+
+        merged_rows: list[dict[str, Any]] = []
+        seen_keys: set[tuple[str, str, str, str, str]] = set()
+
+        def append_rows(rows: list[dict[str, Any]]) -> None:
+            for row in rows:
+                if not isinstance(row, dict):
+                    continue
+                key = (
+                    str(row.get("deviceId") or row.get("iotId") or "").strip().lower(),
+                    str(
+                        row.get("deviceType")
+                        or row.get("bleName")
+                        or row.get("productName")
+                        or ""
+                    )
+                    .strip()
+                    .lower(),
+                    str(
+                        row.get("latestVersion")
+                        or row.get("firmwareVersion")
+                        or row.get("version")
+                        or ""
+                    )
+                    .strip()
+                    .lower(),
+                    str(row.get("firmwareUrl") or row.get("url") or "").strip().lower(),
+                    str(row.get("md5") or "").strip().lower(),
+                )
+                if key in seen_keys:
+                    continue
+                seen_keys.add(key)
+                merged_rows.append(row)
+
+        ota_error: LiproApiError | None = None
+        ota_success = False
+        for path in (PATH_QUERY_OTA_INFO, PATH_QUERY_OTA_INFO_V2):
+            try:
+                result = await self._iot_request(path, ota_payload)
+            except LiproApiError as err:
+                ota_error = err
+                _LOGGER.debug("OTA endpoint %s failed: %s", path, err)
+                continue
+
+            append_rows(self._extract_data_list(result))
+            ota_success = True
+
+        if not ota_success and ota_error is not None:
+            raise ota_error
+
+        try:
+            controller_result = await self._iot_request(PATH_QUERY_CONTROLLER_OTA, {})
+        except LiproApiError as err:
+            if self._is_invalid_param_error_code(err.code):
+                _LOGGER.debug(
+                    "Controller OTA endpoint rejected payload (code=%s): %s",
+                    err.code,
+                    err,
+                )
+            else:
+                _LOGGER.debug("Controller OTA endpoint %s failed: %s", PATH_QUERY_CONTROLLER_OTA, err)
+        else:
+            append_rows(self._extract_data_list(controller_result))
+
+        return merged_rows
 
     async def fetch_body_sensor_history(
         self,

@@ -18,7 +18,9 @@ from custom_components.lipro.const.api import (
     PATH_GET_CITY,
     PATH_QUERY_COMMAND_RESULT,
     PATH_QUERY_CONNECT_STATUS,
+    PATH_QUERY_CONTROLLER_OTA,
     PATH_QUERY_OTA_INFO,
+    PATH_QUERY_OTA_INFO_V2,
     PATH_QUERY_OUTLET_POWER,
     PATH_SCHEDULE_ADD,
     PATH_SCHEDULE_DELETE,
@@ -1700,22 +1702,33 @@ class TestLiproClientOptionalCapabilities:
 
     @pytest.mark.asyncio
     async def test_query_ota_info(self):
-        """query_ota_info should return list payload."""
+        """query_ota_info should merge v1/v2 and controller OTA payloads."""
         client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
-        ota_rows = [{"deviceType": "ff000001", "firmwareVersion": "7.10.9"}]
+        ota_v1_rows = [{"deviceType": "ff000001", "firmwareVersion": "7.10.9"}]
+        controller_rows = [{"bleName": "T21JC", "version": "2.6.43"}]
 
         with patch.object(client, "_iot_request", new_callable=AsyncMock) as mock_request:
-            mock_request.return_value = ota_rows
+            mock_request.side_effect = [
+                ota_v1_rows,
+                ota_v1_rows,
+                controller_rows,
+            ]
             result = await client.query_ota_info(
                 device_id="mesh_group_49155",
                 device_type="ff000001",
             )
 
-        assert result == ota_rows
-        mock_request.assert_awaited_once_with(
+        assert result == ota_v1_rows + controller_rows
+        assert mock_request.await_count == 3
+        mock_request.assert_any_await(
             PATH_QUERY_OTA_INFO,
             {"deviceId": "mesh_group_49155", "deviceType": "ff000001"},
         )
+        mock_request.assert_any_await(
+            PATH_QUERY_OTA_INFO_V2,
+            {"deviceId": "mesh_group_49155", "deviceType": "ff000001"},
+        )
+        mock_request.assert_any_await(PATH_QUERY_CONTROLLER_OTA, {})
 
     @pytest.mark.asyncio
     async def test_fetch_body_sensor_history(self):

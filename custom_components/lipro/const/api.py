@@ -37,6 +37,8 @@ PATH_QUERY_COMMAND_RESULT: Final = (
 )
 PATH_GET_CITY: Final = "/app/oauth/api/v1/loc/getCity.do"
 PATH_QUERY_OTA_INFO: Final = "/app/oauth/api/v1/user/query/device/ota-version.do"
+PATH_QUERY_OTA_INFO_V2: Final = "/app/oauth/api/v2/user/query/device/ota-version.do"
+PATH_QUERY_CONTROLLER_OTA: Final = "/app/oauth/api/v1/ble/list.do"
 PATH_FETCH_BODY_SENSOR_HISTORY: Final = (
     "/app/oauth/api/v1/user/query/device/human-sensor-info.do"
 )
