@@ -51,7 +51,18 @@ _REMOTE_FIRMWARE_SUPPORT_URLS = (
 )
 
 _SERIAL_KEYS = ("deviceId", "serial", "iotId")
-_DEVICE_TYPE_KEYS = ("deviceType", "iotType", "type", "bleName", "productName")
+_DEVICE_TYPE_KEYS = (
+    "deviceType",
+    "iotType",
+    "type",
+    "bleName",
+    "productName",
+    "fingerprint",
+    "deviceFingerprint",
+)
+_IOT_NAME_KEYS = ("iotName", "fwIotName", "bleName", "productName")
+_PRODUCT_ID_KEYS = ("productId", "productID", "pid")
+_PHYSICAL_MODEL_KEYS = ("physicalModel", "model", "productModel")
 _LATEST_VERSION_KEYS = (
     "latestVersion",
     "latestFirmwareVersion",
@@ -549,33 +560,38 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
                 return True, "certification.list"
 
         if latest:
-            device_type = (
-                self._first_text(row, _DEVICE_TYPE_KEYS) if isinstance(row, dict) else None
-            )
-            normalized_device_type = (
-                device_type.lower() if device_type else self.device.device_type_hex.lower()
-            )
-            remote_type_versions = self._remote_versions_by_type.get(normalized_device_type)
-            if remote_type_versions is not None and self._matches_certified_versions(
-                remote_type_versions,
-                installed=installed,
-                latest=latest,
-            ):
-                return True, "remote_manifest.type"
-            if remote_type_versions is None and self._matches_certified_versions(
+            candidate_types = self._candidate_manifest_type_keys(row)
+            has_remote_type_match = False
+            for candidate in candidate_types:
+                remote_type_versions = self._remote_versions_by_type.get(candidate)
+                if remote_type_versions is None:
+                    continue
+                has_remote_type_match = True
+                if self._matches_certified_versions(
+                    remote_type_versions,
+                    installed=installed,
+                    latest=latest,
+                ):
+                    return True, "remote_manifest.type"
+            if not has_remote_type_match and self._matches_certified_versions(
                 self._remote_verified_versions, installed=installed, latest=latest
             ):
                 return True, "remote_manifest"
 
             verified_versions, versions_by_type = _load_verified_firmware_manifest()
-            local_type_versions = versions_by_type.get(normalized_device_type)
-            if local_type_versions is not None and self._matches_certified_versions(
-                local_type_versions,
-                installed=installed,
-                latest=latest,
-            ):
-                return True, "manifest.type"
-            if local_type_versions is None and self._matches_certified_versions(
+            has_local_type_match = False
+            for candidate in candidate_types:
+                local_type_versions = versions_by_type.get(candidate)
+                if local_type_versions is None:
+                    continue
+                has_local_type_match = True
+                if self._matches_certified_versions(
+                    local_type_versions,
+                    installed=installed,
+                    latest=latest,
+                ):
+                    return True, "manifest.type"
+            if not has_local_type_match and self._matches_certified_versions(
                 verified_versions, installed=installed, latest=latest
             ):
                 return True, "manifest"
@@ -715,10 +731,64 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
         if row_type is not None and row_type.lower() == device_type:
             score += 4
 
+        row_iot_name = self._first_text(row, _IOT_NAME_KEYS)
+        if row_iot_name is not None and row_iot_name.lower() == (self.device.iot_name or "").lower():
+            score += 3
+
+        row_product_id = self._first_text(row, _PRODUCT_ID_KEYS)
+        if row_product_id is not None and row_product_id == str(self.device.product_id):
+            score += 3
+
+        row_physical_model = self._first_text(row, _PHYSICAL_MODEL_KEYS)
+        if row_physical_model is not None and row_physical_model.lower() == (self.device.physical_model or "").lower():
+            score += 2
+
         if self._first_text(row, _LATEST_VERSION_KEYS + _COMMON_VERSION_KEYS) is not None:
             score += 1
 
         return score
+
+    def _candidate_manifest_type_keys(self, row: dict[str, Any] | None) -> list[str]:
+        """Build candidate keys for manifest.type matching in priority order."""
+        candidates: list[str] = []
+
+        def add(value: str | None) -> None:
+            if value is None:
+                return
+            normalized = value.strip().lower()
+            if not normalized:
+                return
+            if normalized not in candidates:
+                candidates.append(normalized)
+
+        row_iot_name = self._first_text(row, _IOT_NAME_KEYS)
+        row_product_id = self._first_text(row, _PRODUCT_ID_KEYS)
+        row_physical_model = self._first_text(row, _PHYSICAL_MODEL_KEYS)
+        row_device_type = self._first_text(row, _DEVICE_TYPE_KEYS)
+        row_fingerprint = self._first_text(row, ("fingerprint", "deviceFingerprint"))
+        add(row_fingerprint)
+
+        device_type = self.device.device_type_hex
+        iot_name = self.device.iot_name or row_iot_name
+        product_id = (
+            str(self.device.product_id)
+            if self.device.product_id is not None
+            else row_product_id
+        )
+        physical_model = self.device.physical_model or row_physical_model
+        if physical_model and iot_name and device_type:
+            add(f"{physical_model}|{iot_name}|{product_id or ''}|{device_type}")
+
+        add(row_device_type)
+        add(device_type)
+        add(row_iot_name)
+        add(iot_name)
+        add(row_product_id)
+        add(product_id)
+        add(row_physical_model)
+        add(physical_model)
+
+        return candidates
 
     @staticmethod
     def _first_text(data: dict[str, Any] | None, keys: tuple[str, ...]) -> str | None:

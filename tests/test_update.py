@@ -446,3 +446,56 @@ async def test_update_entity_uses_ble_name_for_type_certification(
     assert entity.latest_version == "2.6.43"
     assert entity.extra_state_attributes["certified"] is True
     assert entity.extra_state_attributes["certification_source"] == "remote_manifest.type"
+
+
+@pytest.mark.asyncio
+async def test_update_entity_uses_fingerprint_for_type_certification(
+    mock_coordinator, make_device
+):
+    """Type certification should match fingerprint key to avoid same-deviceType confusion."""
+    from custom_components.lipro.update import LiproFirmwareUpdateEntity
+
+    device = make_device(
+        "light",
+        serial="03ab5ccd7c333333",
+        iot_name="21P3",
+        product_id=11,
+        properties={"version": "7.10.8"},
+    )
+    mock_coordinator.devices = {device.serial: device}
+    mock_coordinator.get_device = MagicMock(return_value=device)
+    mock_coordinator.client = MagicMock()
+    mock_coordinator.client.query_ota_info = AsyncMock(
+        return_value=[
+            {
+                "deviceType": "ff000001",
+                "latestVersion": "7.10.9",
+                "needUpgrade": True,
+            }
+        ]
+    )
+
+    entity = LiproFirmwareUpdateEntity(mock_coordinator, device)
+    entity.hass = MagicMock()
+    entity.async_write_ha_state = MagicMock()
+
+    with (
+        patch(
+            "custom_components.lipro.update._load_remote_firmware_manifest",
+            AsyncMock(
+                return_value=(
+                    frozenset(),
+                    {"light|21p3|11|ff000001": frozenset({"7.10.9"})},
+                )
+            ),
+        ),
+        patch(
+            "custom_components.lipro.update._load_verified_firmware_manifest",
+            return_value=(frozenset(), {}),
+        ),
+    ):
+        await entity.async_update()
+
+    assert entity.latest_version == "7.10.9"
+    assert entity.extra_state_attributes["certified"] is True
+    assert entity.extra_state_attributes["certification_source"] == "remote_manifest.type"
