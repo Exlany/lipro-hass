@@ -16,8 +16,8 @@ def _entry_with_runtime(coordinator: MagicMock) -> MagicMock:
     return entry
 
 
-def test_parse_remote_manifest_payload_supports_summary_wrapper():
-    """Remote payload should accept worker summary wrapper schema."""
+def test_parse_remote_manifest_payload_ignores_summary_wrapper():
+    """Remote payload should ignore stale summary and use firmware_list only."""
     from custom_components.lipro.update import _parse_remote_manifest_payload
 
     versions, versions_by_type = _parse_remote_manifest_payload(
@@ -27,11 +27,19 @@ def test_parse_remote_manifest_payload_supports_summary_wrapper():
                 "verified_versions": ["7.10.9"],
                 "verified_versions_by_type": {"ff000001": ["7.10.9"]},
             },
+            "firmware_list": [
+                {
+                    "firmwareVersion": "7.10.8",
+                    "certified": True,
+                    "certification_source": "type",
+                    "certification_key": "light|21p3||ff000001",
+                }
+            ],
         }
     )
 
-    assert versions == frozenset({"7.10.9"})
-    assert versions_by_type == {"ff000001": frozenset({"7.10.9"})}
+    assert versions == frozenset({"7.10.8"})
+    assert versions_by_type == {"light|21p3||ff000001": frozenset({"7.10.8"})}
 
 
 def test_parse_remote_manifest_payload_derives_from_firmware_list():

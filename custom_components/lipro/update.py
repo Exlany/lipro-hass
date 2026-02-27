@@ -185,32 +185,16 @@ def _normalize_manifest_versions_by_type(
 def _parse_remote_manifest_payload(
     payload: Any,
 ) -> tuple[frozenset[str], dict[str, frozenset[str]]]:
-    """Parse remote firmware manifest payload with tolerant schema handling."""
+    """Parse remote firmware manifest payload."""
     if isinstance(payload, list):
         return _normalize_manifest_version_list(payload), {}
 
     if not isinstance(payload, dict):
         return frozenset(), {}
 
-    # New worker payload shape: {"summary": {...}, "firmware_list": [...]}
-    # Keep backward compatibility with legacy top-level manifest fields.
-    summary = payload.get("summary")
-    manifest_node = summary if isinstance(summary, dict) else payload
-
-    versions = _normalize_manifest_version_list(
-        manifest_node.get("verified_versions") or manifest_node.get("versions")
-    )
-    versions_by_type = _normalize_manifest_versions_by_type(
-        manifest_node.get("verified_versions_by_type")
-        or manifest_node.get("versions_by_type")
-    )
-
-    if versions or versions_by_type:
-        return versions, versions_by_type
-
     rows = payload.get("firmware_list")
     if not isinstance(rows, list):
-        return versions, versions_by_type
+        return frozenset(), {}
 
     def pick_first_text(data: dict[str, Any], keys: tuple[str, ...]) -> str | None:
         for key in keys:
@@ -268,7 +252,7 @@ def _parse_remote_manifest_payload(
             if values
         }
 
-    return versions, versions_by_type
+    return frozenset(), {}
 
 
 async def _load_remote_firmware_manifest(
