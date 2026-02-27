@@ -18,9 +18,11 @@ def _entry_with_runtime(coordinator: MagicMock) -> MagicMock:
 
 def test_parse_remote_manifest_payload_ignores_summary_wrapper():
     """Remote payload should ignore stale summary and use firmware_list only."""
-    from custom_components.lipro.update import _parse_remote_manifest_payload
+    from custom_components.lipro.core.ota_utils import (
+        parse_verified_firmware_manifest_payload,
+    )
 
-    versions, versions_by_type = _parse_remote_manifest_payload(
+    versions, versions_by_type = parse_verified_firmware_manifest_payload(
         {
             "updated_at": "2026-02-27T00:00:00Z",
             "summary": {
@@ -45,9 +47,11 @@ def test_parse_remote_manifest_payload_ignores_summary_wrapper():
 
 def test_parse_remote_manifest_payload_derives_from_firmware_list():
     """Remote payload should fallback to firmware_list when summary is missing."""
-    from custom_components.lipro.update import _parse_remote_manifest_payload
+    from custom_components.lipro.core.ota_utils import (
+        parse_verified_firmware_manifest_payload,
+    )
 
-    versions, versions_by_type = _parse_remote_manifest_payload(
+    versions, versions_by_type = parse_verified_firmware_manifest_payload(
         {
             "firmware_list": [
                 {
@@ -78,9 +82,11 @@ def test_parse_remote_manifest_payload_derives_from_firmware_list():
 
 def test_parse_remote_manifest_payload_derives_type_keys_without_certification_key():
     """Rows without certification_key/source should still derive type keys from metadata."""
-    from custom_components.lipro.update import _parse_remote_manifest_payload
+    from custom_components.lipro.core.ota_utils import (
+        parse_verified_firmware_manifest_payload,
+    )
 
-    versions, versions_by_type = _parse_remote_manifest_payload(
+    versions, versions_by_type = parse_verified_firmware_manifest_payload(
         {
             "firmware_list": [
                 {

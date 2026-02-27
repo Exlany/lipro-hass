@@ -96,6 +96,23 @@ REDACT_KEYS: Final = frozenset(
 
 # Pre-computed lowercase version for efficient lookups in sanitization
 _REDACT_KEYS_LOWER: Final[frozenset[str]] = frozenset(k.lower() for k in REDACT_KEYS)
+_SENSITIVE_KEY_RULES: Final[tuple[frozenset[str], ...]] = (_REDACT_KEYS_LOWER,)
+_SANITIZE_STRING_RULES: Final[tuple[tuple[re.Pattern[str], str], ...]] = (
+    (_RE_AUTH_BEARER, r"\1[TOKEN]"),
+    (_RE_SECRET_KV, r"\1\2[REDACTED]"),
+    (_RE_TOKEN_EMBEDDED, "[TOKEN]"),
+    (_RE_MAC_ADDRESS, "[MAC]"),
+    (_RE_MAC_COMPACT, "[MAC]"),
+    (_RE_IP_ADDRESS, "[IP]"),
+    (_RE_DEVICE_ID, "[DEVICE_ID]"),
+)
+_SENSITIVE_VALUE_PATTERNS: Final[tuple[re.Pattern[str], ...]] = (
+    _RE_MAC_EXACT,
+    _RE_MAC_COMPACT_EXACT,
+    _RE_IP_EXACT,
+    _RE_DEVICE_ID_EXACT,
+    _RE_TOKEN_LIKE,
+)
 
 # Maximum items to keep in memory before forcing upload
 MAX_PENDING_ERRORS: Final = 50
@@ -145,6 +162,14 @@ _HEATER_PROPERTY_CAPABILITIES: Final[tuple[tuple[str, str], ...]] = (
 _MOTION_SENSOR_TRIGGER_PROPERTIES: Final[frozenset[str]] = frozenset(
     {PROP_BODY_REACTIVE, PROP_ACTIVATED}
 )
+
+
+def _is_sensitive_key(key: Any) -> bool:
+    """Return True when a key should be dropped from anonymized payloads."""
+    if not isinstance(key, str):
+        return False
+    lowered = key.lower()
+    return any(lowered in key_set for key_set in _SENSITIVE_KEY_RULES)
 
 
 @dataclass
@@ -475,6 +500,10 @@ class AnonymousShareManager:
     # Error Collection
     # =========================================================================
 
+    def _can_record_error(self) -> bool:
+        """Return whether error collection is currently enabled."""
+        return self._enabled and self._error_reporting_enabled
+
     def record_unknown_property(
         self,
         device_type: str,
@@ -489,7 +518,7 @@ class AnonymousShareManager:
             value: The property value (will be sanitized).
 
         """
-        if not self._enabled or not self._error_reporting_enabled:
+        if not self._can_record_error():
             return
 
         # Deduplicate
@@ -517,7 +546,7 @@ class AnonymousShareManager:
             iot_name: The IoT name/model.
 
         """
-        if not self._enabled or not self._error_reporting_enabled:
+        if not self._can_record_error():
             return
 
         # Deduplicate
@@ -547,7 +576,7 @@ class AnonymousShareManager:
             method: The HTTP method (e.g., "POST").
 
         """
-        if not self._enabled or not self._error_reporting_enabled:
+        if not self._can_record_error():
             return
 
         prefix = f"[{code}] "
@@ -573,7 +602,7 @@ class AnonymousShareManager:
             input_sample: Optional sample of input that caused the error.
 
         """
-        if not self._enabled or not self._error_reporting_enabled:
+        if not self._can_record_error():
             return
 
         exc_type = type(exception).__name__
@@ -606,7 +635,7 @@ class AnonymousShareManager:
             params: Command parameters summary.
 
         """
-        if not self._enabled or not self._error_reporting_enabled:
+        if not self._can_record_error():
             return
 
         cmd = f"{command}({params})" if params else command
@@ -681,7 +710,7 @@ class AnonymousShareManager:
         result = {}
         for key, value in properties.items():
             # Skip known sensitive keys
-            if key.lower() in _REDACT_KEYS_LOWER:
+            if _is_sensitive_key(key):
                 continue
             # Keep the value, only sanitize if it looks sensitive
             result[key] = self._sanitize_value(value, preserve_structure=True)
@@ -707,7 +736,7 @@ class AnonymousShareManager:
                 return {
                     k: self._sanitize_value(v, preserve_structure=True)
                     for k, v in value.items()
-                    if k.lower() not in _REDACT_KEYS_LOWER
+                    if not _is_sensitive_key(k)
                 }
             if isinstance(value, list):
                 return [
@@ -767,19 +796,10 @@ class AnonymousShareManager:
             Sanitized string.
 
         """
-        # Redact common auth/token string fragments before generic replacements.
-        value = _RE_AUTH_BEARER.sub(r"\1[TOKEN]", value)
-        value = _RE_SECRET_KV.sub(r"\1\2[REDACTED]", value)
-        value = _RE_TOKEN_EMBEDDED.sub("[TOKEN]", value)
-
-        # Remove potential MAC addresses
-        value = _RE_MAC_ADDRESS.sub("[MAC]", value)
-        # Remove compact MAC-like identifiers
-        value = _RE_MAC_COMPACT.sub("[MAC]", value)
-        # Remove potential IP addresses
-        value = _RE_IP_ADDRESS.sub("[IP]", value)
-        # Remove potential device IDs (03ab + hex)
-        return _RE_DEVICE_ID.sub("[DEVICE_ID]", value)
+        result = value
+        for pattern, replacement in _SANITIZE_STRING_RULES:
+            result = pattern.sub(replacement, result)
+        return result
 
     def _looks_sensitive(self, value: str) -> bool:
         """Check if a value looks like sensitive data.
@@ -791,23 +811,7 @@ class AnonymousShareManager:
             True if the value appears sensitive.
 
         """
-        # MAC address pattern
-        if _RE_MAC_EXACT.match(value):
-            return True
-        # Compact MAC-like pattern (12 hex chars)
-        if _RE_MAC_COMPACT_EXACT.match(value):
-            return True
-        # IP address pattern
-        if _RE_IP_EXACT.match(value):
-            return True
-        # Device ID pattern (03ab + 12 hex chars)
-        if _RE_DEVICE_ID_EXACT.match(value):
-            return True
-        # Token-like pattern (long hex or base64)
-        if _RE_TOKEN_LIKE.match(value):
-            return True
-
-        return False
+        return any(pattern.match(value) for pattern in _SENSITIVE_VALUE_PATTERNS)
 
     # =========================================================================
     # Report Generation and Upload

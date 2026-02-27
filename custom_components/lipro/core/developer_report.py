@@ -66,6 +66,31 @@ def _build_mesh_group_entries(
     return mesh_groups
 
 
+def _build_report_options(options: Mapping[str, Any]) -> dict[str, Any]:
+    """Build normalized developer-report options section."""
+    return {
+        "scan_interval": options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL),
+        "mqtt_enabled": options.get(CONF_MQTT_ENABLED, DEFAULT_MQTT_ENABLED),
+        "power_monitoring_enabled": options.get(
+            CONF_ENABLE_POWER_MONITORING,
+            DEFAULT_ENABLE_POWER_MONITORING,
+        ),
+        "light_turn_on_on_adjust": options.get(
+            CONF_LIGHT_TURN_ON_ON_ADJUST,
+            DEFAULT_LIGHT_TURN_ON_ON_ADJUST,
+        ),
+        "power_query_interval": options.get(
+            CONF_POWER_QUERY_INTERVAL,
+            DEFAULT_POWER_QUERY_INTERVAL,
+        ),
+        "request_timeout": options.get(
+            CONF_REQUEST_TIMEOUT,
+            DEFAULT_REQUEST_TIMEOUT,
+        ),
+        "debug_mode": options.get(CONF_DEBUG_MODE, DEFAULT_DEBUG_MODE),
+    }
+
+
 def build_developer_report(
     *,
     config_entry: ConfigEntry | None,
@@ -105,27 +130,7 @@ def build_developer_report(
             "polling_interval_seconds": polling_interval_seconds,
             "last_update_success": last_update_success,
         },
-        "options": {
-            "scan_interval": options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL),
-            "mqtt_enabled": options.get(CONF_MQTT_ENABLED, DEFAULT_MQTT_ENABLED),
-            "power_monitoring_enabled": options.get(
-                CONF_ENABLE_POWER_MONITORING,
-                DEFAULT_ENABLE_POWER_MONITORING,
-            ),
-            "light_turn_on_on_adjust": options.get(
-                CONF_LIGHT_TURN_ON_ON_ADJUST,
-                DEFAULT_LIGHT_TURN_ON_ON_ADJUST,
-            ),
-            "power_query_interval": options.get(
-                CONF_POWER_QUERY_INTERVAL,
-                DEFAULT_POWER_QUERY_INTERVAL,
-            ),
-            "request_timeout": options.get(
-                CONF_REQUEST_TIMEOUT,
-                DEFAULT_REQUEST_TIMEOUT,
-            ),
-            "debug_mode": options.get(CONF_DEBUG_MODE, DEFAULT_DEBUG_MODE),
-        },
+        "options": _build_report_options(options),
         "devices": {
             "total": len(devices),
             "group_count": group_count,

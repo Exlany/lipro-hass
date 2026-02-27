@@ -1128,6 +1128,44 @@ class TestInitRuntimeBehavior:
             == "ota_update_unverified_confirm_required"
         )
 
+    async def test_start_ota_update_unverified_latest_version_requires_confirm(
+        self, hass
+    ) -> None:
+        """start_ota_update should detect unverified latestVersion rows."""
+        device = self._create_device(serial="mesh_group_49155")
+        coordinator = MagicMock()
+        coordinator.get_device.return_value = device
+        coordinator.devices = {device.serial: device}
+        coordinator.client.query_ota_info = AsyncMock(
+            return_value=[{"deviceType": "ff000001", "latestVersion": "9.9.9"}]
+        )
+
+        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry.add_to_hass(hass)
+        entry.runtime_data = coordinator
+
+        with (
+            patch(
+                "custom_components.lipro._load_verified_firmware_versions",
+                return_value=frozenset({"7.10.9"}),
+            ),
+            pytest.raises(HomeAssistantError) as err,
+        ):
+            await _async_handle_start_ota_update(
+                hass,
+                SimpleNamespace(
+                    data={
+                        ATTR_DEVICE_ID: device.serial,
+                        ATTR_CONFIRM_IRREVERSIBLE: True,
+                    }
+                ),
+            )
+
+        assert (
+            getattr(err.value, "translation_key", None)
+            == "ota_update_unverified_confirm_required"
+        )
+
     async def test_start_ota_update_success(self, hass) -> None:
         """start_ota_update should dispatch OTA_UPDATE command."""
         device = self._create_device(serial="mesh_group_49155")

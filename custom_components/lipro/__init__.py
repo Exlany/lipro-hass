@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 from collections.abc import Awaitable, Callable, Iterator
+from dataclasses import dataclass
 from datetime import UTC, datetime
 import functools
-import json
 import logging
 from pathlib import Path
 import re
@@ -65,6 +65,10 @@ from .core import (
     LiproDataUpdateCoordinator,
     LiproDevice,
     get_anonymous_share_manager,
+)
+from .core.ota_utils import (
+    extract_ota_versions as _extract_ota_versions_from_rows,
+    load_verified_firmware_manifest_file as _load_verified_firmware_manifest_file,
 )
 
 if TYPE_CHECKING:
@@ -560,13 +564,15 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     return True
 
 
-async def async_setup_entry(hass: HomeAssistant, entry: LiproConfigEntry) -> bool:
-    """Set up Lipro from a config entry."""
+def _build_entry_auth_context(
+    hass: HomeAssistant,
+    entry: LiproConfigEntry,
+) -> tuple[LiproClient, LiproAuthManager]:
+    """Build API client and auth manager from config entry data."""
     phone_id = entry.data[CONF_PHONE_ID]
     phone = entry.data[CONF_PHONE]
     password_hash = entry.data[CONF_PASSWORD_HASH]
 
-    # Get request timeout from options (clamp to valid range)
     request_timeout = _get_entry_int_option(
         entry,
         option_name=CONF_REQUEST_TIMEOUT,
@@ -579,7 +585,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: LiproConfigEntry) -> boo
     client = LiproClient(phone_id, session, request_timeout=request_timeout)
     auth_manager = LiproAuthManager(client)
 
-    # Set stored tokens if available
     if CONF_ACCESS_TOKEN in entry.data and CONF_REFRESH_TOKEN in entry.data:
         auth_manager.set_tokens(
             entry.data[CONF_ACCESS_TOKEN],
@@ -588,10 +593,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: LiproConfigEntry) -> boo
             entry.data.get(CONF_EXPIRES_AT),
         )
 
-    # Store credentials for re-auth (using hash)
     auth_manager.set_credentials(phone, password_hash, password_is_hashed=True)
+    return client, auth_manager
 
-    # Try to authenticate
+
+async def _async_authenticate_entry(auth_manager: LiproAuthManager) -> None:
+    """Authenticate one config entry and map failures to HA setup exceptions."""
     try:
         await auth_manager.ensure_valid_token()
     except LiproAuthError as err:
@@ -600,6 +607,35 @@ async def async_setup_entry(hass: HomeAssistant, entry: LiproConfigEntry) -> boo
     except LiproConnectionError as err:
         msg = f"Connection failed: {err}"
         raise ConfigEntryNotReady(msg) from err
+
+
+def _persist_entry_tokens_if_changed(
+    hass: HomeAssistant,
+    entry: LiproConfigEntry,
+    auth_manager: LiproAuthManager,
+) -> None:
+    """Persist refreshed access/refresh tokens when they changed."""
+    auth_data = auth_manager.get_auth_data()
+    if auth_data[CONF_ACCESS_TOKEN] == entry.data.get(CONF_ACCESS_TOKEN) and auth_data[
+        CONF_REFRESH_TOKEN
+    ] == entry.data.get(CONF_REFRESH_TOKEN):
+        return
+
+    hass.config_entries.async_update_entry(
+        entry,
+        data={
+            **entry.data,
+            CONF_ACCESS_TOKEN: auth_data[CONF_ACCESS_TOKEN],
+            CONF_REFRESH_TOKEN: auth_data[CONF_REFRESH_TOKEN],
+            CONF_EXPIRES_AT: auth_data[CONF_EXPIRES_AT],
+        },
+    )
+
+
+async def async_setup_entry(hass: HomeAssistant, entry: LiproConfigEntry) -> bool:
+    """Set up Lipro from a config entry."""
+    client, auth_manager = _build_entry_auth_context(hass, entry)
+    await _async_authenticate_entry(auth_manager)
 
     # Get scan interval from options (or use default)
     scan_interval = _get_entry_int_option(
@@ -626,19 +662,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: LiproConfigEntry) -> boo
     entry.runtime_data = coordinator
 
     # Update stored tokens if they changed
-    auth_data = auth_manager.get_auth_data()
-    if auth_data[CONF_ACCESS_TOKEN] != entry.data.get(CONF_ACCESS_TOKEN) or auth_data[
-        CONF_REFRESH_TOKEN
-    ] != entry.data.get(CONF_REFRESH_TOKEN):
-        hass.config_entries.async_update_entry(
-            entry,
-            data={
-                **entry.data,
-                CONF_ACCESS_TOKEN: auth_data[CONF_ACCESS_TOKEN],
-                CONF_REFRESH_TOKEN: auth_data[CONF_REFRESH_TOKEN],
-                CONF_EXPIRES_AT: auth_data[CONF_EXPIRES_AT],
-            },
-        )
+    _persist_entry_tokens_if_changed(hass, entry, auth_manager)
 
     # Set up platforms
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
@@ -933,20 +957,46 @@ def _raise_optional_capability_error(capability: str, err: LiproApiError) -> NoR
     raise HomeAssistantError(message)
 
 
+async def _async_call_optional_capability(
+    capability: str,
+    method: Callable[..., Awaitable[Any]],
+    **kwargs: Any,
+) -> Any:
+    """Call optional capability API and map LiproApiError to service error."""
+    try:
+        return await method(**kwargs)
+    except LiproApiError as err:
+        _raise_optional_capability_error(capability, err)
+
+
+def _build_sensor_history_result(
+    serial: str,
+    sensor_device_id: str,
+    mesh_type: str,
+    result: dict[str, Any],
+) -> dict[str, Any]:
+    """Build common service response for sensor history diagnostics."""
+    return {
+        "serial": serial,
+        "sensor_device_id": sensor_device_id,
+        "mesh_type": mesh_type,
+        "result": result,
+    }
+
+
 async def _async_handle_query_command_result(
     hass: HomeAssistant, call: ServiceCall
 ) -> dict[str, Any]:
     """Developer-only service: query command delivery result by msgSn."""
     device, coordinator = await _get_device_and_coordinator(hass, call)
     msg_sn = call.data[ATTR_MSG_SN]
-    try:
-        result = await coordinator.client.query_command_result(
-            msg_sn=msg_sn,
-            device_id=device.serial,
-            device_type=device.device_type,
-        )
-    except LiproApiError as err:
-        _raise_optional_capability_error(SERVICE_QUERY_COMMAND_RESULT, err)
+    result = await _async_call_optional_capability(
+        SERVICE_QUERY_COMMAND_RESULT,
+        coordinator.client.query_command_result,
+        msg_sn=msg_sn,
+        device_id=device.serial,
+        device_type=device.device_type,
+    )
 
     return {
         "serial": device.serial,
@@ -972,14 +1022,12 @@ async def _async_handle_query_ota_info(
 ) -> dict[str, Any]:
     """Developer-only service: query OTA metadata for selected device/group."""
     device, coordinator = await _get_device_and_coordinator(hass, call)
-    try:
-        result = await coordinator.client.query_ota_info(
-            device_id=device.serial,
-            device_type=device.device_type,
-        )
-    except LiproApiError as err:
-        _raise_optional_capability_error(SERVICE_QUERY_OTA_INFO, err)
-
+    result = await _async_call_optional_capability(
+        SERVICE_QUERY_OTA_INFO,
+        coordinator.client.query_ota_info,
+        device_id=device.serial,
+        device_type=device.device_type,
+    )
     result = _filter_ota_rows_by_user_devices(result, coordinator)
     return {
         "serial": device.serial,
@@ -991,40 +1039,20 @@ async def _async_handle_query_ota_info(
 def _load_verified_firmware_versions() -> frozenset[str]:
     """Load verified firmware versions from the built-in manifest file."""
     manifest_path = Path(__file__).with_name(FIRMWARE_SUPPORT_MANIFEST)
-    try:
-        content = json.loads(manifest_path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError) as err:
-        _LOGGER.warning(
+    verified_versions, _ = _load_verified_firmware_manifest_file(
+        manifest_path,
+        on_error=lambda path, err: _LOGGER.warning(
             "Failed to load firmware support manifest %s: %s",
-            manifest_path,
+            path,
             err,
-        )
-        return frozenset()
-
-    raw_versions = content.get("verified_versions", [])
-    if not isinstance(raw_versions, list):
-        return frozenset()
-    return frozenset(
-        version.strip()
-        for version in raw_versions
-        if isinstance(version, str) and version.strip()
+        ),
     )
+    return verified_versions
 
 
 def _extract_ota_versions(rows: Any) -> set[str]:
     """Extract candidate firmware versions from OTA metadata rows."""
-    if not isinstance(rows, list):
-        return set()
-
-    versions: set[str] = set()
-    for row in rows:
-        if not isinstance(row, dict):
-            continue
-        for key in ("firmwareVersion", "version"):
-            value = row.get(key)
-            if isinstance(value, str) and value.strip():
-                versions.add(value.strip())
-    return versions
+    return _extract_ota_versions_from_rows(rows)
 
 
 def _filter_ota_rows_by_user_devices(rows: Any, coordinator: Any) -> list[dict[str, Any]]:
@@ -1058,43 +1086,78 @@ def _filter_ota_rows_by_user_devices(rows: Any, coordinator: Any) -> list[dict[s
     return filtered
 
 
-async def _async_handle_start_ota_update(
-    hass: HomeAssistant, call: ServiceCall
-) -> dict[str, Any]:
-    """Developer-only service: start OTA update with explicit safety guards."""
-    if not call.data.get(ATTR_CONFIRM_IRREVERSIBLE, False):
-        _raise_service_error("ota_update_confirm_required")
+@dataclass(frozen=True, slots=True)
+class _StartOtaCallContext:
+    """Normalized context fields extracted from one service call."""
 
-    requested_device_id = call.data.get(ATTR_DEVICE_ID)
-    device, coordinator = await _get_device_and_coordinator(hass, call)
+    requested_device_id: str | None
+    is_alias_resolution: bool
+    confirm_irreversible: bool
+    confirm_unverified: bool
 
-    is_alias_resolution = requested_device_id not in (None, "", device.serial)
-    try:
-        ota_rows = await coordinator.client.query_ota_info(
-            device_id=device.serial,
-            device_type=device.device_type,
-        )
-    except LiproApiError as err:
-        _LOGGER.warning("API error querying OTA versions before upgrade: %s", err)
-        _raise_service_error("ota_update_version_check_failed", err=err)
-    filtered_ota_rows = _filter_ota_rows_by_user_devices(ota_rows, coordinator)
-    ota_versions = _extract_ota_versions(filtered_ota_rows)
-    verified_versions = _load_verified_firmware_versions()
-    unverified_versions = sorted(
+
+@dataclass(frozen=True, slots=True)
+class _StartOtaVersionSnapshot:
+    """Precomputed OTA metadata used by validation and response payload."""
+
+    filtered_rows: list[dict[str, Any]]
+    ota_versions: list[str]
+    unverified_versions: list[str]
+
+
+def _resolve_start_ota_call_context(call_data: Any, resolved_serial: str) -> _StartOtaCallContext:
+    """Extract and normalize start_ota_update call context."""
+    payload = call_data if isinstance(call_data, dict) else {}
+    requested_device_id = payload.get(ATTR_DEVICE_ID)
+    return _StartOtaCallContext(
+        requested_device_id=requested_device_id,
+        is_alias_resolution=requested_device_id not in (None, "", resolved_serial),
+        confirm_irreversible=bool(payload.get(ATTR_CONFIRM_IRREVERSIBLE, False)),
+        confirm_unverified=bool(payload.get(ATTR_CONFIRM_UNVERIFIED, False)),
+    )
+
+
+def _analyze_start_ota_versions(
+    ota_rows: Any,
+    coordinator: Any,
+    verified_versions: frozenset[str],
+) -> _StartOtaVersionSnapshot:
+    """Build filtered OTA rows plus verified/unverified version partitions."""
+    filtered_rows = _filter_ota_rows_by_user_devices(ota_rows, coordinator)
+    ota_versions = sorted(_extract_ota_versions(filtered_rows))
+    unverified_versions = [
         version for version in ota_versions if version not in verified_versions
-    )
-    if unverified_versions and not call.data.get(ATTR_CONFIRM_UNVERIFIED, False):
-        _raise_service_error("ota_update_unverified_confirm_required")
-
-    _LOGGER.warning(
-        "Service call: start_ota_update for %s (requested=%s, alias=%s, versions=%s, unverified=%s)",
-        device.serial,
-        requested_device_id,
-        is_alias_resolution,
-        sorted(ota_versions),
-        unverified_versions,
+    ]
+    return _StartOtaVersionSnapshot(
+        filtered_rows=filtered_rows,
+        ota_versions=ota_versions,
+        unverified_versions=unverified_versions,
     )
 
+
+def _build_start_ota_result(
+    serial: str,
+    version_snapshot: _StartOtaVersionSnapshot,
+) -> dict[str, Any]:
+    """Build service response payload for start_ota_update."""
+    return {
+        "success": True,
+        "serial": serial,
+        "command": "OTA_UPDATE",
+        "ota_versions": version_snapshot.ota_versions,
+        "ota_rows": version_snapshot.filtered_rows,
+        "unverified_versions": version_snapshot.unverified_versions,
+        "warning": "Firmware upgrade is irreversible by this integration.",
+    }
+
+
+async def _async_execute_start_ota_command(
+    coordinator: LiproDataUpdateCoordinator,
+    device: LiproDevice,
+    *,
+    requested_device_id: str | None,
+) -> None:
+    """Dispatch OTA command and raise translated errors when it fails."""
     try:
         success = await coordinator.async_send_command(
             device,
@@ -1124,15 +1187,49 @@ async def _async_handle_start_ota_update(
             err=err,
         )
 
-    return {
-        "success": True,
-        "serial": device.serial,
-        "command": "OTA_UPDATE",
-        "ota_versions": sorted(ota_versions),
-        "ota_rows": filtered_ota_rows,
-        "unverified_versions": unverified_versions,
-        "warning": "Firmware upgrade is irreversible by this integration.",
-    }
+
+async def _async_handle_start_ota_update(
+    hass: HomeAssistant, call: ServiceCall
+) -> dict[str, Any]:
+    """Developer-only service: start OTA update with explicit safety guards."""
+    preflight_context = _resolve_start_ota_call_context(call.data, "")
+    if not preflight_context.confirm_irreversible:
+        _raise_service_error("ota_update_confirm_required")
+    device, coordinator = await _get_device_and_coordinator(hass, call)
+    context = _resolve_start_ota_call_context(call.data, device.serial)
+
+    try:
+        ota_rows = await coordinator.client.query_ota_info(
+            device_id=device.serial,
+            device_type=device.device_type,
+        )
+    except LiproApiError as err:
+        _LOGGER.warning("API error querying OTA versions before upgrade: %s", err)
+        _raise_service_error("ota_update_version_check_failed", err=err)
+
+    version_snapshot = _analyze_start_ota_versions(
+        ota_rows,
+        coordinator,
+        _load_verified_firmware_versions(),
+    )
+    if version_snapshot.unverified_versions and not context.confirm_unverified:
+        _raise_service_error("ota_update_unverified_confirm_required")
+
+    _LOGGER.warning(
+        "Service call: start_ota_update for %s (requested=%s, alias=%s, versions=%s, unverified=%s)",
+        device.serial,
+        context.requested_device_id,
+        context.is_alias_resolution,
+        version_snapshot.ota_versions,
+        version_snapshot.unverified_versions,
+    )
+
+    await _async_execute_start_ota_command(
+        coordinator,
+        device,
+        requested_device_id=context.requested_device_id,
+    )
+    return _build_start_ota_result(device.serial, version_snapshot)
 
 
 async def _async_handle_fetch_body_sensor_history(
@@ -1143,21 +1240,20 @@ async def _async_handle_fetch_body_sensor_history(
     sensor_device_id = call.data[ATTR_SENSOR_DEVICE_ID]
     mesh_type = call.data[ATTR_MESH_TYPE]
 
-    try:
-        result = await coordinator.client.fetch_body_sensor_history(
-            device_id=device.serial,
-            device_type=device.device_type,
-            sensor_device_id=sensor_device_id,
-            mesh_type=mesh_type,
-        )
-    except LiproApiError as err:
-        _raise_optional_capability_error(SERVICE_FETCH_BODY_SENSOR_HISTORY, err)
-    return {
-        "serial": device.serial,
-        "sensor_device_id": sensor_device_id,
-        "mesh_type": mesh_type,
-        "result": result,
-    }
+    result = await _async_call_optional_capability(
+        SERVICE_FETCH_BODY_SENSOR_HISTORY,
+        coordinator.client.fetch_body_sensor_history,
+        device_id=device.serial,
+        device_type=device.device_type,
+        sensor_device_id=sensor_device_id,
+        mesh_type=mesh_type,
+    )
+    return _build_sensor_history_result(
+        device.serial,
+        sensor_device_id,
+        mesh_type,
+        result,
+    )
 
 
 async def _async_handle_fetch_door_sensor_history(
@@ -1168,21 +1264,20 @@ async def _async_handle_fetch_door_sensor_history(
     sensor_device_id = call.data[ATTR_SENSOR_DEVICE_ID]
     mesh_type = call.data[ATTR_MESH_TYPE]
 
-    try:
-        result = await coordinator.client.fetch_door_sensor_history(
-            device_id=device.serial,
-            device_type=device.device_type,
-            sensor_device_id=sensor_device_id,
-            mesh_type=mesh_type,
-        )
-    except LiproApiError as err:
-        _raise_optional_capability_error(SERVICE_FETCH_DOOR_SENSOR_HISTORY, err)
-    return {
-        "serial": device.serial,
-        "sensor_device_id": sensor_device_id,
-        "mesh_type": mesh_type,
-        "result": result,
-    }
+    result = await _async_call_optional_capability(
+        SERVICE_FETCH_DOOR_SENSOR_HISTORY,
+        coordinator.client.fetch_door_sensor_history,
+        device_id=device.serial,
+        device_type=device.device_type,
+        sensor_device_id=sensor_device_id,
+        mesh_type=mesh_type,
+    )
+    return _build_sensor_history_result(
+        device.serial,
+        sensor_device_id,
+        mesh_type,
+        result,
+    )
 
 
 _SERVICE_REGISTRATIONS: Final = (
