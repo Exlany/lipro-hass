@@ -55,8 +55,6 @@ _DEVICE_TYPE_KEYS = (
     "deviceType",
     "iotType",
     "type",
-    "bleName",
-    "productName",
     "fingerprint",
     "deviceFingerprint",
 )
@@ -195,6 +193,20 @@ def _pick_first_manifest_text(data: dict[str, Any], keys: tuple[str, ...]) -> st
 
 def _coerce_manifest_bool(value: Any) -> bool | None:
     """Parse bool-like value in manifest payload."""
+    return _coerce_boollike(value)
+
+
+def _append_unique_normalized(target: list[str], value: str | None) -> None:
+    """Append one normalized key if valid and non-duplicate."""
+    if value is None:
+        return
+    normalized = value.strip().lower()
+    if normalized and normalized not in target:
+        target.append(normalized)
+
+
+def _coerce_boollike(value: Any) -> bool | None:
+    """Parse bool-like value or return None when unknown."""
     if isinstance(value, bool):
         return value
     if isinstance(value, (int, float)):
@@ -210,15 +222,6 @@ def _coerce_manifest_bool(value: Any) -> bool | None:
     return None
 
 
-def _add_manifest_candidate(target: list[str], value: str | None) -> None:
-    """Append one normalized candidate key if valid and non-duplicate."""
-    if value is None:
-        return
-    normalized = value.strip().lower()
-    if normalized and normalized not in target:
-        target.append(normalized)
-
-
 def _build_manifest_row_type_candidates(row: dict[str, Any]) -> list[str]:
     """Build locked match keys from one firmware_list row.
 
@@ -230,9 +233,9 @@ def _build_manifest_row_type_candidates(row: dict[str, Any]) -> list[str]:
     row_ble_name = _pick_first_manifest_text(row, ("bleName",))
     row_iot_name = _pick_first_manifest_text(row, ("iotName", "fwIotName"))
     if row_ble_name:
-        _add_manifest_candidate(candidates, row_ble_name)
+        _append_unique_normalized(candidates, row_ble_name)
         return candidates
-    _add_manifest_candidate(candidates, row_iot_name)
+    _append_unique_normalized(candidates, row_iot_name)
     return candidates
 
 
@@ -341,6 +344,7 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
     """Firmware update entity for one Lipro device."""
 
     _attr_translation_key = "firmware"
+    _attr_name = None  # Use custom device name for easier identification
     _attr_device_class = UpdateDeviceClass.FIRMWARE
     _attr_entity_category = EntityCategory.DIAGNOSTIC
     _entity_suffix = "firmware"
@@ -799,6 +803,7 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
         score = 0
         serial = self.device.serial.lower()
         device_type = self.device.device_type_hex.lower()
+        iot_name = (self.device.iot_name or "").lower()
 
         row_serial = self._first_text(row, _SERIAL_KEYS)
         if row_serial is not None and row_serial.lower() == serial:
@@ -808,8 +813,12 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
         if row_type is not None and row_type.lower() == device_type:
             score += 4
 
+        row_ble_name = self._first_text(row, ("bleName",))
+        if row_ble_name is not None and row_ble_name.lower() == iot_name:
+            score += 6
+
         row_iot_name = self._first_text(row, _IOT_NAME_KEYS)
-        if row_iot_name is not None and row_iot_name.lower() == (self.device.iot_name or "").lower():
+        if row_iot_name is not None and row_iot_name.lower() == iot_name:
             score += 3
 
         row_product_id = self._first_text(row, _PRODUCT_ID_KEYS)
@@ -833,15 +842,7 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
         - Device rows only use iotName.
         """
         candidates: list[str] = []
-
-        def add(value: str | None) -> None:
-            if value is None:
-                return
-            normalized = value.strip().lower()
-            if not normalized:
-                return
-            if normalized not in candidates:
-                candidates.append(normalized)
+        add = functools.partial(_append_unique_normalized, candidates)
 
         row_ble_name = self._first_text(row, ("bleName",))
         if row_ble_name is not None:
@@ -883,19 +884,7 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
     @staticmethod
     def _coerce_bool(value: Any) -> bool | None:
         """Parse bool-like value or return None when unknown."""
-        if isinstance(value, bool):
-            return value
-        if isinstance(value, (int, float)):
-            if value in (0, 1):
-                return bool(value)
-            return None
-        if isinstance(value, str):
-            normalized = value.strip().lower()
-            if normalized in {"1", "true", "yes", "on", "certified", "passed"}:
-                return True
-            if normalized in {"0", "false", "no", "off", "uncertified", "failed"}:
-                return False
-        return None
+        return _coerce_boollike(value)
 
     def _extract_version_set(
         self,

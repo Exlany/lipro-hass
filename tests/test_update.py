@@ -526,6 +526,52 @@ async def test_update_entity_uses_ble_name_for_type_certification(
 
 
 @pytest.mark.asyncio
+async def test_update_entity_prefers_controller_row_matching_device_iot_name(
+    mock_coordinator, make_device
+):
+    """Controller OTA row selection should prefer row whose bleName matches device iot_name."""
+    from custom_components.lipro.update import LiproFirmwareUpdateEntity
+
+    device = make_device(
+        "switch",
+        serial="03ab5ccd7c222222",
+        iot_name="T21JE",
+        properties={"version": "2.6.40"},
+    )
+    mock_coordinator.devices = {device.serial: device}
+    mock_coordinator.get_device = MagicMock(return_value=device)
+    mock_coordinator.client = MagicMock()
+    mock_coordinator.client.query_ota_info = AsyncMock(
+        return_value=[
+            {
+                "bleName": "T21JC",
+                "version": "2.6.43",
+                "needUpgrade": True,
+                "upgradeCommand": {
+                    "command": "CHANGE_STATE",
+                    "properties": [{"key": "version", "value": "2.6.43"}],
+                },
+            },
+            {
+                "bleName": "T21JE",
+                "version": "2.6.44",
+                "needUpgrade": True,
+                "upgradeCommand": {
+                    "command": "CHANGE_STATE",
+                    "properties": [{"key": "version", "value": "2.6.44"}],
+                },
+            },
+        ]
+    )
+
+    entity = LiproFirmwareUpdateEntity(mock_coordinator, device)
+    entity.async_write_ha_state = MagicMock()
+    await entity.async_update()
+
+    assert entity.latest_version == "2.6.44"
+
+
+@pytest.mark.asyncio
 async def test_update_entity_uses_iot_name_for_type_certification(
     mock_coordinator, make_device
 ):
