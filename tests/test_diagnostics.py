@@ -7,7 +7,6 @@ import json
 from unittest.mock import MagicMock, patch
 
 import pytest
-from syrupy.assertion import SnapshotAssertion
 
 from custom_components.lipro.const import DOMAIN
 from custom_components.lipro.diagnostics import (
@@ -294,7 +293,6 @@ class TestAsyncGetConfigEntryDiagnostics:
         self,
         hass,
         make_device,
-        snapshot: SnapshotAssertion,
     ) -> None:
         """Test diagnostics payload with snapshot testing."""
         device = make_device(
@@ -345,7 +343,57 @@ class TestAsyncGetConfigEntryDiagnostics:
         ):
             result = await async_get_config_entry_diagnostics(hass, entry)
 
-        assert result == snapshot
+        assert result == {
+            "entry": {
+                "title": "Lipro (138****0000)",
+                "data": {
+                    "phone": "**REDACTED**",
+                    "access_token": "**REDACTED**",
+                    "refresh_token": "**REDACTED**",
+                    "user_id": "**REDACTED**",
+                    "safe_value": "ok",
+                },
+                "options": {
+                    "scan_interval": 45,
+                    "anonymous_share_enabled": True,
+                },
+            },
+            "coordinator": {
+                "last_update_success": True,
+                "update_interval": "0:00:45",
+                "mqtt_connected": True,
+                "device_count": 1,
+            },
+            "anonymous_share": {
+                "enabled": True,
+                "pending_devices": 1,
+                "pending_errors": 0,
+            },
+            "devices": [
+                {
+                    "name": "**REDACTED**",
+                    "available": True,
+                    "is_connected": True,
+                    "category": 1,
+                    "device_type": 1,
+                    "device_type_hex": "ff000001",
+                    "physical_model": "light",
+                    "is_group": False,
+                    "room_name": "**REDACTED**",
+                    "properties": {
+                        "powerState": "1",
+                        "brightness": "76",
+                        "colorTemp": "4200",
+                        "mac": "**REDACTED**",
+                        "ipAddress": "**REDACTED**",
+                    },
+                    "extra_data": {
+                        "power_info": {"nowPower": 0.0, "energyList": []},
+                        "gateway_device_id": "**REDACTED**",
+                    },
+                },
+            ],
+        }
 
 
 class TestAsyncGetDeviceDiagnostics:
