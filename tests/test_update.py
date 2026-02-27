@@ -31,15 +31,19 @@ def test_parse_remote_manifest_payload_ignores_summary_wrapper():
                 {
                     "firmwareVersion": "7.10.8",
                     "certified": True,
-                    "certification_source": "type",
-                    "certification_key": "light|21p3||ff000001",
+                    "deviceType": "ff000001",
+                    "bleName": "21P3",
+                    "physicalModel": "light",
                 }
             ],
         }
     )
 
     assert versions == frozenset({"7.10.8"})
-    assert versions_by_type == {"light|21p3||ff000001": frozenset({"7.10.8"})}
+    assert versions_by_type["ff000001"] == frozenset({"7.10.8"})
+    assert versions_by_type["21p3"] == frozenset({"7.10.8"})
+    assert versions_by_type["light"] == frozenset({"7.10.8"})
+    assert versions_by_type["light|21p3||ff000001"] == frozenset({"7.10.8"})
 
 
 def test_parse_remote_manifest_payload_derives_from_firmware_list():
@@ -52,25 +56,30 @@ def test_parse_remote_manifest_payload_derives_from_firmware_list():
                 {
                     "firmwareVersion": "7.10.9",
                     "certified": True,
-                    "certification_source": "type",
-                    "certification_key": "light|21p3||ff000001",
+                    "deviceType": "ff000001",
+                    "bleName": "21P3",
+                    "physicalModel": "light",
                 },
                 {
                     "version": "9.9.9",
-                    "certification_source": "global",
+                    "certified": True,
                 },
                 {
                     "version": "7.10.8",
                     "certified": False,
-                    "certification_source": "type",
-                    "certification_key": "light|21p3||ff000001",
+                },
+                {
+                    "version": "7.10.7",
                 },
             ]
         }
     )
 
     assert versions == frozenset({"7.10.9", "9.9.9"})
-    assert versions_by_type == {"light|21p3||ff000001": frozenset({"7.10.9"})}
+    assert versions_by_type["ff000001"] == frozenset({"7.10.9"})
+    assert versions_by_type["21p3"] == frozenset({"7.10.9"})
+    assert versions_by_type["light"] == frozenset({"7.10.9"})
+    assert versions_by_type["light|21p3||ff000001"] == frozenset({"7.10.9"})
 
 
 def test_parse_remote_manifest_payload_derives_type_keys_without_certification_key():

@@ -278,18 +278,13 @@ def _parse_remote_manifest_payload(
             continue
 
         certified = _coerce_manifest_bool(row.get("certified"))
-        if certified is False:
+        if certified is not True:
             continue
-        source = str(row.get("certification_source") or "").strip().lower()
-        if certified is True or source in {"type", "global"}:
-            derived_versions.add(version)
 
-        if source != "global":
-            row_type_candidates = _build_manifest_row_type_candidates(row)
-            certification_key = str(row.get("certification_key") or "").strip().lower()
-            _add_manifest_candidate(row_type_candidates, certification_key)
-            for key in row_type_candidates:
-                derived_by_type.setdefault(key, set()).add(version)
+        derived_versions.add(version)
+        row_type_candidates = _build_manifest_row_type_candidates(row)
+        for key in row_type_candidates:
+            derived_by_type.setdefault(key, set()).add(version)
 
     if derived_versions or derived_by_type:
         return frozenset(derived_versions), {
