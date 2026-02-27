@@ -31,6 +31,13 @@ if [ -f ".pre-commit-config.yaml" ]; then
     pre-commit install
 fi
 
+# Install repository hooks (pre-push diagnostics checks)
+if [ -d ".githooks" ]; then
+    echo "Configuring git hooks path to .githooks..."
+    git config core.hooksPath .githooks
+    chmod +x .githooks/*
+fi
+
 echo "Setup complete!"
 echo ""
 echo "To activate the environment, run:"

@@ -54,11 +54,17 @@ mypy custom_components/lipro
 
 ### Testing / 测试
 
-Run tests with pytest:
-使用 pytest 运行测试：
+Run tests with `uv` (same as CI):
+使用 `uv` 运行测试（与 CI 一致）：
 
 ```bash
-pytest tests/
+# Full test suite
+uv run pytest tests/
+
+# Diagnostics focused tests (used by pre-push hook)
+uv run pytest tests/test_diagnostics.py::TestAsyncGetConfigEntryDiagnostics::test_collects_and_redacts_diagnostics
+uv run pytest tests/test_diagnostics.py::TestAsyncGetConfigEntryDiagnostics::test_handles_no_devices
+uv run pytest tests/test_diagnostics.py::TestAsyncGetConfigEntryDiagnostics::test_diagnostics_snapshot
 ```
 
 ### Type Hints / 类型提示
@@ -92,7 +98,7 @@ async def async_turn_on(self, **kwargs: Any) -> None:
    ```bash
    ./scripts/lint
    mypy custom_components/lipro
-   pytest tests/
+   uv run pytest tests/
    ```
 
 4. **Submit Pull Request / 提交 Pull Request**
