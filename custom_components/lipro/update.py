@@ -51,7 +51,7 @@ _REMOTE_FIRMWARE_SUPPORT_URLS = (
 )
 
 _SERIAL_KEYS = ("deviceId", "serial", "iotId")
-_DEVICE_TYPE_KEYS = ("deviceType", "iotType", "type")
+_DEVICE_TYPE_KEYS = ("deviceType", "iotType", "type", "bleName", "productName")
 _LATEST_VERSION_KEYS = (
     "latestVersion",
     "latestFirmwareVersion",

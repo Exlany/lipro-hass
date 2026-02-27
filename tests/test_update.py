@@ -391,3 +391,58 @@ async def test_update_entity_type_manifest_blocks_global_fallback(
     assert entity.latest_version == "7.10.9"
     assert entity.extra_state_attributes["certified"] is False
     assert entity.extra_state_attributes["certification_source"] == "none"
+
+
+@pytest.mark.asyncio
+async def test_update_entity_uses_ble_name_for_type_certification(
+    mock_coordinator, make_device
+):
+    """Controller OTA rows should support type match via bleName."""
+    from custom_components.lipro.update import LiproFirmwareUpdateEntity
+
+    device = make_device(
+        "switch",
+        serial="03ab5ccd7c222222",
+        properties={"version": "2.6.40"},
+    )
+    mock_coordinator.devices = {device.serial: device}
+    mock_coordinator.get_device = MagicMock(return_value=device)
+    mock_coordinator.client = MagicMock()
+    mock_coordinator.client.query_ota_info = AsyncMock(
+        return_value=[
+            {
+                "bleName": "T21JC",
+                "version": "2.6.43",
+                "needUpgrade": True,
+                "upgradeCommand": {
+                    "command": "CHANGE_STATE",
+                    "properties": [{"key": "version", "value": "2.6.43"}],
+                },
+            }
+        ]
+    )
+
+    entity = LiproFirmwareUpdateEntity(mock_coordinator, device)
+    entity.hass = MagicMock()
+    entity.async_write_ha_state = MagicMock()
+
+    with (
+        patch(
+            "custom_components.lipro.update._load_remote_firmware_manifest",
+            AsyncMock(
+                return_value=(
+                    frozenset(),
+                    {"t21jc": frozenset({"2.6.43"})},
+                )
+            ),
+        ),
+        patch(
+            "custom_components.lipro.update._load_verified_firmware_manifest",
+            return_value=(frozenset(), {}),
+        ),
+    ):
+        await entity.async_update()
+
+    assert entity.latest_version == "2.6.43"
+    assert entity.extra_state_attributes["certified"] is True
+    assert entity.extra_state_attributes["certification_source"] == "remote_manifest.type"
