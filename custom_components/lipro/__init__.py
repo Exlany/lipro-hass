@@ -5,7 +5,9 @@ from __future__ import annotations
 from collections.abc import Awaitable, Callable, Iterator
 from datetime import UTC, datetime
 import functools
+import json
 import logging
+from pathlib import Path
 import re
 from typing import TYPE_CHECKING, Any, Final, NoReturn
 
@@ -96,6 +98,7 @@ SERVICE_SUBMIT_DEVELOPER_FEEDBACK: Final = "submit_developer_feedback"
 SERVICE_QUERY_COMMAND_RESULT: Final = "query_command_result"
 SERVICE_GET_CITY: Final = "get_city"
 SERVICE_QUERY_OTA_INFO: Final = "query_ota_info"
+SERVICE_START_OTA_UPDATE: Final = "start_ota_update"
 SERVICE_FETCH_BODY_SENSOR_HISTORY: Final = "fetch_body_sensor_history"
 SERVICE_FETCH_DOOR_SENSOR_HISTORY: Final = "fetch_door_sensor_history"
 
@@ -110,6 +113,9 @@ ATTR_NOTE: Final = "note"
 ATTR_MSG_SN: Final = "msg_sn"
 ATTR_SENSOR_DEVICE_ID: Final = "sensor_device_id"
 ATTR_MESH_TYPE: Final = "mesh_type"
+ATTR_CONFIRM_IRREVERSIBLE: Final = "confirm_irreversible"
+ATTR_CONFIRM_UNVERIFIED: Final = "confirm_unverified"
+FIRMWARE_SUPPORT_MANIFEST: Final = "firmware_support_manifest.json"
 
 # Pre-compiled pattern for extracting device serial from entity unique_id
 _SERIAL_PATTERN = re.compile(
@@ -188,6 +194,14 @@ SERVICE_QUERY_COMMAND_RESULT_SCHEMA = vol.Schema(
 SERVICE_QUERY_OTA_INFO_SCHEMA = vol.Schema(
     {
         vol.Optional(ATTR_DEVICE_ID): cv.string,
+    },
+)
+
+SERVICE_START_OTA_UPDATE_SCHEMA = vol.Schema(
+    {
+        vol.Optional(ATTR_DEVICE_ID): cv.string,
+        vol.Optional(ATTR_CONFIRM_IRREVERSIBLE, default=False): cv.boolean,
+        vol.Optional(ATTR_CONFIRM_UNVERIFIED, default=False): cv.boolean,
     },
 )
 
@@ -964,9 +978,159 @@ async def _async_handle_query_ota_info(
         )
     except LiproApiError as err:
         _raise_optional_capability_error(SERVICE_QUERY_OTA_INFO, err)
+
+    result = _filter_ota_rows_by_user_devices(result, coordinator)
     return {
         "serial": device.serial,
         "ota": result,
+    }
+
+
+@functools.lru_cache(maxsize=1)
+def _load_verified_firmware_versions() -> frozenset[str]:
+    """Load verified firmware versions from the built-in manifest file."""
+    manifest_path = Path(__file__).with_name(FIRMWARE_SUPPORT_MANIFEST)
+    try:
+        content = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as err:
+        _LOGGER.warning(
+            "Failed to load firmware support manifest %s: %s",
+            manifest_path,
+            err,
+        )
+        return frozenset()
+
+    raw_versions = content.get("verified_versions", [])
+    if not isinstance(raw_versions, list):
+        return frozenset()
+    return frozenset(
+        version.strip()
+        for version in raw_versions
+        if isinstance(version, str) and version.strip()
+    )
+
+
+def _extract_ota_versions(rows: Any) -> set[str]:
+    """Extract candidate firmware versions from OTA metadata rows."""
+    if not isinstance(rows, list):
+        return set()
+
+    versions: set[str] = set()
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        for key in ("firmwareVersion", "version"):
+            value = row.get(key)
+            if isinstance(value, str) and value.strip():
+                versions.add(value.strip())
+    return versions
+
+
+def _filter_ota_rows_by_user_devices(rows: Any, coordinator: Any) -> list[dict[str, Any]]:
+    """Filter OTA rows to only include device types that user actually has."""
+    if not isinstance(rows, list):
+        return []
+
+    devices = getattr(coordinator, "devices", {})
+    if not isinstance(devices, dict):
+        devices = {}
+
+    allowed_types = {
+        str(device.device_type_hex).strip().lower()
+        for device in devices.values()
+        if hasattr(device, "device_type_hex") and str(device.device_type_hex).strip()
+    }
+    if not allowed_types:
+        return [row for row in rows if isinstance(row, dict)]
+
+    filtered: list[dict[str, Any]] = []
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        row_type = row.get("deviceType")
+        # Keep unknown-type rows to avoid accidentally hiding usable data.
+        if not isinstance(row_type, str) or not row_type.strip():
+            filtered.append(row)
+            continue
+        if row_type.strip().lower() in allowed_types:
+            filtered.append(row)
+    return filtered
+
+
+async def _async_handle_start_ota_update(
+    hass: HomeAssistant, call: ServiceCall
+) -> dict[str, Any]:
+    """Developer-only service: start OTA update with explicit safety guards."""
+    if not call.data.get(ATTR_CONFIRM_IRREVERSIBLE, False):
+        _raise_service_error("ota_update_confirm_required")
+
+    requested_device_id = call.data.get(ATTR_DEVICE_ID)
+    device, coordinator = await _get_device_and_coordinator(hass, call)
+
+    is_alias_resolution = requested_device_id not in (None, "", device.serial)
+    try:
+        ota_rows = await coordinator.client.query_ota_info(
+            device_id=device.serial,
+            device_type=device.device_type,
+        )
+    except LiproApiError as err:
+        _LOGGER.warning("API error querying OTA versions before upgrade: %s", err)
+        _raise_service_error("ota_update_version_check_failed", err=err)
+    filtered_ota_rows = _filter_ota_rows_by_user_devices(ota_rows, coordinator)
+    ota_versions = _extract_ota_versions(filtered_ota_rows)
+    verified_versions = _load_verified_firmware_versions()
+    unverified_versions = sorted(
+        version for version in ota_versions if version not in verified_versions
+    )
+    if unverified_versions and not call.data.get(ATTR_CONFIRM_UNVERIFIED, False):
+        _raise_service_error("ota_update_unverified_confirm_required")
+
+    _LOGGER.warning(
+        "Service call: start_ota_update for %s (requested=%s, alias=%s, versions=%s, unverified=%s)",
+        device.serial,
+        requested_device_id,
+        is_alias_resolution,
+        sorted(ota_versions),
+        unverified_versions,
+    )
+
+    try:
+        success = await coordinator.async_send_command(
+            device,
+            "OTA_UPDATE",
+            None,
+            fallback_device_id=requested_device_id,
+        )
+        if not success:
+            failure_context = getattr(coordinator, "last_command_failure", None)
+            _LOGGER.warning(
+                "start_ota_update failed (device_id=%s, resolved_serial=%s, failure=%s)",
+                requested_device_id,
+                device.serial,
+                failure_context,
+            )
+            _raise_service_error(
+                _resolve_command_failure_translation_key(
+                    failure=failure_context,
+                )
+            )
+    except HomeAssistantError:
+        raise
+    except LiproApiError as err:
+        _LOGGER.warning("API error starting OTA update: %s", err)
+        _raise_service_error(
+            _resolve_command_failure_translation_key(err=err),
+            err=err,
+        )
+
+    return {
+        "success": True,
+        "serial": device.serial,
+        "command": "OTA_UPDATE",
+        "ota_versions": sorted(ota_versions),
+        "ota_rows": filtered_ota_rows,
+        "unverified_versions": unverified_versions,
+        "warning": "Firmware upgrade is irreversible by this integration.",
     }
 
 
@@ -1085,6 +1249,12 @@ _SERVICE_REGISTRATIONS: Final = (
         SERVICE_QUERY_OTA_INFO,
         _async_handle_query_ota_info,
         SERVICE_QUERY_OTA_INFO_SCHEMA,
+        SupportsResponse.ONLY,
+    ),
+    (
+        SERVICE_START_OTA_UPDATE,
+        _async_handle_start_ota_update,
+        SERVICE_START_OTA_UPDATE_SCHEMA,
         SupportsResponse.ONLY,
     ),
     (

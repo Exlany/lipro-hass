@@ -235,6 +235,41 @@ query_ota_info:
       selector:
         text:
 
+start_ota_update:
+  name: Start OTA Update (Developer)
+  description: >-
+    Developer-only sensitive capability. Trigger OTA_UPDATE for a selected
+    device/group. This action is irreversible in this integration. Requires
+    explicit confirmation. Unverified firmware versions need a second confirm.
+  target:
+    entity:
+      integration: lipro
+  fields:
+    device_id:
+      name: Device ID (Optional)
+      description: >-
+        The device serial/group ID. If omitted, the target entity is used.
+      required: false
+      selector:
+        text:
+    confirm_irreversible:
+      name: Confirm irreversible upgrade
+      description: >-
+        Must be true to execute OTA update.
+      required: false
+      default: false
+      selector:
+        boolean:
+    confirm_unverified:
+      name: Confirm unverified firmware
+      description: >-
+        Must be true when OTA metadata includes versions not listed in the
+        verified firmware manifest.
+      required: false
+      default: false
+      selector:
+        boolean:
+
 fetch_body_sensor_history:
   name: Fetch Body Sensor History (Developer)
   description: >-

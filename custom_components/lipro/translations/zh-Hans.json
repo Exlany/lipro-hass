@@ -298,6 +298,24 @@
           "description": "补充你在实测中观察到的现象。"
         }
       }
+    },
+    "start_ota_update": {
+      "name": "开始 OTA 升级",
+      "description": "开发者敏感能力：对指定设备/分组触发 OTA_UPDATE。本集成内该操作不可回退。",
+      "fields": {
+        "device_id": {
+          "name": "设备 ID",
+          "description": "设备序列号或分组 ID。未提供时将从目标实体中确定设备。"
+        },
+        "confirm_irreversible": {
+          "name": "确认不可回退升级",
+          "description": "必须为 true 才会执行 OTA 升级。"
+        },
+        "confirm_unverified": {
+          "name": "确认未认证固件",
+          "description": "当 OTA 元数据包含未列入认证清单的版本时，必须设为 true。"
+        }
+      }
     }
   },
   "exceptions": {
@@ -353,6 +371,15 @@
     },
     "developer_feedback_submit_failed": {
       "message": "提交开发者反馈报告失败。"
+    },
+    "ota_update_confirm_required": {
+      "message": "OTA 升级不可回退。请设置 confirm_irreversible=true 后重试。"
+    },
+    "ota_update_unverified_confirm_required": {
+      "message": "OTA 元数据包含未认证固件版本。请设置 confirm_unverified=true 后重试。"
+    },
+    "ota_update_version_check_failed": {
+      "message": "升级前查询 OTA 元数据失败。为安全起见，已阻止升级。"
     },
     "mqtt_disconnected": {
       "title": "Lipro MQTT 连接已断开",

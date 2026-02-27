@@ -42,6 +42,12 @@ Home Assistant integration for controlling Lipro Smart Home devices.
 - `lipro.get_anonymous_share_report` - Preview anonymous share report
 - `lipro.get_developer_report` - Export sanitized runtime diagnostics report
 - `lipro.submit_developer_feedback` - One-click submit developer diagnostics report
+- `lipro.query_ota_info` - Query OTA metadata (developer capability)
+- `lipro.start_ota_update` - Trigger OTA upgrade with explicit irreversible confirmation
+
+Firmware validation list:
+- English: `docs/firmware_support_matrix.md`
+- 中文: `docs/firmware_support_matrix_zh.md`
 
 ## Data Update Mechanism
 
@@ -200,6 +206,20 @@ data:
 | CURTAIN_OPEN | Open curtain |
 | CURTAIN_CLOSE | Close curtain |
 | CURTAIN_STOP | Stop curtain |
+
+### OTA Upgrade (Sensitive)
+
+Use `lipro.query_ota_info` first, then call `lipro.start_ota_update` only after confirmation:
+
+```yaml
+service: lipro.start_ota_update
+target:
+  entity_id: light.living_room_light
+data:
+  confirm_irreversible: true
+```
+
+If OTA metadata contains unverified firmware versions, set `confirm_unverified: true` as a second confirmation.
 
 ## Options
 
