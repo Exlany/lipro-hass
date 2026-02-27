@@ -5,7 +5,10 @@ from __future__ import annotations
 import asyncio
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
+import functools
+import json
 import logging
+from pathlib import Path
 from time import monotonic
 from typing import TYPE_CHECKING, Any
 
@@ -36,6 +39,7 @@ _LOGGER = logging.getLogger(__name__)
 _OTA_REFRESH_INTERVAL = timedelta(hours=6)
 _UNVERIFIED_CONFIRM_WINDOW_SECONDS = 120
 _TIME_MIN_UTC = datetime.min.replace(tzinfo=UTC)
+_FIRMWARE_SUPPORT_MANIFEST = "firmware_support_manifest.json"
 
 _SERIAL_KEYS = ("deviceId", "serial", "iotId")
 _DEVICE_TYPE_KEYS = ("deviceType", "iotType", "type")
@@ -93,6 +97,44 @@ class _OtaCandidate:
     release_summary: str | None
     release_url: str | None
     install_command: _InstallCommand | None
+
+
+@functools.lru_cache(maxsize=1)
+def _load_verified_firmware_manifest() -> tuple[frozenset[str], dict[str, frozenset[str]]]:
+    """Load optional local firmware certification manifest."""
+    manifest_path = Path(__file__).with_name(_FIRMWARE_SUPPORT_MANIFEST)
+    try:
+        content = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as err:
+        _LOGGER.debug("Failed to load firmware support manifest %s: %s", manifest_path, err)
+        return frozenset(), {}
+
+    verified_versions = _normalize_manifest_version_list(content.get("verified_versions"))
+    raw_versions_by_type = content.get("verified_versions_by_type")
+    versions_by_type: dict[str, frozenset[str]] = {}
+    if isinstance(raw_versions_by_type, dict):
+        for raw_type, raw_versions in raw_versions_by_type.items():
+            if not isinstance(raw_type, str):
+                continue
+            normalized_type = raw_type.strip().lower()
+            if not normalized_type:
+                continue
+            normalized_versions = _normalize_manifest_version_list(raw_versions)
+            if normalized_versions:
+                versions_by_type[normalized_type] = normalized_versions
+
+    return verified_versions, versions_by_type
+
+
+def _normalize_manifest_version_list(value: Any) -> frozenset[str]:
+    """Normalize one manifest version list field."""
+    if not isinstance(value, list):
+        return frozenset()
+    return frozenset(
+        text
+        for item in value
+        if (text := str(item).strip())
+    )
 
 
 async def async_setup_entry(
@@ -392,6 +434,19 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
             )
             if latest and latest in node_versions:
                 return True, "certification.list"
+
+        if latest:
+            verified_versions, versions_by_type = _load_verified_firmware_manifest()
+            device_type = (
+                self._first_text(row, _DEVICE_TYPE_KEYS) if isinstance(row, dict) else None
+            )
+            normalized_device_type = (
+                device_type.lower() if device_type else self.device.device_type_hex.lower()
+            )
+            if latest in versions_by_type.get(normalized_device_type, frozenset()):
+                return True, "manifest.type"
+            if latest in verified_versions:
+                return True, "manifest"
 
         return False, "none"
 
