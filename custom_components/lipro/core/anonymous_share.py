@@ -341,8 +341,9 @@ class AnonymousShareManager:
         if not self._enabled:
             return
 
-        # 按 iot_name 去重（同款设备只存一份）
-        device_key = device.iot_name
+        # 按 iot_name 去重（同款设备只存一份）；空值统一占位，避免上报不可匹配键。
+        normalized_iot_name = device.iot_name or "unknown"
+        device_key = normalized_iot_name
 
         # Skip if model already reported
         if device_key in self._reported_device_keys:
@@ -361,7 +362,7 @@ class AnonymousShareManager:
 
         self._devices[device_key] = SharedDevice(
             physical_model=device.physical_model,
-            iot_name=device.iot_name,
+            iot_name=normalized_iot_name,
             device_type=device.device_type,
             product_id=device.product_id,
             is_group=device.is_group,

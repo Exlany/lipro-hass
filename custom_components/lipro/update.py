@@ -119,7 +119,6 @@ class _OtaCandidate:
     latest_version: str | None
     update_available: bool
     certified: bool
-    certification_source: str
     release_summary: str | None
     release_url: str | None
     install_command: _InstallCommand | None
@@ -221,32 +220,19 @@ def _add_manifest_candidate(target: list[str], value: str | None) -> None:
 
 
 def _build_manifest_row_type_candidates(row: dict[str, Any]) -> list[str]:
-    """Build type-key candidates from one firmware_list row."""
+    """Build locked match keys from one firmware_list row.
+
+    Lock rule:
+    - Device OTA rows map by iotName only.
+    - Controller OTA rows map by bleName only.
+    """
     candidates: list[str] = []
-    _add_manifest_candidate(
-        candidates,
-        _pick_first_manifest_text(row, ("fingerprint", "deviceFingerprint")),
-    )
-
-    row_device_type = _pick_first_manifest_text(row, ("deviceType", "iotType", "type"))
     row_ble_name = _pick_first_manifest_text(row, ("bleName",))
-    row_product_name = _pick_first_manifest_text(row, ("productName",))
     row_iot_name = _pick_first_manifest_text(row, ("iotName", "fwIotName"))
-    row_product_id = _pick_first_manifest_text(row, _PRODUCT_ID_KEYS)
-    row_physical_model = _pick_first_manifest_text(row, _PHYSICAL_MODEL_KEYS)
-    # Device OTA rows should bind with iotName, not bleName.
-    if row_physical_model and row_iot_name and row_device_type:
-        _add_manifest_candidate(
-            candidates,
-            f"{row_physical_model}|{row_iot_name}|{row_product_id or ''}|{row_device_type}",
-        )
-
-    _add_manifest_candidate(candidates, row_device_type)
-    _add_manifest_candidate(candidates, row_ble_name)
-    _add_manifest_candidate(candidates, row_product_name)
+    if row_ble_name:
+        _add_manifest_candidate(candidates, row_ble_name)
+        return candidates
     _add_manifest_candidate(candidates, row_iot_name)
-    _add_manifest_candidate(candidates, row_product_id)
-    _add_manifest_candidate(candidates, row_physical_model)
     return candidates
 
 
@@ -382,9 +368,6 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
         """Expose OTA metadata for advanced users."""
         attrs: dict[str, Any] = {
             "certified": self._ota_candidate.certified if self._ota_candidate else False,
-            "certification_source": (
-                self._ota_candidate.certification_source if self._ota_candidate else "none"
-            ),
             "confirmation_required": self._has_pending_unverified_confirmation(),
         }
 
@@ -560,7 +543,7 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
         installed = self.device.firmware_version or self._first_text(row, _CURRENT_VERSION_KEYS)
         latest = self._resolve_latest_version(row, installed)
         update_available = self._resolve_update_available(row, installed, latest)
-        certified, certification_source = self._resolve_certification(
+        certified = self._resolve_certification(
             row,
             installed,
             latest,
@@ -571,7 +554,6 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
             latest_version=latest,
             update_available=update_available,
             certified=certified,
-            certification_source=certification_source,
             release_summary=self._first_text(row, _RELEASE_SUMMARY_KEYS),
             release_url=self._first_text(row, _RELEASE_URL_KEYS),
             install_command=install_command,
@@ -623,11 +605,11 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
         row: dict[str, Any] | None,
         installed: str | None,
         latest: str | None,
-    ) -> tuple[bool, str]:
+    ) -> bool:
         """Resolve certification state by flag and certification-version list."""
         explicit_flag = self._first_bool(row, _CERTIFIED_FLAG_KEYS)
         if explicit_flag is not None:
-            return explicit_flag, "flag"
+            return explicit_flag
 
         certified_versions = self._extract_version_set(row, _CERTIFIED_VERSION_KEYS)
         if self._matches_certified_versions(
@@ -635,13 +617,13 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
             installed=installed,
             latest=latest,
         ):
-            return True, "list"
+            return True
 
         certification_node = row.get("certification") if isinstance(row, dict) else None
         if isinstance(certification_node, dict):
             node_flag = self._first_bool(certification_node, _CERTIFIED_FLAG_KEYS)
             if node_flag is not None:
-                return node_flag, "certification.flag"
+                return node_flag
 
             node_versions = self._extract_version_set(
                 certification_node,
@@ -652,7 +634,7 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
                 installed=installed,
                 latest=latest,
             ):
-                return True, "certification.list"
+                return True
 
         if latest:
             candidate_types = self._candidate_manifest_type_keys(row)
@@ -667,11 +649,11 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
                     installed=installed,
                     latest=latest,
                 ):
-                    return True, "remote_manifest.type"
+                    return True
             if not has_remote_type_match and self._matches_certified_versions(
                 self._remote_verified_versions, installed=installed, latest=latest
             ):
-                return True, "remote_manifest"
+                return True
 
             verified_versions, versions_by_type = _load_verified_firmware_manifest()
             has_local_type_match = False
@@ -685,13 +667,13 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
                     installed=installed,
                     latest=latest,
                 ):
-                    return True, "manifest.type"
+                    return True
             if not has_local_type_match and self._matches_certified_versions(
                 verified_versions, installed=installed, latest=latest
             ):
-                return True, "manifest"
+                return True
 
-        return False, "none"
+        return False
 
     def _matches_certified_versions(
         self,
@@ -844,7 +826,12 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
         return score
 
     def _candidate_manifest_type_keys(self, row: dict[str, Any] | None) -> list[str]:
-        """Build candidate keys for manifest.type matching in priority order."""
+        """Build locked candidate keys for manifest.type matching.
+
+        Lock rule:
+        - Controller rows only use bleName.
+        - Device rows only use iotName.
+        """
         candidates: list[str] = []
 
         def add(value: str | None) -> None:
@@ -856,33 +843,15 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
             if normalized not in candidates:
                 candidates.append(normalized)
 
+        row_ble_name = self._first_text(row, ("bleName",))
+        if row_ble_name is not None:
+            add(row_ble_name)
+            return candidates
+
         row_iot_name = self._first_text(row, _IOT_NAME_KEYS)
-        row_product_id = self._first_text(row, _PRODUCT_ID_KEYS)
-        row_physical_model = self._first_text(row, _PHYSICAL_MODEL_KEYS)
-        row_device_type = self._first_text(row, _DEVICE_TYPE_KEYS)
-        row_fingerprint = self._first_text(row, ("fingerprint", "deviceFingerprint"))
-        add(row_fingerprint)
-
-        device_type = self.device.device_type_hex
         iot_name = self.device.iot_name or row_iot_name
-        product_id = (
-            str(self.device.product_id)
-            if self.device.product_id is not None
-            else row_product_id
-        )
-        physical_model = self.device.physical_model or row_physical_model
-        if physical_model and iot_name and device_type:
-            add(f"{physical_model}|{iot_name}|{product_id or ''}|{device_type}")
-
-        add(row_device_type)
-        add(device_type)
         add(row_iot_name)
         add(iot_name)
-        add(row_product_id)
-        add(product_id)
-        add(row_physical_model)
-        add(physical_model)
-
         return candidates
 
     @staticmethod

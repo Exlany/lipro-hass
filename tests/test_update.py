@@ -40,10 +40,7 @@ def test_parse_remote_manifest_payload_ignores_summary_wrapper():
     )
 
     assert versions == frozenset({"7.10.8"})
-    assert versions_by_type["ff000001"] == frozenset({"7.10.8"})
     assert versions_by_type["21p3"] == frozenset({"7.10.8"})
-    assert versions_by_type["light"] == frozenset({"7.10.8"})
-    assert versions_by_type["light|21p3||ff000001"] == frozenset({"7.10.8"})
 
 
 def test_parse_remote_manifest_payload_derives_from_firmware_list():
@@ -76,10 +73,7 @@ def test_parse_remote_manifest_payload_derives_from_firmware_list():
     )
 
     assert versions == frozenset({"7.10.9", "9.9.9"})
-    assert versions_by_type["ff000001"] == frozenset({"7.10.9"})
     assert versions_by_type["21p3"] == frozenset({"7.10.9"})
-    assert versions_by_type["light"] == frozenset({"7.10.9"})
-    assert versions_by_type["light|21p3||ff000001"] == frozenset({"7.10.9"})
 
 
 def test_parse_remote_manifest_payload_derives_type_keys_without_certification_key():
@@ -101,10 +95,7 @@ def test_parse_remote_manifest_payload_derives_type_keys_without_certification_k
     )
 
     assert versions == frozenset({"7.10.9"})
-    assert versions_by_type["ff000001"] == frozenset({"7.10.9"})
     assert versions_by_type["21p3"] == frozenset({"7.10.9"})
-    assert versions_by_type["light"] == frozenset({"7.10.9"})
-    assert versions_by_type["light|21p3||ff000001"] == frozenset({"7.10.9"})
 
 
 @pytest.mark.asyncio
@@ -338,7 +329,6 @@ async def test_update_entity_uses_manifest_certification_fallback(
 
     assert entity.latest_version == "7.10.9"
     assert entity.extra_state_attributes["certified"] is True
-    assert entity.extra_state_attributes["certification_source"] == "manifest.type"
 
 
 @pytest.mark.asyncio
@@ -382,7 +372,6 @@ async def test_update_entity_uses_remote_manifest_certification_fallback(
 
     assert entity.latest_version == "8.0.0"
     assert entity.extra_state_attributes["certified"] is True
-    assert entity.extra_state_attributes["certification_source"] == "remote_manifest"
 
 
 @pytest.mark.asyncio
@@ -426,7 +415,6 @@ async def test_update_entity_accepts_newer_certified_version_than_installed(
 
     assert entity.latest_version == "7.10.9"
     assert entity.extra_state_attributes["certified"] is True
-    assert entity.extra_state_attributes["certification_source"] == "remote_manifest"
 
 
 @pytest.mark.asyncio
@@ -468,7 +456,7 @@ async def test_update_entity_type_manifest_blocks_global_fallback(
             AsyncMock(
                 return_value=(
                     frozenset({"8.0.0"}),
-                    {device.device_type_hex.lower(): frozenset({"7.10.7"})},
+                    {str(device.iot_name).lower(): frozenset({"7.10.7"})},
                 )
             ),
         ),
@@ -481,7 +469,6 @@ async def test_update_entity_type_manifest_blocks_global_fallback(
 
     assert entity.latest_version == "7.10.9"
     assert entity.extra_state_attributes["certified"] is False
-    assert entity.extra_state_attributes["certification_source"] == "none"
 
 
 @pytest.mark.asyncio
@@ -536,14 +523,13 @@ async def test_update_entity_uses_ble_name_for_type_certification(
 
     assert entity.latest_version == "2.6.43"
     assert entity.extra_state_attributes["certified"] is True
-    assert entity.extra_state_attributes["certification_source"] == "remote_manifest.type"
 
 
 @pytest.mark.asyncio
-async def test_update_entity_uses_fingerprint_for_type_certification(
+async def test_update_entity_uses_iot_name_for_type_certification(
     mock_coordinator, make_device
 ):
-    """Type certification should match fingerprint key to avoid same-deviceType confusion."""
+    """Type certification should match iotName key only."""
     from custom_components.lipro.update import LiproFirmwareUpdateEntity
 
     device = make_device(
@@ -576,7 +562,7 @@ async def test_update_entity_uses_fingerprint_for_type_certification(
             AsyncMock(
                 return_value=(
                     frozenset(),
-                    {"light|21p3|11|ff000001": frozenset({"7.10.9"})},
+                    {"21p3": frozenset({"7.10.9"})},
                 )
             ),
         ),
@@ -589,4 +575,3 @@ async def test_update_entity_uses_fingerprint_for_type_certification(
 
     assert entity.latest_version == "7.10.9"
     assert entity.extra_state_attributes["certified"] is True
-    assert entity.extra_state_attributes["certification_source"] == "remote_manifest.type"

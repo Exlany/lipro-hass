@@ -1,26 +1,17 @@
 """Constants for the Lipro integration.
 
-This module re-exports all constants for backwards compatibility.
-New code should import from the specific submodules:
-- const.api: API endpoints, headers, error codes
-- const.base: Domain, version info
-- const.config: Configuration keys
-- const.device_types: Device type definitions
-- const.properties: Commands and property keys
-- const.categories: Device category enumeration
+This module aggregates constants from submodules for convenient imports.
 """
-
-# Re-export everything for backwards compatibility
 from .api import (
     ACCESS_TOKEN_EXPIRY_SECONDS,
     CONTENT_TYPE_FORM,
     CONTENT_TYPE_JSON,
     DEFAULT_MAX_FAN_GEAR,
     ERROR_AUTH_CODES,
-    ERROR_DEVICE_NOT_FOUND,
-    ERROR_DEVICE_NOT_FOUND_STR,
     ERROR_DEVICE_NOT_CONNECTED,
     ERROR_DEVICE_NOT_CONNECTED_STR,
+    ERROR_DEVICE_NOT_FOUND,
+    ERROR_DEVICE_NOT_FOUND_STR,
     ERROR_DEVICE_OFFLINE,
     ERROR_DEVICE_OFFLINE_LEGACY,
     ERROR_DEVICE_OFFLINE_LEGACY_STR,
@@ -59,8 +50,8 @@ from .api import (
     PATH_BLE_SCHEDULE_DELETE,
     PATH_BLE_SCHEDULE_GET,
     PATH_FETCH_BODY_SENSOR_HISTORY,
-    PATH_FETCH_DOOR_SENSOR_HISTORY,
     PATH_FETCH_DEVICES,
+    PATH_FETCH_DOOR_SENSOR_HISTORY,
     PATH_GET_CITY,
     PATH_GET_MQTT_CONFIG,
     PATH_GET_PRODUCT_CONFIGS,
@@ -299,10 +290,10 @@ __all__ = [
     "DIRECTION_OPENING",
     "DOMAIN",
     "ERROR_AUTH_CODES",
-    "ERROR_DEVICE_NOT_FOUND",
-    "ERROR_DEVICE_NOT_FOUND_STR",
     "ERROR_DEVICE_NOT_CONNECTED",
     "ERROR_DEVICE_NOT_CONNECTED_STR",
+    "ERROR_DEVICE_NOT_FOUND",
+    "ERROR_DEVICE_NOT_FOUND_STR",
     "ERROR_DEVICE_OFFLINE",
     "ERROR_DEVICE_OFFLINE_LEGACY",
     "ERROR_DEVICE_OFFLINE_LEGACY_STR",
@@ -366,8 +357,8 @@ __all__ = [
     "PATH_BLE_SCHEDULE_DELETE",
     "PATH_BLE_SCHEDULE_GET",
     "PATH_FETCH_BODY_SENSOR_HISTORY",
-    "PATH_FETCH_DOOR_SENSOR_HISTORY",
     "PATH_FETCH_DEVICES",
+    "PATH_FETCH_DOOR_SENSOR_HISTORY",
     "PATH_GET_CITY",
     "PATH_GET_MQTT_CONFIG",
     "PATH_GET_PRODUCT_CONFIGS",
