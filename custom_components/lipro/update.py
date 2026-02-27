@@ -60,7 +60,7 @@ _DEVICE_TYPE_KEYS = (
     "fingerprint",
     "deviceFingerprint",
 )
-_IOT_NAME_KEYS = ("iotName", "fwIotName", "bleName", "productName")
+_IOT_NAME_KEYS = ("iotName", "fwIotName")
 _PRODUCT_ID_KEYS = ("productId", "productID", "pid")
 _PHYSICAL_MODEL_KEYS = ("physicalModel", "model", "productModel")
 _LATEST_VERSION_KEYS = (
@@ -234,11 +234,11 @@ def _build_manifest_row_type_candidates(row: dict[str, Any]) -> list[str]:
     row_iot_name = _pick_first_manifest_text(row, ("iotName", "fwIotName"))
     row_product_id = _pick_first_manifest_text(row, _PRODUCT_ID_KEYS)
     row_physical_model = _pick_first_manifest_text(row, _PHYSICAL_MODEL_KEYS)
-    row_name = row_iot_name or row_ble_name or row_product_name
-    if row_physical_model and row_name and row_device_type:
+    # Device OTA rows should bind with iotName, not bleName.
+    if row_physical_model and row_iot_name and row_device_type:
         _add_manifest_candidate(
             candidates,
-            f"{row_physical_model}|{row_name}|{row_product_id or ''}|{row_device_type}",
+            f"{row_physical_model}|{row_iot_name}|{row_product_id or ''}|{row_device_type}",
         )
 
     _add_manifest_candidate(candidates, row_device_type)

@@ -32,7 +32,7 @@ def test_parse_remote_manifest_payload_ignores_summary_wrapper():
                     "firmwareVersion": "7.10.8",
                     "certified": True,
                     "deviceType": "ff000001",
-                    "bleName": "21P3",
+                    "iotName": "21P3",
                     "physicalModel": "light",
                 }
             ],
@@ -57,7 +57,7 @@ def test_parse_remote_manifest_payload_derives_from_firmware_list():
                     "firmwareVersion": "7.10.9",
                     "certified": True,
                     "deviceType": "ff000001",
-                    "bleName": "21P3",
+                    "iotName": "21P3",
                     "physicalModel": "light",
                 },
                 {
@@ -93,7 +93,7 @@ def test_parse_remote_manifest_payload_derives_type_keys_without_certification_k
                     "version": "7.10.9",
                     "certified": True,
                     "deviceType": "ff000001",
-                    "bleName": "21P3",
+                    "iotName": "21P3",
                     "physicalModel": "light",
                 }
             ]
