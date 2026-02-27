@@ -190,11 +190,13 @@ class TestParseTopic:
         assert parse_topic("Wrong_Prefix/biz/device") is None
 
     def test_parse_topic_extra_parts(self):
-        """Test parsing topic with extra parts."""
-        device_id = parse_topic("Topic_Device_State/biz/device/extra/parts")
+        """Topic with extra segments should be rejected."""
+        assert parse_topic("Topic_Device_State/biz/device/extra/parts") is None
 
-        # Should still return the device ID (third part)
-        assert device_id == "device"
+    def test_parse_topic_invalid_biz_or_device(self):
+        """Topic should reject invalid biz/device segment characters."""
+        assert parse_topic("Topic_Device_State/biz$/device") is None
+        assert parse_topic("Topic_Device_State/biz/device#1") is None
 
 
 class TestParseMqttPayload:

@@ -21,29 +21,45 @@ from custom_components.lipro import (
     ATTR_DAYS,
     ATTR_DEVICE_ID,
     ATTR_EVENTS,
+    ATTR_MESH_TYPE,
+    ATTR_MSG_SN,
     ATTR_NOTE,
     ATTR_PROPERTIES,
     ATTR_SCHEDULE_IDS,
+    ATTR_SENSOR_DEVICE_ID,
     ATTR_TIMES,
     PLATFORMS,
     SERVICE_ADD_SCHEDULE,
     SERVICE_ADD_SCHEDULE_SCHEMA,
     SERVICE_DELETE_SCHEDULES,
     SERVICE_DELETE_SCHEDULES_SCHEMA,
+    SERVICE_FETCH_BODY_SENSOR_HISTORY,
+    SERVICE_FETCH_DOOR_SENSOR_HISTORY,
     SERVICE_GET_ANONYMOUS_SHARE_REPORT,
+    SERVICE_GET_CITY,
     SERVICE_GET_DEVELOPER_REPORT,
     SERVICE_GET_SCHEDULES,
     SERVICE_GET_SCHEDULES_SCHEMA,
+    SERVICE_QUERY_COMMAND_RESULT,
+    SERVICE_QUERY_COMMAND_RESULT_SCHEMA,
+    SERVICE_QUERY_OTA_INFO,
+    SERVICE_QUERY_OTA_INFO_SCHEMA,
     SERVICE_SEND_COMMAND,
     SERVICE_SEND_COMMAND_SCHEMA,
+    SERVICE_FETCH_SENSOR_HISTORY_SCHEMA,
     SERVICE_SUBMIT_ANONYMOUS_SHARE,
     SERVICE_SUBMIT_DEVELOPER_FEEDBACK,
     SERVICE_SUBMIT_DEVELOPER_FEEDBACK_SCHEMA,
     _async_handle_add_schedule,
     _async_handle_delete_schedules,
     _async_handle_get_anonymous_share_report,
+    _async_handle_get_city,
     _async_handle_get_developer_report,
+    _async_handle_fetch_body_sensor_history,
+    _async_handle_fetch_door_sensor_history,
     _async_handle_get_schedules,
+    _async_handle_query_command_result,
+    _async_handle_query_ota_info,
     _async_handle_send_command,
     _async_handle_submit_anonymous_share,
     _async_handle_submit_developer_feedback,
@@ -165,6 +181,26 @@ class TestServiceConstants:
         """Test SERVICE_SUBMIT_DEVELOPER_FEEDBACK is defined correctly."""
         assert SERVICE_SUBMIT_DEVELOPER_FEEDBACK == "submit_developer_feedback"
 
+    def test_service_query_command_result(self):
+        """Test SERVICE_QUERY_COMMAND_RESULT is defined correctly."""
+        assert SERVICE_QUERY_COMMAND_RESULT == "query_command_result"
+
+    def test_service_get_city(self):
+        """Test SERVICE_GET_CITY is defined correctly."""
+        assert SERVICE_GET_CITY == "get_city"
+
+    def test_service_query_ota_info(self):
+        """Test SERVICE_QUERY_OTA_INFO is defined correctly."""
+        assert SERVICE_QUERY_OTA_INFO == "query_ota_info"
+
+    def test_service_fetch_body_sensor_history(self):
+        """Test SERVICE_FETCH_BODY_SENSOR_HISTORY is defined correctly."""
+        assert SERVICE_FETCH_BODY_SENSOR_HISTORY == "fetch_body_sensor_history"
+
+    def test_service_fetch_door_sensor_history(self):
+        """Test SERVICE_FETCH_DOOR_SENSOR_HISTORY is defined correctly."""
+        assert SERVICE_FETCH_DOOR_SENSOR_HISTORY == "fetch_door_sensor_history"
+
     def test_service_constants_are_strings(self):
         """Test all service constants are strings."""
         assert isinstance(SERVICE_SEND_COMMAND, str)
@@ -175,6 +211,11 @@ class TestServiceConstants:
         assert isinstance(SERVICE_GET_ANONYMOUS_SHARE_REPORT, str)
         assert isinstance(SERVICE_GET_DEVELOPER_REPORT, str)
         assert isinstance(SERVICE_SUBMIT_DEVELOPER_FEEDBACK, str)
+        assert isinstance(SERVICE_QUERY_COMMAND_RESULT, str)
+        assert isinstance(SERVICE_GET_CITY, str)
+        assert isinstance(SERVICE_QUERY_OTA_INFO, str)
+        assert isinstance(SERVICE_FETCH_BODY_SENSOR_HISTORY, str)
+        assert isinstance(SERVICE_FETCH_DOOR_SENSOR_HISTORY, str)
 
 
 class TestAttributeConstants:
@@ -217,6 +258,18 @@ class TestAttributeConstants:
         assert isinstance(ATTR_TIMES, str)
         assert isinstance(ATTR_EVENTS, str)
         assert isinstance(ATTR_SCHEDULE_IDS, str)
+
+    def test_attr_msg_sn(self):
+        """Test ATTR_MSG_SN value."""
+        assert ATTR_MSG_SN == "msg_sn"
+
+    def test_attr_sensor_device_id(self):
+        """Test ATTR_SENSOR_DEVICE_ID value."""
+        assert ATTR_SENSOR_DEVICE_ID == "sensor_device_id"
+
+    def test_attr_mesh_type(self):
+        """Test ATTR_MESH_TYPE value."""
+        assert ATTR_MESH_TYPE == "mesh_type"
 
 
 class TestSchemaStructure:
@@ -299,6 +352,30 @@ class TestSchemaStructure:
         keys = self._get_schema_keys(SERVICE_SUBMIT_DEVELOPER_FEEDBACK_SCHEMA)
         assert ATTR_NOTE in keys
         assert keys[ATTR_NOTE] is False
+
+    def test_query_command_result_schema_keys(self):
+        """Test query_command_result schema has expected keys."""
+        keys = self._get_schema_keys(SERVICE_QUERY_COMMAND_RESULT_SCHEMA)
+        assert ATTR_DEVICE_ID in keys
+        assert keys[ATTR_DEVICE_ID] is False
+        assert ATTR_MSG_SN in keys
+        assert keys[ATTR_MSG_SN] is True
+
+    def test_query_ota_info_schema_keys(self):
+        """Test query_ota_info schema has expected keys."""
+        keys = self._get_schema_keys(SERVICE_QUERY_OTA_INFO_SCHEMA)
+        assert ATTR_DEVICE_ID in keys
+        assert keys[ATTR_DEVICE_ID] is False
+
+    def test_fetch_sensor_history_schema_keys(self):
+        """Test fetch sensor history schema has expected keys."""
+        keys = self._get_schema_keys(SERVICE_FETCH_SENSOR_HISTORY_SCHEMA)
+        assert ATTR_DEVICE_ID in keys
+        assert keys[ATTR_DEVICE_ID] is False
+        assert ATTR_SENSOR_DEVICE_ID in keys
+        assert keys[ATTR_SENSOR_DEVICE_ID] is True
+        assert ATTR_MESH_TYPE in keys
+        assert keys[ATTR_MESH_TYPE] is False
 
 
 class TestSchemaValidation:
@@ -433,6 +510,26 @@ class TestSchemaValidation:
         )
         assert result["note"] == "group command delayed in app"
 
+    def test_query_command_result_schema_validation(self):
+        """Test query_command_result schema requires msg_sn."""
+        result = SERVICE_QUERY_COMMAND_RESULT_SCHEMA({"msg_sn": "123"})
+        assert result["msg_sn"] == "123"
+        with pytest.raises(vol.MultipleInvalid):
+            SERVICE_QUERY_COMMAND_RESULT_SCHEMA({})
+
+    def test_query_ota_info_schema_validation(self):
+        """Test query_ota_info schema accepts empty payload."""
+        result = SERVICE_QUERY_OTA_INFO_SCHEMA({})
+        assert isinstance(result, dict)
+
+    def test_fetch_sensor_history_schema_validation(self):
+        """Test fetch sensor history schema validates fields and defaults mesh_type."""
+        result = SERVICE_FETCH_SENSOR_HISTORY_SCHEMA({"sensor_device_id": "03ab5ccd7caaaaaa"})
+        assert result["sensor_device_id"] == "03ab5ccd7caaaaaa"
+        assert result["mesh_type"] == "2"
+        with pytest.raises(vol.MultipleInvalid):
+            SERVICE_FETCH_SENSOR_HISTORY_SCHEMA({})
+
     def test_summarize_service_properties_masks_values(self):
         """Service properties summary should expose keys/count, not raw values."""
         result = _summarize_service_properties(
@@ -474,6 +571,11 @@ class TestInitRuntimeBehavior:
         assert hass.services.has_service(DOMAIN, SERVICE_GET_ANONYMOUS_SHARE_REPORT)
         assert hass.services.has_service(DOMAIN, SERVICE_GET_DEVELOPER_REPORT)
         assert hass.services.has_service(DOMAIN, SERVICE_SUBMIT_DEVELOPER_FEEDBACK)
+        assert hass.services.has_service(DOMAIN, SERVICE_QUERY_COMMAND_RESULT)
+        assert hass.services.has_service(DOMAIN, SERVICE_GET_CITY)
+        assert hass.services.has_service(DOMAIN, SERVICE_QUERY_OTA_INFO)
+        assert hass.services.has_service(DOMAIN, SERVICE_FETCH_BODY_SENSOR_HISTORY)
+        assert hass.services.has_service(DOMAIN, SERVICE_FETCH_DOOR_SENSOR_HISTORY)
 
         # Calling setup twice should keep registration stable.
         assert await async_setup(hass, {}) is True
@@ -677,6 +779,8 @@ class TestInitRuntimeBehavior:
         assert not hass.services.has_service(DOMAIN, SERVICE_GET_SCHEDULES)
         assert not hass.services.has_service(DOMAIN, SERVICE_GET_DEVELOPER_REPORT)
         assert not hass.services.has_service(DOMAIN, SERVICE_SUBMIT_DEVELOPER_FEEDBACK)
+        assert not hass.services.has_service(DOMAIN, SERVICE_QUERY_COMMAND_RESULT)
+        assert not hass.services.has_service(DOMAIN, SERVICE_GET_CITY)
 
     async def test_async_unload_entry_shuts_down_runtime_data_coordinator(
         self, hass
@@ -852,6 +956,133 @@ class TestInitRuntimeBehavior:
         }
         coordinator.build_developer_report.assert_called_once()
 
+    async def test_query_command_result_service(self, hass) -> None:
+        """query_command_result service should call client with device context."""
+        device = self._create_device(serial="mesh_group_49155")
+        coordinator = MagicMock()
+        coordinator.get_device.return_value = device
+        coordinator.client.query_command_result = AsyncMock(return_value={"success": True})
+
+        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry.add_to_hass(hass)
+        entry.runtime_data = coordinator
+
+        result = await _async_handle_query_command_result(
+            hass,
+            SimpleNamespace(data={ATTR_DEVICE_ID: device.serial, ATTR_MSG_SN: "682550445474"}),
+        )
+
+        assert result["serial"] == "mesh_group_49155"
+        assert result["msg_sn"] == "682550445474"
+        assert result["result"] == {"success": True}
+        coordinator.client.query_command_result.assert_awaited_once_with(
+            msg_sn="682550445474",
+            device_id="mesh_group_49155",
+            device_type=device.device_type,
+        )
+
+    async def test_get_city_service(self, hass) -> None:
+        """get_city service should return first coordinator city result."""
+        coordinator = MagicMock()
+        coordinator.client.get_city = AsyncMock(
+            return_value={"province": "广东省", "city": "江门市"}
+        )
+
+        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry.add_to_hass(hass)
+        entry.runtime_data = coordinator
+
+        result = await _async_handle_get_city(hass, SimpleNamespace(data={}))
+        assert result == {"result": {"province": "广东省", "city": "江门市"}}
+
+    async def test_query_ota_info_service(self, hass) -> None:
+        """query_ota_info should call client and return ota list."""
+        device = self._create_device(serial="mesh_group_49155")
+        coordinator = MagicMock()
+        coordinator.get_device.return_value = device
+        coordinator.client.query_ota_info = AsyncMock(
+            return_value=[{"deviceType": "ff000001", "firmwareVersion": "7.10.9"}]
+        )
+
+        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry.add_to_hass(hass)
+        entry.runtime_data = coordinator
+
+        result = await _async_handle_query_ota_info(
+            hass, SimpleNamespace(data={ATTR_DEVICE_ID: device.serial})
+        )
+
+        assert result["serial"] == "mesh_group_49155"
+        assert len(result["ota"]) == 1
+        coordinator.client.query_ota_info.assert_awaited_once_with(
+            device_id="mesh_group_49155",
+            device_type=device.device_type,
+        )
+
+    async def test_fetch_body_sensor_history_service(self, hass) -> None:
+        """fetch_body_sensor_history should pass sensor payload to client."""
+        device = self._create_device(serial="mesh_group_49155")
+        coordinator = MagicMock()
+        coordinator.get_device.return_value = device
+        coordinator.client.fetch_body_sensor_history = AsyncMock(
+            return_value={"humanSensorStateList": []}
+        )
+
+        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry.add_to_hass(hass)
+        entry.runtime_data = coordinator
+
+        result = await _async_handle_fetch_body_sensor_history(
+            hass,
+            SimpleNamespace(
+                data={
+                    ATTR_DEVICE_ID: device.serial,
+                    ATTR_SENSOR_DEVICE_ID: "03ab5ccd7c7167d8",
+                    ATTR_MESH_TYPE: "2",
+                }
+            ),
+        )
+
+        assert result["serial"] == "mesh_group_49155"
+        coordinator.client.fetch_body_sensor_history.assert_awaited_once_with(
+            device_id="mesh_group_49155",
+            device_type=device.device_type,
+            sensor_device_id="03ab5ccd7c7167d8",
+            mesh_type="2",
+        )
+
+    async def test_fetch_door_sensor_history_service(self, hass) -> None:
+        """fetch_door_sensor_history should pass sensor payload to client."""
+        device = self._create_device(serial="mesh_group_49155")
+        coordinator = MagicMock()
+        coordinator.get_device.return_value = device
+        coordinator.client.fetch_door_sensor_history = AsyncMock(
+            return_value={"doorStateList": []}
+        )
+
+        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry.add_to_hass(hass)
+        entry.runtime_data = coordinator
+
+        result = await _async_handle_fetch_door_sensor_history(
+            hass,
+            SimpleNamespace(
+                data={
+                    ATTR_DEVICE_ID: device.serial,
+                    ATTR_SENSOR_DEVICE_ID: "03ab5ccd7c7167d8",
+                    ATTR_MESH_TYPE: "2",
+                }
+            ),
+        )
+
+        assert result["serial"] == "mesh_group_49155"
+        coordinator.client.fetch_door_sensor_history.assert_awaited_once_with(
+            device_id="mesh_group_49155",
+            device_type=device.device_type,
+            sensor_device_id="03ab5ccd7c7167d8",
+            mesh_type="2",
+        )
+
     async def test_submit_developer_feedback_success(self, hass) -> None:
         """submit_developer_feedback uploads report to share worker."""
         coordinator = MagicMock()
@@ -984,6 +1215,7 @@ class TestInitRuntimeBehavior:
         coordinator = MagicMock()
         coordinator.get_device.return_value = device
         coordinator.async_send_command = AsyncMock(return_value=False)
+        coordinator.last_command_failure = None
 
         entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
         entry.add_to_hass(hass)
@@ -996,6 +1228,69 @@ class TestInitRuntimeBehavior:
                     data={ATTR_DEVICE_ID: device.serial, ATTR_COMMAND: "POWER_ON"}
                 ),
             )
+
+    async def test_send_command_handler_push_failed_maps_translation(self, hass) -> None:
+        """pushSuccess=false style failures should use push_failed translation key."""
+        device = self._create_device()
+        coordinator = MagicMock()
+        coordinator.get_device.return_value = device
+        coordinator.async_send_command = AsyncMock(return_value=False)
+        coordinator.last_command_failure = {"reason": "push_failed", "code": "push_failed"}
+
+        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry.add_to_hass(hass)
+        entry.runtime_data = coordinator
+
+        with pytest.raises(HomeAssistantError) as exc:
+            await _async_handle_send_command(
+                hass,
+                SimpleNamespace(
+                    data={ATTR_DEVICE_ID: device.serial, ATTR_COMMAND: "POWER_ON"}
+                ),
+            )
+        assert exc.value.translation_key == "command_push_failed"
+
+    async def test_send_command_handler_offline_code_maps_translation(self, hass) -> None:
+        """140004 failures should use device-not-connected translation key."""
+        device = self._create_device()
+        coordinator = MagicMock()
+        coordinator.get_device.return_value = device
+        coordinator.async_send_command = AsyncMock(return_value=False)
+        coordinator.last_command_failure = {"reason": "api_error", "code": "140004"}
+
+        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry.add_to_hass(hass)
+        entry.runtime_data = coordinator
+
+        with pytest.raises(HomeAssistantError) as exc:
+            await _async_handle_send_command(
+                hass,
+                SimpleNamespace(
+                    data={ATTR_DEVICE_ID: device.serial, ATTR_COMMAND: "POWER_ON"}
+                ),
+            )
+        assert exc.value.translation_key == "command_device_not_connected"
+
+    async def test_send_command_handler_busy_code_maps_translation(self, hass) -> None:
+        """250001 failures should use device-busy translation key."""
+        device = self._create_device()
+        coordinator = MagicMock()
+        coordinator.get_device.return_value = device
+        coordinator.async_send_command = AsyncMock(return_value=False)
+        coordinator.last_command_failure = {"reason": "api_error", "code": "250001"}
+
+        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry.add_to_hass(hass)
+        entry.runtime_data = coordinator
+
+        with pytest.raises(HomeAssistantError) as exc:
+            await _async_handle_send_command(
+                hass,
+                SimpleNamespace(
+                    data={ATTR_DEVICE_ID: device.serial, ATTR_COMMAND: "POWER_ON"}
+                ),
+            )
+        assert exc.value.translation_key == "command_device_busy"
 
     async def test_send_command_handler_api_error_raises(self, hass) -> None:
         """send_command maps API errors to HomeAssistantError."""
@@ -1015,6 +1310,76 @@ class TestInitRuntimeBehavior:
                     data={ATTR_DEVICE_ID: device.serial, ATTR_COMMAND: "POWER_ON"}
                 ),
             )
+
+    async def test_send_command_handler_api_error_code_maps_translation(self, hass) -> None:
+        """API error 140003 should map to device-offline translation key."""
+        device = self._create_device()
+        coordinator = MagicMock()
+        coordinator.get_device.return_value = device
+        coordinator.async_send_command = AsyncMock(
+            side_effect=LiproApiError("offline", "140003")
+        )
+
+        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry.add_to_hass(hass)
+        entry.runtime_data = coordinator
+
+        with pytest.raises(HomeAssistantError) as exc:
+            await _async_handle_send_command(
+                hass,
+                SimpleNamespace(
+                    data={ATTR_DEVICE_ID: device.serial, ATTR_COMMAND: "POWER_ON"}
+                ),
+            )
+        assert exc.value.translation_key == "command_device_offline"
+
+    async def test_send_command_handler_api_busy_error_maps_translation(
+        self, hass
+    ) -> None:
+        """API error 250001 should map to device-busy translation key."""
+        device = self._create_device()
+        coordinator = MagicMock()
+        coordinator.get_device.return_value = device
+        coordinator.async_send_command = AsyncMock(
+            side_effect=LiproApiError("busy", "250001")
+        )
+
+        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry.add_to_hass(hass)
+        entry.runtime_data = coordinator
+
+        with pytest.raises(HomeAssistantError) as exc:
+            await _async_handle_send_command(
+                hass,
+                SimpleNamespace(
+                    data={ATTR_DEVICE_ID: device.serial, ATTR_COMMAND: "POWER_ON"}
+                ),
+            )
+        assert exc.value.translation_key == "command_device_busy"
+
+    async def test_send_command_handler_not_found_code_maps_offline_translation(
+        self, hass
+    ) -> None:
+        """API error 140013 should map to device-offline translation key."""
+        device = self._create_device()
+        coordinator = MagicMock()
+        coordinator.get_device.return_value = device
+        coordinator.async_send_command = AsyncMock(
+            side_effect=LiproApiError("not found", "140013")
+        )
+
+        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry.add_to_hass(hass)
+        entry.runtime_data = coordinator
+
+        with pytest.raises(HomeAssistantError) as exc:
+            await _async_handle_send_command(
+                hass,
+                SimpleNamespace(
+                    data={ATTR_DEVICE_ID: device.serial, ATTR_COMMAND: "POWER_ON"}
+                ),
+            )
+        assert exc.value.translation_key == "command_device_offline"
 
     async def test_get_schedules_formats_response(self, hass) -> None:
         """get_schedules returns normalized response payload."""

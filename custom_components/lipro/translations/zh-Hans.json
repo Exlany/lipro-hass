@@ -65,13 +65,17 @@
           "power_query_interval": "功率查询间隔（秒）",
           "request_timeout": "API 请求超时（秒）",
           "debug_mode": "启用调试模式（诊断）",
-          "light_turn_on_on_adjust": "关灯时调亮度/色温自动开灯"
+          "light_turn_on_on_adjust": "关灯时调亮度/色温自动开灯",
+          "room_area_sync_force": "强制用云端房间覆盖 HA 区域",
+          "command_result_verify": "校验命令下发结果"
         },
         "data_description": {
           "power_query_interval": "查询插座功率数据的频率（30-300 秒）。仅在启用功率监测时生效。",
           "request_timeout": "API 请求超时时间（10-60 秒）。网络较慢时可增加此值。",
           "debug_mode": "采集脱敏运行诊断报告（包含最近命令轨迹）。启用后也会开启更详细的日志。",
-          "light_turn_on_on_adjust": "开启后，关灯状态下调节亮度或色温会自动开灯；关闭后，调节亮度或色温不会开灯。"
+          "light_turn_on_on_adjust": "开启后，关灯状态下调节亮度或色温会自动开灯；关闭后，调节亮度或色温不会开灯。",
+          "room_area_sync_force": "默认关闭（推荐）：保留用户手动设置的 HA 区域，仅把云端房间作为兜底。开启后将始终以云端房间覆盖 HA 区域。",
+          "command_result_verify": "默认关闭（推荐）：仅依据 pushSuccess，延迟更低。开启后会基于 msgSn 查询命令结果，云端未确认时返回更可解释的失败。"
         }
       }
     }
@@ -316,6 +320,18 @@
     },
     "command_failed": {
       "message": "向设备发送命令失败。"
+    },
+    "command_device_not_connected": {
+      "message": "设备未联网，请检查设备网络后重试。"
+    },
+    "command_device_busy": {
+      "message": "设备忙碌中，请稍后重试。"
+    },
+    "command_device_offline": {
+      "message": "设备离线或不可用，请先刷新设备状态。"
+    },
+    "command_push_failed": {
+      "message": "云端已接收命令，但下发推送失败。"
     },
     "schedule_fetch_failed": {
       "message": "获取设备定时任务失败。"

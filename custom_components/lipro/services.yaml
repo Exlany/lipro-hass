@@ -189,3 +189,108 @@ submit_developer_feedback:
       example: "Group control returns pushSuccess but no visible state change"
       selector:
         text:
+
+query_command_result:
+  name: Query Command Result (Developer)
+  description: >-
+    Developer-only optional capability. Query command delivery result by msgSn.
+    This does not alter normal control flow.
+  target:
+    entity:
+      integration: lipro
+  fields:
+    device_id:
+      name: Device ID (Optional)
+      description: >-
+        The device serial/group ID. If omitted, the target entity is used.
+      required: false
+      selector:
+        text:
+    msg_sn:
+      name: Message SN
+      description: >-
+        Command message serial number returned by send command response.
+      required: true
+      selector:
+        text:
+
+get_city:
+  name: Get City (Developer)
+  description: >-
+    Developer-only optional capability. Query cloud city metadata (empty payload contract).
+
+query_ota_info:
+  name: Query OTA Info (Developer)
+  description: >-
+    Developer-only optional capability. Query OTA metadata for a selected device/group.
+  target:
+    entity:
+      integration: lipro
+  fields:
+    device_id:
+      name: Device ID (Optional)
+      description: >-
+        The device serial/group ID. If omitted, the target entity is used.
+      required: false
+      selector:
+        text:
+
+fetch_body_sensor_history:
+  name: Fetch Body Sensor History (Developer)
+  description: >-
+    Developer-only optional capability. Fetch body sensor history payload for debugging.
+  target:
+    entity:
+      integration: lipro
+  fields:
+    device_id:
+      name: Device ID (Optional)
+      description: >-
+        The gateway/group device ID. If omitted, the target entity is used.
+      required: false
+      selector:
+        text:
+    sensor_device_id:
+      name: Sensor Device ID
+      description: >-
+        Sensor IoT device ID.
+      required: true
+      selector:
+        text:
+    mesh_type:
+      name: Mesh Type (Optional)
+      description: >-
+        Mesh type value expected by API contract. Default is "2".
+      required: false
+      selector:
+        text:
+
+fetch_door_sensor_history:
+  name: Fetch Door Sensor History (Developer)
+  description: >-
+    Developer-only optional capability. Fetch door sensor history payload for debugging.
+  target:
+    entity:
+      integration: lipro
+  fields:
+    device_id:
+      name: Device ID (Optional)
+      description: >-
+        The gateway/group device ID. If omitted, the target entity is used.
+      required: false
+      selector:
+        text:
+    sensor_device_id:
+      name: Sensor Device ID
+      description: >-
+        Sensor IoT device ID.
+      required: true
+      selector:
+        text:
+    mesh_type:
+      name: Mesh Type (Optional)
+      description: >-
+        Mesh type value expected by API contract. Default is "2".
+      required: false
+      selector:
+        text:

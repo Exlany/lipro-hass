@@ -24,8 +24,10 @@ from custom_components.lipro.const import (
     CONF_LIGHT_TURN_ON_ON_ADJUST,
     CONF_PHONE,
     CONF_PHONE_ID,
+    CONF_ROOM_AREA_SYNC_FORCE,
     DOMAIN,
 )
+from custom_components.lipro.const.config import CONF_COMMAND_RESULT_VERIFY
 from custom_components.lipro.core.api import LiproApiError, LiproAuthError
 from homeassistant import config_entries
 from homeassistant.const import CONF_PASSWORD
@@ -675,6 +677,8 @@ async def test_options_flow_advanced_step(
             "mqtt_enabled": True,
             "enable_power_monitoring": True,
             CONF_LIGHT_TURN_ON_ON_ADJUST: True,
+            CONF_ROOM_AREA_SYNC_FORCE: False,
+            CONF_COMMAND_RESULT_VERIFY: False,
             "anonymous_share_enabled": True,
             "anonymous_share_errors": False,
             "power_query_interval": 60,
@@ -710,6 +714,8 @@ async def test_options_flow_advanced_step(
             "request_timeout": 45,
             CONF_DEBUG_MODE: True,
             CONF_LIGHT_TURN_ON_ON_ADJUST: False,
+            CONF_ROOM_AREA_SYNC_FORCE: True,
+            CONF_COMMAND_RESULT_VERIFY: True,
         },
     )
     assert result["type"] is FlowResultType.CREATE_ENTRY
@@ -717,6 +723,8 @@ async def test_options_flow_advanced_step(
     assert result["data"]["mqtt_enabled"] is False
     assert result["data"]["enable_power_monitoring"] is False
     assert result["data"][CONF_LIGHT_TURN_ON_ON_ADJUST] is False
+    assert result["data"][CONF_ROOM_AREA_SYNC_FORCE] is True
+    assert result["data"][CONF_COMMAND_RESULT_VERIFY] is True
     assert result["data"]["power_query_interval"] == 120
     assert result["data"]["request_timeout"] == 45
     assert result["data"][CONF_DEBUG_MODE] is True

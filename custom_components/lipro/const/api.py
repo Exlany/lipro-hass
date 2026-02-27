@@ -32,6 +32,17 @@ PATH_QUERY_CONNECT_STATUS: Final = (
     "/app/oauth/api/v1/user/query/devices/connect-state.do"
 )
 PATH_QUERY_OUTLET_POWER: Final = "/app/oauth/api/v1/user/query/device/power-info.do"
+PATH_QUERY_COMMAND_RESULT: Final = (
+    "/app/oauth/api/v1/user/control/device/query-command-result.do"
+)
+PATH_GET_CITY: Final = "/app/oauth/api/v1/loc/getCity.do"
+PATH_QUERY_OTA_INFO: Final = "/app/oauth/api/v1/user/query/device/ota-version.do"
+PATH_FETCH_BODY_SENSOR_HISTORY: Final = (
+    "/app/oauth/api/v1/user/query/device/human-sensor-info.do"
+)
+PATH_FETCH_DOOR_SENSOR_HISTORY: Final = (
+    "/app/oauth/api/v1/user/query/device/door-sensor-info.do"
+)
 
 # API paths - Timing Tasks
 PATH_SCHEDULE_ADD: Final = (
@@ -69,11 +80,20 @@ CONTENT_TYPE_JSON: Final = "application/json"
 RESPONSE_SUCCESS: Final = 200
 RESPONSE_SUCCESS_CODES: Final = frozenset((0, 200))  # All known success code variants
 
-# Error codes - verified in real API responses
-ERROR_DEVICE_OFFLINE: Final = 140003  # Device not found / offline
-ERROR_DEVICE_OFFLINE_STR: Final = "140003"
-ERROR_DEVICE_NOT_CONNECTED: Final = 140004  # Device/network not connected
+# Error codes - verified in real API responses and decompiled app constants
+# Decompiled `ServerErrorCode` maps offline/not connected to 140004.
+ERROR_DEVICE_OFFLINE: Final = 140004
+ERROR_DEVICE_OFFLINE_STR: Final = "140004"
+# Keep explicit NOT_CONNECTED alias for readability at call sites.
+ERROR_DEVICE_NOT_CONNECTED: Final = 140004
 ERROR_DEVICE_NOT_CONNECTED_STR: Final = "140004"
+# Deprecated but still observed in historical traffic snapshots.
+ERROR_DEVICE_OFFLINE_LEGACY: Final = 140003
+ERROR_DEVICE_OFFLINE_LEGACY_STR: Final = "140003"
+ERROR_DEVICE_NOT_FOUND: Final = 140013
+ERROR_DEVICE_NOT_FOUND_STR: Final = "140013"
+ERROR_DEVICE_UPDATING: Final = 140014
+ERROR_DEVICE_UPDATING_STR: Final = "140014"
 ERROR_NO_PERMISSION: Final = 140101  # No permission to view device
 ERROR_NO_PERMISSION_STR: Final = "140101"
 # Device is temporarily busy, retry later.

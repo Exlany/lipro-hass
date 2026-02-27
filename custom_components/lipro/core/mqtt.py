@@ -182,9 +182,17 @@ def parse_topic(topic: str) -> str | None:
 
     """
     parts = topic.split("/")
-    if len(parts) >= 3 and parts[0] == MQTT_TOPIC_PREFIX:
-        return parts[2]
-    return None
+    if len(parts) != 3:
+        return None
+    if parts[0] != MQTT_TOPIC_PREFIX:
+        return None
+    biz_id = parts[1]
+    device_id = parts[2]
+    if not biz_id or not all(c.isalnum() or c in "-_" for c in biz_id):
+        return None
+    if not device_id or not all(c.isalnum() or c in "-_" for c in device_id):
+        return None
+    return device_id
 
 
 # =============================================================================

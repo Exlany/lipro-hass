@@ -195,7 +195,9 @@ class LiproDevice:
 
         # Priority 2: Look up iotName in built-in model table
         if self.iot_name:
-            phy_model = IOT_NAME_TO_PHYSICAL_MODEL.get(self.iot_name)
+            phy_model = IOT_NAME_TO_PHYSICAL_MODEL.get(
+                self.iot_name
+            ) or IOT_NAME_TO_PHYSICAL_MODEL.get(self.iot_name.lower())
             if phy_model:
                 device_type = PHYSICAL_MODEL_TO_DEVICE_TYPE.get(phy_model)
                 if device_type:

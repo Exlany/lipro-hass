@@ -90,6 +90,7 @@ def build_fetched_device_snapshot(
                 device.name,
                 device.serial,
             )
+            continue
         new_iot_ids.append(device.iot_device_id)
 
         try:

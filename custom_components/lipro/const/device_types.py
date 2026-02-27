@@ -78,6 +78,18 @@ PHYSICAL_MODEL_TO_DEVICE_TYPE: Final = {
 # Used as fallback when API doesn't return physicalModel field
 # Note: iotName matching is case-insensitive (normalized to lowercase in coordinator)
 IOT_NAME_TO_PHYSICAL_MODEL: Final = {
+    # Generic iotName literals from reverse insights (case-insensitive fallback)
+    "light": "light",
+    "fanlight": "fanLight",
+    "curtain": "curtain",
+    "doorsensor": "doorSensor",
+    "bodysensor": "bodySensor",
+    "heater": "heater",
+    "gateway": "gateway",
+    "switch": "switch",
+    "outlet": "outlet",
+    "irremote": "irRemote",
+    "floorlight": "floorLight",
     # light - ceiling lamps (吸顶灯)
     "T2G2": "light",
     "T2T3": "light",

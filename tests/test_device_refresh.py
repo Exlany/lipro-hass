@@ -63,6 +63,22 @@ class _OutletCategoryErrorDevice:
         raise ValueError("bad category payload")
 
 
+class _InvalidIotIdDevice:
+    serial = "INVALID_SERIAL"
+    name = "InvalidIotId"
+    is_group = False
+    has_valid_iot_id = False
+    iot_device_id = "invalid_iot_id"
+
+    @property
+    def is_gateway(self) -> bool:
+        return False
+
+    @property
+    def category(self) -> DeviceCategory:
+        return DeviceCategory.OUTLET
+
+
 def test_register_lookup_id_ignores_non_string_and_blank() -> None:
     device = _make_device(serial="03ab000000000001")
     mapping: dict[str, LiproDevice] = {}
@@ -115,3 +131,17 @@ def test_plan_stale_device_reconciliation_tracks_and_removes() -> None:
 
     assert plan.removable_serials == {"dev_b"}
     assert plan.missing_cycles == {"dev_b": 3, "dev_c": 2}
+
+
+def test_build_fetched_device_snapshot_skips_invalid_iot_ids_for_polling_lists() -> (
+    None
+):
+    with patch(
+        "custom_components.lipro.core.device_refresh.LiproDevice.from_api_data"
+    ) as from_api:
+        from_api.return_value = _InvalidIotIdDevice()
+        snapshot = build_fetched_device_snapshot([{}])
+
+    assert "INVALID_SERIAL" in snapshot.devices
+    assert snapshot.iot_ids == []
+    assert snapshot.outlet_ids == []

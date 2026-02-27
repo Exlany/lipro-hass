@@ -12,7 +12,7 @@ from time import monotonic
 from typing import TYPE_CHECKING, Any, Final
 
 from homeassistant.exceptions import ConfigEntryAuthFailed
-from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers import area_registry as ar, device_registry as dr
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.issue_registry import (
     IssueSeverity,
@@ -30,6 +30,7 @@ from ..const import (
     CONF_PHONE_ID,
     CONF_POWER_QUERY_INTERVAL,
     CONF_REQUEST_TIMEOUT,
+    CONF_ROOM_AREA_SYNC_FORCE,
     CONF_SCAN_INTERVAL,
     DEFAULT_ANONYMOUS_SHARE_ENABLED,
     DEFAULT_ANONYMOUS_SHARE_ERRORS,
@@ -38,6 +39,7 @@ from ..const import (
     DEFAULT_MQTT_ENABLED,
     DEFAULT_POWER_QUERY_INTERVAL,
     DEFAULT_REQUEST_TIMEOUT,
+    DEFAULT_ROOM_AREA_SYNC_FORCE,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
     MAX_POWER_QUERY_INTERVAL,
@@ -58,6 +60,7 @@ from ..const.api import (
     MAX_MQTT_CACHE_SIZE,
     MQTT_DISCONNECT_NOTIFY_THRESHOLD,
 )
+from ..const.config import CONF_COMMAND_RESULT_VERIFY, DEFAULT_COMMAND_RESULT_VERIFY
 from .anonymous_share import get_anonymous_share_manager
 from .api import (
     LiproApiError,
@@ -135,6 +138,10 @@ _STALE_DEVICE_REMOVE_THRESHOLD: Final[int] = 3
 
 # Periodic full device-list refresh to discover newly paired devices.
 _DEVICE_LIST_REFRESH_INTERVAL_SECONDS: Final[int] = 600
+
+# Optional command-result verification tuning.
+_COMMAND_RESULT_VERIFY_ATTEMPTS: Final[int] = 3
+_COMMAND_RESULT_VERIFY_INTERVAL_SECONDS: Final[float] = 0.35
 
 # API status may lag after command push; schedule one delayed refresh fallback.
 _POST_COMMAND_REFRESH_DELAY_SECONDS: Final[float] = 3.0
@@ -368,6 +375,8 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         self._command_traces: deque[dict[str, Any]] = deque(
             maxlen=_MAX_DEVELOPER_COMMAND_TRACES
         )
+        # Last command failure summary for service-layer error mapping.
+        self._last_command_failure: dict[str, Any] | None = None
 
         # Load options from config entry
         self._load_options()
@@ -414,6 +423,16 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
             options.get(CONF_DEBUG_MODE, DEFAULT_DEBUG_MODE),
             option_name=CONF_DEBUG_MODE,
             default=DEFAULT_DEBUG_MODE,
+        )
+        self._room_area_sync_force = _coerce_option_bool(
+            options.get(CONF_ROOM_AREA_SYNC_FORCE, DEFAULT_ROOM_AREA_SYNC_FORCE),
+            option_name=CONF_ROOM_AREA_SYNC_FORCE,
+            default=DEFAULT_ROOM_AREA_SYNC_FORCE,
+        )
+        self._command_result_verify = _coerce_option_bool(
+            options.get(CONF_COMMAND_RESULT_VERIFY, DEFAULT_COMMAND_RESULT_VERIFY),
+            option_name=CONF_COMMAND_RESULT_VERIFY,
+            default=DEFAULT_COMMAND_RESULT_VERIFY,
         )
 
         # Apply debug mode to all lipro loggers
@@ -1302,10 +1321,12 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         """Fetch all devices from API with pagination."""
         _LOGGER.debug("Fetching device list")
 
+        previous_devices = dict(self._devices)
         previous_serials = set(self._devices)
         devices_data = await self._fetch_all_device_pages()
         snapshot = build_fetched_device_snapshot(devices_data)
         self._apply_fetched_device_snapshot(snapshot)
+        self._sync_device_room_assignments(previous_devices)
         self._last_device_refresh_at = monotonic()
         self._schedule_reload_for_added_devices(previous_serials)
         await self._record_devices_for_anonymous_share()
@@ -1387,6 +1408,84 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
             len(self._iot_ids_to_query),
             len(self._outlet_ids_to_query),
         )
+
+    @staticmethod
+    def _normalize_room_name(room_name: str | None) -> str | None:
+        """Normalize room names from cloud payloads to comparable values."""
+        if not isinstance(room_name, str):
+            return None
+        normalized = room_name.strip()
+        return normalized or None
+
+    def _sync_device_room_assignments(
+        self, previous_devices: dict[str, LiproDevice]
+    ) -> None:
+        """Best-effort sync of cloud room changes into HA device registry areas.
+
+        Sync policy:
+        1. Always update suggested_area when room changes.
+        2. Update area_id only when safe:
+           - no current area assigned, or
+           - current area name matches previous cloud room (cloud-managed).
+        3. Preserve user-customized areas.
+        """
+        if not previous_devices:
+            return
+
+        device_registry = dr.async_get(self.hass)
+        area_registry = ar.async_get(self.hass)
+
+        for serial, device in self._devices.items():
+            previous = previous_devices.get(serial)
+            if previous is None:
+                continue
+
+            old_room_name = self._normalize_room_name(previous.room_name)
+            new_room_name = self._normalize_room_name(device.room_name)
+            if old_room_name == new_room_name:
+                continue
+
+            device_entry = device_registry.async_get_device(identifiers={(DOMAIN, serial)})
+            if device_entry is None:
+                continue
+
+            update_kwargs: dict[str, Any] = {"suggested_area": new_room_name}
+            current_area_id = device_entry.area_id
+            if self._room_area_sync_force:
+                if new_room_name is None:
+                    update_kwargs["area_id"] = None
+                else:
+                    update_kwargs["area_id"] = area_registry.async_get_or_create(
+                        new_room_name
+                    ).id
+            elif current_area_id is None:
+                if new_room_name is not None:
+                    update_kwargs["area_id"] = area_registry.async_get_or_create(
+                        new_room_name
+                    ).id
+            else:
+                current_area = area_registry.async_get_area(current_area_id)
+                current_area_name = (
+                    self._normalize_room_name(current_area.name)
+                    if current_area is not None
+                    else None
+                )
+                if current_area_name == old_room_name:
+                    if new_room_name is None:
+                        update_kwargs["area_id"] = None
+                    else:
+                        update_kwargs["area_id"] = area_registry.async_get_or_create(
+                            new_room_name
+                        ).id
+
+            device_registry.async_update_device(device_entry.id, **update_kwargs)
+            _LOGGER.debug(
+                "Synced room mapping for %s: %s -> %s (area_updated=%s)",
+                serial,
+                old_room_name,
+                new_room_name,
+                "area_id" in update_kwargs,
+            )
 
     async def _record_devices_for_anonymous_share(self) -> None:
         """Record fetched devices for anonymous diagnostics sharing."""
@@ -1786,7 +1885,7 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         trace: dict[str, Any],
         route: str,
         command: str,
-        device_name: str,
+        device: LiproDevice,
     ) -> None:
         """Record failed command push result as a trace event."""
         trace["route"] = route
@@ -1795,10 +1894,19 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         trace["error_message"] = "pushSuccess=false"
         self._record_command_trace(trace)
         _LOGGER.warning(
-            "Command %s sent to %s but push failed (device may be offline)",
+            "Command push failed (command=%s, device=%s, route=%s, device_id=%s)",
             command,
-            device_name,
+            device.name,
+            route,
+            device.serial,
         )
+        self._last_command_failure = {
+            "reason": "push_failed",
+            "code": "push_failed",
+            "route": route,
+            "device_id": device.serial,
+            "command": command,
+        }
 
     def _finalize_successful_command(
         self,
@@ -1826,6 +1934,7 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         trace["route"] = route
         trace["success"] = True
         self._record_command_trace(trace)
+        self._last_command_failure = None
 
     async def _handle_command_api_error(
         self,
@@ -1838,6 +1947,13 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         """Handle command-send API errors with consistent trace and reauth flows."""
         update_trace_with_exception(trace, route=route, err=err)
         self._record_command_trace(trace)
+        self._last_command_failure = {
+            "reason": "api_error",
+            "code": err.code,
+            "message": str(err),
+            "route": route,
+            "device_id": device.serial,
+        }
         if isinstance(err, LiproRefreshTokenExpiredError):
             _LOGGER.warning(
                 "Refresh token expired while sending command to %s",
@@ -1856,10 +1972,186 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         _LOGGER.warning("Failed to send command to %s: %s", device.name, err)
         return False
 
+    @property
+    def last_command_failure(self) -> dict[str, Any] | None:
+        """Return the latest command failure summary for service-layer mapping."""
+        if self._last_command_failure is None:
+            return None
+        return dict(self._last_command_failure)
+
     @staticmethod
     def _is_command_push_failed(result: Any) -> bool:
         """Return True when command dispatch explicitly reports push failure."""
         return isinstance(result, dict) and result.get("pushSuccess") is False
+
+    @staticmethod
+    def _extract_msg_sn(result: Any) -> str | None:
+        """Extract command serial number from command response payload."""
+        if not isinstance(result, dict):
+            return None
+        for key in ("msgSn", "msg_sn", "messageSn", "message_sn"):
+            value = result.get(key)
+            if isinstance(value, str) and value:
+                return value
+        return None
+
+    @staticmethod
+    def _classify_command_result_payload(payload: dict[str, Any]) -> str:
+        """Classify query_command_result payload as confirmed/failed/pending/unknown."""
+        success_value = payload.get("success")
+        if success_value is True:
+            return "confirmed"
+        if success_value is False:
+            return "failed"
+
+        push_success = payload.get("pushSuccess")
+        if push_success is True:
+            return "confirmed"
+        if push_success is False:
+            return "failed"
+
+        result_value = payload.get("result")
+        if result_value in (True, 1, "1", "success", "SUCCESS"):
+            return "confirmed"
+        if result_value in (False, 0, "0", "failed", "FAIL", "FAILURE"):
+            return "failed"
+        if result_value in ("pending", "PENDING", "processing", "PROCESSING"):
+            return "pending"
+
+        status_value = payload.get("status")
+        if status_value in (1, "1", "success", "SUCCESS", "done", "DONE"):
+            return "confirmed"
+        if status_value in (0, "0", "failed", "FAIL", "failure", "FAILURE"):
+            return "failed"
+        if status_value in (2, "2", "pending", "PENDING", "processing", "PROCESSING"):
+            return "pending"
+
+        return "unknown"
+
+    async def _verify_command_result_delivery(
+        self,
+        *,
+        device: LiproDevice,
+        msg_sn: str,
+        route: str,
+        trace: dict[str, Any],
+    ) -> bool:
+        """Verify command delivery result by polling query_command_result."""
+        verify_started_at = monotonic()
+        last_payload: dict[str, Any] | None = None
+        for attempt in range(1, _COMMAND_RESULT_VERIFY_ATTEMPTS + 1):
+            try:
+                payload = await self.client.query_command_result(
+                    msg_sn=msg_sn,
+                    device_id=device.serial,
+                    device_type=device.device_type_hex,
+                )
+            except LiproApiError as err:
+                _LOGGER.debug(
+                    "query_command_result failed (device=%s, msgSn=%s, attempt=%s/%s, code=%s): %s",
+                    device.name,
+                    msg_sn,
+                    attempt,
+                    _COMMAND_RESULT_VERIFY_ATTEMPTS,
+                    err.code,
+                    err,
+                )
+                if attempt < _COMMAND_RESULT_VERIFY_ATTEMPTS:
+                    await asyncio.sleep(_COMMAND_RESULT_VERIFY_INTERVAL_SECONDS)
+                continue
+
+            last_payload = payload
+            state = self._classify_command_result_payload(payload)
+            _LOGGER.debug(
+                "query_command_result attempt=%s/%s (device=%s, msgSn=%s, route=%s) state=%s",
+                attempt,
+                _COMMAND_RESULT_VERIFY_ATTEMPTS,
+                device.serial,
+                msg_sn,
+                route,
+                state,
+            )
+            if state == "confirmed":
+                trace["command_result_verify"] = {
+                    "enabled": True,
+                    "verified": True,
+                    "attempts": attempt,
+                    "msg_sn": msg_sn,
+                }
+                _LOGGER.debug(
+                    "query_command_result confirmed (device=%s, msgSn=%s, attempts=%s, elapsed=%.3fs)",
+                    device.serial,
+                    msg_sn,
+                    attempt,
+                    monotonic() - verify_started_at,
+                )
+                return True
+            if state == "failed":
+                trace["route"] = route
+                trace["success"] = False
+                trace["error"] = "CommandResultRejected"
+                trace["error_message"] = "command_result_failed"
+                trace["command_result_verify"] = {
+                    "enabled": True,
+                    "verified": False,
+                    "attempts": attempt,
+                    "msg_sn": msg_sn,
+                    "state": state,
+                }
+                self._record_command_trace(trace)
+                self._last_command_failure = {
+                    "reason": "command_result_failed",
+                    "code": "command_result_failed",
+                    "route": route,
+                    "msg_sn": msg_sn,
+                    "device_id": device.serial,
+                }
+                _LOGGER.warning(
+                    "query_command_result rejected command (device=%s, msgSn=%s, attempts=%s, elapsed=%.3fs, route=%s)",
+                    device.serial,
+                    msg_sn,
+                    attempt,
+                    monotonic() - verify_started_at,
+                    route,
+                )
+                return False
+
+            if attempt < _COMMAND_RESULT_VERIFY_ATTEMPTS:
+                await asyncio.sleep(_COMMAND_RESULT_VERIFY_INTERVAL_SECONDS)
+
+        trace["route"] = route
+        trace["success"] = False
+        trace["error"] = "CommandResultUnconfirmed"
+        trace["error_message"] = "command_result_unconfirmed"
+        trace["command_result_verify"] = {
+            "enabled": True,
+            "verified": False,
+            "attempts": _COMMAND_RESULT_VERIFY_ATTEMPTS,
+            "msg_sn": msg_sn,
+            "last_state": (
+                self._classify_command_result_payload(last_payload)
+                if isinstance(last_payload, dict)
+                else "query_error"
+            ),
+        }
+        self._record_command_trace(trace)
+        self._last_command_failure = {
+            "reason": "command_result_unconfirmed",
+            "code": "command_result_unconfirmed",
+            "route": route,
+            "msg_sn": msg_sn,
+            "device_id": device.serial,
+        }
+        _LOGGER.warning(
+            "query_command_result not confirmed (device=%s, msgSn=%s, attempts=%s, elapsed=%.3fs, route=%s, last_state=%s)",
+            device.serial,
+            msg_sn,
+            _COMMAND_RESULT_VERIFY_ATTEMPTS,
+            monotonic() - verify_started_at,
+            route,
+            trace["command_result_verify"]["last_state"],
+        )
+        return False
 
     async def _execute_command_plan_with_trace(
         self,
@@ -1938,9 +2230,55 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
                     trace=trace,
                     route=route,
                     command=command,
-                    device_name=device.name,
+                    device=device,
                 )
                 return False
+
+            if self._command_result_verify:
+                msg_sn = self._extract_msg_sn(result)
+                if msg_sn is None:
+                    trace["route"] = route
+                    trace["success"] = False
+                    trace["error"] = "CommandResultMissingMsgSn"
+                    trace["error_message"] = "command_result_missing_msgsn"
+                    trace["command_result_verify"] = {
+                        "enabled": True,
+                        "verified": False,
+                        "attempts": 0,
+                    }
+                    self._record_command_trace(trace)
+                    self._last_command_failure = {
+                        "reason": "command_result_unconfirmed",
+                        "code": "command_result_missing_msgsn",
+                        "route": route,
+                        "device_id": device.serial,
+                        "command": command,
+                    }
+                    _LOGGER.warning(
+                        "Command sent but msgSn missing for verification (command=%s, device=%s, route=%s, device_id=%s)",
+                        command,
+                        device.name,
+                        route,
+                        device.serial,
+                    )
+                    return False
+
+                verified = await self._verify_command_result_delivery(
+                    device=device,
+                    msg_sn=msg_sn,
+                    route=route,
+                    trace=trace,
+                )
+                if not verified:
+                    _LOGGER.warning(
+                        "Command delivery not confirmed (command=%s, device=%s, route=%s, msgSn=%s, failure=%s)",
+                        command,
+                        device.name,
+                        route,
+                        msg_sn,
+                        self._last_command_failure,
+                    )
+                    return False
 
             self._finalize_successful_command(
                 device=device,

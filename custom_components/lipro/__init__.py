@@ -42,6 +42,18 @@ from .const import (
     MIN_REQUEST_TIMEOUT,
     MIN_SCAN_INTERVAL,
 )
+from .const.api import (
+    ERROR_DEVICE_BUSY,
+    ERROR_DEVICE_BUSY_STR,
+    ERROR_DEVICE_NOT_CONNECTED,
+    ERROR_DEVICE_NOT_CONNECTED_STR,
+    ERROR_DEVICE_NOT_FOUND,
+    ERROR_DEVICE_NOT_FOUND_STR,
+    ERROR_DEVICE_OFFLINE,
+    ERROR_DEVICE_OFFLINE_LEGACY,
+    ERROR_DEVICE_OFFLINE_LEGACY_STR,
+    ERROR_DEVICE_OFFLINE_STR,
+)
 from .core import (
     LiproApiError,
     LiproAuthError,
@@ -81,6 +93,11 @@ SERVICE_SUBMIT_ANONYMOUS_SHARE: Final = "submit_anonymous_share"
 SERVICE_GET_ANONYMOUS_SHARE_REPORT: Final = "get_anonymous_share_report"
 SERVICE_GET_DEVELOPER_REPORT: Final = "get_developer_report"
 SERVICE_SUBMIT_DEVELOPER_FEEDBACK: Final = "submit_developer_feedback"
+SERVICE_QUERY_COMMAND_RESULT: Final = "query_command_result"
+SERVICE_GET_CITY: Final = "get_city"
+SERVICE_QUERY_OTA_INFO: Final = "query_ota_info"
+SERVICE_FETCH_BODY_SENSOR_HISTORY: Final = "fetch_body_sensor_history"
+SERVICE_FETCH_DOOR_SENSOR_HISTORY: Final = "fetch_door_sensor_history"
 
 ATTR_DEVICE_ID: Final = "device_id"
 ATTR_COMMAND: Final = "command"
@@ -90,6 +107,9 @@ ATTR_TIMES: Final = "times"
 ATTR_EVENTS: Final = "events"
 ATTR_SCHEDULE_IDS: Final = "schedule_ids"
 ATTR_NOTE: Final = "note"
+ATTR_MSG_SN: Final = "msg_sn"
+ATTR_SENSOR_DEVICE_ID: Final = "sensor_device_id"
+ATTR_MESH_TYPE: Final = "mesh_type"
 
 # Pre-compiled pattern for extracting device serial from entity unique_id
 _SERIAL_PATTERN = re.compile(
@@ -155,6 +175,27 @@ SERVICE_DELETE_SCHEDULES_SCHEMA = vol.Schema(
 SERVICE_SUBMIT_DEVELOPER_FEEDBACK_SCHEMA = vol.Schema(
     {
         vol.Optional(ATTR_NOTE): cv.string,
+    },
+)
+
+SERVICE_QUERY_COMMAND_RESULT_SCHEMA = vol.Schema(
+    {
+        vol.Optional(ATTR_DEVICE_ID): cv.string,
+        vol.Required(ATTR_MSG_SN): cv.string,
+    },
+)
+
+SERVICE_QUERY_OTA_INFO_SCHEMA = vol.Schema(
+    {
+        vol.Optional(ATTR_DEVICE_ID): cv.string,
+    },
+)
+
+SERVICE_FETCH_SENSOR_HISTORY_SCHEMA = vol.Schema(
+    {
+        vol.Optional(ATTR_DEVICE_ID): cv.string,
+        vol.Required(ATTR_SENSOR_DEVICE_ID): cv.string,
+        vol.Optional(ATTR_MESH_TYPE, default="2"): cv.string,
     },
 )
 
@@ -262,6 +303,37 @@ def _raise_service_error(
         translation_domain=DOMAIN,
         translation_key=translation_key,
     ) from err
+
+
+def _resolve_command_failure_translation_key(
+    *,
+    failure: dict[str, Any] | None = None,
+    err: LiproApiError | None = None,
+) -> str:
+    """Map command failure context to a user-facing translation key."""
+    if isinstance(failure, dict) and failure.get("reason") == "push_failed":
+        return "command_push_failed"
+
+    code: Any = None
+    if err is not None:
+        code = err.code
+    elif isinstance(failure, dict):
+        code = failure.get("code")
+
+    if code in (ERROR_DEVICE_NOT_CONNECTED, ERROR_DEVICE_NOT_CONNECTED_STR):
+        return "command_device_not_connected"
+    if code in (ERROR_DEVICE_BUSY, ERROR_DEVICE_BUSY_STR):
+        return "command_device_busy"
+    if code in (
+        ERROR_DEVICE_OFFLINE,
+        ERROR_DEVICE_OFFLINE_STR,
+        ERROR_DEVICE_OFFLINE_LEGACY,
+        ERROR_DEVICE_OFFLINE_LEGACY_STR,
+        ERROR_DEVICE_NOT_FOUND,
+        ERROR_DEVICE_NOT_FOUND_STR,
+    ):
+        return "command_device_offline"
+    return "command_failed"
 
 
 async def _async_call_schedule_client(
@@ -610,7 +682,19 @@ async def _async_handle_send_command(
             fallback_device_id=requested_device_id,
         )
         if not success:
-            _raise_service_error("command_failed")
+            failure_context = getattr(coordinator, "last_command_failure", None)
+            _LOGGER.warning(
+                "send_command failed (command=%s, device_id=%s, resolved_serial=%s, failure=%s)",
+                command,
+                requested_device_id,
+                device.serial,
+                failure_context,
+            )
+            _raise_service_error(
+                _resolve_command_failure_translation_key(
+                    failure=failure_context,
+                )
+            )
         return _build_send_command_result(
             device.serial,
             requested_device_id=requested_device_id,
@@ -620,7 +704,10 @@ async def _async_handle_send_command(
         raise
     except LiproApiError as err:
         _LOGGER.warning("API error sending command: %s", err)
-        _raise_service_error("command_failed", err=err)
+        _raise_service_error(
+            _resolve_command_failure_translation_key(err=err),
+            err=err,
+        )
 
 
 async def _async_handle_get_schedules(
@@ -824,6 +911,115 @@ async def _async_handle_submit_developer_feedback(
     }
 
 
+def _raise_optional_capability_error(capability: str, err: LiproApiError) -> NoReturn:
+    """Raise a concise service-layer error for optional diagnostic capabilities."""
+    _LOGGER.warning("Optional capability %s failed: %s", capability, err)
+    message = f"{capability} failed (code={err.code}): {err}"
+    raise HomeAssistantError(message)
+
+
+async def _async_handle_query_command_result(
+    hass: HomeAssistant, call: ServiceCall
+) -> dict[str, Any]:
+    """Developer-only service: query command delivery result by msgSn."""
+    device, coordinator = await _get_device_and_coordinator(hass, call)
+    msg_sn = call.data[ATTR_MSG_SN]
+    try:
+        result = await coordinator.client.query_command_result(
+            msg_sn=msg_sn,
+            device_id=device.serial,
+            device_type=device.device_type,
+        )
+    except LiproApiError as err:
+        _raise_optional_capability_error(SERVICE_QUERY_COMMAND_RESULT, err)
+
+    return {
+        "serial": device.serial,
+        "msg_sn": msg_sn,
+        "result": result,
+    }
+
+
+async def _async_handle_get_city(hass: HomeAssistant, call: ServiceCall) -> dict[str, Any]:
+    """Developer-only service: fetch city metadata."""
+    del call
+    for coordinator in _iter_runtime_coordinators(hass):
+        try:
+            result = await coordinator.client.get_city()
+        except LiproApiError as err:
+            _raise_optional_capability_error(SERVICE_GET_CITY, err)
+        return {"result": result}
+    return {"result": {}}
+
+
+async def _async_handle_query_ota_info(
+    hass: HomeAssistant, call: ServiceCall
+) -> dict[str, Any]:
+    """Developer-only service: query OTA metadata for selected device/group."""
+    device, coordinator = await _get_device_and_coordinator(hass, call)
+    try:
+        result = await coordinator.client.query_ota_info(
+            device_id=device.serial,
+            device_type=device.device_type,
+        )
+    except LiproApiError as err:
+        _raise_optional_capability_error(SERVICE_QUERY_OTA_INFO, err)
+    return {
+        "serial": device.serial,
+        "ota": result,
+    }
+
+
+async def _async_handle_fetch_body_sensor_history(
+    hass: HomeAssistant, call: ServiceCall
+) -> dict[str, Any]:
+    """Developer-only service: fetch body-sensor history payload."""
+    device, coordinator = await _get_device_and_coordinator(hass, call)
+    sensor_device_id = call.data[ATTR_SENSOR_DEVICE_ID]
+    mesh_type = call.data[ATTR_MESH_TYPE]
+
+    try:
+        result = await coordinator.client.fetch_body_sensor_history(
+            device_id=device.serial,
+            device_type=device.device_type,
+            sensor_device_id=sensor_device_id,
+            mesh_type=mesh_type,
+        )
+    except LiproApiError as err:
+        _raise_optional_capability_error(SERVICE_FETCH_BODY_SENSOR_HISTORY, err)
+    return {
+        "serial": device.serial,
+        "sensor_device_id": sensor_device_id,
+        "mesh_type": mesh_type,
+        "result": result,
+    }
+
+
+async def _async_handle_fetch_door_sensor_history(
+    hass: HomeAssistant, call: ServiceCall
+) -> dict[str, Any]:
+    """Developer-only service: fetch door-sensor history payload."""
+    device, coordinator = await _get_device_and_coordinator(hass, call)
+    sensor_device_id = call.data[ATTR_SENSOR_DEVICE_ID]
+    mesh_type = call.data[ATTR_MESH_TYPE]
+
+    try:
+        result = await coordinator.client.fetch_door_sensor_history(
+            device_id=device.serial,
+            device_type=device.device_type,
+            sensor_device_id=sensor_device_id,
+            mesh_type=mesh_type,
+        )
+    except LiproApiError as err:
+        _raise_optional_capability_error(SERVICE_FETCH_DOOR_SENSOR_HISTORY, err)
+    return {
+        "serial": device.serial,
+        "sensor_device_id": sensor_device_id,
+        "mesh_type": mesh_type,
+        "result": result,
+    }
+
+
 _SERVICE_REGISTRATIONS: Final = (
     (
         SERVICE_SEND_COMMAND,
@@ -872,6 +1068,36 @@ _SERVICE_REGISTRATIONS: Final = (
         _async_handle_submit_developer_feedback,
         SERVICE_SUBMIT_DEVELOPER_FEEDBACK_SCHEMA,
         SupportsResponse.OPTIONAL,
+    ),
+    (
+        SERVICE_QUERY_COMMAND_RESULT,
+        _async_handle_query_command_result,
+        SERVICE_QUERY_COMMAND_RESULT_SCHEMA,
+        SupportsResponse.ONLY,
+    ),
+    (
+        SERVICE_GET_CITY,
+        _async_handle_get_city,
+        None,
+        SupportsResponse.ONLY,
+    ),
+    (
+        SERVICE_QUERY_OTA_INFO,
+        _async_handle_query_ota_info,
+        SERVICE_QUERY_OTA_INFO_SCHEMA,
+        SupportsResponse.ONLY,
+    ),
+    (
+        SERVICE_FETCH_BODY_SENSOR_HISTORY,
+        _async_handle_fetch_body_sensor_history,
+        SERVICE_FETCH_SENSOR_HISTORY_SCHEMA,
+        SupportsResponse.ONLY,
+    ),
+    (
+        SERVICE_FETCH_DOOR_SENSOR_HISTORY,
+        _async_handle_fetch_door_sensor_history,
+        SERVICE_FETCH_SENSOR_HISTORY_SCHEMA,
+        SupportsResponse.ONLY,
     ),
 )
 

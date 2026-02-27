@@ -47,6 +47,18 @@ DEFAULT_DEBUG_MODE: Final = False
 CONF_LIGHT_TURN_ON_ON_ADJUST: Final = "light_turn_on_on_adjust"
 DEFAULT_LIGHT_TURN_ON_ON_ADJUST: Final = True
 
+# Options - room/area synchronization policy
+# False (default): preserve user-customized HA areas and use cloud room as fallback.
+# True: always force HA area to match cloud room assignment.
+CONF_ROOM_AREA_SYNC_FORCE: Final = "room_area_sync_force"
+DEFAULT_ROOM_AREA_SYNC_FORCE: Final = False
+
+# Options - command delivery verify via query_command_result
+# False (default): keep existing optimistic pushSuccess behavior.
+# True: after command send, verify delivery result by msgSn.
+CONF_COMMAND_RESULT_VERIFY: Final = "command_result_verify"
+DEFAULT_COMMAND_RESULT_VERIFY: Final = False
+
 # Anonymous share options (device info sharing)
 CONF_ANONYMOUS_SHARE_ENABLED: Final = "anonymous_share_enabled"
 CONF_ANONYMOUS_SHARE_ERRORS: Final = "anonymous_share_errors"

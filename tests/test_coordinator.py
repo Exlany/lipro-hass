@@ -20,12 +20,14 @@ from custom_components.lipro.const import (
     CONF_ENABLE_POWER_MONITORING,
     CONF_MQTT_ENABLED,
     CONF_POWER_QUERY_INTERVAL,
+    CONF_ROOM_AREA_SYNC_FORCE,
     CONF_SCAN_INTERVAL,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
     MAX_MQTT_CACHE_SIZE,
     MQTT_DISCONNECT_NOTIFY_THRESHOLD,
 )
+from custom_components.lipro.const.config import CONF_COMMAND_RESULT_VERIFY
 from custom_components.lipro.core.api import (
     LiproApiError,
     LiproAuthError,
@@ -568,6 +570,8 @@ class TestCoordinatorOptionsHardening:
                 CONF_MQTT_ENABLED: "false",
                 CONF_ENABLE_POWER_MONITORING: "0",
                 CONF_DEBUG_MODE: "true",
+                CONF_ROOM_AREA_SYNC_FORCE: "1",
+                CONF_COMMAND_RESULT_VERIFY: "true",
             }
         )
 
@@ -576,6 +580,8 @@ class TestCoordinatorOptionsHardening:
         assert coordinator._mqtt_enabled is False
         assert coordinator._power_monitoring_enabled is False
         assert coordinator._debug_mode is True
+        assert coordinator._room_area_sync_force is True
+        assert coordinator._command_result_verify is True
 
     def test_should_query_power_handles_invalid_interval_option(self, coordinator):
         coordinator.config_entry = SimpleNamespace(
@@ -717,6 +723,77 @@ class TestCoordinatorSendCommand:
             "dev1", "turnOn", dev.device_type_hex, None, dev.iot_name
         )
         mock_lipro_api_client.send_group_command.assert_not_awaited()
+
+    @pytest.mark.asyncio
+    async def test_send_command_verify_enabled_queries_command_result(
+        self, coordinator, mock_lipro_api_client
+    ):
+        dev = _make_device(serial="dev1", is_group=False)
+        coordinator._command_result_verify = True
+        mock_lipro_api_client.send_command.return_value = {
+            "pushSuccess": True,
+            "msgSn": "682550445474476112",
+        }
+        mock_lipro_api_client.query_command_result = AsyncMock(
+            return_value={"success": True}
+        )
+
+        result = await coordinator.async_send_command(dev, "turnOn")
+
+        assert result is True
+        mock_lipro_api_client.query_command_result.assert_awaited_once_with(
+            msg_sn="682550445474476112",
+            device_id="dev1",
+            device_type=dev.device_type_hex,
+        )
+
+    @pytest.mark.asyncio
+    async def test_send_command_verify_enabled_missing_msgsn_returns_false(
+        self, coordinator, mock_lipro_api_client
+    ):
+        dev = _make_device(serial="dev1", is_group=False)
+        coordinator._command_result_verify = True
+        mock_lipro_api_client.send_command.return_value = {"pushSuccess": True}
+        mock_lipro_api_client.query_command_result = AsyncMock()
+
+        result = await coordinator.async_send_command(dev, "turnOn")
+
+        assert result is False
+        failure = coordinator.last_command_failure
+        assert isinstance(failure, dict)
+        assert failure["reason"] == "command_result_unconfirmed"
+        assert failure["code"] == "command_result_missing_msgsn"
+        assert failure["route"] == "device_direct"
+        assert failure["device_id"] == "dev1"
+        assert failure["command"] == "turnOn"
+        mock_lipro_api_client.query_command_result.assert_not_awaited()
+
+    @pytest.mark.asyncio
+    async def test_send_command_verify_enabled_unconfirmed_returns_false(
+        self, coordinator, mock_lipro_api_client
+    ):
+        dev = _make_device(serial="dev1", is_group=False)
+        coordinator._command_result_verify = True
+        mock_lipro_api_client.send_command.return_value = {
+            "pushSuccess": True,
+            "msgSn": "682550445474476112",
+        }
+        mock_lipro_api_client.query_command_result = AsyncMock(
+            return_value={"status": "pending"}
+        )
+
+        with patch("custom_components.lipro.core.coordinator.asyncio.sleep", new=AsyncMock()):
+            result = await coordinator.async_send_command(dev, "turnOn")
+
+        assert result is False
+        failure = coordinator.last_command_failure
+        assert isinstance(failure, dict)
+        assert failure["reason"] == "command_result_unconfirmed"
+        assert failure["code"] == "command_result_unconfirmed"
+        assert failure["route"] == "device_direct"
+        assert failure["msg_sn"] == "682550445474476112"
+        assert failure["device_id"] == "dev1"
+        assert mock_lipro_api_client.query_command_result.await_count == 3
 
     @pytest.mark.asyncio
     async def test_send_command_group(self, coordinator, mock_lipro_api_client):
@@ -1659,6 +1736,155 @@ class TestCoordinatorStatusQueriesAndNotifications:
             await coordinator._async_remove_stale_devices({"03ab5ccd7cdead"})
 
         registry.async_remove_device.assert_called_once_with("reg-id")
+
+    def test_sync_device_room_assignments_updates_area_when_cloud_room_renamed(
+        self, coordinator
+    ):
+        previous = {
+            "03ab5ccd7c111111": _make_device(serial="03ab5ccd7c111111", name="Lamp A")
+        }
+        previous["03ab5ccd7c111111"].room_name = "主卧"
+
+        current = _make_device(serial="03ab5ccd7c111111", name="Lamp A")
+        current.room_name = "主卧新"
+        coordinator._devices = {"03ab5ccd7c111111": current}
+
+        device_entry = MagicMock(id="dev-entry-1", area_id="area-old")
+        device_registry = MagicMock()
+        device_registry.async_get_device.return_value = device_entry
+
+        area_old = SimpleNamespace(name="主卧")
+        area_new = SimpleNamespace(id="area-new")
+        area_registry = MagicMock()
+        area_registry.async_get_area.return_value = area_old
+        area_registry.async_get_or_create.return_value = area_new
+
+        with (
+            patch(
+                "custom_components.lipro.core.coordinator.dr.async_get",
+                return_value=device_registry,
+            ),
+            patch(
+                "custom_components.lipro.core.coordinator.ar.async_get",
+                return_value=area_registry,
+            ),
+        ):
+            coordinator._sync_device_room_assignments(previous)
+
+        device_registry.async_update_device.assert_called_once_with(
+            "dev-entry-1",
+            suggested_area="主卧新",
+            area_id="area-new",
+        )
+
+    def test_sync_device_room_assignments_keeps_user_custom_area(self, coordinator):
+        previous = {
+            "03ab5ccd7c111111": _make_device(serial="03ab5ccd7c111111", name="Lamp A")
+        }
+        previous["03ab5ccd7c111111"].room_name = "主卧"
+
+        current = _make_device(serial="03ab5ccd7c111111", name="Lamp A")
+        current.room_name = "儿童房"
+        coordinator._devices = {"03ab5ccd7c111111": current}
+
+        device_entry = MagicMock(id="dev-entry-1", area_id="custom-area")
+        device_registry = MagicMock()
+        device_registry.async_get_device.return_value = device_entry
+
+        area_registry = MagicMock()
+        area_registry.async_get_area.return_value = SimpleNamespace(name="手动区域")
+
+        with (
+            patch(
+                "custom_components.lipro.core.coordinator.dr.async_get",
+                return_value=device_registry,
+            ),
+            patch(
+                "custom_components.lipro.core.coordinator.ar.async_get",
+                return_value=area_registry,
+            ),
+        ):
+            coordinator._sync_device_room_assignments(previous)
+
+        device_registry.async_update_device.assert_called_once_with(
+            "dev-entry-1",
+            suggested_area="儿童房",
+        )
+
+    def test_sync_device_room_assignments_force_sync_overrides_user_area(
+        self, coordinator
+    ):
+        previous = {
+            "03ab5ccd7c111111": _make_device(serial="03ab5ccd7c111111", name="Lamp A")
+        }
+        previous["03ab5ccd7c111111"].room_name = "主卧"
+
+        current = _make_device(serial="03ab5ccd7c111111", name="Lamp A")
+        current.room_name = "儿童房"
+        coordinator._devices = {"03ab5ccd7c111111": current}
+        coordinator._room_area_sync_force = True
+
+        device_entry = MagicMock(id="dev-entry-1", area_id="custom-area")
+        device_registry = MagicMock()
+        device_registry.async_get_device.return_value = device_entry
+
+        area_registry = MagicMock()
+        area_registry.async_get_or_create.return_value = SimpleNamespace(id="area-kids")
+
+        with (
+            patch(
+                "custom_components.lipro.core.coordinator.dr.async_get",
+                return_value=device_registry,
+            ),
+            patch(
+                "custom_components.lipro.core.coordinator.ar.async_get",
+                return_value=area_registry,
+            ),
+        ):
+            coordinator._sync_device_room_assignments(previous)
+
+        device_registry.async_update_device.assert_called_once_with(
+            "dev-entry-1",
+            suggested_area="儿童房",
+            area_id="area-kids",
+        )
+
+    def test_sync_device_room_assignments_clears_area_when_room_removed(
+        self, coordinator
+    ):
+        previous = {
+            "03ab5ccd7c111111": _make_device(serial="03ab5ccd7c111111", name="Lamp A")
+        }
+        previous["03ab5ccd7c111111"].room_name = "书房"
+
+        current = _make_device(serial="03ab5ccd7c111111", name="Lamp A")
+        current.room_name = " "
+        coordinator._devices = {"03ab5ccd7c111111": current}
+
+        device_entry = MagicMock(id="dev-entry-1", area_id="area-old")
+        device_registry = MagicMock()
+        device_registry.async_get_device.return_value = device_entry
+
+        area_registry = MagicMock()
+        area_registry.async_get_area.return_value = SimpleNamespace(name="书房")
+
+        with (
+            patch(
+                "custom_components.lipro.core.coordinator.dr.async_get",
+                return_value=device_registry,
+            ),
+            patch(
+                "custom_components.lipro.core.coordinator.ar.async_get",
+                return_value=area_registry,
+            ),
+        ):
+            coordinator._sync_device_room_assignments(previous)
+
+        device_registry.async_update_device.assert_called_once_with(
+            "dev-entry-1",
+            suggested_area=None,
+            area_id=None,
+        )
 
     @pytest.mark.asyncio
     async def test_trigger_reauth_creates_notification_and_starts_reauth(

@@ -39,6 +39,7 @@ from .const import (
     CONF_POWER_QUERY_INTERVAL,
     CONF_REFRESH_TOKEN,
     CONF_REQUEST_TIMEOUT,
+    CONF_ROOM_AREA_SYNC_FORCE,
     CONF_SCAN_INTERVAL,
     CONF_USER_ID,
     DEFAULT_ANONYMOUS_SHARE_ENABLED,
@@ -49,6 +50,7 @@ from .const import (
     DEFAULT_MQTT_ENABLED,
     DEFAULT_POWER_QUERY_INTERVAL,
     DEFAULT_REQUEST_TIMEOUT,
+    DEFAULT_ROOM_AREA_SYNC_FORCE,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
     MAX_POWER_QUERY_INTERVAL,
@@ -58,6 +60,7 @@ from .const import (
     MIN_REQUEST_TIMEOUT,
     MIN_SCAN_INTERVAL,
 )
+from .const.config import CONF_COMMAND_RESULT_VERIFY, DEFAULT_COMMAND_RESULT_VERIFY
 from .core.api import LiproApiError, LiproAuthError, LiproClient, LiproConnectionError
 
 _LOGGER = logging.getLogger(__name__)
@@ -520,6 +523,20 @@ class LiproOptionsFlow(OptionsFlow):
             options,
             CONF_LIGHT_TURN_ON_ON_ADJUST,
             DEFAULT_LIGHT_TURN_ON_ON_ADJUST,
+        )
+        schema[bool_field] = bool_validator
+
+        bool_field, bool_validator = _build_bool_option_field(
+            options,
+            CONF_ROOM_AREA_SYNC_FORCE,
+            DEFAULT_ROOM_AREA_SYNC_FORCE,
+        )
+        schema[bool_field] = bool_validator
+
+        bool_field, bool_validator = _build_bool_option_field(
+            options,
+            CONF_COMMAND_RESULT_VERIFY,
+            DEFAULT_COMMAND_RESULT_VERIFY,
         )
         schema[bool_field] = bool_validator
 

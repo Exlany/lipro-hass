@@ -97,6 +97,32 @@ class TestLiproDevice:
         # Should fall back to formatted device_type
         assert device.device_type_hex == "ff000063"  # 99 in hex = 0x63
 
+    def test_device_type_hex_from_iot_name_literal_fallback(self):
+        """When physicalModel is missing, iotName literal should resolve type."""
+        device = LiproDevice(
+            device_number=1,
+            serial="03ab5ccd7caaaaaa",
+            name="Fan by iotName",
+            device_type=1,
+            iot_name="fanLight",
+            physical_model=None,
+        )
+
+        assert device.device_type_hex == "ff000004"
+
+    def test_device_type_hex_from_iot_name_is_case_insensitive(self):
+        """iotName fallback lookup should be case-insensitive."""
+        device = LiproDevice(
+            device_number=1,
+            serial="03ab5ccd7caaaaaa",
+            name="FloorLight by iotName",
+            device_type=1,
+            iot_name="FloorLight",
+            physical_model=None,
+        )
+
+        assert device.device_type_hex == "ff000009"
+
     def test_unique_id(self):
         """Test unique ID generation."""
         device = LiproDevice(

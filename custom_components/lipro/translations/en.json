@@ -65,13 +65,17 @@
           "power_query_interval": "Power query interval (seconds)",
           "request_timeout": "API request timeout (seconds)",
           "debug_mode": "Enable debug mode (diagnostics)",
-          "light_turn_on_on_adjust": "Auto turn on when adjusting brightness/color temp while off"
+          "light_turn_on_on_adjust": "Auto turn on when adjusting brightness/color temp while off",
+          "room_area_sync_force": "Force sync HA area from cloud room",
+          "command_result_verify": "Verify command delivery result"
         },
         "data_description": {
           "power_query_interval": "How often to query power data for outlets (30-300 seconds). Only applies when power monitoring is enabled.",
           "request_timeout": "Timeout for API requests (10-60 seconds). Increase if you have a slow network.",
           "debug_mode": "Capture a sanitized runtime diagnostics report with recent command traces. Enabling this also enables verbose logging.",
-          "light_turn_on_on_adjust": "If enabled, adjusting brightness or color temperature while the light is off will also turn it on. If disabled, adjustments will not turn the light on."
+          "light_turn_on_on_adjust": "If enabled, adjusting brightness or color temperature while the light is off will also turn it on. If disabled, adjustments will not turn the light on.",
+          "room_area_sync_force": "Default off (recommended): preserve user-customized HA areas and use cloud room as fallback. Turn on to always let cloud room overwrite HA area.",
+          "command_result_verify": "Default off (recommended): trust pushSuccess for lower latency. Turn on to confirm command result via msgSn and return clearer failures when cloud delivery is not confirmed."
         }
       }
     }
@@ -316,6 +320,18 @@
     },
     "command_failed": {
       "message": "Failed to send command to device."
+    },
+    "command_device_not_connected": {
+      "message": "Device is not connected. Check the device network and try again."
+    },
+    "command_device_busy": {
+      "message": "Device is busy. Please wait a moment and try again."
+    },
+    "command_device_offline": {
+      "message": "Device appears offline or unavailable. Try refreshing device status."
+    },
+    "command_push_failed": {
+      "message": "Cloud accepted the command but push delivery failed."
     },
     "schedule_fetch_failed": {
       "message": "Failed to fetch device schedules."

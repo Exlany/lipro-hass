@@ -28,8 +28,14 @@ from ..const.api import (
     ERROR_DEVICE_BUSY_STR,
     ERROR_DEVICE_NOT_CONNECTED,
     ERROR_DEVICE_NOT_CONNECTED_STR,
+    ERROR_DEVICE_NOT_FOUND,
+    ERROR_DEVICE_NOT_FOUND_STR,
     ERROR_DEVICE_OFFLINE,
+    ERROR_DEVICE_OFFLINE_LEGACY,
+    ERROR_DEVICE_OFFLINE_LEGACY_STR,
     ERROR_DEVICE_OFFLINE_STR,
+    ERROR_DEVICE_UPDATING,
+    ERROR_DEVICE_UPDATING_STR,
     ERROR_INVALID_PARAM,
     ERROR_INVALID_PARAM_STR,
     ERROR_NO_PERMISSION,
@@ -51,13 +57,18 @@ from ..const.api import (
     PATH_BLE_SCHEDULE_ADD,
     PATH_BLE_SCHEDULE_DELETE,
     PATH_BLE_SCHEDULE_GET,
+    PATH_FETCH_BODY_SENSOR_HISTORY,
     PATH_FETCH_DEVICES,
+    PATH_FETCH_DOOR_SENSOR_HISTORY,
+    PATH_GET_CITY,
     PATH_GET_MQTT_CONFIG,
     PATH_GET_PRODUCT_CONFIGS,
     PATH_LOGIN,
+    PATH_QUERY_COMMAND_RESULT,
     PATH_QUERY_CONNECT_STATUS,
     PATH_QUERY_DEVICE_STATUS,
     PATH_QUERY_MESH_GROUP_STATUS,
+    PATH_QUERY_OTA_INFO,
     PATH_QUERY_OUTLET_POWER,
     PATH_REFRESH_TOKEN,
     PATH_SCHEDULE_ADD,
@@ -129,6 +140,15 @@ _SENSITIVE_PATTERNS = (
     (re.compile(r'"secretKey"\s*:\s*"[^"]*"'), '"secretKey": "***"'),
     (re.compile(r'"password"\s*:\s*"[^"]*"'), '"password": "***"'),
     (re.compile(r'"phone"\s*:\s*"(\d{3})\d{4}(\d{4})"'), r'"phone": "\1****\2"'),
+    (re.compile(r'"deviceName"\s*:\s*"[^"]*"'), '"deviceName": "***"'),
+    (re.compile(r'"roomName"\s*:\s*"[^"]*"'), '"roomName": "***"'),
+    (re.compile(r'"wifi_ssid"\s*:\s*"[^"]*"'), '"wifi_ssid": "***"'),
+    (re.compile(r'"wifiSsid"\s*:\s*"[^"]*"'), '"wifiSsid": "***"'),
+    (re.compile(r'"mac"\s*:\s*"[^"]*"'), '"mac": "***"'),
+    (re.compile(r'"bleMac"\s*:\s*"[^"]*"'), '"bleMac": "***"'),
+    (re.compile(r'"ip"\s*:\s*"[^"]*"'), '"ip": "***"'),
+    (re.compile(r'"deviceId"\s*:\s*"[^"]*"'), '"deviceId": "***"'),
+    (re.compile(r'"gatewayDeviceId"\s*:\s*"[^"]*"'), '"gatewayDeviceId": "***"'),
 )
 
 _IOT_DEVICE_ID_PATTERN = re.compile(
@@ -1336,8 +1356,14 @@ class LiproClient:
         return normalized in (
             ERROR_DEVICE_OFFLINE,
             ERROR_DEVICE_OFFLINE_STR,
+            ERROR_DEVICE_OFFLINE_LEGACY,
+            ERROR_DEVICE_OFFLINE_LEGACY_STR,
             ERROR_DEVICE_NOT_CONNECTED,
             ERROR_DEVICE_NOT_CONNECTED_STR,
+            ERROR_DEVICE_NOT_FOUND,
+            ERROR_DEVICE_NOT_FOUND_STR,
+            ERROR_DEVICE_UPDATING,
+            ERROR_DEVICE_UPDATING_STR,
             ERROR_NO_PERMISSION,
             ERROR_NO_PERMISSION_STR,
         )
@@ -1438,26 +1464,68 @@ class LiproClient:
         except LiproApiError as err:
             if not self._is_retriable_device_error(err):
                 raise
-            _LOGGER.warning(
-                "Batch %s query failed (%s offline?): %s. "
-                "Falling back to individual queries.",
-                item_name,
-                item_name,
-                err,
-            )
+            normalized_code = _normalize_response_code(err.code)
+            if normalized_code in (
+                ERROR_DEVICE_OFFLINE,
+                ERROR_DEVICE_OFFLINE_STR,
+                ERROR_DEVICE_OFFLINE_LEGACY,
+                ERROR_DEVICE_OFFLINE_LEGACY_STR,
+                ERROR_DEVICE_NOT_FOUND,
+                ERROR_DEVICE_NOT_FOUND_STR,
+            ):
+                _LOGGER.debug(
+                    "Batch %s query failed with expected offline code (%s). "
+                    "Falling back to individual queries.",
+                    item_name,
+                    normalized_code,
+                )
+            else:
+                _LOGGER.warning(
+                    "Batch %s query failed (code=%s, endpoint=%s): %s. "
+                    "Falling back to individual queries.",
+                    item_name,
+                    normalized_code,
+                    path,
+                    err,
+                )
             all_results: list[dict[str, Any]] = []
+            failed_single_queries = 0
+            single_error_codes: dict[str, int] = {}
             for item_id in ids:
                 try:
                     single_result = await self._iot_request(path, {body_key: [item_id]})
                     all_results.extend(self._extract_data_list(single_result))
                 except LiproApiError as single_err:
+                    failed_single_queries += 1
+                    single_code = str(_normalize_response_code(single_err.code))
+                    single_error_codes[single_code] = (
+                        single_error_codes.get(single_code, 0) + 1
+                    )
                     _LOGGER.debug(
-                        "Failed to query %s %s: %s (code: %s)",
+                        "Failed to query %s %s: %s (code=%s, endpoint=%s)",
                         item_name,
                         item_id,
                         single_err,
-                        single_err.code,
+                        single_code,
+                        path,
                     )
+
+            if ids and not all_results and failed_single_queries == len(ids):
+                dominant_single_code = (
+                    max(single_error_codes.items(), key=lambda item: item[1])[0]
+                    if single_error_codes
+                    else "unknown"
+                )
+                _LOGGER.warning(
+                    "Batch %s query fallback returned no data: %d/%d single queries failed "
+                    "(batch_code=%s, dominant_single_code=%s, endpoint=%s)",
+                    item_name,
+                    failed_single_queries,
+                    len(ids),
+                    normalized_code,
+                    dominant_single_code,
+                    path,
+                )
             return all_results
 
     async def query_device_status(self, device_ids: list[str]) -> list[dict[str, Any]]:
@@ -1758,6 +1826,85 @@ class LiproClient:
                 return {}
             raise
 
+    async def query_command_result(
+        self,
+        *,
+        msg_sn: str,
+        device_id: str,
+        device_type: int | str,
+    ) -> dict[str, Any]:
+        """Query async command delivery result by message serial number."""
+        result = await self._iot_request(
+            PATH_QUERY_COMMAND_RESULT,
+            {
+                "msgSn": msg_sn,
+                "deviceId": device_id,
+                "deviceType": self._to_device_type_hex(device_type),
+            },
+        )
+        return self._require_mapping_response(PATH_QUERY_COMMAND_RESULT, result)
+
+    async def get_city(self) -> dict[str, Any]:
+        """Get current city metadata from IoT backend."""
+        result = await self._iot_request(PATH_GET_CITY, {})
+        return self._require_mapping_response(PATH_GET_CITY, result)
+
+    async def query_ota_info(
+        self,
+        *,
+        device_id: str,
+        device_type: int | str,
+    ) -> list[dict[str, Any]]:
+        """Query firmware OTA info for a device/group."""
+        result = await self._iot_request(
+            PATH_QUERY_OTA_INFO,
+            {
+                "deviceId": device_id,
+                "deviceType": self._to_device_type_hex(device_type),
+            },
+        )
+        return self._extract_data_list(result)
+
+    async def fetch_body_sensor_history(
+        self,
+        *,
+        device_id: str,
+        device_type: int | str,
+        sensor_device_id: str,
+        mesh_type: str,
+    ) -> dict[str, Any]:
+        """Fetch body sensor history snapshot for diagnostics."""
+        result = await self._iot_request(
+            PATH_FETCH_BODY_SENSOR_HISTORY,
+            {
+                "deviceId": device_id,
+                "deviceType": self._to_device_type_hex(device_type),
+                "sensorDeviceId": sensor_device_id,
+                "meshType": mesh_type,
+            },
+        )
+        return self._require_mapping_response(PATH_FETCH_BODY_SENSOR_HISTORY, result)
+
+    async def fetch_door_sensor_history(
+        self,
+        *,
+        device_id: str,
+        device_type: int | str,
+        sensor_device_id: str,
+        mesh_type: str,
+    ) -> dict[str, Any]:
+        """Fetch door sensor history snapshot for diagnostics."""
+        result = await self._iot_request(
+            PATH_FETCH_DOOR_SENSOR_HISTORY,
+            {
+                "deviceId": device_id,
+                "deviceType": self._to_device_type_hex(device_type),
+                "sensorDeviceId": sensor_device_id,
+                "meshType": mesh_type,
+            },
+        )
+        return self._require_mapping_response(PATH_FETCH_DOOR_SENSOR_HISTORY, result)
+
     # ==================== Timing Task APIs ====================
 
     @staticmethod
@@ -1960,6 +2107,29 @@ class LiproClient:
             raise last_error
         return []
 
+    def _resolve_ble_schedule_candidate_ids(
+        self,
+        *,
+        device_id: str,
+        mesh_gateway_id: str = "",
+        mesh_member_ids: list[str] | None = None,
+    ) -> list[str]:
+        """Resolve candidate IoT IDs for BLE schedule APIs.
+
+        BLE schedule endpoints are currently the most reliable path in real traffic.
+        """
+        if self._is_mesh_group_id(device_id):
+            return self._resolve_mesh_schedule_candidate_ids(
+                device_id,
+                mesh_gateway_id=mesh_gateway_id,
+                mesh_member_ids=mesh_member_ids,
+            )
+
+        normalized = _normalize_iot_device_id(device_id)
+        if normalized is None:
+            return []
+        return [normalized]
+
     async def _delete_mesh_schedules_by_candidates(
         self,
         candidate_device_ids: list[str],
@@ -2026,7 +2196,23 @@ class LiproClient:
             mesh_gateway_id=mesh_gateway_id,
             mesh_member_ids=mesh_member_ids,
         )
-        if candidate_ids:
+        ble_candidate_ids = self._resolve_ble_schedule_candidate_ids(
+            device_id=device_id,
+            mesh_gateway_id=mesh_gateway_id,
+            mesh_member_ids=mesh_member_ids,
+        )
+        if ble_candidate_ids:
+            try:
+                return await self._get_mesh_schedules_by_candidates(ble_candidate_ids)
+            except LiproApiError as err:
+                if not self._is_invalid_param_error_code(err.code):
+                    raise
+                _LOGGER.debug(
+                    "BLE schedule GET rejected for %s (code=%s), fallback to standard endpoint",
+                    device_id,
+                    err.code,
+                )
+        elif candidate_ids:
             return await self._get_mesh_schedules_by_candidates(candidate_ids)
 
         return await self._request_schedule_timings(
@@ -2086,7 +2272,28 @@ class LiproClient:
             mesh_gateway_id=mesh_gateway_id,
             mesh_member_ids=mesh_member_ids,
         )
-        if candidate_ids:
+        ble_candidate_ids = self._resolve_ble_schedule_candidate_ids(
+            device_id=device_id,
+            mesh_gateway_id=mesh_gateway_id,
+            mesh_member_ids=mesh_member_ids,
+        )
+        if ble_candidate_ids:
+            try:
+                return await self._add_mesh_schedule_by_candidates(
+                    ble_candidate_ids,
+                    days=days,
+                    times=times,
+                    events=events,
+                )
+            except LiproApiError as err:
+                if not self._is_invalid_param_error_code(err.code):
+                    raise
+                _LOGGER.debug(
+                    "BLE schedule ADD rejected for %s (code=%s), fallback to standard endpoint",
+                    device_id,
+                    err.code,
+                )
+        elif candidate_ids:
             return await self._add_mesh_schedule_by_candidates(
                 candidate_ids,
                 days=days,
@@ -2136,7 +2343,26 @@ class LiproClient:
             mesh_gateway_id=mesh_gateway_id,
             mesh_member_ids=mesh_member_ids,
         )
-        if candidate_ids:
+        ble_candidate_ids = self._resolve_ble_schedule_candidate_ids(
+            device_id=device_id,
+            mesh_gateway_id=mesh_gateway_id,
+            mesh_member_ids=mesh_member_ids,
+        )
+        if ble_candidate_ids:
+            try:
+                return await self._delete_mesh_schedules_by_candidates(
+                    ble_candidate_ids,
+                    schedule_ids=schedule_ids,
+                )
+            except LiproApiError as err:
+                if not self._is_invalid_param_error_code(err.code):
+                    raise
+                _LOGGER.debug(
+                    "BLE schedule DELETE rejected for %s (code=%s), fallback to standard endpoint",
+                    device_id,
+                    err.code,
+                )
+        elif candidate_ids:
             return await self._delete_mesh_schedules_by_candidates(
                 candidate_ids,
                 schedule_ids=schedule_ids,
