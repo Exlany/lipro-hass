@@ -73,6 +73,31 @@ def test_parse_remote_manifest_payload_derives_from_firmware_list():
     assert versions_by_type == {"light|21p3||ff000001": frozenset({"7.10.9"})}
 
 
+def test_parse_remote_manifest_payload_derives_type_keys_without_certification_key():
+    """Rows without certification_key/source should still derive type keys from metadata."""
+    from custom_components.lipro.update import _parse_remote_manifest_payload
+
+    versions, versions_by_type = _parse_remote_manifest_payload(
+        {
+            "firmware_list": [
+                {
+                    "version": "7.10.9",
+                    "certified": True,
+                    "deviceType": "ff000001",
+                    "bleName": "21P3",
+                    "physicalModel": "light",
+                }
+            ]
+        }
+    )
+
+    assert versions == frozenset({"7.10.9"})
+    assert versions_by_type["ff000001"] == frozenset({"7.10.9"})
+    assert versions_by_type["21p3"] == frozenset({"7.10.9"})
+    assert versions_by_type["light"] == frozenset({"7.10.9"})
+    assert versions_by_type["light|21p3||ff000001"] == frozenset({"7.10.9"})
+
+
 @pytest.mark.asyncio
 async def test_update_async_setup_entry_filters_groups(mock_coordinator, make_device):
     """Update platform should only create entities for real devices."""

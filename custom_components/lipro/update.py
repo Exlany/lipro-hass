@@ -182,6 +182,74 @@ def _normalize_manifest_versions_by_type(
     return result
 
 
+def _pick_first_manifest_text(data: dict[str, Any], keys: tuple[str, ...]) -> str | None:
+    """Pick first non-empty text from one dict node."""
+    for key in keys:
+        value = data.get(key)
+        if value is None:
+            continue
+        text = str(value).strip()
+        if text:
+            return text
+    return None
+
+
+def _coerce_manifest_bool(value: Any) -> bool | None:
+    """Parse bool-like value in manifest payload."""
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, (int, float)):
+        if value in (0, 1):
+            return bool(value)
+        return None
+    if isinstance(value, str):
+        normalized = value.strip().lower()
+        if normalized in {"1", "true", "yes", "on", "certified", "passed"}:
+            return True
+        if normalized in {"0", "false", "no", "off", "uncertified", "failed"}:
+            return False
+    return None
+
+
+def _add_manifest_candidate(target: list[str], value: str | None) -> None:
+    """Append one normalized candidate key if valid and non-duplicate."""
+    if value is None:
+        return
+    normalized = value.strip().lower()
+    if normalized and normalized not in target:
+        target.append(normalized)
+
+
+def _build_manifest_row_type_candidates(row: dict[str, Any]) -> list[str]:
+    """Build type-key candidates from one firmware_list row."""
+    candidates: list[str] = []
+    _add_manifest_candidate(
+        candidates,
+        _pick_first_manifest_text(row, ("fingerprint", "deviceFingerprint")),
+    )
+
+    row_device_type = _pick_first_manifest_text(row, ("deviceType", "iotType", "type"))
+    row_ble_name = _pick_first_manifest_text(row, ("bleName",))
+    row_product_name = _pick_first_manifest_text(row, ("productName",))
+    row_iot_name = _pick_first_manifest_text(row, ("iotName", "fwIotName"))
+    row_product_id = _pick_first_manifest_text(row, _PRODUCT_ID_KEYS)
+    row_physical_model = _pick_first_manifest_text(row, _PHYSICAL_MODEL_KEYS)
+    row_name = row_iot_name or row_ble_name or row_product_name
+    if row_physical_model and row_name and row_device_type:
+        _add_manifest_candidate(
+            candidates,
+            f"{row_physical_model}|{row_name}|{row_product_id or ''}|{row_device_type}",
+        )
+
+    _add_manifest_candidate(candidates, row_device_type)
+    _add_manifest_candidate(candidates, row_ble_name)
+    _add_manifest_candidate(candidates, row_product_name)
+    _add_manifest_candidate(candidates, row_iot_name)
+    _add_manifest_candidate(candidates, row_product_id)
+    _add_manifest_candidate(candidates, row_physical_model)
+    return candidates
+
+
 def _parse_remote_manifest_payload(
     payload: Any,
 ) -> tuple[frozenset[str], dict[str, frozenset[str]]]:
@@ -196,54 +264,32 @@ def _parse_remote_manifest_payload(
     if not isinstance(rows, list):
         return frozenset(), {}
 
-    def pick_first_text(data: dict[str, Any], keys: tuple[str, ...]) -> str | None:
-        for key in keys:
-            value = data.get(key)
-            if value is None:
-                continue
-            text = str(value).strip()
-            if text:
-                return text
-        return None
-
-    def coerce_bool(value: Any) -> bool | None:
-        if isinstance(value, bool):
-            return value
-        if isinstance(value, (int, float)):
-            if value in (0, 1):
-                return bool(value)
-            return None
-        if isinstance(value, str):
-            normalized = value.strip().lower()
-            if normalized in {"1", "true", "yes", "on", "certified", "passed"}:
-                return True
-            if normalized in {"0", "false", "no", "off", "uncertified", "failed"}:
-                return False
-        return None
-
     derived_versions: set[str] = set()
     derived_by_type: dict[str, set[str]] = {}
     for row in rows:
         if not isinstance(row, dict):
             continue
 
-        version = pick_first_text(
+        version = _pick_first_manifest_text(
             row,
             _LATEST_VERSION_KEYS + _COMMON_VERSION_KEYS,
         )
         if version is None:
             continue
 
-        certified = coerce_bool(row.get("certified"))
+        certified = _coerce_manifest_bool(row.get("certified"))
         if certified is False:
             continue
         source = str(row.get("certification_source") or "").strip().lower()
         if certified is True or source in {"type", "global"}:
             derived_versions.add(version)
 
-        certification_key = str(row.get("certification_key") or "").strip().lower()
-        if source == "type" and certification_key:
-            derived_by_type.setdefault(certification_key, set()).add(version)
+        if source != "global":
+            row_type_candidates = _build_manifest_row_type_candidates(row)
+            certification_key = str(row.get("certification_key") or "").strip().lower()
+            _add_manifest_candidate(row_type_candidates, certification_key)
+            for key in row_type_candidates:
+                derived_by_type.setdefault(key, set()).add(version)
 
     if derived_versions or derived_by_type:
         return frozenset(derived_versions), {
