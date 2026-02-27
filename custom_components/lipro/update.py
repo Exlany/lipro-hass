@@ -555,30 +555,28 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
             normalized_device_type = (
                 device_type.lower() if device_type else self.device.device_type_hex.lower()
             )
-            if self._matches_certified_versions(
-                self._remote_versions_by_type.get(normalized_device_type, frozenset()),
+            remote_type_versions = self._remote_versions_by_type.get(normalized_device_type)
+            if remote_type_versions is not None and self._matches_certified_versions(
+                remote_type_versions,
                 installed=installed,
                 latest=latest,
             ):
                 return True, "remote_manifest.type"
-            if self._matches_certified_versions(
-                self._remote_verified_versions,
-                installed=installed,
-                latest=latest,
+            if remote_type_versions is None and self._matches_certified_versions(
+                self._remote_verified_versions, installed=installed, latest=latest
             ):
                 return True, "remote_manifest"
 
             verified_versions, versions_by_type = _load_verified_firmware_manifest()
-            if self._matches_certified_versions(
-                versions_by_type.get(normalized_device_type, frozenset()),
+            local_type_versions = versions_by_type.get(normalized_device_type)
+            if local_type_versions is not None and self._matches_certified_versions(
+                local_type_versions,
                 installed=installed,
                 latest=latest,
             ):
                 return True, "manifest.type"
-            if self._matches_certified_versions(
-                verified_versions,
-                installed=installed,
-                latest=latest,
+            if local_type_versions is None and self._matches_certified_versions(
+                verified_versions, installed=installed, latest=latest
             ):
                 return True, "manifest"
 
