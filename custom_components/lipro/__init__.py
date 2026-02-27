@@ -82,6 +82,7 @@ PLATFORMS: list[Platform] = [
     Platform.BINARY_SENSOR,
     Platform.SENSOR,
     Platform.SELECT,
+    Platform.UPDATE,
 ]
 
 type LiproConfigEntry = ConfigEntry[LiproDataUpdateCoordinator]

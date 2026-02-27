@@ -210,6 +210,11 @@
           "gear_3": "Cool White"
         }
       }
+    },
+    "update": {
+      "firmware": {
+        "name": "Firmware"
+      }
     }
   },
   "services": {
@@ -380,6 +385,21 @@
     },
     "ota_update_version_check_failed": {
       "message": "Failed to query OTA metadata before upgrade. Upgrade is blocked for safety."
+    },
+    "firmware_no_update": {
+      "message": "No firmware update is currently available for this device."
+    },
+    "firmware_version_mismatch": {
+      "message": "Requested firmware version {version} is not available."
+    },
+    "firmware_unverified_confirm_required": {
+      "message": "This firmware is not certified. Click install again within {seconds} seconds to confirm."
+    },
+    "firmware_install_unsupported": {
+      "message": "The cloud did not provide an install command for this firmware package."
+    },
+    "firmware_install_failed": {
+      "message": "Failed to trigger firmware installation."
     },
     "mqtt_disconnected": {
       "title": "Lipro MQTT Disconnected",

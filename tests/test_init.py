@@ -107,8 +107,8 @@ class TestPlatforms:
     """Tests for the PLATFORMS list."""
 
     def test_platforms_count(self):
-        """Test PLATFORMS has exactly 8 entries."""
-        assert len(PLATFORMS) == 8
+        """Test PLATFORMS has exactly 9 entries."""
+        assert len(PLATFORMS) == 9
 
     def test_platforms_is_list(self):
         """Test PLATFORMS is a list."""
@@ -145,6 +145,10 @@ class TestPlatforms:
     def test_platforms_contains_select(self):
         """Test PLATFORMS includes Platform.SELECT."""
         assert Platform.SELECT in PLATFORMS
+
+    def test_platforms_contains_update(self):
+        """Test PLATFORMS includes Platform.UPDATE."""
+        assert Platform.UPDATE in PLATFORMS
 
     def test_platforms_no_duplicates(self):
         """Test PLATFORMS has no duplicate entries."""

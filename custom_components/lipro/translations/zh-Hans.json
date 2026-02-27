@@ -210,6 +210,11 @@
           "gear_3": "冷白光"
         }
       }
+    },
+    "update": {
+      "firmware": {
+        "name": "固件"
+      }
     }
   },
   "services": {
@@ -380,6 +385,21 @@
     },
     "ota_update_version_check_failed": {
       "message": "升级前查询 OTA 元数据失败。为安全起见，已阻止升级。"
+    },
+    "firmware_no_update": {
+      "message": "当前设备暂无可用固件更新。"
+    },
+    "firmware_version_mismatch": {
+      "message": "请求的固件版本 {version} 当前不可用。"
+    },
+    "firmware_unverified_confirm_required": {
+      "message": "该固件未通过认证。请在 {seconds} 秒内再次点击安装以确认升级。"
+    },
+    "firmware_install_unsupported": {
+      "message": "云端未返回该固件包的安装命令。"
+    },
+    "firmware_install_failed": {
+      "message": "触发固件安装失败。"
     },
     "mqtt_disconnected": {
       "title": "Lipro MQTT 连接已断开",
