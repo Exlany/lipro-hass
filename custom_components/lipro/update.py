@@ -454,7 +454,11 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
         installed = self.device.firmware_version or self._first_text(row, _CURRENT_VERSION_KEYS)
         latest = self._resolve_latest_version(row, installed)
         update_available = self._resolve_update_available(row, installed, latest)
-        certified, certification_source = self._resolve_certification(row, latest)
+        certified, certification_source = self._resolve_certification(
+            row,
+            installed,
+            latest,
+        )
         install_command = self._extract_install_command(row)
         return _OtaCandidate(
             installed_version=installed,
@@ -511,6 +515,7 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
     def _resolve_certification(
         self,
         row: dict[str, Any] | None,
+        installed: str | None,
         latest: str | None,
     ) -> tuple[bool, str]:
         """Resolve certification state by flag and certification-version list."""
@@ -519,7 +524,11 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
             return explicit_flag, "flag"
 
         certified_versions = self._extract_version_set(row, _CERTIFIED_VERSION_KEYS)
-        if latest and latest in certified_versions:
+        if self._matches_certified_versions(
+            certified_versions,
+            installed=installed,
+            latest=latest,
+        ):
             return True, "list"
 
         certification_node = row.get("certification") if isinstance(row, dict) else None
@@ -532,7 +541,11 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
                 certification_node,
                 _CERTIFIED_VERSION_KEYS,
             )
-            if latest and latest in node_versions:
+            if self._matches_certified_versions(
+                node_versions,
+                installed=installed,
+                latest=latest,
+            ):
                 return True, "certification.list"
 
         if latest:
@@ -542,18 +555,65 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
             normalized_device_type = (
                 device_type.lower() if device_type else self.device.device_type_hex.lower()
             )
-            if latest in self._remote_versions_by_type.get(normalized_device_type, frozenset()):
+            if self._matches_certified_versions(
+                self._remote_versions_by_type.get(normalized_device_type, frozenset()),
+                installed=installed,
+                latest=latest,
+            ):
                 return True, "remote_manifest.type"
-            if latest in self._remote_verified_versions:
+            if self._matches_certified_versions(
+                self._remote_verified_versions,
+                installed=installed,
+                latest=latest,
+            ):
                 return True, "remote_manifest"
 
             verified_versions, versions_by_type = _load_verified_firmware_manifest()
-            if latest in versions_by_type.get(normalized_device_type, frozenset()):
+            if self._matches_certified_versions(
+                versions_by_type.get(normalized_device_type, frozenset()),
+                installed=installed,
+                latest=latest,
+            ):
                 return True, "manifest.type"
-            if latest in verified_versions:
+            if self._matches_certified_versions(
+                verified_versions,
+                installed=installed,
+                latest=latest,
+            ):
                 return True, "manifest"
 
         return False, "none"
+
+    def _matches_certified_versions(
+        self,
+        certified_versions: set[str] | frozenset[str],
+        *,
+        installed: str | None,
+        latest: str | None,
+    ) -> bool:
+        """Return True when certification list authorizes current upgrade."""
+        if not certified_versions:
+            return False
+
+        # Keep exact-target match for deterministic OTA payloads.
+        if latest and latest in certified_versions:
+            return True
+
+        # Relaxed rule: any certified version newer than current firmware
+        # means this device generation is considered certified for upgrade.
+        if installed is None:
+            return False
+        return any(
+            self._is_version_newer(candidate, installed)
+            for candidate in certified_versions
+        )
+
+    def _is_version_newer(self, candidate: str, current: str) -> bool:
+        """Compare versions with HA helper, fallback to lexicographical order."""
+        try:
+            return self.version_is_newer(candidate, current)
+        except Exception:  # noqa: BLE001
+            return candidate != current and candidate > current
 
     def _extract_install_command(self, row: dict[str, Any] | None) -> _InstallCommand | None:
         """Extract install command payload from OTA row."""
