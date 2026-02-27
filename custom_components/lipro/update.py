@@ -192,12 +192,82 @@ def _parse_remote_manifest_payload(
     if not isinstance(payload, dict):
         return frozenset(), {}
 
+    # New worker payload shape: {"summary": {...}, "firmware_list": [...]}
+    # Keep backward compatibility with legacy top-level manifest fields.
+    summary = payload.get("summary")
+    manifest_node = summary if isinstance(summary, dict) else payload
+
     versions = _normalize_manifest_version_list(
-        payload.get("verified_versions") or payload.get("versions")
+        manifest_node.get("verified_versions") or manifest_node.get("versions")
     )
     versions_by_type = _normalize_manifest_versions_by_type(
-        payload.get("verified_versions_by_type") or payload.get("versions_by_type")
+        manifest_node.get("verified_versions_by_type")
+        or manifest_node.get("versions_by_type")
     )
+
+    if versions or versions_by_type:
+        return versions, versions_by_type
+
+    rows = payload.get("firmware_list")
+    if not isinstance(rows, list):
+        return versions, versions_by_type
+
+    def pick_first_text(data: dict[str, Any], keys: tuple[str, ...]) -> str | None:
+        for key in keys:
+            value = data.get(key)
+            if value is None:
+                continue
+            text = str(value).strip()
+            if text:
+                return text
+        return None
+
+    def coerce_bool(value: Any) -> bool | None:
+        if isinstance(value, bool):
+            return value
+        if isinstance(value, (int, float)):
+            if value in (0, 1):
+                return bool(value)
+            return None
+        if isinstance(value, str):
+            normalized = value.strip().lower()
+            if normalized in {"1", "true", "yes", "on", "certified", "passed"}:
+                return True
+            if normalized in {"0", "false", "no", "off", "uncertified", "failed"}:
+                return False
+        return None
+
+    derived_versions: set[str] = set()
+    derived_by_type: dict[str, set[str]] = {}
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+
+        version = pick_first_text(
+            row,
+            _LATEST_VERSION_KEYS + _COMMON_VERSION_KEYS,
+        )
+        if version is None:
+            continue
+
+        certified = coerce_bool(row.get("certified"))
+        if certified is False:
+            continue
+        source = str(row.get("certification_source") or "").strip().lower()
+        if certified is True or source in {"type", "global"}:
+            derived_versions.add(version)
+
+        certification_key = str(row.get("certification_key") or "").strip().lower()
+        if source == "type" and certification_key:
+            derived_by_type.setdefault(certification_key, set()).add(version)
+
+    if derived_versions or derived_by_type:
+        return frozenset(derived_versions), {
+            key: frozenset(values)
+            for key, values in derived_by_type.items()
+            if values
+        }
+
     return versions, versions_by_type
 
 

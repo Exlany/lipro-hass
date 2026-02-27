@@ -16,6 +16,55 @@ def _entry_with_runtime(coordinator: MagicMock) -> MagicMock:
     return entry
 
 
+def test_parse_remote_manifest_payload_supports_summary_wrapper():
+    """Remote payload should accept worker summary wrapper schema."""
+    from custom_components.lipro.update import _parse_remote_manifest_payload
+
+    versions, versions_by_type = _parse_remote_manifest_payload(
+        {
+            "updated_at": "2026-02-27T00:00:00Z",
+            "summary": {
+                "verified_versions": ["7.10.9"],
+                "verified_versions_by_type": {"ff000001": ["7.10.9"]},
+            },
+        }
+    )
+
+    assert versions == frozenset({"7.10.9"})
+    assert versions_by_type == {"ff000001": frozenset({"7.10.9"})}
+
+
+def test_parse_remote_manifest_payload_derives_from_firmware_list():
+    """Remote payload should fallback to firmware_list when summary is missing."""
+    from custom_components.lipro.update import _parse_remote_manifest_payload
+
+    versions, versions_by_type = _parse_remote_manifest_payload(
+        {
+            "firmware_list": [
+                {
+                    "firmwareVersion": "7.10.9",
+                    "certified": True,
+                    "certification_source": "type",
+                    "certification_key": "light|21p3||ff000001",
+                },
+                {
+                    "version": "9.9.9",
+                    "certification_source": "global",
+                },
+                {
+                    "version": "7.10.8",
+                    "certified": False,
+                    "certification_source": "type",
+                    "certification_key": "light|21p3||ff000001",
+                },
+            ]
+        }
+    )
+
+    assert versions == frozenset({"7.10.9", "9.9.9"})
+    assert versions_by_type == {"light|21p3||ff000001": frozenset({"7.10.9"})}
+
+
 @pytest.mark.asyncio
 async def test_update_async_setup_entry_filters_groups(mock_coordinator, make_device):
     """Update platform should only create entities for real devices."""
@@ -247,7 +296,7 @@ async def test_update_entity_uses_manifest_certification_fallback(
 
     assert entity.latest_version == "7.10.9"
     assert entity.extra_state_attributes["certified"] is True
-    assert entity.extra_state_attributes["certification_source"] == "manifest"
+    assert entity.extra_state_attributes["certification_source"] == "manifest.type"
 
 
 @pytest.mark.asyncio
