@@ -12,6 +12,8 @@ from pathlib import Path
 from time import monotonic
 from typing import TYPE_CHECKING, Any
 
+import aiohttp
+
 from homeassistant.components.update import (
     UpdateDeviceClass,
     UpdateEntity,
@@ -19,6 +21,7 @@ from homeassistant.components.update import (
 )
 from homeassistant.const import EntityCategory
 from homeassistant.exceptions import HomeAssistantError
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.util import dt as dt_util
 
 from .const import DOMAIN
@@ -40,6 +43,12 @@ _OTA_REFRESH_INTERVAL = timedelta(hours=6)
 _UNVERIFIED_CONFIRM_WINDOW_SECONDS = 120
 _TIME_MIN_UTC = datetime.min.replace(tzinfo=UTC)
 _FIRMWARE_SUPPORT_MANIFEST = "firmware_support_manifest.json"
+_REMOTE_MANIFEST_CACHE_TTL = timedelta(minutes=30)
+_REMOTE_MANIFEST_TIMEOUT_SECONDS = 5
+_REMOTE_FIRMWARE_SUPPORT_URLS = (
+    "https://lipro-share.lany.me/api/firmware-support",
+    "https://lipro-share.lany.me/firmware_support_manifest.json",
+)
 
 _SERIAL_KEYS = ("deviceId", "serial", "iotId")
 _DEVICE_TYPE_KEYS = ("deviceType", "iotType", "type")
@@ -75,6 +84,12 @@ _COMMAND_CONTAINER_KEYS = (
 )
 _COMMAND_KEYS = ("command", "cmd", "name")
 _COMMAND_PROPERTIES_KEYS = ("properties", "params", "arguments", "payload")
+
+_REMOTE_MANIFEST_STATE: dict[str, Any] = {
+    "time": _TIME_MIN_UTC,
+    "data": (frozenset(), {}),
+}
+_REMOTE_MANIFEST_LOCK = asyncio.Lock()
 
 
 @dataclass(slots=True)
@@ -137,6 +152,83 @@ def _normalize_manifest_version_list(value: Any) -> frozenset[str]:
     )
 
 
+def _normalize_manifest_versions_by_type(
+    value: Any,
+) -> dict[str, frozenset[str]]:
+    """Normalize version map by device type from manifest payload."""
+    if not isinstance(value, dict):
+        return {}
+    result: dict[str, frozenset[str]] = {}
+    for raw_type, raw_versions in value.items():
+        if not isinstance(raw_type, str):
+            continue
+        normalized_type = raw_type.strip().lower()
+        if not normalized_type:
+            continue
+        normalized_versions = _normalize_manifest_version_list(raw_versions)
+        if normalized_versions:
+            result[normalized_type] = normalized_versions
+    return result
+
+
+def _parse_remote_manifest_payload(
+    payload: Any,
+) -> tuple[frozenset[str], dict[str, frozenset[str]]]:
+    """Parse remote firmware manifest payload with tolerant schema handling."""
+    if isinstance(payload, list):
+        return _normalize_manifest_version_list(payload), {}
+
+    if not isinstance(payload, dict):
+        return frozenset(), {}
+
+    versions = _normalize_manifest_version_list(
+        payload.get("verified_versions") or payload.get("versions")
+    )
+    versions_by_type = _normalize_manifest_versions_by_type(
+        payload.get("verified_versions_by_type") or payload.get("versions_by_type")
+    )
+    return versions, versions_by_type
+
+
+async def _load_remote_firmware_manifest(
+    hass: HomeAssistant,
+) -> tuple[frozenset[str], dict[str, frozenset[str]]]:
+    """Load firmware certification manifest from remote service with cache."""
+    now = dt_util.utcnow()
+    cached_time = _REMOTE_MANIFEST_STATE["time"]
+    cached_data = _REMOTE_MANIFEST_STATE["data"]
+    if now - cached_time < _REMOTE_MANIFEST_CACHE_TTL:
+        return cached_data
+
+    async with _REMOTE_MANIFEST_LOCK:
+        now = dt_util.utcnow()
+        cached_time = _REMOTE_MANIFEST_STATE["time"]
+        cached_data = _REMOTE_MANIFEST_STATE["data"]
+        if now - cached_time < _REMOTE_MANIFEST_CACHE_TTL:
+            return cached_data
+
+        session = async_get_clientsession(hass)
+        timeout = aiohttp.ClientTimeout(total=_REMOTE_MANIFEST_TIMEOUT_SECONDS)
+        for url in _REMOTE_FIRMWARE_SUPPORT_URLS:
+            try:
+                async with session.get(url, timeout=timeout) as response:
+                    if response.status != 200:
+                        continue
+                    payload = await response.json(content_type=None)
+            except (aiohttp.ClientError, TimeoutError, ValueError) as err:
+                _LOGGER.debug("Remote firmware manifest fetch failed from %s: %s", url, err)
+                continue
+
+            versions, versions_by_type = _parse_remote_manifest_payload(payload)
+            if versions or versions_by_type:
+                _REMOTE_MANIFEST_STATE["data"] = (versions, versions_by_type)
+                _REMOTE_MANIFEST_STATE["time"] = now
+                return _REMOTE_MANIFEST_STATE["data"]
+
+        _REMOTE_MANIFEST_STATE["time"] = now
+        return _REMOTE_MANIFEST_STATE["data"]
+
+
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: LiproConfigEntry,
@@ -173,6 +265,8 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
         self._last_ota_refresh = _TIME_MIN_UTC
         self._ota_refresh_task: asyncio.Task[None] | None = None
         self._unverified_confirm_until = 0.0
+        self._remote_verified_versions: frozenset[str] = frozenset()
+        self._remote_versions_by_type: dict[str, frozenset[str]] = {}
         self._attr_installed_version = device.firmware_version
         self._attr_latest_version = device.firmware_version
         self._attr_in_progress = False
@@ -325,6 +419,12 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
             )
             return
 
+        if self.hass is not None:
+            (
+                self._remote_verified_versions,
+                self._remote_versions_by_type,
+            ) = await _load_remote_firmware_manifest(self.hass)
+
         row = self._select_best_ota_row(rows)
         self._ota_candidate = self._build_ota_candidate(row)
         self._apply_ota_candidate()
@@ -436,13 +536,18 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
                 return True, "certification.list"
 
         if latest:
-            verified_versions, versions_by_type = _load_verified_firmware_manifest()
             device_type = (
                 self._first_text(row, _DEVICE_TYPE_KEYS) if isinstance(row, dict) else None
             )
             normalized_device_type = (
                 device_type.lower() if device_type else self.device.device_type_hex.lower()
             )
+            if latest in self._remote_versions_by_type.get(normalized_device_type, frozenset()):
+                return True, "remote_manifest.type"
+            if latest in self._remote_verified_versions:
+                return True, "remote_manifest"
+
+            verified_versions, versions_by_type = _load_verified_firmware_manifest()
             if latest in versions_by_type.get(normalized_device_type, frozenset()):
                 return True, "manifest.type"
             if latest in verified_versions:
