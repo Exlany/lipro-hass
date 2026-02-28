@@ -122,7 +122,9 @@ class LiproAuthManager:
             self._token_expires_at = expires_at
         else:
             self._token_expires_at = time.time() + self._current_expiry_seconds
-        self._last_refresh_time = time.time()
+        # Persisted tokens may be stale; do not mark as "just refreshed".
+        # This keeps the first runtime 401 eligible for an immediate refresh.
+        self._last_refresh_time = 0.0
 
     async def login(
         self,

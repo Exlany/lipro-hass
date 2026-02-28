@@ -627,3 +627,148 @@ async def test_update_entity_uses_iot_name_for_type_certification(
 
     assert entity.latest_version == "7.10.9"
     assert entity.extra_state_attributes["certified"] is True
+
+
+@pytest.mark.asyncio
+async def test_update_entity_score_ota_row_accumulates_expected_weights(
+    mock_coordinator, make_device
+):
+    """OTA row score should accumulate all matching dimensions plus version bonus."""
+    from custom_components.lipro.update import LiproFirmwareUpdateEntity
+
+    device = make_device(
+        "light",
+        serial="03ab5ccd7c333333",
+        iot_name="21P3",
+        product_id=11,
+        properties={"version": "7.10.8"},
+    )
+    entity = LiproFirmwareUpdateEntity(mock_coordinator, device)
+
+    score = entity._score_ota_row(
+        {
+            "deviceId": "03ab5ccd7c333333",
+            "deviceType": device.device_type_hex,
+            "bleName": "21P3",
+            "iotName": "21P3",
+            "productId": str(device.product_id),
+            "physicalModel": device.physical_model,
+            "latestVersion": "7.10.9",
+        }
+    )
+
+    assert score == 27
+
+
+@pytest.mark.asyncio
+async def test_update_entity_select_best_ota_row_prefers_higher_score(
+    mock_coordinator, make_device
+):
+    """Best OTA row selection should prefer the row with the highest score."""
+    from custom_components.lipro.update import LiproFirmwareUpdateEntity
+
+    device = make_device(
+        "light",
+        serial="03ab5ccd7c333333",
+        iot_name="21P3",
+        product_id=11,
+        properties={"version": "7.10.8"},
+    )
+    entity = LiproFirmwareUpdateEntity(mock_coordinator, device)
+
+    low_score = {
+        "deviceType": device.device_type_hex,
+        "latestVersion": "7.10.8",
+    }
+    high_score = {
+        "deviceId": "03ab5ccd7c333333",
+        "deviceType": device.device_type_hex,
+        "bleName": "21P3",
+        "iotName": "21P3",
+        "latestVersion": "7.10.9",
+    }
+
+    assert entity._select_best_ota_row([low_score, high_score]) is high_score
+
+
+@pytest.mark.asyncio
+async def test_update_entity_version_compare_error_is_conservative(
+    mock_coordinator, make_device
+):
+    """Version parse errors should not infer update availability."""
+    from custom_components.lipro.update import LiproFirmwareUpdateEntity
+
+    device = make_device(
+        "light",
+        serial="03ab5ccd7c444444",
+        properties={"version": "1.0.0"},
+    )
+    mock_coordinator.devices = {device.serial: device}
+    mock_coordinator.get_device = MagicMock(return_value=device)
+    mock_coordinator.client = MagicMock()
+    mock_coordinator.client.query_ota_info = AsyncMock(
+        return_value=[
+            {
+                "deviceType": device.device_type_hex,
+                "latestVersion": "1.0.0+build.bad",
+            }
+        ]
+    )
+
+    entity = LiproFirmwareUpdateEntity(mock_coordinator, device)
+    entity.async_write_ha_state = MagicMock()
+
+    with patch.object(entity, "version_is_newer", side_effect=ValueError("invalid")):
+        await entity.async_update()
+
+    assert entity._ota_candidate is not None
+    assert entity._ota_candidate.update_available is False
+
+
+def test_update_entity_is_version_newer_error_returns_false(
+    mock_coordinator, make_device
+):
+    """Certification version comparison should not fallback to string order."""
+    from custom_components.lipro.update import LiproFirmwareUpdateEntity
+
+    device = make_device(
+        "light",
+        serial="03ab5ccd7c555555",
+        properties={"version": "1.0.0"},
+    )
+    entity = LiproFirmwareUpdateEntity(mock_coordinator, device)
+
+    with patch.object(entity, "version_is_newer", side_effect=ValueError("invalid")):
+        assert entity._is_version_newer("2.0.0-beta", "1.0.0") is False
+
+
+def test_update_entity_matches_certified_versions_compare_error_is_conservative(
+    mock_coordinator, make_device
+):
+    """Certification matching should not pass when version comparison fails."""
+    from custom_components.lipro.update import LiproFirmwareUpdateEntity
+
+    device = make_device(
+        "light",
+        serial="03ab5ccd7c666666",
+        properties={"version": "1.0.0"},
+    )
+    entity = LiproFirmwareUpdateEntity(mock_coordinator, device)
+
+    with patch.object(entity, "version_is_newer", side_effect=ValueError("invalid")):
+        assert (
+            entity._matches_certified_versions(
+                {"2.0.0-beta"},
+                installed="1.0.0",
+                latest="2.0.0-beta",
+            )
+            is True
+        )
+        assert (
+            entity._matches_certified_versions(
+                {"2.0.0-beta"},
+                installed="1.0.0",
+                latest="2.0.0-rc",
+            )
+            is False
+        )

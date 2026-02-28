@@ -103,8 +103,11 @@ class Debouncer:
             await func(*args, **kwargs)
         except asyncio.CancelledError:
             _LOGGER.debug("Debounced call cancelled")
-        except Exception:
-            _LOGGER.exception("Error in debounced call")
+        except Exception as err:
+            _LOGGER.exception(
+                "Error in debounced call (%s)",
+                type(err).__name__,
+            )
 
     def _cancel_timer(self) -> None:
         """Cancel pending timer handle if present."""

@@ -42,6 +42,10 @@ Home Assistant integration for controlling Lipro Smart Home devices.
 - `lipro.get_anonymous_share_report` - Preview anonymous share report
 - `lipro.get_developer_report` - Export sanitized runtime diagnostics report
 - `lipro.submit_developer_feedback` - One-click submit developer diagnostics report
+- `lipro.query_command_result` - Query command delivery result by message serial number (developer capability)
+- `lipro.get_city` - Query cloud city metadata contract (developer capability)
+- `lipro.fetch_body_sensor_history` - Fetch body sensor history payload for debugging (developer capability)
+- `lipro.fetch_door_sensor_history` - Fetch door sensor history payload for debugging (developer capability)
 - `lipro.query_ota_info` - Query OTA metadata (developer capability)
 - `lipro.start_ota_update` - Trigger OTA upgrade with explicit irreversible confirmation
 

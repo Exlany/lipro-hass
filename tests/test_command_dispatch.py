@@ -2,7 +2,14 @@
 
 from __future__ import annotations
 
+from unittest.mock import AsyncMock
+
+import pytest
+
+from custom_components.lipro.core.api import LiproApiError
 from custom_components.lipro.core.command_dispatch import (
+    CommandDispatchPlan,
+    execute_command_dispatch,
     normalize_group_power_command,
     resolve_group_fallback_member_id,
 )
@@ -76,3 +83,100 @@ def test_resolve_group_fallback_member_id_invalid_member_format_returns_none() -
     result = resolve_group_fallback_member_id(device, "03ab111111111111")
 
     assert result is None
+
+
+@pytest.mark.asyncio
+async def test_execute_command_dispatch_device_direct_route() -> None:
+    """Non-group devices should call send_command directly."""
+    device = _make_device(is_group=False)
+    client = AsyncMock()
+    client.send_command = AsyncMock(return_value={"pushSuccess": True})
+
+    result, route = await execute_command_dispatch(
+        client,
+        device=device,
+        plan=CommandDispatchPlan(
+            route="device_direct",
+            command="POWER_ON",
+            properties=None,
+            member_fallback_id=None,
+        ),
+    )
+
+    assert result == {"pushSuccess": True}
+    assert route == "device_direct"
+    client.send_command.assert_awaited_once()
+    client.send_group_command.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_execute_command_dispatch_group_error_fallback_to_member() -> None:
+    """Group API errors should fallback to member when fallback id is present."""
+    device = _make_device(serial="mesh_group_10001", is_group=True)
+    client = AsyncMock()
+    client.send_group_command = AsyncMock(side_effect=LiproApiError("boom", 500))
+    client.send_command = AsyncMock(return_value={"pushSuccess": True, "source": "m"})
+
+    result, route = await execute_command_dispatch(
+        client,
+        device=device,
+        plan=CommandDispatchPlan(
+            route="group_direct",
+            command="POWER_ON",
+            properties=None,
+            member_fallback_id="03ab111111111111",
+        ),
+    )
+
+    assert result == {"pushSuccess": True, "source": "m"}
+    assert route == "group_error_fallback_member"
+    client.send_group_command.assert_awaited_once()
+    client.send_command.assert_awaited_once()
+
+
+@pytest.mark.asyncio
+async def test_execute_command_dispatch_group_push_fail_fallback_to_member() -> None:
+    """group pushSuccess=false should fallback to member when fallback id is present."""
+    device = _make_device(serial="mesh_group_10001", is_group=True)
+    client = AsyncMock()
+    client.send_group_command = AsyncMock(return_value={"pushSuccess": False})
+    client.send_command = AsyncMock(return_value={"pushSuccess": True, "source": "m"})
+
+    result, route = await execute_command_dispatch(
+        client,
+        device=device,
+        plan=CommandDispatchPlan(
+            route="group_direct",
+            command="POWER_ON",
+            properties=None,
+            member_fallback_id="03ab111111111111",
+        ),
+    )
+
+    assert result == {"pushSuccess": True, "source": "m"}
+    assert route == "group_push_fail_fallback_member"
+    client.send_group_command.assert_awaited_once()
+    client.send_command.assert_awaited_once()
+
+
+@pytest.mark.asyncio
+async def test_execute_command_dispatch_group_error_without_fallback_raises() -> None:
+    """Group API error should bubble up when fallback id is absent."""
+    device = _make_device(serial="mesh_group_10001", is_group=True)
+    client = AsyncMock()
+    client.send_group_command = AsyncMock(side_effect=LiproApiError("boom", 500))
+    client.send_command = AsyncMock()
+
+    with pytest.raises(LiproApiError, match="boom"):
+        await execute_command_dispatch(
+            client,
+            device=device,
+            plan=CommandDispatchPlan(
+                route="group_direct",
+                command="POWER_ON",
+                properties=None,
+                member_fallback_id=None,
+            ),
+        )
+
+    client.send_command.assert_not_called()

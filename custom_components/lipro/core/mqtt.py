@@ -547,9 +547,14 @@ class LiproMqttClient:
                 self._handle_disconnect(f"Connection error: {err}")
             except ValueError as err:
                 self._handle_disconnect(f"MQTT value error: {err}")
-            except Exception:
-                _LOGGER.exception("Unexpected MQTT loop error")
-                self._handle_disconnect("Unexpected MQTT loop error")
+            except Exception as err:
+                _LOGGER.exception(
+                    "Unexpected MQTT loop error (%s)",
+                    type(err).__name__,
+                )
+                self._handle_disconnect(
+                    f"Unexpected MQTT loop error ({type(err).__name__})"
+                )
 
             # Wait before reconnecting with jitter to prevent thundering herd
             if self._running:
@@ -701,5 +706,9 @@ class LiproMqttClient:
 
         except (json.JSONDecodeError, UnicodeError):
             _LOGGER.exception("Failed to decode MQTT payload")
-        except Exception:
-            _LOGGER.exception("Error processing MQTT message")
+        except Exception as err:
+            _LOGGER.exception(
+                "Error processing MQTT message (topic=%s, error=%s)",
+                getattr(message, "topic", "unknown"),
+                type(err).__name__,
+            )

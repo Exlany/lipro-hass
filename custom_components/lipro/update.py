@@ -359,6 +359,8 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
         """Consume task exception to avoid warning logs."""
         try:
             task.result()
+        except asyncio.CancelledError:
+            return
         except Exception as err:  # noqa: BLE001
             _LOGGER.debug("Background OTA refresh task failed: %s", err)
 
@@ -473,8 +475,15 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
 
         try:
             return self.version_is_newer(latest, installed)
-        except Exception:  # noqa: BLE001
-            return latest != installed
+        except Exception as err:  # noqa: BLE001
+            _LOGGER.debug(
+                "Unable to compare firmware versions (%s -> %s): %s",
+                installed,
+                latest,
+                err,
+            )
+            # Be conservative on parse failures: avoid false positive upgrades.
+            return False
 
     def _resolve_certification(
         self,
@@ -608,11 +617,17 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
         )
 
     def _is_version_newer(self, candidate: str, current: str) -> bool:
-        """Compare versions with HA helper, fallback to lexicographical order."""
+        """Compare versions with HA helper, fallback to conservative False."""
         try:
             return self.version_is_newer(candidate, current)
-        except Exception:  # noqa: BLE001
-            return candidate != current and candidate > current
+        except Exception as err:  # noqa: BLE001
+            _LOGGER.debug(
+                "Unable to compare certification versions (%s -> %s): %s",
+                current,
+                candidate,
+                err,
+            )
+            return False
 
     def _extract_install_command(self, row: dict[str, Any] | None) -> _InstallCommand | None:
         """Extract install command payload from OTA row."""
@@ -704,39 +719,67 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
 
     def _score_ota_row(self, row: dict[str, Any]) -> int:
         """Score one OTA row against this device."""
-        score = 0
         serial = self.device.serial.lower()
         device_type = self.device.device_type_hex.lower()
         iot_name = (self.device.iot_name or "").lower()
-
-        row_serial = _first_ota_text(row, _SERIAL_KEYS)
-        if row_serial is not None and row_serial.lower() == serial:
-            score += _OTA_MATCH_SCORE_SERIAL_EXACT
-
-        row_type = _first_ota_text(row, _DEVICE_TYPE_KEYS)
-        if row_type is not None and row_type.lower() == device_type:
-            score += _OTA_MATCH_SCORE_DEVICE_TYPE_EXACT
-
-        row_ble_name = _first_ota_text(row, ("bleName",))
-        if row_ble_name is not None and row_ble_name.lower() == iot_name:
-            score += _OTA_MATCH_SCORE_BLE_NAME_EXACT
-
-        row_iot_name = _first_ota_text(row, _IOT_NAME_KEYS)
-        if row_iot_name is not None and row_iot_name.lower() == iot_name:
-            score += _OTA_MATCH_SCORE_IOT_NAME_EXACT
-
-        row_product_id = _first_ota_text(row, _PRODUCT_ID_KEYS)
-        if row_product_id is not None and row_product_id == str(self.device.product_id):
-            score += _OTA_MATCH_SCORE_PRODUCT_ID_EXACT
-
-        row_physical_model = _first_ota_text(row, _PHYSICAL_MODEL_KEYS)
-        if row_physical_model is not None and row_physical_model.lower() == (self.device.physical_model or "").lower():
-            score += _OTA_MATCH_SCORE_PHYSICAL_MODEL_EXACT
-
+        score = 0
+        score += self._score_exact_text_match(
+            row,
+            _SERIAL_KEYS,
+            expected=serial,
+            weight=_OTA_MATCH_SCORE_SERIAL_EXACT,
+        )
+        score += self._score_exact_text_match(
+            row,
+            _DEVICE_TYPE_KEYS,
+            expected=device_type,
+            weight=_OTA_MATCH_SCORE_DEVICE_TYPE_EXACT,
+        )
+        score += self._score_exact_text_match(
+            row,
+            ("bleName",),
+            expected=iot_name,
+            weight=_OTA_MATCH_SCORE_BLE_NAME_EXACT,
+        )
+        score += self._score_exact_text_match(
+            row,
+            _IOT_NAME_KEYS,
+            expected=iot_name,
+            weight=_OTA_MATCH_SCORE_IOT_NAME_EXACT,
+        )
+        score += self._score_exact_text_match(
+            row,
+            _PRODUCT_ID_KEYS,
+            expected=str(self.device.product_id),
+            weight=_OTA_MATCH_SCORE_PRODUCT_ID_EXACT,
+            normalize=False,
+        )
+        score += self._score_exact_text_match(
+            row,
+            _PHYSICAL_MODEL_KEYS,
+            expected=(self.device.physical_model or "").lower(),
+            weight=_OTA_MATCH_SCORE_PHYSICAL_MODEL_EXACT,
+        )
         if _first_ota_text(row, _LATEST_VERSION_KEYS + _COMMON_VERSION_KEYS) is not None:
             score += _OTA_MATCH_SCORE_HAS_VERSION
-
         return score
+
+    @staticmethod
+    def _score_exact_text_match(
+        row: dict[str, Any],
+        keys: tuple[str, ...],
+        *,
+        expected: str,
+        weight: int,
+        normalize: bool = True,
+    ) -> int:
+        """Return weight when OTA row text field matches expected value exactly."""
+        value = _first_ota_text(row, keys)
+        if value is None:
+            return 0
+        if normalize:
+            return weight if value.lower() == expected else 0
+        return weight if value == expected else 0
 
     def _candidate_manifest_type_keys(self, row: dict[str, Any] | None) -> list[str]:
         """Build locked candidate keys for manifest.type matching.

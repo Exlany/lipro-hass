@@ -27,6 +27,7 @@ from custom_components.lipro.const import (
     MAX_MQTT_CACHE_SIZE,
     MQTT_DISCONNECT_NOTIFY_THRESHOLD,
 )
+from custom_components.lipro.const.api import MAX_DEVICES_PER_QUERY
 from custom_components.lipro.const.config import CONF_COMMAND_RESULT_VERIFY
 from custom_components.lipro.core.api import (
     LiproApiError,
@@ -1994,6 +1995,21 @@ class TestCoordinatorDefensivePaths:
         assert await coordinator._fetch_all_device_pages() == []
 
     @pytest.mark.asyncio
+    async def test_fetch_all_device_pages_stops_on_pagination_guard(
+        self, coordinator, mock_lipro_api_client
+    ):
+        full_page = [{} for _ in range(MAX_DEVICES_PER_QUERY)]
+        mock_lipro_api_client.get_devices.return_value = {"devices": full_page}
+
+        with (
+            patch("custom_components.lipro.core.coordinator._MAX_DEVICE_LIST_PAGES", 2),
+            pytest.raises(LiproApiError, match="pagination exceeded 2 pages"),
+        ):
+            await coordinator._fetch_all_device_pages()
+
+        assert mock_lipro_api_client.get_devices.call_count == 2
+
+    @pytest.mark.asyncio
     async def test_record_devices_for_anonymous_share_enabled(self, coordinator):
         coordinator._devices = {"dev1": _make_device(serial="dev1")}
         share_manager = MagicMock(is_enabled=True)
@@ -2063,3 +2079,16 @@ class TestCoordinatorDefensivePaths:
             await coordinator._async_delayed_command_refresh(0.1)
 
         coordinator.async_request_refresh.assert_awaited_once()
+
+    @pytest.mark.asyncio
+    async def test_track_background_task_cancelled_on_shutdown(self, coordinator):
+        async def _sleep_forever():
+            await asyncio.sleep(3600)
+
+        task = coordinator._track_background_task(_sleep_forever())
+        assert task in coordinator._background_tasks
+
+        await coordinator.async_shutdown()
+
+        assert task.cancelled()
+        assert not coordinator._background_tasks

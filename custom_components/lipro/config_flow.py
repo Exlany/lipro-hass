@@ -262,8 +262,12 @@ class LiproConfigFlow(ConfigFlow, domain=DOMAIN):
         except (KeyError, TypeError, ValueError):
             _LOGGER.exception("Malformed login response during %s", context_name)
             errors["base"] = "unknown"
-        except Exception:
-            _LOGGER.exception("Unexpected error during %s", context_name)
+        except Exception as err:
+            _LOGGER.exception(
+                "Unexpected error during %s (%s)",
+                context_name,
+                type(err).__name__,
+            )
             errors["base"] = "unknown"
         return None
 

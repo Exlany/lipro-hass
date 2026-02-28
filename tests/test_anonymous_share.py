@@ -30,9 +30,12 @@ from custom_components.lipro.const import (
     PROP_WIND_GEAR,
 )
 from custom_components.lipro.core.anonymous_share import (
+    _MAX_DICT_ITEMS,
+    _MAX_NESTED_DEPTH,
     _MAX_STRING_LENGTH,
     MAX_PENDING_DEVICES,
     MAX_PENDING_ERRORS,
+    SHARE_API_KEY,
     AnonymousShareManager,
     get_anonymous_share_manager,
 )
@@ -296,6 +299,27 @@ class TestSanitizeProperties:
         assert "deviceId" not in parsed
         # Nested compact MAC-like address should be redacted.
         assert parsed["rc"][0]["address"] == "[redacted]"
+
+    def test_sanitize_value_limits_nested_depth(self):
+        payload: dict[str, object] = {}
+        current: dict[str, object] = payload
+        for index in range(_MAX_NESTED_DEPTH + 3):
+            next_node: dict[str, object] = {"value": index}
+            current["next"] = next_node
+            current = next_node
+
+        result = self.mgr._sanitize_value(payload, preserve_structure=True)
+        node = result
+        for _ in range(_MAX_NESTED_DEPTH):
+            assert isinstance(node, dict)
+            node = node.get("next")
+        assert node == {}
+
+    def test_sanitize_value_limits_dict_items(self):
+        payload = {f"k{index}": index for index in range(_MAX_DICT_ITEMS + 20)}
+        result = self.mgr._sanitize_value(payload, preserve_structure=True)
+        assert isinstance(result, dict)
+        assert len(result) == _MAX_DICT_ITEMS
 
 
 # ===========================================================================
@@ -661,6 +685,10 @@ class TestSubmitLogic:
             {"source": "test", "reports": []},
         )
         assert result is False
+
+    def test_build_upload_headers_uses_static_api_key(self):
+        headers = AnonymousShareManager._build_upload_headers()
+        assert headers["X-API-Key"] == SHARE_API_KEY
 
 
 # ===========================================================================

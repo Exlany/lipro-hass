@@ -34,6 +34,9 @@ from custom_components.lipro.core.api import (
     LiproRefreshTokenExpiredError,
     _mask_sensitive_data,
 )
+from custom_components.lipro.core.api_status_service import (
+    query_with_fallback as query_with_fallback_service,
+)
 
 
 class TestMaskSensitiveData:
@@ -549,7 +552,9 @@ class TestLiproClient401Handling:
         client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("old_access", "old_refresh")
 
-        refresh_callback = AsyncMock()
+        refresh_callback = AsyncMock(
+            side_effect=lambda: client.set_tokens("new_access", "new_refresh")
+        )
         client.set_token_refresh_callback(refresh_callback)
 
         # Test the _handle_401_with_refresh method directly
@@ -574,6 +579,18 @@ class TestLiproClient401Handling:
         # Should return True (token was refreshed) but not call callback
         assert result is True
         refresh_callback.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_401_refresh_callback_without_token_update_returns_false(self):
+        """Refresh callback must update token to trigger retry."""
+        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client.set_tokens("old_access", "old_refresh")
+
+        refresh_callback = AsyncMock()
+        client.set_token_refresh_callback(refresh_callback)
+
+        assert await client._handle_401_with_refresh("old_access") is False
+        refresh_callback.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_401_refresh_connection_error_bubbles(self):
@@ -3276,45 +3293,53 @@ class TestLiproClientAdditionalBranchCoverage:
     @pytest.mark.asyncio
     async def test_query_with_fallback_skips_failed_single_item_and_keeps_others(self):
         """Fallback query should continue after one single-item failure."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        mock_request = AsyncMock()
+        mock_request.side_effect = [
+            LiproApiError("offline", 140003),
+            LiproApiError("single fail", 500),
+            {"data": [{"deviceId": "03ab5ccd7cbbbbbb"}]},
+        ]
 
-        with patch.object(
-            client, "_iot_request", new_callable=AsyncMock
-        ) as mock_request:
-            mock_request.side_effect = [
-                LiproApiError("offline", 140003),
-                LiproApiError("single fail", 500),
-                {"data": [{"deviceId": "03ab5ccd7cbbbbbb"}]},
-            ]
-            result = await client._query_with_fallback(
-                "/query",
-                "deviceIdList",
-                ["03ab5ccd7caaaaaa", "03ab5ccd7cbbbbbb"],
-                "device",
-            )
+        result = await query_with_fallback_service(
+            path="/query",
+            body_key="deviceIdList",
+            ids=["03ab5ccd7caaaaaa", "03ab5ccd7cbbbbbb"],
+            item_name="device",
+            iot_request=mock_request,
+            extract_data_list=LiproClient._extract_data_list,
+            is_retriable_device_error=lambda _: True,
+            lipro_api_error=LiproApiError,
+            normalize_response_code=lambda code: code,
+            expected_offline_codes=(140003, "140003", 140004, "140004"),
+            logger=MagicMock(),
+        )
 
         assert result == [{"deviceId": "03ab5ccd7cbbbbbb"}]
 
     @pytest.mark.asyncio
     async def test_query_with_fallback_logs_summary_when_all_single_queries_fail(self):
         """When fallback yields no rows due to all single failures, emit one summary warning."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        mock_request = AsyncMock()
+        mock_request.side_effect = [
+            LiproApiError("offline", 140003),
+            LiproApiError("single fail", 500),
+            LiproApiError("single fail", 500),
+        ]
+        mock_logger = MagicMock()
 
-        with patch.object(
-            client, "_iot_request", new_callable=AsyncMock
-        ) as mock_request:
-            mock_request.side_effect = [
-                LiproApiError("offline", 140003),
-                LiproApiError("single fail", 500),
-                LiproApiError("single fail", 500),
-            ]
-            with patch("custom_components.lipro.core.api._LOGGER.warning") as mock_warning:
-                result = await client._query_with_fallback(
-                    "/query",
-                    "deviceIdList",
-                    ["03ab5ccd7caaaaaa", "03ab5ccd7cbbbbbb"],
-                    "device",
-                )
+        result = await query_with_fallback_service(
+            path="/query",
+            body_key="deviceIdList",
+            ids=["03ab5ccd7caaaaaa", "03ab5ccd7cbbbbbb"],
+            item_name="device",
+            iot_request=mock_request,
+            extract_data_list=LiproClient._extract_data_list,
+            is_retriable_device_error=lambda _: True,
+            lipro_api_error=LiproApiError,
+            normalize_response_code=lambda code: code,
+            expected_offline_codes=(140003, "140003", 140004, "140004"),
+            logger=mock_logger,
+        )
 
         assert result == []
         assert any(
@@ -3323,7 +3348,7 @@ class TestLiproClientAdditionalBranchCoverage:
             and call.args[2] == 2
             and call.args[3] == 2
             and call.args[4] == 140003
-            for call in mock_warning.call_args_list
+            for call in mock_logger.warning.call_args_list
         )
 
     @pytest.mark.asyncio

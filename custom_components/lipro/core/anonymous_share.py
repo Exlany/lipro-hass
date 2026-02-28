@@ -123,6 +123,8 @@ MIN_UPLOAD_INTERVAL: Final = 3600  # 1 hour
 
 # Sanitization limits for privacy-preserving data truncation
 _MAX_LIST_ITEMS: Final = 50  # Max items when sanitizing lists
+_MAX_DICT_ITEMS: Final = 100  # Max key/value pairs when sanitizing mappings
+_MAX_NESTED_DEPTH: Final = 8  # Max recursive depth when preserving structure
 _MAX_STRING_LENGTH: Final = 500  # Strings longer than this are truncated
 _TRUNCATED_STRING_PREFIX_LENGTH: Final = 200  # Keep this many chars when truncating
 
@@ -716,7 +718,66 @@ class AnonymousShareManager:
             result[key] = self._sanitize_value(value, preserve_structure=True)
         return result
 
-    def _sanitize_value(self, value: Any, preserve_structure: bool = False) -> Any:
+    def _sanitize_mapping(
+        self,
+        value: dict[Any, Any],
+        *,
+        depth: int,
+    ) -> dict[str, Any]:
+        """Sanitize mapping values while preserving structure and limits."""
+        result: dict[str, Any] = {}
+        for key, item in value.items():
+            if len(result) >= _MAX_DICT_ITEMS:
+                break
+            if _is_sensitive_key(key):
+                continue
+            result[str(key)] = self._sanitize_value(
+                item,
+                preserve_structure=True,
+                _depth=depth + 1,
+            )
+        return result
+
+    def _sanitize_list(self, value: list[Any], *, depth: int) -> list[Any]:
+        """Sanitize list values while preserving order and limits."""
+        return [
+            self._sanitize_value(
+                item,
+                preserve_structure=True,
+                _depth=depth + 1,
+            )
+            for item in value[:_MAX_LIST_ITEMS]
+        ]
+
+    def _sanitize_json_string(self, value: str, *, depth: int) -> str | None:
+        """Sanitize JSON string payloads recursively when parseable."""
+        stripped = value.strip()
+        if not stripped or stripped[0] not in "{[":
+            return None
+        try:
+            parsed = json.loads(value)
+        except (TypeError, ValueError):
+            return None
+        if not isinstance(parsed, (dict, list)):
+            return None
+        sanitized = self._sanitize_value(
+            parsed,
+            preserve_structure=True,
+            _depth=depth + 1,
+        )
+        return json.dumps(
+            sanitized,
+            ensure_ascii=False,
+            separators=(",", ":"),
+        )
+
+    def _sanitize_value(
+        self,
+        value: Any,
+        preserve_structure: bool = False,
+        *,
+        _depth: int = 0,
+    ) -> Any:
         """Sanitize a single value.
 
         Args:
@@ -732,38 +793,20 @@ class AnonymousShareManager:
 
         # Preserve structure for complex types
         if preserve_structure:
+            if _depth >= _MAX_NESTED_DEPTH:
+                return {}
             if isinstance(value, dict):
-                return {
-                    k: self._sanitize_value(v, preserve_structure=True)
-                    for k, v in value.items()
-                    if not _is_sensitive_key(k)
-                }
+                return self._sanitize_mapping(value, depth=_depth)
             if isinstance(value, list):
-                return [
-                    self._sanitize_value(item, preserve_structure=True)
-                    for item in value[:_MAX_LIST_ITEMS]
-                ]
+                return self._sanitize_list(value, depth=_depth)
 
         if isinstance(value, str):
-            stripped = value.strip()
             # Some payload fields (e.g., deviceInfo/rcList) are JSON strings.
             # Parse and sanitize recursively to avoid leaking nested identifiers.
-            if preserve_structure and stripped and stripped[0] in "{[":
-                try:
-                    parsed = json.loads(value)
-                except (TypeError, ValueError):
-                    pass
-                else:
-                    if isinstance(parsed, (dict, list)):
-                        sanitized = self._sanitize_value(
-                            parsed,
-                            preserve_structure=True,
-                        )
-                        return json.dumps(
-                            sanitized,
-                            ensure_ascii=False,
-                            separators=(",", ":"),
-                        )
+            if preserve_structure:
+                sanitized_json = self._sanitize_json_string(value, depth=_depth)
+                if sanitized_json is not None:
+                    return sanitized_json
 
         str_value = str(value)
 

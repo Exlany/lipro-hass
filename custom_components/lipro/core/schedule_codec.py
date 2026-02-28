@@ -13,6 +13,57 @@ _HH_MM_TIME_PATTERN = re.compile(r"(\d{1,2}):(\d{2})")
 _INVALID_JSON_PREVIEW_MAX_CHARS = 200
 
 
+def _parse_hhmm_seconds(value: Any) -> list[int]:
+    """Parse ``HH:MM`` string into one schedule second value."""
+    if not isinstance(value, str):
+        return []
+    match = _HH_MM_TIME_PATTERN.fullmatch(value.strip())
+    if not match:
+        return []
+
+    hours = int(match.group(1))
+    minutes = int(match.group(2))
+    if not (0 <= hours <= 23 and 0 <= minutes <= 59):
+        return []
+    return [hours * 3600 + minutes * 60]
+
+
+def _extract_power_action_event(
+    action: Any,
+    *,
+    coerce_connect_status: Callable[[Any], bool],
+) -> list[int]:
+    """Extract one ``evt`` value from legacy action payload."""
+    if not isinstance(action, dict):
+        return []
+    if str(action.get("command", "")).lower() != "power":
+        return []
+
+    props = action.get("properties")
+    if not isinstance(props, list):
+        return []
+
+    for prop in props:
+        if not isinstance(prop, dict):
+            continue
+        if prop.get("key") == "power":
+            return [0 if coerce_connect_status(prop.get("value")) else 1]
+    return []
+
+
+def _align_time_event_pairs(
+    times: list[int],
+    events: list[int],
+) -> tuple[list[int], list[int]]:
+    """Align ``time`` and ``evt`` arrays by truncating unmatched values."""
+    if len(times) == len(events):
+        return times, events
+    pair_count = min(len(times), len(events))
+    if pair_count <= 0:
+        return [], []
+    return times[:pair_count], events[:pair_count]
+
+
 def coerce_int_list(value: Any) -> list[int]:
     """Convert mixed list payloads into a clean integer list."""
     if not isinstance(value, list):
@@ -79,38 +130,15 @@ def parse_mesh_schedule_json(
         days = coerce_int_list(payload.get("weekDays"))
 
     if not times:
-        hhmm = payload.get("time")
-        if isinstance(hhmm, str):
-            match = _HH_MM_TIME_PATTERN.fullmatch(hhmm.strip())
-            if match:
-                hours = int(match.group(1))
-                minutes = int(match.group(2))
-                if 0 <= hours <= 23 and 0 <= minutes <= 59:
-                    times = [hours * 3600 + minutes * 60]
+        times = _parse_hhmm_seconds(payload.get("time"))
 
     if not events:
-        action = payload.get("action")
-        if (
-            isinstance(action, dict)
-            and str(action.get("command", "")).lower() == "power"
-        ):
-            props = action.get("properties")
-            if isinstance(props, list):
-                for prop in props:
-                    if not isinstance(prop, dict):
-                        continue
-                    if prop.get("key") == "power":
-                        events = [0 if coerce_connect_status(prop.get("value")) else 1]
-                        break
+        events = _extract_power_action_event(
+            payload.get("action"),
+            coerce_connect_status=coerce_connect_status,
+        )
 
-    if len(times) != len(events):
-        pair_count = min(len(times), len(events))
-        if pair_count > 0:
-            times = times[:pair_count]
-            events = events[:pair_count]
-        else:
-            times = []
-            events = []
+    times, events = _align_time_event_pairs(times, events)
 
     return {"days": days, "time": times, "evt": events}
 

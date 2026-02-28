@@ -3,8 +3,6 @@
 from __future__ import annotations
 
 from collections.abc import Awaitable, Callable, Iterator
-from dataclasses import dataclass
-from datetime import UTC, datetime
 import functools
 import logging
 from pathlib import Path
@@ -14,15 +12,10 @@ from typing import TYPE_CHECKING, Any, Final, NoReturn
 import voluptuous as vol
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import ATTR_ENTITY_ID, Platform
+from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant, ServiceCall, SupportsResponse
-from homeassistant.exceptions import (
-    ConfigEntryAuthFailed,
-    ConfigEntryNotReady,
-    HomeAssistantError,
-    ServiceValidationError,
-)
-from homeassistant.helpers import config_validation as cv, entity_registry as er
+from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
+from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .const import (
@@ -44,18 +37,6 @@ from .const import (
     MIN_REQUEST_TIMEOUT,
     MIN_SCAN_INTERVAL,
 )
-from .const.api import (
-    ERROR_DEVICE_BUSY,
-    ERROR_DEVICE_BUSY_STR,
-    ERROR_DEVICE_NOT_CONNECTED,
-    ERROR_DEVICE_NOT_CONNECTED_STR,
-    ERROR_DEVICE_NOT_FOUND,
-    ERROR_DEVICE_NOT_FOUND_STR,
-    ERROR_DEVICE_OFFLINE,
-    ERROR_DEVICE_OFFLINE_LEGACY,
-    ERROR_DEVICE_OFFLINE_LEGACY_STR,
-    ERROR_DEVICE_OFFLINE_STR,
-)
 from .core import (
     LiproApiError,
     LiproAuthError,
@@ -66,9 +47,43 @@ from .core import (
     LiproDevice,
     get_anonymous_share_manager,
 )
-from .core.ota_utils import (
-    extract_ota_versions as _extract_ota_versions_from_rows,
-    load_verified_firmware_manifest_file as _load_verified_firmware_manifest_file,
+from .services.command import (
+    async_handle_send_command as _async_handle_send_command_service,
+    async_send_command_with_service_errors as _async_send_command_with_service_errors_service,
+)
+from .services.device_lookup import (
+    get_device_and_coordinator as _get_device_and_coordinator_service,
+    iter_runtime_coordinators as _iter_runtime_coordinators_service,
+)
+from .services.diagnostics import (
+    async_call_optional_capability as _async_call_optional_capability_service,
+    async_handle_fetch_body_sensor_history as _async_handle_fetch_body_sensor_history_service,
+    async_handle_fetch_door_sensor_history as _async_handle_fetch_door_sensor_history_service,
+    async_handle_get_city as _async_handle_get_city_service,
+    async_handle_get_developer_report as _async_handle_get_developer_report_service,
+    async_handle_query_command_result as _async_handle_query_command_result_service,
+    async_handle_submit_developer_feedback as _async_handle_submit_developer_feedback_service,
+    build_sensor_history_result as _build_sensor_history_result_service,
+    collect_developer_reports as _collect_developer_reports_service,
+    raise_optional_capability_error as _raise_optional_capability_error_service,
+)
+from .services.errors import (
+    raise_service_error as _raise_service_error_shared,
+    resolve_command_failure_translation_key as _resolve_command_failure_translation_key_shared,
+)
+from .services.ota import (
+    _load_verified_firmware_versions_cached as _load_verified_firmware_versions_cached_service,
+    async_handle_query_ota_info as _async_handle_query_ota_info_service,
+    async_handle_start_ota_update as _async_handle_start_ota_update_service,
+)
+from .services.schedule import (
+    async_handle_add_schedule as _async_handle_add_schedule_service,
+    async_handle_delete_schedules as _async_handle_delete_schedules_service,
+    async_handle_get_schedules as _async_handle_get_schedules_service,
+)
+from .services.share import (
+    async_handle_get_anonymous_share_report as _async_handle_get_anonymous_share_report_service,
+    async_handle_submit_anonymous_share as _async_handle_submit_anonymous_share_service,
 )
 
 if TYPE_CHECKING:
@@ -280,48 +295,13 @@ def _get_entry_int_option(
     )
 
 
-def _coerce_int_list(value: Any) -> list[int]:
-    """Coerce mixed list payloads into integers, skipping invalid items."""
-    if not isinstance(value, list):
-        return []
-
-    result: list[int] = []
-    for item in value:
-        if isinstance(item, bool):
-            continue
-        try:
-            result.append(int(item))
-        except (TypeError, ValueError):
-            continue
-    return result
-
-
-def _get_mesh_context(device: LiproDevice) -> tuple[str, list[Any]]:
-    """Extract mesh gateway and member IDs from device metadata."""
-    mesh_gateway_id = device.extra_data.get("gateway_device_id", "")
-    raw_mesh_member_ids = device.extra_data.get("group_member_ids", [])
-    mesh_member_ids = (
-        raw_mesh_member_ids if isinstance(raw_mesh_member_ids, list) else []
-    )
-    return mesh_gateway_id, mesh_member_ids
-
-
 def _raise_service_error(
     translation_key: str,
     *,
     err: Exception | None = None,
 ) -> NoReturn:
     """Raise a translated HomeAssistantError, preserving the original cause."""
-    if err is None:
-        raise HomeAssistantError(
-            translation_domain=DOMAIN,
-            translation_key=translation_key,
-        )
-
-    raise HomeAssistantError(
-        translation_domain=DOMAIN,
-        translation_key=translation_key,
-    ) from err
+    _raise_service_error_shared(translation_key, err=err)
 
 
 def _resolve_command_failure_translation_key(
@@ -330,187 +310,42 @@ def _resolve_command_failure_translation_key(
     err: LiproApiError | None = None,
 ) -> str:
     """Map command failure context to a user-facing translation key."""
-    if isinstance(failure, dict) and failure.get("reason") == "push_failed":
-        return "command_push_failed"
-
-    code: Any = None
-    if err is not None:
-        code = err.code
-    elif isinstance(failure, dict):
-        code = failure.get("code")
-
-    if code in (ERROR_DEVICE_NOT_CONNECTED, ERROR_DEVICE_NOT_CONNECTED_STR):
-        return "command_device_not_connected"
-    if code in (ERROR_DEVICE_BUSY, ERROR_DEVICE_BUSY_STR):
-        return "command_device_busy"
-    if code in (
-        ERROR_DEVICE_OFFLINE,
-        ERROR_DEVICE_OFFLINE_STR,
-        ERROR_DEVICE_OFFLINE_LEGACY,
-        ERROR_DEVICE_OFFLINE_LEGACY_STR,
-        ERROR_DEVICE_NOT_FOUND,
-        ERROR_DEVICE_NOT_FOUND_STR,
-    ):
-        return "command_device_offline"
-    return "command_failed"
-
-
-async def _async_call_schedule_client(
-    device: LiproDevice,
-    client_call: Callable[..., Awaitable[Any]],
-    *args: Any,
-    error_log: str,
-    error_translation_key: str,
-) -> Any:
-    """Call a schedule client API with mesh context and consistent error mapping."""
-    mesh_gateway_id, mesh_member_ids = _get_mesh_context(device)
-
-    try:
-        return await client_call(
-            device.iot_device_id,
-            device.device_type_hex,
-            *args,
-            mesh_gateway_id=mesh_gateway_id,
-            mesh_member_ids=mesh_member_ids,
-        )
-    except LiproApiError as err:
-        _LOGGER.warning(error_log, err)
-        _raise_service_error(error_translation_key, err=err)
-
-
-async def _async_call_schedule_service(
-    device: LiproDevice,
-    *,
-    client_call: Callable[..., Awaitable[Any]],
-    call_args: tuple[Any, ...] = (),
-    service_log: str | None = None,
-    service_log_args: tuple[Any, ...] = (),
-    error_log: str,
-    error_translation_key: str,
-) -> Any:
-    """Invoke a schedule client method with consistent logging and error mapping."""
-    if service_log is not None:
-        _LOGGER.info(service_log, device.serial, *service_log_args)
-
-    return await _async_call_schedule_client(
-        device,
-        client_call,
-        *call_args,
-        error_log=error_log,
-        error_translation_key=error_translation_key,
+    return _resolve_command_failure_translation_key_shared(
+        failure=failure,
+        err=err,
     )
 
 
-def _format_schedule_time(seconds: int) -> str | None:
-    """Convert seconds since midnight to HH:MM, ignoring invalid values."""
-    if seconds < 0 or seconds >= 86400:
-        return None
-
-    hours = seconds // 3600
-    minutes = (seconds % 3600) // 60
-    return f"{hours:02d}:{minutes:02d}"
-
-
-def _normalize_schedule_row(schedule: Any) -> dict[str, Any] | None:
-    """Normalize a raw schedule row into service response format."""
-    if not isinstance(schedule, dict):
-        return None
-
-    sched_info = schedule.get("schedule")
-    if not isinstance(sched_info, dict):
-        sched_info = {}
-
-    times = _coerce_int_list(sched_info.get("time"))
-    events = _coerce_int_list(sched_info.get("evt"))
-    days = _coerce_int_list(sched_info.get("days"))
-
-    time_strs: list[str] = []
-    for value in times:
-        time_str = _format_schedule_time(value)
-        if time_str is not None:
-            time_strs.append(time_str)
-
-    return {
-        "id": schedule.get("id"),
-        "active": schedule.get("active", True),
-        "days": days,
-        "times": time_strs,
-        "events": events,
-    }
-
-
-def _extract_device_id_from_entity_ids(
-    hass: HomeAssistant, entity_ids: Any
-) -> str | None:
-    """Resolve the first Lipro device ID from entity targets."""
-    ent_reg = er.async_get(hass)
-    for entity_id in entity_ids:
-        entity_entry = ent_reg.async_get(entity_id)
-        if not entity_entry or not entity_entry.unique_id:
-            continue
-
-        unique_id = entity_entry.unique_id
-        if not unique_id.startswith("lipro_") or len(unique_id) <= 6:
-            continue
-
-        # Extract serial from unique_id: "lipro_{serial}[_{suffix}]"
-        # Serial formats: "03ab" + 12 hex, or "mesh_group_" + digits
-        match = _SERIAL_PATTERN.match(unique_id[6:])
-        if match:
-            return match.group(1)
-
-    return None
-
-
-def _resolve_device_id_from_service_call(
-    hass: HomeAssistant,
-    call: ServiceCall,
-) -> Any:
-    """Resolve device identifier from service data or targeted entities."""
-    device_id = call.data.get(ATTR_DEVICE_ID)
-    if device_id:
-        return device_id
-
-    entity_ids = call.data.get(ATTR_ENTITY_ID, [])
-    if isinstance(entity_ids, str):
-        entity_ids = [entity_ids]
-
-    if not entity_ids:
-        raise ServiceValidationError(
-            translation_domain=DOMAIN,
-            translation_key="no_device_specified",
-        )
-
-    resolved_device_id = _extract_device_id_from_entity_ids(hass, entity_ids)
-    if not resolved_device_id:
-        raise ServiceValidationError(
-            translation_domain=DOMAIN,
-            translation_key="cannot_determine_device",
-        )
-
-    return resolved_device_id
-
-
-def _find_device_in_coordinator(
+async def _async_send_command_with_service_errors(
     coordinator: LiproDataUpdateCoordinator,
-    device_id: Any,
-) -> LiproDevice | None:
-    """Find device by serial first, then by alias mapping."""
-    device = coordinator.get_device(device_id)
-    if device is None:
-        return coordinator.get_device_by_id(device_id)
-    return device
+    device: LiproDevice,
+    *,
+    command: str,
+    properties: list[dict[str, str]] | None,
+    requested_device_id: str | None,
+    failure_log: str,
+    api_error_log: str,
+) -> None:
+    """Send one command and map API/push failures to translated service errors."""
+    await _async_send_command_with_service_errors_service(
+        coordinator,
+        device,
+        command=command,
+        properties=properties,
+        requested_device_id=requested_device_id,
+        failure_log=failure_log,
+        api_error_log=api_error_log,
+        resolve_command_failure_translation_key=_resolve_command_failure_translation_key,
+        raise_service_error=_raise_service_error,
+        logger=_LOGGER,
+    )
 
 
 def _iter_runtime_coordinators(
     hass: HomeAssistant,
 ) -> Iterator[LiproDataUpdateCoordinator]:
     """Iterate all active coordinators for the Lipro domain."""
-    for entry in hass.config_entries.async_entries(DOMAIN):
-        coordinator = entry.runtime_data
-        if coordinator is None:
-            continue
-        yield coordinator
+    yield from _iter_runtime_coordinators_service(hass, domain=DOMAIN)
 
 
 def _log_send_command_call(
@@ -542,20 +377,6 @@ def _log_send_command_call(
         )
 
     return is_alias_resolution
-
-
-def _build_send_command_result(
-    resolved_serial: str,
-    *,
-    requested_device_id: str | None,
-    is_alias_resolution: bool,
-) -> dict[str, Any]:
-    """Build send_command service response payload."""
-    result: dict[str, Any] = {"success": True, "serial": resolved_serial}
-    if is_alias_resolution:
-        result["requested_device_id"] = requested_device_id
-        result["resolved_device_id"] = resolved_serial
-    return result
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
@@ -681,18 +502,12 @@ async def _get_device_and_coordinator(
 
     Helper function to extract device from service call data or entity target.
     """
-    device_id = _resolve_device_id_from_service_call(hass, call)
-
-    # Find the device across all active coordinators.
-    for coordinator in _iter_runtime_coordinators(hass):
-        device = _find_device_in_coordinator(coordinator, device_id)
-        if device:
-            return device, coordinator
-
-    raise ServiceValidationError(
-        translation_domain=DOMAIN,
-        translation_key="device_not_found",
-        translation_placeholders={"device_id": device_id},
+    return await _get_device_and_coordinator_service(
+        hass,
+        call,
+        domain=DOMAIN,
+        serial_pattern=_SERIAL_PATTERN,
+        attr_device_id=ATTR_DEVICE_ID,
     )
 
 
@@ -700,261 +515,129 @@ async def _async_handle_send_command(
     hass: HomeAssistant, call: ServiceCall
 ) -> dict[str, Any]:
     """Handle the send_command service call."""
-    command = call.data[ATTR_COMMAND]
-    properties = call.data.get(ATTR_PROPERTIES)
-    properties_summary = _summarize_service_properties(properties)
-    requested_device_id = call.data.get(ATTR_DEVICE_ID)
-
-    device, coordinator = await _get_device_and_coordinator(hass, call)
-    is_alias_resolution = _log_send_command_call(
-        requested_device_id,
-        device.serial,
-        command,
-        properties_summary,
+    return await _async_handle_send_command_service(
+        hass,
+        call,
+        get_device_and_coordinator=_get_device_and_coordinator,
+        summarize_service_properties=_summarize_service_properties,
+        log_send_command_call=_log_send_command_call,
+        resolve_command_failure_translation_key=_resolve_command_failure_translation_key,
+        raise_service_error=_raise_service_error,
+        logger=_LOGGER,
+        attr_command=ATTR_COMMAND,
+        attr_properties=ATTR_PROPERTIES,
+        attr_device_id=ATTR_DEVICE_ID,
     )
-
-    try:
-        success = await coordinator.async_send_command(
-            device,
-            command,
-            properties,
-            fallback_device_id=requested_device_id,
-        )
-        if not success:
-            failure_context = getattr(coordinator, "last_command_failure", None)
-            _LOGGER.warning(
-                "send_command failed (command=%s, device_id=%s, resolved_serial=%s, failure=%s)",
-                command,
-                requested_device_id,
-                device.serial,
-                failure_context,
-            )
-            _raise_service_error(
-                _resolve_command_failure_translation_key(
-                    failure=failure_context,
-                )
-            )
-        return _build_send_command_result(
-            device.serial,
-            requested_device_id=requested_device_id,
-            is_alias_resolution=is_alias_resolution,
-        )
-    except HomeAssistantError:
-        raise
-    except LiproApiError as err:
-        _LOGGER.warning("API error sending command: %s", err)
-        _raise_service_error(
-            _resolve_command_failure_translation_key(err=err),
-            err=err,
-        )
 
 
 async def _async_handle_get_schedules(
     hass: HomeAssistant, call: ServiceCall
 ) -> dict[str, Any]:
     """Handle the get_schedules service call."""
-    device, coordinator = await _get_device_and_coordinator(hass, call)
-
-    schedules = await _async_call_schedule_service(
-        device,
-        client_call=coordinator.client.get_device_schedules,
-        service_log="Service call: get_schedules for %s",
-        error_log="API error getting schedules: %s",
-        error_translation_key="schedule_fetch_failed",
+    return await _async_handle_get_schedules_service(
+        hass,
+        call,
+        get_device_and_coordinator=_get_device_and_coordinator,
+        raise_service_error=_raise_service_error,
+        logger=_LOGGER,
     )
-
-    # Format schedules for response
-    formatted = [
-        normalized
-        for schedule in schedules
-        if (normalized := _normalize_schedule_row(schedule)) is not None
-    ]
-
-    return {
-        "serial": device.serial,
-        "schedules": formatted,
-    }
 
 
 async def _async_handle_add_schedule(
     hass: HomeAssistant, call: ServiceCall
 ) -> dict[str, Any]:
     """Handle the add_schedule service call."""
-    device, coordinator = await _get_device_and_coordinator(hass, call)
-
-    days = call.data[ATTR_DAYS]
-    times = call.data[ATTR_TIMES]
-    events = call.data[ATTR_EVENTS]
-
-    if len(times) != len(events):
-        raise ServiceValidationError(
-            translation_domain=DOMAIN,
-            translation_key="times_events_mismatch",
-        )
-
-    schedules = await _async_call_schedule_service(
-        device,
-        client_call=coordinator.client.add_device_schedule,
-        call_args=(days, times, events),
-        service_log="Service call: add_schedule for %s, days=%s, times=%s, events=%s",
-        service_log_args=(days, times, events),
-        error_log="API error adding schedule: %s",
-        error_translation_key="schedule_add_failed",
+    return await _async_handle_add_schedule_service(
+        hass,
+        call,
+        get_device_and_coordinator=_get_device_and_coordinator,
+        raise_service_error=_raise_service_error,
+        logger=_LOGGER,
+        domain=DOMAIN,
+        attr_days=ATTR_DAYS,
+        attr_times=ATTR_TIMES,
+        attr_events=ATTR_EVENTS,
     )
-
-    return {
-        "success": True,
-        "serial": device.serial,
-        "schedule_count": len(schedules),
-    }
 
 
 async def _async_handle_delete_schedules(
     hass: HomeAssistant, call: ServiceCall
 ) -> dict[str, Any]:
     """Handle the delete_schedules service call."""
-    device, coordinator = await _get_device_and_coordinator(hass, call)
-
-    schedule_ids = call.data[ATTR_SCHEDULE_IDS]
-
-    remaining = await _async_call_schedule_service(
-        device,
-        client_call=coordinator.client.delete_device_schedules,
-        call_args=(schedule_ids,),
-        service_log="Service call: delete_schedules for %s, ids=%s",
-        service_log_args=(schedule_ids,),
-        error_log="API error deleting schedules: %s",
-        error_translation_key="schedule_delete_failed",
+    return await _async_handle_delete_schedules_service(
+        hass,
+        call,
+        get_device_and_coordinator=_get_device_and_coordinator,
+        raise_service_error=_raise_service_error,
+        logger=_LOGGER,
+        attr_schedule_ids=ATTR_SCHEDULE_IDS,
     )
-
-    return {
-        "success": True,
-        "serial": device.serial,
-        "remaining_count": len(remaining),
-    }
 
 
 async def _async_handle_submit_anonymous_share(
     hass: HomeAssistant, call: ServiceCall
 ) -> dict[str, Any]:
     """Handle the submit_anonymous_share service call."""
-    share_manager = get_anonymous_share_manager(hass)
-
-    if not share_manager.is_enabled:
-        raise ServiceValidationError(
-            translation_domain=DOMAIN,
-            translation_key="anonymous_share_not_enabled",
-        )
-
-    device_count, error_count = share_manager.pending_count
-    if device_count == 0 and error_count == 0:
-        return {
-            "success": True,
-            "message": "No data to submit",
-            "devices": 0,
-            "errors": 0,
-        }
-
-    session = async_get_clientsession(hass)
-    success = await share_manager.submit_report(session, force=True)
-
-    if not success:
-        _raise_service_error("anonymous_share_submit_failed")
-
-    return {
-        "success": True,
-        "devices": device_count,
-        "errors": error_count,
-    }
+    return await _async_handle_submit_anonymous_share_service(
+        hass,
+        call,
+        get_anonymous_share_manager=get_anonymous_share_manager,
+        get_client_session=async_get_clientsession,
+        raise_service_error=_raise_service_error,
+        domain=DOMAIN,
+    )
 
 
 async def _async_handle_get_anonymous_share_report(
     hass: HomeAssistant, call: ServiceCall
 ) -> dict[str, Any]:
     """Handle the get_anonymous_share_report service call."""
-    share_manager = get_anonymous_share_manager(hass)
-    report = share_manager.get_pending_report()
-
-    if report is None:
-        return {
-            "has_data": False,
-            "devices": [],
-            "errors": [],
-        }
-
-    return {
-        "has_data": True,
-        "device_count": report.get("device_count", 0),
-        "error_count": report.get("error_count", 0),
-        "devices": report.get("devices", []),
-        "errors": report.get("errors", []),
-    }
+    return await _async_handle_get_anonymous_share_report_service(
+        hass,
+        call,
+        get_anonymous_share_manager=get_anonymous_share_manager,
+    )
 
 
 def _collect_developer_reports(hass: HomeAssistant) -> list[dict[str, Any]]:
     """Collect developer reports from active config entries."""
-    reports: list[dict[str, Any]] = []
-    for coordinator in _iter_runtime_coordinators(hass):
-        if not hasattr(coordinator, "build_developer_report"):
-            continue
-        reports.append(coordinator.build_developer_report())
-    return reports
+    return _collect_developer_reports_service(
+        hass,
+        iter_runtime_coordinators=_iter_runtime_coordinators,
+    )
 
 
 async def _async_handle_get_developer_report(
     hass: HomeAssistant, call: ServiceCall
 ) -> dict[str, Any]:
     """Handle the get_developer_report service call."""
-    reports = _collect_developer_reports(hass)
-
-    return {
-        "entry_count": len(reports),
-        "reports": reports,
-    }
+    return await _async_handle_get_developer_report_service(
+        hass,
+        call,
+        collect_reports=_collect_developer_reports,
+    )
 
 
 async def _async_handle_submit_developer_feedback(
     hass: HomeAssistant, call: ServiceCall
 ) -> dict[str, Any]:
     """Handle the submit_developer_feedback service call."""
-    reports = _collect_developer_reports(hass)
-
-    if not reports:
-        return {
-            "success": False,
-            "message": "No active Lipro config entries",
-            "submitted_entries": 0,
-        }
-
-    feedback_payload = {
-        "source": "home_assistant_service",
-        "service": f"{DOMAIN}.{SERVICE_SUBMIT_DEVELOPER_FEEDBACK}",
-        "generated_at": datetime.now(UTC).isoformat(),
-        "entry_count": len(reports),
-        "note": call.data.get(ATTR_NOTE, ""),
-        "reports": reports,
-    }
-
-    share_manager = get_anonymous_share_manager(hass)
-    session = async_get_clientsession(hass)
-    success = await share_manager.submit_developer_feedback(
-        session,
-        feedback_payload,
+    return await _async_handle_submit_developer_feedback_service(
+        hass,
+        call,
+        collect_reports=_collect_developer_reports,
+        get_anonymous_share_manager=get_anonymous_share_manager,
+        get_client_session=async_get_clientsession,
+        domain=DOMAIN,
+        service_submit_developer_feedback=SERVICE_SUBMIT_DEVELOPER_FEEDBACK,
+        attr_note=ATTR_NOTE,
+        raise_service_error=_raise_service_error,
     )
-    if not success:
-        _raise_service_error("developer_feedback_submit_failed")
-
-    return {
-        "success": True,
-        "submitted_entries": len(reports),
-    }
 
 
 def _raise_optional_capability_error(capability: str, err: LiproApiError) -> NoReturn:
     """Raise a concise service-layer error for optional diagnostic capabilities."""
-    _LOGGER.warning("Optional capability %s failed: %s", capability, err)
-    message = f"{capability} failed (code={err.code}): {err}"
-    raise HomeAssistantError(message)
+    _raise_optional_capability_error_service(capability, err, logger=_LOGGER)
 
 
 async def _async_call_optional_capability(
@@ -963,10 +646,12 @@ async def _async_call_optional_capability(
     **kwargs: Any,
 ) -> Any:
     """Call optional capability API and map LiproApiError to service error."""
-    try:
-        return await method(**kwargs)
-    except LiproApiError as err:
-        _raise_optional_capability_error(capability, err)
+    return await _async_call_optional_capability_service(
+        capability,
+        method,
+        raise_optional_error=_raise_optional_capability_error,
+        **kwargs,
+    )
 
 
 def _build_sensor_history_result(
@@ -976,283 +661,112 @@ def _build_sensor_history_result(
     result: dict[str, Any],
 ) -> dict[str, Any]:
     """Build common service response for sensor history diagnostics."""
-    return {
-        "serial": serial,
-        "sensor_device_id": sensor_device_id,
-        "mesh_type": mesh_type,
-        "result": result,
-    }
+    return _build_sensor_history_result_service(
+        serial,
+        sensor_device_id,
+        mesh_type,
+        result,
+    )
 
 
 async def _async_handle_query_command_result(
     hass: HomeAssistant, call: ServiceCall
 ) -> dict[str, Any]:
     """Developer-only service: query command delivery result by msgSn."""
-    device, coordinator = await _get_device_and_coordinator(hass, call)
-    msg_sn = call.data[ATTR_MSG_SN]
-    result = await _async_call_optional_capability(
-        SERVICE_QUERY_COMMAND_RESULT,
-        coordinator.client.query_command_result,
-        msg_sn=msg_sn,
-        device_id=device.serial,
-        device_type=device.device_type,
+    return await _async_handle_query_command_result_service(
+        hass,
+        call,
+        get_device_and_coordinator=_get_device_and_coordinator,
+        async_call_optional_capability=_async_call_optional_capability,
+        attr_msg_sn=ATTR_MSG_SN,
+        service_query_command_result=SERVICE_QUERY_COMMAND_RESULT,
     )
-
-    return {
-        "serial": device.serial,
-        "msg_sn": msg_sn,
-        "result": result,
-    }
 
 
 async def _async_handle_get_city(hass: HomeAssistant, call: ServiceCall) -> dict[str, Any]:
     """Developer-only service: fetch city metadata."""
-    del call
-    for coordinator in _iter_runtime_coordinators(hass):
-        try:
-            result = await coordinator.client.get_city()
-        except LiproApiError as err:
-            _raise_optional_capability_error(SERVICE_GET_CITY, err)
-        return {"result": result}
-    return {"result": {}}
+    return await _async_handle_get_city_service(
+        hass,
+        call,
+        iter_runtime_coordinators=_iter_runtime_coordinators,
+        raise_optional_error=_raise_optional_capability_error,
+        service_get_city=SERVICE_GET_CITY,
+    )
 
 
 async def _async_handle_query_ota_info(
     hass: HomeAssistant, call: ServiceCall
 ) -> dict[str, Any]:
     """Developer-only service: query OTA metadata for selected device/group."""
-    device, coordinator = await _get_device_and_coordinator(hass, call)
-    result = await _async_call_optional_capability(
-        SERVICE_QUERY_OTA_INFO,
-        coordinator.client.query_ota_info,
-        device_id=device.serial,
-        device_type=device.device_type,
+    return await _async_handle_query_ota_info_service(
+        hass,
+        call,
+        get_device_and_coordinator=_get_device_and_coordinator,
+        async_call_optional_capability=_async_call_optional_capability,
+        service_query_ota_info=SERVICE_QUERY_OTA_INFO,
     )
-    result = _filter_ota_rows_by_user_devices(result, coordinator)
-    return {
-        "serial": device.serial,
-        "ota": result,
-    }
 
 
-@functools.lru_cache(maxsize=1)
 def _load_verified_firmware_versions() -> frozenset[str]:
-    """Load verified firmware versions from the built-in manifest file."""
-    manifest_path = Path(__file__).with_name(FIRMWARE_SUPPORT_MANIFEST)
-    verified_versions, _ = _load_verified_firmware_manifest_file(
-        manifest_path,
-        on_error=lambda path, err: _LOGGER.warning(
-            "Failed to load firmware support manifest %s: %s",
-            path,
-            err,
-        ),
+    """Compatibility shim for OTA manifest loading used by existing tests."""
+    return _load_verified_firmware_versions_cached_service(
+        str(Path(__file__).with_name(FIRMWARE_SUPPORT_MANIFEST)),
+        _LOGGER,
     )
-    return verified_versions
-
-
-def _extract_ota_versions(rows: Any) -> set[str]:
-    """Extract candidate firmware versions from OTA metadata rows."""
-    return _extract_ota_versions_from_rows(rows)
-
-
-def _filter_ota_rows_by_user_devices(rows: Any, coordinator: Any) -> list[dict[str, Any]]:
-    """Filter OTA rows to only include device types that user actually has."""
-    if not isinstance(rows, list):
-        return []
-
-    devices = getattr(coordinator, "devices", {})
-    if not isinstance(devices, dict):
-        devices = {}
-
-    allowed_types = {
-        str(device.device_type_hex).strip().lower()
-        for device in devices.values()
-        if hasattr(device, "device_type_hex") and str(device.device_type_hex).strip()
-    }
-    if not allowed_types:
-        return [row for row in rows if isinstance(row, dict)]
-
-    filtered: list[dict[str, Any]] = []
-    for row in rows:
-        if not isinstance(row, dict):
-            continue
-        row_type = row.get("deviceType")
-        # Keep unknown-type rows to avoid accidentally hiding usable data.
-        if not isinstance(row_type, str) or not row_type.strip():
-            filtered.append(row)
-            continue
-        if row_type.strip().lower() in allowed_types:
-            filtered.append(row)
-    return filtered
-
-
-@dataclass(frozen=True, slots=True)
-class _StartOtaCallContext:
-    """Normalized context fields extracted from one service call."""
-
-    requested_device_id: str | None
-    is_alias_resolution: bool
-    confirm_irreversible: bool
-    confirm_unverified: bool
-
-
-@dataclass(frozen=True, slots=True)
-class _StartOtaVersionSnapshot:
-    """Precomputed OTA metadata used by validation and response payload."""
-
-    filtered_rows: list[dict[str, Any]]
-    ota_versions: list[str]
-    unverified_versions: list[str]
-
-
-def _resolve_start_ota_call_context(call_data: Any, resolved_serial: str) -> _StartOtaCallContext:
-    """Extract and normalize start_ota_update call context."""
-    payload = call_data if isinstance(call_data, dict) else {}
-    requested_device_id = payload.get(ATTR_DEVICE_ID)
-    return _StartOtaCallContext(
-        requested_device_id=requested_device_id,
-        is_alias_resolution=requested_device_id not in (None, "", resolved_serial),
-        confirm_irreversible=bool(payload.get(ATTR_CONFIRM_IRREVERSIBLE, False)),
-        confirm_unverified=bool(payload.get(ATTR_CONFIRM_UNVERIFIED, False)),
-    )
-
-
-def _analyze_start_ota_versions(
-    ota_rows: Any,
-    coordinator: Any,
-    verified_versions: frozenset[str],
-) -> _StartOtaVersionSnapshot:
-    """Build filtered OTA rows plus verified/unverified version partitions."""
-    filtered_rows = _filter_ota_rows_by_user_devices(ota_rows, coordinator)
-    ota_versions = sorted(_extract_ota_versions(filtered_rows))
-    unverified_versions = [
-        version for version in ota_versions if version not in verified_versions
-    ]
-    return _StartOtaVersionSnapshot(
-        filtered_rows=filtered_rows,
-        ota_versions=ota_versions,
-        unverified_versions=unverified_versions,
-    )
-
-
-def _build_start_ota_result(
-    serial: str,
-    version_snapshot: _StartOtaVersionSnapshot,
-) -> dict[str, Any]:
-    """Build service response payload for start_ota_update."""
-    return {
-        "success": True,
-        "serial": serial,
-        "command": "OTA_UPDATE",
-        "ota_versions": version_snapshot.ota_versions,
-        "ota_rows": version_snapshot.filtered_rows,
-        "unverified_versions": version_snapshot.unverified_versions,
-        "warning": "Firmware upgrade is irreversible by this integration.",
-    }
-
-
-async def _async_execute_start_ota_command(
-    coordinator: LiproDataUpdateCoordinator,
-    device: LiproDevice,
-    *,
-    requested_device_id: str | None,
-) -> None:
-    """Dispatch OTA command and raise translated errors when it fails."""
-    try:
-        success = await coordinator.async_send_command(
-            device,
-            "OTA_UPDATE",
-            None,
-            fallback_device_id=requested_device_id,
-        )
-        if not success:
-            failure_context = getattr(coordinator, "last_command_failure", None)
-            _LOGGER.warning(
-                "start_ota_update failed (device_id=%s, resolved_serial=%s, failure=%s)",
-                requested_device_id,
-                device.serial,
-                failure_context,
-            )
-            _raise_service_error(
-                _resolve_command_failure_translation_key(
-                    failure=failure_context,
-                )
-            )
-    except HomeAssistantError:
-        raise
-    except LiproApiError as err:
-        _LOGGER.warning("API error starting OTA update: %s", err)
-        _raise_service_error(
-            _resolve_command_failure_translation_key(err=err),
-            err=err,
-        )
 
 
 async def _async_handle_start_ota_update(
     hass: HomeAssistant, call: ServiceCall
 ) -> dict[str, Any]:
     """Developer-only service: start OTA update with explicit safety guards."""
-    preflight_context = _resolve_start_ota_call_context(call.data, "")
-    if not preflight_context.confirm_irreversible:
-        _raise_service_error("ota_update_confirm_required")
-    device, coordinator = await _get_device_and_coordinator(hass, call)
-    context = _resolve_start_ota_call_context(call.data, device.serial)
-
-    try:
-        ota_rows = await coordinator.client.query_ota_info(
-            device_id=device.serial,
-            device_type=device.device_type,
-        )
-    except LiproApiError as err:
-        _LOGGER.warning("API error querying OTA versions before upgrade: %s", err)
-        _raise_service_error("ota_update_version_check_failed", err=err)
-
-    version_snapshot = _analyze_start_ota_versions(
-        ota_rows,
-        coordinator,
-        _load_verified_firmware_versions(),
-    )
-    if version_snapshot.unverified_versions and not context.confirm_unverified:
-        _raise_service_error("ota_update_unverified_confirm_required")
-
-    _LOGGER.warning(
-        "Service call: start_ota_update for %s (requested=%s, alias=%s, versions=%s, unverified=%s)",
-        device.serial,
-        context.requested_device_id,
-        context.is_alias_resolution,
-        version_snapshot.ota_versions,
-        version_snapshot.unverified_versions,
+    return await _async_handle_start_ota_update_service(
+        hass,
+        call,
+        get_device_and_coordinator=_get_device_and_coordinator,
+        async_send_command_with_service_errors=_async_send_command_with_service_errors,
+        raise_service_error=_raise_service_error,
+        logger=_LOGGER,
+        load_verified_firmware_versions=_load_verified_firmware_versions,
+        attr_device_id=ATTR_DEVICE_ID,
+        attr_confirm_irreversible=ATTR_CONFIRM_IRREVERSIBLE,
+        attr_confirm_unverified=ATTR_CONFIRM_UNVERIFIED,
     )
 
-    await _async_execute_start_ota_command(
-        coordinator,
-        device,
-        requested_device_id=context.requested_device_id,
+
+async def _async_handle_fetch_sensor_history(
+    *,
+    hass: HomeAssistant,
+    call: ServiceCall,
+    service_handler: Callable[..., Awaitable[dict[str, Any]]],
+    service_name_kw: str,
+    service_name: str,
+) -> dict[str, Any]:
+    """Shared wrapper for body/door sensor-history services."""
+    handler_kwargs: dict[str, Any] = {
+        "get_device_and_coordinator": _get_device_and_coordinator,
+        "async_call_optional_capability": _async_call_optional_capability,
+        "build_sensor_history_result": _build_sensor_history_result,
+        "attr_sensor_device_id": ATTR_SENSOR_DEVICE_ID,
+        "attr_mesh_type": ATTR_MESH_TYPE,
+        service_name_kw: service_name,
+    }
+    return await service_handler(
+        hass,
+        call,
+        **handler_kwargs,
     )
-    return _build_start_ota_result(device.serial, version_snapshot)
 
 
 async def _async_handle_fetch_body_sensor_history(
     hass: HomeAssistant, call: ServiceCall
 ) -> dict[str, Any]:
     """Developer-only service: fetch body-sensor history payload."""
-    device, coordinator = await _get_device_and_coordinator(hass, call)
-    sensor_device_id = call.data[ATTR_SENSOR_DEVICE_ID]
-    mesh_type = call.data[ATTR_MESH_TYPE]
-
-    result = await _async_call_optional_capability(
-        SERVICE_FETCH_BODY_SENSOR_HISTORY,
-        coordinator.client.fetch_body_sensor_history,
-        device_id=device.serial,
-        device_type=device.device_type,
-        sensor_device_id=sensor_device_id,
-        mesh_type=mesh_type,
-    )
-    return _build_sensor_history_result(
-        device.serial,
-        sensor_device_id,
-        mesh_type,
-        result,
+    return await _async_handle_fetch_sensor_history(
+        hass=hass,
+        call=call,
+        service_handler=_async_handle_fetch_body_sensor_history_service,
+        service_name_kw="service_fetch_body_sensor_history",
+        service_name=SERVICE_FETCH_BODY_SENSOR_HISTORY,
     )
 
 
@@ -1260,23 +774,12 @@ async def _async_handle_fetch_door_sensor_history(
     hass: HomeAssistant, call: ServiceCall
 ) -> dict[str, Any]:
     """Developer-only service: fetch door-sensor history payload."""
-    device, coordinator = await _get_device_and_coordinator(hass, call)
-    sensor_device_id = call.data[ATTR_SENSOR_DEVICE_ID]
-    mesh_type = call.data[ATTR_MESH_TYPE]
-
-    result = await _async_call_optional_capability(
-        SERVICE_FETCH_DOOR_SENSOR_HISTORY,
-        coordinator.client.fetch_door_sensor_history,
-        device_id=device.serial,
-        device_type=device.device_type,
-        sensor_device_id=sensor_device_id,
-        mesh_type=mesh_type,
-    )
-    return _build_sensor_history_result(
-        device.serial,
-        sensor_device_id,
-        mesh_type,
-        result,
+    return await _async_handle_fetch_sensor_history(
+        hass=hass,
+        call=call,
+        service_handler=_async_handle_fetch_door_sensor_history_service,
+        service_name_kw="service_fetch_door_sensor_history",
+        service_name=SERVICE_FETCH_DOOR_SENSOR_HISTORY,
     )
 
 
@@ -1368,26 +871,50 @@ _SERVICE_REGISTRATIONS: Final = (
 )
 
 
+
+
+def _async_register_service(
+    hass: HomeAssistant,
+    service_name: str,
+    service_handler: Callable[[HomeAssistant, ServiceCall], Awaitable[dict[str, Any]]],
+    service_schema: vol.Schema | None,
+    supports_response: SupportsResponse,
+) -> None:
+    """Register one Lipro service."""
+    register_kwargs: dict[str, Any] = {"supports_response": supports_response}
+    if service_schema is not None:
+        register_kwargs["schema"] = service_schema
+    hass.services.async_register(
+        DOMAIN,
+        service_name,
+        functools.partial(service_handler, hass),
+        **register_kwargs,
+    )
+
+
+def _async_remove_services(hass: HomeAssistant) -> None:
+    """Remove all Lipro services registered by this integration."""
+    for service_name, *_ in _SERVICE_REGISTRATIONS:
+        hass.services.async_remove(DOMAIN, service_name)
+
+
 async def _async_setup_services(hass: HomeAssistant) -> None:
     """Set up Lipro services."""
     if hass.services.has_service(DOMAIN, SERVICE_SEND_COMMAND):
         return  # Services already registered
 
-    # Register services with functools.partial to avoid lambda closures.
     for (
         service_name,
         service_handler,
         service_schema,
         supports_response,
     ) in _SERVICE_REGISTRATIONS:
-        register_kwargs: dict[str, Any] = {"supports_response": supports_response}
-        if service_schema is not None:
-            register_kwargs["schema"] = service_schema
-        hass.services.async_register(
-            DOMAIN,
+        _async_register_service(
+            hass,
             service_name,
-            functools.partial(service_handler, hass),
-            **register_kwargs,
+            service_handler,
+            service_schema,
+            supports_response,
         )
 
 
@@ -1407,8 +934,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: LiproConfigEntry) -> bo
         for e in hass.config_entries.async_entries(DOMAIN)
         if e.entry_id != entry.entry_id
     ):
-        for service_name, *_ in _SERVICE_REGISTRATIONS:
-            hass.services.async_remove(DOMAIN, service_name)
+        _async_remove_services(hass)
 
     return result
 

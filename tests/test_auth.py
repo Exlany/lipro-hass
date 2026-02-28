@@ -87,6 +87,15 @@ class TestLiproAuthManagerCredentials:
         assert manager._token_expires_at >= before
         assert manager._token_expires_at <= after + manager._current_expiry_seconds
 
+    def test_set_tokens_does_not_mark_recent_refresh(self):
+        """Restored tokens should not suppress first runtime 401 refresh."""
+        client = MagicMock(spec=LiproClient)
+        manager = LiproAuthManager(client)
+
+        manager.set_tokens("access", "refresh")
+
+        assert manager._last_refresh_time == 0.0
+
 
 class TestLiproAuthManagerLogin:
     """Tests for login functionality."""

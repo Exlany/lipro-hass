@@ -7,6 +7,10 @@ import logging
 from typing import TYPE_CHECKING, Any
 
 from .api import LiproApiError
+from .command_trace import (
+    update_trace_with_resolved_request,
+    update_trace_with_response,
+)
 from .device import LiproDevice, is_valid_iot_device_id
 
 if TYPE_CHECKING:
@@ -164,24 +168,36 @@ async def _send_member_command(
     )
 
 
-async def execute_command_dispatch(
+async def _fallback_to_member(
+    client: LiproClient,
+    *,
+    member_id: str,
+    device: LiproDevice,
+    command: str,
+    properties: list[dict[str, str]] | None,
+    route: str,
+    log_message: str,
+    log_args: tuple[Any, ...],
+) -> tuple[Any, str]:
+    """Run one fallback send to the resolved member and return updated route."""
+    _LOGGER.warning(log_message, *log_args)
+    result = await _send_member_command(
+        client,
+        member_id=member_id,
+        device=device,
+        command=command,
+        properties=properties,
+    )
+    return result, route
+
+
+async def _send_group_with_error_fallback(
     client: LiproClient,
     *,
     device: LiproDevice,
     plan: CommandDispatchPlan,
 ) -> tuple[Any, str]:
-    """Execute direct/group command send with fallback routing."""
-    route = plan.route
-    if not device.is_group:
-        result = await _send_member_command(
-            client,
-            member_id=device.serial,
-            device=device,
-            command=plan.command,
-            properties=plan.properties,
-        )
-        return result, route
-
+    """Send group command and fallback on group API error when allowed."""
     try:
         result = await client.send_group_command(
             device.serial,
@@ -190,43 +206,116 @@ async def execute_command_dispatch(
             plan.properties,
             device.iot_name,
         )
+        return result, plan.route
     except LiproApiError as err:
         if not plan.member_fallback_id:
             raise
-        route = "group_error_fallback_member"
-        _LOGGER.warning(
-            "Group command %s to %s failed (%s), fallback to member %s",
-            plan.command,
-            device.serial,
-            err,
-            plan.member_fallback_id,
-        )
-        result = await _send_member_command(
+        return await _fallback_to_member(
             client,
-            member_id=plan.member_fallback_id,
             device=device,
+            member_id=plan.member_fallback_id,
             command=plan.command,
             properties=plan.properties,
+            route="group_error_fallback_member",
+            log_message="Group command %s to %s failed (%s), fallback to member %s",
+            log_args=(
+                plan.command,
+                device.serial,
+                err,
+                plan.member_fallback_id,
+            ),
         )
 
-    if (
-        plan.member_fallback_id
+
+def _should_fallback_after_group_result(
+    *,
+    member_fallback_id: str | None,
+    result: Any,
+) -> bool:
+    """Return whether group push result should fallback to member command."""
+    return (
+        member_fallback_id is not None
         and isinstance(result, dict)
         and result.get("pushSuccess") is False
-    ):
-        route = "group_push_fail_fallback_member"
-        _LOGGER.warning(
-            "Group command %s to %s returned pushSuccess=false, fallback to member %s",
-            plan.command,
-            device.serial,
-            plan.member_fallback_id,
-        )
+    )
+
+
+async def execute_command_dispatch(
+    client: LiproClient,
+    *,
+    device: LiproDevice,
+    plan: CommandDispatchPlan,
+) -> tuple[Any, str]:
+    """Execute direct/group command send with fallback routing."""
+    if not device.is_group:
         result = await _send_member_command(
             client,
-            member_id=plan.member_fallback_id,
+            member_id=device.serial,
             device=device,
             command=plan.command,
             properties=plan.properties,
+        )
+        return result, plan.route
+
+    result, route = await _send_group_with_error_fallback(
+        client,
+        device=device,
+        plan=plan,
+    )
+    if _should_fallback_after_group_result(
+        member_fallback_id=plan.member_fallback_id,
+        result=result,
+    ):
+        result, route = await _fallback_to_member(
+            client,
+            device=device,
+            member_id=plan.member_fallback_id,
+            command=plan.command,
+            properties=plan.properties,
+            route="group_push_fail_fallback_member",
+            log_message=(
+                "Group command %s to %s returned pushSuccess=false, "
+                "fallback to member %s"
+            ),
+            log_args=(
+                plan.command,
+                device.serial,
+                plan.member_fallback_id,
+            ),
         )
 
     return result, route
+
+
+async def execute_command_plan_with_trace(
+    client: LiproClient,
+    *,
+    device: LiproDevice,
+    command: str,
+    properties: list[dict[str, str]] | None,
+    fallback_device_id: str | None,
+    trace: dict[str, Any],
+    redact_identifier: Any,
+) -> tuple[CommandDispatchPlan, Any, str]:
+    """Plan command dispatch and append resolved request/response trace fields."""
+    plan: CommandDispatchPlan = plan_command_dispatch(
+        device,
+        command,
+        properties,
+        fallback_device_id,
+    )
+    route = plan.route
+    update_trace_with_resolved_request(
+        trace,
+        command=plan.command,
+        properties=plan.properties,
+        fallback_device_id=plan.member_fallback_id,
+        redact_identifier=redact_identifier,
+    )
+    result, route = await execute_command_dispatch(
+        client,
+        device=device,
+        plan=plan,
+    )
+    update_trace_with_response(trace, result)
+    return plan, result, route

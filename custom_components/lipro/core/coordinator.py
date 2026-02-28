@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 from collections import deque
+from collections.abc import Coroutine
 from dataclasses import dataclass
 from datetime import timedelta
 import hashlib
@@ -69,17 +70,24 @@ from .api import (
     LiproConnectionError,
     LiproRefreshTokenExpiredError,
 )
-from .command_dispatch import (
-    CommandDispatchPlan,
-    execute_command_dispatch,
-    plan_command_dispatch,
+from .command_dispatch import execute_command_plan_with_trace
+from .command_result import (
+    apply_missing_msg_sn_failure,
+    apply_push_failure,
+    apply_successful_command_trace,
+    build_command_api_error_failure,
+    classify_command_result_payload,
+    compute_adaptive_post_refresh_delay,
+    extract_msg_sn,
+    is_command_push_failed,
+    poll_command_result_state,
+    query_command_result_once,
+    resolve_delayed_refresh_delay,
+    resolve_polled_command_result,
+    run_delayed_refresh,
+    should_skip_immediate_post_refresh,
 )
-from .command_trace import (
-    build_command_trace,
-    update_trace_with_exception,
-    update_trace_with_resolved_request,
-    update_trace_with_response,
-)
+from .command_trace import build_command_trace, update_trace_with_exception
 from .coordinator_runtime import (
     should_refresh_device_list as should_refresh_device_list_runtime,
     should_schedule_mqtt_setup,
@@ -115,6 +123,7 @@ from .mqtt_setup import (
     resolve_mqtt_biz_id,
 )
 from .outlet_power import apply_outlet_power_info, should_reraise_outlet_power_error
+from .redaction import redact_identifier as _redact_identifier
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
@@ -138,6 +147,9 @@ _STALE_DEVICE_REMOVE_THRESHOLD: Final[int] = 3
 
 # Periodic full device-list refresh to discover newly paired devices.
 _DEVICE_LIST_REFRESH_INTERVAL_SECONDS: Final[int] = 600
+
+# Defensive cap for malformed pagination responses that never terminate.
+_MAX_DEVICE_LIST_PAGES: Final[int] = 50
 
 # Optional command-result verification tuning.
 _COMMAND_RESULT_VERIFY_ATTEMPTS: Final[int] = 3
@@ -196,45 +208,6 @@ _SLIDER_LIKE_PROPERTIES: Final[frozenset[str]] = frozenset(
         PROP_POSITION,
     }
 )
-
-
-def _should_skip_immediate_post_refresh(
-    command: str,
-    properties: list[dict[str, str]] | None,
-) -> bool:
-    """Decide whether immediate refresh can be skipped for slider-like updates.
-
-    For brightness/color-temperature slider updates, optimistic state already
-    keeps the UI responsive and delayed refresh is enough to reconcile eventual
-    backend consistency. Skipping immediate refresh reduces API pressure and
-    helps avoid command congestion under rapid slider interactions.
-    """
-    if command.upper() != "CHANGE_STATE" or not properties:
-        return False
-
-    property_keys = {
-        item.get("key")
-        for item in properties
-        if isinstance(item, dict) and isinstance(item.get("key"), str)
-    }
-    if not property_keys:
-        return False
-
-    return property_keys.issubset(_SLIDER_LIKE_PROPERTIES)
-
-
-def _redact_identifier(identifier: str | None) -> str | None:
-    """Redact identifiers for share-friendly developer reports."""
-    if not isinstance(identifier, str):
-        return None
-
-    normalized = identifier.strip()
-    if not normalized:
-        return None
-
-    if len(normalized) <= 8:
-        return "***"
-    return f"{normalized[:4]}***{normalized[-4:]}"
 
 
 def _coerce_option_int(
@@ -335,6 +308,16 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         )
         self.client = client
         self.auth_manager = auth_manager
+        self._init_runtime_state()
+
+        # Load options from config entry
+        self._load_options()
+
+        # Initialize anonymous share system based on config
+        self._setup_anonymous_share()
+
+    def _init_runtime_state(self) -> None:
+        """Initialize coordinator runtime state containers and caches."""
         self._devices: dict[str, LiproDevice] = {}
         self._device_by_id: dict[str, LiproDevice] = {}  # Any known ID -> Device
         self._iot_ids_to_query: list[str] = []
@@ -365,6 +348,8 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         self._mqtt_disconnect_notified: bool = False
         # Track delayed refresh task for post-command eventual consistency.
         self._post_command_refresh_task: asyncio.Task | None = None
+        # Background tasks created by coordinator; cancelled on shutdown.
+        self._background_tasks: set[asyncio.Task[Any]] = set()
         # Pending CHANGE_STATE expectations per device for stale-update filtering.
         self._pending_command_expectations: dict[str, _PendingCommandExpectation] = {}
         # Learned command->state confirmation latency (EWMA) per device.
@@ -377,12 +362,6 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         )
         # Last command failure summary for service-layer error mapping.
         self._last_command_failure: dict[str, Any] | None = None
-
-        # Load options from config entry
-        self._load_options()
-
-        # Initialize anonymous share system based on config
-        self._setup_anonymous_share()
 
     def _load_options(self) -> None:
         """Load options from config entry."""
@@ -703,19 +682,17 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
 
     def _get_adaptive_post_refresh_delay(self, device_serial: str | None) -> float:
         """Get adaptive delayed-refresh value for a device."""
-        learned = (
+        learned_latency = (
             self._device_state_latency_seconds.get(device_serial)
             if isinstance(device_serial, str)
             else None
         )
-        delay = (
-            learned + _STATE_LATENCY_MARGIN_SECONDS
-            if learned is not None
-            else _POST_COMMAND_REFRESH_DELAY_SECONDS
-        )
-        return max(
-            _MIN_POST_COMMAND_REFRESH_DELAY_SECONDS,
-            min(_MAX_POST_COMMAND_REFRESH_DELAY_SECONDS, delay),
+        return compute_adaptive_post_refresh_delay(
+            learned_latency_seconds=learned_latency,
+            default_delay_seconds=_POST_COMMAND_REFRESH_DELAY_SECONDS,
+            latency_margin_seconds=_STATE_LATENCY_MARGIN_SECONDS,
+            min_delay_seconds=_MIN_POST_COMMAND_REFRESH_DELAY_SECONDS,
+            max_delay_seconds=_MAX_POST_COMMAND_REFRESH_DELAY_SECONDS,
         )
 
     def _prune_runtime_state_for_devices(self, active_serials: set[str]) -> None:
@@ -990,7 +967,9 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
             and not self._post_command_refresh_task.done()
         ):
             self._post_command_refresh_task.cancel()
-            self._post_command_refresh_task = None
+        self._post_command_refresh_task = None
+
+        await self._async_cancel_background_tasks()
 
         # Submit anonymous share report before shutdown (if enabled)
         try:
@@ -1027,6 +1006,29 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         self._last_device_refresh_at = 0.0
 
         _LOGGER.debug("Coordinator shutdown complete")
+
+    def _track_background_task(self, coro: Coroutine[Any, Any, Any]) -> asyncio.Task[Any]:
+        """Create and track a background task for centralized shutdown cleanup."""
+        task = self.hass.async_create_task(coro)
+        self._background_tasks.add(task)
+        add_done_callback = getattr(task, "add_done_callback", None)
+        if callable(add_done_callback):
+            add_done_callback(self._background_tasks.discard)
+        return task
+
+    async def _async_cancel_background_tasks(self) -> None:
+        """Cancel and await tracked background tasks."""
+        if not self._background_tasks:
+            return
+
+        tasks_to_cancel = [task for task in self._background_tasks if not task.done()]
+        for task in tasks_to_cancel:
+            task.cancel()
+
+        if tasks_to_cancel:
+            await asyncio.gather(*tasks_to_cancel, return_exceptions=True)
+
+        self._background_tasks.clear()
 
     def _on_mqtt_connect(self) -> None:
         """Handle MQTT connection."""
@@ -1067,7 +1069,7 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
             return
 
         self._mqtt_disconnect_notified = True
-        self.hass.async_create_task(
+        self._track_background_task(
             self._async_show_mqtt_disconnect_notification(minutes)
         )
 
@@ -1198,7 +1200,7 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
                 "MQTT: device %s online, scheduling REST API reconciliation",
                 device.name,
             )
-            self.hass.async_create_task(self.async_request_refresh())
+            self._track_background_task(self.async_request_refresh())
 
     def _cleanup_mqtt_cache(self, current_time: float) -> None:
         """Clean up stale MQTT dedup cache entries.
@@ -1265,7 +1267,26 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
             return
 
         self._mqtt_setup_in_progress = True
-        self.hass.async_create_task(self._async_setup_mqtt_safe())
+        self._track_background_task(self._async_setup_mqtt_safe())
+
+    async def _raise_update_data_error(self, err: Exception) -> None:
+        """Map API/auth exceptions to Home Assistant update errors."""
+        if isinstance(err, LiproRefreshTokenExpiredError):
+            await self._trigger_reauth("auth_expired")
+            msg = f"Refresh token expired, re-authentication required: {err}"
+            raise ConfigEntryAuthFailed(msg) from err
+        if isinstance(err, LiproAuthError):
+            await self._trigger_reauth("auth_error", error=str(err))
+            msg = f"Authentication error: {err}"
+            raise ConfigEntryAuthFailed(msg) from err
+        if isinstance(err, LiproConnectionError):
+            msg = f"Connection error: {err}"
+            raise UpdateFailed(msg) from err
+        if isinstance(err, LiproApiError):
+            msg = f"API error: {err}"
+            raise UpdateFailed(msg) from err
+
+        raise err
 
     async def _async_update_data(self) -> dict[str, LiproDevice]:
         """Fetch data from API.
@@ -1301,21 +1322,13 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
             return self._devices
 
         except LiproRefreshTokenExpiredError as err:
-            # Refresh token expired, trigger reauth flow
-            await self._trigger_reauth("auth_expired")
-            msg = f"Refresh token expired, re-authentication required: {err}"
-            raise ConfigEntryAuthFailed(msg) from err
+            await self._raise_update_data_error(err)
         except LiproAuthError as err:
-            # Trigger reauth flow when authentication fails
-            await self._trigger_reauth("auth_error", error=str(err))
-            msg = f"Authentication error: {err}"
-            raise ConfigEntryAuthFailed(msg) from err
+            await self._raise_update_data_error(err)
         except LiproConnectionError as err:
-            msg = f"Connection error: {err}"
-            raise UpdateFailed(msg) from err
+            await self._raise_update_data_error(err)
         except LiproApiError as err:
-            msg = f"API error: {err}"
-            raise UpdateFailed(msg) from err
+            await self._raise_update_data_error(err)
 
     async def _fetch_devices(self) -> None:
         """Fetch all devices from API with pagination."""
@@ -1349,7 +1362,7 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
             "Discovered %d new Lipro device(s), scheduling entry reload",
             len(added_serials),
         )
-        self.hass.async_create_task(
+        self._track_background_task(
             self.hass.config_entries.async_reload(self.config_entry.entry_id)
         )
 
@@ -1357,12 +1370,21 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         """Fetch full device list from paginated API responses."""
         devices_data: list[dict[str, Any]] = []
         offset = 0
+        page_count = 0
 
         while True:
+            if page_count >= _MAX_DEVICE_LIST_PAGES:
+                msg = (
+                    "Malformed device list response: pagination exceeded "
+                    f"{_MAX_DEVICE_LIST_PAGES} pages"
+                )
+                raise LiproApiError(msg)
+
             result: Any = await self.client.get_devices(
                 offset=offset,
                 limit=MAX_DEVICES_PER_QUERY,
             )
+            page_count += 1
 
             if not isinstance(result, dict):
                 msg = (
@@ -1718,18 +1740,20 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         )
 
         for status_data in status_list:
-            device_id = status_data.get("deviceId")
-            if not device_id:
-                continue
+            self._apply_device_status_row(status_data)
 
-            # Find device using IoT ID mapping
-            device = self.get_device_by_id(device_id)
+    def _apply_device_status_row(self, status_data: dict[str, Any]) -> None:
+        """Apply one device-status row to a mapped device."""
+        device_id = status_data.get("deviceId")
+        if not device_id:
+            return
 
-            if device:
-                properties = parse_properties_list(
-                    status_data.get("properties", []),
-                )
-                self._apply_properties_update(device, properties)
+        device = self.get_device_by_id(device_id)
+        if not device:
+            return
+
+        properties = parse_properties_list(status_data.get("properties", []))
+        self._apply_properties_update(device, properties)
 
     async def _query_group_status(self) -> None:
         """Query status for mesh groups.
@@ -1880,34 +1904,6 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         self._product_configs.clear()
         await self.async_refresh()
 
-    def _record_push_failure_trace(
-        self,
-        trace: dict[str, Any],
-        route: str,
-        command: str,
-        device: LiproDevice,
-    ) -> None:
-        """Record failed command push result as a trace event."""
-        trace["route"] = route
-        trace["success"] = False
-        trace["error"] = "PushFailed"
-        trace["error_message"] = "pushSuccess=false"
-        self._record_command_trace(trace)
-        _LOGGER.warning(
-            "Command push failed (command=%s, device=%s, route=%s, device_id=%s)",
-            command,
-            device.name,
-            route,
-            device.serial,
-        )
-        self._last_command_failure = {
-            "reason": "push_failed",
-            "code": "push_failed",
-            "route": route,
-            "device_id": device.serial,
-            "command": command,
-        }
-
     def _finalize_successful_command(
         self,
         *,
@@ -1918,8 +1914,10 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         trace: dict[str, Any],
     ) -> None:
         """Finalize post-send refresh strategy and success trace fields."""
-        skip_immediate_refresh = _should_skip_immediate_post_refresh(
-            command, properties
+        skip_immediate_refresh = should_skip_immediate_post_refresh(
+            command=command,
+            properties=properties,
+            slider_like_properties=_SLIDER_LIKE_PROPERTIES,
         )
         self._track_command_expectation(device.serial, command, properties)
         adaptive_delay = self._get_adaptive_post_refresh_delay(device.serial)
@@ -1927,12 +1925,12 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
             skip_immediate=skip_immediate_refresh,
             device_serial=device.serial,
         )
-        trace["post_refresh_mode"] = (
-            "delayed_only" if skip_immediate_refresh else "immediate_and_delayed"
+        apply_successful_command_trace(
+            trace=trace,
+            route=route,
+            adaptive_delay_seconds=adaptive_delay,
+            skip_immediate_refresh=skip_immediate_refresh,
         )
-        trace["adaptive_post_refresh_delay_seconds"] = round(adaptive_delay, 3)
-        trace["route"] = route
-        trace["success"] = True
         self._record_command_trace(trace)
         self._last_command_failure = None
 
@@ -1945,15 +1943,14 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         err: LiproApiError,
     ) -> bool:
         """Handle command-send API errors with consistent trace and reauth flows."""
-        update_trace_with_exception(trace, route=route, err=err)
+        self._last_command_failure = build_command_api_error_failure(
+            trace=trace,
+            route=route,
+            device_serial=device.serial,
+            err=err,
+            update_trace_with_exception=update_trace_with_exception,
+        )
         self._record_command_trace(trace)
-        self._last_command_failure = {
-            "reason": "api_error",
-            "code": err.code,
-            "message": str(err),
-            "route": route,
-            "device_id": device.serial,
-        }
         if isinstance(err, LiproRefreshTokenExpiredError):
             _LOGGER.warning(
                 "Refresh token expired while sending command to %s",
@@ -1979,189 +1976,6 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
             return None
         return dict(self._last_command_failure)
 
-    @staticmethod
-    def _is_command_push_failed(result: Any) -> bool:
-        """Return True when command dispatch explicitly reports push failure."""
-        return isinstance(result, dict) and result.get("pushSuccess") is False
-
-    @staticmethod
-    def _extract_msg_sn(result: Any) -> str | None:
-        """Extract command serial number from command response payload."""
-        if not isinstance(result, dict):
-            return None
-        for key in ("msgSn", "msg_sn", "messageSn", "message_sn"):
-            value = result.get(key)
-            if isinstance(value, str) and value:
-                return value
-        return None
-
-    @staticmethod
-    def _classify_command_result_payload(payload: dict[str, Any]) -> str:
-        """Classify query_command_result payload as confirmed/failed/pending/unknown."""
-        success_value = payload.get("success")
-        if success_value is True:
-            return "confirmed"
-        if success_value is False:
-            return "failed"
-
-        push_success = payload.get("pushSuccess")
-        if push_success is True:
-            return "confirmed"
-        if push_success is False:
-            return "failed"
-
-        result_value = payload.get("result")
-        if result_value in (True, 1, "1", "success", "SUCCESS"):
-            return "confirmed"
-        if result_value in (False, 0, "0", "failed", "FAIL", "FAILURE"):
-            return "failed"
-        if result_value in ("pending", "PENDING", "processing", "PROCESSING"):
-            return "pending"
-
-        status_value = payload.get("status")
-        if status_value in (1, "1", "success", "SUCCESS", "done", "DONE"):
-            return "confirmed"
-        if status_value in (0, "0", "failed", "FAIL", "failure", "FAILURE"):
-            return "failed"
-        if status_value in (2, "2", "pending", "PENDING", "processing", "PROCESSING"):
-            return "pending"
-
-        return "unknown"
-
-    def _record_command_result_rejected(
-        self,
-        *,
-        route: str,
-        msg_sn: str,
-        trace: dict[str, Any],
-        device: LiproDevice,
-        attempt: int,
-        verify_started_at: float,
-    ) -> None:
-        """Record rejected command-result verification state."""
-        trace["route"] = route
-        trace["success"] = False
-        trace["error"] = "CommandResultRejected"
-        trace["error_message"] = "command_result_failed"
-        trace["command_result_verify"] = {
-            "enabled": True,
-            "verified": False,
-            "attempts": attempt,
-            "msg_sn": msg_sn,
-            "state": "failed",
-        }
-        self._record_command_trace(trace)
-        self._last_command_failure = {
-            "reason": "command_result_failed",
-            "code": "command_result_failed",
-            "route": route,
-            "msg_sn": msg_sn,
-            "device_id": device.serial,
-        }
-        _LOGGER.warning(
-            "query_command_result rejected command (device=%s, msgSn=%s, attempts=%s, elapsed=%.3fs, route=%s)",
-            device.serial,
-            msg_sn,
-            attempt,
-            monotonic() - verify_started_at,
-            route,
-        )
-
-    def _record_command_result_unconfirmed(
-        self,
-        *,
-        route: str,
-        msg_sn: str,
-        trace: dict[str, Any],
-        device: LiproDevice,
-        verify_started_at: float,
-        last_payload: dict[str, Any] | None,
-    ) -> None:
-        """Record unconfirmed command-result verification state."""
-        trace["route"] = route
-        trace["success"] = False
-        trace["error"] = "CommandResultUnconfirmed"
-        trace["error_message"] = "command_result_unconfirmed"
-        trace["command_result_verify"] = {
-            "enabled": True,
-            "verified": False,
-            "attempts": _COMMAND_RESULT_VERIFY_ATTEMPTS,
-            "msg_sn": msg_sn,
-            "last_state": (
-                self._classify_command_result_payload(last_payload)
-                if isinstance(last_payload, dict)
-                else "query_error"
-            ),
-        }
-        self._record_command_trace(trace)
-        self._last_command_failure = {
-            "reason": "command_result_unconfirmed",
-            "code": "command_result_unconfirmed",
-            "route": route,
-            "msg_sn": msg_sn,
-            "device_id": device.serial,
-        }
-        _LOGGER.warning(
-            "query_command_result not confirmed (device=%s, msgSn=%s, attempts=%s, elapsed=%.3fs, route=%s, last_state=%s)",
-            device.serial,
-            msg_sn,
-            _COMMAND_RESULT_VERIFY_ATTEMPTS,
-            monotonic() - verify_started_at,
-            route,
-            trace["command_result_verify"]["last_state"],
-        )
-
-    def _record_command_result_confirmed(
-        self,
-        *,
-        trace: dict[str, Any],
-        msg_sn: str,
-        attempt: int,
-        device: LiproDevice,
-        verify_started_at: float,
-    ) -> None:
-        """Record confirmed command-result verification state."""
-        trace["command_result_verify"] = {
-            "enabled": True,
-            "verified": True,
-            "attempts": attempt,
-            "msg_sn": msg_sn,
-        }
-        _LOGGER.debug(
-            "query_command_result confirmed (device=%s, msgSn=%s, attempts=%s, elapsed=%.3fs)",
-            device.serial,
-            msg_sn,
-            attempt,
-            monotonic() - verify_started_at,
-        )
-
-    async def _query_command_result_once(
-        self,
-        *,
-        device: LiproDevice,
-        msg_sn: str,
-        attempt: int,
-    ) -> dict[str, Any] | None:
-        """Query command result once and return payload when available."""
-        try:
-            payload = await self.client.query_command_result(
-                msg_sn=msg_sn,
-                device_id=device.serial,
-                device_type=device.device_type_hex,
-            )
-        except LiproApiError as err:
-            _LOGGER.debug(
-                "query_command_result failed (device=%s, msgSn=%s, attempt=%s/%s, code=%s): %s",
-                device.name,
-                msg_sn,
-                attempt,
-                _COMMAND_RESULT_VERIFY_ATTEMPTS,
-                err.code,
-                err,
-            )
-            return None
-        return payload
-
     async def _verify_command_result_delivery(
         self,
         *,
@@ -2172,20 +1986,21 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
     ) -> bool:
         """Verify command delivery result by polling query_command_result."""
         verify_started_at = monotonic()
-        last_payload: dict[str, Any] | None = None
-        for attempt in range(1, _COMMAND_RESULT_VERIFY_ATTEMPTS + 1):
-            payload = await self._query_command_result_once(
-                device=device,
+
+        async def _query_once(attempt: int) -> dict[str, Any] | None:
+            return await query_command_result_once(
+                query_command_result=self.client.query_command_result,
+                lipro_api_error=LiproApiError,
+                device_name=device.name,
+                device_serial=device.serial,
+                device_type_hex=device.device_type_hex,
                 msg_sn=msg_sn,
                 attempt=attempt,
+                attempt_limit=_COMMAND_RESULT_VERIFY_ATTEMPTS,
+                logger=_LOGGER,
             )
-            if payload is None:
-                if attempt < _COMMAND_RESULT_VERIFY_ATTEMPTS:
-                    await asyncio.sleep(_COMMAND_RESULT_VERIFY_INTERVAL_SECONDS)
-                continue
 
-            last_payload = payload
-            state = self._classify_command_result_payload(payload)
+        def _log_attempt(attempt: int, state: str) -> None:
             _LOGGER.debug(
                 "query_command_result attempt=%s/%s (device=%s, msgSn=%s, route=%s) state=%s",
                 attempt,
@@ -2195,105 +2010,33 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
                 route,
                 state,
             )
-            if state == "confirmed":
-                self._record_command_result_confirmed(
-                    trace=trace,
-                    msg_sn=msg_sn,
-                    attempt=attempt,
-                    device=device,
-                    verify_started_at=verify_started_at,
-                )
-                return True
-            if state == "failed":
-                self._record_command_result_rejected(
-                    route=route,
-                    msg_sn=msg_sn,
-                    trace=trace,
-                    device=device,
-                    attempt=attempt,
-                    verify_started_at=verify_started_at,
-                )
-                return False
 
-            if attempt < _COMMAND_RESULT_VERIFY_ATTEMPTS:
-                await asyncio.sleep(_COMMAND_RESULT_VERIFY_INTERVAL_SECONDS)
+        state, attempt, last_payload = await poll_command_result_state(
+            query_once=_query_once,
+            classify_payload=classify_command_result_payload,
+            attempt_limit=_COMMAND_RESULT_VERIFY_ATTEMPTS,
+            interval_seconds=_COMMAND_RESULT_VERIFY_INTERVAL_SECONDS,
+            on_attempt=_log_attempt,
+        )
 
-        self._record_command_result_unconfirmed(
+        verified, failure = resolve_polled_command_result(
+            state=state,
+            trace=trace,
             route=route,
             msg_sn=msg_sn,
-            trace=trace,
-            device=device,
-            verify_started_at=verify_started_at,
+            device_serial=device.serial,
+            attempt=attempt,
+            attempt_limit=_COMMAND_RESULT_VERIFY_ATTEMPTS,
             last_payload=last_payload,
+            elapsed_seconds=monotonic() - verify_started_at,
+            logger=_LOGGER,
         )
-        return False
+        if verified:
+            return True
 
-    async def _execute_command_plan_with_trace(
-        self,
-        *,
-        device: LiproDevice,
-        command: str,
-        properties: list[dict[str, str]] | None,
-        fallback_device_id: str | None,
-        trace: dict[str, Any],
-    ) -> tuple[CommandDispatchPlan, Any, str]:
-        """Plan, dispatch, and trace one command request."""
-        plan: CommandDispatchPlan = plan_command_dispatch(
-            device,
-            command,
-            properties,
-            fallback_device_id,
-        )
-        route = plan.route
-        update_trace_with_resolved_request(
-            trace,
-            command=plan.command,
-            properties=plan.properties,
-            fallback_device_id=plan.member_fallback_id,
-            redact_identifier=_redact_identifier,
-        )
-
-        result, route = await execute_command_dispatch(
-            self.client,
-            device=device,
-            plan=plan,
-        )
-        update_trace_with_response(trace, result)
-        return plan, result, route
-
-    def _record_missing_msg_sn_failure(
-        self,
-        *,
-        trace: dict[str, Any],
-        route: str,
-        command: str,
-        device: LiproDevice,
-    ) -> None:
-        """Record verification failure when command response has no msgSn."""
-        trace["route"] = route
-        trace["success"] = False
-        trace["error"] = "CommandResultMissingMsgSn"
-        trace["error_message"] = "command_result_missing_msgsn"
-        trace["command_result_verify"] = {
-            "enabled": True,
-            "verified": False,
-            "attempts": 0,
-        }
+        self._last_command_failure = failure
         self._record_command_trace(trace)
-        self._last_command_failure = {
-            "reason": "command_result_unconfirmed",
-            "code": "command_result_missing_msgsn",
-            "route": route,
-            "device_id": device.serial,
-            "command": command,
-        }
-        _LOGGER.warning(
-            "Command sent but msgSn missing for verification (command=%s, device=%s, route=%s, device_id=%s)",
-            command,
-            device.name,
-            route,
-            device.serial,
-        )
+        return False
 
     async def _verify_delivery_if_enabled(
         self,
@@ -2308,14 +2051,17 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         if not self._command_result_verify:
             return True
 
-        msg_sn = self._extract_msg_sn(result)
+        msg_sn = extract_msg_sn(result)
         if msg_sn is None:
-            self._record_missing_msg_sn_failure(
+            self._last_command_failure = apply_missing_msg_sn_failure(
                 trace=trace,
                 route=route,
                 command=command,
-                device=device,
+                device_name=device.name,
+                device_serial=device.serial,
+                logger=_LOGGER,
             )
+            self._record_command_trace(trace)
             return False
 
         verified = await self._verify_command_result_delivery(
@@ -2369,40 +2115,14 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
             await self.auth_manager.ensure_valid_token()
             self._clear_auth_issues()
 
-            plan, result, route = await self._execute_command_plan_with_trace(
+            success, route = await self._execute_command_flow(
                 device=device,
                 command=command,
                 properties=properties,
                 fallback_device_id=fallback_device_id,
                 trace=trace,
             )
-            if self._is_command_push_failed(result):
-                self._record_push_failure_trace(
-                    trace=trace,
-                    route=route,
-                    command=command,
-                    device=device,
-                )
-                return False
-
-            if not await self._verify_delivery_if_enabled(
-                trace=trace,
-                route=route,
-                command=command,
-                device=device,
-                result=result,
-            ):
-                return False
-
-            self._finalize_successful_command(
-                device=device,
-                command=plan.command,
-                properties=plan.properties,
-                route=route,
-                trace=trace,
-            )
-
-            return True
+            return success
 
         except LiproApiError as err:
             return await self._handle_command_api_error(
@@ -2411,6 +2131,55 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
                 route=route,
                 err=err,
             )
+
+    async def _execute_command_flow(
+        self,
+        *,
+        device: LiproDevice,
+        command: str,
+        properties: list[dict[str, str]] | None,
+        fallback_device_id: str | None,
+        trace: dict[str, Any],
+    ) -> tuple[bool, str]:
+        """Execute command dispatch/verification/finalization flow."""
+        plan, result, route = await execute_command_plan_with_trace(
+            self.client,
+            device=device,
+            command=command,
+            properties=properties,
+            fallback_device_id=fallback_device_id,
+            trace=trace,
+            redact_identifier=_redact_identifier,
+        )
+        if is_command_push_failed(result):
+            self._last_command_failure = apply_push_failure(
+                trace=trace,
+                route=route,
+                command=command,
+                device_name=device.name,
+                device_serial=device.serial,
+                logger=_LOGGER,
+            )
+            self._record_command_trace(trace)
+            return False, route
+
+        if not await self._verify_delivery_if_enabled(
+            trace=trace,
+            route=route,
+            command=command,
+            device=device,
+            result=result,
+        ):
+            return False, route
+
+        self._finalize_successful_command(
+            device=device,
+            command=plan.command,
+            properties=plan.properties,
+            route=route,
+            trace=trace,
+        )
+        return True, route
 
     def _schedule_post_command_refresh(
         self,
@@ -2424,36 +2193,30 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         Delayed refresh covers eventual-consistency lag for REST polling setups.
         """
         if not skip_immediate:
-            self.hass.async_create_task(self.async_request_refresh())
+            self._track_background_task(self.async_request_refresh())
 
-        should_schedule_delayed = not self._mqtt_connected
-        if (
-            not should_schedule_delayed
-            and isinstance(device_serial, str)
-            and device_serial in self._pending_command_expectations
-        ):
-            # Even with MQTT, keep one delayed fallback when command confirmation
-            # is pending. Real environments may have variable push delays/loss.
-            should_schedule_delayed = True
-
-        if not should_schedule_delayed:
+        delay_seconds = resolve_delayed_refresh_delay(
+            mqtt_connected=self._mqtt_connected,
+            device_serial=device_serial,
+            pending_expectations=self._pending_command_expectations,
+            get_adaptive_post_refresh_delay=self._get_adaptive_post_refresh_delay,
+        )
+        if delay_seconds is None:
             return
 
-        delay_seconds = self._get_adaptive_post_refresh_delay(device_serial)
         if (
             self._post_command_refresh_task
             and not self._post_command_refresh_task.done()
         ):
             self._post_command_refresh_task.cancel()
 
-        self._post_command_refresh_task = self.hass.async_create_task(
+        self._post_command_refresh_task = self._track_background_task(
             self._async_delayed_command_refresh(delay_seconds),
         )
 
     async def _async_delayed_command_refresh(self, delay_seconds: float) -> None:
         """Run one delayed refresh after command to absorb API status lag."""
-        try:
-            await asyncio.sleep(delay_seconds)
-            await self.async_request_refresh()
-        except asyncio.CancelledError:
-            return
+        await run_delayed_refresh(
+            delay_seconds=delay_seconds,
+            request_refresh=self.async_request_refresh,
+        )
