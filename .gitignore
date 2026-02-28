@@ -66,3 +66,6 @@ CODE_REVIEW_PLAN.md
 
 # Assets (extracted from APK, not for distribution)
 assets/
+
+# gsd
+.planning/

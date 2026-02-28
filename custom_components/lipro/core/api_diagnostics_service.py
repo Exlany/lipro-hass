@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
+from typing import Any, cast
 
 from ..const.api import (
     PATH_FETCH_BODY_SENSOR_HISTORY,
@@ -43,7 +43,7 @@ def _ota_row_dedupe_key(row: dict[str, Any]) -> OtaRowDedupeKey:
 def _merge_ota_rows(
     merged_rows: list[dict[str, Any]],
     seen_keys: set[OtaRowDedupeKey],
-    rows: list[dict[str, Any]],
+    rows: list[Any],
 ) -> None:
     """Merge OTA rows in order while dropping duplicates by semantic key."""
     for row in rows:
@@ -74,7 +74,10 @@ async def query_command_result(
             "deviceType": to_device_type_hex(device_type),
         },
     )
-    return require_mapping_response(PATH_QUERY_COMMAND_RESULT, result)
+    return cast(
+        dict[str, Any],
+        require_mapping_response(PATH_QUERY_COMMAND_RESULT, result),
+    )
 
 
 async def get_city(
@@ -84,7 +87,7 @@ async def get_city(
 ) -> dict[str, Any]:
     """Get current city metadata from IoT backend."""
     result = await iot_request(PATH_GET_CITY, {})
-    return require_mapping_response(PATH_GET_CITY, result)
+    return cast(dict[str, Any], require_mapping_response(PATH_GET_CITY, result))
 
 
 async def query_ota_info(
@@ -129,10 +132,11 @@ async def query_ota_info(
     try:
         controller_result = await iot_request(PATH_QUERY_CONTROLLER_OTA, {})
     except lipro_api_error as err:
-        if is_invalid_param_error_code(err.code):
+        code = getattr(err, "code", None)
+        if is_invalid_param_error_code(code):
             _LOGGER.debug(
                 "Controller OTA endpoint rejected payload (code=%s): %s",
-                err.code,
+                code,
                 err,
             )
         else:
@@ -218,4 +222,4 @@ async def fetch_sensor_history(
             "meshType": mesh_type,
         },
     )
-    return require_mapping_response(path, result)
+    return cast(dict[str, Any], require_mapping_response(path, result))

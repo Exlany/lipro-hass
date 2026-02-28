@@ -25,6 +25,8 @@ def _log_batch_query_fallback(
     logger: Any,
 ) -> str | int:
     normalized_code = normalize_response_code(getattr(err, "code", None))
+    if normalized_code is None:
+        normalized_code = "unknown"
     if normalized_code in expected_offline_codes:
         logger.debug(
             "Batch %s query failed with expected offline code (%s). "

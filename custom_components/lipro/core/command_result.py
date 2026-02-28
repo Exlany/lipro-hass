@@ -161,7 +161,7 @@ async def query_command_result_once(
             msg_sn,
             attempt,
             attempt_limit,
-            err.code,
+            getattr(err, "code", None),
             err,
         )
         return None

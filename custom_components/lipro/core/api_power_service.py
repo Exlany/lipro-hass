@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, cast
 
 
 async def fetch_outlet_power_info(
@@ -29,14 +29,18 @@ async def fetch_outlet_power_info(
             path_query_outlet_power,
             {"deviceIds": sanitized_ids},
         )
-        return require_mapping_response(path_query_outlet_power, result)
+        return cast(
+            dict[str, Any],
+            require_mapping_response(path_query_outlet_power, result),
+        )
     except lipro_api_error as err:
         # Keep behavior: invalid-param business error should degrade to empty payload.
-        if is_invalid_param_error_code(err.code):
+        code = getattr(err, "code", None)
+        if is_invalid_param_error_code(code):
             logger.debug(
                 "Power-info endpoint rejected device IDs %s (code=%s), treating as empty",
                 sanitized_ids,
-                err.code,
+                code,
             )
             return {}
         raise

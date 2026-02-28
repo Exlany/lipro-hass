@@ -26,9 +26,14 @@ from homeassistant.util import dt as dt_util
 from .const import DOMAIN
 from .core import LiproApiError
 from .core.ota_utils import (
+    build_manifest_type_candidates as _build_manifest_type_candidates,
+    extract_install_command as _extract_install_command,
+    extract_version_set as _extract_version_set,
     first_bool as _first_ota_bool,
     first_text as _first_ota_text,
     load_verified_firmware_manifest_file as _load_verified_firmware_manifest_file,
+    matches_certified_versions as _ota_matches_certified_versions,
+    matches_manifest_certification as _matches_manifest_certification,
     parse_verified_firmware_manifest_payload as _parse_verified_firmware_manifest_payload,
 )
 from .entities.base import LiproEntity
@@ -106,10 +111,21 @@ _OTA_MATCH_SCORE_PRODUCT_ID_EXACT = 3
 _OTA_MATCH_SCORE_PHYSICAL_MODEL_EXACT = 2
 _OTA_MATCH_SCORE_HAS_VERSION = 1
 
-_REMOTE_MANIFEST_STATE: dict[str, Any] = {
-    "time": _TIME_MIN_UTC,
-    "data": (frozenset(), {}),
-}
+type _RemoteManifestData = tuple[frozenset[str], dict[str, frozenset[str]]]
+
+
+@dataclass(slots=True)
+class _RemoteManifestState:
+    """Remote firmware manifest cache state."""
+
+    time: datetime
+    data: _RemoteManifestData
+
+
+_REMOTE_MANIFEST_STATE = _RemoteManifestState(
+    time=_TIME_MIN_UTC,
+    data=(frozenset(), {}),
+)
 _REMOTE_MANIFEST_LOCK = asyncio.Lock()
 
 
@@ -150,29 +166,20 @@ def _load_verified_firmware_manifest() -> tuple[
     )
 
 
-def _append_unique_normalized(target: list[str], value: str | None) -> None:
-    """Append one normalized key if valid and non-duplicate."""
-    if value is None:
-        return
-    normalized = value.strip().lower()
-    if normalized and normalized not in target:
-        target.append(normalized)
-
-
 async def _load_remote_firmware_manifest(
     hass: HomeAssistant,
 ) -> tuple[frozenset[str], dict[str, frozenset[str]]]:
     """Load firmware certification manifest from remote service with cache."""
     now = dt_util.utcnow()
-    cached_time = _REMOTE_MANIFEST_STATE["time"]
-    cached_data = _REMOTE_MANIFEST_STATE["data"]
+    cached_time = _REMOTE_MANIFEST_STATE.time
+    cached_data = _REMOTE_MANIFEST_STATE.data
     if now - cached_time < _REMOTE_MANIFEST_CACHE_TTL:
         return cached_data
 
     async with _REMOTE_MANIFEST_LOCK:
         now = dt_util.utcnow()
-        cached_time = _REMOTE_MANIFEST_STATE["time"]
-        cached_data = _REMOTE_MANIFEST_STATE["data"]
+        cached_time = _REMOTE_MANIFEST_STATE.time
+        cached_data = _REMOTE_MANIFEST_STATE.data
         if now - cached_time < _REMOTE_MANIFEST_CACHE_TTL:
             return cached_data
 
@@ -194,12 +201,12 @@ async def _load_remote_firmware_manifest(
                 payload
             )
             if versions or versions_by_type:
-                _REMOTE_MANIFEST_STATE["data"] = (versions, versions_by_type)
-                _REMOTE_MANIFEST_STATE["time"] = now
-                return _REMOTE_MANIFEST_STATE["data"]
+                _REMOTE_MANIFEST_STATE.data = (versions, versions_by_type)
+                _REMOTE_MANIFEST_STATE.time = now
+                return versions, versions_by_type
 
-        _REMOTE_MANIFEST_STATE["time"] = now
-        return _REMOTE_MANIFEST_STATE["data"]
+        _REMOTE_MANIFEST_STATE.time = now
+        return cached_data
 
 
 async def async_setup_entry(
@@ -351,8 +358,6 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
 
     def _schedule_ota_refresh(self, *, force: bool) -> None:
         """Schedule OTA refresh in background."""
-        if self.hass is None:
-            return
         if not force and not self._should_refresh_ota():
             return
         if self._ota_refresh_task is not None and not self._ota_refresh_task.done():
@@ -436,7 +441,20 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
             installed,
             latest,
         )
-        install_command = self._extract_install_command(row)
+        install_payload = _extract_install_command(
+            row,
+            container_keys=_COMMAND_CONTAINER_KEYS,
+            command_keys=_COMMAND_KEYS,
+            properties_keys=_COMMAND_PROPERTIES_KEYS,
+        )
+        install_command = (
+            _InstallCommand(
+                command=install_payload[0],
+                properties=install_payload[1],
+            )
+            if install_payload is not None
+            else None
+        )
         return _OtaCandidate(
             installed_version=installed,
             latest_version=latest,
@@ -513,25 +531,31 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
         if latest is None:
             return False
 
-        candidate_types = self._candidate_manifest_type_keys(row)
-        if self._matches_manifest_certification(
+        candidate_types = _build_manifest_type_candidates(
+            row,
+            device_iot_name=self.device.iot_name,
+            iot_name_keys=_IOT_NAME_KEYS,
+        )
+        if _matches_manifest_certification(
             candidate_types,
             self._remote_versions_by_type,
             self._remote_verified_versions,
             installed=installed,
             latest=latest,
+            is_version_newer=self._is_version_newer,
         ):
             return True
 
         local_verified_versions, local_versions_by_type = (
             _load_verified_firmware_manifest()
         )
-        return self._matches_manifest_certification(
+        return _matches_manifest_certification(
             candidate_types,
             local_versions_by_type,
             local_verified_versions,
             installed=installed,
             latest=latest,
+            is_version_newer=self._is_version_newer,
         )
 
     def _resolve_inline_certification(
@@ -546,7 +570,7 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
         if explicit_flag is not None:
             return explicit_flag
 
-        certified_versions = self._extract_version_set(row, _CERTIFIED_VERSION_KEYS)
+        certified_versions = _extract_version_set(row, _CERTIFIED_VERSION_KEYS)
         if self._matches_certified_versions(
             certified_versions,
             installed=installed,
@@ -562,9 +586,8 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
         if node_flag is not None:
             return node_flag
 
-        node_versions = self._extract_version_set(
-            certification_node,
-            _CERTIFIED_VERSION_KEYS,
+        node_versions = _extract_version_set(
+            certification_node, _CERTIFIED_VERSION_KEYS
         )
         if self._matches_certified_versions(
             node_versions,
@@ -574,36 +597,6 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
             return True
         return None
 
-    def _matches_manifest_certification(
-        self,
-        candidate_types: list[str],
-        versions_by_type: dict[str, frozenset[str]],
-        fallback_versions: frozenset[str],
-        *,
-        installed: str | None,
-        latest: str | None,
-    ) -> bool:
-        """Match certification from typed manifest versions with global fallback."""
-        has_type_match = False
-        for candidate in candidate_types:
-            type_versions = versions_by_type.get(candidate)
-            if type_versions is None:
-                continue
-            has_type_match = True
-            if self._matches_certified_versions(
-                type_versions,
-                installed=installed,
-                latest=latest,
-            ):
-                return True
-        if has_type_match:
-            return False
-        return self._matches_certified_versions(
-            fallback_versions,
-            installed=installed,
-            latest=latest,
-        )
-
     def _matches_certified_versions(
         self,
         certified_versions: set[str] | frozenset[str],
@@ -612,20 +605,11 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
         latest: str | None,
     ) -> bool:
         """Return True when certification list authorizes current upgrade."""
-        if not certified_versions:
-            return False
-
-        # Keep exact-target match for deterministic OTA payloads.
-        if latest and latest in certified_versions:
-            return True
-
-        # Relaxed rule: any certified version newer than current firmware
-        # means this device generation is considered certified for upgrade.
-        if installed is None:
-            return False
-        return any(
-            self._is_version_newer(candidate, installed)
-            for candidate in certified_versions
+        return _ota_matches_certified_versions(
+            certified_versions,
+            installed=installed,
+            latest=latest,
+            is_version_newer=self._is_version_newer,
         )
 
     def _is_version_newer(self, candidate: str, current: str) -> bool:
@@ -641,82 +625,9 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
             )
             return False
 
-    def _extract_install_command(
-        self, row: dict[str, Any] | None
-    ) -> _InstallCommand | None:
-        """Extract install command payload from OTA row."""
-        if not isinstance(row, dict):
-            return None
-
-        for key in _COMMAND_CONTAINER_KEYS:
-            command = self._parse_install_command_payload(row.get(key))
-            if command is not None:
-                return command
-
-        return self._parse_install_command_payload(row)
-
-    def _parse_install_command_payload(
-        self,
-        payload: Any,
-    ) -> _InstallCommand | None:
-        """Parse install command payload from nested or top-level OTA fields."""
-        if isinstance(payload, str):
-            command = payload.strip()
-            if command:
-                return _InstallCommand(command=command, properties=None)
-            return None
-
-        if not isinstance(payload, dict):
-            return None
-
-        command = _first_ota_text(payload, _COMMAND_KEYS)
-        if command is None:
-            return None
-
-        properties = self._normalize_properties(payload)
-        return _InstallCommand(command=command, properties=properties)
-
-    def _normalize_properties(
-        self,
-        payload: dict[str, Any],
-    ) -> list[dict[str, str]] | None:
-        """Normalize command properties payload to send_command schema."""
-        for key in _COMMAND_PROPERTIES_KEYS:
-            raw = payload.get(key)
-            normalized = self._coerce_properties(raw)
-            if normalized is not None:
-                return normalized
-        return None
-
-    def _coerce_properties(self, value: Any) -> list[dict[str, str]] | None:
-        """Coerce property payload to key/value list."""
-        if value is None:
-            return None
-
-        if isinstance(value, dict):
-            result = [
-                {"key": str(key), "value": str(item)}
-                for key, item in value.items()
-                if key is not None and item is not None
-            ]
-            return result or None
-
-        if not isinstance(value, list):
-            return None
-
-        result: list[dict[str, str]] = []
-        for item in value:
-            if isinstance(item, dict):
-                raw_key = item.get("key")
-                raw_value = item.get("value")
-                if raw_key is None or raw_value is None:
-                    continue
-                result.append({"key": str(raw_key), "value": str(raw_value)})
-        return result or None
-
-    def _select_best_ota_row(self, rows: list[dict[str, Any]]) -> dict[str, Any] | None:
+    def _select_best_ota_row(self, rows: list[Any]) -> dict[str, Any] | None:
         """Pick the most relevant OTA row for current device."""
-        if not isinstance(rows, list) or not rows:
+        if not rows:
             return None
 
         best_row: dict[str, Any] | None = None
@@ -797,49 +708,6 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
         if normalize:
             return weight if value.lower() == expected else 0
         return weight if value == expected else 0
-
-    def _candidate_manifest_type_keys(self, row: dict[str, Any] | None) -> list[str]:
-        """Build locked candidate keys for manifest.type matching.
-
-        Lock rule:
-        - Controller rows only use bleName.
-        - Device rows only use iotName.
-        """
-        candidates: list[str] = []
-        add = functools.partial(_append_unique_normalized, candidates)
-
-        row_ble_name = _first_ota_text(row, ("bleName",))
-        if row_ble_name is not None:
-            add(row_ble_name)
-            return candidates
-
-        row_iot_name = _first_ota_text(row, _IOT_NAME_KEYS)
-        iot_name = self.device.iot_name or row_iot_name
-        add(row_iot_name)
-        add(iot_name)
-        return candidates
-
-    def _extract_version_set(
-        self,
-        data: dict[str, Any] | None,
-        keys: tuple[str, ...],
-    ) -> set[str]:
-        """Extract version list from arbitrary fields."""
-        if not isinstance(data, dict):
-            return set()
-
-        versions: set[str] = set()
-        for key in keys:
-            raw = data.get(key)
-            if not isinstance(raw, list):
-                continue
-            for item in raw:
-                if item is None:
-                    continue
-                text = str(item).strip()
-                if text:
-                    versions.add(text)
-        return versions
 
     def _has_pending_unverified_confirmation(self) -> bool:
         """Return True if unverified install confirmation is active."""

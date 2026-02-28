@@ -59,8 +59,9 @@ def cleanup_dedup_cache(
         if current_time - ts <= stale_seconds
     }
 
-    if len(cleaned) > max_entries:
-        sorted_items = sorted(cleaned.items(), key=lambda item: item[1])
-        cleaned = dict(sorted_items[len(sorted_items) // 2 :])
+    if len(cleaned) <= max_entries:
+        return cleaned
 
-    return cleaned
+    sorted_items = sorted(cleaned.items(), key=lambda item: item[1])
+    keep_from = len(sorted_items) // 2
+    return dict(sorted_items[keep_from:])

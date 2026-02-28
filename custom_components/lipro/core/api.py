@@ -677,9 +677,9 @@ class LiproClient:
         return normalized in (ERROR_INVALID_PARAM, ERROR_INVALID_PARAM_STR)
 
     @staticmethod
-    def _is_command_busy_error(err: LiproApiError) -> bool:
+    def _is_command_busy_error(err: Exception) -> bool:
         """Check whether an API error is a transient command-busy response."""
-        normalized = _normalize_response_code(err.code)
+        normalized = _normalize_response_code(getattr(err, "code", None))
         if normalized in (ERROR_DEVICE_BUSY, ERROR_DEVICE_BUSY_STR):
             return True
 
@@ -1247,7 +1247,7 @@ class LiproClient:
         return []
 
     @staticmethod
-    def _is_retriable_device_error(err: LiproApiError) -> bool:
+    def _is_retriable_device_error(err: Exception) -> bool:
         """Check if the error is a retriable device error.
 
         Args:
@@ -1259,7 +1259,7 @@ class LiproClient:
             in real API traffic.
 
         """
-        normalized = _normalize_response_code(err.code)
+        normalized = _normalize_response_code(getattr(err, "code", None))
         return normalized in (
             ERROR_DEVICE_OFFLINE,
             ERROR_DEVICE_OFFLINE_STR,

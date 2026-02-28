@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterator
-from typing import Any
+from typing import Any, cast
 
 from homeassistant.const import ATTR_ENTITY_ID
 from homeassistant.core import HomeAssistant, ServiceCall
@@ -30,7 +30,7 @@ def extract_device_id_from_entity_ids(
 
         match = serial_pattern.match(unique_id[6:])
         if match:
-            return match.group(1)
+            return cast(str, match.group(1))
 
     return None
 

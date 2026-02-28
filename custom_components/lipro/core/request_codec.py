@@ -32,12 +32,10 @@ def build_smart_home_request_data(
 
 def extract_smart_home_success_payload(result: dict[str, Any]) -> dict[str, Any]:
     """Extract Smart Home API success payload from response envelope."""
-    if "value" in result:
-        payload = result.get("value")
-        return {} if payload is None else payload
-    if "typedValue" in result:
-        payload = result.get("typedValue")
-        return {} if payload is None else payload
+    for key in ("value", "typedValue"):
+        if key in result:
+            payload = result.get(key)
+            return {} if payload is None else payload
     return {}
 
 

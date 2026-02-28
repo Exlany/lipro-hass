@@ -262,14 +262,17 @@ async def execute_command_dispatch(
         device=device,
         plan=plan,
     )
+    member_fallback_id = plan.member_fallback_id
     if _should_fallback_after_group_result(
-        member_fallback_id=plan.member_fallback_id,
+        member_fallback_id=member_fallback_id,
         result=result,
     ):
+        if member_fallback_id is None:
+            return result, route
         result, route = await _fallback_to_member(
             client,
             device=device,
-            member_id=plan.member_fallback_id,
+            member_id=member_fallback_id,
             command=plan.command,
             properties=plan.properties,
             route="group_push_fail_fallback_member",
@@ -280,7 +283,7 @@ async def execute_command_dispatch(
             log_args=(
                 plan.command,
                 device.serial,
-                plan.member_fallback_id,
+                member_fallback_id,
             ),
         )
 

@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from collections.abc import Awaitable, Callable, Iterator
-import functools
 import logging
 import re
 from typing import TYPE_CHECKING, Any, Final, NoReturn
@@ -809,10 +808,14 @@ def _async_register_service(
     register_kwargs: dict[str, Any] = {"supports_response": supports_response}
     if service_schema is not None:
         register_kwargs["schema"] = service_schema
+
+    async def _handle(call: ServiceCall) -> dict[str, Any]:
+        return await service_handler(hass, call)
+
     hass.services.async_register(
         DOMAIN,
         service_name,
-        functools.partial(service_handler, hass),
+        _handle,
         **register_kwargs,
     )
 

@@ -4,7 +4,7 @@
 from __future__ import annotations
 
 from collections.abc import Awaitable, Callable
-from typing import Any
+from typing import Any, cast
 
 from ..const.api import PATH_SCHEDULE_ADD, PATH_SCHEDULE_DELETE, PATH_SCHEDULE_GET
 from .schedule_endpoint import (
@@ -205,7 +205,7 @@ class ScheduleApiService:
             mesh_member_ids=mesh_member_ids,
         )
         mesh_request = self._client._get_mesh_schedules_by_candidates
-        return await self._client._execute_schedule_operation(
+        result = await self._client._execute_schedule_operation(
             device_id=device_id,
             candidate_ids=candidate_ids,
             ble_candidate_ids=ble_candidate_ids,
@@ -217,6 +217,7 @@ class ScheduleApiService:
                 build_schedule_get_body(device_id, device_type_hex=device_type_hex),
             ),
         )
+        return cast(list[dict[str, Any]], result)
 
     async def add_device_schedule(
         self,
@@ -248,14 +249,15 @@ class ScheduleApiService:
         )
 
         async def _mesh_add_request(ids: list[str]) -> list[dict[str, Any]]:
-            return await self._client._add_mesh_schedule_by_candidates(
+            raw = await self._client._add_mesh_schedule_by_candidates(
                 ids,
                 days=days,
                 times=times,
                 events=events,
             )
+            return cast(list[dict[str, Any]], raw)
 
-        return await self._client._execute_schedule_operation(
+        result = await self._client._execute_schedule_operation(
             device_id=device_id,
             candidate_ids=candidate_ids,
             ble_candidate_ids=ble_candidate_ids,
@@ -274,6 +276,7 @@ class ScheduleApiService:
                 ),
             ),
         )
+        return cast(list[dict[str, Any]], result)
 
     async def delete_device_schedules(
         self,
@@ -299,12 +302,13 @@ class ScheduleApiService:
         )
 
         async def _mesh_delete_request(ids: list[str]) -> list[dict[str, Any]]:
-            return await self._client._delete_mesh_schedules_by_candidates(
+            raw = await self._client._delete_mesh_schedules_by_candidates(
                 ids,
                 schedule_ids=schedule_ids,
             )
+            return cast(list[dict[str, Any]], raw)
 
-        return await self._client._execute_schedule_operation(
+        result = await self._client._execute_schedule_operation(
             device_id=device_id,
             candidate_ids=candidate_ids,
             ble_candidate_ids=ble_candidate_ids,
@@ -321,3 +325,4 @@ class ScheduleApiService:
                 ),
             ),
         )
+        return cast(list[dict[str, Any]], result)

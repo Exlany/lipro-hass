@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable
+from collections.abc import Callable, Collection, Mapping, Sequence
 import json
 from pathlib import Path
 from typing import Any
@@ -61,6 +61,42 @@ def first_bool(data: dict[str, Any] | None, keys: tuple[str, ...]) -> bool | Non
         if normalized is not None:
             return normalized
     return None
+
+
+def append_unique_normalized(target: list[str], value: str | None) -> None:
+    """Append one normalized key if valid and non-duplicate."""
+    if value is None:
+        return
+    normalized = value.strip().lower()
+    if normalized and normalized not in target:
+        target.append(normalized)
+
+
+def build_manifest_type_candidates(
+    row: dict[str, Any] | None,
+    *,
+    device_iot_name: str | None,
+    iot_name_keys: tuple[str, ...] = MANIFEST_TYPE_KEY_PRIORITY[1],
+    ble_name_key: str = "bleName",
+) -> list[str]:
+    """Build locked candidate keys for manifest.type matching.
+
+    Lock rule:
+    - Controller rows only use bleName.
+    - Device rows only use iotName (and may fall back to device metadata).
+    """
+    candidates: list[str] = []
+
+    row_ble_name = first_text(row, (ble_name_key,))
+    if row_ble_name is not None:
+        append_unique_normalized(candidates, row_ble_name)
+        return candidates
+
+    row_iot_name = first_text(row, iot_name_keys)
+    resolved_iot_name = device_iot_name or row_iot_name
+    append_unique_normalized(candidates, row_iot_name)
+    append_unique_normalized(candidates, resolved_iot_name)
+    return candidates
 
 
 def normalize_version_list(value: Any) -> frozenset[str]:
@@ -156,6 +192,171 @@ def load_verified_firmware_manifest_file(
         return frozenset(), {}
 
     return parse_verified_firmware_manifest_payload(content)
+
+
+def extract_version_set(
+    data: dict[str, Any] | None,
+    keys: tuple[str, ...],
+) -> set[str]:
+    """Extract firmware versions from arbitrary list fields."""
+    if not isinstance(data, dict):
+        return set()
+
+    versions: set[str] = set()
+    for key in keys:
+        versions.update(normalize_version_list(data.get(key)))
+    return versions
+
+
+def matches_certified_versions(
+    certified_versions: Collection[str],
+    *,
+    installed: str | None,
+    latest: str | None,
+    is_version_newer: Callable[[str, str], bool],
+) -> bool:
+    """Return True when certification list authorizes current upgrade."""
+    if not certified_versions:
+        return False
+
+    # Keep exact-target match for deterministic OTA payloads.
+    if latest and latest in certified_versions:
+        return True
+
+    # Relaxed rule: any certified version newer than current firmware
+    # means this device generation is considered certified for upgrade.
+    if installed is None:
+        return False
+    return any(
+        is_version_newer(candidate, installed) for candidate in certified_versions
+    )
+
+
+def matches_manifest_certification(
+    candidate_types: Sequence[str],
+    versions_by_type: Mapping[str, Collection[str]],
+    fallback_versions: Collection[str],
+    *,
+    installed: str | None,
+    latest: str | None,
+    is_version_newer: Callable[[str, str], bool],
+) -> bool:
+    """Match certification from typed manifest versions with global fallback."""
+    has_type_match = False
+    for candidate in candidate_types:
+        type_versions = versions_by_type.get(candidate)
+        if type_versions is None:
+            continue
+        has_type_match = True
+        if matches_certified_versions(
+            type_versions,
+            installed=installed,
+            latest=latest,
+            is_version_newer=is_version_newer,
+        ):
+            return True
+
+    if has_type_match:
+        return False
+
+    return matches_certified_versions(
+        fallback_versions,
+        installed=installed,
+        latest=latest,
+        is_version_newer=is_version_newer,
+    )
+
+
+def coerce_command_properties(value: Any) -> list[dict[str, str]] | None:
+    """Coerce a command properties payload to a key/value list."""
+    if value is None:
+        return None
+
+    if isinstance(value, dict):
+        properties = [
+            {"key": str(key), "value": str(item)}
+            for key, item in value.items()
+            if key is not None and item is not None
+        ]
+        return properties or None
+
+    if not isinstance(value, list):
+        return None
+
+    result: list[dict[str, str]] = []
+    for item in value:
+        if not isinstance(item, dict):
+            continue
+        raw_key = item.get("key")
+        raw_value = item.get("value")
+        if raw_key is None or raw_value is None:
+            continue
+        result.append({"key": str(raw_key), "value": str(raw_value)})
+    return result or None
+
+
+def normalize_command_properties(
+    payload: dict[str, Any],
+    *,
+    properties_keys: tuple[str, ...],
+) -> list[dict[str, str]] | None:
+    """Normalize command properties payload to key/value list."""
+    for key in properties_keys:
+        normalized = coerce_command_properties(payload.get(key))
+        if normalized is not None:
+            return normalized
+    return None
+
+
+def parse_install_command_payload(
+    payload: Any,
+    *,
+    command_keys: tuple[str, ...],
+    properties_keys: tuple[str, ...],
+) -> tuple[str, list[dict[str, str]] | None] | None:
+    """Parse install command payload from nested or top-level OTA fields."""
+    if isinstance(payload, str):
+        command_text = payload.strip()
+        return (command_text, None) if command_text else None
+
+    if not isinstance(payload, dict):
+        return None
+
+    command = first_text(payload, command_keys)
+    if command is None:
+        return None
+
+    return (
+        command,
+        normalize_command_properties(payload, properties_keys=properties_keys),
+    )
+
+
+def extract_install_command(
+    row: dict[str, Any] | None,
+    *,
+    container_keys: tuple[str, ...],
+    command_keys: tuple[str, ...],
+    properties_keys: tuple[str, ...],
+) -> tuple[str, list[dict[str, str]] | None] | None:
+    """Extract install command payload from OTA row."""
+    if not isinstance(row, dict):
+        return None
+
+    for key in container_keys:
+        parsed = parse_install_command_payload(
+            row.get(key),
+            command_keys=command_keys,
+            properties_keys=properties_keys,
+        )
+        if parsed is not None:
+            return parsed
+
+    return parse_install_command_payload(
+        row,
+        command_keys=command_keys,
+        properties_keys=properties_keys,
+    )
 
 
 def extract_ota_versions(

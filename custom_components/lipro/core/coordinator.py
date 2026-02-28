@@ -10,7 +10,7 @@ from datetime import timedelta
 import hashlib
 import logging
 from time import monotonic
-from typing import TYPE_CHECKING, Any, Final
+from typing import TYPE_CHECKING, Any, Final, NoReturn
 
 from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers import area_registry as ar, device_registry as dr
@@ -1271,7 +1271,7 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         self._mqtt_setup_in_progress = True
         self._track_background_task(self._async_setup_mqtt_safe())
 
-    async def _raise_update_data_error(self, err: Exception) -> None:
+    async def _raise_update_data_error(self, err: Exception) -> NoReturn:
         """Map API/auth exceptions to Home Assistant update errors."""
         if isinstance(err, LiproRefreshTokenExpiredError):
             await self._trigger_reauth("auth_expired")
