@@ -46,8 +46,6 @@ Home Assistant integration for controlling Lipro Smart Home devices.
 - `lipro.get_city` - Query cloud city metadata contract (developer capability)
 - `lipro.fetch_body_sensor_history` - Fetch body sensor history payload for debugging (developer capability)
 - `lipro.fetch_door_sensor_history` - Fetch door sensor history payload for debugging (developer capability)
-- `lipro.query_ota_info` - Query OTA metadata (developer capability)
-- `lipro.start_ota_update` - Trigger OTA upgrade with explicit irreversible confirmation
 
 Firmware validation list:
 - English: `docs/firmware_support_matrix.md`
@@ -211,19 +209,9 @@ data:
 | CURTAIN_CLOSE | Close curtain |
 | CURTAIN_STOP | Stop curtain |
 
-### OTA Upgrade (Sensitive)
+### Firmware Update
 
-Use `lipro.query_ota_info` first, then call `lipro.start_ota_update` only after confirmation:
-
-```yaml
-service: lipro.start_ota_update
-target:
-  entity_id: light.living_room_light
-data:
-  confirm_irreversible: true
-```
-
-If OTA metadata contains unverified firmware versions, set `confirm_unverified: true` as a second confirmation.
+Firmware updates are exposed as Home Assistant `update` entities (Settings → Devices & Services → Lipro → device → Entities).
 
 ## Options
 

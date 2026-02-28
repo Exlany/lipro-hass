@@ -303,24 +303,6 @@
           "description": "Extra context about what you observed during the test."
         }
       }
-    },
-    "start_ota_update": {
-      "name": "Start OTA Update",
-      "description": "Developer-only sensitive capability. Trigger OTA_UPDATE for a selected device/group. This action is irreversible in this integration.",
-      "fields": {
-        "device_id": {
-          "name": "Device ID",
-          "description": "The device serial/group ID. If not provided, the device will be determined from the target entity."
-        },
-        "confirm_irreversible": {
-          "name": "Confirm irreversible upgrade",
-          "description": "Must be true to execute OTA update."
-        },
-        "confirm_unverified": {
-          "name": "Confirm unverified firmware",
-          "description": "Must be true when OTA metadata includes versions not listed in the verified firmware manifest."
-        }
-      }
     }
   },
   "exceptions": {
@@ -376,15 +358,6 @@
     },
     "developer_feedback_submit_failed": {
       "message": "Failed to submit developer feedback report."
-    },
-    "ota_update_confirm_required": {
-      "message": "OTA update is irreversible. Set confirm_irreversible=true to continue."
-    },
-    "ota_update_unverified_confirm_required": {
-      "message": "OTA metadata contains unverified firmware versions. Set confirm_unverified=true to continue."
-    },
-    "ota_update_version_check_failed": {
-      "message": "Failed to query OTA metadata before upgrade. Upgrade is blocked for safety."
     },
     "firmware_no_update": {
       "message": "No firmware update is currently available for this device."

@@ -46,8 +46,6 @@ Home Assistant 集成，用于控制 Lipro 智能家居设备。
 - `lipro.get_city` - 查询云端城市元数据契约（开发者能力）
 - `lipro.fetch_body_sensor_history` - 拉取人体传感器历史载荷用于调试（开发者能力）
 - `lipro.fetch_door_sensor_history` - 拉取门磁传感器历史载荷用于调试（开发者能力）
-- `lipro.query_ota_info` - 查询 OTA 元数据（开发者能力）
-- `lipro.start_ota_update` - 显式确认后触发 OTA 升级
 
 固件验证清单：
 - 中文：`docs/firmware_support_matrix_zh.md`
@@ -233,19 +231,9 @@ data:
 | CURTAIN_CLOSE | 关闭窗帘 |
 | CURTAIN_STOP | 停止窗帘 |
 
-### OTA 升级（敏感操作）
+### 固件升级
 
-建议先调用 `lipro.query_ota_info`，确认目标后再执行 `lipro.start_ota_update`：
-
-```yaml
-service: lipro.start_ota_update
-target:
-  entity_id: light.living_room_light
-data:
-  confirm_irreversible: true
-```
-
-若 OTA 元数据包含未认证固件版本，需要额外设置 `confirm_unverified: true` 作为二次确认。
+固件升级通过 Home Assistant 的 `update` 实体提供（设置 → 设备与服务 → Lipro → 设备 → 实体）。
 
 ## 选项
 

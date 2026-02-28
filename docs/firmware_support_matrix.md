@@ -42,8 +42,7 @@ Use your **actual device names** (not only model codes) for readability:
 
 ## Validation Checklist
 
-1. Confirm target serial/group and current version from `lipro.query_ota_info`.
-2. Execute `lipro.start_ota_update` with `confirm_irreversible: true`.
-3. If response includes unverified versions, re-run with `confirm_unverified: true`.
-4. Record command response and post-upgrade state in diagnostics report.
-5. Update this matrix and `custom_components/lipro/firmware_support_manifest.json`.
+1. Check the device `update` entity for available firmware.
+2. Install from the `update` entity (uncertified firmware may require a second confirmation install within the confirmation window).
+3. Record pre/post upgrade state in the diagnostics report.
+4. Update this matrix and `custom_components/lipro/firmware_support_manifest.json`.

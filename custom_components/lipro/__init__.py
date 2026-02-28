@@ -5,7 +5,6 @@ from __future__ import annotations
 from collections.abc import Awaitable, Callable, Iterator
 import functools
 import logging
-from pathlib import Path
 import re
 from typing import TYPE_CHECKING, Any, Final, NoReturn
 
@@ -71,11 +70,6 @@ from .services.errors import (
     raise_service_error as _raise_service_error_shared,
     resolve_command_failure_translation_key as _resolve_command_failure_translation_key_shared,
 )
-from .services.ota import (
-    _load_verified_firmware_versions_cached as _load_verified_firmware_versions_cached_service,
-    async_handle_query_ota_info as _async_handle_query_ota_info_service,
-    async_handle_start_ota_update as _async_handle_start_ota_update_service,
-)
 from .services.schedule import (
     async_handle_add_schedule as _async_handle_add_schedule_service,
     async_handle_delete_schedules as _async_handle_delete_schedules_service,
@@ -117,8 +111,6 @@ SERVICE_GET_DEVELOPER_REPORT: Final = "get_developer_report"
 SERVICE_SUBMIT_DEVELOPER_FEEDBACK: Final = "submit_developer_feedback"
 SERVICE_QUERY_COMMAND_RESULT: Final = "query_command_result"
 SERVICE_GET_CITY: Final = "get_city"
-SERVICE_QUERY_OTA_INFO: Final = "query_ota_info"
-SERVICE_START_OTA_UPDATE: Final = "start_ota_update"
 SERVICE_FETCH_BODY_SENSOR_HISTORY: Final = "fetch_body_sensor_history"
 SERVICE_FETCH_DOOR_SENSOR_HISTORY: Final = "fetch_door_sensor_history"
 
@@ -133,8 +125,6 @@ ATTR_NOTE: Final = "note"
 ATTR_MSG_SN: Final = "msg_sn"
 ATTR_SENSOR_DEVICE_ID: Final = "sensor_device_id"
 ATTR_MESH_TYPE: Final = "mesh_type"
-ATTR_CONFIRM_IRREVERSIBLE: Final = "confirm_irreversible"
-ATTR_CONFIRM_UNVERIFIED: Final = "confirm_unverified"
 FIRMWARE_SUPPORT_MANIFEST: Final = "firmware_support_manifest.json"
 
 # Pre-compiled pattern for extracting device serial from entity unique_id
@@ -208,20 +198,6 @@ SERVICE_QUERY_COMMAND_RESULT_SCHEMA = vol.Schema(
     {
         vol.Optional(ATTR_DEVICE_ID): cv.string,
         vol.Required(ATTR_MSG_SN): cv.string,
-    },
-)
-
-SERVICE_QUERY_OTA_INFO_SCHEMA = vol.Schema(
-    {
-        vol.Optional(ATTR_DEVICE_ID): cv.string,
-    },
-)
-
-SERVICE_START_OTA_UPDATE_SCHEMA = vol.Schema(
-    {
-        vol.Optional(ATTR_DEVICE_ID): cv.string,
-        vol.Optional(ATTR_CONFIRM_IRREVERSIBLE, default=False): cv.boolean,
-        vol.Optional(ATTR_CONFIRM_UNVERIFIED, default=False): cv.boolean,
     },
 )
 
@@ -694,45 +670,6 @@ async def _async_handle_get_city(hass: HomeAssistant, call: ServiceCall) -> dict
     )
 
 
-async def _async_handle_query_ota_info(
-    hass: HomeAssistant, call: ServiceCall
-) -> dict[str, Any]:
-    """Developer-only service: query OTA metadata for selected device/group."""
-    return await _async_handle_query_ota_info_service(
-        hass,
-        call,
-        get_device_and_coordinator=_get_device_and_coordinator,
-        async_call_optional_capability=_async_call_optional_capability,
-        service_query_ota_info=SERVICE_QUERY_OTA_INFO,
-    )
-
-
-def _load_verified_firmware_versions() -> frozenset[str]:
-    """Compatibility shim for OTA manifest loading used by existing tests."""
-    return _load_verified_firmware_versions_cached_service(
-        str(Path(__file__).with_name(FIRMWARE_SUPPORT_MANIFEST)),
-        _LOGGER,
-    )
-
-
-async def _async_handle_start_ota_update(
-    hass: HomeAssistant, call: ServiceCall
-) -> dict[str, Any]:
-    """Developer-only service: start OTA update with explicit safety guards."""
-    return await _async_handle_start_ota_update_service(
-        hass,
-        call,
-        get_device_and_coordinator=_get_device_and_coordinator,
-        async_send_command_with_service_errors=_async_send_command_with_service_errors,
-        raise_service_error=_raise_service_error,
-        logger=_LOGGER,
-        load_verified_firmware_versions=_load_verified_firmware_versions,
-        attr_device_id=ATTR_DEVICE_ID,
-        attr_confirm_irreversible=ATTR_CONFIRM_IRREVERSIBLE,
-        attr_confirm_unverified=ATTR_CONFIRM_UNVERIFIED,
-    )
-
-
 async def _async_handle_fetch_sensor_history(
     *,
     hass: HomeAssistant,
@@ -842,18 +779,6 @@ _SERVICE_REGISTRATIONS: Final = (
         SERVICE_GET_CITY,
         _async_handle_get_city,
         None,
-        SupportsResponse.ONLY,
-    ),
-    (
-        SERVICE_QUERY_OTA_INFO,
-        _async_handle_query_ota_info,
-        SERVICE_QUERY_OTA_INFO_SCHEMA,
-        SupportsResponse.ONLY,
-    ),
-    (
-        SERVICE_START_OTA_UPDATE,
-        _async_handle_start_ota_update,
-        SERVICE_START_OTA_UPDATE_SCHEMA,
         SupportsResponse.ONLY,
     ),
     (

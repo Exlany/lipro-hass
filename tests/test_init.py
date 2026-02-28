@@ -18,8 +18,6 @@ import voluptuous as vol
 
 from custom_components.lipro import (
     ATTR_COMMAND,
-    ATTR_CONFIRM_IRREVERSIBLE,
-    ATTR_CONFIRM_UNVERIFIED,
     ATTR_DAYS,
     ATTR_DEVICE_ID,
     ATTR_EVENTS,
@@ -45,12 +43,8 @@ from custom_components.lipro import (
     SERVICE_GET_SCHEDULES_SCHEMA,
     SERVICE_QUERY_COMMAND_RESULT,
     SERVICE_QUERY_COMMAND_RESULT_SCHEMA,
-    SERVICE_QUERY_OTA_INFO,
-    SERVICE_QUERY_OTA_INFO_SCHEMA,
     SERVICE_SEND_COMMAND,
     SERVICE_SEND_COMMAND_SCHEMA,
-    SERVICE_START_OTA_UPDATE,
-    SERVICE_START_OTA_UPDATE_SCHEMA,
     SERVICE_SUBMIT_ANONYMOUS_SHARE,
     SERVICE_SUBMIT_DEVELOPER_FEEDBACK,
     SERVICE_SUBMIT_DEVELOPER_FEEDBACK_SCHEMA,
@@ -63,9 +57,7 @@ from custom_components.lipro import (
     _async_handle_get_developer_report,
     _async_handle_get_schedules,
     _async_handle_query_command_result,
-    _async_handle_query_ota_info,
     _async_handle_send_command,
-    _async_handle_start_ota_update,
     _async_handle_submit_anonymous_share,
     _async_handle_submit_developer_feedback,
     _get_device_and_coordinator,
@@ -198,14 +190,6 @@ class TestServiceConstants:
         """Test SERVICE_GET_CITY is defined correctly."""
         assert SERVICE_GET_CITY == "get_city"
 
-    def test_service_query_ota_info(self):
-        """Test SERVICE_QUERY_OTA_INFO is defined correctly."""
-        assert SERVICE_QUERY_OTA_INFO == "query_ota_info"
-
-    def test_service_start_ota_update(self):
-        """Test SERVICE_START_OTA_UPDATE is defined correctly."""
-        assert SERVICE_START_OTA_UPDATE == "start_ota_update"
-
     def test_service_fetch_body_sensor_history(self):
         """Test SERVICE_FETCH_BODY_SENSOR_HISTORY is defined correctly."""
         assert SERVICE_FETCH_BODY_SENSOR_HISTORY == "fetch_body_sensor_history"
@@ -226,8 +210,6 @@ class TestServiceConstants:
         assert isinstance(SERVICE_SUBMIT_DEVELOPER_FEEDBACK, str)
         assert isinstance(SERVICE_QUERY_COMMAND_RESULT, str)
         assert isinstance(SERVICE_GET_CITY, str)
-        assert isinstance(SERVICE_QUERY_OTA_INFO, str)
-        assert isinstance(SERVICE_START_OTA_UPDATE, str)
         assert isinstance(SERVICE_FETCH_BODY_SENSOR_HISTORY, str)
         assert isinstance(SERVICE_FETCH_DOOR_SENSOR_HISTORY, str)
 
@@ -374,22 +356,6 @@ class TestSchemaStructure:
         assert keys[ATTR_DEVICE_ID] is False
         assert ATTR_MSG_SN in keys
         assert keys[ATTR_MSG_SN] is True
-
-    def test_query_ota_info_schema_keys(self):
-        """Test query_ota_info schema has expected keys."""
-        keys = self._get_schema_keys(SERVICE_QUERY_OTA_INFO_SCHEMA)
-        assert ATTR_DEVICE_ID in keys
-        assert keys[ATTR_DEVICE_ID] is False
-
-    def test_start_ota_update_schema_keys(self):
-        """Test start_ota_update schema has expected keys."""
-        keys = self._get_schema_keys(SERVICE_START_OTA_UPDATE_SCHEMA)
-        assert ATTR_DEVICE_ID in keys
-        assert keys[ATTR_DEVICE_ID] is False
-        assert ATTR_CONFIRM_IRREVERSIBLE in keys
-        assert keys[ATTR_CONFIRM_IRREVERSIBLE] is False
-        assert ATTR_CONFIRM_UNVERIFIED in keys
-        assert keys[ATTR_CONFIRM_UNVERIFIED] is False
 
     def test_fetch_sensor_history_schema_keys(self):
         """Test fetch sensor history schema has expected keys."""
@@ -541,20 +507,6 @@ class TestSchemaValidation:
         with pytest.raises(vol.MultipleInvalid):
             SERVICE_QUERY_COMMAND_RESULT_SCHEMA({})
 
-    def test_query_ota_info_schema_validation(self):
-        """Test query_ota_info schema accepts empty payload."""
-        result = SERVICE_QUERY_OTA_INFO_SCHEMA({})
-        assert isinstance(result, dict)
-
-    def test_start_ota_update_schema_validation(self):
-        """Test start_ota_update schema applies safe defaults."""
-        result = SERVICE_START_OTA_UPDATE_SCHEMA({})
-        assert result[ATTR_CONFIRM_IRREVERSIBLE] is False
-        assert result[ATTR_CONFIRM_UNVERIFIED] is False
-
-        confirmed = SERVICE_START_OTA_UPDATE_SCHEMA({ATTR_CONFIRM_IRREVERSIBLE: True})
-        assert confirmed[ATTR_CONFIRM_IRREVERSIBLE] is True
-
     def test_fetch_sensor_history_schema_validation(self):
         """Test fetch sensor history schema validates fields and defaults mesh_type."""
         result = SERVICE_FETCH_SENSOR_HISTORY_SCHEMA({"sensor_device_id": "03ab5ccd7caaaaaa"})
@@ -606,8 +558,6 @@ class TestInitRuntimeBehavior:
         assert hass.services.has_service(DOMAIN, SERVICE_SUBMIT_DEVELOPER_FEEDBACK)
         assert hass.services.has_service(DOMAIN, SERVICE_QUERY_COMMAND_RESULT)
         assert hass.services.has_service(DOMAIN, SERVICE_GET_CITY)
-        assert hass.services.has_service(DOMAIN, SERVICE_QUERY_OTA_INFO)
-        assert hass.services.has_service(DOMAIN, SERVICE_START_OTA_UPDATE)
         assert hass.services.has_service(DOMAIN, SERVICE_FETCH_BODY_SENSOR_HISTORY)
         assert hass.services.has_service(DOMAIN, SERVICE_FETCH_DOOR_SENSOR_HISTORY)
 
@@ -1028,185 +978,6 @@ class TestInitRuntimeBehavior:
 
         result = await _async_handle_get_city(hass, SimpleNamespace(data={}))
         assert result == {"result": {"province": "广东省", "city": "江门市"}}
-
-    async def test_query_ota_info_service(self, hass) -> None:
-        """query_ota_info should call client and return ota list."""
-        device = self._create_device(serial="mesh_group_49155")
-        coordinator = MagicMock()
-        coordinator.get_device.return_value = device
-        coordinator.devices = {device.serial: device}
-        coordinator.client.query_ota_info = AsyncMock(
-            return_value=[{"deviceType": "ff000001", "firmwareVersion": "7.10.9"}]
-        )
-
-        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
-        entry.add_to_hass(hass)
-        entry.runtime_data = coordinator
-
-        result = await _async_handle_query_ota_info(
-            hass, SimpleNamespace(data={ATTR_DEVICE_ID: device.serial})
-        )
-
-        assert result["serial"] == "mesh_group_49155"
-        assert len(result["ota"]) == 1
-        coordinator.client.query_ota_info.assert_awaited_once_with(
-            device_id="mesh_group_49155",
-            device_type=device.device_type,
-        )
-
-    async def test_query_ota_info_filters_rows_by_user_devices(self, hass) -> None:
-        """query_ota_info should drop OTA rows for device types user does not own."""
-        device = self._create_device(serial="mesh_group_49155")
-        other_device = LiproDevice(
-            device_number=2,
-            serial="03ab5ccd7c222222",
-            name="Other Device",
-            device_type=9,
-            iot_name="unknown",
-            physical_model=None,
-        )
-        coordinator = MagicMock()
-        coordinator.get_device.return_value = device
-        coordinator.devices = {device.serial: device}
-        coordinator.client.query_ota_info = AsyncMock(
-            return_value=[
-                {"deviceType": "ff000001", "firmwareVersion": "7.10.9"},
-                {"deviceType": other_device.device_type_hex, "firmwareVersion": "9.9.9"},
-            ]
-        )
-
-        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
-        entry.add_to_hass(hass)
-        entry.runtime_data = coordinator
-
-        result = await _async_handle_query_ota_info(
-            hass, SimpleNamespace(data={ATTR_DEVICE_ID: device.serial})
-        )
-
-        assert result["ota"] == [{"deviceType": "ff000001", "firmwareVersion": "7.10.9"}]
-
-    async def test_start_ota_update_requires_explicit_confirm(self, hass) -> None:
-        """start_ota_update should reject calls without irreversible confirmation."""
-        with pytest.raises(HomeAssistantError) as err:
-            await _async_handle_start_ota_update(
-                hass,
-                SimpleNamespace(data={ATTR_DEVICE_ID: "mesh_group_49155"}),
-            )
-
-        assert getattr(err.value, "translation_key", None) == "ota_update_confirm_required"
-
-    async def test_start_ota_update_unverified_requires_second_confirm(self, hass) -> None:
-        """start_ota_update should require second confirm for unverified versions."""
-        device = self._create_device(serial="mesh_group_49155")
-        coordinator = MagicMock()
-        coordinator.get_device.return_value = device
-        coordinator.devices = {device.serial: device}
-        coordinator.client.query_ota_info = AsyncMock(
-            return_value=[{"deviceType": "ff000001", "firmwareVersion": "9.9.9"}]
-        )
-
-        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
-        entry.add_to_hass(hass)
-        entry.runtime_data = coordinator
-
-        with (
-            patch("custom_components.lipro._load_verified_firmware_versions", return_value=frozenset({"7.10.9"})),
-            pytest.raises(HomeAssistantError) as err,
-        ):
-            await _async_handle_start_ota_update(
-                hass,
-                SimpleNamespace(
-                    data={
-                        ATTR_DEVICE_ID: "mesh_group_49155",
-                        ATTR_CONFIRM_IRREVERSIBLE: True,
-                    }
-                ),
-            )
-
-        assert (
-            getattr(err.value, "translation_key", None)
-            == "ota_update_unverified_confirm_required"
-        )
-
-    async def test_start_ota_update_unverified_latest_version_requires_confirm(
-        self, hass
-    ) -> None:
-        """start_ota_update should detect unverified latestVersion rows."""
-        device = self._create_device(serial="mesh_group_49155")
-        coordinator = MagicMock()
-        coordinator.get_device.return_value = device
-        coordinator.devices = {device.serial: device}
-        coordinator.client.query_ota_info = AsyncMock(
-            return_value=[{"deviceType": "ff000001", "latestVersion": "9.9.9"}]
-        )
-
-        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
-        entry.add_to_hass(hass)
-        entry.runtime_data = coordinator
-
-        with (
-            patch(
-                "custom_components.lipro._load_verified_firmware_versions",
-                return_value=frozenset({"7.10.9"}),
-            ),
-            pytest.raises(HomeAssistantError) as err,
-        ):
-            await _async_handle_start_ota_update(
-                hass,
-                SimpleNamespace(
-                    data={
-                        ATTR_DEVICE_ID: device.serial,
-                        ATTR_CONFIRM_IRREVERSIBLE: True,
-                    }
-                ),
-            )
-
-        assert (
-            getattr(err.value, "translation_key", None)
-            == "ota_update_unverified_confirm_required"
-        )
-
-    async def test_start_ota_update_success(self, hass) -> None:
-        """start_ota_update should dispatch OTA_UPDATE command."""
-        device = self._create_device(serial="mesh_group_49155")
-        coordinator = MagicMock()
-        coordinator.get_device.return_value = device
-        coordinator.devices = {device.serial: device}
-        coordinator.client.query_ota_info = AsyncMock(
-            return_value=[{"deviceType": "ff000001", "firmwareVersion": "7.10.9"}]
-        )
-        coordinator.async_send_command = AsyncMock(return_value=True)
-
-        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
-        entry.add_to_hass(hass)
-        entry.runtime_data = coordinator
-
-        with patch(
-            "custom_components.lipro._load_verified_firmware_versions",
-            return_value=frozenset({"7.10.9"}),
-        ):
-            result = await _async_handle_start_ota_update(
-                hass,
-                SimpleNamespace(
-                    data={
-                        ATTR_DEVICE_ID: device.serial,
-                        ATTR_CONFIRM_IRREVERSIBLE: True,
-                    }
-                ),
-            )
-
-        assert result["success"] is True
-        assert result["serial"] == "mesh_group_49155"
-        assert result["command"] == "OTA_UPDATE"
-        assert result["ota_versions"] == ["7.10.9"]
-        assert result["ota_rows"] == [{"deviceType": "ff000001", "firmwareVersion": "7.10.9"}]
-        assert result["unverified_versions"] == []
-        coordinator.async_send_command.assert_awaited_once_with(
-            device,
-            "OTA_UPDATE",
-            None,
-            fallback_device_id="mesh_group_49155",
-        )
 
     async def test_fetch_body_sensor_history_service(self, hass) -> None:
         """fetch_body_sensor_history should pass sensor payload to client."""

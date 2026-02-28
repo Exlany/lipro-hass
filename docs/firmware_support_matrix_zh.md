@@ -42,8 +42,7 @@
 
 ## 验证流程
 
-1. 先用 `lipro.query_ota_info` 确认目标序列号/分组和当前版本。
-2. 调用 `lipro.start_ota_update`，并设置 `confirm_irreversible: true`。
-3. 若返回含未认证版本，需再次调用并设置 `confirm_unverified: true`。
-4. 在诊断报告中记录命令返回和升级后状态。
-5. 同步更新本页与 `custom_components/lipro/firmware_support_manifest.json`。
+1. 在设备的 `update` 实体中查看是否有可用固件更新。
+2. 通过 `update` 实体执行升级（未认证固件可能需要在确认窗口内再次点击安装以确认）。
+3. 在诊断报告中记录升级前/后的状态。
+4. 同步更新本页与 `custom_components/lipro/firmware_support_manifest.json`。
