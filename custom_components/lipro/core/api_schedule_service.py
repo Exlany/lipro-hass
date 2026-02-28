@@ -42,7 +42,9 @@ async def execute_mesh_schedule_candidate_request(
 async def get_mesh_schedules_by_candidates(
     *,
     candidate_device_ids: list[str],
-    execute_candidate_request: Callable[..., Awaitable[tuple[bool, Any, Exception | None]]],
+    execute_candidate_request: Callable[
+        ..., Awaitable[tuple[bool, Any, Exception | None]]
+    ],
     iot_request: Callable[[str, dict[str, Any]], Awaitable[Any]],
     extract_timings_list: Callable[[Any], list[dict[str, Any]]],
     normalize_mesh_timing_rows: Callable[..., list[dict[str, Any]]],
@@ -95,9 +97,13 @@ async def add_mesh_schedule_by_candidates(
     days: list[int],
     times: list[int],
     events: list[int],
-    execute_candidate_request: Callable[..., Awaitable[tuple[bool, Any, Exception | None]]],
+    execute_candidate_request: Callable[
+        ..., Awaitable[tuple[bool, Any, Exception | None]]
+    ],
     iot_request: Callable[[str, dict[str, Any]], Awaitable[Any]],
-    get_mesh_schedules_by_candidates_request: Callable[..., Awaitable[list[dict[str, Any]]]],
+    get_mesh_schedules_by_candidates_request: Callable[
+        ..., Awaitable[list[dict[str, Any]]]
+    ],
     path_ble_schedule_add: str,
     build_mesh_schedule_add_body: Callable[..., dict[str, Any]],
     encode_mesh_schedule_json: Callable[[list[int], list[int], list[int]], str],
@@ -132,9 +138,13 @@ async def delete_mesh_schedules_by_candidates(
     *,
     candidate_device_ids: list[str],
     schedule_ids: list[int],
-    execute_candidate_request: Callable[..., Awaitable[tuple[bool, Any, Exception | None]]],
+    execute_candidate_request: Callable[
+        ..., Awaitable[tuple[bool, Any, Exception | None]]
+    ],
     iot_request: Callable[[str, dict[str, Any]], Awaitable[Any]],
-    get_mesh_schedules_by_candidates_request: Callable[..., Awaitable[list[dict[str, Any]]]],
+    get_mesh_schedules_by_candidates_request: Callable[
+        ..., Awaitable[list[dict[str, Any]]]
+    ],
     path_ble_schedule_delete: str,
     build_mesh_schedule_delete_body: Callable[..., dict[str, Any]],
 ) -> list[dict[str, Any]]:

@@ -509,7 +509,9 @@ class TestSchemaValidation:
 
     def test_fetch_sensor_history_schema_validation(self):
         """Test fetch sensor history schema validates fields and defaults mesh_type."""
-        result = SERVICE_FETCH_SENSOR_HISTORY_SCHEMA({"sensor_device_id": "03ab5ccd7caaaaaa"})
+        result = SERVICE_FETCH_SENSOR_HISTORY_SCHEMA(
+            {"sensor_device_id": "03ab5ccd7caaaaaa"}
+        )
         assert result["sensor_device_id"] == "03ab5ccd7caaaaaa"
         assert result["mesh_type"] == "2"
         with pytest.raises(vol.MultipleInvalid):
@@ -945,7 +947,9 @@ class TestInitRuntimeBehavior:
         device = self._create_device(serial="mesh_group_49155")
         coordinator = MagicMock()
         coordinator.get_device.return_value = device
-        coordinator.client.query_command_result = AsyncMock(return_value={"success": True})
+        coordinator.client.query_command_result = AsyncMock(
+            return_value={"success": True}
+        )
 
         entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
         entry.add_to_hass(hass)
@@ -953,7 +957,9 @@ class TestInitRuntimeBehavior:
 
         result = await _async_handle_query_command_result(
             hass,
-            SimpleNamespace(data={ATTR_DEVICE_ID: device.serial, ATTR_MSG_SN: "682550445474"}),
+            SimpleNamespace(
+                data={ATTR_DEVICE_ID: device.serial, ATTR_MSG_SN: "682550445474"}
+            ),
         )
 
         assert result["serial"] == "mesh_group_49155"
@@ -1189,13 +1195,18 @@ class TestInitRuntimeBehavior:
                 ),
             )
 
-    async def test_send_command_handler_push_failed_maps_translation(self, hass) -> None:
+    async def test_send_command_handler_push_failed_maps_translation(
+        self, hass
+    ) -> None:
         """pushSuccess=false style failures should use push_failed translation key."""
         device = self._create_device()
         coordinator = MagicMock()
         coordinator.get_device.return_value = device
         coordinator.async_send_command = AsyncMock(return_value=False)
-        coordinator.last_command_failure = {"reason": "push_failed", "code": "push_failed"}
+        coordinator.last_command_failure = {
+            "reason": "push_failed",
+            "code": "push_failed",
+        }
 
         entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
         entry.add_to_hass(hass)
@@ -1210,7 +1221,9 @@ class TestInitRuntimeBehavior:
             )
         assert exc.value.translation_key == "command_push_failed"
 
-    async def test_send_command_handler_offline_code_maps_translation(self, hass) -> None:
+    async def test_send_command_handler_offline_code_maps_translation(
+        self, hass
+    ) -> None:
         """140004 failures should use device-not-connected translation key."""
         device = self._create_device()
         coordinator = MagicMock()
@@ -1271,7 +1284,9 @@ class TestInitRuntimeBehavior:
                 ),
             )
 
-    async def test_send_command_handler_api_error_code_maps_translation(self, hass) -> None:
+    async def test_send_command_handler_api_error_code_maps_translation(
+        self, hass
+    ) -> None:
         """API error 140003 should map to device-offline translation key."""
         device = self._create_device()
         coordinator = MagicMock()

@@ -135,7 +135,9 @@ class _OtaCandidate:
 
 
 @functools.lru_cache(maxsize=1)
-def _load_verified_firmware_manifest() -> tuple[frozenset[str], dict[str, frozenset[str]]]:
+def _load_verified_firmware_manifest() -> tuple[
+    frozenset[str], dict[str, frozenset[str]]
+]:
     """Load optional local firmware certification manifest."""
     manifest_path = Path(__file__).with_name(_FIRMWARE_SUPPORT_MANIFEST)
     return _load_verified_firmware_manifest_file(
@@ -183,10 +185,14 @@ async def _load_remote_firmware_manifest(
                         continue
                     payload = await response.json(content_type=None)
             except (aiohttp.ClientError, TimeoutError, ValueError) as err:
-                _LOGGER.debug("Remote firmware manifest fetch failed from %s: %s", url, err)
+                _LOGGER.debug(
+                    "Remote firmware manifest fetch failed from %s: %s", url, err
+                )
                 continue
 
-            versions, versions_by_type = _parse_verified_firmware_manifest_payload(payload)
+            versions, versions_by_type = _parse_verified_firmware_manifest_payload(
+                payload
+            )
             if versions or versions_by_type:
                 _REMOTE_MANIFEST_STATE["data"] = (versions, versions_by_type)
                 _REMOTE_MANIFEST_STATE["time"] = now
@@ -243,7 +249,9 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
     def extra_state_attributes(self) -> dict[str, Any]:
         """Expose OTA metadata for advanced users."""
         attrs: dict[str, Any] = {
-            "certified": self._ota_candidate.certified if self._ota_candidate else False,
+            "certified": self._ota_candidate.certified
+            if self._ota_candidate
+            else False,
             "confirmation_required": self._has_pending_unverified_confirmation(),
         }
 
@@ -418,7 +426,9 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
 
     def _build_ota_candidate(self, row: dict[str, Any] | None) -> _OtaCandidate:
         """Normalize one OTA row for update-entity usage."""
-        installed = self.device.firmware_version or _first_ota_text(row, _CURRENT_VERSION_KEYS)
+        installed = self.device.firmware_version or _first_ota_text(
+            row, _CURRENT_VERSION_KEYS
+        )
         latest = self._resolve_latest_version(row, installed)
         update_available = self._resolve_update_available(row, installed, latest)
         certified = self._resolve_certification(
@@ -513,7 +523,9 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
         ):
             return True
 
-        local_verified_versions, local_versions_by_type = _load_verified_firmware_manifest()
+        local_verified_versions, local_versions_by_type = (
+            _load_verified_firmware_manifest()
+        )
         return self._matches_manifest_certification(
             candidate_types,
             local_versions_by_type,
@@ -629,7 +641,9 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
             )
             return False
 
-    def _extract_install_command(self, row: dict[str, Any] | None) -> _InstallCommand | None:
+    def _extract_install_command(
+        self, row: dict[str, Any] | None
+    ) -> _InstallCommand | None:
         """Extract install command payload from OTA row."""
         if not isinstance(row, dict):
             return None
@@ -760,7 +774,10 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
             expected=(self.device.physical_model or "").lower(),
             weight=_OTA_MATCH_SCORE_PHYSICAL_MODEL_EXACT,
         )
-        if _first_ota_text(row, _LATEST_VERSION_KEYS + _COMMON_VERSION_KEYS) is not None:
+        if (
+            _first_ota_text(row, _LATEST_VERSION_KEYS + _COMMON_VERSION_KEYS)
+            is not None
+        ):
             score += _OTA_MATCH_SCORE_HAS_VERSION
         return score
 

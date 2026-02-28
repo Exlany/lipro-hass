@@ -1007,7 +1007,9 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
 
         _LOGGER.debug("Coordinator shutdown complete")
 
-    def _track_background_task(self, coro: Coroutine[Any, Any, Any]) -> asyncio.Task[Any]:
+    def _track_background_task(
+        self, coro: Coroutine[Any, Any, Any]
+    ) -> asyncio.Task[Any]:
         """Create and track a background task for centralized shutdown cleanup."""
         task = self.hass.async_create_task(coro)
         self._background_tasks.add(task)
@@ -1467,7 +1469,9 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
             if old_room_name == new_room_name:
                 continue
 
-            device_entry = device_registry.async_get_device(identifiers={(DOMAIN, serial)})
+            device_entry = device_registry.async_get_device(
+                identifiers={(DOMAIN, serial)}
+            )
             if device_entry is None:
                 continue
 

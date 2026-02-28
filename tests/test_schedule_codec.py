@@ -54,7 +54,11 @@ def test_normalize_mesh_timing_rows_sets_schedule_and_fallback_device_id() -> No
     rows = normalize_mesh_timing_rows(
         [
             {"id": 1, "scheduleJson": {"days": [1], "time": [60], "evt": [0]}},
-            {"id": 2, "active": "false", "schedule": {"days": [2], "time": [120], "evt": [1]}},
+            {
+                "id": 2,
+                "active": "false",
+                "schedule": {"days": [2], "time": [120], "evt": [1]},
+            },
         ],
         fallback_device_id="03ab0000000000aa",
         parse_schedule_json=lambda payload: parse_mesh_schedule_json(

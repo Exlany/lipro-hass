@@ -24,12 +24,7 @@ def _ota_row_dedupe_key(row: dict[str, Any]) -> OtaRowDedupeKey:
     """Build stable dedupe key for one OTA row."""
     return (
         str(row.get("deviceId") or row.get("iotId") or "").strip().lower(),
-        str(
-            row.get("deviceType")
-            or row.get("bleName")
-            or row.get("productName")
-            or ""
-        )
+        str(row.get("deviceType") or row.get("bleName") or row.get("productName") or "")
         .strip()
         .lower(),
         str(

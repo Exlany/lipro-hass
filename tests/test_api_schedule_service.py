@@ -21,7 +21,9 @@ class DummyApiError(Exception):
 
 
 @pytest.mark.asyncio
-async def test_add_mesh_schedule_by_candidates_returns_refreshed_rows_on_success() -> None:
+async def test_add_mesh_schedule_by_candidates_returns_refreshed_rows_on_success() -> (
+    None
+):
     execute_candidate_request = AsyncMock(
         side_effect=[
             (False, None, DummyApiError("busy", 500)),
@@ -55,7 +57,9 @@ async def test_add_mesh_schedule_by_candidates_returns_refreshed_rows_on_success
 
 
 @pytest.mark.asyncio
-async def test_add_mesh_schedule_by_candidates_raises_last_error_on_total_failure() -> None:
+async def test_add_mesh_schedule_by_candidates_raises_last_error_on_total_failure() -> (
+    None
+):
     execute_candidate_request = AsyncMock(
         side_effect=[
             (False, None, DummyApiError("bad1", 500)),
@@ -103,7 +107,9 @@ async def test_add_mesh_schedule_by_candidates_empty_candidates_returns_empty() 
 
 
 @pytest.mark.asyncio
-async def test_delete_mesh_schedules_by_candidates_returns_refreshed_rows_if_any_deleted() -> None:
+async def test_delete_mesh_schedules_by_candidates_returns_refreshed_rows_if_any_deleted() -> (
+    None
+):
     execute_candidate_request = AsyncMock(
         side_effect=[
             (False, None, DummyApiError("bad1", 500)),
@@ -139,7 +145,9 @@ async def test_delete_mesh_schedules_by_candidates_returns_refreshed_rows_if_any
 
 
 @pytest.mark.asyncio
-async def test_delete_mesh_schedules_by_candidates_raises_last_error_if_none_deleted() -> None:
+async def test_delete_mesh_schedules_by_candidates_raises_last_error_if_none_deleted() -> (
+    None
+):
     execute_candidate_request = AsyncMock(
         side_effect=[
             (False, None, DummyApiError("bad1", 500)),

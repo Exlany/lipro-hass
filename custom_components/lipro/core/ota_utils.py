@@ -67,11 +67,7 @@ def normalize_version_list(value: Any) -> frozenset[str]:
     """Normalize one firmware-version list field."""
     if not isinstance(value, list):
         return frozenset()
-    return frozenset(
-        text
-        for item in value
-        if (text := str(item).strip())
-    )
+    return frozenset(text for item in value if (text := str(item).strip()))
 
 
 def normalize_versions_by_type(value: Any) -> dict[str, frozenset[str]]:
@@ -143,9 +139,7 @@ def _derive_verified_versions_from_firmware_list(
                     break
 
     return frozenset(derived_versions), {
-        key: frozenset(values)
-        for key, values in derived_by_type.items()
-        if values
+        key: frozenset(values) for key, values in derived_by_type.items() if values
     }
 
 

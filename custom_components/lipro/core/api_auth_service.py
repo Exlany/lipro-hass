@@ -13,7 +13,9 @@ from ..const.api import PATH_LOGIN, PATH_REFRESH_TOKEN
 class AuthApiService:
     """Auth endpoints extracted from LiproClient."""
 
-    def __init__(self, client: Any, auth_error_cls: type[Exception], logger: Any) -> None:
+    def __init__(
+        self, client: Any, auth_error_cls: type[Exception], logger: Any
+    ) -> None:
         """Initialize auth endpoint service."""
         self._client = client
         self._auth_error_cls = auth_error_cls

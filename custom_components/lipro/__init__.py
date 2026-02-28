@@ -659,7 +659,9 @@ async def _async_handle_query_command_result(
     )
 
 
-async def _async_handle_get_city(hass: HomeAssistant, call: ServiceCall) -> dict[str, Any]:
+async def _async_handle_get_city(
+    hass: HomeAssistant, call: ServiceCall
+) -> dict[str, Any]:
     """Developer-only service: fetch city metadata."""
     return await _async_handle_get_city_service(
         hass,
@@ -794,8 +796,6 @@ _SERVICE_REGISTRATIONS: Final = (
         SupportsResponse.ONLY,
     ),
 )
-
-
 
 
 def _async_register_service(

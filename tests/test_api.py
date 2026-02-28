@@ -1687,7 +1687,9 @@ class TestLiproClientOptionalCapabilities:
         """query_command_result should call endpoint with msgSn payload."""
         client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
 
-        with patch.object(client, "_iot_request", new_callable=AsyncMock) as mock_request:
+        with patch.object(
+            client, "_iot_request", new_callable=AsyncMock
+        ) as mock_request:
             mock_request.return_value = {"success": True}
             result = await client.query_command_result(
                 msg_sn="682550445474476112",
@@ -1710,7 +1712,9 @@ class TestLiproClientOptionalCapabilities:
         """get_city should send empty body and return mapping payload."""
         client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
 
-        with patch.object(client, "_iot_request", new_callable=AsyncMock) as mock_request:
+        with patch.object(
+            client, "_iot_request", new_callable=AsyncMock
+        ) as mock_request:
             mock_request.return_value = {"province": "广东省", "city": "江门市"}
             result = await client.get_city()
 
@@ -1724,7 +1728,9 @@ class TestLiproClientOptionalCapabilities:
         ota_v1_rows = [{"deviceType": "ff000001", "firmwareVersion": "7.10.9"}]
         controller_rows = [{"bleName": "T21JC", "version": "2.6.43"}]
 
-        with patch.object(client, "_iot_request", new_callable=AsyncMock) as mock_request:
+        with patch.object(
+            client, "_iot_request", new_callable=AsyncMock
+        ) as mock_request:
             mock_request.side_effect = [
                 ota_v1_rows,
                 ota_v1_rows,
@@ -1752,7 +1758,9 @@ class TestLiproClientOptionalCapabilities:
         """fetch_body_sensor_history should follow API contract fields."""
         client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
 
-        with patch.object(client, "_iot_request", new_callable=AsyncMock) as mock_request:
+        with patch.object(
+            client, "_iot_request", new_callable=AsyncMock
+        ) as mock_request:
             mock_request.return_value = {"humanSensorStateList": []}
             result = await client.fetch_body_sensor_history(
                 device_id="mesh_group_49155",
@@ -1777,7 +1785,9 @@ class TestLiproClientOptionalCapabilities:
         """fetch_door_sensor_history should follow API contract fields."""
         client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
 
-        with patch.object(client, "_iot_request", new_callable=AsyncMock) as mock_request:
+        with patch.object(
+            client, "_iot_request", new_callable=AsyncMock
+        ) as mock_request:
             mock_request.return_value = {"doorStateList": []}
             result = await client.fetch_door_sensor_history(
                 device_id="mesh_group_49155",

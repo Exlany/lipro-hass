@@ -123,7 +123,9 @@ async def test_update_async_setup_entry_filters_groups(mock_coordinator, make_de
     }
 
     async_add_entities = MagicMock()
-    await async_setup_entry(None, _entry_with_runtime(mock_coordinator), async_add_entities)
+    await async_setup_entry(
+        None, _entry_with_runtime(mock_coordinator), async_add_entities
+    )
 
     entities = async_add_entities.call_args[0][0]
     assert len(entities) == 1

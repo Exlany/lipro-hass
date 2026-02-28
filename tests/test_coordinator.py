@@ -783,7 +783,9 @@ class TestCoordinatorSendCommand:
             return_value={"status": "pending"}
         )
 
-        with patch("custom_components.lipro.core.coordinator.asyncio.sleep", new=AsyncMock()):
+        with patch(
+            "custom_components.lipro.core.coordinator.asyncio.sleep", new=AsyncMock()
+        ):
             result = await coordinator.async_send_command(dev, "turnOn")
 
         assert result is False

@@ -144,18 +144,20 @@ async def query_with_fallback(
             expected_offline_codes=expected_offline_codes,
             logger=logger,
         )
-        all_results, failed_single_queries, single_error_codes = (
-            await _query_items_individually(
-                path=path,
-                body_key=body_key,
-                ids=ids,
-                item_name=item_name,
-                iot_request=iot_request,
-                extract_data_list=extract_data_list,
-                lipro_api_error=lipro_api_error,
-                normalize_response_code=normalize_response_code,
-                logger=logger,
-            )
+        (
+            all_results,
+            failed_single_queries,
+            single_error_codes,
+        ) = await _query_items_individually(
+            path=path,
+            body_key=body_key,
+            ids=ids,
+            item_name=item_name,
+            iot_request=iot_request,
+            extract_data_list=extract_data_list,
+            lipro_api_error=lipro_api_error,
+            normalize_response_code=normalize_response_code,
+            logger=logger,
         )
         _log_empty_fallback_summary(
             path=path,
