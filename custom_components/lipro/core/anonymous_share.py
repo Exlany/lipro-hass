@@ -11,7 +11,6 @@ from __future__ import annotations
 
 import asyncio
 from collections import deque
-from contextlib import suppress
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from inspect import isawaitable
@@ -77,9 +76,6 @@ SHARE_BASE_URL: Final = "https://lipro-share.lany.me"
 SHARE_REPORT_URL: Final = f"{SHARE_BASE_URL}/api/report"
 SHARE_TOKEN_REFRESH_URL: Final = f"{SHARE_BASE_URL}/api/token/refresh"
 SHARE_API_KEY: Final = "lipro-ha-share-2026"
-
-# Persistent auth state cache file (stored under HA config dir when available)
-_AUTH_STATE_FILENAME: Final = ".lipro_share_auth.json"
 
 # Keys to always redact from reports
 REDACT_KEYS: Final = frozenset(
@@ -337,7 +333,6 @@ class AnonymousShareManager:
         # Mark loaded after the actual load completes to avoid race conditions
         # where a concurrent caller skips loading before data is ready.
         await asyncio.to_thread(self._load_reported_devices)
-        await asyncio.to_thread(self._load_auth_state)
         self._cache_loaded = True
 
     def _load_reported_devices(self) -> None:
@@ -369,73 +364,6 @@ class AnonymousShareManager:
             )
         except OSError as err:
             _LOGGER.warning("Failed to save reported devices cache: %s", err)
-
-    def _auth_state_file(self) -> Path | None:
-        """Return auth-state cache file path when storage is available."""
-        if not self._storage_path:
-            return None
-        return Path(self._storage_path) / _AUTH_STATE_FILENAME
-
-    def _load_auth_state(self) -> None:
-        """Load install-token cache from storage."""
-        cache_file = self._auth_state_file()
-        if cache_file is None:
-            return
-
-        try:
-            if not cache_file.exists():
-                return
-            data = json.loads(cache_file.read_text(encoding="utf-8"))
-            if not isinstance(data, dict):
-                return
-
-            expected_installation_id = self._installation_id
-            cached_installation_id = data.get("installation_id")
-            if (
-                expected_installation_id
-                and cached_installation_id
-                and cached_installation_id != expected_installation_id
-            ):
-                # Installation changed; do not reuse an unrelated token.
-                self._install_token = None
-                self._token_expires_at = 0
-                self._token_refresh_after = 0
-                return
-
-            token = data.get("install_token")
-            if isinstance(token, str) and token:
-                self._install_token = token
-                self._token_expires_at = int(data.get("token_expires_at") or 0)
-                self._token_refresh_after = int(data.get("token_refresh_after") or 0)
-        except (OSError, json.JSONDecodeError, TypeError, ValueError) as err:
-            _LOGGER.warning("Failed to load share auth cache: %s", err)
-
-    def _save_auth_state(self) -> None:
-        """Save install-token cache to storage (or remove when empty)."""
-        cache_file = self._auth_state_file()
-        if cache_file is None:
-            return
-
-        try:
-            if not self._install_token:
-                with suppress(OSError):
-                    cache_file.unlink(missing_ok=True)
-                return
-
-            cache_file.parent.mkdir(parents=True, exist_ok=True)
-            cache_file.write_text(
-                json.dumps(
-                    {
-                        "installation_id": self._installation_id,
-                        "install_token": self._install_token,
-                        "token_expires_at": int(self._token_expires_at or 0),
-                        "token_refresh_after": int(self._token_refresh_after or 0),
-                    }
-                ),
-                encoding="utf-8",
-            )
-        except OSError as err:
-            _LOGGER.warning("Failed to save share auth cache: %s", err)
 
     # =========================================================================
     # Device Information Collection
@@ -1121,8 +1049,7 @@ class AnonymousShareManager:
                 payload = await self._safe_read_json(response)
                 if response.status == 200 and payload:
                     if self._apply_token_payload(payload):
-                        await asyncio.to_thread(self._save_auth_state)
-                    return True
+                        return True
 
                 code = payload.get("code") if payload else None
                 if response.status == 401 and code in {
@@ -1135,7 +1062,6 @@ class AnonymousShareManager:
                     "TOKEN_STATE_MISSING",
                 }:
                     self._clear_install_token()
-                    await asyncio.to_thread(self._save_auth_state)
                     return False
 
                 if response.status == 429:
@@ -1200,8 +1126,8 @@ class AnonymousShareManager:
                         payload = await self._safe_read_json(response)
 
                         if response.status == 200:
-                            if payload and self._apply_token_payload(payload):
-                                await asyncio.to_thread(self._save_auth_state)
+                            if payload:
+                                self._apply_token_payload(payload)
                             return True
 
                         code = payload.get("code") if payload else None
@@ -1233,7 +1159,6 @@ class AnonymousShareManager:
                             # Token no longer usable; clear and retry bootstrap once.
                             if token:
                                 self._clear_install_token()
-                                await asyncio.to_thread(self._save_auth_state)
                                 continue
                             return False
 

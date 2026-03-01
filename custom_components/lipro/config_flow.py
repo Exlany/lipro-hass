@@ -38,6 +38,7 @@ from .const import (
     CONF_PHONE_ID,
     CONF_POWER_QUERY_INTERVAL,
     CONF_REFRESH_TOKEN,
+    CONF_REMEMBER_PASSWORD_HASH,
     CONF_REQUEST_TIMEOUT,
     CONF_ROOM_AREA_SYNC_FORCE,
     CONF_SCAN_INTERVAL,
@@ -49,6 +50,7 @@ from .const import (
     DEFAULT_LIGHT_TURN_ON_ON_ADJUST,
     DEFAULT_MQTT_ENABLED,
     DEFAULT_POWER_QUERY_INTERVAL,
+    DEFAULT_REMEMBER_PASSWORD_HASH,
     DEFAULT_REQUEST_TIMEOUT,
     DEFAULT_ROOM_AREA_SYNC_FORCE,
     DEFAULT_SCAN_INTERVAL,
@@ -118,23 +120,32 @@ class LoginResult:
         phone: str,
         password_hash: str,
         phone_id: str,
+        *,
+        remember_password_hash: bool,
     ) -> dict[str, Any]:
         """Convert to config entry data dict."""
-        return {
+        data: dict[str, Any] = {
             CONF_PHONE: phone,
-            CONF_PASSWORD_HASH: password_hash,
             CONF_PHONE_ID: phone_id,
             CONF_ACCESS_TOKEN: self.access_token,
             CONF_REFRESH_TOKEN: self.refresh_token,
             CONF_USER_ID: self.user_id,
             CONF_BIZ_ID: self.biz_id,
+            CONF_REMEMBER_PASSWORD_HASH: remember_password_hash,
         }
+        if remember_password_hash:
+            data[CONF_PASSWORD_HASH] = password_hash
+        return data
 
 
 STEP_USER_DATA_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_PHONE): _text_selector(),
         vol.Required(CONF_PASSWORD): _password_selector(),
+        vol.Optional(
+            CONF_REMEMBER_PASSWORD_HASH,
+            default=DEFAULT_REMEMBER_PASSWORD_HASH,
+        ): bool,
     },
 )
 STEP_REAUTH_DATA_SCHEMA = vol.Schema(
@@ -142,12 +153,20 @@ STEP_REAUTH_DATA_SCHEMA = vol.Schema(
 )
 
 
-def _build_reconfigure_data_schema(default_phone: str) -> vol.Schema:
+def _build_reconfigure_data_schema(
+    default_phone: str,
+    *,
+    default_remember_password_hash: bool,
+) -> vol.Schema:
     """Build schema for the reconfigure step."""
     return vol.Schema(
         {
             vol.Required(CONF_PHONE, default=default_phone): _text_selector(),
             vol.Required(CONF_PASSWORD): _password_selector(),
+            vol.Optional(
+                CONF_REMEMBER_PASSWORD_HASH,
+                default=default_remember_password_hash,
+            ): bool,
         },
     )
 
@@ -281,6 +300,12 @@ class LiproConfigFlow(ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             phone = user_input[CONF_PHONE]
             password_hash = _hash_password(user_input[CONF_PASSWORD])
+            remember_password_hash = bool(
+                user_input.get(
+                    CONF_REMEMBER_PASSWORD_HASH,
+                    DEFAULT_REMEMBER_PASSWORD_HASH,
+                )
+            )
             phone_id = str(uuid.uuid4())
 
             login_result = await self._async_try_login(
@@ -292,7 +317,12 @@ class LiproConfigFlow(ConfigFlow, domain=DOMAIN):
 
                 return self.async_create_entry(
                     title=f"Lipro ({phone})",
-                    data=login_result.to_entry_data(phone, password_hash, phone_id),
+                    data=login_result.to_entry_data(
+                        phone,
+                        password_hash,
+                        phone_id,
+                        remember_password_hash=remember_password_hash,
+                    ),
                 )
 
         return self.async_show_form(
@@ -323,6 +353,12 @@ class LiproConfigFlow(ConfigFlow, domain=DOMAIN):
                 )
                 errors["base"] = "unknown"
                 return self._show_reauth_form(reauth_entry, errors)
+            remember_password_hash = bool(
+                reauth_entry.data.get(
+                    CONF_REMEMBER_PASSWORD_HASH,
+                    CONF_PASSWORD_HASH in reauth_entry.data,
+                )
+            )
             password_hash = _hash_password(user_input[CONF_PASSWORD])
 
             login_result = await self._async_try_login(
@@ -331,7 +367,12 @@ class LiproConfigFlow(ConfigFlow, domain=DOMAIN):
             if login_result is not None:
                 return self.async_update_reload_and_abort(
                     reauth_entry,
-                    data=login_result.to_entry_data(phone, password_hash, phone_id),
+                    data=login_result.to_entry_data(
+                        phone,
+                        password_hash,
+                        phone_id,
+                        remember_password_hash=remember_password_hash,
+                    ),
                 )
 
         return self._show_reauth_form(reauth_entry, errors)
@@ -360,6 +401,15 @@ class LiproConfigFlow(ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             phone = user_input[CONF_PHONE]
             password_hash = _hash_password(user_input[CONF_PASSWORD])
+            remember_password_hash = bool(
+                user_input.get(
+                    CONF_REMEMBER_PASSWORD_HASH,
+                    reconfigure_entry.data.get(
+                        CONF_REMEMBER_PASSWORD_HASH,
+                        CONF_PASSWORD_HASH in reconfigure_entry.data,
+                    ),
+                )
+            )
             phone_id = reconfigure_entry.data.get(CONF_PHONE_ID, "")
             if not phone_id:
                 _LOGGER.error(
@@ -379,7 +429,12 @@ class LiproConfigFlow(ConfigFlow, domain=DOMAIN):
 
                 return self.async_update_reload_and_abort(
                     reconfigure_entry,
-                    data=login_result.to_entry_data(phone, password_hash, phone_id),
+                    data=login_result.to_entry_data(
+                        phone,
+                        password_hash,
+                        phone_id,
+                        remember_password_hash=remember_password_hash,
+                    ),
                 )
 
         return self._show_reconfigure_form(reconfigure_entry, errors)
@@ -390,10 +445,17 @@ class LiproConfigFlow(ConfigFlow, domain=DOMAIN):
         errors: dict[str, str],
     ) -> ConfigFlowResult:
         """Show the reconfigure form."""
+        default_remember_password_hash = bool(
+            reconfigure_entry.data.get(
+                CONF_REMEMBER_PASSWORD_HASH,
+                CONF_PASSWORD_HASH in reconfigure_entry.data,
+            )
+        )
         return self.async_show_form(
             step_id="reconfigure",
             data_schema=_build_reconfigure_data_schema(
-                reconfigure_entry.data.get(CONF_PHONE, "")
+                reconfigure_entry.data.get(CONF_PHONE, ""),
+                default_remember_password_hash=default_remember_password_hash,
             ),
             errors=errors,
         )

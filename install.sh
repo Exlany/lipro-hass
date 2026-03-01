@@ -78,22 +78,36 @@ fi
 
 cd "$ccPath" || error "Could not change path to $ccPath"
 
-info "Downloading $ARCHIVE_TAG..."
-wget -t 2 -O "$ccPath/$ARCHIVE_TAG.zip" "$ARCHIVE_URL"
+tmpRoot="$(mktemp -d)"
+tmpZip="$tmpRoot/archive.zip"
+tmpExtract="$tmpRoot/extract"
+tmpInstall="$ccPath/.${DOMAIN}.install_tmp"
+backupDir="$ccPath/.${DOMAIN}.backup"
 
-if [ -d "$ccPath/$DOMAIN" ]; then
-    warn "custom_components/$DOMAIN already exists, removing old version..."
-    rm -rf "$ccPath/$DOMAIN"
+cleanup() {
+    rm -rf "$tmpRoot" 2>/dev/null || true
+    rm -rf "$tmpInstall" 2>/dev/null || true
+}
+trap cleanup EXIT
+
+info "Downloading $ARCHIVE_TAG..."
+wget -t 2 -O "$tmpZip" "$ARCHIVE_URL"
+
+info "Validating archive..."
+unzip -t "$tmpZip" >/dev/null 2>&1 || error "Downloaded archive is not a valid zip / 下载的压缩包无效"
+if unzip -Z -1 "$tmpZip" 2>/dev/null | grep -Eq '(^/|^\.\./|/\.\./)'; then
+    error "Unsafe paths detected in archive / 压缩包包含不安全路径"
 fi
 
 info "Unpacking..."
-unzip -o "$ccPath/$ARCHIVE_TAG.zip" -d "$ccPath" >/dev/null 2>&1
+mkdir -p "$tmpExtract"
+unzip -o "$tmpZip" -d "$tmpExtract" >/dev/null 2>&1
 
 # Determine the extracted directory name (GitHub strips leading 'v' from tag)
 ver="${ARCHIVE_TAG/#v/}"
-extractedDir="$ccPath/$REPO_NAME-$ver"
+extractedDir="$tmpExtract/$REPO_NAME-$ver"
 if [ ! -d "$extractedDir" ]; then
-    extractedDir="$ccPath/$REPO_NAME-$ARCHIVE_TAG"
+    extractedDir="$tmpExtract/$REPO_NAME-$ARCHIVE_TAG"
 fi
 if [ ! -d "$extractedDir" ]; then
     error "Could not find extracted directory: $REPO_NAME-$ver" false
@@ -105,11 +119,30 @@ if [ ! -d "$extractedDir/custom_components/$DOMAIN" ]; then
     error "压缩包中找不到组件目录: custom_components/$DOMAIN"
 fi
 
-cp -rf "$extractedDir/custom_components/$DOMAIN" "$ccPath"
+info "Staging component..."
+rm -rf "$tmpInstall"
+cp -rf "$extractedDir/custom_components/$DOMAIN" "$tmpInstall"
+if [ ! -f "$tmpInstall/manifest.json" ]; then
+    error "Staged component missing manifest.json / 暂存组件缺少 manifest.json"
+fi
+
+info "Activating..."
+if [ -d "$ccPath/$DOMAIN" ]; then
+    rm -rf "$backupDir"
+    mv "$ccPath/$DOMAIN" "$backupDir"
+fi
+if ! mv "$tmpInstall" "$ccPath/$DOMAIN"; then
+    warn "Install failed, attempting rollback... / 安装失败，尝试回滚..."
+    rm -rf "$ccPath/$DOMAIN" 2>/dev/null || true
+    if [ -d "$backupDir" ]; then
+        mv "$backupDir" "$ccPath/$DOMAIN" 2>/dev/null || true
+    fi
+    error "Failed to activate new version / 无法激活新版本"
+fi
+rm -rf "$backupDir"
 
 info "Cleaning up temp files..."
-rm -rf "$ccPath/$ARCHIVE_TAG.zip"
-rm -rf "$extractedDir"
+rm -rf "$tmpRoot"
 
 echo
 info "Installation complete! / 安装成功！"

@@ -6,7 +6,11 @@
         "description": "Please enter your Lipro account credentials.",
         "data": {
           "phone": "Phone Number",
-          "password": "Password"
+          "password": "Password",
+          "remember_password_hash": "Remember password"
+        },
+        "data_description": {
+          "remember_password_hash": "If enabled, store the password MD5 hash in Home Assistant storage to allow automatic re-login when refresh tokens expire. Disable to reduce local exposure; you may need to re-authenticate later."
         }
       },
       "reauth_confirm": {
@@ -21,7 +25,11 @@
         "description": "Update your Lipro account credentials.",
         "data": {
           "phone": "Phone Number",
-          "password": "Password"
+          "password": "Password",
+          "remember_password_hash": "Remember password"
+        },
+        "data_description": {
+          "remember_password_hash": "If enabled, store the password MD5 hash in Home Assistant storage to allow automatic re-login when refresh tokens expire. Disable to reduce local exposure; you may need to re-authenticate later."
         }
       }
     },

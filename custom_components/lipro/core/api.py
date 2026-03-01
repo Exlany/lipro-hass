@@ -512,11 +512,12 @@ class LiproClient:
             msg = "Request timeout"
             raise LiproConnectionError(msg) from err
 
-        _LOGGER.debug(
-            "API response from %s: %s",
-            path,
-            _mask_sensitive_data(json.dumps(result, ensure_ascii=False)[:500]),
-        )
+        if _LOGGER.isEnabledFor(logging.DEBUG):
+            _LOGGER.debug(
+                "API response from %s: %s",
+                path,
+                _mask_sensitive_data(json.dumps(result, ensure_ascii=False)[:500]),
+            )
         return status, result, headers
 
     async def _handle_rate_limit(

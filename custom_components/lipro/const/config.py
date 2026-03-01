@@ -68,3 +68,9 @@ DEFAULT_ANONYMOUS_SHARE_ERRORS: Final = True
 # Key for storing password MD5 hash instead of plain password
 # This improves security as the API accepts MD5 hash directly
 CONF_PASSWORD_HASH: Final = "password_hash"
+
+# Whether to persist the password hash locally (config entry data).
+# When disabled, the integration can still use access/refresh tokens, but may
+# require manual re-authentication if refresh tokens expire.
+CONF_REMEMBER_PASSWORD_HASH: Final = "remember_password_hash"
+DEFAULT_REMEMBER_PASSWORD_HASH: Final = False

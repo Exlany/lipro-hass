@@ -23,6 +23,7 @@ from .const import (
     CONF_PHONE,
     CONF_PHONE_ID,
     CONF_REFRESH_TOKEN,
+    CONF_REMEMBER_PASSWORD_HASH,
     CONF_REQUEST_TIMEOUT,
     CONF_SCAN_INTERVAL,
     CONF_USER_ID,
@@ -367,7 +368,10 @@ def _build_entry_auth_context(
     """Build API client and auth manager from config entry data."""
     phone_id = entry.data[CONF_PHONE_ID]
     phone = entry.data[CONF_PHONE]
-    password_hash = entry.data[CONF_PASSWORD_HASH]
+    password_hash = entry.data.get(CONF_PASSWORD_HASH)
+    remember_password_hash = entry.data.get(CONF_REMEMBER_PASSWORD_HASH)
+    if remember_password_hash is None:
+        remember_password_hash = bool(password_hash)
 
     request_timeout = _get_entry_int_option(
         entry,
@@ -389,7 +393,8 @@ def _build_entry_auth_context(
             entry.data.get(CONF_EXPIRES_AT),
         )
 
-    auth_manager.set_credentials(phone, password_hash, password_is_hashed=True)
+    if remember_password_hash and isinstance(password_hash, str) and password_hash:
+        auth_manager.set_credentials(phone, password_hash, password_is_hashed=True)
     auth_manager.set_tokens_updated_callback(
         lambda: _persist_entry_tokens_if_changed(hass, entry, auth_manager)
     )

@@ -365,6 +365,8 @@ def _format_mqtt_payload_for_log(payload: dict[str, Any]) -> str:
 # MQTT Client
 # =============================================================================
 
+_MQTT_SUBSCRIPTION_BATCH_SIZE: Final[int] = 50
+
 
 class LiproMqttClient:
     """MQTT client for real-time device status updates.
@@ -489,42 +491,75 @@ class LiproMqttClient:
             return
 
         added = 0
-        for device_id in to_add:
+        if to_add:
             if self._client and self._connected:
-                try:
-                    topic = build_topic(self._biz_id, device_id)
-                    await self._client.subscribe(topic, qos=MQTT_QOS)
-                    self._subscribed_devices.add(device_id)
-                    added += 1
-                    _LOGGER.debug("Subscribed to: %s", topic)
-                except ValueError as err:
-                    _LOGGER.warning(
-                        "Skipping invalid MQTT device ID %s: %s", device_id, err
-                    )
-                except aiomqtt.MqttError:
-                    _LOGGER.exception("Failed to subscribe to %s", topic)
+                subscribe_pairs: list[tuple[str, str]] = []
+                for device_id in to_add:
+                    try:
+                        topic = build_topic(self._biz_id, device_id)
+                    except ValueError as err:
+                        _LOGGER.warning(
+                            "Skipping invalid MQTT device ID %s: %s", device_id, err
+                        )
+                        continue
+                    subscribe_pairs.append((device_id, topic))
+
+                for i in range(0, len(subscribe_pairs), _MQTT_SUBSCRIPTION_BATCH_SIZE):
+                    batch = subscribe_pairs[i : i + _MQTT_SUBSCRIPTION_BATCH_SIZE]
+                    topics = [(topic, MQTT_QOS) for _, topic in batch]
+                    try:
+                        await self._client.subscribe(topics)
+                    except aiomqtt.MqttError:
+                        _LOGGER.exception(
+                            "Failed to subscribe to %d MQTT topics",
+                            len(topics),
+                        )
+                        continue
+
+                    for device_id, topic in batch:
+                        self._subscribed_devices.add(device_id)
+                        added += 1
+                        _LOGGER.debug("Subscribed to: %s", topic)
             else:
-                # Not connected yet; record for subscription on next connect
-                self._subscribed_devices.add(device_id)
-                added += 1
+                # Not connected yet; record for subscription on next connect.
+                self._subscribed_devices.update(to_add)
+                added += len(to_add)
 
         removed = 0
-        for device_id in to_remove:
-            self._subscribed_devices.discard(device_id)
-            removed += 1
+        if to_remove:
+            for device_id in to_remove:
+                self._subscribed_devices.discard(device_id)
+                removed += 1
+
             if self._client and self._connected:
-                try:
-                    topic = build_topic(self._biz_id, device_id)
-                    await self._client.unsubscribe(topic)
-                    _LOGGER.debug("Unsubscribed from: %s", topic)
-                except ValueError as err:
-                    _LOGGER.warning(
-                        "Skipping MQTT unsubscribe for invalid device ID %s: %s",
-                        device_id,
-                        err,
-                    )
-                except aiomqtt.MqttError:
-                    _LOGGER.exception("Failed to unsubscribe from %s", topic)
+                unsubscribe_topics: list[str] = []
+                for device_id in to_remove:
+                    try:
+                        topic = build_topic(self._biz_id, device_id)
+                    except ValueError as err:
+                        _LOGGER.warning(
+                            "Skipping MQTT unsubscribe for invalid device ID %s: %s",
+                            device_id,
+                            err,
+                        )
+                        continue
+                    unsubscribe_topics.append(topic)
+
+                for i in range(
+                    0, len(unsubscribe_topics), _MQTT_SUBSCRIPTION_BATCH_SIZE
+                ):
+                    batch = unsubscribe_topics[i : i + _MQTT_SUBSCRIPTION_BATCH_SIZE]
+                    try:
+                        await self._client.unsubscribe(batch)
+                    except aiomqtt.MqttError:
+                        _LOGGER.exception(
+                            "Failed to unsubscribe from %d MQTT topics",
+                            len(batch),
+                        )
+                        continue
+
+                    for topic in batch:
+                        _LOGGER.debug("Unsubscribed from: %s", topic)
 
         if added or removed:
             _LOGGER.info(
@@ -590,6 +625,7 @@ class LiproMqttClient:
             self._reconnect_delay = MQTT_RECONNECT_MIN_DELAY
 
             # Subscribe BEFORE marking connected to avoid race with sync_subscriptions
+            subscribe_pairs: list[tuple[str, str]] = []
             for device_id in list(self._subscribed_devices):
                 try:
                     topic = build_topic(self._biz_id, device_id)
@@ -601,8 +637,13 @@ class LiproMqttClient:
                         err,
                     )
                     continue
-                await client.subscribe(topic, qos=MQTT_QOS)
-                _LOGGER.debug("Subscribed to: %s", topic)
+                subscribe_pairs.append((device_id, topic))
+
+            for i in range(0, len(subscribe_pairs), _MQTT_SUBSCRIPTION_BATCH_SIZE):
+                batch = subscribe_pairs[i : i + _MQTT_SUBSCRIPTION_BATCH_SIZE]
+                await client.subscribe([(topic, MQTT_QOS) for _, topic in batch])
+                for _, topic in batch:
+                    _LOGGER.debug("Subscribed to: %s", topic)
 
             # Now mark connected and fire callback
             self._connected = True

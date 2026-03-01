@@ -6,7 +6,11 @@
         "description": "请输入您的 Lipro 账号信息。",
         "data": {
           "phone": "手机号",
-          "password": "密码"
+          "password": "密码",
+          "remember_password_hash": "记住密码"
+        },
+        "data_description": {
+          "remember_password_hash": "启用后会在本地存储密码的 MD5 哈希值，用于 refresh token 过期时自动重新登录。关闭可减少本地泄露面，但后续可能需要手动重新认证。"
         }
       },
       "reauth_confirm": {
@@ -21,7 +25,11 @@
         "description": "更新您的 Lipro 账号信息。",
         "data": {
           "phone": "手机号",
-          "password": "密码"
+          "password": "密码",
+          "remember_password_hash": "记住密码"
+        },
+        "data_description": {
+          "remember_password_hash": "启用后会在本地存储密码的 MD5 哈希值，用于 refresh token 过期时自动重新登录。关闭可减少本地泄露面，但后续可能需要手动重新认证。"
         }
       }
     },

@@ -694,7 +694,7 @@ class TestSubmitLogic:
         headers = AnonymousShareManager._build_upload_headers(install_token="abc")
         assert headers["Authorization"] == "Bearer abc"
 
-    async def test_submit_report_persists_install_token(self, tmp_path):
+    async def test_submit_report_keeps_install_token_in_memory_only(self, tmp_path):
         mgr = _make_manager()
         mgr._storage_path = str(tmp_path)
         mgr._cache_loaded = True
@@ -721,9 +721,7 @@ class TestSubmitLogic:
         assert await mgr.submit_report(session, force=True) is True
         assert mgr._install_token == "tok-1"
         cache = tmp_path / ".lipro_share_auth.json"
-        assert cache.exists()
-        data = json.loads(cache.read_text(encoding="utf-8"))
-        assert data["install_token"] == "tok-1"
+        assert cache.exists() is False
 
 
 # ===========================================================================
@@ -839,7 +837,7 @@ class TestReportedDeviceCache:
         mgr._cache_loaded = False
         with patch("asyncio.to_thread", new=AsyncMock(return_value=None)) as to_thread:
             await mgr.async_ensure_loaded()
-        assert to_thread.await_count == 2
+        assert to_thread.await_count == 1
         assert mgr._cache_loaded is True
 
     def test_load_and_save_without_storage_path_noop(self):
@@ -847,31 +845,6 @@ class TestReportedDeviceCache:
         mgr._storage_path = None
         mgr._load_reported_devices()
         mgr._save_reported_devices()
-
-
-class TestAuthStateCache:
-    """Tests for share auth-state cache load/save paths."""
-
-    def test_load_auth_state_skips_mismatched_installation(self, tmp_path):
-        mgr = AnonymousShareManager()
-        mgr._storage_path = str(tmp_path)
-        mgr._installation_id = "test-id"
-        cache_file = tmp_path / ".lipro_share_auth.json"
-        cache_file.write_text(
-            json.dumps(
-                {
-                    "installation_id": "other-id",
-                    "install_token": "tok",
-                    "token_expires_at": 123,
-                    "token_refresh_after": 100,
-                }
-            ),
-            encoding="utf-8",
-        )
-
-        mgr._install_token = "old"
-        mgr._load_auth_state()
-        assert mgr._install_token is None
 
 
 class TestCapabilities:

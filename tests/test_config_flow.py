@@ -24,6 +24,7 @@ from custom_components.lipro.const import (
     CONF_LIGHT_TURN_ON_ON_ADJUST,
     CONF_PHONE,
     CONF_PHONE_ID,
+    CONF_REMEMBER_PASSWORD_HASH,
     CONF_ROOM_AREA_SYNC_FORCE,
     DOMAIN,
 )
@@ -48,9 +49,11 @@ def test_user_schema_uses_text_and_password_selectors() -> None:
     """User step schema should keep HA selectors for regression safety."""
     phone_field = _get_schema_field(STEP_USER_DATA_SCHEMA, CONF_PHONE)
     password_field = _get_schema_field(STEP_USER_DATA_SCHEMA, CONF_PASSWORD)
+    remember_field = _get_schema_field(STEP_USER_DATA_SCHEMA, CONF_REMEMBER_PASSWORD_HASH)
 
     assert isinstance(phone_field, selector.TextSelector)
     assert isinstance(password_field, selector.TextSelector)
+    assert remember_field is bool
     assert password_field.config.get("type") in {
         selector.TextSelectorType.PASSWORD,
         selector.TextSelectorType.PASSWORD.value,
@@ -61,7 +64,11 @@ def test_reauth_and_reconfigure_schema_use_password_selector() -> None:
     """Reauth/reconfigure schema should keep password selector."""
     reauth_password = _get_schema_field(STEP_REAUTH_DATA_SCHEMA, CONF_PASSWORD)
     reconfigure_password = _get_schema_field(
-        _build_reconfigure_data_schema("13800000000"), CONF_PASSWORD
+        _build_reconfigure_data_schema(
+            "13800000000",
+            default_remember_password_hash=False,
+        ),
+        CONF_PASSWORD,
     )
 
     assert isinstance(reauth_password, selector.TextSelector)
@@ -94,6 +101,7 @@ async def test_form_user(
         {
             CONF_PHONE: "13800000000",
             CONF_PASSWORD: "testpassword",
+            CONF_REMEMBER_PASSWORD_HASH: True,
         },
     )
     await hass.async_block_till_done()
@@ -102,12 +110,40 @@ async def test_form_user(
     assert result["title"] == "Lipro (13800000000)"
     assert result["data"][CONF_PHONE] == "13800000000"
     # Password is stored as hash, not plain text
+    assert result["data"][CONF_REMEMBER_PASSWORD_HASH] is True
     assert CONF_PASSWORD_HASH in result["data"]
     assert result["data"]["access_token"] == "test_access_token"
     assert result["data"]["refresh_token"] == "test_refresh_token"
     assert result["data"]["user_id"] == 10001
     assert CONF_PHONE_ID in result["data"]
     assert len(mock_setup_entry.mock_calls) == 1
+
+
+async def test_form_user_without_remember_password_does_not_store_hash(
+    hass: HomeAssistant,
+    mock_setup_entry: AsyncMock,
+    mock_lipro_client,
+) -> None:
+    """Remember-password toggle should control whether password hash is persisted."""
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": config_entries.SOURCE_USER}
+    )
+    assert result["type"] is FlowResultType.FORM
+    assert result["step_id"] == "user"
+
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        {
+            CONF_PHONE: "13800000000",
+            CONF_PASSWORD: "testpassword",
+            CONF_REMEMBER_PASSWORD_HASH: False,
+        },
+    )
+    await hass.async_block_till_done()
+
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    assert result["data"][CONF_REMEMBER_PASSWORD_HASH] is False
+    assert CONF_PASSWORD_HASH not in result["data"]
 
 
 async def test_form_invalid_auth(

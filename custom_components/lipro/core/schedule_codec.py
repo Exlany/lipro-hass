@@ -71,24 +71,28 @@ def coerce_int_list(value: Any) -> list[int]:
 
     result: list[int] = []
     for item in value:
-        if isinstance(item, bool):
-            # Avoid treating bool as int.
-            continue
-        if isinstance(item, int):
-            result.append(item)
-            continue
-        if isinstance(item, float):
-            if item.is_integer():
-                result.append(int(item))
-            continue
-        if isinstance(item, str):
-            normalized = item.strip()
-            if normalized.lstrip("+-").isdigit():
-                try:
-                    result.append(int(normalized))
-                except ValueError:
-                    continue
+        if (coerced := _coerce_int_item(item)) is not None:
+            result.append(coerced)
     return result
+
+
+def _coerce_int_item(item: Any) -> int | None:
+    """Coerce one mixed payload item into an integer when safe."""
+    if isinstance(item, bool):
+        # Avoid treating bool as int.
+        return None
+    if isinstance(item, int):
+        return item
+    if isinstance(item, float):
+        return int(item) if item.is_integer() else None
+    if isinstance(item, str):
+        normalized = item.strip()
+        if normalized.lstrip("+-").isdigit():
+            try:
+                return int(normalized)
+            except ValueError:
+                return None
+    return None
 
 
 def parse_mesh_schedule_json(

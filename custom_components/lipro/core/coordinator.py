@@ -147,6 +147,10 @@ _MQTT_CACHE_STALE_SECONDS: Final[float] = 5.0
 # Cap concurrent per-outlet power-info requests to avoid API rate limiting.
 _OUTLET_POWER_QUERY_CONCURRENCY: Final[int] = 5
 
+# When many outlets exist, query power info in rotating slices to avoid large
+# bursts on each power interval tick.
+_OUTLET_POWER_QUERY_MAX_DEVICES_PER_CYCLE: Final[int] = 10
+
 # Number of consecutive full-device-list fetches a device can be missing
 # before being removed from HA device registry.
 _STALE_DEVICE_REMOVE_THRESHOLD: Final[int] = 3
@@ -348,6 +352,7 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         self._last_device_refresh_at: float = 0.0
         # Power query tracking
         self._last_power_query_time: float = 0.0
+        self._outlet_power_round_robin_index: int = 0
         # Flag to force device list re-fetch on next update
         self._force_device_refresh: bool = False
         # MQTT disconnect tracking for user notification
@@ -1369,8 +1374,8 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         """Fetch all devices from API with pagination."""
         _LOGGER.debug("Fetching device list")
 
-        previous_devices = dict(self._devices)
-        previous_serials = set(self._devices)
+        previous_devices = self._devices
+        previous_serials = set(previous_devices)
         devices_data = await self._fetch_all_device_pages()
         snapshot = build_fetched_device_snapshot(devices_data)
         self._apply_fetched_device_snapshot(snapshot)
@@ -1876,6 +1881,21 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
             return
 
         device_ids = list(self._outlet_ids_to_query)
+        if not device_ids:
+            return
+
+        # For a small number of outlets, keep prior behavior: query all in one cycle.
+        max_devices = min(len(device_ids), _OUTLET_POWER_QUERY_MAX_DEVICES_PER_CYCLE)
+        if len(device_ids) > max_devices:
+            start = self._outlet_power_round_robin_index % len(device_ids)
+            end = start + max_devices
+            if end <= len(device_ids):
+                device_ids = device_ids[start:end]
+            else:
+                device_ids = device_ids[start:] + device_ids[: end % len(device_ids)]
+            self._outlet_power_round_robin_index = (
+                start + max_devices
+            ) % len(self._outlet_ids_to_query)
         batch_size = min(_OUTLET_POWER_QUERY_CONCURRENCY, len(device_ids))
         for start in range(0, len(device_ids), batch_size):
             await asyncio.gather(
