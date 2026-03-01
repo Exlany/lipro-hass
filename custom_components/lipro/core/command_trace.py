@@ -16,9 +16,12 @@ def extract_command_property_keys(
     properties: list[dict[str, str]] | None,
 ) -> list[str]:
     """Extract command property keys for trace logging."""
-    return [
-        key for item in (properties or []) if isinstance((key := item.get("key")), str)
-    ]
+    keys: list[str] = []
+    for item in properties or []:
+        key = item.get("key")
+        if isinstance(key, str):
+            keys.append(key)
+    return keys
 
 
 def build_command_trace(

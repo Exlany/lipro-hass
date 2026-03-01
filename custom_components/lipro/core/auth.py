@@ -6,7 +6,7 @@ import asyncio
 import hashlib
 import logging
 import time
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from ..const.api import (
     ACCESS_TOKEN_EXPIRY_SECONDS,
@@ -26,6 +26,9 @@ from ..const.config import (
 from .api import LiproAuthError, LiproClient, LiproRefreshTokenExpiredError
 
 _LOGGER = logging.getLogger(__name__)
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 
 class LiproAuthManager:
@@ -55,9 +58,24 @@ class LiproAuthManager:
         self._last_refresh_time: float = 0
         # Lock to prevent concurrent token refreshes
         self._refresh_lock: asyncio.Lock = asyncio.Lock()
+        # Optional callback invoked after successful token refresh/login.
+        self._on_tokens_updated: Callable[[], None] | None = None
 
         # Register this manager's refresh method as the client's callback
         self._client.set_token_refresh_callback(self._do_token_refresh)
+
+    def set_tokens_updated_callback(self, callback: Callable[[], None] | None) -> None:
+        """Set a callback invoked after tokens are refreshed/login succeeds."""
+        self._on_tokens_updated = callback
+
+    def _notify_tokens_updated(self) -> None:
+        """Invoke token-updated callback when set."""
+        if self._on_tokens_updated is None:
+            return
+        try:
+            self._on_tokens_updated()
+        except Exception as err:  # noqa: BLE001
+            _LOGGER.debug("Token-updated callback failed: %s", err)
 
     @property
     def is_authenticated(self) -> bool:
@@ -158,6 +176,7 @@ class LiproAuthManager:
             "Login successful, token expires in %d seconds",
             self._current_expiry_seconds,
         )
+        self._notify_tokens_updated()
 
         return {
             **result,
@@ -184,6 +203,7 @@ class LiproAuthManager:
                 "Token refreshed, expires in %d seconds",
                 self._current_expiry_seconds,
             )
+            self._notify_tokens_updated()
 
             return {
                 **result,

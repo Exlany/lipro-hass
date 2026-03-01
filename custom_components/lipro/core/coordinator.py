@@ -138,8 +138,14 @@ _LOGGER = logging.getLogger(__name__)
 # Use 2x (not higher) to still catch sub-device state drift in mesh groups.
 _MQTT_POLLING_MULTIPLIER: Final[int] = 2
 
+# Coalesce MQTT-driven listener updates to reduce event-loop churn under bursts.
+_MQTT_LISTENER_UPDATE_DEBOUNCE_SECONDS: Final[float] = 0.05
+
 # Time threshold (seconds) for cleaning stale MQTT dedup cache entries
 _MQTT_CACHE_STALE_SECONDS: Final[float] = 5.0
+
+# Cap concurrent per-outlet power-info requests to avoid API rate limiting.
+_OUTLET_POWER_QUERY_CONCURRENCY: Final[int] = 5
 
 # Number of consecutive full-device-list fetches a device can be missing
 # before being removed from HA device registry.
@@ -331,6 +337,7 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         self._mqtt_connected = False
         self._mqtt_setup_in_progress = False
         self._biz_id: str | None = None
+        self._mqtt_listener_update_handle: asyncio.TimerHandle | None = None
         # Product configs cache (iotName -> config)
         self._product_configs: dict[str, dict[str, Any]] = {}
         # MQTT message deduplication cache: "device_id:hash" -> timestamp
@@ -711,7 +718,7 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         properties: dict[str, Any],
         *,
         apply_protection: bool = True,
-    ) -> None:
+    ) -> dict[str, Any]:
         """Apply property updates to a device with optional debounce protection.
 
         Args:
@@ -726,15 +733,18 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
                 device.serial, properties
             )
 
-        if properties:
-            self._adapt_fan_gear_range(device, properties)
-            device.update_properties(properties)
-            self._observe_command_confirmation(device.serial, properties)
-            _LOGGER.debug(
-                "Updated %s: %s",
-                device.name,
-                properties,
-            )
+        if not properties:
+            return {}
+
+        self._adapt_fan_gear_range(device, properties)
+        device.update_properties(properties)
+        self._observe_command_confirmation(device.serial, properties)
+        _LOGGER.debug(
+            "Updated %s: %s",
+            device.name,
+            properties,
+        )
+        return properties
 
     @staticmethod
     def _adapt_fan_gear_range(
@@ -961,6 +971,10 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         # triggering _fetch_devices() and unnecessary API calls during shutdown.
         await super().async_shutdown()
 
+        if self._mqtt_listener_update_handle is not None:
+            self._mqtt_listener_update_handle.cancel()
+            self._mqtt_listener_update_handle = None
+
         # Cancel pending delayed refresh task.
         if (
             self._post_command_refresh_task
@@ -1129,8 +1143,27 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         ):
             return
 
-        self._apply_properties_update(device, properties)
-        self._after_mqtt_properties_applied(device, properties)
+        applied = self._apply_properties_update(device, properties)
+        self._after_mqtt_properties_applied(device, applied)
+
+    def _schedule_mqtt_listener_update(self) -> None:
+        """Coalesce listener updates triggered by MQTT bursts."""
+        if not self.hass.loop.is_running():
+            self.async_update_listeners()
+            return
+
+        if self._mqtt_listener_update_handle is not None:
+            return
+
+        self._mqtt_listener_update_handle = self.hass.loop.call_later(
+            _MQTT_LISTENER_UPDATE_DEBOUNCE_SECONDS,
+            self._flush_mqtt_listener_update,
+        )
+
+    def _flush_mqtt_listener_update(self) -> None:
+        """Flush one coalesced MQTT listener update."""
+        self._mqtt_listener_update_handle = None
+        self.async_update_listeners()
 
     def _resolve_mqtt_message_device(self, device_id: str) -> LiproDevice | None:
         """Resolve MQTT message target device by known identifier mappings."""
@@ -1188,10 +1221,10 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         if not properties:
             return
 
-        # Force notify all listeners of the update
+        # Notify listeners (coalesced) for MQTT update bursts.
         # Note: async_set_updated_data won't trigger updates when always_update=False
-        # and the same dict object is passed, so we use async_update_listeners directly
-        self.async_update_listeners()
+        # and the same dict object is passed, so we use async_update_listeners.
+        self._schedule_mqtt_listener_update()
 
         # Fallback: when a device comes back online, schedule an immediate
         # REST API refresh to reconcile state. In mesh groups, sub-devices
@@ -1458,6 +1491,15 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
 
         device_registry = dr.async_get(self.hass)
         area_registry = ar.async_get(self.hass)
+        area_id_cache: dict[str, str] = {}
+
+        def _get_area_id(room_name: str) -> str:
+            cached = area_id_cache.get(room_name)
+            if cached is not None:
+                return cached
+            area_id = area_registry.async_get_or_create(room_name).id
+            area_id_cache[room_name] = area_id
+            return area_id
 
         for serial, device in self._devices.items():
             previous = previous_devices.get(serial)
@@ -1481,14 +1523,10 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
                 if new_room_name is None:
                     update_kwargs["area_id"] = None
                 else:
-                    update_kwargs["area_id"] = area_registry.async_get_or_create(
-                        new_room_name
-                    ).id
+                    update_kwargs["area_id"] = _get_area_id(new_room_name)
             elif current_area_id is None:
                 if new_room_name is not None:
-                    update_kwargs["area_id"] = area_registry.async_get_or_create(
-                        new_room_name
-                    ).id
+                    update_kwargs["area_id"] = _get_area_id(new_room_name)
             else:
                 current_area = area_registry.async_get_area(current_area_id)
                 current_area_name = (
@@ -1500,9 +1538,7 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
                     if new_room_name is None:
                         update_kwargs["area_id"] = None
                     else:
-                        update_kwargs["area_id"] = area_registry.async_get_or_create(
-                            new_room_name
-                        ).id
+                        update_kwargs["area_id"] = _get_area_id(new_room_name)
 
             device_registry.async_update_device(device_entry.id, **update_kwargs)
             _LOGGER.debug(
@@ -1833,17 +1869,21 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
 
         The API returns aggregated data (single nowPower + energyList) for all
         requested devices, so we query each outlet individually to get accurate
-        per-device power data. Queries run concurrently for better performance.
+        per-device power data. Queries run with bounded concurrency to reduce
+        rate-limit pressure and avoid event-loop spikes with many outlets.
         """
         if not self._outlet_ids_to_query:
             return
 
-        await asyncio.gather(
-            *(
-                self._query_single_outlet_power(did)
-                for did in self._outlet_ids_to_query
-            ),
-        )
+        device_ids = list(self._outlet_ids_to_query)
+        batch_size = min(_OUTLET_POWER_QUERY_CONCURRENCY, len(device_ids))
+        for start in range(0, len(device_ids), batch_size):
+            await asyncio.gather(
+                *(
+                    self._query_single_outlet_power(did)
+                    for did in device_ids[start : start + batch_size]
+                ),
+            )
 
     async def _query_single_outlet_power(self, device_id: str) -> None:
         """Query and apply power info for one outlet device."""

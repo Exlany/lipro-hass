@@ -390,6 +390,9 @@ def _build_entry_auth_context(
         )
 
     auth_manager.set_credentials(phone, password_hash, password_is_hashed=True)
+    auth_manager.set_tokens_updated_callback(
+        lambda: _persist_entry_tokens_if_changed(hass, entry, auth_manager)
+    )
     return client, auth_manager
 
 
@@ -412,6 +415,8 @@ def _persist_entry_tokens_if_changed(
 ) -> None:
     """Persist refreshed access/refresh tokens when they changed."""
     auth_data = auth_manager.get_auth_data()
+    if not auth_data.get(CONF_ACCESS_TOKEN) or not auth_data.get(CONF_REFRESH_TOKEN):
+        return
     if auth_data[CONF_ACCESS_TOKEN] == entry.data.get(CONF_ACCESS_TOKEN) and auth_data[
         CONF_REFRESH_TOKEN
     ] == entry.data.get(CONF_REFRESH_TOKEN):

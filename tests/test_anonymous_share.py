@@ -690,6 +690,41 @@ class TestSubmitLogic:
         headers = AnonymousShareManager._build_upload_headers()
         assert headers["X-API-Key"] == SHARE_API_KEY
 
+    def test_build_upload_headers_includes_bearer_token(self):
+        headers = AnonymousShareManager._build_upload_headers(install_token="abc")
+        assert headers["Authorization"] == "Bearer abc"
+
+    async def test_submit_report_persists_install_token(self, tmp_path):
+        mgr = _make_manager()
+        mgr._storage_path = str(tmp_path)
+        mgr._cache_loaded = True
+        mgr.record_device(_make_mock_device(iot_name="lipro_led"))
+
+        session = MagicMock()
+        response = MagicMock()
+        response.status = 200
+        response.headers = {}
+        response.json = AsyncMock(
+            return_value={
+                "success": True,
+                "code": "REPORT_ACCEPTED",
+                "install_token": "tok-1",
+                "token_expires_at": 123,
+                "token_refresh_after": 100,
+            }
+        )
+        context = AsyncMock()
+        context.__aenter__ = AsyncMock(return_value=response)
+        context.__aexit__ = AsyncMock(return_value=False)
+        session.post = MagicMock(return_value=context)
+
+        assert await mgr.submit_report(session, force=True) is True
+        assert mgr._install_token == "tok-1"
+        cache = tmp_path / ".lipro_share_auth.json"
+        assert cache.exists()
+        data = json.loads(cache.read_text(encoding="utf-8"))
+        assert data["install_token"] == "tok-1"
+
 
 # ===========================================================================
 # TestGetAnonymousShareManager
@@ -804,7 +839,7 @@ class TestReportedDeviceCache:
         mgr._cache_loaded = False
         with patch("asyncio.to_thread", new=AsyncMock(return_value=None)) as to_thread:
             await mgr.async_ensure_loaded()
-        to_thread.assert_awaited_once()
+        assert to_thread.await_count == 2
         assert mgr._cache_loaded is True
 
     def test_load_and_save_without_storage_path_noop(self):
@@ -812,6 +847,31 @@ class TestReportedDeviceCache:
         mgr._storage_path = None
         mgr._load_reported_devices()
         mgr._save_reported_devices()
+
+
+class TestAuthStateCache:
+    """Tests for share auth-state cache load/save paths."""
+
+    def test_load_auth_state_skips_mismatched_installation(self, tmp_path):
+        mgr = AnonymousShareManager()
+        mgr._storage_path = str(tmp_path)
+        mgr._installation_id = "test-id"
+        cache_file = tmp_path / ".lipro_share_auth.json"
+        cache_file.write_text(
+            json.dumps(
+                {
+                    "installation_id": "other-id",
+                    "install_token": "tok",
+                    "token_expires_at": 123,
+                    "token_refresh_after": 100,
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        mgr._install_token = "old"
+        mgr._load_auth_state()
+        assert mgr._install_token is None
 
 
 class TestCapabilities:

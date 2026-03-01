@@ -23,7 +23,8 @@ def compute_properties_hash(properties: dict[str, Any]) -> int | None:
     Returns ``None`` when payload values are not hashable.
     """
     try:
-        return hash(tuple(sorted(properties.items())))
+        # Avoid O(n log n) sorting; order-independent hashing is sufficient.
+        return hash(frozenset(properties.items()))
     except TypeError:
         return None
 

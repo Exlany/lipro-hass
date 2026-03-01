@@ -53,6 +53,8 @@ _OTA_REFRESH_INTERVAL = timedelta(hours=6)
 _UNVERIFIED_CONFIRM_WINDOW_SECONDS = 120
 _TIME_MIN_UTC = datetime.min.replace(tzinfo=UTC)
 _FIRMWARE_SUPPORT_MANIFEST = "firmware_support_manifest.json"
+_OTA_REFRESH_CONCURRENCY = 3
+_OTA_REFRESH_SEMAPHORE = asyncio.Semaphore(_OTA_REFRESH_CONCURRENCY)
 _REMOTE_MANIFEST_CACHE_TTL = timedelta(minutes=30)
 _REMOTE_MANIFEST_TIMEOUT_SECONDS = 5
 _REMOTE_FIRMWARE_SUPPORT_URLS = (
@@ -275,6 +277,12 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
         """Cancel OTA refresh task when entity is removed."""
         if self._ota_refresh_task and not self._ota_refresh_task.done():
             self._ota_refresh_task.cancel()
+            try:
+                await self._ota_refresh_task
+            except asyncio.CancelledError:
+                pass
+            except Exception as err:  # noqa: BLE001
+                _LOGGER.debug("OTA refresh task failed during removal: %s", err)
         self._ota_refresh_task = None
         await super().async_will_remove_from_hass()
 
@@ -386,30 +394,31 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
         if not force and not self._should_refresh_ota():
             return
 
-        try:
-            rows = await self.coordinator.client.query_ota_info(
-                device_id=self.device.serial,
-                device_type=self.device.device_type_hex,
-            )
-        except LiproApiError as err:
-            _LOGGER.debug(
-                "Failed to refresh OTA info for %s: %s",
-                self.device.serial,
-                err,
-            )
-            return
+        async with _OTA_REFRESH_SEMAPHORE:
+            try:
+                rows = await self.coordinator.client.query_ota_info(
+                    device_id=self.device.serial,
+                    device_type=self.device.device_type_hex,
+                )
+            except LiproApiError as err:
+                _LOGGER.debug(
+                    "Failed to refresh OTA info for %s: %s",
+                    self.device.serial,
+                    err,
+                )
+                return
 
-        if self.hass is not None:
-            (
-                self._remote_verified_versions,
-                self._remote_versions_by_type,
-            ) = await _load_remote_firmware_manifest(self.hass)
+            if self.hass is not None:
+                (
+                    self._remote_verified_versions,
+                    self._remote_versions_by_type,
+                ) = await _load_remote_firmware_manifest(self.hass)
 
-        row = self._select_best_ota_row(rows)
-        self._ota_candidate = self._build_ota_candidate(row)
-        self._apply_ota_candidate()
-        self._last_ota_refresh = dt_util.utcnow()
-        self.async_write_ha_state()
+            row = self._select_best_ota_row(rows)
+            self._ota_candidate = self._build_ota_candidate(row)
+            self._apply_ota_candidate()
+            self._last_ota_refresh = dt_util.utcnow()
+            self.async_write_ha_state()
 
     def _apply_ota_candidate(self) -> None:
         """Apply candidate values to update-entity attributes."""

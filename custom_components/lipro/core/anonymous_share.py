@@ -11,8 +11,10 @@ from __future__ import annotations
 
 import asyncio
 from collections import deque
+from contextlib import suppress
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
+from inspect import isawaitable
 import json
 import logging
 from pathlib import Path
@@ -67,9 +69,17 @@ _RE_SECRET_KV = re.compile(
     r"(\s*[:=]\s*)([^\s,;\"']+)"
 )
 
-# Anonymous share server endpoint
-SHARE_URL: Final = "https://lipro-share.lany.me/api/report"
+# Anonymous share server endpoints
+#
+# NOTE: `X-API-Key` is a *public* client identifier used for coarse attribution
+# and anti-abuse shaping on the Worker side (not a secret).
+SHARE_BASE_URL: Final = "https://lipro-share.lany.me"
+SHARE_REPORT_URL: Final = f"{SHARE_BASE_URL}/api/report"
+SHARE_TOKEN_REFRESH_URL: Final = f"{SHARE_BASE_URL}/api/token/refresh"
 SHARE_API_KEY: Final = "lipro-ha-share-2026"
+
+# Persistent auth state cache file (stored under HA config dir when available)
+_AUTH_STATE_FILENAME: Final = ".lipro_share_auth.json"
 
 # Keys to always redact from reports
 REDACT_KEYS: Final = frozenset(
@@ -264,6 +274,11 @@ class AnonymousShareManager:
         self._upload_lock = asyncio.Lock()
         self._installation_id: str | None = None
         self._ha_version: str | None = None
+        # Install token state (Worker-side install token, unrelated to Lipro API tokens)
+        self._install_token: str | None = None
+        self._token_expires_at: int = 0  # epoch seconds
+        self._token_refresh_after: int = 0  # epoch seconds
+        self._next_upload_attempt_at: float = 0.0
         # Track already reported devices to avoid duplicates
         self._reported_device_keys: set[str] = set()
         self._storage_path: str | None = None
@@ -322,6 +337,7 @@ class AnonymousShareManager:
         # Mark loaded after the actual load completes to avoid race conditions
         # where a concurrent caller skips loading before data is ready.
         await asyncio.to_thread(self._load_reported_devices)
+        await asyncio.to_thread(self._load_auth_state)
         self._cache_loaded = True
 
     def _load_reported_devices(self) -> None:
@@ -353,6 +369,73 @@ class AnonymousShareManager:
             )
         except OSError as err:
             _LOGGER.warning("Failed to save reported devices cache: %s", err)
+
+    def _auth_state_file(self) -> Path | None:
+        """Return auth-state cache file path when storage is available."""
+        if not self._storage_path:
+            return None
+        return Path(self._storage_path) / _AUTH_STATE_FILENAME
+
+    def _load_auth_state(self) -> None:
+        """Load install-token cache from storage."""
+        cache_file = self._auth_state_file()
+        if cache_file is None:
+            return
+
+        try:
+            if not cache_file.exists():
+                return
+            data = json.loads(cache_file.read_text(encoding="utf-8"))
+            if not isinstance(data, dict):
+                return
+
+            expected_installation_id = self._installation_id
+            cached_installation_id = data.get("installation_id")
+            if (
+                expected_installation_id
+                and cached_installation_id
+                and cached_installation_id != expected_installation_id
+            ):
+                # Installation changed; do not reuse an unrelated token.
+                self._install_token = None
+                self._token_expires_at = 0
+                self._token_refresh_after = 0
+                return
+
+            token = data.get("install_token")
+            if isinstance(token, str) and token:
+                self._install_token = token
+                self._token_expires_at = int(data.get("token_expires_at") or 0)
+                self._token_refresh_after = int(data.get("token_refresh_after") or 0)
+        except (OSError, json.JSONDecodeError, TypeError, ValueError) as err:
+            _LOGGER.warning("Failed to load share auth cache: %s", err)
+
+    def _save_auth_state(self) -> None:
+        """Save install-token cache to storage (or remove when empty)."""
+        cache_file = self._auth_state_file()
+        if cache_file is None:
+            return
+
+        try:
+            if not self._install_token:
+                with suppress(OSError):
+                    cache_file.unlink(missing_ok=True)
+                return
+
+            cache_file.parent.mkdir(parents=True, exist_ok=True)
+            cache_file.write_text(
+                json.dumps(
+                    {
+                        "installation_id": self._installation_id,
+                        "install_token": self._install_token,
+                        "token_expires_at": int(self._token_expires_at or 0),
+                        "token_refresh_after": int(self._token_refresh_after or 0),
+                    }
+                ),
+                encoding="utf-8",
+            )
+        except OSError as err:
+            _LOGGER.warning("Failed to save share auth cache: %s", err)
 
     # =========================================================================
     # Device Information Collection
@@ -917,12 +1000,157 @@ class AnonymousShareManager:
         }
 
     @staticmethod
-    def _build_upload_headers() -> dict[str, str]:
+    def _build_upload_headers(*, install_token: str | None = None) -> dict[str, str]:
         """Build common headers for share uploads."""
-        return {
+        headers = {
             "User-Agent": f"HomeAssistant/Lipro {VERSION}",
             "X-API-Key": SHARE_API_KEY,
         }
+        if install_token:
+            headers["Authorization"] = f"Bearer {install_token}"
+        return headers
+
+    @staticmethod
+    def _parse_retry_after(headers: Any) -> float | None:
+        """Parse Retry-After seconds (best-effort)."""
+        try:
+            value = headers.get("Retry-After") or headers.get("retry-after")
+            if not value:
+                return None
+            seconds = float(str(value).strip())
+            if seconds <= 0:
+                return 0.1
+            return seconds
+        except (AttributeError, TypeError, ValueError):
+            return None
+
+    def _clear_install_token(self) -> None:
+        """Clear local install-token state."""
+        self._install_token = None
+        self._token_expires_at = 0
+        self._token_refresh_after = 0
+
+    def _apply_token_payload(self, payload: dict[str, Any]) -> bool:
+        """Update local token state from response payload."""
+        token = payload.get("install_token")
+        if not isinstance(token, str) or not token:
+            return False
+        self._install_token = token
+        self._token_expires_at = int(payload.get("token_expires_at") or 0)
+        self._token_refresh_after = int(payload.get("token_refresh_after") or 0)
+        return True
+
+    @staticmethod
+    def _build_lite_report(report: dict[str, Any]) -> dict[str, Any]:
+        """Build a smaller report variant for 413 retries."""
+        lite: dict[str, Any] = {
+            "report_version": report.get("report_version"),
+            "integration_version": report.get("integration_version"),
+            "ha_version": report.get("ha_version"),
+            "generated_at": report.get("generated_at"),
+            "installation_id": report.get("installation_id"),
+            "device_count": report.get("device_count"),
+            "error_count": report.get("error_count"),
+        }
+
+        devices = report.get("devices")
+        if isinstance(devices, list):
+            compact_devices: list[dict[str, Any]] = []
+            for item in devices[:10]:
+                if not isinstance(item, dict):
+                    continue
+                compact_devices.append(
+                    {
+                        "physical_model": item.get("physical_model"),
+                        "iot_name": item.get("iot_name"),
+                        "device_type": item.get("device_type"),
+                        "product_id": item.get("product_id"),
+                        "is_group": item.get("is_group"),
+                        "category": item.get("category"),
+                        "firmware_version": item.get("firmware_version"),
+                        "capabilities": item.get("capabilities"),
+                        "has_gear_presets": item.get("has_gear_presets"),
+                        "gear_count": item.get("gear_count"),
+                        "min_color_temp_kelvin": item.get("min_color_temp_kelvin"),
+                        "max_color_temp_kelvin": item.get("max_color_temp_kelvin"),
+                    }
+                )
+            lite["devices"] = compact_devices
+
+        errors = report.get("errors")
+        if isinstance(errors, list):
+            lite["errors"] = [e for e in errors[:10] if isinstance(e, dict)]
+
+        if "developer_feedback" in report:
+            feedback = report.get("developer_feedback")
+            if isinstance(feedback, str):
+                lite["developer_feedback"] = feedback[:2000]
+            else:
+                lite["developer_feedback"] = feedback
+
+        return lite
+
+    async def _safe_read_json(
+        self,
+        response: aiohttp.ClientResponse,
+    ) -> dict[str, Any] | None:
+        """Best-effort JSON parsing for Worker responses."""
+        try:
+            json_reader = getattr(response, "json", None)
+            if not callable(json_reader):
+                return None
+            result = response.json(content_type=None)
+            data = await result if isawaitable(result) else result
+        except (AttributeError, aiohttp.ContentTypeError, json.JSONDecodeError, ValueError):
+            return None
+        return data if isinstance(data, dict) else None
+
+    async def _refresh_install_token(self, session: aiohttp.ClientSession) -> bool:
+        """Refresh install token via /api/token/refresh when needed."""
+        if not self._install_token:
+            return False
+        if time.time() < self._next_upload_attempt_at:
+            return False
+
+        try:
+            async with session.post(
+                SHARE_TOKEN_REFRESH_URL,
+                headers=self._build_upload_headers(install_token=self._install_token),
+                timeout=aiohttp.ClientTimeout(total=30),
+            ) as response:
+                payload = await self._safe_read_json(response)
+                if response.status == 200 and payload:
+                    if self._apply_token_payload(payload):
+                        await asyncio.to_thread(self._save_auth_state)
+                    return True
+
+                code = payload.get("code") if payload else None
+                if response.status == 401 and code in {
+                    "TOKEN_EXPIRED",
+                    "TOKEN_REVOKED",
+                    "TOKEN_VERSION_REVOKED",
+                    "TOKEN_KEY_NOT_FOUND",
+                    "TOKEN_SIGNATURE_INVALID",
+                    "TOKEN_CLAIMS_INVALID",
+                    "TOKEN_STATE_MISSING",
+                }:
+                    self._clear_install_token()
+                    await asyncio.to_thread(self._save_auth_state)
+                    return False
+
+                if response.status == 429:
+                    retry_after = self._parse_retry_after(response.headers)
+                    if retry_after is not None:
+                        self._next_upload_attempt_at = time.time() + min(60.0, retry_after)
+                    return False
+
+                return False
+        except TimeoutError:
+            return False
+        except aiohttp.ClientError:
+            return False
+        except (OSError, ValueError):
+            return False
 
     async def _submit_share_payload(
         self,
@@ -932,19 +1160,94 @@ class AnonymousShareManager:
         label: str,
     ) -> bool:
         """Submit one payload to share endpoint with unified error handling."""
+        await self.async_ensure_loaded()
+
+        if time.time() < self._next_upload_attempt_at:
+            return False
+
+        installation_id = report.get("installation_id")
+        if not isinstance(installation_id, str) or not installation_id:
+            _LOGGER.warning("%s upload skipped: missing installation_id", label)
+            return False
+
+        # Refresh token proactively when we're past refresh window / near expiry.
+        if self._install_token:
+            now_sec = int(time.time())
+            if (
+                (self._token_refresh_after and now_sec >= self._token_refresh_after)
+                or (self._token_expires_at and (self._token_expires_at - now_sec) <= 60)
+            ):
+                await self._refresh_install_token(session)
+
+        # Try token mode first when available, then fall back to bootstrap.
+        token_attempts: list[str | None] = (
+            [self._install_token, None] if self._install_token else [None]
+        )
+
         try:
-            async with session.post(
-                SHARE_URL,
-                json=report,
-                headers=self._build_upload_headers(),
-                timeout=aiohttp.ClientTimeout(total=30),
-            ) as response:
-                if response.status != 200:
-                    _LOGGER.warning(
-                        "%s upload failed with status %d", label, response.status
-                    )
-                    return False
-                return True
+            payload_variants = [report, self._build_lite_report(report)]
+
+            last_status: int | None = None
+            for variant_index, report_variant in enumerate(payload_variants):
+                for token in token_attempts:
+                    async with session.post(
+                        SHARE_REPORT_URL,
+                        json=report_variant,
+                        headers=self._build_upload_headers(install_token=token),
+                        timeout=aiohttp.ClientTimeout(total=30),
+                    ) as response:
+                        last_status = response.status
+                        payload = await self._safe_read_json(response)
+
+                        if response.status == 200:
+                            if payload and self._apply_token_payload(payload):
+                                await asyncio.to_thread(self._save_auth_state)
+                            return True
+
+                        code = payload.get("code") if payload else None
+
+                        if response.status == 429:
+                            retry_after = self._parse_retry_after(response.headers)
+                            if retry_after is not None:
+                                self._next_upload_attempt_at = time.time() + min(
+                                    60.0, retry_after
+                                )
+                            return False
+
+                        if response.status == 413 and variant_index == 0:
+                            # Retry once with a smaller payload.
+                            break
+
+                        if response.status == 401 and code in {
+                            "TOKEN_VERSION_REVOKED",
+                            "TOKEN_REVOKED",
+                            "TOKEN_EXPIRED",
+                            "TOKEN_REQUIRED",
+                            "TOKEN_MISSING",
+                            "TOKEN_STATE_MISSING",
+                            "TOKEN_KEY_NOT_FOUND",
+                            "TOKEN_SIGNATURE_INVALID",
+                            "TOKEN_CLAIMS_INVALID",
+                            "TOKEN_INSTALLATION_MISMATCH",
+                        }:
+                            # Token no longer usable; clear and retry bootstrap once.
+                            if token:
+                                self._clear_install_token()
+                                await asyncio.to_thread(self._save_auth_state)
+                                continue
+                            return False
+
+                        if response.status == 400 and code == "INVALID_SCHEMA":
+                            return False
+
+                # continue to next variant
+
+            _LOGGER.warning(
+                "%s upload failed with status %s",
+                label,
+                last_status if last_status is not None else "?",
+            )
+            return False
         except TimeoutError:
             _LOGGER.warning("%s upload timed out", label)
             return False
