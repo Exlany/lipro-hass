@@ -23,7 +23,7 @@ from .const import (
     PROP_TEMPERATURE,
 )
 from .entities.base import LiproEntity
-from .helpers import create_platform_entities
+from .helpers import coerce_bool_option, create_platform_entities
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
@@ -178,17 +178,11 @@ class LiproLight(LiproEntity, LightEntity):
             CONF_LIGHT_TURN_ON_ON_ADJUST,
             DEFAULT_LIGHT_TURN_ON_ON_ADJUST,
         )
-        if isinstance(raw_value, bool):
-            return raw_value
-        if isinstance(raw_value, (int, float)):
-            return raw_value != 0
-        if isinstance(raw_value, str):
-            normalized = raw_value.strip().lower()
-            if normalized in {"1", "true", "yes", "on"}:
-                return True
-            if normalized in {"0", "false", "no", "off", ""}:
-                return False
-        return DEFAULT_LIGHT_TURN_ON_ON_ADJUST
+        return coerce_bool_option(
+            raw_value,
+            option_name=CONF_LIGHT_TURN_ON_ON_ADJUST,
+            default=DEFAULT_LIGHT_TURN_ON_ON_ADJUST,
+        )
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn on the light."""

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from custom_components.lipro.core.mqtt_message import (
+from custom_components.lipro.core.mqtt.mqtt_message import (
     build_dedup_cache_key,
     cleanup_dedup_cache,
     compute_properties_hash,
@@ -33,15 +33,15 @@ def test_compute_properties_hash_with_unhashable_payload_returns_none() -> None:
 
 
 def test_build_dedup_cache_key() -> None:
-    assert build_dedup_cache_key("dev1", 123) == "dev1:123"
+    assert build_dedup_cache_key("dev1", 123) == ("dev1", 123)
 
 
 def test_is_duplicate_within_window() -> None:
-    cache = {"dev1:1": 100.0}
+    cache = {("dev1", 1): 100.0}
     assert (
         is_duplicate_within_window(
             cache,
-            cache_key="dev1:1",
+            cache_key=("dev1", 1),
             current_time=100.2,
             dedup_window=0.5,
         )
@@ -50,7 +50,7 @@ def test_is_duplicate_within_window() -> None:
     assert (
         is_duplicate_within_window(
             cache,
-            cache_key="dev1:1",
+            cache_key=("dev1", 1),
             current_time=100.8,
             dedup_window=0.5,
         )
@@ -59,7 +59,7 @@ def test_is_duplicate_within_window() -> None:
     assert (
         is_duplicate_within_window(
             cache,
-            cache_key="dev2:2",
+            cache_key=("dev2", 2),
             current_time=100.2,
             dedup_window=0.5,
         )

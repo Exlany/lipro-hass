@@ -21,11 +21,22 @@ from custom_components.lipro.config_flow import (
 )
 from custom_components.lipro.const import (
     CONF_DEBUG_MODE,
+    CONF_DEVICE_FILTER_DID_LIST,
+    CONF_DEVICE_FILTER_DID_MODE,
+    CONF_DEVICE_FILTER_HOME_LIST,
+    CONF_DEVICE_FILTER_HOME_MODE,
+    CONF_DEVICE_FILTER_MODEL_LIST,
+    CONF_DEVICE_FILTER_MODEL_MODE,
+    CONF_DEVICE_FILTER_SSID_LIST,
+    CONF_DEVICE_FILTER_SSID_MODE,
     CONF_LIGHT_TURN_ON_ON_ADJUST,
     CONF_PHONE,
     CONF_PHONE_ID,
     CONF_REMEMBER_PASSWORD_HASH,
     CONF_ROOM_AREA_SYNC_FORCE,
+    DEVICE_FILTER_MODE_EXCLUDE,
+    DEVICE_FILTER_MODE_INCLUDE,
+    DEVICE_FILTER_MODE_OFF,
     DOMAIN,
 )
 from custom_components.lipro.const.config import CONF_COMMAND_RESULT_VERIFY
@@ -49,7 +60,9 @@ def test_user_schema_uses_text_and_password_selectors() -> None:
     """User step schema should keep HA selectors for regression safety."""
     phone_field = _get_schema_field(STEP_USER_DATA_SCHEMA, CONF_PHONE)
     password_field = _get_schema_field(STEP_USER_DATA_SCHEMA, CONF_PASSWORD)
-    remember_field = _get_schema_field(STEP_USER_DATA_SCHEMA, CONF_REMEMBER_PASSWORD_HASH)
+    remember_field = _get_schema_field(
+        STEP_USER_DATA_SCHEMA, CONF_REMEMBER_PASSWORD_HASH
+    )
 
     assert isinstance(phone_field, selector.TextSelector)
     assert isinstance(password_field, selector.TextSelector)
@@ -752,6 +765,14 @@ async def test_options_flow_advanced_step(
             CONF_LIGHT_TURN_ON_ON_ADJUST: False,
             CONF_ROOM_AREA_SYNC_FORCE: True,
             CONF_COMMAND_RESULT_VERIFY: True,
+            CONF_DEVICE_FILTER_HOME_MODE: DEVICE_FILTER_MODE_INCLUDE,
+            CONF_DEVICE_FILTER_HOME_LIST: "My Home",
+            CONF_DEVICE_FILTER_MODEL_MODE: DEVICE_FILTER_MODE_EXCLUDE,
+            CONF_DEVICE_FILTER_MODEL_LIST: "gateway",
+            CONF_DEVICE_FILTER_SSID_MODE: DEVICE_FILTER_MODE_OFF,
+            CONF_DEVICE_FILTER_SSID_LIST: "",
+            CONF_DEVICE_FILTER_DID_MODE: DEVICE_FILTER_MODE_INCLUDE,
+            CONF_DEVICE_FILTER_DID_LIST: "03ab5ccd7c000001,03ab5ccd7c000002",
         },
     )
     assert result["type"] is FlowResultType.CREATE_ENTRY
@@ -764,3 +785,16 @@ async def test_options_flow_advanced_step(
     assert result["data"]["power_query_interval"] == 120
     assert result["data"]["request_timeout"] == 45
     assert result["data"][CONF_DEBUG_MODE] is True
+    assert result["data"][CONF_DEVICE_FILTER_HOME_MODE] == DEVICE_FILTER_MODE_INCLUDE
+    assert result["data"][CONF_DEVICE_FILTER_HOME_LIST] == "My Home"
+    assert (
+        result["data"][CONF_DEVICE_FILTER_MODEL_MODE] == DEVICE_FILTER_MODE_EXCLUDE
+    )
+    assert result["data"][CONF_DEVICE_FILTER_MODEL_LIST] == "gateway"
+    assert result["data"][CONF_DEVICE_FILTER_SSID_MODE] == DEVICE_FILTER_MODE_OFF
+    assert result["data"][CONF_DEVICE_FILTER_SSID_LIST] == ""
+    assert result["data"][CONF_DEVICE_FILTER_DID_MODE] == DEVICE_FILTER_MODE_INCLUDE
+    assert (
+        result["data"][CONF_DEVICE_FILTER_DID_LIST]
+        == "03ab5ccd7c000001,03ab5ccd7c000002"
+    )

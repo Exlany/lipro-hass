@@ -75,7 +75,15 @@
           "debug_mode": "Enable debug mode (diagnostics)",
           "light_turn_on_on_adjust": "Auto turn on when adjusting brightness/color temp while off",
           "room_area_sync_force": "Force sync HA area from cloud room",
-          "command_result_verify": "Verify command delivery result"
+          "command_result_verify": "Verify command delivery result",
+          "device_filter_home_mode": "Filter by Home (off/include/exclude)",
+          "device_filter_home_list": "Home filter list",
+          "device_filter_model_mode": "Filter by Model (off/include/exclude)",
+          "device_filter_model_list": "Model filter list",
+          "device_filter_ssid_mode": "Filter by WiFi SSID (off/include/exclude)",
+          "device_filter_ssid_list": "WiFi SSID filter list",
+          "device_filter_did_mode": "Filter by Device ID (off/include/exclude)",
+          "device_filter_did_list": "Device ID filter list"
         },
         "data_description": {
           "power_query_interval": "How often to query power data for outlets (30-300 seconds). Only applies when power monitoring is enabled.",
@@ -83,7 +91,15 @@
           "debug_mode": "Capture a sanitized runtime diagnostics report with recent command traces. Enabling this also enables verbose logging.",
           "light_turn_on_on_adjust": "If enabled, adjusting brightness or color temperature while the light is off will also turn it on. If disabled, adjustments will not turn the light on.",
           "room_area_sync_force": "Default off (recommended): preserve user-customized HA areas and use cloud room as fallback. Turn on to always let cloud room overwrite HA area.",
-          "command_result_verify": "Default off (recommended): trust pushSuccess for lower latency. Turn on to confirm command result via msgSn and return clearer failures when cloud delivery is not confirmed."
+          "command_result_verify": "Default off (recommended): trust pushSuccess for lower latency. Turn on to confirm command result via msgSn and return clearer failures when cloud delivery is not confirmed.",
+          "device_filter_home_mode": "Select how to apply home filter: off/include/exclude.",
+          "device_filter_home_list": "Home names/IDs. Supports comma, semicolon, or newline separators.",
+          "device_filter_model_mode": "Select how to apply model filter: off/include/exclude.",
+          "device_filter_model_list": "Model names (physicalModel/iotName/model). Supports comma, semicolon, or newline separators.",
+          "device_filter_ssid_mode": "Select how to apply WiFi SSID filter: off/include/exclude.",
+          "device_filter_ssid_list": "WiFi SSID values. Supports comma, semicolon, or newline separators.",
+          "device_filter_did_mode": "Select how to apply device ID filter: off/include/exclude.",
+          "device_filter_did_list": "Device identifiers (did/deviceId/serial). Supports comma, semicolon, or newline separators."
         }
       }
     }
@@ -311,6 +327,16 @@
           "description": "Extra context about what you observed during the test."
         }
       }
+    },
+    "refresh_devices": {
+      "name": "Refresh Devices",
+      "description": "Force a full Lipro device list refresh for all loaded entries or one specific config entry.",
+      "fields": {
+        "entry_id": {
+          "name": "Entry ID",
+          "description": "Reload only the specified Lipro config entry. If omitted, all loaded Lipro entries are refreshed."
+        }
+      }
     }
   },
   "exceptions": {
@@ -366,6 +392,9 @@
     },
     "developer_feedback_submit_failed": {
       "message": "Failed to submit developer feedback report."
+    },
+    "entry_not_found": {
+      "message": "Config entry not found or not loaded: {entry_id}"
     },
     "firmware_no_update": {
       "message": "No firmware update is currently available for this device."

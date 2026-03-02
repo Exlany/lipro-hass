@@ -34,7 +34,7 @@ from custom_components.lipro.core.api import (
     LiproRefreshTokenExpiredError,
     _mask_sensitive_data,
 )
-from custom_components.lipro.core.api_status_service import (
+from custom_components.lipro.core.api.api_status_service import (
     query_with_fallback as query_with_fallback_service,
 )
 

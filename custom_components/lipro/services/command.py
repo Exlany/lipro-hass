@@ -8,6 +8,7 @@ from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.exceptions import HomeAssistantError
 
 from ..core import LiproApiError
+from ..core.utils.redaction import redact_identifier as _redact_identifier
 
 
 async def async_send_command_with_service_errors(
@@ -38,8 +39,8 @@ async def async_send_command_with_service_errors(
         logger.warning(
             failure_log,
             command,
-            requested_device_id,
-            device.serial,
+            _redact_identifier(requested_device_id) or "***",
+            _redact_identifier(getattr(device, "serial", None)) or "***",
             failure_context,
         )
         raise_service_error(

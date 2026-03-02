@@ -13,6 +13,7 @@ import voluptuous as vol
 from custom_components.lipro import (
     ATTR_COMMAND,
     ATTR_DEVICE_ID,
+    ATTR_ENTRY_ID,
     ATTR_MESH_TYPE,
     ATTR_MSG_SN,
     ATTR_NOTE,
@@ -21,6 +22,7 @@ from custom_components.lipro import (
     DOMAIN,
     SERVICE_FETCH_SENSOR_HISTORY_SCHEMA,
     SERVICE_QUERY_COMMAND_RESULT_SCHEMA,
+    SERVICE_REFRESH_DEVICES_SCHEMA,
     SERVICE_SEND_COMMAND_SCHEMA,
     SERVICE_SUBMIT_DEVELOPER_FEEDBACK_SCHEMA,
     _async_handle_get_city,
@@ -106,6 +108,21 @@ def _add_runtime_entry(hass, coordinator: MagicMock, *, phone: str) -> MockConfi
             {ATTR_SENSOR_DEVICE_ID: "03ab5ccd7caaaaaa", ATTR_MESH_TYPE: "3"},
             id="fetch_sensor_history_mesh_type_invalid_enum",
         ),
+        pytest.param(
+            SERVICE_REFRESH_DEVICES_SCHEMA,
+            {ATTR_ENTRY_ID: ""},
+            id="refresh_devices_entry_id_empty",
+        ),
+        pytest.param(
+            SERVICE_REFRESH_DEVICES_SCHEMA,
+            {ATTR_ENTRY_ID: "e" * 65},
+            id="refresh_devices_entry_id_too_long",
+        ),
+        pytest.param(
+            SERVICE_REFRESH_DEVICES_SCHEMA,
+            {ATTR_ENTRY_ID: "entry.bad"},
+            id="refresh_devices_entry_id_invalid_chars",
+        ),
     ],
 )
 def test_service_schemas_reject_boundary_invalid_inputs(schema, payload) -> None:
@@ -135,6 +152,12 @@ def test_submit_developer_feedback_schema_accepts_max_note_length() -> None:
     """submit_developer_feedback schema should accept 500-char note."""
     result = SERVICE_SUBMIT_DEVELOPER_FEEDBACK_SCHEMA({ATTR_NOTE: "n" * 500})
     assert result[ATTR_NOTE] == "n" * 500
+
+
+def test_refresh_devices_schema_accepts_max_entry_id_length() -> None:
+    """refresh_devices schema should accept 64-char entry_id."""
+    result = SERVICE_REFRESH_DEVICES_SCHEMA({ATTR_ENTRY_ID: "e" * 64})
+    assert result[ATTR_ENTRY_ID] == "e" * 64
 
 
 @pytest.mark.parametrize("mesh_type", ["1", "2"])
@@ -238,7 +261,10 @@ async def test_get_city_concurrent_calls_with_mixed_coordinators_are_stable(
 
     call_count = 25
     results = await asyncio.gather(
-        *(_async_handle_get_city(hass, SimpleNamespace(data={})) for _ in range(call_count))
+        *(
+            _async_handle_get_city(hass, SimpleNamespace(data={}))
+            for _ in range(call_count)
+        )
     )
 
     assert len(results) == call_count

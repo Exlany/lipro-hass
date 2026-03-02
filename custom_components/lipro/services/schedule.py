@@ -9,6 +9,7 @@ from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.exceptions import ServiceValidationError
 
 from ..core import LiproApiError
+from ..core.utils.redaction import redact_identifier as _redact_identifier
 
 
 def coerce_int_list(value: Any) -> list[int]:
@@ -114,7 +115,11 @@ async def async_call_schedule_service(
 ) -> Any:
     """Invoke a schedule client method with consistent logging and error mapping."""
     if service_log is not None:
-        logger.info(service_log, device.serial, *service_log_args)
+        logger.info(
+            service_log,
+            _redact_identifier(getattr(device, "serial", None)) or "***",
+            *service_log_args,
+        )
 
     return await async_call_schedule_client(
         device,

@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
-from custom_components.lipro.core.group_status import resolve_mesh_group_lookup_ids
+from custom_components.lipro.core.device.group_status import (
+    resolve_mesh_group_lookup_ids,
+)
 
 
 def test_resolve_mesh_group_lookup_ids_with_mixed_member_rows() -> None:

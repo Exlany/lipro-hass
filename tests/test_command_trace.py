@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from custom_components.lipro.core.api import LiproApiError
-from custom_components.lipro.core.command_trace import (
+from custom_components.lipro.core.command.command_trace import (
     build_command_trace,
     extract_command_property_keys,
     update_trace_with_exception,
@@ -113,5 +113,6 @@ def test_update_trace_with_exception_sets_error_fields() -> None:
     assert trace["route"] == "group_direct"
     assert trace["success"] is False
     assert trace["error"] == "LiproApiError"
-    assert trace["error_message"] == "timeout"
+    assert trace["error_message"] == "LiproApiError(code=504)"
+    assert trace["error_detail"] == "timeout"
     assert trace["error_code"] == 504

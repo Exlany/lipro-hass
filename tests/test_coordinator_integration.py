@@ -13,6 +13,16 @@ import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.lipro.const.api import MAX_DEVICES_PER_QUERY
+from custom_components.lipro.const.config import (
+    CONF_DEVICE_FILTER_DID_LIST,
+    CONF_DEVICE_FILTER_DID_MODE,
+    CONF_DEVICE_FILTER_HOME_LIST,
+    CONF_DEVICE_FILTER_HOME_MODE,
+    CONF_DEVICE_FILTER_SSID_LIST,
+    CONF_DEVICE_FILTER_SSID_MODE,
+    DEVICE_FILTER_MODE_EXCLUDE,
+    DEVICE_FILTER_MODE_INCLUDE,
+)
 from custom_components.lipro.core.api import (
     LiproApiError,
     LiproAuthError,
@@ -343,6 +353,124 @@ class TestCoordinatorFetchDevices:
 
         assert "03ab5ccd7c000002" in coordinator._outlet_ids_to_query
         assert "03ab5ccd7c000001" not in coordinator._outlet_ids_to_query
+
+    @pytest.mark.asyncio
+    async def test_device_filter_include_home_applies_in_fetch_path(
+        self, coordinator, mock_lipro_api_client
+    ):
+        """Include-home mode should keep only rows that match configured home list."""
+        coordinator.hass.config_entries.async_update_entry(
+            coordinator.config_entry,
+            options={
+                CONF_DEVICE_FILTER_HOME_MODE: DEVICE_FILTER_MODE_INCLUDE,
+                CONF_DEVICE_FILTER_HOME_LIST: "Main Home",
+            },
+        )
+        coordinator._load_options()
+        mock_lipro_api_client.get_devices.return_value = {
+            "devices": [
+                {**_make_api_device(serial="03ab5ccd7c000001"), "homeName": "Main Home"},
+                {**_make_api_device(serial="03ab5ccd7c000002"), "homeName": "Other"},
+            ]
+        }
+
+        with patch(
+            "custom_components.lipro.core.coordinator.get_anonymous_share_manager"
+        ) as mock_share:
+            mock_share.return_value = MagicMock(is_enabled=False)
+            await coordinator._fetch_devices()
+
+        assert set(coordinator.devices) == {"03ab5ccd7c000001"}
+
+    @pytest.mark.asyncio
+    async def test_device_filter_exclude_did_applies_in_fetch_path(
+        self, coordinator, mock_lipro_api_client
+    ):
+        """Exclude-did mode should drop rows whose did/serial matches filter list."""
+        coordinator.hass.config_entries.async_update_entry(
+            coordinator.config_entry,
+            options={
+                CONF_DEVICE_FILTER_DID_MODE: DEVICE_FILTER_MODE_EXCLUDE,
+                CONF_DEVICE_FILTER_DID_LIST: "03ab5ccd7c000002",
+            },
+        )
+        coordinator._load_options()
+        mock_lipro_api_client.get_devices.return_value = {
+            "devices": [
+                _make_api_device(serial="03ab5ccd7c000001"),
+                _make_api_device(serial="03ab5ccd7c000002"),
+            ]
+        }
+
+        with patch(
+            "custom_components.lipro.core.coordinator.get_anonymous_share_manager"
+        ) as mock_share:
+            mock_share.return_value = MagicMock(is_enabled=False)
+            await coordinator._fetch_devices()
+
+        assert set(coordinator.devices) == {"03ab5ccd7c000001"}
+
+    @pytest.mark.asyncio
+    async def test_device_filter_include_ssid_reads_device_info_json(
+        self, coordinator, mock_lipro_api_client
+    ):
+        """Include-ssid mode should support ssid from deviceInfo JSON."""
+        coordinator.hass.config_entries.async_update_entry(
+            coordinator.config_entry,
+            options={
+                CONF_DEVICE_FILTER_SSID_MODE: DEVICE_FILTER_MODE_INCLUDE,
+                CONF_DEVICE_FILTER_SSID_LIST: "homewifi",
+            },
+        )
+        coordinator._load_options()
+        mock_lipro_api_client.get_devices.return_value = {
+            "devices": [
+                {
+                    **_make_api_device(serial="03ab5ccd7c000001"),
+                    "deviceInfo": '{"wifi_ssid":"HomeWiFi"}',
+                },
+                {
+                    **_make_api_device(serial="03ab5ccd7c000002"),
+                    "deviceInfo": '{"wifi_ssid":"GuestWiFi"}',
+                },
+            ]
+        }
+
+        with patch(
+            "custom_components.lipro.core.coordinator.get_anonymous_share_manager"
+        ) as mock_share:
+            mock_share.return_value = MagicMock(is_enabled=False)
+            await coordinator._fetch_devices()
+
+        assert set(coordinator.devices) == {"03ab5ccd7c000001"}
+
+    @pytest.mark.asyncio
+    async def test_device_filter_include_with_empty_list_excludes_all(
+        self, coordinator, mock_lipro_api_client
+    ):
+        """Include mode with an empty list should exclude all devices."""
+        coordinator.hass.config_entries.async_update_entry(
+            coordinator.config_entry,
+            options={
+                CONF_DEVICE_FILTER_DID_MODE: DEVICE_FILTER_MODE_INCLUDE,
+                CONF_DEVICE_FILTER_DID_LIST: "",
+            },
+        )
+        coordinator._load_options()
+        mock_lipro_api_client.get_devices.return_value = {
+            "devices": [
+                _make_api_device(serial="03ab5ccd7c000001"),
+                _make_api_device(serial="03ab5ccd7c000002"),
+            ]
+        }
+
+        with patch(
+            "custom_components.lipro.core.coordinator.get_anonymous_share_manager"
+        ) as mock_share:
+            mock_share.return_value = MagicMock(is_enabled=False)
+            await coordinator._fetch_devices()
+
+        assert coordinator.devices == {}
 
     @pytest.mark.asyncio
     async def test_stale_devices_removed_only_after_consecutive_misses(

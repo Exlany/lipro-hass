@@ -66,4 +66,3 @@ async def test_refresh_token_persists_config_entry_tokens(hass) -> None:
     assert data[CONF_ACCESS_TOKEN] == "new_access"
     assert data[CONF_REFRESH_TOKEN] == "new_refresh"
     assert CONF_EXPIRES_AT in data
-

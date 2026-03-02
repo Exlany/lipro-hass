@@ -51,8 +51,10 @@ def resolve_device_id_from_service_call(
 ) -> Any:
     """Resolve device identifier from service data or targeted entities."""
     device_id = call.data.get(attr_device_id)
-    if device_id:
-        return device_id
+    if isinstance(device_id, str):
+        normalized = device_id.strip()
+        if normalized:
+            return normalized
 
     entity_ids = call.data.get(ATTR_ENTITY_ID, [])
     if isinstance(entity_ids, str):

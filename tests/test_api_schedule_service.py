@@ -8,7 +8,7 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from custom_components.lipro.core.api_schedule_service import (
+from custom_components.lipro.core.api.api_schedule_service import (
     add_mesh_schedule_by_candidates,
     delete_mesh_schedules_by_candidates,
     get_mesh_schedules_by_candidates,

@@ -15,8 +15,8 @@ from custom_components.lipro.const import (
     CONF_REQUEST_TIMEOUT,
     CONF_SCAN_INTERVAL,
 )
-from custom_components.lipro.core.developer_report import build_developer_report
 from custom_components.lipro.core.device import LiproDevice
+from custom_components.lipro.core.utils.developer_report import build_developer_report
 
 
 def _make_device(

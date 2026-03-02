@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from custom_components.lipro.core.request_codec import (
+from custom_components.lipro.core.api.request_codec import (
     build_smart_home_request_data,
     encode_iot_request_body,
     extract_smart_home_success_payload,

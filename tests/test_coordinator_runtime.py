@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import inspect
 
-from custom_components.lipro.core.coordinator_runtime import (
+from custom_components.lipro.core.runtime.coordinator_runtime import (
     should_refresh_device_list,
     should_schedule_mqtt_setup,
 )
@@ -131,4 +131,7 @@ def test_should_schedule_mqtt_setup_honors_runtime_backoff_when_exposed() -> Non
     else:
         override = True
 
-    assert _call_should_schedule_mqtt_setup(now=100.0, **{backoff_param: override}) is False
+    assert (
+        _call_should_schedule_mqtt_setup(now=100.0, **{backoff_param: override})
+        is False
+    )

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from custom_components.lipro.core.mqtt_lifecycle import (
+from custom_components.lipro.core.mqtt.mqtt_lifecycle import (
     compute_relaxed_polling_seconds,
     resolve_disconnect_notification_minutes,
     resolve_disconnect_started_at,

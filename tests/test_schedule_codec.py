@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from custom_components.lipro.core.schedule_codec import (
+from custom_components.lipro.core.api.schedule_codec import (
     normalize_mesh_timing_rows,
     parse_mesh_schedule_json,
 )

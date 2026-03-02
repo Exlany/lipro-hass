@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 from custom_components.lipro.core.device import LiproDevice
-from custom_components.lipro.core.device_identity_index import DeviceIdentityIndex
+from custom_components.lipro.core.device.device_identity_index import (
+    DeviceIdentityIndex,
+)
 
 
 def _make_device(serial: str) -> LiproDevice:

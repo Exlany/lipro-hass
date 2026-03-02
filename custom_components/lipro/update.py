@@ -480,7 +480,9 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
             int(self.device.product_id or 0),
         )
 
-    def _is_ota_rows_cache_fresh(self, entry: _OtaRowsCacheEntry, now: datetime) -> bool:
+    def _is_ota_rows_cache_fresh(
+        self, entry: _OtaRowsCacheEntry, now: datetime
+    ) -> bool:
         """Return whether a shared OTA cache entry is still valid."""
         return now - entry.time < _OTA_SHARED_ROWS_CACHE_TTL
 
@@ -507,7 +509,9 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
         )
         return rows if isinstance(rows, list) else []
 
-    async def _query_ota_rows_with_shared_cache(self) -> tuple[list[dict[str, Any]], bool]:
+    async def _query_ota_rows_with_shared_cache(
+        self,
+    ) -> tuple[list[dict[str, Any]], bool]:
         """Query OTA rows with model-scoped shared cache and in-flight dedup."""
         cache_key = self._ota_rows_cache_key()
         now = dt_util.utcnow()
@@ -523,11 +527,12 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
             if cached and self._is_ota_rows_cache_fresh(cached, now):
                 return cached.rows, True
 
-            task = _OTA_ROWS_INFLIGHT.get(cache_key)
-            if task is None:
-                task = asyncio.create_task(self._query_ota_rows_from_cloud())
-                _OTA_ROWS_INFLIGHT[cache_key] = task
+            inflight = _OTA_ROWS_INFLIGHT.get(cache_key)
+            if inflight is None:
+                inflight = asyncio.create_task(self._query_ota_rows_from_cloud())
+                _OTA_ROWS_INFLIGHT[cache_key] = inflight
                 creator = True
+            task = inflight
 
         try:
             rows = await task

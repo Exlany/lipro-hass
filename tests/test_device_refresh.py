@@ -5,9 +5,25 @@ from __future__ import annotations
 from unittest.mock import patch
 
 from custom_components.lipro.const.categories import DeviceCategory
+from custom_components.lipro.const.config import (
+    CONF_DEVICE_FILTER_DID_LIST,
+    CONF_DEVICE_FILTER_DID_MODE,
+    CONF_DEVICE_FILTER_HOME_LIST,
+    CONF_DEVICE_FILTER_HOME_MODE,
+    CONF_DEVICE_FILTER_MODEL_LIST,
+    CONF_DEVICE_FILTER_MODEL_MODE,
+    CONF_DEVICE_FILTER_SSID_LIST,
+    CONF_DEVICE_FILTER_SSID_MODE,
+    DEVICE_FILTER_MODE_EXCLUDE,
+    DEVICE_FILTER_MODE_INCLUDE,
+    DEVICE_FILTER_MODE_OFF,
+)
 from custom_components.lipro.core.device import LiproDevice
-from custom_components.lipro.core.device_refresh import (
+from custom_components.lipro.core.device.device_refresh import (
+    build_device_filter_config,
     build_fetched_device_snapshot,
+    has_active_device_filter,
+    is_device_included_by_filter,
     plan_stale_device_reconciliation,
     register_lookup_id,
 )
@@ -99,7 +115,7 @@ def test_build_fetched_device_snapshot_handles_malformed_rows() -> None:
     invalid_serial = _make_device(serial="  ")
 
     with patch(
-        "custom_components.lipro.core.device_refresh.LiproDevice.from_api_data"
+        "custom_components.lipro.core.device.device_refresh.LiproDevice.from_api_data"
     ) as from_api:
         from_api.side_effect = [
             TypeError("malformed row"),
@@ -137,7 +153,7 @@ def test_build_fetched_device_snapshot_skips_invalid_iot_ids_for_polling_lists()
     None
 ):
     with patch(
-        "custom_components.lipro.core.device_refresh.LiproDevice.from_api_data"
+        "custom_components.lipro.core.device.device_refresh.LiproDevice.from_api_data"
     ) as from_api:
         from_api.return_value = _InvalidIotIdDevice()
         snapshot = build_fetched_device_snapshot([{}])
@@ -145,3 +161,118 @@ def test_build_fetched_device_snapshot_skips_invalid_iot_ids_for_polling_lists()
     assert "INVALID_SERIAL" in snapshot.devices
     assert snapshot.iot_ids == []
     assert snapshot.outlet_ids == []
+
+
+def test_build_device_filter_config_normalizes_modes_and_lists() -> None:
+    config = build_device_filter_config(
+        {
+            CONF_DEVICE_FILTER_HOME_MODE: "INCLUDE",
+            CONF_DEVICE_FILTER_HOME_LIST: "  Home A,home_b \n",
+            CONF_DEVICE_FILTER_MODEL_MODE: "invalid",
+            CONF_DEVICE_FILTER_MODEL_LIST: ["fanLight", ""],
+            CONF_DEVICE_FILTER_SSID_MODE: DEVICE_FILTER_MODE_EXCLUDE,
+            CONF_DEVICE_FILTER_SSID_LIST: {"Guest", "Office"},
+            CONF_DEVICE_FILTER_DID_MODE: DEVICE_FILTER_MODE_OFF,
+            CONF_DEVICE_FILTER_DID_LIST: "",
+        }
+    )
+
+    assert has_active_device_filter(config) is True
+    assert config.home.mode == DEVICE_FILTER_MODE_INCLUDE
+    assert config.home.values == {"home a", "home_b"}
+    assert config.model.mode == DEVICE_FILTER_MODE_OFF
+    assert config.model.values == {"fanlight"}
+    assert config.ssid.mode == DEVICE_FILTER_MODE_EXCLUDE
+    assert config.ssid.values == {"guest", "office"}
+    assert config.did.mode == DEVICE_FILTER_MODE_OFF
+    assert config.did.values == set()
+
+
+def test_is_device_included_by_filter_matches_home_model_ssid_and_did() -> None:
+    config = build_device_filter_config(
+        {
+            CONF_DEVICE_FILTER_HOME_MODE: DEVICE_FILTER_MODE_INCLUDE,
+            CONF_DEVICE_FILTER_HOME_LIST: "Main Home",
+            CONF_DEVICE_FILTER_MODEL_MODE: DEVICE_FILTER_MODE_INCLUDE,
+            CONF_DEVICE_FILTER_MODEL_LIST: "fanLight",
+            CONF_DEVICE_FILTER_SSID_MODE: DEVICE_FILTER_MODE_EXCLUDE,
+            CONF_DEVICE_FILTER_SSID_LIST: "Guest",
+            CONF_DEVICE_FILTER_DID_MODE: DEVICE_FILTER_MODE_EXCLUDE,
+            CONF_DEVICE_FILTER_DID_LIST: "blocked-did",
+        }
+    )
+
+    assert (
+        is_device_included_by_filter(
+            {
+                "homeName": "main home",
+                "physicalModel": "FanLight",
+                "serial": "03ab5ccd7c000001",
+                "deviceInfo": '{"wifi_ssid":"MyWiFi"}',
+            },
+            config,
+        )
+        is True
+    )
+    assert (
+        is_device_included_by_filter(
+            {
+                "homeName": "main home",
+                "physicalModel": "fanLight",
+                "serial": "blocked-did",
+                "deviceInfo": '{"wifi_ssid":"MyWiFi"}',
+            },
+            config,
+        )
+        is False
+    )
+    assert (
+        is_device_included_by_filter(
+            {
+                "homeName": "main home",
+                "physicalModel": "fanLight",
+                "serial": "03ab5ccd7c000001",
+                "properties": [{"key": "wifi_ssid", "value": "guest"}],
+            },
+            config,
+        )
+        is False
+    )
+
+
+def test_is_device_included_by_filter_include_mode_empty_list_excludes_all() -> None:
+    config = build_device_filter_config(
+        {
+            CONF_DEVICE_FILTER_DID_MODE: DEVICE_FILTER_MODE_INCLUDE,
+            CONF_DEVICE_FILTER_DID_LIST: "",
+        }
+    )
+
+    assert (
+        is_device_included_by_filter(
+            {
+                "serial": "03ab5ccd7c000001",
+            },
+            config,
+        )
+        is False
+    )
+
+
+def test_build_fetched_device_snapshot_applies_device_filter_predicate() -> None:
+    def include_only_second(row: dict[str, str]) -> bool:
+        return row.get("serial") == "03ab000000000002"
+
+    with patch(
+        "custom_components.lipro.core.device.device_refresh.LiproDevice.from_api_data"
+    ) as from_api:
+        from_api.side_effect = lambda row: _make_device(serial=row["serial"])
+        snapshot = build_fetched_device_snapshot(
+            [
+                {"serial": "03ab000000000001"},
+                {"serial": "03ab000000000002"},
+            ],
+            device_filter=include_only_second,
+        )
+
+    assert set(snapshot.devices) == {"03ab000000000002"}

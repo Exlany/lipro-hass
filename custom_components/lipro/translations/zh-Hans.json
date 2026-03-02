@@ -75,7 +75,15 @@
           "debug_mode": "启用调试模式（诊断）",
           "light_turn_on_on_adjust": "关灯时调亮度/色温自动开灯",
           "room_area_sync_force": "强制用云端房间覆盖 HA 区域",
-          "command_result_verify": "校验命令下发结果"
+          "command_result_verify": "校验命令下发结果",
+          "device_filter_home_mode": "按家庭过滤（off/include/exclude）",
+          "device_filter_home_list": "家庭过滤列表",
+          "device_filter_model_mode": "按型号过滤（off/include/exclude）",
+          "device_filter_model_list": "型号过滤列表",
+          "device_filter_ssid_mode": "按 WiFi SSID 过滤（off/include/exclude）",
+          "device_filter_ssid_list": "WiFi SSID 过滤列表",
+          "device_filter_did_mode": "按设备 ID 过滤（off/include/exclude）",
+          "device_filter_did_list": "设备 ID 过滤列表"
         },
         "data_description": {
           "power_query_interval": "查询插座功率数据的频率（30-300 秒）。仅在启用功率监测时生效。",
@@ -83,7 +91,15 @@
           "debug_mode": "采集脱敏运行诊断报告（包含最近命令轨迹）。启用后也会开启更详细的日志。",
           "light_turn_on_on_adjust": "开启后，关灯状态下调节亮度或色温会自动开灯；关闭后，调节亮度或色温不会开灯。",
           "room_area_sync_force": "默认关闭（推荐）：保留用户手动设置的 HA 区域，仅把云端房间作为兜底。开启后将始终以云端房间覆盖 HA 区域。",
-          "command_result_verify": "默认关闭（推荐）：仅依据 pushSuccess，延迟更低。开启后会基于 msgSn 查询命令结果，云端未确认时返回更可解释的失败。"
+          "command_result_verify": "默认关闭（推荐）：仅依据 pushSuccess，延迟更低。开启后会基于 msgSn 查询命令结果，云端未确认时返回更可解释的失败。",
+          "device_filter_home_mode": "选择家庭过滤策略：off/include/exclude。",
+          "device_filter_home_list": "家庭名称或 ID，支持逗号、分号或换行分隔。",
+          "device_filter_model_mode": "选择型号过滤策略：off/include/exclude。",
+          "device_filter_model_list": "型号字段（physicalModel/iotName/model），支持逗号、分号或换行分隔。",
+          "device_filter_ssid_mode": "选择 WiFi SSID 过滤策略：off/include/exclude。",
+          "device_filter_ssid_list": "WiFi SSID 值，支持逗号、分号或换行分隔。",
+          "device_filter_did_mode": "选择设备 ID 过滤策略：off/include/exclude。",
+          "device_filter_did_list": "设备标识（did/deviceId/serial），支持逗号、分号或换行分隔。"
         }
       }
     }
@@ -311,6 +327,16 @@
           "description": "补充你在实测中观察到的现象。"
         }
       }
+    },
+    "refresh_devices": {
+      "name": "刷新设备列表",
+      "description": "强制刷新所有已加载 Lipro 配置项，或仅刷新指定配置项的完整设备列表。",
+      "fields": {
+        "entry_id": {
+          "name": "配置项 ID",
+          "description": "仅刷新指定的 Lipro 配置项；不填则刷新全部已加载的 Lipro 配置项。"
+        }
+      }
     }
   },
   "exceptions": {
@@ -366,6 +392,9 @@
     },
     "developer_feedback_submit_failed": {
       "message": "提交开发者反馈报告失败。"
+    },
+    "entry_not_found": {
+      "message": "未找到或未加载配置项：{entry_id}"
     },
     "firmware_no_update": {
       "message": "当前设备暂无可用固件更新。"

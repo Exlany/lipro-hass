@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from custom_components.lipro.core.api_status_service import (
+from custom_components.lipro.core.api.api_status_service import (
     query_connect_status,
     query_device_status,
     query_with_fallback,
@@ -109,7 +109,9 @@ async def test_query_device_status_applies_adaptive_soft_batch_limit() -> None:
 
     assert result == [{"ok": True}, {"ok": True}, {"ok": True}]
     assert iot_request.await_count == 3
-    called_batches = [call.args[1]["deviceIdList"] for call in iot_request.await_args_list]
+    called_batches = [
+        call.args[1]["deviceIdList"] for call in iot_request.await_args_list
+    ]
     assert len(called_batches[0]) == 64
     assert len(called_batches[1]) == 64
     assert len(called_batches[2]) == 2
@@ -162,7 +164,9 @@ async def test_query_with_fallback_small_subset_uses_batch_then_single_fallback(
     assert result == [{"deviceId": "b"}, {"deviceId": "c"}, {"deviceId": "d"}]
     # 1 initial batch + 1 mini-batch + 2 single fallback + 1 mini-batch success
     assert iot_request.await_count == 5
-    called_bodies = [call.args[1]["deviceIdList"] for call in iot_request.await_args_list]
+    called_bodies = [
+        call.args[1]["deviceIdList"] for call in iot_request.await_args_list
+    ]
     assert ["a", "b", "c", "d"] in called_bodies
     assert ["a", "b"] in called_bodies
     assert ["c", "d"] in called_bodies

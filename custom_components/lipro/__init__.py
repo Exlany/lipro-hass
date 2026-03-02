@@ -46,6 +46,8 @@ from .core import (
     LiproDevice,
     get_anonymous_share_manager,
 )
+from .core.utils.redaction import redact_identifier as _redact_identifier
+from .helpers.coerce import coerce_int_option
 from .services.command import (
     async_handle_send_command as _async_handle_send_command_service,
     async_send_command_with_service_errors as _async_send_command_with_service_errors_service,
@@ -69,6 +71,10 @@ from .services.diagnostics import (
 from .services.errors import (
     raise_service_error as _raise_service_error_shared,
     resolve_command_failure_translation_key as _resolve_command_failure_translation_key_shared,
+)
+from .services.maintenance import (
+    async_handle_refresh_devices as _async_handle_refresh_devices_service,
+    async_setup_device_registry_listener as _async_setup_device_registry_listener_service,
 )
 from .services.schedule import (
     async_handle_add_schedule as _async_handle_add_schedule_service,
@@ -113,8 +119,10 @@ SERVICE_QUERY_COMMAND_RESULT: Final = "query_command_result"
 SERVICE_GET_CITY: Final = "get_city"
 SERVICE_FETCH_BODY_SENSOR_HISTORY: Final = "fetch_body_sensor_history"
 SERVICE_FETCH_DOOR_SENSOR_HISTORY: Final = "fetch_door_sensor_history"
+SERVICE_REFRESH_DEVICES: Final = "refresh_devices"
 
 ATTR_DEVICE_ID: Final = "device_id"
+ATTR_ENTRY_ID: Final = "entry_id"
 ATTR_COMMAND: Final = "command"
 ATTR_PROPERTIES: Final = "properties"
 ATTR_DAYS: Final = "days"
@@ -126,6 +134,7 @@ ATTR_MSG_SN: Final = "msg_sn"
 ATTR_SENSOR_DEVICE_ID: Final = "sensor_device_id"
 ATTR_MESH_TYPE: Final = "mesh_type"
 FIRMWARE_SUPPORT_MANIFEST: Final = "firmware_support_manifest.json"
+_DATA_DEVICE_REGISTRY_LISTENER_UNSUB: Final = "device_registry_listener_unsub"
 
 # Pre-compiled pattern for extracting device serial from entity unique_id
 _SERIAL_PATTERN = re.compile(
@@ -144,6 +153,7 @@ _MAX_COMMAND_LEN: Final = 64
 _MAX_PROPERTY_KEY_LEN: Final = 64
 _MAX_PROPERTY_VALUE_LEN: Final = 512
 _MAX_SERVICE_LIST_ITEMS: Final = 64
+_MAX_ENTRY_ID_LEN: Final = 64
 _MAX_NOTE_LEN: Final = 500
 _MAX_MSG_SN_LEN: Final = 128
 _MAX_SENSOR_DEVICE_ID_LEN: Final = 64
@@ -278,6 +288,16 @@ SERVICE_FETCH_SENSOR_HISTORY_SCHEMA = vol.Schema(
     },
 )
 
+SERVICE_REFRESH_DEVICES_SCHEMA = vol.Schema(
+    {
+        vol.Optional(ATTR_ENTRY_ID): vol.All(
+            cv.string,
+            vol.Length(min=1, max=_MAX_ENTRY_ID_LEN),
+            vol.Match(_IDENTIFIER_PATTERN),
+        ),
+    },
+)
+
 
 def _summarize_service_properties(properties: Any) -> dict[str, Any]:
     """Build a log-safe summary for service properties.
@@ -295,33 +315,6 @@ def _summarize_service_properties(properties: Any) -> dict[str, Any]:
     return {"count": len(properties), "keys": keys}
 
 
-def _coerce_int_option(
-    value: Any,
-    *,
-    default: int,
-    option_name: str,
-    min_value: int | None = None,
-    max_value: int | None = None,
-) -> int:
-    """Coerce persisted option values to int with safe fallback/clamp."""
-    try:
-        parsed = int(value)
-    except (TypeError, ValueError):
-        _LOGGER.warning(
-            "Invalid option %s=%r, using default %d",
-            option_name,
-            value,
-            default,
-        )
-        parsed = default
-
-    if min_value is not None:
-        parsed = max(min_value, parsed)
-    if max_value is not None:
-        parsed = min(max_value, parsed)
-    return parsed
-
-
 def _get_entry_int_option(
     entry: LiproConfigEntry,
     *,
@@ -331,12 +324,13 @@ def _get_entry_int_option(
     max_value: int,
 ) -> int:
     """Read and coerce an integer option from a config entry."""
-    return _coerce_int_option(
+    return coerce_int_option(
         entry.options.get(option_name, default),
-        default=default,
         option_name=option_name,
+        default=default,
         min_value=min_value,
         max_value=max_value,
+        logger=_LOGGER,
     )
 
 
@@ -408,15 +402,15 @@ def _log_send_command_call(
         _LOGGER.info(
             "Service call: send_command requested_id=%s resolved_to=%s, "
             "command=%s, property_summary=%s",
-            requested_device_id,
-            resolved_serial,
+            _redact_identifier(requested_device_id),
+            _redact_identifier(resolved_serial),
             command,
             properties_summary,
         )
     else:
         _LOGGER.info(
             "Service call: send_command to %s, command=%s, property_summary=%s",
-            resolved_serial,
+            _redact_identifier(resolved_serial),
             command,
             properties_summary,
         )
@@ -424,9 +418,39 @@ def _log_send_command_call(
     return is_alias_resolution
 
 
+def _async_setup_device_registry_listener(hass: HomeAssistant) -> None:
+    """Set up one shared device-registry listener for Lipro entries."""
+    domain_data = hass.data.setdefault(DOMAIN, {})
+    if not isinstance(domain_data, dict):
+        return
+    if _DATA_DEVICE_REGISTRY_LISTENER_UNSUB in domain_data:
+        return
+
+    domain_data[_DATA_DEVICE_REGISTRY_LISTENER_UNSUB] = (
+        _async_setup_device_registry_listener_service(
+            hass,
+            domain=DOMAIN,
+            logger=_LOGGER,
+            reload_entry=hass.config_entries.async_reload,
+        )
+    )
+
+
+def _async_remove_device_registry_listener(hass: HomeAssistant) -> None:
+    """Remove the shared device-registry listener if present."""
+    domain_data = hass.data.get(DOMAIN)
+    if not isinstance(domain_data, dict):
+        return
+
+    unsubscribe = domain_data.pop(_DATA_DEVICE_REGISTRY_LISTENER_UNSUB, None)
+    if callable(unsubscribe):
+        unsubscribe()
+
+
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """Set up the Lipro component."""
     await _async_setup_services(hass)
+    _async_setup_device_registry_listener(hass)
     return True
 
 
@@ -800,6 +824,18 @@ async def _async_handle_fetch_door_sensor_history(
     )
 
 
+async def _async_handle_refresh_devices(
+    hass: HomeAssistant, call: ServiceCall
+) -> dict[str, Any]:
+    """Handle the refresh_devices service call."""
+    return await _async_handle_refresh_devices_service(
+        hass,
+        call,
+        domain=DOMAIN,
+        attr_entry_id=ATTR_ENTRY_ID,
+    )
+
+
 _SERVICE_REGISTRATIONS: Final = (
     (
         SERVICE_SEND_COMMAND,
@@ -873,6 +909,12 @@ _SERVICE_REGISTRATIONS: Final = (
         SERVICE_FETCH_SENSOR_HISTORY_SCHEMA,
         SupportsResponse.ONLY,
     ),
+    (
+        SERVICE_REFRESH_DEVICES,
+        _async_handle_refresh_devices,
+        SERVICE_REFRESH_DEVICES_SCHEMA,
+        SupportsResponse.ONLY,
+    ),
 )
 
 
@@ -907,15 +949,14 @@ def _async_remove_services(hass: HomeAssistant) -> None:
 
 async def _async_setup_services(hass: HomeAssistant) -> None:
     """Set up Lipro services."""
-    if hass.services.has_service(DOMAIN, SERVICE_SEND_COMMAND):
-        return  # Services already registered
-
     for (
         service_name,
         service_handler,
         service_schema,
         supports_response,
     ) in _SERVICE_REGISTRATIONS:
+        if hass.services.has_service(DOMAIN, service_name):
+            continue
         _async_register_service(
             hass,
             service_name,
@@ -942,6 +983,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: LiproConfigEntry) -> bo
         if e.entry_id != entry.entry_id
     ):
         _async_remove_services(hass)
+        _async_remove_device_registry_listener(hass)
 
     return result
 

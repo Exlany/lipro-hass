@@ -8,7 +8,7 @@ from custom_components.lipro.core.api import (
     LiproConnectionError,
 )
 from custom_components.lipro.core.device import LiproDevice
-from custom_components.lipro.core.outlet_power import (
+from custom_components.lipro.core.device.outlet_power import (
     apply_outlet_power_info,
     should_reraise_outlet_power_error,
 )

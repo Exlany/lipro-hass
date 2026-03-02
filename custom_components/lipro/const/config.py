@@ -59,6 +59,20 @@ DEFAULT_ROOM_AREA_SYNC_FORCE: Final = False
 CONF_COMMAND_RESULT_VERIFY: Final = "command_result_verify"
 DEFAULT_COMMAND_RESULT_VERIFY: Final = False
 
+# Options - device filtering (home/model/ssid/did)
+CONF_DEVICE_FILTER_HOME_MODE: Final = "device_filter_home_mode"
+CONF_DEVICE_FILTER_HOME_LIST: Final = "device_filter_home_list"
+CONF_DEVICE_FILTER_MODEL_MODE: Final = "device_filter_model_mode"
+CONF_DEVICE_FILTER_MODEL_LIST: Final = "device_filter_model_list"
+CONF_DEVICE_FILTER_SSID_MODE: Final = "device_filter_ssid_mode"
+CONF_DEVICE_FILTER_SSID_LIST: Final = "device_filter_ssid_list"
+CONF_DEVICE_FILTER_DID_MODE: Final = "device_filter_did_mode"
+CONF_DEVICE_FILTER_DID_LIST: Final = "device_filter_did_list"
+DEVICE_FILTER_MODE_OFF: Final = "off"
+DEVICE_FILTER_MODE_INCLUDE: Final = "include"
+DEVICE_FILTER_MODE_EXCLUDE: Final = "exclude"
+DEFAULT_DEVICE_FILTER_MODE: Final = DEVICE_FILTER_MODE_OFF
+
 # Anonymous share options (device info sharing)
 CONF_ANONYMOUS_SHARE_ENABLED: Final = "anonymous_share_enabled"
 CONF_ANONYMOUS_SHARE_ERRORS: Final = "anonymous_share_errors"

@@ -203,6 +203,20 @@ automation:
           preset_mode: "default"
 ```
 
+## 官方 Blueprint
+
+可直接导入的 Home Assistant 自动化蓝图：
+
+- 人体感应开灯（检测到人体后开灯，无人后延时关灯）：  
+  [![导入人体感应开灯 Blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https://github.com/Exlany/lipro-hass/blob/main/blueprints/automation/lipro/motion_light.yaml)
+- 设备离线告警（实体持续离线时发送通知）：  
+  [![导入设备离线告警 Blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https://github.com/Exlany/lipro-hass/blob/main/blueprints/automation/lipro/device_offline_alert.yaml)
+
+手动导入：
+
+1. 将仓库中的 `blueprints/automation/lipro/` 文件复制到 Home Assistant 的 `config/blueprints/automation/lipro/`。
+2. 进入 设置 → 自动化与场景 → 蓝图，基于已导入蓝图创建自动化。
+
 ## 高级功能
 
 ### 发送原始命令
@@ -312,6 +326,8 @@ data:
 ## 贡献
 
 欢迎提交 Pull Request 和 Issue！
+
+如需了解内部代码结构，请阅读 `docs/developer_architecture.md`。
 
 ## 许可证
 

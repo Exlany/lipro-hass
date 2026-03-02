@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from custom_components.lipro.core.schedule_endpoint import (
+from custom_components.lipro.core.api.schedule_endpoint import (
     build_mesh_schedule_add_body,
     build_mesh_schedule_delete_body,
     build_mesh_schedule_get_body,

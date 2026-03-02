@@ -31,6 +31,14 @@ from .const import (
     CONF_ANONYMOUS_SHARE_ERRORS,
     CONF_BIZ_ID,
     CONF_DEBUG_MODE,
+    CONF_DEVICE_FILTER_DID_LIST,
+    CONF_DEVICE_FILTER_DID_MODE,
+    CONF_DEVICE_FILTER_HOME_LIST,
+    CONF_DEVICE_FILTER_HOME_MODE,
+    CONF_DEVICE_FILTER_MODEL_LIST,
+    CONF_DEVICE_FILTER_MODEL_MODE,
+    CONF_DEVICE_FILTER_SSID_LIST,
+    CONF_DEVICE_FILTER_SSID_MODE,
     CONF_ENABLE_POWER_MONITORING,
     CONF_LIGHT_TURN_ON_ON_ADJUST,
     CONF_MQTT_ENABLED,
@@ -47,6 +55,7 @@ from .const import (
     DEFAULT_ANONYMOUS_SHARE_ENABLED,
     DEFAULT_ANONYMOUS_SHARE_ERRORS,
     DEFAULT_DEBUG_MODE,
+    DEFAULT_DEVICE_FILTER_MODE,
     DEFAULT_ENABLE_POWER_MONITORING,
     DEFAULT_LIGHT_TURN_ON_ON_ADJUST,
     DEFAULT_MQTT_ENABLED,
@@ -55,6 +64,9 @@ from .const import (
     DEFAULT_REQUEST_TIMEOUT,
     DEFAULT_ROOM_AREA_SYNC_FORCE,
     DEFAULT_SCAN_INTERVAL,
+    DEVICE_FILTER_MODE_EXCLUDE,
+    DEVICE_FILTER_MODE_INCLUDE,
+    DEVICE_FILTER_MODE_OFF,
     DOMAIN,
     MAX_POWER_QUERY_INTERVAL,
     MAX_REQUEST_TIMEOUT,
@@ -73,6 +85,11 @@ _CONF_SHOW_ADVANCED = "show_advanced"
 
 _PHONE_INPUT_PATTERN = re.compile(r"^\+?\d{6,20}$")
 _MAX_PASSWORD_LEN: int = 128
+_DEVICE_FILTER_MODE_VALUES: tuple[str, str, str] = (
+    DEVICE_FILTER_MODE_OFF,
+    DEVICE_FILTER_MODE_INCLUDE,
+    DEVICE_FILTER_MODE_EXCLUDE,
+)
 
 
 def _text_selector() -> selector.TextSelector:
@@ -232,6 +249,20 @@ def _build_int_option_field(
             vol.Range(min=min_value, max=max_value),
         ),
     )
+
+
+def _coerce_device_filter_list_option(value: Any) -> str:
+    """Coerce stored filter-list option to form-friendly text."""
+    if isinstance(value, str):
+        return value
+    if isinstance(value, (list, tuple, set, frozenset)):
+        parts = []
+        for item in value:
+            normalized = str(item).strip()
+            if normalized:
+                parts.append(normalized)
+        return ", ".join(parts)
+    return ""
 
 
 class LiproConfigFlow(ConfigFlow, domain=DOMAIN):
@@ -656,5 +687,24 @@ class LiproOptionsFlow(OptionsFlow):
             DEFAULT_COMMAND_RESULT_VERIFY,
         )
         schema[bool_field] = bool_validator
+
+        for mode_key, list_key in (
+            (CONF_DEVICE_FILTER_HOME_MODE, CONF_DEVICE_FILTER_HOME_LIST),
+            (CONF_DEVICE_FILTER_MODEL_MODE, CONF_DEVICE_FILTER_MODEL_LIST),
+            (CONF_DEVICE_FILTER_SSID_MODE, CONF_DEVICE_FILTER_SSID_LIST),
+            (CONF_DEVICE_FILTER_DID_MODE, CONF_DEVICE_FILTER_DID_LIST),
+        ):
+            schema[
+                vol.Required(
+                    mode_key,
+                    default=options.get(mode_key, DEFAULT_DEVICE_FILTER_MODE),
+                )
+            ] = vol.In(_DEVICE_FILTER_MODE_VALUES)
+            schema[
+                vol.Optional(
+                    list_key,
+                    default=_coerce_device_filter_list_option(options.get(list_key, "")),
+                )
+            ] = _text_selector()
 
         return vol.Schema(schema)

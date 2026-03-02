@@ -7,7 +7,9 @@ import logging
 
 import pytest
 
-from custom_components.lipro.core.background_task_manager import BackgroundTaskManager
+from custom_components.lipro.core.utils.background_task_manager import (
+    BackgroundTaskManager,
+)
 
 
 @pytest.mark.asyncio

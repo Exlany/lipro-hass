@@ -4,7 +4,12 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock
 
-from custom_components.lipro.core.command_result import resolve_polled_command_result
+from custom_components.lipro.core.command.command_result import (
+    classify_command_result_payload,
+    extract_msg_sn,
+    is_command_push_failed,
+    resolve_polled_command_result,
+)
 
 
 def test_resolve_polled_command_result_confirmed() -> None:
@@ -94,3 +99,30 @@ def test_resolve_polled_command_result_unconfirmed_uses_last_state() -> None:
         "msg_sn": "abc",
         "last_state": "pending",
     }
+
+
+def test_extract_msg_sn_coerces_int_float_and_str() -> None:
+    assert extract_msg_sn({"msgSn": 123}) == "123"
+    assert extract_msg_sn({"msgSn": 123.0}) == "123"
+    assert extract_msg_sn({"msgSn": "  abc  "}) == "abc"
+
+
+def test_extract_msg_sn_ignores_bool_and_blank_and_uses_fallback_keys() -> None:
+    assert extract_msg_sn({"msgSn": True}) is None
+    assert extract_msg_sn({"msgSn": "   ", "msg_sn": "x"}) == "x"
+
+
+def test_extract_msg_sn_ignores_non_integral_float() -> None:
+    assert extract_msg_sn({"msgSn": 123.4}) is None
+
+
+def test_is_command_push_failed_accepts_bool_like_payloads() -> None:
+    assert is_command_push_failed({"pushSuccess": "0"}) is True
+    assert is_command_push_failed({"pushSuccess": "false"}) is True
+    assert is_command_push_failed({"pushSuccess": 1}) is False
+
+
+def test_classify_command_result_payload_coerces_success_and_pushsuccess() -> None:
+    assert classify_command_result_payload({"success": "true"}) == "confirmed"
+    assert classify_command_result_payload({"success": "0"}) == "failed"
+    assert classify_command_result_payload({"pushSuccess": "FALSE"}) == "failed"

@@ -181,6 +181,20 @@ automation:
           entity_id: cover.bedroom_curtain
 ```
 
+## Official Blueprints
+
+Importable Home Assistant blueprints:
+
+- Motion light (turn on at motion, turn off after no-motion delay):  
+  [![Import Motion Light Blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https://github.com/Exlany/lipro-hass/blob/main/blueprints/automation/lipro/motion_light.yaml)
+- Device offline alert (notify when entities stay unavailable):  
+  [![Import Device Offline Alert Blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https://github.com/Exlany/lipro-hass/blob/main/blueprints/automation/lipro/device_offline_alert.yaml)
+
+Manual import:
+
+1. Copy files under `blueprints/automation/lipro/` into your Home Assistant config path `config/blueprints/automation/lipro/`.
+2. Go to Settings → Automations & Scenes → Blueprints and create automations from imported blueprints.
+
 ## Advanced Features
 
 ### Send Raw Command
@@ -290,6 +304,8 @@ This integration is implemented by reverse engineering the Lipro cloud API and i
 ## Contributing
 
 Pull Requests and Issues are welcome!
+
+For internal package layout, see `docs/developer_architecture.md`.
 
 ## License
 

@@ -20,6 +20,7 @@ from custom_components.lipro import (
     ATTR_COMMAND,
     ATTR_DAYS,
     ATTR_DEVICE_ID,
+    ATTR_ENTRY_ID,
     ATTR_EVENTS,
     ATTR_MESH_TYPE,
     ATTR_MSG_SN,
@@ -43,6 +44,8 @@ from custom_components.lipro import (
     SERVICE_GET_SCHEDULES_SCHEMA,
     SERVICE_QUERY_COMMAND_RESULT,
     SERVICE_QUERY_COMMAND_RESULT_SCHEMA,
+    SERVICE_REFRESH_DEVICES,
+    SERVICE_REFRESH_DEVICES_SCHEMA,
     SERVICE_SEND_COMMAND,
     SERVICE_SEND_COMMAND_SCHEMA,
     SERVICE_SUBMIT_ANONYMOUS_SHARE,
@@ -57,6 +60,7 @@ from custom_components.lipro import (
     _async_handle_get_developer_report,
     _async_handle_get_schedules,
     _async_handle_query_command_result,
+    _async_handle_refresh_devices,
     _async_handle_send_command,
     _async_handle_submit_anonymous_share,
     _async_handle_submit_developer_feedback,
@@ -92,7 +96,7 @@ from homeassistant.exceptions import (
     HomeAssistantError,
     ServiceValidationError,
 )
-from homeassistant.helpers import entity_registry as er
+from homeassistant.helpers import device_registry as dr, entity_registry as er
 
 
 class TestPlatforms:
@@ -198,6 +202,10 @@ class TestServiceConstants:
         """Test SERVICE_FETCH_DOOR_SENSOR_HISTORY is defined correctly."""
         assert SERVICE_FETCH_DOOR_SENSOR_HISTORY == "fetch_door_sensor_history"
 
+    def test_service_refresh_devices(self):
+        """Test SERVICE_REFRESH_DEVICES is defined correctly."""
+        assert SERVICE_REFRESH_DEVICES == "refresh_devices"
+
     def test_service_constants_are_strings(self):
         """Test all service constants are strings."""
         assert isinstance(SERVICE_SEND_COMMAND, str)
@@ -212,6 +220,7 @@ class TestServiceConstants:
         assert isinstance(SERVICE_GET_CITY, str)
         assert isinstance(SERVICE_FETCH_BODY_SENSOR_HISTORY, str)
         assert isinstance(SERVICE_FETCH_DOOR_SENSOR_HISTORY, str)
+        assert isinstance(SERVICE_REFRESH_DEVICES, str)
 
 
 class TestAttributeConstants:
@@ -220,6 +229,10 @@ class TestAttributeConstants:
     def test_attr_device_id(self):
         """Test ATTR_DEVICE_ID value."""
         assert ATTR_DEVICE_ID == "device_id"
+
+    def test_attr_entry_id(self):
+        """Test ATTR_ENTRY_ID value."""
+        assert ATTR_ENTRY_ID == "entry_id"
 
     def test_attr_command(self):
         """Test ATTR_COMMAND value."""
@@ -248,6 +261,7 @@ class TestAttributeConstants:
     def test_attribute_constants_are_strings(self):
         """Test all attribute constants are strings."""
         assert isinstance(ATTR_DEVICE_ID, str)
+        assert isinstance(ATTR_ENTRY_ID, str)
         assert isinstance(ATTR_COMMAND, str)
         assert isinstance(ATTR_PROPERTIES, str)
         assert isinstance(ATTR_DAYS, str)
@@ -366,6 +380,16 @@ class TestSchemaStructure:
         assert keys[ATTR_SENSOR_DEVICE_ID] is True
         assert ATTR_MESH_TYPE in keys
         assert keys[ATTR_MESH_TYPE] is False
+
+    def test_refresh_devices_schema_is_vol_schema(self):
+        """Test SERVICE_REFRESH_DEVICES_SCHEMA is a voluptuous Schema."""
+        assert isinstance(SERVICE_REFRESH_DEVICES_SCHEMA, vol.Schema)
+
+    def test_refresh_devices_schema_keys(self):
+        """Test refresh_devices schema has expected keys."""
+        keys = self._get_schema_keys(SERVICE_REFRESH_DEVICES_SCHEMA)
+        assert ATTR_ENTRY_ID in keys
+        assert keys[ATTR_ENTRY_ID] is False
 
 
 class TestSchemaValidation:
@@ -525,6 +549,19 @@ class TestSchemaValidation:
                 {"sensor_device_id": "03ab5ccd7caaaaaa", "mesh_type": "3"}
             )
 
+    def test_refresh_devices_schema_validation(self):
+        """Test refresh_devices schema validates optional entry_id."""
+        result = SERVICE_REFRESH_DEVICES_SCHEMA({})
+        assert isinstance(result, dict)
+
+        result = SERVICE_REFRESH_DEVICES_SCHEMA({"entry_id": "abc123_entry"})
+        assert result["entry_id"] == "abc123_entry"
+
+        with pytest.raises(vol.MultipleInvalid):
+            SERVICE_REFRESH_DEVICES_SCHEMA({"entry_id": ""})
+        with pytest.raises(vol.MultipleInvalid):
+            SERVICE_REFRESH_DEVICES_SCHEMA({"entry_id": "bad.entry"})
+
     def test_summarize_service_properties_masks_values(self):
         """Service properties summary should expose keys/count, not raw values."""
         result = _summarize_service_properties(
@@ -570,6 +607,7 @@ class TestInitRuntimeBehavior:
         assert hass.services.has_service(DOMAIN, SERVICE_GET_CITY)
         assert hass.services.has_service(DOMAIN, SERVICE_FETCH_BODY_SENSOR_HISTORY)
         assert hass.services.has_service(DOMAIN, SERVICE_FETCH_DOOR_SENSOR_HISTORY)
+        assert hass.services.has_service(DOMAIN, SERVICE_REFRESH_DEVICES)
 
         # Calling setup twice should keep registration stable.
         assert await async_setup(hass, {}) is True
@@ -775,6 +813,7 @@ class TestInitRuntimeBehavior:
         assert not hass.services.has_service(DOMAIN, SERVICE_SUBMIT_DEVELOPER_FEEDBACK)
         assert not hass.services.has_service(DOMAIN, SERVICE_QUERY_COMMAND_RESULT)
         assert not hass.services.has_service(DOMAIN, SERVICE_GET_CITY)
+        assert not hass.services.has_service(DOMAIN, SERVICE_REFRESH_DEVICES)
 
     async def test_async_unload_entry_shuts_down_runtime_data_coordinator(
         self, hass
@@ -816,6 +855,178 @@ class TestInitRuntimeBehavior:
             assert await async_unload_entry(hass, entry) is False
 
         coordinator.async_shutdown.assert_not_awaited()
+
+    async def test_refresh_devices_handler_refreshes_all_loaded_entries(
+        self, hass
+    ) -> None:
+        """refresh_devices should refresh all loaded entry coordinators by default."""
+        first = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        first.add_to_hass(hass)
+        first.runtime_data = MagicMock(async_refresh_devices=AsyncMock())
+
+        second = MockConfigEntry(domain=DOMAIN, data={"phone": "13900000000"})
+        second.add_to_hass(hass)
+        second.runtime_data = MagicMock(async_refresh_devices=AsyncMock())
+
+        result = await _async_handle_refresh_devices(hass, SimpleNamespace(data={}))
+
+        assert result["success"] is True
+        assert result["refreshed_entries"] == 2
+        assert set(result["entry_ids"]) == {first.entry_id, second.entry_id}
+        first.runtime_data.async_refresh_devices.assert_awaited_once()
+        second.runtime_data.async_refresh_devices.assert_awaited_once()
+
+    async def test_refresh_devices_handler_filters_by_entry_id(self, hass) -> None:
+        """refresh_devices should refresh only the selected config entry."""
+        first = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        first.add_to_hass(hass)
+        first.runtime_data = MagicMock(async_refresh_devices=AsyncMock())
+
+        second = MockConfigEntry(domain=DOMAIN, data={"phone": "13900000000"})
+        second.add_to_hass(hass)
+        second.runtime_data = MagicMock(async_refresh_devices=AsyncMock())
+
+        result = await _async_handle_refresh_devices(
+            hass,
+            SimpleNamespace(data={ATTR_ENTRY_ID: second.entry_id}),
+        )
+
+        assert result["success"] is True
+        assert result["refreshed_entries"] == 1
+        assert result["entry_ids"] == [second.entry_id]
+        assert result["requested_entry_id"] == second.entry_id
+        first.runtime_data.async_refresh_devices.assert_not_awaited()
+        second.runtime_data.async_refresh_devices.assert_awaited_once()
+
+    async def test_refresh_devices_handler_unknown_entry_raises(self, hass) -> None:
+        """refresh_devices should raise translated validation error for bad entry_id."""
+        with pytest.raises(ServiceValidationError) as exc:
+            await _async_handle_refresh_devices(
+                hass,
+                SimpleNamespace(data={ATTR_ENTRY_ID: "missing_entry"}),
+            )
+
+        assert exc.value.translation_key == "entry_not_found"
+
+    async def test_device_registry_disable_enable_triggers_entry_reload(
+        self, hass
+    ) -> None:
+        """Lipro device disable/enable transitions should trigger config entry reload."""
+        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry.add_to_hass(hass)
+        entry.runtime_data = MagicMock()
+
+        with patch.object(
+            hass.config_entries,
+            "async_reload",
+            AsyncMock(return_value=True),
+        ) as mock_reload:
+            await async_setup(hass, {})
+
+            device_registry = dr.async_get(hass)
+            device_entry = device_registry.async_get_or_create(
+                config_entry_id=entry.entry_id,
+                identifiers={(DOMAIN, "03ab5ccd7c123456")},
+                manufacturer="Lipro",
+                name="Lipro Device",
+            )
+
+            device_registry.async_update_device(
+                device_entry.id,
+                disabled_by=dr.DeviceEntryDisabler.USER,
+            )
+            await hass.async_block_till_done()
+
+            device_registry.async_update_device(
+                device_entry.id,
+                disabled_by=None,
+            )
+            await hass.async_block_till_done()
+
+        assert mock_reload.await_count == 2
+        assert mock_reload.await_args_list[0].args == (entry.entry_id,)
+        assert mock_reload.await_args_list[1].args == (entry.entry_id,)
+
+    async def test_device_registry_listener_ignores_non_lipro_device_updates(
+        self, hass
+    ) -> None:
+        """Only Lipro devices with disabled_by changes should trigger reload."""
+        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry.add_to_hass(hass)
+        entry.runtime_data = MagicMock()
+
+        with patch.object(
+            hass.config_entries,
+            "async_reload",
+            AsyncMock(return_value=True),
+        ) as mock_reload:
+            await async_setup(hass, {})
+
+            device_registry = dr.async_get(hass)
+            non_lipro = device_registry.async_get_or_create(
+                config_entry_id=entry.entry_id,
+                identifiers={("other_domain", "dev-1")},
+                manufacturer="Other",
+                name="Other Device",
+            )
+            lipro = device_registry.async_get_or_create(
+                config_entry_id=entry.entry_id,
+                identifiers={(DOMAIN, "03ab5ccd7c999999")},
+                manufacturer="Lipro",
+                name="Lipro Device",
+            )
+
+            # Non-Lipro device: ignore even if disabled_by changed.
+            device_registry.async_update_device(
+                non_lipro.id,
+                disabled_by=dr.DeviceEntryDisabler.USER,
+            )
+            # Lipro device, but unrelated update: ignore.
+            device_registry.async_update_device(
+                lipro.id,
+                name="Renamed Lipro Device",
+            )
+            await hass.async_block_till_done()
+
+        mock_reload.assert_not_awaited()
+
+    async def test_async_unload_entry_removes_device_registry_listener(
+        self, hass
+    ) -> None:
+        """Device registry updates should stop reloading after the last unload."""
+        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry.add_to_hass(hass)
+        entry.runtime_data = MagicMock(async_shutdown=AsyncMock())
+
+        with patch.object(
+            hass.config_entries,
+            "async_reload",
+            AsyncMock(return_value=True),
+        ) as mock_reload:
+            await async_setup(hass, {})
+
+            device_registry = dr.async_get(hass)
+            device_entry = device_registry.async_get_or_create(
+                config_entry_id=entry.entry_id,
+                identifiers={(DOMAIN, "03ab5ccd7c111111")},
+                manufacturer="Lipro",
+                name="Lipro Device",
+            )
+
+            with patch.object(
+                hass.config_entries,
+                "async_unload_platforms",
+                AsyncMock(return_value=True),
+            ):
+                assert await async_unload_entry(hass, entry) is True
+
+            device_registry.async_update_device(
+                device_entry.id,
+                disabled_by=dr.DeviceEntryDisabler.USER,
+            )
+            await hass.async_block_till_done()
+
+        mock_reload.assert_not_awaited()
 
     async def test_get_device_from_entity_target(self, hass) -> None:
         """Resolve target entity unique_id to device serial."""

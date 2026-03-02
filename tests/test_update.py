@@ -300,9 +300,9 @@ async def test_update_entity_shared_ota_rows_cache_enforces_hard_size_cap(
 
     now = update_module.dt_util.utcnow()
     for idx in range(update_module._OTA_SHARED_ROWS_CACHE_MAX_ENTRIES + 3):
-        update_module._OTA_ROWS_CACHE[
-            (object(), f"type_{idx}", f"name_{idx}", idx)
-        ] = update_module._OtaRowsCacheEntry(time=now, rows=[])
+        update_module._OTA_ROWS_CACHE[(object(), f"type_{idx}", f"name_{idx}", idx)] = (
+            update_module._OtaRowsCacheEntry(time=now, rows=[])
+        )
 
     device = make_device(
         "light",

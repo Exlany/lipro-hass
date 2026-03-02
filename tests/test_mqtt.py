@@ -991,7 +991,10 @@ class TestConnectAndDecode:
 
     @pytest.mark.asyncio
     async def test_connect_and_listen_subscribes_and_processes_messages(self):
-        """Connect/listen should subscribe valid IDs, skip invalid ones, and process stream."""
+        """Connect/listen should subscribe valid IDs, skip invalid ones, and process stream.
+
+        Also verifies TLS context is cached across reconnects to avoid rebuilding it.
+        """
         on_connect = MagicMock()
         client = LiproMqttClient(
             access_key="access",
@@ -1005,8 +1008,10 @@ class TestConnectAndDecode:
         async def _messages():
             yield MagicMock(topic="Topic_Device_State/lip_biz001/valid_dev")
 
-        mqtt_client = AsyncMock()
-        mqtt_client.messages = _messages()
+        mqtt_client_1 = AsyncMock()
+        mqtt_client_1.messages = _messages()
+        mqtt_client_2 = AsyncMock()
+        mqtt_client_2.messages = _messages()
 
         with (
             patch(
@@ -1017,17 +1022,29 @@ class TestConnectAndDecode:
             ) as mock_client_cls,
             patch.object(client, "_process_message") as mock_process,
         ):
-            context_manager = AsyncMock()
-            context_manager.__aenter__.return_value = mqtt_client
-            context_manager.__aexit__.return_value = False
-            mock_client_cls.return_value = context_manager
+            context_manager_1 = AsyncMock()
+            context_manager_1.__aenter__.return_value = mqtt_client_1
+            context_manager_1.__aexit__.return_value = False
+            context_manager_2 = AsyncMock()
+            context_manager_2.__aenter__.return_value = mqtt_client_2
+            context_manager_2.__aexit__.return_value = False
+            mock_client_cls.side_effect = [context_manager_1, context_manager_2]
 
+            # Connect twice to simulate reconnects: TLS context should be reused.
+            await client._connect_and_listen()
             await client._connect_and_listen()
 
         mock_tls.assert_called_once()
-        on_connect.assert_called_once()
-        mqtt_client.subscribe.assert_called_once()
-        mock_process.assert_called_once()
+        assert mock_client_cls.call_count == 2
+        assert (
+            mock_client_cls.call_args_list[0].kwargs["tls_context"]
+            is mock_client_cls.call_args_list[1].kwargs["tls_context"]
+        )
+        assert mock_tls.return_value is mock_client_cls.call_args_list[0].kwargs["tls_context"]
+        assert on_connect.call_count == 2
+        mqtt_client_1.subscribe.assert_called_once()
+        mqtt_client_2.subscribe.assert_called_once()
+        assert mock_process.call_count == 2
         assert "bad/dev" not in client._subscribed_devices
         assert client.is_connected is True
 

@@ -5,11 +5,9 @@ from __future__ import annotations
 import asyncio
 from collections import deque
 from collections.abc import Coroutine, Mapping
-from dataclasses import dataclass
 from datetime import timedelta
 import hashlib
 import logging
-import math
 from time import monotonic
 from typing import TYPE_CHECKING, Any, Final, NoReturn
 
@@ -47,7 +45,6 @@ from ..const import (
     MAX_POWER_QUERY_INTERVAL,
     MAX_REQUEST_TIMEOUT,
     MAX_SCAN_INTERVAL,
-    MIN_COLOR_TEMP_KELVIN,
     MIN_POWER_QUERY_INTERVAL,
     MIN_REQUEST_TIMEOUT,
     MIN_SCAN_INTERVAL,
@@ -57,12 +54,9 @@ from ..const import (
     PROP_POSITION,
     PROP_TEMPERATURE,
 )
-from ..const.api import (
-    MAX_DEVICES_PER_QUERY,
-    MAX_MQTT_CACHE_SIZE,
-    MQTT_DISCONNECT_NOTIFY_THRESHOLD,
-)
+from ..const.api import MAX_DEVICES_PER_QUERY, MAX_MQTT_CACHE_SIZE
 from ..const.config import CONF_COMMAND_RESULT_VERIFY, DEFAULT_COMMAND_RESULT_VERIFY
+from ..helpers.coerce import coerce_bool_option, coerce_int_option
 from .anonymous_share import get_anonymous_share_manager
 from .api import (
     LiproApiError,
@@ -71,67 +65,99 @@ from .api import (
     LiproConnectionError,
     LiproRefreshTokenExpiredError,
 )
-from .background_task_manager import BackgroundTaskManager
-from .command_dispatch import execute_command_plan_with_trace
-from .command_result import (
+from .command.command_confirmation_tracker import CommandConfirmationTracker
+from .command.command_dispatch import execute_command_plan_with_trace
+from .command.command_expectation import (
+    PendingCommandExpectation as _PendingCommandExpectation,
+)
+from .command.command_result import (
     apply_missing_msg_sn_failure,
     apply_push_failure,
     apply_successful_command_trace,
     build_command_api_error_failure,
     classify_command_result_payload,
-    compute_adaptive_post_refresh_delay,
     extract_msg_sn,
     is_command_push_failed,
     poll_command_result_state,
     query_command_result_once,
-    resolve_delayed_refresh_delay,
     resolve_polled_command_result,
     run_delayed_refresh,
     should_skip_immediate_post_refresh,
 )
-from .command_trace import build_command_trace, update_trace_with_exception
-from .coordinator_runtime import (
-    should_refresh_device_list as should_refresh_device_list_runtime,
-    should_schedule_mqtt_setup,
-)
-from .developer_report import (
-    build_developer_report as build_coordinator_developer_report,
-)
+from .command.command_trace import build_command_trace, update_trace_with_exception
+from .command.post_command_refresh import schedule_post_command_refresh
 from .device import LiproDevice, parse_properties_list
-from .device_identity_index import DeviceIdentityIndex
-from .device_refresh import (
+from .device.device_identity_index import DeviceIdentityIndex
+from .device.device_refresh import (
+    DeviceFilterConfig,
     FetchedDeviceSnapshot,
+    build_device_filter_config,
     build_fetched_device_snapshot,
+    has_active_device_filter,
+    is_device_included_by_filter,
     plan_stale_device_reconciliation,
 )
-from .group_status import resolve_mesh_group_lookup_ids
-from .log_safety import safe_error_placeholder, summarize_properties_for_log
-from .mqtt import LiproMqttClient, decrypt_mqtt_credential
-from .mqtt_lifecycle import (
-    compute_relaxed_polling_seconds,
-    resolve_disconnect_notification_minutes,
-    resolve_disconnect_started_at,
+from .device.group_status import resolve_mesh_group_lookup_ids
+from .device.outlet_power import (
+    apply_outlet_power_info,
+    should_reraise_outlet_power_error,
 )
-from .mqtt_message import (
+from .mqtt import LiproMqttClient, decrypt_mqtt_credential
+from .mqtt.mqtt_message import (
+    DedupCacheKey,
     build_dedup_cache_key,
     cleanup_dedup_cache,
     compute_properties_hash,
     is_duplicate_within_window,
     is_online_connect_state,
 )
-from .mqtt_setup import (
+from .mqtt.mqtt_polling import resolve_base_scan_interval_seconds
+from .mqtt.mqtt_runtime import MqttRuntime
+from .mqtt.mqtt_setup import (
     build_mqtt_subscription_device_ids,
     extract_mqtt_encrypted_credentials,
     iter_mesh_group_serials,
     resolve_mqtt_biz_id,
 )
-from .mqtt_setup_backoff import MqttSetupBackoff
-from .outlet_power import apply_outlet_power_info, should_reraise_outlet_power_error
-from .redaction import redact_identifier as _redact_identifier
-from .status_strategy import (
+from .mqtt.mqtt_setup_backoff import MqttSetupBackoff
+from .runtime.connect_status_runtime import (
+    adapt_connect_status_stale_window as adapt_connect_status_stale_window_runtime,
+    resolve_connect_status_query_interval_seconds as resolve_connect_status_query_interval_seconds_runtime,
+)
+from .runtime.coordinator_runtime import (
+    should_refresh_device_list as should_refresh_device_list_runtime,
+    should_schedule_mqtt_setup,
+)
+from .runtime.group_lookup_runtime import compute_group_lookup_mapping_decision
+from .runtime.outlet_power_runtime import (
+    query_outlet_power as query_outlet_power_runtime,
+    query_single_outlet_power as query_single_outlet_power_runtime,
+    resolve_outlet_power_cycle_size as resolve_outlet_power_cycle_size_runtime,
+)
+from .runtime.product_config_runtime import (
+    apply_product_config as apply_product_config_runtime,
+    index_product_configs as index_product_configs_runtime,
+    match_product_config as match_product_config_runtime,
+)
+from .runtime.room_sync_runtime import (
+    normalize_room_name as normalize_room_name_runtime,
+    resolve_room_area_target_name as resolve_room_area_target_name_runtime,
+)
+from .runtime.state_batch_runtime import (
+    normalize_state_batch_metric,
+    summarize_recent_state_batch_metrics,
+)
+from .runtime.status_strategy import (
+    ConnectStatusQueryDecision,
     compute_adaptive_state_batch_size,
     resolve_connect_status_query_candidates,
 )
+from .utils.background_task_manager import BackgroundTaskManager
+from .utils.developer_report import (
+    build_developer_report as build_coordinator_developer_report,
+)
+from .utils.log_safety import safe_error_placeholder, summarize_properties_for_log
+from .utils.redaction import redact_identifier as _redact_identifier
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
@@ -209,37 +235,9 @@ _STATE_CONFIRM_TIMEOUT_SECONDS: Final[float] = 20.0
 # Keep the latest command traces in memory for debug diagnostics.
 _MAX_DEVELOPER_COMMAND_TRACES: Final[int] = 100
 
-
-@dataclass
-class _PendingCommandExpectation:
-    """Track pending command values until observed in status updates."""
-
-    sent_at: float
-    expected: dict[str, str]
-
-    def is_expired(self, now: float, timeout_seconds: float) -> bool:
-        """Return True when pending expectation exceeded timeout."""
-        return now - self.sent_at > timeout_seconds
-
-    def stale_keys(self, properties: dict[str, Any]) -> set[str]:
-        """Return keys that still conflict with expected values."""
-        return {
-            key
-            for key, value in properties.items()
-            if key in self.expected and str(value) != self.expected[key]
-        }
-
-    def observe(self, properties: dict[str, Any]) -> bool:
-        """Consume matching keys from an observed property update.
-
-        Returns True when all expected keys are confirmed.
-        """
-        for key in list(self.expected):
-            value = properties.get(key)
-            if value is not None and str(value) == self.expected[key]:
-                self.expected.pop(key, None)
-        return not self.expected
-
+# Cooldown for MQTT group online reconciliation refresh to avoid refresh storms
+# when connectState flaps or multiple sub-devices reconnect in bursts.
+_MQTT_GROUP_ONLINE_RECONCILE_COOLDOWN_SECONDS: Final[float] = 5.0
 
 _SLIDER_LIKE_PROPERTIES: Final[frozenset[str]] = frozenset(
     {
@@ -249,60 +247,6 @@ _SLIDER_LIKE_PROPERTIES: Final[frozenset[str]] = frozenset(
         PROP_POSITION,
     }
 )
-
-
-def _coerce_option_int(
-    value: Any,
-    *,
-    option_name: str,
-    default: int,
-    min_value: int | None = None,
-    max_value: int | None = None,
-) -> int:
-    """Coerce option value to int with fallback and clamp."""
-    try:
-        parsed = int(value)
-    except (TypeError, ValueError):
-        _LOGGER.warning(
-            "Invalid option %s=%r, using default %d",
-            option_name,
-            value,
-            default,
-        )
-        parsed = default
-
-    if min_value is not None:
-        parsed = max(min_value, parsed)
-    if max_value is not None:
-        parsed = min(max_value, parsed)
-    return parsed
-
-
-def _coerce_option_bool(
-    value: Any,
-    *,
-    option_name: str,
-    default: bool,
-) -> bool:
-    """Coerce option value to bool with fallback."""
-    if isinstance(value, bool):
-        return value
-    if isinstance(value, (int, float)):
-        return value != 0
-    if isinstance(value, str):
-        normalized = value.strip().lower()
-        if normalized in {"1", "true", "yes", "on"}:
-            return True
-        if normalized in {"0", "false", "no", "off", ""}:
-            return False
-
-    _LOGGER.warning(
-        "Invalid option %s=%r, using default %s",
-        option_name,
-        value,
-        default,
-    )
-    return default
 
 
 # HA version for anonymous share reporting
@@ -380,7 +324,7 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         self._product_configs_by_id: dict[int, dict[str, Any]] = {}
         self._product_configs: dict[str, dict[str, Any]] = {}
         # MQTT message deduplication cache: "device_id:hash" -> timestamp
-        self._mqtt_message_cache: dict[str, float] = {}
+        self._mqtt_message_cache: dict[DedupCacheKey, float] = {}
         # Deduplication window in seconds (ignore duplicate messages within this window)
         self._mqtt_dedup_window: float = 0.5
         # Last successful full device-list refresh timestamp.
@@ -408,11 +352,22 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         )
         # Flag to force device list re-fetch on next update
         self._force_device_refresh: bool = False
+        self._device_filter_config: DeviceFilterConfig = build_device_filter_config({})
+        self._device_filter_enabled: bool = False
         # MQTT disconnect tracking for user notification
         self._mqtt_disconnect_time: float | None = None
         self._mqtt_disconnect_notified: bool = False
+        self._mqtt_runtime: MqttRuntime | None = MqttRuntime(
+            self,
+            polling_multiplier=_MQTT_POLLING_MULTIPLIER,
+            connect_status_mqtt_stale_seconds=_CONNECT_STATUS_MQTT_STALE_SECONDS,
+            logger=_LOGGER,
+        )
         # Track per-device delayed refresh tasks for post-command consistency.
         self._post_command_refresh_tasks: dict[str, asyncio.Task[Any]] = {}
+        # Single-flight + cooldown for group-online MQTT reconciliation refresh.
+        self._mqtt_group_online_reconcile_task: asyncio.Task[Any] | None = None
+        self._mqtt_group_online_reconcile_last_at: float = 0.0
         # Background tasks created by coordinator; cancelled on shutdown.
         self._background_task_manager = BackgroundTaskManager(
             self.hass.async_create_task,
@@ -425,6 +380,14 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         self._pending_command_expectations: dict[str, _PendingCommandExpectation] = {}
         # Learned command->state confirmation latency (EWMA) per device.
         self._device_state_latency_seconds: dict[str, float] = {}
+        self._command_confirmation_tracker = CommandConfirmationTracker(
+            default_post_command_refresh_delay_seconds=_POST_COMMAND_REFRESH_DELAY_SECONDS,
+            min_post_command_refresh_delay_seconds=_MIN_POST_COMMAND_REFRESH_DELAY_SECONDS,
+            max_post_command_refresh_delay_seconds=_MAX_POST_COMMAND_REFRESH_DELAY_SECONDS,
+            state_latency_margin_seconds=_STATE_LATENCY_MARGIN_SECONDS,
+            state_latency_ewma_alpha=_STATE_LATENCY_EWMA_ALPHA,
+            state_confirm_timeout_seconds=_STATE_CONFIRM_TIMEOUT_SECONDS,
+        )
         # Track consecutive missing counts for safe stale-device cleanup
         self._missing_device_cycles: dict[str, int] = {}
         # Debug mode command traces (opt-in)
@@ -439,51 +402,64 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         options = self.config_entry.options if self.config_entry else {}
 
         # MQTT enabled
-        self._mqtt_enabled = _coerce_option_bool(
+        self._mqtt_enabled = coerce_bool_option(
             options.get(CONF_MQTT_ENABLED, DEFAULT_MQTT_ENABLED),
             option_name=CONF_MQTT_ENABLED,
             default=DEFAULT_MQTT_ENABLED,
+            logger=_LOGGER,
         )
 
         # Power monitoring
-        self._power_monitoring_enabled = _coerce_option_bool(
+        self._power_monitoring_enabled = coerce_bool_option(
             options.get(CONF_ENABLE_POWER_MONITORING, DEFAULT_ENABLE_POWER_MONITORING),
             option_name=CONF_ENABLE_POWER_MONITORING,
             default=DEFAULT_ENABLE_POWER_MONITORING,
+            logger=_LOGGER,
         )
-        self._power_query_interval = _coerce_option_int(
+        self._power_query_interval = coerce_int_option(
             options.get(CONF_POWER_QUERY_INTERVAL, DEFAULT_POWER_QUERY_INTERVAL),
             option_name=CONF_POWER_QUERY_INTERVAL,
             default=DEFAULT_POWER_QUERY_INTERVAL,
             min_value=MIN_POWER_QUERY_INTERVAL,
             max_value=MAX_POWER_QUERY_INTERVAL,
+            logger=_LOGGER,
         )
 
         # Request timeout
-        self._request_timeout = _coerce_option_int(
+        self._request_timeout = coerce_int_option(
             options.get(CONF_REQUEST_TIMEOUT, DEFAULT_REQUEST_TIMEOUT),
             option_name=CONF_REQUEST_TIMEOUT,
             default=DEFAULT_REQUEST_TIMEOUT,
             min_value=MIN_REQUEST_TIMEOUT,
             max_value=MAX_REQUEST_TIMEOUT,
+            logger=_LOGGER,
         )
 
         # Debug mode includes verbose logging and runtime command traces.
-        self._debug_mode = _coerce_option_bool(
+        self._debug_mode = coerce_bool_option(
             options.get(CONF_DEBUG_MODE, DEFAULT_DEBUG_MODE),
             option_name=CONF_DEBUG_MODE,
             default=DEFAULT_DEBUG_MODE,
+            logger=_LOGGER,
         )
-        self._room_area_sync_force = _coerce_option_bool(
+        self._room_area_sync_force = coerce_bool_option(
             options.get(CONF_ROOM_AREA_SYNC_FORCE, DEFAULT_ROOM_AREA_SYNC_FORCE),
             option_name=CONF_ROOM_AREA_SYNC_FORCE,
             default=DEFAULT_ROOM_AREA_SYNC_FORCE,
+            logger=_LOGGER,
         )
-        self._command_result_verify = _coerce_option_bool(
+        self._command_result_verify = coerce_bool_option(
             options.get(CONF_COMMAND_RESULT_VERIFY, DEFAULT_COMMAND_RESULT_VERIFY),
             option_name=CONF_COMMAND_RESULT_VERIFY,
             default=DEFAULT_COMMAND_RESULT_VERIFY,
+            logger=_LOGGER,
         )
+        self._device_filter_config = build_device_filter_config(options)
+        self._device_filter_enabled = has_active_device_filter(
+            self._device_filter_config
+        )
+        if self._device_filter_enabled:
+            _LOGGER.debug("Device filter enabled in options")
 
         if self._debug_mode:
             _LOGGER.debug("Debug mode enabled")
@@ -491,15 +467,17 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
     def _setup_anonymous_share(self) -> None:
         """Set up the anonymous share system based on config options."""
         options = self.config_entry.options if self.config_entry else {}
-        enabled = _coerce_option_bool(
+        enabled = coerce_bool_option(
             options.get(CONF_ANONYMOUS_SHARE_ENABLED, DEFAULT_ANONYMOUS_SHARE_ENABLED),
             option_name=CONF_ANONYMOUS_SHARE_ENABLED,
             default=DEFAULT_ANONYMOUS_SHARE_ENABLED,
+            logger=_LOGGER,
         )
-        errors = _coerce_option_bool(
+        errors = coerce_bool_option(
             options.get(CONF_ANONYMOUS_SHARE_ERRORS, DEFAULT_ANONYMOUS_SHARE_ERRORS),
             option_name=CONF_ANONYMOUS_SHARE_ERRORS,
             default=DEFAULT_ANONYMOUS_SHARE_ERRORS,
+            logger=_LOGGER,
         )
 
         # Generate anonymous installation ID from config entry ID
@@ -522,6 +500,35 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
             errors,
         )
 
+    def _reset_runtime_state(self) -> None:
+        """Clear runtime state to break circular references on shutdown."""
+        self._entities.clear()
+        self._entities_by_device.clear()
+        self._devices.clear()
+        self._device_by_id.clear()
+        self._product_configs_by_id.clear()
+        self._product_configs.clear()
+        self._command_traces.clear()
+        self._mqtt_message_cache.clear()
+        self._missing_device_cycles.clear()
+        self._pending_command_expectations.clear()
+        self._device_state_latency_seconds.clear()
+        self._last_device_refresh_at = 0.0
+        self._mqtt_group_online_reconcile_task = None
+        self._mqtt_group_online_reconcile_last_at = 0.0
+        self._mqtt_runtime = None
+
+    def _ensure_mqtt_runtime(self) -> MqttRuntime:
+        """Ensure extracted MQTT runtime helper is available."""
+        if self._mqtt_runtime is None:
+            self._mqtt_runtime = MqttRuntime(
+                self,
+                polling_multiplier=_MQTT_POLLING_MULTIPLIER,
+                connect_status_mqtt_stale_seconds=_CONNECT_STATUS_MQTT_STALE_SECONDS,
+                logger=_LOGGER,
+            )
+        return self._mqtt_runtime
+
     def _record_command_trace(self, trace: dict[str, Any]) -> None:
         """Record one command trace when debug mode is enabled."""
         if not self._debug_mode:
@@ -531,17 +538,26 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
 
     def _build_status_metrics_snapshot(self) -> dict[str, Any]:
         """Build current runtime status-query metrics snapshot."""
-        samples = list(self._state_batch_metrics)
-        sample_count = len(samples)
-        avg_batch_size = (
-            sum(item[0] for item in samples) / sample_count if sample_count else None
-        )
-        avg_duration_seconds = (
-            sum(item[1] for item in samples) / sample_count if sample_count else None
-        )
-        avg_fallback_depth = (
-            sum(item[2] for item in samples) / sample_count if sample_count else None
-        )
+        sample_count = len(self._state_batch_metrics)
+        avg_batch_size: float | None = None
+        avg_duration_seconds: float | None = None
+        avg_fallback_depth: float | None = None
+        if sample_count:
+            batch_size_sum = 0
+            duration_sum = 0.0
+            fallback_sum = 0
+            for (
+                batch_size,
+                duration_seconds,
+                fallback_depth,
+            ) in self._state_batch_metrics:
+                batch_size_sum += max(0, int(batch_size))
+                duration_sum += max(0.0, float(duration_seconds))
+                fallback_sum += max(0, int(fallback_depth))
+            avg_batch_size = batch_size_sum / sample_count
+            avg_duration_seconds = duration_sum / sample_count
+            avg_fallback_depth = fallback_sum / sample_count
+
         connect_decisions = len(self._connect_status_skip_history)
         connect_skip_ratio = (
             sum(self._connect_status_skip_history) / connect_decisions
@@ -600,7 +616,14 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
             device_serial = entity.device.serial
             entities = self._entities_by_device.setdefault(device_serial, [])
             # Guard against duplicate registration (e.g., during reload race)
-            if entity not in entities:
+            # using unique_id as the stable identity. If we see the same unique_id
+            # again, replace the instance in-place so unregister of the old object
+            # cannot remove the new one from the device index.
+            for idx, existing in enumerate(entities):
+                if existing.unique_id == entity.unique_id:
+                    entities[idx] = entity
+                    break
+            else:
                 entities.append(entity)
 
     def unregister_entity(self, entity: LiproEntity) -> None:
@@ -610,17 +633,22 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
             entity: The entity to unregister.
 
         """
-        if entity.unique_id and entity.unique_id in self._entities:
+        if not entity.unique_id:
+            return
+
+        if self._entities.get(entity.unique_id) is entity:
             del self._entities[entity.unique_id]
-            # Remove from device index
-            device_serial = entity.device.serial
-            if device_serial in self._entities_by_device:
-                entities = self._entities_by_device[device_serial]
-                self._entities_by_device[device_serial] = [
-                    e for e in entities if e.unique_id != entity.unique_id
-                ]
-                if not self._entities_by_device[device_serial]:
-                    del self._entities_by_device[device_serial]
+
+        # Remove from device index using object identity to avoid unregistering
+        # a stale entity instance removing a new instance with the same unique_id.
+        device_serial = entity.device.serial
+        if device_serial in self._entities_by_device:
+            entities = self._entities_by_device[device_serial]
+            self._entities_by_device[device_serial] = [
+                e for e in entities if e is not entity
+            ]
+            if not self._entities_by_device[device_serial]:
+                del self._entities_by_device[device_serial]
 
     def _get_protected_keys_for_device(self, device_serial: str) -> set[str]:
         """Get all protected property keys for a device.
@@ -682,20 +710,16 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         return old values. Keep optimistic keys stable by dropping mismatched
         values for pending keys until confirmed or timeout.
         """
-        pending = self._pending_command_expectations.get(device_serial)
-        if not pending:
-            return properties
-
-        now = monotonic()
-        if pending.is_expired(now, _STATE_CONFIRM_TIMEOUT_SECONDS):
-            self._pending_command_expectations.pop(device_serial, None)
-            return properties
-
-        blocked_keys = pending.stale_keys(properties)
+        filtered, blocked_keys = (
+            self._command_confirmation_tracker.filter_pending_command_mismatches(
+                pending_expectations=self._pending_command_expectations,
+                device_serial=device_serial,
+                properties=properties,
+            )
+        )
         if not blocked_keys:
-            return properties
+            return filtered
 
-        filtered = {k: v for k, v in properties.items() if k not in blocked_keys}
         _LOGGER.debug(
             "Skipping stale keys for device %s while command pending: %s",
             device_serial[:8] + "...",
@@ -710,24 +734,11 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         properties: list[dict[str, str]] | None,
     ) -> None:
         """Track expected CHANGE_STATE values for adaptive confirmation."""
-        if command.upper() != "CHANGE_STATE" or not properties:
-            self._pending_command_expectations.pop(device_serial, None)
-            return
-
-        expected: dict[str, str] = {}
-        for item in properties:
-            key = item.get("key")
-            value = item.get("value")
-            if isinstance(key, str):
-                expected[key] = str(value)
-
-        if not expected:
-            self._pending_command_expectations.pop(device_serial, None)
-            return
-
-        self._pending_command_expectations[device_serial] = _PendingCommandExpectation(
-            sent_at=monotonic(),
-            expected=expected,
+        self._command_confirmation_tracker.track_command_expectation(
+            pending_expectations=self._pending_command_expectations,
+            device_serial=device_serial,
+            command=command,
+            properties=properties,
         )
 
     def _update_state_latency(
@@ -736,18 +747,10 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         observed_latency: float,
     ) -> None:
         """Update per-device command->state latency EWMA."""
-        bounded = max(
-            _MIN_POST_COMMAND_REFRESH_DELAY_SECONDS,
-            min(_MAX_POST_COMMAND_REFRESH_DELAY_SECONDS, observed_latency),
-        )
-        previous = self._device_state_latency_seconds.get(device_serial)
-        if previous is None:
-            self._device_state_latency_seconds[device_serial] = bounded
-            return
-
-        alpha = _STATE_LATENCY_EWMA_ALPHA
-        self._device_state_latency_seconds[device_serial] = (
-            previous * (1 - alpha) + bounded * alpha
+        self._command_confirmation_tracker.update_state_latency(
+            device_state_latency_seconds=self._device_state_latency_seconds,
+            device_serial=device_serial,
+            observed_latency=observed_latency,
         )
 
     def _observe_command_confirmation(
@@ -756,21 +759,15 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         properties: dict[str, Any],
     ) -> None:
         """Observe property updates and confirm pending command expectations."""
-        pending = self._pending_command_expectations.get(device_serial)
-        if not pending:
+        latency = self._command_confirmation_tracker.observe_command_confirmation(
+            pending_expectations=self._pending_command_expectations,
+            device_state_latency_seconds=self._device_state_latency_seconds,
+            device_serial=device_serial,
+            properties=properties,
+        )
+        if latency is None:
             return
 
-        now = monotonic()
-        if pending.is_expired(now, _STATE_CONFIRM_TIMEOUT_SECONDS):
-            self._pending_command_expectations.pop(device_serial, None)
-            return
-
-        if not pending.observe(properties):
-            return
-
-        latency = now - pending.sent_at
-        self._update_state_latency(device_serial, latency)
-        self._pending_command_expectations.pop(device_serial, None)
         _LOGGER.debug(
             "Device %s: confirmed command state in %.2fs (adaptive delay=%.2fs)",
             device_serial[:8] + "...",
@@ -780,41 +777,31 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
 
     def _get_adaptive_post_refresh_delay(self, device_serial: str | None) -> float:
         """Get adaptive delayed-refresh value for a device."""
-        learned_latency = (
-            self._device_state_latency_seconds.get(device_serial)
-            if isinstance(device_serial, str)
-            else None
-        )
-        return compute_adaptive_post_refresh_delay(
-            learned_latency_seconds=learned_latency,
-            default_delay_seconds=_POST_COMMAND_REFRESH_DELAY_SECONDS,
-            latency_margin_seconds=_STATE_LATENCY_MARGIN_SECONDS,
-            min_delay_seconds=_MIN_POST_COMMAND_REFRESH_DELAY_SECONDS,
-            max_delay_seconds=_MAX_POST_COMMAND_REFRESH_DELAY_SECONDS,
+        return self._command_confirmation_tracker.get_adaptive_post_refresh_delay(
+            device_state_latency_seconds=self._device_state_latency_seconds,
+            device_serial=device_serial,
         )
 
     def _prune_runtime_state_for_devices(self, active_serials: set[str]) -> None:
         """Prune per-device runtime caches for removed devices."""
-        stale_pending = set(self._pending_command_expectations) - active_serials
-        for serial in stale_pending:
-            self._pending_command_expectations.pop(serial, None)
-
-        stale_latency = set(self._device_state_latency_seconds) - active_serials
-        for serial in stale_latency:
-            self._device_state_latency_seconds.pop(serial, None)
+        self._command_confirmation_tracker.prune_runtime_state_for_devices(
+            pending_expectations=self._pending_command_expectations,
+            device_state_latency_seconds=self._device_state_latency_seconds,
+            active_serials=active_serials,
+        )
 
         active_normalized = {
             self._normalize_device_key(serial)
             for serial in active_serials
             if isinstance(serial, str) and serial.strip()
         }
-        stale_mqtt_connect = (
-            set(self._last_mqtt_connect_state_at) - active_normalized
-        )
+        stale_mqtt_connect = set(self._last_mqtt_connect_state_at) - active_normalized
         for serial in stale_mqtt_connect:
             self._last_mqtt_connect_state_at.pop(serial, None)
 
-        stale_connect_priority = set(self._connect_status_priority_ids) - active_normalized
+        stale_connect_priority = (
+            set(self._connect_status_priority_ids) - active_normalized
+        )
         for serial in stale_connect_priority:
             self._connect_status_priority_ids.discard(serial)
 
@@ -845,13 +832,14 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         self._adapt_fan_gear_range(device, properties)
         device.update_properties(properties)
         self._observe_command_confirmation(device.serial, properties)
-        properties_summary = summarize_properties_for_log(properties)
-        _LOGGER.debug(
-            "Updated %s: count=%d keys=%s",
-            device.name,
-            properties_summary["count"],
-            properties_summary["keys"],
-        )
+        if _LOGGER.isEnabledFor(logging.DEBUG):
+            properties_summary = summarize_properties_for_log(properties)
+            _LOGGER.debug(
+                "Updated %s: count=%d keys=%s",
+                device.name,
+                properties_summary["count"],
+                properties_summary["keys"],
+            )
         return properties
 
     @staticmethod
@@ -925,7 +913,9 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
 
             if key == "error":
                 # Only allow safe, structured markers (e.g. "401" or "LiproAuthError(code=401)").
-                if (text.isdigit() and len(text) <= 6) or LiproDataUpdateCoordinator._is_safe_error_marker(text):
+                if (
+                    text.isdigit() and len(text) <= 6
+                ) or LiproDataUpdateCoordinator._is_safe_error_marker(text):
                     sanitized[key] = text
                 else:
                     sanitized[key] = "AuthError"
@@ -957,7 +947,9 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         code = inner.removeprefix("code=").strip()
         if not code or len(code) > 32:
             return False
-        allowed = set("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_.:")
+        allowed = set(
+            "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_.:"
+        )
         return all(ch in allowed for ch in code)
 
     @property
@@ -971,7 +963,7 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         return self._device_identity_index.mapping
 
     @_device_by_id.setter
-    def _device_by_id(self, mapping: Mapping[str, LiproDevice]) -> None:
+    def _device_by_id(self, mapping: Any) -> None:
         """Replace device identity mapping while preserving index semantics."""
         if isinstance(mapping, Mapping):
             self._device_identity_index.replace(mapping)
@@ -1178,18 +1170,7 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
             _LOGGER.warning("Failed to close API client on shutdown")
 
         # Clear all data structures to break circular references
-        self._entities.clear()
-        self._entities_by_device.clear()
-        self._devices.clear()
-        self._device_by_id.clear()
-        self._product_configs_by_id.clear()
-        self._product_configs.clear()
-        self._command_traces.clear()
-        self._mqtt_message_cache.clear()
-        self._missing_device_cycles.clear()
-        self._pending_command_expectations.clear()
-        self._device_state_latency_seconds.clear()
-        self._last_device_refresh_at = 0.0
+        self._reset_runtime_state()
 
         _LOGGER.debug("Coordinator shutdown complete")
 
@@ -1212,50 +1193,17 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
 
     def _on_mqtt_connect(self) -> None:
         """Handle MQTT connection."""
-        self._mqtt_connected = True
-        self._mqtt_disconnect_time = None
-        self._mqtt_disconnect_notified = False
-        self._connect_status_skip_history.clear()
         # Dismiss any previous disconnect issue
         async_delete_issue(self.hass, DOMAIN, "mqtt_disconnected")
-        # Reduce polling frequency when MQTT provides real-time updates
-        base = self._base_scan_interval
-        relaxed = compute_relaxed_polling_seconds(base, _MQTT_POLLING_MULTIPLIER)
-        self.update_interval = timedelta(seconds=relaxed)
-        _LOGGER.info("MQTT connected, polling interval relaxed to %ds", relaxed)
+        self._ensure_mqtt_runtime().on_connect()
 
     def _on_mqtt_disconnect(self) -> None:
         """Handle MQTT disconnection."""
-        self._mqtt_connected = False
-        self._mqtt_disconnect_time = resolve_disconnect_started_at(
-            self._mqtt_disconnect_time,
-            now=monotonic(),
-        )
-        self._connect_status_skip_history.clear()
-        self._connect_status_mqtt_stale_seconds = _CONNECT_STATUS_MQTT_STALE_SECONDS
-        self._force_connect_status_refresh = True
-        # Restore normal polling frequency
-        base = self._base_scan_interval
-        self.update_interval = timedelta(seconds=base)
-        _LOGGER.warning("MQTT disconnected, polling interval restored to %ds", base)
+        self._ensure_mqtt_runtime().on_disconnect()
 
     def _check_mqtt_disconnect_notification(self) -> None:
         """Send persistent notification if MQTT has been disconnected too long."""
-        minutes = resolve_disconnect_notification_minutes(
-            mqtt_enabled=self._mqtt_enabled,
-            mqtt_connected=self._mqtt_connected,
-            disconnect_started_at=self._mqtt_disconnect_time,
-            disconnect_notified=self._mqtt_disconnect_notified,
-            now=monotonic(),
-            threshold_seconds=MQTT_DISCONNECT_NOTIFY_THRESHOLD,
-        )
-        if minutes is None:
-            return
-
-        self._mqtt_disconnect_notified = True
-        self._track_background_task(
-            self._async_show_mqtt_disconnect_notification(minutes)
-        )
+        self._ensure_mqtt_runtime().check_disconnect_notification()
 
     async def _async_show_mqtt_disconnect_notification(self, minutes: int) -> None:
         """Create a repair issue for MQTT disconnect."""
@@ -1272,17 +1220,15 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
     @property
     def _base_scan_interval(self) -> int:
         """Get the configured base scan interval in seconds."""
-        if self.config_entry:
-            return _coerce_option_int(
-                self.config_entry.options.get(
-                    CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
-                ),
-                option_name=CONF_SCAN_INTERVAL,
-                default=DEFAULT_SCAN_INTERVAL,
-                min_value=MIN_SCAN_INTERVAL,
-                max_value=MAX_SCAN_INTERVAL,
-            )
-        return DEFAULT_SCAN_INTERVAL
+        options = self.config_entry.options if self.config_entry else None
+        return resolve_base_scan_interval_seconds(
+            options=options,
+            option_name=CONF_SCAN_INTERVAL,
+            default=DEFAULT_SCAN_INTERVAL,
+            min_value=MIN_SCAN_INTERVAL,
+            max_value=MAX_SCAN_INTERVAL,
+            logger=_LOGGER,
+        )
 
     def _on_mqtt_message(self, device_id: str, properties: dict[str, Any]) -> None:
         """Handle MQTT message with device status update.
@@ -1312,7 +1258,7 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
             return
 
         applied = self._apply_properties_update(device, properties)
-        self._after_mqtt_properties_applied(device, applied)
+        self._after_mqtt_properties_applied(device, applied, current_time=current_time)
 
     def _schedule_mqtt_listener_update(self) -> None:
         """Coalesce listener updates triggered by MQTT bursts."""
@@ -1385,10 +1331,41 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
             self._cleanup_mqtt_cache(current_time)
         return False
 
+    def _schedule_mqtt_group_online_reconciliation(
+        self, *, device_name: str, now: float
+    ) -> None:
+        """Schedule one REST refresh for group-online MQTT reconnect bursts."""
+        task = self._mqtt_group_online_reconcile_task
+        if task is not None and not task.done():
+            return
+
+        if (
+            self._mqtt_group_online_reconcile_last_at > 0
+            and now - self._mqtt_group_online_reconcile_last_at
+            < _MQTT_GROUP_ONLINE_RECONCILE_COOLDOWN_SECONDS
+        ):
+            return
+
+        self._mqtt_group_online_reconcile_last_at = now
+        _LOGGER.debug(
+            "MQTT: device %s online, scheduling REST API reconciliation",
+            device_name,
+        )
+        task = self._track_background_task(self.async_request_refresh())
+        self._mqtt_group_online_reconcile_task = task
+        task.add_done_callback(self._clear_mqtt_group_online_reconcile_task)
+
+    def _clear_mqtt_group_online_reconcile_task(self, task: asyncio.Task[Any]) -> None:
+        """Clear single-flight task handle once reconciliation completes."""
+        if task is self._mqtt_group_online_reconcile_task:
+            self._mqtt_group_online_reconcile_task = None
+
     def _after_mqtt_properties_applied(
         self,
         device: LiproDevice,
         properties: dict[str, Any],
+        *,
+        current_time: float | None = None,
     ) -> None:
         """Run post-update notifications and reconciliation scheduling hooks."""
         if not properties:
@@ -1403,16 +1380,16 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         # REST API refresh to reconcile state. In mesh groups, sub-devices
         # may reconnect with a different state than the group reports.
         connect_state = properties.get(PROP_CONNECT_STATE)
+        now = monotonic() if current_time is None else current_time
         if connect_state is not None:
             normalized = self._normalize_device_key(device.serial)
-            self._last_mqtt_connect_state_at[normalized] = monotonic()
+            self._last_mqtt_connect_state_at[normalized] = now
             self._connect_status_priority_ids.discard(normalized)
         if device.is_group and is_online_connect_state(connect_state):
-            _LOGGER.debug(
-                "MQTT: device %s online, scheduling REST API reconciliation",
-                device.name,
+            self._schedule_mqtt_group_online_reconciliation(
+                device_name=device.name,
+                now=now,
             )
-            self._track_background_task(self.async_request_refresh())
 
     def _cleanup_mqtt_cache(self, current_time: float) -> None:
         """Clean up stale MQTT dedup cache entries.
@@ -1457,6 +1434,11 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         """Clear auth-related repair issues once authentication is healthy."""
         async_delete_issue(self.hass, DOMAIN, "auth_expired")
         async_delete_issue(self.hass, DOMAIN, "auth_error")
+
+    async def _async_ensure_authenticated(self) -> None:
+        """Ensure a valid access token and clear stale auth issues."""
+        await self.auth_manager.ensure_valid_token()
+        self._clear_auth_issues()
 
     def _should_refresh_device_list(self) -> bool:
         """Return True when a full device-list refresh should run."""
@@ -1521,9 +1503,7 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
 
         """
         try:
-            # Ensure we have a valid token
-            await self.auth_manager.ensure_valid_token()
-            self._clear_auth_issues()
+            await self._async_ensure_authenticated()
 
             # Periodically refresh the full device list to discover newly paired devices.
             if self._should_refresh_device_list():
@@ -1543,13 +1523,12 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
 
             return self._devices
 
-        except LiproRefreshTokenExpiredError as err:
-            await self._raise_update_data_error(err)
-        except LiproAuthError as err:
-            await self._raise_update_data_error(err)
-        except LiproConnectionError as err:
-            await self._raise_update_data_error(err)
-        except LiproApiError as err:
+        except (
+            LiproRefreshTokenExpiredError,
+            LiproAuthError,
+            LiproConnectionError,
+            LiproApiError,
+        ) as err:
             await self._raise_update_data_error(err)
 
     async def _fetch_devices(self) -> None:
@@ -1559,7 +1538,12 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         previous_devices = self._devices
         previous_serials = set(previous_devices)
         devices_data = await self._fetch_all_device_pages()
-        snapshot = build_fetched_device_snapshot(devices_data)
+        snapshot = build_fetched_device_snapshot(
+            devices_data,
+            device_filter=self._device_row_passes_filter
+            if self._device_filter_enabled
+            else None,
+        )
         self._apply_fetched_device_snapshot(snapshot)
         self._sync_device_room_assignments(previous_devices)
         self._last_device_refresh_at = monotonic()
@@ -1570,6 +1554,10 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
 
         if self._mqtt_client and self._mqtt_connected:
             await self._sync_mqtt_subscriptions()
+
+    def _device_row_passes_filter(self, device_data: dict[str, Any]) -> bool:
+        """Return True when one raw device row passes configured filters."""
+        return is_device_included_by_filter(device_data, self._device_filter_config)
 
     def _schedule_reload_for_added_devices(self, previous_serials: set[str]) -> None:
         """Reload config entry when new devices are discovered after initial setup."""
@@ -1588,6 +1576,45 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         self._track_background_task(
             self.hass.config_entries.async_reload(self.config_entry.entry_id)
         )
+
+    @staticmethod
+    def _parse_device_list_page(
+        result: Any,
+        *,
+        limit: int,
+        logger: logging.Logger = _LOGGER,
+    ) -> tuple[list[dict[str, Any]], bool]:
+        """Parse one devices page payload from API.
+
+        Returns:
+            (devices, has_more)
+        """
+        if not isinstance(result, dict):
+            msg = (
+                "Malformed device list response: expected object, "
+                f"got {type(result).__name__}"
+            )
+            raise LiproApiError(msg)
+
+        raw_page = result.get("devices", [])
+        if raw_page is None:
+            raw_page = []
+        if not isinstance(raw_page, list):
+            msg = (
+                "Malformed device list payload: expected devices list, "
+                f"got {type(raw_page).__name__}"
+            )
+            raise LiproApiError(msg)
+
+        page = [item for item in raw_page if isinstance(item, dict)]
+        if len(page) != len(raw_page):
+            logger.debug(
+                "Skipping %d malformed device rows from API payload",
+                len(raw_page) - len(page),
+            )
+
+        has_more = len(raw_page) >= limit
+        return page, has_more
 
     async def _fetch_all_device_pages(self) -> list[dict[str, Any]]:
         """Fetch full device list from paginated API responses."""
@@ -1609,32 +1636,12 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
             )
             page_count += 1
 
-            if not isinstance(result, dict):
-                msg = (
-                    "Malformed device list response: expected object, "
-                    f"got {type(result).__name__}"
-                )
-                raise LiproApiError(msg)
-
-            raw_page = result.get("devices", [])
-            if raw_page is None:
-                raw_page = []
-            if not isinstance(raw_page, list):
-                msg = (
-                    "Malformed device list payload: expected devices list, "
-                    f"got {type(raw_page).__name__}"
-                )
-                raise LiproApiError(msg)
-
-            page = [item for item in raw_page if isinstance(item, dict)]
-            if len(page) != len(raw_page):
-                _LOGGER.debug(
-                    "Skipping %d malformed device rows from API payload",
-                    len(raw_page) - len(page),
-                )
-
+            page, has_more = self._parse_device_list_page(
+                result,
+                limit=MAX_DEVICES_PER_QUERY,
+            )
             devices_data.extend(page)
-            if len(raw_page) < MAX_DEVICES_PER_QUERY:
+            if not has_more:
                 return devices_data
             offset += MAX_DEVICES_PER_QUERY
 
@@ -1657,10 +1664,7 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
     @staticmethod
     def _normalize_room_name(room_name: str | None) -> str | None:
         """Normalize room names from cloud payloads to comparable values."""
-        if not isinstance(room_name, str):
-            return None
-        normalized = room_name.strip()
-        return normalized or None
+        return normalize_room_name_runtime(room_name)
 
     def _sync_device_room_assignments(
         self, previous_devices: dict[str, LiproDevice]
@@ -1707,26 +1711,24 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
 
             update_kwargs: dict[str, Any] = {"suggested_area": new_room_name}
             current_area_id = device_entry.area_id
-            if self._room_area_sync_force:
-                if new_room_name is None:
+            current_area_name: str | None = None
+            if not self._room_area_sync_force and current_area_id is not None:
+                current_area = area_registry.async_get_area(current_area_id)
+                if current_area is not None:
+                    current_area_name = self._normalize_room_name(current_area.name)
+
+            update_area, target_area_name = resolve_room_area_target_name_runtime(
+                room_area_sync_force=self._room_area_sync_force,
+                old_room_name=old_room_name,
+                new_room_name=new_room_name,
+                current_area_id=current_area_id,
+                current_area_name=current_area_name,
+            )
+            if update_area:
+                if target_area_name is None:
                     update_kwargs["area_id"] = None
                 else:
-                    update_kwargs["area_id"] = _get_area_id(new_room_name)
-            elif current_area_id is None:
-                if new_room_name is not None:
-                    update_kwargs["area_id"] = _get_area_id(new_room_name)
-            else:
-                current_area = area_registry.async_get_area(current_area_id)
-                current_area_name = (
-                    self._normalize_room_name(current_area.name)
-                    if current_area is not None
-                    else None
-                )
-                if current_area_name == old_room_name:
-                    if new_room_name is None:
-                        update_kwargs["area_id"] = None
-                    else:
-                        update_kwargs["area_id"] = _get_area_id(new_room_name)
+                    update_kwargs["area_id"] = _get_area_id(target_area_name)
 
             device_registry.async_update_device(device_entry.id, **update_kwargs)
             _LOGGER.debug(
@@ -1813,7 +1815,7 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
             configs = await self.client.get_product_configs()
             _LOGGER.debug("Loaded %d product configurations", len(configs))
 
-            configs_by_id, configs_by_iot_name = self._index_product_configs(configs)
+            configs_by_id, configs_by_iot_name = index_product_configs_runtime(configs)
             self._product_configs_by_id = configs_by_id
             self._product_configs = configs_by_iot_name
             self._apply_product_configs_to_devices(configs_by_id, configs_by_iot_name)
@@ -1837,33 +1839,6 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
             if matched_config:
                 self._apply_product_config(device, matched_config)
 
-    @staticmethod
-    def _coerce_int_or_zero(value: Any) -> int:
-        """Coerce mixed numeric payloads into int with safe fallback."""
-        try:
-            return int(value)
-        except (TypeError, ValueError):
-            return 0
-
-    def _index_product_configs(
-        self,
-        configs: list[dict[str, Any]],
-    ) -> tuple[dict[int, dict[str, Any]], dict[str, dict[str, Any]]]:
-        """Create lookup maps by product ID and fwIotName."""
-        configs_by_id: dict[int, dict[str, Any]] = {}
-        configs_by_iot_name: dict[str, dict[str, Any]] = {}
-
-        for config in configs:
-            config_id = self._coerce_int_or_zero(config.get("id"))
-            if config_id > 0:
-                configs_by_id[config_id] = config
-
-            fw_iot_name = config.get("fwIotName")
-            if isinstance(fw_iot_name, str) and fw_iot_name:
-                configs_by_iot_name[fw_iot_name.lower()] = config
-
-        return configs_by_id, configs_by_iot_name
-
     def _match_product_config(
         self,
         device: LiproDevice,
@@ -1871,29 +1846,12 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         configs_by_iot_name: dict[str, dict[str, Any]],
     ) -> dict[str, Any] | None:
         """Match one device to its best product config."""
-        if device.product_id:
-            matched = configs_by_id.get(device.product_id)
-            if matched:
-                _LOGGER.debug(
-                    "Device %s: matched config by productId=%d -> %s",
-                    device.name,
-                    device.product_id,
-                    matched.get("name"),
-                )
-                return matched
-
-        if device.iot_name:
-            matched = configs_by_iot_name.get(device.iot_name.lower())
-            if matched:
-                _LOGGER.debug(
-                    "Device %s: matched config by iotName=%s -> %s",
-                    device.name,
-                    device.iot_name,
-                    matched.get("name"),
-                )
-                return matched
-
-        return None
+        return match_product_config_runtime(
+            device,
+            configs_by_id=configs_by_id,
+            configs_by_iot_name=configs_by_iot_name,
+            logger=_LOGGER,
+        )
 
     def _apply_product_config(
         self,
@@ -1901,36 +1859,7 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         config: dict[str, Any],
     ) -> None:
         """Apply matched product-config overrides to runtime device model."""
-        min_temp = self._coerce_int_or_zero(config.get("minTemperature", 0))
-        max_temp = self._coerce_int_or_zero(config.get("maxTemperature", 0))
-        max_fan_gear = self._coerce_int_or_zero(config.get("maxFanGear", 0))
-
-        if max_temp > 0:
-            device.min_color_temp_kelvin = min_temp or MIN_COLOR_TEMP_KELVIN
-            device.max_color_temp_kelvin = max_temp
-            _LOGGER.debug(
-                "Device %s: color temp range %d-%d K",
-                device.name,
-                device.min_color_temp_kelvin,
-                device.max_color_temp_kelvin,
-            )
-        elif max_temp == 0 and min_temp == 0:
-            device.min_color_temp_kelvin = 0
-            device.max_color_temp_kelvin = 0
-            _LOGGER.debug(
-                "Device %s: single color temperature (no adjustment)",
-                device.name,
-            )
-
-        if max_fan_gear > 0:
-            device.default_max_fan_gear_in_model = max_fan_gear
-            device.max_fan_gear = max(device.max_fan_gear, max_fan_gear)
-            _LOGGER.debug(
-                "Device %s: fan gear baseline 1-%d, effective 1-%d",
-                device.name,
-                device.default_max_fan_gear_in_model,
-                device.max_fan_gear,
-            )
+        apply_product_config_runtime(device, config, logger=_LOGGER)
 
     async def _update_device_status(self) -> None:
         """Update status for all devices."""
@@ -1969,10 +1898,31 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
 
         force_refresh = self._force_connect_status_refresh
         now = monotonic()
+        decision = self._compute_connect_status_query_decision(
+            iot_ids=iot_ids,
+            force_refresh=force_refresh,
+            now=now,
+        )
+        self._apply_connect_status_query_decision(
+            decision,
+            force_refresh=force_refresh,
+            iot_ids=iot_ids,
+        )
+
+        return decision.query_ids
+
+    def _compute_connect_status_query_decision(
+        self,
+        *,
+        iot_ids: list[str],
+        force_refresh: bool,
+        now: float,
+    ) -> ConnectStatusQueryDecision:
+        """Compute connect-status query decision for the refresh tick."""
         query_interval_seconds = self._resolve_connect_status_query_interval_seconds(
             now,
         )
-        decision = resolve_connect_status_query_candidates(
+        return resolve_connect_status_query_candidates(
             iot_ids=iot_ids,
             force_refresh=force_refresh,
             mqtt_enabled=self._mqtt_enabled,
@@ -1985,6 +1935,15 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
             query_interval_seconds=query_interval_seconds,
             normalize=self._normalize_device_key,
         )
+
+    def _apply_connect_status_query_decision(
+        self,
+        decision: ConnectStatusQueryDecision,
+        *,
+        force_refresh: bool,
+        iot_ids: list[str],
+    ) -> None:
+        """Apply connect-status decision side effects to coordinator state."""
         self._last_connect_status_query_time = decision.next_last_query_time
 
         # Force-refresh flag should be consumed once candidates are evaluated.
@@ -1994,28 +1953,30 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         if decision.record_skip is not None:
             self._record_connect_status_decision(skipped=decision.record_skip)
         if decision.record_skip:
+            skip_ratio = (
+                sum(self._connect_status_skip_history)
+                / len(self._connect_status_skip_history)
+                if self._connect_status_skip_history
+                else 0.0
+            )
             _LOGGER.debug(
                 "Skipping connect-status query: MQTT connectState is fresh for all %d devices "
                 "(stale_window=%.1fs, skip_ratio=%.2f)",
                 len(iot_ids),
                 self._connect_status_mqtt_stale_seconds,
-                sum(self._connect_status_skip_history)
-                / len(self._connect_status_skip_history),
+                skip_ratio,
             )
-
-        return decision.query_ids
 
     def _resolve_connect_status_query_interval_seconds(self, now: float) -> float:
         """Resolve connect-status polling interval with MQTT degradation fallback."""
-        if not self._mqtt_enabled:
-            return _CONNECT_STATUS_QUERY_INTERVAL_SECONDS
-        if self._mqtt_connected:
-            return _CONNECT_STATUS_QUERY_INTERVAL_SECONDS
-        if self._mqtt_disconnect_time is not None:
-            return _CONNECT_STATUS_QUERY_INTERVAL_DEGRADED_SECONDS
-        if not self._mqtt_setup_backoff.should_attempt(now):
-            return _CONNECT_STATUS_QUERY_INTERVAL_DEGRADED_SECONDS
-        return _CONNECT_STATUS_QUERY_INTERVAL_SECONDS
+        return resolve_connect_status_query_interval_seconds_runtime(
+            mqtt_enabled=self._mqtt_enabled,
+            mqtt_connected=self._mqtt_connected,
+            mqtt_disconnect_time=self._mqtt_disconnect_time,
+            backoff_allows_attempt=self._mqtt_setup_backoff.should_attempt(now),
+            normal_interval_seconds=_CONNECT_STATUS_QUERY_INTERVAL_SECONDS,
+            degraded_interval_seconds=_CONNECT_STATUS_QUERY_INTERVAL_DEGRADED_SECONDS,
+        )
 
     def _record_connect_status_decision(self, *, skipped: bool) -> None:
         """Record one connect-status skip decision and tune stale window."""
@@ -2025,27 +1986,22 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
     def _adapt_connect_status_stale_window(self) -> None:
         """Adapt MQTT stale window based on recent connect skip ratio."""
         history = self._connect_status_skip_history
-        if len(history) < _CONNECT_STATUS_SKIP_RATIO_WINDOW:
-            return
-
-        skip_ratio = sum(history) / len(history)
         current = self._connect_status_mqtt_stale_seconds
-        updated = current
-        if skip_ratio < _CONNECT_STATUS_SKIP_RATIO_LOW:
-            updated = min(
-                _CONNECT_STATUS_MQTT_STALE_MAX_SECONDS,
-                current + _CONNECT_STATUS_STALE_ADJUST_STEP_SECONDS,
-            )
-        elif skip_ratio > _CONNECT_STATUS_SKIP_RATIO_HIGH:
-            updated = max(
-                _CONNECT_STATUS_MQTT_STALE_MIN_SECONDS,
-                current - _CONNECT_STATUS_STALE_ADJUST_STEP_SECONDS,
-            )
-
+        updated = adapt_connect_status_stale_window_runtime(
+            history=history,
+            current_stale_seconds=current,
+            window_size=_CONNECT_STATUS_SKIP_RATIO_WINDOW,
+            skip_ratio_low=_CONNECT_STATUS_SKIP_RATIO_LOW,
+            skip_ratio_high=_CONNECT_STATUS_SKIP_RATIO_HIGH,
+            adjust_step_seconds=_CONNECT_STATUS_STALE_ADJUST_STEP_SECONDS,
+            min_stale_seconds=_CONNECT_STATUS_MQTT_STALE_MIN_SECONDS,
+            max_stale_seconds=_CONNECT_STATUS_MQTT_STALE_MAX_SECONDS,
+        )
         if updated == current:
             return
 
         self._connect_status_mqtt_stale_seconds = updated
+        skip_ratio = sum(history) / len(history) if history else 0.0
         _LOGGER.debug(
             "Adaptive connect stale window changed: %.1fs -> %.1fs (skip_ratio=%.2f, window=%d)",
             current,
@@ -2086,7 +2042,11 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         fallback_depth: int,
     ) -> None:
         """Record one state-batch metric sample for runtime adaptation."""
-        sample = (batch_size, max(0.0, duration_seconds), max(0, fallback_depth))
+        sample = normalize_state_batch_metric(
+            batch_size,
+            duration_seconds,
+            fallback_depth,
+        )
         self._state_batch_metrics.append(sample)
         _LOGGER.debug(
             "State batch metric: size=%d duration=%.3fs fallback_depth=%d current_batch=%d",
@@ -2116,13 +2076,10 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         if updated == current:
             return
 
-        sample_count = min(
-            _STATE_STATUS_BATCH_METRICS_SAMPLE_SIZE,
-            len(self._state_batch_metrics),
+        avg_latency, max_depth, sample_count = summarize_recent_state_batch_metrics(
+            list(self._state_batch_metrics),
+            sample_size=_STATE_STATUS_BATCH_METRICS_SAMPLE_SIZE,
         )
-        recent = list(self._state_batch_metrics)[-sample_count:]
-        avg_latency = sum(item[1] for item in recent) / sample_count
-        max_depth = max(item[2] for item in recent)
 
         self._state_status_batch_size = updated
         _LOGGER.debug(
@@ -2144,8 +2101,10 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         if not device:
             return
 
-        properties = parse_properties_list(status_data.get("properties", []))
-        self._apply_properties_update(device, properties)
+        raw_properties = status_data.get("properties")
+        if raw_properties:
+            properties = parse_properties_list(raw_properties)
+            self._apply_properties_update(device, properties)
 
     async def _query_group_status(self) -> None:
         """Query status for mesh groups.
@@ -2191,8 +2150,10 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         self._apply_group_lookup_mappings(device, status_data)
 
         # Parse group-level properties (powerState, brightness, etc.)
-        properties = parse_properties_list(status_data.get("properties", []))
-        self._apply_properties_update(device, properties)
+        raw_properties = status_data.get("properties")
+        if raw_properties:
+            properties = parse_properties_list(raw_properties)
+            self._apply_properties_update(device, properties)
 
     def _apply_group_lookup_mappings(
         self,
@@ -2201,71 +2162,41 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
     ) -> None:
         """Update lookup IDs and group-member metadata for a mesh group device."""
         lookup_ids = resolve_mesh_group_lookup_ids(status_data)
-        previous_gateway_id = device.extra_data.get("gateway_device_id")
-        current_gateway_id = lookup_ids.gateway_id
-        if (
-            isinstance(previous_gateway_id, str)
-            and previous_gateway_id.strip()
-            and (
-                not isinstance(current_gateway_id, str)
-                or self._normalize_device_key(previous_gateway_id)
-                != self._normalize_device_key(current_gateway_id)
-            )
-        ):
+        decision = compute_group_lookup_mapping_decision(
+            previous_gateway_id=device.extra_data.get("gateway_device_id"),
+            current_gateway_id=lookup_ids.gateway_id,
+            previous_member_lookup_ids=device.extra_data.get("group_member_lookup_ids", []),
+            current_member_lookup_ids=lookup_ids.member_lookup_ids,
+            member_ids=lookup_ids.member_ids,
+        )
+        if decision.gateway_unregister_id:
             self._device_identity_index.unregister(
-                previous_gateway_id,
+                decision.gateway_unregister_id,
                 device=device,
             )
 
         # Save gateway device ID for API-level lookups
         # Note: MQTT messages use mesh_group_xxx topics, not gateway IDs
-        if lookup_ids.gateway_id:
-            device.extra_data["gateway_device_id"] = lookup_ids.gateway_id
+        if decision.gateway_extra_data_value:
+            device.extra_data["gateway_device_id"] = decision.gateway_extra_data_value
             # Map gateway ID -> device for API responses that reference it
-            self._device_identity_index.register(lookup_ids.gateway_id, device)
+            self._device_identity_index.register(decision.gateway_extra_data_value, device)
         else:
             device.extra_data.pop("gateway_device_id", None)
 
-        previous_member_lookup_ids = self._index_lookup_ids_by_normalized(
-            device.extra_data.get("group_member_lookup_ids", []),
-        )
-        current_member_lookup_ids = self._index_lookup_ids_by_normalized(
-            lookup_ids.member_lookup_ids,
-        )
-        stale_member_norms = set(previous_member_lookup_ids) - set(
-            current_member_lookup_ids,
-        )
-        for stale_norm in stale_member_norms:
+        for stale_lookup_id in decision.member_unregister_ids:
             self._device_identity_index.unregister(
-                previous_member_lookup_ids[stale_norm],
+                stale_lookup_id,
                 device=device,
             )
 
         # Map group member IDs -> group device. Real API control often accepts
         # group-level commands only, so member IDs should resolve to the group.
-        for member_lookup_id in current_member_lookup_ids.values():
+        for member_lookup_id in decision.member_register_ids:
             self._device_identity_index.register(member_lookup_id, device)
-        device.extra_data["group_member_ids"] = lookup_ids.member_ids
-        device.extra_data["group_member_lookup_ids"] = list(
-            current_member_lookup_ids.values(),
-        )
-        device.extra_data["group_member_count"] = len(lookup_ids.member_ids)
-
-    @staticmethod
-    def _index_lookup_ids_by_normalized(lookup_ids: list[Any] | Any) -> dict[str, str]:
-        """Index lookup IDs by normalized key while preserving first-seen value."""
-        if not isinstance(lookup_ids, list):
-            return {}
-        indexed: dict[str, str] = {}
-        for lookup_id in lookup_ids:
-            if not isinstance(lookup_id, str):
-                continue
-            stripped = lookup_id.strip()
-            if not stripped:
-                continue
-            normalized = stripped.lower()
-            indexed.setdefault(normalized, stripped)
-        return indexed
+        device.extra_data["group_member_ids"] = decision.member_ids_extra_data
+        device.extra_data["group_member_lookup_ids"] = decision.member_lookup_ids_extra_data
+        device.extra_data["group_member_count"] = decision.member_count
 
     async def _query_outlet_power(self) -> None:
         """Query power information for outlet devices.
@@ -2275,62 +2206,33 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         per-device power data. Queries run with bounded concurrency to reduce
         rate-limit pressure and avoid event-loop spikes with many outlets.
         """
-        if not self._outlet_ids_to_query:
-            return
-
-        device_ids = list(self._outlet_ids_to_query)
-        if not device_ids:
-            return
-
-        # For a small number of outlets, keep prior behavior: query all in one cycle.
-        max_devices = self._resolve_outlet_power_cycle_size(len(device_ids))
-        if len(device_ids) > max_devices:
-            start = self._outlet_power_round_robin_index % len(device_ids)
-            end = start + max_devices
-            if end <= len(device_ids):
-                device_ids = device_ids[start:end]
-            else:
-                device_ids = device_ids[start:] + device_ids[: end % len(device_ids)]
-            self._outlet_power_round_robin_index = (
-                start + max_devices
-            ) % len(self._outlet_ids_to_query)
-        batch_size = min(_OUTLET_POWER_QUERY_CONCURRENCY, len(device_ids))
-        for start in range(0, len(device_ids), batch_size):
-            await asyncio.gather(
-                *(
-                    self._query_single_outlet_power(did)
-                    for did in device_ids[start : start + batch_size]
-                ),
-            )
+        self._outlet_power_round_robin_index = await query_outlet_power_runtime(
+            outlet_ids_to_query=self._outlet_ids_to_query,
+            round_robin_index=self._outlet_power_round_robin_index,
+            resolve_cycle_size=self._resolve_outlet_power_cycle_size,
+            query_single_outlet_power=self._query_single_outlet_power,
+            concurrency=_OUTLET_POWER_QUERY_CONCURRENCY,
+        )
 
     @staticmethod
     def _resolve_outlet_power_cycle_size(total_devices: int) -> int:
         """Resolve per-cycle outlet power query size with bounded dynamic scaling."""
-        if total_devices <= 0:
-            return 0
-        static_limit = min(total_devices, _OUTLET_POWER_QUERY_MAX_DEVICES_PER_CYCLE)
-        dynamic_limit = math.ceil(total_devices / _OUTLET_POWER_TARGET_FULL_CYCLE_COUNT)
-        return min(total_devices, max(static_limit, dynamic_limit))
+        return resolve_outlet_power_cycle_size_runtime(
+            total_devices,
+            max_devices_per_cycle=_OUTLET_POWER_QUERY_MAX_DEVICES_PER_CYCLE,
+            target_full_cycle_count=_OUTLET_POWER_TARGET_FULL_CYCLE_COUNT,
+        )
 
     async def _query_single_outlet_power(self, device_id: str) -> None:
         """Query and apply power info for one outlet device."""
-        try:
-            power_data = await self.client.fetch_outlet_power_info([device_id])
-            if not power_data:
-                return
-            device = self.get_device_by_id(device_id)
-            if device is not None and apply_outlet_power_info(device, power_data):
-                _LOGGER.debug(
-                    "Updated power info for %s: nowPower=%s",
-                    device.name,
-                    power_data.get("nowPower"),
-                )
-        except LiproApiError as err:
-            # Auth/connection errors must bubble up so _async_update_data can
-            # trigger reauth or mark update failed.
-            if should_reraise_outlet_power_error(err):
-                raise
-            _LOGGER.debug("Failed to query power for %s: %s", device_id, err)
+        await query_single_outlet_power_runtime(
+            device_id=device_id,
+            fetch_outlet_power_info=self.client.fetch_outlet_power_info,
+            get_device_by_id=self.get_device_by_id,
+            apply_outlet_power_info=apply_outlet_power_info,
+            should_reraise_outlet_power_error=should_reraise_outlet_power_error,
+            logger=_LOGGER,
+        )
 
     async def _query_connect_status(self, device_ids: list[str] | None = None) -> None:
         """Query real-time connection status for devices.
@@ -2338,7 +2240,9 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         This provides more accurate online/offline status than the cached
         connectState property from device status queries.
         """
-        query_ids = list(device_ids) if device_ids is not None else self._iot_ids_to_query
+        query_ids = (
+            list(device_ids) if device_ids is not None else self._iot_ids_to_query
+        )
         if not query_ids:
             return
 
@@ -2593,8 +2497,7 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         route = "device_direct"
 
         try:
-            await self.auth_manager.ensure_valid_token()
-            self._clear_auth_issues()
+            await self._async_ensure_authenticated()
 
             success, route = await self._execute_command_flow(
                 device=device,
@@ -2668,47 +2571,17 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         skip_immediate: bool = False,
         device_serial: str | None = None,
     ) -> None:
-        """Schedule command-result refreshes with optional delayed fallback.
-
-        Immediate refresh updates state quickly when backend is already consistent.
-        Delayed refresh covers eventual-consistency lag for REST polling setups.
-        """
-        if not skip_immediate:
-            self._track_background_task(self.async_request_refresh())
-
-        delay_seconds = resolve_delayed_refresh_delay(
+        """Schedule immediate refresh and optional delayed refresh after a command."""
+        schedule_post_command_refresh(
+            track_background_task=self._track_background_task,
+            request_refresh=self.async_request_refresh,
+            post_command_refresh_tasks=self._post_command_refresh_tasks,
             mqtt_connected=self._mqtt_connected,
             device_serial=device_serial,
             pending_expectations=self._pending_command_expectations,
             get_adaptive_post_refresh_delay=self._get_adaptive_post_refresh_delay,
+            skip_immediate=skip_immediate,
         )
-        if delay_seconds is None:
-            return
-
-        refresh_key = device_serial or ""
-        previous_task = self._post_command_refresh_tasks.get(refresh_key)
-        if previous_task and not previous_task.done():
-            previous_task.cancel()
-
-        delayed_task = self._track_background_task(
-            self._async_delayed_command_refresh(delay_seconds),
-        )
-        self._post_command_refresh_tasks[refresh_key] = delayed_task
-        delayed_task.add_done_callback(
-            lambda finished_task, key=refresh_key: self._on_post_command_refresh_task_done(
-                key,
-                finished_task,
-            )
-        )
-
-    def _on_post_command_refresh_task_done(
-        self,
-        refresh_key: str,
-        finished_task: asyncio.Task[Any],
-    ) -> None:
-        """Clear per-device delayed-refresh handle when task completes."""
-        if self._post_command_refresh_tasks.get(refresh_key) is finished_task:
-            self._post_command_refresh_tasks.pop(refresh_key, None)
 
     async def _async_delayed_command_refresh(self, delay_seconds: float) -> None:
         """Run one delayed refresh after command to absorb API status lag."""

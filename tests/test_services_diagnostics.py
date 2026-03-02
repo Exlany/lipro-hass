@@ -68,7 +68,9 @@ def test_collect_developer_reports_mixed_coordinator_outcomes(
     expected_reports: list[dict[str, Any]],
 ) -> None:
     """collect_developer_reports should keep successful entries only."""
-    coordinators = [_build_report_coordinator(behavior) for behavior in coordinator_behaviors]
+    coordinators = [
+        _build_report_coordinator(behavior) for behavior in coordinator_behaviors
+    ]
     # Should be ignored when capability is unavailable.
     coordinators.insert(1, MagicMock(spec=[]))
 
@@ -117,7 +119,9 @@ async def test_async_handle_get_city_mixed_coordinator_outcomes(
     expected_raise_error_code: int | None,
 ) -> None:
     """get_city should degrade per coordinator and decide final outcome by capability semantics."""
-    coordinators = [_build_city_coordinator(behavior) for behavior in coordinator_behaviors]
+    coordinators = [
+        _build_city_coordinator(behavior) for behavior in coordinator_behaviors
+    ]
     raise_optional_error = MagicMock(side_effect=RuntimeError("service error"))
 
     if expected_raise_error_code is not None:

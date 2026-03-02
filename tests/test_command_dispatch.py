@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock
 import pytest
 
 from custom_components.lipro.core.api import LiproApiError
-from custom_components.lipro.core.command_dispatch import (
+from custom_components.lipro.core.command.command_dispatch import (
     CommandDispatchPlan,
     execute_command_dispatch,
     normalize_group_power_command,
