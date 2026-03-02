@@ -39,6 +39,8 @@ from .core.ota_utils import (
 from .entities.base import LiproEntity
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from homeassistant.core import HomeAssistant
     from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
@@ -55,6 +57,8 @@ _TIME_MIN_UTC = datetime.min.replace(tzinfo=UTC)
 _FIRMWARE_SUPPORT_MANIFEST = "firmware_support_manifest.json"
 _OTA_REFRESH_CONCURRENCY = 3
 _OTA_REFRESH_SEMAPHORE = asyncio.Semaphore(_OTA_REFRESH_CONCURRENCY)
+_OTA_SHARED_ROWS_CACHE_TTL = timedelta(minutes=10)
+_OTA_SHARED_ROWS_CACHE_MAX_ENTRIES = 256
 _REMOTE_MANIFEST_CACHE_TTL = timedelta(minutes=30)
 _REMOTE_MANIFEST_TIMEOUT_SECONDS = 5
 _REMOTE_FIRMWARE_SUPPORT_URLS = (
@@ -114,6 +118,7 @@ _OTA_MATCH_SCORE_PHYSICAL_MODEL_EXACT = 2
 _OTA_MATCH_SCORE_HAS_VERSION = 1
 
 type _RemoteManifestData = tuple[frozenset[str], dict[str, frozenset[str]]]
+type _OtaRowsCacheKey = tuple[object, str, str, int]
 
 
 @dataclass(slots=True)
@@ -137,6 +142,41 @@ class _InstallCommand:
 
     command: str
     properties: list[dict[str, str]] | None
+
+
+@dataclass(slots=True)
+class _OtaRowsCacheEntry:
+    """Shared OTA rows cache entry for model-scoped lookups."""
+
+    time: datetime
+    rows: list[dict[str, Any]]
+
+
+_OTA_ROWS_CACHE: dict[_OtaRowsCacheKey, _OtaRowsCacheEntry] = {}
+_OTA_ROWS_INFLIGHT: dict[_OtaRowsCacheKey, asyncio.Task[list[dict[str, Any]]]] = {}
+_OTA_ROWS_CACHE_LOCK = asyncio.Lock()
+
+
+def _prune_ota_rows_cache(now: datetime) -> None:
+    """Prune OTA shared cache by TTL and hard size cap."""
+    stale_keys = [
+        key
+        for key, entry in _OTA_ROWS_CACHE.items()
+        if now - entry.time >= _OTA_SHARED_ROWS_CACHE_TTL
+    ]
+    for stale_key in stale_keys:
+        _OTA_ROWS_CACHE.pop(stale_key, None)
+
+    overflow = len(_OTA_ROWS_CACHE) - _OTA_SHARED_ROWS_CACHE_MAX_ENTRIES
+    if overflow <= 0:
+        return
+
+    oldest_items = sorted(
+        _OTA_ROWS_CACHE.items(),
+        key=lambda item: item[1].time,
+    )[:overflow]
+    for cache_key, _ in oldest_items:
+        _OTA_ROWS_CACHE.pop(cache_key, None)
 
 
 @dataclass(slots=True)
@@ -241,18 +281,26 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
         self,
         coordinator: LiproDataUpdateCoordinator,
         device: LiproDevice,
+        on_error: Callable[[Exception], None] | None = None,
     ) -> None:
         """Initialize firmware update entity."""
         super().__init__(coordinator, device, self._entity_suffix)
         self._ota_candidate: _OtaCandidate | None = None
         self._last_ota_refresh = _TIME_MIN_UTC
         self._ota_refresh_task: asyncio.Task[None] | None = None
+        self._on_error = on_error
+        self._last_error: Exception | None = None
         self._unverified_confirm_until = 0.0
         self._remote_verified_versions: frozenset[str] = frozenset()
         self._remote_versions_by_type: dict[str, frozenset[str]] = {}
         self._attr_installed_version = device.firmware_version
         self._attr_latest_version = device.firmware_version
         self._attr_in_progress = False
+
+    @property
+    def last_error(self) -> Exception | None:
+        """Return the last background OTA refresh exception, if any."""
+        return self._last_error
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
@@ -266,6 +314,9 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
 
         if self._last_ota_refresh != _TIME_MIN_UTC:
             attrs["ota_checked_at"] = self._last_ota_refresh.isoformat()
+        if self._last_error is not None:
+            attrs["last_error"] = str(self._last_error)
+            attrs["last_error_type"] = type(self._last_error).__name__
         return attrs
 
     async def async_added_to_hass(self) -> None:
@@ -373,21 +424,125 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
 
         task = self.hass.async_create_task(self._async_refresh_ota(force=force))
         self._ota_refresh_task = task
-        task.add_done_callback(self._async_clear_refresh_task)
+        task.add_done_callback(self._async_finalize_refresh_task)
+
+    def _async_finalize_refresh_task(self, task: asyncio.Task[None]) -> None:
+        """Finalize background OTA refresh task with observable error state."""
+        if self._ota_refresh_task is task:
+            self._ota_refresh_task = None
+
+        err = self._async_clear_refresh_task(task)
+        if err is None:
+            return
+
+        self._set_last_error(err)
+        self.async_write_ha_state()
 
     @staticmethod
-    def _async_clear_refresh_task(task: asyncio.Task[None]) -> None:
+    def _async_clear_refresh_task(task: asyncio.Task[None]) -> Exception | None:
         """Consume task exception to avoid warning logs."""
         try:
             task.result()
         except asyncio.CancelledError:
-            return
+            return None
         except Exception as err:  # noqa: BLE001
             _LOGGER.debug("Background OTA refresh task failed: %s", err)
+            return err
+        return None
+
+    def _set_last_error(self, err: Exception) -> None:
+        """Persist last async exception and notify optional observer."""
+        self._last_error = err
+        if self._on_error is None:
+            return
+        try:
+            self._on_error(err)
+        except Exception as callback_err:
+            _LOGGER.exception(
+                "OTA error callback failed (%s)",
+                type(callback_err).__name__,
+            )
+
+    def _clear_last_error(self) -> None:
+        """Clear persisted async exception state."""
+        self._last_error = None
 
     def _should_refresh_ota(self) -> bool:
         """Return True when OTA metadata is stale."""
         return dt_util.utcnow() - self._last_ota_refresh >= _OTA_REFRESH_INTERVAL
+
+    def _ota_rows_cache_key(self) -> _OtaRowsCacheKey:
+        """Build a shared OTA rows cache key scoped by model-like identifiers."""
+        return (
+            self.coordinator.client,
+            self.device.device_type_hex.lower(),
+            str(self.device.iot_name or "").strip().lower(),
+            int(self.device.product_id or 0),
+        )
+
+    def _is_ota_rows_cache_fresh(self, entry: _OtaRowsCacheEntry, now: datetime) -> bool:
+        """Return whether a shared OTA cache entry is still valid."""
+        return now - entry.time < _OTA_SHARED_ROWS_CACHE_TTL
+
+    def _selected_row_is_for_other_device(self, row: dict[str, Any] | None) -> bool:
+        """Return True when selected row explicitly targets a different device."""
+        if not isinstance(row, dict):
+            return False
+        expected = self.device.serial.strip().lower()
+        for key in _SERIAL_KEYS:
+            raw = row.get(key)
+            if not isinstance(raw, str):
+                continue
+            value = raw.strip().lower()
+            if not value:
+                continue
+            return value != expected
+        return False
+
+    async def _query_ota_rows_from_cloud(self) -> list[dict[str, Any]]:
+        """Query OTA rows once and normalize unknown payload variants."""
+        rows = await self.coordinator.client.query_ota_info(
+            device_id=self.device.serial,
+            device_type=self.device.device_type_hex,
+        )
+        return rows if isinstance(rows, list) else []
+
+    async def _query_ota_rows_with_shared_cache(self) -> tuple[list[dict[str, Any]], bool]:
+        """Query OTA rows with model-scoped shared cache and in-flight dedup."""
+        cache_key = self._ota_rows_cache_key()
+        now = dt_util.utcnow()
+        cached = _OTA_ROWS_CACHE.get(cache_key)
+        if cached and self._is_ota_rows_cache_fresh(cached, now):
+            return cached.rows, True
+
+        creator = False
+        task: asyncio.Task[list[dict[str, Any]]]
+        async with _OTA_ROWS_CACHE_LOCK:
+            now = dt_util.utcnow()
+            cached = _OTA_ROWS_CACHE.get(cache_key)
+            if cached and self._is_ota_rows_cache_fresh(cached, now):
+                return cached.rows, True
+
+            task = _OTA_ROWS_INFLIGHT.get(cache_key)
+            if task is None:
+                task = asyncio.create_task(self._query_ota_rows_from_cloud())
+                _OTA_ROWS_INFLIGHT[cache_key] = task
+                creator = True
+
+        try:
+            rows = await task
+        finally:
+            if creator:
+                async with _OTA_ROWS_CACHE_LOCK:
+                    _OTA_ROWS_INFLIGHT.pop(cache_key, None)
+
+        async with _OTA_ROWS_CACHE_LOCK:
+            _OTA_ROWS_CACHE[cache_key] = _OtaRowsCacheEntry(
+                time=dt_util.utcnow(),
+                rows=rows,
+            )
+            _prune_ota_rows_cache(dt_util.utcnow())
+        return rows, False
 
     async def _async_refresh_ota(self, *, force: bool) -> None:
         """Refresh OTA metadata from cloud."""
@@ -396,17 +551,31 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
 
         async with _OTA_REFRESH_SEMAPHORE:
             try:
-                rows = await self.coordinator.client.query_ota_info(
-                    device_id=self.device.serial,
-                    device_type=self.device.device_type_hex,
-                )
+                rows, from_cache = await self._query_ota_rows_with_shared_cache()
             except LiproApiError as err:
                 _LOGGER.debug(
                     "Failed to refresh OTA info for %s: %s",
                     self.device.serial,
                     err,
                 )
+                self._set_last_error(err)
+                self.async_write_ha_state()
                 return
+
+            row = self._select_best_ota_row(rows)
+            if from_cache and self._selected_row_is_for_other_device(row):
+                try:
+                    rows = await self._query_ota_rows_from_cloud()
+                except LiproApiError as err:
+                    _LOGGER.debug(
+                        "Failed to refresh OTA info for %s after cache mismatch: %s",
+                        self.device.serial,
+                        err,
+                    )
+                    self._set_last_error(err)
+                    self.async_write_ha_state()
+                    return
+                row = self._select_best_ota_row(rows)
 
             if self.hass is not None:
                 (
@@ -414,9 +583,9 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
                     self._remote_versions_by_type,
                 ) = await _load_remote_firmware_manifest(self.hass)
 
-            row = self._select_best_ota_row(rows)
             self._ota_candidate = self._build_ota_candidate(row)
             self._apply_ota_candidate()
+            self._clear_last_error()
             self._last_ota_refresh = dt_util.utcnow()
             self.async_write_ha_state()
 

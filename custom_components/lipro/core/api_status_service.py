@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 from collections.abc import Awaitable, Callable
+from time import monotonic
 from typing import Any
 
 type MappingPayload = dict[str, Any]
@@ -14,6 +15,33 @@ type IoTRequest = Callable[[str, MappingPayload], Awaitable[Any]]
 type IsRetriableDeviceError = Callable[[Exception], bool]
 type CoerceConnectStatus = Callable[[Any], bool]
 type SanitizeIoTDeviceIds = Callable[..., list[str]]
+type RecordFallbackDepth = Callable[[int], None]
+type RecordStatusBatchMetric = Callable[[int, float, int], None]
+
+_SMALL_SUBSET_BATCH_QUERY_THRESHOLD = 4
+_SMALL_SUBSET_BATCH_SIZE = 2
+# Keep state batches below cloud timeout-sensitive sizes observed in field tests.
+_STATE_QUERY_SOFT_MAX_BATCH_SIZE = 64
+
+
+def _resolve_device_status_batch_size(
+    *,
+    total_devices: int,
+    max_devices_per_query: int,
+) -> int:
+    """Resolve an effective batch size for state queries.
+
+    Strategy:
+    - Respect caller-provided hard cap.
+    - Keep large-fleet state batches under a softer ceiling to avoid long-tail
+      latency and timeout amplification when payload grows linearly.
+    """
+    hard_cap = max(1, max_devices_per_query)
+    if total_devices <= 0:
+        return hard_cap
+    if total_devices <= hard_cap <= _STATE_QUERY_SOFT_MAX_BATCH_SIZE:
+        return total_devices
+    return min(total_devices, hard_cap, _STATE_QUERY_SOFT_MAX_BATCH_SIZE)
 
 
 def _log_batch_query_fallback(
@@ -60,7 +88,7 @@ async def _query_items_by_binary_split(
     lipro_api_error: type[Exception],
     normalize_response_code: NormalizeResponseCode,
     logger: Any,
-) -> tuple[MappingRows, int, dict[str, int]]:
+) -> tuple[MappingRows, int, dict[str, int], int]:
     """Query items by recursively splitting failing batches.
 
     This is a divide-and-conquer fallback that isolates problematic IDs while
@@ -69,18 +97,67 @@ async def _query_items_by_binary_split(
     all_results: MappingRows = []
     failed_single_queries = 0
     single_error_codes: dict[str, int] = {}
+    max_fallback_depth = 0
 
     if not ids:
-        return all_results, failed_single_queries, single_error_codes
+        return all_results, failed_single_queries, single_error_codes, max_fallback_depth
 
     # Bound total in-flight API calls to avoid event-loop spikes.
     max_concurrency = min(5, len(ids))
     semaphore = asyncio.Semaphore(max_concurrency)
 
-    async def _query_subset(subset: list[str]) -> None:
+    def _record_single_failure(err: Exception, item_id: str) -> None:
         nonlocal failed_single_queries
+        normalized = normalize_response_code(getattr(err, "code", None))
+        single_code = str(normalized) if normalized is not None else "unknown"
+        logger.debug(
+            "Failed to query %s %s: %s (code=%s, endpoint=%s)",
+            item_name,
+            item_id,
+            err,
+            single_code,
+            path,
+        )
+        failed_single_queries += 1
+        single_error_codes[single_code] = single_error_codes.get(single_code, 0) + 1
 
+    async def _query_single(item_id: str) -> None:
+        try:
+            async with semaphore:
+                result = await iot_request(path, {body_key: [item_id]})
+            rows = extract_data_list(result)
+            if rows:
+                all_results.extend(rows)
+        except lipro_api_error as err:
+            if not is_retriable_device_error(err):
+                raise
+            _record_single_failure(err, item_id)
+
+    async def _query_small_subset(subset: list[str]) -> None:
+        if len(subset) <= 2:
+            await asyncio.gather(*(_query_single(item_id) for item_id in subset))
+            return
+
+        for start in range(0, len(subset), _SMALL_SUBSET_BATCH_SIZE):
+            batch = subset[start : start + _SMALL_SUBSET_BATCH_SIZE]
+            try:
+                async with semaphore:
+                    result = await iot_request(path, {body_key: batch})
+                rows = extract_data_list(result)
+                if rows:
+                    all_results.extend(rows)
+            except lipro_api_error as err:
+                if not is_retriable_device_error(err):
+                    raise
+                await asyncio.gather(*(_query_single(item_id) for item_id in batch))
+
+    async def _query_subset(subset: list[str], depth: int) -> None:
+        nonlocal max_fallback_depth
         if not subset:
+            return
+        max_fallback_depth = max(max_fallback_depth, depth)
+        if len(subset) <= _SMALL_SUBSET_BATCH_QUERY_THRESHOLD:
+            await _query_small_subset(subset)
             return
 
         try:
@@ -94,39 +171,15 @@ async def _query_items_by_binary_split(
             if not is_retriable_device_error(err):
                 raise
 
-            if len(subset) == 1:
-                normalized = normalize_response_code(getattr(err, "code", None))
-                single_code = str(normalized) if normalized is not None else "unknown"
-                logger.debug(
-                    "Failed to query %s %s: %s (code=%s, endpoint=%s)",
-                    item_name,
-                    subset[0],
-                    err,
-                    single_code,
-                    path,
-                )
-                failed_single_queries += 1
-                single_error_codes[single_code] = (
-                    single_error_codes.get(single_code, 0) + 1
-                )
-                return
-
             mid = len(subset) // 2
             await asyncio.gather(
-                _query_subset(subset[:mid]),
-                _query_subset(subset[mid:]),
+                _query_subset(subset[:mid], depth + 1),
+                _query_subset(subset[mid:], depth + 1),
             )
 
-    if len(ids) == 1:
-        await _query_subset(ids)
-    else:
-        mid = len(ids) // 2
-        await asyncio.gather(
-            _query_subset(ids[:mid]),
-            _query_subset(ids[mid:]),
-        )
+    await _query_subset(ids, 1)
 
-    return all_results, failed_single_queries, single_error_codes
+    return all_results, failed_single_queries, single_error_codes, max_fallback_depth
 
 
 def _log_empty_fallback_summary(
@@ -173,10 +226,13 @@ async def query_with_fallback(
     normalize_response_code: NormalizeResponseCode,
     expected_offline_codes: tuple[int | str, ...],
     logger: Any,
+    record_fallback_depth: RecordFallbackDepth | None = None,
 ) -> MappingRows:
     """Query API with fallback to individual queries on retriable device errors."""
     try:
         result = await iot_request(path, {body_key: ids})
+        if record_fallback_depth is not None:
+            record_fallback_depth(0)
         return extract_data_list(result)
     except lipro_api_error as err:
         if not is_retriable_device_error(err):
@@ -194,6 +250,7 @@ async def query_with_fallback(
             all_results,
             failed_single_queries,
             single_error_codes,
+            max_fallback_depth,
         ) = await _query_items_by_binary_split(
             path=path,
             body_key=body_key,
@@ -206,6 +263,8 @@ async def query_with_fallback(
             normalize_response_code=normalize_response_code,
             logger=logger,
         )
+        if record_fallback_depth is not None:
+            record_fallback_depth(max_fallback_depth)
         _log_empty_fallback_summary(
             path=path,
             item_name=item_name,
@@ -231,37 +290,46 @@ async def query_device_status(
     expected_offline_codes: tuple[int | str, ...],
     logger: Any,
     path_query_device_status: str,
+    on_batch_metric: RecordStatusBatchMetric | None = None,
 ) -> MappingRows:
     """Query status of multiple devices with batch fallback behavior."""
     if not device_ids:
         return []
 
-    batches = [
-        device_ids[i : i + max_devices_per_query]
-        for i in range(0, len(device_ids), max_devices_per_query)
-    ]
-    if len(batches) == 1:
-        return await query_with_fallback(
-            path=path_query_device_status,
-            body_key="deviceIdList",
-            ids=batches[0],
-            item_name="device",
-            iot_request=iot_request,
-            extract_data_list=extract_data_list,
-            is_retriable_device_error=is_retriable_device_error,
-            lipro_api_error=lipro_api_error,
-            normalize_response_code=normalize_response_code,
-            expected_offline_codes=expected_offline_codes,
-            logger=logger,
+    effective_batch_size = _resolve_device_status_batch_size(
+        total_devices=len(device_ids),
+        max_devices_per_query=max_devices_per_query,
+    )
+    if (
+        effective_batch_size != max_devices_per_query
+        and len(device_ids) > effective_batch_size
+    ):
+        logger.debug(
+            "Adaptive state batch size applied: total=%d configured=%d effective=%d",
+            len(device_ids),
+            max_devices_per_query,
+            effective_batch_size,
         )
+
+    batches = [
+        device_ids[i : i + effective_batch_size]
+        for i in range(0, len(device_ids), effective_batch_size)
+    ]
 
     # Keep batch concurrency small to avoid rate limits with many devices.
     max_concurrency = min(3, len(batches))
     semaphore = asyncio.Semaphore(max_concurrency)
 
     async def _query_batch(batch: list[str]) -> MappingRows:
+        fallback_depth = 0
+
+        def _record_fallback_depth(depth: int) -> None:
+            nonlocal fallback_depth
+            fallback_depth = max(fallback_depth, depth)
+
+        started_at = monotonic()
         async with semaphore:
-            return await query_with_fallback(
+            rows = await query_with_fallback(
                 path=path_query_device_status,
                 body_key="deviceIdList",
                 ids=batch,
@@ -273,7 +341,18 @@ async def query_device_status(
                 normalize_response_code=normalize_response_code,
                 expected_offline_codes=expected_offline_codes,
                 logger=logger,
+                record_fallback_depth=_record_fallback_depth,
             )
+        if on_batch_metric is not None:
+            on_batch_metric(
+                len(batch),
+                max(0.0, monotonic() - started_at),
+                fallback_depth,
+            )
+        return rows
+
+    if len(batches) == 1:
+        return await _query_batch(batches[0])
 
     results = await asyncio.gather(*(_query_batch(batch) for batch in batches))
     all_results: MappingRows = []

@@ -17,8 +17,12 @@ def extract_device_id_from_entity_ids(
     *,
     serial_pattern: Any,
 ) -> str | None:
-    """Resolve the first Lipro device ID from entity targets."""
+    """Resolve one Lipro device ID from entity targets.
+
+    Returns None when no target can be resolved or targets are ambiguous.
+    """
     ent_reg = er.async_get(hass)
+    matched_serials: set[str] = set()
     for entity_id in entity_ids:
         entity_entry = ent_reg.async_get(entity_id)
         if not entity_entry or not entity_entry.unique_id:
@@ -30,8 +34,10 @@ def extract_device_id_from_entity_ids(
 
         match = serial_pattern.match(unique_id[6:])
         if match:
-            return cast(str, match.group(1))
+            matched_serials.add(cast(str, match.group(1)))
 
+    if len(matched_serials) == 1:
+        return next(iter(matched_serials))
     return None
 
 
@@ -56,6 +62,11 @@ def resolve_device_id_from_service_call(
         raise ServiceValidationError(
             translation_domain=domain,
             translation_key="no_device_specified",
+        )
+    if len(entity_ids) != 1:
+        raise ServiceValidationError(
+            translation_domain=domain,
+            translation_key="cannot_determine_device",
         )
 
     resolved_device_id = extract_device_id_from_entity_ids(

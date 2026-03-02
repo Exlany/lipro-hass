@@ -179,6 +179,162 @@ async def test_update_entity_parses_latest_and_certified(mock_coordinator, make_
 
 
 @pytest.mark.asyncio
+async def test_update_entity_reuses_shared_ota_rows_cache_for_same_model(
+    mock_coordinator, make_device
+):
+    """Entities with same model key should share one OTA cloud query."""
+    from custom_components.lipro import update as update_module
+    from custom_components.lipro.update import LiproFirmwareUpdateEntity
+
+    update_module._OTA_ROWS_CACHE.clear()
+    update_module._OTA_ROWS_INFLIGHT.clear()
+
+    dev_a = make_device(
+        "light",
+        serial="03ab5ccd7c111111",
+        properties={"version": "1.0.0"},
+    )
+    dev_b = make_device(
+        "light",
+        serial="03ab5ccd7c222222",
+        properties={"version": "1.0.0"},
+    )
+    mock_coordinator.devices = {dev_a.serial: dev_a, dev_b.serial: dev_b}
+    mock_coordinator.get_device = MagicMock(
+        side_effect=lambda serial: mock_coordinator.devices.get(serial)
+    )
+    mock_coordinator.client = MagicMock()
+    mock_coordinator.client.query_ota_info = AsyncMock(
+        return_value=[
+            {
+                "deviceType": dev_a.device_type_hex,
+                "latestVersion": "1.1.0",
+                "certified": True,
+            }
+        ]
+    )
+
+    ent_a = LiproFirmwareUpdateEntity(mock_coordinator, dev_a)
+    ent_b = LiproFirmwareUpdateEntity(mock_coordinator, dev_b)
+    ent_a.async_write_ha_state = MagicMock()
+    ent_b.async_write_ha_state = MagicMock()
+
+    await ent_a.async_update()
+    await ent_b.async_update()
+
+    assert ent_a.latest_version == "1.1.0"
+    assert ent_b.latest_version == "1.1.0"
+    assert mock_coordinator.client.query_ota_info.await_count == 1
+
+
+@pytest.mark.asyncio
+async def test_update_entity_cache_row_for_other_device_falls_back_to_direct_query(
+    mock_coordinator, make_device
+):
+    """Cached serial-specific row should trigger direct query for another device."""
+    from custom_components.lipro import update as update_module
+    from custom_components.lipro.update import LiproFirmwareUpdateEntity
+
+    update_module._OTA_ROWS_CACHE.clear()
+    update_module._OTA_ROWS_INFLIGHT.clear()
+
+    dev_a = make_device(
+        "light",
+        serial="03ab5ccd7c111111",
+        properties={"version": "1.0.0"},
+    )
+    dev_b = make_device(
+        "light",
+        serial="03ab5ccd7c222222",
+        properties={"version": "1.0.0"},
+    )
+    mock_coordinator.devices = {dev_a.serial: dev_a, dev_b.serial: dev_b}
+    mock_coordinator.get_device = MagicMock(
+        side_effect=lambda serial: mock_coordinator.devices.get(serial)
+    )
+    mock_coordinator.client = MagicMock()
+    mock_coordinator.client.query_ota_info = AsyncMock(
+        side_effect=[
+            [
+                {
+                    "deviceId": dev_a.serial,
+                    "deviceType": dev_a.device_type_hex,
+                    "latestVersion": "1.1.0",
+                    "certified": True,
+                }
+            ],
+            [
+                {
+                    "deviceId": dev_b.serial,
+                    "deviceType": dev_b.device_type_hex,
+                    "latestVersion": "1.2.0",
+                    "certified": True,
+                }
+            ],
+        ]
+    )
+
+    ent_a = LiproFirmwareUpdateEntity(mock_coordinator, dev_a)
+    ent_b = LiproFirmwareUpdateEntity(mock_coordinator, dev_b)
+    ent_a.async_write_ha_state = MagicMock()
+    ent_b.async_write_ha_state = MagicMock()
+
+    await ent_a.async_update()
+    await ent_b.async_update()
+
+    assert ent_a.latest_version == "1.1.0"
+    assert ent_b.latest_version == "1.2.0"
+    assert mock_coordinator.client.query_ota_info.await_count == 2
+
+
+@pytest.mark.asyncio
+async def test_update_entity_shared_ota_rows_cache_enforces_hard_size_cap(
+    mock_coordinator, make_device
+):
+    """Shared OTA rows cache should enforce max entries even when all are fresh."""
+    from custom_components.lipro import update as update_module
+    from custom_components.lipro.update import LiproFirmwareUpdateEntity
+
+    update_module._OTA_ROWS_CACHE.clear()
+    update_module._OTA_ROWS_INFLIGHT.clear()
+
+    now = update_module.dt_util.utcnow()
+    for idx in range(update_module._OTA_SHARED_ROWS_CACHE_MAX_ENTRIES + 3):
+        update_module._OTA_ROWS_CACHE[
+            (object(), f"type_{idx}", f"name_{idx}", idx)
+        ] = update_module._OtaRowsCacheEntry(time=now, rows=[])
+
+    device = make_device(
+        "light",
+        serial="03ab5ccd7c111111",
+        properties={"version": "1.0.0"},
+    )
+    mock_coordinator.devices = {device.serial: device}
+    mock_coordinator.get_device = MagicMock(return_value=device)
+    mock_coordinator.client = MagicMock()
+    mock_coordinator.client.query_ota_info = AsyncMock(
+        return_value=[
+            {
+                "deviceType": device.device_type_hex,
+                "latestVersion": "1.1.0",
+                "certified": True,
+            }
+        ]
+    )
+
+    entity = LiproFirmwareUpdateEntity(mock_coordinator, device)
+    entity.async_write_ha_state = MagicMock()
+
+    await entity.async_update()
+
+    assert (
+        len(update_module._OTA_ROWS_CACHE)
+        == update_module._OTA_SHARED_ROWS_CACHE_MAX_ENTRIES
+    )
+    assert entity._ota_rows_cache_key() in update_module._OTA_ROWS_CACHE
+
+
+@pytest.mark.asyncio
 async def test_update_entity_installs_certified_firmware(mock_coordinator, make_device):
     """Certified firmware should install directly."""
     from custom_components.lipro.update import LiproFirmwareUpdateEntity

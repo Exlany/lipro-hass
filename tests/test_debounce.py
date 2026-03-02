@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import asyncio
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, Mock
 
 import pytest
 
@@ -81,6 +81,54 @@ class TestDebouncer:
 
         # Should have been called (exception logged but not raised)
         mock_func.assert_called_once()
+        assert isinstance(debouncer.last_error, ValueError)
+        assert str(debouncer.last_error) == "Test error"
+
+    @pytest.mark.asyncio
+    async def test_debounce_error_callback_invoked(self):
+        """Debouncer should surface failures via optional error callback."""
+        err_callback = Mock()
+        mock_func = AsyncMock(side_effect=RuntimeError("boom"))
+        debouncer = Debouncer(delay=0.05, on_error=err_callback)
+
+        await debouncer.async_call(mock_func)
+        await asyncio.sleep(0.1)
+
+        err_callback.assert_called_once()
+        callback_err = err_callback.call_args[0][0]
+        assert isinstance(callback_err, RuntimeError)
+        assert str(callback_err) == "boom"
+
+    @pytest.mark.asyncio
+    async def test_debounce_clears_last_error_after_success(self):
+        """A successful execution should clear previously stored error."""
+        err_callback = Mock()
+        failing = AsyncMock(side_effect=ValueError("first"))
+        success = AsyncMock()
+        debouncer = Debouncer(delay=0.05, on_error=err_callback)
+
+        await debouncer.async_call(failing)
+        await asyncio.sleep(0.1)
+        assert isinstance(debouncer.last_error, ValueError)
+
+        await debouncer.async_call(success)
+        await asyncio.sleep(0.1)
+
+        assert debouncer.last_error is None
+
+    @pytest.mark.asyncio
+    async def test_debounce_error_callback_failure_is_suppressed(self):
+        """Error callback exceptions should not leak as task failures."""
+        callback = Mock(side_effect=RuntimeError("callback boom"))
+        mock_func = AsyncMock(side_effect=ValueError("func boom"))
+        debouncer = Debouncer(delay=0.05, on_error=callback)
+
+        await debouncer.async_call(mock_func)
+        await asyncio.sleep(0.1)
+
+        callback.assert_called_once()
+        assert isinstance(debouncer.last_error, ValueError)
+        assert str(debouncer.last_error) == "func boom"
 
     @pytest.mark.asyncio
     async def test_debounce_default_delay(self):

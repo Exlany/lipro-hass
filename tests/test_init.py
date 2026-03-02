@@ -506,6 +506,8 @@ class TestSchemaValidation:
         assert result["msg_sn"] == "123"
         with pytest.raises(vol.MultipleInvalid):
             SERVICE_QUERY_COMMAND_RESULT_SCHEMA({})
+        with pytest.raises(vol.MultipleInvalid):
+            SERVICE_QUERY_COMMAND_RESULT_SCHEMA({"msg_sn": "bad.msg.sn"})
 
     def test_fetch_sensor_history_schema_validation(self):
         """Test fetch sensor history schema validates fields and defaults mesh_type."""
@@ -516,6 +518,12 @@ class TestSchemaValidation:
         assert result["mesh_type"] == "2"
         with pytest.raises(vol.MultipleInvalid):
             SERVICE_FETCH_SENSOR_HISTORY_SCHEMA({})
+        with pytest.raises(vol.MultipleInvalid):
+            SERVICE_FETCH_SENSOR_HISTORY_SCHEMA({"sensor_device_id": "invalid"})
+        with pytest.raises(vol.MultipleInvalid):
+            SERVICE_FETCH_SENSOR_HISTORY_SCHEMA(
+                {"sensor_device_id": "03ab5ccd7caaaaaa", "mesh_type": "3"}
+            )
 
     def test_summarize_service_properties_masks_values(self):
         """Service properties summary should expose keys/count, not raw values."""
@@ -836,6 +844,36 @@ class TestInitRuntimeBehavior:
         assert got_device is device
         assert got_coordinator is coordinator
 
+    async def test_get_device_from_multiple_entity_targets_raises(self, hass) -> None:
+        """Reject multi-target entity service calls to avoid ambiguous routing."""
+        device = self._create_device()
+        coordinator = MagicMock()
+        coordinator.get_device.return_value = device
+
+        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry.add_to_hass(hass)
+        entry.runtime_data = coordinator
+
+        entity_registry = er.async_get(hass)
+        entity_1 = entity_registry.async_get_or_create(
+            "light",
+            DOMAIN,
+            f"lipro_{device.serial}_light",
+            suggested_object_id="lipro_test_device_1",
+        ).entity_id
+        entity_2 = entity_registry.async_get_or_create(
+            "switch",
+            DOMAIN,
+            f"lipro_{device.serial}_switch",
+            suggested_object_id="lipro_test_device_2",
+        ).entity_id
+
+        with pytest.raises(ServiceValidationError):
+            await _get_device_and_coordinator(
+                hass,
+                SimpleNamespace(data={ATTR_ENTITY_ID: [entity_1, entity_2]}),
+            )
+
     async def test_get_device_falls_back_to_get_device_by_id(self, hass) -> None:
         """Fallback to coordinator alias lookup when serial lookup misses."""
         device = self._create_device(serial="mesh_group_10001")
@@ -942,6 +980,32 @@ class TestInitRuntimeBehavior:
         }
         coordinator.build_developer_report.assert_called_once()
 
+    async def test_get_developer_report_skips_broken_entry(self, hass) -> None:
+        """get_developer_report should skip one broken coordinator report."""
+        broken = MagicMock()
+        broken.build_developer_report.side_effect = RuntimeError("boom")
+        healthy = MagicMock()
+        healthy.build_developer_report.return_value = {"debug_mode": False}
+
+        entry_1 = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry_1.add_to_hass(hass)
+        entry_1.runtime_data = broken
+
+        entry_2 = MockConfigEntry(domain=DOMAIN, data={"phone": "13900000000"})
+        entry_2.add_to_hass(hass)
+        entry_2.runtime_data = healthy
+
+        result = await _async_handle_get_developer_report(
+            hass, SimpleNamespace(data={})
+        )
+
+        assert result == {
+            "entry_count": 1,
+            "reports": [{"debug_mode": False}],
+        }
+        broken.build_developer_report.assert_called_once()
+        healthy.build_developer_report.assert_called_once()
+
     async def test_query_command_result_service(self, hass) -> None:
         """query_command_result service should call client with device context."""
         device = self._create_device(serial="mesh_group_49155")
@@ -984,6 +1048,48 @@ class TestInitRuntimeBehavior:
 
         result = await _async_handle_get_city(hass, SimpleNamespace(data={}))
         assert result == {"result": {"province": "广东省", "city": "江门市"}}
+
+    async def test_get_city_service_falls_back_to_next_coordinator(self, hass) -> None:
+        """get_city should continue to next coordinator when one fails."""
+        first = MagicMock()
+        first.client.get_city = AsyncMock(
+            side_effect=LiproApiError("temporary failure", code=500)
+        )
+        second = MagicMock()
+        second.client.get_city = AsyncMock(
+            return_value={"province": "广东省", "city": "深圳市"}
+        )
+
+        entry_1 = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry_1.add_to_hass(hass)
+        entry_1.runtime_data = first
+
+        entry_2 = MockConfigEntry(domain=DOMAIN, data={"phone": "13900000000"})
+        entry_2.add_to_hass(hass)
+        entry_2.runtime_data = second
+
+        result = await _async_handle_get_city(hass, SimpleNamespace(data={}))
+        assert result == {"result": {"province": "广东省", "city": "深圳市"}}
+
+    async def test_get_city_service_skips_unexpected_error(self, hass) -> None:
+        """get_city should skip unexpected coordinator errors and continue."""
+        first = MagicMock()
+        first.client.get_city = AsyncMock(side_effect=RuntimeError("boom"))
+        second = MagicMock()
+        second.client.get_city = AsyncMock(
+            return_value={"province": "浙江省", "city": "杭州市"}
+        )
+
+        entry_1 = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry_1.add_to_hass(hass)
+        entry_1.runtime_data = first
+
+        entry_2 = MockConfigEntry(domain=DOMAIN, data={"phone": "13900000000"})
+        entry_2.add_to_hass(hass)
+        entry_2.runtime_data = second
+
+        result = await _async_handle_get_city(hass, SimpleNamespace(data={}))
+        assert result == {"result": {"province": "浙江省", "city": "杭州市"}}
 
     async def test_fetch_body_sensor_history_service(self, hass) -> None:
         """fetch_body_sensor_history should pass sensor payload to client."""

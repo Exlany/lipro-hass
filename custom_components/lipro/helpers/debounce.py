@@ -25,17 +25,26 @@ class Debouncer:
     def __init__(
         self,
         delay: float = DEFAULT_DEBOUNCE_DELAY,
+        on_error: Callable[[Exception], None] | None = None,
     ) -> None:
         """Initialize the debouncer.
 
         Args:
             delay: Delay in seconds before executing the function.
+            on_error: Optional callback invoked when debounced task fails.
 
         """
         self._delay = delay
+        self._on_error = on_error
         self._timer: asyncio.TimerHandle | None = None
         self._pending_task: asyncio.Task | None = None
         self._lock = asyncio.Lock()
+        self._last_error: Exception | None = None
+
+    @property
+    def last_error(self) -> Exception | None:
+        """Return the last execution exception, if any."""
+        return self._last_error
 
     async def async_call(
         self,
@@ -101,13 +110,23 @@ class Debouncer:
         """
         try:
             await func(*args, **kwargs)
+            self._last_error = None
         except asyncio.CancelledError:
             _LOGGER.debug("Debounced call cancelled")
         except Exception as err:
+            self._last_error = err
             _LOGGER.exception(
                 "Error in debounced call (%s)",
                 type(err).__name__,
             )
+            if self._on_error is not None:
+                try:
+                    self._on_error(err)
+                except Exception as callback_err:
+                    _LOGGER.exception(
+                        "Debounce error callback failed (%s)",
+                        type(callback_err).__name__,
+                    )
 
     def _cancel_timer(self) -> None:
         """Cancel pending timer handle if present."""

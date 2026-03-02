@@ -4,11 +4,12 @@ from __future__ import annotations
 
 import asyncio
 from collections import deque
-from collections.abc import Coroutine
+from collections.abc import Coroutine, Mapping
 from dataclasses import dataclass
 from datetime import timedelta
 import hashlib
 import logging
+import math
 from time import monotonic
 from typing import TYPE_CHECKING, Any, Final, NoReturn
 
@@ -70,6 +71,7 @@ from .api import (
     LiproConnectionError,
     LiproRefreshTokenExpiredError,
 )
+from .background_task_manager import BackgroundTaskManager
 from .command_dispatch import execute_command_plan_with_trace
 from .command_result import (
     apply_missing_msg_sn_failure,
@@ -96,13 +98,14 @@ from .developer_report import (
     build_developer_report as build_coordinator_developer_report,
 )
 from .device import LiproDevice, parse_properties_list
+from .device_identity_index import DeviceIdentityIndex
 from .device_refresh import (
     FetchedDeviceSnapshot,
     build_fetched_device_snapshot,
     plan_stale_device_reconciliation,
-    register_lookup_id,
 )
 from .group_status import resolve_mesh_group_lookup_ids
+from .log_safety import safe_error_placeholder, summarize_properties_for_log
 from .mqtt import LiproMqttClient, decrypt_mqtt_credential
 from .mqtt_lifecycle import (
     compute_relaxed_polling_seconds,
@@ -122,8 +125,13 @@ from .mqtt_setup import (
     iter_mesh_group_serials,
     resolve_mqtt_biz_id,
 )
+from .mqtt_setup_backoff import MqttSetupBackoff
 from .outlet_power import apply_outlet_power_info, should_reraise_outlet_power_error
 from .redaction import redact_identifier as _redact_identifier
+from .status_strategy import (
+    compute_adaptive_state_batch_size,
+    resolve_connect_status_query_candidates,
+)
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
@@ -150,6 +158,29 @@ _OUTLET_POWER_QUERY_CONCURRENCY: Final[int] = 5
 # When many outlets exist, query power info in rotating slices to avoid large
 # bursts on each power interval tick.
 _OUTLET_POWER_QUERY_MAX_DEVICES_PER_CYCLE: Final[int] = 10
+_OUTLET_POWER_TARGET_FULL_CYCLE_COUNT: Final[int] = 4
+
+# Query connect status less frequently than full status polling to reduce load.
+_CONNECT_STATUS_QUERY_INTERVAL_SECONDS: Final[float] = 60.0
+# When MQTT is unstable/disconnected, degrade to a shorter connect-status interval.
+_CONNECT_STATUS_QUERY_INTERVAL_DEGRADED_SECONDS: Final[float] = 20.0
+# When MQTT recently provided connectState, skip redundant REST connect-status.
+_CONNECT_STATUS_MQTT_STALE_SECONDS: Final[float] = 180.0
+_CONNECT_STATUS_MQTT_STALE_MIN_SECONDS: Final[float] = 90.0
+_CONNECT_STATUS_MQTT_STALE_MAX_SECONDS: Final[float] = 300.0
+_CONNECT_STATUS_STALE_ADJUST_STEP_SECONDS: Final[float] = 15.0
+_CONNECT_STATUS_SKIP_RATIO_WINDOW: Final[int] = 20
+_CONNECT_STATUS_SKIP_RATIO_LOW: Final[float] = 0.20
+_CONNECT_STATUS_SKIP_RATIO_HIGH: Final[float] = 0.85
+
+# Runtime adaptive state-batch tuning.
+_STATE_STATUS_BATCH_SIZE_MIN: Final[int] = 16
+_STATE_STATUS_BATCH_SIZE_MAX: Final[int] = 64
+_STATE_STATUS_BATCH_ADJUST_STEP: Final[int] = 8
+_STATE_STATUS_BATCH_METRICS_WINDOW: Final[int] = 24
+_STATE_STATUS_BATCH_METRICS_SAMPLE_SIZE: Final[int] = 6
+_STATE_STATUS_BATCH_LATENCY_LOW_SECONDS: Final[float] = 1.2
+_STATE_STATUS_BATCH_LATENCY_HIGH_SECONDS: Final[float] = 3.5
 
 # Number of consecutive full-device-list fetches a device can be missing
 # before being removed from HA device registry.
@@ -329,7 +360,8 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
     def _init_runtime_state(self) -> None:
         """Initialize coordinator runtime state containers and caches."""
         self._devices: dict[str, LiproDevice] = {}
-        self._device_by_id: dict[str, LiproDevice] = {}  # Any known ID -> Device
+        self._device_identity_index = DeviceIdentityIndex()
+        self._device_by_id = {}  # Any known ID -> Device
         self._iot_ids_to_query: list[str] = []
         self._group_ids_to_query: list[str] = []
         self._outlet_ids_to_query: list[str] = []  # Outlet device IDs for power query
@@ -340,9 +372,12 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         self._mqtt_client: LiproMqttClient | None = None
         self._mqtt_connected = False
         self._mqtt_setup_in_progress = False
+        self._mqtt_setup_backoff = MqttSetupBackoff()
+        self._mqtt_setup_backoff_gate_logged = False
         self._biz_id: str | None = None
         self._mqtt_listener_update_handle: asyncio.TimerHandle | None = None
-        # Product configs cache (iotName -> config)
+        # Product configs cache (productId/iotName -> config)
+        self._product_configs_by_id: dict[int, dict[str, Any]] = {}
         self._product_configs: dict[str, dict[str, Any]] = {}
         # MQTT message deduplication cache: "device_id:hash" -> timestamp
         self._mqtt_message_cache: dict[str, float] = {}
@@ -353,15 +388,39 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         # Power query tracking
         self._last_power_query_time: float = 0.0
         self._outlet_power_round_robin_index: int = 0
+        # Connect-status polling tracking
+        self._last_connect_status_query_time: float = 0.0
+        self._force_connect_status_refresh: bool = True
+        self._last_mqtt_connect_state_at: dict[str, float] = {}
+        self._connect_status_priority_ids: set[str] = set()
+        self._connect_status_mqtt_stale_seconds: float = (
+            _CONNECT_STATUS_MQTT_STALE_SECONDS
+        )
+        self._connect_status_skip_history: deque[bool] = deque(
+            maxlen=_CONNECT_STATUS_SKIP_RATIO_WINDOW
+        )
+        self._state_status_batch_size: int = min(
+            MAX_DEVICES_PER_QUERY,
+            _STATE_STATUS_BATCH_SIZE_MAX,
+        )
+        self._state_batch_metrics: deque[tuple[int, float, int]] = deque(
+            maxlen=_STATE_STATUS_BATCH_METRICS_WINDOW
+        )
         # Flag to force device list re-fetch on next update
         self._force_device_refresh: bool = False
         # MQTT disconnect tracking for user notification
         self._mqtt_disconnect_time: float | None = None
         self._mqtt_disconnect_notified: bool = False
-        # Track delayed refresh task for post-command eventual consistency.
-        self._post_command_refresh_task: asyncio.Task | None = None
+        # Track per-device delayed refresh tasks for post-command consistency.
+        self._post_command_refresh_tasks: dict[str, asyncio.Task[Any]] = {}
         # Background tasks created by coordinator; cancelled on shutdown.
-        self._background_tasks: set[asyncio.Task[Any]] = set()
+        self._background_task_manager = BackgroundTaskManager(
+            self.hass.async_create_task,
+            _LOGGER,
+        )
+        self._background_tasks: set[asyncio.Task[Any]] = (
+            self._background_task_manager.tasks
+        )
         # Pending CHANGE_STATE expectations per device for stale-update filtering.
         self._pending_command_expectations: dict[str, _PendingCommandExpectation] = {}
         # Learned command->state confirmation latency (EWMA) per device.
@@ -426,13 +485,8 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
             default=DEFAULT_COMMAND_RESULT_VERIFY,
         )
 
-        # Apply debug mode to all lipro loggers
-        lipro_logger = logging.getLogger("custom_components.lipro")
         if self._debug_mode:
-            lipro_logger.setLevel(logging.DEBUG)
-            _LOGGER.debug("Debug mode enabled for all Lipro modules")
-        else:
-            lipro_logger.setLevel(logging.NOTSET)
+            _LOGGER.debug("Debug mode enabled")
 
     def _setup_anonymous_share(self) -> None:
         """Set up the anonymous share system based on config options."""
@@ -475,6 +529,36 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
 
         self._command_traces.append(trace)
 
+    def _build_status_metrics_snapshot(self) -> dict[str, Any]:
+        """Build current runtime status-query metrics snapshot."""
+        samples = list(self._state_batch_metrics)
+        sample_count = len(samples)
+        avg_batch_size = (
+            sum(item[0] for item in samples) / sample_count if sample_count else None
+        )
+        avg_duration_seconds = (
+            sum(item[1] for item in samples) / sample_count if sample_count else None
+        )
+        avg_fallback_depth = (
+            sum(item[2] for item in samples) / sample_count if sample_count else None
+        )
+        connect_decisions = len(self._connect_status_skip_history)
+        connect_skip_ratio = (
+            sum(self._connect_status_skip_history) / connect_decisions
+            if connect_decisions
+            else None
+        )
+        return {
+            "state_batch_size_current": self._state_status_batch_size,
+            "state_batch_size_avg": avg_batch_size,
+            "state_batch_duration_avg_seconds": avg_duration_seconds,
+            "state_fallback_depth_avg": avg_fallback_depth,
+            "state_metrics_samples": sample_count,
+            "connect_skip_ratio": connect_skip_ratio,
+            "connect_skip_samples": connect_decisions,
+            "connect_mqtt_stale_window_seconds": self._connect_status_mqtt_stale_seconds,
+        }
+
     def build_developer_report(self) -> dict[str, Any]:
         """Build a sanitized runtime report for real-world troubleshooting."""
         share_manager = get_anonymous_share_manager(self.hass)
@@ -484,7 +568,7 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
             if self.update_interval is not None
             else None
         )
-        return build_coordinator_developer_report(
+        report = build_coordinator_developer_report(
             config_entry=self.config_entry,
             debug_mode=self._debug_mode,
             mqtt_enabled=self._mqtt_enabled,
@@ -500,6 +584,8 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
             command_traces=list(self._command_traces),
             redact_identifier=_redact_identifier,
         )
+        report["runtime"]["status_metrics"] = self._build_status_metrics_snapshot()
+        return report
 
     def register_entity(self, entity: LiproEntity) -> None:
         """Register an entity for debounce protection tracking.
@@ -717,6 +803,21 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         for serial in stale_latency:
             self._device_state_latency_seconds.pop(serial, None)
 
+        active_normalized = {
+            self._normalize_device_key(serial)
+            for serial in active_serials
+            if isinstance(serial, str) and serial.strip()
+        }
+        stale_mqtt_connect = (
+            set(self._last_mqtt_connect_state_at) - active_normalized
+        )
+        for serial in stale_mqtt_connect:
+            self._last_mqtt_connect_state_at.pop(serial, None)
+
+        stale_connect_priority = set(self._connect_status_priority_ids) - active_normalized
+        for serial in stale_connect_priority:
+            self._connect_status_priority_ids.discard(serial)
+
     def _apply_properties_update(
         self,
         device: LiproDevice,
@@ -744,10 +845,12 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         self._adapt_fan_gear_range(device, properties)
         device.update_properties(properties)
         self._observe_command_confirmation(device.serial, properties)
+        properties_summary = summarize_properties_for_log(properties)
         _LOGGER.debug(
-            "Updated %s: %s",
+            "Updated %s: count=%d keys=%s",
             device.name,
-            properties,
+            properties_summary["count"],
+            properties_summary["keys"],
         )
         return properties
 
@@ -802,14 +905,78 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
             **placeholders: Placeholder values for the notification message.
 
         """
-        await self._async_show_auth_notification(key, **placeholders)
+        sanitized_placeholders = self._sanitize_auth_placeholders(placeholders)
+        await self._async_show_auth_notification(key, **sanitized_placeholders)
         if self.config_entry:
             self.config_entry.async_start_reauth(self.hass)
+
+    @staticmethod
+    def _sanitize_auth_placeholders(placeholders: Mapping[str, Any]) -> dict[str, str]:
+        """Sanitize auth placeholders to avoid raw error message leakage."""
+        sanitized: dict[str, str] = {}
+        for key, value in placeholders.items():
+            if isinstance(value, BaseException):
+                sanitized[key] = safe_error_placeholder(value)
+                continue
+
+            text = str(value).strip()
+            if not text:
+                continue
+
+            if key == "error":
+                # Only allow safe, structured markers (e.g. "401" or "LiproAuthError(code=401)").
+                if (text.isdigit() and len(text) <= 6) or LiproDataUpdateCoordinator._is_safe_error_marker(text):
+                    sanitized[key] = text
+                else:
+                    sanitized[key] = "AuthError"
+                continue
+
+            sanitized[key] = text
+        return sanitized
+
+    @staticmethod
+    def _is_safe_error_marker(text: str) -> bool:
+        """Return True when marker matches safe_error_placeholder() structure."""
+        candidate = str(text).strip()
+        if not candidate:
+            return False
+        if any(ch.isspace() for ch in candidate):
+            return False
+        if not candidate[:1].isalpha():
+            return False
+
+        # Accept "SomeError(code=401)" style (no raw message content).
+        if "(" not in candidate or not candidate.endswith(")"):
+            return False
+        name, rest = candidate.split("(", 1)
+        if not name or not name.replace("_", "").isalnum():
+            return False
+        inner = rest[:-1]
+        if not inner.startswith("code="):
+            return False
+        code = inner.removeprefix("code=").strip()
+        if not code or len(code) > 32:
+            return False
+        allowed = set("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_.:")
+        return all(ch in allowed for ch in code)
 
     @property
     def devices(self) -> dict[str, LiproDevice]:
         """Return all devices."""
         return self._devices
+
+    @property
+    def _device_by_id(self) -> dict[str, LiproDevice]:
+        """Compatibility alias for tests that access the raw identity dict."""
+        return self._device_identity_index.mapping
+
+    @_device_by_id.setter
+    def _device_by_id(self, mapping: Mapping[str, LiproDevice]) -> None:
+        """Replace device identity mapping while preserving index semantics."""
+        if isinstance(mapping, Mapping):
+            self._device_identity_index.replace(mapping)
+            return
+        self._device_identity_index.replace({})
 
     def get_device(self, serial: str) -> LiproDevice | None:
         """Get a device by serial number.
@@ -838,18 +1005,7 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
             Device or None if not found.
 
         """
-        if not isinstance(device_id, str):
-            return None
-
-        normalized = device_id.strip()
-        if not normalized:
-            return None
-
-        device = self._device_by_id.get(normalized)
-        if device:
-            return device
-
-        return self._device_by_id.get(normalized.lower())
+        return self._device_identity_index.get(device_id)
 
     @property
     def mqtt_connected(self) -> bool:
@@ -947,9 +1103,20 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
 
     async def _async_setup_mqtt_safe(self) -> None:
         """Safely set up MQTT client, resetting flag on completion."""
+        setup_succeeded = False
+        cancelled = False
         try:
-            await self.async_setup_mqtt()
+            setup_succeeded = await self.async_setup_mqtt()
+        except asyncio.CancelledError:
+            cancelled = True
+            raise
         finally:
+            if not cancelled:
+                if setup_succeeded:
+                    self._mqtt_setup_backoff.on_success()
+                else:
+                    self._mqtt_setup_backoff.on_failure(monotonic())
+                    self._mqtt_setup_backoff_gate_logged = False
             self._mqtt_setup_in_progress = False
 
     async def async_stop_mqtt(self) -> None:
@@ -980,13 +1147,12 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
             self._mqtt_listener_update_handle.cancel()
             self._mqtt_listener_update_handle = None
 
-        # Cancel pending delayed refresh task.
-        if (
-            self._post_command_refresh_task
-            and not self._post_command_refresh_task.done()
-        ):
-            self._post_command_refresh_task.cancel()
-        self._post_command_refresh_task = None
+        # Cancel pending delayed refresh tasks.
+        delayed_tasks = list(self._post_command_refresh_tasks.values())
+        self._post_command_refresh_tasks.clear()
+        for task in delayed_tasks:
+            if not task.done():
+                task.cancel()
 
         await self._async_cancel_background_tasks()
 
@@ -1016,6 +1182,7 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         self._entities_by_device.clear()
         self._devices.clear()
         self._device_by_id.clear()
+        self._product_configs_by_id.clear()
         self._product_configs.clear()
         self._command_traces.clear()
         self._mqtt_message_cache.clear()
@@ -1030,32 +1197,25 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         self, coro: Coroutine[Any, Any, Any]
     ) -> asyncio.Task[Any]:
         """Create and track a background task for centralized shutdown cleanup."""
-        task = self.hass.async_create_task(coro)
-        self._background_tasks.add(task)
-        add_done_callback = getattr(task, "add_done_callback", None)
-        if callable(add_done_callback):
-            add_done_callback(self._background_tasks.discard)
-        return task
+        return self._background_task_manager.create(
+            coro,
+            create_task=self.hass.async_create_task,
+        )
+
+    def _on_background_task_done(self, task: asyncio.Task[Any]) -> None:
+        """Finalize tracked background task and consume terminal exceptions."""
+        self._background_task_manager.on_done(task)
 
     async def _async_cancel_background_tasks(self) -> None:
         """Cancel and await tracked background tasks."""
-        if not self._background_tasks:
-            return
-
-        tasks_to_cancel = [task for task in self._background_tasks if not task.done()]
-        for task in tasks_to_cancel:
-            task.cancel()
-
-        if tasks_to_cancel:
-            await asyncio.gather(*tasks_to_cancel, return_exceptions=True)
-
-        self._background_tasks.clear()
+        await self._background_task_manager.cancel_all()
 
     def _on_mqtt_connect(self) -> None:
         """Handle MQTT connection."""
         self._mqtt_connected = True
         self._mqtt_disconnect_time = None
         self._mqtt_disconnect_notified = False
+        self._connect_status_skip_history.clear()
         # Dismiss any previous disconnect issue
         async_delete_issue(self.hass, DOMAIN, "mqtt_disconnected")
         # Reduce polling frequency when MQTT provides real-time updates
@@ -1071,6 +1231,9 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
             self._mqtt_disconnect_time,
             now=monotonic(),
         )
+        self._connect_status_skip_history.clear()
+        self._connect_status_mqtt_stale_seconds = _CONNECT_STATUS_MQTT_STALE_SECONDS
+        self._force_connect_status_refresh = True
         # Restore normal polling frequency
         base = self._base_scan_interval
         self.update_interval = timedelta(seconds=base)
@@ -1179,6 +1342,11 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         _LOGGER.debug("MQTT message for unknown device: %s...", device_id[:8])
         return None
 
+    @staticmethod
+    def _normalize_device_key(device_id: str) -> str:
+        """Normalize runtime device identifiers for per-device caches."""
+        return device_id.strip().lower()
+
     def _is_duplicate_mqtt_payload(
         self,
         *,
@@ -1235,6 +1403,10 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         # REST API refresh to reconcile state. In mesh groups, sub-devices
         # may reconnect with a different state than the group reports.
         connect_state = properties.get(PROP_CONNECT_STATE)
+        if connect_state is not None:
+            normalized = self._normalize_device_key(device.serial)
+            self._last_mqtt_connect_state_at[normalized] = monotonic()
+            self._connect_status_priority_ids.discard(normalized)
         if device.is_group and is_online_connect_state(connect_state):
             _LOGGER.debug(
                 "MQTT: device %s online, scheduling REST API reconciliation",
@@ -1306,24 +1478,34 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         ):
             return
 
+        now = monotonic()
+        if not self._mqtt_setup_backoff.should_attempt(now):
+            if not self._mqtt_setup_backoff_gate_logged:
+                _LOGGER.debug("Skipping MQTT setup attempt due to retry backoff gate")
+                self._mqtt_setup_backoff_gate_logged = True
+            return
+
+        self._mqtt_setup_backoff_gate_logged = False
+
         self._mqtt_setup_in_progress = True
         self._track_background_task(self._async_setup_mqtt_safe())
 
     async def _raise_update_data_error(self, err: Exception) -> NoReturn:
         """Map API/auth exceptions to Home Assistant update errors."""
+        error_marker = safe_error_placeholder(err)
         if isinstance(err, LiproRefreshTokenExpiredError):
             await self._trigger_reauth("auth_expired")
-            msg = f"Refresh token expired, re-authentication required: {err}"
+            msg = f"Refresh token expired, re-authentication required ({error_marker})"
             raise ConfigEntryAuthFailed(msg) from err
         if isinstance(err, LiproAuthError):
-            await self._trigger_reauth("auth_error", error=str(err))
-            msg = f"Authentication error: {err}"
+            await self._trigger_reauth("auth_error", error=error_marker)
+            msg = f"Authentication error ({error_marker})"
             raise ConfigEntryAuthFailed(msg) from err
         if isinstance(err, LiproConnectionError):
-            msg = f"Connection error: {err}"
+            msg = f"Connection error ({error_marker})"
             raise UpdateFailed(msg) from err
         if isinstance(err, LiproApiError):
-            msg = f"API error: {err}"
+            msg = f"API error ({error_marker})"
             raise UpdateFailed(msg) from err
 
         raise err
@@ -1381,6 +1563,7 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         self._apply_fetched_device_snapshot(snapshot)
         self._sync_device_room_assignments(previous_devices)
         self._last_device_refresh_at = monotonic()
+        self._force_connect_status_refresh = True
         self._schedule_reload_for_added_devices(previous_serials)
         await self._record_devices_for_anonymous_share()
         await self._reconcile_stale_devices(previous_serials)
@@ -1618,8 +1801,12 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         1. Match by productId -> config.id (most accurate)
         2. Match by iotName -> config.fwIotName (fallback)
         """
-        if self._product_configs:
-            # Already loaded
+        if self._product_configs_by_id or self._product_configs:
+            # Already loaded; re-apply for latest fetched snapshot.
+            self._apply_product_configs_to_devices(
+                self._product_configs_by_id,
+                self._product_configs,
+            )
             return
 
         try:
@@ -1627,20 +1814,28 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
             _LOGGER.debug("Loaded %d product configurations", len(configs))
 
             configs_by_id, configs_by_iot_name = self._index_product_configs(configs)
+            self._product_configs_by_id = configs_by_id
             self._product_configs = configs_by_iot_name
-
-            for device in self._devices.values():
-                matched_config = self._match_product_config(
-                    device,
-                    configs_by_id,
-                    configs_by_iot_name,
-                )
-                if matched_config:
-                    self._apply_product_config(device, matched_config)
+            self._apply_product_configs_to_devices(configs_by_id, configs_by_iot_name)
 
         except LiproApiError as err:
             _LOGGER.warning("Failed to load product configs: %s", err)
             # Continue with default values
+
+    def _apply_product_configs_to_devices(
+        self,
+        configs_by_id: dict[int, dict[str, Any]],
+        configs_by_iot_name: dict[str, dict[str, Any]],
+    ) -> None:
+        """Match and apply cached product-config overrides to all devices."""
+        for device in self._devices.values():
+            matched_config = self._match_product_config(
+                device,
+                configs_by_id,
+                configs_by_iot_name,
+            )
+            if matched_config:
+                self._apply_product_config(device, matched_config)
 
     @staticmethod
     def _coerce_int_or_zero(value: Any) -> int:
@@ -1762,8 +1957,102 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
 
         # Query real-time connection status LAST so it deterministically
         # overrides potentially stale connectState values from status APIs.
-        if self._iot_ids_to_query:
-            await self._query_connect_status()
+        connect_ids = self._resolve_connect_status_query_ids()
+        if connect_ids:
+            await self._query_connect_status(connect_ids)
+
+    def _resolve_connect_status_query_ids(self) -> list[str]:
+        """Resolve the connect-status query candidate IDs for this refresh cycle."""
+        iot_ids = list(self._iot_ids_to_query)
+        if not iot_ids:
+            return []
+
+        force_refresh = self._force_connect_status_refresh
+        now = monotonic()
+        query_interval_seconds = self._resolve_connect_status_query_interval_seconds(
+            now,
+        )
+        decision = resolve_connect_status_query_candidates(
+            iot_ids=iot_ids,
+            force_refresh=force_refresh,
+            mqtt_enabled=self._mqtt_enabled,
+            mqtt_connected=self._mqtt_connected,
+            last_query_time=self._last_connect_status_query_time,
+            now=now,
+            priority_ids=self._connect_status_priority_ids,
+            mqtt_recent_time_by_id=self._last_mqtt_connect_state_at,
+            stale_window_seconds=self._connect_status_mqtt_stale_seconds,
+            query_interval_seconds=query_interval_seconds,
+            normalize=self._normalize_device_key,
+        )
+        self._last_connect_status_query_time = decision.next_last_query_time
+
+        # Force-refresh flag should be consumed once candidates are evaluated.
+        if force_refresh:
+            self._force_connect_status_refresh = False
+
+        if decision.record_skip is not None:
+            self._record_connect_status_decision(skipped=decision.record_skip)
+        if decision.record_skip:
+            _LOGGER.debug(
+                "Skipping connect-status query: MQTT connectState is fresh for all %d devices "
+                "(stale_window=%.1fs, skip_ratio=%.2f)",
+                len(iot_ids),
+                self._connect_status_mqtt_stale_seconds,
+                sum(self._connect_status_skip_history)
+                / len(self._connect_status_skip_history),
+            )
+
+        return decision.query_ids
+
+    def _resolve_connect_status_query_interval_seconds(self, now: float) -> float:
+        """Resolve connect-status polling interval with MQTT degradation fallback."""
+        if not self._mqtt_enabled:
+            return _CONNECT_STATUS_QUERY_INTERVAL_SECONDS
+        if self._mqtt_connected:
+            return _CONNECT_STATUS_QUERY_INTERVAL_SECONDS
+        if self._mqtt_disconnect_time is not None:
+            return _CONNECT_STATUS_QUERY_INTERVAL_DEGRADED_SECONDS
+        if not self._mqtt_setup_backoff.should_attempt(now):
+            return _CONNECT_STATUS_QUERY_INTERVAL_DEGRADED_SECONDS
+        return _CONNECT_STATUS_QUERY_INTERVAL_SECONDS
+
+    def _record_connect_status_decision(self, *, skipped: bool) -> None:
+        """Record one connect-status skip decision and tune stale window."""
+        self._connect_status_skip_history.append(skipped)
+        self._adapt_connect_status_stale_window()
+
+    def _adapt_connect_status_stale_window(self) -> None:
+        """Adapt MQTT stale window based on recent connect skip ratio."""
+        history = self._connect_status_skip_history
+        if len(history) < _CONNECT_STATUS_SKIP_RATIO_WINDOW:
+            return
+
+        skip_ratio = sum(history) / len(history)
+        current = self._connect_status_mqtt_stale_seconds
+        updated = current
+        if skip_ratio < _CONNECT_STATUS_SKIP_RATIO_LOW:
+            updated = min(
+                _CONNECT_STATUS_MQTT_STALE_MAX_SECONDS,
+                current + _CONNECT_STATUS_STALE_ADJUST_STEP_SECONDS,
+            )
+        elif skip_ratio > _CONNECT_STATUS_SKIP_RATIO_HIGH:
+            updated = max(
+                _CONNECT_STATUS_MQTT_STALE_MIN_SECONDS,
+                current - _CONNECT_STATUS_STALE_ADJUST_STEP_SECONDS,
+            )
+
+        if updated == current:
+            return
+
+        self._connect_status_mqtt_stale_seconds = updated
+        _LOGGER.debug(
+            "Adaptive connect stale window changed: %.1fs -> %.1fs (skip_ratio=%.2f, window=%d)",
+            current,
+            updated,
+            skip_ratio,
+            len(history),
+        )
 
     def _should_query_power(self) -> bool:
         """Check if power query should be executed based on interval.
@@ -1782,10 +2071,68 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         """Query status for individual devices."""
         status_list = await self.client.query_device_status(
             self._iot_ids_to_query,
+            max_devices_per_query=self._state_status_batch_size,
+            on_batch_metric=self._record_state_batch_metric,
         )
+        self._adapt_state_batch_size()
 
         for status_data in status_list:
             self._apply_device_status_row(status_data)
+
+    def _record_state_batch_metric(
+        self,
+        batch_size: int,
+        duration_seconds: float,
+        fallback_depth: int,
+    ) -> None:
+        """Record one state-batch metric sample for runtime adaptation."""
+        sample = (batch_size, max(0.0, duration_seconds), max(0, fallback_depth))
+        self._state_batch_metrics.append(sample)
+        _LOGGER.debug(
+            "State batch metric: size=%d duration=%.3fs fallback_depth=%d current_batch=%d",
+            sample[0],
+            sample[1],
+            sample[2],
+            self._state_status_batch_size,
+        )
+
+    def _adapt_state_batch_size(self) -> None:
+        """Adapt state batch size using recent latency/fallback metrics."""
+        if not self._state_batch_metrics:
+            return
+
+        current = self._state_status_batch_size
+        upper = min(MAX_DEVICES_PER_QUERY, _STATE_STATUS_BATCH_SIZE_MAX)
+        updated = compute_adaptive_state_batch_size(
+            current_batch_size=current,
+            recent_metrics=self._state_batch_metrics,
+            batch_size_min=_STATE_STATUS_BATCH_SIZE_MIN,
+            batch_size_max=upper,
+            batch_adjust_step=_STATE_STATUS_BATCH_ADJUST_STEP,
+            metrics_sample_size=_STATE_STATUS_BATCH_METRICS_SAMPLE_SIZE,
+            latency_low_seconds=_STATE_STATUS_BATCH_LATENCY_LOW_SECONDS,
+            latency_high_seconds=_STATE_STATUS_BATCH_LATENCY_HIGH_SECONDS,
+        )
+        if updated == current:
+            return
+
+        sample_count = min(
+            _STATE_STATUS_BATCH_METRICS_SAMPLE_SIZE,
+            len(self._state_batch_metrics),
+        )
+        recent = list(self._state_batch_metrics)[-sample_count:]
+        avg_latency = sum(item[1] for item in recent) / sample_count
+        max_depth = max(item[2] for item in recent)
+
+        self._state_status_batch_size = updated
+        _LOGGER.debug(
+            "Adaptive state batch size changed: %d -> %d (avg_latency=%.3fs, max_fallback_depth=%d, samples=%d)",
+            current,
+            updated,
+            avg_latency,
+            max_depth,
+            sample_count,
+        )
 
     def _apply_device_status_row(self, status_data: dict[str, Any]) -> None:
         """Apply one device-status row to a mapped device."""
@@ -1854,20 +2201,71 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
     ) -> None:
         """Update lookup IDs and group-member metadata for a mesh group device."""
         lookup_ids = resolve_mesh_group_lookup_ids(status_data)
+        previous_gateway_id = device.extra_data.get("gateway_device_id")
+        current_gateway_id = lookup_ids.gateway_id
+        if (
+            isinstance(previous_gateway_id, str)
+            and previous_gateway_id.strip()
+            and (
+                not isinstance(current_gateway_id, str)
+                or self._normalize_device_key(previous_gateway_id)
+                != self._normalize_device_key(current_gateway_id)
+            )
+        ):
+            self._device_identity_index.unregister(
+                previous_gateway_id,
+                device=device,
+            )
 
         # Save gateway device ID for API-level lookups
         # Note: MQTT messages use mesh_group_xxx topics, not gateway IDs
         if lookup_ids.gateway_id:
             device.extra_data["gateway_device_id"] = lookup_ids.gateway_id
             # Map gateway ID -> device for API responses that reference it
-            register_lookup_id(self._device_by_id, lookup_ids.gateway_id, device)
+            self._device_identity_index.register(lookup_ids.gateway_id, device)
+        else:
+            device.extra_data.pop("gateway_device_id", None)
+
+        previous_member_lookup_ids = self._index_lookup_ids_by_normalized(
+            device.extra_data.get("group_member_lookup_ids", []),
+        )
+        current_member_lookup_ids = self._index_lookup_ids_by_normalized(
+            lookup_ids.member_lookup_ids,
+        )
+        stale_member_norms = set(previous_member_lookup_ids) - set(
+            current_member_lookup_ids,
+        )
+        for stale_norm in stale_member_norms:
+            self._device_identity_index.unregister(
+                previous_member_lookup_ids[stale_norm],
+                device=device,
+            )
 
         # Map group member IDs -> group device. Real API control often accepts
         # group-level commands only, so member IDs should resolve to the group.
-        for member_lookup_id in lookup_ids.member_lookup_ids:
-            register_lookup_id(self._device_by_id, member_lookup_id, device)
+        for member_lookup_id in current_member_lookup_ids.values():
+            self._device_identity_index.register(member_lookup_id, device)
         device.extra_data["group_member_ids"] = lookup_ids.member_ids
+        device.extra_data["group_member_lookup_ids"] = list(
+            current_member_lookup_ids.values(),
+        )
         device.extra_data["group_member_count"] = len(lookup_ids.member_ids)
+
+    @staticmethod
+    def _index_lookup_ids_by_normalized(lookup_ids: list[Any] | Any) -> dict[str, str]:
+        """Index lookup IDs by normalized key while preserving first-seen value."""
+        if not isinstance(lookup_ids, list):
+            return {}
+        indexed: dict[str, str] = {}
+        for lookup_id in lookup_ids:
+            if not isinstance(lookup_id, str):
+                continue
+            stripped = lookup_id.strip()
+            if not stripped:
+                continue
+            normalized = stripped.lower()
+            indexed.setdefault(normalized, stripped)
+        return indexed
 
     async def _query_outlet_power(self) -> None:
         """Query power information for outlet devices.
@@ -1885,7 +2283,7 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
             return
 
         # For a small number of outlets, keep prior behavior: query all in one cycle.
-        max_devices = min(len(device_ids), _OUTLET_POWER_QUERY_MAX_DEVICES_PER_CYCLE)
+        max_devices = self._resolve_outlet_power_cycle_size(len(device_ids))
         if len(device_ids) > max_devices:
             start = self._outlet_power_round_robin_index % len(device_ids)
             end = start + max_devices
@@ -1904,6 +2302,15 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
                     for did in device_ids[start : start + batch_size]
                 ),
             )
+
+    @staticmethod
+    def _resolve_outlet_power_cycle_size(total_devices: int) -> int:
+        """Resolve per-cycle outlet power query size with bounded dynamic scaling."""
+        if total_devices <= 0:
+            return 0
+        static_limit = min(total_devices, _OUTLET_POWER_QUERY_MAX_DEVICES_PER_CYCLE)
+        dynamic_limit = math.ceil(total_devices / _OUTLET_POWER_TARGET_FULL_CYCLE_COUNT)
+        return min(total_devices, max(static_limit, dynamic_limit))
 
     async def _query_single_outlet_power(self, device_id: str) -> None:
         """Query and apply power info for one outlet device."""
@@ -1925,23 +2332,27 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
                 raise
             _LOGGER.debug("Failed to query power for %s: %s", device_id, err)
 
-    async def _query_connect_status(self) -> None:
+    async def _query_connect_status(self, device_ids: list[str] | None = None) -> None:
         """Query real-time connection status for devices.
 
         This provides more accurate online/offline status than the cached
         connectState property from device status queries.
         """
-        if not self._iot_ids_to_query:
+        query_ids = list(device_ids) if device_ids is not None else self._iot_ids_to_query
+        if not query_ids:
             return
 
         connect_status = await self.client.query_connect_status(
-            self._iot_ids_to_query,
+            query_ids,
         )
 
         if not connect_status:
             return
 
         for device_id, is_online in connect_status.items():
+            self._connect_status_priority_ids.discard(
+                self._normalize_device_key(device_id)
+            )
             device = self.get_device_by_id(device_id)
             if device:
                 # Update connectState property (via _apply_properties_update
@@ -1965,6 +2376,7 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         """
         self._force_device_refresh = True
         # Clear product configs so new device types can be matched
+        self._product_configs_by_id.clear()
         self._product_configs.clear()
         await self.async_refresh()
 
@@ -1984,6 +2396,11 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
             slider_like_properties=_SLIDER_LIKE_PROPERTIES,
         )
         self._track_command_expectation(device.serial, command, properties)
+        if not device.is_group:
+            self._connect_status_priority_ids.add(
+                self._normalize_device_key(device.serial)
+            )
+        self._force_connect_status_refresh = True
         adaptive_delay = self._get_adaptive_post_refresh_delay(device.serial)
         self._schedule_post_command_refresh(
             skip_immediate=skip_immediate_refresh,
@@ -2268,15 +2685,30 @@ class LiproDataUpdateCoordinator(DataUpdateCoordinator[dict[str, LiproDevice]]):
         if delay_seconds is None:
             return
 
-        if (
-            self._post_command_refresh_task
-            and not self._post_command_refresh_task.done()
-        ):
-            self._post_command_refresh_task.cancel()
+        refresh_key = device_serial or ""
+        previous_task = self._post_command_refresh_tasks.get(refresh_key)
+        if previous_task and not previous_task.done():
+            previous_task.cancel()
 
-        self._post_command_refresh_task = self._track_background_task(
+        delayed_task = self._track_background_task(
             self._async_delayed_command_refresh(delay_seconds),
         )
+        self._post_command_refresh_tasks[refresh_key] = delayed_task
+        delayed_task.add_done_callback(
+            lambda finished_task, key=refresh_key: self._on_post_command_refresh_task_done(
+                key,
+                finished_task,
+            )
+        )
+
+    def _on_post_command_refresh_task_done(
+        self,
+        refresh_key: str,
+        finished_task: asyncio.Task[Any],
+    ) -> None:
+        """Clear per-device delayed-refresh handle when task completes."""
+        if self._post_command_refresh_tasks.get(refresh_key) is finished_task:
+            self._post_command_refresh_tasks.pop(refresh_key, None)
 
     async def _async_delayed_command_refresh(self, delay_seconds: float) -> None:
         """Run one delayed refresh after command to absorb API status lag."""

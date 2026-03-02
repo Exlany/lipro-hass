@@ -1347,11 +1347,20 @@ class LiproClient:
             )
         return valid_ids
 
-    async def query_device_status(self, device_ids: list[str]) -> list[dict[str, Any]]:
+    async def query_device_status(
+        self,
+        device_ids: list[str],
+        *,
+        max_devices_per_query: int = MAX_DEVICES_PER_QUERY,
+        on_batch_metric: Callable[[int, float, int], None] | None = None,
+    ) -> list[dict[str, Any]]:
         """Query status of multiple devices.
 
         Args:
             device_ids: List of IoT device IDs (format: "03ab" + MAC).
+            max_devices_per_query: Max devices per state batch before fallback.
+            on_batch_metric: Optional callback for batch metrics
+                (batch_size, duration_seconds, fallback_depth).
 
         Returns:
             List of device status data.
@@ -1364,7 +1373,7 @@ class LiproClient:
         """
         return await query_device_status_service(
             device_ids=device_ids,
-            max_devices_per_query=MAX_DEVICES_PER_QUERY,
+            max_devices_per_query=max_devices_per_query,
             iot_request=self._iot_request,
             extract_data_list=self._extract_data_list,
             is_retriable_device_error=self._is_retriable_device_error,
@@ -1373,6 +1382,7 @@ class LiproClient:
             expected_offline_codes=_BATCH_FALLBACK_EXPECTED_OFFLINE_CODES,
             logger=_LOGGER,
             path_query_device_status=PATH_QUERY_DEVICE_STATUS,
+            on_batch_metric=on_batch_metric,
         )
 
     async def query_mesh_group_status(

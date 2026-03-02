@@ -129,21 +129,54 @@ FIRMWARE_SUPPORT_MANIFEST: Final = "firmware_support_manifest.json"
 
 # Pre-compiled pattern for extracting device serial from entity unique_id
 _SERIAL_PATTERN = re.compile(
-    rf"({re.escape(IOT_DEVICE_ID_PREFIX)}[0-9A-Fa-f]{{12}}|mesh_group_\d+)"
+    rf"({re.escape(IOT_DEVICE_ID_PREFIX)}[0-9A-Fa-f]{{12}}|mesh_group_\d+)(?:_|$)"
 )
+_IDENTIFIER_PATTERN = re.compile(r"^[A-Za-z0-9_-]+$")
+_COMMAND_PATTERN = re.compile(r"^[A-Za-z][A-Za-z0-9_]*$")
+_MSG_SN_PATTERN = re.compile(r"^[A-Za-z0-9_-]+$")
+_SENSOR_DEVICE_ID_PATTERN = re.compile(
+    rf"^{re.escape(IOT_DEVICE_ID_PREFIX)}[0-9A-Fa-f]{{12}}$"
+)
+_MESH_TYPE_PATTERN = re.compile(r"^[12]$")
+
+_MAX_DEVICE_ID_LEN: Final = 64
+_MAX_COMMAND_LEN: Final = 64
+_MAX_PROPERTY_KEY_LEN: Final = 64
+_MAX_PROPERTY_VALUE_LEN: Final = 512
+_MAX_SERVICE_LIST_ITEMS: Final = 64
+_MAX_NOTE_LEN: Final = 500
+_MAX_MSG_SN_LEN: Final = 128
+_MAX_SENSOR_DEVICE_ID_LEN: Final = 64
+_MAX_MESH_TYPE_LEN: Final = 16
 
 # Service schema - device_id is optional when entity target is used
 SERVICE_SEND_COMMAND_SCHEMA = vol.Schema(
     {
-        vol.Optional(ATTR_DEVICE_ID): cv.string,
-        vol.Required(ATTR_COMMAND): cv.string,
+        vol.Optional(ATTR_DEVICE_ID): vol.All(
+            cv.string,
+            vol.Length(min=1, max=_MAX_DEVICE_ID_LEN),
+            vol.Match(_IDENTIFIER_PATTERN),
+        ),
+        vol.Required(ATTR_COMMAND): vol.All(
+            cv.string,
+            vol.Length(min=1, max=_MAX_COMMAND_LEN),
+            vol.Match(_COMMAND_PATTERN),
+        ),
         vol.Optional(ATTR_PROPERTIES): vol.All(
             cv.ensure_list,
+            vol.Length(max=_MAX_SERVICE_LIST_ITEMS),
             [
                 vol.Schema(
                     {
-                        vol.Required("key"): cv.string,
-                        vol.Required("value"): cv.string,
+                        vol.Required("key"): vol.All(
+                            cv.string,
+                            vol.Length(min=1, max=_MAX_PROPERTY_KEY_LEN),
+                            vol.Match(_IDENTIFIER_PATTERN),
+                        ),
+                        vol.Required("value"): vol.All(
+                            cv.string,
+                            vol.Length(max=_MAX_PROPERTY_VALUE_LEN),
+                        ),
                     },
                 ),
             ],
@@ -154,24 +187,35 @@ SERVICE_SEND_COMMAND_SCHEMA = vol.Schema(
 # Schema for get_schedules service
 SERVICE_GET_SCHEDULES_SCHEMA = vol.Schema(
     {
-        vol.Optional(ATTR_DEVICE_ID): cv.string,
+        vol.Optional(ATTR_DEVICE_ID): vol.All(
+            cv.string,
+            vol.Length(min=1, max=_MAX_DEVICE_ID_LEN),
+            vol.Match(_IDENTIFIER_PATTERN),
+        ),
     },
 )
 
 # Schema for add_schedule service
 SERVICE_ADD_SCHEDULE_SCHEMA = vol.Schema(
     {
-        vol.Optional(ATTR_DEVICE_ID): cv.string,
+        vol.Optional(ATTR_DEVICE_ID): vol.All(
+            cv.string,
+            vol.Length(min=1, max=_MAX_DEVICE_ID_LEN),
+            vol.Match(_IDENTIFIER_PATTERN),
+        ),
         vol.Required(ATTR_DAYS): vol.All(
             cv.ensure_list,
+            vol.Length(max=_MAX_SERVICE_LIST_ITEMS),
             [vol.All(vol.Coerce(int), vol.Range(min=1, max=7))],
         ),
         vol.Required(ATTR_TIMES): vol.All(
             cv.ensure_list,
+            vol.Length(max=_MAX_SERVICE_LIST_ITEMS),
             [vol.All(vol.Coerce(int), vol.Range(min=0, max=86399))],
         ),
         vol.Required(ATTR_EVENTS): vol.All(
             cv.ensure_list,
+            vol.Length(max=_MAX_SERVICE_LIST_ITEMS),
             [vol.Coerce(int)],
         ),
     },
@@ -180,9 +224,14 @@ SERVICE_ADD_SCHEDULE_SCHEMA = vol.Schema(
 # Schema for delete_schedules service
 SERVICE_DELETE_SCHEDULES_SCHEMA = vol.Schema(
     {
-        vol.Optional(ATTR_DEVICE_ID): cv.string,
+        vol.Optional(ATTR_DEVICE_ID): vol.All(
+            cv.string,
+            vol.Length(min=1, max=_MAX_DEVICE_ID_LEN),
+            vol.Match(_IDENTIFIER_PATTERN),
+        ),
         vol.Required(ATTR_SCHEDULE_IDS): vol.All(
             cv.ensure_list,
+            vol.Length(max=_MAX_SERVICE_LIST_ITEMS),
             [vol.Coerce(int)],
         ),
     },
@@ -190,22 +239,42 @@ SERVICE_DELETE_SCHEDULES_SCHEMA = vol.Schema(
 
 SERVICE_SUBMIT_DEVELOPER_FEEDBACK_SCHEMA = vol.Schema(
     {
-        vol.Optional(ATTR_NOTE): cv.string,
+        vol.Optional(ATTR_NOTE): vol.All(cv.string, vol.Length(max=_MAX_NOTE_LEN)),
     },
 )
 
 SERVICE_QUERY_COMMAND_RESULT_SCHEMA = vol.Schema(
     {
-        vol.Optional(ATTR_DEVICE_ID): cv.string,
-        vol.Required(ATTR_MSG_SN): cv.string,
+        vol.Optional(ATTR_DEVICE_ID): vol.All(
+            cv.string,
+            vol.Length(min=1, max=_MAX_DEVICE_ID_LEN),
+            vol.Match(_IDENTIFIER_PATTERN),
+        ),
+        vol.Required(ATTR_MSG_SN): vol.All(
+            cv.string,
+            vol.Length(min=1, max=_MAX_MSG_SN_LEN),
+            vol.Match(_MSG_SN_PATTERN),
+        ),
     },
 )
 
 SERVICE_FETCH_SENSOR_HISTORY_SCHEMA = vol.Schema(
     {
-        vol.Optional(ATTR_DEVICE_ID): cv.string,
-        vol.Required(ATTR_SENSOR_DEVICE_ID): cv.string,
-        vol.Optional(ATTR_MESH_TYPE, default="2"): cv.string,
+        vol.Optional(ATTR_DEVICE_ID): vol.All(
+            cv.string,
+            vol.Length(min=1, max=_MAX_DEVICE_ID_LEN),
+            vol.Match(_IDENTIFIER_PATTERN),
+        ),
+        vol.Required(ATTR_SENSOR_DEVICE_ID): vol.All(
+            cv.string,
+            vol.Length(min=1, max=_MAX_SENSOR_DEVICE_ID_LEN),
+            vol.Match(_SENSOR_DEVICE_ID_PATTERN),
+        ),
+        vol.Optional(ATTR_MESH_TYPE, default="2"): vol.All(
+            cv.string,
+            vol.Length(min=1, max=_MAX_MESH_TYPE_LEN),
+            vol.Match(_MESH_TYPE_PATTERN),
+        ),
     },
 )
 

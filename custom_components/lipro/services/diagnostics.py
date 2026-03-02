@@ -4,12 +4,58 @@ from __future__ import annotations
 
 from collections.abc import Awaitable, Callable, Iterator
 from datetime import UTC, datetime
-from typing import Any, NoReturn
+import logging
+from typing import Any, NoReturn, TypeVar
 
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.exceptions import HomeAssistantError
 
 from ..core import LiproApiError
+
+_LOGGER = logging.getLogger(__name__)
+_ResultT = TypeVar("_ResultT")
+
+
+def _collect_coordinator_capability_results(
+    coordinators: Iterator[Any],
+    *,
+    capability: str,
+    collector: Callable[[Any], _ResultT],
+) -> list[_ResultT]:
+    """Collect capability results across coordinators with per-entry fault tolerance."""
+    results: list[_ResultT] = []
+    for coordinator in coordinators:
+        try:
+            results.append(collector(coordinator))
+        except Exception as err:  # noqa: BLE001
+            _LOGGER.warning(
+                "Skip one %s capability due to error (%s)",
+                capability,
+                type(err).__name__,
+            )
+    return results
+
+
+async def _async_get_first_coordinator_capability_result(
+    coordinators: Iterator[Any],
+    *,
+    capability: str,
+    collector: Callable[[Any], Awaitable[_ResultT]],
+) -> tuple[bool, _ResultT | None, LiproApiError | None]:
+    """Return first successful capability result and retain last API error."""
+    last_api_error: LiproApiError | None = None
+    for coordinator in coordinators:
+        try:
+            return True, await collector(coordinator), None
+        except LiproApiError as err:
+            last_api_error = err
+        except Exception as err:  # noqa: BLE001
+            _LOGGER.warning(
+                "Skip one %s capability due to unexpected error (%s)",
+                capability,
+                type(err).__name__,
+            )
+    return False, None, last_api_error
 
 
 def collect_developer_reports(
@@ -18,12 +64,15 @@ def collect_developer_reports(
     iter_runtime_coordinators: Callable[[HomeAssistant], Iterator[Any]],
 ) -> list[dict[str, Any]]:
     """Collect developer reports from active config entries."""
-    reports: list[dict[str, Any]] = []
-    for coordinator in iter_runtime_coordinators(hass):
-        if not hasattr(coordinator, "build_developer_report"):
-            continue
-        reports.append(coordinator.build_developer_report())
-    return reports
+    return _collect_coordinator_capability_results(
+        (
+            coordinator
+            for coordinator in iter_runtime_coordinators(hass)
+            if hasattr(coordinator, "build_developer_report")
+        ),
+        capability="coordinator developer report",
+        collector=lambda coordinator: coordinator.build_developer_report(),
+    )
 
 
 async def async_handle_get_developer_report(
@@ -163,12 +212,15 @@ async def async_handle_get_city(
 ) -> dict[str, Any]:
     """Handle get_city service."""
     del call
-    for coordinator in iter_runtime_coordinators(hass):
-        try:
-            result = await coordinator.client.get_city()
-        except LiproApiError as err:
-            raise_optional_error(service_get_city, err)
+    has_result, result, last_err = await _async_get_first_coordinator_capability_result(
+        iter_runtime_coordinators(hass),
+        capability="get_city",
+        collector=lambda coordinator: coordinator.client.get_city(),
+    )
+    if has_result:
         return {"result": result}
+    if last_err is not None:
+        raise_optional_error(service_get_city, last_err)
     return {"result": {}}
 
 

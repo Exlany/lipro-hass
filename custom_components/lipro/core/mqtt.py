@@ -394,6 +394,7 @@ class LiproMqttClient:
         on_message: Callable[[str, dict[str, Any]], None] | None = None,
         on_connect: Callable[[], None] | None = None,
         on_disconnect: Callable[[], None] | None = None,
+        on_error: Callable[[Exception], None] | None = None,
     ) -> None:
         """Initialize MQTT client.
 
@@ -405,6 +406,7 @@ class LiproMqttClient:
             on_message: Callback for device status updates (device_id, properties).
             on_connect: Callback when connected to broker.
             on_disconnect: Callback when disconnected from broker.
+            on_error: Callback when background task/callback processing fails.
 
         """
         self._credentials = MqttCredentials.create(
@@ -417,10 +419,12 @@ class LiproMqttClient:
         self._on_message = on_message
         self._on_connect = on_connect
         self._on_disconnect = on_disconnect
+        self._on_error = on_error
 
         self._subscribed_devices: set[str] = set()
         self._client: aiomqtt.Client | None = None
         self._task: asyncio.Task | None = None
+        self._last_error: Exception | None = None
         self._running = False
         self._connected = False
         self._reconnect_delay = MQTT_RECONNECT_MIN_DELAY
@@ -440,6 +444,11 @@ class LiproMqttClient:
         """Return number of subscribed devices."""
         return len(self._subscribed_devices)
 
+    @property
+    def last_error(self) -> Exception | None:
+        """Return the latest background/callback exception, if any."""
+        return self._last_error
+
     async def start(self, device_ids: list[str]) -> None:
         """Start MQTT client and subscribe to device topics.
 
@@ -454,6 +463,7 @@ class LiproMqttClient:
         self._subscribed_devices = set(device_ids)
         self._running = True
         self._task = asyncio.create_task(self._connection_loop())
+        self._task.add_done_callback(self._async_finalize_connection_task)
 
         _LOGGER.info(
             "MQTT client started, subscribing to %d devices",
@@ -464,11 +474,13 @@ class LiproMqttClient:
         """Stop MQTT client and clean up resources."""
         self._running = False
 
-        if self._task:
-            self._task.cancel()
+        task = self._task
+        if task:
+            task.cancel()
             with contextlib.suppress(asyncio.CancelledError):
-                await self._task
-            self._task = None
+                await task
+            if self._task is task:
+                self._task = None
 
         self._connected = False
         self._client = None
@@ -575,18 +587,22 @@ class LiproMqttClient:
             try:
                 await self._connect_and_listen()
             except aiomqtt.MqttError as err:
+                self._set_last_error(err)
                 self._handle_disconnect(f"MQTT error: {err}")
             except asyncio.CancelledError:
                 break
             except OSError as err:
+                self._set_last_error(err)
                 self._handle_disconnect(f"Connection error: {err}")
             except ValueError as err:
+                self._set_last_error(err)
                 self._handle_disconnect(f"MQTT value error: {err}")
             except Exception as err:
                 _LOGGER.exception(
                     "Unexpected MQTT loop error (%s)",
                     type(err).__name__,
                 )
+                self._set_last_error(err)
                 self._handle_disconnect(
                     f"Unexpected MQTT loop error ({type(err).__name__})"
                 )
@@ -649,7 +665,15 @@ class LiproMqttClient:
             self._connected = True
             _LOGGER.info("Connected to MQTT broker")
             if self._on_connect:
-                self._on_connect()
+                try:
+                    self._on_connect()
+                except Exception as err:
+                    self._set_last_error(err)
+                    _LOGGER.exception(
+                        "MQTT on_connect callback failed (%s)",
+                        type(err).__name__,
+                    )
+            self._clear_last_error()
 
             # Process incoming messages
             async for message in client.messages:
@@ -662,7 +686,14 @@ class LiproMqttClient:
         _LOGGER.warning("MQTT disconnected: %s", reason)
 
         if self._on_disconnect:
-            self._on_disconnect()
+            try:
+                self._on_disconnect()
+            except Exception as err:
+                self._set_last_error(err)
+                _LOGGER.exception(
+                    "MQTT on_disconnect callback failed (%s)",
+                    type(err).__name__,
+                )
 
     @staticmethod
     def _decode_payload_text(raw_payload: Any, device_id: str) -> str | None:
@@ -743,13 +774,67 @@ class LiproMqttClient:
             properties = parse_mqtt_payload(payload)
 
             if self._on_message and properties:
-                self._on_message(device_id, properties)
+                try:
+                    self._on_message(device_id, properties)
+                except Exception as err:
+                    self._set_last_error(err)
+                    _LOGGER.exception(
+                        "MQTT on_message callback failed (%s)",
+                        type(err).__name__,
+                    )
+                    return
 
-        except (json.JSONDecodeError, UnicodeError):
+            self._clear_last_error()
+
+        except (json.JSONDecodeError, UnicodeError) as err:
+            self._set_last_error(err)
             _LOGGER.exception("Failed to decode MQTT payload")
         except Exception as err:
+            self._set_last_error(err)
             _LOGGER.exception(
                 "Error processing MQTT message (topic=%s, error=%s)",
                 getattr(message, "topic", "unknown"),
                 type(err).__name__,
             )
+
+    def _async_finalize_connection_task(self, task: asyncio.Task[Any]) -> None:
+        """Consume background connection task result and persist terminal errors."""
+        if self._task is task:
+            self._task = None
+
+        err = self._consume_task_exception(task)
+        if err is None:
+            return
+        self._set_last_error(err)
+
+    @staticmethod
+    def _consume_task_exception(task: asyncio.Task[Any]) -> Exception | None:
+        """Consume task exceptions to avoid unhandled-task warnings."""
+        try:
+            task.result()
+        except asyncio.CancelledError:
+            return None
+        except Exception as err:  # noqa: BLE001
+            _LOGGER.debug(
+                "MQTT background task failed (%s)",
+                type(err).__name__,
+            )
+            return err
+        return None
+
+    def _set_last_error(self, err: Exception) -> None:
+        """Persist latest error and notify optional observer."""
+        self._last_error = err
+        if self._on_error is None:
+            return
+        try:
+            self._on_error(err)
+        except Exception as callback_err:
+            _LOGGER.exception(
+                "MQTT error callback failed (%s)",
+                type(callback_err).__name__,
+            )
+
+    def _clear_last_error(self) -> None:
+        """Clear latest error state after successful processing."""
+        self._last_error = None

@@ -109,6 +109,9 @@ def build_developer_report(
     redact_identifier: Callable[[str | None], str | None],
 ) -> dict[str, Any]:
     """Build sanitized coordinator runtime report."""
+    entry_id = config_entry.entry_id if config_entry else None
+    unique_id = config_entry.unique_id if config_entry else None
+    phone = config_entry.data.get(CONF_PHONE) if config_entry else None
     options = config_entry.options if config_entry else {}
     mesh_groups = _build_mesh_group_entries(
         devices,
@@ -116,13 +119,9 @@ def build_developer_report(
     )
 
     report: dict[str, Any] = {
-        "entry_id": redact_identifier(config_entry.entry_id if config_entry else None),
-        "unique_id": redact_identifier(
-            config_entry.unique_id if config_entry else None
-        ),
-        "phone": redact_identifier(
-            config_entry.data.get(CONF_PHONE) if config_entry else None
-        ),
+        "entry_id": redact_identifier(entry_id),
+        "unique_id": redact_identifier(unique_id),
+        "phone": redact_identifier(phone),
         "debug_mode_enabled": debug_mode,
         "runtime": {
             "mqtt_enabled": mqtt_enabled,

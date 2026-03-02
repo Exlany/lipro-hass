@@ -7,6 +7,7 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 import hashlib
 import logging
+import re
 from typing import Any
 import uuid
 
@@ -70,6 +71,9 @@ _LOGGER = logging.getLogger(__name__)
 # Options flow key for toggling advanced settings step
 _CONF_SHOW_ADVANCED = "show_advanced"
 
+_PHONE_INPUT_PATTERN = re.compile(r"^\+?\d{6,20}$")
+_MAX_PASSWORD_LEN: int = 128
+
 
 def _text_selector() -> selector.TextSelector:
     """Create a plain text selector."""
@@ -92,6 +96,30 @@ def _password_selector() -> selector.TextSelector:
 def _hash_password(password: str) -> str:
     """Hash password using MD5 (as required by Lipro API)."""
     return hashlib.md5(password.encode("utf-8"), usedforsecurity=False).hexdigest()
+
+
+def _normalize_phone(phone: Any) -> str:
+    """Normalize and validate user-provided phone value."""
+    if not isinstance(phone, str):
+        msg = "phone must be a string"
+        raise vol.Invalid(msg)
+
+    normalized = phone.strip()
+    if not _PHONE_INPUT_PATTERN.fullmatch(normalized):
+        msg = "phone must be 6-20 digits, optionally prefixed with +"
+        raise vol.Invalid(msg)
+    return normalized
+
+
+def _validate_password(password: Any) -> str:
+    """Validate user-provided password value."""
+    if not isinstance(password, str):
+        msg = "password must be a string"
+        raise vol.Invalid(msg)
+    if not password or len(password) > _MAX_PASSWORD_LEN:
+        msg = f"password length must be 1-{_MAX_PASSWORD_LEN}"
+        raise vol.Invalid(msg)
+    return password
 
 
 def _map_login_error(err: LiproApiError) -> str:
@@ -298,8 +326,18 @@ class LiproConfigFlow(ConfigFlow, domain=DOMAIN):
         errors: dict[str, str] = {}
 
         if user_input is not None:
-            phone = user_input[CONF_PHONE]
-            password_hash = _hash_password(user_input[CONF_PASSWORD])
+            try:
+                phone = _normalize_phone(user_input[CONF_PHONE])
+                password = _validate_password(user_input[CONF_PASSWORD])
+            except vol.Invalid:
+                errors["base"] = "invalid_auth"
+                return self.async_show_form(
+                    step_id="user",
+                    data_schema=STEP_USER_DATA_SCHEMA,
+                    errors=errors,
+                )
+
+            password_hash = _hash_password(password)
             remember_password_hash = bool(
                 user_input.get(
                     CONF_REMEMBER_PASSWORD_HASH,
@@ -359,7 +397,14 @@ class LiproConfigFlow(ConfigFlow, domain=DOMAIN):
                     CONF_PASSWORD_HASH in reauth_entry.data,
                 )
             )
-            password_hash = _hash_password(user_input[CONF_PASSWORD])
+            try:
+                phone = _normalize_phone(phone)
+                password = _validate_password(user_input[CONF_PASSWORD])
+            except vol.Invalid:
+                errors["base"] = "invalid_auth"
+                return self._show_reauth_form(reauth_entry, errors)
+
+            password_hash = _hash_password(password)
 
             login_result = await self._async_try_login(
                 phone, password_hash, phone_id, errors, "reauth"
@@ -399,8 +444,14 @@ class LiproConfigFlow(ConfigFlow, domain=DOMAIN):
         reconfigure_entry = self._get_reconfigure_entry()
 
         if user_input is not None:
-            phone = user_input[CONF_PHONE]
-            password_hash = _hash_password(user_input[CONF_PASSWORD])
+            try:
+                phone = _normalize_phone(user_input[CONF_PHONE])
+                password = _validate_password(user_input[CONF_PASSWORD])
+            except vol.Invalid:
+                errors["base"] = "invalid_auth"
+                return self._show_reconfigure_form(reconfigure_entry, errors)
+
+            password_hash = _hash_password(password)
             remember_password_hash = bool(
                 user_input.get(
                     CONF_REMEMBER_PASSWORD_HASH,

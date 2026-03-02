@@ -717,6 +717,67 @@ class TestLiproMqttClient:
 
         on_message.assert_not_called()
 
+    def test_process_message_callback_error_sets_last_error_and_calls_error_hook(self):
+        """Callback exceptions should be observable via last_error and on_error."""
+        on_message = MagicMock(side_effect=RuntimeError("message boom"))
+        on_error = MagicMock()
+        client = LiproMqttClient(
+            access_key="access",
+            secret_key="secret",
+            biz_id="lip_biz001",
+            phone_id="550e8400-e29b-41d4-a716-446655440000",
+            on_message=on_message,
+            on_error=on_error,
+        )
+        message = MagicMock()
+        message.topic = "Topic_Device_State/lip_biz001/03ab5ccd7cxxxxxx"
+        message.payload = b'{"light":{"powerState":"1"}}'
+
+        client._process_message(message)
+
+        assert isinstance(client.last_error, RuntimeError)
+        on_error.assert_called_once()
+
+    def test_process_message_error_hook_failure_is_swallowed(self):
+        """Error hook failures should not replace original callback exception."""
+        on_message = MagicMock(side_effect=ValueError("message failed"))
+        on_error = MagicMock(side_effect=RuntimeError("hook failed"))
+        client = LiproMqttClient(
+            access_key="access",
+            secret_key="secret",
+            biz_id="lip_biz001",
+            phone_id="550e8400-e29b-41d4-a716-446655440000",
+            on_message=on_message,
+            on_error=on_error,
+        )
+        message = MagicMock()
+        message.topic = "Topic_Device_State/lip_biz001/03ab5ccd7cxxxxxx"
+        message.payload = b'{"light":{"powerState":"1"}}'
+
+        client._process_message(message)
+
+        assert isinstance(client.last_error, ValueError)
+        on_error.assert_called_once()
+
+    def test_process_message_success_clears_last_error(self):
+        """Successful message processing should clear stale error state."""
+        on_message = MagicMock()
+        client = LiproMqttClient(
+            access_key="access",
+            secret_key="secret",
+            biz_id="lip_biz001",
+            phone_id="550e8400-e29b-41d4-a716-446655440000",
+            on_message=on_message,
+        )
+        client._last_error = RuntimeError("stale")
+        message = MagicMock()
+        message.topic = "Topic_Device_State/lip_biz001/03ab5ccd7cxxxxxx"
+        message.payload = b'{"light":{"powerState":"1"}}'
+
+        client._process_message(message)
+
+        assert client.last_error is None
+
 
 class TestLiproMqttClientProperties:
     """Tests for MQTT client properties."""
@@ -1103,3 +1164,28 @@ class TestConnectionLoop:
 
         sleep.assert_called_once()
         assert client._connected is False
+
+    @pytest.mark.asyncio
+    async def test_finalize_connection_task_sets_last_error_and_calls_error_hook(self):
+        """Background connection task failures should be observable."""
+        on_error = MagicMock()
+        client = LiproMqttClient(
+            access_key="access",
+            secret_key="secret",
+            biz_id="lip_biz001",
+            phone_id="550e8400-e29b-41d4-a716-446655440000",
+            on_error=on_error,
+        )
+
+        async def _boom() -> None:
+            raise RuntimeError("loop boom")
+
+        task = asyncio.create_task(_boom())
+        await asyncio.gather(task, return_exceptions=True)
+        client._task = task
+
+        client._async_finalize_connection_task(task)
+
+        assert client._task is None
+        assert isinstance(client.last_error, RuntimeError)
+        on_error.assert_called_once()

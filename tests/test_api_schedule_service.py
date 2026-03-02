@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import asyncio
+from time import monotonic
 from unittest.mock import AsyncMock
 
 import pytest
@@ -9,6 +11,7 @@ import pytest
 from custom_components.lipro.core.api_schedule_service import (
     add_mesh_schedule_by_candidates,
     delete_mesh_schedules_by_candidates,
+    get_mesh_schedules_by_candidates,
 )
 
 
@@ -18,6 +21,61 @@ class DummyApiError(Exception):
     def __init__(self, message: str, code: int | str | None = None) -> None:
         super().__init__(message)
         self.code = code
+
+
+@pytest.mark.asyncio
+async def test_get_mesh_schedules_by_candidates_returns_first_non_empty_rows() -> None:
+    execute_candidate_request = AsyncMock(
+        side_effect=[
+            (False, None, DummyApiError("busy", 500)),
+            (True, {"data": [{"id": 7}]}, None),
+        ]
+    )
+
+    result = await get_mesh_schedules_by_candidates(
+        candidate_device_ids=["03ab0000000000a1", "03ab0000000000a2"],
+        execute_candidate_request=execute_candidate_request,
+        iot_request=AsyncMock(return_value={}),
+        extract_timings_list=lambda payload: payload.get("data", []),
+        normalize_mesh_timing_rows=lambda rows, fallback_device_id: [
+            {"id": row["id"], "deviceId": fallback_device_id} for row in rows
+        ],
+        path_ble_schedule_get="/v2/schedule/get",
+        build_mesh_schedule_get_body=lambda candidate: {"deviceId": candidate},
+        raise_on_total_failure=True,
+    )
+
+    assert result == [{"id": 7, "deviceId": "03ab0000000000a2"}]
+    assert execute_candidate_request.await_count == 2
+
+
+@pytest.mark.asyncio
+async def test_get_mesh_schedules_by_candidates_returns_without_waiting_slow_candidates() -> (
+    None
+):
+    async def execute_candidate_request(*, candidate_id: str, **_kwargs):
+        if candidate_id.endswith("a1"):
+            await asyncio.sleep(0.3)
+            return False, None, DummyApiError("slow fail", 500)
+        return True, {"data": [{"id": 9}]}, None
+
+    started = monotonic()
+    result = await get_mesh_schedules_by_candidates(
+        candidate_device_ids=["03ab0000000000a1", "03ab0000000000a2"],
+        execute_candidate_request=execute_candidate_request,
+        iot_request=AsyncMock(return_value={}),
+        extract_timings_list=lambda payload: payload.get("data", []),
+        normalize_mesh_timing_rows=lambda rows, fallback_device_id: [
+            {"id": row["id"], "deviceId": fallback_device_id} for row in rows
+        ],
+        path_ble_schedule_get="/v2/schedule/get",
+        build_mesh_schedule_get_body=lambda candidate: {"deviceId": candidate},
+        raise_on_total_failure=True,
+    )
+    elapsed = monotonic() - started
+
+    assert result == [{"id": 9, "deviceId": "03ab0000000000a2"}]
+    assert elapsed < 0.2
 
 
 @pytest.mark.asyncio

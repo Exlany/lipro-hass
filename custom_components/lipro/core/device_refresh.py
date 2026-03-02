@@ -46,6 +46,41 @@ def register_lookup_id(
     mapping[normalized.lower()] = device
 
 
+def _safe_device_from_api_data(device_data: dict[str, Any]) -> LiproDevice | None:
+    """Build a device from API data, returning None when payload is malformed."""
+    try:
+        return LiproDevice.from_api_data(device_data)
+    except (TypeError, ValueError, AttributeError):
+        _LOGGER.debug("Skipping malformed device payload row")
+        return None
+
+
+def _has_valid_device_serial(device: LiproDevice) -> bool:
+    """Return True when the device has a valid, non-empty serial."""
+    if not isinstance(device.serial, str) or not device.serial.strip():
+        _LOGGER.debug("Skipping device with invalid serial type/value")
+        return False
+    return True
+
+
+def _safe_is_gateway(device: LiproDevice) -> bool | None:
+    """Return gateway status; None when category payload is malformed."""
+    try:
+        return device.is_gateway
+    except (TypeError, ValueError):
+        _LOGGER.debug("Skipping device with malformed category payload")
+        return None
+
+
+def _safe_is_outlet(device: LiproDevice) -> bool:
+    """Return whether device is an outlet, handling malformed categories."""
+    try:
+        return device.category == DeviceCategory.OUTLET
+    except (TypeError, ValueError):
+        _LOGGER.debug("Skipping outlet categorization for malformed device")
+        return False
+
+
 def build_fetched_device_snapshot(
     devices_data: list[dict[str, Any]],
 ) -> FetchedDeviceSnapshot:
@@ -57,20 +92,15 @@ def build_fetched_device_snapshot(
     new_outlet_ids: list[str] = []
 
     for device_data in devices_data:
-        try:
-            device = LiproDevice.from_api_data(device_data)
-        except (TypeError, ValueError, AttributeError):
-            _LOGGER.debug("Skipping malformed device payload row")
+        device = _safe_device_from_api_data(device_data)
+        if device is None:
             continue
 
-        if not isinstance(device.serial, str) or not device.serial.strip():
-            _LOGGER.debug("Skipping device with invalid serial type/value")
+        if not _has_valid_device_serial(device):
             continue
 
-        try:
-            is_gateway = device.is_gateway
-        except (TypeError, ValueError):
-            _LOGGER.debug("Skipping device with malformed category payload")
+        is_gateway = _safe_is_gateway(device)
+        if is_gateway is None:
             continue
 
         if is_gateway:
@@ -93,13 +123,7 @@ def build_fetched_device_snapshot(
             continue
         new_iot_ids.append(device.iot_device_id)
 
-        try:
-            is_outlet = device.category == DeviceCategory.OUTLET
-        except (TypeError, ValueError):
-            _LOGGER.debug("Skipping outlet categorization for malformed device")
-            is_outlet = False
-
-        if is_outlet:
+        if _safe_is_outlet(device):
             new_outlet_ids.append(device.iot_device_id)
 
     return FetchedDeviceSnapshot(

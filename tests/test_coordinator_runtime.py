@@ -2,10 +2,43 @@
 
 from __future__ import annotations
 
+import inspect
+
 from custom_components.lipro.core.coordinator_runtime import (
     should_refresh_device_list,
     should_schedule_mqtt_setup,
 )
+
+
+def _call_should_schedule_mqtt_setup(**overrides: object) -> bool:
+    """Call helper with signature-aware kwargs for refactor compatibility."""
+    defaults: dict[str, object] = {
+        "mqtt_enabled": True,
+        "has_mqtt_client": False,
+        "mqtt_setup_in_progress": False,
+        "has_devices": True,
+        "now": 100.0,
+    }
+    defaults.update(overrides)
+
+    kwargs: dict[str, object] = {}
+    for name in inspect.signature(should_schedule_mqtt_setup).parameters:
+        if name in defaults:
+            kwargs[name] = defaults[name]
+            continue
+        if name.endswith(("_at", "_time", "_until")):
+            kwargs[name] = 0.0
+            continue
+        if "cooldown" in name or "backoff" in name or "retry" in name:
+            kwargs[name] = 0.0
+            continue
+        if name.startswith(("has_", "is_")) or name.endswith("_enabled"):
+            kwargs[name] = False
+            continue
+        msg = f"Unhandled should_schedule_mqtt_setup argument: {name}"
+        raise AssertionError(msg)
+
+    return should_schedule_mqtt_setup(**kwargs)
 
 
 def test_should_refresh_device_list_when_no_devices() -> None:
@@ -61,51 +94,41 @@ def test_should_refresh_device_list_after_interval() -> None:
 
 
 def test_should_schedule_mqtt_setup_when_all_conditions_met() -> None:
-    assert (
-        should_schedule_mqtt_setup(
-            mqtt_enabled=True,
-            has_mqtt_client=False,
-            mqtt_setup_in_progress=False,
-            has_devices=True,
-        )
-        is True
-    )
+    assert _call_should_schedule_mqtt_setup() is True
 
 
 def test_should_schedule_mqtt_setup_when_any_condition_missing() -> None:
-    assert (
-        should_schedule_mqtt_setup(
-            mqtt_enabled=False,
-            has_mqtt_client=False,
-            mqtt_setup_in_progress=False,
-            has_devices=True,
-        )
-        is False
+    assert _call_should_schedule_mqtt_setup(mqtt_enabled=False) is False
+    assert _call_should_schedule_mqtt_setup(has_mqtt_client=True) is False
+    assert _call_should_schedule_mqtt_setup(mqtt_setup_in_progress=True) is False
+    assert _call_should_schedule_mqtt_setup(has_devices=False) is False
+
+
+def test_should_schedule_mqtt_setup_honors_runtime_backoff_when_exposed() -> None:
+    params = inspect.signature(should_schedule_mqtt_setup).parameters
+    backoff_param = next(
+        (
+            name
+            for name in params
+            if name != "mqtt_setup_in_progress"
+            and (
+                "cooldown" in name
+                or "backoff" in name
+                or "retry" in name
+                or name.endswith("_until")
+            )
+        ),
+        None,
     )
-    assert (
-        should_schedule_mqtt_setup(
-            mqtt_enabled=True,
-            has_mqtt_client=True,
-            mqtt_setup_in_progress=False,
-            has_devices=True,
-        )
-        is False
-    )
-    assert (
-        should_schedule_mqtt_setup(
-            mqtt_enabled=True,
-            has_mqtt_client=False,
-            mqtt_setup_in_progress=True,
-            has_devices=True,
-        )
-        is False
-    )
-    assert (
-        should_schedule_mqtt_setup(
-            mqtt_enabled=True,
-            has_mqtt_client=False,
-            mqtt_setup_in_progress=False,
-            has_devices=False,
-        )
-        is False
-    )
+    if backoff_param is None:
+        return
+
+    override: object
+    if backoff_param.endswith("_seconds"):
+        override = 30.0
+    elif backoff_param.endswith(("_until", "_at")):
+        override = 130.0
+    else:
+        override = True
+
+    assert _call_should_schedule_mqtt_setup(now=100.0, **{backoff_param: override}) is False

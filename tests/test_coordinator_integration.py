@@ -779,6 +779,47 @@ class TestCoordinatorProductConfigs:
         assert device.max_fan_gear == 10
 
     @pytest.mark.asyncio
+    async def test_cached_product_config_reapplied_after_full_device_refresh(
+        self, coordinator, mock_lipro_api_client
+    ):
+        """Cached product config should be reapplied to replaced device objects."""
+        serial = "03ab5ccd7c000001"
+        mock_lipro_api_client.get_devices.side_effect = [
+            {"devices": [_make_api_device(serial=serial, iot_name="lipro_led")]},
+            {"devices": [_make_api_device(serial=serial, iot_name="lipro_led")]},
+        ]
+        mock_lipro_api_client.get_product_configs.return_value = [
+            {
+                "id": 99,
+                "fwIotName": "lipro_led",
+                "name": "LED Panel",
+                "minTemperature": 3011,
+                "maxTemperature": 5733,
+            }
+        ]
+        mock_lipro_api_client.query_device_status.return_value = []
+        mock_lipro_api_client.query_connect_status.return_value = {}
+
+        with patch(
+            "custom_components.lipro.core.coordinator.get_anonymous_share_manager"
+        ) as mock_share:
+            mock_share.return_value = MagicMock(is_enabled=False)
+            await coordinator._async_update_data()
+            first_device = coordinator.devices[serial]
+            assert first_device.min_color_temp_kelvin == 3011
+            assert first_device.max_color_temp_kelvin == 5733
+            mock_lipro_api_client.get_product_configs.reset_mock()
+
+            coordinator._force_device_refresh = True
+            await coordinator._async_update_data()
+
+        second_device = coordinator.devices[serial]
+        assert second_device is not first_device
+        assert second_device.min_color_temp_kelvin == 3011
+        assert second_device.max_color_temp_kelvin == 5733
+        mock_lipro_api_client.get_product_configs.assert_not_called()
+
+    @pytest.mark.asyncio
     async def test_product_config_api_error_is_non_fatal(
         self, coordinator, mock_lipro_api_client
     ):
