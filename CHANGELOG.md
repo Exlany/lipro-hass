@@ -19,6 +19,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Refactored coordinator update/command workflows for better maintainability.
 - Refactored anonymous share capability detection logic with clearer rule-based mapping.
 - Refactored shared sensor entity setup and applied broad type-safety/code-quality cleanup.
+- Refactored coordinator room-sync and stale-device registry operations into
+  `core/device/device_registry_sync.py` to keep `coordinator.py` focused on orchestration.
+- Refactored device identity indexing to use strict registration APIs and removed
+  legacy direct-mutation compatibility paths.
+- Removed `core.api` legacy compatibility aliases in favor of canonical
+  submodule symbols (`api_response_safety` / `request_policy`).
+- Removed `login_with_hash` compatibility entry points; config flow now uses
+  `login(..., password_is_hashed=True)` directly.
+- Refactored platform modules to import helper submodules directly and removed
+  `helpers` package-level compatibility re-exports.
+- Removed root-module legacy service contract re-exports; canonical source is
+  now `services/contracts.py`.
 
 ### Fixed
 
@@ -30,6 +42,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Corrected brightness rounding and motion sensor capability detection behavior.
 - Fixed aiodns/pycares compatibility by refining dependency constraints.
 - Added missing light platform icons and corrected command/device-id examples.
+- Fixed forced room-area sync to converge user-modified areas even when cloud room names are unchanged.
+- Fixed stale-device reconciliation to use unfiltered cloud serials and cold-start registry bootstrap, preventing filter-induced false removals.
+- Hardened bool-like coercion debug logs to avoid recording raw unexpected values.
+- Hardened sensitive-data redaction for international phone values and numeric
+  `user_id`/`biz_id` fields, and masked reauth phone placeholders in UI.
+- Reduced redundant full-batch retries in status fallback flow to cut repeated
+  API calls under retriable batch-failure paths.
 
 ## [1.0.0] - 2026-02-08
 

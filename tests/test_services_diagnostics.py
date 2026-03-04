@@ -9,7 +9,7 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 
 from custom_components.lipro.core import LiproApiError
-from custom_components.lipro.services.diagnostics import (
+from custom_components.lipro.services.diagnostics_service import (
     async_handle_get_city,
     collect_developer_reports,
 )

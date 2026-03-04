@@ -19,7 +19,7 @@ from homeassistant.const import (
 
 from .const.categories import DeviceCategory
 from .entities.base import LiproEntity
-from .helpers import create_device_entities
+from .helpers.platform import build_device_entities_from_rules, create_device_entities
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
@@ -54,21 +54,18 @@ def _build_device_sensors(
     device: LiproDevice,
 ) -> list[SensorEntity]:
     """Build all sensor entities for one device."""
-    entities: list[SensorEntity] = []
-
-    if device.category == DeviceCategory.OUTLET:
-        entities.extend(
-            [
-                LiproOutletPowerSensor(coordinator, device),
-                LiproOutletEnergySensor(coordinator, device),
-            ]
-        )
-    if device.has_battery:
-        entities.append(LiproBatterySensor(coordinator, device))
-    if device.wifi_rssi is not None:
-        entities.append(LiproWifiSignalSensor(coordinator, device))
-
-    return entities
+    return build_device_entities_from_rules(
+        coordinator,
+        device,
+        rules=(
+            (
+                lambda d: d.category == DeviceCategory.OUTLET,
+                (LiproOutletPowerSensor, LiproOutletEnergySensor),
+            ),
+            (lambda d: d.has_battery, (LiproBatterySensor,)),
+            (lambda d: d.wifi_rssi is not None, (LiproWiFiSignalSensor,)),
+        ),
+    )
 
 
 class LiproSensor(LiproEntity, SensorEntity):
@@ -178,7 +175,7 @@ class LiproBatterySensor(LiproSensor):
         }
 
 
-class LiproWifiSignalSensor(LiproSensor):
+class LiproWiFiSignalSensor(LiproSensor):
     """Sensor for device WiFi signal strength (RSSI).
 
     Available on WiFi-connected devices. Shows signal strength in dBm.

@@ -7,7 +7,7 @@ name = "lipro-smart-home"
 version = "1.0.0"
 description = "Home Assistant integration for Lipro Smart Home devices"
 readme = "README.md"
-license = {text = "MIT"}
+license = "MIT"
 requires-python = ">=3.13.2"
 authors = [
     {name = "Exlany"},
@@ -16,7 +16,6 @@ keywords = ["homeassistant", "lipro", "smart-home", "home-automation"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.13",
@@ -35,6 +34,7 @@ dev = [
     "colorlog==6.10.1",
     "homeassistant==2025.10.2",
     "pip>=21.3.1",
+    "pre-commit>=3.7.0",
     "ruff==0.15.4",
     "pytest>=7.0.0",
     "pytest-asyncio>=0.21.0",
@@ -50,6 +50,14 @@ Homepage = "https://github.com/Exlany/lipro-hass"
 Repository = "https://github.com/Exlany/lipro-hass"
 Issues = "https://github.com/Exlany/lipro-hass/issues"
 Changelog = "https://github.com/Exlany/lipro-hass/blob/main/CHANGELOG.md"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["custom_components*"]
+namespaces = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

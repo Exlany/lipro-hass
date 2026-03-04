@@ -328,6 +328,60 @@
         }
       }
     },
+    "query_command_result": {
+      "name": "查询命令结果",
+      "description": "（开发者）根据 msgSn 查询命令下发结果，不会改变正常控制流程。",
+      "fields": {
+        "device_id": {
+          "name": "设备 ID",
+          "description": "设备 serial/group ID。不填则使用目标实体。"
+        },
+        "msg_sn": {
+          "name": "消息 SN",
+          "description": "send_command 返回的命令消息序列号。"
+        }
+      }
+    },
+    "get_city": {
+      "name": "获取城市信息",
+      "description": "（开发者）查询云端城市元数据。"
+    },
+    "fetch_body_sensor_history": {
+      "name": "获取人体传感器历史",
+      "description": "（开发者）拉取人体传感器历史 payload，便于调试。",
+      "fields": {
+        "device_id": {
+          "name": "设备 ID",
+          "description": "网关/组设备 ID。不填则使用目标实体。"
+        },
+        "sensor_device_id": {
+          "name": "传感器设备 ID",
+          "description": "传感器 IoT device ID。"
+        },
+        "mesh_type": {
+          "name": "Mesh 类型",
+          "description": "API 合约期望的 meshType 值，默认 \"2\"。"
+        }
+      }
+    },
+    "fetch_door_sensor_history": {
+      "name": "获取门窗传感器历史",
+      "description": "（开发者）拉取门窗传感器历史 payload，便于调试。",
+      "fields": {
+        "device_id": {
+          "name": "设备 ID",
+          "description": "网关/组设备 ID。不填则使用目标实体。"
+        },
+        "sensor_device_id": {
+          "name": "传感器设备 ID",
+          "description": "传感器 IoT device ID。"
+        },
+        "mesh_type": {
+          "name": "Mesh 类型",
+          "description": "API 合约期望的 meshType 值，默认 \"2\"。"
+        }
+      }
+    },
     "refresh_devices": {
       "name": "刷新设备列表",
       "description": "强制刷新所有已加载 Lipro 配置项，或仅刷新指定配置项的完整设备列表。",
@@ -414,6 +468,15 @@
     "mqtt_disconnected": {
       "title": "Lipro MQTT 连接已断开",
       "message": "MQTT 已断开连接 {minutes} 分钟，实时更新不可用，已回退到轮询模式。"
+    }
+  },
+  "system_health": {
+    "info": {
+      "component_version": "组件版本",
+      "can_reach_server": "可连接服务器",
+      "logged_accounts": "已登录账号数",
+      "total_devices": "设备总数",
+      "mqtt_connected_entries": "MQTT 已连接账号数"
     }
   },
   "issues": {

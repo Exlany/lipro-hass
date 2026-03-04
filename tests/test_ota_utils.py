@@ -7,10 +7,10 @@ import json
 import pytest
 
 from custom_components.lipro.core.ota_utils import (
-    coerce_boollike,
     extract_ota_versions,
     load_verified_firmware_manifest_file,
     normalize_versions_by_type,
+    parse_ota_boollike,
     parse_verified_firmware_manifest_payload,
 )
 
@@ -28,8 +28,8 @@ from custom_components.lipro.core.ota_utils import (
         (2, None),
     ],
 )
-def test_coerce_boollike(value, expected) -> None:
-    assert coerce_boollike(value) is expected
+def test_parse_ota_boollike(value, expected) -> None:
+    assert parse_ota_boollike(value) is expected
 
 
 def test_normalize_versions_by_type_filters_invalid_rows() -> None:

@@ -2,11 +2,10 @@
 
 from __future__ import annotations
 
-from custom_components.lipro.core.device import (
-    LiproDevice,
+from custom_components.lipro.core.device import LiproDevice, parse_properties_list
+from custom_components.lipro.core.utils.identifiers import (
     is_valid_iot_device_id,
     is_valid_mesh_group_id,
-    parse_properties_list,
 )
 
 
@@ -467,8 +466,8 @@ class TestDeviceStateProperties:
         assert device.fan_gear == 5
         assert device.fan_mode == 1
 
-    def test_fan_properties_prefer_fan_on_off_status_key(self):
-        """fanOnOff from status query should override legacy fanOnoff."""
+    def test_fan_properties_ignore_alias_when_canonical_present(self):
+        """Alias keys should not override canonical properties when both exist."""
         device = LiproDevice(
             device_number=1,
             serial="03ab5ccd7cxxxxxx",
@@ -483,7 +482,7 @@ class TestDeviceStateProperties:
             },
         )
 
-        assert device.fan_is_on is False
+        assert device.fan_is_on is True
 
     def test_heater_properties(self):
         """Test heater state properties."""
@@ -1143,7 +1142,7 @@ class TestGetOptionalIntProperty:
             iot_name="",
             properties={"wifiRssi": "-65"},
         )
-        assert device.get_optional_int_property("wifiRssi") == -65
+        assert device.get_optional_int_property("wifi_rssi") == -65
 
     def test_returns_int_for_int_value(self):
         """Test returns int when property is already an int."""
@@ -1153,9 +1152,9 @@ class TestGetOptionalIntProperty:
             name="Test",
             device_type=1,
             iot_name="",
-            properties={"meshAddress": 42},
+            properties={"address": 42},
         )
-        assert device.get_optional_int_property("meshAddress") == 42
+        assert device.get_optional_int_property("address") == 42
 
     def test_returns_none_for_missing_key(self):
         """Test returns None when property key is missing."""
@@ -1167,7 +1166,7 @@ class TestGetOptionalIntProperty:
             iot_name="",
             properties={},
         )
-        assert device.get_optional_int_property("wifiRssi") is None
+        assert device.get_optional_int_property("wifi_rssi") is None
 
     def test_returns_none_for_invalid_string(self):
         """Test returns None when property is not a valid int."""
@@ -1179,7 +1178,7 @@ class TestGetOptionalIntProperty:
             iot_name="",
             properties={"wifiRssi": "not_a_number"},
         )
-        assert device.get_optional_int_property("wifiRssi") is None
+        assert device.get_optional_int_property("wifi_rssi") is None
 
 
 class TestDeviceColorTempRange:

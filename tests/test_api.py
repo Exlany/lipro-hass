@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import hashlib
 import json
 from unittest.mock import AsyncMock, MagicMock, patch
@@ -32,9 +33,15 @@ from custom_components.lipro.core.api import (
     LiproClient,
     LiproConnectionError,
     LiproRefreshTokenExpiredError,
-    _mask_sensitive_data,
 )
-from custom_components.lipro.core.api.api_status_service import (
+from custom_components.lipro.core.api.request_policy import (
+    COMMAND_PACING_CACHE_MAX_SIZE,
+)
+from custom_components.lipro.core.api.response_safety import (
+    mask_sensitive_data,
+    normalize_response_code,
+)
+from custom_components.lipro.core.api.status_service import (
     query_with_fallback as query_with_fallback_service,
 )
 
@@ -45,7 +52,7 @@ class TestMaskSensitiveData:
     def test_mask_access_token(self):
         """Test masking access token."""
         data = '{"access_token": "secret123", "other": "value"}'
-        result = _mask_sensitive_data(data)
+        result = mask_sensitive_data(data)
         assert '"access_token": "***"' in result
         assert "secret123" not in result
         assert '"other": "value"' in result
@@ -53,35 +60,55 @@ class TestMaskSensitiveData:
     def test_mask_refresh_token(self):
         """Test masking refresh token."""
         data = '{"refresh_token": "refresh_secret"}'
-        result = _mask_sensitive_data(data)
+        result = mask_sensitive_data(data)
         assert '"refresh_token": "***"' in result
         assert "refresh_secret" not in result
 
     def test_mask_password(self):
         """Test masking password."""
         data = '{"password": "mypassword123"}'
-        result = _mask_sensitive_data(data)
+        result = mask_sensitive_data(data)
         assert '"password": "***"' in result
         assert "mypassword123" not in result
 
     def test_mask_phone(self):
         """Test masking phone number (keep first 3 and last 4)."""
         data = '{"phone": "13800001234"}'
-        result = _mask_sensitive_data(data)
+        result = mask_sensitive_data(data)
         assert '"phone": "138****1234"' in result
         assert "13800001234" not in result
+
+    def test_mask_phone_with_plus_prefix(self):
+        """Test masking phone number that includes country-code prefix."""
+        data = '{"phone": "+8613800001234"}'
+        result = mask_sensitive_data(data)
+        assert '"phone": "+861****1234"' in result
+        assert "+8613800001234" not in result
+
+    def test_mask_numeric_user_and_biz_ids(self):
+        """Test masking numeric user/biz id values."""
+        data = '{"user_id": 10001, "userId": 10002, "biz_id": 20001, "bizId": 20002}'
+        result = mask_sensitive_data(data)
+        assert '"user_id": "***"' in result
+        assert '"userId": "***"' in result
+        assert '"biz_id": "***"' in result
+        assert '"bizId": "***"' in result
+        assert "10001" not in result
+        assert "10002" not in result
+        assert "20001" not in result
+        assert "20002" not in result
 
     def test_mask_camel_case_tokens(self):
         """Test masking camelCase token fields."""
         data = '{"accessToken": "token1", "refreshToken": "token2"}'
-        result = _mask_sensitive_data(data)
+        result = mask_sensitive_data(data)
         assert '"accessToken": "***"' in result
         assert '"refreshToken": "***"' in result
 
     def test_mask_mqtt_keys(self):
         """Test masking MQTT access/secret keys."""
         data = '{"accessKey":"ak_test","secretKey":"sk_test"}'
-        result = _mask_sensitive_data(data)
+        result = mask_sensitive_data(data)
         assert '"accessKey": "***"' in result
         assert '"secretKey": "***"' in result
         assert "ak_test" not in result
@@ -93,7 +120,7 @@ class TestMaskSensitiveData:
             '{"deviceName":"Bedroom Light","roomName":"Master",'
             '"wifi_ssid":"HomeWifi","mac":"5c:cd:7c:11:22:33","ip":"10.0.0.10"}'
         )
-        result = _mask_sensitive_data(data)
+        result = mask_sensitive_data(data)
         assert '"deviceName": "***"' in result
         assert '"roomName": "***"' in result
         assert '"wifi_ssid": "***"' in result
@@ -504,7 +531,7 @@ class TestLiproClientErrorHandling:
 
         with (
             patch(
-                "custom_components.lipro.core.api._mask_sensitive_data",
+                "custom_components.lipro.core.api.response_safety.mask_sensitive_data",
                 side_effect=lambda payload: payload,
             ) as mock_mask,
             pytest.raises(LiproApiError),
@@ -1344,8 +1371,12 @@ class TestLiproClientDeviceStatus:
 
         with (
             patch.object(client, "_iot_request", side_effect=mock_request),
-            patch("custom_components.lipro.core.api._LOGGER.warning") as mock_warning,
-            patch("custom_components.lipro.core.api._LOGGER.debug") as mock_debug,
+            patch(
+                "custom_components.lipro.core.api.client._LOGGER.warning"
+            ) as mock_warning,
+            patch(
+                "custom_components.lipro.core.api.client._LOGGER.debug"
+            ) as mock_debug,
         ):
             result = await client.query_device_status(["03ab5ccd7cxxxxxx"])
 
@@ -1386,7 +1417,9 @@ class TestLiproClientDeviceStatus:
 
         with (
             patch.object(client, "_iot_request", side_effect=mock_request),
-            patch("custom_components.lipro.core.api._LOGGER.warning") as mock_warning,
+            patch(
+                "custom_components.lipro.core.api.client._LOGGER.warning"
+            ) as mock_warning,
         ):
             result = await client.query_device_status(["03ab5ccd7cxxxxxx"])
 
@@ -2042,7 +2075,8 @@ class TestLiproClientCommandsExtended:
                 client, "_throttle_change_state", new_callable=AsyncMock
             ) as throttle,
             patch(
-                "custom_components.lipro.core.api.asyncio.sleep", new_callable=AsyncMock
+                "custom_components.lipro.core.api.client_pacing.asyncio.sleep",
+                new_callable=AsyncMock,
             ) as sleep,
         ):
             mock_request.side_effect = [
@@ -2078,7 +2112,8 @@ class TestLiproClientCommandsExtended:
                 client, "_throttle_change_state", new_callable=AsyncMock
             ) as throttle,
             patch(
-                "custom_components.lipro.core.api.asyncio.sleep", new_callable=AsyncMock
+                "custom_components.lipro.core.api.client_pacing.asyncio.sleep",
+                new_callable=AsyncMock,
             ) as sleep,
         ):
             mock_request.side_effect = [
@@ -2111,7 +2146,8 @@ class TestLiproClientCommandsExtended:
                 client, "_throttle_change_state", new_callable=AsyncMock
             ) as throttle,
             patch(
-                "custom_components.lipro.core.api.asyncio.sleep", new_callable=AsyncMock
+                "custom_components.lipro.core.api.client_pacing.asyncio.sleep",
+                new_callable=AsyncMock,
             ) as sleep,
         ):
             mock_request.side_effect = LiproApiError("Device offline", 140003)
@@ -2141,7 +2177,8 @@ class TestLiproClientCommandsExtended:
                 client, "_throttle_change_state", new_callable=AsyncMock
             ) as throttle,
             patch(
-                "custom_components.lipro.core.api.asyncio.sleep", new_callable=AsyncMock
+                "custom_components.lipro.core.api.client_pacing.asyncio.sleep",
+                new_callable=AsyncMock,
             ) as sleep,
         ):
             mock_request.side_effect = LiproApiError("设备繁忙，请稍候操作", "250001")
@@ -2167,11 +2204,12 @@ class TestLiproClientCommandsExtended:
 
         with (
             patch(
-                "custom_components.lipro.core.api.time.monotonic",
+                "custom_components.lipro.core.api.client_pacing.time.monotonic",
                 side_effect=[100.05, 100.25],
             ),
             patch(
-                "custom_components.lipro.core.api.asyncio.sleep", new_callable=AsyncMock
+                "custom_components.lipro.core.api.client_pacing.asyncio.sleep",
+                new_callable=AsyncMock,
             ) as sleep,
         ):
             await client._throttle_change_state("mesh_group_10001", "CHANGE_STATE")
@@ -2188,7 +2226,8 @@ class TestLiproClientCommandsExtended:
         client._last_change_state_at["mesh_group_10001"] = 100.0
 
         with patch(
-            "custom_components.lipro.core.api.asyncio.sleep", new_callable=AsyncMock
+            "custom_components.lipro.core.api.client_pacing.asyncio.sleep",
+            new_callable=AsyncMock,
         ) as sleep:
             await client._throttle_change_state("mesh_group_10001", "POWER_ON")
 
@@ -2962,24 +3001,25 @@ class TestLiproClientAdditionalBranchCoverage:
 
     def test_normalize_iot_device_id_non_string(self):
         """Non-string IDs should be rejected by IoT ID normalizer."""
-        from custom_components.lipro.core.api import _normalize_iot_device_id
+        from custom_components.lipro.core.utils.identifiers import (
+            normalize_iot_device_id,
+        )
 
-        assert _normalize_iot_device_id(123) is None
+        assert normalize_iot_device_id(123) is None
 
     def test_normalize_response_code_edge_variants(self):
         """Response-code normalization should handle bool/float/empty/string-edge values."""
-        from custom_components.lipro.core.api import _normalize_response_code
 
         class _CodeObject:
             def __str__(self) -> str:
                 return "  custom_code  "
 
-        assert _normalize_response_code(True) == 1
-        assert _normalize_response_code(2.0) == 2
-        assert _normalize_response_code(2.5) == "2.5"
-        assert _normalize_response_code("   ") is None
-        assert _normalize_response_code("+-1") == "+-1"
-        assert _normalize_response_code(_CodeObject()) == "custom_code"
+        assert normalize_response_code(True) == 1
+        assert normalize_response_code(2.0) == 2
+        assert normalize_response_code(2.5) == "2.5"
+        assert normalize_response_code("   ") is None
+        assert normalize_response_code("+-1") == "+-1"
+        assert normalize_response_code(_CodeObject()) == "custom_code"
 
     @pytest.mark.asyncio
     async def test_get_session_without_injected_session_raises(self):
@@ -2999,10 +3039,8 @@ class TestLiproClientAdditionalBranchCoverage:
 
     def test_enforce_command_pacing_cache_limit_drops_oldest_targets(self):
         """Pacing cache should stay bounded by evicting oldest tracked targets."""
-        from custom_components.lipro.core import api as api_module
-
         client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
-        total = api_module._COMMAND_PACING_CACHE_MAX_SIZE + 2
+        total = COMMAND_PACING_CACHE_MAX_SIZE + 2
         for idx in range(total):
             key = f"target_{idx}"
             client._last_change_state_at[key] = float(idx)
@@ -3011,20 +3049,40 @@ class TestLiproClientAdditionalBranchCoverage:
 
         client._enforce_command_pacing_cache_limit()
 
-        assert (
-            len(client._last_change_state_at)
-            == api_module._COMMAND_PACING_CACHE_MAX_SIZE
-        )
-        assert (
-            len(client._change_state_min_interval)
-            == api_module._COMMAND_PACING_CACHE_MAX_SIZE
-        )
-        assert (
-            len(client._change_state_busy_count)
-            == api_module._COMMAND_PACING_CACHE_MAX_SIZE
-        )
+        assert len(client._last_change_state_at) == COMMAND_PACING_CACHE_MAX_SIZE
+        assert len(client._change_state_min_interval) == COMMAND_PACING_CACHE_MAX_SIZE
+        assert len(client._change_state_busy_count) == COMMAND_PACING_CACHE_MAX_SIZE
         assert "target_0" not in client._last_change_state_at
         assert "target_1" not in client._last_change_state_at
+
+    @pytest.mark.asyncio
+    async def test_enforce_command_pacing_cache_limit_keeps_lock_with_waiters(self):
+        """Lock entries with queued waiters must not be evicted."""
+        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        total = COMMAND_PACING_CACHE_MAX_SIZE + 1
+        for idx in range(total):
+            key = f"target_{idx}"
+            client._last_change_state_at[key] = float(idx)
+            client._change_state_min_interval[key] = 0.2
+            client._change_state_busy_count[key] = 1
+
+        lock = asyncio.Lock()
+        await lock.acquire()
+        waiter = asyncio.create_task(lock.acquire())
+        await asyncio.sleep(0)
+        lock.release()
+
+        # Create the "locked=False but has waiters" window.
+        assert lock.locked() is False
+        assert bool(getattr(lock, "_waiters", None)) is True
+
+        client._command_pacing_target_locks["target_0"] = lock
+        client._enforce_command_pacing_cache_limit()
+
+        assert client._command_pacing_target_locks["target_0"] is lock
+
+        await waiter
+        lock.release()
 
     @pytest.mark.asyncio
     async def test_record_change_state_busy_ignores_blank_target(self):
@@ -3073,7 +3131,8 @@ class TestLiproClientAdditionalBranchCoverage:
         client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
 
         with patch(
-            "custom_components.lipro.core.api.asyncio.sleep", new_callable=AsyncMock
+            "custom_components.lipro.core.api.client_pacing.asyncio.sleep",
+            new_callable=AsyncMock,
         ) as sleep:
             await client._throttle_change_state("   ", "CHANGE_STATE")
 
@@ -3127,7 +3186,8 @@ class TestLiproClientAdditionalBranchCoverage:
                 client, "_get_session", new_callable=AsyncMock
             ) as mock_session,
             patch(
-                "custom_components.lipro.core.api.asyncio.sleep", new_callable=AsyncMock
+                "custom_components.lipro.core.api.client_pacing.asyncio.sleep",
+                new_callable=AsyncMock,
             ),
         ):
             mock_session.return_value = MagicMock()
@@ -3251,21 +3311,6 @@ class TestLiproClientAdditionalBranchCoverage:
                 LiproAuthError, match="missing access_token or refresh_token"
             ):
                 await client.login("13800000000", "password")
-
-    @pytest.mark.asyncio
-    async def test_login_with_hash_delegates_to_login(self):
-        """login_with_hash should delegate to login with hashed-password flag."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
-
-        with patch.object(client, "login", new_callable=AsyncMock) as mock_login:
-            mock_login.return_value = {"access_token": "a"}
-            await client.login_with_hash("13800000000", "hashed")
-
-        mock_login.assert_awaited_once_with(
-            "13800000000",
-            "hashed",
-            password_is_hashed=True,
-        )
 
     @pytest.mark.asyncio
     async def test_refresh_access_token_missing_tokens_raises_auth_error(self):
@@ -3411,7 +3456,8 @@ class TestLiproClientAdditionalBranchCoverage:
                 client, "_get_session", new_callable=AsyncMock
             ) as mock_session,
             patch(
-                "custom_components.lipro.core.api.asyncio.sleep", new_callable=AsyncMock
+                "custom_components.lipro.core.api.client_pacing.asyncio.sleep",
+                new_callable=AsyncMock,
             ),
         ):
             mock_session.return_value = MagicMock()

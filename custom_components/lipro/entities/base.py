@@ -64,7 +64,7 @@ class LiproEntity(CoordinatorEntity[LiproDataUpdateCoordinator]):
             self._attr_unique_id = device.unique_id
 
         # Cache device_info (static per device, built once)
-        info = DeviceInfo(
+        device_info = DeviceInfo(
             identifiers={(DOMAIN, device.serial)},
             name=device.name,
             manufacturer=MANUFACTURER,
@@ -72,12 +72,12 @@ class LiproEntity(CoordinatorEntity[LiproDataUpdateCoordinator]):
             suggested_area=device.room_name,
         )
         if not device.is_group and device.serial:
-            info["serial_number"] = device.serial
+            device_info["serial_number"] = device.serial
         if device.firmware_version:
-            info["sw_version"] = device.firmware_version
+            device_info["sw_version"] = device.firmware_version
         if device.iot_name:
-            info["hw_version"] = device.iot_name
-        self._attr_device_info = info
+            device_info["hw_version"] = device.iot_name
+        self._attr_device_info = device_info
 
     @property
     def device(self) -> LiproDevice:

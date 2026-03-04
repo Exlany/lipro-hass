@@ -3,7 +3,39 @@
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
-from typing import Any
+import ipaddress
+import re
+from typing import Any, Final
+
+_IPV4_CANDIDATE_RE: Final = re.compile(r"(?<!\d)(?:\d{1,3}\.){3}\d{1,3}(?!\d)")
+_IPV6_CANDIDATE_RE: Final = re.compile(
+    r"(?<![0-9A-Fa-f:])(?:[0-9A-Fa-f]{0,4}:){2,7}[0-9A-Fa-f]{0,4}(?![0-9A-Fa-f:])"
+)
+
+
+def mask_ip_addresses(text: str, *, placeholder: str = "[IP]") -> str:
+    """Replace embedded IPv4/IPv6 literals with a placeholder."""
+    if not text or not placeholder:
+        return text
+
+    def _mask_ipv4(match: re.Match[str]) -> str:
+        candidate = match.group(0)
+        try:
+            ipaddress.IPv4Address(candidate)
+        except ipaddress.AddressValueError:
+            return candidate
+        return placeholder
+
+    def _mask_ipv6(match: re.Match[str]) -> str:
+        candidate = match.group(0)
+        try:
+            ipaddress.IPv6Address(candidate)
+        except ipaddress.AddressValueError:
+            return candidate
+        return placeholder
+
+    result = _IPV4_CANDIDATE_RE.sub(_mask_ipv4, text)
+    return _IPV6_CANDIDATE_RE.sub(_mask_ipv6, result)
 
 
 def summarize_properties_for_log(

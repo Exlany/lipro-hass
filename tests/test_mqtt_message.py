@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from custom_components.lipro.core.mqtt.mqtt_message import (
+from custom_components.lipro.core.mqtt.message import (
     build_dedup_cache_key,
     cleanup_dedup_cache,
     compute_properties_hash,

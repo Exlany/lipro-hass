@@ -37,8 +37,14 @@ from custom_components.lipro.core.api import (
     LiproConnectionError,
     LiproRefreshTokenExpiredError,
 )
-from custom_components.lipro.core.coordinator import _CONNECT_STATUS_MQTT_STALE_SECONDS
+from custom_components.lipro.core.command.expectation import (
+    PendingCommandExpectation as _PendingCommandExpectation,
+)
+from custom_components.lipro.core.coordinator.tuning import (
+    _CONNECT_STATUS_MQTT_STALE_SECONDS,
+)
 from custom_components.lipro.core.device import LiproDevice
+from custom_components.lipro.core.utils.redaction import redact_identifier
 from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.issue_registry import IssueSeverity
 from homeassistant.helpers.update_coordinator import UpdateFailed
@@ -67,7 +73,7 @@ def coordinator(hass, mock_lipro_api_client, mock_auth_manager):
     entry.add_to_hass(hass)
 
     with patch(
-        "custom_components.lipro.core.coordinator.get_anonymous_share_manager"
+        "custom_components.lipro.core.coordinator.state.get_anonymous_share_manager"
     ) as mock_share:
         mock_share.return_value = MagicMock(is_enabled=False, set_enabled=MagicMock())
         from custom_components.lipro.core.coordinator import LiproDataUpdateCoordinator
@@ -133,7 +139,7 @@ class TestCoordinatorDeviceManagement:
 
     def test_get_device_by_id_found(self, coordinator):
         dev = _make_device(serial="bbb")
-        coordinator._device_by_id["bbb"] = dev
+        coordinator._device_identity_index.register("bbb", dev)
         assert coordinator.get_device_by_id("bbb") is dev
 
     def test_get_device_by_id_not_found(self, coordinator):
@@ -142,15 +148,13 @@ class TestCoordinatorDeviceManagement:
     def test_get_device_by_id_gateway_mapping(self, coordinator):
         """Gateway ID mapped to a group device."""
         dev = _make_device(serial="mesh_group_10001", is_group=True)
-        coordinator._device_by_id["gateway_abc"] = dev
+        coordinator._device_identity_index.register("gateway_abc", dev)
         assert coordinator.get_device_by_id("gateway_abc") is dev
 
-    def test_get_device_by_id_legacy_direct_write_supports_case_and_strip(
-        self, coordinator
-    ):
-        """Legacy direct writes to _device_by_id remain compatible."""
+    def test_get_device_by_id_register_supports_case_and_strip(self, coordinator):
+        """Registered lookup IDs should support strip/lower lookups."""
         dev = _make_device(serial="mesh_group_10002", is_group=True)
-        coordinator._device_by_id["GW_MixedCase_001"] = dev
+        coordinator._device_identity_index.register("GW_MixedCase_001", dev)
         assert coordinator.get_device_by_id("  gw_mixedcase_001  ") is dev
 
 
@@ -376,8 +380,6 @@ class TestCoordinatorApplyPropertiesUpdate:
 
     def test_apply_filters_stale_values_while_command_pending(self, coordinator):
         """Pending command keys should ignore stale mismatched values."""
-        from custom_components.lipro.core.coordinator import _PendingCommandExpectation
-
         dev = _make_device(serial="dev1", properties={"brightness": "10"})
         coordinator._pending_command_expectations["dev1"] = _PendingCommandExpectation(
             sent_at=monotonic(),
@@ -396,8 +398,6 @@ class TestCoordinatorApplyPropertiesUpdate:
 
     def test_apply_confirms_pending_command_and_learns_latency(self, coordinator):
         """Matching update confirms expectation and updates adaptive latency."""
-        from custom_components.lipro.core.coordinator import _PendingCommandExpectation
-
         dev = _make_device(serial="dev1", properties={"brightness": "10"})
         coordinator._pending_command_expectations["dev1"] = _PendingCommandExpectation(
             sent_at=monotonic() - 2.0,
@@ -415,8 +415,6 @@ class TestCoordinatorApplyPropertiesUpdate:
 
     def test_apply_prunes_expired_pending_expectation(self, coordinator):
         """Expired pending expectation should be dropped before filtering."""
-        from custom_components.lipro.core.coordinator import _PendingCommandExpectation
-
         dev = _make_device(serial="dev1", properties={"brightness": "10"})
         coordinator._pending_command_expectations["dev1"] = _PendingCommandExpectation(
             sent_at=monotonic() - 30.0,
@@ -461,8 +459,6 @@ class TestCoordinatorApplyPropertiesUpdate:
         assert "dev1" not in coordinator._pending_command_expectations
 
     def test_observe_command_confirmation_prunes_expired(self, coordinator):
-        from custom_components.lipro.core.coordinator import _PendingCommandExpectation
-
         coordinator._pending_command_expectations["dev1"] = _PendingCommandExpectation(
             sent_at=monotonic() - 30.0,
             expected={"brightness": "60"},
@@ -491,19 +487,29 @@ class TestCoordinatorMqttMessageHandling:
     def test_known_device_updates_properties(self, coordinator):
         dev = _make_device(serial="dev1", properties={"powerState": "0"})
         coordinator._devices["dev1"] = dev
-        coordinator._device_by_id["dev1"] = dev
+        coordinator._device_identity_index.register("dev1", dev)
 
         coordinator._on_mqtt_message("dev1", {"powerState": "1"})
         assert dev.properties["powerState"] == "1"
 
-    def test_unknown_device_ignored(self, coordinator):
-        # Should not raise
-        coordinator._on_mqtt_message("unknown_id", {"powerState": "1"})
+    def test_unknown_device_ignored(self, coordinator, caplog):
+        unknown_id = "03ab5ccd7c123456"
+
+        with caplog.at_level(
+            logging.DEBUG,
+            logger="custom_components.lipro.core.coordinator",
+        ):
+            coordinator._on_mqtt_message(unknown_id, {"powerState": "1"})
+
+        redacted = redact_identifier(unknown_id)
+        assert redacted is not None
+        assert redacted in caplog.text
+        assert unknown_id not in caplog.text
 
     def test_dedup_within_window_skips_second_message(self, coordinator):
         dev = _make_device(serial="dev1", properties={"brightness": "0"})
         coordinator._devices["dev1"] = dev
-        coordinator._device_by_id["dev1"] = dev
+        coordinator._device_identity_index.register("dev1", dev)
 
         coordinator._on_mqtt_message("dev1", {"brightness": "50"})
         assert dev.properties["brightness"] == "50"
@@ -517,7 +523,7 @@ class TestCoordinatorMqttMessageHandling:
     def test_dedup_expired_allows_through(self, coordinator):
         dev = _make_device(serial="dev1", properties={"brightness": "0"})
         coordinator._devices["dev1"] = dev
-        coordinator._device_by_id["dev1"] = dev
+        coordinator._device_identity_index.register("dev1", dev)
 
         coordinator._on_mqtt_message("dev1", {"brightness": "50"})
         assert dev.properties["brightness"] == "50"
@@ -533,7 +539,7 @@ class TestCoordinatorMqttMessageHandling:
     def test_different_properties_not_deduped(self, coordinator):
         dev = _make_device(serial="dev1", properties={})
         coordinator._devices["dev1"] = dev
-        coordinator._device_by_id["dev1"] = dev
+        coordinator._device_identity_index.register("dev1", dev)
 
         coordinator._on_mqtt_message("dev1", {"brightness": "50"})
         coordinator._on_mqtt_message("dev1", {"brightness": "80"})
@@ -577,7 +583,7 @@ class TestCoordinatorMqttPollingInterval:
 
     def test_on_mqtt_connect_dismisses_disconnect_issue(self, coordinator):
         with patch(
-            "custom_components.lipro.core.coordinator.async_delete_issue"
+            "custom_components.lipro.core.coordinator.mqtt.lifecycle.async_delete_issue"
         ) as delete_issue:
             coordinator._on_mqtt_connect()
 
@@ -681,7 +687,8 @@ class TestCoordinatorDeviceListRefreshPolicy:
         coordinator._last_device_refresh_at = 100.0
 
         with patch(
-            "custom_components.lipro.core.coordinator.monotonic", return_value=150.0
+            "custom_components.lipro.core.coordinator.device_refresh.monotonic",
+            return_value=150.0,
         ):
             assert coordinator._should_refresh_device_list() is False
 
@@ -691,7 +698,8 @@ class TestCoordinatorDeviceListRefreshPolicy:
         coordinator._last_device_refresh_at = 100.0
 
         with patch(
-            "custom_components.lipro.core.coordinator.monotonic", return_value=1000.0
+            "custom_components.lipro.core.coordinator.device_refresh.monotonic",
+            return_value=1000.0,
         ):
             assert coordinator._should_refresh_device_list() is True
 
@@ -844,7 +852,8 @@ class TestCoordinatorSendCommand:
         )
 
         with patch(
-            "custom_components.lipro.core.coordinator.asyncio.sleep", new=AsyncMock()
+            "custom_components.lipro.core.command.result.asyncio.sleep",
+            new=AsyncMock(),
         ):
             result = await coordinator.async_send_command(dev, "turnOn")
 
@@ -1095,8 +1104,6 @@ class TestCoordinatorSendCommand:
         self, coordinator, mock_lipro_api_client
     ):
         """MQTT disconnect + fallback send + stale cleanup should work together."""
-        from custom_components.lipro.core.coordinator import _PendingCommandExpectation
-
         member_id = "03ab5ccd7c123456"
         dev = _make_device(serial="mesh_group_10001", is_group=True)
         dev.extra_data["group_member_ids"] = [member_id]
@@ -1220,7 +1227,7 @@ class TestCoordinatorSendCommand:
         dev = _make_device(serial="dev1", is_group=False)
 
         with patch(
-            "custom_components.lipro.core.coordinator.async_delete_issue"
+            "custom_components.lipro.core.coordinator.auth_issues.async_delete_issue"
         ) as delete_issue:
             result = await coordinator.async_send_command(dev, "turnOn")
 
@@ -1359,8 +1366,6 @@ class TestCoordinatorSendCommand:
     def test_schedule_post_command_refresh_with_mqtt_and_pending_expectation(
         self, coordinator
     ):
-        from custom_components.lipro.core.coordinator import _PendingCommandExpectation
-
         coordinator._mqtt_connected = True
         coordinator._pending_command_expectations["dev1"] = _PendingCommandExpectation(
             sent_at=monotonic(),
@@ -1387,8 +1392,6 @@ class TestCoordinatorSendCommand:
     def test_schedule_post_command_refresh_with_mqtt_immediate_and_delayed_when_pending_expectation(
         self, coordinator
     ):
-        from custom_components.lipro.core.coordinator import _PendingCommandExpectation
-
         coordinator._mqtt_connected = True
         coordinator._pending_command_expectations["dev1"] = _PendingCommandExpectation(
             sent_at=monotonic(),
@@ -1462,8 +1465,6 @@ class TestCoordinatorSendCommand:
         )
 
     def test_prune_runtime_state_for_devices(self, coordinator):
-        from custom_components.lipro.core.coordinator import _PendingCommandExpectation
-
         coordinator._pending_command_expectations = {
             "active": _PendingCommandExpectation(
                 sent_at=monotonic(),
@@ -1523,7 +1524,7 @@ class TestCoordinatorSendCommand:
         assert coordinator._state_batch_metrics[-1] == (24, 0.25, 0)
 
     def test_adapt_connect_status_stale_window_by_skip_ratio(self, coordinator):
-        from custom_components.lipro.core.coordinator import (
+        from custom_components.lipro.core.coordinator.tuning import (
             _CONNECT_STATUS_SKIP_RATIO_WINDOW,
         )
 
@@ -1593,7 +1594,8 @@ class TestCoordinatorSendCommand:
         coordinator._last_mqtt_connect_state_at["dev1"] = 1000.0
 
         with patch(
-            "custom_components.lipro.core.coordinator.monotonic", return_value=1000.0
+            "custom_components.lipro.core.coordinator.tuning.monotonic",
+            return_value=1000.0,
         ):
             ids = coordinator._resolve_connect_status_query_ids()
 
@@ -1611,7 +1613,8 @@ class TestCoordinatorSendCommand:
         coordinator._last_connect_status_query_time = 1000.0
 
         with patch(
-            "custom_components.lipro.core.coordinator.monotonic", return_value=1000.5
+            "custom_components.lipro.core.coordinator.tuning.monotonic",
+            return_value=1000.5,
         ):
             ids = coordinator._resolve_connect_status_query_ids()
 
@@ -1629,7 +1632,8 @@ class TestCoordinatorSendCommand:
         coordinator._last_connect_status_query_time = 0.0
 
         with patch(
-            "custom_components.lipro.core.coordinator.monotonic", return_value=1000.0
+            "custom_components.lipro.core.coordinator.tuning.monotonic",
+            return_value=1000.0,
         ):
             ids = coordinator._resolve_connect_status_query_ids()
 
@@ -1640,7 +1644,7 @@ class TestCoordinatorSendCommand:
 
     def test_build_developer_report_disabled_mode_has_note(self, coordinator):
         with patch(
-            "custom_components.lipro.core.coordinator.get_anonymous_share_manager"
+            "custom_components.lipro.core.coordinator.state.get_anonymous_share_manager"
         ) as mock_share:
             mock_share.return_value = MagicMock(pending_count=(0, 0))
             report = coordinator.build_developer_report()
@@ -1662,7 +1666,7 @@ class TestCoordinatorSendCommand:
             options={"debug_mode": True},
         )
         with patch(
-            "custom_components.lipro.core.coordinator.logging.getLogger"
+            "custom_components.lipro.core.coordinator.state.logging.getLogger"
         ) as get_logger:
             coordinator._load_options()
 
@@ -1707,7 +1711,9 @@ class TestCoordinatorMqttSetupAndSync:
     """Test real MQTT setup/teardown/sync methods."""
 
     @pytest.mark.asyncio
-    async def test_async_setup_mqtt_success(self, coordinator, mock_lipro_api_client):
+    async def test_async_setup_mqtt_success(
+        self, coordinator, mock_lipro_api_client, caplog
+    ):
         coordinator._devices = {
             "dev1": _make_device(serial="dev1"),
             "mesh_group_1": _make_device(serial="mesh_group_1", is_group=True),
@@ -1720,19 +1726,27 @@ class TestCoordinatorMqttSetupAndSync:
         mock_mqtt = AsyncMock()
         with (
             patch(
-                "custom_components.lipro.core.coordinator.decrypt_mqtt_credential",
+                "custom_components.lipro.core.coordinator.mqtt.lifecycle.decrypt_mqtt_credential",
                 side_effect=["ak", "sk"],
             ),
             patch(
-                "custom_components.lipro.core.coordinator.LiproMqttClient"
+                "custom_components.lipro.core.coordinator.mqtt.lifecycle.LiproMqttClient"
             ) as mqtt_cls,
         ):
             mqtt_cls.return_value = mock_mqtt
-            ok = await coordinator.async_setup_mqtt()
+            with caplog.at_level(
+                logging.DEBUG,
+                logger="custom_components.lipro.core.coordinator",
+            ):
+                ok = await coordinator.async_setup_mqtt()
 
         assert ok is True
         assert coordinator._biz_id == "10001"
         mock_mqtt.start.assert_awaited_once_with(["dev1", "mesh_group_1"])
+        redacted = redact_identifier("mesh_group_1")
+        assert redacted is not None
+        assert redacted in caplog.text
+        assert "MQTT: subscribing to mesh group mesh_group_1" not in caplog.text
 
     @pytest.mark.asyncio
     async def test_async_setup_mqtt_missing_credential_returns_false(
@@ -1759,7 +1773,7 @@ class TestCoordinatorMqttSetupAndSync:
                 return_value=("ak", "sk"),
             ),
             patch(
-                "custom_components.lipro.core.coordinator.resolve_mqtt_biz_id",
+                "custom_components.lipro.core.coordinator.mqtt.lifecycle.resolve_mqtt_biz_id",
                 return_value=None,
             ),
         ):
@@ -1824,7 +1838,8 @@ class TestCoordinatorMqttSetupAndSync:
         coordinator._mqtt_setup_in_progress = True
 
         with patch(
-            "custom_components.lipro.core.coordinator.monotonic", return_value=100.0
+            "custom_components.lipro.core.coordinator.mqtt.lifecycle.monotonic",
+            return_value=100.0,
         ):
             await coordinator._async_setup_mqtt_safe()
 
@@ -1837,7 +1852,8 @@ class TestCoordinatorMqttSetupAndSync:
 
         coordinator._track_background_task = MagicMock(side_effect=_track)
         with patch(
-            "custom_components.lipro.core.coordinator.monotonic", return_value=100.5
+            "custom_components.lipro.core.coordinator.mqtt.lifecycle.monotonic",
+            return_value=100.5,
         ):
             coordinator._schedule_mqtt_setup_if_needed()
 
@@ -1855,14 +1871,16 @@ class TestCoordinatorMqttSetupAndSync:
         coordinator.async_setup_mqtt = AsyncMock(return_value=False)
         coordinator._mqtt_setup_in_progress = True
         with patch(
-            "custom_components.lipro.core.coordinator.monotonic", return_value=200.0
+            "custom_components.lipro.core.coordinator.mqtt.lifecycle.monotonic",
+            return_value=200.0,
         ):
             await coordinator._async_setup_mqtt_safe()
 
         coordinator.async_setup_mqtt = AsyncMock(return_value=True)
         coordinator._mqtt_setup_in_progress = True
         with patch(
-            "custom_components.lipro.core.coordinator.monotonic", return_value=201.0
+            "custom_components.lipro.core.coordinator.mqtt.lifecycle.monotonic",
+            return_value=201.0,
         ):
             await coordinator._async_setup_mqtt_safe()
 
@@ -1875,7 +1893,8 @@ class TestCoordinatorMqttSetupAndSync:
 
         coordinator._track_background_task = MagicMock(side_effect=_track)
         with patch(
-            "custom_components.lipro.core.coordinator.monotonic", return_value=201.0
+            "custom_components.lipro.core.coordinator.mqtt.lifecycle.monotonic",
+            return_value=201.0,
         ):
             coordinator._schedule_mqtt_setup_if_needed()
 
@@ -1908,8 +1927,8 @@ class TestCoordinatorStatusQueriesAndNotifications:
         await coordinator._query_group_status()
 
         assert group.properties["powerState"] == "1"
-        assert coordinator._device_by_id["03ab5ccd7cgw"] is group
-        assert coordinator._device_by_id["03ab5ccd7c111111"] is group
+        assert coordinator.get_device_by_id("03ab5ccd7cgw") is group
+        assert coordinator.get_device_by_id("03ab5ccd7c111111") is group
         assert coordinator.get_device_by_id("03AB5CCD7C222222") is group
         assert coordinator.get_device_by_id("03ab5ccd7c222222") is group
         assert group.extra_data["group_member_count"] == 2
@@ -1969,7 +1988,7 @@ class TestCoordinatorStatusQueriesAndNotifications:
     ):
         outlet = _make_device(serial="out1", properties={"powerState": "1"})
         coordinator._devices[outlet.serial] = outlet
-        coordinator._device_by_id[outlet.serial] = outlet
+        coordinator._device_identity_index.register(outlet.serial, outlet)
         coordinator._outlet_ids_to_query = [outlet.serial]
         mock_lipro_api_client.fetch_outlet_power_info.return_value = {
             "nowPower": 33.5,
@@ -1986,7 +2005,7 @@ class TestCoordinatorStatusQueriesAndNotifications:
     ):
         outlet = _make_device(serial="out1", properties={"powerState": "1"})
         coordinator._devices[outlet.serial] = outlet
-        coordinator._device_by_id[outlet.serial] = outlet
+        coordinator._device_identity_index.register(outlet.serial, outlet)
         coordinator._outlet_ids_to_query = [outlet.serial]
         mock_lipro_api_client.fetch_outlet_power_info.side_effect = LiproAuthError(
             "unauthorized"
@@ -2001,7 +2020,7 @@ class TestCoordinatorStatusQueriesAndNotifications:
     ):
         outlet = _make_device(serial="out1", properties={"powerState": "1"})
         coordinator._devices[outlet.serial] = outlet
-        coordinator._device_by_id[outlet.serial] = outlet
+        coordinator._device_identity_index.register(outlet.serial, outlet)
         coordinator._outlet_ids_to_query = [outlet.serial]
         mock_lipro_api_client.fetch_outlet_power_info.side_effect = (
             LiproConnectionError("timeout")
@@ -2016,7 +2035,7 @@ class TestCoordinatorStatusQueriesAndNotifications:
     ):
         outlet = _make_device(serial="out1", properties={"powerState": "1"})
         coordinator._devices[outlet.serial] = outlet
-        coordinator._device_by_id[outlet.serial] = outlet
+        coordinator._device_identity_index.register(outlet.serial, outlet)
         mock_lipro_api_client.fetch_outlet_power_info.return_value = {}
 
         await coordinator._query_single_outlet_power(outlet.serial)
@@ -2040,7 +2059,7 @@ class TestCoordinatorStatusQueriesAndNotifications:
     ):
         dev = _make_device(serial="dev1", properties={"connectState": "1"})
         coordinator._devices[dev.serial] = dev
-        coordinator._device_by_id[dev.serial] = dev
+        coordinator._device_identity_index.register(dev.serial, dev)
         coordinator._iot_ids_to_query = [dev.serial]
         mock_lipro_api_client.query_connect_status.return_value = {dev.serial: False}
 
@@ -2066,8 +2085,8 @@ class TestCoordinatorStatusQueriesAndNotifications:
         dev_b = _make_device(serial="dev_b", properties={"connectState": "1"})
         coordinator._devices[dev_a.serial] = dev_a
         coordinator._devices[dev_b.serial] = dev_b
-        coordinator._device_by_id[dev_a.serial] = dev_a
-        coordinator._device_by_id[dev_b.serial] = dev_b
+        coordinator._device_identity_index.register(dev_a.serial, dev_a)
+        coordinator._device_identity_index.register(dev_b.serial, dev_b)
         coordinator._iot_ids_to_query = [dev_a.serial, dev_b.serial]
         coordinator._mqtt_enabled = True
         coordinator._mqtt_connected = True
@@ -2091,7 +2110,7 @@ class TestCoordinatorStatusQueriesAndNotifications:
     ):
         dev = _make_device(serial="dev1", properties={"connectState": "1"})
         coordinator._devices[dev.serial] = dev
-        coordinator._device_by_id[dev.serial] = dev
+        coordinator._device_identity_index.register(dev.serial, dev)
         coordinator._iot_ids_to_query = [dev.serial]
         coordinator._mqtt_enabled = True
         coordinator._mqtt_connected = True
@@ -2111,7 +2130,7 @@ class TestCoordinatorStatusQueriesAndNotifications:
     ):
         dev = _make_device(serial="dev1", properties={"connectState": "1"})
         coordinator._devices[dev.serial] = dev
-        coordinator._device_by_id[dev.serial] = dev
+        coordinator._device_identity_index.register(dev.serial, dev)
         coordinator._iot_ids_to_query = [dev.serial]
         coordinator._mqtt_enabled = True
         coordinator._mqtt_connected = False
@@ -2136,8 +2155,8 @@ class TestCoordinatorStatusQueriesAndNotifications:
         dev_b = _make_device(serial="dev_b", properties={"connectState": "1"})
         coordinator._devices[dev_a.serial] = dev_a
         coordinator._devices[dev_b.serial] = dev_b
-        coordinator._device_by_id[dev_a.serial] = dev_a
-        coordinator._device_by_id[dev_b.serial] = dev_b
+        coordinator._device_identity_index.register(dev_a.serial, dev_a)
+        coordinator._device_identity_index.register(dev_b.serial, dev_b)
         coordinator._iot_ids_to_query = [dev_a.serial, dev_b.serial]
         coordinator._mqtt_enabled = True
         coordinator._mqtt_connected = True
@@ -2162,8 +2181,8 @@ class TestCoordinatorStatusQueriesAndNotifications:
         dev_b = _make_device(serial="dev_b", properties={"connectState": "1"})
         coordinator._devices[dev_a.serial] = dev_a
         coordinator._devices[dev_b.serial] = dev_b
-        coordinator._device_by_id[dev_a.serial] = dev_a
-        coordinator._device_by_id[dev_b.serial] = dev_b
+        coordinator._device_identity_index.register(dev_a.serial, dev_a)
+        coordinator._device_identity_index.register(dev_b.serial, dev_b)
         coordinator._iot_ids_to_query = [dev_a.serial, dev_b.serial]
         coordinator._mqtt_enabled = True
         coordinator._mqtt_connected = True
@@ -2187,7 +2206,7 @@ class TestCoordinatorStatusQueriesAndNotifications:
         """connectState should converge to realtime connect-status result."""
         dev = _make_device(serial="dev1", properties={"connectState": "1"})
         coordinator._devices[dev.serial] = dev
-        coordinator._device_by_id[dev.serial] = dev
+        coordinator._device_identity_index.register(dev.serial, dev)
         coordinator._iot_ids_to_query = [dev.serial]
 
         async def delayed_device_status(_device_ids, **_kwargs):
@@ -2216,7 +2235,7 @@ class TestCoordinatorStatusQueriesAndNotifications:
     ):
         dev = _make_device(serial="dev1", properties={"connectState": "1"})
         coordinator._devices[dev.serial] = dev
-        coordinator._device_by_id[dev.serial] = dev
+        coordinator._device_identity_index.register(dev.serial, dev)
         coordinator._iot_ids_to_query = [dev.serial]
         mock_lipro_api_client.query_device_status.return_value = []
         mock_lipro_api_client.query_connect_status.return_value = {dev.serial: True}
@@ -2227,7 +2246,7 @@ class TestCoordinatorStatusQueriesAndNotifications:
         assert mock_lipro_api_client.query_connect_status.await_count == 1
 
     @pytest.mark.asyncio
-    async def test_query_outlet_power_uses_dynamic_cycle_size_for_large_fleet(
+    async def test_query_outlet_power_limits_single_cycle_burst_for_large_fleet(
         self, coordinator
     ):
         coordinator._outlet_ids_to_query = [f"out{i}" for i in range(100)]
@@ -2235,8 +2254,8 @@ class TestCoordinatorStatusQueriesAndNotifications:
 
         await coordinator._query_outlet_power()
 
-        # 100 devices, target 4 cycles => ceil(100/4)=25 queries this cycle
-        assert coordinator._query_single_outlet_power.await_count == 25
+        # 100 devices should be capped to prevent large one-cycle bursts.
+        assert coordinator._query_single_outlet_power.await_count == 10
 
     def test_resolve_outlet_power_cycle_size_scales_with_device_count(
         self, coordinator
@@ -2244,7 +2263,8 @@ class TestCoordinatorStatusQueriesAndNotifications:
         assert coordinator._resolve_outlet_power_cycle_size(0) == 0
         assert coordinator._resolve_outlet_power_cycle_size(8) == 8
         assert coordinator._resolve_outlet_power_cycle_size(10) == 10
-        assert coordinator._resolve_outlet_power_cycle_size(100) == 25
+        assert coordinator._resolve_outlet_power_cycle_size(20) == 5
+        assert coordinator._resolve_outlet_power_cycle_size(100) == 10
 
     @pytest.mark.asyncio
     async def test_group_mqtt_online_variants_schedule_reconciliation(
@@ -2253,7 +2273,7 @@ class TestCoordinatorStatusQueriesAndNotifications:
         """Numeric/boolean connectState payloads should trigger group reconciliation."""
         group = _make_device(serial="mesh_group_10001", is_group=True, properties={})
         coordinator._devices[group.serial] = group
-        coordinator._device_by_id[group.serial] = group
+        coordinator._device_identity_index.register(group.serial, group)
         coordinator.async_request_refresh = AsyncMock()
 
         created_tasks: list[asyncio.Task] = []
@@ -2278,7 +2298,7 @@ class TestCoordinatorStatusQueriesAndNotifications:
         """Group online reconnect bursts should schedule at most one refresh."""
         group = _make_device(serial="mesh_group_10001", is_group=True, properties={})
         coordinator._devices[group.serial] = group
-        coordinator._device_by_id[group.serial] = group
+        coordinator._device_identity_index.register(group.serial, group)
         coordinator.async_request_refresh = AsyncMock()
 
         created_tasks: list[asyncio.Task] = []
@@ -2289,9 +2309,11 @@ class TestCoordinatorStatusQueriesAndNotifications:
             return task
 
         with (
-            patch.object(coordinator.hass, "async_create_task", side_effect=_capture_task),
+            patch.object(
+                coordinator.hass, "async_create_task", side_effect=_capture_task
+            ),
             patch(
-                "custom_components.lipro.core.coordinator.monotonic",
+                "custom_components.lipro.core.coordinator.mqtt.messages.monotonic",
                 side_effect=[100.0, 101.0],
             ),
         ):
@@ -2316,7 +2338,9 @@ class TestCoordinatorStatusQueriesAndNotifications:
         registry = MagicMock()
         registry.async_get_device.return_value = device_entry
 
-        with patch("custom_components.lipro.core.coordinator.dr.async_get") as dr_get:
+        with patch(
+            "custom_components.lipro.core.coordinator.device_refresh.dr.async_get"
+        ) as dr_get:
             dr_get.return_value = registry
             await coordinator._async_remove_stale_devices({"03ab5ccd7cdead"})
 
@@ -2346,11 +2370,11 @@ class TestCoordinatorStatusQueriesAndNotifications:
 
         with (
             patch(
-                "custom_components.lipro.core.coordinator.dr.async_get",
+                "custom_components.lipro.core.coordinator.device_refresh.dr.async_get",
                 return_value=device_registry,
             ),
             patch(
-                "custom_components.lipro.core.coordinator.ar.async_get",
+                "custom_components.lipro.core.coordinator.device_refresh.ar.async_get",
                 return_value=area_registry,
             ),
         ):
@@ -2381,11 +2405,11 @@ class TestCoordinatorStatusQueriesAndNotifications:
 
         with (
             patch(
-                "custom_components.lipro.core.coordinator.dr.async_get",
+                "custom_components.lipro.core.coordinator.device_refresh.dr.async_get",
                 return_value=device_registry,
             ),
             patch(
-                "custom_components.lipro.core.coordinator.ar.async_get",
+                "custom_components.lipro.core.coordinator.device_refresh.ar.async_get",
                 return_value=area_registry,
             ),
         ):
@@ -2418,11 +2442,11 @@ class TestCoordinatorStatusQueriesAndNotifications:
 
         with (
             patch(
-                "custom_components.lipro.core.coordinator.dr.async_get",
+                "custom_components.lipro.core.coordinator.device_refresh.dr.async_get",
                 return_value=device_registry,
             ),
             patch(
-                "custom_components.lipro.core.coordinator.ar.async_get",
+                "custom_components.lipro.core.coordinator.device_refresh.ar.async_get",
                 return_value=area_registry,
             ),
         ):
@@ -2432,6 +2456,47 @@ class TestCoordinatorStatusQueriesAndNotifications:
             "dev-entry-1",
             suggested_area="儿童房",
             area_id="area-kids",
+        )
+
+    def test_sync_device_room_assignments_force_sync_when_room_unchanged(
+        self, coordinator
+    ):
+        previous = {
+            "03ab5ccd7c111111": _make_device(serial="03ab5ccd7c111111", name="Lamp A")
+        }
+        previous["03ab5ccd7c111111"].room_name = "主卧"
+
+        current = _make_device(serial="03ab5ccd7c111111", name="Lamp A")
+        current.room_name = "主卧"
+        coordinator._devices = {"03ab5ccd7c111111": current}
+        coordinator._room_area_sync_force = True
+
+        device_entry = MagicMock(id="dev-entry-1", area_id="custom-area")
+        device_registry = MagicMock()
+        device_registry.async_get_device.return_value = device_entry
+
+        area_registry = MagicMock()
+        area_registry.async_get_area.return_value = SimpleNamespace(name="手动区域")
+        area_registry.async_get_or_create.return_value = SimpleNamespace(
+            id="area-bedroom"
+        )
+
+        with (
+            patch(
+                "custom_components.lipro.core.coordinator.device_refresh.dr.async_get",
+                return_value=device_registry,
+            ),
+            patch(
+                "custom_components.lipro.core.coordinator.device_refresh.ar.async_get",
+                return_value=area_registry,
+            ),
+        ):
+            coordinator._sync_device_room_assignments(previous)
+
+        device_registry.async_update_device.assert_called_once_with(
+            "dev-entry-1",
+            suggested_area="主卧",
+            area_id="area-bedroom",
         )
 
     def test_sync_device_room_assignments_clears_area_when_room_removed(
@@ -2455,11 +2520,11 @@ class TestCoordinatorStatusQueriesAndNotifications:
 
         with (
             patch(
-                "custom_components.lipro.core.coordinator.dr.async_get",
+                "custom_components.lipro.core.coordinator.device_refresh.dr.async_get",
                 return_value=device_registry,
             ),
             patch(
-                "custom_components.lipro.core.coordinator.ar.async_get",
+                "custom_components.lipro.core.coordinator.device_refresh.ar.async_get",
                 return_value=area_registry,
             ),
         ):
@@ -2553,7 +2618,7 @@ class TestCoordinatorStatusQueriesAndNotifications:
         self, coordinator
     ):
         with patch(
-            "custom_components.lipro.core.coordinator.async_delete_issue"
+            "custom_components.lipro.core.coordinator.auth_issues.async_delete_issue"
         ) as delete_issue:
             await coordinator._async_update_data()
 
@@ -2563,7 +2628,7 @@ class TestCoordinatorStatusQueriesAndNotifications:
     @pytest.mark.asyncio
     async def test_show_mqtt_disconnect_notification_creates_issue(self, coordinator):
         with patch(
-            "custom_components.lipro.core.coordinator.async_create_issue"
+            "custom_components.lipro.core.coordinator.mqtt.lifecycle.async_create_issue"
         ) as create_issue:
             await coordinator._async_show_mqtt_disconnect_notification(minutes=12)
 
@@ -2580,7 +2645,7 @@ class TestCoordinatorStatusQueriesAndNotifications:
     @pytest.mark.asyncio
     async def test_show_auth_notification_creates_issue(self, coordinator):
         with patch(
-            "custom_components.lipro.core.coordinator.async_create_issue"
+            "custom_components.lipro.core.coordinator.auth_issues.async_create_issue"
         ) as create_issue:
             await coordinator._async_show_auth_notification("auth_error", error="401")
 
@@ -2673,7 +2738,10 @@ class TestCoordinatorDefensivePaths:
         mock_lipro_api_client.get_devices.return_value = {"devices": full_page}
 
         with (
-            patch("custom_components.lipro.core.coordinator._MAX_DEVICE_LIST_PAGES", 2),
+            patch(
+                "custom_components.lipro.core.coordinator.device_refresh._MAX_DEVICE_LIST_PAGES",
+                2,
+            ),
             pytest.raises(LiproApiError, match="pagination exceeded 2 pages"),
         ):
             await coordinator._fetch_all_device_pages()
@@ -2688,7 +2756,7 @@ class TestCoordinatorDefensivePaths:
         share_manager.record_devices = MagicMock()
 
         with patch(
-            "custom_components.lipro.core.coordinator.get_anonymous_share_manager",
+            "custom_components.lipro.core.coordinator.state.get_anonymous_share_manager",
             return_value=share_manager,
         ):
             await coordinator._record_devices_for_anonymous_share()
@@ -2705,7 +2773,9 @@ class TestCoordinatorDefensivePaths:
     ):
         coordinator.config_entry = None
 
-        with patch("custom_components.lipro.core.coordinator.dr.async_get") as dr_get:
+        with patch(
+            "custom_components.lipro.core.coordinator.device_refresh.dr.async_get"
+        ) as dr_get:
             await coordinator._async_remove_stale_devices({"03ab5ccd7cdead"})
 
         dr_get.assert_not_called()
@@ -2728,7 +2798,7 @@ class TestCoordinatorDefensivePaths:
         share_manager.submit_report = AsyncMock(side_effect=OSError("upload failed"))
 
         with patch(
-            "custom_components.lipro.core.coordinator.get_anonymous_share_manager",
+            "custom_components.lipro.core.coordinator.state.get_anonymous_share_manager",
             return_value=share_manager,
         ):
             await coordinator.async_shutdown()
@@ -2744,7 +2814,7 @@ class TestCoordinatorDefensivePaths:
         coordinator.async_request_refresh = AsyncMock()
 
         with patch(
-            "custom_components.lipro.core.coordinator.asyncio.sleep",
+            "custom_components.lipro.core.command.result.asyncio.sleep",
             new_callable=AsyncMock,
         ):
             await coordinator._async_delayed_command_refresh(0.1)

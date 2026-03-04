@@ -129,10 +129,16 @@ def auto_enable_custom_integrations(
     """Enable custom integrations for all tests."""
     import custom_components
 
+    repo_custom_components = (
+        pathlib.Path(__file__).resolve().parents[1] / "custom_components"
+    )
+
     # Filter out editable-install placeholder paths that are not real directories.
     # These are injected by setuptools editable installs and cause HA loader to crash
     # when it tries to call pathlib.Path(path).iterdir() on them.
     real_paths = [p for p in custom_components.__path__ if pathlib.Path(p).is_dir()]
+    if repo_custom_components.is_dir():
+        real_paths.append(str(repo_custom_components))
     with patch.object(custom_components, "__path__", real_paths):
         yield
 
@@ -155,8 +161,8 @@ def mock_lipro_client() -> Generator[MagicMock]:
         autospec=True,
     ) as mock_client_class:
         mock_client = mock_client_class.return_value
-        # config_flow uses login_with_hash, not login
-        mock_client.login_with_hash = AsyncMock(
+        # config_flow always uses login(..., password_is_hashed=True)
+        mock_client.login = AsyncMock(
             return_value={
                 "access_token": "test_access_token",
                 "refresh_token": "test_refresh_token",
@@ -207,9 +213,7 @@ def mock_lipro_client_auth_error() -> Generator[MagicMock]:
         from custom_components.lipro.core.api import LiproAuthError
 
         mock_client = mock_client_class.return_value
-        mock_client.login_with_hash = AsyncMock(
-            side_effect=LiproAuthError("Invalid credentials")
-        )
+        mock_client.login = AsyncMock(side_effect=LiproAuthError("Invalid credentials"))
         yield mock_client
 
 
@@ -223,7 +227,7 @@ def mock_lipro_client_connection_error() -> Generator[MagicMock]:
         from custom_components.lipro.core.api import LiproConnectionError
 
         mock_client = mock_client_class.return_value
-        mock_client.login_with_hash = AsyncMock(
+        mock_client.login = AsyncMock(
             side_effect=LiproConnectionError("Connection failed")
         )
         yield mock_client

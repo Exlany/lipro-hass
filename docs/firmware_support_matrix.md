@@ -9,7 +9,7 @@ This page is designed for two views:
 
 ## Status Legend
 
-- ✅ `Certified`: verified and in `firmware_support_manifest.json`
+- ✅ `Certified`: verified by OTA payload and/or certification manifest (remote `lipro-share.lany.me`, with local `firmware_support_manifest.json` fallback)
 - 🟡 `Unknown`: discovered but not certified yet
 - ❌ `Blocked`: should not be upgraded now
 

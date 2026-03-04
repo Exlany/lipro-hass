@@ -9,12 +9,20 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Iterable
+    from collections.abc import Callable, Iterable, Sequence
 
     from homeassistant.helpers.entity import Entity
 
     from ..core.coordinator import LiproDataUpdateCoordinator
     from ..core.device import LiproDevice
+
+    type DevicePredicate = Callable[[LiproDevice], bool]
+    type DeviceEntityFactory[EntityT: Entity] = Callable[
+        [LiproDataUpdateCoordinator, LiproDevice], EntityT
+    ]
+    type DeviceEntityRule[EntityT: Entity] = tuple[
+        DevicePredicate, Sequence[DeviceEntityFactory[EntityT]]
+    ]
 
 
 def create_platform_entities[EntityT: Entity](
@@ -64,4 +72,20 @@ def create_device_entities[EntityT: Entity](
         if device_filter is not None and not device_filter(device):
             continue
         entities.extend(entity_builder(coordinator, device))
+    return entities
+
+
+def build_device_entities_from_rules[EntityT: Entity](
+    coordinator: LiproDataUpdateCoordinator,
+    device: LiproDevice,
+    *,
+    rules: Sequence[DeviceEntityRule[EntityT]],
+    always_factories: Sequence[DeviceEntityFactory[EntityT]] = (),
+) -> list[EntityT]:
+    """Build entities for one device from declarative conditional rules."""
+    entities = [factory(coordinator, device) for factory in always_factories]
+    for predicate, factories in rules:
+        if not predicate(device):
+            continue
+        entities.extend(factory(coordinator, device) for factory in factories)
     return entities

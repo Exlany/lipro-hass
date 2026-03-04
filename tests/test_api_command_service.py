@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from custom_components.lipro.core.api.api_command_service import (
+from custom_components.lipro.core.api.command_service import (
     build_command_request_body,
     iot_request_with_busy_retry,
     send_command_to_target,

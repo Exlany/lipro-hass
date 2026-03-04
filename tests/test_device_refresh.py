@@ -18,8 +18,7 @@ from custom_components.lipro.const.config import (
     DEVICE_FILTER_MODE_INCLUDE,
     DEVICE_FILTER_MODE_OFF,
 )
-from custom_components.lipro.core.device import LiproDevice
-from custom_components.lipro.core.device.device_refresh import (
+from custom_components.lipro.core.coordinator.device_list_snapshot import (
     build_device_filter_config,
     build_fetched_device_snapshot,
     has_active_device_filter,
@@ -27,6 +26,7 @@ from custom_components.lipro.core.device.device_refresh import (
     plan_stale_device_reconciliation,
     register_lookup_id,
 )
+from custom_components.lipro.core.device import LiproDevice
 
 
 def _make_device(
@@ -115,7 +115,7 @@ def test_build_fetched_device_snapshot_handles_malformed_rows() -> None:
     invalid_serial = _make_device(serial="  ")
 
     with patch(
-        "custom_components.lipro.core.device.device_refresh.LiproDevice.from_api_data"
+        "custom_components.lipro.core.coordinator.device_list_snapshot.LiproDevice.from_api_data"
     ) as from_api:
         from_api.side_effect = [
             TypeError("malformed row"),
@@ -149,11 +149,29 @@ def test_plan_stale_device_reconciliation_tracks_and_removes() -> None:
     assert plan.missing_cycles == {"dev_b": 3, "dev_c": 2}
 
 
+def test_build_fetched_device_snapshot_tracks_cloud_serials_before_filter() -> None:
+    valid = _make_device(serial="03ab000000000001")
+    group = _make_device(serial="mesh_group_10001", is_group=True)
+    gateway_like = _GatewayCategoryErrorDevice()
+    invalid_serial = _make_device(serial=" ")
+
+    with patch(
+        "custom_components.lipro.core.coordinator.device_list_snapshot.LiproDevice.from_api_data"
+    ) as from_api:
+        from_api.side_effect = [valid, group, gateway_like, invalid_serial]
+        snapshot = build_fetched_device_snapshot(
+            [{}, {}, {}, {}],
+            device_filter=lambda row: row != {},
+        )
+
+    assert snapshot.cloud_serials == {"03ab000000000001", "mesh_group_10001"}
+
+
 def test_build_fetched_device_snapshot_skips_invalid_iot_ids_for_polling_lists() -> (
     None
 ):
     with patch(
-        "custom_components.lipro.core.device.device_refresh.LiproDevice.from_api_data"
+        "custom_components.lipro.core.coordinator.device_list_snapshot.LiproDevice.from_api_data"
     ) as from_api:
         from_api.return_value = _InvalidIotIdDevice()
         snapshot = build_fetched_device_snapshot([{}])
@@ -264,7 +282,7 @@ def test_build_fetched_device_snapshot_applies_device_filter_predicate() -> None
         return row.get("serial") == "03ab000000000002"
 
     with patch(
-        "custom_components.lipro.core.device.device_refresh.LiproDevice.from_api_data"
+        "custom_components.lipro.core.coordinator.device_list_snapshot.LiproDevice.from_api_data"
     ) as from_api:
         from_api.side_effect = lambda row: _make_device(serial=row["serial"])
         snapshot = build_fetched_device_snapshot(

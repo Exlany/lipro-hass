@@ -28,9 +28,10 @@ Home Assistant integration for controlling Lipro Smart Home devices.
 | Switch | Switches/Outlets | On/Off |
 | Fan | Fans | On/Off, Speed, Preset Mode |
 | Climate | Bathroom Heater | On/Off, Preset Mode |
-| Binary Sensor | Sensors | Motion, Door, Light, Battery |
+| Binary Sensor | Sensors | Connectivity, Motion, Door/Window, Light Level, Battery |
 | Sensor | Sensors | Power, Energy, Battery, WiFi Signal |
 | Select | Selects | Wind Direction, Heater Light, Color Temp Preset |
+| Update | Firmware | Firmware updates |
 
 ## Services
 
@@ -46,6 +47,7 @@ Home Assistant integration for controlling Lipro Smart Home devices.
 - `lipro.get_city` - Query cloud city metadata contract (developer capability)
 - `lipro.fetch_body_sensor_history` - Fetch body sensor history payload for debugging (developer capability)
 - `lipro.fetch_door_sensor_history` - Fetch door sensor history payload for debugging (developer capability)
+- `lipro.refresh_devices` - Force a full device list refresh (all entries or one `entry_id`)
 
 Firmware validation list:
 - English: `docs/firmware_support_matrix.md`
@@ -58,6 +60,7 @@ This integration uses a **hybrid mode** to fetch device status:
 - **MQTT Real-time Push**: Instant push when device state changes
 - **Polling Fallback**: Default 30s polling to ensure state sync
 - **Configurable Range**: 10-300 seconds
+- **Batch Query Fallback**: Cloud status requests are chunked; when a batch fails with device-level errors (offline/not connected/etc.), the integration retries with smaller batches down to per-device queries
 - **Optimistic Updates**: UI updates immediately after action
 - **Debounce Protection**: Prevents data from overwriting local state during slider operations
 - **Exponential Backoff**: Auto-reconnect on MQTT disconnect, prevents server overload
@@ -76,11 +79,15 @@ This integration uses a **hybrid mode** to fetch device status:
 ### Shell (via SSH / Terminal & SSH Add-on)
 
 ```shell
-wget -O - https://raw.githubusercontent.com/Exlany/lipro-hass/main/install.sh | bash -
-
-# Install the latest version
 wget -O - https://raw.githubusercontent.com/Exlany/lipro-hass/main/install.sh | ARCHIVE_TAG=latest bash -
+
+# Install a specific tag/branch (e.g. v1.0.0)
+wget -O - https://raw.githubusercontent.com/Exlany/lipro-hass/main/install.sh | ARCHIVE_TAG=v1.0.0 bash -
 ```
+
+Note: `ARCHIVE_TAG` selects what to install (tag/branch). `latest` resolves to the latest GitHub Release tag; if resolution fails it falls back to `main`. Pin a tag (e.g. `v1.0.0`) for reproducible installs, or use `ARCHIVE_TAG=main` for the bleeding-edge version.
+
+Note: `HUB_DOMAIN` only affects where the installer fetches release metadata and source archives from. It does not change how `install.sh` itself is downloaded (still `raw.githubusercontent.com`).
 
 ### shell_command Service
 
@@ -88,7 +95,7 @@ wget -O - https://raw.githubusercontent.com/Exlany/lipro-hass/main/install.sh | 
     ```yaml
     shell_command:
       update_lipro: |-
-        wget -O - https://raw.githubusercontent.com/Exlany/lipro-hass/main/install.sh | bash -
+        wget -O - https://raw.githubusercontent.com/Exlany/lipro-hass/main/install.sh | ARCHIVE_TAG=latest bash -
     ```
 2. Restart Home Assistant
 3. Call `service: shell_command.update_lipro` in Developer Tools
@@ -106,6 +113,7 @@ When adding the integration, enter your Lipro account credentials:
 
 - **Phone**: Phone number registered with Lipro
 - **Password**: Lipro account password
+- **Remember password**: Store the password MD5 hash locally to allow automatic re-login when refresh tokens expire. Disable to reduce local exposure; you may need to re-authenticate later.
 
 ### Reconfiguration
 
@@ -239,7 +247,11 @@ Available options in integration settings:
 - **Advanced Options**:
   - **Power Query Interval**: Outlet power query frequency (30-300 seconds)
   - **Request Timeout**: API request timeout (10-60 seconds)
-  - **Debug Mode (Diagnostics)**: Enable runtime diagnostics (mesh topology + command traces), and auto-enable verbose logging
+  - **Debug Mode (Diagnostics)**: Capture runtime diagnostics (mesh topology + command traces). For verbose logs, configure Home Assistant logger settings.
+  - **Auto Turn On When Adjusting While Off**: When enabled, adjusting brightness/color temperature while off will also turn on the light (disable to keep Lipro behavior)
+  - **Force Cloud Room → HA Area**: Always overwrite Home Assistant area with cloud room assignment (use with caution)
+  - **Verify Command Delivery Result**: Query delivery result by `msgSn` after sending commands (troubleshooting)
+  - **Device Filtering (home/model/WiFi SSID/device ID)**: `off/include/exclude` + list (supports comma/semicolon/newline separators)
 
 ## Known Limitations
 
@@ -259,8 +271,8 @@ Available options in integration settings:
    - Sensors only provide low battery warning, not specific battery percentage
 
 6. **Brightness Slider While Off (Tip)**
-   - Dragging brightness when the light is off will not turn it on (Lipro behavior)
-   - Turn the light on first, then adjust brightness/color temperature
+   - Default behavior is configurable. When **Auto Turn On When Adjusting While Off** is enabled, adjusting brightness/color temperature while off will also turn on the light
+   - Disable it to keep Lipro behavior (adjustments do not turn on)
 
 ## Troubleshooting
 
@@ -296,6 +308,12 @@ To submit an issue report, please download diagnostics:
 1. Go to Settings → Devices & Services → Lipro
 2. Click three-dot menu → Download diagnostics
 3. Diagnostics are automatically redacted, safe to share
+
+Redaction includes account credentials/tokens (`phone`, `password`, `access_token`, `refresh_token`), cloud/device identifiers (`userId`/`bizId`, `serial`/`deviceId`/`iotDeviceId`), and network identifiers (WiFi SSID/MAC/IP).
+
+For opt-in sharing/reporting, you can preview the payloads first:
+- `lipro.get_developer_report` - sanitized runtime report (mesh snapshot + recent command traces)
+- `lipro.get_anonymous_share_report` - sanitized anonymous-share payload
 
 ## Disclaimer
 

@@ -27,16 +27,13 @@ def raise_service_error(
     err: Exception | None = None,
 ) -> NoReturn:
     """Raise a translated HomeAssistantError, preserving original cause."""
-    if err is None:
-        raise HomeAssistantError(
-            translation_domain=DOMAIN,
-            translation_key=translation_key,
-        )
-
-    raise HomeAssistantError(
+    service_error = HomeAssistantError(
         translation_domain=DOMAIN,
         translation_key=translation_key,
-    ) from err
+    )
+    if err is not None:
+        raise service_error from err
+    raise service_error
 
 
 def resolve_command_failure_translation_key(

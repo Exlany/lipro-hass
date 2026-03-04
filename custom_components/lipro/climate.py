@@ -22,7 +22,7 @@ from .const import (
     PROP_HEATER_SWITCH,
 )
 from .entities.base import LiproEntity
-from .helpers import create_platform_entities
+from .helpers.platform import create_platform_entities
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant

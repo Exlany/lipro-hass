@@ -19,7 +19,11 @@ from .const import (
     PROP_WAKE_UP_ENABLE,
 )
 from .entities.base import LiproEntity
-from .helpers import create_device_entities, create_platform_entities
+from .helpers.platform import (
+    build_device_entities_from_rules,
+    create_device_entities,
+    create_platform_entities,
+)
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
@@ -66,27 +70,21 @@ def _build_light_feature_switches(
     device: LiproDevice,
 ) -> list[SwitchEntity]:
     """Build feature switches for one light device."""
-    entities: list[SwitchEntity] = [LiproFadeSwitch(coordinator, device)]
-
-    # Natural Light features (自然光灯)
-    if device.has_sleep_wake_features:
-        entities.extend(
-            [
-                LiproSleepAidSwitch(coordinator, device),
-                LiproWakeUpSwitch(coordinator, device),
-            ]
-        )
-
-    # Floor Lamp features (落地灯)
-    if device.has_floor_lamp_features:
-        entities.extend(
-            [
-                LiproFocusModeSwitch(coordinator, device),
-                LiproBodyReactiveSwitch(coordinator, device),
-            ]
-        )
-
-    return entities
+    return build_device_entities_from_rules(
+        coordinator,
+        device,
+        always_factories=(LiproFadeSwitch,),
+        rules=(
+            (
+                lambda d: d.has_sleep_wake_features,
+                (LiproSleepAidSwitch, LiproWakeUpSwitch),
+            ),
+            (
+                lambda d: d.has_floor_lamp_features,
+                (LiproFocusModeSwitch, LiproBodyReactiveSwitch),
+            ),
+        ),
+    )
 
 
 class LiproSwitch(LiproEntity, SwitchEntity):

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from custom_components.lipro.core.api import LiproApiError
-from custom_components.lipro.core.command.command_trace import (
+from custom_components.lipro.core.command.trace import (
     build_command_trace,
     extract_command_property_keys,
     update_trace_with_exception,
@@ -97,6 +97,19 @@ def test_update_trace_with_response_uses_error_code_fallback() -> None:
     assert trace["response_push_timestamp"] == 123
 
 
+def test_update_trace_with_response_redacts_ip_addresses() -> None:
+    trace: dict[str, object] = {}
+    update_trace_with_response(
+        trace,
+        {
+            "code": 0,
+            "message": "device at 192.168.1.100 and fe80::1 failed",
+        },
+    )
+
+    assert trace["response_message"] == "device at [IP] and [IP] failed"
+
+
 def test_update_trace_with_response_ignores_non_dict_payload() -> None:
     trace: dict[str, object] = {"existing": True}
     update_trace_with_response(trace, "not a dict")
@@ -116,3 +129,51 @@ def test_update_trace_with_exception_sets_error_fields() -> None:
     assert trace["error_message"] == "LiproApiError(code=504)"
     assert trace["error_detail"] == "timeout"
     assert trace["error_code"] == 504
+
+
+def test_update_trace_with_response_sanitizes_sensitive_message_content() -> None:
+    trace: dict[str, object] = {}
+    token = "a" * 32
+    message = f"ip=192.168.1.100 token={token} device=03ab5ccd7c123456 mesh_group_123"
+
+    update_trace_with_response(
+        trace,
+        {
+            "code": 0,
+            "message": message,
+        },
+    )
+
+    sanitized = trace["response_message"]
+    assert isinstance(sanitized, str)
+    assert "192.168.1.100" not in sanitized
+    assert token not in sanitized
+    assert "03ab5ccd7c123456" not in sanitized
+    assert "[IP]" in sanitized
+    assert "[TOKEN]" in sanitized
+    assert "03ab***3456" in sanitized
+    assert "mesh_group_***" in sanitized
+
+
+def test_update_trace_with_exception_sanitizes_error_detail_and_truncates() -> None:
+    trace: dict[str, object] = {}
+    token = "b" * 64
+    long_message = (
+        f"ip=192.168.1.100 device=03ab5ccd7c123456 token={token} "
+        # Use separators so the token-like detector does not collapse the tail.
+        + ("x." * 240)
+    )
+    err = LiproApiError(long_message, code="401")
+
+    update_trace_with_exception(trace, route="direct", err=err)
+
+    error_detail = trace["error_detail"]
+    assert isinstance(error_detail, str)
+    assert error_detail.endswith("…")
+    assert len(error_detail) == 201
+    assert "192.168.1.100" not in error_detail
+    assert token not in error_detail
+    assert "03ab5ccd7c123456" not in error_detail
+    assert "[IP]" in error_detail
+    assert "[TOKEN]" in error_detail
+    assert "03ab***3456" in error_detail

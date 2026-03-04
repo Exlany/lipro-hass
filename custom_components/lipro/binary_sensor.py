@@ -11,7 +11,7 @@ from homeassistant.components.binary_sensor import (
 from homeassistant.const import EntityCategory
 
 from .entities.base import LiproEntity
-from .helpers import create_device_entities
+from .helpers.platform import build_device_entities_from_rules, create_device_entities
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
@@ -126,23 +126,18 @@ def _build_device_binary_sensors(
     device: LiproDevice,
 ) -> list[LiproBinarySensor]:
     """Build all binary sensor entities for one device."""
-    entities: list[LiproBinarySensor] = [LiproConnectivitySensor(coordinator, device)]
-
-    if device.is_body_sensor:
-        entities.extend(
-            [
-                LiproMotionSensor(coordinator, device),
-                LiproLightLevelSensor(coordinator, device),
-                LiproBatteryLowSensor(coordinator, device),
-            ]
-        )
-    elif device.is_door_sensor:
-        entities.extend(
-            [
-                LiproDoorSensor(coordinator, device),
-                LiproLightLevelSensor(coordinator, device),
-                LiproBatteryLowSensor(coordinator, device),
-            ]
-        )
-
-    return entities
+    return build_device_entities_from_rules(
+        coordinator,
+        device,
+        always_factories=(LiproConnectivitySensor,),
+        rules=(
+            (
+                lambda d: d.is_body_sensor,
+                (LiproMotionSensor, LiproLightLevelSensor, LiproBatteryLowSensor),
+            ),
+            (
+                lambda d: d.is_door_sensor and not d.is_body_sensor,
+                (LiproDoorSensor, LiproLightLevelSensor, LiproBatteryLowSensor),
+            ),
+        ),
+    )

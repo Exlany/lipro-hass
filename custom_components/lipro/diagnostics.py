@@ -1,4 +1,10 @@
-"""Diagnostics support for Lipro integration."""
+"""Diagnostics support for Lipro integration.
+
+Home Assistant diagnostics are intended for issue reports and are sanitized by
+default. This exporter redacts account credentials, tokens, cloud identifiers,
+device identifiers, and network identifiers (WiFi SSID/MAC/IP). It also attempts
+to parse and sanitize embedded JSON strings within device payloads.
+"""
 
 from __future__ import annotations
 
@@ -9,6 +15,10 @@ from typing import TYPE_CHECKING, Any, Final
 from homeassistant.components.diagnostics import async_redact_data
 
 from .const import (
+    CONF_DEVICE_FILTER_DID_LIST,
+    CONF_DEVICE_FILTER_HOME_LIST,
+    CONF_DEVICE_FILTER_MODEL_LIST,
+    CONF_DEVICE_FILTER_SSID_LIST,
     CONF_PHONE,
     CONF_PHONE_ID,
     DOMAIN,
@@ -18,6 +28,7 @@ from .const import (
     PROP_WIFI_SSID,
 )
 from .core.anonymous_share import get_anonymous_share_manager
+from .core.utils.log_safety import mask_ip_addresses
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
@@ -52,6 +63,14 @@ TO_REDACT: Final = {
     "groupId",
     "iotName",
     "gatewayDeviceId",
+}
+
+OPTIONS_TO_REDACT: Final = TO_REDACT | {
+    # Option lists may contain SSIDs / device IDs / home IDs.
+    CONF_DEVICE_FILTER_HOME_LIST,
+    CONF_DEVICE_FILTER_MODEL_LIST,
+    CONF_DEVICE_FILTER_SSID_LIST,
+    CONF_DEVICE_FILTER_DID_LIST,
 }
 
 # Keys to redact from device properties
@@ -138,6 +157,7 @@ def _redact_property_value(value: Any, key: str | None = None) -> Any:
         sanitized = _MAC_EMBEDDED_RE.sub("**REDACTED**", value)
         sanitized = _IPV4_EMBEDDED_RE.sub("**REDACTED**", sanitized)
         sanitized = _DEVICE_ID_EMBEDDED_RE.sub("**REDACTED**", sanitized)
+        sanitized = mask_ip_addresses(sanitized, placeholder="**REDACTED**")
         if sanitized != value:
             return sanitized
 
@@ -204,7 +224,9 @@ async def async_get_config_entry_diagnostics(
     entry: LiproConfigEntry,
 ) -> dict[str, Any]:
     """Return diagnostics for a config entry."""
-    coordinator = entry.runtime_data
+    coordinator = getattr(entry, "runtime_data", None)
+    if coordinator is None:
+        return {"error": "entry_not_loaded"}
 
     # Collect device information (redacted)
     devices_info = [
@@ -224,7 +246,7 @@ async def async_get_config_entry_diagnostics(
         "entry": {
             "title": _redact_entry_title(entry.title),
             "data": async_redact_data(entry.data, TO_REDACT),
-            "options": entry.options,
+            "options": async_redact_data(entry.options, OPTIONS_TO_REDACT),
         },
         "coordinator": {
             "last_update_success": coordinator.last_update_success,
@@ -243,7 +265,9 @@ async def async_get_device_diagnostics(
     device: DeviceEntry,
 ) -> dict[str, Any]:
     """Return diagnostics for a single device entry."""
-    coordinator = entry.runtime_data
+    coordinator = getattr(entry, "runtime_data", None)
+    if coordinator is None:
+        return {"error": "entry_not_loaded"}
     serial = _extract_device_serial(device)
     if serial is None:
         return {"error": "device_not_in_lipro_domain"}
@@ -256,7 +280,7 @@ async def async_get_device_diagnostics(
         "entry": {
             "title": _redact_entry_title(entry.title),
             "data": async_redact_data(entry.data, TO_REDACT),
-            "options": entry.options,
+            "options": async_redact_data(entry.options, OPTIONS_TO_REDACT),
         },
         "coordinator": {
             "last_update_success": coordinator.last_update_success,

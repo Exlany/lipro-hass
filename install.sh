@@ -2,19 +2,18 @@
 # One-click install script for Lipro Smart Home integration
 #
 # Usage:
-#   wget -q -O - https://raw.githubusercontent.com/Exlany/lipro-hass/main/install.sh | bash -
+#   wget -q -O - https://raw.githubusercontent.com/Exlany/lipro-hass/main/install.sh | ARCHIVE_TAG=latest bash -
 #   wget -q -O - https://raw.githubusercontent.com/Exlany/lipro-hass/main/install.sh | ARCHIVE_TAG=v1.0.0 bash -
 #   wget -q -O - https://raw.githubusercontent.com/Exlany/lipro-hass/main/install.sh | HUB_DOMAIN=ghfast.top bash -
 set -e
 
 DOMAIN="lipro"
 REPO_PATH="Exlany/lipro-hass"
-REPO_NAME="lipro-hass"
 
 [ -z "$ARCHIVE_TAG" ] && ARCHIVE_TAG="$1"
-[ -z "$ARCHIVE_TAG" ] && ARCHIVE_TAG="main"
+[ -z "$ARCHIVE_TAG" ] && ARCHIVE_TAG="latest"
 [ -z "$HUB_DOMAIN" ] && HUB_DOMAIN="github.com"
-ARCHIVE_URL="https://$HUB_DOMAIN/$REPO_PATH/archive/$ARCHIVE_TAG.zip"
+ARCHIVE_URL=""
 
 RED_COLOR='\033[0;31m'
 GREEN_COLOR='\033[0;32m'
@@ -44,7 +43,176 @@ check_requirement() {
 check_requirement "wget"
 check_requirement "unzip"
 
-info "Archive URL: $ARCHIVE_URL"
+python_preflight_scan_zip() {
+    local zipPath
+    zipPath="$1"
+
+    local pythonBin
+    pythonBin=""
+    if command -v python3 >/dev/null 2>&1; then
+        pythonBin="python3"
+    elif command -v python >/dev/null 2>&1; then
+        pythonBin="python"
+    fi
+
+    if [ -z "$pythonBin" ]; then
+        warn "Python not found; skipping archive preflight scan (symlink/size checks)"
+        return 0
+    fi
+
+    # This scan rejects dangerous paths and symlink/device-type entries before unzip runs.
+    # It also caps file counts/sizes to reduce zip-bomb risk.
+    "$pythonBin" - "$zipPath" <<'PY'
+import os
+import re
+import stat
+import sys
+import zipfile
+
+zip_path = sys.argv[1]
+
+max_files = int(os.environ.get("LIPRO_INSTALL_MAX_FILES", "5000"))
+max_total_bytes = int(
+    os.environ.get("LIPRO_INSTALL_MAX_UNCOMPRESSED_BYTES", str(100 * 1024 * 1024))
+)
+max_single_file_bytes = int(
+    os.environ.get("LIPRO_INSTALL_MAX_SINGLE_FILE_BYTES", str(20 * 1024 * 1024))
+)
+
+drive_prefix = re.compile(r"^[A-Za-z]:/")
+
+total = 0
+count = 0
+
+with zipfile.ZipFile(zip_path) as zf:
+    for info in zf.infolist():
+        name = info.filename
+        if not isinstance(name, str) or not name:
+            print("Invalid zip entry name", file=sys.stderr)
+            sys.exit(2)
+
+        normalized = name.replace("\\", "/")
+        if normalized.startswith("/") or drive_prefix.match(normalized):
+            print(f"Unsafe absolute path in archive: {name}", file=sys.stderr)
+            sys.exit(2)
+
+        parts = [p for p in normalized.split("/") if p and p != "."]
+        if any(p == ".." for p in parts):
+            print(f"Unsafe path traversal in archive: {name}", file=sys.stderr)
+            sys.exit(2)
+
+        # Size caps (directories contribute 0 bytes).
+        count += 1
+        if count > max_files:
+            print(f"Archive too large: {count} entries (max {max_files})", file=sys.stderr)
+            sys.exit(2)
+
+        file_size = int(getattr(info, "file_size", 0))
+        if file_size < 0:
+            print(f"Invalid file size in archive: {name}", file=sys.stderr)
+            sys.exit(2)
+        if file_size > max_single_file_bytes:
+            print(
+                f"Archive entry too large: {name} ({file_size} bytes)",
+                file=sys.stderr,
+            )
+            sys.exit(2)
+
+        total += file_size
+        if total > max_total_bytes:
+            print(
+                f"Archive uncompressed size too large: {total} bytes (max {max_total_bytes})",
+                file=sys.stderr,
+            )
+            sys.exit(2)
+
+        mode = int(getattr(info, "external_attr", 0)) >> 16
+        if mode:
+            if (
+                stat.S_ISLNK(mode)
+                or stat.S_ISCHR(mode)
+                or stat.S_ISBLK(mode)
+                or stat.S_ISFIFO(mode)
+                or stat.S_ISSOCK(mode)
+            ):
+                print(f"Unsafe file type in archive: {name}", file=sys.stderr)
+                sys.exit(2)
+
+print(f"Archive preflight ok: {count} entries, {total} bytes", file=sys.stderr)
+PY
+}
+
+resolve_latest_release_tag() {
+    local latestUrl
+    latestUrl="https://$HUB_DOMAIN/$REPO_PATH/releases/latest"
+
+    # We avoid depending on jq/curl. GitHub returns a 302 redirect to:
+    #   .../releases/tag/<tag>
+    # We grab the Location header without following redirects.
+    local location
+    location="$(
+        wget -qS --max-redirect=0 -O /dev/null "$latestUrl" 2>&1 \
+            | awk '/^[ ]*Location: / {print $2}' \
+            | tail -1 \
+            | tr -d '\r'
+    )"
+
+    if [[ "$location" != *"/releases/tag/"* ]]; then
+        return 1
+    fi
+
+    local tag
+    tag="${location##*/}"
+    tag="${tag%%\?*}"
+    if [ -z "$tag" ] || [ "$tag" = "latest" ]; then
+        return 1
+    fi
+
+    echo "$tag"
+}
+
+download_archive() {
+    local dest
+    dest="$1"
+    shift
+
+    local url
+    for url in "$@"; do
+        info "Trying archive URL: $url"
+        if wget -t 2 -O "$dest" "$url"; then
+            ARCHIVE_URL="$url"
+            return 0
+        fi
+        warn "Download failed: $url"
+    done
+    return 1
+}
+
+requestedArchiveTag="$ARCHIVE_TAG"
+if [ "$HUB_DOMAIN" != "github.com" ]; then
+    warn "HUB_DOMAIN is set to '$HUB_DOMAIN'. This will download and install code from that domain. Only use trusted mirrors."
+fi
+if [ "$ARCHIVE_TAG" = "latest" ]; then
+    info "Resolving latest release tag..."
+    if resolvedTag="$(resolve_latest_release_tag)"; then
+        ARCHIVE_TAG="$resolvedTag"
+        info "Resolved latest to '$ARCHIVE_TAG'"
+    else
+        warn "Could not resolve latest release tag; falling back to 'main'"
+        ARCHIVE_TAG="main"
+    fi
+fi
+
+declare -a archiveUrls=(
+    "https://$HUB_DOMAIN/$REPO_PATH/archive/refs/tags/$ARCHIVE_TAG.zip"
+    "https://$HUB_DOMAIN/$REPO_PATH/archive/refs/heads/$ARCHIVE_TAG.zip"
+    "https://$HUB_DOMAIN/$REPO_PATH/archive/$ARCHIVE_TAG.zip"
+)
+
+info "Archive tag: $requestedArchiveTag (resolved: $ARCHIVE_TAG)"
+if [ "$requestedArchiveTag" = "latest" ]; then
+    info "Tip: pin ARCHIVE_TAG=<tag> for reproducible installs (e.g. ARCHIVE_TAG=v1.0.0)"
+fi
 info "Trying to find Home Assistant configuration directory..."
 
 for path in "${paths[@]}"; do
@@ -91,9 +259,11 @@ cleanup() {
 trap cleanup EXIT
 
 info "Downloading $ARCHIVE_TAG..."
-wget -t 2 -O "$tmpZip" "$ARCHIVE_URL"
+download_archive "$tmpZip" "${archiveUrls[@]}" || error "Failed to download archive for $ARCHIVE_TAG"
+info "Archive URL: $ARCHIVE_URL"
 
 info "Validating archive..."
+python_preflight_scan_zip "$tmpZip" || error "Archive preflight scan failed / 压缩包预检失败"
 unzip -t "$tmpZip" >/dev/null 2>&1 || error "Downloaded archive is not a valid zip / 下载的压缩包无效"
 if unzip -Z -1 "$tmpZip" 2>/dev/null | grep -Eq '(^/|^\.\./|/\.\./)'; then
     error "Unsafe paths detected in archive / 压缩包包含不安全路径"
@@ -103,15 +273,18 @@ info "Unpacking..."
 mkdir -p "$tmpExtract"
 unzip -o "$tmpZip" -d "$tmpExtract" >/dev/null 2>&1
 
-# Determine the extracted directory name (GitHub strips leading 'v' from tag)
-ver="${ARCHIVE_TAG/#v/}"
-extractedDir="$tmpExtract/$REPO_NAME-$ver"
-if [ ! -d "$extractedDir" ]; then
-    extractedDir="$tmpExtract/$REPO_NAME-$ARCHIVE_TAG"
+# Determine extracted top-level directory from archive content.
+mapfile -t extractedRoots < <(
+    unzip -Z -1 "$tmpZip" 2>/dev/null | awk -F/ 'NF > 1 {print $1}' | sort -u
+)
+if [ "${#extractedRoots[@]}" -ne 1 ]; then
+    error "Could not determine extracted root directory from archive" false
+    error "无法从压缩包中确定解压根目录"
 fi
+extractedDir="$tmpExtract/${extractedRoots[0]}"
 if [ ! -d "$extractedDir" ]; then
-    error "Could not find extracted directory: $REPO_NAME-$ver" false
-    error "找不到解压目录: $REPO_NAME-$ver"
+    error "Could not find extracted directory: ${extractedRoots[0]}" false
+    error "找不到解压目录: ${extractedRoots[0]}"
 fi
 
 if [ ! -d "$extractedDir/custom_components/$DOMAIN" ]; then
@@ -124,6 +297,9 @@ rm -rf "$tmpInstall"
 cp -rf "$extractedDir/custom_components/$DOMAIN" "$tmpInstall"
 if [ ! -f "$tmpInstall/manifest.json" ]; then
     error "Staged component missing manifest.json / 暂存组件缺少 manifest.json"
+fi
+if find "$tmpInstall" -type l -print -quit 2>/dev/null | grep -q .; then
+    error "Symlinks detected in staged component / 暂存组件包含符号链接"
 fi
 
 info "Activating..."

@@ -1,0 +1,42 @@
+minimum_pre_commit_version: "3.7.0"
+
+default_language_version:
+  python: python3.13
+
+repos:
+  - repo: local
+    hooks:
+      - id: ruff-format
+        name: ruff format (uv)
+        entry: uv run --extra dev ruff format
+        language: system
+        types_or: [python, pyi]
+        files: ^(custom_components/lipro|tests)/
+
+      - id: ruff-check
+        name: ruff check (uv)
+        entry: uv run --extra dev ruff check --fix --exit-non-zero-on-fix
+        language: system
+        types_or: [python, pyi]
+        files: ^(custom_components/lipro|tests)/
+
+      - id: mypy
+        name: mypy (uv)
+        entry: uv run --extra dev mypy custom_components/lipro
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-push]
+
+      - id: pytest-gate
+        name: pytest diagnostics gate (uv)
+        entry: >-
+          uv run --extra dev pytest -q
+          tests/test_diagnostics.py::TestAsyncGetConfigEntryDiagnostics::test_collects_and_redacts_diagnostics
+          tests/test_diagnostics.py::TestAsyncGetConfigEntryDiagnostics::test_handles_no_devices
+          tests/test_diagnostics.py::TestAsyncGetConfigEntryDiagnostics::test_diagnostics_snapshot
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-push]
+

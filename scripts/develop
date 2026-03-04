@@ -1,18 +1,19 @@
 #!/usr/bin/env bash
 # Start Home Assistant with Lipro integration for development
 
-set -e
+set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
-# Check if virtual environment exists
-if [ ! -d "venv" ]; then
-    echo "Virtual environment not found. Running setup first..."
-    ./scripts/setup
+if ! command -v uv >/dev/null 2>&1; then
+    echo "uv is required but was not found in PATH" >&2
+    exit 1
 fi
 
-# Activate virtual environment
-source venv/bin/activate
+if [ ! -d ".venv" ]; then
+    echo ".venv not found. Running setup first..."
+    ./scripts/setup
+fi
 
 # Create config directory if it doesn't exist
 mkdir -p config
@@ -29,4 +30,4 @@ echo "Access the UI at: http://localhost:8123"
 echo ""
 
 # Start Home Assistant
-cd config && hass -c .
+cd config && uv run hass -c .

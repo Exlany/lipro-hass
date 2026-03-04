@@ -11,6 +11,25 @@ from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers import entity_registry as er
 
 
+def _normalize_entity_ids(entity_ids: Any) -> list[str]:
+    """Normalize entity_id inputs into a clean list of entity_id strings."""
+    if isinstance(entity_ids, str):
+        entity_ids = [entity_ids]
+    elif isinstance(entity_ids, (list, tuple)):
+        entity_ids = list(entity_ids)
+    else:
+        entity_ids = []
+
+    normalized: list[str] = []
+    for entity_id in entity_ids:
+        if not isinstance(entity_id, str):
+            continue
+        stripped = entity_id.strip()
+        if stripped:
+            normalized.append(stripped)
+    return normalized
+
+
 def extract_device_id_from_entity_ids(
     hass: HomeAssistant,
     entity_ids: Any,
@@ -48,7 +67,7 @@ def resolve_device_id_from_service_call(
     domain: str,
     serial_pattern: Any,
     attr_device_id: str,
-) -> Any:
+) -> str:
     """Resolve device identifier from service data or targeted entities."""
     device_id = call.data.get(attr_device_id)
     if isinstance(device_id, str):
@@ -56,19 +75,17 @@ def resolve_device_id_from_service_call(
         if normalized:
             return normalized
 
-    entity_ids = call.data.get(ATTR_ENTITY_ID, [])
-    if isinstance(entity_ids, str):
-        entity_ids = [entity_ids]
+    entity_ids = _normalize_entity_ids(call.data.get(ATTR_ENTITY_ID))
+    target = getattr(call, "target", None)
+    if target is not None:
+        for entity_id in _normalize_entity_ids(getattr(target, "entity_id", None)):
+            if entity_id not in entity_ids:
+                entity_ids.append(entity_id)
 
     if not entity_ids:
         raise ServiceValidationError(
             translation_domain=domain,
             translation_key="no_device_specified",
-        )
-    if len(entity_ids) != 1:
-        raise ServiceValidationError(
-            translation_domain=domain,
-            translation_key="cannot_determine_device",
         )
 
     resolved_device_id = extract_device_id_from_entity_ids(
@@ -98,7 +115,7 @@ def iter_runtime_coordinators(
 ) -> Iterator[Any]:
     """Iterate all active coordinators for the Lipro domain."""
     for entry in hass.config_entries.async_entries(domain):
-        coordinator = entry.runtime_data
+        coordinator = getattr(entry, "runtime_data", None)
         if coordinator is None:
             continue
         yield coordinator

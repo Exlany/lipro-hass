@@ -120,7 +120,7 @@ async def test_form_user(
     await hass.async_block_till_done()
 
     assert result["type"] is FlowResultType.CREATE_ENTRY
-    assert result["title"] == "Lipro (13800000000)"
+    assert result["title"] == "Lipro (138****0000)"
     assert result["data"][CONF_PHONE] == "13800000000"
     # Password is stored as hash, not plain text
     assert result["data"][CONF_REMEMBER_PASSWORD_HASH] is True
@@ -130,6 +130,8 @@ async def test_form_user(
     assert result["data"]["user_id"] == 10001
     assert CONF_PHONE_ID in result["data"]
     assert len(mock_setup_entry.mock_calls) == 1
+    mock_lipro_client.login.assert_awaited_once()
+    assert mock_lipro_client.login.await_args.kwargs["password_is_hashed"] is True
 
 
 async def test_form_user_without_remember_password_does_not_store_hash(
@@ -189,7 +191,7 @@ async def test_form_user_recovers_after_invalid_auth(
         autospec=True,
     ) as mock_client_class:
         mock_client = mock_client_class.return_value
-        mock_client.login_with_hash = AsyncMock(
+        mock_client.login = AsyncMock(
             side_effect=[
                 LiproAuthError("Invalid credentials"),
                 {
@@ -225,9 +227,9 @@ async def test_form_user_recovers_after_invalid_auth(
         await hass.async_block_till_done()
 
         assert result["type"] is FlowResultType.CREATE_ENTRY
-        assert result["title"] == "Lipro (13800000000)"
+        assert result["title"] == "Lipro (138****0000)"
         assert result["data"]["access_token"] == "test_access_token"
-        assert mock_client.login_with_hash.await_count == 2
+        assert mock_client.login.await_count == 2
 
 
 async def test_form_cannot_connect(
@@ -260,7 +262,7 @@ async def test_form_malformed_login_response(
         autospec=True,
     ) as mock_client_class:
         mock_client = mock_client_class.return_value
-        mock_client.login_with_hash = AsyncMock(side_effect=ValueError("bad payload"))
+        mock_client.login = AsyncMock(side_effect=ValueError("bad payload"))
 
         result = await hass.config_entries.flow.async_init(
             DOMAIN, context={"source": config_entries.SOURCE_USER}
@@ -287,7 +289,7 @@ async def test_form_unexpected_error_maps_to_unknown(
         autospec=True,
     ) as mock_client_class:
         mock_client = mock_client_class.return_value
-        mock_client.login_with_hash = AsyncMock(side_effect=RuntimeError("boom"))
+        mock_client.login = AsyncMock(side_effect=RuntimeError("boom"))
 
         result = await hass.config_entries.flow.async_init(
             DOMAIN, context={"source": config_entries.SOURCE_USER}
@@ -314,9 +316,7 @@ async def test_form_lipro_api_error_maps_to_unknown(
         autospec=True,
     ) as mock_client_class:
         mock_client = mock_client_class.return_value
-        mock_client.login_with_hash = AsyncMock(
-            side_effect=LiproApiError("API failure")
-        )
+        mock_client.login = AsyncMock(side_effect=LiproApiError("API failure"))
 
         result = await hass.config_entries.flow.async_init(
             DOMAIN, context={"source": config_entries.SOURCE_USER}
@@ -343,7 +343,7 @@ async def test_form_abortflow_propagates(
         autospec=True,
     ) as mock_client_class:
         mock_client = mock_client_class.return_value
-        mock_client.login_with_hash = AsyncMock(side_effect=AbortFlow("test_abort"))
+        mock_client.login = AsyncMock(side_effect=AbortFlow("test_abort"))
 
         result = await hass.config_entries.flow.async_init(
             DOMAIN, context={"source": config_entries.SOURCE_USER}
@@ -370,7 +370,7 @@ async def test_form_already_configured(
     # Create an existing entry using MockConfigEntry
     entry = MockConfigEntry(
         domain=DOMAIN,
-        title="Lipro (13800000000)",
+        title="Lipro (138****0000)",
         data={
             CONF_PHONE: "13800000000",
             CONF_PASSWORD_HASH: "e10adc3949ba59abbe56e057f20f883e",
@@ -408,7 +408,7 @@ async def test_reauth_flow(
     # Create an existing entry using MockConfigEntry
     entry = MockConfigEntry(
         domain=DOMAIN,
-        title="Lipro (13800000000)",
+        title="Lipro (138****0000)",
         data={
             CONF_PHONE: "13800000000",
             CONF_PASSWORD_HASH: "e10adc3949ba59abbe56e057f20f883e",
@@ -432,6 +432,7 @@ async def test_reauth_flow(
 
     assert result["type"] is FlowResultType.FORM
     assert result["step_id"] == "reauth_confirm"
+    assert result["description_placeholders"]["phone"] == "138****0000"
 
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"],
@@ -455,7 +456,7 @@ async def test_reauth_flow_invalid_auth(
     """Test reauth flow with invalid credentials."""
     entry = MockConfigEntry(
         domain=DOMAIN,
-        title="Lipro (13800000000)",
+        title="Lipro (138****0000)",
         data={
             CONF_PHONE: "13800000000",
             CONF_PASSWORD_HASH: "e10adc3949ba59abbe56e057f20f883e",
@@ -495,7 +496,7 @@ async def test_reauth_flow_missing_phone_id(
     """Test reauth flow shows unknown error when phone_id is missing."""
     entry = MockConfigEntry(
         domain=DOMAIN,
-        title="Lipro (13800000000)",
+        title="Lipro (138****0000)",
         data={
             CONF_PHONE: "13800000000",
             CONF_PASSWORD_HASH: "e10adc3949ba59abbe56e057f20f883e",
@@ -529,7 +530,7 @@ async def test_reauth_flow_missing_phone_id(
     assert result["type"] is FlowResultType.FORM
     assert result["step_id"] == "reauth_confirm"
     assert result["errors"] == {"base": "unknown"}
-    mock_lipro_client.login_with_hash.assert_not_awaited()
+    mock_lipro_client.login.assert_not_awaited()
 
 
 async def test_reconfigure_flow_missing_phone_id(
@@ -539,7 +540,7 @@ async def test_reconfigure_flow_missing_phone_id(
     """Test reconfigure flow shows unknown error when phone_id is missing."""
     entry = MockConfigEntry(
         domain=DOMAIN,
-        title="Lipro (13800000000)",
+        title="Lipro (138****0000)",
         data={
             CONF_PHONE: "13800000000",
             CONF_PASSWORD_HASH: "e10adc3949ba59abbe56e057f20f883e",
@@ -574,7 +575,7 @@ async def test_reconfigure_flow_missing_phone_id(
     assert result["type"] is FlowResultType.FORM
     assert result["step_id"] == "reconfigure"
     assert result["errors"] == {"base": "unknown"}
-    mock_lipro_client.login_with_hash.assert_not_awaited()
+    mock_lipro_client.login.assert_not_awaited()
 
 
 async def test_reconfigure_flow_success(
@@ -584,7 +585,7 @@ async def test_reconfigure_flow_success(
     """Test reconfigure flow updates entry data and aborts successfully."""
     entry = MockConfigEntry(
         domain=DOMAIN,
-        title="Lipro (13800000000)",
+        title="Lipro (138****0000)",
         data={
             CONF_PHONE: "13800000000",
             CONF_PASSWORD_HASH: "e10adc3949ba59abbe56e057f20f883e",
@@ -631,7 +632,7 @@ async def test_reconfigure_flow_unique_id_mismatch(
     """Test reconfigure flow aborts when reconfigured account does not match."""
     entry = MockConfigEntry(
         domain=DOMAIN,
-        title="Lipro (13800000000)",
+        title="Lipro (138****0000)",
         data={
             CONF_PHONE: "13800000000",
             CONF_PASSWORD_HASH: "e10adc3949ba59abbe56e057f20f883e",
@@ -674,7 +675,7 @@ async def test_options_flow(
     """Test options flow."""
     entry = MockConfigEntry(
         domain=DOMAIN,
-        title="Lipro (13800000000)",
+        title="Lipro (138****0000)",
         data={
             CONF_PHONE: "13800000000",
             CONF_PASSWORD_HASH: "e10adc3949ba59abbe56e057f20f883e",
@@ -712,7 +713,7 @@ async def test_options_flow_advanced_step(
     """Test options flow advanced step and merged save behavior."""
     entry = MockConfigEntry(
         domain=DOMAIN,
-        title="Lipro (13800000000)",
+        title="Lipro (138****0000)",
         data={
             CONF_PHONE: "13800000000",
             CONF_PASSWORD_HASH: "e10adc3949ba59abbe56e057f20f883e",
@@ -787,9 +788,7 @@ async def test_options_flow_advanced_step(
     assert result["data"][CONF_DEBUG_MODE] is True
     assert result["data"][CONF_DEVICE_FILTER_HOME_MODE] == DEVICE_FILTER_MODE_INCLUDE
     assert result["data"][CONF_DEVICE_FILTER_HOME_LIST] == "My Home"
-    assert (
-        result["data"][CONF_DEVICE_FILTER_MODEL_MODE] == DEVICE_FILTER_MODE_EXCLUDE
-    )
+    assert result["data"][CONF_DEVICE_FILTER_MODEL_MODE] == DEVICE_FILTER_MODE_EXCLUDE
     assert result["data"][CONF_DEVICE_FILTER_MODEL_LIST] == "gateway"
     assert result["data"][CONF_DEVICE_FILTER_SSID_MODE] == DEVICE_FILTER_MODE_OFF
     assert result["data"][CONF_DEVICE_FILTER_SSID_LIST] == ""

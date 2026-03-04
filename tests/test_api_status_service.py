@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from custom_components.lipro.core.api.api_status_service import (
+from custom_components.lipro.core.api.status_service import (
     query_connect_status,
     query_device_status,
     query_with_fallback,
@@ -170,6 +170,44 @@ async def test_query_with_fallback_small_subset_uses_batch_then_single_fallback(
     assert ["a", "b", "c", "d"] in called_bodies
     assert ["a", "b"] in called_bodies
     assert ["c", "d"] in called_bodies
+
+
+@pytest.mark.asyncio
+async def test_query_with_fallback_large_batch_does_not_retry_same_full_batch() -> None:
+    ids = ["a", "b", "c", "d", "e", "f"]
+    recorded_depth: list[int] = []
+
+    async def _request(_path, body):
+        batch = body["deviceIdList"]
+        if batch == ids:
+            raise DummyApiError("batch fail", 140003)
+        return {"data": [{"deviceId": item_id} for item_id in batch]}
+
+    iot_request = AsyncMock(side_effect=_request)
+
+    result = await query_with_fallback(
+        path="/v2/status/device",
+        body_key="deviceIdList",
+        ids=ids,
+        item_name="device",
+        iot_request=iot_request,
+        extract_data_list=lambda payload: payload.get("data", []),
+        is_retriable_device_error=lambda _: True,
+        lipro_api_error=DummyApiError,
+        normalize_response_code=lambda code: code,
+        expected_offline_codes=(140003, "140003"),
+        logger=MagicMock(),
+        record_fallback_depth=recorded_depth.append,
+    )
+
+    assert sorted(item["deviceId"] for item in result) == ids
+    # 1 initial full-batch failure + 2 sub-batches (size=3) split into mini-batches
+    assert iot_request.await_count == 5
+    called_bodies = [
+        call.args[1]["deviceIdList"] for call in iot_request.await_args_list
+    ]
+    assert called_bodies.count(ids) == 1
+    assert recorded_depth == [2]
 
 
 @pytest.mark.asyncio

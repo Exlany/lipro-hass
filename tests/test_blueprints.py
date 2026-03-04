@@ -6,7 +6,9 @@ from typing import Any
 import pytest
 import yaml
 
-BLUEPRINT_DIR = Path(__file__).resolve().parents[1] / "blueprints" / "automation" / "lipro"
+BLUEPRINT_DIR = (
+    Path(__file__).resolve().parents[1] / "blueprints" / "automation" / "lipro"
+)
 MOTION_BLUEPRINT = BLUEPRINT_DIR / "motion_light.yaml"
 OFFLINE_BLUEPRINT = BLUEPRINT_DIR / "device_offline_alert.yaml"
 
@@ -76,9 +78,13 @@ def test_device_offline_alert_blueprint_key_fields() -> None:
     data = _load_blueprint(OFFLINE_BLUEPRINT)
     blueprint_inputs = data["blueprint"]["input"]
 
-    assert {"monitored_entities", "offline_for", "notify_service", "title", "message"} <= set(
-        blueprint_inputs
-    )
+    assert {
+        "monitored_entities",
+        "offline_for",
+        "notify_service",
+        "title",
+        "message",
+    } <= set(blueprint_inputs)
 
     trigger = data["trigger"][0]
     assert trigger["platform"] == "state"

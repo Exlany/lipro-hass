@@ -1,0 +1,333 @@
+"""Schedule-related endpoints and helpers for LiproClient."""
+
+from __future__ import annotations
+
+import logging
+from typing import TYPE_CHECKING, Any, cast
+
+from ....const.api import (
+    PATH_BLE_SCHEDULE_ADD,
+    PATH_BLE_SCHEDULE_DELETE,
+    PATH_BLE_SCHEDULE_GET,
+)
+from ...utils.identifiers import normalize_iot_device_id as _normalize_iot_device_id
+from .. import response_safety as _response_safety
+from ..errors import LiproApiError, LiproAuthError
+from ..schedule_codec import (
+    coerce_int_list as _coerce_schedule_int_list,
+    normalize_mesh_timing_rows as _normalize_mesh_schedule_rows,
+    parse_mesh_schedule_json as _parse_mesh_schedule_payload,
+)
+from ..schedule_endpoint import (
+    build_mesh_schedule_add_body,
+    build_mesh_schedule_delete_body,
+    build_mesh_schedule_get_body,
+    encode_mesh_schedule_json,
+    is_mesh_group_id,
+    resolve_mesh_schedule_candidate_ids,
+)
+from ..schedule_service import (
+    add_mesh_schedule_by_candidates as add_mesh_schedule_by_candidates_service,
+    delete_mesh_schedules_by_candidates as delete_mesh_schedules_by_candidates_service,
+    execute_mesh_schedule_candidate_request as execute_mesh_schedule_candidate_request_service,
+    get_mesh_schedules_by_candidates as get_mesh_schedules_by_candidates_service,
+)
+from .connect_status import coerce_connect_status
+from .payloads import _ClientEndpointPayloadsMixin
+
+if TYPE_CHECKING:
+    from collections.abc import Awaitable, Callable
+
+
+# Use the same logger instance as custom_components.lipro.core.api.client._LOGGER
+# so tests patching client._LOGGER.* still intercept logs here.
+_LOGGER = logging.getLogger("custom_components.lipro.core.api.client")
+
+
+class _ClientScheduleEndpointsMixin(_ClientEndpointPayloadsMixin):
+    """Endpoints/helpers used by :class:`ScheduleApiService`."""
+
+    @staticmethod
+    def _is_mesh_group_id(device_id: str) -> bool:
+        """Check whether the identifier is a mesh-group ID."""
+        return is_mesh_group_id(device_id)
+
+    @classmethod
+    def _resolve_mesh_schedule_candidate_ids(
+        cls,
+        device_id: str,
+        *,
+        mesh_gateway_id: str = "",
+        mesh_member_ids: list[str] | None = None,
+    ) -> list[str]:
+        """Resolve candidate IoT device IDs for mesh schedule APIs."""
+        return resolve_mesh_schedule_candidate_ids(
+            device_id,
+            mesh_gateway_id=mesh_gateway_id,
+            mesh_member_ids=mesh_member_ids,
+            normalize_iot_device_id=_normalize_iot_device_id,
+        )
+
+    def _resolve_mesh_schedule_candidates_for_group(
+        self,
+        device_id: str,
+        *,
+        mesh_gateway_id: str = "",
+        mesh_member_ids: list[str] | None = None,
+    ) -> list[str] | None:
+        """Resolve mesh schedule candidate IDs only when target is a mesh group."""
+        if not self._is_mesh_group_id(device_id):
+            return None
+
+        candidate_ids = self._resolve_mesh_schedule_candidate_ids(
+            device_id,
+            mesh_gateway_id=mesh_gateway_id,
+            mesh_member_ids=mesh_member_ids,
+        )
+        return candidate_ids or None
+
+    def _resolve_schedule_request_context(
+        self,
+        *,
+        device_id: str,
+        device_type: int | str,
+        mesh_gateway_id: str = "",
+        mesh_member_ids: list[str] | None = None,
+    ) -> tuple[list[str] | None, str]:
+        """Resolve mesh candidate IDs and normalized device type for schedule APIs."""
+        candidate_ids = self._resolve_mesh_schedule_candidates_for_group(
+            device_id,
+            mesh_gateway_id=mesh_gateway_id,
+            mesh_member_ids=mesh_member_ids,
+        )
+        device_type_hex = self._to_device_type_hex(device_type)
+        return candidate_ids, device_type_hex
+
+    async def _request_schedule_timings(
+        self,
+        path: str,
+        body: dict[str, Any],
+    ) -> list[dict[str, Any]]:
+        """Request schedule endpoint and normalize timings-list payload variants."""
+        result = await self._iot_request(path, body)
+        return self._extract_timings_list(result)
+
+    @staticmethod
+    def _coerce_int_list(value: Any) -> list[int]:
+        """Convert mixed list payloads into a clean integer list."""
+        return _coerce_schedule_int_list(value)
+
+    @classmethod
+    def _parse_mesh_schedule_json(cls, schedule_json: Any) -> dict[str, list[int]]:
+        """Parse mesh ``scheduleJson`` into ``days/time/evt`` arrays."""
+        return _parse_mesh_schedule_payload(
+            schedule_json,
+            coerce_connect_status=coerce_connect_status,
+            mask_sensitive_data=_response_safety.mask_sensitive_data,
+        )
+
+    @classmethod
+    def _normalize_mesh_timing_rows(
+        cls,
+        rows: list[Any],
+        *,
+        fallback_device_id: str = "",
+    ) -> list[dict[str, Any]]:
+        """Normalize mesh timing rows to include ``schedule`` dict payload."""
+        return _normalize_mesh_schedule_rows(
+            rows,
+            fallback_device_id=fallback_device_id,
+            parse_schedule_json=cls._parse_mesh_schedule_json,
+            coerce_connect_status=coerce_connect_status,
+        )
+
+    async def _execute_mesh_schedule_candidate_request(
+        self,
+        *,
+        candidate_id: str,
+        operation: str,
+        request: Callable[[str], Awaitable[Any]],
+    ) -> tuple[bool, Any, LiproApiError | None]:
+        """Execute one mesh schedule candidate request with shared error handling."""
+        (
+            succeeded,
+            payload,
+            error,
+        ) = await execute_mesh_schedule_candidate_request_service(
+            candidate_id=candidate_id,
+            operation=operation,
+            request=request,
+            lipro_auth_error=LiproAuthError,
+            lipro_api_error=LiproApiError,
+            logger=_LOGGER,
+        )
+        return succeeded, payload, cast(LiproApiError | None, error)
+
+    async def _get_mesh_schedules_by_candidates(
+        self,
+        candidate_device_ids: list[str],
+        *,
+        raise_on_total_failure: bool = True,
+    ) -> list[dict[str, Any]]:
+        """Query mesh schedule list from candidate device IDs."""
+        return await get_mesh_schedules_by_candidates_service(
+            candidate_device_ids=candidate_device_ids,
+            execute_candidate_request=self._execute_mesh_schedule_candidate_request,
+            iot_request=self._iot_request,
+            extract_timings_list=self._extract_timings_list,
+            normalize_mesh_timing_rows=self._normalize_mesh_timing_rows,
+            path_ble_schedule_get=PATH_BLE_SCHEDULE_GET,
+            build_mesh_schedule_get_body=build_mesh_schedule_get_body,
+            raise_on_total_failure=raise_on_total_failure,
+        )
+
+    async def _add_mesh_schedule_by_candidates(
+        self,
+        candidate_device_ids: list[str],
+        *,
+        days: list[int],
+        times: list[int],
+        events: list[int],
+    ) -> list[dict[str, Any]]:
+        """Try mesh schedule add across candidates and return refreshed schedule rows."""
+        return await add_mesh_schedule_by_candidates_service(
+            candidate_device_ids=candidate_device_ids,
+            days=days,
+            times=times,
+            events=events,
+            execute_candidate_request=self._execute_mesh_schedule_candidate_request,
+            iot_request=self._iot_request,
+            get_mesh_schedules_by_candidates_request=self._get_mesh_schedules_by_candidates,
+            path_ble_schedule_add=PATH_BLE_SCHEDULE_ADD,
+            build_mesh_schedule_add_body=build_mesh_schedule_add_body,
+            encode_mesh_schedule_json=encode_mesh_schedule_json,
+        )
+
+    def _resolve_ble_schedule_candidate_ids(
+        self,
+        *,
+        device_id: str,
+        mesh_gateway_id: str = "",
+        mesh_member_ids: list[str] | None = None,
+    ) -> list[str]:
+        """Resolve candidate IoT IDs for BLE schedule APIs."""
+        if self._is_mesh_group_id(device_id):
+            return self._resolve_mesh_schedule_candidate_ids(
+                device_id,
+                mesh_gateway_id=mesh_gateway_id,
+                mesh_member_ids=mesh_member_ids,
+            )
+
+        normalized = _normalize_iot_device_id(device_id)
+        if normalized is None:
+            return []
+        return [normalized]
+
+    async def _delete_mesh_schedules_by_candidates(
+        self,
+        candidate_device_ids: list[str],
+        *,
+        schedule_ids: list[int],
+    ) -> list[dict[str, Any]]:
+        """Try mesh schedule delete across candidates and return refreshed rows."""
+        return await delete_mesh_schedules_by_candidates_service(
+            candidate_device_ids=candidate_device_ids,
+            schedule_ids=schedule_ids,
+            execute_candidate_request=self._execute_mesh_schedule_candidate_request,
+            iot_request=self._iot_request,
+            get_mesh_schedules_by_candidates_request=self._get_mesh_schedules_by_candidates,
+            path_ble_schedule_delete=PATH_BLE_SCHEDULE_DELETE,
+            build_mesh_schedule_delete_body=build_mesh_schedule_delete_body,
+        )
+
+    async def _execute_schedule_operation(
+        self,
+        *,
+        device_id: str,
+        candidate_ids: list[str] | None,
+        ble_candidate_ids: list[str],
+        ble_operation: str,
+        ble_request: Callable[[list[str]], Awaitable[list[dict[str, Any]]]],
+        mesh_request: Callable[[list[str]], Awaitable[list[dict[str, Any]]]],
+        standard_request: Callable[[], Awaitable[list[dict[str, Any]]]],
+    ) -> list[dict[str, Any]]:
+        """Execute schedule API with BLE-first strategy and standard fallback."""
+        if ble_candidate_ids:
+            try:
+                return await ble_request(ble_candidate_ids)
+            except LiproApiError as err:
+                if not self._is_invalid_param_error_code(err.code):
+                    raise
+                _LOGGER.debug(
+                    "BLE schedule %s rejected for %s (code=%s), fallback to standard endpoint",
+                    ble_operation,
+                    device_id,
+                    err.code,
+                )
+        elif candidate_ids:
+            return await mesh_request(candidate_ids)
+
+        return await standard_request()
+
+    async def get_device_schedules(
+        self,
+        device_id: str,
+        device_type: int | str,
+        *,
+        mesh_gateway_id: str = "",
+        mesh_member_ids: list[str] | None = None,
+    ) -> list[dict[str, Any]]:
+        """Get timing schedules for a device."""
+        return await self._schedule_api.get_device_schedules(
+            device_id,
+            device_type,
+            mesh_gateway_id=mesh_gateway_id,
+            mesh_member_ids=mesh_member_ids,
+        )
+
+    async def add_device_schedule(
+        self,
+        device_id: str,
+        device_type: int | str,
+        days: list[int],
+        times: list[int],
+        events: list[int],
+        group_id: str = "",
+        *,
+        mesh_gateway_id: str = "",
+        mesh_member_ids: list[str] | None = None,
+    ) -> list[dict[str, Any]]:
+        """Add or update a timing schedule for a device."""
+        return await self._schedule_api.add_device_schedule(
+            device_id,
+            device_type,
+            days,
+            times,
+            events,
+            group_id,
+            mesh_gateway_id=mesh_gateway_id,
+            mesh_member_ids=mesh_member_ids,
+        )
+
+    async def delete_device_schedules(
+        self,
+        device_id: str,
+        device_type: int | str,
+        schedule_ids: list[int],
+        group_id: str = "",
+        *,
+        mesh_gateway_id: str = "",
+        mesh_member_ids: list[str] | None = None,
+    ) -> list[dict[str, Any]]:
+        """Delete timing schedules for a device."""
+        return await self._schedule_api.delete_device_schedules(
+            device_id,
+            device_type,
+            schedule_ids,
+            group_id,
+            mesh_gateway_id=mesh_gateway_id,
+            mesh_member_ids=mesh_member_ids,
+        )
+
+
+__all__ = ["_ClientScheduleEndpointsMixin"]

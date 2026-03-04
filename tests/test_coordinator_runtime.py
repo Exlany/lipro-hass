@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import inspect
 
-from custom_components.lipro.core.runtime.coordinator_runtime import (
+from custom_components.lipro.core.coordinator.runtime.coordinator_runtime import (
     should_refresh_device_list,
     should_schedule_mqtt_setup,
 )

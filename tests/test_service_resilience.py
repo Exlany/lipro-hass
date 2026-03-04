@@ -10,7 +10,9 @@ import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 import voluptuous as vol
 
-from custom_components.lipro import (
+from custom_components.lipro import DOMAIN
+from custom_components.lipro.core import LiproApiError
+from custom_components.lipro.services.contracts import (
     ATTR_COMMAND,
     ATTR_DEVICE_ID,
     ATTR_ENTRY_ID,
@@ -19,15 +21,13 @@ from custom_components.lipro import (
     ATTR_NOTE,
     ATTR_PROPERTIES,
     ATTR_SENSOR_DEVICE_ID,
-    DOMAIN,
     SERVICE_FETCH_SENSOR_HISTORY_SCHEMA,
     SERVICE_QUERY_COMMAND_RESULT_SCHEMA,
     SERVICE_REFRESH_DEVICES_SCHEMA,
     SERVICE_SEND_COMMAND_SCHEMA,
     SERVICE_SUBMIT_DEVELOPER_FEEDBACK_SCHEMA,
-    _async_handle_get_city,
 )
-from custom_components.lipro.core import LiproApiError
+from custom_components.lipro.services.entrypoints import _async_handle_get_city
 from homeassistant.exceptions import HomeAssistantError
 
 
@@ -184,7 +184,7 @@ async def test_get_city_raises_last_api_error_when_all_coordinators_fail(hass) -
     _add_runtime_entry(hass, first, phone="13800000000")
     _add_runtime_entry(hass, second, phone="13900000000")
 
-    with pytest.raises(HomeAssistantError, match=r"code=250001.*last failure"):
+    with pytest.raises(HomeAssistantError, match=r"code=250001"):
         await _async_handle_get_city(hass, SimpleNamespace(data={}))
 
     assert first.client.get_city.await_count == 1

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from custom_components.lipro.helpers.platform import (
+    build_device_entities_from_rules,
     create_device_entities,
     create_platform_entities,
 )
@@ -111,3 +112,35 @@ class TestCreateDeviceEntities:
 
         assert built_for == [light.serial]
         assert entities == [light.serial]
+
+
+class TestBuildDeviceEntitiesFromRules:
+    """Tests for build_device_entities_from_rules helper."""
+
+    def test_includes_always_entities(self, make_device, mock_coordinator):
+        """Always factories should be created regardless of rules."""
+        device = make_device("light", serial="03ab5ccd7cxxxxxx")
+
+        entities = build_device_entities_from_rules(
+            mock_coordinator,
+            device,
+            always_factories=(lambda c, d: f"{d.serial}_always",),
+            rules=(),
+        )
+
+        assert entities == [f"{device.serial}_always"]
+
+    def test_applies_matching_rules_in_order(self, make_device, mock_coordinator):
+        """Matching rules should append entities in declaration order."""
+        device = make_device("light", serial="03ab5ccd7cxxxxxx")
+
+        entities = build_device_entities_from_rules(
+            mock_coordinator,
+            device,
+            rules=(
+                (lambda d: d.is_light, (lambda c, d: "first", lambda c, d: "second")),
+                (lambda d: d.is_switch, (lambda c, d: "third",)),
+            ),
+        )
+
+        assert entities == ["first", "second"]

@@ -11,16 +11,17 @@ from Crypto.Cipher import AES
 import pytest
 
 from custom_components.lipro.const.api import MQTT_AES_KEY
-from custom_components.lipro.core.mqtt import (
-    _MAX_MQTT_PAYLOAD_BYTES,
-    LiproMqttClient,
+from custom_components.lipro.core.mqtt.client import LiproMqttClient
+from custom_components.lipro.core.mqtt.credentials import (
     MqttCredentials,
-    _sanitize_mqtt_log_value,
-    build_topic,
     decrypt_mqtt_credential,
-    parse_mqtt_payload,
-    parse_topic,
 )
+from custom_components.lipro.core.mqtt.payload import (
+    _MAX_MQTT_PAYLOAD_BYTES,
+    _sanitize_mqtt_log_value,
+    parse_mqtt_payload,
+)
+from custom_components.lipro.core.mqtt.topics import build_topic, parse_topic
 
 
 class TestDecryptMqttCredential:
@@ -68,7 +69,8 @@ class TestDecryptMqttCredential:
 
         with (
             patch(
-                "custom_components.lipro.core.mqtt.AES.new", return_value=mock_cipher
+                "custom_components.lipro.core.mqtt.credentials.AES.new",
+                return_value=mock_cipher,
             ),
             pytest.raises(ValueError, match="Invalid PKCS5 padding length"),
         ):
@@ -81,7 +83,8 @@ class TestDecryptMqttCredential:
 
         with (
             patch(
-                "custom_components.lipro.core.mqtt.AES.new", return_value=mock_cipher
+                "custom_components.lipro.core.mqtt.credentials.AES.new",
+                return_value=mock_cipher,
             ),
             pytest.raises(ValueError, match="Invalid PKCS5 padding bytes"),
         ):
@@ -341,6 +344,28 @@ class TestParseMqttPayload:
         assert "seatSwitch" not in result
         assert "upperLed" not in result
 
+    def test_parse_payload_filters_numeric_and_whitespace_noise_values(self):
+        """Noise values can be numeric -1 or strings with extra whitespace."""
+        payload = {
+            "common": {
+                "connectState": 1,
+            },
+            "light": {
+                "beepSwitch": -1,
+                "seatSwitch": " -1 ",
+                "upperLed": " ",
+                "powerState": "1",
+            },
+        }
+
+        result = parse_mqtt_payload(payload)
+
+        assert result["connectState"] == 1
+        assert result["powerState"] == "1"
+        assert "beepSwitch" not in result
+        assert "seatSwitch" not in result
+        assert "upperLed" not in result
+
     def test_parse_payload_preserves_zero_values(self):
         """Test that "0" values are NOT filtered (they are valid states)."""
         payload = {
@@ -541,7 +566,7 @@ class TestLiproMqttClient:
 
         on_message.assert_not_called()
 
-    def test_process_message_invalid_topic(self):
+    def test_process_message_invalid_topic(self, caplog):
         """Test message processing with invalid topic."""
         on_message = MagicMock()
         client = LiproMqttClient(
@@ -556,9 +581,12 @@ class TestLiproMqttClient:
         message.topic = "invalid"
         message.payload = b'{"light": {"powerState": "1"}}'
 
-        client._process_message(message)
+        with caplog.at_level(logging.DEBUG):
+            client._process_message(message)
 
         on_message.assert_not_called()
+        assert "Invalid topic format (count=1, len=7), skipping message" in caplog.text
+        assert "topic=invalid" not in caplog.text
 
     def test_process_message_empty_properties(self):
         """Test message processing with empty properties."""
@@ -694,7 +722,7 @@ class TestLiproMqttClient:
 
         on_message.assert_not_called()
 
-    def test_process_message_unexpected_exception(self):
+    def test_process_message_unexpected_exception(self, caplog):
         """Unexpected errors should be swallowed and logged."""
         on_message = MagicMock()
         client = LiproMqttClient(
@@ -709,13 +737,18 @@ class TestLiproMqttClient:
         message.topic = "Topic_Device_State/lip_biz001/03ab5ccd7cxxxxxx"
         message.payload = b'{"light":{"powerState":"1"}}'
 
-        with patch(
-            "custom_components.lipro.core.mqtt.parse_mqtt_payload",
-            side_effect=RuntimeError("boom"),
+        with (
+            patch(
+                "custom_components.lipro.core.mqtt.client.parse_mqtt_payload",
+                side_effect=RuntimeError("boom"),
+            ),
+            caplog.at_level(logging.ERROR),
         ):
             client._process_message(message)
 
         on_message.assert_not_called()
+        assert "Topic_Device_State/lip_biz001/03ab5ccd7cxxxxxx" not in caplog.text
+        assert "device=03ab***xxxx" in caplog.text
 
     def test_process_message_callback_error_sets_last_error_and_calls_error_hook(self):
         """Callback exceptions should be observable via last_error and on_error."""
@@ -912,7 +945,7 @@ class TestSyncSubscriptions:
         assert client._subscribed_devices == {"dev_new"}
 
     @pytest.mark.asyncio
-    async def test_sync_connected_skips_invalid_device_id(self):
+    async def test_sync_connected_skips_invalid_device_id(self, caplog):
         """Test sync skips invalid topic IDs without breaking valid subscriptions."""
         client = LiproMqttClient(
             access_key="access",
@@ -924,10 +957,13 @@ class TestSyncSubscriptions:
         client._client = mock_mqtt
         client._connected = True
 
-        await client.sync_subscriptions({"valid_dev", "bad/dev"})
+        with caplog.at_level(logging.WARNING):
+            await client.sync_subscriptions({"valid_dev", "bad/dev"})
 
         mock_mqtt.subscribe.assert_called_once()
         assert client._subscribed_devices == {"valid_dev"}
+        assert "bad/dev" not in caplog.text
+        assert "invalid characters" in caplog.text
 
     @pytest.mark.asyncio
     async def test_sync_connected_subscribe_mqtt_error_keeps_running(self):
@@ -990,7 +1026,7 @@ class TestConnectAndDecode:
     """Tests for connect/listen and payload decoding paths."""
 
     @pytest.mark.asyncio
-    async def test_connect_and_listen_subscribes_and_processes_messages(self):
+    async def test_connect_and_listen_subscribes_and_processes_messages(self, caplog):
         """Connect/listen should subscribe valid IDs, skip invalid ones, and process stream.
 
         Also verifies TLS context is cached across reconnects to avoid rebuilding it.
@@ -1015,10 +1051,10 @@ class TestConnectAndDecode:
 
         with (
             patch(
-                "custom_components.lipro.core.mqtt.ssl.create_default_context"
+                "custom_components.lipro.core.mqtt.client.ssl.create_default_context"
             ) as mock_tls,
             patch(
-                "custom_components.lipro.core.mqtt.aiomqtt.Client"
+                "custom_components.lipro.core.mqtt.client.aiomqtt.Client"
             ) as mock_client_cls,
             patch.object(client, "_process_message") as mock_process,
         ):
@@ -1031,8 +1067,9 @@ class TestConnectAndDecode:
             mock_client_cls.side_effect = [context_manager_1, context_manager_2]
 
             # Connect twice to simulate reconnects: TLS context should be reused.
-            await client._connect_and_listen()
-            await client._connect_and_listen()
+            with caplog.at_level(logging.WARNING):
+                await client._connect_and_listen()
+                await client._connect_and_listen()
 
         mock_tls.assert_called_once()
         assert mock_client_cls.call_count == 2
@@ -1040,13 +1077,50 @@ class TestConnectAndDecode:
             mock_client_cls.call_args_list[0].kwargs["tls_context"]
             is mock_client_cls.call_args_list[1].kwargs["tls_context"]
         )
-        assert mock_tls.return_value is mock_client_cls.call_args_list[0].kwargs["tls_context"]
+        assert (
+            mock_tls.return_value
+            is mock_client_cls.call_args_list[0].kwargs["tls_context"]
+        )
         assert on_connect.call_count == 2
         mqtt_client_1.subscribe.assert_called_once()
         mqtt_client_2.subscribe.assert_called_once()
         assert mock_process.call_count == 2
         assert "bad/dev" not in client._subscribed_devices
         assert client.is_connected is True
+        assert "bad/dev" not in caplog.text
+        assert "invalid characters" in caplog.text
+
+    @pytest.mark.asyncio
+    async def test_connect_and_listen_keeps_last_error_when_on_connect_fails(self):
+        """on_connect callback failures should remain observable via last_error."""
+        on_connect = MagicMock(side_effect=RuntimeError("callback boom"))
+        client = LiproMqttClient(
+            access_key="access",
+            secret_key="secret",
+            biz_id="lip_biz001",
+            phone_id="550e8400-e29b-41d4-a716-446655440000",
+            on_connect=on_connect,
+        )
+
+        async def _messages():
+            if False:
+                yield None
+
+        mqtt_client = AsyncMock()
+        mqtt_client.messages = _messages()
+
+        with patch(
+            "custom_components.lipro.core.mqtt.client.aiomqtt.Client"
+        ) as mock_client_cls:
+            context_manager = AsyncMock()
+            context_manager.__aenter__.return_value = mqtt_client
+            context_manager.__aexit__.return_value = False
+            mock_client_cls.return_value = context_manager
+
+            await client._connect_and_listen()
+
+        assert isinstance(client.last_error, RuntimeError)
+        assert str(client.last_error) == "callback boom"
 
     def test_decode_payload_text_string(self):
         """String payload should pass through unchanged when size is valid."""
@@ -1080,9 +1154,12 @@ class TestConnectionLoop:
                 "_connect_and_listen",
                 side_effect=[aiomqtt.MqttError("boom"), asyncio.CancelledError()],
             ),
-            patch("custom_components.lipro.core.mqtt.random.uniform", return_value=0.0),
             patch(
-                "custom_components.lipro.core.mqtt.asyncio.sleep",
+                "custom_components.lipro.core.mqtt.client.random.uniform",
+                return_value=0.0,
+            ),
+            patch(
+                "custom_components.lipro.core.mqtt.client.asyncio.sleep",
                 new_callable=AsyncMock,
             ) as sleep,
         ):
@@ -1111,9 +1188,12 @@ class TestConnectionLoop:
                 "_connect_and_listen",
                 side_effect=OSError("network down"),
             ),
-            patch("custom_components.lipro.core.mqtt.random.uniform", return_value=0.0),
             patch(
-                "custom_components.lipro.core.mqtt.asyncio.sleep",
+                "custom_components.lipro.core.mqtt.client.random.uniform",
+                return_value=0.0,
+            ),
+            patch(
+                "custom_components.lipro.core.mqtt.client.asyncio.sleep",
                 side_effect=_sleep_and_stop,
             ) as sleep,
         ):
@@ -1141,9 +1221,12 @@ class TestConnectionLoop:
                 "_connect_and_listen",
                 side_effect=ValueError("invalid topic"),
             ),
-            patch("custom_components.lipro.core.mqtt.random.uniform", return_value=0.0),
             patch(
-                "custom_components.lipro.core.mqtt.asyncio.sleep",
+                "custom_components.lipro.core.mqtt.client.random.uniform",
+                return_value=0.0,
+            ),
+            patch(
+                "custom_components.lipro.core.mqtt.client.asyncio.sleep",
                 side_effect=_sleep_and_stop,
             ) as sleep,
         ):
@@ -1171,9 +1254,12 @@ class TestConnectionLoop:
                 "_connect_and_listen",
                 side_effect=RuntimeError("unexpected"),
             ),
-            patch("custom_components.lipro.core.mqtt.random.uniform", return_value=0.0),
             patch(
-                "custom_components.lipro.core.mqtt.asyncio.sleep",
+                "custom_components.lipro.core.mqtt.client.random.uniform",
+                return_value=0.0,
+            ),
+            patch(
+                "custom_components.lipro.core.mqtt.client.asyncio.sleep",
                 side_effect=_sleep_and_stop,
             ) as sleep,
         ):

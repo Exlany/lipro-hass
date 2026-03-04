@@ -24,10 +24,9 @@ from .const import (
     PROP_FAN_GEAR,
     PROP_FAN_MODE,
     PROP_FAN_ONOFF,
-    PROP_FAN_ONOFF_ALT,
 )
 from .entities.base import LiproEntity
-from .helpers import create_device_entities
+from .helpers.platform import build_device_entities_from_rules, create_device_entities
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
@@ -105,17 +104,14 @@ def _build_device_fan_entities(
     device: LiproDevice,
 ) -> list[FanEntity]:
     """Build all fan entities for one device."""
-    entities: list[FanEntity] = []
-
-    # Add fan entity for fan lights.
-    if device.is_fan_light:
-        entities.append(LiproFan(coordinator, device))
-
-    # Add ventilation fan entity for heaters (bathroom heaters).
-    if device.is_heater:
-        entities.append(LiproHeaterVentFan(coordinator, device))
-
-    return entities
+    return build_device_entities_from_rules(
+        coordinator,
+        device,
+        rules=(
+            (lambda d: d.is_fan_light, (LiproFan,)),
+            (lambda d: d.is_heater, (LiproHeaterVentFan,)),
+        ),
+    )
 
 
 class LiproFan(LiproEntity, FanEntity):
@@ -134,13 +130,10 @@ class LiproFan(LiproEntity, FanEntity):
         *,
         include_optimistic: bool = True,
     ) -> None:
-        """Set fan power keys with backward-compatible dual-key payload."""
-        # Runtime tests show fanOnoff is the most reliable control key.
-        # Keep fanOnOff for compatibility with backend/status variants.
+        """Set fan power properties."""
         properties[PROP_FAN_ONOFF] = power
-        properties[PROP_FAN_ONOFF_ALT] = power
         if optimistic is not None and include_optimistic:
-            optimistic[PROP_FAN_ONOFF_ALT] = str(power)
+            optimistic[PROP_FAN_ONOFF] = str(power)
 
     def _percentage_to_gear(self, percentage: int) -> int:
         """Convert percentage to gear value, clamped to device range."""
@@ -168,9 +161,7 @@ class LiproFan(LiproEntity, FanEntity):
             optimistic[PROP_FAN_ONOFF] = "1"
         else:
             # Keep UI responsive for slider, but avoid debounce protection on power key.
-            self.device.update_properties(
-                {PROP_FAN_ONOFF: "1", PROP_FAN_ONOFF_ALT: "1"}
-            )
+            self.device.update_properties({PROP_FAN_ONOFF: "1"})
 
     @property
     def speed_count(self) -> int:

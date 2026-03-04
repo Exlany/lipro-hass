@@ -17,55 +17,7 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 import voluptuous as vol
 
 from custom_components.lipro import (
-    ATTR_COMMAND,
-    ATTR_DAYS,
-    ATTR_DEVICE_ID,
-    ATTR_ENTRY_ID,
-    ATTR_EVENTS,
-    ATTR_MESH_TYPE,
-    ATTR_MSG_SN,
-    ATTR_NOTE,
-    ATTR_PROPERTIES,
-    ATTR_SCHEDULE_IDS,
-    ATTR_SENSOR_DEVICE_ID,
-    ATTR_TIMES,
     PLATFORMS,
-    SERVICE_ADD_SCHEDULE,
-    SERVICE_ADD_SCHEDULE_SCHEMA,
-    SERVICE_DELETE_SCHEDULES,
-    SERVICE_DELETE_SCHEDULES_SCHEMA,
-    SERVICE_FETCH_BODY_SENSOR_HISTORY,
-    SERVICE_FETCH_DOOR_SENSOR_HISTORY,
-    SERVICE_FETCH_SENSOR_HISTORY_SCHEMA,
-    SERVICE_GET_ANONYMOUS_SHARE_REPORT,
-    SERVICE_GET_CITY,
-    SERVICE_GET_DEVELOPER_REPORT,
-    SERVICE_GET_SCHEDULES,
-    SERVICE_GET_SCHEDULES_SCHEMA,
-    SERVICE_QUERY_COMMAND_RESULT,
-    SERVICE_QUERY_COMMAND_RESULT_SCHEMA,
-    SERVICE_REFRESH_DEVICES,
-    SERVICE_REFRESH_DEVICES_SCHEMA,
-    SERVICE_SEND_COMMAND,
-    SERVICE_SEND_COMMAND_SCHEMA,
-    SERVICE_SUBMIT_ANONYMOUS_SHARE,
-    SERVICE_SUBMIT_DEVELOPER_FEEDBACK,
-    SERVICE_SUBMIT_DEVELOPER_FEEDBACK_SCHEMA,
-    _async_handle_add_schedule,
-    _async_handle_delete_schedules,
-    _async_handle_fetch_body_sensor_history,
-    _async_handle_fetch_door_sensor_history,
-    _async_handle_get_anonymous_share_report,
-    _async_handle_get_city,
-    _async_handle_get_developer_report,
-    _async_handle_get_schedules,
-    _async_handle_query_command_result,
-    _async_handle_refresh_devices,
-    _async_handle_send_command,
-    _async_handle_submit_anonymous_share,
-    _async_handle_submit_developer_feedback,
-    _get_device_and_coordinator,
-    _summarize_service_properties,
     async_setup,
     async_setup_entry,
     async_unload_entry,
@@ -89,6 +41,58 @@ from custom_components.lipro.core import (
     LiproConnectionError,
 )
 from custom_components.lipro.core.device import LiproDevice
+from custom_components.lipro.services.contracts import (
+    ATTR_COMMAND,
+    ATTR_DAYS,
+    ATTR_DEVICE_ID,
+    ATTR_ENTRY_ID,
+    ATTR_EVENTS,
+    ATTR_MESH_TYPE,
+    ATTR_MSG_SN,
+    ATTR_NOTE,
+    ATTR_PROPERTIES,
+    ATTR_SCHEDULE_IDS,
+    ATTR_SENSOR_DEVICE_ID,
+    ATTR_TIMES,
+    SERVICE_ADD_SCHEDULE,
+    SERVICE_ADD_SCHEDULE_SCHEMA,
+    SERVICE_DELETE_SCHEDULES,
+    SERVICE_DELETE_SCHEDULES_SCHEMA,
+    SERVICE_FETCH_BODY_SENSOR_HISTORY,
+    SERVICE_FETCH_DOOR_SENSOR_HISTORY,
+    SERVICE_FETCH_SENSOR_HISTORY_SCHEMA,
+    SERVICE_GET_ANONYMOUS_SHARE_REPORT,
+    SERVICE_GET_CITY,
+    SERVICE_GET_DEVELOPER_REPORT,
+    SERVICE_GET_SCHEDULES,
+    SERVICE_GET_SCHEDULES_SCHEMA,
+    SERVICE_QUERY_COMMAND_RESULT,
+    SERVICE_QUERY_COMMAND_RESULT_SCHEMA,
+    SERVICE_REFRESH_DEVICES,
+    SERVICE_REFRESH_DEVICES_SCHEMA,
+    SERVICE_SEND_COMMAND,
+    SERVICE_SEND_COMMAND_SCHEMA,
+    SERVICE_SUBMIT_ANONYMOUS_SHARE,
+    SERVICE_SUBMIT_DEVELOPER_FEEDBACK,
+    SERVICE_SUBMIT_DEVELOPER_FEEDBACK_SCHEMA,
+)
+from custom_components.lipro.services.entrypoints import (
+    _async_handle_add_schedule,
+    _async_handle_delete_schedules,
+    _async_handle_fetch_body_sensor_history,
+    _async_handle_fetch_door_sensor_history,
+    _async_handle_get_anonymous_share_report,
+    _async_handle_get_city,
+    _async_handle_get_developer_report,
+    _async_handle_get_schedules,
+    _async_handle_query_command_result,
+    _async_handle_refresh_devices,
+    _async_handle_send_command,
+    _async_handle_submit_anonymous_share,
+    _async_handle_submit_developer_feedback,
+    _get_device_and_coordinator,
+    _summarize_service_properties,
+)
 from homeassistant.const import ATTR_ENTITY_ID, Platform
 from homeassistant.exceptions import (
     ConfigEntryAuthFailed,
@@ -671,6 +675,64 @@ class TestInitRuntimeBehavior:
         entry.add_update_listener.assert_called_once()
         entry.async_on_unload.assert_called_once()
 
+    async def test_async_setup_entry_forward_setup_failure_rolls_back_runtime_data(
+        self, hass
+    ) -> None:
+        """Platform setup failure should shut down coordinator and clear runtime data."""
+        entry = MockConfigEntry(
+            domain=DOMAIN,
+            data={
+                CONF_PHONE_ID: "phone-id",
+                CONF_PHONE: "13800000000",
+                CONF_PASSWORD_HASH: "hashed-password",
+                CONF_ACCESS_TOKEN: "old_access",
+                CONF_REFRESH_TOKEN: "old_refresh",
+            },
+        )
+        entry.add_to_hass(hass)
+        entry.add_update_listener = MagicMock(return_value=MagicMock())
+        entry.async_on_unload = MagicMock()
+
+        mock_auth = MagicMock()
+        mock_auth.set_tokens = MagicMock()
+        mock_auth.set_credentials = MagicMock()
+        mock_auth.ensure_valid_token = AsyncMock()
+        mock_auth.get_auth_data.return_value = {
+            CONF_ACCESS_TOKEN: "new_access",
+            CONF_REFRESH_TOKEN: "new_refresh",
+            CONF_EXPIRES_AT: 1234567890,
+        }
+
+        mock_coordinator = MagicMock()
+        mock_coordinator.async_config_entry_first_refresh = AsyncMock()
+        mock_coordinator.async_shutdown = AsyncMock()
+
+        with (
+            patch(
+                "custom_components.lipro.async_get_clientsession",
+                return_value=MagicMock(),
+            ),
+            patch("custom_components.lipro.LiproClient", return_value=MagicMock()),
+            patch("custom_components.lipro.LiproAuthManager", return_value=mock_auth),
+            patch(
+                "custom_components.lipro.LiproDataUpdateCoordinator",
+                return_value=mock_coordinator,
+            ),
+            patch.object(
+                hass.config_entries,
+                "async_forward_entry_setups",
+                AsyncMock(side_effect=RuntimeError("platform setup failed")),
+            ),
+            patch.object(hass.config_entries, "async_update_entry"),
+            pytest.raises(RuntimeError, match="platform setup failed"),
+        ):
+            await async_setup_entry(hass, entry)
+
+        mock_coordinator.async_shutdown.assert_awaited_once()
+        assert getattr(entry, "runtime_data", None) is None
+        entry.add_update_listener.assert_not_called()
+        entry.async_on_unload.assert_not_called()
+
     async def test_async_setup_entry_auth_error_raises_config_entry_auth_failed(
         self, hass
     ) -> None:
@@ -835,6 +897,31 @@ class TestInitRuntimeBehavior:
             assert await async_unload_entry(hass, entry) is True
 
         coordinator.async_shutdown.assert_awaited_once()
+        assert getattr(entry, "runtime_data", None) is None
+
+    async def test_async_unload_entry_removes_services_when_only_non_runtime_entries_remain(
+        self, hass
+    ) -> None:
+        """Services should be removed when no other runtime-loaded entry remains."""
+        await async_setup(hass, {})
+        active_entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        active_entry.add_to_hass(hass)
+        active_entry.runtime_data = MagicMock(async_shutdown=AsyncMock())
+
+        # Simulate a configured but not loaded entry (no runtime_data).
+        passive_entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13900000000"})
+        passive_entry.add_to_hass(hass)
+
+        with patch.object(
+            hass.config_entries,
+            "async_unload_platforms",
+            AsyncMock(return_value=True),
+        ):
+            assert await async_unload_entry(hass, active_entry) is True
+
+        assert not hass.services.has_service(DOMAIN, SERVICE_SEND_COMMAND)
+        assert not hass.services.has_service(DOMAIN, SERVICE_GET_SCHEDULES)
+        assert getattr(passive_entry, "runtime_data", None) is None
 
     async def test_async_unload_entry_does_not_shutdown_on_failed_unload(
         self, hass
@@ -872,7 +959,7 @@ class TestInitRuntimeBehavior:
 
         assert result["success"] is True
         assert result["refreshed_entries"] == 2
-        assert set(result["entry_ids"]) == {first.entry_id, second.entry_id}
+        assert "entry_ids" not in result
         first.runtime_data.async_refresh_devices.assert_awaited_once()
         second.runtime_data.async_refresh_devices.assert_awaited_once()
 
@@ -893,7 +980,6 @@ class TestInitRuntimeBehavior:
 
         assert result["success"] is True
         assert result["refreshed_entries"] == 1
-        assert result["entry_ids"] == [second.entry_id]
         assert result["requested_entry_id"] == second.entry_id
         first.runtime_data.async_refresh_devices.assert_not_awaited()
         second.runtime_data.async_refresh_devices.assert_awaited_once()
@@ -1055,8 +1141,37 @@ class TestInitRuntimeBehavior:
         assert got_device is device
         assert got_coordinator is coordinator
 
-    async def test_get_device_from_multiple_entity_targets_raises(self, hass) -> None:
-        """Reject multi-target entity service calls to avoid ambiguous routing."""
+    async def test_get_device_from_target_entity_id(self, hass) -> None:
+        """Resolve device via ServiceCall.target.entity_id."""
+        device = self._create_device()
+        coordinator = MagicMock()
+        coordinator.get_device.return_value = device
+
+        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry.add_to_hass(hass)
+        entry.runtime_data = coordinator
+
+        entity_id = (
+            er.async_get(hass)
+            .async_get_or_create(
+                "light",
+                DOMAIN,
+                f"lipro_{device.serial}_light",
+                suggested_object_id="lipro_target_test_device",
+            )
+            .entity_id
+        )
+
+        call = SimpleNamespace(data={}, target=SimpleNamespace(entity_id=[entity_id]))
+        got_device, got_coordinator = await _get_device_and_coordinator(hass, call)
+
+        assert got_device is device
+        assert got_coordinator is coordinator
+
+    async def test_get_device_from_multiple_entity_targets_same_device_resolves(
+        self, hass
+    ) -> None:
+        """Multiple entities that map to one device should resolve successfully."""
         device = self._create_device()
         coordinator = MagicMock()
         coordinator.get_device.return_value = device
@@ -1079,10 +1194,45 @@ class TestInitRuntimeBehavior:
             suggested_object_id="lipro_test_device_2",
         ).entity_id
 
+        got_device, got_coordinator = await _get_device_and_coordinator(
+            hass,
+            SimpleNamespace(data={ATTR_ENTITY_ID: [entity_1, entity_2]}),
+        )
+
+        assert got_device is device
+        assert got_coordinator is coordinator
+
+    async def test_get_device_from_multiple_entity_targets_different_devices_raises(
+        self, hass
+    ) -> None:
+        """Multiple entities from different devices should still be rejected."""
+        first_device = self._create_device(serial="03ab5ccd7c123456")
+        second_device = self._create_device(serial="03ab5ccd7c654321")
+        coordinator = MagicMock()
+        coordinator.get_device.side_effect = [first_device, second_device]
+
+        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry.add_to_hass(hass)
+        entry.runtime_data = coordinator
+
+        entity_registry = er.async_get(hass)
+        first_entity = entity_registry.async_get_or_create(
+            "light",
+            DOMAIN,
+            f"lipro_{first_device.serial}_light",
+            suggested_object_id="lipro_device_first",
+        ).entity_id
+        second_entity = entity_registry.async_get_or_create(
+            "switch",
+            DOMAIN,
+            f"lipro_{second_device.serial}_switch",
+            suggested_object_id="lipro_device_second",
+        ).entity_id
+
         with pytest.raises(ServiceValidationError):
             await _get_device_and_coordinator(
                 hass,
-                SimpleNamespace(data={ATTR_ENTITY_ID: [entity_1, entity_2]}),
+                SimpleNamespace(data={ATTR_ENTITY_ID: [first_entity, second_entity]}),
             )
 
     async def test_get_device_falls_back_to_get_device_by_id(self, hass) -> None:
@@ -1138,7 +1288,7 @@ class TestInitRuntimeBehavior:
 
         with (
             patch(
-                "custom_components.lipro.get_anonymous_share_manager",
+                "custom_components.lipro.services.entrypoints.get_anonymous_share_manager",
                 return_value=share_manager,
             ),
             pytest.raises(ServiceValidationError),
@@ -1157,7 +1307,7 @@ class TestInitRuntimeBehavior:
         share_manager.get_pending_report.return_value = report
 
         with patch(
-            "custom_components.lipro.get_anonymous_share_manager",
+            "custom_components.lipro.services.entrypoints.get_anonymous_share_manager",
             return_value=share_manager,
         ):
             result = await _async_handle_get_anonymous_share_report(
@@ -1380,7 +1530,7 @@ class TestInitRuntimeBehavior:
 
         with (
             patch(
-                "custom_components.lipro.get_anonymous_share_manager",
+                "custom_components.lipro.services.entrypoints.get_anonymous_share_manager",
                 return_value=share_manager,
             ),
             patch(
@@ -1410,7 +1560,7 @@ class TestInitRuntimeBehavior:
 
         with (
             patch(
-                "custom_components.lipro.get_anonymous_share_manager",
+                "custom_components.lipro.services.entrypoints.get_anonymous_share_manager",
                 return_value=share_manager,
             ),
             patch(
@@ -2019,7 +2169,7 @@ class TestInitRuntimeBehavior:
         share_manager.pending_count = (0, 0)
 
         with patch(
-            "custom_components.lipro.get_anonymous_share_manager",
+            "custom_components.lipro.services.entrypoints.get_anonymous_share_manager",
             return_value=share_manager,
         ):
             result = await _async_handle_submit_anonymous_share(
@@ -2042,7 +2192,7 @@ class TestInitRuntimeBehavior:
 
         with (
             patch(
-                "custom_components.lipro.get_anonymous_share_manager",
+                "custom_components.lipro.services.entrypoints.get_anonymous_share_manager",
                 return_value=share_manager,
             ),
             pytest.raises(HomeAssistantError),
@@ -2055,7 +2205,7 @@ class TestInitRuntimeBehavior:
         share_manager.get_pending_report.return_value = None
 
         with patch(
-            "custom_components.lipro.get_anonymous_share_manager",
+            "custom_components.lipro.services.entrypoints.get_anonymous_share_manager",
             return_value=share_manager,
         ):
             result = await _async_handle_get_anonymous_share_report(

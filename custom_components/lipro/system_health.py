@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 from homeassistant.components import system_health
-from homeassistant.core import HomeAssistant, callback
+from homeassistant.core import HomeAssistant
 
 from .const import DOMAIN, VERSION
 
@@ -43,13 +43,12 @@ def _count_total_devices(coordinators: list[Any]) -> int:
     return total_devices
 
 
-@callback
-def system_health_info(hass: HomeAssistant) -> dict[str, Any]:
+async def system_health_info(hass: HomeAssistant) -> dict[str, Any]:
     """Return system health information for the Lipro integration."""
     entries = hass.config_entries.async_entries(DOMAIN)
     coordinators = _iter_runtime_coordinators(hass)
 
-    info: dict[str, Any] = {
+    health_info: dict[str, Any] = {
         "component_version": VERSION,
         "can_reach_server": any(
             bool(getattr(coordinator, "last_update_success", False))
@@ -70,6 +69,6 @@ def system_health_info(hass: HomeAssistant) -> dict[str, Any]:
             mqtt_connected_entries += 1
 
     if has_mqtt_field:
-        info["mqtt_connected_entries"] = mqtt_connected_entries
+        health_info["mqtt_connected_entries"] = mqtt_connected_entries
 
-    return info
+    return health_info

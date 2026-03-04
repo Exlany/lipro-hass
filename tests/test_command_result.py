@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock
 
-from custom_components.lipro.core.command.command_result import (
+from custom_components.lipro.core.command.result import (
     classify_command_result_payload,
     extract_msg_sn,
     is_command_push_failed,

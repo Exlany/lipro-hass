@@ -35,7 +35,8 @@ async def test_async_register_registers_system_health_callback(hass) -> None:
     register.async_register_info.assert_called_once_with(system_health_info)
 
 
-def test_system_health_info_aggregates_entries(hass) -> None:
+@pytest.mark.asyncio
+async def test_system_health_info_aggregates_entries(hass) -> None:
     """System health payload should aggregate runtime coordinator statistics."""
     _add_runtime_entry(
         hass,
@@ -56,7 +57,7 @@ def test_system_health_info_aggregates_entries(hass) -> None:
         ),
     )
 
-    result = system_health_info(hass)
+    result = await system_health_info(hass)
 
     assert result == {
         "component_version": VERSION,
@@ -67,7 +68,8 @@ def test_system_health_info_aggregates_entries(hass) -> None:
     }
 
 
-def test_system_health_info_omits_mqtt_count_when_unavailable(hass) -> None:
+@pytest.mark.asyncio
+async def test_system_health_info_omits_mqtt_count_when_unavailable(hass) -> None:
     """mqtt_connected_entries should be omitted when runtime has no mqtt field."""
     _add_runtime_entry(hass, phone="13800000000", runtime_data=None)
     _add_runtime_entry(
@@ -79,7 +81,7 @@ def test_system_health_info_omits_mqtt_count_when_unavailable(hass) -> None:
         ),
     )
 
-    result = system_health_info(hass)
+    result = await system_health_info(hass)
 
     assert result["component_version"] == VERSION
     assert result["can_reach_server"] is False
@@ -88,9 +90,10 @@ def test_system_health_info_omits_mqtt_count_when_unavailable(hass) -> None:
     assert "mqtt_connected_entries" not in result
 
 
-def test_system_health_info_without_entries(hass) -> None:
+@pytest.mark.asyncio
+async def test_system_health_info_without_entries(hass) -> None:
     """System health payload should still be valid without config entries."""
-    result = system_health_info(hass)
+    result = await system_health_info(hass)
 
     assert result == {
         "component_version": VERSION,
@@ -98,3 +101,52 @@ def test_system_health_info_without_entries(hass) -> None:
         "logged_accounts": 0,
         "total_devices": 0,
     }
+
+
+@pytest.mark.asyncio
+async def test_system_health_info_skips_non_sized_devices(hass) -> None:
+    """Non-sized coordinator devices should be ignored for total_devices."""
+    _add_runtime_entry(
+        hass,
+        phone="13800000000",
+        runtime_data=SimpleNamespace(
+            devices=123,
+            last_update_success=True,
+            mqtt_connected=True,
+        ),
+    )
+    _add_runtime_entry(
+        hass,
+        phone="13900000000",
+        runtime_data=SimpleNamespace(
+            devices={"d1": object(), "d2": object()},
+            last_update_success=False,
+            mqtt_connected=False,
+        ),
+    )
+
+    result = await system_health_info(hass)
+
+    assert result["total_devices"] == 2
+    assert result["mqtt_connected_entries"] == 1
+    assert result["can_reach_server"] is True
+
+
+@pytest.mark.asyncio
+async def test_system_health_info_omits_mqtt_count_when_mqtt_connected_is_non_bool(
+    hass,
+) -> None:
+    """Non-bool mqtt_connected values should not produce mqtt_connected_entries."""
+    _add_runtime_entry(
+        hass,
+        phone="13800000000",
+        runtime_data=SimpleNamespace(
+            devices={"d1": object()},
+            last_update_success=True,
+            mqtt_connected="true",
+        ),
+    )
+
+    result = await system_health_info(hass)
+
+    assert "mqtt_connected_entries" not in result

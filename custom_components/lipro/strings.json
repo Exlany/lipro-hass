@@ -328,6 +328,60 @@
         }
       }
     },
+    "query_command_result": {
+      "name": "Query Command Result",
+      "description": "Developer-only optional capability. Query command delivery result by msgSn.",
+      "fields": {
+        "device_id": {
+          "name": "Device ID",
+          "description": "The device serial/group ID. If omitted, the target entity is used."
+        },
+        "msg_sn": {
+          "name": "Message SN",
+          "description": "Command message serial number returned by send command response."
+        }
+      }
+    },
+    "get_city": {
+      "name": "Get City",
+      "description": "Developer-only optional capability. Query cloud city metadata."
+    },
+    "fetch_body_sensor_history": {
+      "name": "Fetch Body Sensor History",
+      "description": "Developer-only optional capability. Fetch body sensor history payload for debugging.",
+      "fields": {
+        "device_id": {
+          "name": "Device ID",
+          "description": "The gateway/group device ID. If omitted, the target entity is used."
+        },
+        "sensor_device_id": {
+          "name": "Sensor Device ID",
+          "description": "Sensor IoT device ID."
+        },
+        "mesh_type": {
+          "name": "Mesh Type",
+          "description": "Mesh type value expected by API contract. Default is \"2\"."
+        }
+      }
+    },
+    "fetch_door_sensor_history": {
+      "name": "Fetch Door Sensor History",
+      "description": "Developer-only optional capability. Fetch door sensor history payload for debugging.",
+      "fields": {
+        "device_id": {
+          "name": "Device ID",
+          "description": "The gateway/group device ID. If omitted, the target entity is used."
+        },
+        "sensor_device_id": {
+          "name": "Sensor Device ID",
+          "description": "Sensor IoT device ID."
+        },
+        "mesh_type": {
+          "name": "Mesh Type",
+          "description": "Mesh type value expected by API contract. Default is \"2\"."
+        }
+      }
+    },
     "refresh_devices": {
       "name": "Refresh Devices",
       "description": "Force a full Lipro device list refresh for all loaded entries or one specific config entry.",
@@ -414,6 +468,15 @@
     "mqtt_disconnected": {
       "title": "Lipro MQTT Disconnected",
       "message": "MQTT has been disconnected for {minutes} minutes. Real-time updates are unavailable, falling back to polling."
+    }
+  },
+  "system_health": {
+    "info": {
+      "component_version": "Component version",
+      "can_reach_server": "Can reach server",
+      "logged_accounts": "Logged in accounts",
+      "total_devices": "Total devices",
+      "mqtt_connected_entries": "MQTT connected entries"
     }
   },
   "issues": {

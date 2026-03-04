@@ -23,7 +23,8 @@ from .const import (
     PROP_TEMPERATURE,
 )
 from .entities.base import LiproEntity
-from .helpers import coerce_bool_option, create_platform_entities
+from .helpers.options import coerce_bool_option
+from .helpers.platform import create_platform_entities
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant

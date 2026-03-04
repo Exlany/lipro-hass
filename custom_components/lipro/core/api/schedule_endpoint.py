@@ -6,12 +6,12 @@ from collections.abc import Callable
 import json
 from typing import Any
 
+from ..utils.identifiers import is_mesh_group_id_prefix
+
 
 def is_mesh_group_id(device_id: str) -> bool:
     """Return whether an identifier is a mesh-group ID."""
-    return isinstance(device_id, str) and device_id.strip().lower().startswith(
-        "mesh_group_"
-    )
+    return is_mesh_group_id_prefix(device_id)
 
 
 def resolve_mesh_schedule_candidate_ids(

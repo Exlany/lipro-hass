@@ -9,7 +9,7 @@
 
 ## 状态图例
 
-- ✅ `已认证`：已验证且在 `firmware_support_manifest.json` 中
+- ✅ `已认证`：已验证（OTA 返回/认证清单）；认证清单优先远端 `lipro-share.lany.me`，本地 `firmware_support_manifest.json` 兜底
 - 🟡 `未知`：已发现但尚未认证
 - ❌ `阻断`：当前不建议升级
 

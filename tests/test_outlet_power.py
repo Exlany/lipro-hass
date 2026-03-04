@@ -7,11 +7,11 @@ from custom_components.lipro.core.api import (
     LiproAuthError,
     LiproConnectionError,
 )
-from custom_components.lipro.core.device import LiproDevice
-from custom_components.lipro.core.device.outlet_power import (
+from custom_components.lipro.core.coordinator.outlet_power import (
     apply_outlet_power_info,
     should_reraise_outlet_power_error,
 )
+from custom_components.lipro.core.device import LiproDevice
 
 
 def _make_device(serial: str = "outlet_1") -> LiproDevice:

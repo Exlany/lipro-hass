@@ -9,23 +9,8 @@ from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.exceptions import ServiceValidationError
 
 from ..core import LiproApiError
+from ..core.api.schedule_codec import coerce_int_list
 from ..core.utils.redaction import redact_identifier as _redact_identifier
-
-
-def coerce_int_list(value: Any) -> list[int]:
-    """Coerce mixed list payloads into integers, skipping invalid items."""
-    if not isinstance(value, list):
-        return []
-
-    result: list[int] = []
-    for item in value:
-        if isinstance(item, bool):
-            continue
-        try:
-            result.append(int(item))
-        except (TypeError, ValueError):
-            continue
-    return result
 
 
 def format_schedule_time(seconds: int) -> str | None:

@@ -40,7 +40,6 @@ PROP_DIRECTION: Final = "direction"
 
 # Property keys - Fan
 PROP_FAN_ONOFF: Final = "fanOnoff"
-PROP_FAN_ONOFF_ALT: Final = "fanOnOff"  # Status query returns this variant
 PROP_FAN_GEAR: Final = "fanGear"
 PROP_FAN_MODE: Final = "fanMode"
 

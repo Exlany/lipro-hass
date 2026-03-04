@@ -29,15 +29,24 @@ from custom_components.lipro.const import (
     PROP_WAKE_UP_ENABLE,
     PROP_WIND_GEAR,
 )
-from custom_components.lipro.core.anonymous_share import (
-    _MAX_DICT_ITEMS,
-    _MAX_NESTED_DEPTH,
-    _MAX_STRING_LENGTH,
+from custom_components.lipro.core.anonymous_share.capabilities import (
+    detect_device_capabilities,
+)
+from custom_components.lipro.core.anonymous_share.manager import (
     MAX_PENDING_DEVICES,
     MAX_PENDING_ERRORS,
     SHARE_API_KEY,
     AnonymousShareManager,
     get_anonymous_share_manager,
+)
+from custom_components.lipro.core.anonymous_share.sanitize import (
+    _MAX_DICT_ITEMS,
+    _MAX_NESTED_DEPTH,
+    _MAX_STRING_LENGTH,
+    looks_sensitive,
+    sanitize_properties,
+    sanitize_string,
+    sanitize_value,
 )
 
 # ---------------------------------------------------------------------------
@@ -105,48 +114,48 @@ def _make_mock_device(
 
 
 class TestLooksSensitive:
-    """Tests for _looks_sensitive detection."""
-
-    def setup_method(self):
-        self.mgr = _make_manager(enabled=False)
+    """Tests for looks_sensitive detection."""
 
     def test_mac_address_detected(self):
-        assert self.mgr._looks_sensitive("5C:CD:7C:AA:BB:CC") is True
+        assert looks_sensitive("5C:CD:7C:AA:BB:CC") is True
 
     def test_mac_address_with_dashes_detected(self):
-        assert self.mgr._looks_sensitive("5C-CD-7C-AA-BB-CC") is True
+        assert looks_sensitive("5C-CD-7C-AA-BB-CC") is True
 
     def test_ip_address_detected(self):
-        assert self.mgr._looks_sensitive("192.168.1.100") is True
+        assert looks_sensitive("192.168.1.100") is True
+
+    def test_ipv6_address_detected(self):
+        assert looks_sensitive("fe80::1") is True
 
     def test_device_id_detected(self):
-        assert self.mgr._looks_sensitive("03ab5ccd7c123456") is True
+        assert looks_sensitive("03ab5ccd7c123456") is True
 
     def test_device_id_uppercase_detected(self):
-        assert self.mgr._looks_sensitive("03AB5CCD7CABCDEF") is True
+        assert looks_sensitive("03AB5CCD7CABCDEF") is True
 
     def test_compact_mac_detected(self):
-        assert self.mgr._looks_sensitive("5ccd7c5985f1") is True
+        assert looks_sensitive("5ccd7c5985f1") is True
 
     def test_numeric_compact_mac_detected(self):
-        assert self.mgr._looks_sensitive("001122334455") is True
+        assert looks_sensitive("001122334455") is True
 
     def test_token_like_detected(self):
         token = "a" * 32
-        assert self.mgr._looks_sensitive(token) is True
+        assert looks_sensitive(token) is True
 
     def test_long_mixed_token_detected(self):
         token = "abcDEF012345_-abcDEF012345_-abcDEF"
-        assert self.mgr._looks_sensitive(token) is True
+        assert looks_sensitive(token) is True
 
     def test_normal_value_not_sensitive(self):
-        assert self.mgr._looks_sensitive("hello") is False
-        assert self.mgr._looks_sensitive("100") is False
-        assert self.mgr._looks_sensitive("powerState") is False
+        assert looks_sensitive("hello") is False
+        assert looks_sensitive("100") is False
+        assert looks_sensitive("powerState") is False
 
     def test_short_string_not_sensitive(self):
-        assert self.mgr._looks_sensitive("1") is False
-        assert self.mgr._looks_sensitive("on") is False
+        assert looks_sensitive("1") is False
+        assert looks_sensitive("on") is False
 
 
 # ===========================================================================
@@ -155,60 +164,62 @@ class TestLooksSensitive:
 
 
 class TestSanitizeString:
-    """Tests for _sanitize_string replacement logic."""
-
-    def setup_method(self):
-        self.mgr = _make_manager(enabled=False)
+    """Tests for sanitize_string replacement logic."""
 
     def test_replaces_mac_addresses(self):
-        result = self.mgr._sanitize_string("device mac is 5C:CD:7C:AA:BB:CC here")
+        result = sanitize_string("device mac is 5C:CD:7C:AA:BB:CC here")
         assert "[MAC]" in result
         assert "5C:CD:7C:AA:BB:CC" not in result
 
     def test_replaces_ip_addresses(self):
-        result = self.mgr._sanitize_string("host at 192.168.1.100 responded")
+        result = sanitize_string("host at 192.168.1.100 responded")
         assert "[IP]" in result
         assert "192.168.1.100" not in result
 
+    def test_replaces_ipv6_addresses(self):
+        result = sanitize_string("host at fe80::1 responded")
+        assert "[IP]" in result
+        assert "fe80::1" not in result
+
     def test_replaces_device_ids(self):
-        result = self.mgr._sanitize_string("device 03ab5ccd7c123456 offline")
+        result = sanitize_string("device 03ab5ccd7c123456 offline")
         assert "[DEVICE_ID]" in result
         assert "03ab5ccd7c123456" not in result
 
     def test_replaces_uppercase_device_ids(self):
-        result = self.mgr._sanitize_string("device 03AB5CCD7CABCDEF offline")
+        result = sanitize_string("device 03AB5CCD7CABCDEF offline")
         assert "[DEVICE_ID]" in result
         assert "03AB5CCD7CABCDEF" not in result
 
     def test_replaces_compact_mac(self):
-        result = self.mgr._sanitize_string("rc address 5ccd7c5985f1")
+        result = sanitize_string("rc address 5ccd7c5985f1")
         assert "[MAC]" in result
         assert "5ccd7c5985f1" not in result
 
     def test_replaces_numeric_compact_mac(self):
-        result = self.mgr._sanitize_string("rc address 001122334455")
+        result = sanitize_string("rc address 001122334455")
         assert "[MAC]" in result
         assert "001122334455" not in result
 
     def test_preserves_normal_text(self):
         text = "powerState changed to on"
-        assert self.mgr._sanitize_string(text) == text
+        assert sanitize_string(text) == text
 
     def test_replaces_bearer_token_fragments(self):
         text = "request failed Authorization: Bearer abcDEF012345_-abcDEF012345_-abcDEF"
-        result = self.mgr._sanitize_string(text)
+        result = sanitize_string(text)
         assert "Bearer [TOKEN]" in result
         assert "abcDEF012345_-abcDEF012345_-abcDEF" not in result
 
     def test_replaces_secret_key_value_fragments(self):
         text = "api failed access_token=abcDEF012345_-abcDEF012345_-abcDEF"
-        result = self.mgr._sanitize_string(text)
+        result = sanitize_string(text)
         assert "access_token=[REDACTED]" in result
         assert "abcDEF012345_-abcDEF012345_-abcDEF" not in result
 
     def test_replaces_embedded_long_token(self):
         text = "payload trace token abcDEF012345_-abcDEF012345_-abcDEF leaked"
-        result = self.mgr._sanitize_string(text)
+        result = sanitize_string(text)
         assert "[TOKEN]" in result
         assert "abcDEF012345_-abcDEF012345_-abcDEF" not in result
 
@@ -219,11 +230,11 @@ class TestSanitizeString:
         assert len(long_str) > _MAX_STRING_LENGTH
 
         # _sanitize_string only does regex replacement, not truncation
-        result = self.mgr._sanitize_string(long_str)
+        result = sanitize_string(long_str)
         assert len(result) == len(long_str)
 
         # _sanitize_value truncates long strings
-        result_val = self.mgr._sanitize_value(long_str)
+        result_val = sanitize_value(long_str)
         assert "...[truncated]" in result_val
         assert len(result_val) < len(long_str)
 
@@ -234,10 +245,7 @@ class TestSanitizeString:
 
 
 class TestSanitizeProperties:
-    """Tests for _sanitize_properties dict sanitization."""
-
-    def setup_method(self):
-        self.mgr = _make_manager(enabled=False)
+    """Tests for sanitize_properties dict sanitization."""
 
     def test_redacts_known_keys(self):
         props = {
@@ -247,7 +255,7 @@ class TestSanitizeProperties:
             "wifiSsid": "HomeWiFi-5G",
             "powerState": "1",
         }
-        result = self.mgr._sanitize_properties(props)
+        result = sanitize_properties(props)
         # Known sensitive keys are completely removed (not present)
         assert "deviceId" not in result
         assert "mac" not in result
@@ -263,7 +271,7 @@ class TestSanitizeProperties:
             "brightness": 80,
             "temperature": 4000,
         }
-        result = self.mgr._sanitize_properties(props)
+        result = sanitize_properties(props)
         assert result["powerState"] == "1"
         assert result["brightness"] == 80
         assert result["temperature"] == 4000
@@ -272,13 +280,13 @@ class TestSanitizeProperties:
         props = {
             "info": "5C:CD:7C:AA:BB:CC",  # MAC as a value
         }
-        result = self.mgr._sanitize_properties(props)
+        result = sanitize_properties(props)
         # The value looks sensitive (exact MAC match), so it gets redacted
         assert result["info"] == "[redacted]"
 
     def test_redact_keys_case_insensitive(self):
         props = {"DEVICEID": "secret", "Mac": "aa:bb:cc:dd:ee:ff"}
-        result = self.mgr._sanitize_properties(props)
+        result = sanitize_properties(props)
         assert "DEVICEID" not in result
         assert "Mac" not in result
 
@@ -290,7 +298,7 @@ class TestSanitizeProperties:
             )
         }
 
-        result = self.mgr._sanitize_properties(props)
+        result = sanitize_properties(props)
         parsed = json.loads(result["deviceInfo"])
 
         # Sensitive nested keys are removed by _sanitize_value.
@@ -308,7 +316,7 @@ class TestSanitizeProperties:
             current["next"] = next_node
             current = next_node
 
-        result = self.mgr._sanitize_value(payload, preserve_structure=True)
+        result = sanitize_value(payload, preserve_structure=True)
         node = result
         for _ in range(_MAX_NESTED_DEPTH):
             assert isinstance(node, dict)
@@ -317,7 +325,7 @@ class TestSanitizeProperties:
 
     def test_sanitize_value_limits_dict_items(self):
         payload = {f"k{index}": index for index in range(_MAX_DICT_ITEMS + 20)}
-        result = self.mgr._sanitize_value(payload, preserve_structure=True)
+        result = sanitize_value(payload, preserve_structure=True)
         assert isinstance(result, dict)
         assert len(result) == _MAX_DICT_ITEMS
 
@@ -804,7 +812,7 @@ class TestReportedDeviceCache:
         cache_file.write_text("{invalid json", encoding="utf-8")
 
         with patch(
-            "custom_components.lipro.core.anonymous_share._LOGGER.warning"
+            "custom_components.lipro.core.anonymous_share.manager._LOGGER.warning"
         ) as warn:
             mgr._load_reported_devices()
 
@@ -818,7 +826,7 @@ class TestReportedDeviceCache:
         with (
             patch("pathlib.Path.write_text", side_effect=OSError("read-only")),
             patch(
-                "custom_components.lipro.core.anonymous_share._LOGGER.warning"
+                "custom_components.lipro.core.anonymous_share.manager._LOGGER.warning"
             ) as warn,
         ):
             mgr._save_reported_devices()
@@ -852,7 +860,6 @@ class TestCapabilities:
 
     def test_detect_capabilities_light_order_stable(self):
         """Light capability output order should remain stable."""
-        mgr = _make_manager(enabled=False)
         device = _make_mock_device(
             properties={
                 PROP_BRIGHTNESS: 1,
@@ -866,7 +873,7 @@ class TestCapabilities:
             has_gear_presets=True,
         )
 
-        assert mgr._detect_capabilities(device) == [
+        assert detect_device_capabilities(device) == [
             "light",
             "brightness",
             "color_temp",
@@ -878,7 +885,6 @@ class TestCapabilities:
         ]
 
     def test_detect_capabilities_full_matrix(self):
-        mgr = _make_manager(enabled=False)
         device = _make_mock_device(
             properties={
                 PROP_BRIGHTNESS: 1,
@@ -909,7 +915,7 @@ class TestCapabilities:
             is_outlet=True,
             has_gear_presets=True,
         )
-        caps = mgr._detect_capabilities(device)
+        caps = detect_device_capabilities(device)
         expected = {
             "light",
             "brightness",

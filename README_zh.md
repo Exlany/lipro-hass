@@ -28,9 +28,10 @@ Home Assistant 集成，用于控制 Lipro 智能家居设备。
 | Switch | 开关/插座 | 开关 |
 | Fan | 风扇 | 开关、风速、模式 |
 | Climate | 浴霸 | 开关、模式 |
-| Binary Sensor | 传感器 | 人体感应、门窗状态、光照、电池 |
+| Binary Sensor | 传感器 | 连接状态、人体感应、门窗状态、光照、电池 |
 | Sensor | 传感器 | 功率、用电量、电量、WiFi 信号 |
 | Select | 选择器 | 风向、浴霸灯、色温预设 |
+| Update | 固件 | 固件更新 |
 
 ## 服务
 
@@ -45,7 +46,8 @@ Home Assistant 集成，用于控制 Lipro 智能家居设备。
 - `lipro.query_command_result` - 按消息序列号查询指令投递结果（开发者能力）
 - `lipro.get_city` - 查询云端城市元数据契约（开发者能力）
 - `lipro.fetch_body_sensor_history` - 拉取人体传感器历史载荷用于调试（开发者能力）
-- `lipro.fetch_door_sensor_history` - 拉取门磁传感器历史载荷用于调试（开发者能力）
+- `lipro.fetch_door_sensor_history` - 拉取门窗传感器历史载荷用于调试（开发者能力）
+- `lipro.refresh_devices` - 强制刷新设备列表（全部条目或指定 entry_id）
 
 固件验证清单：
 - 中文：`docs/firmware_support_matrix_zh.md`
@@ -58,6 +60,7 @@ Home Assistant 集成，用于控制 Lipro 智能家居设备。
 - **MQTT 实时推送**：设备状态变化时立即推送
 - **轮询兜底**：默认 30 秒轮询，确保状态同步
 - **可配置范围**：10-300 秒
+- **批量查询兜底**：云端状态查询会自动分批；当批次因设备级错误（离线/未连接/无权限等）失败时，会拆分为更小批次重试，直至单设备查询
 - **乐观更新**：操作后立即更新 UI，无需等待推送
 - **防抖保护**：滑块操作时防止数据覆盖本地状态
 - **指数退避**：MQTT 断连时自动重连，避免服务器过载
@@ -76,14 +79,18 @@ Home Assistant 集成，用于控制 Lipro 智能家居设备。
 ### 脚本安装（通过 SSH / Terminal & SSH 插件）
 
 ```shell
-wget -O - https://raw.githubusercontent.com/Exlany/lipro-hass/main/install.sh | bash -
-
-# 安装最新版本
 wget -O - https://raw.githubusercontent.com/Exlany/lipro-hass/main/install.sh | ARCHIVE_TAG=latest bash -
+
+# 安装指定版本（tag/branch，例如 v1.0.0）
+wget -O - https://raw.githubusercontent.com/Exlany/lipro-hass/main/install.sh | ARCHIVE_TAG=v1.0.0 bash -
 
 # 使用镜像加速（国内用户推荐）
 wget -O - https://raw.githubusercontent.com/Exlany/lipro-hass/main/install.sh | HUB_DOMAIN=ghfast.top bash -
 ```
+
+说明：`ARCHIVE_TAG` 用于指定安装版本（tag/branch）。`latest` 会解析为 GitHub Releases 的最新版本；如解析失败会回退到 `main`。建议固定到具体 tag（例如 `v1.0.0`）以获得可复现安装；如需开发版可用 `ARCHIVE_TAG=main`。
+
+说明：`HUB_DOMAIN` 仅影响脚本内请求 Release 信息与源码压缩包的域名，不会改变 `install.sh` 本身的下载地址（仍为 `raw.githubusercontent.com`）。
 
 ### shell_command 服务
 
@@ -91,7 +98,7 @@ wget -O - https://raw.githubusercontent.com/Exlany/lipro-hass/main/install.sh | 
     ```yaml
     shell_command:
       update_lipro: |-
-        wget -O - https://raw.githubusercontent.com/Exlany/lipro-hass/main/install.sh | bash -
+        wget -O - https://raw.githubusercontent.com/Exlany/lipro-hass/main/install.sh | ARCHIVE_TAG=latest bash -
     ```
 2. 重启 Home Assistant
 3. 在开发者工具中调用 `service: shell_command.update_lipro`
@@ -109,6 +116,7 @@ wget -O - https://raw.githubusercontent.com/Exlany/lipro-hass/main/install.sh | 
 
 - **手机号**：注册 Lipro 的手机号
 - **密码**：Lipro 账号密码
+- **记住密码**：会在本地存储密码的 MD5 哈希值，用于 refresh token 过期时自动重新登录。关闭可减少本地泄露面，但后续可能需要手动重新认证。
 
 ### 重新配置
 
@@ -261,7 +269,11 @@ data:
 - **高级选项**：
   - **功率查询间隔**：插座功率查询频率（30-300 秒）
   - **请求超时**：API 请求超时时间（10-60 秒）
-  - **调试模式（诊断）**：启用运行诊断（mesh 拓扑 + 命令轨迹），并自动启用更详细日志
+  - **调试模式（诊断）**：采集运行诊断（mesh 拓扑 + 命令轨迹）。更详细日志请通过 Home Assistant 的日志配置开启。
+  - **关灯时调亮度/色温自动开灯**：关灯状态下调节亮度/色温也会自动开灯（如需保持 Lipro 行为可关闭）
+  - **强制用云端房间覆盖 HA 区域**：始终以云端房间覆盖 HA 区域（谨慎）
+  - **校验命令下发结果**：基于 msgSn 查询命令结果（开发者/排错）
+  - **设备过滤（家庭/型号/WiFi SSID/设备 ID）**：off/include/exclude + 列表，支持逗号/分号/换行分隔
 
 ## 已知限制
 
@@ -281,8 +293,8 @@ data:
    - 传感器仅提供低电量警告，不提供具体电量百分比
 
 6. **关灯时亮度滑杆提示（Tip）**
-   - 关灯状态下拖动亮度不会自动开灯（Lipro 设计如此）
-   - 请先开灯，再调节亮度/色温
+   - 默认行为可配置：开启“关灯时调亮度/色温自动开灯”后，关灯时调节亮度/色温会自动开灯
+   - 如需保持 Lipro 原生行为（不自动开灯），请关闭该选项
 
 ## 故障排除
 
@@ -318,6 +330,12 @@ data:
 1. 进入 设置 → 设备与服务 → Lipro
 2. 点击三个点菜单 → 下载诊断信息
 3. 诊断信息已自动脱敏，可安全分享
+
+脱敏范围包含账号凭据/Token（`phone`, `password`, `access_token`, `refresh_token`）、云端/设备标识（`userId`/`bizId`, `serial`/`deviceId`/`iotDeviceId`）以及网络标识（WiFi SSID/MAC/IP）。
+
+如需匿名分享/上报，可先在本地预览脱敏后的载荷：
+- `lipro.get_developer_report` - 脱敏运行报告（mesh 快照 + 近期命令轨迹）
+- `lipro.get_anonymous_share_report` - 脱敏匿名分享报告
 
 ## 免责声明
 

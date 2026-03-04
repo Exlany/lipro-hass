@@ -128,6 +128,22 @@ def _normalize_phone(phone: Any) -> str:
     return normalized
 
 
+def _mask_phone_for_title(phone: str) -> str:
+    """Mask a normalized phone number for config-entry titles."""
+    normalized = phone.strip()
+    if not normalized:
+        return "***"
+
+    prefix = "+" if normalized.startswith("+") else ""
+    digits = normalized.lstrip("+")
+
+    if len(digits) <= 4:
+        return f"{prefix}***"
+    if len(digits) <= 8:
+        return f"{prefix}{digits[:2]}***{digits[-2:]}"
+    return f"{prefix}{digits[:3]}****{digits[-4:]}"
+
+
 def _validate_password(password: Any) -> str:
     """Validate user-provided password value."""
     if not isinstance(password, str):
@@ -169,7 +185,7 @@ class LoginResult:
         remember_password_hash: bool,
     ) -> dict[str, Any]:
         """Convert to config entry data dict."""
-        data: dict[str, Any] = {
+        entry_data: dict[str, Any] = {
             CONF_PHONE: phone,
             CONF_PHONE_ID: phone_id,
             CONF_ACCESS_TOKEN: self.access_token,
@@ -179,8 +195,8 @@ class LoginResult:
             CONF_REMEMBER_PASSWORD_HASH: remember_password_hash,
         }
         if remember_password_hash:
-            data[CONF_PASSWORD_HASH] = password_hash
-        return data
+            entry_data[CONF_PASSWORD_HASH] = password_hash
+        return entry_data
 
 
 STEP_USER_DATA_SCHEMA = vol.Schema(
@@ -299,7 +315,7 @@ class LiproConfigFlow(ConfigFlow, domain=DOMAIN):
         """
         session = async_get_clientsession(self.hass)
         client = LiproClient(phone_id, session)
-        result = await client.login_with_hash(phone, password_hash)
+        result = await client.login(phone, password_hash, password_is_hashed=True)
 
         return LoginResult(
             access_token=result[CONF_ACCESS_TOKEN],
@@ -385,7 +401,7 @@ class LiproConfigFlow(ConfigFlow, domain=DOMAIN):
                 self._abort_if_unique_id_configured()
 
                 return self.async_create_entry(
-                    title=f"Lipro ({phone})",
+                    title=f"Lipro ({_mask_phone_for_title(phone)})",
                     data=login_result.to_entry_data(
                         phone,
                         password_hash,
@@ -459,11 +475,15 @@ class LiproConfigFlow(ConfigFlow, domain=DOMAIN):
         errors: dict[str, str],
     ) -> ConfigFlowResult:
         """Show the reauth confirmation form."""
+        raw_phone = reauth_entry.data.get(CONF_PHONE, "")
+        masked_phone = (
+            _mask_phone_for_title(raw_phone) if isinstance(raw_phone, str) else "***"
+        )
         return self.async_show_form(
             step_id="reauth_confirm",
             data_schema=STEP_REAUTH_DATA_SCHEMA,
             errors=errors,
-            description_placeholders={"phone": reauth_entry.data.get(CONF_PHONE, "")},
+            description_placeholders={"phone": masked_phone},
         )
 
     async def async_step_reconfigure(
@@ -703,7 +723,9 @@ class LiproOptionsFlow(OptionsFlow):
             schema[
                 vol.Optional(
                     list_key,
-                    default=_coerce_device_filter_list_option(options.get(list_key, "")),
+                    default=_coerce_device_filter_list_option(
+                        options.get(list_key, "")
+                    ),
                 )
             ] = _text_selector()
 

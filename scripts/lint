@@ -1,33 +1,35 @@
 #!/usr/bin/env bash
 # Run linting and formatting checks
 
-set -e
+set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
-# Check if virtual environment exists
-if [ ! -d "venv" ]; then
-    echo "Virtual environment not found. Running setup first..."
+if ! command -v uv >/dev/null 2>&1; then
+    echo "uv is required but was not found in PATH" >&2
+    exit 1
+fi
+
+# Ensure the dev environment exists (uv creates/uses .venv by default).
+if [ ! -d ".venv" ]; then
+    echo ".venv not found. Running setup first..."
     ./scripts/setup
 fi
 
-# Activate virtual environment
-source venv/bin/activate
-
 echo "Running ruff check..."
-ruff check custom_components/lipro tests
+uv run ruff check custom_components/lipro tests
 
 echo ""
 echo "Running ruff format check..."
-ruff format --check custom_components/lipro tests
+uv run ruff format --check custom_components/lipro tests
 
 echo ""
 echo "Running mypy..."
-mypy custom_components/lipro
+uv run mypy custom_components/lipro
 
 echo ""
 echo "Checking translations..."
-python scripts/check_translations.py
+uv run python scripts/check_translations.py
 
 echo ""
 echo "All checks passed!"

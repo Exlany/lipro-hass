@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from custom_components.lipro.core.runtime.room_sync_runtime import (
+from custom_components.lipro.core.coordinator.runtime.room_sync_runtime import (
     normalize_room_name,
     resolve_room_area_target_name,
 )

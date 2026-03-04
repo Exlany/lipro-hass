@@ -284,7 +284,6 @@ class TestLiproFanEntityCommands:
         assert call_args[0][0] is device
         assert call_args[0][1] == "CHANGE_STATE"
         props = call_args[0][2]
-        assert any(p["key"] == "fanOnOff" and p["value"] == "1" for p in props)
         assert any(p["key"] == "fanOnoff" and p["value"] == "1" for p in props)
 
     @pytest.mark.asyncio
@@ -305,16 +304,15 @@ class TestLiproFanEntityCommands:
         assert call_args[0][0] is device
         assert call_args[0][1] == "CHANGE_STATE"
         props = call_args[0][2]
-        assert any(p["key"] == "fanOnOff" and p["value"] == "0" for p in props)
         assert any(p["key"] == "fanOnoff" and p["value"] == "0" for p in props)
 
     @pytest.mark.asyncio
     async def test_set_percentage_debounce_does_not_protect_fan_onoff(
         self, mock_coordinator, make_device
     ):
-        """Test set_percentage does NOT include fanOnOff in debounce-protected keys.
+        """Test set_percentage does NOT include fanOnoff in debounce-protected keys.
 
-        When fan is off and set_percentage is called, fanOnOff should be sent
+        When fan is off and set_percentage is called, fanOnoff should be sent
         in properties but NOT in the optimistic dict passed to debounce,
         so it won't be protected during the debounce window.
         """
@@ -338,14 +336,12 @@ class TestLiproFanEntityCommands:
 
         await fan.async_set_percentage(50)
 
-        # Properties should include both fanOnOff and fanOnoff (API compatibility).
+        # Properties should include fan power + gear.
         props = captured_args["properties"]
-        assert any(p["key"] == "fanOnOff" and p["value"] == "1" for p in props)
         assert any(p["key"] == "fanOnoff" and p["value"] == "1" for p in props)
 
         # Optimistic dict should NOT include fan power keys (to avoid debounce protection)
         optimistic = captured_args["optimistic"]
-        assert "fanOnOff" not in optimistic
         assert "fanOnoff" not in optimistic
         assert "fanGear" in optimistic
 
@@ -399,7 +395,6 @@ class TestLiproFanEntityBehavior:
 
         call_args = mock_coordinator.async_send_command.call_args
         properties = call_args[0][2]
-        assert any(p["key"] == "fanOnOff" and p["value"] == "1" for p in properties)
         assert any(p["key"] == "fanOnoff" and p["value"] == "1" for p in properties)
         assert any(p["key"] == "fanGear" for p in properties)
         assert any(p["key"] == "fanMode" for p in properties)
@@ -418,14 +413,13 @@ class TestLiproFanEntityBehavior:
 
         call_args = mock_coordinator.async_send_command.call_args
         properties = call_args[0][2]
-        assert any(p["key"] == "fanOnOff" and p["value"] == "0" for p in properties)
         assert any(p["key"] == "fanOnoff" and p["value"] == "0" for p in properties)
 
     @pytest.mark.asyncio
     async def test_set_preset_mode_when_off_adds_power(
         self, mock_coordinator, make_device
     ):
-        """Setting preset while off should add fanOnOff power-on property."""
+        """Setting preset while off should add fan power-on property."""
         from custom_components.lipro.fan import LiproFan
 
         device = make_device("fanLight", properties={"fanOnoff": "0", "fanMode": "0"})
@@ -437,7 +431,6 @@ class TestLiproFanEntityBehavior:
 
         call_args = mock_coordinator.async_send_command.call_args
         properties = call_args[0][2]
-        assert any(p["key"] == "fanOnOff" and p["value"] == "1" for p in properties)
         assert any(p["key"] == "fanOnoff" and p["value"] == "1" for p in properties)
         assert any(p["key"] == "fanMode" for p in properties)
 

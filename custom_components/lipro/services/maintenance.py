@@ -29,7 +29,7 @@ def _iter_runtime_entry_coordinators(
     for entry in hass.config_entries.async_entries(domain):
         if requested_entry_id and entry.entry_id != requested_entry_id:
             continue
-        coordinator = entry.runtime_data
+        coordinator = getattr(entry, "runtime_data", None)
         if coordinator is None:
             continue
         targets.append((entry.entry_id, coordinator))
@@ -58,16 +58,12 @@ async def async_handle_refresh_devices(
             translation_placeholders={"entry_id": requested_entry_id},
         )
 
-    refreshed_entry_ids: list[str] = []
-    for entry_id, coordinator in targets:
+    refreshed_entries = 0
+    for _entry_id, coordinator in targets:
         await coordinator.async_refresh_devices()
-        refreshed_entry_ids.append(entry_id)
+        refreshed_entries += 1
 
-    result: dict[str, Any] = {
-        "success": True,
-        "refreshed_entries": len(refreshed_entry_ids),
-        "entry_ids": refreshed_entry_ids,
-    }
+    result: dict[str, Any] = {"success": True, "refreshed_entries": refreshed_entries}
     if requested_entry_id:
         result["requested_entry_id"] = requested_entry_id
     return result
@@ -141,7 +137,9 @@ def async_setup_device_registry_listener(
 
         device_registry = dr.async_get(hass)
         device_entry = device_registry.async_get(device_id)
-        if device_entry is None or not _is_lipro_device_entry(device_entry, domain=domain):
+        if device_entry is None or not _is_lipro_device_entry(
+            device_entry, domain=domain
+        ):
             return
 
         old_disabled_by = changes.get("disabled_by")

@@ -19,7 +19,7 @@ from .const import (
     WIND_DIRECTION_FIX,
 )
 from .entities.base import LiproEntity
-from .helpers import create_device_entities
+from .helpers.platform import build_device_entities_from_rules, create_device_entities
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
@@ -75,22 +75,17 @@ def _build_device_select_entities(
     device: LiproDevice,
 ) -> list[SelectEntity]:
     """Build all select entities for one device."""
-    entities: list[SelectEntity] = []
-
-    # Add select entities for heaters.
-    if device.is_heater:
-        entities.extend(
-            [
-                LiproHeaterWindDirectionSelect(coordinator, device),
-                LiproHeaterLightModeSelect(coordinator, device),
-            ]
-        )
-
-    # Add gear preset select for lights with gear presets.
-    if device.is_light and device.has_gear_presets:
-        entities.append(LiproLightGearSelect(coordinator, device))
-
-    return entities
+    return build_device_entities_from_rules(
+        coordinator,
+        device,
+        rules=(
+            (
+                lambda d: d.is_heater,
+                (LiproHeaterWindDirectionSelect, LiproHeaterLightModeSelect),
+            ),
+            (lambda d: d.is_light and d.has_gear_presets, (LiproLightGearSelect,)),
+        ),
+    )
 
 
 class LiproSelect(LiproEntity, SelectEntity):
