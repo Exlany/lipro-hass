@@ -2865,3 +2865,10 @@ class TestCoordinatorAdaptiveTuning:
         original = coordinator._state_status_batch_size
         coordinator._adapt_state_batch_size()
         assert coordinator._state_status_batch_size == original
+
+
+class TestRedactIdentifier:
+    """Edge-case coverage for redact_identifier."""
+
+    def test_whitespace_only_returns_none(self):
+        assert redact_identifier("   ") is None

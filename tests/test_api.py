@@ -38,6 +38,7 @@ from custom_components.lipro.core.api.request_policy import (
     COMMAND_PACING_CACHE_MAX_SIZE,
 )
 from custom_components.lipro.core.api.response_safety import (
+    _mask_phone_digits,
     mask_sensitive_data,
     normalize_response_code,
 )
@@ -113,6 +114,18 @@ class TestMaskSensitiveData:
         assert '"secretKey": "***"' in result
         assert "ak_test" not in result
         assert "sk_test" not in result
+
+    def test_mask_phone_short_digits(self):
+        """Test masking phone with 6 digits (medium-length branch)."""
+        data = '{"phone": "123456"}'
+        result = mask_sensitive_data(data)
+        assert "123456" not in result
+        assert '"phone": "12***56"' in result
+
+    def test_mask_phone_digits_very_short(self):
+        """Test _mask_phone_digits with 4 or fewer digits."""
+        assert _mask_phone_digits("1234") == "***"
+        assert _mask_phone_digits("12") == "***"
 
     def test_mask_device_name_room_name_and_network_fields(self):
         """Test masking additional privacy-sensitive device/network fields."""
