@@ -88,8 +88,12 @@ def resolve_connect_status_query_candidates(
     stale_query_ids = [
         device_id
         for device_id in iot_id_list
-        if mqtt_recent_time_by_id.get(_normalize_lookup_key(device_id, normalize), 0.0)
-        < stale_before
+        if _is_mqtt_connect_stale(
+            mqtt_recent_time_by_id.get(
+                _normalize_lookup_key(device_id, normalize), 0.0
+            ),
+            stale_before,
+        )
     ]
 
     query_ids: list[str] = []
@@ -149,6 +153,19 @@ def compute_adaptive_state_batch_size(
         updated = min(upper, current + step)
 
     return updated
+
+
+def _is_mqtt_connect_stale(last_time: float, stale_before: float) -> bool:
+    """Return True when the device has no recent MQTT connect data.
+
+    A ``last_time`` of ``0.0`` (or negative) is a sentinel meaning "never
+    received" and is always considered stale regardless of the current clock.
+    This avoids a false-fresh evaluation when ``monotonic()`` is smaller than
+    the stale window (e.g. on freshly booted CI containers).
+    """
+    if last_time <= 0.0:
+        return True
+    return last_time < stale_before
 
 
 def _normalize_lookup_key(device_id: str, normalize: NormalizeDeviceId) -> str:

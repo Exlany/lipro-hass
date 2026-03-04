@@ -2845,3 +2845,23 @@ class TestCoordinatorDefensivePaths:
 
         assert task.done()
         assert task not in coordinator._background_tasks
+
+
+class TestCoordinatorAdaptiveTuning:
+    """Test adaptive tuning and status metrics snapshot paths."""
+
+    def test_build_status_metrics_snapshot_with_samples(self, coordinator):
+        coordinator._state_batch_metrics.append((32, 1.5, 0))
+        coordinator._state_batch_metrics.append((24, 2.0, 1))
+
+        snapshot = coordinator._build_status_metrics_snapshot()
+
+        assert snapshot["state_batch_size_avg"] == 28.0
+        assert snapshot["state_batch_duration_avg_seconds"] == 1.75
+        assert snapshot["state_metrics_samples"] == 2
+
+    def test_adapt_state_batch_size_noop_when_unchanged(self, coordinator):
+        coordinator._state_batch_metrics.append((32, 2.0, 0))
+        original = coordinator._state_status_batch_size
+        coordinator._adapt_state_batch_size()
+        assert coordinator._state_status_batch_size == original

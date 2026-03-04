@@ -64,3 +64,43 @@ def test_replace_normalizes_aliases() -> None:
 
     assert index.get("GW_Target") is device
     assert index.get("gw_target") is device
+
+
+def test_init_with_mapping_seeds_index() -> None:
+    device = _make_device("dev1")
+    index = DeviceIdentityIndex(mapping={"GW_001": device})
+    assert index.get("GW_001") is device
+    assert index.get("gw_001") is device
+
+
+def test_get_non_string_returns_none() -> None:
+    index = DeviceIdentityIndex()
+    assert index.get(None) is None
+    assert index.get(123) is None
+
+
+def test_get_empty_string_returns_none() -> None:
+    index = DeviceIdentityIndex()
+    assert index.get("") is None
+    assert index.get("   ") is None
+
+
+def test_get_finds_via_lowercase_fallback() -> None:
+    index = DeviceIdentityIndex()
+    device = _make_device("dev1")
+    index._mapping["gw_upper"] = device
+    assert index.get("GW_UPPER") is device
+
+
+def test_unregister_nonexistent_key_is_noop() -> None:
+    index = DeviceIdentityIndex()
+    index.unregister("nonexistent_key")
+
+
+def test_register_non_string_and_empty_are_noops() -> None:
+    index = DeviceIdentityIndex()
+    device = _make_device("dev1")
+    index.register(None, device)
+    index.register("  ", device)
+    assert index.get(None) is None
+    assert len(index._mapping) == 0
