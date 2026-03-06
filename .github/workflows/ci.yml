@@ -110,7 +110,8 @@ jobs:
 
       - name: Record pip-audit (dev) outcome
         if: always() && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
-        run: echo "pip-audit (dev) outcome: ${{ steps.pip_audit_dev.outcome }}" >> "$GITHUB_STEP_SUMMARY"
+        run: >-
+          echo "pip-audit (dev) outcome: ${{ steps.pip_audit_dev.outcome }}" >> "$GITHUB_STEP_SUMMARY"
 
   test:
     name: Test
