@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from typing import Any
+import logging
+from typing import Any, Protocol
 
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.exceptions import HomeAssistantError
@@ -10,20 +11,54 @@ from homeassistant.exceptions import HomeAssistantError
 from ..core import LiproApiError
 from ..core.utils.log_safety import safe_error_placeholder as _safe_error_placeholder
 from ..core.utils.redaction import redact_identifier as _redact_identifier
+from .execution import ServiceErrorRaiser
+
+
+class CommandDevice(Protocol):
+    """Service-layer command device contract."""
+
+    serial: str
+
+
+class CommandCoordinator(Protocol):
+    """Coordinator contract used by the send_command service."""
+
+    last_command_failure: dict[str, Any] | None
+
+    async def async_send_command(
+        self,
+        device: CommandDevice,
+        command: str,
+        properties: list[dict[str, str]] | None = None,
+        fallback_device_id: str | None = None,
+    ) -> bool:
+        """Dispatch one command via the coordinator."""
+
+
+class CommandFailureTranslationResolver(Protocol):
+    """Resolve command failures into translated service keys."""
+
+    def __call__(
+        self,
+        *,
+        failure: dict[str, Any] | None = None,
+        err: LiproApiError | None = None,
+    ) -> str:
+        """Return one translated command failure key."""
 
 
 async def async_send_command_with_service_errors(
-    coordinator: Any,
-    device: Any,
+    coordinator: CommandCoordinator,
+    device: CommandDevice,
     *,
     command: str,
     properties: list[dict[str, str]] | None,
     requested_device_id: str | None,
     failure_log: str,
     api_error_log: str,
-    resolve_command_failure_translation_key: Any,
-    raise_service_error: Any,
-    logger: Any,
+    resolve_command_failure_translation_key: CommandFailureTranslationResolver,
+    raise_service_error: ServiceErrorRaiser,
+    logger: logging.Logger,
 ) -> None:
     """Send one command and map API/push failures to translated service errors."""
     try:
@@ -36,7 +71,7 @@ async def async_send_command_with_service_errors(
         if success:
             return
 
-        failure_context = getattr(coordinator, "last_command_failure", None)
+        failure_context = coordinator.last_command_failure
         failure_summary: dict[str, Any] | None = None
         if isinstance(failure_context, dict):
             failure_summary = {
@@ -48,7 +83,7 @@ async def async_send_command_with_service_errors(
             failure_log,
             command,
             _redact_identifier(requested_device_id) or "***",
-            _redact_identifier(getattr(device, "serial", None)) or "***",
+            _redact_identifier(device.serial) or "***",
             failure_summary,
         )
         raise_service_error(
@@ -90,9 +125,9 @@ async def async_handle_send_command(
     get_device_and_coordinator: Any,
     summarize_service_properties: Any,
     log_send_command_call: Any,
-    resolve_command_failure_translation_key: Any,
-    raise_service_error: Any,
-    logger: Any,
+    resolve_command_failure_translation_key: CommandFailureTranslationResolver,
+    raise_service_error: ServiceErrorRaiser,
+    logger: logging.Logger,
     attr_command: str,
     attr_properties: str,
     attr_device_id: str,

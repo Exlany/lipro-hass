@@ -41,8 +41,8 @@ Home Assistant integration for controlling Lipro Smart Home devices.
 - `lipro.delete_schedules` - Delete schedules by IDs
 - `lipro.submit_anonymous_share` - Submit anonymous share report manually
 - `lipro.get_anonymous_share_report` - Preview anonymous share report
-- `lipro.get_developer_report` - Export sanitized runtime diagnostics report
-- `lipro.submit_developer_feedback` - One-click submit developer diagnostics report
+- `lipro.get_developer_report` - Export sanitized runtime diagnostics report (all entries or one `entry_id`)
+- `lipro.submit_developer_feedback` - One-click submit developer diagnostics report (all entries or one `entry_id`)
 - `lipro.query_command_result` - Query command delivery result by message serial number (developer capability)
 - `lipro.get_city` - Query cloud city metadata contract (developer capability)
 - `lipro.fetch_body_sensor_history` - Fetch body sensor history payload for debugging (developer capability)
@@ -319,7 +319,7 @@ To submit an issue report, please download diagnostics:
 Redaction includes account credentials/tokens (`phone`, `password`, `access_token`, `refresh_token`), cloud/device identifiers (`userId`/`bizId`, `serial`/`deviceId`/`iotDeviceId`), and network identifiers (WiFi SSID/MAC/IP).
 
 For opt-in sharing/reporting, you can preview the payloads first:
-- `lipro.get_developer_report` - sanitized runtime report (mesh snapshot + recent command traces)
+- `lipro.get_developer_report` - sanitized runtime report (mesh snapshot + recent command traces, scoped by optional `entry_id`)
 - `lipro.get_anonymous_share_report` - sanitized anonymous-share payload
 
 ## Disclaimer

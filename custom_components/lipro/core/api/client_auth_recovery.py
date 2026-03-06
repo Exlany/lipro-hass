@@ -38,8 +38,9 @@ _MappingPayloadT = TypeVar("_MappingPayloadT")
 class _ClientAuthRecoveryMixin(_ClientPacingMixin):
     """Mixin implementing auth recovery and mapping-response finalization."""
 
-    def _init_auth_recovery(self) -> None:
+    def _init_auth_recovery(self, *, entry_id: str | None = None) -> None:
         """Initialize authentication/token state and refresh coordination."""
+        self._entry_id = entry_id
         self._access_token = None
         self._refresh_token = None
         self._user_id = None
@@ -189,7 +190,13 @@ class _ClientAuthRecoveryMixin(_ClientPacingMixin):
 
         effective_code = self._resolve_error_code(code, error_code)
         # Record API error for anonymous share
-        _record_api_error(path, effective_code or 0, message, method="POST")
+        _record_api_error(
+            path,
+            effective_code or 0,
+            message,
+            method="POST",
+            entry_id=self._entry_id,
+        )
         raise LiproApiError(message, effective_code)
 
     @staticmethod

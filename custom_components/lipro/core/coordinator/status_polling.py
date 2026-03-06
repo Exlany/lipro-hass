@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+from collections.abc import Coroutine
 import logging
 from time import monotonic
 from typing import Any, Final
@@ -135,27 +136,63 @@ class _CoordinatorStatusPollingMixin(_CoordinatorAuthIssuesMixin):
 
     async def _update_device_status(self) -> None:
         """Update status for all devices."""
-        status_tasks: list[asyncio.Task[Any] | asyncio.Future[Any]] = []
+        status_queries: list[Coroutine[Any, Any, None]] = []
 
         if self._iot_ids_to_query:
-            status_tasks.append(
-                self._track_background_task(self._query_device_status())
-            )
+            status_queries.append(self._query_device_status())
         if self._group_ids_to_query:
-            status_tasks.append(self._track_background_task(self._query_group_status()))
+            status_queries.append(self._query_group_status())
         if (
             self._power_monitoring_enabled
             and self._outlet_ids_to_query
             and self._should_query_power()
         ):
-            status_tasks.append(self._track_background_task(self._query_outlet_power()))
+            status_queries.append(self._query_outlet_power())
 
-        if status_tasks:
-            await asyncio.gather(*status_tasks)
+        if status_queries:
+            await self._async_run_status_queries(status_queries)
 
         connect_ids = self._resolve_connect_status_query_ids()
         if connect_ids:
             await self._query_connect_status(connect_ids)
+
+    async def _async_run_status_queries(
+        self,
+        queries: list[Coroutine[Any, Any, None]],
+    ) -> None:
+        """Run one refresh batch of status queries with fail-fast cancellation."""
+        tasks = [asyncio.create_task(query) for query in queries]
+        pending = set(tasks)
+
+        try:
+            while pending:
+                done, pending = await asyncio.wait(
+                    pending,
+                    return_when=asyncio.FIRST_EXCEPTION,
+                )
+
+                first_error: Exception | None = None
+                for task in done:
+                    try:
+                        await task
+                    except asyncio.CancelledError:
+                        raise
+                    except Exception as err:  # noqa: BLE001
+                        if first_error is None:
+                            first_error = err
+
+                if first_error is None:
+                    continue
+
+                for task in pending:
+                    task.cancel()
+                if pending:
+                    await asyncio.gather(*pending, return_exceptions=True)
+                raise first_error
+        finally:
+            for task in pending:
+                if not task.done():
+                    task.cancel()
 
     def _should_query_power(self) -> bool:
         """Return True when power query interval has elapsed."""

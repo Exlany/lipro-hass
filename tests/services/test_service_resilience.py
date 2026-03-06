@@ -21,12 +21,13 @@ from custom_components.lipro.services.contracts import (
     ATTR_PROPERTIES,
     ATTR_SENSOR_DEVICE_ID,
     SERVICE_FETCH_SENSOR_HISTORY_SCHEMA,
+    SERVICE_GET_DEVELOPER_REPORT_SCHEMA,
     SERVICE_QUERY_COMMAND_RESULT_SCHEMA,
     SERVICE_REFRESH_DEVICES_SCHEMA,
     SERVICE_SEND_COMMAND_SCHEMA,
     SERVICE_SUBMIT_DEVELOPER_FEEDBACK_SCHEMA,
 )
-from custom_components.lipro.services.entrypoints import _async_handle_get_city
+from custom_components.lipro.services.wiring import _async_handle_get_city
 from homeassistant.exceptions import HomeAssistantError
 from tests.helpers.service_call import service_call
 
@@ -94,6 +95,36 @@ def _add_runtime_entry(hass, coordinator: MagicMock, *, phone: str) -> MockConfi
             id="submit_developer_feedback_note_too_long",
         ),
         pytest.param(
+            SERVICE_SUBMIT_DEVELOPER_FEEDBACK_SCHEMA,
+            {ATTR_ENTRY_ID: ""},
+            id="submit_developer_feedback_entry_id_empty",
+        ),
+        pytest.param(
+            SERVICE_SUBMIT_DEVELOPER_FEEDBACK_SCHEMA,
+            {ATTR_ENTRY_ID: "e" * 65},
+            id="submit_developer_feedback_entry_id_too_long",
+        ),
+        pytest.param(
+            SERVICE_SUBMIT_DEVELOPER_FEEDBACK_SCHEMA,
+            {ATTR_ENTRY_ID: "entry.bad"},
+            id="submit_developer_feedback_entry_id_invalid_chars",
+        ),
+        pytest.param(
+            SERVICE_GET_DEVELOPER_REPORT_SCHEMA,
+            {ATTR_ENTRY_ID: ""},
+            id="get_developer_report_entry_id_empty",
+        ),
+        pytest.param(
+            SERVICE_GET_DEVELOPER_REPORT_SCHEMA,
+            {ATTR_ENTRY_ID: "e" * 65},
+            id="get_developer_report_entry_id_too_long",
+        ),
+        pytest.param(
+            SERVICE_GET_DEVELOPER_REPORT_SCHEMA,
+            {ATTR_ENTRY_ID: "entry.bad"},
+            id="get_developer_report_entry_id_invalid_chars",
+        ),
+        pytest.param(
             SERVICE_FETCH_SENSOR_HISTORY_SCHEMA,
             {ATTR_SENSOR_DEVICE_ID: "", ATTR_MESH_TYPE: "2"},
             id="fetch_sensor_history_sensor_device_id_empty",
@@ -152,6 +183,18 @@ def test_submit_developer_feedback_schema_accepts_max_note_length() -> None:
     """submit_developer_feedback schema should accept 500-char note."""
     result = SERVICE_SUBMIT_DEVELOPER_FEEDBACK_SCHEMA({ATTR_NOTE: "n" * 500})
     assert result[ATTR_NOTE] == "n" * 500
+
+
+def test_submit_developer_feedback_schema_accepts_max_entry_id_length() -> None:
+    """submit_developer_feedback schema should accept 64-char entry_id."""
+    result = SERVICE_SUBMIT_DEVELOPER_FEEDBACK_SCHEMA({ATTR_ENTRY_ID: "e" * 64})
+    assert result[ATTR_ENTRY_ID] == "e" * 64
+
+
+def test_get_developer_report_schema_accepts_max_entry_id_length() -> None:
+    """get_developer_report schema should accept 64-char entry_id."""
+    result = SERVICE_GET_DEVELOPER_REPORT_SCHEMA({ATTR_ENTRY_ID: "e" * 64})
+    assert result[ATTR_ENTRY_ID] == "e" * 64
 
 
 def test_refresh_devices_schema_accepts_max_entry_id_length() -> None:

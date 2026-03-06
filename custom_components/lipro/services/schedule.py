@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
-from collections.abc import Awaitable, Callable
-from typing import Any
+from collections.abc import Awaitable, Callable, Mapping
+import logging
+from typing import Any, NoReturn, Protocol, TypeVar, cast
 
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.exceptions import ServiceValidationError
@@ -11,6 +12,33 @@ from homeassistant.exceptions import ServiceValidationError
 from ..core import LiproApiError
 from ..core.api.schedule_codec import coerce_int_list
 from ..core.utils.redaction import redact_identifier as _redact_identifier
+from .execution import (
+    AuthenticatedCoordinator,
+    ServiceErrorRaiser,
+    async_execute_coordinator_call,
+)
+
+_ResultT = TypeVar("_ResultT")
+_NormalizedSchedule = dict[str, object]
+GetDeviceAndCoordinator = Callable[
+    [HomeAssistant, ServiceCall],
+    Awaitable[tuple[Any, Any]],
+]
+
+
+class ScheduleDevice(Protocol):
+    """Service-layer schedule device contract."""
+
+    iot_device_id: str
+    device_type_hex: str
+    serial: str
+    extra_data: object
+
+
+class ScheduleCoordinator(AuthenticatedCoordinator, Protocol):
+    """Coordinator contract used by schedule services."""
+
+    client: Any
 
 
 def format_schedule_time(seconds: int) -> str | None:
@@ -23,7 +51,7 @@ def format_schedule_time(seconds: int) -> str | None:
     return f"{hours:02d}:{minutes:02d}"
 
 
-def normalize_schedule_row(schedule: Any) -> dict[str, Any] | None:
+def normalize_schedule_row(schedule: object) -> _NormalizedSchedule | None:
     """Normalize a raw schedule row into service response format."""
     if not isinstance(schedule, dict):
         return None
@@ -36,11 +64,11 @@ def normalize_schedule_row(schedule: Any) -> dict[str, Any] | None:
     events = coerce_int_list(sched_info.get("evt"))
     days = coerce_int_list(sched_info.get("days"))
 
-    time_strs: list[str] = []
-    for value in times:
-        time_str = format_schedule_time(value)
-        if time_str is not None:
-            time_strs.append(time_str)
+    time_strs = [
+        time_str
+        for value in times
+        if (time_str := format_schedule_time(value)) is not None
+    ]
 
     return {
         "id": schedule.get("id"),
@@ -51,33 +79,40 @@ def normalize_schedule_row(schedule: Any) -> dict[str, Any] | None:
     }
 
 
-def get_mesh_context(device: Any) -> tuple[str, list[Any]]:
+def get_mesh_context(device: ScheduleDevice) -> tuple[str, list[str]]:
     """Extract mesh gateway and member IDs from device metadata."""
     extra_data = getattr(device, "extra_data", None)
-    if not isinstance(extra_data, dict):
-        extra_data = {}
+    if not isinstance(extra_data, Mapping):
+        return "", []
 
-    mesh_gateway_id = extra_data.get("gateway_device_id", "")
-    raw_mesh_member_ids = extra_data.get("group_member_ids", [])
+    mesh_gateway_id = extra_data.get("gateway_device_id")
+    raw_mesh_member_ids = extra_data.get("group_member_ids")
     mesh_member_ids = (
-        raw_mesh_member_ids if isinstance(raw_mesh_member_ids, list) else []
+        [member_id for member_id in raw_mesh_member_ids if isinstance(member_id, str)]
+        if isinstance(raw_mesh_member_ids, list)
+        else []
     )
-    return mesh_gateway_id, mesh_member_ids
+
+    return (
+        mesh_gateway_id if isinstance(mesh_gateway_id, str) else "",
+        mesh_member_ids,
+    )
 
 
 async def async_call_schedule_client(
-    device: Any,
-    client_call: Callable[..., Awaitable[Any]],
-    *args: Any,
+    device: ScheduleDevice,
+    client_call: Callable[..., Awaitable[_ResultT]],
+    *args: object,
+    coordinator: AuthenticatedCoordinator | None = None,
     error_log: str,
     error_translation_key: str,
-    logger: Any,
-    raise_service_error: Callable[..., Any],
-) -> Any:
-    """Call a schedule client API with mesh context and consistent error mapping."""
+    logger: logging.Logger,
+    raise_service_error: ServiceErrorRaiser,
+) -> _ResultT:
+    """Call a schedule API with optional coordinator-authenticated execution."""
     mesh_gateway_id, mesh_member_ids = get_mesh_context(device)
 
-    try:
+    async def _call_client() -> _ResultT:
         return await client_call(
             device.iot_device_id,
             device.device_type_hex,
@@ -85,28 +120,45 @@ async def async_call_schedule_client(
             mesh_gateway_id=mesh_gateway_id,
             mesh_member_ids=mesh_member_ids,
         )
+
+    if coordinator is not None:
+
+        def _handle_api_error(err: LiproApiError) -> NoReturn:
+            logger.warning(error_log, err)
+            raise_service_error(error_translation_key, err=err)
+
+        return await async_execute_coordinator_call(
+            coordinator,
+            call=_call_client,
+            raise_service_error=raise_service_error,
+            handle_api_error=_handle_api_error,
+        )
+
+    try:
+        return await _call_client()
     except LiproApiError as err:
         logger.warning(error_log, err)
         raise_service_error(error_translation_key, err=err)
 
 
 async def async_call_schedule_service(
-    device: Any,
+    coordinator: AuthenticatedCoordinator,
+    device: ScheduleDevice,
     *,
-    client_call: Callable[..., Awaitable[Any]],
-    call_args: tuple[Any, ...] = (),
+    client_call: Callable[..., Awaitable[_ResultT]],
+    call_args: tuple[object, ...] = (),
     service_log: str | None = None,
-    service_log_args: tuple[Any, ...] = (),
+    service_log_args: tuple[object, ...] = (),
     error_log: str,
     error_translation_key: str,
-    logger: Any,
-    raise_service_error: Callable[..., Any],
-) -> Any:
-    """Invoke a schedule client method with consistent logging and error mapping."""
+    logger: logging.Logger,
+    raise_service_error: ServiceErrorRaiser,
+) -> _ResultT:
+    """Invoke a schedule client method with shared logging and error mapping."""
     if service_log is not None:
         logger.info(
             service_log,
-            _redact_identifier(getattr(device, "serial", None)) or "***",
+            _redact_identifier(device.serial) or "***",
             *service_log_args,
         )
 
@@ -114,6 +166,7 @@ async def async_call_schedule_service(
         device,
         client_call,
         *call_args,
+        coordinator=coordinator,
         error_log=error_log,
         error_translation_key=error_translation_key,
         logger=logger,
@@ -125,14 +178,17 @@ async def async_handle_get_schedules(
     hass: HomeAssistant,
     call: ServiceCall,
     *,
-    get_device_and_coordinator: Any,
-    raise_service_error: Callable[..., Any],
-    logger: Any,
-) -> dict[str, Any]:
+    get_device_and_coordinator: GetDeviceAndCoordinator,
+    raise_service_error: ServiceErrorRaiser,
+    logger: logging.Logger,
+) -> dict[str, object]:
     """Handle the get_schedules service call."""
-    device, coordinator = await get_device_and_coordinator(hass, call)
+    raw_device, raw_coordinator = await get_device_and_coordinator(hass, call)
+    device = cast(ScheduleDevice, raw_device)
+    coordinator = cast(ScheduleCoordinator, raw_coordinator)
 
-    schedules = await async_call_schedule_service(
+    schedules: list[object] = await async_call_schedule_service(
+        coordinator,
         device,
         client_call=coordinator.client.get_device_schedules,
         service_log="Service call: get_schedules for %s",
@@ -158,16 +214,18 @@ async def async_handle_add_schedule(
     hass: HomeAssistant,
     call: ServiceCall,
     *,
-    get_device_and_coordinator: Any,
-    raise_service_error: Callable[..., Any],
-    logger: Any,
+    get_device_and_coordinator: GetDeviceAndCoordinator,
+    raise_service_error: ServiceErrorRaiser,
+    logger: logging.Logger,
     domain: str,
     attr_days: str,
     attr_times: str,
     attr_events: str,
-) -> dict[str, Any]:
+) -> dict[str, object]:
     """Handle the add_schedule service call."""
-    device, coordinator = await get_device_and_coordinator(hass, call)
+    raw_device, raw_coordinator = await get_device_and_coordinator(hass, call)
+    device = cast(ScheduleDevice, raw_device)
+    coordinator = cast(ScheduleCoordinator, raw_coordinator)
 
     days = call.data[attr_days]
     times = call.data[attr_times]
@@ -179,7 +237,8 @@ async def async_handle_add_schedule(
             translation_key="times_events_mismatch",
         )
 
-    schedules = await async_call_schedule_service(
+    schedules: list[object] = await async_call_schedule_service(
+        coordinator,
         device,
         client_call=coordinator.client.add_device_schedule,
         call_args=(days, times, events),
@@ -208,16 +267,19 @@ async def async_handle_delete_schedules(
     hass: HomeAssistant,
     call: ServiceCall,
     *,
-    get_device_and_coordinator: Any,
-    raise_service_error: Callable[..., Any],
-    logger: Any,
+    get_device_and_coordinator: GetDeviceAndCoordinator,
+    raise_service_error: ServiceErrorRaiser,
+    logger: logging.Logger,
     attr_schedule_ids: str,
-) -> dict[str, Any]:
+) -> dict[str, object]:
     """Handle the delete_schedules service call."""
-    device, coordinator = await get_device_and_coordinator(hass, call)
+    raw_device, raw_coordinator = await get_device_and_coordinator(hass, call)
+    device = cast(ScheduleDevice, raw_device)
+    coordinator = cast(ScheduleCoordinator, raw_coordinator)
     schedule_ids = call.data[attr_schedule_ids]
 
-    remaining = await async_call_schedule_service(
+    remaining: list[object] = await async_call_schedule_service(
+        coordinator,
         device,
         client_call=coordinator.client.delete_device_schedules,
         call_args=(schedule_ids,),

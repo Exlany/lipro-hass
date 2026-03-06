@@ -41,8 +41,8 @@ Home Assistant 集成，用于控制 Lipro 智能家居设备。
 - `lipro.delete_schedules` - 按 ID 删除定时任务
 - `lipro.submit_anonymous_share` - 手动提交匿名分享报告
 - `lipro.get_anonymous_share_report` - 预览匿名分享报告
-- `lipro.get_developer_report` - 导出脱敏运行诊断报告
-- `lipro.submit_developer_feedback` - 一键提交开发者诊断反馈
+- `lipro.get_developer_report` - 导出脱敏运行诊断报告（全部条目或指定 entry_id）
+- `lipro.submit_developer_feedback` - 一键提交开发者诊断反馈（全部条目或指定 entry_id）
 - `lipro.query_command_result` - 按消息序列号查询指令投递结果（开发者能力）
 - `lipro.get_city` - 查询云端城市元数据契约（开发者能力）
 - `lipro.fetch_body_sensor_history` - 拉取人体传感器历史载荷用于调试（开发者能力）
@@ -338,7 +338,7 @@ data:
 脱敏范围包含账号凭据/Token（`phone`, `password`, `access_token`, `refresh_token`）、云端/设备标识（`userId`/`bizId`, `serial`/`deviceId`/`iotDeviceId`）以及网络标识（WiFi SSID/MAC/IP）。
 
 如需匿名分享/上报，可先在本地预览脱敏后的载荷：
-- `lipro.get_developer_report` - 脱敏运行报告（mesh 快照 + 近期命令轨迹）
+- `lipro.get_developer_report` - 脱敏运行报告（mesh 快照 + 近期命令轨迹，可选 entry_id 限定）
 - `lipro.get_anonymous_share_report` - 脱敏匿名分享报告
 
 ## 免责声明

@@ -2465,17 +2465,75 @@ class TestCoordinatorStatusQueriesAndNotifications:
         coordinator._power_monitoring_enabled = False
 
         coordinator._query_group_status = AsyncMock()
-        coordinator._track_background_task = lambda coro: asyncio.create_task(coro)
 
         await coordinator._update_device_status()
 
         coordinator._query_group_status.assert_awaited_once()
+
+    @pytest.mark.asyncio
+    async def test_update_device_status_cancels_other_refresh_tasks_on_failure(
+        self, coordinator
+    ):
+        cancelled = asyncio.Event()
+
+        async def _slow_group_status() -> None:
+            try:
+                await asyncio.sleep(3600)
+            except asyncio.CancelledError:
+                cancelled.set()
+                raise
+
+        coordinator._iot_ids_to_query = ["dev1"]
+        coordinator._group_ids_to_query = ["mesh_group_1"]
+        coordinator._outlet_ids_to_query = []
+        coordinator._power_monitoring_enabled = False
+        coordinator._query_device_status = AsyncMock(side_effect=LiproApiError("boom", 500))
+        coordinator._query_group_status = AsyncMock(side_effect=_slow_group_status)
+
+        with pytest.raises(LiproApiError):
+            await coordinator._update_device_status()
+
+        assert cancelled.is_set()
 
     def test_apply_device_status_row_ignores_missing_device_id(self, coordinator):
         coordinator._apply_device_status_row({})
 
     def test_apply_device_status_row_ignores_unknown_device_id(self, coordinator):
         coordinator._apply_device_status_row({"deviceId": "unknown"})
+
+    @pytest.mark.asyncio
+    async def test_update_device_status_cancels_peer_queries_on_failure(
+        self, coordinator
+    ):
+        coordinator._iot_ids_to_query = ["dev-1"]
+        coordinator._group_ids_to_query = ["mesh_group_1"]
+        coordinator._outlet_ids_to_query = []
+        coordinator._power_monitoring_enabled = False
+        coordinator._query_connect_status = AsyncMock()
+
+        query_started = asyncio.Event()
+        query_cancelled = asyncio.Event()
+
+        async def _slow_query() -> None:
+            query_started.set()
+            try:
+                await asyncio.sleep(3600)
+            except asyncio.CancelledError:
+                query_cancelled.set()
+                raise
+
+        async def _failing_query() -> None:
+            await query_started.wait()
+            raise RuntimeError("boom")
+
+        coordinator._query_device_status = AsyncMock(side_effect=_slow_query)
+        coordinator._query_group_status = AsyncMock(side_effect=_failing_query)
+
+        with pytest.raises(RuntimeError, match="boom"):
+            await coordinator._update_device_status()
+
+        assert query_cancelled.is_set()
+        coordinator._query_connect_status.assert_not_awaited()
 
     @pytest.mark.asyncio
     async def test_update_device_status_queries_only_stale_connect_ids_with_mqtt(
@@ -3264,9 +3322,13 @@ class TestCoordinatorDefensivePaths:
         with patch(
             "custom_components.lipro.core.coordinator.state.get_anonymous_share_manager",
             return_value=share_manager,
-        ):
+        ) as get_share_manager:
             await coordinator._record_devices_for_anonymous_share()
 
+        get_share_manager.assert_called_once_with(
+            coordinator.hass,
+            entry_id=coordinator.config_entry.entry_id,
+        )
         share_manager.async_ensure_loaded.assert_awaited_once()
         share_manager.record_devices.assert_called_once()
         recorded = share_manager.record_devices.call_args.args[0]

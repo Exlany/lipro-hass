@@ -14,10 +14,19 @@ from typing import Final
 _REPORTED_DEVICES_CACHE_NAME: Final[str] = ".lipro_reported_devices.json"
 
 
+def _cache_file_path(storage_path: str, *, cache_key: str | None = None) -> Path:
+    """Resolve one cache file path for the given anonymous-share scope."""
+    cache_name = _REPORTED_DEVICES_CACHE_NAME
+    if cache_key and cache_key != "__default__":
+        cache_name = f".lipro_reported_devices.{cache_key}.json"
+    return Path(storage_path) / cache_name
+
+
 def load_reported_device_keys(
     storage_path: str,
     *,
     logger: logging.Logger,
+    cache_key: str | None = None,
 ) -> tuple[bool, set[str]]:
     """Load reported device keys from disk.
 
@@ -25,7 +34,7 @@ def load_reported_device_keys(
         (loaded, keys) where loaded indicates whether the cache file existed and
         could be read successfully.
     """
-    cache_file = Path(storage_path) / _REPORTED_DEVICES_CACHE_NAME
+    cache_file = _cache_file_path(storage_path, cache_key=cache_key)
     try:
         if not cache_file.exists():
             return False, set()
@@ -51,9 +60,10 @@ def save_reported_device_keys(
     keys: set[str],
     *,
     logger: logging.Logger,
+    cache_key: str | None = None,
 ) -> None:
     """Persist reported device keys to disk."""
-    cache_file = Path(storage_path) / _REPORTED_DEVICES_CACHE_NAME
+    cache_file = _cache_file_path(storage_path, cache_key=cache_key)
     try:
         cache_file.parent.mkdir(parents=True, exist_ok=True)
         cache_file.write_text(

@@ -309,20 +309,42 @@
     },
     "submit_anonymous_share": {
       "name": "提交匿名分享报告",
-      "description": "手动提交匿名设备分享报告。这会发送匿名的设备信息和错误报告，以帮助改进集成。"
+      "description": "手动提交匿名设备分享报告。这会发送匿名的设备信息和错误报告，以帮助改进集成。",
+      "fields": {
+        "entry_id": {
+          "name": "配置项 ID",
+          "description": "可选的配置项 ID，用于只提交该配置项范围内的匿名分享数据。"
+        }
+      }
     },
     "get_anonymous_share_report": {
       "name": "获取匿名分享报告",
-      "description": "预览将要提交的匿名分享报告数据。使用此功能查看将分享哪些信息。"
+      "description": "预览将要提交的匿名分享报告数据。使用此功能查看将分享哪些信息。",
+      "fields": {
+        "entry_id": {
+          "name": "配置项 ID",
+          "description": "可选的配置项 ID，用于只预览该配置项范围内的匿名分享报告。"
+        }
+      }
     },
     "get_developer_report": {
       "name": "获取开发者报告",
-      "description": "导出脱敏运行诊断报告，用于真实设备调试。包含 mesh 拓扑快照、最近命令轨迹和运行选项。"
+      "description": "导出脱敏运行诊断报告，用于真实设备调试。包含 mesh 拓扑快照、最近命令轨迹和运行选项。",
+      "fields": {
+        "entry_id": {
+          "name": "配置项 ID",
+          "description": "可选的配置项 ID，用于只导出该配置项范围内的开发者报告。"
+        }
+      }
     },
     "submit_developer_feedback": {
       "name": "提交开发者反馈",
       "description": "一键提交脱敏开发者诊断到 share worker，可附带备注便于排查。",
       "fields": {
+        "entry_id": {
+          "name": "配置项 ID",
+          "description": "可选的配置项 ID，用于只提交该配置项范围内的开发者诊断反馈。"
+        },
         "note": {
           "name": "备注",
           "description": "补充你在实测中观察到的现象。"

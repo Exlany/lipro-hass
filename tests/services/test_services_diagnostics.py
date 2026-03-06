@@ -11,10 +11,12 @@ from custom_components.lipro.core import LiproApiError
 from custom_components.lipro.services.diagnostics_service import (
     async_call_optional_capability,
     async_handle_get_city,
+    async_handle_get_developer_report,
     async_handle_submit_developer_feedback,
     collect_developer_reports,
 )
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import ServiceValidationError
 from tests.helpers.service_call import service_call
 
 
@@ -174,6 +176,7 @@ async def test_async_handle_submit_developer_feedback_no_active_entries() -> Non
         domain="lipro",
         service_submit_developer_feedback="submit_developer_feedback",
         attr_note="note",
+        attr_entry_id="entry_id",
         raise_service_error=raise_service_error,
     )
 
@@ -182,10 +185,87 @@ async def test_async_handle_submit_developer_feedback_no_active_entries() -> Non
         "message": "No active Lipro config entries",
         "submitted_entries": 0,
     }
-    collect_reports.assert_called_once_with(hass)
+    collect_reports.assert_called_once_with(hass, requested_entry_id=None)
     get_anonymous_share_manager.assert_not_called()
     get_client_session.assert_not_called()
     raise_service_error.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_async_handle_get_developer_report_forwards_entry_id() -> None:
+    """get_developer_report should scope collection when entry_id is provided."""
+    hass = cast(HomeAssistant, MagicMock())
+    call = service_call(hass, {"entry_id": "entry-2"})
+    collect_reports = MagicMock(return_value=[{"runtime": {"ok": True}}])
+
+    result = await async_handle_get_developer_report(
+        hass,
+        call,
+        collect_reports=collect_reports,
+        attr_entry_id="entry_id",
+    )
+
+    assert result == {
+        "entry_count": 1,
+        "reports": [{"runtime": {"ok": True}}],
+        "requested_entry_id": "entry-2",
+    }
+    collect_reports.assert_called_once_with(hass, requested_entry_id="entry-2")
+
+
+@pytest.mark.asyncio
+async def test_async_handle_submit_developer_feedback_forwards_entry_id() -> None:
+    """submit_developer_feedback should forward scoped entry_id to report collection and share manager."""
+    hass = cast(HomeAssistant, MagicMock())
+    call = service_call(hass, {"entry_id": "entry-2", "note": "manual run"})
+    collect_reports = MagicMock(return_value=[{"runtime": {"ok": True}}])
+    share_manager = MagicMock()
+    share_manager.submit_developer_feedback = AsyncMock(return_value=True)
+    get_anonymous_share_manager = MagicMock(return_value=share_manager)
+    session = MagicMock()
+    get_client_session = MagicMock(return_value=session)
+    raise_service_error = MagicMock()
+
+    result = await async_handle_submit_developer_feedback(
+        hass,
+        call,
+        collect_reports=collect_reports,
+        get_anonymous_share_manager=get_anonymous_share_manager,
+        get_client_session=get_client_session,
+        domain="lipro",
+        service_submit_developer_feedback="submit_developer_feedback",
+        attr_note="note",
+        attr_entry_id="entry_id",
+        raise_service_error=raise_service_error,
+    )
+
+    assert result == {
+        "success": True,
+        "submitted_entries": 1,
+        "requested_entry_id": "entry-2",
+    }
+    collect_reports.assert_called_once_with(hass, requested_entry_id="entry-2")
+    get_anonymous_share_manager.assert_called_once_with(hass, entry_id="entry-2")
+    share_manager.submit_developer_feedback.assert_awaited_once()
+    payload = share_manager.submit_developer_feedback.await_args.args[1]
+    assert payload["requested_entry_id"] == "entry-2"
+
+
+@pytest.mark.asyncio
+async def test_async_handle_get_developer_report_propagates_entry_validation() -> None:
+    """get_developer_report should surface entry validation errors from the collector."""
+    hass = cast(HomeAssistant, MagicMock())
+    collect_reports = MagicMock(
+        side_effect=ServiceValidationError(translation_domain="lipro", translation_key="entry_not_found")
+    )
+
+    with pytest.raises(ServiceValidationError):
+        await async_handle_get_developer_report(
+            hass,
+            service_call(hass, {"entry_id": "missing-entry"}),
+            collect_reports=collect_reports,
+            attr_entry_id="entry_id",
+        )
 
 
 @pytest.mark.asyncio

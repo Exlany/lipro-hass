@@ -29,6 +29,8 @@ from custom_components.lipro.const import (
     PROP_WAKE_UP_ENABLE,
     PROP_WIND_GEAR,
 )
+from custom_components.lipro.core import LiproApiError, LiproClient
+from custom_components.lipro.core.anonymous_share import manager as manager_module
 from custom_components.lipro.core.anonymous_share.capabilities import (
     detect_device_capabilities,
 )
@@ -49,6 +51,9 @@ from custom_components.lipro.core.anonymous_share.sanitize import (
     sanitize_properties,
     sanitize_string,
     sanitize_value,
+)
+from custom_components.lipro.core.api.observability import (
+    record_api_error as record_observed_api_error,
 )
 
 # ---------------------------------------------------------------------------
@@ -105,6 +110,7 @@ def _make_mock_device(
     device.is_switch = is_switch
     device.is_outlet = is_outlet
     device.has_gear_presets = has_gear_presets
+    device.has_unknown_physical_model = False
     device.category = MagicMock()
     device.category.value = "light"
     return device
@@ -974,3 +980,124 @@ class TestCapabilities:
             "switch",
         }
         assert expected.issubset(set(caps))
+
+
+class TestScopedAnonymousShareManager:
+    """Tests for scoped anonymous-share managers."""
+
+    def test_explicit_entry_scopes_do_not_pollute_each_other(self, monkeypatch):
+        monkeypatch.setattr(manager_module, "_share_manager", None)
+        hass = MagicMock()
+        hass.data = {}
+
+        entry_one_manager = get_anonymous_share_manager(hass, entry_id="entry-1")
+        entry_two_manager = get_anonymous_share_manager(hass, entry_id="entry-2")
+
+        entry_one_manager.set_enabled(True, installation_id="install-1")
+        entry_two_manager.set_enabled(True, installation_id="install-2")
+        entry_one_manager.record_device(_make_mock_device(iot_name="entry_one_light"))
+        entry_two_manager.record_api_error(
+            endpoint="/api/two", code=500, message="boom"
+        )
+
+        assert entry_one_manager._installation_id == "install-1"
+        assert entry_two_manager._installation_id == "install-2"
+        assert entry_one_manager.pending_count == (1, 0)
+        assert entry_two_manager.pending_count == (0, 1)
+
+        aggregate_manager = get_anonymous_share_manager(hass)
+        assert aggregate_manager.pending_count == (1, 1)
+        report = aggregate_manager.get_pending_report()
+        assert report is not None
+        assert report["device_count"] == 1
+        assert report["error_count"] == 1
+
+
+class TestObservabilityScope:
+    """Tests for observability routing into anonymous-share scopes."""
+
+    def test_default_observability_path_still_records_to_default_scope(
+        self, monkeypatch
+    ):
+        monkeypatch.setattr(manager_module, "_share_manager", None)
+        manager = get_anonymous_share_manager()
+        manager.set_enabled(True, error_reporting=True, installation_id="default")
+
+        record_observed_api_error("/api/default", 500, "fail", method="POST")
+
+        assert manager.pending_count == (0, 1)
+        report = manager.get_pending_report()
+        assert report is not None
+        assert report["errors"][0]["endpoint"] == "/api/default"
+
+    def test_observability_entry_scope_targets_matching_manager(self, monkeypatch):
+        monkeypatch.setattr(manager_module, "_share_manager", None)
+        hass = MagicMock()
+        hass.data = {}
+
+        entry_one_manager = get_anonymous_share_manager(hass, entry_id="entry-1")
+        entry_two_manager = get_anonymous_share_manager(hass, entry_id="entry-2")
+        entry_one_manager.set_enabled(True, error_reporting=True, installation_id="one")
+        entry_two_manager.set_enabled(True, error_reporting=True, installation_id="two")
+
+        record_observed_api_error(
+            "/api/two",
+            401,
+            "unauthorized",
+            method="POST",
+            entry_id="entry-2",
+        )
+
+        assert entry_one_manager.pending_count == (0, 0)
+        assert entry_two_manager.pending_count == (0, 1)
+
+
+class TestClientObservabilityScope:
+    """Tests for explicit entry routing from API client errors."""
+
+    @pytest.mark.asyncio
+    async def test_client_records_api_error_with_entry_scope(self, monkeypatch) -> None:
+        observed: dict[str, object] = {}
+
+        def _capture(
+            endpoint: str,
+            code: str | int,
+            message: str,
+            method: str = "",
+            *,
+            entry_id: str | None = None,
+        ) -> None:
+            observed.update(
+                {
+                    "endpoint": endpoint,
+                    "code": code,
+                    "message": message,
+                    "method": method,
+                    "entry_id": entry_id,
+                }
+            )
+
+        monkeypatch.setattr(
+            "custom_components.lipro.core.api.client_auth_recovery._record_api_error",
+            _capture,
+        )
+        client = LiproClient("550e8400-e29b-41d4-a716-446655440000", entry_id="entry-2")
+
+        with pytest.raises(LiproApiError, match="boom"):
+            await client._finalize_mapping_result(
+                path="/api/test",
+                result={"code": 500, "message": "boom"},
+                request_token=None,
+                is_retry=False,
+                retry_on_auth_error=False,
+                retry_request=None,
+                success_payload=lambda result: result,
+            )
+
+        assert observed == {
+            "endpoint": "/api/test",
+            "code": 500,
+            "message": "boom",
+            "method": "POST",
+            "entry_id": "entry-2",
+        }

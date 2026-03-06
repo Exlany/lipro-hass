@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from typing import Any, NoReturn
 
 from homeassistant.exceptions import HomeAssistantError
@@ -25,11 +26,15 @@ def raise_service_error(
     translation_key: str,
     *,
     err: Exception | None = None,
+    translation_placeholders: Mapping[str, str] | None = None,
 ) -> NoReturn:
     """Raise a translated HomeAssistantError, preserving original cause."""
     service_error = HomeAssistantError(
         translation_domain=DOMAIN,
         translation_key=translation_key,
+        translation_placeholders=(
+            dict(translation_placeholders) if translation_placeholders else None
+        ),
     )
     if err is not None:
         raise service_error from err

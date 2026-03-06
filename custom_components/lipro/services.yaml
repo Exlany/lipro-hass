@@ -162,25 +162,64 @@ submit_anonymous_share:
     Manually submit the anonymous device share report. This sends anonymized device
     information and error reports to help improve the integration. Anonymous share
     must be enabled in the integration options.
+  fields:
+    entry_id:
+      name: Entry ID (Optional)
+      description: >-
+        Restrict submission to one specific config entry. Leave empty to submit the
+        aggregate pending report across all loaded entries.
+      required: false
+      example: "c1f3d3d7c1b84d3ea2e6c9f5a1b2c3d4"
+      selector:
+        text:
 
 get_anonymous_share_report:
   name: Get Anonymous Share Report
   description: >-
     Preview the anonymous share report data that would be submitted. Use this to
     review what information will be shared before enabling anonymous share.
+  fields:
+    entry_id:
+      name: Entry ID (Optional)
+      description: >-
+        Preview one specific config entry report instead of the aggregate pending
+        report across all loaded entries.
+      required: false
+      example: "c1f3d3d7c1b84d3ea2e6c9f5a1b2c3d4"
+      selector:
+        text:
 
 get_developer_report:
   name: Get Developer Report
   description: >-
     Export a sanitized runtime diagnostics report for real-device debugging.
     Includes mesh topology snapshot, recent command traces, and runtime options.
+  fields:
+    entry_id:
+      name: Entry ID (Optional)
+      description: >-
+        Export diagnostics for one specific config entry. Leave empty to aggregate
+        all loaded Lipro entries.
+      required: false
+      example: "c1f3d3d7c1b84d3ea2e6c9f5a1b2c3d4"
+      selector:
+        text:
 
 submit_developer_feedback:
   name: Submit Developer Feedback
   description: >-
     One-click submit sanitized developer diagnostics to the share worker.
-    Optionally include a note for easier triage.
+    Optionally limit the upload to one config entry and include a note for easier triage.
   fields:
+    entry_id:
+      name: Entry ID (Optional)
+      description: >-
+        Submit diagnostics for one specific config entry. Leave empty to include all
+        loaded Lipro entries in one aggregate submission.
+      required: false
+      example: "c1f3d3d7c1b84d3ea2e6c9f5a1b2c3d4"
+      selector:
+        text:
     note:
       name: Note (Optional)
       description: >-

@@ -141,8 +141,43 @@ SERVICE_DELETE_SCHEDULES_SCHEMA = vol.Schema(
     },
 )
 
+SERVICE_SUBMIT_ANONYMOUS_SHARE_SCHEMA = vol.Schema(
+    {
+        vol.Optional(ATTR_ENTRY_ID): vol.All(
+            cv.string,
+            vol.Length(min=1, max=_MAX_ENTRY_ID_LEN),
+            vol.Match(_IDENTIFIER_PATTERN),
+        ),
+    },
+)
+
+SERVICE_GET_ANONYMOUS_SHARE_REPORT_SCHEMA = vol.Schema(
+    {
+        vol.Optional(ATTR_ENTRY_ID): vol.All(
+            cv.string,
+            vol.Length(min=1, max=_MAX_ENTRY_ID_LEN),
+            vol.Match(_IDENTIFIER_PATTERN),
+        ),
+    },
+)
+
+SERVICE_GET_DEVELOPER_REPORT_SCHEMA = vol.Schema(
+    {
+        vol.Optional(ATTR_ENTRY_ID): vol.All(
+            cv.string,
+            vol.Length(min=1, max=_MAX_ENTRY_ID_LEN),
+            vol.Match(_IDENTIFIER_PATTERN),
+        ),
+    },
+)
+
 SERVICE_SUBMIT_DEVELOPER_FEEDBACK_SCHEMA = vol.Schema(
     {
+        vol.Optional(ATTR_ENTRY_ID): vol.All(
+            cv.string,
+            vol.Length(min=1, max=_MAX_ENTRY_ID_LEN),
+            vol.Match(_IDENTIFIER_PATTERN),
+        ),
         vol.Optional(ATTR_NOTE): vol.All(cv.string, vol.Length(max=_MAX_NOTE_LEN)),
     },
 )

@@ -7,7 +7,10 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from custom_components.lipro.services.share import async_handle_submit_anonymous_share
+from custom_components.lipro.services.share import (
+    async_handle_get_anonymous_share_report,
+    async_handle_submit_anonymous_share,
+)
 from homeassistant.core import HomeAssistant
 from tests.helpers.service_call import service_call
 
@@ -28,10 +31,92 @@ async def test_async_handle_submit_anonymous_share_success_returns_counts() -> N
         get_client_session=MagicMock(return_value=object()),
         raise_service_error=MagicMock(),
         domain="lipro",
+        attr_entry_id="entry_id",
     )
 
     assert result == {
         "success": True,
         "devices": 2,
         "errors": 1,
+    }
+
+
+@pytest.mark.asyncio
+async def test_async_handle_submit_anonymous_share_forwards_entry_id() -> None:
+    hass = cast(HomeAssistant, MagicMock())
+
+    share_manager = MagicMock()
+    share_manager.is_enabled = True
+    share_manager.pending_count = (1, 0)
+    share_manager.submit_report = AsyncMock(return_value=True)
+    get_anonymous_share_manager = MagicMock(return_value=share_manager)
+
+    result = await async_handle_submit_anonymous_share(
+        hass,
+        service_call(hass, {"entry_id": "entry-2"}),
+        get_anonymous_share_manager=get_anonymous_share_manager,
+        get_client_session=MagicMock(return_value=object()),
+        raise_service_error=MagicMock(),
+        domain="lipro",
+        attr_entry_id="entry_id",
+    )
+
+    get_anonymous_share_manager.assert_called_once_with(hass, entry_id="entry-2")
+    assert result == {
+        "success": True,
+        "devices": 1,
+        "errors": 0,
+        "requested_entry_id": "entry-2",
+    }
+
+
+@pytest.mark.asyncio
+async def test_async_handle_get_anonymous_share_report_forwards_entry_id() -> None:
+    hass = cast(HomeAssistant, MagicMock())
+
+    share_manager = MagicMock()
+    share_manager.get_pending_report.return_value = {
+        "device_count": 1,
+        "error_count": 0,
+        "devices": [{"iot_name": "lipro_light"}],
+        "errors": [],
+    }
+    get_anonymous_share_manager = MagicMock(return_value=share_manager)
+
+    result = await async_handle_get_anonymous_share_report(
+        hass,
+        service_call(hass, {"entry_id": "entry-9"}),
+        get_anonymous_share_manager=get_anonymous_share_manager,
+        attr_entry_id="entry_id",
+    )
+
+    get_anonymous_share_manager.assert_called_once_with(hass, entry_id="entry-9")
+    assert result == {
+        "has_data": True,
+        "device_count": 1,
+        "error_count": 0,
+        "devices": [{"iot_name": "lipro_light"}],
+        "errors": [],
+        "requested_entry_id": "entry-9",
+    }
+
+
+@pytest.mark.asyncio
+async def test_async_handle_get_anonymous_share_report_without_data_returns_empty() -> None:
+    hass = cast(HomeAssistant, MagicMock())
+
+    share_manager = MagicMock()
+    share_manager.get_pending_report.return_value = None
+
+    result = await async_handle_get_anonymous_share_report(
+        hass,
+        service_call(hass, {}),
+        get_anonymous_share_manager=MagicMock(return_value=share_manager),
+        attr_entry_id="entry_id",
+    )
+
+    assert result == {
+        "has_data": False,
+        "devices": [],
+        "errors": [],
     }

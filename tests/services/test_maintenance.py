@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Coroutine
+from collections.abc import Callable, Coroutine
 from types import SimpleNamespace
 from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
@@ -146,7 +146,10 @@ def test_device_registry_listener_skips_entry_already_pending_reload() -> None:
 
     def _capture_task(coro: Coroutine[Any, Any, Any]) -> MagicMock:
         scheduled.append(coro)
-        return MagicMock()
+        task = MagicMock()
+        task.done.return_value = False
+        task.add_done_callback.return_value = None
+        return task
 
     hass.async_create_task = MagicMock(side_effect=_capture_task)
 
@@ -165,5 +168,119 @@ def test_device_registry_listener_skips_entry_already_pending_reload() -> None:
         callback(event)
 
     assert hass.async_create_task.call_count == 1
+    for coro in scheduled:
+        coro.close()
+
+
+def test_device_registry_listener_cancels_pending_reload_tasks_on_unsubscribe() -> None:
+    hass = MagicMock()
+    logger = MagicMock()
+    reload_entry = AsyncMock()
+    unsubscribe = MagicMock()
+    hass.bus.async_listen = MagicMock(return_value=unsubscribe)
+
+    device_entry = SimpleNamespace(
+        disabled_by="user",
+        identifiers={(DOMAIN, "03ab5ccd7c123456")},
+        config_entries=["lipro-entry"],
+    )
+    registry = MagicMock()
+    registry.async_get.return_value = device_entry
+    hass.config_entries.async_get_entry.return_value = SimpleNamespace(domain=DOMAIN)
+
+    scheduled: list[Coroutine[Any, Any, Any]] = []
+    task = MagicMock()
+    task.done.return_value = False
+
+    def _capture_task(coro: Coroutine[Any, Any, Any]) -> MagicMock:
+        scheduled.append(coro)
+        return task
+
+    hass.async_create_task = MagicMock(side_effect=_capture_task)
+
+    stop_listener = async_setup_device_registry_listener(
+        hass,
+        domain=DOMAIN,
+        logger=logger,
+        reload_entry=reload_entry,
+    )
+    callback = hass.bus.async_listen.call_args.args[1]
+
+    with patch(
+        "custom_components.lipro.services.maintenance.dr.async_get",
+        return_value=registry,
+    ):
+        callback(
+            SimpleNamespace(
+                data={
+                    "action": "update",
+                    "changes": {"disabled_by": None},
+                    "device_id": "dev-id",
+                }
+            )
+        )
+
+    stop_listener()
+
+    unsubscribe.assert_called_once_with()
+    task.cancel.assert_called_once_with()
+    for coro in scheduled:
+        coro.close()
+
+
+def test_device_registry_listener_clears_failed_reload_tasks() -> None:
+    hass = MagicMock()
+    logger = MagicMock()
+    reload_entry = AsyncMock()
+    hass.bus.async_listen = MagicMock(return_value=MagicMock())
+
+    device_entry = SimpleNamespace(
+        disabled_by="user",
+        identifiers={(DOMAIN, "03ab5ccd7c123456")},
+        config_entries=["lipro-entry"],
+    )
+    registry = MagicMock()
+    registry.async_get.return_value = device_entry
+    hass.config_entries.async_get_entry.return_value = SimpleNamespace(domain=DOMAIN)
+
+    done_callbacks: list[Callable[[Any], None]] = []
+    scheduled: list[Coroutine[Any, Any, Any]] = []
+    task = MagicMock()
+    task.done.return_value = False
+    task.cancelled.return_value = False
+    task.result.side_effect = RuntimeError("boom")
+    task.add_done_callback.side_effect = done_callbacks.append
+
+    def _capture_task(coro: Coroutine[Any, Any, Any]) -> MagicMock:
+        scheduled.append(coro)
+        return task
+
+    hass.async_create_task = MagicMock(side_effect=_capture_task)
+
+    async_setup_device_registry_listener(
+        hass,
+        domain=DOMAIN,
+        logger=logger,
+        reload_entry=reload_entry,
+    )
+    callback = hass.bus.async_listen.call_args.args[1]
+
+    with patch(
+        "custom_components.lipro.services.maintenance.dr.async_get",
+        return_value=registry,
+    ):
+        event = SimpleNamespace(
+            data={
+                "action": "update",
+                "changes": {"disabled_by": None},
+                "device_id": "dev-id",
+            }
+        )
+        callback(event)
+        done_callbacks[0](task)
+        callback(event)
+
+    assert hass.async_create_task.call_count == 2
+    logger.warning.assert_called_once()
     for coro in scheduled:
         coro.close()

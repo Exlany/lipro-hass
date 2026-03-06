@@ -15,12 +15,17 @@ integration. It is intended for contributors and people maintaining forks.
 
 `custom_components/lipro/`:
 
-- `__init__.py`: Integration setup, service wiring, platform forwarding.
+- `__init__.py`: Integration setup, platform forwarding, and thin orchestration.
+- `entry_auth.py`: Config-entry authentication setup, token persistence, and runtime-data cleanup helpers.
+- `entry_options.py`: Config-entry option snapshot helpers and reload-loop protection.
+- `runtime_infra.py`: Shared runtime infrastructure setup for services and the device-registry listener.
 - `config_flow.py`: UI config flow.
 - `core/`: Internal clients + domain helpers (see below).
 - `entities/`: Entity base classes / shared entity behavior.
 - `helpers/`: Home Assistant-facing platform setup helpers (entity builders/factories).
 - `services/`: Home Assistant service handlers.
+- `services/wiring.py`: Home Assistant-specific dependency wiring for service handlers.
+- `services/registrations.py`: Static service registration table mapping names/schemas to handlers.
 - `services/registry.py`: Declarative Home Assistant service registration helpers.
 - `services/contracts.py`: Service constants + voluptuous schemas (contract-only module).
 - `const/`: Constants (API paths, config keys, device mappings).

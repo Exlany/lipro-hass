@@ -234,7 +234,7 @@ async def async_get_config_entry_diagnostics(
     ]
 
     # Get anonymous share status
-    share_manager = get_anonymous_share_manager(hass)
+    share_manager = get_anonymous_share_manager(hass, entry_id=entry.entry_id)
     device_count, error_count = share_manager.pending_count
     anonymous_share_info = {
         "enabled": share_manager.is_enabled,

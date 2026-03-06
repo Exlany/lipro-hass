@@ -343,8 +343,7 @@ async def test_update_entity_shared_ota_rows_cache_enforces_hard_size_cap(
     await entity.async_update()
 
     assert (
-        len(rows_cache._OTA_ROWS_CACHE)
-        == rows_cache.OTA_SHARED_ROWS_CACHE_MAX_ENTRIES
+        len(rows_cache._OTA_ROWS_CACHE) == rows_cache.OTA_SHARED_ROWS_CACHE_MAX_ENTRIES
     )
     assert entity._ota_rows_cache_key() in rows_cache._OTA_ROWS_CACHE
 

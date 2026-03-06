@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import asyncio
 from collections.abc import Awaitable, Callable
+import functools
 from typing import Any
 
 from homeassistant.core import (
@@ -109,14 +111,26 @@ def async_setup_device_registry_listener(
     reload_entry: Callable[[str], Awaitable[Any]],
 ) -> CALLBACK_TYPE:
     """Listen for Lipro device registry disable/enable changes and reload entries."""
-    pending_reload_entry_ids: set[str] = set()
+    pending_reload_tasks: dict[str, asyncio.Task[Any]] = {}
 
     async def _async_reload_entry(entry_id: str) -> None:
-        """Reload one config entry and clear pending mark afterwards."""
+        """Reload one config entry."""
+        await reload_entry(entry_id)
+
+    def _handle_reload_task_done(entry_id: str, task: asyncio.Task[Any]) -> None:
+        """Clear bookkeeping and surface task failures without leaking tasks."""
+        pending_reload_tasks.pop(entry_id, None)
+        if task.cancelled():
+            return
+
         try:
-            await reload_entry(entry_id)
-        finally:
-            pending_reload_entry_ids.discard(entry_id)
+            task.result()
+        except Exception as err:  # noqa: BLE001
+            logger.warning(
+                "Config entry reload failed after device registry update (%s, %s)",
+                entry_id,
+                type(err).__name__,
+            )
 
     @callback
     def _async_handle_device_registry_updated(
@@ -138,7 +152,8 @@ def async_setup_device_registry_listener(
         device_registry = dr.async_get(hass)
         device_entry = device_registry.async_get(device_id)
         if device_entry is None or not _is_lipro_device_entry(
-            device_entry, domain=domain
+            device_entry,
+            domain=domain,
         ):
             return
 
@@ -152,17 +167,34 @@ def async_setup_device_registry_listener(
             domain=domain,
             device_entry=device_entry,
         ):
-            if entry_id in pending_reload_entry_ids:
+            current_task = pending_reload_tasks.get(entry_id)
+            if current_task is not None and not current_task.done():
                 continue
-            pending_reload_entry_ids.add(entry_id)
+
             logger.info(
                 "Device registry disabled state changed for %s, scheduling entry reload (%s)",
                 _redact_identifier(device_id),
                 entry_id,
             )
-            hass.async_create_task(_async_reload_entry(entry_id))
+            task = hass.async_create_task(_async_reload_entry(entry_id))
+            pending_reload_tasks[entry_id] = task
 
-    return hass.bus.async_listen(
+            task.add_done_callback(
+                functools.partial(_handle_reload_task_done, entry_id)
+            )
+
+    unsubscribe = hass.bus.async_listen(
         dr.EVENT_DEVICE_REGISTRY_UPDATED,
         _async_handle_device_registry_updated,
     )
+
+    @callback
+    def _unsubscribe_listener() -> None:
+        """Stop listening and cancel pending reload tasks."""
+        unsubscribe()
+        for task in tuple(pending_reload_tasks.values()):
+            if not task.done():
+                task.cancel()
+        pending_reload_tasks.clear()
+
+    return _unsubscribe_listener

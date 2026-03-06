@@ -18,10 +18,10 @@ import voluptuous as vol
 from custom_components.lipro import (
     PLATFORMS,
     _async_ensure_runtime_infra,
-    _async_remove_device_registry_listener,
     _async_setup_device_registry_listener,
     _build_entry_auth_context,
     _persist_entry_tokens_if_changed,
+    _remove_device_registry_listener,
     async_reload_entry,
     async_setup,
     async_setup_entry,
@@ -67,8 +67,10 @@ from custom_components.lipro.services.contracts import (
     SERVICE_FETCH_DOOR_SENSOR_HISTORY,
     SERVICE_FETCH_SENSOR_HISTORY_SCHEMA,
     SERVICE_GET_ANONYMOUS_SHARE_REPORT,
+    SERVICE_GET_ANONYMOUS_SHARE_REPORT_SCHEMA,
     SERVICE_GET_CITY,
     SERVICE_GET_DEVELOPER_REPORT,
+    SERVICE_GET_DEVELOPER_REPORT_SCHEMA,
     SERVICE_GET_SCHEDULES,
     SERVICE_GET_SCHEDULES_SCHEMA,
     SERVICE_QUERY_COMMAND_RESULT,
@@ -78,10 +80,11 @@ from custom_components.lipro.services.contracts import (
     SERVICE_SEND_COMMAND,
     SERVICE_SEND_COMMAND_SCHEMA,
     SERVICE_SUBMIT_ANONYMOUS_SHARE,
+    SERVICE_SUBMIT_ANONYMOUS_SHARE_SCHEMA,
     SERVICE_SUBMIT_DEVELOPER_FEEDBACK,
     SERVICE_SUBMIT_DEVELOPER_FEEDBACK_SCHEMA,
 )
-from custom_components.lipro.services.entrypoints import (
+from custom_components.lipro.services.wiring import (
     _async_handle_add_schedule,
     _async_handle_delete_schedules,
     _async_handle_fetch_body_sensor_history,
@@ -367,9 +370,29 @@ class TestSchemaStructure:
         assert ATTR_SCHEDULE_IDS in keys
         assert keys[ATTR_SCHEDULE_IDS] is True  # required
 
+    def test_submit_anonymous_share_schema_keys(self):
+        """Test submit_anonymous_share schema has expected keys."""
+        keys = self._get_schema_keys(SERVICE_SUBMIT_ANONYMOUS_SHARE_SCHEMA)
+        assert ATTR_ENTRY_ID in keys
+        assert keys[ATTR_ENTRY_ID] is False
+
+    def test_get_anonymous_share_report_schema_keys(self):
+        """Test get_anonymous_share_report schema has expected keys."""
+        keys = self._get_schema_keys(SERVICE_GET_ANONYMOUS_SHARE_REPORT_SCHEMA)
+        assert ATTR_ENTRY_ID in keys
+        assert keys[ATTR_ENTRY_ID] is False
+
+    def test_get_developer_report_schema_keys(self):
+        """Test get_developer_report schema has expected keys."""
+        keys = self._get_schema_keys(SERVICE_GET_DEVELOPER_REPORT_SCHEMA)
+        assert ATTR_ENTRY_ID in keys
+        assert keys[ATTR_ENTRY_ID] is False
+
     def test_submit_developer_feedback_schema_keys(self):
         """Test submit_developer_feedback schema has expected keys."""
         keys = self._get_schema_keys(SERVICE_SUBMIT_DEVELOPER_FEEDBACK_SCHEMA)
+        assert ATTR_ENTRY_ID in keys
+        assert keys[ATTR_ENTRY_ID] is False
         assert ATTR_NOTE in keys
         assert keys[ATTR_NOTE] is False
 
@@ -534,6 +557,25 @@ class TestSchemaValidation:
         )
         assert result["note"] == "group command delayed in app"
 
+    def test_submit_developer_feedback_valid_with_entry_id(self):
+        """Test submit_developer_feedback schema accepts optional entry_id."""
+        result = SERVICE_SUBMIT_DEVELOPER_FEEDBACK_SCHEMA(
+            {"entry_id": "abc123_entry", "note": "group command delayed in app"}
+        )
+        assert result["entry_id"] == "abc123_entry"
+        assert result["note"] == "group command delayed in app"
+
+    def test_get_developer_report_schema_validation(self):
+        """Test get_developer_report schema validates optional entry_id."""
+        result = SERVICE_GET_DEVELOPER_REPORT_SCHEMA({})
+        assert isinstance(result, dict)
+
+        result = SERVICE_GET_DEVELOPER_REPORT_SCHEMA({"entry_id": "abc123_entry"})
+        assert result["entry_id"] == "abc123_entry"
+
+        with pytest.raises(vol.MultipleInvalid):
+            SERVICE_GET_DEVELOPER_REPORT_SCHEMA({"entry_id": "bad.entry"})
+
     def test_query_command_result_schema_validation(self):
         """Test query_command_result schema requires msg_sn."""
         result = SERVICE_QUERY_COMMAND_RESULT_SCHEMA({"msg_sn": "123"})
@@ -558,6 +600,28 @@ class TestSchemaValidation:
             SERVICE_FETCH_SENSOR_HISTORY_SCHEMA(
                 {"sensor_device_id": "03ab5ccd7caaaaaa", "mesh_type": "3"}
             )
+
+    def test_submit_anonymous_share_schema_validation(self):
+        """Test submit_anonymous_share schema validates optional entry_id."""
+        result = SERVICE_SUBMIT_ANONYMOUS_SHARE_SCHEMA({})
+        assert isinstance(result, dict)
+
+        result = SERVICE_SUBMIT_ANONYMOUS_SHARE_SCHEMA({"entry_id": "abc123_entry"})
+        assert result["entry_id"] == "abc123_entry"
+
+        with pytest.raises(vol.MultipleInvalid):
+            SERVICE_SUBMIT_ANONYMOUS_SHARE_SCHEMA({"entry_id": "bad.entry"})
+
+    def test_get_anonymous_share_report_schema_validation(self):
+        """Test get_anonymous_share_report schema validates optional entry_id."""
+        result = SERVICE_GET_ANONYMOUS_SHARE_REPORT_SCHEMA({})
+        assert isinstance(result, dict)
+
+        result = SERVICE_GET_ANONYMOUS_SHARE_REPORT_SCHEMA({"entry_id": "abc123_entry"})
+        assert result["entry_id"] == "abc123_entry"
+
+        with pytest.raises(vol.MultipleInvalid):
+            SERVICE_GET_ANONYMOUS_SHARE_REPORT_SCHEMA({"entry_id": "bad.entry"})
 
     def test_refresh_devices_schema_validation(self):
         """Test refresh_devices schema validates optional entry_id."""
@@ -734,7 +798,7 @@ class TestInitRuntimeBehavior:
         """Listener helpers should no-op when hass.data[DOMAIN] is corrupted."""
         hass.data[DOMAIN] = "not-a-dict"
         _async_setup_device_registry_listener(hass)
-        _async_remove_device_registry_listener(hass)
+        _remove_device_registry_listener(hass)
 
     def test_persist_entry_tokens_skips_when_tokens_missing(self, hass) -> None:
         """Token persistence should not update entry when auth data is incomplete."""
@@ -1082,7 +1146,7 @@ class TestInitRuntimeBehavior:
             ),
             patch("custom_components.lipro._remove_services") as mock_remove_services,
             patch(
-                "custom_components.lipro._async_remove_device_registry_listener"
+                "custom_components.lipro._remove_device_registry_listener"
             ) as mock_remove_listener,
         ):
             assert await async_unload_entry(hass, entry) is True
@@ -1491,7 +1555,7 @@ class TestInitRuntimeBehavior:
 
         with (
             patch(
-                "custom_components.lipro.services.entrypoints.get_anonymous_share_manager",
+                "custom_components.lipro.services.wiring.get_anonymous_share_manager",
                 return_value=share_manager,
             ),
             pytest.raises(ServiceValidationError),
@@ -1510,7 +1574,7 @@ class TestInitRuntimeBehavior:
         share_manager.get_pending_report.return_value = report
 
         with patch(
-            "custom_components.lipro.services.entrypoints.get_anonymous_share_manager",
+            "custom_components.lipro.services.wiring.get_anonymous_share_manager",
             return_value=share_manager,
         ):
             result = await _async_handle_get_anonymous_share_report(
@@ -1523,6 +1587,59 @@ class TestInitRuntimeBehavior:
             "error_count": 2,
             "devices": ["a"],
             "errors": ["b"],
+        }
+
+    async def test_submit_anonymous_share_forwards_entry_id(self, hass) -> None:
+        """submit_anonymous_share targets one scoped manager when entry_id is provided."""
+        share_manager = MagicMock()
+        share_manager.is_enabled = True
+        share_manager.pending_count = (1, 0)
+        share_manager.submit_report = AsyncMock(return_value=True)
+
+        with patch(
+            "custom_components.lipro.services.wiring.get_anonymous_share_manager",
+            return_value=share_manager,
+        ) as get_share_manager:
+            result = await _async_handle_submit_anonymous_share(
+                hass,
+                service_call(hass, {ATTR_ENTRY_ID: "entry-2"}),
+            )
+
+        get_share_manager.assert_called_once_with(hass, entry_id="entry-2")
+        assert result == {
+            "success": True,
+            "devices": 1,
+            "errors": 0,
+            "requested_entry_id": "entry-2",
+        }
+
+    async def test_get_anonymous_share_report_forwards_entry_id(self, hass) -> None:
+        """get_anonymous_share_report targets one scoped manager when entry_id is provided."""
+        share_manager = MagicMock()
+        share_manager.get_pending_report.return_value = {
+            "device_count": 1,
+            "error_count": 0,
+            "devices": ["a"],
+            "errors": [],
+        }
+
+        with patch(
+            "custom_components.lipro.services.wiring.get_anonymous_share_manager",
+            return_value=share_manager,
+        ) as get_share_manager:
+            result = await _async_handle_get_anonymous_share_report(
+                hass,
+                service_call(hass, {ATTR_ENTRY_ID: "entry-3"}),
+            )
+
+        get_share_manager.assert_called_once_with(hass, entry_id="entry-3")
+        assert result == {
+            "has_data": True,
+            "device_count": 1,
+            "error_count": 0,
+            "devices": ["a"],
+            "errors": [],
+            "requested_entry_id": "entry-3",
         }
 
     async def test_get_developer_report_returns_entry_reports(self, hass) -> None:
@@ -1541,6 +1658,34 @@ class TestInitRuntimeBehavior:
             "reports": [{"debug_mode": True}],
         }
         coordinator.build_developer_report.assert_called_once()
+
+    async def test_get_developer_report_filters_by_entry_id(self, hass) -> None:
+        """get_developer_report scopes diagnostics to one requested config entry."""
+        first = MagicMock()
+        first.build_developer_report.return_value = {"debug_mode": True}
+        second = MagicMock()
+        second.build_developer_report.return_value = {"debug_mode": False}
+
+        entry_1 = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry_1.add_to_hass(hass)
+        entry_1.runtime_data = first
+
+        entry_2 = MockConfigEntry(domain=DOMAIN, data={"phone": "13900000000"})
+        entry_2.add_to_hass(hass)
+        entry_2.runtime_data = second
+
+        result = await _async_handle_get_developer_report(
+            hass,
+            service_call(hass, {ATTR_ENTRY_ID: entry_2.entry_id}),
+        )
+
+        assert result == {
+            "entry_count": 1,
+            "reports": [{"debug_mode": False}],
+            "requested_entry_id": entry_2.entry_id,
+        }
+        first.build_developer_report.assert_not_called()
+        second.build_developer_report.assert_called_once()
 
     async def test_get_developer_report_skips_broken_entry(self, hass) -> None:
         """get_developer_report should skip one broken coordinator report."""
@@ -1719,7 +1864,7 @@ class TestInitRuntimeBehavior:
         )
 
     async def test_submit_developer_feedback_success(self, hass) -> None:
-        """submit_developer_feedback uploads report to share worker."""
+        """submit_developer_feedback uploads one scoped report when entry_id is provided."""
         coordinator = MagicMock()
         coordinator.build_developer_report.return_value = {"runtime": {"ok": True}}
 
@@ -1732,20 +1877,28 @@ class TestInitRuntimeBehavior:
 
         with (
             patch(
-                "custom_components.lipro.services.entrypoints.get_anonymous_share_manager",
+                "custom_components.lipro.services.wiring.get_anonymous_share_manager",
                 return_value=share_manager,
-            ),
+            ) as get_share_manager,
             patch(
-                "custom_components.lipro.async_get_clientsession",
+                "custom_components.lipro.services.wiring.async_get_clientsession",
                 return_value=MagicMock(),
             ),
         ):
             result = await _async_handle_submit_developer_feedback(
-                hass, service_call(hass, {"note": "manual validation run"})
+                hass,
+                service_call(
+                    hass,
+                    {ATTR_ENTRY_ID: entry.entry_id, "note": "manual validation run"},
+                ),
             )
 
-        assert result["success"] is True
-        assert result["submitted_entries"] == 1
+        assert result == {
+            "success": True,
+            "submitted_entries": 1,
+            "requested_entry_id": entry.entry_id,
+        }
+        get_share_manager.assert_called_once_with(hass, entry_id=entry.entry_id)
         share_manager.submit_developer_feedback.assert_awaited_once()
 
     async def test_submit_developer_feedback_failure_raises(self, hass) -> None:
@@ -1762,11 +1915,11 @@ class TestInitRuntimeBehavior:
 
         with (
             patch(
-                "custom_components.lipro.services.entrypoints.get_anonymous_share_manager",
+                "custom_components.lipro.services.wiring.get_anonymous_share_manager",
                 return_value=share_manager,
             ),
             patch(
-                "custom_components.lipro.async_get_clientsession",
+                "custom_components.lipro.services.wiring.async_get_clientsession",
                 return_value=MagicMock(),
             ),
             pytest.raises(HomeAssistantError),
@@ -2384,7 +2537,7 @@ class TestInitRuntimeBehavior:
         share_manager.pending_count = (0, 0)
 
         with patch(
-            "custom_components.lipro.services.entrypoints.get_anonymous_share_manager",
+            "custom_components.lipro.services.wiring.get_anonymous_share_manager",
             return_value=share_manager,
         ):
             result = await _async_handle_submit_anonymous_share(
@@ -2407,7 +2560,7 @@ class TestInitRuntimeBehavior:
 
         with (
             patch(
-                "custom_components.lipro.services.entrypoints.get_anonymous_share_manager",
+                "custom_components.lipro.services.wiring.get_anonymous_share_manager",
                 return_value=share_manager,
             ),
             pytest.raises(HomeAssistantError),
@@ -2420,7 +2573,7 @@ class TestInitRuntimeBehavior:
         share_manager.get_pending_report.return_value = None
 
         with patch(
-            "custom_components.lipro.services.entrypoints.get_anonymous_share_manager",
+            "custom_components.lipro.services.wiring.get_anonymous_share_manager",
             return_value=share_manager,
         ):
             result = await _async_handle_get_anonymous_share_report(

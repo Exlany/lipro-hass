@@ -309,7 +309,10 @@ class _CoordinatorStateMixin(_DeviceRefreshMixin):
 
     def _get_anonymous_share_manager(self) -> AnonymousShareManager:
         """Return the anonymous share manager (patched in tests via this module)."""
-        return get_anonymous_share_manager(self.hass)
+        return get_anonymous_share_manager(
+            self.hass,
+            entry_id=self.config_entry.entry_id if self.config_entry else None,
+        )
 
     # ---------------------------------------------------------------------
     # Basic accessors

@@ -231,6 +231,7 @@ class TestAsyncGetConfigEntryDiagnostics:
         coordinator.mqtt_connected = True
 
         entry = MagicMock()
+        entry.entry_id = "entry-1"
         entry.runtime_data = coordinator
         entry.title = "Lipro (13800000000)"
         entry.data = {
@@ -249,8 +250,10 @@ class TestAsyncGetConfigEntryDiagnostics:
         with patch(
             "custom_components.lipro.diagnostics.get_anonymous_share_manager",
             return_value=share_manager,
-        ):
+        ) as get_share_manager:
             result = await async_get_config_entry_diagnostics(hass, entry)
+
+        get_share_manager.assert_called_once_with(hass, entry_id="entry-1")
 
         assert result["entry"]["title"] == "Lipro (138****0000)"
         assert result["entry"]["data"]["phone"] == "**REDACTED**"
@@ -377,6 +380,7 @@ class TestAsyncGetConfigEntryDiagnostics:
         coordinator.mqtt_connected = True
 
         entry = MagicMock()
+        entry.entry_id = "entry-1"
         entry.runtime_data = coordinator
         entry.title = "Lipro (13800000000)"
         entry.data = {
@@ -492,6 +496,7 @@ class TestAsyncGetDeviceDiagnostics:
         coordinator.mqtt_connected = True
 
         entry = MagicMock()
+        entry.entry_id = "entry-1"
         entry.runtime_data = coordinator
         entry.title = "Lipro (13800000000)"
         entry.data = {
@@ -523,6 +528,7 @@ class TestAsyncGetDeviceDiagnostics:
         coordinator.get_device = MagicMock(return_value=None)
 
         entry = MagicMock()
+        entry.entry_id = "entry-1"
         entry.runtime_data = coordinator
         entry.title = "Lipro (13800000000)"
         entry.data = {}
@@ -542,6 +548,7 @@ class TestAsyncGetDeviceDiagnostics:
         coordinator.get_device = MagicMock(return_value=None)
 
         entry = MagicMock()
+        entry.entry_id = "entry-1"
         entry.runtime_data = coordinator
         entry.title = "Lipro (13800000000)"
         entry.data = {}
