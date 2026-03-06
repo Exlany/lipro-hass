@@ -454,7 +454,6 @@ class AnonymousShareManager:
 _share_manager: AnonymousShareManager | None = None
 
 
-
 def _get_root_manager() -> AnonymousShareManager:
     global _share_manager  # noqa: PLW0603
     if _share_manager is None:

@@ -268,7 +268,10 @@ async def async_handle_get_city(
     """Handle get_city service."""
     del call
     has_result, result, last_err = await _async_get_first_coordinator_capability_result(
-        (cast(DiagnosticsCoordinator, coordinator) for coordinator in iter_runtime_coordinators(hass)),
+        (
+            cast(DiagnosticsCoordinator, coordinator)
+            for coordinator in iter_runtime_coordinators(hass)
+        ),
         capability="get_city",
         collector=lambda coordinator: coordinator.client.get_city(),
     )
@@ -289,7 +292,9 @@ async def _async_handle_fetch_sensor_history(
     attr_sensor_device_id: str,
     attr_mesh_type: str,
     service_name: str,
-    get_client_method: Callable[[DiagnosticsCoordinator], Callable[..., Awaitable[Any]]],
+    get_client_method: Callable[
+        [DiagnosticsCoordinator], Callable[..., Awaitable[Any]]
+    ],
 ) -> dict[str, Any]:
     """Shared handler for sensor-history diagnostics services."""
     raw_device, raw_coordinator = await get_device_and_coordinator(hass, call)
@@ -335,7 +340,9 @@ async def async_handle_fetch_body_sensor_history(
         attr_sensor_device_id=attr_sensor_device_id,
         attr_mesh_type=attr_mesh_type,
         service_name=service_fetch_body_sensor_history,
-        get_client_method=lambda coordinator: coordinator.client.fetch_body_sensor_history,
+        get_client_method=lambda coordinator: (
+            coordinator.client.fetch_body_sensor_history
+        ),
     )
 
 
@@ -360,5 +367,7 @@ async def async_handle_fetch_door_sensor_history(
         attr_sensor_device_id=attr_sensor_device_id,
         attr_mesh_type=attr_mesh_type,
         service_name=service_fetch_door_sensor_history,
-        get_client_method=lambda coordinator: coordinator.client.fetch_door_sensor_history,
+        get_client_method=lambda coordinator: (
+            coordinator.client.fetch_door_sensor_history
+        ),
     )

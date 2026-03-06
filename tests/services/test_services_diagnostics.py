@@ -256,7 +256,9 @@ async def test_async_handle_get_developer_report_propagates_entry_validation() -
     """get_developer_report should surface entry validation errors from the collector."""
     hass = cast(HomeAssistant, MagicMock())
     collect_reports = MagicMock(
-        side_effect=ServiceValidationError(translation_domain="lipro", translation_key="entry_not_found")
+        side_effect=ServiceValidationError(
+            translation_domain="lipro", translation_key="entry_not_found"
+        )
     )
 
     with pytest.raises(ServiceValidationError):

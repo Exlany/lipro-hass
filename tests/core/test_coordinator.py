@@ -2487,7 +2487,9 @@ class TestCoordinatorStatusQueriesAndNotifications:
         coordinator._group_ids_to_query = ["mesh_group_1"]
         coordinator._outlet_ids_to_query = []
         coordinator._power_monitoring_enabled = False
-        coordinator._query_device_status = AsyncMock(side_effect=LiproApiError("boom", 500))
+        coordinator._query_device_status = AsyncMock(
+            side_effect=LiproApiError("boom", 500)
+        )
         coordinator._query_group_status = AsyncMock(side_effect=_slow_group_status)
 
         with pytest.raises(LiproApiError):

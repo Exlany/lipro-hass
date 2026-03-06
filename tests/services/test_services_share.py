@@ -102,7 +102,9 @@ async def test_async_handle_get_anonymous_share_report_forwards_entry_id() -> No
 
 
 @pytest.mark.asyncio
-async def test_async_handle_get_anonymous_share_report_without_data_returns_empty() -> None:
+async def test_async_handle_get_anonymous_share_report_without_data_returns_empty() -> (
+    None
+):
     hass = cast(HomeAssistant, MagicMock())
 
     share_manager = MagicMock()
