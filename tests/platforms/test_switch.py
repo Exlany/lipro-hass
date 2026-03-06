@@ -35,7 +35,7 @@ class TestLiproSwitchCommands:
 
     def test_command_constants(self):
         """Test command constants are defined."""
-        from custom_components.lipro.const import (
+        from custom_components.lipro.const.properties import (
             CMD_POWER_OFF,
             CMD_POWER_ON,
             PROP_POWER_STATE,
@@ -170,7 +170,7 @@ class TestSwitchDeviceTypes:
 
     def test_device_type_outlet(self):
         """Test outlet device type constant."""
-        from custom_components.lipro.const import DEVICE_TYPE_OUTLET
+        from custom_components.lipro.const.device_types import DEVICE_TYPE_OUTLET
 
         assert DEVICE_TYPE_OUTLET == "ff000006"
 
@@ -185,7 +185,7 @@ class TestSwitchPropertyConstants:
 
     def test_property_constants(self):
         """Test property constants are defined."""
-        from custom_components.lipro.const import (
+        from custom_components.lipro.const.properties import (
             PROP_BODY_REACTIVE,
             PROP_FADE_STATE,
             PROP_FOCUS_MODE,

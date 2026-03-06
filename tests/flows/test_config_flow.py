@@ -16,7 +16,9 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 import voluptuous as vol
 
 from custom_components.lipro.config_flow import LiproConfigFlow
-from custom_components.lipro.const import (
+from custom_components.lipro.const.base import DOMAIN
+from custom_components.lipro.const.config import (
+    CONF_COMMAND_RESULT_VERIFY,
     CONF_DEBUG_MODE,
     CONF_DEVICE_FILTER_DID_LIST,
     CONF_DEVICE_FILTER_DID_MODE,
@@ -35,10 +37,6 @@ from custom_components.lipro.const import (
     DEVICE_FILTER_MODE_EXCLUDE,
     DEVICE_FILTER_MODE_INCLUDE,
     DEVICE_FILTER_MODE_OFF,
-    DOMAIN,
-)
-from custom_components.lipro.const.config import (
-    CONF_COMMAND_RESULT_VERIFY,
     MAX_DEVICE_FILTER_LIST_CHARS,
 )
 from custom_components.lipro.core.api import LiproApiError, LiproAuthError

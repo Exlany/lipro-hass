@@ -9,6 +9,7 @@ Tests cover:
 
 from __future__ import annotations
 
+import logging
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -17,17 +18,13 @@ import voluptuous as vol
 
 from custom_components.lipro import (
     PLATFORMS,
-    _async_ensure_runtime_infra,
-    _async_setup_device_registry_listener,
-    _build_entry_auth_context,
-    _persist_entry_tokens_if_changed,
-    _remove_device_registry_listener,
     async_reload_entry,
     async_setup,
     async_setup_entry,
     async_unload_entry,
 )
-from custom_components.lipro.const import (
+from custom_components.lipro.const.base import DOMAIN
+from custom_components.lipro.const.config import (
     CONF_ACCESS_TOKEN,
     CONF_EXPIRES_AT,
     CONF_PASSWORD_HASH,
@@ -37,15 +34,25 @@ from custom_components.lipro.const import (
     CONF_REQUEST_TIMEOUT,
     CONF_SCAN_INTERVAL,
     DEFAULT_REQUEST_TIMEOUT,
-    DOMAIN,
     MAX_SCAN_INTERVAL,
 )
 from custom_components.lipro.core import (
     LiproApiError,
     LiproAuthError,
+    LiproAuthManager,
+    LiproClient,
     LiproConnectionError,
 )
 from custom_components.lipro.core.device import LiproDevice
+from custom_components.lipro.entry_auth import (
+    build_entry_auth_context,
+    persist_entry_tokens_if_changed,
+)
+from custom_components.lipro.runtime_infra import (
+    async_ensure_runtime_infra,
+    remove_device_registry_listener,
+    setup_device_registry_listener,
+)
 from custom_components.lipro.services.contracts import (
     ATTR_COMMAND,
     ATTR_DAYS,
@@ -110,6 +117,8 @@ from homeassistant.exceptions import (
 )
 from homeassistant.helpers import device_registry as dr, entity_registry as er
 from tests.helpers.service_call import service_call
+
+_TEST_LOGGER = logging.getLogger(__name__)
 
 
 class TestPlatforms:
@@ -755,7 +764,14 @@ class TestInitRuntimeBehavior:
         )
 
         with pytest.raises(ConfigEntryAuthFailed):
-            _build_entry_auth_context(hass, entry)
+            build_entry_auth_context(
+                hass,
+                entry,
+                get_client_session=lambda _: MagicMock(),
+                client_factory=LiproClient,
+                auth_manager_factory=LiproAuthManager,
+                logger=_TEST_LOGGER,
+            )
 
     def test_build_entry_auth_context_missing_phone_raises(self, hass) -> None:
         """Missing phone in entry.data should raise ConfigEntryAuthFailed."""
@@ -767,7 +783,14 @@ class TestInitRuntimeBehavior:
         )
 
         with pytest.raises(ConfigEntryAuthFailed):
-            _build_entry_auth_context(hass, entry)
+            build_entry_auth_context(
+                hass,
+                entry,
+                get_client_session=lambda _: MagicMock(),
+                client_factory=LiproClient,
+                auth_manager_factory=LiproAuthManager,
+                logger=_TEST_LOGGER,
+            )
 
     async def test_async_ensure_runtime_infra_handles_corrupt_domain_data(
         self,
@@ -779,14 +802,11 @@ class TestInitRuntimeBehavior:
         mock_setup_services = AsyncMock()
         mock_setup_listener = MagicMock()
 
-        with (
-            patch("custom_components.lipro._async_setup_services", mock_setup_services),
-            patch(
-                "custom_components.lipro._async_setup_device_registry_listener",
-                mock_setup_listener,
-            ),
-        ):
-            await _async_ensure_runtime_infra(hass)
+        await async_ensure_runtime_infra(
+            hass,
+            setup_services=mock_setup_services,
+            setup_device_registry_listener=mock_setup_listener,
+        )
 
         mock_setup_services.assert_awaited_once()
         mock_setup_listener.assert_called_once()
@@ -797,8 +817,8 @@ class TestInitRuntimeBehavior:
     ) -> None:
         """Listener helpers should no-op when hass.data[DOMAIN] is corrupted."""
         hass.data[DOMAIN] = "not-a-dict"
-        _async_setup_device_registry_listener(hass)
-        _remove_device_registry_listener(hass)
+        setup_device_registry_listener(hass, logger=_TEST_LOGGER)
+        remove_device_registry_listener(hass)
 
     def test_persist_entry_tokens_skips_when_tokens_missing(self, hass) -> None:
         """Token persistence should not update entry when auth data is incomplete."""
@@ -815,7 +835,7 @@ class TestInitRuntimeBehavior:
         mock_auth.get_auth_data.return_value = {}
 
         with patch.object(hass.config_entries, "async_update_entry") as mock_update:
-            _persist_entry_tokens_if_changed(hass, entry, mock_auth)
+            persist_entry_tokens_if_changed(hass, entry, mock_auth)
 
         mock_update.assert_not_called()
 
@@ -1142,12 +1162,10 @@ class TestInitRuntimeBehavior:
                 AsyncMock(return_value=True),
             ),
             patch(
-                "custom_components.lipro._has_other_runtime_entries", return_value=False
+                "custom_components.lipro.has_other_runtime_entries", return_value=False
             ),
-            patch("custom_components.lipro._remove_services") as mock_remove_services,
-            patch(
-                "custom_components.lipro._remove_device_registry_listener"
-            ) as mock_remove_listener,
+            patch("custom_components.lipro.remove_services") as mock_remove_services,
+            patch("custom_components.lipro.remove_device_registry_listener") as mock_remove_listener,
         ):
             assert await async_unload_entry(hass, entry) is True
 

@@ -50,7 +50,10 @@ class TestLightEntityBehavior:
 
     def test_brightness_clamp_to_valid_range(self, make_device):
         """Test brightness is clamped to valid range via device property."""
-        from custom_components.lipro.const import MAX_BRIGHTNESS, MIN_BRIGHTNESS
+        from custom_components.lipro.const.properties import (
+            MAX_BRIGHTNESS,
+            MIN_BRIGHTNESS,
+        )
 
         # Default when missing -> 100 (max)
         device_default = make_device("light", properties={})
@@ -62,7 +65,7 @@ class TestLightEntityBehavior:
 
     def test_color_temp_clamp_to_valid_range(self, make_device):
         """Test color temperature is clamped to valid range via production function."""
-        from custom_components.lipro.const import (
+        from custom_components.lipro.const.properties import (
             MAX_COLOR_TEMP_KELVIN,
             MIN_COLOR_TEMP_KELVIN,
             kelvin_to_percent,
@@ -264,7 +267,7 @@ class TestSelectEntityBehavior:
 
     def test_fan_mode_options(self, make_device):
         """Test fan mode options."""
-        from custom_components.lipro.const import FAN_MODE_NATURAL
+        from custom_components.lipro.const.properties import FAN_MODE_NATURAL
 
         device = make_device("fanLight", properties={"fanMode": str(FAN_MODE_NATURAL)})
 

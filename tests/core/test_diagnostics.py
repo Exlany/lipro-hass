@@ -8,7 +8,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from custom_components.lipro.const import DOMAIN
+from custom_components.lipro.const.base import DOMAIN
 from custom_components.lipro.diagnostics import (
     PROPERTY_KEYS_TO_REDACT,
     TO_REDACT,

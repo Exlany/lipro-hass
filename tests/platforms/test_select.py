@@ -17,7 +17,7 @@ class TestLiproHeaterWindDirectionSelect:
 
     def test_wind_direction_auto(self, make_device):
         """Test wind direction mode is auto."""
-        from custom_components.lipro.const import WIND_DIRECTION_AUTO
+        from custom_components.lipro.const.properties import WIND_DIRECTION_AUTO
 
         device = make_device(
             "heater",
@@ -27,7 +27,7 @@ class TestLiproHeaterWindDirectionSelect:
 
     def test_wind_direction_fixed(self, make_device):
         """Test wind direction mode is fixed."""
-        from custom_components.lipro.const import WIND_DIRECTION_FIX
+        from custom_components.lipro.const.properties import WIND_DIRECTION_FIX
 
         device = make_device(
             "heater",
@@ -48,7 +48,7 @@ class TestLiproHeaterWindDirectionSelect:
 
     def test_wind_direction_value_mapping(self):
         """Test wind direction value mapping from real source."""
-        from custom_components.lipro.const import (
+        from custom_components.lipro.const.properties import (
             WIND_DIRECTION_AUTO,
             WIND_DIRECTION_FIX,
         )
@@ -68,7 +68,7 @@ class TestLiproHeaterLightModeSelect:
 
     def test_light_mode_off(self, make_device):
         """Test light mode is off."""
-        from custom_components.lipro.const import HEATER_LIGHT_OFF
+        from custom_components.lipro.const.properties import HEATER_LIGHT_OFF
 
         device = make_device(
             "heater",
@@ -78,7 +78,7 @@ class TestLiproHeaterLightModeSelect:
 
     def test_light_mode_main(self, make_device):
         """Test light mode is main."""
-        from custom_components.lipro.const import HEATER_LIGHT_MAIN
+        from custom_components.lipro.const.properties import HEATER_LIGHT_MAIN
 
         device = make_device(
             "heater",
@@ -88,7 +88,7 @@ class TestLiproHeaterLightModeSelect:
 
     def test_light_mode_night(self, make_device):
         """Test light mode is night."""
-        from custom_components.lipro.const import HEATER_LIGHT_NIGHT
+        from custom_components.lipro.const.properties import HEATER_LIGHT_NIGHT
 
         device = make_device(
             "heater",
@@ -109,7 +109,7 @@ class TestLiproHeaterLightModeSelect:
 
     def test_light_mode_value_mapping(self):
         """Test light mode value mapping from real source."""
-        from custom_components.lipro.const import (
+        from custom_components.lipro.const.properties import (
             HEATER_LIGHT_MAIN,
             HEATER_LIGHT_NIGHT,
             HEATER_LIGHT_OFF,
@@ -184,7 +184,7 @@ class TestGearTemperatureConversion:
 
     def test_percent_to_kelvin(self):
         """Test converting temperature percentage to Kelvin."""
-        from custom_components.lipro.const import percent_to_kelvin
+        from custom_components.lipro.const.properties import percent_to_kelvin
 
         assert percent_to_kelvin(0) == 2700
         assert percent_to_kelvin(50) == 4600
@@ -192,7 +192,7 @@ class TestGearTemperatureConversion:
 
     def test_kelvin_to_percent(self):
         """Test converting Kelvin to temperature percentage."""
-        from custom_components.lipro.const import kelvin_to_percent
+        from custom_components.lipro.const.properties import kelvin_to_percent
 
         assert kelvin_to_percent(2700) == 0
         assert kelvin_to_percent(4600) == 50
@@ -200,7 +200,10 @@ class TestGearTemperatureConversion:
 
     def test_roundtrip(self):
         """Test percent -> kelvin -> percent roundtrip."""
-        from custom_components.lipro.const import kelvin_to_percent, percent_to_kelvin
+        from custom_components.lipro.const.properties import (
+            kelvin_to_percent,
+            percent_to_kelvin,
+        )
 
         for pct in (0, 25, 50, 75, 100):
             assert kelvin_to_percent(percent_to_kelvin(pct)) == pct
@@ -211,7 +214,7 @@ class TestSelectConstants:
 
     def test_heater_light_constants(self):
         """Test heater light mode constants."""
-        from custom_components.lipro.const import (
+        from custom_components.lipro.const.properties import (
             HEATER_LIGHT_MAIN,
             HEATER_LIGHT_NIGHT,
             HEATER_LIGHT_OFF,
@@ -223,7 +226,7 @@ class TestSelectConstants:
 
     def test_wind_direction_constants(self):
         """Test wind direction mode constants."""
-        from custom_components.lipro.const import (
+        from custom_components.lipro.const.properties import (
             WIND_DIRECTION_AUTO,
             WIND_DIRECTION_FIX,
         )
@@ -233,7 +236,7 @@ class TestSelectConstants:
 
     def test_property_constants(self):
         """Test property constants."""
-        from custom_components.lipro.const import (
+        from custom_components.lipro.const.properties import (
             PROP_LIGHT_MODE,
             PROP_WIND_DIRECTION_MODE,
         )

@@ -8,8 +8,8 @@ from typing import Any, Final
 
 from homeassistant.helpers import area_registry as ar, device_registry as dr
 
-from ...const import DOMAIN
 from ...const.api import MAX_DEVICES_PER_QUERY
+from ...const.base import DOMAIN
 from ..api import LiproApiError
 from ..device import LiproDevice
 from .device_list_snapshot import (

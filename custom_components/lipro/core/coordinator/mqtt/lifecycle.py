@@ -13,7 +13,8 @@ from homeassistant.helpers.issue_registry import (
     async_delete_issue,
 )
 
-from ....const import CONF_PHONE_ID, DOMAIN
+from ....const.base import DOMAIN
+from ....const.config import CONF_PHONE_ID
 from ...api import LiproApiError
 from ...mqtt.setup_backoff import MqttSetupBackoff
 from ...utils.log_safety import safe_error_placeholder

@@ -8,16 +8,24 @@ import json
 import logging
 from typing import Any
 
-from ...const import (
-    DEFAULT_COLOR_TEMP_PERCENT,
+from ...const.api import DEFAULT_MAX_FAN_GEAR
+from ...const.categories import (
+    DeviceCategory,
+    get_device_category,
+    get_platforms_for_category,
+)
+from ...const.device_types import (
     DEVICE_TYPE_MAP,
-    DIRECTION_CLOSING,
-    DIRECTION_OPENING,
     IOT_NAME_TO_DEFAULT_MAX_FAN_GEAR,
     IOT_NAME_TO_PHYSICAL_MODEL,
+    PHYSICAL_MODEL_TO_DEVICE_TYPE,
+)
+from ...const.properties import (
+    DEFAULT_COLOR_TEMP_PERCENT,
+    DIRECTION_CLOSING,
+    DIRECTION_OPENING,
     MAX_COLOR_TEMP_KELVIN,
     MIN_COLOR_TEMP_KELVIN,
-    PHYSICAL_MODEL_TO_DEVICE_TYPE,
     PROP_ACTIVATED,
     PROP_AERATION_GEAR,
     PROP_BATTERY,
@@ -58,13 +66,9 @@ from ...const import (
     PROP_WIFI_SSID,
     PROP_WIND_DIRECTION_MODE,
     PROP_WIND_GEAR,
-    DeviceCategory,
-    get_device_category,
-    get_platforms_for_category,
     kelvin_to_percent,
     percent_to_kelvin,
 )
-from ...const.api import DEFAULT_MAX_FAN_GEAR
 from ..utils.coerce import coerce_boollike
 from ..utils.identifiers import is_valid_iot_device_id, is_valid_mesh_group_id
 from ..utils.property_normalization import normalize_properties

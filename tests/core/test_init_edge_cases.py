@@ -8,31 +8,30 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.lipro import (
-    _DATA_OPTIONS_SNAPSHOTS,
-    _async_reload_entry_if_options_changed,
-    _remove_entry_options_snapshot,
-    _store_entry_options_snapshot,
-    async_unload_entry,
+from custom_components.lipro import async_unload_entry
+from custom_components.lipro.const.base import DOMAIN
+from custom_components.lipro.entry_options import (
+    async_reload_entry_if_options_changed,
+    remove_entry_options_snapshot,
+    store_entry_options_snapshot,
 )
-from custom_components.lipro.const import DOMAIN
 
 
 def test_store_entry_options_snapshot_ignores_non_dict_snapshots(hass) -> None:
     entry = MockConfigEntry(domain=DOMAIN, options={"x": 1})
-    hass.data[DOMAIN] = {_DATA_OPTIONS_SNAPSHOTS: "not-a-dict"}
+    hass.data[DOMAIN] = {"options_snapshots": "not-a-dict"}
 
-    _store_entry_options_snapshot(hass, entry)
+    store_entry_options_snapshot(hass, entry)
 
-    assert hass.data[DOMAIN][_DATA_OPTIONS_SNAPSHOTS] == "not-a-dict"
+    assert hass.data[DOMAIN]["options_snapshots"] == "not-a-dict"
 
 
 def test_remove_entry_options_snapshot_pops_entry_id(hass) -> None:
-    hass.data[DOMAIN] = {_DATA_OPTIONS_SNAPSHOTS: {"entry1": {"x": 1}}}
+    hass.data[DOMAIN] = {"options_snapshots": {"entry1": {"x": 1}}}
 
-    _remove_entry_options_snapshot(hass, "entry1")
+    remove_entry_options_snapshot(hass, "entry1")
 
-    assert "entry1" not in hass.data[DOMAIN][_DATA_OPTIONS_SNAPSHOTS]
+    assert "entry1" not in hass.data[DOMAIN]["options_snapshots"]
 
 
 @pytest.mark.asyncio
@@ -43,7 +42,7 @@ async def test_async_reload_entry_if_options_changed_returns_when_domain_data_no
     hass.data[DOMAIN] = "not-a-dict"
 
     with patch.object(hass.config_entries, "async_reload", new_callable=AsyncMock) as r:
-        await _async_reload_entry_if_options_changed(hass, entry)
+        await async_reload_entry_if_options_changed(hass, entry)
 
     r.assert_not_awaited()
 

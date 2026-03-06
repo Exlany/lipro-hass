@@ -1002,6 +1002,26 @@ class TestSyncSubscriptions:
         assert client._subscribed_devices == {"dev_new"}
 
     @pytest.mark.asyncio
+    async def test_sync_connected_batches_broker_updates(self):
+        """Large syncs should batch subscribe/unsubscribe requests."""
+        client = LiproMqttClient(
+            access_key="access",
+            secret_key="secret",
+            biz_id="lip_biz001",
+            phone_id="550e8400-e29b-41d4-a716-446655440000",
+        )
+        mock_mqtt = AsyncMock()
+        client._client = mock_mqtt
+        client._connected = True
+        client._subscribed_devices = {f"old_{idx}" for idx in range(55)}
+
+        await client.sync_subscriptions({f"new_{idx}" for idx in range(55)})
+
+        assert mock_mqtt.subscribe.await_count == 2
+        assert mock_mqtt.unsubscribe.await_count == 2
+        assert client._subscribed_devices == {f"new_{idx}" for idx in range(55)}
+
+    @pytest.mark.asyncio
     async def test_sync_connected_skips_invalid_device_id(self, caplog):
         """Test sync skips invalid topic IDs without breaking valid subscriptions."""
         client = LiproMqttClient(
@@ -1148,6 +1168,40 @@ class TestConnectAndDecode:
         assert client.is_connected is False
         assert "bad/dev" not in caplog.text
         assert "invalid characters" in caplog.text
+
+    @pytest.mark.asyncio
+    async def test_connect_and_listen_batches_pending_and_current_topics(self):
+        """Connect/listen should batch queued unsubscribes and subscriptions."""
+        client = LiproMqttClient(
+            access_key="access",
+            secret_key="secret",
+            biz_id="lip_biz001",
+            phone_id="550e8400-e29b-41d4-a716-446655440000",
+        )
+        client._pending_unsubscribe = {f"old_{idx}" for idx in range(55)}
+        client._subscribed_devices = {f"new_{idx}" for idx in range(55)}
+
+        async def _messages():
+            if TYPE_CHECKING:
+                yield None
+
+        mqtt_client = AsyncMock()
+        mqtt_client.messages = _messages()
+
+        with patch(
+            "custom_components.lipro.core.mqtt.client.aiomqtt.Client"
+        ) as mock_client_cls:
+            context_manager = AsyncMock()
+            context_manager.__aenter__.return_value = mqtt_client
+            context_manager.__aexit__.return_value = False
+            mock_client_cls.return_value = context_manager
+
+            await client._connect_and_listen()
+
+        assert mqtt_client.unsubscribe.await_count == 2
+        assert mqtt_client.subscribe.await_count == 2
+        assert client._pending_unsubscribe == set()
+        assert client._subscribed_devices == {f"new_{idx}" for idx in range(55)}
 
     @pytest.mark.asyncio
     async def test_connect_and_listen_keeps_last_error_when_on_connect_fails(self):

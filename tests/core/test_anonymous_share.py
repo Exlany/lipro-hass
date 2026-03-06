@@ -9,7 +9,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import aiohttp
 import pytest
 
-from custom_components.lipro.const import (
+from custom_components.lipro.const.properties import (
     PROP_ACTIVATED,
     PROP_AERATION_GEAR,
     PROP_BATTERY,
@@ -52,6 +52,7 @@ from custom_components.lipro.core.anonymous_share.sanitize import (
     sanitize_string,
     sanitize_value,
 )
+from custom_components.lipro.core.anonymous_share.share_client import ShareWorkerClient
 from custom_components.lipro.core.api.observability import (
     record_api_error as record_observed_api_error,
 )
@@ -732,11 +733,11 @@ class TestSubmitLogic:
         assert result is False
 
     def test_build_upload_headers_uses_static_api_key(self):
-        headers = AnonymousShareManager._build_upload_headers()
+        headers = ShareWorkerClient.build_upload_headers()
         assert headers["X-API-Key"] == SHARE_API_KEY
 
     def test_build_upload_headers_includes_bearer_token(self):
-        headers = AnonymousShareManager._build_upload_headers(install_token="abc")
+        headers = ShareWorkerClient.build_upload_headers(install_token="abc")
         assert headers["Authorization"] == "Bearer abc"
 
     async def test_submit_report_keeps_install_token_in_memory_only(self, tmp_path):

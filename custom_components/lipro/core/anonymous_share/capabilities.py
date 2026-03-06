@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, Final
 
-from ...const import (
+from ...const.properties import (
     PROP_ACTIVATED,
     PROP_AERATION_GEAR,
     PROP_BATTERY,

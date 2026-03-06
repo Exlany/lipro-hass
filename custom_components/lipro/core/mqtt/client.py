@@ -191,6 +191,125 @@ class LiproMqttClient:
             self._tls_context = ssl.create_default_context()
         return self._tls_context
 
+    @staticmethod
+    def _batched_topic_pairs(
+        topic_pairs: list[tuple[str, str]],
+    ) -> list[list[tuple[str, str]]]:
+        """Split topic pairs into MQTT-sized batches."""
+        return [
+            topic_pairs[i : i + _MQTT_SUBSCRIPTION_BATCH_SIZE]
+            for i in range(0, len(topic_pairs), _MQTT_SUBSCRIPTION_BATCH_SIZE)
+        ]
+
+    def _build_topic_pairs(
+        self,
+        device_ids: list[str] | set[str],
+        *,
+        invalid_log_message: str,
+        on_invalid: Callable[[str], None] | None = None,
+    ) -> list[tuple[str, str]]:
+        """Build valid MQTT topic pairs while centralizing invalid-ID handling."""
+        topic_pairs: list[tuple[str, str]] = []
+        for device_id in device_ids:
+            try:
+                topic = build_topic(self._biz_id, device_id)
+            except ValueError:
+                if on_invalid is not None:
+                    on_invalid(device_id)
+                _LOGGER.warning(
+                    invalid_log_message,
+                    _redact_identifier(device_id) or "***",
+                )
+                continue
+            topic_pairs.append((device_id, topic))
+        return topic_pairs
+
+    async def _subscribe_topic_pairs(
+        self,
+        client: aiomqtt.Client,
+        topic_pairs: list[tuple[str, str]],
+        *,
+        update_subscription_state: bool,
+        raise_on_error: bool,
+    ) -> int:
+        """Subscribe topic batches and optionally track successful device IDs."""
+        added = 0
+        for batch in self._batched_topic_pairs(topic_pairs):
+            subscribe_topics = [(topic, MQTT_QOS) for _, topic in batch]
+            try:
+                await client.subscribe(subscribe_topics)
+            except aiomqtt.MqttError:
+                if raise_on_error:
+                    raise
+                _LOGGER.exception(
+                    "Failed to subscribe to %d MQTT topics",
+                    len(subscribe_topics),
+                )
+                continue
+
+            for device_id, _topic in batch:
+                if update_subscription_state:
+                    self._subscribed_devices.add(device_id)
+                added += 1
+                _LOGGER.debug(
+                    "Subscribed to device %s",
+                    _redact_identifier(device_id) or "***",
+                )
+        return added
+
+    async def _unsubscribe_topic_pairs(
+        self,
+        client: aiomqtt.Client,
+        topic_pairs: list[tuple[str, str]],
+    ) -> None:
+        """Unsubscribe topic batches and clear pending removals on success."""
+        for batch in self._batched_topic_pairs(topic_pairs):
+            try:
+                await client.unsubscribe([topic for _, topic in batch])
+            except aiomqtt.MqttError:
+                _LOGGER.exception(
+                    "Failed to unsubscribe from %d MQTT topics",
+                    len(batch),
+                )
+                continue
+
+            for device_id, _topic in batch:
+                self._pending_unsubscribe.discard(device_id)
+                _LOGGER.debug(
+                    "Unsubscribed from device %s",
+                    _redact_identifier(device_id) or "***",
+                )
+
+    async def _apply_pending_unsubscribes(self, client: aiomqtt.Client) -> None:
+        """Best-effort replay of queued unsubscribes after reconnect."""
+        if not self._pending_unsubscribe:
+            return
+
+        topic_pairs = self._build_topic_pairs(
+            list(self._pending_unsubscribe),
+            invalid_log_message=(
+                "Skipping MQTT unsubscribe for invalid device ID %s: invalid characters"
+            ),
+            on_invalid=self._pending_unsubscribe.discard,
+        )
+        await self._unsubscribe_topic_pairs(client, topic_pairs)
+
+    async def _subscribe_current_devices(self, client: aiomqtt.Client) -> None:
+        """Subscribe all desired devices before marking the client connected."""
+        topic_pairs = self._build_topic_pairs(
+            list(self._subscribed_devices),
+            invalid_log_message=(
+                "Skipping invalid MQTT subscription device ID %s: invalid characters"
+            ),
+            on_invalid=self._subscribed_devices.discard,
+        )
+        await self._subscribe_topic_pairs(
+            client,
+            topic_pairs,
+            update_subscription_state=False,
+            raise_on_error=True,
+        )
+
     async def sync_subscriptions(self, device_ids: set[str]) -> None:
         """Sync subscriptions to match the given device ID set.
 
@@ -206,99 +325,48 @@ class LiproMqttClient:
         if not to_add and not to_remove:
             return
 
+        client = self._client if self._connected else None
+
         added = 0
         if to_add:
-            if self._client and self._connected:
-                subscribe_pairs: list[tuple[str, str]] = []
-                for device_id in to_add:
-                    self._pending_unsubscribe.discard(device_id)
-                    try:
-                        topic = build_topic(self._biz_id, device_id)
-                    except ValueError:
-                        _LOGGER.warning(
-                            "Skipping invalid MQTT device ID %s: invalid characters",
-                            _redact_identifier(device_id) or "***",
-                        )
-                        continue
-                    subscribe_pairs.append((device_id, topic))
-
-                for i in range(0, len(subscribe_pairs), _MQTT_SUBSCRIPTION_BATCH_SIZE):
-                    subscribe_batch = subscribe_pairs[
-                        i : i + _MQTT_SUBSCRIPTION_BATCH_SIZE
-                    ]
-                    subscribe_topics = [
-                        (topic, MQTT_QOS) for _, topic in subscribe_batch
-                    ]
-                    try:
-                        await self._client.subscribe(subscribe_topics)
-                    except aiomqtt.MqttError:
-                        _LOGGER.exception(
-                            "Failed to subscribe to %d MQTT topics",
-                            len(subscribe_topics),
-                        )
-                        continue
-
-                    for device_id, _topic in subscribe_batch:
-                        self._subscribed_devices.add(device_id)
-                        added += 1
-                        _LOGGER.debug(
-                            "Subscribed to device %s",
-                            _redact_identifier(device_id) or "***",
-                        )
+            self._pending_unsubscribe.difference_update(to_add)
+            if client is not None:
+                topic_pairs = self._build_topic_pairs(
+                    to_add,
+                    invalid_log_message=(
+                        "Skipping invalid MQTT device ID %s: invalid characters"
+                    ),
+                )
+                added = await self._subscribe_topic_pairs(
+                    client,
+                    topic_pairs,
+                    update_subscription_state=True,
+                    raise_on_error=False,
+                )
             else:
                 # Not connected yet; record for subscription on next connect.
                 self._subscribed_devices.update(to_add)
-                self._pending_unsubscribe.difference_update(to_add)
                 added += len(to_add)
 
-        removed = 0
+        removed = len(to_remove)
         if to_remove:
-            if self._client and self._connected:
-                unsubscribe_pairs: list[tuple[str, str]] = []
+            if client is not None:
                 for device_id in to_remove:
                     self._subscribed_devices.discard(device_id)
                     self._pending_unsubscribe.add(device_id)
-                    removed += 1
-                    try:
-                        topic = build_topic(self._biz_id, device_id)
-                    except ValueError:
-                        self._pending_unsubscribe.discard(device_id)
-                        _LOGGER.warning(
-                            "Skipping MQTT unsubscribe for invalid device ID %s: invalid characters",
-                            _redact_identifier(device_id) or "***",
-                        )
-                        continue
-                    unsubscribe_pairs.append((device_id, topic))
-
-                for i in range(
-                    0, len(unsubscribe_pairs), _MQTT_SUBSCRIPTION_BATCH_SIZE
-                ):
-                    unsubscribe_batch = unsubscribe_pairs[
-                        i : i + _MQTT_SUBSCRIPTION_BATCH_SIZE
-                    ]
-                    try:
-                        await self._client.unsubscribe(
-                            [topic for _, topic in unsubscribe_batch]
-                        )
-                    except aiomqtt.MqttError:
-                        _LOGGER.exception(
-                            "Failed to unsubscribe from %d MQTT topics",
-                            len(unsubscribe_batch),
-                        )
-                        continue
-
-                    for device_id, _topic in unsubscribe_batch:
-                        self._pending_unsubscribe.discard(device_id)
-                        _LOGGER.debug(
-                            "Unsubscribed from device %s",
-                            _redact_identifier(device_id) or "***",
-                        )
+                topic_pairs = self._build_topic_pairs(
+                    to_remove,
+                    invalid_log_message=(
+                        "Skipping MQTT unsubscribe for invalid device ID %s: invalid characters"
+                    ),
+                    on_invalid=self._pending_unsubscribe.discard,
+                )
+                await self._unsubscribe_topic_pairs(client, topic_pairs)
             else:
                 # Not connected yet; remember removals for unsubscribe when connected.
                 for device_id in to_remove:
                     self._subscribed_devices.discard(device_id)
                     self._pending_unsubscribe.add(device_id)
-                    removed += 1
 
         if added or removed:
             _LOGGER.info(
@@ -369,61 +437,10 @@ class LiproMqttClient:
             self._reconnect_delay = MQTT_RECONNECT_MIN_DELAY
 
             # Best-effort: apply pending unsubscribes first (clean_session=False).
-            if self._pending_unsubscribe:
-                unsubscribe_pairs: list[tuple[str, str]] = []
-                for device_id in list(self._pending_unsubscribe):
-                    try:
-                        topic = build_topic(self._biz_id, device_id)
-                    except ValueError:
-                        self._pending_unsubscribe.discard(device_id)
-                        _LOGGER.warning(
-                            "Skipping MQTT unsubscribe for invalid device ID %s: invalid characters",
-                            _redact_identifier(device_id) or "***",
-                        )
-                        continue
-                    unsubscribe_pairs.append((device_id, topic))
-
-                for i in range(
-                    0, len(unsubscribe_pairs), _MQTT_SUBSCRIPTION_BATCH_SIZE
-                ):
-                    batch = unsubscribe_pairs[i : i + _MQTT_SUBSCRIPTION_BATCH_SIZE]
-                    try:
-                        await client.unsubscribe([topic for _, topic in batch])
-                    except aiomqtt.MqttError:
-                        _LOGGER.exception(
-                            "Failed to unsubscribe from %d MQTT topics",
-                            len(batch),
-                        )
-                        continue
-                    for device_id, _topic in batch:
-                        self._pending_unsubscribe.discard(device_id)
-                        _LOGGER.debug(
-                            "Unsubscribed from device %s",
-                            _redact_identifier(device_id) or "***",
-                        )
+            await self._apply_pending_unsubscribes(client)
 
             # Subscribe BEFORE marking connected to avoid race with sync_subscriptions
-            subscribe_pairs: list[tuple[str, str]] = []
-            for device_id in list(self._subscribed_devices):
-                try:
-                    topic = build_topic(self._biz_id, device_id)
-                except ValueError:
-                    self._subscribed_devices.discard(device_id)
-                    _LOGGER.warning(
-                        "Skipping invalid MQTT subscription device ID %s: invalid characters",
-                        _redact_identifier(device_id) or "***",
-                    )
-                    continue
-                subscribe_pairs.append((device_id, topic))
-
-            for i in range(0, len(subscribe_pairs), _MQTT_SUBSCRIPTION_BATCH_SIZE):
-                batch = subscribe_pairs[i : i + _MQTT_SUBSCRIPTION_BATCH_SIZE]
-                await client.subscribe([(topic, MQTT_QOS) for _, topic in batch])
-                for device_id, _ in batch:
-                    _LOGGER.debug(
-                        "Subscribed to device %s",
-                        _redact_identifier(device_id) or "***",
-                    )
+            await self._subscribe_current_devices(client)
 
             # Now mark connected and fire callback
             self._connected = True

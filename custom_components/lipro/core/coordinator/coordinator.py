@@ -6,7 +6,7 @@ from datetime import timedelta
 import logging
 from typing import TYPE_CHECKING
 
-from ...const import DEFAULT_SCAN_INTERVAL
+from ...const.config import DEFAULT_SCAN_INTERVAL
 from ..api import LiproClient
 from .shutdown import _CoordinatorShutdownMixin
 

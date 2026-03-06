@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections.abc import Callable, Mapping, Sequence
 from typing import TYPE_CHECKING, Any
 
-from ...const import (
+from ...const.config import (
     CONF_DEBUG_MODE,
     CONF_ENABLE_POWER_MONITORING,
     CONF_LIGHT_TURN_ON_ON_ADJUST,

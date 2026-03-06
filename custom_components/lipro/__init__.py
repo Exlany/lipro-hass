@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+from functools import partial
 import logging
 from typing import TYPE_CHECKING
 
@@ -45,6 +46,10 @@ if TYPE_CHECKING:
     from homeassistant.helpers.typing import ConfigType
 
 _LOGGER = logging.getLogger(__name__)
+_SETUP_DEVICE_REGISTRY_LISTENER = partial(
+    setup_device_registry_listener,
+    logger=_LOGGER,
+)
 
 PLATFORMS: list[Platform] = [
     Platform.LIGHT,
@@ -63,26 +68,24 @@ type LiproConfigEntry = ConfigEntry[LiproDataUpdateCoordinator]
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
 
-async def _async_ensure_infra(hass: HomeAssistant) -> None:
-    """Ensure shared runtime infra (services/listener) is ready."""
-    await async_ensure_runtime_infra(
-        hass,
-        setup_services=async_setup_services,
-        setup_device_registry_listener=lambda h: setup_device_registry_listener(
-            h, logger=_LOGGER
-        ),
-    )
-
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """Set up the Lipro component."""
-    await _async_ensure_infra(hass)
+    await async_ensure_runtime_infra(
+        hass,
+        setup_services=async_setup_services,
+        setup_device_registry_listener=_SETUP_DEVICE_REGISTRY_LISTENER,
+    )
     return True
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: LiproConfigEntry) -> bool:
     """Set up Lipro from a config entry."""
-    await _async_ensure_infra(hass)
+    await async_ensure_runtime_infra(
+        hass,
+        setup_services=async_setup_services,
+        setup_device_registry_listener=_SETUP_DEVICE_REGISTRY_LISTENER,
+    )
 
     client, auth_manager = build_entry_auth_context(
         hass,

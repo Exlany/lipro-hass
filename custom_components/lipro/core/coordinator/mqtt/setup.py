@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import Any
 
-from ....const import CONF_BIZ_ID, CONF_USER_ID
+from ....const.config import CONF_BIZ_ID, CONF_USER_ID
 from ...device.device import LiproDevice
 
 

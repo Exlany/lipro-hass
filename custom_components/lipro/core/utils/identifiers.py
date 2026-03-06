@@ -5,7 +5,7 @@ from __future__ import annotations
 import re
 from typing import Any, Final
 
-from ...const import IOT_DEVICE_ID_PREFIX
+from ...const.base import IOT_DEVICE_ID_PREFIX
 
 _IOT_DEVICE_ID_PATTERN: Final = re.compile(
     rf"^{re.escape(IOT_DEVICE_ID_PREFIX)}[0-9a-f]{{12}}$",

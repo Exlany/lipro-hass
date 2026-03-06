@@ -148,7 +148,7 @@ class TestLiproFanPresetModes:
 
     def test_mode_to_preset_mapping(self):
         """Test MODE_TO_PRESET mapping from real source."""
-        from custom_components.lipro.const import (
+        from custom_components.lipro.const.properties import (
             FAN_MODE_CYCLE,
             FAN_MODE_DIRECT,
             FAN_MODE_GENTLE_WIND,
@@ -163,7 +163,7 @@ class TestLiproFanPresetModes:
 
     def test_preset_to_mode_mapping(self):
         """Test PRESET_TO_MODE mapping from real source."""
-        from custom_components.lipro.const import (
+        from custom_components.lipro.const.properties import (
             FAN_MODE_CYCLE,
             FAN_MODE_DIRECT,
             FAN_MODE_NATURAL,
@@ -221,7 +221,7 @@ class TestLiproHeaterVentPresetModes:
 
     def test_aeration_to_preset_mapping(self):
         """Test AERATION_TO_PRESET mapping from real source."""
-        from custom_components.lipro.const import (
+        from custom_components.lipro.const.properties import (
             AERATION_OFF,
             AERATION_STRONG,
             AERATION_WEAK,
@@ -234,7 +234,7 @@ class TestLiproHeaterVentPresetModes:
 
     def test_preset_to_aeration_mapping(self):
         """Test PRESET_TO_AERATION mapping from real source."""
-        from custom_components.lipro.const import (
+        from custom_components.lipro.const.properties import (
             AERATION_OFF,
             AERATION_STRONG,
             AERATION_WEAK,
@@ -254,7 +254,7 @@ class TestLiproHeaterVentPresetModes:
 
     def test_aeration_constants(self):
         """Test aeration gear constants."""
-        from custom_components.lipro.const import (
+        from custom_components.lipro.const.properties import (
             AERATION_OFF,
             AERATION_STRONG,
             AERATION_WEAK,

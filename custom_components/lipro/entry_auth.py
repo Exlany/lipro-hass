@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from contextlib import suppress
+from functools import partial
 import logging
 from typing import TYPE_CHECKING
 
@@ -110,7 +111,7 @@ def build_entry_auth_context(
     if remember_password_hash and isinstance(password_hash, str) and password_hash:
         auth_manager.set_credentials(phone, password_hash, password_is_hashed=True)
     auth_manager.set_tokens_updated_callback(
-        lambda: persist_entry_tokens_if_changed(hass, entry, auth_manager)
+        partial(persist_entry_tokens_if_changed, hass, entry, auth_manager)
     )
     return client, auth_manager
 

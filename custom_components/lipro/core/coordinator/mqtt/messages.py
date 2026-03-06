@@ -7,8 +7,8 @@ import logging
 from time import monotonic
 from typing import Any, Final
 
-from ....const import PROP_CONNECT_STATE
 from ....const.api import MAX_MQTT_CACHE_SIZE
+from ....const.properties import PROP_CONNECT_STATE
 from ...device import LiproDevice
 from ...mqtt.message import (
     build_dedup_cache_key,

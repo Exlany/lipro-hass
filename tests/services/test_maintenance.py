@@ -7,7 +7,7 @@ from types import SimpleNamespace
 from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from custom_components.lipro.const import DOMAIN
+from custom_components.lipro.const.base import DOMAIN
 from custom_components.lipro.services.maintenance import (
     _iter_lipro_config_entry_ids_for_device,
     _iter_runtime_entry_coordinators,

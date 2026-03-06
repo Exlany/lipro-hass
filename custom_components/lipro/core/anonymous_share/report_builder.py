@@ -5,7 +5,7 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from typing import Any
 
-from ...const import VERSION
+from ...const.base import VERSION
 from .models import SharedDevice, SharedError
 from .sanitize import sanitize_value
 

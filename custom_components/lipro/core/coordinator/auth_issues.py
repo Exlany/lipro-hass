@@ -14,7 +14,7 @@ from homeassistant.helpers.issue_registry import (
 )
 from homeassistant.helpers.update_coordinator import UpdateFailed
 
-from ...const import DOMAIN
+from ...const.base import DOMAIN
 from ..api import (
     LiproApiError,
     LiproAuthError,

@@ -7,15 +7,15 @@ from typing import Any
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
-from .const.base import DOMAIN
+from .domain_data import ensure_domain_data, get_domain_data
 
 _DATA_OPTIONS_SNAPSHOTS = "options_snapshots"
 
 
 def store_entry_options_snapshot(hass: HomeAssistant, entry: ConfigEntry[Any]) -> None:
     """Store a snapshot of config-entry options for update-listener diffing."""
-    domain_data = hass.data.setdefault(DOMAIN, {})
-    if not isinstance(domain_data, dict):
+    domain_data = ensure_domain_data(hass)
+    if domain_data is None:
         return
 
     snapshots = domain_data.setdefault(_DATA_OPTIONS_SNAPSHOTS, {})
@@ -27,8 +27,8 @@ def store_entry_options_snapshot(hass: HomeAssistant, entry: ConfigEntry[Any]) -
 
 def remove_entry_options_snapshot(hass: HomeAssistant, entry_id: str) -> None:
     """Drop stored option snapshot for an entry, if present."""
-    domain_data = hass.data.get(DOMAIN)
-    if not isinstance(domain_data, dict):
+    domain_data = get_domain_data(hass)
+    if domain_data is None:
         return
 
     snapshots = domain_data.get(_DATA_OPTIONS_SNAPSHOTS)
@@ -43,8 +43,8 @@ async def async_reload_entry_if_options_changed(
     entry: ConfigEntry[Any],
 ) -> None:
     """Reload the config entry only when options changed."""
-    domain_data = hass.data.get(DOMAIN)
-    if not isinstance(domain_data, dict):
+    domain_data = get_domain_data(hass)
+    if domain_data is None:
         return
 
     snapshots = domain_data.get(_DATA_OPTIONS_SNAPSHOTS)

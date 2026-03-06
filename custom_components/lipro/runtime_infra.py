@@ -9,6 +9,7 @@ from homeassistant.config_entries import ConfigEntryState
 from homeassistant.core import HomeAssistant
 
 from .const.base import DOMAIN
+from .domain_data import ensure_domain_data, get_domain_data
 from .services.maintenance import (
     async_setup_device_registry_listener as _async_setup_device_registry_listener_service,
 )
@@ -27,8 +28,8 @@ def setup_device_registry_listener(
     logger: logging.Logger,
 ) -> None:
     """Set up one shared device-registry listener for Lipro entries."""
-    domain_data = hass.data.setdefault(DOMAIN, {})
-    if not isinstance(domain_data, dict):
+    domain_data = ensure_domain_data(hass)
+    if domain_data is None:
         return
     if _DATA_DEVICE_REGISTRY_LISTENER_UNSUB in domain_data:
         return
@@ -45,8 +46,8 @@ def setup_device_registry_listener(
 
 def remove_device_registry_listener(hass: HomeAssistant) -> None:
     """Remove the shared device-registry listener if present."""
-    domain_data = hass.data.get(DOMAIN)
-    if not isinstance(domain_data, dict):
+    domain_data = get_domain_data(hass)
+    if domain_data is None:
         return
 
     unsubscribe = domain_data.pop(_DATA_DEVICE_REGISTRY_LISTENER_UNSUB, None)
@@ -56,8 +57,8 @@ def remove_device_registry_listener(hass: HomeAssistant) -> None:
 
 def get_runtime_infra_lock(hass: HomeAssistant) -> asyncio.Lock | None:
     """Return per-domain lock for shared runtime infra setup/teardown."""
-    domain_data = hass.data.setdefault(DOMAIN, {})
-    if not isinstance(domain_data, dict):
+    domain_data = ensure_domain_data(hass)
+    if domain_data is None:
         return None
 
     lock = domain_data.get(_DATA_RUNTIME_INFRA_LOCK)

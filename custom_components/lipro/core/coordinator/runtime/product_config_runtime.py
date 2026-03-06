@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from ....const import MIN_COLOR_TEMP_KELVIN
+from ....const.properties import MIN_COLOR_TEMP_KELVIN
 from ...device import LiproDevice
 
 

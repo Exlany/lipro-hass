@@ -8,7 +8,7 @@ from unittest.mock import MagicMock
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.lipro.const import DOMAIN, VERSION
+from custom_components.lipro.const.base import DOMAIN, VERSION
 from custom_components.lipro.system_health import async_register, system_health_info
 
 

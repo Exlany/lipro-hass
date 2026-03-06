@@ -7,10 +7,12 @@ These tests intentionally cover specific branches reported as missing by
 from __future__ import annotations
 
 from typing import cast
+from unittest.mock import MagicMock
 
 import aiohttp
 import pytest
 
+from custom_components.lipro.const.base import DOMAIN
 from custom_components.lipro.core.anonymous_share import manager as manager_module
 from custom_components.lipro.core.anonymous_share.collector import (
     AnonymousShareCollector,
@@ -66,6 +68,24 @@ def test_get_anonymous_share_manager_without_hass_creates_singleton_when_missing
     assert isinstance(mgr1, AnonymousShareManager)
     assert mgr1 is mgr2
 
+
+
+
+def test_get_anonymous_share_manager_with_corrupt_domain_data_does_not_crash(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """manager.py - corrupted hass domain data falls back to root-scoped views."""
+    monkeypatch.setattr(manager_module, "_share_manager", None)
+
+    hass = MagicMock()
+    hass.data = {DOMAIN: "not-a-dict"}
+
+    aggregate = manager_module.get_anonymous_share_manager(hass)
+    scoped = manager_module.get_anonymous_share_manager(hass, entry_id="entry-1")
+
+    assert isinstance(aggregate, AnonymousShareManager)
+    assert isinstance(scoped, AnonymousShareManager)
+    assert hass.data[DOMAIN] == "not-a-dict"
 
 def test_share_client_parse_retry_after_returns_none_when_missing_header() -> None:
     """share_client.py:70 - no Retry-After header present."""

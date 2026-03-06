@@ -12,7 +12,7 @@ from typing import Any
 
 import aiohttp
 
-from ...const import VERSION
+from ...const.base import VERSION
 from ..utils.log_safety import safe_error_placeholder
 from .const import SHARE_API_KEY, SHARE_REPORT_URL, SHARE_TOKEN_REFRESH_URL
 from .report_builder import build_lite_report

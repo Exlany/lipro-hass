@@ -19,7 +19,14 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.lipro.const import (
+from custom_components.lipro.const.api import (
+    MAX_DEVICES_PER_QUERY,
+    MAX_MQTT_CACHE_SIZE,
+    MQTT_DISCONNECT_NOTIFY_THRESHOLD,
+)
+from custom_components.lipro.const.base import DOMAIN
+from custom_components.lipro.const.config import (
+    CONF_COMMAND_RESULT_VERIFY,
     CONF_DEBUG_MODE,
     CONF_ENABLE_POWER_MONITORING,
     CONF_MQTT_ENABLED,
@@ -27,12 +34,7 @@ from custom_components.lipro.const import (
     CONF_ROOM_AREA_SYNC_FORCE,
     CONF_SCAN_INTERVAL,
     DEFAULT_SCAN_INTERVAL,
-    DOMAIN,
-    MAX_MQTT_CACHE_SIZE,
-    MQTT_DISCONNECT_NOTIFY_THRESHOLD,
 )
-from custom_components.lipro.const.api import MAX_DEVICES_PER_QUERY
-from custom_components.lipro.const.config import CONF_COMMAND_RESULT_VERIFY
 from custom_components.lipro.core.api import (
     LiproApiError,
     LiproAuthError,

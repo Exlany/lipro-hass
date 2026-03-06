@@ -23,14 +23,13 @@ from typing import TYPE_CHECKING, Any
 
 import aiohttp
 
-from ...const import VERSION
+from ...domain_data import ensure_domain_data
 from .collector import AnonymousShareCollector
 from .const import (
     AUTO_UPLOAD_INTERVAL,
     MAX_PENDING_DEVICES,
     MAX_PENDING_ERRORS,
     MIN_UPLOAD_INTERVAL,
-    SHARE_API_KEY,
 )
 from .report_builder import (
     build_anonymous_share_report,
@@ -356,16 +355,6 @@ class AnonymousShareManager:
             return None
         return self.build_report()
 
-    @staticmethod
-    def _build_upload_headers(*, install_token: str | None = None) -> dict[str, str]:
-        headers = {
-            "User-Agent": f"HomeAssistant/Lipro {VERSION}",
-            "X-API-Key": SHARE_API_KEY,
-        }
-        if install_token:
-            headers["Authorization"] = f"Bearer {install_token}"
-        return headers
-
     async def submit_developer_feedback(
         self, session: aiohttp.ClientSession, feedback: dict[str, Any]
     ) -> bool:
@@ -470,9 +459,12 @@ def get_anonymous_share_manager(
     resolved_entry_id = entry_id
     root_manager = _get_root_manager()
     if hass is not None:
-        from ...const import DOMAIN  # noqa: PLC0415
+        domain_data = ensure_domain_data(hass)
+        if domain_data is None:
+            if resolved_entry_id is not None:
+                return root_manager.for_scope(resolved_entry_id)
+            return root_manager.aggregate_view()
 
-        domain_data = hass.data.setdefault(DOMAIN, {})
         aggregate_manager: AnonymousShareManager | None = domain_data.get(
             _AGGREGATE_MANAGER_KEY
         )

@@ -6,7 +6,8 @@ from typing import Any
 
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.lipro.const import (
+from custom_components.lipro.const.base import DOMAIN
+from custom_components.lipro.const.config import (
     CONF_DEBUG_MODE,
     CONF_ENABLE_POWER_MONITORING,
     CONF_LIGHT_TURN_ON_ON_ADJUST,
@@ -15,7 +16,6 @@ from custom_components.lipro.const import (
     CONF_POWER_QUERY_INTERVAL,
     CONF_REQUEST_TIMEOUT,
     CONF_SCAN_INTERVAL,
-    DOMAIN,
 )
 from custom_components.lipro.core.device import LiproDevice
 from custom_components.lipro.core.utils.developer_report import build_developer_report

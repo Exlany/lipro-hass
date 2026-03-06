@@ -92,7 +92,7 @@ class TestLiproCoverCommands:
 
     def test_command_constants(self):
         """Test cover command constants."""
-        from custom_components.lipro.const import (
+        from custom_components.lipro.const.properties import (
             CMD_CHANGE_STATE,
             CMD_CURTAIN_CLOSE,
             CMD_CURTAIN_OPEN,

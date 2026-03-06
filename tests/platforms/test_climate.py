@@ -75,7 +75,7 @@ class TestLiproHeaterPresetModes:
     def test_mode_to_preset_mapping(self):
         """Test MODE_TO_PRESET mapping from real source."""
         from custom_components.lipro.climate import MODE_TO_PRESET
-        from custom_components.lipro.const import (
+        from custom_components.lipro.const.properties import (
             HEATER_MODE_DEFAULT,
             HEATER_MODE_DEMIST,
             HEATER_MODE_DRY,
@@ -90,7 +90,7 @@ class TestLiproHeaterPresetModes:
     def test_preset_to_mode_mapping(self):
         """Test PRESET_TO_MODE mapping from real source."""
         from custom_components.lipro.climate import PRESET_TO_MODE
-        from custom_components.lipro.const import (
+        from custom_components.lipro.const.properties import (
             HEATER_MODE_DEFAULT,
             HEATER_MODE_DEMIST,
             HEATER_MODE_DRY,
@@ -125,7 +125,7 @@ class TestLiproHeaterConstants:
 
     def test_heater_mode_constants(self):
         """Test heater mode constants."""
-        from custom_components.lipro.const import (
+        from custom_components.lipro.const.properties import (
             HEATER_MODE_DEFAULT,
             HEATER_MODE_DEMIST,
             HEATER_MODE_DRY,
@@ -139,7 +139,10 @@ class TestLiproHeaterConstants:
 
     def test_property_constants(self):
         """Test heater property constants."""
-        from custom_components.lipro.const import PROP_HEATER_MODE, PROP_HEATER_SWITCH
+        from custom_components.lipro.const.properties import (
+            PROP_HEATER_MODE,
+            PROP_HEATER_SWITCH,
+        )
 
         assert PROP_HEATER_SWITCH == "heaterSwitch"
         assert PROP_HEATER_MODE == "heaterMode"
@@ -192,7 +195,7 @@ class TestLiproHeaterEntityCommands:
         from unittest.mock import MagicMock, patch
 
         from custom_components.lipro.climate import LiproHeater
-        from custom_components.lipro.const import HEATER_MODE_DRY
+        from custom_components.lipro.const.properties import HEATER_MODE_DRY
 
         device = make_device("heater", properties={"heaterSwitch": "1"})
         mock_coordinator.get_device = MagicMock(return_value=device)

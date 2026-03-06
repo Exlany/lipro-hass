@@ -12,8 +12,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.lipro.const import DOMAIN
 from custom_components.lipro.const.api import MAX_DEVICES_PER_QUERY
+from custom_components.lipro.const.base import DOMAIN
 from custom_components.lipro.const.config import (
     CONF_DEVICE_FILTER_DID_LIST,
     CONF_DEVICE_FILTER_DID_MODE,

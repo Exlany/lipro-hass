@@ -6,7 +6,12 @@ import logging
 from time import monotonic
 from typing import Any, Final
 
-from ...const import PROP_BRIGHTNESS, PROP_FAN_GEAR, PROP_POSITION, PROP_TEMPERATURE
+from ...const.properties import (
+    PROP_BRIGHTNESS,
+    PROP_FAN_GEAR,
+    PROP_POSITION,
+    PROP_TEMPERATURE,
+)
 from ..api import LiproApiError, LiproAuthError, LiproRefreshTokenExpiredError
 from ..command.dispatch import execute_command_plan_with_trace
 from ..command.result import (

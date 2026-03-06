@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from custom_components.lipro.const import DOMAIN
+from custom_components.lipro.const.base import DOMAIN
 from homeassistant.core import HomeAssistant, ServiceCall
 
 

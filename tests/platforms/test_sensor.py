@@ -7,7 +7,7 @@ from unittest.mock import MagicMock
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.lipro.const import DOMAIN
+from custom_components.lipro.const.base import DOMAIN
 from custom_components.lipro.core.device import LiproDevice
 
 
@@ -167,7 +167,7 @@ class TestSensorPropertyConstants:
 
     def test_property_constants(self):
         """Test property constants are defined."""
-        from custom_components.lipro.const import PROP_BATTERY, PROP_CHARGING
+        from custom_components.lipro.const.properties import PROP_BATTERY, PROP_CHARGING
 
         assert PROP_BATTERY == "battery"
         assert PROP_CHARGING == "charging"

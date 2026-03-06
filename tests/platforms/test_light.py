@@ -101,7 +101,7 @@ class TestLiproLightColorTemp:
 
     def test_color_temp_range(self):
         """Test color temperature is within valid range."""
-        from custom_components.lipro.const import (
+        from custom_components.lipro.const.properties import (
             MAX_COLOR_TEMP_KELVIN,
             MIN_COLOR_TEMP_KELVIN,
         )
@@ -112,7 +112,7 @@ class TestLiproLightColorTemp:
 
     def test_color_temp_clamping(self):
         """Test color temperature clamping logic."""
-        from custom_components.lipro.const import (
+        from custom_components.lipro.const.properties import (
             MAX_COLOR_TEMP_KELVIN,
             MIN_COLOR_TEMP_KELVIN,
         )
@@ -131,7 +131,7 @@ class TestLiproLightCommands:
 
     def test_command_constants(self):
         """Test command constants are defined."""
-        from custom_components.lipro.const import (
+        from custom_components.lipro.const.properties import (
             CMD_CHANGE_STATE,
             CMD_POWER_OFF,
             CMD_POWER_ON,
@@ -437,7 +437,7 @@ class TestLiproLightEntityCommands:
         self, mock_coordinator, make_device
     ):
         """Option can keep native behavior: adjust brightness without turning on."""
-        from custom_components.lipro.const import CONF_LIGHT_TURN_ON_ON_ADJUST
+        from custom_components.lipro.const.config import CONF_LIGHT_TURN_ON_ON_ADJUST
         from custom_components.lipro.light import LiproLight
 
         device = make_device(
@@ -471,7 +471,7 @@ class TestLiproLightEntityCommands:
         self, mock_coordinator, make_device
     ):
         """Option can keep native behavior: adjust color temp without turning on."""
-        from custom_components.lipro.const import CONF_LIGHT_TURN_ON_ON_ADJUST
+        from custom_components.lipro.const.config import CONF_LIGHT_TURN_ON_ON_ADJUST
         from custom_components.lipro.light import LiproLight
 
         device = make_device(
@@ -658,19 +658,19 @@ class TestLiproLightEntityProperties:
     def test_extra_state_attributes_off_state_no_tip_color_temp(
         self, mock_coordinator, make_device
     ):
-        """No slider tip attributes are exposed in off-state."""
+        """No extra attributes are exposed for plain lights in off-state."""
         device = make_device("light", properties={"powerState": "0"})
         mock_coordinator.get_device = MagicMock(return_value=device)
 
         from custom_components.lipro.light import LiproLight
 
         light = LiproLight(mock_coordinator, device)
-        assert light.extra_state_attributes == {}
+        assert light.extra_state_attributes is None
 
     def test_extra_state_attributes_off_state_no_tip_brightness_only(
         self, mock_coordinator, make_device
     ):
-        """No slider tip attributes on single-color devices either."""
+        """Brightness-only lights should also rely on the base None behavior."""
         device = make_device(
             "light",
             properties={"powerState": "0"},
@@ -682,19 +682,19 @@ class TestLiproLightEntityProperties:
         from custom_components.lipro.light import LiproLight
 
         light = LiproLight(mock_coordinator, device)
-        assert light.extra_state_attributes == {}
+        assert light.extra_state_attributes is None
 
     def test_extra_state_attributes_on_state_no_tip(
         self, mock_coordinator, make_device
     ):
-        """Do not expose slider tip when light is already on."""
+        """On-state plain lights still expose no extra attributes."""
         device = make_device("light", properties={"powerState": "1"})
         mock_coordinator.get_device = MagicMock(return_value=device)
 
         from custom_components.lipro.light import LiproLight
 
         light = LiproLight(mock_coordinator, device)
-        assert light.extra_state_attributes == {}
+        assert light.extra_state_attributes is None
 
     def test_supported_color_modes_with_color_temp(self, mock_coordinator, make_device):
         """Test supported_color_modes includes COLOR_TEMP when device supports it."""
@@ -820,7 +820,7 @@ class TestLiproLightAdditionalCoverage:
         self, mock_coordinator, make_device
     ):
         """turn_on_on_adjust option should parse int/string variants correctly."""
-        from custom_components.lipro.const import (
+        from custom_components.lipro.const.config import (
             CONF_LIGHT_TURN_ON_ON_ADJUST,
             DEFAULT_LIGHT_TURN_ON_ON_ADJUST,
         )

@@ -10,7 +10,6 @@ from typing import TYPE_CHECKING, Any
 
 import aiohttp
 
-from ...const import APP_VERSION_CODE, APP_VERSION_NAME, DEVICE_TYPE_MAP
 from ...const.api import (
     CONTENT_TYPE_FORM,
     CONTENT_TYPE_JSON,
@@ -28,6 +27,8 @@ from ...const.api import (
     SMART_HOME_SIGN_KEY,
     USER_AGENT,
 )
+from ...const.base import APP_VERSION_CODE, APP_VERSION_NAME
+from ...const.device_types import DEVICE_TYPE_MAP
 from . import response_safety as _response_safety
 from .client_auth_recovery import _ClientAuthRecoveryMixin
 from .errors import LiproApiError, LiproAuthError, LiproConnectionError

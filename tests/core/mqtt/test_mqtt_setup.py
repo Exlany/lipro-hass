@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from custom_components.lipro.const import CONF_BIZ_ID, CONF_USER_ID
+from custom_components.lipro.const.config import CONF_BIZ_ID, CONF_USER_ID
 from custom_components.lipro.core.coordinator.mqtt.setup import (
     build_mqtt_subscription_device_ids,
     extract_mqtt_encrypted_credentials,

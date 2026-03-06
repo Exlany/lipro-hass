@@ -77,7 +77,7 @@ async def test_climate_async_setup_entry_and_preset_command(
 ):
     """Climate platform creates heater entity and sends preset command."""
     from custom_components.lipro.climate import LiproHeater, async_setup_entry
-    from custom_components.lipro.const import HEATER_MODE_DRY
+    from custom_components.lipro.const.properties import HEATER_MODE_DRY
 
     heater = make_device("heater", serial="heater_1", properties={"heaterMode": "1"})
     mock_coordinator.devices = {heater.serial: heater}

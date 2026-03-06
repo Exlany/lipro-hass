@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import pytest
 
-from custom_components.lipro.const import (
+from custom_components.lipro.const.properties import (
     MAX_BRIGHTNESS,
     MAX_COLOR_TEMP_KELVIN,
     MIN_BRIGHTNESS,

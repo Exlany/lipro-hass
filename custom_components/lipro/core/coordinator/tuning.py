@@ -6,14 +6,14 @@ import logging
 from time import monotonic
 from typing import Any, Final
 
-from ...const import (
+from ...const.api import MAX_DEVICES_PER_QUERY
+from ...const.config import (
     CONF_SCAN_INTERVAL,
     DEFAULT_SCAN_INTERVAL,
     MAX_SCAN_INTERVAL,
     MIN_SCAN_INTERVAL,
-    PROP_CONNECT_STATE,
 )
-from ...const.api import MAX_DEVICES_PER_QUERY
+from ...const.properties import PROP_CONNECT_STATE
 from .base import _CoordinatorBase
 from .mqtt.polling import resolve_base_scan_interval_seconds
 from .runtime.connect_status_runtime import (

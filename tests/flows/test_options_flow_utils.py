@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
-from custom_components.lipro.const import DEFAULT_DEVICE_FILTER_MODE
-from custom_components.lipro.const.config import MAX_DEVICE_FILTER_LIST_ITEMS
+from custom_components.lipro.const.config import (
+    DEFAULT_DEVICE_FILTER_MODE,
+    MAX_DEVICE_FILTER_LIST_ITEMS,
+)
 from custom_components.lipro.flow.options_flow import (
     _coerce_device_filter_list_option,
     _normalize_device_filter_mode_option,

@@ -8,9 +8,11 @@ import hashlib
 import logging
 from typing import TYPE_CHECKING, Any
 
-from ...const import (
+from ...const.api import MAX_DEVICES_PER_QUERY
+from ...const.config import (
     CONF_ANONYMOUS_SHARE_ENABLED,
     CONF_ANONYMOUS_SHARE_ERRORS,
+    CONF_COMMAND_RESULT_VERIFY,
     CONF_DEBUG_MODE,
     CONF_ENABLE_POWER_MONITORING,
     CONF_MQTT_ENABLED,
@@ -19,6 +21,7 @@ from ...const import (
     CONF_ROOM_AREA_SYNC_FORCE,
     DEFAULT_ANONYMOUS_SHARE_ENABLED,
     DEFAULT_ANONYMOUS_SHARE_ERRORS,
+    DEFAULT_COMMAND_RESULT_VERIFY,
     DEFAULT_DEBUG_MODE,
     DEFAULT_ENABLE_POWER_MONITORING,
     DEFAULT_MQTT_ENABLED,
@@ -30,8 +33,6 @@ from ...const import (
     MIN_POWER_QUERY_INTERVAL,
     MIN_REQUEST_TIMEOUT,
 )
-from ...const.api import MAX_DEVICES_PER_QUERY
-from ...const.config import CONF_COMMAND_RESULT_VERIFY, DEFAULT_COMMAND_RESULT_VERIFY
 from ..anonymous_share import get_anonymous_share_manager
 from ..command.confirmation_tracker import CommandConfirmationTracker
 from ..command.expectation import (

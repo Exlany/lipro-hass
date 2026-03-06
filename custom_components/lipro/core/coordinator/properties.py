@@ -10,7 +10,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from ...const import PROP_FAN_GEAR
+from ...const.properties import PROP_FAN_GEAR
 from ..device import LiproDevice
 from ..utils.log_safety import summarize_properties_for_log
 from ..utils.redaction import redact_identifier

@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
+import logging
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.lipro import _build_entry_auth_context
-from custom_components.lipro.const import (
+from custom_components.lipro.const.base import DOMAIN
+from custom_components.lipro.const.config import (
     CONF_ACCESS_TOKEN,
     CONF_EXPIRES_AT,
     CONF_PASSWORD_HASH,
@@ -16,8 +17,11 @@ from custom_components.lipro.const import (
     CONF_PHONE_ID,
     CONF_REFRESH_TOKEN,
     CONF_USER_ID,
-    DOMAIN,
 )
+from custom_components.lipro.core import LiproAuthManager, LiproClient
+from custom_components.lipro.entry_auth import build_entry_auth_context
+
+_TEST_LOGGER = logging.getLogger(__name__)
 
 
 @pytest.mark.asyncio
@@ -36,11 +40,14 @@ async def test_refresh_token_persists_config_entry_tokens(hass) -> None:
     )
     entry.add_to_hass(hass)
 
-    with patch(
-        "custom_components.lipro.async_get_clientsession",
-        return_value=MagicMock(),
-    ):
-        client, auth_manager = _build_entry_auth_context(hass, entry)
+    client, auth_manager = build_entry_auth_context(
+        hass,
+        entry,
+        get_client_session=lambda _: MagicMock(),
+        client_factory=LiproClient,
+        auth_manager_factory=LiproAuthManager,
+        logger=_TEST_LOGGER,
+    )
 
     async def _fake_refresh_access_token() -> dict[str, object]:
         client.set_tokens("new_access", "new_refresh", user_id=10001)
