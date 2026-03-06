@@ -24,6 +24,7 @@ from ...const.config import (
     CONF_USER_ID,
 )
 from ..api import LiproAuthError, LiproClient, LiproRefreshTokenExpiredError
+from ..utils.log_safety import safe_error_placeholder
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -75,7 +76,10 @@ class LiproAuthManager:
         try:
             self._on_tokens_updated()
         except Exception as err:  # noqa: BLE001
-            _LOGGER.debug("Token-updated callback failed: %s", err)
+            _LOGGER.debug(
+                "Token-updated callback failed (%s)",
+                safe_error_placeholder(err),
+            )
 
     @property
     def is_authenticated(self) -> bool:

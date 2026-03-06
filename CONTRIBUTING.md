@@ -8,6 +8,7 @@ Thank you for your interest in contributing to the Lipro Smart Home integration!
 ### Prerequisites / 前置条件
 
 - Python 3.13.2+
+- uv (Astral)
 - Git
 
 ### Quick Start / 快速开始
@@ -22,6 +23,8 @@ Thank you for your interest in contributing to the Lipro Smart Home integration!
    ```bash
    ./scripts/setup
    ```
+   This runs `uv sync --frozen --extra dev` and installs `pre-commit` hooks.
+   该脚本会运行 `uv sync --frozen --extra dev` 并安装 `pre-commit` hooks。
 
 3. **Start Home Assistant for development / 启动 Home Assistant 进行开发**
    ```bash
@@ -43,14 +46,22 @@ We use [Ruff](https://docs.astral.sh/ruff/) for linting and formatting:
 ./scripts/lint
 
 # Auto-fix issues / 自动修复问题
-uv run ruff check custom_components/lipro tests --fix
+uv run ruff check . --fix
 
 # Format code / 格式化代码
-uv run ruff format custom_components/lipro tests
+uv run ruff format .
 
 # Type checking / 类型检查
-uv run mypy custom_components/lipro
+uv run mypy
 ```
+
+Notes:
+说明：
+
+- `./scripts/lint` runs `pip-audit` against exported runtime requirements by default.
+  `./scripts/lint` 默认仅对导出的 runtime 依赖运行 `pip-audit`。
+- To also audit dev dependencies locally (may be noisy), set `PIP_AUDIT_INCLUDE_DEV=1`.
+  如需在本地额外审计 dev 依赖（可能较吵），可设置 `PIP_AUDIT_INCLUDE_DEV=1`。
 
 ### Testing / 测试
 
@@ -58,7 +69,10 @@ Run tests with `uv` (same as CI):
 使用 `uv` 运行测试（与 CI 一致）：
 
 ```bash
-# Full test suite
+# Full test suite (same as CI)
+uv run pytest tests/ -v --cov=custom_components/lipro --cov-fail-under=95 --cov-report=xml --cov-report=term-missing
+
+# Quick local run (no coverage gate) / 本地快速跑（不含覆盖率门禁）
 uv run pytest tests/
 
 # Diagnostics focused tests (used by pre-push hook)
@@ -97,8 +111,8 @@ async def async_turn_on(self, **kwargs: Any) -> None:
 3. **Run linting and tests / 运行代码检查和测试**
    ```bash
    ./scripts/lint
-   uv run mypy custom_components/lipro
-   uv run pytest tests/
+   uv run mypy
+   uv run pytest tests/ -v --cov=custom_components/lipro --cov-fail-under=95 --cov-report=xml --cov-report=term-missing
    ```
 
 4. **Submit Pull Request / 提交 Pull Request**

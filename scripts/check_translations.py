@@ -5,7 +5,7 @@ This script ensures all translation_key used in code are defined in translation 
 Run this in CI to catch missing translations early.
 
 Usage:
-    python scripts/check_translations.py
+    uv run python scripts/check_translations.py
 """
 # ruff: noqa: T201
 
@@ -65,9 +65,8 @@ def main() -> int:
     # Paths
     root = Path(__file__).parent.parent
     src_dir = root / "custom_components" / "lipro"
-    strings_json = src_dir / "strings.json"
-    en_json = src_dir / "translations" / "en.json"
-    zh_json = src_dir / "translations" / "zh-Hans.json"
+    translations_dir = src_dir / "translations"
+    en_json = translations_dir / "en.json"
 
     # Find keys in code
     code_keys = find_translation_keys_in_code(src_dir)
@@ -79,7 +78,14 @@ def main() -> int:
     # Check each translation file
     errors: list[str] = []
 
-    for json_path in [strings_json, en_json, zh_json]:
+    if not en_json.exists():
+        errors.append(f"Missing translation file: {en_json}")
+
+    translation_paths = sorted(translations_dir.glob("*.json"))
+    if not translation_paths:
+        errors.append(f"No translations found in: {translations_dir}")
+
+    for json_path in translation_paths:
         if not json_path.exists():
             errors.append(f"Missing translation file: {json_path}")
             continue
@@ -95,20 +101,16 @@ def main() -> int:
         else:
             print(f"✓ {json_path.name}: All keys present")
 
-    # Check consistency between translation files
-    strings_keys = flatten_translation_keys(
-        get_translation_keys_from_file(strings_json)
-    )
-    en_keys = flatten_translation_keys(get_translation_keys_from_file(en_json))
-    zh_keys = flatten_translation_keys(get_translation_keys_from_file(zh_json))
-
-    if strings_keys != en_keys:
-        diff = strings_keys.symmetric_difference(en_keys)
-        errors.append(f"strings.json and en.json have different keys: {diff}")
-
-    if en_keys != zh_keys:
-        diff = en_keys.symmetric_difference(zh_keys)
-        errors.append(f"en.json and zh-Hans.json have different keys: {diff}")
+    # Check key consistency between translations (using en.json as baseline)
+    if en_json.exists():
+        base_keys = flatten_translation_keys(get_translation_keys_from_file(en_json))
+        for json_path in translation_paths:
+            file_keys = flatten_translation_keys(
+                get_translation_keys_from_file(json_path)
+            )
+            if file_keys != base_keys:
+                diff = file_keys.symmetric_difference(base_keys)
+                errors.append(f"{json_path.name} keys differ from en.json: {diff}")
 
     # Report results
     print()

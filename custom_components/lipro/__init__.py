@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
+import asyncio
 from contextlib import suppress
 import logging
 from typing import TYPE_CHECKING, Final
 
-from homeassistant.config_entries import ConfigEntry
+from homeassistant.config_entries import ConfigEntry, ConfigEntryState
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
@@ -38,7 +39,8 @@ from .core import (
     LiproConnectionError,
     LiproDataUpdateCoordinator,
 )
-from .helpers.options import coerce_int_option
+from .core.utils.coerce import coerce_int_option
+from .core.utils.log_safety import safe_error_placeholder
 from .services.entrypoints import (
     async_setup_services as _async_setup_services,
     remove_services as _remove_services,
@@ -69,6 +71,7 @@ type LiproConfigEntry = ConfigEntry[LiproDataUpdateCoordinator]
 
 FIRMWARE_SUPPORT_MANIFEST: Final = "firmware_support_manifest.json"
 _DATA_DEVICE_REGISTRY_LISTENER_UNSUB: Final = "device_registry_listener_unsub"
+_DATA_OPTIONS_SNAPSHOTS: Final = "options_snapshots"
 
 
 def _get_entry_int_option(
@@ -119,10 +122,94 @@ def _async_remove_device_registry_listener(hass: HomeAssistant) -> None:
         unsubscribe()
 
 
+def _store_entry_options_snapshot(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    """Store a snapshot of config-entry options for update-listener diffing."""
+    domain_data = hass.data.setdefault(DOMAIN, {})
+    if not isinstance(domain_data, dict):
+        return
+
+    snapshots = domain_data.setdefault(_DATA_OPTIONS_SNAPSHOTS, {})
+    if not isinstance(snapshots, dict):
+        return
+
+    snapshots[entry.entry_id] = dict(entry.options)
+
+
+def _remove_entry_options_snapshot(hass: HomeAssistant, entry_id: str) -> None:
+    """Drop stored option snapshot for an entry, if present."""
+    domain_data = hass.data.get(DOMAIN)
+    if not isinstance(domain_data, dict):
+        return
+
+    snapshots = domain_data.get(_DATA_OPTIONS_SNAPSHOTS)
+    if not isinstance(snapshots, dict):
+        return
+
+    snapshots.pop(entry_id, None)
+
+
+async def _async_reload_entry_if_options_changed(
+    hass: HomeAssistant,
+    entry: LiproConfigEntry,
+) -> None:
+    """Reload the config entry only when options changed.
+
+    Home Assistant fires config-entry update listeners for both entry.data and
+    entry.options updates. We only want to reload on options changes to avoid
+    token refresh persistence causing a reload loop.
+    """
+    domain_data = hass.data.get(DOMAIN)
+    if not isinstance(domain_data, dict):
+        return
+
+    snapshots = domain_data.get(_DATA_OPTIONS_SNAPSHOTS)
+    if not isinstance(snapshots, dict):
+        # Snapshot store missing: initialize it defensively and do not reload.
+        domain_data[_DATA_OPTIONS_SNAPSHOTS] = {entry.entry_id: dict(entry.options)}
+        return
+
+    previous = snapshots.get(entry.entry_id)
+    current = dict(entry.options)
+
+    if isinstance(previous, dict) and previous == current:
+        return
+    if previous is None:
+        snapshots[entry.entry_id] = current
+        return
+
+    snapshots[entry.entry_id] = current
+    await hass.config_entries.async_reload(entry.entry_id)
+
+
+_DATA_RUNTIME_INFRA_LOCK: Final = "runtime_infra_lock"
+
+
+def _get_runtime_infra_lock(hass: HomeAssistant) -> asyncio.Lock | None:
+    """Return per-domain lock for shared runtime infra setup/teardown."""
+    domain_data = hass.data.setdefault(DOMAIN, {})
+    if not isinstance(domain_data, dict):
+        return None
+
+    lock = domain_data.get(_DATA_RUNTIME_INFRA_LOCK)
+    if isinstance(lock, asyncio.Lock):
+        return lock
+
+    lock = asyncio.Lock()
+    domain_data[_DATA_RUNTIME_INFRA_LOCK] = lock
+    return lock
+
+
 async def _async_ensure_runtime_infra(hass: HomeAssistant) -> None:
     """Ensure shared runtime infra (services/listener) is ready."""
-    await _async_setup_services(hass)
-    _async_setup_device_registry_listener(hass)
+    lock = _get_runtime_infra_lock(hass)
+    if lock is None:
+        await _async_setup_services(hass)
+        _async_setup_device_registry_listener(hass)
+        return
+
+    async with lock:
+        await _async_setup_services(hass)
+        _async_setup_device_registry_listener(hass)
 
 
 def _clear_entry_runtime_data(entry: ConfigEntry) -> None:
@@ -138,10 +225,14 @@ def _has_other_runtime_entries(
     *,
     exclude_entry_id: str,
 ) -> bool:
-    """Return whether another loaded Lipro entry still has runtime data."""
+    """Return whether another Lipro entry is loaded or setting up."""
     return any(
         config_entry.entry_id != exclude_entry_id
-        and getattr(config_entry, "runtime_data", None) is not None
+        and config_entry.state
+        in (
+            ConfigEntryState.LOADED,
+            ConfigEntryState.SETUP_IN_PROGRESS,
+        )
         for config_entry in hass.config_entries.async_entries(DOMAIN)
     )
 
@@ -157,8 +248,20 @@ def _build_entry_auth_context(
     entry: LiproConfigEntry,
 ) -> tuple[LiproClient, LiproAuthManager]:
     """Build API client and auth manager from config entry data."""
-    phone_id = entry.data[CONF_PHONE_ID]
-    phone = entry.data[CONF_PHONE]
+    phone_id = entry.data.get(CONF_PHONE_ID)
+    phone = entry.data.get(CONF_PHONE)
+    if not isinstance(phone_id, str) or not phone_id:
+        msg = (
+            "Missing phone_id in config entry data; "
+            "please remove and re-add the integration"
+        )
+        raise ConfigEntryAuthFailed(msg)
+    if not isinstance(phone, str) or not phone:
+        msg = (
+            "Missing phone in config entry data; "
+            "please remove and re-add the integration"
+        )
+        raise ConfigEntryAuthFailed(msg)
     password_hash = entry.data.get(CONF_PASSWORD_HASH)
     remember_password_hash = entry.data.get(CONF_REMEMBER_PASSWORD_HASH)
     if remember_password_hash is None:
@@ -197,10 +300,10 @@ async def _async_authenticate_entry(auth_manager: LiproAuthManager) -> None:
     try:
         await auth_manager.ensure_valid_token()
     except LiproAuthError as err:
-        msg = f"Authentication failed: {err}"
+        msg = f"Authentication failed ({safe_error_placeholder(err)})"
         raise ConfigEntryAuthFailed(msg) from err
     except LiproConnectionError as err:
-        msg = f"Connection failed: {err}"
+        msg = f"Connection failed ({safe_error_placeholder(err)})"
         raise ConfigEntryNotReady(msg) from err
 
 
@@ -276,7 +379,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: LiproConfigEntry) -> boo
         raise
 
     # Register update listener for options changes
-    entry.async_on_unload(entry.add_update_listener(async_reload_entry))
+    _store_entry_options_snapshot(hass, entry)
+    entry.async_on_unload(
+        entry.add_update_listener(_async_reload_entry_if_options_changed)
+    )
 
     return True
 
@@ -289,16 +395,32 @@ async def async_unload_entry(hass: HomeAssistant, entry: LiproConfigEntry) -> bo
     if result:
         coordinator = getattr(entry, "runtime_data", None)
         if coordinator is not None:
-            await coordinator.async_shutdown()
+            try:
+                await coordinator.async_shutdown()
+            except asyncio.CancelledError:
+                raise
+            except Exception as err:  # noqa: BLE001
+                _LOGGER.warning(
+                    "Coordinator shutdown failed during unload (%s)",
+                    type(err).__name__,
+                )
         _clear_entry_runtime_data(entry)
+        _remove_entry_options_snapshot(hass, entry.entry_id)
 
     # Unregister shared infra when no loaded runtime entry remains.
-    if result and not _has_other_runtime_entries(
-        hass,
-        exclude_entry_id=entry.entry_id,
-    ):
-        _remove_services(hass)
-        _async_remove_device_registry_listener(hass)
+    if result:
+        lock = _get_runtime_infra_lock(hass)
+        if lock is None:
+            if not _has_other_runtime_entries(hass, exclude_entry_id=entry.entry_id):
+                _remove_services(hass)
+                _async_remove_device_registry_listener(hass)
+        else:
+            async with lock:
+                if not _has_other_runtime_entries(
+                    hass, exclude_entry_id=entry.entry_id
+                ):
+                    _remove_services(hass)
+                    _async_remove_device_registry_listener(hass)
 
     return result
 

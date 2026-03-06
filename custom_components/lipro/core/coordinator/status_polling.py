@@ -17,6 +17,8 @@ from ..api import (
 )
 from ..device import LiproDevice, parse_properties_list
 from ..device.group_status import resolve_mesh_group_lookup_ids
+from ..utils.log_safety import safe_error_placeholder
+from ..utils.redaction import redact_identifier
 from .auth_issues import _CoordinatorAuthIssuesMixin
 from .outlet_power import apply_outlet_power_info, should_reraise_outlet_power_error
 from .runtime.group_lookup_runtime import compute_group_lookup_mapping_decision
@@ -91,7 +93,10 @@ class _CoordinatorStatusPollingMixin(_CoordinatorAuthIssuesMixin):
             self._apply_product_configs_to_devices(configs_by_id, configs_by_iot_name)
 
         except LiproApiError as err:
-            _LOGGER.warning("Failed to load product configs: %s", err)
+            _LOGGER.warning(
+                "Failed to load product configs (%s)",
+                safe_error_placeholder(err),
+            )
 
     def _apply_product_configs_to_devices(
         self,
@@ -210,7 +215,7 @@ class _CoordinatorStatusPollingMixin(_CoordinatorAuthIssuesMixin):
         if not device:
             _LOGGER.debug(
                 "Unknown group in status response: %s",
-                group_id,
+                redact_identifier(group_id) or "***",
             )
             return
 
@@ -271,7 +276,11 @@ class _CoordinatorStatusPollingMixin(_CoordinatorAuthIssuesMixin):
             outlet_ids_to_query=self._outlet_ids_to_query,
             round_robin_index=self._outlet_power_round_robin_index,
             resolve_cycle_size=self._resolve_outlet_power_cycle_size,
-            query_single_outlet_power=self._query_single_outlet_power,
+            fetch_outlet_power_info=self.client.fetch_outlet_power_info,
+            get_device_by_id=self.get_device_by_id,
+            apply_outlet_power_info=apply_outlet_power_info,
+            should_reraise_outlet_power_error=should_reraise_outlet_power_error,
+            logger=_LOGGER,
             concurrency=_OUTLET_POWER_QUERY_CONCURRENCY,
         )
 

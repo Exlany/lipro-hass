@@ -1,0 +1,47 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build Release Assets
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+
+      - name: Build zip and checksums
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          tag="${GITHUB_REF_NAME}"
+          dist="dist"
+          root="lipro-hass-${tag}"
+
+          rm -rf "${dist}"
+          mkdir -p "${dist}/${root}/custom_components"
+
+          cp -r "custom_components/lipro" "${dist}/${root}/custom_components/"
+
+          (
+            cd "${dist}"
+            zip -X -r "lipro-hass-${tag}.zip" "${root}"
+            sha256sum "lipro-hass-${tag}.zip" > "SHA256SUMS"
+          )
+
+      - name: Publish release assets
+        uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b
+        with:
+          files: |
+            dist/lipro-hass-${{ github.ref_name }}.zip
+            dist/SHA256SUMS
+          generate_release_notes: true

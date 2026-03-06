@@ -14,6 +14,7 @@ from ...const.api import (
     PATH_QUERY_OTA_INFO,
     PATH_QUERY_OTA_INFO_V2,
 )
+from ..utils.log_safety import safe_error_placeholder
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -116,7 +117,11 @@ async def query_ota_info(
             result = await iot_request(path, ota_payload)
         except lipro_api_error as err:
             ota_error = err
-            _LOGGER.debug("OTA endpoint %s failed: %s", path, err)
+            _LOGGER.debug(
+                "OTA endpoint %s failed (%s)",
+                path,
+                safe_error_placeholder(err),
+            )
             continue
 
         _merge_ota_rows(
@@ -135,15 +140,15 @@ async def query_ota_info(
         code = getattr(err, "code", None)
         if is_invalid_param_error_code(code):
             _LOGGER.debug(
-                "Controller OTA endpoint rejected payload (code=%s): %s",
+                "Controller OTA endpoint rejected payload (code=%s, err=%s)",
                 code,
-                err,
+                safe_error_placeholder(err),
             )
         else:
             _LOGGER.debug(
-                "Controller OTA endpoint %s failed: %s",
+                "Controller OTA endpoint %s failed (%s)",
                 PATH_QUERY_CONTROLLER_OTA,
-                err,
+                safe_error_placeholder(err),
             )
     else:
         _merge_ota_rows(

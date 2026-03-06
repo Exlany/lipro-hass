@@ -11,18 +11,18 @@ repos:
         entry: uv run --extra dev ruff format
         language: system
         types_or: [python, pyi]
-        files: ^(custom_components/lipro|tests)/
+        files: ^(custom_components/lipro|tests|scripts)/
 
       - id: ruff-check
         name: ruff check (uv)
         entry: uv run --extra dev ruff check --fix --exit-non-zero-on-fix
         language: system
         types_or: [python, pyi]
-        files: ^(custom_components/lipro|tests)/
+        files: ^(custom_components/lipro|tests|scripts)/
 
       - id: mypy
         name: mypy (uv)
-        entry: uv run --extra dev mypy custom_components/lipro
+        entry: uv run --extra dev mypy
         language: system
         pass_filenames: false
         always_run: true
@@ -39,4 +39,3 @@ repos:
         pass_filenames: false
         always_run: true
         stages: [pre-push]
-

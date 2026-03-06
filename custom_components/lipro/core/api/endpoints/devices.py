@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, cast
 
 from ....const.api import PATH_FETCH_DEVICES, PATH_GET_PRODUCT_CONFIGS
 from ..client_base import _ClientBase
@@ -13,13 +13,16 @@ class _ClientDeviceEndpointsMixin(_ClientBase):
 
     async def get_devices(self, offset: int = 0, limit: int = 100) -> dict[str, Any]:
         """Get all devices."""
-        return await self._smart_home_request(
+        result: Any = await self._smart_home_request(
             PATH_FETCH_DEVICES,
             {
                 "offset": offset,
                 "limit": limit,
             },
         )
+        if isinstance(result, dict):
+            return cast(dict[str, Any], result)
+        return {}
 
     async def get_product_configs(self) -> list[dict[str, Any]]:
         """Get all product configurations."""

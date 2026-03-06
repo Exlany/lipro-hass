@@ -6,6 +6,9 @@ import asyncio
 from collections.abc import Awaitable, Callable
 from typing import Any
 
+from ..utils.log_safety import safe_error_placeholder
+from ..utils.redaction import redact_identifier
+
 _MSG_SN_KEYS: tuple[str, ...] = ("msgSn", "msg_sn", "messageSn", "message_sn")
 _BOOL_CONFIRMED_VALUES: tuple[Any, ...] = (True, 1, "1", "true", "TRUE")
 _BOOL_FAILED_VALUES: tuple[Any, ...] = (False, 0, "0", "false", "FALSE")
@@ -233,14 +236,15 @@ async def query_command_result_once(
             device_type=device_type_hex,
         )
     except lipro_api_error as err:
+        safe_msg_sn = redact_identifier(msg_sn) or "***"
         logger.debug(
-            "query_command_result failed (device=%s, msgSn=%s, attempt=%s/%s, code=%s): %s",
+            "query_command_result failed (device=%s, msgSn=%s, attempt=%s/%s, code=%s) (%s)",
             device_name,
-            msg_sn,
+            safe_msg_sn,
             attempt,
             attempt_limit,
             getattr(err, "code", None),
-            err,
+            safe_error_placeholder(err),
         )
         return None
 
@@ -296,10 +300,12 @@ def apply_command_result_rejected(
         "msg_sn": msg_sn,
         "state": "failed",
     }
+    safe_device_serial = redact_identifier(device_serial) or "***"
+    safe_msg_sn = redact_identifier(msg_sn) or "***"
     logger.warning(
         "query_command_result rejected command (device=%s, msgSn=%s, attempts=%s, elapsed=%.3fs, route=%s)",
-        device_serial,
-        msg_sn,
+        safe_device_serial,
+        safe_msg_sn,
         attempt,
         elapsed_seconds,
         route,
@@ -340,10 +346,12 @@ def apply_command_result_unconfirmed(
             else "query_error"
         ),
     }
+    safe_device_serial = redact_identifier(device_serial) or "***"
+    safe_msg_sn = redact_identifier(msg_sn) or "***"
     logger.warning(
         "query_command_result not confirmed (device=%s, msgSn=%s, attempts=%s, elapsed=%.3fs, route=%s, last_state=%s)",
-        device_serial,
-        msg_sn,
+        safe_device_serial,
+        safe_msg_sn,
         attempt_limit,
         elapsed_seconds,
         route,
@@ -374,10 +382,12 @@ def apply_command_result_confirmed(
         "attempts": attempt,
         "msg_sn": msg_sn,
     }
+    safe_device_serial = redact_identifier(device_serial) or "***"
+    safe_msg_sn = redact_identifier(msg_sn) or "***"
     logger.debug(
         "query_command_result confirmed (device=%s, msgSn=%s, attempts=%s, elapsed=%.3fs)",
-        device_serial,
-        msg_sn,
+        safe_device_serial,
+        safe_msg_sn,
         attempt,
         elapsed_seconds,
     )
@@ -402,12 +412,13 @@ def apply_missing_msg_sn_failure(
         "verified": False,
         "attempts": 0,
     }
+    safe_device_serial = redact_identifier(device_serial) or "***"
     logger.warning(
         "Command sent but msgSn missing for verification (command=%s, device=%s, route=%s, device_id=%s)",
         command,
         device_name,
         route,
-        device_serial,
+        safe_device_serial,
     )
     return {
         "reason": "command_result_unconfirmed",
@@ -481,12 +492,13 @@ def apply_push_failure(
     trace["success"] = False
     trace["error"] = "PushFailed"
     trace["error_message"] = "pushSuccess=false"
+    safe_device_serial = redact_identifier(device_serial) or "***"
     logger.warning(
         "Command push failed (command=%s, device=%s, route=%s, device_id=%s)",
         command,
         device_name,
         route,
-        device_serial,
+        safe_device_serial,
     )
     return {
         "reason": "push_failed",

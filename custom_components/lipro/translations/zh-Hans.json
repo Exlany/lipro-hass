@@ -36,6 +36,7 @@
     "error": {
       "cannot_connect": "无法连接到 Lipro 服务器",
       "invalid_auth": "手机号或密码错误",
+      "reauth_user_mismatch": "该账号与当前集成条目不一致，请使用同一 Lipro 账号重新认证。",
       "unknown": "发生未知错误"
     },
     "abort": {
@@ -449,6 +450,9 @@
     },
     "entry_not_found": {
       "message": "未找到或未加载配置项：{entry_id}"
+    },
+    "optional_capability_failed": {
+      "message": "可选能力 {capability} 调用失败（{error}）。"
     },
     "firmware_no_update": {
       "message": "当前设备暂无可用固件更新。"

@@ -46,7 +46,7 @@ class _ClientBase:
         require_auth: bool = True,
         is_retry: bool = False,
         retry_count: int = 0,
-    ) -> dict[str, Any]:
+    ) -> Any:
         raise NotImplementedError
 
     async def _iot_request(  # pragma: no cover

@@ -366,6 +366,7 @@ class LiproDevice:
             Color temperature in Kelvin.
 
         """
+        percent = max(0, min(100, percent))
         if self.supports_color_temp:
             temp_range = self.max_color_temp_kelvin - self.min_color_temp_kelvin
             if temp_range <= 0:
@@ -501,7 +502,8 @@ class LiproDevice:
     @property
     def position(self) -> int:
         """Get curtain position (0-100)."""
-        return self.get_int_property(PROP_POSITION, 0)
+        position = self.get_int_property(PROP_POSITION, 0)
+        return max(0, min(100, position))
 
     @property
     def is_moving(self) -> bool:

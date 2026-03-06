@@ -53,8 +53,12 @@ def normalize_schedule_row(schedule: Any) -> dict[str, Any] | None:
 
 def get_mesh_context(device: Any) -> tuple[str, list[Any]]:
     """Extract mesh gateway and member IDs from device metadata."""
-    mesh_gateway_id = device.extra_data.get("gateway_device_id", "")
-    raw_mesh_member_ids = device.extra_data.get("group_member_ids", [])
+    extra_data = getattr(device, "extra_data", None)
+    if not isinstance(extra_data, dict):
+        extra_data = {}
+
+    mesh_gateway_id = extra_data.get("gateway_device_id", "")
+    raw_mesh_member_ids = extra_data.get("group_member_ids", [])
     mesh_member_ids = (
         raw_mesh_member_ids if isinstance(raw_mesh_member_ids, list) else []
     )
@@ -179,8 +183,14 @@ async def async_handle_add_schedule(
         device,
         client_call=coordinator.client.add_device_schedule,
         call_args=(days, times, events),
-        service_log="Service call: add_schedule for %s, days=%s, times=%s, events=%s",
-        service_log_args=(days, times, events),
+        service_log=(
+            "Service call: add_schedule for %s (days=%s, times=%s, events=%s)"
+        ),
+        service_log_args=(
+            len(days) if hasattr(days, "__len__") else 0,
+            len(times) if hasattr(times, "__len__") else 0,
+            len(events) if hasattr(events, "__len__") else 0,
+        ),
         error_log="API error adding schedule: %s",
         error_translation_key="schedule_add_failed",
         logger=logger,
@@ -211,8 +221,10 @@ async def async_handle_delete_schedules(
         device,
         client_call=coordinator.client.delete_device_schedules,
         call_args=(schedule_ids,),
-        service_log="Service call: delete_schedules for %s, ids=%s",
-        service_log_args=(schedule_ids,),
+        service_log="Service call: delete_schedules for %s (ids=%s)",
+        service_log_args=(
+            len(schedule_ids) if hasattr(schedule_ids, "__len__") else 0,
+        ),
         error_log="API error deleting schedules: %s",
         error_translation_key="schedule_delete_failed",
         logger=logger,

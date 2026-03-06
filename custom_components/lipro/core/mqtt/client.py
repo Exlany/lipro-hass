@@ -12,7 +12,6 @@ Architecture:
 from __future__ import annotations
 
 import asyncio
-import contextlib
 import json
 import logging
 import random
@@ -107,8 +106,9 @@ class LiproMqttClient:
         self._on_error = on_error
 
         self._subscribed_devices: set[str] = set()
+        self._pending_unsubscribe: set[str] = set()
         self._client: aiomqtt.Client | None = None
-        self._task: asyncio.Task | None = None
+        self._task: asyncio.Task[None] | None = None
         self._last_error: Exception | None = None
         self._running = False
         self._connected = False
@@ -148,8 +148,12 @@ class LiproMqttClient:
             return
 
         self._subscribed_devices = set(device_ids)
+        self._pending_unsubscribe.difference_update(self._subscribed_devices)
         self._running = True
-        self._task = asyncio.create_task(self._connection_loop())
+        self._task = asyncio.create_task(
+            self._connection_loop(),
+            name="lipro_mqtt_connection_loop",
+        )
         self._task.add_done_callback(self._async_finalize_connection_task)
 
         _LOGGER.info(
@@ -164,8 +168,12 @@ class LiproMqttClient:
         task = self._task
         if task:
             task.cancel()
-            with contextlib.suppress(asyncio.CancelledError):
+            try:
                 await task
+            except asyncio.CancelledError:
+                pass
+            except Exception as err:  # noqa: BLE001
+                self._set_last_error(err)
             if self._task is task:
                 self._task = None
 
@@ -174,6 +182,7 @@ class LiproMqttClient:
         # Preserve legacy behavior: a new start() after stop() builds a fresh context.
         self._tls_context = None
         self._subscribed_devices.clear()
+        self._pending_unsubscribe.clear()
         _LOGGER.info("MQTT client stopped")
 
     def _get_tls_context(self) -> ssl.SSLContext:
@@ -202,6 +211,7 @@ class LiproMqttClient:
             if self._client and self._connected:
                 subscribe_pairs: list[tuple[str, str]] = []
                 for device_id in to_add:
+                    self._pending_unsubscribe.discard(device_id)
                     try:
                         topic = build_topic(self._biz_id, device_id)
                     except ValueError:
@@ -238,35 +248,38 @@ class LiproMqttClient:
             else:
                 # Not connected yet; record for subscription on next connect.
                 self._subscribed_devices.update(to_add)
+                self._pending_unsubscribe.difference_update(to_add)
                 added += len(to_add)
 
         removed = 0
         if to_remove:
-            for device_id in to_remove:
-                self._subscribed_devices.discard(device_id)
-                removed += 1
-
             if self._client and self._connected:
-                unsubscribe_topics: list[str] = []
+                unsubscribe_pairs: list[tuple[str, str]] = []
                 for device_id in to_remove:
+                    self._subscribed_devices.discard(device_id)
+                    self._pending_unsubscribe.add(device_id)
+                    removed += 1
                     try:
                         topic = build_topic(self._biz_id, device_id)
                     except ValueError:
+                        self._pending_unsubscribe.discard(device_id)
                         _LOGGER.warning(
                             "Skipping MQTT unsubscribe for invalid device ID %s: invalid characters",
                             _redact_identifier(device_id) or "***",
                         )
                         continue
-                    unsubscribe_topics.append(topic)
+                    unsubscribe_pairs.append((device_id, topic))
 
                 for i in range(
-                    0, len(unsubscribe_topics), _MQTT_SUBSCRIPTION_BATCH_SIZE
+                    0, len(unsubscribe_pairs), _MQTT_SUBSCRIPTION_BATCH_SIZE
                 ):
-                    unsubscribe_batch = unsubscribe_topics[
+                    unsubscribe_batch = unsubscribe_pairs[
                         i : i + _MQTT_SUBSCRIPTION_BATCH_SIZE
                     ]
                     try:
-                        await self._client.unsubscribe(unsubscribe_batch)
+                        await self._client.unsubscribe(
+                            [topic for _, topic in unsubscribe_batch]
+                        )
                     except aiomqtt.MqttError:
                         _LOGGER.exception(
                             "Failed to unsubscribe from %d MQTT topics",
@@ -274,11 +287,18 @@ class LiproMqttClient:
                         )
                         continue
 
-                    for topic in unsubscribe_batch:
+                    for device_id, _topic in unsubscribe_batch:
+                        self._pending_unsubscribe.discard(device_id)
                         _LOGGER.debug(
                             "Unsubscribed from device %s",
-                            _redact_identifier(parse_topic(topic)) or "***",
+                            _redact_identifier(device_id) or "***",
                         )
+            else:
+                # Not connected yet; remember removals for unsubscribe when connected.
+                for device_id in to_remove:
+                    self._subscribed_devices.discard(device_id)
+                    self._pending_unsubscribe.add(device_id)
+                    removed += 1
 
         if added or removed:
             _LOGGER.info(
@@ -334,6 +354,7 @@ class LiproMqttClient:
     async def _connect_and_listen(self) -> None:
         """Connect to broker and listen for messages."""
         tls_context = self._get_tls_context()
+        stream_ended = False
         async with aiomqtt.Client(
             hostname=MQTT_BROKER_HOST,
             port=MQTT_BROKER_PORT,
@@ -346,6 +367,40 @@ class LiproMqttClient:
         ) as client:
             self._client = client
             self._reconnect_delay = MQTT_RECONNECT_MIN_DELAY
+
+            # Best-effort: apply pending unsubscribes first (clean_session=False).
+            if self._pending_unsubscribe:
+                unsubscribe_pairs: list[tuple[str, str]] = []
+                for device_id in list(self._pending_unsubscribe):
+                    try:
+                        topic = build_topic(self._biz_id, device_id)
+                    except ValueError:
+                        self._pending_unsubscribe.discard(device_id)
+                        _LOGGER.warning(
+                            "Skipping MQTT unsubscribe for invalid device ID %s: invalid characters",
+                            _redact_identifier(device_id) or "***",
+                        )
+                        continue
+                    unsubscribe_pairs.append((device_id, topic))
+
+                for i in range(
+                    0, len(unsubscribe_pairs), _MQTT_SUBSCRIPTION_BATCH_SIZE
+                ):
+                    batch = unsubscribe_pairs[i : i + _MQTT_SUBSCRIPTION_BATCH_SIZE]
+                    try:
+                        await client.unsubscribe([topic for _, topic in batch])
+                    except aiomqtt.MqttError:
+                        _LOGGER.exception(
+                            "Failed to unsubscribe from %d MQTT topics",
+                            len(batch),
+                        )
+                        continue
+                    for device_id, _topic in batch:
+                        self._pending_unsubscribe.discard(device_id)
+                        _LOGGER.debug(
+                            "Unsubscribed from device %s",
+                            _redact_identifier(device_id) or "***",
+                        )
 
             # Subscribe BEFORE marking connected to avoid race with sync_subscriptions
             subscribe_pairs: list[tuple[str, str]] = []
@@ -390,6 +445,13 @@ class LiproMqttClient:
             # Process incoming messages
             async for message in client.messages:
                 self._process_message(message)
+            stream_ended = True
+
+        if stream_ended and self._running:
+            self._handle_disconnect("MQTT message stream ended")
+        elif not self._running:
+            self._connected = False
+            self._client = None
 
     def _handle_disconnect(self, reason: str) -> None:
         """Handle disconnection from broker."""

@@ -12,7 +12,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ..const import CMD_CHANGE_STATE, DOMAIN, MANUFACTURER
 from ..core.coordinator import LiproDataUpdateCoordinator
-from ..helpers.debounce import Debouncer
+from ..core.utils.debounce import Debouncer
 
 if TYPE_CHECKING:
     from ..core.device import LiproDevice

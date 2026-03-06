@@ -32,8 +32,9 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "colorlog==6.10.1",
-    "homeassistant==2025.10.2",
+    "homeassistant==2026.2.3",
     "pip>=21.3.1",
+    "pip-audit>=2.9.0",
     "pre-commit>=3.7.0",
     "ruff==0.15.4",
     "pytest>=7.0.0",
@@ -41,6 +42,7 @@ dev = [
     "pytest-cov>=4.0.0",
     "pytest-homeassistant-custom-component>=0.13.0",
     "mypy>=1.0.0",
+    "types-PyYAML>=6.0.12.0",
     "aiodns>=3.3.0",
     "pycares<6.0.0",
 ]
@@ -81,18 +83,26 @@ filterwarnings = [
 
 [tool.mypy]
 python_version = "3.13"
-warn_return_any = true
-warn_unused_configs = true
-disallow_untyped_defs = true
-disallow_incomplete_defs = true
-check_untyped_defs = true
-no_implicit_optional = true
-warn_redundant_casts = true
-warn_unused_ignores = true
+files = ["custom_components/lipro", "tests"]
+
+# Home Assistant custom components live under a namespace package layout:
+# `custom_components/<domain>/...` (no `custom_components/__init__.py`).
+namespace_packages = true
+explicit_package_bases = true
+
+strict = true
 warn_no_return = true
 warn_unreachable = true
-strict_equality = true
+show_error_codes = true
+enable_error_code = ["ignore-without-code"]
+
+[[tool.mypy.overrides]]
+module = ["pytest_homeassistant_custom_component.*"]
 ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["tests.*"]
+disable_error_code = ["no-untyped-def", "no-untyped-call"]
 
 [tool.ruff]
 # Based on https://github.com/ludeeus/integration_blueprint

@@ -22,6 +22,8 @@ from ...const.config import (
     DEVICE_FILTER_MODE_EXCLUDE,
     DEVICE_FILTER_MODE_INCLUDE,
     DEVICE_FILTER_MODE_OFF,
+    MAX_DEVICE_FILTER_LIST_CHARS,
+    MAX_DEVICE_FILTER_LIST_ITEMS,
 )
 from ..device.device import LiproDevice
 
@@ -95,23 +97,50 @@ def _normalize_filter_mode(value: Any) -> str:
 
 def _parse_filter_values(value: Any) -> frozenset[str]:
     """Parse list-like option value into normalized tokens."""
-    tokens: list[str] = []
-    if isinstance(value, str):
-        tokens.extend(_FILTER_LIST_SPLIT_RE.split(value))
-    elif isinstance(value, (list, tuple, set, frozenset)):
-        for item in value:
-            if isinstance(item, str):
-                tokens.extend(_FILTER_LIST_SPLIT_RE.split(item))
-            else:
-                tokens.append(str(item))
-    elif value is not None:
-        tokens.append(str(value))
+    if value is None:
+        return frozenset()
 
-    normalized = {
-        normalized_value
-        for token in tokens
-        if (normalized_value := _normalize_filter_value(token)) is not None
-    }
+    normalized: set[str] = set()
+
+    def _add_candidate(candidate: Any) -> None:
+        """Normalize candidate token and add to set if valid."""
+        if len(normalized) >= MAX_DEVICE_FILTER_LIST_ITEMS:
+            return
+        normalized_value = _normalize_filter_value(candidate)
+        if normalized_value is None:
+            return
+        normalized.add(normalized_value)
+
+    def _add_text(text: str) -> None:
+        """Split and add tokens from a raw text blob."""
+        if len(text) > MAX_DEVICE_FILTER_LIST_CHARS:
+            text = text[:MAX_DEVICE_FILTER_LIST_CHARS]
+        for token in _FILTER_LIST_SPLIT_RE.split(text):
+            _add_candidate(token)
+            if len(normalized) >= MAX_DEVICE_FILTER_LIST_ITEMS:
+                break
+
+    if isinstance(value, str):
+        _add_text(value)
+        return frozenset(normalized)
+
+    if isinstance(value, (list, tuple, set, frozenset)):
+        for item in value:
+            if len(normalized) >= MAX_DEVICE_FILTER_LIST_ITEMS:
+                break
+            if isinstance(item, str):
+                _add_text(item)
+                continue
+            raw = str(item)
+            if len(raw) > MAX_DEVICE_FILTER_LIST_CHARS:
+                raw = raw[:MAX_DEVICE_FILTER_LIST_CHARS]
+            _add_candidate(raw)
+        return frozenset(normalized)
+
+    raw = str(value)
+    if len(raw) > MAX_DEVICE_FILTER_LIST_CHARS:
+        raw = raw[:MAX_DEVICE_FILTER_LIST_CHARS]
+    _add_candidate(raw)
     return frozenset(normalized)
 
 
@@ -292,12 +321,21 @@ def is_device_included_by_filter(
     if not has_active_device_filter(filter_config):
         return True
 
-    return (
-        _rule_allows_values(filter_config.home, _extract_home_values(device_data))
-        and _rule_allows_values(filter_config.model, _extract_model_values(device_data))
-        and _rule_allows_values(filter_config.ssid, _collect_ssid_values(device_data))
-        and _rule_allows_values(filter_config.did, _extract_did_values(device_data))
-    )
+    for rule, extractor in (
+        (filter_config.home, _extract_home_values),
+        (filter_config.model, _extract_model_values),
+        (filter_config.ssid, _collect_ssid_values),
+        (filter_config.did, _extract_did_values),
+    ):
+        if rule.mode == DEVICE_FILTER_MODE_OFF:
+            continue
+        if not rule.values:
+            if rule.mode == DEVICE_FILTER_MODE_INCLUDE:
+                return False
+            continue
+        if not _rule_allows_values(rule, extractor(device_data)):
+            return False
+    return True
 
 
 def register_lookup_id(

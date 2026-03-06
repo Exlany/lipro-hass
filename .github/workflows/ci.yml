@@ -26,15 +26,15 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
 
       - name: Set up Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
         with:
           python-version: "3.13"
 
       - name: Set up uv
-        uses: astral-sh/setup-uv@v7
+        uses: astral-sh/setup-uv@0ca8f610542aa7f4acaf39e65cf4eb3c35091883
         with:
           enable-cache: true
 
@@ -42,16 +42,75 @@ jobs:
         run: uv sync --frozen --extra dev
 
       - name: Run Ruff linter
-        run: uv run ruff check custom_components/lipro tests
+        run: uv run ruff check .
 
       - name: Run Ruff formatter
-        run: uv run ruff format --check custom_components/lipro tests
+        run: uv run ruff format --check .
 
       - name: Run mypy
-        run: uv run mypy custom_components/lipro
+        run: uv run mypy
 
       - name: Check translations
         run: uv run python scripts/check_translations.py
+
+  security:
+    name: Security Audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
+        with:
+          python-version: "3.13"
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@0ca8f610542aa7f4acaf39e65cf4eb3c35091883
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --frozen --extra dev
+
+      - name: Export runtime requirements
+        run: >-
+          uv export
+          --format requirements.txt
+          --frozen
+          --no-header
+          --no-annotate
+          --no-hashes
+          --no-emit-project
+          --no-dev
+          -o requirements-runtime.txt
+
+      - name: Run pip-audit (runtime)
+        run: uv run --extra dev pip-audit --progress-spinner off -r requirements-runtime.txt
+
+      - name: Export dev requirements
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        run: >-
+          uv export
+          --format requirements.txt
+          --frozen
+          --no-header
+          --no-annotate
+          --no-hashes
+          --no-emit-project
+          --extra dev
+          -o requirements-dev.txt
+
+      - name: Run pip-audit (dev) (non-blocking)
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        id: pip_audit_dev
+        continue-on-error: true
+        run: uv run --extra dev pip-audit --progress-spinner off -r requirements-dev.txt
+
+      - name: Record pip-audit (dev) outcome
+        if: always() && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
+        run: echo "pip-audit (dev) outcome: ${{ steps.pip_audit_dev.outcome }}" >> "$GITHUB_STEP_SUMMARY"
 
   test:
     name: Test
@@ -59,15 +118,15 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
 
       - name: Set up Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
         with:
           python-version: "3.13"
 
       - name: Set up uv
-        uses: astral-sh/setup-uv@v7
+        uses: astral-sh/setup-uv@0ca8f610542aa7f4acaf39e65cf4eb3c35091883
         with:
           enable-cache: true
 
@@ -78,7 +137,8 @@ jobs:
         run: uv run pytest tests/ -v --cov=custom_components/lipro --cov-fail-under=95 --cov-report=xml --cov-report=term-missing
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v5
+        if: github.event_name == 'push'
+        uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de
         with:
           files: ./coverage.xml
           fail_ci_if_error: false
@@ -91,13 +151,13 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
 
       - name: HACS Validation
-        uses: hacs/action@main
+        uses: hacs/action@dcb30e72781db3f207d5236b861172774ab0b485
         with:
           category: integration
           ignore: brands
 
       - name: Hassfest Validation
-        uses: home-assistant/actions/hassfest@master
+        uses: home-assistant/actions/hassfest@dce0e860c68256ef2902ece06afa5401eb4674e1

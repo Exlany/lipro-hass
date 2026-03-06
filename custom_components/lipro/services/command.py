@@ -8,6 +8,7 @@ from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.exceptions import HomeAssistantError
 
 from ..core import LiproApiError
+from ..core.utils.log_safety import safe_error_placeholder as _safe_error_placeholder
 from ..core.utils.redaction import redact_identifier as _redact_identifier
 
 
@@ -36,12 +37,19 @@ async def async_send_command_with_service_errors(
             return
 
         failure_context = getattr(coordinator, "last_command_failure", None)
+        failure_summary: dict[str, Any] | None = None
+        if isinstance(failure_context, dict):
+            failure_summary = {
+                "reason": failure_context.get("reason"),
+                "code": failure_context.get("code"),
+                "route": failure_context.get("route"),
+            }
         logger.warning(
             failure_log,
             command,
             _redact_identifier(requested_device_id) or "***",
             _redact_identifier(getattr(device, "serial", None)) or "***",
-            failure_context,
+            failure_summary,
         )
         raise_service_error(
             resolve_command_failure_translation_key(
@@ -51,7 +59,7 @@ async def async_send_command_with_service_errors(
     except HomeAssistantError:
         raise
     except LiproApiError as err:
-        logger.warning(api_error_log, err)
+        logger.warning(api_error_log, _safe_error_placeholder(err))
         raise_service_error(
             resolve_command_failure_translation_key(err=err),
             err=err,

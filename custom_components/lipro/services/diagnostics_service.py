@@ -10,6 +10,7 @@ from typing import Any, NoReturn, TypeVar
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.exceptions import HomeAssistantError
 
+from ..const import DOMAIN
 from ..core import LiproApiError
 from ..core.utils.log_safety import safe_error_placeholder
 
@@ -145,8 +146,16 @@ def raise_optional_capability_error(
     """Raise concise service-layer error for optional diagnostic capabilities."""
     safe_error = safe_error_placeholder(err)
     logger.warning("Optional capability %s failed (%s)", capability, safe_error)
-    message = f"{capability} failed ({safe_error})"
-    raise HomeAssistantError(message)
+    service_error = HomeAssistantError(
+        f"{capability} failed ({safe_error})",
+        translation_domain=DOMAIN,
+        translation_key="optional_capability_failed",
+        translation_placeholders={
+            "capability": capability,
+            "error": safe_error,
+        },
+    )
+    raise service_error from err
 
 
 async def async_call_optional_capability(

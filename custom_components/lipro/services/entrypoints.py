@@ -464,7 +464,7 @@ _SERVICE_REGISTRATIONS: Final[tuple[_ServiceRegistration, ...]] = (
         _contracts.SERVICE_REFRESH_DEVICES,
         _async_handle_refresh_devices,
         _contracts.SERVICE_REFRESH_DEVICES_SCHEMA,
-        SupportsResponse.ONLY,
+        SupportsResponse.OPTIONAL,
     ),
 )
 

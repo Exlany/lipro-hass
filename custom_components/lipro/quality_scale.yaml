@@ -23,7 +23,7 @@ rules:
     comment: manifest.json declares aiomqtt and pycryptodome as requirements.
   docs-actions:
     status: done
-    comment: services.yaml and strings.json document all 6 service actions with field descriptions.
+    comment: services.yaml defines the service schemas; translations/* provide names and descriptions.
   docs-high-level-description:
     status: done
     comment: README.md provides integration overview, features, and supported platforms.
@@ -64,10 +64,10 @@ rules:
     comment: async_unload_entry unloads platforms, explicitly shuts down coordinator runtime resources, and removes services when last entry unloaded.
   docs-configuration-parameters:
     status: done
-    comment: Options flow documented in strings.json with data_description for all parameters.
+    comment: Options flow documented in translations/* with data_description for all parameters.
   docs-installation-parameters:
     status: done
-    comment: Config flow step descriptions in strings.json; README documents phone/password fields.
+    comment: Config flow step descriptions in translations/*; README documents phone/password fields.
   entity-unavailable:
     status: done
     comment: Base entity available property checks coordinator.last_update_success and device.available.
@@ -85,7 +85,7 @@ rules:
     comment: async_step_reauth + async_step_reauth_confirm implemented in config_flow.py.
   test-coverage:
     status: done
-    comment: Current CI coverage is 97.55% (2026-02-26), verified with pytest --cov across 1169 passing tests.
+    comment: CI enforces >=95% test coverage via pytest --cov.
 
   # Gold
   devices:
@@ -135,7 +135,7 @@ rules:
     comment: Connectivity sensor, light level sensor, and WiFi signal sensor disabled by default.
   entity-translations:
     status: done
-    comment: All entities use translation_key; strings.json provides translations for all entity types.
+    comment: All entities use translation_key; translations/* provides translations for all entity types.
   exception-translations:
     status: done
     comment: All exceptions use translation_domain and translation_key for translatable messages.

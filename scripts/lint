@@ -17,19 +17,58 @@ if [ ! -d ".venv" ]; then
 fi
 
 echo "Running ruff check..."
-uv run ruff check custom_components/lipro tests
+uv run ruff check .
 
 echo ""
 echo "Running ruff format check..."
-uv run ruff format --check custom_components/lipro tests
+uv run ruff format --check .
 
 echo ""
 echo "Running mypy..."
-uv run mypy custom_components/lipro
+uv run mypy
 
 echo ""
 echo "Checking translations..."
 uv run python scripts/check_translations.py
+
+echo ""
+echo "Running pip-audit..."
+# Audit exported runtime requirements to avoid:
+# - auditing the local project (not published on PyPI yet)
+# - mixing dev-only dependencies (e.g. HA) into runtime security checks
+tmp_requirements_runtime="$(mktemp)"
+tmp_requirements_dev=""
+trap 'rm -f "$tmp_requirements_runtime" "${tmp_requirements_dev:-}"' EXIT
+
+uv export \
+    --format requirements.txt \
+    --frozen \
+    --no-header \
+    --no-annotate \
+    --no-hashes \
+    --no-emit-project \
+    --no-dev \
+    -o "$tmp_requirements_runtime"
+
+pip_audit_common_args=(--progress-spinner off)
+uv run --extra dev pip-audit "${pip_audit_common_args[@]}" -r "$tmp_requirements_runtime"
+
+if [[ "${PIP_AUDIT_INCLUDE_DEV:-}" == "1" || "${PIP_AUDIT_INCLUDE_DEV:-}" == "true" ]]; then
+    echo ""
+    echo "Running pip-audit (dev dependencies)..."
+
+    tmp_requirements_dev="$(mktemp)"
+    uv export \
+        --format requirements.txt \
+        --frozen \
+        --no-header \
+        --no-annotate \
+        --no-hashes \
+        --no-emit-project \
+        --extra dev \
+        -o "$tmp_requirements_dev"
+    uv run --extra dev pip-audit "${pip_audit_common_args[@]}" -r "$tmp_requirements_dev"
+fi
 
 echo ""
 echo "All checks passed!"

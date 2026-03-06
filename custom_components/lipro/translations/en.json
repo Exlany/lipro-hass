@@ -36,6 +36,7 @@
     "error": {
       "cannot_connect": "Unable to connect to Lipro server",
       "invalid_auth": "Invalid phone number or password",
+      "reauth_user_mismatch": "This account does not match the integration entry. Please re-authenticate with the same Lipro account.",
       "unknown": "An unknown error occurred"
     },
     "abort": {
@@ -449,6 +450,9 @@
     },
     "entry_not_found": {
       "message": "Config entry not found or not loaded: {entry_id}"
+    },
+    "optional_capability_failed": {
+      "message": "Optional capability {capability} failed ({error})."
     },
     "firmware_no_update": {
       "message": "No firmware update is currently available for this device."

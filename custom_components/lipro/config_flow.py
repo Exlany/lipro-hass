@@ -3,282 +3,50 @@
 from __future__ import annotations
 
 import asyncio
-from collections.abc import Mapping
-from dataclasses import dataclass
-import hashlib
 import logging
-import re
 from typing import Any
 import uuid
 
 import voluptuous as vol
 
-from homeassistant.config_entries import (
-    ConfigEntry,
-    ConfigFlow,
-    ConfigFlowResult,
-    OptionsFlow,
-)
+from homeassistant.config_entries import ConfigEntry, ConfigFlow, ConfigFlowResult
 from homeassistant.const import CONF_PASSWORD
 from homeassistant.core import callback
 from homeassistant.data_entry_flow import AbortFlow
-from homeassistant.helpers import selector
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .const import (
     CONF_ACCESS_TOKEN,
-    CONF_ANONYMOUS_SHARE_ENABLED,
-    CONF_ANONYMOUS_SHARE_ERRORS,
     CONF_BIZ_ID,
-    CONF_DEBUG_MODE,
-    CONF_DEVICE_FILTER_DID_LIST,
-    CONF_DEVICE_FILTER_DID_MODE,
-    CONF_DEVICE_FILTER_HOME_LIST,
-    CONF_DEVICE_FILTER_HOME_MODE,
-    CONF_DEVICE_FILTER_MODEL_LIST,
-    CONF_DEVICE_FILTER_MODEL_MODE,
-    CONF_DEVICE_FILTER_SSID_LIST,
-    CONF_DEVICE_FILTER_SSID_MODE,
-    CONF_ENABLE_POWER_MONITORING,
-    CONF_LIGHT_TURN_ON_ON_ADJUST,
-    CONF_MQTT_ENABLED,
     CONF_PASSWORD_HASH,
     CONF_PHONE,
     CONF_PHONE_ID,
-    CONF_POWER_QUERY_INTERVAL,
     CONF_REFRESH_TOKEN,
     CONF_REMEMBER_PASSWORD_HASH,
-    CONF_REQUEST_TIMEOUT,
-    CONF_ROOM_AREA_SYNC_FORCE,
-    CONF_SCAN_INTERVAL,
     CONF_USER_ID,
-    DEFAULT_ANONYMOUS_SHARE_ENABLED,
-    DEFAULT_ANONYMOUS_SHARE_ERRORS,
-    DEFAULT_DEBUG_MODE,
-    DEFAULT_DEVICE_FILTER_MODE,
-    DEFAULT_ENABLE_POWER_MONITORING,
-    DEFAULT_LIGHT_TURN_ON_ON_ADJUST,
-    DEFAULT_MQTT_ENABLED,
-    DEFAULT_POWER_QUERY_INTERVAL,
     DEFAULT_REMEMBER_PASSWORD_HASH,
-    DEFAULT_REQUEST_TIMEOUT,
-    DEFAULT_ROOM_AREA_SYNC_FORCE,
-    DEFAULT_SCAN_INTERVAL,
-    DEVICE_FILTER_MODE_EXCLUDE,
-    DEVICE_FILTER_MODE_INCLUDE,
-    DEVICE_FILTER_MODE_OFF,
     DOMAIN,
-    MAX_POWER_QUERY_INTERVAL,
-    MAX_REQUEST_TIMEOUT,
-    MAX_SCAN_INTERVAL,
-    MIN_POWER_QUERY_INTERVAL,
-    MIN_REQUEST_TIMEOUT,
-    MIN_SCAN_INTERVAL,
 )
-from .const.config import CONF_COMMAND_RESULT_VERIFY, DEFAULT_COMMAND_RESULT_VERIFY
-from .core.api import LiproApiError, LiproAuthError, LiproClient, LiproConnectionError
+from .core.api import LiproApiError, LiproClient
+from .core.utils.log_safety import safe_error_placeholder
+from .flow.credentials import (
+    mask_phone_for_title as _mask_phone_for_title,
+    normalize_phone as _normalize_phone,
+    validate_password as _validate_password,
+)
+from .flow.login import (
+    LoginResult,
+    hash_password as _hash_password,
+    map_login_error as _map_login_error,
+)
+from .flow.options_flow import LiproOptionsFlow
+from .flow.schemas import (
+    STEP_REAUTH_DATA_SCHEMA,
+    STEP_USER_DATA_SCHEMA,
+    build_reconfigure_data_schema as _build_reconfigure_data_schema,
+)
 
 _LOGGER = logging.getLogger(__name__)
-
-# Options flow key for toggling advanced settings step
-_CONF_SHOW_ADVANCED = "show_advanced"
-
-_PHONE_INPUT_PATTERN = re.compile(r"^\+?\d{6,20}$")
-_MAX_PASSWORD_LEN: int = 128
-_DEVICE_FILTER_MODE_VALUES: tuple[str, str, str] = (
-    DEVICE_FILTER_MODE_OFF,
-    DEVICE_FILTER_MODE_INCLUDE,
-    DEVICE_FILTER_MODE_EXCLUDE,
-)
-
-
-def _text_selector() -> selector.TextSelector:
-    """Create a plain text selector."""
-    return selector.TextSelector(
-        selector.TextSelectorConfig(
-            type=selector.TextSelectorType.TEXT,
-        )
-    )
-
-
-def _password_selector() -> selector.TextSelector:
-    """Create a password selector."""
-    return selector.TextSelector(
-        selector.TextSelectorConfig(
-            type=selector.TextSelectorType.PASSWORD,
-        )
-    )
-
-
-def _hash_password(password: str) -> str:
-    """Hash password using MD5 (as required by Lipro API)."""
-    return hashlib.md5(password.encode("utf-8"), usedforsecurity=False).hexdigest()
-
-
-def _normalize_phone(phone: Any) -> str:
-    """Normalize and validate user-provided phone value."""
-    if not isinstance(phone, str):
-        msg = "phone must be a string"
-        raise vol.Invalid(msg)
-
-    normalized = phone.strip()
-    if not _PHONE_INPUT_PATTERN.fullmatch(normalized):
-        msg = "phone must be 6-20 digits, optionally prefixed with +"
-        raise vol.Invalid(msg)
-    return normalized
-
-
-def _mask_phone_for_title(phone: str) -> str:
-    """Mask a normalized phone number for config-entry titles."""
-    normalized = phone.strip()
-    if not normalized:
-        return "***"
-
-    prefix = "+" if normalized.startswith("+") else ""
-    digits = normalized.lstrip("+")
-
-    if len(digits) <= 4:
-        return f"{prefix}***"
-    if len(digits) <= 8:
-        return f"{prefix}{digits[:2]}***{digits[-2:]}"
-    return f"{prefix}{digits[:3]}****{digits[-4:]}"
-
-
-def _validate_password(password: Any) -> str:
-    """Validate user-provided password value."""
-    if not isinstance(password, str):
-        msg = "password must be a string"
-        raise vol.Invalid(msg)
-    if not password or len(password) > _MAX_PASSWORD_LEN:
-        msg = f"password length must be 1-{_MAX_PASSWORD_LEN}"
-        raise vol.Invalid(msg)
-    return password
-
-
-def _map_login_error(err: LiproApiError) -> str:
-    """Map login exception to error key for UI display."""
-    if isinstance(err, LiproAuthError):
-        _LOGGER.warning("Authentication failed: %s", err)
-        return "invalid_auth"
-    if isinstance(err, LiproConnectionError):
-        _LOGGER.warning("Connection failed: %s", err)
-        return "cannot_connect"
-    _LOGGER.warning("API error: %s", err)
-    return "unknown"
-
-
-@dataclass
-class LoginResult:
-    """Result of a successful login."""
-
-    access_token: str
-    refresh_token: str
-    user_id: int
-    biz_id: str | None
-
-    def to_entry_data(
-        self,
-        phone: str,
-        password_hash: str,
-        phone_id: str,
-        *,
-        remember_password_hash: bool,
-    ) -> dict[str, Any]:
-        """Convert to config entry data dict."""
-        entry_data: dict[str, Any] = {
-            CONF_PHONE: phone,
-            CONF_PHONE_ID: phone_id,
-            CONF_ACCESS_TOKEN: self.access_token,
-            CONF_REFRESH_TOKEN: self.refresh_token,
-            CONF_USER_ID: self.user_id,
-            CONF_BIZ_ID: self.biz_id,
-            CONF_REMEMBER_PASSWORD_HASH: remember_password_hash,
-        }
-        if remember_password_hash:
-            entry_data[CONF_PASSWORD_HASH] = password_hash
-        return entry_data
-
-
-STEP_USER_DATA_SCHEMA = vol.Schema(
-    {
-        vol.Required(CONF_PHONE): _text_selector(),
-        vol.Required(CONF_PASSWORD): _password_selector(),
-        vol.Optional(
-            CONF_REMEMBER_PASSWORD_HASH,
-            default=DEFAULT_REMEMBER_PASSWORD_HASH,
-        ): bool,
-    },
-)
-STEP_REAUTH_DATA_SCHEMA = vol.Schema(
-    {vol.Required(CONF_PASSWORD): _password_selector()}
-)
-
-
-def _build_reconfigure_data_schema(
-    default_phone: str,
-    *,
-    default_remember_password_hash: bool,
-) -> vol.Schema:
-    """Build schema for the reconfigure step."""
-    return vol.Schema(
-        {
-            vol.Required(CONF_PHONE, default=default_phone): _text_selector(),
-            vol.Required(CONF_PASSWORD): _password_selector(),
-            vol.Optional(
-                CONF_REMEMBER_PASSWORD_HASH,
-                default=default_remember_password_hash,
-            ): bool,
-        },
-    )
-
-
-def _build_bool_option_field(
-    options: Mapping[str, Any],
-    key: str,
-    default: bool,
-) -> tuple[vol.Marker, type[bool]]:
-    """Build a required boolean option field for options schema."""
-    return (
-        vol.Required(
-            key,
-            default=options.get(key, default),
-        ),
-        bool,
-    )
-
-
-def _build_int_option_field(
-    options: Mapping[str, Any],
-    key: str,
-    default: int,
-    min_value: int,
-    max_value: int,
-) -> tuple[vol.Marker, vol.All]:
-    """Build a required bounded integer option field for options schema."""
-    return (
-        vol.Required(
-            key,
-            default=options.get(key, default),
-        ),
-        vol.All(
-            vol.Coerce(int),
-            vol.Range(min=min_value, max=max_value),
-        ),
-    )
-
-
-def _coerce_device_filter_list_option(value: Any) -> str:
-    """Coerce stored filter-list option to form-friendly text."""
-    if isinstance(value, str):
-        return value
-    if isinstance(value, (list, tuple, set, frozenset)):
-        parts = []
-        for item in value:
-            normalized = str(item).strip()
-            if normalized:
-                parts.append(normalized)
-        return ", ".join(parts)
-    return ""
 
 
 class LiproConfigFlow(ConfigFlow, domain=DOMAIN):
@@ -286,6 +54,8 @@ class LiproConfigFlow(ConfigFlow, domain=DOMAIN):
 
     VERSION = 1
     MINOR_VERSION = 1
+
+    _user_flow_phone_id: str | None = None
 
     @staticmethod
     @callback
@@ -353,14 +123,20 @@ class LiproConfigFlow(ConfigFlow, domain=DOMAIN):
             raise
         except AbortFlow:
             raise
-        except (KeyError, TypeError, ValueError):
-            _LOGGER.exception("Malformed login response during %s", context_name)
+        except (KeyError, TypeError, ValueError) as err:
+            _LOGGER.error(
+                "Malformed login response during %s (%s)",
+                context_name,
+                safe_error_placeholder(err),
+                exc_info=_LOGGER.isEnabledFor(logging.DEBUG),
+            )
             errors["base"] = "unknown"
         except Exception as err:
-            _LOGGER.exception(
+            _LOGGER.error(
                 "Unexpected error during %s (%s)",
                 context_name,
-                type(err).__name__,
+                safe_error_placeholder(err),
+                exc_info=_LOGGER.isEnabledFor(logging.DEBUG),
             )
             errors["base"] = "unknown"
         return None
@@ -375,9 +151,15 @@ class LiproConfigFlow(ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             try:
                 phone = _normalize_phone(user_input[CONF_PHONE])
+            except vol.Invalid:
+                errors[CONF_PHONE] = "invalid_auth"
+
+            try:
                 password = _validate_password(user_input[CONF_PASSWORD])
             except vol.Invalid:
-                errors["base"] = "invalid_auth"
+                errors[CONF_PASSWORD] = "invalid_auth"
+
+            if errors:
                 return self.async_show_form(
                     step_id="user",
                     data_schema=STEP_USER_DATA_SCHEMA,
@@ -391,7 +173,9 @@ class LiproConfigFlow(ConfigFlow, domain=DOMAIN):
                     DEFAULT_REMEMBER_PASSWORD_HASH,
                 )
             )
-            phone_id = str(uuid.uuid4())
+            if not self._user_flow_phone_id:
+                self._user_flow_phone_id = str(uuid.uuid4())
+            phone_id = self._user_flow_phone_id
 
             login_result = await self._async_try_login(
                 phone, password_hash, phone_id, errors, "login"
@@ -448,7 +232,7 @@ class LiproConfigFlow(ConfigFlow, domain=DOMAIN):
                 phone = _normalize_phone(phone)
                 password = _validate_password(user_input[CONF_PASSWORD])
             except vol.Invalid:
-                errors["base"] = "invalid_auth"
+                errors[CONF_PASSWORD] = "invalid_auth"
                 return self._show_reauth_form(reauth_entry, errors)
 
             password_hash = _hash_password(password)
@@ -457,6 +241,24 @@ class LiproConfigFlow(ConfigFlow, domain=DOMAIN):
                 phone, password_hash, phone_id, errors, "reauth"
             )
             if login_result is not None:
+                expected_user_id: int | None = None
+                raw_user_id = reauth_entry.data.get(CONF_USER_ID)
+                if isinstance(raw_user_id, int) and not isinstance(raw_user_id, bool):
+                    expected_user_id = raw_user_id
+                elif isinstance(reauth_entry.unique_id, str) and reauth_entry.unique_id:
+                    unique_id = reauth_entry.unique_id.strip()
+                    if unique_id.startswith("lipro_"):
+                        suffix = unique_id.removeprefix("lipro_").strip()
+                        if suffix.isdecimal():
+                            expected_user_id = int(suffix)
+
+                if (
+                    expected_user_id is not None
+                    and expected_user_id != login_result.user_id
+                ):
+                    errors["base"] = "reauth_user_mismatch"
+                    return self._show_reauth_form(reauth_entry, errors)
+
                 return self.async_update_reload_and_abort(
                     reauth_entry,
                     data=login_result.to_entry_data(
@@ -497,9 +299,15 @@ class LiproConfigFlow(ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             try:
                 phone = _normalize_phone(user_input[CONF_PHONE])
+            except vol.Invalid:
+                errors[CONF_PHONE] = "invalid_auth"
+
+            try:
                 password = _validate_password(user_input[CONF_PASSWORD])
             except vol.Invalid:
-                errors["base"] = "invalid_auth"
+                errors[CONF_PASSWORD] = "invalid_auth"
+
+            if errors:
                 return self._show_reconfigure_form(reconfigure_entry, errors)
 
             password_hash = _hash_password(password)
@@ -561,172 +369,3 @@ class LiproConfigFlow(ConfigFlow, domain=DOMAIN):
             ),
             errors=errors,
         )
-
-
-class LiproOptionsFlow(OptionsFlow):
-    """Handle Lipro options."""
-
-    def __init__(self) -> None:
-        """Initialize options flow."""
-        super().__init__()
-        self._options: dict[str, Any] = {}
-
-    async def async_step_init(
-        self,
-        user_input: dict[str, Any] | None = None,
-    ) -> ConfigFlowResult:
-        """Manage basic options."""
-        if user_input is not None:
-            # Store basic options and check if user wants advanced settings
-            show_advanced = user_input.pop(_CONF_SHOW_ADVANCED, False)
-            self._options.update(user_input)
-
-            if show_advanced:
-                return await self.async_step_advanced()
-
-            # Merge with existing advanced options (keep previous values)
-            return self._save_options()
-
-        return self.async_show_form(
-            step_id="init",
-            data_schema=self._build_init_schema(),
-        )
-
-    async def async_step_advanced(
-        self,
-        user_input: dict[str, Any] | None = None,
-    ) -> ConfigFlowResult:
-        """Manage advanced options."""
-        if user_input is not None:
-            self._options.update(user_input)
-            return self._save_options()
-
-        return self.async_show_form(
-            step_id="advanced",
-            data_schema=self._build_advanced_schema(),
-        )
-
-    def _save_options(self) -> ConfigFlowResult:
-        """Save options, merging with existing advanced options if not visited."""
-        # Merge: start with existing options, overlay with new selections
-        merged = dict(self.config_entry.options)
-        merged.update(self._options)
-        return self.async_create_entry(title="", data=merged)
-
-    def _build_init_schema(self) -> vol.Schema:
-        """Build the basic options schema."""
-        options = self.config_entry.options
-        schema: dict[vol.Marker, Any] = {}
-
-        int_fields = (
-            (
-                CONF_SCAN_INTERVAL,
-                DEFAULT_SCAN_INTERVAL,
-                MIN_SCAN_INTERVAL,
-                MAX_SCAN_INTERVAL,
-            ),
-        )
-        for key, default, min_value, max_value in int_fields:
-            int_field, int_validator = _build_int_option_field(
-                options,
-                key,
-                default,
-                min_value,
-                max_value,
-            )
-            schema[int_field] = int_validator
-
-        for key, default in (
-            (CONF_MQTT_ENABLED, DEFAULT_MQTT_ENABLED),
-            (CONF_ENABLE_POWER_MONITORING, DEFAULT_ENABLE_POWER_MONITORING),
-            (CONF_ANONYMOUS_SHARE_ENABLED, DEFAULT_ANONYMOUS_SHARE_ENABLED),
-            (CONF_ANONYMOUS_SHARE_ERRORS, DEFAULT_ANONYMOUS_SHARE_ERRORS),
-        ):
-            bool_field, bool_validator = _build_bool_option_field(
-                options,
-                key,
-                default,
-            )
-            schema[bool_field] = bool_validator
-
-        schema[vol.Optional(_CONF_SHOW_ADVANCED, default=False)] = bool
-        return vol.Schema(schema)
-
-    def _build_advanced_schema(self) -> vol.Schema:
-        """Build the advanced options schema."""
-        options = self.config_entry.options
-        schema: dict[vol.Marker, Any] = {}
-
-        for key, default, min_value, max_value in (
-            (
-                CONF_POWER_QUERY_INTERVAL,
-                DEFAULT_POWER_QUERY_INTERVAL,
-                MIN_POWER_QUERY_INTERVAL,
-                MAX_POWER_QUERY_INTERVAL,
-            ),
-            (
-                CONF_REQUEST_TIMEOUT,
-                DEFAULT_REQUEST_TIMEOUT,
-                MIN_REQUEST_TIMEOUT,
-                MAX_REQUEST_TIMEOUT,
-            ),
-        ):
-            int_field, int_validator = _build_int_option_field(
-                options,
-                key,
-                default,
-                min_value,
-                max_value,
-            )
-            schema[int_field] = int_validator
-
-        bool_field, bool_validator = _build_bool_option_field(
-            options,
-            CONF_DEBUG_MODE,
-            DEFAULT_DEBUG_MODE,
-        )
-        schema[bool_field] = bool_validator
-
-        bool_field, bool_validator = _build_bool_option_field(
-            options,
-            CONF_LIGHT_TURN_ON_ON_ADJUST,
-            DEFAULT_LIGHT_TURN_ON_ON_ADJUST,
-        )
-        schema[bool_field] = bool_validator
-
-        bool_field, bool_validator = _build_bool_option_field(
-            options,
-            CONF_ROOM_AREA_SYNC_FORCE,
-            DEFAULT_ROOM_AREA_SYNC_FORCE,
-        )
-        schema[bool_field] = bool_validator
-
-        bool_field, bool_validator = _build_bool_option_field(
-            options,
-            CONF_COMMAND_RESULT_VERIFY,
-            DEFAULT_COMMAND_RESULT_VERIFY,
-        )
-        schema[bool_field] = bool_validator
-
-        for mode_key, list_key in (
-            (CONF_DEVICE_FILTER_HOME_MODE, CONF_DEVICE_FILTER_HOME_LIST),
-            (CONF_DEVICE_FILTER_MODEL_MODE, CONF_DEVICE_FILTER_MODEL_LIST),
-            (CONF_DEVICE_FILTER_SSID_MODE, CONF_DEVICE_FILTER_SSID_LIST),
-            (CONF_DEVICE_FILTER_DID_MODE, CONF_DEVICE_FILTER_DID_LIST),
-        ):
-            schema[
-                vol.Required(
-                    mode_key,
-                    default=options.get(mode_key, DEFAULT_DEVICE_FILTER_MODE),
-                )
-            ] = vol.In(_DEVICE_FILTER_MODE_VALUES)
-            schema[
-                vol.Optional(
-                    list_key,
-                    default=_coerce_device_filter_list_option(
-                        options.get(list_key, "")
-                    ),
-                )
-            ] = _text_selector()
-
-        return vol.Schema(schema)

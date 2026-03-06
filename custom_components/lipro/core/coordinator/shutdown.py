@@ -25,6 +25,11 @@ class _CoordinatorShutdownMixin(_CoordinatorStatusPollingMixin):
             self._mqtt_listener_update_handle.cancel()
             self._mqtt_listener_update_handle = None
 
+        if self._entry_reload_handle is not None:
+            self._entry_reload_handle.cancel()
+            self._entry_reload_handle = None
+            self._entry_reload_reasons.clear()
+
         delayed_tasks = list(self._post_command_refresh_tasks.values())
         self._post_command_refresh_tasks.clear()
         for task in delayed_tasks:
@@ -38,18 +43,33 @@ class _CoordinatorShutdownMixin(_CoordinatorStatusPollingMixin):
             if share_manager.is_enabled:
                 session = async_get_clientsession(self.hass)
                 await share_manager.submit_report(session)
-        except (OSError, TimeoutError):
-            _LOGGER.warning("Failed to submit anonymous share report on shutdown")
+        except asyncio.CancelledError:
+            raise
+        except Exception as err:  # noqa: BLE001
+            _LOGGER.warning(
+                "Failed to submit anonymous share report on shutdown (%s)",
+                type(err).__name__,
+            )
 
         try:
             await self.async_stop_mqtt()
-        except (OSError, TimeoutError):
-            _LOGGER.warning("Failed to stop MQTT client on shutdown")
+        except asyncio.CancelledError:
+            raise
+        except Exception as err:  # noqa: BLE001
+            _LOGGER.warning(
+                "Failed to stop MQTT client on shutdown (%s)",
+                type(err).__name__,
+            )
 
         try:
             await self.client.close()
-        except (OSError, TimeoutError):
-            _LOGGER.warning("Failed to close API client on shutdown")
+        except asyncio.CancelledError:
+            raise
+        except Exception as err:  # noqa: BLE001
+            _LOGGER.warning(
+                "Failed to close API client on shutdown (%s)",
+                type(err).__name__,
+            )
 
         self._reset_runtime_state()
 

@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 import logging
 from time import monotonic
-from typing import Final
+from typing import TYPE_CHECKING, Final
 
 from homeassistant.helpers.issue_registry import (
     IssueSeverity,
@@ -15,8 +15,8 @@ from homeassistant.helpers.issue_registry import (
 
 from ....const import CONF_PHONE_ID, DOMAIN
 from ...api import LiproApiError
-from ...mqtt import LiproMqttClient, decrypt_mqtt_credential
 from ...mqtt.setup_backoff import MqttSetupBackoff
+from ...utils.log_safety import safe_error_placeholder
 from ...utils.redaction import redact_identifier as _redact_identifier
 from ..command_send import _CommandSendMixin
 from ..runtime.coordinator_runtime import should_schedule_mqtt_setup
@@ -28,6 +28,9 @@ from .setup import (
     iter_mesh_group_serials,
     resolve_mqtt_biz_id,
 )
+
+if TYPE_CHECKING:
+    from ...mqtt.client import LiproMqttClient
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -96,6 +99,8 @@ class _MqttLifecycleMixin(_CommandSendMixin):
 
     async def _resolve_mqtt_decrypted_credentials(self) -> tuple[str, str] | None:
         """Fetch MQTT config and decrypt access credentials."""
+        from ...mqtt.credentials import decrypt_mqtt_credential  # noqa: PLC0415
+
         mqtt_config = await self.client.get_mqtt_config()
         credentials = extract_mqtt_encrypted_credentials(mqtt_config)
         if credentials is None:
@@ -120,6 +125,8 @@ class _MqttLifecycleMixin(_CommandSendMixin):
         phone_id: str,
     ) -> LiproMqttClient:
         """Create configured MQTT client instance."""
+        from ...mqtt.client import LiproMqttClient  # noqa: PLC0415
+
         return LiproMqttClient(
             access_key=access_key,
             secret_key=secret_key,
@@ -175,7 +182,7 @@ class _MqttLifecycleMixin(_CommandSendMixin):
             return True
 
         except (LiproApiError, ValueError) as err:
-            _LOGGER.warning("Failed to setup MQTT: %s", err)
+            _LOGGER.warning("Failed to setup MQTT (%s)", safe_error_placeholder(err))
             return False
 
     async def _async_setup_mqtt_safe(self) -> None:

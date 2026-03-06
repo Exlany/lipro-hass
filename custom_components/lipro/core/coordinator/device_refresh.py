@@ -44,9 +44,85 @@ _DEVICE_LIST_REFRESH_INTERVAL_SECONDS: Final[int] = 600
 # Defensive cap for malformed pagination responses that never terminate.
 _MAX_DEVICE_LIST_PAGES: Final[int] = 50
 
+# Coalesce reload triggers caused by device-list changes (new devices discovered,
+# stale devices removed) to avoid reload storms under cloud jitter.
+_ENTRY_RELOAD_DEBOUNCE_SECONDS: Final[float] = 5.0
+_ENTRY_RELOAD_MIN_INTERVAL_SECONDS: Final[float] = 60.0
+
 
 class _DeviceRefreshMixin(_MqttMixin):
     """Coordinator mixin for full device-list refresh and stale reconciliation."""
+
+    def _request_entry_reload(self, *, reason: str) -> bool:
+        """Request a debounced config-entry reload and return True when queued.
+
+        Prefer scheduling via Home Assistant's ``async_schedule_reload`` to avoid
+        deadlocks where a reload task cancels itself during unload.
+        """
+        if self.config_entry is None:
+            return False
+
+        self._entry_reload_reasons.add(reason)
+
+        if self._entry_reload_handle is not None:
+            return False
+
+        if not self.hass.loop.is_running():
+            self._flush_entry_reload()
+            return True
+
+        delay = _ENTRY_RELOAD_DEBOUNCE_SECONDS
+        now = monotonic()
+        if self._last_entry_reload_at > 0.0:
+            elapsed = now - self._last_entry_reload_at
+            if elapsed < _ENTRY_RELOAD_MIN_INTERVAL_SECONDS:
+                delay = max(delay, _ENTRY_RELOAD_MIN_INTERVAL_SECONDS - elapsed)
+
+        if delay <= 0:
+            self._flush_entry_reload()
+            return True
+
+        self._entry_reload_handle = self.hass.loop.call_later(
+            delay,
+            self._flush_entry_reload,
+        )
+        return True
+
+    def _flush_entry_reload(self) -> None:
+        """Flush one debounced config-entry reload request."""
+        self._entry_reload_handle = None
+
+        if self.config_entry is None:
+            self._entry_reload_reasons.clear()
+            return
+
+        now = monotonic()
+        if (
+            self._last_entry_reload_at > 0.0
+            and now - self._last_entry_reload_at < _ENTRY_RELOAD_MIN_INTERVAL_SECONDS
+        ):
+            if not self.hass.loop.is_running():
+                self._entry_reload_reasons.clear()
+                return
+
+            remaining = _ENTRY_RELOAD_MIN_INTERVAL_SECONDS - (
+                now - self._last_entry_reload_at
+            )
+            self._entry_reload_handle = self.hass.loop.call_later(
+                remaining,
+                self._flush_entry_reload,
+            )
+            return
+
+        reasons = sorted(self._entry_reload_reasons)
+        self._entry_reload_reasons.clear()
+        self._last_entry_reload_at = now
+
+        _LOGGER.debug(
+            "Scheduling entry reload (reasons=%s)",
+            ",".join(reasons) if reasons else "unknown",
+        )
+        self.hass.config_entries.async_schedule_reload(self.config_entry.entry_id)
 
     def _should_refresh_device_list(self) -> bool:
         """Return True when a full device-list refresh should run."""
@@ -92,7 +168,10 @@ class _DeviceRefreshMixin(_MqttMixin):
         """Return True when one raw device row passes configured filters."""
         return is_device_included_by_filter(device_data, self._device_filter_config)
 
-    def _schedule_reload_for_added_devices(self, previous_serials: set[str]) -> None:
+    def _schedule_reload_for_added_devices(
+        self,
+        previous_serials: set[str],
+    ) -> None:
         """Reload config entry when new devices are discovered after initial setup."""
         if not previous_serials or self.config_entry is None:
             return
@@ -102,13 +181,24 @@ class _DeviceRefreshMixin(_MqttMixin):
         if not added_serials:
             return
 
-        _LOGGER.info(
-            "Discovered %d new Lipro device(s), scheduling entry reload",
-            len(added_serials),
+        registry_serials = collect_registry_serials_for_entry(
+            device_registry=dr.async_get(self.hass),
+            config_entry_id=self.config_entry.entry_id,
+            domain=DOMAIN,
         )
-        self._track_background_task(
-            self.hass.config_entries.async_reload(self.config_entry.entry_id)
-        )
+        truly_new_serials = added_serials - registry_serials
+        if not truly_new_serials:
+            _LOGGER.debug(
+                "Skipping reload: %d added device(s) already known in registry",
+                len(added_serials),
+            )
+            return
+
+        if self._request_entry_reload(reason="devices_added"):
+            _LOGGER.info(
+                "Discovered %d new Lipro device(s), queueing entry reload",
+                len(truly_new_serials),
+            )
 
     @staticmethod
     def _parse_device_list_page(
@@ -273,6 +363,19 @@ class _DeviceRefreshMixin(_MqttMixin):
         await self._async_remove_stale_devices(reconcile_plan.removable_serials)
         for serial in reconcile_plan.removable_serials:
             self._missing_device_cycles.pop(serial, None)
+
+        for serial in reconcile_plan.removable_serials:
+            entities = self._entities_by_device.pop(serial, [])
+            for entity in entities:
+                unique_id = getattr(entity, "unique_id", None)
+                if unique_id and self._entities.get(unique_id) is entity:
+                    self._entities.pop(unique_id, None)
+
+        if self._request_entry_reload(reason="stale_devices_removed"):
+            _LOGGER.info(
+                "Removed %d stale Lipro device(s), queueing entry reload",
+                len(reconcile_plan.removable_serials),
+            )
 
     async def _async_remove_stale_devices(self, stale_serials: set[str]) -> None:
         """Remove devices that no longer exist in the cloud.

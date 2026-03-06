@@ -24,6 +24,7 @@ from ..command.result import (
 )
 from ..command.trace import build_command_trace, update_trace_with_exception
 from ..device import LiproDevice
+from ..utils.log_safety import safe_error_placeholder
 from ..utils.redaction import redact_identifier as _redact_identifier
 from .command_confirm import _CommandConfirmMixin
 
@@ -123,7 +124,11 @@ class _CommandSendMixin(_CommandConfirmMixin):
             await self._trigger_reauth("auth_error")
             return False
 
-        _LOGGER.warning("Failed to send command to %s: %s", device.name, err)
+        _LOGGER.warning(
+            "Failed to send command to %s (%s)",
+            device.name,
+            safe_error_placeholder(err),
+        )
         return False
 
     @property
@@ -143,6 +148,8 @@ class _CommandSendMixin(_CommandConfirmMixin):
     ) -> bool:
         """Verify command delivery result by polling query_command_result."""
         verify_started_at = monotonic()
+        safe_device_serial = _redact_identifier(device.serial) or "***"
+        safe_msg_sn = _redact_identifier(msg_sn) or "***"
 
         async def _query_once(attempt: int) -> dict[str, Any] | None:
             return await query_command_result_once(
@@ -162,8 +169,8 @@ class _CommandSendMixin(_CommandConfirmMixin):
                 "query_command_result attempt=%s/%s (device=%s, msgSn=%s, route=%s) state=%s",
                 attempt,
                 _COMMAND_RESULT_VERIFY_ATTEMPTS,
-                device.serial,
-                msg_sn,
+                safe_device_serial,
+                safe_msg_sn,
                 route,
                 state,
             )
@@ -230,13 +237,17 @@ class _CommandSendMixin(_CommandConfirmMixin):
         if verified:
             return True
 
+        safe_msg_sn = _redact_identifier(msg_sn) or "***"
+        failure_reason = None
+        if isinstance(self._last_command_failure, dict):
+            failure_reason = self._last_command_failure.get("reason")
         _LOGGER.warning(
-            "Command delivery not confirmed (command=%s, device=%s, route=%s, msgSn=%s, failure=%s)",
+            "Command delivery not confirmed (command=%s, device=%s, route=%s, msgSn=%s, reason=%s)",
             command,
             device.name,
             route,
-            msg_sn,
-            self._last_command_failure,
+            safe_msg_sn,
+            failure_reason,
         )
         return False
 

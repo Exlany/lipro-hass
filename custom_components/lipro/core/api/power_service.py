@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from typing import Any, cast
 
+OutletPowerInfoPayload = dict[str, Any] | list[dict[str, Any]]
+
 
 async def fetch_outlet_power_info(
     *,
@@ -15,7 +17,7 @@ async def fetch_outlet_power_info(
     lipro_api_error: type[Exception],
     logger: Any,
     path_query_outlet_power: str,
-) -> dict[str, Any]:
+) -> OutletPowerInfoPayload:
     """Fetch power information for outlet devices."""
     sanitized_ids = sanitize_iot_device_ids(
         device_ids,
@@ -29,10 +31,24 @@ async def fetch_outlet_power_info(
             path_query_outlet_power,
             {"deviceIds": sanitized_ids},
         )
-        return cast(
-            dict[str, Any],
-            require_mapping_response(path_query_outlet_power, result),
+        if isinstance(result, list):
+            rows = [row for row in result if isinstance(row, dict)]
+            if len(rows) != len(result):
+                logger.debug(
+                    "Power-info payload dropped %d non-mapping rows",
+                    len(result) - len(rows),
+                )
+            return rows
+        if isinstance(result, dict):
+            return cast(
+                dict[str, Any],
+                require_mapping_response(path_query_outlet_power, result),
+            )
+        logger.debug(
+            "Power-info payload returned unexpected type (%s), treating as empty",
+            type(result).__name__,
         )
+        return {}
     except lipro_api_error as err:
         # Keep behavior: invalid-param business error should degrade to empty payload.
         code = getattr(err, "code", None)

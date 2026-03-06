@@ -7,9 +7,9 @@ from typing import TYPE_CHECKING, Any, Final
 from homeassistant.components.light import (
     ATTR_BRIGHTNESS,
     ATTR_COLOR_TEMP_KELVIN,
-    ColorMode,
     LightEntity,
 )
+from homeassistant.components.light.const import ColorMode
 
 from .const import (
     CMD_POWER_OFF,
@@ -22,8 +22,8 @@ from .const import (
     PROP_POWER_STATE,
     PROP_TEMPERATURE,
 )
+from .core.utils.coerce import coerce_bool_option
 from .entities.base import LiproEntity
-from .helpers.options import coerce_bool_option
 from .helpers.platform import create_platform_entities
 
 if TYPE_CHECKING:

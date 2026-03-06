@@ -72,6 +72,8 @@ DEVICE_FILTER_MODE_OFF: Final = "off"
 DEVICE_FILTER_MODE_INCLUDE: Final = "include"
 DEVICE_FILTER_MODE_EXCLUDE: Final = "exclude"
 DEFAULT_DEVICE_FILTER_MODE: Final = DEVICE_FILTER_MODE_OFF
+MAX_DEVICE_FILTER_LIST_CHARS: Final = 4096
+MAX_DEVICE_FILTER_LIST_ITEMS: Final = 200
 
 # Anonymous share options (device info sharing)
 CONF_ANONYMOUS_SHARE_ENABLED: Final = "anonymous_share_enabled"

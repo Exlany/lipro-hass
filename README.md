@@ -4,7 +4,7 @@
 [![GitHub Release](https://img.shields.io/github/v/release/Exlany/lipro-hass?style=flat-square)](https://github.com/Exlany/lipro-hass/releases)
 [![License](https://img.shields.io/github/license/Exlany/lipro-hass?style=flat-square)](LICENSE)
 
-[中文文档](README_zh.md) | English
+[中文文档](README_zh.md) | English | [更新日志](CHANGELOG.md)
 
 Home Assistant integration for controlling Lipro Smart Home devices.
 
@@ -50,8 +50,8 @@ Home Assistant integration for controlling Lipro Smart Home devices.
 - `lipro.refresh_devices` - Force a full device list refresh (all entries or one `entry_id`)
 
 Firmware validation list:
-- English: `docs/firmware_support_matrix.md`
-- 中文: `docs/firmware_support_matrix_zh.md`
+- Certified firmware versions: `custom_components/lipro/firmware_support_manifest.json`
+- OTA update entities show available firmware (uncertified firmware may require confirmation)
 
 ## Data Update Mechanism
 
@@ -82,10 +82,17 @@ This integration uses a **hybrid mode** to fetch device status:
 wget -O - https://raw.githubusercontent.com/Exlany/lipro-hass/main/install.sh | ARCHIVE_TAG=latest bash -
 
 # Install a specific tag/branch (e.g. v1.0.0)
-wget -O - https://raw.githubusercontent.com/Exlany/lipro-hass/main/install.sh | ARCHIVE_TAG=v1.0.0 bash -
+# Tip: pin the installer itself by downloading it from the tag too.
+wget -O - https://raw.githubusercontent.com/Exlany/lipro-hass/v1.0.0/install.sh | ARCHIVE_TAG=v1.0.0 bash -
+
+# Install the bleeding-edge branch explicitly
+wget -O - https://raw.githubusercontent.com/Exlany/lipro-hass/main/install.sh | ARCHIVE_TAG=main bash -
+
+# Use a GitHub archive mirror (DANGEROUS; only if you trust the mirror)
+wget -O - https://raw.githubusercontent.com/Exlany/lipro-hass/main/install.sh | LIPRO_ALLOW_MIRROR=1 HUB_DOMAIN=ghfast.top ARCHIVE_TAG=v1.0.0 bash -
 ```
 
-Note: `ARCHIVE_TAG` selects what to install (tag/branch). `latest` resolves to the latest GitHub Release tag; if resolution fails it falls back to `main`. Pin a tag (e.g. `v1.0.0`) for reproducible installs, or use `ARCHIVE_TAG=main` for the bleeding-edge version.
+Note: `ARCHIVE_TAG` selects what to install (tag/branch). `latest` resolves to the latest GitHub Release tag; if resolution fails the installer will exit with an error. Pin a tag (e.g. `v1.0.0`) for reproducible installs, or use `ARCHIVE_TAG=main` explicitly for the bleeding-edge version.
 
 Note: `HUB_DOMAIN` only affects where the installer fetches release metadata and source archives from. It does not change how `install.sh` itself is downloaded (still `raw.githubusercontent.com`).
 

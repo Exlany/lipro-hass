@@ -11,6 +11,7 @@ from ....const.api import (
     PATH_BLE_SCHEDULE_GET,
 )
 from ...utils.identifiers import normalize_iot_device_id as _normalize_iot_device_id
+from ...utils.redaction import redact_identifier as _redact_identifier
 from .. import response_safety as _response_safety
 from ..errors import LiproApiError, LiproAuthError
 from ..schedule_codec import (
@@ -261,7 +262,7 @@ class _ClientScheduleEndpointsMixin(_ClientEndpointPayloadsMixin):
                 _LOGGER.debug(
                     "BLE schedule %s rejected for %s (code=%s), fallback to standard endpoint",
                     ble_operation,
-                    device_id,
+                    _redact_identifier(device_id) or "***",
                     err.code,
                 )
         elif candidate_ids:

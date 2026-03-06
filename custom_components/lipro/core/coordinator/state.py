@@ -32,7 +32,6 @@ from ...const import (
 )
 from ...const.api import MAX_DEVICES_PER_QUERY
 from ...const.config import CONF_COMMAND_RESULT_VERIFY, DEFAULT_COMMAND_RESULT_VERIFY
-from ...helpers.options import coerce_bool_option, coerce_int_option
 from ..anonymous_share import get_anonymous_share_manager
 from ..command.confirmation_tracker import CommandConfirmationTracker
 from ..command.expectation import (
@@ -41,6 +40,7 @@ from ..command.expectation import (
 from ..device import LiproDevice
 from ..device.identity_index import DeviceIdentityIndex
 from ..utils.background_task_manager import BackgroundTaskManager
+from ..utils.coerce import coerce_bool_option, coerce_int_option
 from ..utils.developer_report import (
     build_developer_report as build_coordinator_developer_report,
 )
@@ -60,6 +60,7 @@ from .device_list_snapshot import (
     has_active_device_filter,
 )
 from .device_refresh import _DeviceRefreshMixin
+from .entity_protocol import LiproEntityProtocol
 from .tuning import (
     _CONNECT_STATUS_MQTT_STALE_SECONDS,
     _CONNECT_STATUS_SKIP_RATIO_WINDOW,
@@ -68,7 +69,6 @@ from .tuning import (
 )
 
 if TYPE_CHECKING:
-    from ...entities.base import LiproEntity
     from ..anonymous_share import AnonymousShareManager
 
 _LOGGER = logging.getLogger(__name__)
@@ -98,8 +98,8 @@ class _CoordinatorStateMixin(_DeviceRefreshMixin):
         self._outlet_ids_to_query: list[str] = []  # Outlet device IDs for power query
 
         # Track entities for debounce protection (indexed by device serial)
-        self._entities: dict[str, LiproEntity] = {}
-        self._entities_by_device: dict[str, list[LiproEntity]] = {}
+        self._entities: dict[str, LiproEntityProtocol] = {}
+        self._entities_by_device: dict[str, list[LiproEntityProtocol]] = {}
 
         # Product configs cache (productId/iotName -> config)
         self._product_configs_by_id: dict[int, dict[str, Any]] = {}
@@ -171,6 +171,11 @@ class _CoordinatorStateMixin(_DeviceRefreshMixin):
         # Raw (unfiltered) cloud serial snapshot from last full device fetch.
         self._cloud_serials_last_seen: set[str] = set()
 
+        # Debounced config-entry reload scheduling for device-list changes.
+        self._entry_reload_handle: asyncio.TimerHandle | None = None
+        self._entry_reload_reasons: set[str] = set()
+        self._last_entry_reload_at: float = 0.0
+
         # Debug mode command traces (opt-in)
         self._command_traces: deque[dict[str, Any]] = deque(
             maxlen=_MAX_DEVELOPER_COMMAND_TRACES
@@ -191,6 +196,9 @@ class _CoordinatorStateMixin(_DeviceRefreshMixin):
         self._reset_mqtt_state()
         self._missing_device_cycles.clear()
         self._cloud_serials_last_seen.clear()
+        self._entry_reload_reasons.clear()
+        self._entry_reload_handle = None
+        self._last_entry_reload_at = 0.0
         self._pending_command_expectations.clear()
         self._device_state_latency_seconds.clear()
         self._last_device_refresh_at = 0.0

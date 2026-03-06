@@ -14,12 +14,12 @@ from typing import TYPE_CHECKING, Any
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
 from ..device import LiproDevice
+from .entity_protocol import LiproEntityProtocol
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.core import HomeAssistant
 
-    from ...entities.base import LiproEntity
     from ..anonymous_share import AnonymousShareManager
     from ..api import LiproClient
     from ..auth import LiproAuthManager
@@ -55,10 +55,13 @@ class _CoordinatorBase(DataUpdateCoordinator[dict[str, LiproDevice]]):
     _force_device_refresh: bool
     _missing_device_cycles: dict[str, int]
     _cloud_serials_last_seen: set[str]
+    _entry_reload_handle: asyncio.TimerHandle | None
+    _entry_reload_reasons: set[str]
+    _last_entry_reload_at: float
 
     # Entity debounce protection index
-    _entities: dict[str, LiproEntity]
-    _entities_by_device: dict[str, list[LiproEntity]]
+    _entities: dict[str, LiproEntityProtocol]
+    _entities_by_device: dict[str, list[LiproEntityProtocol]]
 
     # MQTT runtime state
     _mqtt_client: LiproMqttClient | None

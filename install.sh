@@ -4,13 +4,16 @@
 # Usage:
 #   wget -q -O - https://raw.githubusercontent.com/Exlany/lipro-hass/main/install.sh | ARCHIVE_TAG=latest bash -
 #   wget -q -O - https://raw.githubusercontent.com/Exlany/lipro-hass/main/install.sh | ARCHIVE_TAG=v1.0.0 bash -
-#   wget -q -O - https://raw.githubusercontent.com/Exlany/lipro-hass/main/install.sh | HUB_DOMAIN=ghfast.top bash -
-set -e
+#   wget -q -O - https://raw.githubusercontent.com/Exlany/lipro-hass/main/install.sh | LIPRO_ALLOW_MIRROR=1 HUB_DOMAIN=ghfast.top bash -
+set -euo pipefail
 
 DOMAIN="lipro"
 REPO_PATH="Exlany/lipro-hass"
 
-[ -z "$ARCHIVE_TAG" ] && ARCHIVE_TAG="$1"
+ARCHIVE_TAG="${ARCHIVE_TAG:-}"
+HUB_DOMAIN="${HUB_DOMAIN:-}"
+
+[ -z "$ARCHIVE_TAG" ] && ARCHIVE_TAG="${1:-}"
 [ -z "$ARCHIVE_TAG" ] && ARCHIVE_TAG="latest"
 [ -z "$HUB_DOMAIN" ] && HUB_DOMAIN="github.com"
 ARCHIVE_URL=""
@@ -32,7 +35,14 @@ declare -a paths=(
 
 info()  { echo -e "${GREEN_COLOR}INFO: $1${NO_COLOR}"; }
 warn()  { echo -e "${YELLOW_COLOR}WARN: $1${NO_COLOR}"; }
-error() { echo -e "${RED_COLOR}ERROR: $1${NO_COLOR}"; if [ "$2" != "false" ]; then exit 1; fi; }
+error() {
+    local shouldExit
+    shouldExit="${2:-true}"
+    echo -e "${RED_COLOR}ERROR: $1${NO_COLOR}"
+    if [ "$shouldExit" != "false" ]; then
+        exit 1
+    fi
+}
 
 check_requirement() {
     if [ -z "$(command -v "$1")" ]; then
@@ -56,8 +66,7 @@ python_preflight_scan_zip() {
     fi
 
     if [ -z "$pythonBin" ]; then
-        warn "Python not found; skipping archive preflight scan (symlink/size checks)"
-        return 0
+        error "Python not found; cannot safely validate archive (symlink/size/path checks). Please install python3 or python."
     fi
 
     # This scan rejects dangerous paths and symlink/device-type entries before unzip runs.
@@ -190,6 +199,9 @@ download_archive() {
 
 requestedArchiveTag="$ARCHIVE_TAG"
 if [ "$HUB_DOMAIN" != "github.com" ]; then
+    if [ "${LIPRO_ALLOW_MIRROR:-0}" != "1" ]; then
+        error "Refusing to install from non-default HUB_DOMAIN='$HUB_DOMAIN'. Set LIPRO_ALLOW_MIRROR=1 to override (DANGEROUS)."
+    fi
     warn "HUB_DOMAIN is set to '$HUB_DOMAIN'. This will download and install code from that domain. Only use trusted mirrors."
 fi
 if [ "$ARCHIVE_TAG" = "latest" ]; then
@@ -198,16 +210,29 @@ if [ "$ARCHIVE_TAG" = "latest" ]; then
         ARCHIVE_TAG="$resolvedTag"
         info "Resolved latest to '$ARCHIVE_TAG'"
     else
-        warn "Could not resolve latest release tag; falling back to 'main'"
-        ARCHIVE_TAG="main"
+        error "Could not resolve latest release tag. Please pin ARCHIVE_TAG=<tag> (e.g. v1.0.0). Use ARCHIVE_TAG=main explicitly to install development branch."
     fi
 fi
 
-declare -a archiveUrls=(
-    "https://$HUB_DOMAIN/$REPO_PATH/archive/refs/tags/$ARCHIVE_TAG.zip"
-    "https://$HUB_DOMAIN/$REPO_PATH/archive/refs/heads/$ARCHIVE_TAG.zip"
-    "https://$HUB_DOMAIN/$REPO_PATH/archive/$ARCHIVE_TAG.zip"
-)
+allowBranchFallback=1
+if [ "$requestedArchiveTag" = "latest" ]; then
+    allowBranchFallback=0
+elif [[ "$ARCHIVE_TAG" =~ ^v[0-9] ]] || [[ "$ARCHIVE_TAG" =~ ^[0-9] ]] || [[ "$ARCHIVE_TAG" == *.* ]]; then
+    allowBranchFallback=0
+fi
+if [ "${LIPRO_ALLOW_BRANCH_FALLBACK:-0}" = "1" ]; then
+    allowBranchFallback=1
+fi
+
+declare -a archiveUrls=("https://$HUB_DOMAIN/$REPO_PATH/archive/refs/tags/$ARCHIVE_TAG.zip")
+if [ "$allowBranchFallback" = "1" ]; then
+    archiveUrls+=(
+        "https://$HUB_DOMAIN/$REPO_PATH/archive/refs/heads/$ARCHIVE_TAG.zip"
+        "https://$HUB_DOMAIN/$REPO_PATH/archive/$ARCHIVE_TAG.zip"
+    )
+else
+    info "Tag-only install mode: will not fall back to branch archives. Set LIPRO_ALLOW_BRANCH_FALLBACK=1 to override."
+fi
 
 info "Archive tag: $requestedArchiveTag (resolved: $ARCHIVE_TAG)"
 if [ "$requestedArchiveTag" = "latest" ]; then
@@ -259,7 +284,59 @@ cleanup() {
 trap cleanup EXIT
 
 info "Downloading $ARCHIVE_TAG..."
-download_archive "$tmpZip" "${archiveUrls[@]}" || error "Failed to download archive for $ARCHIVE_TAG"
+downloadedFromRelease=0
+if [ "$HUB_DOMAIN" = "github.com" ] && [ "$allowBranchFallback" = "0" ] && [ "$ARCHIVE_TAG" != "main" ]; then
+    releaseZipName="lipro-hass-${ARCHIVE_TAG}.zip"
+    releaseZipUrl="https://github.com/$REPO_PATH/releases/download/$ARCHIVE_TAG/$releaseZipName"
+    releaseSumsUrl="https://github.com/$REPO_PATH/releases/download/$ARCHIVE_TAG/SHA256SUMS"
+    releaseSumsFile="$tmpRoot/SHA256SUMS"
+
+    info "Trying GitHub Release asset: $releaseZipName"
+    if wget -t 2 -O "$tmpZip" "$releaseZipUrl"; then
+        downloadedFromRelease=1
+        ARCHIVE_URL="$releaseZipUrl"
+
+        if wget -t 2 -O "$releaseSumsFile" "$releaseSumsUrl"; then
+            if command -v sha256sum >/dev/null 2>&1; then
+                expectedSha="$(
+                    awk -v name="$releaseZipName" '($2 == name || $2 == ("*" name)) {print $1; exit}' "$releaseSumsFile"
+                )"
+                if [ -z "$expectedSha" ]; then
+                    if [ "${LIPRO_REQUIRE_CHECKSUM:-0}" = "1" ]; then
+                        error "SHA256SUMS does not contain an entry for $releaseZipName"
+                    fi
+                    warn "SHA256SUMS missing entry for $releaseZipName; skipping verification"
+                else
+                    actualSha="$(sha256sum "$tmpZip" | awk '{print $1}')"
+                    if [ "$expectedSha" != "$actualSha" ]; then
+                        error "Checksum mismatch for $releaseZipName (expected $expectedSha, got $actualSha)"
+                    fi
+                    info "Checksum verified: $releaseZipName"
+                fi
+            else
+                if [ "${LIPRO_REQUIRE_CHECKSUM:-0}" = "1" ]; then
+                    error "'sha256sum' is not installed; cannot verify archive checksum"
+                fi
+                warn "'sha256sum' not found; skipping checksum verification"
+            fi
+        else
+            if [ "${LIPRO_REQUIRE_CHECKSUM:-0}" = "1" ]; then
+                error "SHA256SUMS not found for $ARCHIVE_TAG; cannot verify archive integrity"
+            fi
+            warn "SHA256SUMS not found for $ARCHIVE_TAG; continuing without verification"
+        fi
+    else
+        rm -f "$tmpZip" 2>/dev/null || true
+        warn "Release asset not found for $ARCHIVE_TAG; falling back to source archive"
+        if [ "${LIPRO_REQUIRE_CHECKSUM:-0}" = "1" ]; then
+            error "Release asset not found for $ARCHIVE_TAG; checksum verification required"
+        fi
+    fi
+fi
+
+if [ "$downloadedFromRelease" = "0" ]; then
+    download_archive "$tmpZip" "${archiveUrls[@]}" || error "Failed to download archive for $ARCHIVE_TAG"
+fi
 info "Archive URL: $ARCHIVE_URL"
 
 info "Validating archive..."
@@ -307,14 +384,14 @@ if [ -d "$ccPath/$DOMAIN" ]; then
     rm -rf "$backupDir"
     mv "$ccPath/$DOMAIN" "$backupDir"
 fi
-if ! mv "$tmpInstall" "$ccPath/$DOMAIN"; then
-    warn "Install failed, attempting rollback... / 安装失败，尝试回滚..."
-    rm -rf "$ccPath/$DOMAIN" 2>/dev/null || true
-    if [ -d "$backupDir" ]; then
-        mv "$backupDir" "$ccPath/$DOMAIN" 2>/dev/null || true
-    fi
-    error "Failed to activate new version / 无法激活新版本"
-fi
+	if ! mv "$tmpInstall" "$ccPath/$DOMAIN"; then
+	    warn "Install failed, attempting rollback... / 安装失败，尝试回滚..."
+	    rm -rf "${ccPath:?}/${DOMAIN:?}" 2>/dev/null || true
+	    if [ -d "$backupDir" ]; then
+	        mv "$backupDir" "$ccPath/$DOMAIN" 2>/dev/null || true
+	    fi
+	    error "Failed to activate new version / 无法激活新版本"
+	fi
 rm -rf "$backupDir"
 
 info "Cleaning up temp files..."

@@ -6,7 +6,7 @@ from collections.abc import Mapping
 import logging
 from typing import Any
 
-from ....helpers.options import coerce_int_option
+from ...utils.coerce import coerce_int_option
 from .policy import compute_relaxed_polling_seconds
 
 

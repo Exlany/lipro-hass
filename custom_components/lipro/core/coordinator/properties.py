@@ -8,15 +8,14 @@ This mixin owns:
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from ...const import PROP_FAN_GEAR
 from ..device import LiproDevice
 from ..utils.log_safety import summarize_properties_for_log
+from ..utils.redaction import redact_identifier
+from .entity_protocol import LiproEntityProtocol
 from .state import _CoordinatorStateMixin
-
-if TYPE_CHECKING:
-    from ...entities.base import LiproEntity
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -24,7 +23,7 @@ _LOGGER = logging.getLogger(__name__)
 class _CoordinatorPropertiesMixin(_CoordinatorStateMixin):
     """Mixin: entity registration and safe property application."""
 
-    def register_entity(self, entity: LiproEntity) -> None:
+    def register_entity(self, entity: LiproEntityProtocol) -> None:
         """Register an entity for debounce protection tracking."""
         if not entity.unique_id:
             return
@@ -40,7 +39,7 @@ class _CoordinatorPropertiesMixin(_CoordinatorStateMixin):
         else:
             entities.append(entity)
 
-    def unregister_entity(self, entity: LiproEntity) -> None:
+    def unregister_entity(self, entity: LiproEntityProtocol) -> None:
         """Unregister an entity."""
         if not entity.unique_id:
             return
@@ -83,7 +82,7 @@ class _CoordinatorPropertiesMixin(_CoordinatorStateMixin):
         filtered = {k: v for k, v in properties.items() if k not in blocked_keys}
         _LOGGER.debug(
             "Skipping protected keys for device %s: %s",
-            device_serial[:8] + "...",
+            redact_identifier(device_serial) or "***",
             blocked_keys,
         )
         return filtered

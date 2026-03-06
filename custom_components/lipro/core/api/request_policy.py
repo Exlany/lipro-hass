@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import asyncio
 from collections.abc import Awaitable, Callable
-from datetime import datetime
+from datetime import UTC, datetime
 from email.utils import parsedate_to_datetime
 from typing import Final
 
@@ -48,8 +48,12 @@ def enforce_command_pacing_cache_limit(
         change_state_min_interval.pop(oldest_target, None)
         change_state_busy_count.pop(oldest_target, None)
         lock = command_pacing_target_locks.get(oldest_target)
-        waiters = getattr(lock, "_waiters", None)
-        has_waiters = bool(waiters) if waiters is not None else False
+        has_waiters = False
+        if lock is not None:
+            # asyncio.Lock does not provide a public API for checking queued waiters.
+            # We use a best-effort guard to avoid evicting locks while tasks are queued.
+            has_waiters = bool(getattr(lock, "_waiters", None))
+
         if lock is not None and not lock.locked() and not has_waiters:
             command_pacing_target_locks.pop(oldest_target, None)
         tracked_targets.discard(oldest_target)
@@ -213,6 +217,8 @@ def parse_retry_after(headers: dict[str, str]) -> float | None:
 
     try:
         retry_dt = parsedate_to_datetime(retry_after)
+        if retry_dt.tzinfo is None:
+            retry_dt = retry_dt.replace(tzinfo=UTC)
         delta = (retry_dt - datetime.now(tz=retry_dt.tzinfo)).total_seconds()
         return max(0.0, delta)
     except (ValueError, TypeError):

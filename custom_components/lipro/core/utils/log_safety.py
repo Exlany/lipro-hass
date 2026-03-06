@@ -39,7 +39,7 @@ def mask_ip_addresses(text: str, *, placeholder: str = "[IP]") -> str:
 
 
 def summarize_properties_for_log(
-    properties: Mapping[str, Any] | Sequence[Mapping[str, Any] | object] | None,
+    properties: Mapping[Any, Any] | Sequence[Mapping[str, Any] | object] | None,
 ) -> dict[str, int | list[str]]:
     """Return a log-safe properties summary containing only keys and count."""
     keys: list[str] = []

@@ -86,8 +86,8 @@ def make_device():
         device_number: int = 1,
         serial: str = "03ab5ccd7cxxxxxx",
         name: str | None = None,
-        properties: dict | None = None,
-        extra_data: dict | None = None,
+        properties: dict[str, Any] | None = None,
+        extra_data: dict[str, Any] | None = None,
         **overrides: Any,
     ) -> Any:
         from custom_components.lipro.core.device import LiproDevice

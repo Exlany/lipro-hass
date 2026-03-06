@@ -55,13 +55,17 @@ def resolve_connect_status_query_candidates(
     else:
         next_last_query_time = now
 
+    normalized_iot_by_id = {
+        device_id: _normalize_lookup_key(device_id, normalize)
+        for device_id in iot_id_list
+    }
     normalized_priority_ids = {
         _normalize_lookup_key(device_id, normalize) for device_id in priority_ids
     }
     priority_query_ids = [
         device_id
         for device_id in iot_id_list
-        if _normalize_lookup_key(device_id, normalize) in normalized_priority_ids
+        if normalized_iot_by_id[device_id] in normalized_priority_ids
     ]
 
     if force_refresh and priority_query_ids:
@@ -89,9 +93,7 @@ def resolve_connect_status_query_candidates(
         device_id
         for device_id in iot_id_list
         if _is_mqtt_connect_stale(
-            mqtt_recent_time_by_id.get(
-                _normalize_lookup_key(device_id, normalize), 0.0
-            ),
+            mqtt_recent_time_by_id.get(normalized_iot_by_id[device_id], 0.0),
             stale_before,
         )
     ]
@@ -99,7 +101,7 @@ def resolve_connect_status_query_candidates(
     query_ids: list[str] = []
     seen_normalized_ids: set[str] = set()
     for device_id in [*priority_query_ids, *stale_query_ids]:
-        normalized = _normalize_lookup_key(device_id, normalize)
+        normalized = normalized_iot_by_id[device_id]
         if normalized in seen_normalized_ids:
             continue
         seen_normalized_ids.add(normalized)

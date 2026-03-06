@@ -13,6 +13,7 @@ from ...const.api import (
     ERROR_REFRESH_TOKEN_EXPIRED,
     RESPONSE_SUCCESS_CODES,
 )
+from ..utils.log_safety import safe_error_placeholder
 from . import response_safety as _response_safety
 from .client_pacing import _ClientPacingMixin
 from .errors import (
@@ -84,7 +85,7 @@ class _ClientAuthRecoveryMixin(_ClientPacingMixin):
     async def _handle_auth_error_and_retry(
         self,
         path: str,
-        old_token: str | None,
+        request_token: str | None,
         is_retry: bool,
     ) -> bool:
         """Handle auth error by refreshing token.
@@ -101,7 +102,7 @@ class _ClientAuthRecoveryMixin(_ClientPacingMixin):
         if is_retry or not self._on_token_refresh:
             return False
         _LOGGER.info("Received auth error from %s, attempting token refresh", path)
-        return await self._handle_401_with_refresh(old_token)
+        return await self._handle_401_with_refresh(request_token)
 
     @staticmethod
     def _is_auth_error_code(code: Any) -> bool:
@@ -126,13 +127,10 @@ class _ClientAuthRecoveryMixin(_ClientPacingMixin):
         error_code: Any,
     ) -> int | str | None:
         """Pick the most relevant auth code from response code/errorCode fields."""
-        if cls._is_auth_error_code(code):
-            normalized = _response_safety.normalize_response_code(code)
-            if isinstance(normalized, str) and normalized.lower() == "token_expired":
-                return "token_expired"
-            return normalized
-        if cls._is_auth_error_code(error_code):
-            normalized = _response_safety.normalize_response_code(error_code)
+        for candidate in (code, error_code):
+            if not cls._is_auth_error_code(candidate):
+                continue
+            normalized = _response_safety.normalize_response_code(candidate)
             if isinstance(normalized, str) and normalized.lower() == "token_expired":
                 return "token_expired"
             return normalized
@@ -170,7 +168,12 @@ class _ClientAuthRecoveryMixin(_ClientPacingMixin):
             return success_payload(result)
 
         error_code = result.get("errorCode")
-        message = result.get("message", "Unknown error")
+        message_value = result.get("message")
+        message = (
+            message_value
+            if isinstance(message_value, str) and message_value.strip()
+            else "Unknown error"
+        )
 
         auth_error_code = self._resolve_auth_error_code(code, error_code)
         if auth_error_code is not None:
@@ -208,7 +211,7 @@ class _ClientAuthRecoveryMixin(_ClientPacingMixin):
             return {} if data is None else data
         return result
 
-    async def _handle_401_with_refresh(self, old_token: str | None) -> bool:
+    async def _handle_401_with_refresh(self, request_token: str | None) -> bool:
         """Handle 401 error by refreshing token with concurrency control.
 
         This implements the same pattern as Android's TokenInterceptor:
@@ -217,7 +220,7 @@ class _ClientAuthRecoveryMixin(_ClientPacingMixin):
         - Call refresh callback to get new token
 
         Args:
-            old_token: The token that was used in the failed request.
+            request_token: The token that was used in the failed request.
 
         Returns:
             True if token was refreshed successfully, False otherwise.
@@ -231,7 +234,7 @@ class _ClientAuthRecoveryMixin(_ClientPacingMixin):
 
         async with self._refresh_lock:
             # Double-check: token might have been refreshed by another request
-            if self._access_token != old_token and self._access_token is not None:
+            if self._access_token != request_token and self._access_token is not None:
                 _LOGGER.debug(
                     "Token already refreshed by another request, using new token",
                 )
@@ -242,7 +245,7 @@ class _ClientAuthRecoveryMixin(_ClientPacingMixin):
                 _LOGGER.debug("Executing token refresh")
                 await self._on_token_refresh()
                 refreshed_token = self._access_token
-                if refreshed_token is None or refreshed_token == old_token:
+                if refreshed_token is None or refreshed_token == request_token:
                     _LOGGER.warning(
                         "Token refresh callback completed but token is unchanged"
                     )
@@ -253,8 +256,13 @@ class _ClientAuthRecoveryMixin(_ClientPacingMixin):
                 _LOGGER.warning("Refresh token expired, re-authentication required")
                 raise
             except LiproAuthError as err:
-                _LOGGER.warning("Token refresh failed: %s", err)
+                _LOGGER.warning(
+                    "Token refresh failed (%s)", safe_error_placeholder(err)
+                )
                 return False
             except LiproConnectionError as err:
-                _LOGGER.warning("Connection error during token refresh: %s", err)
+                _LOGGER.warning(
+                    "Connection error during token refresh (%s)",
+                    safe_error_placeholder(err),
+                )
                 raise

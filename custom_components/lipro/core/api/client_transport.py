@@ -40,7 +40,6 @@ from .response_safety import (
     DEVICE_TYPE_HEX_PATTERN as _DEVICE_TYPE_HEX_PATTERN,
     INVALID_JSON_BODY_READ_MAX_BYTES as _INVALID_JSON_BODY_READ_MAX_BYTES,
     INVALID_JSON_LOG_PREVIEW_MAX_CHARS as _INVALID_JSON_LOG_PREVIEW_MAX_CHARS,
-    INVALID_JSON_MASK_INPUT_MAX_CHARS as _INVALID_JSON_MASK_INPUT_MAX_CHARS,
 )
 
 if TYPE_CHECKING:
@@ -173,7 +172,10 @@ class _ClientTransportMixin(_ClientAuthRecoveryMixin):
                 status = response.status
                 headers = dict(response.headers)
                 try:
-                    result = await response.json()
+                    try:
+                        result = await response.json(content_type=None)
+                    except TypeError:
+                        result = await response.json()
                 except (json.JSONDecodeError, aiohttp.ContentTypeError) as err:
                     body_length: int | None = response.content_length
                     preview_bytes: Any
@@ -211,9 +213,10 @@ class _ClientTransportMixin(_ClientAuthRecoveryMixin):
                             "utf-8",
                             errors="replace",
                         )
-                    masked_preview = _response_safety.mask_sensitive_data(
-                        preview_text[:_INVALID_JSON_MASK_INPUT_MAX_CHARS]
-                    )[:_INVALID_JSON_LOG_PREVIEW_MAX_CHARS]
+                    masked_preview = _response_safety.mask_sensitive_data(preview_text)
+                    masked_preview = masked_preview[
+                        :_INVALID_JSON_LOG_PREVIEW_MAX_CHARS
+                    ]
                     _LOGGER.debug(
                         "Invalid JSON response preview from %s: %s",
                         path,
@@ -238,12 +241,18 @@ class _ClientTransportMixin(_ClientAuthRecoveryMixin):
             raise LiproConnectionError(msg) from err
 
         if _LOGGER.isEnabledFor(logging.DEBUG):
+            summary: dict[str, Any] = {"type": type(result).__name__}
+            if isinstance(result, dict):
+                summary["keys_count"] = len(result)
+                for key in ("code", "errorCode", "success"):
+                    if key in result:
+                        summary[key] = result.get(key)
+            elif isinstance(result, list):
+                summary["len"] = len(result)
             _LOGGER.debug(
                 "API response from %s: %s",
                 path,
-                _response_safety.mask_sensitive_data(
-                    json.dumps(result, ensure_ascii=False)[:500]
-                ),
+                json.dumps(summary, ensure_ascii=False),
             )
         return status, result, headers
 
@@ -340,7 +349,7 @@ class _ClientTransportMixin(_ClientAuthRecoveryMixin):
         require_auth: bool = True,
         is_retry: bool = False,
         retry_count: int = 0,
-    ) -> dict[str, Any]:
+    ) -> Any:
         """Make a Smart Home API request with automatic 401/429 handling.
 
         Args:

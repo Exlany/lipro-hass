@@ -30,7 +30,7 @@ def build_smart_home_request_data(
     return request_data
 
 
-def extract_smart_home_success_payload(result: dict[str, Any]) -> dict[str, Any]:
+def extract_smart_home_success_payload(result: dict[str, Any]) -> Any:
     """Extract Smart Home API success payload from response envelope."""
     for key in ("value", "typedValue"):
         if key in result:

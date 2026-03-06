@@ -15,6 +15,17 @@ from .schedule_endpoint import (
 )
 
 _MESH_SCHEDULE_CANDIDATE_CONCURRENCY = 3
+_MESH_SCHEDULE_CANDIDATE_TIMEOUT_SECONDS = 15.0
+
+CandidateRequestResult = tuple[bool, Any, Exception | None]
+CandidateRequestExecutor = Callable[..., Awaitable[CandidateRequestResult]]
+
+
+def _redact_candidate_id(candidate_id: str) -> str:
+    """Redact candidate IDs for logs and task names."""
+    if not candidate_id or len(candidate_id) <= 4:
+        return "***"
+    return f"***{candidate_id[-4:]}"
 
 
 async def execute_mesh_schedule_candidate_request(
@@ -33,11 +44,19 @@ async def execute_mesh_schedule_candidate_request(
         raise
     except lipro_api_error as err:
         logger.debug(
-            "Mesh schedule %s failed for %s: %s (code=%s)",
+            "Mesh schedule %s failed for %s (error=%s, code=%s)",
             operation,
-            candidate_id,
-            err,
+            _redact_candidate_id(candidate_id),
+            type(err).__name__,
             getattr(err, "code", None),
+        )
+        return False, None, err
+    except Exception as err:  # noqa: BLE001
+        logger.debug(
+            "Mesh schedule %s failed for %s (error=%s)",
+            operation,
+            _redact_candidate_id(candidate_id),
+            type(err).__name__,
         )
         return False, None, err
 
@@ -45,9 +64,7 @@ async def execute_mesh_schedule_candidate_request(
 async def get_mesh_schedules_by_candidates(
     *,
     candidate_device_ids: list[str],
-    execute_candidate_request: Callable[
-        ..., Awaitable[tuple[bool, Any, Exception | None]]
-    ],
+    execute_candidate_request: CandidateRequestExecutor,
     iot_request: Callable[[str, dict[str, Any]], Awaitable[Any]],
     extract_timings_list: Callable[[Any], list[dict[str, Any]]],
     normalize_mesh_timing_rows: Callable[..., list[dict[str, Any]]],
@@ -73,19 +90,29 @@ async def get_mesh_schedules_by_candidates(
 
         async def _run_candidate(
             candidate_id: str,
-        ) -> tuple[str, tuple[bool, Any, Exception | None]]:
-            result = await execute_candidate_request(
-                candidate_id=candidate_id,
-                operation="GET",
-                request=lambda candidate: iot_request(
-                    path_ble_schedule_get,
-                    build_mesh_schedule_get_body(candidate),
-                ),
-            )
+        ) -> tuple[str, CandidateRequestResult]:
+            try:
+                result = await asyncio.wait_for(
+                    execute_candidate_request(
+                        candidate_id=candidate_id,
+                        operation="GET",
+                        request=lambda candidate: iot_request(
+                            path_ble_schedule_get,
+                            build_mesh_schedule_get_body(candidate),
+                        ),
+                    ),
+                    timeout=_MESH_SCHEDULE_CANDIDATE_TIMEOUT_SECONDS,
+                )
+            except TimeoutError as err:
+                result = (False, None, err)
             return candidate_id, result
 
         tasks = [
-            asyncio.create_task(_run_candidate(candidate_id)) for candidate_id in batch
+            asyncio.create_task(
+                _run_candidate(candidate_id),
+                name=f"lipro_mesh_schedule_get:{_redact_candidate_id(candidate_id)}",
+            )
+            for candidate_id in batch
         ]
         try:
             for completed in asyncio.as_completed(tasks):
@@ -110,7 +137,11 @@ async def get_mesh_schedules_by_candidates(
                 if task.done():
                     continue
                 task.cancel()
-            await asyncio.gather(*tasks, return_exceptions=True)
+            try:
+                await asyncio.gather(*tasks, return_exceptions=True)
+            except asyncio.CancelledError:
+                await asyncio.shield(asyncio.gather(*tasks, return_exceptions=True))
+                raise
 
     if any_candidate_succeeded:
         return []
@@ -127,9 +158,7 @@ async def add_mesh_schedule_by_candidates(
     days: list[int],
     times: list[int],
     events: list[int],
-    execute_candidate_request: Callable[
-        ..., Awaitable[tuple[bool, Any, Exception | None]]
-    ],
+    execute_candidate_request: CandidateRequestExecutor,
     iot_request: Callable[[str, dict[str, Any]], Awaitable[Any]],
     get_mesh_schedules_by_candidates_request: Callable[
         ..., Awaitable[list[dict[str, Any]]]
@@ -153,7 +182,7 @@ async def add_mesh_schedule_by_candidates(
         )
         if succeeded:
             return await get_mesh_schedules_by_candidates_request(
-                candidate_device_ids,
+                candidate_device_ids=candidate_device_ids,
                 raise_on_total_failure=False,
             )
         if error is not None:
@@ -168,9 +197,7 @@ async def delete_mesh_schedules_by_candidates(
     *,
     candidate_device_ids: list[str],
     schedule_ids: list[int],
-    execute_candidate_request: Callable[
-        ..., Awaitable[tuple[bool, Any, Exception | None]]
-    ],
+    execute_candidate_request: CandidateRequestExecutor,
     iot_request: Callable[[str, dict[str, Any]], Awaitable[Any]],
     get_mesh_schedules_by_candidates_request: Callable[
         ..., Awaitable[list[dict[str, Any]]]
@@ -179,7 +206,7 @@ async def delete_mesh_schedules_by_candidates(
     build_mesh_schedule_delete_body: Callable[..., dict[str, Any]],
 ) -> list[dict[str, Any]]:
     """Try mesh schedule delete across candidates and return refreshed rows."""
-    deleted = False
+    any_deleted = False
     last_error: Exception | None = None
 
     for start in range(
@@ -208,14 +235,14 @@ async def delete_mesh_schedules_by_candidates(
 
         for succeeded, _, error in batch_results:
             if succeeded:
-                deleted = True
+                any_deleted = True
                 continue
             if error is not None:
                 last_error = error
 
-    if deleted:
+    if any_deleted:
         return await get_mesh_schedules_by_candidates_request(
-            candidate_device_ids,
+            candidate_device_ids=candidate_device_ids,
             raise_on_total_failure=False,
         )
     if last_error is not None:
@@ -294,9 +321,9 @@ class ScheduleApiService:
             mesh_member_ids=mesh_member_ids,
         )
 
-        async def _mesh_add_request(ids: list[str]) -> list[dict[str, Any]]:
+        async def _mesh_add_request(candidate_ids: list[str]) -> list[dict[str, Any]]:
             raw = await self._client._add_mesh_schedule_by_candidates(
-                ids,
+                candidate_ids,
                 days=days,
                 times=times,
                 events=events,
@@ -347,9 +374,11 @@ class ScheduleApiService:
             mesh_member_ids=mesh_member_ids,
         )
 
-        async def _mesh_delete_request(ids: list[str]) -> list[dict[str, Any]]:
+        async def _mesh_delete_request(
+            candidate_ids: list[str],
+        ) -> list[dict[str, Any]]:
             raw = await self._client._delete_mesh_schedules_by_candidates(
-                ids,
+                candidate_ids,
                 schedule_ids=schedule_ids,
             )
             return cast(list[dict[str, Any]], raw)

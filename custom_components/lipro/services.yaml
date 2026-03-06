@@ -247,7 +247,12 @@ fetch_body_sensor_history:
         Mesh type value expected by API contract. Default is "2".
       required: false
       selector:
-        text:
+        select:
+          options:
+            - label: "Type 1"
+              value: "1"
+            - label: "Type 2"
+              value: "2"
 
 fetch_door_sensor_history:
   name: Fetch Door Sensor History (Developer)
@@ -277,7 +282,12 @@ fetch_door_sensor_history:
         Mesh type value expected by API contract. Default is "2".
       required: false
       selector:
-        text:
+        select:
+          options:
+            - label: "Type 1"
+              value: "1"
+            - label: "Type 2"
+              value: "2"
 
 refresh_devices:
   name: Refresh Devices

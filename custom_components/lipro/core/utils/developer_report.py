@@ -26,7 +26,7 @@ from ...const import (
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
 
-    from .device import LiproDevice
+    from ..device import LiproDevice
 
 
 def _build_mesh_group_entries(

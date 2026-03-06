@@ -4,7 +4,7 @@
 [![GitHub Release](https://img.shields.io/github/v/release/Exlany/lipro-hass?style=flat-square)](https://github.com/Exlany/lipro-hass/releases)
 [![License](https://img.shields.io/github/license/Exlany/lipro-hass?style=flat-square)](LICENSE)
 
-[English](README.md) | 中文
+[English](README.md) | 中文 | [更新日志](CHANGELOG.md)
 
 Home Assistant 集成，用于控制 Lipro 智能家居设备。
 
@@ -50,8 +50,8 @@ Home Assistant 集成，用于控制 Lipro 智能家居设备。
 - `lipro.refresh_devices` - 强制刷新设备列表（全部条目或指定 entry_id）
 
 固件验证清单：
-- 中文：`docs/firmware_support_matrix_zh.md`
-- English：`docs/firmware_support_matrix.md`
+- 已认证固件版本：`custom_components/lipro/firmware_support_manifest.json`
+- OTA 更新实体会展示可用固件（未认证固件可能需要二次确认）
 
 ## 数据更新机制
 
@@ -82,13 +82,17 @@ Home Assistant 集成，用于控制 Lipro 智能家居设备。
 wget -O - https://raw.githubusercontent.com/Exlany/lipro-hass/main/install.sh | ARCHIVE_TAG=latest bash -
 
 # 安装指定版本（tag/branch，例如 v1.0.0）
-wget -O - https://raw.githubusercontent.com/Exlany/lipro-hass/main/install.sh | ARCHIVE_TAG=v1.0.0 bash -
+# 提示：为获得可复现安装，建议同时把 install.sh 也固定到相同 tag。
+wget -O - https://raw.githubusercontent.com/Exlany/lipro-hass/v1.0.0/install.sh | ARCHIVE_TAG=v1.0.0 bash -
 
-# 使用镜像加速（国内用户推荐）
-wget -O - https://raw.githubusercontent.com/Exlany/lipro-hass/main/install.sh | HUB_DOMAIN=ghfast.top bash -
+# 安装开发版（请显式指定 main）
+wget -O - https://raw.githubusercontent.com/Exlany/lipro-hass/main/install.sh | ARCHIVE_TAG=main bash -
+
+# 使用镜像加速（高风险：仅在你完全信任镜像域时使用，并建议固定到 tag）
+wget -O - https://raw.githubusercontent.com/Exlany/lipro-hass/main/install.sh | LIPRO_ALLOW_MIRROR=1 HUB_DOMAIN=ghfast.top ARCHIVE_TAG=v1.0.0 bash -
 ```
 
-说明：`ARCHIVE_TAG` 用于指定安装版本（tag/branch）。`latest` 会解析为 GitHub Releases 的最新版本；如解析失败会回退到 `main`。建议固定到具体 tag（例如 `v1.0.0`）以获得可复现安装；如需开发版可用 `ARCHIVE_TAG=main`。
+说明：`ARCHIVE_TAG` 用于指定安装版本（tag/branch）。`latest` 会解析为 GitHub Releases 的最新版本；如解析失败安装脚本会报错退出。建议固定到具体 tag（例如 `v1.0.0`）以获得可复现安装；如需开发版请显式使用 `ARCHIVE_TAG=main`。
 
 说明：`HUB_DOMAIN` 仅影响脚本内请求 Release 信息与源码压缩包的域名，不会改变 `install.sh` 本身的下载地址（仍为 `raw.githubusercontent.com`）。
 
