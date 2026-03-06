@@ -81,6 +81,9 @@ filterwarnings = [
     "ignore::DeprecationWarning:pytest_homeassistant_custom_component",
 ]
 
+[tool.uv]
+override-dependencies = ["pillow==12.1.1"]
+
 [tool.mypy]
 python_version = "3.13"
 files = ["custom_components/lipro", "tests"]
