@@ -9,11 +9,13 @@ from typing import TYPE_CHECKING, Final
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .const import (
     CONF_SCAN_INTERVAL,
     DEFAULT_SCAN_INTERVAL,
+    DOMAIN,
     MAX_SCAN_INTERVAL,
     MIN_SCAN_INTERVAL,
 )
@@ -63,6 +65,8 @@ type LiproConfigEntry = ConfigEntry[LiproDataUpdateCoordinator]
 
 FIRMWARE_SUPPORT_MANIFEST: Final = "firmware_support_manifest.json"
 _DATA_OPTIONS_SNAPSHOTS: Final = "options_snapshots"
+
+CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
 
 def _async_setup_device_registry_listener(hass: HomeAssistant) -> None:

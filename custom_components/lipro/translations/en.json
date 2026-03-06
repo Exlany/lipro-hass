@@ -418,11 +418,9 @@
   },
   "exceptions": {
     "auth_expired": {
-      "title": "Lipro Authentication Expired",
       "message": "Your Lipro session has expired. Please re-authenticate."
     },
     "auth_error": {
-      "title": "Lipro Authentication Error",
       "message": "Lipro authentication failed: {error}"
     },
     "no_device_specified": {
@@ -492,7 +490,6 @@
       "message": "Failed to trigger firmware installation."
     },
     "mqtt_disconnected": {
-      "title": "Lipro MQTT Disconnected",
       "message": "MQTT has been disconnected for {minutes} minutes. Real-time updates are unavailable, falling back to polling."
     }
   },

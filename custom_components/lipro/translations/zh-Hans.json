@@ -418,11 +418,9 @@
   },
   "exceptions": {
     "auth_expired": {
-      "title": "Lipro 认证已过期",
       "message": "您的 Lipro 会话已过期，请重新认证。"
     },
     "auth_error": {
-      "title": "Lipro 认证错误",
       "message": "Lipro 认证失败：{error}"
     },
     "no_device_specified": {
@@ -492,7 +490,6 @@
       "message": "触发固件安装失败。"
     },
     "mqtt_disconnected": {
-      "title": "Lipro MQTT 连接已断开",
       "message": "MQTT 已断开连接 {minutes} 分钟，实时更新不可用，已回退到轮询模式。"
     }
   },
