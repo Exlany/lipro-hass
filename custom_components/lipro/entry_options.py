@@ -7,7 +7,7 @@ from typing import Any
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
-from .const import DOMAIN
+from .const.base import DOMAIN
 
 _DATA_OPTIONS_SNAPSHOTS = "options_snapshots"
 

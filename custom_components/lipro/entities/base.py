@@ -10,7 +10,8 @@ from typing import TYPE_CHECKING, Any, Final
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from ..const import CMD_CHANGE_STATE, DOMAIN, MANUFACTURER
+from ..const.base import DOMAIN, MANUFACTURER
+from ..const.properties import CMD_CHANGE_STATE
 from ..core.coordinator import LiproDataUpdateCoordinator
 from ..core.utils.debounce import Debouncer
 

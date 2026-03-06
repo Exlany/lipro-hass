@@ -11,11 +11,10 @@ from homeassistant.components.light import (
 )
 from homeassistant.components.light.const import ColorMode
 
-from .const import (
+from .const.config import CONF_LIGHT_TURN_ON_ON_ADJUST, DEFAULT_LIGHT_TURN_ON_ON_ADJUST
+from .const.properties import (
     CMD_POWER_OFF,
     CMD_POWER_ON,
-    CONF_LIGHT_TURN_ON_ON_ADJUST,
-    DEFAULT_LIGHT_TURN_ON_ON_ADJUST,
     MAX_BRIGHTNESS,
     MIN_BRIGHTNESS,
     PROP_BRIGHTNESS,
@@ -113,11 +112,6 @@ class LiproLight(LiproEntity, LightEntity):
     def is_on(self) -> bool:
         """Return true if light is on."""
         return self.device.is_on
-
-    @property
-    def extra_state_attributes(self) -> dict[str, Any]:
-        """Return extra state attributes."""
-        return {}
 
     @property
     def brightness(self) -> int | None:

@@ -162,7 +162,12 @@ class LiproBatterySensor(LiproSensor):
 
     @property
     def icon(self) -> str | None:
-        """Return charging icon when device is charging."""
+        """Return charging icon when device is charging.
+
+        Programmatic override: icons.json cannot express cross-attribute
+        conditions (charging state is a separate device property, not the
+        entity's own state value).
+        """
         if self.device.is_charging:
             return "mdi:battery-charging"
         return None  # Let HA handle battery level icons via device_class
@@ -196,7 +201,11 @@ class LiproWiFiSignalSensor(LiproSensor):
 
     @property
     def icon(self) -> str:
-        """Return the icon based on signal strength."""
+        """Return the icon based on signal strength.
+
+        Programmatic override: icons.json cannot express numeric-range
+        thresholds on the entity's native value (dBm RSSI).
+        """
         rssi = self.device.wifi_rssi
         if rssi is None:
             return "mdi:wifi-off"

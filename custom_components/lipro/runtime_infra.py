@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, Final
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.core import HomeAssistant
 
-from .const import DOMAIN
+from .const.base import DOMAIN
 from .services.maintenance import (
     async_setup_device_registry_listener as _async_setup_device_registry_listener_service,
 )

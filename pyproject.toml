@@ -110,7 +110,7 @@ disable_error_code = ["no-untyped-def", "no-untyped-call"]
 [tool.ruff]
 # Based on https://github.com/ludeeus/integration_blueprint
 # and https://github.com/home-assistant/core
-required-version = ">=0.15.1"
+required-version = ">=0.15.0"
 target-version = "py313"
 
 [tool.ruff.lint]

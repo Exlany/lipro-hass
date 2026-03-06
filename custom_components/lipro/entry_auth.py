@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
 
-from .const import (
+from .const.config import (
     CONF_ACCESS_TOKEN,
     CONF_EXPIRES_AT,
     CONF_PASSWORD_HASH,

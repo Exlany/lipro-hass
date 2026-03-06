@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from homeassistant.core import HomeAssistant
 
-from ..const import DOMAIN
+from ..const.base import DOMAIN
 from .registrations import SERVICE_REGISTRATIONS
 from .registry import (
     async_setup_services as _async_setup_services_registry,

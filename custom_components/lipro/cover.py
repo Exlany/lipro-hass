@@ -11,7 +11,7 @@ from homeassistant.components.cover import (
     CoverEntityFeature,
 )
 
-from .const import (
+from .const.properties import (
     CMD_CURTAIN_CLOSE,
     CMD_CURTAIN_OPEN,
     CMD_CURTAIN_STOP,
@@ -32,9 +32,6 @@ if TYPE_CHECKING:
 
 # Limit parallel updates to avoid overwhelming the API
 PARALLEL_UPDATES = 1
-
-_STATE_OPENING = "opening"
-_STATE_CLOSING = "closing"
 
 
 async def async_setup_entry(
@@ -89,14 +86,12 @@ class LiproCover(LiproEntity, CoverEntity):
     @property
     def is_opening(self) -> bool:
         """Return if the cover is opening."""
-        direction = self.device.direction
-        return self.device.is_moving and direction == _STATE_OPENING
+        return self.device.is_moving and self.device.direction == "opening"
 
     @property
     def is_closing(self) -> bool:
         """Return if the cover is closing."""
-        direction = self.device.direction
-        return self.device.is_moving and direction == _STATE_CLOSING
+        return self.device.is_moving and self.device.direction == "closing"
 
     async def async_open_cover(self, **kwargs: Any) -> None:
         """Open the cover."""

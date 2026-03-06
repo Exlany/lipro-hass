@@ -7,7 +7,7 @@ import hashlib
 import logging
 from typing import Any
 
-from ..const import (
+from ..const.config import (
     CONF_ACCESS_TOKEN,
     CONF_BIZ_ID,
     CONF_PASSWORD_HASH,

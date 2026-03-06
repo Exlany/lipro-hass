@@ -14,19 +14,16 @@ from typing import TYPE_CHECKING, Any, Final
 
 from homeassistant.components.diagnostics import async_redact_data
 
-from .const import (
+from .const.base import DOMAIN
+from .const.config import (
     CONF_DEVICE_FILTER_DID_LIST,
     CONF_DEVICE_FILTER_HOME_LIST,
     CONF_DEVICE_FILTER_MODEL_LIST,
     CONF_DEVICE_FILTER_SSID_LIST,
     CONF_PHONE,
     CONF_PHONE_ID,
-    DOMAIN,
-    PROP_BLE_MAC,
-    PROP_IP,
-    PROP_MAC,
-    PROP_WIFI_SSID,
 )
+from .const.properties import PROP_BLE_MAC, PROP_IP, PROP_MAC, PROP_WIFI_SSID
 from .core.anonymous_share import get_anonymous_share_manager
 from .core.utils.log_safety import mask_ip_addresses
 

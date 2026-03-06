@@ -11,7 +11,7 @@ from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
-from ..const import DOMAIN, IOT_DEVICE_ID_PREFIX
+from ..const.base import DOMAIN, IOT_DEVICE_ID_PREFIX
 from ..core import (
     LiproApiError,
     LiproDataUpdateCoordinator,

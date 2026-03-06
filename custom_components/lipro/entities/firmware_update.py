@@ -18,7 +18,7 @@ from homeassistant.exceptions import HomeAssistantError
 from homeassistant.util import dt as dt_util
 
 from .. import firmware_manifest
-from ..const import DOMAIN
+from ..const.base import DOMAIN
 from ..core import LiproApiError
 from ..core.ota.candidate import _OtaCandidate, build_candidate
 from ..core.ota.manifest import (

@@ -9,7 +9,7 @@ import voluptuous as vol
 
 from homeassistant.helpers import config_validation as cv
 
-from ..const import IOT_DEVICE_ID_PREFIX
+from ..const.base import IOT_DEVICE_ID_PREFIX
 
 SERVICE_SEND_COMMAND: Final = "send_command"
 SERVICE_GET_SCHEDULES: Final = "get_schedules"

@@ -10,7 +10,7 @@ from typing import Any, NoReturn, Protocol, TypeVar, cast
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.exceptions import HomeAssistantError
 
-from ..const import DOMAIN
+from ..const.base import DOMAIN
 from ..core import LiproApiError
 from ..core.utils.log_safety import safe_error_placeholder
 from .execution import (

@@ -7,7 +7,7 @@ import voluptuous as vol
 from homeassistant.const import CONF_PASSWORD
 from homeassistant.helpers import selector
 
-from ..const import (
+from ..const.config import (
     CONF_PHONE,
     CONF_REMEMBER_PASSWORD_HASH,
     DEFAULT_REMEMBER_PASSWORD_HASH,

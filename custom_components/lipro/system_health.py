@@ -7,7 +7,7 @@ from typing import Any
 from homeassistant.components import system_health
 from homeassistant.core import HomeAssistant
 
-from .const import DOMAIN, VERSION
+from .const.base import DOMAIN, VERSION
 
 
 async def async_register(

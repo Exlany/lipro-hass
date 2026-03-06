@@ -9,6 +9,16 @@ from __future__ import annotations
 from enum import Enum, auto
 from functools import cache
 
+__all__ = [
+    "CATEGORY_TO_PLATFORMS",
+    "DeviceCategory",
+    "get_device_category",
+    "get_platforms_for_category",
+    "is_light_category",
+    "is_sensor_category",
+    "is_switch_category",
+]
+
 
 class DeviceCategory(Enum):
     """Device category enumeration.

@@ -12,7 +12,7 @@ from homeassistant.util.percentage import (
     ranged_value_to_percentage,
 )
 
-from .const import (
+from .const.properties import (
     AERATION_OFF,
     AERATION_STRONG,
     AERATION_WEAK,
@@ -160,7 +160,6 @@ class LiproFan(LiproEntity, FanEntity):
         if optimistic_power:
             optimistic[PROP_FAN_ONOFF] = "1"
         else:
-            # Keep UI responsive for slider, but avoid debounce protection on power key.
             self.device.update_properties({PROP_FAN_ONOFF: "1"})
 
     @property

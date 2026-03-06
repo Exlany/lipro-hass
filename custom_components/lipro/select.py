@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Any, Final
 
 from homeassistant.components.select import SelectEntity
 
-from .const import (
+from .const.properties import (
     HEATER_LIGHT_MAIN,
     HEATER_LIGHT_NIGHT,
     HEATER_LIGHT_OFF,
@@ -181,9 +181,9 @@ class LiproLightGearSelect(LiproSelect):
     def options(self) -> list[str]:
         """Return gear options based on actual device gear count."""
         count = len(self.device.gear_list)
-        if count <= 0:
+        if not count:
             return []
-        if 0 < count < len(GEAR_OPTIONS):
+        if count < len(GEAR_OPTIONS):
             return GEAR_OPTIONS[:count]
         return GEAR_OPTIONS
 

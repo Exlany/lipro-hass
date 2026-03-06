@@ -8,7 +8,7 @@ from homeassistant.components.climate import ClimateEntity
 from homeassistant.components.climate.const import ClimateEntityFeature, HVACMode
 from homeassistant.const import UnitOfTemperature
 
-from .const import (
+from .const.properties import (
     CMD_POWER_OFF,
     CMD_POWER_ON,
     HEATER_MODE_DEFAULT,

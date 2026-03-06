@@ -7,10 +7,10 @@ from typing import TYPE_CHECKING, Any
 from homeassistant.components.switch import SwitchDeviceClass, SwitchEntity
 from homeassistant.const import EntityCategory
 
-from .const import (
+from .const.device_types import DEVICE_TYPE_OUTLET
+from .const.properties import (
     CMD_POWER_OFF,
     CMD_POWER_ON,
-    DEVICE_TYPE_OUTLET,
     PROP_BODY_REACTIVE,
     PROP_FADE_STATE,
     PROP_FOCUS_MODE,

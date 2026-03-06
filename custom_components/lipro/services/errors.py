@@ -7,7 +7,6 @@ from typing import Any, NoReturn
 
 from homeassistant.exceptions import HomeAssistantError
 
-from ..const import DOMAIN
 from ..const.api import (
     ERROR_DEVICE_BUSY,
     ERROR_DEVICE_BUSY_STR,
@@ -20,6 +19,7 @@ from ..const.api import (
     ERROR_DEVICE_OFFLINE_LEGACY_STR,
     ERROR_DEVICE_OFFLINE_STR,
 )
+from ..const.base import DOMAIN
 
 
 def raise_service_error(

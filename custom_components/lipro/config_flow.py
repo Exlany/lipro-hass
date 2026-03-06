@@ -15,7 +15,8 @@ from homeassistant.core import callback
 from homeassistant.data_entry_flow import AbortFlow
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
-from .const import (
+from .const.base import DOMAIN
+from .const.config import (
     CONF_ACCESS_TOKEN,
     CONF_BIZ_ID,
     CONF_PASSWORD_HASH,
@@ -25,7 +26,6 @@ from .const import (
     CONF_REMEMBER_PASSWORD_HASH,
     CONF_USER_ID,
     DEFAULT_REMEMBER_PASSWORD_HASH,
-    DOMAIN,
 )
 from .core.api import LiproApiError, LiproClient
 from .core.utils.log_safety import safe_error_placeholder
