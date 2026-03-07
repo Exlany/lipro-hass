@@ -22,6 +22,11 @@ _LOGGER = logging.getLogger(__name__)
 type OtaRowDedupeKey = tuple[str, str, str, str, str]
 
 
+def _valid_ota_rows(rows: list[Any]) -> list[dict[str, Any]]:
+    """Keep OTA rows that are valid mapping objects."""
+    return [row for row in rows if isinstance(row, dict)]
+
+
 def _build_rich_ota_v2_payload(
     ota_payload: dict[str, Any],
     *,
@@ -150,6 +155,8 @@ async def query_ota_info(
 
     merged_rows: list[dict[str, Any]] = []
     seen_keys: set[OtaRowDedupeKey] = set()
+    v1_rows: list[dict[str, Any]] = []
+    v2_rows: list[dict[str, Any]] = []
 
     ota_error: Exception | None = None
     ota_success = False
@@ -164,10 +171,11 @@ async def query_ota_info(
             safe_error_placeholder(err),
         )
     else:
+        v1_rows = _valid_ota_rows(extract_data_list(result))
         _merge_ota_rows(
             merged_rows,
             seen_keys,
-            extract_data_list(result),
+            v1_rows,
         )
         ota_success = True
 
@@ -182,13 +190,13 @@ async def query_ota_info(
         )
     else:
         ota_success = True
-        v2_rows = extract_data_list(result)
+        v2_rows = _valid_ota_rows(extract_data_list(result))
         _merge_ota_rows(
             merged_rows,
             seen_keys,
             v2_rows,
         )
-        if not v2_rows and rich_v2_payload is not None:
+        if not v1_rows and not v2_rows and rich_v2_payload is not None:
             try:
                 rich_v2_result = await iot_request(PATH_QUERY_OTA_INFO_V2, rich_v2_payload)
             except lipro_api_error as err:
@@ -209,10 +217,11 @@ async def query_ota_info(
                     )
             else:
                 ota_success = True
+                rich_v2_rows = _valid_ota_rows(extract_data_list(rich_v2_result))
                 _merge_ota_rows(
                     merged_rows,
                     seen_keys,
-                    extract_data_list(rich_v2_result),
+                    rich_v2_rows,
                 )
 
     if not ota_success and ota_error is not None:
