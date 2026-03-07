@@ -37,6 +37,7 @@ from custom_components.lipro.core.api import (
 )
 from custom_components.lipro.core.api.request_policy import (
     COMMAND_PACING_CACHE_MAX_SIZE,
+    compute_rate_limit_wait_time,
 )
 from custom_components.lipro.core.api.response_safety import (
     _mask_phone_digits,
@@ -3019,9 +3020,11 @@ class TestRetryAfterCap:
         """Test that extremely large Retry-After values are capped."""
         from custom_components.lipro.const.api import MAX_RETRY_AFTER
 
-        # Simulate the capping logic used in _smart_home_request / _iot_request
-        retry_after = 999999.0
-        wait_time = min(MAX_RETRY_AFTER, max(0.1, retry_after))
+        wait_time = compute_rate_limit_wait_time(
+            retry_after=999999.0,
+            retry_count=0,
+            max_retry_after=MAX_RETRY_AFTER,
+        )
         assert wait_time == MAX_RETRY_AFTER
         assert wait_time == 60
 
@@ -3029,8 +3032,11 @@ class TestRetryAfterCap:
         """Test that normal Retry-After values pass through."""
         from custom_components.lipro.const.api import MAX_RETRY_AFTER
 
-        retry_after = 5.0
-        wait_time = min(MAX_RETRY_AFTER, max(0.1, retry_after))
+        wait_time = compute_rate_limit_wait_time(
+            retry_after=5.0,
+            retry_count=0,
+            max_retry_after=MAX_RETRY_AFTER,
+        )
         assert wait_time == 5.0
 
     def test_retry_after_none_uses_exponential_backoff(self):
@@ -3038,15 +3044,33 @@ class TestRetryAfterCap:
         from custom_components.lipro.const.api import MAX_RETRY_AFTER
 
         for retry_count in range(3):
-            wait_time = min(MAX_RETRY_AFTER, max(0.1, None or (2**retry_count)))
+            wait_time = compute_rate_limit_wait_time(
+                retry_after=None,
+                retry_count=retry_count,
+                max_retry_after=MAX_RETRY_AFTER,
+            )
             assert wait_time == 2**retry_count
 
     def test_retry_after_negative_clamped_to_minimum(self):
         """Test that negative Retry-After is clamped to 0.1."""
         from custom_components.lipro.const.api import MAX_RETRY_AFTER
 
-        retry_after = -10.0
-        wait_time = min(MAX_RETRY_AFTER, max(0.1, retry_after))
+        wait_time = compute_rate_limit_wait_time(
+            retry_after=-10.0,
+            retry_count=0,
+            max_retry_after=MAX_RETRY_AFTER,
+        )
+        assert wait_time == 0.1
+
+    def test_retry_after_zero_clamped_to_minimum_without_fallback(self):
+        """Test that zero Retry-After stays clamped to 0.1 instead of falling back."""
+        from custom_components.lipro.const.api import MAX_RETRY_AFTER
+
+        wait_time = compute_rate_limit_wait_time(
+            retry_after=0.0,
+            retry_count=3,
+            max_retry_after=MAX_RETRY_AFTER,
+        )
         assert wait_time == 0.1
 
     @pytest.mark.asyncio

@@ -232,7 +232,13 @@ def compute_rate_limit_wait_time(
     max_retry_after: float,
 ) -> float:
     """Compute clamped wait time for rate-limit retries."""
-    return min(max_retry_after, max(0.1, retry_after or (2**retry_count)))
+    if retry_after is not None:
+        return min(max_retry_after, max(0.1, retry_after))
+    return compute_exponential_retry_wait_time(
+        retry_count=retry_count,
+        base_delay_seconds=1.0,
+        max_delay_seconds=max_retry_after,
+    )
 
 
 def compute_exponential_retry_wait_time(
