@@ -13,6 +13,7 @@ from ...const.api import (
     PATH_QUERY_CONTROLLER_OTA,
     PATH_QUERY_OTA_INFO,
     PATH_QUERY_OTA_INFO_V2,
+    PATH_QUERY_USER_CLOUD,
 )
 from ..utils.log_safety import safe_error_placeholder
 
@@ -89,6 +90,19 @@ async def get_city(
     """Get current city metadata from IoT backend."""
     result = await iot_request(PATH_GET_CITY, {})
     return cast(dict[str, Any], require_mapping_response(PATH_GET_CITY, result))
+
+
+async def query_user_cloud(
+    *,
+    request_iot_mapping_raw: Any,
+    require_mapping_response: Any,
+) -> dict[str, Any]:
+    """Query cloud-assistant metadata using the verified empty-string contract."""
+    result, _ = await request_iot_mapping_raw(PATH_QUERY_USER_CLOUD, "")
+    return cast(
+        dict[str, Any],
+        require_mapping_response(PATH_QUERY_USER_CLOUD, result),
+    )
 
 
 async def query_ota_info(

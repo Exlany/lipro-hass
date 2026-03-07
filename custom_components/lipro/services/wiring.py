@@ -32,6 +32,7 @@ from .diagnostics_service import (
     async_handle_get_city as _async_handle_get_city_service,
     async_handle_get_developer_report as _async_handle_get_developer_report_service,
     async_handle_query_command_result as _async_handle_query_command_result_service,
+    async_handle_query_user_cloud as _async_handle_query_user_cloud_service,
     async_handle_submit_developer_feedback as _async_handle_submit_developer_feedback_service,
     build_sensor_history_result as _build_sensor_history_result_service,
     collect_developer_reports as _collect_developer_reports_service,
@@ -316,6 +317,19 @@ async def _async_handle_get_city(
     )
 
 
+async def _async_handle_query_user_cloud(
+    hass: HomeAssistant, call: ServiceCall
+) -> dict[str, Any]:
+    """Developer-only service: query user cloud information."""
+    return await _async_handle_query_user_cloud_service(
+        hass,
+        call,
+        iter_runtime_coordinators=_iter_runtime_coordinators,
+        raise_optional_error=_raise_optional_capability_error,
+        service_query_user_cloud=_contracts.SERVICE_QUERY_USER_CLOUD,
+    )
+
+
 async def _async_handle_fetch_sensor_history(
     hass: HomeAssistant,
     call: ServiceCall,
@@ -385,6 +399,7 @@ __all__ = [
     "_async_handle_get_developer_report",
     "_async_handle_get_schedules",
     "_async_handle_query_command_result",
+    "_async_handle_query_user_cloud",
     "_async_handle_refresh_devices",
     "_async_handle_send_command",
     "_async_handle_submit_anonymous_share",

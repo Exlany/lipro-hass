@@ -68,6 +68,16 @@ class _ClientBase:
     ) -> tuple[dict[str, Any], str | None]:
         raise NotImplementedError
 
+    async def _request_iot_mapping_raw(  # pragma: no cover
+        self,
+        path: str,
+        body: str,
+        *,
+        is_retry: bool = False,
+        retry_count: int = 0,
+    ) -> tuple[dict[str, Any], str | None]:
+        raise NotImplementedError
+
     async def _iot_request_with_busy_retry(  # pragma: no cover
         self,
         path: str,

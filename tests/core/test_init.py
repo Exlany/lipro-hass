@@ -82,6 +82,7 @@ from custom_components.lipro.services.contracts import (
     SERVICE_GET_SCHEDULES_SCHEMA,
     SERVICE_QUERY_COMMAND_RESULT,
     SERVICE_QUERY_COMMAND_RESULT_SCHEMA,
+    SERVICE_QUERY_USER_CLOUD,
     SERVICE_REFRESH_DEVICES,
     SERVICE_REFRESH_DEVICES_SCHEMA,
     SERVICE_SEND_COMMAND,
@@ -101,6 +102,7 @@ from custom_components.lipro.services.wiring import (
     _async_handle_get_developer_report,
     _async_handle_get_schedules,
     _async_handle_query_command_result,
+    _async_handle_query_user_cloud,
     _async_handle_refresh_devices,
     _async_handle_send_command,
     _async_handle_submit_anonymous_share,
@@ -216,6 +218,10 @@ class TestServiceConstants:
         """Test SERVICE_GET_CITY is defined correctly."""
         assert SERVICE_GET_CITY == "get_city"
 
+    def test_service_query_user_cloud(self):
+        """Test SERVICE_QUERY_USER_CLOUD is defined correctly."""
+        assert SERVICE_QUERY_USER_CLOUD == "query_user_cloud"
+
     def test_service_fetch_body_sensor_history(self):
         """Test SERVICE_FETCH_BODY_SENSOR_HISTORY is defined correctly."""
         assert SERVICE_FETCH_BODY_SENSOR_HISTORY == "fetch_body_sensor_history"
@@ -240,6 +246,7 @@ class TestServiceConstants:
         assert isinstance(SERVICE_SUBMIT_DEVELOPER_FEEDBACK, str)
         assert isinstance(SERVICE_QUERY_COMMAND_RESULT, str)
         assert isinstance(SERVICE_GET_CITY, str)
+        assert isinstance(SERVICE_QUERY_USER_CLOUD, str)
         assert isinstance(SERVICE_FETCH_BODY_SENSOR_HISTORY, str)
         assert isinstance(SERVICE_FETCH_DOOR_SENSOR_HISTORY, str)
         assert isinstance(SERVICE_REFRESH_DEVICES, str)
@@ -688,6 +695,7 @@ class TestInitRuntimeBehavior:
         assert hass.services.has_service(DOMAIN, SERVICE_SUBMIT_DEVELOPER_FEEDBACK)
         assert hass.services.has_service(DOMAIN, SERVICE_QUERY_COMMAND_RESULT)
         assert hass.services.has_service(DOMAIN, SERVICE_GET_CITY)
+        assert hass.services.has_service(DOMAIN, SERVICE_QUERY_USER_CLOUD)
         assert hass.services.has_service(DOMAIN, SERVICE_FETCH_BODY_SENSOR_HISTORY)
         assert hass.services.has_service(DOMAIN, SERVICE_FETCH_DOOR_SENSOR_HISTORY)
         assert hass.services.has_service(DOMAIN, SERVICE_REFRESH_DEVICES)
@@ -1094,6 +1102,7 @@ class TestInitRuntimeBehavior:
         assert not hass.services.has_service(DOMAIN, SERVICE_SUBMIT_DEVELOPER_FEEDBACK)
         assert not hass.services.has_service(DOMAIN, SERVICE_QUERY_COMMAND_RESULT)
         assert not hass.services.has_service(DOMAIN, SERVICE_GET_CITY)
+        assert not hass.services.has_service(DOMAIN, SERVICE_QUERY_USER_CLOUD)
         assert not hass.services.has_service(DOMAIN, SERVICE_REFRESH_DEVICES)
 
     async def test_async_unload_entry_shuts_down_runtime_data_coordinator(
@@ -1773,6 +1782,18 @@ class TestInitRuntimeBehavior:
         result = await _async_handle_get_city(hass, service_call(hass, {}))
         assert result == {"result": {"province": "广东省", "city": "江门市"}}
 
+    async def test_query_user_cloud_service(self, hass) -> None:
+        """query_user_cloud service should return first coordinator result."""
+        coordinator = MagicMock()
+        coordinator.client.query_user_cloud = AsyncMock(return_value={"data": []})
+
+        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry.add_to_hass(hass)
+        entry.runtime_data = coordinator
+
+        result = await _async_handle_query_user_cloud(hass, service_call(hass, {}))
+        assert result == {"result": {"data": []}}
+
     async def test_get_city_service_falls_back_to_next_coordinator(self, hass) -> None:
         """get_city should continue to next coordinator when one fails."""
         first = MagicMock()
@@ -1814,6 +1835,44 @@ class TestInitRuntimeBehavior:
 
         result = await _async_handle_get_city(hass, service_call(hass, {}))
         assert result == {"result": {"province": "浙江省", "city": "杭州市"}}
+
+    async def test_query_user_cloud_service_falls_back_to_next_coordinator(self, hass) -> None:
+        """query_user_cloud should continue to next coordinator when one fails."""
+        first = MagicMock()
+        first.client.query_user_cloud = AsyncMock(
+            side_effect=LiproApiError("temporary failure", code=500)
+        )
+        second = MagicMock()
+        second.client.query_user_cloud = AsyncMock(return_value={"data": [1, 2]})
+
+        entry_1 = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry_1.add_to_hass(hass)
+        entry_1.runtime_data = first
+
+        entry_2 = MockConfigEntry(domain=DOMAIN, data={"phone": "13900000000"})
+        entry_2.add_to_hass(hass)
+        entry_2.runtime_data = second
+
+        result = await _async_handle_query_user_cloud(hass, service_call(hass, {}))
+        assert result == {"result": {"data": [1, 2]}}
+
+    async def test_query_user_cloud_service_skips_unexpected_error(self, hass) -> None:
+        """query_user_cloud should skip unexpected coordinator errors and continue."""
+        first = MagicMock()
+        first.client.query_user_cloud = AsyncMock(side_effect=RuntimeError("boom"))
+        second = MagicMock()
+        second.client.query_user_cloud = AsyncMock(return_value={"data": []})
+
+        entry_1 = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry_1.add_to_hass(hass)
+        entry_1.runtime_data = first
+
+        entry_2 = MockConfigEntry(domain=DOMAIN, data={"phone": "13900000000"})
+        entry_2.add_to_hass(hass)
+        entry_2.runtime_data = second
+
+        result = await _async_handle_query_user_cloud(hass, service_call(hass, {}))
+        assert result == {"result": {"data": []}}
 
     async def test_fetch_body_sensor_history_service(self, hass) -> None:
         """fetch_body_sensor_history should pass sensor payload to client."""

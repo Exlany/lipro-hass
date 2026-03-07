@@ -12,6 +12,7 @@ from ..diagnostics_service import (
     get_city as get_city_service,
     query_command_result as query_command_result_service,
     query_ota_info as query_ota_info_service,
+    query_user_cloud as query_user_cloud_service,
 )
 from ..errors import LiproApiError
 from ..mqtt_service import get_mqtt_config as get_mqtt_config_service
@@ -71,6 +72,13 @@ class _ClientMiscEndpointsMixin(_ClientEndpointPayloadsMixin):
         """Get city information used for schedules/weather context."""
         return await get_city_service(
             iot_request=self._iot_request,
+            require_mapping_response=self._require_mapping_response,
+        )
+
+    async def query_user_cloud(self) -> dict[str, Any]:
+        """Query cloud-assistant metadata for diagnostics."""
+        return await query_user_cloud_service(
+            request_iot_mapping_raw=self._request_iot_mapping_raw,
             require_mapping_response=self._require_mapping_response,
         )
 

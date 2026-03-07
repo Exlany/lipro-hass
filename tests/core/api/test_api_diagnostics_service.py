@@ -10,12 +10,14 @@ from custom_components.lipro.const.api import (
     PATH_QUERY_CONTROLLER_OTA,
     PATH_QUERY_OTA_INFO,
     PATH_QUERY_OTA_INFO_V2,
+    PATH_QUERY_USER_CLOUD,
 )
 from custom_components.lipro.core.api.diagnostics_service import (
     _merge_ota_rows,
     _ota_row_dedupe_key,
     fetch_sensor_history,
     query_ota_info,
+    query_user_cloud,
 )
 
 
@@ -61,6 +63,19 @@ def test_merge_ota_rows_skips_non_dict_and_dedupes_rows() -> None:
 
     assert merged_rows == [{"deviceId": "03ab", "latestVersion": "1.0.1"}]
     assert len(seen) == 1
+
+
+@pytest.mark.asyncio
+async def test_query_user_cloud_uses_raw_empty_body_contract() -> None:
+    request_iot_mapping_raw = AsyncMock(return_value=({"data": []}, "token"))
+
+    result = await query_user_cloud(
+        request_iot_mapping_raw=request_iot_mapping_raw,
+        require_mapping_response=lambda _path, payload: payload,
+    )
+
+    assert result == {"data": []}
+    request_iot_mapping_raw.assert_awaited_once_with(PATH_QUERY_USER_CLOUD, "")
 
 
 @pytest.mark.asyncio

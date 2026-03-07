@@ -416,19 +416,15 @@ class _ClientTransportMixin(_ClientAuthRecoveryMixin):
             HEADER_SIGN: sign,
         }
 
-    async def _request_iot_mapping(
+    async def _request_iot_mapping_raw(
         self,
         path: str,
-        body_data: dict[str, Any],
+        body: str,
         *,
         is_retry: bool = False,
         retry_count: int = 0,
     ) -> tuple[dict[str, Any], str | None]:
-        """Execute one IoT HTTP request and return validated mapping payload.
-
-        Handles the shared request pipeline for IoT endpoints:
-        token precheck, signed headers, 429 backoff retries, and HTTP 401 retry.
-        """
+        """Execute one IoT HTTP request with a pre-encoded body string."""
         url = f"{IOT_API_URL}{path}"
 
         async def _send_request() -> tuple[int, Any, dict[str, str], str | None]:
@@ -438,7 +434,6 @@ class _ClientTransportMixin(_ClientAuthRecoveryMixin):
                 raise LiproAuthError(msg)
 
             session = await self._get_session()
-            body = encode_iot_request_body(body_data)
             req_headers = self._build_iot_headers(body)
             status, result, resp_headers = await self._execute_request(
                 session.post(
@@ -463,15 +458,36 @@ class _ClientTransportMixin(_ClientAuthRecoveryMixin):
 
         if status == 401:
             if await self._handle_auth_error_and_retry(path, request_token, is_retry):
-                return await self._request_iot_mapping(
+                return await self._request_iot_mapping_raw(
                     path,
-                    body_data,
+                    body,
                     is_retry=True,
                 )
             msg = "HTTP 401 Unauthorized"
             raise LiproAuthError(msg, 401)
 
         return result, request_token
+
+    async def _request_iot_mapping(
+        self,
+        path: str,
+        body_data: dict[str, Any],
+        *,
+        is_retry: bool = False,
+        retry_count: int = 0,
+    ) -> tuple[dict[str, Any], str | None]:
+        """Execute one IoT HTTP request and return validated mapping payload.
+
+        Handles the shared request pipeline for IoT endpoints:
+        token precheck, signed headers, 429 backoff retries, and HTTP 401 retry.
+        """
+        body = encode_iot_request_body(body_data)
+        return await self._request_iot_mapping_raw(
+            path,
+            body,
+            is_retry=is_retry,
+            retry_count=retry_count,
+        )
 
     async def _iot_request(
         self,

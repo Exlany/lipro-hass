@@ -369,6 +369,10 @@
       "name": "获取城市信息",
       "description": "（开发者）查询云端城市元数据。"
     },
+    "query_user_cloud": {
+      "name": "查询用户云端配置",
+      "description": "（开发者）按已验证的空字符串 payload 契约查询用户云端元数据。"
+    },
     "fetch_body_sensor_history": {
       "name": "获取人体传感器历史",
       "description": "（开发者）拉取人体传感器历史 payload，便于调试。",

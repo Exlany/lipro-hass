@@ -265,6 +265,12 @@ get_city:
   description: >-
     Developer-only optional capability. Query cloud city metadata (empty payload contract).
 
+query_user_cloud:
+  name: Query User Cloud (Developer)
+  description: >-
+    Developer-only optional capability. Query user cloud metadata using the
+    verified empty-string payload contract.
+
 fetch_body_sensor_history:
   name: Fetch Body Sensor History (Developer)
   description: >-

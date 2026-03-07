@@ -177,6 +177,7 @@
     "submit_developer_feedback": {"service": "mdi:bug-outline"},
     "query_command_result": {"service": "mdi:message-text-outline"},
     "get_city": {"service": "mdi:city"},
+    "query_user_cloud": {"service": "mdi:cloud-search-outline"},
     "fetch_body_sensor_history": {"service": "mdi:history"},
     "fetch_door_sensor_history": {"service": "mdi:history"},
     "refresh_devices": {"service": "mdi:refresh"}

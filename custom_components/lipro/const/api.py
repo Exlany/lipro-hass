@@ -36,6 +36,9 @@ PATH_QUERY_COMMAND_RESULT: Final = (
     "/app/oauth/api/v1/user/control/device/query-command-result.do"
 )
 PATH_GET_CITY: Final = "/app/oauth/api/v1/loc/getCity.do"
+PATH_QUERY_USER_CLOUD: Final = (
+    "/app/oauth/api/v1/user/query/query-user-cloud.do"
+)
 PATH_QUERY_OTA_INFO: Final = "/app/oauth/api/v1/user/query/device/ota-version.do"
 PATH_QUERY_OTA_INFO_V2: Final = "/app/oauth/api/v2/user/query/device/ota-version.do"
 PATH_QUERY_CONTROLLER_OTA: Final = "/app/oauth/api/v1/ble/list.do"

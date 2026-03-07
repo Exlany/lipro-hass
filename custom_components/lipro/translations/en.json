@@ -369,6 +369,10 @@
       "name": "Get City",
       "description": "Developer-only optional capability. Query cloud city metadata."
     },
+    "query_user_cloud": {
+      "name": "Query User Cloud",
+      "description": "Developer-only optional capability. Query user cloud metadata using the verified empty-string payload contract."
+    },
     "fetch_body_sensor_history": {
       "name": "Fetch Body Sensor History",
       "description": "Developer-only optional capability. Fetch body sensor history payload for debugging.",

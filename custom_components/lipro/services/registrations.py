@@ -18,6 +18,7 @@ from .wiring import (
     _async_handle_get_developer_report,
     _async_handle_get_schedules,
     _async_handle_query_command_result,
+    _async_handle_query_user_cloud,
     _async_handle_refresh_devices,
     _async_handle_send_command,
     _async_handle_submit_anonymous_share,
@@ -82,6 +83,12 @@ SERVICE_REGISTRATIONS: Final[tuple[ServiceRegistration, ...]] = (
     ServiceRegistration(
         _contracts.SERVICE_GET_CITY,
         _async_handle_get_city,
+        None,
+        SupportsResponse.ONLY,
+    ),
+    ServiceRegistration(
+        _contracts.SERVICE_QUERY_USER_CLOUD,
+        _async_handle_query_user_cloud,
         None,
         SupportsResponse.ONLY,
     ),

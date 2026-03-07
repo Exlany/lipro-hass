@@ -282,6 +282,31 @@ async def async_handle_get_city(
     return {"result": {}}
 
 
+async def async_handle_query_user_cloud(
+    hass: HomeAssistant,
+    call: ServiceCall,
+    *,
+    iter_runtime_coordinators: Callable[[HomeAssistant], Iterator[Any]],
+    raise_optional_error: Callable[[str, LiproApiError], NoReturn],
+    service_query_user_cloud: str,
+) -> dict[str, Any]:
+    """Handle query_user_cloud service."""
+    del call
+    has_result, result, last_err = await _async_get_first_coordinator_capability_result(
+        (
+            cast(DiagnosticsCoordinator, coordinator)
+            for coordinator in iter_runtime_coordinators(hass)
+        ),
+        capability="query_user_cloud",
+        collector=lambda coordinator: coordinator.client.query_user_cloud(),
+    )
+    if has_result:
+        return {"result": result}
+    if last_err is not None:
+        raise_optional_error(service_query_user_cloud, last_err)
+    return {"result": {}}
+
+
 async def _async_handle_fetch_sensor_history(
     hass: HomeAssistant,
     call: ServiceCall,

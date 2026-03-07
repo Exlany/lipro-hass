@@ -23,6 +23,7 @@ from custom_components.lipro.const.api import (
     PATH_QUERY_OTA_INFO,
     PATH_QUERY_OTA_INFO_V2,
     PATH_QUERY_OUTLET_POWER,
+    PATH_QUERY_USER_CLOUD,
     PATH_SCHEDULE_ADD,
     PATH_SCHEDULE_DELETE,
     PATH_SCHEDULE_GET,
@@ -1829,6 +1830,20 @@ class TestLiproClientOptionalCapabilities:
 
         assert result == {"province": "广东省", "city": "江门市"}
         mock_request.assert_awaited_once_with(PATH_GET_CITY, {})
+
+    @pytest.mark.asyncio
+    async def test_query_user_cloud(self):
+        """query_user_cloud should use the verified empty-string payload."""
+        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+
+        with patch.object(
+            client, "_request_iot_mapping_raw", new_callable=AsyncMock
+        ) as mock_request:
+            mock_request.return_value = ({"data": []}, "access-token")
+            result = await client.query_user_cloud()
+
+        assert result == {"data": []}
+        mock_request.assert_awaited_once_with(PATH_QUERY_USER_CLOUD, "")
 
     @pytest.mark.asyncio
     async def test_query_ota_info(self):

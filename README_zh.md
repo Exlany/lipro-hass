@@ -45,6 +45,7 @@ Home Assistant 集成，用于控制 Lipro 智能家居设备。
 - `lipro.submit_developer_feedback` - 一键提交开发者诊断反馈（全部条目或指定 entry_id）
 - `lipro.query_command_result` - 按消息序列号查询指令投递结果（开发者能力）
 - `lipro.get_city` - 查询云端城市元数据契约（开发者能力）
+- `lipro.query_user_cloud` - 按已验证的空字符串 payload 契约查询用户云端元数据（开发者能力）
 - `lipro.fetch_body_sensor_history` - 拉取人体传感器历史载荷用于调试（开发者能力）
 - `lipro.fetch_door_sensor_history` - 拉取门窗传感器历史载荷用于调试（开发者能力）
 - `lipro.refresh_devices` - 强制刷新设备列表（全部条目或指定 entry_id）
