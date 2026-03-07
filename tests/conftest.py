@@ -183,8 +183,15 @@ def mock_lipro_api_client():
     client.query_connect_status = AsyncMock(return_value={})
     client.get_mqtt_config = AsyncMock(return_value={})
     client.get_product_configs = AsyncMock(return_value=[])
-    client.send_command = AsyncMock(return_value={"pushSuccess": True})
-    client.send_group_command = AsyncMock(return_value={"pushSuccess": True})
+    client.send_command = AsyncMock(
+        return_value={"pushSuccess": True, "msgSn": "test-msg-sn"}
+    )
+    client.send_group_command = AsyncMock(
+        return_value={"pushSuccess": True, "msgSn": "test-group-msg-sn"}
+    )
+    client.query_command_result = AsyncMock(
+        return_value={"code": "0000", "message": "success", "success": True}
+    )
     client.fetch_outlet_power_info = AsyncMock(return_value={})
     client.close = AsyncMock()
     client.access_token = "test_token"

@@ -1394,7 +1394,10 @@ class TestCoordinatorSendCommand:
         mock_lipro_api_client.send_group_command.side_effect = LiproApiError(
             "group failed", code=140003
         )
-        mock_lipro_api_client.send_command.return_value = {"pushSuccess": True}
+        mock_lipro_api_client.send_command.return_value = {
+            "pushSuccess": True,
+            "msgSn": "fallback-msg-sn",
+        }
 
         result = await coordinator.async_send_command(
             dev,
@@ -1448,7 +1451,10 @@ class TestCoordinatorSendCommand:
         dev.extra_data["group_member_ids"] = ["03ab5ccd7c123456"]
         dev.extra_data["group_member_count"] = 1
         mock_lipro_api_client.send_group_command.return_value = {"pushSuccess": False}
-        mock_lipro_api_client.send_command.return_value = {"pushSuccess": True}
+        mock_lipro_api_client.send_command.return_value = {
+            "pushSuccess": True,
+            "msgSn": "fallback-msg-sn",
+        }
 
         result = await coordinator.async_send_command(
             dev,
@@ -1509,7 +1515,10 @@ class TestCoordinatorSendCommand:
         mock_lipro_api_client.send_group_command.side_effect = LiproApiError(
             "group failed", code=140003
         )
-        mock_lipro_api_client.send_command.return_value = {"pushSuccess": True}
+        mock_lipro_api_client.send_command.return_value = {
+            "pushSuccess": True,
+            "msgSn": "fallback-msg-sn",
+        }
 
         scheduled: list[object] = []
 
