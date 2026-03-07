@@ -79,11 +79,11 @@ async def test_query_outlet_power_returns_index_when_truthy_iterable_expands_emp
 @pytest.mark.asyncio
 async def test_query_outlet_power_wraps_slice_when_round_robin_crosses_tail() -> None:
     fetch = AsyncMock(
-        return_value={
-            "e": {"nowPower": 1},
-            "a": {"nowPower": 2},
-            "b": {"nowPower": 3},
-        }
+        side_effect=[
+            {"nowPower": 1},
+            {"nowPower": 2},
+            {"nowPower": 3},
+        ]
     )
     device = SimpleNamespace(name="Test Outlet")
 
@@ -100,18 +100,15 @@ async def test_query_outlet_power_wraps_slice_when_round_robin_crosses_tail() ->
     )
 
     assert updated == 2
-    assert fetch.await_args_list == [call(["e", "a", "b"])]
+    assert fetch.await_args_list == [call("e"), call("a"), call("b")]
 
 
 @pytest.mark.asyncio
-async def test_query_outlet_power_falls_back_to_individual_when_batch_unparseable() -> (
-    None
-):
+async def test_query_outlet_power_queries_each_selected_device_individually() -> None:
     fetch = AsyncMock(
         side_effect=[
-            {"nowPower": 9.9},  # batch: unparseable for 2 devices
-            {"nowPower": 1.0},  # per-device: a
-            {"nowPower": 2.0},  # per-device: b
+            {"nowPower": 1.0},
+            {"nowPower": 2.0},
         ]
     )
     device = SimpleNamespace(name="Test Outlet")
@@ -128,8 +125,24 @@ async def test_query_outlet_power_falls_back_to_individual_when_batch_unparseabl
         concurrency=1,
     )
 
-    assert fetch.await_args_list == [
-        call(["a", "b"]),
-        call(["a"]),
-        call(["b"]),
-    ]
+    assert fetch.await_args_list == [call("a"), call("b")]
+
+
+@pytest.mark.asyncio
+async def test_query_outlet_power_accepts_single_payload_nested_by_device_id() -> None:
+    fetch = AsyncMock(return_value={"a": {"nowPower": 1.0}})
+    device = SimpleNamespace(name="Test Outlet")
+
+    await query_outlet_power(
+        outlet_ids_to_query=["a"],
+        round_robin_index=0,
+        resolve_cycle_size=lambda _: 1,
+        fetch_outlet_power_info=fetch,
+        get_device_by_id=lambda _device_id: device,
+        apply_outlet_power_info=lambda _device, _payload: True,
+        should_reraise_outlet_power_error=lambda _err: False,
+        logger=logging.getLogger(__name__),
+        concurrency=1,
+    )
+
+    fetch.assert_awaited_once_with("a")

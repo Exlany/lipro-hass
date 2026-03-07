@@ -37,19 +37,17 @@ class _ClientMiscEndpointsMixin(_ClientEndpointPayloadsMixin):
             path_get_mqtt_config=PATH_GET_MQTT_CONFIG,
         )
 
-    async def fetch_outlet_power_info(
-        self, device_ids: list[str]
-    ) -> dict[str, Any]:
+    async def fetch_outlet_power_info(self, device_id: str) -> dict[str, Any]:
         """Fetch power information for outlet devices."""
         return await fetch_outlet_power_info_service(
-            sanitize_iot_device_ids=self._sanitize_iot_device_ids,
+            normalize_power_target_id=self._normalize_power_target_id,
             iot_request=self._iot_request,
             require_mapping_response=self._require_mapping_response,
             is_invalid_param_error_code=self._is_invalid_param_error_code,
             lipro_api_error=LiproApiError,
             path_query_outlet_power=PATH_QUERY_OUTLET_POWER,
             logger=_LOGGER,
-            device_ids=device_ids,
+            device_id=device_id,
         )
 
     async def query_command_result(

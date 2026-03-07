@@ -10,13 +10,6 @@ from typing import Any
 
 from ...api import LiproApiError
 
-_POWER_BATCH_LIST_KEYS: tuple[str, ...] = (
-    "data",
-    "result",
-    "devices",
-    "list",
-)
-
 
 def _normalize_device_id(value: Any) -> str | None:
     """Normalize a device identifier for case/whitespace tolerant matching."""
@@ -28,92 +21,32 @@ def _normalize_device_id(value: Any) -> str | None:
     return normalized.lower()
 
 
-def _extract_power_rows(payload: Any) -> list[dict[str, Any]] | None:
-    """Extract list payload variants from batch power-info responses."""
-    if isinstance(payload, list):
-        return [row for row in payload if isinstance(row, dict)]
-    if isinstance(payload, dict):
-        containers: list[dict[str, Any]] = [payload]
-        for _ in range(3):
-            nested: list[dict[str, Any]] = []
-            for container in containers:
-                for key in _POWER_BATCH_LIST_KEYS:
-                    value = container.get(key)
-                    if isinstance(value, list):
-                        return [row for row in value if isinstance(row, dict)]
-                    if isinstance(value, dict):
-                        nested.append(value)
-            if not nested:
-                break
-            containers = nested
-    return None
-
-
-def _normalize_outlet_power_payload(
+def _normalize_single_outlet_power_payload(
     payload: Any,
     *,
-    requested_ids: list[str],
-) -> dict[str, dict[str, Any]] | None:
-    """Normalize outlet power payload into a per-device mapping.
-
-    The Lipro API may return several shapes:
-    - Single-device mapping (no ``deviceId`` field): ``{"nowPower": ...}``
-    - Batch mapping keyed by device ID: ``{"<deviceId>": {...}, ...}``
-    - Batch list rows (direct or nested under keys like ``data``): ``[{...}, ...]``
-    """
-    normalized_requested = {
-        normalized_id
-        for raw_id in requested_ids
-        if (normalized_id := _normalize_device_id(raw_id)) is not None
-    }
-    if not normalized_requested:
-        return {}
+    requested_id: str,
+) -> dict[str, Any] | None:
+    """Normalize one power-info payload into a single device mapping payload."""
+    normalized_requested_id = _normalize_device_id(requested_id)
+    if normalized_requested_id is None:
+        return None
 
     if isinstance(payload, dict):
-        by_device_id: dict[str, dict[str, Any]] = {}
-        for key, value in payload.items():
-            normalized_key = _normalize_device_id(key)
-            if normalized_key is None or normalized_key not in normalized_requested:
-                continue
-            if isinstance(value, dict):
-                by_device_id[normalized_key] = value
+        nested = payload.get(normalized_requested_id)
+        if isinstance(nested, dict):
+            return nested
+        nested = payload.get(requested_id)
+        if isinstance(nested, dict):
+            return nested
+        return payload or None
 
-        if by_device_id:
-            return by_device_id
+    if isinstance(payload, list):
+        rows = [row for row in payload if isinstance(row, dict)]
+        if not rows:
+            return None
+        return rows[0] if len(rows) == 1 else {"data": rows}
 
-        rows = _extract_power_rows(payload)
-        if rows is not None:
-            return _normalize_outlet_power_payload(rows, requested_ids=requested_ids)
-
-        for key in _POWER_BATCH_LIST_KEYS:
-            nested = payload.get(key)
-            if isinstance(nested, dict):
-                normalized_payload = _normalize_outlet_power_payload(
-                    nested,
-                    requested_ids=requested_ids,
-                )
-                if normalized_payload is not None:
-                    return normalized_payload
-
-        if len(normalized_requested) == 1 and payload:
-            # Single-device payload without a deviceId field.
-            device_id = next(iter(normalized_requested))
-            return {device_id: payload}
-
-        return None
-
-    rows = _extract_power_rows(payload)
-    if rows is None:
-        return None
-
-    by_device_id_rows: dict[str, dict[str, Any]] = {}
-    for row in rows:
-        normalized_id = _normalize_device_id(row.get("deviceId"))
-        if normalized_id is None or normalized_id not in normalized_requested:
-            continue
-        by_device_id_rows[normalized_id] = row
-
-    return by_device_id_rows or None
+    return None
 
 
 def resolve_outlet_power_cycle_size(
@@ -145,7 +78,7 @@ async def query_outlet_power(
     outlet_ids_to_query: list[str],
     round_robin_index: int,
     resolve_cycle_size: Callable[[int], int],
-    fetch_outlet_power_info: Callable[[list[str]], Awaitable[Any]],
+    fetch_outlet_power_info: Callable[[str], Awaitable[Any]],
     get_device_by_id: Callable[[Any], Any],
     apply_outlet_power_info: Callable[[Any, dict[str, Any]], bool],
     should_reraise_outlet_power_error: Callable[[LiproApiError], bool],
@@ -154,7 +87,8 @@ async def query_outlet_power(
 ) -> int:
     """Query outlet power info in bounded concurrent slices.
 
-    Returns the updated round-robin index to persist in the coordinator.
+    The cloud endpoint accepts one ``deviceId`` per request, so runtime-level
+    bounded concurrency is the real batching mechanism.
     """
     if not outlet_ids_to_query:
         return round_robin_index
@@ -185,40 +119,7 @@ async def query_outlet_power(
             logger=logger,
         )
 
-    if len(outlet_ids) == 1:
-        await _query_single(outlet_ids[0])
-        return updated_index
-
-    try:
-        payload = await fetch_outlet_power_info(outlet_ids)
-        normalized = _normalize_outlet_power_payload(
-            payload,
-            requested_ids=outlet_ids,
-        )
-        if normalized:
-            for device_id, power_data in normalized.items():
-                device = get_device_by_id(device_id)
-                if device is not None and apply_outlet_power_info(device, power_data):
-                    logger.debug(
-                        "Updated power info for %s: nowPower=%s",
-                        device.name,
-                        power_data.get("nowPower"),
-                    )
-            return updated_index
-        logger.debug(
-            "Power-info batch payload could not be normalized (devices=%d), falling back",
-            len(outlet_ids),
-        )
-    except LiproApiError as err:
-        if should_reraise_outlet_power_error(err):
-            raise
-        logger.debug(
-            "Failed to query power batch (devices=%d): %s",
-            len(outlet_ids),
-            err,
-        )
-
-    batch_size = min(concurrency, len(outlet_ids))
+    batch_size = max(1, min(concurrency, len(outlet_ids)))
     for start in range(0, len(outlet_ids), batch_size):
         await asyncio.gather(
             *(
@@ -233,7 +134,7 @@ async def query_outlet_power(
 async def query_single_outlet_power(
     *,
     device_id: str,
-    fetch_outlet_power_info: Callable[[list[str]], Awaitable[Any]],
+    fetch_outlet_power_info: Callable[[str], Awaitable[Any]],
     get_device_by_id: Callable[[Any], Any],
     apply_outlet_power_info: Callable[[Any, dict[str, Any]], bool],
     should_reraise_outlet_power_error: Callable[[LiproApiError], bool],
@@ -245,12 +146,11 @@ async def query_single_outlet_power(
         return
 
     try:
-        payload = await fetch_outlet_power_info([device_id])
-        normalized = _normalize_outlet_power_payload(
+        payload = await fetch_outlet_power_info(device_id)
+        power_data = _normalize_single_outlet_power_payload(
             payload,
-            requested_ids=[device_id],
+            requested_id=device_id,
         )
-        power_data = normalized.get(normalized_id) if normalized else None
         if not power_data:
             return
         device = get_device_by_id(normalized_id)

@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import json
-from unittest.mock import AsyncMock, MagicMock, call, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import aiohttp
 import pytest
@@ -1678,7 +1678,21 @@ class TestLiproClientOutletPower:
 
     @pytest.mark.asyncio
     async def test_fetch_outlet_power_info_filters_invalid_ids(self):
-        """Power-info should skip invalid/group IDs before request."""
+        """Power-info should skip invalid IDs before request."""
+        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client.set_tokens("access", "refresh")
+
+        with patch.object(
+            client, "_iot_request", new_callable=AsyncMock
+        ) as mock_request:
+            result = await client.fetch_outlet_power_info("invalid")
+
+        mock_request.assert_not_called()
+        assert result == {}
+
+    @pytest.mark.asyncio
+    async def test_fetch_outlet_power_info_accepts_mesh_group_id(self):
+        """Power-info should accept mesh-group IDs supported by the endpoint."""
         client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("access", "refresh")
 
@@ -1686,83 +1700,31 @@ class TestLiproClientOutletPower:
             client, "_iot_request", new_callable=AsyncMock
         ) as mock_request:
             mock_request.return_value = {"nowPower": 3.2}
-            result = await client.fetch_outlet_power_info(
-                [
-                    "mesh_group_10001",
-                    "03AB5CCD7CABCDEF",
-                    "invalid",
-                    "03ab5ccd7cabcdef",
-                ]
-            )
+            result = await client.fetch_outlet_power_info("mesh_group_10001")
+
+        mock_request.assert_called_once_with(
+            PATH_QUERY_OUTLET_POWER,
+            {"deviceId": "mesh_group_10001"},
+        )
+        assert result == {"nowPower": 3.2}
+
+    @pytest.mark.asyncio
+    async def test_fetch_outlet_power_info_normalizes_iot_ids(self):
+        """Power-info should normalize valid IoT IDs before request."""
+        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client.set_tokens("access", "refresh")
+
+        with patch.object(
+            client, "_iot_request", new_callable=AsyncMock
+        ) as mock_request:
+            mock_request.return_value = {"nowPower": 3.2}
+            result = await client.fetch_outlet_power_info("03AB5CCD7CABCDEF")
 
         mock_request.assert_called_once_with(
             PATH_QUERY_OUTLET_POWER,
             {"deviceId": "03ab5ccd7cabcdef"},
         )
         assert result == {"nowPower": 3.2}
-
-    @pytest.mark.asyncio
-    async def test_fetch_outlet_power_info_multiple_ids_queries_one_by_one(self):
-        """Power-info should query each deviceId individually and aggregate."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
-        client.set_tokens("access", "refresh")
-
-        with patch.object(
-            client, "_iot_request", new_callable=AsyncMock
-        ) as mock_request:
-            mock_request.side_effect = [
-                {"nowPower": 1.1},
-                {"nowPower": 2.2},
-            ]
-            result = await client.fetch_outlet_power_info(
-                ["03AB5CCD7CABCDE1", "03ab5ccd7cabcde2"]
-            )
-
-        assert mock_request.await_args_list == [
-            call(PATH_QUERY_OUTLET_POWER, {"deviceId": "03ab5ccd7cabcde1"}),
-            call(PATH_QUERY_OUTLET_POWER, {"deviceId": "03ab5ccd7cabcde2"}),
-        ]
-        assert result == {
-            "03ab5ccd7cabcde1": {"nowPower": 1.1},
-            "03ab5ccd7cabcde2": {"nowPower": 2.2},
-        }
-
-    @pytest.mark.asyncio
-    async def test_fetch_outlet_power_info_multiple_ids_skips_invalid_param_errors(self):
-        """Per-device invalid-param failures should be skipped during aggregation."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
-        client.set_tokens("access", "refresh")
-
-        with patch.object(
-            client, "_iot_request", new_callable=AsyncMock
-        ) as mock_request:
-            mock_request.side_effect = [
-                LiproApiError("Invalid parameter", "100000"),
-                {"nowPower": 2.2},
-            ]
-            result = await client.fetch_outlet_power_info(
-                ["03ab5ccd7cabcde1", "03ab5ccd7cabcde2"]
-            )
-
-        assert mock_request.await_args_list == [
-            call(PATH_QUERY_OUTLET_POWER, {"deviceId": "03ab5ccd7cabcde1"}),
-            call(PATH_QUERY_OUTLET_POWER, {"deviceId": "03ab5ccd7cabcde2"}),
-        ]
-        assert result == {"03ab5ccd7cabcde2": {"nowPower": 2.2}}
-
-    @pytest.mark.asyncio
-    async def test_fetch_outlet_power_info_all_invalid_ids_returns_empty(self):
-        """Power-info should return empty dict when no valid IoT IDs remain."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
-        client.set_tokens("access", "refresh")
-
-        with patch.object(
-            client, "_iot_request", new_callable=AsyncMock
-        ) as mock_request:
-            result = await client.fetch_outlet_power_info(["mesh_group_10001"])
-
-        mock_request.assert_not_called()
-        assert result == {}
 
     @pytest.mark.asyncio
     async def test_fetch_outlet_power_info_invalid_param_error_returns_empty(self):
@@ -1774,7 +1736,7 @@ class TestLiproClientOutletPower:
             client, "_iot_request", new_callable=AsyncMock
         ) as mock_request:
             mock_request.side_effect = LiproApiError("Invalid parameter", "100000")
-            result = await client.fetch_outlet_power_info(["03ab5ccd7cabcdef"])
+            result = await client.fetch_outlet_power_info("03ab5ccd7cabcdef")
 
         mock_request.assert_called_once()
         assert result == {}
@@ -1790,7 +1752,7 @@ class TestLiproClientOutletPower:
         ) as mock_request:
             mock_request.side_effect = LiproApiError("Server error", 500)
             with pytest.raises(LiproApiError, match="Server error"):
-                await client.fetch_outlet_power_info(["03ab5ccd7cabcdef"])
+                await client.fetch_outlet_power_info("03ab5ccd7cabcdef")
 
 
 class TestLiproClientOptionalCapabilities:

@@ -2353,7 +2353,7 @@ class TestCoordinatorStatusQueriesAndNotifications:
         assert outlet.extra_data["power_info"]["nowPower"] == 33.5
 
     @pytest.mark.asyncio
-    async def test_query_outlet_power_batch_unparseable_falls_back_to_per_device(
+    async def test_query_outlet_power_queries_each_selected_device_individually(
         self, coordinator, mock_lipro_api_client
     ):
         out1 = _make_device(serial="out1", properties={"powerState": "1"})
@@ -2364,12 +2364,10 @@ class TestCoordinatorStatusQueriesAndNotifications:
         coordinator._device_identity_index.register(out2.serial, out2)
         coordinator._outlet_ids_to_query = [out1.serial, out2.serial]
 
-        def _fetch(device_ids):
-            if device_ids == ["out1", "out2"]:
-                return {"nowPower": 9.9}
-            if device_ids == ["out1"]:
+        def _fetch(device_id):
+            if device_id == "out1":
                 return {"nowPower": 1.1}
-            if device_ids == ["out2"]:
+            if device_id == "out2":
                 return {"nowPower": 2.2}
             return {}
 
@@ -2379,7 +2377,7 @@ class TestCoordinatorStatusQueriesAndNotifications:
 
         assert out1.extra_data["power_info"]["nowPower"] == 1.1
         assert out2.extra_data["power_info"]["nowPower"] == 2.2
-        assert mock_lipro_api_client.fetch_outlet_power_info.await_count == 3
+        assert mock_lipro_api_client.fetch_outlet_power_info.await_count == 2
 
     @pytest.mark.asyncio
     async def test_query_outlet_power_raises_auth_error(
@@ -2718,11 +2716,13 @@ class TestCoordinatorStatusQueriesAndNotifications:
 
         await coordinator._query_outlet_power()
 
-        # 100 devices should be capped to prevent large one-cycle bursts.
-        assert mock_lipro_api_client.fetch_outlet_power_info.await_count == 1
-        assert (
-            len(mock_lipro_api_client.fetch_outlet_power_info.await_args.args[0]) == 10
-        )
+        # 100 devices should still be capped to a 10-device slice per cycle.
+        assert mock_lipro_api_client.fetch_outlet_power_info.await_count == 10
+        queried_ids = [
+            call.args[0]
+            for call in mock_lipro_api_client.fetch_outlet_power_info.await_args_list
+        ]
+        assert queried_ids == [f"out{i}" for i in range(10)]
         assert coordinator._outlet_power_round_robin_index == 10
 
     def test_resolve_outlet_power_cycle_size_scales_with_device_count(

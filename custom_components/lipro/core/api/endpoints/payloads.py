@@ -5,7 +5,10 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from ...utils.identifiers import normalize_iot_device_id as _normalize_iot_device_id
+from ...utils.identifiers import (
+    normalize_iot_device_id as _normalize_iot_device_id,
+    normalize_mesh_group_id as _normalize_mesh_group_id,
+)
 from ..client_base import _ClientBase
 
 # Use the same logger instance as custom_components.lipro.core.api.client._LOGGER
@@ -70,6 +73,13 @@ class _ClientEndpointPayloadsMixin(_ClientBase):
                 endpoint,
             )
         return valid_ids
+
+    @staticmethod
+    def _normalize_power_target_id(device_id: Any) -> str | None:
+        """Normalize a power-info target ID accepted by the cloud endpoint."""
+        return _normalize_iot_device_id(device_id) or _normalize_mesh_group_id(
+            device_id
+        )
 
 
 __all__ = ["_ClientEndpointPayloadsMixin"]
