@@ -19,12 +19,14 @@ from .const.base import DOMAIN
 from .const.config import (
     CONF_ACCESS_TOKEN,
     CONF_BIZ_ID,
+    CONF_COMMAND_RESULT_VERIFY,
     CONF_PASSWORD_HASH,
     CONF_PHONE,
     CONF_PHONE_ID,
     CONF_REFRESH_TOKEN,
     CONF_REMEMBER_PASSWORD_HASH,
     CONF_USER_ID,
+    DEFAULT_COMMAND_RESULT_VERIFY,
     DEFAULT_REMEMBER_PASSWORD_HASH,
 )
 from .core.api import LiproApiError, LiproClient
@@ -192,6 +194,9 @@ class LiproConfigFlow(ConfigFlow, domain=DOMAIN):
                         phone_id,
                         remember_password_hash=remember_password_hash,
                     ),
+                    options={
+                        CONF_COMMAND_RESULT_VERIFY: DEFAULT_COMMAND_RESULT_VERIFY,
+                    },
                 )
 
         return self.async_show_form(

@@ -29,7 +29,7 @@ DEFAULT_ENABLE_POWER_MONITORING: Final = True
 
 # Options - Power query interval (independent of scan_interval)
 CONF_POWER_QUERY_INTERVAL: Final = "power_query_interval"
-DEFAULT_POWER_QUERY_INTERVAL: Final = 60
+DEFAULT_POWER_QUERY_INTERVAL: Final = 300
 MIN_POWER_QUERY_INTERVAL: Final = 30
 MAX_POWER_QUERY_INTERVAL: Final = 300
 
@@ -54,10 +54,10 @@ CONF_ROOM_AREA_SYNC_FORCE: Final = "room_area_sync_force"
 DEFAULT_ROOM_AREA_SYNC_FORCE: Final = False
 
 # Options - command delivery verify via query_command_result
-# False (default): keep existing optimistic pushSuccess behavior.
-# True: after command send, verify delivery result by msgSn.
+# True (default): after command send, verify delivery result by msgSn.
+# False: keep existing optimistic pushSuccess behavior.
 CONF_COMMAND_RESULT_VERIFY: Final = "command_result_verify"
-DEFAULT_COMMAND_RESULT_VERIFY: Final = False
+DEFAULT_COMMAND_RESULT_VERIFY: Final = True
 
 # Options - device filtering (home/model/ssid/did)
 CONF_DEVICE_FILTER_HOME_MODE: Final = "device_filter_home_mode"

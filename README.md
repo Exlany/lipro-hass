@@ -252,12 +252,12 @@ Available options in integration settings:
 - **Anonymous Share Device Info**: Opt-in device capability sharing
 - **Anonymous Share Error Reports**: Opt-in anonymized error reports
 - **Advanced Options**:
-  - **Power Query Interval**: Outlet power query frequency (30-300 seconds)
+  - **Power Query Interval**: Outlet power query frequency (default 300 seconds / ~5 minutes, range 30-300 seconds)
   - **Request Timeout**: API request timeout (10-60 seconds)
   - **Debug Mode (Diagnostics)**: Capture runtime diagnostics (mesh topology + command traces). For verbose logs, configure Home Assistant logger settings.
   - **Auto Turn On When Adjusting While Off**: When enabled, adjusting brightness/color temperature while off will also turn on the light (disable to keep Lipro behavior)
   - **Force Cloud Room → HA Area**: Always overwrite Home Assistant area with cloud room assignment (use with caution)
-  - **Verify Command Delivery Result**: Query delivery result by `msgSn` after sending commands (troubleshooting)
+  - **Verify Command Delivery Result**: Default on (recommended). Query delivery result by `msgSn` after sending commands for a safer control closed loop
   - **Device Filtering (home/model/WiFi SSID/device ID)**: `off/include/exclude` + list (supports comma/semicolon/newline separators)
 
 ## Known Limitations

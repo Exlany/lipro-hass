@@ -32,8 +32,11 @@ from custom_components.lipro.const.config import (
     CONF_PASSWORD_HASH,
     CONF_PHONE,
     CONF_PHONE_ID,
+    CONF_POWER_QUERY_INTERVAL,
     CONF_REMEMBER_PASSWORD_HASH,
     CONF_ROOM_AREA_SYNC_FORCE,
+    DEFAULT_COMMAND_RESULT_VERIFY,
+    DEFAULT_POWER_QUERY_INTERVAL,
     DEVICE_FILTER_MODE_EXCLUDE,
     DEVICE_FILTER_MODE_INCLUDE,
     DEVICE_FILTER_MODE_OFF,
@@ -141,6 +144,8 @@ async def test_form_user(
     assert result["data"]["refresh_token"] == "test_refresh_token"
     assert result["data"]["user_id"] == 10001
     assert CONF_PHONE_ID in result["data"]
+    created_entry = hass.config_entries.async_entries(DOMAIN)[0]
+    assert created_entry.options[CONF_COMMAND_RESULT_VERIFY] is True
     assert len(mock_setup_entry.mock_calls) == 1
     mock_lipro_client.login.assert_awaited_once()
     assert mock_lipro_client.login.await_args.kwargs["password_is_hashed"] is True
@@ -1095,6 +1100,27 @@ async def test_options_flow_advanced_schema_normalizes_legacy_mode_defaults(
     assert isinstance(marker, vol.Required)
     default = marker.default() if callable(marker.default) else marker.default
     assert default == DEVICE_FILTER_MODE_INCLUDE
+    command_result_verify_marker = _get_schema_marker(
+        data_schema, CONF_COMMAND_RESULT_VERIFY
+    )
+    assert isinstance(command_result_verify_marker, vol.Required)
+    command_result_verify_default = (
+        command_result_verify_marker.default()
+        if callable(command_result_verify_marker.default)
+        else command_result_verify_marker.default
+    )
+    assert command_result_verify_default is DEFAULT_COMMAND_RESULT_VERIFY
+
+    power_query_interval_marker = _get_schema_marker(
+        data_schema, CONF_POWER_QUERY_INTERVAL
+    )
+    assert isinstance(power_query_interval_marker, vol.Required)
+    power_query_interval_default = (
+        power_query_interval_marker.default()
+        if callable(power_query_interval_marker.default)
+        else power_query_interval_marker.default
+    )
+    assert power_query_interval_default == DEFAULT_POWER_QUERY_INTERVAL
 
 
 async def test_options_flow_advanced_step(
