@@ -87,11 +87,9 @@ def _normalize_filter_value(value: Any) -> str | None:
 
 
 def _normalize_filter_mode(value: Any) -> str:
-    """Normalize raw mode option to a supported filter mode."""
-    if isinstance(value, str):
-        normalized = value.strip().casefold()
-        if normalized in _VALID_FILTER_MODES:
-            return normalized
+    """Normalize raw mode option to one canonical filter mode."""
+    if isinstance(value, str) and value in _VALID_FILTER_MODES:
+        return value
     return DEVICE_FILTER_MODE_OFF
 
 
