@@ -204,8 +204,12 @@ class _CoordinatorStatusPollingMixin(_CoordinatorAuthIssuesMixin):
 
     async def _query_device_status(self) -> None:
         """Query status for individual devices."""
+        query_ids = self._resolve_direct_iot_query_ids()
+        if not query_ids:
+            return
+
         status_list = await self.client.query_device_status(
-            self._iot_ids_to_query,
+            query_ids,
             max_devices_per_query=self._state_status_batch_size,
             on_batch_metric=self._record_state_batch_metric,
         )

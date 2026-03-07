@@ -1928,6 +1928,25 @@ class TestCoordinatorSendCommand:
         adapt.assert_called_once()
         assert coordinator._state_batch_metrics[-1] == (24, 0.25, 0)
 
+    @pytest.mark.asyncio
+    async def test_query_device_status_skips_group_mapped_iot_ids(
+        self, coordinator, mock_lipro_api_client
+    ):
+        coordinator._iot_ids_to_query = ["dev1", "gateway_abc"]
+        dev = _make_device(serial="dev1")
+        group = _make_device(serial="mesh_group_10001", is_group=True)
+        coordinator._devices[dev.serial] = dev
+        coordinator._devices[group.serial] = group
+        coordinator._device_identity_index.register(dev.serial, dev)
+        coordinator._device_identity_index.register("gateway_abc", group)
+
+        await coordinator._query_device_status()
+
+        args, kwargs = mock_lipro_api_client.query_device_status.await_args
+        assert args[0] == ["dev1"]
+        assert kwargs["max_devices_per_query"] == coordinator._state_status_batch_size
+        assert kwargs["on_batch_metric"] == coordinator._record_state_batch_metric
+
     def test_adapt_connect_status_stale_window_by_skip_ratio(self, coordinator):
         from custom_components.lipro.core.coordinator.tuning import (
             _CONNECT_STATUS_SKIP_RATIO_WINDOW,
@@ -2045,6 +2064,32 @@ class TestCoordinatorSendCommand:
         assert set(ids) == {"dev1", "dev2"}
         assert coordinator._force_connect_status_refresh is False
         assert list(coordinator._connect_status_skip_history) == []
+        assert coordinator._last_connect_status_query_time == 1000.0
+
+    def test_resolve_connect_status_query_ids_skips_group_mapped_iot_ids(
+        self, coordinator
+    ):
+        coordinator._iot_ids_to_query = ["dev1", "gateway_abc"]
+        coordinator._mqtt_enabled = False
+        coordinator._mqtt_connected = False
+        coordinator._force_connect_status_refresh = True
+        coordinator._last_connect_status_query_time = 0.0
+
+        dev = _make_device(serial="dev1")
+        group = _make_device(serial="mesh_group_10001", is_group=True)
+        coordinator._devices[dev.serial] = dev
+        coordinator._devices[group.serial] = group
+        coordinator._device_identity_index.register(dev.serial, dev)
+        coordinator._device_identity_index.register("gateway_abc", group)
+
+        with patch(
+            "custom_components.lipro.core.coordinator.tuning.monotonic",
+            return_value=1000.0,
+        ):
+            ids = coordinator._resolve_connect_status_query_ids()
+
+        assert ids == ["dev1"]
+        assert coordinator._force_connect_status_refresh is False
         assert coordinator._last_connect_status_query_time == 1000.0
 
     def test_build_developer_report_disabled_mode_has_note(self, coordinator):

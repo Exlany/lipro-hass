@@ -58,6 +58,16 @@ _STATE_STATUS_BATCH_LATENCY_HIGH_SECONDS: Final[float] = 3.5
 class _AdaptiveTuningMixin(_CoordinatorBase):
     """Coordinator mixin for adaptive runtime tuning and connect-status decisions."""
 
+    def _resolve_direct_iot_query_ids(self) -> list[str]:
+        """Return individual-query IDs that are not currently mapped to groups."""
+        query_ids: list[str] = []
+        for device_id in self._iot_ids_to_query:
+            device = self.get_device_by_id(device_id)
+            if device is not None and device.is_group:
+                continue
+            query_ids.append(device_id)
+        return query_ids
+
     def _build_status_metrics_snapshot(self) -> dict[str, Any]:
         """Build current runtime status-query metrics snapshot."""
         sample_count = len(self._state_batch_metrics)
@@ -112,9 +122,10 @@ class _AdaptiveTuningMixin(_CoordinatorBase):
 
     def _resolve_connect_status_query_ids(self) -> list[str]:
         """Resolve the connect-status query candidate IDs for this refresh cycle."""
-        iot_ids = list(self._iot_ids_to_query)
-        if not iot_ids:
+        if not self._iot_ids_to_query:
             return []
+
+        iot_ids = self._resolve_direct_iot_query_ids()
 
         force_refresh = self._force_connect_status_refresh
         now = monotonic()

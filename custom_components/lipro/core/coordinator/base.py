@@ -121,6 +121,10 @@ class _CoordinatorBase(DataUpdateCoordinator[dict[str, LiproDevice]]):
         """Look up a device by any known identifier."""
         raise NotImplementedError
 
+    def _resolve_direct_iot_query_ids(self) -> list[str]:  # pragma: no cover
+        """Return IoT IDs that should still use individual status APIs."""
+        raise NotImplementedError
+
     @staticmethod
     def _normalize_device_key(device_id: str) -> str:  # pragma: no cover
         """Normalize runtime device identifiers for per-device caches."""
