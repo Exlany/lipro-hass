@@ -289,6 +289,7 @@ class ScheduleApiService:
                 PATH_SCHEDULE_GET,
                 build_schedule_get_body(device_id, device_type_hex=device_type_hex),
             ),
+            allow_standard_fallback=candidate_ids is None,
         )
         return cast(list[dict[str, Any]], result)
 

@@ -251,13 +251,22 @@ class _ClientScheduleEndpointsMixin(_ClientEndpointPayloadsMixin):
         ble_request: Callable[[list[str]], Awaitable[list[dict[str, Any]]]],
         mesh_request: Callable[[list[str]], Awaitable[list[dict[str, Any]]]],
         standard_request: Callable[[], Awaitable[list[dict[str, Any]]]],
+        allow_standard_fallback: bool = True,
     ) -> list[dict[str, Any]]:
-        """Execute schedule API with BLE-first strategy and standard fallback."""
+        """Execute schedule API with BLE-first strategy and optional standard fallback."""
         if ble_candidate_ids:
             try:
                 return await ble_request(ble_candidate_ids)
             except LiproApiError as err:
                 if not self._is_invalid_param_error_code(err.code):
+                    raise
+                if not allow_standard_fallback:
+                    _LOGGER.debug(
+                        "BLE schedule %s rejected for %s (code=%s), skip standard fallback",
+                        ble_operation,
+                        _redact_identifier(device_id) or "***",
+                        err.code,
+                    )
                     raise
                 _LOGGER.debug(
                     "BLE schedule %s rejected for %s (code=%s), fallback to standard endpoint",
