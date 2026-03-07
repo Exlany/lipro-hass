@@ -1878,6 +1878,44 @@ class TestLiproClientOptionalCapabilities:
         mock_request.assert_any_await(PATH_QUERY_CONTROLLER_OTA, {})
 
     @pytest.mark.asyncio
+    async def test_query_ota_info_light_v2_fallback(self):
+        """query_ota_info should probe richer v2 payload for light devices."""
+        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        ota_v2_rows = [{"deviceType": "ff000001", "firmwareVersion": "7.10.9"}]
+
+        with patch.object(
+            client, "_iot_request", new_callable=AsyncMock
+        ) as mock_request:
+            mock_request.side_effect = [
+                [],
+                [],
+                ota_v2_rows,
+                [],
+            ]
+            result = await client.query_ota_info(
+                device_id="mesh_group_49155",
+                device_type="ff000001",
+                iot_name="21P3",
+                allow_rich_v2_fallback=True,
+            )
+
+        assert result == ota_v2_rows
+        mock_request.assert_any_await(
+            PATH_QUERY_OTA_INFO_V2,
+            {"deviceId": "mesh_group_49155", "deviceType": "ff000001"},
+        )
+        mock_request.assert_any_await(
+            PATH_QUERY_OTA_INFO_V2,
+            {
+                "deviceId": "mesh_group_49155",
+                "deviceType": "ff000001",
+                "iotName": "21P3",
+                "skuId": "",
+                "hasMacRule": True,
+            },
+        )
+
+    @pytest.mark.asyncio
     async def test_fetch_body_sensor_history(self):
         """fetch_body_sensor_history should follow API contract fields."""
         client = LiproClient("550e8400-e29b-41d4-a716-446655440000")

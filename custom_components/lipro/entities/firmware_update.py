@@ -275,6 +275,8 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
         rows = await self.coordinator.client.query_ota_info(
             device_id=self.device.serial,
             device_type=self.device.device_type_hex,
+            iot_name=self.device.iot_name or None,
+            allow_rich_v2_fallback=self.device.is_light,
         )
         return rows if isinstance(rows, list) else []
 

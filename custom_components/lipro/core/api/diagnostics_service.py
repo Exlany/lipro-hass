@@ -22,6 +22,26 @@ _LOGGER = logging.getLogger(__name__)
 type OtaRowDedupeKey = tuple[str, str, str, str, str]
 
 
+def _build_rich_ota_v2_payload(
+    ota_payload: dict[str, Any],
+    *,
+    iot_name: str | None,
+    allow_rich_v2_fallback: bool,
+) -> dict[str, Any] | None:
+    """Build richer OTA v2 payload for devices that benefit from hasMacRule."""
+    if not allow_rich_v2_fallback:
+        return None
+    normalized_iot_name = str(iot_name or "").strip()
+    if not normalized_iot_name:
+        return None
+    return {
+        **ota_payload,
+        "iotName": normalized_iot_name,
+        "skuId": "",
+        "hasMacRule": True,
+    }
+
+
 def _ota_row_dedupe_key(row: dict[str, Any]) -> OtaRowDedupeKey:
     """Build stable dedupe key for one OTA row."""
     return (
@@ -114,36 +134,86 @@ async def query_ota_info(
     lipro_api_error: type[Exception],
     device_id: str,
     device_type: int | str,
+    iot_name: str | None = None,
+    allow_rich_v2_fallback: bool = False,
 ) -> list[dict[str, Any]]:
     """Query firmware OTA info for a device/group."""
     ota_payload = {
         "deviceId": device_id,
         "deviceType": to_device_type_hex(device_type),
     }
+    rich_v2_payload = _build_rich_ota_v2_payload(
+        ota_payload,
+        iot_name=iot_name,
+        allow_rich_v2_fallback=allow_rich_v2_fallback,
+    )
 
     merged_rows: list[dict[str, Any]] = []
     seen_keys: set[OtaRowDedupeKey] = set()
 
     ota_error: Exception | None = None
     ota_success = False
-    for path in (PATH_QUERY_OTA_INFO, PATH_QUERY_OTA_INFO_V2):
-        try:
-            result = await iot_request(path, ota_payload)
-        except lipro_api_error as err:
-            ota_error = err
-            _LOGGER.debug(
-                "OTA endpoint %s failed (%s)",
-                path,
-                safe_error_placeholder(err),
-            )
-            continue
 
+    try:
+        result = await iot_request(PATH_QUERY_OTA_INFO, ota_payload)
+    except lipro_api_error as err:
+        ota_error = err
+        _LOGGER.debug(
+            "OTA endpoint %s failed (%s)",
+            PATH_QUERY_OTA_INFO,
+            safe_error_placeholder(err),
+        )
+    else:
         _merge_ota_rows(
             merged_rows,
             seen_keys,
             extract_data_list(result),
         )
         ota_success = True
+
+    try:
+        result = await iot_request(PATH_QUERY_OTA_INFO_V2, ota_payload)
+    except lipro_api_error as err:
+        ota_error = err
+        _LOGGER.debug(
+            "OTA endpoint %s failed (%s)",
+            PATH_QUERY_OTA_INFO_V2,
+            safe_error_placeholder(err),
+        )
+    else:
+        ota_success = True
+        v2_rows = extract_data_list(result)
+        _merge_ota_rows(
+            merged_rows,
+            seen_keys,
+            v2_rows,
+        )
+        if not v2_rows and rich_v2_payload is not None:
+            try:
+                rich_v2_result = await iot_request(PATH_QUERY_OTA_INFO_V2, rich_v2_payload)
+            except lipro_api_error as err:
+                ota_error = err
+                code = getattr(err, "code", None)
+                if is_invalid_param_error_code(code):
+                    _LOGGER.debug(
+                        "OTA endpoint %s rejected richer payload (code=%s, err=%s)",
+                        PATH_QUERY_OTA_INFO_V2,
+                        code,
+                        safe_error_placeholder(err),
+                    )
+                else:
+                    _LOGGER.debug(
+                        "OTA endpoint %s richer payload failed (%s)",
+                        PATH_QUERY_OTA_INFO_V2,
+                        safe_error_placeholder(err),
+                    )
+            else:
+                ota_success = True
+                _merge_ota_rows(
+                    merged_rows,
+                    seen_keys,
+                    extract_data_list(rich_v2_result),
+                )
 
     if not ota_success and ota_error is not None:
         raise ota_error

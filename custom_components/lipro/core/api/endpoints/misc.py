@@ -86,6 +86,9 @@ class _ClientMiscEndpointsMixin(_ClientEndpointPayloadsMixin):
         self,
         device_id: str,
         device_type: int | str,
+        *,
+        iot_name: str | None = None,
+        allow_rich_v2_fallback: bool = False,
     ) -> list[dict[str, Any]]:
         """Fetch OTA information for diagnostics."""
         return await query_ota_info_service(
@@ -96,6 +99,8 @@ class _ClientMiscEndpointsMixin(_ClientEndpointPayloadsMixin):
             lipro_api_error=LiproApiError,
             device_id=device_id,
             device_type=device_type,
+            iot_name=iot_name,
+            allow_rich_v2_fallback=allow_rich_v2_fallback,
         )
 
     async def fetch_body_sensor_history(

@@ -113,6 +113,47 @@ async def test_query_ota_info_continues_when_v1_fails_and_v2_succeeds() -> None:
 
 
 @pytest.mark.asyncio
+async def test_query_ota_info_probes_richer_v2_payload_for_light_devices() -> None:
+    row = {"deviceType": "ff000001", "latestVersion": "1.0.1"}
+    iot_request = AsyncMock(
+        side_effect=[
+            {"rows": []},
+            {"rows": []},
+            {"rows": [row]},
+            {"rows": []},
+        ]
+    )
+
+    result = await query_ota_info(
+        iot_request=iot_request,
+        extract_data_list=lambda payload: payload.get("rows", []),
+        is_invalid_param_error_code=lambda code: code == "100000",
+        to_device_type_hex=str,
+        lipro_api_error=DummyApiError,
+        device_id="mesh_group_1",
+        device_type="ff000001",
+        iot_name="21P3",
+        allow_rich_v2_fallback=True,
+    )
+
+    assert result == [row]
+    iot_request.assert_any_await(
+        PATH_QUERY_OTA_INFO_V2,
+        {"deviceId": "mesh_group_1", "deviceType": "ff000001"},
+    )
+    iot_request.assert_any_await(
+        PATH_QUERY_OTA_INFO_V2,
+        {
+            "deviceId": "mesh_group_1",
+            "deviceType": "ff000001",
+            "iotName": "21P3",
+            "skuId": "",
+            "hasMacRule": True,
+        },
+    )
+
+
+@pytest.mark.asyncio
 async def test_query_ota_info_raises_last_error_when_v1_and_v2_both_fail() -> None:
     iot_request = AsyncMock(
         side_effect=[
