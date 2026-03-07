@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any, cast
 
-OutletPowerInfoPayload = dict[str, Any] | list[dict[str, Any]]
+OutletPowerInfoPayload = dict[str, Any]
 
 
 async def fetch_outlet_power_info(
@@ -26,37 +26,56 @@ async def fetch_outlet_power_info(
     if not sanitized_ids:
         return {}
 
-    try:
-        result = await iot_request(
-            path_query_outlet_power,
-            {"deviceIds": sanitized_ids},
-        )
+    aggregated_payload: dict[str, Any] = {}
+    single_device_request = len(sanitized_ids) == 1
+
+    for device_id in sanitized_ids:
+        try:
+            result = await iot_request(
+                path_query_outlet_power,
+                {"deviceId": device_id},
+            )
+        except lipro_api_error as err:
+            code = getattr(err, "code", None)
+            if is_invalid_param_error_code(code):
+                logger.debug(
+                    "Power-info endpoint rejected deviceId=%s (code=%s), skipping",
+                    device_id,
+                    code,
+                )
+                continue
+            raise
+
+        if isinstance(result, dict):
+            payload = cast(
+                dict[str, Any],
+                require_mapping_response(path_query_outlet_power, result),
+            )
+            if single_device_request:
+                return payload
+            aggregated_payload[device_id] = payload
+            continue
+
         if isinstance(result, list):
             rows = [row for row in result if isinstance(row, dict)]
             if len(rows) != len(result):
                 logger.debug(
-                    "Power-info payload dropped %d non-mapping rows",
+                    "Power-info payload dropped %d non-mapping rows for %s",
                     len(result) - len(rows),
+                    device_id,
                 )
-            return rows
-        if isinstance(result, dict):
-            return cast(
-                dict[str, Any],
-                require_mapping_response(path_query_outlet_power, result),
-            )
+            if not rows:
+                continue
+            payload = rows[0] if len(rows) == 1 else {"data": rows}
+            if single_device_request:
+                return payload
+            aggregated_payload[device_id] = payload
+            continue
+
         logger.debug(
-            "Power-info payload returned unexpected type (%s), treating as empty",
+            "Power-info payload returned unexpected type (%s) for %s, skipping",
             type(result).__name__,
+            device_id,
         )
-        return {}
-    except lipro_api_error as err:
-        # Keep behavior: invalid-param business error should degrade to empty payload.
-        code = getattr(err, "code", None)
-        if is_invalid_param_error_code(code):
-            logger.debug(
-                "Power-info endpoint rejected device IDs (count=%d, code=%s), treating as empty",
-                len(sanitized_ids),
-                code,
-            )
-            return {}
-        raise
+
+    return aggregated_payload

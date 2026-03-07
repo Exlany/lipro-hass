@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import json
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, call, patch
 
 import aiohttp
 import pytest
@@ -1697,9 +1697,58 @@ class TestLiproClientOutletPower:
 
         mock_request.assert_called_once_with(
             PATH_QUERY_OUTLET_POWER,
-            {"deviceIds": ["03ab5ccd7cabcdef"]},
+            {"deviceId": "03ab5ccd7cabcdef"},
         )
         assert result == {"nowPower": 3.2}
+
+    @pytest.mark.asyncio
+    async def test_fetch_outlet_power_info_multiple_ids_queries_one_by_one(self):
+        """Power-info should query each deviceId individually and aggregate."""
+        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client.set_tokens("access", "refresh")
+
+        with patch.object(
+            client, "_iot_request", new_callable=AsyncMock
+        ) as mock_request:
+            mock_request.side_effect = [
+                {"nowPower": 1.1},
+                {"nowPower": 2.2},
+            ]
+            result = await client.fetch_outlet_power_info(
+                ["03AB5CCD7CABCDE1", "03ab5ccd7cabcde2"]
+            )
+
+        assert mock_request.await_args_list == [
+            call(PATH_QUERY_OUTLET_POWER, {"deviceId": "03ab5ccd7cabcde1"}),
+            call(PATH_QUERY_OUTLET_POWER, {"deviceId": "03ab5ccd7cabcde2"}),
+        ]
+        assert result == {
+            "03ab5ccd7cabcde1": {"nowPower": 1.1},
+            "03ab5ccd7cabcde2": {"nowPower": 2.2},
+        }
+
+    @pytest.mark.asyncio
+    async def test_fetch_outlet_power_info_multiple_ids_skips_invalid_param_errors(self):
+        """Per-device invalid-param failures should be skipped during aggregation."""
+        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client.set_tokens("access", "refresh")
+
+        with patch.object(
+            client, "_iot_request", new_callable=AsyncMock
+        ) as mock_request:
+            mock_request.side_effect = [
+                LiproApiError("Invalid parameter", "100000"),
+                {"nowPower": 2.2},
+            ]
+            result = await client.fetch_outlet_power_info(
+                ["03ab5ccd7cabcde1", "03ab5ccd7cabcde2"]
+            )
+
+        assert mock_request.await_args_list == [
+            call(PATH_QUERY_OUTLET_POWER, {"deviceId": "03ab5ccd7cabcde1"}),
+            call(PATH_QUERY_OUTLET_POWER, {"deviceId": "03ab5ccd7cabcde2"}),
+        ]
+        assert result == {"03ab5ccd7cabcde2": {"nowPower": 2.2}}
 
     @pytest.mark.asyncio
     async def test_fetch_outlet_power_info_all_invalid_ids_returns_empty(self):
