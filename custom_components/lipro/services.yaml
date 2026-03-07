@@ -11,8 +11,8 @@ send_command:
     device_id:
       name: Device ID (Optional)
       description: >-
-        The device serial number. If not provided, the device will be
-        determined from the target entity.
+        The device serial number or mesh group ID. If not provided, the
+        device will be determined from the target entity.
       required: false
       example: "03ab5ccd7c123456"
       selector:
@@ -51,7 +51,10 @@ get_schedules:
   name: Get Schedules
   description: >-
     Get the list of timing schedules for a device. Schedules are stored on the
-    device and execute even when Home Assistant is offline.
+    device and execute even when Home Assistant is offline. For mesh groups,
+    the integration first tries BLE schedule queries with gateway/member
+    candidates; if BLE GET is rejected, the standard `schedule/get.do`
+    fallback does not require `groupId`.
   target:
     entity:
       integration: lipro
@@ -59,8 +62,8 @@ get_schedules:
     device_id:
       name: Device ID (Optional)
       description: >-
-        The device serial number. If not provided, the device will be
-        determined from the target entity.
+        The device serial number or mesh group ID. If not provided, the
+        device will be determined from the target entity.
       required: false
       example: "03ab5ccd7c123456"
       selector:
@@ -71,7 +74,9 @@ add_schedule:
   description: >-
     Add or update a timing schedule for a device. The schedule is stored on the
     device and will execute even when Home Assistant is offline. Each time entry
-    corresponds to an event (action) at that time.
+    corresponds to an event (action) at that time. For mesh groups, the
+    integration prefers BLE schedule calls with gateway/member candidates
+    before falling back to the standard cloud API.
   target:
     entity:
       integration: lipro
@@ -79,8 +84,8 @@ add_schedule:
     device_id:
       name: Device ID (Optional)
       description: >-
-        The device serial number. If not provided, the device will be
-        determined from the target entity.
+        The device serial number or mesh group ID. If not provided, the
+        device will be determined from the target entity.
       required: false
       example: "03ab5ccd7c123456"
       selector:
@@ -133,7 +138,9 @@ delete_schedules:
   name: Delete Schedules
   description: >-
     Delete timing schedules from a device by their IDs. Use get_schedules first
-    to find the schedule IDs.
+    to find the schedule IDs. For mesh groups, the integration prefers BLE
+    schedule calls with gateway/member candidates before falling back to the
+    standard cloud API.
   target:
     entity:
       integration: lipro

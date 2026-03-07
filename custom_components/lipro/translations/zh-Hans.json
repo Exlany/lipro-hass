@@ -249,7 +249,7 @@
       "fields": {
         "device_id": {
           "name": "设备 ID",
-          "description": "设备序列号。如果未提供，将从目标实体中确定设备。"
+          "description": "设备序列号或 mesh group ID。如果未提供，将从目标实体中确定设备。"
         },
         "command": {
           "name": "命令",
@@ -263,21 +263,21 @@
     },
     "get_schedules": {
       "name": "获取定时任务",
-      "description": "获取设备的定时任务列表。",
+      "description": "获取设备的定时任务列表。对于 mesh group，集成会优先使用 BLE/gateway-member 候选查询；若 BLE GET 被拒绝，则回退到标准 schedule/get.do，且不强制 groupId。",
       "fields": {
         "device_id": {
           "name": "设备 ID",
-          "description": "设备序列号。如果未提供，将从目标实体中确定设备。"
+          "description": "设备序列号或 mesh group ID。如果未提供，将从目标实体中确定设备。"
         }
       }
     },
     "add_schedule": {
       "name": "添加定时任务",
-      "description": "为设备添加或更新定时任务。",
+      "description": "为设备添加或更新定时任务。对于 mesh group，集成会优先使用 BLE/gateway-member 候选，再回退到标准云端接口。",
       "fields": {
         "device_id": {
           "name": "设备 ID",
-          "description": "设备序列号。如果未提供，将从目标实体中确定设备。"
+          "description": "设备序列号或 mesh group ID。如果未提供，将从目标实体中确定设备。"
         },
         "days": {
           "name": "星期",
@@ -295,7 +295,7 @@
     },
     "delete_schedules": {
       "name": "删除定时任务",
-      "description": "通过 ID 删除设备的定时任务。",
+      "description": "通过 ID 删除设备的定时任务。对于 mesh group，集成会优先使用 BLE/gateway-member 候选，再回退到标准云端接口。",
       "fields": {
         "device_id": {
           "name": "设备 ID",

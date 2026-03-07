@@ -36,9 +36,9 @@ Home Assistant integration for controlling Lipro Smart Home devices.
 ## Services
 
 - `lipro.send_command` - Send raw command to device
-- `lipro.get_schedules` - Get device schedules
-- `lipro.add_schedule` - Add or update schedule
-- `lipro.delete_schedules` - Delete schedules by IDs
+- `lipro.get_schedules` - Get device schedules; mesh groups try BLE/gateway-member candidates first, and the standard `schedule/get.do` fallback does not require `groupId`
+- `lipro.add_schedule` - Add or update schedule; mesh groups try BLE/gateway-member candidates first before standard API fallback
+- `lipro.delete_schedules` - Delete schedules by IDs; mesh groups try BLE/gateway-member candidates first before standard API fallback
 - `lipro.submit_anonymous_share` - Submit anonymous share report manually
 - `lipro.get_anonymous_share_report` - Preview anonymous share report
 - `lipro.get_developer_report` - Export sanitized runtime diagnostics report (all entries or one `entry_id`)
@@ -58,6 +58,8 @@ Firmware validation list:
 This integration uses a **hybrid mode** to fetch device status:
 
 - **MQTT Real-time Push**: Instant push when device state changes
+- **MQTT Topic Format**: Subscriptions use `Topic_Device_State/{bizId}/{deviceId}` with the bare `bizId` (any stored `lip_` prefix is removed before subscribing)
+- **MQTT Config Payload**: `get_mqtt_config` may return top-level `accessKey` / `secretKey`, and the integration consumes that direct payload without requiring a wrapped `data` object
 - **Polling Fallback**: Default 30s polling to ensure state sync
 - **Configurable Range**: 10-300 seconds
 - **Batch Query Fallback**: Cloud status requests are chunked; when a batch fails with device-level errors (offline/not connected/etc.), the integration retries with smaller batches down to per-device queries

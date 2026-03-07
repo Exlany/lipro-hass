@@ -36,9 +36,9 @@ Home Assistant 集成，用于控制 Lipro 智能家居设备。
 ## 服务
 
 - `lipro.send_command` - 发送原始命令到设备
-- `lipro.get_schedules` - 获取设备定时任务
-- `lipro.add_schedule` - 添加或更新定时任务
-- `lipro.delete_schedules` - 按 ID 删除定时任务
+- `lipro.get_schedules` - 获取设备定时任务；mesh group 会优先尝试 BLE/gateway-member 候选，标准 `schedule/get.do` 回退不强制 `groupId`
+- `lipro.add_schedule` - 添加或更新定时任务；mesh group 会优先尝试 BLE/gateway-member 候选，再回退到标准接口
+- `lipro.delete_schedules` - 按 ID 删除定时任务；mesh group 会优先尝试 BLE/gateway-member 候选，再回退到标准接口
 - `lipro.submit_anonymous_share` - 手动提交匿名分享报告
 - `lipro.get_anonymous_share_report` - 预览匿名分享报告
 - `lipro.get_developer_report` - 导出脱敏运行诊断报告（全部条目或指定 entry_id）
@@ -58,6 +58,8 @@ Home Assistant 集成，用于控制 Lipro 智能家居设备。
 本集成使用**混合模式**获取设备状态：
 
 - **MQTT 实时推送**：设备状态变化时立即推送
+- **MQTT Topic 形态**：订阅主题使用 `Topic_Device_State/{bizId}/{deviceId}`，其中 `bizId` 使用裸值（会先去掉持久化标识中的 `lip_` 前缀）
+- **MQTT 配置载荷**：`get_mqtt_config` 可直接返回顶层 `accessKey` / `secretKey`，无需额外的 `data` 包装
 - **轮询兜底**：默认 30 秒轮询，确保状态同步
 - **可配置范围**：10-300 秒
 - **批量查询兜底**：云端状态查询会自动分批；当批次因设备级错误（离线/未连接/无权限等）失败时，会拆分为更小批次重试，直至单设备查询

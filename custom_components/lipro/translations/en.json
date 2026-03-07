@@ -249,7 +249,7 @@
       "fields": {
         "device_id": {
           "name": "Device ID",
-          "description": "The device serial number. If not provided, the device will be determined from the target entity."
+          "description": "The device serial number or mesh group ID. If not provided, the device will be determined from the target entity."
         },
         "command": {
           "name": "Command",
@@ -263,21 +263,21 @@
     },
     "get_schedules": {
       "name": "Get Schedules",
-      "description": "Get the list of timing schedules for a device.",
+      "description": "Get the list of timing schedules for a device. For mesh groups, BLE schedule queries try gateway/member candidates first; if BLE GET is rejected, the standard schedule/get.do fallback does not require groupId.",
       "fields": {
         "device_id": {
           "name": "Device ID",
-          "description": "The device serial number. If not provided, the device will be determined from the target entity."
+          "description": "The device serial number or mesh group ID. If not provided, the device will be determined from the target entity."
         }
       }
     },
     "add_schedule": {
       "name": "Add Schedule",
-      "description": "Add or update a timing schedule for a device.",
+      "description": "Add or update a timing schedule for a device. For mesh groups, BLE schedule calls try gateway/member candidates first before falling back to the standard cloud API.",
       "fields": {
         "device_id": {
           "name": "Device ID",
-          "description": "The device serial number. If not provided, the device will be determined from the target entity."
+          "description": "The device serial number or mesh group ID. If not provided, the device will be determined from the target entity."
         },
         "days": {
           "name": "Days",
@@ -295,7 +295,7 @@
     },
     "delete_schedules": {
       "name": "Delete Schedules",
-      "description": "Delete timing schedules from a device by their IDs.",
+      "description": "Delete timing schedules from a device by their IDs. For mesh groups, BLE schedule calls try gateway/member candidates first before falling back to the standard cloud API.",
       "fields": {
         "device_id": {
           "name": "Device ID",
