@@ -326,10 +326,8 @@ async def async_handle_query_command_result(
     attr_max_attempts: str,
     attr_time_budget_seconds: str,
     raise_service_error: ServiceErrorRaiser,
-    service_query_command_result: str,
 ) -> dict[str, Any]:
     """Handle query_command_result service."""
-    del service_query_command_result
     raw_device, raw_coordinator = await get_device_and_coordinator(hass, call)
     device = raw_device
     coordinator = cast(DiagnosticsCoordinator, raw_coordinator)

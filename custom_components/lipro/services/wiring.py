@@ -302,7 +302,6 @@ async def _async_handle_query_command_result(
         attr_max_attempts=_contracts.ATTR_MAX_ATTEMPTS,
         attr_time_budget_seconds=_contracts.ATTR_TIME_BUDGET_SECONDS,
         raise_service_error=_raise_service_error,
-        service_query_command_result=_contracts.SERVICE_QUERY_COMMAND_RESULT,
     )
 
 
