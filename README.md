@@ -36,7 +36,7 @@ Home Assistant integration for controlling Lipro Smart Home devices.
 ## Services
 
 - `lipro.send_command` - Send raw command to device
-- `lipro.get_schedules` - Get device schedules; mesh groups try BLE/gateway-member candidates first, and the standard `schedule/get.do` fallback does not require `groupId`
+- `lipro.get_schedules` - Get device schedules; for mesh groups, reads use BLE/gateway-member candidates as the source of truth. On tested mesh BLE schedules, standard `schedule/get.do` may return empty success, so do not assume a reliable read fallback
 - `lipro.add_schedule` - Add or update schedule; mesh groups try BLE/gateway-member candidates first before standard API fallback
 - `lipro.delete_schedules` - Delete schedules by IDs; mesh groups try BLE/gateway-member candidates first before standard API fallback
 - `lipro.submit_anonymous_share` - Submit anonymous share report manually
