@@ -426,6 +426,8 @@ def build_fetched_device_snapshot(
 
         if device.is_group:
             new_group_ids.append(device.serial)
+            if _safe_is_outlet(device):
+                new_outlet_ids.append(device.serial)
             continue
 
         if not device.has_valid_iot_id:

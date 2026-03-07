@@ -357,6 +357,31 @@ class TestCoordinatorFetchDevices:
         assert "03ab5ccd7c000001" not in coordinator._outlet_ids_to_query
 
     @pytest.mark.asyncio
+    async def test_group_outlet_ids_collected(
+        self, coordinator, mock_lipro_api_client
+    ):
+        """Group outlets should be queried as both group IDs and outlet IDs."""
+        devices = [
+            _make_api_device(
+                serial="mesh_group_10001",
+                name="All Outlets",
+                physical_model="outlet",
+                is_group=True,
+            ),
+        ]
+        mock_lipro_api_client.get_devices.return_value = {"devices": devices}
+
+        with patch(
+            "custom_components.lipro.core.coordinator.state.get_anonymous_share_manager"
+        ) as mock_share:
+            mock_share.return_value = MagicMock(is_enabled=False)
+            await coordinator._fetch_devices()
+
+        assert "mesh_group_10001" in coordinator._group_ids_to_query
+        assert "mesh_group_10001" in coordinator._outlet_ids_to_query
+        assert "mesh_group_10001" not in coordinator._iot_ids_to_query
+
+    @pytest.mark.asyncio
     async def test_device_filter_include_home_applies_in_fetch_path(
         self, coordinator, mock_lipro_api_client
     ):
