@@ -184,6 +184,8 @@ async def test_update_entity_parses_latest_and_certified(mock_coordinator, make_
     mock_coordinator.client.query_ota_info.assert_awaited_once_with(
         device_id=device.serial,
         device_type=device.device_type_hex,
+        iot_name=device.iot_name,
+        allow_rich_v2_fallback=True,
     )
 
 
