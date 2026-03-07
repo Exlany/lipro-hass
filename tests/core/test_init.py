@@ -10,7 +10,7 @@ Tests cover:
 from __future__ import annotations
 
 import logging
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, call, patch
 
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
@@ -59,12 +59,14 @@ from custom_components.lipro.services.contracts import (
     ATTR_DEVICE_ID,
     ATTR_ENTRY_ID,
     ATTR_EVENTS,
+    ATTR_MAX_ATTEMPTS,
     ATTR_MESH_TYPE,
     ATTR_MSG_SN,
     ATTR_NOTE,
     ATTR_PROPERTIES,
     ATTR_SCHEDULE_IDS,
     ATTR_SENSOR_DEVICE_ID,
+    ATTR_TIME_BUDGET_SECONDS,
     ATTR_TIMES,
     SERVICE_ADD_SCHEDULE,
     SERVICE_ADD_SCHEDULE_SCHEMA,
@@ -419,6 +421,10 @@ class TestSchemaStructure:
         assert keys[ATTR_DEVICE_ID] is False
         assert ATTR_MSG_SN in keys
         assert keys[ATTR_MSG_SN] is True
+        assert ATTR_MAX_ATTEMPTS in keys
+        assert keys[ATTR_MAX_ATTEMPTS] is False
+        assert ATTR_TIME_BUDGET_SECONDS in keys
+        assert keys[ATTR_TIME_BUDGET_SECONDS] is False
 
     def test_fetch_sensor_history_schema_keys(self):
         """Test fetch sensor history schema has expected keys."""
@@ -596,6 +602,19 @@ class TestSchemaValidation:
         """Test query_command_result schema requires msg_sn."""
         result = SERVICE_QUERY_COMMAND_RESULT_SCHEMA({"msg_sn": "123"})
         assert result["msg_sn"] == "123"
+        assert result[ATTR_MAX_ATTEMPTS] == 6
+        assert result[ATTR_TIME_BUDGET_SECONDS] == 3.0
+
+        customized = SERVICE_QUERY_COMMAND_RESULT_SCHEMA(
+            {
+                "msg_sn": "123",
+                ATTR_MAX_ATTEMPTS: 4,
+                ATTR_TIME_BUDGET_SECONDS: 1.5,
+            }
+        )
+        assert customized[ATTR_MAX_ATTEMPTS] == 4
+        assert customized[ATTR_TIME_BUDGET_SECONDS] == 1.5
+
         with pytest.raises(vol.MultipleInvalid):
             SERVICE_QUERY_COMMAND_RESULT_SCHEMA({})
         with pytest.raises(vol.MultipleInvalid):
@@ -1739,7 +1758,7 @@ class TestInitRuntimeBehavior:
         healthy.build_developer_report.assert_called_once()
 
     async def test_query_command_result_service(self, hass) -> None:
-        """query_command_result service should call client with device context."""
+        """query_command_result service should return one confirmed diagnostic result."""
         device = self._create_device(serial="mesh_group_49155")
         coordinator = MagicMock()
         coordinator.get_device.return_value = device
@@ -1761,12 +1780,60 @@ class TestInitRuntimeBehavior:
 
         assert result["serial"] == "mesh_group_49155"
         assert result["msg_sn"] == "682550445474"
+        assert result["max_attempts"] == 6
+        assert result["time_budget_seconds"] == 3.0
+        assert result["state"] == "confirmed"
+        assert result["attempts"] == 1
+        assert result["attempt_limit"] == 5
+        assert result["retry_delays_seconds"] == pytest.approx((0.35, 0.7, 1.4, 0.55))
         assert result["result"] == {"success": True}
         coordinator.client.query_command_result.assert_awaited_once_with(
             msg_sn="682550445474",
             device_id="mesh_group_49155",
             device_type=device.device_type,
         )
+
+    async def test_query_command_result_service_polls_until_confirmed(self, hass) -> None:
+        """query_command_result service should keep polling pending states within budget."""
+        device = self._create_device(serial="mesh_group_49155")
+        coordinator = MagicMock()
+        coordinator.get_device.return_value = device
+        coordinator.client.query_command_result = AsyncMock(
+            side_effect=[
+                {"code": "140006", "message": "设备未响应", "success": False},
+                {"code": "100000", "message": "服务异常", "success": False},
+                {"code": "0000", "message": "success", "success": True},
+            ]
+        )
+
+        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry.add_to_hass(hass)
+        entry.runtime_data = coordinator
+
+        sleep_mock = AsyncMock()
+        with patch(
+            "custom_components.lipro.core.command.result.asyncio.sleep",
+            new=sleep_mock,
+        ):
+            result = await _async_handle_query_command_result(
+                hass,
+                service_call(
+                    hass,
+                    {ATTR_DEVICE_ID: device.serial, ATTR_MSG_SN: "682550445474"},
+                ),
+            )
+
+        assert result["state"] == "confirmed"
+        assert result["attempts"] == 3
+        assert result["attempt_limit"] == 5
+        assert result["result"] == {
+            "code": "0000",
+            "message": "success",
+            "success": True,
+        }
+        assert result["retry_delays_seconds"] == pytest.approx((0.35, 0.7, 1.4, 0.55))
+        assert sleep_mock.await_args_list == [call(0.35), call(0.7)]
+        assert coordinator.client.query_command_result.await_count == 3
 
     async def test_get_city_service(self, hass) -> None:
         """get_city service should return first coordinator city result."""

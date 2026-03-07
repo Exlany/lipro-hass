@@ -36,6 +36,8 @@ ATTR_EVENTS: Final = "events"
 ATTR_SCHEDULE_IDS: Final = "schedule_ids"
 ATTR_NOTE: Final = "note"
 ATTR_MSG_SN: Final = "msg_sn"
+ATTR_MAX_ATTEMPTS: Final = "max_attempts"
+ATTR_TIME_BUDGET_SECONDS: Final = "time_budget_seconds"
 ATTR_SENSOR_DEVICE_ID: Final = "sensor_device_id"
 ATTR_MESH_TYPE: Final = "mesh_type"
 
@@ -55,6 +57,8 @@ _MAX_SERVICE_LIST_ITEMS: Final = 64
 _MAX_ENTRY_ID_LEN: Final = 64
 _MAX_NOTE_LEN: Final = 500
 _MAX_MSG_SN_LEN: Final = 128
+_MAX_QUERY_COMMAND_RESULT_ATTEMPTS: Final = 10
+_MAX_QUERY_COMMAND_RESULT_TIME_BUDGET_SECONDS: Final = 15.0
 _MAX_SENSOR_DEVICE_ID_LEN: Final = 64
 _MAX_MESH_TYPE_LEN: Final = 16
 
@@ -194,6 +198,14 @@ SERVICE_QUERY_COMMAND_RESULT_SCHEMA = vol.Schema(
             cv.string,
             vol.Length(min=1, max=_MAX_MSG_SN_LEN),
             vol.Match(_MSG_SN_PATTERN),
+        ),
+        vol.Optional(ATTR_MAX_ATTEMPTS, default=6): vol.All(
+            vol.Coerce(int),
+            vol.Range(min=1, max=_MAX_QUERY_COMMAND_RESULT_ATTEMPTS),
+        ),
+        vol.Optional(ATTR_TIME_BUDGET_SECONDS, default=3.0): vol.All(
+            vol.Coerce(float),
+            vol.Range(min=0, max=_MAX_QUERY_COMMAND_RESULT_TIME_BUDGET_SECONDS),
         ),
     },
 )

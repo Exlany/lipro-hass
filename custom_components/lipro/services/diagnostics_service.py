@@ -12,6 +12,12 @@ from homeassistant.exceptions import HomeAssistantError
 
 from ..const.base import DOMAIN
 from ..core import LiproApiError
+from ..core.command.result import (
+    build_progressive_retry_delays,
+    classify_command_result_payload,
+    poll_command_result_state,
+    query_command_result_once,
+)
 from ..core.utils.log_safety import safe_error_placeholder
 from .execution import (
     AuthenticatedCoordinator,
@@ -21,6 +27,9 @@ from .execution import (
 
 _LOGGER = logging.getLogger(__name__)
 _ResultT = TypeVar("_ResultT")
+_QUERY_COMMAND_RESULT_DIAGNOSTIC_BASE_DELAY_SECONDS = 0.35
+_DEFAULT_QUERY_COMMAND_RESULT_MAX_ATTEMPTS = 6
+_DEFAULT_QUERY_COMMAND_RESULT_TIME_BUDGET_SECONDS = 3.0
 
 
 class DiagnosticsCoordinator(AuthenticatedCoordinator, Protocol):
@@ -228,33 +237,120 @@ def build_sensor_history_result(
     }
 
 
+def _build_last_error_payload(err: LiproApiError | None) -> dict[str, Any] | None:
+    """Build serializable last-error details for diagnostics output."""
+    if err is None:
+        return None
+    payload: dict[str, Any] = {}
+    if err.code is not None:
+        payload["code"] = err.code
+    message = str(err).strip()
+    if message:
+        payload["message"] = message
+    return payload or None
+
+
+async def _async_query_command_result_with_optional_polling(
+    *,
+    coordinator: DiagnosticsCoordinator,
+    device: Any,
+    msg_sn: str,
+    max_attempts: int,
+    time_budget_seconds: float,
+    raise_service_error: ServiceErrorRaiser,
+) -> dict[str, Any]:
+    """Query command-result diagnostics with bounded polling."""
+    retry_delays_seconds = build_progressive_retry_delays(
+        base_delay_seconds=_QUERY_COMMAND_RESULT_DIAGNOSTIC_BASE_DELAY_SECONDS,
+        time_budget_seconds=time_budget_seconds,
+        max_attempts=max_attempts,
+    )
+    attempt_limit = len(retry_delays_seconds) + 1
+    last_error: LiproApiError | None = None
+
+    async def _authenticated_query_command_result(**kwargs: Any) -> dict[str, Any]:
+        nonlocal last_error
+        try:
+            payload = await async_execute_coordinator_call(
+                coordinator,
+                call=lambda: coordinator.client.query_command_result(**kwargs),
+                raise_service_error=raise_service_error,
+            )
+        except LiproApiError as err:
+            last_error = err
+            raise
+        last_error = None
+        return cast(dict[str, Any], payload)
+
+    async def _query_once(attempt: int) -> dict[str, Any] | None:
+        return await query_command_result_once(
+            query_command_result=_authenticated_query_command_result,
+            lipro_api_error=LiproApiError,
+            device_name=getattr(device, "name", device.serial),
+            device_serial=device.serial,
+            device_type_hex=device.device_type,
+            msg_sn=msg_sn,
+            attempt=attempt,
+            attempt_limit=attempt_limit,
+            logger=_LOGGER,
+        )
+
+    state, attempts, result = await poll_command_result_state(
+        query_once=_query_once,
+        classify_payload=classify_command_result_payload,
+        retry_delays_seconds=retry_delays_seconds,
+    )
+    response: dict[str, Any] = {
+        "serial": device.serial,
+        "msg_sn": msg_sn,
+        "max_attempts": max_attempts,
+        "time_budget_seconds": time_budget_seconds,
+        "state": state,
+        "attempts": attempts,
+        "attempt_limit": attempt_limit,
+        "retry_delays_seconds": list(retry_delays_seconds),
+        "result": result,
+    }
+    last_error_payload = _build_last_error_payload(last_error)
+    if result is None and last_error_payload is not None:
+        response["last_error"] = last_error_payload
+    return response
+
+
 async def async_handle_query_command_result(
     hass: HomeAssistant,
     call: ServiceCall,
     *,
     get_device_and_coordinator: Any,
-    async_call_optional_capability: Any,
     attr_msg_sn: str,
+    attr_max_attempts: str,
+    attr_time_budget_seconds: str,
+    raise_service_error: ServiceErrorRaiser,
     service_query_command_result: str,
 ) -> dict[str, Any]:
     """Handle query_command_result service."""
+    del service_query_command_result
     raw_device, raw_coordinator = await get_device_and_coordinator(hass, call)
     device = raw_device
     coordinator = cast(DiagnosticsCoordinator, raw_coordinator)
     msg_sn = call.data[attr_msg_sn]
-    result = await async_call_optional_capability(
-        service_query_command_result,
-        coordinator.client.query_command_result,
-        coordinator=coordinator,
-        msg_sn=msg_sn,
-        device_id=device.serial,
-        device_type=device.device_type,
+    max_attempts = int(
+        call.data.get(attr_max_attempts, _DEFAULT_QUERY_COMMAND_RESULT_MAX_ATTEMPTS)
     )
-    return {
-        "serial": device.serial,
-        "msg_sn": msg_sn,
-        "result": result,
-    }
+    time_budget_seconds = float(
+        call.data.get(
+            attr_time_budget_seconds,
+            _DEFAULT_QUERY_COMMAND_RESULT_TIME_BUDGET_SECONDS,
+        )
+    )
+    return await _async_query_command_result_with_optional_polling(
+        coordinator=coordinator,
+        device=device,
+        msg_sn=msg_sn,
+        max_attempts=max_attempts,
+        time_budget_seconds=time_budget_seconds,
+        raise_service_error=raise_service_error,
+    )
 
 
 async def async_handle_get_city(

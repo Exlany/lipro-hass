@@ -353,7 +353,7 @@
     },
     "query_command_result": {
       "name": "查询命令结果",
-      "description": "（开发者）根据 msgSn 查询命令下发结果，不会改变正常控制流程。",
+      "description": "（开发者）根据 msgSn 查询命令下发结果，并在默认约 3 秒预算内执行有界轮询；不会改变正常控制流程。",
       "fields": {
         "device_id": {
           "name": "设备 ID",
@@ -362,6 +362,14 @@
         "msg_sn": {
           "name": "消息 SN",
           "description": "send_command 返回的命令消息序列号。"
+        },
+        "max_attempts": {
+          "name": "最大尝试次数",
+          "description": "重试预算内允许的最大查询次数。默认 6；设为 1 表示只查一次。"
+        },
+        "time_budget_seconds": {
+          "name": "时间预算（秒）",
+          "description": "总重试预算秒数。默认 3.0；设为 0 表示不等待重试间隔。"
         }
       }
     },

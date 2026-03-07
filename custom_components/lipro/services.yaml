@@ -241,8 +241,9 @@ submit_developer_feedback:
 query_command_result:
   name: Query Command Result (Developer)
   description: >-
-    Developer-only optional capability. Query command delivery result by msgSn.
-    This does not alter normal control flow.
+    Developer-only optional capability. Query command delivery result by msgSn
+    with bounded polling (default: up to 6 attempts within 3 seconds). This
+    does not alter normal control flow.
   target:
     entity:
       integration: lipro
@@ -261,6 +262,30 @@ query_command_result:
       required: true
       selector:
         text:
+    max_attempts:
+      name: Max Attempts
+      description: >-
+        Maximum query attempts within the retry budget. Default 6; set to 1
+        for a single-shot check.
+      required: false
+      selector:
+        number:
+          min: 1
+          max: 10
+          step: 1
+          mode: box
+    time_budget_seconds:
+      name: Time Budget (Seconds)
+      description: >-
+        Total retry budget in seconds. Default 3.0; set to 0 to disable wait
+        time between retries.
+      required: false
+      selector:
+        number:
+          min: 0
+          max: 15
+          step: 0.1
+          mode: box
 
 get_city:
   name: Get City (Developer)

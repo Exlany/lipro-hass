@@ -353,7 +353,7 @@
     },
     "query_command_result": {
       "name": "Query Command Result",
-      "description": "Developer-only optional capability. Query command delivery result by msgSn.",
+      "description": "Developer-only optional capability. Query command delivery result by msgSn with bounded polling inside the default ~3 second budget.",
       "fields": {
         "device_id": {
           "name": "Device ID",
@@ -362,6 +362,14 @@
         "msg_sn": {
           "name": "Message SN",
           "description": "Command message serial number returned by send command response."
+        },
+        "max_attempts": {
+          "name": "Max Attempts",
+          "description": "Maximum query attempts within the retry budget. Default 6; set to 1 for a single-shot check."
+        },
+        "time_budget_seconds": {
+          "name": "Time Budget (Seconds)",
+          "description": "Total retry budget in seconds. Default 3.0; set to 0 to disable wait time between retries."
         }
       }
     },

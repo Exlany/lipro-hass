@@ -15,11 +15,13 @@ from custom_components.lipro.services.contracts import (
     ATTR_COMMAND,
     ATTR_DEVICE_ID,
     ATTR_ENTRY_ID,
+    ATTR_MAX_ATTEMPTS,
     ATTR_MESH_TYPE,
     ATTR_MSG_SN,
     ATTR_NOTE,
     ATTR_PROPERTIES,
     ATTR_SENSOR_DEVICE_ID,
+    ATTR_TIME_BUDGET_SECONDS,
     SERVICE_FETCH_SENSOR_HISTORY_SCHEMA,
     SERVICE_GET_DEVELOPER_REPORT_SCHEMA,
     SERVICE_QUERY_COMMAND_RESULT_SCHEMA,
@@ -88,6 +90,26 @@ def _add_runtime_entry(hass, coordinator: MagicMock, *, phone: str) -> MockConfi
             SERVICE_QUERY_COMMAND_RESULT_SCHEMA,
             {ATTR_MSG_SN: "m" * 129},
             id="query_command_result_msg_sn_too_long",
+        ),
+        pytest.param(
+            SERVICE_QUERY_COMMAND_RESULT_SCHEMA,
+            {ATTR_MSG_SN: "123", ATTR_MAX_ATTEMPTS: 0},
+            id="query_command_result_max_attempts_too_low",
+        ),
+        pytest.param(
+            SERVICE_QUERY_COMMAND_RESULT_SCHEMA,
+            {ATTR_MSG_SN: "123", ATTR_MAX_ATTEMPTS: 11},
+            id="query_command_result_max_attempts_too_high",
+        ),
+        pytest.param(
+            SERVICE_QUERY_COMMAND_RESULT_SCHEMA,
+            {ATTR_MSG_SN: "123", ATTR_TIME_BUDGET_SECONDS: -0.1},
+            id="query_command_result_time_budget_negative",
+        ),
+        pytest.param(
+            SERVICE_QUERY_COMMAND_RESULT_SCHEMA,
+            {ATTR_MSG_SN: "123", ATTR_TIME_BUDGET_SECONDS: 15.1},
+            id="query_command_result_time_budget_too_high",
         ),
         pytest.param(
             SERVICE_SUBMIT_DEVELOPER_FEEDBACK_SCHEMA,
@@ -177,6 +199,13 @@ def test_query_command_result_schema_accepts_max_msg_sn_length() -> None:
     """query_command_result schema should accept 128-char msg_sn."""
     result = SERVICE_QUERY_COMMAND_RESULT_SCHEMA({ATTR_MSG_SN: "m" * 128})
     assert result[ATTR_MSG_SN] == "m" * 128
+
+
+def test_query_command_result_schema_applies_polling_defaults() -> None:
+    """query_command_result schema should apply bounded polling defaults."""
+    result = SERVICE_QUERY_COMMAND_RESULT_SCHEMA({ATTR_MSG_SN: "123"})
+    assert result[ATTR_MAX_ATTEMPTS] == 6
+    assert result[ATTR_TIME_BUDGET_SECONDS] == 3.0
 
 
 def test_submit_developer_feedback_schema_accepts_max_note_length() -> None:
