@@ -60,8 +60,6 @@ def _merge_ota_rows(
 async def query_command_result(
     *,
     request_iot_mapping: Any,
-    is_success_code: Any,
-    unwrap_iot_success_payload: Any,
     require_mapping_response: Any,
     to_device_type_hex: Any,
     msg_sn: str,
@@ -77,17 +75,10 @@ async def query_command_result(
             "deviceType": to_device_type_hex(device_type),
         },
     )
-    mapping = cast(
+    return cast(
         dict[str, Any],
         require_mapping_response(PATH_QUERY_COMMAND_RESULT, result),
     )
-    if is_success_code(mapping.get("code")):
-        payload = unwrap_iot_success_payload(mapping)
-        return cast(
-            dict[str, Any],
-            require_mapping_response(PATH_QUERY_COMMAND_RESULT, payload),
-        )
-    return mapping
 
 
 async def get_city(

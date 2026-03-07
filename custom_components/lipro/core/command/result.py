@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 import asyncio
-from collections.abc import Awaitable, Callable
+from collections.abc import Awaitable, Callable, Sequence
 from typing import Any
 
+from ..api.request_policy import compute_exponential_retry_wait_time
 from ..api.response_safety import normalize_response_code
 from ..utils.log_safety import safe_error_placeholder
 from ..utils.redaction import redact_identifier
@@ -13,47 +14,8 @@ from ..utils.redaction import redact_identifier
 _MSG_SN_KEYS: tuple[str, ...] = ("msgSn", "msg_sn", "messageSn", "message_sn")
 _BOOL_CONFIRMED_VALUES: tuple[Any, ...] = (True, 1, "1", "true", "TRUE")
 _BOOL_FAILED_VALUES: tuple[Any, ...] = (False, 0, "0", "false", "FALSE")
-_BOOL_PENDING_VALUES: tuple[Any, ...] = ()
-_RESULT_CONFIRMED_VALUES: tuple[Any, ...] = (True, 1, "1", "success", "SUCCESS")
-_RESULT_FAILED_VALUES: tuple[Any, ...] = (
-    False,
-    0,
-    "0",
-    "failed",
-    "FAIL",
-    "FAILURE",
-)
-_RESULT_PENDING_VALUES: tuple[Any, ...] = (
-    "pending",
-    "PENDING",
-    "processing",
-    "PROCESSING",
-)
-_STATUS_CONFIRMED_VALUES: tuple[Any, ...] = (
-    1,
-    "1",
-    "success",
-    "SUCCESS",
-    "done",
-    "DONE",
-)
-_STATUS_FAILED_VALUES: tuple[Any, ...] = (
-    0,
-    "0",
-    "failed",
-    "FAIL",
-    "failure",
-    "FAILURE",
-)
-_STATUS_PENDING_VALUES: tuple[Any, ...] = (
-    2,
-    "2",
-    "pending",
-    "PENDING",
-    "processing",
-    "PROCESSING",
-)
 _COMMAND_RESULT_PENDING_CODES = frozenset((100000, 140006))
+_COMMAND_RESULT_SUCCESS_CODES = frozenset((0,))
 
 
 def is_command_push_failed(result: Any) -> bool:
@@ -81,20 +43,12 @@ def extract_msg_sn(result: Any) -> str | None:
     return None
 
 
-def _classify_ternary_state(
-    value: Any,
-    *,
-    confirmed_values: tuple[Any, ...],
-    failed_values: tuple[Any, ...],
-    pending_values: tuple[Any, ...],
-) -> str | None:
-    """Classify one payload field into confirmed/failed/pending/None."""
-    if value in confirmed_values:
+def _classify_bool_state(value: Any) -> str | None:
+    """Classify one boolean-like payload field into confirmed/failed/None."""
+    if value in _BOOL_CONFIRMED_VALUES:
         return "confirmed"
-    if value in failed_values:
+    if value in _BOOL_FAILED_VALUES:
         return "failed"
-    if value in pending_values:
-        return "pending"
     return None
 
 
@@ -120,48 +74,51 @@ def _extract_command_result_message(payload: dict[str, Any] | None) -> str | Non
     return normalized or None
 
 
+def build_progressive_retry_delays(
+    *,
+    base_delay_seconds: float,
+    time_budget_seconds: float,
+    max_attempts: int,
+) -> tuple[float, ...]:
+    """Build bounded exponential retry delays within one total time budget."""
+    if max_attempts <= 1 or time_budget_seconds <= 0:
+        return ()
+
+    delays: list[float] = []
+    elapsed = 0.0
+    for retry_count in range(max_attempts - 1):
+        remaining_budget = time_budget_seconds - elapsed
+        if remaining_budget <= 0:
+            break
+        wait_time = min(
+            remaining_budget,
+            compute_exponential_retry_wait_time(
+                retry_count=retry_count,
+                base_delay_seconds=base_delay_seconds,
+                max_delay_seconds=remaining_budget,
+            ),
+        )
+        if wait_time <= 0:
+            break
+        delays.append(wait_time)
+        elapsed += wait_time
+    return tuple(delays)
+
+
 def classify_command_result_payload(payload: dict[str, Any]) -> str:
-    """Classify query_command_result payload as confirmed/failed/pending/unknown."""
+    """Classify query_command_result payload using the verified endpoint contract."""
     normalized_code = normalize_response_code(_extract_command_result_code(payload))
     if normalized_code in _COMMAND_RESULT_PENDING_CODES:
         return "pending"
 
-    success_state = _classify_ternary_state(
-        payload.get("success"),
-        confirmed_values=_BOOL_CONFIRMED_VALUES,
-        failed_values=_BOOL_FAILED_VALUES,
-        pending_values=_BOOL_PENDING_VALUES,
-    )
+    success_state = _classify_bool_state(payload.get("success"))
     if success_state is not None:
         return success_state
 
-    push_state = _classify_ternary_state(
-        payload.get("pushSuccess"),
-        confirmed_values=_BOOL_CONFIRMED_VALUES,
-        failed_values=_BOOL_FAILED_VALUES,
-        pending_values=_BOOL_PENDING_VALUES,
-    )
-    if push_state is not None:
-        return push_state
-
-    result_state = _classify_ternary_state(
-        payload.get("result"),
-        confirmed_values=_RESULT_CONFIRMED_VALUES,
-        failed_values=_RESULT_FAILED_VALUES,
-        pending_values=_RESULT_PENDING_VALUES,
-    )
-    if result_state is not None:
-        return result_state
-
-    status_state = _classify_ternary_state(
-        payload.get("status"),
-        confirmed_values=_STATUS_CONFIRMED_VALUES,
-        failed_values=_STATUS_FAILED_VALUES,
-        pending_values=_STATUS_PENDING_VALUES,
-    )
-    if status_state is not None:
-        return status_state
-
+    if normalized_code in _COMMAND_RESULT_SUCCESS_CODES:
+        return "confirmed"
+    if normalized_code is not None:
+        return "failed"
     return "unknown"
 
 
@@ -281,17 +238,18 @@ async def poll_command_result_state(
     *,
     query_once: Callable[[int], Awaitable[dict[str, Any] | None]],
     classify_payload: Callable[[dict[str, Any]], str],
-    attempt_limit: int,
-    interval_seconds: float,
+    retry_delays_seconds: Sequence[float],
     on_attempt: Callable[[int, str], None] | None = None,
 ) -> tuple[str, int, dict[str, Any] | None]:
-    """Poll command-result endpoint until confirmed/failed or attempts exhausted."""
+    """Poll command-result endpoint until confirmed/failed or retry budget ends."""
+    retry_delays = tuple(max(0.0, float(delay)) for delay in retry_delays_seconds)
+    attempt_limit = len(retry_delays) + 1
     last_payload: dict[str, Any] | None = None
     for attempt in range(1, attempt_limit + 1):
         payload = await query_once(attempt)
         if payload is None:
             if attempt < attempt_limit:
-                await asyncio.sleep(interval_seconds)
+                await asyncio.sleep(retry_delays[attempt - 1])
             continue
 
         last_payload = payload
@@ -301,7 +259,7 @@ async def poll_command_result_state(
         if state in {"confirmed", "failed"}:
             return state, attempt, payload
         if attempt < attempt_limit:
-            await asyncio.sleep(interval_seconds)
+            await asyncio.sleep(retry_delays[attempt - 1])
 
     return "unconfirmed", attempt_limit, last_payload
 

@@ -1097,7 +1097,7 @@ class TestCoordinatorSendCommand:
             "msgSn": "682550445474476112",
         }
         mock_lipro_api_client.query_command_result = AsyncMock(
-            return_value={"success": True}
+            return_value={"code": "0000", "message": "success", "success": True}
         )
 
         result = await coordinator.async_send_command(dev, "turnOn")
@@ -1136,17 +1136,19 @@ class TestCoordinatorSendCommand:
     ):
         dev = _make_device(serial="dev1", is_group=False)
         coordinator._command_result_verify = True
+        coordinator._get_adaptive_post_refresh_delay = MagicMock(return_value=1.5)
         mock_lipro_api_client.send_command.return_value = {
             "pushSuccess": True,
             "msgSn": "682550445474476112",
         }
         mock_lipro_api_client.query_command_result = AsyncMock(
-            return_value={"status": "pending"}
+            return_value={"code": "140006", "message": "设备未响应", "success": False}
         )
 
+        sleep_mock = AsyncMock()
         with patch(
             "custom_components.lipro.core.command.result.asyncio.sleep",
-            new=AsyncMock(),
+            new=sleep_mock,
         ):
             result = await coordinator.async_send_command(dev, "turnOn")
 
@@ -1154,11 +1156,13 @@ class TestCoordinatorSendCommand:
         failure = coordinator.last_command_failure
         assert isinstance(failure, dict)
         assert failure["reason"] == "command_result_unconfirmed"
-        assert failure["code"] == "command_result_unconfirmed"
+        assert failure["code"] == "140006"
+        assert failure["message"] == "设备未响应"
         assert failure["route"] == "device_direct"
         assert failure["msg_sn"] == "682550445474476112"
         assert failure["device_id"] == "dev1"
-        assert mock_lipro_api_client.query_command_result.await_count == 3
+        assert mock_lipro_api_client.query_command_result.await_count == 5
+        assert [call.args[0] for call in sleep_mock.await_args_list] == pytest.approx([0.35, 0.7, 1.4, 0.55])
 
     @pytest.mark.asyncio
     async def test_send_command_verify_enabled_retries_retryable_query_code_then_succeeds(
@@ -1173,7 +1177,7 @@ class TestCoordinatorSendCommand:
         mock_lipro_api_client.query_command_result = AsyncMock(
             side_effect=[
                 {"code": "100000", "message": "服务异常", "success": False},
-                {"success": True},
+                {"code": "0000", "message": "success", "success": True},
             ]
         )
 
@@ -1216,7 +1220,33 @@ class TestCoordinatorSendCommand:
         assert failure["route"] == "device_direct"
         assert failure["msg_sn"] == "682550445474476112"
         assert failure["device_id"] == "dev1"
-        assert mock_lipro_api_client.query_command_result.await_count == 3
+        assert mock_lipro_api_client.query_command_result.await_count == 5
+
+    @pytest.mark.asyncio
+    async def test_send_command_verify_enabled_uses_adaptive_retry_budget(
+        self, coordinator, mock_lipro_api_client
+    ):
+        dev = _make_device(serial="dev1", is_group=False)
+        coordinator._command_result_verify = True
+        coordinator._get_adaptive_post_refresh_delay = MagicMock(return_value=3.0)
+        mock_lipro_api_client.send_command.return_value = {
+            "pushSuccess": True,
+            "msgSn": "682550445474476112",
+        }
+        mock_lipro_api_client.query_command_result = AsyncMock(
+            return_value={"code": "140006", "message": "设备未响应", "success": False}
+        )
+
+        sleep_mock = AsyncMock()
+        with patch(
+            "custom_components.lipro.core.command.result.asyncio.sleep",
+            new=sleep_mock,
+        ):
+            result = await coordinator.async_send_command(dev, "turnOn")
+
+        assert result is False
+        assert mock_lipro_api_client.query_command_result.await_count == 5
+        assert [call.args[0] for call in sleep_mock.await_args_list] == pytest.approx([0.35, 0.7, 1.4, 0.55])
 
     def test_last_command_failure_returns_none_when_unset(self, coordinator):
         coordinator._last_command_failure = None

@@ -63,8 +63,6 @@ class _ClientMiscEndpointsMixin(_ClientEndpointPayloadsMixin):
             device_id=device_id,
             device_type=device_type,
             request_iot_mapping=self._request_iot_mapping,
-            is_success_code=self._is_success_code,
-            unwrap_iot_success_payload=self._unwrap_iot_success_payload,
             require_mapping_response=self._require_mapping_response,
             to_device_type_hex=self._to_device_type_hex,
         )

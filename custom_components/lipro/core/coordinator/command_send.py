@@ -19,6 +19,7 @@ from ..command.result import (
     apply_push_failure,
     apply_successful_command_trace,
     build_command_api_error_failure,
+    build_progressive_retry_delays,
     classify_command_result_payload,
     extract_msg_sn,
     is_command_push_failed,
@@ -31,13 +32,15 @@ from ..command.trace import build_command_trace, update_trace_with_exception
 from ..device import LiproDevice
 from ..utils.log_safety import safe_error_placeholder
 from ..utils.redaction import redact_identifier as _redact_identifier
-from .command_confirm import _CommandConfirmMixin
+from .command_confirm import _POST_COMMAND_REFRESH_DELAY_SECONDS, _CommandConfirmMixin
 
 _LOGGER = logging.getLogger(__name__)
 
 # Optional command-result verification tuning.
-_COMMAND_RESULT_VERIFY_ATTEMPTS: Final[int] = 3
-_COMMAND_RESULT_VERIFY_INTERVAL_SECONDS: Final[float] = 0.35
+# Use the existing adaptive confirmation latency as retry budget, then fan out
+# retries with bounded exponential backoff to avoid hammering the endpoint.
+_COMMAND_RESULT_VERIFY_MAX_ATTEMPTS: Final[int] = 6
+_COMMAND_RESULT_VERIFY_BASE_DELAY_SECONDS: Final[float] = 0.35
 
 # Keep the latest command traces in memory for debug diagnostics.
 _MAX_DEVELOPER_COMMAND_TRACES: Final[int] = 100
@@ -156,6 +159,17 @@ class _CommandSendMixin(_CommandConfirmMixin):
         safe_device_serial = _redact_identifier(device.serial) or "***"
         safe_msg_sn = _redact_identifier(msg_sn) or "***"
 
+        adaptive_delay_seconds = max(
+            _POST_COMMAND_REFRESH_DELAY_SECONDS,
+            self._get_adaptive_post_refresh_delay(device.serial),
+        )
+        retry_delays_seconds = build_progressive_retry_delays(
+            base_delay_seconds=_COMMAND_RESULT_VERIFY_BASE_DELAY_SECONDS,
+            time_budget_seconds=adaptive_delay_seconds,
+            max_attempts=_COMMAND_RESULT_VERIFY_MAX_ATTEMPTS,
+        )
+        attempt_limit = len(retry_delays_seconds) + 1
+
         async def _query_once(attempt: int) -> dict[str, Any] | None:
             return await query_command_result_once(
                 query_command_result=self.client.query_command_result,
@@ -165,26 +179,26 @@ class _CommandSendMixin(_CommandConfirmMixin):
                 device_type_hex=device.device_type_hex,
                 msg_sn=msg_sn,
                 attempt=attempt,
-                attempt_limit=_COMMAND_RESULT_VERIFY_ATTEMPTS,
+                attempt_limit=attempt_limit,
                 logger=_LOGGER,
             )
 
         def _log_attempt(attempt: int, state: str) -> None:
             _LOGGER.debug(
-                "query_command_result attempt=%s/%s (device=%s, msgSn=%s, route=%s) state=%s",
+                "query_command_result attempt=%s/%s (device=%s, msgSn=%s, route=%s, budget=%.2fs) state=%s",
                 attempt,
-                _COMMAND_RESULT_VERIFY_ATTEMPTS,
+                attempt_limit,
                 safe_device_serial,
                 safe_msg_sn,
                 route,
+                adaptive_delay_seconds,
                 state,
             )
 
         state, attempt, last_payload = await poll_command_result_state(
             query_once=_query_once,
             classify_payload=classify_command_result_payload,
-            attempt_limit=_COMMAND_RESULT_VERIFY_ATTEMPTS,
-            interval_seconds=_COMMAND_RESULT_VERIFY_INTERVAL_SECONDS,
+            retry_delays_seconds=retry_delays_seconds,
             on_attempt=_log_attempt,
         )
 
@@ -195,7 +209,7 @@ class _CommandSendMixin(_CommandConfirmMixin):
             msg_sn=msg_sn,
             device_serial=device.serial,
             attempt=attempt,
-            attempt_limit=_COMMAND_RESULT_VERIFY_ATTEMPTS,
+            attempt_limit=attempt_limit,
             last_payload=last_payload,
             elapsed_seconds=monotonic() - verify_started_at,
             logger=_LOGGER,
@@ -344,8 +358,8 @@ class _CommandSendMixin(_CommandConfirmMixin):
 
 
 __all__ = [
-    "_COMMAND_RESULT_VERIFY_ATTEMPTS",
-    "_COMMAND_RESULT_VERIFY_INTERVAL_SECONDS",
+    "_COMMAND_RESULT_VERIFY_BASE_DELAY_SECONDS",
+    "_COMMAND_RESULT_VERIFY_MAX_ATTEMPTS",
     "_MAX_DEVELOPER_COMMAND_TRACES",
     "_SLIDER_LIKE_PROPERTIES",
     "_CommandSendMixin",

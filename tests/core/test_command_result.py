@@ -8,6 +8,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 from custom_components.lipro.core.command.result import (
+    build_progressive_retry_delays,
     classify_command_result_payload,
     extract_msg_sn,
     is_command_push_failed,
@@ -85,7 +86,7 @@ def test_resolve_polled_command_result_unconfirmed_uses_last_state() -> None:
         device_serial="03ab111111111111",
         attempt=3,
         attempt_limit=3,
-        last_payload={"result": "pending"},
+        last_payload={"code": "100000", "success": False},
         elapsed_seconds=0.3,
         logger=MagicMock(),
     )
@@ -93,7 +94,7 @@ def test_resolve_polled_command_result_unconfirmed_uses_last_state() -> None:
     assert verified is False
     assert failure == {
         "reason": "command_result_unconfirmed",
-        "code": "command_result_unconfirmed",
+        "code": "100000",
         "route": "group_direct",
         "msg_sn": "abc",
         "device_id": "03ab111111111111",
@@ -104,6 +105,7 @@ def test_resolve_polled_command_result_unconfirmed_uses_last_state() -> None:
         "attempts": 3,
         "msg_sn": "abc",
         "last_state": "pending",
+        "last_code": "100000",
     }
 
 
@@ -208,19 +210,28 @@ def test_is_command_push_failed_accepts_bool_like_payloads() -> None:
     assert is_command_push_failed({"pushSuccess": 1}) is False
 
 
-def test_classify_command_result_payload_coerces_success_and_pushsuccess() -> None:
+def test_classify_command_result_payload_uses_verified_success_contract() -> None:
     assert classify_command_result_payload({"success": "true"}) == "confirmed"
     assert classify_command_result_payload({"success": "0"}) == "failed"
-    assert classify_command_result_payload({"pushSuccess": "FALSE"}) == "failed"
+    assert classify_command_result_payload({"code": "0000"}) == "confirmed"
+    assert classify_command_result_payload({"code": "140004", "success": False}) == "failed"
 
 
 def test_classify_command_result_payload_returns_unknown_when_no_match() -> None:
-    assert classify_command_result_payload({"result": "in_progress"}) == "unknown"
+    assert classify_command_result_payload({"message": "waiting"}) == "unknown"
 
 
 def test_classify_command_result_payload_treats_retryable_codes_as_pending() -> None:
     assert classify_command_result_payload({"code": "100000", "success": False}) == "pending"
     assert classify_command_result_payload({"code": "140006", "success": False}) == "pending"
+
+
+def test_build_progressive_retry_delays_clips_exponential_backoff_to_budget() -> None:
+    assert build_progressive_retry_delays(
+        base_delay_seconds=0.35,
+        time_budget_seconds=3.0,
+        max_attempts=6,
+    ) == pytest.approx((0.35, 0.7, 1.4, 0.55))
 
 
 def test_should_skip_immediate_post_refresh_returns_false_without_valid_key() -> None:
@@ -278,8 +289,7 @@ async def test_poll_command_result_state_retries_when_payload_is_none() -> None:
         state, attempt, payload = await poll_command_result_state(
             query_once=query_once,
             classify_payload=classify_command_result_payload,
-            attempt_limit=2,
-            interval_seconds=0.25,
+            retry_delays_seconds=(0.25,),
             on_attempt=on_attempt,
         )
 

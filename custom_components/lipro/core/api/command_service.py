@@ -5,6 +5,8 @@ from __future__ import annotations
 from collections.abc import Awaitable, Callable
 from typing import Any, Protocol
 
+from .request_policy import compute_exponential_retry_wait_time
+
 type MappingPayload = dict[str, Any]
 type MappingRows = list[MappingPayload]
 type ToDeviceTypeHex = Callable[[int | str], str]
@@ -119,7 +121,10 @@ async def iot_request_with_busy_retry(
             if attempt >= attempt_limit:
                 raise
 
-            wait_time = base_delay_seconds * (2**attempt)
+            wait_time = compute_exponential_retry_wait_time(
+                retry_count=attempt,
+                base_delay_seconds=base_delay_seconds,
+            )
             logger.debug(
                 (
                     "Command %s to %s busy (code=%s), retrying in %.2fs "

@@ -1763,17 +1763,19 @@ class TestLiproClientOptionalCapabilities:
         """query_command_result should call endpoint with msgSn payload."""
         client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
 
+        success_payload = {"code": "0000", "message": "success", "success": True}
+
         with patch.object(
             client, "_request_iot_mapping", new_callable=AsyncMock
         ) as mock_request:
-            mock_request.return_value = ({"success": True}, None)
+            mock_request.return_value = (success_payload, None)
             result = await client.query_command_result(
                 msg_sn="682550445474476112",
                 device_id="mesh_group_49155",
                 device_type="ff000001",
             )
 
-        assert result == {"success": True}
+        assert result == success_payload
         mock_request.assert_awaited_once_with(
             PATH_QUERY_COMMAND_RESULT,
             {
