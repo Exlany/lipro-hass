@@ -263,7 +263,7 @@
     },
     "get_schedules": {
       "name": "Get Schedules",
-      "description": "Get the list of timing schedules for a device. For mesh groups, BLE schedule queries try gateway/member candidates first; if BLE GET is rejected, the standard schedule/get.do fallback does not require groupId.",
+      "description": "Get the list of timing schedules for a device. For mesh groups, reads use BLE gateway/member candidates only; tested standard schedule/get.do may return empty success and is not treated as a reliable fallback.",
       "fields": {
         "device_id": {
           "name": "Device ID",
@@ -273,7 +273,7 @@
     },
     "add_schedule": {
       "name": "Add Schedule",
-      "description": "Add or update a timing schedule for a device. For mesh groups, BLE schedule calls try gateway/member candidates first before falling back to the standard cloud API.",
+      "description": "Add or update a timing schedule for a device. For mesh groups, writes use BLE gateway/member candidates only; tested standard schedule/addOrUpdate.do is not a reliable fallback.",
       "fields": {
         "device_id": {
           "name": "Device ID",
@@ -295,7 +295,7 @@
     },
     "delete_schedules": {
       "name": "Delete Schedules",
-      "description": "Delete timing schedules from a device by their IDs. For mesh groups, BLE schedule calls try gateway/member candidates first before falling back to the standard cloud API.",
+      "description": "Delete timing schedules from a device by their IDs. For mesh groups, deletes use BLE gateway/member candidates only; tested standard schedule/delete.do may report success without deleting the target schedule.",
       "fields": {
         "device_id": {
           "name": "Device ID",

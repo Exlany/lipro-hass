@@ -52,9 +52,9 @@ get_schedules:
   description: >-
     Get the list of timing schedules for a device. Schedules are stored on the
     device and execute even when Home Assistant is offline. For mesh groups,
-    the integration first tries BLE schedule queries with gateway/member
-    candidates; if BLE GET is rejected, the standard `schedule/get.do`
-    fallback does not require `groupId`.
+    the integration reads through BLE schedule queries with gateway/member
+    candidates only. Tested standard `schedule/get.do` may return empty
+    success and is not treated as a reliable fallback.
   target:
     entity:
       integration: lipro
@@ -75,8 +75,9 @@ add_schedule:
     Add or update a timing schedule for a device. The schedule is stored on the
     device and will execute even when Home Assistant is offline. Each time entry
     corresponds to an event (action) at that time. For mesh groups, the
-    integration prefers BLE schedule calls with gateway/member candidates
-    before falling back to the standard cloud API.
+    integration writes through BLE schedule calls with gateway/member
+    candidates only. Tested standard `schedule/addOrUpdate.do` is not a
+    reliable fallback.
   target:
     entity:
       integration: lipro
@@ -138,9 +139,10 @@ delete_schedules:
   name: Delete Schedules
   description: >-
     Delete timing schedules from a device by their IDs. Use get_schedules first
-    to find the schedule IDs. For mesh groups, the integration prefers BLE
-    schedule calls with gateway/member candidates before falling back to the
-    standard cloud API.
+    to find the schedule IDs. For mesh groups, the integration deletes through
+    BLE schedule calls with gateway/member candidates only. Tested standard
+    `schedule/delete.do` may report success without deleting the target
+    schedule.
   target:
     entity:
       integration: lipro
