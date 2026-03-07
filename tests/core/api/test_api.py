@@ -1764,9 +1764,9 @@ class TestLiproClientOptionalCapabilities:
         client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
 
         with patch.object(
-            client, "_iot_request", new_callable=AsyncMock
+            client, "_request_iot_mapping", new_callable=AsyncMock
         ) as mock_request:
-            mock_request.return_value = {"success": True}
+            mock_request.return_value = ({"success": True}, None)
             result = await client.query_command_result(
                 msg_sn="682550445474476112",
                 device_id="mesh_group_49155",
@@ -1774,6 +1774,36 @@ class TestLiproClientOptionalCapabilities:
             )
 
         assert result == {"success": True}
+        mock_request.assert_awaited_once_with(
+            PATH_QUERY_COMMAND_RESULT,
+            {
+                "msgSn": "682550445474476112",
+                "deviceId": "mesh_group_49155",
+                "deviceType": "ff000001",
+            },
+        )
+
+    @pytest.mark.asyncio
+    async def test_query_command_result_returns_raw_failure_mapping(self):
+        """query_command_result should preserve backend business failure payload."""
+        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        failure_payload = {
+            "code": "140006",
+            "message": "设备未响应",
+            "success": False,
+        }
+
+        with patch.object(
+            client, "_request_iot_mapping", new_callable=AsyncMock
+        ) as mock_request:
+            mock_request.return_value = (failure_payload, None)
+            result = await client.query_command_result(
+                msg_sn="682550445474476112",
+                device_id="mesh_group_49155",
+                device_type="ff000001",
+            )
+
+        assert result == failure_payload
         mock_request.assert_awaited_once_with(
             PATH_QUERY_COMMAND_RESULT,
             {

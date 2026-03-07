@@ -6,6 +6,7 @@ import asyncio
 from collections.abc import Awaitable, Callable
 from typing import Any
 
+from ..api.response_safety import normalize_response_code
 from ..utils.log_safety import safe_error_placeholder
 from ..utils.redaction import redact_identifier
 
@@ -52,6 +53,7 @@ _STATUS_PENDING_VALUES: tuple[Any, ...] = (
     "processing",
     "PROCESSING",
 )
+_COMMAND_RESULT_PENDING_CODES = frozenset((100000, 140006))
 
 
 def is_command_push_failed(result: Any) -> bool:
@@ -96,8 +98,34 @@ def _classify_ternary_state(
     return None
 
 
+def _extract_command_result_code(payload: dict[str, Any] | None) -> Any:
+    """Extract backend result code from query_command_result payload."""
+    if not isinstance(payload, dict):
+        return None
+    for key in ("errorCode", "code"):
+        value = payload.get(key)
+        if value not in (None, ""):
+            return value
+    return None
+
+
+def _extract_command_result_message(payload: dict[str, Any] | None) -> str | None:
+    """Extract non-empty backend message from query_command_result payload."""
+    if not isinstance(payload, dict):
+        return None
+    value = payload.get("message")
+    if not isinstance(value, str):
+        return None
+    normalized = value.strip()
+    return normalized or None
+
+
 def classify_command_result_payload(payload: dict[str, Any]) -> str:
     """Classify query_command_result payload as confirmed/failed/pending/unknown."""
+    normalized_code = normalize_response_code(_extract_command_result_code(payload))
+    if normalized_code in _COMMAND_RESULT_PENDING_CODES:
+        return "pending"
+
     success_state = _classify_ternary_state(
         payload.get("success"),
         confirmed_values=_BOOL_CONFIRMED_VALUES,
@@ -286,37 +314,50 @@ def apply_command_result_rejected(
     device_serial: str,
     attempt: int,
     elapsed_seconds: float,
+    payload: dict[str, Any] | None,
     logger: Any,
 ) -> dict[str, Any]:
     """Populate trace/failure fields for a rejected query_command_result response."""
-    trace["route"] = route
-    trace["success"] = False
-    trace["error"] = "CommandResultRejected"
-    trace["error_message"] = "command_result_failed"
-    trace["command_result_verify"] = {
+    result_code = _extract_command_result_code(payload)
+    result_message = _extract_command_result_message(payload)
+    command_result_verify: dict[str, Any] = {
         "enabled": True,
         "verified": False,
         "attempts": attempt,
         "msg_sn": msg_sn,
         "state": "failed",
     }
+    if result_code is not None:
+        command_result_verify["code"] = result_code
+    if result_message is not None:
+        command_result_verify["message"] = result_message
+
+    trace["route"] = route
+    trace["success"] = False
+    trace["error"] = "CommandResultRejected"
+    trace["error_message"] = "command_result_failed"
+    trace["command_result_verify"] = command_result_verify
     safe_device_serial = redact_identifier(device_serial) or "***"
     safe_msg_sn = redact_identifier(msg_sn) or "***"
     logger.warning(
-        "query_command_result rejected command (device=%s, msgSn=%s, attempts=%s, elapsed=%.3fs, route=%s)",
+        "query_command_result rejected command (device=%s, msgSn=%s, attempts=%s, elapsed=%.3fs, route=%s, code=%s)",
         safe_device_serial,
         safe_msg_sn,
         attempt,
         elapsed_seconds,
         route,
+        result_code,
     )
-    return {
+    failure = {
         "reason": "command_result_failed",
-        "code": "command_result_failed",
+        "code": result_code or "command_result_failed",
         "route": route,
         "msg_sn": msg_sn,
         "device_id": device_serial,
     }
+    if result_message is not None:
+        failure["message"] = result_message
+    return failure
 
 
 def apply_command_result_unconfirmed(
@@ -331,11 +372,9 @@ def apply_command_result_unconfirmed(
     logger: Any,
 ) -> dict[str, Any]:
     """Populate trace/failure fields for unconfirmed command-result polling."""
-    trace["route"] = route
-    trace["success"] = False
-    trace["error"] = "CommandResultUnconfirmed"
-    trace["error_message"] = "command_result_unconfirmed"
-    trace["command_result_verify"] = {
+    last_code = _extract_command_result_code(last_payload)
+    last_message = _extract_command_result_message(last_payload)
+    command_result_verify: dict[str, Any] = {
         "enabled": True,
         "verified": False,
         "attempts": attempt_limit,
@@ -346,24 +385,38 @@ def apply_command_result_unconfirmed(
             else "query_error"
         ),
     }
+    if last_code is not None:
+        command_result_verify["last_code"] = last_code
+    if last_message is not None:
+        command_result_verify["last_message"] = last_message
+
+    trace["route"] = route
+    trace["success"] = False
+    trace["error"] = "CommandResultUnconfirmed"
+    trace["error_message"] = "command_result_unconfirmed"
+    trace["command_result_verify"] = command_result_verify
     safe_device_serial = redact_identifier(device_serial) or "***"
     safe_msg_sn = redact_identifier(msg_sn) or "***"
     logger.warning(
-        "query_command_result not confirmed (device=%s, msgSn=%s, attempts=%s, elapsed=%.3fs, route=%s, last_state=%s)",
+        "query_command_result not confirmed (device=%s, msgSn=%s, attempts=%s, elapsed=%.3fs, route=%s, last_state=%s, last_code=%s)",
         safe_device_serial,
         safe_msg_sn,
         attempt_limit,
         elapsed_seconds,
         route,
         trace["command_result_verify"]["last_state"],
+        last_code,
     )
-    return {
+    failure = {
         "reason": "command_result_unconfirmed",
-        "code": "command_result_unconfirmed",
+        "code": last_code or "command_result_unconfirmed",
         "route": route,
         "msg_sn": msg_sn,
         "device_id": device_serial,
     }
+    if last_message is not None:
+        failure["message"] = last_message
+    return failure
 
 
 def apply_command_result_confirmed(
@@ -461,6 +514,7 @@ def resolve_polled_command_result(
             device_serial=device_serial,
             attempt=attempt,
             elapsed_seconds=elapsed_seconds,
+            payload=last_payload,
             logger=logger,
         )
         return False, failure

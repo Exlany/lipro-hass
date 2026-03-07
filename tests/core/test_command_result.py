@@ -107,6 +107,81 @@ def test_resolve_polled_command_result_unconfirmed_uses_last_state() -> None:
     }
 
 
+def test_resolve_polled_command_result_unconfirmed_preserves_last_code_and_message() -> None:
+    """Unconfirmed state should retain the last backend code/message."""
+    trace: dict[str, object] = {}
+
+    verified, failure = resolve_polled_command_result(
+        state="unconfirmed",
+        trace=trace,
+        route="group_direct",
+        msg_sn="abc",
+        device_serial="03ab111111111111",
+        attempt=3,
+        attempt_limit=3,
+        last_payload={"code": "140006", "message": "设备未响应", "success": False},
+        elapsed_seconds=0.3,
+        logger=MagicMock(),
+    )
+
+    assert verified is False
+    assert failure == {
+        "reason": "command_result_unconfirmed",
+        "code": "140006",
+        "message": "设备未响应",
+        "route": "group_direct",
+        "msg_sn": "abc",
+        "device_id": "03ab111111111111",
+    }
+    assert trace["command_result_verify"] == {
+        "enabled": True,
+        "verified": False,
+        "attempts": 3,
+        "msg_sn": "abc",
+        "last_state": "pending",
+        "last_code": "140006",
+        "last_message": "设备未响应",
+    }
+
+
+
+def test_resolve_polled_command_result_failed_preserves_code_and_message() -> None:
+    """Failed state should retain backend rejection details when available."""
+    trace: dict[str, object] = {}
+
+    verified, failure = resolve_polled_command_result(
+        state="failed",
+        trace=trace,
+        route="group_direct",
+        msg_sn="abc",
+        device_serial="03ab111111111111",
+        attempt=2,
+        attempt_limit=3,
+        last_payload={"code": "140005", "message": "参数错误", "success": False},
+        elapsed_seconds=0.2,
+        logger=MagicMock(),
+    )
+
+    assert verified is False
+    assert failure == {
+        "reason": "command_result_failed",
+        "code": "140005",
+        "message": "参数错误",
+        "route": "group_direct",
+        "msg_sn": "abc",
+        "device_id": "03ab111111111111",
+    }
+    assert trace["command_result_verify"] == {
+        "enabled": True,
+        "verified": False,
+        "attempts": 2,
+        "msg_sn": "abc",
+        "state": "failed",
+        "code": "140005",
+        "message": "参数错误",
+    }
+
+
 def test_extract_msg_sn_coerces_int_float_and_str() -> None:
     assert extract_msg_sn({"msgSn": 123}) == "123"
     assert extract_msg_sn({"msgSn": 123.0}) == "123"
@@ -141,6 +216,11 @@ def test_classify_command_result_payload_coerces_success_and_pushsuccess() -> No
 
 def test_classify_command_result_payload_returns_unknown_when_no_match() -> None:
     assert classify_command_result_payload({"result": "in_progress"}) == "unknown"
+
+
+def test_classify_command_result_payload_treats_retryable_codes_as_pending() -> None:
+    assert classify_command_result_payload({"code": "100000", "success": False}) == "pending"
+    assert classify_command_result_payload({"code": "140006", "success": False}) == "pending"
 
 
 def test_should_skip_immediate_post_refresh_returns_false_without_valid_key() -> None:
