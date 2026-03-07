@@ -148,8 +148,8 @@ delete_schedules:
     device_id:
       name: Device ID (Optional)
       description: >-
-        The device serial number. If not provided, the device will be
-        determined from the target entity.
+        The device serial number or mesh group ID. If not provided, the
+        device will be determined from the target entity.
       required: false
       example: "03ab5ccd7c123456"
       selector:

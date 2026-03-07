@@ -299,7 +299,7 @@
       "fields": {
         "device_id": {
           "name": "设备 ID",
-          "description": "设备序列号。如果未提供，将从目标实体中确定设备。"
+          "description": "设备序列号或 mesh group ID。如果未提供，将从目标实体中确定设备。"
         },
         "schedule_ids": {
           "name": "定时任务 ID",

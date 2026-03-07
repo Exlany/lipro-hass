@@ -299,7 +299,7 @@
       "fields": {
         "device_id": {
           "name": "Device ID",
-          "description": "The device serial number. If not provided, the device will be determined from the target entity."
+          "description": "The device serial number or mesh group ID. If not provided, the device will be determined from the target entity."
         },
         "schedule_ids": {
           "name": "Schedule IDs",
