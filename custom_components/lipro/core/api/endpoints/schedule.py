@@ -11,7 +11,6 @@ from ....const.api import (
     PATH_BLE_SCHEDULE_GET,
 )
 from ...utils.identifiers import normalize_iot_device_id as _normalize_iot_device_id
-from ...utils.redaction import redact_identifier as _redact_identifier
 from .. import response_safety as _response_safety
 from ..errors import LiproApiError, LiproAuthError
 from ..schedule_codec import (
@@ -69,40 +68,24 @@ class _ClientScheduleEndpointsMixin(_ClientEndpointPayloadsMixin):
             normalize_iot_device_id=_normalize_iot_device_id,
         )
 
-    def _resolve_mesh_schedule_candidates_for_group(
-        self,
-        device_id: str,
-        *,
-        mesh_gateway_id: str = "",
-        mesh_member_ids: list[str] | None = None,
-    ) -> list[str] | None:
-        """Resolve mesh schedule candidate IDs only when target is a mesh group."""
-        if not self._is_mesh_group_id(device_id):
-            return None
-
-        candidate_ids = self._resolve_mesh_schedule_candidate_ids(
-            device_id,
-            mesh_gateway_id=mesh_gateway_id,
-            mesh_member_ids=mesh_member_ids,
-        )
-        return candidate_ids or None
-
-    def _resolve_schedule_request_context(
+    def _require_mesh_schedule_candidate_ids(
         self,
         *,
         device_id: str,
-        device_type: int | str,
         mesh_gateway_id: str = "",
         mesh_member_ids: list[str] | None = None,
-    ) -> tuple[list[str] | None, str]:
-        """Resolve mesh candidate IDs and normalized device type for schedule APIs."""
-        candidate_ids = self._resolve_mesh_schedule_candidates_for_group(
-            device_id,
+    ) -> list[str]:
+        """Resolve mesh schedule candidate IoT IDs or raise a clear error."""
+        candidate_ids = self._resolve_ble_schedule_candidate_ids(
+            device_id=device_id,
             mesh_gateway_id=mesh_gateway_id,
             mesh_member_ids=mesh_member_ids,
         )
-        device_type_hex = self._to_device_type_hex(device_type)
-        return candidate_ids, device_type_hex
+        if candidate_ids:
+            return candidate_ids
+
+        msg = "Mesh schedule candidate IoT IDs unavailable; refresh device status and try again"
+        raise LiproApiError(msg, code="mesh_schedule_candidates_unavailable")
 
     async def _request_schedule_timings(
         self,
@@ -240,44 +223,6 @@ class _ClientScheduleEndpointsMixin(_ClientEndpointPayloadsMixin):
             path_ble_schedule_delete=PATH_BLE_SCHEDULE_DELETE,
             build_mesh_schedule_delete_body=build_mesh_schedule_delete_body,
         )
-
-    async def _execute_schedule_operation(
-        self,
-        *,
-        device_id: str,
-        candidate_ids: list[str] | None,
-        ble_candidate_ids: list[str],
-        ble_operation: str,
-        ble_request: Callable[[list[str]], Awaitable[list[dict[str, Any]]]],
-        mesh_request: Callable[[list[str]], Awaitable[list[dict[str, Any]]]],
-        standard_request: Callable[[], Awaitable[list[dict[str, Any]]]],
-        allow_standard_fallback: bool = True,
-    ) -> list[dict[str, Any]]:
-        """Execute schedule API with BLE-first strategy and optional standard fallback."""
-        if ble_candidate_ids:
-            try:
-                return await ble_request(ble_candidate_ids)
-            except LiproApiError as err:
-                if not self._is_invalid_param_error_code(err.code):
-                    raise
-                if not allow_standard_fallback:
-                    _LOGGER.debug(
-                        "BLE schedule %s rejected for %s (code=%s), skip standard fallback",
-                        ble_operation,
-                        _redact_identifier(device_id) or "***",
-                        err.code,
-                    )
-                    raise
-                _LOGGER.debug(
-                    "BLE schedule %s rejected for %s (code=%s), fallback to standard endpoint",
-                    ble_operation,
-                    _redact_identifier(device_id) or "***",
-                    err.code,
-                )
-        elif candidate_ids:
-            return await mesh_request(candidate_ids)
-
-        return await standard_request()
 
     async def get_device_schedules(
         self,

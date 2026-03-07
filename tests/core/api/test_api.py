@@ -2653,8 +2653,8 @@ class TestLiproClientSchedules:
         )
 
     @pytest.mark.asyncio
-    async def test_get_device_schedules_accepts_list_response(self):
-        """Schedule GET should accept list payload returned by real API."""
+    async def test_get_device_schedules_standard_accepts_list_response(self):
+        """Standard schedule GET should accept list payload returned by real API."""
         client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("access", "refresh")
 
@@ -2664,20 +2664,20 @@ class TestLiproClientSchedules:
         ) as mock_request:
             mock_request.return_value = rows
 
-            result = await client.get_device_schedules("mesh_group_10001", 9)
+            result = await client.get_device_schedules("03ab5ccd7caaaaaa", 1)
 
         mock_request.assert_awaited_once_with(
             PATH_SCHEDULE_GET,
             {
-                "deviceId": "mesh_group_10001",
-                "deviceType": client._to_device_type_hex(9),
+                "deviceId": "03ab5ccd7caaaaaa",
+                "deviceType": client._to_device_type_hex(1),
             },
         )
         assert result == rows
 
     @pytest.mark.asyncio
-    async def test_get_device_schedules_accepts_dict_timings_response(self):
-        """Schedule GET should also support wrapped timings payload."""
+    async def test_get_device_schedules_standard_accepts_dict_timings_response(self):
+        """Standard schedule GET should also support wrapped timings payload."""
         client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("access", "refresh")
 
@@ -2687,13 +2687,20 @@ class TestLiproClientSchedules:
         ) as mock_request:
             mock_request.return_value = {"timings": rows}
 
-            result = await client.get_device_schedules("mesh_group_10001", 9)
+            result = await client.get_device_schedules("03ab5ccd7caaaaaa", 1)
 
+        mock_request.assert_awaited_once_with(
+            PATH_SCHEDULE_GET,
+            {
+                "deviceId": "03ab5ccd7caaaaaa",
+                "deviceType": client._to_device_type_hex(1),
+            },
+        )
         assert result == rows
 
     @pytest.mark.asyncio
-    async def test_add_device_schedule_accepts_list_response(self):
-        """Schedule ADD should accept list payload variants."""
+    async def test_add_device_schedule_standard_accepts_list_response(self):
+        """Standard schedule ADD should accept list payload variants."""
         client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("access", "refresh")
 
@@ -2704,18 +2711,28 @@ class TestLiproClientSchedules:
             mock_request.return_value = rows
 
             result = await client.add_device_schedule(
-                "mesh_group_10001",
-                9,
+                "03ab5ccd7caaaaaa",
+                1,
                 [1, 2, 3],
                 [3600],
                 [0],
             )
 
+        mock_request.assert_awaited_once_with(
+            PATH_SCHEDULE_ADD,
+            {
+                "deviceId": "03ab5ccd7caaaaaa",
+                "deviceType": client._to_device_type_hex(1),
+                "scheduleInfo": {"days": [1, 2, 3], "time": [3600], "evt": [0]},
+                "groupId": "",
+                "singleBle": False,
+            },
+        )
         assert result == rows
 
     @pytest.mark.asyncio
-    async def test_delete_device_schedules_accepts_data_wrapper(self):
-        """Schedule DELETE should accept data-wrapped rows."""
+    async def test_delete_device_schedules_standard_accepts_data_wrapper(self):
+        """Standard schedule DELETE should accept data-wrapped rows."""
         client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("access", "refresh")
 
@@ -2726,16 +2743,26 @@ class TestLiproClientSchedules:
             mock_request.return_value = {"data": rows}
 
             result = await client.delete_device_schedules(
-                "mesh_group_10001",
-                9,
+                "03ab5ccd7caaaaaa",
+                1,
                 [4],
             )
 
+        mock_request.assert_awaited_once_with(
+            PATH_SCHEDULE_DELETE,
+            {
+                "deviceId": "03ab5ccd7caaaaaa",
+                "deviceType": client._to_device_type_hex(1),
+                "idList": [4],
+                "groupId": "",
+                "singleBle": False,
+            },
+        )
         assert result == rows
 
     @pytest.mark.asyncio
-    async def test_get_device_schedules_invalid_payload_returns_empty(self):
-        """Unexpected schedule payload should degrade to empty list."""
+    async def test_get_device_schedules_standard_invalid_payload_returns_empty(self):
+        """Unexpected standard schedule payload should degrade to empty list."""
         client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("access", "refresh")
 
@@ -2744,13 +2771,20 @@ class TestLiproClientSchedules:
         ) as mock_request:
             mock_request.return_value = {"status": "ok"}
 
-            result = await client.get_device_schedules("mesh_group_10001", 9)
+            result = await client.get_device_schedules("03ab5ccd7caaaaaa", 1)
 
+        mock_request.assert_awaited_once_with(
+            PATH_SCHEDULE_GET,
+            {
+                "deviceId": "03ab5ccd7caaaaaa",
+                "deviceType": client._to_device_type_hex(1),
+            },
+        )
         assert result == []
 
     @pytest.mark.asyncio
-    async def test_get_device_schedules_prefers_ble_for_non_mesh_device(self):
-        """Non-mesh schedule GET should prefer BLE endpoint when IoT ID is valid."""
+    async def test_get_device_schedules_non_mesh_uses_standard_endpoint(self):
+        """Non-mesh schedule GET should use the standard endpoint directly."""
         client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("access", "refresh")
 
@@ -2762,32 +2796,6 @@ class TestLiproClientSchedules:
             await client.get_device_schedules("03ab5ccd7caaaaaa", 1)
 
         mock_request.assert_awaited_once_with(
-            PATH_BLE_SCHEDULE_GET,
-            {"deviceId": "03ab5ccd7caaaaaa", "deviceType": "mesh"},
-        )
-
-    @pytest.mark.asyncio
-    async def test_get_device_schedules_ble_invalid_param_falls_back_to_standard(self):
-        """When BLE GET returns invalid-param, client should fallback to standard GET."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
-        client.set_tokens("access", "refresh")
-
-        with patch.object(
-            client, "_iot_request", new_callable=AsyncMock
-        ) as mock_request:
-            mock_request.side_effect = [
-                LiproApiError("invalid", "100000"),
-                {"timings": []},
-            ]
-
-            result = await client.get_device_schedules("03ab5ccd7caaaaaa", 1)
-
-        assert result == []
-        assert mock_request.await_args_list[0].args == (
-            PATH_BLE_SCHEDULE_GET,
-            {"deviceId": "03ab5ccd7caaaaaa", "deviceType": "mesh"},
-        )
-        assert mock_request.await_args_list[1].args == (
             PATH_SCHEDULE_GET,
             {
                 "deviceId": "03ab5ccd7caaaaaa",
@@ -2796,8 +2804,30 @@ class TestLiproClientSchedules:
         )
 
     @pytest.mark.asyncio
-    async def test_add_delete_schedule_ble_invalid_param_falls_back_to_standard(self):
-        """ADD/DELETE should fallback to standard endpoints when BLE path is rejected."""
+    async def test_get_device_schedules_non_mesh_bubbles_standard_error(self):
+        """Standard GET errors should bubble for non-mesh devices."""
+        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client.set_tokens("access", "refresh")
+
+        with patch.object(
+            client, "_iot_request", new_callable=AsyncMock
+        ) as mock_request:
+            mock_request.side_effect = LiproApiError("invalid", "100000")
+
+            with pytest.raises(LiproApiError, match="invalid"):
+                await client.get_device_schedules("03ab5ccd7caaaaaa", 1)
+
+        mock_request.assert_awaited_once_with(
+            PATH_SCHEDULE_GET,
+            {
+                "deviceId": "03ab5ccd7caaaaaa",
+                "deviceType": client._to_device_type_hex(1),
+            },
+        )
+
+    @pytest.mark.asyncio
+    async def test_add_delete_schedule_non_mesh_bubble_standard_errors(self):
+        """Standard ADD/DELETE errors should bubble for non-mesh devices."""
         client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("access", "refresh")
 
@@ -2805,29 +2835,46 @@ class TestLiproClientSchedules:
             client, "_iot_request", new_callable=AsyncMock
         ) as mock_request:
             mock_request.side_effect = [
-                LiproApiError("invalid", "100000"),
-                {"timings": []},
-                LiproApiError("invalid", "100000"),
-                {"timings": []},
+                LiproApiError("add invalid", "100000"),
+                LiproApiError("delete invalid", "100000"),
             ]
 
-            add_result = await client.add_device_schedule(
-                "03ab5ccd7caaaaaa",
-                1,
-                [1],
-                [3600],
-                [0],
-            )
-            delete_result = await client.delete_device_schedules(
-                "03ab5ccd7caaaaaa",
-                1,
-                [1],
-            )
+            with pytest.raises(LiproApiError, match="add invalid"):
+                await client.add_device_schedule(
+                    "03ab5ccd7caaaaaa",
+                    1,
+                    [1],
+                    [3600],
+                    [0],
+                )
 
-        assert add_result == []
-        assert delete_result == []
-        assert mock_request.await_args_list[1].args[0] == PATH_SCHEDULE_ADD
-        assert mock_request.await_args_list[3].args[0] == PATH_SCHEDULE_DELETE
+            with pytest.raises(LiproApiError, match="delete invalid"):
+                await client.delete_device_schedules(
+                    "03ab5ccd7caaaaaa",
+                    1,
+                    [1],
+                )
+
+        assert mock_request.await_args_list[0].args == (
+            PATH_SCHEDULE_ADD,
+            {
+                "deviceId": "03ab5ccd7caaaaaa",
+                "deviceType": client._to_device_type_hex(1),
+                "scheduleInfo": {"days": [1], "time": [3600], "evt": [0]},
+                "groupId": "",
+                "singleBle": False,
+            },
+        )
+        assert mock_request.await_args_list[1].args == (
+            PATH_SCHEDULE_DELETE,
+            {
+                "deviceId": "03ab5ccd7caaaaaa",
+                "deviceType": client._to_device_type_hex(1),
+                "idList": [1],
+                "groupId": "",
+                "singleBle": False,
+            },
+        )
 
 
 class TestLiproClientBizId:
@@ -3893,19 +3940,18 @@ class TestLiproClientAdditionalBranchCoverage:
                     mesh_member_ids=["03ab0000000000a2"],
                 )
 
-    def test_resolve_mesh_schedule_candidates_for_group_non_mesh_returns_none(self):
-        """Mesh candidate resolver should skip non-mesh device IDs."""
+    def test_resolve_ble_schedule_candidate_ids_non_mesh_returns_normalized_id(self):
+        """BLE schedule candidate resolver should normalize standalone IoT IDs."""
         client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
-        assert (
-            client._resolve_mesh_schedule_candidates_for_group("03ab5ccd7caaaaaa")
-            is None
-        )
+        assert client._resolve_ble_schedule_candidate_ids(
+            device_id="03ab5ccd7caaaaaa"
+        ) == ["03ab5ccd7caaaaaa"]
 
-    def test_resolve_mesh_schedule_candidates_for_group_mesh_returns_candidates(self):
-        """Mesh candidate resolver should return ordered gateway/member IDs."""
+    def test_require_mesh_schedule_candidate_ids_mesh_returns_candidates(self):
+        """Mesh schedule candidate resolver should return ordered gateway/member IDs."""
         client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
-        assert client._resolve_mesh_schedule_candidates_for_group(
-            "mesh_group_10001",
+        assert client._require_mesh_schedule_candidate_ids(
+            device_id="mesh_group_10001",
             mesh_gateway_id="03ab0000000000a1",
             mesh_member_ids=["03ab0000000000a2"],
         ) == ["03ab0000000000a1", "03ab0000000000a2"]

@@ -266,32 +266,21 @@ class ScheduleApiService:
         mesh_member_ids: list[str] | None = None,
     ) -> list[dict[str, Any]]:
         """Get timing schedules for a device."""
-        candidate_ids, device_type_hex = self._client._resolve_schedule_request_context(
-            device_id=device_id,
-            device_type=device_type,
-            mesh_gateway_id=mesh_gateway_id,
-            mesh_member_ids=mesh_member_ids,
+        if self._client._is_mesh_group_id(device_id):
+            candidate_ids = self._client._require_mesh_schedule_candidate_ids(
+                device_id=device_id,
+                mesh_gateway_id=mesh_gateway_id,
+                mesh_member_ids=mesh_member_ids,
+            )
+            raw = await self._client._get_mesh_schedules_by_candidates(candidate_ids)
+            return cast(list[dict[str, Any]], raw)
+
+        device_type_hex = self._client._to_device_type_hex(device_type)
+        raw = await self._client._request_schedule_timings(
+            PATH_SCHEDULE_GET,
+            build_schedule_get_body(device_id, device_type_hex=device_type_hex),
         )
-        ble_candidate_ids = self._client._resolve_ble_schedule_candidate_ids(
-            device_id=device_id,
-            mesh_gateway_id=mesh_gateway_id,
-            mesh_member_ids=mesh_member_ids,
-        )
-        mesh_request = self._client._get_mesh_schedules_by_candidates
-        result = await self._client._execute_schedule_operation(
-            device_id=device_id,
-            candidate_ids=candidate_ids,
-            ble_candidate_ids=ble_candidate_ids,
-            ble_operation="GET",
-            ble_request=mesh_request,
-            mesh_request=mesh_request,
-            standard_request=lambda: self._client._request_schedule_timings(
-                PATH_SCHEDULE_GET,
-                build_schedule_get_body(device_id, device_type_hex=device_type_hex),
-            ),
-            allow_standard_fallback=candidate_ids is None,
-        )
-        return cast(list[dict[str, Any]], result)
+        return cast(list[dict[str, Any]], raw)
 
     async def add_device_schedule(
         self,
@@ -310,19 +299,12 @@ class ScheduleApiService:
             msg = "times and events arrays must have the same length"
             raise ValueError(msg)
 
-        candidate_ids, device_type_hex = self._client._resolve_schedule_request_context(
-            device_id=device_id,
-            device_type=device_type,
-            mesh_gateway_id=mesh_gateway_id,
-            mesh_member_ids=mesh_member_ids,
-        )
-        ble_candidate_ids = self._client._resolve_ble_schedule_candidate_ids(
-            device_id=device_id,
-            mesh_gateway_id=mesh_gateway_id,
-            mesh_member_ids=mesh_member_ids,
-        )
-
-        async def _mesh_add_request(candidate_ids: list[str]) -> list[dict[str, Any]]:
+        if self._client._is_mesh_group_id(device_id):
+            candidate_ids = self._client._require_mesh_schedule_candidate_ids(
+                device_id=device_id,
+                mesh_gateway_id=mesh_gateway_id,
+                mesh_member_ids=mesh_member_ids,
+            )
             raw = await self._client._add_mesh_schedule_by_candidates(
                 candidate_ids,
                 days=days,
@@ -331,26 +313,19 @@ class ScheduleApiService:
             )
             return cast(list[dict[str, Any]], raw)
 
-        result = await self._client._execute_schedule_operation(
-            device_id=device_id,
-            candidate_ids=candidate_ids,
-            ble_candidate_ids=ble_candidate_ids,
-            ble_operation="ADD",
-            ble_request=_mesh_add_request,
-            mesh_request=_mesh_add_request,
-            standard_request=lambda: self._client._request_schedule_timings(
-                PATH_SCHEDULE_ADD,
-                build_schedule_add_body(
-                    device_id,
-                    device_type_hex=device_type_hex,
-                    days=days,
-                    times=times,
-                    events=events,
-                    group_id=group_id,
-                ),
+        device_type_hex = self._client._to_device_type_hex(device_type)
+        raw = await self._client._request_schedule_timings(
+            PATH_SCHEDULE_ADD,
+            build_schedule_add_body(
+                device_id,
+                device_type_hex=device_type_hex,
+                days=days,
+                times=times,
+                events=events,
+                group_id=group_id,
             ),
         )
-        return cast(list[dict[str, Any]], result)
+        return cast(list[dict[str, Any]], raw)
 
     async def delete_device_schedules(
         self,
@@ -363,42 +338,26 @@ class ScheduleApiService:
         mesh_member_ids: list[str] | None = None,
     ) -> list[dict[str, Any]]:
         """Delete timing schedules for a device."""
-        candidate_ids, device_type_hex = self._client._resolve_schedule_request_context(
-            device_id=device_id,
-            device_type=device_type,
-            mesh_gateway_id=mesh_gateway_id,
-            mesh_member_ids=mesh_member_ids,
-        )
-        ble_candidate_ids = self._client._resolve_ble_schedule_candidate_ids(
-            device_id=device_id,
-            mesh_gateway_id=mesh_gateway_id,
-            mesh_member_ids=mesh_member_ids,
-        )
-
-        async def _mesh_delete_request(
-            candidate_ids: list[str],
-        ) -> list[dict[str, Any]]:
+        if self._client._is_mesh_group_id(device_id):
+            candidate_ids = self._client._require_mesh_schedule_candidate_ids(
+                device_id=device_id,
+                mesh_gateway_id=mesh_gateway_id,
+                mesh_member_ids=mesh_member_ids,
+            )
             raw = await self._client._delete_mesh_schedules_by_candidates(
                 candidate_ids,
                 schedule_ids=schedule_ids,
             )
             return cast(list[dict[str, Any]], raw)
 
-        result = await self._client._execute_schedule_operation(
-            device_id=device_id,
-            candidate_ids=candidate_ids,
-            ble_candidate_ids=ble_candidate_ids,
-            ble_operation="DELETE",
-            ble_request=_mesh_delete_request,
-            mesh_request=_mesh_delete_request,
-            standard_request=lambda: self._client._request_schedule_timings(
-                PATH_SCHEDULE_DELETE,
-                build_schedule_delete_body(
-                    device_id,
-                    device_type_hex=device_type_hex,
-                    schedule_ids=schedule_ids,
-                    group_id=group_id,
-                ),
+        device_type_hex = self._client._to_device_type_hex(device_type)
+        raw = await self._client._request_schedule_timings(
+            PATH_SCHEDULE_DELETE,
+            build_schedule_delete_body(
+                device_id,
+                device_type_hex=device_type_hex,
+                schedule_ids=schedule_ids,
+                group_id=group_id,
             ),
         )
-        return cast(list[dict[str, Any]], result)
+        return cast(list[dict[str, Any]], raw)
