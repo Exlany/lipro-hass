@@ -31,11 +31,28 @@ def resolve_mqtt_biz_id(config_entry_data: Mapping[str, Any]) -> str | None:
     return biz_id.removeprefix("lip_")
 
 
+def _dedupe_serials(serials: list[str]) -> list[str]:
+    """Return serials in stable order without duplicates."""
+    deduped: list[str] = []
+    seen: set[str] = set()
+    for serial in serials:
+        if not serial or serial in seen:
+            continue
+        seen.add(serial)
+        deduped.append(serial)
+    return deduped
+
+
 def build_mqtt_subscription_device_ids(
     devices: Mapping[str, LiproDevice],
 ) -> list[str]:
-    """Build MQTT subscription targets (device serial list)."""
-    return list(devices.keys())
+    """Build MQTT subscription targets, preferring mesh-group topics."""
+    mesh_group_serials = _dedupe_serials(
+        [dev.serial for dev in devices.values() if dev.is_group]
+    )
+    if mesh_group_serials:
+        return mesh_group_serials
+    return _dedupe_serials([dev.serial for dev in devices.values()])
 
 
 def iter_mesh_group_serials(devices: Mapping[str, LiproDevice]) -> list[str]:

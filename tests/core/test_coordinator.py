@@ -2192,7 +2192,7 @@ class TestCoordinatorMqttSetupAndSync:
 
         assert ok is True
         assert coordinator._biz_id == "10001"
-        mock_mqtt.start.assert_awaited_once_with(["dev1", "mesh_group_1"])
+        mock_mqtt.start.assert_awaited_once_with(["mesh_group_1"])
         redacted = redact_identifier("mesh_group_1")
         assert redacted is not None
         assert redacted in caplog.text
