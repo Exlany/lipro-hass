@@ -26,9 +26,9 @@ from custom_components.lipro.core.coordinator.device_list_snapshot import (
     has_active_device_filter,
     is_device_included_by_filter,
     plan_stale_device_reconciliation,
-    register_lookup_id,
 )
 from custom_components.lipro.core.device import LiproDevice
+from custom_components.lipro.core.device.identity_index import register_identity_alias
 
 
 def _make_device(
@@ -97,12 +97,12 @@ class _InvalidIotIdDevice:
         return DeviceCategory.OUTLET
 
 
-def test_register_lookup_id_ignores_non_string_and_blank() -> None:
+def test_register_identity_alias_ignores_non_string_and_blank() -> None:
     device = _make_device(serial="03ab000000000001")
     mapping: dict[str, LiproDevice] = {}
 
-    register_lookup_id(mapping, 1, device)
-    register_lookup_id(mapping, "   ", device)
+    register_identity_alias(mapping, 1, device)
+    register_identity_alias(mapping, "   ", device)
 
     assert mapping == {}
 

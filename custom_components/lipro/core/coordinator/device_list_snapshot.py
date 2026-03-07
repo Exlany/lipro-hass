@@ -26,6 +26,7 @@ from ...const.config import (
     MAX_DEVICE_FILTER_LIST_ITEMS,
 )
 from ..device.device import LiproDevice
+from ..device.identity_index import register_identity_alias
 
 _LOGGER = logging.getLogger(__name__)
 _FILTER_LIST_SPLIT_RE = re.compile(r"[\n,;]+")
@@ -336,21 +337,6 @@ def is_device_included_by_filter(
     return True
 
 
-def register_lookup_id(
-    mapping: dict[str, LiproDevice],
-    device_id: Any,
-    device: LiproDevice,
-) -> None:
-    """Register a device lookup alias with case-insensitive compatibility."""
-    if not isinstance(device_id, str):
-        return
-    normalized = device_id.strip()
-    if not normalized:
-        return
-    mapping[normalized] = device
-    mapping[normalized.lower()] = device
-
-
 def _safe_device_from_api_data(device_data: dict[str, Any]) -> LiproDevice | None:
     """Build a device from API data, returning None when payload is malformed."""
     try:
@@ -420,7 +406,7 @@ def build_fetched_device_snapshot(
             continue
 
         new_devices[device.serial] = device
-        register_lookup_id(new_device_by_id, device.serial, device)
+        register_identity_alias(new_device_by_id, device.serial, device)
 
         if device.is_group:
             new_group_ids.append(device.serial)
