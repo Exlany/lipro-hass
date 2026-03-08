@@ -106,6 +106,7 @@ class _ClientScheduleEndpointsMixin(_ClientEndpointPayloadsMixin):
         """Parse mesh ``scheduleJson`` into ``days/time/evt`` arrays."""
         return _parse_mesh_schedule_payload(
             schedule_json,
+            coerce_connect_status=coerce_connect_status,
             mask_sensitive_data=_response_safety.mask_sensitive_data,
         )
 

@@ -32,6 +32,22 @@ def test_parse_mesh_schedule_json_accepts_verified_canonical_payload() -> None:
     assert parsed == {"days": [2], "time": [86340], "evt": [1]}
 
 
+def test_parse_mesh_schedule_json_supports_legacy_weekdays_hhmm_and_action() -> None:
+    parsed = parse_mesh_schedule_json(
+        {
+            "weekDays": [1, 3, 5],
+            "time": "08:30",
+            "action": {
+                "command": "power",
+                "properties": [{"key": "power", "value": "1"}],
+            },
+        },
+        coerce_connect_status=_coerce_bool,
+        mask_sensitive_data=_mask,
+    )
+    assert parsed == {"days": [1, 3, 5], "time": [30600], "evt": [0]}
+
+
 def test_parse_mesh_schedule_json_truncates_mismatched_time_event_pairs() -> None:
     parsed = parse_mesh_schedule_json(
         {"days": [1], "time": [100, 200], "evt": [1]},
