@@ -379,7 +379,7 @@
     },
     "query_user_cloud": {
       "name": "查询用户云端配置",
-      "description": "（开发者）按已验证的空字符串 payload 契约查询用户云端元数据。"
+      "description": "（开发者）按已验证的空字符串 payload 契约查询用户云端元数据。实测响应可能只有顶层 data，没有 code 包装。"
     },
     "fetch_body_sensor_history": {
       "name": "获取人体传感器历史",

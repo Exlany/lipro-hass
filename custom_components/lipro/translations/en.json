@@ -379,7 +379,7 @@
     },
     "query_user_cloud": {
       "name": "Query User Cloud",
-      "description": "Developer-only optional capability. Query user cloud metadata using the verified empty-string payload contract."
+      "description": "Developer-only optional capability. Query user cloud metadata using the verified empty-string payload contract. Tested responses may contain only a top-level data field without a code wrapper."
     },
     "fetch_body_sensor_history": {
       "name": "Fetch Body Sensor History",
