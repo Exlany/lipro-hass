@@ -5,11 +5,9 @@ from __future__ import annotations
 from collections.abc import Callable
 import json
 import logging
-import re
 from typing import Any
 
 _LOGGER = logging.getLogger(__name__)
-_HH_MM_TIME_PATTERN = re.compile(r"(\d{1,2}):(\d{2})")
 _INVALID_JSON_PREVIEW_MAX_CHARS = 200
 
 
@@ -57,53 +55,9 @@ def _coerce_int_item(item: Any) -> int | None:
     return None
 
 
-def _parse_hhmm_seconds(value: Any) -> list[int]:
-    """Parse legacy ``HH:MM`` text into one schedule second value."""
-    if not isinstance(value, str):
-        return []
-    match = _HH_MM_TIME_PATTERN.fullmatch(value.strip())
-    if not match:
-        return []
-
-    hours = int(match.group(1))
-    minutes = int(match.group(2))
-    if not (0 <= hours <= 23 and 0 <= minutes <= 59):
-        return []
-    return [hours * 3600 + minutes * 60]
-
-
-def _coerce_legacy_connect_status(value: Any) -> bool:
-    """Coerce legacy action power values with conservative bool semantics."""
-    return str(value).strip().lower() in {"1", "true", "on", "yes"}
-
-
-def _extract_power_action_event(
-    action: Any,
-    *,
-    coerce_connect_status: Callable[[Any], bool],
-) -> list[int]:
-    """Extract one legacy ``evt`` value from action properties."""
-    if not isinstance(action, dict):
-        return []
-    if str(action.get("command", "")).strip().lower() != "power":
-        return []
-
-    props = action.get("properties")
-    if not isinstance(props, list):
-        return []
-
-    for prop in props:
-        if not isinstance(prop, dict):
-            continue
-        if prop.get("key") == "power":
-            return [0 if coerce_connect_status(prop.get("value")) else 1]
-    return []
-
-
 def parse_mesh_schedule_json(
     schedule_json: Any,
     *,
-    coerce_connect_status: Callable[[Any], bool] | None = None,
     mask_sensitive_data: Callable[[str], str],
 ) -> dict[str, list[int]]:
     """Parse mesh ``scheduleJson`` into normalized ``days/time/evt`` arrays."""
@@ -130,23 +84,9 @@ def parse_mesh_schedule_json(
     if not isinstance(payload, dict):
         return empty
 
-    status_coercer = coerce_connect_status or _coerce_legacy_connect_status
-
     days = coerce_int_list(payload.get("days"))
     times = coerce_int_list(payload.get("time"))
     events = coerce_int_list(payload.get("evt"))
-
-    if not days:
-        days = coerce_int_list(payload.get("weekDays"))
-
-    if not times:
-        times = _parse_hhmm_seconds(payload.get("time"))
-
-    if not events:
-        events = _extract_power_action_event(
-            payload.get("action"),
-            coerce_connect_status=status_coercer,
-        )
 
     times, events = _align_time_event_pairs(times, events)
 

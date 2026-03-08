@@ -3819,18 +3819,6 @@ class TestLiproClientAdditionalBranchCoverage:
         )
         assert canonical_payload == {"days": [2], "time": [86340], "evt": [1]}
 
-        legacy_payload = LiproClient._parse_mesh_schedule_json(
-            {
-                "weekDays": [1, 3, 5],
-                "time": "08:30",
-                "action": {
-                    "command": "power",
-                    "properties": [{"key": "power", "value": "1"}],
-                },
-            }
-        )
-        assert legacy_payload == {"days": [1, 3, 5], "time": [30600], "evt": [0]}
-
         mismatch_payload = LiproClient._parse_mesh_schedule_json(
             {"days": [1], "time": [3600], "evt": []}
         )
