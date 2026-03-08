@@ -363,25 +363,3 @@ def extract_install_command(
         properties_keys=properties_keys,
     )
 
-
-def extract_ota_versions(
-    rows: Any,
-    *,
-    version_keys: tuple[str, ...] = DEFAULT_OTA_VERSION_KEYS,
-) -> set[str]:
-    """Extract normalized firmware versions from OTA rows."""
-    if not isinstance(rows, list):
-        return set()
-
-    versions: set[str] = set()
-    for row in rows:
-        if not isinstance(row, dict):
-            continue
-        for key in version_keys:
-            value = row.get(key)
-            if value is None:
-                continue
-            text = str(value).strip()
-            if text:
-                versions.add(text)
-    return versions

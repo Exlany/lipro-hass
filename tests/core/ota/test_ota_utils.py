@@ -10,7 +10,6 @@ import pytest
 from custom_components.lipro.core.ota.manifest import (
     coerce_command_properties,
     extract_install_command,
-    extract_ota_versions,
     extract_version_set,
     first_bool,
     first_text,
@@ -68,20 +67,6 @@ def test_parse_verified_firmware_manifest_payload_with_dict_fields() -> None:
         "type_a": frozenset({"1.0.0"}),
         "type_b": frozenset({"1.0.1"}),
     }
-
-
-def test_extract_ota_versions_ignores_invalid_rows() -> None:
-    versions = extract_ota_versions(
-        [
-            {"latestVersion": "1.0.0"},
-            {"upgradeVersion": "1.0.1"},
-            {"latestVersion": ""},
-            [],
-            "bad",
-            {"other": "ignored"},
-        ]
-    )
-    assert versions == {"1.0.0", "1.0.1"}
 
 
 def test_load_verified_firmware_manifest_file_handles_decode_error(tmp_path) -> None:
@@ -236,7 +221,3 @@ def test_extract_install_command_returns_none_for_non_dict_rows() -> None:
         )
         is None
     )
-
-
-def test_extract_ota_versions_returns_empty_for_non_list_payload() -> None:
-    assert extract_ota_versions("invalid") == set()
