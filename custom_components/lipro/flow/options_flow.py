@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
+import re
 from typing import Any
 
 import voluptuous as vol
@@ -63,6 +64,21 @@ _DEVICE_FILTER_MODE_VALUES: tuple[str, str, str] = (
     DEVICE_FILTER_MODE_INCLUDE,
     DEVICE_FILTER_MODE_EXCLUDE,
 )
+_DEVICE_FILTER_LIST_SPLIT_RE = re.compile(r'[\r\n,;]+')
+
+
+def _split_device_filter_text(value: str) -> list[str]:
+    """Split raw filter text into canonical tokens."""
+    normalized = value[:MAX_DEVICE_FILTER_LIST_CHARS].replace('\r\n', '\n').replace('\r', '\n')
+    tokens: list[str] = []
+    for token in _DEVICE_FILTER_LIST_SPLIT_RE.split(normalized):
+        stripped = token.strip()
+        if not stripped:
+            continue
+        tokens.append(stripped)
+        if len(tokens) >= MAX_DEVICE_FILTER_LIST_ITEMS:
+            break
+    return tokens
 
 
 def _build_bool_option_field(
@@ -101,20 +117,19 @@ def _build_int_option_field(
 
 
 def _coerce_device_filter_list_option(value: Any) -> str:
-    """Coerce stored filter-list option to form-friendly text."""
+    """Coerce stored filter-list option to canonical, form-friendly text."""
     if isinstance(value, str):
-        normalized = value.replace("\r", " ").replace("\n", " ").strip()
-        return normalized[:MAX_DEVICE_FILTER_LIST_CHARS]
+        return ", ".join(_split_device_filter_text(value))[:MAX_DEVICE_FILTER_LIST_CHARS]
     if isinstance(value, (list, tuple, set, frozenset)):
         parts: list[str] = []
         for item in value:
+            for token in _split_device_filter_text(str(item)):
+                parts.append(token)
+                if len(parts) >= MAX_DEVICE_FILTER_LIST_ITEMS:
+                    break
             if len(parts) >= MAX_DEVICE_FILTER_LIST_ITEMS:
                 break
-            normalized = str(item).strip()
-            if normalized:
-                parts.append(normalized[:MAX_DEVICE_FILTER_LIST_CHARS])
-        joined = ", ".join(parts)
-        return joined[:MAX_DEVICE_FILTER_LIST_CHARS]
+        return ", ".join(parts)[:MAX_DEVICE_FILTER_LIST_CHARS]
     return ""
 
 
@@ -193,15 +208,8 @@ class LiproOptionsFlow(OptionsFlow):
             CONF_DEVICE_FILTER_SSID_LIST,
             CONF_DEVICE_FILTER_DID_LIST,
         ):
-            if list_key in merged and not isinstance(merged[list_key], str):
-                merged[list_key] = _coerce_device_filter_list_option(merged[list_key])
-            if isinstance(merged.get(list_key), str):
-                merged[list_key] = (
-                    merged[list_key]
-                    .replace("\r", " ")
-                    .replace("\n", " ")
-                    .strip()[:MAX_DEVICE_FILTER_LIST_CHARS]
-                )
+            if list_key in merged:
+                merged[list_key] = _coerce_device_filter_list_option(merged.get(list_key))
 
         return self.async_create_entry(title="", data=merged)
 

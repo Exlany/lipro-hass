@@ -5,6 +5,28 @@ from __future__ import annotations
 from typing import Any, cast
 
 
+def _extract_mqtt_config_payload(
+    result: Any,
+    *,
+    is_success_code: Any,
+) -> dict[str, Any] | None:
+    """Extract MQTT config from direct, data-only, or success+data shapes."""
+    if not isinstance(result, dict):
+        return None
+
+    if "accessKey" in result and "secretKey" in result:
+        return cast(dict[str, Any], result)
+
+    payload = result.get("data")
+    if not isinstance(payload, dict):
+        return None
+    if "accessKey" not in payload or "secretKey" not in payload:
+        return None
+    if "code" not in result or is_success_code(result.get("code")):
+        return cast(dict[str, Any], payload)
+    return None
+
+
 async def get_mqtt_config(
     *,
     request_iot_mapping: Any,
@@ -24,8 +46,9 @@ async def get_mqtt_config(
         retry_count=retry_count,
     )
 
-    if isinstance(result, dict) and "accessKey" in result and "secretKey" in result:
-        return cast(dict[str, Any], result)
+    payload = _extract_mqtt_config_payload(result, is_success_code=is_success_code)
+    if payload is not None:
+        return payload
 
     if isinstance(result, dict) and is_success_code(result.get("code")):
         payload = require_mapping_response(

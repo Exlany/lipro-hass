@@ -7,6 +7,7 @@ from typing import Any
 
 from ....const.config import CONF_BIZ_ID, CONF_USER_ID
 from ...device.device import LiproDevice
+from ...mqtt.topics import normalize_mqtt_biz_id
 
 
 def extract_mqtt_encrypted_credentials(
@@ -23,12 +24,12 @@ def extract_mqtt_encrypted_credentials(
 def resolve_mqtt_biz_id(config_entry_data: Mapping[str, Any]) -> str | None:
     """Resolve MQTT biz ID from config entry data with user_id fallback."""
     biz_id = config_entry_data.get(CONF_BIZ_ID)
-    if not biz_id:
+    if biz_id is None or str(biz_id).strip() == "":
         user_id = config_entry_data.get(CONF_USER_ID)
         if user_id is None:
             return None
-        biz_id = str(user_id)
-    return biz_id.removeprefix("lip_")
+        biz_id = user_id
+    return normalize_mqtt_biz_id(biz_id)
 
 
 def _dedupe_serials(serials: list[str]) -> list[str]:

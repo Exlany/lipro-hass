@@ -39,6 +39,10 @@ def test_resolve_mqtt_biz_id_prefers_biz_id_with_prefix_removal() -> None:
     assert resolve_mqtt_biz_id({CONF_BIZ_ID: "lip_10001", CONF_USER_ID: 88}) == "10001"
 
 
+def test_resolve_mqtt_biz_id_normalizes_whitespace_and_prefix_case() -> None:
+    assert resolve_mqtt_biz_id({CONF_BIZ_ID: "  LIP_10001  "}) == "10001"
+
+
 def test_resolve_mqtt_biz_id_falls_back_to_user_id() -> None:
     assert resolve_mqtt_biz_id({CONF_USER_ID: 12345}) == "12345"
 

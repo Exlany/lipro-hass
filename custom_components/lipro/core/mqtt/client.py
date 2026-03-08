@@ -546,7 +546,7 @@ class LiproMqttClient:
         """
         try:
             topic = str(message.topic)
-            device_id = parse_topic(topic)
+            device_id = parse_topic(topic, expected_biz_id=self._biz_id)
 
             if not device_id:
                 self._log_invalid_topic(topic)
@@ -600,7 +600,7 @@ class LiproMqttClient:
         except Exception as err:
             self._set_last_error(err)
             topic = str(getattr(message, "topic", "unknown"))
-            device_id = parse_topic(topic)
+            device_id = parse_topic(topic, expected_biz_id=self._biz_id)
             topic_context = (
                 f"device={_redact_identifier(device_id) or '***'}"
                 if device_id

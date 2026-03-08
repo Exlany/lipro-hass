@@ -77,15 +77,34 @@ _MQTT_PROPERTY_GROUPS: Final[tuple[str, ...]] = (
 )
 
 
+def _select_mqtt_property_source(payload: dict[str, Any]) -> dict[str, Any]:
+    """Select the dict that actually contains MQTT property groups."""
+    current = payload
+    for _ in range(3):
+        if any(isinstance(current.get(group_name), dict) for group_name in _MQTT_PROPERTY_GROUPS):
+            return current
+        next_payload = None
+        for wrapper_key in ("data", "payload"):
+            candidate = current.get(wrapper_key)
+            if isinstance(candidate, dict):
+                next_payload = candidate
+                break
+        if next_payload is None:
+            return current
+        current = next_payload
+    return current
+
+
 def parse_mqtt_payload(payload: Any) -> dict[str, Any]:
     """Parse MQTT payload and flatten properties."""
     if not isinstance(payload, dict):
         return {}
 
     properties: dict[str, Any] = {}
+    source = _select_mqtt_property_source(payload)
 
     for group_name in _MQTT_PROPERTY_GROUPS:
-        group_data = payload.get(group_name)
+        group_data = source.get(group_name)
         if not isinstance(group_data, dict):
             continue
 

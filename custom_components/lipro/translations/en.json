@@ -94,13 +94,13 @@
           "room_area_sync_force": "Default off (recommended): preserve user-customized HA areas and use cloud room as fallback. Turn on to always let cloud room overwrite HA area.",
           "command_result_verify": "Default on (recommended): poll cloud-reported command result status via msgSn and return clearer failures when no clear success state is observed within the retry budget. Turn off to trust pushSuccess for lower latency.",
           "device_filter_home_mode": "Select how to apply home filter: off/include/exclude.",
-          "device_filter_home_list": "Home names/IDs. Supports comma, semicolon, or newline separators.",
+          "device_filter_home_list": "Home or room names / home IDs. Matching is case-insensitive. Supports comma, semicolon, or newline separators.",
           "device_filter_model_mode": "Select how to apply model filter: off/include/exclude.",
-          "device_filter_model_list": "Model names (physicalModel/iotName/model). Supports comma, semicolon, or newline separators.",
+          "device_filter_model_list": "Model identifiers (physicalModel/iotName/model/productModel). Matching is case-insensitive. Supports comma, semicolon, or newline separators.",
           "device_filter_ssid_mode": "Select how to apply WiFi SSID filter: off/include/exclude.",
-          "device_filter_ssid_list": "WiFi SSID values. Supports comma, semicolon, or newline separators.",
+          "device_filter_ssid_list": "WiFi SSID values. Matching is case-insensitive. Supports comma, semicolon, or newline separators.",
           "device_filter_did_mode": "Select how to apply device ID filter: off/include/exclude.",
-          "device_filter_did_list": "Device identifiers (did/deviceId/serial). Supports comma, semicolon, or newline separators."
+          "device_filter_did_list": "Device identifiers (did/deviceDid/deviceId/iotDeviceId/serial). Matching is case-insensitive. Supports comma, semicolon, or newline separators."
         }
       }
     }

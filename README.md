@@ -261,7 +261,7 @@ Available options in integration settings:
   - **Auto Turn On When Adjusting While Off**: When enabled, adjusting brightness/color temperature while off will also turn on the light (disable to keep Lipro behavior)
   - **Force Cloud Room → HA Area**: Always overwrite Home Assistant area with cloud room assignment (use with caution)
   - **Check Command Result Status**: Default on (recommended). Poll cloud-reported command result status by `msgSn` after sending commands for a safer control loop. This does not guarantee delivery or device execution
-  - **Device Filtering (home/model/WiFi SSID/device ID)**: `off/include/exclude` + list (supports comma/semicolon/newline separators)
+  - **Device Filtering (home/model/WiFi SSID/device ID)**: `off/include/exclude` + list (supports comma/semicolon/newline separators; matching is case-insensitive)
 
 ## Known Limitations
 

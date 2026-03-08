@@ -1215,6 +1215,72 @@ async def test_options_flow_advanced_step(
     )
 
 
+async def test_options_flow_preserves_device_filter_token_boundaries_on_save(
+    hass: HomeAssistant,
+) -> None:
+    """Options flow should preserve newline/CRLF-separated filter tokens."""
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="Lipro (138****0000)",
+        data={
+            CONF_PHONE: "13800000000",
+            CONF_PASSWORD_HASH: "e10adc3949ba59abbe56e057f20f883e",
+            CONF_PHONE_ID: "550e8400-e29b-41d4-a716-446655440000",
+            "access_token": "test_token",
+            "refresh_token": "test_refresh",
+            "user_id": 10001,
+        },
+        unique_id="lipro_10001",
+    )
+    entry.add_to_hass(hass)
+
+    result = await hass.config_entries.options.async_init(entry.entry_id)
+    assert result["type"] is FlowResultType.FORM
+    assert result["step_id"] == "init"
+
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        {
+            "scan_interval": 30,
+            "mqtt_enabled": False,
+            "enable_power_monitoring": False,
+            "anonymous_share_enabled": True,
+            "anonymous_share_errors": True,
+            "show_advanced": True,
+        },
+    )
+    assert result["type"] is FlowResultType.FORM
+    assert result["step_id"] == "advanced"
+
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        {
+            "power_query_interval": 120,
+            "request_timeout": 45,
+            CONF_DEBUG_MODE: True,
+            CONF_LIGHT_TURN_ON_ON_ADJUST: False,
+            CONF_ROOM_AREA_SYNC_FORCE: True,
+            CONF_COMMAND_RESULT_VERIFY: True,
+            CONF_DEVICE_FILTER_HOME_MODE: DEVICE_FILTER_MODE_INCLUDE,
+            CONF_DEVICE_FILTER_HOME_LIST: "Main Home\r\nGuest Home",
+            CONF_DEVICE_FILTER_MODEL_MODE: DEVICE_FILTER_MODE_INCLUDE,
+            CONF_DEVICE_FILTER_MODEL_LIST: "fanLight; Strip",
+            CONF_DEVICE_FILTER_SSID_MODE: DEVICE_FILTER_MODE_OFF,
+            CONF_DEVICE_FILTER_SSID_LIST: "",
+            CONF_DEVICE_FILTER_DID_MODE: DEVICE_FILTER_MODE_INCLUDE,
+            CONF_DEVICE_FILTER_DID_LIST: "03ab5ccd7c000001\n03ab5ccd7c000002",
+        },
+    )
+
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    assert result["data"][CONF_DEVICE_FILTER_HOME_LIST] == "Main Home, Guest Home"
+    assert result["data"][CONF_DEVICE_FILTER_MODEL_LIST] == "fanLight, Strip"
+    assert (
+        result["data"][CONF_DEVICE_FILTER_DID_LIST]
+        == "03ab5ccd7c000001, 03ab5ccd7c000002"
+    )
+
+
 async def test_options_flow_truncates_device_filter_list_string_inputs(
     hass: HomeAssistant,
 ) -> None:

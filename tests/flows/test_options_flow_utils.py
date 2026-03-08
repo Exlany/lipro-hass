@@ -33,3 +33,9 @@ def test_normalize_device_filter_mode_option_normalizes_case() -> None:
 def test_normalize_device_filter_mode_option_invalid_returns_default() -> None:
     assert _normalize_device_filter_mode_option("unknown") == DEFAULT_DEVICE_FILTER_MODE
     assert _normalize_device_filter_mode_option(123) == DEFAULT_DEVICE_FILTER_MODE
+
+
+def test_coerce_device_filter_list_option_normalizes_newlines_and_semicolons() -> None:
+    result = _coerce_device_filter_list_option("Home A\r\nHome B; Home C")
+
+    assert result == "Home A, Home B, Home C"

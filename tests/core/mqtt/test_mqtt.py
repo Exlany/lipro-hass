@@ -184,6 +184,13 @@ class TestParseTopic:
         device_id = parse_topic("Topic_Device_State/biz001/03ab5ccd7cxxxxxx")
 
         assert device_id == "03ab5ccd7cxxxxxx"
+        assert (
+            parse_topic(
+                "Topic_Device_State/biz001/03ab5ccd7cxxxxxx",
+                expected_biz_id="lip_biz001",
+            )
+            == "03ab5ccd7cxxxxxx"
+        )
 
     def test_parse_topic_invalid(self):
         """Test parsing invalid topic."""
@@ -201,6 +208,17 @@ class TestParseTopic:
         """Topic should reject invalid biz/device segment characters."""
         assert parse_topic("Topic_Device_State/biz$/device") is None
         assert parse_topic("Topic_Device_State/biz/device#1") is None
+
+
+    def test_parse_topic_rejects_mismatched_expected_biz(self):
+        """Expected biz ID mismatch should reject the topic."""
+        assert (
+            parse_topic(
+                "Topic_Device_State/biz123/03ab5ccd7cxxxxxx",
+                expected_biz_id="biz001",
+            )
+            is None
+        )
 
 
 class TestParseMqttPayload:
@@ -263,6 +281,15 @@ class TestParseMqttPayload:
         result = parse_mqtt_payload({})
 
         assert result == {}
+
+    def test_parse_payload_wrapper_fallback(self):
+        """Wrapper payloads should fall back to nested data/payload dicts."""
+        result = parse_mqtt_payload({"data": {"light": {"powerState": "1"}}})
+        assert result["powerState"] == "1"
+
+        nested = parse_mqtt_payload({"payload": {"common": {"connectState": "1"}}})
+        assert nested["connectState"] == "1"
+
 
     def test_parse_non_dict_payload(self):
         """Test parsing payload safely ignores non-dict JSON types."""
@@ -534,7 +561,7 @@ class TestLiproMqttClient:
 
         # Create mock message
         message = MagicMock()
-        message.topic = "Topic_Device_State/biz123/03ab5ccd7cxxxxxx"
+        message.topic = "Topic_Device_State/biz001/03ab5ccd7cxxxxxx"
         message.payload = b'{"light": {"powerState": "1"}}'
 
         client._process_message(message)
@@ -556,7 +583,7 @@ class TestLiproMqttClient:
         )
 
         message = MagicMock()
-        message.topic = "Topic_Device_State/biz123/03ab5ccd7cxxxxxx"
+        message.topic = "Topic_Device_State/biz001/03ab5ccd7cxxxxxx"
         message.payload = memoryview(b'{"light": {"powerState": "1"}}')
 
         client._process_message(message)
@@ -565,6 +592,26 @@ class TestLiproMqttClient:
         call_args = on_message.call_args
         assert call_args[0][0] == "03ab5ccd7cxxxxxx"
         assert call_args[0][1]["powerState"] == "1"
+
+    def test_process_message_ignores_mismatched_biz_id(self):
+        """Messages for a different biz ID should be ignored."""
+        on_message = MagicMock()
+        client = LiproMqttClient(
+            access_key="access",
+            secret_key="secret",
+            biz_id="biz001",
+            phone_id="550e8400-e29b-41d4-a716-446655440000",
+            on_message=on_message,
+        )
+
+        message = MagicMock()
+        message.topic = "Topic_Device_State/biz123/03ab5ccd7cxxxxxx"
+        message.payload = b'{"light": {"powerState": "1"}}'
+
+        client._process_message(message)
+
+        on_message.assert_not_called()
+
 
     def test_process_message_invalid_json(self):
         """Test message processing with invalid JSON."""
