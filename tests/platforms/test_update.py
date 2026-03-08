@@ -823,37 +823,6 @@ async def test_update_entity_uses_iot_name_for_type_certification(
     assert entity.extra_state_attributes["certified"] is True
 
 
-@pytest.mark.asyncio
-async def test_update_entity_score_ota_row_accumulates_expected_weights(
-    mock_coordinator, make_device
-):
-    """OTA row score should accumulate all matching dimensions plus version bonus."""
-    from custom_components.lipro.entities.firmware_update import (
-        LiproFirmwareUpdateEntity,
-    )
-
-    device = make_device(
-        "light",
-        serial="03ab5ccd7c333333",
-        iot_name="21P3",
-        product_id=11,
-        properties={"version": "7.10.8"},
-    )
-    entity = LiproFirmwareUpdateEntity(mock_coordinator, device)
-
-    score = entity._score_ota_row(
-        {
-            "deviceId": "03ab5ccd7c333333",
-            "deviceType": device.device_type_hex,
-            "bleName": "21P3",
-            "iotName": "21P3",
-            "productId": str(device.product_id),
-            "physicalModel": device.physical_model,
-            "latestVersion": "7.10.9",
-        }
-    )
-
-    assert score == 27
 
 
 @pytest.mark.asyncio

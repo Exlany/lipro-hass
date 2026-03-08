@@ -24,7 +24,7 @@ from ..core.ota.candidate import _OtaCandidate, build_candidate
 from ..core.ota.manifest import (
     matches_certified_versions as _ota_matches_certified_versions,
 )
-from ..core.ota.row_selector import row_targets_other_device, score_row, select_best_row
+from ..core.ota.row_selector import row_targets_other_device, select_best_row
 from ..core.ota.rows_cache import OtaRowsCacheKey, async_get_rows_with_shared_cache
 from ..core.utils.log_safety import safe_error_placeholder
 from ..entities.base import LiproEntity
@@ -378,16 +378,6 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
             physical_model=(self.device.physical_model or "").lower(),
         )
 
-    def _score_ota_row(self, row: dict[str, Any]) -> int:
-        """Score one OTA row against this device."""
-        return score_row(
-            row,
-            serial=self.device.serial.lower(),
-            device_type=self.device.device_type_hex.lower(),
-            iot_name=(self.device.iot_name or "").lower(),
-            product_id=str(self.device.product_id),
-            physical_model=(self.device.physical_model or "").lower(),
-        )
 
     def _is_version_newer(self, candidate: str, current: str) -> bool:
         """Compare versions with HA helper, fallback to conservative False."""
