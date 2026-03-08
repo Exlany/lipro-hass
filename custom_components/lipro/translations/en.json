@@ -263,7 +263,7 @@
     },
     "get_schedules": {
       "name": "Get Schedules",
-      "description": "Get the list of timing schedules for a device. For mesh groups, reads use BLE gateway/member candidates only; tested standard schedule/get.do may return empty success and is not treated as a reliable fallback.",
+      "description": "Get recurring weekly schedules for a device. Weekdays use 1=Monday through 7=Sunday. For mesh groups, reads use BLE gateway/member candidates only; tested standard schedule/get.do may return empty success and is not treated as a reliable fallback.",
       "fields": {
         "device_id": {
           "name": "Device ID",
@@ -273,7 +273,7 @@
     },
     "add_schedule": {
       "name": "Add Schedule",
-      "description": "Add or update a timing schedule for a device. For mesh groups, writes use BLE gateway/member candidates only; tested standard schedule/addOrUpdate.do is not a reliable fallback.",
+      "description": "Add a recurring weekly timing schedule for a device. No absolute-date schedule mode is exposed. For mesh groups, writes use BLE gateway/member candidates only; tested standard schedule/addOrUpdate.do is not a reliable fallback.",
       "fields": {
         "device_id": {
           "name": "Device ID",
@@ -281,11 +281,11 @@
         },
         "days": {
           "name": "Days",
-          "description": "List of weekdays when the schedule should run (1=Monday, 7=Sunday)."
+          "description": "List of weekdays for the recurring schedule (1=Monday, 7=Sunday)."
         },
         "times": {
           "name": "Times",
-          "description": "List of times in seconds from midnight (0-86399)."
+          "description": "List of times in seconds from midnight (0-86399), matching the app's 24-hour hour/minute UI."
         },
         "events": {
           "name": "Events",

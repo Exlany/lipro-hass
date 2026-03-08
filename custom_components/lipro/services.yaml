@@ -50,8 +50,9 @@ send_command:
 get_schedules:
   name: Get Schedules
   description: >-
-    Get the list of timing schedules for a device. Schedules are stored on the
-    device and execute even when Home Assistant is offline. For mesh groups,
+    Get the recurring weekly schedules for a device. Weekdays use 1=Monday
+    through 7=Sunday. Schedules are stored on the device and execute even
+    when Home Assistant is offline. For mesh groups,
     the integration reads through BLE schedule queries with gateway/member
     candidates only. Tested standard `schedule/get.do` may return empty
     success and is not treated as a reliable fallback.
@@ -72,8 +73,9 @@ get_schedules:
 add_schedule:
   name: Add Schedule
   description: >-
-    Add or update a timing schedule for a device. The schedule is stored on the
-    device and will execute even when Home Assistant is offline. Each time entry
+    Add a recurring weekly timing schedule for a device. No absolute-date
+    schedule mode is exposed. The schedule is stored on the device and will
+    execute even when Home Assistant is offline. Each time entry
     corresponds to an event (action) at that time. For mesh groups, the
     integration writes through BLE schedule calls with gateway/member
     candidates only. Tested standard `schedule/addOrUpdate.do` is not a
@@ -94,7 +96,7 @@ add_schedule:
     days:
       name: Days
       description: >-
-        List of weekdays when the schedule should run (1=Monday, 7=Sunday).
+        List of weekdays for the recurring schedule (1=Monday, 7=Sunday).
       required: true
       example: [1, 2, 3, 4, 5, 6, 7]
       selector:
@@ -118,8 +120,9 @@ add_schedule:
     times:
       name: Times
       description: >-
-        List of times in seconds from midnight (0-86399). For example, 28800 = 08:00,
-        61200 = 17:00. Each time corresponds to an event in the events list.
+        List of times in seconds from midnight (0-86399). For example, 28800 = 08:00
+        and 61200 = 17:00. This matches the app's 24-hour hour/minute UI. Each
+        time corresponds to an event in the events list.
       required: true
       example: [28800, 61200]
       selector:

@@ -36,8 +36,8 @@ Home Assistant 集成，用于控制 Lipro 智能家居设备。
 ## 服务
 
 - `lipro.send_command` - 发送原始命令到设备
-- `lipro.get_schedules` - 获取设备定时任务；mesh group 的读取以 BLE/gateway-member 候选为准。对已测 mesh BLE schedule，标准 `schedule/get.do` 可能返回空成功，不能假定为可靠读回退
-- `lipro.add_schedule` - 添加或更新定时任务；mesh group 仅通过 BLE/gateway-member 候选写入，因为实测标准 `schedule/addOrUpdate.do` 不是可靠回退链路
+- `lipro.get_schedules` - 获取按周重复的定时任务；星期使用 `1=周一` 到 `7=周日`。mesh group 的读取以 BLE/gateway-member 候选为准。对已测 mesh BLE schedule，标准 `schedule/get.do` 可能返回空成功，不能假定为可靠读回退
+- `lipro.add_schedule` - 添加按周重复的定时任务；当前不暴露绝对日期定时模式。mesh group 仅通过 BLE/gateway-member 候选写入，因为实测标准 `schedule/addOrUpdate.do` 不是可靠回退链路
 - `lipro.delete_schedules` - 按 ID 删除定时任务；mesh group 仅通过 BLE/gateway-member 候选删除，因为实测标准 `schedule/delete.do` 可能回成功但并未删除目标任务
 - `lipro.submit_anonymous_share` - 手动提交匿名分享报告
 - `lipro.get_anonymous_share_report` - 预览匿名分享报告

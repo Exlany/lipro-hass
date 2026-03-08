@@ -263,7 +263,7 @@
     },
     "get_schedules": {
       "name": "获取定时任务",
-      "description": "获取设备的定时任务列表。对于 mesh group，读取仅使用 BLE/gateway-member 候选；实测标准 schedule/get.do 可能返回空成功，不能视为可靠回退链路。",
+      "description": "获取按周重复的定时任务列表，星期使用 1=周一 到 7=周日。对于 mesh group，读取仅使用 BLE/gateway-member 候选；实测标准 schedule/get.do 可能返回空成功，不能视为可靠回退链路。",
       "fields": {
         "device_id": {
           "name": "设备 ID",
@@ -273,7 +273,7 @@
     },
     "add_schedule": {
       "name": "添加定时任务",
-      "description": "为设备添加或更新定时任务。对于 mesh group，写入仅使用 BLE/gateway-member 候选；实测标准 schedule/addOrUpdate.do 不是可靠回退链路。",
+      "description": "为设备添加按周重复的定时任务，当前不暴露绝对日期定时模式。对于 mesh group，写入仅使用 BLE/gateway-member 候选；实测标准 schedule/addOrUpdate.do 不是可靠回退链路。",
       "fields": {
         "device_id": {
           "name": "设备 ID",
@@ -281,11 +281,11 @@
         },
         "days": {
           "name": "星期",
-          "description": "定时任务执行的星期几（1=周一，7=周日）。"
+          "description": "按周重复定时执行的星期几（1=周一，7=周日）。"
         },
         "times": {
           "name": "时间",
-          "description": "从午夜开始的秒数列表（0-86399）。"
+          "description": "从午夜开始的秒数列表（0-86399），与 App 的 24 小时制时/分 UI 对应。"
         },
         "events": {
           "name": "事件",
