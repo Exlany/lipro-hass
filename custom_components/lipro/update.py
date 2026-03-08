@@ -19,7 +19,6 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up Lipro firmware update entities."""
-    del hass
     coordinator = entry.runtime_data
     entities = [
         LiproFirmwareUpdateEntity(coordinator, device)
