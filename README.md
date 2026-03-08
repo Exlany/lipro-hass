@@ -43,7 +43,7 @@ Home Assistant integration for controlling Lipro Smart Home devices.
 - `lipro.get_anonymous_share_report` - Preview anonymous share report
 - `lipro.get_developer_report` - Export sanitized runtime diagnostics report (all entries or one `entry_id`)
 - `lipro.submit_developer_feedback` - One-click submit developer diagnostics report (all entries or one `entry_id`)
-- `lipro.query_command_result` - Query command delivery result by message serial number with bounded polling (developer capability)
+- `lipro.query_command_result` - Query cloud-reported command status by message serial number with bounded polling (developer capability)
 - `lipro.get_city` - Query cloud city metadata using the verified empty-object payload contract (developer capability)
 - `lipro.query_user_cloud` - Query user cloud metadata using the verified empty-string payload contract; tested responses may contain only top-level `data` without a `code` wrapper (developer capability)
 - `lipro.fetch_body_sensor_history` - Fetch body sensor history payload for debugging (developer capability)
@@ -260,7 +260,7 @@ Available options in integration settings:
   - **Debug Mode (Diagnostics)**: Capture runtime diagnostics (mesh topology + command traces). For verbose logs, configure Home Assistant logger settings.
   - **Auto Turn On When Adjusting While Off**: When enabled, adjusting brightness/color temperature while off will also turn on the light (disable to keep Lipro behavior)
   - **Force Cloud Room → HA Area**: Always overwrite Home Assistant area with cloud room assignment (use with caution)
-  - **Verify Command Delivery Result**: Default on (recommended). Query delivery result by `msgSn` after sending commands for a safer control closed loop
+  - **Check Command Result Status**: Default on (recommended). Poll cloud-reported command result status by `msgSn` after sending commands for a safer control loop. This does not guarantee delivery or device execution
   - **Device Filtering (home/model/WiFi SSID/device ID)**: `off/include/exclude` + list (supports comma/semicolon/newline separators)
 
 ## Known Limitations

@@ -43,7 +43,7 @@ Home Assistant 集成，用于控制 Lipro 智能家居设备。
 - `lipro.get_anonymous_share_report` - 预览匿名分享报告
 - `lipro.get_developer_report` - 导出脱敏运行诊断报告（全部条目或指定 entry_id）
 - `lipro.submit_developer_feedback` - 一键提交开发者诊断反馈（全部条目或指定 entry_id）
-- `lipro.query_command_result` - 按消息序列号查询指令投递结果（开发者能力）
+- `lipro.query_command_result` - 按消息序列号查询云端上报的命令状态（开发者能力）
 - `lipro.get_city` - 按已验证的空对象 payload 契约查询云端城市元数据（开发者能力）
 - `lipro.query_user_cloud` - 按已验证的空字符串 payload 契约查询用户云端元数据；实测响应可能只有顶层 `data`，没有 `code` 包装（开发者能力）
 - `lipro.fetch_body_sensor_history` - 拉取人体传感器历史载荷用于调试（开发者能力）
@@ -279,7 +279,7 @@ data:
   - **调试模式（诊断）**：采集运行诊断（mesh 拓扑 + 命令轨迹）。更详细日志请通过 Home Assistant 的日志配置开启。
   - **关灯时调亮度/色温自动开灯**：关灯状态下调节亮度/色温也会自动开灯（如需保持 Lipro 行为可关闭）
   - **强制用云端房间覆盖 HA 区域**：始终以云端房间覆盖 HA 区域（谨慎）
-  - **校验命令下发结果**：默认开启（推荐）。基于 msgSn 查询命令结果，形成更稳妥的控制闭环
+  - **检查命令结果状态**：默认开启（推荐）。发送命令后基于 `msgSn` 轮询云端命令结果状态，用于辅助判断控制闭环；不等同于送达确认或设备已执行
   - **设备过滤（家庭/型号/WiFi SSID/设备 ID）**：off/include/exclude + 列表，支持逗号/分号/换行分隔
 
 ## 已知限制
