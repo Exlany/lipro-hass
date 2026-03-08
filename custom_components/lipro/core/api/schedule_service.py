@@ -28,6 +28,31 @@ def _redact_candidate_id(candidate_id: str) -> str:
     return f"***{candidate_id[-4:]}"
 
 
+def _next_mesh_schedule_id(rows: list[dict[str, Any]]) -> int:
+    """Return the first free non-negative mesh schedule ID."""
+    used_ids: set[int] = set()
+
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        raw_id = row.get("id")
+        if isinstance(raw_id, bool):
+            continue
+        if isinstance(raw_id, int):
+            if raw_id >= 0:
+                used_ids.add(raw_id)
+            continue
+        if isinstance(raw_id, str):
+            normalized = raw_id.strip()
+            if normalized.isdigit():
+                used_ids.add(int(normalized))
+
+    next_id = 0
+    while next_id in used_ids:
+        next_id += 1
+    return next_id
+
+
 async def execute_mesh_schedule_candidate_request(
     *,
     candidate_id: str,
@@ -172,12 +197,22 @@ async def add_mesh_schedule_by_candidates(
     last_error: Exception | None = None
 
     for candidate_id in candidate_device_ids:
+        existing_rows = await get_mesh_schedules_by_candidates_request(
+            candidate_device_ids=[candidate_id],
+            raise_on_total_failure=False,
+        )
+        schedule_id = _next_mesh_schedule_id(existing_rows)
+
         succeeded, _, error = await execute_candidate_request(
             candidate_id=candidate_id,
             operation="ADD",
-            request=lambda candidate: iot_request(
+            request=lambda candidate, schedule_id=schedule_id: iot_request(
                 path_ble_schedule_add,
-                build_mesh_schedule_add_body(candidate, schedule_json=schedule_json),
+                build_mesh_schedule_add_body(
+                    candidate,
+                    schedule_json=schedule_json,
+                    schedule_id=schedule_id,
+                ),
             ),
         )
         if succeeded:

@@ -2587,6 +2587,7 @@ class TestLiproClientSchedules:
             client, "_iot_request", new_callable=AsyncMock
         ) as mock_request:
             mock_request.side_effect = [
+                {"timings": []},
                 {"msgSn": "1"},
                 {"timings": []},
             ]
@@ -2601,8 +2602,12 @@ class TestLiproClientSchedules:
             )
 
         assert result == []
-        assert len(mock_request.await_args_list) == 2
-        add_call = mock_request.await_args_list[0]
+        assert len(mock_request.await_args_list) == 3
+        assert mock_request.await_args_list[0].args == (
+            PATH_BLE_SCHEDULE_GET,
+            {"deviceId": gateway_id, "deviceType": "mesh"},
+        )
+        add_call = mock_request.await_args_list[1]
         assert add_call.args[0] == PATH_BLE_SCHEDULE_ADD
         assert add_call.args[1]["deviceId"] == gateway_id
         assert add_call.args[1]["id"] == 0
@@ -2612,12 +2617,52 @@ class TestLiproClientSchedules:
             "time": [28800, 61200],
             "evt": [0, 1],
         }
-        assert mock_request.await_args_list[1].args == (
+        assert mock_request.await_args_list[2].args == (
             PATH_BLE_SCHEDULE_GET,
             {"deviceId": gateway_id, "deviceType": "mesh"},
         )
 
     @pytest.mark.asyncio
+    async def test_add_device_schedule_mesh_uses_first_free_schedule_id(self):
+        """Mesh schedule ADD should append to the first free schedule slot."""
+        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client.set_tokens("access", "refresh")
+
+        gateway_id = "03ab0000000000a1"
+        existing_rows = [
+            {
+                "id": 0,
+                "active": True,
+                "scheduleJson": '{"days":[1],"time":[28800],"evt":[0]}',
+            },
+            {
+                "id": 2,
+                "active": True,
+                "scheduleJson": '{"days":[2],"time":[61200],"evt":[1]}',
+            },
+        ]
+        with patch.object(
+            client, "_iot_request", new_callable=AsyncMock
+        ) as mock_request:
+            mock_request.side_effect = [
+                {"timings": existing_rows},
+                {"msgSn": "1"},
+                {"timings": []},
+            ]
+
+            await client.add_device_schedule(
+                "mesh_group_10001",
+                9,
+                [1, 2, 3],
+                [28800, 61200],
+                [0, 1],
+                mesh_gateway_id=gateway_id,
+            )
+
+        add_call = mock_request.await_args_list[1]
+        assert add_call.args[0] == PATH_BLE_SCHEDULE_ADD
+        assert add_call.args[1]["id"] == 1
+
     async def test_delete_device_schedules_mesh_uses_ble_endpoint(self):
         """Mesh schedule DELETE should call BLE delete endpoint."""
         client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
@@ -3884,7 +3929,9 @@ class TestLiproClientAdditionalBranchCoverage:
             client, "_iot_request", new_callable=AsyncMock
         ) as mock_request:
             mock_request.side_effect = [
+                {"timings": []},
                 LiproApiError("bad1", 500),
+                {"timings": []},
                 LiproApiError("bad2", 501),
             ]
             with pytest.raises(LiproApiError, match="bad2"):

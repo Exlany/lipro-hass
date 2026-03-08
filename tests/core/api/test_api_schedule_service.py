@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import asyncio
 from types import SimpleNamespace
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, call
 
 import pytest
 
@@ -101,13 +101,16 @@ async def test_get_mesh_schedules_by_candidates_returns_without_waiting_slow_can
 async def test_add_mesh_schedule_by_candidates_returns_refreshed_rows_on_success() -> (
     None
 ):
-    execute_candidate_request = AsyncMock(
-        side_effect=[
-            (False, None, DummyApiError("busy", 500)),
-            (True, {"ok": True}, None),
-        ]
+    async def execute_candidate_request(*, candidate_id, request, **_kwargs):
+        await request(candidate_id)
+        if candidate_id.endswith("a1"):
+            return False, None, DummyApiError("busy", 500)
+        return True, {"ok": True}, None
+
+    iot_request = AsyncMock(return_value={})
+    get_mesh_schedules = AsyncMock(
+        side_effect=[[{"id": 0}], [{"id": 0}], [{"id": 1}]]
     )
-    get_mesh_schedules = AsyncMock(return_value=[{"id": 1}])
 
     result = await add_mesh_schedule_by_candidates(
         candidate_device_ids=["03ab0000000000a1", "03ab0000000000a2"],
@@ -115,22 +118,77 @@ async def test_add_mesh_schedule_by_candidates_returns_refreshed_rows_on_success
         times=[3600],
         events=[0],
         execute_candidate_request=execute_candidate_request,
-        iot_request=AsyncMock(return_value={}),
+        iot_request=iot_request,
         get_mesh_schedules_by_candidates_request=get_mesh_schedules,
         path_ble_schedule_add="/v2/schedule/add",
-        build_mesh_schedule_add_body=lambda candidate, schedule_json: {
+        build_mesh_schedule_add_body=lambda candidate, schedule_json, schedule_id: {
             "deviceId": candidate,
             "scheduleJson": schedule_json,
+            "id": schedule_id,
         },
         encode_mesh_schedule_json=lambda *_: '{"days":[1],"time":[3600],"evt":[0]}',
     )
 
     assert result == [{"id": 1}]
-    assert execute_candidate_request.await_count == 2
-    get_mesh_schedules.assert_awaited_once_with(
-        candidate_device_ids=["03ab0000000000a1", "03ab0000000000a2"],
-        raise_on_total_failure=False,
+    assert iot_request.await_count == 2
+    assert iot_request.await_args_list[0].args[1]["id"] == 1
+    assert iot_request.await_args_list[1].args[1]["id"] == 1
+    assert get_mesh_schedules.await_args_list == [
+        call(
+            candidate_device_ids=["03ab0000000000a1"],
+            raise_on_total_failure=False,
+        ),
+        call(
+            candidate_device_ids=["03ab0000000000a2"],
+            raise_on_total_failure=False,
+        ),
+        call(
+            candidate_device_ids=["03ab0000000000a1", "03ab0000000000a2"],
+            raise_on_total_failure=False,
+        ),
+    ]
+
+
+@pytest.mark.asyncio
+async def test_add_mesh_schedule_by_candidates_uses_first_free_gap() -> None:
+    async def execute_candidate_request(*, candidate_id, request, **_kwargs):
+        await request(candidate_id)
+        return True, {"ok": True}, None
+
+    iot_request = AsyncMock(return_value={})
+    get_mesh_schedules = AsyncMock(
+        side_effect=[[{"id": 0}, {"id": 2}], [{"id": 1}]]
     )
+
+    result = await add_mesh_schedule_by_candidates(
+        candidate_device_ids=["03ab0000000000a1"],
+        days=[1],
+        times=[3600],
+        events=[0],
+        execute_candidate_request=execute_candidate_request,
+        iot_request=iot_request,
+        get_mesh_schedules_by_candidates_request=get_mesh_schedules,
+        path_ble_schedule_add="/v2/schedule/add",
+        build_mesh_schedule_add_body=lambda candidate, schedule_json, schedule_id: {
+            "deviceId": candidate,
+            "scheduleJson": schedule_json,
+            "id": schedule_id,
+        },
+        encode_mesh_schedule_json=lambda *_: '{"days":[1],"time":[3600],"evt":[0]}',
+    )
+
+    assert result == [{"id": 1}]
+    assert iot_request.await_args_list[0].args[1]["id"] == 1
+    assert get_mesh_schedules.await_args_list == [
+        call(
+            candidate_device_ids=["03ab0000000000a1"],
+            raise_on_total_failure=False,
+        ),
+        call(
+            candidate_device_ids=["03ab0000000000a1"],
+            raise_on_total_failure=False,
+        ),
+    ]
 
 
 @pytest.mark.asyncio
@@ -154,9 +212,10 @@ async def test_add_mesh_schedule_by_candidates_raises_last_error_on_total_failur
             iot_request=AsyncMock(return_value={}),
             get_mesh_schedules_by_candidates_request=AsyncMock(return_value=[]),
             path_ble_schedule_add="/v2/schedule/add",
-            build_mesh_schedule_add_body=lambda candidate, schedule_json: {
+            build_mesh_schedule_add_body=lambda candidate, schedule_json, schedule_id: {
                 "deviceId": candidate,
                 "scheduleJson": schedule_json,
+                "id": schedule_id,
             },
             encode_mesh_schedule_json=lambda *_: '{"days":[1],"time":[3600],"evt":[0]}',
         )
@@ -173,9 +232,10 @@ async def test_add_mesh_schedule_by_candidates_empty_candidates_returns_empty() 
         iot_request=AsyncMock(return_value={}),
         get_mesh_schedules_by_candidates_request=AsyncMock(return_value=[]),
         path_ble_schedule_add="/v2/schedule/add",
-        build_mesh_schedule_add_body=lambda candidate, schedule_json: {
+        build_mesh_schedule_add_body=lambda candidate, schedule_json, schedule_id: {
             "deviceId": candidate,
             "scheduleJson": schedule_json,
+            "id": schedule_id,
         },
         encode_mesh_schedule_json=lambda *_: '{"days":[1],"time":[3600],"evt":[0]}',
     )

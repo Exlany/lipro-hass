@@ -65,11 +65,12 @@ def build_mesh_schedule_add_body(
     device_id: str,
     *,
     schedule_json: str,
+    schedule_id: int,
 ) -> dict[str, Any]:
     """Build BLE mesh schedule ADD request body."""
     return {
         "deviceId": device_id,
-        "id": 0,
+        "id": schedule_id,
         "scheduleJson": schedule_json,
         "active": True,
     }
