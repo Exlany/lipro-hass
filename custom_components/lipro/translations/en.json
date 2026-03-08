@@ -353,7 +353,7 @@
     },
     "query_command_result": {
       "name": "Query Command Result",
-      "description": "Developer-only optional capability. Query command delivery result by msgSn with bounded polling inside the default ~3 second budget.",
+      "description": "Developer-only optional capability. Query command delivery result by msgSn with bounded polling inside the default retry budget. Actual attempts may be lower than max_attempts because exponential backoff is clipped by the time budget.",
       "fields": {
         "device_id": {
           "name": "Device ID",

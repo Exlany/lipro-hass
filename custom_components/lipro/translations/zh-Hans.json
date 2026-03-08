@@ -353,7 +353,7 @@
     },
     "query_command_result": {
       "name": "查询命令结果",
-      "description": "（开发者）根据 msgSn 查询命令下发结果，并在默认约 3 秒预算内执行有界轮询；不会改变正常控制流程。",
+      "description": "（开发者）根据 msgSn 查询命令下发结果，并在默认重试预算内执行有界轮询；实际尝试次数可能低于 max_attempts，因为指数退避会被时间预算截断。",
       "fields": {
         "device_id": {
           "name": "设备 ID",
