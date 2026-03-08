@@ -40,7 +40,8 @@ from .runtime_infra import (
     remove_device_registry_listener,
     setup_device_registry_listener,
 )
-from .services.entrypoints import async_setup_services, remove_services
+from .services.registrations import SERVICE_REGISTRATIONS
+from .services.registry import async_setup_services, remove_services
 
 if TYPE_CHECKING:
     from homeassistant.helpers.typing import ConfigType
@@ -73,7 +74,11 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """Set up the Lipro component."""
     await async_ensure_runtime_infra(
         hass,
-        setup_services=async_setup_services,
+        setup_services=partial(
+            async_setup_services,
+            domain=DOMAIN,
+            registrations=SERVICE_REGISTRATIONS,
+        ),
         setup_device_registry_listener=_SETUP_DEVICE_REGISTRY_LISTENER,
     )
     return True
@@ -83,7 +88,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: LiproConfigEntry) -> boo
     """Set up Lipro from a config entry."""
     await async_ensure_runtime_infra(
         hass,
-        setup_services=async_setup_services,
+        setup_services=partial(
+            async_setup_services,
+            domain=DOMAIN,
+            registrations=SERVICE_REGISTRATIONS,
+        ),
         setup_device_registry_listener=_SETUP_DEVICE_REGISTRY_LISTENER,
     )
 
@@ -159,7 +168,11 @@ async def async_unload_entry(hass: HomeAssistant, entry: LiproConfigEntry) -> bo
         lock = get_runtime_infra_lock(hass)
         if lock is None:
             if not has_other_runtime_entries(hass, exclude_entry_id=entry.entry_id):
-                remove_services(hass)
+                remove_services(
+                    hass,
+                    domain=DOMAIN,
+                    registrations=SERVICE_REGISTRATIONS,
+                )
                 remove_device_registry_listener(hass)
         else:
             async with lock:
@@ -167,7 +180,11 @@ async def async_unload_entry(hass: HomeAssistant, entry: LiproConfigEntry) -> bo
                     hass,
                     exclude_entry_id=entry.entry_id,
                 ):
-                    remove_services(hass)
+                    remove_services(
+                        hass,
+                        domain=DOMAIN,
+                        registrations=SERVICE_REGISTRATIONS,
+                    )
                     remove_device_registry_listener(hass)
 
     return result

@@ -1197,7 +1197,13 @@ class TestInitRuntimeBehavior:
         ):
             assert await async_unload_entry(hass, entry) is True
 
-        mock_remove_services.assert_called_once_with(hass)
+        from custom_components.lipro.services.registrations import SERVICE_REGISTRATIONS
+
+        mock_remove_services.assert_called_once_with(
+            hass,
+            domain=DOMAIN,
+            registrations=SERVICE_REGISTRATIONS,
+        )
         mock_remove_listener.assert_called_once_with(hass)
 
     async def test_async_reload_entry_forwards_to_hass(self, hass) -> None:
