@@ -182,13 +182,11 @@ class LiproLight(LiproEntity, LightEntity):
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn on the light."""
         state_changes: dict[str, int] = {}
-        optimistic: dict[str, int] = {}
 
         # Handle brightness
         if ATTR_BRIGHTNESS in kwargs:
             brightness = self._ha_brightness_to_device(kwargs[ATTR_BRIGHTNESS])
             state_changes[PROP_BRIGHTNESS] = brightness
-            optimistic[PROP_BRIGHTNESS] = brightness
 
         # Handle color temperature (only if device supports it)
         if ATTR_COLOR_TEMP_KELVIN in kwargs and self.device.supports_color_temp:
@@ -196,21 +194,14 @@ class LiproLight(LiproEntity, LightEntity):
                 int(kwargs[ATTR_COLOR_TEMP_KELVIN])
             )
             state_changes[PROP_TEMPERATURE] = temp_percent
-            optimistic[PROP_TEMPERATURE] = temp_percent
 
         # Use debounce for slider controls (brightness, color_temp)
         # to avoid flooding API when user drags the slider.
         if state_changes:
             state_changes = self._merge_slider_state(state_changes)
-            optimistic = dict(state_changes)
             if not self.is_on and self._turn_on_when_adjusting_while_off():
                 state_changes[PROP_POWER_STATE] = 1
-                optimistic[PROP_POWER_STATE] = 1
-            await self.async_change_state(
-                state_changes,
-                optimistic_state=optimistic,
-                debounced=True,
-            )
+            await self.async_change_state(state_changes, debounced=True)
         else:
             # Just turn on (no debounce needed for simple on/off)
             await self.async_send_command(CMD_POWER_ON, None, {PROP_POWER_STATE: "1"})
