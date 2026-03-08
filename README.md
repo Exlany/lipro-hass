@@ -43,7 +43,7 @@ Home Assistant integration for controlling Lipro Smart Home devices.
 - `lipro.get_anonymous_share_report` - Preview anonymous share report
 - `lipro.get_developer_report` - Export sanitized runtime diagnostics report (all entries or one `entry_id`)
 - `lipro.submit_developer_feedback` - One-click submit developer diagnostics report (all entries or one `entry_id`)
-- `lipro.query_command_result` - Query command delivery result by message serial number (developer capability)
+- `lipro.query_command_result` - Query command delivery result by message serial number with bounded polling (default: up to 6 attempts within ~3 seconds; developer capability)
 - `lipro.get_city` - Query cloud city metadata using the verified empty-object payload contract (developer capability)
 - `lipro.query_user_cloud` - Query user cloud metadata using the verified empty-string payload contract; tested responses may contain only top-level `data` without a `code` wrapper (developer capability)
 - `lipro.fetch_body_sensor_history` - Fetch body sensor history payload for debugging (developer capability)
