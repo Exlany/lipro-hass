@@ -136,11 +136,14 @@ async def test_execute_command_dispatch_group_error_fallback_to_member() -> None
 
 
 @pytest.mark.asyncio
-async def test_execute_command_dispatch_group_push_fail_fallback_to_member() -> None:
-    """group pushSuccess=false should fallback to member when fallback id is present."""
+@pytest.mark.parametrize("push_success", [False, 0, "0", "false"])
+async def test_execute_command_dispatch_group_push_fail_fallback_to_member(
+    push_success: object,
+) -> None:
+    """Bool-like push failure values should fallback to member when configured."""
     device = _make_device(serial="mesh_group_10001", is_group=True)
     client = AsyncMock()
-    client.send_group_command = AsyncMock(return_value={"pushSuccess": False})
+    client.send_group_command = AsyncMock(return_value={"pushSuccess": push_success})
     client.send_command = AsyncMock(return_value={"pushSuccess": True, "source": "m"})
 
     result, route = await execute_command_dispatch(

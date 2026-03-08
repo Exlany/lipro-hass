@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING, Any
 from ..api import LiproApiError
 from ..device import LiproDevice
 from ..utils.identifiers import is_valid_iot_device_id
+from .result import is_command_push_failed
 from .trace import update_trace_with_resolved_request, update_trace_with_response
 
 if TYPE_CHECKING:
@@ -231,11 +232,7 @@ def _should_fallback_after_group_result(
     result: Any,
 ) -> bool:
     """Return whether group push result should fallback to member command."""
-    return (
-        member_fallback_id is not None
-        and isinstance(result, dict)
-        and result.get("pushSuccess") is False
-    )
+    return member_fallback_id is not None and is_command_push_failed(result)
 
 
 async def execute_command_dispatch(
