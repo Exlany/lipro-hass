@@ -183,7 +183,7 @@ def test_build_fetched_device_snapshot_skips_invalid_iot_ids_for_polling_lists()
     assert snapshot.outlet_ids == []
 
 
-def test_build_device_filter_config_defaults_invalid_modes_to_off() -> None:
+def test_build_device_filter_config_normalizes_mode_case_and_defaults_invalid() -> None:
     config = build_device_filter_config(
         {
             CONF_DEVICE_FILTER_HOME_MODE: "INCLUDE",
@@ -198,7 +198,7 @@ def test_build_device_filter_config_defaults_invalid_modes_to_off() -> None:
     )
 
     assert has_active_device_filter(config) is True
-    assert config.home.mode == DEVICE_FILTER_MODE_OFF
+    assert config.home.mode == DEVICE_FILTER_MODE_INCLUDE
     assert config.home.values == {"home a", "home_b"}
     assert config.model.mode == DEVICE_FILTER_MODE_OFF
     assert config.model.values == {"fanlight"}

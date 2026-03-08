@@ -1014,10 +1014,10 @@ async def test_options_flow(
     assert CONF_LIGHT_TURN_ON_ON_ADJUST not in result["data"]
 
 
-async def test_options_flow_defaults_invalid_device_filter_modes_to_off_on_save(
+async def test_options_flow_normalizes_device_filter_modes_case_on_save(
     hass: HomeAssistant,
 ) -> None:
-    """Options flow should coerce invalid device-filter modes to off on save."""
+    """Options flow should normalize stored device-filter mode casing on save."""
     entry = MockConfigEntry(
         domain=DOMAIN,
         title="Lipro (138****0000)",
@@ -1051,13 +1051,13 @@ async def test_options_flow_defaults_invalid_device_filter_modes_to_off_on_save(
     )
 
     assert result["type"] is FlowResultType.CREATE_ENTRY
-    assert result["data"][CONF_DEVICE_FILTER_HOME_MODE] == DEVICE_FILTER_MODE_OFF
+    assert result["data"][CONF_DEVICE_FILTER_HOME_MODE] == DEVICE_FILTER_MODE_INCLUDE
 
 
-async def test_options_flow_advanced_schema_defaults_invalid_mode_to_off(
+async def test_options_flow_advanced_schema_normalizes_mode_case(
     hass: HomeAssistant,
 ) -> None:
-    """Advanced step should coerce invalid stored mode defaults to off."""
+    """Advanced step should normalize stored mode casing for defaults."""
     entry = MockConfigEntry(
         domain=DOMAIN,
         title="Lipro (138****0000)",
@@ -1099,7 +1099,7 @@ async def test_options_flow_advanced_schema_defaults_invalid_mode_to_off(
     marker = _get_schema_marker(data_schema, CONF_DEVICE_FILTER_HOME_MODE)
     assert isinstance(marker, vol.Required)
     default = marker.default() if callable(marker.default) else marker.default
-    assert default == DEVICE_FILTER_MODE_OFF
+    assert default == DEVICE_FILTER_MODE_INCLUDE
     command_result_verify_marker = _get_schema_marker(
         data_schema, CONF_COMMAND_RESULT_VERIFY
     )

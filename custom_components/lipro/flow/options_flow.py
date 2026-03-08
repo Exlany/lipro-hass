@@ -120,8 +120,10 @@ def _coerce_device_filter_list_option(value: Any) -> str:
 
 def _normalize_device_filter_mode_option(value: Any) -> str:
     """Normalize raw mode option to one canonical device filter mode."""
-    if isinstance(value, str) and value in _DEVICE_FILTER_MODE_VALUES:
-        return value
+    if isinstance(value, str):
+        normalized = value.strip().casefold()
+        if normalized in _DEVICE_FILTER_MODE_VALUES:
+            return normalized
     return DEFAULT_DEVICE_FILTER_MODE
 
 
