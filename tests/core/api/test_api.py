@@ -763,8 +763,8 @@ class TestLiproClientMqtt:
         assert "code" not in result
 
     @pytest.mark.asyncio
-    async def test_get_mqtt_config_standard_wrapped_response_raises_api_error(self):
-        """Wrapped MQTT config responses should be rejected as unsupported legacy shape."""
+    async def test_get_mqtt_config_standard_wrapped_response_returns_payload(self):
+        """Wrapped MQTT config responses should unwrap successful data payloads."""
         client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("access_token", "refresh_token")
 
@@ -785,11 +785,9 @@ class TestLiproClientMqtt:
                 client, "_get_session", new_callable=AsyncMock
             ) as mock_session:
                 mock_session.return_value = MagicMock()
-                with pytest.raises(
-                    LiproApiError,
-                    match="MQTT config response missing accessKey/secretKey",
-                ):
-                    await client.get_mqtt_config()
+                result = await client.get_mqtt_config()
+
+        assert result == wrapped_response["data"]
 
     @pytest.mark.asyncio
     async def test_get_mqtt_config_non_object_response_raises_api_error(self):

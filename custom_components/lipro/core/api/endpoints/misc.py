@@ -31,6 +31,9 @@ class _ClientMiscEndpointsMixin(_ClientEndpointPayloadsMixin):
         """Get MQTT configuration information."""
         return await get_mqtt_config_service(
             request_iot_mapping=self._request_iot_mapping,
+            is_success_code=self._is_success_code,
+            unwrap_iot_success_payload=self._unwrap_iot_success_payload,
+            require_mapping_response=self._require_mapping_response,
             lipro_api_error=LiproApiError,
             path_get_mqtt_config=PATH_GET_MQTT_CONFIG,
         )
