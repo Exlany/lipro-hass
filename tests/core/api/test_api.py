@@ -2552,8 +2552,8 @@ class TestLiproClientSchedules:
         assert result[0]["schedule"] == {"days": [4], "time": [36000], "evt": [1]}
 
     @pytest.mark.asyncio
-    async def test_get_device_schedules_mesh_parses_rich_schedule_json_variant(self):
-        """Mesh GET should tolerate app-style rich scheduleJson payload."""
+    async def test_get_device_schedules_mesh_parses_canonical_schedule_json(self):
+        """Mesh GET should parse verified canonical scheduleJson payloads."""
         client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("access", "refresh")
 
@@ -2561,10 +2561,7 @@ class TestLiproClientSchedules:
         row = {
             "id": 1,
             "active": True,
-            "scheduleJson": (
-                '{"type":"daily","time":"08:30","weekDays":[1,2],'
-                '"action":{"command":"power","properties":[{"key":"power","value":0}]}}'
-            ),
+            "scheduleJson": '{"days":[2],"time":[86340],"evt":[1]}',
         }
         with patch.object(
             client, "_iot_request", new_callable=AsyncMock
@@ -2577,7 +2574,7 @@ class TestLiproClientSchedules:
                 mesh_gateway_id=gateway_id,
             )
 
-        assert result[0]["schedule"] == {"days": [1, 2], "time": [30600], "evt": [1]}
+        assert result[0]["schedule"] == {"days": [2], "time": [86340], "evt": [1]}
 
     @pytest.mark.asyncio
     async def test_add_device_schedule_mesh_uses_ble_endpoint(self):
@@ -3774,17 +3771,10 @@ class TestLiproClientAdditionalBranchCoverage:
         )
         assert wrapped == {"days": [1], "time": [3600], "evt": [0]}
 
-        action_payload = LiproClient._parse_mesh_schedule_json(
-            {
-                "weekDays": [1],
-                "time": "08:30",
-                "action": {
-                    "command": "power",
-                    "properties": [1, {"key": "power", "value": 1}],
-                },
-            }
+        canonical_payload = LiproClient._parse_mesh_schedule_json(
+            {"days": [2], "time": [86340], "evt": [1]}
         )
-        assert action_payload == {"days": [1], "time": [30600], "evt": [0]}
+        assert canonical_payload == {"days": [2], "time": [86340], "evt": [1]}
 
         mismatch_payload = LiproClient._parse_mesh_schedule_json(
             {"days": [1], "time": [3600], "evt": []}
