@@ -61,6 +61,18 @@ def test_build_upload_headers_and_parse_retry_after() -> None:
     assert ShareWorkerClient.parse_retry_after(object()) is None
 
 
+def test_parse_retry_after_supports_http_date() -> None:
+    from datetime import UTC, datetime, timedelta
+
+    future = datetime.now(UTC) + timedelta(seconds=60)
+    http_date = future.strftime("%a, %d %b %Y %H:%M:%S GMT")
+
+    result = ShareWorkerClient.parse_retry_after({"Retry-After": http_date})
+
+    assert result is not None
+    assert 55 <= result <= 65
+
+
 def test_apply_token_payload_and_clear_install_token() -> None:
     client = ShareWorkerClient()
 

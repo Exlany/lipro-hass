@@ -14,6 +14,7 @@ import aiohttp
 
 from ...const.base import VERSION
 from ..utils.log_safety import safe_error_placeholder
+from ..utils.retry_after import parse_retry_after as parse_http_retry_after
 from .const import SHARE_API_KEY, SHARE_REPORT_URL, SHARE_TOKEN_REFRESH_URL
 from .report_builder import build_lite_report
 
@@ -65,17 +66,14 @@ class ShareWorkerClient:
 
     @staticmethod
     def parse_retry_after(headers: Any) -> float | None:
-        """Parse Retry-After seconds (best-effort)."""
+        """Parse Retry-After seconds (best-effort) via shared HTTP helper."""
         try:
-            value = headers.get("Retry-After") or headers.get("retry-after")
-            if not value:
-                return None
-            seconds = float(str(value).strip())
-            if seconds <= 0:
-                return 0.1
-            return seconds
+            seconds = parse_http_retry_after(headers)
         except (AttributeError, TypeError, ValueError):
             return None
+        if seconds is None:
+            return None
+        return max(0.1, seconds)
 
     def clear_install_token(self) -> None:
         """Clear local install-token state."""
