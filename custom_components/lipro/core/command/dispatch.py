@@ -258,12 +258,10 @@ async def execute_command_dispatch(
         plan=plan,
     )
     member_fallback_id = plan.member_fallback_id
-    if _should_fallback_after_group_result(
+    if member_fallback_id is not None and _should_fallback_after_group_result(
         member_fallback_id=member_fallback_id,
         result=result,
     ):
-        if member_fallback_id is None:
-            return result, route
         result, route = await _fallback_to_member(
             client,
             device=device,

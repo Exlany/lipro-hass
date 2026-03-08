@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from typing import Any, cast
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock
 
 import pytest
 
@@ -161,35 +161,6 @@ async def test_execute_command_dispatch_group_push_fail_fallback_to_member(
     assert route == "group_push_fail_fallback_member"
     client.send_group_command.assert_awaited_once()
     client.send_command.assert_awaited_once()
-
-
-@pytest.mark.asyncio
-async def test_execute_command_dispatch_fallback_guard_allows_early_return() -> None:
-    """Defensive branch: if fallback predicate forces True but member id is None."""
-    device = _make_device(serial="mesh_group_10001", is_group=True)
-    client = AsyncMock()
-    client.send_group_command = AsyncMock(return_value={"pushSuccess": False})
-    client.send_command = AsyncMock()
-
-    with patch(
-        "custom_components.lipro.core.command.dispatch._should_fallback_after_group_result",
-        return_value=True,
-    ):
-        result, route = await execute_command_dispatch(
-            client,
-            device=device,
-            plan=CommandDispatchPlan(
-                route="group_direct",
-                command="POWER_ON",
-                properties=None,
-                member_fallback_id=None,
-            ),
-        )
-
-    assert result == {"pushSuccess": False}
-    assert route == "group_direct"
-    client.send_group_command.assert_awaited_once()
-    client.send_command.assert_not_called()
 
 
 @pytest.mark.asyncio
