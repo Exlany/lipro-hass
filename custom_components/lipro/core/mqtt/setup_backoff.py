@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from collections.abc import Callable
 
+from ..api.request_policy import compute_exponential_retry_wait_time
+
 
 def _zero_jitter() -> float:
     """Default jitter provider for deterministic retry timing."""
@@ -52,8 +54,12 @@ class MqttSetupBackoff:
     def on_failure(self, now: float) -> None:
         """Record failed attempt and schedule the next allowed retry time."""
         self._failure_count += 1
-        raw_delay = self.base_delay * (2 ** (self._failure_count - 1))
-        bounded_delay = min(raw_delay, self.max_delay)
+        bounded_delay = compute_exponential_retry_wait_time(
+            retry_count=self._failure_count - 1,
+            base_delay_seconds=self.base_delay,
+            max_delay_seconds=self.max_delay,
+            min_delay_seconds=0.0,
+        )
         jitter_delay = self._jitter()
         wait_seconds = min(max(bounded_delay + jitter_delay, 0.0), self.max_delay)
         anchor = max(now, self._next_attempt_at)
