@@ -234,6 +234,14 @@ def test_build_progressive_retry_delays_clips_exponential_backoff_to_budget() ->
     ) == pytest.approx((0.35, 0.7, 1.4, 0.55))
 
 
+def test_build_progressive_retry_delays_returns_empty_sequence_when_budget_is_zero() -> None:
+    assert build_progressive_retry_delays(
+        base_delay_seconds=0.35,
+        time_budget_seconds=0.0,
+        max_attempts=6,
+    ) == ()
+
+
 def test_should_skip_immediate_post_refresh_returns_false_without_valid_key() -> None:
     assert (
         should_skip_immediate_post_refresh(

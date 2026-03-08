@@ -1832,7 +1832,7 @@ class TestLiproClientOptionalCapabilities:
 
     @pytest.mark.asyncio
     async def test_query_user_cloud(self):
-        """query_user_cloud should use the verified empty-string payload."""
+        """query_user_cloud should use the verified raw empty-body payload."""
         client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
 
         with patch.object(

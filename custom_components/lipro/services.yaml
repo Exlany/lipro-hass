@@ -281,8 +281,8 @@ query_command_result:
     time_budget_seconds:
       name: Time Budget (Seconds)
       description: >-
-        Total retry budget in seconds. Default 3.0; set to 0 to disable wait
-        time between retries.
+        Total retry budget in seconds. Default 3.0; set to 0 to disable polling
+        and perform a single-shot query.
       required: false
       selector:
         number:
@@ -294,14 +294,15 @@ query_command_result:
 get_city:
   name: Get City (Developer)
   description: >-
-    Developer-only optional capability. Query cloud city metadata (empty payload contract).
+    Developer-only optional capability. Query cloud city metadata using the
+    verified empty-object ({}) payload contract.
 
 query_user_cloud:
   name: Query User Cloud (Developer)
   description: >-
     Developer-only optional capability. Query user cloud metadata using the
-    verified empty-string payload contract. Tested responses may contain only a
-    top-level `data` field without a `code` wrapper.
+    verified raw empty-body contract (`-d ''`). Tested responses may contain
+    only a top-level `data` field without a `code` wrapper.
 
 fetch_body_sensor_history:
   name: Fetch Body Sensor History (Developer)

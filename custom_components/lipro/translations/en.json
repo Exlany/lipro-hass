@@ -369,17 +369,17 @@
         },
         "time_budget_seconds": {
           "name": "Time Budget (Seconds)",
-          "description": "Total retry budget in seconds. Default 3.0; set to 0 to disable wait time between retries."
+          "description": "Total retry budget in seconds. Default 3.0; set to 0 to disable polling and perform a single-shot query."
         }
       }
     },
     "get_city": {
       "name": "Get City",
-      "description": "Developer-only optional capability. Query cloud city metadata using the verified empty-object payload contract."
+      "description": "Developer-only optional capability. Query cloud city metadata using the verified empty-object ({}) payload contract."
     },
     "query_user_cloud": {
       "name": "Query User Cloud",
-      "description": "Developer-only optional capability. Query user cloud metadata using the verified empty-string payload contract. Tested responses may contain only a top-level data field without a code wrapper."
+      "description": "Developer-only optional capability. Query user cloud metadata using the verified raw empty-body contract (`-d ''`). Tested responses may contain only a top-level data field without a code wrapper."
     },
     "fetch_body_sensor_history": {
       "name": "Fetch Body Sensor History",

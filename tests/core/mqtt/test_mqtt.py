@@ -100,12 +100,12 @@ class TestMqttCredentials:
         creds = MqttCredentials.create(
             access_key="test_access_key",
             secret_key="test_secret_key",
-            biz_id="lip_biz001",
+            biz_id="biz001",
             phone_id="550e8400-e29b-41d4-a716-446655440000",
         )
 
         # Client ID format: GID_App@@@{bizId}-android-{phoneId}
-        assert creds.client_id.startswith("GID_App@@@lip_biz001-android-")
+        assert creds.client_id.startswith("GID_App@@@biz001-android-")
         assert len(creds.client_id) <= 64
 
         # Username format: Signature|{accessKey}|{instanceId}
@@ -131,15 +131,15 @@ class TestBuildTopic:
 
     def test_build_topic(self):
         """Test building MQTT topic."""
-        topic = build_topic("lip_biz001", "03ab5ccd7cxxxxxx")
+        topic = build_topic("biz001", "03ab5ccd7cxxxxxx")
 
-        assert topic == "Topic_Device_State/lip_biz001/03ab5ccd7cxxxxxx"
+        assert topic == "Topic_Device_State/biz001/03ab5ccd7cxxxxxx"
 
     def test_build_topic_with_special_chars(self):
         """Test building topic with various IDs."""
-        topic = build_topic("lip_biz001", "mesh_group_10001")
+        topic = build_topic("biz001", "mesh_group_10001")
 
-        assert topic == "Topic_Device_State/lip_biz001/mesh_group_10001"
+        assert topic == "Topic_Device_State/biz001/mesh_group_10001"
 
     def test_build_topic_invalid_biz_id_raises(self):
         """Invalid biz_id should be rejected."""
@@ -181,7 +181,7 @@ class TestParseTopic:
 
     def test_parse_topic_valid(self):
         """Test parsing valid topic."""
-        device_id = parse_topic("Topic_Device_State/lip_biz001/03ab5ccd7cxxxxxx")
+        device_id = parse_topic("Topic_Device_State/biz001/03ab5ccd7cxxxxxx")
 
         assert device_id == "03ab5ccd7cxxxxxx"
 
@@ -390,7 +390,7 @@ class TestLiproMqttClient:
         client = LiproMqttClient(
             access_key="access",
             secret_key="secret",
-            biz_id="lip_biz001",
+            biz_id="biz001",
             phone_id="550e8400-e29b-41d4-a716-446655440000",
         )
 
@@ -406,7 +406,7 @@ class TestLiproMqttClient:
         client = LiproMqttClient(
             access_key="access",
             secret_key="secret",
-            biz_id="lip_biz001",
+            biz_id="biz001",
             phone_id="550e8400-e29b-41d4-a716-446655440000",
             on_message=on_message,
             on_connect=on_connect,
@@ -423,7 +423,7 @@ class TestLiproMqttClient:
         client = LiproMqttClient(
             access_key="access",
             secret_key="secret",
-            biz_id="lip_biz001",
+            biz_id="biz001",
             phone_id="550e8400-e29b-41d4-a716-446655440000",
         )
 
@@ -442,7 +442,7 @@ class TestLiproMqttClient:
         client = LiproMqttClient(
             access_key="access",
             secret_key="secret",
-            biz_id="lip_biz001",
+            biz_id="biz001",
             phone_id="550e8400-e29b-41d4-a716-446655440000",
         )
         client._running = True
@@ -461,7 +461,7 @@ class TestLiproMqttClient:
         client = LiproMqttClient(
             access_key="access",
             secret_key="secret",
-            biz_id="lip_biz001",
+            biz_id="biz001",
             phone_id="550e8400-e29b-41d4-a716-446655440000",
         )
         client._running = True
@@ -489,7 +489,7 @@ class TestLiproMqttClient:
         client = LiproMqttClient(
             access_key="access",
             secret_key="secret",
-            biz_id="lip_biz001",
+            biz_id="biz001",
             phone_id="550e8400-e29b-41d4-a716-446655440000",
             on_disconnect=on_disconnect,
         )
@@ -508,7 +508,7 @@ class TestLiproMqttClient:
         client = LiproMqttClient(
             access_key="access",
             secret_key="secret",
-            biz_id="lip_biz001",
+            biz_id="biz001",
             phone_id="550e8400-e29b-41d4-a716-446655440000",
             on_disconnect=on_disconnect,
         )
@@ -527,7 +527,7 @@ class TestLiproMqttClient:
         client = LiproMqttClient(
             access_key="access",
             secret_key="secret",
-            biz_id="lip_biz001",
+            biz_id="biz001",
             phone_id="550e8400-e29b-41d4-a716-446655440000",
             on_message=on_message,
         )
@@ -550,7 +550,7 @@ class TestLiproMqttClient:
         client = LiproMqttClient(
             access_key="access",
             secret_key="secret",
-            biz_id="lip_biz001",
+            biz_id="biz001",
             phone_id="550e8400-e29b-41d4-a716-446655440000",
             on_message=on_message,
         )
@@ -572,13 +572,13 @@ class TestLiproMqttClient:
         client = LiproMqttClient(
             access_key="access",
             secret_key="secret",
-            biz_id="lip_biz001",
+            biz_id="biz001",
             phone_id="550e8400-e29b-41d4-a716-446655440000",
             on_message=on_message,
         )
 
         message = MagicMock()
-        message.topic = "Topic_Device_State/lip_biz001/03ab5ccd7cxxxxxx"
+        message.topic = "Topic_Device_State/biz001/03ab5ccd7cxxxxxx"
         message.payload = b"not valid json"
 
         # Should not raise, just log error
@@ -592,7 +592,7 @@ class TestLiproMqttClient:
         client = LiproMqttClient(
             access_key="access",
             secret_key="secret",
-            biz_id="lip_biz001",
+            biz_id="biz001",
             phone_id="550e8400-e29b-41d4-a716-446655440000",
             on_message=on_message,
         )
@@ -614,7 +614,7 @@ class TestLiproMqttClient:
         client = LiproMqttClient(
             access_key="access",
             secret_key="secret",
-            biz_id="lip_biz001",
+            biz_id="biz001",
             phone_id="550e8400-e29b-41d4-a716-446655440000",
             on_message=on_message,
         )
@@ -636,13 +636,13 @@ class TestLiproMqttClient:
         client = LiproMqttClient(
             access_key="access",
             secret_key="secret",
-            biz_id="lip_biz001",
+            biz_id="biz001",
             phone_id="550e8400-e29b-41d4-a716-446655440000",
             on_message=on_message,
         )
 
         message = MagicMock()
-        message.topic = "Topic_Device_State/lip_biz001/03ab5ccd7cxxxxxx"
+        message.topic = "Topic_Device_State/biz001/03ab5ccd7cxxxxxx"
         message.payload = b"{}"
 
         client._process_message(message)
@@ -656,13 +656,13 @@ class TestLiproMqttClient:
         client = LiproMqttClient(
             access_key="access",
             secret_key="secret",
-            biz_id="lip_biz001",
+            biz_id="biz001",
             phone_id="550e8400-e29b-41d4-a716-446655440000",
             on_message=on_message,
         )
 
         message = MagicMock()
-        message.topic = "Topic_Device_State/lip_biz001/03ab5ccd7cxxxxxx"
+        message.topic = "Topic_Device_State/biz001/03ab5ccd7cxxxxxx"
         message.payload = b'["not", "an", "object"]'
 
         client._process_message(message)
@@ -690,13 +690,13 @@ class TestLiproMqttClient:
         client = LiproMqttClient(
             access_key="access",
             secret_key="secret",
-            biz_id="lip_biz001",
+            biz_id="biz001",
             phone_id="550e8400-e29b-41d4-a716-446655440000",
             on_message=on_message,
         )
 
         message = MagicMock()
-        message.topic = "Topic_Device_State/lip_biz001/03ab5ccd7cxxxxxx"
+        message.topic = "Topic_Device_State/biz001/03ab5ccd7cxxxxxx"
         message.payload = (
             b'{"common":{"wifi_ssid":"MyHome","ip":"192.168.1.8","mac":"AA:BB:CC:DD:EE:FF"},'
             b'"light":{"accessToken":"very-secret-token-value-123456","powerState":"1"}}'
@@ -724,13 +724,13 @@ class TestLiproMqttClient:
         client = LiproMqttClient(
             access_key="access",
             secret_key="secret",
-            biz_id="lip_biz001",
+            biz_id="biz001",
             phone_id="550e8400-e29b-41d4-a716-446655440000",
             on_message=on_message,
         )
 
         message = MagicMock()
-        message.topic = "Topic_Device_State/lip_biz001/03ab5ccd7cxxxxxx"
+        message.topic = "Topic_Device_State/biz001/03ab5ccd7cxxxxxx"
         oversize_blob = "x" * (_MAX_MQTT_PAYLOAD_BYTES + 1024)
         message.payload = (
             f'{{"light":{{"powerState":"1","blob":"{oversize_blob}"}}}}'
@@ -746,13 +746,13 @@ class TestLiproMqttClient:
         client = LiproMqttClient(
             access_key="access",
             secret_key="secret",
-            biz_id="lip_biz001",
+            biz_id="biz001",
             phone_id="550e8400-e29b-41d4-a716-446655440000",
             on_message=on_message,
         )
 
         message = MagicMock()
-        message.topic = "Topic_Device_State/lip_biz001/03ab5ccd7cxxxxxx"
+        message.topic = "Topic_Device_State/biz001/03ab5ccd7cxxxxxx"
         oversize_blob = "中" * ((_MAX_MQTT_PAYLOAD_BYTES // 3) + 1024)
         message.payload = f'{{"light":{{"powerState":"1","blob":"{oversize_blob}"}}}}'
 
@@ -766,13 +766,13 @@ class TestLiproMqttClient:
         client = LiproMqttClient(
             access_key="access",
             secret_key="secret",
-            biz_id="lip_biz001",
+            biz_id="biz001",
             phone_id="550e8400-e29b-41d4-a716-446655440000",
             on_message=on_message,
         )
 
         message = MagicMock()
-        message.topic = "Topic_Device_State/lip_biz001/03ab5ccd7cxxxxxx"
+        message.topic = "Topic_Device_State/biz001/03ab5ccd7cxxxxxx"
         message.payload = b""
 
         client._process_message(message)
@@ -785,13 +785,13 @@ class TestLiproMqttClient:
         client = LiproMqttClient(
             access_key="access",
             secret_key="secret",
-            biz_id="lip_biz001",
+            biz_id="biz001",
             phone_id="550e8400-e29b-41d4-a716-446655440000",
             on_message=on_message,
         )
 
         message = MagicMock()
-        message.topic = "Topic_Device_State/lip_biz001/03ab5ccd7cxxxxxx"
+        message.topic = "Topic_Device_State/biz001/03ab5ccd7cxxxxxx"
         message.payload = b'{"light":{"powerState":"1"}}'
 
         with (
@@ -804,7 +804,7 @@ class TestLiproMqttClient:
             client._process_message(message)
 
         on_message.assert_not_called()
-        assert "Topic_Device_State/lip_biz001/03ab5ccd7cxxxxxx" not in caplog.text
+        assert "Topic_Device_State/biz001/03ab5ccd7cxxxxxx" not in caplog.text
         assert "device=03ab***xxxx" in caplog.text
 
     def test_process_message_callback_error_sets_last_error_and_calls_error_hook(self):
@@ -814,13 +814,13 @@ class TestLiproMqttClient:
         client = LiproMqttClient(
             access_key="access",
             secret_key="secret",
-            biz_id="lip_biz001",
+            biz_id="biz001",
             phone_id="550e8400-e29b-41d4-a716-446655440000",
             on_message=on_message,
             on_error=on_error,
         )
         message = MagicMock()
-        message.topic = "Topic_Device_State/lip_biz001/03ab5ccd7cxxxxxx"
+        message.topic = "Topic_Device_State/biz001/03ab5ccd7cxxxxxx"
         message.payload = b'{"light":{"powerState":"1"}}'
 
         client._process_message(message)
@@ -835,13 +835,13 @@ class TestLiproMqttClient:
         client = LiproMqttClient(
             access_key="access",
             secret_key="secret",
-            biz_id="lip_biz001",
+            biz_id="biz001",
             phone_id="550e8400-e29b-41d4-a716-446655440000",
             on_message=on_message,
             on_error=on_error,
         )
         message = MagicMock()
-        message.topic = "Topic_Device_State/lip_biz001/03ab5ccd7cxxxxxx"
+        message.topic = "Topic_Device_State/biz001/03ab5ccd7cxxxxxx"
         message.payload = b'{"light":{"powerState":"1"}}'
 
         client._process_message(message)
@@ -855,13 +855,13 @@ class TestLiproMqttClient:
         client = LiproMqttClient(
             access_key="access",
             secret_key="secret",
-            biz_id="lip_biz001",
+            biz_id="biz001",
             phone_id="550e8400-e29b-41d4-a716-446655440000",
             on_message=on_message,
         )
         client._last_error = RuntimeError("stale")
         message = MagicMock()
-        message.topic = "Topic_Device_State/lip_biz001/03ab5ccd7cxxxxxx"
+        message.topic = "Topic_Device_State/biz001/03ab5ccd7cxxxxxx"
         message.payload = b'{"light":{"powerState":"1"}}'
 
         client._process_message(message)
@@ -877,7 +877,7 @@ class TestLiproMqttClientProperties:
         client = LiproMqttClient(
             access_key="access",
             secret_key="secret",
-            biz_id="lip_biz001",
+            biz_id="biz001",
             phone_id="550e8400-e29b-41d4-a716-446655440000",
         )
 
@@ -891,7 +891,7 @@ class TestLiproMqttClientProperties:
         client = LiproMqttClient(
             access_key="access",
             secret_key="secret",
-            biz_id="lip_biz001",
+            biz_id="biz001",
             phone_id="550e8400-e29b-41d4-a716-446655440000",
         )
 
@@ -905,7 +905,7 @@ class TestLiproMqttClientProperties:
         client = LiproMqttClient(
             access_key="access",
             secret_key="secret",
-            biz_id="lip_biz001",
+            biz_id="biz001",
             phone_id="550e8400-e29b-41d4-a716-446655440000",
         )
         client._subscribed_devices = {"device1", "device2"}
@@ -927,7 +927,7 @@ class TestSyncSubscriptions:
         client = LiproMqttClient(
             access_key="access",
             secret_key="secret",
-            biz_id="lip_biz001",
+            biz_id="biz001",
             phone_id="550e8400-e29b-41d4-a716-446655440000",
         )
         # Not connected — devices should be recorded for later subscription
@@ -941,7 +941,7 @@ class TestSyncSubscriptions:
         client = LiproMqttClient(
             access_key="access",
             secret_key="secret",
-            biz_id="lip_biz001",
+            biz_id="biz001",
             phone_id="550e8400-e29b-41d4-a716-446655440000",
         )
         client._subscribed_devices = {"dev_a", "dev_b", "dev_c"}
@@ -956,7 +956,7 @@ class TestSyncSubscriptions:
         client = LiproMqttClient(
             access_key="access",
             secret_key="secret",
-            biz_id="lip_biz001",
+            biz_id="biz001",
             phone_id="550e8400-e29b-41d4-a716-446655440000",
         )
         client._subscribed_devices = {"dev_a", "dev_b"}
@@ -971,7 +971,7 @@ class TestSyncSubscriptions:
         client = LiproMqttClient(
             access_key="access",
             secret_key="secret",
-            biz_id="lip_biz001",
+            biz_id="biz001",
             phone_id="550e8400-e29b-41d4-a716-446655440000",
         )
         client._subscribed_devices = {"dev_a", "dev_b"}
@@ -986,7 +986,7 @@ class TestSyncSubscriptions:
         client = LiproMqttClient(
             access_key="access",
             secret_key="secret",
-            biz_id="lip_biz001",
+            biz_id="biz001",
             phone_id="550e8400-e29b-41d4-a716-446655440000",
         )
         mock_mqtt = AsyncMock()
@@ -1007,7 +1007,7 @@ class TestSyncSubscriptions:
         client = LiproMqttClient(
             access_key="access",
             secret_key="secret",
-            biz_id="lip_biz001",
+            biz_id="biz001",
             phone_id="550e8400-e29b-41d4-a716-446655440000",
         )
         mock_mqtt = AsyncMock()
@@ -1027,7 +1027,7 @@ class TestSyncSubscriptions:
         client = LiproMqttClient(
             access_key="access",
             secret_key="secret",
-            biz_id="lip_biz001",
+            biz_id="biz001",
             phone_id="550e8400-e29b-41d4-a716-446655440000",
         )
         mock_mqtt = AsyncMock()
@@ -1048,7 +1048,7 @@ class TestSyncSubscriptions:
         client = LiproMqttClient(
             access_key="access",
             secret_key="secret",
-            biz_id="lip_biz001",
+            biz_id="biz001",
             phone_id="550e8400-e29b-41d4-a716-446655440000",
         )
         mock_mqtt = AsyncMock()
@@ -1067,7 +1067,7 @@ class TestSyncSubscriptions:
         client = LiproMqttClient(
             access_key="access",
             secret_key="secret",
-            biz_id="lip_biz001",
+            biz_id="biz001",
             phone_id="550e8400-e29b-41d4-a716-446655440000",
         )
         client._client = AsyncMock()
@@ -1084,7 +1084,7 @@ class TestSyncSubscriptions:
         client = LiproMqttClient(
             access_key="access",
             secret_key="secret",
-            biz_id="lip_biz001",
+            biz_id="biz001",
             phone_id="550e8400-e29b-41d4-a716-446655440000",
         )
         mock_mqtt = AsyncMock()
@@ -1112,14 +1112,14 @@ class TestConnectAndDecode:
         client = LiproMqttClient(
             access_key="access",
             secret_key="secret",
-            biz_id="lip_biz001",
+            biz_id="biz001",
             phone_id="550e8400-e29b-41d4-a716-446655440000",
             on_connect=on_connect,
         )
         client._subscribed_devices = {"valid_dev", "bad/dev"}
 
         async def _messages():
-            yield MagicMock(topic="Topic_Device_State/lip_biz001/valid_dev")
+            yield MagicMock(topic="Topic_Device_State/biz001/valid_dev")
 
         mqtt_client_1 = AsyncMock()
         mqtt_client_1.messages = _messages()
@@ -1175,7 +1175,7 @@ class TestConnectAndDecode:
         client = LiproMqttClient(
             access_key="access",
             secret_key="secret",
-            biz_id="lip_biz001",
+            biz_id="biz001",
             phone_id="550e8400-e29b-41d4-a716-446655440000",
         )
         client._pending_unsubscribe = {f"old_{idx}" for idx in range(55)}
@@ -1210,7 +1210,7 @@ class TestConnectAndDecode:
         client = LiproMqttClient(
             access_key="access",
             secret_key="secret",
-            biz_id="lip_biz001",
+            biz_id="biz001",
             phone_id="550e8400-e29b-41d4-a716-446655440000",
             on_connect=on_connect,
         )
@@ -1254,7 +1254,7 @@ class TestConnectionLoop:
         client = LiproMqttClient(
             access_key="access",
             secret_key="secret",
-            biz_id="lip_biz001",
+            biz_id="biz001",
             phone_id="550e8400-e29b-41d4-a716-446655440000",
         )
         client._running = True
@@ -1287,7 +1287,7 @@ class TestConnectionLoop:
         client = LiproMqttClient(
             access_key="access",
             secret_key="secret",
-            biz_id="lip_biz001",
+            biz_id="biz001",
             phone_id="550e8400-e29b-41d4-a716-446655440000",
         )
         client._running = True
@@ -1320,7 +1320,7 @@ class TestConnectionLoop:
         client = LiproMqttClient(
             access_key="access",
             secret_key="secret",
-            biz_id="lip_biz001",
+            biz_id="biz001",
             phone_id="550e8400-e29b-41d4-a716-446655440000",
         )
         client._running = True
@@ -1353,7 +1353,7 @@ class TestConnectionLoop:
         client = LiproMqttClient(
             access_key="access",
             secret_key="secret",
-            biz_id="lip_biz001",
+            biz_id="biz001",
             phone_id="550e8400-e29b-41d4-a716-446655440000",
         )
         client._running = True
@@ -1388,7 +1388,7 @@ class TestConnectionLoop:
         client = LiproMqttClient(
             access_key="access",
             secret_key="secret",
-            biz_id="lip_biz001",
+            biz_id="biz001",
             phone_id="550e8400-e29b-41d4-a716-446655440000",
             on_error=on_error,
         )
