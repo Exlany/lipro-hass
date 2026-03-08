@@ -375,7 +375,7 @@
     },
     "get_city": {
       "name": "Get City",
-      "description": "Developer-only optional capability. Query cloud city metadata."
+      "description": "Developer-only optional capability. Query cloud city metadata using the verified empty-object payload contract."
     },
     "query_user_cloud": {
       "name": "Query User Cloud",

@@ -375,7 +375,7 @@
     },
     "get_city": {
       "name": "获取城市信息",
-      "description": "（开发者）查询云端城市元数据。"
+      "description": "（开发者）按已验证的空对象 payload 契约查询云端城市元数据。"
     },
     "query_user_cloud": {
       "name": "查询用户云端配置",
