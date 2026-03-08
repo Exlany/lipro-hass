@@ -51,6 +51,22 @@ def format_schedule_time(seconds: int) -> str | None:
     return f"{hours:02d}:{minutes:02d}"
 
 
+def _normalize_schedule_time_events(sched_info: Mapping[str, Any]) -> tuple[list[str], list[int]]:
+    """Normalize schedule time/event pairs while preserving pair alignment."""
+    times = coerce_int_list(sched_info.get("time"))
+    events = coerce_int_list(sched_info.get("evt"))
+
+    normalized_times: list[str] = []
+    normalized_events: list[int] = []
+    for seconds, event in zip(times, events):
+        if (time_str := format_schedule_time(seconds)) is None:
+            continue
+        normalized_times.append(time_str)
+        normalized_events.append(event)
+
+    return normalized_times, normalized_events
+
+
 def normalize_schedule_row(schedule: object) -> _NormalizedSchedule | None:
     """Normalize a raw schedule row into service response format."""
     if not isinstance(schedule, dict):
@@ -60,15 +76,8 @@ def normalize_schedule_row(schedule: object) -> _NormalizedSchedule | None:
     if not isinstance(sched_info, dict):
         sched_info = {}
 
-    times = coerce_int_list(sched_info.get("time"))
-    events = coerce_int_list(sched_info.get("evt"))
+    time_strs, events = _normalize_schedule_time_events(sched_info)
     days = coerce_int_list(sched_info.get("days"))
-
-    time_strs = [
-        time_str
-        for value in times
-        if (time_str := format_schedule_time(value)) is not None
-    ]
 
     return {
         "id": schedule.get("id"),

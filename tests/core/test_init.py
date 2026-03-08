@@ -2443,7 +2443,7 @@ class TestInitRuntimeBehavior:
                     "active": True,
                     "days": [1],
                     "times": ["01:00"],
-                    "events": [1, 0],
+                    "events": [1],
                 }
             ],
         }

@@ -29,6 +29,29 @@ def test_normalize_schedule_row_uses_empty_schedule_when_schedule_field_invalid(
     }
 
 
+def test_normalize_schedule_row_drops_unpaired_or_invalid_time_events() -> None:
+    """Invalid or unpaired time/event values should be filtered together."""
+    result = normalize_schedule_row(
+        {
+            "id": 11,
+            "active": True,
+            "schedule": {
+                "days": [1, "bad"],
+                "time": [3600, -1, 90000, "bad"],
+                "evt": [1, "0", "bad"],
+            },
+        }
+    )
+
+    assert result == {
+        "id": 11,
+        "active": True,
+        "days": [1],
+        "times": ["01:00"],
+        "events": [1],
+    }
+
+
 @pytest.mark.asyncio
 async def test_async_call_schedule_client_maps_lipro_api_error() -> None:
     """LiproApiError should be logged and mapped via raise_service_error."""
