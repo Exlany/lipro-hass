@@ -106,7 +106,7 @@ def build_progressive_retry_delays(
 
 
 def classify_command_result_payload(payload: dict[str, Any]) -> str:
-    """Classify query_command_result payload using the verified endpoint contract."""
+    """Classify query_command_result payload using the current observed contract."""
     normalized_code = normalize_response_code(_extract_command_result_code(payload))
     if normalized_code in _COMMAND_RESULT_PENDING_CODES:
         return "pending"
@@ -386,7 +386,7 @@ def apply_command_result_confirmed(
     elapsed_seconds: float,
     logger: Any,
 ) -> None:
-    """Populate trace fields for confirmed command-result polling."""
+    """Populate trace fields for polling classified as confirmed."""
     trace["command_result_verify"] = {
         "enabled": True,
         "verified": True,

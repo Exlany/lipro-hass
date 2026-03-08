@@ -293,7 +293,7 @@ async def _async_call_optional_capability(
 async def _async_handle_query_command_result(
     hass: HomeAssistant, call: ServiceCall
 ) -> dict[str, Any]:
-    """Developer-only service: query command delivery result by msgSn."""
+    """Developer-only service: query command result status by msgSn."""
     return await _async_handle_query_command_result_service(
         hass,
         call,

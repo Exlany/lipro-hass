@@ -76,7 +76,7 @@
           "debug_mode": "启用调试模式（诊断）",
           "light_turn_on_on_adjust": "关灯时调亮度/色温自动开灯",
           "room_area_sync_force": "强制用云端房间覆盖 HA 区域",
-          "command_result_verify": "校验命令下发结果",
+          "command_result_verify": "检查命令结果状态",
           "device_filter_home_mode": "按家庭过滤（off/include/exclude）",
           "device_filter_home_list": "家庭过滤列表",
           "device_filter_model_mode": "按型号过滤（off/include/exclude）",
@@ -92,7 +92,7 @@
           "debug_mode": "采集脱敏运行诊断报告（包含最近命令轨迹）。启用后也会开启更详细的日志。",
           "light_turn_on_on_adjust": "开启后，关灯状态下调节亮度或色温会自动开灯；关闭后，调节亮度或色温不会开灯。",
           "room_area_sync_force": "默认关闭（推荐）：保留用户手动设置的 HA 区域，仅把云端房间作为兜底。开启后将始终以云端房间覆盖 HA 区域。",
-          "command_result_verify": "默认开启（推荐）：基于 msgSn 确认命令结果，云端未确认时返回更可解释的失败。关闭后仅依据 pushSuccess，延迟更低。",
+          "command_result_verify": "默认开启（推荐）：基于 msgSn 轮询云端命令结果状态，并在重试预算内未得到确认时返回更可解释的失败。关闭后仅依据 pushSuccess，延迟更低。",
           "device_filter_home_mode": "选择家庭过滤策略：off/include/exclude。",
           "device_filter_home_list": "家庭名称或 ID，支持逗号、分号或换行分隔。",
           "device_filter_model_mode": "选择型号过滤策略：off/include/exclude。",
@@ -353,7 +353,7 @@
     },
     "query_command_result": {
       "name": "查询命令结果",
-      "description": "（开发者）根据 msgSn 查询命令下发结果，并在默认重试预算内执行有界轮询；实际尝试次数可能低于 max_attempts，因为指数退避会被时间预算截断。",
+      "description": "（开发者）根据 msgSn 查询云端命令结果状态，并在默认重试预算内执行有界轮询；实际尝试次数可能低于 max_attempts，因为指数退避会被时间预算截断。",
       "fields": {
         "device_id": {
           "name": "设备 ID",

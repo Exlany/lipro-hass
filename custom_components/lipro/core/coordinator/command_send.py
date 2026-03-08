@@ -154,7 +154,7 @@ class _CommandSendMixin(_CommandConfirmMixin):
         route: str,
         trace: dict[str, Any],
     ) -> bool:
-        """Verify command delivery result by polling query_command_result."""
+        """Poll query_command_result within a bounded confirmation budget."""
         verify_started_at = monotonic()
         safe_device_serial = _redact_identifier(device.serial) or "***"
         safe_msg_sn = _redact_identifier(msg_sn) or "***"
@@ -230,7 +230,7 @@ class _CommandSendMixin(_CommandConfirmMixin):
         device: LiproDevice,
         result: Any,
     ) -> bool:
-        """Run command-result verification when enabled."""
+        """Run bounded command-result polling when enabled."""
         if not self._command_result_verify:
             return True
 

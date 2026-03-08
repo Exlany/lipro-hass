@@ -244,7 +244,7 @@ submit_developer_feedback:
 query_command_result:
   name: Query Command Result (Developer)
   description: >-
-    Developer-only optional capability. Query command delivery result by msgSn
+    Developer-only optional capability. Query cloud-reported command result status by msgSn
     with bounded polling inside the default retry budget. Actual attempts may
     be lower than max_attempts because exponential backoff is clipped by the
     time budget. This does not alter normal control flow.
