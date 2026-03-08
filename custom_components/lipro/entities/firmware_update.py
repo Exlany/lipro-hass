@@ -21,9 +21,6 @@ from .. import firmware_manifest
 from ..const.base import DOMAIN
 from ..core import LiproApiError
 from ..core.ota.candidate import _OtaCandidate, build_candidate
-from ..core.ota.manifest import (
-    matches_certified_versions as _ota_matches_certified_versions,
-)
 from ..core.ota.row_selector import row_targets_other_device, select_best_row
 from ..core.ota.rows_cache import OtaRowsCacheKey, async_get_rows_with_shared_cache
 from ..core.utils.log_safety import safe_error_placeholder
@@ -392,20 +389,6 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
             )
             return False
 
-    def _matches_certified_versions(
-        self,
-        certified_versions: set[str] | frozenset[str],
-        *,
-        installed: str | None,
-        latest: str | None,
-    ) -> bool:
-        """Return True when certification list authorizes current upgrade."""
-        return _ota_matches_certified_versions(
-            certified_versions,
-            installed=installed,
-            latest=latest,
-            is_version_newer=self._is_version_newer,
-        )
 
     def _has_pending_unverified_confirmation(self) -> bool:
         """Return True if unverified install confirmation is active."""

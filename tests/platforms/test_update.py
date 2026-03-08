@@ -913,10 +913,11 @@ def test_update_entity_is_version_newer_error_returns_false(
         assert entity._is_version_newer("2.0.0-beta", "1.0.0") is False
 
 
-def test_update_entity_matches_certified_versions_compare_error_is_conservative(
+def test_update_entity_certified_matching_compare_error_is_conservative(
     mock_coordinator, make_device
 ):
-    """Certification matching should not pass when version comparison fails."""
+    """Certification matching should stay conservative on compare errors."""
+    from custom_components.lipro.core.ota.manifest import matches_certified_versions
     from custom_components.lipro.entities.firmware_update import (
         LiproFirmwareUpdateEntity,
     )
@@ -930,18 +931,20 @@ def test_update_entity_matches_certified_versions_compare_error_is_conservative(
 
     with patch.object(entity, "version_is_newer", side_effect=ValueError("invalid")):
         assert (
-            entity._matches_certified_versions(
+            matches_certified_versions(
                 {"2.0.0-beta"},
                 installed="1.0.0",
                 latest="2.0.0-beta",
+                is_version_newer=entity._is_version_newer,
             )
             is True
         )
         assert (
-            entity._matches_certified_versions(
+            matches_certified_versions(
                 {"2.0.0-beta"},
                 installed="1.0.0",
                 latest="2.0.0-rc",
+                is_version_newer=entity._is_version_newer,
             )
             is False
         )
