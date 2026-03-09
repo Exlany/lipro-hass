@@ -60,6 +60,8 @@ from ...const.properties import (
     PROP_MESH_TYPE,
     PROP_MOVING,
     PROP_NET_TYPE,
+    PROP_PAIR_KEY_FULL,
+    PROP_PANEL_INFO,
     PROP_POSITION,
     PROP_POWER_STATE,
     PROP_RC_LIST,
@@ -506,6 +508,31 @@ class LiproDevice:
     def panel_type(self) -> int:
         """Get panel type discriminator required by panel commands."""
         return 1 if self.iot_name.casefold() == "21jd" else 0
+
+    @property
+    def panel_pair_key_full(self) -> bool:
+        """Return whether panel bind slots are reported full."""
+        return self.get_bool_property(PROP_PAIR_KEY_FULL)
+
+    @property
+    def panel_info(self) -> list[dict[str, Any]]:
+        """Return parsed panelInfo payload when available."""
+        value = self.properties.get(PROP_PANEL_INFO)
+        if not value:
+            return []
+        try:
+            if isinstance(value, str):
+                stripped = value.lstrip()
+                if not stripped or stripped[0] not in "[{":
+                    return []
+                parsed = json.loads(value)
+            else:
+                parsed = value
+        except (json.JSONDecodeError, TypeError):
+            return []
+        if not isinstance(parsed, list):
+            return []
+        return [item for item in parsed if isinstance(item, dict)]
 
     # Infrared / gateway properties (红外 / 网关)
     @property

@@ -22,6 +22,8 @@ from ...const.config import (
     DEFAULT_REQUEST_TIMEOUT,
     DEFAULT_SCAN_INTERVAL,
 )
+from ...const.device_types import DEVICE_TYPE_PANEL
+from ...const.properties import PROP_LED, PROP_MEMORY, PROP_PAIR_KEY_FULL
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
@@ -90,6 +92,113 @@ def _build_report_options(options: Mapping[str, Any]) -> dict[str, Any]:
             DEFAULT_REQUEST_TIMEOUT,
         ),
         "debug_mode": options.get(CONF_DEBUG_MODE, DEFAULT_DEBUG_MODE),
+    }
+
+
+def _sanitize_last_command_failure(
+    failure: Mapping[str, Any] | None,
+    *,
+    device_id: str,
+) -> dict[str, Any] | None:
+    """Return a minimal failure summary when it belongs to this device."""
+    if not isinstance(failure, Mapping):
+        return None
+    failure_device_id = failure.get("device_id")
+    if not isinstance(failure_device_id, str) or failure_device_id != device_id:
+        return None
+
+    result: dict[str, Any] = {}
+    for key in ("reason", "code", "route"):
+        value = failure.get(key)
+        if isinstance(value, str) and value:
+            result[key] = value
+    return result or None
+
+
+def _sanitize_panel_info_entry(
+    entry: dict[str, Any],
+    *,
+    redact_identifier: Callable[[str | None], str | None],
+) -> dict[str, Any]:
+    """Sanitize one panelInfo entry for developer diagnostics."""
+    result: dict[str, Any] = {}
+    for key in ("index", "mode", "addr", "iconIndex", "roomId"):
+        value = entry.get(key)
+        if isinstance(value, int) and not isinstance(value, bool):
+            result[key] = value
+    relay = entry.get("relay")
+    if isinstance(relay, bool):
+        result["relay"] = relay
+    key_name = entry.get("keyName")
+    if isinstance(key_name, str) and key_name.strip():
+        result["keyName"] = key_name.strip()
+    mac = entry.get("mac")
+    if isinstance(mac, str) and mac.strip():
+        result["mac"] = redact_identifier(mac)
+    return result
+
+
+def _build_panel_capability_snapshot(
+    devices: Mapping[str, LiproDevice],
+    *,
+    redact_identifier: Callable[[str | None], str | None],
+    last_command_failure: Mapping[str, Any] | None,
+) -> dict[str, Any]:
+    """Build developer-only panel capability snapshot from runtime devices."""
+    panel_entries: list[dict[str, Any]] = []
+    configurable_panel_count = 0
+    pair_key_full_count = 0
+
+    for dev in devices.values():
+        if dev.is_group or dev.device_type_hex != DEVICE_TYPE_PANEL:
+            continue
+
+        supports_led = PROP_LED in dev.properties
+        supports_memory = PROP_MEMORY in dev.properties
+        pair_key_full_present = PROP_PAIR_KEY_FULL in dev.properties
+        panel_info = [
+            _sanitize_panel_info_entry(entry, redact_identifier=redact_identifier)
+            for entry in dev.panel_info
+        ]
+        if supports_led or supports_memory or pair_key_full_present or panel_info:
+            configurable_panel_count += 1
+
+        pair_key_full = dev.panel_pair_key_full if pair_key_full_present else None
+        if pair_key_full is True:
+            pair_key_full_count += 1
+
+        panel_entries.append(
+            {
+                "device_id": redact_identifier(dev.serial),
+                "name": dev.name,
+                "iot_name": dev.iot_name,
+                "panel_type": dev.panel_type,
+                "available": dev.available,
+                "is_connected": dev.is_connected,
+                "led": {
+                    "supported": supports_led,
+                    "enabled": dev.panel_led_enabled if supports_led else None,
+                },
+                "memory": {
+                    "supported": supports_memory,
+                    "enabled": dev.panel_memory_enabled if supports_memory else None,
+                },
+                "pair_key_full_present": pair_key_full_present,
+                "pair_key_full": pair_key_full,
+                "panel_info_count": len(panel_info),
+                "panel_info": panel_info,
+                "last_command_failure": _sanitize_last_command_failure(
+                    last_command_failure,
+                    device_id=dev.serial,
+                ),
+            }
+        )
+
+    return {
+        "panel_count": len(panel_entries),
+        "configurable_panel_count": configurable_panel_count,
+        "pair_key_full_count": pair_key_full_count,
+        "panels": panel_entries,
     }
 
 
@@ -236,6 +345,7 @@ def build_developer_report(
     pending_devices: int,
     pending_errors: int,
     command_traces: Sequence[dict[str, Any]],
+    last_command_failure: Mapping[str, Any] | None,
     redact_identifier: Callable[[str | None], str | None],
 ) -> dict[str, Any]:
     """Build sanitized coordinator runtime report."""
@@ -246,6 +356,11 @@ def build_developer_report(
     mesh_groups = _build_mesh_group_entries(
         devices,
         redact_identifier=redact_identifier,
+    )
+    panel_capability_snapshot = _build_panel_capability_snapshot(
+        devices,
+        redact_identifier=redact_identifier,
+        last_command_failure=last_command_failure,
     )
     ir_remote_inventory_snapshot = _build_ir_remote_inventory_snapshot(
         devices,
@@ -272,6 +387,7 @@ def build_developer_report(
             "outlet_count": outlet_count,
         },
         "mesh_groups": mesh_groups,
+        "panel_capability_snapshot": panel_capability_snapshot,
         "ir_remote_inventory_snapshot": ir_remote_inventory_snapshot,
         "anonymous_share_pending": {
             "devices": pending_devices,

@@ -362,6 +362,7 @@ class _CoordinatorStateMixin(_DeviceRefreshMixin):
             pending_devices=pending_devices,
             pending_errors=pending_errors,
             command_traces=list(self._command_traces),
+            last_command_failure=self.last_command_failure,
             redact_identifier=_redact_identifier,
         )
         report["runtime"]["status_metrics"] = self._build_status_metrics_snapshot()

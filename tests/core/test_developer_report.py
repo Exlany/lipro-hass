@@ -83,6 +83,7 @@ def test_build_developer_report_disabled_mode_includes_note_and_mesh_fallback() 
         pending_devices=2,
         pending_errors=1,
         command_traces=[],
+        last_command_failure=None,
         redact_identifier=_redact_identifier,
     )
 
@@ -135,6 +136,7 @@ def test_build_developer_report_honors_option_overrides_when_debug_enabled() -> 
         pending_devices=0,
         pending_errors=0,
         command_traces=[{"route": "device_direct", "success": True}],
+        last_command_failure=None,
         redact_identifier=_redact_identifier,
     )
 
@@ -149,6 +151,86 @@ def test_build_developer_report_honors_option_overrides_when_debug_enabled() -> 
     assert report["options"]["request_timeout"] == 40
     assert report["options"]["debug_mode"] is True
     assert report["recent_commands"] == [{"route": "device_direct", "success": True}]
+
+
+def test_build_developer_report_includes_panel_capability_snapshot() -> None:
+    panel = LiproDevice(
+        device_number=1,
+        serial="03ab5ccd7c000099",
+        name="Wall Panel",
+        device_type=5,
+        iot_name="21JD",
+        physical_model="switch",
+        properties={
+            "led": "1",
+            "memory": "0",
+            "pairKeyFull": "1",
+            "panelInfo": '[{"index":0,"mode":2,"addr":49155,"mac":"5CCD7C59ABCD","relay":true,"keyName":"左键","iconIndex":3,"roomId":11}]',
+        },
+    )
+    outlet = LiproDevice(
+        device_number=2,
+        serial="03ab5ccd7c000088",
+        name="Outlet",
+        device_type=6,
+        iot_name="outlet",
+        physical_model="outlet",
+        properties={"memory": "1"},
+    )
+
+    report = build_developer_report(
+        config_entry=None,
+        debug_mode=True,
+        mqtt_enabled=True,
+        mqtt_connected=True,
+        polling_interval_seconds=30,
+        last_update_success=True,
+        devices={panel.serial: panel, outlet.serial: outlet},
+        diagnostic_gateway_devices=None,
+        group_count=0,
+        individual_count=2,
+        outlet_count=1,
+        pending_devices=0,
+        pending_errors=0,
+        command_traces=[],
+        last_command_failure={
+            "device_id": panel.serial,
+            "reason": "api_error",
+            "code": "140006",
+            "route": "mesh_group",
+            "command": "PANEL_BIND",
+        },
+        redact_identifier=_redact_identifier,
+    )
+
+    snapshot = report["panel_capability_snapshot"]
+    assert snapshot["panel_count"] == 1
+    assert snapshot["configurable_panel_count"] == 1
+    assert snapshot["pair_key_full_count"] == 1
+
+    panel_entry = snapshot["panels"][0]
+    assert panel_entry["device_id"] == _redact_identifier(panel.serial)
+    assert panel_entry["name"] == "Wall Panel"
+    assert panel_entry["iot_name"] == "21JD"
+    assert panel_entry["panel_type"] == 1
+    assert panel_entry["available"] is True
+    assert panel_entry["is_connected"] is True
+    assert panel_entry["led"] == {"supported": True, "enabled": True}
+    assert panel_entry["memory"] == {"supported": True, "enabled": False}
+    assert panel_entry["pair_key_full_present"] is True
+    assert panel_entry["pair_key_full"] is True
+    assert panel_entry["panel_info_count"] == 1
+    assert panel_entry["panel_info"][0]["index"] == 0
+    assert panel_entry["panel_info"][0]["mode"] == 2
+    assert panel_entry["panel_info"][0]["addr"] == 49155
+    assert panel_entry["panel_info"][0]["mac"] == _redact_identifier("5CCD7C59ABCD")
+    assert panel_entry["panel_info"][0]["relay"] is True
+    assert panel_entry["panel_info"][0]["keyName"] == "左键"
+    assert panel_entry["last_command_failure"] == {
+        "reason": "api_error",
+        "code": "140006",
+        "route": "mesh_group",
+    }
 
 
 def test_build_developer_report_includes_ir_inventory_snapshot() -> None:
@@ -189,6 +271,7 @@ def test_build_developer_report_includes_ir_inventory_snapshot() -> None:
         pending_devices=0,
         pending_errors=0,
         command_traces=[],
+        last_command_failure=None,
         redact_identifier=_redact_identifier,
     )
 

@@ -33,6 +33,8 @@ PROP_BODY_REACTIVE: Final = "bodyReactive"
 # Property keys - Switch Panel (开关面板)
 PROP_LED: Final = "led"
 PROP_MEMORY: Final = "memory"
+PROP_PAIR_KEY_FULL: Final = "pairKeyFull"
+PROP_PANEL_INFO: Final = "panelInfo"
 
 # Property keys - Bedside Light (床头灯)
 PROP_BATTERY: Final = "battery"
