@@ -1,0 +1,182 @@
+{
+  "agent_id": "agent-5",
+  "agent_name": "MQTT Client Refactor Agent",
+  "task_name": "mqtt-client-simplification",
+  "phase": "2.2",
+  "priority": "P0",
+  "dependencies": ["agent-1", "agent-3"],
+  "description": "重构 LiproMqttClient（601 行，25 方法），提取消息处理器，简化客户端职责",
+  "input_files": [
+    "custom_components/lipro/core/mqtt/client.py"
+  ],
+  "output_branch": "refactor/phase-2-mqtt-client",
+  "base_branch": "develop",
+  "checkpoints": [
+    {
+      "id": "cp-5-1",
+      "description": "提取 MqttMessageProcessor",
+      "tasks": [
+        "创建 custom_components/lipro/core/mqtt/message_processor.py",
+        "定义 MqttMessageProcessor 类",
+        "提取消息解析逻辑（JSON 解析、验证）",
+        "提取消息路由逻辑（设备状态更新、命令确认）",
+        "提取消息转换逻辑（MQTT → 内部格式）",
+        "编写单元测试"
+      ],
+      "files": [
+        "custom_components/lipro/core/mqtt/message_processor.py",
+        "tests/core/mqtt/test_message_processor.py"
+      ],
+      "validation": {
+        "command": "pytest tests/core/mqtt/test_message_processor.py -v --cov=custom_components/lipro/core/mqtt/message_processor.py --cov-report=term-missing",
+        "expected": "all tests pass, coverage >=95%"
+      },
+      "commit_message": "refactor(mqtt): extract MqttMessageProcessor for message handling"
+    },
+    {
+      "id": "cp-5-2",
+      "description": "提取 MqttTopicBuilder",
+      "tasks": [
+        "创建 custom_components/lipro/core/mqtt/topic_builder.py",
+        "定义 MqttTopicBuilder 类",
+        "提取主题构建逻辑（设备主题、命令主题、状态主题）",
+        "提取主题解析逻辑（从主题提取设备 ID）",
+        "添加主题验证",
+        "编写单元测试"
+      ],
+      "files": [
+        "custom_components/lipro/core/mqtt/topic_builder.py",
+        "tests/core/mqtt/test_topic_builder.py"
+      ],
+      "validation": {
+        "command": "pytest tests/core/mqtt/test_topic_builder.py -v --cov=custom_components/lipro/core/mqtt/topic_builder.py --cov-report=term-missing",
+        "expected": "all tests pass, coverage >=95%"
+      },
+      "commit_message": "refactor(mqtt): extract MqttTopicBuilder for topic management"
+    },
+    {
+      "id": "cp-5-3",
+      "description": "提取 MqttConnectionManager",
+      "tasks": [
+        "创建 custom_components/lipro/core/mqtt/connection_manager.py",
+        "定义 MqttConnectionManager 类",
+        "提取连接管理逻辑（连接、断开、重连）",
+        "提取连接状态跟踪",
+        "实现重连策略（指数退避）",
+        "编写单元测试"
+      ],
+      "files": [
+        "custom_components/lipro/core/mqtt/connection_manager.py",
+        "tests/core/mqtt/test_connection_manager.py"
+      ],
+      "validation": {
+        "command": "pytest tests/core/mqtt/test_connection_manager.py -v --cov=custom_components/lipro/core/mqtt/connection_manager.py --cov-report=term-missing",
+        "expected": "all tests pass, coverage >=95%"
+      },
+      "commit_message": "refactor(mqtt): extract MqttConnectionManager for connection lifecycle"
+    },
+    {
+      "id": "cp-5-4",
+      "description": "简化 LiproMqttClient（组合模式）",
+      "tasks": [
+        "重写 custom_components/lipro/core/mqtt/client.py",
+        "使用组合模式（message_processor, topic_builder, connection_manager）",
+        "简化为协调器角色（委托具体逻辑）",
+        "保持公共 API 不变",
+        "减少行数到 <400 行",
+        "编写单元测试"
+      ],
+      "files": [
+        "custom_components/lipro/core/mqtt/client.py",
+        "tests/core/mqtt/test_client_refactored.py"
+      ],
+      "validation": {
+        "command": "pytest tests/core/mqtt/test_client_refactored.py -v --cov=custom_components/lipro/core/mqtt/client.py --cov-report=term-missing",
+        "expected": "all tests pass, coverage >=95%, lines <400"
+      },
+      "commit_message": "refactor(mqtt): simplify LiproMqttClient with composition pattern"
+    },
+    {
+      "id": "cp-5-5",
+      "description": "集成新服务层（Agent-3 依赖）",
+      "tasks": [
+        "集成 MqttService（来自 Agent-3）",
+        "更新 LiproMqttClient 使用新服务接口",
+        "验证与 Coordinator 集成",
+        "运行集成测试"
+      ],
+      "files": [
+        "custom_components/lipro/core/mqtt/client.py"
+      ],
+      "validation": {
+        "command": "pytest tests/integration/test_mqtt_coordinator_integration.py -v",
+        "expected": "all integration tests pass"
+      },
+      "commit_message": "refactor(mqtt): integrate with new service layer from Agent-3"
+    },
+    {
+      "id": "cp-5-6",
+      "description": "MQTT 集成测试验证",
+      "tasks": [
+        "运行完整 MQTT 测试套件",
+        "验证消息发布/订阅",
+        "验证设备状态更新",
+        "验证命令确认机制",
+        "验证重连逻辑",
+        "生成测试报告"
+      ],
+      "files": [
+        "tests/core/mqtt/"
+      ],
+      "validation": {
+        "command": "pytest tests/core/mqtt/ -v --cov=custom_components/lipro/core/mqtt/ --cov-report=html",
+        "expected": "all tests pass, coverage >=95%"
+      },
+      "commit_message": "test(mqtt): verify MQTT client refactoring with integration tests"
+    },
+    {
+      "id": "cp-5-7",
+      "description": "生成重构报告",
+      "tasks": [
+        "统计代码行数变化（601 → <400）",
+        "统计方法数变化（25 → 每个类 <15）",
+        "对比复杂度指标",
+        "生成类图",
+        "编写迁移指南"
+      ],
+      "files": [
+        "docs/refactoring/MQTT_CLIENT_REPORT.md"
+      ],
+      "validation": {
+        "command": "test -f docs/refactoring/MQTT_CLIENT_REPORT.md",
+        "expected": "report exists with metrics"
+      },
+      "commit_message": "docs(refactor): add MQTT client refactoring report"
+    }
+  ],
+  "success_criteria": {
+    "tests_pass": true,
+    "coverage": ">=95%",
+    "mypy_strict": true,
+    "max_file_lines": "<=400",
+    "max_methods_per_class": "<=15",
+    "integration_tests_pass": true,
+    "backward_compatible": true
+  },
+  "estimated_time": "2 weeks",
+  "retry_policy": {
+    "max_retries": 3,
+    "backoff": "exponential",
+    "base_delay": 120
+  },
+  "failure_handling": {
+    "on_test_failure": "rollback_to_last_checkpoint",
+    "on_integration_failure": "notify_orchestrator",
+    "on_fatal_error": "notify_orchestrator"
+  },
+  "reporting": {
+    "heartbeat_interval": 600,
+    "checkpoint_report": true,
+    "final_report": true
+  }
+}

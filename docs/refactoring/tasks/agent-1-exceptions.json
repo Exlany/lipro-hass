@@ -1,0 +1,145 @@
+{
+  "agent_id": "agent-1",
+  "agent_name": "Exception Refactor Agent",
+  "task_name": "exception-handling-refactoring",
+  "phase": "1.1",
+  "priority": "P0",
+  "dependencies": [],
+  "description": "收窄异常处理，替换 7 处裸 except Exception，建立异常层次结构",
+  "input_files": [
+    "custom_components/lipro/core/mqtt/client.py",
+    "custom_components/lipro/core/coordinator/coordinator.py"
+  ],
+  "output_branch": "refactor/phase-1-exceptions",
+  "base_branch": "refactor/phase-0-prep",
+  "checkpoints": [
+    {
+      "id": "cp-1-1",
+      "description": "定义异常层次结构",
+      "tasks": [
+        "创建 custom_components/lipro/core/exceptions.py",
+        "定义 LiproError 基类",
+        "定义 LiproMqttError 及子类（MqttConnectionError, MqttSubscriptionError, MqttPublishError）",
+        "定义 LiproApiError 及子类（ApiAuthError, ApiNetworkError）"
+      ],
+      "files": [
+        "custom_components/lipro/core/exceptions.py"
+      ],
+      "validation": {
+        "command": "pytest tests/core/test_exceptions.py -v",
+        "expected": "all tests pass"
+      },
+      "commit_message": "refactor(exceptions): define exception hierarchy for Lipro errors"
+    },
+    {
+      "id": "cp-1-2",
+      "description": "修复 client.py:175 - stop() 清理阶段异常",
+      "tasks": [
+        "替换裸 except Exception",
+        "捕获具体异常类型（MqttConnectionError, asyncio.TimeoutError）",
+        "添加 finally 块确保资源清理",
+        "记录未预期异常并重新抛出"
+      ],
+      "files": [
+        "custom_components/lipro/core/mqtt/client.py"
+      ],
+      "validation": {
+        "command": "pytest tests/core/mqtt/test_client.py::test_stop_handles_disconnect_error -v",
+        "expected": "test passes"
+      },
+      "commit_message": "refactor(mqtt): narrow exception handling in stop() method"
+    },
+    {
+      "id": "cp-1-3",
+      "description": "修复 client.py:395 - MQTT 主循环异常",
+      "tasks": [
+        "区分 MqttConnectionError 和 asyncio.CancelledError",
+        "添加重连逻辑",
+        "正确传播取消信号",
+        "添加 finally 块清理资源"
+      ],
+      "files": [
+        "custom_components/lipro/core/mqtt/client.py"
+      ],
+      "validation": {
+        "command": "pytest tests/core/mqtt/test_client.py::test_mqtt_loop_handles_connection_error -v && pytest tests/core/mqtt/test_client.py::test_mqtt_loop_propagates_cancellation -v",
+        "expected": "all tests pass"
+      },
+      "commit_message": "refactor(mqtt): improve exception handling in MQTT loop"
+    },
+    {
+      "id": "cp-1-4",
+      "description": "修复 client.py:452 - 连接回调异常",
+      "tasks": [
+        "捕获具体异常类型",
+        "区分连接失败和认证失败",
+        "添加详细日志"
+      ],
+      "files": [
+        "custom_components/lipro/core/mqtt/client.py"
+      ],
+      "validation": {
+        "command": "pytest tests/core/mqtt/test_client.py::test_on_connect_handles_errors -v",
+        "expected": "test passes"
+      },
+      "commit_message": "refactor(mqtt): narrow exception handling in connection callback"
+    },
+    {
+      "id": "cp-1-5",
+      "description": "修复 client.py:482, 587, 600, 632 - 其他关键路径",
+      "tasks": [
+        "逐个审查剩余 4 处异常处理",
+        "替换为具体异常类型",
+        "添加适当的错误处理和日志"
+      ],
+      "files": [
+        "custom_components/lipro/core/mqtt/client.py"
+      ],
+      "validation": {
+        "command": "pytest tests/core/mqtt/ -v",
+        "expected": "all tests pass"
+      },
+      "commit_message": "refactor(mqtt): complete exception handling improvements"
+    },
+    {
+      "id": "cp-1-6",
+      "description": "验证无裸异常处理",
+      "tasks": [
+        "运行 ruff 检查 BLE001 规则",
+        "确认所有裸 except 已移除或有明确理由",
+        "更新 .ruff.toml 启用 BLE001"
+      ],
+      "files": [
+        ".ruff.toml"
+      ],
+      "validation": {
+        "command": "ruff check custom_components/lipro/core/mqtt/ --select BLE001",
+        "expected": "no violations"
+      },
+      "commit_message": "chore(lint): enable BLE001 rule to prevent bare except"
+    }
+  ],
+  "success_criteria": {
+    "tests_pass": true,
+    "coverage": ">=95%",
+    "mypy_strict": true,
+    "no_bare_except": true,
+    "ruff_clean": true
+  },
+  "estimated_time": "2 days",
+  "retry_policy": {
+    "max_retries": 3,
+    "backoff": "exponential",
+    "base_delay": 60
+  },
+  "failure_handling": {
+    "on_test_failure": "rollback_to_last_checkpoint",
+    "on_validation_failure": "retry_checkpoint",
+    "on_fatal_error": "notify_orchestrator"
+  },
+  "reporting": {
+    "heartbeat_interval": 300,
+    "checkpoint_report": true,
+    "final_report": true
+  }
+}

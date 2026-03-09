@@ -1,0 +1,186 @@
+{
+  "agent_id": "agent-4",
+  "agent_name": "Device Model Refactor Agent",
+  "task_name": "device-model-decomposition",
+  "phase": "2.2",
+  "priority": "P0",
+  "dependencies": ["agent-1", "agent-2"],
+  "description": "拆分 LiproDevice 超大类（742 行，86 方法）为多个职责清晰的组件类",
+  "input_files": [
+    "custom_components/lipro/core/device/device.py"
+  ],
+  "output_branch": "refactor/phase-2-device-model",
+  "base_branch": "develop",
+  "checkpoints": [
+    {
+      "id": "cp-4-1",
+      "description": "拆分 DeviceIdentity（不可变身份信息）",
+      "tasks": [
+        "创建 custom_components/lipro/core/device/identity.py",
+        "定义 @dataclass(frozen=True) DeviceIdentity",
+        "提取基础信息字段（device_id, device_name, device_type, room_id, room_name, mac, model, firmware）",
+        "实现 from_api_data() 工厂方法",
+        "添加验证逻辑",
+        "编写单元测试"
+      ],
+      "files": [
+        "custom_components/lipro/core/device/identity.py",
+        "tests/core/device/test_identity.py"
+      ],
+      "validation": {
+        "command": "pytest tests/core/device/test_identity.py -v --cov=custom_components/lipro/core/device/identity.py --cov-report=term-missing",
+        "expected": "all tests pass, coverage >=95%, immutability verified"
+      },
+      "commit_message": "refactor(device): extract DeviceIdentity as immutable dataclass"
+    },
+    {
+      "id": "cp-4-2",
+      "description": "拆分 DeviceState（可变状态）",
+      "tasks": [
+        "创建 custom_components/lipro/core/device/state.py",
+        "定义 @dataclass DeviceState",
+        "提取状态字段（is_on, brightness, color_temp, rgb_color, effect, online）",
+        "实现 update_from_properties() 方法",
+        "实现 from_api_data() 工厂方法",
+        "添加状态验证",
+        "编写单元测试"
+      ],
+      "files": [
+        "custom_components/lipro/core/device/state.py",
+        "tests/core/device/test_state.py"
+      ],
+      "validation": {
+        "command": "pytest tests/core/device/test_state.py -v --cov=custom_components/lipro/core/device/state.py --cov-report=term-missing",
+        "expected": "all tests pass, coverage >=95%"
+      },
+      "commit_message": "refactor(device): extract DeviceState for mutable properties"
+    },
+    {
+      "id": "cp-4-3",
+      "description": "拆分 DeviceCapabilities（不可变能力）",
+      "tasks": [
+        "创建 custom_components/lipro/core/device/capabilities.py",
+        "定义 @dataclass(frozen=True) DeviceCapabilities",
+        "提取能力字段（supports_brightness, supports_color, supports_color_temp, supports_effect, supports_gear）",
+        "提取边界值（min_brightness, max_brightness, min_color_temp, max_color_temp）",
+        "实现 from_device_type() 工厂方法（设备类型映射）",
+        "编写单元测试"
+      ],
+      "files": [
+        "custom_components/lipro/core/device/capabilities.py",
+        "tests/core/device/test_capabilities.py"
+      ],
+      "validation": {
+        "command": "pytest tests/core/device/test_capabilities.py -v --cov=custom_components/lipro/core/device/capabilities.py --cov-report=term-missing",
+        "expected": "all tests pass, coverage >=95%, immutability verified"
+      },
+      "commit_message": "refactor(device): extract DeviceCapabilities with type-based inference"
+    },
+    {
+      "id": "cp-4-4",
+      "description": "拆分 DeviceNetworkInfo（网络诊断）",
+      "tasks": [
+        "创建 custom_components/lipro/core/device/network_info.py",
+        "定义 @dataclass DeviceNetworkInfo",
+        "提取网络字段（rssi, ip_address, last_seen）",
+        "实现 connection_quality 计算属性",
+        "实现 from_diagnostics_data() 工厂方法",
+        "编写单元测试"
+      ],
+      "files": [
+        "custom_components/lipro/core/device/network_info.py",
+        "tests/core/device/test_network_info.py"
+      ],
+      "validation": {
+        "command": "pytest tests/core/device/test_network_info.py -v --cov=custom_components/lipro/core/device/network_info.py --cov-report=term-missing",
+        "expected": "all tests pass, coverage >=95%"
+      },
+      "commit_message": "refactor(device): extract DeviceNetworkInfo for diagnostics"
+    },
+    {
+      "id": "cp-4-5",
+      "description": "组合新 LiproDevice（组合模式）",
+      "tasks": [
+        "重写 custom_components/lipro/core/device/device.py",
+        "使用组合模式（identity, state, capabilities, network_info）",
+        "添加便捷属性（委托到子组件）",
+        "实现 from_api_data() 工厂方法",
+        "实现 update_properties() 方法",
+        "保持向后兼容的公共 API",
+        "编写单元测试"
+      ],
+      "files": [
+        "custom_components/lipro/core/device/device.py",
+        "tests/core/device/test_device.py"
+      ],
+      "validation": {
+        "command": "pytest tests/core/device/test_device.py -v --cov=custom_components/lipro/core/device/device.py --cov-report=term-missing",
+        "expected": "all tests pass, coverage >=95%"
+      },
+      "commit_message": "refactor(device): compose LiproDevice from specialized components"
+    },
+    {
+      "id": "cp-4-6",
+      "description": "快照测试验证行为不变",
+      "tasks": [
+        "运行快照测试（旧 vs 新实现）",
+        "验证所有属性访问结果一致",
+        "验证序列化/反序列化一致",
+        "验证更新逻辑一致",
+        "生成对比报告"
+      ],
+      "files": [
+        "tests/snapshots/test_device_compatibility.py"
+      ],
+      "validation": {
+        "command": "pytest tests/snapshots/test_device_compatibility.py -v",
+        "expected": "all snapshot tests pass, behavior unchanged"
+      },
+      "commit_message": "test(device): verify behavior compatibility with snapshot tests"
+    },
+    {
+      "id": "cp-4-7",
+      "description": "生成重构报告",
+      "tasks": [
+        "统计代码行数变化（742 → ~400）",
+        "统计方法数变化（86 → 每个类 <20）",
+        "对比复杂度指标",
+        "生成类图",
+        "编写迁移指南"
+      ],
+      "files": [
+        "docs/refactoring/DEVICE_MODEL_REPORT.md"
+      ],
+      "validation": {
+        "command": "test -f docs/refactoring/DEVICE_MODEL_REPORT.md",
+        "expected": "report exists with metrics"
+      },
+      "commit_message": "docs(refactor): add device model decomposition report"
+    }
+  ],
+  "success_criteria": {
+    "tests_pass": true,
+    "coverage": ">=95%",
+    "mypy_strict": true,
+    "max_file_lines": "<=150",
+    "max_methods_per_class": "<=20",
+    "snapshot_tests_pass": true,
+    "backward_compatible": true
+  },
+  "estimated_time": "2 weeks",
+  "retry_policy": {
+    "max_retries": 3,
+    "backoff": "exponential",
+    "base_delay": 120
+  },
+  "failure_handling": {
+    "on_test_failure": "rollback_to_last_checkpoint",
+    "on_snapshot_mismatch": "notify_orchestrator",
+    "on_fatal_error": "notify_orchestrator"
+  },
+  "reporting": {
+    "heartbeat_interval": 600,
+    "checkpoint_report": true,
+    "final_report": true
+  }
+}

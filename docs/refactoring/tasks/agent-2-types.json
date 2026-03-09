@@ -1,0 +1,152 @@
+{
+  "agent_id": "agent-2",
+  "agent_name": "Type Safety Agent",
+  "task_name": "type-safety-improvement",
+  "phase": "1.1",
+  "priority": "P0",
+  "dependencies": [],
+  "description": "减少 Any 类型使用，为高频文件引入 TypedDict/dataclass，提升类型安全",
+  "input_files": [
+    "custom_components/lipro/core/command/result.py",
+    "custom_components/lipro/services/diagnostics_service.py",
+    "custom_components/lipro/core/api/diagnostics_service.py",
+    "custom_components/lipro/core/api/schedule_service.py"
+  ],
+  "output_branch": "refactor/phase-1-types",
+  "base_branch": "refactor/phase-0-prep",
+  "checkpoints": [
+    {
+      "id": "cp-2-1",
+      "description": "定义 API 响应类型（TypedDict）",
+      "tasks": [
+        "创建 custom_components/lipro/core/api/types.py",
+        "定义 DeviceApiResponse",
+        "定义 CommandResultApiResponse",
+        "定义 DiagnosticsApiResponse",
+        "定义 ScheduleApiResponse",
+        "添加完整的类型注解和文档"
+      ],
+      "files": [
+        "custom_components/lipro/core/api/types.py"
+      ],
+      "validation": {
+        "command": "mypy custom_components/lipro/core/api/types.py --strict",
+        "expected": "no errors"
+      },
+      "commit_message": "refactor(types): define API response TypedDict types"
+    },
+    {
+      "id": "cp-2-2",
+      "description": "重构 core/command/result.py (46 次 Any)",
+      "tasks": [
+        "替换 dict[str, Any] 为 CommandResultApiResponse",
+        "为所有方法添加精确类型注解",
+        "移除不必要的 Any 类型",
+        "添加类型断言（如需要）"
+      ],
+      "files": [
+        "custom_components/lipro/core/command/result.py"
+      ],
+      "validation": {
+        "command": "mypy custom_components/lipro/core/command/result.py --strict && pytest tests/core/command/test_result.py -v",
+        "expected": "no mypy errors, all tests pass"
+      },
+      "commit_message": "refactor(command): replace Any types with CommandResultApiResponse"
+    },
+    {
+      "id": "cp-2-3",
+      "description": "重构 services/diagnostics_service.py (41 次 Any)",
+      "tasks": [
+        "替换 dict[str, Any] 为 DiagnosticsApiResponse",
+        "为诊断数据结构添加类型",
+        "更新方法签名",
+        "确保类型安全"
+      ],
+      "files": [
+        "custom_components/lipro/services/diagnostics_service.py"
+      ],
+      "validation": {
+        "command": "mypy custom_components/lipro/services/diagnostics_service.py --strict && pytest tests/services/test_diagnostics_service.py -v",
+        "expected": "no mypy errors, all tests pass"
+      },
+      "commit_message": "refactor(diagnostics): improve type safety in diagnostics service"
+    },
+    {
+      "id": "cp-2-4",
+      "description": "重构 core/api/diagnostics_service.py (37 次 Any)",
+      "tasks": [
+        "使用 DiagnosticsApiResponse 类型",
+        "为 API 调用添加返回类型",
+        "移除 Any 类型",
+        "添加类型验证"
+      ],
+      "files": [
+        "custom_components/lipro/core/api/diagnostics_service.py"
+      ],
+      "validation": {
+        "command": "mypy custom_components/lipro/core/api/diagnostics_service.py --strict && pytest tests/core/api/test_diagnostics_service.py -v",
+        "expected": "no mypy errors, all tests pass"
+      },
+      "commit_message": "refactor(api): improve type safety in diagnostics API service"
+    },
+    {
+      "id": "cp-2-5",
+      "description": "重构 core/api/schedule_service.py (25 次 Any)",
+      "tasks": [
+        "使用 ScheduleApiResponse 类型",
+        "为调度数据添加类型定义",
+        "更新方法签名",
+        "移除 Any 类型"
+      ],
+      "files": [
+        "custom_components/lipro/core/api/schedule_service.py"
+      ],
+      "validation": {
+        "command": "mypy custom_components/lipro/core/api/schedule_service.py --strict && pytest tests/core/api/test_schedule_service.py -v",
+        "expected": "no mypy errors, all tests pass"
+      },
+      "commit_message": "refactor(api): improve type safety in schedule service"
+    },
+    {
+      "id": "cp-2-6",
+      "description": "验证类型安全提升",
+      "tasks": [
+        "运行 mypy 全量检查",
+        "统计 Any 类型减少数量",
+        "生成类型覆盖率报告",
+        "更新文档"
+      ],
+      "files": [
+        "docs/refactoring/TYPE_SAFETY_REPORT.md"
+      ],
+      "validation": {
+        "command": "mypy custom_components/lipro/ --strict --html-report mypy-report && pytest tests/ --cov=custom_components/lipro --cov-report=html",
+        "expected": "mypy errors reduced by >80%, coverage >=95%"
+      },
+      "commit_message": "docs(refactor): add type safety improvement report"
+    }
+  ],
+  "success_criteria": {
+    "tests_pass": true,
+    "coverage": ">=95%",
+    "mypy_strict": true,
+    "any_reduction": ">=80%",
+    "no_type_ignore": true
+  },
+  "estimated_time": "3 days",
+  "retry_policy": {
+    "max_retries": 3,
+    "backoff": "exponential",
+    "base_delay": 60
+  },
+  "failure_handling": {
+    "on_test_failure": "rollback_to_last_checkpoint",
+    "on_mypy_failure": "retry_checkpoint",
+    "on_fatal_error": "notify_orchestrator"
+  },
+  "reporting": {
+    "heartbeat_interval": 300,
+    "checkpoint_report": true,
+    "final_report": true
+  }
+}
