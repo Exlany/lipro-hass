@@ -58,7 +58,7 @@ def _normalize_schedule_time_events(sched_info: Mapping[str, Any]) -> tuple[list
 
     normalized_times: list[str] = []
     normalized_events: list[int] = []
-    for seconds, event in zip(times, events):
+    for seconds, event in zip(times, events, strict=False):
         if (time_str := format_schedule_time(seconds)) is None:
             continue
         normalized_times.append(time_str)

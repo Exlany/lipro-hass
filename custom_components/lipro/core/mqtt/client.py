@@ -12,7 +12,6 @@ Architecture:
 from __future__ import annotations
 
 import asyncio
-import json
 import logging
 import random
 import ssl
@@ -31,13 +30,9 @@ from ...const.api import (
 )
 from ..utils.redaction import redact_identifier as _redact_identifier
 from .credentials import MqttCredentials
-from .payload import (
-    _MAX_MQTT_LOG_CHARS,
-    _MAX_MQTT_PAYLOAD_BYTES,
-    _format_mqtt_payload_for_log,
-    parse_mqtt_payload,
-)
-from .topics import build_topic, parse_topic
+from .message_processor import MqttMessageProcessor, decode_payload_text
+from .payload import parse_mqtt_payload
+from .topics import build_topic
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -114,7 +109,7 @@ class LiproMqttClient:
         self._connected = False
         self._reconnect_delay = MQTT_RECONNECT_MIN_DELAY
         self._tls_context: ssl.SSLContext | None = None
-        self._invalid_topic_count = 0
+        self._message_processor = MqttMessageProcessor(biz_id)
 
     @property
     def is_connected(self) -> bool:
@@ -466,127 +461,23 @@ class LiproMqttClient:
 
     def _log_invalid_topic(self, topic: str) -> None:
         """Record and log invalid topic metadata without exposing topic content."""
-        self._invalid_topic_count += 1
-        if _LOGGER.isEnabledFor(logging.DEBUG):
-            _LOGGER.debug(
-                "Invalid topic format (count=%d, len=%d), skipping message",
-                self._invalid_topic_count,
-                len(topic),
-            )
-            return
-        _LOGGER.warning(
-            "Invalid topic format, skipping message (count=%d)",
-            self._invalid_topic_count,
-        )
+        self._message_processor.log_invalid_topic(topic)
 
     @staticmethod
     def _decode_payload_text(raw_payload: object, device_id: str) -> str | None:
         """Decode MQTT payload to UTF-8 text with unified size/type checks."""
-        if isinstance(raw_payload, memoryview):
-            raw_payload = raw_payload.tobytes()
-
-        if isinstance(raw_payload, (bytes, bytearray)):
-            raw_bytes = bytes(raw_payload)
-            payload_size = len(raw_bytes)
-            if payload_size > _MAX_MQTT_PAYLOAD_BYTES:
-                _LOGGER.warning(
-                    "MQTT [%s]: payload too large (%d bytes), skipping",
-                    _redact_identifier(device_id) or "***",
-                    payload_size,
-                )
-                return None
-            return raw_bytes.decode("utf-8")
-
-        if isinstance(raw_payload, str):
-            payload_size = len(raw_payload.encode("utf-8"))
-            if payload_size > _MAX_MQTT_PAYLOAD_BYTES:
-                _LOGGER.warning(
-                    "MQTT [%s]: payload too large (%d bytes), skipping",
-                    _redact_identifier(device_id) or "***",
-                    payload_size,
-                )
-                return None
-            return raw_payload
-
-        _LOGGER.debug(
-            "MQTT [%s]: unexpected payload type %s, skipping",
-            _redact_identifier(device_id) or "***",
-            type(raw_payload).__name__,
-        )
-        return None
+        return decode_payload_text(raw_payload, device_id)
 
     def _process_message(self, message: aiomqtt.Message) -> None:
-        """Process incoming MQTT message.
-
-        Args:
-            message: MQTT message object.
-
-        """
-        try:
-            topic = str(message.topic)
-            device_id = parse_topic(topic, expected_biz_id=self._biz_id)
-
-            if not device_id:
-                self._log_invalid_topic(topic)
-                return
-
-            device_id_log = _redact_identifier(device_id) or "***"
-
-            if not message.payload:
-                _LOGGER.debug("MQTT [%s]: empty payload, skipping", device_id_log)
-                return
-
-            payload_text = self._decode_payload_text(message.payload, device_id)
-            if payload_text is None:
-                return
-
-            payload = json.loads(payload_text)
-            if not isinstance(payload, dict):
-                _LOGGER.debug(
-                    "MQTT [%s]: unexpected payload type %s, skipping",
-                    device_id_log,
-                    type(payload).__name__,
-                )
-                return
-
-            if _LOGGER.isEnabledFor(logging.DEBUG):
-                _LOGGER.debug(
-                    "MQTT [%s]: %s",
-                    device_id_log,
-                    _format_mqtt_payload_for_log(payload)[:_MAX_MQTT_LOG_CHARS],
-                )
-
-            # Parse and flatten payload to REST API format
-            properties = parse_mqtt_payload(payload)
-
-            if self._on_message and properties:
-                if not self._invoke_callback(
-                    self._on_message,
-                    "on_message",
-                    device_id,
-                    properties,
-                ):
-                    return
-
-            self._clear_last_error()
-
-        except (json.JSONDecodeError, UnicodeError) as err:
-            self._set_last_error(err)
-            _LOGGER.exception("Failed to decode MQTT payload")
-        except Exception as err:
-            self._set_last_error(err)
-            topic = str(getattr(message, "topic", "unknown"))
-            device_id = parse_topic(topic, expected_biz_id=self._biz_id)
-            topic_context = (
-                f"device={_redact_identifier(device_id) or '***'}"
-                if device_id
-                else f"invalid_topic_len={len(topic)}"
-            )
-            _LOGGER.exception(
-                "Error processing MQTT message (%s, error=%s)",
-                topic_context,
-                type(err).__name__,
-            )
+        """Process incoming MQTT message."""
+        self._message_processor.process_message(
+            message,
+            parse_payload=parse_mqtt_payload,
+            on_message=self._on_message,
+            invoke_callback=self._invoke_callback,
+            set_last_error=self._set_last_error,
+            clear_last_error=self._clear_last_error,
+        )
 
     def _async_finalize_connection_task(self, task: asyncio.Task[None]) -> None:
         """Consume background connection task result and persist terminal errors."""

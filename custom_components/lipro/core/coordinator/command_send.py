@@ -28,7 +28,7 @@ from ..command.result import (
     resolve_polled_command_result,
     should_skip_immediate_post_refresh,
 )
-from ..command.trace import build_command_trace, update_trace_with_exception
+from ..command.trace import update_trace_with_exception
 from ..device import LiproDevice
 from ..utils.log_safety import safe_error_placeholder
 from ..utils.redaction import redact_identifier as _redact_identifier
@@ -145,6 +145,44 @@ class _CommandSendMixin(_CommandConfirmMixin):
         if self._last_command_failure is None:
             return None
         return dict(self._last_command_failure)
+
+    async def async_ensure_authenticated(self) -> None:
+        """Ensure coordinator authentication before sending commands."""
+        await self._async_ensure_authenticated()
+
+    async def async_handle_command_api_error(
+        self,
+        *,
+        device: LiproDevice,
+        trace: dict[str, Any],
+        route: str,
+        err: LiproApiError,
+    ) -> bool:
+        """Bridge API-error handling for the command service."""
+        return await self._handle_command_api_error(
+            device=device,
+            trace=trace,
+            route=route,
+            err=err,
+        )
+
+    async def async_execute_command_flow(
+        self,
+        *,
+        device: LiproDevice,
+        command: str,
+        properties: list[dict[str, str]] | None,
+        fallback_device_id: str | None,
+        trace: dict[str, Any],
+    ) -> tuple[bool, str]:
+        """Bridge command execution flow for the command service."""
+        return await self._execute_command_flow(
+            device=device,
+            command=command,
+            properties=properties,
+            fallback_device_id=fallback_device_id,
+            trace=trace,
+        )
 
     async def _verify_command_result_delivery(
         self,
@@ -277,35 +315,13 @@ class _CommandSendMixin(_CommandConfirmMixin):
         properties: list[dict[str, str]] | None = None,
         fallback_device_id: str | None = None,
     ) -> bool:
-        """Send a command to a device."""
-        trace = build_command_trace(
-            device=device,
-            command=command,
-            properties=properties,
-            fallback_device_id=fallback_device_id,
-            redact_identifier=_redact_identifier,
+        """Send one command through the injected command service."""
+        return await self.command_service.async_send_command(
+            device,
+            command,
+            properties,
+            fallback_device_id,
         )
-        route = "device_direct"
-
-        try:
-            await self._async_ensure_authenticated()
-
-            success, route = await self._execute_command_flow(
-                device=device,
-                command=command,
-                properties=properties,
-                fallback_device_id=fallback_device_id,
-                trace=trace,
-            )
-            return success
-
-        except LiproApiError as err:
-            return await self._handle_command_api_error(
-                device=device,
-                trace=trace,
-                route=route,
-                err=err,
-            )
 
     async def _execute_command_flow(
         self,

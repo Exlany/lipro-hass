@@ -17,49 +17,19 @@ from ...const.device_types import (
     PHYSICAL_MODEL_TO_DEVICE_TYPE,
 )
 from ...const.properties import (
-    DEFAULT_COLOR_TEMP_PERCENT,
-    DIRECTION_CLOSING,
-    DIRECTION_OPENING,
     MAX_COLOR_TEMP_KELVIN,
     MIN_COLOR_TEMP_KELVIN,
-    PROP_ACTIVATED,
-    PROP_AERATION_GEAR,
-    PROP_BATTERY,
     PROP_BODY_REACTIVE,
-    PROP_BRIGHTNESS,
-    PROP_CHARGING,
     PROP_CONNECT_STATE,
-    PROP_DARK,
-    PROP_DIRECTION,
-    PROP_DOOR_OPEN,
-    PROP_FADE_STATE,
-    PROP_FAN_GEAR,
-    PROP_FAN_MODE,
-    PROP_FAN_ONOFF,
     PROP_FOCUS_MODE,
     PROP_GEAR_LIST,
-    PROP_HEATER_MODE,
-    PROP_HEATER_SWITCH,
     PROP_IR_SWITCH,
     PROP_IS_SUPPORT_IR_SWITCH,
     PROP_LAST_GEAR_INDEX,
-    PROP_LED,
-    PROP_LIGHT_MODE,
-    PROP_LOW_BATTERY,
-    PROP_MEMORY,
-    PROP_MOVING,
-    PROP_PAIR_KEY_FULL,
     PROP_PANEL_INFO,
-    PROP_POSITION,
-    PROP_POWER_STATE,
     PROP_RC_LIST,
     PROP_SLEEP_AID_ENABLE,
-    PROP_TEMPERATURE,
     PROP_WAKE_UP_ENABLE,
-    PROP_WIND_DIRECTION_MODE,
-    PROP_WIND_GEAR,
-    kelvin_to_percent,
-    percent_to_kelvin,
 )
 from ..utils.coerce import coerce_boollike
 from ..utils.identifiers import is_valid_iot_device_id, is_valid_mesh_group_id
@@ -67,6 +37,7 @@ from ..utils.property_normalization import normalize_properties
 from .capabilities import DeviceCapabilities
 from .identity import DeviceIdentity
 from .network_info import DeviceNetworkInfo
+from .state import DeviceState
 
 _LOGGER = logging.getLogger(__name__)
 _IOT_REMOTE_ID_PREFIX = "rmt_id_"
@@ -295,9 +266,19 @@ class LiproDevice:
     # Property Getters with Type Conversion
     # =========================================================================
 
+    @property
+    def state(self) -> DeviceState:
+        """Return one helper object for mutable state/property resolution."""
+        return DeviceState(
+            properties=self.properties,
+            min_color_temp_kelvin=self.min_color_temp_kelvin,
+            max_color_temp_kelvin=self.max_color_temp_kelvin,
+            max_fan_gear=self.max_fan_gear,
+        )
+
     def get_property(self, key: str, default: Any = None) -> Any:
         """Get a property value."""
-        return self.properties.get(key, default)
+        return self.state.get_property(key, default)
 
     @staticmethod
     def _coerce_int(value: Any) -> int | None:
@@ -323,53 +304,39 @@ class LiproDevice:
         - String: "1"/"0", "true"/"false", "True"/"False"
         - Integer: 1/0
         """
-        value = self.properties.get(key)
-        if value is None:
-            return default
-        if isinstance(value, (bool, int, float, str)):
-            return _coerce_api_bool(value)
-        return bool(value)
+        return self.state.get_bool_property(key, default)
 
     def get_int_property(self, key: str, default: int = 0) -> int:
         """Get an integer property value."""
-        value = self._coerce_int(self.properties.get(key))
-        if value is None:
-            return default
-        return value
+        return self.state.get_int_property(key, default)
 
     def get_float_property(self, key: str, default: float = 0.0) -> float:
         """Get a float property value."""
-        value = self._coerce_float(self.properties.get(key))
-        if value is None:
-            return default
-        return value
+        return self.state.get_float_property(key, default)
 
     def get_optional_int_property(self, key: str) -> int | None:
         """Get an optional integer property value (returns None if missing)."""
-        return self._coerce_int(self.properties.get(key))
+        return self.state.get_optional_int_property(key)
 
     def get_str_property(self, key: str) -> str | None:
         """Get a string property value, or None if missing."""
-        value = self.properties.get(key)
-        if value is None:
-            return None
-        return str(value)
+        return self.state.get_str_property(key)
 
     # Common state properties
     @property
     def is_on(self) -> bool:
         """Check if device is on."""
-        return self.get_bool_property(PROP_POWER_STATE)
+        return self.state.is_on
 
     @property
     def is_connected(self) -> bool:
         """Check if device is connected."""
-        return self.get_bool_property(PROP_CONNECT_STATE, True)
+        return self.state.is_connected
 
     @property
     def brightness(self) -> int:
         """Get brightness (0-100)."""
-        return self.get_int_property(PROP_BRIGHTNESS, 100)
+        return self.state.brightness
 
     @property
     def color_temp(self) -> int:
@@ -378,8 +345,7 @@ class LiproDevice:
         API stores temperature as percentage (0=warmest, 100=coolest).
         Uses device-specific color temp range if available.
         """
-        percent = self.get_int_property(PROP_TEMPERATURE, DEFAULT_COLOR_TEMP_PERCENT)
-        return self.percent_to_kelvin_for_device(percent)
+        return self.state.color_temp
 
     def percent_to_kelvin_for_device(self, percent: int) -> int:
         """Convert API temperature percentage to Kelvin using device-specific range.
@@ -391,14 +357,7 @@ class LiproDevice:
             Color temperature in Kelvin.
 
         """
-        percent = max(0, min(100, percent))
-        if self.supports_color_temp:
-            temp_range = self.max_color_temp_kelvin - self.min_color_temp_kelvin
-            if temp_range <= 0:
-                return self.min_color_temp_kelvin
-            return self.min_color_temp_kelvin + int(percent * temp_range / 100)
-        # Fallback to global defaults (2700-6500K)
-        return percent_to_kelvin(percent)
+        return self.state.percent_to_kelvin_for_device(percent)
 
     def kelvin_to_percent_for_device(self, kelvin: int) -> int:
         """Convert Kelvin to API temperature percentage using device-specific range.
@@ -410,21 +369,12 @@ class LiproDevice:
             Temperature percentage (0-100), clamped.
 
         """
-        if self.supports_color_temp:
-            min_temp = self.min_color_temp_kelvin
-            max_temp = self.max_color_temp_kelvin
-            temp_range = max_temp - min_temp
-            if temp_range <= 0:
-                return 50
-            kelvin = max(min_temp, min(max_temp, kelvin))
-            return max(0, min(100, round((kelvin - min_temp) * 100 / temp_range)))
-        # Fallback to global defaults
-        return kelvin_to_percent(kelvin)
+        return self.state.kelvin_to_percent_for_device(kelvin)
 
     @property
     def fade_state(self) -> bool:
         """Get fade/transition state for light."""
-        return self.get_bool_property(PROP_FADE_STATE)
+        return self.state.fade_state
 
     @property
     def gear_list(self) -> list[Any]:
@@ -472,12 +422,12 @@ class LiproDevice:
     @property
     def sleep_aid_enabled(self) -> bool:
         """Check if sleep aid mode is enabled."""
-        return self.get_bool_property(PROP_SLEEP_AID_ENABLE)
+        return self.state.sleep_aid_enabled
 
     @property
     def wake_up_enabled(self) -> bool:
         """Check if wake up mode is enabled."""
-        return self.get_bool_property(PROP_WAKE_UP_ENABLE)
+        return self.state.wake_up_enabled
 
     @property
     def has_sleep_wake_features(self) -> bool:
@@ -491,12 +441,12 @@ class LiproDevice:
     @property
     def focus_mode_enabled(self) -> bool:
         """Check if focus mode is enabled."""
-        return self.get_bool_property(PROP_FOCUS_MODE)
+        return self.state.focus_mode_enabled
 
     @property
     def body_reactive_enabled(self) -> bool:
         """Check if body reactive (motion sensing) is enabled."""
-        return self.get_bool_property(PROP_BODY_REACTIVE)
+        return self.state.body_reactive_enabled
 
     @property
     def has_floor_lamp_features(self) -> bool:
@@ -509,12 +459,12 @@ class LiproDevice:
     @property
     def panel_led_enabled(self) -> bool:
         """Check if the panel indicator LED is enabled."""
-        return self.get_bool_property(PROP_LED)
+        return self.state.panel_led_enabled
 
     @property
     def panel_memory_enabled(self) -> bool:
         """Check if panel power-loss memory is enabled."""
-        return self.get_bool_property(PROP_MEMORY)
+        return self.state.panel_memory_enabled
 
     @property
     def panel_type(self) -> int:
@@ -524,7 +474,7 @@ class LiproDevice:
     @property
     def panel_pair_key_full(self) -> bool:
         """Return whether panel bind slots are reported full."""
-        return self.get_bool_property(PROP_PAIR_KEY_FULL)
+        return self.state.panel_pair_key_full
 
     @property
     def panel_info(self) -> list[dict[str, Any]]:
@@ -603,53 +553,45 @@ class LiproDevice:
     @property
     def ir_switch_enabled(self) -> bool:
         """Return current IR switch state when available."""
-        return self.get_bool_property(PROP_IR_SWITCH)
+        return self.state.ir_switch_enabled
 
     # Bedside Light properties (床头灯)
     @property
     def battery_level(self) -> int | None:
         """Get battery level (0-100), or None if not a battery device."""
-        if PROP_BATTERY not in self.properties:
-            return None
-        return self.get_int_property(PROP_BATTERY, 0)
+        return self.state.battery_level
 
     @property
     def is_charging(self) -> bool:
         """Check if device is charging."""
-        return self.get_bool_property(PROP_CHARGING)
+        return self.state.is_charging
 
     @property
     def has_battery(self) -> bool:
         """Check if device has battery."""
-        return PROP_BATTERY in self.properties
+        return self.state.has_battery
 
     # Curtain properties
     @property
     def position(self) -> int:
         """Get curtain position (0-100)."""
-        position = self.get_int_property(PROP_POSITION, 0)
-        return max(0, min(100, position))
+        return self.state.position
 
     @property
     def is_moving(self) -> bool:
         """Check if curtain is moving."""
-        return self.get_bool_property(PROP_MOVING)
+        return self.state.is_moving
 
     @property
     def direction(self) -> str | None:
         """Get curtain movement direction."""
-        direction = self.get_property(PROP_DIRECTION)
-        if direction == DIRECTION_OPENING:
-            return "opening"
-        if direction == DIRECTION_CLOSING:
-            return "closing"
-        return None
+        return self.state.direction
 
     # Fan properties
     @property
     def fan_is_on(self) -> bool:
         """Check if fan is on."""
-        return self.get_bool_property(PROP_FAN_ONOFF)
+        return self.state.fan_is_on
 
     @property
     def fan_speed_range(self) -> tuple[int, int]:
@@ -659,70 +601,69 @@ class LiproDevice:
     @property
     def fan_gear(self) -> int:
         """Get fan gear/speed, clamped to device range."""
-        gear = self.get_int_property(PROP_FAN_GEAR, 1)
-        return max(1, min(self.max_fan_gear, gear))
+        return self.state.fan_gear
 
     @property
     def fan_mode(self) -> int:
         """Get fan mode (0=direct, 1=natural, 2=cycle, 3=gentle_wind)."""
-        return self.get_int_property(PROP_FAN_MODE, 0)
+        return self.state.fan_mode
 
     # Heater properties
     @property
     def heater_is_on(self) -> bool:
         """Check if heater is on."""
-        return self.get_bool_property(PROP_HEATER_SWITCH)
+        return self.state.heater_is_on
 
     @property
     def heater_mode(self) -> int:
         """Get heater mode."""
-        return self.get_int_property(PROP_HEATER_MODE, 0)
+        return self.state.heater_mode
 
     @property
     def wind_gear(self) -> int:
         """Get wind gear."""
-        return self.get_int_property(PROP_WIND_GEAR, 0)
+        return self.state.wind_gear
 
     @property
     def light_mode(self) -> int:
         """Get light mode for heater."""
-        return self.get_int_property(PROP_LIGHT_MODE, 0)
+        return self.state.light_mode
 
     @property
     def wind_direction_mode(self) -> int:
         """Get wind direction mode (1=auto, 2=fixed)."""
-        return self.get_int_property(PROP_WIND_DIRECTION_MODE, 1)
+        return self.state.wind_direction_mode
 
     @property
     def aeration_gear(self) -> int:
         """Get aeration/ventilation gear (0=off, 1=strong, 2=weak)."""
-        return self.get_int_property(PROP_AERATION_GEAR, 0)
+        return self.state.aeration_gear
 
     @property
     def aeration_is_on(self) -> bool:
         """Check if aeration/ventilation is on."""
-        return self.aeration_gear > 0
+        return self.state.aeration_is_on
 
     # Sensor properties
     @property
     def door_is_open(self) -> bool:
         """Check if door is open (door sensor)."""
-        return self.get_bool_property(PROP_DOOR_OPEN)
+        return self.state.door_is_open
 
     @property
     def is_activated(self) -> bool:
         """Check if motion detected (body sensor)."""
-        return self.get_bool_property(PROP_ACTIVATED)
+        return self.state.is_activated
 
     @property
     def is_dark(self) -> bool:
         """Check if environment is dark."""
-        return self.get_bool_property(PROP_DARK)
+        return self.state.is_dark
 
     @property
     def low_battery(self) -> bool:
         """Check if battery is low."""
-        return self.get_bool_property(PROP_LOW_BATTERY)
+        return self.state.low_battery
 
     # =========================================================================
     # Network/Device Info Properties (诊断信息)

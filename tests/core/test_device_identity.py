@@ -39,7 +39,7 @@ def test_device_identity_is_frozen() -> None:
     identity = DeviceIdentity.from_api_data({"serial": "03ab5ccd7caaaaaa"})
 
     with pytest.raises(FrozenInstanceError):
-        setattr(identity, "serial", "mutated")
+        identity.__setattr__("serial", "mutated")
 
 
 def test_lipro_device_identity_property_matches_device_fields() -> None:

@@ -1076,6 +1076,22 @@ class TestCoordinatorSendCommand:
     """Test async_send_command() dispatches to correct client method."""
 
     @pytest.mark.asyncio
+    async def test_send_command_delegates_to_command_service(self, coordinator):
+        dev = _make_device(serial="dev1", is_group=False)
+        coordinator.command_service = MagicMock()
+        coordinator.command_service.async_send_command = AsyncMock(return_value=True)
+
+        result = await coordinator.async_send_command(dev, "turnOn")
+
+        assert result is True
+        coordinator.command_service.async_send_command.assert_awaited_once_with(
+            dev,
+            "turnOn",
+            None,
+            None,
+        )
+
+    @pytest.mark.asyncio
     async def test_send_command_non_group(self, coordinator, mock_lipro_api_client):
         dev = _make_device(serial="dev1", is_group=False)
         result = await coordinator.async_send_command(dev, "turnOn")

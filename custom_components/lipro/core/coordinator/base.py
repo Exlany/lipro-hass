@@ -32,6 +32,12 @@ if TYPE_CHECKING:
     from ..utils.background_task_manager import BackgroundTaskManager
     from .device_list_snapshot import DeviceFilterConfig
     from .mqtt.runtime import MqttRuntime
+    from .protocols import (
+        CommandServiceProtocol,
+        DeviceRefreshServiceProtocol,
+        MqttServiceProtocol,
+        StateManagementProtocol,
+    )
 
 
 class _CoordinatorBase(DataUpdateCoordinator[dict[str, LiproDevice]]):
@@ -42,6 +48,11 @@ class _CoordinatorBase(DataUpdateCoordinator[dict[str, LiproDevice]]):
 
     client: LiproClient
     auth_manager: LiproAuthManager
+
+    command_service: CommandServiceProtocol
+    device_refresh_service: DeviceRefreshServiceProtocol
+    mqtt_service: MqttServiceProtocol
+    state_service: StateManagementProtocol
 
     # Runtime device caches
     _devices: dict[str, LiproDevice]

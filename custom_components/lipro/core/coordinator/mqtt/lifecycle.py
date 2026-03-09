@@ -156,6 +156,10 @@ class _MqttLifecycleMixin(_CommandSendMixin):
         )
 
     async def async_setup_mqtt(self) -> bool:
+        """Set up MQTT through the injected MQTT service."""
+        return await self.mqtt_service.async_setup()
+
+    async def async_setup_mqtt_runtime(self) -> bool:
         """Set up MQTT client for real-time updates."""
         if self.config_entry is None:
             _LOGGER.error("Cannot setup MQTT: config_entry is None")
@@ -205,12 +209,24 @@ class _MqttLifecycleMixin(_CommandSendMixin):
             self._mqtt_setup_in_progress = False
 
     async def async_stop_mqtt(self) -> None:
+        """Stop MQTT through the injected MQTT service."""
+        await self.mqtt_service.async_stop()
+
+    async def async_stop_mqtt_runtime(self) -> None:
         """Stop MQTT client."""
         if self._mqtt_client:
             await self._mqtt_client.stop()
             self._mqtt_client = None
             self._mqtt_connected = False
             _LOGGER.info("MQTT client stopped")
+
+    async def async_sync_mqtt_subscriptions(self) -> None:
+        """Sync subscriptions through the injected MQTT service."""
+        await self.mqtt_service.async_sync_subscriptions()
+
+    async def async_sync_mqtt_subscriptions_runtime(self) -> None:
+        """Public runtime bridge for syncing MQTT subscriptions."""
+        await self._sync_mqtt_subscriptions()
 
     async def _sync_mqtt_subscriptions(self) -> None:
         """Sync MQTT subscriptions with current device list."""

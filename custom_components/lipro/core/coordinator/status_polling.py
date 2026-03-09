@@ -346,6 +346,10 @@ class _CoordinatorStatusPollingMixin(_CoordinatorAuthIssuesMixin):
         )
 
     async def async_refresh_devices(self) -> None:
+        """Force refresh through the injected device-refresh service."""
+        await self.device_refresh_service.async_refresh_devices()
+
+    async def async_refresh_devices_runtime(self) -> None:
         """Force refresh of device list on next refresh tick."""
         self._force_device_refresh = True
         self._product_configs_by_id.clear()

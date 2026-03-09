@@ -139,7 +139,7 @@
         ".github/workflows/ci.yml"
       ],
       "validation": {
-        "command": "rg -n "snapshot|benchmark|type_checking|coverage" .github/workflows/ci.yml -S",
+        "command": "rg -n \"snapshot|benchmark|type_checking|coverage\" .github/workflows/ci.yml -S",
         "expected": "CI workflow contains the expected testing checks"
       },
       "commit_message": "ci: enhance CI pipeline with snapshot and benchmark tests"

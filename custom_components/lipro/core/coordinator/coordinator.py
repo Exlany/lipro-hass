@@ -8,6 +8,12 @@ from typing import TYPE_CHECKING
 
 from ...const.config import DEFAULT_SCAN_INTERVAL
 from ..api import LiproClient
+from .services import (
+    CoordinatorCommandService,
+    CoordinatorDeviceRefreshService,
+    CoordinatorMqttService,
+    CoordinatorStateService,
+)
 from .shutdown import _CoordinatorShutdownMixin
 
 if TYPE_CHECKING:
@@ -44,6 +50,10 @@ class LiproDataUpdateCoordinator(_CoordinatorShutdownMixin):
         self._init_runtime_state()
         self._load_options()
         self._setup_anonymous_share()
+        self.command_service = CoordinatorCommandService(self)
+        self.device_refresh_service = CoordinatorDeviceRefreshService(self)
+        self.mqtt_service = CoordinatorMqttService(self)
+        self.state_service = CoordinatorStateService(self)
 
 
 __all__ = ["LiproDataUpdateCoordinator"]

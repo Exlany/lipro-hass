@@ -6,5 +6,13 @@ from .capabilities import DeviceCapabilities
 from .device import LiproDevice, parse_properties_list
 from .identity import DeviceIdentity
 from .network_info import DeviceNetworkInfo
+from .state import DeviceState
 
-__all__ = ["DeviceCapabilities", "DeviceIdentity", "DeviceNetworkInfo", "LiproDevice", "parse_properties_list"]
+__all__ = [
+    "DeviceCapabilities",
+    "DeviceIdentity",
+    "DeviceNetworkInfo",
+    "DeviceState",
+    "LiproDevice",
+    "parse_properties_list",
+]
