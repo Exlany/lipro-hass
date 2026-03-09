@@ -26,7 +26,7 @@
         "custom_components/lipro/core/exceptions.py"
       ],
       "validation": {
-        "command": "pytest tests/core/test_exceptions.py -v",
+        "command": "uv run pytest tests/core/test_exceptions.py -v",
         "expected": "all tests pass"
       },
       "commit_message": "refactor(exceptions): define exception hierarchy for Lipro errors"
@@ -44,7 +44,7 @@
         "custom_components/lipro/core/mqtt/client.py"
       ],
       "validation": {
-        "command": "pytest tests/core/mqtt/test_client.py::test_stop_handles_disconnect_error -v",
+        "command": "uv run pytest tests/core/mqtt/test_mqtt.py -v -k 'test_stop'",
         "expected": "test passes"
       },
       "commit_message": "refactor(mqtt): narrow exception handling in stop() method"
@@ -62,7 +62,7 @@
         "custom_components/lipro/core/mqtt/client.py"
       ],
       "validation": {
-        "command": "pytest tests/core/mqtt/test_client.py::test_mqtt_loop_handles_connection_error -v && pytest tests/core/mqtt/test_client.py::test_mqtt_loop_propagates_cancellation -v",
+        "command": "uv run pytest tests/core/mqtt/test_mqtt.py -v -k 'test_connection_loop'",
         "expected": "all tests pass"
       },
       "commit_message": "refactor(mqtt): improve exception handling in MQTT loop"
@@ -79,7 +79,7 @@
         "custom_components/lipro/core/mqtt/client.py"
       ],
       "validation": {
-        "command": "pytest tests/core/mqtt/test_client.py::test_on_connect_handles_errors -v",
+        "command": "uv run pytest tests/core/mqtt/test_mqtt.py -v -k 'test_connect_and_listen_keeps_last_error_when_on_connect_fails'",
         "expected": "test passes"
       },
       "commit_message": "refactor(mqtt): narrow exception handling in connection callback"
@@ -96,7 +96,7 @@
         "custom_components/lipro/core/mqtt/client.py"
       ],
       "validation": {
-        "command": "pytest tests/core/mqtt/ -v",
+        "command": "uv run pytest tests/core/mqtt/ -v",
         "expected": "all tests pass"
       },
       "commit_message": "refactor(mqtt): complete exception handling improvements"
@@ -107,13 +107,13 @@
       "tasks": [
         "运行 ruff 检查 BLE001 规则",
         "确认所有裸 except 已移除或有明确理由",
-        "更新 .ruff.toml 启用 BLE001"
+        "确认 pyproject.toml 中的 Ruff 规则配置与本次改动一致"
       ],
       "files": [
-        ".ruff.toml"
+        "pyproject.toml"
       ],
       "validation": {
-        "command": "ruff check custom_components/lipro/core/mqtt/ --select BLE001",
+        "command": "uv run ruff check custom_components/lipro/core/mqtt/ --select BLE001",
         "expected": "no violations"
       },
       "commit_message": "chore(lint): enable BLE001 rule to prevent bare except"
@@ -135,7 +135,7 @@
   "failure_handling": {
     "on_test_failure": "rollback_to_last_checkpoint",
     "on_validation_failure": "retry_checkpoint",
-    "on_fatal_error": "notify_orchestrator"
+    "on_fatal_error": "notify_main_agent"
   },
   "reporting": {
     "heartbeat_interval": 300,

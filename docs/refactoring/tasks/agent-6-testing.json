@@ -32,7 +32,7 @@
         "pyproject.toml"
       ],
       "validation": {
-        "command": "pytest tests/snapshots/ -v --snapshot-update",
+        "command": "uv run pytest tests/snapshots/ -v --snapshot-update",
         "expected": "all snapshot tests pass, baselines created"
       },
       "commit_message": "test(snapshots): establish snapshot testing framework"
@@ -55,7 +55,7 @@
         "pyproject.toml"
       ],
       "validation": {
-        "command": "pytest tests/benchmarks/ -v --benchmark-only --benchmark-save=baseline",
+        "command": "uv run pytest tests/benchmarks/ -v --benchmark-only --benchmark-save=baseline",
         "expected": "benchmarks run successfully, baseline saved"
       },
       "commit_message": "test(benchmark): establish performance baseline tests"
@@ -76,7 +76,7 @@
         "pyproject.toml"
       ],
       "validation": {
-        "command": "pytest tests/type_checking/ -v && mypy tests/type_checking/ --strict",
+        "command": "uv run pytest tests/type_checking/ -v && uv run mypy tests/type_checking/ --strict",
         "expected": "all type tests pass, mypy clean"
       },
       "commit_message": "test(types): add comprehensive type checking tests"
@@ -97,7 +97,7 @@
         "pyproject.toml"
       ],
       "validation": {
-        "command": "pytest tests/ --cov=custom_components/lipro --cov-report=json && python scripts/coverage_diff.py",
+        "command": "uv run pytest tests/ --cov=custom_components/lipro --cov-report=json && uv run python scripts/coverage_diff.py",
         "expected": "coverage report generated, diff script works"
       },
       "commit_message": "test(coverage): add coverage diff checking for CI"
@@ -119,7 +119,7 @@
         "docs/refactoring/TOOLS.md"
       ],
       "validation": {
-        "command": "pytest tests/test_refactor_tools.py -v && python scripts/refactor_tools.py --help",
+        "command": "uv run pytest tests/test_refactor_tools.py -v && uv run python scripts/refactor_tools.py --help",
         "expected": "tool tests pass, CLI works"
       },
       "commit_message": "feat(refactor): add refactoring validation tools"
@@ -139,8 +139,8 @@
         ".github/workflows/ci.yml"
       ],
       "validation": {
-        "command": "gh workflow view ci.yml",
-        "expected": "CI workflow updated with new checks"
+        "command": "rg -n "snapshot|benchmark|type_checking|coverage" .github/workflows/ci.yml -S",
+        "expected": "CI workflow contains the expected testing checks"
       },
       "commit_message": "ci: enhance CI pipeline with snapshot and benchmark tests"
     },
@@ -181,8 +181,8 @@
   },
   "failure_handling": {
     "on_test_failure": "rollback_to_last_checkpoint",
-    "on_ci_failure": "notify_orchestrator",
-    "on_fatal_error": "notify_orchestrator"
+    "on_ci_failure": "notify_main_agent",
+    "on_fatal_error": "notify_main_agent"
   },
   "reporting": {
     "heartbeat_interval": 300,

@@ -28,7 +28,7 @@
         "custom_components/lipro/core/coordinator/protocols.py"
       ],
       "validation": {
-        "command": "mypy custom_components/lipro/core/coordinator/protocols.py --strict",
+        "command": "uv run mypy custom_components/lipro/core/coordinator/protocols.py --strict",
         "expected": "no errors"
       },
       "commit_message": "refactor(coordinator): define service protocols for composition pattern"
@@ -49,7 +49,7 @@
         "tests/core/coordinator/services/test_mqtt_service.py"
       ],
       "validation": {
-        "command": "pytest tests/core/coordinator/services/test_mqtt_service.py -v --cov=custom_components/lipro/core/coordinator/services/mqtt_service.py --cov-report=term-missing",
+        "command": "uv run pytest tests/core/coordinator/services/test_mqtt_service.py -v --cov=custom_components/lipro/core/coordinator/services/mqtt_service.py --cov-report=term-missing",
         "expected": "all tests pass, coverage >=95%"
       },
       "commit_message": "refactor(coordinator): implement MqttService with Protocol"
@@ -70,7 +70,7 @@
         "tests/core/coordinator/services/test_command_service.py"
       ],
       "validation": {
-        "command": "pytest tests/core/coordinator/services/test_command_service.py -v --cov=custom_components/lipro/core/coordinator/services/command_service.py --cov-report=term-missing",
+        "command": "uv run pytest tests/core/coordinator/services/test_command_service.py -v --cov=custom_components/lipro/core/coordinator/services/command_service.py --cov-report=term-missing",
         "expected": "all tests pass, coverage >=95%"
       },
       "commit_message": "refactor(coordinator): implement CommandService with confirmation handling"
@@ -91,7 +91,7 @@
         "tests/core/coordinator/services/test_device_refresh_service.py"
       ],
       "validation": {
-        "command": "pytest tests/core/coordinator/services/test_device_refresh_service.py -v --cov=custom_components/lipro/core/coordinator/services/device_refresh_service.py --cov-report=term-missing",
+        "command": "uv run pytest tests/core/coordinator/services/test_device_refresh_service.py -v --cov=custom_components/lipro/core/coordinator/services/device_refresh_service.py --cov-report=term-missing",
         "expected": "all tests pass, coverage >=95%"
       },
       "commit_message": "refactor(coordinator): implement DeviceRefreshService"
@@ -112,7 +112,7 @@
         "tests/test_coordinator_v2.py"
       ],
       "validation": {
-        "command": "pytest tests/test_coordinator_v2.py -v --cov=custom_components/lipro/coordinator_v2.py --cov-report=term-missing",
+        "command": "uv run pytest tests/test_coordinator_v2.py -v --cov=custom_components/lipro/coordinator_v2.py --cov-report=term-missing",
         "expected": "all tests pass, coverage >=95%"
       },
       "commit_message": "refactor(coordinator): implement CoordinatorV2 with composition pattern"
@@ -132,7 +132,7 @@
         "tests/test_coordinator_compatibility.py"
       ],
       "validation": {
-        "command": "pytest tests/ -v -k 'coordinator' && USE_V2_COORDINATOR=1 pytest tests/ -v -k 'coordinator'",
+        "command": "uv run pytest tests/ -v -k 'coordinator' && USE_V2_COORDINATOR=1 uv run pytest tests/ -v -k 'coordinator'",
         "expected": "both test suites pass with identical results"
       },
       "commit_message": "test(coordinator): add V1/V2 compatibility tests"
@@ -174,8 +174,8 @@
   },
   "failure_handling": {
     "on_test_failure": "rollback_to_last_checkpoint",
-    "on_compatibility_failure": "notify_orchestrator",
-    "on_fatal_error": "notify_orchestrator"
+    "on_compatibility_failure": "notify_main_agent",
+    "on_fatal_error": "notify_main_agent"
   },
   "reporting": {
     "heartbeat_interval": 600,

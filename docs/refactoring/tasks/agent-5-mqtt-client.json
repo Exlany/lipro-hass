@@ -28,7 +28,7 @@
         "tests/core/mqtt/test_message_processor.py"
       ],
       "validation": {
-        "command": "pytest tests/core/mqtt/test_message_processor.py -v --cov=custom_components/lipro/core/mqtt/message_processor.py --cov-report=term-missing",
+        "command": "uv run pytest tests/core/mqtt/test_message_processor.py -v --cov=custom_components/lipro/core/mqtt/message_processor.py --cov-report=term-missing",
         "expected": "all tests pass, coverage >=95%"
       },
       "commit_message": "refactor(mqtt): extract MqttMessageProcessor for message handling"
@@ -49,7 +49,7 @@
         "tests/core/mqtt/test_topic_builder.py"
       ],
       "validation": {
-        "command": "pytest tests/core/mqtt/test_topic_builder.py -v --cov=custom_components/lipro/core/mqtt/topic_builder.py --cov-report=term-missing",
+        "command": "uv run pytest tests/core/mqtt/test_topic_builder.py -v --cov=custom_components/lipro/core/mqtt/topic_builder.py --cov-report=term-missing",
         "expected": "all tests pass, coverage >=95%"
       },
       "commit_message": "refactor(mqtt): extract MqttTopicBuilder for topic management"
@@ -70,7 +70,7 @@
         "tests/core/mqtt/test_connection_manager.py"
       ],
       "validation": {
-        "command": "pytest tests/core/mqtt/test_connection_manager.py -v --cov=custom_components/lipro/core/mqtt/connection_manager.py --cov-report=term-missing",
+        "command": "uv run pytest tests/core/mqtt/test_connection_manager.py -v --cov=custom_components/lipro/core/mqtt/connection_manager.py --cov-report=term-missing",
         "expected": "all tests pass, coverage >=95%"
       },
       "commit_message": "refactor(mqtt): extract MqttConnectionManager for connection lifecycle"
@@ -91,7 +91,7 @@
         "tests/core/mqtt/test_client_refactored.py"
       ],
       "validation": {
-        "command": "pytest tests/core/mqtt/test_client_refactored.py -v --cov=custom_components/lipro/core/mqtt/client.py --cov-report=term-missing",
+        "command": "uv run pytest tests/core/mqtt/test_client_refactored.py -v --cov=custom_components/lipro/core/mqtt/client.py --cov-report=term-missing",
         "expected": "all tests pass, coverage >=95%, lines <400"
       },
       "commit_message": "refactor(mqtt): simplify LiproMqttClient with composition pattern"
@@ -109,7 +109,7 @@
         "custom_components/lipro/core/mqtt/client.py"
       ],
       "validation": {
-        "command": "pytest tests/integration/test_mqtt_coordinator_integration.py -v",
+        "command": "uv run pytest tests/integration/test_mqtt_coordinator_integration.py -v",
         "expected": "all integration tests pass"
       },
       "commit_message": "refactor(mqtt): integrate with new service layer from Agent-3"
@@ -129,7 +129,7 @@
         "tests/core/mqtt/"
       ],
       "validation": {
-        "command": "pytest tests/core/mqtt/ -v --cov=custom_components/lipro/core/mqtt/ --cov-report=html",
+        "command": "uv run pytest tests/core/mqtt/ -v --cov=custom_components/lipro/core/mqtt/ --cov-report=html",
         "expected": "all tests pass, coverage >=95%"
       },
       "commit_message": "test(mqtt): verify MQTT client refactoring with integration tests"
@@ -171,8 +171,8 @@
   },
   "failure_handling": {
     "on_test_failure": "rollback_to_last_checkpoint",
-    "on_integration_failure": "notify_orchestrator",
-    "on_fatal_error": "notify_orchestrator"
+    "on_integration_failure": "notify_main_agent",
+    "on_fatal_error": "notify_main_agent"
   },
   "reporting": {
     "heartbeat_interval": 600,

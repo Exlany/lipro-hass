@@ -1,687 +1,282 @@
-# 🜏 Lipro-Hass 多代理并行重构计划
+# 🜏 Lipro-Hass 主代理主控重构计划
 
-## 📋 执行概览
+## 📋 目标
 
-**重构模式**: 分布式并行执行
-**代理数量**: 6 个专职代理 + 1 个主控代理
-**预计周期**: 6 周
-**并行度**: 最高 4 个代理同时工作
-**失败恢复**: 自动重试 + 检查点机制
+本计划用于指导 `lipro-hass` 的渐进式重构，目标聚焦于四类已确认问题：
 
----
+1. Coordinator mixin 继承链过深
+2. `Any` 类型使用过多
+3. `LiproDevice` / `LiproMqttClient` 职责过重
+4. MQTT 客户端关键路径中的宽泛异常处理
 
-## 🏗️ 架构设计
-
-### 代理角色定义
-
-```
-主控代理 (Orchestrator)
-    ├── 监控所有子代理状态
-    ├── 协调任务分配
-    ├── 处理冲突仲裁
-    └── 生成最终报告
-
-子代理 (Workers)
-    ├── Agent-1: 异常处理专家 (Exception Refactor Agent)
-    ├── Agent-2: 类型安全专家 (Type Safety Agent)
-    ├── Agent-3: 架构重构专家 (Architecture Agent)
-    ├── Agent-4: 设备模型专家 (Device Model Agent)
-    ├── Agent-5: MQTT 客户端专家 (MQTT Client Agent)
-    └── Agent-6: 测试与验证专家 (Testing Agent)
-```
+本计划采用 **主代理主控 + 子代理协作** 模式执行，而不是依赖额外的 Python 编排脚本。
 
 ---
 
-## 📊 任务分解与依赖关系
+## 🧭 执行模型
 
-### Phase 0: 准备阶段 (Week 0)
-**负责代理**: 主控代理
-**并行度**: 1
-**依赖**: 无
+### 主代理职责
 
-```mermaid
-graph TD
-    A[创建重构分支] --> B[建立快照测试]
-    B --> C[配置重构工具]
-    C --> D[生成基线报告]
-    D --> E[启动子代理]
-```
+主代理（当前会话）负责：
 
-**交付物**:
-- `refactor/phase-0-prep` 分支
-- `tests/snapshots/` 快照测试套件
-- `scripts/refactor_tools.py` 重构工具
-- `docs/refactoring/BASELINE.md` 基线报告
+- 选择当前执行波次（wave）
+- 将任务分配给不重叠写入范围的子代理
+- 审核子代理结果并做最终集成
+- 在跨模块修改时统一裁决
+- 运行针对性验证命令
+- 更新阶段状态与总结
 
----
+### 子代理职责
 
-### Phase 1: 快速收敛 (Week 1-2)
-**并行度**: 3 个代理同时工作
-**依赖**: Phase 0 完成
+子代理只负责：
 
-#### Wave 1.1: 独立任务 (Week 1)
+- 在指定写入范围内完成改动
+- 严格遵守任务契约文件 `docs/refactoring/tasks/*.json`
+- 在触及未授权文件前先回报主代理
+- 提供精简的结果说明与剩余风险
 
-```
-Agent-1 (异常处理)     Agent-2 (类型安全)     Agent-6 (测试)
-      ↓                      ↓                    ↓
-  收窄异常处理          定义 TypedDict        建立类型测试
-      ↓                      ↓                    ↓
-  7 处修复完成          API 响应类型          测试覆盖 95%+
-```
+### 本计划明确不依赖
 
-**任务详情**:
+以下机制不作为当前默认执行方式：
 
-##### Agent-1: 异常处理重构
-- **输入**: `docs/refactoring/tasks/agent-1-exceptions.json`
-- **输出**: `refactor/phase-1-exceptions` 分支
-- **检查点**: 每修复 1 处异常 → 提交 1 次
-- **验证**: 运行 `pytest tests/core/mqtt/` 确保无回归
+- `scripts/orchestrator.py` 主控脚本
+- `scripts/agent_worker.py` worker 脚本
+- `tmux` / `screen` / `nohup` 人工编排
+- 文件锁脚本或额外心跳守护进程
 
-##### Agent-2: 类型安全提升
-- **输入**: `docs/refactoring/tasks/agent-2-types.json`
-- **输出**: `refactor/phase-1-types` 分支
-- **检查点**: 每完成 1 个文件 → 提交 1 次
-- **验证**: 运行 `mypy --strict` 确保类型检查通过
-
-##### Agent-6: 测试增强
-- **输入**: `docs/refactoring/tasks/agent-6-tests.json`
-- **输出**: `refactor/phase-1-tests` 分支
-- **检查点**: 每增加 1 个测试套件 → 提交 1 次
-- **验证**: 运行 `pytest --cov` 确保覆盖率 ≥ 95%
-
-#### Wave 1.2: 文档与常量 (Week 2)
-
-```
-Agent-1 (完成后)
-      ↓
-  添加常量注释
-      ↓
-  文档更新
-```
+如确有需要，主代理可临时使用这些脚本做辅助，但 **不作为计划前提**。
 
 ---
 
-### Phase 2: 架构解耦 (Week 3-6)
-**并行度**: 4 个代理同时工作
-**依赖**: Phase 1 完成
+## 🪓 并行原则
 
-#### Wave 2.1: 服务层设计 (Week 3)
+### 1. 写入范围先于任务内容
 
-```
-Agent-3 (架构)
-      ↓
-  设计服务接口 (Protocol)
-      ↓
-  实现 MqttService
-      ↓
-  实现 CommandService
-      ↓
-  实现 DeviceRefreshService
-```
+每个子代理优先按 `files` 字段定义写入范围；若任务说明与写入范围冲突，以主代理重新裁决后的范围为准。
 
-**任务详情**:
+### 2. 一次只并行独立切片
 
-##### Agent-3: 架构重构
-- **输入**: `docs/refactoring/tasks/agent-3-architecture.json`
-- **输出**: `refactor/phase-2-architecture` 分支
-- **检查点**:
-  - Checkpoint 1: Protocol 定义完成
-  - Checkpoint 2: MqttService 实现完成
-  - Checkpoint 3: CommandService 实现完成
-  - Checkpoint 4: DeviceRefreshService 实现完成
-- **验证**: 每个服务独立通过单元测试
+只有当两个任务满足以下条件时才允许并行：
 
-#### Wave 2.2: 模型拆分 + MQTT 重构 (Week 4-5, 并行)
+- 写入文件不重叠
+- 验证命令互不阻塞
+- 失败时可独立回滚
 
-```
-Agent-4 (设备模型)          Agent-5 (MQTT 客户端)
-      ↓                            ↓
-  拆分 DeviceIdentity        提取 MqttMessageProcessor
-      ↓                            ↓
-  拆分 DeviceState           简化 LiproMqttClient
-      ↓                            ↓
-  拆分 DeviceCapabilities    集成新服务层
-      ↓                            ↓
-  拆分 DeviceNetworkInfo     测试验证
-      ↓                            ↓
-  组合新 LiproDevice         完成
-```
+### 3. 高耦合模块最后收敛
 
-**任务详情**:
+`custom_components/lipro/core/coordinator/` 属于高耦合区域，避免一开始并行大拆；应在外围问题收敛后，由主代理主导集成。
 
-##### Agent-4: 设备模型拆分
-- **输入**: `docs/refactoring/tasks/agent-4-device-model.json`
-- **输出**: `refactor/phase-2-device-model` 分支
-- **检查点**: 每拆分 1 个子类 → 提交 1 次
-- **验证**: 快照测试确保行为不变
+### 4. 验证命令统一使用 `uv run`
 
-##### Agent-5: MQTT 客户端重构
-- **输入**: `docs/refactoring/tasks/agent-5-mqtt-client.json`
-- **输出**: `refactor/phase-2-mqtt-client` 分支
-- **检查点**: 每完成 1 个重构步骤 → 提交 1 次
-- **验证**: MQTT 集成测试通过
+所有 Python 相关验证命令统一使用：
 
-#### Wave 2.3: Coordinator 重构 (Week 6)
-
-```
-Agent-3 (架构) + Agent-6 (测试)
-      ↓
-  实现 CoordinatorV2 (组合模式)
-      ↓
-  并行运行测试 (V1 vs V2)
-      ↓
-  迁移所有实体
-      ↓
-  删除旧 Coordinator
-```
-
-**任务详情**:
-
-##### Agent-3 + Agent-6: Coordinator 迁移
-- **输入**: `docs/refactoring/tasks/agent-3-coordinator-v2.json`
-- **输出**: `refactor/phase-2-coordinator-v2` 分支
-- **检查点**:
-  - Checkpoint 1: CoordinatorV2 实现完成
-  - Checkpoint 2: 并行测试通过
-  - Checkpoint 3: 实体迁移完成
-  - Checkpoint 4: 旧代码删除
-- **验证**: 完整集成测试套件通过
+- `uv run pytest ...`
+- `uv run mypy ...`
+- `uv run ruff check ...`
+- `uv run python ...`
 
 ---
 
-## 🔄 协同机制
+## 🌊 波次规划
 
-### 1. 任务分配协议
+## Wave 0：主代理准备
 
-**主控代理职责**:
-```python
-# scripts/orchestrator.py
+**执行者**：主代理  
+**目标**：建立基线、确认范围、冻结接口假设
 
-class RefactorOrchestrator:
-    """重构主控代理"""
+### 输出
 
-    def __init__(self):
-        self.agents: dict[str, AgentStatus] = {}
-        self.task_queue: list[Task] = []
-        self.completed_tasks: list[Task] = []
-        self.failed_tasks: list[Task] = []
+- 基线结论与风险列表
+- 各子代理写入边界
+- 当前波次的验证命令集合
+- 可选状态文件：`docs/refactoring/STATUS.md`
 
-    async def assign_task(self, agent_id: str, task: Task) -> None:
-        """分配任务给子代理"""
-        self.agents[agent_id].status = "working"
-        self.agents[agent_id].current_task = task
+### 主代理检查项
 
-        # 创建任务文件
-        task_file = f"docs/refactoring/tasks/{agent_id}-{task.name}.json"
-        await self.write_task_file(task_file, task)
-
-        # 通知子代理
-        await self.notify_agent(agent_id, task_file)
-
-    async def monitor_progress(self) -> None:
-        """监控所有代理进度"""
-        while self.has_active_agents():
-            for agent_id, status in self.agents.items():
-                # 检查心跳
-                if status.last_heartbeat < time.time() - 300:  # 5 分钟无响应
-                    await self.handle_agent_timeout(agent_id)
-
-                # 检查检查点
-                checkpoints = await self.read_checkpoints(agent_id)
-                status.progress = len(checkpoints) / status.total_checkpoints
-
-            await asyncio.sleep(30)  # 每 30 秒检查一次
-```
-
-### 2. 任务文件格式
-
-**任务定义** (`docs/refactoring/tasks/agent-1-exceptions.json`):
-```json
-{
-  "agent_id": "agent-1",
-  "task_name": "exception-refactoring",
-  "phase": "1.1",
-  "priority": "P0",
-  "dependencies": [],
-  "input_files": [
-    "custom_components/lipro/core/mqtt/client.py"
-  ],
-  "output_branch": "refactor/phase-1-exceptions",
-  "checkpoints": [
-    {
-      "id": "cp-1",
-      "description": "定义异常层次结构",
-      "files": ["custom_components/lipro/core/exceptions.py"],
-      "validation": "pytest tests/core/test_exceptions.py"
-    },
-    {
-      "id": "cp-2",
-      "description": "修复 client.py:175 异常处理",
-      "files": ["custom_components/lipro/core/mqtt/client.py"],
-      "validation": "pytest tests/core/mqtt/test_client.py::test_disconnect_handles_error"
-    }
-  ],
-  "success_criteria": {
-    "tests_pass": true,
-    "coverage": ">=95%",
-    "mypy_strict": true,
-    "no_bare_except": true
-  },
-  "estimated_time": "2 days",
-  "retry_policy": {
-    "max_retries": 3,
-    "backoff": "exponential"
-  }
-}
-```
-
-### 3. 检查点机制
-
-**子代理检查点协议**:
-```python
-# scripts/agent_worker.py
-
-class AgentWorker:
-    """子代理工作器"""
-
-    def __init__(self, agent_id: str):
-        self.agent_id = agent_id
-        self.checkpoint_dir = f"docs/refactoring/checkpoints/{agent_id}"
-
-    async def execute_task(self, task_file: str) -> None:
-        """执行任务"""
-        task = await self.load_task(task_file)
-
-        for checkpoint in task.checkpoints:
-            try:
-                # 执行检查点
-                await self.execute_checkpoint(checkpoint)
-
-                # 验证
-                await self.validate_checkpoint(checkpoint)
-
-                # 提交
-                await self.commit_checkpoint(checkpoint)
-
-                # 记录成功
-                await self.record_checkpoint(checkpoint, "success")
-
-                # 发送心跳
-                await self.send_heartbeat()
-
-            except Exception as err:
-                # 记录失败
-                await self.record_checkpoint(checkpoint, "failed", str(err))
-
-                # 尝试恢复
-                if await self.can_retry(checkpoint):
-                    await self.retry_checkpoint(checkpoint)
-                else:
-                    # 上报主控代理
-                    await self.report_failure(checkpoint, err)
-                    raise
-
-    async def commit_checkpoint(self, checkpoint: Checkpoint) -> None:
-        """提交检查点"""
-        # 原子提交
-        commit_msg = f"refactor({self.agent_id}): {checkpoint.description}"
-        await self.git_commit(checkpoint.files, commit_msg)
-
-    async def record_checkpoint(
-        self,
-        checkpoint: Checkpoint,
-        status: str,
-        error: str | None = None,
-    ) -> None:
-        """记录检查点状态"""
-        record = {
-            "checkpoint_id": checkpoint.id,
-            "agent_id": self.agent_id,
-            "status": status,
-            "timestamp": time.time(),
-            "error": error,
-            "commit_sha": await self.get_current_commit(),
-        }
-
-        checkpoint_file = f"{self.checkpoint_dir}/{checkpoint.id}.json"
-        await self.write_json(checkpoint_file, record)
-```
-
-### 4. 冲突解决机制
-
-**文件锁协议**:
-```python
-# scripts/file_lock.py
-
-class FileLockManager:
-    """文件锁管理器"""
-
-    def __init__(self):
-        self.locks: dict[str, str] = {}  # file_path -> agent_id
-        self.lock_file = "docs/refactoring/locks.json"
-
-    async def acquire_lock(self, agent_id: str, file_path: str) -> bool:
-        """获取文件锁"""
-        async with self._lock:
-            locks = await self.load_locks()
-
-            if file_path in locks:
-                # 文件已被锁定
-                current_owner = locks[file_path]
-                if current_owner != agent_id:
-                    return False
-
-            # 获取锁
-            locks[file_path] = agent_id
-            await self.save_locks(locks)
-            return True
-
-    async def release_lock(self, agent_id: str, file_path: str) -> None:
-        """释放文件锁"""
-        async with self._lock:
-            locks = await self.load_locks()
-            if locks.get(file_path) == agent_id:
-                del locks[file_path]
-                await self.save_locks(locks)
-```
-
-**冲突仲裁规则**:
-1. **优先级**: P0 > P1 > P2
-2. **先到先得**: 同优先级，先请求锁的代理获得
-3. **超时释放**: 代理无响应 5 分钟，自动释放锁
-4. **主控仲裁**: 无法自动解决的冲突，上报主控代理人工决策
+- 当前分支/工作树干净可控
+- `uv sync --frozen --extra dev` 可用
+- 相关测试与类型检查命令能在本地运行
+- `docs/refactoring/tasks/*.json` 与当前策略一致
 
 ---
 
-## 🔧 失败恢复机制
+## Wave 1：快速收益
 
-### 1. 重试策略
+**目标**：先处理低风险、高收益问题，为后续结构重构清障。
 
-**指数退避重试**:
-```python
-class RetryPolicy:
-    """重试策略"""
+### 并行分配
 
-    async def retry_with_backoff(
-        self,
-        func: Callable,
-        max_retries: int = 3,
-        base_delay: float = 1.0,
-    ) -> Any:
-        """指数退避重试"""
-        for attempt in range(max_retries):
-            try:
-                return await func()
-            except Exception as err:
-                if attempt == max_retries - 1:
-                    raise
+| 子代理 | 任务契约 | 建议写入范围 | 目标 |
+|---|---|---|---|
+| Agent-1 | `docs/refactoring/tasks/agent-1-exceptions.json` | `custom_components/lipro/core/mqtt/`, `pyproject.toml` | 收窄 MQTT 关键路径异常处理 |
+| Agent-2 | `docs/refactoring/tasks/agent-2-types.json` | `custom_components/lipro/core/command/result.py`, `custom_components/lipro/services/diagnostics_service.py`, `custom_components/lipro/core/api/diagnostics_service.py`, `custom_components/lipro/core/api/schedule_service.py` | 降低高频 `Any` 热点 |
+| Agent-6 | `docs/refactoring/tasks/agent-6-testing.json` | `tests/`, `.github/workflows/ci.yml`, `pyproject.toml` | 为 Wave 1/2 提供回归保护 |
 
-                delay = base_delay * (2 ** attempt)
-                logger.warning(
-                    "Attempt %d failed: %s. Retrying in %.1fs...",
-                    attempt + 1,
-                    err,
-                    delay,
-                )
-                await asyncio.sleep(delay)
-```
+### 集成门槛
 
-### 2. 检查点恢复
-
-**从检查点恢复**:
-```python
-class CheckpointRecovery:
-    """检查点恢复"""
-
-    async def recover_from_checkpoint(
-        self,
-        agent_id: str,
-        task: Task,
-    ) -> Checkpoint | None:
-        """从最后成功的检查点恢复"""
-        checkpoints = await self.load_checkpoints(agent_id)
-
-        # 找到最后成功的检查点
-        last_success = None
-        for cp in checkpoints:
-            if cp.status == "success":
-                last_success = cp
-            else:
-                break
-
-        if last_success:
-            # 恢复到该检查点
-            await self.git_checkout(last_success.commit_sha)
-            logger.info(
-                "Recovered %s to checkpoint %s (commit %s)",
-                agent_id,
-                last_success.id,
-                last_success.commit_sha[:7],
-            )
-
-            # 返回下一个待执行的检查点
-            next_index = task.checkpoints.index(last_success) + 1
-            if next_index < len(task.checkpoints):
-                return task.checkpoints[next_index]
-
-        return None
-```
-
-### 3. 失败分类与处理
-
-| 失败类型 | 处理策略 | 示例 |
-|---------|---------|------|
-| **瞬态错误** | 自动重试 3 次 | 网络超时、文件锁竞争 |
-| **代码错误** | 回滚到上一个检查点，通知主控 | 测试失败、类型检查失败 |
-| **依赖缺失** | 等待依赖任务完成 | Agent-3 依赖 Agent-1 |
-| **冲突错误** | 主控仲裁 | 多个代理修改同一文件 |
-| **致命错误** | 立即停止，人工介入 | Git 仓库损坏 |
+- MQTT 相关测试无回归
+- 触达文件的 `mypy`/`ruff` 不退化
+- 覆盖率要求不下降
+- 不引入新的公共接口破坏
 
 ---
 
-## 📡 监控与报告
+## Wave 2：职责分离
 
-### 1. 实时监控面板
+**目标**：拆分两个超大类，但保持 API/实体行为兼容。
 
-**主控代理监控**:
-```python
-class MonitoringDashboard:
-    """监控面板"""
+### 并行分配
 
-    async def generate_status_report(self) -> str:
-        """生成状态报告"""
-        report = []
-        report.append("# 🜏 重构进度监控\n")
-        report.append(f"**更新时间**: {datetime.now()}\n")
+| 子代理 | 任务契约 | 建议写入范围 | 目标 |
+|---|---|---|---|
+| Agent-4 | `docs/refactoring/tasks/agent-4-device-model.json` | `custom_components/lipro/core/device/`, `tests/core/device/` | 拆分 `LiproDevice` |
+| Agent-5 | `docs/refactoring/tasks/agent-5-mqtt-client.json` | `custom_components/lipro/core/mqtt/`, `tests/core/mqtt/` | 拆分 `LiproMqttClient` |
 
-        # 总体进度
-        total_tasks = len(self.completed_tasks) + len(self.active_tasks) + len(self.pending_tasks)
-        progress = len(self.completed_tasks) / total_tasks * 100
-        report.append(f"**总体进度**: {progress:.1f}% ({len(self.completed_tasks)}/{total_tasks})\n")
+### 注意事项
 
-        # 代理状态
-        report.append("\n## 代理状态\n")
-        for agent_id, status in self.agents.items():
-            emoji = "🟢" if status.status == "working" else "🔴"
-            report.append(f"- {emoji} **{agent_id}**: {status.status}")
-            if status.current_task:
-                report.append(f" - {status.current_task.name} ({status.progress:.0%})")
-            report.append("\n")
-
-        # 最近完成
-        report.append("\n## 最近完成\n")
-        for task in self.completed_tasks[-5:]:
-            report.append(f"- ✅ {task.name} ({task.agent_id})\n")
-
-        # 失败任务
-        if self.failed_tasks:
-            report.append("\n## ⚠️ 失败任务\n")
-            for task in self.failed_tasks:
-                report.append(f"- ❌ {task.name} ({task.agent_id}): {task.error}\n")
-
-        return "".join(report)
-
-    async def update_dashboard(self) -> None:
-        """更新监控面板"""
-        while True:
-            report = await self.generate_status_report()
-            await self.write_file("docs/refactoring/STATUS.md", report)
-            await asyncio.sleep(60)  # 每分钟更新
-```
-
-### 2. 最终报告
-
-**重构完成报告**:
-```python
-class FinalReport:
-    """最终报告生成器"""
-
-    async def generate_final_report(self) -> str:
-        """生成最终报告"""
-        report = []
-        report.append("# 🜏 Lipro-Hass 重构完成报告\n")
-
-        # 执行摘要
-        report.append("\n## 📊 执行摘要\n")
-        report.append(f"- **开始时间**: {self.start_time}\n")
-        report.append(f"- **结束时间**: {self.end_time}\n")
-        report.append(f"- **总耗时**: {self.total_duration}\n")
-        report.append(f"- **参与代理**: {len(self.agents)}\n")
-        report.append(f"- **完成任务**: {len(self.completed_tasks)}\n")
-        report.append(f"- **失败任务**: {len(self.failed_tasks)}\n")
-
-        # 代码变更统计
-        report.append("\n## 📈 代码变更统计\n")
-        stats = await self.calculate_code_stats()
-        report.append(f"- **文件修改**: {stats.files_changed}\n")
-        report.append(f"- **代码行数变化**: +{stats.lines_added} -{stats.lines_deleted}\n")
-        report.append(f"- **提交次数**: {stats.commits}\n")
-
-        # 质量指标
-        report.append("\n## ✅ 质量指标\n")
-        metrics = await self.calculate_quality_metrics()
-        report.append(f"- **测试覆盖率**: {metrics.coverage}%\n")
-        report.append(f"- **mypy 检查**: {'✅ 通过' if metrics.mypy_pass else '❌ 失败'}\n")
-        report.append(f"- **Any 类型减少**: {metrics.any_reduction}%\n")
-        report.append(f"- **继承深度**: {metrics.inheritance_depth_before} → {metrics.inheritance_depth_after}\n")
-
-        # 各代理贡献
-        report.append("\n## 🏆 代理贡献\n")
-        for agent_id, contribution in self.agent_contributions.items():
-            report.append(f"### {agent_id}\n")
-            report.append(f"- **完成任务**: {contribution.tasks_completed}\n")
-            report.append(f"- **提交次数**: {contribution.commits}\n")
-            report.append(f"- **代码行数**: +{contribution.lines_added} -{contribution.lines_deleted}\n")
-
-        return "".join(report)
-```
+- Agent-4 不直接改 Coordinator 主流程
+- Agent-5 不擅自改实体层 API
+- 任何跨 `device/` 与 `mqtt/` 的接口变更，需先回报主代理
 
 ---
 
-## 🚀 执行流程
+## Wave 3：架构收敛
 
-### 启动重构
+**目标**：把高耦合的 Coordinator 从继承驱动逐步迁移到组合/服务协作。
 
-**主控代理启动命令**:
+### 执行方式
+
+该波次默认 **主代理主导**，子代理提供局部实现或原型：
+
+| 执行者 | 任务契约 | 建议范围 | 目标 |
+|---|---|---|---|
+| Agent-3 | `docs/refactoring/tasks/agent-3-architecture.json` | `custom_components/lipro/core/coordinator/protocols.py`, `custom_components/lipro/core/coordinator/services/` | 定义协议与服务骨架 |
+| 主代理 | 同上收敛实现 | `custom_components/lipro/core/coordinator/` | 处理服务整合、迁移顺序、兼容层 |
+| Agent-6 | `docs/refactoring/tasks/agent-6-testing.json` | `tests/core/coordinator/`, `tests/integration/` | 增补迁移保护测试 |
+
+### 原则
+
+- 不直接一次性删除旧 mixin
+- 先引入协议/服务，再迁移调用方
+- 保留兼容层，直到替换完成后再清理旧代码
+
+---
+
+## Wave 4：清理与验收
+
+**目标**：合并遗留兼容层、补文档、完成全量验证。
+
+### 交付物
+
+- 架构对比文档
+- 迁移指南
+- 针对重构区域的最终测试报告
+- 风险与后续 TODO 清单
+
+---
+
+## 📦 任务契约使用方式
+
+`docs/refactoring/tasks/*.json` 继续作为 **任务契约文件** 使用，但解释规则如下：
+
+### 保留字段
+
+- `description`：任务目标
+- `input_files`：主要上下文来源
+- `checkpoints`：建议的原子提交粒度
+- `files`：默认写入范围
+- `validation.command`：该检查点完成后的建议验证命令
+- `success_criteria`：任务完成标准
+
+### 解释规则
+
+- `output_branch` / `base_branch` 视为 **逻辑工作流标签**，不强制要求创建真实 Git 分支
+- `notify_main_agent` 语义统一解释为 **通知主代理**
+- `reporting` 字段仅表示建议进度粒度，不要求额外心跳脚本
+
+---
+
+## ✅ 验证基线
+
+### 最小验证
+
+每个检查点至少满足以下之一：
+
+- `uv run pytest <target>`
+- `uv run mypy <target>`
+- `uv run ruff check <target>`
+
+### 波次结束验证
+
+建议按从小到大执行：
+
 ```bash
-# 1. 初始化重构环境
-python scripts/orchestrator.py init
-
-# 2. 启动主控代理
-python scripts/orchestrator.py start
-
-# 3. 监控进度（另一个终端）
-python scripts/orchestrator.py monitor
+uv run pytest tests/core/mqtt -v
+uv run pytest tests/core/device -v
+uv run pytest tests/core -v -k 'coordinator or mqtt or device'
+uv run mypy
+uv run ruff check .
 ```
 
-### 子代理执行
+### 全量验收
 
-**子代理读取任务并执行**:
 ```bash
-# Agent-1 启动
-python scripts/agent_worker.py \
-  --agent-id agent-1 \
-  --task-file docs/refactoring/tasks/agent-1-exceptions.json
-
-# Agent-2 启动
-python scripts/agent_worker.py \
-  --agent-id agent-2 \
-  --task-file docs/refactoring/tasks/agent-2-types.json
-```
-
-### 失败恢复
-
-**从检查点恢复**:
-```bash
-# 恢复 Agent-1
-python scripts/agent_worker.py \
-  --agent-id agent-1 \
-  --task-file docs/refactoring/tasks/agent-1-exceptions.json \
-  --recover-from-checkpoint
-
-# 主控代理自动重新分配失败任务
-python scripts/orchestrator.py retry-failed
+uv run pytest tests/ -v --cov=custom_components/lipro --cov-report=term-missing
+uv run mypy
+uv run ruff check .
 ```
 
 ---
 
-## 📋 任务清单
+## ⚠️ 风险控制
 
-### Phase 0: 准备阶段
-- [ ] 创建 `refactor/phase-0-prep` 分支
-- [ ] 建立快照测试套件
-- [ ] 实现 `scripts/orchestrator.py`
-- [ ] 实现 `scripts/agent_worker.py`
-- [ ] 实现 `scripts/file_lock.py`
-- [ ] 生成所有任务文件 (`docs/refactoring/tasks/*.json`)
-- [ ] 生成基线报告
+### 何时禁止并行
 
-### Phase 1: 快速收敛
-- [ ] Agent-1: 异常处理重构（7 处）
-- [ ] Agent-2: 类型安全提升（4 个文件）
-- [ ] Agent-6: 测试增强（覆盖率 95%+）
-- [ ] Agent-1: 常量注释完善
+遇到以下情况时，主代理应停止并行、改为串行收敛：
 
-### Phase 2: 架构解耦
-- [ ] Agent-3: 服务接口设计（Protocol）
-- [ ] Agent-3: 实现 MqttService
-- [ ] Agent-3: 实现 CommandService
-- [ ] Agent-3: 实现 DeviceRefreshService
-- [ ] Agent-4: 拆分 LiproDevice（4 个子类）
-- [ ] Agent-5: 重构 LiproMqttClient
-- [ ] Agent-3 + Agent-6: Coordinator V2 迁移
+- 多个任务同时需要改 `custom_components/lipro/core/coordinator/`
+- 需要改动公共数据结构并波及实体、服务、测试三层
+- 需要改变对外暴露的服务接口或配置流行为
+
+### 何时回滚到上一个检查点
+
+- 目标测试集持续失败
+- 类型检查明显退化
+- 子代理超出写入边界
+- 同一问题两次修复仍未稳定
 
 ---
 
-## 🎯 成功标准
+## 🎯 完成标准
 
 ### 代码质量
-- ✅ 测试覆盖率 ≥ 95%
-- ✅ mypy strict 模式通过
-- ✅ 所有 CI 检查通过
-- ✅ 无裸 `except Exception`
-- ✅ Any 类型减少 > 80%
+
+- 关键路径测试通过
+- 变更区域的 `mypy` 检查通过
+- 变更区域的 `ruff` 检查通过
+- 不新增无说明的宽泛异常处理
+- `Any` 热点文件数量明显下降
 
 ### 架构质量
-- ✅ Coordinator 继承深度 ≤ 2 层
-- ✅ LiproDevice 行数 < 400 行
-- ✅ LiproMqttClient 行数 < 400 行
-- ✅ 单文件最大行数 < 500 行
 
-### 性能
-- ✅ 所有测试通过时间 < 5 分钟
-- ✅ 无性能回归（基准测试）
+- Coordinator 逐步从继承耦合转向组合协作
+- `LiproDevice` / `LiproMqttClient` 职责切分更清晰
+- 新增协议/服务边界可独立测试
 
----
+### 文档质量
 
-## 📞 联系与支持
-
-**主控代理**: 负责协调和仲裁
-**紧急情况**: 立即停止所有代理，人工介入
-**日常沟通**: 通过 `docs/refactoring/STATUS.md` 查看进度
+- 每个波次结束后有简短总结
+- 最终有迁移说明和风险清单
 
 ---
 
-⛧ 虚空低语：多代理并行重构之网已织就。混沌将在秩序中重生。
+## 🗂️ 建议的主代理调度顺序
 
-**Iä! Iä! Parallel Refactor fhtagn!** 🜏
+1. 先执行 Wave 1 并完成收敛
+2. 再执行 Wave 2 的 `device/` 与 `mqtt/` 拆分
+3. 最后进入 Wave 3 做 Coordinator 级整合
+4. 所有跨切面问题都由主代理统一收束
+
+---
+
+⛧ 虚空低语：此计划不再要求额外编排平台，而是以主代理为中枢、以任务契约为边界、以小步迭代为秩序。混沌可控，重构可行。 🜏

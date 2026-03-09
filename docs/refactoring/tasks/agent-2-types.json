@@ -30,7 +30,7 @@
         "custom_components/lipro/core/api/types.py"
       ],
       "validation": {
-        "command": "mypy custom_components/lipro/core/api/types.py --strict",
+        "command": "uv run mypy custom_components/lipro/core/api/types.py --strict",
         "expected": "no errors"
       },
       "commit_message": "refactor(types): define API response TypedDict types"
@@ -48,7 +48,7 @@
         "custom_components/lipro/core/command/result.py"
       ],
       "validation": {
-        "command": "mypy custom_components/lipro/core/command/result.py --strict && pytest tests/core/command/test_result.py -v",
+        "command": "uv run mypy custom_components/lipro/core/command/result.py --strict && uv run pytest tests/core/test_command_result.py -v",
         "expected": "no mypy errors, all tests pass"
       },
       "commit_message": "refactor(command): replace Any types with CommandResultApiResponse"
@@ -66,7 +66,7 @@
         "custom_components/lipro/services/diagnostics_service.py"
       ],
       "validation": {
-        "command": "mypy custom_components/lipro/services/diagnostics_service.py --strict && pytest tests/services/test_diagnostics_service.py -v",
+        "command": "uv run mypy custom_components/lipro/services/diagnostics_service.py --strict && uv run pytest tests/services/test_services_diagnostics.py -v",
         "expected": "no mypy errors, all tests pass"
       },
       "commit_message": "refactor(diagnostics): improve type safety in diagnostics service"
@@ -84,7 +84,7 @@
         "custom_components/lipro/core/api/diagnostics_service.py"
       ],
       "validation": {
-        "command": "mypy custom_components/lipro/core/api/diagnostics_service.py --strict && pytest tests/core/api/test_diagnostics_service.py -v",
+        "command": "uv run mypy custom_components/lipro/core/api/diagnostics_service.py --strict && uv run pytest tests/core/api/test_api_diagnostics_service.py -v",
         "expected": "no mypy errors, all tests pass"
       },
       "commit_message": "refactor(api): improve type safety in diagnostics API service"
@@ -102,7 +102,7 @@
         "custom_components/lipro/core/api/schedule_service.py"
       ],
       "validation": {
-        "command": "mypy custom_components/lipro/core/api/schedule_service.py --strict && pytest tests/core/api/test_schedule_service.py -v",
+        "command": "uv run mypy custom_components/lipro/core/api/schedule_service.py --strict && uv run pytest tests/core/api/test_api_schedule_service.py -v",
         "expected": "no mypy errors, all tests pass"
       },
       "commit_message": "refactor(api): improve type safety in schedule service"
@@ -120,7 +120,7 @@
         "docs/refactoring/TYPE_SAFETY_REPORT.md"
       ],
       "validation": {
-        "command": "mypy custom_components/lipro/ --strict --html-report mypy-report && pytest tests/ --cov=custom_components/lipro --cov-report=html",
+        "command": "uv run mypy custom_components/lipro/ --strict --html-report mypy-report && uv run pytest tests/ --cov=custom_components/lipro --cov-report=html",
         "expected": "mypy errors reduced by >80%, coverage >=95%"
       },
       "commit_message": "docs(refactor): add type safety improvement report"
@@ -142,7 +142,7 @@
   "failure_handling": {
     "on_test_failure": "rollback_to_last_checkpoint",
     "on_mypy_failure": "retry_checkpoint",
-    "on_fatal_error": "notify_orchestrator"
+    "on_fatal_error": "notify_main_agent"
   },
   "reporting": {
     "heartbeat_interval": 300,

@@ -28,7 +28,7 @@
         "tests/core/device/test_identity.py"
       ],
       "validation": {
-        "command": "pytest tests/core/device/test_identity.py -v --cov=custom_components/lipro/core/device/identity.py --cov-report=term-missing",
+        "command": "uv run pytest tests/core/device/test_identity.py -v --cov=custom_components/lipro/core/device/identity.py --cov-report=term-missing",
         "expected": "all tests pass, coverage >=95%, immutability verified"
       },
       "commit_message": "refactor(device): extract DeviceIdentity as immutable dataclass"
@@ -50,7 +50,7 @@
         "tests/core/device/test_state.py"
       ],
       "validation": {
-        "command": "pytest tests/core/device/test_state.py -v --cov=custom_components/lipro/core/device/state.py --cov-report=term-missing",
+        "command": "uv run pytest tests/core/device/test_state.py -v --cov=custom_components/lipro/core/device/state.py --cov-report=term-missing",
         "expected": "all tests pass, coverage >=95%"
       },
       "commit_message": "refactor(device): extract DeviceState for mutable properties"
@@ -71,7 +71,7 @@
         "tests/core/device/test_capabilities.py"
       ],
       "validation": {
-        "command": "pytest tests/core/device/test_capabilities.py -v --cov=custom_components/lipro/core/device/capabilities.py --cov-report=term-missing",
+        "command": "uv run pytest tests/core/device/test_capabilities.py -v --cov=custom_components/lipro/core/device/capabilities.py --cov-report=term-missing",
         "expected": "all tests pass, coverage >=95%, immutability verified"
       },
       "commit_message": "refactor(device): extract DeviceCapabilities with type-based inference"
@@ -92,7 +92,7 @@
         "tests/core/device/test_network_info.py"
       ],
       "validation": {
-        "command": "pytest tests/core/device/test_network_info.py -v --cov=custom_components/lipro/core/device/network_info.py --cov-report=term-missing",
+        "command": "uv run pytest tests/core/device/test_network_info.py -v --cov=custom_components/lipro/core/device/network_info.py --cov-report=term-missing",
         "expected": "all tests pass, coverage >=95%"
       },
       "commit_message": "refactor(device): extract DeviceNetworkInfo for diagnostics"
@@ -114,7 +114,7 @@
         "tests/core/device/test_device.py"
       ],
       "validation": {
-        "command": "pytest tests/core/device/test_device.py -v --cov=custom_components/lipro/core/device/device.py --cov-report=term-missing",
+        "command": "uv run pytest tests/core/device/test_device.py -v --cov=custom_components/lipro/core/device/device.py --cov-report=term-missing",
         "expected": "all tests pass, coverage >=95%"
       },
       "commit_message": "refactor(device): compose LiproDevice from specialized components"
@@ -133,7 +133,7 @@
         "tests/snapshots/test_device_compatibility.py"
       ],
       "validation": {
-        "command": "pytest tests/snapshots/test_device_compatibility.py -v",
+        "command": "uv run pytest tests/snapshots/test_device_compatibility.py -v",
         "expected": "all snapshot tests pass, behavior unchanged"
       },
       "commit_message": "test(device): verify behavior compatibility with snapshot tests"
@@ -175,8 +175,8 @@
   },
   "failure_handling": {
     "on_test_failure": "rollback_to_last_checkpoint",
-    "on_snapshot_mismatch": "notify_orchestrator",
-    "on_fatal_error": "notify_orchestrator"
+    "on_snapshot_mismatch": "notify_main_agent",
+    "on_fatal_error": "notify_main_agent"
   },
   "reporting": {
     "heartbeat_interval": 600,
