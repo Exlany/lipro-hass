@@ -94,6 +94,7 @@ class _CoordinatorStateMixin(_DeviceRefreshMixin):
         """Initialize coordinator runtime state containers and caches."""
         self._devices: dict[str, LiproDevice] = {}
         self._device_identity_index = DeviceIdentityIndex()
+        self._diagnostic_gateway_devices: dict[str, LiproDevice] = {}
         self._iot_ids_to_query: list[str] = []
         self._group_ids_to_query: list[str] = []
         self._outlet_ids_to_query: list[str] = []  # Outlet device IDs for power query
@@ -190,6 +191,7 @@ class _CoordinatorStateMixin(_DeviceRefreshMixin):
         self._entities.clear()
         self._entities_by_device.clear()
         self._devices.clear()
+        self._diagnostic_gateway_devices.clear()
         self._device_identity_index.clear()
         self._product_configs_by_id.clear()
         self._product_configs.clear()
@@ -353,6 +355,7 @@ class _CoordinatorStateMixin(_DeviceRefreshMixin):
             polling_interval_seconds=polling_interval_seconds,
             last_update_success=self.last_update_success,
             devices=self._devices,
+            diagnostic_gateway_devices=self._diagnostic_gateway_devices,
             group_count=len(self._group_ids_to_query),
             individual_count=len(self._iot_ids_to_query),
             outlet_count=len(self._outlet_ids_to_query),

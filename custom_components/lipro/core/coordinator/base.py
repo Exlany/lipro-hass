@@ -45,6 +45,7 @@ class _CoordinatorBase(DataUpdateCoordinator[dict[str, LiproDevice]]):
 
     # Runtime device caches
     _devices: dict[str, LiproDevice]
+    _diagnostic_gateway_devices: dict[str, LiproDevice]
     _device_identity_index: DeviceIdentityIndex
     _iot_ids_to_query: list[str]
     _group_ids_to_query: list[str]

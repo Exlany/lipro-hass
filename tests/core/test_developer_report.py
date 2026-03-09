@@ -76,6 +76,7 @@ def test_build_developer_report_disabled_mode_includes_note_and_mesh_fallback() 
         polling_interval_seconds=30,
         last_update_success=True,
         devices={group.serial: group, light.serial: light},
+        diagnostic_gateway_devices=None,
         group_count=1,
         individual_count=1,
         outlet_count=0,
@@ -127,6 +128,7 @@ def test_build_developer_report_honors_option_overrides_when_debug_enabled() -> 
         polling_interval_seconds=None,
         last_update_success=False,
         devices={},
+        diagnostic_gateway_devices=None,
         group_count=0,
         individual_count=0,
         outlet_count=0,
@@ -147,3 +149,67 @@ def test_build_developer_report_honors_option_overrides_when_debug_enabled() -> 
     assert report["options"]["request_timeout"] == 40
     assert report["options"]["debug_mode"] is True
     assert report["recent_commands"] == [{"route": "device_direct", "success": True}]
+
+
+def test_build_developer_report_includes_ir_inventory_snapshot() -> None:
+    gateway = LiproDevice(
+        device_number=1,
+        serial="03ab5ccd7c000001",
+        name="Main Gateway",
+        device_type=11,
+        iot_name="M2W1",
+        physical_model="gateway",
+        properties={
+            "irSwitch": "1",
+            "rcList": '[{"address":"5ccd7c59abcd","keycount":1,"keyindex":1,"name":"风扇灯遥控器","selfIndex":-1,"timestamp":"1694267294911","version":"3.0.1"}]',
+            "version": "9.2.20",
+        },
+    )
+    ir_remote = LiproDevice(
+        device_number=2,
+        serial="rmt_id_appremote_realremote_03ab5ccd7c000001",
+        name="Remote Asset",
+        device_type=11,
+        iot_name="irRemote",
+        physical_model="irRemote",
+    )
+
+    report = build_developer_report(
+        config_entry=None,
+        debug_mode=True,
+        mqtt_enabled=True,
+        mqtt_connected=True,
+        polling_interval_seconds=30,
+        last_update_success=True,
+        devices={ir_remote.serial: ir_remote},
+        diagnostic_gateway_devices={gateway.serial: gateway},
+        group_count=0,
+        individual_count=1,
+        outlet_count=0,
+        pending_devices=0,
+        pending_errors=0,
+        command_traces=[],
+        redact_identifier=_redact_identifier,
+    )
+
+    snapshot = report["ir_remote_inventory_snapshot"]
+    assert snapshot["gateway_count"] == 1
+    assert snapshot["ir_capable_gateway_count"] == 1
+    assert snapshot["bound_remote_total"] == 1
+    assert snapshot["ir_remote_device_count"] == 1
+    assert snapshot["orphan_ir_remote_count"] == 0
+
+    gateway_entry = snapshot["gateways"][0]
+    assert gateway_entry["device_id"] == _redact_identifier(gateway.serial)
+    assert gateway_entry["supports_ir_switch"] is True
+    assert gateway_entry["ir_switch"] is True
+    assert gateway_entry["ir_emit_supported_by_firmware"] is True
+    assert gateway_entry["remote_count"] == 1
+    assert gateway_entry["rc_list"][0]["name"] == "风扇灯遥控器"
+    assert gateway_entry["rc_list"][0]["address"] == _redact_identifier("5ccd7c59abcd")
+
+    remote_entry = snapshot["ir_remote_devices"][0]
+    assert remote_entry["device_id"] == _redact_identifier(ir_remote.serial)
+    assert remote_entry["gateway_device_id"] == _redact_identifier(gateway.serial)
+    assert remote_entry["gateway_present_in_runtime"] is True
+    assert remote_entry["orphaned"] is False

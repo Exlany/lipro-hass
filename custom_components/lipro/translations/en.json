@@ -335,7 +335,7 @@
     },
     "get_developer_report": {
       "name": "Get Developer Report",
-      "description": "Export a sanitized runtime diagnostics report for real-device debugging. Includes mesh topology snapshot, recent command traces, and runtime options.",
+      "description": "Export a sanitized runtime diagnostics report for real-device debugging. Includes mesh topology snapshot, IR remote inventory snapshot, recent command traces, and runtime options.",
       "fields": {
         "entry_id": {
           "name": "Entry ID",

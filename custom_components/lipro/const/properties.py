@@ -76,6 +76,11 @@ PROP_MESH_TYPE: Final = "meshType"
 PROP_MESH_GATEWAY: Final = "gateway"
 PROP_BLE_MAC: Final = "bleMac"
 
+# Property keys - Infrared / Gateway (红外 / 网关)
+PROP_IR_SWITCH: Final = "irSwitch"
+PROP_IS_SUPPORT_IR_SWITCH: Final = "isSupportIrSwitch"
+PROP_RC_LIST: Final = "rcList"
+
 # Property keys - Metadata (元数据)
 PROP_LATEST_SYNC_TIMESTAMP: Final = "latestSyncTimestamp"
 

@@ -46,6 +46,8 @@ from ...const.properties import (
     PROP_HEATER_MODE,
     PROP_HEATER_SWITCH,
     PROP_IP,
+    PROP_IR_SWITCH,
+    PROP_IS_SUPPORT_IR_SWITCH,
     PROP_LAST_GEAR_INDEX,
     PROP_LATEST_SYNC_TIMESTAMP,
     PROP_LED,
@@ -60,6 +62,7 @@ from ...const.properties import (
     PROP_NET_TYPE,
     PROP_POSITION,
     PROP_POWER_STATE,
+    PROP_RC_LIST,
     PROP_SLEEP_AID_ENABLE,
     PROP_TEMPERATURE,
     PROP_VERSION,
@@ -76,6 +79,8 @@ from ..utils.identifiers import is_valid_iot_device_id, is_valid_mesh_group_id
 from ..utils.property_normalization import normalize_properties
 
 _LOGGER = logging.getLogger(__name__)
+_IOT_REMOTE_ID_PREFIX = "rmt_id_"
+_IR_REMOTE_DEVICE_DRIVER_ID = "00000000"
 
 
 def _coerce_api_bool(value: Any) -> bool:
@@ -502,6 +507,65 @@ class LiproDevice:
         """Get panel type discriminator required by panel commands."""
         return 1 if self.iot_name.casefold() == "21jd" else 0
 
+    # Infrared / gateway properties (红外 / 网关)
+    @property
+    def is_ir_remote_device(self) -> bool:
+        """Return True when this runtime device represents an IR remote asset."""
+        if self.extra_data.get("is_ir_remote") is True:
+            return True
+        return self.physical_model == "irRemote" or self.serial.startswith(
+            _IOT_REMOTE_ID_PREFIX
+        )
+
+    @property
+    def ir_remote_gateway_device_id(self) -> str | None:
+        """Return parent gateway device ID parsed from IR remote serial when known."""
+        if not self.serial.startswith(_IOT_REMOTE_ID_PREFIX):
+            return None
+        parts = self.serial.split("_")
+        if len(parts) <= 4:
+            return None
+        gateway_device_id = parts[4].strip()
+        if (
+            not gateway_device_id
+            or gateway_device_id == _IR_REMOTE_DEVICE_DRIVER_ID
+        ):
+            return None
+        return gateway_device_id
+
+    @property
+    def rc_list(self) -> list[dict[str, Any]]:
+        """Return parsed gateway rcList payload when available."""
+        value = self.properties.get(PROP_RC_LIST)
+        if not value:
+            return []
+        try:
+            if isinstance(value, str):
+                stripped = value.lstrip()
+                if not stripped or stripped[0] not in "[{":
+                    return []
+                parsed = json.loads(value)
+            else:
+                parsed = value
+        except (json.JSONDecodeError, TypeError):
+            return []
+        if not isinstance(parsed, list):
+            return []
+        return [item for item in parsed if isinstance(item, dict)]
+
+    @property
+    def supports_ir_switch(self) -> bool:
+        """Return True when IR switch capability is exposed by runtime data."""
+        return (
+            PROP_IS_SUPPORT_IR_SWITCH in self.properties
+            or PROP_IR_SWITCH in self.properties
+        )
+
+    @property
+    def ir_switch_enabled(self) -> bool:
+        """Return current IR switch state when available."""
+        return self.get_bool_property(PROP_IR_SWITCH)
+
     # Bedside Light properties (床头灯)
     @property
     def battery_level(self) -> int | None:
@@ -725,6 +789,10 @@ class LiproDevice:
             ):
                 default_max_fan_gear_in_model = model_default_max_fan_gear
 
+        extra_data: dict[str, Any] = {}
+        if "isIrRemote" in data:
+            extra_data["is_ir_remote"] = _coerce_api_bool(data.get("isIrRemote"))
+
         return cls(
             device_number=data.get("deviceId", 0),
             serial=data.get("serial", ""),
@@ -739,6 +807,7 @@ class LiproDevice:
             physical_model=data.get("physicalModel"),
             default_max_fan_gear_in_model=default_max_fan_gear_in_model,
             max_fan_gear=default_max_fan_gear_in_model,
+            extra_data=extra_data,
         )
 
 

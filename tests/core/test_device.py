@@ -1506,3 +1506,60 @@ class TestDeviceMeshProperties:
             iot_name="",
         )
         assert device.latest_sync_timestamp is None
+
+
+    def test_rc_list_parses_gateway_remote_list(self):
+        """Test rcList JSON is decoded into a structured list."""
+        device = LiproDevice(
+            device_number=1,
+            serial="03ab5ccd7cxxxxxx",
+            name="Gateway",
+            device_type=11,
+            iot_name="M2W1",
+            physical_model="gateway",
+            properties={
+                "rcList": '[{"address":"5ccd7c59abcd","keycount":1,"keyindex":1,"name":"智能控制器","selfIndex":-1,"timestamp":"1683097773619","version":"3.1.0"}]'
+            },
+        )
+
+        assert device.rc_list == [
+            {
+                "address": "5ccd7c59abcd",
+                "keycount": 1,
+                "keyindex": 1,
+                "name": "智能控制器",
+                "selfIndex": -1,
+                "timestamp": "1683097773619",
+                "version": "3.1.0",
+            }
+        ]
+
+    def test_ir_remote_helpers(self):
+        """Test IR remote helper getters use encoded device id safely."""
+        device = LiproDevice(
+            device_number=1,
+            serial="rmt_id_appremote_realremote_03ab5ccd7c123456",
+            name="IR Remote",
+            device_type=11,
+            iot_name="irRemote",
+            physical_model="irRemote",
+            properties={"irSwitch": "0"},
+        )
+
+        assert device.is_ir_remote_device is True
+        assert device.ir_remote_gateway_device_id == "03ab5ccd7c123456"
+        assert device.supports_ir_switch is True
+        assert device.ir_switch_enabled is False
+
+    def test_ir_remote_device_driver_id_has_no_parent_gateway(self):
+        """Test driver-owned IR remotes do not invent a parent gateway id."""
+        device = LiproDevice(
+            device_number=1,
+            serial="rmt_id_appremote_realremote_00000000",
+            name="IR Driver Remote",
+            device_type=11,
+            iot_name="irRemote",
+            physical_model="irRemote",
+        )
+
+        assert device.ir_remote_gateway_device_id is None

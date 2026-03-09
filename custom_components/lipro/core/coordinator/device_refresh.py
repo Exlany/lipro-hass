@@ -271,6 +271,7 @@ class _DeviceRefreshMixin(_MqttMixin):
     def _apply_fetched_device_snapshot(self, snapshot: FetchedDeviceSnapshot) -> None:
         """Apply refreshed device snapshot atomically."""
         self._devices = snapshot.devices
+        self._diagnostic_gateway_devices = snapshot.diagnostic_gateway_devices
         self._device_identity_index.replace(snapshot.device_by_id)
         self._iot_ids_to_query = snapshot.iot_ids
         self._group_ids_to_query = snapshot.group_ids

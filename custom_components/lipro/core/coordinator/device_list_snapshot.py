@@ -49,6 +49,7 @@ class FetchedDeviceSnapshot:
     group_ids: list[str]
     outlet_ids: list[str]
     cloud_serials: set[str] = field(default_factory=set)
+    diagnostic_gateway_devices: dict[str, LiproDevice] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)
@@ -386,6 +387,7 @@ def build_fetched_device_snapshot(
     new_group_ids: list[str] = []
     new_outlet_ids: list[str] = []
     new_cloud_serials: set[str] = set()
+    diagnostic_gateway_devices: dict[str, LiproDevice] = {}
 
     for device_data in devices_data:
         device = _safe_device_from_api_data(device_data)
@@ -400,7 +402,13 @@ def build_fetched_device_snapshot(
             continue
 
         if is_gateway:
-            _LOGGER.debug("Skipping gateway device: %s", device.name)
+            if device_filter is not None and not device_filter(device_data):
+                continue
+            _LOGGER.debug(
+                "Retaining gateway-like device only for diagnostics: %s",
+                device.name,
+            )
+            diagnostic_gateway_devices[device.serial] = device
             continue
 
         new_cloud_serials.add(device.serial)
@@ -435,6 +443,7 @@ def build_fetched_device_snapshot(
         group_ids=new_group_ids,
         outlet_ids=new_outlet_ids,
         cloud_serials=new_cloud_serials,
+        diagnostic_gateway_devices=diagnostic_gateway_devices,
     )
 
 

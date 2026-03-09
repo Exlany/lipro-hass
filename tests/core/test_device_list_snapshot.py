@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from unittest.mock import patch
 
+from custom_components.lipro.const.categories import DeviceCategory
 from custom_components.lipro.const.config import (
     DEVICE_FILTER_MODE_EXCLUDE,
     DEVICE_FILTER_MODE_OFF,
@@ -131,14 +132,21 @@ def test_is_device_included_by_filter_treats_exclude_empty_values_as_noop() -> N
     assert is_device_included_by_filter({"homeName": "Main Home"}, config) is True
 
 
-def test_build_fetched_device_snapshot_skips_gateway_devices() -> None:
+def test_build_fetched_device_snapshot_keeps_gateway_only_in_diagnostics() -> None:
     class _GatewayDevice:
         serial = "03ab0000000000aa"
         name = "Gateway Device"
+        is_group = False
+        has_valid_iot_id = True
+        iot_device_id = serial
 
         @property
         def is_gateway(self) -> bool:
             return True
+
+        @property
+        def category(self):
+            return DeviceCategory.GATEWAY
 
     with patch(
         "custom_components.lipro.core.coordinator.device_list_snapshot.LiproDevice.from_api_data"
@@ -152,3 +160,4 @@ def test_build_fetched_device_snapshot_skips_gateway_devices() -> None:
     assert fetched_snapshot.group_ids == []
     assert fetched_snapshot.outlet_ids == []
     assert fetched_snapshot.cloud_serials == set()
+    assert set(fetched_snapshot.diagnostic_gateway_devices) == {"03ab0000000000aa"}
