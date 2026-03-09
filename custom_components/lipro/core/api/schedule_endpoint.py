@@ -36,7 +36,6 @@ def resolve_mesh_schedule_candidate_ids(
     if isinstance(mesh_member_ids, list):
         for member_id in mesh_member_ids:
             _append_candidate(member_id)
-    _append_candidate(device_id)
     return candidates
 
 

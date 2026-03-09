@@ -54,8 +54,10 @@ get_schedules:
     through 7=Sunday. Schedules are stored on the device and execute even
     when Home Assistant is offline. For mesh groups,
     the integration reads through BLE schedule queries with gateway/member
-    candidates only. Tested standard `schedule/get.do` may return empty
-    success and is not treated as a reliable fallback.
+    candidates only. Real-device tests show standard `schedule/get.do` on
+    the group ID may return empty success, while member-ID reads can expose
+    shadow rows with incompatible IDs; neither is treated as a reliable
+    mesh fallback.
   target:
     entity:
       integration: lipro
@@ -78,8 +80,9 @@ add_schedule:
     execute even when Home Assistant is offline. Each time entry
     corresponds to an event (action) at that time. For mesh groups, the
     integration writes through BLE schedule calls with gateway/member
-    candidates only. Tested standard `schedule/addOrUpdate.do` is not a
-    reliable fallback.
+    candidates only. Real-device tests show standard
+    `schedule/addOrUpdate.do` on member IoT IDs returns service errors and
+    is not a reliable mesh fallback.
   target:
     entity:
       integration: lipro
@@ -143,9 +146,9 @@ delete_schedules:
   description: >-
     Delete timing schedules from a device by their IDs. Use get_schedules first
     to find the schedule IDs. For mesh groups, the integration deletes through
-    BLE schedule calls with gateway/member candidates only. Tested standard
-    `schedule/delete.do` may report success without deleting the target
-    schedule.
+    BLE schedule calls with gateway/member candidates only. Real-device tests
+    show standard `schedule/delete.do` on member readback IDs can fail with
+    `140003` and does not reliably remove the target mesh schedule.
   target:
     entity:
       integration: lipro

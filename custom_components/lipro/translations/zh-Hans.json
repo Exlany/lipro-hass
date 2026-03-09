@@ -263,7 +263,7 @@
     },
     "get_schedules": {
       "name": "获取定时任务",
-      "description": "获取按周重复的定时任务列表，星期使用 1=周一 到 7=周日。对于 mesh group，读取仅使用 BLE/gateway-member 候选；实测标准 schedule/get.do 可能返回空成功，不能视为可靠回退链路。",
+      "description": "获取按周重复的定时任务列表，星期使用 1=周一 到 7=周日。对于 mesh group，读取仅使用 BLE/gateway-member 候选；实机复测表明标准 schedule/get.do 对 groupId 可能返回空成功，对 member IoT ID 也可能回显不可复用 ID 的影子结果，因此不能视为可靠 mesh 回退链路。",
       "fields": {
         "device_id": {
           "name": "设备 ID",
@@ -273,7 +273,7 @@
     },
     "add_schedule": {
       "name": "添加定时任务",
-      "description": "为设备添加按周重复的定时任务，当前不暴露绝对日期定时模式。对于 mesh group，写入仅使用 BLE/gateway-member 候选；实测标准 schedule/addOrUpdate.do 不是可靠回退链路。",
+      "description": "为设备添加按周重复的定时任务，当前不暴露绝对日期定时模式。对于 mesh group，写入仅使用 BLE/gateway-member 候选；实机复测表明标准 schedule/addOrUpdate.do 对 member IoT ID 会返回服务异常，不是可靠 mesh 回退链路。",
       "fields": {
         "device_id": {
           "name": "设备 ID",
@@ -295,7 +295,7 @@
     },
     "delete_schedules": {
       "name": "删除定时任务",
-      "description": "通过 ID 删除设备的定时任务。对于 mesh group，删除仅使用 BLE/gateway-member 候选；实测标准 schedule/delete.do 可能回成功但并未删除目标任务。",
+      "description": "通过 ID 删除设备的定时任务。对于 mesh group，删除仅使用 BLE/gateway-member 候选；实机复测表明标准 schedule/delete.do 对 member 读回 ID 可返回 140003，且不能可靠删除目标 mesh 定时任务。",
       "fields": {
         "device_id": {
           "name": "设备 ID",

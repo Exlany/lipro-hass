@@ -40,6 +40,14 @@ def test_parse_mesh_schedule_json_truncates_mismatched_time_event_pairs() -> Non
     assert parsed == {"days": [1], "time": [100], "evt": [1]}
 
 
+def test_parse_mesh_schedule_json_rejects_legacy_wrapped_payload() -> None:
+    parsed = parse_mesh_schedule_json(
+        {"schedule": {"days": [1], "time": [3600], "evt": [0]}},
+        mask_sensitive_data=_mask,
+    )
+    assert parsed == {"days": [], "time": [], "evt": []}
+
+
 def test_normalize_mesh_timing_rows_sets_schedule_from_verified_payload() -> None:
     rows = normalize_mesh_timing_rows(
         [
@@ -66,4 +74,5 @@ def test_normalize_mesh_timing_rows_sets_schedule_from_verified_payload() -> Non
     assert rows[0]["deviceId"] == "03ab0000000000aa"
     assert rows[0]["schedule"] == {"days": [2], "time": [86340], "evt": [1]}
     assert rows[0]["active"] is True
+    assert rows[1]["schedule"] == {"days": [], "time": [], "evt": []}
     assert rows[1]["active"] is False

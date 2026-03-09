@@ -78,9 +78,6 @@ def parse_mesh_schedule_json(
             )
             return empty
 
-    if isinstance(payload, dict) and isinstance(payload.get("schedule"), dict):
-        payload = payload["schedule"]
-
     if not isinstance(payload, dict):
         return empty
 
@@ -106,7 +103,7 @@ def normalize_mesh_timing_rows(
         if not isinstance(row, dict):
             continue
 
-        schedule_payload = row.get("schedule", row.get("scheduleJson"))
+        schedule_payload = row.get("scheduleJson")
         schedule = parse_schedule_json(schedule_payload)
 
         normalized_row = dict(row)

@@ -136,11 +136,11 @@ async def test_add_mesh_schedule_by_candidates_returns_refreshed_rows_on_success
     assert get_mesh_schedules.await_args_list == [
         call(
             candidate_device_ids=["03ab0000000000a1"],
-            raise_on_total_failure=False,
+            raise_on_total_failure=True,
         ),
         call(
             candidate_device_ids=["03ab0000000000a2"],
-            raise_on_total_failure=False,
+            raise_on_total_failure=True,
         ),
         call(
             candidate_device_ids=["03ab0000000000a1", "03ab0000000000a2"],
@@ -182,13 +182,44 @@ async def test_add_mesh_schedule_by_candidates_uses_first_free_gap() -> None:
     assert get_mesh_schedules.await_args_list == [
         call(
             candidate_device_ids=["03ab0000000000a1"],
-            raise_on_total_failure=False,
+            raise_on_total_failure=True,
         ),
         call(
             candidate_device_ids=["03ab0000000000a1"],
             raise_on_total_failure=False,
         ),
     ]
+
+
+
+@pytest.mark.asyncio
+async def test_add_mesh_schedule_by_candidates_aborts_when_pre_read_totally_fails() -> None:
+    execute_candidate_request = AsyncMock()
+    get_mesh_schedules = AsyncMock(side_effect=DummyApiError("pre-read failed", 599))
+
+    with pytest.raises(DummyApiError, match="pre-read failed"):
+        await add_mesh_schedule_by_candidates(
+            candidate_device_ids=["03ab0000000000a1"],
+            days=[1],
+            times=[3600],
+            events=[0],
+            execute_candidate_request=execute_candidate_request,
+            iot_request=AsyncMock(return_value={}),
+            get_mesh_schedules_by_candidates_request=get_mesh_schedules,
+            path_ble_schedule_add="/v2/schedule/add",
+            build_mesh_schedule_add_body=lambda candidate, schedule_json, schedule_id: {
+                "deviceId": candidate,
+                "scheduleJson": schedule_json,
+                "id": schedule_id,
+            },
+            encode_mesh_schedule_json=lambda *_: '{"days":[1],"time":[3600],"evt":[0]}',
+        )
+
+    execute_candidate_request.assert_not_awaited()
+    get_mesh_schedules.assert_awaited_once_with(
+        candidate_device_ids=["03ab0000000000a1"],
+        raise_on_total_failure=True,
+    )
 
 
 @pytest.mark.asyncio

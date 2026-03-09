@@ -263,7 +263,7 @@
     },
     "get_schedules": {
       "name": "Get Schedules",
-      "description": "Get recurring weekly schedules for a device. Weekdays use 1=Monday through 7=Sunday. For mesh groups, reads use BLE gateway/member candidates only; tested standard schedule/get.do may return empty success and is not treated as a reliable fallback.",
+      "description": "Get recurring weekly schedules for a device. Weekdays use 1=Monday through 7=Sunday. For mesh groups, reads use BLE gateway/member candidates only; real-device retests show standard schedule/get.do may return empty success for the group ID and may also echo shadow rows with non-reusable IDs for member IoT IDs, so it is not treated as a reliable mesh fallback.",
       "fields": {
         "device_id": {
           "name": "Device ID",
@@ -273,7 +273,7 @@
     },
     "add_schedule": {
       "name": "Add Schedule",
-      "description": "Add a recurring weekly timing schedule for a device. No absolute-date schedule mode is exposed. For mesh groups, writes use BLE gateway/member candidates only; tested standard schedule/addOrUpdate.do is not a reliable fallback.",
+      "description": "Add a recurring weekly timing schedule for a device. No absolute-date schedule mode is exposed. For mesh groups, writes use BLE gateway/member candidates only; real-device retests show standard schedule/addOrUpdate.do returns service errors for member IoT IDs and is not a reliable mesh fallback.",
       "fields": {
         "device_id": {
           "name": "Device ID",
@@ -295,7 +295,7 @@
     },
     "delete_schedules": {
       "name": "Delete Schedules",
-      "description": "Delete timing schedules from a device by their IDs. For mesh groups, deletes use BLE gateway/member candidates only; tested standard schedule/delete.do may report success without deleting the target schedule.",
+      "description": "Delete timing schedules from a device by their IDs. For mesh groups, deletes use BLE gateway/member candidates only; real-device retests show standard schedule/delete.do can fail with 140003 for member readback IDs and does not reliably remove the target mesh schedule.",
       "fields": {
         "device_id": {
           "name": "Device ID",

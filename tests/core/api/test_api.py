@@ -3830,7 +3830,7 @@ class TestLiproClientAdditionalBranchCoverage:
         assert result == [1, 2, 3]
 
     def test_parse_mesh_schedule_json_edge_cases(self):
-        """Mesh schedule parser should handle blank/invalid/wrapped/mismatched payloads."""
+        """Mesh schedule parser should handle blank/invalid/canonical/mismatched payloads."""
         empty: dict[str, list[int]] = {"days": [], "time": [], "evt": []}
         assert LiproClient._parse_mesh_schedule_json("   ") == empty
         assert LiproClient._parse_mesh_schedule_json("{bad-json}") == empty
@@ -3839,7 +3839,7 @@ class TestLiproClientAdditionalBranchCoverage:
         wrapped = LiproClient._parse_mesh_schedule_json(
             {"schedule": {"days": [1], "time": [3600], "evt": [0]}}
         )
-        assert wrapped == {"days": [1], "time": [3600], "evt": [0]}
+        assert wrapped == empty
 
         canonical_payload = LiproClient._parse_mesh_schedule_json(
             {"days": [2], "time": [86340], "evt": [1]}

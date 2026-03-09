@@ -199,7 +199,7 @@ async def add_mesh_schedule_by_candidates(
     for candidate_id in candidate_device_ids:
         existing_rows = await get_mesh_schedules_by_candidates_request(
             candidate_device_ids=[candidate_id],
-            raise_on_total_failure=False,
+            raise_on_total_failure=True,
         )
         schedule_id = _next_mesh_schedule_id(existing_rows)
 
