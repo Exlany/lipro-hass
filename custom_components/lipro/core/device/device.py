@@ -9,11 +9,7 @@ import logging
 from typing import Any
 
 from ...const.api import DEFAULT_MAX_FAN_GEAR
-from ...const.categories import (
-    DeviceCategory,
-    get_device_category,
-    get_platforms_for_category,
-)
+from ...const.categories import DeviceCategory, get_platforms_for_category
 from ...const.device_types import (
     DEVICE_TYPE_MAP,
     IOT_NAME_TO_DEFAULT_MAX_FAN_GEAR,
@@ -29,7 +25,6 @@ from ...const.properties import (
     PROP_ACTIVATED,
     PROP_AERATION_GEAR,
     PROP_BATTERY,
-    PROP_BLE_MAC,
     PROP_BODY_REACTIVE,
     PROP_BRIGHTNESS,
     PROP_CHARGING,
@@ -45,21 +40,14 @@ from ...const.properties import (
     PROP_GEAR_LIST,
     PROP_HEATER_MODE,
     PROP_HEATER_SWITCH,
-    PROP_IP,
     PROP_IR_SWITCH,
     PROP_IS_SUPPORT_IR_SWITCH,
     PROP_LAST_GEAR_INDEX,
-    PROP_LATEST_SYNC_TIMESTAMP,
     PROP_LED,
     PROP_LIGHT_MODE,
     PROP_LOW_BATTERY,
-    PROP_MAC,
     PROP_MEMORY,
-    PROP_MESH_ADDRESS,
-    PROP_MESH_GATEWAY,
-    PROP_MESH_TYPE,
     PROP_MOVING,
-    PROP_NET_TYPE,
     PROP_PAIR_KEY_FULL,
     PROP_PANEL_INFO,
     PROP_POSITION,
@@ -67,10 +55,7 @@ from ...const.properties import (
     PROP_RC_LIST,
     PROP_SLEEP_AID_ENABLE,
     PROP_TEMPERATURE,
-    PROP_VERSION,
     PROP_WAKE_UP_ENABLE,
-    PROP_WIFI_RSSI,
-    PROP_WIFI_SSID,
     PROP_WIND_DIRECTION_MODE,
     PROP_WIND_GEAR,
     kelvin_to_percent,
@@ -79,6 +64,9 @@ from ...const.properties import (
 from ..utils.coerce import coerce_boollike
 from ..utils.identifiers import is_valid_iot_device_id, is_valid_mesh_group_id
 from ..utils.property_normalization import normalize_properties
+from .capabilities import DeviceCapabilities
+from .identity import DeviceIdentity
+from .network_info import DeviceNetworkInfo
 
 _LOGGER = logging.getLogger(__name__)
 _IOT_REMOTE_ID_PREFIX = "rmt_id_"
@@ -131,6 +119,21 @@ class LiproDevice:
         )
         if PROP_CONNECT_STATE in self.properties:
             self.available = self.is_connected
+
+    @property
+    def identity(self) -> DeviceIdentity:
+        """Return one immutable snapshot of device identity fields."""
+        return DeviceIdentity(
+            device_number=self.device_number,
+            serial=self.serial,
+            name=self.name,
+            device_type=self.device_type,
+            iot_name=self.iot_name,
+            room_id=self.room_id,
+            room_name=self.room_name,
+            product_id=self.product_id,
+            physical_model=self.physical_model,
+        )
 
     @property
     def device_type_hex(self) -> str:
@@ -217,59 +220,68 @@ class LiproDevice:
     # =========================================================================
 
     @property
+    def capabilities(self) -> DeviceCapabilities:
+        """Return one structured snapshot of derived category/capability flags."""
+        return DeviceCapabilities.from_device_profile(
+            device_type_hex=self.device_type_hex,
+            min_color_temp_kelvin=self.min_color_temp_kelvin,
+            max_color_temp_kelvin=self.max_color_temp_kelvin,
+        )
+
+    @property
     def category(self) -> DeviceCategory:
         """Get the device category based on device type."""
-        return get_device_category(self.device_type_hex)
+        return self.capabilities.category
 
     @property
     def is_light(self) -> bool:
         """Check if device is a light (not including fan lights)."""
-        return self.category == DeviceCategory.LIGHT
+        return self.capabilities.is_light
 
     @property
     def is_fan_light(self) -> bool:
         """Check if device is a fan light."""
-        return self.category == DeviceCategory.FAN_LIGHT
+        return self.capabilities.is_fan_light
 
     @property
     def is_curtain(self) -> bool:
         """Check if device is a curtain."""
-        return self.category == DeviceCategory.CURTAIN
+        return self.capabilities.is_curtain
 
     @property
     def is_switch(self) -> bool:
         """Check if device is a switch or outlet."""
-        return self.category in (DeviceCategory.SWITCH, DeviceCategory.OUTLET)
+        return self.capabilities.is_switch
 
     @property
     def is_outlet(self) -> bool:
         """Check if device is an outlet."""
-        return self.category == DeviceCategory.OUTLET
+        return self.capabilities.is_outlet
 
     @property
     def is_heater(self) -> bool:
         """Check if device is a heater."""
-        return self.category == DeviceCategory.HEATER
+        return self.capabilities.is_heater
 
     @property
     def is_sensor(self) -> bool:
         """Check if device is a sensor."""
-        return self.category in (DeviceCategory.BODY_SENSOR, DeviceCategory.DOOR_SENSOR)
+        return self.capabilities.is_sensor
 
     @property
     def is_body_sensor(self) -> bool:
         """Check if device is a body/motion sensor."""
-        return self.category == DeviceCategory.BODY_SENSOR
+        return self.capabilities.is_body_sensor
 
     @property
     def is_door_sensor(self) -> bool:
         """Check if device is a door/window sensor."""
-        return self.category == DeviceCategory.DOOR_SENSOR
+        return self.capabilities.is_door_sensor
 
     @property
     def is_gateway(self) -> bool:
         """Check if device is a gateway."""
-        return self.category == DeviceCategory.GATEWAY
+        return self.capabilities.is_gateway
 
     @property
     def supports_color_temp(self) -> bool:
@@ -277,7 +289,7 @@ class LiproDevice:
 
         Returns False if maxTemperature is 0 (single color temperature device).
         """
-        return self.max_color_temp_kelvin > 0 and self.min_color_temp_kelvin > 0
+        return self.capabilities.supports_color_temp
 
     # =========================================================================
     # Property Getters with Type Conversion
@@ -717,39 +729,44 @@ class LiproDevice:
     # =========================================================================
 
     @property
+    def network_info(self) -> DeviceNetworkInfo:
+        """Return one structured snapshot of network and diagnostics fields."""
+        return DeviceNetworkInfo.from_properties(self.properties)
+
+    @property
     def ip_address(self) -> str | None:
         """Get device IP address."""
-        return self.get_str_property(PROP_IP)
+        return self.network_info.ip_address
 
     @property
     def wifi_ssid(self) -> str | None:
         """Get connected WiFi SSID."""
-        return self.get_str_property(PROP_WIFI_SSID)
+        return self.network_info.wifi_ssid
 
     @property
     def wifi_rssi(self) -> int | None:
         """Get WiFi signal strength (RSSI in dBm)."""
-        return self.get_optional_int_property(PROP_WIFI_RSSI)
+        return self.network_info.wifi_rssi
 
     @property
     def net_type(self) -> str | None:
         """Get network type (e.g., 'wifi')."""
-        return self.get_str_property(PROP_NET_TYPE)
+        return self.network_info.net_type
 
     @property
     def mac_address(self) -> str | None:
         """Get device MAC address."""
-        return self.get_str_property(PROP_MAC)
+        return self.network_info.mac_address
 
     @property
     def firmware_version(self) -> str | None:
         """Get device firmware version."""
-        return self.get_str_property(PROP_VERSION)
+        return self.network_info.firmware_version
 
     @property
     def latest_sync_timestamp(self) -> int | None:
         """Get latest sync timestamp (milliseconds)."""
-        return self.get_optional_int_property(PROP_LATEST_SYNC_TIMESTAMP)
+        return self.network_info.latest_sync_timestamp
 
     # =========================================================================
     # Mesh Network Properties (Mesh 网络拓扑)
@@ -758,22 +775,22 @@ class LiproDevice:
     @property
     def mesh_address(self) -> int | None:
         """Get Mesh network address."""
-        return self.get_optional_int_property(PROP_MESH_ADDRESS)
+        return self.network_info.mesh_address
 
     @property
     def mesh_type(self) -> int | None:
         """Get Mesh device type (1=standard)."""
-        return self.get_optional_int_property(PROP_MESH_TYPE)
+        return self.network_info.mesh_type
 
     @property
     def is_mesh_gateway(self) -> bool:
         """Check if device is a Mesh gateway."""
-        return self.get_bool_property(PROP_MESH_GATEWAY)
+        return self.network_info.is_mesh_gateway
 
     @property
     def ble_mac(self) -> str | None:
         """Get BLE MAC address."""
-        return self.get_str_property(PROP_BLE_MAC)
+        return self.network_info.ble_mac
 
     def update_properties(self, properties: dict[str, Any]) -> None:
         """Update device properties.
@@ -804,9 +821,10 @@ class LiproDevice:
             LiproDevice instance.
 
         """
-        iot_name = data.get("iotName", "")
+        identity = DeviceIdentity.from_api_data(data)
+        iot_name = identity.iot_name
         default_max_fan_gear_in_model = DEFAULT_MAX_FAN_GEAR
-        if isinstance(iot_name, str):
+        if iot_name:
             model_default_max_fan_gear = IOT_NAME_TO_DEFAULT_MAX_FAN_GEAR.get(
                 iot_name.lower()
             )
@@ -821,17 +839,17 @@ class LiproDevice:
             extra_data["is_ir_remote"] = _coerce_api_bool(data.get("isIrRemote"))
 
         return cls(
-            device_number=data.get("deviceId", 0),
-            serial=data.get("serial", ""),
-            name=data.get("deviceName", "Unknown"),
-            device_type=data.get("type", 1),
-            iot_name=iot_name,
-            room_id=data.get("roomId"),
-            room_name=data.get("roomName"),
+            device_number=identity.device_number,
+            serial=identity.serial,
+            name=identity.name,
+            device_type=identity.device_type,
+            iot_name=identity.iot_name,
+            room_id=identity.room_id,
+            room_name=identity.room_name,
             is_group=_coerce_api_bool(data.get("isGroup", False))
             or _coerce_api_bool(data.get("group", False)),
-            product_id=data.get("productId"),
-            physical_model=data.get("physicalModel"),
+            product_id=identity.product_id,
+            physical_model=identity.physical_model,
             default_max_fan_gear_in_model=default_max_fan_gear_in_model,
             max_fan_gear=default_max_fan_gear_in_model,
             extra_data=extra_data,

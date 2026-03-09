@@ -4,26 +4,53 @@ from __future__ import annotations
 
 import asyncio
 from collections.abc import Awaitable, Callable, Sequence
-from typing import Any
+from typing import Protocol
 
 from ..api.request_policy import compute_exponential_retry_wait_time
 from ..api.response_safety import normalize_response_code
 from ..utils.log_safety import safe_error_placeholder
 from ..utils.redaction import redact_identifier
 
+type CommandResultPayload = dict[str, object]
+type TracePayload = dict[str, object]
+type PendingExpectations = dict[str, object]
+type CommandFailurePayload = dict[str, object]
+type QueryCommandResult = Callable[..., Awaitable[CommandResultPayload]]
+type QueryCommandResultAttempt = Callable[[int], Awaitable[CommandResultPayload | None]]
+type CommandResultClassifier = Callable[[CommandResultPayload], str]
+
+
+class LoggerLike(Protocol):
+    """Minimal logger surface used by command-result helpers."""
+
+    def debug(self, msg: str, *args: object) -> None:
+        """Log one debug message."""
+
+    def warning(self, msg: str, *args: object) -> None:
+        """Log one warning message."""
+
+
+
+class ApiErrorLike(Protocol):
+    """Minimal API error surface used to build failure payloads."""
+
+    code: int | str | None
+
+type UpdateTraceWithException = Callable[..., None]
+
 _MSG_SN_KEYS: tuple[str, ...] = ("msgSn", "msg_sn", "messageSn", "message_sn")
-_BOOL_CONFIRMED_VALUES: tuple[Any, ...] = (True, 1, "1", "true", "TRUE")
-_BOOL_FAILED_VALUES: tuple[Any, ...] = (False, 0, "0", "false", "FALSE")
+_BOOL_CONFIRMED_VALUES: tuple[object, ...] = (True, 1, "1", "true", "TRUE")
+_BOOL_FAILED_VALUES: tuple[object, ...] = (False, 0, "0", "false", "FALSE")
 _COMMAND_RESULT_PENDING_CODES = frozenset((100000, 140006))
 _COMMAND_RESULT_SUCCESS_CODES = frozenset((0,))
 
 
-def is_command_push_failed(result: Any) -> bool:
+def is_command_push_failed(result: object) -> bool:
     """Return True when command dispatch explicitly reports push failure."""
     return isinstance(result, dict) and result.get("pushSuccess") in _BOOL_FAILED_VALUES
 
 
-def extract_msg_sn(result: Any) -> str | None:
+def extract_msg_sn(result: object) -> str | None:
     """Extract command serial number from command response payload."""
     if not isinstance(result, dict):
         return None
@@ -43,7 +70,7 @@ def extract_msg_sn(result: Any) -> str | None:
     return None
 
 
-def _classify_bool_state(value: Any) -> str | None:
+def _classify_bool_state(value: object) -> str | None:
     """Classify one boolean-like payload field into confirmed/failed/None."""
     if value in _BOOL_CONFIRMED_VALUES:
         return "confirmed"
@@ -52,7 +79,7 @@ def _classify_bool_state(value: Any) -> str | None:
     return None
 
 
-def _extract_command_result_code(payload: dict[str, Any] | None) -> Any:
+def _extract_command_result_code(payload: CommandResultPayload | None) -> object | None:
     """Extract backend result code from query_command_result payload."""
     if not isinstance(payload, dict):
         return None
@@ -63,7 +90,7 @@ def _extract_command_result_code(payload: dict[str, Any] | None) -> Any:
     return None
 
 
-def _extract_command_result_message(payload: dict[str, Any] | None) -> str | None:
+def _extract_command_result_message(payload: CommandResultPayload | None) -> str | None:
     """Extract non-empty backend message from query_command_result payload."""
     if not isinstance(payload, dict):
         return None
@@ -105,7 +132,7 @@ def build_progressive_retry_delays(
     return tuple(delays)
 
 
-def classify_command_result_payload(payload: dict[str, Any]) -> str:
+def classify_command_result_payload(payload: CommandResultPayload) -> str:
     """Classify query_command_result payload using the current observed contract."""
     normalized_code = normalize_response_code(_extract_command_result_code(payload))
     if normalized_code in _COMMAND_RESULT_PENDING_CODES:
@@ -146,7 +173,7 @@ def should_schedule_delayed_refresh(
     *,
     mqtt_connected: bool,
     device_serial: str | None,
-    pending_expectations: dict[str, Any],
+    pending_expectations: PendingExpectations,
 ) -> bool:
     """Return True when post-command delayed refresh should be scheduled."""
     if not mqtt_connected:
@@ -158,7 +185,7 @@ def resolve_delayed_refresh_delay(
     *,
     mqtt_connected: bool,
     device_serial: str | None,
-    pending_expectations: dict[str, Any],
+    pending_expectations: PendingExpectations,
     get_adaptive_post_refresh_delay: Callable[[str | None], float],
 ) -> float | None:
     """Return delayed-refresh delay when a fallback refresh should be scheduled."""
@@ -191,7 +218,7 @@ def compute_adaptive_post_refresh_delay(
 async def run_delayed_refresh(
     *,
     delay_seconds: float,
-    request_refresh: Callable[[], Awaitable[Any]],
+    request_refresh: Callable[[], Awaitable[object]],
 ) -> None:
     """Run one delayed refresh after command to absorb API status lag."""
     try:
@@ -203,7 +230,7 @@ async def run_delayed_refresh(
 
 async def query_command_result_once(
     *,
-    query_command_result: Callable[..., Awaitable[dict[str, Any]]],
+    query_command_result: QueryCommandResult,
     lipro_api_error: type[Exception],
     device_name: str,
     device_serial: str,
@@ -211,8 +238,8 @@ async def query_command_result_once(
     msg_sn: str,
     attempt: int,
     attempt_limit: int,
-    logger: Any,
-) -> dict[str, Any] | None:
+    logger: LoggerLike,
+) -> CommandResultPayload | None:
     """Query command result once and return payload when available."""
     try:
         return await query_command_result(
@@ -236,15 +263,15 @@ async def query_command_result_once(
 
 async def poll_command_result_state(
     *,
-    query_once: Callable[[int], Awaitable[dict[str, Any] | None]],
-    classify_payload: Callable[[dict[str, Any]], str],
+    query_once: QueryCommandResultAttempt,
+    classify_payload: CommandResultClassifier,
     retry_delays_seconds: Sequence[float],
     on_attempt: Callable[[int, str], None] | None = None,
-) -> tuple[str, int, dict[str, Any] | None]:
+) -> tuple[str, int, CommandResultPayload | None]:
     """Poll command-result endpoint until confirmed/failed or retry budget ends."""
     retry_delays = tuple(max(0.0, float(delay)) for delay in retry_delays_seconds)
     attempt_limit = len(retry_delays) + 1
-    last_payload: dict[str, Any] | None = None
+    last_payload: CommandResultPayload | None = None
     for attempt in range(1, attempt_limit + 1):
         payload = await query_once(attempt)
         if payload is None:
@@ -266,19 +293,19 @@ async def poll_command_result_state(
 
 def apply_command_result_rejected(
     *,
-    trace: dict[str, Any],
+    trace: TracePayload,
     route: str,
     msg_sn: str,
     device_serial: str,
     attempt: int,
     elapsed_seconds: float,
-    payload: dict[str, Any] | None,
-    logger: Any,
-) -> dict[str, Any]:
+    payload: CommandResultPayload | None,
+    logger: LoggerLike,
+) -> CommandFailurePayload:
     """Populate trace/failure fields for a rejected query_command_result response."""
     result_code = _extract_command_result_code(payload)
     result_message = _extract_command_result_message(payload)
-    command_result_verify: dict[str, Any] = {
+    command_result_verify: CommandResultPayload = {
         "enabled": True,
         "verified": False,
         "attempts": attempt,
@@ -306,7 +333,7 @@ def apply_command_result_rejected(
         route,
         result_code,
     )
-    failure = {
+    failure: CommandFailurePayload = {
         "reason": "command_result_failed",
         "code": result_code or "command_result_failed",
         "route": route,
@@ -320,19 +347,19 @@ def apply_command_result_rejected(
 
 def apply_command_result_unconfirmed(
     *,
-    trace: dict[str, Any],
+    trace: TracePayload,
     route: str,
     msg_sn: str,
     device_serial: str,
     attempt_limit: int,
     elapsed_seconds: float,
-    last_payload: dict[str, Any] | None,
-    logger: Any,
-) -> dict[str, Any]:
+    last_payload: CommandResultPayload | None,
+    logger: LoggerLike,
+) -> CommandFailurePayload:
     """Populate trace/failure fields for unconfirmed command-result polling."""
     last_code = _extract_command_result_code(last_payload)
     last_message = _extract_command_result_message(last_payload)
-    command_result_verify: dict[str, Any] = {
+    command_result_verify: CommandResultPayload = {
         "enabled": True,
         "verified": False,
         "attempts": attempt_limit,
@@ -362,10 +389,10 @@ def apply_command_result_unconfirmed(
         attempt_limit,
         elapsed_seconds,
         route,
-        trace["command_result_verify"]["last_state"],
+        command_result_verify["last_state"],
         last_code,
     )
-    failure = {
+    failure: CommandFailurePayload = {
         "reason": "command_result_unconfirmed",
         "code": last_code or "command_result_unconfirmed",
         "route": route,
@@ -379,12 +406,12 @@ def apply_command_result_unconfirmed(
 
 def apply_command_result_confirmed(
     *,
-    trace: dict[str, Any],
+    trace: TracePayload,
     msg_sn: str,
     attempt: int,
     device_serial: str,
     elapsed_seconds: float,
-    logger: Any,
+    logger: LoggerLike,
 ) -> None:
     """Populate trace fields for polling classified as confirmed."""
     trace["command_result_verify"] = {
@@ -406,13 +433,13 @@ def apply_command_result_confirmed(
 
 def apply_missing_msg_sn_failure(
     *,
-    trace: dict[str, Any],
+    trace: TracePayload,
     route: str,
     command: str,
     device_name: str,
     device_serial: str,
-    logger: Any,
-) -> dict[str, Any]:
+    logger: LoggerLike,
+) -> CommandFailurePayload:
     """Populate trace/failure fields when command response has no msgSn."""
     trace["route"] = route
     trace["success"] = False
@@ -443,16 +470,16 @@ def apply_missing_msg_sn_failure(
 def resolve_polled_command_result(
     *,
     state: str,
-    trace: dict[str, Any],
+    trace: TracePayload,
     route: str,
     msg_sn: str,
     device_serial: str,
     attempt: int,
     attempt_limit: int,
-    last_payload: dict[str, Any] | None,
+    last_payload: CommandResultPayload | None,
     elapsed_seconds: float,
-    logger: Any,
-) -> tuple[bool, dict[str, Any] | None]:
+    logger: LoggerLike,
+) -> tuple[bool, CommandFailurePayload | None]:
     """Resolve polled command-result state into success flag and failure payload."""
     if state == "confirmed":
         apply_command_result_confirmed(
@@ -492,13 +519,13 @@ def resolve_polled_command_result(
 
 def apply_push_failure(
     *,
-    trace: dict[str, Any],
+    trace: TracePayload,
     route: str,
     command: str,
     device_name: str,
     device_serial: str,
-    logger: Any,
-) -> dict[str, Any]:
+    logger: LoggerLike,
+) -> CommandFailurePayload:
     """Populate trace/failure fields for pushSuccess=false command responses."""
     trace["route"] = route
     trace["success"] = False
@@ -523,12 +550,12 @@ def apply_push_failure(
 
 def build_command_api_error_failure(
     *,
-    trace: dict[str, Any],
+    trace: TracePayload,
     route: str,
     device_serial: str,
-    err: Any,
-    update_trace_with_exception: Any,
-) -> dict[str, Any]:
+    err: ApiErrorLike,
+    update_trace_with_exception: UpdateTraceWithException,
+) -> CommandFailurePayload:
     """Update trace and return normalized failure payload for API command errors."""
     update_trace_with_exception(trace, route=route, err=err)
     return {
@@ -542,7 +569,7 @@ def build_command_api_error_failure(
 
 def apply_successful_command_trace(
     *,
-    trace: dict[str, Any],
+    trace: TracePayload,
     route: str,
     adaptive_delay_seconds: float,
     skip_immediate_refresh: bool,

@@ -33,8 +33,6 @@ def _next_mesh_schedule_id(rows: list[dict[str, Any]]) -> int:
     used_ids: set[int] = set()
 
     for row in rows:
-        if not isinstance(row, dict):
-            continue
         raw_id = row.get("id")
         if isinstance(raw_id, bool):
             continue

@@ -168,12 +168,9 @@ class LiproMqttClient:
         task = self._task
         if task:
             task.cancel()
-            try:
-                await task
-            except asyncio.CancelledError:
-                pass
-            except Exception as err:  # noqa: BLE001
-                self._set_last_error(err)
+            [task_result] = await asyncio.gather(task, return_exceptions=True)
+            if isinstance(task_result, Exception):
+                self._set_last_error(task_result)
             if self._task is task:
                 self._task = None
 
@@ -445,18 +442,7 @@ class LiproMqttClient:
             # Now mark connected and fire callback
             self._connected = True
             _LOGGER.info("Connected to MQTT broker")
-            on_connect_failed = False
-            if self._on_connect:
-                try:
-                    self._on_connect()
-                except Exception as err:
-                    on_connect_failed = True
-                    self._set_last_error(err)
-                    _LOGGER.exception(
-                        "MQTT on_connect callback failed (%s)",
-                        type(err).__name__,
-                    )
-            if not on_connect_failed:
+            if self._invoke_callback(self._on_connect, "on_connect"):
                 self._clear_last_error()
 
             # Process incoming messages
@@ -476,15 +462,7 @@ class LiproMqttClient:
         self._client = None
         _LOGGER.warning("MQTT disconnected: %s", reason)
 
-        if self._on_disconnect:
-            try:
-                self._on_disconnect()
-            except Exception as err:
-                self._set_last_error(err)
-                _LOGGER.exception(
-                    "MQTT on_disconnect callback failed (%s)",
-                    type(err).__name__,
-                )
+        self._invoke_callback(self._on_disconnect, "on_disconnect")
 
     def _log_invalid_topic(self, topic: str) -> None:
         """Record and log invalid topic metadata without exposing topic content."""
@@ -502,7 +480,7 @@ class LiproMqttClient:
         )
 
     @staticmethod
-    def _decode_payload_text(raw_payload: Any, device_id: str) -> str | None:
+    def _decode_payload_text(raw_payload: object, device_id: str) -> str | None:
         """Decode MQTT payload to UTF-8 text with unified size/type checks."""
         if isinstance(raw_payload, memoryview):
             raw_payload = raw_payload.tobytes()
@@ -582,14 +560,12 @@ class LiproMqttClient:
             properties = parse_mqtt_payload(payload)
 
             if self._on_message and properties:
-                try:
-                    self._on_message(device_id, properties)
-                except Exception as err:
-                    self._set_last_error(err)
-                    _LOGGER.exception(
-                        "MQTT on_message callback failed (%s)",
-                        type(err).__name__,
-                    )
+                if not self._invoke_callback(
+                    self._on_message,
+                    "on_message",
+                    device_id,
+                    properties,
+                ):
                     return
 
             self._clear_last_error()
@@ -612,7 +588,7 @@ class LiproMqttClient:
                 type(err).__name__,
             )
 
-    def _async_finalize_connection_task(self, task: asyncio.Task[Any]) -> None:
+    def _async_finalize_connection_task(self, task: asyncio.Task[None]) -> None:
         """Consume background connection task result and persist terminal errors."""
         if self._task is task:
             self._task = None
@@ -623,19 +599,39 @@ class LiproMqttClient:
         self._set_last_error(err)
 
     @staticmethod
-    def _consume_task_exception(task: asyncio.Task[Any]) -> Exception | None:
+    def _consume_task_exception(task: asyncio.Task[None]) -> Exception | None:
         """Consume task exceptions to avoid unhandled-task warnings."""
-        try:
-            task.result()
-        except asyncio.CancelledError:
+        if task.cancelled():
             return None
-        except Exception as err:  # noqa: BLE001
+        err = task.exception()
+        if isinstance(err, Exception):
             _LOGGER.debug(
                 "MQTT background task failed (%s)",
                 type(err).__name__,
             )
             return err
         return None
+
+    def _invoke_callback(
+        self,
+        callback: Callable[..., None] | None,
+        callback_name: str,
+        *args: object,
+    ) -> bool:
+        """Invoke one optional callback and persist failures consistently."""
+        if callback is None:
+            return True
+        try:
+            callback(*args)
+        except Exception as err:
+            self._set_last_error(err)
+            _LOGGER.exception(
+                "MQTT %s callback failed (%s)",
+                callback_name,
+                type(err).__name__,
+            )
+            return False
+        return True
 
     def _set_last_error(self, err: Exception) -> None:
         """Persist latest error and notify optional observer."""
