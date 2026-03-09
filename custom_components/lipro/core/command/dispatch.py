@@ -6,6 +6,7 @@ from dataclasses import dataclass
 import logging
 from typing import TYPE_CHECKING, Any
 
+from ...const.device_types import DEVICE_TYPE_PANEL
 from ..api import LiproApiError
 from ..device import LiproDevice
 from ..utils.identifiers import is_valid_iot_device_id
@@ -110,8 +111,14 @@ def plan_command_dispatch(
     """Resolve command payload and route policy for one command call."""
     member_fallback_id = resolve_group_fallback_member_id(device, fallback_device_id)
     if not device.is_group:
+        route = "device_direct"
+        if (
+            device.device_type_hex == DEVICE_TYPE_PANEL
+            and command.upper().startswith("PANEL_")
+        ):
+            route = "panel_direct_via_group_endpoint"
         return CommandDispatchPlan(
-            route="device_direct",
+            route=route,
             command=command,
             properties=properties,
             member_fallback_id=member_fallback_id,
@@ -242,6 +249,16 @@ async def execute_command_dispatch(
     plan: CommandDispatchPlan,
 ) -> tuple[Any, str]:
     """Execute direct/group command send with fallback routing."""
+    if plan.route == "panel_direct_via_group_endpoint":
+        result = await client.send_group_command(
+            device.serial,
+            plan.command,
+            device.device_type_hex,
+            plan.properties,
+            device.iot_name,
+        )
+        return result, plan.route
+
     if not device.is_group:
         result = await _send_member_command(
             client,

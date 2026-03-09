@@ -126,6 +126,15 @@
         "state": {
           "off": "mdi:motion-sensor-off"
         }
+      },
+      "panel_led": {
+        "default": "mdi:lightbulb",
+        "state": {
+          "off": "mdi:lightbulb-off"
+        }
+      },
+      "panel_memory": {
+        "default": "mdi:history"
       }
     },
     "select": {

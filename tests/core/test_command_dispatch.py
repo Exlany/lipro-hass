@@ -12,6 +12,7 @@ from custom_components.lipro.core.command.dispatch import (
     CommandDispatchPlan,
     execute_command_dispatch,
     normalize_group_power_command,
+    plan_command_dispatch,
     resolve_group_fallback_member_id,
 )
 from custom_components.lipro.core.device import LiproDevice
@@ -21,6 +22,9 @@ def _make_device(
     serial: str = "03ab5ccd7c000001",
     is_group: bool = False,
     *,
+    device_type: int = 1,
+    iot_name: str = "lipro_led",
+    physical_model: str = "light",
     extra_data: dict[str, Any] | None = None,
 ) -> LiproDevice:
     """Create a minimal LiproDevice instance for helper tests."""
@@ -28,9 +32,9 @@ def _make_device(
         device_number=1,
         serial=serial,
         name="Test Device",
-        device_type=1,
-        iot_name="lipro_led",
-        physical_model="light",
+        device_type=device_type,
+        iot_name=iot_name,
+        physical_model=physical_model,
         is_group=is_group,
         extra_data=extra_data or {},
     )
@@ -183,4 +187,48 @@ async def test_execute_command_dispatch_group_error_without_fallback_raises() ->
             ),
         )
 
+    client.send_command.assert_not_called()
+
+
+def test_plan_command_dispatch_routes_panel_commands_via_group_endpoint() -> None:
+    """Panel commands should use the mesh-group endpoint even for one device."""
+    device = _make_device(device_type=3, iot_name="21J8", physical_model="switch")
+
+    plan = plan_command_dispatch(
+        device,
+        "PANEL_CHANGE_STATE",
+        [{"key": "led", "value": "1"}],
+        None,
+    )
+
+    assert plan.route == "panel_direct_via_group_endpoint"
+
+
+@pytest.mark.asyncio
+async def test_execute_command_dispatch_panel_route_uses_group_endpoint() -> None:
+    """Panel config commands should hit send_group_command with device id."""
+    device = _make_device(device_type=3, iot_name="21J8", physical_model="switch")
+    client = AsyncMock()
+    client.send_group_command = AsyncMock(return_value={"pushSuccess": True})
+
+    result, route = await execute_command_dispatch(
+        client,
+        device=device,
+        plan=CommandDispatchPlan(
+            route="panel_direct_via_group_endpoint",
+            command="PANEL_CHANGE_STATE",
+            properties=[{"key": "led", "value": "1"}],
+            member_fallback_id=None,
+        ),
+    )
+
+    assert result == {"pushSuccess": True}
+    assert route == "panel_direct_via_group_endpoint"
+    client.send_group_command.assert_awaited_once_with(
+        device.serial,
+        "PANEL_CHANGE_STATE",
+        device.device_type_hex,
+        [{"key": "led", "value": "1"}],
+        device.iot_name,
+    )
     client.send_command.assert_not_called()

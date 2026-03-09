@@ -163,6 +163,12 @@
       },
       "body_reactive": {
         "name": "Motion Reactive"
+      },
+      "panel_led": {
+        "name": "Indicator LED"
+      },
+      "panel_memory": {
+        "name": "Power-loss Memory"
       }
     },
     "climate": {

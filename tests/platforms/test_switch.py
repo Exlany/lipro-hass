@@ -400,3 +400,64 @@ class TestLiproFeatureSwitchEntityCommands:
 
         device.update_properties({"fadeState": "0"})
         assert switch.is_on is False
+
+
+class TestLiproPanelFeatureSwitch:
+    """Tests for switch-panel feature switches."""
+
+    def test_panel_led_enabled(self, make_device):
+        """Test panel LED state is read from device properties."""
+        device = make_device("switch", properties={"led": "1"})
+        assert device.panel_led_enabled is True
+
+    def test_panel_memory_enabled(self, make_device):
+        """Test panel memory state is read from device properties."""
+        device = make_device("switch", properties={"memory": "0"})
+        assert device.panel_memory_enabled is False
+
+    def test_panel_type_uses_switch_l_discriminator(self, make_device):
+        """Test panel type flag follows the APK's SWITCH_L rule."""
+        assert make_device("switch", iot_name="21JD").panel_type == 1
+        assert make_device("switch", iot_name="21J8").panel_type == 0
+
+    @pytest.mark.asyncio
+    async def test_panel_led_switch_turn_on(self, mock_coordinator, make_device):
+        """Test panel LED switch uses PANEL_CHANGE_STATE with panelType."""
+        from custom_components.lipro.switch import LiproPanelLedSwitch
+
+        device = make_device("switch", iot_name="21JD", properties={"led": "0"})
+        mock_coordinator.get_device = MagicMock(return_value=device)
+        switch = LiproPanelLedSwitch(mock_coordinator, device)
+
+        with patch.object(switch, "async_write_ha_state"):
+            await switch.async_turn_on()
+
+        mock_coordinator.async_send_command.assert_called_once_with(
+            device,
+            "PANEL_CHANGE_STATE",
+            [
+                {"key": "led", "value": "1"},
+                {"key": "panelType", "value": "1"},
+            ],
+        )
+
+    @pytest.mark.asyncio
+    async def test_panel_memory_switch_turn_off(self, mock_coordinator, make_device):
+        """Test panel memory switch uses PANEL_CHANGE_STATE with panelType."""
+        from custom_components.lipro.switch import LiproPanelMemorySwitch
+
+        device = make_device("switch", iot_name="21J8", properties={"memory": "1"})
+        mock_coordinator.get_device = MagicMock(return_value=device)
+        switch = LiproPanelMemorySwitch(mock_coordinator, device)
+
+        with patch.object(switch, "async_write_ha_state"):
+            await switch.async_turn_off()
+
+        mock_coordinator.async_send_command.assert_called_once_with(
+            device,
+            "PANEL_CHANGE_STATE",
+            [
+                {"key": "memory", "value": "0"},
+                {"key": "panelType", "value": "0"},
+            ],
+        )

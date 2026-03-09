@@ -163,6 +163,12 @@
       },
       "body_reactive": {
         "name": "人体感应"
+      },
+      "panel_led": {
+        "name": "按键指示灯"
+      },
+      "panel_memory": {
+        "name": "断电记忆"
       }
     },
     "climate": {

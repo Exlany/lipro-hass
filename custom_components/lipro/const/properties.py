@@ -6,6 +6,7 @@ from typing import Final
 CMD_POWER_ON: Final = "POWER_ON"
 CMD_POWER_OFF: Final = "POWER_OFF"
 CMD_CHANGE_STATE: Final = "CHANGE_STATE"
+CMD_PANEL_CHANGE_STATE: Final = "PANEL_CHANGE_STATE"
 CMD_CURTAIN_OPEN: Final = "CURTAIN_OPEN"
 CMD_CURTAIN_CLOSE: Final = "CURTAIN_CLOSE"
 CMD_CURTAIN_STOP: Final = "CURTAIN_STOP"
@@ -28,6 +29,10 @@ PROP_WAKE_UP_ENABLE: Final = "wakeUpEnable"
 # Property keys - Floor Lamp (落地灯)
 PROP_FOCUS_MODE: Final = "focusMode"
 PROP_BODY_REACTIVE: Final = "bodyReactive"
+
+# Property keys - Switch Panel (开关面板)
+PROP_LED: Final = "led"
+PROP_MEMORY: Final = "memory"
 
 # Property keys - Bedside Light (床头灯)
 PROP_BATTERY: Final = "battery"

@@ -192,3 +192,46 @@ async def test_sensor_and_select_platforms_entity_behavior(
             {"key": "temperature", "value": "20"},
         ],
     )
+
+
+@pytest.mark.asyncio
+async def test_switch_async_setup_entry_builds_panel_config_switches(
+    hass, mock_coordinator, make_device
+):
+    """Switch platform only adds panel config switches for panel devices."""
+    from custom_components.lipro.switch import (
+        LiproPanelLedSwitch,
+        LiproPanelMemorySwitch,
+        async_setup_entry,
+    )
+
+    panel = make_device(
+        "switch",
+        serial="panel_1",
+        properties={"led": "1", "memory": "0"},
+    )
+    outlet = make_device(
+        "outlet",
+        serial="outlet_1",
+        properties={"memory": "1"},
+    )
+    mock_coordinator.devices = {panel.serial: panel, outlet.serial: outlet}
+    mock_coordinator.get_device = MagicMock(side_effect=mock_coordinator.devices.get)
+    async_add_entities = MagicMock()
+
+    await async_setup_entry(
+        hass, _entry_with_runtime(mock_coordinator), async_add_entities
+    )
+    entities = async_add_entities.call_args[0][0]
+
+    panel_led_entities = [
+        entity for entity in entities if isinstance(entity, LiproPanelLedSwitch)
+    ]
+    panel_memory_entities = [
+        entity for entity in entities if isinstance(entity, LiproPanelMemorySwitch)
+    ]
+
+    assert len(panel_led_entities) == 1
+    assert len(panel_memory_entities) == 1
+    assert panel_led_entities[0].device.serial == panel.serial
+    assert panel_memory_entities[0].device.serial == panel.serial

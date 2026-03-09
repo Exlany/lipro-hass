@@ -48,9 +48,11 @@ from ...const.properties import (
     PROP_IP,
     PROP_LAST_GEAR_INDEX,
     PROP_LATEST_SYNC_TIMESTAMP,
+    PROP_LED,
     PROP_LIGHT_MODE,
     PROP_LOW_BATTERY,
     PROP_MAC,
+    PROP_MEMORY,
     PROP_MESH_ADDRESS,
     PROP_MESH_GATEWAY,
     PROP_MESH_TYPE,
@@ -483,6 +485,22 @@ class LiproDevice:
         return (
             PROP_FOCUS_MODE in self.properties or PROP_BODY_REACTIVE in self.properties
         )
+
+    # Switch panel properties (开关面板)
+    @property
+    def panel_led_enabled(self) -> bool:
+        """Check if the panel indicator LED is enabled."""
+        return self.get_bool_property(PROP_LED)
+
+    @property
+    def panel_memory_enabled(self) -> bool:
+        """Check if panel power-loss memory is enabled."""
+        return self.get_bool_property(PROP_MEMORY)
+
+    @property
+    def panel_type(self) -> int:
+        """Get panel type discriminator required by panel commands."""
+        return 1 if self.iot_name.casefold() == "21jd" else 0
 
     # Bedside Light properties (床头灯)
     @property
