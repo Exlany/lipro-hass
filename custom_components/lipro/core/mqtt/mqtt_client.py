@@ -50,6 +50,7 @@ class LiproMqttClient:
         self._last_error: Exception | None = None
         self._running = False
         self._connected = False
+        self._connected_lock = asyncio.Lock()
         self._tls_context: ssl.SSLContext | None = None
         self._reconnect_delay = MQTT_RECONNECT_MIN_DELAY
         self._message_processor = MqttMessageProcessor(biz_id)
@@ -74,7 +75,11 @@ class LiproMqttClient:
 
     @property
     def is_connected(self) -> bool:
-        """Return whether the MQTT transport is currently connected."""
+        """Return whether the MQTT transport is currently connected.
+
+        Note: This is a synchronous property that reads _connected without locking.
+        For critical decisions, use async methods that acquire the lock.
+        """
         return self._connected
 
     @property
@@ -115,7 +120,8 @@ class LiproMqttClient:
                 self._set_last_error(task_result)
             if self._task is task:
                 self._task = None
-        self._connected = False
+        async with self._connected_lock:
+            self._connected = False
         self._client = None
         self._tls_context = None
         self._subscribed_devices.clear()

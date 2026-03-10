@@ -46,7 +46,7 @@ class DeviceResolverProtocol(Protocol):
 class PropertyApplierProtocol(Protocol):
     """Protocol for property application."""
 
-    def __call__(
+    async def __call__(
         self,
         device: LiproDevice,
         properties: dict[str, Any],
@@ -255,7 +255,7 @@ class MqttRuntime:
         finally:
             self._connection_manager.on_disconnect()
 
-    def handle_message(
+    async def handle_message(
         self,
         device_id: str,
         properties: dict[str, Any],
@@ -276,7 +276,7 @@ class MqttRuntime:
 
         # Process message
         handler = self._ensure_message_handler()
-        handler.handle_message(device_id, properties, current_time=current_time)
+        await handler.handle_message(device_id, properties, current_time=current_time)
 
         # Periodic cleanup
         self._dedup_manager.cleanup(current_time=current_time)

@@ -84,7 +84,7 @@ class StateRuntime:
         return self._reader.has_device(device_id)
 
     # Updater methods
-    def apply_properties_update(
+    async def apply_properties_update(
         self,
         device: LiproDevice,
         properties: dict[str, Any],
@@ -92,7 +92,7 @@ class StateRuntime:
         source: str = "unknown",
     ) -> bool:
         """Apply property updates to a device and notify entities."""
-        return self._updater.apply_properties_update(device, properties, source=source)
+        return await self._updater.apply_properties_update(device, properties, source=source)
 
     def update_device_online_status(
         self,
@@ -102,14 +102,14 @@ class StateRuntime:
         """Update device online status."""
         return self._updater.update_device_online_status(device, is_online)
 
-    def batch_update_properties(
+    async def batch_update_properties(
         self,
         updates: list[tuple[LiproDevice, dict[str, Any]]],
         *,
         source: str = "batch",
     ) -> int:
         """Apply property updates to multiple devices."""
-        return self._updater.batch_update_properties(updates, source=source)
+        return await self._updater.batch_update_properties(updates, source=source)
 
     # Index manager methods
     def rebuild_device_index(self, devices: dict[str, LiproDevice]) -> None:

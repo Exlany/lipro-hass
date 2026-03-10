@@ -239,11 +239,18 @@ class _ClientAuthRecoveryMixin(_ClientPacingMixin):
         if not self._on_token_refresh:
             return False
 
+        # First check outside lock to avoid unnecessary lock acquisition
+        if self._access_token != request_token and self._access_token is not None:
+            _LOGGER.debug(
+                "Token already refreshed by another request, using new token",
+            )
+            return True
+
         async with self._refresh_lock:
-            # Double-check: token might have been refreshed by another request
+            # Double-check inside lock: token might have been refreshed while waiting
             if self._access_token != request_token and self._access_token is not None:
                 _LOGGER.debug(
-                    "Token already refreshed by another request, using new token",
+                    "Token already refreshed by another request (verified in lock), using new token",
                 )
                 return True
 

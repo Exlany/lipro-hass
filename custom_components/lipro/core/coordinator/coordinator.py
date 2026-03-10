@@ -350,7 +350,7 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
         results = await self.client.status.query_device_status(device_ids)
         return {item.get("iotId", ""): item for item in results if "iotId" in item}
 
-    def _apply_properties_update(
+    async def _apply_properties_update(
         self, device: LiproDevice, properties: dict[str, Any], source: str
     ) -> bool:
         """Apply property updates to device.
@@ -364,7 +364,7 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
             True if updates were applied
         """
         # Delegate to StateRuntime
-        return self._state_runtime.apply_properties_update(
+        return await self._state_runtime.apply_properties_update(
             device, properties, source=source
         )
 

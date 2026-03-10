@@ -50,7 +50,7 @@ class StateUpdater:
             self._device_locks[device.serial] = asyncio.Lock()
         return self._device_locks[device.serial]
 
-    def apply_properties_update(
+    async def apply_properties_update(
         self,
         device: LiproDevice,
         properties: dict[str, Any],
@@ -70,20 +70,19 @@ class StateUpdater:
         if not properties:
             return False
 
-        # Note: This is a sync method but we need async lock protection
-        # The lock acquisition must happen in the entity's async context
-        # For now, we document this limitation and rely on entity-level locking
-        device.update_properties(properties)
-        changed = True
+        lock = self._get_device_lock(device)
+        async with lock:
+            device.update_properties(properties)
+            changed = True
 
-        if changed:
-            _LOGGER.debug(
-                "Applied %d property updates to %s from %s",
-                len(properties),
-                device.name,
-                source,
-            )
-            self._notify_device_entities(device)
+            if changed:
+                _LOGGER.debug(
+                    "Applied %d property updates to %s from %s",
+                    len(properties),
+                    device.name,
+                    source,
+                )
+                self._notify_device_entities(device)
 
         return changed
 
@@ -110,7 +109,7 @@ class StateUpdater:
         self._notify_device_entities(device)
         return True
 
-    def batch_update_properties(
+    async def batch_update_properties(
         self,
         updates: list[tuple[LiproDevice, dict[str, Any]]],
         *,
@@ -127,7 +126,7 @@ class StateUpdater:
         """
         changed_count = 0
         for device, properties in updates:
-            if self.apply_properties_update(device, properties, source=source):
+            if await self.apply_properties_update(device, properties, source=source):
                 changed_count += 1
 
         if changed_count:

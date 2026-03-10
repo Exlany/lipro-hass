@@ -25,7 +25,7 @@ class DeviceResolver(Protocol):
 class PropertyApplier(Protocol):
     """Protocol for applying property updates to devices."""
 
-    def apply_properties_update(
+    async def apply_properties_update(
         self, device: LiproDevice, properties: PropertyDict
     ) -> PropertyDict:
         """Apply properties update and return applied properties."""
@@ -79,7 +79,7 @@ class MqttMessageHandler:
         self._group_reconciler = group_reconciler
         self._logger = logger
 
-    def handle_message(
+    async def handle_message(
         self,
         device_id: str,
         properties: PropertyDict,
@@ -97,7 +97,7 @@ class MqttMessageHandler:
         if not properties:
             return False
 
-        applied = self._property_applier.apply_properties_update(device, properties)
+        applied = await self._property_applier.apply_properties_update(device, properties)
         if not applied:
             return False
 

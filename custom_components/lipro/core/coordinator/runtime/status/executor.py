@@ -24,14 +24,16 @@ class StatusExecutor:
         query_device_status: Callable[
             [list[str]], Coroutine[Any, Any, dict[str, dict[str, Any]]]
         ],
-        apply_properties_update: Callable[[LiproDevice, dict[str, Any], str], bool],
+        apply_properties_update: Callable[
+            [LiproDevice, dict[str, Any], str], Coroutine[Any, Any, bool]
+        ],
         get_device_by_id: Callable[[str], LiproDevice | None],
     ) -> None:
         """Initialize status executor.
 
         Args:
             query_device_status: Async function to query device status
-            apply_properties_update: Function to apply property updates
+            apply_properties_update: Async function to apply property updates
             get_device_by_id: Function to look up devices
         """
         self._query_device_status = query_device_status
@@ -70,7 +72,7 @@ class StatusExecutor:
                 if device is None:
                     continue
 
-                changed = self._apply_properties_update(
+                changed = await self._apply_properties_update(
                     device,
                     properties,
                     "rest_status",
