@@ -1,4 +1,4 @@
-"""Tests for core.api.diagnostics_service helpers."""
+"""Tests for core.api.diagnostics_api_service helpers."""
 
 from __future__ import annotations
 
@@ -12,7 +12,7 @@ from custom_components.lipro.const.api import (
     PATH_QUERY_OTA_INFO_V2,
     PATH_QUERY_USER_CLOUD,
 )
-from custom_components.lipro.core.api.diagnostics_service import (
+from custom_components.lipro.core.api.diagnostics_api_service import (
     _merge_ota_rows,
     _ota_row_dedupe_key,
     fetch_sensor_history,

@@ -9,7 +9,7 @@ import math
 from typing import TYPE_CHECKING
 
 from ...api import LiproApiError
-from ..types import OutletPowerData, PropertyDict
+from ..types import PropertyDict
 
 if TYPE_CHECKING:
     from ...device import LiproDevice

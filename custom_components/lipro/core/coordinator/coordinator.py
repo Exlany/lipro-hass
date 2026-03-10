@@ -24,7 +24,7 @@ from ..api import (
 )
 from ..command.confirmation_tracker import CommandConfirmationTracker
 from ..device.identity_index import DeviceIdentityIndex
-from ..mqtt.client import LiproMqttClient
+from ..mqtt.mqtt_client import LiproMqttClient
 from ..mqtt.credentials import decrypt_mqtt_credential
 from ..utils.background_task_manager import BackgroundTaskManager
 from .runtime.command import (
@@ -54,7 +54,7 @@ if TYPE_CHECKING:
 
     from ..auth import LiproAuthManager
     from ..device import LiproDevice
-    from ..mqtt.client import LiproMqttClient
+    from ..mqtt.mqtt_client import LiproMqttClient
     from .entity_protocol import LiproEntityProtocol
 
 _LOGGER = logging.getLogger(__name__)

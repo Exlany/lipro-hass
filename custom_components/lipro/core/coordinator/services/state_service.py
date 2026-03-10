@@ -25,6 +25,6 @@ class CoordinatorStateService:
         """Resolve a device by serial."""
         return self.coordinator.state_runtime.get_device_by_serial(serial)
 
-    def get_device_by_id(self, device_id: object) -> LiproDevice | None:
+    def get_device_by_id(self, device_id: str) -> LiproDevice | None:
         """Resolve a device by any known identifier."""
         return self.coordinator.state_runtime.get_device_by_id(device_id)

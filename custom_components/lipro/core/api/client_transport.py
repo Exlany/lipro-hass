@@ -24,7 +24,6 @@ from ...const.api import (
 )
 from ...const.base import APP_VERSION_CODE, APP_VERSION_NAME
 from ...const.device_types import DEVICE_TYPE_MAP
-from . import response_safety as _response_safety
 from .client_auth_recovery import _ClientAuthRecoveryMixin
 from .errors import LiproAuthError
 from .request_codec import (

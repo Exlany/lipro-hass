@@ -7,12 +7,6 @@ import hashlib
 from typing import Any
 
 from ...const.api import PATH_LOGIN, PATH_REFRESH_TOKEN
-from ...const.config import (
-    CONF_ACCESS_TOKEN,
-    CONF_BIZ_ID,
-    CONF_REFRESH_TOKEN,
-    CONF_USER_ID,
-)
 from .types import ApiResponse, LoginResponse
 
 

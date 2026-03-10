@@ -12,7 +12,6 @@ from homeassistant.components.light import (
 from homeassistant.components.light.const import ColorMode
 
 from .const.config import CONF_LIGHT_TURN_ON_ON_ADJUST, DEFAULT_LIGHT_TURN_ON_ON_ADJUST
-from .const.entity_config import DEFAULT_MAX_KELVIN, DEFAULT_MIN_KELVIN
 from .const.properties import (
     CMD_POWER_OFF,
     CMD_POWER_ON,

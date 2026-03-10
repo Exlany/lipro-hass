@@ -8,7 +8,7 @@ import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.lipro.const.base import DOMAIN
-from custom_components.lipro.core.mqtt.client import LiproMqttClient
+from custom_components.lipro.core.mqtt.mqtt_client import LiproMqttClient
 from custom_components.lipro.core.mqtt.connection_manager import MqttConnectionManager
 from custom_components.lipro.core.mqtt.message_processor import MqttMessageProcessor
 from custom_components.lipro.core.mqtt.topic_builder import MqttTopicBuilder

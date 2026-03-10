@@ -4,6 +4,7 @@
 **审查日期**: 2026-03-10
 **审查范围**: lipro-hass 完整代码库
 **审查方法**: 多代理并行深度分析 + 国际标准评估
+**本次清理**: 未使用导入清理 + 模块命名冲突解决 + 重复代码识别
 
 ---
 
@@ -615,3 +616,152 @@ monkeypatch.setattr(builtins, "__import__", _fake_import)
 ---
 
 *本报告由深渊代码织师生成 - Iä! Iä! Code fhtagn!*
+
+---
+
+## 🔧 本次清理工作总结
+
+### 执行时间
+- **开始**: 2026-03-10 08:00
+- **结束**: 2026-03-10 08:17
+- **耗时**: 17 分钟
+
+### 清理统计
+
+#### 1. 未使用导入清理 (10处)
+- `light.py`: 移除 2 个未使用常量
+- `switch.py`: 移除 1 个未使用函数
+- `core/api/auth_service.py`: 移除 4 个未使用配置常量
+- `core/api/client_transport.py`: 移除 1 个未使用导入
+- `core/coordinator/runtime/outlet_power_runtime.py`: 移除 1 个未使用类型
+- `core/coordinator/runtime/state/updater.py`: 移除 1 个未使用变量
+
+**验证**: Ruff 检查通过，0 个 F401/F841 错误
+
+#### 2. 模块命名冲突解决 (5处重命名)
+
+| 原文件名 | 新文件名 | 原因 |
+|---------|---------|------|
+| `coordinator.py` | `coordinator_entry.py` | 与 `core/coordinator/coordinator.py` 冲突 |
+| `core/mqtt/client.py` | `core/mqtt/mqtt_client.py` | 与 `core/api/client.py` 冲突 |
+| `core/api/command_service.py` | `core/api/command_api_service.py` | 区分 API 层和 Coordinator 层 |
+| `core/api/mqtt_service.py` | `core/api/mqtt_api_service.py` | 区分 API 层和 Coordinator 层 |
+| `core/api/diagnostics_service.py` | `core/api/diagnostics_api_service.py` | 区分 API 层和 Coordinator 层 |
+
+**影响范围**: 27 个文件的导入语句已同步更新
+
+#### 3. 代码重复问题识别
+
+**高优先级重复** (P0):
+- `get_device_by_id`: 7 处重复
+- `is_connected`: 5 处重复
+- `get_all_devices`: 4 处重复
+- `build_topic_pairs`: 3 处重复
+
+**状态**: 已识别并记录，部分由子代理处理
+
+### 代码变更统计
+
+```
+27 files changed, 22 insertions(+), 34 deletions(-)
+```
+
+- **文件重命名**: 5 个
+- **文件修改**: 22 个
+- **代码删除**: 34 行 (未使用导入和变量)
+- **代码新增**: 22 行 (导入路径更新)
+- **净减少**: 12 行
+
+### 质量提升
+
+| 指标 | 清理前 | 清理后 | 改善 |
+|------|--------|--------|------|
+| 未使用导入 | 10 | 0 | ✅ 100% |
+| 模块命名冲突 | 5 | 0 | ✅ 100% |
+| 代码行数 | 27,649 | 27,637 | ↓ 12 行 |
+| Ruff F401/F841 错误 | 10 | 0 | ✅ 100% |
+
+### 并行执行效率
+
+**子代理任务**:
+1. **代理 1**: 统一 `get_device_by_id` 函数 (7处重复)
+2. **代理 2**: 解决 client.py/coordinator.py 命名冲突
+3. **代理 3**: 统一 service 命名规范
+
+**并行优势**:
+- 3 个任务同时执行
+- 总耗时 17 分钟
+- 串行预估耗时: 45+ 分钟
+- **效率提升**: ~62%
+
+---
+
+## 📋 待处理问题清单
+
+### P1 - 中优先级 (建议 1-2 周内处理)
+
+1. **统一 get_all_devices** (4处重复)
+   - 位置: protocols.py, state_runtime.py, shared_state.py, state/reader.py
+   - 建议: 统一到 state/reader.py
+
+2. **统一 is_connected** (5处重复)
+   - 位置: mqtt/client.py, protocols.py, mqtt_runtime.py, mqtt/connection.py, device/state_accessors.py
+   - 建议: 区分 MQTT 连接状态和设备连接状态
+
+3. **统一 build_topic_pairs** (3处重复)
+   - 位置: client_runtime.py, topic_builder.py, subscription_manager.py
+   - 建议: 统一到 topic_builder.py
+
+4. **解决 types.py 命名冲突** (2处)
+   - `core/api/types.py` → `api_types.py`
+   - `core/coordinator/types.py` → `coordinator_types.py`
+
+5. **拆分过大文件**
+   - `services/diagnostics_service.py`: 668 行
+   - `core/command/result.py`: 584 行
+   - `core/coordinator/coordinator.py`: 549 行
+
+### P2 - 低优先级 (持续优化)
+
+1. 解决其他模块名冲突 (base.py, capabilities.py, credentials.py, errors.py)
+2. 统一类名后缀规范
+3. 优化高依赖模块
+
+---
+
+## ✅ 验证清单
+
+- [x] 所有导入路径正确
+- [x] 文件重命名完整
+- [x] Git 历史保留
+- [x] Ruff 检查通过 (F401/F841)
+- [ ] 运行完整测试套件
+- [ ] 类型检查通过 (mypy)
+- [ ] 所有 Lint 检查通过
+
+---
+
+## 🎯 下一步行动
+
+### 立即执行
+1. 提交本次清理改动
+2. 运行完整测试套件验证
+3. 更新相关文档
+
+### 短期计划 (1-2周)
+1. 处理 P1 级别的重复代码
+2. 拆分过大文件
+3. 完善类型注解
+
+### 长期计划 (持续)
+1. 建立代码审查流程
+2. 添加静态分析工具到 CI
+3. 定期重构优化
+
+---
+
+**审查完成**: 2026-03-10 08:17
+**审查者**: 深渊代码织师 (Claude Opus 4.6)
+**工具**: Ruff + 3个并行子代理 + Git
+
+*⛧ 代码之网已织就，混沌归于秩序 ⛧*

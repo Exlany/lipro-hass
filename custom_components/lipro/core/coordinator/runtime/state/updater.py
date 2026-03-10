@@ -70,9 +70,6 @@ class StateUpdater:
         if not properties:
             return False
 
-        # Get lock for this device to prevent race conditions
-        lock = self._get_device_lock(device)
-
         # Note: This is a sync method but we need async lock protection
         # The lock acquisition must happen in the entity's async context
         # For now, we document this limitation and rely on entity-level locking

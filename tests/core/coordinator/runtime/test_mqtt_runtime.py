@@ -10,7 +10,7 @@ import pytest
 
 from custom_components.lipro.core.coordinator.runtime.mqtt_runtime import MqttRuntime
 from custom_components.lipro.core.device import LiproDevice
-from custom_components.lipro.core.mqtt.client import LiproMqttClient
+from custom_components.lipro.core.mqtt.mqtt_client import LiproMqttClient
 
 
 @pytest.fixture

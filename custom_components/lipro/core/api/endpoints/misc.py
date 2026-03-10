@@ -7,7 +7,7 @@ import logging
 from typing import Any
 
 from ....const.api import PATH_GET_MQTT_CONFIG, PATH_QUERY_OUTLET_POWER
-from ..diagnostics_service import (
+from ..diagnostics_api_service import (
     fetch_body_sensor_history as fetch_body_sensor_history_service,
     fetch_door_sensor_history as fetch_door_sensor_history_service,
     get_city as get_city_service,
@@ -16,7 +16,7 @@ from ..diagnostics_service import (
     query_user_cloud as query_user_cloud_service,
 )
 from ..errors import LiproApiError
-from ..mqtt_service import get_mqtt_config as get_mqtt_config_service
+from ..mqtt_api_service import get_mqtt_config as get_mqtt_config_service
 from ..power_service import fetch_outlet_power_info as fetch_outlet_power_info_service
 from ..types import OtaInfoRow
 from .payloads import _ClientEndpointPayloadsMixin

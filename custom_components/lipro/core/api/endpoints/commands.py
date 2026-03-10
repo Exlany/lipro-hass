@@ -6,7 +6,7 @@ from typing import Any
 
 from ....const.api import PATH_SEND_COMMAND, PATH_SEND_GROUP_COMMAND
 from ..client_base import _ClientBase
-from ..command_service import send_command_to_target as send_command_to_target_service
+from ..command_api_service import send_command_to_target as send_command_to_target_service
 
 
 class _ClientCommandEndpointsMixin(_ClientBase):

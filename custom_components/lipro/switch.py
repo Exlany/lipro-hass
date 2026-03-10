@@ -24,7 +24,6 @@ from .const.properties import (
 )
 from .entities.base import LiproEntity
 from .helpers.platform import (
-    build_device_entities_from_rules,
     create_device_entities,
     create_platform_entities,
 )

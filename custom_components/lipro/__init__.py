@@ -20,7 +20,7 @@ from .const.config import (
     MAX_SCAN_INTERVAL,
     MIN_SCAN_INTERVAL,
 )
-from .coordinator import Coordinator
+from .coordinator_entry import Coordinator
 from .core import LiproAuthManager, LiproClient
 from .entry_auth import (
     async_authenticate_entry,

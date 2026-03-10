@@ -18,7 +18,7 @@ class StateManagementProtocol(Protocol):
     def get_device(self, serial: str) -> LiproDevice | None:
         """Resolve one device by serial."""
 
-    def get_device_by_id(self, device_id: object) -> LiproDevice | None:
+    def get_device_by_id(self, device_id: str) -> LiproDevice | None:
         """Resolve one device by any known identifier."""
 
 
@@ -63,7 +63,7 @@ class DeviceRefreshServiceProtocol(Protocol):
     def devices(self) -> dict[str, LiproDevice]:
         """Return the coordinator device map."""
 
-    def get_device_by_id(self, device_id: object) -> LiproDevice | None:
+    def get_device_by_id(self, device_id: str) -> LiproDevice | None:
         """Resolve one device by any known identifier."""
 
     async def async_refresh_devices(self) -> None:

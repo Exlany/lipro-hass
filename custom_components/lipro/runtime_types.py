@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from .coordinator import Coordinator
+from .coordinator_entry import Coordinator
 
 type LiproCoordinator = Coordinator
 

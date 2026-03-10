@@ -2204,7 +2204,7 @@ class TestCoordinatorMqttSetupAndSync:
                 side_effect=["ak", "sk"],
             ),
             patch(
-                "custom_components.lipro.core.mqtt.client.LiproMqttClient"
+                "custom_components.lipro.core.mqtt.mqtt_client.LiproMqttClient"
             ) as mqtt_cls,
         ):
             mqtt_cls.return_value = mock_mqtt

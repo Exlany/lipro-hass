@@ -15,7 +15,7 @@ from ...const.api import (
 )
 from . import response_safety as _response_safety
 from .client_base import _ClientBase
-from .command_service import (
+from .command_api_service import (
     iot_request_with_busy_retry as iot_request_with_busy_retry_service,
 )
 from .errors import LiproApiError, LiproRateLimitError
