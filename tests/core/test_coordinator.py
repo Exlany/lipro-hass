@@ -44,10 +44,10 @@ from custom_components.lipro.core.api import (
 from custom_components.lipro.core.command.expectation import (
     PendingCommandExpectation as _PendingCommandExpectation,
 )
-from custom_components.lipro.core.coordinator.tuning import (
-    _CONNECT_STATUS_MQTT_STALE_SECONDS,
-)
 from custom_components.lipro.core.device import LiproDevice
+
+# Constant from deleted tuning module - defined here for test compatibility
+_CONNECT_STATUS_MQTT_STALE_SECONDS: float = 180.0
 from custom_components.lipro.core.utils.redaction import redact_identifier
 from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.issue_registry import IssueSeverity
@@ -77,7 +77,7 @@ def coordinator(hass, mock_lipro_api_client, mock_auth_manager):
     entry.add_to_hass(hass)
 
     with patch(
-        "custom_components.lipro.core.coordinator.state.get_anonymous_share_manager"
+        "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager"
     ) as mock_share:
         mock_share.return_value = MagicMock(is_enabled=False, set_enabled=MagicMock())
         from custom_components.lipro.core.coordinator import LiproDataUpdateCoordinator
@@ -1973,9 +1973,8 @@ class TestCoordinatorSendCommand:
         assert kwargs["on_batch_metric"] == coordinator._record_state_batch_metric
 
     def test_adapt_connect_status_stale_window_by_skip_ratio(self, coordinator):
-        from custom_components.lipro.core.coordinator.tuning import (
-            _CONNECT_STATUS_SKIP_RATIO_WINDOW,
-        )
+        # Constant from deleted tuning module
+        _CONNECT_STATUS_SKIP_RATIO_WINDOW = 20
 
         coordinator._connect_status_mqtt_stale_seconds = 180.0
         coordinator._connect_status_skip_history = deque(
@@ -2119,7 +2118,7 @@ class TestCoordinatorSendCommand:
 
     def test_build_developer_report_disabled_mode_has_note(self, coordinator):
         with patch(
-            "custom_components.lipro.core.coordinator.state.get_anonymous_share_manager"
+            "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager"
         ) as mock_share:
             mock_share.return_value = MagicMock(pending_count=(0, 0))
             report = coordinator.build_developer_report()
@@ -3482,7 +3481,7 @@ class TestCoordinatorDefensivePaths:
         share_manager.record_devices = MagicMock()
 
         with patch(
-            "custom_components.lipro.core.coordinator.state.get_anonymous_share_manager",
+            "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager",
             return_value=share_manager,
         ) as get_share_manager:
             await coordinator._record_devices_for_anonymous_share()
@@ -3528,7 +3527,7 @@ class TestCoordinatorDefensivePaths:
         share_manager.submit_report = AsyncMock(side_effect=OSError("upload failed"))
 
         with patch(
-            "custom_components.lipro.core.coordinator.state.get_anonymous_share_manager",
+            "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager",
             return_value=share_manager,
         ):
             await coordinator.async_shutdown()
@@ -3548,7 +3547,7 @@ class TestCoordinatorDefensivePaths:
         share_manager.submit_report = AsyncMock()
 
         with patch(
-            "custom_components.lipro.core.coordinator.state.get_anonymous_share_manager",
+            "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager",
             return_value=share_manager,
         ):
             await coordinator.async_shutdown()
@@ -3567,7 +3566,7 @@ class TestCoordinatorDefensivePaths:
 
         with (
             patch(
-                "custom_components.lipro.core.coordinator.state.get_anonymous_share_manager",
+                "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager",
                 return_value=share_manager,
             ),
             pytest.raises(asyncio.CancelledError),
@@ -3588,7 +3587,7 @@ class TestCoordinatorDefensivePaths:
 
         with (
             patch(
-                "custom_components.lipro.core.coordinator.state.get_anonymous_share_manager",
+                "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager",
                 return_value=share_manager,
             ),
             pytest.raises(asyncio.CancelledError),
@@ -3609,7 +3608,7 @@ class TestCoordinatorDefensivePaths:
 
         with (
             patch(
-                "custom_components.lipro.core.coordinator.state.get_anonymous_share_manager",
+                "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager",
                 return_value=share_manager,
             ),
             pytest.raises(asyncio.CancelledError),

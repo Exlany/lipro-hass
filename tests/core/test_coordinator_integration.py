@@ -84,7 +84,7 @@ def coordinator(hass, mock_lipro_api_client, mock_auth_manager):
     )
     entry.add_to_hass(hass)
     with patch(
-        "custom_components.lipro.core.coordinator.state.get_anonymous_share_manager"
+        "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager"
     ) as mock_share:
         mock_share.return_value = MagicMock(is_enabled=False, set_enabled=MagicMock())
         from custom_components.lipro.core.coordinator import LiproDataUpdateCoordinator
@@ -123,7 +123,7 @@ class TestCoordinatorUpdateFlow:
         }
 
         with patch(
-            "custom_components.lipro.core.coordinator.state.get_anonymous_share_manager"
+            "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager"
         ) as mock_share:
             mock_share.return_value = MagicMock(is_enabled=False)
             result = await coordinator._async_update_data()
@@ -145,7 +145,7 @@ class TestCoordinatorUpdateFlow:
         mock_lipro_api_client.query_connect_status.return_value = {}
 
         with patch(
-            "custom_components.lipro.core.coordinator.state.get_anonymous_share_manager"
+            "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager"
         ) as mock_share:
             mock_share.return_value = MagicMock(is_enabled=False)
             await coordinator._async_update_data()
@@ -166,7 +166,7 @@ class TestCoordinatorUpdateFlow:
         mock_lipro_api_client.query_connect_status.return_value = {}
 
         with patch(
-            "custom_components.lipro.core.coordinator.state.get_anonymous_share_manager"
+            "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager"
         ) as mock_share:
             mock_share.return_value = MagicMock(is_enabled=False)
             await coordinator._async_update_data()
@@ -194,7 +194,7 @@ class TestCoordinatorUpdateFlow:
         mock_lipro_api_client.query_connect_status.return_value = {}
 
         with patch(
-            "custom_components.lipro.core.coordinator.state.get_anonymous_share_manager"
+            "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager"
         ) as mock_share:
             mock_share.return_value = MagicMock(is_enabled=False)
             await coordinator._async_update_data()
@@ -217,7 +217,7 @@ class TestCoordinatorFetchDevices:
         mock_lipro_api_client.get_devices.return_value = {"devices": devices}
 
         with patch(
-            "custom_components.lipro.core.coordinator.state.get_anonymous_share_manager"
+            "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager"
         ) as mock_share:
             mock_share.return_value = MagicMock(is_enabled=False)
             await coordinator._fetch_devices()
@@ -241,7 +241,7 @@ class TestCoordinatorFetchDevices:
         ]
 
         with patch(
-            "custom_components.lipro.core.coordinator.state.get_anonymous_share_manager"
+            "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager"
         ) as mock_share:
             mock_share.return_value = MagicMock(is_enabled=False)
             await coordinator._fetch_devices()
@@ -257,7 +257,7 @@ class TestCoordinatorFetchDevices:
         mock_lipro_api_client.get_devices.return_value = {"devices": "invalid"}
 
         with patch(
-            "custom_components.lipro.core.coordinator.state.get_anonymous_share_manager"
+            "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager"
         ) as mock_share:
             mock_share.return_value = MagicMock(is_enabled=False)
             with pytest.raises(LiproApiError, match="Malformed device list payload"):
@@ -277,7 +277,7 @@ class TestCoordinatorFetchDevices:
         }
 
         with patch(
-            "custom_components.lipro.core.coordinator.state.get_anonymous_share_manager"
+            "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager"
         ) as mock_share:
             mock_share.return_value = MagicMock(is_enabled=False)
             await coordinator._fetch_devices()
@@ -300,7 +300,7 @@ class TestCoordinatorFetchDevices:
         mock_lipro_api_client.get_devices.return_value = {"devices": devices}
 
         with patch(
-            "custom_components.lipro.core.coordinator.state.get_anonymous_share_manager"
+            "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager"
         ) as mock_share:
             mock_share.return_value = MagicMock(is_enabled=False)
             await coordinator._fetch_devices()
@@ -325,7 +325,7 @@ class TestCoordinatorFetchDevices:
         mock_lipro_api_client.get_devices.return_value = {"devices": devices}
 
         with patch(
-            "custom_components.lipro.core.coordinator.state.get_anonymous_share_manager"
+            "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager"
         ) as mock_share:
             mock_share.return_value = MagicMock(is_enabled=False)
             await coordinator._fetch_devices()
@@ -348,7 +348,7 @@ class TestCoordinatorFetchDevices:
         mock_lipro_api_client.get_devices.return_value = {"devices": devices}
 
         with patch(
-            "custom_components.lipro.core.coordinator.state.get_anonymous_share_manager"
+            "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager"
         ) as mock_share:
             mock_share.return_value = MagicMock(is_enabled=False)
             await coordinator._fetch_devices()
@@ -372,7 +372,7 @@ class TestCoordinatorFetchDevices:
         mock_lipro_api_client.get_devices.return_value = {"devices": devices}
 
         with patch(
-            "custom_components.lipro.core.coordinator.state.get_anonymous_share_manager"
+            "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager"
         ) as mock_share:
             mock_share.return_value = MagicMock(is_enabled=False)
             await coordinator._fetch_devices()
@@ -405,7 +405,7 @@ class TestCoordinatorFetchDevices:
         }
 
         with patch(
-            "custom_components.lipro.core.coordinator.state.get_anonymous_share_manager"
+            "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager"
         ) as mock_share:
             mock_share.return_value = MagicMock(is_enabled=False)
             await coordinator._fetch_devices()
@@ -433,7 +433,7 @@ class TestCoordinatorFetchDevices:
         }
 
         with patch(
-            "custom_components.lipro.core.coordinator.state.get_anonymous_share_manager"
+            "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager"
         ) as mock_share:
             mock_share.return_value = MagicMock(is_enabled=False)
             await coordinator._fetch_devices()
@@ -467,7 +467,7 @@ class TestCoordinatorFetchDevices:
         }
 
         with patch(
-            "custom_components.lipro.core.coordinator.state.get_anonymous_share_manager"
+            "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager"
         ) as mock_share:
             mock_share.return_value = MagicMock(is_enabled=False)
             await coordinator._fetch_devices()
@@ -495,7 +495,7 @@ class TestCoordinatorFetchDevices:
         }
 
         with patch(
-            "custom_components.lipro.core.coordinator.state.get_anonymous_share_manager"
+            "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager"
         ) as mock_share:
             mock_share.return_value = MagicMock(is_enabled=False)
             await coordinator._fetch_devices()
@@ -526,7 +526,7 @@ class TestCoordinatorFetchDevices:
 
         with (
             patch(
-                "custom_components.lipro.core.coordinator.state.get_anonymous_share_manager"
+                "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager"
             ) as mock_share,
             patch(
                 "custom_components.lipro.core.coordinator.device_refresh.dr.async_get"
@@ -573,7 +573,7 @@ class TestCoordinatorFetchDevices:
 
         with (
             patch(
-                "custom_components.lipro.core.coordinator.state.get_anonymous_share_manager"
+                "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager"
             ) as mock_share,
             patch(
                 "custom_components.lipro.core.coordinator.device_refresh.dr.async_get"
@@ -637,7 +637,7 @@ class TestCoordinatorFetchDevices:
 
         with (
             patch(
-                "custom_components.lipro.core.coordinator.state.get_anonymous_share_manager"
+                "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager"
             ) as mock_share,
             patch(
                 "custom_components.lipro.core.coordinator.device_refresh.dr.async_get"
@@ -677,7 +677,7 @@ class TestCoordinatorFetchDevices:
         ]
 
         with patch(
-            "custom_components.lipro.core.coordinator.state.get_anonymous_share_manager"
+            "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager"
         ) as mock_share:
             mock_share.return_value = MagicMock(is_enabled=False)
             await coordinator._fetch_devices()
@@ -840,7 +840,7 @@ class TestCoordinatorProductConfigs:
         mock_lipro_api_client.query_connect_status.return_value = {}
 
         with patch(
-            "custom_components.lipro.core.coordinator.state.get_anonymous_share_manager"
+            "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager"
         ) as mock_share:
             mock_share.return_value = MagicMock(is_enabled=False)
             await coordinator._async_update_data()
@@ -883,7 +883,7 @@ class TestCoordinatorProductConfigs:
         mock_lipro_api_client.query_connect_status.return_value = {}
 
         with patch(
-            "custom_components.lipro.core.coordinator.state.get_anonymous_share_manager"
+            "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager"
         ) as mock_share:
             mock_share.return_value = MagicMock(is_enabled=False)
             await coordinator._async_update_data()
@@ -914,7 +914,7 @@ class TestCoordinatorProductConfigs:
         mock_lipro_api_client.query_connect_status.return_value = {}
 
         with patch(
-            "custom_components.lipro.core.coordinator.state.get_anonymous_share_manager"
+            "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager"
         ) as mock_share:
             mock_share.return_value = MagicMock(is_enabled=False)
             await coordinator._async_update_data()
@@ -950,7 +950,7 @@ class TestCoordinatorProductConfigs:
         mock_lipro_api_client.query_connect_status.return_value = {}
 
         with patch(
-            "custom_components.lipro.core.coordinator.state.get_anonymous_share_manager"
+            "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager"
         ) as mock_share:
             mock_share.return_value = MagicMock(is_enabled=False)
             await coordinator._async_update_data()
@@ -987,7 +987,7 @@ class TestCoordinatorProductConfigs:
         mock_lipro_api_client.query_connect_status.return_value = {}
 
         with patch(
-            "custom_components.lipro.core.coordinator.state.get_anonymous_share_manager"
+            "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager"
         ) as mock_share:
             mock_share.return_value = MagicMock(is_enabled=False)
             await coordinator._async_update_data()
@@ -1031,7 +1031,7 @@ class TestCoordinatorProductConfigs:
         }
 
         with patch(
-            "custom_components.lipro.core.coordinator.state.get_anonymous_share_manager"
+            "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager"
         ) as mock_share:
             mock_share.return_value = MagicMock(is_enabled=False)
             await coordinator._async_update_data()
@@ -1063,7 +1063,7 @@ class TestCoordinatorProductConfigs:
         mock_lipro_api_client.query_connect_status.return_value = {}
 
         with patch(
-            "custom_components.lipro.core.coordinator.state.get_anonymous_share_manager"
+            "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager"
         ) as mock_share:
             mock_share.return_value = MagicMock(is_enabled=False)
             await coordinator._async_update_data()
@@ -1096,7 +1096,7 @@ class TestCoordinatorProductConfigs:
         mock_lipro_api_client.query_connect_status.return_value = {}
 
         with patch(
-            "custom_components.lipro.core.coordinator.state.get_anonymous_share_manager"
+            "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager"
         ) as mock_share:
             mock_share.return_value = MagicMock(is_enabled=False)
             result = await coordinator._async_update_data()
@@ -1124,7 +1124,7 @@ class TestCoordinatorShutdown:
         mock_lipro_api_client.query_connect_status.return_value = {}
 
         with patch(
-            "custom_components.lipro.core.coordinator.state.get_anonymous_share_manager"
+            "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager"
         ) as mock_share:
             mock_share.return_value = MagicMock(
                 is_enabled=False, submit_report=AsyncMock()
@@ -1145,7 +1145,7 @@ class TestCoordinatorShutdown:
     async def test_shutdown_closes_client(self, coordinator, mock_lipro_api_client):
         """async_shutdown must call client.close()."""
         with patch(
-            "custom_components.lipro.core.coordinator.state.get_anonymous_share_manager"
+            "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager"
         ) as mock_share:
             mock_share.return_value = MagicMock(
                 is_enabled=False, submit_report=AsyncMock()
@@ -1161,7 +1161,7 @@ class TestCoordinatorShutdown:
         coordinator._mqtt_client = mock_mqtt
 
         with patch(
-            "custom_components.lipro.core.coordinator.state.get_anonymous_share_manager"
+            "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager"
         ) as mock_share:
             mock_share.return_value = MagicMock(
                 is_enabled=False, submit_report=AsyncMock()
@@ -1197,7 +1197,7 @@ class TestCoordinatorRefreshDevices:
         mock_lipro_api_client.get_product_configs.return_value = []
 
         with patch(
-            "custom_components.lipro.core.coordinator.state.get_anonymous_share_manager"
+            "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager"
         ) as mock_share:
             mock_share.return_value = MagicMock(is_enabled=False)
             await coordinator.async_refresh_devices()
@@ -1220,7 +1220,7 @@ class TestCoordinatorRefreshDevices:
         mock_lipro_api_client.get_product_configs.return_value = []
 
         with patch(
-            "custom_components.lipro.core.coordinator.state.get_anonymous_share_manager"
+            "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager"
         ) as mock_share:
             mock_share.return_value = MagicMock(is_enabled=False)
             await coordinator._async_update_data()

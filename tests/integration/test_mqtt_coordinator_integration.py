@@ -54,7 +54,7 @@ def coordinator(hass, mock_lipro_api_client, mock_auth_manager):
     entry.add_to_hass(hass)
 
     with patch(
-        "custom_components.lipro.core.coordinator.state.get_anonymous_share_manager"
+        "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager"
     ) as mock_share:
         mock_share.return_value = MagicMock(is_enabled=False, set_enabled=MagicMock())
         from custom_components.lipro.core.coordinator import LiproDataUpdateCoordinator

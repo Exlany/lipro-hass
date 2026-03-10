@@ -1,0 +1,46 @@
+============================= test session starts ==============================
+platform linux -- Python 3.13.5, pytest-8.4.2, pluggy-1.6.0 -- /usr/bin/python3
+cachedir: .pytest_cache
+rootdir: /var/tmp/coolvibe/worktrees/edf26778937a-/lipro-hass
+configfile: pyproject.toml
+plugins: syrupy-4.9.1, unordered-0.7.0, respx-0.22.0, github-actions-annotate-failures-0.3.0, asyncio-1.2.0, cov-7.0.0, xdist-3.8.0, pytest_freezer-0.4.9, socket-0.7.0, sugar-1.0.0, requests-mock-1.12.1, aiohttp-1.1.0, timeout-2.4.0, homeassistant-custom-component-0.13.287, picked-0.5.1, anyio-4.12.1
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=function, asyncio_default_test_loop_scope=function
+collecting ... collected 1886 items / 3 errors
+
+==================================== ERRORS ====================================
+_______________ ERROR collecting tests/core/test_coordinator.py ________________
+ImportError while importing test module '/var/tmp/coolvibe/worktrees/edf26778937a-/lipro-hass/tests/core/test_coordinator.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/usr/lib/python3.13/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/core/test_coordinator.py:47: in <module>
+    from custom_components.lipro.core.coordinator.tuning import (
+E   ModuleNotFoundError: No module named 'custom_components.lipro.core.coordinator.tuning'
+___________ ERROR collecting tests/core/test_device_list_snapshot.py ___________
+ImportError while importing test module '/var/tmp/coolvibe/worktrees/edf26778937a-/lipro-hass/tests/core/test_device_list_snapshot.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/usr/lib/python3.13/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/core/test_device_list_snapshot.py:12: in <module>
+    from custom_components.lipro.core.coordinator import device_list_snapshot as snapshot
+E   ImportError: cannot import name 'device_list_snapshot' from 'custom_components.lipro.core.coordinator' (/var/tmp/coolvibe/worktrees/edf26778937a-/lipro-hass/custom_components/lipro/core/coordinator/__init__.py)
+______________ ERROR collecting tests/core/test_device_refresh.py ______________
+ImportError while importing test module '/var/tmp/coolvibe/worktrees/edf26778937a-/lipro-hass/tests/core/test_device_refresh.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/usr/lib/python3.13/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/core/test_device_refresh.py:23: in <module>
+    from custom_components.lipro.core.coordinator.device_list_snapshot import (
+E   ModuleNotFoundError: No module named 'custom_components.lipro.core.coordinator.device_list_snapshot'
+=========================== short test summary info ============================
+ERROR tests/core/test_coordinator.py
+ERROR tests/core/test_device_list_snapshot.py
+ERROR tests/core/test_device_refresh.py
+!!!!!!!!!!!!!!!!!!! Interrupted: 3 errors during collection !!!!!!!!!!!!!!!!!!!!
+============================== 3 errors in 1.04s ===============================

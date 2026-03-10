@@ -9,16 +9,18 @@ from custom_components.lipro.const.config import (
     DEVICE_FILTER_MODE_EXCLUDE,
     DEVICE_FILTER_MODE_OFF,
 )
-from custom_components.lipro.core.coordinator import device_list_snapshot as snapshot
-from custom_components.lipro.core.coordinator.device_list_snapshot import (
+from custom_components.lipro.core.coordinator.runtime.device import filter as snapshot
+from custom_components.lipro.core.coordinator.runtime.device.filter import (
     DeviceFilterConfig,
     DeviceFilterRule,
     _collect_property_values,
     _collect_ssid_values,
     _parse_filter_values,
     _rule_allows_values,
-    build_fetched_device_snapshot,
     is_device_included_by_filter,
+)
+from custom_components.lipro.core.coordinator.runtime.device.snapshot import (
+    build_fetched_device_snapshot,
 )
 
 
