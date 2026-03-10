@@ -6,7 +6,7 @@ from unittest.mock import MagicMock
 
 from syrupy.assertion import SnapshotAssertion
 
-from custom_components.lipro.coordinator import Coordinator
+from custom_components.lipro.coordinator_entry import Coordinator
 from custom_components.lipro.core.device.identity_index import DeviceIdentityIndex
 
 

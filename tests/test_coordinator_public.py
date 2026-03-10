@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from custom_components.lipro.coordinator import Coordinator
+from custom_components.lipro.coordinator_entry import Coordinator
 from custom_components.lipro.core.coordinator import LiproDataUpdateCoordinator
 from custom_components.lipro.core.device.identity_index import DeviceIdentityIndex
 

@@ -153,13 +153,15 @@ class LiproConfigFlow(ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             try:
                 phone = _normalize_phone(user_input[CONF_PHONE])
-            except vol.Invalid:
-                errors[CONF_PHONE] = "invalid_auth"
+            except vol.Invalid as err:
+                _LOGGER.debug("Phone validation failed: %s", err)
+                errors[CONF_PHONE] = "invalid_phone"
 
             try:
                 password = _validate_password(user_input[CONF_PASSWORD])
-            except vol.Invalid:
-                errors[CONF_PASSWORD] = "invalid_auth"
+            except vol.Invalid as err:
+                _LOGGER.debug("Password validation failed: %s", err)
+                errors[CONF_PASSWORD] = "invalid_password"
 
             if errors:
                 return self.async_show_form(
@@ -236,8 +238,9 @@ class LiproConfigFlow(ConfigFlow, domain=DOMAIN):
             try:
                 phone = _normalize_phone(phone)
                 password = _validate_password(user_input[CONF_PASSWORD])
-            except vol.Invalid:
-                errors[CONF_PASSWORD] = "invalid_auth"
+            except vol.Invalid as err:
+                _LOGGER.debug("Validation failed during reauth: %s", err)
+                errors[CONF_PASSWORD] = "invalid_password"
                 return self._show_reauth_form(reauth_entry, errors)
 
             password_hash = _hash_password(password)
@@ -304,13 +307,15 @@ class LiproConfigFlow(ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             try:
                 phone = _normalize_phone(user_input[CONF_PHONE])
-            except vol.Invalid:
-                errors[CONF_PHONE] = "invalid_auth"
+            except vol.Invalid as err:
+                _LOGGER.debug("Phone validation failed during reconfigure: %s", err)
+                errors[CONF_PHONE] = "invalid_phone"
 
             try:
                 password = _validate_password(user_input[CONF_PASSWORD])
-            except vol.Invalid:
-                errors[CONF_PASSWORD] = "invalid_auth"
+            except vol.Invalid as err:
+                _LOGGER.debug("Password validation failed during reconfigure: %s", err)
+                errors[CONF_PASSWORD] = "invalid_password"
 
             if errors:
                 return self._show_reconfigure_form(reconfigure_entry, errors)

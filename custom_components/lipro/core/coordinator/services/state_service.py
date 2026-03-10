@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
@@ -28,3 +29,19 @@ class CoordinatorStateService:
     def get_device_by_id(self, device_id: str) -> LiproDevice | None:
         """Resolve a device by any known identifier."""
         return self.coordinator.state_runtime.get_device_by_id(device_id)
+
+    def get_device_lock(self, device_serial: str) -> asyncio.Lock:
+        """Get the lock for a specific device.
+
+        Args:
+            device_serial: Device serial number
+
+        Returns:
+            Lock for the device
+        """
+        # Access the internal updater's lock mechanism
+        device = self.get_device(device_serial)
+        if device is None:
+            # Return a new lock for unknown devices (shouldn't happen)
+            return asyncio.Lock()
+        return self.coordinator.state_runtime._updater._get_device_lock(device)

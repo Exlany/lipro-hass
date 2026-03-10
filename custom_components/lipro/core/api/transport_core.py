@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 import logging
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 import aiohttp
 
@@ -14,10 +14,6 @@ from .response_safety import (
     INVALID_JSON_BODY_READ_MAX_BYTES as _INVALID_JSON_BODY_READ_MAX_BYTES,
     INVALID_JSON_LOG_PREVIEW_MAX_CHARS as _INVALID_JSON_LOG_PREVIEW_MAX_CHARS,
 )
-
-if TYPE_CHECKING:
-    pass
-
 
 _LOGGER = logging.getLogger("custom_components.lipro.core.api.client")
 
@@ -141,10 +137,12 @@ class TransportCore:
                     )
                     raise LiproApiError(msg) from err
         except aiohttp.ClientError as err:
-            msg = f"Connection error: {err}"
+            msg = f"Connection error: {type(err).__name__}: {err}"
+            _LOGGER.debug("Network error on %s: %s", path, msg)
             raise LiproConnectionError(msg) from err
         except TimeoutError as err:
-            msg = "Request timeout"
+            msg = f"Request timeout: {type(err).__name__}"
+            _LOGGER.debug("Timeout on %s: %s", path, msg)
             raise LiproConnectionError(msg) from err
 
         if _LOGGER.isEnabledFor(logging.DEBUG):

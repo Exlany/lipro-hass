@@ -36,6 +36,8 @@
     "error": {
       "cannot_connect": "Unable to connect to Lipro server",
       "invalid_auth": "Invalid phone number or password",
+      "invalid_phone": "Invalid phone number format (must be 6-20 digits, optionally starting with +)",
+      "invalid_password": "Invalid password (must be 6-128 characters)",
       "reauth_user_mismatch": "This account does not match the integration entry. Please re-authenticate with the same Lipro account.",
       "unknown": "An unknown error occurred"
     },

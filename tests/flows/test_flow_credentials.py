@@ -18,7 +18,7 @@ def test_normalize_phone_accepts_trimmed_plus_number() -> None:
 
 @pytest.mark.parametrize("value", [123456, None, object()])
 def test_normalize_phone_rejects_non_string(value: object) -> None:
-    with pytest.raises(vol.Invalid, match="phone must be a string"):
+    with pytest.raises(vol.Invalid, match="Phone number must be text"):
         normalize_phone(value)
 
 
@@ -26,9 +26,37 @@ def test_normalize_phone_rejects_non_string(value: object) -> None:
 def test_normalize_phone_rejects_invalid_format(value: str) -> None:
     with pytest.raises(
         vol.Invalid,
-        match=r"phone must be 6-20 digits, optionally prefixed with \+",
+        match=r"Phone number must be 6-20 digits \(optionally starting with \+\)",
     ):
         normalize_phone(value)
+
+
+def test_normalize_phone_rejects_too_long_input() -> None:
+    """Test that overly long input is rejected (DoS protection)."""
+    with pytest.raises(vol.Invalid, match="Phone number too long"):
+        normalize_phone("+" + "1" * 50)
+
+
+def test_normalize_phone_rejects_sql_injection_chars() -> None:
+    """Test that SQL injection characters are rejected."""
+    with pytest.raises(vol.Invalid, match="contains invalid characters"):
+        normalize_phone("138000'; DROP")
+
+    with pytest.raises(vol.Invalid, match="contains invalid characters"):
+        normalize_phone('138000"')
+
+    with pytest.raises(vol.Invalid, match="contains invalid characters"):
+        normalize_phone("138000/**/")
+
+    with pytest.raises(vol.Invalid, match="contains invalid characters"):
+        normalize_phone("138000--")
+
+
+def test_normalize_phone_accepts_valid_numbers() -> None:
+    """Test that valid phone numbers are accepted."""
+    assert normalize_phone("13800012345") == "13800012345"
+    assert normalize_phone("+8613800012345") == "+8613800012345"
+    assert normalize_phone("  123456  ") == "123456"
 
 
 def test_mask_phone_for_title_returns_stars_for_blank_input() -> None:
@@ -49,17 +77,40 @@ def test_mask_phone_for_title_handles_length_buckets(phone: str, expected: str) 
 
 @pytest.mark.parametrize("value", [None, 12345, object()])
 def test_validate_password_rejects_non_string(value: object) -> None:
-    with pytest.raises(vol.Invalid, match="password must be a string"):
+    with pytest.raises(vol.Invalid, match="Password must be text"):
         validate_password(value)
 
 
-def test_validate_password_rejects_empty_or_too_long() -> None:
-    with pytest.raises(vol.Invalid, match="password length must be 1-128"):
+def test_validate_password_rejects_too_short() -> None:
+    """Test that passwords shorter than 6 characters are rejected."""
+    with pytest.raises(vol.Invalid, match="Password too short"):
         validate_password("")
 
-    with pytest.raises(vol.Invalid, match="password length must be 1-128"):
+    with pytest.raises(vol.Invalid, match="Password too short"):
+        validate_password("12345")
+
+
+def test_validate_password_rejects_too_long() -> None:
+    """Test that passwords longer than 128 characters are rejected."""
+    with pytest.raises(vol.Invalid, match="Password too long"):
         validate_password("x" * 129)
 
 
+def test_validate_password_rejects_null_bytes() -> None:
+    """Test that passwords with null bytes are rejected (security risk)."""
+    with pytest.raises(vol.Invalid, match="contains invalid characters"):
+        validate_password("password\x00admin")
+
+
+def test_validate_password_rejects_control_chars() -> None:
+    """Test that passwords with control characters are rejected."""
+    with pytest.raises(vol.Invalid, match="contains invalid characters"):
+        validate_password("password\x01\x02")
+
+
 def test_validate_password_accepts_valid_value() -> None:
+    """Test that valid passwords are accepted."""
     assert validate_password("password123") == "password123"
+    assert validate_password("123456") == "123456"
+    assert validate_password("a" * 128) == "a" * 128
+    assert validate_password("P@ssw0rd!#$%") == "P@ssw0rd!#$%"

@@ -167,6 +167,10 @@ class CoordinatorSharedState:
         Note:
             The returned dict is the internal reference. Callers must not
             mutate it. Consider this a read-only view.
+
+        Deprecated:
+            Use StateRuntime.get_all_devices() for consistent state access.
+            This method delegates to the same underlying data source.
         """
         return self.devices
 

@@ -180,9 +180,20 @@ class MqttRuntime:
                 msg = "Message handler dependencies not fully injected"
                 raise RuntimeError(msg)
 
+            # Create adapter to bridge PropertyApplierProtocol (returns bool)
+            # to MqttMessageHandler's PropertyApplier (expects PropertyDict return)
+            async def property_applier_adapter(
+                device: LiproDevice, properties: dict[str, Any]
+            ) -> dict[str, Any]:
+                """Adapt property applier to return applied properties."""
+                # Call the injected applier with source="mqtt"
+                success = await self._property_applier(device, properties, "mqtt")
+                # Return the properties if successful, empty dict otherwise
+                return properties if success else {}
+
             self._message_handler = MqttMessageHandler(
                 device_resolver=self._device_resolver,
-                property_applier=self._property_applier,
+                property_applier=property_applier_adapter,
                 listener_notifier=self._listener_notifier,
                 connect_state_tracker=self._connect_state_tracker,
                 group_reconciler=self._group_reconciler,

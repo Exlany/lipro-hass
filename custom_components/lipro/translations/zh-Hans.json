@@ -36,6 +36,8 @@
     "error": {
       "cannot_connect": "无法连接到 Lipro 服务器",
       "invalid_auth": "手机号或密码错误",
+      "invalid_phone": "手机号格式无效（必须是 6-20 位数字，可选 + 前缀）",
+      "invalid_password": "密码无效（必须是 6-128 个字符）",
       "reauth_user_mismatch": "该账号与当前集成条目不一致，请使用同一 Lipro 账号重新认证。",
       "unknown": "发生未知错误"
     },

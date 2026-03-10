@@ -295,17 +295,40 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
         """
         return self.state_service.get_device(serial)
 
+    def get_device_by_id(self, device_id: str) -> LiproDevice | None:
+        """Get device by any identifier (serial, iot_id, gateway_id, etc).
+
+        Args:
+            device_id: Device identifier
+
+        Returns:
+            Device if found, None otherwise
+        """
+        return self.state_service.get_device_by_id(device_id)
+
     def register_entity(self, entity: Any) -> None:
         """Register entity for debounce protection tracking.
 
         Args:
             entity: Entity to register
         """
+        # Skip entities without entity_id
+        if not entity.entity_id:
+            return
+
+        # Register in state runtime for debounce protection
         self._state_runtime.register_entity(
-            entity_id=entity.entity_id,
-            device_id=entity.device.device_id,
-            protected_keys_getter=entity.get_protected_keys,
+            entity=entity,
+            device_serial=entity.device.serial,
         )
+
+        # Maintain backward compatibility with _entities dict
+        self._entities[entity.entity_id] = entity
+        device_serial = entity.device.serial
+        if device_serial not in self._entities_by_device:
+            self._entities_by_device[device_serial] = []
+        if entity not in self._entities_by_device[device_serial]:
+            self._entities_by_device[device_serial].append(entity)
 
     def unregister_entity(self, entity: Any) -> None:
         """Unregister entity from debounce protection tracking.
@@ -313,7 +336,44 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
         Args:
             entity: Entity to unregister
         """
-        self._state_runtime.unregister_entity(entity.entity_id)
+        # Skip entities without entity_id
+        if not entity.entity_id:
+            return
+
+        # Maintain backward compatibility with _entities dict (do this first)
+        # Only remove if the stored entity is the same instance
+        should_unregister_from_runtime = False
+        if self._entities.get(entity.entity_id) is entity:
+            self._entities.pop(entity.entity_id, None)
+            should_unregister_from_runtime = True
+
+        device_serial = entity.device.serial
+        if device_serial in self._entities_by_device:
+            try:
+                self._entities_by_device[device_serial].remove(entity)
+                # Clean up empty list
+                if not self._entities_by_device[device_serial]:
+                    del self._entities_by_device[device_serial]
+            except ValueError:
+                pass
+
+        # Only unregister from state runtime if this was the active instance
+        if should_unregister_from_runtime:
+            self._state_runtime.unregister_entity(entity.entity_id)
+
+    def get_device_lock(self, device_serial: str) -> asyncio.Lock:
+        """Get the lock for a specific device.
+
+        This allows entities to use the same lock as the coordinator
+        for device property updates, preventing race conditions.
+
+        Args:
+            device_serial: Device serial number
+
+        Returns:
+            Lock for the device
+        """
+        return self.state_service.get_device_lock(device_serial)
 
     async def async_send_command(
         self,

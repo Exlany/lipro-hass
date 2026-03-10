@@ -56,6 +56,7 @@ class StateUpdater:
         properties: dict[str, Any],
         *,
         source: str = "unknown",
+        skip_protected: bool = True,
     ) -> bool:
         """Apply property updates to a device and notify entities.
 
@@ -63,6 +64,7 @@ class StateUpdater:
             device: Target device
             properties: Property updates to apply
             source: Update source for logging (mqtt/rest/command)
+            skip_protected: If True, skip properties protected by debounce
 
         Returns:
             True if any properties changed
@@ -72,6 +74,17 @@ class StateUpdater:
 
         lock = self._get_device_lock(device)
         async with lock:
+            # Filter out protected properties if requested
+            if skip_protected:
+                properties = self._filter_protected_properties(device, properties)
+                if not properties:
+                    _LOGGER.debug(
+                        "All properties for %s are debounce-protected, skipping update from %s",
+                        device.name,
+                        source,
+                    )
+                    return False
+
             device.update_properties(properties)
             changed = True
 
@@ -138,6 +151,45 @@ class StateUpdater:
             )
 
         return changed_count
+
+    def _filter_protected_properties(
+        self,
+        device: LiproDevice,
+        properties: dict[str, Any],
+    ) -> dict[str, Any]:
+        """Filter out properties that are currently protected by debounce.
+
+        Args:
+            device: Target device
+            properties: Properties to filter
+
+        Returns:
+            Filtered properties dict
+        """
+        device_key = self._normalize_device_key(device.serial)
+        entities = self._entities_by_device.get(device_key, [])
+
+        # Collect all protected keys from all entities for this device
+        protected_keys: set[str] = set()
+        for entity in entities:
+            if hasattr(entity, "get_protected_keys"):
+                protected_keys.update(entity.get_protected_keys())  # type: ignore[attr-defined]
+
+        if not protected_keys:
+            return properties
+
+        # Filter out protected properties
+        filtered = {k: v for k, v in properties.items() if k not in protected_keys}
+
+        if len(filtered) < len(properties):
+            _LOGGER.debug(
+                "Filtered %d protected properties for %s: %s",
+                len(properties) - len(filtered),
+                device.name,
+                protected_keys & properties.keys(),
+            )
+
+        return filtered
 
     def _notify_device_entities(self, device: LiproDevice) -> None:
         """Notify all entities associated with a device.

@@ -101,7 +101,7 @@ class TestStateReader:
 class TestStateUpdater:
     """Test StateUpdater functionality."""
 
-    def test_apply_properties_update(
+    async def test_apply_properties_update(
         self,
         state_runtime: StateRuntime,
         mock_device: LiproDevice,
@@ -109,13 +109,13 @@ class TestStateUpdater:
     ) -> None:
         """Test applying property updates."""
         properties = {"brightness": 100}
-        changed = state_runtime.apply_properties_update(mock_device, properties, source="test")
+        changed = await state_runtime.apply_properties_update(mock_device, properties, source="test")
 
         assert changed is True
         mock_device.update_properties.assert_called_once_with(properties)
         mock_entity.async_write_ha_state.assert_called_once()
 
-    def test_apply_properties_update_no_change(
+    async def test_apply_properties_update_no_change(
         self,
         state_runtime: StateRuntime,
         mock_device: LiproDevice,
@@ -124,7 +124,7 @@ class TestStateUpdater:
         """Test applying property updates with no change."""
         # Simplified implementation always returns True if properties exist
         properties = {"brightness": 100}
-        changed = state_runtime.apply_properties_update(mock_device, properties)
+        changed = await state_runtime.apply_properties_update(mock_device, properties)
 
         assert changed is True
         mock_entity.async_write_ha_state.assert_called_once()
@@ -155,14 +155,14 @@ class TestStateUpdater:
         assert changed is True
         mock_entity.async_write_ha_state.assert_called_once()
 
-    def test_batch_update_properties(
+    async def test_batch_update_properties(
         self,
         state_runtime: StateRuntime,
         mock_device: LiproDevice,
     ) -> None:
         """Test batch property updates."""
         updates = [(mock_device, {"brightness": 100})]
-        changed_count = state_runtime.batch_update_properties(updates, source="batch")
+        changed_count = await state_runtime.batch_update_properties(updates, source="batch")
 
         assert changed_count == 1
 

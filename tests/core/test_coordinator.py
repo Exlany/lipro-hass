@@ -114,6 +114,7 @@ def _make_mock_entity(
     """Helper to create a mock LiproEntity."""
     entity = MagicMock()
     entity.unique_id = unique_id
+    entity.entity_id = unique_id  # Set entity_id to match unique_id for tests
     entity.device = device
     entity.get_protected_keys = MagicMock(return_value=protected_keys or set())
     return entity

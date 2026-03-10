@@ -23,11 +23,11 @@ _LOGGER = logging.getLogger(__name__)
 
 # Time window (seconds) after debounced command during which
 # coordinator updates should not overwrite optimistic state
-DEBOUNCE_PROTECTION_WINDOW: Final = 2.0
+DEBOUNCE_PROTECTION_WINDOW: Final = 1.5
 
 # Small buffer (seconds) after command is sent before clearing protection,
 # allowing the cloud response to arrive
-_POST_COMMAND_PROTECTION_BUFFER: Final = 1.0
+_POST_COMMAND_PROTECTION_BUFFER: Final = 0.5
 
 
 class LiproEntity(CoordinatorEntity[Any]):
@@ -60,8 +60,6 @@ class LiproEntity(CoordinatorEntity[Any]):
         # Track when debounced properties were last set (for protection window)
         self._debounce_protected_until: float = 0
         self._debounce_protected_keys: set[str] = set()
-        # Lock to protect device property updates from race conditions
-        self._device_update_lock = asyncio.Lock()
 
         # Set unique ID
         if self._entity_suffix:
@@ -254,7 +252,9 @@ class LiproEntity(CoordinatorEntity[Any]):
 
         # Apply optimistic state update immediately (no debounce for UI feedback)
         if optimistic_state:
-            async with self._device_update_lock:
+            # Use the same lock mechanism as coordinator to prevent race conditions
+            device_lock = self.coordinator.get_device_lock(self.device.serial)
+            async with device_lock:
                 self.device.update_properties(optimistic_state)
             self.async_write_ha_state()
 

@@ -266,7 +266,7 @@ async def test_form_invalid_phone_sets_field_error(hass: HomeAssistant) -> None:
     )
 
     assert result["type"] is FlowResultType.FORM
-    assert result["errors"] == {CONF_PHONE: "invalid_auth"}
+    assert result["errors"] == {CONF_PHONE: "invalid_phone"}
 
 
 async def test_form_invalid_password_sets_field_error(hass: HomeAssistant) -> None:
@@ -284,7 +284,7 @@ async def test_form_invalid_password_sets_field_error(hass: HomeAssistant) -> No
     )
 
     assert result["type"] is FlowResultType.FORM
-    assert result["errors"] == {CONF_PASSWORD: "invalid_auth"}
+    assert result["errors"] == {CONF_PASSWORD: "invalid_password"}
 
 
 async def test_form_user_recovers_after_invalid_auth(
@@ -708,7 +708,7 @@ async def test_reauth_flow_invalid_password_sets_field_error(
 
     assert result["type"] is FlowResultType.FORM
     assert result["step_id"] == "reauth_confirm"
-    assert result["errors"] == {CONF_PASSWORD: "invalid_auth"}
+    assert result["errors"] == {CONF_PASSWORD: "invalid_password"}
     mock_lipro_client.login.assert_not_awaited()
 
 
@@ -839,7 +839,7 @@ async def test_reconfigure_flow_invalid_phone_sets_field_error(
 
     assert result["type"] is FlowResultType.FORM
     assert result["step_id"] == "reconfigure"
-    assert result["errors"] == {CONF_PHONE: "invalid_auth"}
+    assert result["errors"] == {CONF_PHONE: "invalid_phone"}
     mock_lipro_client.login.assert_not_awaited()
 
 
@@ -881,7 +881,7 @@ async def test_reconfigure_flow_invalid_password_sets_field_error(
 
     assert result["type"] is FlowResultType.FORM
     assert result["step_id"] == "reconfigure"
-    assert result["errors"] == {CONF_PASSWORD: "invalid_auth"}
+    assert result["errors"] == {CONF_PASSWORD: "invalid_password"}
     mock_lipro_client.login.assert_not_awaited()
 
 
