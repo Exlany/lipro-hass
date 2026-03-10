@@ -542,6 +542,8 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
             raise UpdateFailed("Unexpected update failure") from err
 
 
+# DEPRECATED: Use Coordinator directly. This alias is kept for backward compatibility.
+# Will be removed in version 3.0.0
 LiproDataUpdateCoordinator = Coordinator
 
 __all__ = ["Coordinator", "LiproDataUpdateCoordinator"]

@@ -1,5 +1,7 @@
 """Command and property constants for the Lipro integration."""
 
+from __future__ import annotations
+
 from typing import Final
 
 from .entity_config import DEFAULT_MAX_KELVIN, DEFAULT_MIN_KELVIN

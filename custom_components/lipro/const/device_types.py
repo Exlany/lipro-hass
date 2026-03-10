@@ -1,5 +1,7 @@
 """Device type constants for the Lipro integration."""
 
+from __future__ import annotations
+
 from typing import Final
 
 # Device type hex codes (used for API commands)

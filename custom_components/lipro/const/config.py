@@ -1,5 +1,7 @@
 """Configuration constants for the Lipro integration."""
 
+from __future__ import annotations
+
 from typing import Final
 
 # Configuration keys
