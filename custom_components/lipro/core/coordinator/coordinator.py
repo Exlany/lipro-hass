@@ -404,8 +404,14 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
             return False
 
         try:
-            # Get encrypted MQTT credentials from API
-            mqtt_config = await self.client.get_mqtt_config()
+            # 10s timeout for MQTT config fetch
+            try:
+                async with asyncio.timeout(10):
+                    mqtt_config = await self.client.get_mqtt_config()
+            except TimeoutError:
+                _LOGGER.error("MQTT config fetch timeout after 10 seconds")
+                return False
+
             if not mqtt_config:
                 _LOGGER.warning("No MQTT config available")
                 return False
@@ -451,17 +457,29 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
                 lambda: self.async_set_updated_data(self._devices)
             )
 
-            # Start MQTT connection for current devices
+            # Start MQTT connection for current devices with 15s timeout
             device_ids = [
                 device.serial
                 for device in self._devices.values()
                 if device.is_group  # Prefer mesh groups
             ]
             if device_ids:
-                await self._mqtt_runtime.connect(device_ids=device_ids, biz_id=biz_id)
+                try:
+                    async with asyncio.timeout(15):
+                        await self._mqtt_runtime.connect(device_ids=device_ids, biz_id=biz_id)
+                except TimeoutError:
+                    _LOGGER.error("MQTT connection timeout after 15 seconds")
+                    return False
+
+            # Verify connection state before returning success
+            if not self._mqtt_runtime.is_connected:
+                _LOGGER.warning("MQTT client not connected after setup")
+                return False
 
             return True
 
+        except asyncio.CancelledError:
+            raise
         except Exception as err:
             _LOGGER.warning("Failed to setup MQTT: %s", err)
             return False
