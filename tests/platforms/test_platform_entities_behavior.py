@@ -46,7 +46,7 @@ async def test_switch_async_setup_entry_builds_main_and_feature_switches(
 ):
     """Switch platform creates both main switch and feature switches."""
     from custom_components.lipro.switch import (
-        LiproFadeSwitch,
+        LiproPropertySwitch,
         LiproSwitch,
         async_setup_entry,
     )
@@ -63,7 +63,7 @@ async def test_switch_async_setup_entry_builds_main_and_feature_switches(
     entities = async_add_entities.call_args[0][0]
 
     assert any(isinstance(entity, LiproSwitch) for entity in entities)
-    assert any(isinstance(entity, LiproFadeSwitch) for entity in entities)
+    assert any(isinstance(entity, LiproPropertySwitch) for entity in entities)
 
     main_switch = next(entity for entity in entities if isinstance(entity, LiproSwitch))
     patch.object(main_switch, "async_write_ha_state", new=MagicMock()).start()
@@ -200,8 +200,7 @@ async def test_switch_async_setup_entry_builds_panel_config_switches(
 ):
     """Switch platform only adds panel config switches for panel devices."""
     from custom_components.lipro.switch import (
-        LiproPanelLedSwitch,
-        LiproPanelMemorySwitch,
+        LiproPanelPropertySwitch,
         async_setup_entry,
     )
 
@@ -224,14 +223,11 @@ async def test_switch_async_setup_entry_builds_panel_config_switches(
     )
     entities = async_add_entities.call_args[0][0]
 
-    panel_led_entities = [
-        entity for entity in entities if isinstance(entity, LiproPanelLedSwitch)
-    ]
-    panel_memory_entities = [
-        entity for entity in entities if isinstance(entity, LiproPanelMemorySwitch)
+    panel_switches = [
+        entity for entity in entities if isinstance(entity, LiproPanelPropertySwitch)
     ]
 
-    assert len(panel_led_entities) == 1
-    assert len(panel_memory_entities) == 1
-    assert panel_led_entities[0].device.serial == panel.serial
-    assert panel_memory_entities[0].device.serial == panel.serial
+    # Should have 2 panel switches (LED + Memory) for panel device only
+    assert len(panel_switches) == 2
+    assert all(entity.device.serial == panel.serial for entity in panel_switches)
+

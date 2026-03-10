@@ -9,7 +9,7 @@ from __future__ import annotations
 import asyncio
 import logging
 from time import monotonic
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Protocol
 
 from homeassistant.helpers.issue_registry import (
     IssueSeverity,
@@ -30,8 +30,54 @@ if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
 
     from ....mqtt.client import LiproMqttClient
+    from ...device import LiproDevice
 
 _LOGGER = logging.getLogger(__name__)
+
+
+class DeviceResolverProtocol(Protocol):
+    """Protocol for device resolution."""
+
+    def __call__(self, device_id: str) -> LiproDevice | None:
+        """Resolve device by ID."""
+        ...
+
+
+class PropertyApplierProtocol(Protocol):
+    """Protocol for property application."""
+
+    def __call__(
+        self,
+        device: LiproDevice,
+        properties: dict[str, Any],
+        source: str,
+    ) -> bool:
+        """Apply properties update to device."""
+        ...
+
+
+class ListenerNotifierProtocol(Protocol):
+    """Protocol for listener notification."""
+
+    def __call__(self) -> None:
+        """Notify listeners of state changes."""
+        ...
+
+
+class ConnectStateTrackerProtocol(Protocol):
+    """Protocol for connect state tracking."""
+
+    def __call__(self, device_id: str) -> None:
+        """Track device connect state priority."""
+        ...
+
+
+class GroupReconcilerProtocol(Protocol):
+    """Protocol for group reconciliation."""
+
+    def __call__(self, group_id: str) -> None:
+        """Reconcile group state."""
+        ...
 
 
 class MqttRuntime:
@@ -67,11 +113,11 @@ class MqttRuntime:
         self._polling_updater: Any = None
 
         # Device resolver, property applier, etc. will be injected
-        self._device_resolver: Any = None
-        self._property_applier: Any = None
-        self._listener_notifier: Any = None
-        self._connect_state_tracker: Any = None
-        self._group_reconciler: Any = None
+        self._device_resolver: DeviceResolverProtocol | None = None
+        self._property_applier: PropertyApplierProtocol | None = None
+        self._listener_notifier: ListenerNotifierProtocol | None = None
+        self._connect_state_tracker: ConnectStateTrackerProtocol | None = None
+        self._group_reconciler: GroupReconcilerProtocol | None = None
 
         # Initialize component managers
         self._connection_manager = MqttConnectionManager(
@@ -96,23 +142,23 @@ class MqttRuntime:
         """Inject polling interval updater dependency."""
         self._polling_updater = updater
 
-    def set_device_resolver(self, resolver: Any) -> None:
+    def set_device_resolver(self, resolver: DeviceResolverProtocol) -> None:
         """Inject device resolver dependency."""
         self._device_resolver = resolver
 
-    def set_property_applier(self, applier: Any) -> None:
+    def set_property_applier(self, applier: PropertyApplierProtocol) -> None:
         """Inject property applier dependency."""
         self._property_applier = applier
 
-    def set_listener_notifier(self, notifier: Any) -> None:
+    def set_listener_notifier(self, notifier: ListenerNotifierProtocol) -> None:
         """Inject listener notifier dependency."""
         self._listener_notifier = notifier
 
-    def set_connect_state_tracker(self, tracker: Any) -> None:
+    def set_connect_state_tracker(self, tracker: ConnectStateTrackerProtocol) -> None:
         """Inject connect state tracker dependency."""
         self._connect_state_tracker = tracker
 
-    def set_group_reconciler(self, reconciler: Any) -> None:
+    def set_group_reconciler(self, reconciler: GroupReconcilerProtocol) -> None:
         """Inject group reconciler dependency."""
         self._group_reconciler = reconciler
 

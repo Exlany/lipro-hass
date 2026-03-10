@@ -2,10 +2,7 @@
 
 from __future__ import annotations
 
-import hashlib
-import json
 import logging
-import time
 from typing import TYPE_CHECKING, Any
 
 import aiohttp
@@ -21,27 +18,24 @@ from ...const.api import (
     HEADER_SIGN,
     HEADER_USER_AGENT,
     IOT_API_URL,
-    IOT_SIGN_KEY,
     MERCHANT_CODE,
     SMART_HOME_API_URL,
-    SMART_HOME_SIGN_KEY,
     USER_AGENT,
 )
 from ...const.base import APP_VERSION_CODE, APP_VERSION_NAME
 from ...const.device_types import DEVICE_TYPE_MAP
 from . import response_safety as _response_safety
 from .client_auth_recovery import _ClientAuthRecoveryMixin
-from .errors import LiproApiError, LiproAuthError, LiproConnectionError
+from .errors import LiproAuthError
 from .request_codec import (
     build_smart_home_request_data,
     encode_iot_request_body,
     extract_smart_home_success_payload,
 )
-from .response_safety import (
-    DEVICE_TYPE_HEX_PATTERN as _DEVICE_TYPE_HEX_PATTERN,
-    INVALID_JSON_BODY_READ_MAX_BYTES as _INVALID_JSON_BODY_READ_MAX_BYTES,
-    INVALID_JSON_LOG_PREVIEW_MAX_CHARS as _INVALID_JSON_LOG_PREVIEW_MAX_CHARS,
-)
+from .response_safety import DEVICE_TYPE_HEX_PATTERN as _DEVICE_TYPE_HEX_PATTERN
+from .transport_core import TransportCore
+from .transport_retry import TransportRetry
+from .transport_signing import TransportSigning
 
 if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable
@@ -68,8 +62,10 @@ class _ClientTransportMixin(_ClientAuthRecoveryMixin):
         back request signing and session management.
         """
         self._phone_id = phone_id
-        self._session = session
         self._request_timeout = request_timeout
+        self._session = session  # Keep for backward compatibility with tests
+        self._transport_core = TransportCore(session, request_timeout)
+        self._transport_signing = TransportSigning(phone_id)
 
     @property
     def phone_id(self) -> str:
@@ -83,14 +79,12 @@ class _ClientTransportMixin(_ClientAuthRecoveryMixin):
             LiproConnectionError: If no session is available.
 
         """
-        if self._session is None or self._session.closed:
-            msg = "No aiohttp session available (must be injected via constructor)"
-            raise LiproConnectionError(msg)
-        return self._session
+        return await self._transport_core.get_session()
 
     async def close(self) -> None:
         """Close the client session (no-op: HA-injected session is managed by HA)."""
-        self._session = None
+        self._session = None  # Keep for backward compatibility with tests
+        self._transport_core.close_session()
 
     def _smart_home_sign(self) -> str:
         """Generate Smart Home API signature.
@@ -99,8 +93,7 @@ class _ClientTransportMixin(_ClientAuthRecoveryMixin):
             MD5 signature string.
 
         """
-        sign_data = f"{self._phone_id}{SMART_HOME_SIGN_KEY}"
-        return hashlib.md5(sign_data.encode("utf-8"), usedforsecurity=False).hexdigest()
+        return self._transport_signing.smart_home_sign()
 
     def _iot_sign(self, nonce: int, body: str) -> str:
         """Generate IoT API signature.
@@ -118,11 +111,7 @@ class _ClientTransportMixin(_ClientAuthRecoveryMixin):
             but we call strip() explicitly for safety.
 
         """
-        trimmed_body = body.strip() if body else ""
-        sign_data = (
-            f"{self._access_token}{nonce}{MERCHANT_CODE}{trimmed_body}{IOT_SIGN_KEY}"
-        )
-        return hashlib.md5(sign_data.encode("utf-8"), usedforsecurity=False).hexdigest()
+        return self._transport_signing.iot_sign(self._access_token or "", nonce, body)
 
     def _to_device_type_hex(self, device_type: int | str) -> str:
         """Convert device type to hex string format.
@@ -148,7 +137,7 @@ class _ClientTransportMixin(_ClientAuthRecoveryMixin):
 
     def _get_timestamp_ms(self) -> int:
         """Get current timestamp in milliseconds."""
-        return int(time.time() * 1000)
+        return self._transport_signing.get_timestamp_ms()
 
     async def _execute_request(
         self,
@@ -168,105 +157,12 @@ class _ClientTransportMixin(_ClientAuthRecoveryMixin):
             LiproConnectionError: If connection fails or times out.
 
         """
-        try:
-            async with request_ctx as response:
-                status = response.status
-                headers = dict(response.headers)
-                try:
-                    try:
-                        result = await response.json(content_type=None)
-                    except TypeError:
-                        result = await response.json()
-                except (json.JSONDecodeError, aiohttp.ContentTypeError) as err:
-                    body_length: int | None = response.content_length
-                    preview_bytes: Any
-
-                    body_bytes: bytes | None = getattr(response, "_body", None)
-                    if isinstance(body_bytes, bytes):
-                        body_length = len(body_bytes)
-                        preview_bytes = body_bytes[:_INVALID_JSON_BODY_READ_MAX_BYTES]
-                        truncated = len(body_bytes) > _INVALID_JSON_BODY_READ_MAX_BYTES
-                    else:
-                        preview_bytes = await response.content.read(
-                            _INVALID_JSON_BODY_READ_MAX_BYTES + 1
-                        )
-                        truncated = (
-                            len(preview_bytes) > _INVALID_JSON_BODY_READ_MAX_BYTES
-                        )
-                        if truncated:
-                            preview_bytes = preview_bytes[
-                                :_INVALID_JSON_BODY_READ_MAX_BYTES
-                            ]
-
-                    if not isinstance(preview_bytes, (bytes, bytearray)):
-                        preview_bytes = b""
-                    else:
-                        preview_bytes = bytes(preview_bytes)
-
-                    charset = response.charset or "utf-8"
-                    try:
-                        preview_text = preview_bytes.decode(
-                            charset,
-                            errors="replace",
-                        )
-                    except (LookupError, TypeError):
-                        preview_text = preview_bytes.decode(
-                            "utf-8",
-                            errors="replace",
-                        )
-                    masked_preview = _response_safety.mask_sensitive_data(preview_text)
-                    masked_preview = masked_preview[
-                        :_INVALID_JSON_LOG_PREVIEW_MAX_CHARS
-                    ]
-                    _LOGGER.debug(
-                        "Invalid JSON response preview from %s: %s",
-                        path,
-                        masked_preview,
-                    )
-                    if truncated:
-                        _LOGGER.debug(
-                            "Invalid JSON response from %s truncated at %d bytes",
-                            path,
-                            _INVALID_JSON_BODY_READ_MAX_BYTES,
-                        )
-                    msg = (
-                        f"Invalid JSON response from {path} "
-                        f"(status={status}, body_length={body_length})"
-                    )
-                    raise LiproApiError(msg) from err
-        except aiohttp.ClientError as err:
-            msg = f"Connection error: {err}"
-            raise LiproConnectionError(msg) from err
-        except TimeoutError as err:
-            msg = "Request timeout"
-            raise LiproConnectionError(msg) from err
-
-        if _LOGGER.isEnabledFor(logging.DEBUG):
-            summary: dict[str, Any] = {"type": type(result).__name__}
-            if isinstance(result, dict):
-                summary["keys_count"] = len(result)
-                for key in ("code", "errorCode", "success"):
-                    if key in result:
-                        summary[key] = result.get(key)
-            elif isinstance(result, list):
-                summary["len"] = len(result)
-            _LOGGER.debug(
-                "API response from %s: %s",
-                path,
-                json.dumps(summary, ensure_ascii=False),
-            )
-        return status, result, headers
+        return await self._transport_core.execute_request(request_ctx, path)
 
     @staticmethod
     def _require_mapping_response(path: str, result: Any) -> dict[str, Any]:
         """Validate that an API response payload is a JSON object."""
-        if isinstance(result, dict):
-            return result
-        msg = (
-            f"Invalid JSON response from {path}: "
-            f"expected object, got {type(result).__name__}"
-        )
-        raise LiproApiError(msg)
+        return TransportCore.require_mapping_response(path, result)
 
     async def _execute_mapping_request_with_rate_limit(
         self,
@@ -279,15 +175,13 @@ class _ClientTransportMixin(_ClientAuthRecoveryMixin):
         ],
     ) -> tuple[int, dict[str, Any], str | None]:
         """Execute mapping request with shared 429 retry and payload validation."""
-        status, result, headers, request_token = await send_request()
-        if status == 429:
-            await self._handle_rate_limit(path, headers, retry_count)
-            return await self._execute_mapping_request_with_rate_limit(
-                path=path,
-                retry_count=retry_count + 1,
-                send_request=send_request,
-            )
-        return status, self._require_mapping_response(path, result), request_token
+        return await TransportRetry.execute_with_rate_limit_retry(
+            path=path,
+            retry_count=retry_count,
+            send_request=send_request,
+            require_mapping_response=self._require_mapping_response,
+            parse_retry_after=self._parse_retry_after,
+        )
 
     async def _request_smart_home_mapping(
         self,

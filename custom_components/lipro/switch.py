@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
 from homeassistant.components.switch import SwitchDeviceClass, SwitchEntity
@@ -38,6 +39,67 @@ if TYPE_CHECKING:
 
 # Limit parallel updates to avoid overwhelming the API
 PARALLEL_UPDATES = 1
+
+
+@dataclass
+class PropertySwitchConfig:
+    """Configuration for a property-based switch entity."""
+
+    translation_key: str
+    entity_suffix: str
+    property_key: str
+    device_property: str
+
+
+# Light feature switches configuration
+LIGHT_FEATURE_SWITCHES = [
+    PropertySwitchConfig(
+        translation_key="fade",
+        entity_suffix="fade",
+        property_key=PROP_FADE_STATE,
+        device_property="fade_state",
+    ),
+    PropertySwitchConfig(
+        translation_key="sleep_aid",
+        entity_suffix="sleep_aid",
+        property_key=PROP_SLEEP_AID_ENABLE,
+        device_property="sleep_aid_enabled",
+    ),
+    PropertySwitchConfig(
+        translation_key="wake_up",
+        entity_suffix="wake_up",
+        property_key=PROP_WAKE_UP_ENABLE,
+        device_property="wake_up_enabled",
+    ),
+    PropertySwitchConfig(
+        translation_key="focus_mode",
+        entity_suffix="focus_mode",
+        property_key=PROP_FOCUS_MODE,
+        device_property="focus_mode_enabled",
+    ),
+    PropertySwitchConfig(
+        translation_key="body_reactive",
+        entity_suffix="body_reactive",
+        property_key=PROP_BODY_REACTIVE,
+        device_property="body_reactive_enabled",
+    ),
+]
+
+# Panel feature switches configuration
+PANEL_FEATURE_SWITCHES = [
+    PropertySwitchConfig(
+        translation_key="panel_led",
+        entity_suffix="panel_led",
+        property_key=PROP_LED,
+        device_property="panel_led_enabled",
+    ),
+    PropertySwitchConfig(
+        translation_key="panel_memory",
+        entity_suffix="panel_memory",
+        property_key=PROP_MEMORY,
+        device_property="panel_memory_enabled",
+    ),
+]
 
 
 async def async_setup_entry(
@@ -78,21 +140,11 @@ def _build_light_feature_switches(
     device: LiproDevice,
 ) -> list[SwitchEntity]:
     """Build feature switches for one light device."""
-    return build_device_entities_from_rules(
-        coordinator,
-        device,
-        always_factories=(LiproFadeSwitch,),
-        rules=(
-            (
-                lambda d: d.has_sleep_wake_features,
-                (LiproSleepAidSwitch, LiproWakeUpSwitch),
-            ),
-            (
-                lambda d: d.has_floor_lamp_features,
-                (LiproFocusModeSwitch, LiproBodyReactiveSwitch),
-            ),
-        ),
-    )
+    entities: list[SwitchEntity] = []
+    for config in LIGHT_FEATURE_SWITCHES:
+        if hasattr(device, config.device_property):
+            entities.append(LiproPropertySwitch(coordinator, device, config))
+    return entities
 
 
 def _build_panel_feature_switches(
@@ -100,20 +152,12 @@ def _build_panel_feature_switches(
     device: LiproDevice,
 ) -> list[SwitchEntity]:
     """Build feature switches for one switch panel device."""
-    return build_device_entities_from_rules(
-        coordinator,
-        device,
-        rules=(
-            (
-                lambda d: PROP_LED in d.properties,
-                (LiproPanelLedSwitch,),
-            ),
-            (
-                lambda d: PROP_MEMORY in d.properties,
-                (LiproPanelMemorySwitch,),
-            ),
-        ),
-    )
+    entities: list[SwitchEntity] = []
+    for config in PANEL_FEATURE_SWITCHES:
+        if PROP_LED in device.properties or PROP_MEMORY in device.properties:
+            if hasattr(device, config.device_property):
+                entities.append(LiproPanelPropertySwitch(coordinator, device, config))
+    return entities
 
 
 class LiproSwitch(LiproEntity, SwitchEntity):
@@ -151,42 +195,69 @@ class LiproSwitch(LiproEntity, SwitchEntity):
 
 
 class LiproPropertySwitch(LiproEntity, SwitchEntity):
-    """Base class for property-based feature switches."""
+    """Generic property-based feature switch using configuration."""
 
     _attr_entity_category = EntityCategory.CONFIG
-    _property_key: str
-    _device_property: str
+
+    def __init__(
+        self,
+        coordinator: LiproCoordinator,
+        device: LiproDevice,
+        config: PropertySwitchConfig,
+    ) -> None:
+        """Initialize the property switch."""
+        super().__init__(coordinator, device, config.entity_suffix)
+        self._config = config
+        self._attr_translation_key = config.translation_key
 
     @property
     def is_on(self) -> bool:
         """Return true if the feature is enabled."""
-        return bool(getattr(self.device, self._device_property, False))
+        return bool(getattr(self.device, self._config.device_property, False))
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Enable the feature."""
-        await self.async_change_state({self._property_key: "1"})
+        await self.async_change_state({self._config.property_key: "1"})
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Disable the feature."""
-        await self.async_change_state({self._property_key: "0"})
+        await self.async_change_state({self._config.property_key: "0"})
 
 
-class LiproPanelPropertySwitch(LiproPropertySwitch):
-    """Base class for switch-panel config entities using PANEL_CHANGE_STATE."""
+class LiproPanelPropertySwitch(LiproEntity, SwitchEntity):
+    """Generic panel property switch using PANEL_CHANGE_STATE command."""
+
+    _attr_entity_category = EntityCategory.CONFIG
+
+    def __init__(
+        self,
+        coordinator: LiproCoordinator,
+        device: LiproDevice,
+        config: PropertySwitchConfig,
+    ) -> None:
+        """Initialize the panel property switch."""
+        super().__init__(coordinator, device, config.entity_suffix)
+        self._config = config
+        self._attr_translation_key = config.translation_key
+
+    @property
+    def is_on(self) -> bool:
+        """Return true if the feature is enabled."""
+        return bool(getattr(self.device, self._config.device_property, False))
 
     async def _async_set_panel_state(self, enabled: bool) -> None:
         """Send one panel config update with the required panelType."""
         value = "1" if enabled else "0"
         payload, _ = self._normalize_property_map(
             {
-                self._property_key: value,
+                self._config.property_key: value,
                 "panelType": self.device.panel_type,
             }
         )
         await self.async_send_command(
             CMD_PANEL_CHANGE_STATE,
             payload,
-            {self._property_key: value},
+            {self._config.property_key: value},
         )
 
     async def async_turn_on(self, **kwargs: Any) -> None:
@@ -197,65 +268,3 @@ class LiproPanelPropertySwitch(LiproPropertySwitch):
         """Disable the panel feature."""
         await self._async_set_panel_state(False)
 
-
-class LiproFadeSwitch(LiproPropertySwitch):
-    """Switch entity for light fade/transition effect."""
-
-    _attr_translation_key = "fade"
-    _entity_suffix = "fade"
-    _property_key = PROP_FADE_STATE
-    _device_property = "fade_state"
-
-
-class LiproSleepAidSwitch(LiproPropertySwitch):
-    """Switch entity for Natural Light sleep aid mode."""
-
-    _attr_translation_key = "sleep_aid"
-    _entity_suffix = "sleep_aid"
-    _property_key = PROP_SLEEP_AID_ENABLE
-    _device_property = "sleep_aid_enabled"
-
-
-class LiproWakeUpSwitch(LiproPropertySwitch):
-    """Switch entity for Natural Light wake up mode."""
-
-    _attr_translation_key = "wake_up"
-    _entity_suffix = "wake_up"
-    _property_key = PROP_WAKE_UP_ENABLE
-    _device_property = "wake_up_enabled"
-
-
-class LiproFocusModeSwitch(LiproPropertySwitch):
-    """Switch entity for Floor Lamp focus mode."""
-
-    _attr_translation_key = "focus_mode"
-    _entity_suffix = "focus_mode"
-    _property_key = PROP_FOCUS_MODE
-    _device_property = "focus_mode_enabled"
-
-
-class LiproBodyReactiveSwitch(LiproPropertySwitch):
-    """Switch entity for Floor Lamp motion reactive mode."""
-
-    _attr_translation_key = "body_reactive"
-    _entity_suffix = "body_reactive"
-    _property_key = PROP_BODY_REACTIVE
-    _device_property = "body_reactive_enabled"
-
-
-class LiproPanelLedSwitch(LiproPanelPropertySwitch):
-    """Switch entity for a panel's indicator LED."""
-
-    _attr_translation_key = "panel_led"
-    _entity_suffix = "panel_led"
-    _property_key = PROP_LED
-    _device_property = "panel_led_enabled"
-
-
-class LiproPanelMemorySwitch(LiproPanelPropertySwitch):
-    """Switch entity for a panel's power-loss memory."""
-
-    _attr_translation_key = "panel_memory"
-    _entity_suffix = "panel_memory"
-    _property_key = PROP_MEMORY
-    _device_property = "panel_memory_enabled"

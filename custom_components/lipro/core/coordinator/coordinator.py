@@ -11,19 +11,39 @@ from datetime import timedelta
 import logging
 from typing import TYPE_CHECKING, Any
 
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
+from homeassistant.exceptions import ConfigEntryAuthFailed
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from ...const.config import DEFAULT_SCAN_INTERVAL
-from ..api import LiproClient
+from ..api import (
+    LiproApiError,
+    LiproAuthError,
+    LiproClient,
+    LiproConnectionError,
+    LiproRefreshTokenExpiredError,
+)
 from ..command.confirmation_tracker import CommandConfirmationTracker
 from ..device.identity_index import DeviceIdentityIndex
 from ..utils.background_task_manager import BackgroundTaskManager
+from .runtime.command import (
+    CommandBuilder,
+    CommandSender,
+    ConfirmationManager,
+    RetryStrategy,
+)
+from .runtime.command_runtime import CommandRuntime
 from .runtime.device_runtime import DeviceRuntime
 from .runtime.mqtt_runtime import MqttRuntime
 from .runtime.shared_state import CoordinatorSharedState
 from .runtime.state_runtime import StateRuntime
 from .runtime.status_runtime import StatusRuntime
 from .runtime.tuning_runtime import TuningRuntime
+from .services import (
+    CoordinatorCommandService,
+    CoordinatorDeviceRefreshService,
+    CoordinatorMqttService,
+    CoordinatorStateService,
+)
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
@@ -73,6 +93,13 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
         self.auth_manager = auth_manager
         self.config_entry = config_entry
 
+        # Initialize components in stages
+        self._init_state_containers()
+        self._init_runtime_components(update_interval)
+        self._init_service_layer()
+
+    def _init_state_containers(self) -> None:
+        """Initialize core state containers and managers."""
         # Core state containers
         self._devices: dict[str, LiproDevice] = {}
         self._entities: dict[str, LiproEntityProtocol] = {}
@@ -108,9 +135,6 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
         self._post_command_refresh_tasks: dict[str, asyncio.Task[Any]] = {}
         self._connect_status_priority_ids: set[str] = set()
         self._force_connect_status_refresh: bool = False
-
-        # Initialize runtime components and services
-        self._init_runtime_components(update_interval)
 
     def _normalize_device_key(self, device_id: str) -> str:
         """Normalize device identifier for indexing.
@@ -180,14 +204,6 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
         )
 
         # Initialize CommandRuntime with sub-components
-        from .runtime.command import (
-            CommandBuilder,
-            CommandSender,
-            ConfirmationManager,
-            RetryStrategy,
-        )
-        from .runtime.command_runtime import CommandRuntime
-
         command_builder = CommandBuilder(debug_mode=False)
         command_sender = CommandSender(client=self.client)
         retry_strategy = RetryStrategy()
@@ -215,14 +231,8 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
             debug_mode=False,
         )
 
-        # Placeholder: Initialize services (these will delegate to runtimes)
-        from .services import (
-            CoordinatorCommandService,
-            CoordinatorDeviceRefreshService,
-            CoordinatorMqttService,
-            CoordinatorStateService,
-        )
-
+    def _init_service_layer(self) -> None:
+        """Initialize service layer that delegates to runtime components."""
         self.command_service = CoordinatorCommandService(self)
         self.device_refresh_service = CoordinatorDeviceRefreshService(self)
         self.mqtt_service = CoordinatorMqttService(self)
@@ -279,8 +289,6 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
         Args:
             reason: Reason for reauth (e.g., "auth_expired", "auth_error")
         """
-        from homeassistant.exceptions import ConfigEntryAuthFailed
-
         _LOGGER.warning("Triggering reauth: %s", reason)
         error_message = f"Authentication failed: {reason}"
         raise ConfigEntryAuthFailed(error_message)
@@ -297,32 +305,27 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
         Raises:
             UpdateFailed: If update fails
         """
-        from homeassistant.exceptions import ConfigEntryAuthFailed
-        from homeassistant.helpers.update_coordinator import UpdateFailed
-
-        from ..api import (
-            LiproApiError,
-            LiproAuthError,
-            LiproConnectionError,
-            LiproRefreshTokenExpiredError,
-        )
-
         try:
-            # Ensure authentication is valid
-            await self.auth_manager.async_ensure_authenticated()
+            # Add total timeout protection (30 seconds)
+            async with asyncio.timeout(30):
+                # Ensure authentication is valid (no specific timeout, uses API timeout)
+                await self.auth_manager.async_ensure_authenticated()
 
-            # Refresh device list if needed
-            if self._device_runtime.should_refresh_device_list():
-                await self._device_runtime.refresh_devices(force=True)
+                # Refresh device list if needed (10 seconds timeout)
+                if self._device_runtime.should_refresh_device_list():
+                    async with asyncio.timeout(10):
+                        await self._device_runtime.refresh_devices(force=True)
 
-            # Update device status
-            await self._status_runtime.update_all_device_status()
-
-            # Schedule MQTT setup if needed
-            if self._mqtt_runtime and not self._mqtt_runtime.is_connected:
-                await self._mqtt_runtime.setup()
+                # Schedule MQTT setup if needed (5 seconds timeout)
+                if self._mqtt_runtime and not self._mqtt_runtime.is_connected:
+                    async with asyncio.timeout(5):
+                        await self._mqtt_runtime.setup()
 
             return self._devices
+
+        except TimeoutError:
+            _LOGGER.error("Update data timeout after 30 seconds")
+            raise UpdateFailed("Update timeout") from None
 
         except (
             LiproRefreshTokenExpiredError,

@@ -295,3 +295,14 @@ class LiproEntity(CoordinatorEntity[Any]):
             self._debounce_protected_keys.clear()
             self._debounce_protected_until = 0
             await self.coordinator.async_request_refresh()
+
+    def _update_from_device(self) -> None:
+        """Update entity state from device data.
+
+        Subclasses should override this method to update their specific attributes
+        from the device state. This is called automatically when coordinator data
+        is updated.
+
+        The default implementation does nothing, allowing entities to opt-in to
+        state updates by overriding this method.
+        """

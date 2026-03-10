@@ -2,6 +2,8 @@
 
 from typing import Final
 
+from .entity_config import DEFAULT_MAX_KELVIN, DEFAULT_MIN_KELVIN
+
 # Commands
 CMD_POWER_ON: Final = "POWER_ON"
 CMD_POWER_OFF: Final = "POWER_OFF"
@@ -118,9 +120,10 @@ WIND_DIRECTION_FIX: Final = 2
 # Note: Actual device ranges vary by product (e.g., 3000-4000K, 3000-5000K)
 # Device-specific ranges are loaded from product configs and stored in
 # device.min_color_temp_kelvin / device.max_color_temp_kelvin
-MIN_COLOR_TEMP_KELVIN: Final = 2700
-MAX_COLOR_TEMP_KELVIN: Final = 6500
-COLOR_TEMP_RANGE: Final = MAX_COLOR_TEMP_KELVIN - MIN_COLOR_TEMP_KELVIN  # 3800
+# These constants reference centralized defaults from entity_config.py
+MIN_COLOR_TEMP_KELVIN: Final = DEFAULT_MIN_KELVIN
+MAX_COLOR_TEMP_KELVIN: Final = DEFAULT_MAX_KELVIN
+COLOR_TEMP_RANGE: Final = MAX_COLOR_TEMP_KELVIN - MIN_COLOR_TEMP_KELVIN
 
 
 def percent_to_kelvin(percent: int) -> int:
