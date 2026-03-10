@@ -13,6 +13,7 @@ from ...const.config import (
     CONF_REFRESH_TOKEN,
     CONF_USER_ID,
 )
+from .types import ApiResponse, LoginResponse
 
 
 class AuthApiService:
@@ -32,7 +33,7 @@ class AuthApiService:
         password: str,
         *,
         password_is_hashed: bool = False,
-    ) -> dict[str, Any]:
+    ) -> LoginResponse:
         """Login with phone number and password/hash."""
         if password_is_hashed:
             password_hash = password
@@ -41,7 +42,7 @@ class AuthApiService:
                 password.encode("utf-8"), usedforsecurity=False
             ).hexdigest()
 
-        result = await self._client._smart_home_request(
+        result: ApiResponse = await self._client._smart_home_request(
             PATH_LOGIN,
             {
                 "phone": phone,
@@ -50,8 +51,8 @@ class AuthApiService:
             require_auth=False,
         )
 
-        access_token = result.get("access_token")
-        refresh_token = result.get("refresh_token")
+        access_token: str | None = result.get("access_token")  # type: ignore[assignment]
+        refresh_token: str | None = result.get("refresh_token")  # type: ignore[assignment]
         if not access_token or not refresh_token:
             msg = "Login response missing access_token or refresh_token"
             raise self._auth_error_cls(msg)
@@ -63,21 +64,19 @@ class AuthApiService:
 
         self._logger.info("Login successful")
         return {
-            CONF_ACCESS_TOKEN: self._client._access_token,
-            CONF_REFRESH_TOKEN: self._client._refresh_token,
-            CONF_USER_ID: self._client._user_id,
-            CONF_BIZ_ID: self._client._biz_id,
-            "phone": result.get("phone"),
-            "user_name": result.get("userName"),
+            "access_token": self._client._access_token,
+            "refresh_token": self._client._refresh_token,
+            "expires_in": 0,
+            "user_id": self._client._user_id or "",
         }
 
-    async def refresh_access_token(self) -> dict[str, Any]:
+    async def refresh_access_token(self) -> LoginResponse:
         """Refresh access token."""
         if not self._client._refresh_token:
             msg = "No refresh token available"
             raise self._auth_error_cls(msg)
 
-        result = await self._client._smart_home_request(
+        result: ApiResponse = await self._client._smart_home_request(
             PATH_REFRESH_TOKEN,
             {
                 "refreshToken": self._client._refresh_token,
@@ -86,8 +85,8 @@ class AuthApiService:
             require_auth=False,
         )
 
-        access_token = result.get("access_token")
-        refresh_token = result.get("refresh_token")
+        access_token: str | None = result.get("access_token")  # type: ignore[assignment]
+        refresh_token: str | None = result.get("refresh_token")  # type: ignore[assignment]
         if not access_token or not refresh_token:
             msg = "Refresh response missing access_token or refresh_token"
             raise self._auth_error_cls(msg)
@@ -98,7 +97,8 @@ class AuthApiService:
 
         self._logger.info("Token refreshed successfully")
         return {
-            CONF_ACCESS_TOKEN: self._client._access_token,
-            CONF_REFRESH_TOKEN: self._client._refresh_token,
-            CONF_USER_ID: self._client._user_id,
+            "access_token": self._client._access_token,
+            "refresh_token": self._client._refresh_token,
+            "expires_in": 0,
+            "user_id": self._client._user_id or "",
         }
