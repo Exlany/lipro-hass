@@ -2,9 +2,8 @@
 
 from __future__ import annotations
 
-from typing import Any
-from unittest.mock import AsyncMock, Mock, patch
 from time import monotonic
+from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
@@ -268,7 +267,16 @@ class TestMqttRuntimeDisconnectNotification:
         self, mock_create_task: Mock, mqtt_runtime: MqttRuntime
     ) -> None:
         """Test disconnect notification triggers after threshold."""
-        # Simulate disconnect
+
+        def _close_coroutine(coro):
+            coro.close()
+            task = Mock()
+            task.add_done_callback = Mock()
+            task.cancelled = Mock(return_value=False)
+            task.exception = Mock(return_value=None)
+            return task
+
+        mock_create_task.side_effect = _close_coroutine
         mqtt_runtime._connection_manager._connected = False
         mqtt_runtime._connection_manager._disconnect_time = (
             monotonic() - 400  # 400 seconds ago

@@ -110,7 +110,7 @@ def make_device():
 
 @pytest.fixture
 def mock_coordinator():
-    """Create a mock LiproDataUpdateCoordinator for testing."""
+    """Create a mock coordinator for testing."""
     coordinator = MagicMock()
     coordinator.devices = {}
     coordinator.last_update_success = True

@@ -10,7 +10,7 @@ from .api import (
     LiproRefreshTokenExpiredError,
 )
 from .auth import LiproAuthManager
-from .coordinator import LiproDataUpdateCoordinator
+from .coordinator import Coordinator
 from .device import LiproDevice, parse_properties_list
 from .exceptions import (
     ApiAuthError,
@@ -26,12 +26,12 @@ __all__ = [
     "AnonymousShareManager",
     "ApiAuthError",
     "ApiNetworkError",
+    "Coordinator",
     "LiproApiError",
     "LiproAuthError",
     "LiproAuthManager",
     "LiproClient",
     "LiproConnectionError",
-    "LiproDataUpdateCoordinator",
     "LiproDevice",
     "LiproError",
     "LiproMqttError",

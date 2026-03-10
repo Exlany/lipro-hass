@@ -88,7 +88,7 @@ async def test_async_setup_mqtt_builds_refactored_client(
         mock_client = AsyncMock()
         mock_client_cls.return_value = mock_client
 
-        mock_runtime = AsyncMock()
+        mock_runtime = MagicMock()
         mock_runtime.is_connected = True
         mock_runtime.connect = AsyncMock()
         mock_runtime_cls.return_value = mock_runtime

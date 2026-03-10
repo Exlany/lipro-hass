@@ -19,3 +19,14 @@ def test_api_helpers_use_canonical_submodule_symbols() -> None:
     assert not hasattr(api, "_mask_sensitive_data")
     assert not hasattr(api, "_normalize_response_code")
     assert not hasattr(api, "_COMMAND_PACING_CACHE_MAX_SIZE")
+
+
+def test_coordinator_module_exports_only_canonical_surface() -> None:
+    """`custom_components.lipro.core` should no longer export deprecated coordinator aliases."""
+    from custom_components.lipro import core
+    from custom_components.lipro.core import coordinator
+
+    assert hasattr(core, "Coordinator")
+    assert hasattr(coordinator, "Coordinator")
+    assert not hasattr(core, "LiproDataUpdateCoordinator")
+    assert not hasattr(coordinator, "LiproDataUpdateCoordinator")

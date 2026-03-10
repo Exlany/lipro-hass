@@ -24,9 +24,10 @@ from ..api import (
 )
 from ..command.confirmation_tracker import CommandConfirmationTracker
 from ..device.identity_index import DeviceIdentityIndex
-from ..mqtt.mqtt_client import LiproMqttClient
 from ..mqtt.credentials import decrypt_mqtt_credential
+from ..mqtt.mqtt_client import LiproMqttClient
 from ..utils.background_task_manager import BackgroundTaskManager
+from .mqtt.setup import resolve_mqtt_biz_id
 from .runtime.command import (
     CommandBuilder,
     CommandSender,
@@ -40,7 +41,6 @@ from .runtime.shared_state import CoordinatorSharedState
 from .runtime.state_runtime import StateRuntime
 from .runtime.status_runtime import StatusRuntime
 from .runtime.tuning_runtime import TuningRuntime
-from .mqtt.setup import resolve_mqtt_biz_id
 from .services import (
     CoordinatorCommandService,
     CoordinatorDeviceRefreshService,
@@ -54,7 +54,6 @@ if TYPE_CHECKING:
 
     from ..auth import LiproAuthManager
     from ..device import LiproDevice
-    from ..mqtt.mqtt_client import LiproMqttClient
     from .entity_protocol import LiproEntityProtocol
 
 _LOGGER = logging.getLogger(__name__)
@@ -322,7 +321,7 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
             device_serial=entity.device.serial,
         )
 
-        # Maintain backward compatibility with _entities dict
+        # Keep the entity index in sync with runtime state
         self._entities[entity.entity_id] = entity
         device_serial = entity.device.serial
         if device_serial not in self._entities_by_device:
@@ -340,7 +339,7 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
         if not entity.entity_id:
             return
 
-        # Maintain backward compatibility with _entities dict (do this first)
+        # Remove from the shared entity index first.
         # Only remove if the stored entity is the same instance
         should_unregister_from_runtime = False
         if self._entities.get(entity.entity_id) is entity:
@@ -540,7 +539,7 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
 
         except (asyncio.CancelledError, KeyboardInterrupt, SystemExit):
             raise
-        except Exception as err:
+        except Exception as err:  # noqa: BLE001
             _LOGGER.warning("Failed to setup MQTT: %s", err)
             return False
 
@@ -602,8 +601,4 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
             raise UpdateFailed("Unexpected update failure") from err
 
 
-# DEPRECATED: Use Coordinator directly. This alias is kept for backward compatibility.
-# Will be removed in version 3.0.0
-LiproDataUpdateCoordinator = Coordinator
-
-__all__ = ["Coordinator", "LiproDataUpdateCoordinator"]
+__all__ = ["Coordinator"]
