@@ -103,6 +103,13 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
             state_confirm_timeout_seconds=5.0,
         )
 
+        # Command runtime state (required by ConfirmationManager)
+        self._pending_expectations: dict[str, Any] = {}
+        self._device_state_latency_seconds: dict[str, float] = {}
+        self._post_command_refresh_tasks: dict[str, asyncio.Task[Any]] = {}
+        self._connect_status_priority_ids: set[str] = set()
+        self._force_connect_status_refresh: bool = False
+
         # Initialize runtime components and services
         self._init_runtime_components(update_interval)
 
@@ -173,8 +180,41 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
             polling_multiplier=2,
         )
 
-        # TODO: Initialize CommandRuntime (requires complex sub-components)
-        # - CommandRuntime
+        # Initialize CommandRuntime with sub-components
+        from .runtime.command import (
+            CommandBuilder,
+            CommandSender,
+            ConfirmationManager,
+            RetryStrategy,
+        )
+        from .runtime.command_runtime import CommandRuntime
+
+        command_builder = CommandBuilder(debug_mode=False)
+        command_sender = CommandSender(client=self.client)
+        retry_strategy = RetryStrategy()
+        confirmation_manager = ConfirmationManager(
+            confirmation_tracker=self._confirmation_tracker,
+            pending_expectations=self._pending_expectations,
+            device_state_latency_seconds=self._device_state_latency_seconds,
+            post_command_refresh_tasks=self._post_command_refresh_tasks,
+            track_background_task=self._background_task_manager.create,
+            request_refresh=self.async_request_refresh,
+            mqtt_connected_provider=lambda: self._mqtt_runtime.is_connected,
+        )
+
+        self._command_runtime = CommandRuntime(
+            builder=command_builder,
+            sender=command_sender,
+            retry=retry_strategy,
+            confirmation=confirmation_manager,
+            connect_status_priority_ids=self._connect_status_priority_ids,
+            normalize_device_key=self._normalize_device_key,
+            force_connect_status_refresh_setter=lambda v: setattr(
+                self, "_force_connect_status_refresh", v
+            ),
+            trigger_reauth=self._async_trigger_reauth,
+            debug_mode=False,
+        )
 
         # Placeholder: Initialize services (these will delegate to runtimes)
         from .services import (
@@ -201,8 +241,8 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
         Returns:
             Dictionary mapping device ID to status properties
         """
-        # TODO: Implement actual API call
-        return {}
+        results = await self.client.status.query_device_status(device_ids)
+        return {item.get("iotId", ""): item for item in results if "iotId" in item}
 
     def _apply_properties_update(
         self, device: LiproDevice, properties: dict[str, Any], source: str
