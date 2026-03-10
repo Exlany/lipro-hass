@@ -27,5 +27,4 @@ class CoordinatorDeviceRefreshService:
 
     async def async_refresh_devices(self) -> None:
         """Trigger a forced device refresh on the wrapped coordinator."""
-        # TODO: Implement device refresh via DeviceRuntime
-        pass
+        await self.coordinator._device_runtime.refresh_devices(force=True)

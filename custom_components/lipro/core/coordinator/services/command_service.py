@@ -23,8 +23,7 @@ class CoordinatorCommandService:
     @property
     def last_failure(self) -> dict[str, Any] | None:
         """Return the latest command failure payload, if any."""
-        # TODO: Implement command failure tracking
-        return None
+        return self.coordinator._command_runtime.last_command_failure
 
     async def async_send_command(
         self,
@@ -34,5 +33,10 @@ class CoordinatorCommandService:
         fallback_device_id: str | None = None,
     ) -> bool:
         """Dispatch one command through the wrapped coordinator pipeline."""
-        # TODO: Implement command dispatch via CommandRuntime
-        return False
+        success, _route = await self.coordinator._command_runtime.send_device_command(
+            device=device,
+            command=command,
+            properties=properties,
+            fallback_device_id=fallback_device_id,
+        )
+        return success

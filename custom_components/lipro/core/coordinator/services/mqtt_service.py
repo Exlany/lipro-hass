@@ -22,15 +22,14 @@ class CoordinatorMqttService:
 
     async def async_setup(self) -> bool:
         """Set up coordinator-managed MQTT runtime."""
-        # TODO: Implement MQTT setup via MqttRuntime
-        return False
+        return await self.coordinator._mqtt_runtime.setup()
 
     async def async_stop(self) -> None:
         """Stop coordinator-managed MQTT runtime."""
-        # TODO: Implement MQTT stop via MqttRuntime
-        pass
+        await self.coordinator._mqtt_runtime.stop()
 
     async def async_sync_subscriptions(self) -> None:
         """Sync subscriptions using the wrapped coordinator state."""
-        # TODO: Implement subscription sync via MqttRuntime
-        pass
+        await self.coordinator._mqtt_runtime.sync_subscriptions(
+            self.coordinator._state_runtime.get_all_devices()
+        )
