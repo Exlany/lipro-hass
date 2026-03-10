@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 from collections.abc import Mapping
 import logging
 from time import monotonic
@@ -59,6 +60,8 @@ class LiproEntity(CoordinatorEntity[Any]):
         # Track when debounced properties were last set (for protection window)
         self._debounce_protected_until: float = 0
         self._debounce_protected_keys: set[str] = set()
+        # Lock to protect device property updates from race conditions
+        self._device_update_lock = asyncio.Lock()
 
         # Set unique ID
         if self._entity_suffix:
@@ -207,7 +210,8 @@ class LiproEntity(CoordinatorEntity[Any]):
 
         # Apply optimistic state update immediately
         if optimistic_state:
-            self.device.update_properties(optimistic_state)
+            async with self._device_update_lock:
+                self.device.update_properties(optimistic_state)
             self.async_write_ha_state()
 
         success = await self.coordinator.async_send_command(
@@ -250,7 +254,8 @@ class LiproEntity(CoordinatorEntity[Any]):
 
         # Apply optimistic state update immediately (no debounce for UI feedback)
         if optimistic_state:
-            self.device.update_properties(optimistic_state)
+            async with self._device_update_lock:
+                self.device.update_properties(optimistic_state)
             self.async_write_ha_state()
 
             # Set protection window to prevent coordinator from overwriting

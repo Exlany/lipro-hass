@@ -56,6 +56,8 @@ class IncrementalRefreshStrategy:
                         if device_id:
                             updated_states[device_id] = device_data
                 except Exception as err:  # noqa: BLE001
+                    if isinstance(err, (asyncio.CancelledError, KeyboardInterrupt, SystemExit)):
+                        raise
                     _LOGGER.debug(
                         "IoT device batch query failed (%s), skipping batch",
                         type(err).__name__,
@@ -71,6 +73,8 @@ class IncrementalRefreshStrategy:
                         if device_id:
                             updated_states[device_id] = device_data
                 except Exception as err:  # noqa: BLE001
+                    if isinstance(err, (asyncio.CancelledError, KeyboardInterrupt, SystemExit)):
+                        raise
                     _LOGGER.debug(
                         "Group device batch query failed (%s), skipping batch",
                         type(err).__name__,
@@ -86,6 +90,8 @@ class IncrementalRefreshStrategy:
                         if device_id:
                             updated_states[device_id] = device_data
                 except Exception as err:  # noqa: BLE001
+                    if isinstance(err, (asyncio.CancelledError, KeyboardInterrupt, SystemExit)):
+                        raise
                     _LOGGER.debug(
                         "Outlet device batch query failed (%s), skipping batch",
                         type(err).__name__,

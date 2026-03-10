@@ -234,7 +234,9 @@ class MqttRuntime:
             self._connection_manager.on_connect()
             self._reconnect_manager.on_reconnect_success()
             return True
-        except Exception:
+        except Exception as err:
+            if isinstance(err, (asyncio.CancelledError, KeyboardInterrupt, SystemExit)):
+                raise
             _LOGGER.exception("MQTT connection failed")
             self._reconnect_manager.on_reconnect_failure()
             return False
@@ -246,7 +248,9 @@ class MqttRuntime:
 
         try:
             await self._mqtt_client.disconnect()
-        except Exception:
+        except Exception as err:
+            if isinstance(err, (asyncio.CancelledError, KeyboardInterrupt, SystemExit)):
+                raise
             _LOGGER.exception("MQTT disconnect failed")
         finally:
             self._connection_manager.on_disconnect()

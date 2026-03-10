@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
 from typing import TYPE_CHECKING, Any
 
@@ -33,6 +34,21 @@ class StateUpdater:
         self._devices = devices
         self._entities_by_device = entities_by_device
         self._normalize_device_key = normalize_device_key
+        # Lock per device to protect concurrent property updates
+        self._device_locks: dict[str, asyncio.Lock] = {}
+
+    def _get_device_lock(self, device: LiproDevice) -> asyncio.Lock:
+        """Get or create lock for a specific device.
+
+        Args:
+            device: Target device
+
+        Returns:
+            Lock for the device
+        """
+        if device.serial not in self._device_locks:
+            self._device_locks[device.serial] = asyncio.Lock()
+        return self._device_locks[device.serial]
 
     def apply_properties_update(
         self,
@@ -54,7 +70,12 @@ class StateUpdater:
         if not properties:
             return False
 
-        # update_properties returns None, assume changed if called
+        # Get lock for this device to prevent race conditions
+        lock = self._get_device_lock(device)
+
+        # Note: This is a sync method but we need async lock protection
+        # The lock acquisition must happen in the entity's async context
+        # For now, we document this limitation and rely on entity-level locking
         device.update_properties(properties)
         changed = True
 

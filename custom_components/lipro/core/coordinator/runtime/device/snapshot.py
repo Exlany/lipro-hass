@@ -86,6 +86,8 @@ class SnapshotBuilder:
 
                 page += 1
             except Exception as err:  # noqa: BLE001
+                if isinstance(err, (asyncio.CancelledError, KeyboardInterrupt, SystemExit)):
+                    raise
                 _LOGGER.error(
                     "Device list fetch failed on page %d (%s), stopping pagination",
                     page,
@@ -146,6 +148,8 @@ class SnapshotBuilder:
                     diagnostic_gateway_devices[device.serial] = device
 
             except Exception as err:  # noqa: BLE001
+                if isinstance(err, (asyncio.CancelledError, KeyboardInterrupt, SystemExit)):
+                    raise
                 _LOGGER.debug(
                     "Failed to parse device from API data (%s: %s), skipping",
                     type(err).__name__,
