@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections import deque
 import logging
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from ...api import LiproApiError, LiproAuthError, LiproRefreshTokenExpiredError
 from ...command.result import (
@@ -16,6 +16,13 @@ from ...command.result import (
     is_command_push_failed,
 )
 from ...command.trace import build_command_trace, update_trace_with_exception
+from ..types import (
+    CommandPayload,
+    CommandTrace,
+    ConnectStatusRefreshSetter,
+    DeviceKeyNormalizer,
+    ReauthCallback,
+)
 from .protocols import CommandResult
 
 if TYPE_CHECKING:
@@ -42,9 +49,9 @@ class CommandRuntime:
         retry: RetryStrategy,
         confirmation: ConfirmationManager,
         connect_status_priority_ids: set[str],
-        normalize_device_key: Any,
-        force_connect_status_refresh_setter: Any,
-        trigger_reauth: Any,
+        normalize_device_key: DeviceKeyNormalizer,
+        force_connect_status_refresh_setter: ConnectStatusRefreshSetter,
+        trigger_reauth: ReauthCallback,
         debug_mode: bool = False,
     ) -> None:
         """Initialize with component dependencies."""
@@ -57,15 +64,15 @@ class CommandRuntime:
         self._force_connect_status_refresh_setter = force_connect_status_refresh_setter
         self._trigger_reauth = trigger_reauth
         self._debug_mode = debug_mode
-        self._traces: deque[dict[str, Any]] = deque(maxlen=_MAX_TRACES)
-        self._last_failure: dict[str, Any] | None = None
+        self._traces: deque[CommandTrace] = deque(maxlen=_MAX_TRACES)
+        self._last_failure: CommandTrace | None = None
 
     @property
-    def last_command_failure(self) -> dict[str, Any] | None:
+    def last_command_failure(self) -> CommandTrace | None:
         """Get latest command failure."""
         return dict(self._last_failure) if self._last_failure else None
 
-    def _record_trace(self, trace: dict[str, Any]) -> None:
+    def _record_trace(self, trace: CommandTrace) -> None:
         """Record trace if debug enabled."""
         if self._debug_mode:
             self._traces.append(trace)
@@ -73,7 +80,7 @@ class CommandRuntime:
     async def send_command(
         self,
         device_id: str,
-        command: dict[str, Any],
+        command: CommandPayload,
         *,
         wait_confirmation: bool = True,
         timeout: float = 5.0,
@@ -206,7 +213,7 @@ class CommandRuntime:
         self,
         *,
         device: LiproDevice,
-        trace: dict[str, Any],
+        trace: CommandTrace,
         route: str,
         err: LiproApiError,
     ) -> bool:

@@ -293,6 +293,86 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
         error_message = f"Authentication failed: {reason}"
         raise ConfigEntryAuthFailed(error_message)
 
+    async def async_setup_mqtt(self) -> bool:
+        """Set up MQTT client for real-time updates.
+
+        This method creates and initializes the MQTT client with credentials
+        from the API, then starts the connection for current devices.
+
+        Returns:
+            True if setup succeeded, False otherwise
+        """
+        from ...const.config import CONF_PHONE_ID
+        from ...mqtt.client import LiproMqttClient
+        from ...mqtt.credentials import decrypt_mqtt_credential
+        from ...mqtt.utils import resolve_mqtt_biz_id
+
+        if self.config_entry is None:
+            _LOGGER.error("Cannot setup MQTT: config_entry is None")
+            return False
+
+        try:
+            # Get encrypted MQTT credentials from API
+            mqtt_config = await self.client.get_mqtt_config()
+            if not mqtt_config:
+                _LOGGER.warning("No MQTT config available")
+                return False
+
+            # Decrypt credentials
+            access_key = decrypt_mqtt_credential(mqtt_config.get("accessKey", ""))
+            secret_key = decrypt_mqtt_credential(mqtt_config.get("secretKey", ""))
+
+            if not access_key or not secret_key:
+                _LOGGER.warning("Failed to decrypt MQTT credentials")
+                return False
+
+            # Resolve biz_id
+            biz_id = resolve_mqtt_biz_id(self.config_entry.data)
+            if biz_id is None:
+                _LOGGER.warning("No biz_id available for MQTT")
+                return False
+
+            self._biz_id = biz_id
+            phone_id = self.config_entry.data.get(CONF_PHONE_ID, "")
+
+            # Create MQTT client
+            self._mqtt_client = LiproMqttClient(
+                access_key=access_key,
+                secret_key=secret_key,
+                biz_id=biz_id,
+                phone_id=phone_id,
+            )
+
+            # Update runtime with new client
+            self._mqtt_runtime = MqttRuntime(
+                hass=self.hass,
+                mqtt_client=self._mqtt_client,
+                base_scan_interval=int(self.update_interval.total_seconds()),
+                polling_multiplier=2,
+            )
+
+            # Wire up dependencies
+            self._mqtt_runtime.set_device_resolver(self._get_device_by_id)
+            self._mqtt_runtime.set_property_applier(self._apply_properties_update)
+            self._mqtt_runtime.set_listener_notifier(
+                lambda: self.async_set_updated_data(self._devices)
+            )
+
+            # Start MQTT connection for current devices
+            device_ids = [
+                device.serial
+                for device in self._devices.values()
+                if device.is_group  # Prefer mesh groups
+            ]
+            if device_ids:
+                await self._mqtt_runtime.connect(device_ids=device_ids, biz_id=biz_id)
+
+            return True
+
+        except Exception as err:
+            _LOGGER.warning("Failed to setup MQTT: %s", err)
+            return False
+
     async def _async_update_data(self) -> dict[str, LiproDevice]:
         """Fetch data from API.
 
@@ -317,9 +397,9 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
                         await self._device_runtime.refresh_devices(force=True)
 
                 # Schedule MQTT setup if needed (5 seconds timeout)
-                if self._mqtt_runtime and not self._mqtt_runtime.is_connected:
+                if self._mqtt_client is None and self._devices:
                     async with asyncio.timeout(5):
-                        await self._mqtt_runtime.setup()
+                        await self.async_setup_mqtt()
 
             return self._devices
 

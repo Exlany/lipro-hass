@@ -192,6 +192,20 @@ class MqttRuntime:
         if self._polling_updater is not None:
             self._polling_updater.update_interval = interval
 
+    async def setup(self) -> bool:
+        """Set up MQTT connection (no-op if client not initialized).
+
+        This is a compatibility method for coordinator integration.
+        The actual MQTT client setup happens in coordinator.async_setup_mqtt().
+
+        Returns:
+            True if MQTT client is available, False otherwise
+        """
+        if self._mqtt_client is None:
+            _LOGGER.debug("MQTT client not initialized, skipping setup")
+            return False
+        return True
+
     async def connect(
         self,
         *,

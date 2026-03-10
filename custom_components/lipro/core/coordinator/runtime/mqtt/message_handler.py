@@ -4,10 +4,11 @@ from __future__ import annotations
 
 import logging
 from time import monotonic
-from typing import TYPE_CHECKING, Any, Protocol
+from typing import TYPE_CHECKING, Protocol
 
 from .....const.properties import PROP_CONNECT_STATE
 from ....mqtt.message import is_online_connect_state
+from ...types import PropertyDict
 
 if TYPE_CHECKING:
     from ....device import LiproDevice
@@ -25,8 +26,8 @@ class PropertyApplier(Protocol):
     """Protocol for applying property updates to devices."""
 
     def apply_properties_update(
-        self, device: LiproDevice, properties: dict[str, Any]
-    ) -> dict[str, Any]:
+        self, device: LiproDevice, properties: PropertyDict
+    ) -> PropertyDict:
         """Apply properties update and return applied properties."""
         ...
 
@@ -81,7 +82,7 @@ class MqttMessageHandler:
     def handle_message(
         self,
         device_id: str,
-        properties: dict[str, Any],
+        properties: PropertyDict,
         *,
         current_time: float | None = None,
     ) -> bool:
@@ -107,7 +108,7 @@ class MqttMessageHandler:
     def _after_properties_applied(
         self,
         device: LiproDevice,
-        properties: dict[str, Any],
+        properties: PropertyDict,
         *,
         current_time: float,
     ) -> None:

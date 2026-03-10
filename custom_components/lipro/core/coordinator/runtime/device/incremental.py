@@ -96,7 +96,10 @@ class IncrementalRefreshStrategy:
         for device_id, state_data in updated_states.items():
             device = devices.get(device_id)
             if device:
-                device.update_from_api(state_data)
+                # Extract properties from state_data and update device
+                properties = state_data.get("properties", {})
+                if properties:
+                    device.update_properties(properties)
                 updated_count += 1
 
         _LOGGER.debug(

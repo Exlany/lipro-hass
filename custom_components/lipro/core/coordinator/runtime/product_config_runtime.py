@@ -3,13 +3,13 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
 
 from ....const.properties import MIN_COLOR_TEMP_KELVIN
 from ...device import LiproDevice
+from ..types import PropertyDict
 
 
-def coerce_int_or_zero(value: Any) -> int:
+def coerce_int_or_zero(value: object) -> int:
     """Coerce mixed numeric payloads into int with safe fallback."""
     try:
         return int(value)
@@ -18,11 +18,11 @@ def coerce_int_or_zero(value: Any) -> int:
 
 
 def index_product_configs(
-    configs: list[dict[str, Any]],
-) -> tuple[dict[int, dict[str, Any]], dict[str, dict[str, Any]]]:
+    configs: list[PropertyDict],
+) -> tuple[dict[int, PropertyDict], dict[str, PropertyDict]]:
     """Create lookup maps by product ID and fwIotName."""
-    configs_by_id: dict[int, dict[str, Any]] = {}
-    configs_by_iot_name: dict[str, dict[str, Any]] = {}
+    configs_by_id: dict[int, PropertyDict] = {}
+    configs_by_iot_name: dict[str, PropertyDict] = {}
 
     for config in configs:
         config_id = coerce_int_or_zero(config.get("id"))
@@ -39,10 +39,10 @@ def index_product_configs(
 def match_product_config(
     device: LiproDevice,
     *,
-    configs_by_id: dict[int, dict[str, Any]],
-    configs_by_iot_name: dict[str, dict[str, Any]],
+    configs_by_id: dict[int, PropertyDict],
+    configs_by_iot_name: dict[str, PropertyDict],
     logger: logging.Logger,
-) -> dict[str, Any] | None:
+) -> PropertyDict | None:
     """Match one device to its best product config."""
     if device.product_id:
         matched = configs_by_id.get(device.product_id)
@@ -71,7 +71,7 @@ def match_product_config(
 
 def apply_product_config(
     device: LiproDevice,
-    config: dict[str, Any],
+    config: PropertyDict,
     *,
     logger: logging.Logger,
 ) -> None:

@@ -120,7 +120,9 @@ class SnapshotBuilder:
                 device = LiproDevice.from_api_data(device_data)
 
                 # Register identity aliases
-                self._device_identity_index.register_device(device)
+                self._device_identity_index.register(device.serial, device)
+                if device.iot_device_id:
+                    self._device_identity_index.register(device.iot_device_id, device)
 
                 # Add to indexes
                 devices[device.serial] = device

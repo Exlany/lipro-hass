@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
+
+from ..types import CommandTrace
 
 if TYPE_CHECKING:
     from ...device import LiproDevice
@@ -17,7 +19,7 @@ class CoordinatorCommandService:
     coordinator: Coordinator
 
     @property
-    def last_failure(self) -> dict[str, Any] | None:
+    def last_failure(self) -> CommandTrace | None:
         """Return the latest command failure payload, if any."""
         return self.coordinator._command_runtime.last_command_failure
 

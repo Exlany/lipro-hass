@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from ...device import LiproDevice
@@ -25,6 +25,6 @@ class CoordinatorStateService:
         """Resolve a device by serial."""
         return self.coordinator._state_runtime.get_device_by_serial(serial)
 
-    def get_device_by_id(self, device_id: Any) -> LiproDevice | None:
+    def get_device_by_id(self, device_id: object) -> LiproDevice | None:
         """Resolve a device by any known identifier."""
         return self.coordinator._state_runtime.get_device_by_id(device_id)

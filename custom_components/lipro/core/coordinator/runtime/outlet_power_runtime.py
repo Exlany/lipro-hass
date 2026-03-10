@@ -6,12 +6,16 @@ import asyncio
 from collections.abc import Awaitable, Callable
 import logging
 import math
-from typing import Any
+from typing import TYPE_CHECKING
 
 from ...api import LiproApiError
+from ..types import OutletPowerData, PropertyDict
+
+if TYPE_CHECKING:
+    from ...device import LiproDevice
 
 
-def _normalize_device_id(value: Any) -> str | None:
+def _normalize_device_id(value: object) -> str | None:
     """Normalize a device identifier for case/whitespace tolerant matching."""
     if not isinstance(value, str):
         return None
@@ -22,10 +26,10 @@ def _normalize_device_id(value: Any) -> str | None:
 
 
 def _normalize_single_outlet_power_payload(
-    payload: Any,
+    payload: object,
     *,
     requested_id: str,
-) -> dict[str, Any] | None:
+) -> PropertyDict | None:
     """Normalize one power-info payload into a single device mapping payload."""
     normalized_requested_id = _normalize_device_id(requested_id)
     if normalized_requested_id is None:
@@ -78,9 +82,9 @@ async def query_outlet_power(
     outlet_ids_to_query: list[str],
     round_robin_index: int,
     resolve_cycle_size: Callable[[int], int],
-    fetch_outlet_power_info: Callable[[str], Awaitable[Any]],
-    get_device_by_id: Callable[[Any], Any],
-    apply_outlet_power_info: Callable[[Any, dict[str, Any]], bool],
+    fetch_outlet_power_info: Callable[[str], Awaitable[object]],
+    get_device_by_id: Callable[[object], LiproDevice | None],
+    apply_outlet_power_info: Callable[[LiproDevice, PropertyDict], bool],
     should_reraise_outlet_power_error: Callable[[LiproApiError], bool],
     logger: logging.Logger,
     concurrency: int,
@@ -134,9 +138,9 @@ async def query_outlet_power(
 async def query_single_outlet_power(
     *,
     device_id: str,
-    fetch_outlet_power_info: Callable[[str], Awaitable[Any]],
-    get_device_by_id: Callable[[Any], Any],
-    apply_outlet_power_info: Callable[[Any, dict[str, Any]], bool],
+    fetch_outlet_power_info: Callable[[str], Awaitable[object]],
+    get_device_by_id: Callable[[object], LiproDevice | None],
+    apply_outlet_power_info: Callable[[LiproDevice, PropertyDict], bool],
     should_reraise_outlet_power_error: Callable[[LiproApiError], bool],
     logger: logging.Logger,
 ) -> None:

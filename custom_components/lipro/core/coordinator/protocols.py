@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
-from typing import Any, Protocol
+from typing import Protocol
 
 from ..device import LiproDevice
+from .types import CommandTrace
 
 
 class StateManagementProtocol(Protocol):
@@ -42,7 +43,7 @@ class CommandServiceProtocol(Protocol):
     """Service contract for coordinator command dispatch."""
 
     @property
-    def last_failure(self) -> dict[str, Any] | None:
+    def last_failure(self) -> CommandTrace | None:
         """Return the latest normalized command failure payload."""
 
     async def async_send_command(

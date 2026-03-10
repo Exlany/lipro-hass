@@ -7,7 +7,6 @@ from dataclasses import dataclass, field
 import json
 import logging
 import re
-from typing import Any
 
 from custom_components.lipro.const.config import (
     CONF_DEVICE_FILTER_DID_LIST,
@@ -24,6 +23,7 @@ from custom_components.lipro.const.config import (
     MAX_DEVICE_FILTER_LIST_CHARS,
     MAX_DEVICE_FILTER_LIST_ITEMS,
 )
+from ...types import PropertyDict, PropertyValue
 
 _LOGGER = logging.getLogger(__name__)
 _FILTER_LIST_SPLIT_RE = re.compile(r"[\n,;]+")
@@ -65,7 +65,7 @@ class DeviceFilter:
         """
         self._config = config
 
-    def is_device_included(self, device_data: Mapping[str, Any]) -> bool:
+    def is_device_included(self, device_data: Mapping[str, PropertyValue]) -> bool:
         """Check if device passes all filter rules.
 
         Args:
@@ -241,7 +241,7 @@ def _extract_did_values(device_data: Mapping[str, Any]) -> set[str]:
     )
 
 
-def parse_filter_config(options: dict[str, Any]) -> DeviceFilterConfig:
+def parse_filter_config(options: PropertyDict) -> DeviceFilterConfig:
     """Parse device filter configuration from config entry options.
 
     Args:

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 from time import monotonic
-from typing import Any, Final
+from typing import Final
 
 from .....const.api import MAX_MQTT_CACHE_SIZE
 from ....mqtt.message import (
@@ -13,6 +13,7 @@ from ....mqtt.message import (
     compute_properties_hash,
     is_duplicate_within_window,
 )
+from ...types import PropertyValue
 
 # Time threshold (seconds) for cleaning stale MQTT dedup cache entries.
 _MQTT_CACHE_STALE_SECONDS: Final[float] = 5.0
@@ -33,7 +34,7 @@ class MqttDedupManager:
     def is_duplicate(
         self,
         device_id: str,
-        properties: Mapping[str, Any],
+        properties: Mapping[str, PropertyValue],
         *,
         current_time: float | None = None,
     ) -> bool:

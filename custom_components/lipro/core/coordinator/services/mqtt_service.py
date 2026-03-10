@@ -22,14 +22,22 @@ class CoordinatorMqttService:
 
     async def async_setup(self) -> bool:
         """Set up coordinator-managed MQTT runtime."""
-        return await self.coordinator._mqtt_runtime.setup()
+        return await self.coordinator.async_setup_mqtt()
 
     async def async_stop(self) -> None:
         """Stop coordinator-managed MQTT runtime."""
-        await self.coordinator._mqtt_runtime.stop()
+        await self.coordinator._mqtt_runtime.disconnect()
 
     async def async_sync_subscriptions(self) -> None:
         """Sync subscriptions using the wrapped coordinator state."""
-        await self.coordinator._mqtt_runtime.sync_subscriptions(
-            self.coordinator._state_runtime.get_all_devices()
-        )
+        if self.coordinator._mqtt_client and self.coordinator._biz_id:
+            device_ids = [
+                device.serial
+                for device in self.coordinator._devices.values()
+                if device.is_group
+            ]
+            if device_ids:
+                await self.coordinator._mqtt_runtime.connect(
+                    device_ids=device_ids,
+                    biz_id=self.coordinator._biz_id,
+                )
