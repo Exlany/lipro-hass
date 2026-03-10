@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -79,13 +80,13 @@ async def test_async_setup_mqtt_builds_refactored_client(
             side_effect=["ak", "sk"],
         ),
         patch(
-            "custom_components.lipro.core.mqtt.mqtt_client.LiproMqttClient"
+            "custom_components.lipro.core.coordinator.coordinator.LiproMqttClient"
         ) as mock_client_cls,
         patch(
             "custom_components.lipro.core.coordinator.coordinator.MqttRuntime"
         ) as mock_runtime_cls,
     ):
-        mock_client = AsyncMock()
+        mock_client = MagicMock()
         mock_client_cls.return_value = mock_client
 
         mock_runtime = MagicMock()
@@ -101,10 +102,161 @@ async def test_async_setup_mqtt_builds_refactored_client(
 
 
 @pytest.mark.asyncio
+async def test_async_setup_mqtt_returns_false_without_config_entry(coordinator) -> None:
+    coordinator.config_entry = None
+
+    assert await coordinator.async_setup_mqtt() is False
+
+
+@pytest.mark.asyncio
+async def test_async_setup_mqtt_returns_false_on_config_fetch_timeout(
+    coordinator, mock_lipro_api_client
+) -> None:
+    mock_lipro_api_client.get_mqtt_config.side_effect = TimeoutError()
+
+    assert await coordinator.async_setup_mqtt() is False
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("decrypt_results", "biz_id"),
+    [
+        (["", "sk"], "biz001"),
+        (["ak", "sk"], None),
+    ],
+)
+async def test_async_setup_mqtt_requires_decrypted_credentials_and_biz_id(
+    coordinator,
+    mock_lipro_api_client,
+    decrypt_results: list[str],
+    biz_id: str | None,
+) -> None:
+    coordinator._devices = {"dev1": _make_device("dev1")}
+    mock_lipro_api_client.get_mqtt_config.return_value = {
+        "accessKey": "enc-ak",
+        "secretKey": "enc-sk",
+    }
+
+    with (
+        patch(
+            "custom_components.lipro.core.coordinator.coordinator.decrypt_mqtt_credential",
+            side_effect=decrypt_results,
+        ),
+        patch(
+            "custom_components.lipro.core.coordinator.coordinator.resolve_mqtt_biz_id",
+            return_value=biz_id,
+        ),
+    ):
+        assert await coordinator.async_setup_mqtt() is False
+
+
+@pytest.mark.asyncio
+async def test_async_setup_mqtt_returns_false_when_group_connect_times_out(
+    coordinator, mock_lipro_api_client
+) -> None:
+    coordinator._devices = {
+        "mesh_group_1": _make_device("mesh_group_1", is_group=True),
+    }
+    mock_lipro_api_client.get_mqtt_config.return_value = {
+        "accessKey": "enc-ak",
+        "secretKey": "enc-sk",
+    }
+
+    with (
+        patch(
+            "custom_components.lipro.core.coordinator.coordinator.decrypt_mqtt_credential",
+            side_effect=["ak", "sk"],
+        ),
+        patch(
+            "custom_components.lipro.core.coordinator.coordinator.resolve_mqtt_biz_id",
+            return_value="biz001",
+        ),
+        patch(
+            "custom_components.lipro.core.coordinator.coordinator.LiproMqttClient"
+        ),
+        patch(
+            "custom_components.lipro.core.coordinator.coordinator.MqttRuntime"
+        ) as mock_runtime_cls,
+    ):
+        mock_runtime = MagicMock()
+        mock_runtime.is_connected = True
+        mock_runtime.connect = AsyncMock(side_effect=TimeoutError())
+        mock_runtime_cls.return_value = mock_runtime
+
+        ok = await coordinator.async_setup_mqtt()
+
+    assert ok is False
+    mock_runtime.connect.assert_awaited_once()
+
+
+@pytest.mark.asyncio
+async def test_async_setup_mqtt_returns_false_when_runtime_stays_disconnected(
+    coordinator, mock_lipro_api_client
+) -> None:
+    coordinator._devices = {"dev1": _make_device("dev1")}
+    mock_lipro_api_client.get_mqtt_config.return_value = {
+        "accessKey": "enc-ak",
+        "secretKey": "enc-sk",
+    }
+
+    with (
+        patch(
+            "custom_components.lipro.core.coordinator.coordinator.decrypt_mqtt_credential",
+            side_effect=["ak", "sk"],
+        ),
+        patch(
+            "custom_components.lipro.core.coordinator.coordinator.resolve_mqtt_biz_id",
+            return_value="biz001",
+        ),
+        patch(
+            "custom_components.lipro.core.coordinator.coordinator.LiproMqttClient"
+        ),
+        patch(
+            "custom_components.lipro.core.coordinator.coordinator.MqttRuntime"
+        ) as mock_runtime_cls,
+    ):
+        mock_runtime = MagicMock()
+        mock_runtime.is_connected = False
+        mock_runtime.connect = AsyncMock()
+        mock_runtime_cls.return_value = mock_runtime
+
+        ok = await coordinator.async_setup_mqtt()
+
+    assert ok is False
+    mock_runtime.connect.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+async def test_async_setup_mqtt_reraises_cancelled_error(
+    coordinator, mock_lipro_api_client
+) -> None:
+    mock_lipro_api_client.get_mqtt_config.side_effect = asyncio.CancelledError()
+
+    with pytest.raises(asyncio.CancelledError):
+        await coordinator.async_setup_mqtt()
+
+
+@pytest.mark.asyncio
+async def test_async_setup_mqtt_returns_false_on_unexpected_error(
+    coordinator, mock_lipro_api_client
+) -> None:
+    coordinator._devices = {"dev1": _make_device("dev1")}
+    mock_lipro_api_client.get_mqtt_config.return_value = {
+        "accessKey": "enc-ak",
+        "secretKey": "enc-sk",
+    }
+
+    with patch(
+        "custom_components.lipro.core.coordinator.coordinator.decrypt_mqtt_credential",
+        side_effect=RuntimeError("boom"),
+    ):
+        assert await coordinator.async_setup_mqtt() is False
+
+
+@pytest.mark.asyncio
 async def test_coordinator_mqtt_service_sync_and_stop_use_client_runtime(
     coordinator,
 ) -> None:
-    # Mock MQTT runtime
     mock_mqtt_runtime = AsyncMock()
     mock_mqtt_runtime.is_connected = True
     mock_mqtt_runtime.connect = AsyncMock()
@@ -116,14 +268,11 @@ async def test_coordinator_mqtt_service_sync_and_stop_use_client_runtime(
         "mesh_group_1": _make_device("mesh_group_1", is_group=True),
     }
 
-    # Mock MQTT client
     mock_client = AsyncMock()
     coordinator._mqtt_client = mock_client
 
-    # Test sync subscriptions
     await coordinator.mqtt_service.async_sync_subscriptions()
     mock_mqtt_runtime.connect.assert_awaited_once()
 
-    # Test stop
     await coordinator.mqtt_service.async_stop()
     mock_mqtt_runtime.disconnect.assert_awaited_once()
