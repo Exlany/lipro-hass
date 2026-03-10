@@ -204,6 +204,7 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
             mqtt_client=self._mqtt_client,
             base_scan_interval=update_interval,
             polling_multiplier=2,
+            background_task_manager=self._background_task_manager,
         )
 
         # Initialize CommandRuntime with sub-components
@@ -281,6 +282,58 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
     def devices(self) -> dict[str, LiproDevice]:
         """Access device dictionary (public API for services)."""
         return self._devices
+
+    # Public methods for entity integration
+    def get_device(self, serial: str) -> LiproDevice | None:
+        """Get device by serial number.
+
+        Args:
+            serial: Device serial number
+
+        Returns:
+            Device if found, None otherwise
+        """
+        return self.state_service.get_device(serial)
+
+    def register_entity(self, entity: Any) -> None:
+        """Register entity for debounce protection tracking.
+
+        Args:
+            entity: Entity to register
+        """
+        self._state_runtime.register_entity(
+            entity_id=entity.entity_id,
+            device_id=entity.device.device_id,
+            protected_keys_getter=entity.get_protected_keys,
+        )
+
+    def unregister_entity(self, entity: Any) -> None:
+        """Unregister entity from debounce protection tracking.
+
+        Args:
+            entity: Entity to unregister
+        """
+        self._state_runtime.unregister_entity(entity.entity_id)
+
+    async def async_send_command(
+        self,
+        device: LiproDevice,
+        command: str,
+        properties: list[dict[str, str]] | None = None,
+    ) -> bool:
+        """Send command to device.
+
+        Args:
+            device: Target device
+            command: Command name
+            properties: Command properties
+
+        Returns:
+            True if command succeeded
+        """
+        return await self.command_service.async_send_command(
+            device, command, properties
+        )
 
     # Helper methods for StatusRuntime
     async def _query_device_status_batch(
@@ -388,6 +441,7 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
                 mqtt_client=self._mqtt_client,
                 base_scan_interval=int(self.update_interval.total_seconds()),
                 polling_multiplier=2,
+                background_task_manager=self._background_task_manager,
             )
 
             # Wire up dependencies

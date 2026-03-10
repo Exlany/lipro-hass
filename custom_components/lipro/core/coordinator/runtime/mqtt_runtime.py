@@ -93,6 +93,7 @@ class MqttRuntime:
         dedup_window: float = 0.5,
         reconnect_base_delay: float = 1.0,
         reconnect_max_delay: float = 60.0,
+        background_task_manager: Any | None = None,
     ) -> None:
         """Initialize MQTT runtime with injected dependencies.
 
@@ -104,10 +105,12 @@ class MqttRuntime:
             dedup_window: Deduplication time window in seconds
             reconnect_base_delay: Base delay for reconnection backoff
             reconnect_max_delay: Maximum delay for reconnection backoff
+            background_task_manager: Optional background task manager for tracking tasks
         """
         self._hass = hass
         self._mqtt_client = mqtt_client
         self._base_scan_interval = base_scan_interval
+        self._background_task_manager = background_task_manager
 
         # Polling interval updater will be injected via set_polling_updater
         self._polling_updater: Any = None
@@ -296,11 +299,19 @@ class MqttRuntime:
             ):
                 minutes = int(elapsed // 60)
                 self._connection_manager.mark_disconnect_notified()
-                # Fire-and-forget notification task
-                task = asyncio.create_task(
-                    self._async_show_mqtt_disconnect_notification(minutes)
-                )
-                task.add_done_callback(lambda t: t.exception() if not t.cancelled() else None)
+                # Create notification task with proper tracking
+                if self._background_task_manager:
+                    self._background_task_manager.create(
+                        self._async_show_mqtt_disconnect_notification(minutes)
+                    )
+                else:
+                    # Fallback to untracked task if no manager available
+                    task = asyncio.create_task(
+                        self._async_show_mqtt_disconnect_notification(minutes)
+                    )
+                    task.add_done_callback(
+                        lambda t: t.exception() if not t.cancelled() else None
+                    )
 
     async def _async_show_mqtt_disconnect_notification(self, minutes: int) -> None:
         """Create a repair issue for MQTT disconnect."""
