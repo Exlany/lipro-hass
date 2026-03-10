@@ -1,5 +1,5 @@
 # serializer version: 1
-# name: test_device_facade_compatibility_snapshot
+# name: test_device_facade_snapshot
   dict({
     'connection_quality': 'fair',
     'iot_device_id': 'rmt_id_appremote_realremote_03ab5ccd7c123456',

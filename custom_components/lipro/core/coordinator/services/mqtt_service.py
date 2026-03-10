@@ -1,4 +1,4 @@
-"""Thin MQTT service adapter over the legacy coordinator API."""
+"""Coordinator MQTT service boundary."""
 
 from __future__ import annotations
 

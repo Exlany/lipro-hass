@@ -4,9 +4,8 @@
     'devices': list([
       'dev1',
     ]),
-    'has_client': True,
-    'last_update_success': True,
+    'last_command_failure': None,
     'mqtt_connected': True,
-    'update_interval_seconds': 30,
+    'runtime_class': 'CoordinatorV2',
   })
 # ---

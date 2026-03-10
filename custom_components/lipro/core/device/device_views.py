@@ -60,7 +60,7 @@ def unique_id(device: LiproDevice) -> str:
 
 
 def iot_device_id(device: LiproDevice) -> str:
-    """Return the compatibility alias for the IoT device id."""
+    """Return the normalized IoT device id."""
     return device.serial
 
 

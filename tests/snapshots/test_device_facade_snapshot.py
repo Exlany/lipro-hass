@@ -1,4 +1,4 @@
-"""Snapshot compatibility guard for the decomposed device facade."""
+"""Snapshot guard for the decomposed device facade."""
 
 from __future__ import annotations
 
@@ -7,7 +7,7 @@ from syrupy.assertion import SnapshotAssertion
 from custom_components.lipro.core.device import LiproDevice
 
 
-def test_device_facade_compatibility_snapshot(snapshot: SnapshotAssertion) -> None:
+def test_device_facade_snapshot(snapshot: SnapshotAssertion) -> None:
     device = LiproDevice(
         device_number=1,
         serial="rmt_id_appremote_realremote_03ab5ccd7c123456",

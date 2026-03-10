@@ -12,7 +12,7 @@ from custom_components.lipro.core.coordinator.runtime.coordinator_runtime import
 
 
 def _call_should_schedule_mqtt_setup(**overrides: Any) -> bool:
-    """Call helper with signature-aware kwargs for refactor compatibility."""
+    """Call helper with signature-aware kwargs for refactor stability."""
     defaults: dict[str, Any] = {
         "mqtt_enabled": True,
         "has_mqtt_client": False,

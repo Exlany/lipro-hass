@@ -865,7 +865,7 @@ class TestLiproClientMqtt:
 
 
 class TestLiproClientSuccessCodes:
-    """Tests for success-code compatibility."""
+    """Tests for success-code behavior."""
 
     @pytest.mark.asyncio
     async def test_smart_home_request_accepts_string_success_code(self):

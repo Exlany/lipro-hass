@@ -23,7 +23,7 @@ class BackgroundTaskManager:
 
     @property
     def tasks(self) -> set[asyncio.Task[Any]]:
-        """Expose tracked tasks for coordinator compatibility."""
+        """Expose tracked tasks for coordinator runtime inspection."""
         return self._tasks
 
     def create(

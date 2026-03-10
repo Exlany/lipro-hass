@@ -1,4 +1,4 @@
-"""Thin device refresh service adapter over the legacy coordinator API."""
+"""Coordinator device-refresh service boundary."""
 
 from __future__ import annotations
 

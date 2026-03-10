@@ -4,7 +4,7 @@
 
 ### Coordinator
 
-- `entry.runtime_data` 固定为 `CoordinatorV2`
+- `entry.runtime_data` 固定为原生 `CoordinatorV2` 实例
 - 新代码应优先依赖显式 service 能力，而不是旧 mixin 细节
 
 ### Device
@@ -13,7 +13,7 @@
 - `DeviceState`：可变状态与派生值
 - `DeviceCapabilities`：能力与类别判断
 - `DeviceNetworkInfo`：网络诊断信息
-- `LiproDevice`：薄外观与兼容入口
+- `LiproDevice`：薄外观与组装入口
 
 ### MQTT
 
@@ -59,4 +59,4 @@ uv run python scripts/refactor_tools.py --coverage-json coverage.json --minimum-
 
 ## 结论
 
-迁移已经完成。后续开发默认站在当前结构之上，不再需要为旧架构保留额外兼容设计。
+运行时迁移已经完成。后续开发默认站在当前结构之上，不再需要为旧架构保留额外兼容设计；若要继续深入，可再逐步消化内部 mixin 实现。

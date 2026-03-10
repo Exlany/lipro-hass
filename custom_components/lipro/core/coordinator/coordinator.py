@@ -1,4 +1,4 @@
-"""Data update coordinator for Lipro integration."""
+"""Native CoordinatorV2 runtime for the Lipro integration."""
 
 from __future__ import annotations
 
@@ -25,8 +25,8 @@ if TYPE_CHECKING:
 _LOGGER = logging.getLogger(__name__)
 
 
-class LiproDataUpdateCoordinator(_CoordinatorShutdownMixin):
-    """Coordinator to manage fetching Lipro data."""
+class CoordinatorV2(_CoordinatorShutdownMixin):
+    """Coordinator runtime built directly on the final service boundaries."""
 
     def __init__(
         self,
@@ -36,7 +36,7 @@ class LiproDataUpdateCoordinator(_CoordinatorShutdownMixin):
         config_entry: ConfigEntry,
         update_interval: int = DEFAULT_SCAN_INTERVAL,
     ) -> None:
-        """Initialize the coordinator."""
+        """Initialize the native CoordinatorV2 runtime."""
         super().__init__(
             hass,
             _LOGGER,
@@ -56,4 +56,6 @@ class LiproDataUpdateCoordinator(_CoordinatorShutdownMixin):
         self.state_service = CoordinatorStateService(self)
 
 
-__all__ = ["LiproDataUpdateCoordinator"]
+LiproDataUpdateCoordinator = CoordinatorV2
+
+__all__ = ["CoordinatorV2", "LiproDataUpdateCoordinator"]

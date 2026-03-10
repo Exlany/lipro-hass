@@ -1,4 +1,4 @@
-"""Shared field maps for ``DeviceState`` compatibility accessors."""
+"""Shared field maps for ``DeviceState`` accessors."""
 
 from __future__ import annotations
 

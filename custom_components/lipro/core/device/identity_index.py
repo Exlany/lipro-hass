@@ -1,4 +1,4 @@
-"""Device identity index with coordinator-compatible lookup behavior."""
+"""Device identity index with normalized lookup behavior."""
 
 from __future__ import annotations
 
@@ -47,7 +47,7 @@ class DeviceIdentityIndex:
         return MappingProxyType(self._mapping)
 
     def get(self, device_id: Any) -> LiproDevice | None:
-        """Get device by any known identifier with strip/lower compatibility."""
+        """Get device by any known identifier after normalization."""
         if not isinstance(device_id, str):
             return None
 

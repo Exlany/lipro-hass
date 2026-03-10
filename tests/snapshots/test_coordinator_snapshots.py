@@ -1,43 +1,31 @@
-"""Snapshot coverage for the composed coordinator facade."""
+"""Snapshot coverage for the native CoordinatorV2 runtime surface."""
 
 from __future__ import annotations
 
-from datetime import timedelta
 from unittest.mock import MagicMock
 
 from syrupy.assertion import SnapshotAssertion
 
 from custom_components.lipro.coordinator_v2 import CoordinatorV2
+from custom_components.lipro.core.device.identity_index import DeviceIdentityIndex
 
 
 def test_coordinator_v2_snapshot(snapshot: SnapshotAssertion) -> None:
-    legacy = MagicMock()
-    legacy.state_service = MagicMock(devices={"dev1": MagicMock()})
-    legacy.command_service = MagicMock(last_failure=None)
-    legacy.device_refresh_service = MagicMock()
-    legacy.mqtt_service = MagicMock(connected=True)
-    legacy.client = MagicMock()
-    legacy.update_interval = timedelta(seconds=30)
-    legacy.last_update_success = True
-    legacy.async_request_refresh = MagicMock()
-    legacy.async_config_entry_first_refresh = MagicMock()
-    legacy.async_shutdown = MagicMock()
-    legacy.async_update_listeners = MagicMock()
-    legacy.register_entity = MagicMock()
-    legacy.unregister_entity = MagicMock()
-    legacy.build_developer_report = MagicMock(return_value={"ok": True})
-
-    coordinator = CoordinatorV2.from_legacy(legacy)
-
-    update_interval = coordinator.update_interval
-    assert update_interval is not None
+    device = MagicMock()
+    coordinator = object.__new__(CoordinatorV2)
+    coordinator._devices = {"dev1": device}
+    coordinator._device_identity_index = DeviceIdentityIndex({"dev1": device})
+    coordinator._last_command_failure = None
+    coordinator._mqtt_connected = True
+    coordinator.command_service = MagicMock(last_failure=None)
+    coordinator.device_refresh_service = MagicMock()
+    coordinator.mqtt_service = MagicMock(connected=True)
 
     data = {
         "devices": sorted(coordinator.devices.keys()),
         "mqtt_connected": coordinator.mqtt_connected,
-        "has_client": coordinator.client is legacy.client,
-        "update_interval_seconds": int(update_interval.total_seconds()),
-        "last_update_success": coordinator.last_update_success,
+        "last_command_failure": coordinator.last_command_failure,
+        "runtime_class": type(coordinator).__name__,
     }
 
     assert data == snapshot

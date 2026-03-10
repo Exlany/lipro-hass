@@ -19,15 +19,15 @@
 
 ### Runtime 入口
 
-- `custom_components/lipro/__init__.py` 运行时已固定写入 `CoordinatorV2`
+- `custom_components/lipro/__init__.py` 运行时已直接实例化 `CoordinatorV2`
 - `custom_components/lipro/runtime_types.py` 统一将运行时类型收口到 `CoordinatorV2`
-- 不再保留 `V1/V2` 双跑或配置开关
+- 不再保留 `V1/V2` 双跑、配置开关或 facade 包装层
 
 ### Coordinator
 
 - 公开编排边界已显式落到 `CoordinatorStateService`、`CoordinatorCommandService`、`CoordinatorDeviceRefreshService`、`CoordinatorMqttService`
-- `CoordinatorV2` 成为对外运行时外观，旧 mixin 不再是推荐扩展点
-- 旧协调器实现即使仍存在，也只作为内部实现细节服务于当前 facade，不再向外扩散架构负担
+- `CoordinatorV2` 现已成为原生运行时主体，旧 mixin 不再是推荐扩展点
+- `CoordinatorV2` 现已成为原生运行时入口；旧类名仅保留为别名，不再承担独立运行时角色
 
 ### Device / MQTT
 
@@ -39,7 +39,7 @@
 
 | 指标 | 旧形态 | 当前形态 |
 |---|---:|---:|
-| Coordinator 对外继承深度 | 13 | 1 |
+| Coordinator 运行时入口层级 | 13 层 mixin 链直接暴露 | `CoordinatorV2` 作为唯一入口，内部仍保留 mixin 链 |
 | Coordinator 对外共享状态面 | 62 个共享属性 | 4 个显式 service 依赖 |
 | `LiproDevice` 主文件行数 | 742 | 87 |
 | `LiproMqttClient` 主文件行数 | 601 | 150 |

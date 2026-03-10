@@ -1,4 +1,4 @@
-"""Compatibility attribute delegation for the thin device facade."""
+"""Attribute delegation for the thin device facade."""
 
 from __future__ import annotations
 
@@ -70,7 +70,7 @@ DEVICE_DELEGATED_ATTRIBUTES: dict[str, str] = {
 
 
 def resolve_device_attribute(device: LiproDevice, name: str) -> object:
-    """Delegate compatibility attributes to focused helper objects."""
+    """Delegate device attributes to focused helper objects."""
     if name in DEVICE_DELEGATED_ATTRIBUTES:
         return getattr(getattr(device, DEVICE_DELEGATED_ATTRIBUTES[name]), name)
     msg = f"{type(device).__name__!s} has no attribute {name!r}"

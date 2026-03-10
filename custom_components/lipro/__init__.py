@@ -21,7 +21,7 @@ from .const.config import (
     MIN_SCAN_INTERVAL,
 )
 from .coordinator_v2 import CoordinatorV2
-from .core import LiproAuthManager, LiproClient, LiproDataUpdateCoordinator
+from .core import LiproAuthManager, LiproClient
 from .entry_auth import (
     async_authenticate_entry,
     build_entry_auth_context,
@@ -115,7 +115,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: LiproConfigEntry) -> boo
         max_value=MAX_SCAN_INTERVAL,
         logger=_LOGGER,
     )
-    coordinator = LiproDataUpdateCoordinator(
+    coordinator = CoordinatorV2(
         hass,
         client,
         auth_manager,
@@ -130,8 +130,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: LiproConfigEntry) -> boo
         clear_entry_runtime_data(entry)
         raise
 
-    runtime_data: LiproRuntimeData = CoordinatorV2.from_legacy(coordinator)
-    entry.runtime_data = runtime_data
+    entry.runtime_data = coordinator
 
     try:
         persist_entry_tokens_if_changed(hass, entry, auth_manager)

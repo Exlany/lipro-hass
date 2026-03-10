@@ -36,7 +36,6 @@ from custom_components.lipro.const.config import (
     DEFAULT_REQUEST_TIMEOUT,
     MAX_SCAN_INTERVAL,
 )
-from custom_components.lipro.coordinator_v2 import CoordinatorV2
 from custom_components.lipro.core import (
     LiproApiError,
     LiproAuthError,
@@ -761,7 +760,7 @@ class TestInitRuntimeBehavior:
             patch("custom_components.lipro.LiproClient", return_value=MagicMock()),
             patch("custom_components.lipro.LiproAuthManager", return_value=mock_auth),
             patch(
-                "custom_components.lipro.LiproDataUpdateCoordinator",
+                "custom_components.lipro.CoordinatorV2",
                 return_value=mock_coordinator,
             ),
             patch.object(
@@ -776,8 +775,7 @@ class TestInitRuntimeBehavior:
         mock_auth.set_tokens.assert_called_once()
         mock_auth.ensure_valid_token.assert_awaited_once()
         mock_coordinator.async_config_entry_first_refresh.assert_awaited_once()
-        assert isinstance(entry.runtime_data, CoordinatorV2)
-        assert entry.runtime_data.command_service is mock_coordinator.command_service
+        assert entry.runtime_data is mock_coordinator
         mock_forward.assert_awaited_once()
         mock_update.assert_called_once()
         entry.add_update_listener.assert_called_once()
@@ -908,7 +906,7 @@ class TestInitRuntimeBehavior:
             patch("custom_components.lipro.LiproClient", return_value=MagicMock()),
             patch("custom_components.lipro.LiproAuthManager", return_value=mock_auth),
             patch(
-                "custom_components.lipro.LiproDataUpdateCoordinator",
+                "custom_components.lipro.CoordinatorV2",
                 return_value=mock_coordinator,
             ),
             patch.object(
@@ -969,7 +967,7 @@ class TestInitRuntimeBehavior:
             patch("custom_components.lipro.LiproClient", return_value=MagicMock()),
             patch("custom_components.lipro.LiproAuthManager", return_value=mock_auth),
             patch(
-                "custom_components.lipro.LiproDataUpdateCoordinator",
+                "custom_components.lipro.CoordinatorV2",
                 return_value=mock_coordinator,
             ),
             pytest.raises(RuntimeError, match="refresh failed"),
@@ -1056,7 +1054,7 @@ class TestInitRuntimeBehavior:
             ) as pc,
             patch("custom_components.lipro.LiproAuthManager", return_value=mock_auth),
             patch(
-                "custom_components.lipro.LiproDataUpdateCoordinator",
+                "custom_components.lipro.CoordinatorV2",
                 return_value=mock_coordinator,
             ) as pcoord,
             patch.object(

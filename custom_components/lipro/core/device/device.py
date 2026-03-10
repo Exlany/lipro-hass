@@ -16,7 +16,7 @@ from .state import DeviceState
 
 @dataclass(slots=True)
 class LiproDevice:
-    """Backward-compatible device facade backed by focused components."""
+    """Thin device facade backed by focused components."""
 
     device_number: int
     serial: str
@@ -80,7 +80,7 @@ class LiproDevice:
         return build_device_from_api_data(cls, data)
 
     def __getattr__(self, name: str) -> Any:
-        """Resolve delegated compatibility attributes lazily."""
+        """Resolve delegated device attributes lazily."""
         return resolve_device_attribute(self, name)
 
 

@@ -9,9 +9,9 @@
 - `custom_components/lipro/core/device/device.py`：薄 facade，当前 `87` 行
 - `custom_components/lipro/core/device/device_factory.py`：设备工厂/构建入口，当前 `68` 行
 - `custom_components/lipro/core/device/device_views.py`：视图级属性与派生访问，当前 `94` 行
-- `custom_components/lipro/core/device/device_delegation.py`：统一委托与兼容转发，当前 `80` 行
-- `custom_components/lipro/core/device/device_runtime.py`：运行时辅助逻辑，当前 `68` 行左右的独立模块职责
-- `custom_components/lipro/core/device/device_snapshots.py`：快照/序列化辅助，当前 `56` 行左右的独立模块职责
+- `custom_components/lipro/core/device/device_delegation.py`：统一委托与属性分发，当前 `80` 行
+- `custom_components/lipro/core/device/device_runtime.py`：运行时辅助逻辑，当前 `77` 行
+- `custom_components/lipro/core/device/device_snapshots.py`：快照/序列化辅助，当前 `59` 行
 - `custom_components/lipro/core/device/state.py`：状态外壳，当前 `64` 行
 - `custom_components/lipro/core/device/state_accessors.py`：状态访问器与派生读取，当前 `116` 行
 - `custom_components/lipro/core/device/extras.py`：额外能力外观，当前 `56` 行
@@ -31,7 +31,7 @@
 
 - 目录化测试：`tests/core/device/`
 - 历史回归：`tests/core/test_device.py`
-- 快照验证：`tests/snapshots/test_device_compatibility.py`
+- 快照验证：`tests/snapshots/test_device_facade_snapshot.py`
 - 已通过的相关回归集合：
   - `uv run pytest tests/core/test_device.py tests/core/device tests/core/test_boundary_conditions.py tests/core/test_anonymous_share.py tests/core/test_developer_report.py -q`
 
