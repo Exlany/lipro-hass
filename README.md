@@ -18,6 +18,7 @@ Home Assistant integration for controlling Lipro Smart Home devices.
 - 🔁 Exponential backoff reconnection for stability
 - 🌐 Bilingual support (Chinese & English)
 - 🔧 Diagnostics support for troubleshooting
+- 🏗️ Modern architecture with composition-based design (refactored 2026-03)
 
 ## Supported Platforms & Entities
 
