@@ -31,7 +31,7 @@
 子代理只负责：
 
 - 在指定写入范围内完成改动
-- 严格遵守任务契约文件 `docs/refactoring/tasks/*.json`
+- 严格遵守任务契约文件 `docs/archive/refactoring/tasks/*.json`
 - 在触及未授权文件前先回报主代理
 - 提供精简的结果说明与剩余风险
 
@@ -89,14 +89,14 @@
 - 基线结论与风险列表
 - 各子代理写入边界
 - 当前波次的验证命令集合
-- 可选状态文件：`docs/refactoring/STATUS.md`
+- 可选状态文件：`docs/archive/refactoring/STATUS.md`
 
 ### 主代理检查项
 
 - 当前分支/工作树干净可控
 - `uv sync --frozen --extra dev` 可用
 - 相关测试与类型检查命令能在本地运行
-- `docs/refactoring/tasks/*.json` 与当前策略一致
+- `docs/archive/refactoring/tasks/*.json` 与当前策略一致
 
 ---
 
@@ -108,9 +108,9 @@
 
 | 子代理 | 任务契约 | 建议写入范围 | 目标 |
 |---|---|---|---|
-| Agent-1 | `docs/refactoring/tasks/agent-1-exceptions.json` | `custom_components/lipro/core/mqtt/`, `pyproject.toml` | 收窄 MQTT 关键路径异常处理 |
-| Agent-2 | `docs/refactoring/tasks/agent-2-types.json` | `custom_components/lipro/core/command/result.py`, `custom_components/lipro/services/diagnostics_service.py`, `custom_components/lipro/core/api/diagnostics_service.py`, `custom_components/lipro/core/api/schedule_service.py` | 降低高频 `Any` 热点 |
-| Agent-6 | `docs/refactoring/tasks/agent-6-testing.json` | `tests/`, `.github/workflows/ci.yml`, `pyproject.toml` | 为 Wave 1/2 提供回归保护 |
+| Agent-1 | `docs/archive/refactoring/tasks/agent-1-exceptions.json` | `custom_components/lipro/core/mqtt/`, `pyproject.toml` | 收窄 MQTT 关键路径异常处理 |
+| Agent-2 | `docs/archive/refactoring/tasks/agent-2-types.json` | `custom_components/lipro/core/command/result.py`, `custom_components/lipro/services/diagnostics_service.py`, `custom_components/lipro/core/api/diagnostics_service.py`, `custom_components/lipro/core/api/schedule_service.py` | 降低高频 `Any` 热点 |
+| Agent-6 | `docs/archive/refactoring/tasks/agent-6-testing.json` | `tests/`, `.github/workflows/ci.yml`, `pyproject.toml` | 为 Wave 1/2 提供回归保护 |
 
 ### 集成门槛
 
@@ -129,8 +129,8 @@
 
 | 子代理 | 任务契约 | 建议写入范围 | 目标 |
 |---|---|---|---|
-| Agent-4 | `docs/refactoring/tasks/agent-4-device-model.json` | `custom_components/lipro/core/device/`, `tests/core/device/` | 拆分 `LiproDevice` |
-| Agent-5 | `docs/refactoring/tasks/agent-5-mqtt-client.json` | `custom_components/lipro/core/mqtt/`, `tests/core/mqtt/` | 拆分 `LiproMqttClient` |
+| Agent-4 | `docs/archive/refactoring/tasks/agent-4-device-model.json` | `custom_components/lipro/core/device/`, `tests/core/device/` | 拆分 `LiproDevice` |
+| Agent-5 | `docs/archive/refactoring/tasks/agent-5-mqtt-client.json` | `custom_components/lipro/core/mqtt/`, `tests/core/mqtt/` | 拆分 `LiproMqttClient` |
 
 ### 注意事项
 
@@ -150,9 +150,9 @@
 
 | 执行者 | 任务契约 | 建议范围 | 目标 |
 |---|---|---|---|
-| Agent-3 | `docs/refactoring/tasks/agent-3-architecture.json` | `custom_components/lipro/core/coordinator/protocols.py`, `custom_components/lipro/core/coordinator/services/` | 定义协议与服务骨架 |
+| Agent-3 | `docs/archive/refactoring/tasks/agent-3-architecture.json` | `custom_components/lipro/core/coordinator/protocols.py`, `custom_components/lipro/core/coordinator/services/` | 定义协议与服务骨架 |
 | 主代理 | 同上收敛实现 | `custom_components/lipro/core/coordinator/` | 处理服务整合、迁移顺序、兼容层 |
-| Agent-6 | `docs/refactoring/tasks/agent-6-testing.json` | `tests/core/coordinator/`, `tests/integration/` | 增补迁移保护测试 |
+| Agent-6 | `docs/archive/refactoring/tasks/agent-6-testing.json` | `tests/core/coordinator/`, `tests/integration/` | 增补迁移保护测试 |
 
 ### 原则
 
@@ -177,7 +177,7 @@
 
 ## 📦 任务契约使用方式
 
-`docs/refactoring/tasks/*.json` 继续作为 **任务契约文件** 使用，但解释规则如下：
+`docs/archive/refactoring/tasks/*.json` 继续作为 **任务契约文件** 使用，但解释规则如下：
 
 ### 保留字段
 

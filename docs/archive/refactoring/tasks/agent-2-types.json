@@ -117,7 +117,7 @@
         "更新文档"
       ],
       "files": [
-        "docs/refactoring/TYPE_SAFETY_REPORT.md"
+        "docs/archive/refactoring/TYPE_SAFETY_REPORT.md"
       ],
       "validation": {
         "command": "uv run mypy custom_components/lipro/ --strict --html-report mypy-report && uv run pytest tests/ --cov=custom_components/lipro --cov-report=html",

@@ -116,7 +116,7 @@
       "files": [
         "scripts/refactor_tools.py",
         "tests/test_refactor_tools.py",
-        "docs/refactoring/TOOLS.md"
+        "docs/archive/refactoring/TOOLS.md"
       ],
       "validation": {
         "command": "uv run pytest tests/test_refactor_tools.py -v && uv run python scripts/refactor_tools.py --help",
@@ -155,11 +155,11 @@
         "更新开发者文档"
       ],
       "files": [
-        "docs/refactoring/TESTING_INFRASTRUCTURE.md",
+        "docs/archive/refactoring/TESTING_INFRASTRUCTURE.md",
         "docs/developer_testing_guide.md"
       ],
       "validation": {
-        "command": "test -f docs/refactoring/TESTING_INFRASTRUCTURE.md && test -f docs/developer_testing_guide.md",
+        "command": "test -f docs/archive/refactoring/TESTING_INFRASTRUCTURE.md && test -f docs/developer_testing_guide.md",
         "expected": "documentation exists"
       },
       "commit_message": "docs(test): add testing infrastructure documentation"

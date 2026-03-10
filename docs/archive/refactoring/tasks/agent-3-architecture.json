@@ -151,11 +151,11 @@
         "编写迁移指南"
       ],
       "files": [
-        "docs/refactoring/ARCHITECTURE_COMPARISON.md",
-        "docs/refactoring/MIGRATION_GUIDE.md"
+        "docs/archive/refactoring/ARCHITECTURE_COMPARISON.md",
+        "docs/archive/refactoring/MIGRATION_GUIDE.md"
       ],
       "validation": {
-        "command": "test -f docs/refactoring/ARCHITECTURE_COMPARISON.md && test -f docs/refactoring/MIGRATION_GUIDE.md",
+        "command": "test -f docs/archive/refactoring/ARCHITECTURE_COMPARISON.md && test -f docs/archive/refactoring/MIGRATION_GUIDE.md",
         "expected": "documentation files exist"
       },
       "commit_message": "docs(refactor): add architecture comparison and migration guide"

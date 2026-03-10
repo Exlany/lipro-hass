@@ -2,7 +2,7 @@
 
 > 最后更新：2026-03-10
 >
-> 本状态表用于对照 `docs/refactoring/tasks/*.json`；以下结论仅基于当前工作区与已执行校验命令。
+> 本状态表用于对照 `docs/archive/refactoring/tasks/*.json`；以下结论仅基于当前工作区与已执行校验命令。
 
 ## 已完成要点
 
@@ -36,25 +36,25 @@
 | `agent-3-architecture.json` | `cp-3-4` | Done | `CoordinatorDeviceRefreshService` 已承担刷新公开入口 |
 | `agent-3-architecture.json` | `cp-3-5` | Done | `Coordinator` 已作为原生运行时实例直接写入 `entry.runtime_data` |
 | `agent-3-architecture.json` | `cp-3-6` | Done | 依据“未发布、直接上最终架构”原则，已改为固定 V2 路径验证 |
-| `agent-3-architecture.json` | `cp-3-7` | Done | `docs/refactoring/ARCHITECTURE_COMPARISON.md` 与本状态表已同步最新结论 |
+| `agent-3-architecture.json` | `cp-3-7` | Done | `docs/archive/refactoring/ARCHITECTURE_COMPARISON.md` 与本状态表已同步最新结论 |
 | `agent-4-device-model.json` | `cp-4-1` ~ `cp-4-4` | Done | `DeviceIdentity` / `DeviceState` / `DeviceCapabilities` / `DeviceNetworkInfo` 均已落地 |
 | `agent-4-device-model.json` | `cp-4-5` | Done | `LiproDevice` 已成为薄 facade + 委托外观 |
 | `agent-4-device-model.json` | `cp-4-6` | Done | 快照与目录化测试均已存在 |
-| `agent-4-device-model.json` | `cp-4-7` | Done | `docs/refactoring/DEVICE_MODEL_REPORT.md` 已按当前结构回填 |
+| `agent-4-device-model.json` | `cp-4-7` | Done | `docs/archive/refactoring/DEVICE_MODEL_REPORT.md` 已按当前结构回填 |
 | `agent-5-mqtt-client.json` | `cp-5-1` | Done | `message_processor.py` 已落地 |
 | `agent-5-mqtt-client.json` | `cp-5-2` | Done | `topic_builder.py` 已落地 |
 | `agent-5-mqtt-client.json` | `cp-5-3` | Done | `connection_manager.py` 已落地 |
 | `agent-5-mqtt-client.json` | `cp-5-4` | Done | `client.py` 已瘦身为 `150` 行组合外观 |
 | `agent-5-mqtt-client.json` | `cp-5-5` | Done | MQTT 新结构已接入当前协调器/runtime 路径 |
 | `agent-5-mqtt-client.json` | `cp-5-6` | Done | MQTT 单元/集成测试已落地并通过 |
-| `agent-5-mqtt-client.json` | `cp-5-7` | Done | `docs/refactoring/MQTT_CLIENT_REPORT.md` 已按当前数据回填 |
+| `agent-5-mqtt-client.json` | `cp-5-7` | Done | `docs/archive/refactoring/MQTT_CLIENT_REPORT.md` 已按当前数据回填 |
 | `agent-6-testing.json` | `cp-6-1` | Done | `tests/snapshots/` 与 `.ambr` 基线已落地 |
 | `agent-6-testing.json` | `cp-6-2` | Done | `tests/benchmarks/` 已落地，benchmark 基线已清理为单份 |
 | `agent-6-testing.json` | `cp-6-3` | Done | `tests/type_checking/` 已落地 |
 | `agent-6-testing.json` | `cp-6-4` | Done | `scripts/coverage_diff.py` 已落地 |
 | `agent-6-testing.json` | `cp-6-5` | Done | `scripts/refactor_tools.py` 与其测试已落地 |
 | `agent-6-testing.json` | `cp-6-6` | Done | CI 已覆盖 Ruff / mypy / type-checking / coverage diff / snapshot / benchmark |
-| `agent-6-testing.json` | `cp-6-7` | Done | `docs/refactoring/TESTING_INFRASTRUCTURE.md` 与 `docs/developer_testing_guide.md` 已回填最新事实 |
+| `agent-6-testing.json` | `cp-6-7` | Done | `docs/archive/refactoring/TESTING_INFRASTRUCTURE.md` 与 `docs/developer_testing_guide.md` 已回填最新事实 |
 
 ## 当前验收口径
 

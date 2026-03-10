@@ -1,6 +1,6 @@
 # 🜏 主代理主控执行指南
 
-本指南说明如何在 **当前主代理会话** 中执行 `docs/refactoring/` 下的重构计划。
+本指南说明如何在 **当前主代理会话** 中执行 `docs/archive/refactoring/` 下的重构计划。
 
 ---
 
@@ -83,7 +83,7 @@ uv run ruff check <最小相关目录>
 
 ## 🤖 如何使用任务契约
 
-每个 `docs/refactoring/tasks/*.json` 文件表示一个可领取的任务切片。
+每个 `docs/archive/refactoring/tasks/*.json` 文件表示一个可领取的任务切片。
 
 ### 主代理读取的关键字段
 
@@ -108,9 +108,9 @@ uv run ruff check <最小相关目录>
 
 ### 子代理分配
 
-- Agent-1 → `docs/refactoring/tasks/agent-1-exceptions.json`
-- Agent-2 → `docs/refactoring/tasks/agent-2-types.json`
-- Agent-6 → `docs/refactoring/tasks/agent-6-testing.json`
+- Agent-1 → `docs/archive/refactoring/tasks/agent-1-exceptions.json`
+- Agent-2 → `docs/archive/refactoring/tasks/agent-2-types.json`
+- Agent-6 → `docs/archive/refactoring/tasks/agent-6-testing.json`
 
 ### 主代理关注点
 
@@ -133,8 +133,8 @@ uv run ruff check .
 
 ### 子代理分配
 
-- Agent-4 → `docs/refactoring/tasks/agent-4-device-model.json`
-- Agent-5 → `docs/refactoring/tasks/agent-5-mqtt-client.json`
+- Agent-4 → `docs/archive/refactoring/tasks/agent-4-device-model.json`
+- Agent-5 → `docs/archive/refactoring/tasks/agent-5-mqtt-client.json`
 
 ### 主代理关注点
 
@@ -235,9 +235,9 @@ uv run ruff check .
 
 可选输出位置：
 
-- `docs/refactoring/STATUS.md`
-- `docs/refactoring/ARCHITECTURE_COMPARISON.md`
-- `docs/refactoring/MIGRATION_GUIDE.md`
+- `docs/archive/refactoring/STATUS.md`
+- `docs/archive/refactoring/ARCHITECTURE_COMPARISON.md`
+- `docs/archive/refactoring/MIGRATION_GUIDE.md`
 
 ---
 

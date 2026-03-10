@@ -9,8 +9,8 @@ from pathlib import Path
 LOGGER = logging.getLogger(__name__)
 
 _DEPRECATION_MESSAGE = (
-    "scripts/orchestrator.py 已退役；当前仓库改用主代理主控执行 docs/refactoring 计划，"
-    "不再依赖额外 Python 编排平台。"
+    "scripts/orchestrator.py 已退役；当前仓库不再依赖重构编排平台，"
+    "历史重构档案已归档到 docs/archive/refactoring/。"
 )
 
 
@@ -40,7 +40,6 @@ def main() -> int:
     args = build_parser().parse_args()
     LOGGER.info("%s", _DEPRECATION_MESSAGE)
     LOGGER.info("command=%s base_dir=%s", args.command, args.base_dir)
-    LOGGER.info("See docs/refactoring/EXECUTION_GUIDE.md for the supported workflow.")
     return 0
 
 

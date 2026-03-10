@@ -149,10 +149,10 @@
         "编写迁移指南"
       ],
       "files": [
-        "docs/refactoring/DEVICE_MODEL_REPORT.md"
+        "docs/archive/refactoring/DEVICE_MODEL_REPORT.md"
       ],
       "validation": {
-        "command": "test -f docs/refactoring/DEVICE_MODEL_REPORT.md",
+        "command": "test -f docs/archive/refactoring/DEVICE_MODEL_REPORT.md",
         "expected": "report exists with metrics"
       },
       "commit_message": "docs(refactor): add device model decomposition report"

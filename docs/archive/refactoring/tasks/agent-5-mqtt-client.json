@@ -145,10 +145,10 @@
         "编写迁移指南"
       ],
       "files": [
-        "docs/refactoring/MQTT_CLIENT_REPORT.md"
+        "docs/archive/refactoring/MQTT_CLIENT_REPORT.md"
       ],
       "validation": {
-        "command": "test -f docs/refactoring/MQTT_CLIENT_REPORT.md",
+        "command": "test -f docs/archive/refactoring/MQTT_CLIENT_REPORT.md",
         "expected": "report exists with metrics"
       },
       "commit_message": "docs(refactor): add MQTT client refactoring report"
