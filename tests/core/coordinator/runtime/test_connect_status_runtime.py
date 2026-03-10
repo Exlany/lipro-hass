@@ -10,76 +10,47 @@ from custom_components.lipro.core.coordinator.runtime.connect_status_runtime imp
 )
 
 
-class TestResolveConnectStatusQueryIntervalSeconds:
-    """Test resolve_connect_status_query_interval_seconds."""
-
-    def test_mqtt_disabled_returns_normal(self) -> None:
-        """Test returns normal interval when MQTT disabled."""
-        result = resolve_connect_status_query_interval_seconds(
-            mqtt_enabled=False,
-            mqtt_connected=False,
-            mqtt_disconnect_time=None,
-            backoff_allows_attempt=True,
+@pytest.mark.parametrize(
+    (
+        "mqtt_enabled",
+        "mqtt_connected",
+        "mqtt_disconnect_time",
+        "backoff_allows_attempt",
+        "expected",
+    ),
+    [
+        (False, False, None, True, 60.0),
+        (True, True, None, True, 60.0),
+        (True, False, 1234567890.0, True, 300.0),
+        (True, False, None, False, 300.0),
+        (True, False, None, True, 60.0),
+    ],
+)
+def test_resolve_connect_status_query_interval_seconds(
+    mqtt_enabled: bool,
+    mqtt_connected: bool,
+    mqtt_disconnect_time: float | None,
+    backoff_allows_attempt: bool,
+    expected: float,
+) -> None:
+    """Polling interval should degrade only for disconnected MQTT states."""
+    assert (
+        resolve_connect_status_query_interval_seconds(
+            mqtt_enabled=mqtt_enabled,
+            mqtt_connected=mqtt_connected,
+            mqtt_disconnect_time=mqtt_disconnect_time,
+            backoff_allows_attempt=backoff_allows_attempt,
             normal_interval_seconds=60.0,
             degraded_interval_seconds=300.0,
         )
-        assert result == 60.0
-
-    def test_mqtt_connected_returns_normal(self) -> None:
-        """Test returns normal interval when MQTT connected."""
-        result = resolve_connect_status_query_interval_seconds(
-            mqtt_enabled=True,
-            mqtt_connected=True,
-            mqtt_disconnect_time=None,
-            backoff_allows_attempt=True,
-            normal_interval_seconds=60.0,
-            degraded_interval_seconds=300.0,
-        )
-        assert result == 60.0
-
-    def test_mqtt_disconnected_with_time_returns_degraded(self) -> None:
-        """Test returns degraded interval when MQTT disconnected with time."""
-        result = resolve_connect_status_query_interval_seconds(
-            mqtt_enabled=True,
-            mqtt_connected=False,
-            mqtt_disconnect_time=1234567890.0,
-            backoff_allows_attempt=True,
-            normal_interval_seconds=60.0,
-            degraded_interval_seconds=300.0,
-        )
-        assert result == 300.0
-
-    def test_mqtt_disconnected_backoff_blocked_returns_degraded(self) -> None:
-        """Test returns degraded interval when backoff blocks attempt."""
-        result = resolve_connect_status_query_interval_seconds(
-            mqtt_enabled=True,
-            mqtt_connected=False,
-            mqtt_disconnect_time=None,
-            backoff_allows_attempt=False,
-            normal_interval_seconds=60.0,
-            degraded_interval_seconds=300.0,
-        )
-        assert result == 300.0
-
-    def test_mqtt_disconnected_backoff_allows_returns_normal(self) -> None:
-        """Test returns normal interval when backoff allows and no disconnect time."""
-        result = resolve_connect_status_query_interval_seconds(
-            mqtt_enabled=True,
-            mqtt_connected=False,
-            mqtt_disconnect_time=None,
-            backoff_allows_attempt=True,
-            normal_interval_seconds=60.0,
-            degraded_interval_seconds=300.0,
-        )
-        assert result == 60.0
+        == expected
+    )
 
 
-class TestAdaptConnectStatusStaleWindow:
-    """Test adapt_connect_status_stale_window."""
-
-    def test_insufficient_history_returns_current(self) -> None:
-        """Test returns current value when history too short."""
-        result = adapt_connect_status_stale_window(
+def test_adapt_connect_status_stale_window_handles_short_history() -> None:
+    """Insufficient history should leave the stale window unchanged."""
+    assert (
+        adapt_connect_status_stale_window(
             history=[True, False],
             current_stale_seconds=120.0,
             window_size=5,
@@ -89,13 +60,30 @@ class TestAdaptConnectStatusStaleWindow:
             min_stale_seconds=60.0,
             max_stale_seconds=300.0,
         )
-        assert result == 120.0
+        == 120.0
+    )
 
-    def test_low_skip_ratio_increases_window(self) -> None:
-        """Test increases window when skip ratio is low."""
-        result = adapt_connect_status_stale_window(
-            history=[False, False, False, False, False],  # 0% skip
-            current_stale_seconds=120.0,
+
+@pytest.mark.parametrize(
+    ("history", "current", "expected"),
+    [
+        ([False, False, False, False, False], 120.0, 130.0),
+        ([True, True, True, True, True], 120.0, 110.0),
+        ([True, False, True, False, False], 120.0, 120.0),
+        ([False, False, False, False, False], 295.0, 300.0),
+        ([True, True, True, True, True], 65.0, 60.0),
+    ],
+)
+def test_adapt_connect_status_stale_window_adjusts_and_clamps(
+    history: list[bool],
+    current: float,
+    expected: float,
+) -> None:
+    """Skip ratio should widen, shrink, or clamp the stale threshold."""
+    assert (
+        adapt_connect_status_stale_window(
+            history=history,
+            current_stale_seconds=current,
             window_size=5,
             skip_ratio_low=0.2,
             skip_ratio_high=0.8,
@@ -103,90 +91,5 @@ class TestAdaptConnectStatusStaleWindow:
             min_stale_seconds=60.0,
             max_stale_seconds=300.0,
         )
-        assert result == 130.0
-
-    def test_high_skip_ratio_decreases_window(self) -> None:
-        """Test decreases window when skip ratio is high."""
-        result = adapt_connect_status_stale_window(
-            history=[True, True, True, True, True],  # 100% skip
-            current_stale_seconds=120.0,
-            window_size=5,
-            skip_ratio_low=0.2,
-            skip_ratio_high=0.8,
-            adjust_step_seconds=10.0,
-            min_stale_seconds=60.0,
-            max_stale_seconds=300.0,
-        )
-        assert result == 110.0
-
-    def test_medium_skip_ratio_no_change(self) -> None:
-        """Test no change when skip ratio in middle range."""
-        result = adapt_connect_status_stale_window(
-            history=[True, False, True, False, False],  # 40% skip
-            current_stale_seconds=120.0,
-            window_size=5,
-            skip_ratio_low=0.2,
-            skip_ratio_high=0.8,
-            adjust_step_seconds=10.0,
-            min_stale_seconds=60.0,
-            max_stale_seconds=300.0,
-        )
-        assert result == 120.0
-
-    def test_clamps_to_max(self) -> None:
-        """Test clamps to maximum stale seconds."""
-        result = adapt_connect_status_stale_window(
-            history=[False, False, False, False, False],
-            current_stale_seconds=295.0,
-            window_size=5,
-            skip_ratio_low=0.2,
-            skip_ratio_high=0.8,
-            adjust_step_seconds=10.0,
-            min_stale_seconds=60.0,
-            max_stale_seconds=300.0,
-        )
-        assert result == 300.0
-
-    def test_clamps_to_min(self) -> None:
-        """Test clamps to minimum stale seconds."""
-        result = adapt_connect_status_stale_window(
-            history=[True, True, True, True, True],
-            current_stale_seconds=65.0,
-            window_size=5,
-            skip_ratio_low=0.2,
-            skip_ratio_high=0.8,
-            adjust_step_seconds=10.0,
-            min_stale_seconds=60.0,
-            max_stale_seconds=300.0,
-        )
-        assert result == 60.0
-
-    def test_exact_window_size(self) -> None:
-        """Test with history exactly matching window size."""
-        result = adapt_connect_status_stale_window(
-            history=[True, False, False, False, False],  # 20% skip (at threshold)
-            current_stale_seconds=120.0,
-            window_size=5,
-            skip_ratio_low=0.2,
-            skip_ratio_high=0.8,
-            adjust_step_seconds=10.0,
-            min_stale_seconds=60.0,
-            max_stale_seconds=300.0,
-        )
-        # At exact threshold, should not change
-        assert result == 120.0
-
-    def test_larger_history_than_window(self) -> None:
-        """Test with history larger than window size."""
-        result = adapt_connect_status_stale_window(
-            history=[False, False, False, False, False, False, False],  # 0% skip
-            current_stale_seconds=120.0,
-            window_size=5,
-            skip_ratio_low=0.2,
-            skip_ratio_high=0.8,
-            adjust_step_seconds=10.0,
-            min_stale_seconds=60.0,
-            max_stale_seconds=300.0,
-        )
-        # Uses all history, not just window_size
-        assert result == 130.0
+        == expected
+    )

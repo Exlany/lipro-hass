@@ -1,142 +1,78 @@
-"""Tests for coordinator entity protocol."""
+"""Tests for the coordinator entity protocol."""
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
-import pytest
-
-from custom_components.lipro.core.coordinator.entity_protocol import (
-    LiproEntityProtocol,
-)
+from custom_components.lipro.core.coordinator.entity_protocol import LiproEntityProtocol
 from custom_components.lipro.core.device import LiproDevice
 
-if TYPE_CHECKING:
-    from unittest.mock import Mock
+
+class _MockEntity:
+    """Simple runtime implementation of ``LiproEntityProtocol``."""
+
+    def __init__(self, *, unique_id: str | None, protected_keys: set[str]) -> None:
+        self._unique_id = unique_id
+        self._protected_keys = protected_keys
+        self._device = LiproDevice(
+            device_number=123,
+            serial="03ab5ccd7caaaaaa",
+            name="Desk Light",
+            device_type=1,
+            iot_name="lipro_led",
+            physical_model="light",
+        )
+
+    @property
+    def unique_id(self) -> str | None:
+        return self._unique_id
+
+    @property
+    def device(self) -> LiproDevice:
+        return self._device
+
+    def get_protected_keys(self) -> set[str]:
+        return self._protected_keys
 
 
-class TestLiproEntityProtocol:
-    """Test LiproEntityProtocol."""
+def _entity_signature(entity: LiproEntityProtocol) -> tuple[str | None, str, int]:
+    """Consume the protocol exactly how coordinator helpers do."""
+    return (entity.unique_id, entity.device.serial, len(entity.get_protected_keys()))
 
-    def test_protocol_structure(self) -> None:
-        """Test protocol defines required methods."""
-        assert hasattr(LiproEntityProtocol, "unique_id")
-        assert hasattr(LiproEntityProtocol, "device")
-        assert hasattr(LiproEntityProtocol, "get_protected_keys")
 
-    def test_protocol_with_mock_entity(self) -> None:
-        """Test protocol works with mock entity."""
+def test_lipro_entity_protocol_exposes_required_members() -> None:
+    """Protocol class should define the minimal debounce-protection surface."""
+    assert hasattr(LiproEntityProtocol, "unique_id")
+    assert hasattr(LiproEntityProtocol, "device")
+    assert hasattr(LiproEntityProtocol, "get_protected_keys")
 
-        class MockEntity:
-            """Mock entity implementing protocol."""
 
-            @property
-            def unique_id(self) -> str:
-                """Return unique id."""
-                return "test_entity_123"
+def test_lipro_entity_protocol_accepts_structural_implementations() -> None:
+    """Any object with the required members should work as a protocol entity."""
+    entity = _MockEntity(unique_id="entity_123", protected_keys={"brightness", "color_temp"})
 
-            @property
-            def device(self) -> LiproDevice:
-                """Return device."""
-                return LiproDevice(
-                    device_id="device_123",
-                    name="Test Device",
-                    model="test_model",
-                    category="light",
-                    room_id="room_123",
-                    room_name="Living Room",
-                )
+    assert _entity_signature(entity) == (
+        "entity_123",
+        "03ab5ccd7caaaaaa",
+        2,
+    )
 
-            def get_protected_keys(self) -> set[str]:
-                """Return protected keys."""
-                return {"brightness", "color_temp"}
 
-        entity = MockEntity()
+def test_lipro_entity_protocol_allows_none_unique_id_and_empty_keys() -> None:
+    """Coordinator protocol should tolerate optional ids and no protected keys."""
+    entity = _MockEntity(unique_id=None, protected_keys=set())
 
-        # Protocol should accept this implementation
-        def process_entity(e: LiproEntityProtocol) -> str:
-            return f"{e.unique_id}:{len(e.get_protected_keys())}"
+    assert _entity_signature(entity) == (None, "03ab5ccd7caaaaaa", 0)
 
-        result = process_entity(entity)
-        assert result == "test_entity_123:2"
 
-    def test_protocol_type_checking(self) -> None:
-        """Test protocol type checking at runtime."""
+def test_incomplete_entity_is_missing_protocol_members() -> None:
+    """Objects lacking the required members should stay obviously incomplete."""
 
-        class IncompleteEntity:
-            """Entity missing required methods."""
+    class IncompleteEntity:
+        @property
+        def unique_id(self) -> str:
+            return "incomplete"
 
-            @property
-            def unique_id(self) -> str:
-                return "incomplete"
+    entity = IncompleteEntity()
 
-        entity = IncompleteEntity()
-
-        # Should not have device or get_protected_keys
-        assert not hasattr(entity, "device")
-        assert not hasattr(entity, "get_protected_keys")
-
-    def test_protocol_with_none_unique_id(self) -> None:
-        """Test protocol allows None unique_id."""
-
-        class EntityWithoutId:
-            """Entity with None unique_id."""
-
-            @property
-            def unique_id(self) -> None:
-                """Return None."""
-                return None
-
-            @property
-            def device(self) -> LiproDevice:
-                """Return device."""
-                return LiproDevice(
-                    device_id="device_123",
-                    name="Test",
-                    model="test",
-                    category="light",
-                    room_id="room_123",
-                    room_name="Room",
-                )
-
-            def get_protected_keys(self) -> set[str]:
-                """Return empty set."""
-                return set()
-
-        entity = EntityWithoutId()
-
-        def check_entity(e: LiproEntityProtocol) -> bool:
-            return e.unique_id is None
-
-        assert check_entity(entity)
-
-    def test_protocol_protected_keys_empty(self) -> None:
-        """Test protocol with empty protected keys."""
-
-        class EntityNoProtection:
-            """Entity with no protected keys."""
-
-            @property
-            def unique_id(self) -> str:
-                return "no_protection"
-
-            @property
-            def device(self) -> LiproDevice:
-                return LiproDevice(
-                    device_id="device_123",
-                    name="Test",
-                    model="test",
-                    category="switch",
-                    room_id="room_123",
-                    room_name="Room",
-                )
-
-            def get_protected_keys(self) -> set[str]:
-                return set()
-
-        entity = EntityNoProtection()
-
-        def has_protection(e: LiproEntityProtocol) -> bool:
-            return len(e.get_protected_keys()) > 0
-
-        assert not has_protection(entity)
+    assert hasattr(entity, "unique_id")
+    assert not hasattr(entity, "device")
+    assert not hasattr(entity, "get_protected_keys")
