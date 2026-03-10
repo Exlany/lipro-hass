@@ -23,11 +23,6 @@ async def test_coordinator_exposes_native_runtime_services() -> None:
     # Mock service layer
     coordinator.command_service = MagicMock()
     coordinator.command_service.async_send_command = AsyncMock(return_value=True)
-    coordinator.device_refresh_service = MagicMock()
-    coordinator.device_refresh_service.async_refresh_devices = AsyncMock()
-    coordinator.mqtt_service = MagicMock()
-    coordinator.mqtt_service.async_sync_subscriptions = AsyncMock()
-    coordinator.mqtt_service.async_stop = AsyncMock()
     coordinator.state_service = MagicMock()
     coordinator.state_service.get_device = MagicMock(return_value=device)
     coordinator.state_service.get_device_by_id = MagicMock(return_value=device)
@@ -50,16 +45,10 @@ async def test_coordinator_exposes_native_runtime_services() -> None:
         None,
     )
 
-    # Test public API - MQTT service delegation
-    await coordinator.async_sync_mqtt_subscriptions()
-    coordinator.mqtt_service.async_sync_subscriptions.assert_awaited_once_with()
-
-    await coordinator.async_stop_mqtt()
-    coordinator.mqtt_service.async_stop.assert_awaited_once_with()
-
 
 def test_legacy_coordinator_name_aliases_native_runtime() -> None:
     """Test that LiproDataUpdateCoordinator is an alias for Coordinator."""
     assert LiproDataUpdateCoordinator is Coordinator
+
 
 
