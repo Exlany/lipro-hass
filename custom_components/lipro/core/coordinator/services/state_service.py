@@ -7,14 +7,14 @@ from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from ...device import LiproDevice
-    from ..coordinator import Coordinator
+    from ..state import CoordinatorStateRuntime
 
 
 @dataclass(slots=True)
 class CoordinatorStateService:
     """Expose coordinator state access through a service boundary."""
 
-    coordinator: Coordinator
+    coordinator: CoordinatorStateRuntime
 
     @property
     def devices(self) -> dict[str, LiproDevice]:
