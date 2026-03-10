@@ -6,9 +6,10 @@ from dataclasses import dataclass, field
 import logging
 from typing import TYPE_CHECKING, Any
 
+from custom_components.lipro.core.device import LiproDevice
+
 if TYPE_CHECKING:
     from custom_components.lipro.core.api import LiproClient
-    from custom_components.lipro.core.device import LiproDevice
     from custom_components.lipro.core.device.identity_index import DeviceIdentityIndex
 
     from .filter import DeviceFilter
@@ -63,8 +64,6 @@ class SnapshotBuilder:
         Returns:
             FetchedDeviceSnapshot with all devices and indexes
         """
-        from custom_components.lipro.core.device import LiproDevice
-
         all_devices: list[dict[str, Any]] = []
         page = 1
 

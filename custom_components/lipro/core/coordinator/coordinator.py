@@ -14,7 +14,7 @@ from typing import TYPE_CHECKING, Any
 from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from ...const.config import DEFAULT_SCAN_INTERVAL
+from ...const.config import CONF_PHONE_ID, DEFAULT_SCAN_INTERVAL
 from ..api import (
     LiproApiError,
     LiproAuthError,
@@ -24,6 +24,8 @@ from ..api import (
 )
 from ..command.confirmation_tracker import CommandConfirmationTracker
 from ..device.identity_index import DeviceIdentityIndex
+from ..mqtt.client import LiproMqttClient
+from ..mqtt.credentials import decrypt_mqtt_credential
 from ..utils.background_task_manager import BackgroundTaskManager
 from .runtime.command import (
     CommandBuilder,
@@ -38,6 +40,7 @@ from .runtime.shared_state import CoordinatorSharedState
 from .runtime.state_runtime import StateRuntime
 from .runtime.status_runtime import StatusRuntime
 from .runtime.tuning_runtime import TuningRuntime
+from .mqtt.setup import resolve_mqtt_biz_id
 from .services import (
     CoordinatorCommandService,
     CoordinatorDeviceRefreshService,
@@ -238,6 +241,47 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
         self.mqtt_service = CoordinatorMqttService(self)
         self.state_service = CoordinatorStateService(self)
 
+    # Public accessors for runtime components (used by service layer)
+    @property
+    def command_runtime(self) -> CommandRuntime:
+        """Access command runtime (public API for services)."""
+        return self._command_runtime
+
+    @property
+    def device_runtime(self) -> DeviceRuntime:
+        """Access device runtime (public API for services)."""
+        return self._device_runtime
+
+    @property
+    def mqtt_runtime(self) -> MqttRuntime | None:
+        """Access MQTT runtime (public API for services)."""
+        return self._mqtt_runtime
+
+    @property
+    def state_runtime(self) -> StateRuntime:
+        """Access state runtime (public API for services)."""
+        return self._state_runtime
+
+    @property
+    def status_runtime(self) -> StatusRuntime:
+        """Access status runtime (public API for services)."""
+        return self._status_runtime
+
+    @property
+    def mqtt_client(self) -> LiproMqttClient | None:
+        """Access MQTT client (public API for services)."""
+        return self._mqtt_client
+
+    @property
+    def biz_id(self) -> str | None:
+        """Access MQTT biz_id (public API for services)."""
+        return self._biz_id
+
+    @property
+    def devices(self) -> dict[str, LiproDevice]:
+        """Access device dictionary (public API for services)."""
+        return self._devices
+
     # Helper methods for StatusRuntime
     async def _query_device_status_batch(
         self, device_ids: list[str]
@@ -302,11 +346,6 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
         Returns:
             True if setup succeeded, False otherwise
         """
-        from ...const.config import CONF_PHONE_ID
-        from ..mqtt.client import LiproMqttClient
-        from ..mqtt.credentials import decrypt_mqtt_credential
-        from .mqtt.setup import resolve_mqtt_biz_id
-
         if self.config_entry is None:
             _LOGGER.error("Cannot setup MQTT: config_entry is None")
             return False
