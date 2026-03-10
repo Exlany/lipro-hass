@@ -242,9 +242,48 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
 
         Returns:
             Updated device dictionary
+
+        Raises:
+            UpdateFailed: If update fails
         """
-        # TODO: Delegate to status runtime for periodic updates
-        return {}
+        from homeassistant.exceptions import UpdateFailed
+
+        from ..api import (
+            LiproApiError,
+            LiproAuthError,
+            LiproConnectionError,
+            LiproRefreshTokenExpiredError,
+        )
+
+        try:
+            # Ensure authentication is valid
+            await self.auth_manager.async_ensure_authenticated()
+
+            # Refresh device list if needed
+            if self._device_runtime.should_refresh_device_list():
+                await self._device_runtime.refresh_devices(force=True)
+
+            # Update device status
+            await self._status_runtime.update_all_device_status()
+
+            # Schedule MQTT setup if needed
+            if self._mqtt_runtime and not self._mqtt_runtime.is_connected:
+                await self._mqtt_runtime.setup()
+
+            return self._devices
+
+        except (
+            LiproRefreshTokenExpiredError,
+            LiproAuthError,
+            LiproConnectionError,
+            LiproApiError,
+        ) as err:
+            _LOGGER.error("Update failed: %s", err)
+            raise UpdateFailed(f"Update failed: {err}") from err
+
+        except Exception as err:
+            _LOGGER.exception("Unexpected update failure")
+            raise UpdateFailed("Unexpected update failure") from err
 
 
 LiproDataUpdateCoordinator = Coordinator

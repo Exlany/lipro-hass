@@ -147,6 +147,14 @@ class DeviceRuntime:
         """Get last fetched device snapshot."""
         return self._last_snapshot
 
+    def should_refresh_device_list(self) -> bool:
+        """Check if device list should be refreshed.
+
+        Returns:
+            True if refresh is needed
+        """
+        return self._refresh_strategy.should_refresh()
+
     def reset(self) -> None:
         """Reset runtime state (for testing or coordinator restart)."""
         self._refresh_strategy.reset()

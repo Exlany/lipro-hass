@@ -133,5 +133,16 @@ class StatusRuntime:
             "strategy": self._strategy.get_strategy_metrics(),
         }
 
+    async def update_all_device_status(self) -> None:
+        """Update status for all devices.
+
+        This is a placeholder that delegates to the executor for batch queries.
+        The actual implementation should be coordinated by the Coordinator.
+        """
+        # This method is called by Coordinator._async_update_data()
+        # The actual logic should query devices and apply updates
+        # For now, this is a no-op placeholder
+        pass
+
 
 __all__ = ["StatusRuntime"]
