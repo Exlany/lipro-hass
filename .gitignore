@@ -80,3 +80,7 @@ assets/
 
 # gsd
 .planning/
+
+# Benchmarks (generated)
+.benchmarks/
+benchmark_results.json
