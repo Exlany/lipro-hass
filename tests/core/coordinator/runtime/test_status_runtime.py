@@ -28,7 +28,7 @@ async def status_runtime(mock_device: LiproDevice) -> StatusRuntime:
     async def mock_query_status(device_ids: list[str]) -> dict[str, dict[str, str]]:
         return {device_id: {"brightness": "100"} for device_id in device_ids}
 
-    def mock_apply_update(device: LiproDevice, props: dict[str, str], source: str) -> bool:
+    async def mock_apply_update(device: LiproDevice, props: dict[str, str], source: str) -> bool:
         return True
 
     def mock_get_device(device_id: str) -> LiproDevice | None:

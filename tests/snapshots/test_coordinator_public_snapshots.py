@@ -15,16 +15,14 @@ def test_coordinator_snapshot(snapshot: SnapshotAssertion) -> None:
     coordinator = object.__new__(Coordinator)
     coordinator._devices = {"dev1": device}
     coordinator._device_identity_index = DeviceIdentityIndex({"dev1": device})
-    coordinator._last_command_failure = None
-    coordinator._mqtt_connected = True
     coordinator.command_service = MagicMock(last_failure=None)
     coordinator.device_refresh_service = MagicMock()
     coordinator.mqtt_service = MagicMock(connected=True)
 
     data = {
         "devices": sorted(coordinator.devices.keys()),
-        "mqtt_connected": coordinator.mqtt_connected,
-        "last_command_failure": coordinator.last_command_failure,
+        "mqtt_connected": coordinator.mqtt_service.connected,
+        "last_command_failure": coordinator.command_service.last_failure,
         "runtime_class": type(coordinator).__name__,
     }
 

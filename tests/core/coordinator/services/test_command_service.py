@@ -15,8 +15,8 @@ from custom_components.lipro.core.coordinator.services.command_service import (
 @pytest.mark.asyncio
 async def test_command_service_runs_command_flow() -> None:
     coordinator = MagicMock()
-    coordinator._command_runtime = MagicMock()
-    coordinator._command_runtime.send_device_command = AsyncMock(
+    coordinator.command_runtime = MagicMock()
+    coordinator.command_runtime.send_device_command = AsyncMock(
         return_value=(True, "device_direct")
     )
     service = CoordinatorCommandService(coordinator)
@@ -35,7 +35,7 @@ async def test_command_service_runs_command_flow() -> None:
     )
 
     assert result is True
-    coordinator._command_runtime.send_device_command.assert_awaited_once_with(
+    coordinator.command_runtime.send_device_command.assert_awaited_once_with(
         device=device,
         command="POWER_ON",
         properties=[{"key": "powerState", "value": "1"}],
@@ -46,8 +46,8 @@ async def test_command_service_runs_command_flow() -> None:
 @pytest.mark.asyncio
 async def test_command_service_handles_api_error_via_coordinator_bridge() -> None:
     coordinator = MagicMock()
-    coordinator._command_runtime = MagicMock()
-    coordinator._command_runtime.send_device_command = AsyncMock(
+    coordinator.command_runtime = MagicMock()
+    coordinator.command_runtime.send_device_command = AsyncMock(
         side_effect=LiproApiError("boom", code="500")
     )
     service = CoordinatorCommandService(coordinator)
@@ -63,4 +63,4 @@ async def test_command_service_handles_api_error_via_coordinator_bridge() -> Non
     with pytest.raises(LiproApiError):
         await service.async_send_command(device, "POWER_ON")
 
-    coordinator._command_runtime.send_device_command.assert_awaited_once()
+    coordinator.command_runtime.send_device_command.assert_awaited_once()

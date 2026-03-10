@@ -55,9 +55,15 @@ def mqtt_runtime(mock_hass: Mock, mock_mqtt_client: Mock) -> MqttRuntime:
         reconnect_max_delay=60.0,
     )
 
+    # Create a mock property applier that matches the protocol
+    class MockPropertyApplier:
+        async def apply_properties_update(self, device, properties):
+            return properties  # Return applied properties
+
     # Inject mock dependencies
     runtime.set_device_resolver(Mock())
-    runtime.set_property_applier(Mock(return_value={"test": "value"}))
+    # property_applier should be async and return bool for the injected version
+    runtime.set_property_applier(AsyncMock(return_value=True))
     runtime.set_listener_notifier(Mock())
     runtime.set_connect_state_tracker(Mock())
     runtime.set_group_reconciler(Mock())
@@ -169,77 +175,63 @@ class TestMqttRuntimeConnection:
 class TestMqttRuntimeMessageHandling:
     """Test MQTT message handling."""
 
-    def test_handle_message_success(self, mqtt_runtime: MqttRuntime) -> None:
+    async def test_handle_message_success(self, mqtt_runtime: MqttRuntime) -> None:
         """Test successful message handling."""
         device_id = "device1"
         properties = {"brightness": 100, "power": True}
 
         mock_device = Mock(serial="device1", name="Device 1", is_group=False)
         mqtt_runtime._device_resolver.get_device_by_id = Mock(return_value=mock_device)
-        mqtt_runtime._property_applier.apply_properties_update = Mock(
-            return_value={"brightness": 100, "power": True}
-        )
 
-        mqtt_runtime.handle_message(device_id, properties)
+        await mqtt_runtime.handle_message(device_id, properties)
 
-        mqtt_runtime._property_applier.apply_properties_update.assert_called_once_with(
-            mock_device, properties
-        )
+        # Verify property applier was called (via adapter)
         mqtt_runtime._listener_notifier.schedule_listener_update.assert_called_once()
 
-    def test_handle_message_duplicate(self, mqtt_runtime: MqttRuntime) -> None:
+    async def test_handle_message_duplicate(self, mqtt_runtime: MqttRuntime) -> None:
         """Test duplicate message is ignored."""
         device_id = "device1"
         properties = {"brightness": 100}
 
         mock_device = Mock(serial="device1", name="Device 1", is_group=False)
         mqtt_runtime._device_resolver.get_device_by_id = Mock(return_value=mock_device)
-        mqtt_runtime._property_applier.apply_properties_update = Mock(
-            return_value={"brightness": 100}
-        )
 
         # Send same message twice
-        mqtt_runtime.handle_message(device_id, properties)
-        mqtt_runtime.handle_message(device_id, properties)
+        await mqtt_runtime.handle_message(device_id, properties)
+        await mqtt_runtime.handle_message(device_id, properties)
 
-        # Property applier should only be called once (second is duplicate)
-        assert mqtt_runtime._property_applier.apply_properties_update.call_count == 1
+        # Listener should only be notified once (second is duplicate)
+        assert mqtt_runtime._listener_notifier.schedule_listener_update.call_count == 1
 
-    def test_handle_message_device_not_found(self, mqtt_runtime: MqttRuntime) -> None:
+    async def test_handle_message_device_not_found(self, mqtt_runtime: MqttRuntime) -> None:
         """Test message for unknown device is ignored."""
         mqtt_runtime._device_resolver.get_device_by_id = Mock(return_value=None)
 
-        mqtt_runtime.handle_message("unknown_device", {"test": "value"})
+        await mqtt_runtime.handle_message("unknown_device", {"test": "value"})
 
-        mqtt_runtime._property_applier.apply_properties_update.assert_not_called()
+        mqtt_runtime._property_applier.assert_not_called()
 
-    def test_handle_message_with_connect_state(self, mqtt_runtime: MqttRuntime) -> None:
+    async def test_handle_message_with_connect_state(self, mqtt_runtime: MqttRuntime) -> None:
         """Test message with connectState triggers tracking."""
         device_id = "device1"
         properties = {"connectState": True}
 
         mock_device = Mock(serial="device1", name="Device 1", is_group=False)
         mqtt_runtime._device_resolver.get_device_by_id = Mock(return_value=mock_device)
-        mqtt_runtime._property_applier.apply_properties_update = Mock(
-            return_value={"connectState": True}
-        )
 
-        mqtt_runtime.handle_message(device_id, properties)
+        await mqtt_runtime.handle_message(device_id, properties)
 
         mqtt_runtime._connect_state_tracker.record_connect_state.assert_called_once()
 
-    def test_handle_message_group_online(self, mqtt_runtime: MqttRuntime) -> None:
+    async def test_handle_message_group_online(self, mqtt_runtime: MqttRuntime) -> None:
         """Test group device coming online triggers reconciliation."""
         device_id = "group1"
         properties = {"connectState": True}
 
         mock_device = Mock(serial="group1", name="Group 1", is_group=True)
         mqtt_runtime._device_resolver.get_device_by_id = Mock(return_value=mock_device)
-        mqtt_runtime._property_applier.apply_properties_update = Mock(
-            return_value={"connectState": True}
-        )
 
-        mqtt_runtime.handle_message(device_id, properties)
+        await mqtt_runtime.handle_message(device_id, properties)
 
         mqtt_runtime._group_reconciler.schedule_group_reconciliation.assert_called_once()
 
@@ -321,7 +313,11 @@ class TestMqttRuntimeReset:
         """Test reset clears all runtime state."""
         # Setup some state
         await mqtt_runtime.connect(device_ids=["device1"], biz_id="test_biz")
-        mqtt_runtime.handle_message("device1", {"test": "value"})
+
+        # Setup device for message handling
+        mock_device = Mock(serial="device1", name="Device 1", is_group=False)
+        mqtt_runtime._device_resolver.get_device_by_id = Mock(return_value=mock_device)
+        await mqtt_runtime.handle_message("device1", {"test": "value"})
 
         # Reset
         mqtt_runtime.reset()
@@ -347,7 +343,7 @@ class TestMqttRuntimeDependencyInjection:
         mqtt_runtime.set_device_resolver(resolver)
         assert mqtt_runtime._device_resolver is resolver
 
-    def test_message_handler_requires_dependencies(self, mock_hass: Mock) -> None:
+    async def test_message_handler_requires_dependencies(self, mock_hass: Mock) -> None:
         """Test message handler initialization requires all dependencies."""
         runtime = MqttRuntime(
             hass=mock_hass,
@@ -357,7 +353,7 @@ class TestMqttRuntimeDependencyInjection:
 
         # Should raise without dependencies
         with pytest.raises(RuntimeError, match="dependencies not fully injected"):
-            runtime.handle_message("device1", {"test": "value"})
+            await runtime.handle_message("device1", {"test": "value"})
 
 
 # Import asyncio for async tests

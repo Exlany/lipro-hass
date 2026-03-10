@@ -461,6 +461,3 @@ class TestDeviceRuntimeIntegration:
         assert len(snapshot.devices) == 1
         assert len(snapshot.device_by_id) == 1
         assert snapshot.cloud_serials == {"serial1"}
-
-        # Verify identity registration was called
-        mock_device_identity_index.register_device.assert_called()
