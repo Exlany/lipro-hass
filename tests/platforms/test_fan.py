@@ -328,10 +328,10 @@ class TestLiproFanEntityCommands:
         # Mock async_send_command_debounced to capture arguments
         captured_args = {}
 
-        async def capture_debounced(command, properties, optimistic):
+        async def capture_debounced(command, properties, optimistic_state):
             captured_args["command"] = command
             captured_args["properties"] = properties
-            captured_args["optimistic"] = optimistic
+            captured_args["optimistic_state"] = optimistic_state
 
         with (
             patch.object(fan, "async_write_ha_state"),
@@ -344,9 +344,9 @@ class TestLiproFanEntityCommands:
         assert any(p["key"] == "fanOnoff" and p["value"] == "1" for p in props)
 
         # Optimistic dict should NOT include fan power keys (to avoid debounce protection)
-        optimistic = captured_args["optimistic"]
-        assert "fanOnoff" not in optimistic
-        assert "fanGear" in optimistic
+        optimistic_state = captured_args["optimistic_state"]
+        assert "fanOnoff" not in optimistic_state
+        assert "fanGear" in optimistic_state
 
 
 class TestLiproFanEntityBehavior:
@@ -627,10 +627,10 @@ class TestLiproFanEntityBehavior:
 
         captured_args: dict[str, object] = {}
 
-        async def capture_debounced(command, properties, optimistic):
+        async def capture_debounced(command, properties, optimistic_state):
             captured_args["command"] = command
             captured_args["properties"] = properties
-            captured_args["optimistic"] = optimistic
+            captured_args["optimistic_state"] = optimistic_state
 
         with (
             patch.object(fan, "async_write_ha_state"),

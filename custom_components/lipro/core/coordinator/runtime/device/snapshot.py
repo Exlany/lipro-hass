@@ -122,6 +122,11 @@ class SnapshotBuilder:
 
                 device = LiproDevice.from_api_data(device_data)
 
+                # Skip gateway devices (track for diagnostics only)
+                if device.is_gateway:
+                    diagnostic_gateway_devices[device.serial] = device
+                    continue
+
                 # Register identity aliases
                 self._device_identity_index.register(device.serial, device)
                 if device.iot_device_id:
@@ -143,10 +148,6 @@ class SnapshotBuilder:
                         outlet_ids.append(device.iot_device_id)
                 elif device.iot_device_id:
                     iot_ids.append(device.iot_device_id)
-
-                # Track gateway devices for diagnostics
-                if device.is_gateway:
-                    diagnostic_gateway_devices[device.serial] = device
 
             except Exception as err:  # noqa: BLE001
                 if isinstance(err, (asyncio.CancelledError, KeyboardInterrupt, SystemExit)):

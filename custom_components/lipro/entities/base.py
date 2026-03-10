@@ -208,7 +208,8 @@ class LiproEntity(CoordinatorEntity[Any]):
 
         # Apply optimistic state update immediately
         if optimistic_state:
-            async with self._device_update_lock:
+            device_lock = self.coordinator.get_device_lock(self.device.serial)
+            async with device_lock:
                 self.device.update_properties(optimistic_state)
             self.async_write_ha_state()
 

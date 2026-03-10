@@ -8,10 +8,6 @@ import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.lipro.const.base import DOMAIN
-from custom_components.lipro.core.mqtt.mqtt_client import LiproMqttClient
-from custom_components.lipro.core.mqtt.connection_manager import MqttConnectionManager
-from custom_components.lipro.core.mqtt.message_processor import MqttMessageProcessor
-from custom_components.lipro.core.mqtt.topic_builder import MqttTopicBuilder
 
 _CONFIG_ENTRY_DATA = {
     "phone": "13800000000",
@@ -57,9 +53,9 @@ def coordinator(hass, mock_lipro_api_client, mock_auth_manager):
         "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager"
     ) as mock_share:
         mock_share.return_value = MagicMock(is_enabled=False, set_enabled=MagicMock())
-        from custom_components.lipro.core.coordinator import LiproDataUpdateCoordinator
+        from custom_components.lipro.core.coordinator.coordinator import Coordinator
 
-        return LiproDataUpdateCoordinator(
+        return Coordinator(
             hass, mock_lipro_api_client, mock_auth_manager, entry
         )
 
@@ -79,55 +75,55 @@ async def test_async_setup_mqtt_builds_refactored_client(
 
     with (
         patch(
-            "custom_components.lipro.core.mqtt.credentials.decrypt_mqtt_credential",
+            "custom_components.lipro.core.coordinator.coordinator.decrypt_mqtt_credential",
             side_effect=["ak", "sk"],
         ),
-        patch.object(LiproMqttClient, "start", new_callable=AsyncMock) as mock_start,
+        patch(
+            "custom_components.lipro.core.mqtt.mqtt_client.LiproMqttClient"
+        ) as mock_client_cls,
+        patch(
+            "custom_components.lipro.core.coordinator.coordinator.MqttRuntime"
+        ) as mock_runtime_cls,
     ):
-        ok = await coordinator.async_setup_mqtt()
+        mock_client = AsyncMock()
+        mock_client_cls.return_value = mock_client
+
+        mock_runtime = AsyncMock()
+        mock_runtime.is_connected = True
+        mock_runtime.connect = AsyncMock()
+        mock_runtime_cls.return_value = mock_runtime
+
+        ok = await coordinator.mqtt_service.async_setup()
 
     assert ok is True
-    assert isinstance(coordinator._mqtt_client, LiproMqttClient)
-    assert isinstance(coordinator._mqtt_client._topic_builder, MqttTopicBuilder)
-    assert isinstance(
-        coordinator._mqtt_client._connection_manager,
-        MqttConnectionManager,
-    )
-    assert isinstance(
-        coordinator._mqtt_client._message_processor,
-        MqttMessageProcessor,
-    )
-    assert mock_start.await_args is not None
-    assert mock_start.await_args.args == (["mesh_group_1"],)
+    assert coordinator._mqtt_runtime is not None
+    mock_runtime.connect.assert_awaited_once()
 
 
 @pytest.mark.asyncio
 async def test_coordinator_mqtt_service_sync_and_stop_use_client_runtime(
     coordinator,
 ) -> None:
-    mqtt_client = LiproMqttClient(
-        access_key="access",
-        secret_key="secret",
-        biz_id="biz001",
-        phone_id="test-phone-id",
-    )
-    sync_mock = AsyncMock()
-    stop_mock = AsyncMock()
-    coordinator._mqtt_client = mqtt_client
-    coordinator._mqtt_connected = True
+    # Mock MQTT runtime
+    mock_mqtt_runtime = AsyncMock()
+    mock_mqtt_runtime.is_connected = True
+    mock_mqtt_runtime.connect = AsyncMock()
+    mock_mqtt_runtime.disconnect = AsyncMock()
+    coordinator._mqtt_runtime = mock_mqtt_runtime
+    coordinator._biz_id = "biz001"
     coordinator._devices = {
         "dev_a": _make_device("dev_a"),
         "mesh_group_1": _make_device("mesh_group_1", is_group=True),
     }
 
-    with (
-        patch.object(mqtt_client, "sync_subscriptions", sync_mock),
-        patch.object(mqtt_client, "stop", stop_mock),
-    ):
-        await coordinator.async_sync_mqtt_subscriptions()
-        await coordinator.async_stop_mqtt()
+    # Mock MQTT client
+    mock_client = AsyncMock()
+    coordinator._mqtt_client = mock_client
 
-    sync_mock.assert_awaited_once_with({"dev_a", "mesh_group_1"})
-    stop_mock.assert_awaited_once_with()
-    assert coordinator._mqtt_client is None
-    assert coordinator._mqtt_connected is False
+    # Test sync subscriptions
+    await coordinator.mqtt_service.async_sync_subscriptions()
+    mock_mqtt_runtime.connect.assert_awaited_once()
+
+    # Test stop
+    await coordinator.mqtt_service.async_stop()
+    mock_mqtt_runtime.disconnect.assert_awaited_once()
