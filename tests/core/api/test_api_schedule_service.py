@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import asyncio
+from collections.abc import Sequence
 from types import SimpleNamespace
+from typing import cast
 from unittest.mock import AsyncMock, call
 
 import pytest
@@ -15,6 +17,32 @@ from custom_components.lipro.core.api.schedule_service import (
     delete_mesh_schedules_by_candidates,
     get_mesh_schedules_by_candidates,
 )
+from custom_components.lipro.core.api.types import ScheduleTimingRow
+
+
+def _extract_schedule_rows(payload: object) -> list[ScheduleTimingRow]:
+    if isinstance(payload, dict):
+        rows = payload.get("data")
+        if isinstance(rows, list):
+            return [cast(ScheduleTimingRow, row) for row in rows if isinstance(row, dict)]
+    return []
+
+
+def _normalize_schedule_rows(
+    rows: Sequence[object],
+    *,
+    fallback_device_id: str = "",
+) -> list[ScheduleTimingRow]:
+    normalized: list[ScheduleTimingRow] = []
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        raw_id = row.get("id")
+        if isinstance(raw_id, bool):
+            continue
+        if isinstance(raw_id, (str, int)):
+            normalized.append({"id": raw_id, "deviceId": fallback_device_id})
+    return normalized
 
 
 class DummyApiError(Exception):
@@ -38,10 +66,8 @@ async def test_get_mesh_schedules_by_candidates_returns_first_non_empty_rows() -
         candidate_device_ids=["03ab0000000000a1", "03ab0000000000a2"],
         execute_candidate_request=execute_candidate_request,
         iot_request=AsyncMock(return_value={}),
-        extract_timings_list=lambda payload: payload.get("data", []),
-        normalize_mesh_timing_rows=lambda rows, fallback_device_id: [
-            {"id": row["id"], "deviceId": fallback_device_id} for row in rows
-        ],
+        extract_timings_list=_extract_schedule_rows,
+        normalize_mesh_timing_rows=_normalize_schedule_rows,
         path_ble_schedule_get="/v2/schedule/get",
         build_mesh_schedule_get_body=lambda candidate: {"deviceId": candidate},
         raise_on_total_failure=True,
@@ -79,10 +105,8 @@ async def test_get_mesh_schedules_by_candidates_returns_without_waiting_slow_can
                 candidate_device_ids=["03ab0000000000a1", "03ab0000000000a2"],
                 execute_candidate_request=execute_candidate_request,
                 iot_request=AsyncMock(return_value={}),
-                extract_timings_list=lambda payload: payload.get("data", []),
-                normalize_mesh_timing_rows=lambda rows, fallback_device_id: [
-                    {"id": row["id"], "deviceId": fallback_device_id} for row in rows
-                ],
+                extract_timings_list=_extract_schedule_rows,
+                normalize_mesh_timing_rows=_normalize_schedule_rows,
                 path_ble_schedule_get="/v2/schedule/get",
                 build_mesh_schedule_get_body=lambda candidate: {"deviceId": candidate},
                 raise_on_total_failure=True,

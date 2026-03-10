@@ -3,17 +3,25 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
+from typing import TypeGuard, cast
 
 from ...utils.identifiers import (
     normalize_iot_device_id as _normalize_iot_device_id,
     normalize_mesh_group_id as _normalize_mesh_group_id,
 )
 from ..client_base import _ClientBase
+from ..types import JsonValue, ScheduleTimingRow
+
+type JsonObject = dict[str, JsonValue]
 
 # Use the same logger instance as custom_components.lipro.core.api.client._LOGGER
 # so tests patching client._LOGGER.* still intercept logs here.
 _LOGGER = logging.getLogger("custom_components.lipro.core.api.client")
+
+
+def _is_json_object(value: object) -> TypeGuard[JsonObject]:
+    """Return whether one raw payload value is a JSON-like mapping."""
+    return isinstance(value, dict)
 
 
 class _ClientEndpointPayloadsMixin(_ClientBase):
@@ -21,30 +29,33 @@ class _ClientEndpointPayloadsMixin(_ClientBase):
 
     @staticmethod
     def _extract_list_payload(
-        result: Any,
+        result: object,
         *keys: str,
-    ) -> list[dict[str, Any]]:
+    ) -> list[JsonObject]:
         """Extract list payload from direct or wrapped API responses."""
         if isinstance(result, list):
-            return result
+            return [row for row in result if _is_json_object(row)]
         if isinstance(result, dict):
             for key in keys:
                 value = result.get(key)
                 if isinstance(value, list):
-                    return value
+                    return [row for row in value if _is_json_object(row)]
         return []
 
     @staticmethod
-    def _extract_data_list(result: Any) -> list[dict[str, Any]]:
+    def _extract_data_list(result: object) -> list[JsonObject]:
         """Extract list payload from ``data`` responses."""
         return _ClientEndpointPayloadsMixin._extract_list_payload(result, "data")
 
     @staticmethod
-    def _extract_timings_list(result: Any) -> list[dict[str, Any]]:
+    def _extract_timings_list(result: object) -> list[ScheduleTimingRow]:
         """Extract timing-task rows from API response variants."""
-        return _ClientEndpointPayloadsMixin._extract_list_payload(
-            result, "timings", "data"
-        )
+        return [
+            cast(ScheduleTimingRow, row)
+            for row in _ClientEndpointPayloadsMixin._extract_list_payload(
+                result, "timings", "data"
+            )
+        ]
 
     @staticmethod
     def _sanitize_iot_device_ids(
@@ -75,7 +86,7 @@ class _ClientEndpointPayloadsMixin(_ClientBase):
         return valid_ids
 
     @staticmethod
-    def _normalize_power_target_id(device_id: Any) -> str | None:
+    def _normalize_power_target_id(device_id: object) -> str | None:
         """Normalize a power-info target ID accepted by the cloud endpoint."""
         return _normalize_iot_device_id(device_id) or _normalize_mesh_group_id(
             device_id

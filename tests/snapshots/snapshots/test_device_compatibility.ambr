@@ -1,0 +1,11 @@
+# serializer version: 1
+# name: test_device_facade_compatibility_snapshot
+  dict({
+    'connection_quality': 'fair',
+    'iot_device_id': 'rmt_id_appremote_realremote_03ab5ccd7c123456',
+    'ir_remote_gateway_device_id': '03ab5ccd7c123456',
+    'is_connected': True,
+    'supports_ir_switch': True,
+    'unique_id': 'lipro_rmt_id_appremote_realremote_03ab5ccd7c123456',
+  })
+# ---

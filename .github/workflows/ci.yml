@@ -8,7 +8,6 @@ on:
     branches:
       - main
   schedule:
-    # Weekly run to catch upstream HA drift early.
     - cron: "0 3 * * 1"
   workflow_dispatch:
 
@@ -49,6 +48,11 @@ jobs:
 
       - name: Run mypy
         run: uv run mypy
+
+      - name: Run type-checking tests
+        run: |
+          uv run pytest tests/type_checking/ -v
+          uv run mypy tests/type_checking/ --strict
 
       - name: Check translations
         run: uv run python scripts/check_translations.py
@@ -116,7 +120,7 @@ jobs:
   test:
     name: Test
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
@@ -135,7 +139,24 @@ jobs:
         run: uv sync --frozen --extra dev
 
       - name: Run tests with coverage
-        run: uv run pytest tests/ -v --cov=custom_components/lipro --cov-fail-under=95 --cov-report=xml --cov-report=term-missing
+        run: >-
+          uv run pytest tests/
+          -v
+          --ignore=tests/benchmarks
+          --cov=custom_components/lipro
+          --cov-fail-under=95
+          --cov-report=json
+          --cov-report=xml
+          --cov-report=term-missing
+
+      - name: Run snapshot tests
+        run: uv run pytest tests/snapshots/ -v
+
+      - name: Check coverage diff
+        run: uv run python scripts/coverage_diff.py coverage.json --minimum 95
+
+      - name: Run refactor tool smoke check
+        run: uv run python scripts/refactor_tools.py --coverage-json coverage.json --minimum-coverage 95
 
       - name: Upload coverage to Codecov
         if: github.event_name == 'push'
@@ -145,6 +166,35 @@ jobs:
           fail_ci_if_error: false
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+  benchmark:
+    name: Benchmark
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
+        with:
+          python-version: "3.13"
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@0ca8f610542aa7f4acaf39e65cf4eb3c35091883
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --frozen --extra dev
+
+      - name: Run benchmarks
+        run: >-
+          uv run pytest tests/benchmarks/
+          -v
+          --benchmark-only
+          --benchmark-json=.benchmarks/benchmark.json
 
   validate:
     name: Validate

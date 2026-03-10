@@ -13,12 +13,12 @@ if TYPE_CHECKING:
 
     from homeassistant.helpers.entity import Entity
 
-    from ..core.coordinator import LiproDataUpdateCoordinator
     from ..core.device import LiproDevice
+    from ..runtime_types import LiproCoordinator
 
     type DevicePredicate = Callable[[LiproDevice], bool]
     type DeviceEntityFactory[EntityT: Entity] = Callable[
-        [LiproDataUpdateCoordinator, LiproDevice], EntityT
+        [LiproCoordinator, LiproDevice], EntityT
     ]
     type DeviceEntityRule[EntityT: Entity] = tuple[
         DevicePredicate, Sequence[DeviceEntityFactory[EntityT]]
@@ -26,9 +26,9 @@ if TYPE_CHECKING:
 
 
 def create_platform_entities[EntityT: Entity](
-    coordinator: LiproDataUpdateCoordinator,
+    coordinator: LiproCoordinator,
     device_filter: Callable[[LiproDevice], bool],
-    entity_factory: Callable[[LiproDataUpdateCoordinator, LiproDevice], EntityT],
+    entity_factory: Callable[[LiproCoordinator, LiproDevice], EntityT],
 ) -> list[EntityT]:
     """Create entities for a platform using a filter and factory function.
 
@@ -58,9 +58,9 @@ def create_platform_entities[EntityT: Entity](
 
 
 def create_device_entities[EntityT: Entity](
-    coordinator: LiproDataUpdateCoordinator,
+    coordinator: LiproCoordinator,
     entity_builder: Callable[
-        [LiproDataUpdateCoordinator, LiproDevice],
+        [LiproCoordinator, LiproDevice],
         Iterable[EntityT],
     ],
     *,
@@ -76,7 +76,7 @@ def create_device_entities[EntityT: Entity](
 
 
 def build_device_entities_from_rules[EntityT: Entity](
-    coordinator: LiproDataUpdateCoordinator,
+    coordinator: LiproCoordinator,
     device: LiproDevice,
     *,
     rules: Sequence[DeviceEntityRule[EntityT]],

@@ -843,7 +843,7 @@ class TestLiproMqttClient:
 
         with (
             patch(
-                "custom_components.lipro.core.mqtt.client.parse_mqtt_payload",
+                "custom_components.lipro.core.mqtt.client_runtime.parse_mqtt_payload",
                 side_effect=RuntimeError("boom"),
             ),
             caplog.at_level(logging.ERROR),
@@ -1175,10 +1175,10 @@ class TestConnectAndDecode:
 
         with (
             patch(
-                "custom_components.lipro.core.mqtt.client.ssl.create_default_context"
+                "custom_components.lipro.core.mqtt.client_runtime.ssl.create_default_context"
             ) as mock_tls,
             patch(
-                "custom_components.lipro.core.mqtt.client.aiomqtt.Client"
+                "custom_components.lipro.core.mqtt.client_runtime.aiomqtt.Client"
             ) as mock_client_cls,
             patch.object(client, "_process_message") as mock_process,
         ):
@@ -1236,7 +1236,7 @@ class TestConnectAndDecode:
         mqtt_client.messages = _messages()
 
         with patch(
-            "custom_components.lipro.core.mqtt.client.aiomqtt.Client"
+            "custom_components.lipro.core.mqtt.client_runtime.aiomqtt.Client"
         ) as mock_client_cls:
             context_manager = AsyncMock()
             context_manager.__aenter__.return_value = mqtt_client
@@ -1270,7 +1270,7 @@ class TestConnectAndDecode:
         mqtt_client.messages = _messages()
 
         with patch(
-            "custom_components.lipro.core.mqtt.client.aiomqtt.Client"
+            "custom_components.lipro.core.mqtt.client_runtime.aiomqtt.Client"
         ) as mock_client_cls:
             context_manager = AsyncMock()
             context_manager.__aenter__.return_value = mqtt_client
@@ -1315,11 +1315,11 @@ class TestConnectionLoop:
                 side_effect=[aiomqtt.MqttError("boom"), asyncio.CancelledError()],
             ),
             patch(
-                "custom_components.lipro.core.mqtt.client.random.uniform",
+                "custom_components.lipro.core.mqtt.client_runtime.random.uniform",
                 return_value=0.0,
             ),
             patch(
-                "custom_components.lipro.core.mqtt.client.asyncio.sleep",
+                "custom_components.lipro.core.mqtt.client_runtime.asyncio.sleep",
                 new_callable=AsyncMock,
             ) as sleep,
         ):
@@ -1349,11 +1349,11 @@ class TestConnectionLoop:
                 side_effect=OSError("network down"),
             ),
             patch(
-                "custom_components.lipro.core.mqtt.client.random.uniform",
+                "custom_components.lipro.core.mqtt.client_runtime.random.uniform",
                 return_value=0.0,
             ),
             patch(
-                "custom_components.lipro.core.mqtt.client.asyncio.sleep",
+                "custom_components.lipro.core.mqtt.client_runtime.asyncio.sleep",
                 side_effect=_sleep_and_stop,
             ) as sleep,
         ):
@@ -1382,11 +1382,11 @@ class TestConnectionLoop:
                 side_effect=ValueError("invalid topic"),
             ),
             patch(
-                "custom_components.lipro.core.mqtt.client.random.uniform",
+                "custom_components.lipro.core.mqtt.client_runtime.random.uniform",
                 return_value=0.0,
             ),
             patch(
-                "custom_components.lipro.core.mqtt.client.asyncio.sleep",
+                "custom_components.lipro.core.mqtt.client_runtime.asyncio.sleep",
                 side_effect=_sleep_and_stop,
             ) as sleep,
         ):
@@ -1415,11 +1415,11 @@ class TestConnectionLoop:
                 side_effect=RuntimeError("unexpected"),
             ),
             patch(
-                "custom_components.lipro.core.mqtt.client.random.uniform",
+                "custom_components.lipro.core.mqtt.client_runtime.random.uniform",
                 return_value=0.0,
             ),
             patch(
-                "custom_components.lipro.core.mqtt.client.asyncio.sleep",
+                "custom_components.lipro.core.mqtt.client_runtime.asyncio.sleep",
                 side_effect=_sleep_and_stop,
             ) as sleep,
         ):

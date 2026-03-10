@@ -1,0 +1,32 @@
+# serializer version: 1
+# name: test_api_payload_snapshots
+  dict({
+    'command': dict({
+      'code': 0,
+      'message': 'ok',
+      'msgSn': 'abc123',
+      'success': True,
+    }),
+    'diagnostics': dict({
+      'code': 0,
+      'data': list([
+        dict({
+          'count': 2,
+          'event': 'connected',
+        }),
+      ]),
+      'success': True,
+    }),
+    'schedule': dict({
+      'data': list([
+        dict({
+          'enable': True,
+          'hour': 8,
+          'id': '1',
+          'minute': 30,
+        }),
+      ]),
+      'success': True,
+    }),
+  })
+# ---

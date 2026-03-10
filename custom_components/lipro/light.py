@@ -30,8 +30,8 @@ if TYPE_CHECKING:
     from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
     from . import LiproConfigEntry
-    from .core.coordinator import LiproDataUpdateCoordinator
     from .core.device import LiproDevice
+    from .runtime_types import LiproCoordinator
 
 # Limit parallel updates to avoid overwhelming the API
 PARALLEL_UPDATES = 1
@@ -59,7 +59,7 @@ class LiproLight(LiproEntity, LightEntity):
 
     def __init__(
         self,
-        coordinator: LiproDataUpdateCoordinator,
+        coordinator: LiproCoordinator,
         device: LiproDevice,
     ) -> None:
         """Initialize the light."""

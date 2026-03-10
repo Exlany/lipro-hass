@@ -36,6 +36,7 @@ from custom_components.lipro.const.config import (
     DEFAULT_REQUEST_TIMEOUT,
     MAX_SCAN_INTERVAL,
 )
+from custom_components.lipro.coordinator_v2 import CoordinatorV2
 from custom_components.lipro.core import (
     LiproApiError,
     LiproAuthError,
@@ -775,7 +776,8 @@ class TestInitRuntimeBehavior:
         mock_auth.set_tokens.assert_called_once()
         mock_auth.ensure_valid_token.assert_awaited_once()
         mock_coordinator.async_config_entry_first_refresh.assert_awaited_once()
-        assert entry.runtime_data is mock_coordinator
+        assert isinstance(entry.runtime_data, CoordinatorV2)
+        assert entry.runtime_data.command_service is mock_coordinator.command_service
         mock_forward.assert_awaited_once()
         mock_update.assert_called_once()
         entry.add_update_listener.assert_called_once()
@@ -1193,7 +1195,9 @@ class TestInitRuntimeBehavior:
                 "custom_components.lipro.has_other_runtime_entries", return_value=False
             ),
             patch("custom_components.lipro.remove_services") as mock_remove_services,
-            patch("custom_components.lipro.remove_device_registry_listener") as mock_remove_listener,
+            patch(
+                "custom_components.lipro.remove_device_registry_listener"
+            ) as mock_remove_listener,
         ):
             assert await async_unload_entry(hass, entry) is True
 
@@ -1796,10 +1800,12 @@ class TestInitRuntimeBehavior:
         coordinator.client.query_command_result.assert_awaited_once_with(
             msg_sn="682550445474",
             device_id="mesh_group_49155",
-            device_type=device.device_type,
+            device_type=device.device_type_hex,
         )
 
-    async def test_query_command_result_service_polls_until_confirmed(self, hass) -> None:
+    async def test_query_command_result_service_polls_until_confirmed(
+        self, hass
+    ) -> None:
         """query_command_result service should keep polling pending states within budget."""
         device = self._create_device(serial="mesh_group_49155")
         coordinator = MagicMock()
@@ -1909,7 +1915,9 @@ class TestInitRuntimeBehavior:
         result = await _async_handle_get_city(hass, service_call(hass, {}))
         assert result == {"result": {"province": "浙江省", "city": "杭州市"}}
 
-    async def test_query_user_cloud_service_falls_back_to_next_coordinator(self, hass) -> None:
+    async def test_query_user_cloud_service_falls_back_to_next_coordinator(
+        self, hass
+    ) -> None:
         """query_user_cloud should continue to next coordinator when one fails."""
         first = MagicMock()
         first.client.query_user_cloud = AsyncMock(

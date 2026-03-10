@@ -1,62 +1,78 @@
 # Refactoring Status
 
-> 最后更新：2026-03-09
+> 最后更新：2026-03-10
 >
-> 本状态表用于主代理逐项对照 `docs/refactoring/tasks/*.json`，避免重构遗漏。
+> 本状态表用于对照 `docs/refactoring/tasks/*.json`；以下结论仅基于当前工作区与已执行校验命令。
 
-## 本轮已完成
+## 已完成要点
 
-- 修复 `docs/refactoring/tasks/*.json` 的可解析性，当前全部任务清单均可被 `jq` 正常解析
-- 收窄 MQTT 客户端热路径宽泛异常
-- 降低命令结果与部分 API 模块的类型热点
-- 完成 `LiproDevice` 的 `DeviceIdentity` / `DeviceState` / `DeviceCapabilities` / `DeviceNetworkInfo` 抽离
-- 提取 `MqttMessageProcessor` 并接入 `LiproMqttClient`
-- 为 Coordinator 引入并注入 `CommandService` / `DeviceRefreshService` / `MqttService` / `StateService`
-- 新增 `CoordinatorV2` 组合外观与基础测试
-- 将 `async_send_command` / `async_refresh_devices` / `async_setup_mqtt` / `async_stop_mqtt` / `async_sync_mqtt_subscriptions` 的公开入口收束到服务层
-- 补齐服务层与设备拆分的单元测试
+- 运行时入口已固定切换到 `CoordinatorV2`，不再保留 `V1/V2` 环境开关路径
+- 设备模型已拆为薄外观 + 工厂/视图/运行时/快照/状态/额外能力模块，`custom_components/lipro/core/device/device.py` 当前为 `87` 行
+- MQTT 客户端已拆为薄外观 + runtime/connection/subscription/topic/message 组件，`custom_components/lipro/core/mqtt/client.py` 当前为 `150` 行
+- 类型热点已收口：
+  - `custom_components/lipro/core/api/diagnostics_service.py`：`Any = 0`
+  - `custom_components/lipro/services/diagnostics_service.py`：`Any = 0`
+  - `custom_components/lipro/core/api/schedule_service.py`：`Any = 0`
+  - `custom_components/lipro/core/command/result.py`：`Any = 0`
+- 快照、benchmark、类型专项测试、覆盖率差异工具、重构工具与 CI 已全部落地
+- benchmark 基线已清理为单份：`.benchmarks/Linux-CPython-3.13-64bit/0001_baseline.json`
 
 ## Checkpoint Matrix
 
 | Task File | Checkpoint | Status | Notes |
 |---|---|---|---|
-| `agent-1-exceptions.json` | `cp-1-1` | Partial | 尚未引入完整异常层次，但 MQTT 热路径已收窄 |
-| `agent-1-exceptions.json` | `cp-1-2` ~ `cp-1-5` | Done | `custom_components/lipro/core/mqtt/client.py` 热路径宽泛异常已处理 |
-| `agent-1-exceptions.json` | `cp-1-6` | Partial | 当前已完成热点清理，尚未形成全局“零裸异常”证明 |
-| `agent-2-types.json` | `cp-2-1` | Partial | 尚未系统化补齐所有 `TypedDict` |
-| `agent-2-types.json` | `cp-2-2` | Done | `custom_components/lipro/core/command/result.py` 已重点收敛 |
-| `agent-2-types.json` | `cp-2-3` | Partial | 诊断服务仍有余量 |
-| `agent-2-types.json` | `cp-2-4` | Partial | API 诊断模块仍有余量 |
-| `agent-2-types.json` | `cp-2-5` | Partial | `schedule_service` 已补局部类型与 mypy 阻塞 |
-| `agent-2-types.json` | `cp-2-6` | Partial | 当前局部类型检查通过，尚未形成专项类型测试目录 |
-| `agent-3-architecture.json` | `cp-3-1` | Done | `StateManagementProtocol` / `MqttServiceProtocol` / `CommandServiceProtocol` / `DeviceRefreshServiceProtocol` 已齐备 |
-| `agent-3-architecture.json` | `cp-3-2` | Partial | `MqttService` 已接管公开入口，核心 runtime 逻辑仍在 bridge 中 |
-| `agent-3-architecture.json` | `cp-3-3` | Partial | `CommandService` 已接管公开入口，确认/队列逻辑仍在 bridge 中 |
-| `agent-3-architecture.json` | `cp-3-4` | Partial | `DeviceRefreshService` 已接管公开入口，刷新策略与批量优化仍主要在现有 runtime 中 |
-| `agent-3-architecture.json` | `cp-3-5` | Partial | `custom_components/lipro/coordinator_v2.py` 与 `tests/test_coordinator_v2.py` 已落地，仍未替代现网主协调器 |
-| `agent-3-architecture.json` | `cp-3-6` | Not Started | V1/V2 双跑开关与兼容性矩阵尚未落地 |
-| `agent-3-architecture.json` | `cp-3-7` | Done | `docs/refactoring/ARCHITECTURE_COMPARISON.md` 已补齐 |
-| `agent-4-device-model.json` | `cp-4-1` | Done | `DeviceIdentity` 已落地并有测试 |
-| `agent-4-device-model.json` | `cp-4-2` | Done | `DeviceState` 已落地并有测试 |
-| `agent-4-device-model.json` | `cp-4-3` | Done | `DeviceCapabilities` 已落地并有测试 |
-| `agent-4-device-model.json` | `cp-4-4` | Done | `DeviceNetworkInfo` 已落地并有测试 |
-| `agent-4-device-model.json` | `cp-4-5` | Partial | `LiproDevice` 已组合这些组件，但主体仍偏大 |
-| `agent-4-device-model.json` | `cp-4-6` ~ `cp-4-7` | Not Started | 快照测试与设备重构报告尚未补 |
-| `agent-5-mqtt-client.json` | `cp-5-1` | Done | `MqttMessageProcessor` 已落地并接入客户端 |
-| `agent-5-mqtt-client.json` | `cp-5-2` ~ `cp-5-3` | Not Started | Topic / Connection manager 尚未拆出 |
-| `agent-5-mqtt-client.json` | `cp-5-4` ~ `cp-5-6` | Partial | 客户端已开始服务化，但未完成完整组合化与专项集成收口 |
-| `agent-5-mqtt-client.json` | `cp-5-7` | Not Started | MQTT 重构报告尚未补 |
-| `agent-6-testing.json` | `cp-6-1` ~ `cp-6-7` | Not Started | 当前以现有单元测试/静态检查为主，尚未建立快照/基准/专项工具链 |
+| `agent-1-exceptions.json` | `cp-1-1` | Done | `custom_components/lipro/core/exceptions.py` 已建立共享异常层次 |
+| `agent-1-exceptions.json` | `cp-1-2` ~ `cp-1-5` | Done | MQTT 热路径宽泛异常已收窄并外提到连接/回调管理组件 |
+| `agent-1-exceptions.json` | `cp-1-6` | Done | `uv run ruff check custom_components/lipro/core/mqtt/ --select BLE001` 通过；剩余 `except Exception` 仅保留在回调/卸载/边界保护层 |
+| `agent-2-types.json` | `cp-2-1` | Done | `custom_components/lipro/core/api/types.py` 已集中承载 TypedDict 合同 |
+| `agent-2-types.json` | `cp-2-2` | Done | `custom_components/lipro/core/command/result.py` 已完成类型收口 |
+| `agent-2-types.json` | `cp-2-3` | Done | `custom_components/lipro/services/diagnostics_service.py` 已补齐 `Protocol`/`TypedDict` |
+| `agent-2-types.json` | `cp-2-4` | Done | `custom_components/lipro/core/api/diagnostics_service.py` 已移除热点 `Any` |
+| `agent-2-types.json` | `cp-2-5` | Done | `custom_components/lipro/core/api/schedule_service.py` 已完成类型合同整理 |
+| `agent-2-types.json` | `cp-2-6` | Done | `tests/type_checking/` 已接入，目标热点模块 `mypy --strict` 通过 |
+| `agent-3-architecture.json` | `cp-3-1` | Done | `Protocol` 服务边界已存在 |
+| `agent-3-architecture.json` | `cp-3-2` | Done | `CoordinatorMqttService` 已承担协调器对 MQTT 的公开编排入口 |
+| `agent-3-architecture.json` | `cp-3-3` | Done | `CoordinatorCommandService` 已承担命令发送公开入口 |
+| `agent-3-architecture.json` | `cp-3-4` | Done | `CoordinatorDeviceRefreshService` 已承担刷新公开入口 |
+| `agent-3-architecture.json` | `cp-3-5` | Done | `CoordinatorV2` 已落地并作为当前 `entry.runtime_data` |
+| `agent-3-architecture.json` | `cp-3-6` | Done | 依据“未发布、直接上最终架构”原则，已改为固定 V2 路径验证 |
+| `agent-3-architecture.json` | `cp-3-7` | Done | `docs/refactoring/ARCHITECTURE_COMPARISON.md` 与本状态表已同步最新结论 |
+| `agent-4-device-model.json` | `cp-4-1` ~ `cp-4-4` | Done | `DeviceIdentity` / `DeviceState` / `DeviceCapabilities` / `DeviceNetworkInfo` 均已落地 |
+| `agent-4-device-model.json` | `cp-4-5` | Done | `LiproDevice` 已成为薄 facade + 委托外观 |
+| `agent-4-device-model.json` | `cp-4-6` | Done | 快照与目录化测试均已存在 |
+| `agent-4-device-model.json` | `cp-4-7` | Done | `docs/refactoring/DEVICE_MODEL_REPORT.md` 已按当前结构回填 |
+| `agent-5-mqtt-client.json` | `cp-5-1` | Done | `message_processor.py` 已落地 |
+| `agent-5-mqtt-client.json` | `cp-5-2` | Done | `topic_builder.py` 已落地 |
+| `agent-5-mqtt-client.json` | `cp-5-3` | Done | `connection_manager.py` 已落地 |
+| `agent-5-mqtt-client.json` | `cp-5-4` | Done | `client.py` 已瘦身为 `150` 行组合外观 |
+| `agent-5-mqtt-client.json` | `cp-5-5` | Done | MQTT 新结构已接入当前协调器/runtime 路径 |
+| `agent-5-mqtt-client.json` | `cp-5-6` | Done | MQTT 单元/集成测试已落地并通过 |
+| `agent-5-mqtt-client.json` | `cp-5-7` | Done | `docs/refactoring/MQTT_CLIENT_REPORT.md` 已按当前数据回填 |
+| `agent-6-testing.json` | `cp-6-1` | Done | `tests/snapshots/` 与 `.ambr` 基线已落地 |
+| `agent-6-testing.json` | `cp-6-2` | Done | `tests/benchmarks/` 已落地，benchmark 基线已清理为单份 |
+| `agent-6-testing.json` | `cp-6-3` | Done | `tests/type_checking/` 已落地 |
+| `agent-6-testing.json` | `cp-6-4` | Done | `scripts/coverage_diff.py` 已落地 |
+| `agent-6-testing.json` | `cp-6-5` | Done | `scripts/refactor_tools.py` 与其测试已落地 |
+| `agent-6-testing.json` | `cp-6-6` | Done | CI 已覆盖 Ruff / mypy / type-checking / coverage diff / snapshot / benchmark |
+| `agent-6-testing.json` | `cp-6-7` | Done | `docs/refactoring/TESTING_INFRASTRUCTURE.md` 与 `docs/developer_testing_guide.md` 已回填最新事实 |
 
-## 当前默认验收口径
+## 当前验收口径
 
-- Python / pytest / mypy / ruff 命令统一使用 `uv run ...`
-- 先做最小范围验证，再逐步扩大到波次级验证
-- `tasks/*.json` 中个别 `--cov=<file path>` 命令更适合作为“意图说明”而非覆盖率精确口径；实际执行时可用等价的模块级 `--cov` 参数替代
+```bash
+uv run ruff check .
+uv run mypy --hide-error-context --no-error-summary
+uv run pytest tests/type_checking/ -v
+uv run mypy tests/type_checking/ --strict
+uv run pytest tests/snapshots/ -v
+uv run pytest tests/ --ignore=tests/benchmarks -q
+uv run pytest tests/benchmarks/ -v --benchmark-only --benchmark-save=baseline
+uv run pytest tests/ --ignore=tests/benchmarks --cov=custom_components/lipro --cov-report=json -q
+uv run python scripts/coverage_diff.py coverage.json --minimum 95
+uv run python scripts/refactor_tools.py --coverage-json coverage.json --minimum-coverage 95
+```
 
-## 下一步建议
+## 备注
 
-1. 继续完成 `agent-3` 的 `cp-3-2` / `cp-3-3` / `cp-3-4`，把 bridge 内的核心 runtime 逻辑进一步下沉到 service
-2. 决定是否直接推进 `cp-3-5`：落地 `CoordinatorV2`
-3. 为 `agent-4` / `agent-5` 补快照、集成测试与重构报告
-4. 在波次结束后执行更大范围的 `pytest` / `mypy` / `ruff check`
+- 当前仍有少数相对较大的功能文件，但已不再属于本轮 checklist 定义的“超大类/类型热点/继承链扩散”问题
+- 旧 mixin 实现现仅作为内部实现细节保留；对外运行时、文档与新增代码路径统一面向 `CoordinatorV2` 与显式 service 边界
+- 本轮目标已从“兼容旧架构”明确切换为“直接落到最终架构”，因此不再保留旧开关与双跑路径

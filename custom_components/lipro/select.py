@@ -26,8 +26,8 @@ if TYPE_CHECKING:
     from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
     from . import LiproConfigEntry
-    from .core.coordinator import LiproDataUpdateCoordinator
     from .core.device import LiproDevice
+    from .runtime_types import LiproCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -71,7 +71,7 @@ async def async_setup_entry(
 
 
 def _build_device_select_entities(
-    coordinator: LiproDataUpdateCoordinator,
+    coordinator: LiproCoordinator,
     device: LiproDevice,
 ) -> list[SelectEntity]:
     """Build all select entities for one device."""

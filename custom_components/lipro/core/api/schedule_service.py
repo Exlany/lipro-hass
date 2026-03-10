@@ -1,11 +1,12 @@
-"""Schedule endpoint service for Lipro API client."""
+"""Schedule endpoint service for the Lipro API client."""
 # ruff: noqa: SLF001
 
 from __future__ import annotations
 
 import asyncio
-from collections.abc import Awaitable, Callable
-from typing import Any, cast
+from collections.abc import Awaitable, Callable, Sequence
+import logging
+from typing import Protocol
 
 from ...const.api import PATH_SCHEDULE_ADD, PATH_SCHEDULE_DELETE, PATH_SCHEDULE_GET
 from .schedule_endpoint import (
@@ -13,12 +14,68 @@ from .schedule_endpoint import (
     build_schedule_delete_body,
     build_schedule_get_body,
 )
+from .types import ScheduleTimingRow
 
 _MESH_SCHEDULE_CANDIDATE_CONCURRENCY = 3
 _MESH_SCHEDULE_CANDIDATE_TIMEOUT_SECONDS = 15.0
 
-CandidateRequestResult = tuple[bool, Any, Exception | None]
-CandidateRequestExecutor = Callable[..., Awaitable[CandidateRequestResult]]
+type ScheduleRows = list[ScheduleTimingRow]
+type RawScheduleRows = Sequence[object]
+type ScheduleRequestBody = dict[str, object]
+type CandidateRequestResult = tuple[bool, object | None, Exception | None]
+type CandidateRequest = Callable[[str], Awaitable[object]]
+type CandidateRequestExecutor = Callable[..., Awaitable[CandidateRequestResult]]
+type IotRequest = Callable[..., Awaitable[object]]
+type ExtractTimingsList = Callable[[object], RawScheduleRows]
+type NormalizeMeshTimingRows = Callable[..., ScheduleRows]
+type BuildMeshScheduleGetBody = Callable[[str], ScheduleRequestBody]
+type BuildMeshScheduleAddBody = Callable[..., ScheduleRequestBody]
+type BuildMeshScheduleDeleteBody = Callable[..., ScheduleRequestBody]
+type GetMeshSchedulesByCandidatesRequest = Callable[..., Awaitable[ScheduleRows]]
+type EncodeMeshScheduleJson = Callable[..., str]
+
+
+class ScheduleClientProtocol(Protocol):
+    """Internal client operations consumed by ``ScheduleApiService``."""
+
+    def _is_mesh_group_id(self, device_id: str) -> bool: ...
+
+    def _require_mesh_schedule_candidate_ids(
+        self,
+        *,
+        device_id: str,
+        mesh_gateway_id: str,
+        mesh_member_ids: list[str] | None,
+    ) -> list[str]: ...
+
+    async def _get_mesh_schedules_by_candidates(
+        self,
+        candidate_device_ids: list[str],
+    ) -> ScheduleRows: ...
+
+    def _to_device_type_hex(self, device_type: int | str) -> str: ...
+
+    async def _request_schedule_timings(
+        self,
+        path: str,
+        body: ScheduleRequestBody,
+    ) -> ScheduleRows: ...
+
+    async def _add_mesh_schedule_by_candidates(
+        self,
+        candidate_device_ids: list[str],
+        *,
+        days: list[int],
+        times: list[int],
+        events: list[int],
+    ) -> ScheduleRows: ...
+
+    async def _delete_mesh_schedules_by_candidates(
+        self,
+        candidate_device_ids: list[str],
+        *,
+        schedule_ids: list[int],
+    ) -> ScheduleRows: ...
 
 
 def _redact_candidate_id(candidate_id: str) -> str:
@@ -28,10 +85,9 @@ def _redact_candidate_id(candidate_id: str) -> str:
     return f"***{candidate_id[-4:]}"
 
 
-def _next_mesh_schedule_id(rows: list[dict[str, Any]]) -> int:
+def _next_mesh_schedule_id(rows: ScheduleRows) -> int:
     """Return the first free non-negative mesh schedule ID."""
     used_ids: set[int] = set()
-
     for row in rows:
         raw_id = row.get("id")
         if isinstance(raw_id, bool):
@@ -40,10 +96,8 @@ def _next_mesh_schedule_id(rows: list[dict[str, Any]]) -> int:
             if raw_id >= 0:
                 used_ids.add(raw_id)
             continue
-        if isinstance(raw_id, str):
-            normalized = raw_id.strip()
-            if normalized.isdigit():
-                used_ids.add(int(normalized))
+        if isinstance(raw_id, str) and raw_id.strip().isdigit():
+            used_ids.add(int(raw_id.strip()))
 
     next_id = 0
     while next_id in used_ids:
@@ -55,11 +109,11 @@ async def execute_mesh_schedule_candidate_request(
     *,
     candidate_id: str,
     operation: str,
-    request: Callable[[str], Awaitable[Any]],
+    request: CandidateRequest,
     lipro_auth_error: type[Exception],
     lipro_api_error: type[Exception],
-    logger: Any,
-) -> tuple[bool, Any, Exception | None]:
+    logger: logging.Logger,
+) -> CandidateRequestResult:
     """Execute one mesh schedule candidate request with shared error handling."""
     try:
         return True, await request(candidate_id), None
@@ -88,13 +142,13 @@ async def get_mesh_schedules_by_candidates(
     *,
     candidate_device_ids: list[str],
     execute_candidate_request: CandidateRequestExecutor,
-    iot_request: Callable[[str, dict[str, Any]], Awaitable[Any]],
-    extract_timings_list: Callable[[Any], list[dict[str, Any]]],
-    normalize_mesh_timing_rows: Callable[..., list[dict[str, Any]]],
+    iot_request: IotRequest,
+    extract_timings_list: ExtractTimingsList,
+    normalize_mesh_timing_rows: NormalizeMeshTimingRows,
     path_ble_schedule_get: str,
-    build_mesh_schedule_get_body: Callable[[str], dict[str, Any]],
+    build_mesh_schedule_get_body: BuildMeshScheduleGetBody,
     raise_on_total_failure: bool = True,
-) -> list[dict[str, Any]]:
+) -> ScheduleRows:
     """Query mesh schedule list from candidate device IDs."""
     if not candidate_device_ids:
         return []
@@ -102,18 +156,10 @@ async def get_mesh_schedules_by_candidates(
     last_error: Exception | None = None
     any_candidate_succeeded = False
 
-    for start in range(
-        0,
-        len(candidate_device_ids),
-        _MESH_SCHEDULE_CANDIDATE_CONCURRENCY,
-    ):
-        batch = candidate_device_ids[
-            start : start + _MESH_SCHEDULE_CANDIDATE_CONCURRENCY
-        ]
+    for start in range(0, len(candidate_device_ids), _MESH_SCHEDULE_CANDIDATE_CONCURRENCY):
+        batch = candidate_device_ids[start : start + _MESH_SCHEDULE_CANDIDATE_CONCURRENCY]
 
-        async def _run_candidate(
-            candidate_id: str,
-        ) -> tuple[str, CandidateRequestResult]:
+        async def _run_candidate(candidate_id: str) -> tuple[str, CandidateRequestResult]:
             try:
                 result = await asyncio.wait_for(
                     execute_candidate_request(
@@ -146,20 +192,18 @@ async def get_mesh_schedules_by_candidates(
                     continue
 
                 any_candidate_succeeded = True
-                rows = extract_timings_list(payload)
+                if payload is None:
+                    continue
                 normalized_rows = normalize_mesh_timing_rows(
-                    rows,
+                    extract_timings_list(payload),
                     fallback_device_id=candidate_id,
                 )
-                if not normalized_rows:
-                    continue
-
-                return normalized_rows
+                if normalized_rows:
+                    return normalized_rows
         finally:
             for task in tasks:
-                if task.done():
-                    continue
-                task.cancel()
+                if not task.done():
+                    task.cancel()
             try:
                 await asyncio.gather(*tasks, return_exceptions=True)
             except asyncio.CancelledError:
@@ -168,10 +212,8 @@ async def get_mesh_schedules_by_candidates(
 
     if any_candidate_succeeded:
         return []
-
     if raise_on_total_failure and last_error is not None:
         raise last_error
-
     return []
 
 
@@ -182,25 +224,22 @@ async def add_mesh_schedule_by_candidates(
     times: list[int],
     events: list[int],
     execute_candidate_request: CandidateRequestExecutor,
-    iot_request: Callable[[str, dict[str, Any]], Awaitable[Any]],
-    get_mesh_schedules_by_candidates_request: Callable[
-        ..., Awaitable[list[dict[str, Any]]]
-    ],
+    iot_request: IotRequest,
+    get_mesh_schedules_by_candidates_request: GetMeshSchedulesByCandidatesRequest,
     path_ble_schedule_add: str,
-    build_mesh_schedule_add_body: Callable[..., dict[str, Any]],
-    encode_mesh_schedule_json: Callable[[list[int], list[int], list[int]], str],
-) -> list[dict[str, Any]]:
-    """Try mesh schedule add across candidates and return refreshed schedule rows."""
+    build_mesh_schedule_add_body: BuildMeshScheduleAddBody,
+    encode_mesh_schedule_json: EncodeMeshScheduleJson,
+) -> ScheduleRows:
+    """Try mesh schedule add across candidates and return refreshed rows."""
     schedule_json = encode_mesh_schedule_json(days, times, events)
-    last_error: Exception | None = None
 
+    last_error: Exception | None = None
     for candidate_id in candidate_device_ids:
-        existing_rows = await get_mesh_schedules_by_candidates_request(
+        current_rows = await get_mesh_schedules_by_candidates_request(
             candidate_device_ids=[candidate_id],
             raise_on_total_failure=True,
         )
-        schedule_id = _next_mesh_schedule_id(existing_rows)
-
+        schedule_id = _next_mesh_schedule_id(current_rows)
         succeeded, _, error = await execute_candidate_request(
             candidate_id=candidate_id,
             operation="ADD",
@@ -231,25 +270,17 @@ async def delete_mesh_schedules_by_candidates(
     candidate_device_ids: list[str],
     schedule_ids: list[int],
     execute_candidate_request: CandidateRequestExecutor,
-    iot_request: Callable[[str, dict[str, Any]], Awaitable[Any]],
-    get_mesh_schedules_by_candidates_request: Callable[
-        ..., Awaitable[list[dict[str, Any]]]
-    ],
+    iot_request: IotRequest,
+    get_mesh_schedules_by_candidates_request: GetMeshSchedulesByCandidatesRequest,
     path_ble_schedule_delete: str,
-    build_mesh_schedule_delete_body: Callable[..., dict[str, Any]],
-) -> list[dict[str, Any]]:
+    build_mesh_schedule_delete_body: BuildMeshScheduleDeleteBody,
+) -> ScheduleRows:
     """Try mesh schedule delete across candidates and return refreshed rows."""
     any_deleted = False
     last_error: Exception | None = None
 
-    for start in range(
-        0,
-        len(candidate_device_ids),
-        _MESH_SCHEDULE_CANDIDATE_CONCURRENCY,
-    ):
-        batch = candidate_device_ids[
-            start : start + _MESH_SCHEDULE_CANDIDATE_CONCURRENCY
-        ]
+    for start in range(0, len(candidate_device_ids), _MESH_SCHEDULE_CANDIDATE_CONCURRENCY):
+        batch = candidate_device_ids[start : start + _MESH_SCHEDULE_CANDIDATE_CONCURRENCY]
         batch_results = await asyncio.gather(
             *(
                 execute_candidate_request(
@@ -258,19 +289,18 @@ async def delete_mesh_schedules_by_candidates(
                     request=lambda candidate: iot_request(
                         path_ble_schedule_delete,
                         build_mesh_schedule_delete_body(
-                            candidate, schedule_ids=schedule_ids
+                            candidate,
+                            schedule_ids=schedule_ids,
                         ),
                     ),
                 )
                 for candidate_id in batch
             )
         )
-
         for succeeded, _, error in batch_results:
             if succeeded:
                 any_deleted = True
-                continue
-            if error is not None:
+            elif error is not None:
                 last_error = error
 
     if any_deleted:
@@ -284,10 +314,10 @@ async def delete_mesh_schedules_by_candidates(
 
 
 class ScheduleApiService:
-    """Schedule endpoints extracted from LiproClient."""
+    """Schedule endpoints extracted from ``LiproClient``."""
 
-    def __init__(self, client: Any) -> None:
-        """Initialize schedule endpoint service."""
+    def __init__(self, client: ScheduleClientProtocol) -> None:
+        """Initialize the schedule endpoint service."""
         self._client = client
 
     async def get_device_schedules(
@@ -297,7 +327,7 @@ class ScheduleApiService:
         *,
         mesh_gateway_id: str = "",
         mesh_member_ids: list[str] | None = None,
-    ) -> list[dict[str, Any]]:
+    ) -> ScheduleRows:
         """Get timing schedules for a device."""
         if self._client._is_mesh_group_id(device_id):
             candidate_ids = self._client._require_mesh_schedule_candidate_ids(
@@ -305,15 +335,13 @@ class ScheduleApiService:
                 mesh_gateway_id=mesh_gateway_id,
                 mesh_member_ids=mesh_member_ids,
             )
-            raw = await self._client._get_mesh_schedules_by_candidates(candidate_ids)
-            return cast(list[dict[str, Any]], raw)
+            return await self._client._get_mesh_schedules_by_candidates(candidate_ids)
 
         device_type_hex = self._client._to_device_type_hex(device_type)
-        raw = await self._client._request_schedule_timings(
+        return await self._client._request_schedule_timings(
             PATH_SCHEDULE_GET,
             build_schedule_get_body(device_id, device_type_hex=device_type_hex),
         )
-        return cast(list[dict[str, Any]], raw)
 
     async def add_device_schedule(
         self,
@@ -326,28 +354,26 @@ class ScheduleApiService:
         *,
         mesh_gateway_id: str = "",
         mesh_member_ids: list[str] | None = None,
-    ) -> list[dict[str, Any]]:
+    ) -> ScheduleRows:
         """Add or update a timing schedule for a device."""
         if len(times) != len(events):
-            msg = "times and events arrays must have the same length"
+            msg = "times and events must have same length"
             raise ValueError(msg)
-
         if self._client._is_mesh_group_id(device_id):
             candidate_ids = self._client._require_mesh_schedule_candidate_ids(
                 device_id=device_id,
                 mesh_gateway_id=mesh_gateway_id,
                 mesh_member_ids=mesh_member_ids,
             )
-            raw = await self._client._add_mesh_schedule_by_candidates(
+            return await self._client._add_mesh_schedule_by_candidates(
                 candidate_ids,
                 days=days,
                 times=times,
                 events=events,
             )
-            return cast(list[dict[str, Any]], raw)
 
         device_type_hex = self._client._to_device_type_hex(device_type)
-        raw = await self._client._request_schedule_timings(
+        return await self._client._request_schedule_timings(
             PATH_SCHEDULE_ADD,
             build_schedule_add_body(
                 device_id,
@@ -358,7 +384,6 @@ class ScheduleApiService:
                 group_id=group_id,
             ),
         )
-        return cast(list[dict[str, Any]], raw)
 
     async def delete_device_schedules(
         self,
@@ -369,7 +394,7 @@ class ScheduleApiService:
         *,
         mesh_gateway_id: str = "",
         mesh_member_ids: list[str] | None = None,
-    ) -> list[dict[str, Any]]:
+    ) -> ScheduleRows:
         """Delete timing schedules for a device."""
         if self._client._is_mesh_group_id(device_id):
             candidate_ids = self._client._require_mesh_schedule_candidate_ids(
@@ -377,14 +402,13 @@ class ScheduleApiService:
                 mesh_gateway_id=mesh_gateway_id,
                 mesh_member_ids=mesh_member_ids,
             )
-            raw = await self._client._delete_mesh_schedules_by_candidates(
+            return await self._client._delete_mesh_schedules_by_candidates(
                 candidate_ids,
                 schedule_ids=schedule_ids,
             )
-            return cast(list[dict[str, Any]], raw)
 
         device_type_hex = self._client._to_device_type_hex(device_type)
-        raw = await self._client._request_schedule_timings(
+        return await self._client._request_schedule_timings(
             PATH_SCHEDULE_DELETE,
             build_schedule_delete_body(
                 device_id,
@@ -393,4 +417,3 @@ class ScheduleApiService:
                 group_id=group_id,
             ),
         )
-        return cast(list[dict[str, Any]], raw)

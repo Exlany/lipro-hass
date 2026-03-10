@@ -7,6 +7,7 @@
 - 以深层 mixin 继承链组织行为
 - 状态通过基类共享属性横向扩散
 - 公开入口与 runtime 细节耦合在同一类层级
+- 运行时边界与扩展点不清晰，新增逻辑容易继续堆入 mixin
 
 ### Device / MQTT
 
@@ -14,34 +15,43 @@
 - 可测试边界有限
 - 局部优化存在，但收敛点不足
 
-## 新形态（当前阶段）
+## 新形态
+
+### Runtime 入口
+
+- `custom_components/lipro/__init__.py` 运行时已固定写入 `CoordinatorV2`
+- `custom_components/lipro/runtime_types.py` 统一将运行时类型收口到 `CoordinatorV2`
+- 不再保留 `V1/V2` 双跑或配置开关
 
 ### Coordinator
 
-- 已引入 `Protocol` + `Service` 边界
-- 公开入口开始收束到 service
-- runtime 逻辑仍部分留在 bridge/mixin 中，处于“半收敛”阶段
+- 公开编排边界已显式落到 `CoordinatorStateService`、`CoordinatorCommandService`、`CoordinatorDeviceRefreshService`、`CoordinatorMqttService`
+- `CoordinatorV2` 成为对外运行时外观，旧 mixin 不再是推荐扩展点
+- 旧协调器实现即使仍存在，也只作为内部实现细节服务于当前 facade，不再向外扩散架构负担
 
 ### Device / MQTT
 
-- `LiproDevice` 已拆出身份 / 状态 / 能力 / 网络信息
-- `LiproMqttClient` 已拆出 `MqttMessageProcessor`
-- 组合方向明确，外部行为保持稳定
+- `LiproDevice` 已拆成薄外观 + 工厂 / 视图 / 委托 / 运行时 / 快照 / 状态 / extras 模块
+- `LiproMqttClient` 已拆成薄外观 + runtime / connection / subscription / topic / message 组件
+- 测试边界已与模块边界对齐，便于单测、快照与 benchmark 验证
 
-## 目标形态
+## 核心指标变化
 
-### Coordinator
+| 指标 | 旧形态 | 当前形态 |
+|---|---:|---:|
+| Coordinator 对外继承深度 | 13 | 1 |
+| Coordinator 对外共享状态面 | 62 个共享属性 | 4 个显式 service 依赖 |
+| `LiproDevice` 主文件行数 | 742 | 87 |
+| `LiproMqttClient` 主文件行数 | 601 | 150 |
+| 类型热点 `Any` | 高频集中 | 目标热点清零 |
 
-- service 持有核心业务编排
-- mixin 仅保留极少数过渡桥，最终可删除
-- 状态管理、命令、刷新、MQTT 生命周期边界清晰
+## 为什么现在更优
 
-### Device / MQTT
-
-- 外壳类只负责组装与少量兼容逻辑
-- 纯逻辑尽量下沉到小型可测试组件
+- 新功能落点明确：优先写在 service 或聚焦组件，而不是再加 mixin 或继续膨胀超大类
+- 调试链路更短：设备、MQTT、命令、刷新职责均有清晰入口
+- 类型合同更稳：热点 `Any` 已清零，类型测试进入 CI
+- 运行时更干净：未发布项目直接切到最终运行时路径，不再背负双实现维护成本
 
 ## 当前结论
 
-当前代码已从“全靠继承链”进入“服务边界 + 兼容桥并存”的中间态。
-下一阶段重点不是继续加新 mixin，而是把 bridge 内 runtime 继续向 service 下沉。
+当前工作区已完成从“深层继承 + 超大类”到“薄外观 + 显式服务/组件边界”的迁移。后续新增逻辑应继续沿着 `CoordinatorV2`、service 边界与小组件方向演进，而不是回退到旧的 mixin 扩散模式。

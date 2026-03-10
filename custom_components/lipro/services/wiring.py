@@ -12,13 +12,9 @@ from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from ..const.base import DOMAIN, IOT_DEVICE_ID_PREFIX
-from ..core import (
-    LiproApiError,
-    LiproDataUpdateCoordinator,
-    LiproDevice,
-    get_anonymous_share_manager,
-)
+from ..core import LiproApiError, LiproDevice, get_anonymous_share_manager
 from ..core.utils.redaction import redact_identifier as _redact_identifier
+from ..runtime_types import LiproCoordinator
 from . import contracts as _contracts
 from .command import async_handle_send_command as _async_handle_send_command_service
 from .device_lookup import (
@@ -76,7 +72,7 @@ def _summarize_service_properties(properties: Any) -> dict[str, Any]:
 
 def _iter_runtime_coordinators(
     hass: HomeAssistant,
-) -> Iterator[LiproDataUpdateCoordinator]:
+) -> Iterator[LiproCoordinator]:
     """Iterate all active coordinators for the Lipro domain."""
     yield from _iter_runtime_coordinators_service(hass, domain=DOMAIN)
 
@@ -115,7 +111,7 @@ def _log_send_command_call(
 async def _get_device_and_coordinator(
     hass: HomeAssistant,
     call: ServiceCall,
-) -> tuple[LiproDevice, LiproDataUpdateCoordinator]:
+) -> tuple[LiproDevice, LiproCoordinator]:
     """Get device and coordinator from service call."""
     return await _get_device_and_coordinator_service(
         hass,

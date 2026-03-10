@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import asyncio
-from collections.abc import Awaitable, Callable, Sequence
+from collections.abc import Awaitable, Callable, Mapping, Sequence
 from typing import Protocol
 
 from ..api.request_policy import compute_exponential_retry_wait_time
@@ -15,7 +15,7 @@ type CommandResultPayload = dict[str, object]
 type TracePayload = dict[str, object]
 type PendingExpectations = dict[str, object]
 type CommandFailurePayload = dict[str, object]
-type QueryCommandResult = Callable[..., Awaitable[CommandResultPayload]]
+type QueryCommandResult = Callable[..., Awaitable[Mapping[str, object]]]
 type QueryCommandResultAttempt = Callable[[int], Awaitable[CommandResultPayload | None]]
 type CommandResultClassifier = Callable[[CommandResultPayload], str]
 
@@ -30,11 +30,11 @@ class LoggerLike(Protocol):
         """Log one warning message."""
 
 
-
 class ApiErrorLike(Protocol):
     """Minimal API error surface used to build failure payloads."""
 
     code: int | str | None
+
 
 type UpdateTraceWithException = Callable[..., None]
 
@@ -242,11 +242,12 @@ async def query_command_result_once(
 ) -> CommandResultPayload | None:
     """Query command result once and return payload when available."""
     try:
-        return await query_command_result(
+        payload = await query_command_result(
             msg_sn=msg_sn,
             device_id=device_serial,
             device_type=device_type_hex,
         )
+        return dict(payload)
     except lipro_api_error as err:
         safe_msg_sn = redact_identifier(msg_sn) or "***"
         logger.debug(
@@ -305,7 +306,7 @@ def apply_command_result_rejected(
     """Populate trace/failure fields for a rejected query_command_result response."""
     result_code = _extract_command_result_code(payload)
     result_message = _extract_command_result_message(payload)
-    command_result_verify: CommandResultPayload = {
+    command_result_verify: dict[str, object] = {
         "enabled": True,
         "verified": False,
         "attempts": attempt,
@@ -359,7 +360,7 @@ def apply_command_result_unconfirmed(
     """Populate trace/failure fields for unconfirmed command-result polling."""
     last_code = _extract_command_result_code(last_payload)
     last_message = _extract_command_result_message(last_payload)
-    command_result_verify: CommandResultPayload = {
+    command_result_verify: dict[str, object] = {
         "enabled": True,
         "verified": False,
         "attempts": attempt_limit,

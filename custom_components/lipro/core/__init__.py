@@ -12,9 +12,20 @@ from .api import (
 from .auth import LiproAuthManager
 from .coordinator import LiproDataUpdateCoordinator
 from .device import LiproDevice, parse_properties_list
+from .exceptions import (
+    ApiAuthError,
+    ApiNetworkError,
+    LiproError,
+    LiproMqttError,
+    MqttConnectionError,
+    MqttPublishError,
+    MqttSubscriptionError,
+)
 
 __all__ = [
     "AnonymousShareManager",
+    "ApiAuthError",
+    "ApiNetworkError",
     "LiproApiError",
     "LiproAuthError",
     "LiproAuthManager",
@@ -22,8 +33,13 @@ __all__ = [
     "LiproConnectionError",
     "LiproDataUpdateCoordinator",
     "LiproDevice",
+    "LiproError",
+    "LiproMqttError",
     "LiproRateLimitError",
     "LiproRefreshTokenExpiredError",
+    "MqttConnectionError",
+    "MqttPublishError",
+    "MqttSubscriptionError",
     "get_anonymous_share_manager",
     "parse_properties_list",
 ]

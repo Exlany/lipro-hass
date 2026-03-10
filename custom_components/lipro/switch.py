@@ -33,8 +33,8 @@ if TYPE_CHECKING:
     from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
     from . import LiproConfigEntry
-    from .core.coordinator import LiproDataUpdateCoordinator
     from .core.device import LiproDevice
+    from .runtime_types import LiproCoordinator
 
 # Limit parallel updates to avoid overwhelming the API
 PARALLEL_UPDATES = 1
@@ -74,7 +74,7 @@ async def async_setup_entry(
 
 
 def _build_light_feature_switches(
-    coordinator: LiproDataUpdateCoordinator,
+    coordinator: LiproCoordinator,
     device: LiproDevice,
 ) -> list[SwitchEntity]:
     """Build feature switches for one light device."""
@@ -96,7 +96,7 @@ def _build_light_feature_switches(
 
 
 def _build_panel_feature_switches(
-    coordinator: LiproDataUpdateCoordinator,
+    coordinator: LiproCoordinator,
     device: LiproDevice,
 ) -> list[SwitchEntity]:
     """Build feature switches for one switch panel device."""
@@ -123,7 +123,7 @@ class LiproSwitch(LiproEntity, SwitchEntity):
 
     def __init__(
         self,
-        coordinator: LiproDataUpdateCoordinator,
+        coordinator: LiproCoordinator,
         device: LiproDevice,
     ) -> None:
         """Initialize the switch."""

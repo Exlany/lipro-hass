@@ -10,12 +10,28 @@ from .errors import (
     LiproRateLimitError,
     LiproRefreshTokenExpiredError,
 )
+from .types import (
+    CommandResultApiResponse,
+    DeviceApiResponse,
+    DevicePropertyRow,
+    DiagnosticsApiResponse,
+    OtaInfoRow,
+    ScheduleApiResponse,
+    ScheduleTimingRow,
+)
 
 __all__ = [
+    "CommandResultApiResponse",
+    "DeviceApiResponse",
+    "DevicePropertyRow",
+    "DiagnosticsApiResponse",
     "LiproApiError",
     "LiproAuthError",
     "LiproClient",
     "LiproConnectionError",
     "LiproRateLimitError",
     "LiproRefreshTokenExpiredError",
+    "OtaInfoRow",
+    "ScheduleApiResponse",
+    "ScheduleTimingRow",
 ]

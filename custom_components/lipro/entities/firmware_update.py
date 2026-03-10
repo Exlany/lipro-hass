@@ -29,8 +29,8 @@ from ..entities.base import LiproEntity
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-    from ..core.coordinator import LiproDataUpdateCoordinator
     from ..core.device import LiproDevice
+    from ..runtime_types import LiproCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -54,7 +54,7 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
 
     def __init__(
         self,
-        coordinator: LiproDataUpdateCoordinator,
+        coordinator: LiproCoordinator,
         device: LiproDevice,
         on_error: Callable[[Exception], None] | None = None,
     ) -> None:
@@ -267,7 +267,7 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
         """Return True when selected row explicitly targets a different device."""
         return row_targets_other_device(row, expected_serial=self.device.serial)
 
-    async def _query_ota_rows_from_cloud(self) -> list[dict[str, Any]]:
+    async def _query_ota_rows_from_cloud(self) -> list[dict[str, object]]:
         """Query OTA rows once and normalize unknown payload variants."""
         rows = await self.coordinator.client.query_ota_info(
             device_id=self.device.serial,
@@ -275,7 +275,7 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
             iot_name=self.device.iot_name or None,
             allow_rich_v2_fallback=self.device.is_light,
         )
-        return rows if isinstance(rows, list) else []
+        return [dict(row) for row in rows] if isinstance(rows, list) else []
 
     async def _query_ota_rows_with_shared_cache(
         self,

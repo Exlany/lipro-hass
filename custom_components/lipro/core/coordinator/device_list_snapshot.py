@@ -360,19 +360,21 @@ def _has_valid_device_serial(device: LiproDevice) -> bool:
 def _safe_is_gateway(device: LiproDevice) -> bool | None:
     """Return gateway status; None when category payload is malformed."""
     try:
-        return device.is_gateway
+        value = device.is_gateway
     except (TypeError, ValueError):
         _LOGGER.debug("Skipping device with malformed category payload")
         return None
+    return value if isinstance(value, bool) else None
 
 
 def _safe_is_outlet(device: LiproDevice) -> bool:
     """Return whether device is an outlet, handling malformed categories."""
     try:
-        return device.category == DeviceCategory.OUTLET
+        category = device.category
     except (TypeError, ValueError):
         _LOGGER.debug("Skipping outlet categorization for malformed device")
         return False
+    return category == DeviceCategory.OUTLET
 
 
 def build_fetched_device_snapshot(

@@ -21,7 +21,7 @@ from ...const.properties import (
 from ..utils.coerce import coerce_boollike
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class DeviceNetworkInfo:
     """Network and diagnostics fields derived from normalized device properties."""
 
@@ -47,21 +47,33 @@ class DeviceNetworkInfo:
             net_type=_coerce_optional_str(properties.get(PROP_NET_TYPE)),
             mac_address=_coerce_optional_str(properties.get(PROP_MAC)),
             firmware_version=_coerce_optional_str(properties.get(PROP_VERSION)),
-            latest_sync_timestamp=_coerce_optional_int(
-                properties.get(PROP_LATEST_SYNC_TIMESTAMP)
-            ),
+            latest_sync_timestamp=_coerce_optional_int(properties.get(PROP_LATEST_SYNC_TIMESTAMP)),
             mesh_address=_coerce_optional_int(properties.get(PROP_MESH_ADDRESS)),
             mesh_type=_coerce_optional_int(properties.get(PROP_MESH_TYPE)),
-            is_mesh_gateway=coerce_boollike(
-                properties.get(PROP_MESH_GATEWAY),
-                context="DeviceNetworkInfo",
-            ),
+            is_mesh_gateway=coerce_boollike(properties.get(PROP_MESH_GATEWAY), context="DeviceNetworkInfo"),
             ble_mac=_coerce_optional_str(properties.get(PROP_BLE_MAC)),
         )
 
+    @classmethod
+    def from_diagnostics_data(cls, diagnostics: Mapping[str, object]) -> DeviceNetworkInfo:
+        """Build network info from diagnostics payloads."""
+        return cls.from_properties(diagnostics)
+
+    @property
+    def connection_quality(self) -> str:
+        """Return a coarse connection quality label from RSSI."""
+        if self.wifi_rssi is None:
+            return "unknown"
+        if self.wifi_rssi >= -60:
+            return "excellent"
+        if self.wifi_rssi >= -70:
+            return "good"
+        if self.wifi_rssi >= -80:
+            return "fair"
+        return "poor"
+
 
 def _coerce_optional_int(value: object) -> int | None:
-    """Return an integer when the payload carries one."""
     if isinstance(value, bool):
         return None
     if isinstance(value, int):
@@ -76,7 +88,6 @@ def _coerce_optional_int(value: object) -> int | None:
 
 
 def _coerce_optional_str(value: object) -> str | None:
-    """Return a string when the payload carries one."""
     return value if isinstance(value, str) else None
 
 

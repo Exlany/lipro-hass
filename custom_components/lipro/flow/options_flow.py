@@ -64,12 +64,14 @@ _DEVICE_FILTER_MODE_VALUES: tuple[str, str, str] = (
     DEVICE_FILTER_MODE_INCLUDE,
     DEVICE_FILTER_MODE_EXCLUDE,
 )
-_DEVICE_FILTER_LIST_SPLIT_RE = re.compile(r'[\r\n,;]+')
+_DEVICE_FILTER_LIST_SPLIT_RE = re.compile(r"[\r\n,;]+")
 
 
 def _split_device_filter_text(value: str) -> list[str]:
     """Split raw filter text into canonical tokens."""
-    normalized = value[:MAX_DEVICE_FILTER_LIST_CHARS].replace('\r\n', '\n').replace('\r', '\n')
+    normalized = (
+        value[:MAX_DEVICE_FILTER_LIST_CHARS].replace("\r\n", "\n").replace("\r", "\n")
+    )
     tokens: list[str] = []
     for token in _DEVICE_FILTER_LIST_SPLIT_RE.split(normalized):
         stripped = token.strip()
@@ -119,7 +121,10 @@ def _build_int_option_field(
 def _coerce_device_filter_list_option(value: Any) -> str:
     """Coerce stored filter-list option to canonical, form-friendly text."""
     if isinstance(value, str):
-        return ", ".join(_split_device_filter_text(value))[:MAX_DEVICE_FILTER_LIST_CHARS]
+        separator = ", "
+        if "," in value and not any(marker in value for marker in ("\r", "\n", ";")):
+            separator = ","
+        return separator.join(_split_device_filter_text(value))[:MAX_DEVICE_FILTER_LIST_CHARS]
     if isinstance(value, (list, tuple, set, frozenset)):
         parts: list[str] = []
         for item in value:
@@ -209,7 +214,9 @@ class LiproOptionsFlow(OptionsFlow):
             CONF_DEVICE_FILTER_DID_LIST,
         ):
             if list_key in merged:
-                merged[list_key] = _coerce_device_filter_list_option(merged.get(list_key))
+                merged[list_key] = _coerce_device_filter_list_option(
+                    merged.get(list_key)
+                )
 
         return self.async_create_entry(title="", data=merged)
 

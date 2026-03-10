@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 import logging
 from typing import Any
 
@@ -17,11 +18,14 @@ from ..diagnostics_service import (
 from ..errors import LiproApiError
 from ..mqtt_service import get_mqtt_config as get_mqtt_config_service
 from ..power_service import fetch_outlet_power_info as fetch_outlet_power_info_service
+from ..types import OtaInfoRow
 from .payloads import _ClientEndpointPayloadsMixin
 
 # Use the same logger instance as custom_components.lipro.core.api.client._LOGGER
 # so tests patching client._LOGGER.* still intercept logs here.
 _LOGGER = logging.getLogger("custom_components.lipro.core.api.client")
+
+type ResponseMapping = Mapping[str, object]
 
 
 class _ClientMiscEndpointsMixin(_ClientEndpointPayloadsMixin):
@@ -57,7 +61,7 @@ class _ClientMiscEndpointsMixin(_ClientEndpointPayloadsMixin):
         msg_sn: str,
         device_id: str,
         device_type: int | str,
-    ) -> dict[str, Any]:
+    ) -> ResponseMapping:
         """Query command result status."""
         return await query_command_result_service(
             msg_sn=msg_sn,
@@ -68,14 +72,14 @@ class _ClientMiscEndpointsMixin(_ClientEndpointPayloadsMixin):
             to_device_type_hex=self._to_device_type_hex,
         )
 
-    async def get_city(self) -> dict[str, Any]:
+    async def get_city(self) -> ResponseMapping:
         """Get city information used for schedules/weather context."""
         return await get_city_service(
             iot_request=self._iot_request,
             require_mapping_response=self._require_mapping_response,
         )
 
-    async def query_user_cloud(self) -> dict[str, Any]:
+    async def query_user_cloud(self) -> ResponseMapping:
         """Query cloud-assistant metadata for diagnostics."""
         return await query_user_cloud_service(
             request_iot_mapping_raw=self._request_iot_mapping_raw,
@@ -89,7 +93,7 @@ class _ClientMiscEndpointsMixin(_ClientEndpointPayloadsMixin):
         *,
         iot_name: str | None = None,
         allow_rich_v2_fallback: bool = False,
-    ) -> list[dict[str, Any]]:
+    ) -> list[OtaInfoRow]:
         """Fetch OTA information for diagnostics."""
         return await query_ota_info_service(
             iot_request=self._iot_request,
@@ -109,7 +113,7 @@ class _ClientMiscEndpointsMixin(_ClientEndpointPayloadsMixin):
         device_type: int | str,
         sensor_device_id: str,
         mesh_type: str,
-    ) -> dict[str, Any]:
+    ) -> ResponseMapping:
         """Fetch body sensor history snapshot for diagnostics."""
         return await fetch_body_sensor_history_service(
             iot_request=self._iot_request,
@@ -127,7 +131,7 @@ class _ClientMiscEndpointsMixin(_ClientEndpointPayloadsMixin):
         device_type: int | str,
         sensor_device_id: str,
         mesh_type: str,
-    ) -> dict[str, Any]:
+    ) -> ResponseMapping:
         """Fetch door sensor history snapshot for diagnostics."""
         return await fetch_door_sensor_history_service(
             iot_request=self._iot_request,

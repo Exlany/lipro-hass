@@ -19,6 +19,7 @@ from custom_components.lipro.core.api.diagnostics_service import (
     query_ota_info,
     query_user_cloud,
 )
+from custom_components.lipro.core.api.types import OtaInfoRow
 
 
 class DummyApiError(Exception):
@@ -27,6 +28,21 @@ class DummyApiError(Exception):
     def __init__(self, message: str, code: str | int | None = None) -> None:
         super().__init__(message)
         self.code = code
+
+
+def _extract_rows(payload: object) -> list[object]:
+    if isinstance(payload, dict):
+        rows = payload.get("rows")
+        if isinstance(rows, list):
+            return rows
+    return []
+
+
+def _require_mapping_response(_path: str, payload: object) -> dict[str, object]:
+    if isinstance(payload, dict):
+        return payload
+    return {}
+
 
 
 def test_ota_row_dedupe_key_uses_fallback_fields_and_normalizes() -> None:
@@ -49,7 +65,7 @@ def test_ota_row_dedupe_key_uses_fallback_fields_and_normalizes() -> None:
 
 
 def test_merge_ota_rows_skips_non_dict_and_dedupes_rows() -> None:
-    merged_rows: list[dict[str, object]] = []
+    merged_rows: list[OtaInfoRow] = []
     seen: set[tuple[str, str, str, str, str]] = set()
     rows: list[object] = [
         None,
@@ -71,7 +87,7 @@ async def test_query_user_cloud_uses_raw_empty_body_contract() -> None:
 
     result = await query_user_cloud(
         request_iot_mapping_raw=request_iot_mapping_raw,
-        require_mapping_response=lambda _path, payload: payload,
+        require_mapping_response=_require_mapping_response,
     )
 
     assert result == {"data": []}
@@ -91,9 +107,9 @@ async def test_query_ota_info_continues_when_v1_fails_and_v2_succeeds() -> None:
 
     result = await query_ota_info(
         iot_request=iot_request,
-        extract_data_list=lambda payload: payload.get("rows", []),
+        extract_data_list=_extract_rows,
         is_invalid_param_error_code=lambda code: code == "100000",
-        to_device_type_hex=str,
+        to_device_type_hex=lambda value: str(value),
         lipro_api_error=DummyApiError,
         device_id="mesh_group_1",
         device_type="ff000001",
@@ -126,9 +142,9 @@ async def test_query_ota_info_probes_richer_v2_payload_for_light_devices() -> No
 
     result = await query_ota_info(
         iot_request=iot_request,
-        extract_data_list=lambda payload: payload.get("rows", []),
+        extract_data_list=_extract_rows,
         is_invalid_param_error_code=lambda code: code == "100000",
-        to_device_type_hex=str,
+        to_device_type_hex=lambda value: str(value),
         lipro_api_error=DummyApiError,
         device_id="mesh_group_1",
         device_type="ff000001",
@@ -166,9 +182,9 @@ async def test_query_ota_info_skips_richer_v2_payload_when_v1_has_valid_rows() -
 
     result = await query_ota_info(
         iot_request=iot_request,
-        extract_data_list=lambda payload: payload.get("rows", []),
+        extract_data_list=_extract_rows,
         is_invalid_param_error_code=lambda code: code == "100000",
-        to_device_type_hex=str,
+        to_device_type_hex=lambda value: str(value),
         lipro_api_error=DummyApiError,
         device_id="mesh_group_1",
         device_type="ff000001",
@@ -200,9 +216,9 @@ async def test_query_ota_info_probes_richer_v2_payload_when_v1_v2_rows_invalid()
 
     result = await query_ota_info(
         iot_request=iot_request,
-        extract_data_list=lambda payload: payload.get("rows", []),
+        extract_data_list=_extract_rows,
         is_invalid_param_error_code=lambda code: code == "100000",
-        to_device_type_hex=str,
+        to_device_type_hex=lambda value: str(value),
         lipro_api_error=DummyApiError,
         device_id="mesh_group_1",
         device_type="ff000001",
@@ -235,9 +251,9 @@ async def test_query_ota_info_raises_last_error_when_v1_and_v2_both_fail() -> No
     with pytest.raises(DummyApiError, match="v2 failed"):
         await query_ota_info(
             iot_request=iot_request,
-            extract_data_list=lambda payload: payload.get("rows", []),
+            extract_data_list=_extract_rows,
             is_invalid_param_error_code=lambda code: code == "100000",
-            to_device_type_hex=str,
+            to_device_type_hex=lambda value: str(value),
             lipro_api_error=DummyApiError,
             device_id="mesh_group_1",
             device_type="ff000001",
@@ -259,9 +275,9 @@ async def test_query_ota_info_degrades_when_controller_invalid_param() -> None:
 
     result = await query_ota_info(
         iot_request=iot_request,
-        extract_data_list=lambda payload: payload.get("rows", []),
+        extract_data_list=_extract_rows,
         is_invalid_param_error_code=lambda code: code == "100000",
-        to_device_type_hex=str,
+        to_device_type_hex=lambda value: str(value),
         lipro_api_error=DummyApiError,
         device_id="mesh_group_1",
         device_type="ff000001",
@@ -283,9 +299,9 @@ async def test_query_ota_info_degrades_when_controller_other_api_error() -> None
 
     result = await query_ota_info(
         iot_request=iot_request,
-        extract_data_list=lambda payload: payload.get("rows", []),
+        extract_data_list=_extract_rows,
         is_invalid_param_error_code=lambda code: code == "100000",
-        to_device_type_hex=str,
+        to_device_type_hex=lambda value: str(value),
         lipro_api_error=DummyApiError,
         device_id="mesh_group_1",
         device_type="ff000001",
@@ -306,7 +322,7 @@ async def test_fetch_sensor_history_propagates_mapping_error() -> None:
         await fetch_sensor_history(
             iot_request=iot_request,
             require_mapping_response=_raise_mapping_error,
-            to_device_type_hex=str,
+            to_device_type_hex=lambda value: str(value),
             path="/sensor/history",
             device_id="mesh_group_1",
             device_type="ff000001",

@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 import logging
-from typing import TYPE_CHECKING, Any, cast
+from typing import Any, cast
 
 from ....const.api import (
     PATH_BLE_SCHEDULE_ADD,
@@ -27,6 +28,10 @@ from ..schedule_endpoint import (
     resolve_mesh_schedule_candidate_ids,
 )
 from ..schedule_service import (
+    CandidateRequest,
+    CandidateRequestResult,
+    ScheduleRequestBody,
+    ScheduleRows,
     add_mesh_schedule_by_candidates as add_mesh_schedule_by_candidates_service,
     delete_mesh_schedules_by_candidates as delete_mesh_schedules_by_candidates_service,
     execute_mesh_schedule_candidate_request as execute_mesh_schedule_candidate_request_service,
@@ -34,10 +39,6 @@ from ..schedule_service import (
 )
 from .connect_status import coerce_connect_status
 from .payloads import _ClientEndpointPayloadsMixin
-
-if TYPE_CHECKING:
-    from collections.abc import Awaitable, Callable
-
 
 # Use the same logger instance as custom_components.lipro.core.api.client._LOGGER
 # so tests patching client._LOGGER.* still intercept logs here.
@@ -87,22 +88,45 @@ class _ClientScheduleEndpointsMixin(_ClientEndpointPayloadsMixin):
         msg = "Mesh schedule candidate IoT IDs unavailable; refresh device status and try again"
         raise LiproApiError(msg, code="mesh_schedule_candidates_unavailable")
 
+    async def _schedule_iot_request(
+        self,
+        path: str,
+        body: ScheduleRequestBody,
+        *,
+        is_retry: bool = False,
+        retry_count: int = 0,
+    ) -> object:
+        """Execute one typed schedule IoT request through shared transport."""
+        request_body = cast(dict[str, Any], body)
+        if is_retry or retry_count:
+            return await self._iot_request(
+                path,
+                request_body,
+                is_retry=is_retry,
+                retry_count=retry_count,
+            )
+        return await self._iot_request(path, request_body)
+
+    def _extract_schedule_timing_rows(self, result: object) -> ScheduleRows:
+        """Extract raw timing rows for schedule-service helpers."""
+        return self._extract_timings_list(result)
+
     async def _request_schedule_timings(
         self,
         path: str,
-        body: dict[str, Any],
-    ) -> list[dict[str, Any]]:
+        body: ScheduleRequestBody,
+    ) -> ScheduleRows:
         """Request schedule endpoint and normalize timings-list payload variants."""
-        result = await self._iot_request(path, body)
-        return self._extract_timings_list(result)
+        result = await self._schedule_iot_request(path, body)
+        return self._extract_schedule_timing_rows(result)
 
     @staticmethod
-    def _coerce_int_list(value: Any) -> list[int]:
+    def _coerce_int_list(value: object) -> list[int]:
         """Convert mixed list payloads into a clean integer list."""
         return _coerce_schedule_int_list(value)
 
     @classmethod
-    def _parse_mesh_schedule_json(cls, schedule_json: Any) -> dict[str, list[int]]:
+    def _parse_mesh_schedule_json(cls, schedule_json: object) -> dict[str, list[int]]:
         """Parse mesh ``scheduleJson`` into ``days/time/evt`` arrays."""
         return _parse_mesh_schedule_payload(
             schedule_json,
@@ -112,13 +136,13 @@ class _ClientScheduleEndpointsMixin(_ClientEndpointPayloadsMixin):
     @classmethod
     def _normalize_mesh_timing_rows(
         cls,
-        rows: list[Any],
+        rows: Sequence[object],
         *,
         fallback_device_id: str = "",
-    ) -> list[dict[str, Any]]:
+    ) -> ScheduleRows:
         """Normalize mesh timing rows to include ``schedule`` dict payload."""
         return _normalize_mesh_schedule_rows(
-            rows,
+            list(rows),
             fallback_device_id=fallback_device_id,
             parse_schedule_json=cls._parse_mesh_schedule_json,
             coerce_connect_status=coerce_connect_status,
@@ -129,14 +153,10 @@ class _ClientScheduleEndpointsMixin(_ClientEndpointPayloadsMixin):
         *,
         candidate_id: str,
         operation: str,
-        request: Callable[[str], Awaitable[Any]],
-    ) -> tuple[bool, Any, LiproApiError | None]:
+        request: CandidateRequest,
+    ) -> CandidateRequestResult:
         """Execute one mesh schedule candidate request with shared error handling."""
-        (
-            succeeded,
-            payload,
-            error,
-        ) = await execute_mesh_schedule_candidate_request_service(
+        return await execute_mesh_schedule_candidate_request_service(
             candidate_id=candidate_id,
             operation=operation,
             request=request,
@@ -144,20 +164,32 @@ class _ClientScheduleEndpointsMixin(_ClientEndpointPayloadsMixin):
             lipro_api_error=LiproApiError,
             logger=_LOGGER,
         )
-        return succeeded, payload, cast(LiproApiError | None, error)
 
     async def _get_mesh_schedules_by_candidates(
         self,
         candidate_device_ids: list[str],
-        *,
         raise_on_total_failure: bool = True,
-    ) -> list[dict[str, Any]]:
+    ) -> ScheduleRows:
         """Query mesh schedule list from candidate device IDs."""
+
+        async def _typed_iot_request(
+            path: str,
+            body: ScheduleRequestBody,
+            is_retry: bool = False,
+            retry_count: int = 0,
+        ) -> object:
+            return await self._schedule_iot_request(
+                path,
+                body,
+                is_retry=is_retry,
+                retry_count=retry_count,
+            )
+
         return await get_mesh_schedules_by_candidates_service(
             candidate_device_ids=candidate_device_ids,
             execute_candidate_request=self._execute_mesh_schedule_candidate_request,
-            iot_request=self._iot_request,
-            extract_timings_list=self._extract_timings_list,
+            iot_request=_typed_iot_request,
+            extract_timings_list=self._extract_schedule_timing_rows,
             normalize_mesh_timing_rows=self._normalize_mesh_timing_rows,
             path_ble_schedule_get=PATH_BLE_SCHEDULE_GET,
             build_mesh_schedule_get_body=build_mesh_schedule_get_body,
@@ -171,15 +203,29 @@ class _ClientScheduleEndpointsMixin(_ClientEndpointPayloadsMixin):
         days: list[int],
         times: list[int],
         events: list[int],
-    ) -> list[dict[str, Any]]:
+    ) -> ScheduleRows:
         """Try mesh schedule add across candidates and return refreshed schedule rows."""
+
+        async def _typed_iot_request(
+            path: str,
+            body: ScheduleRequestBody,
+            is_retry: bool = False,
+            retry_count: int = 0,
+        ) -> object:
+            return await self._schedule_iot_request(
+                path,
+                body,
+                is_retry=is_retry,
+                retry_count=retry_count,
+            )
+
         return await add_mesh_schedule_by_candidates_service(
             candidate_device_ids=candidate_device_ids,
             days=days,
             times=times,
             events=events,
             execute_candidate_request=self._execute_mesh_schedule_candidate_request,
-            iot_request=self._iot_request,
+            iot_request=_typed_iot_request,
             get_mesh_schedules_by_candidates_request=self._get_mesh_schedules_by_candidates,
             path_ble_schedule_add=PATH_BLE_SCHEDULE_ADD,
             build_mesh_schedule_add_body=build_mesh_schedule_add_body,
@@ -211,13 +257,27 @@ class _ClientScheduleEndpointsMixin(_ClientEndpointPayloadsMixin):
         candidate_device_ids: list[str],
         *,
         schedule_ids: list[int],
-    ) -> list[dict[str, Any]]:
+    ) -> ScheduleRows:
         """Try mesh schedule delete across candidates and return refreshed rows."""
+
+        async def _typed_iot_request(
+            path: str,
+            body: ScheduleRequestBody,
+            is_retry: bool = False,
+            retry_count: int = 0,
+        ) -> object:
+            return await self._schedule_iot_request(
+                path,
+                body,
+                is_retry=is_retry,
+                retry_count=retry_count,
+            )
+
         return await delete_mesh_schedules_by_candidates_service(
             candidate_device_ids=candidate_device_ids,
             schedule_ids=schedule_ids,
             execute_candidate_request=self._execute_mesh_schedule_candidate_request,
-            iot_request=self._iot_request,
+            iot_request=_typed_iot_request,
             get_mesh_schedules_by_candidates_request=self._get_mesh_schedules_by_candidates,
             path_ble_schedule_delete=PATH_BLE_SCHEDULE_DELETE,
             build_mesh_schedule_delete_body=build_mesh_schedule_delete_body,
@@ -232,11 +292,14 @@ class _ClientScheduleEndpointsMixin(_ClientEndpointPayloadsMixin):
         mesh_member_ids: list[str] | None = None,
     ) -> list[dict[str, Any]]:
         """Get timing schedules for a device."""
-        return await self._schedule_api.get_device_schedules(
-            device_id,
-            device_type,
-            mesh_gateway_id=mesh_gateway_id,
-            mesh_member_ids=mesh_member_ids,
+        return cast(
+            list[dict[str, Any]],
+            await self._schedule_api.get_device_schedules(
+                device_id,
+                device_type,
+                mesh_gateway_id=mesh_gateway_id,
+                mesh_member_ids=mesh_member_ids,
+            ),
         )
 
     async def add_device_schedule(
@@ -252,15 +315,21 @@ class _ClientScheduleEndpointsMixin(_ClientEndpointPayloadsMixin):
         mesh_member_ids: list[str] | None = None,
     ) -> list[dict[str, Any]]:
         """Add or update a timing schedule for a device."""
-        return await self._schedule_api.add_device_schedule(
-            device_id,
-            device_type,
-            days,
-            times,
-            events,
-            group_id,
-            mesh_gateway_id=mesh_gateway_id,
-            mesh_member_ids=mesh_member_ids,
+        if len(times) != len(events):
+            msg = "times and events must have same length"
+            raise ValueError(msg)
+        return cast(
+            list[dict[str, Any]],
+            await self._schedule_api.add_device_schedule(
+                device_id,
+                device_type,
+                days,
+                times,
+                events,
+                group_id,
+                mesh_gateway_id=mesh_gateway_id,
+                mesh_member_ids=mesh_member_ids,
+            ),
         )
 
     async def delete_device_schedules(
@@ -274,13 +343,16 @@ class _ClientScheduleEndpointsMixin(_ClientEndpointPayloadsMixin):
         mesh_member_ids: list[str] | None = None,
     ) -> list[dict[str, Any]]:
         """Delete timing schedules for a device."""
-        return await self._schedule_api.delete_device_schedules(
-            device_id,
-            device_type,
-            schedule_ids,
-            group_id,
-            mesh_gateway_id=mesh_gateway_id,
-            mesh_member_ids=mesh_member_ids,
+        return cast(
+            list[dict[str, Any]],
+            await self._schedule_api.delete_device_schedules(
+                device_id,
+                device_type,
+                schedule_ids,
+                group_id,
+                mesh_gateway_id=mesh_gateway_id,
+                mesh_member_ids=mesh_member_ids,
+            ),
         )
 
 

@@ -1,0 +1,12 @@
+# serializer version: 1
+# name: test_coordinator_v2_snapshot
+  dict({
+    'devices': list([
+      'dev1',
+    ]),
+    'has_client': True,
+    'last_update_success': True,
+    'mqtt_connected': True,
+    'update_interval_seconds': 30,
+  })
+# ---

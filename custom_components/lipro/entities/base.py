@@ -5,15 +5,15 @@ from __future__ import annotations
 from collections.abc import Mapping
 import logging
 from time import monotonic
-from typing import TYPE_CHECKING, Any, Final
+from typing import TYPE_CHECKING, Any, Final, cast
 
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ..const.base import DOMAIN, MANUFACTURER
 from ..const.properties import CMD_CHANGE_STATE
-from ..core.coordinator import LiproDataUpdateCoordinator
 from ..core.utils.debounce import Debouncer
+from ..runtime_types import LiproCoordinator
 
 if TYPE_CHECKING:
     from ..core.device import LiproDevice
@@ -29,15 +29,17 @@ DEBOUNCE_PROTECTION_WINDOW: Final = 2.0
 _POST_COMMAND_PROTECTION_BUFFER: Final = 1.0
 
 
-class LiproEntity(CoordinatorEntity[LiproDataUpdateCoordinator]):
+class LiproEntity(CoordinatorEntity[Any]):
     """Base class for Lipro entities."""
+
+    coordinator: LiproCoordinator
 
     _attr_has_entity_name = True
     _attr_attribution = "Data provided by Lipro Smart Home"
 
     def __init__(
         self,
-        coordinator: LiproDataUpdateCoordinator,
+        coordinator: LiproCoordinator,
         device: LiproDevice,
         entity_suffix: str = "",
     ) -> None:
@@ -50,7 +52,7 @@ class LiproEntity(CoordinatorEntity[LiproDataUpdateCoordinator]):
                 Falls back to class attribute _entity_suffix if not provided.
 
         """
-        super().__init__(coordinator)
+        super().__init__(cast(Any, coordinator))
         self._device = device
         self._entity_suffix = entity_suffix or getattr(type(self), "_entity_suffix", "")
         self._debouncer: Debouncer | None = None
