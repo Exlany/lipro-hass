@@ -1,4 +1,4 @@
-"""Native CoordinatorV2 runtime for the Lipro integration."""
+"""Native coordinator runtime for the Lipro integration."""
 
 from __future__ import annotations
 
@@ -8,13 +8,23 @@ from typing import TYPE_CHECKING
 
 from ...const.config import DEFAULT_SCAN_INTERVAL
 from ..api import LiproClient
+from .auth_issues import CoordinatorAuthIssuesRuntime
+from .command_confirm import CoordinatorCommandConfirmationRuntime
+from .command_send import CoordinatorCommandRuntime
+from .device_refresh import CoordinatorDeviceRefreshRuntime
+from .mqtt.lifecycle import CoordinatorMqttLifecycleRuntime
+from .mqtt.messages import CoordinatorMqttMessageRuntime
+from .properties import CoordinatorPropertiesRuntime
 from .services import (
     CoordinatorCommandService,
     CoordinatorDeviceRefreshService,
     CoordinatorMqttService,
     CoordinatorStateService,
 )
-from .shutdown import _CoordinatorShutdownMixin
+from .shutdown import CoordinatorShutdownRuntime
+from .state import CoordinatorStateRuntime
+from .status_polling import CoordinatorStatusRuntime
+from .tuning import CoordinatorAdaptiveTuningRuntime
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
@@ -25,7 +35,19 @@ if TYPE_CHECKING:
 _LOGGER = logging.getLogger(__name__)
 
 
-class CoordinatorV2(_CoordinatorShutdownMixin):
+class Coordinator(
+    CoordinatorAdaptiveTuningRuntime,
+    CoordinatorCommandConfirmationRuntime,
+    CoordinatorCommandRuntime,
+    CoordinatorMqttLifecycleRuntime,
+    CoordinatorMqttMessageRuntime,
+    CoordinatorDeviceRefreshRuntime,
+    CoordinatorStateRuntime,
+    CoordinatorPropertiesRuntime,
+    CoordinatorAuthIssuesRuntime,
+    CoordinatorStatusRuntime,
+    CoordinatorShutdownRuntime,
+):
     """Coordinator runtime built directly on the final service boundaries."""
 
     def __init__(
@@ -36,7 +58,7 @@ class CoordinatorV2(_CoordinatorShutdownMixin):
         config_entry: ConfigEntry,
         update_interval: int = DEFAULT_SCAN_INTERVAL,
     ) -> None:
-        """Initialize the native CoordinatorV2 runtime."""
+        """Initialize the native coordinator runtime."""
         super().__init__(
             hass,
             _LOGGER,
@@ -56,6 +78,6 @@ class CoordinatorV2(_CoordinatorShutdownMixin):
         self.state_service = CoordinatorStateService(self)
 
 
-LiproDataUpdateCoordinator = CoordinatorV2
+LiproDataUpdateCoordinator = Coordinator
 
-__all__ = ["CoordinatorV2", "LiproDataUpdateCoordinator"]
+__all__ = ["Coordinator", "LiproDataUpdateCoordinator"]

@@ -760,7 +760,7 @@ class TestInitRuntimeBehavior:
             patch("custom_components.lipro.LiproClient", return_value=MagicMock()),
             patch("custom_components.lipro.LiproAuthManager", return_value=mock_auth),
             patch(
-                "custom_components.lipro.CoordinatorV2",
+                "custom_components.lipro.Coordinator",
                 return_value=mock_coordinator,
             ),
             patch.object(
@@ -906,7 +906,7 @@ class TestInitRuntimeBehavior:
             patch("custom_components.lipro.LiproClient", return_value=MagicMock()),
             patch("custom_components.lipro.LiproAuthManager", return_value=mock_auth),
             patch(
-                "custom_components.lipro.CoordinatorV2",
+                "custom_components.lipro.Coordinator",
                 return_value=mock_coordinator,
             ),
             patch.object(
@@ -967,7 +967,7 @@ class TestInitRuntimeBehavior:
             patch("custom_components.lipro.LiproClient", return_value=MagicMock()),
             patch("custom_components.lipro.LiproAuthManager", return_value=mock_auth),
             patch(
-                "custom_components.lipro.CoordinatorV2",
+                "custom_components.lipro.Coordinator",
                 return_value=mock_coordinator,
             ),
             pytest.raises(RuntimeError, match="refresh failed"),
@@ -1054,7 +1054,7 @@ class TestInitRuntimeBehavior:
             ) as pc,
             patch("custom_components.lipro.LiproAuthManager", return_value=mock_auth),
             patch(
-                "custom_components.lipro.CoordinatorV2",
+                "custom_components.lipro.Coordinator",
                 return_value=mock_coordinator,
             ) as pcoord,
             patch.object(

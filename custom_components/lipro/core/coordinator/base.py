@@ -1,7 +1,7 @@
-"""Coordinator mixin typing base.
+"""Coordinator runtime typing base.
 
-This module provides a shared base class for coordinator mixins so mypy can
-type-check mixin methods that access coordinator runtime attributes.
+This module provides a shared base class for coordinator runtime members so mypy can
+type-check runtime methods that access coordinator state attributes.
 """
 
 from __future__ import annotations
@@ -9,7 +9,7 @@ from __future__ import annotations
 import asyncio
 from collections import deque
 from collections.abc import Coroutine
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, NoReturn
 
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
@@ -41,7 +41,7 @@ if TYPE_CHECKING:
 
 
 class _CoordinatorBase(DataUpdateCoordinator[dict[str, LiproDevice]]):
-    """Shared base for coordinator mixins (typing only)."""
+    """Shared base for coordinator runtime typing only."""
 
     hass: HomeAssistant
     config_entry: ConfigEntry | None
@@ -126,7 +126,7 @@ class _CoordinatorBase(DataUpdateCoordinator[dict[str, LiproDevice]]):
     _state_status_batch_size: int
     _state_batch_metrics: deque[tuple[int, float, int]]
 
-    # Cross-mixin helpers implemented on the final coordinator class.
+    # Cross-runtime helpers implemented on the final coordinator class.
     def get_device_by_id(
         self, device_id: Any
     ) -> LiproDevice | None:  # pragma: no cover
@@ -178,4 +178,130 @@ class _CoordinatorBase(DataUpdateCoordinator[dict[str, LiproDevice]]):
 
     async def _async_ensure_authenticated(self) -> None:  # pragma: no cover
         """Ensure authentication state is valid."""
+        raise NotImplementedError
+
+    @property
+    def devices(self) -> dict[str, LiproDevice]:  # pragma: no cover
+        """Expose the current runtime device mapping."""
+        raise NotImplementedError
+
+    @property
+    def last_command_failure(self) -> dict[str, Any] | None:  # pragma: no cover
+        """Expose the latest command failure summary."""
+        raise NotImplementedError
+
+    def _should_refresh_device_list(self) -> bool:  # pragma: no cover
+        """Return whether the next refresh should reload the device list."""
+        raise NotImplementedError
+
+    async def _fetch_devices(self) -> None:  # pragma: no cover
+        """Fetch and reconcile the full device list."""
+        raise NotImplementedError
+
+    def _schedule_mqtt_setup_if_needed(self) -> None:  # pragma: no cover
+        """Schedule MQTT setup when runtime state requires it."""
+        raise NotImplementedError
+
+    def _check_mqtt_disconnect_notification(self) -> None:  # pragma: no cover
+        """Evaluate whether a MQTT disconnect notification should be raised."""
+        raise NotImplementedError
+
+    async def _raise_update_data_error(self, err: Exception) -> NoReturn:  # pragma: no cover
+        """Map one update-time exception to the final raised error."""
+        raise NotImplementedError
+
+    def _resolve_connect_status_query_ids(self) -> list[str]:  # pragma: no cover
+        """Resolve individual device IDs for connect-status polling."""
+        raise NotImplementedError
+
+    async def _query_connect_status(
+        self,
+        device_ids: list[str] | None = None,
+    ) -> None:  # pragma: no cover
+        """Query connect status for selected runtime devices."""
+        raise NotImplementedError
+
+    def _record_state_batch_metric(
+        self,
+        batch_size: int,
+        duration_seconds: float,
+        fallback_depth: int,
+    ) -> None:  # pragma: no cover
+        """Record one adaptive state-batch sample."""
+        raise NotImplementedError
+
+    def _adapt_state_batch_size(self) -> None:  # pragma: no cover
+        """Adapt runtime batch size using recorded metrics."""
+        raise NotImplementedError
+
+    def _filter_pending_command_mismatches(
+        self,
+        device_serial: str,
+        properties: dict[str, Any],
+    ) -> dict[str, Any]:  # pragma: no cover
+        """Filter stale device properties while commands are pending."""
+        raise NotImplementedError
+
+    def _observe_command_confirmation(
+        self,
+        device_serial: str,
+        properties: dict[str, Any],
+    ) -> None:  # pragma: no cover
+        """Observe one property update for command confirmation."""
+        raise NotImplementedError
+
+    async def _sync_mqtt_subscriptions(self) -> None:  # pragma: no cover
+        """Synchronize MQTT subscriptions for current runtime devices."""
+        raise NotImplementedError
+
+    def _prune_runtime_state_for_devices(
+        self,
+        active_serials: set[str],
+    ) -> None:  # pragma: no cover
+        """Prune per-device runtime caches for removed devices."""
+        raise NotImplementedError
+
+    def _track_command_expectation(
+        self,
+        device_serial: str,
+        command: str,
+        properties: list[dict[str, str]] | None,
+    ) -> None:  # pragma: no cover
+        """Track expected device state after sending one command."""
+        raise NotImplementedError
+
+    def _get_adaptive_post_refresh_delay(
+        self,
+        device_serial: str | None,
+    ) -> float:  # pragma: no cover
+        """Return the adaptive post-command refresh delay."""
+        raise NotImplementedError
+
+    def _schedule_post_command_refresh(
+        self,
+        *,
+        skip_immediate: bool = False,
+        device_serial: str | None = None,
+    ) -> None:  # pragma: no cover
+        """Schedule immediate and delayed refresh work after a command."""
+        raise NotImplementedError
+
+    def _init_mqtt_state(self) -> None:  # pragma: no cover
+        """Initialize MQTT-specific runtime state."""
+        raise NotImplementedError
+
+    def _reset_mqtt_state(self) -> None:  # pragma: no cover
+        """Reset MQTT-specific runtime state."""
+        raise NotImplementedError
+
+    def _build_status_metrics_snapshot(self) -> dict[str, Any]:  # pragma: no cover
+        """Build the runtime status metrics snapshot payload."""
+        raise NotImplementedError
+
+    async def async_stop_mqtt(self) -> None:  # pragma: no cover
+        """Stop coordinator-managed MQTT runtime."""
+        raise NotImplementedError
+
+    def _reset_runtime_state(self) -> None:  # pragma: no cover
+        """Reset coordinator runtime state during shutdown."""
         raise NotImplementedError

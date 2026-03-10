@@ -1,11 +1,11 @@
 # serializer version: 1
-# name: test_coordinator_v2_snapshot
+# name: test_coordinator_snapshot
   dict({
     'devices': list([
       'dev1',
     ]),
     'last_command_failure': None,
     'mqtt_connected': True,
-    'runtime_class': 'CoordinatorV2',
+    'runtime_class': 'Coordinator',
   })
 # ---

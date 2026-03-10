@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from .coordinator_v2 import CoordinatorV2
+from .coordinator import Coordinator
 
-type LiproCoordinator = CoordinatorV2
+type LiproCoordinator = Coordinator
 
 __all__ = ["LiproCoordinator"]

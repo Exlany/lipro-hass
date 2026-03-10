@@ -19,15 +19,15 @@
 
 ### Runtime 入口
 
-- `custom_components/lipro/__init__.py` 运行时已直接实例化 `CoordinatorV2`
-- `custom_components/lipro/runtime_types.py` 统一将运行时类型收口到 `CoordinatorV2`
+- `custom_components/lipro/__init__.py` 运行时已直接实例化 `Coordinator`
+- `custom_components/lipro/runtime_types.py` 统一将运行时类型收口到 `Coordinator`
 - 不再保留 `V1/V2` 双跑、配置开关或 facade 包装层
 
 ### Coordinator
 
 - 公开编排边界已显式落到 `CoordinatorStateService`、`CoordinatorCommandService`、`CoordinatorDeviceRefreshService`、`CoordinatorMqttService`
-- `CoordinatorV2` 现已成为原生运行时主体，旧 mixin 不再是推荐扩展点
-- `CoordinatorV2` 现已成为原生运行时入口；旧类名仅保留为别名，不再承担独立运行时角色
+- `Coordinator` 现已成为原生运行时主体，旧 mixin 继承链已被拆为显式 runtime 组件成员
+- `Coordinator` 现已成为原生运行时唯一入口；运行时行为通过显式 runtime 组件成员装配到单一类上
 
 ### Device / MQTT
 
@@ -39,7 +39,7 @@
 
 | 指标 | 旧形态 | 当前形态 |
 |---|---:|---:|
-| Coordinator 运行时入口层级 | 13 层 mixin 链直接暴露 | `CoordinatorV2` 作为唯一入口，内部仍保留 mixin 链 |
+| Coordinator 运行时入口层级 | 13 层 mixin 链直接暴露 | `Coordinator` 作为唯一入口，内部无 mixin 继承链 |
 | Coordinator 对外共享状态面 | 62 个共享属性 | 4 个显式 service 依赖 |
 | `LiproDevice` 主文件行数 | 742 | 87 |
 | `LiproMqttClient` 主文件行数 | 601 | 150 |
@@ -47,11 +47,11 @@
 
 ## 为什么现在更优
 
-- 新功能落点明确：优先写在 service 或聚焦组件，而不是再加 mixin 或继续膨胀超大类
+- 新功能落点明确：优先写在 service 或聚焦 runtime 组件，而不是再加 mixin 或继续膨胀超大类
 - 调试链路更短：设备、MQTT、命令、刷新职责均有清晰入口
 - 类型合同更稳：热点 `Any` 已清零，类型测试进入 CI
 - 运行时更干净：未发布项目直接切到最终运行时路径，不再背负双实现维护成本
 
 ## 当前结论
 
-当前工作区已完成从“深层继承 + 超大类”到“薄外观 + 显式服务/组件边界”的迁移。后续新增逻辑应继续沿着 `CoordinatorV2`、service 边界与小组件方向演进，而不是回退到旧的 mixin 扩散模式。
+当前工作区已完成从“深层继承 + 超大类”到“单一 Coordinator + 显式 runtime 组件 + service 边界”的迁移。后续新增逻辑应继续沿着 `Coordinator`、runtime 组件与 service 边界方向演进，而不是回退到旧的 mixin 扩散模式。

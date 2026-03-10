@@ -12,7 +12,7 @@ from custom_components.lipro.const.base import DOMAIN
 
 
 @pytest.mark.asyncio
-async def test_async_setup_entry_uses_native_coordinator_v2_runtime_data(hass) -> None:
+async def test_async_setup_entry_uses_native_coordinator_runtime_data(hass) -> None:
     entry = MockConfigEntry(domain=DOMAIN, data={"phone_id": "test-phone-id"})
     entry.add_to_hass(hass)
     client = MagicMock()
@@ -29,7 +29,7 @@ async def test_async_setup_entry_uses_native_coordinator_v2_runtime_data(hass) -
         ),
         patch("custom_components.lipro.async_authenticate_entry", new=AsyncMock()),
         patch("custom_components.lipro.get_entry_int_option", return_value=30),
-        patch("custom_components.lipro.CoordinatorV2", return_value=coordinator) as ctor,
+        patch("custom_components.lipro.Coordinator", return_value=coordinator) as ctor,
         patch("custom_components.lipro.persist_entry_tokens_if_changed"),
         patch.object(hass.config_entries, "async_forward_entry_setups", new=AsyncMock()),
         patch("custom_components.lipro.store_entry_options_snapshot"),

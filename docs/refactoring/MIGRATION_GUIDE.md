@@ -4,7 +4,7 @@
 
 ### Coordinator
 
-- `entry.runtime_data` 固定为原生 `CoordinatorV2` 实例
+- `entry.runtime_data` 固定为原生 `Coordinator` 实例
 - 新代码应优先依赖显式 service 能力，而不是旧 mixin 细节
 
 ### Device
@@ -59,4 +59,4 @@ uv run python scripts/refactor_tools.py --coverage-json coverage.json --minimum-
 
 ## 结论
 
-运行时迁移已经完成。后续开发默认站在当前结构之上，不再需要为旧架构保留额外兼容设计；若要继续深入，可再逐步消化内部 mixin 实现。
+运行时迁移已经完成。后续开发默认站在当前结构之上，不再需要为旧架构保留额外兼容设计；Coordinator 内部也已不再依赖深层 mixin 继承链。

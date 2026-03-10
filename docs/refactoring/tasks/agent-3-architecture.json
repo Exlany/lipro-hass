@@ -98,9 +98,9 @@
     },
     {
       "id": "cp-3-5",
-      "description": "实现 CoordinatorV2（组合模式）",
+      "description": "实现 Coordinator（组合模式）",
       "tasks": [
-        "创建 custom_components/lipro/coordinator_v2.py",
+        "创建 custom_components/lipro/coordinator.py",
         "使用依赖注入组合服务",
         "简化状态管理（移除 62 个共享属性）",
         "实现核心协调逻辑",
@@ -108,14 +108,14 @@
         "编写单元测试"
       ],
       "files": [
-        "custom_components/lipro/coordinator_v2.py",
-        "tests/test_coordinator_v2.py"
+        "custom_components/lipro/coordinator.py",
+        "tests/test_coordinator.py"
       ],
       "validation": {
-        "command": "uv run pytest tests/test_coordinator_v2.py -v --cov=custom_components/lipro/coordinator_v2.py --cov-report=term-missing",
+        "command": "uv run pytest tests/test_coordinator.py -v --cov=custom_components/lipro/coordinator.py --cov-report=term-missing",
         "expected": "all tests pass, coverage >=95%"
       },
-      "commit_message": "refactor(coordinator): implement CoordinatorV2 with composition pattern"
+      "commit_message": "refactor(coordinator): implement Coordinator with composition pattern"
     },
     {
       "id": "cp-3-6",

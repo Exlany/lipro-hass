@@ -6,14 +6,14 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from ..mqtt.lifecycle import _MqttLifecycleMixin
+    from ..mqtt.lifecycle import CoordinatorMqttLifecycleRuntime
 
 
 @dataclass(slots=True)
 class CoordinatorMqttService:
     """Expose MQTT lifecycle calls through a composition-friendly adapter."""
 
-    coordinator: _MqttLifecycleMixin
+    coordinator: CoordinatorMqttLifecycleRuntime
 
     @property
     def connected(self) -> bool:

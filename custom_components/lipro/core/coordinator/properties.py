@@ -1,6 +1,6 @@
 """Coordinator entity/property update helpers.
 
-This mixin owns:
+This runtime helper owns:
 - Entity registration for debounce-protection
 - Applying property updates with protection filters
 """
@@ -14,14 +14,14 @@ from ...const.properties import PROP_FAN_GEAR
 from ..device import LiproDevice
 from ..utils.log_safety import summarize_properties_for_log
 from ..utils.redaction import redact_identifier
+from .base import _CoordinatorBase
 from .entity_protocol import LiproEntityProtocol
-from .state import _CoordinatorStateMixin
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class _CoordinatorPropertiesMixin(_CoordinatorStateMixin):
-    """Mixin: entity registration and safe property application."""
+class CoordinatorPropertiesRuntime(_CoordinatorBase):
+    """Runtime methods for entity registration and safe property application."""
 
     def register_entity(self, entity: LiproEntityProtocol) -> None:
         """Register an entity for debounce protection tracking."""
@@ -152,4 +152,4 @@ class _CoordinatorPropertiesMixin(_CoordinatorStateMixin):
         )
 
 
-__all__ = ["_CoordinatorPropertiesMixin"]
+__all__ = ["CoordinatorPropertiesRuntime"]

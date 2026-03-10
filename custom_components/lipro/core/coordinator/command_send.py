@@ -32,7 +32,8 @@ from ..command.trace import update_trace_with_exception
 from ..device import LiproDevice
 from ..utils.log_safety import safe_error_placeholder
 from ..utils.redaction import redact_identifier as _redact_identifier
-from .command_confirm import _POST_COMMAND_REFRESH_DELAY_SECONDS, _CommandConfirmMixin
+from .base import _CoordinatorBase
+from .command_confirm import _POST_COMMAND_REFRESH_DELAY_SECONDS
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -55,8 +56,8 @@ _SLIDER_LIKE_PROPERTIES: Final[frozenset[str]] = frozenset(
 )
 
 
-class _CommandSendMixin(_CommandConfirmMixin):
-    """Command send/verification mixin."""
+class CoordinatorCommandRuntime(_CoordinatorBase):
+    """Coordinator runtime methods for command sending and verification."""
 
     def _record_command_trace(self, trace: dict[str, Any]) -> None:
         """Record one command trace when debug mode is enabled."""
@@ -378,5 +379,5 @@ __all__ = [
     "_COMMAND_RESULT_VERIFY_MAX_ATTEMPTS",
     "_MAX_DEVELOPER_COMMAND_TRACES",
     "_SLIDER_LIKE_PROPERTIES",
-    "_CommandSendMixin",
+    "CoordinatorCommandRuntime",
 ]

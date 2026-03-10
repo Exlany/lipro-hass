@@ -1,4 +1,4 @@
-"""MQTT lifecycle mixin for the coordinator."""
+"""MQTT lifecycle runtime helpers for the coordinator."""
 
 from __future__ import annotations
 
@@ -19,7 +19,7 @@ from ...api import LiproApiError
 from ...mqtt.setup_backoff import MqttSetupBackoff
 from ...utils.log_safety import safe_error_placeholder
 from ...utils.redaction import redact_identifier as _redact_identifier
-from ..command_send import _CommandSendMixin
+from ..base import _CoordinatorBase
 from ..runtime.coordinator_runtime import should_schedule_mqtt_setup
 from ..tuning import _CONNECT_STATUS_MQTT_STALE_SECONDS
 from .runtime import MqttRuntime
@@ -40,8 +40,8 @@ _LOGGER = logging.getLogger(__name__)
 _MQTT_POLLING_MULTIPLIER: Final[int] = 2
 
 
-class _MqttLifecycleMixin(_CommandSendMixin):
-    """Coordinator mixin for MQTT setup/teardown and connection lifecycle."""
+class CoordinatorMqttLifecycleRuntime(_CoordinatorBase):
+    """Coordinator runtime methods for MQTT setup/teardown and connection lifecycle."""
 
     def _init_mqtt_state(self) -> None:
         """Initialize MQTT runtime state containers and caches."""
@@ -284,4 +284,4 @@ class _MqttLifecycleMixin(_CommandSendMixin):
         self._track_background_task(self._async_setup_mqtt_safe())
 
 
-__all__ = ["_MqttLifecycleMixin"]
+__all__ = ["CoordinatorMqttLifecycleRuntime"]

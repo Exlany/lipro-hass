@@ -1,4 +1,4 @@
-"""Device refresh and reconciliation mixin for the coordinator."""
+"""Device refresh and reconciliation runtime helpers for the coordinator."""
 
 from __future__ import annotations
 
@@ -12,6 +12,7 @@ from ...const.api import MAX_DEVICES_PER_QUERY
 from ...const.base import DOMAIN
 from ..api import LiproApiError
 from ..device import LiproDevice
+from .base import _CoordinatorBase
 from .device_list_snapshot import (
     FetchedDeviceSnapshot,
     build_fetched_device_snapshot,
@@ -23,7 +24,6 @@ from .device_registry_sync import (
     remove_stale_registry_devices,
     sync_device_room_assignments,
 )
-from .mqtt.messages import _MqttMixin
 from .runtime.coordinator_runtime import (
     should_refresh_device_list as should_refresh_device_list_runtime,
 )
@@ -50,8 +50,8 @@ _ENTRY_RELOAD_DEBOUNCE_SECONDS: Final[float] = 5.0
 _ENTRY_RELOAD_MIN_INTERVAL_SECONDS: Final[float] = 60.0
 
 
-class _DeviceRefreshMixin(_MqttMixin):
-    """Coordinator mixin for full device-list refresh and stale reconciliation."""
+class CoordinatorDeviceRefreshRuntime(_CoordinatorBase):
+    """Coordinator runtime methods for full device-list refresh and stale reconciliation."""
 
     def _request_entry_reload(self, *, reason: str) -> bool:
         """Request a debounced config-entry reload and return True when queued.
@@ -402,4 +402,4 @@ class _DeviceRefreshMixin(_MqttMixin):
             )
 
 
-__all__ = ["_DeviceRefreshMixin"]
+__all__ = ["CoordinatorDeviceRefreshRuntime"]

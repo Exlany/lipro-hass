@@ -6,7 +6,7 @@
 
 ## 已完成要点
 
-- 运行时入口已固定切换到原生 `CoordinatorV2` 实例，不再保留 `V1/V2` 环境开关或外层适配包装路径
+- 运行时入口已固定切换到原生 `Coordinator` 实例，不再保留 `V1/V2` 环境开关或外层适配包装路径
 - 设备模型已拆为薄外观 + 工厂/视图/运行时/快照/状态/额外能力模块，`custom_components/lipro/core/device/device.py` 当前为 `87` 行
 - MQTT 客户端已拆为薄外观 + runtime/connection/subscription/topic/message 组件，`custom_components/lipro/core/mqtt/client.py` 当前为 `150` 行
 - 类型热点已收口：
@@ -34,7 +34,7 @@
 | `agent-3-architecture.json` | `cp-3-2` | Done | `CoordinatorMqttService` 已承担协调器对 MQTT 的公开编排入口 |
 | `agent-3-architecture.json` | `cp-3-3` | Done | `CoordinatorCommandService` 已承担命令发送公开入口 |
 | `agent-3-architecture.json` | `cp-3-4` | Done | `CoordinatorDeviceRefreshService` 已承担刷新公开入口 |
-| `agent-3-architecture.json` | `cp-3-5` | Done | `CoordinatorV2` 已作为原生运行时实例直接写入 `entry.runtime_data` |
+| `agent-3-architecture.json` | `cp-3-5` | Done | `Coordinator` 已作为原生运行时实例直接写入 `entry.runtime_data` |
 | `agent-3-architecture.json` | `cp-3-6` | Done | 依据“未发布、直接上最终架构”原则，已改为固定 V2 路径验证 |
 | `agent-3-architecture.json` | `cp-3-7` | Done | `docs/refactoring/ARCHITECTURE_COMPARISON.md` 与本状态表已同步最新结论 |
 | `agent-4-device-model.json` | `cp-4-1` ~ `cp-4-4` | Done | `DeviceIdentity` / `DeviceState` / `DeviceCapabilities` / `DeviceNetworkInfo` 均已落地 |
@@ -74,5 +74,5 @@ uv run python scripts/refactor_tools.py --coverage-json coverage.json --minimum-
 ## 备注
 
 - 当前仍有少数相对较大的功能文件，但已不再属于本轮 checklist 定义的“超大类/类型热点/继承链扩散”问题
-- Coordinator 运行时入口已直接落到 `CoordinatorV2`；旧类名仅保留为别名。内部 mixin 实现仍在，但不再额外包一层 legacy facade，新增代码路径统一面向显式 service 边界
+- Coordinator 运行时入口已直接落到 `Coordinator`；内部旧 mixin 继承链已拆除，改为显式 runtime 组件成员装配，新增代码路径统一面向 service 边界。
 - 本轮目标已从“兼容旧架构”明确切换为“直接落到最终架构”，因此不再保留旧开关与双跑路径

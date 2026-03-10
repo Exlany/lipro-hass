@@ -9,17 +9,17 @@ from typing import Any
 
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
-from .status_polling import _CoordinatorStatusPollingMixin
+from .base import _CoordinatorBase
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class _CoordinatorShutdownMixin(_CoordinatorStatusPollingMixin):
-    """Mixin: async_shutdown + background task tracking."""
+class CoordinatorShutdownRuntime(_CoordinatorBase):
+    """Coordinator runtime methods for shutdown and background task tracking."""
 
     async def async_shutdown(self) -> None:
         """Shutdown coordinator and release all resources."""
-        await super().async_shutdown()
+        await _CoordinatorBase.async_shutdown(self)
 
         if self._mqtt_listener_update_handle is not None:
             self._mqtt_listener_update_handle.cancel()
@@ -89,4 +89,4 @@ class _CoordinatorShutdownMixin(_CoordinatorStatusPollingMixin):
         await self._background_task_manager.cancel_all()
 
 
-__all__ = ["_CoordinatorShutdownMixin"]
+__all__ = ["CoordinatorShutdownRuntime"]

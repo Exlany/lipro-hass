@@ -1,4 +1,4 @@
-"""MQTT message handling mixin for the coordinator."""
+"""MQTT message handling runtime helpers for the coordinator."""
 
 from __future__ import annotations
 
@@ -18,7 +18,7 @@ from ...mqtt.message import (
     is_online_connect_state,
 )
 from ...utils.redaction import redact_identifier as _redact_identifier
-from .lifecycle import _MqttLifecycleMixin
+from ..base import _CoordinatorBase
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -33,8 +33,8 @@ _MQTT_CACHE_STALE_SECONDS: Final[float] = 5.0
 _MQTT_GROUP_ONLINE_RECONCILE_COOLDOWN_SECONDS: Final[float] = 5.0
 
 
-class _MqttMixin(_MqttLifecycleMixin):
-    """Coordinator mixin for MQTT message handling, dedup, and reconciliation."""
+class CoordinatorMqttMessageRuntime(_CoordinatorBase):
+    """Coordinator runtime methods for MQTT message handling, dedup, and reconciliation."""
 
     def _on_mqtt_message(self, device_id: str, properties: dict[str, Any]) -> None:
         """Handle MQTT message with device status update."""
@@ -192,4 +192,4 @@ class _MqttMixin(_MqttLifecycleMixin):
         )
 
 
-__all__ = ["_MqttMixin"]
+__all__ = ["CoordinatorMqttMessageRuntime"]

@@ -2,7 +2,7 @@
 
 This module contains the command-confirmation side of the coordinator command
 pipeline. It is kept separate from command sending to make responsibilities
-clear and keep mixins smaller.
+clear and keep runtime helpers smaller.
 """
 
 from __future__ import annotations
@@ -12,7 +12,7 @@ from typing import Any, Final
 
 from ..command.post_refresh import schedule_post_command_refresh
 from ..command.result import run_delayed_refresh
-from .tuning import _AdaptiveTuningMixin
+from .base import _CoordinatorBase
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -27,8 +27,8 @@ _STATE_LATENCY_EWMA_ALPHA: Final[float] = 0.35
 _STATE_CONFIRM_TIMEOUT_SECONDS: Final[float] = 20.0
 
 
-class _CommandConfirmMixin(_AdaptiveTuningMixin):
-    """Command confirmation and post-refresh scheduling mixin."""
+class CoordinatorCommandConfirmationRuntime(_CoordinatorBase):
+    """Command confirmation and post-refresh scheduling runtime methods."""
 
     def _filter_pending_command_mismatches(
         self,
@@ -169,5 +169,5 @@ __all__ = [
     "_STATE_CONFIRM_TIMEOUT_SECONDS",
     "_STATE_LATENCY_EWMA_ALPHA",
     "_STATE_LATENCY_MARGIN_SECONDS",
-    "_CommandConfirmMixin",
+    "CoordinatorCommandConfirmationRuntime",
 ]

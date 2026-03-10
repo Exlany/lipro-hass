@@ -20,7 +20,7 @@ from ..device import LiproDevice, parse_properties_list
 from ..device.group_status import resolve_mesh_group_lookup_ids
 from ..utils.log_safety import safe_error_placeholder
 from ..utils.redaction import redact_identifier
-from .auth_issues import _CoordinatorAuthIssuesMixin
+from .base import _CoordinatorBase
 from .outlet_power import apply_outlet_power_info, should_reraise_outlet_power_error
 from .runtime.group_lookup_runtime import compute_group_lookup_mapping_decision
 from .runtime.outlet_power_runtime import (
@@ -45,7 +45,7 @@ _OUTLET_POWER_QUERY_MAX_DEVICES_PER_CYCLE: Final[int] = 10
 _OUTLET_POWER_TARGET_FULL_CYCLE_COUNT: Final[int] = 4
 
 
-class _CoordinatorStatusPollingMixin(_CoordinatorAuthIssuesMixin):
+class CoordinatorStatusRuntime(_CoordinatorBase):
     """Mixin: _async_update_data and status/product-config polling helpers."""
 
     async def _async_update_data(self) -> dict[str, LiproDevice]:
@@ -357,4 +357,4 @@ class _CoordinatorStatusPollingMixin(_CoordinatorAuthIssuesMixin):
         await self.async_refresh()
 
 
-__all__ = ["_CoordinatorStatusPollingMixin"]
+__all__ = ["CoordinatorStatusRuntime"]

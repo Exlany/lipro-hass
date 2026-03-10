@@ -1,4 +1,4 @@
-"""Tests for the native CoordinatorV2 runtime surface."""
+"""Tests for the native Coordinator runtime surface."""
 
 from __future__ import annotations
 
@@ -6,15 +6,15 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from custom_components.lipro.coordinator_v2 import CoordinatorV2
+from custom_components.lipro.coordinator import Coordinator
 from custom_components.lipro.core.coordinator import LiproDataUpdateCoordinator
 from custom_components.lipro.core.device.identity_index import DeviceIdentityIndex
 
 
 @pytest.mark.asyncio
-async def test_coordinator_v2_exposes_native_runtime_services() -> None:
+async def test_coordinator_exposes_native_runtime_services() -> None:
     device = MagicMock()
-    coordinator = object.__new__(CoordinatorV2)
+    coordinator = object.__new__(Coordinator)
     coordinator._devices = {"dev1": device}
     coordinator._device_identity_index = DeviceIdentityIndex({"dev1": device})
     coordinator._last_command_failure = {"reason": "ok"}
@@ -52,4 +52,4 @@ async def test_coordinator_v2_exposes_native_runtime_services() -> None:
 
 
 def test_legacy_coordinator_name_aliases_native_runtime() -> None:
-    assert LiproDataUpdateCoordinator is CoordinatorV2
+    assert LiproDataUpdateCoordinator is Coordinator

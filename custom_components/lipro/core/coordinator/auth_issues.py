@@ -22,12 +22,12 @@ from ..api import (
     LiproRefreshTokenExpiredError,
 )
 from ..utils.log_safety import safe_error_placeholder
-from .properties import _CoordinatorPropertiesMixin
+from .base import _CoordinatorBase
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class _CoordinatorAuthIssuesMixin(_CoordinatorPropertiesMixin):
+class CoordinatorAuthIssuesRuntime(_CoordinatorBase):
     """Mixin: reauth triggers, repair issues, update error mapping."""
 
     async def _trigger_reauth(self, key: str, **placeholders: str) -> None:
@@ -53,7 +53,7 @@ class _CoordinatorAuthIssuesMixin(_CoordinatorPropertiesMixin):
             if key == "error":
                 if (
                     text.isdigit() and len(text) <= 6
-                ) or _CoordinatorAuthIssuesMixin._is_safe_error_marker(text):
+                ) or CoordinatorAuthIssuesRuntime._is_safe_error_marker(text):
                     sanitized[key] = text
                 else:
                     sanitized[key] = "AuthError"
@@ -136,4 +136,4 @@ class _CoordinatorAuthIssuesMixin(_CoordinatorPropertiesMixin):
         raise err
 
 
-__all__ = ["_CoordinatorAuthIssuesMixin"]
+__all__ = ["CoordinatorAuthIssuesRuntime"]

@@ -55,8 +55,8 @@ _STATE_STATUS_BATCH_LATENCY_LOW_SECONDS: Final[float] = 1.2
 _STATE_STATUS_BATCH_LATENCY_HIGH_SECONDS: Final[float] = 3.5
 
 
-class _AdaptiveTuningMixin(_CoordinatorBase):
-    """Coordinator mixin for adaptive runtime tuning and connect-status decisions."""
+class CoordinatorAdaptiveTuningRuntime(_CoordinatorBase):
+    """Coordinator runtime methods for adaptive tuning and connect-status decisions."""
 
     def _resolve_direct_iot_query_ids(self) -> list[str]:
         """Return individual-query IDs that are not currently mapped to groups."""
@@ -340,5 +340,5 @@ __all__ = [
     "_CONNECT_STATUS_SKIP_RATIO_WINDOW",
     "_STATE_STATUS_BATCH_METRICS_WINDOW",
     "_STATE_STATUS_BATCH_SIZE_MAX",
-    "_AdaptiveTuningMixin",
+    "CoordinatorAdaptiveTuningRuntime",
 ]

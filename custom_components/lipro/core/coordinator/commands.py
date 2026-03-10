@@ -1,7 +1,7 @@
 """Command flow module for the coordinator.
 
 This file is intentionally kept as a thin re-export layer so callers can import
-command-related mixins/constants from a single place, while keeping the
+command-related runtime helpers/constants from a single place, while keeping the
 implementation split by responsibility.
 """
 
@@ -15,7 +15,7 @@ from .command_confirm import (
     _STATE_LATENCY_EWMA_ALPHA,
     _STATE_LATENCY_MARGIN_SECONDS,
 )
-from .command_send import _MAX_DEVELOPER_COMMAND_TRACES, _CommandSendMixin
+from .command_send import _MAX_DEVELOPER_COMMAND_TRACES, CoordinatorCommandRuntime
 
 __all__ = [
     "_MAX_DEVELOPER_COMMAND_TRACES",
@@ -25,5 +25,5 @@ __all__ = [
     "_STATE_CONFIRM_TIMEOUT_SECONDS",
     "_STATE_LATENCY_EWMA_ALPHA",
     "_STATE_LATENCY_MARGIN_SECONDS",
-    "_CommandSendMixin",
+    "CoordinatorCommandRuntime",
 ]

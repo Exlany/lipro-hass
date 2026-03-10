@@ -20,7 +20,7 @@ from .const.config import (
     MAX_SCAN_INTERVAL,
     MIN_SCAN_INTERVAL,
 )
-from .coordinator_v2 import CoordinatorV2
+from .coordinator import Coordinator
 from .core import LiproAuthManager, LiproClient
 from .entry_auth import (
     async_authenticate_entry,
@@ -65,7 +65,7 @@ PLATFORMS: list[Platform] = [
     Platform.UPDATE,
 ]
 
-type LiproRuntimeData = CoordinatorV2
+type LiproRuntimeData = Coordinator
 type LiproConfigEntry = ConfigEntry[LiproRuntimeData]
 
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
@@ -115,7 +115,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: LiproConfigEntry) -> boo
         max_value=MAX_SCAN_INTERVAL,
         logger=_LOGGER,
     )
-    coordinator = CoordinatorV2(
+    coordinator = Coordinator(
         hass,
         client,
         auth_manager,

@@ -8,10 +8,10 @@ def test_commands_reexports_are_importable() -> None:
         _MAX_DEVELOPER_COMMAND_TRACES,
         _POST_COMMAND_REFRESH_DELAY_SECONDS,
         _STATE_CONFIRM_TIMEOUT_SECONDS,
-        _CommandSendMixin,
+        CoordinatorCommandRuntime,
     )
 
     assert _POST_COMMAND_REFRESH_DELAY_SECONDS > 0
     assert _STATE_CONFIRM_TIMEOUT_SECONDS > 0
     assert _MAX_DEVELOPER_COMMAND_TRACES > 0
-    assert _CommandSendMixin is not None
+    assert CoordinatorCommandRuntime is not None

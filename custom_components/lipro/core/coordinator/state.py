@@ -46,6 +46,7 @@ from ..utils.developer_report import (
     build_developer_report as build_coordinator_developer_report,
 )
 from ..utils.redaction import redact_identifier as _redact_identifier
+from .base import _CoordinatorBase
 from .command_confirm import (
     _MAX_POST_COMMAND_REFRESH_DELAY_SECONDS,
     _MIN_POST_COMMAND_REFRESH_DELAY_SECONDS,
@@ -60,7 +61,6 @@ from .device_list_snapshot import (
     build_device_filter_config,
     has_active_device_filter,
 )
-from .device_refresh import _DeviceRefreshMixin
 from .entity_protocol import LiproEntityProtocol
 from .tuning import (
     _CONNECT_STATUS_MQTT_STALE_SECONDS,
@@ -83,7 +83,7 @@ except ImportError:
     HA_VERSION = None
 
 
-class _CoordinatorStateMixin(_DeviceRefreshMixin):
+class CoordinatorStateRuntime(_CoordinatorBase):
     """Mixin: runtime state init/reset, options loading, developer report."""
 
     # ---------------------------------------------------------------------
@@ -369,4 +369,4 @@ class _CoordinatorStateMixin(_DeviceRefreshMixin):
         return report
 
 
-__all__ = ["_CoordinatorStateMixin"]
+__all__ = ["CoordinatorStateRuntime"]
