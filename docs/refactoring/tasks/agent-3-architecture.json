@@ -4,11 +4,15 @@
   "task_name": "coordinator-architecture-refactoring",
   "phase": "2.1",
   "priority": "P0",
-  "dependencies": ["agent-1", "agent-2"],
-  "description": "重构 Coordinator 为组合模式，拆解 13 层 Mixin 继承链，实现独立服务层",
+  "dependencies": [
+    "agent-1",
+    "agent-2"
+  ],
+  "description": "重构 Coordinator 为单一入口 + 显式 runtime 组件，拆解 13 层旧继承链，实现独立服务层",
   "input_files": [
     "custom_components/lipro/core/coordinator/coordinator.py",
-    "custom_components/lipro/core/coordinator/mixins/"
+    "custom_components/lipro/core/coordinator/",
+    "custom_components/lipro/core/coordinator/runtime/"
   ],
   "output_branch": "refactor/phase-2-architecture",
   "base_branch": "develop",
@@ -98,44 +102,43 @@
     },
     {
       "id": "cp-3-5",
-      "description": "实现 Coordinator（组合模式）",
+      "description": "实现 Coordinator（单一入口）",
       "tasks": [
         "创建 custom_components/lipro/coordinator.py",
-        "使用依赖注入组合服务",
-        "简化状态管理（移除 62 个共享属性）",
-        "实现核心协调逻辑",
-        "保持与旧 Coordinator 相同的公共 API",
-        "编写单元测试"
+        "收口为单一 Coordinator 公开入口",
+        "使用显式 service 组合运行时能力",
+        "保留稳定公共 API",
+        "编写公开入口单元测试"
       ],
       "files": [
         "custom_components/lipro/coordinator.py",
-        "tests/test_coordinator.py"
+        "tests/test_coordinator_public.py"
       ],
       "validation": {
-        "command": "uv run pytest tests/test_coordinator.py -v --cov=custom_components/lipro/coordinator.py --cov-report=term-missing",
+        "command": "uv run pytest tests/test_coordinator_public.py -v --cov=custom_components/lipro/coordinator.py --cov-report=term-missing",
         "expected": "all tests pass, coverage >=95%"
       },
-      "commit_message": "refactor(coordinator): implement Coordinator with composition pattern"
+      "commit_message": "refactor(coordinator): implement single coordinator runtime entry"
     },
     {
       "id": "cp-3-6",
-      "description": "并行运行测试（V1 vs V2）",
+      "description": "固定最终 Coordinator 路径验证",
       "tasks": [
-        "添加配置开关 USE_V2_COORDINATOR",
-        "运行完整测试套件（V1）",
-        "运行完整测试套件（V2）",
-        "对比测试结果",
-        "验证行为一致性"
+        "移除 V1/V2 双跑假设",
+        "确认 __init__.py 直接实例化 Coordinator",
+        "运行 coordinator 相关回归测试",
+        "验证 entry.runtime_data 固定为最终路径",
+        "确认无兼容开关残留"
       ],
       "files": [
-        "custom_components/lipro/config.py",
-        "tests/test_coordinator_compatibility.py"
+        "custom_components/lipro/__init__.py",
+        "tests/test_coordinator_runtime.py"
       ],
       "validation": {
-        "command": "uv run pytest tests/ -v -k 'coordinator' && USE_V2_COORDINATOR=1 uv run pytest tests/ -v -k 'coordinator'",
-        "expected": "both test suites pass with identical results"
+        "command": "uv run pytest tests/test_coordinator_runtime.py -v",
+        "expected": "runtime path test passes with direct Coordinator instantiation"
       },
-      "commit_message": "test(coordinator): add V1/V2 compatibility tests"
+      "commit_message": "test(coordinator): validate final coordinator runtime path"
     },
     {
       "id": "cp-3-7",
