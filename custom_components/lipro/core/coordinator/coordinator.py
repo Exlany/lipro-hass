@@ -478,7 +478,7 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
 
             return True
 
-        except asyncio.CancelledError:
+        except (asyncio.CancelledError, KeyboardInterrupt, SystemExit):
             raise
         except Exception as err:
             _LOGGER.warning("Failed to setup MQTT: %s", err)
