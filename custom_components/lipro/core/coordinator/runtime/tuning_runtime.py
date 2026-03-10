@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
 
+from ..types import RuntimeMetrics
 from .tuning import TuningAdjuster, TuningAlgorithm, TuningMetrics
 
 _LOGGER = logging.getLogger(__name__)
@@ -171,7 +171,7 @@ class TuningRuntime:
             mqtt_stale_window=mqtt_stale_window,
         )
 
-    def get_runtime_metrics(self) -> dict[str, Any]:
+    def get_runtime_metrics(self) -> RuntimeMetrics:
         """Get combined runtime metrics."""
         return {
             "algorithm": self._algorithm.get_algorithm_config(),

@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import asyncio
-from collections.abc import Callable, Coroutine
-from typing import TYPE_CHECKING, Any
+from collections.abc import Awaitable, Callable
+from typing import TYPE_CHECKING
 
 from ....command.post_refresh import schedule_post_command_refresh
 from ....command.result import run_delayed_refresh
@@ -23,9 +23,9 @@ class ConfirmationManager:
         confirmation_tracker: CommandConfirmationTracker,
         pending_expectations: dict[str, PendingCommandExpectation],
         device_state_latency_seconds: dict[str, float],
-        post_command_refresh_tasks: dict[str, asyncio.Task[Any]],
-        track_background_task: Callable[[Coroutine[Any, Any, Any]], asyncio.Task[Any]],
-        request_refresh: Callable[[], Coroutine[Any, Any, None]],
+        post_command_refresh_tasks: dict[str, asyncio.Task[object]],
+        track_background_task: Callable[[Awaitable[object]], asyncio.Task[object]],
+        request_refresh: Callable[[], Awaitable[None]],
         mqtt_connected_provider: Callable[[], bool],
     ) -> None:
         """Initialize confirmation manager."""

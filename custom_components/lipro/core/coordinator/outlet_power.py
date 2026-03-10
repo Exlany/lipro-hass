@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from ..api import LiproApiError, LiproAuthError, LiproConnectionError
+from .types import PropertyDict
 
 if TYPE_CHECKING:
     from ..device.device import LiproDevice
@@ -17,7 +18,7 @@ def should_reraise_outlet_power_error(err: LiproApiError) -> bool:
 
 def apply_outlet_power_info(
     device: LiproDevice | None,
-    power_data: dict[str, Any],
+    power_data: PropertyDict,
 ) -> bool:
     """Write outlet power payload to runtime model when possible."""
     if device is None or not power_data:

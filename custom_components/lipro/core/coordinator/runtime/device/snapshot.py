@@ -72,7 +72,8 @@ class SnapshotBuilder:
         while page <= max_pages:
             try:
                 response = await self._client.get_device_list(page=page)
-                devices_data = response.get("data", [])
+                # Support both old format {"devices": [...]} and new format {"data": [...]}
+                devices_data = response.get("data") or response.get("devices", [])
 
                 if not devices_data:
                     break

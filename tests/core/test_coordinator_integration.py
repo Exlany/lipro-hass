@@ -107,7 +107,7 @@ class TestCoordinatorUpdateFlow:
         self, coordinator, mock_lipro_api_client
     ):
         """First call should fetch devices, load product configs, then query status."""
-        mock_lipro_api_client.get_devices.return_value = {
+        mock_lipro_api_client.get_device_list.return_value = {
             "devices": [
                 _make_api_device(serial="03ab5ccd7c000001", name="Light 1"),
             ]
@@ -129,7 +129,7 @@ class TestCoordinatorUpdateFlow:
             result = await coordinator._async_update_data()
 
         assert "03ab5ccd7c000001" in result
-        mock_lipro_api_client.get_devices.assert_called_once()
+        mock_lipro_api_client.get_device_list.assert_called_once()
         mock_lipro_api_client.query_device_status.assert_called_once()
         mock_lipro_api_client.get_product_configs.assert_called_once()
 
@@ -138,7 +138,7 @@ class TestCoordinatorUpdateFlow:
         self, coordinator, mock_lipro_api_client
     ):
         """Subsequent calls should NOT re-fetch devices."""
-        mock_lipro_api_client.get_devices.return_value = {
+        mock_lipro_api_client.get_device_list.return_value = {
             "devices": [_make_api_device(serial="03ab5ccd7c000001")]
         }
         mock_lipro_api_client.query_device_status.return_value = []
@@ -149,17 +149,17 @@ class TestCoordinatorUpdateFlow:
         ) as mock_share:
             mock_share.return_value = MagicMock(is_enabled=False)
             await coordinator._async_update_data()
-            mock_lipro_api_client.get_devices.reset_mock()
+            mock_lipro_api_client.get_device_list.reset_mock()
             await coordinator._async_update_data()
 
-        mock_lipro_api_client.get_devices.assert_not_called()
+        mock_lipro_api_client.get_device_list.assert_not_called()
 
     @pytest.mark.asyncio
     async def test_periodic_update_refetches_device_list(
         self, coordinator, mock_lipro_api_client
     ):
         """Periodic refresh should re-fetch devices even without force flag."""
-        mock_lipro_api_client.get_devices.return_value = {
+        mock_lipro_api_client.get_device_list.return_value = {
             "devices": [_make_api_device(serial="03ab5ccd7c000001")]
         }
         mock_lipro_api_client.query_device_status.return_value = []
@@ -170,7 +170,7 @@ class TestCoordinatorUpdateFlow:
         ) as mock_share:
             mock_share.return_value = MagicMock(is_enabled=False)
             await coordinator._async_update_data()
-            mock_lipro_api_client.get_devices.reset_mock()
+            mock_lipro_api_client.get_device_list.reset_mock()
 
             coordinator._force_device_refresh = False
             coordinator._last_device_refresh_at = 0.0
@@ -180,14 +180,14 @@ class TestCoordinatorUpdateFlow:
             ):
                 await coordinator._async_update_data()
 
-        mock_lipro_api_client.get_devices.assert_called_once()
+        mock_lipro_api_client.get_device_list.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_ensure_valid_token_called(
         self, coordinator, mock_lipro_api_client, mock_auth_manager
     ):
         """_async_update_data must call ensure_valid_token before anything else."""
-        mock_lipro_api_client.get_devices.return_value = {
+        mock_lipro_api_client.get_device_list.return_value = {
             "devices": [_make_api_device()]
         }
         mock_lipro_api_client.query_device_status.return_value = []
@@ -214,7 +214,7 @@ class TestCoordinatorFetchDevices:
     async def test_single_page(self, coordinator, mock_lipro_api_client):
         """Fewer than MAX_DEVICES_PER_QUERY devices should require one page."""
         devices = [_make_api_device(serial=f"03ab5ccd7c{i:06x}") for i in range(3)]
-        mock_lipro_api_client.get_devices.return_value = {"devices": devices}
+        mock_lipro_api_client.get_device_list.return_value = {"devices": devices}
 
         with patch(
             "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager"
@@ -223,7 +223,7 @@ class TestCoordinatorFetchDevices:
             await coordinator._fetch_devices()
 
         assert len(coordinator.devices) == 3
-        mock_lipro_api_client.get_devices.assert_called_once_with(
+        mock_lipro_api_client.get_device_list.assert_called_once_with(
             offset=0, limit=MAX_DEVICES_PER_QUERY
         )
 
@@ -235,7 +235,7 @@ class TestCoordinatorFetchDevices:
             for i in range(MAX_DEVICES_PER_QUERY)
         ]
         page2 = [_make_api_device(serial=f"03ab5ccd7d{i:06x}") for i in range(5)]
-        mock_lipro_api_client.get_devices.side_effect = [
+        mock_lipro_api_client.get_device_list.side_effect = [
             {"devices": page1},
             {"devices": page2},
         ]
@@ -247,14 +247,14 @@ class TestCoordinatorFetchDevices:
             await coordinator._fetch_devices()
 
         assert len(coordinator.devices) == MAX_DEVICES_PER_QUERY + 5
-        assert mock_lipro_api_client.get_devices.call_count == 2
+        assert mock_lipro_api_client.get_device_list.call_count == 2
 
     @pytest.mark.asyncio
     async def test_fetch_devices_rejects_malformed_devices_payload(
         self, coordinator, mock_lipro_api_client
     ):
         """Malformed devices payload should fail fast with a clear API error."""
-        mock_lipro_api_client.get_devices.return_value = {"devices": "invalid"}
+        mock_lipro_api_client.get_device_list.return_value = {"devices": "invalid"}
 
         with patch(
             "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager"
@@ -268,7 +268,7 @@ class TestCoordinatorFetchDevices:
         self, coordinator, mock_lipro_api_client
     ):
         """Non-dict device rows should be ignored without breaking refresh."""
-        mock_lipro_api_client.get_devices.return_value = {
+        mock_lipro_api_client.get_device_list.return_value = {
             "devices": [
                 _make_api_device(serial="03ab5ccd7c000001"),
                 "bad-row",
@@ -297,7 +297,7 @@ class TestCoordinatorFetchDevices:
                 device_type=11,
             ),
         ]
-        mock_lipro_api_client.get_devices.return_value = {"devices": devices}
+        mock_lipro_api_client.get_device_list.return_value = {"devices": devices}
 
         with patch(
             "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager"
@@ -322,7 +322,7 @@ class TestCoordinatorFetchDevices:
                 is_group=True,
             ),
         ]
-        mock_lipro_api_client.get_devices.return_value = {"devices": devices}
+        mock_lipro_api_client.get_device_list.return_value = {"devices": devices}
 
         with patch(
             "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager"
@@ -345,7 +345,7 @@ class TestCoordinatorFetchDevices:
                 device_type=6,
             ),
         ]
-        mock_lipro_api_client.get_devices.return_value = {"devices": devices}
+        mock_lipro_api_client.get_device_list.return_value = {"devices": devices}
 
         with patch(
             "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager"
@@ -369,7 +369,7 @@ class TestCoordinatorFetchDevices:
                 is_group=True,
             ),
         ]
-        mock_lipro_api_client.get_devices.return_value = {"devices": devices}
+        mock_lipro_api_client.get_device_list.return_value = {"devices": devices}
 
         with patch(
             "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager"
@@ -394,7 +394,7 @@ class TestCoordinatorFetchDevices:
             },
         )
         coordinator._load_options()
-        mock_lipro_api_client.get_devices.return_value = {
+        mock_lipro_api_client.get_device_list.return_value = {
             "devices": [
                 {
                     **_make_api_device(serial="03ab5ccd7c000001"),
@@ -425,7 +425,7 @@ class TestCoordinatorFetchDevices:
             },
         )
         coordinator._load_options()
-        mock_lipro_api_client.get_devices.return_value = {
+        mock_lipro_api_client.get_device_list.return_value = {
             "devices": [
                 _make_api_device(serial="03ab5ccd7c000001"),
                 _make_api_device(serial="03ab5ccd7c000002"),
@@ -453,7 +453,7 @@ class TestCoordinatorFetchDevices:
             },
         )
         coordinator._load_options()
-        mock_lipro_api_client.get_devices.return_value = {
+        mock_lipro_api_client.get_device_list.return_value = {
             "devices": [
                 {
                     **_make_api_device(serial="03ab5ccd7c000001"),
@@ -487,7 +487,7 @@ class TestCoordinatorFetchDevices:
             },
         )
         coordinator._load_options()
-        mock_lipro_api_client.get_devices.return_value = {
+        mock_lipro_api_client.get_device_list.return_value = {
             "devices": [
                 _make_api_device(serial="03ab5ccd7c000001"),
                 _make_api_device(serial="03ab5ccd7c000002"),
@@ -512,7 +512,7 @@ class TestCoordinatorFetchDevices:
         registry.async_get_device.return_value = device_entry
 
         # Initial set: A + B, then B missing for 3 consecutive fetches
-        mock_lipro_api_client.get_devices.side_effect = [
+        mock_lipro_api_client.get_device_list.side_effect = [
             {
                 "devices": [
                     _make_api_device(serial="03ab5ccd7c000001"),
@@ -554,7 +554,7 @@ class TestCoordinatorFetchDevices:
         registry.async_get_device.return_value = device_entry
 
         # A + B -> A only (miss B #1) -> A + B (reset) -> A only (miss B #1 again)
-        mock_lipro_api_client.get_devices.side_effect = [
+        mock_lipro_api_client.get_device_list.side_effect = [
             {
                 "devices": [
                     _make_api_device(serial="03ab5ccd7c000001"),
@@ -608,7 +608,7 @@ class TestCoordinatorFetchDevices:
         registry.async_get_device.return_value = stale_candidate
 
         # Device B is always cloud-present but filtered out from coordinator.devices.
-        mock_lipro_api_client.get_devices.side_effect = [
+        mock_lipro_api_client.get_device_list.side_effect = [
             {
                 "devices": [
                     _make_api_device(serial="03ab5ccd7c000001"),
@@ -670,7 +670,7 @@ class TestCoordinatorFetchDevices:
             == stale_entry
         )
 
-        mock_lipro_api_client.get_devices.side_effect = [
+        mock_lipro_api_client.get_device_list.side_effect = [
             {"devices": []},
             {"devices": []},
             {"devices": []},
@@ -734,7 +734,7 @@ class TestCoordinatorErrorHandling:
         self, coordinator, mock_lipro_api_client
     ):
         """LiproApiError during device fetch -> UpdateFailed."""
-        mock_lipro_api_client.get_devices.side_effect = LiproApiError("server error")
+        mock_lipro_api_client.get_device_list.side_effect = LiproApiError("server error")
         with pytest.raises(UpdateFailed):
             await coordinator._async_update_data()
 
@@ -743,7 +743,7 @@ class TestCoordinatorErrorHandling:
         self, coordinator, mock_lipro_api_client
     ):
         """LiproAuthError during get_devices -> ConfigEntryAuthFailed."""
-        mock_lipro_api_client.get_devices.side_effect = LiproAuthError("unauthorized")
+        mock_lipro_api_client.get_device_list.side_effect = LiproAuthError("unauthorized")
         with pytest.raises(ConfigEntryAuthFailed):
             await coordinator._async_update_data()
 
@@ -752,7 +752,7 @@ class TestCoordinatorErrorHandling:
         self, coordinator, mock_lipro_api_client
     ):
         """LiproConnectionError during status query should fail the update."""
-        mock_lipro_api_client.get_devices.return_value = {
+        mock_lipro_api_client.get_device_list.return_value = {
             "devices": [_make_api_device(serial="03ab5ccd7c000001")]
         }
         mock_lipro_api_client.get_product_configs.return_value = []
@@ -769,7 +769,7 @@ class TestCoordinatorErrorHandling:
         self, coordinator, mock_lipro_api_client
     ):
         """LiproAuthError during connect-status query should trigger reauth."""
-        mock_lipro_api_client.get_devices.return_value = {
+        mock_lipro_api_client.get_device_list.return_value = {
             "devices": [_make_api_device(serial="03ab5ccd7c000001")]
         }
         mock_lipro_api_client.get_product_configs.return_value = []
@@ -786,7 +786,7 @@ class TestCoordinatorErrorHandling:
         self, coordinator, mock_lipro_api_client
     ):
         """LiproAuthError during outlet power query should trigger reauth."""
-        mock_lipro_api_client.get_devices.return_value = {
+        mock_lipro_api_client.get_device_list.return_value = {
             "devices": [
                 _make_api_device(
                     serial="03ab5ccd7c000001",
@@ -819,7 +819,7 @@ class TestCoordinatorProductConfigs:
         self, coordinator, mock_lipro_api_client
     ):
         """Product config matched by iotName sets min/max color temp."""
-        mock_lipro_api_client.get_devices.return_value = {
+        mock_lipro_api_client.get_device_list.return_value = {
             "devices": [
                 _make_api_device(
                     serial="03ab5ccd7c000001",
@@ -854,7 +854,7 @@ class TestCoordinatorProductConfigs:
         self, coordinator, mock_lipro_api_client
     ):
         """Product config matched by productId takes priority over iotName."""
-        mock_lipro_api_client.get_devices.return_value = {
+        mock_lipro_api_client.get_device_list.return_value = {
             "devices": [
                 _make_api_device(
                     serial="03ab5ccd7c000001",
@@ -896,7 +896,7 @@ class TestCoordinatorProductConfigs:
     @pytest.mark.asyncio
     async def test_single_color_temp_device(self, coordinator, mock_lipro_api_client):
         """maxTemperature=0 means single color temp (no adjustment)."""
-        mock_lipro_api_client.get_devices.return_value = {
+        mock_lipro_api_client.get_device_list.return_value = {
             "devices": [
                 _make_api_device(serial="03ab5ccd7c000001", iot_name="lipro_led"),
             ]
@@ -927,7 +927,7 @@ class TestCoordinatorProductConfigs:
     @pytest.mark.asyncio
     async def test_fan_gear_range_applied(self, coordinator, mock_lipro_api_client):
         """maxFanGear from product config is applied to the device."""
-        mock_lipro_api_client.get_devices.return_value = {
+        mock_lipro_api_client.get_device_list.return_value = {
             "devices": [
                 _make_api_device(
                     serial="03ab5ccd7c000001",
@@ -964,7 +964,7 @@ class TestCoordinatorProductConfigs:
         self, coordinator, mock_lipro_api_client
     ):
         """None maxFanGear should keep model default upper-bound."""
-        mock_lipro_api_client.get_devices.return_value = {
+        mock_lipro_api_client.get_device_list.return_value = {
             "devices": [
                 _make_api_device(
                     serial="03ab5ccd7c000001",
@@ -1001,7 +1001,7 @@ class TestCoordinatorProductConfigs:
         self, coordinator, mock_lipro_api_client
     ):
         """When maxFanGear is missing, runtime fanGear should adapt upper-bound."""
-        mock_lipro_api_client.get_devices.return_value = {
+        mock_lipro_api_client.get_device_list.return_value = {
             "devices": [
                 _make_api_device(
                     serial="03ab5ccd7c000001",
@@ -1046,7 +1046,7 @@ class TestCoordinatorProductConfigs:
     ):
         """Cached product config should be reapplied to replaced device objects."""
         serial = "03ab5ccd7c000001"
-        mock_lipro_api_client.get_devices.side_effect = [
+        mock_lipro_api_client.get_device_list.side_effect = [
             {"devices": [_make_api_device(serial=serial, iot_name="lipro_led")]},
             {"devices": [_make_api_device(serial=serial, iot_name="lipro_led")]},
         ]
@@ -1086,7 +1086,7 @@ class TestCoordinatorProductConfigs:
         self, coordinator, mock_lipro_api_client
     ):
         """LiproApiError from get_product_configs should not abort the update."""
-        mock_lipro_api_client.get_devices.return_value = {
+        mock_lipro_api_client.get_device_list.return_value = {
             "devices": [_make_api_device(serial="03ab5ccd7c000001")]
         }
         mock_lipro_api_client.get_product_configs.side_effect = LiproApiError(
@@ -1117,7 +1117,7 @@ class TestCoordinatorShutdown:
     async def test_shutdown_clears_devices(self, coordinator, mock_lipro_api_client):
         """After shutdown, _devices and related dicts must be empty."""
         # Populate some devices first
-        mock_lipro_api_client.get_devices.return_value = {
+        mock_lipro_api_client.get_device_list.return_value = {
             "devices": [_make_api_device(serial="03ab5ccd7c000001")]
         }
         mock_lipro_api_client.query_device_status.return_value = []
@@ -1189,7 +1189,7 @@ class TestCoordinatorRefreshDevices:
         # Pre-populate product configs cache
         coordinator._product_configs = {"lipro_led": {"id": 1}}
 
-        mock_lipro_api_client.get_devices.return_value = {
+        mock_lipro_api_client.get_device_list.return_value = {
             "devices": [_make_api_device(serial="03ab5ccd7c000001")]
         }
         mock_lipro_api_client.query_device_status.return_value = []
@@ -1204,7 +1204,7 @@ class TestCoordinatorRefreshDevices:
 
         # After refresh, product configs should have been cleared (then reloaded)
         # and get_devices should have been called because the flag was set
-        mock_lipro_api_client.get_devices.assert_called()
+        mock_lipro_api_client.get_device_list.assert_called()
 
     @pytest.mark.asyncio
     async def test_force_flag_causes_device_refetch(
@@ -1212,7 +1212,7 @@ class TestCoordinatorRefreshDevices:
     ):
         """Setting _force_device_refresh=True causes _fetch_devices on next update."""
         # First update populates devices
-        mock_lipro_api_client.get_devices.return_value = {
+        mock_lipro_api_client.get_device_list.return_value = {
             "devices": [_make_api_device(serial="03ab5ccd7c000001")]
         }
         mock_lipro_api_client.query_device_status.return_value = []
@@ -1224,7 +1224,7 @@ class TestCoordinatorRefreshDevices:
         ) as mock_share:
             mock_share.return_value = MagicMock(is_enabled=False)
             await coordinator._async_update_data()
-            mock_lipro_api_client.get_devices.reset_mock()
+            mock_lipro_api_client.get_device_list.reset_mock()
 
             # Set force flag manually
             coordinator._force_device_refresh = True
@@ -1232,4 +1232,4 @@ class TestCoordinatorRefreshDevices:
             await coordinator._async_update_data()
 
         # get_devices should be called again because of the force flag
-        mock_lipro_api_client.get_devices.assert_called_once()
+        mock_lipro_api_client.get_device_list.assert_called_once()

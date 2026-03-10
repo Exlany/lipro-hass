@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 from time import monotonic
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
+
+from ...types import CommandTrace
 
 if TYPE_CHECKING:
     from ....device import LiproDevice
@@ -26,7 +28,7 @@ class CommandBuilder:
         device: LiproDevice,
         command: str,
         properties: list[dict[str, str]] | None,
-    ) -> dict[str, Any]:
+    ) -> CommandTrace:
         """Build initial command trace with device and timing metadata.
 
         Args:

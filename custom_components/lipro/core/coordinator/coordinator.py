@@ -394,7 +394,10 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
                 # Refresh device list if needed (10 seconds timeout)
                 if self._device_runtime.should_refresh_device_list():
                     async with asyncio.timeout(10):
-                        await self._device_runtime.refresh_devices(force=True)
+                        snapshot = await self._device_runtime.refresh_devices(force=True)
+                        # Update coordinator devices from snapshot
+                        self._devices.clear()
+                        self._devices.update(snapshot.devices)
 
                 # Schedule MQTT setup if needed (5 seconds timeout)
                 if self._mqtt_client is None and self._devices:

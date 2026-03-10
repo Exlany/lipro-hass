@@ -14,7 +14,9 @@ Design principles:
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Protocol, runtime_checkable
+from typing import TYPE_CHECKING, Protocol, runtime_checkable
+
+from ..types import CommandPayload, CommandTrace, PropertyDict
 
 if TYPE_CHECKING:
     from ...device import LiproDevice
@@ -31,7 +33,7 @@ class CommandRuntimeProtocol(Protocol):
     async def send_command(
         self,
         device_id: str,
-        command: dict[str, Any],
+        command: CommandPayload,
         *,
         wait_confirmation: bool = True,
         timeout: float = 5.0,
@@ -55,7 +57,7 @@ class CommandRuntimeProtocol(Protocol):
 
     async def send_batch_commands(
         self,
-        commands: list[tuple[str, dict[str, Any]]],
+        commands: list[tuple[str, CommandPayload]],
     ) -> list[CommandResult]:
         """Send multiple commands in parallel with best-effort semantics.
 
@@ -196,7 +198,7 @@ class StateRuntimeProtocol(Protocol):
     def update_device_state(
         self,
         device_id: str,
-        state: dict[str, Any],
+        state: PropertyDict,
     ) -> None:
         """Update device state from external source (e.g., MQTT push).
 
@@ -249,7 +251,7 @@ class StatusRuntimeProtocol(Protocol):
     async def poll_device_status(
         self,
         device_id: str,
-    ) -> dict[str, Any]:
+    ) -> PropertyDict:
         """Poll status for a single device.
 
         Args:
@@ -264,7 +266,7 @@ class StatusRuntimeProtocol(Protocol):
         """
         ...
 
-    async def poll_all_status(self) -> dict[str, dict[str, Any]]:
+    async def poll_all_status(self) -> dict[str, PropertyDict]:
         """Poll status for all devices in current snapshot.
 
         Returns:
@@ -283,13 +285,13 @@ class CommandResult:
     """Result of a command execution with trace and error information."""
 
     success: bool
-    trace: dict[str, Any]
+    trace: CommandTrace
     error: str | None
 
     def __init__(
         self,
         success: bool,
-        trace: dict[str, Any],
+        trace: CommandTrace,
         error: str | None = None,
     ) -> None:
         """Initialize command result.

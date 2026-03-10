@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 import asyncio
+from collections.abc import Callable
 import logging
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from ....command.dispatch import execute_command_plan_with_trace
 from ....command.result import (
@@ -13,6 +14,7 @@ from ....command.result import (
 )
 from ....utils.log_safety import safe_error_placeholder
 from ....utils.redaction import redact_identifier as _redact_identifier
+from ...types import CommandTrace
 
 if TYPE_CHECKING:
     from ....api import LiproClient
@@ -25,7 +27,10 @@ class CommandSender:
     """Send commands to devices via API with verification support."""
 
     def __init__(
-        self, *, client: LiproClient, redact_identifier: Any = _redact_identifier
+        self,
+        *,
+        client: LiproClient,
+        redact_identifier: Callable[[str], str] = _redact_identifier,
     ) -> None:
         """Initialize command sender."""
         self._client = client
@@ -38,8 +43,8 @@ class CommandSender:
         command: str,
         properties: list[dict[str, str]] | None,
         fallback_device_id: str | None,
-        trace: dict[str, Any],
-    ) -> tuple[Any, str]:
+        trace: CommandTrace,
+    ) -> tuple[object, str]:
         """Send command to device and return result with route."""
         _plan, result, route = await execute_command_plan_with_trace(
             self._client,
@@ -57,8 +62,8 @@ class CommandSender:
         *,
         msg_sn: str,
         retry_delays: list[float],
-        trace: dict[str, Any],
-        device: Any,
+        trace: CommandTrace,
+        device: LiproDevice,
     ) -> tuple[bool, str | None]:
         """Verify command delivery via result polling with retries."""
         attempt = 0

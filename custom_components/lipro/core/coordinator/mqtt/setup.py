@@ -3,25 +3,29 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from typing import Any
 
 from ....const.config import CONF_BIZ_ID, CONF_USER_ID
 from ...device.device import LiproDevice
 from ...mqtt.topics import normalize_mqtt_biz_id
+from ..types import PropertyValue
 
 
 def extract_mqtt_encrypted_credentials(
-    mqtt_config: Mapping[str, Any],
-) -> tuple[Any, Any] | None:
+    mqtt_config: Mapping[str, PropertyValue],
+) -> tuple[str, str] | None:
     """Extract encrypted MQTT credentials from API payload."""
     encrypted_access_key = mqtt_config.get("accessKey")
     encrypted_secret_key = mqtt_config.get("secretKey")
     if not encrypted_access_key or not encrypted_secret_key:
         return None
+    if not isinstance(encrypted_access_key, str) or not isinstance(
+        encrypted_secret_key, str
+    ):
+        return None
     return encrypted_access_key, encrypted_secret_key
 
 
-def resolve_mqtt_biz_id(config_entry_data: Mapping[str, Any]) -> str | None:
+def resolve_mqtt_biz_id(config_entry_data: Mapping[str, PropertyValue]) -> str | None:
     """Resolve MQTT biz ID from config entry data with user_id fallback."""
     biz_id = config_entry_data.get(CONF_BIZ_ID)
     if biz_id is None or str(biz_id).strip() == "":

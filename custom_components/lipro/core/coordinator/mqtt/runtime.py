@@ -10,7 +10,7 @@ from __future__ import annotations
 from datetime import timedelta
 import logging
 from time import monotonic
-from typing import Any
+from typing import TYPE_CHECKING
 
 from ....const.api import MQTT_DISCONNECT_NOTIFY_THRESHOLD
 from .policy import (
@@ -22,13 +22,16 @@ from .polling import (
     resolve_polling_interval_seconds_on_mqtt_disconnect,
 )
 
+if TYPE_CHECKING:
+    from ..coordinator import Coordinator
+
 
 class MqttRuntime:
     """MQTT runtime behavior extracted from the coordinator."""
 
     def __init__(
         self,
-        coordinator: Any,
+        coordinator: Coordinator,
         *,
         polling_multiplier: int,
         connect_status_mqtt_stale_seconds: float,

@@ -7,6 +7,7 @@ from dataclasses import dataclass, field
 import json
 import logging
 import re
+from typing import Any
 
 from custom_components.lipro.const.config import (
     CONF_DEVICE_FILTER_DID_LIST,
@@ -252,20 +253,20 @@ def parse_filter_config(options: PropertyDict) -> DeviceFilterConfig:
     """
     return DeviceFilterConfig(
         home=_parse_filter_rule(
-            mode=options.get(CONF_DEVICE_FILTER_HOME_MODE, DEVICE_FILTER_MODE_OFF),
-            list_str=options.get(CONF_DEVICE_FILTER_HOME_LIST, ""),
+            mode=str(options.get(CONF_DEVICE_FILTER_HOME_MODE, DEVICE_FILTER_MODE_OFF)),
+            list_str=str(options.get(CONF_DEVICE_FILTER_HOME_LIST, "")),
         ),
         model=_parse_filter_rule(
-            mode=options.get(CONF_DEVICE_FILTER_MODEL_MODE, DEVICE_FILTER_MODE_OFF),
-            list_str=options.get(CONF_DEVICE_FILTER_MODEL_LIST, ""),
+            mode=str(options.get(CONF_DEVICE_FILTER_MODEL_MODE, DEVICE_FILTER_MODE_OFF)),
+            list_str=str(options.get(CONF_DEVICE_FILTER_MODEL_LIST, "")),
         ),
         ssid=_parse_filter_rule(
-            mode=options.get(CONF_DEVICE_FILTER_SSID_MODE, DEVICE_FILTER_MODE_OFF),
-            list_str=options.get(CONF_DEVICE_FILTER_SSID_LIST, ""),
+            mode=str(options.get(CONF_DEVICE_FILTER_SSID_MODE, DEVICE_FILTER_MODE_OFF)),
+            list_str=str(options.get(CONF_DEVICE_FILTER_SSID_LIST, "")),
         ),
         did=_parse_filter_rule(
-            mode=options.get(CONF_DEVICE_FILTER_DID_MODE, DEVICE_FILTER_MODE_OFF),
-            list_str=options.get(CONF_DEVICE_FILTER_DID_LIST, ""),
+            mode=str(options.get(CONF_DEVICE_FILTER_DID_MODE, DEVICE_FILTER_MODE_OFF)),
+            list_str=str(options.get(CONF_DEVICE_FILTER_DID_LIST, "")),
         ),
     )
 

@@ -4,15 +4,15 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 import logging
-from typing import Any
 
 from ...utils.coerce import coerce_int_option
+from ..types import PropertyValue
 from .policy import compute_relaxed_polling_seconds
 
 
 def resolve_base_scan_interval_seconds(
     *,
-    options: Mapping[str, Any] | None,
+    options: Mapping[str, PropertyValue] | None,
     option_name: str,
     default: int,
     min_value: int,

@@ -178,6 +178,7 @@ def mock_lipro_api_client():
     """Create a mock LiproClient with common API responses for coordinator tests."""
     client = AsyncMock()
     client.get_devices = AsyncMock(return_value={"devices": []})
+    client.get_device_list = AsyncMock(return_value={"data": [], "hasMore": False})
     client.query_device_status = AsyncMock(return_value=[])
     client.query_mesh_group_status = AsyncMock(return_value=[])
     client.query_connect_status = AsyncMock(return_value={})
