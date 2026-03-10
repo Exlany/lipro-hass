@@ -261,6 +261,36 @@ class TestCoordinatorEntityLifecycle:
 
         assert coordinator.state_runtime.get_entities_for_device(serial) == [entity]
 
+    @pytest.mark.asyncio
+    async def test_register_entity_accepts_non_canonical_device_identifier(
+        self, coordinator, mock_lipro_api_client
+    ):
+        """Test entity registration still works when the entity reports a formatted serial."""
+        serial = "03ab5ccd7c000001"
+        mock_lipro_api_client.get_device_list.return_value = {
+            "data": [make_api_device(serial=serial)],
+            "hasMore": False,
+        }
+
+        with patch(
+            "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager"
+        ) as mock_share:
+            mock_share.return_value = mock_anonymous_share_manager()
+            await refresh_and_sync_devices(coordinator)
+
+        entity = _Entity(
+            "light.test_device_alias",
+            MagicMock(serial=f" {serial.upper()} "),
+        )
+
+        coordinator.register_entity(entity)
+
+        assert coordinator.state_runtime.get_entities_for_device(serial) == [entity]
+
+        coordinator.unregister_entity(entity)
+
+        assert coordinator.state_runtime.get_entities_for_device(serial) == []
+
     def test_register_entity_ignores_missing_entity_id(self, coordinator):
         """Test registering an anonymous entity is a no-op."""
         coordinator.register_entity(_Entity("", MagicMock(serial="03ab5ccd7c000001")))

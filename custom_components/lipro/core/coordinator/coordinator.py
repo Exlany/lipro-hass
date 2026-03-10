@@ -7,6 +7,7 @@ instead of inheritance-based mixins.
 from __future__ import annotations
 
 import asyncio
+from contextlib import suppress
 from datetime import timedelta
 import logging
 from typing import TYPE_CHECKING, Any
@@ -339,26 +340,18 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
         if not entity.entity_id:
             return
 
-        # Remove from the shared entity index first.
-        # Only remove if the stored entity is the same instance
-        should_unregister_from_runtime = False
-        if self._entities.get(entity.entity_id) is entity:
-            self._entities.pop(entity.entity_id, None)
-            should_unregister_from_runtime = True
+        # Only unregister through the shared runtime if this is still
+        # the active entity instance for the entity_id.
+        should_unregister_from_runtime = self._entities.get(entity.entity_id) is entity
+        if should_unregister_from_runtime:
+            self._state_runtime.unregister_entity(entity.entity_id)
 
         device_serial = entity.device.serial
         if device_serial in self._entities_by_device:
-            try:
+            with suppress(ValueError):
                 self._entities_by_device[device_serial].remove(entity)
-                # Clean up empty list
-                if not self._entities_by_device[device_serial]:
-                    del self._entities_by_device[device_serial]
-            except ValueError:
-                pass
-
-        # Only unregister from state runtime if this was the active instance
-        if should_unregister_from_runtime:
-            self._state_runtime.unregister_entity(entity.entity_id)
+            if not self._entities_by_device[device_serial]:
+                del self._entities_by_device[device_serial]
 
     def get_device_lock(self, device_serial: str) -> asyncio.Lock:
         """Get the lock for a specific device.
