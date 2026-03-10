@@ -7,14 +7,14 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from ...device import LiproDevice
-    from ..status_polling import CoordinatorStatusRuntime
+    from ..coordinator import Coordinator
 
 
 @dataclass(slots=True)
 class CoordinatorDeviceRefreshService:
     """Expose device lookup/refresh through a composition-friendly adapter."""
 
-    coordinator: CoordinatorStatusRuntime
+    coordinator: Coordinator
 
     @property
     def devices(self) -> dict[str, LiproDevice]:

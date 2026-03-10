@@ -11,14 +11,14 @@ from ...utils.redaction import redact_identifier as _redact_identifier
 
 if TYPE_CHECKING:
     from ...device import LiproDevice
-    from ..command_send import CoordinatorCommandRuntime
+    from ..coordinator import Coordinator
 
 
 @dataclass(slots=True)
 class CoordinatorCommandService:
     """Expose command dispatch through a composition-friendly service."""
 
-    coordinator: CoordinatorCommandRuntime
+    coordinator: Coordinator
 
     @property
     def last_failure(self) -> dict[str, Any] | None:
