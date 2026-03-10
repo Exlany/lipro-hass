@@ -29,7 +29,6 @@ if TYPE_CHECKING:
 
     from homeassistant.core import HomeAssistant
 
-    from ....device import LiproDevice
     from ....mqtt.client import LiproMqttClient
 
 _LOGGER = logging.getLogger(__name__)
@@ -237,9 +236,11 @@ class MqttRuntime:
             ):
                 minutes = int(elapsed // 60)
                 self._connection_manager.mark_disconnect_notified()
-                asyncio.create_task(
+                # Fire-and-forget notification task
+                task = asyncio.create_task(
                     self._async_show_mqtt_disconnect_notification(minutes)
                 )
+                task.add_done_callback(lambda t: t.exception() if not t.cancelled() else None)
 
     async def _async_show_mqtt_disconnect_notification(self, minutes: int) -> None:
         """Create a repair issue for MQTT disconnect."""

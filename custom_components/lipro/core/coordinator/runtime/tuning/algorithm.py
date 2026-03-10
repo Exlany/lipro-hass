@@ -123,9 +123,7 @@ class TuningAlgorithm:
             new_window = base_window
 
         # Clamp to bounds
-        new_window = max(min_window, min(new_window, max_window))
-
-        return new_window
+        return max(min_window, min(new_window, max_window))
 
     def get_algorithm_config(self) -> dict[str, Any]:
         """Get algorithm configuration.

@@ -25,7 +25,9 @@ class StatusRuntime:
         outlet_power_cycle_size: int,
         max_devices_per_query: int,
         initial_batch_size: int,
-        query_device_status: Callable[[list[str]], Coroutine[Any, Any, dict[str, dict[str, Any]]]],
+        query_device_status: Callable[
+            [list[str]], Coroutine[Any, Any, dict[str, dict[str, Any]]]
+        ],
         apply_properties_update: Callable[[LiproDevice, dict[str, Any], str], bool],
         get_device_by_id: Callable[[str], LiproDevice | None],
     ) -> None:
@@ -123,7 +125,9 @@ class StatusRuntime:
         concurrency: int = 3,
     ) -> list[dict[str, Any]]:
         """Execute multiple status queries in parallel."""
-        return await self._executor.execute_parallel_queries(batches, concurrency=concurrency)
+        return await self._executor.execute_parallel_queries(
+            batches, concurrency=concurrency
+        )
 
     # Metrics
     def get_runtime_metrics(self) -> dict[str, Any]:
@@ -142,7 +146,6 @@ class StatusRuntime:
         # This method is called by Coordinator._async_update_data()
         # The actual logic should query devices and apply updates
         # For now, this is a no-op placeholder
-        pass
 
 
 __all__ = ["StatusRuntime"]

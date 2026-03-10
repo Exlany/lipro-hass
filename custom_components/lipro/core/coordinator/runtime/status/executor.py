@@ -21,7 +21,9 @@ class StatusExecutor:
     def __init__(
         self,
         *,
-        query_device_status: Callable[[list[str]], Coroutine[Any, Any, dict[str, dict[str, Any]]]],
+        query_device_status: Callable[
+            [list[str]], Coroutine[Any, Any, dict[str, dict[str, Any]]]
+        ],
         apply_properties_update: Callable[[LiproDevice, dict[str, Any], str], bool],
         get_device_by_id: Callable[[str], LiproDevice | None],
     ) -> None:
@@ -76,7 +78,7 @@ class StatusExecutor:
                 if changed:
                     updated_count += 1
 
-        except Exception as err:
+        except Exception as err:  # noqa: BLE001 - catch-all for status query errors
             error = str(err)
             _LOGGER.warning(
                 "Status query failed for %d devices: %s",
@@ -125,12 +127,14 @@ class StatusExecutor:
         metrics: list[dict[str, Any]] = []
         for i, result in enumerate(results):
             if isinstance(result, Exception):
-                metrics.append({
-                    "duration": 0.0,
-                    "device_count": len(batches[i]),
-                    "updated_count": 0,
-                    "error": str(result),
-                })
+                metrics.append(
+                    {
+                        "duration": 0.0,
+                        "device_count": len(batches[i]),
+                        "updated_count": 0,
+                        "error": str(result),
+                    }
+                )
             else:
                 metrics.append(result)
 

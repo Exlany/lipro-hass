@@ -289,7 +289,9 @@ def _parse_filter_rule(*, mode: str, list_str: str) -> DeviceFilterRule:
 
     # Parse and validate list
     list_str = list_str[:MAX_DEVICE_FILTER_LIST_CHARS]
-    items = [item.strip() for item in _FILTER_LIST_SPLIT_RE.split(list_str) if item.strip()]
+    items = [
+        item.strip() for item in _FILTER_LIST_SPLIT_RE.split(list_str) if item.strip()
+    ]
     items = items[:MAX_DEVICE_FILTER_LIST_ITEMS]
 
     # Normalize to lowercase

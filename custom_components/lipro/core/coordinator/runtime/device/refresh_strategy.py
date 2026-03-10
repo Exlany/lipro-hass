@@ -65,7 +65,9 @@ class RefreshStrategy:
 class StaleDeviceTracker:
     """Tracks missing devices across refresh cycles."""
 
-    def __init__(self, *, remove_threshold: int = STALE_DEVICE_REMOVE_THRESHOLD) -> None:
+    def __init__(
+        self, *, remove_threshold: int = STALE_DEVICE_REMOVE_THRESHOLD
+    ) -> None:
         """Initialize stale device tracker.
 
         Args:

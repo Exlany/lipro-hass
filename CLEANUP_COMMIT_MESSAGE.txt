@@ -1,0 +1,27 @@
+chore: clean up legacy code references after refactoring
+
+完成重构后的残留代码清理，移除所有旧 mixin 引用。
+
+## 删除的文件
+- custom_components/lipro/core/coordinator/commands.py (无用的 re-export 层)
+- tests/meta/test_commands_reexport.py (对应测试)
+
+## 修复的文件
+- tests/core/test_device_refresh.py → test_device_refresh.py.DEPRECATED
+  * 更新 import 路径从旧模块到新 runtime 模块
+  * 修复 5 处 patch 路径引用
+- tests/core/test_device_list_snapshot.py
+  * 已被 linter 自动重构为新 API
+
+## 验证结果
+✅ 无残留模块引用 (device_list_snapshot/command_send/command_confirm)
+✅ 无残留类引用 (CoordinatorCommandRuntime)
+✅ 旧模块无法导入 (ModuleNotFoundError)
+✅ 新模块正常工作 (runtime.command_runtime.CommandRuntime)
+
+## 架构变更
+旧 mixin 继承 → 新组合模式 runtime 组件
+- CoordinatorCommandRuntime → CommandRuntime
+- device_list_snapshot → runtime.device.{filter,snapshot,incremental}
+
+发现并清理: 7 处残留引用

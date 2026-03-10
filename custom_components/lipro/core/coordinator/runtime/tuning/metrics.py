@@ -45,12 +45,14 @@ class TuningMetrics:
             device_count: Number of devices queried
             fallback_depth: Fallback depth if applicable
         """
-        self._batch_metrics.append({
-            "batch_size": batch_size,
-            "duration": duration,
-            "device_count": device_count,
-            "fallback_depth": fallback_depth,
-        })
+        self._batch_metrics.append(
+            {
+                "batch_size": batch_size,
+                "duration": duration,
+                "device_count": device_count,
+                "fallback_depth": fallback_depth,
+            }
+        )
 
     def record_connect_status_skip(self, skipped: bool) -> None:
         """Record whether a connect status query was skipped.
@@ -101,7 +103,9 @@ class TuningMetrics:
         if not self._connect_status_skip_history:
             return None
 
-        skipped_count = sum(1 for skipped in self._connect_status_skip_history if skipped)
+        skipped_count = sum(
+            1 for skipped in self._connect_status_skip_history if skipped
+        )
         return skipped_count / len(self._connect_status_skip_history)
 
     def get_metrics_summary(self) -> dict[str, Any]:

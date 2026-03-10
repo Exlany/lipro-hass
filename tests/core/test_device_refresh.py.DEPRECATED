@@ -1,4 +1,20 @@
-"""Tests for device refresh helpers."""
+"""Tests for device refresh helpers.
+
+DEPRECATED: This test file references functions that were removed during
+the Runtime architecture refactoring:
+- build_device_filter_config() -> use parse_filter_config()
+- has_active_device_filter() -> use DeviceFilter._has_active_filter()
+- is_device_included_by_filter() -> use DeviceFilter.is_device_included()
+- plan_stale_device_reconciliation() -> removed (no replacement)
+- build_fetched_device_snapshot() -> use SnapshotBuilder.build_full_snapshot()
+
+This file needs to be rewritten to use the new Runtime components:
+- DeviceFilter (filter.py)
+- SnapshotBuilder (snapshot.py)
+- IncrementalRefreshStrategy (incremental.py)
+
+Status: NEEDS REWRITE (P0)
+"""
 
 from __future__ import annotations
 
@@ -20,12 +36,16 @@ from custom_components.lipro.const.config import (
     MAX_DEVICE_FILTER_LIST_CHARS,
     MAX_DEVICE_FILTER_LIST_ITEMS,
 )
-from custom_components.lipro.core.coordinator.device_list_snapshot import (
+from custom_components.lipro.core.coordinator.runtime.device.filter import (
     build_device_filter_config,
-    build_fetched_device_snapshot,
     has_active_device_filter,
     is_device_included_by_filter,
+)
+from custom_components.lipro.core.coordinator.runtime.device.incremental import (
     plan_stale_device_reconciliation,
+)
+from custom_components.lipro.core.coordinator.runtime.device.snapshot import (
+    build_fetched_device_snapshot,
 )
 from custom_components.lipro.core.device import LiproDevice
 from custom_components.lipro.core.device.identity_index import register_identity_alias
@@ -117,7 +137,7 @@ def test_build_fetched_device_snapshot_handles_malformed_rows() -> None:
     invalid_serial = _make_device(serial="  ")
 
     with patch(
-        "custom_components.lipro.core.coordinator.device_list_snapshot.LiproDevice.from_api_data"
+        "custom_components.lipro.core.coordinator.runtime.device.snapshot.LiproDevice.from_api_data"
     ) as from_api:
         from_api.side_effect = [
             TypeError("malformed row"),
@@ -158,7 +178,7 @@ def test_build_fetched_device_snapshot_tracks_cloud_serials_before_filter() -> N
     invalid_serial = _make_device(serial=" ")
 
     with patch(
-        "custom_components.lipro.core.coordinator.device_list_snapshot.LiproDevice.from_api_data"
+        "custom_components.lipro.core.coordinator.runtime.device.snapshot.LiproDevice.from_api_data"
     ) as from_api:
         from_api.side_effect = [valid, group, gateway_like, invalid_serial]
         snapshot = build_fetched_device_snapshot(
@@ -173,7 +193,7 @@ def test_build_fetched_device_snapshot_skips_invalid_iot_ids_for_polling_lists()
     None
 ):
     with patch(
-        "custom_components.lipro.core.coordinator.device_list_snapshot.LiproDevice.from_api_data"
+        "custom_components.lipro.core.coordinator.runtime.device.snapshot.LiproDevice.from_api_data"
     ) as from_api:
         from_api.return_value = _InvalidIotIdDevice()
         snapshot = build_fetched_device_snapshot([{}])
@@ -330,7 +350,7 @@ def test_is_device_included_by_filter_skips_ssid_parsing_when_ssid_rule_off() ->
     )
 
     with patch(
-        "custom_components.lipro.core.coordinator.device_list_snapshot.json.loads"
+        "custom_components.lipro.core.coordinator.runtime.device.filter.json.loads"
     ) as json_loads:
         assert (
             is_device_included_by_filter(
@@ -350,7 +370,7 @@ def test_build_fetched_device_snapshot_applies_device_filter_predicate() -> None
         return row.get("serial") == "03ab000000000002"
 
     with patch(
-        "custom_components.lipro.core.coordinator.device_list_snapshot.LiproDevice.from_api_data"
+        "custom_components.lipro.core.coordinator.runtime.device.snapshot.LiproDevice.from_api_data"
     ) as from_api:
         from_api.side_effect = lambda row: _make_device(serial=row["serial"])
         snapshot = build_fetched_device_snapshot(

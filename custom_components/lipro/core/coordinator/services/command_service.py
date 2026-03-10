@@ -5,10 +5,6 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
-from ...api import LiproApiError
-from ...command.trace import build_command_trace
-from ...utils.redaction import redact_identifier as _redact_identifier
-
 if TYPE_CHECKING:
     from ...device import LiproDevice
     from ..coordinator import Coordinator

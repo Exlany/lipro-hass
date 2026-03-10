@@ -6,8 +6,8 @@ import logging
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from custom_components.lipro.core.device import LiproDevice
     from custom_components.lipro.core.api import LiproClient
+    from custom_components.lipro.core.device import LiproDevice
 
 _LOGGER = logging.getLogger(__name__)
 

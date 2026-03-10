@@ -52,9 +52,7 @@ class ConnectStateTracker(Protocol):
 class GroupReconciler(Protocol):
     """Protocol for scheduling group reconciliation."""
 
-    def schedule_group_reconciliation(
-        self, device_name: str, timestamp: float
-    ) -> None:
+    def schedule_group_reconciliation(self, device_name: str, timestamp: float) -> None:
         """Schedule group online reconciliation."""
         ...
 

@@ -94,9 +94,15 @@ class DeviceBatchOptimizer:
             return 0
 
         # Each category needs separate batches
-        iot_batches = (len(iot_ids) + self._max_devices_per_query - 1) // self._max_devices_per_query
-        group_batches = (len(group_ids) + self._max_devices_per_query - 1) // self._max_devices_per_query
-        outlet_batches = (len(outlet_ids) + self._max_devices_per_query - 1) // self._max_devices_per_query
+        iot_batches = (
+            len(iot_ids) + self._max_devices_per_query - 1
+        ) // self._max_devices_per_query
+        group_batches = (
+            len(group_ids) + self._max_devices_per_query - 1
+        ) // self._max_devices_per_query
+        outlet_batches = (
+            len(outlet_ids) + self._max_devices_per_query - 1
+        ) // self._max_devices_per_query
 
         return iot_batches + group_batches + outlet_batches
 

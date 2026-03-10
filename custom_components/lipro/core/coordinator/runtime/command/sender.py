@@ -7,7 +7,10 @@ import logging
 from typing import TYPE_CHECKING, Any
 
 from ....command.dispatch import execute_command_plan_with_trace
-from ....command.result import classify_command_result_payload, query_command_result_once
+from ....command.result import (
+    classify_command_result_payload,
+    query_command_result_once,
+)
 from ....utils.log_safety import safe_error_placeholder
 from ....utils.redaction import redact_identifier as _redact_identifier
 
@@ -21,7 +24,9 @@ _LOGGER = logging.getLogger(__name__)
 class CommandSender:
     """Send commands to devices via API with verification support."""
 
-    def __init__(self, *, client: LiproClient, redact_identifier: Any = _redact_identifier) -> None:
+    def __init__(
+        self, *, client: LiproClient, redact_identifier: Any = _redact_identifier
+    ) -> None:
         """Initialize command sender."""
         self._client = client
         self._redact_identifier = redact_identifier
@@ -36,7 +41,7 @@ class CommandSender:
         trace: dict[str, Any],
     ) -> tuple[Any, str]:
         """Send command to device and return result with route."""
-        plan, result, route = await execute_command_plan_with_trace(
+        _plan, result, route = await execute_command_plan_with_trace(
             self._client,
             device=device,
             command=command,
@@ -48,7 +53,12 @@ class CommandSender:
         return result, route
 
     async def verify_command_delivery(
-        self, *, msg_sn: str, retry_delays: list[float], trace: dict[str, Any], device: Any
+        self,
+        *,
+        msg_sn: str,
+        retry_delays: list[float],
+        trace: dict[str, Any],
+        device: Any,
     ) -> tuple[bool, str | None]:
         """Verify command delivery via result polling with retries."""
         attempt = 0
@@ -68,8 +78,12 @@ class CommandSender:
                     attempt_limit=len(retry_delays) + 1,
                     logger=_LOGGER,
                 )
-            except Exception as err:
-                _LOGGER.debug("Command result query attempt %d failed: %s", attempt, safe_error_placeholder(err))
+            except Exception as err:  # noqa: BLE001 - retry on any query error
+                _LOGGER.debug(
+                    "Command result query attempt %d failed: %s",
+                    attempt,
+                    safe_error_placeholder(err),
+                )
                 continue
 
             if result is None:

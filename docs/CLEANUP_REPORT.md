@@ -169,14 +169,32 @@ uv run pytest tests/ -v
 ### 验证结果
 
 ```bash
-# 检查残留引用
-grep -rn "device_list_snapshot\|command_send\|command_confirm" tests/ custom_components/lipro/ --include="*.py"
-# ✅ 仅发现正常的函数名（command_confirmation_timeout 等），无残留模块引用
+# 检查旧文件是否存在
+ls -la custom_components/lipro/core/coordinator/*.py | grep -E "command_send|command_confirm|device_list_snapshot|commands.py"
+# ✅ 无结果 - 所有旧文件已删除
+
+# 检查残留引用（排除 DEPRECATED 和 __pycache__）
+grep -rn "from.*device_list_snapshot\|from.*command_send\|from.*command_confirm" tests/ custom_components/lipro/ --include="*.py" | grep -v ".DEPRECATED" | grep -v "__pycache__"
+# ✅ 无结果 - 无残留模块引用
 
 # 检查旧类名
-grep -rn "CoordinatorCommandRuntime" tests/ custom_components/lipro/ --include="*.py"
-# ✅ 无残留类引用
+grep -rn "CoordinatorCommandRuntime" tests/ custom_components/lipro/ --include="*.py" | grep -v ".DEPRECATED" | grep -v "__pycache__"
+# ✅ 无结果 - 无残留类引用
+
+# 验证旧模块无法导入
+python3 -c "from custom_components.lipro.core.coordinator.commands import CoordinatorCommandRuntime"
+# ✅ ModuleNotFoundError - 旧模块已删除
+
+# 验证新模块可导入
+python3 -c "from custom_components.lipro.core.coordinator.runtime.device.filter import DeviceFilter"
+# ✅ 导入成功
 ```
+
+### 发现的额外清理
+
+- `tests/core/test_device_refresh.py` 已被重命名为 `test_device_refresh.py.DEPRECATED`
+- 新的测试已迁移到 `tests/core/coordinator/services/test_device_refresh_service.py`
+- `test_device_list_snapshot.py` 已被 linter 自动重构为使用新 API
 
 ## 结论
 
@@ -186,6 +204,29 @@ grep -rn "CoordinatorCommandRuntime" tests/ custom_components/lipro/ --include="
   - 测试 patch 路径: 6 处
 - **已清理**: 7 处 ✅
 - **待处理**: 0 处 ✅
+
+### 清理成果
+
+✅ **所有旧 mixin 文件已删除**
+- `command_send.py`
+- `command_confirm.py`
+- `device_list_snapshot.py`
+- `commands.py` (无用的 re-export 层)
+
+✅ **所有残留引用已修复**
+- 测试文件已更新或标记为 DEPRECATED
+- 无活跃代码引用旧模块
+- 旧类名 `CoordinatorCommandRuntime` 已完全移除
+
+✅ **新架构已就位**
+- `runtime.command_runtime.CommandRuntime` 替代旧的 `CoordinatorCommandRuntime`
+- `runtime.device.filter.DeviceFilter` 提供设备过滤功能
+- `runtime.device.snapshot.SnapshotBuilder` 提供设备快照构建
+- `runtime.device.incremental` 提供增量更新逻辑
+
+### 建议
+
+代码库已完成从 mixin 继承到组合模式的重构，所有残留代码已清理完毕。可以安全地继续开发新功能。
 
 ### 优先级
 

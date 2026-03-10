@@ -7,9 +7,10 @@ import logging
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
+    from custom_components.lipro.core.api import LiproClient
     from custom_components.lipro.core.device import LiproDevice
     from custom_components.lipro.core.device.identity_index import DeviceIdentityIndex
-    from custom_components.lipro.core.api import LiproClient
+
     from .filter import DeviceFilter
 
 _LOGGER = logging.getLogger(__name__)
@@ -135,9 +136,8 @@ class SnapshotBuilder:
                 elif device.is_outlet:
                     if device.iot_device_id:
                         outlet_ids.append(device.iot_device_id)
-                else:
-                    if device.iot_device_id:
-                        iot_ids.append(device.iot_device_id)
+                elif device.iot_device_id:
+                    iot_ids.append(device.iot_device_id)
 
                 # Track gateway devices for diagnostics
                 if device.is_gateway:

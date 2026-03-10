@@ -7,7 +7,6 @@ instead of inheritance-based mixins.
 from __future__ import annotations
 
 import asyncio
-from collections import deque
 from datetime import timedelta
 import logging
 from typing import TYPE_CHECKING, Any
@@ -274,7 +273,19 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
         # Delegate to StateRuntime
         return self._state_runtime.get_device_by_id(device_id)
 
-    async def _async_update_data(self) -> dict[str, "LiproDevice"]:
+    async def _async_trigger_reauth(self, reason: str) -> None:
+        """Trigger reauthentication flow.
+
+        Args:
+            reason: Reason for reauth (e.g., "auth_expired", "auth_error")
+        """
+        from homeassistant.exceptions import ConfigEntryAuthFailed
+
+        _LOGGER.warning("Triggering reauth: %s", reason)
+        error_message = f"Authentication failed: {reason}"
+        raise ConfigEntryAuthFailed(error_message)
+
+    async def _async_update_data(self) -> dict[str, LiproDevice]:
         """Fetch data from API.
 
         This is called by Home Assistant's DataUpdateCoordinator on the
@@ -286,7 +297,8 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
         Raises:
             UpdateFailed: If update fails
         """
-        from homeassistant.exceptions import UpdateFailed
+        from homeassistant.exceptions import ConfigEntryAuthFailed
+        from homeassistant.helpers.update_coordinator import UpdateFailed
 
         from ..api import (
             LiproApiError,
@@ -315,11 +327,18 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
         except (
             LiproRefreshTokenExpiredError,
             LiproAuthError,
+        ) as err:
+            _LOGGER.error("Authentication failed: %s", err)
+            error_message = f"Authentication failed: {err}"
+            raise ConfigEntryAuthFailed(error_message) from err
+
+        except (
             LiproConnectionError,
             LiproApiError,
         ) as err:
             _LOGGER.error("Update failed: %s", err)
-            raise UpdateFailed(f"Update failed: {err}") from err
+            error_message = f"Update failed: {err}"
+            raise UpdateFailed(error_message) from err
 
         except Exception as err:
             _LOGGER.exception("Unexpected update failure")
