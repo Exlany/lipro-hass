@@ -305,7 +305,7 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
         from ...const.config import CONF_PHONE_ID
         from ..mqtt.client import LiproMqttClient
         from ..mqtt.credentials import decrypt_mqtt_credential
-        from ..mqtt.utils import resolve_mqtt_biz_id
+        from .mqtt.setup import resolve_mqtt_biz_id
 
         if self.config_entry is None:
             _LOGGER.error("Cannot setup MQTT: config_entry is None")
