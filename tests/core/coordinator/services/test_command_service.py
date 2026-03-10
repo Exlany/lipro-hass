@@ -64,3 +64,13 @@ async def test_command_service_handles_api_error_via_coordinator_bridge() -> Non
         await service.async_send_command(device, "POWER_ON")
 
     coordinator.command_runtime.send_device_command.assert_awaited_once()
+
+
+def test_command_service_exposes_last_failure_trace() -> None:
+    coordinator = MagicMock()
+    trace = MagicMock()
+    coordinator.command_runtime.last_command_failure = trace
+
+    service = CoordinatorCommandService(coordinator)
+
+    assert service.last_failure is trace

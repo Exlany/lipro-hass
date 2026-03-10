@@ -166,6 +166,52 @@ class TestStateUpdater:
 
         assert changed_count == 1
 
+    async def test_apply_properties_update_returns_false_for_empty_payload(
+        self,
+        state_runtime: StateRuntime,
+        mock_device: LiproDevice,
+        mock_entity: MagicMock,
+    ) -> None:
+        changed = await state_runtime.apply_properties_update(mock_device, {})
+
+        assert changed is False
+        mock_device.update_properties.assert_not_called()
+        mock_entity.async_write_ha_state.assert_not_called()
+
+    async def test_apply_properties_update_skips_fully_protected_payload(
+        self,
+        state_runtime: StateRuntime,
+        mock_device: LiproDevice,
+        mock_entity: MagicMock,
+    ) -> None:
+        mock_entity.get_protected_keys = MagicMock(return_value={"brightness"})
+
+        changed = await state_runtime.apply_properties_update(
+            mock_device,
+            {"brightness": 100},
+        )
+
+        assert changed is False
+        mock_device.update_properties.assert_not_called()
+        mock_entity.async_write_ha_state.assert_not_called()
+
+    async def test_apply_properties_update_filters_only_protected_properties(
+        self,
+        state_runtime: StateRuntime,
+        mock_device: LiproDevice,
+        mock_entity: MagicMock,
+    ) -> None:
+        mock_entity.get_protected_keys = MagicMock(return_value={"brightness"})
+
+        changed = await state_runtime.apply_properties_update(
+            mock_device,
+            {"brightness": 100, "powerState": 1},
+        )
+
+        assert changed is True
+        mock_device.update_properties.assert_called_once_with({"powerState": 1})
+        mock_entity.async_write_ha_state.assert_called_once()
+
 
 class TestStateIndexManager:
     """Test StateIndexManager functionality."""
@@ -192,6 +238,44 @@ class TestStateIndexManager:
         state_runtime.unregister_entity(mock_entity.entity_id)
         assert state_runtime.get_entity_count() == 0
 
+    def test_unregister_entity_ignores_missing_entity(self, state_runtime: StateRuntime) -> None:
+        state_runtime.unregister_entity("missing.entity")
+
+        assert state_runtime.get_entity_count() == 1
+
+    def test_register_entity_ignores_objects_without_entity_id(
+        self,
+        state_runtime: StateRuntime,
+        mock_device: LiproDevice,
+    ) -> None:
+        state_runtime.register_entity(object(), mock_device.serial)
+
+        assert state_runtime.get_entity_count() == 1
+
+    def test_register_entity_reuses_existing_entity_id_without_duplication(
+        self,
+        state_runtime: StateRuntime,
+        mock_device: LiproDevice,
+        mock_entity: MagicMock,
+    ) -> None:
+        state_runtime.register_entity(mock_entity, mock_device.serial)
+
+        entities = state_runtime.get_entities_for_device(mock_device.serial)
+
+        assert state_runtime.get_entity_count() == 1
+        assert entities == [mock_entity]
+
+    def test_register_entity_creates_bucket_for_new_device_key(
+        self,
+        state_runtime: StateRuntime,
+    ) -> None:
+        new_entity = MagicMock()
+        new_entity.entity_id = "switch.other_device"
+
+        state_runtime.register_entity(new_entity, "OTHER-DEVICE")
+
+        assert state_runtime.get_entities_for_device("other-device") == [new_entity]
+
     def test_get_entities_for_device(
         self,
         state_runtime: StateRuntime,
@@ -203,18 +287,6 @@ class TestStateIndexManager:
         assert len(entities) == 1
         assert entities[0] == mock_entity
 
-    def test_rebuild_device_index(
-        self,
-        state_runtime: StateRuntime,
-        mock_device: LiproDevice,
-    ) -> None:
-        """Test rebuilding device index."""
-        new_device = MagicMock(spec=LiproDevice)
-        new_device.serial = "TEST002"
-        devices = {mock_device.serial: mock_device, new_device.serial: new_device}
-
-        state_runtime.rebuild_device_index(devices)
-        assert state_runtime.has_device(new_device.serial) is True
 
     def test_rebuild_device_index(
         self,

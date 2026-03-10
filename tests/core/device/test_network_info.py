@@ -107,3 +107,15 @@ def test_lipro_device_network_info_property_matches_delegated_accessors(
     assert info.mesh_type == device.mesh_type
     assert info.is_mesh_gateway == device.is_mesh_gateway
     assert info.ble_mac == device.ble_mac
+
+
+def test_device_network_info_coerces_whole_floats_and_rejects_bool_integers() -> None:
+    info = DeviceNetworkInfo.from_properties(
+        {
+            "wifi_rssi": True,
+            "address": 7.0,
+        }
+    )
+
+    assert info.wifi_rssi is None
+    assert info.mesh_address == 7

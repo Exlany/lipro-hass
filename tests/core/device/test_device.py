@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import pytest
+
 from custom_components.lipro.core.device import (
     DeviceCapabilities,
     DeviceIdentity,
@@ -242,3 +244,23 @@ def test_lipro_device_from_api_data_exposes_identity_snapshot() -> None:
         product_id=888,
         physical_model="light",
     )
+
+
+def test_lipro_device_last_gear_index_returns_negative_one_for_invalid_value() -> None:
+    device = LiproDevice(
+        device_number=1,
+        serial="03ab5ccd7cbbbbbb",
+        name="Desk Light",
+        device_type=1,
+        iot_name="lipro_led",
+        properties={"lastGearIndex": object()},
+    )
+
+    assert device.last_gear_index == -1
+
+
+def test_lipro_device_unknown_attribute_raises_attribute_error(make_device) -> None:
+    device = make_device("light")
+
+    with pytest.raises(AttributeError, match="has no attribute"):
+        _ = device.not_a_real_attribute

@@ -11,6 +11,7 @@ from custom_components.lipro.core.api import LiproApiError
 from custom_components.lipro.core.command.dispatch import (
     CommandDispatchPlan,
     execute_command_dispatch,
+    execute_command_plan_with_trace,
     normalize_group_power_command,
     plan_command_dispatch,
     resolve_group_fallback_member_id,
@@ -64,6 +65,47 @@ def test_normalize_group_power_command_unknown_power_value_keeps_original() -> N
     assert resolved_properties == properties
 
 
+def test_normalize_group_power_command_returns_original_for_non_change_state() -> None:
+    properties = [{"key": "powerState", "value": "1"}]
+
+    command, resolved_properties = normalize_group_power_command("POWER_ON", properties)
+
+    assert command == "POWER_ON"
+    assert resolved_properties == properties
+
+
+def test_normalize_group_power_command_keeps_mixed_property_payloads() -> None:
+    properties = [
+        {"key": "powerState", "value": "1"},
+        {"key": "brightness", "value": "50"},
+    ]
+
+    command, resolved_properties = normalize_group_power_command(
+        "CHANGE_STATE",
+        properties,
+    )
+
+    assert command == "CHANGE_STATE"
+    assert resolved_properties == properties
+
+
+@pytest.mark.parametrize(
+    ("raw_value", "expected_command"),
+    [("1", "POWER_ON"), ("true", "POWER_ON"), ("off", "POWER_OFF")],
+)
+def test_normalize_group_power_command_collapses_power_only_payloads(
+    raw_value: str,
+    expected_command: str,
+) -> None:
+    command, resolved_properties = normalize_group_power_command(
+        "CHANGE_STATE",
+        [{"key": "powerState", "value": raw_value}],
+    )
+
+    assert command == expected_command
+    assert resolved_properties is None
+
+
 def test_resolve_group_fallback_member_id_non_string_member_returns_none() -> None:
     """Fallback is invalid when the single member id is not a string."""
     device = _make_device(
@@ -88,6 +130,59 @@ def test_resolve_group_fallback_member_id_invalid_member_format_returns_none() -
     result = resolve_group_fallback_member_id(device, "03ab111111111111")
 
     assert result is None
+
+
+def test_resolve_group_fallback_member_id_requires_candidate_to_match_only_member() -> None:
+    """Fallback should be rejected when candidate is not the sole group member."""
+    device = _make_device(
+        serial="mesh_group_10001",
+        is_group=True,
+        extra_data={"group_member_ids": ["03ab111111111111"]},
+    )
+
+    assert resolve_group_fallback_member_id(device, "03ab222222222222") is None
+
+
+def test_resolve_group_fallback_member_id_returns_none_for_invalid_candidate() -> None:
+    device = _make_device(
+        serial="mesh_group_10001",
+        is_group=True,
+        extra_data={"group_member_ids": ["03ab111111111111"]},
+    )
+
+    assert resolve_group_fallback_member_id(device, "mesh_group_20001") is None
+
+
+def test_resolve_group_fallback_member_id_returns_normalized_member_when_valid() -> None:
+    device = _make_device(
+        serial="mesh_group_10001",
+        is_group=True,
+        extra_data={"group_member_ids": ["03ab111111111111"]},
+    )
+
+    assert resolve_group_fallback_member_id(device, " 03AB111111111111 ") == "03ab111111111111"
+
+
+def test_plan_command_dispatch_normalizes_group_power_and_ignores_invalid_fallback() -> (
+    None
+):
+    device = _make_device(
+        serial="mesh_group_10001",
+        is_group=True,
+        extra_data={"group_member_ids": ["03ab111111111111", "03ab222222222222"]},
+    )
+
+    plan = plan_command_dispatch(
+        device,
+        "CHANGE_STATE",
+        [{"key": "powerState", "value": "on"}],
+        "03ab111111111111",
+    )
+
+    assert plan.route == "group_direct"
+    assert plan.command == "POWER_ON"
+    assert plan.properties is None
+    assert plan.member_fallback_id is None
 
 
 @pytest.mark.asyncio
@@ -232,3 +327,38 @@ async def test_execute_command_dispatch_panel_route_uses_group_endpoint() -> Non
         device.iot_name,
     )
     client.send_command.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_execute_command_plan_with_trace_updates_resolved_request_and_response() -> (
+    None
+):
+    device = _make_device(is_group=False)
+    client = AsyncMock()
+    client.send_command = AsyncMock(
+        return_value={
+            "pushSuccess": True,
+            "code": 0,
+            "message": "ok",
+            "msgSn": "12345",
+        }
+    )
+    trace: dict[str, Any] = {}
+
+    plan, result, route = await execute_command_plan_with_trace(
+        client,
+        device=device,
+        command="CHANGE_STATE",
+        properties=[{"key": "powerState", "value": "1"}],
+        fallback_device_id="03ab111111111111",
+        trace=trace,
+        redact_identifier=lambda value: f"redacted:{value}" if value is not None else None,
+    )
+
+    assert plan.command == "CHANGE_STATE"
+    assert result["pushSuccess"] is True
+    assert route == "device_direct"
+    assert trace["effective_fallback_device_id"] is None
+    assert trace["resolved_property_keys"] == ["powerState"]
+    assert trace["push_success"] is True
+    assert trace["response_msg_sn"] == "12345"

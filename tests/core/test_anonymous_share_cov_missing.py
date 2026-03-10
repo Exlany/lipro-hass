@@ -7,7 +7,7 @@ These tests intentionally cover specific branches reported as missing by
 from __future__ import annotations
 
 from typing import cast
-from unittest.mock import MagicMock
+from unittest.mock import AsyncMock, MagicMock
 
 import aiohttp
 import pytest
@@ -129,3 +129,67 @@ async def test_share_client_refresh_install_token_falls_back_to_false_on_non_200
 
     session = cast(aiohttp.ClientSession, _FakeSession(_FakeResponse()))
     assert await client.refresh_install_token(session) is False
+
+
+def test_aggregate_build_report_falls_back_to_default_scope_when_empty() -> None:
+    aggregate = AnonymousShareManager().aggregate_view()
+
+    report = aggregate.build_report()
+
+    assert report["installation_id"] is None
+    assert report["device_count"] == 0
+    assert report["error_count"] == 0
+
+
+def test_aggregate_clear_and_enabled_state_reflect_scoped_collectors() -> None:
+    root = AnonymousShareManager()
+    scope_one = root.for_scope("entry-1")
+    scope_two = root.for_scope("entry-2")
+    aggregate = root.aggregate_view()
+
+    scope_one.set_enabled(True, error_reporting=True)
+    scope_two.set_enabled(True, error_reporting=True)
+    scope_one.record_api_error(endpoint="/api/one", code=500, message="boom")
+    scope_two.record_api_error(endpoint="/api/two", code=400, message="bad")
+
+    assert aggregate.is_enabled is True
+    assert aggregate.pending_count == (0, 2)
+
+    aggregate.clear()
+
+    assert scope_one.pending_count == (0, 0)
+    assert scope_two.pending_count == (0, 0)
+
+
+@pytest.mark.asyncio
+async def test_aggregate_submit_report_combines_scoped_results() -> None:
+    aggregate = AnonymousShareManager().aggregate_view()
+    manager_one = aggregate.for_scope("entry-1")
+    manager_two = aggregate.for_scope("entry-2")
+    manager_one.set_enabled(True)
+    manager_two.set_enabled(True)
+    manager_one.submit_report = AsyncMock(return_value=True)  # type: ignore[method-assign]
+    manager_two.submit_report = AsyncMock(return_value=False)  # type: ignore[method-assign]
+
+    result = await aggregate.submit_report(MagicMock(spec=aiohttp.ClientSession), force=True)
+
+    assert result is False
+    manager_one.submit_report.assert_awaited_once()
+    manager_two.submit_report.assert_awaited_once()
+
+
+@pytest.mark.asyncio
+async def test_aggregate_submit_if_needed_combines_scoped_results() -> None:
+    aggregate = AnonymousShareManager().aggregate_view()
+    manager_one = aggregate.for_scope("entry-1")
+    manager_two = aggregate.for_scope("entry-2")
+    manager_one.set_enabled(True)
+    manager_two.set_enabled(True)
+    manager_one.submit_if_needed = AsyncMock(return_value=True)  # type: ignore[method-assign]
+    manager_two.submit_if_needed = AsyncMock(return_value=False)  # type: ignore[method-assign]
+
+    result = await aggregate.submit_if_needed(MagicMock(spec=aiohttp.ClientSession))
+
+    assert result is False
+    manager_one.submit_if_needed.assert_awaited_once()
+    manager_two.submit_if_needed.assert_awaited_once()

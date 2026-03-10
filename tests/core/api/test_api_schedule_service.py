@@ -6,15 +6,18 @@ import asyncio
 from collections.abc import Sequence
 from types import SimpleNamespace
 from typing import cast
-from unittest.mock import AsyncMock, call
+from unittest.mock import AsyncMock, Mock, call
 
 import pytest
 
 from custom_components.lipro.core.api.errors import LiproApiError
 from custom_components.lipro.core.api.schedule_service import (
     ScheduleApiService,
+    _next_mesh_schedule_id,
+    _redact_candidate_id,
     add_mesh_schedule_by_candidates,
     delete_mesh_schedules_by_candidates,
+    execute_mesh_schedule_candidate_request,
     get_mesh_schedules_by_candidates,
 )
 from custom_components.lipro.core.api.types import ScheduleTimingRow
@@ -51,6 +54,44 @@ class DummyApiError(Exception):
     def __init__(self, message: str, code: int | str | None = None) -> None:
         super().__init__(message)
         self.code = code
+
+
+def test_redact_candidate_id_masks_short_and_long_ids() -> None:
+    assert _redact_candidate_id("") == "***"
+    assert _redact_candidate_id("1234") == "***"
+    assert _redact_candidate_id("03ab0000000000a1") == "***00a1"
+
+
+def test_next_mesh_schedule_id_ignores_bool_and_finds_first_gap() -> None:
+    assert _next_mesh_schedule_id(
+        [
+            {"id": False},
+            {"id": 0},
+            {"id": " 1 "},
+            {"id": 3},
+        ]
+    ) == 2
+
+
+@pytest.mark.asyncio
+async def test_execute_mesh_schedule_candidate_request_returns_error_tuple_for_unexpected_error() -> (
+    None
+):
+    logger = Mock()
+
+    result = await execute_mesh_schedule_candidate_request(
+        candidate_id="03ab0000000000a1",
+        operation="GET",
+        request=AsyncMock(side_effect=RuntimeError("boom")),
+        lipro_auth_error=ValueError,
+        lipro_api_error=DummyApiError,
+        logger=logger,
+    )
+
+    assert result[0] is False
+    assert result[1] is None
+    assert isinstance(result[2], RuntimeError)
+    logger.debug.assert_called_once()
 
 
 @pytest.mark.asyncio
@@ -482,3 +523,42 @@ async def test_schedule_api_service_get_propagates_missing_mesh_candidates() -> 
         await service.get_device_schedules("mesh_group_49155", "ff000001")
 
     client._request_schedule_timings.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+async def test_get_mesh_schedules_by_candidates_returns_empty_after_successful_empty_payload() -> (
+    None
+):
+    result = await get_mesh_schedules_by_candidates(
+        candidate_device_ids=["03ab0000000000a1"],
+        execute_candidate_request=AsyncMock(return_value=(True, None, None)),
+        iot_request=AsyncMock(return_value={}),
+        extract_timings_list=_extract_schedule_rows,
+        normalize_mesh_timing_rows=_normalize_schedule_rows,
+        path_ble_schedule_get="/v2/schedule/get",
+        build_mesh_schedule_get_body=lambda candidate: {"deviceId": candidate},
+        raise_on_total_failure=True,
+    )
+
+    assert result == []
+
+
+@pytest.mark.asyncio
+async def test_schedule_api_service_add_validates_matching_time_and_event_lengths() -> (
+    None
+):
+    client = SimpleNamespace(
+        _is_mesh_group_id=lambda _device_id: False,
+        _request_schedule_timings=AsyncMock(),
+        _to_device_type_hex=lambda value: str(value),
+    )
+
+    service = ScheduleApiService(client)
+    with pytest.raises(ValueError, match="times and events must have same length"):
+        await service.add_device_schedule(
+            "03ab5ccd7c123456",
+            "ff000001",
+            [1],
+            [3600],
+            [0, 1],
+        )

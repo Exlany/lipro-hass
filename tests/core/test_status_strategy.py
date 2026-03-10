@@ -50,6 +50,84 @@ def test_resolve_deduplicates_priority_and_stale_overlap() -> None:
     assert decision.query_ids.count("dev1") == 1
 
 
+def test_resolve_force_refresh_prefers_priority_ids_when_present() -> None:
+    decision = resolve_connect_status_query_candidates(
+        iot_ids=["dev1", "dev2"],
+        force_refresh=True,
+        mqtt_enabled=True,
+        mqtt_connected=True,
+        last_query_time=20.0,
+        now=100.0,
+        priority_ids={" DEV2 "},
+        mqtt_recent_time_by_id={"dev1": 99.0, "dev2": 99.0},
+        stale_window_seconds=60.0,
+        query_interval_seconds=10.0,
+        normalize=_normalize,
+    )
+
+    assert decision.query_ids == ["dev2"]
+    assert decision.next_last_query_time == 100.0
+    assert decision.record_skip is None
+
+
+def test_resolve_force_refresh_returns_all_ids_without_priority_match() -> None:
+    decision = resolve_connect_status_query_candidates(
+        iot_ids=["dev1", "dev2"],
+        force_refresh=True,
+        mqtt_enabled=True,
+        mqtt_connected=True,
+        last_query_time=20.0,
+        now=100.0,
+        priority_ids={"other"},
+        mqtt_recent_time_by_id={},
+        stale_window_seconds=60.0,
+        query_interval_seconds=10.0,
+        normalize=_normalize,
+    )
+
+    assert decision.query_ids == ["dev1", "dev2"]
+    assert decision.next_last_query_time == 100.0
+
+
+def test_resolve_skips_when_query_interval_has_not_elapsed() -> None:
+    decision = resolve_connect_status_query_candidates(
+        iot_ids=["dev1"],
+        force_refresh=False,
+        mqtt_enabled=True,
+        mqtt_connected=True,
+        last_query_time=95.0,
+        now=100.0,
+        priority_ids=set(),
+        mqtt_recent_time_by_id={},
+        stale_window_seconds=60.0,
+        query_interval_seconds=10.0,
+        normalize=_normalize,
+    )
+
+    assert decision.query_ids == []
+    assert decision.next_last_query_time == 95.0
+    assert decision.record_skip is None
+
+
+def test_resolve_returns_all_ids_when_mqtt_cannot_filter_staleness() -> None:
+    decision = resolve_connect_status_query_candidates(
+        iot_ids=["dev1", "dev2"],
+        force_refresh=False,
+        mqtt_enabled=False,
+        mqtt_connected=True,
+        last_query_time=10.0,
+        now=100.0,
+        priority_ids=set(),
+        mqtt_recent_time_by_id={"dev1": 99.0, "dev2": 99.0},
+        stale_window_seconds=60.0,
+        query_interval_seconds=10.0,
+        normalize=_normalize,
+    )
+
+    assert decision.query_ids == ["dev1", "dev2"]
+    assert decision.record_skip is None
+
+
 def test_compute_adaptive_batch_size_no_metrics_returns_current() -> None:
     result = compute_adaptive_state_batch_size(
         current_batch_size=32,
@@ -62,6 +140,42 @@ def test_compute_adaptive_batch_size_no_metrics_returns_current() -> None:
         latency_high_seconds=3.5,
     )
     assert result == 32
+
+
+def test_compute_adaptive_batch_size_reduces_for_high_latency_or_fallback_depth() -> (
+    None
+):
+    result = compute_adaptive_state_batch_size(
+        current_batch_size=40,
+        recent_metrics=[(32, 4.0, 0), (40, 1.0, 2)],
+        batch_size_min=16,
+        batch_size_max=64,
+        batch_adjust_step=8,
+        metrics_sample_size=4,
+        latency_low_seconds=1.0,
+        latency_high_seconds=3.0,
+    )
+
+    assert result == 32
+
+
+def test_compute_adaptive_batch_size_grows_when_sample_is_healthy() -> None:
+    result = compute_adaptive_state_batch_size(
+        current_batch_size=56,
+        recent_metrics=[
+            (32, 0.4, 0),
+            (40, 0.5, 0),
+            (48, 0.6, 0),
+        ],
+        batch_size_min=16,
+        batch_size_max=64,
+        batch_adjust_step=12,
+        metrics_sample_size=3,
+        latency_low_seconds=1.0,
+        latency_high_seconds=3.0,
+    )
+
+    assert result == 64
 
 
 def test_is_mqtt_connect_stale_sentinel_zero() -> None:

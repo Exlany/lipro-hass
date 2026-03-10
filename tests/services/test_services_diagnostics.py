@@ -9,14 +9,19 @@ import pytest
 
 from custom_components.lipro.core import LiproApiError
 from custom_components.lipro.services.diagnostics_service import (
+    _async_get_first_coordinator_capability_result,
+    _build_last_error_payload,
+    _coerce_service_float,
+    _coerce_service_int,
     async_call_optional_capability,
     async_handle_get_city,
     async_handle_get_developer_report,
+    async_handle_query_user_cloud,
     async_handle_submit_developer_feedback,
     collect_developer_reports,
 )
 from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import ServiceValidationError
+from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 from tests.helpers.service_call import service_call
 
 
@@ -290,3 +295,82 @@ async def test_async_call_optional_capability_maps_api_error() -> None:
     assert capability == "get_city"
     assert isinstance(err, LiproApiError)
     assert err.code == 502
+
+
+def test_service_number_coercion_handles_bool_and_default() -> None:
+    """Numeric coercion should preserve schema-friendly bool and fallback behavior."""
+    hass = cast(HomeAssistant, MagicMock())
+    call = service_call(hass, {"int_value": True, "float_value": False, "bad": object()})
+
+    assert _coerce_service_int(call, "int_value", 7) == 1
+    assert _coerce_service_int(call, "bad", 7) == 7
+    assert _coerce_service_float(call, "float_value", 1.5) == 0.0
+    assert _coerce_service_float(call, "missing", 1.5) == 1.5
+
+
+@pytest.mark.asyncio
+async def test_async_get_first_coordinator_capability_result_raises_homeassistant_error() -> (
+    None
+):
+    coordinator = MagicMock()
+    coordinator.client.get_city = AsyncMock(side_effect=HomeAssistantError("stop"))
+
+    with pytest.raises(HomeAssistantError, match="stop"):
+        await _async_get_first_coordinator_capability_result(
+            iter([coordinator]),
+            capability="get_city",
+            collector=lambda item: item.client.get_city(),
+        )
+
+
+@pytest.mark.asyncio
+async def test_async_get_first_coordinator_capability_result_keeps_last_api_error() -> (
+    None
+):
+    first = MagicMock()
+    first.client.get_city = AsyncMock(side_effect=RuntimeError("boom"))
+    second = MagicMock()
+    second.client.get_city = AsyncMock(side_effect=LiproApiError("api down", code=503))
+
+    has_result, result, last_error = await _async_get_first_coordinator_capability_result(
+        iter([first, second]),
+        capability="get_city",
+        collector=lambda item: item.client.get_city(),
+    )
+
+    assert has_result is False
+    assert result is None
+    assert isinstance(last_error, LiproApiError)
+    assert last_error.code == 503
+
+
+def test_build_last_error_payload_omits_empty_message_and_none_code() -> None:
+    """Serializable last-error payload should only include meaningful fields."""
+    assert _build_last_error_payload(None) is None
+    assert _build_last_error_payload(LiproApiError("   ", code=None)) is None
+    assert _build_last_error_payload(LiproApiError("bad gateway", code=502)) == {
+        "code": 502,
+        "message": "bad gateway",
+    }
+
+
+@pytest.mark.asyncio
+async def test_async_handle_query_user_cloud_raises_last_api_error() -> None:
+    """query_user_cloud should surface the last API error when all entries fail."""
+    coordinator = MagicMock()
+    coordinator.client.query_user_cloud = AsyncMock(
+        side_effect=LiproApiError("cloud unavailable", code=504)
+    )
+    raise_optional_error = MagicMock(side_effect=RuntimeError("mapped error"))
+    hass = cast(HomeAssistant, MagicMock())
+
+    with pytest.raises(RuntimeError, match="mapped error"):
+        await async_handle_query_user_cloud(
+            hass,
+            service_call(hass, {}),
+            iter_runtime_coordinators=lambda _hass: iter([coordinator]),
+            raise_optional_error=raise_optional_error,
+            service_query_user_cloud="query_user_cloud",
+        )
+
+    raise_optional_error.assert_called_once()

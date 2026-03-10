@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import timedelta
 from time import monotonic
 from unittest.mock import AsyncMock, Mock, patch
 
@@ -146,6 +147,15 @@ class TestMqttRuntimeConnection:
 
         assert result is False
 
+    async def test_connect_reraises_cancelled_error(
+        self, mqtt_runtime: MqttRuntime, mock_mqtt_client: Mock
+    ) -> None:
+        """Cancelled connection attempts should bubble up."""
+        mock_mqtt_client.connect.side_effect = asyncio.CancelledError()
+
+        with pytest.raises(asyncio.CancelledError):
+            await mqtt_runtime.connect(device_ids=["device1"], biz_id="test_biz")
+
     async def test_disconnect(
         self, mqtt_runtime: MqttRuntime, mock_mqtt_client: Mock
     ) -> None:
@@ -169,6 +179,25 @@ class TestMqttRuntimeConnection:
         await mqtt_runtime.disconnect()
 
         assert mqtt_runtime.is_connected is False
+
+    async def test_disconnect_without_client(self, mock_hass: Mock) -> None:
+        """Disconnect should no-op when MQTT client is absent."""
+        runtime = MqttRuntime(
+            hass=mock_hass,
+            mqtt_client=None,
+            base_scan_interval=30,
+        )
+
+        await runtime.disconnect()
+
+    async def test_disconnect_reraises_cancelled_error(
+        self, mqtt_runtime: MqttRuntime, mock_mqtt_client: Mock
+    ) -> None:
+        """Cancelled disconnects should not be swallowed."""
+        mock_mqtt_client.disconnect.side_effect = asyncio.CancelledError()
+
+        with pytest.raises(asyncio.CancelledError):
+            await mqtt_runtime.disconnect()
 
 
 class TestMqttRuntimeMessageHandling:
@@ -311,6 +340,42 @@ class TestMqttRuntimeDisconnectNotification:
             mqtt_runtime.check_disconnect_notification()
             mock_create_task.assert_not_called()
 
+    def test_check_disconnect_notification_returns_when_disconnect_time_missing(
+        self, mqtt_runtime: MqttRuntime
+    ) -> None:
+        """Missing disconnect timestamps should short-circuit notifications."""
+        mqtt_runtime._connection_manager._connected = False
+        mqtt_runtime._connection_manager._disconnect_time = None
+
+        with patch(
+            "custom_components.lipro.core.coordinator.runtime.mqtt_runtime.asyncio.create_task"
+        ) as mock_create_task:
+            mqtt_runtime.check_disconnect_notification()
+            mock_create_task.assert_not_called()
+
+    def test_check_disconnect_notification_uses_background_task_manager(
+        self, mock_hass: Mock, mock_mqtt_client: Mock
+    ) -> None:
+        """Background task manager should own disconnect notification tasks."""
+        background_task_manager = Mock()
+
+        def _consume(coro):
+            coro.close()
+
+        background_task_manager.create.side_effect = _consume
+        runtime = MqttRuntime(
+            hass=mock_hass,
+            mqtt_client=mock_mqtt_client,
+            base_scan_interval=30,
+            background_task_manager=background_task_manager,
+        )
+        runtime._connection_manager._connected = False
+        runtime._connection_manager._disconnect_time = monotonic() - 400
+
+        runtime.check_disconnect_notification()
+
+        background_task_manager.create.assert_called_once()
+
 
 class TestMqttRuntimeReset:
     """Test runtime reset functionality."""
@@ -345,6 +410,29 @@ class TestMqttRuntimeDependencyInjection:
         mqtt_runtime.set_polling_updater(updater)
         assert mqtt_runtime._polling_updater is updater
 
+    def test_update_polling_interval_sets_interval_on_injected_updater(
+        self, mqtt_runtime: MqttRuntime
+    ) -> None:
+        """Polling updater should receive the new interval."""
+        updater = Mock()
+        mqtt_runtime.set_polling_updater(updater)
+
+        mqtt_runtime.update_polling_interval(timedelta(seconds=45))
+
+        assert updater.update_interval == timedelta(seconds=45)
+
+    def test_update_polling_interval_is_noop_without_injected_updater(
+        self, mock_hass: Mock, mock_mqtt_client: Mock
+    ) -> None:
+        """Missing updater should not raise."""
+        runtime = MqttRuntime(
+            hass=mock_hass,
+            mqtt_client=mock_mqtt_client,
+            base_scan_interval=30,
+        )
+
+        runtime.update_polling_interval(timedelta(seconds=15))
+
     def test_set_device_resolver(self, mqtt_runtime: MqttRuntime) -> None:
         """Test setting device resolver."""
         resolver = Mock()
@@ -366,3 +454,66 @@ class TestMqttRuntimeDependencyInjection:
 
 # Import asyncio for async tests
 import asyncio
+
+
+@pytest.mark.asyncio
+async def test_setup_reports_client_presence(mock_hass: Mock, mock_mqtt_client: Mock) -> (
+    None
+):
+    runtime_without_client = MqttRuntime(
+        hass=mock_hass,
+        mqtt_client=None,
+        base_scan_interval=30,
+    )
+    runtime_with_client = MqttRuntime(
+        hass=mock_hass,
+        mqtt_client=mock_mqtt_client,
+        base_scan_interval=30,
+    )
+
+    assert await runtime_without_client.setup() is False
+    assert await runtime_with_client.setup() is True
+
+
+@pytest.mark.asyncio
+async def test_disconnect_notification_helpers_call_issue_registry(
+    mock_hass: Mock, mock_mqtt_client: Mock
+) -> None:
+    runtime = MqttRuntime(
+        hass=mock_hass,
+        mqtt_client=mock_mqtt_client,
+        base_scan_interval=30,
+    )
+
+    with patch(
+        "custom_components.lipro.core.coordinator.runtime.mqtt_runtime.async_create_issue"
+    ) as create_issue, patch(
+        "custom_components.lipro.core.coordinator.runtime.mqtt_runtime.async_delete_issue"
+    ) as delete_issue:
+        await runtime._async_show_mqtt_disconnect_notification(6)
+        await runtime.clear_disconnect_notification()
+
+    create_issue.assert_called_once()
+    delete_issue.assert_called_once_with(
+        mock_hass,
+        domain="lipro",
+        issue_id="mqtt_disconnected",
+    )
+
+
+def test_reconnect_manager_tracks_backoff_gate_flag() -> None:
+    from custom_components.lipro.core.coordinator.runtime.mqtt.reconnect import (
+        MqttReconnectManager,
+    )
+
+    manager = MqttReconnectManager()
+
+    assert manager.backoff_gate_logged is False
+
+    manager.mark_backoff_gate_logged()
+
+    assert manager.backoff_gate_logged is True
+
+    manager.on_reconnect_success()
+
+    assert manager.backoff_gate_logged is False

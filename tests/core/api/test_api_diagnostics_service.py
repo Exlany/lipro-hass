@@ -13,6 +13,7 @@ from custom_components.lipro.const.api import (
     PATH_QUERY_USER_CLOUD,
 )
 from custom_components.lipro.core.api.diagnostics_api_service import (
+    _build_rich_ota_v2_payload,
     _merge_ota_rows,
     _ota_row_dedupe_key,
     fetch_sensor_history,
@@ -42,6 +43,27 @@ def _require_mapping_response(_path: str, payload: object) -> dict[str, object]:
     if isinstance(payload, dict):
         return payload
     return {}
+
+
+def test_build_rich_ota_v2_payload_requires_enabled_flag_and_iot_name() -> None:
+    ota_payload = {"deviceId": "mesh_group_1", "deviceType": "ff000001"}
+
+    assert (
+        _build_rich_ota_v2_payload(
+            ota_payload,
+            iot_name="21P3",
+            allow_rich_v2_fallback=False,
+        )
+        is None
+    )
+    assert (
+        _build_rich_ota_v2_payload(
+            ota_payload,
+            iot_name="   ",
+            allow_rich_v2_fallback=True,
+        )
+        is None
+    )
 
 
 
@@ -259,7 +281,59 @@ async def test_query_ota_info_raises_last_error_when_v1_and_v2_both_fail() -> No
             device_type="ff000001",
         )
 
-    assert iot_request.await_count == 2
+
+@pytest.mark.asyncio
+async def test_query_ota_info_handles_invalid_param_on_richer_v2_payload() -> None:
+    iot_request = AsyncMock(
+        side_effect=[
+            {"rows": []},
+            {"rows": []},
+            DummyApiError("bad richer payload", code="100000"),
+            {"rows": []},
+        ]
+    )
+
+    result = await query_ota_info(
+        iot_request=iot_request,
+        extract_data_list=_extract_rows,
+        is_invalid_param_error_code=lambda code: code == "100000",
+        to_device_type_hex=lambda value: str(value),
+        lipro_api_error=DummyApiError,
+        device_id="mesh_group_1",
+        device_type="ff000001",
+        iot_name="21P3",
+        allow_rich_v2_fallback=True,
+    )
+
+    assert result == []
+
+
+@pytest.mark.asyncio
+async def test_query_ota_info_handles_generic_error_on_richer_v2_payload() -> None:
+    iot_request = AsyncMock(
+        side_effect=[
+            {"rows": []},
+            {"rows": []},
+            DummyApiError("richer payload failed", code=500),
+            {"rows": []},
+        ]
+    )
+
+    result = await query_ota_info(
+        iot_request=iot_request,
+        extract_data_list=_extract_rows,
+        is_invalid_param_error_code=lambda code: code == "100000",
+        to_device_type_hex=lambda value: str(value),
+        lipro_api_error=DummyApiError,
+        device_id="mesh_group_1",
+        device_type="ff000001",
+        iot_name="21P3",
+        allow_rich_v2_fallback=True,
+    )
+
+    assert result == []
+
+    assert iot_request.await_count == 4
 
 
 @pytest.mark.asyncio

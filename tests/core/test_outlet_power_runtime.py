@@ -4,12 +4,16 @@ from __future__ import annotations
 
 import logging
 from types import SimpleNamespace
-from unittest.mock import AsyncMock, call
+from unittest.mock import AsyncMock, Mock, call
 
 import pytest
 
+from custom_components.lipro.core.api import LiproApiError
 from custom_components.lipro.core.coordinator.runtime.outlet_power_runtime import (
+    _normalize_device_id,
+    _normalize_single_outlet_power_payload,
     query_outlet_power,
+    query_single_outlet_power,
     resolve_outlet_power_cycle_size,
 )
 
@@ -24,6 +28,49 @@ def test_resolve_outlet_power_cycle_size_returns_static_limit_when_target_non_po
             target_full_cycle_count=0,
         )
         == 10
+    )
+
+
+def test_normalize_device_id_and_single_payload_handle_invalid_shapes() -> None:
+    assert _normalize_device_id(None) is None
+    assert _normalize_device_id("   ") is None
+    assert _normalize_device_id("  ABC  ") == "abc"
+
+    assert _normalize_single_outlet_power_payload({"abc": {"nowPower": 1}}, requested_id="ABC") == {
+        "nowPower": 1
+    }
+    assert _normalize_single_outlet_power_payload([{"nowPower": 1}, {"nowPower": 2}], requested_id="abc") == {
+        "data": [{"nowPower": 1}, {"nowPower": 2}]
+    }
+    assert _normalize_single_outlet_power_payload(["bad-row"], requested_id="abc") is None
+    assert _normalize_single_outlet_power_payload("bad", requested_id="abc") is None
+    assert _normalize_single_outlet_power_payload({}, requested_id="   ") is None
+
+
+def test_resolve_outlet_power_cycle_size_handles_zero_and_dynamic_limits() -> None:
+    assert (
+        resolve_outlet_power_cycle_size(
+            0,
+            max_devices_per_cycle=10,
+            target_full_cycle_count=3,
+        )
+        == 0
+    )
+    assert (
+        resolve_outlet_power_cycle_size(
+            3,
+            max_devices_per_cycle=10,
+            target_full_cycle_count=3,
+        )
+        == 3
+    )
+    assert (
+        resolve_outlet_power_cycle_size(
+            20,
+            max_devices_per_cycle=10,
+            target_full_cycle_count=4,
+        )
+        == 5
     )
 
 
@@ -146,3 +193,65 @@ async def test_query_outlet_power_accepts_single_payload_nested_by_device_id() -
     )
 
     fetch.assert_awaited_once_with("a")
+
+
+@pytest.mark.asyncio
+async def test_query_single_outlet_power_ignores_invalid_device_id() -> None:
+    fetch = AsyncMock()
+
+    await query_single_outlet_power(
+        device_id="   ",
+        fetch_outlet_power_info=fetch,
+        get_device_by_id=lambda _device_id: None,
+        apply_outlet_power_info=lambda _device, _payload: False,
+        should_reraise_outlet_power_error=lambda _err: False,
+        logger=Mock(),
+    )
+
+    fetch.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+async def test_query_single_outlet_power_logs_successful_apply() -> None:
+    logger = Mock()
+    device = SimpleNamespace(name="Desk Outlet")
+
+    await query_single_outlet_power(
+        device_id="ABC",
+        fetch_outlet_power_info=AsyncMock(return_value={"nowPower": 1.2}),
+        get_device_by_id=lambda _device_id: device,
+        apply_outlet_power_info=lambda _device, _payload: True,
+        should_reraise_outlet_power_error=lambda _err: False,
+        logger=logger,
+    )
+
+    logger.debug.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_query_single_outlet_power_swallows_non_retryable_api_errors() -> None:
+    logger = Mock()
+
+    await query_single_outlet_power(
+        device_id="abc",
+        fetch_outlet_power_info=AsyncMock(side_effect=LiproApiError("boom", 500)),
+        get_device_by_id=lambda _device_id: None,
+        apply_outlet_power_info=lambda _device, _payload: False,
+        should_reraise_outlet_power_error=lambda _err: False,
+        logger=logger,
+    )
+
+    logger.debug.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_query_single_outlet_power_reraises_retryable_api_errors() -> None:
+    with pytest.raises(LiproApiError, match="boom"):
+        await query_single_outlet_power(
+            device_id="abc",
+            fetch_outlet_power_info=AsyncMock(side_effect=LiproApiError("boom", 401)),
+            get_device_by_id=lambda _device_id: None,
+            apply_outlet_power_info=lambda _device, _payload: False,
+            should_reraise_outlet_power_error=lambda _err: True,
+            logger=Mock(),
+        )

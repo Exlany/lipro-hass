@@ -2,19 +2,25 @@
 
 from __future__ import annotations
 
+import asyncio
 from typing import cast
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
 from custom_components.lipro.core.command.result import (
+    _extract_command_result_code,
+    _extract_command_result_message,
     build_progressive_retry_delays,
     classify_command_result_payload,
     extract_msg_sn,
     is_command_push_failed,
     poll_command_result_state,
     query_command_result_once,
+    resolve_delayed_refresh_delay,
     resolve_polled_command_result,
+    run_delayed_refresh,
+    should_schedule_delayed_refresh,
     should_skip_immediate_post_refresh,
 )
 
@@ -242,6 +248,26 @@ def test_build_progressive_retry_delays_returns_empty_sequence_when_budget_is_ze
     ) == ()
 
 
+def test_build_progressive_retry_delays_stops_when_policy_returns_zero_wait() -> None:
+    with patch(
+        "custom_components.lipro.core.command.result.compute_exponential_retry_wait_time",
+        return_value=0.0,
+    ):
+        assert (
+            build_progressive_retry_delays(
+                base_delay_seconds=0.35,
+                time_budget_seconds=3.0,
+                max_attempts=6,
+            )
+            == ()
+        )
+
+
+def test_extract_command_result_code_and_message_return_none_for_non_mapping() -> None:
+    assert _extract_command_result_code(None) is None
+    assert _extract_command_result_message(None) is None
+
+
 def test_should_skip_immediate_post_refresh_returns_false_without_valid_key() -> None:
     assert (
         should_skip_immediate_post_refresh(
@@ -254,6 +280,70 @@ def test_should_skip_immediate_post_refresh_returns_false_without_valid_key() ->
         )
         is False
     )
+
+
+def test_should_skip_immediate_post_refresh_accepts_slider_only_payloads() -> None:
+    assert (
+        should_skip_immediate_post_refresh(
+            command="CHANGE_STATE",
+            properties=[{"key": "brightness", "value": "50"}],
+            slider_like_properties={"brightness", "colorTemp"},
+        )
+        is True
+    )
+
+
+def test_should_skip_immediate_post_refresh_returns_false_for_non_change_state() -> None:
+    assert (
+        should_skip_immediate_post_refresh(
+            command="POWER_ON",
+            properties=[{"key": "brightness", "value": "50"}],
+            slider_like_properties={"brightness"},
+        )
+        is False
+    )
+
+
+def test_classify_command_result_payload_treats_other_codes_as_failed() -> None:
+    assert classify_command_result_payload({"code": "140005"}) == "failed"
+
+
+def test_should_schedule_and_resolve_delayed_refresh_cover_mqtt_and_pending_rules() -> (
+    None
+):
+    assert (
+        should_schedule_delayed_refresh(
+            mqtt_connected=False,
+            device_serial="device-1",
+            pending_expectations={},
+        )
+        is True
+    )
+    assert (
+        resolve_delayed_refresh_delay(
+            mqtt_connected=True,
+            device_serial="device-1",
+            pending_expectations={"device-1": object()},
+            get_adaptive_post_refresh_delay=lambda serial: 2.5 if serial else 0.0,
+        )
+        == 2.5
+    )
+
+
+@pytest.mark.asyncio
+async def test_run_delayed_refresh_swallows_task_cancellation() -> None:
+    request_refresh = AsyncMock()
+
+    with patch(
+        "custom_components.lipro.core.command.result.asyncio.sleep",
+        new=AsyncMock(side_effect=asyncio.CancelledError()),
+    ):
+        await run_delayed_refresh(
+            delay_seconds=1.0,
+            request_refresh=request_refresh,
+        )
+
+    request_refresh.assert_not_called()
 
 
 @pytest.mark.asyncio
@@ -306,3 +396,24 @@ async def test_poll_command_result_state_retries_when_payload_is_none() -> None:
     assert payload == {"success": True}
     sleep_mock.assert_awaited_once_with(0.25)
     on_attempt.assert_called_once_with(2, "confirmed")
+
+
+@pytest.mark.asyncio
+async def test_poll_command_result_state_returns_unconfirmed_after_pending_budget() -> (
+    None
+):
+    query_once = AsyncMock(side_effect=[{"message": "waiting"}, {"message": "still waiting"}])
+    sleep_mock = AsyncMock()
+
+    with patch(
+        "custom_components.lipro.core.command.result.asyncio.sleep", new=sleep_mock
+    ):
+        state, attempt, payload = await poll_command_result_state(
+            query_once=query_once,
+            classify_payload=classify_command_result_payload,
+            retry_delays_seconds=(0.1,),
+        )
+
+    assert state == "unconfirmed"
+    assert attempt == 2
+    assert payload == {"message": "still waiting"}

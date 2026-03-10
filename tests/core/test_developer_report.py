@@ -18,7 +18,12 @@ from custom_components.lipro.const.config import (
     CONF_SCAN_INTERVAL,
 )
 from custom_components.lipro.core.device import LiproDevice
-from custom_components.lipro.core.utils.developer_report import build_developer_report
+from custom_components.lipro.core.utils.developer_report import (
+    _build_ir_remote_inventory_snapshot,
+    _firmware_meets_ir_emit_floor,
+    _sanitize_last_command_failure,
+    build_developer_report,
+)
 
 
 def _make_device(
@@ -296,3 +301,54 @@ def test_build_developer_report_includes_ir_inventory_snapshot() -> None:
     assert remote_entry["gateway_device_id"] == _redact_identifier(gateway.serial)
     assert remote_entry["gateway_present_in_runtime"] is True
     assert remote_entry["orphaned"] is False
+
+
+def test_sanitize_last_command_failure_rejects_invalid_or_foreign_payloads() -> None:
+    assert _sanitize_last_command_failure(None, device_id="03ab5ccd7c000001") is None
+    assert (
+        _sanitize_last_command_failure(
+            {"device_id": "03ab5ccd7c000999", "reason": "boom"},
+            device_id="03ab5ccd7c000001",
+        )
+        is None
+    )
+
+
+def test_firmware_meets_ir_emit_floor_returns_none_for_invalid_versions() -> None:
+    assert _firmware_meets_ir_emit_floor(None) is None
+    assert _firmware_meets_ir_emit_floor("   ") is None
+    assert _firmware_meets_ir_emit_floor("9.2.beta") is None
+
+
+def test_build_ir_remote_inventory_snapshot_uses_runtime_gateway_and_tracks_orphans() -> (
+    None
+):
+    runtime_gateway = LiproDevice(
+        device_number=1,
+        serial="03ab5ccd7c000001",
+        name="Runtime Gateway",
+        device_type=11,
+        iot_name="M2W1",
+        physical_model="gateway",
+        properties={"irSwitch": "1", "version": "bad.version"},
+    )
+    orphan_remote = LiproDevice(
+        device_number=2,
+        serial="rmt_id_appremote_realremote_03ab5ccd7c000999",
+        name="Orphan Remote",
+        device_type=11,
+        iot_name="irRemote",
+        physical_model="irRemote",
+    )
+
+    snapshot = _build_ir_remote_inventory_snapshot(
+        {
+            runtime_gateway.serial: runtime_gateway,
+            orphan_remote.serial: orphan_remote,
+        },
+        redact_identifier=_redact_identifier,
+    )
+
+    assert snapshot["gateway_count"] == 1
+    assert snapshot["ir_capable_gateway_count"] == 1
+    assert snapshot["orphan_ir_remote_count"] == 1
