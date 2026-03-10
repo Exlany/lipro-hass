@@ -280,12 +280,16 @@ class TestLiproFeatureSwitchEntityCommands:
 
     @pytest.mark.asyncio
     async def test_fade_switch_turn_on(self, mock_coordinator, make_device):
-        """Test LiproFadeSwitch turn_on sends CHANGE_STATE with fadeState=1."""
-        from custom_components.lipro.switch import LiproFadeSwitch
+        """Test LiproPropertySwitch (fade) turn_on sends CHANGE_STATE with fadeState=1."""
+        from custom_components.lipro.switch import (
+            LIGHT_FEATURE_SWITCHES,
+            LiproPropertySwitch,
+        )
 
         device = make_device("light", properties={"fadeState": "0"})
         mock_coordinator.get_device = MagicMock(return_value=device)
-        switch = LiproFadeSwitch(mock_coordinator, device)
+        fade_config = next(c for c in LIGHT_FEATURE_SWITCHES if c.entity_suffix == "fade")
+        switch = LiproPropertySwitch(mock_coordinator, device, fade_config)
 
         with patch.object(switch, "async_write_ha_state"):
             await switch.async_turn_on()
@@ -298,12 +302,16 @@ class TestLiproFeatureSwitchEntityCommands:
 
     @pytest.mark.asyncio
     async def test_fade_switch_turn_off(self, mock_coordinator, make_device):
-        """Test LiproFadeSwitch turn_off sends CHANGE_STATE with fadeState=0."""
-        from custom_components.lipro.switch import LiproFadeSwitch
+        """Test LiproPropertySwitch (fade) turn_off sends CHANGE_STATE with fadeState=0."""
+        from custom_components.lipro.switch import (
+            LIGHT_FEATURE_SWITCHES,
+            LiproPropertySwitch,
+        )
 
         device = make_device("light", properties={"fadeState": "1"})
         mock_coordinator.get_device = MagicMock(return_value=device)
-        switch = LiproFadeSwitch(mock_coordinator, device)
+        fade_config = next(c for c in LIGHT_FEATURE_SWITCHES if c.entity_suffix == "fade")
+        switch = LiproPropertySwitch(mock_coordinator, device, fade_config)
 
         with patch.object(switch, "async_write_ha_state"):
             await switch.async_turn_off()
@@ -316,12 +324,16 @@ class TestLiproFeatureSwitchEntityCommands:
 
     @pytest.mark.asyncio
     async def test_sleep_aid_switch_turn_on(self, mock_coordinator, make_device):
-        """Test LiproSleepAidSwitch turn_on sends sleepAidEnable=1."""
-        from custom_components.lipro.switch import LiproSleepAidSwitch
+        """Test LiproPropertySwitch (sleep_aid) turn_on sends sleepAidEnable=1."""
+        from custom_components.lipro.switch import (
+            LIGHT_FEATURE_SWITCHES,
+            LiproPropertySwitch,
+        )
 
         device = make_device("light", properties={"sleepAidEnable": "0"})
         mock_coordinator.get_device = MagicMock(return_value=device)
-        switch = LiproSleepAidSwitch(mock_coordinator, device)
+        config = next(c for c in LIGHT_FEATURE_SWITCHES if c.entity_suffix == "sleep_aid")
+        switch = LiproPropertySwitch(mock_coordinator, device, config)
 
         with patch.object(switch, "async_write_ha_state"):
             await switch.async_turn_on()
@@ -334,12 +346,16 @@ class TestLiproFeatureSwitchEntityCommands:
 
     @pytest.mark.asyncio
     async def test_wake_up_switch_turn_on(self, mock_coordinator, make_device):
-        """Test LiproWakeUpSwitch turn_on sends wakeUpEnable=1."""
-        from custom_components.lipro.switch import LiproWakeUpSwitch
+        """Test LiproPropertySwitch (wake_up) turn_on sends wakeUpEnable=1."""
+        from custom_components.lipro.switch import (
+            LIGHT_FEATURE_SWITCHES,
+            LiproPropertySwitch,
+        )
 
         device = make_device("light", properties={"wakeUpEnable": "0"})
         mock_coordinator.get_device = MagicMock(return_value=device)
-        switch = LiproWakeUpSwitch(mock_coordinator, device)
+        config = next(c for c in LIGHT_FEATURE_SWITCHES if c.entity_suffix == "wake_up")
+        switch = LiproPropertySwitch(mock_coordinator, device, config)
 
         with patch.object(switch, "async_write_ha_state"):
             await switch.async_turn_on()
@@ -352,12 +368,16 @@ class TestLiproFeatureSwitchEntityCommands:
 
     @pytest.mark.asyncio
     async def test_focus_mode_switch_turn_on(self, mock_coordinator, make_device):
-        """Test LiproFocusModeSwitch turn_on sends focusMode=1."""
-        from custom_components.lipro.switch import LiproFocusModeSwitch
+        """Test LiproPropertySwitch (focus_mode) turn_on sends focusMode=1."""
+        from custom_components.lipro.switch import (
+            LIGHT_FEATURE_SWITCHES,
+            LiproPropertySwitch,
+        )
 
         device = make_device("light", properties={"focusMode": "0"})
         mock_coordinator.get_device = MagicMock(return_value=device)
-        switch = LiproFocusModeSwitch(mock_coordinator, device)
+        config = next(c for c in LIGHT_FEATURE_SWITCHES if c.entity_suffix == "focus_mode")
+        switch = LiproPropertySwitch(mock_coordinator, device, config)
 
         with patch.object(switch, "async_write_ha_state"):
             await switch.async_turn_on()
@@ -370,12 +390,16 @@ class TestLiproFeatureSwitchEntityCommands:
 
     @pytest.mark.asyncio
     async def test_body_reactive_switch_turn_on(self, mock_coordinator, make_device):
-        """Test LiproBodyReactiveSwitch turn_on sends bodyReactive=1."""
-        from custom_components.lipro.switch import LiproBodyReactiveSwitch
+        """Test LiproPropertySwitch (body_reactive) turn_on sends bodyReactive=1."""
+        from custom_components.lipro.switch import (
+            LIGHT_FEATURE_SWITCHES,
+            LiproPropertySwitch,
+        )
 
         device = make_device("light", properties={"bodyReactive": "0"})
         mock_coordinator.get_device = MagicMock(return_value=device)
-        switch = LiproBodyReactiveSwitch(mock_coordinator, device)
+        config = next(c for c in LIGHT_FEATURE_SWITCHES if c.entity_suffix == "body_reactive")
+        switch = LiproPropertySwitch(mock_coordinator, device, config)
 
         with patch.object(switch, "async_write_ha_state"):
             await switch.async_turn_on()
@@ -390,11 +414,15 @@ class TestLiproFeatureSwitchEntityCommands:
         self, mock_coordinator, make_device
     ):
         """Test feature switch is_on reads from device property."""
-        from custom_components.lipro.switch import LiproFadeSwitch
+        from custom_components.lipro.switch import (
+            LIGHT_FEATURE_SWITCHES,
+            LiproPropertySwitch,
+        )
 
         device = make_device("light", properties={"fadeState": "1"})
         mock_coordinator.get_device = MagicMock(return_value=device)
-        switch = LiproFadeSwitch(mock_coordinator, device)
+        fade_config = next(c for c in LIGHT_FEATURE_SWITCHES if c.entity_suffix == "fade")
+        switch = LiproPropertySwitch(mock_coordinator, device, fade_config)
 
         assert switch.is_on is True
 
@@ -423,11 +451,15 @@ class TestLiproPanelFeatureSwitch:
     @pytest.mark.asyncio
     async def test_panel_led_switch_turn_on(self, mock_coordinator, make_device):
         """Test panel LED switch uses PANEL_CHANGE_STATE with panelType."""
-        from custom_components.lipro.switch import LiproPanelLedSwitch
+        from custom_components.lipro.switch import (
+            LiproPanelPropertySwitch,
+            PANEL_FEATURE_SWITCHES,
+        )
 
         device = make_device("switch", iot_name="21JD", properties={"led": "0"})
         mock_coordinator.get_device = MagicMock(return_value=device)
-        switch = LiproPanelLedSwitch(mock_coordinator, device)
+        config = next(c for c in PANEL_FEATURE_SWITCHES if c.entity_suffix == "panel_led")
+        switch = LiproPanelPropertySwitch(mock_coordinator, device, config)
 
         with patch.object(switch, "async_write_ha_state"):
             await switch.async_turn_on()
@@ -444,11 +476,15 @@ class TestLiproPanelFeatureSwitch:
     @pytest.mark.asyncio
     async def test_panel_memory_switch_turn_off(self, mock_coordinator, make_device):
         """Test panel memory switch uses PANEL_CHANGE_STATE with panelType."""
-        from custom_components.lipro.switch import LiproPanelMemorySwitch
+        from custom_components.lipro.switch import (
+            LiproPanelPropertySwitch,
+            PANEL_FEATURE_SWITCHES,
+        )
 
         device = make_device("switch", iot_name="21J8", properties={"memory": "1"})
         mock_coordinator.get_device = MagicMock(return_value=device)
-        switch = LiproPanelMemorySwitch(mock_coordinator, device)
+        config = next(c for c in PANEL_FEATURE_SWITCHES if c.entity_suffix == "panel_memory")
+        switch = LiproPanelPropertySwitch(mock_coordinator, device, config)
 
         with patch.object(switch, "async_write_ha_state"):
             await switch.async_turn_off()

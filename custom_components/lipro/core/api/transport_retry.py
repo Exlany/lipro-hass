@@ -52,8 +52,13 @@ class TransportRetry:
             raise LiproRateLimitError(msg, retry_after)
 
         from .request_policy import compute_rate_limit_wait_time
+        from ...const.api import MAX_RETRY_AFTER
 
-        wait_time = compute_rate_limit_wait_time(retry_count, retry_after)
+        wait_time = compute_rate_limit_wait_time(
+            retry_count=retry_count,
+            retry_after=retry_after,
+            max_retry_after=MAX_RETRY_AFTER,
+        )
         _LOGGER.info(
             "Rate limited on %s (retry %d/%d), waiting %.1fs",
             path,

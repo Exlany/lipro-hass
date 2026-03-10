@@ -62,7 +62,20 @@ class _DummyRequestCtx:
 
 
 class _DummyClient(_ClientTransportMixin):
-    pass
+    """Minimal client for testing transport methods."""
+
+    def __init__(self) -> None:
+        """Initialize dummy client with required transport components."""
+        from unittest.mock import MagicMock
+
+        import aiohttp
+
+        session = MagicMock(spec=aiohttp.ClientSession)
+        self._init_transport(
+            phone_id="test_phone_id",
+            session=session,
+            request_timeout=30,
+        )
 
 
 @pytest.mark.asyncio
