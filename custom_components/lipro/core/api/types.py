@@ -1,107 +1,67 @@
-"""Typed API payload contracts used by Lipro client helpers."""
+"""Type definitions for API responses."""
 
 from __future__ import annotations
 
-from typing import TypedDict
-
-type JsonScalar = str | int | float | bool | None
-type JsonValue = JsonScalar | list[JsonValue] | dict[str, JsonValue]
-type JsonObject = dict[str, JsonValue]
+from typing import Any, TypedDict
 
 
-class DevicePropertyRow(TypedDict, total=False):
-    """One raw property item returned by device APIs."""
+class ApiResponse(TypedDict, total=False):
+    """Base API response structure."""
 
-    key: str
-    value: JsonValue
+    code: int
+    msg: str
+    data: Any
 
 
-class DeviceApiResponse(TypedDict, total=False):
-    """Normalized device payload returned by device-list endpoints."""
+class LoginResponse(TypedDict):
+    """Login API response data."""
 
-    deviceId: str | int
+    access_token: str
+    refresh_token: str
+    expires_in: int
+    user_id: str
+
+
+class DeviceListItem(TypedDict, total=False):
+    """Device list item structure."""
+
     serial: str
-    deviceName: str
-    type: int | str
-    iotName: str
-    roomId: str | int
-    roomName: str
-    productId: str | int
-    physicalModel: str
-    properties: list[DevicePropertyRow]
-
-
-class CommandResultApiResponse(TypedDict, total=False):
-    """Normalized payload returned by command-result endpoints."""
-
-    code: str | int
-    message: str
-    success: bool
-    msgSn: str
-    pushSuccess: bool
-    pushTimestamp: str | int
-
-
-class ScheduleTimingRow(TypedDict, total=False):
-    """One normalized schedule timing row."""
-
-    id: str | int
-    timingId: str | int
-    hour: int
-    minute: int
-    enable: bool | int | str
-    repeat: str
-    actionType: str | int
-    actionData: str
     deviceId: str
-    scheduleJson: str
-    schedule: dict[str, list[int]]
-    active: bool
+    iotDeviceId: str
+    name: str
+    deviceType: int
+    online: bool
+    properties: dict[str, Any]
 
 
-class ScheduleApiResponse(TypedDict, total=False):
-    """Normalized schedule payload."""
+class DeviceListResponse(TypedDict):
+    """Device list API response data."""
 
-    code: str | int
-    message: str
-    success: bool
-    data: list[ScheduleTimingRow]
+    devices: list[DeviceListItem]
+    total: int
 
 
-class OtaInfoRow(TypedDict, total=False):
-    """One normalized OTA metadata row."""
+class DeviceStatusItem(TypedDict, total=False):
+    """Device status item structure."""
 
-    deviceId: str
     iotId: str
-    deviceType: str
-    bleName: str
-    productName: str
-    latestVersion: str
-    firmwareVersion: str
-    version: str
-    firmwareUrl: str
-    url: str
-    md5: str
+    properties: dict[str, Any]
 
 
-class DiagnosticsApiResponse(TypedDict, total=False):
-    """Common response payload for diagnostics/history queries."""
+class MqttConfigResponse(TypedDict, total=False):
+    """MQTT config API response data."""
 
-    code: str | int
-    message: str
-    success: bool
-    data: list[dict[str, JsonValue]] | dict[str, JsonValue]
+    accessKey: str
+    secretKey: str
+    endpoint: str
+    port: int
 
 
 __all__ = [
-    "CommandResultApiResponse",
-    "DeviceApiResponse",
-    "DevicePropertyRow",
-    "DiagnosticsApiResponse",
-    "JsonObject",
-    "JsonScalar",
-    "JsonValue",
-    "OtaInfoRow",
-    "ScheduleApiResponse",
-    "ScheduleTimingRow",
+    "ApiResponse",
+    "DeviceListItem",
+    "DeviceListResponse",
+    "DeviceStatusItem",
+    "LoginResponse",
+    "MqttConfigResponse",
 ]
