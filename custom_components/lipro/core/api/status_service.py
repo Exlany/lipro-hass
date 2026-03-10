@@ -7,6 +7,8 @@ from collections.abc import Awaitable, Callable
 from time import monotonic
 from typing import Any
 
+from .types import DeviceStatusItem
+
 type MappingPayload = dict[str, Any]
 type MappingRows = list[MappingPayload]
 type NormalizeResponseCode = Callable[[Any], str | int | None]
@@ -307,7 +309,7 @@ async def query_device_status(
     logger: Any,
     path_query_device_status: str,
     on_batch_metric: RecordStatusBatchMetric | None = None,
-) -> MappingRows:
+) -> list[DeviceStatusItem]:
     """Query status of multiple devices using batching and binary-split fallback."""
     if not device_ids:
         return []
@@ -368,14 +370,14 @@ async def query_device_status(
         return rows
 
     if len(batches) == 1:
-        return await _query_batch(batches[0])
+        return await _query_batch(batches[0])  # type: ignore[return-value]
 
     results = await asyncio.gather(*(_query_batch(batch) for batch in batches))
     all_results: MappingRows = []
     for rows in results:
         if rows:
             all_results.extend(rows)
-    return all_results
+    return all_results  # type: ignore[return-value]
 
 
 async def query_mesh_group_status(
