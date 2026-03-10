@@ -30,6 +30,7 @@ from ..status_service import (
     query_device_status as query_device_status_service,
     query_mesh_group_status as query_mesh_group_status_service,
 )
+from ..types import DeviceStatusItem
 from .connect_status import coerce_connect_status
 from .payloads import _ClientEndpointPayloadsMixin
 
@@ -81,8 +82,12 @@ class _ClientStatusEndpointsMixin(_ClientEndpointPayloadsMixin):
         *,
         max_devices_per_query: int = MAX_DEVICES_PER_QUERY,
         on_batch_metric: Callable[[int, float, int], None] | None = None,
-    ) -> list[dict[str, Any]]:
-        """Query status of multiple devices."""
+    ) -> list[DeviceStatusItem]:
+        """Query status of multiple devices.
+
+        Returns:
+            List of device status items
+        """
         return await query_device_status_service(
             device_ids=device_ids,
             max_devices_per_query=max_devices_per_query,
@@ -95,7 +100,7 @@ class _ClientStatusEndpointsMixin(_ClientEndpointPayloadsMixin):
             logger=_LOGGER,
             path_query_device_status=PATH_QUERY_DEVICE_STATUS,
             on_batch_metric=on_batch_metric,
-        )
+        )  # type: ignore[return-value]
 
     async def query_mesh_group_status(
         self, group_ids: list[str]
