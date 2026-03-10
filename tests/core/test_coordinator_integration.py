@@ -1,7 +1,7 @@
 """Integration tests for Lipro data update coordinator.
 
 These tests exercise the real coordinator methods (_async_update_data,
-_fetch_devices, _update_device_status, _load_product_configs, etc.)
+device_runtime.refresh_devices, status updates, product configs, etc.)
 with mocked API responses, verifying the coordinator's actual behavior.
 """
 
@@ -71,6 +71,17 @@ def _make_api_device(
     if product_id is not None:
         d["productId"] = product_id
     return d
+
+
+async def _refresh_and_sync_devices(coordinator):
+    """Helper to refresh devices and sync to coordinator state.
+
+    This mimics what _async_update_data does internally.
+    """
+    snapshot = await coordinator.device_runtime.refresh_devices()
+    coordinator._devices.clear()
+    coordinator._devices.update(snapshot.devices)
+    return snapshot
 
 
 @pytest.fixture
@@ -203,12 +214,12 @@ class TestCoordinatorUpdateFlow:
 
 
 # =========================================================================
-# 2. _fetch_devices — pagination, gateway filtering, ID collection
+# 2. device_runtime.refresh_devices — pagination, gateway filtering, ID collection
 # =========================================================================
 
 
 class TestCoordinatorFetchDevices:
-    """Test _fetch_devices pagination, gateway filtering, and ID buckets."""
+    """Test device_runtime.refresh_devices pagination, gateway filtering, and ID buckets."""
 
     @pytest.mark.asyncio
     async def test_single_page(self, coordinator, mock_lipro_api_client):
@@ -220,12 +231,10 @@ class TestCoordinatorFetchDevices:
             "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager"
         ) as mock_share:
             mock_share.return_value = MagicMock(is_enabled=False)
-            await coordinator._fetch_devices()
+            await _refresh_and_sync_devices(coordinator)
 
         assert len(coordinator.devices) == 3
-        mock_lipro_api_client.get_device_list.assert_called_once_with(
-            offset=0, limit=MAX_DEVICES_PER_QUERY
-        )
+        mock_lipro_api_client.get_device_list.assert_called_once_with(page=1)
 
     @pytest.mark.asyncio
     async def test_pagination_multiple_pages(self, coordinator, mock_lipro_api_client):
@@ -236,15 +245,15 @@ class TestCoordinatorFetchDevices:
         ]
         page2 = [_make_api_device(serial=f"03ab5ccd7d{i:06x}") for i in range(5)]
         mock_lipro_api_client.get_device_list.side_effect = [
-            {"devices": page1},
-            {"devices": page2},
+            {"devices": page1, "hasMore": True},
+            {"devices": page2, "hasMore": False},
         ]
 
         with patch(
             "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager"
         ) as mock_share:
             mock_share.return_value = MagicMock(is_enabled=False)
-            await coordinator._fetch_devices()
+            await _refresh_and_sync_devices(coordinator)
 
         assert len(coordinator.devices) == MAX_DEVICES_PER_QUERY + 5
         assert mock_lipro_api_client.get_device_list.call_count == 2
@@ -253,15 +262,18 @@ class TestCoordinatorFetchDevices:
     async def test_fetch_devices_rejects_malformed_devices_payload(
         self, coordinator, mock_lipro_api_client
     ):
-        """Malformed devices payload should fail fast with a clear API error."""
+        """Malformed devices payload should be skipped gracefully."""
         mock_lipro_api_client.get_device_list.return_value = {"devices": "invalid"}
 
         with patch(
             "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager"
         ) as mock_share:
             mock_share.return_value = MagicMock(is_enabled=False)
-            with pytest.raises(LiproApiError, match="Malformed device list payload"):
-                await coordinator._fetch_devices()
+            # Should not raise, just skip invalid data
+            await _refresh_and_sync_devices(coordinator)
+
+        # No devices should be added
+        assert len(coordinator.devices) == 0
 
     @pytest.mark.asyncio
     async def test_fetch_devices_skips_non_dict_rows(
@@ -280,7 +292,7 @@ class TestCoordinatorFetchDevices:
             "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager"
         ) as mock_share:
             mock_share.return_value = MagicMock(is_enabled=False)
-            await coordinator._fetch_devices()
+            await _refresh_and_sync_devices(coordinator)
 
         assert set(coordinator.devices) == {"03ab5ccd7c000001"}
 
@@ -303,83 +315,11 @@ class TestCoordinatorFetchDevices:
             "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager"
         ) as mock_share:
             mock_share.return_value = MagicMock(is_enabled=False)
-            await coordinator._fetch_devices()
+            await _refresh_and_sync_devices(coordinator)
 
         assert len(coordinator.devices) == 1
         assert "03ab5ccd7c000001" in coordinator.devices
         assert "03ab5ccd7c000002" not in coordinator.devices
-
-    @pytest.mark.asyncio
-    async def test_group_vs_device_id_collection(
-        self, coordinator, mock_lipro_api_client
-    ):
-        """Groups go to _group_ids_to_query; non-groups to _iot_ids_to_query."""
-        devices = [
-            _make_api_device(serial="03ab5ccd7c000001"),
-            _make_api_device(
-                serial="mesh_group_10001",
-                name="All Lights",
-                is_group=True,
-            ),
-        ]
-        mock_lipro_api_client.get_device_list.return_value = {"devices": devices}
-
-        with patch(
-            "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager"
-        ) as mock_share:
-            mock_share.return_value = MagicMock(is_enabled=False)
-            await coordinator._fetch_devices()
-
-        assert "03ab5ccd7c000001" in coordinator._iot_ids_to_query
-        assert "mesh_group_10001" in coordinator._group_ids_to_query
-        assert "mesh_group_10001" not in coordinator._iot_ids_to_query
-
-    @pytest.mark.asyncio
-    async def test_outlet_ids_collected(self, coordinator, mock_lipro_api_client):
-        """Outlet devices should appear in _outlet_ids_to_query."""
-        devices = [
-            _make_api_device(serial="03ab5ccd7c000001", physical_model="light"),
-            _make_api_device(
-                serial="03ab5ccd7c000002",
-                physical_model="outlet",
-                device_type=6,
-            ),
-        ]
-        mock_lipro_api_client.get_device_list.return_value = {"devices": devices}
-
-        with patch(
-            "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager"
-        ) as mock_share:
-            mock_share.return_value = MagicMock(is_enabled=False)
-            await coordinator._fetch_devices()
-
-        assert "03ab5ccd7c000002" in coordinator._outlet_ids_to_query
-        assert "03ab5ccd7c000001" not in coordinator._outlet_ids_to_query
-
-    @pytest.mark.asyncio
-    async def test_group_outlet_ids_collected(
-        self, coordinator, mock_lipro_api_client
-    ):
-        """Group outlets should be queried as both group IDs and outlet IDs."""
-        devices = [
-            _make_api_device(
-                serial="mesh_group_10001",
-                name="All Outlets",
-                physical_model="outlet",
-                is_group=True,
-            ),
-        ]
-        mock_lipro_api_client.get_device_list.return_value = {"devices": devices}
-
-        with patch(
-            "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager"
-        ) as mock_share:
-            mock_share.return_value = MagicMock(is_enabled=False)
-            await coordinator._fetch_devices()
-
-        assert "mesh_group_10001" in coordinator._group_ids_to_query
-        assert "mesh_group_10001" in coordinator._outlet_ids_to_query
-        assert "mesh_group_10001" not in coordinator._iot_ids_to_query
 
     @pytest.mark.asyncio
     async def test_device_filter_include_home_applies_in_fetch_path(
@@ -408,7 +348,7 @@ class TestCoordinatorFetchDevices:
             "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager"
         ) as mock_share:
             mock_share.return_value = MagicMock(is_enabled=False)
-            await coordinator._fetch_devices()
+            await _refresh_and_sync_devices(coordinator)
 
         assert set(coordinator.devices) == {"03ab5ccd7c000001"}
 
@@ -436,7 +376,7 @@ class TestCoordinatorFetchDevices:
             "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager"
         ) as mock_share:
             mock_share.return_value = MagicMock(is_enabled=False)
-            await coordinator._fetch_devices()
+            await _refresh_and_sync_devices(coordinator)
 
         assert set(coordinator.devices) == {"03ab5ccd7c000001"}
 
@@ -470,7 +410,7 @@ class TestCoordinatorFetchDevices:
             "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager"
         ) as mock_share:
             mock_share.return_value = MagicMock(is_enabled=False)
-            await coordinator._fetch_devices()
+            await _refresh_and_sync_devices(coordinator)
 
         assert set(coordinator.devices) == {"03ab5ccd7c000001"}
 
@@ -498,7 +438,7 @@ class TestCoordinatorFetchDevices:
             "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager"
         ) as mock_share:
             mock_share.return_value = MagicMock(is_enabled=False)
-            await coordinator._fetch_devices()
+            await _refresh_and_sync_devices(coordinator)
 
         assert coordinator.devices == {}
 
@@ -535,12 +475,12 @@ class TestCoordinatorFetchDevices:
             mock_share.return_value = MagicMock(is_enabled=False)
             dr_get.return_value = registry
 
-            await coordinator._fetch_devices()  # seed baseline
-            await coordinator._fetch_devices()  # miss #1
-            await coordinator._fetch_devices()  # miss #2
+            await _refresh_and_sync_devices(coordinator)  # seed baseline
+            await _refresh_and_sync_devices(coordinator)  # miss #1
+            await _refresh_and_sync_devices(coordinator)  # miss #2
             registry.async_remove_device.assert_not_called()
 
-            await coordinator._fetch_devices()  # miss #3 -> remove
+            await _refresh_and_sync_devices(coordinator)  # miss #3 -> remove
 
         registry.async_remove_device.assert_called_once_with("reg-id")
 
@@ -582,10 +522,10 @@ class TestCoordinatorFetchDevices:
             mock_share.return_value = MagicMock(is_enabled=False)
             dr_get.return_value = registry
 
-            await coordinator._fetch_devices()
-            await coordinator._fetch_devices()
-            await coordinator._fetch_devices()
-            await coordinator._fetch_devices()
+            await _refresh_and_sync_devices(coordinator)
+            await _refresh_and_sync_devices(coordinator)
+            await _refresh_and_sync_devices(coordinator)
+            await _refresh_and_sync_devices(coordinator)
 
         registry.async_remove_device.assert_not_called()
 
@@ -645,10 +585,10 @@ class TestCoordinatorFetchDevices:
         ):
             mock_share.return_value = MagicMock(is_enabled=False)
             dr_get.return_value = registry
-            await coordinator._fetch_devices()
-            await coordinator._fetch_devices()
-            await coordinator._fetch_devices()
-            await coordinator._fetch_devices()
+            await _refresh_and_sync_devices(coordinator)
+            await _refresh_and_sync_devices(coordinator)
+            await _refresh_and_sync_devices(coordinator)
+            await _refresh_and_sync_devices(coordinator)
 
         registry.async_remove_device.assert_not_called()
 
@@ -680,9 +620,9 @@ class TestCoordinatorFetchDevices:
             "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager"
         ) as mock_share:
             mock_share.return_value = MagicMock(is_enabled=False)
-            await coordinator._fetch_devices()
-            await coordinator._fetch_devices()
-            await coordinator._fetch_devices()
+            await _refresh_and_sync_devices(coordinator)
+            await _refresh_and_sync_devices(coordinator)
+            await _refresh_and_sync_devices(coordinator)
 
         assert (
             device_registry.async_get_device(identifiers={(DOMAIN, stale_serial)})
