@@ -37,7 +37,6 @@ from .runtime.command import (
 from .runtime.command_runtime import CommandRuntime
 from .runtime.device_runtime import DeviceRuntime
 from .runtime.mqtt_runtime import MqttRuntime
-from .runtime.shared_state import CoordinatorSharedState
 from .runtime.state_runtime import StateRuntime
 from .runtime.status_runtime import StatusRuntime
 from .runtime.tuning_runtime import TuningRuntime
@@ -153,17 +152,6 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
 
     def _init_runtime_components(self, update_interval: int) -> None:
         """Initialize all runtime components after state containers are ready."""
-
-        # Initialize shared state
-        self._shared_state = CoordinatorSharedState(
-            devices=self._devices,
-            mqtt_connected=False,
-            biz_id=None,
-            last_refresh_at=0.0,
-            polling_interval=float(update_interval),
-            command_confirmation_timeout=5.0,
-            debug_mode=False,
-        )
 
         # Initialize TuningRuntime (simplest, no dependencies)
         self._tuning_runtime = TuningRuntime(

@@ -40,7 +40,6 @@ from .runtime.command import (
 from .runtime.command_runtime import CommandRuntime
 from .runtime.device_runtime import DeviceRuntime
 from .runtime.mqtt_runtime import MqttRuntime
-from .runtime.shared_state import CoordinatorSharedState
 from .runtime.state_runtime import StateRuntime
 from .runtime.status_runtime import StatusRuntime
 from .runtime.tuning_runtime import TuningRuntime
@@ -81,7 +80,6 @@ class CoordinatorStateContainers:
 class CoordinatorRuntimes:
     """Runtime component registry."""
 
-    shared_state: CoordinatorSharedState
     tuning: TuningRuntime
     state: StateRuntime
     device: DeviceRuntime
@@ -132,16 +130,6 @@ def build_runtimes(
     trigger_reauth: Callable[[str], Coroutine[Any, Any, None]],
 ) -> CoordinatorRuntimes:
     """Build all runtime components and complete dependency injection."""
-
-    shared_state = CoordinatorSharedState(
-        devices=state.devices,
-        mqtt_connected=False,
-        biz_id=None,
-        last_refresh_at=0.0,
-        polling_interval=float(update_interval),
-        command_confirmation_timeout=5.0,
-        debug_mode=False,
-    )
 
     tuning_runtime = TuningRuntime(
         initial_batch_size=32,
@@ -281,7 +269,6 @@ def build_runtimes(
     )
 
     return CoordinatorRuntimes(
-        shared_state=shared_state,
         tuning=tuning_runtime,
         state=state_runtime,
         device=device_runtime,
