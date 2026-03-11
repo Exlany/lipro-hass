@@ -70,7 +70,7 @@ class CommandRuntime:
     @property
     def last_command_failure(self) -> CommandTrace | None:
         """Get latest command failure."""
-        return dict(self._last_failure) if self._last_failure else None
+        return self._last_failure
 
     def _record_trace(self, trace: CommandTrace) -> None:
         """Record trace if debug enabled."""
@@ -125,7 +125,7 @@ class CommandRuntime:
             ), "unknown"
 
         if is_command_push_failed(result):
-            self._last_failure = apply_push_failure(
+            apply_push_failure(
                 trace=trace,
                 route=route,
                 command=command,
@@ -133,12 +133,13 @@ class CommandRuntime:
                 device_serial=device.serial,
                 logger=_LOGGER,
             )
+            self._last_failure = trace
             self._record_trace(trace)
             return False, route
 
         msg_sn = extract_msg_sn(result)
         if not msg_sn:
-            self._last_failure = apply_missing_msg_sn_failure(
+            apply_missing_msg_sn_failure(
                 trace=trace,
                 route=route,
                 command=command,
@@ -146,6 +147,7 @@ class CommandRuntime:
                 device_serial=device.serial,
                 logger=_LOGGER,
             )
+            self._last_failure = trace
             self._record_trace(trace)
             return False, route
 
@@ -164,7 +166,7 @@ class CommandRuntime:
         return True, route
 
     async def _verify_delivery(
-        self, *, trace: dict[str, Any], route: str, msg_sn: str, device: LiproDevice
+        self, *, trace: CommandTrace, route: str, msg_sn: str, device: LiproDevice
     ) -> bool:
         """Verify command delivery via polling."""
         retry_delays = self._retry.build_retry_delays()
@@ -180,7 +182,7 @@ class CommandRuntime:
         command: str,
         properties: list[dict[str, str]] | None,
         route: str,
-        trace: dict[str, Any],
+        trace: CommandTrace,
     ) -> None:
         """Finalize successful command."""
         skip_immediate = self._builder.should_skip_immediate_refresh(
@@ -218,13 +220,14 @@ class CommandRuntime:
         err: LiproApiError,
     ) -> bool:
         """Handle API errors."""
-        self._last_failure = build_command_api_error_failure(
+        build_command_api_error_failure(
             trace=trace,
             route=route,
             device_serial=device.serial,
             err=err,
             update_trace_with_exception=update_trace_with_exception,
         )
+        self._last_failure = trace
         self._record_trace(trace)
         if isinstance(err, LiproRefreshTokenExpiredError | LiproAuthError):
             await self._trigger_reauth(

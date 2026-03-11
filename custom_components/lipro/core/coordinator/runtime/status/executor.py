@@ -103,7 +103,7 @@ class StatusExecutor:
         batches: list[list[str]],
         *,
         concurrency: int = 3,
-    ) -> list[dict[str, Any]]:
+    ) -> list[StatusQueryMetrics]:
         """Execute multiple status queries in parallel.
 
         Args:
@@ -118,7 +118,7 @@ class StatusExecutor:
 
         semaphore = asyncio.Semaphore(concurrency)
 
-        async def _execute_with_semaphore(batch: list[str]) -> dict[str, Any]:
+        async def _execute_with_semaphore(batch: list[str]) -> StatusQueryMetrics:
             async with semaphore:
                 return await self.execute_status_query(batch)
 
@@ -127,17 +127,16 @@ class StatusExecutor:
             return_exceptions=True,
         )
 
-        metrics: list[dict[str, Any]] = []
+        metrics: list[StatusQueryMetrics] = []
         for i, result in enumerate(results):
             if isinstance(result, BaseException):
-                metrics.append(
-                    {
-                        "duration": 0.0,
-                        "device_count": len(batches[i]),
-                        "updated_count": 0,
-                        "error": str(result),
-                    }
-                )
+                failure_metrics: StatusQueryMetrics = {
+                    "duration": 0.0,
+                    "device_count": len(batches[i]),
+                    "updated_count": 0,
+                    "error": str(result),
+                }
+                metrics.append(failure_metrics)
             else:
                 metrics.append(result)
 

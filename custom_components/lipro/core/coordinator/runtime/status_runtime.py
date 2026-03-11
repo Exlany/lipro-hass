@@ -11,6 +11,7 @@ if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable
 
     from ...device import LiproDevice
+    from ..types import StatusQueryMetrics
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -116,7 +117,7 @@ class StatusRuntime:
         self._strategy.update_batch_size(new_size)
 
     # Executor methods
-    async def execute_status_query(self, device_ids: list[str]) -> dict[str, Any]:
+    async def execute_status_query(self, device_ids: list[str]) -> StatusQueryMetrics:
         """Execute status query for a batch of devices."""
         return await self._executor.execute_status_query(device_ids)
 
@@ -125,7 +126,7 @@ class StatusRuntime:
         batches: list[list[str]],
         *,
         concurrency: int = 3,
-    ) -> list[dict[str, Any]]:
+    ) -> list[StatusQueryMetrics]:
         """Execute multiple status queries in parallel."""
         return await self._executor.execute_parallel_queries(
             batches, concurrency=concurrency

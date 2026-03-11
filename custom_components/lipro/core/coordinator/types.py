@@ -29,48 +29,16 @@ class CommandPayload(TypedDict, total=False):
     device_id: str
 
 
-class CommandTrace(TypedDict, total=False):
-    """Command execution trace payload with structured fields.
+type CommandTrace = dict[str, Any]
+"""Command execution trace payload (debug/diagnostics).
 
-    This trace is built incrementally during command execution:
-    - Initial fields from build_command_trace()
-    - Resolved fields from update_trace_with_resolved_request()
-    - Response fields from update_trace_with_response()
-    - Error fields from update_trace_with_exception()
-    """
+The trace payload is built incrementally during command execution and is
+intentionally modeled as a free-form dictionary to avoid tight coupling
+between coordinator runtimes and the lower-level command helpers.
+"""
 
-    # Initial trace fields
-    timestamp: str
-    device_id: str | None
-    is_group: bool
-    iot_name: str
-    device_type: int
-    physical_model: str | None
-    requested_command: str
-    requested_property_count: int
-    requested_property_keys: list[str]
-    requested_fallback_device_id: str | None
 
-    # Resolved request fields
-    effective_fallback_device_id: str | None
-    resolved_command: str
-    resolved_property_count: int
-    resolved_property_keys: list[str]
-
-    # Response fields
-    push_success: bool | None
-    response_code: int | str | None
-    response_message: str | None
-    response_msg_sn: str | None
-    response_push_timestamp: int | None
-
-    # Error fields
-    route: str
-    success: bool
-    error: str
-    error_message: str
-    error_detail: str | None
-    error_code: int | None
+# MQTT types
 
 
 # MQTT types

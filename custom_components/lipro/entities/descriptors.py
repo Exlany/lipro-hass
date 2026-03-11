@@ -117,7 +117,7 @@ class ScaledBrightness(DeviceAttr[int | None]):
         super().__init__(attr, transform=scale_brightness)
 
 
-class ConditionalAttr(DeviceAttr[T]):
+class ConditionalAttr(DeviceAttr[T | None]):
     """Conditional descriptor that returns None when device lacks capability.
 
     Only returns the attribute value when the device has the specified capability.
