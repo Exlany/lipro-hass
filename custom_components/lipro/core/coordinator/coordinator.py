@@ -385,8 +385,7 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
         mqtt_runtime, mqtt_client, biz_id = result
         self._state.mqtt_client = mqtt_client
         self._state.biz_id = biz_id
-        # Update frozen dataclass using object.__setattr__
-        object.__setattr__(self._runtimes, "mqtt", mqtt_runtime)
+        self._runtimes.mqtt = mqtt_runtime
 
         return True
 

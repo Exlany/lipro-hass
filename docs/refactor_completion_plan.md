@@ -933,6 +933,13 @@ Runtime 的读取操作从直接操作 `dict[str, LiproDevice]` 改为读取 fro
 - [x] Phase L（大文件拆分评估 — 评估后不执行）— 2026-03-11
 - [x] Service 层架构定位文档补充（Stable Interface Pattern）— 2026-03-11
 
+### 二次架构审查 + 清理
+
+- [x] factory.py 死代码清理（325行→66行，删除旧 DI 布线 + Noop 类）— 2026-03-11
+- [x] 消除 `object.__setattr__` frozen dataclass hack — 2026-03-11
+- [x] developer_architecture.md 升级为 v3.0 — 2026-03-11
+- [x] 制定 M1-M4 改进计划 — 2026-03-11
+
 ### 激进重构（Phase C - Aggressive）
 
 - [x] **Phase C（RuntimeContext + Orchestrator）— 2026-03-11 完成**
@@ -1400,6 +1407,115 @@ uv run python scripts/generate_test_matrix.py
 2. **Phase H-I 组合拳**：再完成 10.3（依赖注入）+ 10.4（Service 重定位），优化 Coordinator 层
 3. **Phase J-K 收尾**：最后处理 Feature Component + SharedState 清理
 4. **独立优化**：10.5-10.7 作为独立 Phase，根据实际需求决定是否执行
+
+---
+
+## 13. 架构审查发现与改进计划（2026-03-11 二次审查）
+
+> 基于全面代码审查 + 外部评审反馈，识别出以下问题并制定改进方案。
+
+### 13.1 已修复的问题
+
+#### ✅ factory.py 遗留死代码（已清理）
+
+**问题**：Phase C 引入 Orchestrator 后，factory.py 中的 `build_state_containers()`、`build_runtimes()`、
+5 个 `_Noop*` 类、`async_create_mqtt_client()`、`raise_reauth()` 均为死代码，主路径已走 orchestrator.py。
+维护者看到两套并行的 DI 布线会产生困惑。
+
+**处理**：factory.py 从 325 行精简为 66 行，仅保留：
+- `CoordinatorStateContainers` dataclass
+- `CoordinatorRuntimes` dataclass
+- `normalize_device_key()` 工具函数
+
+#### ✅ frozen dataclass 的 `object.__setattr__` hack（已消除）
+
+**问题**：`CoordinatorRuntimes` 是 `frozen=True` dataclass，但 MQTT Runtime 需要延迟替换。
+`coordinator.py` 使用 `object.__setattr__(self._runtimes, "mqtt", mqtt_runtime)` 绕过冻结约束，
+属于"能工作但不直观"的实现。
+
+**处理**：将 `CoordinatorRuntimes` 从 `frozen=True` 改为普通 `slots=True` dataclass。
+MQTT 字段可直接赋值（`self._runtimes.mqtt = mqtt_runtime`），无需 hack。
+不可变性由代码约定保证（仅在 `async_setup_mqtt()` 中赋值一次），而非语言机制强制。
+
+### 13.2 待改进的问题
+
+#### M1. diagnostics_service.py 拆分（668 行，低内聚）
+
+**优先级**：P1（中）
+**问题**：与 result.py / status_service.py 不同，diagnostics_service.py 是**低内聚的服务聚合文件**。
+其 668 行包含 3 个无关的功能块：类型定义（~170行）、通用工具（~200行）、具体处理器（~300行）。
+
+**方案**：
+```
+services/diagnostics_service.py (668 行)
+    → services/diagnostics/types.py       (~80 行, TypedDict + Protocol)
+    → services/diagnostics/helpers.py     (~120 行, 通用工具函数)
+    → services/diagnostics/handlers.py    (~300 行, 具体服务处理器)
+    → services/diagnostics/__init__.py    (re-export 公共 API)
+```
+
+**验收**：
+- [ ] 拆分后各文件 < 300 行
+- [ ] 所有 diagnostics 相关测试通过
+- [ ] 外部导入路径不变（通过 `__init__.py` re-export）
+
+#### M2. 文档数字漂移风险
+
+**优先级**：P2（低）
+**问题**：计划文档中多处记录"pytest passed 数量/耗时/行数"，后续演进时手工同步成本高。
+
+**方案**：
+- 文档中只写"事实 + 验证命令"，不硬编码数字
+- 使用 `uv run pytest -q` 的输出截图或引用，而非手工抄录
+- 指标以 CI 或本地命令输出为准
+
+**已部分实现**：developer_architecture.md v3.0 已遵循此原则（不写数字指标）。
+
+#### M3. API Client mixin 组合复杂度
+
+**优先级**：P3（低，远期）
+**问题**：`LiproClient` 通过多重继承组合 10+ 个 mixin，方法解析顺序 (MRO) 难以理解。
+
+**评估**：
+- 当前 mixin 模式是 HA 生态常见实践
+- 功能稳定，无活跃 bug
+- 重构为组合模式（独立 service 类）收益有限，风险较高
+- **结论**：保持现状，仅在 API 层大规模重构时考虑
+
+#### M4. 复杂度转移（Orchestrator 理解门槛）
+
+**优先级**：信息项（无需行动）
+**评估**：Coordinator 变薄的同时，复杂度迁移到 orchestrator/runtime_context/mqtt_lifecycle。
+这是正确的工程取舍——复杂度没有消失，但从"一个 600 行巨型文件"变成了"三个 < 260 行的聚焦模块"。
+对新贡献者的理解门槛确实更高，但每个模块的**局部复杂度**更低，可独立理解和测试。
+
+---
+
+## 14. 重构前后对比总结
+
+### 架构演进时间线
+
+| 阶段 | 架构模式 | Coordinator 行数 | DI 方式 |
+|------|---------|-----------------|---------|
+| 基线（重构前） | Mixin 拼装 | ~800+ | 无 DI，直接耦合 |
+| Phase A-E（收口） | 组合式 Runtime | ~597 | lambda 闭包注入 |
+| Phase H2+I（提取） | Runtime + factory | ~569 | factory 函数 + setter 注入 |
+| Phase C（激进） | RuntimeContext + Orchestrator | ~450 | RuntimeContext 回调注入 |
+| 当前（清理后） | 同上 + 死代码清除 | ~450 | 同上 + 无 frozen hack |
+
+### 关键改进指标
+
+| 维度 | 重构前 | 重构后 | 改善 |
+|------|--------|--------|------|
+| Coordinator 行数 | 800+ | 450 | -44% |
+| DI 模式 | lambda + setter + 两阶段 | RuntimeContext 构造器注入 | 统一化 |
+| 死代码 | SharedState(207行) + factory旧DI(259行) | 0 | 全清除 |
+| Entity 样板代码 | 手工 getter/setter | 描述符 + 声明式命令 | -89%(Light) |
+| 平台层模式 | 3种混合模式 | 2种统一模式 | 标准化 |
+| 命令发送路径 | 3种不同路径 | 统一 PowerCommand | 标准化 |
+| type: ignore | 未统计 | 18个（有文档说明） | 可追溯 |
+| 测试 | 不确定 | 2089 通过 | 全绿 |
+| 静态检查 | 不确定 | ruff + mypy 全绿 | 全绿 |
 
 ---
 
