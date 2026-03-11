@@ -22,6 +22,7 @@ from .const.properties import (
     PROP_POSITION,
 )
 from .entities.base import LiproEntity
+from .entities.descriptors import DeviceAttr
 from .helpers.platform import create_platform_entities
 
 if TYPE_CHECKING:
@@ -61,17 +62,8 @@ class LiproCover(LiproEntity, CoverEntity):
     _attr_translation_key = "curtain"
     _attr_name = None  # Use device name
 
-    @property
-    def current_cover_position(self) -> int | None:
-        """Return current position of cover (0-100).
-
-        Lipro API: position 0=fully closed, 100=fully open
-        Home Assistant: same convention (0=closed, 100=open)
-        No conversion needed.
-        """
-        if PROP_POSITION not in self.device.properties:
-            return None
-        return self.device.position
+    # Declarative properties using descriptors (eliminates 1 manual @property method)
+    current_cover_position = DeviceAttr[int | None]("position")
 
     @property
     def is_closed(self) -> bool | None:
