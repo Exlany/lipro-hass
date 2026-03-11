@@ -1,21 +1,36 @@
-"""Developer/diagnostic service handlers for Lipro integration.
+"""Diagnostics service module.
 
-DEPRECATED: This module is a compatibility shim. All functionality has been
-moved to the diagnostics/ package for better modularity and maintainability.
+This module provides diagnostics service handlers split into:
+- types: TypedDict, Protocol, and type alias definitions
+- helpers: Utility functions for parameter extraction and capability collection
+- handlers: Concrete service handler implementations
 
-New code should import directly from:
-- .diagnostics.types for type definitions
-- .diagnostics.helpers for utility functions
-- .diagnostics.handlers for service handlers
-
-This shim will be removed in a future version.
+All public APIs are re-exported from this module to maintain backward compatibility.
 """
 
 from __future__ import annotations
 
-# Re-export all public APIs from the diagnostics package for backward compatibility
-from .diagnostics import (
-    # Type aliases
+# Re-export handlers
+from .handlers import (
+    async_handle_fetch_body_sensor_history,
+    async_handle_fetch_door_sensor_history,
+    async_handle_get_city,
+    async_handle_query_command_result,
+    async_handle_query_user_cloud,
+)
+
+# Re-export helpers
+from .helpers import (
+    async_call_optional_capability,
+    async_handle_get_developer_report,
+    async_handle_submit_developer_feedback,
+    build_sensor_history_result,
+    collect_developer_reports,
+    raise_optional_capability_error,
+)
+
+# Re-export types
+from .types import (
     AnonymousShareManagerFactory,
     CapabilityPayload,
     CapabilityResponse,
@@ -37,31 +52,10 @@ from .diagnostics import (
     SensorHistoryClientMethod,
     SensorHistoryResponse,
     SensorHistoryResultBuilder,
-    # Helper functions
-    async_call_optional_capability,
-    # Service handlers
-    async_handle_fetch_body_sensor_history,
-    async_handle_fetch_door_sensor_history,
-    async_handle_get_city,
-    async_handle_get_developer_report,
-    async_handle_query_command_result,
-    async_handle_query_user_cloud,
-    async_handle_submit_developer_feedback,
-    build_sensor_history_result,
-    collect_developer_reports,
-    raise_optional_capability_error,
-)
-
-# Re-export internal helpers used by tests (prefixed with _)
-from .diagnostics.handlers import _build_last_error_payload  # noqa: F401
-from .diagnostics.helpers import (  # noqa: F401
-    _async_get_first_coordinator_capability_result,
-    _coerce_service_float,
-    _coerce_service_int,
 )
 
 __all__ = [
-    # Type aliases
+    # Types
     "AnonymousShareManagerFactory",
     "CapabilityPayload",
     "CapabilityResponse",
@@ -83,9 +77,9 @@ __all__ = [
     "SensorHistoryClientMethod",
     "SensorHistoryResponse",
     "SensorHistoryResultBuilder",
-    # Helper functions
+    # Helpers
     "async_call_optional_capability",
-    # Service handlers
+    # Handlers
     "async_handle_fetch_body_sensor_history",
     "async_handle_fetch_door_sensor_history",
     "async_handle_get_city",
