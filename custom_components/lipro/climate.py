@@ -9,8 +9,6 @@ from homeassistant.components.climate.const import ClimateEntityFeature, HVACMod
 from homeassistant.const import UnitOfTemperature
 
 from .const.properties import (
-    CMD_POWER_OFF,
-    CMD_POWER_ON,
     HEATER_MODE_DEFAULT,
     HEATER_MODE_DEMIST,
     HEATER_MODE_DRY,
@@ -19,6 +17,7 @@ from .const.properties import (
     PROP_HEATER_SWITCH,
 )
 from .entities.base import LiproEntity
+from .entities.commands import PowerCommand
 from .helpers.platform import create_platform_entities
 
 if TYPE_CHECKING:
@@ -65,6 +64,8 @@ async def async_setup_entry(
 class LiproHeater(LiproEntity, ClimateEntity):
     """Representation of a Lipro heater."""
 
+    _power = PowerCommand(state_key=PROP_HEATER_SWITCH)
+
     _attr_hvac_modes = [HVACMode.HEAT, HVACMode.OFF]  # noqa: RUF012
     _attr_supported_features = (
         ClimateEntityFeature.PRESET_MODE
@@ -92,13 +93,9 @@ class LiproHeater(LiproEntity, ClimateEntity):
     async def async_set_hvac_mode(self, hvac_mode: HVACMode) -> None:
         """Set HVAC mode."""
         if hvac_mode == HVACMode.HEAT:
-            await self.async_send_command(CMD_POWER_ON, None, {PROP_HEATER_SWITCH: "1"})
+            await self._power.turn_on(self)
         else:
-            await self.async_send_command(
-                CMD_POWER_OFF,
-                None,
-                {PROP_HEATER_SWITCH: "0"},
-            )
+            await self._power.turn_off(self)
 
     async def async_set_preset_mode(self, preset_mode: str) -> None:
         """Set preset mode."""

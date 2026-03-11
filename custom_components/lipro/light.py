@@ -13,8 +13,6 @@ from homeassistant.components.light.const import ColorMode
 
 from .const.config import CONF_LIGHT_TURN_ON_ON_ADJUST, DEFAULT_LIGHT_TURN_ON_ON_ADJUST
 from .const.properties import (
-    CMD_POWER_OFF,
-    CMD_POWER_ON,
     MAX_BRIGHTNESS,
     MIN_BRIGHTNESS,
     PROP_BRIGHTNESS,
@@ -23,6 +21,7 @@ from .const.properties import (
 )
 from .core.utils.coerce import coerce_bool_option
 from .entities.base import LiproEntity
+from .entities.commands import PowerCommand
 from .entities.descriptors import ConditionalAttr, DeviceAttr, ScaledBrightness
 from .helpers.platform import create_platform_entities
 
@@ -65,6 +64,8 @@ class LiproLight(LiproEntity, LightEntity):
         "color_temp",
         capability="supports_color_temp",
     )
+
+    _power = PowerCommand()
 
     def __init__(
         self,
@@ -194,8 +195,8 @@ class LiproLight(LiproEntity, LightEntity):
             await self.async_change_state(state_changes, debounced=True)
         else:
             # Just turn on (no debounce needed for simple on/off)
-            await self.async_send_command(CMD_POWER_ON, None, {PROP_POWER_STATE: "1"})
+            await self._power.turn_on(self)
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn off the light."""
-        await self.async_send_command(CMD_POWER_OFF, None, {PROP_POWER_STATE: "0"})
+        await self._power.turn_off(self)

@@ -10,19 +10,20 @@ from homeassistant.const import EntityCategory
 
 from .const.device_types import DEVICE_TYPE_OUTLET, DEVICE_TYPE_PANEL
 from .const.properties import (
-    CMD_PANEL_CHANGE_STATE,
-    CMD_POWER_OFF,
-    CMD_POWER_ON,
     PROP_BODY_REACTIVE,
     PROP_FADE_STATE,
     PROP_FOCUS_MODE,
     PROP_LED,
     PROP_MEMORY,
-    PROP_POWER_STATE,
     PROP_SLEEP_AID_ENABLE,
     PROP_WAKE_UP_ENABLE,
 )
 from .entities.base import LiproEntity
+from .entities.commands import (
+    PanelPropertyToggleCommand,
+    PowerCommand,
+    PropertyToggleCommand,
+)
 from .helpers.platform import create_device_entities, create_platform_entities
 
 if TYPE_CHECKING:
@@ -161,6 +162,8 @@ class LiproSwitch(LiproEntity, SwitchEntity):
 
     _attr_name = None  # Use device name
 
+    _power = PowerCommand()
+
     def __init__(
         self,
         coordinator: LiproCoordinator,
@@ -183,11 +186,11 @@ class LiproSwitch(LiproEntity, SwitchEntity):
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn on the switch."""
-        await self.async_send_command(CMD_POWER_ON, None, {PROP_POWER_STATE: "1"})
+        await self._power.turn_on(self)
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn off the switch."""
-        await self.async_send_command(CMD_POWER_OFF, None, {PROP_POWER_STATE: "0"})
+        await self._power.turn_off(self)
 
 
 class LiproPropertySwitch(LiproEntity, SwitchEntity):
@@ -204,6 +207,7 @@ class LiproPropertySwitch(LiproEntity, SwitchEntity):
         """Initialize the property switch."""
         super().__init__(coordinator, device, config.entity_suffix)
         self._config = config
+        self._toggle = PropertyToggleCommand(config.property_key)
         self._attr_translation_key = config.translation_key
 
     @property
@@ -213,11 +217,11 @@ class LiproPropertySwitch(LiproEntity, SwitchEntity):
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Enable the feature."""
-        await self.async_change_state({self._config.property_key: "1"})
+        await self._toggle.turn_on(self)
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Disable the feature."""
-        await self.async_change_state({self._config.property_key: "0"})
+        await self._toggle.turn_off(self)
 
 
 class LiproPanelPropertySwitch(LiproEntity, SwitchEntity):
@@ -234,6 +238,7 @@ class LiproPanelPropertySwitch(LiproEntity, SwitchEntity):
         """Initialize the panel property switch."""
         super().__init__(coordinator, device, config.entity_suffix)
         self._config = config
+        self._toggle = PanelPropertyToggleCommand(config.property_key)
         self._attr_translation_key = config.translation_key
 
     @property
@@ -241,26 +246,11 @@ class LiproPanelPropertySwitch(LiproEntity, SwitchEntity):
         """Return true if the feature is enabled."""
         return bool(getattr(self.device, self._config.device_property, False))
 
-    async def _async_set_panel_state(self, enabled: bool) -> None:
-        """Send one panel config update with the required panelType."""
-        value = "1" if enabled else "0"
-        payload, _ = self._normalize_property_map(
-            {
-                self._config.property_key: value,
-                "panelType": self.device.panel_type,
-            }
-        )
-        await self.async_send_command(
-            CMD_PANEL_CHANGE_STATE,
-            payload,
-            {self._config.property_key: value},
-        )
-
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Enable the panel feature."""
-        await self._async_set_panel_state(True)
+        await self._toggle.turn_on(self)
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Disable the panel feature."""
-        await self._async_set_panel_state(False)
+        await self._toggle.turn_off(self)
 

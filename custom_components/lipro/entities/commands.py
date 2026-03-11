@@ -55,7 +55,10 @@ class PanelTypeProvider(Protocol):
 class PanelCommandEntity(CommandEntity, Protocol):
     """Entity surface required for panel feature commands."""
 
-    device: PanelTypeProvider
+    @property
+    def device(self) -> PanelTypeProvider:
+        """Return the bound device."""
+        ...
 
 
 @dataclass(frozen=True, slots=True)
