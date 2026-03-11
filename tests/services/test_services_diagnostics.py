@@ -8,17 +8,21 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 
 from custom_components.lipro.core import LiproApiError
-from custom_components.lipro.services.diagnostics_service import (
-    _async_get_first_coordinator_capability_result,
-    _build_last_error_payload,
-    _coerce_service_float,
-    _coerce_service_int,
+from custom_components.lipro.services.diagnostics import (
     async_call_optional_capability,
     async_handle_get_city,
     async_handle_get_developer_report,
     async_handle_query_user_cloud,
     async_handle_submit_developer_feedback,
     collect_developer_reports,
+)
+from custom_components.lipro.services.diagnostics.handlers import (
+    _build_last_error_payload,
+)
+from custom_components.lipro.services.diagnostics.helpers import (
+    _async_get_first_coordinator_capability_result,
+    _coerce_service_float,
+    _coerce_service_int,
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
