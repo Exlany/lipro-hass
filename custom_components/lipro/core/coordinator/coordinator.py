@@ -15,7 +15,7 @@ from typing import TYPE_CHECKING, Any
 from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from ...const.config import CONF_PHONE_ID, DEFAULT_SCAN_INTERVAL
+from ...const.config import DEFAULT_SCAN_INTERVAL
 from ..api import (
     LiproApiError,
     LiproAuthError,
@@ -25,10 +25,9 @@ from ..api import (
 )
 from ..command.confirmation_tracker import CommandConfirmationTracker
 from ..device.identity_index import DeviceIdentityIndex
-from ..mqtt.credentials import decrypt_mqtt_credential
 from ..mqtt.mqtt_client import LiproMqttClient
 from ..utils.background_task_manager import BackgroundTaskManager
-from .mqtt.setup import resolve_mqtt_biz_id
+from .mqtt_lifecycle import async_setup_mqtt as setup_mqtt_lifecycle
 from .runtime.command import (
     CommandBuilder,
     CommandSender,
@@ -478,8 +477,7 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
     async def async_setup_mqtt(self) -> bool:
         """Set up MQTT client for real-time updates.
 
-        This method creates and initializes the MQTT client with credentials
-        from the API, then starts the connection for current devices.
+        This method delegates to the mqtt_lifecycle module for setup.
 
         Returns:
             True if setup succeeded, False otherwise
@@ -488,106 +486,27 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
             _LOGGER.error("Cannot setup MQTT: config_entry is None")
             return False
 
-        try:
-            # 10s timeout for MQTT config fetch
-            try:
-                async with asyncio.timeout(10):
-                    mqtt_config = await self.client.get_mqtt_config()
-            except TimeoutError:
-                _LOGGER.error("MQTT config fetch timeout after 10 seconds")
-                return False
+        result = await setup_mqtt_lifecycle(
+            hass=self.hass,
+            client=self.client,
+            config_entry=self.config_entry,
+            state_runtime=self._state_runtime,
+            background_task_manager=self._background_task_manager,
+            devices=self._devices,
+            scan_interval_seconds=self._scan_interval_seconds,
+            apply_properties_update=self._apply_properties_update,
+            set_updated_data=self.async_set_updated_data,
+        )
 
-            if not mqtt_config:
-                _LOGGER.warning("No MQTT config available")
-                return False
-
-            # Decrypt credentials
-            access_key = decrypt_mqtt_credential(mqtt_config.get("accessKey", ""))
-            secret_key = decrypt_mqtt_credential(mqtt_config.get("secretKey", ""))
-
-            if not access_key or not secret_key:
-                _LOGGER.warning("Failed to decrypt MQTT credentials")
-                return False
-
-            # Resolve biz_id
-            biz_id = resolve_mqtt_biz_id(self._config_entry.data)
-            if biz_id is None:
-                _LOGGER.warning("No biz_id available for MQTT")
-                return False
-
-            self._biz_id = biz_id
-            phone_id = self._config_entry.data.get(CONF_PHONE_ID, "")
-
-            # Create MQTT client
-            self._mqtt_client = LiproMqttClient(
-                access_key=access_key,
-                secret_key=secret_key,
-                biz_id=biz_id,
-                phone_id=phone_id,
-            )
-
-            # Update runtime with new client
-            self._mqtt_runtime = MqttRuntime(
-                hass=self.hass,
-                mqtt_client=self._mqtt_client,
-                base_scan_interval=self._scan_interval_seconds,
-                polling_multiplier=2,
-                background_task_manager=self._background_task_manager,
-            )
-
-            # Wire up dependencies
-            self._mqtt_runtime.set_device_resolver(self._state_runtime)
-            self._mqtt_runtime.set_property_applier(self._apply_properties_update)
-
-            class _MqttListenerNotifier:
-                def __init__(self, coordinator: Coordinator) -> None:
-                    self._coordinator = coordinator
-
-                def schedule_listener_update(self) -> None:
-                    self._coordinator.async_set_updated_data(self._coordinator.devices)
-
-            class _NoopConnectStateTracker:
-                def record_connect_state(
-                    self, device_serial: str, timestamp: float, is_online: bool
-                ) -> None:
-                    return None
-
-            class _NoopGroupReconciler:
-                def schedule_group_reconciliation(
-                    self, device_name: str, timestamp: float
-                ) -> None:
-                    return None
-
-            self._mqtt_runtime.set_listener_notifier(_MqttListenerNotifier(self))
-            self._mqtt_runtime.set_connect_state_tracker(_NoopConnectStateTracker())
-            self._mqtt_runtime.set_group_reconciler(_NoopGroupReconciler())
-
-            # Start MQTT connection for current devices with 15s timeout
-            device_ids = [
-                device.serial
-                for device in self._devices.values()
-                if device.is_group  # Prefer mesh groups
-            ]
-            if device_ids:
-                try:
-                    async with asyncio.timeout(15):
-                        await self._mqtt_runtime.connect(device_ids=device_ids, biz_id=biz_id)
-                except TimeoutError:
-                    _LOGGER.error("MQTT connection timeout after 15 seconds")
-                    return False
-
-            # Verify connection state before returning success
-            if not self._mqtt_runtime.is_connected:
-                _LOGGER.warning("MQTT client not connected after setup")
-                return False
-
-            return True
-
-        except (asyncio.CancelledError, KeyboardInterrupt, SystemExit):
-            raise
-        except Exception as err:  # noqa: BLE001
-            _LOGGER.warning("Failed to setup MQTT: %s", err)
+        if result is None:
             return False
+
+        mqtt_runtime, mqtt_client, biz_id = result
+        self._mqtt_client = mqtt_client
+        self._biz_id = biz_id
+        self._mqtt_runtime = mqtt_runtime
+
+        return True
 
     async def _async_update_data(self) -> dict[str, LiproDevice]:
         """Fetch data from API.

@@ -76,14 +76,14 @@ async def test_async_setup_mqtt_builds_refactored_client(
 
     with (
         patch(
-            "custom_components.lipro.core.coordinator.coordinator.decrypt_mqtt_credential",
+            "custom_components.lipro.core.coordinator.mqtt_lifecycle.decrypt_mqtt_credential",
             side_effect=["ak", "sk"],
         ),
         patch(
-            "custom_components.lipro.core.coordinator.coordinator.LiproMqttClient"
+            "custom_components.lipro.core.coordinator.mqtt_lifecycle.LiproMqttClient"
         ) as mock_client_cls,
         patch(
-            "custom_components.lipro.core.coordinator.coordinator.MqttRuntime"
+            "custom_components.lipro.core.coordinator.mqtt_lifecycle.MqttRuntime"
         ) as mock_runtime_cls,
     ):
         mock_client = MagicMock()
@@ -139,11 +139,11 @@ async def test_async_setup_mqtt_requires_decrypted_credentials_and_biz_id(
 
     with (
         patch(
-            "custom_components.lipro.core.coordinator.coordinator.decrypt_mqtt_credential",
+            "custom_components.lipro.core.coordinator.mqtt_lifecycle.decrypt_mqtt_credential",
             side_effect=decrypt_results,
         ),
         patch(
-            "custom_components.lipro.core.coordinator.coordinator.resolve_mqtt_biz_id",
+            "custom_components.lipro.core.coordinator.mqtt_lifecycle.resolve_mqtt_biz_id",
             return_value=biz_id,
         ),
     ):
@@ -164,18 +164,18 @@ async def test_async_setup_mqtt_returns_false_when_group_connect_times_out(
 
     with (
         patch(
-            "custom_components.lipro.core.coordinator.coordinator.decrypt_mqtt_credential",
+            "custom_components.lipro.core.coordinator.mqtt_lifecycle.decrypt_mqtt_credential",
             side_effect=["ak", "sk"],
         ),
         patch(
-            "custom_components.lipro.core.coordinator.coordinator.resolve_mqtt_biz_id",
+            "custom_components.lipro.core.coordinator.mqtt_lifecycle.resolve_mqtt_biz_id",
             return_value="biz001",
         ),
         patch(
-            "custom_components.lipro.core.coordinator.coordinator.LiproMqttClient"
+            "custom_components.lipro.core.coordinator.mqtt_lifecycle.LiproMqttClient"
         ),
         patch(
-            "custom_components.lipro.core.coordinator.coordinator.MqttRuntime"
+            "custom_components.lipro.core.coordinator.mqtt_lifecycle.MqttRuntime"
         ) as mock_runtime_cls,
     ):
         mock_runtime = MagicMock()
@@ -201,18 +201,18 @@ async def test_async_setup_mqtt_returns_false_when_runtime_stays_disconnected(
 
     with (
         patch(
-            "custom_components.lipro.core.coordinator.coordinator.decrypt_mqtt_credential",
+            "custom_components.lipro.core.coordinator.mqtt_lifecycle.decrypt_mqtt_credential",
             side_effect=["ak", "sk"],
         ),
         patch(
-            "custom_components.lipro.core.coordinator.coordinator.resolve_mqtt_biz_id",
+            "custom_components.lipro.core.coordinator.mqtt_lifecycle.resolve_mqtt_biz_id",
             return_value="biz001",
         ),
         patch(
-            "custom_components.lipro.core.coordinator.coordinator.LiproMqttClient"
+            "custom_components.lipro.core.coordinator.mqtt_lifecycle.LiproMqttClient"
         ),
         patch(
-            "custom_components.lipro.core.coordinator.coordinator.MqttRuntime"
+            "custom_components.lipro.core.coordinator.mqtt_lifecycle.MqttRuntime"
         ) as mock_runtime_cls,
     ):
         mock_runtime = MagicMock()
@@ -247,7 +247,7 @@ async def test_async_setup_mqtt_returns_false_on_unexpected_error(
     }
 
     with patch(
-        "custom_components.lipro.core.coordinator.coordinator.decrypt_mqtt_credential",
+        "custom_components.lipro.core.coordinator.mqtt_lifecycle.decrypt_mqtt_credential",
         side_effect=RuntimeError("boom"),
     ):
         assert await coordinator.async_setup_mqtt() is False
