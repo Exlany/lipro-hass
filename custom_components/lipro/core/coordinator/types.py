@@ -40,8 +40,6 @@ between coordinator runtimes and the lower-level command helpers.
 
 # MQTT types
 
-
-# MQTT types
 class MqttCredentials(TypedDict):
     """MQTT connection credentials."""
 
