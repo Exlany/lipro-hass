@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 import logging
 from time import monotonic
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable

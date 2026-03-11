@@ -216,7 +216,7 @@ await self.async_send_command(CMD_PANEL_CHANGE_STATE, payload, optimistic)
 
 ### Phase E：全量验证与收尾
 
-- [ ] E1. `uv run ruff check .`
+- [🔄] E1. `uv run ruff check .` — 2026-03-11 开始
 - [ ] E2. `uv run --extra dev mypy custom_components/lipro tests`
 - [ ] E3. `uv run pytest -q`
 - [ ] E4. 回填最终结果与剩余风险
