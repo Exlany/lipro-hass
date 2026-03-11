@@ -21,7 +21,7 @@ class CoordinatorCommandService:
     @property
     def last_failure(self) -> CommandTrace | None:
         """Return the latest command failure payload, if any."""
-        return self.coordinator.command_runtime.last_command_failure
+        return self.coordinator.command_runtime.last_command_failure  # type: ignore[no-any-return]
 
     async def async_send_command(
         self,
@@ -37,4 +37,4 @@ class CoordinatorCommandService:
             properties=properties,
             fallback_device_id=fallback_device_id,
         )
-        return success
+        return success  # type: ignore[no-any-return]

@@ -13,15 +13,17 @@ Key improvements over factory.py:
 from __future__ import annotations
 
 import asyncio
-from dataclasses import dataclass
 import logging
 from typing import TYPE_CHECKING, Any
 
 from ..command.confirmation_tracker import CommandConfirmationTracker
 from ..device.identity_index import DeviceIdentityIndex
-from ..mqtt.mqtt_client import LiproMqttClient
 from ..utils.background_task_manager import BackgroundTaskManager
-from .factory import CoordinatorRuntimes, CoordinatorStateContainers, normalize_device_key
+from .factory import (
+    CoordinatorRuntimes,
+    CoordinatorStateContainers,
+    normalize_device_key,
+)
 from .runtime.command import (
     CommandBuilder,
     CommandSender,
@@ -207,11 +209,11 @@ class RuntimeOrchestrator:
             hass=self.hass,
             mqtt_client=state.mqtt_client,
             base_scan_interval=self.update_interval,
-            device_resolver=context.get_device_by_id,  # From context!
-            property_applier=context.apply_properties_update,  # From context!
-            listener_notifier=context.schedule_listener_update,  # From context!
-            connect_state_tracker=lambda device_serial, timestamp, is_online: None,  # Placeholder
-            group_reconciler=lambda device_name, timestamp: None,  # Placeholder
+            device_resolver=context.get_device_by_id,  # type: ignore[arg-type]
+            property_applier=context.apply_properties_update,
+            listener_notifier=context.schedule_listener_update,  # type: ignore[arg-type]
+            connect_state_tracker=lambda device_serial, timestamp, is_online: None,  # type: ignore[arg-type]
+            group_reconciler=lambda device_name, timestamp: None,  # type: ignore[arg-type]
             polling_multiplier=2,
             background_task_manager=state.background_task_manager,
         )

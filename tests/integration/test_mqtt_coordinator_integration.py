@@ -65,7 +65,7 @@ def coordinator(hass, mock_lipro_api_client, mock_auth_manager):
 async def test_async_setup_mqtt_builds_refactored_client(
     coordinator, mock_lipro_api_client
 ) -> None:
-    coordinator._devices = {
+    coordinator._state.devices = {
         "dev1": _make_device("dev1"),
         "mesh_group_1": _make_device("mesh_group_1", is_group=True),
     }
@@ -97,7 +97,7 @@ async def test_async_setup_mqtt_builds_refactored_client(
         ok = await coordinator.mqtt_service.async_setup()
 
     assert ok is True
-    assert coordinator._mqtt_runtime is not None
+    assert coordinator._runtimes.mqtt is not None
     mock_runtime.connect.assert_awaited_once()
 
 
@@ -131,7 +131,7 @@ async def test_async_setup_mqtt_requires_decrypted_credentials_and_biz_id(
     decrypt_results: list[str],
     biz_id: str | None,
 ) -> None:
-    coordinator._devices = {"dev1": _make_device("dev1")}
+    coordinator._state.devices = {"dev1": _make_device("dev1")}
     mock_lipro_api_client.get_mqtt_config.return_value = {
         "accessKey": "enc-ak",
         "secretKey": "enc-sk",
@@ -154,7 +154,7 @@ async def test_async_setup_mqtt_requires_decrypted_credentials_and_biz_id(
 async def test_async_setup_mqtt_returns_false_when_group_connect_times_out(
     coordinator, mock_lipro_api_client
 ) -> None:
-    coordinator._devices = {
+    coordinator._state.devices = {
         "mesh_group_1": _make_device("mesh_group_1", is_group=True),
     }
     mock_lipro_api_client.get_mqtt_config.return_value = {
@@ -193,7 +193,7 @@ async def test_async_setup_mqtt_returns_false_when_group_connect_times_out(
 async def test_async_setup_mqtt_returns_false_when_runtime_stays_disconnected(
     coordinator, mock_lipro_api_client
 ) -> None:
-    coordinator._devices = {"dev1": _make_device("dev1")}
+    coordinator._state.devices = {"dev1": _make_device("dev1")}
     mock_lipro_api_client.get_mqtt_config.return_value = {
         "accessKey": "enc-ak",
         "secretKey": "enc-sk",
@@ -240,7 +240,7 @@ async def test_async_setup_mqtt_reraises_cancelled_error(
 async def test_async_setup_mqtt_returns_false_on_unexpected_error(
     coordinator, mock_lipro_api_client
 ) -> None:
-    coordinator._devices = {"dev1": _make_device("dev1")}
+    coordinator._state.devices = {"dev1": _make_device("dev1")}
     mock_lipro_api_client.get_mqtt_config.return_value = {
         "accessKey": "enc-ak",
         "secretKey": "enc-sk",
@@ -261,15 +261,15 @@ async def test_coordinator_mqtt_service_sync_and_stop_use_client_runtime(
     mock_mqtt_runtime.is_connected = True
     mock_mqtt_runtime.connect = AsyncMock()
     mock_mqtt_runtime.disconnect = AsyncMock()
-    coordinator._mqtt_runtime = mock_mqtt_runtime
-    coordinator._biz_id = "biz001"
-    coordinator._devices = {
+    object.__setattr__(coordinator._runtimes, "mqtt", mock_mqtt_runtime)
+    coordinator._state.biz_id = "biz001"
+    coordinator._state.devices = {
         "dev_a": _make_device("dev_a"),
         "mesh_group_1": _make_device("mesh_group_1", is_group=True),
     }
 
     mock_client = AsyncMock()
-    coordinator._mqtt_client = mock_client
+    coordinator._state.mqtt_client = mock_client
 
     await coordinator.mqtt_service.async_sync_subscriptions()
     mock_mqtt_runtime.connect.assert_awaited_once()

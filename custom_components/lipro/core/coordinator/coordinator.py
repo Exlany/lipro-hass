@@ -39,7 +39,6 @@ if TYPE_CHECKING:
 
     from ..auth import LiproAuthManager
     from ..device import LiproDevice
-    from .entity_protocol import LiproEntityProtocol
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -124,10 +123,10 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
         return self._state.devices.get(device_id)
 
     async def _apply_properties_update(
-        self, device: LiproDevice, properties: dict[str, Any], *, source: str
-    ) -> None:
+        self, device: LiproDevice, properties: dict[str, Any], source: str
+    ) -> bool:
         """Apply properties update (RuntimeContext callback)."""
-        await self._runtimes.state.apply_properties_update(device, properties, source=source)
+        return await self._runtimes.state.apply_properties_update(device, properties, source=source)
 
     def _schedule_listener_update(self) -> None:
         """Schedule listener update (RuntimeContext callback)."""
@@ -136,7 +135,9 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
     async def _trigger_reauth(self, reason: str) -> None:
         """Trigger re-authentication (RuntimeContext callback)."""
         _LOGGER.warning("Re-authentication required: %s", reason)
-        self.config_entry.async_start_reauth(self.hass)
+        if self.config_entry:
+            self.config_entry.async_start_reauth(self.hass)
+        raise ConfigEntryAuthFailed(reason)
 
     def _is_mqtt_connected(self) -> bool:
         """Check MQTT connection status (RuntimeContext callback)."""
@@ -154,27 +155,27 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
 
     # Public accessors for runtime components (used by service layer)
     @property
-    def command_runtime(self):
+    def command_runtime(self):  # type: ignore[no-untyped-def]
         """Access command runtime (public API for services)."""
         return self._runtimes.command
 
     @property
-    def device_runtime(self):
+    def device_runtime(self):  # type: ignore[no-untyped-def]
         """Access device runtime (public API for services)."""
         return self._runtimes.device
 
     @property
-    def mqtt_runtime(self):
+    def mqtt_runtime(self):  # type: ignore[no-untyped-def]
         """Access MQTT runtime (public API for services)."""
         return self._runtimes.mqtt
 
     @property
-    def state_runtime(self):
+    def state_runtime(self):  # type: ignore[no-untyped-def]
         """Access state runtime (public API for services)."""
         return self._runtimes.state
 
     @property
-    def status_runtime(self):
+    def status_runtime(self):  # type: ignore[no-untyped-def]
         """Access status runtime (public API for services)."""
         return self._runtimes.status
 
@@ -339,35 +340,6 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
             }
         return status
 
-    async def _apply_properties_update(
-        self, device: LiproDevice, properties: dict[str, Any], source: str
-    ) -> bool:
-        """Apply property updates to device.
-
-        Args:
-            device: Target device
-            properties: Properties to update
-            source: Update source identifier
-
-        Returns:
-            True if updates were applied
-        """
-        # Delegate to StateRuntime
-        return await self._runtimes.state.apply_properties_update(
-            device, properties, source=source
-        )
-
-    def _get_device_by_id(self, device_id: str) -> LiproDevice | None:
-        """Get device by ID.
-
-        Args:
-            device_id: Device identifier
-
-        Returns:
-            Device if found, None otherwise
-        """
-        # Delegate to StateRuntime
-        return self._runtimes.state.get_device_by_id(device_id)
 
     async def _async_ensure_authenticated(self) -> None:
         """Ensure coordinator authentication is valid."""
@@ -413,7 +385,8 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
         mqtt_runtime, mqtt_client, biz_id = result
         self._state.mqtt_client = mqtt_client
         self._state.biz_id = biz_id
-        self._runtimes.mqtt = mqtt_runtime
+        # Update frozen dataclass using object.__setattr__
+        object.__setattr__(self._runtimes, "mqtt", mqtt_runtime)
 
         return True
 

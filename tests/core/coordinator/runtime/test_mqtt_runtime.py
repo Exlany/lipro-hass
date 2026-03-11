@@ -61,7 +61,7 @@ def mqtt_runtime(mock_hass: Mock, mock_mqtt_client: Mock) -> MqttRuntime:
     group_reconciler = Mock()
     group_reconciler.schedule_group_reconciliation = Mock()
 
-    runtime = MqttRuntime(
+    return MqttRuntime(
         hass=mock_hass,
         mqtt_client=mock_mqtt_client,
         base_scan_interval=30,
@@ -76,7 +76,6 @@ def mqtt_runtime(mock_hass: Mock, mock_mqtt_client: Mock) -> MqttRuntime:
         reconnect_max_delay=60.0,
     )
 
-    return runtime
 
 
 class TestMqttRuntimeInitialization:

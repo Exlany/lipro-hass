@@ -13,11 +13,22 @@ from custom_components.lipro.core.device.identity_index import DeviceIdentityInd
 @pytest.mark.asyncio
 async def test_coordinator_exposes_native_runtime_services() -> None:
     """Coordinator should delegate public APIs to the new service layer."""
+    from custom_components.lipro.core.coordinator.factory import CoordinatorStateContainers
+
     device = MagicMock()
     coordinator = object.__new__(Coordinator)
-    coordinator._devices = {"dev1": device}
-    coordinator._device_identity_index = DeviceIdentityIndex()
-    coordinator._device_identity_index.register("dev1", device)
+
+    # Initialize _state container
+    coordinator._state = CoordinatorStateContainers(
+        devices={"dev1": device},
+        entities={},
+        entities_by_device={},
+        device_identity_index=DeviceIdentityIndex(),
+        background_task_manager=MagicMock(),
+        confirmation_tracker=MagicMock(),
+    )
+    coordinator._state.device_identity_index.register("dev1", device)
+
     coordinator.command_service = MagicMock()
     coordinator.command_service.async_send_command = AsyncMock(return_value=True)
     coordinator.state_service = MagicMock()

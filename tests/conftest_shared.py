@@ -69,8 +69,8 @@ async def refresh_and_sync_devices(coordinator: Coordinator) -> None:
         coordinator: Coordinator instance
     """
     snapshot = await coordinator.device_runtime.refresh_devices()
-    coordinator._devices.clear()
-    coordinator._devices.update(snapshot.devices)
+    coordinator._state.devices.clear()
+    coordinator._state.devices.update(snapshot.devices)
 
 
 def mock_anonymous_share_manager() -> MagicMock:

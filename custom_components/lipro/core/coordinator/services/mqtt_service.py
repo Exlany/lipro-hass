@@ -20,7 +20,7 @@ class CoordinatorMqttService:
         """Return whether the wrapped coordinator reports MQTT connected."""
         if self.coordinator.mqtt_runtime is None:
             return False
-        return self.coordinator.mqtt_runtime.is_connected
+        return self.coordinator.mqtt_runtime.is_connected  # type: ignore[no-any-return]
 
     async def async_setup(self) -> bool:
         """Set up coordinator-managed MQTT runtime."""
