@@ -1,4 +1,21 @@
-"""Coordinator command service owning the public dispatch entrypoint."""
+"""Coordinator command service - API stability layer.
+
+This service provides a stable facade over the command runtime, implementing
+the Stable Interface Pattern from Clean Architecture.
+
+Design rationale:
+- **API Stability**: Isolates Entity layer from Runtime implementation changes
+- **Dependency Inversion**: Entity depends on Service interface, not Runtime
+- **Single Responsibility**: Focused on command dispatch coordination
+
+Architecture role:
+- NOT a business logic layer (logic lives in CommandRuntime)
+- NOT a Saga orchestrator (no cross-runtime transactions needed yet)
+- IS a stable API boundary (protects Entity layer from Runtime refactoring)
+
+This is intentional "thin proxy" design - the value is in API stability,
+not in adding orchestration complexity.
+"""
 
 from __future__ import annotations
 

@@ -1,4 +1,21 @@
-"""Thin state-management service for coordinator composition."""
+"""Coordinator state service - API stability layer.
+
+This service provides a stable facade over the state runtime, implementing
+the Stable Interface Pattern from Clean Architecture.
+
+Design rationale:
+- **API Stability**: Isolates Entity layer from StateRuntime implementation changes
+- **Dependency Inversion**: Entity depends on Service interface, not Runtime
+- **Single Responsibility**: Focused on device state access coordination
+
+Architecture role:
+- NOT a business logic layer (logic lives in StateRuntime)
+- NOT a repository pattern (StateRuntime already provides that)
+- IS a stable API boundary (protects Entity layer from Runtime refactoring)
+
+This is intentional "thin proxy" design - the value is in API stability,
+not in adding query complexity.
+"""
 
 from __future__ import annotations
 

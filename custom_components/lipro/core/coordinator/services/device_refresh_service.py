@@ -1,4 +1,21 @@
-"""Coordinator device-refresh service boundary."""
+"""Coordinator device refresh service - API stability layer.
+
+This service provides a stable facade over the device runtime, implementing
+the Stable Interface Pattern from Clean Architecture.
+
+Design rationale:
+- **API Stability**: Isolates Entity layer from DeviceRuntime implementation changes
+- **Dependency Inversion**: Entity depends on Service interface, not Runtime
+- **Single Responsibility**: Focused on device refresh coordination
+
+Architecture role:
+- NOT a business logic layer (logic lives in DeviceRuntime)
+- NOT a data loader (DeviceRuntime handles that)
+- IS a stable API boundary (protects Entity layer from Runtime refactoring)
+
+This is intentional "thin proxy" design - the value is in API stability,
+not in adding refresh complexity.
+"""
 
 from __future__ import annotations
 

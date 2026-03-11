@@ -1,4 +1,21 @@
-"""Coordinator MQTT service boundary."""
+"""Coordinator MQTT service - API stability layer.
+
+This service provides a stable facade over the MQTT runtime, implementing
+the Stable Interface Pattern from Clean Architecture.
+
+Design rationale:
+- **API Stability**: Isolates Entity layer from MqttRuntime implementation changes
+- **Dependency Inversion**: Entity depends on Service interface, not Runtime
+- **Single Responsibility**: Focused on MQTT connection coordination
+
+Architecture role:
+- NOT a business logic layer (logic lives in MqttRuntime)
+- NOT a message broker (MqttRuntime handles that)
+- IS a stable API boundary (protects Entity layer from Runtime refactoring)
+
+This is intentional "thin proxy" design - the value is in API stability,
+not in adding messaging complexity.
+"""
 
 from __future__ import annotations
 
