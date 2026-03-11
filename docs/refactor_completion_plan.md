@@ -752,7 +752,7 @@ Runtime 的读取操作从直接操作 `dict[str, LiproDevice]` 改为读取 fro
 
 ### 进阶架构
 
-- [ ] Phase F（描述符 + 声明式 Entity）
+- [🔄] Phase F（描述符 + 声明式 Entity）— 2026-03-11 开始
 - [ ] Phase G（命令标准化 + CQRS-lite）
 - [ ] Phase H（Coordinator 瘦身）
 - [ ] Phase I（MqttRuntime DI 修正）

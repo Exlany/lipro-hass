@@ -23,6 +23,7 @@ from .const.properties import (
 )
 from .core.utils.coerce import coerce_bool_option
 from .entities.base import LiproEntity
+from .entities.descriptors import ConditionalAttr, DeviceAttr, ScaledBrightness
 from .helpers.platform import create_platform_entities
 
 if TYPE_CHECKING:
@@ -56,6 +57,14 @@ async def async_setup_entry(
 
 class LiproLight(LiproEntity, LightEntity):
     """Representation of a Lipro light."""
+
+    # Declarative properties using descriptors (eliminates 3 manual @property methods)
+    is_on = DeviceAttr[bool]("is_on")
+    brightness = ScaledBrightness()  # Auto-converts 0-100 → 0-255
+    color_temp_kelvin = ConditionalAttr[int](
+        "color_temp",
+        capability="supports_color_temp",
+    )
 
     def __init__(
         self,
@@ -107,25 +116,6 @@ class LiproLight(LiproEntity, LightEntity):
         Uses device-specific range from product config.
         """
         return self.device.max_color_temp_kelvin
-
-    @property
-    def is_on(self) -> bool:
-        """Return true if light is on."""
-        return self.device.is_on
-
-    @property
-    def brightness(self) -> int | None:
-        """Return the brightness of the light (0-255)."""
-        # Convert from 0-100 to 0-255
-        brightness_pct = max(0, min(100, self.device.brightness))
-        return round(brightness_pct * _HA_BRIGHTNESS_SCALE / 100)
-
-    @property
-    def color_temp_kelvin(self) -> int | None:
-        """Return the color temperature in Kelvin."""
-        if not self.device.supports_color_temp:
-            return None
-        return self.device.color_temp
 
     def _ha_brightness_to_device(self, brightness: int) -> int:
         """Convert HA brightness (0-255) to clamped device value (1-100)."""
