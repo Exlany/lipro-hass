@@ -403,6 +403,45 @@ BINARY_SENSOR_SPECS: Final = [
 > 当前的防回弹保护已在 `StateRuntime.updater` 层实现（`base.py:113-127` 的 `is_debouncing` +
 > `get_protected_keys()` + `updater.py:140` 的写入过滤），这是更合适的位置。
 
+#### Phase F 完成总结 ✅
+
+**完成日期**: 2026-03-11
+**Commits**:
+- `091d579` - feat: implement Phase F descriptor framework and refactor Light entity
+- `0059785` - refactor: apply descriptors to Cover entity (Phase F3a)
+
+**实际成果**:
+
+| 平台 | 重构前 | 重构后 | 削减比例 |
+|------|--------|--------|---------|
+| Light | 3 个 @property (27 行) | 3 个描述符 (3 行) | 89% ↓ |
+| Cover | 1 个 @property (8 行) | 1 个描述符 (1 行) | 88% ↓ |
+| **总计** | **35 行样板代码** | **4 行声明** | **89% ↓** |
+
+**描述符框架能力**:
+- ✅ DeviceAttr[T]: 泛型描述符，支持 dot notation 和可选转换
+- ✅ ScaledBrightness: 自动 0-100 → 0-255 转换
+- ✅ ConditionalAttr[T]: 基于能力的条件返回
+- ✅ KelvinToPercent: 设备特定色温转换
+- ✅ 完整 mypy 类型安全（Generic[T] + @overload）
+
+**适用性评估**:
+- ✅ 适用：简单属性转发（Light.is_on, Cover.position）
+- ❌ 不适用：复杂业务逻辑（Fan 档位转换、Climate 模式映射）
+- 📊 覆盖率：约 40% 的 Entity 属性（简单转发类）
+
+**验收结果**:
+- [x] Entity 层属性样板代码减少 89%（超过 50% 目标）
+- [x] 新增设备属性只需一行描述符声明
+- [x] 描述符使用 Generic[T] + @overload，mypy 正确推断类型
+- [x] 描述符保持纯读取，无副作用
+- [ ] 测试验证（待 Phase E 全量验证）
+
+**经验总结**:
+- 描述符最适合"读取 + 可选转换"模式
+- 复杂业务逻辑（多属性组合、条件分支）保持手工 @property 更清晰
+- Generic[T] + @overload 是 mypy 类型安全的关键
+
 ---
 
 ### Phase G：命令标准化 + CQRS-lite（P1 — 统一写侧模式）
@@ -772,7 +811,7 @@ Runtime 的读取操作从直接操作 `dict[str, LiproDevice]` 改为读取 fro
 
 ### 进阶架构
 
-- [🔄] Phase F（描述符 + 声明式 Entity）— 2026-03-11 开始
+- [x] Phase F（描述符 + 声明式 Entity）— 2026-03-11 完成
 - [ ] Phase G（命令标准化 + CQRS-lite）
 - [ ] Phase H（Coordinator 瘦身）
 - [ ] Phase I（MqttRuntime DI 修正）
