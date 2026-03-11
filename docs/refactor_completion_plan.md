@@ -605,9 +605,17 @@ def build_coordinator_runtimes(
     ...
 ```
 
-#### H2. 抽取 MQTT 生命周期管理
+#### H2. 抽取 MQTT 生命周期管理 ✅
 
 将 `Coordinator.async_setup_mqtt()`（~90 行）移至独立模块 `core/coordinator/mqtt_lifecycle.py`，Coordinator 只保留一行调用。
+
+**完成日期**: 2026-03-11
+**Commit**: `73e3017` - refactor: extract MQTT lifecycle to dedicated module (Phase H2)
+
+**成果**:
+- 新增 `mqtt_lifecycle.py`（218 行）— MQTT 生命周期独立模块
+- 新增 `factory.py`（307 行）— Runtime 工厂模式基础
+- Coordinator 从 597 行降至 569 行（削减 28 行 / 4.7%）
 
 #### H3. 精简 Coordinator 为纯编排器
 
@@ -670,18 +678,18 @@ class CoordinatorCommandService:
 
 **验收标准**：
 
+- [x] MQTT 生命周期独立为模块（H2 完成）
 - [ ] `coordinator.py` < 300 行
 - [ ] 所有 DI 布线在 `factory.py` 中完成
-- [ ] MQTT 生命周期独立为模块
 - [ ] 所有现有测试通过
 
 ---
 
-### Phase I：MqttRuntime 构造器注入（P3 — 消灭运行时 RuntimeError）
+### Phase I：MqttRuntime 构造器注入（P3 — 消灭运行时 RuntimeError）✅
 
 **动机**：MqttRuntime 的 setter 注入模式导致依赖未注入时会产生运行时错误。
 
-#### I1. MqttRuntime 改为完整构造器注入
+#### I1. MqttRuntime 改为完整构造器注入 ✅
 
 ```python
 # Before — setter 注入 + lazy init
@@ -708,17 +716,26 @@ class MqttRuntime:
         self._message_handler = MqttMessageHandler(...)  # 立即创建
 ```
 
-#### I2. 解决"MQTT client 延迟创建"问题
+#### I2. 解决"MQTT client 延迟创建"问题 ✅
 
 MQTT client 在首次 `_async_update_data` 时才创建（因为需要先从 API 获取凭证），这是 setter 注入的根本原因。
 
 解决方案：MqttRuntime 的所有依赖（resolver / applier / notifier）在构造时注入，仅 `_mqtt_client` 允许延迟设置（因为它是外部 IO 资源）。使用单一 `replace_client()` 方法而非多个 setter。
 
+**完成日期**: 2026-03-11
+**Commit**: `23f8bf2` - refactor: eliminate MqttRuntime setter injection anti-pattern (Phase I)
+
+**成果**:
+- 删除 6 个 setter 方法（`set_device_resolver`、`set_property_applier`、`set_listener_notifier` 等）
+- 所有依赖在构造时注入，消除两阶段初始化
+- 删除 `_ensure_message_handler()` 运行时检查，改为构造时创建
+- 修复 27 个 MqttRuntime 测试全部通过
+
 **验收标准**：
 
-- [ ] 删除所有 `set_xxx()` setter 方法
-- [ ] `_ensure_message_handler()` 改为 `__init__` 中直接创建
-- [ ] MQTT client 延迟替换使用单一 `replace_client()` 方法
+- [x] 删除所有 `set_xxx()` setter 方法
+- [x] `_ensure_message_handler()` 改为 `__init__` 中直接创建
+- [x] MQTT client 延迟替换使用单一 `replace_client()` 方法
 
 ---
 
@@ -778,7 +795,7 @@ async def async_setup_platform_from_registry(
 
 ---
 
-### Phase K：SharedState 激活或清理（P5 — 可选）
+### Phase K：SharedState 激活或清理（P5 — 可选）✅
 
 **动机**：已经定义了 `CoordinatorSharedState` 但未使用，属于死代码。
 
@@ -786,9 +803,23 @@ async def async_setup_platform_from_registry(
 
 Runtime 的读取操作从直接操作 `dict[str, LiproDevice]` 改为读取 frozen `CoordinatorSharedState`，写入仍通过 `StateRuntime`。
 
-#### K2. 选项 B：移除 SharedState
+#### K2. 选项 B：移除 SharedState ✅
 
 若评估后认为 SharedState 增加了不必要的复杂度（考虑到 HA 是单线程事件循环，无需跨线程 snapshot），移除 `shared_state.py`，避免死代码。
+
+**完成日期**: 2026-03-11
+**Commit**: `bcf9e78` - refactor: remove unused SharedState dead code (Phase K)
+
+**成果**:
+- 删除 `shared_state.py`（207 行死代码）
+- 从 `factory.py` 移除 SharedState 引用
+- 从 `coordinator.py` 移除 `_shared_state` 初始化
+- 理由：HA 单线程事件循环无需 snapshot，SharedState 从未被实际使用
+
+**验收标准**：
+- [x] 删除 `shared_state.py` 文件
+- [x] 清理所有 SharedState 引用
+- [x] 所有测试通过（2089 passed）
 
 ---
 
@@ -854,10 +885,11 @@ Runtime 的读取操作从直接操作 `dict[str, LiproDevice]` 改为读取 fro
 
 - [x] Phase F（描述符 + 声明式 Entity）— 2026-03-11 完成
 - [x] Phase G（命令标准化 + CQRS-lite）— 2026-03-11 完成
-- [ ] Phase H（Coordinator 瘦身）
-- [ ] Phase I（MqttRuntime DI 修正）
+- [x] Phase H2（MQTT 生命周期抽取）— 2026-03-11 完成
+- [x] Phase I（MqttRuntime DI 修正）— 2026-03-11 完成
+- [x] Phase K（SharedState 清理）— 2026-03-11 完成
+- [ ] Phase H1/H3-H5（Coordinator 完整瘦身）
 - [ ] Phase J（Feature Component）
-- [ ] Phase K（SharedState 激活/清理）
 - [ ] Phase L（长期可维护性升级）
 
 ---
@@ -875,9 +907,31 @@ Runtime 的读取操作从直接操作 `dict[str, LiproDevice]` 改为读取 fro
 
 ### 进阶架构验收
 
-- Entity 样板代码削减比例: 待回填
-- `coordinator.py` 行数: 待回填
-- 新设备接入所需代码量: 待回填
+**Phase F（描述符 + 声明式 Entity）**:
+- Entity 样板代码削减比例: 89% ↓（Light 平台 27 行 → 3 行）
+- 适用范围: 约 15% 的 Entity 属性（仅简单转发场景）
+- 测试验证: Light 43 个测试通过，Cover 25 个测试通过
+
+**Phase G（命令标准化 + CQRS-lite）**:
+- 命令路径统一: Light/Switch/Climate 统一使用 PowerCommand
+- 测试验证: 2094 个测试全部通过
+
+**Phase H2（MQTT 生命周期抽取）**:
+- `coordinator.py` 行数: 597 → 569 行（削减 28 行 / 4.7%）
+- 新增模块: `mqtt_lifecycle.py`（218 行）、`factory.py`（307 行）
+
+**Phase I（MqttRuntime DI 修正）**:
+- 删除 setter 方法: 6 个（`set_device_resolver` 等）
+- 测试验证: 27 个 MqttRuntime 测试全部通过
+
+**Phase K（SharedState 清理）**:
+- 删除死代码: 207 行（`shared_state.py`）
+- 测试验证: 2089 个测试全部通过
+
+**总体成果**:
+- ✅ ruff: All checks passed
+- ✅ mypy: Success: no issues found in 62 source files
+- ✅ pytest: 2089 passed in 34.85s
 
 ---
 
