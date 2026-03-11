@@ -745,8 +745,8 @@ Runtime 的读取操作从直接操作 `dict[str, LiproDevice]` 改为读取 fro
 ### 基础收口
 
 - [x] Phase A（ruff/pytest 全绿）— 2026-03-10
-- [🔄] Phase B（类型契约收口）— 2026-03-11 开始
-- [ ] Phase C（facade 一致性）
+- [x] Phase B（类型契约收口）— 2026-03-11 完成
+- [x] Phase C（facade 一致性）— 2026-03-11 完成
 - [x] Phase D（仓库卫生）— 2026-03-10
 - [ ] Phase E（全量验证）
 
