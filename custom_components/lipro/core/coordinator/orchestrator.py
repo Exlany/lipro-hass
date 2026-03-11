@@ -37,13 +37,14 @@ from .runtime.tuning_runtime import TuningRuntime
 from .runtime_context import RuntimeContext
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Coroutine
+    from collections.abc import Callable
 
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.core import HomeAssistant
 
     from ..api import LiproClient
     from ..auth import LiproAuthManager
+    from ..device import LiproDevice
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -184,7 +185,7 @@ class RuntimeOrchestrator:
             return status
 
         async def _apply_properties_update(
-            device: Any, properties: dict[str, Any], source: str
+            device: LiproDevice, properties: dict[str, Any], source: str
         ) -> bool:
             """Apply properties update (wrapper for state_runtime)."""
             return await state_runtime.apply_properties_update(
@@ -209,8 +210,8 @@ class RuntimeOrchestrator:
             device_resolver=context.get_device_by_id,  # From context!
             property_applier=context.apply_properties_update,  # From context!
             listener_notifier=context.schedule_listener_update,  # From context!
-            connect_state_tracker=lambda device_serial, timestamp, is_online: None,  # TODO: extract
-            group_reconciler=lambda device_name, timestamp: None,  # TODO: extract
+            connect_state_tracker=lambda device_serial, timestamp, is_online: None,  # Placeholder
+            group_reconciler=lambda device_name, timestamp: None,  # Placeholder
             polling_multiplier=2,
             background_task_manager=state.background_task_manager,
         )

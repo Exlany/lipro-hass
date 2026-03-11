@@ -1,7 +1,6 @@
 """Native coordinator runtime for the Lipro integration.
 
-This coordinator is being refactored to use pure composition with runtime components
-instead of inheritance-based mixins.
+Refactored to use RuntimeContext + Orchestrator pattern (Phase C - Aggressive Refactor).
 """
 
 from __future__ import annotations
@@ -23,23 +22,10 @@ from ..api import (
     LiproConnectionError,
     LiproRefreshTokenExpiredError,
 )
-from ..command.confirmation_tracker import CommandConfirmationTracker
-from ..device.identity_index import DeviceIdentityIndex
 from ..mqtt.mqtt_client import LiproMqttClient
-from ..utils.background_task_manager import BackgroundTaskManager
 from .mqtt_lifecycle import async_setup_mqtt as setup_mqtt_lifecycle
-from .runtime.command import (
-    CommandBuilder,
-    CommandSender,
-    ConfirmationManager,
-    RetryStrategy,
-)
-from .runtime.command_runtime import CommandRuntime
-from .runtime.device_runtime import DeviceRuntime
-from .runtime.mqtt_runtime import MqttRuntime
-from .runtime.state_runtime import StateRuntime
-from .runtime.status_runtime import StatusRuntime
-from .runtime.tuning_runtime import TuningRuntime
+from .orchestrator import RuntimeOrchestrator
+from .runtime_context import RuntimeContext
 from .services import (
     CoordinatorCommandService,
     CoordinatorDeviceRefreshService,
@@ -59,10 +45,12 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
-    """Coordinator runtime with runtime component composition.
+    """Coordinator runtime with RuntimeContext + Orchestrator pattern.
 
-    This coordinator is being refactored from mixin-based inheritance to
-    pure composition with explicit runtime collaborators.
+    Refactored to use:
+    - RuntimeContext: Unified dependency injection
+    - RuntimeOrchestrator: Centralized component wiring
+    - Thin facade: < 250 LOC, pure HA adapter
     """
 
     def __init__(
@@ -95,168 +83,68 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
         self.config_entry = config_entry
         self._config_entry = config_entry
         self._scan_interval_seconds = int(update_interval)
-
-        # Initialize components in stages
-        self._init_state_containers()
-        self._init_runtime_components(update_interval)
-        self._init_service_layer()
-
-    def _init_state_containers(self) -> None:
-        """Initialize core state containers and managers."""
-        # Core state containers
-        self._devices: dict[str, LiproDevice] = {}
-        self._entities: dict[str, LiproEntityProtocol] = {}
-        self._entities_by_device: dict[str, list[LiproEntityProtocol]] = {}
-        self._device_identity_index = DeviceIdentityIndex()
-
-        # MQTT state
-        self._mqtt_client: LiproMqttClient | None = None
-        self._biz_id: str | None = None
-
-        # Background task management
-        self._background_task_manager = BackgroundTaskManager(
-            self.hass.async_create_task,
-            _LOGGER,
-        )
-        self._background_tasks: set[asyncio.Task[Any]] = (
-            self._background_task_manager.tasks
-        )
-
-        # Command confirmation tracking
-        self._confirmation_tracker = CommandConfirmationTracker(
-            default_post_command_refresh_delay_seconds=0.8,
-            min_post_command_refresh_delay_seconds=0.3,
-            max_post_command_refresh_delay_seconds=3.0,
-            state_latency_margin_seconds=0.2,
-            state_latency_ewma_alpha=0.3,
-            state_confirm_timeout_seconds=5.0,
-        )
-
-        # Command runtime state (required by ConfirmationManager)
-        self._pending_expectations: dict[str, Any] = {}
-        self._device_state_latency_seconds: dict[str, float] = {}
-        self._post_command_refresh_tasks: dict[str, asyncio.Task[Any]] = {}
-        self._connect_status_priority_ids: set[str] = set()
         self._force_connect_status_refresh: bool = False
 
-    def _normalize_device_key(self, device_id: str) -> str:
-        """Normalize device identifier for indexing.
-
-        Args:
-            device_id: Device serial or identifier
-
-        Returns:
-            Normalized key for consistent indexing
-        """
-        return device_id.lower().strip()
-
-    def _init_runtime_components(self, update_interval: int) -> None:
-        """Initialize all runtime components after state containers are ready."""
-
-        # Initialize TuningRuntime (simplest, no dependencies)
-        self._tuning_runtime = TuningRuntime(
-            initial_batch_size=32,
-            initial_mqtt_stale_window=180.0,
+        # Build runtime components via orchestrator
+        orchestrator = RuntimeOrchestrator(
+            hass=hass,
+            client=client,
+            auth_manager=auth_manager,
+            config_entry=config_entry,
+            update_interval=update_interval,
+            logger=_LOGGER,
         )
 
-        # Initialize StateRuntime
-        self._state_runtime = StateRuntime(
-            devices=self._devices,
-            device_identity_index=self._device_identity_index,
-            entities=self._entities,
-            entities_by_device=self._entities_by_device,
-            normalize_device_key=self._normalize_device_key,
-        )
+        # Build state containers
+        self._state = orchestrator.build_state_containers()
 
-        # Initialize DeviceRuntime
-        self._device_runtime = DeviceRuntime(
-            client=self.client,
-            auth_manager=self.auth_manager,
-            device_identity_index=self._device_identity_index,
-            filter_config_options=dict(self._config_entry.options),
-        )
-
-        # Initialize StatusRuntime (requires helper methods)
-        self._status_runtime = StatusRuntime(
-            power_query_interval=300,
-            outlet_power_cycle_size=10,
-            max_devices_per_query=50,
-            initial_batch_size=32,
-            query_device_status=self._query_device_status_batch,
-            apply_properties_update=self._apply_properties_update,
+        # Build runtime context (unified dependency injection)
+        context = RuntimeContext(
             get_device_by_id=self._get_device_by_id,
-        )
-
-        # Initialize MqttRuntime with placeholder dependencies (will be replaced by async_setup_mqtt)
-        # Note: MqttRuntime now requires all dependencies at construction, but we create
-        # a temporary instance here that will be replaced when MQTT is actually set up
-        class _NoopDeviceResolver:
-            def get_device_by_id(self, device_id: str) -> LiproDevice | None:
-                return None
-
-        class _NoopPropertyApplier:
-            async def __call__(
-                self, device: LiproDevice, properties: dict[str, Any], source: str
-            ) -> bool:
-                return False
-
-        class _NoopListenerNotifier:
-            def schedule_listener_update(self) -> None:
-                pass
-
-        class _NoopConnectStateTracker:
-            def record_connect_state(
-                self, device_serial: str, timestamp: float, is_online: bool
-            ) -> None:
-                pass
-
-        class _NoopGroupReconciler:
-            def schedule_group_reconciliation(
-                self, device_name: str, timestamp: float
-            ) -> None:
-                pass
-
-        self._mqtt_runtime = MqttRuntime(
-            hass=self.hass,
-            mqtt_client=self._mqtt_client,
-            base_scan_interval=update_interval,
-            device_resolver=_NoopDeviceResolver(),
-            property_applier=_NoopPropertyApplier(),
-            listener_notifier=_NoopListenerNotifier(),
-            connect_state_tracker=_NoopConnectStateTracker(),
-            group_reconciler=_NoopGroupReconciler(),
-            polling_multiplier=2,
-            background_task_manager=self._background_task_manager,
-        )
-
-        # Initialize CommandRuntime with sub-components
-        command_builder = CommandBuilder(debug_mode=False)
-        command_sender = CommandSender(client=self.client)
-        retry_strategy = RetryStrategy()
-        confirmation_manager = ConfirmationManager(
-            confirmation_tracker=self._confirmation_tracker,
-            pending_expectations=self._pending_expectations,
-            device_state_latency_seconds=self._device_state_latency_seconds,
-            post_command_refresh_tasks=self._post_command_refresh_tasks,
-            track_background_task=self._background_task_manager.create,
+            apply_properties_update=self._apply_properties_update,
+            schedule_listener_update=self._schedule_listener_update,
             request_refresh=self.async_request_refresh,
-            mqtt_connected_provider=lambda: self._mqtt_runtime.is_connected,
+            trigger_reauth=self._trigger_reauth,
+            is_mqtt_connected=self._is_mqtt_connected,
         )
 
-        self._command_runtime = CommandRuntime(
-            builder=command_builder,
-            sender=command_sender,
-            retry=retry_strategy,
-            confirmation=confirmation_manager,
-            connect_status_priority_ids=self._connect_status_priority_ids,
-            normalize_device_key=self._normalize_device_key,
-            force_connect_status_refresh_setter=lambda v: setattr(
-                self, "_force_connect_status_refresh", v
-            ),
-            trigger_reauth=self._async_trigger_reauth,
-            debug_mode=False,
+        # Build runtime components
+        self._runtimes = orchestrator.build_runtimes(
+            context=context,
+            state=self._state,
+            force_connect_status_refresh_setter=self._set_force_connect_status_refresh,
         )
 
+        # Initialize service layer
+        self._init_service_layer()
+
+    # RuntimeContext callback methods (injected into all runtimes)
+    def _get_device_by_id(self, device_id: str) -> LiproDevice | None:
+        """Get device by ID (RuntimeContext callback)."""
+        return self._state.devices.get(device_id)
+
+    async def _apply_properties_update(
+        self, device: LiproDevice, properties: dict[str, Any], *, source: str
+    ) -> None:
+        """Apply properties update (RuntimeContext callback)."""
+        await self._runtimes.state.apply_properties_update(device, properties, source=source)
+
+    def _schedule_listener_update(self) -> None:
+        """Schedule listener update (RuntimeContext callback)."""
+        self.async_set_updated_data(self._state.devices)
+
+    async def _trigger_reauth(self, reason: str) -> None:
+        """Trigger re-authentication (RuntimeContext callback)."""
+        _LOGGER.warning("Re-authentication required: %s", reason)
+        self.config_entry.async_start_reauth(self.hass)
+
+    def _is_mqtt_connected(self) -> bool:
+        """Check MQTT connection status (RuntimeContext callback)."""
+        return self._runtimes.mqtt.is_connected if self._runtimes.mqtt else False
+
+    def _set_force_connect_status_refresh(self, value: bool) -> None:
+        """Set force connect status refresh flag."""
+        self._force_connect_status_refresh = value
     def _init_service_layer(self) -> None:
         """Initialize service layer that delegates to runtime components."""
         self.command_service = CoordinatorCommandService(self)
@@ -266,44 +154,44 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
 
     # Public accessors for runtime components (used by service layer)
     @property
-    def command_runtime(self) -> CommandRuntime:
+    def command_runtime(self):
         """Access command runtime (public API for services)."""
-        return self._command_runtime
+        return self._runtimes.command
 
     @property
-    def device_runtime(self) -> DeviceRuntime:
+    def device_runtime(self):
         """Access device runtime (public API for services)."""
-        return self._device_runtime
+        return self._runtimes.device
 
     @property
-    def mqtt_runtime(self) -> MqttRuntime | None:
+    def mqtt_runtime(self):
         """Access MQTT runtime (public API for services)."""
-        return self._mqtt_runtime
+        return self._runtimes.mqtt
 
     @property
-    def state_runtime(self) -> StateRuntime:
+    def state_runtime(self):
         """Access state runtime (public API for services)."""
-        return self._state_runtime
+        return self._runtimes.state
 
     @property
-    def status_runtime(self) -> StatusRuntime:
+    def status_runtime(self):
         """Access status runtime (public API for services)."""
-        return self._status_runtime
+        return self._runtimes.status
 
     @property
     def mqtt_client(self) -> LiproMqttClient | None:
         """Access MQTT client (public API for services)."""
-        return self._mqtt_client
+        return self._state.mqtt_client
 
     @property
     def biz_id(self) -> str | None:
         """Access MQTT biz_id (public API for services)."""
-        return self._biz_id
+        return self._state.biz_id
 
     @property
     def devices(self) -> dict[str, LiproDevice]:
         """Access device dictionary (public API for services)."""
-        return self._devices
+        return self._state.devices
 
     # Public methods for entity integration
     def get_device(self, serial: str) -> LiproDevice | None:
@@ -339,18 +227,18 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
             return
 
         # Register in state runtime for debounce protection
-        self._state_runtime.register_entity(
+        self._runtimes.state.register_entity(
             entity=entity,
             device_serial=entity.device.serial,
         )
 
         # Keep the entity index in sync with runtime state
-        self._entities[entity.entity_id] = entity
+        self._state.entities[entity.entity_id] = entity
         device_serial = entity.device.serial
-        if device_serial not in self._entities_by_device:
-            self._entities_by_device[device_serial] = []
-        if entity not in self._entities_by_device[device_serial]:
-            self._entities_by_device[device_serial].append(entity)
+        if device_serial not in self._state.entities_by_device:
+            self._state.entities_by_device[device_serial] = []
+        if entity not in self._state.entities_by_device[device_serial]:
+            self._state.entities_by_device[device_serial].append(entity)
 
     def unregister_entity(self, entity: Any) -> None:
         """Unregister entity from debounce protection tracking.
@@ -364,16 +252,16 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
 
         # Only unregister through the shared runtime if this is still
         # the active entity instance for the entity_id.
-        should_unregister_from_runtime = self._entities.get(entity.entity_id) is entity
+        should_unregister_from_runtime = self._state.entities.get(entity.entity_id) is entity
         if should_unregister_from_runtime:
-            self._state_runtime.unregister_entity(entity.entity_id)
+            self._runtimes.state.unregister_entity(entity.entity_id)
 
         device_serial = entity.device.serial
-        if device_serial in self._entities_by_device:
+        if device_serial in self._state.entities_by_device:
             with suppress(ValueError):
-                self._entities_by_device[device_serial].remove(entity)
-            if not self._entities_by_device[device_serial]:
-                del self._entities_by_device[device_serial]
+                self._state.entities_by_device[device_serial].remove(entity)
+            if not self._state.entities_by_device[device_serial]:
+                del self._state.entities_by_device[device_serial]
 
     def get_device_lock(self, device_serial: str) -> asyncio.Lock:
         """Get the lock for a specific device.
@@ -465,7 +353,7 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
             True if updates were applied
         """
         # Delegate to StateRuntime
-        return await self._state_runtime.apply_properties_update(
+        return await self._runtimes.state.apply_properties_update(
             device, properties, source=source
         )
 
@@ -479,7 +367,7 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
             Device if found, None otherwise
         """
         # Delegate to StateRuntime
-        return self._state_runtime.get_device_by_id(device_id)
+        return self._runtimes.state.get_device_by_id(device_id)
 
     async def _async_ensure_authenticated(self) -> None:
         """Ensure coordinator authentication is valid."""
@@ -511,9 +399,9 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
             hass=self.hass,
             client=self.client,
             config_entry=self.config_entry,
-            state_runtime=self._state_runtime,
-            background_task_manager=self._background_task_manager,
-            devices=self._devices,
+            state_runtime=self._runtimes.state,
+            background_task_manager=self._state.background_task_manager,
+            devices=self._state.devices,
             scan_interval_seconds=self._scan_interval_seconds,
             apply_properties_update=self._apply_properties_update,
             set_updated_data=self.async_set_updated_data,
@@ -523,9 +411,9 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
             return False
 
         mqtt_runtime, mqtt_client, biz_id = result
-        self._mqtt_client = mqtt_client
-        self._biz_id = biz_id
-        self._mqtt_runtime = mqtt_runtime
+        self._state.mqtt_client = mqtt_client
+        self._state.biz_id = biz_id
+        self._runtimes.mqtt = mqtt_runtime
 
         return True
 
@@ -548,19 +436,19 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
                 await self._async_ensure_authenticated()
 
                 # Refresh device list if needed (10 seconds timeout)
-                if self._device_runtime.should_refresh_device_list():
+                if self._runtimes.device.should_refresh_device_list():
                     async with asyncio.timeout(10):
-                        snapshot = await self._device_runtime.refresh_devices(force=True)
+                        snapshot = await self._runtimes.device.refresh_devices(force=True)
                         # Update coordinator devices from snapshot
-                        self._devices.clear()
-                        self._devices.update(snapshot.devices)
+                        self._state.devices.clear()
+                        self._state.devices.update(snapshot.devices)
 
                 # Schedule MQTT setup if needed (5 seconds timeout)
-                if self._mqtt_client is None and self._devices:
+                if self._state.mqtt_client is None and self._state.devices:
                     async with asyncio.timeout(5):
                         await self.async_setup_mqtt()
 
-            return self._devices
+            return self._state.devices
 
         except TimeoutError:
             _LOGGER.error("Update data timeout after 30 seconds")
