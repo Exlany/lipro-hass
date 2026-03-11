@@ -552,9 +552,21 @@ class LiproHeater(LiproEntity, ClimateEntity):
 
 **验收标准**：
 
-- [ ] 所有 `async_turn_on/off` 使用 `PowerCommand` 或 `PropertyToggleCommand`
-- [ ] 命令对象有独立单元测试
-- [ ] 消除各平台间的命令发送模式差异
+- [x] Light/Switch/Climate 及功能开关统一使用 `PowerCommand` / `PropertyToggleCommand`（Panel 特性使用 `PanelPropertyToggleCommand`）
+- [x] 命令对象有独立单元测试（`tests/entities/test_commands.py`）
+- [x] 写侧路径统一：Entity 仅调用命令对象 → `LiproEntity.async_send_command/async_change_state`
+
+#### Phase G 完成总结 ✅
+
+**完成日期**: 2026-03-11
+**Commits**:
+- `033b23a` - feat: add declarative entity command helpers
+- `80d1e80` - refactor: standardize entity command dispatch
+
+**验收结果**:
+- `uv run ruff check .`: ✅
+- `uv run --extra dev mypy custom_components/lipro tests`: ✅
+- `uv run pytest -q`: ✅（`2094 passed`）
 
 ---
 
@@ -841,7 +853,7 @@ Runtime 的读取操作从直接操作 `dict[str, LiproDevice]` 改为读取 fro
 ### 进阶架构
 
 - [x] Phase F（描述符 + 声明式 Entity）— 2026-03-11 完成
-- [ ] Phase G（命令标准化 + CQRS-lite）
+- [x] Phase G（命令标准化 + CQRS-lite）— 2026-03-11 完成
 - [ ] Phase H（Coordinator 瘦身）
 - [ ] Phase I（MqttRuntime DI 修正）
 - [ ] Phase J（Feature Component）
