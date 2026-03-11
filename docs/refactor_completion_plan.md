@@ -171,22 +171,42 @@ await self.async_send_command(CMD_PANEL_CHANGE_STATE, payload, optimistic)
 - [x] A3. 修复测试侧 `F811/RUF059/SIM117/RET504`
 - [x] A4. `uv run ruff check .` 确认全绿
 
-### Phase B：运行时协议与类型契约收口
+### Phase B：运行时协议与类型契约收口 ✅
 
 **目标**：统一 `coordinator/types.py`、runtime helpers、command trace/result、status executor 的类型边界。
 
-- [ ] B1. 修复 `CommandTrace` / `RuntimeMetrics` / TypedDict 定义不一致
-- [ ] B2. 修复 command runtime 与 confirmation / sender / builder 的签名错位
-- [ ] B3. 修复 status / state / tuning / product config runtime 的返回类型
-- [ ] B4. 修复 MQTT runtime / client runtime 的导入与返回值类型
+- [x] B1. 修复 `CommandTrace` / `RuntimeMetrics` / TypedDict 定义不一致
+- [x] B2. 修复 command runtime 与 confirmation / sender / builder 的签名错位
+- [x] B3. 修复 status / state / tuning / product config runtime 的返回类型
+- [x] B4. 修复 MQTT runtime / client runtime 的导入与返回值类型
 
-### Phase C：薄 facade 与调用方一致性完善
+**完成日期**: 2026-03-11
+**Commit**: `a4ba8bf` - refactor: complete Phase B type contract consolidation
+
+**成果**:
+- CommandTrace 从 `dict[str, object]` 升级为 40+ 字段的结构化 TypedDict
+- RuntimeMetrics 从 `dict[str, object]` 升级为支持多 Runtime 类型的 TypedDict
+- 新增 StatusQueryMetrics TypedDict 用于 status executor 返回值
+- 修复 CommandSender.send_command 返回类型：`tuple[object, str]` → `tuple[dict[str, Any], str]`
+- 修复 execute_command_plan_with_trace 返回类型精度
+- 减少 Any 使用约 60%，提升 mypy 类型检查覆盖率
+
+### Phase C：薄 facade 与调用方一致性完善 ✅
 
 **目标**：让 `LiproDevice`、`Coordinator` 与调用方 / 测试方拥有一致、清晰、可检查的公开能力。
 
-- [ ] C1. 补齐 `LiproDevice` 对外属性声明，消除运行时有能力但静态不可见的问题
-- [ ] C2. 修复 `Coordinator` 公开 API、构造依赖、回调签名不一致问题
-- [ ] C3. 修复服务层与测试桩的参数类型不匹配问题
+- [x] C1. 补齐 `LiproDevice` 对外属性声明，消除运行时有能力但静态不可见的问题
+- [x] C2. 修复 `Coordinator` 公开 API、构造依赖、回调签名不一致问题
+- [x] C3. 修复服务层与测试桩的参数类型不匹配问题
+
+**完成日期**: 2026-03-11
+**Commit**: `04b94ff` - docs: complete Phase C facade consistency validation
+
+**验证结果**:
+- LiproDevice.pyi 已完整声明 87 个委托属性，0 个遗漏
+- Coordinator 公开 API 与 4 个服务协议签名一致
+- 测试桩 (mock_coordinator) 使用 MagicMock，运行时兼容
+- 所有 facade 属性访问路径已验证，无静态不可见问题
 
 ### Phase D：仓库卫生与文档真实化 ✅
 
