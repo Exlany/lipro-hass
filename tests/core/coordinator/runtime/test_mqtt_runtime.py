@@ -80,15 +80,11 @@ def mqtt_runtime(mock_hass: Mock, mock_mqtt_client: Mock) -> MqttRuntime:
 
 
 class TestMqttRuntimeInitialization:
-    """Test MqttRuntime initialization."""
+    """Test MqttRuntime initialization (constructor-based DI)."""
 
     def test_init_with_minimal_args(self, mock_hass: Mock) -> None:
         """Test initialization with minimal arguments."""
-        runtime = MqttRuntime(
-            hass=mock_hass,
-            mqtt_client=None,
-            base_scan_interval=30,
-        )
+        runtime = _create_mqtt_runtime_with_deps(mock_hass, None)
 
         assert runtime._hass is mock_hass
         assert runtime._mqtt_client is None
@@ -96,15 +92,31 @@ class TestMqttRuntimeInitialization:
         assert runtime._connection_manager is not None
         assert runtime._dedup_manager is not None
         assert runtime._reconnect_manager is not None
+        assert runtime._message_handler is not None
 
     def test_init_with_all_args(
         self, mock_hass: Mock, mock_mqtt_client: Mock
     ) -> None:
         """Test initialization with all arguments."""
+        device_resolver = Mock()
+        device_resolver.get_device_by_id = Mock(return_value=None)
+        property_applier = AsyncMock(return_value=True)
+        listener_notifier = Mock()
+        listener_notifier.schedule_listener_update = Mock()
+        connect_state_tracker = Mock()
+        connect_state_tracker.record_connect_state = Mock()
+        group_reconciler = Mock()
+        group_reconciler.schedule_group_reconciliation = Mock()
+
         runtime = MqttRuntime(
             hass=mock_hass,
             mqtt_client=mock_mqtt_client,
             base_scan_interval=30,
+            device_resolver=device_resolver,
+            property_applier=property_applier,
+            listener_notifier=listener_notifier,
+            connect_state_tracker=connect_state_tracker,
+            group_reconciler=group_reconciler,
             polling_multiplier=3,
             dedup_window=1.0,
             reconnect_base_delay=2.0,
@@ -146,11 +158,7 @@ class TestMqttRuntimeConnection:
 
     async def test_connect_without_client(self, mock_hass: Mock) -> None:
         """Test connection attempt without MQTT client."""
-        runtime = MqttRuntime(
-            hass=mock_hass,
-            mqtt_client=None,
-            base_scan_interval=30,
-        )
+        runtime = _create_mqtt_runtime_with_deps(mock_hass, None)
 
         result = await runtime.connect(device_ids=["device1"], biz_id="test_biz")
 
@@ -189,11 +197,7 @@ class TestMqttRuntimeConnection:
 
     async def test_disconnect_without_client(self, mock_hass: Mock) -> None:
         """Disconnect should no-op when MQTT client is absent."""
-        runtime = MqttRuntime(
-            hass=mock_hass,
-            mqtt_client=None,
-            base_scan_interval=30,
-        )
+        runtime = _create_mqtt_runtime_with_deps(mock_hass, None)
 
         await runtime.disconnect()
 
@@ -375,10 +379,26 @@ class TestMqttRuntimeDisconnectNotification:
             coro.close()
 
         background_task_manager.create.side_effect = _consume
+
+        device_resolver = Mock()
+        device_resolver.get_device_by_id = Mock(return_value=None)
+        property_applier = AsyncMock(return_value=True)
+        listener_notifier = Mock()
+        listener_notifier.schedule_listener_update = Mock()
+        connect_state_tracker = Mock()
+        connect_state_tracker.record_connect_state = Mock()
+        group_reconciler = Mock()
+        group_reconciler.schedule_group_reconciliation = Mock()
+
         runtime = MqttRuntime(
             hass=mock_hass,
             mqtt_client=mock_mqtt_client,
             base_scan_interval=30,
+            device_resolver=device_resolver,
+            property_applier=property_applier,
+            listener_notifier=listener_notifier,
+            connect_state_tracker=connect_state_tracker,
+            group_reconciler=group_reconciler,
             background_task_manager=background_task_manager,
         )
         runtime._connection_manager._connected = False
@@ -412,13 +432,7 @@ class TestMqttRuntimeReset:
 
 
 class TestMqttRuntimeDependencyInjection:
-    """Test dependency injection."""
-
-    def test_set_polling_updater(self, mqtt_runtime: MqttRuntime) -> None:
-        """Test setting polling updater."""
-        updater = Mock()
-        mqtt_runtime.set_polling_updater(updater)
-        assert mqtt_runtime._polling_updater is updater
+    """Test dependency injection (constructor-based)."""
 
     def test_update_polling_interval_sets_interval_on_injected_updater(
         self, mqtt_runtime: MqttRuntime
@@ -431,51 +445,39 @@ class TestMqttRuntimeDependencyInjection:
 
         assert updater.update_interval == timedelta(seconds=45)
 
-    def test_update_polling_interval_is_noop_without_injected_updater(
-        self, mock_hass: Mock, mock_mqtt_client: Mock
-    ) -> None:
-        """Missing updater should not raise."""
-        runtime = MqttRuntime(
-            hass=mock_hass,
-            mqtt_client=mock_mqtt_client,
-            base_scan_interval=30,
-        )
 
-        runtime.update_polling_interval(timedelta(seconds=15))
+def _create_mqtt_runtime_with_deps(
+    mock_hass: Mock, mock_mqtt_client: Mock | None
+) -> MqttRuntime:
+    """Helper to create MqttRuntime with all required dependencies."""
+    device_resolver = Mock()
+    device_resolver.get_device_by_id = Mock(return_value=None)
+    property_applier = AsyncMock(return_value=True)
+    listener_notifier = Mock()
+    listener_notifier.schedule_listener_update = Mock()
+    connect_state_tracker = Mock()
+    connect_state_tracker.record_connect_state = Mock()
+    group_reconciler = Mock()
+    group_reconciler.schedule_group_reconciliation = Mock()
 
-    def test_set_device_resolver(self, mqtt_runtime: MqttRuntime) -> None:
-        """Test setting device resolver."""
-        resolver = Mock()
-        resolver.get_device_by_id = Mock(return_value=None)
-        mqtt_runtime.set_device_resolver(resolver)
-        assert mqtt_runtime._device_resolver is resolver
-
-    async def test_message_handler_requires_dependencies(self, mock_hass: Mock) -> None:
-        """Test message handler initialization requires all dependencies."""
-        runtime = MqttRuntime(
-            hass=mock_hass,
-            mqtt_client=None,
-            base_scan_interval=30,
-        )
-
-        with pytest.raises(RuntimeError, match="dependencies not fully injected"):
-            await runtime.handle_message("device1", {"test": "value"})
+    return MqttRuntime(
+        hass=mock_hass,
+        mqtt_client=mock_mqtt_client,
+        base_scan_interval=30,
+        device_resolver=device_resolver,
+        property_applier=property_applier,
+        listener_notifier=listener_notifier,
+        connect_state_tracker=connect_state_tracker,
+        group_reconciler=group_reconciler,
+    )
 
 
 @pytest.mark.asyncio
 async def test_setup_reports_client_presence(mock_hass: Mock, mock_mqtt_client: Mock) -> (
     None
 ):
-    runtime_without_client = MqttRuntime(
-        hass=mock_hass,
-        mqtt_client=None,
-        base_scan_interval=30,
-    )
-    runtime_with_client = MqttRuntime(
-        hass=mock_hass,
-        mqtt_client=mock_mqtt_client,
-        base_scan_interval=30,
-    )
+    runtime_without_client = _create_mqtt_runtime_with_deps(mock_hass, None)
+    runtime_with_client = _create_mqtt_runtime_with_deps(mock_hass, mock_mqtt_client)
 
     assert await runtime_without_client.setup() is False
     assert await runtime_with_client.setup() is True
@@ -485,11 +487,7 @@ async def test_setup_reports_client_presence(mock_hass: Mock, mock_mqtt_client: 
 async def test_disconnect_notification_helpers_call_issue_registry(
     mock_hass: Mock, mock_mqtt_client: Mock
 ) -> None:
-    runtime = MqttRuntime(
-        hass=mock_hass,
-        mqtt_client=mock_mqtt_client,
-        base_scan_interval=30,
-    )
+    runtime = _create_mqtt_runtime_with_deps(mock_hass, mock_mqtt_client)
 
     with patch(
         "custom_components.lipro.core.coordinator.runtime.mqtt_runtime.async_create_issue"
