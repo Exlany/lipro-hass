@@ -401,18 +401,34 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
         Returns:
             Dictionary mapping device ID to status properties
         """
-        rows = await self.client.query_device_status(device_ids)
+        status_endpoint = getattr(self.client, "status", None)
+        query_device_status = getattr(status_endpoint, "query_device_status", None)
+        if query_device_status is None:
+            rows = await self.client.query_device_status(device_ids)
+        else:
+            rows = await query_device_status(device_ids)
 
         status: dict[str, dict[str, Any]] = {}
         for row in rows:
-            device_id = row.get("iotId")
-            if not isinstance(device_id, str) or not device_id.strip():
+            device_id: str | None = None
+            for key in ("iotId", "deviceId", "id"):
+                candidate = row.get(key)
+                if isinstance(candidate, str) and candidate.strip():
+                    device_id = candidate
+                    break
+            if device_id is None:
                 continue
+
             properties = row.get("properties")
             if isinstance(properties, dict):
                 status[device_id] = dict(properties)
-            else:
-                status[device_id] = {}
+                continue
+
+            status[device_id] = {
+                key: value
+                for key, value in row.items()
+                if key not in {"iotId", "deviceId", "id"}
+            }
         return status
 
     async def _apply_properties_update(
@@ -444,6 +460,10 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
         """
         # Delegate to StateRuntime
         return self._state_runtime.get_device_by_id(device_id)
+
+    async def _async_ensure_authenticated(self) -> None:
+        """Ensure coordinator authentication is valid."""
+        await self.auth_manager.async_ensure_authenticated()
 
     async def _async_trigger_reauth(self, reason: str) -> None:
         """Trigger reauthentication flow.
@@ -524,7 +544,7 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
                     self._coordinator = coordinator
 
                 def schedule_listener_update(self) -> None:
-                    self._coordinator.async_set_updated_data(self._coordinator._devices)
+                    self._coordinator.async_set_updated_data(self._coordinator.devices)
 
             class _NoopConnectStateTracker:
                 def record_connect_state(
@@ -585,7 +605,7 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
             # Add total timeout protection (30 seconds)
             async with asyncio.timeout(30):
                 # Ensure authentication is valid (no specific timeout, uses API timeout)
-                await self.auth_manager.ensure_valid_token()
+                await self._async_ensure_authenticated()
 
                 # Refresh device list if needed (10 seconds timeout)
                 if self._device_runtime.should_refresh_device_list():

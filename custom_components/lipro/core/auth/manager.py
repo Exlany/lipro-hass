@@ -301,6 +301,10 @@ class LiproAuthManager:
 
             await self.refresh_token()
 
+    async def async_ensure_authenticated(self) -> None:
+        """Compatibility wrapper used by coordinator update flows."""
+        await self.ensure_valid_token()
+
     async def ensure_valid_token(self) -> None:
         """Ensure we have a valid token, refreshing if needed.
 
