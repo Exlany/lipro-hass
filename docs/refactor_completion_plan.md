@@ -409,14 +409,15 @@ BINARY_SENSOR_SPECS: Final = [
 **Commits**:
 - `091d579` - feat: implement Phase F descriptor framework and refactor Light entity
 - `0059785` - refactor: apply descriptors to Cover entity (Phase F3a)
+- `0d8cb7c` - fix: revert Cover descriptor to handle missing properties correctly
 
 **实际成果**:
 
 | 平台 | 重构前 | 重构后 | 削减比例 |
 |------|--------|--------|---------|
 | Light | 3 个 @property (27 行) | 3 个描述符 (3 行) | 89% ↓ |
-| Cover | 1 个 @property (8 行) | 1 个描述符 (1 行) | 88% ↓ |
-| **总计** | **35 行样板代码** | **4 行声明** | **89% ↓** |
+| Cover | 1 个 @property (8 行) | 保持手工实现 | 0% (回退) |
+| **总计** | **27 行样板代码** | **3 行声明** | **89% ↓** |
 
 **描述符框架能力**:
 - ✅ DeviceAttr[T]: 泛型描述符，支持 dot notation 和可选转换
@@ -426,21 +427,25 @@ BINARY_SENSOR_SPECS: Final = [
 - ✅ 完整 mypy 类型安全（Generic[T] + @overload）
 
 **适用性评估**:
-- ✅ 适用：简单属性转发（Light.is_on, Cover.position）
+- ✅ 适用：简单属性转发 + 可选转换（Light.is_on, Light.brightness）
+- ❌ 不适用：属性存在性检查（Cover.position 需要先检查 properties）
 - ❌ 不适用：复杂业务逻辑（Fan 档位转换、Climate 模式映射）
-- 📊 覆盖率：约 40% 的 Entity 属性（简单转发类）
+- ❌ 不适用：多属性组合（Cover.is_opening = is_moving AND direction）
+- 📊 覆盖率：约 15% 的 Entity 属性（仅 Light 平台的简单转发）
 
 **验收结果**:
-- [x] Entity 层属性样板代码减少 89%（超过 50% 目标）
+- [x] Light Entity 样板代码减少 89%（超过 50% 目标）
 - [x] 新增设备属性只需一行描述符声明
 - [x] 描述符使用 Generic[T] + @overload，mypy 正确推断类型
 - [x] 描述符保持纯读取，无副作用
-- [ ] 测试验证（待 Phase E 全量验证）
+- [x] 测试验证：Light 43 个测试全部通过，Cover 25 个测试全部通过
 
 **经验总结**:
-- 描述符最适合"读取 + 可选转换"模式
-- 复杂业务逻辑（多属性组合、条件分支）保持手工 @property 更清晰
-- Generic[T] + @overload 是 mypy 类型安全的关键
+- ✅ 描述符最适合"读取 + 可选转换"模式（如 brightness 缩放）
+- ❌ 描述符无法处理属性存在性检查（`if key in properties`）
+- ❌ 描述符无法处理多属性组合逻辑（需要访问多个设备属性）
+- 📊 实际收益低于预期：仅 Light 平台适用，Cover/Fan/Climate 需保持手工实现
+- 🎯 建议：描述符框架保留用于未来新平台，但不强制推广到现有复杂平台
 
 ---
 
