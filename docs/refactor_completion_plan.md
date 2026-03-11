@@ -1,70 +1,183 @@
 # Lipro 重构完善计划
 
 > **创建日期**: 2026-03-10  \
+> **最后更新**: 2026-03-11  \
 > **适用分支**: `cv/edf26778937a-`  \
-> **目标**: 在既定“组合式 runtime + 薄 facade + 服务层委托”方向不回退的前提下，将本次重构收口为可长期维护、静态检查全绿、文档真实可信的高质量版本。
+> **目标**: 在既定"组合式 runtime + 薄 facade + 服务层委托"方向不回退的前提下，将本次重构收口为可长期维护、静态检查全绿、文档真实可信的高质量版本；并在此基础上制定进阶架构演进路线。
 
 ---
 
-## 1. 背景与问题定义
+## 1. 项目全貌
 
-当前分支已经完成大规模架构迁移，但仍处于“结构方向正确、工程收口不足”的状态，具体表现为：
+| 指标 | 数值 |
+|------|------|
+| 源码文件 | 217 个 `.py` |
+| 源码行数 | ~28,000 LOC (`custom_components/lipro/`) |
+| 测试行数 | ~38,000 LOC (`tests/`) |
+| HA 平台 | 9 个 (Light / Cover / Switch / Fan / Climate / BinarySensor / Sensor / Select / Update) |
+| Runtime 组件 | 6 个 (Command / Device / Mqtt / State / Status / Tuning) |
+| Service 层 | 4 个 (Command / DeviceRefresh / Mqtt / State) |
 
-- `ruff` 全绿（以 `uv run ruff check .` 输出为准）。
-- `pytest` 应保持全绿（以 `uv run pytest -q` 输出为准）。
-- `mypy` 仍存在错误（以 `uv run --extra dev mypy custom_components/lipro tests` 输出为准），集中在：API 兼容层缺失、runtime 协议错位、TypedDict 与真实 payload 不一致、协程签名错位、薄 facade 静态能力缺失、测试桩类型过严。
-- 仓库存在生成型产物与失真文档，削弱代码评审与后续维护体验。
+---
 
-> 说明：本计划会在 **6. 最终验收结果** 回填每次 Phase 后的最新输出，避免文档长期漂移。
+## 2. 架构现状审查
 
-**本次完善的核心原则**：
+### 2.1 当前分层（底 → 顶）
 
-1. 保持“组合优于继承”的重构方向，不回退到 mixin 拼装模式。
+```
+┌─────────────────────────────────────────────────────┐
+│                 Platform Entities                     │  light.py / switch.py / cover.py / ...
+│                 (薄 Facade → HA)                      │
+├─────────────────────────────────────────────────────┤
+│                 Entity Base                           │  entities/base.py (CoordinatorEntity)
+├─────────────────────────────────────────────────────┤
+│              Coordinator Services                     │  services/ (Command / State / Mqtt / DeviceRefresh)
+├─────────────────────────────────────────────────────┤
+│              Coordinator (DataUpdateCoordinator)      │  core/coordinator/coordinator.py (597 行)
+├─────────────────────────────────────────────────────┤
+│              Runtime Components                       │  core/coordinator/runtime/
+│  ┌──────────┬──────────┬──────┬───────┬──────┬────┐ │
+│  │ Command  │  Device  │ Mqtt │ State │Status│Tune│ │
+│  └──────────┴──────────┴──────┴───────┴──────┴────┘ │
+├─────────────────────────────────────────────────────┤
+│              Core Domain                              │
+│  ┌────────────────────────────────────────────────┐  │
+│  │ Device (LiproDevice dataclass facade)          │  │  core/device/
+│  │  ├─ DeviceState        (可变状态)              │  │
+│  │  ├─ DeviceCapabilities (不可变能力)            │  │
+│  │  ├─ DeviceNetworkInfo  (网络诊断)              │  │
+│  │  └─ DeviceExtras       (扩展特性)              │  │
+│  └────────────────────────────────────────────────┘  │
+│  ┌────────────────┐ ┌───────────────┐ ┌───────────┐  │
+│  │  API Client    │ │  MQTT Client  │ │ Auth Mgr  │  │
+│  │  core/api/     │ │  core/mqtt/   │ │ core/auth │  │
+│  └────────────────┘ └───────────────┘ └───────────┘  │
+└─────────────────────────────────────────────────────┘
+```
+
+### 2.2 架构优势（做得好的部分）
+
+**1. Coordinator 组合式重构基本到位**
+
+`coordinator.py:99-103` 的三段初始化（`_init_state_containers` → `_init_runtime_components` → `_init_service_layer`）结构清晰，已摆脱 Mixin 地狱。每个 Runtime 组件可独立测试。
+
+**2. Device Facade 的属性委托设计优雅**
+
+`device.py:51-61` 使用 `property(device_views.xxx)` + `__getattr__` → `device_delegation.py` 的委托模式，将设备拆分为 State / Capabilities / NetworkInfo / Extras 四个聚焦组件：
+
+```python
+# device.py — 已有的优雅模式
+identity = property(device_views.identity)
+capabilities = property(device_views.capabilities)
+network_info = property(device_views.network_info)
+```
+
+**3. 声明式实体创建已有雏形**
+
+- `binary_sensor.py:42-55` 的 `LiproPropertyBinarySensor`：纯声明式，子类只需定义 `_device_property` + `_invert`
+- `select.py:95-116` 的 `LiproMappedPropertySelect`：声明式 option↔value 映射
+- `helpers/platform.py` 的 `build_device_entities_from_rules()`：规则引擎式实体创建
+
+**4. Debounce 保护窗口设计精细**
+
+`entities/base.py:145-302` 完整实现了 optimistic state → debounce → protection window → post-command buffer 的流水线，有效防止了滑块拖动时的状态回弹。
+
+**5. Command 流水线拆分合理**
+
+`CommandRuntime` 内部拆为 `CommandBuilder` / `CommandSender` / `RetryStrategy` / `ConfirmationManager` 四个子组件，职责单一。
+
+### 2.3 架构问题（需要改进的部分）
+
+#### 问题 1：Coordinator 仍然过胖（597 行）
+
+虽然把逻辑委托给了 Runtime，但 Coordinator 自身仍是巨型编排器：
+
+- `_init_runtime_components()` 有 ~80 行手动 DI 布线（`coordinator.py:153-236`）
+- 多个 lambda 回调在 Runtime 间传递（`coordinator.py:221-233`）
+- `async_setup_mqtt()` 有 ~90 行仍然直接写在 Coordinator 中（`coordinator.py:445-537`）
+
+**影响**：新增 Runtime 组件需要改动 Coordinator，违反开闭原则。
+
+#### 问题 2：MqttRuntime 的 setter 注入反模式
+
+`mqtt_runtime.py:144-166` 存在 6 个 `set_xxx()` 方法（两阶段初始化）：
+
+```python
+# coordinator.py:506-510 — 创建后再注入依赖
+self._mqtt_runtime.set_device_resolver(self._get_device_by_id)
+self._mqtt_runtime.set_property_applier(self._apply_properties_update)
+self._mqtt_runtime.set_listener_notifier(lambda: self.async_set_updated_data(self._devices))
+```
+
+依赖未注入时 `_ensure_message_handler()` 会 raise `RuntimeError`，这是运行时炸弹。
+
+#### 问题 3：Entity 层状态读取模式不一致
+
+| 平台 | 读取模式 | 问题 |
+|------|---------|------|
+| Light | `self.device.is_on`、`self.device.brightness` | 需手动转换 0-100 → 0-255（`light.py:120-121`） |
+| Cover | `self.device.properties` 直接访问 + `self.device.position` | 两种模式混用（`cover.py:72-73`） |
+| Fan | `self.device.fan_is_on`、`self.device.fan_gear` | 命名前缀不统一 |
+| Sensor | `self.device.extra_data.get(...)` | 穿透到原始 dict |
+
+#### 问题 4：命令发送有三种不同路径
+
+```python
+# 路径 1: 直接命令 (light.py:207)
+await self.async_send_command(CMD_POWER_ON, None, {PROP_POWER_STATE: "1"})
+
+# 路径 2: 属性变更 (climate.py:106)
+await self.async_change_state({PROP_HEATER_MODE: mode})
+
+# 路径 3: 特殊命令 (需要手动构建 payload)
+await self.async_send_command(CMD_PANEL_CHANGE_STATE, payload, optimistic)
+```
+
+同样的"开灯"操作在 Light / Switch / Climate 中写法各异，缺乏统一抽象。
+
+#### 问题 5：CoordinatorSharedState 名存实亡
+
+`shared_state.py` 定义了优雅的 frozen dataclass + `with_xxx()` copy-on-write 模式，但 `coordinator.py:157-165` 创建 `_shared_state` 后从未被任何 Runtime 消费。Runtimes 直接操作 `self._devices` dict。
+
+#### 问题 6：Service 层过薄，价值不足
+
+| Service | 行数 | 实际功能 |
+|---------|------|---------|
+| `CoordinatorCommandService` | 41 | 纯代理 → `command_runtime.send_device_command()` |
+| `CoordinatorStateService` | 48 | 纯代理 → `state_runtime.get_device_by_*()` |
+| `CoordinatorMqttService` | 47 | 纯代理 → `mqtt_runtime.connect/disconnect()` |
+| `CoordinatorDeviceRefreshService` | ~50 | 纯代理 → `device_runtime.refresh_devices()` |
+
+增加了调用层级却没有增加抽象价值。考虑：要么赋予 Service 真正的职责（如事务编排），要么移除这一层。
+
+---
+
+## 3. 基础重构收口（Phase A–E）
+
+> 以下为初始重构遗留的收口工作，保证静态检查全绿、文档真实可信。
+
+**核心原则**：
+
+1. 保持"组合优于继承"的重构方向，不回退到 mixin 拼装模式。
 2. 优先修复根因，避免为过 lint / mypy 而引入临时型补丁。
 3. 让运行时协议、对外 facade、测试桩三者共享同一份类型契约。
 4. 文档只描述已验证事实，不保留夸大或失真的质量宣称。
 
----
+### Phase A：静态卫生与基线清理 ✅
 
-## 2. 目标状态（完成标准）
-
-### 2.1 必达目标
-
-- [ ] `uv run ruff check .` 通过
-- [ ] `uv run --extra dev mypy custom_components/lipro tests` 通过
-- [ ] `uv run pytest -q` 通过
-- [ ] 重构后的 runtime/service/device facade 保持既定拆分方向
-- [ ] 仓库中不再追踪明显的本地产生型 benchmark 大文件
-- [ ] 架构/状态文档与真实质量状态一致
-
-### 2.2 质量目标
-
-- [ ] 运行时接口命名、参数、返回值一致
-- [ ] TypedDict / TypeAlias 与真实 payload 对齐
-- [ ] facade 暴露的属性与使用方的静态预期一致
-- [ ] 测试桩与生产接口一致，不依赖错误的宽松类型
-
----
-
-## 3. 分阶段执行计划
-
-### Phase A：静态卫生与基线清理
-
-**目标**：先消除不影响设计的机械性噪音，为后续问题定位降噪。
-
-- [x] A0. 记录基线输出（保存到执行记录）
-- [x] A1. 执行 `uv run ruff check . --fix`（自动修复 `F401/I001/RUF100/RUF022`）
-- [x] A2. 手工修复 `PLC0415/F821`（生产代码导入顶层化 + 未定义名称）
-- [x] A3. 手工修复测试侧 `F811/RUF059/SIM117/RET504`（重复用例、未使用解包、嵌套 with、冗余 return）
-- [x] A4. 重新运行 `uv run ruff check .`，确认 ruff 全绿
+- [x] A0. 记录基线输出
+- [x] A1. `uv run ruff check . --fix`（自动修复 `F401/I001/RUF100/RUF022`）
+- [x] A2. 修复生产代码 `PLC0415/F821`
+- [x] A3. 修复测试侧 `F811/RUF059/SIM117/RET504`
+- [x] A4. `uv run ruff check .` 确认全绿
 
 ### Phase B：运行时协议与类型契约收口
 
 **目标**：统一 `coordinator/types.py`、runtime helpers、command trace/result、status executor 的类型边界。
 
-- [ ] B1. 修复 `CommandTrace` / `RuntimeMetrics` / 相关 TypedDict 定义不一致
+- [ ] B1. 修复 `CommandTrace` / `RuntimeMetrics` / TypedDict 定义不一致
 - [ ] B2. 修复 command runtime 与 confirmation / sender / builder 的签名错位
-- [ ] B3. 修复 status runtime、state runtime、tuning runtime、product config runtime 的返回类型
+- [ ] B3. 修复 status / state / tuning / product config runtime 的返回类型
 - [ ] B4. 修复 MQTT runtime / client runtime 的导入与返回值类型
 
 ### Phase C：薄 facade 与调用方一致性完善
@@ -73,85 +186,534 @@
 
 - [ ] C1. 补齐 `LiproDevice` 对外属性声明，消除运行时有能力但静态不可见的问题
 - [ ] C2. 修复 `Coordinator` 公开 API、构造依赖、回调签名不一致问题
-- [ ] C3. 修复服务层与测试桩的参数类型、任务容器类型不匹配问题
+- [ ] C3. 修复服务层与测试桩的参数类型不匹配问题
 
-### Phase D：仓库卫生与文档真实化
+### Phase D：仓库卫生与文档真实化 ✅
 
-**目标**：删除不应入库的生成物，修正文档中未经验证的质量结论。
-
-- [x] D1. 清理 benchmark 生成大文件与无必要基准产物
-- [x] D2. 更新 `.gitignore` 与相关文档，明确生成物策略
-- [x] D3. 更新架构/状态文档，移除夸大表述，改为基于本次验证结果的真实描述
-
-### Phase F：架构模块化与边界收敛（在静态检查全绿后执行）
-
-**目标**：在不回退既定方向的前提下，把当前“上帝对象/巨物文件”的压力释放到可维护模块。
-
-- [ ] F1. `Coordinator` 减肥：从“上帝对象”收敛为“编排器”（抽出 entity registry / MQTT lifecycle / 更新循环编排）
-- [ ] F2. `diagnostics_service.py` 拆包：contracts/coercions/capabilities/command_result/sensor_history 分层，并保留旧入口 re-export
-- [ ] F3. 服务层边界硬化：禁止 service 触达 `runtime._xxx` 私有链（例如 state_service 对 updater 的私有访问）
-- [ ] F4. Protocol 与实现分层：contracts 只保留合同，不夹带实现类
-- [ ] F5. 命名一致性：统一“同一概念只有一种叫法”，旧名集中于 shim/兼容层
-
-#### Phase F 拆分路线（最小风险）
-
-- [ ] F1.1 抽出 entity registry/索引胶水（Coordinator → StateRuntime）
-- [ ] F1.2 抽出 MQTT lifecycle（setup/connect/disconnect）并保持 Coordinator API 不变
-- [ ] F1.3 抽出更新循环编排器（UpdateOrchestrator），Coordinator 仅保留 HA glue + 注入
-- [ ] F2.1 新增 `services/diagnostics/` 包，先迁移纯函数与 TypedDict
-- [ ] F2.2 `diagnostics_service.py` 收敛为 re-export + 薄胶水（保持原 import 路径兼容）
-- [ ] F3.1 Runtime 增补必要 public 方法，移除 service 对私有属性/内部类的依赖
-- [ ] F4.1 新建 contracts/protocols 文件，仅放 Protocol/TypeAlias/TypedDict
-- [ ] F4.2 contracts 不反向 import 实现；实现留在 `runtime/` 下
-- [ ] F5.1 建立“术语对照表”（canonical 命名）并在 shim/compat 层集中兼容旧名
-
-> 验收建议：执行 Phase F 后，`coordinator.py` 目标 < 350 行；`diagnostics_service.py` 目标 < 150 行（仅胶水/导出）。
-
-### Phase G：长期可维护性升级（可选）
-
-**目标**：在 A–F 全绿后再进入“深水区”拆分，降低一次性风险。
-
-- [ ] G1. 拆 `core/command/result.py`（大文件）为包化子模块，并保留原路径 re-export
-- [ ] G2. 拆 `core/api/status_service.py` 为 `core/api/status/` 子模块，降低冲突与复杂度
+- [x] D1. 清理 benchmark 生成大文件
+- [x] D2. 更新 `.gitignore`
+- [x] D3. 更新架构文档，移除夸大表述
 
 ### Phase E：全量验证与收尾
 
-**目标**：以统一命令完成最终验收，并将结果回填到本计划文档。
-
-- [ ] E1. 运行 `uv run ruff check .`
-- [ ] E2. 运行 `uv run --extra dev mypy custom_components/lipro tests`
-- [ ] E3. 运行 `uv run pytest -q`
-- [ ] E4. 回填最终结果与剩余风险（若无则标注“无”）
+- [ ] E1. `uv run ruff check .`
+- [ ] E2. `uv run --extra dev mypy custom_components/lipro tests`
+- [ ] E3. `uv run pytest -q`
+- [ ] E4. 回填最终结果与剩余风险
 
 ---
 
-## 4. 风险与处理策略
+## 4. 进阶架构演进计划（Phase F–K）
+
+> 以下为在基础收口完成后的进阶架构改善，按优先级排序。
+> 核心原则：**渐进式优化，不大规模重写**。每个 Phase 独立可交付，可随时停止。
+
+### Phase F：描述符驱动 + 声明式 Entity（P0 — 消灭 80% 属性样板代码）
+
+**动机**：Entity 层存在大量手工 getter/setter 转发模板代码，而 `LiproPropertyBinarySensor` 和 `LiproMappedPropertySelect` 已经证明了声明式模式的可行性。将该模式推广到所有平台。
+
+#### F1. 新增描述符框架
+
+新增 `entities/descriptors.py`：
+
+```python
+class DeviceAttr:
+    """从 device 读取属性的描述符，支持可选转换函数。"""
+    def __init__(self, attr: str, *, transform=None):
+        self.attr = attr
+        self.transform = transform
+
+    def __set_name__(self, owner, name):
+        self.name = name
+
+    def __get__(self, obj, objtype=None):
+        if obj is None:
+            return self
+        value = getattr(obj.device, self.attr)
+        return self.transform(value) if self.transform else value
+
+
+class ScaledBrightness(DeviceAttr):
+    """亮度描述符：设备 0-100 → HA 0-255。"""
+    def __init__(self, attr: str = "brightness"):
+        super().__init__(attr, transform=lambda v: round(max(0, min(100, v)) * 255 / 100))
+
+
+class ConditionalAttr(DeviceAttr):
+    """条件描述符：仅当设备具备某能力时返回值，否则返回 None。"""
+    def __init__(self, attr: str, *, capability: str, transform=None):
+        super().__init__(attr, transform=transform)
+        self.capability = capability
+
+    def __get__(self, obj, objtype=None):
+        if obj is None:
+            return self
+        if not getattr(obj.device, self.capability, False):
+            return None
+        return super().__get__(obj, objtype)
+```
+
+#### F2. 重构 Light Entity 为声明式
+
+Before（当前 `light.py` ~212 行，大量手工 property）：
+
+```python
+# 当前模式 — 每个属性都是手工 getter
+@property
+def is_on(self) -> bool:
+    return self.device.is_on
+
+@property
+def brightness(self) -> int | None:
+    brightness_pct = max(0, min(100, self.device.brightness))
+    return round(brightness_pct * _HA_BRIGHTNESS_SCALE / 100)
+
+@property
+def color_temp_kelvin(self) -> int | None:
+    if not self.device.supports_color_temp:
+        return None
+    return self.device.color_temp
+```
+
+After（声明式，属性行数从 ~50 行降为 ~8 行）：
+
+```python
+class LiproLight(LiproEntity, LightEntity):
+    is_on = DeviceAttr("is_on")
+    brightness = ScaledBrightness()
+    color_temp_kelvin = ConditionalAttr("color_temp", capability="supports_color_temp")
+    min_color_temp_kelvin = DeviceAttr("min_color_temp_kelvin")
+    max_color_temp_kelvin = DeviceAttr("max_color_temp_kelvin")
+
+    # 只保留有业务逻辑的方法
+    async def async_turn_on(self, **kwargs): ...
+    async def async_turn_off(self, **kwargs): ...
+```
+
+#### F3. 推广到 Cover / Fan / Climate
+
+- Cover: `current_cover_position`、`is_closed`、`is_opening`、`is_closing` → 描述符
+- Fan: `is_on`、`percentage`、`preset_mode` → 描述符
+- Climate: `hvac_mode`、`preset_mode` → 描述符
+
+#### F4. 扩展 BinarySensor 为注册表驱动
+
+将现有 `LiproPropertyBinarySensor` 模式泛化为声明式注册表：
+
+```python
+@dataclass(frozen=True, slots=True)
+class BinarySensorSpec:
+    """二值传感器声明式规格。"""
+    suffix: str
+    device_class: BinarySensorDeviceClass
+    device_property: str
+    translation_key: str
+    invert: bool = False
+    entity_category: EntityCategory | None = None
+    enabled_default: bool = True
+    always_available: bool = False
+    predicate: Callable[[LiproDevice], bool] = lambda d: True
+
+BINARY_SENSOR_SPECS: Final = [
+    BinarySensorSpec(
+        suffix="connectivity",
+        device_class=BinarySensorDeviceClass.CONNECTIVITY,
+        device_property="is_connected",
+        translation_key="connectivity",
+        entity_category=EntityCategory.DIAGNOSTIC,
+        enabled_default=False,
+        always_available=True,
+    ),
+    BinarySensorSpec(
+        suffix="motion",
+        device_class=BinarySensorDeviceClass.MOTION,
+        device_property="is_activated",
+        translation_key="motion",
+        predicate=lambda d: d.is_body_sensor,
+    ),
+    # ... 其余传感器声明
+]
+```
+
+**验收标准**：
+
+- [ ] Entity 层属性样板代码减少 >= 50%
+- [ ] 新增设备属性只需一行描述符声明
+- [ ] 所有现有测试通过，行为不变
+- [ ] 描述符有独立单元测试
+
+---
+
+### Phase G：命令标准化 + CQRS-lite（P1 — 统一写侧模式）
+
+**动机**：同一个"开关"操作在不同平台的写法不一致，新增平台需要了解三种不同的命令路径。
+
+#### G1. 新增声明式命令对象
+
+新增 `entities/commands.py`：
+
+```python
+@dataclass(frozen=True, slots=True)
+class PowerCommand:
+    """通用开关命令 — 用于所有支持 on/off 的实体。"""
+    on_cmd: str = CMD_POWER_ON
+    off_cmd: str = CMD_POWER_OFF
+    state_key: str = PROP_POWER_STATE
+
+    async def turn_on(self, entity: LiproEntity) -> None:
+        await entity.async_send_command(self.on_cmd, None, {self.state_key: "1"})
+
+    async def turn_off(self, entity: LiproEntity) -> None:
+        await entity.async_send_command(self.off_cmd, None, {self.state_key: "0"})
+
+
+@dataclass(frozen=True, slots=True)
+class PropertyToggleCommand:
+    """属性开关命令 — 用于 fade/sleep_aid 等功能切换。"""
+    property_key: str
+
+    async def turn_on(self, entity: LiproEntity) -> None:
+        await entity.async_change_state({self.property_key: 1})
+
+    async def turn_off(self, entity: LiproEntity) -> None:
+        await entity.async_change_state({self.property_key: 0})
+
+
+@dataclass(frozen=True, slots=True)
+class SliderCommand:
+    """滑块命令 — 用于 brightness/position 等连续值调节。"""
+    property_key: str
+    min_value: int = 0
+    max_value: int = 100
+
+    async def set_value(self, entity: LiproEntity, value: int) -> None:
+        clamped = max(self.min_value, min(self.max_value, value))
+        await entity.async_change_state({self.property_key: clamped}, debounced=True)
+```
+
+#### G2. 各平台实体统一使用命令对象
+
+```python
+# Light
+class LiproLight(LiproEntity, LightEntity):
+    _power = PowerCommand()
+
+    async def async_turn_off(self, **kwargs):
+        await self._power.turn_off(self)
+
+# Switch
+class LiproSwitch(LiproEntity, SwitchEntity):
+    _power = PowerCommand()
+
+    async def async_turn_off(self, **kwargs):
+        await self._power.turn_off(self)
+
+# Climate（不同的 state_key）
+class LiproHeater(LiproEntity, ClimateEntity):
+    _power = PowerCommand(state_key=PROP_HEATER_SWITCH)
+```
+
+#### G3. CQRS-lite 原则落地
+
+不引入完整 CQRS 框架，而是通过代码约定实现读写分离：
+
+- **Query（读）**：Entity 的 `@property` / 描述符只从 `self.device` 读取，永不修改状态
+- **Command（写）**：Entity 的 `async_*()` 方法只通过标准化命令对象发送，不直接操作 `device.properties`
+- **Optimistic Update（乐观更新）**：保留在 `LiproEntity.async_send_command()` 中统一处理，不散落到各平台
+
+**验收标准**：
+
+- [ ] 所有 `async_turn_on/off` 使用 `PowerCommand` 或 `PropertyToggleCommand`
+- [ ] 命令对象有独立单元测试
+- [ ] 消除各平台间的命令发送模式差异
+
+---
+
+### Phase H：Coordinator 瘦身（P2 — 从 600 行降至 ~250 行）
+
+**动机**：Coordinator 仍然是"胖编排器"，手动 DI 布线占据大量篇幅。
+
+#### H1. 抽取 Runtime 工厂函数
+
+新增 `core/coordinator/factory.py`：
+
+```python
+@dataclass(frozen=True, slots=True)
+class CoordinatorRuntimes:
+    """Runtime 组件注册表。"""
+    command: CommandRuntime
+    device: DeviceRuntime
+    mqtt: MqttRuntime
+    state: StateRuntime
+    status: StatusRuntime
+    tuning: TuningRuntime
+
+
+def build_coordinator_runtimes(
+    *,
+    hass: HomeAssistant,
+    client: LiproClient,
+    auth_manager: LiproAuthManager,
+    config_entry: ConfigEntry,
+    update_interval: int,
+) -> tuple[CoordinatorRuntimes, CoordinatorStateContainers]:
+    """组装所有 Runtime 组件并完成依赖注入。
+
+    所有 ~80 行 DI 布线从 Coordinator 移到这里。
+    """
+    ...
+```
+
+#### H2. 抽取 MQTT 生命周期管理
+
+将 `Coordinator.async_setup_mqtt()`（~90 行）移至独立模块 `core/coordinator/mqtt_lifecycle.py`，Coordinator 只保留一行调用。
+
+#### H3. 精简 Coordinator 为纯编排器
+
+Coordinator **保留**的职责：
+
+- HA `DataUpdateCoordinator` 对接
+- `_async_update_data()` 更新循环
+- Entity 注册/注销（已委托给 StateRuntime）
+- 公共 API facade（`get_device()`、`async_send_command()`）
+
+Coordinator **不再拥有**的职责：
+
+- DI 布线（移至 factory）
+- MQTT 建连（移至 mqtt_lifecycle）
+- 各种 lambda 回调定义（移至 factory 中闭包）
+
+#### H4. 评估 Service 层存废
+
+若 Phase H 完成后 Coordinator 足够精简，则 Service 层的"纯代理"职责可以：
+
+- **选项 A（推荐）**：保留 Service 层，但赋予其事务编排职责（如"发送命令 + 等确认 + 刷新状态"的完整流程）
+- **选项 B**：移除 Service 层，由 Coordinator 直接暴露 Runtime API
+
+#### H5. 模块化拆分路线（最小风险）
+
+> 以下为原 Phase F 的模块化拆分任务，合并到此处。
+
+- [ ] H5.1 `diagnostics_service.py` 拆包：contracts/coercions/capabilities 分层
+- [ ] H5.2 服务层边界硬化：禁止 service 触达 `runtime._xxx` 私有链
+- [ ] H5.3 Protocol 与实现分层：contracts 只保留合同
+- [ ] H5.4 命名一致性：统一"同一概念只有一种叫法"
+
+**验收标准**：
+
+- [ ] `coordinator.py` < 300 行
+- [ ] 所有 DI 布线在 `factory.py` 中完成
+- [ ] MQTT 生命周期独立为模块
+- [ ] 所有现有测试通过
+
+---
+
+### Phase I：MqttRuntime 构造器注入（P3 — 消灭运行时 RuntimeError）
+
+**动机**：MqttRuntime 的 setter 注入模式导致依赖未注入时会产生运行时错误。
+
+#### I1. MqttRuntime 改为完整构造器注入
+
+```python
+# Before — setter 注入 + lazy init
+class MqttRuntime:
+    def __init__(self, *, hass, mqtt_client, ...):
+        self._device_resolver = None  # 稍后注入!
+        self._property_applier = None  # 稍后注入!
+
+    def set_device_resolver(self, resolver): ...  # 两阶段初始化
+    def _ensure_message_handler(self): ...         # 运行时检查
+
+# After — 构造器注入 + 可选 client
+class MqttRuntime:
+    def __init__(
+        self,
+        *,
+        hass: HomeAssistant,
+        mqtt_client: LiproMqttClient | None,
+        device_resolver: DeviceResolverProtocol,
+        property_applier: PropertyApplierProtocol,
+        listener_notifier: ListenerNotifierProtocol,
+        ...
+    ):
+        self._message_handler = MqttMessageHandler(...)  # 立即创建
+```
+
+#### I2. 解决"MQTT client 延迟创建"问题
+
+MQTT client 在首次 `_async_update_data` 时才创建（因为需要先从 API 获取凭证），这是 setter 注入的根本原因。
+
+解决方案：MqttRuntime 的所有依赖（resolver / applier / notifier）在构造时注入，仅 `_mqtt_client` 允许延迟设置（因为它是外部 IO 资源）。使用单一 `replace_client()` 方法而非多个 setter。
+
+**验收标准**：
+
+- [ ] 删除所有 `set_xxx()` setter 方法
+- [ ] `_ensure_message_handler()` 改为 `__init__` 中直接创建
+- [ ] MQTT client 延迟替换使用单一 `replace_client()` 方法
+
+---
+
+### Phase J：Feature Component 轻量化（P4 — 新设备零样板接入）
+
+**动机**：当设备类型碎片化加剧时，`if self.device.has_xxx` 判断会散落各处。
+
+#### J1. 平台实体注册表
+
+新增 `entities/registry.py`：
+
+```python
+@dataclass(frozen=True, slots=True)
+class EntityRule:
+    """实体创建规则。"""
+    predicate: Callable[[LiproDevice], bool]
+    factory: type[LiproEntity]
+
+
+PLATFORM_REGISTRY: dict[Platform, list[EntityRule]] = {
+    Platform.LIGHT: [
+        EntityRule(predicate=lambda d: d.is_light or d.is_fan_light, factory=LiproLight),
+    ],
+    Platform.SWITCH: [
+        EntityRule(predicate=lambda d: d.is_switch, factory=LiproSwitch),
+    ],
+    Platform.COVER: [
+        EntityRule(predicate=lambda d: d.is_curtain, factory=LiproCover),
+    ],
+    # ...
+}
+```
+
+#### J2. 统一平台 setup 入口
+
+```python
+# 所有平台共享的 setup 函数
+async def async_setup_platform_from_registry(
+    platform: Platform,
+    entry: LiproConfigEntry,
+    async_add_entities: AddEntitiesCallback,
+) -> None:
+    coordinator = entry.runtime_data
+    rules = PLATFORM_REGISTRY[platform]
+    entities = []
+    for rule in rules:
+        for device in coordinator.devices.values():
+            if rule.predicate(device):
+                entities.append(rule.factory(coordinator, device))
+    async_add_entities(entities)
+```
+
+**验收标准**：
+
+- [ ] 新增设备类型只需在注册表添加一行
+- [ ] 各平台 `async_setup_entry` 简化为 3 行以内
+
+---
+
+### Phase K：SharedState 激活或清理（P5 — 可选）
+
+**动机**：已经定义了 `CoordinatorSharedState` 但未使用，属于死代码。
+
+#### K1. 选项 A：激活 SharedState
+
+Runtime 的读取操作从直接操作 `dict[str, LiproDevice]` 改为读取 frozen `CoordinatorSharedState`，写入仍通过 `StateRuntime`。
+
+#### K2. 选项 B：移除 SharedState
+
+若评估后认为 SharedState 增加了不必要的复杂度（考虑到 HA 是单线程事件循环，无需跨线程 snapshot），移除 `shared_state.py`，避免死代码。
+
+---
+
+### Phase L：长期可维护性升级（可选）
+
+**目标**：在核心架构稳定后的"深水区"拆分。
+
+- [ ] L1. 拆 `core/command/result.py`（大文件）为包化子模块
+- [ ] L2. 拆 `core/api/status_service.py` 为 `core/api/status/` 子模块
+
+---
+
+## 5. 不推荐的方案
+
+| 方案 | 原因 |
+|------|------|
+| 完整 RxPy 响应式流 | 引入重依赖，HA 生态无先例，asyncio 调试困难 |
+| 完整 ECS 架构 | 设备类型 ~10 种，碎片化程度不足以支撑 ECS 收益 |
+| 完整 CQRS + EventBus | HA 的 DataUpdateCoordinator 已是简化 CQRS，再加一层过度设计 |
+| 完整 State Machine | 设备状态转换简单（on/off/adjust），不需要正式 FSM |
+
+---
+
+## 6. 优先级矩阵
+
+| 优先级 | 阶段 | 改动范围 | 收益 | 风险 | 预估规模 |
+|--------|------|---------|------|------|---------|
+| **P0** | Phase F: 描述符 + 声明式 Entity | Entity 层 (~8 文件) + 新增 `descriptors.py` | 消灭 ~60% 属性样板代码 | 低 | 中 |
+| **P1** | Phase G: 命令标准化 + CQRS-lite | Entity 层 + 新增 `commands.py` | 统一写侧模式 | 低 | 小 |
+| **P2** | Phase H: Coordinator 瘦身 | `coordinator.py` + 新增 `factory.py` | Coordinator 600→250 行 | 中 | 中 |
+| **P3** | Phase I: MqttRuntime DI 修正 | `mqtt_runtime.py` + factory | 消灭运行时 RuntimeError | 中 | 小 |
+| **P4** | Phase J: Feature Component | platform helpers + 新增 `registry.py` | 新设备零样板接入 | 低 | 小 |
+| **P5** | Phase K: SharedState 处理 | `shared_state.py` + runtimes | 消除死代码 | 低 | 小 |
+
+---
+
+## 7. 风险与处理策略
 
 | 风险 | 表现 | 处理策略 |
-|---|---|---|
+|------|------|---------|
+| 描述符与 HA 类型系统冲突 | mypy 对描述符推断失败 | 使用 `@overload` 或 `if TYPE_CHECKING` 补充类型注解 |
+| 命令对象破坏乐观更新 | turn_on 后 UI 不立即反映 | 命令对象内部调用 `async_send_command`（已含乐观更新） |
+| Coordinator 工厂引入循环导入 | factory.py 同时导入 Runtime 和 Coordinator | factory 只导入 Runtime，Coordinator 导入 factory |
+| 测试需要大量更新 | 描述符/命令对象改变了内部调用链 | 每个 Phase 独立交付，边改边测 |
 | 契约面过大 | 一个 TypedDict 改动引发多处连锁 | 先统一定义，再批量收口调用方 |
 | facade 静态能力缺失 | 运行时能访问，mypy 不认可 | 优先补充显式属性/协议，而非到处 `cast` |
-| 测试误导设计 | 为兼容旧测试回退接口 | 以生产代码真实边界为准，必要时更新测试 |
 | 文档再次失真 | 手工维护后很快过期 | 仅写入本次验证得到的事实和命令结果 |
 
 ---
 
-## 5. 本次执行记录
+## 8. 执行记录
 
-- [x] 建立重构完善计划文档
-- [x] 完成 Phase A（ruff/pytest 全绿）
-- [x] 开始 Phase B
-- [ ] 开始 Phase C
-- [x] 开始 Phase D
-- [ ] 开始 Phase E
-- [ ] 开始 Phase F
-- [ ] 开始 Phase G
+### 基础收口
 
-## 6. 最终验收结果
+- [x] Phase A（ruff/pytest 全绿）— 2026-03-10
+- [ ] Phase B（类型契约收口）
+- [ ] Phase C（facade 一致性）
+- [x] Phase D（仓库卫生）— 2026-03-10
+- [ ] Phase E（全量验证）
 
-> 待执行完成后回填。
+### 进阶架构
+
+- [ ] Phase F（描述符 + 声明式 Entity）
+- [ ] Phase G（命令标准化 + CQRS-lite）
+- [ ] Phase H（Coordinator 瘦身）
+- [ ] Phase I（MqttRuntime DI 修正）
+- [ ] Phase J（Feature Component）
+- [ ] Phase K（SharedState 激活/清理）
+- [ ] Phase L（长期可维护性升级）
+
+---
+
+## 9. 最终验收结果
+
+> 待各 Phase 执行完成后回填。
+
+### 基础收口验收
 
 - `ruff`: 待回填
 - `mypy`: 待回填
 - `pytest`: 待回填
 - 剩余风险: 待回填
+
+### 进阶架构验收
+
+- Entity 样板代码削减比例: 待回填
+- `coordinator.py` 行数: 待回填
+- 新设备接入所需代码量: 待回填
+
+---
+
+## 10. 参考文档
+
+- `docs/developer_architecture.md` — 架构概览
+- `CODE_QUALITY_REVIEW.md` — 代码质量审查
+- `CHANGELOG.md` — 变更日志
+- Home Assistant Developer Docs: https://developers.home-assistant.io/
