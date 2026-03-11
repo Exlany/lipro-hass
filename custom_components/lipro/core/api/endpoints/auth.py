@@ -2,9 +2,8 @@
 
 from __future__ import annotations
 
-from typing import Any
-
 from ..client_base import _ClientBase
+from ..types import LoginResponse
 
 
 class _ClientAuthEndpointsMixin(_ClientBase):
@@ -16,7 +15,7 @@ class _ClientAuthEndpointsMixin(_ClientBase):
         password: str,
         *,
         password_is_hashed: bool = False,
-    ) -> dict[str, Any]:
+    ) -> LoginResponse:
         """Login with phone number and password."""
         return await self._auth_api.login(
             phone,
@@ -24,7 +23,7 @@ class _ClientAuthEndpointsMixin(_ClientBase):
             password_is_hashed=password_is_hashed,
         )
 
-    async def refresh_access_token(self) -> dict[str, Any]:
+    async def refresh_access_token(self) -> LoginResponse:
         """Refresh the access token."""
         return await self._auth_api.refresh_access_token()
 

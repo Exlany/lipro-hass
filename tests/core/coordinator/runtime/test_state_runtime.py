@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
+from typing import cast
 from unittest.mock import MagicMock
 
 import pytest
 
+from custom_components.lipro.core.coordinator.entity_protocol import LiproEntityProtocol
 from custom_components.lipro.core.coordinator.runtime.state_runtime import StateRuntime
 from custom_components.lipro.core.device import LiproDevice
 from custom_components.lipro.core.device.identity_index import DeviceIdentityIndex
@@ -14,21 +16,24 @@ from custom_components.lipro.core.device.identity_index import DeviceIdentityInd
 @pytest.fixture
 def mock_device() -> LiproDevice:
     """Create a mock device."""
-    device = MagicMock(spec=LiproDevice)
+    device = MagicMock()
     device.serial = "TEST001"
     device.name = "Test Device"
-    device.room_id = "room1"
+    device.room_id = 1
     device.is_online = True
-    device.update_properties = MagicMock(return_value=True)
-    device.set_online_status = MagicMock()
-    return device
+    device.update_properties = MagicMock()
+    device.mark_mqtt_update = MagicMock()
+    return cast(LiproDevice, device)
 
 
 @pytest.fixture
-def mock_entity() -> MagicMock:
+def mock_entity(mock_device: LiproDevice) -> MagicMock:
     """Create a mock entity."""
     entity = MagicMock()
     entity.entity_id = "light.test_device"
+    entity.unique_id = None
+    entity.device = mock_device
+    entity.get_protected_keys = MagicMock(return_value=set())
     entity.async_write_ha_state = MagicMock()
     return entity
 
@@ -39,8 +44,10 @@ def state_runtime(mock_device: LiproDevice, mock_entity: MagicMock) -> StateRunt
     devices = {mock_device.serial: mock_device}
     device_identity_index = DeviceIdentityIndex()
     device_identity_index.register(mock_device.serial, mock_device)
-    entities = {mock_entity.entity_id: mock_entity}
-    entities_by_device = {"test001": [mock_entity]}
+    entity_id = cast(str, mock_entity.entity_id)
+    typed_entity = cast(LiproEntityProtocol, mock_entity)
+    entities: dict[str, LiproEntityProtocol] = {entity_id: typed_entity}
+    entities_by_device: dict[str, list[LiproEntityProtocol]] = {"test001": [typed_entity]}
 
     def normalize_key(key: str) -> str:
         return key.lower()
@@ -88,7 +95,7 @@ class TestStateReader:
 
     def test_get_devices_by_room(self, state_runtime: StateRuntime, mock_device: LiproDevice) -> None:
         """Test getting devices by room."""
-        devices = state_runtime.get_devices_by_room("room1")
+        devices = state_runtime.get_devices_by_room(1)
         assert len(devices) == 1
         assert devices[0] == mock_device
 
@@ -112,7 +119,7 @@ class TestStateUpdater:
         changed = await state_runtime.apply_properties_update(mock_device, properties, source="test")
 
         assert changed is True
-        mock_device.update_properties.assert_called_once_with(properties)
+        cast(MagicMock, mock_device.update_properties).assert_called_once_with(properties)
         mock_entity.async_write_ha_state.assert_called_once()
 
     async def test_apply_properties_update_no_change(
@@ -175,7 +182,7 @@ class TestStateUpdater:
         changed = await state_runtime.apply_properties_update(mock_device, {})
 
         assert changed is False
-        mock_device.update_properties.assert_not_called()
+        cast(MagicMock, mock_device.update_properties).assert_not_called()
         mock_entity.async_write_ha_state.assert_not_called()
 
     async def test_apply_properties_update_skips_fully_protected_payload(
@@ -192,7 +199,7 @@ class TestStateUpdater:
         )
 
         assert changed is False
-        mock_device.update_properties.assert_not_called()
+        cast(MagicMock, mock_device.update_properties).assert_not_called()
         mock_entity.async_write_ha_state.assert_not_called()
 
     async def test_apply_properties_update_filters_only_protected_properties(
@@ -209,7 +216,7 @@ class TestStateUpdater:
         )
 
         assert changed is True
-        mock_device.update_properties.assert_called_once_with({"powerState": 1})
+        cast(MagicMock, mock_device.update_properties).assert_called_once_with({"powerState": 1})
         mock_entity.async_write_ha_state.assert_called_once()
 
 
@@ -248,7 +255,7 @@ class TestStateIndexManager:
         state_runtime: StateRuntime,
         mock_device: LiproDevice,
     ) -> None:
-        state_runtime.register_entity(object(), mock_device.serial)
+        state_runtime.register_entity(MagicMock(), mock_device.serial)
 
         assert state_runtime.get_entity_count() == 1
 
@@ -294,8 +301,16 @@ class TestStateIndexManager:
         mock_device: LiproDevice,
     ) -> None:
         """Test rebuilding device index."""
-        new_device = MagicMock(spec=LiproDevice)
-        new_device.serial = "TEST002"
+        new_device = LiproDevice(
+            device_number=2,
+            serial="TEST002",
+            name="Other Device",
+            device_type=1,
+            iot_name="lipro_led",
+            physical_model="light",
+            room_id=2,
+            properties={"connectState": "1"},
+        )
         devices = {mock_device.serial: mock_device, new_device.serial: new_device}
 
         state_runtime.rebuild_device_index(devices)

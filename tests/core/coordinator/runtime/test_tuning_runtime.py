@@ -4,7 +4,9 @@ from __future__ import annotations
 
 import pytest
 
-from custom_components.lipro.core.coordinator.runtime.tuning_runtime import TuningRuntime
+from custom_components.lipro.core.coordinator.runtime.tuning_runtime import (
+    TuningRuntime,
+)
 
 
 @pytest.fixture
@@ -179,38 +181,7 @@ class TestTuningAdjuster:
         assert changed is True
         assert tuning_runtime.get_current_batch_size() == 40
 
-    def test_apply_batch_size_adjustment_no_change(self, tuning_runtime: TuningRuntime) -> None:
-        """Test applying batch size adjustment with no change."""
-        changed = tuning_runtime.apply_batch_size_adjustment(32)
-        assert changed is False
-
-    def test_apply_mqtt_stale_window_adjustment(self, tuning_runtime: TuningRuntime) -> None:
-        """Test applying MQTT stale window adjustment."""
-        changed = tuning_runtime.apply_mqtt_stale_window_adjustment(200.0)
-        assert changed is True
-        assert tuning_runtime.get_current_mqtt_stale_window() == 200.0
-
-    def test_apply_mqtt_stale_window_adjustment_no_change(
-        self,
-        tuning_runtime: TuningRuntime,
-    ) -> None:
-        """Test applying MQTT stale window adjustment with no change."""
-        changed = tuning_runtime.apply_mqtt_stale_window_adjustment(180.0)
-        assert changed is False
-
-    def test_reset_adjustments(self, tuning_runtime: TuningRuntime) -> None:
-        """Test resetting adjustments."""
-        tuning_runtime.apply_batch_size_adjustment(40)
-        tuning_runtime.reset_adjustments(batch_size=32, mqtt_stale_window=180.0)
-        assert tuning_runtime.get_current_batch_size() == 32
-        assert tuning_runtime.get_current_mqtt_stale_window() == 180.0
-
-    def test_get_runtime_metrics(self, tuning_runtime: TuningRuntime) -> None:
-        """Test getting runtime metrics."""
-        metrics = tuning_runtime.get_runtime_metrics()
-        assert "algorithm" in metrics
-        assert "metrics" in metrics
-        assert "adjuster" in metrics
+	# NOTE: Duplicate tests removed; see earlier definitions above.
         assert tuning_runtime.get_current_batch_size() == 40
 
     def test_apply_batch_size_adjustment_no_change(self, tuning_runtime: TuningRuntime) -> None:

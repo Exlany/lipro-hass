@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import logging
-from types import SimpleNamespace
 from unittest.mock import AsyncMock, Mock, call
 
 import pytest
@@ -16,6 +15,20 @@ from custom_components.lipro.core.coordinator.runtime.outlet_power_runtime impor
     query_single_outlet_power,
     resolve_outlet_power_cycle_size,
 )
+from custom_components.lipro.core.device import LiproDevice
+
+
+def _make_device(*, name: str = "Test Outlet") -> LiproDevice:
+    return LiproDevice(
+        device_number=1,
+        serial="outlet",
+        name=name,
+        device_type=1,
+        iot_name="lipro_outlet",
+        physical_model="outlet",
+        is_group=False,
+        properties={"powerState": "1"},
+    )
 
 
 def test_resolve_outlet_power_cycle_size_returns_static_limit_when_target_non_positive() -> (
@@ -132,7 +145,7 @@ async def test_query_outlet_power_wraps_slice_when_round_robin_crosses_tail() ->
             {"nowPower": 3},
         ]
     )
-    device = SimpleNamespace(name="Test Outlet")
+    device = _make_device(name="Test Outlet")
 
     updated = await query_outlet_power(
         outlet_ids_to_query=["a", "b", "c", "d", "e"],
@@ -158,7 +171,7 @@ async def test_query_outlet_power_queries_each_selected_device_individually() ->
             {"nowPower": 2.0},
         ]
     )
-    device = SimpleNamespace(name="Test Outlet")
+    device = _make_device(name="Test Outlet")
 
     await query_outlet_power(
         outlet_ids_to_query=["a", "b"],
@@ -178,7 +191,7 @@ async def test_query_outlet_power_queries_each_selected_device_individually() ->
 @pytest.mark.asyncio
 async def test_query_outlet_power_accepts_single_payload_nested_by_device_id() -> None:
     fetch = AsyncMock(return_value={"a": {"nowPower": 1.0}})
-    device = SimpleNamespace(name="Test Outlet")
+    device = _make_device(name="Test Outlet")
 
     await query_outlet_power(
         outlet_ids_to_query=["a"],
@@ -214,7 +227,7 @@ async def test_query_single_outlet_power_ignores_invalid_device_id() -> None:
 @pytest.mark.asyncio
 async def test_query_single_outlet_power_logs_successful_apply() -> None:
     logger = Mock()
-    device = SimpleNamespace(name="Desk Outlet")
+    device = _make_device(name="Desk Outlet")
 
     await query_single_outlet_power(
         device_id="ABC",

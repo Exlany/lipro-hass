@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, Any
 from .status import StatusExecutor, StatusScheduler, StatusStrategy
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Coroutine
+    from collections.abc import Awaitable, Callable
 
     from ...device import LiproDevice
 
@@ -26,9 +26,11 @@ class StatusRuntime:
         max_devices_per_query: int,
         initial_batch_size: int,
         query_device_status: Callable[
-            [list[str]], Coroutine[Any, Any, dict[str, dict[str, Any]]]
+            [list[str]], Awaitable[dict[str, dict[str, Any]]]
         ],
-        apply_properties_update: Callable[[LiproDevice, dict[str, Any], str], bool],
+        apply_properties_update: Callable[
+            [LiproDevice, dict[str, Any], str], Awaitable[bool]
+        ],
         get_device_by_id: Callable[[str], LiproDevice | None],
     ) -> None:
         """Initialize status runtime.
@@ -39,7 +41,7 @@ class StatusRuntime:
             max_devices_per_query: Maximum devices per API query
             initial_batch_size: Initial batch size for state queries
             query_device_status: Async function to query device status
-            apply_properties_update: Function to apply property updates
+            apply_properties_update: Async function to apply property updates
             get_device_by_id: Function to look up devices
         """
         self._scheduler = StatusScheduler(

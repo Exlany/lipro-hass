@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+import asyncio
 from datetime import timedelta
 from time import monotonic
+from typing import cast
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -26,9 +28,9 @@ def mock_hass() -> Mock:
 def mock_mqtt_client() -> Mock:
     """Create mock MQTT client."""
     client = Mock(spec=LiproMqttClient)
-    client.connect = AsyncMock()
-    client.disconnect = AsyncMock()
-    client.subscribe_devices = AsyncMock()
+    client.start = AsyncMock()
+    client.stop = AsyncMock()
+    client.sync_subscriptions = AsyncMock()
     return client
 
 
@@ -55,18 +57,23 @@ def mqtt_runtime(mock_hass: Mock, mock_mqtt_client: Mock) -> MqttRuntime:
         reconnect_max_delay=60.0,
     )
 
-    # Create a mock property applier that matches the protocol
-    class MockPropertyApplier:
-        async def apply_properties_update(self, device, properties):
-            return properties  # Return applied properties
+    device_resolver = Mock()
+    device_resolver.get_device_by_id = Mock(return_value=None)
 
-    # Inject mock dependencies
-    runtime.set_device_resolver(Mock())
-    # property_applier should be async and return bool for the injected version
+    listener_notifier = Mock()
+    listener_notifier.schedule_listener_update = Mock()
+
+    connect_state_tracker = Mock()
+    connect_state_tracker.record_connect_state = Mock()
+
+    group_reconciler = Mock()
+    group_reconciler.schedule_group_reconciliation = Mock()
+
+    runtime.set_device_resolver(device_resolver)
     runtime.set_property_applier(AsyncMock(return_value=True))
-    runtime.set_listener_notifier(Mock())
-    runtime.set_connect_state_tracker(Mock())
-    runtime.set_group_reconciler(Mock())
+    runtime.set_listener_notifier(listener_notifier)
+    runtime.set_connect_state_tracker(connect_state_tracker)
+    runtime.set_group_reconciler(group_reconciler)
 
     return runtime
 
@@ -115,20 +122,21 @@ class TestMqttRuntimeConnection:
     ) -> None:
         """Test successful MQTT connection."""
         device_ids = ["device1", "device2"]
-        biz_id = "test_biz"
 
-        result = await mqtt_runtime.connect(device_ids=device_ids, biz_id=biz_id)
+        result = await mqtt_runtime.connect(device_ids=device_ids, biz_id="test_biz")
 
         assert result is True
-        mock_mqtt_client.connect.assert_called_once()
-        mock_mqtt_client.subscribe_devices.assert_called_once_with(device_ids, biz_id)
+        cast(AsyncMock, mock_mqtt_client.start).assert_awaited_once_with(device_ids)
+        cast(AsyncMock, mock_mqtt_client.sync_subscriptions).assert_awaited_once_with(
+            set(device_ids)
+        )
         assert mqtt_runtime.is_connected is True
 
     async def test_connect_failure(
         self, mqtt_runtime: MqttRuntime, mock_mqtt_client: Mock
     ) -> None:
         """Test MQTT connection failure."""
-        mock_mqtt_client.connect.side_effect = Exception("Connection failed")
+        cast(AsyncMock, mock_mqtt_client.start).side_effect = Exception("Connection failed")
 
         result = await mqtt_runtime.connect(device_ids=["device1"], biz_id="test_biz")
 
@@ -151,7 +159,7 @@ class TestMqttRuntimeConnection:
         self, mqtt_runtime: MqttRuntime, mock_mqtt_client: Mock
     ) -> None:
         """Cancelled connection attempts should bubble up."""
-        mock_mqtt_client.connect.side_effect = asyncio.CancelledError()
+        cast(AsyncMock, mock_mqtt_client.start).side_effect = asyncio.CancelledError()
 
         with pytest.raises(asyncio.CancelledError):
             await mqtt_runtime.connect(device_ids=["device1"], biz_id="test_biz")
@@ -160,21 +168,19 @@ class TestMqttRuntimeConnection:
         self, mqtt_runtime: MqttRuntime, mock_mqtt_client: Mock
     ) -> None:
         """Test MQTT disconnection."""
-        # First connect
         await mqtt_runtime.connect(device_ids=["device1"], biz_id="test_biz")
         assert mqtt_runtime.is_connected is True
 
-        # Then disconnect
         await mqtt_runtime.disconnect()
 
-        mock_mqtt_client.disconnect.assert_called_once()
+        cast(AsyncMock, mock_mqtt_client.stop).assert_awaited_once()
         assert mqtt_runtime.is_connected is False
 
     async def test_disconnect_handles_exception(
         self, mqtt_runtime: MqttRuntime, mock_mqtt_client: Mock
     ) -> None:
         """Test disconnect handles exceptions gracefully."""
-        mock_mqtt_client.disconnect.side_effect = Exception("Disconnect failed")
+        cast(AsyncMock, mock_mqtt_client.stop).side_effect = Exception("Disconnect failed")
 
         await mqtt_runtime.disconnect()
 
@@ -194,7 +200,7 @@ class TestMqttRuntimeConnection:
         self, mqtt_runtime: MqttRuntime, mock_mqtt_client: Mock
     ) -> None:
         """Cancelled disconnects should not be swallowed."""
-        mock_mqtt_client.disconnect.side_effect = asyncio.CancelledError()
+        cast(AsyncMock, mock_mqtt_client.stop).side_effect = asyncio.CancelledError()
 
         with pytest.raises(asyncio.CancelledError):
             await mqtt_runtime.disconnect()
@@ -208,60 +214,71 @@ class TestMqttRuntimeMessageHandling:
         device_id = "device1"
         properties = {"brightness": 100, "power": True}
 
-        mock_device = Mock(serial="device1", name="Device 1", is_group=False)
-        mqtt_runtime._device_resolver.get_device_by_id = Mock(return_value=mock_device)
+        resolver = cast(Mock, mqtt_runtime._device_resolver)
+        resolver.get_device_by_id.return_value = Mock(
+            serial=device_id, name="Device 1", is_group=False
+        )
 
         await mqtt_runtime.handle_message(device_id, properties)
 
-        # Verify property applier was called (via adapter)
-        mqtt_runtime._listener_notifier.schedule_listener_update.assert_called_once()
+        listener_notifier = cast(Mock, mqtt_runtime._listener_notifier)
+        listener_notifier.schedule_listener_update.assert_called_once()
 
     async def test_handle_message_duplicate(self, mqtt_runtime: MqttRuntime) -> None:
         """Test duplicate message is ignored."""
         device_id = "device1"
         properties = {"brightness": 100}
 
-        mock_device = Mock(serial="device1", name="Device 1", is_group=False)
-        mqtt_runtime._device_resolver.get_device_by_id = Mock(return_value=mock_device)
+        resolver = cast(Mock, mqtt_runtime._device_resolver)
+        resolver.get_device_by_id.return_value = Mock(
+            serial=device_id, name="Device 1", is_group=False
+        )
 
-        # Send same message twice
         await mqtt_runtime.handle_message(device_id, properties)
         await mqtt_runtime.handle_message(device_id, properties)
 
-        # Listener should only be notified once (second is duplicate)
-        assert mqtt_runtime._listener_notifier.schedule_listener_update.call_count == 1
+        listener_notifier = cast(Mock, mqtt_runtime._listener_notifier)
+        assert listener_notifier.schedule_listener_update.call_count == 1
 
     async def test_handle_message_device_not_found(self, mqtt_runtime: MqttRuntime) -> None:
         """Test message for unknown device is ignored."""
-        mqtt_runtime._device_resolver.get_device_by_id = Mock(return_value=None)
+        resolver = cast(Mock, mqtt_runtime._device_resolver)
+        resolver.get_device_by_id.return_value = None
 
         await mqtt_runtime.handle_message("unknown_device", {"test": "value"})
 
-        mqtt_runtime._property_applier.assert_not_called()
+        property_applier = cast(AsyncMock, mqtt_runtime._property_applier)
+        property_applier.assert_not_called()
 
     async def test_handle_message_with_connect_state(self, mqtt_runtime: MqttRuntime) -> None:
         """Test message with connectState triggers tracking."""
         device_id = "device1"
         properties = {"connectState": True}
 
-        mock_device = Mock(serial="device1", name="Device 1", is_group=False)
-        mqtt_runtime._device_resolver.get_device_by_id = Mock(return_value=mock_device)
+        resolver = cast(Mock, mqtt_runtime._device_resolver)
+        resolver.get_device_by_id.return_value = Mock(
+            serial=device_id, name="Device 1", is_group=False
+        )
 
         await mqtt_runtime.handle_message(device_id, properties)
 
-        mqtt_runtime._connect_state_tracker.record_connect_state.assert_called_once()
+        connect_state_tracker = cast(Mock, mqtt_runtime._connect_state_tracker)
+        connect_state_tracker.record_connect_state.assert_called_once()
 
     async def test_handle_message_group_online(self, mqtt_runtime: MqttRuntime) -> None:
         """Test group device coming online triggers reconciliation."""
         device_id = "group1"
         properties = {"connectState": True}
 
-        mock_device = Mock(serial="group1", name="Group 1", is_group=True)
-        mqtt_runtime._device_resolver.get_device_by_id = Mock(return_value=mock_device)
+        resolver = cast(Mock, mqtt_runtime._device_resolver)
+        resolver.get_device_by_id.return_value = Mock(
+            serial=device_id, name="Group 1", is_group=True
+        )
 
         await mqtt_runtime.handle_message(device_id, properties)
 
-        mqtt_runtime._group_reconciler.schedule_group_reconciliation.assert_called_once()
+        group_reconciler = cast(Mock, mqtt_runtime._group_reconciler)
+        group_reconciler.schedule_group_reconciliation.assert_called_once()
 
 
 class TestMqttRuntimeReconnection:
@@ -275,16 +292,12 @@ class TestMqttRuntimeReconnection:
         self, mqtt_runtime: MqttRuntime, mock_mqtt_client: Mock
     ) -> None:
         """Test reconnection backoff after failure."""
-        mock_mqtt_client.connect.side_effect = Exception("Connection failed")
+        cast(AsyncMock, mock_mqtt_client.start).side_effect = Exception("Connection failed")
 
-        # First attempt should succeed
         assert mqtt_runtime.should_attempt_reconnect() is True
 
-        # After failure, should enter backoff
         asyncio.run(mqtt_runtime.connect(device_ids=["device1"], biz_id="test_biz"))
 
-        # Immediately after failure, should not attempt (backoff active)
-        # Note: This depends on timing, so we just verify the backoff was recorded
         assert mqtt_runtime._reconnect_manager._backoff._failure_count > 0
 
 
@@ -307,9 +320,7 @@ class TestMqttRuntimeDisconnectNotification:
 
         mock_create_task.side_effect = _close_coroutine
         mqtt_runtime._connection_manager._connected = False
-        mqtt_runtime._connection_manager._disconnect_time = (
-            monotonic() - 400  # 400 seconds ago
-        )
+        mqtt_runtime._connection_manager._disconnect_time = monotonic() - 400
 
         mqtt_runtime.check_disconnect_notification()
 
@@ -332,7 +343,7 @@ class TestMqttRuntimeDisconnectNotification:
     ) -> None:
         """Test notification not triggered before threshold."""
         mqtt_runtime._connection_manager._connected = False
-        mqtt_runtime._connection_manager._disconnect_time = monotonic() - 60  # 1 minute
+        mqtt_runtime._connection_manager._disconnect_time = monotonic() - 60
 
         with patch(
             "custom_components.lipro.core.coordinator.runtime.mqtt_runtime.asyncio.create_task"
@@ -384,18 +395,16 @@ class TestMqttRuntimeReset:
         self, mqtt_runtime: MqttRuntime, mock_mqtt_client: Mock
     ) -> None:
         """Test reset clears all runtime state."""
-        # Setup some state
         await mqtt_runtime.connect(device_ids=["device1"], biz_id="test_biz")
 
-        # Setup device for message handling
-        mock_device = Mock(serial="device1", name="Device 1", is_group=False)
-        mqtt_runtime._device_resolver.get_device_by_id = Mock(return_value=mock_device)
+        resolver = cast(Mock, mqtt_runtime._device_resolver)
+        resolver.get_device_by_id.return_value = Mock(
+            serial="device1", name="Device 1", is_group=False
+        )
         await mqtt_runtime.handle_message("device1", {"test": "value"})
 
-        # Reset
         mqtt_runtime.reset()
 
-        # Verify state is cleared
         assert mqtt_runtime.is_connected is False
         assert mqtt_runtime._connection_manager.disconnect_time is None
         assert len(mqtt_runtime._dedup_manager._message_cache) == 0
@@ -436,6 +445,7 @@ class TestMqttRuntimeDependencyInjection:
     def test_set_device_resolver(self, mqtt_runtime: MqttRuntime) -> None:
         """Test setting device resolver."""
         resolver = Mock()
+        resolver.get_device_by_id = Mock(return_value=None)
         mqtt_runtime.set_device_resolver(resolver)
         assert mqtt_runtime._device_resolver is resolver
 
@@ -447,13 +457,8 @@ class TestMqttRuntimeDependencyInjection:
             base_scan_interval=30,
         )
 
-        # Should raise without dependencies
         with pytest.raises(RuntimeError, match="dependencies not fully injected"):
             await runtime.handle_message("device1", {"test": "value"})
-
-
-# Import asyncio for async tests
-import asyncio
 
 
 @pytest.mark.asyncio
@@ -508,12 +513,15 @@ def test_reconnect_manager_tracks_backoff_gate_flag() -> None:
 
     manager = MqttReconnectManager()
 
-    assert manager.backoff_gate_logged is False
+    flag = manager.backoff_gate_logged
+    assert flag is False
 
     manager.mark_backoff_gate_logged()
 
-    assert manager.backoff_gate_logged is True
+    flag = manager.backoff_gate_logged
+    assert flag is True
 
     manager.on_reconnect_success()
 
-    assert manager.backoff_gate_logged is False
+    flag = manager.backoff_gate_logged
+    assert flag is False

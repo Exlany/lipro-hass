@@ -22,7 +22,7 @@ from .payload import parse_mqtt_payload
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-    from .client import LiproMqttClient
+    from .mqtt_client import LiproMqttClient
 
 _LOGGER = logging.getLogger(__package__ or __name__)
 

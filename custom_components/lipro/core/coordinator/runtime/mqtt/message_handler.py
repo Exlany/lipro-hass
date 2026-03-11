@@ -14,6 +14,14 @@ if TYPE_CHECKING:
     from ....device import LiproDevice
 
 
+class DeviceResolver(Protocol):
+    """Protocol for resolving a device instance from identifiers."""
+
+    def get_device_by_id(self, device_id: str) -> LiproDevice | None:
+        """Return the resolved device, if available."""
+        ...
+
+
 class PropertyApplier(Protocol):
     """Protocol for applying property updates to devices."""
 
@@ -56,7 +64,7 @@ class MqttMessageHandler:
     def __init__(
         self,
         *,
-        device_resolver: StateReader,
+        device_resolver: DeviceResolver,
         property_applier: PropertyApplier,
         listener_notifier: ListenerNotifier,
         connect_state_tracker: ConnectStateTracker,

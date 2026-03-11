@@ -53,15 +53,29 @@ class AuthApiService:
 
         self._client._access_token = access_token
         self._client._refresh_token = refresh_token
-        self._client._user_id = result.get("userId")
-        self._client._biz_id = result.get("bizId")
+
+        raw_user_id = result.get("userId")
+        if isinstance(raw_user_id, int):
+            self._client._user_id = raw_user_id
+        elif isinstance(raw_user_id, str):
+            normalized = raw_user_id.strip()
+            try:
+                self._client._user_id = int(normalized) if normalized else 0
+            except ValueError:
+                self._client._user_id = 0
+        else:
+            self._client._user_id = 0
+
+        raw_biz_id = result.get("bizId")
+        self._client._biz_id = raw_biz_id if isinstance(raw_biz_id, str) else None
 
         self._logger.info("Login successful")
         return {
             "access_token": self._client._access_token,
             "refresh_token": self._client._refresh_token,
             "expires_in": 0,
-            "user_id": self._client._user_id or "",
+            "user_id": self._client._user_id,
+            "biz_id": self._client._biz_id,
         }
 
     async def refresh_access_token(self) -> LoginResponse:
@@ -87,12 +101,24 @@ class AuthApiService:
 
         self._client._access_token = access_token
         self._client._refresh_token = refresh_token
-        self._client._user_id = result.get("userId")
+
+        raw_user_id = result.get("userId")
+        if isinstance(raw_user_id, int):
+            self._client._user_id = raw_user_id
+        elif isinstance(raw_user_id, str):
+            normalized = raw_user_id.strip()
+            try:
+                self._client._user_id = int(normalized) if normalized else 0
+            except ValueError:
+                self._client._user_id = 0
+        else:
+            self._client._user_id = 0
 
         self._logger.info("Token refreshed successfully")
         return {
             "access_token": self._client._access_token,
             "refresh_token": self._client._refresh_token,
             "expires_in": 0,
-            "user_id": self._client._user_id or "",
+            "user_id": self._client._user_id,
+            "biz_id": self._client._biz_id,
         }

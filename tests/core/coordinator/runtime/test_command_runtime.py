@@ -5,12 +5,14 @@ from __future__ import annotations
 import asyncio
 from collections import deque
 from typing import Any
-from unittest.mock import AsyncMock, MagicMock, Mock, patch
+from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
-from custom_components.lipro.core.api import LiproApiError, LiproAuthError, LiproRefreshTokenExpiredError
-from custom_components.lipro.core.command.confirmation_tracker import CommandConfirmationTracker
+from custom_components.lipro.core.api import LiproApiError, LiproAuthError
+from custom_components.lipro.core.command.confirmation_tracker import (
+    CommandConfirmationTracker,
+)
 from custom_components.lipro.core.command.expectation import PendingCommandExpectation
 from custom_components.lipro.core.coordinator.runtime.command import (
     CommandBuilder,
@@ -18,7 +20,9 @@ from custom_components.lipro.core.coordinator.runtime.command import (
     ConfirmationManager,
     RetryStrategy,
 )
-from custom_components.lipro.core.coordinator.runtime.command_runtime import CommandRuntime
+from custom_components.lipro.core.coordinator.runtime.command_runtime import (
+    CommandRuntime,
+)
 from custom_components.lipro.core.device import LiproDevice
 
 
@@ -183,6 +187,7 @@ class TestCommandSender:
                 device=mock_device, command="POWER_ON", properties=None, fallback_device_id=None, trace=trace
             )
 
+            assert isinstance(result, dict)
             assert result["pushSuccess"] is True
             assert route == "iot"
 
@@ -214,15 +219,23 @@ class TestCommandSender:
         async def mock_query_once(*args, **kwargs):
             return {"code": 0}
 
-        with patch("custom_components.lipro.core.coordinator.runtime.command.sender.query_command_result_once", side_effect=mock_query_once):
-            with patch("custom_components.lipro.core.coordinator.runtime.command.sender.classify_command_result_payload", return_value="confirmed"):
-                verified, classification = await sender.verify_command_delivery(
-                    msg_sn="12345", retry_delays=[0.001], trace=trace, device=mock_device
-                )
+        with (
+            patch(
+                "custom_components.lipro.core.coordinator.runtime.command.sender.query_command_result_once",
+                side_effect=mock_query_once,
+            ),
+            patch(
+                "custom_components.lipro.core.coordinator.runtime.command.sender.classify_command_result_payload",
+                return_value="confirmed",
+            ),
+        ):
+            verified, classification = await sender.verify_command_delivery(
+                msg_sn="12345", retry_delays=[0.001], trace=trace, device=mock_device
+            )
 
-                assert verified is True
-                assert trace["verification_result"] == "confirmed"
-                assert classification == "confirmed"
+            assert verified is True
+            assert trace["verification_result"] == "confirmed"
+            assert classification == "confirmed"
 
     @pytest.mark.asyncio
     async def test_verify_command_delivery_failed_result(self, mock_client, mock_device):
@@ -233,15 +246,23 @@ class TestCommandSender:
         async def mock_query_once(*args, **kwargs):
             return {"code": 1}
 
-        with patch("custom_components.lipro.core.coordinator.runtime.command.sender.query_command_result_once", side_effect=mock_query_once):
-            with patch("custom_components.lipro.core.coordinator.runtime.command.sender.classify_command_result_payload", return_value="failed"):
-                verified, classification = await sender.verify_command_delivery(
-                    msg_sn="12345", retry_delays=[0.001], trace=trace, device=mock_device
-                )
+        with (
+            patch(
+                "custom_components.lipro.core.coordinator.runtime.command.sender.query_command_result_once",
+                side_effect=mock_query_once,
+            ),
+            patch(
+                "custom_components.lipro.core.coordinator.runtime.command.sender.classify_command_result_payload",
+                return_value="failed",
+            ),
+        ):
+            verified, classification = await sender.verify_command_delivery(
+                msg_sn="12345", retry_delays=[0.001], trace=trace, device=mock_device
+            )
 
-                assert verified is False
-                assert trace["verification_result"] == "failed"
-                assert classification == "failed"
+            assert verified is False
+            assert trace["verification_result"] == "failed"
+            assert classification == "failed"
 
     @pytest.mark.asyncio
     async def test_verify_command_delivery_pending_classification(self, mock_client, mock_device):
@@ -252,14 +273,23 @@ class TestCommandSender:
         async def mock_query_once(*args, **kwargs):
             return {"code": 100000}
 
-        with patch("custom_components.lipro.core.coordinator.runtime.command.sender.query_command_result_once", side_effect=mock_query_once):
-            with patch("custom_components.lipro.core.coordinator.runtime.command.sender.classify_command_result_payload", return_value="pending"):
-                verified, classification = await sender.verify_command_delivery(
-                    msg_sn="12345", retry_delays=[0.001], trace=trace, device=mock_device
-                )
+        with (
+            patch(
+                "custom_components.lipro.core.coordinator.runtime.command.sender.query_command_result_once",
+                side_effect=mock_query_once,
+            ),
+            patch(
+                "custom_components.lipro.core.coordinator.runtime.command.sender.classify_command_result_payload",
+                return_value="pending",
+            ),
+        ):
+            verified, classification = await sender.verify_command_delivery(
+                msg_sn="12345", retry_delays=[0.001], trace=trace, device=mock_device
+            )
 
-                assert verified is False
-                assert trace["verification_result"] == "timeout"
+            assert verified is False
+            assert trace["verification_result"] == "timeout"
+            assert classification is None
 
 
 class TestConfirmationManager:
@@ -327,8 +357,7 @@ class TestConfirmationManager:
         def track_task(coro):
             nonlocal track_background_task_called
             track_background_task_called = True
-            task = asyncio.create_task(coro)
-            return task
+            return asyncio.create_task(coro)
 
         manager = ConfirmationManager(
             confirmation_tracker=confirmation_tracker,
@@ -398,7 +427,7 @@ class TestCommandRuntime:
         with patch.object(command_runtime._sender, "send_command") as mock_send:
             mock_send.return_value = ({"pushSuccess": True}, "iot")
 
-            success, route = await command_runtime.send_device_command(
+            success, _route = await command_runtime.send_device_command(
                 device=mock_device, command="POWER_ON", properties=None, fallback_device_id=None
             )
 
@@ -411,7 +440,7 @@ class TestCommandRuntime:
         with patch.object(command_runtime._sender, "send_command") as mock_send:
             mock_send.side_effect = LiproApiError("API Error")
 
-            success, route = await command_runtime.send_device_command(
+            success, _route = await command_runtime.send_device_command(
                 device=mock_device, command="POWER_ON", properties=None, fallback_device_id=None
             )
 
@@ -424,7 +453,7 @@ class TestCommandRuntime:
         with patch.object(command_runtime._sender, "send_command") as mock_send:
             mock_send.side_effect = LiproAuthError("Auth failed")
 
-            success, route = await command_runtime.send_device_command(
+            success, _route = await command_runtime.send_device_command(
                 device=mock_device, command="POWER_ON", properties=None, fallback_device_id=None
             )
 
@@ -451,7 +480,7 @@ class TestCommandRuntime:
 
     def test_record_trace_when_debug_enabled(self, command_runtime):
         """Test trace recording in debug mode."""
-        trace = {"test": "data"}
+        trace: dict[str, object] = {"test": "data"}
         command_runtime._record_trace(trace)
 
         assert len(command_runtime._traces) == 1
@@ -471,7 +500,7 @@ class TestCommandRuntime:
             debug_mode=False,
         )
 
-        trace = {"test": "data"}
+        trace: dict[str, object] = {"test": "data"}
         runtime._record_trace(trace)
 
         assert len(runtime._traces) == 0

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from time import monotonic
 from typing import Any, ClassVar
 
 from ...const.api import DEFAULT_MAX_FAN_GEAR
@@ -42,6 +43,9 @@ class LiproDevice:
     _extras_cache: DeviceExtras | None = field(
         default=None, init=False, repr=False, compare=False
     )
+    _last_mqtt_update_at: float = field(
+        default=0.0, init=False, repr=False, compare=False
+    )
     _delegated_attributes: ClassVar[dict[str, str]] = DEVICE_DELEGATED_ATTRIBUTES
 
     identity = property(device_views.identity)
@@ -69,6 +73,21 @@ class LiproDevice:
     def extras(self) -> DeviceExtras:
         """Return device-specific structured extras and cached payloads."""
         return device_runtime.get_device_extras(self)
+
+    @property
+    def is_online(self) -> bool:
+        """Return whether the device is currently connected."""
+        return self.state.is_connected
+
+    def mark_mqtt_update(self, *, timestamp: float | None = None) -> None:
+        """Record that the device received an MQTT property update."""
+        self._last_mqtt_update_at = monotonic() if timestamp is None else timestamp
+
+    def has_recent_mqtt_update(self, *, stale_window_seconds: float = 180.0) -> bool:
+        """Return True when an MQTT update arrived within the stale window."""
+        if self._last_mqtt_update_at <= 0.0:
+            return False
+        return monotonic() - self._last_mqtt_update_at <= stale_window_seconds
 
     def update_properties(self, properties: dict[str, Any]) -> None:
         """Merge normalized properties into the live facade state."""

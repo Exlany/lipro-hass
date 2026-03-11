@@ -7,23 +7,12 @@ verifying the coordinator's actual behavior.
 
 from __future__ import annotations
 
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.lipro.const.api import MAX_DEVICES_PER_QUERY
-from custom_components.lipro.const.base import DOMAIN
-from custom_components.lipro.const.config import (
-    CONF_DEVICE_FILTER_DID_LIST,
-    CONF_DEVICE_FILTER_DID_MODE,
-    CONF_DEVICE_FILTER_HOME_LIST,
-    CONF_DEVICE_FILTER_HOME_MODE,
-    CONF_DEVICE_FILTER_SSID_LIST,
-    CONF_DEVICE_FILTER_SSID_MODE,
-    DEVICE_FILTER_MODE_EXCLUDE,
-    DEVICE_FILTER_MODE_INCLUDE,
-)
 from custom_components.lipro.core.api import (
     LiproApiError,
     LiproAuthError,
@@ -32,7 +21,6 @@ from custom_components.lipro.core.api import (
 )
 from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.update_coordinator import UpdateFailed
-
 from tests.conftest_shared import make_api_device, refresh_and_sync_devices
 
 # ---------------------------------------------------------------------------

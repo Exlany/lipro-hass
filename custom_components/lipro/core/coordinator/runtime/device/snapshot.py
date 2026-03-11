@@ -86,7 +86,7 @@ class SnapshotBuilder:
                     break
 
                 page += 1
-            except Exception as err:  # noqa: BLE001
+            except Exception as err:
                 if isinstance(err, (asyncio.CancelledError, KeyboardInterrupt, SystemExit)):
                     raise
                 _LOGGER.error(
@@ -149,7 +149,7 @@ class SnapshotBuilder:
                 elif device.iot_device_id:
                     iot_ids.append(device.iot_device_id)
 
-            except Exception as err:  # noqa: BLE001
+            except Exception as err:
                 if isinstance(err, (asyncio.CancelledError, KeyboardInterrupt, SystemExit)):
                     raise
                 _LOGGER.debug(

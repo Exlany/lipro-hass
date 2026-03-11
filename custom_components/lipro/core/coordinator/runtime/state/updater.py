@@ -34,21 +34,17 @@ class StateUpdater:
         self._devices = devices
         self._entities_by_device = entities_by_device
         self._normalize_device_key = normalize_device_key
-        # Lock per device to protect concurrent property updates
         self._device_locks: dict[str, asyncio.Lock] = {}
 
     def _get_device_lock(self, device: LiproDevice) -> asyncio.Lock:
-        """Get or create lock for a specific device.
-
-        Args:
-            device: Target device
-
-        Returns:
-            Lock for the device
-        """
+        """Get or create lock for a specific device."""
         if device.serial not in self._device_locks:
             self._device_locks[device.serial] = asyncio.Lock()
         return self._device_locks[device.serial]
+
+    def get_device_lock(self, device: LiproDevice) -> asyncio.Lock:
+        """Return the per-device property update lock."""
+        return self._get_device_lock(device)
 
     async def apply_properties_update(
         self,
@@ -60,12 +56,6 @@ class StateUpdater:
     ) -> bool:
         """Apply property updates to a device and notify entities.
 
-        Args:
-            device: Target device
-            properties: Property updates to apply
-            source: Update source for logging (mqtt/rest/command)
-            skip_protected: If True, skip properties protected by debounce
-
         Returns:
             True if any properties changed
         """
@@ -74,7 +64,6 @@ class StateUpdater:
 
         lock = self._get_device_lock(device)
         async with lock:
-            # Filter out protected properties if requested
             if skip_protected:
                 properties = self._filter_protected_properties(device, properties)
                 if not properties:
@@ -86,6 +75,8 @@ class StateUpdater:
                     return False
 
             device.update_properties(properties)
+            if source == "mqtt":
+                device.mark_mqtt_update()
             changed = True
 
             if changed:
@@ -104,16 +95,7 @@ class StateUpdater:
         device: LiproDevice,
         is_online: bool,
     ) -> bool:
-        """Update device online status.
-
-        Args:
-            device: Target device
-            is_online: New online status
-
-        Returns:
-            True if status changed
-        """
-        # Simplified: always notify
+        """Update device online status and notify entities."""
         _LOGGER.debug(
             "Device %s online status update: %s",
             device.name,
@@ -128,15 +110,7 @@ class StateUpdater:
         *,
         source: str = "batch",
     ) -> int:
-        """Apply property updates to multiple devices.
-
-        Args:
-            updates: List of (device, properties) tuples
-            source: Update source for logging
-
-        Returns:
-            Number of devices that changed
-        """
+        """Apply property updates to multiple devices."""
         changed_count = 0
         for device, properties in updates:
             if await self.apply_properties_update(device, properties, source=source):
@@ -157,28 +131,17 @@ class StateUpdater:
         device: LiproDevice,
         properties: dict[str, Any],
     ) -> dict[str, Any]:
-        """Filter out properties that are currently protected by debounce.
-
-        Args:
-            device: Target device
-            properties: Properties to filter
-
-        Returns:
-            Filtered properties dict
-        """
+        """Filter out properties that are currently protected by debounce."""
         device_key = self._normalize_device_key(device.serial)
         entities = self._entities_by_device.get(device_key, [])
 
-        # Collect all protected keys from all entities for this device
         protected_keys: set[str] = set()
         for entity in entities:
-            if hasattr(entity, "get_protected_keys"):
-                protected_keys.update(entity.get_protected_keys())  # type: ignore[attr-defined]
+            protected_keys.update(entity.get_protected_keys())
 
         if not protected_keys:
             return properties
 
-        # Filter out protected properties
         filtered = {k: v for k, v in properties.items() if k not in protected_keys}
 
         if len(filtered) < len(properties):
@@ -192,18 +155,12 @@ class StateUpdater:
         return filtered
 
     def _notify_device_entities(self, device: LiproDevice) -> None:
-        """Notify all entities associated with a device.
-
-        Args:
-            device: Device that changed
-        """
+        """Notify all entities associated with a device."""
         device_key = self._normalize_device_key(device.serial)
         entities = self._entities_by_device.get(device_key, [])
 
         for entity in entities:
-            # Call method dynamically to avoid type checking issues
-            if hasattr(entity, "async_write_ha_state"):
-                entity.async_write_ha_state()  # type: ignore[attr-defined]
+            entity.async_write_ha_state()
 
         if entities:
             _LOGGER.debug(

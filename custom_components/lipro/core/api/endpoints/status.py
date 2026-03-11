@@ -100,7 +100,7 @@ class _ClientStatusEndpointsMixin(_ClientEndpointPayloadsMixin):
             logger=_LOGGER,
             path_query_device_status=PATH_QUERY_DEVICE_STATUS,
             on_batch_metric=on_batch_metric,
-        )  # type: ignore[return-value]
+        )
 
     async def query_mesh_group_status(
         self, group_ids: list[str]

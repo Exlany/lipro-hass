@@ -23,10 +23,7 @@ from .const.properties import (
     PROP_WAKE_UP_ENABLE,
 )
 from .entities.base import LiproEntity
-from .helpers.platform import (
-    create_device_entities,
-    create_platform_entities,
-)
+from .helpers.platform import create_device_entities, create_platform_entities
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant

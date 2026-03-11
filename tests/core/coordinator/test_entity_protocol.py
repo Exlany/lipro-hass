@@ -12,6 +12,7 @@ class _MockEntity:
     def __init__(self, *, unique_id: str | None, protected_keys: set[str]) -> None:
         self._unique_id = unique_id
         self._protected_keys = protected_keys
+        self._entity_id = f"test.{unique_id or 'entity'}"
         self._device = LiproDevice(
             device_number=123,
             serial="03ab5ccd7caaaaaa",
@@ -20,6 +21,10 @@ class _MockEntity:
             iot_name="lipro_led",
             physical_model="light",
         )
+
+    @property
+    def entity_id(self) -> str:
+        return self._entity_id
 
     @property
     def unique_id(self) -> str | None:
@@ -31,6 +36,9 @@ class _MockEntity:
 
     def get_protected_keys(self) -> set[str]:
         return self._protected_keys
+
+    def async_write_ha_state(self) -> None:
+        return None
 
 
 def _collect_entity_snapshot(entity: LiproEntityProtocol) -> dict[str, object]:

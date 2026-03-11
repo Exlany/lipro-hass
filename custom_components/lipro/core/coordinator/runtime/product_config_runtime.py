@@ -11,10 +11,23 @@ from ..types import PropertyDict
 
 def coerce_int_or_zero(value: object) -> int:
     """Coerce mixed numeric payloads into int with safe fallback."""
-    try:
-        return int(value)
-    except (TypeError, ValueError):
+    if value is None:
         return 0
+    if isinstance(value, bool):
+        return int(value)
+    if isinstance(value, int):
+        return value
+    if isinstance(value, float):
+        return int(value)
+    if isinstance(value, str):
+        normalized = value.strip()
+        if not normalized:
+            return 0
+        try:
+            return int(normalized)
+        except ValueError:
+            return 0
+    return 0
 
 
 def index_product_configs(

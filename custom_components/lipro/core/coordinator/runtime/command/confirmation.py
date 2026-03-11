@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 import asyncio
-from collections.abc import Awaitable, Callable
-from typing import TYPE_CHECKING
+from collections.abc import Callable, Coroutine
+from typing import TYPE_CHECKING, Any
 
-from ....command.post_refresh import schedule_post_command_refresh
+from ....command.post_refresh import TrackBackgroundTask, schedule_post_command_refresh
 from ....command.result import run_delayed_refresh
 
 if TYPE_CHECKING:
@@ -23,9 +23,9 @@ class ConfirmationManager:
         confirmation_tracker: CommandConfirmationTracker,
         pending_expectations: dict[str, PendingCommandExpectation],
         device_state_latency_seconds: dict[str, float],
-        post_command_refresh_tasks: dict[str, asyncio.Task[object]],
-        track_background_task: Callable[[Awaitable[object]], asyncio.Task[object]],
-        request_refresh: Callable[[], Awaitable[None]],
+        post_command_refresh_tasks: dict[str, asyncio.Task[Any]],
+        track_background_task: TrackBackgroundTask,
+        request_refresh: Callable[[], Coroutine[Any, Any, Any]],
         mqtt_connected_provider: Callable[[], bool],
     ) -> None:
         """Initialize confirmation manager."""
@@ -67,7 +67,7 @@ class ConfirmationManager:
     ) -> None:
         """Schedule immediate and delayed refresh after command."""
         schedule_post_command_refresh(
-            track_background_task=self._track_background_task,  # type: ignore[arg-type]
+            track_background_task=self._track_background_task,
             request_refresh=self._request_refresh,
             post_command_refresh_tasks=self._post_command_refresh_tasks,
             mqtt_connected=self._mqtt_connected_provider(),

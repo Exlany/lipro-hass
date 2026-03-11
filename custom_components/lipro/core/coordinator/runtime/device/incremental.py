@@ -56,7 +56,7 @@ class IncrementalRefreshStrategy:
                         device_id = device_data.get("id")
                         if device_id:
                             updated_states[device_id] = device_data
-                except Exception as err:  # noqa: BLE001
+                except Exception as err:
                     if isinstance(err, (asyncio.CancelledError, KeyboardInterrupt, SystemExit)):
                         raise
                     _LOGGER.debug(
@@ -73,7 +73,7 @@ class IncrementalRefreshStrategy:
                         device_id = device_data.get("id")
                         if device_id:
                             updated_states[device_id] = device_data
-                except Exception as err:  # noqa: BLE001
+                except Exception as err:
                     if isinstance(err, (asyncio.CancelledError, KeyboardInterrupt, SystemExit)):
                         raise
                     _LOGGER.debug(
@@ -90,7 +90,7 @@ class IncrementalRefreshStrategy:
                         device_id = device_data.get("id")
                         if device_id:
                             updated_states[device_id] = device_data
-                except Exception as err:  # noqa: BLE001
+                except Exception as err:
                     if isinstance(err, (asyncio.CancelledError, KeyboardInterrupt, SystemExit)):
                         raise
                     _LOGGER.debug(

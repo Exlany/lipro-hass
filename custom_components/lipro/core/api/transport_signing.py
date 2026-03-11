@@ -5,11 +5,7 @@ from __future__ import annotations
 import hashlib
 import time
 
-from ...const.api import (
-    IOT_SIGN_KEY,
-    MERCHANT_CODE,
-    SMART_HOME_SIGN_KEY,
-)
+from ...const.api import IOT_SIGN_KEY, MERCHANT_CODE, SMART_HOME_SIGN_KEY
 
 
 class TransportSigning:

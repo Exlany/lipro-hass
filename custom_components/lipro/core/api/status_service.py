@@ -370,14 +370,14 @@ async def query_device_status(
         return rows
 
     if len(batches) == 1:
-        return await _query_batch(batches[0])  # type: ignore[return-value]
+        return await _query_batch(batches[0])
 
     results = await asyncio.gather(*(_query_batch(batch) for batch in batches))
     all_results: MappingRows = []
     for rows in results:
         if rows:
             all_results.extend(rows)
-    return all_results  # type: ignore[return-value]
+    return all_results
 
 
 async def query_mesh_group_status(

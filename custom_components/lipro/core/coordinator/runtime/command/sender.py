@@ -30,7 +30,7 @@ class CommandSender:
         self,
         *,
         client: LiproClient,
-        redact_identifier: Callable[[str], str] = _redact_identifier,
+        redact_identifier: Callable[[str | None], str | None] = _redact_identifier,
     ) -> None:
         """Initialize command sender."""
         self._client = client
@@ -44,8 +44,12 @@ class CommandSender:
         properties: list[dict[str, str]] | None,
         fallback_device_id: str | None,
         trace: CommandTrace,
-    ) -> tuple[object, str]:
-        """Send command to device and return result with route."""
+    ) -> tuple[dict[str, Any], str]:
+        """Send command to device and return result with route.
+
+        Returns:
+            Tuple of (api_result, route_name)
+        """
         _plan, result, route = await execute_command_plan_with_trace(
             self._client,
             device=device,

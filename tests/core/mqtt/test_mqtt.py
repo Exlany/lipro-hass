@@ -12,11 +12,11 @@ from Crypto.Cipher import AES
 import pytest
 
 from custom_components.lipro.const.api import MQTT_AES_KEY
-from custom_components.lipro.core.mqtt.mqtt_client import LiproMqttClient
 from custom_components.lipro.core.mqtt.credentials import (
     MqttCredentials,
     decrypt_mqtt_credential,
 )
+from custom_components.lipro.core.mqtt.mqtt_client import LiproMqttClient
 from custom_components.lipro.core.mqtt.payload import (
     _MAX_MQTT_PAYLOAD_BYTES,
     _sanitize_mqtt_log_value,

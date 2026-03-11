@@ -23,7 +23,8 @@ class LoginResponse(TypedDict):
     access_token: str
     refresh_token: str
     expires_in: int
-    user_id: str
+    user_id: int
+    biz_id: str | None
 
 
 class DeviceListItem(TypedDict, total=False):
@@ -45,11 +46,8 @@ class DeviceListResponse(TypedDict):
     total: int
 
 
-class DeviceStatusItem(TypedDict, total=False):
-    """Device status item structure."""
-
-    iotId: str
-    properties: dict[str, Any]
+type DeviceStatusItem = dict[str, Any]
+"""Device status item structure."""
 
 
 class MqttConfigResponse(TypedDict, total=False):

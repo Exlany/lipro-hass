@@ -22,6 +22,7 @@ class CoordinatorStateService:
         """Return the wrapped coordinator device mapping."""
         return self.coordinator.state_runtime.get_all_devices()
 
+
     def get_device(self, serial: str) -> LiproDevice | None:
         """Resolve a device by serial."""
         return self.coordinator.state_runtime.get_device_by_serial(serial)
@@ -31,7 +32,7 @@ class CoordinatorStateService:
         return self.coordinator.state_runtime.get_device_by_id(device_id)
 
     def get_device_lock(self, device_serial: str) -> asyncio.Lock:
-        """Get the lock for a specific device.
+        """Return the per-device update lock.
 
         Args:
             device_serial: Device serial number
@@ -39,9 +40,8 @@ class CoordinatorStateService:
         Returns:
             Lock for the device
         """
-        # Access the internal updater's lock mechanism
         device = self.get_device(device_serial)
         if device is None:
             # Return a new lock for unknown devices (shouldn't happen)
             return asyncio.Lock()
-        return self.coordinator.state_runtime._updater._get_device_lock(device)
+        return self.coordinator.state_runtime.get_device_lock(device)

@@ -10,8 +10,10 @@ from unittest.mock import AsyncMock, Mock
 
 import pytest
 
+from custom_components.lipro.core.coordinator.runtime.device_runtime import (
+    DeviceRuntime,
+)
 from custom_components.lipro.core.device.identity_index import DeviceIdentityIndex
-from custom_components.lipro.core.coordinator.runtime.device_runtime import DeviceRuntime
 
 
 @pytest.fixture

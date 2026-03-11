@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import asyncio
+from typing import Any, cast
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -189,10 +191,13 @@ def test_track_command_expectation_records_stringified_expected_values(
             pending_expectations=pending_expectations,
             device_serial="device-1",
             command="CHANGE_STATE",
-            properties=[
-                {"key": "powerState", "value": 1},
-                {"key": "mode", "value": "sleep"},
-            ],
+            properties=cast(
+                list[dict[str, str]],
+                [
+                    {"key": "powerState", "value": 1},
+                    {"key": "mode", "value": "sleep"},
+                ],
+            ),
         )
 
     assert pending_expectations["device-1"].sent_at == 123.0
@@ -348,19 +353,21 @@ def test_prune_runtime_state_for_devices_removes_stale_entries(
 
 def test_on_post_command_refresh_task_done_only_clears_matching_task() -> None:
     tracked = _make_task()
-    post_command_refresh_tasks = {"device-1": tracked}
+    post_command_refresh_tasks: dict[str, asyncio.Task[Any]] = {
+        "device-1": cast(asyncio.Task[Any], tracked)
+    }
 
     on_post_command_refresh_task_done(
         post_command_refresh_tasks=post_command_refresh_tasks,
         refresh_key="device-1",
-        finished_task=_make_task(),
+        finished_task=cast(asyncio.Task[Any], _make_task()),
     )
-    assert post_command_refresh_tasks == {"device-1": tracked}
+    assert post_command_refresh_tasks.get("device-1") is tracked
 
     on_post_command_refresh_task_done(
         post_command_refresh_tasks=post_command_refresh_tasks,
         refresh_key="device-1",
-        finished_task=tracked,
+        finished_task=cast(asyncio.Task[Any], tracked),
     )
     assert post_command_refresh_tasks == {}
 
@@ -370,7 +377,7 @@ def test_schedule_post_command_refresh_tracks_immediate_and_delayed_refresh() ->
     delayed_task = _make_task()
     track_background_task = _build_tracker([immediate_task, delayed_task])
     request_refresh = AsyncMock()
-    post_command_refresh_tasks: dict[str, Mock] = {}
+    post_command_refresh_tasks: dict[str, asyncio.Task[Any]] = {}
 
     with patch(
         "custom_components.lipro.core.command.post_refresh.resolve_delayed_refresh_delay",
@@ -391,7 +398,7 @@ def test_schedule_post_command_refresh_tracks_immediate_and_delayed_refresh() ->
         )
 
     assert track_background_task.call_count == 2
-    assert post_command_refresh_tasks == {"device-1": delayed_task}
+    assert post_command_refresh_tasks.get("device-1") is delayed_task
     assert delayed_task.add_done_callback.called is True
     assert run_delayed_refresh.call_args.kwargs["delay_seconds"] == 2.5
 
@@ -401,7 +408,9 @@ def test_schedule_post_command_refresh_cancels_previous_delayed_task() -> None:
     delayed_task = _make_task()
     track_background_task = _build_tracker([delayed_task])
     request_refresh = AsyncMock()
-    post_command_refresh_tasks: dict[str, Mock] = {"device-1": previous_task}
+    post_command_refresh_tasks: dict[str, asyncio.Task[Any]] = {
+        "device-1": cast(asyncio.Task[Any], previous_task)
+    }
 
     with patch(
         "custom_components.lipro.core.command.post_refresh.resolve_delayed_refresh_delay",
@@ -423,13 +432,13 @@ def test_schedule_post_command_refresh_cancels_previous_delayed_task() -> None:
 
     previous_task.cancel.assert_called_once_with()
     request_refresh.assert_not_called()
-    assert post_command_refresh_tasks == {"device-1": delayed_task}
+    assert post_command_refresh_tasks.get("device-1") is delayed_task
 
 
 def test_schedule_post_command_refresh_returns_when_no_delay() -> None:
     track_background_task = Mock()
     request_refresh = AsyncMock()
-    post_command_refresh_tasks: dict[str, Mock] = {}
+    post_command_refresh_tasks: dict[str, asyncio.Task[Any]] = {}
 
     with patch(
         "custom_components.lipro.core.command.post_refresh.resolve_delayed_refresh_delay",

@@ -23,7 +23,7 @@ from ..utils.log_safety import safe_error_placeholder
 _LOGGER = logging.getLogger(__name__)
 
 type ResponseMapping = dict[str, object]
-type RequestPayload = dict[str, object]
+type RequestPayload = Mapping[str, object]
 type OtaRowDedupeKey = tuple[str, str, str, str, str]
 type RequestIotMapping = Callable[..., Awaitable[tuple[ResponseMapping, str | None]]]
 type RequestIotMappingRaw = Callable[..., Awaitable[tuple[ResponseMapping, str | None]]]
@@ -40,11 +40,11 @@ def _valid_ota_rows(rows: Sequence[object]) -> list[OtaInfoRow]:
 
 
 def _build_rich_ota_v2_payload(
-    ota_payload: RequestPayload,
+    ota_payload: Mapping[str, object],
     *,
     iot_name: str | None,
     allow_rich_v2_fallback: bool,
-) -> RequestPayload | None:
+) -> dict[str, object] | None:
     """Build richer OTA v2 payload for devices that benefit from hasMacRule."""
     if not allow_rich_v2_fallback:
         return None
@@ -52,7 +52,7 @@ def _build_rich_ota_v2_payload(
     if not normalized_iot_name:
         return None
     return {
-        **ota_payload,
+        **dict(ota_payload),
         "iotName": normalized_iot_name,
         "skuId": "",
         "hasMacRule": True,

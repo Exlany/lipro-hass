@@ -5,12 +5,13 @@ from __future__ import annotations
 import asyncio
 import logging
 from time import monotonic
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Coroutine
+    from collections.abc import Awaitable, Callable
 
     from ....device import LiproDevice
+    from ...types import StatusQueryMetrics
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -22,10 +23,10 @@ class StatusExecutor:
         self,
         *,
         query_device_status: Callable[
-            [list[str]], Coroutine[Any, Any, dict[str, dict[str, Any]]]
+            [list[str]], Awaitable[dict[str, dict[str, Any]]]
         ],
         apply_properties_update: Callable[
-            [LiproDevice, dict[str, Any], str], Coroutine[Any, Any, bool]
+            [LiproDevice, dict[str, Any], str], Awaitable[bool]
         ],
         get_device_by_id: Callable[[str], LiproDevice | None],
     ) -> None:
@@ -43,7 +44,7 @@ class StatusExecutor:
     async def execute_status_query(
         self,
         device_ids: list[str],
-    ) -> dict[str, Any]:
+    ) -> StatusQueryMetrics:
         """Execute status query for a batch of devices.
 
         Args:
@@ -128,7 +129,7 @@ class StatusExecutor:
 
         metrics: list[dict[str, Any]] = []
         for i, result in enumerate(results):
-            if isinstance(result, Exception):
+            if isinstance(result, BaseException):
                 metrics.append(
                     {
                         "duration": 0.0,

@@ -87,6 +87,6 @@ def mock_anonymous_share_manager() -> MagicMock:
 
 __all__ = [
     "make_api_device",
-    "refresh_and_sync_devices",
     "mock_anonymous_share_manager",
+    "refresh_and_sync_devices",
 ]

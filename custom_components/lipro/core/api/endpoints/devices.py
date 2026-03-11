@@ -27,7 +27,7 @@ class _ClientDeviceEndpointsMixin(_ClientBase):
         )
         if isinstance(result, dict):
             return cast(DeviceListResponse, result)
-        return {"devices": [], "total": 0}  # type: ignore[return-value]
+        return {"devices": [], "total": 0}
 
     async def get_product_configs(self) -> list[dict[str, Any]]:
         """Get all product configurations."""

@@ -9,9 +9,9 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from custom_components.lipro.core.mqtt.mqtt_client import LiproMqttClient
 from custom_components.lipro.core.mqtt.connection_manager import MqttConnectionManager
 from custom_components.lipro.core.mqtt.message_processor import MqttMessageProcessor
+from custom_components.lipro.core.mqtt.mqtt_client import LiproMqttClient
 from custom_components.lipro.core.mqtt.payload import parse_mqtt_payload
 from custom_components.lipro.core.mqtt.topic_builder import MqttTopicBuilder
 

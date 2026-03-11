@@ -20,12 +20,16 @@ from custom_components.lipro.core.device import LiproDevice
 
 @pytest.fixture
 def mock_device() -> LiproDevice:
-    """Create a mock device."""
-    device = MagicMock(spec=LiproDevice)
-    device.serial = "TEST001"
-    device.is_online = True
-    device.has_recent_mqtt_update = MagicMock(return_value=False)
-    return device
+    """Create a test device."""
+    return LiproDevice(
+        device_number=1,
+        serial="TEST001",
+        name="Test Device",
+        device_type=1,
+        iot_name="lipro_led",
+        physical_model="light",
+        properties={"connectState": "1"},
+    )
 
 
 @pytest.fixture
@@ -149,7 +153,7 @@ class TestStatusStrategy:
         mock_device: LiproDevice,
     ) -> None:
         """Test should query offline device."""
-        mock_device.is_online = False
+        mock_device.update_properties({"connectState": "0"})
         should_query = status_runtime.should_query_device(mock_device, mqtt_connected=True)
         assert should_query is True
 

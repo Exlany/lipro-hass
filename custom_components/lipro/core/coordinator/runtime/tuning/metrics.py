@@ -4,9 +4,18 @@ from __future__ import annotations
 
 from collections import deque
 import logging
-from typing import Any
+from typing import TypedDict
 
 _LOGGER = logging.getLogger(__name__)
+
+
+class BatchMetric(TypedDict):
+    """One recorded batch query metric sample."""
+
+    batch_size: int
+    duration: float
+    device_count: int
+    fallback_depth: int
 
 
 class TuningMetrics:
@@ -26,7 +35,7 @@ class TuningMetrics:
         """
         self._metrics_window = metrics_window
         self._sample_size = sample_size
-        self._batch_metrics: deque[dict[str, Any]] = deque(maxlen=metrics_window)
+        self._batch_metrics: deque[BatchMetric] = deque(maxlen=metrics_window)
         self._connect_status_skip_history: deque[bool] = deque(maxlen=20)
 
     def record_batch_metric(
@@ -37,37 +46,21 @@ class TuningMetrics:
         device_count: int,
         fallback_depth: int = 0,
     ) -> None:
-        """Record a batch query metric.
-
-        Args:
-            batch_size: Batch size used
-            duration: Query duration in seconds
-            device_count: Number of devices queried
-            fallback_depth: Fallback depth if applicable
-        """
-        self._batch_metrics.append(
-            {
-                "batch_size": batch_size,
-                "duration": duration,
-                "device_count": device_count,
-                "fallback_depth": fallback_depth,
-            }
-        )
+        """Record a batch query metric."""
+        metric: BatchMetric = {
+            "batch_size": int(batch_size),
+            "duration": float(duration),
+            "device_count": int(device_count),
+            "fallback_depth": int(fallback_depth),
+        }
+        self._batch_metrics.append(metric)
 
     def record_connect_status_skip(self, skipped: bool) -> None:
-        """Record whether a connect status query was skipped.
-
-        Args:
-            skipped: True if query was skipped due to MQTT
-        """
+        """Record whether a connect status query was skipped."""
         self._connect_status_skip_history.append(skipped)
 
     def get_average_latency(self) -> float | None:
-        """Get average batch query latency from recent samples.
-
-        Returns:
-            Average latency in seconds, or None if insufficient data
-        """
+        """Get average batch query latency from recent samples."""
         if not self._batch_metrics:
             return None
 
@@ -75,15 +68,11 @@ class TuningMetrics:
         if not recent:
             return None
 
-        total_duration = sum(m["duration"] for m in recent)
+        total_duration = sum((m["duration"] for m in recent), 0.0)
         return total_duration / len(recent)
 
     def get_average_batch_size(self) -> float | None:
-        """Get average batch size from recent samples.
-
-        Returns:
-            Average batch size, or None if insufficient data
-        """
+        """Get average batch size from recent samples."""
         if not self._batch_metrics:
             return None
 
@@ -91,29 +80,19 @@ class TuningMetrics:
         if not recent:
             return None
 
-        total_size = sum(m["batch_size"] for m in recent)
+        total_size = sum((m["batch_size"] for m in recent), 0)
         return total_size / len(recent)
 
     def get_connect_status_skip_ratio(self) -> float | None:
-        """Get ratio of skipped connect status queries.
-
-        Returns:
-            Skip ratio (0.0-1.0), or None if insufficient data
-        """
+        """Get ratio of skipped connect status queries."""
         if not self._connect_status_skip_history:
             return None
 
-        skipped_count = sum(
-            1 for skipped in self._connect_status_skip_history if skipped
-        )
+        skipped_count = sum(1 for skipped in self._connect_status_skip_history if skipped)
         return skipped_count / len(self._connect_status_skip_history)
 
-    def get_metrics_summary(self) -> dict[str, Any]:
-        """Get summary of collected metrics.
-
-        Returns:
-            Dictionary with metric summaries
-        """
+    def get_metrics_summary(self) -> dict[str, object]:
+        """Get summary of collected metrics."""
         avg_latency = self.get_average_latency()
         avg_batch_size = self.get_average_batch_size()
         skip_ratio = self.get_connect_status_skip_ratio()

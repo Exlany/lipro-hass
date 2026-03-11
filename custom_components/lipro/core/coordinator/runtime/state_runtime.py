@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
 from typing import TYPE_CHECKING, Any
 
@@ -75,9 +76,17 @@ class StateRuntime:
         """Get count of online devices."""
         return self._reader.get_online_device_count()
 
-    def get_devices_by_room(self, room_id: str) -> list[LiproDevice]:
+    def get_devices_by_room(self, room_id: int) -> list[LiproDevice]:
         """Get all devices in a specific room."""
         return self._reader.get_devices_by_room(room_id)
+
+    def get_device_lock(self, device: LiproDevice) -> asyncio.Lock:
+        """Return the per-device property update lock.
+
+        Exposed so the service layer can coordinate updates without reaching into
+        private runtime internals.
+        """
+        return self._updater.get_device_lock(device)
 
     def has_device(self, device_id: str) -> bool:
         """Check if a device exists."""

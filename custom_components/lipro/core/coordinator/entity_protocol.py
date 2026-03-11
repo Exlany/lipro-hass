@@ -8,7 +8,11 @@ from ..device import LiproDevice
 
 
 class LiproEntityProtocol(Protocol):
-    """Minimal entity surface used by the coordinator for debounce protection."""
+    """Minimal entity surface used by coordinator runtimes."""
+
+    @property
+    def entity_id(self) -> str:
+        """Return the Home Assistant entity id."""
 
     @property
     def unique_id(self) -> str | None:
@@ -20,3 +24,7 @@ class LiproEntityProtocol(Protocol):
 
     def get_protected_keys(self) -> set[str]:
         """Return property keys protected from coordinator overwrites."""
+
+    def async_write_ha_state(self) -> None:
+        """Schedule a Home Assistant state write."""
+

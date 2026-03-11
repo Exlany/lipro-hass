@@ -95,6 +95,8 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
         self.client = client
         self.auth_manager = auth_manager
         self.config_entry = config_entry
+        self._config_entry = config_entry
+        self._scan_interval_seconds = int(update_interval)
 
         # Initialize components in stages
         self._init_state_containers()
@@ -184,7 +186,7 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
             client=self.client,
             auth_manager=self.auth_manager,
             device_identity_index=self._device_identity_index,
-            filter_config_options=self.config_entry.options,
+            filter_config_options=dict(self._config_entry.options),
         )
 
         # Initialize StatusRuntime (requires helper methods)
@@ -399,8 +401,19 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
         Returns:
             Dictionary mapping device ID to status properties
         """
-        results = await self.client.status.query_device_status(device_ids)
-        return {item.get("iotId", ""): item for item in results if "iotId" in item}
+        rows = await self.client.query_device_status(device_ids)
+
+        status: dict[str, dict[str, Any]] = {}
+        for row in rows:
+            device_id = row.get("iotId")
+            if not isinstance(device_id, str) or not device_id.strip():
+                continue
+            properties = row.get("properties")
+            if isinstance(properties, dict):
+                status[device_id] = dict(properties)
+            else:
+                status[device_id] = {}
+        return status
 
     async def _apply_properties_update(
         self, device: LiproDevice, properties: dict[str, Any], source: str
@@ -477,13 +490,13 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
                 return False
 
             # Resolve biz_id
-            biz_id = resolve_mqtt_biz_id(self.config_entry.data)
+            biz_id = resolve_mqtt_biz_id(self._config_entry.data)
             if biz_id is None:
                 _LOGGER.warning("No biz_id available for MQTT")
                 return False
 
             self._biz_id = biz_id
-            phone_id = self.config_entry.data.get(CONF_PHONE_ID, "")
+            phone_id = self._config_entry.data.get(CONF_PHONE_ID, "")
 
             # Create MQTT client
             self._mqtt_client = LiproMqttClient(
@@ -497,17 +510,37 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
             self._mqtt_runtime = MqttRuntime(
                 hass=self.hass,
                 mqtt_client=self._mqtt_client,
-                base_scan_interval=int(self.update_interval.total_seconds()),
+                base_scan_interval=self._scan_interval_seconds,
                 polling_multiplier=2,
                 background_task_manager=self._background_task_manager,
             )
 
             # Wire up dependencies
-            self._mqtt_runtime.set_device_resolver(self._get_device_by_id)
+            self._mqtt_runtime.set_device_resolver(self._state_runtime)
             self._mqtt_runtime.set_property_applier(self._apply_properties_update)
-            self._mqtt_runtime.set_listener_notifier(
-                lambda: self.async_set_updated_data(self._devices)
-            )
+
+            class _MqttListenerNotifier:
+                def __init__(self, coordinator: Coordinator) -> None:
+                    self._coordinator = coordinator
+
+                def schedule_listener_update(self) -> None:
+                    self._coordinator.async_set_updated_data(self._coordinator._devices)
+
+            class _NoopConnectStateTracker:
+                def record_connect_state(
+                    self, device_serial: str, timestamp: float, is_online: bool
+                ) -> None:
+                    return None
+
+            class _NoopGroupReconciler:
+                def schedule_group_reconciliation(
+                    self, device_name: str, timestamp: float
+                ) -> None:
+                    return None
+
+            self._mqtt_runtime.set_listener_notifier(_MqttListenerNotifier(self))
+            self._mqtt_runtime.set_connect_state_tracker(_NoopConnectStateTracker())
+            self._mqtt_runtime.set_group_reconciler(_NoopGroupReconciler())
 
             # Start MQTT connection for current devices with 15s timeout
             device_ids = [
@@ -552,7 +585,7 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
             # Add total timeout protection (30 seconds)
             async with asyncio.timeout(30):
                 # Ensure authentication is valid (no specific timeout, uses API timeout)
-                await self.auth_manager.async_ensure_authenticated()
+                await self.auth_manager.ensure_valid_token()
 
                 # Refresh device list if needed (10 seconds timeout)
                 if self._device_runtime.should_refresh_device_list():

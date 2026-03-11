@@ -452,8 +452,8 @@ class TestLiproPanelFeatureSwitch:
     async def test_panel_led_switch_turn_on(self, mock_coordinator, make_device):
         """Test panel LED switch uses PANEL_CHANGE_STATE with panelType."""
         from custom_components.lipro.switch import (
-            LiproPanelPropertySwitch,
             PANEL_FEATURE_SWITCHES,
+            LiproPanelPropertySwitch,
         )
 
         device = make_device("switch", iot_name="21JD", properties={"led": "0"})
@@ -477,8 +477,8 @@ class TestLiproPanelFeatureSwitch:
     async def test_panel_memory_switch_turn_off(self, mock_coordinator, make_device):
         """Test panel memory switch uses PANEL_CHANGE_STATE with panelType."""
         from custom_components.lipro.switch import (
-            LiproPanelPropertySwitch,
             PANEL_FEATURE_SWITCHES,
+            LiproPanelPropertySwitch,
         )
 
         device = make_device("switch", iot_name="21J8", properties={"memory": "1"})

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections import deque
 import logging
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from ...api import LiproApiError, LiproAuthError, LiproRefreshTokenExpiredError
 from ...command.result import (

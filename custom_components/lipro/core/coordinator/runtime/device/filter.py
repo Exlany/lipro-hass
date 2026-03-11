@@ -24,6 +24,7 @@ from custom_components.lipro.const.config import (
     MAX_DEVICE_FILTER_LIST_CHARS,
     MAX_DEVICE_FILTER_LIST_ITEMS,
 )
+
 from ...types import PropertyDict, PropertyValue
 
 _LOGGER = logging.getLogger(__name__)

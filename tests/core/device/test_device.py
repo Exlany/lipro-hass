@@ -200,9 +200,13 @@ def test_lipro_device_update_properties_refreshes_state_availability_and_extras_
         },
     )
 
-    assert device.available is True
-    assert device.brightness == 20
-    assert device.extras.gear_list == [{"label": "Night"}]
+    available_before = device.available
+    brightness_before = device.brightness
+    gear_list_before = device.extras.gear_list
+
+    assert available_before is True
+    assert brightness_before == 20
+    assert gear_list_before == [{"label": "Night"}]
 
     device.update_properties(
         {
@@ -212,9 +216,13 @@ def test_lipro_device_update_properties_refreshes_state_availability_and_extras_
         }
     )
 
-    assert device.available is False
-    assert device.brightness == 88
-    assert device.extras.gear_list == [{"label": "Read"}]
+    available_after = device.available
+    brightness_after = device.brightness
+    gear_list_after = device.extras.gear_list
+
+    assert available_after is False
+    assert brightness_after == 88
+    assert gear_list_after == [{"label": "Read"}]
 
 
 def test_lipro_device_from_api_data_exposes_identity_snapshot() -> None:

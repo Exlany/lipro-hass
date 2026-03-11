@@ -29,8 +29,8 @@ if TYPE_CHECKING:
 
     from homeassistant.core import HomeAssistant
 
-    from ....mqtt.client import LiproMqttClient
     from ...device import LiproDevice
+    from ...mqtt import LiproMqttClient
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -38,7 +38,7 @@ _LOGGER = logging.getLogger(__name__)
 class DeviceResolverProtocol(Protocol):
     """Protocol for device resolution."""
 
-    def __call__(self, device_id: str) -> LiproDevice | None:
+    def get_device_by_id(self, device_id: str) -> LiproDevice | None:
         """Resolve device by ID."""
         ...
 
@@ -59,24 +59,26 @@ class PropertyApplierProtocol(Protocol):
 class ListenerNotifierProtocol(Protocol):
     """Protocol for listener notification."""
 
-    def __call__(self) -> None:
-        """Notify listeners of state changes."""
+    def schedule_listener_update(self) -> None:
+        """Schedule a listener update."""
         ...
 
 
 class ConnectStateTrackerProtocol(Protocol):
     """Protocol for connect state tracking."""
 
-    def __call__(self, device_id: str) -> None:
-        """Track device connect state priority."""
+    def record_connect_state(
+        self, device_serial: str, timestamp: float, is_online: bool
+    ) -> None:
+        """Record connect state observation."""
         ...
 
 
 class GroupReconcilerProtocol(Protocol):
     """Protocol for group reconciliation."""
 
-    def __call__(self, group_id: str) -> None:
-        """Reconcile group state."""
+    def schedule_group_reconciliation(self, device_name: str, timestamp: float) -> None:
+        """Schedule group online reconciliation."""
         ...
 
 
@@ -168,24 +170,26 @@ class MqttRuntime:
     def _ensure_message_handler(self) -> MqttMessageHandler:
         """Lazy initialize message handler after dependencies are injected."""
         if self._message_handler is None:
-            if not all(
-                [
-                    self._device_resolver,
-                    self._property_applier,
-                    self._listener_notifier,
-                    self._connect_state_tracker,
-                    self._group_reconciler,
-                ]
+            if (
+                self._device_resolver is None
+                or self._property_applier is None
+                or self._listener_notifier is None
+                or self._connect_state_tracker is None
+                or self._group_reconciler is None
             ):
                 msg = "Message handler dependencies not fully injected"
                 raise RuntimeError(msg)
 
-            # Create adapter to bridge PropertyApplierProtocol (returns bool)
-            # to MqttMessageHandler's PropertyApplier (expects PropertyDict return)
+            device_resolver = self._device_resolver
+            property_applier = self._property_applier
+            listener_notifier = self._listener_notifier
+            connect_state_tracker = self._connect_state_tracker
+            group_reconciler = self._group_reconciler
+
             class PropertyApplierAdapter:
                 """Adapter to convert bool-returning applier to dict-returning."""
 
-                def __init__(self, applier):
+                def __init__(self, applier: PropertyApplierProtocol) -> None:
                     self._applier = applier
 
                 async def apply_properties_update(
@@ -196,11 +200,11 @@ class MqttRuntime:
                     return properties if success else {}
 
             self._message_handler = MqttMessageHandler(
-                device_resolver=self._device_resolver,
-                property_applier=PropertyApplierAdapter(self._property_applier),
-                listener_notifier=self._listener_notifier,
-                connect_state_tracker=self._connect_state_tracker,
-                group_reconciler=self._group_reconciler,
+                device_resolver=device_resolver,
+                property_applier=PropertyApplierAdapter(property_applier),
+                listener_notifier=listener_notifier,
+                connect_state_tracker=connect_state_tracker,
+                group_reconciler=group_reconciler,
                 logger=_LOGGER,
             )
         return self._message_handler
@@ -228,24 +232,24 @@ class MqttRuntime:
         self,
         *,
         device_ids: list[str],
-        biz_id: str,
+        biz_id: str | None = None,
     ) -> bool:
-        """Connect to MQTT broker and subscribe to device topics.
+        """Start the MQTT background loop and ensure device subscriptions.
 
         Args:
-            device_ids: List of device IDs to subscribe to
-            biz_id: Business ID for MQTT topics
+            device_ids: List of device identifiers to subscribe to.
+            biz_id: Deprecated compatibility argument (handled by client credentials).
 
         Returns:
-            True if connection succeeded, False otherwise
+            True if startup succeeded, False otherwise.
         """
         if self._mqtt_client is None:
             _LOGGER.error("MQTT client not initialized")
             return False
 
         try:
-            await self._mqtt_client.connect()
-            await self._mqtt_client.subscribe_devices(device_ids, biz_id)
+            await self._mqtt_client.start(device_ids)
+            await self._mqtt_client.sync_subscriptions(set(device_ids))
             self._connection_manager.on_connect()
             self._reconnect_manager.on_reconnect_success()
             return True
@@ -257,12 +261,12 @@ class MqttRuntime:
             return False
 
     async def disconnect(self) -> None:
-        """Disconnect from MQTT broker."""
+        """Stop the MQTT background loop."""
         if self._mqtt_client is None:
             return
 
         try:
-            await self._mqtt_client.disconnect()
+            await self._mqtt_client.stop()
         except Exception as err:
             if isinstance(err, (asyncio.CancelledError, KeyboardInterrupt, SystemExit)):
                 raise

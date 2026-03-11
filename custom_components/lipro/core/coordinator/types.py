@@ -7,13 +7,16 @@ type safety across the coordinator components.
 from __future__ import annotations
 
 from collections.abc import Awaitable, Callable
-from typing import TypeAlias, TypedDict
+from typing import Any, TypedDict
 
 # Property value types
-PropertyValue: TypeAlias = int | str | bool | None
-"""Type alias for device property values."""
+type PropertyScalar = int | float | str | bool | None
+"""Type alias for scalar device property values."""
 
-PropertyDict: TypeAlias = dict[str, PropertyValue]
+type PropertyValue = PropertyScalar | list[Any] | dict[str, Any]
+"""Type alias for device property payload values."""
+
+type PropertyDict = dict[str, PropertyValue]
 """Type alias for device property dictionaries."""
 
 
@@ -27,20 +30,47 @@ class CommandPayload(TypedDict, total=False):
 
 
 class CommandTrace(TypedDict, total=False):
-    """Command execution trace information."""
+    """Command execution trace payload with structured fields.
 
-    device_serial: str
-    command: str
+    This trace is built incrementally during command execution:
+    - Initial fields from build_command_trace()
+    - Resolved fields from update_trace_with_resolved_request()
+    - Response fields from update_trace_with_response()
+    - Error fields from update_trace_with_exception()
+    """
+
+    # Initial trace fields
+    timestamp: str
+    device_id: str | None
+    is_group: bool
+    iot_name: str
+    device_type: int
+    physical_model: str | None
+    requested_command: str
+    requested_property_count: int
+    requested_property_keys: list[str]
+    requested_fallback_device_id: str | None
+
+    # Resolved request fields
+    effective_fallback_device_id: str | None
+    resolved_command: str
+    resolved_property_count: int
+    resolved_property_keys: list[str]
+
+    # Response fields
+    push_success: bool | None
+    response_code: int | str | None
+    response_message: str | None
+    response_msg_sn: str | None
+    response_push_timestamp: int | None
+
+    # Error fields
     route: str
-    start_time: float
-    end_time: float
-    duration_ms: float
-    msg_sn: str | None
     success: bool
-    error: str | None
-    retry_count: int
-    adaptive_delay_seconds: float
-    skip_immediate_refresh: bool
+    error: str
+    error_message: str
+    error_detail: str | None
+    error_code: int | None
 
 
 # MQTT types
@@ -98,35 +128,51 @@ class ApiSuccessResponse(TypedDict):
 
 
 # Callback types
-DeviceUpdateCallback: TypeAlias = Callable[[], None]
+type DeviceUpdateCallback = Callable[[], None]
 """Callback for device state updates."""
 
-PropertyUpdateCallback: TypeAlias = Callable[
+type PropertyUpdateCallback = Callable[
     [str, PropertyDict], Awaitable[None] | None
 ]
 """Callback for property updates with device_id and properties."""
 
-ReauthCallback: TypeAlias = Callable[[str], Awaitable[None]]
+type ReauthCallback = Callable[[str], Awaitable[None]]
 """Callback for triggering reauthentication with reason."""
 
 # Normalization function types
-DeviceKeyNormalizer: TypeAlias = Callable[[object], str | None]
+type DeviceKeyNormalizer = Callable[[str], str]
 """Function to normalize device identifiers to serial strings."""
 
-ConnectStatusRefreshSetter: TypeAlias = Callable[[str, bool], None]
-"""Function to set connect status refresh flag for a device."""
+type ConnectStatusRefreshSetter = Callable[[bool], None]
+"""Function to set the next connect-status refresh as required."""
 
 # Metrics and runtime types
 class RuntimeMetrics(TypedDict, total=False):
-    """Runtime performance metrics."""
+    """Runtime metrics payload exported by composed runtimes.
 
-    total_commands: int
-    successful_commands: int
-    failed_commands: int
-    average_latency_ms: float
-    mqtt_messages_received: int
-    device_refresh_count: int
-    last_refresh_timestamp: float
+    Structure varies by runtime type:
+    - TuningRuntime: algorithm, metrics, adjuster
+    - CommandRuntime: command_count, success_rate, last_failure
+    - StateRuntime: device_count, online_count, update_count
+    """
+
+    # TuningRuntime metrics
+    algorithm: dict[str, Any]
+    metrics: dict[str, Any]
+    adjuster: dict[str, Any]
+
+    # CommandRuntime metrics
+    command_count: int
+    success_rate: float
+    last_failure: CommandTrace | None
+
+    # StateRuntime metrics
+    device_count: int
+    online_count: int
+    update_count: int
+
+    # Generic extensibility
+    # Allow any additional string keys for future runtime types
 
 
 class TuningMetrics(TypedDict, total=False):
@@ -136,6 +182,15 @@ class TuningMetrics(TypedDict, total=False):
     success_rate: float
     adjustment_count: int
     last_adjustment_timestamp: float
+
+
+class StatusQueryMetrics(TypedDict, total=False):
+    """Status query execution metrics."""
+
+    duration: float
+    device_count: int
+    updated_count: int
+    error: str | None
 
 
 # Filter and validation types
@@ -187,5 +242,6 @@ __all__ = [
     "ReauthCallback",
     "RefreshStrategy",
     "RuntimeMetrics",
+    "StatusQueryMetrics",
     "TuningMetrics",
 ]

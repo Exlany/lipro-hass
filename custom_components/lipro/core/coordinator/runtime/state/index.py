@@ -3,14 +3,15 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
+
+from ...entity_protocol import LiproEntityProtocol
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
     from ....device import LiproDevice
     from ....device.identity_index import DeviceIdentityIndex
-    from ...entity_protocol import LiproEntityProtocol
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -55,7 +56,7 @@ class StateIndexManager:
 
     def register_entity(
         self,
-        entity: LiproEntityProtocol,
+        entity: object,
         device_serial: str,
     ) -> None:
         """Register an entity for state update notifications.
@@ -64,26 +65,25 @@ class StateIndexManager:
             entity: Entity to register
             device_serial: Associated device serial
         """
-        # Use hasattr to avoid type checking issues
-        if not hasattr(entity, "entity_id"):
-            _LOGGER.warning("Entity missing entity_id attribute")
+        entity_id = getattr(entity, "entity_id", None)
+        if not isinstance(entity_id, str) or not entity_id:
+            _LOGGER.debug("Ignoring entity without entity_id")
             return
 
-        entity_id = entity.entity_id  # type: ignore[attr-defined]
+        typed_entity = cast(LiproEntityProtocol, entity)
+
         if entity_id in self._entities:
             _LOGGER.warning(
                 "Entity %s already registered, replacing",
                 entity_id,
             )
 
-        self._entities[entity_id] = entity
+        self._entities[entity_id] = typed_entity
 
         device_key = self._normalize_device_key(device_serial)
-        if device_key not in self._entities_by_device:
-            self._entities_by_device[device_key] = []
-
-        if entity not in self._entities_by_device[device_key]:
-            self._entities_by_device[device_key].append(entity)
+        entities_for_device = self._entities_by_device.setdefault(device_key, [])
+        if typed_entity not in entities_for_device:
+            entities_for_device.append(typed_entity)
 
         _LOGGER.debug(
             "Registered entity %s for device %s",
@@ -101,7 +101,6 @@ class StateIndexManager:
         if entity is None:
             return
 
-        # Remove from device index
         for device_entities in self._entities_by_device.values():
             if entity in device_entities:
                 device_entities.remove(entity)
@@ -109,22 +108,11 @@ class StateIndexManager:
         _LOGGER.debug("Unregistered entity %s", entity_id)
 
     def get_entity_count(self) -> int:
-        """Get total registered entity count.
-
-        Returns:
-            Number of registered entities
-        """
+        """Get total registered entity count."""
         return len(self._entities)
 
     def get_entities_for_device(self, device_serial: str) -> list[LiproEntityProtocol]:
-        """Get all entities associated with a device.
-
-        Args:
-            device_serial: Device serial number
-
-        Returns:
-            List of entities for the device
-        """
+        """Get all entities associated with a device."""
         device_key = self._normalize_device_key(device_serial)
         return self._entities_by_device.get(device_key, [])
 

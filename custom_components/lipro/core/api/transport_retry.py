@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
 from typing import TYPE_CHECKING, Any
 
-from ...const.api import MAX_RATE_LIMIT_RETRIES
+from ...const.api import MAX_RATE_LIMIT_RETRIES, MAX_RETRY_AFTER
 from .errors import LiproRateLimitError
+from .request_policy import compute_rate_limit_wait_time
 
 if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable
@@ -51,9 +53,6 @@ class TransportRetry:
             msg = f"Rate limited after {MAX_RATE_LIMIT_RETRIES} retries"
             raise LiproRateLimitError(msg, retry_after)
 
-        from .request_policy import compute_rate_limit_wait_time
-        from ...const.api import MAX_RETRY_AFTER
-
         wait_time = compute_rate_limit_wait_time(
             retry_count=retry_count,
             retry_after=retry_after,
@@ -66,8 +65,6 @@ class TransportRetry:
             MAX_RATE_LIMIT_RETRIES,
             wait_time,
         )
-
-        import asyncio
 
         await asyncio.sleep(wait_time)
         return wait_time

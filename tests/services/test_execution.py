@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from typing import cast
 from unittest.mock import AsyncMock, Mock
 
 import pytest
@@ -12,6 +13,7 @@ from custom_components.lipro.core import (
     LiproRefreshTokenExpiredError,
 )
 from custom_components.lipro.services.execution import (
+    AuthenticatedCoordinator,
     _async_ensure_authenticated,
     _async_trigger_reauth,
     async_execute_coordinator_call,
@@ -22,7 +24,7 @@ from custom_components.lipro.services.execution import (
 async def test_async_ensure_authenticated_and_trigger_reauth_noop_without_methods() -> (
     None
 ):
-    coordinator = object()
+    coordinator = cast(AuthenticatedCoordinator, object())
 
     await _async_ensure_authenticated(coordinator)
     await _async_trigger_reauth(coordinator, "auth_error")

@@ -350,8 +350,12 @@ async def execute_command_plan_with_trace(
     fallback_device_id: str | None,
     trace: dict[str, Any],
     redact_identifier: Any,
-) -> tuple[CommandDispatchPlan, Any, str]:
-    """Plan command dispatch and append resolved request/response trace fields."""
+) -> tuple[CommandDispatchPlan, dict[str, Any], str]:
+    """Plan command dispatch and append resolved request/response trace fields.
+
+    Returns:
+        Tuple of (dispatch_plan, api_result, route_name)
+    """
     plan: CommandDispatchPlan = plan_command_dispatch(
         device,
         command,

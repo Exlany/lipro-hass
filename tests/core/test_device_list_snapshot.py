@@ -2,14 +2,13 @@
 
 from __future__ import annotations
 
-from unittest.mock import MagicMock, patch
-
-from custom_components.lipro.const.categories import DeviceCategory
 from custom_components.lipro.const.config import (
     DEVICE_FILTER_MODE_EXCLUDE,
     DEVICE_FILTER_MODE_OFF,
 )
-from custom_components.lipro.core.coordinator.runtime.device import filter as filter_module
+from custom_components.lipro.core.coordinator.runtime.device import (
+    filter as filter_module,
+)
 from custom_components.lipro.core.coordinator.runtime.device.filter import (
     DeviceFilter,
     DeviceFilterConfig,

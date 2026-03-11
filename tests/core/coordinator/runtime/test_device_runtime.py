@@ -2,20 +2,21 @@
 
 from __future__ import annotations
 
-from typing import Any
-from unittest.mock import AsyncMock, MagicMock, Mock
+from typing import Any, cast
+from unittest.mock import AsyncMock, Mock
 
 import pytest
 
 from custom_components.lipro.core.api import LiproClient
 from custom_components.lipro.core.auth import LiproAuthManager
-from custom_components.lipro.core.coordinator.runtime.device_runtime import DeviceRuntime
-from custom_components.lipro.core.device import LiproDevice
+from custom_components.lipro.core.coordinator.runtime.device_runtime import (
+    DeviceRuntime,
+)
 from custom_components.lipro.core.device.identity_index import DeviceIdentityIndex
 
 
 @pytest.fixture
-def mock_client() -> LiproClient:
+def mock_client() -> Mock:
     """Create mock API client."""
     client = Mock(spec=LiproClient)
     client.get_device_list = AsyncMock()
@@ -41,13 +42,13 @@ def mock_device_identity_index() -> DeviceIdentityIndex:
 
 @pytest.fixture
 def device_runtime(
-    mock_client: LiproClient,
+    mock_client: Mock,
     mock_auth_manager: LiproAuthManager,
     mock_device_identity_index: DeviceIdentityIndex,
 ) -> DeviceRuntime:
     """Create DeviceRuntime instance."""
     return DeviceRuntime(
-        client=mock_client,
+        client=cast(LiproClient, mock_client),
         auth_manager=mock_auth_manager,
         device_identity_index=mock_device_identity_index,
     )
@@ -93,13 +94,13 @@ class TestDeviceRuntimeInitialization:
 
     def test_init_with_minimal_args(
         self,
-        mock_client: LiproClient,
+        mock_client: Mock,
         mock_auth_manager: LiproAuthManager,
         mock_device_identity_index: DeviceIdentityIndex,
     ) -> None:
         """Test initialization with minimal arguments."""
         runtime = DeviceRuntime(
-            client=mock_client,
+            client=cast(LiproClient, mock_client),
             auth_manager=mock_auth_manager,
             device_identity_index=mock_device_identity_index,
         )
@@ -112,7 +113,7 @@ class TestDeviceRuntimeInitialization:
 
     def test_init_with_filter_config(
         self,
-        mock_client: LiproClient,
+        mock_client: Mock,
         mock_auth_manager: LiproAuthManager,
         mock_device_identity_index: DeviceIdentityIndex,
     ) -> None:
@@ -123,7 +124,7 @@ class TestDeviceRuntimeInitialization:
         }
 
         runtime = DeviceRuntime(
-            client=mock_client,
+            client=cast(LiproClient, mock_client),
             auth_manager=mock_auth_manager,
             device_identity_index=mock_device_identity_index,
             filter_config_options=filter_options,
@@ -139,7 +140,7 @@ class TestDeviceRuntimeRefresh:
     async def test_first_refresh_is_full(
         self,
         device_runtime: DeviceRuntime,
-        mock_client: LiproClient,
+        mock_client: Mock,
     ) -> None:
         """Test that first refresh always performs full fetch."""
         mock_client.get_device_list.return_value = {
@@ -160,7 +161,7 @@ class TestDeviceRuntimeRefresh:
     async def test_force_refresh_triggers_full_fetch(
         self,
         device_runtime: DeviceRuntime,
-        mock_client: LiproClient,
+        mock_client: Mock,
     ) -> None:
         """Test force refresh triggers full device list fetch."""
         mock_client.get_device_list.return_value = {
@@ -184,7 +185,7 @@ class TestDeviceRuntimeRefresh:
     async def test_incremental_refresh_without_force(
         self,
         device_runtime: DeviceRuntime,
-        mock_client: LiproClient,
+        mock_client: Mock,
     ) -> None:
         """Test incremental refresh when timing not elapsed."""
         mock_client.get_device_list.return_value = {
@@ -212,7 +213,7 @@ class TestDeviceRuntimeRefresh:
     async def test_pagination_handling(
         self,
         device_runtime: DeviceRuntime,
-        mock_client: LiproClient,
+        mock_client: Mock,
     ) -> None:
         """Test pagination across multiple pages."""
         mock_client.get_device_list.side_effect = [
@@ -237,7 +238,7 @@ class TestDeviceRuntimeRefresh:
     async def test_device_categorization(
         self,
         device_runtime: DeviceRuntime,
-        mock_client: LiproClient,
+        mock_client: Mock,
     ) -> None:
         """Test devices are categorized correctly."""
         mock_client.get_device_list.return_value = {
@@ -267,7 +268,7 @@ class TestStaleDeviceReconciliation:
     async def test_compute_stale_devices_first_run(
         self,
         device_runtime: DeviceRuntime,
-        mock_client: LiproClient,
+        mock_client: Mock,
     ) -> None:
         """Test stale device computation on first run."""
         mock_client.get_device_list.return_value = {
@@ -287,7 +288,7 @@ class TestStaleDeviceReconciliation:
     async def test_compute_stale_devices_missing_device(
         self,
         device_runtime: DeviceRuntime,
-        mock_client: LiproClient,
+        mock_client: Mock,
     ) -> None:
         """Test stale device tracking when device goes missing."""
         # First refresh with 2 devices
@@ -322,7 +323,7 @@ class TestStaleDeviceReconciliation:
     async def test_stale_device_removal_threshold(
         self,
         device_runtime: DeviceRuntime,
-        mock_client: LiproClient,
+        mock_client: Mock,
     ) -> None:
         """Test device removal after threshold cycles."""
         # Initial refresh
@@ -345,7 +346,7 @@ class TestStaleDeviceReconciliation:
         for _ in range(3):
             device_runtime.request_force_refresh()
             snapshot = await device_runtime.refresh_devices()
-            missing_cycles, removable = device_runtime.compute_stale_devices(
+            _missing_cycles, removable = device_runtime.compute_stale_devices(
                 current_snapshot=snapshot
             )
 
@@ -371,7 +372,7 @@ class TestDeviceRuntimeState:
     async def test_get_last_snapshot_after_refresh(
         self,
         device_runtime: DeviceRuntime,
-        mock_client: LiproClient,
+        mock_client: Mock,
     ) -> None:
         """Test last snapshot is available after refresh."""
         mock_client.get_device_list.return_value = {
@@ -404,7 +405,7 @@ class TestDeviceRuntimeErrorHandling:
     async def test_api_error_during_refresh(
         self,
         device_runtime: DeviceRuntime,
-        mock_client: LiproClient,
+        mock_client: Mock,
     ) -> None:
         """Test API error handling during refresh."""
         mock_client.get_device_list.side_effect = Exception("API Error")
@@ -419,7 +420,7 @@ class TestDeviceRuntimeErrorHandling:
     async def test_partial_page_failure(
         self,
         device_runtime: DeviceRuntime,
-        mock_client: LiproClient,
+        mock_client: Mock,
     ) -> None:
         """Test handling of partial page fetch failure."""
         mock_client.get_device_list.side_effect = [
@@ -444,7 +445,7 @@ class TestDeviceRuntimeIntegration:
     async def test_full_refresh_cycle(
         self,
         device_runtime: DeviceRuntime,
-        mock_client: LiproClient,
+        mock_client: Mock,
         mock_device_identity_index: DeviceIdentityIndex,
     ) -> None:
         """Test complete refresh cycle with identity registration."""
