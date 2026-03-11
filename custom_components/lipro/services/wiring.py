@@ -21,7 +21,7 @@ from .device_lookup import (
     get_device_and_coordinator as _get_device_and_coordinator_service,
     iter_runtime_coordinators as _iter_runtime_coordinators_service,
 )
-from .diagnostics_service import (
+from .diagnostics import (
     async_call_optional_capability as _async_call_optional_capability_service,
     async_handle_fetch_body_sensor_history as _async_handle_fetch_body_sensor_history_service,
     async_handle_fetch_door_sensor_history as _async_handle_fetch_door_sensor_history_service,
