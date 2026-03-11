@@ -11,7 +11,9 @@ from custom_components.lipro.core.device.identity_index import DeviceIdentityInd
 
 
 def test_coordinator_snapshot(snapshot: SnapshotAssertion) -> None:
-    from custom_components.lipro.core.coordinator.factory import CoordinatorStateContainers
+    from custom_components.lipro.core.coordinator.factory import (
+        CoordinatorStateContainers,
+    )
 
     device = MagicMock()
     coordinator = object.__new__(Coordinator)
