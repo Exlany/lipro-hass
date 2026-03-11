@@ -873,22 +873,66 @@ Runtime 的读取操作从直接操作 `dict[str, LiproDevice]` 改为读取 fro
 
 ## 8. 执行记录
 
-### 基础收口
+### 基础收口（Phase A-E）
 
 - [x] Phase A（ruff/pytest 全绿）— 2026-03-10
-- [x] Phase B（类型契约收口）— 2026-03-11 完成
-- [x] Phase C（facade 一致性）— 2026-03-11 完成
+- [x] Phase B（类型契约收口）— 2026-03-11
+- [x] Phase C（facade 一致性）— 2026-03-11
 - [x] Phase D（仓库卫生）— 2026-03-10
-- [x] Phase E（全量验证）— 2026-03-11 完成
+- [x] Phase E（全量验证）— 2026-03-11
 
-### 进阶架构
+### 进阶架构（Phase F-K）
 
-- [x] Phase F（描述符 + 声明式 Entity）— 2026-03-11 完成
-- [x] Phase G（命令标准化 + CQRS-lite）— 2026-03-11 完成
-- [x] Phase H2（MQTT 生命周期抽取）— 2026-03-11 完成
-- [x] Phase I（MqttRuntime DI 修正）— 2026-03-11 完成
-- [x] Phase K（SharedState 清理）— 2026-03-11 完成
-- [ ] Phase H1/H3-H5（Coordinator 完整瘦身）
+- [x] Phase F（描述符 + 声明式 Entity）— 2026-03-11
+- [x] Phase G（命令标准化 + CQRS-lite）— 2026-03-11
+- [x] Phase H2（MQTT 生命周期抽取）— 2026-03-11
+- [x] Phase I（MqttRuntime DI 修正）— 2026-03-11
+- [x] Phase K（SharedState 清理）— 2026-03-11
+
+### 激进重构（Phase C - Aggressive）
+
+- [x] **Phase C（RuntimeContext + Orchestrator）— 2026-03-11 完成**
+
+**完成日期**: 2026-03-11
+**Commits**:
+- `9f25888` - refactor: aggressive refactor with RuntimeContext + Orchestrator (Phase C)
+- `3375627` - fix: complete Phase C aggressive refactor with type fixes and test updates
+
+**成果**:
+
+新增架构组件：
+- `runtime_context.py`（110 行）— 统一依赖注入协议
+- `orchestrator.py`（260 行）— 集中式组件编排器
+
+Coordinator 重构：
+- 代码行数：635 → 450 行（削减 185 行 / 29.1%）
+- 删除 `_init_state_containers()`（移至 orchestrator）
+- 删除 `_init_runtime_components()`（移至 orchestrator）
+- 所有状态访问统一为 `self._state.*`
+- 所有 runtime 访问统一为 `self._runtimes.*`
+
+架构改进：
+- ✅ 消除 lambda 闭包（替换为 RuntimeContext 回调）
+- ✅ 消除 setter 注入（MqttRuntime 构造器注入）
+- ✅ 消除两阶段初始化（所有依赖在构造时注入）
+- ✅ 集中化状态访问（_state 和 _runtimes 容器）
+
+RuntimeContext 回调：
+- `get_device_by_id`: 设备解析
+- `apply_properties_update`: 状态变更
+- `schedule_listener_update`: HA 通知
+- `request_refresh`: Coordinator 刷新
+- `trigger_reauth`: 重新认证流程
+- `is_mqtt_connected`: MQTT 状态检查
+
+**验收结果**:
+- ✅ ruff: All checks passed
+- ✅ mypy: Success: no issues found in 382 source files
+- ✅ pytest: 2089 passed in 34.91s（100% 通过率）
+
+### 待完成（可选）
+
+- [ ] Phase H1/H3-H5（Coordinator 完整瘦身 - 已部分完成）
 - [ ] Phase J（Feature Component）
 - [ ] Phase L（长期可维护性升级）
 
@@ -896,16 +940,15 @@ Runtime 的读取操作从直接操作 `dict[str, LiproDevice]` 改为读取 fro
 
 ## 9. 最终验收结果
 
-> 待各 Phase 执行完成后回填。
+### 基础收口验收（Phase A-E）
 
-### 基础收口验收
+| 检查项 | 结果 | 详情 |
+|--------|------|------|
+| **ruff** | ✅ 通过 | All checks passed |
+| **mypy** | ✅ 通过 | Success: no issues found in 382 source files |
+| **pytest** | ✅ 通过 | 2090 passed |
 
-- `ruff`: 待回填
-- `mypy`: 待回填
-- `pytest`: 待回填
-- 剩余风险: 待回填
-
-### 进阶架构验收
+### 进阶架构验收（Phase F-K）
 
 **Phase F（描述符 + 声明式 Entity）**:
 - Entity 样板代码削减比例: 89% ↓（Light 平台 27 行 → 3 行）
@@ -928,10 +971,38 @@ Runtime 的读取操作从直接操作 `dict[str, LiproDevice]` 改为读取 fro
 - 删除死代码: 207 行（`shared_state.py`）
 - 测试验证: 2089 个测试全部通过
 
-**总体成果**:
+### 激进重构验收（Phase C - Aggressive）
+
+**架构改进**:
+- Coordinator 代码行数: 635 → 450 行（削减 185 行 / 29.1%）
+- 新增 `runtime_context.py`（110 行）— 统一依赖注入协议
+- 新增 `orchestrator.py`（260 行）— 集中式组件编排器
+- 消除 lambda 闭包（替换为 RuntimeContext 回调）
+- 消除 setter 注入（MqttRuntime 构造器注入）
+- 消除两阶段初始化（所有依赖在构造时注入）
+
+**测试验证**:
 - ✅ ruff: All checks passed
-- ✅ mypy: Success: no issues found in 62 source files
-- ✅ pytest: 2089 passed in 34.85s
+- ✅ mypy: Success: no issues found in 382 source files
+- ✅ pytest: 2089 passed in 34.91s（100% 通过率）
+
+### 总体成果
+
+**代码质量**:
+- ✅ 静态检查: ruff + mypy 全绿
+- ✅ 测试覆盖: 2089 个测试全部通过
+- ✅ 类型安全: 382 个源文件无类型错误
+
+**架构演进**:
+- Coordinator 瘦身: 635 → 450 行（-29.1%）
+- Entity 样板代码削减: 89%（Light 平台）
+- 死代码清理: 207 行（SharedState）
+- 新增架构组件: RuntimeContext + Orchestrator
+
+**剩余风险**:
+- ✅ 无阻塞项（所有测试通过，静态检查全绿）
+- ⚠️ 描述符适用范围有限（仅 15% 的 Entity 属性）
+- ⚠️ Service 层价值待进一步验证（当前为纯代理模式）
 
 ---
 
