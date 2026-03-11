@@ -214,17 +214,38 @@ await self.async_send_command(CMD_PANEL_CHANGE_STATE, payload, optimistic)
 
 #### F1. 新增描述符框架
 
-新增 `entities/descriptors.py`：
+新增 `entities/descriptors.py`。
+
+**关键实现约束：描述符必须是泛型的，以兼容 mypy / HA 类型检查。**
+
+HA 核心对 Entity 属性有明确的类型期望（如 `LightEntity.is_on` 应为 `bool`，`brightness` 应为 `int | None`）。如果描述符的 `__get__` 没有正确的类型标注，mypy 会将 `is_on` 推断为 `DeviceAttr` 类型而非 `bool`，导致类型检查失败。
+
+解决方案：使用 `Generic[T]` + `@overload` 实现泛型描述符：
 
 ```python
-class DeviceAttr:
-    """从 device 读取属性的描述符，支持可选转换函数。"""
+from typing import Generic, TypeVar, overload
+from typing_extensions import Self
+
+T = TypeVar("T")
+
+
+class DeviceAttr(Generic[T]):
+    """从 device 读取属性的泛型描述符，支持可选转换函数。
+
+    类型安全：通过 @overload 区分类属性访问（返回 Self）
+    和实例属性访问（返回 T），确保 mypy 正确推断。
+    """
     def __init__(self, attr: str, *, transform=None):
         self.attr = attr
         self.transform = transform
 
     def __set_name__(self, owner, name):
         self.name = name
+
+    @overload
+    def __get__(self, obj: None, objtype: type) -> Self: ...
+    @overload
+    def __get__(self, obj: LiproEntity, objtype: type) -> T: ...
 
     def __get__(self, obj, objtype=None):
         if obj is None:
@@ -233,17 +254,22 @@ class DeviceAttr:
         return self.transform(value) if self.transform else value
 
 
-class ScaledBrightness(DeviceAttr):
+class ScaledBrightness(DeviceAttr[int | None]):
     """亮度描述符：设备 0-100 → HA 0-255。"""
     def __init__(self, attr: str = "brightness"):
         super().__init__(attr, transform=lambda v: round(max(0, min(100, v)) * 255 / 100))
 
 
-class ConditionalAttr(DeviceAttr):
+class ConditionalAttr(DeviceAttr[T]):
     """条件描述符：仅当设备具备某能力时返回值，否则返回 None。"""
     def __init__(self, attr: str, *, capability: str, transform=None):
         super().__init__(attr, transform=transform)
         self.capability = capability
+
+    @overload
+    def __get__(self, obj: None, objtype: type) -> Self: ...
+    @overload
+    def __get__(self, obj: LiproEntity, objtype: type) -> T | None: ...
 
     def __get__(self, obj, objtype=None):
         if obj is None:
@@ -251,6 +277,16 @@ class ConditionalAttr(DeviceAttr):
         if not getattr(obj.device, self.capability, False):
             return None
         return super().__get__(obj, objtype)
+```
+
+使用时类型自然正确：
+
+```python
+class LiproLight(LiproEntity, LightEntity):
+    is_on = DeviceAttr[bool]("is_on")                     # mypy 推断为 bool
+    brightness = ScaledBrightness()                         # mypy 推断为 int | None
+    color_temp_kelvin = ConditionalAttr[int]("color_temp",  # mypy 推断为 int | None
+                                             capability="supports_color_temp")
 ```
 
 #### F2. 重构 Light Entity 为声明式
@@ -279,11 +315,11 @@ After（声明式，属性行数从 ~50 行降为 ~8 行）：
 
 ```python
 class LiproLight(LiproEntity, LightEntity):
-    is_on = DeviceAttr("is_on")
+    is_on = DeviceAttr[bool]("is_on")
     brightness = ScaledBrightness()
-    color_temp_kelvin = ConditionalAttr("color_temp", capability="supports_color_temp")
-    min_color_temp_kelvin = DeviceAttr("min_color_temp_kelvin")
-    max_color_temp_kelvin = DeviceAttr("max_color_temp_kelvin")
+    color_temp_kelvin = ConditionalAttr[int]("color_temp", capability="supports_color_temp")
+    min_color_temp_kelvin = DeviceAttr[int]("min_color_temp_kelvin")
+    max_color_temp_kelvin = DeviceAttr[int]("max_color_temp_kelvin")
 
     # 只保留有业务逻辑的方法
     async def async_turn_on(self, **kwargs): ...
@@ -339,8 +375,13 @@ BINARY_SENSOR_SPECS: Final = [
 
 - [ ] Entity 层属性样板代码减少 >= 50%
 - [ ] 新增设备属性只需一行描述符声明
+- [ ] 描述符使用 `Generic[T]` + `@overload`，mypy 能正确推断每个属性的返回类型
 - [ ] 所有现有测试通过，行为不变
-- [ ] 描述符有独立单元测试
+- [ ] 描述符有独立单元测试（含类型推断验证）
+
+> **注意**：描述符应保持为纯读取（无副作用）。不要在描述符中加入时间判断或乐观状态逻辑——
+> 当前的防回弹保护已在 `StateRuntime.updater` 层实现（`base.py:113-127` 的 `is_debouncing` +
+> `get_protected_keys()` + `updater.py:140` 的写入过滤），这是更合适的位置。
 
 ---
 
@@ -483,12 +524,40 @@ Coordinator **不再拥有**的职责：
 - MQTT 建连（移至 mqtt_lifecycle）
 - 各种 lambda 回调定义（移至 factory 中闭包）
 
-#### H4. 评估 Service 层存废
+#### H4. Service 层定位：从"纯代理"升级为"Saga-lite 编排器"
 
-若 Phase H 完成后 Coordinator 足够精简，则 Service 层的"纯代理"职责可以：
+当前 Service 层沦为纯代理的原因不是它不应该存在，而是没有赋予它真正的职责。将 Service 层定位为**跨 Runtime 事务编排层**：
 
-- **选项 A（推荐）**：保留 Service 层，但赋予其事务编排职责（如"发送命令 + 等确认 + 刷新状态"的完整流程）
-- **选项 B**：移除 Service 层，由 Coordinator 直接暴露 Runtime API
+**典型场景**（以"用户调节色温"为例）：
+
+1. Service 调用 `CommandRuntime` 发送色温指令
+2. Service 同时通知 `TuningRuntime` 记录用户调节习惯（学习曲线）
+3. Service 启动延时计时器：若 5 秒内 MQTT 没回包，自动触发 `DeviceRefreshService` 强制轮询
+
+这种**涉及多个 Runtime 协作的逻辑**：
+- 写在 Entity 里太散（各平台重复）
+- 写在 Coordinator 里太重（Coordinator 应只做 HA 对接）
+- 写在 Service 层刚好（跨组件编排是 Service 的天然职责）
+
+**实现约束**：保持为简单的"编排型 Service"，不引入 Saga 的完整形态（补偿事务、状态机、saga log 等）。Service 方法应该是线性的 `do A → do B → schedule C`，不需要回滚语义。
+
+```python
+# 示例：CoordinatorCommandService 升级
+class CoordinatorCommandService:
+    async def async_send_command(self, device, command, properties=None, ...):
+        # 1. 发送命令
+        success = await self.coordinator.command_runtime.send_device_command(...)
+
+        # 2. 记录调节行为（不阻塞主流程）
+        if success and properties:
+            self.coordinator.tuning_runtime.record_user_action(device, command)
+
+        # 3. 调度确认回退（超时后强制轮询）
+        if success:
+            self._schedule_confirmation_fallback(device)
+
+        return success
+```
 
 #### H5. 模块化拆分路线（最小风险）
 
@@ -640,6 +709,7 @@ Runtime 的读取操作从直接操作 `dict[str, LiproDevice]` 改为读取 fro
 | 完整 ECS 架构 | 设备类型 ~10 种，碎片化程度不足以支撑 ECS 收益 |
 | 完整 CQRS + EventBus | HA 的 DataUpdateCoordinator 已是简化 CQRS，再加一层过度设计 |
 | 完整 State Machine | 设备状态转换简单（on/off/adjust），不需要正式 FSM |
+| 集成内部 Event Bus | HA 是单线程事件循环，Event Bus 的解耦收益有限；Runtime 间依赖简单（非 N:N 网状），factory 闭包注入已足够；事件驱动调试更难追踪调用链。若未来 Runtime > 15 个且有复杂事件扇出再考虑，届时应使用 HA 原生 `hass.bus` 而非自建 |
 
 ---
 
