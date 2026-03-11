@@ -781,7 +781,337 @@ Runtime 的读取操作从直接操作 `dict[str, LiproDevice]` 改为读取 fro
 
 ---
 
-## 10. 参考文档
+## 10. 深度架构洞察（补充改进方向）
+
+> **创建日期**: 2026-03-11
+> **来源**: 架构全貌审查
+
+在当前"组合式 runtime + 薄 facade + 服务层委托"架构基础上，识别出以下 7 个可进一步优化的方向：
+
+### 10.1 Entity 层命令发送路径统一化
+
+**现状问题**：
+
+当前存在 3 种不同的命令发送模式，同样的"开灯"操作在不同平台写法各异：
+
+```python
+# 路径 1: 直接命令 (light.py:182-209)
+await self.async_send_command(CMD_POWER_ON, None, {PROP_POWER_STATE: "1"})
+
+# 路径 2: 属性变更 (climate.py:92-112)
+await self.async_change_state({PROP_HEATER_MODE: mode})
+
+# 路径 3: 特殊命令 (需手动构建 payload)
+await self.async_send_command(CMD_PANEL_CHANGE_STATE, payload, optimistic)
+```
+
+**改进方向**：
+
+在 Phase G（命令标准化）中，将这 3 种路径统一为声明式命令对象：
+
+```python
+# 统一后的模式
+await self.async_execute(PowerCommand(on=True))
+await self.async_execute(BrightnessCommand(value=128))
+await self.async_execute(HvacModeCommand(mode=HVACMode.HEAT))
+```
+
+**收益**：
+- 消除平台间命令发送的不一致性
+- 命令对象可序列化、可测试、可追踪
+- 为 Phase H4 的 Saga-lite 编排提供统一接口
+
+### 10.2 Device 属性访问路径标准化
+
+**现状问题**：
+
+不同平台读取设备状态的模式不一致：
+
+| 平台 | 读取模式 | 问题 |
+|------|---------|------|
+| Light | `self.device.is_on`、`self.device.brightness` | 需手动转换 0-100 → 0-255 |
+| Cover | `self.device.properties` 直接访问 + `self.device.position` | 两种模式混用 |
+| Fan | `self.device.fan_is_on`、`self.device.fan_gear` | 命名前缀不统一 |
+| Sensor | `self.device.extra_data.get(...)` | 穿透到原始 dict |
+
+**改进方向**：
+
+Phase F（描述符驱动）已经提供了解决方案，但需要进一步标准化：
+
+1. **统一命名规范**：所有布尔状态用 `is_xxx`，数值状态用名词（`brightness` / `position` / `gear`）
+2. **消除手动转换**：描述符内置 `transform` 参数处理单位转换
+3. **禁止直接访问 `properties` / `extra_data`**：所有状态通过 `device.state.xxx` 或描述符访问
+
+**示例**：
+
+```python
+# 统一后的模式
+class LiproLight(LiproEntity, LightEntity):
+    is_on = DeviceAttr[bool]("state.is_on")
+    brightness = DeviceAttr[int]("state.brightness", transform=lambda x: int(x * 2.55))
+    color_temp_kelvin = DeviceAttr[int | None]("state.color_temp_kelvin")
+```
+
+### 10.3 Runtime 间依赖注入的循环依赖风险
+
+**现状问题**：
+
+`coordinator.py:212-238` 的 Runtime 初始化存在大量 lambda 回调传递：
+
+```python
+confirmation_manager = ConfirmationManager(
+    mqtt_connected_provider=lambda: self._mqtt_runtime.is_connected,
+    request_refresh=self.async_request_refresh,
+)
+```
+
+这种闭包注入在 Runtime 数量增加时会形成复杂的依赖网：
+
+```
+CommandRuntime → (lambda) → MqttRuntime.is_connected
+                → (lambda) → Coordinator.async_request_refresh
+MqttRuntime    → (setter) → StateRuntime.get_device_by_id
+                → (setter) → Coordinator.async_set_updated_data
+```
+
+**改进方向**：
+
+Phase H（Coordinator 瘦身）+ Phase I（MqttRuntime DI 修正）组合解决：
+
+1. **引入 RuntimeContext 协议**：定义 Runtime 间的标准依赖接口
+2. **工厂模式统一布线**：`CoordinatorFactory` 负责解析依赖图并注入
+3. **消除 setter 注入**：所有依赖在构造时注入，避免两阶段初始化
+
+**示例**：
+
+```python
+@dataclass
+class RuntimeContext:
+    """Runtime 间共享的依赖上下文"""
+    get_device_by_id: Callable[[str], LiproDevice | None]
+    request_refresh: Callable[[], Awaitable[None]]
+    is_mqtt_connected: Callable[[], bool]
+    schedule_listener_update: Callable[[], None]
+
+# 工厂统一布线
+context = RuntimeContext(...)
+command_runtime = CommandRuntime.from_context(context, ...)
+mqtt_runtime = MqttRuntime.from_context(context, ...)
+```
+
+### 10.4 Service 层职责重新定位
+
+**现状问题**：
+
+当前 Service 层（`services/`）过薄，仅作为 Runtime 的纯代理：
+
+| Service | 行数 | 实际功能 |
+|---------|------|---------|
+| `CoordinatorCommandService` | 41 | 纯代理 → `command_runtime.send_device_command()` |
+| `CoordinatorStateService` | 48 | 纯代理 → `state_runtime.get_device_by_*()` |
+| `CoordinatorMqttService` | 47 | 纯代理 → `mqtt_runtime.connect/disconnect()` |
+
+增加了调用层级却没有增加抽象价值。
+
+**改进方向**：
+
+Phase H4（Saga-lite Service 层）赋予 Service 真正的职责：
+
+**选项 A：升级为 Saga-lite 编排器**
+
+```python
+class CoordinatorCommandService:
+    """跨 Runtime 的事务编排层"""
+
+    async def turn_on_with_scene(self, device: LiproDevice, scene_id: str) -> bool:
+        """开灯 + 应用场景（两步事务）"""
+        # Step 1: 开灯
+        success = await self.command_runtime.send(PowerCommand(device, on=True))
+        if not success:
+            return False
+
+        # Step 2: 应用场景
+        success = await self.command_runtime.send(SceneCommand(device, scene_id))
+        if not success:
+            # 回滚：关灯
+            await self.command_runtime.send(PowerCommand(device, on=False))
+            return False
+
+        return True
+```
+
+**选项 B：移除 Service 层**
+
+若评估后认为当前场景不需要跨 Runtime 编排，直接移除 Service 层，Entity 直接调用 `coordinator.command_runtime.xxx()`。
+
+**推荐**：采用选项 A，为未来的复杂场景（如群组控制、场景联动）预留编排能力。
+
+### 10.5 DeviceCapabilities 的动态能力查询
+
+**现状问题**：
+
+`device/capabilities.py:10-80` 的 `DeviceCapabilities` 是 frozen dataclass，在设备初始化时固化：
+
+```python
+@dataclass(frozen=True, slots=True)
+class DeviceCapabilities:
+    device_type_hex: str
+    category: DeviceCategory
+    supports_color_temp: bool
+    max_fan_gear: int = 1
+```
+
+但实际运行中，设备能力可能动态变化（如固件升级后支持新功能），当前架构无法响应。
+
+**改进方向**：
+
+引入 **能力查询协议** + **能力变更事件**：
+
+```python
+class DeviceCapabilities:
+    """动态能力查询（保持 frozen 核心，扩展查询接口）"""
+
+    @property
+    def supports_color_temp(self) -> bool:
+        """动态查询色温支持（优先读取 product_config，回退到静态配置）"""
+        if self._device.product_config:
+            return self._device.product_config.supports_color_temp
+        return self._static_supports_color_temp
+
+    def refresh_from_product_config(self, config: ProductConfig) -> None:
+        """从产品配置刷新能力（触发能力变更事件）"""
+        old_caps = self.to_dict()
+        self._apply_product_config(config)
+        new_caps = self.to_dict()
+        if old_caps != new_caps:
+            self._notify_capability_changed(old_caps, new_caps)
+```
+
+**收益**：
+- 支持固件升级后的能力热更新
+- Entity 可监听能力变更事件，动态调整 UI（如新增色温滑块）
+
+### 10.6 MQTT 推送的结构化解析
+
+**现状问题**：
+
+`mqtt_runtime.py:85-100` 的 MQTT 消息处理直接操作原始 dict：
+
+```python
+async def _on_message(self, topic: str, payload: dict[str, Any]) -> None:
+    device_id = payload.get("deviceId")
+    properties = payload.get("properties", {})
+    await self._property_applier(device, properties, source="mqtt")
+```
+
+缺乏结构化验证，容易因云端推送格式变更导致运行时错误。
+
+**改进方向**：
+
+引入 **MQTT 消息协议层**：
+
+```python
+@dataclass(frozen=True)
+class MqttDeviceUpdate:
+    """MQTT 设备更新消息（结构化 + 验证）"""
+    device_id: str
+    properties: dict[str, Any]
+    timestamp: int
+    source: Literal["push", "query"]
+
+    @classmethod
+    def from_payload(cls, payload: dict[str, Any]) -> MqttDeviceUpdate:
+        """从原始 payload 解析（带验证）"""
+        if "deviceId" not in payload:
+            raise ValueError("Missing deviceId in MQTT payload")
+        return cls(
+            device_id=payload["deviceId"],
+            properties=payload.get("properties", {}),
+            timestamp=payload.get("timestamp", 0),
+            source=payload.get("source", "push"),
+        )
+
+# 使用
+async def _on_message(self, topic: str, payload: dict[str, Any]) -> None:
+    try:
+        update = MqttDeviceUpdate.from_payload(payload)
+        device = self._device_resolver(update.device_id)
+        await self._property_applier(device, update.properties, source="mqtt")
+    except ValueError as e:
+        _LOGGER.warning("Invalid MQTT payload: %s", e)
+```
+
+**收益**：
+- 提前发现格式错误，避免运行时崩溃
+- 为未来的 MQTT 协议版本升级提供兼容层
+
+### 10.7 测试覆盖率的结构化追踪
+
+**现状问题**：
+
+当前测试覆盖率（~38,000 LOC 测试代码）缺乏结构化追踪：
+
+- 不知道哪些 Runtime 组件的覆盖率不足
+- 不知道哪些边界条件未测试
+- 重构后无法快速验证测试完整性
+
+**改进方向**：
+
+引入 **测试矩阵 + 覆盖率看板**：
+
+```markdown
+## 测试覆盖率矩阵
+
+| 组件 | 单元测试 | 集成测试 | 边界测试 | 覆盖率 |
+|------|---------|---------|---------|--------|
+| CommandRuntime | ✅ | ✅ | ⚠️ 缺失重试失败 | 85% |
+| StateRuntime | ✅ | ✅ | ✅ | 92% |
+| MqttRuntime | ✅ | ⚠️ 缺失断线重连 | ❌ | 68% |
+| DeviceRuntime | ✅ | ✅ | ✅ | 90% |
+| LiproDevice | ✅ | ✅ | ⚠️ 缺失能力变更 | 78% |
+```
+
+**工具支持**：
+
+```bash
+# 生成覆盖率报告
+uv run pytest --cov=custom_components/lipro --cov-report=html
+
+# 生成测试矩阵
+uv run python scripts/generate_test_matrix.py
+```
+
+**收益**：
+- 可视化测试盲区
+- 重构时快速验证测试完整性
+- 为 CI/CD 提供质量门禁指标
+
+---
+
+## 11. 优先级建议
+
+基于以上 7 个方向，建议的执行优先级：
+
+| 优先级 | 方向 | 阶段 | 预估规模 | 收益/风险比 |
+|--------|------|------|---------|------------|
+| **P0** | 10.1 命令路径统一 | Phase G | 小 | 高（消除不一致） |
+| **P0** | 10.2 属性访问标准化 | Phase F | 中 | 高（消除样板代码） |
+| **P1** | 10.3 依赖注入优化 | Phase H+I | 中 | 中（降低复杂度） |
+| **P2** | 10.4 Service 层重定位 | Phase H4 | 小 | 中（为未来预留） |
+| **P3** | 10.5 动态能力查询 | 独立 Phase | 小 | 低（边缘场景） |
+| **P3** | 10.6 MQTT 结构化解析 | 独立 Phase | 小 | 中（提升健壮性） |
+| **P4** | 10.7 测试矩阵追踪 | 工具支持 | 小 | 低（辅助工具） |
+
+**执行建议**：
+
+1. **Phase F-G 组合拳**：先完成 10.2（属性标准化）+ 10.1（命令统一），消除 Entity 层的不一致性
+2. **Phase H-I 组合拳**：再完成 10.3（依赖注入）+ 10.4（Service 重定位），优化 Coordinator 层
+3. **Phase J-K 收尾**：最后处理 Feature Component + SharedState 清理
+4. **独立优化**：10.5-10.7 作为独立 Phase，根据实际需求决定是否执行
+
+---
+
+## 12. 参考文档
 
 - `docs/developer_architecture.md` — 架构概览
 - `CODE_QUALITY_REVIEW.md` — 代码质量审查
