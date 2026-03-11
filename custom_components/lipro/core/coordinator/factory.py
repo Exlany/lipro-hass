@@ -211,10 +211,40 @@ def build_runtimes(
         get_device_by_id=state_runtime.get_device_by_id,
     )
 
+    # Create placeholder MQTT runtime (will be replaced by async_setup_mqtt)
+    class _NoopDeviceResolver:
+        def get_device_by_id(self, device_id: str) -> Any:
+            return None
+
+    class _NoopPropertyApplier:
+        async def __call__(self, device: Any, properties: Any, source: Any) -> bool:
+            return False
+
+    class _NoopListenerNotifier:
+        def schedule_listener_update(self) -> None:
+            pass
+
+    class _NoopConnectStateTracker:
+        def record_connect_state(
+            self, device_serial: str, timestamp: float, is_online: bool
+        ) -> None:
+            pass
+
+    class _NoopGroupReconciler:
+        def schedule_group_reconciliation(
+            self, device_name: str, timestamp: float
+        ) -> None:
+            pass
+
     mqtt_runtime = MqttRuntime(
         hass=hass,
         mqtt_client=state.mqtt_client,
         base_scan_interval=update_interval,
+        device_resolver=_NoopDeviceResolver(),
+        property_applier=_NoopPropertyApplier(),
+        listener_notifier=_NoopListenerNotifier(),
+        connect_state_tracker=_NoopConnectStateTracker(),
+        group_reconciler=_NoopGroupReconciler(),
         polling_multiplier=2,
         background_task_manager=state.background_task_manager,
     )

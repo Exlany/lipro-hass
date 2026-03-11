@@ -199,11 +199,44 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
             get_device_by_id=self._get_device_by_id,
         )
 
-        # Initialize MqttRuntime
+        # Initialize MqttRuntime with placeholder dependencies (will be replaced by async_setup_mqtt)
+        # Note: MqttRuntime now requires all dependencies at construction, but we create
+        # a temporary instance here that will be replaced when MQTT is actually set up
+        class _NoopDeviceResolver:
+            def get_device_by_id(self, device_id: str) -> LiproDevice | None:
+                return None
+
+        class _NoopPropertyApplier:
+            async def __call__(
+                self, device: LiproDevice, properties: dict[str, Any], source: str
+            ) -> bool:
+                return False
+
+        class _NoopListenerNotifier:
+            def schedule_listener_update(self) -> None:
+                pass
+
+        class _NoopConnectStateTracker:
+            def record_connect_state(
+                self, device_serial: str, timestamp: float, is_online: bool
+            ) -> None:
+                pass
+
+        class _NoopGroupReconciler:
+            def schedule_group_reconciliation(
+                self, device_name: str, timestamp: float
+            ) -> None:
+                pass
+
         self._mqtt_runtime = MqttRuntime(
             hass=self.hass,
             mqtt_client=self._mqtt_client,
             base_scan_interval=update_interval,
+            device_resolver=_NoopDeviceResolver(),
+            property_applier=_NoopPropertyApplier(),
+            listener_notifier=_NoopListenerNotifier(),
+            connect_state_tracker=_NoopConnectStateTracker(),
+            group_reconciler=_NoopGroupReconciler(),
             polling_multiplier=2,
             background_task_manager=self._background_task_manager,
         )

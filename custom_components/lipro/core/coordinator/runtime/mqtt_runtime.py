@@ -91,18 +91,28 @@ class MqttRuntime:
         hass: HomeAssistant,
         mqtt_client: LiproMqttClient | None,
         base_scan_interval: int,
+        device_resolver: DeviceResolverProtocol,
+        property_applier: PropertyApplierProtocol,
+        listener_notifier: ListenerNotifierProtocol,
+        connect_state_tracker: ConnectStateTrackerProtocol,
+        group_reconciler: GroupReconcilerProtocol,
         polling_multiplier: int = 2,
         dedup_window: float = 0.5,
         reconnect_base_delay: float = 1.0,
         reconnect_max_delay: float = 60.0,
         background_task_manager: Any | None = None,
     ) -> None:
-        """Initialize MQTT runtime with injected dependencies.
+        """Initialize MQTT runtime with all dependencies injected at construction.
 
         Args:
             hass: Home Assistant instance
             mqtt_client: MQTT client instance (can be None initially)
             base_scan_interval: Base polling interval in seconds
+            device_resolver: Device resolution protocol implementation
+            property_applier: Property application protocol implementation
+            listener_notifier: Listener notification protocol implementation
+            connect_state_tracker: Connect state tracking protocol implementation
+            group_reconciler: Group reconciliation protocol implementation
             polling_multiplier: Multiplier for relaxed polling when MQTT connected
             dedup_window: Deduplication time window in seconds
             reconnect_base_delay: Base delay for reconnection backoff
@@ -114,15 +124,15 @@ class MqttRuntime:
         self._base_scan_interval = base_scan_interval
         self._background_task_manager = background_task_manager
 
-        # Polling interval updater will be injected via set_polling_updater
-        self._polling_updater: Any = None
+        # All dependencies injected at construction (no setters needed)
+        self._device_resolver = device_resolver
+        self._property_applier = property_applier
+        self._listener_notifier = listener_notifier
+        self._connect_state_tracker = connect_state_tracker
+        self._group_reconciler = group_reconciler
 
-        # Device resolver, property applier, etc. will be injected
-        self._device_resolver: DeviceResolverProtocol | None = None
-        self._property_applier: PropertyApplierProtocol | None = None
-        self._listener_notifier: ListenerNotifierProtocol | None = None
-        self._connect_state_tracker: ConnectStateTrackerProtocol | None = None
-        self._group_reconciler: GroupReconcilerProtocol | None = None
+        # Polling interval updater (self implements PollingIntervalUpdater)
+        self._polling_updater: Any = None
 
         # Initialize component managers
         self._connection_manager = MqttConnectionManager(
@@ -140,74 +150,36 @@ class MqttRuntime:
             max_delay=reconnect_max_delay,
         )
 
-        # Message handler will be initialized after dependencies are injected
-        self._message_handler: MqttMessageHandler | None = None
+        # Initialize message handler immediately (all dependencies available)
+        self._message_handler = self._create_message_handler()
 
     def set_polling_updater(self, updater: Any) -> None:
-        """Inject polling interval updater dependency."""
+        """Inject polling interval updater dependency (legacy compatibility)."""
         self._polling_updater = updater
 
-    def set_device_resolver(self, resolver: DeviceResolverProtocol) -> None:
-        """Inject device resolver dependency."""
-        self._device_resolver = resolver
+    def _create_message_handler(self) -> MqttMessageHandler:
+        """Create message handler with injected dependencies."""
+        class PropertyApplierAdapter:
+            """Adapter to convert bool-returning applier to dict-returning."""
 
-    def set_property_applier(self, applier: PropertyApplierProtocol) -> None:
-        """Inject property applier dependency."""
-        self._property_applier = applier
+            def __init__(self, applier: PropertyApplierProtocol) -> None:
+                self._applier = applier
 
-    def set_listener_notifier(self, notifier: ListenerNotifierProtocol) -> None:
-        """Inject listener notifier dependency."""
-        self._listener_notifier = notifier
+            async def apply_properties_update(
+                self, device: LiproDevice, properties: dict[str, Any]
+            ) -> dict[str, Any]:
+                """Apply properties and return applied dict."""
+                success = await self._applier(device, properties, "mqtt")
+                return properties if success else {}
 
-    def set_connect_state_tracker(self, tracker: ConnectStateTrackerProtocol) -> None:
-        """Inject connect state tracker dependency."""
-        self._connect_state_tracker = tracker
-
-    def set_group_reconciler(self, reconciler: GroupReconcilerProtocol) -> None:
-        """Inject group reconciler dependency."""
-        self._group_reconciler = reconciler
-
-    def _ensure_message_handler(self) -> MqttMessageHandler:
-        """Lazy initialize message handler after dependencies are injected."""
-        if self._message_handler is None:
-            if (
-                self._device_resolver is None
-                or self._property_applier is None
-                or self._listener_notifier is None
-                or self._connect_state_tracker is None
-                or self._group_reconciler is None
-            ):
-                msg = "Message handler dependencies not fully injected"
-                raise RuntimeError(msg)
-
-            device_resolver = self._device_resolver
-            property_applier = self._property_applier
-            listener_notifier = self._listener_notifier
-            connect_state_tracker = self._connect_state_tracker
-            group_reconciler = self._group_reconciler
-
-            class PropertyApplierAdapter:
-                """Adapter to convert bool-returning applier to dict-returning."""
-
-                def __init__(self, applier: PropertyApplierProtocol) -> None:
-                    self._applier = applier
-
-                async def apply_properties_update(
-                    self, device: LiproDevice, properties: dict[str, Any]
-                ) -> dict[str, Any]:
-                    """Apply properties and return applied dict."""
-                    success = await self._applier(device, properties, "mqtt")
-                    return properties if success else {}
-
-            self._message_handler = MqttMessageHandler(
-                device_resolver=device_resolver,
-                property_applier=PropertyApplierAdapter(property_applier),
-                listener_notifier=listener_notifier,
-                connect_state_tracker=connect_state_tracker,
-                group_reconciler=group_reconciler,
-                logger=_LOGGER,
-            )
-        return self._message_handler
+        return MqttMessageHandler(
+            device_resolver=self._device_resolver,
+            property_applier=PropertyApplierAdapter(self._property_applier),
+            listener_notifier=self._listener_notifier,
+            connect_state_tracker=self._connect_state_tracker,
+            group_reconciler=self._group_reconciler,
+            logger=_LOGGER,
+        )
 
     def update_polling_interval(self, interval: timedelta) -> None:
         """Update polling interval via injected updater."""
@@ -294,8 +266,7 @@ class MqttRuntime:
             return
 
         # Process message
-        handler = self._ensure_message_handler()
-        await handler.handle_message(device_id, properties, current_time=current_time)
+        await self._message_handler.handle_message(device_id, properties, current_time=current_time)
 
         # Periodic cleanup
         self._dedup_manager.cleanup(current_time=current_time)

@@ -163,26 +163,22 @@ async def async_setup_mqtt(
             phone_id=phone_id,
         )
 
-        # Create MQTT runtime
+        # Create MQTT runtime with all dependencies injected at construction
         mqtt_runtime = MqttRuntime(
             hass=hass,
             mqtt_client=mqtt_client,
             base_scan_interval=scan_interval_seconds,
+            device_resolver=state_runtime,
+            property_applier=PropertyApplierWrapper(apply_properties_update),
+            listener_notifier=MqttListenerNotifier(
+                devices_getter=lambda: devices,
+                set_updated_data=set_updated_data,
+            ),
+            connect_state_tracker=NoopConnectStateTracker(),
+            group_reconciler=NoopGroupReconciler(),
             polling_multiplier=2,
             background_task_manager=background_task_manager,
         )
-
-        # Wire up dependencies
-        mqtt_runtime.set_device_resolver(state_runtime)
-        mqtt_runtime.set_property_applier(PropertyApplierWrapper(apply_properties_update))
-        mqtt_runtime.set_listener_notifier(
-            MqttListenerNotifier(
-                devices_getter=lambda: devices,
-                set_updated_data=set_updated_data,
-            )
-        )
-        mqtt_runtime.set_connect_state_tracker(NoopConnectStateTracker())
-        mqtt_runtime.set_group_reconciler(NoopGroupReconciler())
 
         # Start MQTT connection for current devices with 15s timeout
         device_ids = [

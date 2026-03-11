@@ -46,19 +46,11 @@ def mock_device() -> Mock:
 
 @pytest.fixture
 def mqtt_runtime(mock_hass: Mock, mock_mqtt_client: Mock) -> MqttRuntime:
-    """Create MqttRuntime instance."""
-    runtime = MqttRuntime(
-        hass=mock_hass,
-        mqtt_client=mock_mqtt_client,
-        base_scan_interval=30,
-        polling_multiplier=2,
-        dedup_window=0.5,
-        reconnect_base_delay=1.0,
-        reconnect_max_delay=60.0,
-    )
-
+    """Create MqttRuntime instance with all required dependencies."""
     device_resolver = Mock()
     device_resolver.get_device_by_id = Mock(return_value=None)
+
+    property_applier = AsyncMock(return_value=True)
 
     listener_notifier = Mock()
     listener_notifier.schedule_listener_update = Mock()
@@ -69,11 +61,20 @@ def mqtt_runtime(mock_hass: Mock, mock_mqtt_client: Mock) -> MqttRuntime:
     group_reconciler = Mock()
     group_reconciler.schedule_group_reconciliation = Mock()
 
-    runtime.set_device_resolver(device_resolver)
-    runtime.set_property_applier(AsyncMock(return_value=True))
-    runtime.set_listener_notifier(listener_notifier)
-    runtime.set_connect_state_tracker(connect_state_tracker)
-    runtime.set_group_reconciler(group_reconciler)
+    runtime = MqttRuntime(
+        hass=mock_hass,
+        mqtt_client=mock_mqtt_client,
+        base_scan_interval=30,
+        device_resolver=device_resolver,
+        property_applier=property_applier,
+        listener_notifier=listener_notifier,
+        connect_state_tracker=connect_state_tracker,
+        group_reconciler=group_reconciler,
+        polling_multiplier=2,
+        dedup_window=0.5,
+        reconnect_base_delay=1.0,
+        reconnect_max_delay=60.0,
+    )
 
     return runtime
 
