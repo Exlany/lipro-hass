@@ -70,7 +70,7 @@ class CommandRuntime:
     @property
     def last_command_failure(self) -> CommandTrace | None:
         """Get latest command failure."""
-        return self._last_failure
+        return dict(self._last_failure) if self._last_failure else None
 
     def _record_trace(self, trace: CommandTrace) -> None:
         """Record trace if debug enabled."""
