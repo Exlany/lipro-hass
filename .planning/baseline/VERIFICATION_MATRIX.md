@@ -1,54 +1,64 @@
 # Verification Matrix
 
-**Purpose:** 建立 requirement → artifact → test → doc → phase 的统一验证闭环。
-**Status:** Baseline reference
+**Purpose:** 建立 requirement → artifact → test → doc → phase acceptance / handoff 的统一验证闭环。
+**Status:** Formal baseline asset (`BASE-03` phase acceptance truth source)
 **Updated:** 2026-03-12
 
-## Requirement-to-Artifact Mapping
+## Formal Role
 
-| Requirement Group | Primary Artifacts | Verification Surfaces | Phase |
-|-------------------|------------------|------------------------|-------|
-| `BASE-*` | baseline asset pack | document review + seed guards | 1.5 |
-| `PROT-*` | protocol facades, auth/policy/normalizers, fixtures | contract tests + snapshot + integration | 1 / 2 / 2.5 |
-| `CTRL-*` | control surfaces, flows, diagnostics/health/services | flow tests + diagnostics tests + redaction checks | 3 |
-| `DOM-*` | capability registry/snapshot, projections | domain tests + entity/platform tests + snapshots | 4 |
-| `RUN-*` | coordinator/runtime/services | runtime tests + invariants + integration | 5 |
-| `ASSR-*` | guards, telemetry hooks, CI gates | meta tests + CI + coverage + verification review | 1.5 / 6 |
-| `INTG-*` | external contracts, fixtures, authority rules | targeted contract tests + fixture audits | 2.6 |
-| `GOV-*` | reviews docs, cleanup reports, final audit | file matrix review + residual/kill review + summary | 7 |
+- 本文件是 `Phase 1.5` 及其下游 phases 的正式 acceptance truth；phase docs / summaries 只能引用、实例化或扩展，不得平行定义 exit contract。
+- 任一 phase 只有同时交付 requirement evidence、artifact updates、verification proof 与 governance disposition，才可宣称完成。
+- 若新增、降级或删除正式 public surface，改变 dependency truth，或扩展 authority family，必须先回写对应 baseline doc，再更新实现、测试与 summary。
+- 若 `.planning/reviews/FILE_MATRIX.md`、`.planning/reviews/RESIDUAL_LEDGER.md`、`.planning/reviews/KILL_LIST.md` 无变化，phase summary 也必须明确写出“为何无变化”。
 
-## Phase Exit Checklist
+## Requirement-to-Acceptance Mapping
 
-| Phase | Must Update | Must Verify |
-|-------|-------------|-------------|
-| 1 | fixtures, canonical snapshots, immutable constraints, governance closeout | contract matrix + canonical snapshot suite pass |
-| 1.5 | all baseline assets | seed guards and doc alignment |
-| 2 | protocol slice design, residual/kill updates | contract tests + new public surface checks |
-| 2.5 | protocol root docs, residual/kill updates | shared contract + mqtt/protocol integration checks |
-| 2.6 | authority matrix, boundary docs, fixtures | external boundary drift checks |
-| 3 | control surface docs + reviews | flows/diagnostics/services matrix |
-| 4 | capability docs + file matrix | domain/entity/platform verification |
-| 5 | runtime invariant docs + residual cleanup | runtime invariant suite |
-| 6 | assurance docs + CI gates | meta guards + CI proof |
-| 7 | final file matrix + residual + kill list + report | full governance review |
+| Requirement Group | Formal Truth / Primary Artifacts | Verification Evidence | Accepting Phases | Required Handoff |
+|-------------------|----------------------------------|-----------------------|------------------|------------------|
+| `BASE-*` | baseline asset pack (`TARGET_TOPOLOGY` / `DEPENDENCY_MATRIX` / `PUBLIC_SURFACES` / `VERIFICATION_MATRIX` / `AUTHORITY_MATRIX`) | document review + seed guards + phase summaries | 1.5 | baseline asset pack 成为 Phase 2+ 的 citeable input，而非 prose-only 假设 |
+| `PROT-*` | protocol facades、auth/policy/normalizers、fixtures、snapshots | contract tests + snapshot suite + integration checks | 1 / 2 / 2.5 | runtime/control 只消费正式协议 surface，不再回到 mega client / mixin truth |
+| `CTRL-*` | control surfaces、flows、diagnostics / system health / services docs | flow tests + lifecycle checks + diagnostics/service coverage + redaction proof | 3 | control plane 以正式 public surface 对接 runtime，而非 backdoor |
+| `DOM-*` | capability registry / snapshot、projection contracts、domain docs | domain tests + entity/platform tests + snapshots | 4 | 平台/实体只消费 capability truth，不再并行生长第二套规则 |
+| `RUN-*` | coordinator/runtime services、runtime invariants docs | invariant suite + integration checks + orchestration review | 5 | `Coordinator` 继续作为唯一正式 runtime root |
+| `ASSR-*` | seed guards、meta guards、telemetry hooks、CI gates、verification docs | meta tests + observability evidence + CI proof | 1.5 / 6 | 结构未退化成为默认验收门，而非收尾补丁 |
+| `INTG-*` | external boundary docs、fixtures、generated expectations、authority updates | targeted contract tests + fixture audits + drift checks | 2.6 | 外部边界 contract 成为后续 phase 的可引用真源 |
+| `GOV-*` | `FILE_MATRIX`、`RESIDUAL_LEDGER`、`KILL_LIST`、final report | governance review + cleanup proof + audit summaries | 7 | 仓库最终收口具备完整治理证据链 |
 
-## Governance Output Contract
+## Locked Upstream Inputs
 
-每个 phase 完成时至少确认以下产物之一发生了有意义更新：
+| Upstream Phase | Required Inputs Before Acceptance | Why It Matters |
+|----------------|-----------------------------------|----------------|
+| Phase 1 | `.planning/phases/01-protocol-contract-baseline/01-01-SUMMARY.md`、`.planning/phases/01-protocol-contract-baseline/01-02-SUMMARY.md`、`.planning/phases/01-protocol-contract-baseline/01-IMMUTABLE-CONSTRAINTS.md`、`tests/fixtures/api_contracts/**`、`tests/snapshots/test_api_snapshots.py` | `Phase 1.5` 与 `Phase 2+` 必须继承协议边界 truth，而不是重判 contract baseline |
 
-- `.planning/reviews/FILE_MATRIX.md`
-- `.planning/reviews/RESIDUAL_LEDGER.md`
-- `.planning/reviews/KILL_LIST.md`
-- `.planning/baseline/VERIFICATION_MATRIX.md`
+## Phase Exit Contract
 
-若无更新，也必须在 phase 总结中明确写出“为何无变化”。
+| Phase | Must Cite Inputs | Must Produce | Must Prove | Governance / Handoff Contract |
+|-------|------------------|--------------|------------|-------------------------------|
+| 1 | protocol fixtures、contract matrix、canonical snapshots、immutable constraints | `01-01/02-SUMMARY.md`、locked baseline fixtures / snapshots | contract matrix + canonical snapshot suite pass | `Phase 1.5` 只能消费已锁定协议真源，不得重新解释协议 contract |
+| 1.5 | Phase 1 closeout inputs + 五份 baseline docs + `01.5-ARCHITECTURE.md` + `01.5-VALIDATION.md` | `01.5-01/02/03-SUMMARY.md`、seed guards、formal baseline asset wording | baseline doc alignment review + `uv run pytest tests/meta/test_dependency_guards.py tests/meta/test_public_surface_guards.py -q` | `VERIFICATION_MATRIX.md` 成为正式 acceptance truth；Phase 2 / 2.5 / 2.6 / 3 必须引用 baseline asset pack 与 `01.5` summaries |
+| 2 | baseline asset pack、`01.5-02-SUMMARY.md` seed-guard proof、Phase 1 protocol truth | `LiproRestFacade` slice artifacts、protocol docs、必要的 residual / kill updates | contract tests + snapshot checks + public-surface guard checks | 若 REST canonical surface 或 compat shell 语义变化，必须先回写 `PUBLIC_SURFACES.md` 与本文件 |
+| 2.5 | baseline asset pack + Phase 2 protocol outputs | unified protocol root / MQTT integration artifacts、必要的 residual cleanup | shared contract + mqtt/protocol integration checks | control/runtime 之后只能引用统一协议 surface，不再并行引用旧根 |
+| 2.6 | `AUTHORITY_MATRIX.md`、baseline asset pack、Phase 2 / 2.5 protocol outputs | external boundary docs、fixtures、generated expectations、authority updates | targeted boundary contract tests + fixture audits + drift detection | 后续 phases 只能扩展已登记 authority / external-boundary truth，不得自建平行文档 |
+| 3 | baseline asset pack + Phase 2 / 2.5 formal protocol surfaces | control-plane docs、formal control surfaces、support tests | config-flow / reauth / diagnostics / services tests + redaction proof | control plane 访问 runtime 必须通过正式 public surface，并把 support surface 留给 Phase 4 / 5 引用 |
+| 4 | baseline asset pack + Phase 3 control surface contract | capability registry / snapshot artifacts、domain slice docs、必要的 file-matrix updates | domain/entity/platform verification + snapshots | 平台/实体只能消费 capability projection；任何影子规则必须登记 residual 或 kill |
+| 5 | baseline asset pack + Phase 2-4 formal surfaces | runtime invariants docs、runtime orchestration artifacts、必要的 residual cleanup | runtime invariant suite + integration proof | `Coordinator` 仍为唯一 runtime root；旁路刷新/写状态/重复订阅必须被证明受控 |
+| 6 | 本文件、seed guards、prior formal surfaces、Phase 5 runtime proof | assurance taxonomy、hardened guards、CI gates、coverage / quality proof | meta guards + CI proof + test-structure alignment review | “结构未退化” 成为默认质量门；后续变更必须先经过 assurance contract |
+| 7 | all prior summaries + governance docs + baseline asset pack | final `FILE_MATRIX`、`RESIDUAL_LEDGER`、`KILL_LIST`、closeout report | full governance review + cleanup / deletion proof | 形成仓库级最终 acceptance record |
 
-## Phase 01 Closeout Status
+## Phase 01.5 Exit Contract
 
-- `01-01` 锁定了三条首批协议边界的 targeted contract fixtures 与 tests。
-- `01-02` 为同一 baseline 增补 canonical snapshots 与 `01-IMMUTABLE-CONSTRAINTS.md`，使 Phase 1 exit contract 不再只依赖测试断言。
-- 本阶段的最低执行证据为 `uv run pytest tests/core/api/test_protocol_contract_matrix.py tests/snapshots/test_api_snapshots.py -q`。
-- Phase 1.5 可以直接消费这些 baseline artifacts；Phase 2 必须把它们当作 demixin / façade 重构前的输入边界。
+- **Required artifacts:** `.planning/baseline/TARGET_TOPOLOGY.md`、`.planning/baseline/DEPENDENCY_MATRIX.md`、`.planning/baseline/PUBLIC_SURFACES.md`、`.planning/baseline/VERIFICATION_MATRIX.md`、`.planning/baseline/AUTHORITY_MATRIX.md`、`tests/meta/test_dependency_guards.py`、`tests/meta/test_public_surface_guards.py`、`01.5-01/02/03-SUMMARY.md`。
+- **Required proof:** Phase 1 upstream closeout artifacts 已存在；baseline docs wording 无双口径；seed guards 可作为最小 runnable proof；summary 记录 governance docs 的变更或无变更原因。
+- **Unblock effect:** `Phase 2`、`2.5`、`2.6`、`3` 从此必须把 baseline asset pack 视为正式 handoff contract，而不是只引用 phase prose。
+
+## Governance Update Triggers
+
+| Document | Update When | No-Update Still Requires |
+|----------|-------------|--------------------------|
+| `.planning/baseline/VERIFICATION_MATRIX.md` | phase acceptance proof、handoff contract、verification expectations 发生变化 | summary 指明本文件仍是当前 acceptance truth |
+| `.planning/reviews/FILE_MATRIX.md` | 文件归属、phase owner、cluster scope 或 target fate 发生变化 | summary 明确“无 file-governance delta” |
+| `.planning/reviews/RESIDUAL_LEDGER.md` | 新 residual family、exit condition 变化、或 residual 横跨额外 phase | summary 明确“无 residual delta” |
+| `.planning/reviews/KILL_LIST.md` | 新删除候选、删除门槛变化、或某删除项被正式关闭 | summary 明确“无 deletion delta” |
 
 ---
-*Used by: phase planning, verification, and final audit closure*
+*Used by: phase exit review, downstream handoff, and final audit arbitration*
