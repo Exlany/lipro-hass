@@ -16,6 +16,12 @@ from custom_components.lipro.core.api.diagnostics_api_service import (
 from custom_components.lipro.core.api.mqtt_api_service import _extract_mqtt_config_payload
 
 FIXTURE_DIR = Path(__file__).resolve().parents[2] / "fixtures" / "api_contracts"
+EXPECTED_MQTT_CONFIG = {
+    "accessKey": "ak-direct",
+    "secretKey": "sk-direct",
+    "endpoint": "tcp://mqtt.example.com:1883",
+    "clientId": "cid-direct",
+}
 
 
 def _load_fixture(name: str) -> object:
@@ -31,30 +37,18 @@ def _is_success_code(code: object) -> bool:
     return code in {0, "0", "0000"}
 
 
-def test_get_mqtt_config_direct_fixture_matches_canonical_contract() -> None:
-    payload = _load_fixture("get_mqtt_config.direct.json")
+@pytest.mark.parametrize(
+    "fixture_name",
+    ["get_mqtt_config.direct.json", "get_mqtt_config.wrapped.json"],
+)
+def test_get_mqtt_config_fixtures_normalize_to_same_canonical_contract(
+    fixture_name: str,
+) -> None:
+    payload = _load_fixture(fixture_name)
 
     result = _extract_mqtt_config_payload(payload, is_success_code=_is_success_code)
 
-    assert result == {
-        "accessKey": "ak-direct",
-        "secretKey": "sk-direct",
-        "endpoint": "tcp://mqtt.example.com:1883",
-        "clientId": "cid-direct",
-    }
-
-
-def test_get_mqtt_config_wrapped_fixture_matches_canonical_contract() -> None:
-    payload = _load_fixture("get_mqtt_config.wrapped.json")
-
-    result = _extract_mqtt_config_payload(payload, is_success_code=_is_success_code)
-
-    assert result == {
-        "accessKey": "ak-wrapped",
-        "secretKey": "sk-wrapped",
-        "endpoint": "tcp://mqtt.example.com:1883",
-        "clientId": "cid-wrapped",
-    }
+    assert result == EXPECTED_MQTT_CONFIG
 
 
 @pytest.mark.asyncio
