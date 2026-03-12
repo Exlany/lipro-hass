@@ -56,6 +56,18 @@ class TuningRuntime:
             mqtt_stale_window=initial_mqtt_stale_window,
         )
 
+    # User action tracking (Phase H4: learning curves)
+    def record_user_action(self, device_serial: str, command: str) -> None:
+        """Record a user command action for learning curve analysis.
+
+        Called by CoordinatorCommandService after successful command dispatch.
+        Used to track user adjustment patterns (e.g. color temperature preferences).
+        """
+        self._metrics.record_user_action(
+            device_serial=device_serial,
+            command=command,
+        )
+
     # Metrics collection
     def record_batch_metric(
         self,

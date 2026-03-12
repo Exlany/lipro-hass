@@ -114,6 +114,10 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
             force_connect_status_refresh_setter=self._set_force_connect_status_refresh,
         )
 
+        # Inject polling_updater into MqttRuntime (Phase H4)
+        # MqttRuntime can adjust coordinator polling interval via update_interval
+        self._runtimes.mqtt.set_polling_updater(self)
+
         # Initialize service layer
         self._init_service_layer()
 
@@ -338,6 +342,57 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
 
         return True
 
+    async def _async_run_status_polling(self) -> None:
+        """Run adaptive REST status polling via StatusRuntime (Phase H4).
+
+        This supplements MQTT push with periodic REST polling to:
+        - Catch state drift when MQTT messages are missed
+        - Query devices that lack MQTT support
+        - Monitor outlet power consumption on a scheduled cycle
+
+        The StatusRuntime handles candidate filtering, batching, and parallel
+        execution. TuningRuntime receives batch metrics for adaptive tuning.
+        """
+        status_runtime = self._runtimes.status
+        mqtt_connected = self._is_mqtt_connected()
+        device_ids = list(self._state.devices.keys())
+
+        # Filter to devices needing REST query (respects MQTT freshness)
+        candidates = status_runtime.filter_query_candidates(
+            self._state.devices,
+            device_ids,
+            mqtt_connected=mqtt_connected,
+        )
+
+        if not candidates:
+            return
+
+        # Split into optimally-sized batches
+        batches = status_runtime.compute_query_batches(candidates)
+
+        if not batches:
+            return
+
+        # Execute queries in parallel
+        results = await status_runtime.execute_parallel_queries(batches)
+
+        # Feed metrics to TuningRuntime for adaptive batch sizing
+        tuning = self._runtimes.tuning
+        for metrics in results:
+            device_count = metrics.get("device_count", 0)
+            duration = metrics.get("duration", 0.0)
+            if device_count > 0 and duration > 0:
+                tuning.record_batch_metric(
+                    batch_size=device_count,  # Use device_count as batch_size
+                    duration=duration,
+                    device_count=device_count,
+                )
+
+        # Apply adaptive batch size from TuningRuntime
+        new_batch_size = tuning.compute_adaptive_batch_size()
+        if new_batch_size is not None:
+            status_runtime.update_batch_size(new_batch_size)
+
     async def _async_update_data(self) -> dict[str, LiproDevice]:
         """Fetch data from API.
 
@@ -368,6 +423,11 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
                 if self._state.mqtt_client is None and self._state.devices:
                     async with asyncio.timeout(5):
                         await self.async_setup_mqtt()
+
+                # Run adaptive status polling (Phase H4)
+                if self._state.devices:
+                    async with asyncio.timeout(10):
+                        await self._async_run_status_polling()
 
             return self._state.devices
 

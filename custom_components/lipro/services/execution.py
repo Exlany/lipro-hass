@@ -85,7 +85,7 @@ async def async_execute_coordinator_call(
         raise_service_error("auth_expired", err=err)
     except LiproAuthError as err:
         safe_error = safe_error_placeholder(err)
-        await _async_trigger_reauth(coordinator, f"auth_error: {safe_error}")
+        await _async_trigger_reauth(coordinator, "auth_error")
         raise_service_error(
             "auth_error",
             err=err,

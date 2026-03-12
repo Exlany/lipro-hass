@@ -44,7 +44,7 @@ async def test_system_health_info_aggregates_entries(hass) -> None:
         runtime_data=SimpleNamespace(
             devices={"d1": object(), "d2": object()},
             last_update_success=True,
-            mqtt_connected=True,
+            mqtt_service=SimpleNamespace(connected=True),
         ),
     )
     _add_runtime_entry(
@@ -53,7 +53,7 @@ async def test_system_health_info_aggregates_entries(hass) -> None:
         runtime_data=SimpleNamespace(
             devices={"d3": object()},
             last_update_success=False,
-            mqtt_connected=False,
+            mqtt_service=SimpleNamespace(connected=False),
         ),
     )
 
@@ -112,7 +112,7 @@ async def test_system_health_info_skips_non_sized_devices(hass) -> None:
         runtime_data=SimpleNamespace(
             devices=123,
             last_update_success=True,
-            mqtt_connected=True,
+            mqtt_service=SimpleNamespace(connected=True),
         ),
     )
     _add_runtime_entry(
@@ -121,7 +121,7 @@ async def test_system_health_info_skips_non_sized_devices(hass) -> None:
         runtime_data=SimpleNamespace(
             devices={"d1": object(), "d2": object()},
             last_update_success=False,
-            mqtt_connected=False,
+            mqtt_service=SimpleNamespace(connected=False),
         ),
     )
 
@@ -141,7 +141,7 @@ async def test_system_health_info_skips_none_devices_field(hass) -> None:
         runtime_data=SimpleNamespace(
             devices=None,
             last_update_success=True,
-            mqtt_connected=True,
+            mqtt_service=SimpleNamespace(connected=True),
         ),
     )
     _add_runtime_entry(
@@ -150,7 +150,7 @@ async def test_system_health_info_skips_none_devices_field(hass) -> None:
         runtime_data=SimpleNamespace(
             devices={"d1": object()},
             last_update_success=False,
-            mqtt_connected=False,
+            mqtt_service=SimpleNamespace(connected=False),
         ),
     )
 
@@ -172,7 +172,7 @@ async def test_system_health_info_omits_mqtt_count_when_mqtt_connected_is_non_bo
         runtime_data=SimpleNamespace(
             devices={"d1": object()},
             last_update_success=True,
-            mqtt_connected="true",
+            mqtt_service=SimpleNamespace(connected="true"),
         ),
     )
 

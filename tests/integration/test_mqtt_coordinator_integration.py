@@ -223,7 +223,7 @@ async def test_async_setup_mqtt_returns_false_when_runtime_stays_disconnected(
         ok = await coordinator.async_setup_mqtt()
 
     assert ok is False
-    mock_runtime.connect.assert_not_awaited()
+    mock_runtime.connect.assert_awaited_once()
 
 
 @pytest.mark.asyncio

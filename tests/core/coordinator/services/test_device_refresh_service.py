@@ -26,9 +26,9 @@ def test_device_refresh_service_exposes_lookup_and_devices() -> None:
 @pytest.mark.asyncio
 async def test_device_refresh_service_delegates_refresh() -> None:
     coordinator = MagicMock()
-    coordinator.device_runtime.refresh_devices = AsyncMock()
+    coordinator.async_request_refresh = AsyncMock()
     service = CoordinatorDeviceRefreshService(coordinator)
 
     await service.async_refresh_devices()
 
-    coordinator.device_runtime.refresh_devices.assert_awaited_once_with(force=True)
+    coordinator.async_request_refresh.assert_awaited_once()

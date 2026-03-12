@@ -1269,29 +1269,37 @@ class TestInitRuntimeBehavior:
         """refresh_devices should refresh all loaded entry coordinators by default."""
         first = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
         first.add_to_hass(hass)
-        first.runtime_data = MagicMock(async_refresh_devices=AsyncMock())
+        first_service = MagicMock()
+        first_service.async_refresh_devices = AsyncMock()
+        first.runtime_data = MagicMock(device_refresh_service=first_service)
 
         second = MockConfigEntry(domain=DOMAIN, data={"phone": "13900000000"})
         second.add_to_hass(hass)
-        second.runtime_data = MagicMock(async_refresh_devices=AsyncMock())
+        second_service = MagicMock()
+        second_service.async_refresh_devices = AsyncMock()
+        second.runtime_data = MagicMock(device_refresh_service=second_service)
 
         result = await _async_handle_refresh_devices(hass, service_call(hass, {}))
 
         assert result["success"] is True
         assert result["refreshed_entries"] == 2
         assert "entry_ids" not in result
-        first.runtime_data.async_refresh_devices.assert_awaited_once()
-        second.runtime_data.async_refresh_devices.assert_awaited_once()
+        first_service.async_refresh_devices.assert_awaited_once()
+        second_service.async_refresh_devices.assert_awaited_once()
 
     async def test_refresh_devices_handler_filters_by_entry_id(self, hass) -> None:
         """refresh_devices should refresh only the selected config entry."""
         first = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
         first.add_to_hass(hass)
-        first.runtime_data = MagicMock(async_refresh_devices=AsyncMock())
+        first_service = MagicMock()
+        first_service.async_refresh_devices = AsyncMock()
+        first.runtime_data = MagicMock(device_refresh_service=first_service)
 
         second = MockConfigEntry(domain=DOMAIN, data={"phone": "13900000000"})
         second.add_to_hass(hass)
-        second.runtime_data = MagicMock(async_refresh_devices=AsyncMock())
+        second_service = MagicMock()
+        second_service.async_refresh_devices = AsyncMock()
+        second.runtime_data = MagicMock(device_refresh_service=second_service)
 
         result = await _async_handle_refresh_devices(
             hass,
@@ -1301,8 +1309,8 @@ class TestInitRuntimeBehavior:
         assert result["success"] is True
         assert result["refreshed_entries"] == 1
         assert result["requested_entry_id"] == second.entry_id
-        first.runtime_data.async_refresh_devices.assert_not_awaited()
-        second.runtime_data.async_refresh_devices.assert_awaited_once()
+        first_service.async_refresh_devices.assert_not_awaited()
+        second_service.async_refresh_devices.assert_awaited_once()
 
     async def test_refresh_devices_handler_unknown_entry_raises(self, hass) -> None:
         """refresh_devices should raise translated validation error for bad entry_id."""
@@ -2087,7 +2095,9 @@ class TestInitRuntimeBehavior:
         device = self._create_device()
         coordinator = MagicMock()
         coordinator.get_device.return_value = device
-        coordinator.async_send_command = AsyncMock(return_value=True)
+        command_service = MagicMock()
+        command_service.async_send_command = AsyncMock(return_value=True)
+        coordinator.command_service = command_service
 
         entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
         entry.add_to_hass(hass)
@@ -2105,7 +2115,7 @@ class TestInitRuntimeBehavior:
             ),
         )
         assert result == {"success": True, "serial": device.serial}
-        coordinator.async_send_command.assert_awaited_once_with(
+        command_service.async_send_command.assert_awaited_once_with(
             device,
             "POWER_ON",
             [{"key": "powerState", "value": "1"}],
@@ -2121,7 +2131,9 @@ class TestInitRuntimeBehavior:
         coordinator = MagicMock()
         coordinator.get_device.return_value = None
         coordinator.get_device_by_id.return_value = group_device
-        coordinator.async_send_command = AsyncMock(return_value=True)
+        command_service = MagicMock()
+        command_service.async_send_command = AsyncMock(return_value=True)
+        coordinator.command_service = command_service
 
         entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
         entry.add_to_hass(hass)
@@ -2146,7 +2158,7 @@ class TestInitRuntimeBehavior:
         }
         coordinator.get_device.assert_called_once_with(requested_id)
         coordinator.get_device_by_id.assert_called_once_with(requested_id)
-        coordinator.async_send_command.assert_awaited_once_with(
+        command_service.async_send_command.assert_awaited_once_with(
             group_device,
             "POWER_ON",
             None,
@@ -2158,8 +2170,10 @@ class TestInitRuntimeBehavior:
         device = self._create_device()
         coordinator = MagicMock()
         coordinator.get_device.return_value = device
-        coordinator.async_send_command = AsyncMock(return_value=False)
-        coordinator.last_command_failure = None
+        command_service = MagicMock()
+        command_service.async_send_command = AsyncMock(return_value=False)
+        coordinator.command_service = command_service
+        command_service.last_failure = None
 
         entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
         entry.add_to_hass(hass)
@@ -2181,8 +2195,10 @@ class TestInitRuntimeBehavior:
         device = self._create_device()
         coordinator = MagicMock()
         coordinator.get_device.return_value = device
-        coordinator.async_send_command = AsyncMock(return_value=False)
-        coordinator.last_command_failure = {
+        command_service = MagicMock()
+        command_service.async_send_command = AsyncMock(return_value=False)
+        coordinator.command_service = command_service
+        command_service.last_failure = {
             "reason": "push_failed",
             "code": "push_failed",
         }
@@ -2208,8 +2224,10 @@ class TestInitRuntimeBehavior:
         device = self._create_device()
         coordinator = MagicMock()
         coordinator.get_device.return_value = device
-        coordinator.async_send_command = AsyncMock(return_value=False)
-        coordinator.last_command_failure = {"reason": "api_error", "code": "140004"}
+        command_service = MagicMock()
+        command_service.async_send_command = AsyncMock(return_value=False)
+        coordinator.command_service = command_service
+        command_service.last_failure = {"reason": "api_error", "code": "140004"}
 
         entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
         entry.add_to_hass(hass)
@@ -2230,8 +2248,10 @@ class TestInitRuntimeBehavior:
         device = self._create_device()
         coordinator = MagicMock()
         coordinator.get_device.return_value = device
-        coordinator.async_send_command = AsyncMock(return_value=False)
-        coordinator.last_command_failure = {"reason": "api_error", "code": "250001"}
+        command_service = MagicMock()
+        command_service.async_send_command = AsyncMock(return_value=False)
+        coordinator.command_service = command_service
+        command_service.last_failure = {"reason": "api_error", "code": "250001"}
 
         entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
         entry.add_to_hass(hass)
@@ -2252,7 +2272,9 @@ class TestInitRuntimeBehavior:
         device = self._create_device()
         coordinator = MagicMock()
         coordinator.get_device.return_value = device
-        coordinator.async_send_command = AsyncMock(side_effect=LiproApiError("boom"))
+        command_service = MagicMock()
+        command_service.async_send_command = AsyncMock(side_effect=LiproApiError("boom"))
+        coordinator.command_service = command_service
 
         entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
         entry.add_to_hass(hass)
@@ -2274,9 +2296,11 @@ class TestInitRuntimeBehavior:
         device = self._create_device()
         coordinator = MagicMock()
         coordinator.get_device.return_value = device
-        coordinator.async_send_command = AsyncMock(
+        command_service = MagicMock()
+        command_service.async_send_command = AsyncMock(
             side_effect=LiproApiError("offline", "140003")
         )
+        coordinator.command_service = command_service
 
         entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
         entry.add_to_hass(hass)
@@ -2299,9 +2323,11 @@ class TestInitRuntimeBehavior:
         device = self._create_device()
         coordinator = MagicMock()
         coordinator.get_device.return_value = device
-        coordinator.async_send_command = AsyncMock(
+        command_service = MagicMock()
+        command_service.async_send_command = AsyncMock(
             side_effect=LiproApiError("busy", "250001")
         )
+        coordinator.command_service = command_service
 
         entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
         entry.add_to_hass(hass)
@@ -2324,9 +2350,11 @@ class TestInitRuntimeBehavior:
         device = self._create_device()
         coordinator = MagicMock()
         coordinator.get_device.return_value = device
-        coordinator.async_send_command = AsyncMock(
+        command_service = MagicMock()
+        command_service.async_send_command = AsyncMock(
             side_effect=LiproApiError("not found", "140013")
         )
+        coordinator.command_service = command_service
 
         entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
         entry.add_to_hass(hass)

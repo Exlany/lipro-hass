@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections import deque
 import logging
+from time import monotonic
 from typing import TypedDict
 
 _LOGGER = logging.getLogger(__name__)
@@ -16,6 +17,14 @@ class BatchMetric(TypedDict):
     duration: float
     device_count: int
     fallback_depth: int
+
+
+class UserActionMetric(TypedDict):
+    """One recorded user command action."""
+
+    device_serial: str
+    command: str
+    timestamp: float
 
 
 class TuningMetrics:
@@ -37,6 +46,7 @@ class TuningMetrics:
         self._sample_size = sample_size
         self._batch_metrics: deque[BatchMetric] = deque(maxlen=metrics_window)
         self._connect_status_skip_history: deque[bool] = deque(maxlen=20)
+        self._user_actions: deque[UserActionMetric] = deque(maxlen=metrics_window)
 
     def record_batch_metric(
         self,
@@ -54,6 +64,25 @@ class TuningMetrics:
             "fallback_depth": int(fallback_depth),
         }
         self._batch_metrics.append(metric)
+
+    def record_user_action(
+        self,
+        *,
+        device_serial: str,
+        command: str,
+    ) -> None:
+        """Record a user command action for learning curve analysis."""
+        self._user_actions.append(
+            UserActionMetric(
+                device_serial=device_serial,
+                command=command,
+                timestamp=monotonic(),
+            )
+        )
+
+    def get_user_action_count(self) -> int:
+        """Get total number of recorded user actions."""
+        return len(self._user_actions)
 
     def record_connect_status_skip(self, skipped: bool) -> None:
         """Record whether a connect status query was skipped."""
@@ -102,6 +131,7 @@ class TuningMetrics:
             "avg_latency": avg_latency,
             "avg_batch_size": avg_batch_size,
             "skip_ratio": skip_ratio,
+            "user_action_count": len(self._user_actions),
             "metrics_window": self._metrics_window,
             "sample_size": self._sample_size,
         }
@@ -110,6 +140,7 @@ class TuningMetrics:
         """Clear all collected metrics."""
         self._batch_metrics.clear()
         self._connect_status_skip_history.clear()
+        self._user_actions.clear()
 
 
 __all__ = ["TuningMetrics"]
