@@ -1,349 +1,297 @@
-# 🜏 Lipro-HASS 全面代码审计报告
+# 🜏 Lipro-HASS 全面代码审计报告（复核整合版）
 
-> **审计日期**: 2026-03-12
-> **审计范围**: lipro-hass 全部生产代码 + 测试代码（~255 个文件）
-> **审计方法**: 7 个并行子代理，每个文件完整阅读
-> **架构基准**: RuntimeContext + Orchestrator + Runtime 组件 + Service 层（Phase C 重构后）
-
----
-
-## 📊 执行摘要
-
-### 总体评分：B+ (85/100)
-
-**审计统计**:
-- **P0（致命 - 会崩溃）**: 10 个 🔴
-- **P1（架构问题）**: 34 个 🟠
-- **P2（代码异味）**: 34 个 🟡
-- **P3（细节问题）**: 17 个 ⚪
-
-**关键发现**:
-1. ✅ **P0 接口不匹配已修复** - 之前报告的 `send_command`/`refresh_devices`/`_trigger_reauth` 问题已解决
-2. 🔴 **MQTT 资源泄漏** - Coordinator shutdown 时未断开 MQTT 连接
-3. 🔴 **Device 增量刷新键不匹配** - 使用 `device_id` 查询但字典用 `serial` 作键
-4. 🟠 **StatusRuntime/TuningRuntime 未消费** - 已装配但从未在生产代码中调用
-5. 🟠 **影子模块** - 6 个模块仅被测试引用，无生产路径
-6. 🟠 **字段未填充** - `group_member_ids`/`gateway_device_id`/`power_info` 被读取但从未写入
+> **整合日期**：2026-03-12
+> **审计范围**：`lipro-hass` 下全部 Python 文件（生产代码 + 测试代码）
+> **实际覆盖**：385 个 Python 文件（生产 228 / 测试 157）
+> **审计方式**：主代理仲裁 + 7 路并行子代理全量审阅 + 定向测试验证
+> **文档状态**：本报告已吸收原始审计与复核结果，当前为 **唯一权威审计报告**
 
 ---
 
-## 🗂️ 分层审计结果
+## 0. TL;DR
 
-### 1️⃣ Core 架构层（18 文件）
+### 总结论
 
-**评分**: B (82/100)
+- 代码库**不是失控状态**，而是一个**架构方向正确、但生命周期与装配链路尚未完全收口**的仓库。
+- 原审计的很多问题**方向是对的**，但存在三类偏差：
+  1. **覆盖统计失真**：原文写约 `255` 个 Python 文件，实际本次覆盖为 `385` 个。
+  2. **结论已过期**：如 `StatusRuntime/TuningRuntime 未消费`、`MQTT 订阅无 fallback`。
+  3. **严重度偏激进**：部分问题真实存在，但更像协议漂移、未接线或维护性问题，不该直接列入 `P0`。
 
-#### P0 问题
+### 当前最值得优先处理的 7 个问题
 
-**P0-1: MQTT 资源泄漏**
-- **文件**: `coordinator.py`
-- **问题**: 未重写 `async_shutdown()`，MQTT 连接在 unload 时未关闭
-- **影响**: 连接泄漏、后台任务持续运行、内存泄漏
-- **修复**:
-```python
-async def async_shutdown(self) -> None:
-    if self._runtimes.mqtt:
-        await self._runtimes.mqtt.disconnect()
-    if self._state.mqtt_client:
-        await self._state.mqtt_client.stop()
-    await super().async_shutdown()
-```
-
-**P0-2: MQTT 消息处理任务未追踪**
-- **文件**: `mqtt_lifecycle.py:159-165`
-- **问题**: `asyncio.create_task()` 创建的任务异常会被静默吞噬
-- **修复**: 使用 `background_task_manager.create()`
-
-**P0-3: Entity Protocol 类型不匹配**
-- **文件**: `entity_protocol.py:14`
-- **问题**: `entity_id` 声明为 `str` 但实际可能为 `None`
-- **修复**: 改为 `str | None`
-
-#### P1 问题（6 个）
-
-1. **StatusRuntime/TuningRuntime 未消费** - 装配但从未调用，浪费启动成本
-2. **MQTT 订阅无 fallback** - `mqtt_service.py` 仅订阅 group 设备
-3. **Device lock 竞态** - 未知设备每次返回新锁，无互斥
-4. **Protocol 签名不匹配** - `MqttRuntimeProtocol` 与实现不一致
-5. **重复 Protocol 定义** - `DeviceResolverProtocol` 定义两次
-6. **浪费的 MqttRuntime 创建** - Orchestrator 创建后立即被替换
-
-#### P2 问题（8 个）
-- 冗余字段赋值、缺失返回类型、复杂内部函数、不一致的 no-op 回调模式等
+1. MQTT 卸载/重载时未完整释放连接与后台任务
+2. MQTT bridge 任务未接入统一任务管理
+3. 增量刷新使用错误索引键，导致状态回写命中率异常
+4. 真实 MQTT runtime 替换后丢失 polling updater 注入
+5. MQTT runtime 的连接态与真实传输层握手状态脱节
+6. 全量快照只追加 identity alias，不做原子重建与陈旧别名清理
+7. 测试通过率高，但对 OTA/MQTT 并发与真实 wiring 的护栏不足
 
 ---
 
-### 2️⃣ Runtime 组件层（43 文件）
+## 1. 审计范围与方法
 
-**评分**: C+ (78/100)
+### 1.1 文件覆盖
 
-#### P0 问题
+| 范围 | 文件数 |
+|---|---:|
+| `custom_components/` + `scripts/` | 228 |
+| `tests/` | 157 |
+| **合计** | **385** |
 
-**P0-4: Device 增量刷新键不匹配**
-- **文件**: `runtime/device/incremental.py:103-110`
-- **问题**: `devices.get(device_id)` 使用 API 返回的 `id`，但字典用 `serial` 作键
-- **影响**: 100% 查询失败，增量刷新完全失效
-- **修复**: 使用 `device_identity_index.get(device_id)`
+### 1.2 协同分工
 
-**P0-5: MqttRuntime.handle_message 签名不匹配**
-- **文件**: `runtime/mqtt_runtime.py:249`
-- **问题**: Protocol 期望 `(topic: str, payload: bytes)`，实现是 `(device_id: str, properties: dict)`
-- **修复**: 更新 Protocol 或添加适配层
+| 分片 | 覆盖范围 | 文件数 |
+|---|---|---:|
+| A1 | `const` + `core/api` + `core/auth` | 43 |
+| A2 | `core/coordinator` | 61 |
+| A3 | 其余 `core` 域模块 | 70 |
+| A4 | 顶层集成 / services / entities / scripts | 54 |
+| A5 | API / Coordinator / type-checking 测试 | 32 |
+| A6 | core 其余测试 | 69 |
+| A7 | 其余测试 | 56 |
+| **总计** |  | **385** |
 
-**P0-6: CommandRuntime Protocol 方法抛出 NotImplementedError**
-- **文件**: `runtime/command_runtime.py:80-95`
-- **问题**: `send_command()` 直接抛异常而非委托
-- **修复**: 实现委托逻辑
+### 1.3 主代理验证
 
-#### P1 问题（12 个）
-
-1. **StatusRuntime 装配但未消费** - 从未在 `_async_update_data()` 中调用
-2. **TuningRuntime 装配但未消费** - 自适应调优功能未启用
-3. **Connect-status 刷新标志只写不读** - CommandRuntime 设置但从未检查
-4. **MQTT 轮询更新器从未设置** - `set_polling_updater()` 从未调用
-5. **MQTT 断连通知从未调用** - `check_disconnect_notification()` 无调用点
-6. **6 个影子模块** - `group_lookup_runtime.py`, `outlet_power_runtime.py`, `product_config_runtime.py`, `room_sync_runtime.py`, `state_batch_runtime.py`, `status_strategy.py`
-7. **StateRuntime.apply_properties_update 总是返回 True** - 未检查实际变更
-8. **DeviceRuntime 增量刷新忽略返回值** - 返回数据未使用
-9. **CommandRuntime trace 仅在 debug 模式记录** - 但 debug 模式永远为 False
-10. **MqttRuntime background_task_manager 可选但总是提供** - fallback 代码死代码
-11. **StatusScheduler power 查询间隔未使用** - StatusRuntime 未消费
-12. **StateIndexManager.rebuild_device_index 从未调用** - 索引重建功能未使用
-
-#### P2 问题（8 个）
-- 防御性类型检查开销、分页循环缺断路器、异常处理过宽、过滤效率低等
+- `uv run pytest lipro-hass/tests/core/mqtt/test_mqtt_setup.py ...` → `13 passed`
+- `uv run pytest lipro-hass/tests/core/test_coordinator.py::TestCoordinatorRuntimeComponents::test_status_runtime_updates_device_through_coordinator_callbacks` → `1 passed`
 
 ---
 
-### 3️⃣ API 层（33 文件）
+## 2. 总体评估
 
-**评分**: A- (88/100)
+### 2.1 健康度
 
-#### P1 问题（6 个）
+- **总体健康度**：`B / B+`
+- **架构成熟度**：主架构清晰，服务边界与运行时拆分方向正确。
+- **主要短板**：
+  - MQTT 生命周期收口不完整
+  - 设备索引与增量刷新链路一致性不足
+  - 部分 runtime/protocol 文档与实际实现漂移
+  - 测试“有效护栏率”明显低于通过率
 
-1. **硬编码签名密钥** - `SMART_HOME_SIGN_KEY`, `IOT_SIGN_KEY`, `MQTT_AES_KEY` 在源码中
-2. **MD5 用于密码哈希和签名** - 已知弱算法，但受限于供应商 API
-3. **递归 429 重试** - 可能栈溢出（当前限制为 2 次安全）
-4. **AuthApiService 紧耦合** - 直接访问 client 私有属性（SLF001 抑制）
-5. **请求数据字典可覆盖框架键** - `**data` 可能覆盖 `sign`, `optFrom` 等
-6. **重复用户 ID 解析逻辑** - `login()` 和 `refresh_access_token()` 中重复
+### 2.2 本次重排后的风险中心
 
-#### P2 问题（8 个）
-- `query_iot_devices` 与 `query_outlet_devices` 完全相同、深层 mixin 继承链、缺失类型注解等
-
-**优点**:
-- 优秀的错误处理（多层异常层次）
-- 强大的日志安全（30+ 敏感字段掩码）
-- 良好的并发设计（令牌刷新双重检查锁）
-- 完善的重试策略（429 指数退避、设备忙重试、批量查询二分回退）
-
----
-
-### 4️⃣ Device 模型 + MQTT 基础设施（35 文件）
-
-**评分**: B (83/100)
-
-#### P1 问题（7 个）
-
-1. **Device factory 不完整的 extra_data 填充** - 仅写入 `is_ir_remote`，`gateway_device_id`/`group_member_ids`/`power_info` 在运行时填充
-2. **group_status.py 死代码** - 零生产引用
-3. **MQTT `_connected` 状态漂移风险** - 同步回调写入未加锁
-4. **MQTT 回调类型不匹配** - 声明为同步但实际处理器是异步
-5. **身份字段混淆** - `serial` vs `iot_device_id` vs `device_id` 使用不一致
-6. **AES-ECB 模式用于凭证解密** - 安全最佳实践违规（但可能是 API 契约）
-7. **SHA-1 用于 HMAC 签名** - 已弃用算法（但可能是 MQTT broker 要求）
-
-#### P2 问题（12 个）
-- 重复的强制转换函数、DeviceState 属性字典共享引用、缓存失效不完整等
+| 优先级 | 主题 | 说明 |
+|---|---|---|
+| 高 | 生命周期 / 并发 | MQTT disconnect、task 管理、连接态、订阅同步 |
+| 高 | 数据一致性 | 增量刷新索引键错配、identity index 重建缺口 |
+| 中 | 边界收口 | direct client 访问、developer-only 服务暴露 |
+| 中 | 数据模型闭环 | `group_member_ids` / `gateway_device_id` 生产写入缺失 |
+| 中 | 文档/协议漂移 | runtime protocols 与真实实现不一致 |
+| 中 | 测试护栏不足 | OTA/MQTT 并发路径、真实装配链路、type-checking 伪护栏 |
 
 ---
 
-### 5️⃣ Platform/Entity 层（27 文件）
+## 3. 确认成立的高优先级问题
 
-**评分**: A- (87/100)
+### 3.1 MQTT 卸载释放缺口
 
-#### P1 问题（3 个）
+- 证据：`custom_components/lipro/core/coordinator/coordinator.py:46`
+- 调用点：`custom_components/lipro/__init__.py:129`、`custom_components/lipro/__init__.py:157`
+- 现状：`Coordinator` 未实现自定义 `async_shutdown()`，卸载路径虽然会调用该方法，但不会主动执行 `mqtt_runtime.disconnect()`、`background_task_manager.cancel_all()`。
+- 影响：配置重载后 MQTT 循环与协调器后台任务可能残留，形成幽灵更新与资源泄漏。
+- 当前定级：**高**
 
-1. **Unload 未停止 MQTT** - `__init__.py` 仅调用 `async_shutdown()`，未调用 `mqtt_service.async_stop()`
-2. **firmware_update.py 直接访问 coordinator.client** - 绕过服务层边界
-3. **Fan 绕过设备锁** - `_add_power_on_if_needed()` 中 `update_properties()` 未加锁
+### 3.2 MQTT bridge 任务未统一追踪
 
-#### P2 问题（5 个）
-- Select 直接调用 `async_update_listeners()`、平台助手直接迭代 `coordinator.devices`、update.py 未使用共享助手等
+- 证据：`custom_components/lipro/core/coordinator/mqtt_lifecycle.py:159`
+- 现状：消息桥接直接 `asyncio.create_task(...)`，绕过 `BackgroundTaskManager`。
+- 影响：异常漂出、unload 时无法统一清理。
+- 当前定级：**高**
 
-**优点**:
-- 架构合规性高（大部分使用服务层边界）
-- 良好的 HA 最佳实践（正确的实体注册、状态更新、唯一 ID）
-- 优秀的错误处理（用户友好的服务调用验证）
-- 彻底的诊断脱敏
+### 3.3 增量刷新索引键错配
 
----
+- 证据：`custom_components/lipro/core/coordinator/runtime/device/incremental.py:94`
+- 现状：增量刷新通过 `devices.get(device_id)` 取设备，而主设备映射以 serial 为主键。
+- 影响：状态回写命中率异常偏低，属于真实逻辑缺陷。
+- 当前定级：**高**
 
-### 6️⃣ Services 层 + 辅助模块（66 文件）
+### 3.4 真实 MQTT runtime 替换后丢失 polling updater
 
-**评分**: A- (88/100)
+- 初始化注入：`custom_components/lipro/core/coordinator/coordinator.py:117`
+- 替换点：`custom_components/lipro/core/coordinator/coordinator.py:338`
+- 现状：占位 runtime 注入了 polling updater，但真实 runtime 在 setup 后替换，未重新注入。
+- 影响：`MQTT connected -> 放宽轮询 / disconnect -> 恢复轮询` 设计实际上无法完整生效。
+- 当前定级：**高**
 
-#### ✅ 已验证修复
+### 3.5 MQTT runtime 连接态与真实握手状态脱节
 
-1. ✅ `services/command.py` - 正确使用 `coordinator.command_service.async_send_command()`
-2. ✅ `services/maintenance.py` - 正确使用 `coordinator.device_refresh_service.async_refresh_devices()`
-3. ✅ `services/execution.py` - `_trigger_reauth` 签名正确（无 `**placeholders`）
+- 证据：`custom_components/lipro/core/coordinator/runtime/mqtt_runtime.py:223`
+- 对照：真实传输层握手在 `custom_components/lipro/core/mqtt/client_runtime.py:113` 之后。
+- 现状：runtime 在 `start()` 返回后立即标记连接成功，没有等待真实握手完成。
+- 影响：REST fallback、诊断、断连通知会建立在错误连接态上。
+- 当前定级：**高**
 
-#### P1 问题（3 个）
+### 3.6 identity index 只增不重建
 
-1. **未填充的 `group_member_ids` 字段** - `schedule.py:98`, `dispatch.py:98`, `developer_report.py:47` 读取但从未写入
-2. **未填充的 `gateway_device_id` 字段** - `schedule.py:97` 读取但应使用计算属性
-3. **异常层次不一致** - `core/exceptions.py` 中未使用的异常类与 `core/api/` 中活跃使用的并行
+- 证据：`custom_components/lipro/core/coordinator/runtime/device/snapshot.py:114`
+- 现状：全量快照构建时持续向共享 `DeviceIdentityIndex` 注册别名，未见原子 replace / clear 流程。
+- 影响：陈旧别名或老设备映射可能滞留。
+- 当前定级：**高**
 
-#### P2 问题（6 个）
-- `const/__init__.py` 测试专用模块、`developer_report.py` 影子模块、密码哈希逻辑重复等
+### 3.7 影子模块仍制造“已接线”错觉
 
-**优点**:
-- 优秀的 PII 清理（`anonymous_share/sanitize.py`）
-- 正确的凭证处理（密码总是哈希）
-- 严格的输入验证（voluptuous schemas）
-- 一致的日志安全
-
----
-
-### 7️⃣ 测试代码（~100 文件）
-
-**评分**: B+ (86/100)
-
-#### ✅ 无 P0 问题
-
-所有标记的问题均为误报：
-- ✅ `test_diagnostics.py` 正确 mock `mqtt_service.connected`
-- ✅ `test_execution.py` 正确使用基于协议的 `_trigger_reauth`
-- ✅ `test_init.py` 在正确的抽象层级 mock
-
-#### P1 问题（影子模块测试）
-
-**应删除的测试文件**（测试无生产调用者的模块）:
-1. `tests/test_coordinator_runtime.py` - 测试已删除/移动的模块
-2. `tests/core/test_device_registry_sync.py` - 模块无生产导入
-3. `tests/core/test_group_lookup_runtime.py` - 模块无生产导入
-4. `tests/core/test_state_batch_runtime.py` - 模块无生产导入
-5. `tests/core/test_outlet_power_runtime.py` - 模块无生产导入
-
-**应保留的测试**:
-- ✅ `test_outlet_power.py` - 模块被 `power_service.py` 使用
-- ✅ `test_developer_report.py` - 模块被 services 使用
-- ⚠️ `test_status_strategy.py` - 模块被影子模块使用（需审查）
-
-#### P2 问题（1 个）
-
-**conftest_shared.py 反模式**:
-```python
-# 当前（错误）
-coordinator._state.devices.clear()
-coordinator._state.devices.update(snapshot.devices)
-
-# 应改为
-await coordinator._async_update_data()
-```
-
-**优点**:
-- 良好的测试组织（core/, services/, platforms/, integration/）
-- 全面的覆盖（33 个测试文件）
-- Mock 准确性总体良好
+- 代表：
+  - `custom_components/lipro/core/coordinator/runtime/group_lookup_runtime.py:1`
+  - `custom_components/lipro/core/coordinator/runtime/product_config_runtime.py:1`
+  - `custom_components/lipro/core/coordinator/runtime/state_batch_runtime.py:1`
+  - `custom_components/lipro/core/coordinator/runtime/status_strategy.py:1`
+- 现状：主要由测试引用，缺少真实生产调用链。
+- 影响：维护者容易误以为能力已落地。
+- 当前定级：**高（治理优先级）**
 
 ---
 
-## 🎯 优先级修复计划
+## 4. 确认成立的中优先级问题
 
-### 🔴 立即修复（P0 - 会崩溃）
+### 4.1 `group_member_ids` / `gateway_device_id` 读取存在，生产写入链不足
 
-1. **MQTT 资源泄漏** - 添加 `Coordinator.async_shutdown()` 重写
-2. **Device 增量刷新键不匹配** - 使用 `device_identity_index`
-3. **MQTT 消息任务追踪** - 使用 `background_task_manager`
-4. **Entity Protocol 类型** - `entity_id: str | None`
-5. **MqttRuntime 签名** - 更新 Protocol 或添加适配器
-6. **CommandRuntime Protocol** - 实现委托而非抛异常
+- 读取点：`custom_components/lipro/services/schedule.py:97`、`custom_components/lipro/core/command/dispatch.py:98`
+- 构造点：`custom_components/lipro/core/device/device_factory.py:41`
+- 现状：设备构造期仅填充 `is_ir_remote`，未见这两个字段的生产级写入来源。
+- 当前定级：**中**
 
-### 🟠 高优先级（P1 - 架构问题）
+### 4.2 `power_info` 不是“完全没写”，而是生产链路未接回
 
-7. **注释掉未使用的 Runtime** - StatusRuntime/TuningRuntime 直到 Phase H4
-8. **修复 MQTT 订阅 fallback** - 使用 `build_mqtt_subscription_device_ids()`
-9. **修复 device lock 竞态** - 未知设备抛异常或缓存锁
-10. **删除影子模块** - 6 个 runtime 模块 + 对应测试
-11. **修复未填充字段** - `group_member_ids`/`gateway_device_id` 要么实现要么删除消费者
-12. **Platform unload** - 调用 `mqtt_service.async_stop()`
-13. **firmware_update 边界** - 通过服务层访问 OTA
-14. **Fan 设备锁** - `_add_power_on_if_needed()` 加锁
+- 写入 helper：`custom_components/lipro/core/coordinator/outlet_power.py:26`
+- 消费点：`custom_components/lipro/sensor.py:74`
+- 现状：写入逻辑存在，但 `outlet_power_runtime` 基本未纳入主路径。
+- 当前定级：**中**
 
-### 🟡 中优先级（P2 - 代码异味）
+### 4.3 集成层仍残留 direct client 访问
 
-15. **删除死代码文件** - `outlet_power.py`, `device_registry_sync.py`, `group_status.py`
-16. **修复 conftest_shared 反模式** - 使用 `_async_update_data()`
-17. **删除影子模块测试** - 5 个测试文件
-18. **提取重复逻辑** - 密码哈希、强制转换函数、用户 ID 解析
-19. **添加 spec_set 到 mocks** - 防止签名漂移
-20. **优化性能** - 防御性检查、分页断路器、过滤效率
+- 代表：
+  - `custom_components/lipro/entities/firmware_update.py:260`
+  - `custom_components/lipro/entities/firmware_update.py:272`
+  - `custom_components/lipro/services/diagnostics/handlers.py:184`
+  - `custom_components/lipro/services/schedule.py:202`
+- 影响：service/facade 边界不闭合，后续认证、限流、遥测收口容易漏改。
+- 当前定级：**中**
 
-### ⚪ 低优先级（P3 - 细节）
+### 4.4 developer-only 服务默认暴露
 
-21. **标准化命名** - `Lipro*` 前缀一致性
-22. **添加缺失类型注解** - 返回类型、参数类型
-23. **文档化设计决策** - MQTT clean_session, 属性组顺序
-24. **代码风格** - docstring 一致性、空行、导入顺序
+- 注册点：`custom_components/lipro/services/registrations.py:67`
+- 调试开关：`custom_components/lipro/flow/options_flow.py:287`
+- 现状：`debug_mode` 存在，但未参与 developer-only 服务注册判定。
+- 当前定级：**中**
 
----
+### 4.5 远端固件认证信任链过弱
 
-## 📈 代码质量指标
+- 证据：`custom_components/lipro/firmware_manifest.py:67`
+- 消费点：`custom_components/lipro/entities/firmware_update.py:157`
+- 现状：远端 manifest 仅校验 HTTP/JSON 可用性，未见签名校验或本地信任根优先策略。
+- 当前定级：**中**
 
-| 维度 | 评分 | 说明 |
-|------|------|------|
-| **类型安全** | 8/10 | 良好使用 Protocol，部分缺失返回类型 |
-| **错误处理** | 9/10 | 全面的异常层次 |
-| **安全性** | 7/10 | 优秀的 PII 清理，但 MD5/SHA-1/AES-ECB（供应商限制） |
-| **架构合规** | 7/10 | 大部分遵循服务层边界，少数绕过 |
-| **测试质量** | 8/10 | 良好覆盖，少数 mock 不匹配 |
-| **文档** | 7/10 | 良好的 docstrings，部分缺失示例 |
-| **性能** | 8/10 | 良好的并发设计，少数优化机会 |
-| **可维护性** | 7/10 | 清晰的模块化，但有死代码和影子模块 |
+### 4.6 匿名分享脱敏规则对 camelCase / 变体键仍可能漏网
+
+- 证据：`custom_components/lipro/core/anonymous_share/sanitize.py:31`
+- 当前定级：**中**
+
+### 4.7 `fan` 平台保留一条绕过统一 optimistic 写路径的本地写入
+
+- 证据：`custom_components/lipro/fan.py:144`、`custom_components/lipro/fan.py:163`
+- 现状：并非整个平台都绕锁，但这两个点确实直接写共享 device model。
+- 当前定级：**中偏低**
 
 ---
 
-## 🏆 架构优势
+## 5. 应下调、修正或驳回的旧结论
 
-1. **清晰的分层** - RuntimeContext → Orchestrator → Runtime 组件 → Service 层
-2. **优秀的错误处理** - 多层异常层次，二分回退，自适应重试
-3. **强大的安全** - 30+ 敏感字段掩码，PII 脱敏，日志安全
-4. **良好的并发** - 令牌刷新锁，per-device 锁，有界信号量
-5. **全面的测试** - 33 个测试文件，良好的组织
-
----
-
-## ⚠️ 架构债务
-
-1. **未消费的 Runtime 组件** - StatusRuntime/TuningRuntime 浪费启动成本
-2. **影子模块** - 6 个模块 + 5 个测试文件无生产路径
-3. **未填充字段** - 3 个字段被读取但从未写入
-4. **资源泄漏** - MQTT 连接在 unload 时未关闭
-5. **Protocol 漂移** - 定义与实现不匹配
+| 旧结论 | 新裁决 | 依据 |
+|---|---|---|
+| `StatusRuntime/TuningRuntime 未消费` | **驳回** | `custom_components/lipro/core/coordinator/coordinator.py:346`、`:356`、`:377`、`:392` 已实际调用 |
+| `MQTT 订阅无 fallback` | **驳回** | `custom_components/lipro/core/coordinator/mqtt_lifecycle.py:195` 已使用 `build_mqtt_subscription_device_ids()` |
+| `set_polling_updater() 从未调用` | **修正** | 调用过，但真实 runtime 替换后丢失 |
+| `CommandRuntime.send_command()` 为 P0 | **下调** | 显式占位接口，生产路径走 `send_device_command()` |
+| `MqttRuntime.handle_message` 签名不匹配会崩 | **下调** | 更接近协议层命名/文档漂移，不是当前主崩点 |
+| `power_info 从未写入` | **修正** | 写入 helper 存在，问题在于生产主路径未接回 |
+| `硬编码签名密钥` | **下调** | 更像供应商协议常量，不是部署侧 secret 泄露 |
+| `MD5 使用` | **下调** | 真实存在，但明显受供应商协议约束，应记录为兼容性约束 |
 
 ---
 
-## 📝 结论
+## 6. 测试体系复核结论
 
-Lipro-HASS 是一个**架构良好**的 Home Assistant 自定义集成，具有强大的错误处理、安全实践和测试覆盖。主要问题是：
+### 6.1 优点
 
-1. **Phase C 重构未完成** - StatusRuntime/TuningRuntime 装配但未集成
-2. **资源管理** - MQTT 连接泄漏
-3. **数据完整性** - Device 增量刷新键不匹配，字段未填充
-4. **死代码** - 影子模块和测试
+- 纯 helper / unit 层的基础覆盖并不差。
+- 以下文件仍是回归主力：
+  - `tests/core/test_init.py:1`
+  - `tests/core/test_device_refresh.py:1`
+  - `tests/core/test_mqtt.py:1`
+  - `tests/core/test_coordinator.py:1`
 
-**建议的下一步**:
-1. 修复所有 P0 问题（6 个，预计 4 小时）
-2. 清理影子模块和死代码（预计 2 小时）
-3. 修复未填充字段（要么实现要么删除消费者，预计 3 小时）
-4. 完成 Phase H4 或注释掉未使用的 Runtime（预计 1 小时）
+### 6.2 真实缺口
 
-**总体评估**: 代码库健康，需要收尾工作以完成重构并清理债务。
+1. **OTA 共享缓存与并发去重缺少强护栏**
+   - 代表：`tests/core/ota/test_ota_rows_cache.py:1`
+2. **MQTT 真实 wiring 链路测试不足**
+   - 许多测试直接调用 runtime，不经过真实 bridge。
+3. **`tests/type_checking/*` 更像运行时烟雾测试**
+   - 代表：`tests/type_checking/test_protocols.py:1`、`tests/type_checking/test_api_types.py:1`
+4. **service 测试偏 delegation，副作用 orchestration 守护不足**
+   - 代表：`tests/core/coordinator/services/test_command_service.py:1`
+5. **benchmark 多为计时，不验证后置状态**
+   - 代表：`tests/benchmarks/test_command_benchmark.py:1`
+
+### 6.3 最终判断
+
+- 当前测试体系不应被表述为“全面而强壮”。
+- 更准确的结论是：**基础分支覆盖尚可，但并发、生命周期、装配链路的防回归能力仍不足。**
 
 ---
 
-⛧ 虚空低语：代码之网已织就，所有裂隙已标明。愿汝之重构如深渊般深邃，如星辰般璀璨。
+## 7. 修正后的执行顺序
 
-**Iä! Iä! Code fhtagn!** 🜏
+### 第一批：立即修复
+
+1. `Coordinator.async_shutdown()` 收口 MQTT 与后台任务
+2. MQTT bridge 接入 `BackgroundTaskManager`
+3. 修复增量刷新索引键错配
+4. 真实 MQTT runtime 替换后重新注入 polling updater
+
+### 第二批：短期修复
+
+5. 修正 MQTT 连接态来源
+6. identity index 改为原子重建
+7. 补齐 `group_member_ids` / `gateway_device_id` 数据闭环，或移除消费依赖
+8. developer-only 服务改为显式 opt-in
+
+### 第三批：治理与补测
+
+9. 收口 direct client 访问到 service/facade
+10. 清理影子模块与重复测试
+11. 补 OTA / MQTT 并发与真实 wiring 测试
+12. 重写 runtime/protocol 文档，消除 `type: ignore` 掩盖装配漂移
+
+---
+
+## 8. 文档整合结果
+
+### 当前建议保留的审计文档
+
+1. `docs/COMPREHENSIVE_AUDIT_2026-03-12.md`
+   - 作为**唯一权威审计报告**
+2. `docs/AUDIT_ISSUES_CHECKLIST.md`
+   - 作为**可执行修复清单**
+3. `docs/refactor_residual_audit.md`
+   - 作为**历史背景与前序收口记录**
+
+### 已清理的中间文档
+
+  - 已并入本报告与执行清单，不再单独保留。
+
+---
+
+## 9. 最终结论
+
+- 这份仓库当前最重要的，不是继续堆更多“问题数量”，而是把**真实运行风险**先收掉。
+- 真正该先做的，是：
+  - 修 MQTT 生命周期
+  - 修索引与增量刷新一致性
+  - 修装配漂移
+  - 把测试从“通过很多”变成“真能挡住回归”
+- 后续修复优先级、任务拆分与验收条件，请直接使用 `docs/AUDIT_ISSUES_CHECKLIST.md`。
