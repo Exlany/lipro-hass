@@ -14,6 +14,9 @@
 - `.planning/STATE.md` — 会话延续与当前焦点
 - `.planning/phases/01-protocol-contract-baseline/` — Phase 01 context + plans
 - `.planning/phases/02-api-client-de-mixin/` — Phase 02 context + research + plans
+- `.planning/phases/02.5-protocol-root-unification/` — Phase 02.5 full planning pack
+- `.planning/phases/02.6-external-boundary-convergence/` — Phase 02.6 full planning pack
+- `.planning/phases/03-control-plane-convergence/` — Phase 03 drafted planning pack
 - `.planning/codebase/` — brownfield codebase map（7 份）
 
 ## 1. 执行总原则
@@ -120,7 +123,21 @@
 - 建立 `LiproProtocolFacade` 作为唯一正式协议入口
 - 让 `LiproRestFacade` 与 `LiproMqttFacade` 成为子门面，而不是两个独立根
 - 对齐 auth / telemetry / diagnostics / protocol contracts 的共享边界
-- 为后续 control / runtime / assurance phases 提供统一协议根
+- 明确 canonical normalization 由 protocol plane 边界正式拥有
+- 清退 split-root public surface 与 `LiproClient` compat semantics
+
+**当前状态**：`Drafted / Blocked by unfinished Phase 02 execution outputs`
+
+### Phase 2.6 — External Boundary Convergence
+
+**目标**：把 `share / firmware advisory / support payload / diagnostics capability` 收敛为 formal owner、authority、fixture、generated artifact 与 drift-detection 体系。
+
+- external-boundary inventory 必须以 unified protocol root 为前提
+- `firmware_support_manifest.json` 是 local trust root；remote firmware-support 只能 advisory-only
+- `generated` 不能继续藏在实现文件里暗中定义真相
+- 为 Phase 3 提供 support surface / diagnostics / system health 可直接引用的外部边界输出
+
+**当前状态**：`Drafted / Blocked by unfinished Phase 2.5 execution outputs`
 
 ### Phase 3 — Control Plane 收敛
 
@@ -168,6 +185,7 @@
 ## 7. 本轮之后的直接下一步
 
 1. 完成 `.planning/phases/01-protocol-contract-baseline/01-02-PLAN.md`
-2. 审核并执行 `.planning/phases/02-api-client-de-mixin/*-PLAN.md`
-3. 建立 `.planning/reviews/FILE_MATRIX.md` 与残留台账
-4. 在 contract baseline 保护下开始第一批 API façade 重构
+2. 完成 `Phase 02` execution closeout，生成 REST façade / demixin 的真实 summaries
+3. 执行 `.planning/phases/02.5-protocol-root-unification/*-PLAN.md`
+4. 在 unified protocol root 落地后执行 `.planning/phases/02.6-external-boundary-convergence/*-PLAN.md`
+5. 基于 `02.5 + 02.6` 真实输出回到 `Phase 03` 做 unblock 复核
