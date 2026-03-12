@@ -49,5 +49,7 @@
 - `.planning/reviews/KILL_LIST.md`
 - `.planning/baseline/VERIFICATION_MATRIX.md`
 
+Phase `01.5-02` seed scope：`tests/meta/test_public_surface_guards.py` 当前只守住三件事——`Coordinator` 保持窄 runtime surface、`LiproClient` 仍被归类为 transitional compat shell、`custom_components.lipro.core.api` 不得重新导出 transport internals/legacy helper names。
+
 ---
 *Used by: API/runtime/control/capability phase planning and meta guard design*
