@@ -298,62 +298,11 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
             device, command, properties
         )
 
-    # Helper methods for StatusRuntime
-    async def _query_device_status_batch(
-        self, device_ids: list[str]
-    ) -> dict[str, dict[str, Any]]:
-        """Query device status batch via API.
-
-        Args:
-            device_ids: List of device IDs to query
-
-        Returns:
-            Dictionary mapping device ID to status properties
-        """
-        status_endpoint = getattr(self.client, "status", None)
-        query_device_status = getattr(status_endpoint, "query_device_status", None)
-        if query_device_status is None:
-            rows = await self.client.query_device_status(device_ids)
-        else:
-            rows = await query_device_status(device_ids)
-
-        status: dict[str, dict[str, Any]] = {}
-        for row in rows:
-            device_id: str | None = None
-            for key in ("iotId", "deviceId", "id"):
-                candidate = row.get(key)
-                if isinstance(candidate, str) and candidate.strip():
-                    device_id = candidate
-                    break
-            if device_id is None:
-                continue
-
-            properties = row.get("properties")
-            if isinstance(properties, dict):
-                status[device_id] = dict(properties)
-                continue
-
-            status[device_id] = {
-                key: value
-                for key, value in row.items()
-                if key not in {"iotId", "deviceId", "id"}
-            }
-        return status
-
+    # Helper methods for authentication and reauth
 
     async def _async_ensure_authenticated(self) -> None:
         """Ensure coordinator authentication is valid."""
         await self.auth_manager.async_ensure_authenticated()
-
-    async def _async_trigger_reauth(self, reason: str) -> None:
-        """Trigger reauthentication flow.
-
-        Args:
-            reason: Reason for reauth (e.g., "auth_expired", "auth_error")
-        """
-        _LOGGER.warning("Triggering reauth: %s", reason)
-        error_message = f"Authentication failed: {reason}"
-        raise ConfigEntryAuthFailed(error_message)
 
     async def async_setup_mqtt(self) -> bool:
         """Set up MQTT client for real-time updates.

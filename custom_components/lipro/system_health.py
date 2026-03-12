@@ -61,7 +61,10 @@ async def system_health_info(hass: HomeAssistant) -> dict[str, Any]:
     mqtt_connected_entries = 0
     has_mqtt_field = False
     for coordinator in coordinators:
-        mqtt_connected = getattr(coordinator, "mqtt_connected", None)
+        mqtt_service = getattr(coordinator, "mqtt_service", None)
+        if mqtt_service is None:
+            continue
+        mqtt_connected = getattr(mqtt_service, "connected", None)
         if not isinstance(mqtt_connected, bool):
             continue
         has_mqtt_field = True

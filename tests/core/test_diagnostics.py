@@ -228,7 +228,7 @@ class TestAsyncGetConfigEntryDiagnostics:
         coordinator.devices = {device.serial: device}
         coordinator.last_update_success = True
         coordinator.update_interval = timedelta(seconds=30)
-        coordinator.mqtt_connected = True
+        coordinator.mqtt_service.connected = True
 
         entry = MagicMock()
         entry.entry_id = "entry-1"
@@ -285,7 +285,7 @@ class TestAsyncGetConfigEntryDiagnostics:
         coordinator.devices = {}
         coordinator.last_update_success = False
         coordinator.update_interval = timedelta(seconds=60)
-        coordinator.mqtt_connected = False
+        coordinator.mqtt_service.connected = False
 
         entry = MagicMock()
         entry.runtime_data = coordinator
@@ -327,7 +327,7 @@ class TestAsyncGetConfigEntryDiagnostics:
         coordinator.devices = {device.serial: device}
         coordinator.last_update_success = True
         coordinator.update_interval = timedelta(seconds=30)
-        coordinator.mqtt_connected = True
+        coordinator.mqtt_service.connected = True
 
         entry = MagicMock()
         entry.runtime_data = coordinator
@@ -377,7 +377,7 @@ class TestAsyncGetConfigEntryDiagnostics:
         coordinator.devices = {device.serial: device}
         coordinator.last_update_success = True
         coordinator.update_interval = timedelta(seconds=45)
-        coordinator.mqtt_connected = True
+        coordinator.mqtt_service.connected = True
 
         entry = MagicMock()
         entry.entry_id = "entry-1"
@@ -493,7 +493,7 @@ class TestAsyncGetDeviceDiagnostics:
         coordinator.get_device = MagicMock(return_value=device)
         coordinator.last_update_success = True
         coordinator.update_interval = timedelta(seconds=30)
-        coordinator.mqtt_connected = True
+        coordinator.mqtt_service.connected = True
 
         entry = MagicMock()
         entry.entry_id = "entry-1"
