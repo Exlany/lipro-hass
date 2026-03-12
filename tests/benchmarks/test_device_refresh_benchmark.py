@@ -20,3 +20,7 @@ def test_device_update_properties_benchmark(benchmark) -> None:
         device.update_properties,
         {"powerState": "1", "brightness": "80", "temperature": "50"},
     )
+
+    assert device.properties["powerState"] == "1"
+    assert device.properties["brightness"] == "80"
+    assert device.properties["temperature"] == "50"

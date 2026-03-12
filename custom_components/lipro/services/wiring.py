@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Awaitable, Callable, Iterator
+from collections.abc import Awaitable, Callable, Iterator, Mapping
 import logging
 import re
 from typing import Any, Final, NoReturn
@@ -12,6 +12,7 @@ from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from ..const.base import DOMAIN, IOT_DEVICE_ID_PREFIX
+from ..const.config import CONF_DEBUG_MODE, DEFAULT_DEBUG_MODE
 from ..core import LiproApiError, LiproDevice, get_anonymous_share_manager
 from ..core.utils.redaction import redact_identifier as _redact_identifier
 from ..runtime_types import LiproCoordinator
@@ -75,6 +76,78 @@ def _iter_runtime_coordinators(
 ) -> Iterator[LiproCoordinator]:
     """Iterate all active coordinators for the Lipro domain."""
     yield from _iter_runtime_coordinators_service(hass, domain=DOMAIN)
+
+
+def _build_single_runtime_coordinator_iterator(
+    coordinator: object,
+) -> Callable[[HomeAssistant], Iterator[object]]:
+    """Build a stable iterator factory for one runtime coordinator."""
+
+    def _iter_single_runtime_coordinator(_hass: HomeAssistant) -> Iterator[object]:
+        return iter((coordinator,))
+
+    return _iter_single_runtime_coordinator
+
+
+def _is_debug_mode_enabled_for_entry(entry: Any) -> bool:
+    """Return True when one config entry explicitly opts into debug services."""
+    options = getattr(entry, "options", None)
+    if not isinstance(options, Mapping):
+        return DEFAULT_DEBUG_MODE
+    return bool(options.get(CONF_DEBUG_MODE, DEFAULT_DEBUG_MODE))
+
+
+def _raise_developer_mode_not_enabled(*, entry_id: str | None = None) -> NoReturn:
+    """Raise a consistent validation error for disabled developer services."""
+    del entry_id
+    raise ServiceValidationError(
+        translation_domain=DOMAIN,
+        translation_key="developer_mode_not_enabled",
+    )
+
+
+def _find_runtime_entry_for_coordinator(
+    hass: HomeAssistant,
+    coordinator: LiproCoordinator,
+) -> Any | None:
+    """Return the config entry that owns one active coordinator."""
+    config_entry = getattr(coordinator, "config_entry", None)
+    if getattr(config_entry, "runtime_data", None) is coordinator:
+        return config_entry
+    for entry in hass.config_entries.async_entries(DOMAIN):
+        if getattr(entry, "runtime_data", None) is coordinator:
+            return entry
+    return None
+
+
+def _is_developer_coordinator(
+    hass: HomeAssistant,
+    coordinator: LiproCoordinator,
+) -> bool:
+    """Return whether the coordinator belongs to a debug-enabled entry."""
+    entry = _find_runtime_entry_for_coordinator(hass, coordinator)
+    return entry is not None and _is_debug_mode_enabled_for_entry(entry)
+
+
+def _iter_developer_runtime_coordinators(
+    hass: HomeAssistant,
+) -> Iterator[LiproCoordinator]:
+    """Iterate runtime coordinators that explicitly opted into debug mode."""
+    for coordinator in _iter_runtime_coordinators(hass):
+        if _is_developer_coordinator(hass, coordinator):
+            yield coordinator
+
+
+async def _get_developer_device_and_coordinator(
+    hass: HomeAssistant,
+    call: ServiceCall,
+) -> tuple[LiproDevice, LiproCoordinator]:
+    """Resolve one device/coordinator pair and require debug-mode opt-in."""
+    device, coordinator = await _get_device_and_coordinator(hass, call)
+    if not _is_developer_coordinator(hass, coordinator):
+        entry = _find_runtime_entry_for_coordinator(hass, coordinator)
+        _raise_developer_mode_not_enabled(entry_id=getattr(entry, "entry_id", None))
+    return device, coordinator
 
 
 def _log_send_command_call(
@@ -217,19 +290,34 @@ def _collect_developer_reports(
     *,
     requested_entry_id: str | None = None,
 ) -> list[dict[str, Any]]:
-    """Collect developer reports from active config entries."""
-    coordinators = [
-        coordinator
-        for entry in hass.config_entries.async_entries(DOMAIN)
-        if requested_entry_id is None or entry.entry_id == requested_entry_id
-        if (coordinator := getattr(entry, "runtime_data", None)) is not None
-    ]
-    if requested_entry_id and not coordinators:
+    """Collect developer reports from debug-enabled runtime entries only."""
+    if requested_entry_id is not None:
+        for entry in hass.config_entries.async_entries(DOMAIN):
+            if entry.entry_id != requested_entry_id:
+                continue
+            coordinator = getattr(entry, "runtime_data", None)
+            if coordinator is None:
+                raise ServiceValidationError(
+                    translation_domain=DOMAIN,
+                    translation_key="entry_not_found",
+                    translation_placeholders={"entry_id": requested_entry_id},
+                )
+            if not _is_debug_mode_enabled_for_entry(entry):
+                _raise_developer_mode_not_enabled(entry_id=requested_entry_id)
+            return _collect_developer_reports_service(
+                hass,
+                iter_runtime_coordinators=_build_single_runtime_coordinator_iterator(
+                    coordinator
+                ),
+            )
+
         raise ServiceValidationError(
             translation_domain=DOMAIN,
             translation_key="entry_not_found",
             translation_placeholders={"entry_id": requested_entry_id},
         )
+
+    coordinators = list(_iter_developer_runtime_coordinators(hass))
     return _collect_developer_reports_service(
         hass,
         iter_runtime_coordinators=lambda _hass: iter(coordinators),
@@ -293,7 +381,7 @@ async def _async_handle_query_command_result(
     return await _async_handle_query_command_result_service(
         hass,
         call,
-        get_device_and_coordinator=_get_device_and_coordinator,
+        get_device_and_coordinator=_get_developer_device_and_coordinator,
         attr_msg_sn=_contracts.ATTR_MSG_SN,
         attr_max_attempts=_contracts.ATTR_MAX_ATTEMPTS,
         attr_time_budget_seconds=_contracts.ATTR_TIME_BUDGET_SECONDS,
@@ -305,10 +393,11 @@ async def _async_handle_get_city(
     hass: HomeAssistant, call: ServiceCall
 ) -> dict[str, Any]:
     """Developer-only service: get city information."""
+    coordinators = list(_iter_developer_runtime_coordinators(hass))
     return await _async_handle_get_city_service(
         hass,
         call,
-        iter_runtime_coordinators=_iter_runtime_coordinators,
+        iter_runtime_coordinators=lambda _hass: iter(coordinators),
         raise_optional_error=_raise_optional_capability_error,
         service_get_city=_contracts.SERVICE_GET_CITY,
     )
@@ -318,10 +407,11 @@ async def _async_handle_query_user_cloud(
     hass: HomeAssistant, call: ServiceCall
 ) -> dict[str, Any]:
     """Developer-only service: query user cloud information."""
+    coordinators = list(_iter_developer_runtime_coordinators(hass))
     return await _async_handle_query_user_cloud_service(
         hass,
         call,
-        iter_runtime_coordinators=_iter_runtime_coordinators,
+        iter_runtime_coordinators=lambda _hass: iter(coordinators),
         raise_optional_error=_raise_optional_capability_error,
         service_query_user_cloud=_contracts.SERVICE_QUERY_USER_CLOUD,
     )
@@ -339,7 +429,7 @@ async def _async_handle_fetch_sensor_history(
     return await service_handler(
         hass,
         call,
-        get_device_and_coordinator=_get_device_and_coordinator,
+        get_device_and_coordinator=_get_developer_device_and_coordinator,
         async_call_optional_capability=_async_call_optional_capability,
         build_sensor_history_result=_build_sensor_history_result_service,
         attr_sensor_device_id=_contracts.ATTR_SENSOR_DEVICE_ID,

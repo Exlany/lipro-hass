@@ -309,23 +309,16 @@ class TestLiproFanEntityCommands:
         assert any(p["key"] == "fanOnoff" and p["value"] == "0" for p in props)
 
     @pytest.mark.asyncio
-    async def test_set_percentage_debounce_does_not_protect_fan_onoff(
+    async def test_set_percentage_debounce_protects_power_onoff(
         self, mock_coordinator, make_device
     ):
-        """Test set_percentage does NOT include fanOnoff in debounce-protected keys.
-
-        When fan is off and set_percentage is called, fanOnoff should be sent
-        in properties but NOT in the optimistic dict passed to debounce,
-        so it won't be protected during the debounce window.
-        """
+        """Turning on via set_percentage should stay on the debounced optimistic path."""
         device = make_device("fanLight", properties={"fanOnoff": "0"})
         mock_coordinator.get_device = MagicMock(return_value=device)
 
         from custom_components.lipro.fan import LiproFan
 
         fan = LiproFan(mock_coordinator, device)
-
-        # Mock async_send_command_debounced to capture arguments
         captured_args = {}
 
         async def capture_debounced(command, properties, optimistic_state):
@@ -334,19 +327,19 @@ class TestLiproFanEntityCommands:
             captured_args["optimistic_state"] = optimistic_state
 
         with (
+            patch.object(type(device), "update_properties", autospec=True) as update_properties,
             patch.object(fan, "async_write_ha_state"),
             patch.object(fan, "async_send_command_debounced", new=capture_debounced),
         ):
             await fan.async_set_percentage(50)
 
-        # Properties should include fan power + gear.
         props = captured_args["properties"]
         assert any(p["key"] == "fanOnoff" and p["value"] == "1" for p in props)
 
-        # Optimistic dict should NOT include fan power keys (to avoid debounce protection)
         optimistic_state = captured_args["optimistic_state"]
-        assert "fanOnoff" not in optimistic_state
+        assert optimistic_state["fanOnoff"] == "1"
         assert "fanGear" in optimistic_state
+        update_properties.assert_not_called()
 
 
 class TestLiproFanEntityBehavior:

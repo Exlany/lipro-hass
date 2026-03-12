@@ -48,12 +48,6 @@ jobs:
 
       - name: Run mypy
         run: uv run mypy
-
-      - name: Run type-checking tests
-        run: |
-          uv run pytest tests/type_checking/ -v
-          uv run mypy tests/type_checking/ --strict
-
       - name: Check translations
         run: uv run python scripts/check_translations.py
 

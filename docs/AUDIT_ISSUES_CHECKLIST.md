@@ -3,6 +3,7 @@
 > **基于**：`docs/COMPREHENSIVE_AUDIT_2026-03-12.md`
 > **用途**：按真实严重度执行修复，而不是按旧问题编号机械推进
 > **状态定义**：`[ ]` 未开始 / `[~]` 进行中 / `[x]` 已完成 / `[-]` 记录但暂不执行
+> **2026-03-12 更新**：`1.1`–`3.6` 已全部完成；验证通过 `uv run ruff check .`、`uv run mypy`、以及 454 项跨批回归测试。
 
 ---
 
@@ -112,7 +113,7 @@
   - 认证、限流、遥测后续可继续在 facade 层集中收口
   - 生产代码中已清除 `coordinator.client.*` 直接访问
 
-### [ ] 2.5 developer-only 服务改为显式 opt-in
+### [x] 2.5 developer-only 服务改为显式 opt-in
 - **文件**：
   - `custom_components/lipro/services/registrations.py`
   - `custom_components/lipro/services/wiring.py`
@@ -122,7 +123,7 @@
   - 默认安装不暴露 developer-only 服务
   - 开启 debug_mode 后服务才可见/可调用
 
-### [ ] 2.6 强化远端固件认证信任链
+### [x] 2.6 强化远端固件认证信任链
 - **文件**：
   - `custom_components/lipro/firmware_manifest.py`
   - `custom_components/lipro/entities/firmware_update.py`
@@ -131,14 +132,14 @@
   - 本地清单或签名校验成为最终信任根
   - 远端异常不会无提示放宽安装确认
 
-### [ ] 2.7 补齐匿名分享脱敏规则
+### [x] 2.7 补齐匿名分享脱敏规则
 - **文件**：`custom_components/lipro/core/anonymous_share/sanitize.py`
 - **目标**：补 camelCase / 变体键与短凭证场景。
 - **验收**：
   - 敏感键变体不会漏过结构化脱敏
   - 补对应测试
 
-### [ ] 2.8 收口 `fan` 的直接本地写入
+### [x] 2.8 收口 `fan` 的直接本地写入
 - **文件**：`custom_components/lipro/fan.py`
 - **目标**：复用基类 optimistic 写路径或统一 device lock。
 - **验收**：
@@ -148,36 +149,36 @@
 
 ## 3. 第三批：测试护栏与影子清理
 
-### [ ] 3.1 为 OTA 共享缓存补并发护栏测试
+### [x] 3.1 为 OTA 共享缓存补并发护栏测试
 - **文件**：`tests/core/ota/test_ota_rows_cache.py`
 - **目标**：覆盖共享缓存命中、并发 in-flight 去重、异常清理、过期重拉。
 
-### [ ] 3.2 为 MQTT 真实 wiring 链路补测试
+### [x] 3.2 为 MQTT 真实 wiring 链路补测试
 - **文件**：
   - `tests/integration/test_mqtt_coordinator_integration.py`
   - `tests/core/coordinator/runtime/test_mqtt_runtime.py`
 - **目标**：验证 `LiproMqttClient -> bridge -> runtime -> coordinator` 真实链路，而不只是直接调用 runtime。
 
-### [ ] 3.3 为 service orchestration 补副作用测试
+### [x] 3.3 为 service orchestration 补副作用测试
 - **文件**：
   - `tests/core/coordinator/services/test_command_service.py`
   - `tests/core/coordinator/services/test_device_refresh_service.py`
 - **目标**：验证 fallback scheduling、refresh、user action/tuning 等副作用，而不只是 delegation。
 
-### [ ] 3.4 清理 `tests/type_checking/*` 的伪护栏定位
+### [x] 3.4 清理 `tests/type_checking/*` 的伪护栏定位
 - **文件**：
   - `tests/type_checking/test_protocols.py`
   - `tests/type_checking/test_api_types.py`
 - **目标**：升级为真实静态检查入口，或明确降级为 smoke tests。
 
-### [ ] 3.5 清理影子 runtime 测试与重复测试
+### [x] 3.5 清理影子 runtime 测试与重复测试
 - **代表文件**：
   - `tests/core/coordinator/runtime/test_connect_status_runtime.py`
   - `tests/core/coordinator/runtime/test_product_config_runtime.py`
   - 与 monolith 明显重复的 device/MQTT/边界测试
 - **目标**：去掉“只有测试在消费”的伪落地表象。
 
-### [ ] 3.6 benchmark 补充最小 postcondition 断言
+### [x] 3.6 benchmark 补充最小 postcondition 断言
 - **文件**：`tests/benchmarks/*.py`
 - **目标**：避免“快但错”的实现也被 benchmark 全绿掩盖。
 

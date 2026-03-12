@@ -26,6 +26,7 @@ from custom_components.lipro import (
 from custom_components.lipro.const.base import DOMAIN
 from custom_components.lipro.const.config import (
     CONF_ACCESS_TOKEN,
+    CONF_DEBUG_MODE,
     CONF_EXPIRES_AT,
     CONF_PASSWORD_HASH,
     CONF_PHONE,
@@ -710,13 +711,13 @@ class TestInitRuntimeBehavior:
         assert hass.services.has_service(DOMAIN, SERVICE_DELETE_SCHEDULES)
         assert hass.services.has_service(DOMAIN, SERVICE_SUBMIT_ANONYMOUS_SHARE)
         assert hass.services.has_service(DOMAIN, SERVICE_GET_ANONYMOUS_SHARE_REPORT)
-        assert hass.services.has_service(DOMAIN, SERVICE_GET_DEVELOPER_REPORT)
-        assert hass.services.has_service(DOMAIN, SERVICE_SUBMIT_DEVELOPER_FEEDBACK)
-        assert hass.services.has_service(DOMAIN, SERVICE_QUERY_COMMAND_RESULT)
-        assert hass.services.has_service(DOMAIN, SERVICE_GET_CITY)
-        assert hass.services.has_service(DOMAIN, SERVICE_QUERY_USER_CLOUD)
-        assert hass.services.has_service(DOMAIN, SERVICE_FETCH_BODY_SENSOR_HISTORY)
-        assert hass.services.has_service(DOMAIN, SERVICE_FETCH_DOOR_SENSOR_HISTORY)
+        assert not hass.services.has_service(DOMAIN, SERVICE_GET_DEVELOPER_REPORT)
+        assert not hass.services.has_service(DOMAIN, SERVICE_SUBMIT_DEVELOPER_FEEDBACK)
+        assert not hass.services.has_service(DOMAIN, SERVICE_QUERY_COMMAND_RESULT)
+        assert not hass.services.has_service(DOMAIN, SERVICE_GET_CITY)
+        assert not hass.services.has_service(DOMAIN, SERVICE_QUERY_USER_CLOUD)
+        assert not hass.services.has_service(DOMAIN, SERVICE_FETCH_BODY_SENSOR_HISTORY)
+        assert not hass.services.has_service(DOMAIN, SERVICE_FETCH_DOOR_SENSOR_HISTORY)
         assert hass.services.has_service(DOMAIN, SERVICE_REFRESH_DEVICES)
 
         # Calling setup twice should keep registration stable.
@@ -734,6 +735,7 @@ class TestInitRuntimeBehavior:
                 CONF_ACCESS_TOKEN: "old_access",
                 CONF_REFRESH_TOKEN: "old_refresh",
             },
+            options={CONF_DEBUG_MODE: True},
         )
         entry.add_to_hass(hass)
         entry.add_update_listener = MagicMock(return_value=MagicMock())
@@ -751,6 +753,7 @@ class TestInitRuntimeBehavior:
 
         mock_coordinator = MagicMock()
         mock_coordinator.async_config_entry_first_refresh = AsyncMock()
+        mock_coordinator.config_entry = entry
 
         with (
             patch(
@@ -780,6 +783,13 @@ class TestInitRuntimeBehavior:
         mock_update.assert_called_once()
         entry.add_update_listener.assert_called_once()
         entry.async_on_unload.assert_called_once()
+        assert hass.services.has_service(DOMAIN, SERVICE_GET_DEVELOPER_REPORT)
+        assert hass.services.has_service(DOMAIN, SERVICE_SUBMIT_DEVELOPER_FEEDBACK)
+        assert hass.services.has_service(DOMAIN, SERVICE_QUERY_COMMAND_RESULT)
+        assert hass.services.has_service(DOMAIN, SERVICE_GET_CITY)
+        assert hass.services.has_service(DOMAIN, SERVICE_QUERY_USER_CLOUD)
+        assert hass.services.has_service(DOMAIN, SERVICE_FETCH_BODY_SENSOR_HISTORY)
+        assert hass.services.has_service(DOMAIN, SERVICE_FETCH_DOOR_SENSOR_HISTORY)
 
     def test_build_entry_auth_context_missing_phone_id_raises(self, hass) -> None:
         """Missing required keys in entry.data should raise ConfigEntryAuthFailed."""
@@ -1105,7 +1115,7 @@ class TestInitRuntimeBehavior:
     ) -> None:
         """Service registrations are removed when last entry unloads."""
         await async_setup(hass, {})
-        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"}, options={CONF_DEBUG_MODE: True})
         entry.add_to_hass(hass)
 
         with patch.object(
@@ -1129,7 +1139,7 @@ class TestInitRuntimeBehavior:
     ) -> None:
         """Coordinator runtime data should be shut down on successful unload."""
         await async_setup(hass, {})
-        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"}, options={CONF_DEBUG_MODE: True})
         entry.add_to_hass(hass)
 
         coordinator = MagicMock()
@@ -1152,7 +1162,7 @@ class TestInitRuntimeBehavior:
     ) -> None:
         """Unload should catch shutdown errors so unload can complete."""
         await async_setup(hass, {})
-        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"}, options={CONF_DEBUG_MODE: True})
         entry.add_to_hass(hass)
 
         coordinator = MagicMock()
@@ -1178,7 +1188,7 @@ class TestInitRuntimeBehavior:
     ) -> None:
         """Unload should remove shared infra when lock store is unavailable."""
         await async_setup(hass, {})
-        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"}, options={CONF_DEBUG_MODE: True})
         entry.add_to_hass(hass)
 
         hass.data[DOMAIN] = "not-a-dict"
@@ -1210,7 +1220,7 @@ class TestInitRuntimeBehavior:
 
     async def test_async_reload_entry_forwards_to_hass(self, hass) -> None:
         """async_reload_entry should delegate to hass reload."""
-        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"}, options={CONF_DEBUG_MODE: True})
         entry.add_to_hass(hass)
 
         mock_reload = AsyncMock()
@@ -1224,12 +1234,12 @@ class TestInitRuntimeBehavior:
     ) -> None:
         """Services should be removed when no other runtime-loaded entry remains."""
         await async_setup(hass, {})
-        active_entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        active_entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"}, options={CONF_DEBUG_MODE: True})
         active_entry.add_to_hass(hass)
         active_entry.runtime_data = MagicMock(async_shutdown=AsyncMock())
 
         # Simulate a configured but not loaded entry (no runtime_data).
-        passive_entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13900000000"})
+        passive_entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13900000000"}, options={CONF_DEBUG_MODE: True})
         passive_entry.add_to_hass(hass)
 
         with patch.object(
@@ -1247,7 +1257,7 @@ class TestInitRuntimeBehavior:
         self, hass
     ) -> None:
         """Coordinator shutdown should not run when platform unload fails."""
-        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"}, options={CONF_DEBUG_MODE: True})
         entry.add_to_hass(hass)
 
         coordinator = MagicMock()
@@ -1267,13 +1277,13 @@ class TestInitRuntimeBehavior:
         self, hass
     ) -> None:
         """refresh_devices should refresh all loaded entry coordinators by default."""
-        first = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        first = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"}, options={CONF_DEBUG_MODE: True})
         first.add_to_hass(hass)
         first_service = MagicMock()
         first_service.async_refresh_devices = AsyncMock()
         first.runtime_data = MagicMock(device_refresh_service=first_service)
 
-        second = MockConfigEntry(domain=DOMAIN, data={"phone": "13900000000"})
+        second = MockConfigEntry(domain=DOMAIN, data={"phone": "13900000000"}, options={CONF_DEBUG_MODE: True})
         second.add_to_hass(hass)
         second_service = MagicMock()
         second_service.async_refresh_devices = AsyncMock()
@@ -1289,13 +1299,13 @@ class TestInitRuntimeBehavior:
 
     async def test_refresh_devices_handler_filters_by_entry_id(self, hass) -> None:
         """refresh_devices should refresh only the selected config entry."""
-        first = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        first = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"}, options={CONF_DEBUG_MODE: True})
         first.add_to_hass(hass)
         first_service = MagicMock()
         first_service.async_refresh_devices = AsyncMock()
         first.runtime_data = MagicMock(device_refresh_service=first_service)
 
-        second = MockConfigEntry(domain=DOMAIN, data={"phone": "13900000000"})
+        second = MockConfigEntry(domain=DOMAIN, data={"phone": "13900000000"}, options={CONF_DEBUG_MODE: True})
         second.add_to_hass(hass)
         second_service = MagicMock()
         second_service.async_refresh_devices = AsyncMock()
@@ -1326,7 +1336,7 @@ class TestInitRuntimeBehavior:
         self, hass
     ) -> None:
         """Lipro device disable/enable transitions should trigger config entry reload."""
-        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"}, options={CONF_DEBUG_MODE: True})
         entry.add_to_hass(hass)
         entry.runtime_data = MagicMock()
 
@@ -1365,7 +1375,7 @@ class TestInitRuntimeBehavior:
         self, hass
     ) -> None:
         """Only Lipro devices with disabled_by changes should trigger reload."""
-        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"}, options={CONF_DEBUG_MODE: True})
         entry.add_to_hass(hass)
         entry.runtime_data = MagicMock()
 
@@ -1408,7 +1418,7 @@ class TestInitRuntimeBehavior:
         self, hass
     ) -> None:
         """Device registry updates should stop reloading after the last unload."""
-        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"}, options={CONF_DEBUG_MODE: True})
         entry.add_to_hass(hass)
         entry.runtime_data = MagicMock(async_shutdown=AsyncMock())
 
@@ -1448,7 +1458,7 @@ class TestInitRuntimeBehavior:
         coordinator = MagicMock()
         coordinator.get_device.return_value = device
 
-        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"}, options={CONF_DEBUG_MODE: True})
         entry.add_to_hass(hass)
         entry.runtime_data = coordinator
 
@@ -1475,7 +1485,7 @@ class TestInitRuntimeBehavior:
         coordinator = MagicMock()
         coordinator.get_device.return_value = device
 
-        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"}, options={CONF_DEBUG_MODE: True})
         entry.add_to_hass(hass)
         entry.runtime_data = coordinator
 
@@ -1504,7 +1514,7 @@ class TestInitRuntimeBehavior:
         coordinator = MagicMock()
         coordinator.get_device.return_value = device
 
-        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"}, options={CONF_DEBUG_MODE: True})
         entry.add_to_hass(hass)
         entry.runtime_data = coordinator
 
@@ -1539,7 +1549,7 @@ class TestInitRuntimeBehavior:
         coordinator = MagicMock()
         coordinator.get_device.side_effect = [first_device, second_device]
 
-        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"}, options={CONF_DEBUG_MODE: True})
         entry.add_to_hass(hass)
         entry.runtime_data = coordinator
 
@@ -1570,7 +1580,7 @@ class TestInitRuntimeBehavior:
         coordinator.get_device.return_value = None
         coordinator.get_device_by_id.return_value = device
 
-        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"}, options={CONF_DEBUG_MODE: True})
         entry.add_to_hass(hass)
         entry.runtime_data = coordinator
 
@@ -1593,7 +1603,7 @@ class TestInitRuntimeBehavior:
         coordinator = MagicMock()
         coordinator.get_device.return_value = device
 
-        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"}, options={CONF_DEBUG_MODE: True})
         entry.add_to_hass(hass)
         entry.runtime_data = coordinator
 
@@ -1709,7 +1719,7 @@ class TestInitRuntimeBehavior:
         coordinator = MagicMock()
         coordinator.build_developer_report.return_value = {"debug_mode": True}
 
-        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"}, options={CONF_DEBUG_MODE: True})
         entry.add_to_hass(hass)
         entry.runtime_data = coordinator
 
@@ -1728,11 +1738,11 @@ class TestInitRuntimeBehavior:
         second = MagicMock()
         second.build_developer_report.return_value = {"debug_mode": False}
 
-        entry_1 = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry_1 = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"}, options={CONF_DEBUG_MODE: True})
         entry_1.add_to_hass(hass)
         entry_1.runtime_data = first
 
-        entry_2 = MockConfigEntry(domain=DOMAIN, data={"phone": "13900000000"})
+        entry_2 = MockConfigEntry(domain=DOMAIN, data={"phone": "13900000000"}, options={CONF_DEBUG_MODE: True})
         entry_2.add_to_hass(hass)
         entry_2.runtime_data = second
 
@@ -1749,6 +1759,21 @@ class TestInitRuntimeBehavior:
         first.build_developer_report.assert_not_called()
         second.build_developer_report.assert_called_once()
 
+    async def test_get_developer_report_rejects_non_debug_entry(self, hass) -> None:
+        """Scoped developer report should reject entries without debug opt-in."""
+        coordinator = MagicMock()
+        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry.add_to_hass(hass)
+        entry.runtime_data = coordinator
+
+        with pytest.raises(ServiceValidationError):
+            await _async_handle_get_developer_report(
+                hass,
+                service_call(hass, {ATTR_ENTRY_ID: entry.entry_id}),
+            )
+
+        coordinator.build_developer_report.assert_not_called()
+
     async def test_get_developer_report_skips_broken_entry(self, hass) -> None:
         """get_developer_report should skip one broken coordinator report."""
         broken = MagicMock()
@@ -1756,11 +1781,11 @@ class TestInitRuntimeBehavior:
         healthy = MagicMock()
         healthy.build_developer_report.return_value = {"debug_mode": False}
 
-        entry_1 = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry_1 = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"}, options={CONF_DEBUG_MODE: True})
         entry_1.add_to_hass(hass)
         entry_1.runtime_data = broken
 
-        entry_2 = MockConfigEntry(domain=DOMAIN, data={"phone": "13900000000"})
+        entry_2 = MockConfigEntry(domain=DOMAIN, data={"phone": "13900000000"}, options={CONF_DEBUG_MODE: True})
         entry_2.add_to_hass(hass)
         entry_2.runtime_data = healthy
 
@@ -1782,7 +1807,7 @@ class TestInitRuntimeBehavior:
             return_value={"success": True}
         )
 
-        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"}, options={CONF_DEBUG_MODE: True})
         entry.add_to_hass(hass)
         entry.runtime_data = coordinator
 
@@ -1809,6 +1834,28 @@ class TestInitRuntimeBehavior:
             device_type=device.device_type_hex,
         )
 
+    async def test_query_command_result_service_requires_debug_mode(self, hass) -> None:
+        """query_command_result should reject entries without debug opt-in."""
+        device = self._create_device(serial="mesh_group_49155")
+        coordinator = MagicMock()
+        coordinator.get_device.return_value = device
+        coordinator.async_query_command_result = AsyncMock(return_value={"success": True})
+
+        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry.add_to_hass(hass)
+        entry.runtime_data = coordinator
+
+        with pytest.raises(ServiceValidationError):
+            await _async_handle_query_command_result(
+                hass,
+                service_call(
+                    hass,
+                    {ATTR_DEVICE_ID: device.serial, ATTR_MSG_SN: "682550445474"},
+                ),
+            )
+
+        coordinator.async_query_command_result.assert_not_awaited()
+
     async def test_query_command_result_service_polls_until_confirmed(
         self, hass
     ) -> None:
@@ -1824,7 +1871,7 @@ class TestInitRuntimeBehavior:
             ]
         )
 
-        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"}, options={CONF_DEBUG_MODE: True})
         entry.add_to_hass(hass)
         entry.runtime_data = coordinator
 
@@ -1860,19 +1907,33 @@ class TestInitRuntimeBehavior:
             return_value={"province": "广东省", "city": "江门市"}
         )
 
-        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"}, options={CONF_DEBUG_MODE: True})
         entry.add_to_hass(hass)
         entry.runtime_data = coordinator
 
         result = await _async_handle_get_city(hass, service_call(hass, {}))
         assert result == {"result": {"province": "广东省", "city": "江门市"}}
 
+    async def test_get_city_service_returns_empty_without_debug_mode(self, hass) -> None:
+        """get_city should ignore non-debug runtime entries when filtering coordinators."""
+        coordinator = MagicMock()
+        coordinator.async_get_city = AsyncMock(return_value={"province": "广东省", "city": "江门市"})
+
+        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry.add_to_hass(hass)
+        entry.runtime_data = coordinator
+
+        result = await _async_handle_get_city(hass, service_call(hass, {}))
+
+        assert result == {"result": {}}
+        coordinator.async_get_city.assert_not_awaited()
+
     async def test_query_user_cloud_service(self, hass) -> None:
         """query_user_cloud service should return first coordinator result."""
         coordinator = MagicMock()
         coordinator.async_query_user_cloud = AsyncMock(return_value={"data": []})
 
-        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"}, options={CONF_DEBUG_MODE: True})
         entry.add_to_hass(hass)
         entry.runtime_data = coordinator
 
@@ -1890,11 +1951,11 @@ class TestInitRuntimeBehavior:
             return_value={"province": "广东省", "city": "深圳市"}
         )
 
-        entry_1 = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry_1 = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"}, options={CONF_DEBUG_MODE: True})
         entry_1.add_to_hass(hass)
         entry_1.runtime_data = first
 
-        entry_2 = MockConfigEntry(domain=DOMAIN, data={"phone": "13900000000"})
+        entry_2 = MockConfigEntry(domain=DOMAIN, data={"phone": "13900000000"}, options={CONF_DEBUG_MODE: True})
         entry_2.add_to_hass(hass)
         entry_2.runtime_data = second
 
@@ -1910,11 +1971,11 @@ class TestInitRuntimeBehavior:
             return_value={"province": "浙江省", "city": "杭州市"}
         )
 
-        entry_1 = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry_1 = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"}, options={CONF_DEBUG_MODE: True})
         entry_1.add_to_hass(hass)
         entry_1.runtime_data = first
 
-        entry_2 = MockConfigEntry(domain=DOMAIN, data={"phone": "13900000000"})
+        entry_2 = MockConfigEntry(domain=DOMAIN, data={"phone": "13900000000"}, options={CONF_DEBUG_MODE: True})
         entry_2.add_to_hass(hass)
         entry_2.runtime_data = second
 
@@ -1932,11 +1993,11 @@ class TestInitRuntimeBehavior:
         second = MagicMock()
         second.async_query_user_cloud = AsyncMock(return_value={"data": [1, 2]})
 
-        entry_1 = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry_1 = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"}, options={CONF_DEBUG_MODE: True})
         entry_1.add_to_hass(hass)
         entry_1.runtime_data = first
 
-        entry_2 = MockConfigEntry(domain=DOMAIN, data={"phone": "13900000000"})
+        entry_2 = MockConfigEntry(domain=DOMAIN, data={"phone": "13900000000"}, options={CONF_DEBUG_MODE: True})
         entry_2.add_to_hass(hass)
         entry_2.runtime_data = second
 
@@ -1950,11 +2011,11 @@ class TestInitRuntimeBehavior:
         second = MagicMock()
         second.async_query_user_cloud = AsyncMock(return_value={"data": []})
 
-        entry_1 = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry_1 = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"}, options={CONF_DEBUG_MODE: True})
         entry_1.add_to_hass(hass)
         entry_1.runtime_data = first
 
-        entry_2 = MockConfigEntry(domain=DOMAIN, data={"phone": "13900000000"})
+        entry_2 = MockConfigEntry(domain=DOMAIN, data={"phone": "13900000000"}, options={CONF_DEBUG_MODE: True})
         entry_2.add_to_hass(hass)
         entry_2.runtime_data = second
 
@@ -1970,7 +2031,7 @@ class TestInitRuntimeBehavior:
             return_value={"humanSensorStateList": []}
         )
 
-        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"}, options={CONF_DEBUG_MODE: True})
         entry.add_to_hass(hass)
         entry.runtime_data = coordinator
 
@@ -1994,6 +2055,34 @@ class TestInitRuntimeBehavior:
             mesh_type="2",
         )
 
+    async def test_fetch_body_sensor_history_service_requires_debug_mode(self, hass) -> None:
+        """fetch_body_sensor_history should reject entries without debug opt-in."""
+        device = self._create_device(serial="mesh_group_49155")
+        coordinator = MagicMock()
+        coordinator.get_device.return_value = device
+        coordinator.async_fetch_body_sensor_history = AsyncMock(
+            return_value={"humanSensorStateList": []}
+        )
+
+        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry.add_to_hass(hass)
+        entry.runtime_data = coordinator
+
+        with pytest.raises(ServiceValidationError):
+            await _async_handle_fetch_body_sensor_history(
+                hass,
+                service_call(
+                    hass,
+                    {
+                        ATTR_DEVICE_ID: device.serial,
+                        ATTR_SENSOR_DEVICE_ID: "03ab5ccd7c7167d8",
+                        ATTR_MESH_TYPE: "2",
+                    },
+                ),
+            )
+
+        coordinator.async_fetch_body_sensor_history.assert_not_awaited()
+
     async def test_fetch_door_sensor_history_service(self, hass) -> None:
         """fetch_door_sensor_history should pass sensor payload to client."""
         device = self._create_device(serial="mesh_group_49155")
@@ -2003,7 +2092,7 @@ class TestInitRuntimeBehavior:
             return_value={"doorStateList": []}
         )
 
-        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"}, options={CONF_DEBUG_MODE: True})
         entry.add_to_hass(hass)
         entry.runtime_data = coordinator
 
@@ -2032,7 +2121,7 @@ class TestInitRuntimeBehavior:
         coordinator = MagicMock()
         coordinator.build_developer_report.return_value = {"runtime": {"ok": True}}
 
-        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"}, options={CONF_DEBUG_MODE: True})
         entry.add_to_hass(hass)
         entry.runtime_data = coordinator
 
@@ -2070,7 +2159,7 @@ class TestInitRuntimeBehavior:
         coordinator = MagicMock()
         coordinator.build_developer_report.return_value = {"runtime": {"ok": True}}
 
-        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"}, options={CONF_DEBUG_MODE: True})
         entry.add_to_hass(hass)
         entry.runtime_data = coordinator
 
@@ -2099,7 +2188,7 @@ class TestInitRuntimeBehavior:
         command_service.async_send_command = AsyncMock(return_value=True)
         coordinator.command_service = command_service
 
-        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"}, options={CONF_DEBUG_MODE: True})
         entry.add_to_hass(hass)
         entry.runtime_data = coordinator
 
@@ -2135,7 +2224,7 @@ class TestInitRuntimeBehavior:
         command_service.async_send_command = AsyncMock(return_value=True)
         coordinator.command_service = command_service
 
-        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"}, options={CONF_DEBUG_MODE: True})
         entry.add_to_hass(hass)
         entry.runtime_data = coordinator
 
@@ -2175,7 +2264,7 @@ class TestInitRuntimeBehavior:
         coordinator.command_service = command_service
         command_service.last_failure = None
 
-        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"}, options={CONF_DEBUG_MODE: True})
         entry.add_to_hass(hass)
         entry.runtime_data = coordinator
 
@@ -2203,7 +2292,7 @@ class TestInitRuntimeBehavior:
             "code": "push_failed",
         }
 
-        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"}, options={CONF_DEBUG_MODE: True})
         entry.add_to_hass(hass)
         entry.runtime_data = coordinator
 
@@ -2229,7 +2318,7 @@ class TestInitRuntimeBehavior:
         coordinator.command_service = command_service
         command_service.last_failure = {"reason": "api_error", "code": "140004"}
 
-        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"}, options={CONF_DEBUG_MODE: True})
         entry.add_to_hass(hass)
         entry.runtime_data = coordinator
 
@@ -2253,7 +2342,7 @@ class TestInitRuntimeBehavior:
         coordinator.command_service = command_service
         command_service.last_failure = {"reason": "api_error", "code": "250001"}
 
-        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"}, options={CONF_DEBUG_MODE: True})
         entry.add_to_hass(hass)
         entry.runtime_data = coordinator
 
@@ -2276,7 +2365,7 @@ class TestInitRuntimeBehavior:
         command_service.async_send_command = AsyncMock(side_effect=LiproApiError("boom"))
         coordinator.command_service = command_service
 
-        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"}, options={CONF_DEBUG_MODE: True})
         entry.add_to_hass(hass)
         entry.runtime_data = coordinator
 
@@ -2302,7 +2391,7 @@ class TestInitRuntimeBehavior:
         )
         coordinator.command_service = command_service
 
-        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"}, options={CONF_DEBUG_MODE: True})
         entry.add_to_hass(hass)
         entry.runtime_data = coordinator
 
@@ -2329,7 +2418,7 @@ class TestInitRuntimeBehavior:
         )
         coordinator.command_service = command_service
 
-        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"}, options={CONF_DEBUG_MODE: True})
         entry.add_to_hass(hass)
         entry.runtime_data = coordinator
 
@@ -2356,7 +2445,7 @@ class TestInitRuntimeBehavior:
         )
         coordinator.command_service = command_service
 
-        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"}, options={CONF_DEBUG_MODE: True})
         entry.add_to_hass(hass)
         entry.runtime_data = coordinator
 
@@ -2390,7 +2479,7 @@ class TestInitRuntimeBehavior:
         coordinator.async_add_device_schedule = client.add_device_schedule
         coordinator.async_delete_device_schedules = client.delete_device_schedules
 
-        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"}, options={CONF_DEBUG_MODE: True})
         entry.add_to_hass(hass)
         entry.runtime_data = coordinator
 
@@ -2423,7 +2512,7 @@ class TestInitRuntimeBehavior:
         coordinator.async_add_device_schedule = client.add_device_schedule
         coordinator.async_delete_device_schedules = client.delete_device_schedules
 
-        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"}, options={CONF_DEBUG_MODE: True})
         entry.add_to_hass(hass)
         entry.runtime_data = coordinator
 
@@ -2476,7 +2565,7 @@ class TestInitRuntimeBehavior:
         coordinator.async_add_device_schedule = client.add_device_schedule
         coordinator.async_delete_device_schedules = client.delete_device_schedules
 
-        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"}, options={CONF_DEBUG_MODE: True})
         entry.add_to_hass(hass)
         entry.runtime_data = coordinator
 
@@ -2512,7 +2601,7 @@ class TestInitRuntimeBehavior:
         coordinator.async_add_device_schedule = client.add_device_schedule
         coordinator.async_delete_device_schedules = client.delete_device_schedules
 
-        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"}, options={CONF_DEBUG_MODE: True})
         entry.add_to_hass(hass)
         entry.runtime_data = coordinator
 
@@ -2542,7 +2631,7 @@ class TestInitRuntimeBehavior:
         coordinator.async_add_device_schedule = client.add_device_schedule
         coordinator.async_delete_device_schedules = client.delete_device_schedules
 
-        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"}, options={CONF_DEBUG_MODE: True})
         entry.add_to_hass(hass)
         entry.runtime_data = coordinator
 
@@ -2582,7 +2671,7 @@ class TestInitRuntimeBehavior:
         coordinator.async_add_device_schedule = client.add_device_schedule
         coordinator.async_delete_device_schedules = client.delete_device_schedules
 
-        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"}, options={CONF_DEBUG_MODE: True})
         entry.add_to_hass(hass)
         entry.runtime_data = coordinator
 
@@ -2638,7 +2727,7 @@ class TestInitRuntimeBehavior:
         coordinator.async_add_device_schedule = client.add_device_schedule
         coordinator.async_delete_device_schedules = client.delete_device_schedules
 
-        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"}, options={CONF_DEBUG_MODE: True})
         entry.add_to_hass(hass)
         entry.runtime_data = coordinator
 
@@ -2670,7 +2759,7 @@ class TestInitRuntimeBehavior:
         coordinator.async_add_device_schedule = client.add_device_schedule
         coordinator.async_delete_device_schedules = client.delete_device_schedules
 
-        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"}, options={CONF_DEBUG_MODE: True})
         entry.add_to_hass(hass)
         entry.runtime_data = coordinator
 
@@ -2704,7 +2793,7 @@ class TestInitRuntimeBehavior:
         coordinator.async_add_device_schedule = client.add_device_schedule
         coordinator.async_delete_device_schedules = client.delete_device_schedules
 
-        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+        entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"}, options={CONF_DEBUG_MODE: True})
         entry.add_to_hass(hass)
         entry.runtime_data = coordinator
 

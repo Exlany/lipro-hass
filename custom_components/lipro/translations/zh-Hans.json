@@ -491,6 +491,9 @@
     "entry_not_found": {
       "message": "未找到或未加载配置项：{entry_id}"
     },
+    "developer_mode_not_enabled": {
+      "message": "当前未启用开发者诊断。请先开启 debug_mode。"
+    },
     "optional_capability_failed": {
       "message": "可选能力 {capability} 调用失败（{error}）。"
     },

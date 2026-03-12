@@ -10,6 +10,7 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 import voluptuous as vol
 
 from custom_components.lipro.const.base import DOMAIN
+from custom_components.lipro.const.config import CONF_DEBUG_MODE
 from custom_components.lipro.core import LiproApiError
 from custom_components.lipro.services.contracts import (
     ATTR_COMMAND,
@@ -36,7 +37,11 @@ from tests.helpers.service_call import service_call
 
 def _add_runtime_entry(hass, coordinator: MagicMock, *, phone: str) -> MockConfigEntry:
     """Attach one runtime coordinator to Home Assistant config entries."""
-    entry = MockConfigEntry(domain=DOMAIN, data={"phone": phone})
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={"phone": phone},
+        options={CONF_DEBUG_MODE: True},
+    )
     entry.add_to_hass(hass)
     entry.runtime_data = coordinator
     return entry

@@ -1,4 +1,4 @@
-"""Static-friendly tests for API TypedDict contracts."""
+"""Smoke tests for representative API TypedDict payload shapes."""
 
 from __future__ import annotations
 
@@ -28,7 +28,6 @@ def test_device_api_response_contract() -> None:
     assert assert_type(payload["deviceId"], str | int) == "123"
 
 
-
 def test_schedule_api_response_contract() -> None:
     row: ScheduleTimingRow = {
         "id": "1",
@@ -41,7 +40,6 @@ def test_schedule_api_response_contract() -> None:
 
     assert payload["data"][0]["hour"] == 8
     assert assert_type(payload["data"][0]["enable"], bool | int | str) is True
-
 
 
 def test_command_and_diagnostics_payload_contracts() -> None:

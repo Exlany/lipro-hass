@@ -67,7 +67,7 @@ def load_verified_firmware_manifest() -> _RemoteManifestData:
 async def async_load_remote_firmware_manifest(
     hass: HomeAssistant,
 ) -> _RemoteManifestData:
-    """Load firmware certification manifest from remote service with cache."""
+    """Load advisory firmware certification metadata from remote service with cache."""
     now = dt_util.utcnow()
     cached_time = _REMOTE_MANIFEST_STATE.time
     cached_data = _REMOTE_MANIFEST_STATE.data

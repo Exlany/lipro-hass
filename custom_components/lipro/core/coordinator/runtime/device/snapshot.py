@@ -57,8 +57,6 @@ class SnapshotBuilder:
             return
 
         for row in rows:
-            if not isinstance(row, dict):
-                continue
             group_id = row.get("groupId") or row.get("id")
             if not isinstance(group_id, str) or not group_id.strip():
                 continue

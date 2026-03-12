@@ -323,7 +323,7 @@ async def test_async_get_first_coordinator_capability_result_raises_homeassistan
         await _async_get_first_coordinator_capability_result(
             iter([coordinator]),
             capability="get_city",
-            collector=lambda item: item.client.get_city(),
+            collector=lambda item: cast(Any, item).client.get_city(),
         )
 
 
@@ -339,7 +339,7 @@ async def test_async_get_first_coordinator_capability_result_keeps_last_api_erro
     has_result, result, last_error = await _async_get_first_coordinator_capability_result(
         iter([first, second]),
         capability="get_city",
-        collector=lambda item: item.client.get_city(),
+        collector=lambda item: cast(Any, item).client.get_city(),
     )
 
     assert has_result is False

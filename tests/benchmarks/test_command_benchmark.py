@@ -14,4 +14,6 @@ def test_command_result_classifier_benchmark(benchmark) -> None:
         "pushSuccess": True,
     }
 
-    benchmark(classify_command_result_payload, payload)
+    result = benchmark(classify_command_result_payload, payload)
+
+    assert result == "confirmed"

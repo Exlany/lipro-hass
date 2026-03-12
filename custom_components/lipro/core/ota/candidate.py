@@ -193,7 +193,8 @@ def resolve_certification(
     local_versions_by_type: dict[str, frozenset[str]],
     is_version_newer: Callable[[str, str], bool],
 ) -> bool:
-    """Resolve certification state by flag and certification-version list."""
+    """Resolve certification from inline data and local trust roots only."""
+    del remote_verified_versions, remote_versions_by_type
     explicit_or_inline = resolve_inline_certification(
         row,
         installed=installed,
@@ -211,16 +212,6 @@ def resolve_certification(
         device_iot_name=device_iot_name,
         iot_name_keys=_IOT_NAME_KEYS,
     )
-    if matches_manifest_certification(
-        candidate_types,
-        remote_versions_by_type,
-        remote_verified_versions,
-        installed=installed,
-        latest=latest,
-        is_version_newer=is_version_newer,
-    ):
-        return True
-
     return matches_manifest_certification(
         candidate_types,
         local_versions_by_type,

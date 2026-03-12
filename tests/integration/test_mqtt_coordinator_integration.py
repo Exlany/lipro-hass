@@ -20,6 +20,39 @@ _CONFIG_ENTRY_DATA = {
 }
 
 
+class _FakeMqttClient:
+    """Capture lifecycle callbacks while emulating a connected MQTT client."""
+
+    def __init__(
+        self,
+        access_key: str,
+        secret_key: str,
+        biz_id: str,
+        phone_id: str,
+        on_message=None,
+        on_connect=None,
+        on_disconnect=None,
+        on_error=None,
+    ) -> None:
+        self.access_key = access_key
+        self.secret_key = secret_key
+        self.biz_id = biz_id
+        self.phone_id = phone_id
+        self.on_message = on_message
+        self.on_connect = on_connect
+        self.on_disconnect = on_disconnect
+        self.on_error = on_error
+        self.start = AsyncMock()
+        self.stop = AsyncMock()
+        self.sync_subscriptions = AsyncMock()
+        self.wait_until_connected = AsyncMock(side_effect=self._wait_until_connected)
+
+    async def _wait_until_connected(self) -> bool:
+        if self.on_connect is not None:
+            self.on_connect()
+        return True
+
+
 def _make_device(
     serial: str = "03ab5ccd7cxxxxxx",
     *,
@@ -287,3 +320,96 @@ async def test_coordinator_mqtt_service_sync_and_stop_use_client_runtime(
 
     await coordinator.mqtt_service.async_stop()
     mock_mqtt_runtime.disconnect.assert_awaited_once()
+
+
+@pytest.mark.asyncio
+async def test_async_setup_mqtt_message_callback_bridges_to_runtime_and_coordinator(
+    coordinator,
+    mock_lipro_api_client,
+) -> None:
+    device = _make_device("mesh_group_1", is_group=True)
+    coordinator._state.devices = {device.serial: device}
+    coordinator._runtimes.state.get_device_by_id = MagicMock(return_value=device)
+    coordinator._runtimes.state.apply_properties_update = AsyncMock(return_value=True)
+    coordinator.async_set_updated_data = MagicMock()
+    mock_lipro_api_client.get_mqtt_config.return_value = {
+        "accessKey": "enc-ak",
+        "secretKey": "enc-sk",
+    }
+
+    with (
+        patch(
+            "custom_components.lipro.core.coordinator.mqtt_lifecycle.decrypt_mqtt_credential",
+            side_effect=["ak", "sk"],
+        ),
+        patch(
+            "custom_components.lipro.core.coordinator.mqtt_lifecycle.resolve_mqtt_biz_id",
+            return_value="biz001",
+        ),
+        patch(
+            "custom_components.lipro.core.coordinator.mqtt_lifecycle.LiproMqttClient",
+            new=_FakeMqttClient,
+        ),
+    ):
+        ok = await coordinator.async_setup_mqtt()
+
+    assert ok is True
+    mqtt_client = coordinator.mqtt_client
+    assert isinstance(mqtt_client, _FakeMqttClient)
+
+    assert mqtt_client.on_message is not None
+    mqtt_client.on_message(device.serial, {"connectState": "1"})
+    await asyncio.gather(*tuple(coordinator.background_task_manager.tasks))
+
+    coordinator._runtimes.state.apply_properties_update.assert_awaited_once_with(
+        device,
+        {"connectState": "1"},
+        source="mqtt",
+    )
+    coordinator.async_set_updated_data.assert_called_with(coordinator.devices)
+    assert not coordinator.background_task_manager.tasks
+
+
+@pytest.mark.asyncio
+async def test_async_setup_mqtt_client_callbacks_drive_runtime_connection_state(
+    coordinator,
+    mock_lipro_api_client,
+) -> None:
+    coordinator._state.devices = {"mesh_group_1": _make_device("mesh_group_1", is_group=True)}
+    mock_lipro_api_client.get_mqtt_config.return_value = {
+        "accessKey": "enc-ak",
+        "secretKey": "enc-sk",
+    }
+
+    with (
+        patch(
+            "custom_components.lipro.core.coordinator.mqtt_lifecycle.decrypt_mqtt_credential",
+            side_effect=["ak", "sk"],
+        ),
+        patch(
+            "custom_components.lipro.core.coordinator.mqtt_lifecycle.resolve_mqtt_biz_id",
+            return_value="biz001",
+        ),
+        patch(
+            "custom_components.lipro.core.coordinator.mqtt_lifecycle.LiproMqttClient",
+            new=_FakeMqttClient,
+        ),
+    ):
+        ok = await coordinator.async_setup_mqtt()
+
+    assert ok is True
+    mqtt_client = coordinator.mqtt_client
+    assert isinstance(mqtt_client, _FakeMqttClient)
+    assert coordinator.mqtt_runtime is not None
+    assert coordinator.mqtt_runtime.is_connected
+
+    assert mqtt_client.on_disconnect is not None
+    mqtt_client.on_disconnect()
+    assert coordinator.mqtt_runtime is not None
+    assert not coordinator.mqtt_runtime.is_connected
+
+    on_connect = mqtt_client.on_connect
+    assert on_connect is not None
+    on_connect()
+    assert coordinator.mqtt_runtime is not None
+    assert coordinator.mqtt_runtime.is_connected

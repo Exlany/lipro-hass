@@ -1,11 +1,14 @@
-"""Static service registration table for the Lipro integration."""
+"""Service registration tables and debug-mode gating for Lipro."""
 
 from __future__ import annotations
 
-from typing import Final
+from collections.abc import Mapping
+from typing import Any, Final
 
-from homeassistant.core import SupportsResponse
+from homeassistant.core import HomeAssistant, SupportsResponse
 
+from ..const.base import DOMAIN
+from ..const.config import CONF_DEBUG_MODE, DEFAULT_DEBUG_MODE
 from . import contracts as _contracts
 from .registry import ServiceRegistration
 from .wiring import (
@@ -25,7 +28,7 @@ from .wiring import (
     _async_handle_submit_developer_feedback,
 )
 
-SERVICE_REGISTRATIONS: Final[tuple[ServiceRegistration, ...]] = (
+PUBLIC_SERVICE_REGISTRATIONS: Final[tuple[ServiceRegistration, ...]] = (
     ServiceRegistration(
         _contracts.SERVICE_SEND_COMMAND,
         _async_handle_send_command,
@@ -62,6 +65,15 @@ SERVICE_REGISTRATIONS: Final[tuple[ServiceRegistration, ...]] = (
         _contracts.SERVICE_GET_ANONYMOUS_SHARE_REPORT_SCHEMA,
         SupportsResponse.ONLY,
     ),
+    ServiceRegistration(
+        _contracts.SERVICE_REFRESH_DEVICES,
+        _async_handle_refresh_devices,
+        _contracts.SERVICE_REFRESH_DEVICES_SCHEMA,
+        SupportsResponse.OPTIONAL,
+    ),
+)
+
+DEVELOPER_SERVICE_REGISTRATIONS: Final[tuple[ServiceRegistration, ...]] = (
     ServiceRegistration(
         _contracts.SERVICE_GET_DEVELOPER_REPORT,
         _async_handle_get_developer_report,
@@ -104,12 +116,35 @@ SERVICE_REGISTRATIONS: Final[tuple[ServiceRegistration, ...]] = (
         _contracts.SERVICE_FETCH_SENSOR_HISTORY_SCHEMA,
         SupportsResponse.ONLY,
     ),
-    ServiceRegistration(
-        _contracts.SERVICE_REFRESH_DEVICES,
-        _async_handle_refresh_devices,
-        _contracts.SERVICE_REFRESH_DEVICES_SCHEMA,
-        SupportsResponse.OPTIONAL,
-    ),
 )
 
-__all__ = ["SERVICE_REGISTRATIONS"]
+SERVICE_REGISTRATIONS: Final[tuple[ServiceRegistration, ...]] = (
+    PUBLIC_SERVICE_REGISTRATIONS + DEVELOPER_SERVICE_REGISTRATIONS
+)
+
+
+def is_debug_mode_enabled_for_entry(entry: Any) -> bool:
+    """Return whether one config entry has developer diagnostics enabled."""
+    options = getattr(entry, "options", None)
+    if not isinstance(options, Mapping):
+        return DEFAULT_DEBUG_MODE
+    return bool(options.get(CONF_DEBUG_MODE, DEFAULT_DEBUG_MODE))
+
+
+
+def has_debug_mode_runtime_entry(hass: HomeAssistant) -> bool:
+    """Return True when any active Lipro runtime entry opts into debug mode."""
+    return any(
+        getattr(entry, "runtime_data", None) is not None
+        and is_debug_mode_enabled_for_entry(entry)
+        for entry in hass.config_entries.async_entries(DOMAIN)
+    )
+
+
+__all__ = [
+    "DEVELOPER_SERVICE_REGISTRATIONS",
+    "PUBLIC_SERVICE_REGISTRATIONS",
+    "SERVICE_REGISTRATIONS",
+    "has_debug_mode_runtime_entry",
+    "is_debug_mode_enabled_for_entry",
+]

@@ -520,10 +520,10 @@ async def test_update_entity_uses_manifest_certification_fallback(
 
 
 @pytest.mark.asyncio
-async def test_update_entity_uses_remote_manifest_certification_fallback(
+async def test_update_entity_remote_manifest_does_not_certify_on_its_own(
     mock_coordinator, make_device
 ):
-    """Remote manifest certification should take precedence when available."""
+    """Remote manifest metadata alone should not mark firmware as certified."""
     from custom_components.lipro.entities.firmware_update import (
         LiproFirmwareUpdateEntity,
     )
@@ -554,18 +554,24 @@ async def test_update_entity_uses_remote_manifest_certification_fallback(
     entity.hass = MagicMock()
     _patch_write_state(entity)
 
-    with patch(
-        "custom_components.lipro.firmware_manifest.async_load_remote_firmware_manifest",
-        AsyncMock(return_value=(frozenset({"8.0.0"}), {})),
+    with (
+        patch(
+            "custom_components.lipro.firmware_manifest.async_load_remote_firmware_manifest",
+            AsyncMock(return_value=(frozenset({"8.0.0"}), {})),
+        ),
+        patch(
+            "custom_components.lipro.firmware_manifest.load_verified_firmware_manifest",
+            return_value=(frozenset(), {}),
+        ),
     ):
         await entity.async_update()
 
     assert entity.latest_version == "8.0.0"
-    assert entity.extra_state_attributes["certified"] is True
+    assert entity.extra_state_attributes["certified"] is False
 
 
 @pytest.mark.asyncio
-async def test_update_entity_accepts_newer_certified_version_than_installed(
+async def test_update_entity_accepts_newer_locally_certified_version_than_installed(
     mock_coordinator, make_device
 ):
     """Any certified version newer than current firmware should be treated as certified."""
@@ -599,9 +605,15 @@ async def test_update_entity_accepts_newer_certified_version_than_installed(
     entity.hass = MagicMock()
     _patch_write_state(entity)
 
-    with patch(
-        "custom_components.lipro.firmware_manifest.async_load_remote_firmware_manifest",
-        AsyncMock(return_value=(frozenset({"8.0.0"}), {})),
+    with (
+        patch(
+            "custom_components.lipro.firmware_manifest.async_load_remote_firmware_manifest",
+            AsyncMock(return_value=(frozenset(), {})),
+        ),
+        patch(
+            "custom_components.lipro.firmware_manifest.load_verified_firmware_manifest",
+            return_value=(frozenset({"7.10.9"}), {}),
+        ),
     ):
         await entity.async_update()
 
@@ -703,16 +715,11 @@ async def test_update_entity_uses_ble_name_for_type_certification(
     with (
         patch(
             "custom_components.lipro.firmware_manifest.async_load_remote_firmware_manifest",
-            AsyncMock(
-                return_value=(
-                    frozenset(),
-                    {"t21jc": frozenset({"2.6.43"})},
-                )
-            ),
+            AsyncMock(return_value=(frozenset(), {})),
         ),
         patch(
             "custom_components.lipro.firmware_manifest.load_verified_firmware_manifest",
-            return_value=(frozenset(), {}),
+            return_value=(frozenset(), {"t21jc": frozenset({"2.6.43"})}),
         ),
     ):
         await entity.async_update()
@@ -805,16 +812,11 @@ async def test_update_entity_uses_iot_name_for_type_certification(
     with (
         patch(
             "custom_components.lipro.firmware_manifest.async_load_remote_firmware_manifest",
-            AsyncMock(
-                return_value=(
-                    frozenset(),
-                    {"21p3": frozenset({"7.10.9"})},
-                )
-            ),
+            AsyncMock(return_value=(frozenset(), {})),
         ),
         patch(
             "custom_components.lipro.firmware_manifest.load_verified_firmware_manifest",
-            return_value=(frozenset(), {}),
+            return_value=(frozenset(), {"21p3": frozenset({"7.10.9"})}),
         ),
     ):
         await entity.async_update()

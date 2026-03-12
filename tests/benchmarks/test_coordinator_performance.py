@@ -63,7 +63,8 @@ def test_device_identity_index_registration(benchmark, device_identity_index, ma
         return device
 
     result = benchmark(register)
-    assert result is not None
+    assert result is device
+    assert device_identity_index.get("test_device_001") is device
 
 
 def test_device_identity_index_lookup(benchmark, device_identity_index, make_device):
@@ -87,7 +88,7 @@ def test_device_runtime_refresh_check(benchmark, device_runtime):
         return device_runtime.should_refresh_device_list()
 
     result = benchmark(check_refresh)
-    assert isinstance(result, bool)
+    assert result is True
 
 
 def test_normalize_device_key_performance(benchmark):
@@ -112,6 +113,10 @@ def test_device_identity_index_bulk_registration(benchmark, device_identity_inde
             device_identity_index.register(device.serial, device)
 
     benchmark(bulk_register)
+
+    assert device_identity_index.get("bulk_000") is devices[0]
+    assert device_identity_index.get("bulk_025") is devices[25]
+    assert device_identity_index.get("bulk_049") is devices[49]
 
 
 def test_device_identity_index_bulk_lookup(benchmark, device_identity_index, make_device):

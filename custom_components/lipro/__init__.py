@@ -41,7 +41,12 @@ from .runtime_infra import (
     remove_device_registry_listener,
     setup_device_registry_listener,
 )
-from .services.registrations import SERVICE_REGISTRATIONS
+from .services.registrations import (
+    DEVELOPER_SERVICE_REGISTRATIONS,
+    PUBLIC_SERVICE_REGISTRATIONS,
+    SERVICE_REGISTRATIONS,
+    has_debug_mode_runtime_entry,
+)
 from .services.registry import async_setup_services, remove_services
 
 if TYPE_CHECKING:
@@ -71,15 +76,44 @@ type LiproConfigEntry = ConfigEntry[LiproRuntimeData]
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
 
+async def _async_sync_service_registrations(hass: HomeAssistant) -> None:
+    """Synchronize shared services with current debug-mode runtime entries."""
+    await async_setup_services(
+        hass,
+        domain=DOMAIN,
+        registrations=PUBLIC_SERVICE_REGISTRATIONS,
+    )
+    if has_debug_mode_runtime_entry(hass):
+        await async_setup_services(
+            hass,
+            domain=DOMAIN,
+            registrations=DEVELOPER_SERVICE_REGISTRATIONS,
+        )
+        return
+
+    remove_services(
+        hass,
+        domain=DOMAIN,
+        registrations=DEVELOPER_SERVICE_REGISTRATIONS,
+    )
+
+
+async def _async_sync_service_registrations_with_lock(hass: HomeAssistant) -> None:
+    """Synchronize shared services while holding the runtime infra lock."""
+    lock = get_runtime_infra_lock(hass)
+    if lock is None:
+        await _async_sync_service_registrations(hass)
+        return
+
+    async with lock:
+        await _async_sync_service_registrations(hass)
+
+
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """Set up the Lipro component."""
     await async_ensure_runtime_infra(
         hass,
-        setup_services=partial(
-            async_setup_services,
-            domain=DOMAIN,
-            registrations=SERVICE_REGISTRATIONS,
-        ),
+        setup_services=_async_sync_service_registrations,
         setup_device_registry_listener=_SETUP_DEVICE_REGISTRY_LISTENER,
     )
     return True
@@ -89,11 +123,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: LiproConfigEntry) -> boo
     """Set up Lipro from a config entry."""
     await async_ensure_runtime_infra(
         hass,
-        setup_services=partial(
-            async_setup_services,
-            domain=DOMAIN,
-            registrations=SERVICE_REGISTRATIONS,
-        ),
+        setup_services=_async_sync_service_registrations,
         setup_device_registry_listener=_SETUP_DEVICE_REGISTRY_LISTENER,
     )
 
@@ -144,6 +174,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: LiproConfigEntry) -> boo
     entry.async_on_unload(
         entry.add_update_listener(async_reload_entry_if_options_changed)
     )
+    await _async_sync_service_registrations_with_lock(hass)
     return True
 
 
@@ -175,6 +206,8 @@ async def async_unload_entry(hass: HomeAssistant, entry: LiproConfigEntry) -> bo
                     registrations=SERVICE_REGISTRATIONS,
                 )
                 remove_device_registry_listener(hass)
+            else:
+                await _async_sync_service_registrations(hass)
         else:
             async with lock:
                 if not has_other_runtime_entries(
@@ -187,6 +220,8 @@ async def async_unload_entry(hass: HomeAssistant, entry: LiproConfigEntry) -> bo
                         registrations=SERVICE_REGISTRATIONS,
                     )
                     remove_device_registry_listener(hass)
+                else:
+                    await _async_sync_service_registrations(hass)
 
     return result
 

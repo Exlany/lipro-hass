@@ -23,30 +23,52 @@ _RE_TOKEN_LIKE = re.compile(r"^[a-zA-Z0-9_-]{32,}$")
 _RE_TOKEN_EMBEDDED = re.compile(r"\b[a-zA-Z0-9_-]{32,}\b")
 _RE_AUTH_BEARER = re.compile(r"(?i)(authorization\s*[:=]\s*bearer\s+)[^\s,;\"']+")
 _RE_SECRET_KV = re.compile(
-    r"(?i)\b(access[_-]?token|refresh[_-]?token|api[_-]?key|secret|password)\b"
+    r"(?i)\b("
+    r"access[_-]?token|refresh[_-]?token|install[_-]?token|"
+    r"api[_-]?key|access[_-]?key|secret(?:[_-]?key)?|password|phone[_-]?id"
+    r")\b"
     r"(\s*[:=]\s*)([^\s,;\"']+)"
 )
 
 # Keys to always redact from reports
 REDACT_KEYS: Final = frozenset(
     {
-        "deviceId",
-        "serial",
-        "mac",
-        "ip",
-        "wifi_ssid",
-        "wifiSsid",
-        "bleMac",
-        "deviceName",
-        "roomName",
-        "roomId",
-        "userId",
-        "bizId",
+        "accessKey",
         "access_token",
-        "refresh_token",
-        "phone",
-        "password",
+        "accessToken",
+        "apiKey",
+        "biz_id",
+        "bizId",
+        "bleMac",
+        "deviceId",
+        "deviceName",
+        "device_id",
         "gatewayDeviceId",
+        "gateway_device_id",
+        "groupId",
+        "installToken",
+        "install_token",
+        "iotDeviceId",
+        "iot_device_id",
+        "ip",
+        "ipAddress",
+        "mac",
+        "macAddress",
+        "password",
+        "phone",
+        "phoneId",
+        "phone_id",
+        "refresh_token",
+        "refreshToken",
+        "roomId",
+        "roomName",
+        "secretKey",
+        "serial",
+        "ssid",
+        "userId",
+        "user_id",
+        "wifiSsid",
+        "wifi_ssid",
     }
 )
 

@@ -491,6 +491,9 @@
     "entry_not_found": {
       "message": "Config entry not found or not loaded: {entry_id}"
     },
+    "developer_mode_not_enabled": {
+      "message": "Developer diagnostics are disabled. Enable debug mode first."
+    },
     "optional_capability_failed": {
       "message": "Optional capability {capability} failed ({error})."
     },

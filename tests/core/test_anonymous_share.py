@@ -259,18 +259,24 @@ class TestSanitizeProperties:
     def test_redacts_known_keys(self):
         props = {
             "deviceId": "secret-id",
+            "device_id": "secret-device",
+            "gateway_device_id": "gw-1",
             "mac": "5C:CD:7C:AA:BB:CC",
+            "macAddress": "5C:CD:7C:AA:BB:CC",
             "serial": "some-serial",
+            "ssid": "HomeWiFi-5G",
             "wifiSsid": "HomeWiFi-5G",
             "powerState": "1",
         }
         result = sanitize_properties(props)
-        # Known sensitive keys are completely removed (not present)
         assert "deviceId" not in result
+        assert "device_id" not in result
+        assert "gateway_device_id" not in result
         assert "mac" not in result
+        assert "macAddress" not in result
         assert "serial" not in result
+        assert "ssid" not in result
         assert "wifiSsid" not in result
-        # Safe keys are preserved
         assert "powerState" in result
         assert result["powerState"] == "1"
 
@@ -299,10 +305,26 @@ class TestSanitizeProperties:
         assert "DEVICEID" not in result
         assert "Mac" not in result
 
+    def test_redacts_variant_sensitive_keys(self):
+        props = {
+            "accessToken": "abc",
+            "refreshToken": "def",
+            "installToken": "tok-1",
+            "secretKey": "enc-sk",
+            "phoneId": "phone-1",
+            "user_id": 10001,
+            "biz_id": "biz-1",
+            "ipAddress": "10.0.0.5",
+            "safe": "ok",
+        }
+        result = sanitize_properties(props)
+        assert result == {"safe": "ok"}
+
     def test_sanitizes_json_string_payloads_recursively(self):
         props = {
             "deviceInfo": (
                 '{"wifi_ssid":"Lany","ip":"10.0.0.153","deviceId":"03AB5CCD7CABCDEF",'
+                '"accessToken":"abc","gateway_device_id":"gw-1","secretKey":"enc-sk",'
                 '"rc":[{"address":"5ccd7c5985f1","name":"智能控制器"}]}'
             )
         }
@@ -310,11 +332,12 @@ class TestSanitizeProperties:
         result = sanitize_properties(props)
         parsed = json.loads(result["deviceInfo"])
 
-        # Sensitive nested keys are removed by _sanitize_value.
         assert "wifi_ssid" not in parsed
         assert "ip" not in parsed
         assert "deviceId" not in parsed
-        # Nested compact MAC-like address should be redacted.
+        assert "accessToken" not in parsed
+        assert "gateway_device_id" not in parsed
+        assert "secretKey" not in parsed
         assert parsed["rc"][0]["address"] == "[redacted]"
 
     def test_sanitize_value_limits_nested_depth(self):

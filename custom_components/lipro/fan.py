@@ -145,22 +145,11 @@ class LiproFan(LiproEntity, FanEntity):
         self,
         properties: dict[str, int],
         optimistic: dict[str, int | str],
-        *,
-        optimistic_power: bool,
     ) -> None:
         """Ensure fan turns on when updating mode/speed while currently off."""
         if self.is_on:
             return
-        self._set_power_properties(
-            properties,
-            1,
-            optimistic,
-            include_optimistic=optimistic_power,
-        )
-        if optimistic_power:
-            optimistic[PROP_FAN_ONOFF] = "1"
-        else:
-            self.device.update_properties({PROP_FAN_ONOFF: "1"})
+        self._set_power_properties(properties, 1, optimistic)
 
     @property
     def speed_count(self) -> int:
@@ -254,11 +243,7 @@ class LiproFan(LiproEntity, FanEntity):
         gear = self._percentage_to_gear(percentage)
         properties: dict[str, int] = {PROP_FAN_GEAR: gear}
         optimistic: dict[str, int | str] = {PROP_FAN_GEAR: str(gear)}
-        self._add_power_on_if_needed(
-            properties,
-            optimistic,
-            optimistic_power=False,
-        )
+        self._add_power_on_if_needed(properties, optimistic)
         await self.async_change_state(
             properties,
             optimistic_state=optimistic,
@@ -277,7 +262,7 @@ class LiproFan(LiproEntity, FanEntity):
             return
         properties: dict[str, int] = {PROP_FAN_MODE: mode}
         optimistic: dict[str, int | str] = {PROP_FAN_MODE: str(mode)}
-        self._add_power_on_if_needed(properties, optimistic, optimistic_power=True)
+        self._add_power_on_if_needed(properties, optimistic)
         await self.async_change_state(properties, optimistic_state=optimistic)
 
 

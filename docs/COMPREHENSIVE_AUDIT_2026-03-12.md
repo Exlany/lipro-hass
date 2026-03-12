@@ -12,13 +12,15 @@
 
 ### 总结论
 
-- 代码库**不是失控状态**，而是一个**架构方向正确、但生命周期与装配链路尚未完全收口**的仓库。
+- 代码库**不是失控状态**，而是一个**架构方向正确，且本轮已完成生命周期、装配链路与测试护栏关键收口**的仓库。
 - 原审计的很多问题**方向是对的**，但存在三类偏差：
   1. **覆盖统计失真**：原文写约 `255` 个 Python 文件，实际本次覆盖为 `385` 个。
   2. **结论已过期**：如 `StatusRuntime/TuningRuntime 未消费`、`MQTT 订阅无 fallback`。
   3. **严重度偏激进**：部分问题真实存在，但更像协议漂移、未接线或维护性问题，不该直接列入 `P0`。
 
 ### 当前最值得优先处理的 7 个问题
+
+> **2026-03-12 执行更新**：本节列出的 7 个真实高优先问题已全部收口，当前剩余事项主要转为第 4 节记录类治理项，而非运行时崩溃风险。
 
 1. MQTT 卸载/重载时未完整释放连接与后台任务
 2. MQTT bridge 任务未接入统一任务管理
@@ -32,15 +34,17 @@
 
 ### 0.1 2026-03-12 执行状态更新
 
-- 第一批 `1.1`–`1.6` 已全部完成并验证。
-- 第二批 `2.1`–`2.4` 已完成并验证，其中：
-  - mesh group 元数据现由 **full snapshot + incremental refresh** 双路径回填；
-  - `power_info` 已接回 `Coordinator._async_run_status_polling()` 正式主路径；
-  - `schedule` / `diagnostics` / `firmware_update` 已改走 coordinator facade。
+- 第一批 `1.1`–`1.6`、第二批 `2.1`–`2.8`、第三批 `3.1`–`3.6` 已全部完成并验证。
+- 本轮完成的关键收口：
+  - developer-only 服务改为 **debug_mode 显式 opt-in**，默认安装不再暴露。
+  - OTA 认证信任根改为 **inline + local manifest**，远端 manifest 仅作 advisory 元数据。
+  - 匿名分享脱敏补齐 camelCase / 变体键 / 短凭证场景，`fan` 平台已回归统一 optimistic 写路径。
+  - OTA 共享缓存、MQTT 真实 wiring、service orchestration、benchmark 后置断言、影子 runtime/test/type-checking 伪护栏已全部收口。
+  - `custom_components/lipro/core/coordinator/coordinator.py` 与相关测试类型边界已补齐，`uv run mypy` 重新转绿。
 - 本轮验证：
-  - `uv run pytest tests/services/test_services_schedule.py ... tests/core/test_init.py` → `302 passed`
-  - `uv run pytest tests/core/test_command_dispatch.py ... tests/core/test_outlet_power.py` → `71 passed`
   - `uv run ruff check .` → 全绿
+  - `uv run mypy` → `Success: no issues found in 372 source files`
+  - `uv run pytest ...`（跨批回归集合）→ `454 passed`
 
 ## 1. 审计范围与方法
 
@@ -78,26 +82,25 @@
 
 - **总体健康度**：`B / B+`
 - **架构成熟度**：主架构清晰，服务边界与运行时拆分方向正确。
-- **主要短板**：
-  - MQTT 生命周期收口不完整
-  - 设备索引与增量刷新链路一致性不足
-  - 部分 runtime/protocol 文档与实际实现漂移
-  - 测试“有效护栏率”明显低于通过率
+- **当前剩余议题**：
+  - 第 4 节记录类兼容性约束仍需长期维护
+  - 个别历史文档仍可继续去噪与收敛
+  - 回归集合应固化为后续合并前基线
 
 ### 2.2 本次重排后的风险中心
 
 | 优先级 | 主题 | 说明 |
 |---|---|---|
-| 高 | 生命周期 / 并发 | MQTT disconnect、task 管理、连接态、订阅同步 |
-| 高 | 数据一致性 | 增量刷新索引键错配、identity index 重建缺口 |
-| 中 | 边界收口 | direct client 访问、developer-only 服务暴露 |
-| 中 | 数据模型闭环 | `group_member_ids` / `gateway_device_id` 生产写入缺失 |
-| 中 | 文档/协议漂移 | runtime protocols 与真实实现不一致 |
-| 中 | 测试护栏不足 | OTA/MQTT 并发路径、真实装配链路、type-checking 伪护栏 |
+| 中 | 兼容性约束 | 供应商协议常量、`MD5`、签名材料等记录项仍需持续跟踪 |
+| 中 | 文档治理 | 历史审计/重构文档仍需按当前实现继续去噪 |
+| 低 | 回归基线维护 | `ruff` / `mypy` / 关键回归集合需保持常态化执行 |
 
 ---
 
-## 3. 确认成立的高优先级问题
+## 3. 已确认并已收口的高优先级问题
+
+> **2026-03-12 执行更新**：本节问题保留为“问题来源 + 修复背景”，当前均已完成修复并进入回归观察。
+
 
 ### 3.1 MQTT 卸载释放缺口
 
@@ -186,30 +189,29 @@
 - 当前状态：生产代码中已移除 `coordinator.client.*` 直达路径，后续认证、限流、遥测可继续在 facade 层集中演进。
 - 当前定级：**已修复，转入观察**
 
-### 4.4 developer-only 服务默认暴露
+### 4.4 developer-only 服务默认暴露（2026-03-12 更新）
 
-- 注册点：`custom_components/lipro/services/registrations.py:67`
-- 调试开关：`custom_components/lipro/flow/options_flow.py:287`
-- 现状：`debug_mode` 存在，但未参与 developer-only 服务注册判定。
-- 当前定级：**中**
+- 修复点：`custom_components/lipro/services/registrations.py`、`custom_components/lipro/services/wiring.py`、`custom_components/lipro/__init__.py`
+- 当前状态：developer-only 服务已改为 **显式 opt-in**；仅当存在开启 `debug_mode` 的 runtime entry 时才注册并放行。
+- 当前定级：**已修复，转入观察**
 
-### 4.5 远端固件认证信任链过弱
+### 4.5 远端固件认证信任链过弱（2026-03-12 更新）
 
-- 证据：`custom_components/lipro/firmware_manifest.py:67`
-- 消费点：`custom_components/lipro/entities/firmware_update.py:157`
-- 现状：远端 manifest 仅校验 HTTP/JSON 可用性，未见签名校验或本地信任根优先策略。
-- 当前定级：**中**
+- 修复点：`custom_components/lipro/core/ota/candidate.py`、`custom_components/lipro/firmware_manifest.py`
+- 当前状态：`certified` 最终信任根已收口到 **inline + local manifest**；远端 manifest 不再单独放宽安装确认。
+- 当前定级：**已修复，转入观察**
 
-### 4.6 匿名分享脱敏规则对 camelCase / 变体键仍可能漏网
+### 4.6 匿名分享脱敏规则对 camelCase / 变体键仍可能漏网（2026-03-12 更新）
 
-- 证据：`custom_components/lipro/core/anonymous_share/sanitize.py:31`
-- 当前定级：**中**
+- 修复点：`custom_components/lipro/core/anonymous_share/sanitize.py`
+- 当前状态：已覆盖 camelCase、snake_case、短 token/key 及设备/网关/网络标识等变体，并补齐对应测试。
+- 当前定级：**已修复，转入观察**
 
-### 4.7 `fan` 平台保留一条绕过统一 optimistic 写路径的本地写入
+### 4.7 `fan` 平台保留一条绕过统一 optimistic 写路径的本地写入（2026-03-12 更新）
 
-- 证据：`custom_components/lipro/fan.py:144`、`custom_components/lipro/fan.py:163`
-- 现状：并非整个平台都绕锁，但这两个点确实直接写共享 device model。
-- 当前定级：**中偏低**
+- 修复点：`custom_components/lipro/fan.py`
+- 当前状态：直接本地写共享 device model 的路径已删除，平台重新统一走 optimistic/debounced 更新路径。
+- 当前定级：**已修复，转入观察**
 
 ---
 
@@ -239,48 +241,41 @@
   - `tests/core/test_mqtt.py:1`
   - `tests/core/test_coordinator.py:1`
 
-### 6.2 真实缺口
+### 6.2 已完成收口的测试缺口（2026-03-12 更新）
 
-1. **OTA 共享缓存与并发去重缺少强护栏**
-   - 代表：`tests/core/ota/test_ota_rows_cache.py:1`
-2. **MQTT 真实 wiring 链路测试不足**
-   - 许多测试直接调用 runtime，不经过真实 bridge。
-3. **`tests/type_checking/*` 更像运行时烟雾测试**
-   - 代表：`tests/type_checking/test_protocols.py:1`、`tests/type_checking/test_api_types.py:1`
-4. **service 测试偏 delegation，副作用 orchestration 守护不足**
-   - 代表：`tests/core/coordinator/services/test_command_service.py:1`
-5. **benchmark 多为计时，不验证后置状态**
-   - 代表：`tests/benchmarks/test_command_benchmark.py:1`
+1. **OTA 共享缓存与并发去重护栏已补齐**
+   - 文件：`tests/core/ota/test_ota_rows_cache.py:1`
+2. **MQTT 真实 wiring 链路已补真实 bridge 测试**
+   - 文件：`tests/integration/test_mqtt_coordinator_integration.py:1`
+3. **`tests/type_checking/*` 已降级为 smoke，并移除 tests-only 协议接口**
+   - 文件：`tests/core/api/test_api_types_smoke.py:1`、`.github/workflows/ci.yml:1`
+4. **service orchestration 已补副作用护栏**
+   - 文件：`tests/core/coordinator/services/test_command_service.py:1`、`tests/core/coordinator/services/test_device_refresh_service.py:1`
+5. **benchmark 已补最小后置状态断言**
+   - 文件：`tests/benchmarks/test_command_benchmark.py:1`、`tests/benchmarks/test_mqtt_benchmark.py:1`、`tests/benchmarks/test_device_refresh_benchmark.py:1`、`tests/benchmarks/test_coordinator_performance.py:1`
+6. **仓库级静态检查重新转绿**
+   - 验证：`uv run mypy` → `Success: no issues found in 372 source files`
 
 ### 6.3 最终判断
 
-- 当前测试体系不应被表述为“全面而强壮”。
-- 更准确的结论是：**基础分支覆盖尚可，但并发、生命周期、装配链路的防回归能力仍不足。**
+- 当前测试体系已不再只是“通过很多但护栏虚弱”。
+- 更准确的结论是：**基础回归、并发缓存、MQTT 真实装配链路、service orchestration 与 benchmark 后置状态，均已建立有效防回归护栏。**
 
 ---
 
 ## 7. 修正后的执行顺序
 
-### 第一批：立即修复
+### 当前执行状态（2026-03-12 更新）
 
-1. `Coordinator.async_shutdown()` 收口 MQTT 与后台任务
-2. MQTT bridge 接入 `BackgroundTaskManager`
-3. 修复增量刷新索引键错配
-4. 真实 MQTT runtime 替换后重新注入 polling updater
+1. 第一批：**已完成**
+2. 第二批：**已完成**
+3. 第三批：**已完成**
 
-### 第二批：短期修复
+### 后续建议
 
-5. 修正 MQTT 连接态来源
-6. identity index 改为原子重建
-7. 补齐 `group_member_ids` / `gateway_device_id` 数据闭环，或移除消费依赖
-8. developer-only 服务改为显式 opt-in
-
-### 第三批：治理与补测
-
-9. 收口 direct client 访问到 service/facade
-10. 清理影子模块与重复测试
-11. 补 OTA / MQTT 并发与真实 wiring 测试
-12. 重写 runtime/protocol 文档，消除 `type: ignore` 掩盖装配漂移
+1. 维持当前 `ruff` / `mypy` / 回归集合为合并前基线
+2. 对第 4 节记录类事项按“兼容性约束 / 文档治理”节奏处理
+3. 若继续做架构演进，优先围绕 facade 契约稳定性与残余历史文档去噪推进
 
 ---
 
@@ -303,10 +298,6 @@
 
 ## 9. 最终结论
 
-- 这份仓库当前最重要的，不是继续堆更多“问题数量”，而是把**真实运行风险**先收掉。
-- 真正该先做的，是：
-  - 修 MQTT 生命周期
-  - 修索引与增量刷新一致性
-  - 修装配漂移
-  - 把测试从“通过很多”变成“真能挡住回归”
-- 后续修复优先级、任务拆分与验收条件，请直接使用 `docs/AUDIT_ISSUES_CHECKLIST.md`。
+- 本轮审计对应的**真实运行风险与测试护栏缺口已经完成收口**。
+- 当前更重要的，不是继续扩张问题清单，而是把现有 `ruff` / `mypy` / 回归测试集固化为持续基线。
+- 后续若继续推进，请以 `docs/AUDIT_ISSUES_CHECKLIST.md` 中第 4 节记录项为治理清单，并优先清理剩余历史文档噪音。

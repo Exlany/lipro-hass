@@ -41,6 +41,7 @@ if TYPE_CHECKING:
 
     from ..auth import LiproAuthManager
     from ..device import LiproDevice
+    from .types import StatusQueryMetrics
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -324,7 +325,7 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
         *,
         mesh_gateway_id: str = "",
         mesh_member_ids: list[str] | None = None,
-    ) -> list[object]:
+    ) -> list[dict[str, Any]]:
         """Query schedules through the coordinator facade."""
         return await self.client.get_device_schedules(
             device_id,
@@ -337,13 +338,13 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
         self,
         device_id: str,
         device_type: str | int,
-        days: object,
-        times: object,
-        events: object,
+        days: list[int],
+        times: list[int],
+        events: list[int],
         *,
         mesh_gateway_id: str = "",
         mesh_member_ids: list[str] | None = None,
-    ) -> list[object]:
+    ) -> list[dict[str, Any]]:
         """Create a schedule through the coordinator facade."""
         return await self.client.add_device_schedule(
             device_id,
@@ -359,11 +360,11 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
         self,
         device_id: str,
         device_type: str | int,
-        schedule_ids: object,
+        schedule_ids: list[int],
         *,
         mesh_gateway_id: str = "",
         mesh_member_ids: list[str] | None = None,
-    ) -> list[object]:
+    ) -> list[dict[str, Any]]:
         """Delete schedules through the coordinator facade."""
         return await self.client.delete_device_schedules(
             device_id,
@@ -389,11 +390,11 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
 
     async def async_get_city(self) -> dict[str, object]:
         """Query city metadata through the coordinator facade."""
-        return await self.client.get_city()
+        return dict(await self.client.get_city())
 
     async def async_query_user_cloud(self) -> dict[str, object]:
         """Query user-cloud metadata through the coordinator facade."""
-        return await self.client.query_user_cloud()
+        return dict(await self.client.query_user_cloud())
 
     async def async_fetch_body_sensor_history(
         self,
@@ -404,11 +405,13 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
         mesh_type: str,
     ) -> dict[str, object]:
         """Query body-sensor history through the coordinator facade."""
-        return await self.client.fetch_body_sensor_history(
-            device_id=device_id,
-            device_type=device_type,
-            sensor_device_id=sensor_device_id,
-            mesh_type=mesh_type,
+        return dict(
+            await self.client.fetch_body_sensor_history(
+                device_id=device_id,
+                device_type=device_type,
+                sensor_device_id=sensor_device_id,
+                mesh_type=mesh_type,
+            )
         )
 
     async def async_fetch_door_sensor_history(
@@ -420,11 +423,13 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
         mesh_type: str,
     ) -> dict[str, object]:
         """Query door-sensor history through the coordinator facade."""
-        return await self.client.fetch_door_sensor_history(
-            device_id=device_id,
-            device_type=device_type,
-            sensor_device_id=sensor_device_id,
-            mesh_type=mesh_type,
+        return dict(
+            await self.client.fetch_door_sensor_history(
+                device_id=device_id,
+                device_type=device_type,
+                sensor_device_id=sensor_device_id,
+                mesh_type=mesh_type,
+            )
         )
 
     async def async_query_ota_info(
@@ -477,7 +482,9 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
             round_robin_index=0,
             resolve_cycle_size=lambda total_devices: total_devices,
             fetch_outlet_power_info=self.async_fetch_outlet_power_info,
-            get_device_by_id=self.get_device_by_id,
+            get_device_by_id=lambda device_id: self.get_device_by_id(device_id)
+            if isinstance(device_id, str)
+            else None,
             apply_outlet_power_info=apply_outlet_power_info,
             should_reraise_outlet_power_error=should_reraise_outlet_power_error,
             logger=_LOGGER,
@@ -590,7 +597,7 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
             mqtt_connected=mqtt_connected,
         )
 
-        results: list[dict[str, Any]] = []
+        results: list[StatusQueryMetrics] = []
         if candidates:
             # Split into optimally-sized batches
             batches = status_runtime.compute_query_batches(candidates)

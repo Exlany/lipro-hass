@@ -57,7 +57,95 @@ async def test_command_service_runs_command_flow() -> None:
         properties=[{"key": "powerState", "value": "1"}],
         fallback_device_id=None,
     )
+    coordinator.tuning_runtime.record_user_action.assert_called_once_with(
+        device_serial=device.serial,
+        command="POWER_ON",
+    )
     coordinator.background_task_manager.create.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_command_service_triggers_refresh_after_confirmation_timeout(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    coordinator = MagicMock()
+    coordinator.command_runtime = MagicMock()
+    coordinator.command_runtime.send_device_command = AsyncMock(
+        return_value=(True, "device_direct")
+    )
+    coordinator.background_task_manager = BackgroundTaskManager(
+        asyncio.create_task,
+        logging.getLogger(__name__),
+    )
+    coordinator.tuning_runtime = MagicMock()
+    coordinator.async_request_refresh = AsyncMock()
+    service = CoordinatorCommandService(coordinator)
+    device = MagicMock(
+        serial="03ab5ccd7caaaaaa",
+        is_group=False,
+        iot_name="lipro_led",
+        device_type=1,
+        physical_model="light",
+    )
+
+    original_sleep = asyncio.sleep
+
+    async def _fast_sleep(_delay: float) -> None:
+        await original_sleep(0)
+
+    monkeypatch.setattr(
+        "custom_components.lipro.core.coordinator.services.command_service.asyncio.sleep",
+        _fast_sleep,
+    )
+
+    result = await service.async_send_command(
+        device,
+        "POWER_ON",
+        [{"key": "powerState", "value": "1"}],
+    )
+
+    await asyncio.gather(
+        *tuple(coordinator.background_task_manager.tasks),
+        return_exceptions=True,
+    )
+
+    assert result is True
+    coordinator.tuning_runtime.record_user_action.assert_called_once_with(
+        device_serial=device.serial,
+        command="POWER_ON",
+    )
+    coordinator.async_request_refresh.assert_awaited_once()
+    assert service._pending_confirmations == {}
+    assert not coordinator.background_task_manager.tasks
+
+
+@pytest.mark.asyncio
+async def test_command_service_skips_follow_up_side_effects_on_failure() -> None:
+    coordinator = MagicMock()
+    coordinator.command_runtime = MagicMock()
+    coordinator.command_runtime.send_device_command = AsyncMock(
+        return_value=(False, "device_direct")
+    )
+    coordinator.background_task_manager = MagicMock()
+    coordinator.tuning_runtime = MagicMock()
+    service = CoordinatorCommandService(coordinator)
+    device = MagicMock(
+        serial="03ab5ccd7caaaaaa",
+        is_group=False,
+        iot_name="lipro_led",
+        device_type=1,
+        physical_model="light",
+    )
+
+    result = await service.async_send_command(
+        device,
+        "POWER_ON",
+        [{"key": "powerState", "value": "1"}],
+    )
+
+    assert result is False
+    coordinator.tuning_runtime.record_user_action.assert_not_called()
+    coordinator.background_task_manager.create.assert_not_called()
 
 
 @pytest.mark.asyncio
