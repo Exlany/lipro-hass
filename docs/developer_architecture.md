@@ -1,9 +1,10 @@
 # Lipro Home Assistant Integration - Developer Architecture
 
 > **Last Updated**: 2026-03-12  \
-> **Version**: 3.6 (Post-audit convergence + north-star architecture alignment)
+> **Version**: 3.7 (North-star architecture docs + execution plan aligned)
 >
-> ⚠️ 本文档仅描述"架构与模块边界"，不硬编码评分/覆盖率/通过率等易失真指标。  \
+> ⚠️ 本文档仅描述"当前收敛后的架构与模块边界"，不硬编码评分/覆盖率/通过率等易失真指标。  \
+> 北极星目标架构请见 `docs/NORTH_STAR_TARGET_ARCHITECTURE.md`；执行路线请见 `docs/NORTH_STAR_EXECUTION_PLAN_2026-03-12.md`。  \
 > 当前实现状态、验证结果与风险优先级请以 `docs/COMPREHENSIVE_AUDIT_2026-03-12.md` 为准。
 
 ## 快速导航
@@ -549,6 +550,8 @@ uv run pytest -q                                         # 全量测试
 ## 参考文档
 
 - `docs/COMPREHENSIVE_AUDIT_2026-03-12.md` — 当前权威审计/验证报告
+- `docs/NORTH_STAR_TARGET_ARCHITECTURE.md` — 北极星目标架构（终态基准）
+- `docs/NORTH_STAR_EXECUTION_PLAN_2026-03-12.md` — 北极星执行计划与分工
 - `docs/adr/README.md` — 长期生效的架构决策索引
 - `docs/archive/` — 历史审计、重构计划与过期快照
 - `CHANGELOG.md` — 变更日志
