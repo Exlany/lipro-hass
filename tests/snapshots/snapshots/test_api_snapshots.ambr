@@ -30,3 +30,33 @@
     }),
   })
 # ---
+# name: test_protocol_contract_baseline_snapshots
+  dict({
+    'get_city': dict({
+      'city': '江门市',
+      'province': '广东省',
+      'zone': '蓬江区',
+    }),
+    'mqtt_config': dict({
+      'accepted_input_shapes': list([
+        'direct',
+        'wrapped',
+      ]),
+      'canonical_output': dict({
+        'accessKey': 'ak-direct',
+        'clientId': 'cid-direct',
+        'endpoint': 'tcp://mqtt.example.com:1883',
+        'secretKey': 'sk-direct',
+      }),
+    }),
+    'query_user_cloud': dict({
+      'data': list([
+        dict({
+          'appName': 'assistant',
+          'enabled': True,
+        }),
+      ]),
+      'success': True,
+    }),
+  })
+# ---
