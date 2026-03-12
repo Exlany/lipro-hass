@@ -18,11 +18,10 @@ from ...const.config import DEFAULT_SCAN_INTERVAL
 from ..api import (
     LiproApiError,
     LiproAuthError,
-    LiproClient,
     LiproConnectionError,
     LiproRefreshTokenExpiredError,
 )
-from ..mqtt.mqtt_client import LiproMqttClient
+from ..protocol import LiproMqttFacade, LiproProtocolFacade
 from .mqtt_lifecycle import async_setup_mqtt as setup_mqtt_lifecycle
 from .orchestrator import RuntimeOrchestrator
 from .outlet_power import apply_outlet_power_info, should_reraise_outlet_power_error
@@ -58,7 +57,7 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
     def __init__(
         self,
         hass: HomeAssistant,
-        client: LiproClient,
+        client: LiproProtocolFacade,
         auth_manager: LiproAuthManager,
         config_entry: ConfigEntry,
         update_interval: int = DEFAULT_SCAN_INTERVAL,
@@ -215,7 +214,7 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
         return self._state.background_task_manager
 
     @property
-    def mqtt_client(self) -> LiproMqttClient | None:
+    def mqtt_client(self) -> LiproMqttFacade | None:
         """Access MQTT client (public API for services)."""
         return self._state.mqtt_client
 

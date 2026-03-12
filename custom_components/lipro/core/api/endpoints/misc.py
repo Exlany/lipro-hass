@@ -1,4 +1,4 @@
-"""Misc endpoints for LiproClient (MQTT/power/diagnostics)."""
+"""Misc endpoints and collaborators for the REST facade."""
 
 from __future__ import annotations
 
@@ -19,7 +19,7 @@ from ..errors import LiproApiError
 from ..mqtt_api_service import get_mqtt_config as get_mqtt_config_service
 from ..power_service import fetch_outlet_power_info as fetch_outlet_power_info_service
 from ..types import OtaInfoRow
-from .payloads import _ClientEndpointPayloadsMixin
+from .payloads import _ClientEndpointPayloadsMixin, _EndpointAdapter
 
 # Use the same logger instance as custom_components.lipro.core.api.client._LOGGER
 # so tests patching client._LOGGER.* still intercept logs here.
@@ -29,7 +29,7 @@ type ResponseMapping = Mapping[str, object]
 
 
 class _ClientMiscEndpointsMixin(_ClientEndpointPayloadsMixin):
-    """Endpoints: MQTT config, outlet power, and diagnostics helpers."""
+    """Legacy misc endpoint mixin retained for focused helper tests."""
 
     async def get_mqtt_config(self) -> dict[str, Any]:
         """Get MQTT configuration information."""
@@ -144,4 +144,19 @@ class _ClientMiscEndpointsMixin(_ClientEndpointPayloadsMixin):
         )
 
 
-__all__ = ["_ClientMiscEndpointsMixin"]
+class MiscEndpoints(_EndpointAdapter, _ClientMiscEndpointsMixin):
+    """Explicit misc endpoint collaborator for ``LiproRestFacade``."""
+
+    EXPORTED_METHODS = (
+        "get_mqtt_config",
+        "fetch_outlet_power_info",
+        "query_command_result",
+        "get_city",
+        "query_user_cloud",
+        "query_ota_info",
+        "fetch_body_sensor_history",
+        "fetch_door_sensor_history",
+    )
+
+
+__all__ = ["MiscEndpoints", "_ClientMiscEndpointsMixin"]

@@ -31,7 +31,7 @@ if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
 
     from ...device import LiproDevice
-    from ...mqtt import LiproMqttClient
+    from ...protocol import MqttTransportFacade
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -90,7 +90,7 @@ class MqttRuntime:
         self,
         *,
         hass: HomeAssistant,
-        mqtt_client: LiproMqttClient | None,
+        mqtt_client: MqttTransportFacade | None,
         base_scan_interval: int,
         device_resolver: DeviceResolverProtocol,
         property_applier: PropertyApplierProtocol,

@@ -417,3 +417,19 @@ def test_apply_ota_candidate_clears_release_attributes_when_candidate_missing(
 
     assert entity.release_summary is None
     assert entity.release_url is None
+
+
+def test_resolve_local_manifest_certification_ignores_remote_advisory_truth() -> None:
+    from custom_components.lipro.core.ota.candidate import resolve_certification
+
+    assert resolve_certification(
+        {"latestVersion": "8.0.0"},
+        installed="7.0.0",
+        latest="8.0.0",
+        device_iot_name="21P3",
+        remote_verified_versions=frozenset({"8.0.0"}),
+        remote_versions_by_type={"21p3": frozenset({"8.0.0"})},
+        local_verified_versions=frozenset(),
+        local_versions_by_type={},
+        is_version_newer=lambda candidate, current: candidate > current,
+    ) is False

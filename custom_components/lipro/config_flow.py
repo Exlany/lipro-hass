@@ -29,7 +29,8 @@ from .const.config import (
     DEFAULT_COMMAND_RESULT_VERIFY,
     DEFAULT_REMEMBER_PASSWORD_HASH,
 )
-from .core.api import LiproApiError, LiproClient
+from .core import LiproProtocolFacade
+from .core.api import LiproApiError, LiproClient as _LiproClientCompat
 from .core.utils.log_safety import safe_error_placeholder
 from .flow.credentials import (
     mask_phone_for_title as _mask_phone_for_title,
@@ -47,6 +48,8 @@ from .flow.schemas import (
     STEP_USER_DATA_SCHEMA,
     build_reconfigure_data_schema as _build_reconfigure_data_schema,
 )
+
+LiproClient = _LiproClientCompat
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -86,7 +89,7 @@ class LiproConfigFlow(ConfigFlow, domain=DOMAIN):
 
         """
         session = async_get_clientsession(self.hass)
-        client = LiproClient(phone_id, session)
+        client = LiproProtocolFacade(phone_id, session)
         result = await client.login(phone, password_hash, password_is_hashed=True)
 
         return LoginResult(

@@ -10,7 +10,7 @@ from .device.refresh_strategy import RefreshStrategy, StaleDeviceTracker
 from .device.snapshot import FetchedDeviceSnapshot, SnapshotBuilder
 
 if TYPE_CHECKING:
-    from custom_components.lipro.core.api import LiproClient
+    from custom_components.lipro.core.protocol import LiproProtocolFacade
     from custom_components.lipro.core.auth import LiproAuthManager
     from custom_components.lipro.core.device.identity_index import DeviceIdentityIndex
 
@@ -27,7 +27,7 @@ class DeviceRuntime:
     def __init__(
         self,
         *,
-        client: LiproClient,
+        client: LiproProtocolFacade,
         auth_manager: LiproAuthManager,
         device_identity_index: DeviceIdentityIndex,
         filter_config_options: dict[str, Any] | None = None,

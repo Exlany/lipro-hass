@@ -1,4 +1,4 @@
-"""Status/query endpoints for LiproClient."""
+"""Status/query endpoints and collaborators for the REST facade."""
 
 from __future__ import annotations
 
@@ -32,7 +32,7 @@ from ..status_service import (
 )
 from ..types import DeviceStatusItem
 from .connect_status import coerce_connect_status
-from .payloads import _ClientEndpointPayloadsMixin
+from .payloads import _ClientEndpointPayloadsMixin, _EndpointAdapter
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -53,7 +53,7 @@ _BATCH_FALLBACK_EXPECTED_OFFLINE_CODES = (
 
 
 class _ClientStatusEndpointsMixin(_ClientEndpointPayloadsMixin):
-    """Endpoints: status queries."""
+    """Legacy status endpoint mixin retained for focused helper tests."""
 
     @staticmethod
     def _is_retriable_device_error(err: Exception) -> bool:
@@ -131,4 +131,15 @@ class _ClientStatusEndpointsMixin(_ClientEndpointPayloadsMixin):
         )
 
 
-__all__ = ["_ClientStatusEndpointsMixin"]
+class StatusEndpoints(_EndpointAdapter, _ClientStatusEndpointsMixin):
+    """Explicit status endpoint collaborator for ``LiproRestFacade``."""
+
+    EXPORTED_METHODS = (
+        "_is_retriable_device_error",
+        "query_device_status",
+        "query_mesh_group_status",
+        "query_connect_status",
+    )
+
+
+__all__ = ["StatusEndpoints", "_ClientStatusEndpointsMixin"]

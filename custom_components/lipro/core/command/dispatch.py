@@ -15,7 +15,7 @@ from .result import is_command_push_failed
 from .trace import update_trace_with_resolved_request, update_trace_with_response
 
 if TYPE_CHECKING:
-    from ..api import LiproClient
+    from ..protocol import LiproProtocolFacade
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -168,7 +168,7 @@ def plan_command_dispatch(
 
 
 async def _send_member_command(
-    client: LiproClient,
+    client: LiproProtocolFacade,
     *,
     member_id: str,
     device: LiproDevice,
@@ -186,7 +186,7 @@ async def _send_member_command(
 
 
 async def _fallback_to_member(
-    client: LiproClient,
+    client: LiproProtocolFacade,
     *,
     member_id: str,
     device: LiproDevice,
@@ -209,7 +209,7 @@ async def _fallback_to_member(
 
 
 async def _send_group_with_error_fallback(
-    client: LiproClient,
+    client: LiproProtocolFacade,
     *,
     device: LiproDevice,
     plan: CommandDispatchPlan,
@@ -254,7 +254,7 @@ def _should_fallback_after_group_result(
 
 
 async def _execute_panel_command(
-    client: LiproClient,
+    client: LiproProtocolFacade,
     *,
     device: LiproDevice,
     plan: CommandDispatchPlan,
@@ -271,7 +271,7 @@ async def _execute_panel_command(
 
 
 async def _execute_device_command(
-    client: LiproClient,
+    client: LiproProtocolFacade,
     *,
     device: LiproDevice,
     plan: CommandDispatchPlan,
@@ -288,7 +288,7 @@ async def _execute_device_command(
 
 
 async def _execute_group_command(
-    client: LiproClient,
+    client: LiproProtocolFacade,
     *,
     device: LiproDevice,
     plan: CommandDispatchPlan,
@@ -326,7 +326,7 @@ async def _execute_group_command(
 
 
 async def execute_command_dispatch(
-    client: LiproClient,
+    client: LiproProtocolFacade,
     *,
     device: LiproDevice,
     plan: CommandDispatchPlan,
@@ -342,7 +342,7 @@ async def execute_command_dispatch(
 
 
 async def execute_command_plan_with_trace(
-    client: LiproClient,
+    client: LiproProtocolFacade,
     *,
     device: LiproDevice,
     command: str,

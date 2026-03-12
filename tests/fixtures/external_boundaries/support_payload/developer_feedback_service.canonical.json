@@ -1,0 +1,15 @@
+{
+  "source": "home_assistant_service",
+  "service": "lipro.submit_developer_feedback",
+  "generated_at": "<generated_at>",
+  "entry_count": 1,
+  "note": "manual run",
+  "reports": [
+    {
+      "runtime": {
+        "ok": true
+      }
+    }
+  ],
+  "requested_entry_id": "entry-2"
+}

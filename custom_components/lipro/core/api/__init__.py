@@ -1,4 +1,9 @@
-"""Lipro API client package."""
+"""Lipro API package.
+
+`LiproRestFacade` is the explicit REST child facade under the unified
+`LiproProtocolFacade` protocol root. `LiproClient` remains a transitional
+compatibility shell for legacy constructors and wrapper methods.
+"""
 
 from __future__ import annotations
 
@@ -28,10 +33,10 @@ __all__ = [
     "LiproApiError",
     "LiproAuthError",
     "LiproClient",
-    "LiproRestFacade",
     "LiproConnectionError",
     "LiproRateLimitError",
     "LiproRefreshTokenExpiredError",
+    "LiproRestFacade",
     "OtaInfoRow",
     "ScheduleApiResponse",
     "ScheduleTimingRow",

@@ -9,9 +9,7 @@ from homeassistant.core import HomeAssistant, SupportsResponse
 
 from ..const.base import DOMAIN
 from ..const.config import CONF_DEBUG_MODE, DEFAULT_DEBUG_MODE
-from . import contracts as _contracts
-from .registry import ServiceRegistration
-from .wiring import (
+from ..control.service_router import (
     _async_handle_add_schedule,
     _async_handle_delete_schedules,
     _async_handle_fetch_body_sensor_history,
@@ -27,6 +25,8 @@ from .wiring import (
     _async_handle_submit_anonymous_share,
     _async_handle_submit_developer_feedback,
 )
+from . import contracts as _contracts
+from .registry import ServiceRegistration
 
 PUBLIC_SERVICE_REGISTRATIONS: Final[tuple[ServiceRegistration, ...]] = (
     ServiceRegistration(
@@ -129,7 +129,6 @@ def is_debug_mode_enabled_for_entry(entry: Any) -> bool:
     if not isinstance(options, Mapping):
         return DEFAULT_DEBUG_MODE
     return bool(options.get(CONF_DEBUG_MODE, DEFAULT_DEBUG_MODE))
-
 
 
 def has_debug_mode_runtime_entry(hass: HomeAssistant) -> bool:

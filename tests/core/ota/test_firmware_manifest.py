@@ -237,3 +237,40 @@ async def test_async_load_remote_manifest_keeps_cached_data_when_payload_empty()
     assert firmware_manifest._REMOTE_MANIFEST_STATE.data == cached_data
     assert firmware_manifest._REMOTE_MANIFEST_STATE.time == now
     parse_payload.assert_called_once_with({"verified_versions": []})
+
+
+def test_remote_advisory_fixture_family_matches_current_parser() -> None:
+    from tests.helpers.external_boundary_fixtures import load_external_boundary_fixture
+
+    versions, by_type = firmware_manifest.parse_verified_firmware_manifest_payload(
+        load_external_boundary_fixture(
+            "firmware",
+            "remote_advisory.verified_versions.json",
+        )
+    )
+
+    assert versions == frozenset({"8.0.0"})
+    assert by_type == {"21p3": frozenset({"8.0.0"})}
+
+
+def test_remote_firmware_list_fixture_derives_versions() -> None:
+    from tests.helpers.external_boundary_fixtures import load_external_boundary_fixture
+
+    versions, by_type = firmware_manifest.parse_verified_firmware_manifest_payload(
+        load_external_boundary_fixture(
+            "firmware",
+            "remote_advisory.firmware_list.json",
+        )
+    )
+
+    assert versions == frozenset({"8.0.0", "2.6.43"})
+    assert by_type == {
+        "21p3": frozenset({"8.0.0"}),
+        "t21jc": frozenset({"2.6.43"}),
+    }
+
+
+def test_local_manifest_path_points_to_repo_asset() -> None:
+    assert firmware_manifest.LOCAL_FIRMWARE_SUPPORT_MANIFEST_PATH.name == (
+        firmware_manifest.LOCAL_FIRMWARE_SUPPORT_MANIFEST_FILENAME
+    )

@@ -1,31 +1,27 @@
-"""Diagnostics support for Lipro integration.
-
-Home Assistant diagnostics are intended for issue reports and are sanitized by
-default. This exporter redacts account credentials, tokens, cloud identifiers,
-device identifiers, and network identifiers (WiFi SSID/MAC/IP). It also attempts
-to parse and sanitize embedded JSON strings within device payloads.
-"""
+"""Diagnostics support thin adapter for the Lipro integration."""
 
 from __future__ import annotations
 
-import json
-import re
-from typing import TYPE_CHECKING, Any, Final
+from typing import TYPE_CHECKING, Any
 
 from homeassistant.components.diagnostics import async_redact_data
 
 from .const.base import DOMAIN
-from .const.config import (
-    CONF_DEVICE_FILTER_DID_LIST,
-    CONF_DEVICE_FILTER_HOME_LIST,
-    CONF_DEVICE_FILTER_MODEL_LIST,
-    CONF_DEVICE_FILTER_SSID_LIST,
-    CONF_PHONE,
-    CONF_PHONE_ID,
+from .control.diagnostics_surface import (
+    async_get_config_entry_diagnostics as _async_get_config_entry_diagnostics_surface,
+    async_get_device_diagnostics as _async_get_device_diagnostics_surface,
+    build_device_diagnostics as _build_device_diagnostics_surface,
+    extract_device_serial as _extract_device_serial_surface,
 )
-from .const.properties import PROP_BLE_MAC, PROP_IP, PROP_MAC, PROP_WIFI_SSID
+from .control.redaction import (
+    OPTIONS_TO_REDACT as _OPTIONS_TO_REDACT,
+    PROPERTY_KEYS_TO_REDACT as _PROPERTY_KEYS_TO_REDACT,
+    TO_REDACT as _TO_REDACT,
+    redact_device_properties as _redact_device_properties_surface,
+    redact_entry_title as _redact_entry_title_surface,
+    redact_property_value as _redact_property_value_surface,
+)
 from .core.anonymous_share import get_anonymous_share_manager
-from .core.utils.log_safety import mask_ip_addresses
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
@@ -34,186 +30,38 @@ if TYPE_CHECKING:
     from . import LiproConfigEntry
     from .core.device import LiproDevice
 
-# Keys to redact from diagnostics
-# Note: Both snake_case (internal storage) and camelCase (API response) formats
-# are included because async_redact_data may encounter either format.
-TO_REDACT: Final = {
-    # Auth & identity
-    CONF_PHONE,
-    CONF_PHONE_ID,
-    "password",
-    "password_hash",
-    "access_token",
-    "refresh_token",
-    # User ID (API: userId, internal: user_id)
-    "user_id",
-    "userId",
-    # Business ID (API: bizId, internal: biz_id)
-    "biz_id",
-    "bizId",
-    # Device identifiers
-    "serial",
-    "device_id",
-    "deviceId",
-    "iot_device_id",
-    "iotDeviceId",
-    "groupId",
-    "iotName",
-    "gatewayDeviceId",
-}
 
-OPTIONS_TO_REDACT: Final = TO_REDACT | {
-    # Option lists may contain SSIDs / device IDs / home IDs.
-    CONF_DEVICE_FILTER_HOME_LIST,
-    CONF_DEVICE_FILTER_MODEL_LIST,
-    CONF_DEVICE_FILTER_SSID_LIST,
-    CONF_DEVICE_FILTER_DID_LIST,
-}
-
-# Keys to redact from device properties
-PROPERTY_KEYS_TO_REDACT: Final = {
-    PROP_MAC,
-    PROP_IP,
-    PROP_BLE_MAC,
-    PROP_WIFI_SSID,
-    "wifiSsid",
-    "macAddress",
-    "ipAddress",
-}
-
-# Pre-computed lowercase set for efficient lookup
-_PROPERTY_KEYS_LOWER: Final = frozenset(key.lower() for key in PROPERTY_KEYS_TO_REDACT)
-
-_NESTED_KEYS_TO_REDACT_LOWER: Final = _PROPERTY_KEYS_LOWER | frozenset(
-    {
-        "deviceid",
-        "serial",
-        "iotdeviceid",
-        "iot_device_id",
-        "groupid",
-        "gatewaydeviceid",
-    }
-)
-
-_MAC_LITERAL_RE: Final = re.compile(r"^([0-9A-Fa-f]{2}[:-]){5}[0-9A-Fa-f]{2}$")
-_IPV4_LITERAL_RE: Final = re.compile(r"^\d{1,3}(\.\d{1,3}){3}$")
-_DEVICE_ID_LITERAL_RE: Final = re.compile(
-    r"^03ab[0-9a-f]{12}$",
-    re.IGNORECASE,
-)
-_MAC_EMBEDDED_RE: Final = re.compile(r"([0-9A-Fa-f]{2}[:-]){5}[0-9A-Fa-f]{2}")
-_IPV4_EMBEDDED_RE: Final = re.compile(r"\d{1,3}(\.\d{1,3}){3}")
-_DEVICE_ID_EMBEDDED_RE: Final = re.compile(
-    r"03ab[0-9a-f]{12}",
-    re.IGNORECASE,
-)
-_PHONE_EMBEDDED_RE: Final = re.compile(r"(\d{3})\d{4}(\d{4})")
+PROPERTY_KEYS_TO_REDACT = _PROPERTY_KEYS_TO_REDACT
+TO_REDACT = _TO_REDACT
+OPTIONS_TO_REDACT = _OPTIONS_TO_REDACT
 
 
 def _redact_entry_title(title: Any) -> str:
     """Redact sensitive identifiers from config-entry title."""
-    if not isinstance(title, str):
-        return ""
-    return _PHONE_EMBEDDED_RE.sub(r"\1****\2", title)
+    return _redact_entry_title_surface(title)
 
 
 def _redact_property_value(value: Any, key: str | None = None) -> Any:
     """Recursively redact sensitive values in property payloads."""
-    if key is not None and key.lower() in _NESTED_KEYS_TO_REDACT_LOWER:
-        return "**REDACTED**"
-
-    if isinstance(value, dict):
-        return {k: _redact_property_value(v, str(k)) for k, v in value.items()}
-
-    if isinstance(value, list):
-        return [_redact_property_value(item) for item in value]
-
-    if isinstance(value, str):
-        stripped = value.strip()
-
-        # deviceInfo/deviceExtra payloads may embed JSON as strings.
-        if stripped and stripped[0] in "{[":
-            try:
-                parsed = json.loads(value)
-            except (TypeError, ValueError):
-                pass
-            else:
-                redacted = _redact_property_value(parsed)
-                if isinstance(redacted, (dict, list)):
-                    return json.dumps(
-                        redacted, ensure_ascii=False, separators=(",", ":")
-                    )
-
-        if (
-            _MAC_LITERAL_RE.fullmatch(stripped)
-            or _IPV4_LITERAL_RE.fullmatch(stripped)
-            or _DEVICE_ID_LITERAL_RE.fullmatch(stripped)
-        ):
-            return "**REDACTED**"
-
-        sanitized = _MAC_EMBEDDED_RE.sub("**REDACTED**", value)
-        sanitized = _IPV4_EMBEDDED_RE.sub("**REDACTED**", sanitized)
-        sanitized = _DEVICE_ID_EMBEDDED_RE.sub("**REDACTED**", sanitized)
-        sanitized = mask_ip_addresses(sanitized, placeholder="**REDACTED**")
-        if sanitized != value:
-            return sanitized
-
-    return value
+    return _redact_property_value_surface(value, key)
 
 
 def _redact_device_properties(properties: dict[str, Any]) -> dict[str, Any]:
     """Redact sensitive keys from device properties."""
-    return {k: _redact_property_value(v, k) for k, v in properties.items()}
+    return _redact_device_properties_surface(properties)
 
 
 def _build_device_diagnostics(device: LiproDevice) -> dict[str, Any]:
     """Build redacted diagnostics payload for a single device."""
-    device_info: dict[str, Any] = {
-        "name": "**REDACTED**",
-        "device_type": device.device_type,
-        "device_type_hex": device.device_type_hex,
-        "category": device.category.value,
-        "physical_model": device.physical_model,
-        "is_group": device.is_group,
-        "room_name": "**REDACTED**",
-        "available": device.available,
-        "is_connected": device.is_connected,
-        "properties": _redact_device_properties(device.properties),
-    }
-    # Add network info (non-sensitive)
-    if device.firmware_version:
-        device_info["firmware_version"] = device.firmware_version
-    if device.wifi_rssi is not None:
-        device_info["wifi_rssi"] = device.wifi_rssi
-    if device.net_type:
-        device_info["net_type"] = device.net_type
-    # Add Mesh info
-    if device.mesh_address is not None:
-        device_info["mesh_address"] = device.mesh_address
-    if device.mesh_type is not None:
-        device_info["mesh_type"] = device.mesh_type
-    if device.is_mesh_gateway:
-        device_info["is_mesh_gateway"] = True
-
-    # Add extra_data (redact device identifiers, keep power info)
-    if device.extra_data:
-        safe_extra: dict[str, Any] = {}
-        if "power_info" in device.extra_data:
-            safe_extra["power_info"] = device.extra_data["power_info"]
-        if "gateway_device_id" in device.extra_data:
-            safe_extra["gateway_device_id"] = "**REDACTED**"
-        if safe_extra:
-            device_info["extra_data"] = safe_extra
-
-    return device_info
+    return _build_device_diagnostics_surface(
+        device,
+        redact_device_properties=_redact_device_properties,
+    )
 
 
 def _extract_device_serial(device: DeviceEntry) -> str | None:
     """Extract Lipro serial from device identifiers."""
-    for domain, identifier in device.identifiers:
-        if domain == DOMAIN:
-            return identifier
-    return None
+    return _extract_device_serial_surface(device, domain=DOMAIN)
 
 
 async def async_get_config_entry_diagnostics(
@@ -221,39 +69,16 @@ async def async_get_config_entry_diagnostics(
     entry: LiproConfigEntry,
 ) -> dict[str, Any]:
     """Return diagnostics for a config entry."""
-    coordinator = getattr(entry, "runtime_data", None)
-    if coordinator is None:
-        return {"error": "entry_not_loaded"}
-
-    # Collect device information (redacted)
-    devices_info = [
-        _build_device_diagnostics(device) for device in coordinator.devices.values()
-    ]
-
-    # Get anonymous share status
-    share_manager = get_anonymous_share_manager(hass, entry_id=entry.entry_id)
-    device_count, error_count = share_manager.pending_count
-    anonymous_share_info = {
-        "enabled": share_manager.is_enabled,
-        "pending_devices": device_count,
-        "pending_errors": error_count,
-    }
-
-    return {
-        "entry": {
-            "title": _redact_entry_title(entry.title),
-            "data": async_redact_data(entry.data, TO_REDACT),
-            "options": async_redact_data(entry.options, OPTIONS_TO_REDACT),
-        },
-        "coordinator": {
-            "last_update_success": coordinator.last_update_success,
-            "update_interval": str(coordinator.update_interval),
-            "device_count": len(coordinator.devices),
-            "mqtt_connected": coordinator.mqtt_service.connected,
-        },
-        "anonymous_share": anonymous_share_info,
-        "devices": devices_info,
-    }
+    return await _async_get_config_entry_diagnostics_surface(
+        hass,
+        entry,
+        get_anonymous_share_manager=get_anonymous_share_manager,
+        async_redact_data=async_redact_data,
+        redact_entry_title=_redact_entry_title,
+        build_device_diagnostics_fn=_build_device_diagnostics,
+        to_redact=TO_REDACT,
+        options_to_redact=OPTIONS_TO_REDACT,
+    )
 
 
 async def async_get_device_diagnostics(
@@ -262,28 +87,15 @@ async def async_get_device_diagnostics(
     device: DeviceEntry,
 ) -> dict[str, Any]:
     """Return diagnostics for a single device entry."""
-    coordinator = getattr(entry, "runtime_data", None)
-    if coordinator is None:
-        return {"error": "entry_not_loaded"}
-    serial = _extract_device_serial(device)
-    if serial is None:
-        return {"error": "device_not_in_lipro_domain"}
-
-    lipro_device = coordinator.get_device(serial)
-    if lipro_device is None:
-        return {"error": "device_not_found"}
-
-    return {
-        "entry": {
-            "title": _redact_entry_title(entry.title),
-            "data": async_redact_data(entry.data, TO_REDACT),
-            "options": async_redact_data(entry.options, OPTIONS_TO_REDACT),
-        },
-        "coordinator": {
-            "last_update_success": coordinator.last_update_success,
-            "update_interval": str(coordinator.update_interval),
-            "device_count": len(coordinator.devices),
-            "mqtt_connected": coordinator.mqtt_service.connected,
-        },
-        "device": _build_device_diagnostics(lipro_device),
-    }
+    return await _async_get_device_diagnostics_surface(
+        hass,
+        entry,
+        device,
+        domain=DOMAIN,
+        async_redact_data=async_redact_data,
+        redact_entry_title=_redact_entry_title,
+        build_device_diagnostics_fn=_build_device_diagnostics,
+        extract_device_serial_fn=_extract_device_serial_surface,
+        to_redact=TO_REDACT,
+        options_to_redact=OPTIONS_TO_REDACT,
+    )

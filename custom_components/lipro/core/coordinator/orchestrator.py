@@ -44,7 +44,7 @@ if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.core import HomeAssistant
 
-    from ..api import LiproClient
+    from ..protocol import LiproProtocolFacade
     from ..auth import LiproAuthManager
     from ..device import LiproDevice
 
@@ -73,7 +73,7 @@ class RuntimeOrchestrator:
         self,
         *,
         hass: HomeAssistant,
-        client: LiproClient,
+        client: LiproProtocolFacade,
         auth_manager: LiproAuthManager,
         config_entry: ConfigEntry,
         update_interval: int,

@@ -1,4 +1,4 @@
-"""Command endpoints for LiproClient."""
+"""Command endpoints and collaborators for the REST facade."""
 
 from __future__ import annotations
 
@@ -9,10 +9,11 @@ from ..client_base import _ClientBase
 from ..command_api_service import (
     send_command_to_target as send_command_to_target_service,
 )
+from .payloads import _EndpointAdapter
 
 
 class _ClientCommandEndpointsMixin(_ClientBase):
-    """Endpoints: device/group commands."""
+    """Legacy command endpoint mixin retained for focused helper tests."""
 
     async def send_command(
         self,
@@ -56,4 +57,13 @@ class _ClientCommandEndpointsMixin(_ClientBase):
         )
 
 
-__all__ = ["_ClientCommandEndpointsMixin"]
+class CommandEndpoints(_EndpointAdapter, _ClientCommandEndpointsMixin):
+    """Explicit command endpoint collaborator for ``LiproRestFacade``."""
+
+    EXPORTED_METHODS = (
+        "send_command",
+        "send_group_command",
+    )
+
+
+__all__ = ["CommandEndpoints", "_ClientCommandEndpointsMixin"]

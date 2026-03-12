@@ -23,21 +23,23 @@ from .core.ota.manifest import (
 _LOGGER = logging.getLogger(__name__)
 
 _TIME_MIN_UTC = datetime.min.replace(tzinfo=UTC)
-_FIRMWARE_SUPPORT_MANIFEST = "firmware_support_manifest.json"
-
-_REMOTE_MANIFEST_CACHE_TTL = timedelta(minutes=30)
-_REMOTE_MANIFEST_TIMEOUT_SECONDS = 5
-_REMOTE_FIRMWARE_SUPPORT_URLS = (
+LOCAL_FIRMWARE_SUPPORT_MANIFEST_FILENAME = "firmware_support_manifest.json"
+LOCAL_FIRMWARE_SUPPORT_MANIFEST_PATH = Path(__file__).with_name(
+    LOCAL_FIRMWARE_SUPPORT_MANIFEST_FILENAME
+)
+REMOTE_FIRMWARE_ADVISORY_URLS = (
     "https://lipro-share.lany.me/api/firmware-support",
     "https://lipro-share.lany.me/firmware_support_manifest.json",
 )
+_REMOTE_MANIFEST_CACHE_TTL = timedelta(minutes=30)
+_REMOTE_MANIFEST_TIMEOUT_SECONDS = 5
 
 type _RemoteManifestData = tuple[frozenset[str], dict[str, frozenset[str]]]
 
 
 @dataclass(slots=True)
 class _RemoteManifestState:
-    """Remote firmware manifest cache state."""
+    """Remote firmware advisory cache state."""
 
     time: datetime
     data: _RemoteManifestData
@@ -52,10 +54,9 @@ _REMOTE_MANIFEST_LOCK = asyncio.Lock()
 
 @functools.lru_cache(maxsize=1)
 def load_verified_firmware_manifest() -> _RemoteManifestData:
-    """Load optional local firmware certification manifest."""
-    manifest_path = Path(__file__).with_name(_FIRMWARE_SUPPORT_MANIFEST)
+    """Load the local firmware trust-root manifest bundled in the repo."""
     return load_verified_firmware_manifest_file(
-        manifest_path,
+        LOCAL_FIRMWARE_SUPPORT_MANIFEST_PATH,
         on_error=lambda path, err: _LOGGER.debug(
             "Failed to load firmware support manifest %s: %s",
             path,
@@ -67,7 +68,11 @@ def load_verified_firmware_manifest() -> _RemoteManifestData:
 async def async_load_remote_firmware_manifest(
     hass: HomeAssistant,
 ) -> _RemoteManifestData:
-    """Load advisory firmware certification metadata from remote service with cache."""
+    """Load remote firmware advisory metadata with caching.
+
+    Remote payloads are advisory only. Certification truth remains bound to the
+    bundled local trust-root manifest consumed by the update entity.
+    """
     now = dt_util.utcnow()
     cached_time = _REMOTE_MANIFEST_STATE.time
     cached_data = _REMOTE_MANIFEST_STATE.data
@@ -83,7 +88,7 @@ async def async_load_remote_firmware_manifest(
 
         session = async_get_clientsession(hass)
         timeout = aiohttp.ClientTimeout(total=_REMOTE_MANIFEST_TIMEOUT_SECONDS)
-        for url in _REMOTE_FIRMWARE_SUPPORT_URLS:
+        for url in REMOTE_FIRMWARE_ADVISORY_URLS:
             try:
                 async with session.get(url, timeout=timeout) as response:
                     if response.status != 200:

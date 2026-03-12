@@ -197,7 +197,7 @@ def mock_setup_entry() -> Generator[AsyncMock]:
 def mock_lipro_client() -> Generator[MagicMock]:
     """Create a mock LiproClient."""
     with patch(
-        "custom_components.lipro.config_flow.LiproClient",
+        "custom_components.lipro.config_flow.LiproProtocolFacade",
         autospec=True,
     ) as mock_client_class:
         mock_client = mock_client_class.return_value
@@ -239,6 +239,18 @@ def mock_lipro_api_client():
     client.refresh_token = "test_refresh"
     client.user_id = 10001
     client.phone_id = "test_phone_id"
+
+    mock_mqtt_facade = MagicMock()
+    mock_mqtt_facade.start = AsyncMock()
+    mock_mqtt_facade.stop = AsyncMock()
+    mock_mqtt_facade.sync_subscriptions = AsyncMock()
+    mock_mqtt_facade.wait_until_connected = AsyncMock(return_value=True)
+    mock_mqtt_facade.is_connected = True
+    mock_mqtt_facade.subscribed_devices = set()
+    mock_mqtt_facade.subscribed_count = 0
+    mock_mqtt_facade.last_error = None
+    mock_mqtt_facade.raw_client = MagicMock()
+    client.build_mqtt_facade = MagicMock(return_value=mock_mqtt_facade)
     return client
 
 
@@ -255,7 +267,7 @@ def mock_auth_manager():
 def mock_lipro_client_auth_error() -> Generator[MagicMock]:
     """Create a mock LiproClient that raises auth error."""
     with patch(
-        "custom_components.lipro.config_flow.LiproClient",
+        "custom_components.lipro.config_flow.LiproProtocolFacade",
         autospec=True,
     ) as mock_client_class:
         from custom_components.lipro.core.api import LiproAuthError
@@ -269,7 +281,7 @@ def mock_lipro_client_auth_error() -> Generator[MagicMock]:
 def mock_lipro_client_connection_error() -> Generator[MagicMock]:
     """Create a mock LiproClient that raises connection error."""
     with patch(
-        "custom_components.lipro.config_flow.LiproClient",
+        "custom_components.lipro.config_flow.LiproProtocolFacade",
         autospec=True,
     ) as mock_client_class:
         from custom_components.lipro.core.api import LiproConnectionError

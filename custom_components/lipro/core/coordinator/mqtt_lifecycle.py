@@ -13,7 +13,7 @@ from typing import TYPE_CHECKING, Any
 
 from ...const.config import CONF_PHONE_ID
 from ..mqtt.credentials import decrypt_mqtt_credential
-from ..mqtt.mqtt_client import LiproMqttClient
+from ..protocol import LiproMqttFacade, LiproProtocolFacade
 from .mqtt.setup import build_mqtt_subscription_device_ids, resolve_mqtt_biz_id
 from .runtime.mqtt_runtime import MqttRuntime
 
@@ -23,7 +23,7 @@ if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.core import HomeAssistant
 
-    from ..api import LiproClient
+    from ..protocol import LiproProtocolFacade
     from ..device import LiproDevice
     from ..utils.background_task_manager import BackgroundTaskManager
     from .runtime.state_runtime import StateRuntime
@@ -97,7 +97,7 @@ class PropertyApplierWrapper:
 async def async_setup_mqtt(
     *,
     hass: HomeAssistant,
-    client: LiproClient,
+    client: LiproProtocolFacade,
     config_entry: ConfigEntry,
     state_runtime: StateRuntime,
     background_task_manager: BackgroundTaskManager,
@@ -107,7 +107,7 @@ async def async_setup_mqtt(
         [LiproDevice, dict[str, Any], str], Coroutine[Any, Any, bool]
     ],
     set_updated_data: Callable[[dict[str, LiproDevice]], None],
-) -> tuple[MqttRuntime, LiproMqttClient, str] | None:
+) -> tuple[MqttRuntime, LiproMqttFacade, str] | None:
     """Set up MQTT client for real-time updates.
 
     This function creates and initializes the MQTT client with credentials
@@ -191,7 +191,7 @@ async def async_setup_mqtt(
             if mqtt_runtime is not None:
                 mqtt_runtime.handle_transport_error(err)
 
-        mqtt_client = LiproMqttClient(
+        mqtt_client = client.build_mqtt_facade(
             access_key=access_key,
             secret_key=secret_key,
             biz_id=biz_id,
@@ -229,11 +229,15 @@ async def async_setup_mqtt(
         except TimeoutError:
             _LOGGER.error("MQTT connection timeout after 15 seconds")
             await mqtt_runtime.disconnect()
+            if isinstance(client, LiproProtocolFacade):
+                client.attach_mqtt_facade(None)
             return None
 
         if not connected or not mqtt_runtime.is_connected:
             _LOGGER.warning("MQTT client not connected after setup")
             await mqtt_runtime.disconnect()
+            if isinstance(client, LiproProtocolFacade):
+                client.attach_mqtt_facade(None)
             return None
 
         return (mqtt_runtime, mqtt_client, biz_id)
@@ -242,6 +246,8 @@ async def async_setup_mqtt(
         if mqtt_runtime is not None:
             with suppress(Exception):
                 await mqtt_runtime.disconnect()
+        if isinstance(client, LiproProtocolFacade):
+            client.attach_mqtt_facade(None)
         _LOGGER.exception("Failed to setup MQTT")
         return None
 

@@ -144,6 +144,28 @@ def collect_developer_reports(
     )
 
 
+def build_developer_feedback_payload(
+    *,
+    reports: list[DeveloperReport],
+    note: str,
+    domain: str,
+    service_name: str,
+    requested_entry_id: str | None,
+) -> dict[str, object]:
+    """Build the canonical developer-feedback service payload."""
+    payload: dict[str, object] = {
+        "source": "home_assistant_service",
+        "service": f"{domain}.{service_name}",
+        "generated_at": datetime.now(UTC).isoformat(),
+        "entry_count": len(reports),
+        "note": note,
+        "reports": reports,
+    }
+    if requested_entry_id is not None:
+        payload["requested_entry_id"] = requested_entry_id
+    return payload
+
+
 # Service handlers
 async def async_handle_get_developer_report(
     hass: HomeAssistant,
@@ -192,16 +214,13 @@ async def async_handle_submit_developer_feedback(
             result["requested_entry_id"] = requested_entry_id
         return cast(dict[str, object], result)
 
-    feedback_payload: dict[str, object] = {
-        "source": "home_assistant_service",
-        "service": f"{domain}.{service_submit_developer_feedback}",
-        "generated_at": datetime.now(UTC).isoformat(),
-        "entry_count": len(reports),
-        "note": _get_optional_note(call, attr_note),
-        "reports": reports,
-    }
-    if requested_entry_id is not None:
-        feedback_payload["requested_entry_id"] = requested_entry_id
+    feedback_payload = build_developer_feedback_payload(
+        reports=reports,
+        note=_get_optional_note(call, attr_note),
+        domain=domain,
+        service_name=service_submit_developer_feedback,
+        requested_entry_id=requested_entry_id,
+    )
 
     share_manager = cast(
         DeveloperFeedbackShareManager,

@@ -24,7 +24,12 @@ from .const.config import (
     MAX_REQUEST_TIMEOUT,
     MIN_REQUEST_TIMEOUT,
 )
-from .core import LiproAuthError, LiproAuthManager, LiproClient, LiproConnectionError
+from .core import (
+    LiproAuthError,
+    LiproAuthManager,
+    LiproConnectionError,
+    LiproProtocolFacade,
+)
 from .core.utils.coerce import coerce_int_option
 from .core.utils.log_safety import safe_error_placeholder
 
@@ -60,10 +65,10 @@ def build_entry_auth_context(
     entry: ConfigEntry[Any],
     *,
     get_client_session: Callable[[HomeAssistant], Any],
-    client_factory: type[LiproClient],
+    client_factory: type[LiproProtocolFacade],
     auth_manager_factory: type[LiproAuthManager],
     logger: logging.Logger,
-) -> tuple[LiproClient, LiproAuthManager]:
+) -> tuple[LiproProtocolFacade, LiproAuthManager]:
     """Build API client and auth manager from config entry data."""
     phone_id = entry.data.get(CONF_PHONE_ID)
     phone = entry.data.get(CONF_PHONE)

@@ -7,7 +7,7 @@
 ## Formal Role
 
 - 本文件是 docs / fixtures / generated / implementation 同步方向的正式 baseline 真源。
-- 本阶段只锁定“谁定义、向哪里同步、谁不能反向改写”，不在这里提前展开 `Phase 2.6` 的外部边界 family inventory。
+- `Phase 2.6` 起，external boundary family 不能再只靠 implementation 口头约定；必须声明 authority source、fixture family 与 drift guard。
 - 后续 phase 只能扩展 authority families 或补充验证证据，不能绕开本文件另造平行真相。
 
 ## Authority Sources
@@ -22,7 +22,10 @@
 | 残留状态 | `.planning/reviews/RESIDUAL_LEDGER.md` | execution -> cleanup / audit | compat/residual 真源 |
 | 删除裁决 | `.planning/reviews/KILL_LIST.md` | execution -> cleanup / audit | kill decision 真源 |
 | 协议样例 / fixtures | `tests/fixtures/api_contracts/` | baseline/contracts -> fixtures -> contract tests | 必须脱敏，禁止真实敏感数据 |
-| generated artifacts | owning baseline doc + fixture/snapshot contract + normalization rule | baseline/contracts/fixtures -> generated expectation -> docs/implementation review | 先锁同步方向；具体 external-boundary family 在后续 phase 展开 |
+| generated artifacts | fixture families + canonical normalization rules | baseline/contracts -> fixture/snapshot truth -> generated expectation -> implementation review | 具体 family 由 `Phase 2.6` 明确登记 |
+| share/support payload families | `tests/fixtures/external_boundaries/share_worker/`, `tests/fixtures/external_boundaries/support_payload/` | authority docs -> fixture families -> payload builders/services -> owning tests | `generated_at` / `timestamp` 等动态字段必须先 canonicalize |
+| firmware advisory families | `custom_components/lipro/firmware_support_manifest.json`, `tests/fixtures/external_boundaries/firmware/` | local trust root -> advisory remote -> adapters/tests | remote advisory 不能单独放宽 `certified` |
+| diagnostics external endpoints | `tests/fixtures/api_contracts/` for `get_city/query_user_cloud`; `tests/fixtures/external_boundaries/diagnostics_capabilities/` for other endpoint families | protocol truth -> external-boundary fixtures -> diagnostics services/tests | `get_city/query_user_cloud` 不得复制第二套真源 |
 | 测试期望 | `tests/**` | requirements/baseline -> implementation | 测试需跟随正式结构迁移 |
 | 实现代码 | `custom_components/lipro/**` | north-star + planning -> code | 不是架构真源，只是实现载体 |
 
@@ -33,7 +36,7 @@
 1. `docs/NORTH_STAR_TARGET_ARCHITECTURE.md`
 2. `.planning/baseline/*.md`
 3. `.planning/PROJECT.md` / `.planning/ROADMAP.md` / `.planning/STATE.md`
-4. `docs/developer_architecture.md`
+4. phase execution summaries / validation docs
 5. tests / fixtures / implementation comments
 
 ## Synchronization Rule
@@ -41,8 +44,8 @@
 按 artifact family 的正式同步方向执行：
 
 - **docs**：`north-star -> baseline -> phase docs / developer docs`，实现与测试只能触发回写需求，不能静默改写文档真相。
-- **fixtures**：`baseline/contracts -> fixture family -> owning tests`，fixture 漂移必须伴随 baseline 或 summary 解释。
-- **generated**：`baseline/contracts + normalization rule + fixture/snapshot evidence -> generated artifact expectation`，禁止由实现临时输出反向定义真相。
+- **fixtures**：`baseline/contracts -> fixture family -> owning tests`，fixture 漂移必须伴随 baseline、summary 或 validation 解释。
+- **generated**：`fixture families + canonical normalization rules -> generated expectation -> implementation review`，禁止由实现临时输出反向定义真相。
 - **implementation**：`north-star + baseline + tests -> code`，实现是载体，不是 authority source。
 
 出现以下任一情况时，必须同步检查 authority matrix：
@@ -51,6 +54,7 @@
 - phase 引入新的 fixture / generated artifact / shadow doc
 - 旧 compat shell 被降级或删除
 - 文档与实现出现双口径风险
+- external-boundary truth 从“实现 folklore”升级为“formal contract”
 
 ---
 *Used by: external boundary formalization, docs hygiene, and audit arbitration*

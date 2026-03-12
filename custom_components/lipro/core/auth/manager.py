@@ -23,7 +23,11 @@ from ...const.config import (
     CONF_REFRESH_TOKEN,
     CONF_USER_ID,
 )
-from ..api import LiproAuthError, LiproClient, LiproRefreshTokenExpiredError
+from ..api import (
+    LiproAuthError,
+    LiproRefreshTokenExpiredError,
+)
+from ..protocol import LiproProtocolFacade
 from ..utils.log_safety import safe_error_placeholder
 
 _LOGGER = logging.getLogger(__name__)
@@ -41,7 +45,7 @@ class LiproAuthManager:
     - Automatic re-login when refresh token expires
     """
 
-    def __init__(self, client: LiproClient) -> None:
+    def __init__(self, client: LiproProtocolFacade) -> None:
         """Initialize the auth manager.
 
         Args:

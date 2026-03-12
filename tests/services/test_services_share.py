@@ -10,8 +10,11 @@ import pytest
 from custom_components.lipro.services.share import (
     async_handle_get_anonymous_share_report,
     async_handle_submit_anonymous_share,
+    build_anonymous_share_preview_response,
+    build_submit_anonymous_share_response,
 )
 from homeassistant.core import HomeAssistant
+from tests.helpers.external_boundary_fixtures import load_external_boundary_fixture
 from tests.helpers.service_call import service_call
 
 
@@ -62,12 +65,10 @@ async def test_async_handle_submit_anonymous_share_forwards_entry_id() -> None:
     )
 
     get_anonymous_share_manager.assert_called_once_with(hass, entry_id="entry-2")
-    assert result == {
-        "success": True,
-        "devices": 1,
-        "errors": 0,
-        "requested_entry_id": "entry-2",
-    }
+    assert result == load_external_boundary_fixture(
+        "support_payload",
+        "submit_anonymous_share_response.json",
+    )
 
 
 @pytest.mark.asyncio
@@ -91,14 +92,10 @@ async def test_async_handle_get_anonymous_share_report_forwards_entry_id() -> No
     )
 
     get_anonymous_share_manager.assert_called_once_with(hass, entry_id="entry-9")
-    assert result == {
-        "has_data": True,
-        "device_count": 1,
-        "error_count": 0,
-        "devices": [{"iot_name": "lipro_light"}],
-        "errors": [],
-        "requested_entry_id": "entry-9",
-    }
+    assert result == load_external_boundary_fixture(
+        "support_payload",
+        "anonymous_share_preview_response.json",
+    )
 
 
 @pytest.mark.asyncio
@@ -122,3 +119,31 @@ async def test_async_handle_get_anonymous_share_report_without_data_returns_empt
         "devices": [],
         "errors": [],
     }
+
+
+def test_build_submit_anonymous_share_response_matches_contract_fixture() -> None:
+    assert build_submit_anonymous_share_response(
+        device_count=1,
+        error_count=0,
+        requested_entry_id="entry-2",
+    ) == load_external_boundary_fixture(
+        "support_payload",
+        "submit_anonymous_share_response.json",
+    )
+
+
+def test_build_anonymous_share_preview_response_matches_contract_fixture() -> None:
+    report = {
+        "device_count": 1,
+        "error_count": 0,
+        "devices": [{"iot_name": "lipro_light"}],
+        "errors": [],
+    }
+
+    assert build_anonymous_share_preview_response(
+        report,
+        requested_entry_id="entry-9",
+    ) == load_external_boundary_fixture(
+        "support_payload",
+        "anonymous_share_preview_response.json",
+    )

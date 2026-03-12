@@ -8,6 +8,7 @@ from .api import (
     LiproConnectionError,
     LiproRateLimitError,
     LiproRefreshTokenExpiredError,
+    LiproRestFacade,
 )
 from .auth import LiproAuthManager
 from .coordinator import Coordinator
@@ -21,6 +22,7 @@ from .exceptions import (
     MqttPublishError,
     MqttSubscriptionError,
 )
+from .protocol import LiproMqttFacade, LiproProtocolFacade
 
 __all__ = [
     "AnonymousShareManager",
@@ -35,8 +37,11 @@ __all__ = [
     "LiproDevice",
     "LiproError",
     "LiproMqttError",
+    "LiproMqttFacade",
+    "LiproProtocolFacade",
     "LiproRateLimitError",
     "LiproRefreshTokenExpiredError",
+    "LiproRestFacade",
     "MqttConnectionError",
     "MqttPublishError",
     "MqttSubscriptionError",

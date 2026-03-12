@@ -204,7 +204,7 @@ async def test_form_user_reuses_phone_id_across_retries(hass: HomeAssistant) -> 
     from custom_components.lipro.core.api import LiproAuthError
 
     with patch(
-        "custom_components.lipro.config_flow.LiproClient",
+        "custom_components.lipro.config_flow.LiproProtocolFacade",
         autospec=True,
     ) as mock_client_class:
         mock_client = mock_client_class.return_value
@@ -292,7 +292,7 @@ async def test_form_user_recovers_after_invalid_auth(
 ) -> None:
     """Test user flow can recover and finish after an auth error."""
     with patch(
-        "custom_components.lipro.config_flow.LiproClient",
+        "custom_components.lipro.config_flow.LiproProtocolFacade",
         autospec=True,
     ) as mock_client_class:
         mock_client = mock_client_class.return_value
@@ -363,7 +363,7 @@ async def test_form_malformed_login_response(
 ) -> None:
     """Test form shows unknown error on malformed login response."""
     with patch(
-        "custom_components.lipro.config_flow.LiproClient",
+        "custom_components.lipro.config_flow.LiproProtocolFacade",
         autospec=True,
     ) as mock_client_class:
         mock_client = mock_client_class.return_value
@@ -390,7 +390,7 @@ async def test_form_unexpected_error_maps_to_unknown(
 ) -> None:
     """Test truly unexpected exceptions map to unknown form error."""
     with patch(
-        "custom_components.lipro.config_flow.LiproClient",
+        "custom_components.lipro.config_flow.LiproProtocolFacade",
         autospec=True,
     ) as mock_client_class:
         mock_client = mock_client_class.return_value
@@ -417,7 +417,7 @@ async def test_form_lipro_api_error_maps_to_unknown(
 ) -> None:
     """Test form maps non-auth/non-connection LiproApiError to unknown."""
     with patch(
-        "custom_components.lipro.config_flow.LiproClient",
+        "custom_components.lipro.config_flow.LiproProtocolFacade",
         autospec=True,
     ) as mock_client_class:
         mock_client = mock_client_class.return_value
@@ -444,7 +444,7 @@ async def test_form_abortflow_propagates(
 ) -> None:
     """Test AbortFlow from login is propagated as flow abort."""
     with patch(
-        "custom_components.lipro.config_flow.LiproClient",
+        "custom_components.lipro.config_flow.LiproProtocolFacade",
         autospec=True,
     ) as mock_client_class:
         mock_client = mock_client_class.return_value

@@ -16,7 +16,7 @@ from typing import TYPE_CHECKING
 
 from ..command.confirmation_tracker import CommandConfirmationTracker
 from ..device.identity_index import DeviceIdentityIndex
-from ..mqtt.mqtt_client import LiproMqttClient
+from ..protocol import MqttTransportFacade
 from ..utils.background_task_manager import BackgroundTaskManager
 from .runtime.command_runtime import CommandRuntime
 from .runtime.device_runtime import DeviceRuntime
@@ -45,7 +45,7 @@ class CoordinatorStateContainers:
     device_identity_index: DeviceIdentityIndex
     background_task_manager: BackgroundTaskManager
     confirmation_tracker: CommandConfirmationTracker
-    mqtt_client: LiproMqttClient | None = None
+    mqtt_client: MqttTransportFacade | None = None
     biz_id: str | None = None
 
 

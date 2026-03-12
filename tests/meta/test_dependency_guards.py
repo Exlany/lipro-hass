@@ -31,6 +31,12 @@ _CONTROL_SURFACE_SEED_PATHS = [
     _ROOT / "custom_components" / "lipro" / "system_health.py",
     _ROOT / "custom_components" / "lipro" / "services" / "registry.py",
     _ROOT / "custom_components" / "lipro" / "services" / "registrations.py",
+    _ROOT / "custom_components" / "lipro" / "control" / "entry_lifecycle_controller.py",
+    _ROOT / "custom_components" / "lipro" / "control" / "runtime_access.py",
+    _ROOT / "custom_components" / "lipro" / "control" / "service_registry.py",
+    _ROOT / "custom_components" / "lipro" / "control" / "service_router.py",
+    _ROOT / "custom_components" / "lipro" / "control" / "diagnostics_surface.py",
+    _ROOT / "custom_components" / "lipro" / "control" / "system_health_surface.py",
 ]
 
 _PROTOCOL_INTERNAL_PREFIXES = (
@@ -97,6 +103,7 @@ def test_dependency_matrix_documents_seed_guard_scope() -> None:
     )
     assert "tests/meta/test_dependency_guards.py" in dependency_matrix
     assert "core.api`、`core.mqtt` 与 `core.coordinator` internals" in dependency_matrix
+    assert "control/" in dependency_matrix
 
 
 def test_entity_seed_files_do_not_import_protocol_internals_directly() -> None:

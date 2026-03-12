@@ -1,17 +1,13 @@
-"""Endpoint methods for LiproClient.
-
-This module is intentionally thin: the endpoint surface is split into focused
-mixins so each concern remains small and testable.
-"""
+"""Endpoint collaborators for the formal REST facade."""
 
 from __future__ import annotations
 
-from .auth import _ClientAuthEndpointsMixin
-from .commands import _ClientCommandEndpointsMixin
-from .devices import _ClientDeviceEndpointsMixin
-from .misc import _ClientMiscEndpointsMixin
-from .schedule import _ClientScheduleEndpointsMixin
-from .status import _ClientStatusEndpointsMixin
+from .auth import AuthEndpoints, _ClientAuthEndpointsMixin
+from .commands import CommandEndpoints, _ClientCommandEndpointsMixin
+from .devices import DeviceEndpoints, _ClientDeviceEndpointsMixin
+from .misc import MiscEndpoints, _ClientMiscEndpointsMixin
+from .schedule import ScheduleEndpoints, _ClientScheduleEndpointsMixin
+from .status import StatusEndpoints, _ClientStatusEndpointsMixin
 
 
 class _ClientEndpointsMixin(
@@ -22,7 +18,26 @@ class _ClientEndpointsMixin(
     _ClientMiscEndpointsMixin,
     _ClientScheduleEndpointsMixin,
 ):
-    """Aggregate mixin for all Lipro API endpoints."""
+    """Legacy aggregate mixin kept only for narrow compatibility tests."""
 
 
-__all__ = ["_ClientEndpointsMixin"]
+ENDPOINT_COLLABORATOR_TYPES = (
+    AuthEndpoints,
+    DeviceEndpoints,
+    StatusEndpoints,
+    CommandEndpoints,
+    MiscEndpoints,
+    ScheduleEndpoints,
+)
+
+
+__all__ = [
+    "AuthEndpoints",
+    "CommandEndpoints",
+    "DeviceEndpoints",
+    "ENDPOINT_COLLABORATOR_TYPES",
+    "MiscEndpoints",
+    "ScheduleEndpoints",
+    "StatusEndpoints",
+    "_ClientEndpointsMixin",
+]

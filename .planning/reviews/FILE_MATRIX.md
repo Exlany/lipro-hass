@@ -12,8 +12,9 @@
 | `custom_components/lipro/core/coordinator` | 56 | Phase 5 | Pending |
 | `custom_components/lipro/core/device` | 23 | Phase 4 | Pending |
 | `custom_components/lipro/core/mqtt` | 12 | Phase 2 / 5 / 6 | Pending |
-| `custom_components/lipro/services` | 11 | Phase 3 | Pending |
-| `custom_components/lipro/flow` + entry files | 8 | Phase 3 | Pending |
+| `custom_components/lipro/control` | 9 | Phase 3 | `03 closeout recorded` |
+| `custom_components/lipro/services` | 16 | Phase 3 | `03 closeout recorded` |
+| `custom_components/lipro/flow` + entry files | 14 | Phase 3 | `03 closeout recorded` |
 | `custom_components/lipro/entities` + platform modules | 13 | Phase 4 | Pending |
 | Remaining helpers / scripts / tests | remainder | Cross-cutting | Pending |
 
@@ -46,8 +47,8 @@
 
 | File | 分类 | `02-01` 裁决 |
 |------|------|--------------|
-| `custom_components/lipro/core/api/__init__.py` | 重构 | canonical export 必须转向 `LiproRestFacade`；`LiproClient` 仅保留 transitional compat 语义 |
-| `custom_components/lipro/core/api/client.py` | 迁移适配 | 保留为 compat shell；正式协议逻辑迁出，legacy wrappers 只允许短期存在 |
+| `custom_components/lipro/core/api/__init__.py` | 重构 | canonical export 已锁定到 `LiproRestFacade`；`LiproClient` 明确降级为 transitional compat shell，而非正式根 |
+| `custom_components/lipro/core/api/client.py` | 迁移适配 | `LiproRestFacade` + collaborator graph 已成为正式主链；`LiproClient` 仅保留受控 compat wrappers 与 legacy constructor seam |
 | `custom_components/lipro/core/api/errors.py` | 保留 | API error taxonomy 继续作为正式 public surface |
 | `custom_components/lipro/core/api/types.py` | 保留 | typed payload contracts 继续作为 canonical protocol types |
 
@@ -55,11 +56,11 @@
 
 | File | 分类 | `02-01` 裁决 |
 |------|------|--------------|
-| `custom_components/lipro/core/api/client_base.py` | 删除 | 仅为 mixin 继承链提供 typing 基座；随 demixin 一并退出 |
-| `custom_components/lipro/core/api/client_pacing.py` | 删除 | pacing / busy-retry 状态迁入 `RequestPolicy` 与显式 transport collaborators |
-| `custom_components/lipro/core/api/client_auth_recovery.py` | 删除 | 由 `AuthRecoveryCoordinator` 接管 auth classification / refresh / replay |
-| `custom_components/lipro/core/api/client_transport.py` | 删除 | 以 `TransportExecutor` + `TransportCore` 显式组合替代 mixin 入口 |
-| `custom_components/lipro/core/api/endpoints/__init__.py` | 删除 | `_ClientEndpointsMixin` 聚合根不进入终态，只保留显式 endpoint collaborators |
+| `custom_components/lipro/core/api/client_base.py` | 重构 | 保留 `ClientSessionState` 作为正式 session state owner；`_ClientBase` 仅为过渡期 typing anchor，后续再清理残余 compat spine |
+| `custom_components/lipro/core/api/client_pacing.py` | 迁移适配 | 正式 pacing owner 已是 `RequestPolicy`；本文件仅保留 legacy patch seam 与 compat mixin，待后续相位删除 |
+| `custom_components/lipro/core/api/client_auth_recovery.py` | 重构 | `AuthRecoveryCoordinator` 已成为正式 owner；legacy mixin shell 仅为兼容 seam，不能再被视为正式根 |
+| `custom_components/lipro/core/api/client_transport.py` | 重构 | `TransportExecutor` + `TransportCore` 已成为正式 transport chain；legacy mixin shell 仅剩过渡职责 |
+| `custom_components/lipro/core/api/endpoints/__init__.py` | 重构 | 正式角色已切换为 endpoint collaborator registry；`_ClientEndpointsMixin` 仅保留 narrow compat / helper-test 语义 |
 
 ### `custom_components/lipro/core/api` Explicit Collaborators 与 Helper 基座
 
@@ -155,3 +156,76 @@
 - `custom_components/lipro/core/api/**/*.py`、`tests/core/api/**/*.py` 与 direct consumer tests 已补齐 file-level target fate，不再只停留在 cluster 级别。
 - `LiproClient`、compat wrappers、mixin spine 与 legacy public-name consumers 已被明确标成 `迁移适配` / `删除` / `重构`，为 `02-02` ~ `02-04` 提供可执行边界。
 - 本次只做治理归档，不修改业务代码、不改测试实现。
+
+
+## Phase 02 / `02-04` Governance Delta
+
+- `LiproRestFacade` 已脱离 `_ClientEndpointsMixin` 继承链，正式 public truth 改为 façade + explicit collaborator graph。
+- `custom_components/lipro/core/api/client_base.py`、`client_auth_recovery.py`、`client_transport.py`、`endpoints/__init__.py` 不再被按“整文件删除”理解；真正待清理的是其内残余 compat spine。
+- direct consumer annotations 已开始转向 `LiproRestFacade`，`LiproClient` 只在 constructor / compat wrapper / flow seam 中保留过渡角色。
+
+
+## Phase 02.5 Detailed Governance Matrix (`02.5-01`)
+
+### `custom_components/lipro/core/protocol` Logical Root Slice
+
+| File / Logical Slice | 分类 | `02.5-01` 裁决 |
+|------|------|--------------|
+| `custom_components/lipro/core/protocol/facade.py` (planned) | 新增 / 重构 | `LiproProtocolFacade` 作为唯一正式协议根，拥有 root-owned shared truth |
+| `custom_components/lipro/core/protocol/{session,telemetry,diagnostics_context,contracts,compat}.py` (planned) | 新增 / 重构 | shared auth/session、telemetry、protocol diagnostics context、canonical contracts 与 compat demotion 逻辑统一归属 protocol root |
+
+### `custom_components/lipro/core/mqtt` Child Façade 与 Helpers
+
+| File | 分类 | `02.5-01` 裁决 |
+|------|------|--------------|
+| `custom_components/lipro/core/mqtt/__init__.py` | 重构 | canonical export 必须转向 `LiproMqttFacade`；`LiproMqttClient` 只保留 transitional compat 语义 |
+| `custom_components/lipro/core/mqtt/mqtt_client.py` | 迁移适配 | 当前薄 façade 需降级为 compat shell 或由 `LiproMqttFacade` 接管正式 child-façade 地位 |
+| `custom_components/lipro/core/mqtt/client_runtime.py` | 重构 | 继续保留 runtime bridge 职责，但其 owner 必须是 `LiproMqttFacade`，而不是 split-root public surface |
+| `custom_components/lipro/core/mqtt/{connection_manager,subscription_manager,message_processor,topic_builder,payload,topics,message,credentials,setup_backoff}.py` | 保留 | 作为 MQTT transport-specific collaborators 保留，但不得定义 protocol-wide truth |
+
+### `tests/core/mqtt` Coverage Slice
+
+| File Cluster | 分类 | `02.5-01` 裁决 |
+|------|------|--------------|
+| `tests/core/mqtt/**/*.py` | 重构 | 继续验证 MQTT child-façade helpers，但要为 `LiproProtocolFacade` / `LiproMqttFacade` 留出 canonical public-surface proof |
+| `tests/integration/test_mqtt_coordinator_integration.py` | 迁移适配 | 允许短期 patch `LiproMqttClient` compat shell，但 Phase 2.5 closeout 前必须明确其与 `LiproMqttFacade` 的关系 |
+
+## Phase 02.5 / `02.5-02 ~ 02.5-03` Governance Delta
+
+- `custom_components/lipro/core/protocol/{__init__,facade,session,telemetry,diagnostics_context,contracts,compat}.py` 已从 planned slice 变为真实 unified-root artifacts；protocol root 的 shared session / telemetry / diagnostics / canonical contracts 现在有了明确载体。
+- `custom_components/lipro/core/coordinator/{mqtt_lifecycle,coordinator,orchestrator,factory}.py` 与 `custom_components/lipro/core/coordinator/runtime/{mqtt_runtime,device_runtime,device/snapshot.py,command/sender.py}` 的正式类型入口已切到 `LiproProtocolFacade` / `MqttTransportFacade`，runtime-facing consumer 不再把 REST/MQTT 当成两个 formal roots。
+- `custom_components/lipro/{__init__.py,config_flow.py}` 已改由 `LiproProtocolFacade` 构造协议面；`LiproClient` 只剩显式 compat alias，不再承载生产主链。
+- `tests/core/api/test_protocol_contract_matrix.py` 与 `tests/integration/test_mqtt_coordinator_integration.py` 已新增/更新 unified-root proof，证明 root-owned session/request-policy 与 MQTT child-façade handoff 已落到真实代码与回归套件。
+
+
+## Phase 02.6 Governance Delta
+
+### External-Boundary Slice
+
+| File / Cluster | 分类 | `02.6` 裁决 |
+|------|------|--------------|
+| `custom_components/lipro/core/anonymous_share/report_builder.py` | 重构 | canonical payload builder 继续保留，但 generated timestamp / dynamic fields 只能通过显式 normalization 规则输出 |
+| `custom_components/lipro/services/share.py` | 重构 | share response shaping 被定义为 registered external-boundary consumer，不得再默默定义 share-worker truth |
+| `custom_components/lipro/services/diagnostics/helpers.py` | 重构 | developer feedback payload helper 升级为 formal support-payload consumer，必须绑定 fixture family |
+| `custom_components/lipro/firmware_manifest.py` | 重构 | firmware support manifest role 被固定为 local trust root + remote advisory only |
+| `custom_components/lipro/core/ota/candidate.py` | 重构 | certification 决策必须委托 local manifest trust root，remote advisory 不得单独 certify |
+| `tests/fixtures/external_boundaries/**` | 保留 | 作为 external-boundary fixture truth family 保留并持续扩展 |
+| `tests/meta/test_external_boundary_authority.py` | 保留 | authority / owner / generated-truth drift 守卫 |
+| `tests/meta/test_external_boundary_fixtures.py` | 保留 | fixture family completeness 守卫 |
+| `tests/meta/test_firmware_support_manifest_repo_asset.py` | 保留 | bundled firmware manifest repo-asset 守卫 |
+
+## Phase 03 Governance Delta
+
+### Control-Plane Slice
+
+| File / Cluster | 分类 | `03` 裁决 |
+|------|------|--------------|
+| `custom_components/lipro/control/**/*.py` | 保留 / 新增 | `control/` 成为正式 control-plane home，后续 phase 只扩展、不回退到 root script scattering |
+| `custom_components/lipro/__init__.py` | 重构 | HA entry root 退化为 thin adapter；正式 lifecycle owner 下沉到 `EntryLifecycleController` |
+| `custom_components/lipro/diagnostics.py` | 重构 | 只保留 HA diagnostics adapter；正式 redaction / aggregation 已下沉到 `DiagnosticsSurface` |
+| `custom_components/lipro/system_health.py` | 重构 | 只保留 HA system-health adapter；正式 health aggregation 已下沉到 `SystemHealthSurface` |
+| `custom_components/lipro/services/registrations.py` | 重构 | service callback 正式根切到 `control.service_router` |
+| `custom_components/lipro/services/wiring.py` | 迁移适配 | 仍是 legacy implementation carrier，但已失去正式 root 地位；删除 gate 进入 `Phase 7` |
+| `custom_components/lipro/services/execution.py` | 迁移适配 | 生产功能保留，但 coordinator 私有 auth seam 需在 `Phase 5 / 7` 清理 |
+| `tests/core/test_control_plane.py` | 保留 | control-plane formal owner regression suite |
+| `tests/meta/test_dependency_guards.py` / `tests/meta/test_public_surface_guards.py` | 保留 | 已扩展到覆盖 `control/` 与 control/runtime/public-surface 邻接规则 |

@@ -73,6 +73,7 @@ def test_public_surface_baseline_keeps_canonical_transitional_and_forbidden_role
     )
 
     assert "`Coordinator` + runtime services/public surface" in canonical
+    assert "`EntryLifecycleController`, `ServiceRegistry`, `DiagnosticsSurface`, `SystemHealthSurface`" in canonical
     assert "`LiproClient` compat shell" not in canonical
     assert "`LiproClient` compat shell" in transitional
     assert "mixin-based mega client" in forbidden

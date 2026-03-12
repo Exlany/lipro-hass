@@ -113,14 +113,11 @@ async def test_async_setup_mqtt_builds_refactored_client(
             side_effect=["ak", "sk"],
         ),
         patch(
-            "custom_components.lipro.core.coordinator.mqtt_lifecycle.LiproMqttClient"
-        ) as mock_client_cls,
-        patch(
             "custom_components.lipro.core.coordinator.mqtt_lifecycle.MqttRuntime"
         ) as mock_runtime_cls,
     ):
         mock_client = MagicMock()
-        mock_client_cls.return_value = mock_client
+        mock_lipro_api_client.build_mqtt_facade = MagicMock(return_value=mock_client)
 
         mock_runtime = MagicMock()
         mock_runtime.is_connected = True
@@ -134,7 +131,7 @@ async def test_async_setup_mqtt_builds_refactored_client(
     assert coordinator._runtimes.mqtt is not None
     mock_runtime.connect.assert_awaited_once()
     mock_runtime.set_polling_updater.assert_called_once_with(coordinator)
-    mqtt_client_kwargs = mock_client_cls.call_args.kwargs
+    mqtt_client_kwargs = mock_lipro_api_client.build_mqtt_facade.call_args.kwargs
     assert callable(mqtt_client_kwargs["on_message"])
     assert callable(mqtt_client_kwargs["on_connect"])
     assert callable(mqtt_client_kwargs["on_disconnect"])
@@ -212,9 +209,6 @@ async def test_async_setup_mqtt_returns_false_when_group_connect_times_out(
             return_value="biz001",
         ),
         patch(
-            "custom_components.lipro.core.coordinator.mqtt_lifecycle.LiproMqttClient"
-        ),
-        patch(
             "custom_components.lipro.core.coordinator.mqtt_lifecycle.MqttRuntime"
         ) as mock_runtime_cls,
     ):
@@ -249,9 +243,6 @@ async def test_async_setup_mqtt_returns_false_when_runtime_stays_disconnected(
         patch(
             "custom_components.lipro.core.coordinator.mqtt_lifecycle.resolve_mqtt_biz_id",
             return_value="biz001",
-        ),
-        patch(
-            "custom_components.lipro.core.coordinator.mqtt_lifecycle.LiproMqttClient"
         ),
         patch(
             "custom_components.lipro.core.coordinator.mqtt_lifecycle.MqttRuntime"
@@ -337,6 +328,10 @@ async def test_async_setup_mqtt_message_callback_bridges_to_runtime_and_coordina
         "secretKey": "enc-sk",
     }
 
+    mock_lipro_api_client.build_mqtt_facade = MagicMock(
+        side_effect=lambda **kwargs: _FakeMqttClient(**kwargs)
+    )
+
     with (
         patch(
             "custom_components.lipro.core.coordinator.mqtt_lifecycle.decrypt_mqtt_credential",
@@ -346,19 +341,17 @@ async def test_async_setup_mqtt_message_callback_bridges_to_runtime_and_coordina
             "custom_components.lipro.core.coordinator.mqtt_lifecycle.resolve_mqtt_biz_id",
             return_value="biz001",
         ),
-        patch(
-            "custom_components.lipro.core.coordinator.mqtt_lifecycle.LiproMqttClient",
-            new=_FakeMqttClient,
-        ),
     ):
         ok = await coordinator.async_setup_mqtt()
 
     assert ok is True
     mqtt_client = coordinator.mqtt_client
-    assert isinstance(mqtt_client, _FakeMqttClient)
+    assert mqtt_client is not None
+    raw_client = getattr(mqtt_client, "raw_client", mqtt_client)
+    assert isinstance(raw_client, _FakeMqttClient)
 
-    assert mqtt_client.on_message is not None
-    mqtt_client.on_message(device.serial, {"connectState": "1"})
+    assert raw_client.on_message is not None
+    raw_client.on_message(device.serial, {"connectState": "1"})
     await asyncio.gather(*tuple(coordinator.background_task_manager.tasks))
 
     coordinator._runtimes.state.apply_properties_update.assert_awaited_once_with(
@@ -381,6 +374,10 @@ async def test_async_setup_mqtt_client_callbacks_drive_runtime_connection_state(
         "secretKey": "enc-sk",
     }
 
+    mock_lipro_api_client.build_mqtt_facade = MagicMock(
+        side_effect=lambda **kwargs: _FakeMqttClient(**kwargs)
+    )
+
     with (
         patch(
             "custom_components.lipro.core.coordinator.mqtt_lifecycle.decrypt_mqtt_credential",
@@ -390,25 +387,23 @@ async def test_async_setup_mqtt_client_callbacks_drive_runtime_connection_state(
             "custom_components.lipro.core.coordinator.mqtt_lifecycle.resolve_mqtt_biz_id",
             return_value="biz001",
         ),
-        patch(
-            "custom_components.lipro.core.coordinator.mqtt_lifecycle.LiproMqttClient",
-            new=_FakeMqttClient,
-        ),
     ):
         ok = await coordinator.async_setup_mqtt()
 
     assert ok is True
     mqtt_client = coordinator.mqtt_client
-    assert isinstance(mqtt_client, _FakeMqttClient)
+    assert mqtt_client is not None
+    raw_client = getattr(mqtt_client, "raw_client", mqtt_client)
+    assert isinstance(raw_client, _FakeMqttClient)
     assert coordinator.mqtt_runtime is not None
     assert coordinator.mqtt_runtime.is_connected
 
-    assert mqtt_client.on_disconnect is not None
-    mqtt_client.on_disconnect()
+    assert raw_client.on_disconnect is not None
+    raw_client.on_disconnect()
     assert coordinator.mqtt_runtime is not None
     assert not coordinator.mqtt_runtime.is_connected
 
-    on_connect = mqtt_client.on_connect
+    on_connect = raw_client.on_connect
     assert on_connect is not None
     on_connect()
     assert coordinator.mqtt_runtime is not None

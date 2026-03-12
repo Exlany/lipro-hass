@@ -950,3 +950,21 @@ def test_update_entity_certified_matching_compare_error_is_conservative(
             )
             is False
         )
+
+
+def test_remote_advisory_fixture_parser_stays_aligned_with_phase_2_6_contract() -> None:
+    from custom_components.lipro.core.ota.manifest import (
+        parse_verified_firmware_manifest_payload,
+    )
+    from tests.helpers.external_boundary_fixtures import load_external_boundary_fixture
+
+    versions, by_type = parse_verified_firmware_manifest_payload(
+        load_external_boundary_fixture(
+            "firmware",
+            "remote_advisory.firmware_list.json",
+        )
+    )
+
+    assert versions == frozenset({"8.0.0", "2.6.43"})
+    assert by_type["21p3"] == frozenset({"8.0.0"})
+    assert by_type["t21jc"] == frozenset({"2.6.43"})

@@ -11,7 +11,7 @@ from custom_components.lipro.core.device import LiproDevice
 from custom_components.lipro.core.device.group_status import sync_mesh_group_extra_data
 
 if TYPE_CHECKING:
-    from custom_components.lipro.core.api import LiproClient
+    from custom_components.lipro.core.protocol import LiproProtocolFacade
     from custom_components.lipro.core.device.identity_index import DeviceIdentityIndex
 
     from .filter import DeviceFilter
@@ -68,7 +68,7 @@ class SnapshotBuilder:
     def __init__(
         self,
         *,
-        client: LiproClient,
+        client: LiproProtocolFacade,
         device_identity_index: DeviceIdentityIndex,
         device_filter: DeviceFilter,
     ) -> None:

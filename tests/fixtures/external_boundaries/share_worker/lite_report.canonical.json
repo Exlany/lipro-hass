@@ -1,0 +1,35 @@
+{
+  "report_version": "1.1",
+  "integration_version": "__INTEGRATION_VERSION__",
+  "ha_version": "2026.3.0",
+  "generated_at": "<generated_at>",
+  "installation_id": "install-001",
+  "device_count": 2,
+  "error_count": 1,
+  "devices": [
+    {
+      "physical_model": "light",
+      "iot_name": "lipro_led",
+      "device_type": 1,
+      "product_id": 100,
+      "is_group": false,
+      "category": "light",
+      "firmware_version": "1.0.0",
+      "capabilities": ["on", "brightness"],
+      "has_gear_presets": false,
+      "gear_count": 0,
+      "min_color_temp_kelvin": 2700,
+      "max_color_temp_kelvin": 6500
+    }
+  ],
+  "errors": [
+    {
+      "type": "api_error",
+      "message": "timeout",
+      "endpoint": "/device/list",
+      "iot_name": "lipro_led",
+      "device_type": "ff000001",
+      "timestamp": "<timestamp>"
+    }
+  ]
+}

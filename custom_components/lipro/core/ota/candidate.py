@@ -193,7 +193,11 @@ def resolve_certification(
     local_versions_by_type: dict[str, frozenset[str]],
     is_version_newer: Callable[[str, str], bool],
 ) -> bool:
-    """Resolve certification from inline data and local trust roots only."""
+    """Resolve certification from inline data and the local trust root.
+
+    Remote firmware manifest payloads remain advisory only. They may influence
+    update discovery, but they must never elevate certification on their own.
+    """
     del remote_verified_versions, remote_versions_by_type
     explicit_or_inline = resolve_inline_certification(
         row,
@@ -204,6 +208,28 @@ def resolve_certification(
     if explicit_or_inline is not None:
         return explicit_or_inline
 
+    return resolve_local_manifest_certification(
+        row,
+        installed=installed,
+        latest=latest,
+        device_iot_name=device_iot_name,
+        local_verified_versions=local_verified_versions,
+        local_versions_by_type=local_versions_by_type,
+        is_version_newer=is_version_newer,
+    )
+
+
+def resolve_local_manifest_certification(
+    row: dict[str, Any] | None,
+    *,
+    installed: str | None,
+    latest: str | None,
+    device_iot_name: str | None,
+    local_verified_versions: frozenset[str],
+    local_versions_by_type: dict[str, frozenset[str]],
+    is_version_newer: Callable[[str, str], bool],
+) -> bool:
+    """Resolve certification using only the bundled local manifest authority."""
     if latest is None:
         return False
 

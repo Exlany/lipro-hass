@@ -1,0 +1,19 @@
+{
+  "firmware_list": [
+    {
+      "certified": true,
+      "latestVersion": "8.0.0",
+      "iotName": "21P3"
+    },
+    {
+      "certified": true,
+      "latestVersion": "2.6.43",
+      "bleName": "T21JC"
+    },
+    {
+      "certified": false,
+      "latestVersion": "9.0.0",
+      "iotName": "21P3"
+    }
+  ]
+}

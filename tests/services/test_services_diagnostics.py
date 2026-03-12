@@ -304,7 +304,9 @@ async def test_async_call_optional_capability_maps_api_error() -> None:
 def test_service_number_coercion_handles_bool_and_default() -> None:
     """Numeric coercion should preserve schema-friendly bool and fallback behavior."""
     hass = cast(HomeAssistant, MagicMock())
-    call = service_call(hass, {"int_value": True, "float_value": False, "bad": object()})
+    call = service_call(
+        hass, {"int_value": True, "float_value": False, "bad": object()}
+    )
 
     assert _coerce_service_int(call, "int_value", 7) == 1
     assert _coerce_service_int(call, "bad", 7) == 7
@@ -336,7 +338,11 @@ async def test_async_get_first_coordinator_capability_result_keeps_last_api_erro
     second = MagicMock()
     second.client.get_city = AsyncMock(side_effect=LiproApiError("api down", code=503))
 
-    has_result, result, last_error = await _async_get_first_coordinator_capability_result(
+    (
+        has_result,
+        result,
+        last_error,
+    ) = await _async_get_first_coordinator_capability_result(
         iter([first, second]),
         capability="get_city",
         collector=lambda item: cast(Any, item).client.get_city(),
@@ -378,3 +384,26 @@ async def test_async_handle_query_user_cloud_raises_last_api_error() -> None:
         )
 
     raise_optional_error.assert_called_once()
+
+
+def test_build_developer_feedback_payload_matches_boundary_fixture() -> None:
+    from custom_components.lipro.core.anonymous_share.report_builder import (
+        canonicalize_generated_payload,
+    )
+    from custom_components.lipro.services.diagnostics import (
+        build_developer_feedback_payload,
+    )
+    from tests.helpers.external_boundary_fixtures import load_external_boundary_fixture
+
+    payload = build_developer_feedback_payload(
+        reports=[{"runtime": {"ok": True}}],
+        note="manual run",
+        domain="lipro",
+        service_name="submit_developer_feedback",
+        requested_entry_id="entry-2",
+    )
+
+    assert canonicalize_generated_payload(payload) == load_external_boundary_fixture(
+        "support_payload",
+        "developer_feedback_service.canonical.json",
+    )

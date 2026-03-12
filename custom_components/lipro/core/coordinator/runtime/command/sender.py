@@ -17,7 +17,7 @@ from ....utils.redaction import redact_identifier as _redact_identifier
 from ...types import CommandTrace
 
 if TYPE_CHECKING:
-    from ....api import LiproClient
+    from ....protocol import LiproProtocolFacade
     from ....device import LiproDevice
 
 _LOGGER = logging.getLogger(__name__)
@@ -29,7 +29,7 @@ class CommandSender:
     def __init__(
         self,
         *,
-        client: LiproClient,
+        client: LiproProtocolFacade,
         redact_identifier: Callable[[str | None], str | None] = _redact_identifier,
     ) -> None:
         """Initialize command sender."""

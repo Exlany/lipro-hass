@@ -1125,3 +1125,27 @@ class TestClientObservabilityScope:
             "method": "POST",
             "entry_id": "entry-2",
         }
+
+
+@pytest.mark.asyncio
+async def test_submit_developer_feedback_matches_boundary_fixture() -> None:
+    from custom_components.lipro.core.anonymous_share.report_builder import (
+        canonicalize_generated_payload,
+    )
+    from tests.helpers.external_boundary_fixtures import load_external_boundary_fixture
+
+    mgr = AnonymousShareManager()
+    mgr.set_enabled(True, error_reporting=True, installation_id="install-001")
+    mgr._ha_version = "2026.3.0"
+    session = MagicMock()
+    submit_share_payload = AsyncMock(return_value=True)
+    mgr._share_client = MagicMock(submit_share_payload=submit_share_payload)
+
+    result = await mgr.submit_developer_feedback(session, {"note": "manual run"})
+
+    assert result is True
+    report = submit_share_payload.await_args.args[1]
+    assert canonicalize_generated_payload(report) == load_external_boundary_fixture(
+        "share_worker",
+        "developer_feedback_report.canonical.json",
+    )

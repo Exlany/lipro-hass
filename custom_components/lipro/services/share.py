@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from typing import Any
 
 from homeassistant.core import HomeAssistant, ServiceCall
@@ -18,6 +19,49 @@ def _resolve_share_manager(
     """Resolve aggregate or entry-scoped anonymous-share manager."""
     entry_id = call.data.get(attr_entry_id)
     return get_anonymous_share_manager(hass, entry_id=entry_id)
+
+
+def build_submit_anonymous_share_response(
+    *,
+    device_count: int,
+    error_count: int,
+    requested_entry_id: str | None = None,
+) -> dict[str, Any]:
+    """Build the canonical submit_anonymous_share success payload."""
+    result: dict[str, Any] = {
+        "success": True,
+        "devices": device_count,
+        "errors": error_count,
+    }
+    if requested_entry_id:
+        result["requested_entry_id"] = requested_entry_id
+    return result
+
+
+def build_anonymous_share_preview_response(
+    report: Mapping[str, Any] | None,
+    *,
+    requested_entry_id: str | None = None,
+) -> dict[str, Any]:
+    """Build the canonical get_anonymous_share_report service payload."""
+    if report is None:
+        result: dict[str, Any] = {
+            "has_data": False,
+            "devices": [],
+            "errors": [],
+        }
+    else:
+        result = {
+            "has_data": True,
+            "device_count": report.get("device_count", 0),
+            "error_count": report.get("error_count", 0),
+            "devices": report.get("devices", []),
+            "errors": report.get("errors", []),
+        }
+
+    if requested_entry_id:
+        result["requested_entry_id"] = requested_entry_id
+    return result
 
 
 async def async_handle_submit_anonymous_share(
@@ -44,32 +88,27 @@ async def async_handle_submit_anonymous_share(
         )
 
     device_count, error_count = share_manager.pending_count
+    requested_entry_id = call.data.get(attr_entry_id)
     if device_count == 0 and error_count == 0:
-        result = {
-            "success": True,
+        return {
+            **build_submit_anonymous_share_response(
+                device_count=0,
+                error_count=0,
+                requested_entry_id=requested_entry_id,
+            ),
             "message": "No data to submit",
-            "devices": 0,
-            "errors": 0,
         }
-        requested_entry_id = call.data.get(attr_entry_id)
-        if requested_entry_id:
-            result["requested_entry_id"] = requested_entry_id
-        return result
 
     session = get_client_session(hass)
     success = await share_manager.submit_report(session, force=True)
     if not success:
         raise_service_error("anonymous_share_submit_failed")
 
-    result = {
-        "success": True,
-        "devices": device_count,
-        "errors": error_count,
-    }
-    requested_entry_id = call.data.get(attr_entry_id)
-    if requested_entry_id:
-        result["requested_entry_id"] = requested_entry_id
-    return result
+    return build_submit_anonymous_share_response(
+        device_count=device_count,
+        error_count=error_count,
+        requested_entry_id=requested_entry_id,
+    )
 
 
 async def async_handle_get_anonymous_share_report(
@@ -86,25 +125,8 @@ async def async_handle_get_anonymous_share_report(
         get_anonymous_share_manager=get_anonymous_share_manager,
         attr_entry_id=attr_entry_id,
     )
-    report = share_manager.get_pending_report()
     requested_entry_id = call.data.get(attr_entry_id)
-    if report is None:
-        result = {
-            "has_data": False,
-            "devices": [],
-            "errors": [],
-        }
-        if requested_entry_id:
-            result["requested_entry_id"] = requested_entry_id
-        return result
-
-    result = {
-        "has_data": True,
-        "device_count": report.get("device_count", 0),
-        "error_count": report.get("error_count", 0),
-        "devices": report.get("devices", []),
-        "errors": report.get("errors", []),
-    }
-    if requested_entry_id:
-        result["requested_entry_id"] = requested_entry_id
-    return result
+    return build_anonymous_share_preview_response(
+        share_manager.get_pending_report(),
+        requested_entry_id=requested_entry_id,
+    )

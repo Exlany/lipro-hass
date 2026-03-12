@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 import logging
 from typing import Any
 
@@ -26,9 +27,17 @@ from ...const.api import (
 from ...const.base import APP_VERSION_CODE, APP_VERSION_NAME
 from .auth_service import AuthApiService
 from .client_auth_recovery import AuthRecoveryCoordinator
-from .client_base import ClientSessionState
+from .client_base import ClientSessionState, _ClientBase
 from .client_transport import TransportExecutor
-from .endpoints import _ClientEndpointsMixin
+from .endpoints import (
+    AuthEndpoints,
+    CommandEndpoints,
+    DeviceEndpoints,
+    MiscEndpoints,
+    ScheduleEndpoints,
+    StatusEndpoints,
+)
+from .endpoints.payloads import EndpointPayloadNormalizers
 from .errors import LiproApiError, LiproAuthError
 from .request_codec import (
     build_smart_home_request_data,
@@ -41,12 +50,36 @@ from .schedule_service import ScheduleApiService
 _LOGGER = logging.getLogger(__name__)
 
 
-class LiproRestFacade(_ClientEndpointsMixin):
+class LiproRestFacade(_ClientBase):
     """Formal REST root built from explicit collaborators.
 
     This is the Phase 2 canonical REST facade. Any legacy `LiproClient` surface is
     now a transitional compat shell layered on top of this root.
     """
+
+    _extract_list_payload = staticmethod(EndpointPayloadNormalizers.extract_list_payload)
+    _extract_data_list = staticmethod(EndpointPayloadNormalizers.extract_data_list)
+    _extract_timings_list = staticmethod(EndpointPayloadNormalizers.extract_timings_list)
+    _sanitize_iot_device_ids = staticmethod(EndpointPayloadNormalizers.sanitize_iot_device_ids)
+    _normalize_power_target_id = staticmethod(EndpointPayloadNormalizers.normalize_power_target_id)
+    _is_retriable_device_error = staticmethod(StatusEndpoints._is_retriable_device_error)
+    _coerce_int_list = staticmethod(ScheduleEndpoints._coerce_int_list)
+
+    @classmethod
+    def _parse_mesh_schedule_json(cls, schedule_json: object) -> dict[str, list[int]]:
+        return ScheduleEndpoints._parse_mesh_schedule_json(schedule_json)
+
+    @classmethod
+    def _normalize_mesh_timing_rows(
+        cls,
+        rows: Sequence[object],
+        *,
+        fallback_device_id: str = "",
+    ) -> list[dict[str, Any]]:
+        return ScheduleEndpoints._normalize_mesh_timing_rows(
+            rows,
+            fallback_device_id=fallback_device_id,
+        )
 
     def __init__(
         self,
@@ -55,14 +88,16 @@ class LiproRestFacade(_ClientEndpointsMixin):
         request_timeout: int = REQUEST_TIMEOUT,
         *,
         entry_id: str | None = None,
+        session_state: ClientSessionState | None = None,
+        request_policy: RequestPolicy | None = None,
     ) -> None:
-        self._session_state = ClientSessionState(
+        self._session_state = session_state or ClientSessionState(
             phone_id=phone_id,
             session=session,
             request_timeout=request_timeout,
             entry_id=entry_id,
         )
-        self._request_policy = RequestPolicy()
+        self._request_policy = request_policy or RequestPolicy()
         self._command_pacing_lock = self._request_policy.command_pacing_lock
         self._command_pacing_target_locks = self._request_policy.command_pacing_target_locks
         self._last_change_state_at = self._request_policy.last_change_state_at
@@ -76,6 +111,42 @@ class LiproRestFacade(_ClientEndpointsMixin):
         )
         self._auth_api = AuthApiService(self, LiproAuthError, _LOGGER)
         self._schedule_api = ScheduleApiService(self)
+        self._auth_endpoints = AuthEndpoints(self)
+        self._device_endpoints = DeviceEndpoints(self)
+        self._status_endpoints = StatusEndpoints(self)
+        self._command_endpoints = CommandEndpoints(self)
+        self._misc_endpoints = MiscEndpoints(self)
+        self._schedule_endpoints = ScheduleEndpoints(self)
+        self._endpoint_exports: dict[str, Any] = {}
+        self._install_endpoint_exports()
+
+    def _install_endpoint_exports(self) -> None:
+        self._endpoint_collaborators = {
+            "auth": self._auth_endpoints,
+            "device": self._device_endpoints,
+            "status": self._status_endpoints,
+            "command": self._command_endpoints,
+            "misc": self._misc_endpoints,
+            "schedule": self._schedule_endpoints,
+        }
+        endpoint_exports: dict[str, Any] = {}
+        for collaborator in self._endpoint_collaborators.values():
+            for name in collaborator.EXPORTED_METHODS:
+                endpoint_exports[name] = getattr(collaborator, name)
+        self._endpoint_exports = endpoint_exports
+
+    def __getattr__(self, name: str) -> Any:
+        endpoint_exports = self.__dict__.get("_endpoint_exports", {})
+        if name in endpoint_exports:
+            return endpoint_exports[name]
+        raise AttributeError(
+            f"{type(self).__name__!s} object has no attribute {name!r}"
+        )
+
+    def __dir__(self) -> list[str]:
+        return sorted(
+            set(super().__dir__()) | set(self.__dict__.get("_endpoint_exports", {}))
+        )
 
     @property
     def phone_id(self) -> str:
