@@ -241,6 +241,52 @@ class TestCoordinatorRuntimeComponents:
         assert device.properties["powerState"] == "1"
 
     @pytest.mark.asyncio
+    async def test_async_run_status_polling_refreshes_due_outlet_power(
+        self, coordinator, mock_lipro_api_client
+    ) -> None:
+        """Outlet power polling should run on the coordinator main status path."""
+        serial = "03ab5ccd7c000006"
+        mock_lipro_api_client.get_device_list.return_value = {
+            "data": [
+                make_api_device(
+                    serial=serial,
+                    device_type=6,
+                    iot_name="lipro_outlet",
+                    physical_model="outlet",
+                )
+            ],
+            "hasMore": False,
+        }
+        mock_lipro_api_client.fetch_outlet_power_info = AsyncMock(
+            return_value={"nowPower": 12.5}
+        )
+
+        with patch(
+            "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager"
+        ) as mock_share:
+            mock_share.return_value = mock_anonymous_share_manager()
+            await refresh_and_sync_devices(coordinator)
+
+        device = coordinator.get_device(serial)
+        assert device is not None
+        coordinator.status_runtime.filter_query_candidates = MagicMock(return_value=[])
+        coordinator.status_runtime.should_query_power = MagicMock(return_value=True)
+        coordinator.status_runtime.get_outlet_power_query_slice = MagicMock(
+            return_value=[serial]
+        )
+        coordinator.status_runtime.mark_power_query_complete = MagicMock()
+        coordinator.status_runtime.advance_outlet_power_cycle = MagicMock()
+
+        await coordinator._async_run_status_polling()
+
+        assert device.extra_data["power_info"]["nowPower"] == 12.5
+        mock_lipro_api_client.fetch_outlet_power_info.assert_awaited_once_with(serial)
+        coordinator.status_runtime.mark_power_query_complete.assert_called_once_with()
+        coordinator.status_runtime.advance_outlet_power_cycle.assert_called_once_with(
+            [serial]
+        )
+
+    @pytest.mark.asyncio
     async def test_async_send_command_surfaces_reauth_when_auth_expires(
         self, coordinator, mock_lipro_api_client
     ):

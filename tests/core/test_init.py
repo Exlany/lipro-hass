@@ -1778,7 +1778,7 @@ class TestInitRuntimeBehavior:
         device = self._create_device(serial="mesh_group_49155")
         coordinator = MagicMock()
         coordinator.get_device.return_value = device
-        coordinator.client.query_command_result = AsyncMock(
+        coordinator.async_query_command_result = AsyncMock(
             return_value={"success": True}
         )
 
@@ -1803,7 +1803,7 @@ class TestInitRuntimeBehavior:
         assert result["attempt_limit"] == 5
         assert result["retry_delays_seconds"] == pytest.approx((0.35, 0.7, 1.4, 0.55))
         assert result["result"] == {"success": True}
-        coordinator.client.query_command_result.assert_awaited_once_with(
+        coordinator.async_query_command_result.assert_awaited_once_with(
             msg_sn="682550445474",
             device_id="mesh_group_49155",
             device_type=device.device_type_hex,
@@ -1816,7 +1816,7 @@ class TestInitRuntimeBehavior:
         device = self._create_device(serial="mesh_group_49155")
         coordinator = MagicMock()
         coordinator.get_device.return_value = device
-        coordinator.client.query_command_result = AsyncMock(
+        coordinator.async_query_command_result = AsyncMock(
             side_effect=[
                 {"code": "140006", "message": "设备未响应", "success": False},
                 {"code": "100000", "message": "服务异常", "success": False},
@@ -1851,12 +1851,12 @@ class TestInitRuntimeBehavior:
         }
         assert result["retry_delays_seconds"] == pytest.approx((0.35, 0.7, 1.4, 0.55))
         assert sleep_mock.await_args_list == [call(0.35), call(0.7)]
-        assert coordinator.client.query_command_result.await_count == 3
+        assert coordinator.async_query_command_result.await_count == 3
 
     async def test_get_city_service(self, hass) -> None:
         """get_city service should return first coordinator city result."""
         coordinator = MagicMock()
-        coordinator.client.get_city = AsyncMock(
+        coordinator.async_get_city = AsyncMock(
             return_value={"province": "广东省", "city": "江门市"}
         )
 
@@ -1870,7 +1870,7 @@ class TestInitRuntimeBehavior:
     async def test_query_user_cloud_service(self, hass) -> None:
         """query_user_cloud service should return first coordinator result."""
         coordinator = MagicMock()
-        coordinator.client.query_user_cloud = AsyncMock(return_value={"data": []})
+        coordinator.async_query_user_cloud = AsyncMock(return_value={"data": []})
 
         entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
         entry.add_to_hass(hass)
@@ -1882,11 +1882,11 @@ class TestInitRuntimeBehavior:
     async def test_get_city_service_falls_back_to_next_coordinator(self, hass) -> None:
         """get_city should continue to next coordinator when one fails."""
         first = MagicMock()
-        first.client.get_city = AsyncMock(
+        first.async_get_city = AsyncMock(
             side_effect=LiproApiError("temporary failure", code=500)
         )
         second = MagicMock()
-        second.client.get_city = AsyncMock(
+        second.async_get_city = AsyncMock(
             return_value={"province": "广东省", "city": "深圳市"}
         )
 
@@ -1904,9 +1904,9 @@ class TestInitRuntimeBehavior:
     async def test_get_city_service_skips_unexpected_error(self, hass) -> None:
         """get_city should skip unexpected coordinator errors and continue."""
         first = MagicMock()
-        first.client.get_city = AsyncMock(side_effect=RuntimeError("boom"))
+        first.async_get_city = AsyncMock(side_effect=RuntimeError("boom"))
         second = MagicMock()
-        second.client.get_city = AsyncMock(
+        second.async_get_city = AsyncMock(
             return_value={"province": "浙江省", "city": "杭州市"}
         )
 
@@ -1926,11 +1926,11 @@ class TestInitRuntimeBehavior:
     ) -> None:
         """query_user_cloud should continue to next coordinator when one fails."""
         first = MagicMock()
-        first.client.query_user_cloud = AsyncMock(
+        first.async_query_user_cloud = AsyncMock(
             side_effect=LiproApiError("temporary failure", code=500)
         )
         second = MagicMock()
-        second.client.query_user_cloud = AsyncMock(return_value={"data": [1, 2]})
+        second.async_query_user_cloud = AsyncMock(return_value={"data": [1, 2]})
 
         entry_1 = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
         entry_1.add_to_hass(hass)
@@ -1946,9 +1946,9 @@ class TestInitRuntimeBehavior:
     async def test_query_user_cloud_service_skips_unexpected_error(self, hass) -> None:
         """query_user_cloud should skip unexpected coordinator errors and continue."""
         first = MagicMock()
-        first.client.query_user_cloud = AsyncMock(side_effect=RuntimeError("boom"))
+        first.async_query_user_cloud = AsyncMock(side_effect=RuntimeError("boom"))
         second = MagicMock()
-        second.client.query_user_cloud = AsyncMock(return_value={"data": []})
+        second.async_query_user_cloud = AsyncMock(return_value={"data": []})
 
         entry_1 = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
         entry_1.add_to_hass(hass)
@@ -1966,7 +1966,7 @@ class TestInitRuntimeBehavior:
         device = self._create_device(serial="mesh_group_49155")
         coordinator = MagicMock()
         coordinator.get_device.return_value = device
-        coordinator.client.fetch_body_sensor_history = AsyncMock(
+        coordinator.async_fetch_body_sensor_history = AsyncMock(
             return_value={"humanSensorStateList": []}
         )
 
@@ -1987,7 +1987,7 @@ class TestInitRuntimeBehavior:
         )
 
         assert result["serial"] == "mesh_group_49155"
-        coordinator.client.fetch_body_sensor_history.assert_awaited_once_with(
+        coordinator.async_fetch_body_sensor_history.assert_awaited_once_with(
             device_id="mesh_group_49155",
             device_type=device.device_type,
             sensor_device_id="03ab5ccd7c7167d8",
@@ -1999,7 +1999,7 @@ class TestInitRuntimeBehavior:
         device = self._create_device(serial="mesh_group_49155")
         coordinator = MagicMock()
         coordinator.get_device.return_value = device
-        coordinator.client.fetch_door_sensor_history = AsyncMock(
+        coordinator.async_fetch_door_sensor_history = AsyncMock(
             return_value={"doorStateList": []}
         )
 
@@ -2020,7 +2020,7 @@ class TestInitRuntimeBehavior:
         )
 
         assert result["serial"] == "mesh_group_49155"
-        coordinator.client.fetch_door_sensor_history.assert_awaited_once_with(
+        coordinator.async_fetch_door_sensor_history.assert_awaited_once_with(
             device_id="mesh_group_49155",
             device_type=device.device_type,
             sensor_device_id="03ab5ccd7c7167d8",
@@ -2386,6 +2386,9 @@ class TestInitRuntimeBehavior:
         coordinator = MagicMock()
         coordinator.get_device.return_value = device
         coordinator.client = client
+        coordinator.async_get_device_schedules = client.get_device_schedules
+        coordinator.async_add_device_schedule = client.add_device_schedule
+        coordinator.async_delete_device_schedules = client.delete_device_schedules
 
         entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
         entry.add_to_hass(hass)
@@ -2416,6 +2419,9 @@ class TestInitRuntimeBehavior:
         coordinator = MagicMock()
         coordinator.get_device.return_value = device
         coordinator.client = client
+        coordinator.async_get_device_schedules = client.get_device_schedules
+        coordinator.async_add_device_schedule = client.add_device_schedule
+        coordinator.async_delete_device_schedules = client.delete_device_schedules
 
         entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
         entry.add_to_hass(hass)
@@ -2466,6 +2472,9 @@ class TestInitRuntimeBehavior:
         coordinator = MagicMock()
         coordinator.get_device.return_value = device
         coordinator.client = client
+        coordinator.async_get_device_schedules = client.get_device_schedules
+        coordinator.async_add_device_schedule = client.add_device_schedule
+        coordinator.async_delete_device_schedules = client.delete_device_schedules
 
         entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
         entry.add_to_hass(hass)
@@ -2499,6 +2508,9 @@ class TestInitRuntimeBehavior:
         coordinator = MagicMock()
         coordinator.get_device.return_value = device
         coordinator.client = client
+        coordinator.async_get_device_schedules = client.get_device_schedules
+        coordinator.async_add_device_schedule = client.add_device_schedule
+        coordinator.async_delete_device_schedules = client.delete_device_schedules
 
         entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
         entry.add_to_hass(hass)
@@ -2526,6 +2538,9 @@ class TestInitRuntimeBehavior:
         coordinator = MagicMock()
         coordinator.get_device.return_value = device
         coordinator.client = client
+        coordinator.async_get_device_schedules = client.get_device_schedules
+        coordinator.async_add_device_schedule = client.add_device_schedule
+        coordinator.async_delete_device_schedules = client.delete_device_schedules
 
         entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
         entry.add_to_hass(hass)
@@ -2563,6 +2578,9 @@ class TestInitRuntimeBehavior:
         coordinator = MagicMock()
         coordinator.get_device.return_value = device
         coordinator.client = client
+        coordinator.async_get_device_schedules = client.get_device_schedules
+        coordinator.async_add_device_schedule = client.add_device_schedule
+        coordinator.async_delete_device_schedules = client.delete_device_schedules
 
         entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
         entry.add_to_hass(hass)
@@ -2616,6 +2634,9 @@ class TestInitRuntimeBehavior:
         coordinator = MagicMock()
         coordinator.get_device.return_value = device
         coordinator.client = client
+        coordinator.async_get_device_schedules = client.get_device_schedules
+        coordinator.async_add_device_schedule = client.add_device_schedule
+        coordinator.async_delete_device_schedules = client.delete_device_schedules
 
         entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
         entry.add_to_hass(hass)
@@ -2645,6 +2666,9 @@ class TestInitRuntimeBehavior:
         coordinator = MagicMock()
         coordinator.get_device.return_value = device
         coordinator.client = client
+        coordinator.async_get_device_schedules = client.get_device_schedules
+        coordinator.async_add_device_schedule = client.add_device_schedule
+        coordinator.async_delete_device_schedules = client.delete_device_schedules
 
         entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
         entry.add_to_hass(hass)
@@ -2676,6 +2700,9 @@ class TestInitRuntimeBehavior:
         coordinator = MagicMock()
         coordinator.get_device.return_value = device
         coordinator.client = client
+        coordinator.async_get_device_schedules = client.get_device_schedules
+        coordinator.async_add_device_schedule = client.add_device_schedule
+        coordinator.async_delete_device_schedules = client.delete_device_schedules
 
         entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
         entry.add_to_hass(hass)

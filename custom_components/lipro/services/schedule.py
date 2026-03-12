@@ -11,6 +11,7 @@ from homeassistant.exceptions import ServiceValidationError
 
 from ..core import LiproApiError
 from ..core.api.schedule_codec import coerce_int_list
+from ..core.utils.identifiers import normalize_iot_device_id
 from ..core.utils.redaction import redact_identifier as _redact_identifier
 from .execution import (
     AuthenticatedCoordinator,
@@ -33,12 +34,45 @@ class ScheduleDevice(Protocol):
     device_type_hex: str
     serial: str
     extra_data: object
+    ir_remote_gateway_device_id: str | None
 
 
 class ScheduleCoordinator(AuthenticatedCoordinator, Protocol):
     """Coordinator contract used by schedule services."""
 
-    client: Any
+    async def async_get_device_schedules(
+        self,
+        device_id: str,
+        device_type: str | int,
+        *,
+        mesh_gateway_id: str = "",
+        mesh_member_ids: list[str] | None = None,
+    ) -> list[object]:
+        """Query device schedules through the coordinator facade."""
+
+    async def async_add_device_schedule(
+        self,
+        device_id: str,
+        device_type: str | int,
+        days: object,
+        times: object,
+        events: object,
+        *,
+        mesh_gateway_id: str = "",
+        mesh_member_ids: list[str] | None = None,
+    ) -> list[object]:
+        """Create a device schedule through the coordinator facade."""
+
+    async def async_delete_device_schedules(
+        self,
+        device_id: str,
+        device_type: str | int,
+        schedule_ids: object,
+        *,
+        mesh_gateway_id: str = "",
+        mesh_member_ids: list[str] | None = None,
+    ) -> list[object]:
+        """Delete device schedules through the coordinator facade."""
 
 
 def format_schedule_time(seconds: int) -> str | None:
@@ -92,20 +126,25 @@ def get_mesh_context(device: ScheduleDevice) -> tuple[str, list[str]]:
     """Extract mesh gateway and member IDs from device metadata."""
     extra_data = getattr(device, "extra_data", None)
     if not isinstance(extra_data, Mapping):
-        return "", []
+        extra_data = {}
 
-    mesh_gateway_id = extra_data.get("gateway_device_id")
+    gateway_candidate = extra_data.get("gateway_device_id")
+    if gateway_candidate is None:
+        gateway_candidate = getattr(device, "ir_remote_gateway_device_id", None)
+    mesh_gateway_id = normalize_iot_device_id(gateway_candidate) or ""
+
+    mesh_member_ids: list[str] = []
+    seen_member_ids: set[str] = set()
     raw_mesh_member_ids = extra_data.get("group_member_ids")
-    mesh_member_ids = (
-        [member_id for member_id in raw_mesh_member_ids if isinstance(member_id, str)]
-        if isinstance(raw_mesh_member_ids, list)
-        else []
-    )
+    if isinstance(raw_mesh_member_ids, list):
+        for member_id in raw_mesh_member_ids:
+            normalized = normalize_iot_device_id(member_id)
+            if normalized is None or normalized in seen_member_ids:
+                continue
+            seen_member_ids.add(normalized)
+            mesh_member_ids.append(normalized)
 
-    return (
-        mesh_gateway_id if isinstance(mesh_gateway_id, str) else "",
-        mesh_member_ids,
-    )
+    return mesh_gateway_id, mesh_member_ids
 
 
 async def async_call_schedule_client(
@@ -199,7 +238,7 @@ async def async_handle_get_schedules(
     schedules: list[object] = await async_call_schedule_service(
         coordinator,
         device,
-        client_call=coordinator.client.get_device_schedules,
+        client_call=coordinator.async_get_device_schedules,
         service_log="Service call: get_schedules for %s",
         error_log="API error getting schedules: %s",
         error_translation_key="schedule_fetch_failed",
@@ -249,7 +288,7 @@ async def async_handle_add_schedule(
     schedules: list[object] = await async_call_schedule_service(
         coordinator,
         device,
-        client_call=coordinator.client.add_device_schedule,
+        client_call=coordinator.async_add_device_schedule,
         call_args=(days, times, events),
         service_log=(
             "Service call: add_schedule for %s (days=%s, times=%s, events=%s)"
@@ -290,7 +329,7 @@ async def async_handle_delete_schedules(
     remaining: list[object] = await async_call_schedule_service(
         coordinator,
         device,
-        client_call=coordinator.client.delete_device_schedules,
+        client_call=coordinator.async_delete_device_schedules,
         call_args=(schedule_ids,),
         service_log="Service call: delete_schedules for %s (ids=%s)",
         service_log_args=(

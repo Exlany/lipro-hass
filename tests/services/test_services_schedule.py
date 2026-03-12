@@ -10,6 +10,7 @@ import pytest
 from custom_components.lipro.core import LiproApiError
 from custom_components.lipro.services.schedule import (
     async_call_schedule_client,
+    get_mesh_context,
     normalize_schedule_row,
 )
 
@@ -83,3 +84,29 @@ async def test_async_call_schedule_client_maps_lipro_api_error() -> None:
     )
     logger.warning.assert_called_once_with("API error getting schedules: %s", api_error)
     raise_service_error.assert_called_once_with("schedule_fetch_failed", err=api_error)
+
+
+def test_get_mesh_context_normalizes_member_ids_and_gateway() -> None:
+    """Mesh context should canonicalize IDs before schedule calls."""
+    device = SimpleNamespace(
+        extra_data={
+            "gateway_device_id": " 03AB0000000000A1 ",
+            "group_member_ids": ["03ab0000000000a2", " 03AB0000000000A2 ", "bad"],
+        },
+        ir_remote_gateway_device_id=None,
+    )
+
+    assert get_mesh_context(device) == (
+        "03ab0000000000a1",
+        ["03ab0000000000a2"],
+    )
+
+
+def test_get_mesh_context_falls_back_to_ir_remote_gateway_property() -> None:
+    """IR remote devices should not require extra_data hand-filling."""
+    device = SimpleNamespace(
+        extra_data={},
+        ir_remote_gateway_device_id=" 03AB0000000000A9 ",
+    )
+
+    assert get_mesh_context(device) == ("03ab0000000000a9", [])

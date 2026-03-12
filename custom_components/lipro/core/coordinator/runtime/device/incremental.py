@@ -7,6 +7,8 @@ from collections.abc import Callable
 import logging
 from typing import TYPE_CHECKING, Any
 
+from ....device.group_status import sync_mesh_group_extra_data
+
 if TYPE_CHECKING:
     from custom_components.lipro.core.api import LiproClient
     from custom_components.lipro.core.device import LiproDevice
@@ -111,10 +113,12 @@ class IncrementalRefreshStrategy:
             if device is None:
                 continue
 
+            metadata_changed = sync_mesh_group_extra_data(device, state_data)
             properties = state_data.get("properties", {})
             if properties:
                 device.update_properties(properties)
-            updated_count += 1
+            if properties or metadata_changed:
+                updated_count += 1
 
         _LOGGER.debug(
             "Incremental refresh updated %d/%d devices",

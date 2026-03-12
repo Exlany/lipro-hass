@@ -23,6 +23,7 @@ def mock_client() -> Mock:
     client.query_iot_devices = AsyncMock()
     client.query_group_devices = AsyncMock()
     client.query_outlet_devices = AsyncMock()
+    client.query_mesh_group_status = AsyncMock(return_value=[])
     return client
 
 
@@ -233,6 +234,45 @@ class TestDeviceRuntimeRefresh:
         assert "serial1" in snapshot.devices
         assert "serial2" in snapshot.devices
         assert mock_client.get_device_list.call_count == 2
+
+    @pytest.mark.asyncio
+    async def test_full_refresh_enriches_mesh_group_metadata(
+        self,
+        device_runtime: DeviceRuntime,
+        mock_client: Mock,
+    ) -> None:
+        """Full snapshot should backfill gateway/member topology for mesh groups."""
+        group_serial = "mesh_group_10001"
+        mock_client.get_device_list.return_value = {
+            "data": [
+                create_mock_device_data(
+                    device_id=group_serial,
+                    serial=group_serial,
+                    is_group=True,
+                )
+            ],
+            "hasMore": False,
+        }
+        mock_client.query_mesh_group_status.return_value = [
+            {
+                "groupId": group_serial,
+                "gatewayDeviceId": " 03AB0000000000A1 ",
+                "devices": [
+                    {"deviceId": "03ab0000000000a2"},
+                    {"deviceId": "bad"},
+                ],
+            }
+        ]
+
+        snapshot = await device_runtime.refresh_devices()
+
+        assert snapshot.devices[group_serial].extra_data["gateway_device_id"] == (
+            "03ab0000000000a1"
+        )
+        assert snapshot.devices[group_serial].extra_data["group_member_ids"] == [
+            "03ab0000000000a2"
+        ]
+        mock_client.query_mesh_group_status.assert_awaited_once_with([group_serial])
 
     @pytest.mark.asyncio
     async def test_device_categorization(

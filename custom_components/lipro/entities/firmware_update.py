@@ -257,7 +257,7 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
     def _ota_rows_cache_key(self) -> OtaRowsCacheKey:
         """Build a shared OTA rows cache key scoped by model-like identifiers."""
         return (
-            self.coordinator.client,
+            self.coordinator,
             self.device.device_type_hex.lower(),
             str(self.device.iot_name or "").strip().lower(),
             int(self.device.product_id or 0),
@@ -269,7 +269,7 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
 
     async def _query_ota_rows_from_cloud(self) -> list[dict[str, object]]:
         """Query OTA rows once and normalize unknown payload variants."""
-        rows = await self.coordinator.client.query_ota_info(
+        rows = await self.coordinator.async_query_ota_info(
             device_id=self.device.serial,
             device_type=self.device.device_type_hex,
             iot_name=self.device.iot_name or None,

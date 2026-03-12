@@ -131,10 +131,8 @@ class RuntimeOrchestrator:
             CoordinatorRuntimes with all components wired
         """
         # 1. Tuning runtime (no dependencies)
-        # NOTE: Part of Phase H4 (Service layer upgrade to Saga-lite orchestrator)
-        # Currently assembled but not consumed by _async_update_data().
-        # Intended for recording user adjustment patterns and learning curves.
-        # See: docs/refactor_completion_plan.md Section 8 Phase H4
+        # Phase H4: consumed by CoordinatorCommandService for user-action metrics
+        # and by Coordinator._async_run_status_polling() for adaptive batch tuning.
         tuning_runtime = TuningRuntime(
             initial_batch_size=32,
             initial_mqtt_stale_window=180.0,
@@ -158,10 +156,8 @@ class RuntimeOrchestrator:
         )
 
         # 4. Status runtime (device status polling)
-        # NOTE: Part of Phase H4 (Service layer upgrade to Saga-lite orchestrator)
-        # Currently assembled but not consumed by _async_update_data().
-        # Intended for adaptive device status polling and outlet power monitoring.
-        # See: docs/refactor_completion_plan.md Section 8 Phase H4
+        # Phase H4: consumed by Coordinator._async_run_status_polling() for
+        # adaptive REST polling and coordinator-driven outlet power refresh.
         async def _query_device_status_batch(
             device_ids: list[str],
         ) -> dict[str, dict[str, Any]]:

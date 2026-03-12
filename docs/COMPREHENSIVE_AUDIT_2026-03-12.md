@@ -30,6 +30,18 @@
 
 ---
 
+### 0.1 2026-03-12 执行状态更新
+
+- 第一批 `1.1`–`1.6` 已全部完成并验证。
+- 第二批 `2.1`–`2.4` 已完成并验证，其中：
+  - mesh group 元数据现由 **full snapshot + incremental refresh** 双路径回填；
+  - `power_info` 已接回 `Coordinator._async_run_status_polling()` 正式主路径；
+  - `schedule` / `diagnostics` / `firmware_update` 已改走 coordinator facade。
+- 本轮验证：
+  - `uv run pytest tests/services/test_services_schedule.py ... tests/core/test_init.py` → `302 passed`
+  - `uv run pytest tests/core/test_command_dispatch.py ... tests/core/test_outlet_power.py` → `71 passed`
+  - `uv run ruff check .` → 全绿
+
 ## 1. 审计范围与方法
 
 ### 1.1 文件覆盖
@@ -147,29 +159,32 @@
 
 ## 4. 确认成立的中优先级问题
 
-### 4.1 `group_member_ids` / `gateway_device_id` 读取存在，生产写入链不足
+### 4.1 `group_member_ids` / `gateway_device_id` 已建立真实生产闭环（2026-03-12 更新）
 
-- 读取点：`custom_components/lipro/services/schedule.py:97`、`custom_components/lipro/core/command/dispatch.py:98`
-- 构造点：`custom_components/lipro/core/device/device_factory.py:41`
-- 现状：设备构造期仅填充 `is_ir_remote`，未见这两个字段的生产级写入来源。
-- 当前定级：**中**
+- 权威来源：mesh 组状态查询（`query_mesh_group_status` / `iotQueryMeshGroupStatus`）。
+- 生产写入点：
+  - `custom_components/lipro/core/coordinator/runtime/device/snapshot.py`
+  - `custom_components/lipro/core/coordinator/runtime/device/incremental.py`
+  - `custom_components/lipro/core/device/group_status.py`
+- 当前状态：full snapshot 与 incremental refresh 都会把 `gatewayDeviceId` / `devices[].deviceId` 回填到 `device.extra_data`；schedule 侧对 gateway 的读取也支持 `ir_remote_gateway_device_id` 兜底。
+- 当前定级：**已修复，转入观察**
 
-### 4.2 `power_info` 不是“完全没写”，而是生产链路未接回
+### 4.2 `power_info` 已接回 coordinator 主路径（2026-03-12 更新）
 
-- 写入 helper：`custom_components/lipro/core/coordinator/outlet_power.py:26`
-- 消费点：`custom_components/lipro/sensor.py:74`
-- 现状：写入逻辑存在，但 `outlet_power_runtime` 基本未纳入主路径。
-- 当前定级：**中**
+- 写入 helper：`custom_components/lipro/core/coordinator/outlet_power.py`
+- 主路径：`custom_components/lipro/core/coordinator/coordinator.py`
+- 消费点：`custom_components/lipro/sensor.py`
+- 当前状态：outlet power 查询已由 coordinator 正式轮询链路驱动，`power_info` 不再是孤立 helper/runtime 的悬空状态。
+- 当前定级：**已修复，转入观察**
 
-### 4.3 集成层仍残留 direct client 访问
+### 4.3 集成层 direct client 访问已收口到 coordinator facade（2026-03-12 更新）
 
-- 代表：
-  - `custom_components/lipro/entities/firmware_update.py:260`
-  - `custom_components/lipro/entities/firmware_update.py:272`
-  - `custom_components/lipro/services/diagnostics/handlers.py:184`
-  - `custom_components/lipro/services/schedule.py:202`
-- 影响：service/facade 边界不闭合，后续认证、限流、遥测收口容易漏改。
-- 当前定级：**中**
+- 收口范围：
+  - `custom_components/lipro/entities/firmware_update.py`
+  - `custom_components/lipro/services/diagnostics/handlers.py`
+  - `custom_components/lipro/services/schedule.py`
+- 当前状态：生产代码中已移除 `coordinator.client.*` 直达路径，后续认证、限流、遥测可继续在 facade 层集中演进。
+- 当前定级：**已修复，转入观察**
 
 ### 4.4 developer-only 服务默认暴露
 
@@ -202,12 +217,12 @@
 
 | 旧结论 | 新裁决 | 依据 |
 |---|---|---|
-| `StatusRuntime/TuningRuntime 未消费` | **驳回** | `custom_components/lipro/core/coordinator/coordinator.py:346`、`:356`、`:377`、`:392` 已实际调用 |
+| `StatusRuntime/TuningRuntime 未消费` | **驳回** | `Coordinator._async_run_status_polling()` 与 `CoordinatorCommandService.async_send_command()` 已真实消费 status/tuning runtime |
 | `MQTT 订阅无 fallback` | **驳回** | `custom_components/lipro/core/coordinator/mqtt_lifecycle.py:195` 已使用 `build_mqtt_subscription_device_ids()` |
 | `set_polling_updater() 从未调用` | **修正** | 调用过，但真实 runtime 替换后丢失 |
 | `CommandRuntime.send_command()` 为 P0 | **下调** | 显式占位接口，生产路径走 `send_device_command()` |
 | `MqttRuntime.handle_message` 签名不匹配会崩 | **下调** | 更接近协议层命名/文档漂移，不是当前主崩点 |
-| `power_info 从未写入` | **修正** | 写入 helper 存在，问题在于生产主路径未接回 |
+| `power_info 从未写入` | **修正并已完成修复** | 写入 helper 早已存在；本轮已将其接回 coordinator 正式主路径 |
 | `硬编码签名密钥` | **下调** | 更像供应商协议常量，不是部署侧 secret 泄露 |
 | `MD5 使用` | **下调** | 真实存在，但明显受供应商协议约束，应记录为兼容性约束 |
 

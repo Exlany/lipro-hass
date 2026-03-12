@@ -87,10 +87,10 @@ class QueryCommandResultResponse(TypedDict, total=False):
 
 
 # Protocol definitions
-class DiagnosticsClientProtocol(Protocol):
-    """Client surface required by diagnostics services."""
+class DiagnosticsCoordinator(AuthenticatedCoordinator, Protocol):
+    """Coordinator facade required by diagnostics services."""
 
-    async def query_command_result(
+    async def async_query_command_result(
         self,
         *,
         msg_sn: str,
@@ -99,13 +99,13 @@ class DiagnosticsClientProtocol(Protocol):
     ) -> CommandResultPayload:
         """Query one command-result payload."""
 
-    async def get_city(self) -> CapabilityPayload:
+    async def async_get_city(self) -> CapabilityPayload:
         """Return city metadata from the backend."""
 
-    async def query_user_cloud(self) -> CapabilityPayload:
+    async def async_query_user_cloud(self) -> CapabilityPayload:
         """Return user-cloud metadata from the backend."""
 
-    async def fetch_body_sensor_history(
+    async def async_fetch_body_sensor_history(
         self,
         *,
         device_id: str,
@@ -115,7 +115,7 @@ class DiagnosticsClientProtocol(Protocol):
     ) -> DiagnosticsApiResponse:
         """Fetch body-sensor history diagnostics."""
 
-    async def fetch_door_sensor_history(
+    async def async_fetch_door_sensor_history(
         self,
         *,
         device_id: str,
@@ -124,12 +124,6 @@ class DiagnosticsClientProtocol(Protocol):
         mesh_type: str,
     ) -> DiagnosticsApiResponse:
         """Fetch door-sensor history diagnostics."""
-
-
-class DiagnosticsCoordinator(AuthenticatedCoordinator, Protocol):
-    """Coordinator contract used by diagnostics services."""
-
-    client: DiagnosticsClientProtocol
 
 
 class DeveloperReportCoordinator(DiagnosticsCoordinator, Protocol):

@@ -8,6 +8,7 @@ import logging
 from typing import TYPE_CHECKING, Any
 
 from custom_components.lipro.core.device import LiproDevice
+from custom_components.lipro.core.device.group_status import sync_mesh_group_extra_data
 
 if TYPE_CHECKING:
     from custom_components.lipro.core.api import LiproClient
@@ -33,6 +34,38 @@ class FetchedDeviceSnapshot:
 
 class SnapshotBuilder:
     """Builds device snapshots from API responses."""
+
+    async def _async_enrich_mesh_group_metadata(
+        self,
+        *,
+        device_by_id: dict[str, LiproDevice],
+        group_ids: list[str],
+    ) -> None:
+        """Enrich group devices with authoritative mesh topology metadata."""
+        if not group_ids:
+            return
+
+        try:
+            rows = await self._client.query_mesh_group_status(group_ids)
+        except Exception as err:
+            if isinstance(err, (asyncio.CancelledError, KeyboardInterrupt, SystemExit)):
+                raise
+            _LOGGER.debug(
+                "Mesh group metadata enrich failed (%s), keeping snapshot without topology",
+                type(err).__name__,
+            )
+            return
+
+        for row in rows:
+            if not isinstance(row, dict):
+                continue
+            group_id = row.get("groupId") or row.get("id")
+            if not isinstance(group_id, str) or not group_id.strip():
+                continue
+            device = device_by_id.get(group_id.strip())
+            if device is None:
+                continue
+            sync_mesh_group_extra_data(device, row)
 
     def __init__(
         self,
@@ -154,6 +187,11 @@ class SnapshotBuilder:
                     type(err).__name__,
                     str(err),
                 )
+
+        await self._async_enrich_mesh_group_metadata(
+            device_by_id=device_by_id,
+            group_ids=group_ids,
+        )
 
         self._device_identity_index.replace(identity_mapping)
 

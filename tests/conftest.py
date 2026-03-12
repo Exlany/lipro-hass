@@ -119,6 +119,46 @@ def mock_coordinator():
     coordinator.register_entity = MagicMock()
     coordinator.unregister_entity = MagicMock()
     coordinator.get_device = MagicMock(side_effect=coordinator.devices.get)
+    coordinator.client = MagicMock()
+    coordinator.client.query_ota_info = AsyncMock(return_value=[])
+    coordinator.client.query_command_result = AsyncMock(return_value={})
+    coordinator.client.get_city = AsyncMock(return_value={})
+    coordinator.client.query_user_cloud = AsyncMock(return_value={})
+    coordinator.client.fetch_body_sensor_history = AsyncMock(return_value={})
+    coordinator.client.fetch_door_sensor_history = AsyncMock(return_value={})
+
+    async def _async_query_ota_info(**kwargs: Any) -> Any:
+        return await coordinator.client.query_ota_info(**kwargs)
+
+    async def _async_query_command_result(**kwargs: Any) -> Any:
+        return await coordinator.client.query_command_result(**kwargs)
+
+    async def _async_get_city() -> Any:
+        return await coordinator.client.get_city()
+
+    async def _async_query_user_cloud() -> Any:
+        return await coordinator.client.query_user_cloud()
+
+    async def _async_fetch_body_sensor_history(**kwargs: Any) -> Any:
+        return await coordinator.client.fetch_body_sensor_history(**kwargs)
+
+    async def _async_fetch_door_sensor_history(**kwargs: Any) -> Any:
+        return await coordinator.client.fetch_door_sensor_history(**kwargs)
+
+    coordinator.async_query_ota_info = AsyncMock(side_effect=_async_query_ota_info)
+    coordinator.async_query_command_result = AsyncMock(
+        side_effect=_async_query_command_result
+    )
+    coordinator.async_get_city = AsyncMock(side_effect=_async_get_city)
+    coordinator.async_query_user_cloud = AsyncMock(
+        side_effect=_async_query_user_cloud
+    )
+    coordinator.async_fetch_body_sensor_history = AsyncMock(
+        side_effect=_async_fetch_body_sensor_history
+    )
+    coordinator.async_fetch_door_sensor_history = AsyncMock(
+        side_effect=_async_fetch_door_sensor_history
+    )
     return coordinator
 
 

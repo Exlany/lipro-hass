@@ -75,35 +75,42 @@
   - 陈旧别名不会残留
   - 旧设备删除后不再能通过历史 id 命中
 
-### [ ] 2.2 建立 `group_member_ids` / `gateway_device_id` 数据闭环
+### [x] 2.2 建立 `group_member_ids` / `gateway_device_id` 数据闭环
 - **文件**：
-  - `custom_components/lipro/core/device/device_factory.py`
+  - `custom_components/lipro/core/device/group_status.py`
+  - `custom_components/lipro/core/coordinator/runtime/device/snapshot.py`
+  - `custom_components/lipro/core/coordinator/runtime/device/incremental.py`
   - `custom_components/lipro/services/schedule.py`
-  - `custom_components/lipro/core/command/dispatch.py`
-- **目标**：要么补真实生产写入来源，要么移除消费方对这两个字段的硬依赖。
+- **目标**：以 mesh 组状态查询为权威来源，在 coordinator runtime 内回填拓扑元数据，并让消费侧改依赖统一语义而非测试手填。
 - **验收**：
+  - full snapshot + incremental refresh 都会回填 `gateway_device_id` / `group_member_ids`
   - mesh group schedule 与 group command fallback 逻辑有明确数据来源
-  - 不再依赖测试手填 `extra_data`
+  - IR remote 场景可通过 `ir_remote_gateway_device_id` 派生 gateway，不再依赖手填 `extra_data`
 
-### [ ] 2.3 明确 `power_info` 主路径：接回或下线
+### [x] 2.3 明确 `power_info` 主路径：接回或下线
 - **文件**：
+  - `custom_components/lipro/core/coordinator/coordinator.py`
   - `custom_components/lipro/core/coordinator/runtime/outlet_power_runtime.py`
   - `custom_components/lipro/core/coordinator/outlet_power.py`
   - `custom_components/lipro/sensor.py`
-- **目标**：要么纳入正式主路径，要么把相关读取降为明确的可选能力。
+- **目标**：将 outlet power 查询正式纳入 coordinator 主轮询路径，而不是停留在孤立 helper/runtime。
 - **验收**：
-  - 文档与代码对 `power_info` 的来源一致
-  - 传感器不会依赖“永远没人写”的状态
+  - `Coordinator._async_run_status_polling()` 会在到期周期驱动 outlet power refresh
+  - `power_info` 的写入来源与传感器读取路径一致
+  - 传感器读取的是 coordinator 真实维护的状态，而非“永远没人写”的字段
 
-### [ ] 2.4 收口 direct client 访问到 service/facade
+### [x] 2.4 收口 direct client 访问到 service/facade
 - **文件**：
+  - `custom_components/lipro/core/coordinator/coordinator.py`
   - `custom_components/lipro/entities/firmware_update.py`
   - `custom_components/lipro/services/schedule.py`
   - `custom_components/lipro/services/diagnostics/handlers.py`
-- **目标**：实体/handler 不再直接触达 `coordinator.client.*`。
+  - `custom_components/lipro/services/diagnostics/types.py`
+- **目标**：实体/handler 统一改走 coordinator facade，不再直接触达 `coordinator.client.*`。
 - **验收**：
-  - 认证、限流、遥测可统一收口
-  - 调用链只依赖高层稳定接口
+  - schedule / diagnostics / firmware_update 已只依赖高层稳定接口
+  - 认证、限流、遥测后续可继续在 facade 层集中收口
+  - 生产代码中已清除 `coordinator.client.*` 直接访问
 
 ### [ ] 2.5 developer-only 服务改为显式 opt-in
 - **文件**：

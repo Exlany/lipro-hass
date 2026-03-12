@@ -25,6 +25,8 @@ from ..api import (
 from ..mqtt.mqtt_client import LiproMqttClient
 from .mqtt_lifecycle import async_setup_mqtt as setup_mqtt_lifecycle
 from .orchestrator import RuntimeOrchestrator
+from .outlet_power import apply_outlet_power_info, should_reraise_outlet_power_error
+from .runtime.outlet_power_runtime import query_outlet_power
 from .runtime_context import RuntimeContext
 from .services import (
     CoordinatorCommandService,
@@ -315,6 +317,175 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
             device, command, properties
         )
 
+    async def async_get_device_schedules(
+        self,
+        device_id: str,
+        device_type: str | int,
+        *,
+        mesh_gateway_id: str = "",
+        mesh_member_ids: list[str] | None = None,
+    ) -> list[object]:
+        """Query schedules through the coordinator facade."""
+        return await self.client.get_device_schedules(
+            device_id,
+            device_type,
+            mesh_gateway_id=mesh_gateway_id,
+            mesh_member_ids=list(mesh_member_ids or []),
+        )
+
+    async def async_add_device_schedule(
+        self,
+        device_id: str,
+        device_type: str | int,
+        days: object,
+        times: object,
+        events: object,
+        *,
+        mesh_gateway_id: str = "",
+        mesh_member_ids: list[str] | None = None,
+    ) -> list[object]:
+        """Create a schedule through the coordinator facade."""
+        return await self.client.add_device_schedule(
+            device_id,
+            device_type,
+            days,
+            times,
+            events,
+            mesh_gateway_id=mesh_gateway_id,
+            mesh_member_ids=list(mesh_member_ids or []),
+        )
+
+    async def async_delete_device_schedules(
+        self,
+        device_id: str,
+        device_type: str | int,
+        schedule_ids: object,
+        *,
+        mesh_gateway_id: str = "",
+        mesh_member_ids: list[str] | None = None,
+    ) -> list[object]:
+        """Delete schedules through the coordinator facade."""
+        return await self.client.delete_device_schedules(
+            device_id,
+            device_type,
+            schedule_ids,
+            mesh_gateway_id=mesh_gateway_id,
+            mesh_member_ids=list(mesh_member_ids or []),
+        )
+
+    async def async_query_command_result(
+        self,
+        *,
+        msg_sn: str,
+        device_id: str,
+        device_type: str | int,
+    ) -> Any:
+        """Query command-result diagnostics through the coordinator facade."""
+        return await self.client.query_command_result(
+            msg_sn=msg_sn,
+            device_id=device_id,
+            device_type=device_type,
+        )
+
+    async def async_get_city(self) -> dict[str, object]:
+        """Query city metadata through the coordinator facade."""
+        return await self.client.get_city()
+
+    async def async_query_user_cloud(self) -> dict[str, object]:
+        """Query user-cloud metadata through the coordinator facade."""
+        return await self.client.query_user_cloud()
+
+    async def async_fetch_body_sensor_history(
+        self,
+        *,
+        device_id: str,
+        device_type: str | int,
+        sensor_device_id: str,
+        mesh_type: str,
+    ) -> dict[str, object]:
+        """Query body-sensor history through the coordinator facade."""
+        return await self.client.fetch_body_sensor_history(
+            device_id=device_id,
+            device_type=device_type,
+            sensor_device_id=sensor_device_id,
+            mesh_type=mesh_type,
+        )
+
+    async def async_fetch_door_sensor_history(
+        self,
+        *,
+        device_id: str,
+        device_type: str | int,
+        sensor_device_id: str,
+        mesh_type: str,
+    ) -> dict[str, object]:
+        """Query door-sensor history through the coordinator facade."""
+        return await self.client.fetch_door_sensor_history(
+            device_id=device_id,
+            device_type=device_type,
+            sensor_device_id=sensor_device_id,
+            mesh_type=mesh_type,
+        )
+
+    async def async_query_ota_info(
+        self,
+        *,
+        device_id: str,
+        device_type: str | int,
+        iot_name: str | None,
+        allow_rich_v2_fallback: bool,
+    ) -> object:
+        """Query OTA metadata through the coordinator facade."""
+        return await self.client.query_ota_info(
+            device_id=device_id,
+            device_type=device_type,
+            iot_name=iot_name,
+            allow_rich_v2_fallback=allow_rich_v2_fallback,
+        )
+
+    async def async_fetch_outlet_power_info(self, device_id: str) -> object:
+        """Query outlet power info through the coordinator facade."""
+        return await self.client.fetch_outlet_power_info(device_id)
+
+    def _get_outlet_ids_for_power_polling(self) -> list[str]:
+        """Resolve the current outlet IDs participating in power polling."""
+        snapshot = self._runtimes.device.get_last_snapshot()
+        if snapshot is not None and snapshot.outlet_ids:
+            return list(snapshot.outlet_ids)
+        return [
+            device.iot_device_id
+            for device in self._state.devices.values()
+            if device.is_outlet and device.iot_device_id
+        ]
+
+    async def _async_run_outlet_power_polling(self) -> None:
+        """Refresh outlet power info on the coordinator's scheduled main path."""
+        status_runtime = self._runtimes.status
+        if not status_runtime.should_query_power():
+            return
+
+        outlet_ids = self._get_outlet_ids_for_power_polling()
+        if not outlet_ids:
+            return
+
+        outlet_ids_to_query = status_runtime.get_outlet_power_query_slice(outlet_ids)
+        if not outlet_ids_to_query:
+            return
+
+        await query_outlet_power(
+            outlet_ids_to_query=outlet_ids_to_query,
+            round_robin_index=0,
+            resolve_cycle_size=lambda total_devices: total_devices,
+            fetch_outlet_power_info=self.async_fetch_outlet_power_info,
+            get_device_by_id=self.get_device_by_id,
+            apply_outlet_power_info=apply_outlet_power_info,
+            should_reraise_outlet_power_error=should_reraise_outlet_power_error,
+            logger=_LOGGER,
+            concurrency=max(1, min(3, len(outlet_ids_to_query))),
+        )
+        status_runtime.mark_power_query_complete()
+        status_runtime.advance_outlet_power_cycle(outlet_ids)
+
     # Helper methods for authentication and reauth
 
     async def _async_ensure_authenticated(self) -> None:
@@ -419,17 +590,14 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
             mqtt_connected=mqtt_connected,
         )
 
-        if not candidates:
-            return
+        results: list[dict[str, Any]] = []
+        if candidates:
+            # Split into optimally-sized batches
+            batches = status_runtime.compute_query_batches(candidates)
 
-        # Split into optimally-sized batches
-        batches = status_runtime.compute_query_batches(candidates)
-
-        if not batches:
-            return
-
-        # Execute queries in parallel
-        results = await status_runtime.execute_parallel_queries(batches)
+            if batches:
+                # Execute queries in parallel
+                results = await status_runtime.execute_parallel_queries(batches)
 
         # Feed metrics to TuningRuntime for adaptive batch sizing
         tuning = self._runtimes.tuning
@@ -438,7 +606,7 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
             duration = metrics.get("duration", 0.0)
             if device_count > 0 and duration > 0:
                 tuning.record_batch_metric(
-                    batch_size=device_count,  # Use device_count as batch_size
+                    batch_size=device_count,
                     duration=duration,
                     device_count=device_count,
                 )
@@ -447,6 +615,8 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
         new_batch_size = tuning.compute_adaptive_batch_size()
         if new_batch_size is not None:
             status_runtime.update_batch_size(new_batch_size)
+
+        await self._async_run_outlet_power_polling()
 
     async def _async_update_data(self) -> dict[str, LiproDevice]:
         """Fetch data from API.
