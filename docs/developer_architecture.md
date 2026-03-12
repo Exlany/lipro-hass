@@ -1,7 +1,7 @@
 # Lipro Home Assistant Integration - Developer Architecture
 
 > **Last Updated**: 2026-03-12  \
-> **Version**: 3.2 (Post-audit convergence + flow clarification)
+> **Version**: 3.4 (Post-audit convergence + ADR / tech evolution guidance)
 >
 > ⚠️ 本文档仅描述"架构与模块边界"，不硬编码评分/覆盖率/通过率等易失真指标。  \
 > 当前实现状态、验证结果与风险优先级请以 `docs/COMPREHENSIVE_AUDIT_2026-03-12.md` 为准。
@@ -143,10 +143,19 @@ class RuntimeContext:
 - **Runtime**：业务能力承载（可单测）
 - **Client**：外部 IO 与协议封装
 
-### 5) 文档策略
+### 5) 决策记录（ADR-lite）
+
+- 重大架构决策不只留在 PR 或审计结论里；至少记录 **背景 / 决策 / 取舍 / 后果 / 回滚条件**
+- 当前必须显式保留的 3 条核心决策：
+  1. `Coordinator` 是唯一编排根，不把编排逻辑下沉回 Entity / Platform
+  2. 刷新只通过 `Coordinator.async_refresh_devices()` / `_async_refresh_device_snapshot()` 统一建模
+  3. 外部状态写入统一走 `Coordinator._apply_properties_update()`，先确认过滤，再进入 `StateRuntime`
+
+### 6) 文档策略
 
 - 不维护易失真的数字指标（覆盖率/测试数量/行数）
 - 指标以 CI 或本地命令输出为准；历史快照统一归档在 `docs/archive/`
+- 若后续继续演进，建议把长期有效的架构决策沉淀到 `docs/adr/`，避免再次出现“代码已演进、文档口径未收敛”
 
 ## 核心组件详解
 
@@ -261,6 +270,29 @@ Coordinator
 - `diagnostics/`：开发者诊断服务包（按 handler / types / wiring 拆分）
 - `wiring.py`：服务层布线
 
+## 边界规则
+
+### 允许的依赖方向
+
+- `Entity -> Coordinator public API / Service`
+- `Service -> Runtime`
+- `Runtime -> RuntimeContext callbacks / injected collaborators`
+- `Coordinator -> RuntimeOrchestrator / Runtime registry / State containers`
+
+### 不建议的依赖方向
+
+- `Entity -> Runtime` 直连
+- `Platform -> API Client` 直连
+- `Service -> coordinator._state` 私有容器直写
+- `Runtime` 之间通过全局单例或 setter 临时回连
+- 在多个入口重复实现刷新、确认、状态写入策略
+
+### 当前主链约束
+
+- 命令主链以 `CommandRuntime.send_device_command()` 为唯一正式运行时入口
+- 设备刷新主链以 `Coordinator.async_refresh_devices()` / `_async_refresh_device_snapshot()` 为唯一正式刷新原语
+- 外部状态写入统一先经过 `Coordinator._apply_properties_update()`，再进入 `StateRuntime`
+
 ## 数据流
 
 ### 1) 状态更新（MQTT / REST → Entity）
@@ -320,6 +352,35 @@ Coordinator._async_update_data() (首次)
 - `core/auth/manager.py` 负责 token 生命周期、refresh、必要时触发 reauth
 - API transport 层在 401 时触发 refresh 回调并重试
 
+## 一致性与故障模型
+
+### 权威源裁决
+
+- **设备拓扑 / 能力信息**：以 `DeviceRuntime` 拉取的 device snapshot 为权威源
+- **即时状态变更**：优先信任 MQTT 推送，追求低延迟
+- **兜底状态同步**：`StatusRuntime` 的 REST 轮询负责 MQTT 不可用或状态漂移时的重同步
+- **命令后的瞬态状态**：统一通过 confirmation tracker + stale 过滤裁决，避免“旧状态回写覆盖新命令”
+
+### 失败处理原则
+
+- MQTT 未连接或断连时，不阻断主链；系统退回 REST 轮询 + 显式 refresh
+- 命令确认超时后，不盲目强写本地状态；由 confirmation / post-refresh 机制触发重新对齐
+- 401 / token 失效由 transport → auth manager 的恢复链处理，必要时升级为 reauth
+- 快照缓存复用失效、identity miss 或索引不一致时，优先回退到完整 snapshot 对齐，而不是局部猜测修补
+
+### 乱序与重复消息处理
+
+- 所有外部状态写入统一经过 `Coordinator._apply_properties_update()`
+- `CommandRuntime.filter_pending_state_properties()` 负责保护窗口内的 stale 属性过滤
+- `CommandRuntime.observe_state_confirmation()` 负责学习确认延迟并收敛命令确认链路
+
+## Config Entry 生命周期
+
+- `async_setup_entry()`：构建 client / coordinator / services，完成首次 refresh 后再 forward 平台
+- `async_unload_entry()`：先卸载平台，再关闭 coordinator / MQTT 生命周期，并清理 entry 级资源
+- `async_reload_entry()`：通过 unload + setup 重建运行时，保持入口语义一致
+- `config_flow.py` 负责初始接入、reauth 与 options flow；它属于运行前控制面，不直接承载运行时业务逻辑
+
 ## 目录结构
 
 ```
@@ -368,18 +429,56 @@ custom_components/lipro/
 ├── services/                      # HA 服务注册
 ├── const/                         # 常量定义
 ├── flow/                          # 配置流程
+├── diagnostics.py                 # 诊断导出（脱敏）
+├── system_health.py               # 系统健康检查
+├── entry_options.py               # Options / reload 辅助
 └── 9 个平台文件                    # light.py, cover.py, switch.py, ...
 ```
+
+## 扩展指南
+
+### 新增 Runtime
+
+1. 在 `core/coordinator/runtime/` 下实现单一职责组件
+2. 依赖通过构造器注入；若需要回调 coordinator，优先扩展 `RuntimeContext`
+3. 在 `orchestrator.py` 中集中 wiring
+4. 只通过 `Coordinator` 暴露必要 public accessor，不向 Entity 暴露内部细节
+5. 为 runtime 自身补 unit tests，再为 wiring 补 integration-style tests
+
+### 新增 Service
+
+1. 仅在存在“稳定边界价值”时新增 Service，避免空壳抽象
+2. Service 负责 API 稳定性与跨 runtime 协调，不复制 runtime 规则
+3. Service 不直接写 `_state`，除非明确由 coordinator 提供正式原语
+4. 若 service 引入副作用链，必须补对应 orchestration tests
+
+### 新增 Platform / Entity
+
+1. 优先复用 `build_device_entities_from_rules()` / `create_platform_entities()`
+2. 写侧统一走 `LiproEntity.async_send_command()`
+3. 乐观更新必须与 coordinator 锁、防抖保护窗口一致
+4. 新平台若需要专属读取逻辑，优先新增 descriptor / helper，而不是在实体里堆分支
 
 ## 验证命令
 
 统一使用 `uv`：
 
 ```bash
-uv run ruff check .                                    # Lint
-uv run mypy                                         # 类型检查
-uv run pytest -q                                        # 全量测试
+uv run ruff check .                                      # Lint
+uv run mypy                                              # 类型检查
+uv run pytest -q                                         # 全量测试
 ```
+
+## 最小验证矩阵
+
+| 变更区域 | 至少执行 |
+|---|---|
+| `core/coordinator/**` 或 Runtime / Service 主链 | `uv run pytest tests/core/coordinator tests/test_coordinator_public.py -q` |
+| `core/api/**` 或协议编解码 | `uv run pytest tests/core/api tests/snapshots/test_api_snapshots.py -q` |
+| `core/mqtt/**` | `uv run pytest tests/core/mqtt tests/integration/test_mqtt_coordinator_integration.py -q` |
+| `entities/**` / `platforms/**` | `uv run pytest tests/entities tests/platforms -q` |
+| `config_flow.py` / `entry_options.py` / config entry 生命周期 | `uv run pytest tests/flows -q` |
+| 仅文档改动 | 链接 / 路径 grep + `git diff -- docs/ README*.md` 自检 |
 
 ## 贡献约定
 
@@ -389,6 +488,46 @@ uv run pytest -q                                        # 全量测试
 4. 新增属性：评估是否适用 `DeviceAttr[T]` 描述符
 5. 优先补齐单测，确保 ruff / mypy / pytest 通过
 6. 对外 API 通过 Service 层暴露，Entity 不直接调用 Runtime
+
+## 技术选型评估
+
+### 当前应继续坚持的选择
+
+| 选型 | 判断 | 原因 |
+|---|---|---|
+| `DataUpdateCoordinator` 作为 HA 适配根 | 保持 | 与 HA 运行模型天然兼容，外部集成成本最低 |
+| 组合式 Runtime 拆分 | 保持 | 比 mixin/巨型 coordinator 更易测试、更易替换 |
+| `dataclasses` + TypedDict / 明确类型别名 | 保持 | 足够轻量，适合当前代码规模 |
+| `RuntimeContext` 回调注入 | 保持 | 依赖图清晰，避免 coordinator 反向渗透 |
+| `uv + ruff + mypy + pytest` | 保持 | 当前质量/成本比最佳 |
+
+### 有提升空间，但不建议立刻重构的方向
+
+| 方向 | 建议 | 触发条件 |
+|---|---|---|
+| ADR 文档化 | 增加 `docs/adr/`，让关键边界决策脱离审计文档长期保存 | 当后续再出现 2 次以上重大架构选择时 |
+| 协议边界 schema 校验 | 只在 API / MQTT 外部边界增加更强的 payload schema，不侵入领域模型 | 当上游协议漂移频繁导致回归成本升高时 |
+| 可观测性 | 增加命令确认延迟、刷新耗时、MQTT 恢复时间的结构化指标 | 当线上问题定位成本继续升高时 |
+| 契约测试 | 为供应商协议增加 golden payload / snapshot contract tests | 当端到端回归覆盖仍不足以防协议漂移时 |
+| 边界专用强类型库 | 若外部 payload 复杂度继续上升，可仅在边界层评估 `pydantic v2` 或 `msgspec` | 当手写校验与 TypedDict 维护成本显著上升时 |
+
+### 建议的演进顺序（按性价比）
+
+1. **先补 ADR 与边界审查清单**：收益最高、改动最小，可直接降低未来误判与回归风险
+2. **再补协议契约测试**：把供应商返回 payload 固化为 golden fixtures，优先守住 REST / MQTT 边界
+3. **再补可观测性**：把“命令确认慢、刷新慢、MQTT 恢复慢”从体感问题变成可量化问题
+4. **最后才评估边界层强类型升级**：只有当外部协议复杂度继续上升时，才考虑在 boundary layer 引入更强 schema 工具
+
+### 当前不建议引入的重型方案
+
+- 不建议引入通用 DI 框架：当前 `RuntimeOrchestrator` 已足够清晰
+- 不建议把全域模型切到 `pydantic`：会提高样板和运行时成本，收益不足
+- 不建议引入事件总线替代显式调用链：会削弱可追踪性与调试可读性
+- 不建议为本地状态再引入持久化层/仓储模式：当前场景以协调器内存态为主，复杂度不匹配
+
+### 总结判断
+
+当前技术选型整体是合理的，**提升空间主要在“文档化、契约化、可观测性”三个方向，而不是框架级重写**。如果继续演进，最优先的不是换技术栈，而是让既有架构决策更显式、边界更可审计、协议回归更自动化。
 
 ## 参考文档
 
