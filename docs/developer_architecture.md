@@ -1,7 +1,7 @@
 # Lipro Home Assistant Integration - Developer Architecture
 
 > **Last Updated**: 2026-03-12  \
-> **Version**: 3.1 (Post-audit convergence)
+> **Version**: 3.2 (Post-audit convergence + flow clarification)
 >
 > ⚠️ 本文档仅描述"架构与模块边界"，不硬编码评分/覆盖率/通过率等易失真指标。  \
 > 当前实现状态、验证结果与风险优先级请以 `docs/COMPREHENSIVE_AUDIT_2026-03-12.md` 为准。
@@ -193,14 +193,16 @@ Coordinator
 
 ### Runtime 组件 (`core/coordinator/runtime/`)
 
+说明：`DeviceRuntime` 只负责设备列表与快照生命周期；steady-state 状态同步由 `MqttRuntime` + `StatusRuntime` 承担，避免重复状态拉取路径。
+
 | Runtime | 职责 | 关键依赖 |
 |---------|------|---------|
 | `StateRuntime` | 设备查找、属性更新、实体注册索引 | devices dict, identity index |
-| `DeviceRuntime` | 设备列表刷新、过滤策略、设备增删对齐 | API client, auth manager |
+| `DeviceRuntime` | 全量设备快照刷新、过滤策略、缓存复用、设备增删对齐 | API client, auth manager |
 | `StatusRuntime` | REST 状态轮询（批次优化 + 二分回退） | query callback, state runtime |
 | `MqttRuntime` | MQTT 消息分发 + 设备状态应用 | RuntimeContext callbacks |
 | `CommandRuntime` | 命令发送、确认跟踪、post-refresh 策略 | builder, sender, confirmation |
-| `TuningRuntime` | 批次大小、MQTT 过期窗口等调参 | 无外部依赖 |
+| `TuningRuntime` | 批次大小、命令确认延迟等调参 | 无外部依赖 |
 
 ### API Client (`core/api/`)
 
@@ -256,7 +258,7 @@ Coordinator
 
 - `registry.py`：声明式 HA 服务注册框架
 - `registrations.py`：服务声明列表
-- `diagnostics_service.py`：开发者诊断服务（668行，待拆分）
+- `diagnostics/`：开发者诊断服务包（按 handler / types / wiring 拆分）
 - `wiring.py`：服务层布线
 
 ## 数据流
@@ -267,10 +269,12 @@ Coordinator
 ┌──────────┐     ┌──────────┐
 │ MQTT Msg │────→│MqttRuntime│────┐
 └──────────┘     └──────────┘    │
-                                  ├──→ StateRuntime.apply_properties_update()
-┌──────────┐     ┌────────────┐  │       ├─ 更新 LiproDevice.properties
-│ REST Poll│────→│StatusRuntime│──┘       ├─ 通知实体（debounce-aware）
-└──────────┘     └────────────┘          └─ schedule_listener_update() → HA
+                                  ├──→ Coordinator._apply_properties_update()
+┌──────────┐     ┌────────────┐  │       ├─ CommandRuntime.filter_pending_state_properties()
+│ REST Poll│────→│StatusRuntime│──┘       ├─ CommandRuntime.observe_state_confirmation()
+└──────────┘     └────────────┘          ├─ StateRuntime.apply_properties_update()
+                                         ├─ 更新 LiproDevice.properties
+                                         └─ schedule_listener_update() → HA
 ```
 
 ### 2) 命令执行（User → Entity → API → Confirm）
@@ -279,10 +283,24 @@ Coordinator
 User Action → Entity.async_turn_on()
     → PowerCommand.turn_on(entity)
         → LiproEntity.async_send_command()
-            → Coordinator.async_send_device_command()
-                → CommandRuntime.send_device_command()
-                    → CommandBuilder → CommandSender → API
-                    → ConfirmationManager → post-refresh
+            → Coordinator.async_send_command()
+                → CoordinatorCommandService.async_send_command()
+                    → CommandRuntime.send_device_command()
+                        → CommandBuilder → CommandSender → API
+                        → ConfirmationManager → post-refresh
+```
+
+### 2.5) 设备刷新（显式 refresh / 周期 refresh）
+
+```
+HA Service / Coordinator update loop
+    → Coordinator.async_refresh_devices() 或 Coordinator._async_update_data()
+        → Coordinator._async_refresh_device_snapshot()
+            → DeviceRuntime.refresh_devices(force=...)
+                → full snapshot or cached snapshot reuse
+            → state.devices 同步
+            → mqtt_service.async_sync_subscriptions()
+            → async_set_updated_data() / listener update
 ```
 
 ### 3) MQTT 生命周期
@@ -308,10 +326,10 @@ Coordinator._async_update_data() (首次)
 custom_components/lipro/
 ├── core/
 │   ├── coordinator/
-│   │   ├── coordinator.py         # HA glue + Runtime 编排 (≈450 LOC)
-│   │   ├── orchestrator.py        # DI 布线 + 组件装配 (≈260 LOC)
-│   │   ├── runtime_context.py     # 依赖注入协议 (≈110 LOC)
-│   │   ├── factory.py             # 数据容器定义 (≈66 LOC)
+│   │   ├── coordinator.py         # HA glue + Runtime 编排
+│   │   ├── orchestrator.py        # DI 布线 + 组件装配
+│   │   ├── runtime_context.py     # 依赖注入协议
+│   │   ├── factory.py             # 数据容器定义
 │   │   ├── mqtt_lifecycle.py      # MQTT 生命周期管理
 │   │   ├── runtime/               # 6 个 Runtime 组件
 │   │   │   ├── command_runtime.py
@@ -359,7 +377,7 @@ custom_components/lipro/
 
 ```bash
 uv run ruff check .                                    # Lint
-uv run --extra dev mypy custom_components/lipro tests   # 类型检查
+uv run mypy                                         # 类型检查
 uv run pytest -q                                        # 全量测试
 ```
 
