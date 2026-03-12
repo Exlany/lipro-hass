@@ -1,6 +1,6 @@
 # File Matrix
 
-**Python files total:** 378
+**Python files total:** 406
 
 ## Phase Ownership by Cluster
 
@@ -10,15 +10,25 @@
 | `tests/core/api` | 14 | Phase 2 | `02-01` matrix locked |
 | `tests/snapshots` | 5 | Phase 1 / 2 / 6 | Phase 01 baseline locked |
 | `custom_components/lipro/core/coordinator` | 56 | Phase 5 | Pending |
-| `custom_components/lipro/core/device` | 23 | Phase 4 | Pending |
+| `custom_components/lipro/core/capability` | 3 | Phase 4 | `04-01 formal root landed` |
+| `custom_components/lipro/core/device` | 23 | Phase 4 | `04-01 registry seeded` |
 | `custom_components/lipro/core/mqtt` | 12 | Phase 2 / 5 / 6 | Pending |
 | `custom_components/lipro/control` | 9 | Phase 3 | `03 closeout recorded` |
 | `custom_components/lipro/services` | 16 | Phase 3 | `03 closeout recorded` |
 | `custom_components/lipro/flow` + entry files | 14 | Phase 3 | `03 closeout recorded` |
-| `custom_components/lipro/entities` + platform modules | 13 | Phase 4 | Pending |
+| `custom_components/lipro/entities` + platform modules | 13 | Phase 4 | `04-02/03 pending` |
+| `tests/core/capability` | 2 | Phase 4 | `04-01 proof landed` |
 | Remaining helpers / scripts / tests | remainder | Cross-cutting | Pending |
 
 ## Current Focus Slice
+
+### Phase 4 Slice
+
+- `custom_components/lipro/core/capability/**/*.py`
+- `custom_components/lipro/core/device/{capabilities,device_snapshots,device_views}.py`
+- `tests/core/capability/**/*.py`
+- `tests/core/device/test_capabilities.py`
+- `custom_components/lipro/entities` + platform modules 保持待迁移状态，进入 `04-02 / 04-03`
 
 ### Phase 2 Slice
 
@@ -229,3 +239,17 @@
 | `custom_components/lipro/services/execution.py` | 迁移适配 | 生产功能保留，但 coordinator 私有 auth seam 需在 `Phase 5 / 7` 清理 |
 | `tests/core/test_control_plane.py` | 保留 | control-plane formal owner regression suite |
 | `tests/meta/test_dependency_guards.py` / `tests/meta/test_public_surface_guards.py` | 保留 | 已扩展到覆盖 `control/` 与 control/runtime/public-surface 邻接规则 |
+
+
+## Phase 04 / `04-01` Registration Note
+
+- `custom_components/lipro/core/capability/` 已作为新的 domain truth cluster 登记到治理矩阵。
+- `custom_components/lipro/core/device/` 已完成 capability registry seed 接入，但 device aggregate / state accessor 的重复规则清理仍留给 `04-02 / 04-03`。
+- `custom_components/lipro/entities` 与平台模块尚未迁移到统一 capability projection，因此继续保持 `Phase 4` pending 状态。
+
+
+## Phase 04 / `04-01` Governance Delta
+
+- 新增 `custom_components/lipro/core/capability/**` 作为 Phase 4 的正式 capability truth slice。
+- `custom_components/lipro/core/device/capabilities.py` 已从真实推导逻辑降级为 compat alias；`device_snapshots.py` 与 `device_views.py` 已切到 canonical capability chain。
+- `custom_components/lipro/entities` + platform modules 暂未迁移完成，继续由 `04-02` 负责 consumer-side convergence。

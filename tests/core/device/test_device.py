@@ -40,6 +40,7 @@ def test_lipro_device_exposes_extracted_helper_objects(make_device) -> None:
     assert device.identity.serial == device.serial
     assert device.identity.room_name == device.room_name
     assert device.capabilities.category == device.category
+    assert device.capabilities.platforms == tuple(device.platforms)
     assert device.capabilities.supports_color_temp == device.supports_color_temp
     assert device.state.brightness == device.brightness
     assert device.state.color_temp == device.color_temp

@@ -17,7 +17,7 @@
 | Protocol | `LiproProtocolFacade` | target-state formal protocol root | 终态唯一正式协议根 |
 | Protocol (Phase 2) | `LiproRestFacade` | phase-local canonical REST sub-facade | Phase 2 可直接引用的正式 REST surface，但必须收敛到 `LiproProtocolFacade` |
 | Runtime | `Coordinator` + runtime services/public surface | runtime orchestration root + stable service surface | 运行面唯一正式编排出口 |
-| Domain | `CapabilityRegistry` / `CapabilitySnapshot` / command contracts | domain truth surface family | 统一能力真源与投影来源 |
+| Domain | `CapabilityRegistry` / `CapabilitySnapshot` / command contracts | domain truth surface family | `custom_components/lipro/core/capability/` 为统一能力真源与投影来源 |
 | Control | `EntryLifecycleController`, `ServiceRegistry`, `DiagnosticsSurface`, `SystemHealthSurface` | control-plane formal surface set | `custom_components/lipro/control/` 为正式内部控制面 home；HA 根模块只保留 adapter 职责 |
 | Assurance | contract suites, invariant suites, meta guards, ledgers | assurance arbitration surface set | 保障面的正式裁决面 |
 
@@ -28,6 +28,7 @@
 | `LiproClient` compat shell | Phase 2 / 2.5 migration only | production constructors / runtime-facing consumers 已切到 `LiproProtocolFacade`，仅剩显式 compat alias / wrapper 可删除 |
 | `LiproMqttClient` compat shell | Phase 2.5 / 7 cleanup only | 仅剩 transport-level compat/export seam；runtime/control 正式入口不再感知它是 public root |
 | legacy wrapper outputs | active migration only | 新 canonical contracts 覆盖旧 consumers |
+| `DeviceCapabilities` compat alias | Phase 4 / 7 cleanup only | `core/device/capabilities.py` 的旧导入点迁移到 `CapabilitySnapshot` / `CapabilityRegistry` |
 | cluster-level `FILE_MATRIX` | pre-Phase 7 | 升级为 file-level 378/378 视图 |
 
 ## Forbidden As Formal Roots

@@ -110,6 +110,7 @@
 - `DeviceAggregate` / `LiproDevice`：设备聚合根（命名可演进，职责不可漂移）
 - `CapabilityRegistry`：单一能力真源
 - `CapabilitySnapshot`：供平台/实体消费的稳定快照
+- `custom_components/lipro/core/capability/`：能力真源的正式目录归属
 - `Command Model`：命令对象与写侧能力语义
 - `Platform Projections`：平台适配层，只做投影，不二次定义领域规则
 
@@ -163,12 +164,14 @@ custom_components/lipro/
 │   ├── coordinator/           # Runtime plane
 │   ├── api/                   # Protocol plane (explicit facade + collaborators)
 │   ├── mqtt/                  # Protocol transport
-│   ├── device/                # Domain plane
+│   ├── capability/            # Domain capability truth
+│   ├── device/                # Domain device aggregate / compat bridge
 │   ├── command/               # Domain write-side helpers
 │   └── telemetry/             # Assurance runtime metrics (target)
+├── control/                   # Control plane formal home
 ├── entities/                  # Domain → HA adapter
-├── helpers/                   # Declarative builders / rule helpers
-├── services/                  # Control plane / HA service surface
+├── helpers/                   # Declarative builders / projection helpers
+├── services/                  # HA service adapters / legacy carriers during migration
 ├── flow/                      # Control plane config flows
 ├── diagnostics.py             # Control plane diagnostics export
 ├── system_health.py           # Control plane health surface

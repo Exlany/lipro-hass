@@ -4,14 +4,14 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from ...const.categories import DeviceCategory, get_device_category
+from ...const.categories import DeviceCategory
 from .device_factory import has_valid_iot_id
 from .device_snapshots import (
     build_capabilities_snapshot,
     build_identity_snapshot,
     build_network_info,
 )
-from .profile import resolve_device_type_hex, resolve_platforms
+from .profile import resolve_device_type_hex
 
 if TYPE_CHECKING:
     from .capabilities import DeviceCapabilities
@@ -46,12 +46,12 @@ def device_type_hex(device: LiproDevice) -> str:
 
 def category(device: LiproDevice) -> DeviceCategory:
     """Return the Home Assistant category for this device."""
-    return get_device_category(device_type_hex(device))
+    return capabilities(device).category
 
 
 def platforms(device: LiproDevice) -> list[str]:
     """Return Home Assistant platforms for this device."""
-    return resolve_platforms(category(device))
+    return list(capabilities(device).platforms)
 
 
 def unique_id(device: LiproDevice) -> str:
@@ -76,7 +76,7 @@ def panel_type(device: LiproDevice) -> int:
 
 def fan_speed_range(device: LiproDevice) -> tuple[int, int]:
     """Return the supported fan-speed range for fan entities."""
-    return (1, device.max_fan_gear)
+    return (1, capabilities(device).max_fan_gear)
 
 
 __all__ = [

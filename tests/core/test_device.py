@@ -161,6 +161,7 @@ class TestLiproDevice:
         )
 
         assert device.platforms == ["light"]
+        assert device.capabilities.platforms == ("light",)
 
     def test_has_valid_iot_id_device(self):
         """Test valid IoT ID check for regular device."""

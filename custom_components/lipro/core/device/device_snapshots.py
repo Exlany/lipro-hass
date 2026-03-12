@@ -8,7 +8,6 @@ from typing import TYPE_CHECKING, Any
 from .capabilities import DeviceCapabilities
 from .identity import DeviceIdentity
 from .network_info import DeviceNetworkInfo
-from .profile import resolve_device_type_hex
 
 if TYPE_CHECKING:
     from .device import LiproDevice
@@ -35,16 +34,7 @@ def build_identity_snapshot(device: LiproDevice) -> DeviceIdentity:
 
 def build_capabilities_snapshot(device: LiproDevice) -> DeviceCapabilities:
     """Build one immutable capability snapshot from a live device."""
-    return DeviceCapabilities.from_device_profile(
-        device_type_hex=resolve_device_type_hex(
-            device_type=device.device_type,
-            iot_name=device.iot_name,
-            physical_model=device.physical_model,
-        ),
-        min_color_temp_kelvin=device.min_color_temp_kelvin,
-        max_color_temp_kelvin=device.max_color_temp_kelvin,
-        max_fan_gear=device.max_fan_gear,
-    )
+    return DeviceCapabilities.from_device(device)
 
 
 def build_network_info(properties: Mapping[str, Any]) -> DeviceNetworkInfo:

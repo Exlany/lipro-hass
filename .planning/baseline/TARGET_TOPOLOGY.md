@@ -16,7 +16,7 @@
 |-------|-------------|----------------|------------------|
 | Protocol | `LiproProtocolFacade` | `LiproRestFacade`, `LiproMqttFacade`, `AuthSession`, `RequestPolicy`, `PayloadNormalizers`, collaborators | `custom_components/lipro/core/api/`, `custom_components/lipro/core/mqtt/` |
 | Runtime | `Coordinator` | `RuntimeOrchestrator`, `RuntimeContext`, runtimes, services/public surface | `custom_components/lipro/core/coordinator/` |
-| Domain | `CapabilityRegistry` + `CapabilitySnapshot` | device aggregate, command contracts, state views, projections | `custom_components/lipro/core/device/`, `custom_components/lipro/entities/`, platform modules |
+| Domain | `CapabilityRegistry` + `CapabilitySnapshot` | capability truth, device aggregate, command contracts, state views, projections | `custom_components/lipro/core/capability/`, `custom_components/lipro/core/device/`, `custom_components/lipro/entities/`, platform modules |
 | Control | `EntryLifecycleController` + control surface set | `ServiceRegistry`, `DiagnosticsSurface`, `SystemHealthSurface`, flows | `custom_components/lipro/__init__.py`, flow/support/service surfaces |
 | Assurance | verification / governance stack | contracts, invariants, meta guards, ledgers, CI gates, ADR/docs | `tests/`, `.planning/`, `docs/`, `.github/workflows/` |
 
@@ -39,7 +39,8 @@ Assurance Plane observes all layers and guards regressions.
 | `custom_components/lipro/core/api/` | Protocol REST slice | Phase 2 先收敛为 `LiproRestFacade` |
 | `custom_components/lipro/core/mqtt/` | Protocol MQTT slice | Phase 2.5 归并为统一协议根的子门面 |
 | `custom_components/lipro/core/coordinator/` | Runtime spine | Phase 5 做 invariant-level 正式化 |
-| `custom_components/lipro/core/device/` | Domain core | Phase 4 统一 capability 真源 |
+| `custom_components/lipro/core/capability/` | Domain truth root | Phase 4 的正式 capability registry / snapshot home |
+| `custom_components/lipro/core/device/` | Domain device aggregate | 聚合 facade、identity/state/extras 与 compat bridge |
 | `custom_components/lipro/entities/` + platform modules | Domain projections | 只做 projection，不再定义第二套规则 |
 | `custom_components/lipro/services/` + entry/control files | Control plane surfaces | Phase 3 形成清晰控制面故事线 |
 | `tests/` | Assurance implementation | 测试结构必须跟随正式架构迁移 |

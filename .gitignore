@@ -79,7 +79,13 @@ CODE_REVIEW_PLAN.md
 assets/
 
 # gsd
-.planning/
+.planning/*
+!.planning/STATE.md
+!.planning/ROADMAP.md
+!.planning/phases/
+.planning/phases/*
+!.planning/phases/04-capability-model-unification/
+!.planning/phases/04-capability-model-unification/**
 
 # Benchmarks (generated)
 .benchmarks/

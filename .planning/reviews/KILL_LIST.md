@@ -18,6 +18,7 @@
 | 多行 power payload 的 compat wrapping | `custom_components/lipro/core/api/power_service.py` | `02-04 compat shell cleanup` | Phase 2 | power helper 只返回 canonical rows；兼容 envelope 仅存在于 compat shell | 已登记，未删除 |
 | `services/wiring.py` 作为正式控制面根 | `custom_components/lipro/services/wiring.py` | `03 service-router convergence` | Phase 7 | `control.service_router` 及相关 tests/patch seams 全面接管，不再需要 legacy implementation carrier | 已登记，未删除 |
 | coordinator 私有 auth hook seam | `custom_components/lipro/services/execution.py` | `03/05 runtime-auth hardening` | Phase 5 / 7 | service execution 只通过正式 runtime/auth contract 获取 auth context | 已登记，未删除 |
+| `DeviceCapabilities` legacy public name | `custom_components/lipro/core/device/capabilities.py` | `04-03 capability compat cleanup` | Phase 4 / 7 | 直接导入点已迁到 `custom_components/lipro/core/capability`，device facade 不再依赖 legacy alias | 已登记，未删除 |
 
 ## Deletion Gate
 
@@ -63,3 +64,16 @@
 - `custom_components/lipro/services/wiring.py` 已失去正式控制面根地位；当前保留仅为 legacy implementation carrier 与过渡 patch seam。
 - `custom_components/lipro/services/execution.py` 尚未彻底摆脱 coordinator 私有 auth hook；该 seam 已升格为明确 kill target，而不是继续隐藏在 service folklore 中。
 - `custom_components/lipro/diagnostics.py`、`system_health.py` 与 `__init__.py` 不再进入 kill list：它们保留为 HA adapter 薄层，终态角色已被明确保留。
+
+
+## Phase 04 / `04-01` Registration Note
+
+- 本轮不新增 file-level delete target；`04-01` 的目标是先建立正式 capability root，而不是提前盲删 domain helpers。
+- `DeviceCapabilities` 已从 formal root 降级为 compat bridge，但尚未进入删除门槛满足态；真正删除判断留给 `04-03` 与 `Phase 7`。
+
+
+## Phase 04 / `04-01` Status Update
+
+- `custom_components/lipro/core/device/capabilities.py` 已被降级为显式 compat alias，不再承载真实 capability 推导。
+- 新增 `DeviceCapabilities` legacy public name kill target，用于约束旧导入名的删除门槛。
+- 真正的 capability duplicate-rule 删除仍留给 `04-02 / 04-03`。

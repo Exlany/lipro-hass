@@ -5,6 +5,7 @@ from __future__ import annotations
 import pytest
 
 from custom_components.lipro.const.categories import DeviceCategory
+from custom_components.lipro.core.capability import CapabilitySnapshot
 from custom_components.lipro.core.device import DeviceCapabilities
 
 
@@ -17,7 +18,9 @@ def test_device_capabilities_from_device_profile_exposes_light_flags() -> None:
         max_fan_gear=6,
     )
 
+    assert isinstance(caps, CapabilitySnapshot)
     assert caps.category == DeviceCategory.LIGHT
+    assert caps.platforms == ("light",)
     assert caps.is_light is True
     assert caps.is_fan_light is False
     assert caps.supports_color_temp is True
@@ -25,24 +28,36 @@ def test_device_capabilities_from_device_profile_exposes_light_flags() -> None:
 
 
 @pytest.mark.parametrize(
-    ("device_type_hex", "expected_category", "attr_name"),
+    ("device_type_hex", "expected_category", "expected_platforms", "attr_name"),
     [
-        ("ff000006", DeviceCategory.OUTLET, "is_outlet"),
-        ("ff000003", DeviceCategory.SWITCH, "is_switch"),
-        ("ff000008", DeviceCategory.BODY_SENSOR, "is_body_sensor"),
-        ("ff00000a", DeviceCategory.DOOR_SENSOR, "is_door_sensor"),
-        ("ff00000b", DeviceCategory.GATEWAY, "is_gateway"),
+        ("ff000006", DeviceCategory.OUTLET, ("switch",), "is_outlet"),
+        ("ff000003", DeviceCategory.SWITCH, ("switch",), "is_switch"),
+        (
+            "ff000008",
+            DeviceCategory.BODY_SENSOR,
+            ("binary_sensor",),
+            "is_body_sensor",
+        ),
+        (
+            "ff00000a",
+            DeviceCategory.DOOR_SENSOR,
+            ("binary_sensor",),
+            "is_door_sensor",
+        ),
+        ("ff00000b", DeviceCategory.GATEWAY, (), "is_gateway"),
     ],
 )
 def test_device_capabilities_from_device_type_maps_categories(
     device_type_hex: str,
     expected_category: DeviceCategory,
+    expected_platforms: tuple[str, ...],
     attr_name: str,
 ) -> None:
     """Type-only capability snapshots should still expose category flags."""
     caps = DeviceCapabilities.from_device_type(device_type_hex)
 
     assert caps.category == expected_category
+    assert caps.platforms == expected_platforms
     assert getattr(caps, attr_name) is True
     assert caps.supports_color_temp is False
 
@@ -54,7 +69,9 @@ def test_lipro_device_capabilities_property_matches_facade_flags(
     device = make_device("light", serial="03ab5ccd7caaaaaa", name="Desk Light")
 
     caps = device.capabilities
+    assert isinstance(caps, CapabilitySnapshot)
     assert caps.category == device.category
+    assert caps.platforms == tuple(device.platforms)
     assert caps.is_light == device.is_light
     assert caps.is_fan_light == device.is_fan_light
     assert caps.is_curtain == device.is_curtain
