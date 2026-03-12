@@ -90,19 +90,6 @@ class StateUpdater:
 
         return changed
 
-    def update_device_online_status(
-        self,
-        device: LiproDevice,
-        is_online: bool,
-    ) -> bool:
-        """Update device online status and notify entities."""
-        _LOGGER.debug(
-            "Device %s online status update: %s",
-            device.name,
-            "online" if is_online else "offline",
-        )
-        self._notify_device_entities(device)
-        return True
 
     async def batch_update_properties(
         self,

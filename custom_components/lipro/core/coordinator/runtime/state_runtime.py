@@ -103,13 +103,6 @@ class StateRuntime:
         """Apply property updates to a device and notify entities."""
         return await self._updater.apply_properties_update(device, properties, source=source)
 
-    def update_device_online_status(
-        self,
-        device: LiproDevice,
-        is_online: bool,
-    ) -> bool:
-        """Update device online status."""
-        return self._updater.update_device_online_status(device, is_online)
 
     async def batch_update_properties(
         self,

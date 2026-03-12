@@ -199,24 +199,6 @@ automation:
           entity_id: cover.bedroom_curtain
 ```
 
-### 场景 4：浴霸预热
-
-```yaml
-automation:
-  - alias: "浴霸预热"
-    trigger:
-      - platform: time
-        at: "21:00:00"
-    action:
-      - service: climate.turn_on
-        target:
-          entity_id: climate.bathroom_heater
-      - service: climate.set_preset_mode
-        target:
-          entity_id: climate.bathroom_heater
-        data:
-          preset_mode: "default"
-```
 
 ## 官方 Blueprint
 

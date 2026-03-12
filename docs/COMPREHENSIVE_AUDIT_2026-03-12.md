@@ -1,7 +1,7 @@
 # Lipro-HASS 全量复核报告（2026-03-12）
 
 > 审计范围：`custom_components/`、`scripts/`、`tests/` 下全部 Python 文件  
-> 实际覆盖：378 个 Python 文件（生产 225 / 测试 153）  
+> 实际覆盖：377 个 Python 文件（生产 224 / 测试 153）  
 > 复核方式：主代理仲裁 + 并行子代理只读复核 + 仓库级静态检查与全量测试  
 > 当前状态：本文件为本轮唯一权威审计/收口报告
 
@@ -24,8 +24,24 @@
 |---|---|---|
 | P0 | 运行时崩溃 | **无开放项** |
 | P1 | 真实运行风险 | **无开放项** |
-| P2 | 架构治理 | 少量残留，集中在死 API 命名与 dormant 路径清理 |
-| P3 | 文档治理 | 双语 README 漂移、历史文档归档后的长期维护 |
+| P2 | 架构治理 | **本轮已清零，无开放项** |
+| P3 | 文档治理 | 历史文档已归档，活跃文档已收敛 |
+
+---
+
+## 1.3 全量覆盖分工
+
+本轮复核按以下 4 个切片覆盖全部 `377` 个 Python 文件：
+
+| 切片 | 覆盖范围 | 文件数 |
+|---|---|---:|
+| S1 | `custom_components/lipro/core/coordinator/**.py` | 56 |
+| S2 | `tests/core/coordinator/**.py` + coordinator 顶层测试 | 19 |
+| S3 | `custom_components/lipro/core/**.py`（除 coordinator）+ `tests/core/**.py`（除 coordinator） | 184 |
+| S4 | entities / helpers / services / flow / scripts / 其余 tests | 118 |
+| **合计** |  | **377** |
+
+主代理负责仲裁与最终修复；子代理负责分片只读巡检；最终结论以仓库级 `ruff` / `mypy` / `pytest` 结果为准。
 
 ---
 
@@ -103,18 +119,15 @@
 
 ---
 
-## 5. 当前仍建议跟踪的低优先级事项
+## 5. 当前低优先级状态
 
-以下问题**不再属于高优先级运行风险**，但可作为后续治理项：
+本轮原先列出的 3 个低优先级治理项已完成：
 
-1. `custom_components/lipro/core/coordinator/runtime/state/updater.py`
-   - `update_device_online_status()` 命名像“写在线态”，实际更接近“通知实体”；建议未来重命名或删除。
+1. 已删除误导性的 `update_device_online_status()` 死 API；
+2. 已退役 `DeviceRuntime` 中未被正式主链消费的 dormant 增量刷新分支；
+3. 已对齐 `README_zh.md` 与 `README.md` 的示例章节，消除镜像漂移。
 
-2. `custom_components/lipro/core/coordinator/runtime/device_runtime.py`
-   - 增量刷新分支仍保留为 runtime 能力，但 coordinator 主更新循环当前主要依赖 `StatusRuntime` 做 steady-state 轮询；若后续无正式消费者，可考虑精简。
-
-3. `README_zh.md`
-   - 作为中文镜像仍有内容漂移，建议后续明确“单一主文档 + 翻译镜像”维护策略。
+当前未再发现需要立即继续清理的低优先级架构残留；后续工作可以回到正常功能演进与常规代码审查节奏。
 
 ---
 
@@ -123,8 +136,8 @@
 本轮以仓库当前代码为准完成复核：
 
 - `uv run ruff check .` ✅
-- `uv run mypy` ✅ `Success: no issues found in 372 source files`
-- `uv run pytest tests/ --ignore=tests/benchmarks -q` ✅ `2064 passed`
+- `uv run mypy` ✅ `Success: no issues found in 371 source files`
+- `uv run pytest tests/ --ignore=tests/benchmarks -q` ✅ `2053 passed`
 
 这意味着：
 

@@ -136,32 +136,6 @@ class TestStateUpdater:
         assert changed is True
         mock_entity.async_write_ha_state.assert_called_once()
 
-    def test_update_device_online_status(
-        self,
-        state_runtime: StateRuntime,
-        mock_device: LiproDevice,
-        mock_entity: MagicMock,
-    ) -> None:
-        """Test updating device online status."""
-        # Simplified implementation always notifies
-        changed = state_runtime.update_device_online_status(mock_device, False)
-
-        assert changed is True
-        mock_entity.async_write_ha_state.assert_called_once()
-
-    def test_update_device_online_status_no_change(
-        self,
-        state_runtime: StateRuntime,
-        mock_device: LiproDevice,
-        mock_entity: MagicMock,
-    ) -> None:
-        """Test updating device online status with no change."""
-        # Simplified implementation always notifies
-        changed = state_runtime.update_device_online_status(mock_device, True)
-
-        assert changed is True
-        mock_entity.async_write_ha_state.assert_called_once()
-
     async def test_batch_update_properties(
         self,
         state_runtime: StateRuntime,

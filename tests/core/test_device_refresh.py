@@ -4,12 +4,11 @@ This test suite covers:
 - DeviceFilter: Device filtering with include/exclude rules
 - SnapshotBuilder: Full device snapshot building
 - DeviceRuntime: Device refresh orchestration
-- IncrementalRefreshStrategy: Incremental state updates
 """
 
 from __future__ import annotations
 
-from unittest.mock import AsyncMock, Mock, patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 
@@ -26,17 +25,11 @@ from custom_components.lipro.const.config import (
     DEVICE_FILTER_MODE_INCLUDE,
     DEVICE_FILTER_MODE_OFF,
 )
-from custom_components.lipro.core.coordinator.runtime.device.batch_optimizer import (
-    DeviceBatchOptimizer,
-)
 from custom_components.lipro.core.coordinator.runtime.device.filter import (
     DeviceFilter,
     DeviceFilterConfig,
     DeviceFilterRule,
     parse_filter_config,
-)
-from custom_components.lipro.core.coordinator.runtime.device.incremental import (
-    IncrementalRefreshStrategy,
 )
 from custom_components.lipro.core.coordinator.runtime.device.snapshot import (
     SnapshotBuilder,
@@ -589,10 +582,10 @@ async def test_device_runtime_first_refresh_is_always_full(
 
 
 @pytest.mark.asyncio
-async def test_device_runtime_incremental_refresh_uses_existing_snapshot(
+async def test_device_runtime_cached_refresh_reuses_existing_snapshot(
     device_runtime, mock_client, make_device
 ):
-    """Test that incremental refresh reuses existing snapshot."""
+    """Test that a non-due refresh reuses the cached snapshot."""
     # First refresh (full)
     mock_client.get_device_list = AsyncMock(
         return_value={
@@ -610,12 +603,7 @@ async def test_device_runtime_incremental_refresh_uses_existing_snapshot(
 
         first_snapshot = await device_runtime.refresh_devices(force=True)
 
-    # Mock incremental queries
-    mock_client.query_iot_devices = AsyncMock(return_value={"data": []})
-    mock_client.query_group_devices = AsyncMock(return_value={"data": []})
-    mock_client.query_outlet_devices = AsyncMock(return_value={"data": []})
-
-    # Second refresh (incremental) - should not call get_device_list again
+    # Second refresh is not due yet - should not call get_device_list again
     mock_client.get_device_list.reset_mock()
 
     second_snapshot = await device_runtime.refresh_devices(force=False)
@@ -689,228 +677,3 @@ def test_device_runtime_reset(device_runtime):
     assert len(device_runtime._cloud_serials_last_seen) == 0
 
 
-# =========================================================================
-# Test: IncrementalRefreshStrategy
-# =========================================================================
-
-
-@pytest.mark.asyncio
-async def test_incremental_refresh_strategy_queries_iot_devices(mock_client, make_device):
-    """Test incremental refresh queries IoT devices."""
-    strategy = IncrementalRefreshStrategy(client=mock_client)
-
-    mock_client.query_iot_devices = AsyncMock(
-        return_value={
-            "data": [
-                {"id": "iot_001", "powerState": "1"},
-            ]
-        }
-    )
-
-    device = make_device("light", properties={"id": "iot_001"})
-    devices = {"iot_001": device}
-
-    from custom_components.lipro.core.coordinator.runtime.device.batch_optimizer import (
-        DeviceBatchOptimizer,
-    )
-
-    batch_optimizer = DeviceBatchOptimizer()
-
-    updated_states = await strategy.refresh_device_states(
-        iot_ids=["iot_001"],
-        group_ids=[],
-        outlet_ids=[],
-        devices=devices,
-        batch_optimizer=batch_optimizer,
-    )
-
-    assert "iot_001" in updated_states
-    mock_client.query_iot_devices.assert_called_once()
-
-
-@pytest.mark.asyncio
-async def test_incremental_refresh_strategy_queries_all_device_types(
-    mock_client, make_device
-):
-    """Test incremental refresh queries all device types."""
-    strategy = IncrementalRefreshStrategy(client=mock_client)
-
-    mock_client.query_iot_devices = AsyncMock(
-        return_value={"data": [{"id": "iot_001", "powerState": "1"}]}
-    )
-    mock_client.query_group_devices = AsyncMock(
-        return_value={"data": [{"id": "group_001", "powerState": "1"}]}
-    )
-    mock_client.query_outlet_devices = AsyncMock(
-        return_value={"data": [{"id": "outlet_001", "powerState": "1"}]}
-    )
-
-    devices = {
-        "iot_001": make_device("light", properties={"id": "iot_001"}),
-        "group_001": make_device("light", properties={"id": "group_001"}, is_group=True),
-        "outlet_001": make_device("outlet", properties={"id": "outlet_001"}),
-    }
-
-    from custom_components.lipro.core.coordinator.runtime.device.batch_optimizer import (
-        DeviceBatchOptimizer,
-    )
-
-    batch_optimizer = DeviceBatchOptimizer()
-
-    updated_states = await strategy.refresh_device_states(
-        iot_ids=["iot_001"],
-        group_ids=["group_001"],
-        outlet_ids=["outlet_001"],
-        devices=devices,
-        batch_optimizer=batch_optimizer,
-    )
-
-    assert len(updated_states) == 3
-    mock_client.query_iot_devices.assert_called_once()
-    mock_client.query_group_devices.assert_called_once()
-    mock_client.query_outlet_devices.assert_called_once()
-
-
-@pytest.mark.asyncio
-async def test_incremental_refresh_strategy_handles_query_errors_gracefully(
-    mock_client, make_device
-):
-    """Test incremental refresh continues on query errors."""
-    strategy = IncrementalRefreshStrategy(client=mock_client)
-
-    # First batch fails, second succeeds
-    mock_client.query_iot_devices = AsyncMock(side_effect=Exception("Network error"))
-
-    devices = {"iot_001": make_device("light", properties={"id": "iot_001"})}
-
-    from custom_components.lipro.core.coordinator.runtime.device.batch_optimizer import (
-        DeviceBatchOptimizer,
-    )
-
-    batch_optimizer = DeviceBatchOptimizer()
-
-    # Should not raise exception
-    updated_states = await strategy.refresh_device_states(
-        iot_ids=["iot_001"],
-        group_ids=[],
-        outlet_ids=[],
-        devices=devices,
-        batch_optimizer=batch_optimizer,
-    )
-
-    # Should return empty dict on error
-    assert len(updated_states) == 0
-
-
-@pytest.mark.asyncio
-async def test_incremental_refresh_strategy_updates_existing_device_properties(
-    mock_client,
-) -> None:
-    """Incremental refresh should apply fresh properties onto known devices."""
-    strategy = IncrementalRefreshStrategy(client=mock_client)
-    mock_client.query_iot_devices = AsyncMock(
-        return_value={"data": [{"id": "iot_001", "properties": {"powerState": "1"}}]}
-    )
-    device = Mock()
-    batch_optimizer = DeviceBatchOptimizer()
-
-    updated_states = await strategy.refresh_device_states(
-        iot_ids=["iot_001"],
-        group_ids=[],
-        outlet_ids=[],
-        devices={"iot_001": device},
-        batch_optimizer=batch_optimizer,
-    )
-
-    assert updated_states["iot_001"]["properties"] == {"powerState": "1"}
-    device.update_properties.assert_called_once_with({"powerState": "1"})
-
-
-@pytest.mark.asyncio
-async def test_incremental_refresh_strategy_uses_device_resolver_for_alias_ids(
-    mock_client,
-) -> None:
-    """Alias-based refresh results should still resolve onto the live device."""
-    device = Mock()
-    strategy = IncrementalRefreshStrategy(
-        client=mock_client,
-        device_resolver=lambda device_id: device if device_id == "dev1" else None,
-    )
-    mock_client.query_iot_devices = AsyncMock(
-        return_value={"data": [{"id": "dev1", "properties": {"powerState": "1"}}]}
-    )
-    batch_optimizer = DeviceBatchOptimizer()
-
-    updated_states = await strategy.refresh_device_states(
-        iot_ids=["dev1"],
-        group_ids=[],
-        outlet_ids=[],
-        devices={},
-        batch_optimizer=batch_optimizer,
-    )
-
-    assert updated_states["dev1"]["properties"] == {"powerState": "1"}
-    device.update_properties.assert_called_once_with({"powerState": "1"})
-
-
-@pytest.mark.asyncio
-async def test_incremental_refresh_strategy_reraises_iot_query_cancellation(
-    mock_client,
-) -> None:
-    """IoT query cancellation should bubble up instead of being swallowed."""
-    import asyncio
-
-    strategy = IncrementalRefreshStrategy(client=mock_client)
-    mock_client.query_iot_devices = AsyncMock(side_effect=asyncio.CancelledError())
-    batch_optimizer = DeviceBatchOptimizer()
-
-    with pytest.raises(asyncio.CancelledError):
-        await strategy.refresh_device_states(
-            iot_ids=["iot_001"],
-            group_ids=[],
-            outlet_ids=[],
-            devices={},
-            batch_optimizer=batch_optimizer,
-        )
-
-
-@pytest.mark.asyncio
-async def test_incremental_refresh_strategy_reraises_group_query_cancellation(
-    mock_client,
-) -> None:
-    """Group query cancellation should bubble up instead of being swallowed."""
-    import asyncio
-
-    strategy = IncrementalRefreshStrategy(client=mock_client)
-    mock_client.query_group_devices = AsyncMock(side_effect=asyncio.CancelledError())
-    batch_optimizer = DeviceBatchOptimizer()
-
-    with pytest.raises(asyncio.CancelledError):
-        await strategy.refresh_device_states(
-            iot_ids=[],
-            group_ids=["group_001"],
-            outlet_ids=[],
-            devices={},
-            batch_optimizer=batch_optimizer,
-        )
-
-
-@pytest.mark.asyncio
-async def test_incremental_refresh_strategy_reraises_outlet_query_cancellation(
-    mock_client,
-) -> None:
-    """Outlet query cancellation should bubble up instead of being swallowed."""
-    import asyncio
-
-    strategy = IncrementalRefreshStrategy(client=mock_client)
-    mock_client.query_outlet_devices = AsyncMock(side_effect=asyncio.CancelledError())
-    batch_optimizer = DeviceBatchOptimizer()
-
-    with pytest.raises(asyncio.CancelledError):
-        await strategy.refresh_device_states(
-            iot_ids=[],
-            group_ids=[],
-            outlet_ids=["outlet_001"],
-            devices={},
-            batch_optimizer=batch_optimizer,
-        )
