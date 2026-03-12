@@ -36,7 +36,7 @@
 |-------|------------------|--------------|------------|-------------------------------|
 | 1 | protocol fixtures、contract matrix、canonical snapshots、immutable constraints | `01-01/02-SUMMARY.md`、locked baseline fixtures / snapshots | contract matrix + canonical snapshot suite pass | `Phase 1.5` 只能消费已锁定协议真源，不得重新解释协议 contract |
 | 1.5 | Phase 1 closeout inputs + 五份 baseline docs + `01.5-ARCHITECTURE.md` + `01.5-VALIDATION.md` | `01.5-01/02/03-SUMMARY.md`、seed guards、formal baseline asset wording | baseline doc alignment review + `uv run pytest tests/meta/test_dependency_guards.py tests/meta/test_public_surface_guards.py -q` | `VERIFICATION_MATRIX.md` 成为正式 acceptance truth；Phase 2 / 2.5 / 2.6 / 3 必须引用 baseline asset pack 与 `01.5` summaries |
-| 2 | baseline asset pack、`01.5-02-SUMMARY.md` seed-guard proof、Phase 1 protocol truth | `LiproRestFacade` slice artifacts、protocol docs、必要的 residual / kill updates | contract tests + snapshot checks + public-surface guard checks | 若 REST canonical surface 或 compat shell 语义变化，必须先回写 `PUBLIC_SURFACES.md` 与本文件 |
+| 2 | baseline asset pack、`01.5-02-SUMMARY.md` seed-guard proof、Phase 1 protocol truth、`02-ARCHITECTURE.md` | `LiproRestFacade` slice artifacts、`02-01~02-04-SUMMARY.md`、更新后的 `FILE_MATRIX` / `RESIDUAL_LEDGER` / `KILL_LIST`，必要时回写 `PUBLIC_SURFACES.md` | 至少保持 `uv run pytest tests/core/api/test_protocol_contract_matrix.py tests/snapshots/test_api_snapshots.py -q` 通过，并补足 REST slice targeted regressions；若 public surface 变化还需 guard proof | `FILE_MATRIX` 必须覆盖 `custom_components/lipro/core/api/**/*.py`、`tests/core/api/**/*.py` 与 direct consumer tests；`RESIDUAL_LEDGER` / `KILL_LIST` 必须点名 compat wrappers、mixin inheritance、legacy public names 的 owner 与删除门槛 |
 | 2.5 | baseline asset pack + Phase 2 protocol outputs | unified protocol root / MQTT integration artifacts、必要的 residual cleanup | shared contract + mqtt/protocol integration checks | control/runtime 之后只能引用统一协议 surface，不再并行引用旧根 |
 | 2.6 | `AUTHORITY_MATRIX.md`、baseline asset pack、Phase 2 / 2.5 protocol outputs | external boundary docs、fixtures、generated expectations、authority updates | targeted boundary contract tests + fixture audits + drift detection | 后续 phases 只能扩展已登记 authority / external-boundary truth，不得自建平行文档 |
 | 3 | baseline asset pack + Phase 2 / 2.5 formal protocol surfaces | control-plane docs、formal control surfaces、support tests | config-flow / reauth / diagnostics / services tests + redaction proof | control plane 访问 runtime 必须通过正式 public surface，并把 support surface 留给 Phase 4 / 5 引用 |
@@ -44,6 +44,13 @@
 | 5 | baseline asset pack + Phase 2-4 formal surfaces | runtime invariants docs、runtime orchestration artifacts、必要的 residual cleanup | runtime invariant suite + integration proof | `Coordinator` 仍为唯一 runtime root；旁路刷新/写状态/重复订阅必须被证明受控 |
 | 6 | 本文件、seed guards、prior formal surfaces、Phase 5 runtime proof | assurance taxonomy、hardened guards、CI gates、coverage / quality proof | meta guards + CI proof + test-structure alignment review | “结构未退化” 成为默认质量门；后续变更必须先经过 assurance contract |
 | 7 | all prior summaries + governance docs + baseline asset pack | final `FILE_MATRIX`、`RESIDUAL_LEDGER`、`KILL_LIST`、closeout report | full governance review + cleanup / deletion proof | 形成仓库级最终 acceptance record |
+
+## Phase 02 Exit Contract
+
+- **Required artifacts:** `LiproRestFacade` formal slice outputs、`.planning/phases/02-api-client-de-mixin/02-ARCHITECTURE.md`、`.planning/phases/02-api-client-de-mixin/02-VALIDATION.md`、`02-01/02/03/04-SUMMARY.md`、更新后的 `FILE_MATRIX` / `RESIDUAL_LEDGER` / `KILL_LIST`，以及在 public surface 语义变化时同步更新的 `PUBLIC_SURFACES.md`。
+- **Required governance proof:** `FILE_MATRIX` 必须给出 `core/api`、`tests/core/api`、direct consumer tests 的 file-level target fate；`RESIDUAL_LEDGER` / `KILL_LIST` 必须对 compat wrappers、mixin inheritance、legacy public names 写明 current example、owner、delete gate。
+- **Required runnable proof:** 至少保持 `uv run pytest tests/core/api/test_protocol_contract_matrix.py tests/snapshots/test_api_snapshots.py -q` 通过；随后再以 targeted REST slice regressions 与 public-surface guards 证明 demixin 没有破坏 Phase 1 canonical truth。
+- **Unblock effect:** `Phase 2.5` 可把 `LiproRestFacade` 视为唯一 REST root，并把 `LiproClient` 明确降级为 transitional compat shell，而不是继续作为正式 public direction。
 
 ## Phase 01.5 Exit Contract
 
