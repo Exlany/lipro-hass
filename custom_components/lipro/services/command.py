@@ -20,10 +20,12 @@ class CommandDevice(Protocol):
     serial: str
 
 
-class CommandCoordinator(Protocol):
-    """Coordinator contract used by the send_command service."""
+class CommandService(Protocol):
+    """Command service contract used by the send_command service."""
 
-    last_command_failure: dict[str, Any] | None
+    @property
+    def last_failure(self) -> dict[str, Any] | None:
+        """Return the latest command failure payload, if any."""
 
     async def async_send_command(
         self,
@@ -33,6 +35,12 @@ class CommandCoordinator(Protocol):
         fallback_device_id: str | None = None,
     ) -> bool:
         """Dispatch one command via the coordinator."""
+
+
+class CommandCoordinator(Protocol):
+    """Coordinator contract used by the send_command service."""
+
+    command_service: CommandService
 
 
 class CommandFailureTranslationResolver(Protocol):
@@ -62,7 +70,7 @@ async def async_send_command_with_service_errors(
 ) -> None:
     """Send one command and map API/push failures to translated service errors."""
     try:
-        success = await coordinator.async_send_command(
+        success = await coordinator.command_service.async_send_command(
             device,
             command,
             properties,
@@ -71,7 +79,7 @@ async def async_send_command_with_service_errors(
         if success:
             return
 
-        failure_context = coordinator.last_command_failure
+        failure_context = coordinator.command_service.last_failure
         failure_summary: dict[str, Any] | None = None
         if isinstance(failure_context, dict):
             failure_summary = {

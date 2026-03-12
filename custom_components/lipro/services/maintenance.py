@@ -62,7 +62,7 @@ async def async_handle_refresh_devices(
 
     refreshed_entries = 0
     for _entry_id, coordinator in targets:
-        await coordinator.async_refresh_devices()
+        await coordinator.device_refresh_service.async_refresh_devices()
         refreshed_entries += 1
 
     result: dict[str, Any] = {"success": True, "refreshed_entries": refreshed_entries}

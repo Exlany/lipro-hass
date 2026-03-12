@@ -13,7 +13,7 @@ from typing import TYPE_CHECKING, Any
 from ...const.config import CONF_PHONE_ID
 from ..mqtt.credentials import decrypt_mqtt_credential
 from ..mqtt.mqtt_client import LiproMqttClient
-from .mqtt.setup import resolve_mqtt_biz_id
+from .mqtt.setup import build_mqtt_subscription_device_ids, resolve_mqtt_biz_id
 from .runtime.mqtt_runtime import MqttRuntime
 
 if TYPE_CHECKING:
@@ -155,12 +155,22 @@ async def async_setup_mqtt(
 
         phone_id = config_entry.data.get(CONF_PHONE_ID, "")
 
-        # Create MQTT client
+        # Create bridge function to connect sync callback to async handler
+        def _on_message_bridge(topic: str, payload: dict[str, object]) -> None:
+            """Bridge sync MQTT callback to async runtime handler."""
+            # Schedule the async handler in the event loop
+            asyncio.create_task(
+                mqtt_runtime.handle_message(topic, payload),
+                name=f"mqtt_message_{topic}",
+            )
+
+        # Create MQTT client with message callback bound to runtime
         mqtt_client = LiproMqttClient(
             access_key=access_key,
             secret_key=secret_key,
             biz_id=biz_id,
             phone_id=phone_id,
+            on_message=_on_message_bridge,
         )
 
         # Create MQTT runtime with all dependencies injected at construction
@@ -181,11 +191,8 @@ async def async_setup_mqtt(
         )
 
         # Start MQTT connection for current devices with 15s timeout
-        device_ids = [
-            device.serial
-            for device in devices.values()
-            if device.is_group  # Prefer mesh groups
-        ]
+        # Use helper function that provides fallback to all devices if no groups
+        device_ids = build_mqtt_subscription_device_ids(devices)
         if device_ids:
             try:
                 async with asyncio.timeout(15):

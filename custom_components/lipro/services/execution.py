@@ -18,7 +18,7 @@ class AuthenticatedCoordinator(Protocol):
     def _async_ensure_authenticated(self) -> Awaitable[None]:
         """Validate the coordinator auth state before a service call."""
 
-    def _trigger_reauth(self, key: str, **placeholders: str) -> Awaitable[None]:
+    def _trigger_reauth(self, reason: str) -> Awaitable[None]:
         """Start the Home Assistant reauth flow for the config entry."""
 
 
@@ -60,14 +60,13 @@ async def _async_ensure_authenticated(
 
 async def _async_trigger_reauth(
     coordinator: AuthenticatedCoordinator,
-    key: str,
-    **placeholders: str,
+    reason: str,
 ) -> None:
     """Trigger coordinator reauth when available."""
     trigger_reauth = getattr(coordinator, "_trigger_reauth", None)
     if trigger_reauth is None:
         return
-    await _async_await_if_needed(trigger_reauth(key, **placeholders))
+    await _async_await_if_needed(trigger_reauth(reason))
 
 
 async def async_execute_coordinator_call(
@@ -86,7 +85,7 @@ async def async_execute_coordinator_call(
         raise_service_error("auth_expired", err=err)
     except LiproAuthError as err:
         safe_error = safe_error_placeholder(err)
-        await _async_trigger_reauth(coordinator, "auth_error", error=safe_error)
+        await _async_trigger_reauth(coordinator, f"auth_error: {safe_error}")
         raise_service_error(
             "auth_error",
             err=err,

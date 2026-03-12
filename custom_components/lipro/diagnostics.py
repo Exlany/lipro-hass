@@ -249,7 +249,7 @@ async def async_get_config_entry_diagnostics(
             "last_update_success": coordinator.last_update_success,
             "update_interval": str(coordinator.update_interval),
             "device_count": len(coordinator.devices),
-            "mqtt_connected": coordinator.mqtt_connected,
+            "mqtt_connected": coordinator.mqtt_service.connected,
         },
         "anonymous_share": anonymous_share_info,
         "devices": devices_info,
@@ -283,7 +283,7 @@ async def async_get_device_diagnostics(
             "last_update_success": coordinator.last_update_success,
             "update_interval": str(coordinator.update_interval),
             "device_count": len(coordinator.devices),
-            "mqtt_connected": coordinator.mqtt_connected,
+            "mqtt_connected": coordinator.mqtt_service.connected,
         },
         "device": _build_device_diagnostics(lipro_device),
     }
