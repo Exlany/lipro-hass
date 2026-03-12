@@ -43,7 +43,8 @@
 1. **协议契约测试**：把 REST / MQTT payload 固化为 golden fixtures，降低上游协议漂移风险
 2. **可观测性**：为命令确认延迟、刷新耗时、MQTT 恢复时间补结构化指标
 3. **边界层 schema 校验**：如果 payload 复杂度继续上升，只在外部边界评估更强 schema 工具
-4. **API Client 收敛**：如果 mixin façade 继续膨胀，可逐步向更显式的 endpoint/service façade 收敛
+4. **API Client 去 mixin 化**：目标态应与其他层保持同一标准，采用显式 facade + collaborators，而不是多重继承聚合
+5. **统一跨层标准**：任何层的历史混搭都只视为待清理偏差，不构成双标准
 
 ## 使用约定
 

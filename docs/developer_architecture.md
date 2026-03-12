@@ -1,7 +1,7 @@
 # Lipro Home Assistant Integration - Developer Architecture
 
 > **Last Updated**: 2026-03-12  \
-> **Version**: 3.5 (Post-audit convergence + ADR records landed)
+> **Version**: 3.6 (Post-audit convergence + north-star architecture alignment)
 >
 > ⚠️ 本文档仅描述"架构与模块边界"，不硬编码评分/覆盖率/通过率等易失真指标。  \
 > 当前实现状态、验证结果与风险优先级请以 `docs/COMPREHENSIVE_AUDIT_2026-03-12.md` 为准。
@@ -87,7 +87,7 @@
 │  │  ├─ DeviceNetworkInfo  (网络诊断)                      │  │
 │  │  └─ DeviceExtras       (扩展特性)                      │  │
 │  ├────────────────────────────────────────────────────────┤  │
-│  │ API Client (mixin 组合) │ MQTT Client │ AuthManager    │  │
+│  │ API Client (显式 facade 目标态) │ MQTT Client │ AuthManager │  │
 │  └────────────────────────────────────────────────────────┘  │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -105,8 +105,14 @@
 
 ### 1) 组合优于继承 (Composition over Mixins)
 
-Coordinator 不依赖 mixin 聚合，而是将职责拆成可独立测试/替换的 Runtime 组件。
-LiproDevice 使用 property delegation 组合 State/Capabilities/NetworkInfo/Extras 视图。
+该原则适用于**所有层**，而不只是 Coordinator：
+
+- `Coordinator / Runtime`：显式 Runtime 组合 + `RuntimeContext` 注入
+- `API Client`：显式 facade + domain collaborators / services，不以 mixin 聚合作为正式架构
+- `Device Model`：property delegation + views，而不是继承叠加
+- `Service / Diagnostics / Flow`：优先组合 helper / service / wiring，不做多重继承聚合
+
+**历史残留不构成另一套标准**：如果某层仍存在 mixin 或兼容包袱，那只是待清理偏差，不是“该层可以例外”。
 
 ### 2) 依赖注入与上下文传递 (Dependency Injection via RuntimeContext)
 
@@ -217,7 +223,7 @@ Coordinator
 
 ### API Client (`core/api/`)
 
-- `client.py`：`LiproClient`（端点 mixin + transport mixin 组合入口）
+- `client.py`：`LiproClient`（目标态：显式 facade + domain collaborators；mixin 聚合不属于正式架构）
 - `transport_core.py` / `transport_retry.py` / `transport_signing.py`：请求核心/重试/签名
 - `endpoints/`：按域拆分端点（auth / status / devices / commands / ...）
 - `*_service.py`：API 级服务封装（auth / schedule / mqtt / status）
@@ -407,7 +413,7 @@ custom_components/lipro/
 │   │       ├── mqtt_service.py
 │   │       └── device_refresh_service.py
 │   ├── api/                       # REST API Client
-│   │   ├── client.py              # LiproClient (mixin 组合)
+│   │   ├── client.py              # LiproClient (显式 facade 目标态)
 │   │   ├── endpoints/             # 按域拆分端点
 │   │   └── transport_*.py         # 请求核心/重试/签名
 │   ├── mqtt/                      # MQTT Client
@@ -498,7 +504,7 @@ uv run pytest -q                                         # 全量测试
 | 选型 | 判断 | 原因 |
 |---|---|---|
 | `DataUpdateCoordinator` 作为 HA 适配根 | 保持 | 与 HA 运行模型天然兼容，外部集成成本最低 |
-| 组合式 Runtime 拆分 | 保持 | 比 mixin/巨型 coordinator 更易测试、更易替换 |
+| 全层显式组合 | 保持 | 同一套标准适用于 Coordinator、API Client、Device、Service，避免多套心智模型并存 |
 | `dataclasses` + TypedDict / 明确类型别名 | 保持 | 足够轻量，适合当前代码规模 |
 | `RuntimeContext` 回调注入 | 保持 | 依赖图清晰，避免 coordinator 反向渗透 |
 | `uv + ruff + mypy + pytest` | 保持 | 当前质量/成本比最佳 |
@@ -512,14 +518,14 @@ uv run pytest -q                                         # 全量测试
 | 可观测性 | 增加命令确认延迟、刷新耗时、MQTT 恢复时间的结构化指标 | 当线上问题定位成本继续升高时 |
 | 契约测试 | 为供应商协议增加 golden payload / snapshot contract tests | 当端到端回归覆盖仍不足以防协议漂移时 |
 | 边界专用强类型库 | 若外部 payload 复杂度继续上升，可仅在边界层评估 `pydantic v2` 或 `msgspec` | 当手写校验与 TypedDict 维护成本显著上升时 |
-| API Client 收敛 | 若 `core/api/client.py` 的 mixin façade 继续膨胀，逐步收敛到更显式的 endpoint/service façade | 当 transport 与 endpoint mixin 交叉依赖持续增加时 |
+| API Client 去 mixin 化 | 目标态直接采用显式 facade + transport / auth / endpoint collaborators；mixin 聚合不视为可接受终态 | 当 API client 仍保留多重继承或隐式聚合时就应推进 |
 
 ### 建议的演进顺序（按性价比）
 
 1. **先补 ADR 与边界审查清单**：已完成第一步，后续继续用 ADR 固化新增重大决策
 2. **再补协议契约测试**：把供应商返回 payload 固化为 golden fixtures，优先守住 REST / MQTT 边界
 3. **再补可观测性**：把“命令确认慢、刷新慢、MQTT 恢复慢”从体感问题变成可量化问题
-4. **再评估 API Client 收敛**：若 mixin façade 继续膨胀，优先做显式 façade 收敛，而不是重型框架替换
+4. **推进 API Client 去 mixin 化**：所有层遵循同一套显式组合标准，不接受“API 层例外”
 5. **最后才评估边界层强类型升级**：只有当外部协议复杂度继续上升时，才考虑在 boundary layer 引入更强 schema 工具
 
 ### 当前不建议引入的重型方案
@@ -528,6 +534,13 @@ uv run pytest -q                                         # 全量测试
 - 不建议把全域模型切到 `pydantic`：会提高样板和运行时成本，收益不足
 - 不建议引入事件总线替代显式调用链：会削弱可追踪性与调试可读性
 - 不建议为本地状态再引入持久化层/仓储模式：当前场景以协调器内存态为主，复杂度不匹配
+
+### 北极星原则
+
+- 目标架构先于历史实现：架构决策先看理想边界，再看迁移路径
+- 历史债只能影响排期，不影响“什么是正确终态”的判断
+- 同一套标准适用于所有层：显式组合、单一正式主链、边界可审计、依赖方向固定
+- 任何偏离这套标准的实现，都应在文档中被标注为偏差或迁移残留，而不是被包装成第二套合法架构
 
 ### 总结判断
 
