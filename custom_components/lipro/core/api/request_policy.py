@@ -1,12 +1,23 @@
-"""Request pacing and retry policy helpers for Lipro API client."""
+"""Request pacing and retry policy helpers for Lipro REST protocol."""
 
 from __future__ import annotations
 
 import asyncio
+import logging
 from collections.abc import Awaitable, Callable
 from typing import Final
 
+from ...const.api import (
+    ERROR_DEVICE_BUSY,
+    ERROR_DEVICE_BUSY_STR,
+    MAX_RATE_LIMIT_RETRIES,
+    MAX_RETRY_AFTER,
+)
+from . import response_safety as _response_safety
+from .errors import LiproApiError, LiproRateLimitError
 from ..utils.retry_after import parse_retry_after as _parse_retry_after_util
+
+_LOGGER = logging.getLogger("custom_components.lipro.core.api.client")
 
 COMMAND_BUSY_RETRY_MAX_ATTEMPTS: Final = 3
 COMMAND_BUSY_RETRY_BASE_DELAY_SECONDS: Final = 0.25
@@ -50,8 +61,6 @@ def enforce_command_pacing_cache_limit(
         lock = command_pacing_target_locks.get(oldest_target)
         has_waiters = False
         if lock is not None:
-            # asyncio.Lock does not provide a public API for checking queued waiters.
-            # We use a best-effort guard to avoid evicting locks while tasks are queued.
             has_waiters = bool(getattr(lock, "_waiters", None))
 
         if lock is not None and not lock.locked() and not has_waiters:
@@ -192,7 +201,7 @@ async def throttle_change_state(
                 )
                 return
 
-        await sleep(wait_time)
+        await (sleep or asyncio.sleep)(wait_time)
 
         async with command_pacing_lock:
             last_change_state_at[normalized_target] = monotonic()
@@ -238,3 +247,176 @@ def compute_exponential_retry_wait_time(
     if max_delay_seconds is None:
         return wait_time
     return float(min(max_delay_seconds, wait_time))
+
+
+class RequestPolicy:
+    """Explicit owner for pacing, busy-retry, and retry/backoff policy state."""
+
+    @staticmethod
+    def is_change_state_command(command: str) -> bool:
+        return is_change_state_command(command)
+
+    @staticmethod
+    def normalize_pacing_target(target_id: str) -> str:
+        return normalize_pacing_target(target_id)
+
+    @staticmethod
+    def parse_retry_after(headers: dict[str, str]) -> float | None:
+        return parse_retry_after(headers)
+
+    """Explicit owner for pacing, busy-retry, and retry/backoff policy state."""
+
+    def __init__(self) -> None:
+        self.command_pacing_lock = asyncio.Lock()
+        self.command_pacing_target_locks: dict[str, asyncio.Lock] = {}
+        self.last_change_state_at: dict[str, float] = {}
+        self.change_state_min_interval: dict[str, float] = {}
+        self.change_state_busy_count: dict[str, int] = {}
+
+    def _enforce_command_pacing_cache_limit(self) -> None:
+        enforce_command_pacing_cache_limit(
+            last_change_state_at=self.last_change_state_at,
+            change_state_min_interval=self.change_state_min_interval,
+            change_state_busy_count=self.change_state_busy_count,
+            command_pacing_target_locks=self.command_pacing_target_locks,
+        )
+
+    async def handle_rate_limit(
+        self,
+        path: str,
+        headers: dict[str, str],
+        retry_count: int,
+        *,
+        logger: logging.Logger = _LOGGER,
+        sleep: Callable[[float], Awaitable[None]] | None = None,
+    ) -> float:
+        """Handle 429 retry/backoff as an explicit policy decision."""
+        retry_after = parse_retry_after(headers)
+        if retry_count >= MAX_RATE_LIMIT_RETRIES:
+            logger.warning(
+                "Rate limited on %s after %d retries (retry_after=%s)",
+                path,
+                MAX_RATE_LIMIT_RETRIES,
+                retry_after,
+            )
+            msg = f"Rate limited after {MAX_RATE_LIMIT_RETRIES} retries"
+            raise LiproRateLimitError(msg, retry_after)
+
+        wait_time = compute_rate_limit_wait_time(
+            retry_after=retry_after,
+            retry_count=retry_count,
+            max_retry_after=MAX_RETRY_AFTER,
+        )
+        logger.debug(
+            "Rate limited on %s, waiting %.1fs before retry %d/%d",
+            path,
+            wait_time,
+            retry_count + 1,
+            MAX_RATE_LIMIT_RETRIES,
+        )
+        await (sleep or asyncio.sleep)(wait_time)
+        return wait_time
+
+    @staticmethod
+    def is_command_busy_error(err: Exception) -> bool:
+        """Check whether an API error is a transient command-busy response."""
+        normalized = _response_safety.normalize_response_code(
+            getattr(err, "code", None)
+        )
+        if normalized in (ERROR_DEVICE_BUSY, ERROR_DEVICE_BUSY_STR):
+            return True
+
+        message = str(err)
+        if not message:
+            return False
+        lowered = message.lower()
+        return "设备繁忙" in message or "device busy" in lowered
+
+    async def record_change_state_busy(
+        self,
+        target_id: str,
+        command: str,
+    ) -> tuple[float, int]:
+        """Increase adaptive pacing interval when CHANGE_STATE hits busy error."""
+        return await record_change_state_busy(
+            target_id=target_id,
+            command=command,
+            command_pacing_lock=self.command_pacing_lock,
+            change_state_min_interval=self.change_state_min_interval,
+            change_state_busy_count=self.change_state_busy_count,
+            last_change_state_at=self.last_change_state_at,
+            command_pacing_target_locks=self.command_pacing_target_locks,
+        )
+
+    async def record_change_state_success(self, target_id: str, command: str) -> None:
+        """Recover adaptive pacing interval after successful CHANGE_STATE command."""
+        await record_change_state_success(
+            target_id=target_id,
+            command=command,
+            command_pacing_lock=self.command_pacing_lock,
+            change_state_min_interval=self.change_state_min_interval,
+            change_state_busy_count=self.change_state_busy_count,
+            last_change_state_at=self.last_change_state_at,
+            command_pacing_target_locks=self.command_pacing_target_locks,
+        )
+
+    async def throttle_change_state(self, target_id: str, command: str) -> None:
+        """Pace high-frequency CHANGE_STATE sends for the same target."""
+        await throttle_change_state(
+            target_id=target_id,
+            command=command,
+            command_pacing_lock=self.command_pacing_lock,
+            command_pacing_target_locks=self.command_pacing_target_locks,
+            last_change_state_at=self.last_change_state_at,
+            change_state_min_interval=self.change_state_min_interval,
+            change_state_busy_count=self.change_state_busy_count,
+            monotonic=__import__("time").monotonic,
+            sleep=asyncio.sleep,
+        )
+
+    async def iot_request_with_busy_retry(
+        self,
+        path: str,
+        body_data: dict[str, object],
+        *,
+        target_id: str,
+        command: str,
+        iot_request: Callable[[str, dict[str, object]], Awaitable[object]],
+        logger: logging.Logger = _LOGGER,
+    ) -> dict[str, object]:
+        """Execute one IoT command request with explicit policy-owned pacing."""
+        from .command_api_service import iot_request_with_busy_retry as _iot_busy_retry_service
+
+        return await _iot_busy_retry_service(
+            path=path,
+            body_data=body_data,
+            target_id=target_id,
+            command=command,
+            attempt_limit=COMMAND_BUSY_RETRY_MAX_ATTEMPTS,
+            base_delay_seconds=COMMAND_BUSY_RETRY_BASE_DELAY_SECONDS,
+            iot_request=iot_request,
+            throttle_change_state=self.throttle_change_state,
+            record_change_state_success=self.record_change_state_success,
+            is_command_busy_error=self.is_command_busy_error,
+            lipro_api_error=LiproApiError,
+            record_change_state_busy=self.record_change_state_busy,
+            sleep=asyncio.sleep,
+            logger=logger,
+        )
+
+
+__all__ = [
+    "COMMAND_BUSY_RETRY_BASE_DELAY_SECONDS",
+    "COMMAND_BUSY_RETRY_MAX_ATTEMPTS",
+    "COMMAND_PACING_CACHE_MAX_SIZE",
+    "RequestPolicy",
+    "compute_exponential_retry_wait_time",
+    "compute_rate_limit_wait_time",
+    "enforce_command_pacing_cache_limit",
+    "is_change_state_command",
+    "normalize_pacing_target",
+    "parse_retry_after",
+    "record_change_state_busy",
+    "record_change_state_success",
+    "throttle_change_state",
+]

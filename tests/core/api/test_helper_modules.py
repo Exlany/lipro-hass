@@ -7,13 +7,13 @@ from unittest.mock import AsyncMock, Mock, patch
 import pytest
 
 from custom_components.lipro.const.api import MAX_RATE_LIMIT_RETRIES
-from custom_components.lipro.core.api.client_pacing import _ClientPacingMixin
 from custom_components.lipro.core.api.errors import LiproApiError, LiproRateLimitError
 from custom_components.lipro.core.api.mqtt_api_service import (
     _extract_mqtt_config_payload,
     get_mqtt_config,
 )
 from custom_components.lipro.core.api.power_service import fetch_outlet_power_info
+from custom_components.lipro.core.api.request_policy import RequestPolicy
 
 
 class DummyApiError(Exception):
@@ -22,13 +22,6 @@ class DummyApiError(Exception):
     def __init__(self, message: str, code: int | str | None = None) -> None:
         super().__init__(message)
         self.code = code
-
-
-class DummyPacingClient(_ClientPacingMixin):
-    """Minimal concrete pacing mixin host for direct unit tests."""
-
-    def __init__(self) -> None:
-        self._init_pacing()
 
 
 @pytest.mark.asyncio
@@ -51,9 +44,7 @@ async def test_fetch_outlet_power_info_returns_single_mapping_from_mixed_list() 
 
 
 @pytest.mark.asyncio
-async def test_fetch_outlet_power_info_returns_empty_for_list_without_mapping_rows() -> (
-    None
-):
+async def test_fetch_outlet_power_info_returns_empty_for_list_without_mapping_rows() -> None:
     result = await fetch_outlet_power_info(
         device_id="03ab5ccd7c123456",
         normalize_power_target_id=lambda device_id: device_id.lower(),
@@ -117,9 +108,7 @@ def test_extract_mqtt_config_payload_rejects_invalid_shapes() -> None:
 
 
 @pytest.mark.asyncio
-async def test_get_mqtt_config_uses_wrapped_success_payload_when_direct_shape_is_missing() -> (
-    None
-):
+async def test_get_mqtt_config_uses_wrapped_success_payload_when_direct_shape_is_missing() -> None:
     result = await get_mqtt_config(
         request_iot_mapping=AsyncMock(return_value=({"code": 0, "data": {"raw": 1}}, None)),
         is_success_code=lambda code: code == 0,
@@ -151,11 +140,11 @@ async def test_get_mqtt_config_raises_default_error_for_non_mapping_response() -
 
 
 @pytest.mark.asyncio
-async def test_client_pacing_handle_rate_limit_raises_after_retry_budget() -> None:
-    client = DummyPacingClient()
+async def test_request_policy_handle_rate_limit_raises_after_retry_budget() -> None:
+    policy = RequestPolicy()
 
     with pytest.raises(LiproRateLimitError, match="Rate limited after"):
-        await client._handle_rate_limit(
+        await policy.handle_rate_limit(
             "/v1/devices",
             {"Retry-After": "5"},
             MAX_RATE_LIMIT_RETRIES,
@@ -163,17 +152,17 @@ async def test_client_pacing_handle_rate_limit_raises_after_retry_budget() -> No
 
 
 @pytest.mark.asyncio
-async def test_client_pacing_handle_rate_limit_waits_for_computed_backoff() -> None:
-    client = DummyPacingClient()
+async def test_request_policy_handle_rate_limit_waits_for_computed_backoff() -> None:
+    policy = RequestPolicy()
 
     with patch(
-        "custom_components.lipro.core.api.client_pacing._compute_rate_limit_wait_time",
+        "custom_components.lipro.core.api.request_policy.compute_rate_limit_wait_time",
         return_value=1.25,
     ), patch(
-        "custom_components.lipro.core.api.client_pacing.asyncio.sleep",
+        "custom_components.lipro.core.api.request_policy.asyncio.sleep",
         new=AsyncMock(),
     ) as sleep:
-        wait_time = await client._handle_rate_limit(
+        wait_time = await policy.handle_rate_limit(
             "/v1/devices",
             {"Retry-After": "1"},
             1,
@@ -183,7 +172,5 @@ async def test_client_pacing_handle_rate_limit_waits_for_computed_backoff() -> N
     sleep.assert_awaited_once_with(1.25)
 
 
-def test_client_pacing_is_command_busy_error_false_for_empty_message() -> None:
-    client = DummyPacingClient()
-
-    assert client._is_command_busy_error(LiproApiError("", code=500)) is False
+def test_request_policy_is_command_busy_error_false_for_empty_message() -> None:
+    assert RequestPolicy.is_command_busy_error(LiproApiError("", code=500)) is False

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from .client import LiproClient
+from .client import LiproClient, LiproRestFacade
 from .errors import (
     LiproApiError,
     LiproAuthError,
@@ -28,6 +28,7 @@ __all__ = [
     "LiproApiError",
     "LiproAuthError",
     "LiproClient",
+    "LiproRestFacade",
     "LiproConnectionError",
     "LiproRateLimitError",
     "LiproRefreshTokenExpiredError",

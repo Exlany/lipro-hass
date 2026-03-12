@@ -47,6 +47,10 @@ class TransportCore:
             raise LiproConnectionError(msg)
         return self._session
 
+    def set_session(self, session: aiohttp.ClientSession | None) -> None:
+        """Replace the injected aiohttp session reference."""
+        self._session = session
+
     def close_session(self) -> None:
         """Close the client session (no-op: HA-injected session is managed by HA)."""
         self._session = None

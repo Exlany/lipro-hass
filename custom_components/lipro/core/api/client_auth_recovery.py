@@ -1,10 +1,9 @@
-"""Authentication recovery and response finalization for LiproClient."""
+"""Authentication recovery and response finalization for Lipro REST protocol."""
 
 from __future__ import annotations
 
-import asyncio
 import logging
-from typing import TYPE_CHECKING, Any, TypeVar
+from typing import Any, TypeVar
 
 from ...const.api import (
     ERROR_AUTH_CODES,
@@ -15,7 +14,7 @@ from ...const.api import (
 )
 from ..utils.log_safety import safe_error_placeholder
 from . import response_safety as _response_safety
-from .client_pacing import _ClientPacingMixin
+from .client_base import ClientSessionState
 from .errors import (
     LiproApiError,
     LiproAuthError,
@@ -24,10 +23,6 @@ from .errors import (
 )
 from .observability import record_api_error as _record_api_error
 
-if TYPE_CHECKING:
-    from collections.abc import Awaitable, Callable
-
-
 # Use the same logger instance as custom_components.lipro.core.api.client._LOGGER
 # so tests patching client._LOGGER.* still intercept logs here.
 _LOGGER = logging.getLogger("custom_components.lipro.core.api.client")
@@ -35,33 +30,23 @@ _LOGGER = logging.getLogger("custom_components.lipro.core.api.client")
 _MappingPayloadT = TypeVar("_MappingPayloadT")
 
 
-class _ClientAuthRecoveryMixin(_ClientPacingMixin):
-    """Mixin implementing auth recovery and mapping-response finalization."""
+class AuthRecoveryCoordinator:
+    """Explicit owner for auth classification, refresh, and replay decisions."""
 
-    def _init_auth_recovery(self, *, entry_id: str | None = None) -> None:
-        """Initialize authentication/token state and refresh coordination."""
-        self._entry_id = entry_id
-        self._access_token = None
-        self._refresh_token = None
-        self._user_id = None
-        self._biz_id = None
-        self._on_token_refresh = None
-        self._refresh_lock = asyncio.Lock()
+    def __init__(self, state: ClientSessionState) -> None:
+        self._state = state
 
     @property
     def access_token(self) -> str | None:
-        """Return the access token."""
-        return self._access_token
+        return self._state.access_token
 
     @property
     def refresh_token(self) -> str | None:
-        """Return the refresh token."""
-        return self._refresh_token
+        return self._state.refresh_token
 
     @property
     def user_id(self) -> int | None:
-        """Return the user ID."""
-        return self._user_id
+        return self._state.user_id
 
     def set_tokens(
         self,
@@ -70,44 +55,18 @@ class _ClientAuthRecoveryMixin(_ClientPacingMixin):
         user_id: int | None = None,
         biz_id: str | None = None,
     ) -> None:
-        """Set authentication tokens."""
-        self._access_token = access_token
-        self._refresh_token = refresh_token
-        self._user_id = user_id
-        self._biz_id = biz_id
+        self._state.set_tokens(
+            access_token,
+            refresh_token,
+            user_id=user_id,
+            biz_id=biz_id,
+        )
 
-    def set_token_refresh_callback(
-        self,
-        callback: Callable[[], Awaitable[None]] | None,
-    ) -> None:
-        """Set callback to be called when token needs refresh."""
-        self._on_token_refresh = callback
-
-    async def _handle_auth_error_and_retry(
-        self,
-        path: str,
-        request_token: str | None,
-        is_retry: bool,
-    ) -> bool:
-        """Handle auth error by refreshing token.
-
-        Args:
-            path: API path (for logging).
-            old_token: Token used in the failed request.
-            is_retry: Whether this is already a retry attempt.
-
-        Returns:
-            True if token was refreshed and request should be retried.
-
-        """
-        if is_retry or not self._on_token_refresh:
-            return False
-        _LOGGER.info("Received auth error from %s, attempting token refresh", path)
-        return await self._handle_401_with_refresh(request_token)
+    def set_token_refresh_callback(self, callback) -> None:
+        self._state.on_token_refresh = callback
 
     @staticmethod
-    def _is_auth_error_code(code: Any) -> bool:
-        """Check whether an API code represents an authentication failure."""
+    def is_auth_error_code(code: Any) -> bool:
         normalized = _response_safety.normalize_response_code(code)
         if isinstance(normalized, str) and normalized.lower() == "token_expired":
             return True
@@ -116,20 +75,18 @@ class _ClientAuthRecoveryMixin(_ClientPacingMixin):
         )
 
     @staticmethod
-    def _is_success_code(code: Any) -> bool:
-        """Check whether an API code represents success."""
+    def is_success_code(code: Any) -> bool:
         normalized = _response_safety.normalize_response_code(code)
         return normalized in RESPONSE_SUCCESS_CODES
 
     @classmethod
-    def _resolve_auth_error_code(
+    def resolve_auth_error_code(
         cls,
         code: Any,
         error_code: Any,
     ) -> int | str | None:
-        """Pick the most relevant auth code from response code/errorCode fields."""
         for candidate in (code, error_code):
-            if not cls._is_auth_error_code(candidate):
+            if not cls.is_auth_error_code(candidate):
                 continue
             normalized = _response_safety.normalize_response_code(candidate)
             if isinstance(normalized, str) and normalized.lower() == "token_expired":
@@ -138,8 +95,7 @@ class _ClientAuthRecoveryMixin(_ClientPacingMixin):
         return None
 
     @staticmethod
-    def _resolve_error_code(code: Any, error_code: Any) -> int | str | None:
-        """Pick the most specific error code from code/errorCode fields."""
+    def resolve_error_code(code: Any, error_code: Any) -> int | str | None:
         normalized_error_code = _response_safety.normalize_response_code(error_code)
         if normalized_error_code not in (None, "", 0):
             return normalized_error_code
@@ -148,7 +104,18 @@ class _ClientAuthRecoveryMixin(_ClientPacingMixin):
             return normalized_code
         return None
 
-    async def _finalize_mapping_result(
+    async def handle_auth_error_and_retry(
+        self,
+        path: str,
+        request_token: str | None,
+        is_retry: bool,
+    ) -> bool:
+        if is_retry or not self._state.on_token_refresh:
+            return False
+        _LOGGER.info("Received auth error from %s, attempting token refresh", path)
+        return await self.handle_401_with_refresh(request_token)
+
+    async def finalize_mapping_result(
         self,
         *,
         path: str,
@@ -156,16 +123,11 @@ class _ClientAuthRecoveryMixin(_ClientPacingMixin):
         request_token: str | None,
         is_retry: bool,
         retry_on_auth_error: bool,
-        retry_request: Callable[[], Awaitable[_MappingPayloadT]] | None,
-        success_payload: Callable[[dict[str, Any]], _MappingPayloadT],
+        retry_request,
+        success_payload,
     ) -> _MappingPayloadT:
-        """Finalize shared Smart Home/IoT mapping response handling.
-
-        This keeps success extraction plus auth/API error mapping behavior aligned
-        across request pipelines while preserving endpoint-specific retry policy.
-        """
         code = result.get("code")
-        if self._is_success_code(code):
+        if self.is_success_code(code):
             return success_payload(result)
 
         error_code = result.get("errorCode")
@@ -176,89 +138,61 @@ class _ClientAuthRecoveryMixin(_ClientPacingMixin):
             else "Unknown error"
         )
 
-        auth_error_code = self._resolve_auth_error_code(code, error_code)
+        auth_error_code = self.resolve_auth_error_code(code, error_code)
         if auth_error_code is not None:
             if (
                 retry_on_auth_error
                 and retry_request is not None
-                and await self._handle_auth_error_and_retry(
+                and await self.handle_auth_error_and_retry(
                     path, request_token, is_retry
                 )
             ):
                 return await retry_request()
             raise LiproAuthError(message, auth_error_code)
 
-        effective_code = self._resolve_error_code(code, error_code)
-        # Record API error for anonymous share
+        effective_code = self.resolve_error_code(code, error_code)
         _record_api_error(
             path,
             effective_code or 0,
             message,
             method="POST",
-            entry_id=self._entry_id,
+            entry_id=self._state.entry_id,
         )
         raise LiproApiError(message, effective_code)
 
     @staticmethod
-    def _is_invalid_param_error_code(code: Any) -> bool:
-        """Check whether error code represents invalid request payload/params."""
+    def is_invalid_param_error_code(code: Any) -> bool:
         normalized = _response_safety.normalize_response_code(code)
         return normalized in (ERROR_INVALID_PARAM, ERROR_INVALID_PARAM_STR)
 
     @staticmethod
-    def _unwrap_iot_success_payload(result: dict[str, Any]) -> Any:
-        """Unwrap successful IoT API payload.
-
-        Most endpoints use ``{"code":"0000","data":...}``, but a few may return
-        direct payload objects. Keep empty ``data`` containers (for example `{}`)
-        and only coerce ``None`` to empty dict for call-site compatibility.
-        """
+    def unwrap_iot_success_payload(result: dict[str, Any]) -> Any:
         if "data" in result:
             data = result["data"]
             return {} if data is None else data
         return result
 
-    async def _handle_401_with_refresh(self, request_token: str | None) -> bool:
-        """Handle 401 error by refreshing token with concurrency control.
-
-        This implements the same pattern as Android's TokenInterceptor:
-        - Use lock to prevent multiple concurrent refresh attempts
-        - Double-check if token was already refreshed by another request
-        - Call refresh callback to get new token
-
-        Args:
-            request_token: The token that was used in the failed request.
-
-        Returns:
-            True if token was refreshed successfully, False otherwise.
-
-        Raises:
-            LiproConnectionError: If refresh fails due to transient network issues.
-
-        """
-        if not self._on_token_refresh:
+    async def handle_401_with_refresh(self, request_token: str | None) -> bool:
+        if not self._state.on_token_refresh:
             return False
 
-        # First check outside lock to avoid unnecessary lock acquisition
-        if self._access_token != request_token and self._access_token is not None:
+        if self._state.access_token != request_token and self._state.access_token is not None:
             _LOGGER.debug(
                 "Token already refreshed by another request, using new token",
             )
             return True
 
-        async with self._refresh_lock:
-            # Double-check inside lock: token might have been refreshed while waiting
-            if self._access_token != request_token and self._access_token is not None:
+        async with self._state.refresh_lock:
+            if self._state.access_token != request_token and self._state.access_token is not None:
                 _LOGGER.debug(
                     "Token already refreshed by another request (verified in lock), using new token",
                 )
                 return True
 
-            # Perform the refresh
             try:
                 _LOGGER.debug("Executing token refresh")
-                await self._on_token_refresh()
-                refreshed_token = self._access_token
+                await self._state.on_token_refresh()
+                refreshed_token = self._state.access_token
                 if refreshed_token is None or refreshed_token == request_token:
                     _LOGGER.warning(
                         "Token refresh callback completed but token is unchanged"
@@ -280,3 +214,105 @@ class _ClientAuthRecoveryMixin(_ClientPacingMixin):
                     safe_error_placeholder(err),
                 )
                 raise
+
+
+class _ClientAuthRecoveryMixin:
+    """Thin compatibility adapter over ``AuthRecoveryCoordinator``."""
+
+    def _init_auth_recovery(self, *, entry_id: str | None = None) -> None:
+        self._session_state.entry_id = entry_id
+        self._auth_recovery = AuthRecoveryCoordinator(self._session_state)
+
+    @property
+    def access_token(self) -> str | None:
+        return self._auth_recovery.access_token
+
+    @property
+    def refresh_token(self) -> str | None:
+        return self._auth_recovery.refresh_token
+
+    @property
+    def user_id(self) -> int | None:
+        return self._auth_recovery.user_id
+
+    def set_tokens(
+        self,
+        access_token: str,
+        refresh_token: str,
+        user_id: int | None = None,
+        biz_id: str | None = None,
+    ) -> None:
+        self._auth_recovery.set_tokens(
+            access_token,
+            refresh_token,
+            user_id=user_id,
+            biz_id=biz_id,
+        )
+
+    def set_token_refresh_callback(self, callback) -> None:
+        self._auth_recovery.set_token_refresh_callback(callback)
+
+    async def _handle_auth_error_and_retry(
+        self,
+        path: str,
+        request_token: str | None,
+        is_retry: bool,
+    ) -> bool:
+        return await self._auth_recovery.handle_auth_error_and_retry(
+            path, request_token, is_retry
+        )
+
+    @staticmethod
+    def _is_auth_error_code(code: Any) -> bool:
+        return AuthRecoveryCoordinator.is_auth_error_code(code)
+
+    @staticmethod
+    def _is_success_code(code: Any) -> bool:
+        return AuthRecoveryCoordinator.is_success_code(code)
+
+    @classmethod
+    def _resolve_auth_error_code(
+        cls,
+        code: Any,
+        error_code: Any,
+    ) -> int | str | None:
+        return AuthRecoveryCoordinator.resolve_auth_error_code(code, error_code)
+
+    @staticmethod
+    def _resolve_error_code(code: Any, error_code: Any) -> int | str | None:
+        return AuthRecoveryCoordinator.resolve_error_code(code, error_code)
+
+    async def _finalize_mapping_result(
+        self,
+        *,
+        path: str,
+        result: dict[str, Any],
+        request_token: str | None,
+        is_retry: bool,
+        retry_on_auth_error: bool,
+        retry_request,
+        success_payload,
+    ) -> _MappingPayloadT:
+        return await self._auth_recovery.finalize_mapping_result(
+            path=path,
+            result=result,
+            request_token=request_token,
+            is_retry=is_retry,
+            retry_on_auth_error=retry_on_auth_error,
+            retry_request=retry_request,
+            success_payload=success_payload,
+        )
+
+    @staticmethod
+    def _is_invalid_param_error_code(code: Any) -> bool:
+        return AuthRecoveryCoordinator.is_invalid_param_error_code(code)
+
+    @staticmethod
+    def _unwrap_iot_success_payload(result: dict[str, Any]) -> Any:
+        return AuthRecoveryCoordinator.unwrap_iot_success_payload(result)
+
+    async def _handle_401_with_refresh(self, request_token: str | None) -> bool:
+        return await self._auth_recovery.handle_401_with_refresh(request_token)
+
+
+__all__ = ["AuthRecoveryCoordinator", "_ClientAuthRecoveryMixin"]

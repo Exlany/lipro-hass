@@ -9,6 +9,7 @@ from unittest.mock import AsyncMock
 import pytest
 
 from custom_components.lipro.const.api import PATH_GET_CITY, PATH_QUERY_USER_CLOUD
+from custom_components.lipro.core.api.client import LiproRestFacade
 from custom_components.lipro.core.api.diagnostics_api_service import (
     get_city,
     query_user_cloud,
@@ -35,6 +36,10 @@ def _require_mapping_response(_path: str, payload: object) -> dict[str, object]:
 
 def _is_success_code(code: object) -> bool:
     return code in {0, "0", "0000"}
+
+
+def test_lipro_rest_facade_is_available_as_phase_2_formal_root() -> None:
+    assert LiproRestFacade.__name__ == "LiproRestFacade"
 
 
 @pytest.mark.parametrize(

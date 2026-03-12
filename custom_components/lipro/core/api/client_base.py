@@ -1,12 +1,9 @@
-"""Typing base for LiproClient mixins.
-
-This module defines a minimal base class for client mixins so mypy can
-type-check extracted endpoint helpers that access internal client methods.
-"""
+"""Shared state and typing base for Lipro REST protocol collaborators."""
 
 from __future__ import annotations
 
 import asyncio
+from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
@@ -18,26 +15,50 @@ if TYPE_CHECKING:
     from .schedule_service import ScheduleApiService
 
 
-class _ClientBase:
-    """Shared base for client mixins (typing only)."""
+@dataclass(slots=True)
+class ClientSessionState:
+    """State owned by the formal REST facade session boundary."""
 
-    # Initialized in LiproClient.__init__.
+    phone_id: str
+    session: aiohttp.ClientSession | None
+    request_timeout: int
+    entry_id: str | None = None
+    access_token: str | None = None
+    refresh_token: str | None = None
+    user_id: int | None = None
+    biz_id: str | None = None
+    on_token_refresh: Callable[[], Awaitable[None]] | None = None
+    refresh_lock: asyncio.Lock = field(default_factory=asyncio.Lock)
+
+    def set_tokens(
+        self,
+        access_token: str,
+        refresh_token: str,
+        *,
+        user_id: int | None = None,
+        biz_id: str | None = None,
+    ) -> None:
+        """Persist the latest authentication tokens into state."""
+        self.access_token = access_token
+        self.refresh_token = refresh_token
+        self.user_id = user_id
+        self.biz_id = biz_id
+
+    def clear_session(self) -> None:
+        """Detach the injected aiohttp session reference."""
+        self.session = None
+
+
+class _ClientBase:
+    """Shared protocol surface expected by endpoint mixins and helpers.
+
+    This remains as a temporary typing anchor during Phase 2. The formal REST
+    root is now ``LiproRestFacade`` with explicit collaborators.
+    """
+
     _auth_api: AuthApiService
     _schedule_api: ScheduleApiService
-    _phone_id: str
-    _session: aiohttp.ClientSession | None
-    _request_timeout: int
-    _access_token: str | None
-    _refresh_token: str | None
-    _user_id: int | None
-    _biz_id: str | None
-    _on_token_refresh: Callable[[], Awaitable[None]] | None
-    _refresh_lock: asyncio.Lock
-    _command_pacing_lock: asyncio.Lock
-    _command_pacing_target_locks: dict[str, asyncio.Lock]
-    _last_change_state_at: dict[str, float]
-    _change_state_min_interval: dict[str, float]
-    _change_state_busy_count: dict[str, int]
+    _session_state: ClientSessionState
 
     async def _smart_home_request(  # pragma: no cover
         self,
@@ -112,4 +133,4 @@ class _ClientBase:
         raise NotImplementedError
 
 
-__all__ = ["_ClientBase"]
+__all__ = ["ClientSessionState", "_ClientBase"]
