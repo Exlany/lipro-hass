@@ -1,6 +1,6 @@
 """MQTT runtime implementation with protocol compliance.
 
-This module implements MqttRuntimeProtocol using composition of independent
+This module implements the composed MQTT runtime using independent
 components without inheriting from _CoordinatorBase.
 """
 

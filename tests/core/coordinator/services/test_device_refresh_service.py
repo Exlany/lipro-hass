@@ -44,7 +44,7 @@ async def test_device_refresh_service_refreshes_and_exposes_latest_snapshot() ->
 
     coordinator = MagicMock()
     coordinator.state_runtime = state_runtime
-    coordinator.async_request_refresh = AsyncMock(side_effect=_refresh)
+    coordinator.async_refresh_devices = AsyncMock(side_effect=_refresh)
     service = CoordinatorDeviceRefreshService(coordinator)
 
     assert service.devices == {}
@@ -52,7 +52,7 @@ async def test_device_refresh_service_refreshes_and_exposes_latest_snapshot() ->
 
     await service.async_refresh_devices()
 
-    coordinator.async_request_refresh.assert_awaited_once()
+    coordinator.async_refresh_devices.assert_awaited_once()
     assert service.devices == {"dev1": device}
     assert service.get_device_by_id("dev1") is device
 
@@ -60,9 +60,9 @@ async def test_device_refresh_service_refreshes_and_exposes_latest_snapshot() ->
 @pytest.mark.asyncio
 async def test_device_refresh_service_delegates_refresh() -> None:
     coordinator = MagicMock()
-    coordinator.async_request_refresh = AsyncMock()
+    coordinator.async_refresh_devices = AsyncMock()
     service = CoordinatorDeviceRefreshService(coordinator)
 
     await service.async_refresh_devices()
 
-    coordinator.async_request_refresh.assert_awaited_once()
+    coordinator.async_refresh_devices.assert_awaited_once()

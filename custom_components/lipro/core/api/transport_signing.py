@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-import hashlib
 import time
 
 from ...const.api import IOT_SIGN_KEY, MERCHANT_CODE, SMART_HOME_SIGN_KEY
+from ..utils.vendor_crypto import md5_compat_hexdigest
 
 
 class TransportSigning:
@@ -28,7 +28,7 @@ class TransportSigning:
 
         """
         sign_data = f"{self._phone_id}{SMART_HOME_SIGN_KEY}"
-        return hashlib.md5(sign_data.encode("utf-8"), usedforsecurity=False).hexdigest()
+        return md5_compat_hexdigest(sign_data)
 
     def iot_sign(self, access_token: str, nonce: int, body: str) -> str:
         """Generate IoT API signature.
@@ -51,7 +51,7 @@ class TransportSigning:
         sign_data = (
             f"{access_token}{nonce}{MERCHANT_CODE}{trimmed_body}{IOT_SIGN_KEY}"
         )
-        return hashlib.md5(sign_data.encode("utf-8"), usedforsecurity=False).hexdigest()
+        return md5_compat_hexdigest(sign_data)
 
     @staticmethod
     def get_timestamp_ms() -> int:

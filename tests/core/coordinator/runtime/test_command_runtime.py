@@ -331,6 +331,51 @@ class TestConfirmationManager:
         assert isinstance(delay, float)
         assert delay > 0
 
+    def test_filter_pending_command_mismatches_delegates_to_tracker(self):
+        """Test stale-state filtering delegates to the shared confirmation tracker."""
+        tracker = Mock()
+        tracker.filter_pending_command_mismatches.return_value = ({"powerState": "1"}, {"brightness"})
+        manager = ConfirmationManager(
+            confirmation_tracker=tracker,
+            pending_expectations={},
+            device_state_latency_seconds={},
+            post_command_refresh_tasks={},
+            track_background_task=Mock(),
+            request_refresh=AsyncMock(),
+            mqtt_connected_provider=Mock(return_value=True),
+        )
+
+        filtered, blocked = manager.filter_pending_command_mismatches(
+            device_serial="test_123",
+            properties={"powerState": "1", "brightness": "5"},
+        )
+
+        assert filtered == {"powerState": "1"}
+        assert blocked == {"brightness"}
+        tracker.filter_pending_command_mismatches.assert_called_once()
+
+    def test_observe_command_confirmation_delegates_to_tracker(self):
+        """Test confirmation observation delegates to the shared tracker."""
+        tracker = Mock()
+        tracker.observe_command_confirmation.return_value = 0.42
+        manager = ConfirmationManager(
+            confirmation_tracker=tracker,
+            pending_expectations={},
+            device_state_latency_seconds={},
+            post_command_refresh_tasks={},
+            track_background_task=Mock(),
+            request_refresh=AsyncMock(),
+            mqtt_connected_provider=Mock(return_value=True),
+        )
+
+        latency = manager.observe_command_confirmation(
+            device_serial="test_123",
+            properties={"powerState": "1"},
+        )
+
+        assert latency == 0.42
+        tracker.observe_command_confirmation.assert_called_once()
+
     @pytest.mark.asyncio
     async def test_run_delayed_refresh(self, confirmation_tracker):
         """Test delayed refresh execution."""
@@ -395,17 +440,6 @@ class TestCommandRuntime:
         assert failure == {"reason": "test"}
         assert failure is not command_runtime._last_failure
 
-    @pytest.mark.asyncio
-    async def test_send_command_not_implemented(self, command_runtime):
-        """Test send_command raises NotImplementedError."""
-        with pytest.raises(NotImplementedError):
-            await command_runtime.send_command("device_123", {})
-
-    @pytest.mark.asyncio
-    async def test_send_batch_commands_not_implemented(self, command_runtime):
-        """Test send_batch_commands raises NotImplementedError."""
-        with pytest.raises(NotImplementedError):
-            await command_runtime.send_batch_commands([])
 
     @pytest.mark.asyncio
     async def test_send_device_command_push_failed(self, command_runtime, mock_device, runtime_deps):

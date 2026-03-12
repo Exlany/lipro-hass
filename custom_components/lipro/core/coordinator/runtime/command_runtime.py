@@ -17,13 +17,11 @@ from ...command.result import (
 )
 from ...command.trace import build_command_trace, update_trace_with_exception
 from ..types import (
-    CommandPayload,
     CommandTrace,
     ConnectStatusRefreshSetter,
     DeviceKeyNormalizer,
     ReauthCallback,
 )
-from .protocols import CommandResult
 
 if TYPE_CHECKING:
     from ...device import LiproDevice
@@ -77,22 +75,30 @@ class CommandRuntime:
         if self._debug_mode:
             self._traces.append(trace)
 
-    async def send_command(
+    def filter_pending_state_properties(
         self,
-        device_id: str,
-        command: CommandPayload,
         *,
-        wait_confirmation: bool = True,
-        timeout: float = 5.0,
-    ) -> CommandResult:
-        """Send command (protocol compliance stub)."""
-        raise NotImplementedError("Use send_device_command")
+        device_serial: str,
+        properties: dict[str, Any],
+    ) -> dict[str, Any]:
+        """Filter stale property values while waiting for command confirmation."""
+        filtered, _blocked_keys = self._confirmation.filter_pending_command_mismatches(
+            device_serial=device_serial,
+            properties=properties,
+        )
+        return filtered
 
-    async def send_batch_commands(
-        self, commands: list[tuple[str, dict[str, Any]]]
-    ) -> list[CommandResult]:
-        """Send batch commands (protocol compliance stub)."""
-        raise NotImplementedError("Use send_device_command for each")
+    def observe_state_confirmation(
+        self,
+        *,
+        device_serial: str,
+        properties: dict[str, Any],
+    ) -> float | None:
+        """Learn confirmation latency from incoming device state updates."""
+        return self._confirmation.observe_command_confirmation(
+            device_serial=device_serial,
+            properties=properties,
+        )
 
     async def send_device_command(
         self,
@@ -103,6 +109,23 @@ class CommandRuntime:
         fallback_device_id: str | None,
     ) -> tuple[bool, str]:
         """Send command to device with full flow."""
+        success, route, _trace = await self._execute_device_command(
+            device=device,
+            command=command,
+            properties=properties,
+            fallback_device_id=fallback_device_id,
+        )
+        return success, route
+
+    async def _execute_device_command(
+        self,
+        *,
+        device: LiproDevice,
+        command: str,
+        properties: list[dict[str, str]] | None,
+        fallback_device_id: str | None,
+    ) -> tuple[bool, str, CommandTrace]:
+        """Execute the shared command flow and return trace for all callers."""
         trace = build_command_trace(
             device=device,
             command=command,
@@ -120,9 +143,13 @@ class CommandRuntime:
                 trace=trace,
             )
         except LiproApiError as err:
-            return await self._handle_api_error(
-                device=device, trace=trace, route="unknown", err=err
-            ), "unknown"
+            return (
+                await self._handle_api_error(
+                    device=device, trace=trace, route="unknown", err=err
+                ),
+                "unknown",
+                trace,
+            )
 
         if is_command_push_failed(result):
             apply_push_failure(
@@ -135,7 +162,7 @@ class CommandRuntime:
             )
             self._last_failure = trace
             self._record_trace(trace)
-            return False, route
+            return False, route, trace
 
         msg_sn = extract_msg_sn(result)
         if not msg_sn:
@@ -149,12 +176,15 @@ class CommandRuntime:
             )
             self._last_failure = trace
             self._record_trace(trace)
-            return False, route
+            return False, route, trace
 
         if not await self._verify_delivery(
-            trace=trace, route=route, msg_sn=msg_sn, device=device
+            trace=trace,
+            route=route,
+            msg_sn=msg_sn,
+            device=device,
         ):
-            return False, route
+            return False, route, trace
 
         self._finalize_success(
             device=device,
@@ -163,10 +193,15 @@ class CommandRuntime:
             route=route,
             trace=trace,
         )
-        return True, route
+        return True, route, trace
 
     async def _verify_delivery(
-        self, *, trace: CommandTrace, route: str, msg_sn: str, device: LiproDevice
+        self,
+        *,
+        trace: CommandTrace,
+        route: str,
+        msg_sn: str,
+        device: LiproDevice,
     ) -> bool:
         """Verify command delivery via polling."""
         retry_delays = self._retry.build_retry_delays()

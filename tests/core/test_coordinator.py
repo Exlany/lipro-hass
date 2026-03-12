@@ -206,6 +206,83 @@ class TestCoordinatorRuntimeComponents:
         assert coordinator.get_device_lock(serial) is coordinator.get_device_lock(serial)
 
     @pytest.mark.asyncio
+    async def test_apply_properties_update_skips_stale_pending_values(
+        self, coordinator
+    ):
+        """Stale MQTT payloads should be filtered before hitting the state runtime."""
+        device = MagicMock(serial="dev1")
+        coordinator.command_runtime.filter_pending_state_properties = MagicMock(return_value={})
+        coordinator.command_runtime.observe_state_confirmation = MagicMock()
+        coordinator._runtimes.state.apply_properties_update = AsyncMock(return_value=True)
+
+        changed = await coordinator._apply_properties_update(
+            device,
+            {"powerState": "0"},
+            "mqtt",
+        )
+
+        assert changed is False
+        coordinator.command_runtime.filter_pending_state_properties.assert_called_once_with(
+            device_serial="dev1",
+            properties={"powerState": "0"},
+        )
+        coordinator.command_runtime.observe_state_confirmation.assert_not_called()
+        coordinator._runtimes.state.apply_properties_update.assert_not_awaited()
+
+    @pytest.mark.asyncio
+    async def test_apply_properties_update_observes_confirmation_before_state_write(
+        self, coordinator
+    ):
+        """Confirmed state updates should feed command-latency learning before write-through."""
+        device = MagicMock(serial="dev1")
+        coordinator.command_runtime.filter_pending_state_properties = MagicMock(
+            return_value={"powerState": "1"}
+        )
+        coordinator.command_runtime.observe_state_confirmation = MagicMock(return_value=0.5)
+        coordinator._runtimes.state.apply_properties_update = AsyncMock(return_value=True)
+
+        changed = await coordinator._apply_properties_update(
+            device,
+            {"powerState": "1"},
+            "mqtt",
+        )
+
+        assert changed is True
+        coordinator.command_runtime.observe_state_confirmation.assert_called_once_with(
+            device_serial="dev1",
+            properties={"powerState": "1"},
+        )
+        coordinator._runtimes.state.apply_properties_update.assert_awaited_once_with(
+            device,
+            {"powerState": "1"},
+            source="mqtt",
+        )
+
+    @pytest.mark.asyncio
+    async def test_async_refresh_devices_syncs_snapshot_and_notifies_listeners(
+        self, coordinator
+    ):
+        """Force refresh should sync the snapshot, MQTT subscriptions, and listeners."""
+        device = MagicMock()
+        snapshot = MagicMock(devices={"dev1": device})
+        coordinator._runtimes.device.refresh_devices = AsyncMock(return_value=snapshot)
+        coordinator._state.mqtt_client = MagicMock()
+        coordinator.async_set_updated_data = MagicMock()
+
+        with patch.object(
+            type(coordinator.mqtt_service),
+            "async_sync_subscriptions",
+            new_callable=AsyncMock,
+        ) as sync_subscriptions:
+            result = await coordinator.async_refresh_devices()
+
+        coordinator._runtimes.device.refresh_devices.assert_awaited_once_with(force=True)
+        sync_subscriptions.assert_awaited_once()
+        coordinator.async_set_updated_data.assert_called_once_with(coordinator._state.devices)
+        assert result == {"dev1": device}
+        assert coordinator.devices == {"dev1": device}
+
+    @pytest.mark.asyncio
     async def test_status_runtime_updates_device_through_coordinator_callbacks(
         self, coordinator, mock_lipro_api_client
     ):

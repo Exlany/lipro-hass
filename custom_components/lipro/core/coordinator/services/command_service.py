@@ -18,10 +18,9 @@ Design constraint: Linear ``do A → do B → schedule C``, no rollback semantic
 
 from __future__ import annotations
 
-import asyncio
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 import logging
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from ..types import CommandTrace
 
@@ -38,14 +37,11 @@ _CONFIRMATION_TIMEOUT_SECONDS = 5.0
 class CoordinatorCommandService:
     """Saga-lite orchestrator for command dispatch.
 
-    Coordinates CommandRuntime + TuningRuntime + DeviceRefreshService
-    for each command, with timeout-based confirmation fallback.
+    Coordinates CommandRuntime + TuningRuntime while delegating refresh timing
+    to the command runtime's confirmation manager.
     """
 
     coordinator: Coordinator
-    _pending_confirmations: dict[str, asyncio.Task[Any]] = field(
-        default_factory=dict, init=False, repr=False
-    )
 
     @property
     def last_failure(self) -> CommandTrace | None:
@@ -64,7 +60,7 @@ class CoordinatorCommandService:
         Saga-lite flow:
         1. Send command via CommandRuntime
         2. Record user action in TuningRuntime (non-blocking)
-        3. Schedule confirmation fallback (timeout → force refresh)
+        3. Let CommandRuntime own post-command refresh/confirmation policy
         """
         success, _route = await self.coordinator.command_runtime.send_device_command(
             device=device,
@@ -85,58 +81,13 @@ class CoordinatorCommandService:
                         "Failed to record user action for %s", device.serial
                     )
 
-            self._schedule_confirmation_fallback(device)
 
         return success  # type: ignore[no-any-return]
 
     async def async_shutdown(self) -> None:
-        """Cancel pending confirmation fallbacks owned by the service."""
-        pending_tasks = list(self._pending_confirmations.values())
-        self._pending_confirmations.clear()
+        """Release service-owned resources.
 
-        for task in pending_tasks:
-            if not task.done():
-                task.cancel()
-
-        if pending_tasks:
-            await asyncio.gather(*pending_tasks, return_exceptions=True)
-
-    def _schedule_confirmation_fallback(self, device: LiproDevice) -> None:
-        """Schedule a force-refresh if MQTT confirmation doesn't arrive in time.
-
-        If MQTT is connected, the device state should update via push within
-        the timeout window. If not, this fallback triggers a REST poll to
-        ensure state consistency.
+        Post-command refresh tasks are owned by the coordinator background task
+        manager and command confirmation manager, so this service remains
+        intentionally lightweight.
         """
-        serial = device.serial
-
-        existing = self._pending_confirmations.pop(serial, None)
-        if existing is not None and not existing.done():
-            existing.cancel()
-
-        def _create_task(coro: Any) -> asyncio.Task[Any]:
-            return asyncio.create_task(coro, name=f"lipro_confirm_{serial}")
-
-        task = self.coordinator.background_task_manager.create(
-            self._async_confirmation_fallback(serial),
-            create_task=_create_task,
-        )
-        self._pending_confirmations[serial] = task
-
-        def _cleanup(done_task: asyncio.Task[Any]) -> None:
-            if self._pending_confirmations.get(serial) is done_task:
-                self._pending_confirmations.pop(serial, None)
-
-        task.add_done_callback(_cleanup)
-
-    async def _async_confirmation_fallback(self, device_serial: str) -> None:
-        """Wait for confirmation timeout, then force refresh if needed."""
-        try:
-            await asyncio.sleep(_CONFIRMATION_TIMEOUT_SECONDS)
-            _LOGGER.debug(
-                "Confirmation timeout for %s, triggering force refresh",
-                device_serial,
-            )
-            await self.coordinator.async_request_refresh()
-        except asyncio.CancelledError:
-            pass

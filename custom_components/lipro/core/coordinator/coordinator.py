@@ -134,8 +134,23 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
     async def _apply_properties_update(
         self, device: LiproDevice, properties: dict[str, Any], source: str
     ) -> bool:
-        """Apply properties update (RuntimeContext callback)."""
-        return await self._runtimes.state.apply_properties_update(device, properties, source=source)
+        """Apply properties update after reconciling pending command expectations."""
+        filtered_properties = self._runtimes.command.filter_pending_state_properties(
+            device_serial=device.serial,
+            properties=properties,
+        )
+        if not filtered_properties:
+            return False
+
+        self._runtimes.command.observe_state_confirmation(
+            device_serial=device.serial,
+            properties=filtered_properties,
+        )
+        return await self._runtimes.state.apply_properties_update(
+            device,
+            filtered_properties,
+            source=source,
+        )
 
     def _schedule_listener_update(self) -> None:
         """Schedule listener update (RuntimeContext callback)."""
@@ -317,6 +332,13 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
         return await self.command_service.async_send_command(
             device, command, properties
         )
+
+    async def async_refresh_devices(self) -> dict[str, LiproDevice]:
+        """Force a full device snapshot refresh and publish the latest state."""
+        await self._async_refresh_device_snapshot(force=True, mqtt_timeout_seconds=5)
+        self.async_set_updated_data(self._state.devices)
+        return self._state.devices
+
 
     async def async_get_device_schedules(
         self,
@@ -575,6 +597,27 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
         self._runtimes.device.reset()
         await super().async_shutdown()
 
+    async def _async_refresh_device_snapshot(
+        self,
+        *,
+        force: bool,
+        mqtt_timeout_seconds: float | None = None,
+    ) -> None:
+        """Refresh device snapshot, synchronize coordinator state, and sync MQTT."""
+        snapshot = await self._runtimes.device.refresh_devices(force=force)
+        self._state.devices.clear()
+        self._state.devices.update(snapshot.devices)
+
+        if self._state.mqtt_client is None:
+            return
+
+        if mqtt_timeout_seconds is None:
+            await self.mqtt_service.async_sync_subscriptions()
+            return
+
+        async with asyncio.timeout(mqtt_timeout_seconds):
+            await self.mqtt_service.async_sync_subscriptions()
+
     async def _async_run_status_polling(self) -> None:
         """Run adaptive REST status polling via StatusRuntime (Phase H4).
 
@@ -646,13 +689,10 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
                 # Refresh device list if needed (10 seconds timeout)
                 if self._runtimes.device.should_refresh_device_list():
                     async with asyncio.timeout(10):
-                        snapshot = await self._runtimes.device.refresh_devices(force=True)
-                        self._state.devices.clear()
-                        self._state.devices.update(snapshot.devices)
-
-                        if self._state.mqtt_client is not None:
-                            async with asyncio.timeout(5):
-                                await self.mqtt_service.async_sync_subscriptions()
+                        await self._async_refresh_device_snapshot(
+                            force=True,
+                            mqtt_timeout_seconds=5,
+                        )
 
                 # Schedule MQTT setup if needed (5 seconds timeout)
                 if self._state.mqtt_client is None and self._state.devices:

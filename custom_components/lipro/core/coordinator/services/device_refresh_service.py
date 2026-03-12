@@ -43,13 +43,5 @@ class CoordinatorDeviceRefreshService:
         return self.coordinator.state_runtime.get_device_by_id(device_id)  # type: ignore[no-any-return]
 
     async def async_refresh_devices(self) -> None:
-        """Trigger a forced device refresh on the wrapped coordinator.
-
-        This method triggers the coordinator's full update cycle, which includes:
-        1. Calling device_runtime.refresh_devices(force=True)
-        2. Syncing the snapshot back to coordinator._state.devices
-        3. Notifying all entities via async_set_updated_data()
-
-        This ensures proper state synchronization and entity updates.
-        """
-        await self.coordinator.async_request_refresh()
+        """Trigger the coordinator's full refresh path and publish new state."""
+        await self.coordinator.async_refresh_devices()

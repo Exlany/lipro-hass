@@ -52,6 +52,33 @@ class ConfirmationManager:
             properties=properties,
         )
 
+    def filter_pending_command_mismatches(
+        self,
+        *,
+        device_serial: str,
+        properties: dict[str, Any],
+    ) -> tuple[dict[str, Any], set[str]]:
+        """Filter stale mismatched values while command confirmation is pending."""
+        return self._confirmation_tracker.filter_pending_command_mismatches(
+            pending_expectations=self._pending_expectations,
+            device_serial=device_serial,
+            properties=properties,
+        )
+
+    def observe_command_confirmation(
+        self,
+        *,
+        device_serial: str,
+        properties: dict[str, Any],
+    ) -> float | None:
+        """Observe a state update and learn command confirmation latency."""
+        return self._confirmation_tracker.observe_command_confirmation(
+            pending_expectations=self._pending_expectations,
+            device_state_latency_seconds=self._device_state_latency_seconds,
+            device_serial=device_serial,
+            properties=properties,
+        )
+
     def get_adaptive_post_refresh_delay(self, device_serial: str | None) -> float:
         """Get adaptive delayed-refresh value for a device."""
         return self._confirmation_tracker.get_adaptive_post_refresh_delay(

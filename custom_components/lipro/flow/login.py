@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-import hashlib
 import logging
 from typing import Any
 
@@ -19,13 +18,14 @@ from ..const.config import (
 )
 from ..core.api import LiproApiError, LiproAuthError, LiproConnectionError
 from ..core.utils.log_safety import safe_error_placeholder
+from ..core.utils.vendor_crypto import md5_compat_hexdigest
 
 _LOGGER = logging.getLogger(__name__)
 
 
 def hash_password(password: str) -> str:
-    """Hash password using MD5 (as required by Lipro API)."""
-    return hashlib.md5(password.encode("utf-8"), usedforsecurity=False).hexdigest()
+    """Hash password using the vendor-mandated MD5 compatibility digest."""
+    return md5_compat_hexdigest(password)
 
 
 def map_login_error(err: LiproApiError) -> str:

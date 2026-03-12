@@ -1,10 +1,10 @@
 # Lipro Home Assistant Integration - Developer Architecture
 
-> **Last Updated**: 2026-03-11  \
-> **Version**: 3.0 (Post-refactor: RuntimeContext + Orchestrator)
+> **Last Updated**: 2026-03-12  \
+> **Version**: 3.1 (Post-audit convergence)
 >
 > ⚠️ 本文档仅描述"架构与模块边界"，不硬编码评分/覆盖率/通过率等易失真指标。  \
-> 质量验收与重构收口进度请以 `docs/refactor_completion_plan.md` 的回填记录为准。
+> 当前实现状态、验证结果与风险优先级请以 `docs/COMPREHENSIVE_AUDIT_2026-03-12.md` 为准。
 
 ## 快速导航
 
@@ -146,7 +146,7 @@ class RuntimeContext:
 ### 5) 文档策略
 
 - 不维护易失真的数字指标（覆盖率/测试数量/行数）
-- 指标以 CI 或本地命令输出为准，回填到 `docs/refactor_completion_plan.md`
+- 指标以 CI 或本地命令输出为准；历史快照统一归档在 `docs/archive/`
 
 ## 核心组件详解
 
@@ -374,7 +374,7 @@ uv run pytest -q                                        # 全量测试
 
 ## 参考文档
 
-- `docs/refactor_completion_plan.md` — 重构进度 + 验收记录
-- `CODE_QUALITY_REVIEW.md` — 代码质量审查
+- `docs/COMPREHENSIVE_AUDIT_2026-03-12.md` — 当前权威审计/验证报告
+- `docs/archive/` — 历史审计、重构计划与过期快照
 - `CHANGELOG.md` — 变更日志
 - Home Assistant Developer Docs: https://developers.home-assistant.io/

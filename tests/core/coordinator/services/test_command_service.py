@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import asyncio
-import logging
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
@@ -11,9 +9,6 @@ import pytest
 from custom_components.lipro.core.api import LiproApiError
 from custom_components.lipro.core.coordinator.services.command_service import (
     CoordinatorCommandService,
-)
-from custom_components.lipro.core.utils.background_task_manager import (
-    BackgroundTaskManager,
 )
 
 
@@ -61,22 +56,18 @@ async def test_command_service_runs_command_flow() -> None:
         device_serial=device.serial,
         command="POWER_ON",
     )
-    coordinator.background_task_manager.create.assert_called_once()
+    coordinator.background_task_manager.create.assert_not_called()
 
 
 @pytest.mark.asyncio
-async def test_command_service_triggers_refresh_after_confirmation_timeout(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
+async def test_command_service_does_not_schedule_duplicate_confirmation_fallback() -> None:
     coordinator = MagicMock()
     coordinator.command_runtime = MagicMock()
     coordinator.command_runtime.send_device_command = AsyncMock(
         return_value=(True, "device_direct")
     )
-    coordinator.background_task_manager = BackgroundTaskManager(
-        asyncio.create_task,
-        logging.getLogger(__name__),
-    )
+    coordinator.background_task_manager = MagicMock()
+    coordinator.background_task_manager.create = MagicMock()
     coordinator.tuning_runtime = MagicMock()
     coordinator.async_request_refresh = AsyncMock()
     service = CoordinatorCommandService(coordinator)
@@ -88,25 +79,10 @@ async def test_command_service_triggers_refresh_after_confirmation_timeout(
         physical_model="light",
     )
 
-    original_sleep = asyncio.sleep
-
-    async def _fast_sleep(_delay: float) -> None:
-        await original_sleep(0)
-
-    monkeypatch.setattr(
-        "custom_components.lipro.core.coordinator.services.command_service.asyncio.sleep",
-        _fast_sleep,
-    )
-
     result = await service.async_send_command(
         device,
         "POWER_ON",
         [{"key": "powerState", "value": "1"}],
-    )
-
-    await asyncio.gather(
-        *tuple(coordinator.background_task_manager.tasks),
-        return_exceptions=True,
     )
 
     assert result is True
@@ -114,9 +90,8 @@ async def test_command_service_triggers_refresh_after_confirmation_timeout(
         device_serial=device.serial,
         command="POWER_ON",
     )
-    coordinator.async_request_refresh.assert_awaited_once()
-    assert service._pending_confirmations == {}
-    assert not coordinator.background_task_manager.tasks
+    coordinator.async_request_refresh.assert_not_awaited()
+    coordinator.background_task_manager.create.assert_not_called()
 
 
 @pytest.mark.asyncio
@@ -172,22 +147,11 @@ async def test_command_service_handles_api_error_via_coordinator_bridge() -> Non
 
 
 @pytest.mark.asyncio
-async def test_command_service_shutdown_cancels_pending_confirmations() -> None:
+async def test_command_service_shutdown_is_idempotent() -> None:
     coordinator = MagicMock()
-    coordinator.background_task_manager = BackgroundTaskManager(
-        asyncio.create_task,
-        logging.getLogger(__name__),
-    )
     service = CoordinatorCommandService(coordinator)
-    device = MagicMock(serial="03ab5ccd7caaaaaa")
-
-    service._schedule_confirmation_fallback(device)
-    pending_task = service._pending_confirmations[device.serial]
 
     await service.async_shutdown()
-
-    assert pending_task.cancelled()
-    assert service._pending_confirmations == {}
 
 
 def test_command_service_exposes_last_failure_trace() -> None:

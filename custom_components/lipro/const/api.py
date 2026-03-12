@@ -8,11 +8,11 @@ from typing import Final
 SMART_HOME_API_URL: Final = "https://api-hilbert.lipro.com"
 IOT_API_URL: Final = "https://api-mlink.lipro.com"
 
-# Signing keys
+# Signing keys / merchant code mandated by the upstream vendor protocol.
+# These are compatibility constants extracted from the official app contract,
+# not deploy-time secrets managed by Home Assistant users.
 SMART_HOME_SIGN_KEY: Final = "*Hilbert$@q9g"
 IOT_SIGN_KEY: Final = "19ff9eb20f818bc45ab216d0d67f"
-
-# Merchant code
 MERCHANT_CODE: Final = "LP0002"
 
 # API paths - Smart Home
@@ -156,7 +156,8 @@ MQTT_RECONNECT_MAX_DELAY: Final = 300  # 5 minutes (was 32s)
 MQTT_RECONNECT_JITTER: Final = 0.2  # ±20% random jitter
 MQTT_DISCONNECT_NOTIFY_THRESHOLD: Final = 300  # 5 minutes before notifying user
 
-# MQTT credential decryption key (from libmqtt.so)
+# MQTT credential decryption key extracted from the vendor MQTT client.
+# This is a protocol-compatibility constant, not an integration secret.
 MQTT_AES_KEY: Final = "fprd#huy1n!&d8d6"
 
 # MQTT topic format
