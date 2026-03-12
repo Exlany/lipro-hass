@@ -222,17 +222,14 @@ Coordinator
 | `CommandRuntime` | 命令发送、确认跟踪、post-refresh 策略 | builder, sender, confirmation |
 | `TuningRuntime` | 批次大小、命令确认延迟等调参 | 无外部依赖 |
 
-### API Client (`core/api/`)
+### API Client / Protocol Plane (`core/api/`, `core/mqtt/`)
 
-- `client.py`：`LiproClient`（目标态：显式 facade + domain collaborators；mixin 聚合不属于正式架构）
+- `client.py`：当前 public shell 仍可能是 `LiproClient`；北极星终态正式根应为 `LiproProtocolFacade`
+- `core/api/`：Phase 2 先收敛为 `LiproRestFacade` + transport / auth / endpoint collaborators
+- `core/mqtt/`：后续与 REST 一起并入 `LiproMqttFacade`，共同挂接到统一协议根
 - `transport_core.py` / `transport_retry.py` / `transport_signing.py`：请求核心/重试/签名
 - `endpoints/`：按域拆分端点（auth / status / devices / commands / ...）
-- `*_service.py`：API 级服务封装（auth / schedule / mqtt / status）
-
-### MQTT Client (`core/mqtt/`)
-
-- `mqtt_client.py`：`LiproMqttClient` 薄门面
-- `client_runtime.py`：运行时桥接
+- `*_service.py`：协议级服务封装（auth / schedule / mqtt / status）
 - `connection_manager.py`：指数退避重连
 - `subscription_manager.py`：订阅管理
 - `payload.py` / `topics.py`：消息解析、主题生成
@@ -413,11 +410,11 @@ custom_components/lipro/
 │   │       ├── state_service.py
 │   │       ├── mqtt_service.py
 │   │       └── device_refresh_service.py
-│   ├── api/                       # REST API Client
-│   │   ├── client.py              # LiproClient (显式 facade 目标态)
+│   ├── api/                       # REST / IoT protocol slice
+│   │   ├── client.py              # 当前 public shell；终态 formal root = LiproProtocolFacade
 │   │   ├── endpoints/             # 按域拆分端点
 │   │   └── transport_*.py         # 请求核心/重试/签名
-│   ├── mqtt/                      # MQTT Client
+│   ├── mqtt/                      # MQTT protocol slice (future child under LiproProtocolFacade)
 │   │   ├── mqtt_client.py
 │   │   ├── connection_manager.py
 │   │   └── subscription_manager.py
@@ -519,11 +516,13 @@ uv run pytest -q                                         # 全量测试
 | 可观测性 | 增加命令确认延迟、刷新耗时、MQTT 恢复时间的结构化指标 | 当线上问题定位成本继续升高时 |
 | 契约测试 | 为供应商协议增加 golden payload / snapshot contract tests | 当端到端回归覆盖仍不足以防协议漂移时 |
 | 边界专用强类型库 | 若外部 payload 复杂度继续上升，可仅在边界层评估 `pydantic v2` 或 `msgspec` | 当手写校验与 TypedDict 维护成本显著上升时 |
-| API Client 去 mixin 化 | 目标态直接采用显式 facade + transport / auth / endpoint collaborators；mixin 聚合不视为可接受终态 | 当 API client 仍保留多重继承或隐式聚合时就应推进 |
+| Protocol Plane 收敛 | 目标态正式根为 `LiproProtocolFacade`；Phase 2 先建立 `LiproRestFacade`，Phase 2.5 再把 MQTT 一起统一进来 | 当 REST / MQTT 仍以分裂根存在，或旧 public name 继续主导正式结构时就应推进 |
 
 ### 建议的演进顺序（按性价比）
 
 1. **先补 ADR 与边界审查清单**：已完成第一步，后续继续用 ADR 固化新增重大决策
+2. **Phase 2 先收敛 REST 主链**：建立 `LiproRestFacade`，清空 `LiproClient` / mixin 的正式地位
+3. **Phase 2.5 统一协议根**：把 `LiproRestFacade` 与 `LiproMqttFacade` 一起并入 `LiproProtocolFacade`
 2. **再补协议契约测试**：把供应商返回 payload 固化为 golden fixtures，优先守住 REST / MQTT 边界
 3. **再补可观测性**：把“命令确认慢、刷新慢、MQTT 恢复慢”从体感问题变成可量化问题
 4. **推进 API Client 去 mixin 化**：所有层遵循同一套显式组合标准，不接受“API 层例外”

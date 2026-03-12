@@ -103,14 +103,24 @@
 
 ### Phase 2 — API Client 去 Mixin 化
 
-**目标**：把 `API Client` 从历史 mixin 聚合收敛到显式 facade + collaborators，并把 `core/api/**/*.py` 全量纳入正式治理。
+**目标**：先把 REST / IoT 协议主链从历史 mixin 聚合收敛到显式 facade + collaborators，并把 `core/api/**/*.py` 全量纳入正式治理。
 
 - 盘点 `core/api/**/*.py` 与相关 tests 的 keep / refactor / adapter / delete 去向
-- 设计 `LiproApiFacade + collaborators + normalizers + compat adapters` 目标结构
+- 设计 `LiproRestFacade + collaborators + normalizers + compat adapters` 目标结构
 - 用组合式对象替代 `_Client*Mixin` 多重继承
-- 在 Phase 1 contract baseline 保护下迁移公开 API surface
+- 在 Phase 1 contract baseline 保护下迁移公开 REST API surface
+- 保证结构可无缝演进到统一协议根 `LiproProtocolFacade`
 
 **当前状态**：`Planning`
+
+### Phase 2.5 — Protocol Root Unification
+
+**目标**：把 REST / MQTT 一起统一到单一 protocol-plane root `LiproProtocolFacade`，让协议平面成为真正完整的一等平面。
+
+- 建立 `LiproProtocolFacade` 作为唯一正式协议入口
+- 让 `LiproRestFacade` 与 `LiproMqttFacade` 成为子门面，而不是两个独立根
+- 对齐 auth / telemetry / diagnostics / protocol contracts 的共享边界
+- 为后续 control / runtime / assurance phases 提供统一协议根
 
 ### Phase 3 — Control Plane 收敛
 
@@ -133,12 +143,13 @@
 1. `docs: strengthen north-star target architecture and execution tracks`
 2. `test(api): add protocol contract matrix and golden fixtures`
 3. `docs(planning): define phase-2 demixin research and execution plans`
-4. `refactor(api): replace client mixin inheritance with explicit facade`
-5. `refactor(control-plane): consolidate config entry and support surfaces`
-6. `refactor(domain): unify capability and platform rules`
-7. `test(runtime): enforce north-star runtime invariants`
-8. `feat(observability): add north-star telemetry hooks`
-9. `test(architecture): enforce dependency and boundary rules`
+4. `refactor(api): replace client mixin inheritance with explicit rest facade`
+5. `refactor(protocol): unify rest and mqtt under protocol root`
+6. `refactor(control-plane): consolidate config entry and support surfaces`
+7. `refactor(domain): unify capability and platform rules`
+8. `test(runtime): enforce north-star runtime invariants`
+9. `feat(observability): add north-star telemetry hooks`
+10. `test(architecture): enforce dependency and boundary rules`
 
 ## 6. 本轮焦点
 
