@@ -153,6 +153,7 @@
 
 - `docs/COMPREHENSIVE_AUDIT_2026-03-12.md`：当前权威审计/验证报告
 - `docs/developer_architecture.md`：当前架构与边界说明
+- `docs/adr/README.md` + `docs/adr/*.md`：长期生效的架构决策记录
 
 ### 7.2 已归档历史文档
 

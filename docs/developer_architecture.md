@@ -1,7 +1,7 @@
 # Lipro Home Assistant Integration - Developer Architecture
 
 > **Last Updated**: 2026-03-12  \
-> **Version**: 3.4 (Post-audit convergence + ADR / tech evolution guidance)
+> **Version**: 3.5 (Post-audit convergence + ADR records landed)
 >
 > ⚠️ 本文档仅描述"架构与模块边界"，不硬编码评分/覆盖率/通过率等易失真指标。  \
 > 当前实现状态、验证结果与风险优先级请以 `docs/COMPREHENSIVE_AUDIT_2026-03-12.md` 为准。
@@ -146,10 +146,12 @@ class RuntimeContext:
 ### 5) 决策记录（ADR-lite）
 
 - 重大架构决策不只留在 PR 或审计结论里；至少记录 **背景 / 决策 / 取舍 / 后果 / 回滚条件**
-- 当前必须显式保留的 3 条核心决策：
+- 当前必须显式保留的 4 条核心决策：
   1. `Coordinator` 是唯一编排根，不把编排逻辑下沉回 Entity / Platform
   2. 刷新只通过 `Coordinator.async_refresh_devices()` / `_async_refresh_device_snapshot()` 统一建模
   3. 外部状态写入统一走 `Coordinator._apply_properties_update()`，先确认过滤，再进入 `StateRuntime`
+  4. 技术栈保持显式、轻量、可审计，不为中等规模集成过早引入重型框架
+- 已落地 ADR 索引：`docs/adr/README.md`
 
 ### 6) 文档策略
 
@@ -505,18 +507,20 @@ uv run pytest -q                                         # 全量测试
 
 | 方向 | 建议 | 触发条件 |
 |---|---|---|
-| ADR 文档化 | 增加 `docs/adr/`，让关键边界决策脱离审计文档长期保存 | 当后续再出现 2 次以上重大架构选择时 |
+| ADR 文档化 | 已落地 `docs/adr/`；后续新增重大决策时继续按 ADR 追加，而非回写审计文档 | 当边界或主链再次发生实质性变化时 |
 | 协议边界 schema 校验 | 只在 API / MQTT 外部边界增加更强的 payload schema，不侵入领域模型 | 当上游协议漂移频繁导致回归成本升高时 |
 | 可观测性 | 增加命令确认延迟、刷新耗时、MQTT 恢复时间的结构化指标 | 当线上问题定位成本继续升高时 |
 | 契约测试 | 为供应商协议增加 golden payload / snapshot contract tests | 当端到端回归覆盖仍不足以防协议漂移时 |
 | 边界专用强类型库 | 若外部 payload 复杂度继续上升，可仅在边界层评估 `pydantic v2` 或 `msgspec` | 当手写校验与 TypedDict 维护成本显著上升时 |
+| API Client 收敛 | 若 `core/api/client.py` 的 mixin façade 继续膨胀，逐步收敛到更显式的 endpoint/service façade | 当 transport 与 endpoint mixin 交叉依赖持续增加时 |
 
 ### 建议的演进顺序（按性价比）
 
-1. **先补 ADR 与边界审查清单**：收益最高、改动最小，可直接降低未来误判与回归风险
+1. **先补 ADR 与边界审查清单**：已完成第一步，后续继续用 ADR 固化新增重大决策
 2. **再补协议契约测试**：把供应商返回 payload 固化为 golden fixtures，优先守住 REST / MQTT 边界
 3. **再补可观测性**：把“命令确认慢、刷新慢、MQTT 恢复慢”从体感问题变成可量化问题
-4. **最后才评估边界层强类型升级**：只有当外部协议复杂度继续上升时，才考虑在 boundary layer 引入更强 schema 工具
+4. **再评估 API Client 收敛**：若 mixin façade 继续膨胀，优先做显式 façade 收敛，而不是重型框架替换
+5. **最后才评估边界层强类型升级**：只有当外部协议复杂度继续上升时，才考虑在 boundary layer 引入更强 schema 工具
 
 ### 当前不建议引入的重型方案
 
@@ -532,6 +536,7 @@ uv run pytest -q                                         # 全量测试
 ## 参考文档
 
 - `docs/COMPREHENSIVE_AUDIT_2026-03-12.md` — 当前权威审计/验证报告
+- `docs/adr/README.md` — 长期生效的架构决策索引
 - `docs/archive/` — 历史审计、重构计划与过期快照
 - `CHANGELOG.md` — 变更日志
 - Home Assistant Developer Docs: https://developers.home-assistant.io/
