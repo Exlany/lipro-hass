@@ -1,4 +1,4 @@
-"""Device runtime implementation for coordinator refactoring."""
+"""Standalone device runtime with dependency injection."""
 
 from __future__ import annotations
 
@@ -12,9 +12,10 @@ from .device.refresh_strategy import RefreshStrategy, StaleDeviceTracker
 from .device.snapshot import FetchedDeviceSnapshot, SnapshotBuilder
 
 if TYPE_CHECKING:
-    from ...api import LiproClient
-    from ...auth import LiproAuthManager
-    from ...device.identity_index import DeviceIdentityIndex
+    from custom_components.lipro.core.api import LiproClient
+    from custom_components.lipro.core.auth import LiproAuthManager
+    from custom_components.lipro.core.device import LiproDevice
+    from custom_components.lipro.core.device.identity_index import DeviceIdentityIndex
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -46,11 +47,9 @@ class DeviceRuntime:
         self._auth_manager = auth_manager
         self._device_identity_index = device_identity_index
 
-        # Parse filter configuration
         filter_config = parse_filter_config(filter_config_options or {})
         self._device_filter = DeviceFilter(config=filter_config)
 
-        # Initialize sub-components
         self._refresh_strategy = RefreshStrategy()
         self._stale_tracker = StaleDeviceTracker()
         self._batch_optimizer = DeviceBatchOptimizer()
@@ -59,9 +58,11 @@ class DeviceRuntime:
             device_identity_index=device_identity_index,
             device_filter=self._device_filter,
         )
-        self._incremental_strategy = IncrementalRefreshStrategy(client=client)
+        self._incremental_strategy = IncrementalRefreshStrategy(
+            client=client,
+            device_resolver=self._resolve_device_by_id,
+        )
 
-        # Runtime state
         self._last_snapshot: FetchedDeviceSnapshot | None = None
         self._cloud_serials_last_seen: set[str] = set()
 
@@ -84,7 +85,6 @@ class DeviceRuntime:
         if force:
             self._refresh_strategy.request_force_refresh()
 
-        # Check if full refresh is needed
         if self._refresh_strategy.should_refresh():
             snapshot = await self._snapshot_builder.build_full_snapshot()
             self._refresh_strategy.mark_refreshed()
@@ -96,15 +96,12 @@ class DeviceRuntime:
             )
             return snapshot
 
-        # Incremental refresh using existing snapshot
         if self._last_snapshot is None:
-            # First refresh must be full
             snapshot = await self._snapshot_builder.build_full_snapshot()
             self._refresh_strategy.mark_refreshed()
             self._last_snapshot = snapshot
             return snapshot
 
-        # Perform incremental state update
         await self._incremental_strategy.refresh_device_states(
             iot_ids=self._last_snapshot.iot_ids,
             group_ids=self._last_snapshot.group_ids,
@@ -134,7 +131,6 @@ class DeviceRuntime:
             current_serials=current_snapshot.cloud_serials,
         )
 
-        # Update last seen serials for next comparison
         self._cloud_serials_last_seen = current_snapshot.cloud_serials.copy()
 
         return missing_cycles, removable
@@ -161,6 +157,14 @@ class DeviceRuntime:
         self._stale_tracker.reset()
         self._last_snapshot = None
         self._cloud_serials_last_seen.clear()
+
+    def _resolve_device_by_id(self, device_id: str) -> LiproDevice | None:
+        """Resolve a device from the latest snapshot or shared identity index."""
+        if self._last_snapshot is not None:
+            device = self._last_snapshot.device_by_id.get(device_id)
+            if device is not None:
+                return device
+        return self._device_identity_index.get(device_id)
 
 
 __all__ = ["DeviceRuntime"]

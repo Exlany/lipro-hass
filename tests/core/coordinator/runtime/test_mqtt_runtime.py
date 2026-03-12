@@ -31,6 +31,7 @@ def mock_mqtt_client() -> Mock:
     client.start = AsyncMock()
     client.stop = AsyncMock()
     client.sync_subscriptions = AsyncMock()
+    client.wait_until_connected = AsyncMock(return_value=True)
     return client
 
 
@@ -132,8 +133,16 @@ class TestMqttRuntimeConnection:
     async def test_connect_success(
         self, mqtt_runtime: MqttRuntime, mock_mqtt_client: Mock
     ) -> None:
-        """Test successful MQTT connection."""
+        """Test successful MQTT connection after real transport callback."""
         device_ids = ["device1", "device2"]
+
+        async def _wait_until_connected() -> bool:
+            mqtt_runtime.on_transport_connected()
+            return True
+
+        cast(AsyncMock, mock_mqtt_client.wait_until_connected).side_effect = (
+            _wait_until_connected
+        )
 
         result = await mqtt_runtime.connect(device_ids=device_ids, biz_id="test_biz")
 
@@ -142,6 +151,7 @@ class TestMqttRuntimeConnection:
         cast(AsyncMock, mock_mqtt_client.sync_subscriptions).assert_awaited_once_with(
             set(device_ids)
         )
+        cast(AsyncMock, mock_mqtt_client.wait_until_connected).assert_awaited_once_with()
         assert mqtt_runtime.is_connected is True
 
     async def test_connect_failure(
@@ -176,6 +186,15 @@ class TestMqttRuntimeConnection:
         self, mqtt_runtime: MqttRuntime, mock_mqtt_client: Mock
     ) -> None:
         """Test MQTT disconnection."""
+
+        async def _wait_until_connected() -> bool:
+            mqtt_runtime.on_transport_connected()
+            return True
+
+        cast(AsyncMock, mock_mqtt_client.wait_until_connected).side_effect = (
+            _wait_until_connected
+        )
+
         await mqtt_runtime.connect(device_ids=["device1"], biz_id="test_biz")
         assert mqtt_runtime.is_connected is True
 
@@ -188,11 +207,13 @@ class TestMqttRuntimeConnection:
         self, mqtt_runtime: MqttRuntime, mock_mqtt_client: Mock
     ) -> None:
         """Test disconnect handles exceptions gracefully."""
+        mqtt_runtime.on_transport_connected()
         cast(AsyncMock, mock_mqtt_client.stop).side_effect = Exception("Disconnect failed")
 
         await mqtt_runtime.disconnect()
 
         assert mqtt_runtime.is_connected is False
+        assert mqtt_runtime._connection_manager.disconnect_time is not None
 
     async def test_disconnect_without_client(self, mock_hass: Mock) -> None:
         """Disconnect should no-op when MQTT client is absent."""
@@ -208,6 +229,44 @@ class TestMqttRuntimeConnection:
 
         with pytest.raises(asyncio.CancelledError):
             await mqtt_runtime.disconnect()
+
+    async def test_sync_subscriptions_failure_returns_false(
+        self, mqtt_runtime: MqttRuntime, mock_mqtt_client: Mock
+    ) -> None:
+        """Subscription sync failures should not fake a successful connection."""
+        cast(AsyncMock, mock_mqtt_client.sync_subscriptions).side_effect = RuntimeError(
+            "boom"
+        )
+
+        result = await mqtt_runtime.connect(device_ids=["device1"], biz_id="test_biz")
+
+        assert result is False
+        assert mqtt_runtime.is_connected is False
+        assert mqtt_runtime._reconnect_manager._backoff._failure_count > 0
+
+    async def test_transport_error_does_not_mark_runtime_disconnected(
+        self, mqtt_runtime: MqttRuntime
+    ) -> None:
+        """Transport errors alone should not mutate connection state."""
+        mqtt_runtime.on_transport_connected()
+
+        mqtt_runtime.handle_transport_error(RuntimeError("decode failed"))
+
+        assert mqtt_runtime.is_connected is True
+        assert isinstance(mqtt_runtime._last_transport_error, RuntimeError)
+
+    def test_transport_callbacks_update_polling_interval(
+        self, mqtt_runtime: MqttRuntime
+    ) -> None:
+        """Real transport callbacks should drive coordinator polling interval."""
+        updater = Mock()
+        mqtt_runtime.set_polling_updater(updater)
+
+        mqtt_runtime.on_transport_connected()
+        assert updater.update_interval == timedelta(seconds=60)
+
+        mqtt_runtime.on_transport_disconnected()
+        assert updater.update_interval == timedelta(seconds=30)
 
 
 class TestMqttRuntimeMessageHandling:
@@ -314,7 +373,7 @@ class TestMqttRuntimeDisconnectNotification:
     ) -> None:
         """Test disconnect notification triggers after threshold."""
 
-        def _close_coroutine(coro):
+        def _close_coroutine(coro, **kwargs):
             coro.close()
             task = Mock()
             task.add_done_callback = Mock()
@@ -374,7 +433,7 @@ class TestMqttRuntimeDisconnectNotification:
         """Background task manager should own disconnect notification tasks."""
         background_task_manager = Mock()
 
-        def _consume(coro):
+        def _consume(coro, **kwargs):
             coro.close()
 
         background_task_manager.create.side_effect = _consume

@@ -827,6 +827,33 @@ async def test_incremental_refresh_strategy_updates_existing_device_properties(
 
 
 @pytest.mark.asyncio
+async def test_incremental_refresh_strategy_uses_device_resolver_for_alias_ids(
+    mock_client,
+) -> None:
+    """Alias-based refresh results should still resolve onto the live device."""
+    device = Mock()
+    strategy = IncrementalRefreshStrategy(
+        client=mock_client,
+        device_resolver=lambda device_id: device if device_id == "dev1" else None,
+    )
+    mock_client.query_iot_devices = AsyncMock(
+        return_value={"data": [{"id": "dev1", "properties": {"powerState": "1"}}]}
+    )
+    batch_optimizer = DeviceBatchOptimizer()
+
+    updated_states = await strategy.refresh_device_states(
+        iot_ids=["dev1"],
+        group_ids=[],
+        outlet_ids=[],
+        devices={},
+        batch_optimizer=batch_optimizer,
+    )
+
+    assert updated_states["dev1"]["properties"] == {"powerState": "1"}
+    device.update_properties.assert_called_once_with({"powerState": "1"})
+
+
+@pytest.mark.asyncio
 async def test_incremental_refresh_strategy_reraises_iot_query_cancellation(
     mock_client,
 ) -> None:

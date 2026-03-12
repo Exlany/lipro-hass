@@ -51,6 +51,7 @@ class LiproMqttClient:
         self._running = False
         self._connected = False
         self._connected_lock = asyncio.Lock()
+        self._connected_event = asyncio.Event()
         self._tls_context: ssl.SSLContext | None = None
         self._reconnect_delay = MQTT_RECONNECT_MIN_DELAY
         self._message_processor = MqttMessageProcessor(biz_id)
@@ -103,6 +104,7 @@ class LiproMqttClient:
             return
         self._subscribed_devices = set(device_ids)
         self._pending_unsubscribe.difference_update(self._subscribed_devices)
+        self._connected_event.clear()
         self._running = True
         self._task = asyncio.create_task(
             self._connection_loop(), name="lipro_mqtt_connection_loop"
@@ -122,6 +124,7 @@ class LiproMqttClient:
                 self._task = None
         async with self._connected_lock:
             self._connected = False
+            self._connected_event.clear()
         self._client = None
         self._tls_context = None
         self._subscribed_devices.clear()
@@ -136,6 +139,23 @@ class LiproMqttClient:
             pending_unsubscribe=self._pending_unsubscribe,
             device_ids=device_ids,
         )
+
+    async def wait_until_connected(self, timeout: float | None = None) -> bool:
+        """Wait until the MQTT transport completes a real broker handshake."""
+        if self._connected:
+            return True
+        if not self._running:
+            return False
+
+        try:
+            if timeout is None:
+                await self._connected_event.wait()
+            else:
+                await asyncio.wait_for(self._connected_event.wait(), timeout=timeout)
+        except TimeoutError:
+            return False
+
+        return self._connected
 
     def _clear_task_ref(self, task: asyncio.Task[None]) -> None:
         """Clear the tracked background task when it matches the finished task."""

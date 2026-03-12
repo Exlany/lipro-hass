@@ -19,8 +19,8 @@ Design constraint: Linear ``do A → do B → schedule C``, no rollback semantic
 from __future__ import annotations
 
 import asyncio
-import logging
 from dataclasses import dataclass, field
+import logging
 from typing import TYPE_CHECKING, Any
 
 from ..types import CommandTrace
@@ -66,7 +66,6 @@ class CoordinatorCommandService:
         2. Record user action in TuningRuntime (non-blocking)
         3. Schedule confirmation fallback (timeout → force refresh)
         """
-        # Step 1: Dispatch command
         success, _route = await self.coordinator.command_runtime.send_device_command(
             device=device,
             command=command,
@@ -75,10 +74,9 @@ class CoordinatorCommandService:
         )
 
         if success:
-            # Step 2: Record user action for learning curves (non-blocking)
             if properties:
                 try:
-                    self.coordinator._runtimes.tuning.record_user_action(
+                    self.coordinator.tuning_runtime.record_user_action(
                         device_serial=device.serial,
                         command=command,
                     )
@@ -87,10 +85,21 @@ class CoordinatorCommandService:
                         "Failed to record user action for %s", device.serial
                     )
 
-            # Step 3: Schedule confirmation fallback
             self._schedule_confirmation_fallback(device)
 
         return success  # type: ignore[no-any-return]
+
+    async def async_shutdown(self) -> None:
+        """Cancel pending confirmation fallbacks owned by the service."""
+        pending_tasks = list(self._pending_confirmations.values())
+        self._pending_confirmations.clear()
+
+        for task in pending_tasks:
+            if not task.done():
+                task.cancel()
+
+        if pending_tasks:
+            await asyncio.gather(*pending_tasks, return_exceptions=True)
 
     def _schedule_confirmation_fallback(self, device: LiproDevice) -> None:
         """Schedule a force-refresh if MQTT confirmation doesn't arrive in time.
@@ -101,17 +110,24 @@ class CoordinatorCommandService:
         """
         serial = device.serial
 
-        # Cancel any existing pending confirmation for this device
         existing = self._pending_confirmations.pop(serial, None)
         if existing is not None and not existing.done():
             existing.cancel()
 
-        task = asyncio.create_task(
+        def _create_task(coro: Any) -> asyncio.Task[Any]:
+            return asyncio.create_task(coro, name=f"lipro_confirm_{serial}")
+
+        task = self.coordinator.background_task_manager.create(
             self._async_confirmation_fallback(serial),
-            name=f"lipro_confirm_{serial}",
+            create_task=_create_task,
         )
         self._pending_confirmations[serial] = task
-        task.add_done_callback(lambda t: self._pending_confirmations.pop(serial, None))
+
+        def _cleanup(done_task: asyncio.Task[Any]) -> None:
+            if self._pending_confirmations.get(serial) is done_task:
+                self._pending_confirmations.pop(serial, None)
+
+        task.add_done_callback(_cleanup)
 
     async def _async_confirmation_fallback(self, device_serial: str) -> None:
         """Wait for confirmation timeout, then force refresh if needed."""

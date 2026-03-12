@@ -150,6 +150,39 @@ class TestCoordinatorRuntimeComponents:
         assert hasattr(coordinator, "mqtt_service")
 
     @pytest.mark.asyncio
+    async def test_async_shutdown_releases_runtime_resources(self, coordinator) -> None:
+        """Coordinator shutdown should stop MQTT and clear owned resources."""
+        coordinator._runtimes.mqtt.clear_disconnect_notification = AsyncMock()
+        coordinator._runtimes.mqtt.disconnect = AsyncMock()
+        coordinator._runtimes.mqtt.reset = MagicMock()
+        coordinator._runtimes.device.reset = MagicMock()
+        coordinator._state.background_task_manager.cancel_all = AsyncMock()
+        coordinator._state.mqtt_client = MagicMock()
+        coordinator._state.biz_id = "biz001"
+
+        with (
+            patch(
+                "custom_components.lipro.core.coordinator.coordinator.CoordinatorCommandService.async_shutdown",
+                new_callable=AsyncMock,
+            ) as command_shutdown,
+            patch(
+                "custom_components.lipro.core.coordinator.coordinator.DataUpdateCoordinator.async_shutdown",
+                new_callable=AsyncMock,
+            ) as base_shutdown,
+        ):
+            await coordinator.async_shutdown()
+
+        coordinator._runtimes.mqtt.clear_disconnect_notification.assert_awaited_once()
+        command_shutdown.assert_awaited_once()
+        coordinator._runtimes.mqtt.disconnect.assert_awaited_once()
+        coordinator._state.background_task_manager.cancel_all.assert_awaited_once()
+        coordinator._runtimes.mqtt.reset.assert_called_once()
+        coordinator._runtimes.device.reset.assert_called_once()
+        assert coordinator._state.mqtt_client is None
+        assert coordinator._state.biz_id is None
+        base_shutdown.assert_awaited_once()
+
+    @pytest.mark.asyncio
     async def test_public_entrypoints_follow_current_device_state(
         self, coordinator, mock_lipro_api_client
     ):

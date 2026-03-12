@@ -176,3 +176,18 @@ async def test_client_finalize_connection_task_delegates_to_connection_manager()
 
     connection_manager.finalize_connection_task.assert_called_once()
     assert client._task is None
+
+
+@pytest.mark.asyncio
+async def test_wait_until_connected_uses_real_transport_event() -> None:
+    client = _make_client()
+    client._running = True
+
+    async def _mark_connected() -> None:
+        await asyncio.sleep(0)
+        client._connected = True
+        client._connected_event.set()
+
+    task = asyncio.create_task(_mark_connected())
+    assert await client.wait_until_connected(timeout=1) is True
+    await task

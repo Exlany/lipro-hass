@@ -25,6 +25,7 @@ from .mqtt.message_handler import MqttMessageHandler
 from .mqtt.reconnect import MqttReconnectManager
 
 if TYPE_CHECKING:
+    from collections.abc import Coroutine
     from datetime import timedelta
 
     from homeassistant.core import HomeAssistant
@@ -123,21 +124,19 @@ class MqttRuntime:
         self._mqtt_client = mqtt_client
         self._base_scan_interval = base_scan_interval
         self._background_task_manager = background_task_manager
+        self._last_transport_error: Exception | None = None
 
-        # All dependencies injected at construction (no setters needed)
         self._device_resolver = device_resolver
         self._property_applier = property_applier
         self._listener_notifier = listener_notifier
         self._connect_state_tracker = connect_state_tracker
         self._group_reconciler = group_reconciler
 
-        # Polling interval updater (self implements PollingIntervalUpdater)
         self._polling_updater: Any = None
 
-        # Initialize component managers
         self._connection_manager = MqttConnectionManager(
             hass=hass,
-            polling_updater=self,  # Self implements PollingIntervalUpdater
+            polling_updater=self,
             base_scan_interval=base_scan_interval,
             polling_multiplier=polling_multiplier,
             logger=_LOGGER,
@@ -150,7 +149,6 @@ class MqttRuntime:
             max_delay=reconnect_max_delay,
         )
 
-        # Initialize message handler immediately (all dependencies available)
         self._message_handler = self._create_message_handler()
 
     def set_polling_updater(self, updater: Any) -> None:
@@ -159,6 +157,7 @@ class MqttRuntime:
 
     def _create_message_handler(self) -> MqttMessageHandler:
         """Create message handler with injected dependencies."""
+
         class PropertyApplierAdapter:
             """Adapter to convert bool-returning applier to dict-returning."""
 
@@ -206,15 +205,17 @@ class MqttRuntime:
         device_ids: list[str],
         biz_id: str | None = None,
     ) -> bool:
-        """Start the MQTT background loop and ensure device subscriptions.
+        """Start the MQTT background loop and wait for real transport connection.
 
         Args:
             device_ids: List of device identifiers to subscribe to.
             biz_id: Deprecated compatibility argument (handled by client credentials).
 
         Returns:
-            True if startup succeeded, False otherwise.
+            True if startup succeeded and the broker handshake completed.
         """
+        del biz_id
+
         if self._mqtt_client is None:
             _LOGGER.error("MQTT client not initialized")
             return False
@@ -222,15 +223,34 @@ class MqttRuntime:
         try:
             await self._mqtt_client.start(device_ids)
             await self._mqtt_client.sync_subscriptions(set(device_ids))
-            self._connection_manager.on_connect()
-            self._reconnect_manager.on_reconnect_success()
-            return True
+            connected = await self._mqtt_client.wait_until_connected()
         except Exception as err:
             if isinstance(err, (asyncio.CancelledError, KeyboardInterrupt, SystemExit)):
                 raise
             _LOGGER.exception("MQTT connection failed")
             self._reconnect_manager.on_reconnect_failure()
             return False
+
+        if connected:
+            return True
+
+        self._reconnect_manager.on_reconnect_failure()
+        return False
+
+    async def sync_subscriptions(self, device_ids: list[str] | set[str]) -> bool:
+        """Synchronize the desired MQTT subscription set without reconnecting."""
+        if self._mqtt_client is None:
+            return False
+
+        try:
+            await self._mqtt_client.sync_subscriptions(set(device_ids))
+        except Exception as err:
+            if isinstance(err, (asyncio.CancelledError, KeyboardInterrupt, SystemExit)):
+                raise
+            _LOGGER.exception("Failed to sync MQTT subscriptions")
+            return False
+
+        return True
 
     async def disconnect(self) -> None:
         """Stop the MQTT background loop."""
@@ -244,7 +264,7 @@ class MqttRuntime:
                 raise
             _LOGGER.exception("MQTT disconnect failed")
         finally:
-            self._connection_manager.on_disconnect()
+            self.on_transport_disconnected()
 
     async def handle_message(
         self,
@@ -259,17 +279,45 @@ class MqttRuntime:
         """
         current_time = monotonic()
 
-        # Check for duplicates
         if self._dedup_manager.is_duplicate(
             device_id, properties, current_time=current_time
         ):
             return
 
-        # Process message
         await self._message_handler.handle_message(device_id, properties, current_time=current_time)
-
-        # Periodic cleanup
         self._dedup_manager.cleanup(current_time=current_time)
+
+    def on_transport_connected(self) -> None:
+        """Apply coordinator-facing state changes after a real broker handshake."""
+        had_disconnect_state = (
+            self._connection_manager.disconnect_notified
+            or self._connection_manager.disconnect_time is not None
+        )
+        if not self._connection_manager.is_connected:
+            self._connection_manager.on_connect()
+        self._reconnect_manager.on_reconnect_success()
+        if had_disconnect_state:
+            self._track_background_task(
+                self.clear_disconnect_notification(),
+                name="lipro_mqtt_clear_issue",
+            )
+
+    def on_transport_disconnected(self) -> None:
+        """Apply coordinator-facing state changes after transport teardown."""
+        if (
+            not self._connection_manager.is_connected
+            and self._connection_manager.disconnect_time is not None
+        ):
+            return
+        self._connection_manager.on_disconnect()
+
+    def handle_transport_error(self, err: Exception) -> None:
+        """Record transport-level errors for diagnostics without mutating state."""
+        self._last_transport_error = err
+        _LOGGER.debug(
+            "MQTT transport reported error (%s)",
+            type(err).__name__,
+        )
 
     def should_attempt_reconnect(self) -> bool:
         """Check if reconnection should be attempted.
@@ -293,19 +341,10 @@ class MqttRuntime:
             ):
                 minutes = int(elapsed // 60)
                 self._connection_manager.mark_disconnect_notified()
-                # Create notification task with proper tracking
-                if self._background_task_manager:
-                    self._background_task_manager.create(
-                        self._async_show_mqtt_disconnect_notification(minutes)
-                    )
-                else:
-                    # Fallback to untracked task if no manager available
-                    task = asyncio.create_task(
-                        self._async_show_mqtt_disconnect_notification(minutes)
-                    )
-                    task.add_done_callback(
-                        lambda t: t.exception() if not t.cancelled() else None
-                    )
+                self._track_background_task(
+                    self._async_show_mqtt_disconnect_notification(minutes),
+                    name="lipro_mqtt_disconnect_issue",
+                )
 
     async def _async_show_mqtt_disconnect_notification(self, minutes: int) -> None:
         """Create a repair issue for MQTT disconnect."""
@@ -328,11 +367,29 @@ class MqttRuntime:
         self._connection_manager.reset()
         self._dedup_manager.reset()
         self._reconnect_manager.reset()
+        self._last_transport_error = None
 
     @property
     def is_connected(self) -> bool:
         """Return current MQTT connection state."""
         return self._connection_manager.is_connected
+
+    def _track_background_task(
+        self,
+        coro: Coroutine[Any, Any, Any],
+        *,
+        name: str,
+    ) -> None:
+        """Track one runtime-owned background task with safe exception handling."""
+        if self._background_task_manager is not None:
+            self._background_task_manager.create(
+                coro,
+                create_task=lambda candidate: asyncio.create_task(candidate, name=name),
+            )
+            return
+
+        task = asyncio.create_task(coro, name=name)
+        task.add_done_callback(lambda done: done.exception() if not done.cancelled() else None)
 
 
 __all__ = ["MqttRuntime"]

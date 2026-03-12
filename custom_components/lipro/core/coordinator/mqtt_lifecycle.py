@@ -7,6 +7,7 @@ its size and improve separation of concerns.
 from __future__ import annotations
 
 import asyncio
+from contextlib import suppress
 import logging
 from typing import TYPE_CHECKING, Any
 
@@ -126,8 +127,9 @@ async def async_setup_mqtt(
     Returns:
         Tuple of (mqtt_runtime, mqtt_client, biz_id) on success, None on failure
     """
+    mqtt_runtime: MqttRuntime | None = None
+
     try:
-        # 10s timeout for MQTT config fetch
         try:
             async with asyncio.timeout(10):
                 mqtt_config = await client.get_mqtt_config()
@@ -139,7 +141,6 @@ async def async_setup_mqtt(
             _LOGGER.warning("No MQTT config available")
             return None
 
-        # Decrypt credentials
         access_key = decrypt_mqtt_credential(mqtt_config.get("accessKey", ""))
         secret_key = decrypt_mqtt_credential(mqtt_config.get("secretKey", ""))
 
@@ -147,7 +148,6 @@ async def async_setup_mqtt(
             _LOGGER.warning("Failed to decrypt MQTT credentials")
             return None
 
-        # Resolve biz_id
         biz_id = resolve_mqtt_biz_id(config_entry.data)
         if biz_id is None:
             _LOGGER.warning("No biz_id available for MQTT")
@@ -155,25 +155,53 @@ async def async_setup_mqtt(
 
         phone_id = config_entry.data.get(CONF_PHONE_ID, "")
 
-        # Create bridge function to connect sync callback to async handler
+        async def _async_handle_message(
+            topic: str,
+            payload: dict[str, object],
+        ) -> None:
+            if mqtt_runtime is None:
+                return
+            try:
+                await mqtt_runtime.handle_message(topic, payload)
+            except Exception as err:
+                if isinstance(err, (asyncio.CancelledError, KeyboardInterrupt, SystemExit)):
+                    raise
+                mqtt_runtime.handle_transport_error(err)
+                raise
+
         def _on_message_bridge(topic: str, payload: dict[str, object]) -> None:
             """Bridge sync MQTT callback to async runtime handler."""
-            # Schedule the async handler in the event loop
-            asyncio.create_task(
-                mqtt_runtime.handle_message(topic, payload),
-                name=f"mqtt_message_{topic}",
+            background_task_manager.create(
+                _async_handle_message(topic, payload),
+                create_task=lambda coro: asyncio.create_task(
+                    coro,
+                    name=f"mqtt_message_{topic}",
+                ),
             )
 
-        # Create MQTT client with message callback bound to runtime
+        def _on_connect_bridge() -> None:
+            if mqtt_runtime is not None:
+                mqtt_runtime.on_transport_connected()
+
+        def _on_disconnect_bridge() -> None:
+            if mqtt_runtime is not None:
+                mqtt_runtime.on_transport_disconnected()
+
+        def _on_error_bridge(err: Exception) -> None:
+            if mqtt_runtime is not None:
+                mqtt_runtime.handle_transport_error(err)
+
         mqtt_client = LiproMqttClient(
             access_key=access_key,
             secret_key=secret_key,
             biz_id=biz_id,
             phone_id=phone_id,
             on_message=_on_message_bridge,
+            on_connect=_on_connect_bridge,
+            on_disconnect=_on_disconnect_bridge,
+            on_error=_on_error_bridge,
         )
 
-        # Create MQTT runtime with all dependencies injected at construction
         mqtt_runtime = MqttRuntime(
             hass=hass,
             mqtt_client=mqtt_client,
@@ -190,25 +218,30 @@ async def async_setup_mqtt(
             background_task_manager=background_task_manager,
         )
 
-        # Start MQTT connection for current devices with 15s timeout
-        # Use helper function that provides fallback to all devices if no groups
         device_ids = build_mqtt_subscription_device_ids(devices)
-        if device_ids:
-            try:
-                async with asyncio.timeout(15):
-                    await mqtt_runtime.connect(device_ids=device_ids, biz_id=biz_id)
-            except TimeoutError:
-                _LOGGER.error("MQTT connection timeout after 15 seconds")
-                return None
+        if not device_ids:
+            _LOGGER.warning("No valid device IDs available for MQTT subscriptions")
+            return None
 
-        # Verify connection state before returning success
-        if not mqtt_runtime.is_connected:
+        try:
+            async with asyncio.timeout(15):
+                connected = await mqtt_runtime.connect(device_ids=device_ids, biz_id=biz_id)
+        except TimeoutError:
+            _LOGGER.error("MQTT connection timeout after 15 seconds")
+            await mqtt_runtime.disconnect()
+            return None
+
+        if not connected or not mqtt_runtime.is_connected:
             _LOGGER.warning("MQTT client not connected after setup")
+            await mqtt_runtime.disconnect()
             return None
 
         return (mqtt_runtime, mqtt_client, biz_id)
 
     except Exception:
+        if mqtt_runtime is not None:
+            with suppress(Exception):
+                await mqtt_runtime.disconnect()
         _LOGGER.exception("Failed to setup MQTT")
         return None
 

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+from collections.abc import Callable
 import logging
 from typing import TYPE_CHECKING, Any
 
@@ -16,13 +17,20 @@ _LOGGER = logging.getLogger(__name__)
 class IncrementalRefreshStrategy:
     """Handles incremental device state updates without full list refresh."""
 
-    def __init__(self, *, client: LiproClient) -> None:
+    def __init__(
+        self,
+        *,
+        client: LiproClient,
+        device_resolver: Callable[[str], LiproDevice | None] | None = None,
+    ) -> None:
         """Initialize incremental refresh strategy.
 
         Args:
             client: API client for device queries
+            device_resolver: Optional unified device lookup for id-based responses
         """
         self._client = client
+        self._device_resolver = device_resolver
 
     async def refresh_device_states(
         self,
@@ -31,7 +39,7 @@ class IncrementalRefreshStrategy:
         group_ids: list[str],
         outlet_ids: list[str],
         devices: dict[str, LiproDevice],
-        batch_optimizer: Any,  # DeviceBatchOptimizer to avoid circular import
+        batch_optimizer: Any,
     ) -> dict[str, dict[str, Any]]:
         """Refresh device states incrementally without full list fetch.
 
@@ -47,7 +55,6 @@ class IncrementalRefreshStrategy:
         """
         updated_states: dict[str, dict[str, Any]] = {}
 
-        # Query IoT devices in batches
         if iot_ids:
             for batch in batch_optimizer.split_into_batches(iot_ids):
                 try:
@@ -64,7 +71,6 @@ class IncrementalRefreshStrategy:
                         type(err).__name__,
                     )
 
-        # Query group devices in batches
         if group_ids:
             for batch in batch_optimizer.split_into_batches(group_ids):
                 try:
@@ -81,7 +87,6 @@ class IncrementalRefreshStrategy:
                         type(err).__name__,
                     )
 
-        # Query outlet devices in batches
         if outlet_ids:
             for batch in batch_optimizer.split_into_batches(outlet_ids):
                 try:
@@ -98,16 +103,18 @@ class IncrementalRefreshStrategy:
                         type(err).__name__,
                     )
 
-        # Apply state updates to existing devices
         updated_count = 0
         for device_id, state_data in updated_states.items():
             device = devices.get(device_id)
-            if device:
-                # Extract properties from state_data and update device
-                properties = state_data.get("properties", {})
-                if properties:
-                    device.update_properties(properties)
-                updated_count += 1
+            if device is None and self._device_resolver is not None:
+                device = self._device_resolver(device_id)
+            if device is None:
+                continue
+
+            properties = state_data.get("properties", {})
+            if properties:
+                device.update_properties(properties)
+            updated_count += 1
 
         _LOGGER.debug(
             "Incremental refresh updated %d/%d devices",

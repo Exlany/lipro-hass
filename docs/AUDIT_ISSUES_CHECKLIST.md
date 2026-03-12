@@ -16,7 +16,7 @@
 
 ## 1. 第一批：真实运行风险（优先执行）
 
-### [ ] 1.1 为 `Coordinator` 实现完整 `async_shutdown()`
+### [x] 1.1 为 `Coordinator` 实现完整 `async_shutdown()`
 - **文件**：`custom_components/lipro/core/coordinator/coordinator.py`
 - **目标**：在 unload / reload 时显式执行 MQTT disconnect、后台任务取消、必要 issue 清理与 runtime reset。
 - **验收**：
@@ -24,28 +24,28 @@
   - `BackgroundTaskManager` 挂载任务被清空
   - 补卸载/重载测试
 
-### [ ] 1.2 将 MQTT bridge 改接 `BackgroundTaskManager`
+### [x] 1.2 将 MQTT bridge 改接 `BackgroundTaskManager`
 - **文件**：`custom_components/lipro/core/coordinator/mqtt_lifecycle.py`
 - **目标**：替换裸 `asyncio.create_task(...)`，统一纳入任务追踪与异常消费。
 - **验收**：
   - bridge 任务异常不会以未消费 task exception 形式漂出
   - unload 后 bridge 任务不会悬挂
 
-### [ ] 1.3 修复增量刷新索引键错配
+### [x] 1.3 修复增量刷新索引键错配
 - **文件**：`custom_components/lipro/core/coordinator/runtime/device/incremental.py`
 - **目标**：改为通过 identity index 或等价统一查找层解析 `device_id -> device`。
 - **验收**：
   - 增量刷新返回的 IoT/device id 能命中现有设备对象
   - 补针对性单测
 
-### [ ] 1.4 真实 MQTT runtime 替换后重新注入 polling updater
+### [x] 1.4 真实 MQTT runtime 替换后重新注入 polling updater
 - **文件**：`custom_components/lipro/core/coordinator/coordinator.py`
 - **目标**：`async_setup_mqtt()` 返回真实 runtime 后重新注入 updater，或改为构造期强依赖。
 - **验收**：
   - 真实 runtime 的 `update_polling_interval()` 能影响 coordinator 轮询间隔
   - 补 setup 后断言测试
 
-### [ ] 1.5 修正 MQTT runtime 的连接态来源
+### [x] 1.5 修正 MQTT runtime 的连接态来源
 - **文件**：
   - `custom_components/lipro/core/coordinator/runtime/mqtt_runtime.py`
   - `custom_components/lipro/core/coordinator/mqtt_lifecycle.py`
@@ -55,7 +55,7 @@
   - 连接态与传输层真实状态一致
   - REST fallback / 诊断不会误判“已连接”
 
-### [ ] 1.6 设备快照后同步 MQTT 订阅集
+### [x] 1.6 设备快照后同步 MQTT 订阅集
 - **文件**：
   - `custom_components/lipro/core/coordinator/coordinator.py`
   - `custom_components/lipro/core/coordinator/services/mqtt_service.py`
@@ -68,7 +68,7 @@
 
 ## 2. 第二批：数据一致性与边界收口
 
-### [ ] 2.1 identity index 改为原子重建
+### [x] 2.1 identity index 改为原子重建
 - **文件**：`custom_components/lipro/core/coordinator/runtime/device/snapshot.py`
 - **目标**：每次全量快照后原子 replace，而不是只增量 register。
 - **验收**：

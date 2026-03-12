@@ -460,5 +460,30 @@ class TestDeviceRuntimeIntegration:
 
         # Verify snapshot structure
         assert len(snapshot.devices) == 1
-        assert len(snapshot.device_by_id) == 1
+        assert snapshot.device_by_id["serial1"] is snapshot.devices["serial1"]
+        assert snapshot.device_by_id["dev1"] is snapshot.devices["serial1"]
         assert snapshot.cloud_serials == {"serial1"}
+
+    @pytest.mark.asyncio
+    async def test_incremental_refresh_uses_snapshot_alias_lookup(
+        self,
+        device_runtime: DeviceRuntime,
+        mock_client: Mock,
+    ) -> None:
+        """Incremental refresh should resolve updates by raw API alias ids."""
+        mock_client.get_device_list.return_value = {
+            "data": [
+                create_mock_device_data(device_id="dev1", serial="serial1"),
+            ],
+            "hasMore": False,
+        }
+        mock_client.query_iot_devices.return_value = {
+            "data": [{"id": "dev1", "properties": {"powerState": "1"}}]
+        }
+
+        snapshot = await device_runtime.refresh_devices()
+        refreshed_snapshot = await device_runtime.refresh_devices()
+
+        assert refreshed_snapshot is snapshot
+        assert snapshot.devices["serial1"].properties["powerState"] == "1"
+        mock_client.get_device_list.assert_called_once()

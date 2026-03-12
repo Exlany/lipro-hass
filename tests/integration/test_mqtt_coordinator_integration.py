@@ -91,7 +91,8 @@ async def test_async_setup_mqtt_builds_refactored_client(
 
         mock_runtime = MagicMock()
         mock_runtime.is_connected = True
-        mock_runtime.connect = AsyncMock()
+        mock_runtime.connect = AsyncMock(return_value=True)
+        mock_runtime.set_polling_updater = MagicMock()
         mock_runtime_cls.return_value = mock_runtime
 
         ok = await coordinator.mqtt_service.async_setup()
@@ -99,6 +100,12 @@ async def test_async_setup_mqtt_builds_refactored_client(
     assert ok is True
     assert coordinator._runtimes.mqtt is not None
     mock_runtime.connect.assert_awaited_once()
+    mock_runtime.set_polling_updater.assert_called_once_with(coordinator)
+    mqtt_client_kwargs = mock_client_cls.call_args.kwargs
+    assert callable(mqtt_client_kwargs["on_message"])
+    assert callable(mqtt_client_kwargs["on_connect"])
+    assert callable(mqtt_client_kwargs["on_disconnect"])
+    assert callable(mqtt_client_kwargs["on_error"])
 
 
 @pytest.mark.asyncio
@@ -181,12 +188,14 @@ async def test_async_setup_mqtt_returns_false_when_group_connect_times_out(
         mock_runtime = MagicMock()
         mock_runtime.is_connected = True
         mock_runtime.connect = AsyncMock(side_effect=TimeoutError())
+        mock_runtime.disconnect = AsyncMock()
         mock_runtime_cls.return_value = mock_runtime
 
         ok = await coordinator.async_setup_mqtt()
 
     assert ok is False
     mock_runtime.connect.assert_awaited_once()
+    mock_runtime.disconnect.assert_awaited_once()
 
 
 @pytest.mark.asyncio
@@ -217,13 +226,15 @@ async def test_async_setup_mqtt_returns_false_when_runtime_stays_disconnected(
     ):
         mock_runtime = MagicMock()
         mock_runtime.is_connected = False
-        mock_runtime.connect = AsyncMock()
+        mock_runtime.connect = AsyncMock(return_value=False)
+        mock_runtime.disconnect = AsyncMock()
         mock_runtime_cls.return_value = mock_runtime
 
         ok = await coordinator.async_setup_mqtt()
 
     assert ok is False
     mock_runtime.connect.assert_awaited_once()
+    mock_runtime.disconnect.assert_awaited_once()
 
 
 @pytest.mark.asyncio
@@ -259,7 +270,7 @@ async def test_coordinator_mqtt_service_sync_and_stop_use_client_runtime(
 ) -> None:
     mock_mqtt_runtime = AsyncMock()
     mock_mqtt_runtime.is_connected = True
-    mock_mqtt_runtime.connect = AsyncMock()
+    mock_mqtt_runtime.sync_subscriptions = AsyncMock(return_value=True)
     mock_mqtt_runtime.disconnect = AsyncMock()
     object.__setattr__(coordinator._runtimes, "mqtt", mock_mqtt_runtime)
     coordinator._state.biz_id = "biz001"
@@ -272,7 +283,7 @@ async def test_coordinator_mqtt_service_sync_and_stop_use_client_runtime(
     coordinator._state.mqtt_client = mock_client
 
     await coordinator.mqtt_service.async_sync_subscriptions()
-    mock_mqtt_runtime.connect.assert_awaited_once()
+    mock_mqtt_runtime.sync_subscriptions.assert_awaited_once_with(["mesh_group_1"])
 
     await coordinator.mqtt_service.async_stop()
     mock_mqtt_runtime.disconnect.assert_awaited_once()

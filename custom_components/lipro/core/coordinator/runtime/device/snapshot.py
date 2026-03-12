@@ -68,11 +68,9 @@ class SnapshotBuilder:
         all_devices: list[dict[str, Any]] = []
         page = 1
 
-        # Fetch all pages
         while page <= max_pages:
             try:
                 response = await self._client.get_device_list(page=page)
-                # Support both old format {"devices": [...]} and new format {"data": [...]}
                 devices_data = response.get("data") or response.get("devices", [])
 
                 if not devices_data:
@@ -80,7 +78,6 @@ class SnapshotBuilder:
 
                 all_devices.extend(devices_data)
 
-                # Check if more pages exist
                 has_more = response.get("hasMore", False)
                 if not has_more:
                     break
@@ -102,9 +99,9 @@ class SnapshotBuilder:
                 max_pages,
             )
 
-        # Build device objects and indexes
         devices: dict[str, LiproDevice] = {}
         device_by_id: dict[str, LiproDevice] = {}
+        identity_mapping: dict[str, LiproDevice] = {}
         iot_ids: list[str] = []
         group_ids: list[str] = []
         outlet_ids: list[str] = []
@@ -113,33 +110,33 @@ class SnapshotBuilder:
 
         for device_data in all_devices:
             try:
-                # Apply filter before parsing
                 if not self._device_filter.is_device_included(device_data):
-                    _LOGGER.debug(
-                        "Device filtered out by configuration",
-                    )
+                    _LOGGER.debug("Device filtered out by configuration")
                     continue
 
                 device = LiproDevice.from_api_data(device_data)
 
-                # Skip gateway devices (track for diagnostics only)
                 if device.is_gateway:
                     diagnostic_gateway_devices[device.serial] = device
                     continue
 
-                # Register identity aliases
-                self._device_identity_index.register(device.serial, device)
-                if device.iot_device_id:
-                    self._device_identity_index.register(device.iot_device_id, device)
-
-                # Add to indexes
                 devices[device.serial] = device
+
+                identity_aliases = {device.serial}
                 if device.iot_device_id:
-                    device_by_id[device.iot_device_id] = device
+                    identity_aliases.add(device.iot_device_id)
+                for key in ("id", "iotId", "iotDeviceId", "groupId"):
+                    candidate = device_data.get(key)
+                    if isinstance(candidate, str) and candidate.strip():
+                        identity_aliases.add(candidate.strip())
+
+                device.extra_data["identity_aliases"] = sorted(identity_aliases)
+                for identity_alias in identity_aliases:
+                    device_by_id[identity_alias] = device
+                    identity_mapping[identity_alias] = device
 
                 cloud_serials.add(device.serial)
 
-                # Categorize by type
                 if device.is_group:
                     if device.iot_device_id:
                         group_ids.append(device.iot_device_id)
@@ -157,6 +154,8 @@ class SnapshotBuilder:
                     type(err).__name__,
                     str(err),
                 )
+
+        self._device_identity_index.replace(identity_mapping)
 
         _LOGGER.info(
             "Built device snapshot: %d devices (%d IoT, %d groups, %d outlets)",

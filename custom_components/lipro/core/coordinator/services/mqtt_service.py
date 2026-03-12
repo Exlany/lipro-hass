@@ -22,6 +22,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
+from ..mqtt.setup import build_mqtt_subscription_device_ids
+
 if TYPE_CHECKING:
     from ..coordinator import Coordinator
 
@@ -50,14 +52,14 @@ class CoordinatorMqttService:
 
     async def async_sync_subscriptions(self) -> None:
         """Sync subscriptions using the wrapped coordinator state."""
-        if self.coordinator.mqtt_client and self.coordinator.biz_id:
-            device_ids = [
-                device.serial
-                for device in self.coordinator.devices.values()
-                if device.is_group
-            ]
-            if device_ids and self.coordinator.mqtt_runtime:
-                await self.coordinator.mqtt_runtime.connect(
-                    device_ids=device_ids,
-                    biz_id=self.coordinator.biz_id,
-                )
+        desired_device_ids = build_mqtt_subscription_device_ids(self.coordinator.devices)
+
+        if self.coordinator.mqtt_runtime is None:
+            return
+
+        if self.coordinator.mqtt_client is None:
+            if desired_device_ids:
+                await self.coordinator.async_setup_mqtt()
+            return
+
+        await self.coordinator.mqtt_runtime.sync_subscriptions(desired_device_ids)

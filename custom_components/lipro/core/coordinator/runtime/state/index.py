@@ -45,9 +45,18 @@ class StateIndexManager:
         Args:
             devices: Current device dictionary
         """
-        self._device_identity_index.clear()
+        identity_mapping: dict[str, LiproDevice] = {}
         for device in devices.values():
-            self._device_identity_index.register(device.serial, device)
+            identity_mapping[device.serial] = device
+            if device.iot_device_id:
+                identity_mapping[device.iot_device_id] = device
+            aliases = device.extra_data.get("identity_aliases")
+            if isinstance(aliases, list):
+                for alias in aliases:
+                    if isinstance(alias, str) and alias.strip():
+                        identity_mapping[alias.strip()] = device
+
+        self._device_identity_index.replace(identity_mapping)
 
         _LOGGER.debug(
             "Rebuilt device identity index with %d devices",
@@ -112,9 +121,11 @@ class StateIndexManager:
         return len(self._entities)
 
     def get_entities_for_device(self, device_serial: str) -> list[LiproEntityProtocol]:
-        """Get all entities associated with a device."""
-        device_key = self._normalize_device_key(device_serial)
-        return self._entities_by_device.get(device_key, [])
+        """Get entities registered for one device."""
+        return self._entities_by_device.get(
+            self._normalize_device_key(device_serial),
+            [],
+        )
 
 
 __all__ = ["StateIndexManager"]

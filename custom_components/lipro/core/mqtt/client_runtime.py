@@ -135,8 +135,7 @@ class MqttClientRuntime:
                 mqtt_client,
                 subscribed_devices=self._client._subscribed_devices,
             )
-            async with self._client._connected_lock:
-                self._client._connected = True
+            await self._assign_connected_async(True)
             _LOGGER.info("Connected to MQTT broker")
             if self._client._invoke_callback(self._client._on_connect, "on_connect"):
                 self._client._clear_last_error()
@@ -146,8 +145,7 @@ class MqttClientRuntime:
         if stream_ended and self._client._running:
             self._client._handle_disconnect("MQTT message stream ended")
         elif not self._client._running:
-            async with self._client._connected_lock:
-                self._client._connected = False
+            await self._assign_connected_async(False)
             self._client._client = None
 
     async def connection_loop(self) -> None:
@@ -160,18 +158,25 @@ class MqttClientRuntime:
             sleep=asyncio.sleep,
             jitter_source=random.uniform,
         )
-        async with self._client._connected_lock:
-            self._client._connected = False
+        await self._assign_connected_async(False)
         self._client._client = None
 
     async def _assign_connected_async(self, connected: bool) -> None:
         """Assign connection state with lock protection."""
         async with self._client._connected_lock:
             self._client._connected = connected
+            if connected:
+                self._client._connected_event.set()
+            else:
+                self._client._connected_event.clear()
 
     def _assign_connected(self, connected: bool) -> None:
         """Synchronous assignment for callback contexts (best-effort)."""
         self._client._connected = connected
+        if connected:
+            self._client._connected_event.set()
+        else:
+            self._client._connected_event.clear()
 
     def _assign_last_error(self, value: Exception | None) -> None:
         self._client._last_error = value

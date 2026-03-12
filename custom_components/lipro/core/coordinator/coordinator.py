@@ -123,8 +123,10 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
 
     # RuntimeContext callback methods (injected into all runtimes)
     def _get_device_by_id(self, device_id: str) -> LiproDevice | None:
-        """Get device by ID (RuntimeContext callback)."""
-        return self._state.devices.get(device_id)
+        """Get device by any known identifier (RuntimeContext callback)."""
+        if hasattr(self, "_runtimes"):
+            return self._runtimes.state.get_device_by_id(device_id)
+        return self._state.device_identity_index.get(device_id)
 
     async def _apply_properties_update(
         self, device: LiproDevice, properties: dict[str, Any], source: str
@@ -150,6 +152,7 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
     def _set_force_connect_status_refresh(self, value: bool) -> None:
         """Set force connect status refresh flag."""
         self._force_connect_status_refresh = value
+
     def _init_service_layer(self) -> None:
         """Initialize service layer that delegates to runtime components."""
         self.command_service = CoordinatorCommandService(self)
@@ -182,6 +185,16 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
     def status_runtime(self):  # type: ignore[no-untyped-def]
         """Access status runtime (public API for services)."""
         return self._runtimes.status
+
+    @property
+    def tuning_runtime(self):  # type: ignore[no-untyped-def]
+        """Access tuning runtime (public API for services)."""
+        return self._runtimes.tuning
+
+    @property
+    def background_task_manager(self):  # type: ignore[no-untyped-def]
+        """Access coordinator-owned background task manager."""
+        return self._state.background_task_manager
 
     @property
     def mqtt_client(self) -> LiproMqttClient | None:
@@ -339,8 +352,50 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
         self._state.mqtt_client = mqtt_client
         self._state.biz_id = biz_id
         self._runtimes.mqtt = mqtt_runtime
+        self._runtimes.mqtt.set_polling_updater(self)
 
         return True
+
+    async def async_shutdown(self) -> None:
+        """Release coordinator-owned MQTT and background resources."""
+        with suppress(Exception):
+            await self._runtimes.mqtt.clear_disconnect_notification()
+
+        try:
+            await self.command_service.async_shutdown()
+        except asyncio.CancelledError:
+            raise
+        except Exception as err:  # noqa: BLE001
+            _LOGGER.warning(
+                "Command service shutdown failed (%s)",
+                type(err).__name__,
+            )
+
+        try:
+            await self._runtimes.mqtt.disconnect()
+        except asyncio.CancelledError:
+            raise
+        except Exception as err:  # noqa: BLE001
+            _LOGGER.warning(
+                "MQTT shutdown failed (%s)",
+                type(err).__name__,
+            )
+
+        try:
+            await self._state.background_task_manager.cancel_all()
+        except asyncio.CancelledError:
+            raise
+        except Exception as err:  # noqa: BLE001
+            _LOGGER.warning(
+                "Background task shutdown failed (%s)",
+                type(err).__name__,
+            )
+
+        self._state.mqtt_client = None
+        self._state.biz_id = None
+        self._runtimes.mqtt.reset()
+        self._runtimes.device.reset()
+        await super().async_shutdown()
 
     async def _async_run_status_polling(self) -> None:
         """Run adaptive REST status polling via StatusRuntime (Phase H4).
@@ -415,9 +470,12 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
                 if self._runtimes.device.should_refresh_device_list():
                     async with asyncio.timeout(10):
                         snapshot = await self._runtimes.device.refresh_devices(force=True)
-                        # Update coordinator devices from snapshot
                         self._state.devices.clear()
                         self._state.devices.update(snapshot.devices)
+
+                        if self._state.mqtt_client is not None:
+                            async with asyncio.timeout(5):
+                                await self.mqtt_service.async_sync_subscriptions()
 
                 # Schedule MQTT setup if needed (5 seconds timeout)
                 if self._state.mqtt_client is None and self._state.devices:
