@@ -18,6 +18,7 @@ future `API Client` de-mixin refactors.
 
 ## Canonicalization Rule
 
+- `get_mqtt_config` direct and wrapped fixtures describe the same canonical payload; the wrapped sample only adds a transport envelope
 - `get_mqtt_config` canonical output is a mapping containing at least `accessKey` and `secretKey`
 - `get_city` canonical output is the validated mapping returned by the endpoint helper
 - `query_user_cloud` canonical output is the validated mapping returned by the endpoint helper

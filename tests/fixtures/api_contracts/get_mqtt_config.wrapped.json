@@ -1,9 +1,9 @@
 {
   "code": 0,
   "data": {
-    "accessKey": "ak-wrapped",
-    "secretKey": "sk-wrapped",
+    "accessKey": "ak-direct",
+    "secretKey": "sk-direct",
     "endpoint": "tcp://mqtt.example.com:1883",
-    "clientId": "cid-wrapped"
+    "clientId": "cid-direct"
   }
 }
