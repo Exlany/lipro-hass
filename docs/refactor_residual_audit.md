@@ -1,46 +1,68 @@
 # Lipro 重构收口残留审查报告（Legacy / Compat Residual Audit）
 
 > **生成日期**：2026-03-11
->
+> **最后更新**：2026-03-12
 > **审查范围**：`lipro-hass/custom_components/lipro/` + `lipro-hass/tests/`（仅静态审阅，不做代码修改）
->
-> **目标**：识别“新架构（RuntimeContext + Orchestrator + Runtime 组件 + Service 层）”落地后，仍残留的旧接口、兼容层、影子模块（tests-only / 无生产路径引用 / 生产路径未接回）。
+> **目标**：识别”新架构（RuntimeContext + Orchestrator + Runtime 组件 + Service 层）”落地后，仍残留的旧接口、兼容层、影子模块（tests-only / 无生产路径引用 / 生产路径未接回）。
+> **完成状态**：✅ P0 全部修复，✅ P2 影子模块清理完成，⚠️ P1 部分修复（详见更新说明）
 
 ---
 
 ## 0. TL;DR（最关键结论）
 
-### P0（高风险：真实运行可能直接报错 / 核心链路断裂）
+### ✅ P0（高风险：真实运行可能直接报错 / 核心链路断裂）— 已全部修复
 
-- `send_command` service 仍按旧 Coordinator 契约调用：`custom_components/lipro/services/command.py:65` 传 `fallback_device_id=...`，并读取 `coordinator.last_command_failure`（`custom_components/lipro/services/command.py:74`）；但 `Coordinator.async_send_command()` 新签名不支持该 kw（`custom_components/lipro/core/coordinator/coordinator.py:281`）。
-- `refresh_devices` service 仍调用旧方法 `coordinator.async_refresh_devices()`（`custom_components/lipro/services/maintenance.py:65`），新 Coordinator 无此方法；新架构替代是 `coordinator.device_refresh_service.async_refresh_devices()`（`custom_components/lipro/core/coordinator/services/device_refresh_service.py:45`）。
-- `async_execute_coordinator_call()` 触发 reauth 时仍按旧 `_trigger_reauth(key, **placeholders)` 调用（`custom_components/lipro/services/execution.py:70` / `custom_components/lipro/services/execution.py:89`），但新 Coordinator 回调仅接受 `reason: str`（`custom_components/lipro/core/coordinator/coordinator.py:135`），在真实 auth error 场景会 `TypeError`。
-- diagnostics 仍直接读取 `coordinator.mqtt_connected`（`custom_components/lipro/diagnostics.py:252`、`custom_components/lipro/diagnostics.py:286`），新 Coordinator 无该属性；新架构替代是 `coordinator.mqtt_service.connected`（`custom_components/lipro/core/coordinator/services/mqtt_service.py:36`）。
-- MQTT 生命周期未绑定 `LiproMqttClient` 的 `on_message` 回调：`mqtt_lifecycle` 创建 client 时未传回调（`custom_components/lipro/core/coordinator/mqtt_lifecycle.py:159`），而 `core/mqtt` 运行时仅会把解析后的消息转发给 `self._on_message`（`custom_components/lipro/core/mqtt/client_runtime.py:94`）；导致 `MqttRuntime.handle_message()`（`custom_components/lipro/core/coordinator/runtime/mqtt_runtime.py:249`）在生产永远不被调用。
-- MQTT 订阅目标仅选择 mesh group：`mqtt_lifecycle` 只对 `device.is_group` 生成订阅列表（`custom_components/lipro/core/coordinator/mqtt_lifecycle.py:184`），无 group 时 `connect()` 不会执行且随后 `is_connected` 校验失败直接返回 `None`（`custom_components/lipro/core/coordinator/mqtt_lifecycle.py:198`）；已有 fallback 帮助函数 `build_mqtt_subscription_device_ids()` 未被使用（`custom_components/lipro/core/coordinator/mqtt/setup.py:51`）。
+**修复日期**: 2026-03-12
+**Commit**: `8d846bc` - fix(services): resolve P0 interface mismatches from refactor residual audit
 
-> 备注：上述问题在 tests 中普遍被 `MagicMock/AsyncMock` 注入旧字段/旧签名掩盖（典型：`tests/core/test_init.py:2108`、`tests/core/test_diagnostics.py:231`）。
+- ✅ `send_command` service → 改用 `coordinator.command_service`
+- ✅ `refresh_devices` service → 改用 `coordinator.device_refresh_service`
+- ✅ `_trigger_reauth` 签名 → 移除 `**placeholders`，只接受 `reason: str`
+- ✅ diagnostics → 改用 `coordinator.mqtt_service.connected`
+- ✅ MQTT on_message 回调 → 通过 async bridge 绑定到 `mqtt_runtime.handle_message()`
+- ✅ MQTT 订阅 fallback → 使用 `build_mqtt_subscription_device_ids()`
 
-### P1（中风险：架构漂移/链路未接回，长期维护成本高）
+### ✅ P2（低风险但噪音大：影子模块 / tests-only surface）— 已清理完成
 
-- `custom_components/lipro/core/coordinator/runtime/protocols.py` 与实际 runtime 实现明显漂移：生产代码目前仅引用 `CommandResult`（`custom_components/lipro/core/coordinator/runtime/command_runtime.py:26`），其余 Protocol 无生产引用；且 `CommandRuntime` 为了“协议兼容”保留 `send_command/send_batch_commands` 的 `NotImplementedError` stub（`custom_components/lipro/core/coordinator/runtime/command_runtime.py:80`、`custom_components/lipro/core/coordinator/runtime/command_runtime.py:91`）。
-- MQTT “放宽轮询 / 断连通知”链路疑似未接回：`MqttRuntime.set_polling_updater()` 仅 tests 调用（`custom_components/lipro/core/coordinator/runtime/mqtt_runtime.py:156`；tests：`tests/core/coordinator/runtime/test_mqtt_runtime.py:441`），生产路径未注入 updater，导致 `MqttConnectionManager.on_connect()` 的轮询放宽在生产可能无效（`custom_components/lipro/core/coordinator/runtime/mqtt/connection.py:72`、`custom_components/lipro/core/coordinator/runtime/mqtt/connection.py:79`）。
-- `StatusRuntime/TuningRuntime` 虽由 orchestrator 装配（`custom_components/lipro/core/coordinator/orchestrator.py:134`、`custom_components/lipro/core/coordinator/orchestrator.py:197`），但 `Coordinator._async_update_data()` 当前仅做鉴权 + 设备刷新 + MQTT setup（`custom_components/lipro/core/coordinator/coordinator.py:392` 起），未消费 status/tuning 逻辑。
-- `get_developer_report` 服务链路仍依赖旧接口 `coordinator.build_developer_report()`（`custom_components/lipro/services/diagnostics/helpers.py:140`、`custom_components/lipro/services/diagnostics/helpers.py:143`），但生产仅存在纯函数构建器 `build_developer_report(...)`（`custom_components/lipro/core/utils/developer_report.py:332`），无调用点，导致该服务大概率长期退化。
-- `CoordinatorDeviceRefreshService.async_refresh_devices()` 当前仅调用 `device_runtime.refresh_devices(force=True)`（`custom_components/lipro/core/coordinator/services/device_refresh_service.py:45`），但未像 `Coordinator._async_update_data()` 那样把 snapshot 写回 `coordinator._state.devices`（`custom_components/lipro/core/coordinator/coordinator.py:415`）；导致即使 services 侧改为新接口，也可能出现“刷新成功但实体不更新”。
-- `system_health` 仍基于 legacy 字段 `mqtt_connected` 统计连接账号数（`custom_components/lipro/system_health.py:64`），新架构应取 `mqtt_service.connected`（`custom_components/lipro/core/coordinator/services/mqtt_service.py:36`）；当前会静默缺失该指标。
-- Device 增量刷新可能“只打 API、不回写内存状态”：snapshot 的 `devices` key 为 `serial`（`custom_components/lipro/core/coordinator/runtime/device/snapshot.py:136`），但增量刷新用 API 返回的 `id` 去 `devices.get(device_id)` 回写（`custom_components/lipro/core/coordinator/runtime/device/incremental.py:104`），需确认 `id` 是否等同 `serial`。
-- 平台/实体层仍存在绕过统一写路径/稳定边界的残留（如 `custom_components/lipro/fan.py:163`、`custom_components/lipro/select.py:301`、`custom_components/lipro/entities/firmware_update.py:260`），见 4.1。
+**修复日期**: 2026-03-12
+**Commit**: `49ead4f` - refactor: clean up shadow modules and unused methods per residual audit
 
-### P2（低风险但噪音大：影子模块 / tests-only surface）
+- ✅ 删除影子模块：mqtt/policy.py, mqtt/polling.py, coordinator_runtime.py（123 行）
+- ✅ 删除 Coordinator 重复方法：_query_device_status_batch(), _async_trigger_reauth()（53 行）
+- ✅ 更新 system_health.py → 使用 `mqtt_service.connected`
+- ✅ 删除相关测试文件（3 个文件，335 行）
 
-- 存在一批“旧设计/纯函数草案”模块仅被 tests 引用，且与新架构重复或未接回生产（见第 2 节对照表）。
+### ⚠️ P1（中风险：架构漂移/链路未接回）— 部分修复，部分标记为设计意图
+
+**修复日期**: 2026-03-12
+**Commit**: `61822bf` - docs: clarify StatusRuntime/TuningRuntime as Phase H4 incomplete features
+
+- ✅ **StatusRuntime/TuningRuntime 未消费** → 已确认为 **Phase H4 未完成功能**（非过度设计）
+  - 添加文档注释说明这是新架构的设计意图
+  - 等待 Phase H4（Service 层升级为 Saga-lite 编排器）实现
+  - 参考：docs/refactor_completion_plan.md Section 8 Phase H4
+
+- ✅ **device_refresh_service 回写逻辑** → 已修复
+  - 改用 `coordinator.async_request_refresh()` 触发完整更新循环
+  - 保持 Service 层薄代理设计（正确的职责分离）
+
+- ⚠️ **其他 P1 问题** → 保留现状（需要真实用户需求驱动）
+  - MQTT 轮询放宽链路：等待 Phase H4 实现
+  - developer_report 服务：标记为 experimental，等待需求验证
+  - 平台层绕过统一写路径：需要逐个评估，非紧急
 
 ---
 
-## 1. P0 残留明细（接口不一致 / 真实运行风险）
+## 1. P0 残留明细（接口不一致 / 真实运行风险）— ✅ 已全部修复
 
-### 1.1 `send_command` 服务：旧签名/旧字段残留
+### 1.1 `send_command` 服务：旧签名/旧字段残留 — ✅ 已修复
+
+**修复方案**：
+- ✅ 更新 Protocol 定义：`CommandCoordinator` → `command_service: CommandService`
+- ✅ 更新调用方式：`coordinator.command_service.async_send_command()`
+- ✅ 更新失败读取：`coordinator.command_service.last_failure`
+
+**原问题描述**：
 
 - 旧调用点：`custom_components/lipro/services/command.py:65` 调用 `coordinator.async_send_command(..., fallback_device_id=...)`。
 - 旧字段：失败时读取 `coordinator.last_command_failure`（`custom_components/lipro/services/command.py:74`）。
@@ -61,7 +83,12 @@
 - 旧签名断言：`tests/core/test_init.py:2108`（`fallback_device_id=device.serial`）。
 - 旧字段注入：`tests/core/test_init.py:2162`（`coordinator.last_command_failure = ...`）。
 
-### 1.2 `refresh_devices` 服务：调用不存在的 `coordinator.async_refresh_devices()`
+### 1.2 `refresh_devices` 服务：调用不存在的 `coordinator.async_refresh_devices()` — ✅ 已修复
+
+**修复方案**：
+- ✅ 更新调用方式：`coordinator.device_refresh_service.async_refresh_devices()`
+
+**原问题描述**：
 
 - 调用点：`custom_components/lipro/services/maintenance.py:65`。
 - 当前 Coordinator 未实现 `async_refresh_devices()`（生产代码仅命中 services/tests）。
@@ -78,7 +105,13 @@
 
 - `tests/core/test_init.py:1272` 通过 `MagicMock(async_refresh_devices=AsyncMock())` 伪造旧方法。
 
-### 1.3 Service 执行器：`_trigger_reauth` 旧签名残留（auth error 时会 TypeError）
+### 1.3 Service 执行器：`_trigger_reauth` 旧签名残留 — ✅ 已修复
+
+**修复方案**：
+- ✅ 更新 Protocol 定义：`_trigger_reauth(self, reason: str)`（移除 `**placeholders`）
+- ✅ 更新调用方式：`_trigger_reauth(coordinator, f"auth_error: {safe_error}")`
+
+**原问题描述**：
 
 - 旧契约声明：`custom_components/lipro/services/execution.py:21`（`_trigger_reauth(self, key: str, **placeholders)`）。
 - 实际调用点：`custom_components/lipro/services/execution.py:70`（`trigger_reauth(key, **placeholders)`），并在 `LiproAuthError` 分支传入 `error=...`（`custom_components/lipro/services/execution.py:89`）。
@@ -92,7 +125,14 @@
 
 - `tests/services/test_execution.py:75` 使用 `AsyncMock()` 接管 `_trigger_reauth`，不会对签名差异报警。
 
-### 1.4 diagnostics：直接读取 `coordinator.mqtt_connected`（当前 Coordinator 无此属性）
+### 1.4 diagnostics：直接读取 `coordinator.mqtt_connected` — ✅ 已修复
+
+**修复方案**：
+- ✅ 更新 diagnostics.py：使用 `coordinator.mqtt_service.connected`（2 处）
+- ✅ 更新 system_health.py：使用 `mqtt_service.connected`
+- ✅ 更新 test_diagnostics.py：修复所有 mock 结构（5 处）
+
+**原问题描述**：
 
 - 调用点：`custom_components/lipro/diagnostics.py:252`、`custom_components/lipro/diagnostics.py:286`。
 - 新架构可用信息源：
@@ -112,7 +152,14 @@
 - `custom_components/lipro/system_health.py:64` 使用 `getattr(coordinator, "mqtt_connected", None)`，因此不会崩溃，但也会长期拿不到该字段。
 
 
-### 1.5 MQTT 生命周期：未绑定 `on_message` 回调（实时状态更新链路断裂）
+### 1.5 MQTT 生命周期：未绑定 `on_message` 回调 — ✅ 已修复
+
+**修复方案**：
+- ✅ 创建 async bridge 函数：`_on_message_bridge(topic, payload)`
+- ✅ 使用 `asyncio.create_task()` 桥接同步回调到异步 handler
+- ✅ 绑定到 `LiproMqttClient(on_message=_on_message_bridge)`
+
+**原问题描述**：
 
 - 现状：`mqtt_lifecycle` 创建 `LiproMqttClient` 时未传 `on_message`（`custom_components/lipro/core/coordinator/mqtt_lifecycle.py:159`）。
 - `core/mqtt` 的消息处理链路只会把解析后的消息转发给 `self._on_message`（`custom_components/lipro/core/mqtt/client_runtime.py:94`）。
@@ -132,7 +179,13 @@
 
 - `tests/core/coordinator/runtime/test_mqtt_runtime.py:226` 直接调用 `mqtt_runtime.handle_message(...)` 测逻辑，但未覆盖“MQTT 客户端 → runtime”的 wiring。
 
-### 1.6 MQTT 生命周期：订阅 targets 仅 mesh group（无 group 账号会直接失败）
+### 1.6 MQTT 生命周期：订阅 targets 仅 mesh group — ✅ 已修复
+
+**修复方案**：
+- ✅ 使用 `build_mqtt_subscription_device_ids()` helper 函数
+- ✅ 自动 fallback 到所有设备（当无 mesh group 时）
+
+**原问题描述**：
 
 - 现状：`mqtt_lifecycle` 只对 `device.is_group` 构造订阅列表（`custom_components/lipro/core/coordinator/mqtt_lifecycle.py:184`）。
 - 若账号下没有 mesh group，则不会调用 `mqtt_runtime.connect()`，但随后仍会检查 `mqtt_runtime.is_connected` 并直接返回失败（`custom_components/lipro/core/coordinator/mqtt_lifecycle.py:198`）。
@@ -152,11 +205,33 @@
 
 ---
 
-## 2. P2 影子模块对照表（逐一对照：新架构替代实现在哪里？）
+## 2. P2 影子模块对照表 — ✅ 已清理完成
 
-说明：此处“影子模块”指 **仅 tests 引用 / 或生产路径完全未引用 / 生产链路未接回** 的模块（含旧实现保留的纯策略函数）。
+**修复日期**: 2026-03-12
+**Commit**: `49ead4f` - refactor: clean up shadow modules and unused methods per residual audit
 
-### 2.1 功能影子模块（tests-only 或生产未接回）
+说明：此处”影子模块”指 **仅 tests 引用 / 或生产路径完全未引用 / 生产链路未接回** 的模块（含旧实现保留的纯策略函数）。
+
+### 2.1 功能影子模块（tests-only 或生产未接回）— ✅ 已清理
+
+| 影子模块 | 主要职责 | 清理状态 |
+|---|---|---|
+| `mqtt/policy.py` | MQTT 断连时间/通知/放宽轮询策略 | ✅ 已删除（43 行） |
+| `mqtt/polling.py` | MQTT connect/disconnect 时轮询策略 | ✅ 已删除（47 行） |
+| `coordinator_runtime.py` | 设备刷新/MQTT setup 决策函数 | ✅ 已删除（33 行） |
+| `test_mqtt_lifecycle.py` | 测试已删除的 policy.py | ✅ 已删除（96 行） |
+| `test_mqtt_polling.py` | 测试已删除的 polling.py | ✅ 已删除（101 行） |
+| `test_coordinator_runtime.py` | 测试已删除的 coordinator_runtime.py | ✅ 已删除（138 行） |
+
+**Coordinator 重复方法清理**：
+- ✅ `_query_device_status_batch()` - 与 orchestrator 闭包重复（42 行）
+- ✅ `_async_trigger_reauth()` - 与 `_trigger_reauth()` 回调重复（11 行）
+
+**总计清理**：516 行代码
+
+### 2.1 功能影子模块（tests-only 或生产未接回）— ⚠️ 保留待评估
+
+以下模块保留现状，等待真实用户需求驱动：
 
 | 影子模块 | 主要职责 | 当前引用情况 | 新架构替代/对应位置 | 建议（删/并/接回） |
 |---|---|---|---|---|
