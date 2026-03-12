@@ -13,7 +13,8 @@
 - `.planning/ROADMAP.md` — GSD 路线图真源
 - `.planning/STATE.md` — 会话延续与当前焦点
 - `.planning/phases/01-protocol-contract-baseline/` — Phase 01 context + plans
-- `.planning/phases/02-api-client-de-mixin/` — Phase 02 context + research + plans
+- `.planning/phases/01.5-north-star-baseline-assets/` — Phase 01.5 full planning pack
+- `.planning/phases/02-api-client-de-mixin/` — Phase 02 full planning pack
 - `.planning/phases/02.5-protocol-root-unification/` — Phase 02.5 full planning pack
 - `.planning/phases/02.6-external-boundary-convergence/` — Phase 02.6 full planning pack
 - `.planning/phases/03-control-plane-convergence/` — Phase 03 drafted planning pack
@@ -104,6 +105,16 @@
 
 **当前状态**：`In Progress`
 
+### Phase 1.5 — 北极星基准资产化
+
+**目标**：在大规模重构前，把 target topology、dependency matrix、public surfaces、verification matrix 与 authority matrix 正式资产化，并落下最小 seed guards。
+
+- 固化 baseline asset pack 的 formal status 与同步方向
+- 建立 dependency/public-surface 最小 guard seeds
+- 为 Phase 2+ 提供统一 baseline handoff
+
+**当前状态**：`Drafted / Blocked by unfinished Phase 01 closeout outputs`
+
 ### Phase 2 — API Client 去 Mixin 化
 
 **目标**：先把 REST / IoT 协议主链从历史 mixin 聚合收敛到显式 facade + collaborators，并把 `core/api/**/*.py` 全量纳入正式治理。
@@ -114,7 +125,7 @@
 - 在 Phase 1 contract baseline 保护下迁移公开 REST API surface
 - 保证结构可无缝演进到统一协议根 `LiproProtocolFacade`
 
-**当前状态**：`Planning`
+**当前状态**：`Drafted / Waiting for upstream baseline closeout and execution outputs`
 
 ### Phase 2.5 — Protocol Root Unification
 
@@ -185,7 +196,8 @@
 ## 7. 本轮之后的直接下一步
 
 1. 完成 `.planning/phases/01-protocol-contract-baseline/01-02-PLAN.md`
-2. 完成 `Phase 02` execution closeout，生成 REST façade / demixin 的真实 summaries
-3. 执行 `.planning/phases/02.5-protocol-root-unification/*-PLAN.md`
-4. 在 unified protocol root 落地后执行 `.planning/phases/02.6-external-boundary-convergence/*-PLAN.md`
-5. 基于 `02.5 + 02.6` 真实输出回到 `Phase 03` 做 unblock 复核
+2. 执行 `.planning/phases/01.5-north-star-baseline-assets/*-PLAN.md`
+3. 完成 `Phase 02` execution closeout，生成 REST façade / demixin 的真实 summaries
+4. 执行 `.planning/phases/02.5-protocol-root-unification/*-PLAN.md`
+5. 在 unified protocol root 落地后执行 `.planning/phases/02.6-external-boundary-convergence/*-PLAN.md`
+6. 基于 `02.5 + 02.6` 真实输出回到 `Phase 03` 做 unblock 复核
