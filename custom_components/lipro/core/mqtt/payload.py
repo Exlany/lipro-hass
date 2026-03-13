@@ -1,15 +1,19 @@
-"""MQTT payload parsing and log sanitization helpers."""
+"""MQTT payload log sanitization helpers and boundary-family shim."""
 
 from __future__ import annotations
 
+from functools import lru_cache
+from importlib import import_module
 import json
 import re
 from typing import Any, Final
 
-from ..utils.property_normalization import normalize_properties
 
-# Values that indicate "not supported" in MQTT payloads — skip these
-_NOISE_VALUES: Final[frozenset[str]] = frozenset({"-1", ""})
+@lru_cache(maxsize=1)
+def _boundary_decoder_module() -> Any:
+    """Resolve the protocol-boundary module lazily to avoid import cycles."""
+    return import_module("custom_components.lipro.core.protocol.boundary")
+
 
 # Hard limit for incoming MQTT payloads to avoid excessive memory/log churn.
 _MAX_MQTT_PAYLOAD_BYTES: Final[int] = 64 * 1024
@@ -65,60 +69,10 @@ _MQTT_LOG_STRING_PATTERNS: Final[tuple[tuple[re.Pattern[str], str], ...]] = (
     ),
 )
 
-# MQTT payload property groups that contain device state
-_MQTT_PROPERTY_GROUPS: Final[tuple[str, ...]] = (
-    "common",
-    "light",
-    "fanLight",
-    "switchs",
-    "outlet",
-    "curtain",
-    "gateway",
-)
-
-
-def _select_mqtt_property_source(payload: dict[str, Any]) -> dict[str, Any]:
-    """Select the dict that actually contains MQTT property groups."""
-    current = payload
-    for _ in range(3):
-        if any(isinstance(current.get(group_name), dict) for group_name in _MQTT_PROPERTY_GROUPS):
-            return current
-        next_payload = None
-        for wrapper_key in ("data", "payload"):
-            candidate = current.get(wrapper_key)
-            if isinstance(candidate, dict):
-                next_payload = candidate
-                break
-        if next_payload is None:
-            return current
-        current = next_payload
-    return current
-
 
 def parse_mqtt_payload(payload: Any) -> dict[str, Any]:
-    """Parse MQTT payload and flatten properties."""
-    if not isinstance(payload, dict):
-        return {}
-
-    properties: dict[str, Any] = {}
-    source = _select_mqtt_property_source(payload)
-
-    for group_name in _MQTT_PROPERTY_GROUPS:
-        group_data = source.get(group_name)
-        if not isinstance(group_data, dict):
-            continue
-
-        for mqtt_key, value in group_data.items():
-            # Skip noise values: "-1" means unsupported, "" means empty
-            if isinstance(value, str) and value.strip() in _NOISE_VALUES:
-                continue
-            if isinstance(value, (int, float)) and value == -1:
-                continue
-
-            key = str(mqtt_key)
-            properties[key] = value
-
-    return normalize_properties(properties)
+    """Decode MQTT payloads via the formal protocol boundary family."""
+    return _boundary_decoder_module().decode_mqtt_properties_payload(payload).canonical
 
 
 def _sanitize_mqtt_log_value(value: Any, key: str | None = None) -> Any:

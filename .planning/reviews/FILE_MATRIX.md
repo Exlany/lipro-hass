@@ -1,6 +1,6 @@
 # File Matrix
 
-**Python files total:** 404
+**Python files total:** 409
 **Status:** File-level governance authority
 **Rule:** workspace inventory excluding caches / virtual env / tooling artifacts
 
@@ -181,6 +181,11 @@
 | `custom_components/lipro/core/ota/row_selector.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/core/ota/rows_cache.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/core/protocol/__init__.py` | Protocol | Phase 2.5 | 保留 | - |
+| `custom_components/lipro/core/protocol/boundary/__init__.py` | Protocol | Phase 7.1 | 保留 | - |
+| `custom_components/lipro/core/protocol/boundary/mqtt_decoder.py` | Protocol | Phase 7.1 | 保留 | - |
+| `custom_components/lipro/core/protocol/boundary/rest_decoder.py` | Protocol | Phase 7.1 | 保留 | - |
+| `custom_components/lipro/core/protocol/boundary/result.py` | Protocol | Phase 7.1 | 保留 | - |
+| `custom_components/lipro/core/protocol/boundary/schema_registry.py` | Protocol | Phase 7.1 | 保留 | - |
 | `custom_components/lipro/core/protocol/compat.py` | Protocol | Phase 2.5 | 保留 | - |
 | `custom_components/lipro/core/protocol/contracts.py` | Protocol | Phase 2.5 | 保留 | - |
 | `custom_components/lipro/core/protocol/diagnostics_context.py` | Protocol | Phase 2.5 | 保留 | - |
@@ -232,7 +237,7 @@
 | `custom_components/lipro/services/diagnostics/helpers.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/services/diagnostics/types.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/services/errors.py` | Control | Phase 3 | 保留 | - |
-| `custom_components/lipro/services/execution.py` | Control | Phase 5 | 保留 | formal runtime-auth surface |
+| `custom_components/lipro/services/execution.py` | Control | Phase 5 / 7 | 迁移适配 | runtime-auth seam |
 | `custom_components/lipro/services/maintenance.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/services/registrations.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/services/registry.py` | Control | Phase 3 | 保留 | - |

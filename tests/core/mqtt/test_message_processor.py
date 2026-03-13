@@ -2,13 +2,22 @@
 
 from __future__ import annotations
 
+import json
 import logging
+from pathlib import Path
 from unittest.mock import MagicMock
 
+from custom_components.lipro.core.mqtt import payload as payload_module
 from custom_components.lipro.core.mqtt.message_processor import (
     MqttMessageProcessor,
     decode_payload_text,
 )
+
+_FIXTURE_DIR = Path(__file__).resolve().parents[2] / "fixtures" / "protocol_boundary"
+
+
+def _load_fixture(name: str) -> dict[str, object]:
+    return json.loads((_FIXTURE_DIR / name).read_text(encoding="utf-8"))
 
 
 def test_decode_payload_text_returns_string_for_valid_text() -> None:
@@ -59,3 +68,33 @@ def test_message_processor_forwards_valid_properties() -> None:
         "03ab5ccd7cxxxxxx",
         {"powerState": "1"},
     )
+
+
+def test_message_processor_accepts_protocol_boundary_fixture() -> None:
+    fixture = _load_fixture("mqtt_properties.device_state.v1.json")
+    topic = fixture["topic"]
+    payload = fixture["payload"]
+    device_id = fixture["device_id"]
+    canonical = fixture["canonical"]
+
+    assert isinstance(topic, str)
+    assert isinstance(payload, dict)
+    assert isinstance(device_id, str)
+    assert isinstance(canonical, dict)
+
+    processor = MqttMessageProcessor("biz001")
+    message = MagicMock()
+    message.topic = topic
+    message.payload = json.dumps(payload).encode("utf-8")
+    on_message = MagicMock()
+
+    processor.process_message(
+        message,
+        parse_payload=payload_module.parse_mqtt_payload,
+        on_message=on_message,
+        invoke_callback=lambda callback, _name, *args: (callback(*args), True)[1],
+        set_last_error=lambda err: None,
+        clear_last_error=lambda: None,
+    )
+
+    on_message.assert_called_once_with(device_id, canonical)

@@ -52,6 +52,16 @@ _CONTROL_ONLY_FORBIDDEN_PREFIXES = (
     "..core.coordinator",
     "custom_components.lipro.core.coordinator",
 )
+_BOUNDARY_INTERNAL_PREFIXES = (
+    ".core.protocol.boundary",
+    "..core.protocol.boundary",
+    "custom_components.lipro.core.protocol.boundary",
+)
+_ALLOWED_BOUNDARY_IMPORT_ROOTS = (
+    _ROOT / "custom_components" / "lipro" / "core" / "protocol",
+    _ROOT / "custom_components" / "lipro" / "core" / "api",
+    _ROOT / "custom_components" / "lipro" / "core" / "mqtt",
+)
 
 
 def _iter_import_modules(path: Path) -> list[str]:
@@ -94,15 +104,15 @@ def test_dependency_matrix_documents_seed_guard_scope() -> None:
     dependency_matrix = _DEPENDENCY_MATRIX.read_text(encoding="utf-8")
 
     assert (
-        "| Entity / Platform | raw protocol internals, MQTT client, REST transport |"
+        "| Entity / Platform | raw protocol internals, `core/protocol/boundary/*`, MQTT client, REST transport |"
         in dependency_matrix
     )
     assert (
-        "| Control plane | protocol internals, runtime internals bypassing public surface |"
+        "| Control plane | protocol internals, `core/protocol/boundary/*`, runtime internals bypassing public surface |"
         in dependency_matrix
     )
     assert "tests/meta/test_dependency_guards.py" in dependency_matrix
-    assert "core.api`、`core.mqtt` 与 `core.coordinator` internals" in dependency_matrix
+    assert "core.api`、`core.mqtt`、`core.protocol.boundary` 与 `core.coordinator` internals" in dependency_matrix
     assert "control/" in dependency_matrix
 
 
@@ -118,5 +128,19 @@ def test_control_surface_seed_files_do_not_bypass_public_runtime_surfaces() -> N
     violations = _find_forbidden_imports(
         _CONTROL_SURFACE_SEED_PATHS,
         _PROTOCOL_INTERNAL_PREFIXES + _CONTROL_ONLY_FORBIDDEN_PREFIXES,
+    )
+    assert not violations, "\n".join(violations)
+
+
+def test_boundary_decoder_package_stays_inside_protocol_plane() -> None:
+    disallowed_paths = [
+        path
+        for path in (_ROOT / "custom_components" / "lipro").rglob("*.py")
+        if not any(path.is_relative_to(prefix) for prefix in _ALLOWED_BOUNDARY_IMPORT_ROOTS)
+    ]
+
+    violations = _find_forbidden_imports(
+        sorted(disallowed_paths),
+        _BOUNDARY_INTERNAL_PREFIXES,
     )
     assert not violations, "\n".join(violations)

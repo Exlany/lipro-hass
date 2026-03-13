@@ -2,7 +2,15 @@
 
 from __future__ import annotations
 
+from functools import lru_cache
+from importlib import import_module
 from typing import Any, cast
+
+
+@lru_cache(maxsize=1)
+def _boundary_decoder_module() -> Any:
+    """Resolve the protocol-boundary module lazily to avoid import cycles."""
+    return import_module("custom_components.lipro.core.protocol.boundary")
 
 
 def _extract_mqtt_config_payload(
@@ -10,21 +18,15 @@ def _extract_mqtt_config_payload(
     *,
     is_success_code: Any,
 ) -> dict[str, Any] | None:
-    """Extract MQTT config from direct, data-only, or success+data shapes."""
-    if not isinstance(result, dict):
+    """Extract MQTT config through the formal boundary decoder family."""
+    try:
+        decoded = _boundary_decoder_module().decode_mqtt_config_payload(
+            result,
+            is_success_code=is_success_code,
+        )
+    except ValueError:
         return None
-
-    if "accessKey" in result and "secretKey" in result:
-        return cast(dict[str, Any], result)
-
-    payload = result.get("data")
-    if not isinstance(payload, dict):
-        return None
-    if "accessKey" not in payload or "secretKey" not in payload:
-        return None
-    if "code" not in result or is_success_code(result.get("code")):
-        return cast(dict[str, Any], payload)
-    return None
+    return cast(dict[str, Any], decoded.canonical)
 
 
 async def get_mqtt_config(

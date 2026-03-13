@@ -12,6 +12,7 @@
 | Capability compat public name | `custom_components/lipro/core/device/capabilities.py` 继续提供 `DeviceCapabilities` 旧导入名 | Phase 4 | `04-03 capability compat cleanup` | 直接消费者改用 `CapabilitySnapshot` / `CapabilityRegistry`，旧 public name 不再必要 |
 | External-boundary advisory naming | firmware remote advisory / support payload generated field naming 仍带 legacy semantics | Phase 2.6 | `02.6 external-boundary closeout` | authority truth 已固定后完成术语清理 |
 | Legacy service wiring carrier | `custom_components/lipro/services/wiring.py` 仍承载部分实现闭包 | Phase 3 | `Phase 7 cleanup sweep` | `control.service_router` 完全接管且测试 patch seam 不再依赖 wiring carrier |
+| Protocol-boundary family coverage | `rest.list-envelope.v1`、`rest.schedule-json.v1`、`mqtt.topic.v1`、`mqtt.message-envelope.v1` 仍停留在 inventory / helper collaborator 层，尚未全部 registry-backed | Phase 7.1 | `07.1 boundary expansion handoff` | inventory 中登记的 family 全部完成 registry-backed 接线，或在 v1.1 closeout 中被明确裁决为 de-scope / retire |
 
 ## Rules
 
@@ -74,3 +75,10 @@
 
 - `Private runtime auth seam` 已关闭：`custom_components/lipro/services/execution.py` 不再依赖 coordinator 私有 auth hook，而只通过正式 `auth_service` contract 获取认证上下文。
 - runtime signal ports 已 formalize；`connect-status` shadow chain 未被 resurrect，相关 dead modules 已转入 Phase 7 治理 closeout。
+
+
+## Phase 07.1 / `07.1-03` Residual Delta
+
+- 新增 `Protocol-boundary family coverage` residual family：`rest.mqtt-config@v1` 与 `mqtt.properties@v1` 已接入 registry，但 inventory 中其余 family 仍待收口或裁决。
+- `tests/fixtures/protocol_boundary/` 已建立 replay-ready evidence family；因此后续 phase 不得绕过这些 fixtures 另造 decoder/replay 真源。
+- 本计划没有新增 compat shell；残留只描述尚未完成 family coverage，而不是允许 boundary truth 重新散落。

@@ -2,7 +2,7 @@
 
 **Purpose:** 定义各平面的 canonical public surfaces、过渡公开面与禁止作为正式入口的对象。
 **Status:** Formal baseline asset (`BASE-01` public-surface truth source)
-**Updated:** 2026-03-12
+**Updated:** 2026-03-13
 
 ## Formal Role
 
@@ -37,6 +37,7 @@
 - direct transport/auth objects exposed to entity/control plane
 - MQTT client object as runtime/entity public truth
 - raw vendor payloads as domain/runtime public contracts
+- `core/protocol/boundary/*` decoder package as runtime/control/domain/entity public surface
 - ad-hoc helper exports that bypass formal plane roots
 
 ## Update Rule
@@ -51,7 +52,7 @@
 - `.planning/reviews/KILL_LIST.md`
 - `.planning/baseline/VERIFICATION_MATRIX.md`
 
-Phase `01.5-02` seed scope：`tests/meta/test_public_surface_guards.py` 当前只守住三件事——`Coordinator` 保持窄 runtime surface、`LiproClient` 仍被归类为 transitional compat shell、`custom_components.lipro.core.api` 不得重新导出 transport internals/legacy helper names。
+Phase `01.5-02` seed scope：`tests/meta/test_public_surface_guards.py` 当前守住四件事——`Coordinator` 保持窄 runtime surface、`LiproClient` 仍被归类为 transitional compat shell、`custom_components.lipro.core.api` 不得重新导出 transport internals/legacy helper names、`core.protocol` 不得把 `boundary` decoder internals 升格为 public surface。
 
 ---
 *Used by: API/runtime/control/capability phase planning and meta guard design*

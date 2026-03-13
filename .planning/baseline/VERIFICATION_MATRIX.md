@@ -2,7 +2,7 @@
 
 **Purpose:** 建立 requirement → artifact → test → doc → phase acceptance / handoff 的统一验证闭环。
 **Status:** Formal baseline asset (`BASE-03` phase acceptance truth source)
-**Updated:** 2026-03-12
+**Updated:** 2026-03-13
 
 ## Formal Role
 
@@ -22,6 +22,7 @@
 | `RUN-*` | coordinator/runtime services、runtime invariants docs | invariant suite + integration checks + orchestration review | 5 | `Coordinator` 继续作为唯一正式 runtime root |
 | `ASSR-*` | seed guards、meta guards、telemetry hooks、CI gates、verification docs | meta tests + observability evidence + CI proof | 1.5 / 6 | 结构未退化成为默认验收门，而非收尾补丁 |
 | `INTG-*` | external boundary docs、fixtures、generated expectations、authority updates | targeted contract tests + fixture audits + drift checks | 2.6 | 外部边界 contract 成为后续 phase 的可引用真源 |
+| `BND-*` | protocol boundary inventory、decoder family、schema registry、decode result、authority updates | boundary inventory review + protocol contract tests + governance guards | 7.1 | telemetry / replay / enforcement 继承单一 boundary truth，不再各自生长 decode authority |
 | `GOV-*` | `FILE_MATRIX`、`RESIDUAL_LEDGER`、`KILL_LIST`、final report | governance review + cleanup proof + audit summaries | 7 | 仓库最终收口具备完整治理证据链 |
 
 ## Locked Upstream Inputs
@@ -44,6 +45,7 @@
 | 5 | baseline asset pack + Phase 2-4 formal surfaces | runtime invariants docs、runtime orchestration artifacts、必要的 residual cleanup | runtime invariant suite + integration proof | `Coordinator` 仍为唯一 runtime root；旁路刷新/写状态/重复订阅必须被证明受控 |
 | 6 | 本文件、seed guards、prior formal surfaces、Phase 5 runtime proof | assurance taxonomy、hardened guards、CI gates、coverage / quality proof | meta guards + CI proof + test-structure alignment review | “结构未退化” 成为默认质量门；后续变更必须先经过 assurance contract |
 | 7 | all prior summaries + governance docs + baseline asset pack | final `FILE_MATRIX`、`RESIDUAL_LEDGER`、`KILL_LIST`、closeout report | full governance review + cleanup / deletion proof | 形成仓库级最终 acceptance record |
+| 7.1 | baseline asset pack、Phase 2 / 2.5 protocol outputs、`tests/fixtures/api_contracts/**`、`tests/fixtures/protocol_boundary/**`、`.planning/phases/07.1-protocol-boundary-schema-decoder/07.1-ARCHITECTURE.md` | boundary inventory、`core/protocol/boundary/` family、`07.1-01~03-SUMMARY.md`、authority/file-matrix/residual updates | targeted protocol contract tests + governance guards + replay/telemetry handoff review | decode authority 必须在 `LiproProtocolFacade` 之下形成单一 boundary family home，且首批 family 要留下 replay-ready fixture evidence |
 
 ## Phase 02 Exit Contract
 

@@ -1,0 +1,24 @@
+{
+  "family": "mqtt.properties",
+  "version": "v1",
+  "topic": "Topic_Device_State/biz001/03ab5ccd7cxxxxxx",
+  "device_id": "03ab5ccd7cxxxxxx",
+  "payload": {
+    "payload": {
+      "common": {
+        "connectState": "1",
+        "signal": "-1"
+      },
+      "light": {
+        "powerState": "1",
+        "brightness": "50"
+      }
+    }
+  },
+  "canonical": {
+    "connectState": "1",
+    "powerState": "1",
+    "brightness": "50"
+  },
+  "fingerprint": "common|light"
+}

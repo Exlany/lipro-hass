@@ -7,11 +7,15 @@ from typing import Any, Protocol, TypedDict, cast
 
 from ..api.client_auth_recovery import AuthRecoveryCoordinator
 from ..api.endpoints.payloads import EndpointPayloadNormalizers
-from ..api.mqtt_api_service import _extract_mqtt_config_payload
 from ..api.schedule_codec import (
     coerce_int_list,
     normalize_mesh_timing_rows,
     parse_mesh_schedule_json,
+)
+from .boundary import (
+    BoundaryDecoderDescriptor,
+    BoundaryDecoderRegistry,
+    build_protocol_boundary_registry,
 )
 
 
@@ -80,14 +84,25 @@ class CanonicalProtocolContracts:
     parse_mesh_schedule_json = staticmethod(parse_mesh_schedule_json)
     normalize_mesh_timing_rows = staticmethod(normalize_mesh_timing_rows)
 
-    @staticmethod
-    def normalize_mqtt_config(payload: object) -> CanonicalMqttConfig:
-        """Normalize one vendor MQTT payload to the canonical protocol contract."""
-        result = _extract_mqtt_config_payload(
-            payload,
+    def __init__(
+        self,
+        *,
+        boundary_registry: BoundaryDecoderRegistry | None = None,
+    ) -> None:
+        """Bind the protocol root to one boundary decoder registry instance."""
+        self._boundary_registry = boundary_registry or build_protocol_boundary_registry(
             is_success_code=AuthRecoveryCoordinator.is_success_code,
         )
-        return cast(CanonicalMqttConfig, result)
+
+    def describe_boundary_decoders(self) -> tuple[BoundaryDecoderDescriptor, ...]:
+        """Expose stable boundary-family metadata for tests and future telemetry."""
+        return self._boundary_registry.describe()
+
+    def normalize_mqtt_config(self, payload: object) -> CanonicalMqttConfig:
+        """Normalize one vendor MQTT-config payload through the boundary registry."""
+        decoder = self._boundary_registry.resolve("rest.mqtt-config", "v1")
+        result = decoder.decode(payload)
+        return cast(CanonicalMqttConfig, result.canonical)
 
     @classmethod
     def snapshot_schedule_rows(

@@ -3,8 +3,18 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
 
 from custom_components.lipro.core.mqtt import payload as payload_module
+from custom_components.lipro.core.protocol.boundary import (
+    decode_mqtt_properties_payload,
+)
+
+_FIXTURE_DIR = Path(__file__).resolve().parents[2] / "fixtures" / "protocol_boundary"
+
+
+def _load_fixture(name: str) -> dict[str, object]:
+    return json.loads((_FIXTURE_DIR / name).read_text(encoding="utf-8"))
 
 
 def test_sanitize_malformed_json_string_falls_back_to_plain_text() -> None:
@@ -38,3 +48,35 @@ def test_sanitize_malformed_json_with_sensitive_key_is_redacted() -> None:
 
     assert "no_quote" not in sanitized
     assert "***" in sanitized
+
+
+def test_decode_mqtt_properties_payload_returns_boundary_metadata() -> None:
+    fixture = _load_fixture("mqtt_properties.device_state.v1.json")
+    payload = fixture["payload"]
+    canonical = fixture["canonical"]
+    fingerprint = fixture["fingerprint"]
+    family = fixture["family"]
+    version = fixture["version"]
+
+    assert isinstance(payload, dict)
+    assert isinstance(canonical, dict)
+    assert isinstance(fingerprint, str)
+    assert isinstance(family, str)
+    assert isinstance(version, str)
+
+    result = decode_mqtt_properties_payload(payload)
+
+    assert result.key.label == f"{family}@{version}"
+    assert result.authority == "tests/core/mqtt/test_mqtt.py"
+    assert result.fingerprint == fingerprint
+    assert result.canonical == canonical
+
+
+def test_parse_mqtt_payload_reuses_protocol_boundary_fixture_contract() -> None:
+    fixture = _load_fixture("mqtt_properties.device_state.v1.json")
+    payload = fixture["payload"]
+    canonical = fixture["canonical"]
+
+    assert isinstance(payload, dict)
+    assert isinstance(canonical, dict)
+    assert payload_module.parse_mqtt_payload(payload) == canonical

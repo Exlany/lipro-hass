@@ -19,6 +19,7 @@ from custom_components.lipro.core.api.mqtt_api_service import (
     _extract_mqtt_config_payload,
 )
 from custom_components.lipro.core.protocol import LiproProtocolFacade
+from custom_components.lipro.core.protocol.boundary import decode_mqtt_config_payload
 
 FIXTURE_DIR = Path(__file__).resolve().parents[2] / "fixtures" / "api_contracts"
 EXPECTED_MQTT_CONFIG = {
@@ -122,6 +123,28 @@ async def test_query_user_cloud_fixture_matches_current_contract() -> None:
         "success": True,
     }
     request_iot_mapping_raw.assert_awaited_once_with(PATH_QUERY_USER_CLOUD, "")
+
+
+def test_protocol_boundary_registry_lists_initial_decoder_families() -> None:
+    client = LiproProtocolFacade("test-phone-id")
+
+    descriptors = client.contracts.describe_boundary_decoders()
+    labels = {descriptor.key.label for descriptor in descriptors}
+    channels = {descriptor.key.label: descriptor.channel for descriptor in descriptors}
+
+    assert labels >= {"rest.mqtt-config@v1", "mqtt.properties@v1"}
+    assert channels["rest.mqtt-config@v1"] == "rest"
+    assert channels["mqtt.properties@v1"] == "mqtt"
+
+
+def test_rest_boundary_decoder_returns_canonical_mqtt_config_with_metadata() -> None:
+    payload = _load_fixture("get_mqtt_config.direct.json")
+
+    result = decode_mqtt_config_payload(payload, is_success_code=_is_success_code)
+
+    assert result.key.label == "rest.mqtt-config@v1"
+    assert result.authority == "tests/fixtures/api_contracts/get_mqtt_config.*.json"
+    assert result.canonical == EXPECTED_MQTT_CONFIG
 
 
 def test_phase_1_truth_endpoints_are_not_duplicated_into_external_boundary_fixtures() -> None:

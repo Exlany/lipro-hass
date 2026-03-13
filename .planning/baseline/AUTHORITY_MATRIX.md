@@ -2,7 +2,7 @@
 
 **Purpose:** 定义文档、fixtures、generated、implementation 的权威来源与同步方向，避免多口径漂移。
 **Status:** Formal baseline asset (`BASE-01` authority truth source)
-**Updated:** 2026-03-12
+**Updated:** 2026-03-13
 
 ## Formal Role
 
@@ -22,6 +22,7 @@
 | 残留状态 | `.planning/reviews/RESIDUAL_LEDGER.md` | execution -> cleanup / audit | compat/residual 真源 |
 | 删除裁决 | `.planning/reviews/KILL_LIST.md` | execution -> cleanup / audit | kill decision 真源 |
 | 协议样例 / fixtures | `tests/fixtures/api_contracts/` | baseline/contracts -> fixtures -> contract tests | 必须脱敏，禁止真实敏感数据 |
+| protocol boundary decoder families | `.planning/phases/07.1-protocol-boundary-schema-decoder/07.1-01-BOUNDARY-INVENTORY.md`, `custom_components/lipro/core/protocol/boundary/`, `tests/fixtures/protocol_boundary/`, `tests/fixtures/api_contracts/` | boundary inventory -> schema registry -> decoder families -> replay-ready fixtures -> protocol tests / telemetry / replay assets | `Phase 7.1` 开始，REST/MQTT decode authority 必须登记到单一 boundary family home；已存在 authority 的 REST family 复用 `api_contracts`，不得复制第二真源 |
 | generated artifacts | fixture families + canonical normalization rules | baseline/contracts -> fixture/snapshot truth -> generated expectation -> implementation review | 具体 family 由 `Phase 2.6` 明确登记 |
 | share/support payload families | `tests/fixtures/external_boundaries/share_worker/`, `tests/fixtures/external_boundaries/support_payload/` | authority docs -> fixture families -> payload builders/services -> owning tests | `generated_at` / `timestamp` 等动态字段必须先 canonicalize |
 | firmware advisory families | `custom_components/lipro/firmware_support_manifest.json`, `tests/fixtures/external_boundaries/firmware/` | local trust root -> advisory remote -> adapters/tests | remote advisory 不能单独放宽 `certified` |
@@ -55,6 +56,7 @@
 - 旧 compat shell 被降级或删除
 - 文档与实现出现双口径风险
 - external-boundary truth 从“实现 folklore”升级为“formal contract”
+- protocol-boundary decoder family 新增/升级/删除 family、version 或 authority source
 
 ---
 *Used by: external boundary formalization, docs hygiene, and audit arbitration*

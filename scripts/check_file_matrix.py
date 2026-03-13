@@ -169,6 +169,8 @@ def classify_path(path: str) -> FileGovernanceRow:
 
     if path.startswith("custom_components/lipro/core/api/"):
         return row("Protocol", "Phase 2", "重构")
+    if path.startswith("custom_components/lipro/core/protocol/boundary/"):
+        return row("Protocol", "Phase 7.1", "保留")
     if path.startswith("custom_components/lipro/core/protocol/"):
         return row("Protocol", "Phase 2.5", "保留")
     if path.startswith("custom_components/lipro/core/mqtt/"):

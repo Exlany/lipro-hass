@@ -1,8 +1,9 @@
-# Roadmap: Lipro-HASS North Star Rebuild
+# Roadmap: Lipro-HASS North Star Evolution
 
-## Overview
+## Milestones
 
-本路线图描述 `lipro-hass` 从“已存在但仍有历史结构残留的 HA 集成”收敛到“脱离历史成本约束的终态北极星架构”的完整路径。顺序原则是：**先建立协议真相基线，再资产化终态基准与护栏，再重建协议正式根，再统一控制/领域/运行/保障平面，最后完成全仓零残留治理**。
+- ✅ **v1.0 North Star Rebuild** - Phases 1-7 (+ 1.5 / 2.5 / 2.6), shipped 2026-03-13
+- 🚧 **v1.1 Protocol Fidelity & Operability** - Phases 7.1-7.5, initialized 2026-03-13
 
 ## Required Phase Outputs
 
@@ -12,220 +13,100 @@
 - `.planning/reviews/RESIDUAL_LEDGER.md`
 - `.planning/reviews/KILL_LIST.md`
 - `.planning/baseline/VERIFICATION_MATRIX.md`
+- `.planning/baseline/AUTHORITY_MATRIX.md`
 
 ## Phases
 
-- [x] **Phase 1: 协议契约基线** - 固化关键协议入口真相，建立重构前的裁决基线
-- [x] **Phase 1.5: 北极星基准资产化** - 把目标拓扑、依赖矩阵、public surfaces、验证矩阵正式落表并前置护栏
-- [x] **Phase 2: REST Protocol Slice 重建** - 去除 mixin mega client 的正式地位，建立 `LiproRestFacade`
-- [x] **Phase 2.5: 协议平面根统一** - 将 REST / MQTT 统一收口到 `LiproProtocolFacade`
-- [x] **Phase 2.6: 外部边界收口** - formalize share / firmware / support payload / external endpoints
-- [x] **Phase 3: Control Plane 收敛** - 把 lifecycle、flow、support surface、services 形成单一控制平面
-- [x] **Phase 4: Capability Model 统一** - 建立领域能力单一真源，清理平台/实体双轨规则
-- [x] **Phase 5: Runtime 主链加固** - 固化唯一正式运行时主链与 runtime invariants
-- [x] **Phase 6: Assurance Plane 正式化** - 将架构守卫、可观测性、CI 门禁升级为正式保障平面
-- [x] **Phase 7: 全仓治理与零残留收尾** - 彻底清理 compat、影子模块、旧文档与未归档残留
+<details>
+<summary>✅ v1.0 North Star Rebuild (Phases 1-7) — SHIPPED 2026-03-13</summary>
 
-## Phase Details
+历史 v1.0 全量路线图已归档至 `.planning/milestones/v1.0-ROADMAP.md`。
 
-### Phase 1: 协议契约基线
-**Goal**: 对关键外部协议入口建立可重复、可审计、可阻断漂移的 contract baseline。
-**Depends on**: Nothing
-**Requirements**: [PROT-01, PROT-02, ASSR-01]
+</details>
+
+### 🚧 v1.1 Protocol Fidelity & Operability
+
+**Milestone Goal:** 在不破坏既有北极星单一主链的前提下，正式引入 boundary decoder family、architecture policy enforcement、runtime telemetry exporter 与 replay evidence。
+
+### Phase 7.1: Protocol Boundary Schema/Decoder 收口
+**Goal**: 把 REST/MQTT 的 decode authority 收口到 protocol boundary family，形成可版本化 schema/decoder registry，同时阻断 raw payload 穿透。
+**Depends on**: Phase 7
+**Requirements**: [BND-01, BND-02, BND-03]
 **Success Criteria**:
-  1. 关键协议入口拥有可重复执行的 golden fixtures 与 contract matrix。
-  2. 供应商返回结构或恢复链路一旦漂移，测试会直接失败并定位到入口。
-  3. 协议不可变约束已有集中化台账，不再依赖口口相传。
+  1. `protocol boundary family` 成为 decode authority 的正式归属。
+  2. REST/MQTT 边界输入经统一 decoder family 输出 canonical contracts。
+  3. authority / fixtures / drift assertions 与 boundary family 对齐，不再出现第二真源。
+**Plans**: 3 plans
+
+Plans:
+- [x] 07.1-01: 建立 boundary inventory、decoder family 与 schema registry 设计
+- [x] 07.1-02: 接入 REST/MQTT decoder pipeline 并阻断 raw payload leakage
+- [x] 07.1-03: 补齐 boundary fixtures、contract/replay-ready assertions 与治理回写
+
+### Phase 7.2: Architecture Enforcement 加固
+**Goal**: 把 v1.1 新增 boundary/exporter/replay 组件纳入更强 architecture policy，阻止双主链、跨层直连、compat 回流复发。
+**Depends on**: Phase 7.1
+**Requirements**: [ENF-01, ENF-02]
+**Success Criteria**:
+  1. rules 不只守 import，还守 plane/root/surface/authority。
+  2. 本地与 CI 都能快速发现结构偏航。
+  3. 新增组件不会重新引入 backdoor 或第二主链。
 **Plans**: 2 plans
 
 Plans:
-- [x] 01-01: 建立协议契约矩阵、golden fixtures 与 targeted tests
-- [x] 01-02: 扩展 contract baseline 说明、不可变约束台账与 phase 收尾
+- [ ] 07.2-01: 定义 architecture policy spec 与 rule categories
+- [ ] 07.2-02: 升级 meta guards、CI gates 与开发期快速校验链
 
-### Phase 1.5: 北极星基准资产化
-**Goal**: 在大规模重构前，把终态基准、依赖方向、正式 public surface 与验证闭环资产化，并建立最小可运行护栏。
-**Depends on**: Phase 1
-**Requirements**: [BASE-01, BASE-02, BASE-03, ARCH-04, ASSR-06]
+### Phase 7.3: Runtime Telemetry Exporter 正式化
+**Goal**: 把 runtime/protocol telemetry 收口到 exporter surface，使 diagnostics、system health、developer/CI sinks 共享同一真源。
+**Depends on**: Phase 7.2
+**Requirements**: [OBS-01, OBS-02]
 **Success Criteria**:
-  1. `TARGET_TOPOLOGY / DEPENDENCY_MATRIX / PUBLIC_SURFACES / VERIFICATION_MATRIX / AUTHORITY_MATRIX` 已形成正式基准资产包。
-  2. 依赖方向与正式 public surface 已有最小可运行 guard，不再完全依赖人工审查。
-  3. 后续各 phase 都可直接引用该资产包进行设计与验收。
+  1. exporter 覆盖 auth recovery、MQTT reconnect、command confirmation、refresh latency。
+  2. diagnostics / system health / exporter 共用统一 telemetry truth。
+  3. redaction 与 cardinality budget 有明确规则并被测试验证。
+**Plans**: 2 plans
+
+Plans:
+- [ ] 07.3-01: 建立 telemetry exporter models/ports/sinks
+- [ ] 07.3-02: 接入 runtime/protocol telemetry sources 与 redaction validation
+
+### Phase 7.4: Protocol Replay / Simulator Harness 建立
+**Goal**: 让逆向协议样本能够经正式 façade/decoder 路径做确定性回放，生成 fidelity 与 operability 证据。
+**Depends on**: Phase 7.3
+**Requirements**: [SIM-01, SIM-02]
+**Success Criteria**:
+  1. replay harness 复用正式 protocol public path，不复制第二实现。
+  2. REST/MQTT 回放可产出 canonical assertions、drift assertions 与 telemetry assertions。
+  3. replay corpus 具有 authority source、版本戳与 deterministic controls。
 **Plans**: 3 plans
 
 Plans:
-- [x] 01.5-01: 落地 north-star baseline assets 与 target topology
-- [x] 01.5-02: 建立 dependency/public-surface seed guards
-- [x] 01.5-03: 建立 verification matrix 与 phase 验收映射
+- [ ] 07.4-01: 建立 replay assets authority、fixture layout 与 deterministic driver
+- [ ] 07.4-02: 为 REST/MQTT contract flows 接入 replay assertions
+- [ ] 07.4-03: 补 operability diagnostics 与 replay-based regression suite
 
-### Phase 2: REST Protocol Slice 重建
-**Goal**: 让 `REST / IoT` 协议主链只保留一条正式根，并以显式组合替代 mixin 聚合。
-**Depends on**: Phase 1.5
-**Requirements**: [ARCH-01, PROT-03, PROT-04, PROT-07]
+### Phase 7.5: Integration / Governance / Verification 收尾
+**Goal**: 对 v1.1 新增 boundary/exporter/replay/enforcement 组件做 file-level governance、verification matrix、closeout evidence 与 residual arbitration。
+**Depends on**: Phase 7.4
+**Requirements**: [GOV-06, GOV-07]
 **Success Criteria**:
-  1. 维护者可以从 `LiproRestFacade` 读懂正式 REST 主链，而无需追继承链。
-  2. `LiproClient` 不再承担正式架构根角色，只剩受控 compat shell 或已被删除。
-  3. `AuthSession / RequestPolicy / normalizers / collaborators` 的边界清晰且可测试。
-  4. Phase 1 的 contract tests 持续通过，证明重构未破坏正式外部行为。
-**Plans**: 4 plans
+  1. file matrix / authority / verification / residual docs 全部同步。
+  2. 每个新增组件都有 owner、delete gate、acceptance evidence。
+  3. v1.1 交付物可以形成下一轮演进的稳定起点。
+**Plans**: 2 plans
 
 Plans:
-- [x] 02-01: 建立 REST protocol target design 与文件治理矩阵
-- [x] 02-02: 重写 facade/transport/auth/policy 协作边界
-- [x] 02-03: 迁移 endpoint collaborators 与 normalizers
-- [x] 02-04: 收口 compat shell、旧 public names 与残留台账
-
-### Phase 2.5: 协议平面根统一
-**Goal**: 把 `REST / MQTT` 统一为同一个 protocol plane root，而不是两个分裂实现根。
-**Depends on**: Phase 2
-**Requirements**: [PROT-05, PROT-06]
-**Success Criteria**:
-  1. `LiproProtocolFacade` 成为唯一正式协议根。
-  2. `LiproMqttFacade` 作为子门面并入统一协议平面，与 REST 共享明确 contracts。
-  3. runtime plane 不再理解“REST 根 + MQTT 根”双模型。
-  4. 归一化后的协议 contracts 成为 runtime/domain 的唯一输入形态。
-**Plans**: 3 plans
-
-Plans:
-- [x] 02.5-01: 建立 unified protocol root 设计与 shared contracts
-- [x] 02.5-02: 迁移 MQTT 生命周期与 telemetry/auth shared boundaries
-- [x] 02.5-03: 清退旧协议双根 public surface 与 compat adapters
-
-### Phase 2.6: 外部边界收口
-**Goal**: 对 share、firmware、support payload 与其他外部边界建立 formal owner、contract、fixture 与 authority source。
-**Depends on**: Phase 2.5
-**Requirements**: [INTG-01, INTG-02]
-**Success Criteria**:
-  1. 外部边界均有 owner、contract、fixture、drift detection。
-  2. `docs / fixtures / generated / implementation` 的权威来源与同步方向被正式记录。
-  3. control plane 与 diagnostics/support surface 建立在已定型的外部边界之上，而非继续靠隐式约定。
-**Plans**: 3 plans
-
-Plans:
-- [x] 02.6-01: 梳理 external boundary inventory 与 authority sources
-- [x] 02.6-02: 为 share / firmware / support payload 建立 contracts 与 fixtures
-- [x] 02.6-03: 收口边界说明文档与 drift-detection 验收
-
-### Phase 3: Control Plane 收敛
-**Goal**: 让入口、配置、诊断、健康度、服务注册形成单一控制平面叙事。
-**Depends on**: Phase 2.6
-**Requirements**: [CTRL-01, CTRL-02, CTRL-03, CTRL-04]
-**Success Criteria**:
-  1. `EntryLifecycleController / ServiceRegistry / DiagnosticsSurface / SystemHealthSurface` 形成明确正式边界。
-  2. control plane 通过稳定 public surface 访问 runtime，而不是散落的 coordinator backdoor。
-  3. 控制面变更具备 flow/diagnostics/service 级测试与 redaction 验证。
-**Plans**: 3 plans
-
-Plans:
-- [x] 03-01: 梳理 entry lifecycle controller 与 control contracts
-- [x] 03-02: 收敛 diagnostics / system health / services support surface
-- [x] 03-03: 补齐 control-plane tests 与 redaction lifecycle guards
-
-### Phase 4: Capability Model 统一
-**Goal**: 建立领域能力单一真源，清理平台、实体、helpers 中重复生长的规则系统。
-**Depends on**: Phase 2.6
-**Requirements**: [DOM-01, DOM-02, DOM-03, DOM-04, DOM-05]
-**Success Criteria**:
-  1. `CapabilityRegistry / CapabilitySnapshot` 成为平台、实体、命令、属性的统一来源。
-  2. 新能力新增点集中到 capability model，而不是扩散到多个平台分支。
-  3. 旧的双轨规则与影子 helper 被删除或明确归档。
-**Plans**: 3 plans
-
-Plans:
-- [x] 04-01: 设计 capability registry / snapshot / contracts
-- [x] 04-02: 迁移 entity/platform/helpers 到统一能力投影
-- [x] 04-03: 清退重复能力规则与旧访问面
-
-### Phase 5: Runtime 主链加固
-**Goal**: 让 runtime plane 在结构和验证上都符合“唯一正式编排根 + 显式协作”的北极星标准。
-**Depends on**: Phase 3, Phase 4
-**Requirements**: [ARCH-02, RUN-01, RUN-02, RUN-03, RUN-04]
-**Success Criteria**:
-  1. `Coordinator` 仍是唯一正式运行时编排根。
-  2. 命令、刷新、状态应用、MQTT 生命周期都只有一条正式主链。
-  3. runtime invariants 自动化测试能阻止旁路刷新、旁路写状态、异常吞没、重复订阅等回归。
-  4. runtime public surface 足够薄、稳定、可推断。
-**Plans**: 3 plans
-
-Plans:
-- [x] 05-01: 收紧 runtime public surface 与 orchestration boundaries
-- [x] 05-02: 建立 command/refresh/state/mqtt invariant suite
-- [x] 05-03: 冻结 runtime telemetry handoff 与治理回写
-
-### Phase 6: Assurance Plane 正式化
-**Goal**: 把北极星约束落到自动守卫、观测与 CI 质量门上，防止未来继续回退。
-**Depends on**: Phase 5
-**Requirements**: [ASSR-02, ASSR-03, ASSR-04, ASSR-05]
-**Success Criteria**:
-  1. 关键运行信号具备可观测性与明确测试覆盖。
-  2. architecture/meta guards 能阻止跨层直连、compat 回流、双主链复发。
-  3. 测试结构已与新架构对齐，不再继续围绕旧 public names 打补丁。
-  4. CI 质量门能够证明结构未退化，而非仅证明功能能跑。
-**Plans**: 4 plans
-
-Plans:
-- [x] 06-01: 定义 assurance taxonomy、观测点与指标口径
-- [x] 06-02: 强化 architecture enforcement 与 meta guards
-- [x] 06-03: 扩展 snapshot/integration/contract coverage 到新正式结构
-- [x] 06-04: 收口 CI gates、coverage 与 phase 验收模板
-
-### Phase 7: 全仓治理与零残留收尾
-**Goal**: 以全仓视角完成文件治理、残留清理、文档归一与最终复核闭环。
-**Depends on**: Phase 6
-**Requirements**: [ARCH-03, GOV-01, GOV-02, GOV-03, GOV-04, GOV-05]
-**Success Criteria**:
-  1. 全部 `404` 个 Python 文件都已被归类并完成对应去向。
-  2. compat adapter、影子模块、旧命名、无效 docs 已删除或被正式归档，不再混入主叙事。
-  3. `FILE_MATRIX` 已成为 file-level 权威视图，含 owner phase、残留链接与完成度。
-  4. 北极星文档、开发文档、`.planning/`、测试矩阵与代码状态保持单一口径。
-  5. 仓库能够交付一份完整的终态审查/收尾报告。
-**Plans**: 4 plans
-
-Plans:
-- [x] 07-01: 完成全仓文件治理矩阵与残留台账终版
-- [x] 07-02: 删除 compat/legacy/shadow modules 与无效文档
-- [x] 07-03: 对齐 north-star docs / developer docs / planning docs / test matrix
-- [x] 07-04: 生成最终复核报告与后续演进建议
-
-## Cross-Cutting Tracks
-
-### Track X0: 终态基准资产化
-- 覆盖范围：目标拓扑、依赖方向、public surfaces、验证矩阵、authority source
-- 目标：让 `.planning` 从“路线图”升级为“可执行基准”
-- 收口阶段：Phase 1.5
-
-### Track X1: 全仓文件治理矩阵
-- 覆盖范围：全部 `404` 个 Python 文件
-- 目标：每个 phase 执行时同步回写 `保留 / 重构 / 迁移适配 / 删除`
-- 收口阶段：Phase 7
-
-### Track X2: 残留与兼容收口
-- 覆盖范围：compat adapters、旧 public names、影子模块、历史命名
-- 目标：每个 phase 都显式声明“新增了什么残留、删除了什么残留、剩余什么残留”
-- 收口阶段：Phase 7
-
-### Track X3: 文档与架构口径同步
-- 覆盖范围：`docs/`、`.planning/`、测试矩阵、ADR
-- 目标：避免“代码一套、文档一套、计划一套”再次出现
-- 收口阶段：全阶段持续执行，Phase 7 总结清零
+- [ ] 07.5-01: 回写 governance truth sources 与 file-level ownership
+- [ ] 07.5-02: 生成 v1.1 verification/closeout package 与 next-step recommendations
 
 ## Progress
 
-| Phase / Track | Plans Complete | Status | Completed |
-|---------------|----------------|--------|-----------|
-| Track X0 终态基准资产化 | 1/1 | Complete | 2026-03-12 |
-| Track X1 文件治理矩阵 | 1/1 | Complete | 2026-03-13 |
-| Track X2 残留与兼容收口 | 1/1 | Complete | 2026-03-13 |
-| Track X3 文档与架构口径同步 | 1/1 | Complete | 2026-03-13 |
-| 1. 协议契约基线 | 2/2 | Complete | 2026-03-12 |
-| 1.5 北极星基准资产化 | 3/3 | Complete | 2026-03-12 |
-| 2. REST Protocol Slice 重建 | 4/4 | Complete | 2026-03-12 |
-| 2.5 协议平面根统一 | 3/3 | Complete | 2026-03-12 |
-| 2.6 外部边界收口 | 3/3 | Complete | 2026-03-12 |
-| 3. Control Plane 收敛 | 3/3 | Complete | 2026-03-12 |
-| 4. Capability Model 统一 | 3/3 | Complete | 2026-03-13 |
-| 5. Runtime 主链加固 | 3/3 | Complete | 2026-03-13 |
-| 6. Assurance Plane 正式化 | 4/4 | Complete | 2026-03-13 |
-| 7. 全仓治理与零残留收尾 | 4/4 | Complete | 2026-03-13 |
-
----
-*Roadmap rebuilt: 2026-03-12 after gsd-new-project arbitration pass; reconciled: 2026-03-13 after Phase 5/6/7 closeout*
+| Phase | Milestone | Plans Complete | Status | Completed |
+|-------|-----------|----------------|--------|-----------|
+| 1-7 (+1.5/2.5/2.6) | v1.0 | 32/32 | Complete | 2026-03-13 |
+| 7.1 Boundary Schema/Decoder | v1.1 | 3/3 | Complete | 2026-03-13 |
+| 7.2 Enforcement | v1.1 | 0/2 | Planned | - |
+| 7.3 Telemetry Exporter | v1.1 | 0/2 | Planned | - |
+| 7.4 Replay Harness | v1.1 | 0/3 | Planned | - |
+| 7.5 Governance & Verification | v1.1 | 0/2 | Planned | - |

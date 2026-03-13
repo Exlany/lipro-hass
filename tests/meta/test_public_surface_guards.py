@@ -13,6 +13,9 @@ _COORDINATOR_ENTRY = _ROOT / "custom_components" / "lipro" / "coordinator_entry.
 _CORE_API_INIT = (
     _ROOT / "custom_components" / "lipro" / "core" / "api" / "__init__.py"
 )
+_CORE_PROTOCOL_INIT = (
+    _ROOT / "custom_components" / "lipro" / "core" / "protocol" / "__init__.py"
+)
 _COORDINATOR_MODULE = (
     _ROOT / "custom_components" / "lipro" / "core" / "coordinator" / "coordinator.py"
 )
@@ -29,6 +32,14 @@ _FORBIDDEN_CORE_API_EXPORTS = {
     "_COMMAND_PACING_CACHE_MAX_SIZE",
     "_mask_sensitive_data",
     "_normalize_response_code",
+}
+_FORBIDDEN_PROTOCOL_EXPORTS = {
+    "BoundaryDecodeResult",
+    "BoundaryDecoderKey",
+    "BoundaryDecoderRegistry",
+    "build_protocol_boundary_registry",
+    "decode_mqtt_config_payload",
+    "decode_mqtt_properties_payload",
 }
 
 
@@ -68,7 +79,10 @@ def _extract_property_names(path: Path, class_name: str) -> set[str]:
         for child in node.body:
             if not isinstance(child, (ast.FunctionDef, ast.AsyncFunctionDef)):
                 continue
-            if any(isinstance(decorator, ast.Name) and decorator.id == "property" for decorator in child.decorator_list):
+            if any(
+                isinstance(decorator, ast.Name) and decorator.id == "property"
+                for decorator in child.decorator_list
+            ):
                 property_names.add(child.name)
         return property_names
     message = f"Could not find class {class_name} in {path.relative_to(_ROOT)}"
@@ -94,12 +108,19 @@ def test_public_surface_baseline_keeps_canonical_transitional_and_forbidden_role
     )
 
     assert "`Coordinator` + runtime services/public surface" in canonical
-    assert "`EntryLifecycleController`, `ServiceRegistry`, `DiagnosticsSurface`, `SystemHealthSurface`" in canonical
+    assert (
+        "`EntryLifecycleController`, `ServiceRegistry`, `DiagnosticsSurface`, `SystemHealthSurface`"
+        in canonical
+    )
     assert "`LiproClient` compat shell" not in canonical
     assert "`LiproClient` compat shell" in transitional
     assert "mixin-based mega client" in forbidden
     assert "direct transport/auth objects exposed to entity/control plane" in forbidden
     assert "MQTT client object as runtime/entity public truth" in forbidden
+    assert (
+        "`core/protocol/boundary/*` decoder package as runtime/control/domain/entity public surface"
+        in forbidden
+    )
     assert "tests/meta/test_public_surface_guards.py" in public_surfaces
 
 
@@ -112,6 +133,12 @@ def test_core_api_package_keeps_transport_internals_out_of_public_exports() -> N
 
     assert "LiproClient" in public_symbols
     assert public_symbols.isdisjoint(_FORBIDDEN_CORE_API_EXPORTS)
+
+
+def test_protocol_root_keeps_boundary_decoder_exports_internal() -> None:
+    public_symbols = set(_extract_all(_CORE_PROTOCOL_INIT))
+
+    assert public_symbols.isdisjoint(_FORBIDDEN_PROTOCOL_EXPORTS)
 
 
 def test_coordinator_runtime_surface_stays_service_oriented() -> None:
@@ -138,4 +165,4 @@ def test_service_execution_uses_formal_auth_surface_instead_of_private_backdoor(
 
     assert 'getattr(coordinator, "_async_ensure_authenticated"' not in execution_text
     assert 'getattr(coordinator, "_trigger_reauth"' not in execution_text
-    assert 'auth_service' in execution_text
+    assert "auth_service" in execution_text
