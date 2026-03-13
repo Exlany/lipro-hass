@@ -1143,7 +1143,33 @@ class TestSyncSubscriptions:
         await client.sync_subscriptions(set())
 
         mock_mqtt.unsubscribe.assert_called_once()
+        assert client._subscribed_devices == {"dev_old"}
+        assert client._pending_unsubscribe == {"dev_old"}
+
+    @pytest.mark.asyncio
+    async def test_sync_connected_retries_pending_unsubscribe_until_success(self):
+        """Failed live unsubscribes should retry on later sync calls in the same session."""
+        client = LiproMqttClient(
+            access_key="access",
+            secret_key="secret",
+            biz_id="biz001",
+            phone_id="550e8400-e29b-41d4-a716-446655440000",
+        )
+        mock_mqtt = AsyncMock()
+        mock_mqtt.unsubscribe.side_effect = [
+            aiomqtt.MqttError("unsubscribe failed"),
+            None,
+        ]
+        client._client = mock_mqtt
+        client._connected = True
+        client._subscribed_devices = {"dev_old"}
+
+        await client.sync_subscriptions(set())
+        await client.sync_subscriptions(set())
+
+        assert mock_mqtt.unsubscribe.await_count == 2
         assert client._subscribed_devices == set()
+        assert client._pending_unsubscribe == set()
 
 
 class TestConnectAndDecode:

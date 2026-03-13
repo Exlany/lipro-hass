@@ -241,12 +241,18 @@ def classify_path(path: str) -> FileGovernanceRow:
         return row("Runtime", "Phase 5", "重构")
     if path == "tests/meta/test_protocol_replay_assets.py":
         return row("Assurance", "Phase 7.4", "保留")
+    if path == "tests/meta/test_evidence_pack_authority.py":
+        return row("Assurance", "Phase 8", "保留")
     if path.startswith("tests/meta/"):
         return row("Assurance", "Phase 6", "保留")
+    if path.startswith("tests/harness/evidence_pack/"):
+        return row("Assurance", "Phase 8", "保留")
     if path.startswith("tests/harness/protocol/") or path == "tests/harness/__init__.py":
         return row("Assurance", "Phase 7.4", "保留")
     if path.startswith("tests/snapshots/"):
         return row("Assurance", "Phase 6", "保留")
+    if path == "tests/integration/test_ai_debug_evidence_pack.py":
+        return row("Assurance", "Phase 8", "保留")
     if path == "tests/integration/test_telemetry_exporter_integration.py":
         return row("Runtime", "Phase 7.3", "保留")
     if path == "tests/integration/test_protocol_replay_harness.py":
@@ -267,6 +273,8 @@ def classify_path(path: str) -> FileGovernanceRow:
         return row("Control", "Phase 3 / 7", "保留")
     if path.startswith("tests/helpers/") or path in {"tests/conftest.py", "tests/conftest_shared.py"}:
         return row("Assurance", "Phase 6", "保留")
+    if path == "scripts/export_ai_debug_evidence_pack.py":
+        return row("Assurance", "Phase 8", "保留")
     if path.startswith("scripts/"):
         return row("Assurance", "Phase 6 / 7", "保留")
     return row("Cross-cutting", "Phase 7", "保留")

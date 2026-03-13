@@ -112,8 +112,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 08-01: 定义 evidence pack schema、pseudo-id 与 redaction 策略
-- [ ] 08-02: 实现 evidence pack exporter + tests + governance handoff
+- [x] 08-01: 定义 evidence pack schema、pseudo-id 与 redaction 策略
+- [x] 08-02: 实现 evidence pack exporter + tests + governance handoff
 
 ## Cross-Phase Arbitration (7.3-8)
 
@@ -133,4 +133,4 @@ Plans:
 | 7.3 Telemetry Exporter | v1.1 | 2/2 | Complete | 2026-03-13 |
 | 7.4 Replay Harness | v1.1 | 3/3 | Complete | 2026-03-13 |
 | 7.5 Governance & Verification | v1.1 | 2/2 | Complete | 2026-03-13 |
-| 8 AI Debug Evidence Pack | v1.1 | 0/2 | Planned | - |
+| 8 AI Debug Evidence Pack | v1.1 | 2/2 | Complete | 2026-03-13 |

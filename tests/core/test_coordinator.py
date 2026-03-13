@@ -351,6 +351,46 @@ class TestCoordinatorRuntimeComponents:
         assert device.properties["powerState"] == "1"
 
     @pytest.mark.asyncio
+    async def test_status_runtime_respects_pending_state_filter(
+        self, coordinator, mock_lipro_api_client
+    ) -> None:
+        """REST status polling should still pass through coordinator confirmation filtering."""
+        serial = "03ab5ccd7c000001"
+        mock_lipro_api_client.get_device_list.return_value = {
+            "data": [make_api_device(serial=serial)],
+            "hasMore": False,
+        }
+        coordinator.client.status = MagicMock()
+        coordinator.client.status.query_device_status = MagicMock(return_value=None)
+
+        with patch(
+            "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager"
+        ) as mock_share:
+            mock_share.return_value = mock_anonymous_share_manager()
+            await refresh_and_sync_devices(coordinator)
+
+        device = coordinator.get_device(serial)
+        assert device is not None
+        coordinator.client.status.query_device_status = AsyncMock(
+            return_value=[{"iotId": serial, "powerState": "1"}]
+        )
+        coordinator._runtimes.command.filter_pending_state_properties = MagicMock(
+            return_value={}
+        )
+        coordinator._runtimes.command.observe_state_confirmation = MagicMock()
+
+        result = await coordinator._runtimes.status.execute_status_query([serial])
+
+        assert result["updated_count"] == 0
+        assert result["error"] is None
+        assert device.properties.get("powerState") != "1"
+        coordinator._runtimes.command.filter_pending_state_properties.assert_called_once_with(
+            device_serial=serial,
+            properties={"powerState": "1"},
+        )
+        coordinator._runtimes.command.observe_state_confirmation.assert_not_called()
+
+    @pytest.mark.asyncio
     async def test_async_run_status_polling_refreshes_due_outlet_power(
         self, coordinator, mock_lipro_api_client
     ) -> None:

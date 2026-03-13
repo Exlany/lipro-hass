@@ -81,6 +81,7 @@ class MqttSubscriptionManager:
         topic_pairs: list[tuple[str, str]],
         *,
         pending_unsubscribe: set[str],
+        subscribed_devices: set[str] | None = None,
     ) -> None:
         """Unsubscribe topic batches and clear pending removals on success."""
         for batch in self.batch_topic_pairs(topic_pairs):
@@ -94,6 +95,8 @@ class MqttSubscriptionManager:
                 continue
             for device_id, _topic in batch:
                 pending_unsubscribe.discard(device_id)
+                if subscribed_devices is not None:
+                    subscribed_devices.discard(device_id)
                 _LOGGER.debug(
                     "Unsubscribed from device %s",
                     _redact_identifier(device_id) or "***",
@@ -104,21 +107,29 @@ class MqttSubscriptionManager:
         client: aiomqtt.Client,
         *,
         pending_unsubscribe: set[str],
+        subscribed_devices: set[str] | None = None,
     ) -> None:
         """Best-effort replay of queued unsubscribes after reconnect."""
         if not pending_unsubscribe:
             return
+
+        def _drop_invalid_device(device_id: str) -> None:
+            pending_unsubscribe.discard(device_id)
+            if subscribed_devices is not None:
+                subscribed_devices.discard(device_id)
+
         topic_pairs = self.build_topic_pairs(
             list(pending_unsubscribe),
             invalid_log_message=(
                 "Skipping MQTT unsubscribe for invalid device ID %s: invalid characters"
             ),
-            on_invalid=pending_unsubscribe.discard,
+            on_invalid=_drop_invalid_device,
         )
         await self.unsubscribe_topic_pairs(
             client,
             topic_pairs,
             pending_unsubscribe=pending_unsubscribe,
+            subscribed_devices=subscribed_devices,
         )
 
     async def subscribe_current_devices(
@@ -179,20 +190,24 @@ class MqttSubscriptionManager:
                 added += len(to_add)
         removed = len(to_remove)
         if to_remove and connected and client is not None:
-            for device_id in to_remove:
+            pending_unsubscribe.update(to_remove)
+
+            def _drop_invalid_device(device_id: str) -> None:
+                pending_unsubscribe.discard(device_id)
                 subscribed_devices.discard(device_id)
-                pending_unsubscribe.add(device_id)
+
             topic_pairs = self.build_topic_pairs(
                 to_remove,
                 invalid_log_message=(
                     "Skipping MQTT unsubscribe for invalid device ID %s: invalid characters"
                 ),
-                on_invalid=pending_unsubscribe.discard,
+                on_invalid=_drop_invalid_device,
             )
             await self.unsubscribe_topic_pairs(
                 client,
                 topic_pairs,
                 pending_unsubscribe=pending_unsubscribe,
+                subscribed_devices=subscribed_devices,
             )
         elif to_remove:
             for device_id in to_remove:

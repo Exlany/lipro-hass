@@ -130,6 +130,7 @@ class MqttClientRuntime:
             await self._client._subscription_manager.apply_pending_unsubscribes(
                 mqtt_client,
                 pending_unsubscribe=self._client._pending_unsubscribe,
+                subscribed_devices=self._client._subscribed_devices,
             )
             await self._client._subscription_manager.subscribe_current_devices(
                 mqtt_client,

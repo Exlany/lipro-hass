@@ -14,25 +14,23 @@
 3. `.planning/ROADMAP.md`
 4. `.planning/REQUIREMENTS.md`
 5. `.planning/STATE.md`
-6. `.planning/phases/07.3-runtime-telemetry-exporter/07.3-CONTEXT.md`
-7. `.planning/phases/07.4-protocol-replay-simulator-harness/07.4-CONTEXT.md`
-8. `.planning/phases/08-ai-debug-evidence-pack/08-CONTEXT.md`
-9. `.planning/phases/07.2-architecture-enforcement/07.2-CONTEXT.md`
-10. `.planning/phases/07.2-architecture-enforcement/07.2-RESEARCH.md`
-11. `.planning/phases/07.2-architecture-enforcement/07.2-ARCHITECTURE.md`
-12. `.planning/phases/07.2-architecture-enforcement/07.2-VALIDATION.md`
-13. `.planning/phases/07.2-architecture-enforcement/07.2-01-PLAN.md`
-14. `.planning/phases/07.2-architecture-enforcement/07.2-02-PLAN.md`
-15. `.planning/baseline/*.md`
-16. `.planning/reviews/*.md`
-17. `docs/developer_architecture.md`
+6. `.planning/phases/07.5-integration-governance-verification-closeout/07.5-SUMMARY.md`
+7. `.planning/phases/07.5-integration-governance-verification-closeout/07.5-VERIFICATION.md`
+8. `.planning/phases/08-ai-debug-evidence-pack/08-ARCHITECTURE.md`
+9. `.planning/phases/08-ai-debug-evidence-pack/08-VALIDATION.md`
+10. `.planning/phases/08-ai-debug-evidence-pack/08-01-SUMMARY.md`
+11. `.planning/phases/08-ai-debug-evidence-pack/08-02-SUMMARY.md`
+12. `.planning/phases/08-ai-debug-evidence-pack/08-VERIFICATION.md`
+13. `.planning/baseline/*.md`
+14. `.planning/reviews/*.md`
+15. `docs/developer_architecture.md`
 
 ## Current Focus
 
 - Active milestone: `v1.1 Protocol Fidelity & Operability`
-- Active phase: `Phase 7.3 Runtime Telemetry Exporter 正式化`
-- Current state: `v1.1 planning`
-- Recommended next command: `$gsd-plan-phase 7.3`
+- Active phase: `Phase 8 AI Debug Evidence Pack 已完成`
+- Current state: `verification pending`
+- Recommended next command: `$gsd-verify-work 7.5`
 
 ## Rules
 
@@ -44,4 +42,5 @@
 ## North Star 2.0 Pointer
 
 - 北极星 2.0（AI Debug Ready, HA-only）已写入：`docs/NORTH_STAR_TARGET_ARCHITECTURE.md` 与 `.planning/*`。
-- 关键产物路线：`07.3 telemetry exporter` → `07.4 replay harness` → `07.5 closeout` → `08 AI debug evidence pack`。
+- 当前主链已收束为：`07.3 telemetry exporter` → `07.4 replay harness` → `07.5 closeout` → `08 AI debug evidence pack`。
+- 接下来只做 `verify-work 7.5 / 8` 的对话式验收，不再新增第二条事实链。

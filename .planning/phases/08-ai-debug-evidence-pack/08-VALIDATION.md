@@ -1,9 +1,9 @@
 ---
 phase: 08
 slug: ai-debug-evidence-pack
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: passed
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-03-13
 updated: 2026-03-13
 ---
@@ -39,12 +39,12 @@ updated: 2026-03-13
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| `08-01-01` | `08-01` | 1 | `AID-01`, `AID-02` | schema / structure | `uv run pytest -q -x tests/integration/test_ai_debug_evidence_pack.py` | ❌ W0 | ⬜ pending |
-| `08-01-02` | `08-01` | 1 | `AID-02` | redaction / pseudo-id policy | `uv run pytest -q -x tests/meta/test_evidence_pack_authority.py` | ❌ W0 | ⬜ pending |
-| `08-01-03` | `08-01` | 1 | `AID-01` | governance / authority source | `uv run pytest -q -x tests/meta/test_evidence_pack_authority.py tests/meta/test_governance_guards.py` | ❌ W0 | ⬜ pending |
-| `08-02-01` | `08-02` | 2 | `AID-01` | exporter / collector integration | `uv run pytest -q -x tests/integration/test_ai_debug_evidence_pack.py` | ❌ W0 | ⬜ pending |
-| `08-02-02` | `08-02` | 2 | `AID-01`, `AID-02` | end-to-end pack generation | `uv run pytest -q -x tests/integration/test_ai_debug_evidence_pack.py tests/meta/test_evidence_pack_authority.py` | ❌ W0 | ⬜ pending |
-| `08-02-03` | `08-02` | 2 | `AID-01`, `AID-02` | governance / closeout handoff | `uv run pytest -q -x tests/meta/test_evidence_pack_authority.py tests/meta/test_governance_guards.py tests/meta/test_public_surface_guards.py` | ❌ W0 | ⬜ pending |
+| `08-01-01` | `08-01` | 1 | `AID-01`, `AID-02` | schema / structure | `uv run pytest -q -x tests/integration/test_ai_debug_evidence_pack.py` | ✅ | ✅ green |
+| `08-01-02` | `08-01` | 1 | `AID-02` | redaction / pseudo-id policy | `uv run pytest -q -x tests/meta/test_evidence_pack_authority.py` | ✅ | ✅ green |
+| `08-01-03` | `08-01` | 1 | `AID-01` | governance / authority source | `uv run pytest -q -x tests/meta/test_evidence_pack_authority.py tests/meta/test_governance_guards.py` | ✅ | ✅ green |
+| `08-02-01` | `08-02` | 2 | `AID-01` | exporter / collector integration | `uv run pytest -q -x tests/integration/test_ai_debug_evidence_pack.py` | ✅ | ✅ green |
+| `08-02-02` | `08-02` | 2 | `AID-01`, `AID-02` | end-to-end pack generation | `uv run pytest -q -x tests/integration/test_ai_debug_evidence_pack.py tests/meta/test_evidence_pack_authority.py` | ✅ | ✅ green |
+| `08-02-03` | `08-02` | 2 | `AID-01`, `AID-02` | governance / closeout handoff | `uv run pytest -q -x tests/meta/test_evidence_pack_authority.py tests/meta/test_governance_guards.py tests/meta/test_public_surface_guards.py` | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -52,11 +52,11 @@ updated: 2026-03-13
 
 ## Wave 0 Requirements
 
-- [ ] `scripts/export_ai_debug_evidence_pack.py` — 唯一导出入口
-- [ ] `tests/harness/evidence_pack/` — schema / sources / collector / redaction home
-- [ ] `tests/fixtures/evidence_pack/README.md` — evidence pack fixture/index rules
-- [ ] `tests/integration/test_ai_debug_evidence_pack.py` — end-to-end pack assertions
-- [ ] `tests/meta/test_evidence_pack_authority.py` — authority / redaction / source guards
+- [x] `scripts/export_ai_debug_evidence_pack.py` — 唯一导出入口
+- [x] `tests/harness/evidence_pack/` — schema / sources / collector / redaction home
+- [x] `tests/fixtures/evidence_pack/README.md` — evidence pack fixture/index rules
+- [x] `tests/integration/test_ai_debug_evidence_pack.py` — end-to-end pack assertions
+- [x] `tests/meta/test_evidence_pack_authority.py` — authority / redaction / source guards
 
 ---
 
@@ -68,11 +68,11 @@ updated: 2026-03-13
 
 ## Validation Sign-Off
 
-- [ ] All tasks have automated verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all missing evidence-pack artifacts
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 15s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have automated verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all missing evidence-pack artifacts
+- [x] No watch-mode flags
+- [x] Feedback latency < 15s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** automated verification complete (2026-03-13)

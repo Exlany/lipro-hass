@@ -30,8 +30,8 @@
 
 ### AI Debug Evidence Pack
 
-- [ ] **AID-01**: 必须能从正式真源（exporter/replay/boundary inventory/governance pointers）pull 导出结构化 evidence pack，供 AI 调试与分析
-- [ ] **AID-02**: evidence pack 必须遵循统一脱敏策略：凭证等价物永不出现；允许报告内稳定、跨报告不可关联的伪匿名引用；允许真实时间戳
+- [x] **AID-01**: 必须能从正式真源（exporter/replay/boundary inventory/governance pointers）pull 导出结构化 evidence pack，供 AI 调试与分析
+- [x] **AID-02**: evidence pack 必须遵循统一脱敏策略：凭证等价物永不出现；允许报告内稳定、跨报告不可关联的伪匿名引用；允许真实时间戳
 
 ## Cross-Phase Arbitration
 
@@ -72,12 +72,12 @@
 | SIM-02 | Phase 7.4 | Complete |
 | GOV-06 | Phase 7.5 | Complete |
 | GOV-07 | Phase 7.5 | Complete |
-| AID-01 | Phase 8 | Planned |
-| AID-02 | Phase 8 | Planned |
+| AID-01 | Phase 8 | Complete |
+| AID-02 | Phase 8 | Complete |
 
 **Coverage:**
 - active milestone requirements: 13 total
 - mapped to phases: 13
 - unmapped: 0 ✓
 
-*Last updated: 2026-03-13 after completing Phase 7.5 governance closeout*
+*Last updated: 2026-03-13 after completing Phase 8 AI debug evidence pack*

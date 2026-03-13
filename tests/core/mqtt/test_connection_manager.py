@@ -156,3 +156,31 @@ async def test_connection_manager_run_connection_loop_stops_on_cancelled_error()
     set_last_error.assert_not_called()
     handle_disconnect.assert_not_called()
     sleep.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+async def test_connection_manager_run_connection_loop_resets_backoff_after_success() -> None:
+    manager = MqttConnectionManager()
+    set_last_error = MagicMock()
+    handle_disconnect = MagicMock()
+    sleep_calls: list[float] = []
+    state = {"running": True}
+
+    async def _sleep(wait_time: float) -> None:
+        sleep_calls.append(wait_time)
+        if len(sleep_calls) >= 2:
+            state["running"] = False
+
+    connect_and_listen = AsyncMock(side_effect=[None, aiomqtt.MqttError("boom")])
+
+    await manager.run_connection_loop(
+        is_running=lambda: state["running"],
+        connect_and_listen=connect_and_listen,
+        set_last_error=set_last_error,
+        handle_disconnect=handle_disconnect,
+        sleep=_sleep,
+        jitter_source=lambda _low, _high: 0.0,
+    )
+
+    assert sleep_calls == [MQTT_RECONNECT_MIN_DELAY, MQTT_RECONNECT_MIN_DELAY]
+    handle_disconnect.assert_called_once_with("MQTT error: boom")

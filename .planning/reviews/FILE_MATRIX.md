@@ -1,6 +1,6 @@
 # File Matrix
 
-**Python files total:** 435
+**Python files total:** 443
 **Status:** File-level governance authority
 **Rule:** workspace inventory excluding caches / virtual env / tooling artifacts
 
@@ -259,6 +259,7 @@
 | `scripts/check_file_matrix.py` | Assurance | Phase 6 / 7 | 保留 | - |
 | `scripts/check_translations.py` | Assurance | Phase 6 / 7 | 保留 | - |
 | `scripts/coverage_diff.py` | Assurance | Phase 6 / 7 | 保留 | - |
+| `scripts/export_ai_debug_evidence_pack.py` | Assurance | Phase 8 | 保留 | - |
 | `scripts/orchestrator.py` | Assurance | Phase 6 / 7 | 保留 | - |
 | `scripts/refactor_tools.py` | Assurance | Phase 6 / 7 | 保留 | - |
 | `tests/__init__.py` | Cross-cutting | Phase 7 | 保留 | - |
@@ -381,6 +382,11 @@
 | `tests/flows/test_flow_credentials.py` | Control | Phase 3 / 7 | 保留 | - |
 | `tests/flows/test_options_flow_utils.py` | Control | Phase 3 / 7 | 保留 | - |
 | `tests/harness/__init__.py` | Assurance | Phase 7.4 | 保留 | - |
+| `tests/harness/evidence_pack/__init__.py` | Assurance | Phase 8 | 保留 | - |
+| `tests/harness/evidence_pack/collector.py` | Assurance | Phase 8 | 保留 | - |
+| `tests/harness/evidence_pack/redaction.py` | Assurance | Phase 8 | 保留 | - |
+| `tests/harness/evidence_pack/schema.py` | Assurance | Phase 8 | 保留 | - |
+| `tests/harness/evidence_pack/sources.py` | Assurance | Phase 8 | 保留 | - |
 | `tests/harness/protocol/__init__.py` | Assurance | Phase 7.4 | 保留 | - |
 | `tests/harness/protocol/replay_assertions.py` | Assurance | Phase 7.4 | 保留 | - |
 | `tests/harness/protocol/replay_driver.py` | Assurance | Phase 7.4 | 保留 | - |
@@ -394,12 +400,14 @@
 | `tests/helpers/repo_root.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/helpers/service_call.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/integration/__init__.py` | Runtime | Phase 5 / 6 | 保留 | - |
+| `tests/integration/test_ai_debug_evidence_pack.py` | Assurance | Phase 8 | 保留 | - |
 | `tests/integration/test_mqtt_coordinator_integration.py` | Runtime | Phase 5 / 6 | 保留 | - |
 | `tests/integration/test_protocol_replay_harness.py` | Assurance | Phase 7.4 | 保留 | - |
 | `tests/integration/test_telemetry_exporter_integration.py` | Runtime | Phase 7.3 | 保留 | - |
 | `tests/meta/__init__.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_blueprints.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_dependency_guards.py` | Assurance | Phase 6 | 保留 | - |
+| `tests/meta/test_evidence_pack_authority.py` | Assurance | Phase 8 | 保留 | - |
 | `tests/meta/test_external_boundary_authority.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_external_boundary_fixtures.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_firmware_support_manifest_repo_asset.py` | Assurance | Phase 6 | 保留 | - |

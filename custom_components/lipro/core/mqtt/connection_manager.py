@@ -130,8 +130,10 @@ class MqttConnectionManager:
         """Run the reconnect loop with bounded backoff and jitter."""
         reconnect_delay = MQTT_RECONNECT_MIN_DELAY
         while is_running():
+            connect_succeeded = False
             try:
                 await connect_and_listen()
+                connect_succeeded = True
             except aiomqtt.MqttError as err:
                 set_last_error(err)
                 handle_disconnect(f"MQTT error: {err}")
@@ -153,6 +155,9 @@ class MqttConnectionManager:
                     f"Unexpected MQTT loop error ({type(err).__name__})"
                 )
 
+            if connect_succeeded:
+                reconnect_delay = MQTT_RECONNECT_MIN_DELAY
+
             if is_running():
                 jitter = 1 + jitter_source(
                     -MQTT_RECONNECT_JITTER,
@@ -161,7 +166,10 @@ class MqttConnectionManager:
                 wait_time = reconnect_delay * jitter
                 _LOGGER.info("Reconnecting in %.1fs...", wait_time)
                 await sleep(wait_time)
-                reconnect_delay = min(
-                    reconnect_delay * 2,
-                    MQTT_RECONNECT_MAX_DELAY,
-                )
+                if connect_succeeded:
+                    reconnect_delay = MQTT_RECONNECT_MIN_DELAY
+                else:
+                    reconnect_delay = min(
+                        reconnect_delay * 2,
+                        MQTT_RECONNECT_MAX_DELAY,
+                    )

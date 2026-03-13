@@ -153,12 +153,8 @@ class RuntimeOrchestrator:
             properties: dict[str, Any],
             source: str,
         ) -> bool:
-            """Apply properties update (wrapper for state runtime)."""
-            return await state_runtime.apply_properties_update(
-                device,
-                properties,
-                source=source,
-            )
+            """Apply properties update through the coordinator callback contract."""
+            return await context.apply_properties_update(device, properties, source)
 
         status_runtime = StatusRuntime(
             power_query_interval=300,

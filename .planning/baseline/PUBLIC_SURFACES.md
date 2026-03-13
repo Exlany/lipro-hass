@@ -20,13 +20,14 @@
 | Runtime | `Coordinator` + runtime services/public surface | runtime orchestration root + stable service surface | 运行面唯一正式编排出口 |
 | Domain | `CapabilityRegistry` / `CapabilitySnapshot` / command contracts | domain truth surface family | `custom_components/lipro/core/capability/` 为统一能力真源与投影来源 |
 | Control | `EntryLifecycleController`, `ServiceRegistry`, `DiagnosticsSurface`, `SystemHealthSurface`, `telemetry_surface` bridge helpers | control-plane formal surface set | `custom_components/lipro/control/` 为正式内部控制面 home；HA 根模块只保留 adapter 职责，telemetry bridge 只负责定位 exporter |
-| Assurance | contract suites, invariant suites, meta guards, ledgers, `RuntimeTelemetryExporter` / telemetry contracts, replay harness/report surfaces, `V1_1_EVIDENCE_INDEX.md` | assurance arbitration surface set | exporter / replay / evidence index 只作为 assurance-only 或 pull-only truth consumers，不得反向成为 runtime/control/public root |
+| Assurance | contract suites, invariant suites, meta guards, ledgers, `RuntimeTelemetryExporter` / telemetry contracts, replay harness/report surfaces, `V1_1_EVIDENCE_INDEX.md`, `tests/harness/evidence_pack/*`, `scripts/export_ai_debug_evidence_pack.py` | assurance arbitration surface set | exporter / replay / evidence index / evidence-pack tooling 只作为 assurance-only 或 pull-only truth consumers，不得反向成为 runtime/control/public root |
 
 ## Assurance-only Extension Rules
 
 - `custom_components/lipro/core/telemetry/*` 与 `custom_components/lipro/control/telemetry_surface.py` 只承担 observer-only telemetry truth 输出与 control bridge 角色；runtime / entity / platform 不得把它们当成第二条业务主链。
 - `tests/harness/protocol/*`、`tests/fixtures/protocol_replay/*`、`tests/integration/test_protocol_replay_harness.py` 与 replay run summary 只属于 assurance-only replay surfaces；生产路径只能被它们验证，不能反向依赖它们。
 - `.planning/reviews/V1_1_EVIDENCE_INDEX.md` 以及后续 `Phase 8` evidence pack 入口都必须是 pull-only evidence pointers：只能索引正式真源，不得重新扫描仓库拼出第二套事实。
+- `tests/harness/evidence_pack/*`、`scripts/export_ai_debug_evidence_pack.py` 与生成的 `ai_debug_evidence_pack.json` / `ai_debug_evidence_pack.index.md` 只属于 assurance-only evidence-pack surfaces；AI / tooling 可以消费它们，但 runtime / control / entity 不得反向依赖它们。
 
 ## Transitional Public Surfaces
 
@@ -46,7 +47,7 @@
 - raw vendor payloads as domain/runtime public contracts
 - `core/protocol/boundary/*` decoder package as runtime/control/domain/entity public surface
 - ad-hoc helper exports that bypass formal plane roots
-- `tests/harness/protocol/*` / replay reports / evidence index 被当作 runtime、control、entity public surface
+- `tests/harness/protocol/*` / replay reports / evidence index / `tests/harness/evidence_pack/*` / `scripts/export_ai_debug_evidence_pack.py` / generated evidence pack outputs 被当作 runtime、control、entity public surface
 
 ## Architecture Policy Mapping
 
