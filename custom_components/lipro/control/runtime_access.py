@@ -8,6 +8,7 @@ from homeassistant.core import HomeAssistant
 
 from ..const.base import DOMAIN
 from .models import RuntimeCoordinatorSnapshot
+from .telemetry_surface import build_entry_system_health_view
 
 
 def get_entry_runtime_coordinator(entry: Any) -> Any | None:
@@ -36,41 +37,30 @@ def build_runtime_snapshot(entry: Any) -> RuntimeCoordinatorSnapshot | None:
     if coordinator is None:
         return None
 
-    telemetry_service = getattr(coordinator, "telemetry_service", None)
-    telemetry_snapshot: dict[str, Any] = {}
-    build_snapshot = getattr(telemetry_service, "build_snapshot", None)
-    if callable(build_snapshot):
-        snapshot = build_snapshot()
-        if isinstance(snapshot, dict):
-            telemetry_snapshot = snapshot
-
-    device_count_value = telemetry_snapshot.get("device_count")
-    if isinstance(device_count_value, int):
-        device_count = device_count_value
-    else:
+    telemetry_view = build_entry_system_health_view(entry) or {}
+    device_count = telemetry_view.get("device_count")
+    if not isinstance(device_count, int):
         devices = getattr(coordinator, "devices", None)
         try:
             device_count = len(devices) if devices is not None else 0
         except TypeError:
             device_count = 0
 
-    mqtt_connected: bool | None = None
-    mqtt_snapshot = telemetry_snapshot.get("mqtt")
-    if isinstance(mqtt_snapshot, dict):
-        connected = mqtt_snapshot.get("connected")
-        if isinstance(connected, bool):
-            mqtt_connected = connected
-    if mqtt_connected is None:
+    mqtt_connected = telemetry_view.get("mqtt_connected")
+    if not isinstance(mqtt_connected, bool):
         mqtt_service = getattr(coordinator, "mqtt_service", None)
         connected = getattr(mqtt_service, "connected", None)
-        if isinstance(connected, bool):
-            mqtt_connected = connected
+        mqtt_connected = connected if isinstance(connected, bool) else None
+
+    last_update_success = telemetry_view.get("last_update_success")
+    if not isinstance(last_update_success, bool):
+        last_update_success = bool(getattr(coordinator, "last_update_success", False))
 
     return RuntimeCoordinatorSnapshot(
         entry_id=str(getattr(entry, "entry_id", "")),
         coordinator=coordinator,
         device_count=device_count,
-        last_update_success=bool(getattr(coordinator, "last_update_success", False)),
+        last_update_success=last_update_success,
         mqtt_connected=mqtt_connected,
     )
 

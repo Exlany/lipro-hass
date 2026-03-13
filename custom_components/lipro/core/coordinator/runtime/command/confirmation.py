@@ -104,6 +104,13 @@ class ConfirmationManager:
             skip_immediate=skip_immediate,
         )
 
+    def get_runtime_metrics(self) -> dict[str, Any]:
+        """Return confirmation-latency telemetry for exporter consumers."""
+        return self._confirmation_tracker.build_runtime_metrics(
+            pending_expectations=self._pending_expectations,
+            device_state_latency_seconds=self._device_state_latency_seconds,
+        )
+
     async def run_delayed_refresh(self, delay_seconds: float) -> None:
         """Run delayed refresh after specified delay."""
         await run_delayed_refresh(

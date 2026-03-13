@@ -69,3 +69,28 @@ async def test_async_reload_entry_delegates_to_entry_lifecycle_controller(hass) 
         await async_reload_entry(hass, entry)
 
     controller.async_reload_entry.assert_awaited_once_with(hass, entry)
+
+
+def test_runtime_snapshot_uses_telemetry_surface_projection() -> None:
+    from custom_components.lipro.control.runtime_access import build_runtime_snapshot
+
+    coordinator = MagicMock()
+    coordinator.last_update_success = False
+    entry = MagicMock()
+    entry.entry_id = "entry-1"
+    entry.runtime_data = coordinator
+
+    with patch(
+        "custom_components.lipro.control.runtime_access.build_entry_system_health_view",
+        return_value={
+            "device_count": 5,
+            "mqtt_connected": True,
+            "last_update_success": True,
+        },
+    ):
+        snapshot = build_runtime_snapshot(entry)
+
+    assert snapshot is not None
+    assert snapshot.device_count == 5
+    assert snapshot.mqtt_connected is True
+    assert snapshot.last_update_success is True

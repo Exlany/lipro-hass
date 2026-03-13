@@ -12,12 +12,15 @@ from custom_components.lipro.core.coordinator.services.telemetry_service import 
 def test_telemetry_service_builds_runtime_snapshot() -> None:
     mqtt_service = MagicMock(connected=True)
     command_runtime = MagicMock()
-    command_runtime.get_runtime_metrics.return_value = {"trace_count": 2}
+    command_runtime.get_runtime_metrics.return_value = {
+        "trace_count": 2,
+        "confirmation": {"avg_latency_seconds": 1.2, "timeout_total": 1},
+    }
     command_runtime.get_recent_traces.return_value = [{"route": "mqtt"}]
     status_runtime = MagicMock()
     status_runtime.get_runtime_metrics.return_value = {"scheduler": {"batch": 1}}
     tuning_runtime = MagicMock()
-    tuning_runtime.get_runtime_metrics.return_value = {"metrics": {"latency": 1.2}}
+    tuning_runtime.get_runtime_metrics.return_value = {"metrics": {"avg_latency": 1.2}}
     mqtt_runtime = MagicMock()
     mqtt_runtime.get_runtime_metrics.return_value = {"is_connected": True}
 
@@ -35,15 +38,19 @@ def test_telemetry_service_builds_runtime_snapshot() -> None:
         "device_count": 3,
         "polling_interval_seconds": 15,
         "mqtt": {"connected": True, "is_connected": True},
-        "command": {"trace_count": 2},
+        "command": {
+            "trace_count": 2,
+            "confirmation": {"avg_latency_seconds": 1.2, "timeout_total": 1},
+        },
         "status": {"scheduler": {"batch": 1}},
-        "tuning": {"metrics": {"latency": 1.2}},
+        "tuning": {"metrics": {"avg_latency": 1.2}},
         "signals": {
             "connect_state_event_count": 0,
             "group_reconciliation_request_count": 0,
             "recent_connect_state_events": [],
             "recent_group_reconciliation_requests": [],
         },
+        "recent_command_traces": [{"route": "mqtt"}],
     }
     assert service.get_recent_command_traces() == [{"route": "mqtt"}]
 
@@ -51,7 +58,10 @@ def test_telemetry_service_builds_runtime_snapshot() -> None:
 def test_telemetry_service_records_runtime_signal_events() -> None:
     service = CoordinatorTelemetryService(
         mqtt_service=MagicMock(connected=False),
-        command_runtime=MagicMock(get_runtime_metrics=MagicMock(return_value={})),
+        command_runtime=MagicMock(
+            get_runtime_metrics=MagicMock(return_value={}),
+            get_recent_traces=MagicMock(return_value=[]),
+        ),
         status_runtime=MagicMock(get_runtime_metrics=MagicMock(return_value={})),
         tuning_runtime=MagicMock(get_runtime_metrics=MagicMock(return_value={})),
         mqtt_runtime_getter=lambda: MagicMock(get_runtime_metrics=MagicMock(return_value={})),

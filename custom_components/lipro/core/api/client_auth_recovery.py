@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from time import monotonic, time
 from typing import Any, TypeVar
 
 from ...const.api import (
@@ -35,6 +36,16 @@ class AuthRecoveryCoordinator:
 
     def __init__(self, state: ClientSessionState) -> None:
         self._state = state
+        self._auth_error_count = 0
+        self._refresh_attempt_count = 0
+        self._refresh_success_count = 0
+        self._refresh_failure_count = 0
+        self._refresh_expired_count = 0
+        self._refresh_reused_count = 0
+        self._last_refresh_duration_seconds: float | None = None
+        self._last_refresh_finished_at: float | None = None
+        self._last_refresh_outcome: str | None = None
+        self._last_refresh_error_type: str | None = None
 
     @property
     def access_token(self) -> str | None:
@@ -104,12 +115,39 @@ class AuthRecoveryCoordinator:
             return normalized_code
         return None
 
+    def _record_refresh_outcome(
+        self,
+        *,
+        outcome: str,
+        duration_seconds: float | None,
+        error_type: str | None = None,
+    ) -> None:
+        self._last_refresh_outcome = outcome
+        self._last_refresh_duration_seconds = duration_seconds
+        self._last_refresh_finished_at = time()
+        self._last_refresh_error_type = error_type
+
+    def telemetry_snapshot(self) -> dict[str, Any]:
+        return {
+            "auth_error_count": self._auth_error_count,
+            "refresh_attempt_count": self._refresh_attempt_count,
+            "refresh_success_count": self._refresh_success_count,
+            "refresh_failure_count": self._refresh_failure_count,
+            "refresh_expired_count": self._refresh_expired_count,
+            "refresh_reused_count": self._refresh_reused_count,
+            "last_refresh_duration_seconds": self._last_refresh_duration_seconds,
+            "last_refresh_finished_at": self._last_refresh_finished_at,
+            "last_refresh_outcome": self._last_refresh_outcome,
+            "last_refresh_error_type": self._last_refresh_error_type,
+        }
+
     async def handle_auth_error_and_retry(
         self,
         path: str,
         request_token: str | None,
         is_retry: bool,
     ) -> bool:
+        self._auth_error_count += 1
         if is_retry or not self._state.on_token_refresh:
             return False
         _LOGGER.info("Received auth error from %s, attempting token refresh", path)
@@ -177,6 +215,8 @@ class AuthRecoveryCoordinator:
             return False
 
         if self._state.access_token != request_token and self._state.access_token is not None:
+            self._refresh_reused_count += 1
+            self._record_refresh_outcome(outcome="reused", duration_seconds=0.0)
             _LOGGER.debug(
                 "Token already refreshed by another request, using new token",
             )
@@ -184,31 +224,68 @@ class AuthRecoveryCoordinator:
 
         async with self._state.refresh_lock:
             if self._state.access_token != request_token and self._state.access_token is not None:
+                self._refresh_reused_count += 1
+                self._record_refresh_outcome(outcome="reused", duration_seconds=0.0)
                 _LOGGER.debug(
                     "Token already refreshed by another request (verified in lock), using new token",
                 )
                 return True
 
+            self._refresh_attempt_count += 1
+            started_at = monotonic()
             try:
                 _LOGGER.debug("Executing token refresh")
                 await self._state.on_token_refresh()
                 refreshed_token = self._state.access_token
+                duration_seconds = monotonic() - started_at
                 if refreshed_token is None or refreshed_token == request_token:
+                    self._refresh_failure_count += 1
+                    self._record_refresh_outcome(
+                        outcome="unchanged",
+                        duration_seconds=duration_seconds,
+                    )
                     _LOGGER.warning(
                         "Token refresh callback completed but token is unchanged"
                     )
                     return False
+                self._refresh_success_count += 1
+                self._record_refresh_outcome(
+                    outcome="success",
+                    duration_seconds=duration_seconds,
+                )
                 _LOGGER.info("Token refresh successful, retrying request")
                 return True
             except LiproRefreshTokenExpiredError:
+                duration_seconds = monotonic() - started_at
+                self._refresh_failure_count += 1
+                self._refresh_expired_count += 1
+                self._record_refresh_outcome(
+                    outcome="refresh_token_expired",
+                    duration_seconds=duration_seconds,
+                    error_type="LiproRefreshTokenExpiredError",
+                )
                 _LOGGER.warning("Refresh token expired, re-authentication required")
                 raise
             except LiproAuthError as err:
+                duration_seconds = monotonic() - started_at
+                self._refresh_failure_count += 1
+                self._record_refresh_outcome(
+                    outcome="auth_error",
+                    duration_seconds=duration_seconds,
+                    error_type=type(err).__name__,
+                )
                 _LOGGER.warning(
                     "Token refresh failed (%s)", safe_error_placeholder(err)
                 )
                 return False
             except LiproConnectionError as err:
+                duration_seconds = monotonic() - started_at
+                self._refresh_failure_count += 1
+                self._record_refresh_outcome(
+                    outcome="connection_error",
+                    duration_seconds=duration_seconds,
+                    error_type=type(err).__name__,
+                )
                 _LOGGER.warning(
                     "Connection error during token refresh (%s)",
                     safe_error_placeholder(err),

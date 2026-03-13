@@ -290,6 +290,7 @@ class LiproProtocolFacade:
         return self._diagnostics_context.snapshot(
             mqtt_connected=mqtt.is_connected if mqtt is not None else None,
             subscribed_count=mqtt.subscribed_count if mqtt is not None else None,
+            auth_recovery=self._rest.auth_recovery_telemetry_snapshot(),
         )
 
 

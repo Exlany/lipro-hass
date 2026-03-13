@@ -199,6 +199,10 @@ def classify_path(path: str) -> FileGovernanceRow:
         return row("Protocol", "Phase 2.5", "重构")
     if path.startswith("custom_components/lipro/core/anonymous_share/"):
         return row("Protocol", "Phase 2.6", "保留")
+    if path.startswith("custom_components/lipro/core/telemetry/"):
+        return row("Assurance", "Phase 7.3", "保留")
+    if path == "custom_components/lipro/control/telemetry_surface.py":
+        return row("Control", "Phase 7.3", "保留")
     if path.startswith("custom_components/lipro/control/"):
         return row("Control", "Phase 3", "保留")
     if path in {
@@ -239,10 +243,14 @@ def classify_path(path: str) -> FileGovernanceRow:
         return row("Assurance", "Phase 6", "保留")
     if path.startswith("tests/snapshots/"):
         return row("Assurance", "Phase 6", "保留")
+    if path == "tests/integration/test_telemetry_exporter_integration.py":
+        return row("Runtime", "Phase 7.3", "保留")
     if path.startswith("tests/core/coordinator/") or path == "tests/core/test_coordinator.py" or path == "tests/core/test_coordinator_integration.py" or path.startswith("tests/integration/"):
         return row("Runtime", "Phase 5 / 6", "保留")
     if path.startswith("tests/core/api/"):
         return row("Protocol", "Phase 2", "保留")
+    if path.startswith("tests/core/telemetry/"):
+        return row("Assurance", "Phase 7.3", "保留")
     if path.startswith("tests/core/capability/") or path.startswith("tests/core/device/") or path.startswith("tests/entities/") or path.startswith("tests/platforms/"):
         return row("Domain", "Phase 4", "保留")
     if path.startswith("tests/services/") or path.startswith("tests/flows/") or path.startswith("tests/core/test_init.py"):

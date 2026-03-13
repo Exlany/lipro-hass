@@ -49,6 +49,7 @@ def test_command_runtime_exposes_recent_traces_and_metrics() -> None:
         "debug_enabled": True,
         "trace_count": 2,
         "last_failure": None,
+        "confirmation": {},
     }
 
 

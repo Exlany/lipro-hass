@@ -1,6 +1,6 @@
 # File Matrix
 
-**Python files total:** 412
+**Python files total:** 424
 **Status:** File-level governance authority
 **Rule:** workspace inventory excluding caches / virtual env / tooling artifacts
 
@@ -29,6 +29,7 @@
 | `custom_components/lipro/control/service_registry.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/control/service_router.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/control/system_health_surface.py` | Control | Phase 3 | 保留 | - |
+| `custom_components/lipro/control/telemetry_surface.py` | Control | Phase 7.3 | 保留 | - |
 | `custom_components/lipro/coordinator_entry.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/core/__init__.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/core/anonymous_share/__init__.py` | Protocol | Phase 2.6 | 保留 | - |
@@ -192,6 +193,11 @@
 | `custom_components/lipro/core/protocol/facade.py` | Protocol | Phase 2.5 | 保留 | - |
 | `custom_components/lipro/core/protocol/session.py` | Protocol | Phase 2.5 | 保留 | - |
 | `custom_components/lipro/core/protocol/telemetry.py` | Protocol | Phase 2.5 | 保留 | - |
+| `custom_components/lipro/core/telemetry/__init__.py` | Assurance | Phase 7.3 | 保留 | - |
+| `custom_components/lipro/core/telemetry/exporter.py` | Assurance | Phase 7.3 | 保留 | - |
+| `custom_components/lipro/core/telemetry/models.py` | Assurance | Phase 7.3 | 保留 | - |
+| `custom_components/lipro/core/telemetry/ports.py` | Assurance | Phase 7.3 | 保留 | - |
+| `custom_components/lipro/core/telemetry/sinks.py` | Assurance | Phase 7.3 | 保留 | - |
 | `custom_components/lipro/core/utils/__init__.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/core/utils/background_task_manager.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/core/utils/boollike.py` | Cross-cutting | Phase 7 | 保留 | - |
@@ -273,6 +279,7 @@
 | `tests/core/api/test_api_schedule_service.py` | Protocol | Phase 2 | 保留 | - |
 | `tests/core/api/test_api_status_service.py` | Protocol | Phase 2 | 保留 | - |
 | `tests/core/api/test_api_types_smoke.py` | Protocol | Phase 2 | 保留 | - |
+| `tests/core/api/test_auth_recovery_telemetry.py` | Protocol | Phase 2 | 保留 | - |
 | `tests/core/api/test_helper_modules.py` | Protocol | Phase 2 | 保留 | - |
 | `tests/core/api/test_protocol_contract_matrix.py` | Protocol | Phase 2 | 保留 | - |
 | `tests/core/api/test_request_codec.py` | Protocol | Phase 2 | 保留 | - |
@@ -321,6 +328,10 @@
 | `tests/core/ota/test_ota_row_selector.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `tests/core/ota/test_ota_rows_cache.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `tests/core/ota/test_ota_utils.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `tests/core/telemetry/__init__.py` | Assurance | Phase 7.3 | 保留 | - |
+| `tests/core/telemetry/test_exporter.py` | Assurance | Phase 7.3 | 保留 | - |
+| `tests/core/telemetry/test_models.py` | Assurance | Phase 7.3 | 保留 | - |
+| `tests/core/telemetry/test_sinks.py` | Assurance | Phase 7.3 | 保留 | - |
 | `tests/core/test_anonymous_share.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `tests/core/test_anonymous_share_cov_missing.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `tests/core/test_anonymous_share_storage.py` | Cross-cutting | Phase 7 | 保留 | - |
@@ -375,6 +386,7 @@
 | `tests/helpers/service_call.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/integration/__init__.py` | Runtime | Phase 5 / 6 | 保留 | - |
 | `tests/integration/test_mqtt_coordinator_integration.py` | Runtime | Phase 5 / 6 | 保留 | - |
+| `tests/integration/test_telemetry_exporter_integration.py` | Runtime | Phase 7.3 | 保留 | - |
 | `tests/meta/__init__.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_blueprints.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_dependency_guards.py` | Assurance | Phase 6 | 保留 | - |

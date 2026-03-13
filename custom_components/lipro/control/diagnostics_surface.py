@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 from .runtime_access import build_runtime_snapshot, get_entry_runtime_coordinator
+from .telemetry_surface import build_entry_diagnostics_view
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
@@ -87,8 +88,9 @@ async def async_get_config_entry_diagnostics(
     share_manager = get_anonymous_share_manager(hass, entry_id=entry.entry_id)
     device_count, error_count = share_manager.pending_count
     snapshot = build_runtime_snapshot(entry)
+    telemetry_view = build_entry_diagnostics_view(entry)
 
-    return {
+    payload = {
         "entry": {
             "title": redact_entry_title(entry.title),
             "data": async_redact_data(entry.data, to_redact),
@@ -111,6 +113,9 @@ async def async_get_config_entry_diagnostics(
         },
         "devices": devices_info,
     }
+    if telemetry_view is not None:
+        payload["telemetry"] = telemetry_view
+    return payload
 
 
 async def async_get_device_diagnostics(

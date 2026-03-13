@@ -68,8 +68,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 07.3-01: 建立 telemetry exporter models/ports/sinks
-- [ ] 07.3-02: 接入 runtime/protocol telemetry sources 与 redaction validation
+- [x] 07.3-01: 建立 telemetry exporter models/ports/sinks
+- [x] 07.3-02: 接入 runtime/protocol telemetry sources 与 redaction validation
 
 ### Phase 7.4: Protocol Replay / Simulator Harness 建立
 **Goal**: 让逆向协议样本能够经正式 façade/decoder 路径做确定性回放，生成 fidelity 与 operability 证据。
@@ -130,7 +130,7 @@ Plans:
 | 1-7 (+1.5/2.5/2.6) | v1.0 | 32/32 | Complete | 2026-03-13 |
 | 7.1 Boundary Schema/Decoder | v1.1 | 3/3 | Complete | 2026-03-13 |
 | 7.2 Enforcement | v1.1 | 2/2 | Complete | 2026-03-13 |
-| 7.3 Telemetry Exporter | v1.1 | 0/2 | Planned | - |
+| 7.3 Telemetry Exporter | v1.1 | 2/2 | Complete | 2026-03-13 |
 | 7.4 Replay Harness | v1.1 | 0/3 | Planned | - |
 | 7.5 Governance & Verification | v1.1 | 0/2 | Planned | - |
 | 8 AI Debug Evidence Pack | v1.1 | 0/2 | Planned | - |

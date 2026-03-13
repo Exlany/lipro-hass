@@ -269,6 +269,10 @@ class LiproRestFacade(_ClientBase):
     def set_token_refresh_callback(self, callback) -> None:
         self._auth_recovery.set_token_refresh_callback(callback)
 
+    def auth_recovery_telemetry_snapshot(self) -> dict[str, Any]:
+        """Return sanitized auth-recovery telemetry for protocol diagnostics."""
+        return self._auth_recovery.telemetry_snapshot()
+
     async def login(
         self,
         phone: str,

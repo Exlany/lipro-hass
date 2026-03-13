@@ -47,6 +47,12 @@
 | Compat 不成为 public truth | `ARCHITECTURE_POLICY.md` + public-surface guards | residual kill gate |
 | Runtime/control 不直连 child façade roots | protocol/root contract tests + integration proof | stronger dependency guards |
 
+## Phase 07.3 Observer-Only Telemetry Surface
+
+- `custom_components/lipro/core/telemetry/*` 只允许 pull `ProtocolTelemetrySource` / `RuntimeTelemetrySource` ports、pure models 与 sink projections；不得反向依赖 `control/*`、`Coordinator` internals 或 child façade internals。
+- `custom_components/lipro/control/telemetry_surface.py` 是 control-plane 唯一 bridge：可以装配 `RuntimeTelemetryExporter`，但 diagnostics / system-health consumers 不得绕过它回退到 runtime private fields。
+- exporter family 属于 `observer-only surface`：允许读取正式 runtime / protocol telemetry truth，不得获得编排权、服务注册权或第二套事件总线语义。
+
 ## Review Checklist
 
 - [ ] 新增依赖是否符合 allowed matrix

@@ -457,3 +457,52 @@ def test_schedule_post_command_refresh_returns_when_no_delay() -> None:
 
     track_background_task.assert_not_called()
     assert post_command_refresh_tasks == {}
+
+
+def test_build_runtime_metrics_reports_confirmation_and_timeout_summary(
+    tracker: CommandConfirmationTracker,
+) -> None:
+    pending_expectations = {
+        "device-timeout": PendingCommandExpectation(
+            sent_at=0.0,
+            expected={"powerState": "1"},
+        ),
+        "device-ok": PendingCommandExpectation(
+            sent_at=10.0,
+            expected={"powerState": "1"},
+        ),
+    }
+    latencies: dict[str, float] = {}
+
+    with patch(
+        "custom_components.lipro.core.command.confirmation_tracker.monotonic",
+        return_value=100.0,
+    ):
+        tracker.filter_pending_command_mismatches(
+            pending_expectations=pending_expectations,
+            device_serial="device-timeout",
+            properties={"powerState": "0"},
+        )
+
+    with patch(
+        "custom_components.lipro.core.command.confirmation_tracker.monotonic",
+        return_value=15.0,
+    ):
+        tracker.observe_command_confirmation(
+            pending_expectations=pending_expectations,
+            device_state_latency_seconds=latencies,
+            device_serial="device-ok",
+            properties={"powerState": 1},
+        )
+
+    metrics = tracker.build_runtime_metrics(
+        pending_expectations=pending_expectations,
+        device_state_latency_seconds=latencies,
+    )
+
+    assert metrics["confirmation_total"] == 1
+    assert metrics["timeout_total"] == 1
+    assert metrics["avg_latency_seconds"] == 5.0
+    assert metrics["last_timeout_reason"] == "state_confirmation_timeout"
+    assert metrics["learned_device_count"] == 1
+    assert metrics["recent_confirmations"][0]["device_serial"] == "device-ok"

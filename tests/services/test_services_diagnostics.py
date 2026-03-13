@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
+from types import SimpleNamespace
 from typing import Any, cast
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -94,6 +95,27 @@ def test_collect_developer_reports_mixed_coordinator_outcomes(
     )
 
     assert result == expected_reports
+
+
+def test_collect_developer_reports_falls_back_to_exporter_view() -> None:
+    """collect_developer_reports should use exporter truth when legacy builder is absent."""
+    hass = cast(HomeAssistant, MagicMock())
+    entry = MagicMock(entry_id='entry-1')
+    coordinator = SimpleNamespace(config_entry=entry)
+    entry.runtime_data = coordinator
+    hass.config_entries.async_entries.return_value = [entry]
+
+    with patch(
+        'custom_components.lipro.control.telemetry_surface.get_entry_telemetry_view',
+        return_value={'entry_ref': 'entry:1', 'runtime': {'ok': True}},
+    ) as get_entry_telemetry_view:
+        result = collect_developer_reports(
+            hass,
+            iter_runtime_coordinators=lambda _: iter([coordinator]),
+        )
+
+    assert result == [{'entry_ref': 'entry:1', 'runtime': {'ok': True}}]
+    get_entry_telemetry_view.assert_called_once_with(entry, 'developer')
 
 
 @pytest.mark.asyncio

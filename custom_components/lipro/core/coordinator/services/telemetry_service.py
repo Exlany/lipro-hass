@@ -91,6 +91,7 @@ class CoordinatorTelemetryService:
                     self._group_reconciliation_requests
                 ),
             },
+            "recent_command_traces": self.command_runtime.get_recent_traces(limit=20),
         }
 
     def get_recent_command_traces(self, limit: int | None = None) -> list[dict[str, Any]]:

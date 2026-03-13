@@ -68,10 +68,17 @@ class CommandRuntime:
 
     def get_runtime_metrics(self) -> dict[str, Any]:
         """Return lightweight command-runtime telemetry."""
+        confirmation_metrics_getter = getattr(self._confirmation, "get_runtime_metrics", None)
+        confirmation_metrics = (
+            confirmation_metrics_getter() if callable(confirmation_metrics_getter) else {}
+        )
+        if not isinstance(confirmation_metrics, dict):
+            confirmation_metrics = {}
         return {
             "debug_enabled": self._debug_mode,
             "trace_count": len(self._traces),
             "last_failure": self.last_command_failure,
+            "confirmation": confirmation_metrics,
         }
 
     def _record_trace(self, trace: CommandTrace) -> None:

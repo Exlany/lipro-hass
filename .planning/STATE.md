@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: protocol-fidelity-operability
-status: planning
-last_updated: "2026-03-13T10:30:00Z"
+status: executing
+last_updated: "2026-03-13T14:18:48Z"
 progress:
   total_phases: 5
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 14
-  completed_plans: 5
+  completed_plans: 8
 ---
 
 # Project State
@@ -19,7 +19,7 @@ See: `.planning/PROJECT.md`
 
 **Current milestone:** `v1.1 Protocol Fidelity & Operability`
 **Core value:** 在既有北极星单一主链基础上，把 fidelity / enforcement / telemetry / replay / AI-debug evidence 做成下一层正式能力。
-**Current mode:** `Phases 7.3 / 7.4 / 7.5 / 8 planned`，当前应从 `Phase 7.3` 开始顺序执行并保持 7.3-8 真源边界不交叉。
+**Current mode:** `Phase 7.3 completed`，`Phase 7.4 ready`；执行顺序仍固定为 `7.3 -> 7.4 -> 7.5 -> 8` 以避免真源交叉。
 
 ## Current Position
 
@@ -27,8 +27,8 @@ See: `.planning/PROJECT.md`
 - `v1.1` 已完成里程碑初始化、研究收敛、requirements/roadmap 落表
 - `Phase 7.1` 已完成：boundary inventory / decoder skeleton / representative REST+MQTT pipeline / replay-ready fixtures / governance handoff
 - `Phase 7.2` 已完成：architecture policy baseline、shared policy helpers、architecture script、meta guards refactor、CI fail-fast ordering 与 verification evidence 已落地
-- `Phase 7.3` 已规划：telemetry exporter formal home、runtime/protocol sources、统一 telemetry truth
-- `Phase 7.4` 已规划：replay manifests、deterministic driver、REST/MQTT replay assertions、replay run summary
+- `Phase 7.3` 已完成：exporter formal home、真实运行信号、consumer convergence、black-box evidence 与治理回写均已落地
+- `Phase 7.4` 已就绪：可直接复用 `07.3` exporter truth 建立 replay manifests、deterministic driver、REST/MQTT replay assertions 与 run summary
 - `Phase 7.5` 已规划：governance matrix sync、evidence index、phase closeout handoff
 - `Phase 8` 已规划：AI debug evidence pack schema、tooling exporter、authority-aware pack validation
 
@@ -72,9 +72,9 @@ See: `.planning/PROJECT.md`
 
 ## Recommended Next Command
 
-1. `$gsd-execute-phase 7.3` —— 从 telemetry exporter 开始顺序执行 `7.3 -> 7.4 -> 7.5 -> 8`
-2. 执行完成后运行 `$gsd-validate-phase 7.3`
-3. 然后继续 `$gsd-execute-phase 7.4`
+1. `$gsd-execute-phase 7.4` —— 继续 replay harness 主线，复用 `07.3` exporter truth
+2. 如需先补审计闭环，运行 `$gsd-validate-phase 7.3`
+3. 然后按顺序继续 `$gsd-execute-phase 7.5` 与 `$gsd-execute-phase 8`
 
 ## Session Continuity
 

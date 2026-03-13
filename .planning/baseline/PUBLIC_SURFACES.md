@@ -19,8 +19,8 @@
 | Protocol (Phase 2) | `LiproRestFacade` | phase-local canonical REST sub-facade | Phase 2 可直接引用的正式 REST surface，但必须收敛到 `LiproProtocolFacade` |
 | Runtime | `Coordinator` + runtime services/public surface | runtime orchestration root + stable service surface | 运行面唯一正式编排出口 |
 | Domain | `CapabilityRegistry` / `CapabilitySnapshot` / command contracts | domain truth surface family | `custom_components/lipro/core/capability/` 为统一能力真源与投影来源 |
-| Control | `EntryLifecycleController`, `ServiceRegistry`, `DiagnosticsSurface`, `SystemHealthSurface` | control-plane formal surface set | `custom_components/lipro/control/` 为正式内部控制面 home；HA 根模块只保留 adapter 职责 |
-| Assurance | contract suites, invariant suites, meta guards, ledgers | assurance arbitration surface set | 保障面的正式裁决面 |
+| Control | `EntryLifecycleController`, `ServiceRegistry`, `DiagnosticsSurface`, `SystemHealthSurface`, `telemetry_surface` bridge helpers | control-plane formal surface set | `custom_components/lipro/control/` 为正式内部控制面 home；HA 根模块只保留 adapter 职责，telemetry bridge 只负责定位 exporter |
+| Assurance | contract suites, invariant suites, meta guards, ledgers, `RuntimeTelemetryExporter` / telemetry contracts | assurance arbitration surface set | exporter 以 observer-only 方式输出 diagnostics/system-health/developer/CI 共用 truth |
 
 ## Transitional Public Surfaces
 

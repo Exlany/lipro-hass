@@ -22,9 +22,10 @@ class ProtocolDiagnosticsContext:
         *,
         mqtt_connected: bool | None = None,
         subscribed_count: int | None = None,
+        auth_recovery: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """Return a stable protocol-owned diagnostics snapshot."""
-        return {
+        snapshot = {
             "entry_id": self.entry_id,
             "session": self.session_state.as_dict(),
             "telemetry": self.telemetry.snapshot(
@@ -32,6 +33,9 @@ class ProtocolDiagnosticsContext:
                 subscribed_count=subscribed_count,
             ),
         }
+        if auth_recovery:
+            snapshot["auth_recovery"] = auth_recovery
+        return snapshot
 
 
 __all__ = ["ProtocolDiagnosticsContext"]

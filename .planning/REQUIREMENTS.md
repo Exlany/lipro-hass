@@ -15,8 +15,8 @@
 
 ### Telemetry Export
 
-- [ ] **OBS-01**: runtime/protocol 核心信号必须形成正式 exporter，覆盖 auth recovery、MQTT reconnect、command confirmation、refresh latency
-- [ ] **OBS-02**: diagnostics、system health、exporter 必须共享单一 telemetry truth，并遵循统一 redaction/cardinality policy
+- [x] **OBS-01**: runtime/protocol 核心信号必须形成正式 exporter，覆盖 auth recovery、MQTT reconnect、command confirmation、refresh latency
+- [x] **OBS-02**: diagnostics、system health、exporter 必须共享单一 telemetry truth，并遵循统一 redaction/cardinality policy
 
 ### Replay & Operability
 
@@ -66,8 +66,8 @@
 | BND-03 | Phase 7.1 | Complete |
 | ENF-01 | Phase 7.2 | Complete |
 | ENF-02 | Phase 7.2 | Complete |
-| OBS-01 | Phase 7.3 | Planned |
-| OBS-02 | Phase 7.3 | Planned |
+| OBS-01 | Phase 7.3 | Complete |
+| OBS-02 | Phase 7.3 | Complete |
 | SIM-01 | Phase 7.4 | Planned |
 | SIM-02 | Phase 7.4 | Planned |
 | GOV-06 | Phase 7.5 | Planned |
@@ -80,4 +80,4 @@
 - mapped to phases: 13
 - unmapped: 0 ✓
 
-*Last updated: 2026-03-13 after planning Phases 7.4 / 7.5 / 8*
+*Last updated: 2026-03-13 after completing Phase 7.3 telemetry exporter*

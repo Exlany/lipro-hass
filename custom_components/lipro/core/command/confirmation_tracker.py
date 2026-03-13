@@ -6,8 +6,9 @@ used to reconcile command pushes with eventual device state updates.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-from time import monotonic
+from collections import deque
+from dataclasses import dataclass, field
+from time import monotonic, time
 from typing import Any
 
 from .expectation import PendingCommandExpectation
@@ -24,6 +25,18 @@ class CommandConfirmationTracker:
     state_latency_margin_seconds: float
     state_latency_ewma_alpha: float
     state_confirm_timeout_seconds: float
+    _recent_confirmations: deque[dict[str, float | str]] = field(
+        default_factory=lambda: deque(maxlen=20),
+        init=False,
+        repr=False,
+    )
+    _recent_timeouts: deque[dict[str, float | str]] = field(
+        default_factory=lambda: deque(maxlen=20),
+        init=False,
+        repr=False,
+    )
+    _confirmation_total: int = field(default=0, init=False, repr=False)
+    _timeout_total: int = field(default=0, init=False, repr=False)
 
     def filter_pending_command_mismatches(
         self,
@@ -43,6 +56,7 @@ class CommandConfirmationTracker:
 
         now = monotonic()
         if pending.is_expired(now, self.state_confirm_timeout_seconds):
+            self._record_timeout(device_serial=device_serial)
             pending_expectations.pop(device_serial, None)
             return properties, set()
 
@@ -122,6 +136,7 @@ class CommandConfirmationTracker:
 
         now = monotonic()
         if pending.is_expired(now, self.state_confirm_timeout_seconds):
+            self._record_timeout(device_serial=device_serial)
             pending_expectations.pop(device_serial, None)
             return None
 
@@ -133,6 +148,14 @@ class CommandConfirmationTracker:
             device_state_latency_seconds=device_state_latency_seconds,
             device_serial=device_serial,
             observed_latency=latency,
+        )
+        self._confirmation_total += 1
+        self._recent_confirmations.append(
+            {
+                "device_serial": device_serial,
+                "latency_seconds": latency,
+                "confirmed_at": time(),
+            }
         )
         pending_expectations.pop(device_serial, None)
         return latency
@@ -157,6 +180,44 @@ class CommandConfirmationTracker:
             max_delay_seconds=self.max_post_command_refresh_delay_seconds,
         )
 
+    def _record_timeout(self, *, device_serial: str) -> None:
+        self._timeout_total += 1
+        self._recent_timeouts.append(
+            {
+                "device_serial": device_serial,
+                "reason": "state_confirmation_timeout",
+                "expired_at": time(),
+            }
+        )
+
+    def build_runtime_metrics(
+        self,
+        *,
+        pending_expectations: dict[str, PendingCommandExpectation],
+        device_state_latency_seconds: dict[str, float],
+    ) -> dict[str, Any]:
+        """Build summary metrics for exporter/runtime consumers."""
+        latencies = [
+            float(item["latency_seconds"])
+            for item in self._recent_confirmations
+            if isinstance(item.get("latency_seconds"), (int, float))
+        ]
+        avg_latency = sum(latencies) / len(latencies) if latencies else None
+        last_timeout = self._recent_timeouts[-1] if self._recent_timeouts else None
+        return {
+            "pending_count": len(pending_expectations),
+            "learned_device_count": len(device_state_latency_seconds),
+            "confirmation_total": self._confirmation_total,
+            "timeout_total": self._timeout_total,
+            "avg_latency_seconds": avg_latency,
+            "last_latency_seconds": latencies[-1] if latencies else None,
+            "last_timeout_reason": (
+                last_timeout.get("reason") if isinstance(last_timeout, dict) else None
+            ),
+            "recent_confirmations": list(self._recent_confirmations),
+            "recent_timeouts": list(self._recent_timeouts),
+        }
+
     @staticmethod
     def prune_runtime_state_for_devices(
         *,
@@ -172,3 +233,6 @@ class CommandConfirmationTracker:
         stale_latency = set(device_state_latency_seconds) - active_serials
         for serial in stale_latency:
             device_state_latency_seconds.pop(serial, None)
+
+
+__all__ = ["CommandConfirmationTracker"]

@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from collections.abc import Awaitable, Callable, Iterator
 from datetime import UTC, datetime
+from importlib import import_module
 import logging
 from typing import NoReturn, TypeVar, cast
 
@@ -30,7 +31,6 @@ from .types import (
     DeveloperFeedbackShareManager,
     DeveloperReport,
     DeveloperReportCollector,
-    DeveloperReportCoordinator,
     DeveloperReportResponse,
     DiagnosticsCoordinator,
     RuntimeCoordinatorIterator,
@@ -83,6 +83,36 @@ def _coerce_service_float(call: ServiceCall, key: str, default: float) -> float:
 
 
 # Capability collection utilities
+def _find_runtime_entry_for_coordinator(
+    hass: HomeAssistant,
+    coordinator: object,
+) -> object | None:
+    """Return the config entry that owns one runtime coordinator."""
+    config_entry = getattr(coordinator, "config_entry", None)
+    if getattr(config_entry, "runtime_data", None) is coordinator:
+        return config_entry
+    for entry in hass.config_entries.async_entries(DOMAIN):
+        if getattr(entry, "runtime_data", None) is coordinator:
+            return entry
+    return None
+
+
+def _collect_exporter_developer_report(
+    hass: HomeAssistant,
+    coordinator: object,
+) -> DeveloperReport | None:
+    """Return exporter-backed developer view when coordinator lacks a legacy builder."""
+    telemetry_surface = import_module("custom_components.lipro.control.telemetry_surface")
+
+    entry = _find_runtime_entry_for_coordinator(hass, coordinator)
+    if entry is None:
+        return None
+    view = telemetry_surface.get_entry_telemetry_view(entry, "developer")
+    if isinstance(view, dict):
+        return cast(DeveloperReport, view)
+    return None
+
+
 def _collect_coordinator_capability_results(
     coordinators: Iterator[_CoordinatorT],
     *,
@@ -133,15 +163,23 @@ def collect_developer_reports(
     iter_runtime_coordinators: RuntimeCoordinatorIterator,
 ) -> list[DeveloperReport]:
     """Collect developer reports from active config entries."""
-    return _collect_coordinator_capability_results(
-        (
-            cast(DeveloperReportCoordinator, coordinator)
-            for coordinator in iter_runtime_coordinators(hass)
-            if callable(getattr(coordinator, "build_developer_report", None))
-        ),
-        capability="coordinator developer report",
-        collector=lambda coordinator: coordinator.build_developer_report(),
-    )
+    reports: list[DeveloperReport] = []
+    for coordinator in iter_runtime_coordinators(hass):
+        try:
+            builder = getattr(coordinator, "build_developer_report", None)
+            if callable(builder):
+                reports.append(cast(DeveloperReport, builder()))
+                continue
+            exporter_report = _collect_exporter_developer_report(hass, coordinator)
+            if exporter_report is not None:
+                reports.append(exporter_report)
+        except Exception as err:  # noqa: BLE001
+            _LOGGER.warning(
+                "Skip one %s capability due to error (%s)",
+                "coordinator developer report",
+                type(err).__name__,
+            )
+    return reports
 
 
 def build_developer_feedback_payload(
