@@ -273,7 +273,7 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
             device_id=self.device.serial,
             device_type=self.device.device_type_hex,
             iot_name=self.device.iot_name or None,
-            allow_rich_v2_fallback=self.device.is_light,
+            allow_rich_v2_fallback=self.device.capabilities.is_light,
         )
         return [dict(row) for row in rows] if isinstance(rows, list) else []
 

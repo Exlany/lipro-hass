@@ -87,6 +87,7 @@ def coordinator(hass, mock_lipro_api_client, mock_auth_manager):
         "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager"
     ) as mock_share:
         mock_share.return_value = MagicMock(is_enabled=False, set_enabled=MagicMock())
+        mock_lipro_api_client.attach_mqtt_facade = MagicMock()
         from custom_components.lipro.core.coordinator.coordinator import Coordinator
 
         return Coordinator(
@@ -112,25 +113,22 @@ async def test_async_setup_mqtt_builds_refactored_client(
             "custom_components.lipro.core.coordinator.mqtt_lifecycle.decrypt_mqtt_credential",
             side_effect=["ak", "sk"],
         ),
-        patch(
-            "custom_components.lipro.core.coordinator.mqtt_lifecycle.MqttRuntime"
-        ) as mock_runtime_cls,
     ):
         mock_client = MagicMock()
         mock_lipro_api_client.build_mqtt_facade = MagicMock(return_value=mock_client)
 
         mock_runtime = MagicMock()
+        mock_runtime.has_transport = False
         mock_runtime.is_connected = True
         mock_runtime.connect = AsyncMock(return_value=True)
-        mock_runtime.set_polling_updater = MagicMock()
-        mock_runtime_cls.return_value = mock_runtime
+        mock_runtime.bind_transport = MagicMock()
+        object.__setattr__(coordinator._runtimes, "mqtt", mock_runtime)
 
         ok = await coordinator.mqtt_service.async_setup()
 
     assert ok is True
-    assert coordinator._runtimes.mqtt is not None
-    mock_runtime.connect.assert_awaited_once()
-    mock_runtime.set_polling_updater.assert_called_once_with(coordinator)
+    mock_runtime.bind_transport.assert_called_once_with(mock_client)
+    mock_runtime.connect.assert_awaited_once_with(device_ids=["mesh_group_1"])
     mqtt_client_kwargs = mock_lipro_api_client.build_mqtt_facade.call_args.kwargs
     assert callable(mqtt_client_kwargs["on_message"])
     assert callable(mqtt_client_kwargs["on_connect"])
@@ -208,21 +206,22 @@ async def test_async_setup_mqtt_returns_false_when_group_connect_times_out(
             "custom_components.lipro.core.coordinator.mqtt_lifecycle.resolve_mqtt_biz_id",
             return_value="biz001",
         ),
-        patch(
-            "custom_components.lipro.core.coordinator.mqtt_lifecycle.MqttRuntime"
-        ) as mock_runtime_cls,
     ):
         mock_runtime = MagicMock()
-        mock_runtime.is_connected = True
+        mock_runtime.has_transport = False
+        mock_runtime.is_connected = False
         mock_runtime.connect = AsyncMock(side_effect=TimeoutError())
         mock_runtime.disconnect = AsyncMock()
-        mock_runtime_cls.return_value = mock_runtime
+        mock_runtime.detach_transport = MagicMock()
+        mock_runtime.bind_transport = MagicMock()
+        object.__setattr__(coordinator._runtimes, "mqtt", mock_runtime)
 
         ok = await coordinator.async_setup_mqtt()
 
     assert ok is False
     mock_runtime.connect.assert_awaited_once()
     mock_runtime.disconnect.assert_awaited_once()
+    mock_runtime.detach_transport.assert_called_once()
 
 
 @pytest.mark.asyncio
@@ -244,27 +243,29 @@ async def test_async_setup_mqtt_returns_false_when_runtime_stays_disconnected(
             "custom_components.lipro.core.coordinator.mqtt_lifecycle.resolve_mqtt_biz_id",
             return_value="biz001",
         ),
-        patch(
-            "custom_components.lipro.core.coordinator.mqtt_lifecycle.MqttRuntime"
-        ) as mock_runtime_cls,
     ):
         mock_runtime = MagicMock()
+        mock_runtime.has_transport = False
         mock_runtime.is_connected = False
         mock_runtime.connect = AsyncMock(return_value=False)
         mock_runtime.disconnect = AsyncMock()
-        mock_runtime_cls.return_value = mock_runtime
+        mock_runtime.detach_transport = MagicMock()
+        mock_runtime.bind_transport = MagicMock()
+        object.__setattr__(coordinator._runtimes, "mqtt", mock_runtime)
 
         ok = await coordinator.async_setup_mqtt()
 
     assert ok is False
     mock_runtime.connect.assert_awaited_once()
     mock_runtime.disconnect.assert_awaited_once()
+    mock_runtime.detach_transport.assert_called_once()
 
 
 @pytest.mark.asyncio
 async def test_async_setup_mqtt_reraises_cancelled_error(
     coordinator, mock_lipro_api_client
 ) -> None:
+    coordinator._state.devices = {"dev1": _make_device("dev1")}
     mock_lipro_api_client.get_mqtt_config.side_effect = asyncio.CancelledError()
 
     with pytest.raises(asyncio.CancelledError):
@@ -297,14 +298,13 @@ async def test_coordinator_mqtt_service_sync_and_stop_use_client_runtime(
     mock_mqtt_runtime.sync_subscriptions = AsyncMock(return_value=True)
     mock_mqtt_runtime.disconnect = AsyncMock()
     object.__setattr__(coordinator._runtimes, "mqtt", mock_mqtt_runtime)
-    coordinator._state.biz_id = "biz001"
     coordinator._state.devices = {
         "dev_a": _make_device("dev_a"),
         "mesh_group_1": _make_device("mesh_group_1", is_group=True),
     }
 
     mock_client = AsyncMock()
-    coordinator._state.mqtt_client = mock_client
+    coordinator._runtimes.mqtt.has_transport = True
 
     await coordinator.mqtt_service.async_sync_subscriptions()
     mock_mqtt_runtime.sync_subscriptions.assert_awaited_once_with(["mesh_group_1"])
@@ -345,14 +345,14 @@ async def test_async_setup_mqtt_message_callback_bridges_to_runtime_and_coordina
         ok = await coordinator.async_setup_mqtt()
 
     assert ok is True
-    mqtt_client = coordinator.mqtt_client
+    mqtt_client = coordinator._runtimes.mqtt._mqtt_client
     assert mqtt_client is not None
     raw_client = getattr(mqtt_client, "raw_client", mqtt_client)
     assert isinstance(raw_client, _FakeMqttClient)
 
     assert raw_client.on_message is not None
     raw_client.on_message(device.serial, {"connectState": "1"})
-    await asyncio.gather(*tuple(coordinator.background_task_manager.tasks))
+    await asyncio.gather(*tuple(coordinator._state.background_task_manager.tasks))
 
     coordinator._runtimes.state.apply_properties_update.assert_awaited_once_with(
         device,
@@ -360,7 +360,7 @@ async def test_async_setup_mqtt_message_callback_bridges_to_runtime_and_coordina
         source="mqtt",
     )
     coordinator.async_set_updated_data.assert_called_with(coordinator.devices)
-    assert not coordinator.background_task_manager.tasks
+    assert not coordinator._state.background_task_manager.tasks
 
 
 @pytest.mark.asyncio
@@ -391,20 +391,20 @@ async def test_async_setup_mqtt_client_callbacks_drive_runtime_connection_state(
         ok = await coordinator.async_setup_mqtt()
 
     assert ok is True
-    mqtt_client = coordinator.mqtt_client
+    mqtt_client = coordinator._runtimes.mqtt._mqtt_client
     assert mqtt_client is not None
     raw_client = getattr(mqtt_client, "raw_client", mqtt_client)
     assert isinstance(raw_client, _FakeMqttClient)
-    assert coordinator.mqtt_runtime is not None
-    assert coordinator.mqtt_runtime.is_connected
+    assert coordinator._runtimes.mqtt is not None
+    assert coordinator._runtimes.mqtt.is_connected
 
     assert raw_client.on_disconnect is not None
     raw_client.on_disconnect()
-    assert coordinator.mqtt_runtime is not None
-    assert not coordinator.mqtt_runtime.is_connected
+    assert coordinator._runtimes.mqtt is not None
+    assert not coordinator._runtimes.mqtt.is_connected
 
     on_connect = raw_client.on_connect
     assert on_connect is not None
     on_connect()
-    assert coordinator.mqtt_runtime is not None
-    assert coordinator.mqtt_runtime.is_connected
+    assert coordinator._runtimes.mqtt is not None
+    assert coordinator._runtimes.mqtt.is_connected

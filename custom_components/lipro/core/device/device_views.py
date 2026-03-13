@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from ...const.categories import DeviceCategory
+from ..capability import CapabilitySnapshot
 from .device_factory import has_valid_iot_id
 from .device_snapshots import (
     build_capabilities_snapshot,
@@ -14,7 +15,6 @@ from .device_snapshots import (
 from .profile import resolve_device_type_hex
 
 if TYPE_CHECKING:
-    from .capabilities import DeviceCapabilities
     from .device import LiproDevice
     from .identity import DeviceIdentity
     from .network_info import DeviceNetworkInfo
@@ -25,7 +25,7 @@ def identity(device: LiproDevice) -> DeviceIdentity:
     return build_identity_snapshot(device)
 
 
-def capabilities(device: LiproDevice) -> DeviceCapabilities:
+def capabilities(device: LiproDevice) -> CapabilitySnapshot:
     """Return immutable capability metadata for the device."""
     return build_capabilities_snapshot(device)
 

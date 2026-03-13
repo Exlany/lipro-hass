@@ -9,7 +9,6 @@ from typing import TYPE_CHECKING, Any
 from homeassistant.components.switch import SwitchDeviceClass, SwitchEntity
 from homeassistant.const import EntityCategory
 
-from .const.device_types import DEVICE_TYPE_OUTLET, DEVICE_TYPE_PANEL
 from .const.properties import (
     PROP_BODY_REACTIVE,
     PROP_FADE_STATE,
@@ -67,7 +66,7 @@ class LiproSwitch(LiproEntity, SwitchEntity):
         """Initialize the switch."""
         super().__init__(coordinator, device)
 
-        if device.device_type_hex == DEVICE_TYPE_OUTLET:
+        if device.capabilities.is_outlet:
             self._attr_device_class = SwitchDeviceClass.OUTLET
             self._attr_translation_key = "outlet"
         else:
@@ -212,11 +211,11 @@ _SWITCH_RULES: list[
     ]
 ] = [
     # Main switch entity (outlet or panel)
-    (lambda d: d.is_switch, [LiproSwitch]),
+    (lambda d: d.capabilities.supports_platform("switch"), [LiproSwitch]),
     # Light feature switches — one rule per config with hasattr guard in predicate
     *[
         (
-            lambda d, prop=cfg.device_property: d.is_light and hasattr(d, prop),
+            lambda d, prop=cfg.device_property: d.capabilities.is_light and hasattr(d, prop),
             [lambda c, d, cfg=cfg: LiproPropertySwitch(c, d, cfg)],
         )
         for cfg in LIGHT_FEATURE_SWITCHES
@@ -225,7 +224,7 @@ _SWITCH_RULES: list[
     *[
         (
             lambda d, prop=cfg.device_property: (
-                d.device_type_hex == DEVICE_TYPE_PANEL
+                d.capabilities.is_panel
                 and (PROP_LED in d.properties or PROP_MEMORY in d.properties)
                 and hasattr(d, prop)
             ),

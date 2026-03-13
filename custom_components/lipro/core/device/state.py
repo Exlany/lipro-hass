@@ -18,6 +18,7 @@ class DeviceState:
     min_color_temp_kelvin: int = 0
     max_color_temp_kelvin: int = 0
     max_fan_gear: int = 1
+    _supports_color_temp: bool = False
     _exposed_attributes: ClassVar[tuple[str, ...]] = DEVICE_STATE_EXPORTED_ATTRIBUTES
 
     @classmethod
@@ -28,10 +29,15 @@ class DeviceState:
         min_color_temp_kelvin: int,
         max_color_temp_kelvin: int,
         max_fan_gear: int,
+        supports_color_temp: bool,
     ) -> DeviceState:
         """Build state from one normalized property payload."""
         return cls(
-            dict(properties), min_color_temp_kelvin, max_color_temp_kelvin, max_fan_gear
+            dict(properties),
+            min_color_temp_kelvin,
+            max_color_temp_kelvin,
+            max_fan_gear,
+            supports_color_temp,
         )
 
     def update_from_properties(self, properties: Mapping[str, Any]) -> None:

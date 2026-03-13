@@ -48,7 +48,7 @@ async def async_setup_entry(
     """Set up Lipro lights."""
     entities = create_platform_entities(
         entry.runtime_data,
-        device_filter=lambda d: d.is_light or d.is_fan_light,
+        device_filter=lambda d: d.capabilities.supports_platform("light"),
         entity_factory=LiproLight,
     )
     async_add_entities(entities)
@@ -62,7 +62,7 @@ class LiproLight(LiproEntity, LightEntity):
     brightness = ScaledBrightness()  # Auto-converts 0-100 → 0-255
     color_temp_kelvin = ConditionalAttr[int](
         "color_temp",
-        capability="supports_color_temp",
+        capability="capabilities.supports_color_temp",
     )
 
     _power = PowerCommand()
@@ -74,10 +74,10 @@ class LiproLight(LiproEntity, LightEntity):
     ) -> None:
         """Initialize the light."""
         # Use suffix for fan lights to distinguish from fan entity
-        suffix = "light" if device.is_fan_light else ""
+        suffix = "light" if device.capabilities.is_fan_light else ""
         super().__init__(coordinator, device, suffix)
 
-        if device.is_fan_light:
+        if device.capabilities.is_fan_light:
             self._attr_translation_key = "light"
         else:
             self._attr_name = None  # Use device name
@@ -88,7 +88,7 @@ class LiproLight(LiproEntity, LightEntity):
 
         Dynamic property so it reflects product config changes after init.
         """
-        if self.device.supports_color_temp:
+        if self.capabilities.supports_color_temp:
             return {ColorMode.COLOR_TEMP}
         return {ColorMode.BRIGHTNESS}
 
@@ -98,7 +98,7 @@ class LiproLight(LiproEntity, LightEntity):
 
         Dynamic property matching supported_color_modes.
         """
-        if self.device.supports_color_temp:
+        if self.capabilities.supports_color_temp:
             return ColorMode.COLOR_TEMP
         return ColorMode.BRIGHTNESS
 
@@ -108,7 +108,7 @@ class LiproLight(LiproEntity, LightEntity):
 
         Uses device-specific range from product config.
         """
-        return self.device.min_color_temp_kelvin
+        return self.capabilities.min_color_temp_kelvin
 
     @property
     def max_color_temp_kelvin(self) -> int:
@@ -116,7 +116,7 @@ class LiproLight(LiproEntity, LightEntity):
 
         Uses device-specific range from product config.
         """
-        return self.device.max_color_temp_kelvin
+        return self.capabilities.max_color_temp_kelvin
 
     def _ha_brightness_to_device(self, brightness: int) -> int:
         """Convert HA brightness (0-255) to clamped device value (1-100)."""
@@ -126,8 +126,8 @@ class LiproLight(LiproEntity, LightEntity):
     def _kelvin_to_device_temp_percent(self, kelvin: int) -> int:
         """Convert Kelvin to clamped device temperature percent."""
         clamped_kelvin = max(
-            self.device.min_color_temp_kelvin,
-            min(self.device.max_color_temp_kelvin, kelvin),
+            self.capabilities.min_color_temp_kelvin,
+            min(self.capabilities.max_color_temp_kelvin, kelvin),
         )
         return self.device.kelvin_to_percent_for_device(clamped_kelvin)
 
@@ -141,7 +141,7 @@ class LiproLight(LiproEntity, LightEntity):
         has_brightness = PROP_BRIGHTNESS in merged
         has_temperature = PROP_TEMPERATURE in merged
 
-        if has_brightness and not has_temperature and self.device.supports_color_temp:
+        if has_brightness and not has_temperature and self.capabilities.supports_color_temp:
             temperature = self.device.get_optional_int_property(PROP_TEMPERATURE)
             if temperature is not None:
                 merged[PROP_TEMPERATURE] = max(0, min(100, temperature))
@@ -180,7 +180,7 @@ class LiproLight(LiproEntity, LightEntity):
             state_changes[PROP_BRIGHTNESS] = brightness
 
         # Handle color temperature (only if device supports it)
-        if ATTR_COLOR_TEMP_KELVIN in kwargs and self.device.supports_color_temp:
+        if ATTR_COLOR_TEMP_KELVIN in kwargs and self.capabilities.supports_color_temp:
             temp_percent = self._kelvin_to_device_temp_percent(
                 int(kwargs[ATTR_COLOR_TEMP_KELVIN])
             )

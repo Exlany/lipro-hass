@@ -108,8 +108,8 @@ def _build_device_fan_entities(
         coordinator,
         device,
         rules=(
-            (lambda d: d.is_fan_light, (LiproFan,)),
-            (lambda d: d.is_heater, (LiproHeaterVentFan,)),
+            (lambda d: d.capabilities.is_fan_light, (LiproFan,)),
+            (lambda d: d.capabilities.is_heater, (LiproHeaterVentFan,)),
         ),
     )
 
@@ -154,7 +154,7 @@ class LiproFan(LiproEntity, FanEntity):
     @property
     def speed_count(self) -> int:
         """Return the number of speeds the fan supports."""
-        return self.device.max_fan_gear
+        return self.capabilities.max_fan_gear
 
     @property
     def supported_features(self) -> FanEntityFeature:

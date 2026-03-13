@@ -132,11 +132,11 @@ def _build_device_binary_sensors(
         always_factories=(LiproConnectivitySensor,),
         rules=(
             (
-                lambda d: d.is_body_sensor,
+                lambda d: d.capabilities.is_body_sensor,
                 (LiproMotionSensor, LiproLightLevelSensor, LiproBatteryLowSensor),
             ),
             (
-                lambda d: d.is_door_sensor and not d.is_body_sensor,
+                lambda d: d.capabilities.is_door_sensor and not d.capabilities.is_body_sensor,
                 (LiproDoorSensor, LiproLightLevelSensor, LiproBatteryLowSensor),
             ),
         ),

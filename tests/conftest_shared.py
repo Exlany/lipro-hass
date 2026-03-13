@@ -68,7 +68,7 @@ async def refresh_and_sync_devices(coordinator: Coordinator) -> None:
     Args:
         coordinator: Coordinator instance
     """
-    snapshot = await coordinator.device_runtime.refresh_devices()
+    snapshot = await coordinator._runtimes.device.refresh_devices()
     coordinator._state.devices.clear()
     coordinator._state.devices.update(snapshot.devices)
 

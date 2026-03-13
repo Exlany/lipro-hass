@@ -64,13 +64,9 @@ def runtime_deps(mock_client, confirmation_tracker):
     pending_expectations: dict[str, PendingCommandExpectation] = {}
     device_state_latency_seconds: dict[str, float] = {}
     post_command_refresh_tasks: dict[str, asyncio.Task[Any]] = {}
-    connect_status_priority_ids: set[str] = set()
-
     track_background_task = Mock(side_effect=lambda coro: asyncio.create_task(coro))
     request_refresh = AsyncMock()
     mqtt_connected_provider = Mock(return_value=True)
-    normalize_device_key = Mock(side_effect=lambda x: x.lower())
-    force_connect_status_refresh_setter = Mock()
     trigger_reauth = AsyncMock()
 
     builder = CommandBuilder(debug_mode=True)
@@ -91,9 +87,6 @@ def runtime_deps(mock_client, confirmation_tracker):
         "sender": sender,
         "retry": retry,
         "confirmation": confirmation,
-        "connect_status_priority_ids": connect_status_priority_ids,
-        "normalize_device_key": normalize_device_key,
-        "force_connect_status_refresh_setter": force_connect_status_refresh_setter,
         "trigger_reauth": trigger_reauth,
         "track_background_task": track_background_task,
         "request_refresh": request_refresh,
@@ -108,9 +101,6 @@ def command_runtime(runtime_deps):
         sender=runtime_deps["sender"],
         retry=runtime_deps["retry"],
         confirmation=runtime_deps["confirmation"],
-        connect_status_priority_ids=runtime_deps["connect_status_priority_ids"],
-        normalize_device_key=runtime_deps["normalize_device_key"],
-        force_connect_status_refresh_setter=runtime_deps["force_connect_status_refresh_setter"],
         trigger_reauth=runtime_deps["trigger_reauth"],
         debug_mode=True,
     )
@@ -510,7 +500,6 @@ class TestCommandRuntime:
                 assert success is True
                 assert route == "iot"
                 assert command_runtime._last_failure is None
-                runtime_deps["force_connect_status_refresh_setter"].assert_called_with(True)
 
     def test_record_trace_when_debug_enabled(self, command_runtime):
         """Test trace recording in debug mode."""
@@ -527,9 +516,6 @@ class TestCommandRuntime:
             sender=runtime_deps["sender"],
             retry=runtime_deps["retry"],
             confirmation=runtime_deps["confirmation"],
-            connect_status_priority_ids=runtime_deps["connect_status_priority_ids"],
-            normalize_device_key=runtime_deps["normalize_device_key"],
-            force_connect_status_refresh_setter=runtime_deps["force_connect_status_refresh_setter"],
             trigger_reauth=runtime_deps["trigger_reauth"],
             debug_mode=False,
         )

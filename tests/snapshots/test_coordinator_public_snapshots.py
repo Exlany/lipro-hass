@@ -31,11 +31,19 @@ def test_coordinator_snapshot(snapshot: SnapshotAssertion) -> None:
     coordinator.command_service = MagicMock(last_failure=None)
     coordinator.device_refresh_service = MagicMock()
     coordinator.mqtt_service = MagicMock(connected=True)
+    coordinator.telemetry_service = MagicMock(
+        build_snapshot=MagicMock(return_value={
+            "device_count": 1,
+            "mqtt": {"connected": True},
+            "command": {"trace_count": 0},
+        })
+    )
 
     data = {
         "devices": sorted(coordinator.devices.keys()),
         "mqtt_connected": coordinator.mqtt_service.connected,
         "last_command_failure": coordinator.command_service.last_failure,
+        "telemetry": coordinator.telemetry_service.build_snapshot(),
         "runtime_class": type(coordinator).__name__,
     }
 

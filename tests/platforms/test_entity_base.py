@@ -122,6 +122,13 @@ class TestLiproEntityDeviceProperty:
 
         assert entity.device.name == "Updated"
 
+    def test_capabilities_returns_canonical_snapshot(self, mock_coordinator, make_device):
+        """capabilities property should expose the device snapshot directly."""
+        device = make_device("light")
+        entity = _make_entity(mock_coordinator, device)
+
+        assert entity.capabilities == device.capabilities
+
     def test_device_falls_back_to_initial_when_not_in_coordinator(
         self, mock_coordinator, make_device
     ):

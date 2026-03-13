@@ -265,7 +265,7 @@ def _build_ir_remote_inventory_snapshot(
     bound_remote_total = 0
 
     for dev in devices.values():
-        if dev.is_group or not dev.is_gateway or dev.is_ir_remote_device:
+        if dev.is_group or not dev.capabilities.is_gateway or dev.is_ir_remote_device:
             continue
         gateway_devices.setdefault(dev.serial, dev)
 

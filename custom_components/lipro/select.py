@@ -80,10 +80,10 @@ def _build_device_select_entities(
         device,
         rules=(
             (
-                lambda d: d.is_heater,
+                lambda d: d.capabilities.is_heater,
                 (LiproHeaterWindDirectionSelect, LiproHeaterLightModeSelect),
             ),
-            (lambda d: d.is_light and d.has_gear_presets, (LiproLightGearSelect,)),
+            (lambda d: d.capabilities.is_light and d.has_gear_presets, (LiproLightGearSelect,)),
         ),
     )
 
@@ -241,9 +241,9 @@ class LiproLightGearSelect(LiproSelect):
             attrs[f"preset_{_GEAR_PRESET_NAMES[i]}"] = f"{brightness}% / {temp_k}K"
 
         # Also show the device's color temp range
-        if self.device.supports_color_temp:
-            min_k = self.device.min_color_temp_kelvin
-            max_k = self.device.max_color_temp_kelvin
+        if self.capabilities.supports_color_temp:
+            min_k = self.capabilities.min_color_temp_kelvin
+            max_k = self.capabilities.max_color_temp_kelvin
             attrs["color_temp_range"] = f"{min_k}K - {max_k}K"
 
         return attrs

@@ -36,17 +36,35 @@ def build_runtime_snapshot(entry: Any) -> RuntimeCoordinatorSnapshot | None:
     if coordinator is None:
         return None
 
-    devices = getattr(coordinator, "devices", None)
-    try:
-        device_count = len(devices) if devices is not None else 0
-    except TypeError:
-        device_count = 0
+    telemetry_service = getattr(coordinator, "telemetry_service", None)
+    telemetry_snapshot: dict[str, Any] = {}
+    build_snapshot = getattr(telemetry_service, "build_snapshot", None)
+    if callable(build_snapshot):
+        snapshot = build_snapshot()
+        if isinstance(snapshot, dict):
+            telemetry_snapshot = snapshot
+
+    device_count_value = telemetry_snapshot.get("device_count")
+    if isinstance(device_count_value, int):
+        device_count = device_count_value
+    else:
+        devices = getattr(coordinator, "devices", None)
+        try:
+            device_count = len(devices) if devices is not None else 0
+        except TypeError:
+            device_count = 0
 
     mqtt_connected: bool | None = None
-    mqtt_service = getattr(coordinator, "mqtt_service", None)
-    connected = getattr(mqtt_service, "connected", None)
-    if isinstance(connected, bool):
-        mqtt_connected = connected
+    mqtt_snapshot = telemetry_snapshot.get("mqtt")
+    if isinstance(mqtt_snapshot, dict):
+        connected = mqtt_snapshot.get("connected")
+        if isinstance(connected, bool):
+            mqtt_connected = connected
+    if mqtt_connected is None:
+        mqtt_service = getattr(coordinator, "mqtt_service", None)
+        connected = getattr(mqtt_service, "connected", None)
+        if isinstance(connected, bool):
+            mqtt_connected = connected
 
     return RuntimeCoordinatorSnapshot(
         entry_id=str(getattr(entry, "entry_id", "")),

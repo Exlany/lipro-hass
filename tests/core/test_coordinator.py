@@ -134,20 +134,53 @@ class TestCoordinatorServices:
 class TestCoordinatorRuntimeComponents:
     """Test coordinator runtime components."""
 
-    def test_coordinator_has_runtime_components(self, coordinator):
-        """Test coordinator exposes runtime components."""
-        assert hasattr(coordinator, "device_runtime")
-        assert hasattr(coordinator, "status_runtime")
-        assert hasattr(coordinator, "state_runtime")
-        assert hasattr(coordinator, "command_runtime")
-        assert hasattr(coordinator, "mqtt_runtime")
+    def test_coordinator_keeps_internal_runtime_registry(self, coordinator):
+        """Coordinator should keep runtimes internal behind one registry."""
+        assert hasattr(coordinator, "_runtimes")
+        assert hasattr(coordinator._runtimes, "device")
+        assert hasattr(coordinator._runtimes, "status")
+        assert hasattr(coordinator._runtimes, "state")
+        assert hasattr(coordinator._runtimes, "command")
+        assert hasattr(coordinator._runtimes, "mqtt")
 
     def test_coordinator_has_service_layer(self, coordinator):
-        """Test coordinator exposes service layer."""
+        """Test coordinator exposes formal service layer."""
+        assert hasattr(coordinator, "auth_service")
         assert hasattr(coordinator, "device_refresh_service")
         assert hasattr(coordinator, "state_service")
         assert hasattr(coordinator, "command_service")
         assert hasattr(coordinator, "mqtt_service")
+        assert hasattr(coordinator, "telemetry_service")
+        assert hasattr(coordinator, "signal_service")
+
+    def test_group_reconciliation_callback_records_signal_and_requests_refresh(
+        self, coordinator
+    ) -> None:
+        coordinator._runtimes.device.request_force_refresh = MagicMock()
+
+        coordinator.signal_service.schedule_group_reconciliation("Group 1", 2.0)
+
+        assert coordinator.telemetry_service.build_snapshot()["signals"] == {
+            "connect_state_event_count": 0,
+            "group_reconciliation_request_count": 1,
+            "recent_connect_state_events": [],
+            "recent_group_reconciliation_requests": [
+                {"device_name": "Group 1", "timestamp": 2.0}
+            ],
+        }
+        coordinator._runtimes.device.request_force_refresh.assert_called_once_with()
+
+    def test_connect_state_callback_records_signal(self, coordinator) -> None:
+        coordinator.signal_service.record_connect_state("dev1", 1.5, True)
+
+        assert coordinator.telemetry_service.build_snapshot()["signals"] == {
+            "connect_state_event_count": 1,
+            "group_reconciliation_request_count": 0,
+            "recent_connect_state_events": [
+                {"device_serial": "dev1", "timestamp": 1.5, "is_online": True}
+            ],
+            "recent_group_reconciliation_requests": [],
+        }
 
     @pytest.mark.asyncio
     async def test_async_shutdown_releases_runtime_resources(self, coordinator) -> None:
@@ -157,8 +190,8 @@ class TestCoordinatorRuntimeComponents:
         coordinator._runtimes.mqtt.reset = MagicMock()
         coordinator._runtimes.device.reset = MagicMock()
         coordinator._state.background_task_manager.cancel_all = AsyncMock()
-        coordinator._state.mqtt_client = MagicMock()
-        coordinator._state.biz_id = "biz001"
+        coordinator.client.attach_mqtt_facade = MagicMock()
+        coordinator._runtimes.mqtt.detach_transport = MagicMock()
 
         with (
             patch(
@@ -178,8 +211,8 @@ class TestCoordinatorRuntimeComponents:
         coordinator._state.background_task_manager.cancel_all.assert_awaited_once()
         coordinator._runtimes.mqtt.reset.assert_called_once()
         coordinator._runtimes.device.reset.assert_called_once()
-        assert coordinator._state.mqtt_client is None
-        assert coordinator._state.biz_id is None
+        coordinator.client.attach_mqtt_facade.assert_called_once_with(None)
+        coordinator._runtimes.mqtt.detach_transport.assert_called_once()
         base_shutdown.assert_awaited_once()
 
     @pytest.mark.asyncio
@@ -211,8 +244,8 @@ class TestCoordinatorRuntimeComponents:
     ):
         """Stale MQTT payloads should be filtered before hitting the state runtime."""
         device = MagicMock(serial="dev1")
-        coordinator.command_runtime.filter_pending_state_properties = MagicMock(return_value={})
-        coordinator.command_runtime.observe_state_confirmation = MagicMock()
+        coordinator._runtimes.command.filter_pending_state_properties = MagicMock(return_value={})
+        coordinator._runtimes.command.observe_state_confirmation = MagicMock()
         coordinator._runtimes.state.apply_properties_update = AsyncMock(return_value=True)
 
         changed = await coordinator._apply_properties_update(
@@ -222,11 +255,11 @@ class TestCoordinatorRuntimeComponents:
         )
 
         assert changed is False
-        coordinator.command_runtime.filter_pending_state_properties.assert_called_once_with(
+        coordinator._runtimes.command.filter_pending_state_properties.assert_called_once_with(
             device_serial="dev1",
             properties={"powerState": "0"},
         )
-        coordinator.command_runtime.observe_state_confirmation.assert_not_called()
+        coordinator._runtimes.command.observe_state_confirmation.assert_not_called()
         coordinator._runtimes.state.apply_properties_update.assert_not_awaited()
 
     @pytest.mark.asyncio
@@ -235,10 +268,10 @@ class TestCoordinatorRuntimeComponents:
     ):
         """Confirmed state updates should feed command-latency learning before write-through."""
         device = MagicMock(serial="dev1")
-        coordinator.command_runtime.filter_pending_state_properties = MagicMock(
+        coordinator._runtimes.command.filter_pending_state_properties = MagicMock(
             return_value={"powerState": "1"}
         )
-        coordinator.command_runtime.observe_state_confirmation = MagicMock(return_value=0.5)
+        coordinator._runtimes.command.observe_state_confirmation = MagicMock(return_value=0.5)
         coordinator._runtimes.state.apply_properties_update = AsyncMock(return_value=True)
 
         changed = await coordinator._apply_properties_update(
@@ -248,7 +281,7 @@ class TestCoordinatorRuntimeComponents:
         )
 
         assert changed is True
-        coordinator.command_runtime.observe_state_confirmation.assert_called_once_with(
+        coordinator._runtimes.command.observe_state_confirmation.assert_called_once_with(
             device_serial="dev1",
             properties={"powerState": "1"},
         )
@@ -266,7 +299,7 @@ class TestCoordinatorRuntimeComponents:
         device = MagicMock()
         snapshot = MagicMock(devices={"dev1": device})
         coordinator._runtimes.device.refresh_devices = AsyncMock(return_value=snapshot)
-        coordinator._state.mqtt_client = MagicMock()
+        coordinator._runtimes.mqtt.bind_transport(MagicMock())
         coordinator.async_set_updated_data = MagicMock()
 
         with patch.object(
@@ -311,7 +344,7 @@ class TestCoordinatorRuntimeComponents:
             ]
         )
 
-        result = await coordinator.status_runtime.execute_status_query([serial, "skip"])
+        result = await coordinator._runtimes.status.execute_status_query([serial, "skip"])
 
         assert result["updated_count"] == 1
         assert result["error"] is None
@@ -346,20 +379,20 @@ class TestCoordinatorRuntimeComponents:
 
         device = coordinator.get_device(serial)
         assert device is not None
-        coordinator.status_runtime.filter_query_candidates = MagicMock(return_value=[])
-        coordinator.status_runtime.should_query_power = MagicMock(return_value=True)
-        coordinator.status_runtime.get_outlet_power_query_slice = MagicMock(
+        coordinator._runtimes.status.filter_query_candidates = MagicMock(return_value=[])
+        coordinator._runtimes.status.should_query_power = MagicMock(return_value=True)
+        coordinator._runtimes.status.get_outlet_power_query_slice = MagicMock(
             return_value=[serial]
         )
-        coordinator.status_runtime.mark_power_query_complete = MagicMock()
-        coordinator.status_runtime.advance_outlet_power_cycle = MagicMock()
+        coordinator._runtimes.status.mark_power_query_complete = MagicMock()
+        coordinator._runtimes.status.advance_outlet_power_cycle = MagicMock()
 
         await coordinator._async_run_status_polling()
 
         assert device.extra_data["power_info"]["nowPower"] == 12.5
         mock_lipro_api_client.fetch_outlet_power_info.assert_awaited_once_with(serial)
-        coordinator.status_runtime.mark_power_query_complete.assert_called_once_with()
-        coordinator.status_runtime.advance_outlet_power_cycle.assert_called_once_with(
+        coordinator._runtimes.status.mark_power_query_complete.assert_called_once_with()
+        coordinator._runtimes.status.advance_outlet_power_cycle.assert_called_once_with(
             [serial]
         )
 
@@ -415,7 +448,7 @@ class TestCoordinatorEntityLifecycle:
         coordinator.register_entity(entity)
         coordinator.register_entity(entity)
 
-        assert coordinator.state_runtime.get_entities_for_device(serial) == [entity]
+        assert coordinator._runtimes.state.get_entities_for_device(serial) == [entity]
 
     @pytest.mark.asyncio
     async def test_register_entity_accepts_non_canonical_device_identifier(
@@ -441,17 +474,17 @@ class TestCoordinatorEntityLifecycle:
 
         coordinator.register_entity(entity)
 
-        assert coordinator.state_runtime.get_entities_for_device(serial) == [entity]
+        assert coordinator._runtimes.state.get_entities_for_device(serial) == [entity]
 
         coordinator.unregister_entity(entity)
 
-        assert coordinator.state_runtime.get_entities_for_device(serial) == []
+        assert coordinator._runtimes.state.get_entities_for_device(serial) == []
 
     def test_register_entity_ignores_missing_entity_id(self, coordinator):
         """Test registering an anonymous entity is a no-op."""
         coordinator.register_entity(_Entity("", MagicMock(serial="03ab5ccd7c000001")))
 
-        assert coordinator.state_runtime.get_entity_count() == 0
+        assert coordinator._runtimes.state.get_entity_count() == 0
 
     @pytest.mark.asyncio
     async def test_unregister_entity_keeps_active_entity_until_matching_instance_removed(
@@ -478,17 +511,17 @@ class TestCoordinatorEntityLifecycle:
         coordinator.register_entity(active_entity)
         coordinator.unregister_entity(stale_entity)
 
-        assert coordinator.state_runtime.get_entities_for_device(serial) == [active_entity]
+        assert coordinator._runtimes.state.get_entities_for_device(serial) == [active_entity]
 
         coordinator.unregister_entity(active_entity)
 
-        assert coordinator.state_runtime.get_entities_for_device(serial) == []
+        assert coordinator._runtimes.state.get_entities_for_device(serial) == []
 
     def test_unregister_entity_ignores_missing_entity_id(self, coordinator):
         """Test unregistering an anonymous entity is a no-op."""
         coordinator.unregister_entity(_Entity("", MagicMock(serial="03ab5ccd7c000001")))
 
-        assert coordinator.state_runtime.get_entity_count() == 0
+        assert coordinator._runtimes.state.get_entity_count() == 0
 
 
 # =========================================================================

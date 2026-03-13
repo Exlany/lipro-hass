@@ -27,6 +27,22 @@
 11. `.planning/reviews/RESIDUAL_LEDGER.md`
 12. `.planning/reviews/KILL_LIST.md`
 
+
+## 1.1 当前权威顺序
+
+若文档之间出现冲突，按以下顺序仲裁：
+
+1. `docs/NORTH_STAR_TARGET_ARCHITECTURE.md`
+2. `.planning/ROADMAP.md`
+3. `.planning/REQUIREMENTS.md`
+4. `.planning/STATE.md`
+5. `.planning/baseline/*.md`
+6. `.planning/reviews/*.md`
+7. `docs/developer_architecture.md`
+8. `AGENTS.md`
+9. `agent.md`（若存在，仅作 pointer / 索引，不另立规则）
+10. 历史执行/审计/归档文档
+
 ## 2. 北极星硬约束
 
 ### 2.1 架构法则

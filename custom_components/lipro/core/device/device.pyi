@@ -1,7 +1,7 @@
 from typing import Any, ClassVar
 
 from custom_components.lipro.const.categories import DeviceCategory
-from custom_components.lipro.core.device.capabilities import DeviceCapabilities
+from custom_components.lipro.core.capability import CapabilitySnapshot
 from custom_components.lipro.core.device.extras import DeviceExtras
 from custom_components.lipro.core.device.identity import DeviceIdentity
 from custom_components.lipro.core.device.network_info import DeviceNetworkInfo
@@ -128,7 +128,7 @@ class LiproDevice:
     def identity(self) -> DeviceIdentity: ...
 
     @property
-    def capabilities(self) -> DeviceCapabilities: ...
+    def capabilities(self) -> CapabilitySnapshot: ...
 
     @property
     def state(self) -> DeviceState: ...

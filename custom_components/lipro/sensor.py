@@ -17,7 +17,6 @@ from homeassistant.const import (
     UnitOfPower,
 )
 
-from .const.categories import DeviceCategory
 from .entities.base import LiproEntity
 from .helpers.platform import build_device_entities_from_rules, create_device_entities
 
@@ -59,7 +58,7 @@ def _build_device_sensors(
         device,
         rules=(
             (
-                lambda d: d.category == DeviceCategory.OUTLET,
+                lambda d: d.capabilities.is_outlet,
                 (LiproOutletPowerSensor, LiproOutletEnergySensor),
             ),
             (lambda d: d.has_battery, (LiproBatterySensor,)),

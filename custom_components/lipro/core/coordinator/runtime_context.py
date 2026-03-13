@@ -48,6 +48,26 @@ class ListenerNotifierProtocol(Protocol):
         ...
 
 
+class ConnectStateRecorderProtocol(Protocol):
+    """Protocol for recording one runtime connect-state event."""
+
+    def record_connect_state(
+        self, device_serial: str, timestamp: float, is_online: bool
+    ) -> None:
+        """Record one connect-state observation."""
+        ...
+
+
+class GroupReconciliationProtocol(Protocol):
+    """Protocol for requesting one group reconciliation."""
+
+    def schedule_group_reconciliation(
+        self, device_name: str, timestamp: float
+    ) -> None:
+        """Request canonical group reconciliation from runtime root."""
+        ...
+
+
 class RefreshRequestProtocol(Protocol):
     """Protocol for requesting coordinator refresh."""
 
@@ -82,7 +102,7 @@ class RuntimeContext:
     - Setter injection in MqttRuntime
     - Two-phase initialization patterns
 
-    All callbacks are immutable references to coordinator methods.
+    All ports are immutable references to formal coordinator-owned service objects or callbacks.
     """
 
     # Device resolution
@@ -91,6 +111,10 @@ class RuntimeContext:
     # State management
     apply_properties_update: PropertyApplierProtocol
     schedule_listener_update: ListenerNotifierProtocol
+
+    # Runtime signals
+    record_connect_state: ConnectStateRecorderProtocol
+    request_group_reconciliation: GroupReconciliationProtocol
 
     # Coordinator orchestration
     request_refresh: RefreshRequestProtocol

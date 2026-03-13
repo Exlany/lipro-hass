@@ -1,26 +1,18 @@
-"""Coordinator service layer - API stability facade (Stable Interface Pattern).
+"""Coordinator service layer - stable runtime public surfaces."""
 
-This layer provides stable API boundaries between Entity and Runtime layers,
-implementing the Dependency Inversion Principle from Clean Architecture.
-
-Value: Isolates Entity layer from Runtime implementation changes.
-Pattern: Thin proxy / Stable Facade (intentional design, not technical debt).
-
-Services:
-- CoordinatorCommandService: Command dispatch facade
-- CoordinatorDeviceRefreshService: Device refresh facade
-- CoordinatorMqttService: MQTT connection facade
-- CoordinatorStateService: State access facade
-"""
-
+from .auth_service import CoordinatorAuthService
 from .command_service import CoordinatorCommandService
 from .device_refresh_service import CoordinatorDeviceRefreshService
 from .mqtt_service import CoordinatorMqttService
 from .state_service import CoordinatorStateService
+from .telemetry_service import CoordinatorSignalService, CoordinatorTelemetryService
 
 __all__ = [
+    "CoordinatorAuthService",
     "CoordinatorCommandService",
     "CoordinatorDeviceRefreshService",
     "CoordinatorMqttService",
+    "CoordinatorSignalService",
     "CoordinatorStateService",
+    "CoordinatorTelemetryService",
 ]

@@ -16,6 +16,7 @@ from ..core.utils.debounce import Debouncer
 from ..runtime_types import LiproCoordinator
 
 if TYPE_CHECKING:
+    from ..core.capability import CapabilitySnapshot
     from ..core.device import LiproDevice
 
 _LOGGER = logging.getLogger(__name__)
@@ -87,6 +88,11 @@ class LiproEntity(CoordinatorEntity[Any]):
         """Return the device."""
         # Get fresh device data from coordinator
         return self.coordinator.get_device(self._device.serial) or self._device
+
+    @property
+    def capabilities(self) -> CapabilitySnapshot:
+        """Return the canonical capability snapshot for the current device."""
+        return self.device.capabilities
 
     @property
     def available(self) -> bool:

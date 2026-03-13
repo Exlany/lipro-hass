@@ -21,10 +21,10 @@
 - [x] **Phase 2.5: 协议平面根统一** - 将 REST / MQTT 统一收口到 `LiproProtocolFacade`
 - [x] **Phase 2.6: 外部边界收口** - formalize share / firmware / support payload / external endpoints
 - [x] **Phase 3: Control Plane 收敛** - 把 lifecycle、flow、support surface、services 形成单一控制平面
-- [ ] **Phase 4: Capability Model 统一** - 建立领域能力单一真源，清理平台/实体双轨规则
-- [ ] **Phase 5: Runtime 主链加固** - 固化唯一正式运行时主链与 runtime invariants
-- [ ] **Phase 6: Assurance Plane 正式化** - 将架构守卫、可观测性、CI 门禁升级为正式保障平面
-- [ ] **Phase 7: 全仓治理与零残留收尾** - 彻底清理 compat、影子模块、旧文档与未归档残留
+- [x] **Phase 4: Capability Model 统一** - 建立领域能力单一真源，清理平台/实体双轨规则
+- [x] **Phase 5: Runtime 主链加固** - 固化唯一正式运行时主链与 runtime invariants
+- [x] **Phase 6: Assurance Plane 正式化** - 将架构守卫、可观测性、CI 门禁升级为正式保障平面
+- [x] **Phase 7: 全仓治理与零残留收尾** - 彻底清理 compat、影子模块、旧文档与未归档残留
 
 ## Phase Details
 
@@ -132,8 +132,8 @@ Plans:
 
 Plans:
 - [x] 04-01: 设计 capability registry / snapshot / contracts
-- [ ] 04-02: 迁移 entity/platform/helpers 到统一能力投影
-- [ ] 04-03: 清退重复能力规则与旧访问面
+- [x] 04-02: 迁移 entity/platform/helpers 到统一能力投影
+- [x] 04-03: 清退重复能力规则与旧访问面
 
 ### Phase 5: Runtime 主链加固
 **Goal**: 让 runtime plane 在结构和验证上都符合“唯一正式编排根 + 显式协作”的北极星标准。
@@ -147,9 +147,9 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 05-01: 收紧 runtime public surface 与 orchestration boundaries
-- [ ] 05-02: 建立 command/refresh/state/mqtt invariant suite
-- [ ] 05-03: 接入 runtime telemetry hooks 与关键路径观测点
+- [x] 05-01: 收紧 runtime public surface 与 orchestration boundaries
+- [x] 05-02: 建立 command/refresh/state/mqtt invariant suite
+- [x] 05-03: 冻结 runtime telemetry handoff 与治理回写
 
 ### Phase 6: Assurance Plane 正式化
 **Goal**: 把北极星约束落到自动守卫、观测与 CI 质量门上，防止未来继续回退。
@@ -163,17 +163,17 @@ Plans:
 **Plans**: 4 plans
 
 Plans:
-- [ ] 06-01: 定义 assurance taxonomy、观测点与指标口径
-- [ ] 06-02: 强化 architecture enforcement 与 meta guards
-- [ ] 06-03: 扩展 snapshot/integration/contract coverage 到新正式结构
-- [ ] 06-04: 收口 CI gates、coverage 与 phase 验收模板
+- [x] 06-01: 定义 assurance taxonomy、观测点与指标口径
+- [x] 06-02: 强化 architecture enforcement 与 meta guards
+- [x] 06-03: 扩展 snapshot/integration/contract coverage 到新正式结构
+- [x] 06-04: 收口 CI gates、coverage 与 phase 验收模板
 
 ### Phase 7: 全仓治理与零残留收尾
 **Goal**: 以全仓视角完成文件治理、残留清理、文档归一与最终复核闭环。
 **Depends on**: Phase 6
 **Requirements**: [ARCH-03, GOV-01, GOV-02, GOV-03, GOV-04, GOV-05]
 **Success Criteria**:
-  1. 全部 `406` 个 Python 文件都已被归类并完成对应去向。
+  1. 全部 `404` 个 Python 文件都已被归类并完成对应去向。
   2. compat adapter、影子模块、旧命名、无效 docs 已删除或被正式归档，不再混入主叙事。
   3. `FILE_MATRIX` 已成为 file-level 权威视图，含 owner phase、残留链接与完成度。
   4. 北极星文档、开发文档、`.planning/`、测试矩阵与代码状态保持单一口径。
@@ -181,10 +181,10 @@ Plans:
 **Plans**: 4 plans
 
 Plans:
-- [ ] 07-01: 完成全仓文件治理矩阵与残留台账终版
-- [ ] 07-02: 删除 compat/legacy/shadow modules 与无效文档
-- [ ] 07-03: 对齐 north-star docs / developer docs / planning docs / test matrix
-- [ ] 07-04: 生成最终复核报告与后续演进建议
+- [x] 07-01: 完成全仓文件治理矩阵与残留台账终版
+- [x] 07-02: 删除 compat/legacy/shadow modules 与无效文档
+- [x] 07-03: 对齐 north-star docs / developer docs / planning docs / test matrix
+- [x] 07-04: 生成最终复核报告与后续演进建议
 
 ## Cross-Cutting Tracks
 
@@ -194,7 +194,7 @@ Plans:
 - 收口阶段：Phase 1.5
 
 ### Track X1: 全仓文件治理矩阵
-- 覆盖范围：全部 `406` 个 Python 文件
+- 覆盖范围：全部 `404` 个 Python 文件
 - 目标：每个 phase 执行时同步回写 `保留 / 重构 / 迁移适配 / 删除`
 - 收口阶段：Phase 7
 
@@ -212,20 +212,20 @@ Plans:
 
 | Phase / Track | Plans Complete | Status | Completed |
 |---------------|----------------|--------|-----------|
-| Track X0 终态基准资产化 | 0 | Planned | - |
-| Track X1 文件治理矩阵 | 0 | In progress | - |
-| Track X2 残留与兼容收口 | 0 | In progress | - |
-| Track X3 文档与架构口径同步 | 0 | In progress | - |
+| Track X0 终态基准资产化 | 1/1 | Complete | 2026-03-12 |
+| Track X1 文件治理矩阵 | 1/1 | Complete | 2026-03-13 |
+| Track X2 残留与兼容收口 | 1/1 | Complete | 2026-03-13 |
+| Track X3 文档与架构口径同步 | 1/1 | Complete | 2026-03-13 |
 | 1. 协议契约基线 | 2/2 | Complete | 2026-03-12 |
 | 1.5 北极星基准资产化 | 3/3 | Complete | 2026-03-12 |
 | 2. REST Protocol Slice 重建 | 4/4 | Complete | 2026-03-12 |
 | 2.5 协议平面根统一 | 3/3 | Complete | 2026-03-12 |
 | 2.6 外部边界收口 | 3/3 | Complete | 2026-03-12 |
 | 3. Control Plane 收敛 | 3/3 | Complete | 2026-03-12 |
-| 4. Capability Model 统一 | 1/3 | In progress | 2026-03-12 (`04-01`) |
-| 5. Runtime 主链加固 | 0/3 | Planned | - |
-| 6. Assurance Plane 正式化 | 0/4 | Planned | - |
-| 7. 全仓治理与零残留收尾 | 0/4 | Planned | - |
+| 4. Capability Model 统一 | 3/3 | Complete | 2026-03-13 |
+| 5. Runtime 主链加固 | 3/3 | Complete | 2026-03-13 |
+| 6. Assurance Plane 正式化 | 4/4 | Complete | 2026-03-13 |
+| 7. 全仓治理与零残留收尾 | 4/4 | Complete | 2026-03-13 |
 
 ---
-*Roadmap rebuilt: 2026-03-12 after gsd-new-project arbitration pass*
+*Roadmap rebuilt: 2026-03-12 after gsd-new-project arbitration pass; reconciled: 2026-03-13 after Phase 5/6/7 closeout*

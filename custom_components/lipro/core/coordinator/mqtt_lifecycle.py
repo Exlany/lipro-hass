@@ -1,133 +1,37 @@
-"""MQTT lifecycle management for coordinator (Phase H2).
-
-This module extracts MQTT setup/teardown logic from Coordinator to reduce
-its size and improve separation of concerns.
-"""
+"""MQTT lifecycle management for coordinator."""
 
 from __future__ import annotations
 
 import asyncio
 from contextlib import suppress
 import logging
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from ...const.config import CONF_PHONE_ID
 from ..mqtt.credentials import decrypt_mqtt_credential
 from ..protocol import LiproMqttFacade, LiproProtocolFacade
 from .mqtt.setup import build_mqtt_subscription_device_ids, resolve_mqtt_biz_id
-from .runtime.mqtt_runtime import MqttRuntime
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Coroutine
-
     from homeassistant.config_entries import ConfigEntry
-    from homeassistant.core import HomeAssistant
 
-    from ..protocol import LiproProtocolFacade
     from ..device import LiproDevice
     from ..utils.background_task_manager import BackgroundTaskManager
-    from .runtime.state_runtime import StateRuntime
+    from .runtime.mqtt_runtime import MqttRuntime
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class MqttListenerNotifier:
-    """Notifier that triggers coordinator data updates on MQTT events."""
-
-    def __init__(
-        self,
-        *,
-        devices_getter: Callable[[], dict[str, LiproDevice]],
-        set_updated_data: Callable[[dict[str, LiproDevice]], None],
-    ) -> None:
-        """Initialize notifier.
-
-        Args:
-            devices_getter: Function to get current devices dict
-            set_updated_data: Function to trigger coordinator update
-        """
-        self._devices_getter = devices_getter
-        self._set_updated_data = set_updated_data
-
-    def schedule_listener_update(self) -> None:
-        """Schedule a listener update (triggers coordinator refresh)."""
-        self._set_updated_data(self._devices_getter())
-
-
-class NoopConnectStateTracker:
-    """No-op connect state tracker (placeholder for future implementation)."""
-
-    def record_connect_state(
-        self, device_serial: str, timestamp: float, is_online: bool
-    ) -> None:
-        """Record device connect state (no-op)."""
-
-
-class NoopGroupReconciler:
-    """No-op group reconciler (placeholder for future implementation)."""
-
-    def schedule_group_reconciliation(
-        self, device_name: str, timestamp: float
-    ) -> None:
-        """Schedule group reconciliation (no-op)."""
-
-
-class PropertyApplierWrapper:
-    """Wrapper to adapt function to PropertyApplierProtocol."""
-
-    def __init__(
-        self,
-        apply_fn: Callable[
-            [LiproDevice, dict[str, Any], str], Coroutine[Any, Any, bool]
-        ],
-    ) -> None:
-        """Initialize wrapper."""
-        self._apply_fn = apply_fn
-
-    async def __call__(
-        self,
-        device: LiproDevice,
-        properties: dict[str, Any],
-        source: str,
-    ) -> bool:
-        """Apply properties update to device."""
-        return await self._apply_fn(device, properties, source)
-
-
 async def async_setup_mqtt(
     *,
-    hass: HomeAssistant,
     client: LiproProtocolFacade,
     config_entry: ConfigEntry,
-    state_runtime: StateRuntime,
     background_task_manager: BackgroundTaskManager,
     devices: dict[str, LiproDevice],
-    scan_interval_seconds: int,
-    apply_properties_update: Callable[
-        [LiproDevice, dict[str, Any], str], Coroutine[Any, Any, bool]
-    ],
-    set_updated_data: Callable[[dict[str, LiproDevice]], None],
-) -> tuple[MqttRuntime, LiproMqttFacade, str] | None:
-    """Set up MQTT client for real-time updates.
-
-    This function creates and initializes the MQTT client with credentials
-    from the API, then starts the connection for current devices.
-
-    Args:
-        hass: Home Assistant instance
-        client: Lipro API client
-        config_entry: Configuration entry
-        state_runtime: State runtime for device resolution
-        background_task_manager: Background task manager
-        devices: Current devices dict
-        scan_interval_seconds: Polling interval in seconds
-        apply_properties_update: Property update callback
-        set_updated_data: Coordinator data update callback
-
-    Returns:
-        Tuple of (mqtt_runtime, mqtt_client, biz_id) on success, None on failure
-    """
-    mqtt_runtime: MqttRuntime | None = None
+    mqtt_runtime: MqttRuntime,
+) -> tuple[LiproMqttFacade, str] | None:
+    """Create and bind one protocol-owned MQTT façade to the existing runtime."""
+    mqtt_client: LiproMqttFacade | None = None
 
     try:
         try:
@@ -143,7 +47,6 @@ async def async_setup_mqtt(
 
         access_key = decrypt_mqtt_credential(mqtt_config.get("accessKey", ""))
         secret_key = decrypt_mqtt_credential(mqtt_config.get("secretKey", ""))
-
         if not access_key or not secret_key:
             _LOGGER.warning("Failed to decrypt MQTT credentials")
             return None
@@ -153,14 +56,17 @@ async def async_setup_mqtt(
             _LOGGER.warning("No biz_id available for MQTT")
             return None
 
+        device_ids = build_mqtt_subscription_device_ids(devices)
+        if not device_ids:
+            _LOGGER.warning("No valid device IDs available for MQTT subscriptions")
+            return None
+
         phone_id = config_entry.data.get(CONF_PHONE_ID, "")
 
         async def _async_handle_message(
             topic: str,
             payload: dict[str, object],
         ) -> None:
-            if mqtt_runtime is None:
-                return
             try:
                 await mqtt_runtime.handle_message(topic, payload)
             except Exception as err:
@@ -170,7 +76,6 @@ async def async_setup_mqtt(
                 raise
 
         def _on_message_bridge(topic: str, payload: dict[str, object]) -> None:
-            """Bridge sync MQTT callback to async runtime handler."""
             background_task_manager.create(
                 _async_handle_message(topic, payload),
                 create_task=lambda coro: asyncio.create_task(
@@ -179,82 +84,45 @@ async def async_setup_mqtt(
                 ),
             )
 
-        def _on_connect_bridge() -> None:
-            if mqtt_runtime is not None:
-                mqtt_runtime.on_transport_connected()
-
-        def _on_disconnect_bridge() -> None:
-            if mqtt_runtime is not None:
-                mqtt_runtime.on_transport_disconnected()
-
-        def _on_error_bridge(err: Exception) -> None:
-            if mqtt_runtime is not None:
-                mqtt_runtime.handle_transport_error(err)
-
         mqtt_client = client.build_mqtt_facade(
             access_key=access_key,
             secret_key=secret_key,
             biz_id=biz_id,
             phone_id=phone_id,
             on_message=_on_message_bridge,
-            on_connect=_on_connect_bridge,
-            on_disconnect=_on_disconnect_bridge,
-            on_error=_on_error_bridge,
+            on_connect=mqtt_runtime.on_transport_connected,
+            on_disconnect=mqtt_runtime.on_transport_disconnected,
+            on_error=mqtt_runtime.handle_transport_error,
         )
-
-        mqtt_runtime = MqttRuntime(
-            hass=hass,
-            mqtt_client=mqtt_client,
-            base_scan_interval=scan_interval_seconds,
-            device_resolver=state_runtime,
-            property_applier=PropertyApplierWrapper(apply_properties_update),
-            listener_notifier=MqttListenerNotifier(
-                devices_getter=lambda: devices,
-                set_updated_data=set_updated_data,
-            ),
-            connect_state_tracker=NoopConnectStateTracker(),
-            group_reconciler=NoopGroupReconciler(),
-            polling_multiplier=2,
-            background_task_manager=background_task_manager,
-        )
-
-        device_ids = build_mqtt_subscription_device_ids(devices)
-        if not device_ids:
-            _LOGGER.warning("No valid device IDs available for MQTT subscriptions")
-            return None
+        mqtt_runtime.bind_transport(mqtt_client)
 
         try:
             async with asyncio.timeout(15):
-                connected = await mqtt_runtime.connect(device_ids=device_ids, biz_id=biz_id)
+                connected = await mqtt_runtime.connect(device_ids=device_ids)
         except TimeoutError:
             _LOGGER.error("MQTT connection timeout after 15 seconds")
             await mqtt_runtime.disconnect()
-            if isinstance(client, LiproProtocolFacade):
-                client.attach_mqtt_facade(None)
+            mqtt_runtime.detach_transport()
+            client.attach_mqtt_facade(None)
             return None
 
         if not connected or not mqtt_runtime.is_connected:
             _LOGGER.warning("MQTT client not connected after setup")
             await mqtt_runtime.disconnect()
-            if isinstance(client, LiproProtocolFacade):
-                client.attach_mqtt_facade(None)
+            mqtt_runtime.detach_transport()
+            client.attach_mqtt_facade(None)
             return None
 
-        return (mqtt_runtime, mqtt_client, biz_id)
+        return (mqtt_client, biz_id)
 
     except Exception:
-        if mqtt_runtime is not None:
+        if mqtt_client is not None:
             with suppress(Exception):
                 await mqtt_runtime.disconnect()
-        if isinstance(client, LiproProtocolFacade):
+            mqtt_runtime.detach_transport()
             client.attach_mqtt_facade(None)
         _LOGGER.exception("Failed to setup MQTT")
         return None
 
 
-__all__ = [
-    "MqttListenerNotifier",
-    "NoopConnectStateTracker",
-    "NoopGroupReconciler",
-    "async_setup_mqtt",
-]
+__all__ = ["async_setup_mqtt"]

@@ -19,7 +19,7 @@ from homeassistant.helpers.issue_registry import (
 
 from ....const.api import MQTT_DISCONNECT_NOTIFY_THRESHOLD
 from ....const.base import DOMAIN
-from .mqtt.connection import MqttConnectionManager
+from .mqtt.connection import MqttConnectionManager, PollingIntervalUpdater
 from .mqtt.dedup import MqttDedupManager
 from .mqtt.message_handler import MqttMessageHandler
 from .mqtt.reconnect import MqttReconnectManager
@@ -92,6 +92,7 @@ class MqttRuntime:
         hass: HomeAssistant,
         mqtt_client: MqttTransportFacade | None,
         base_scan_interval: int,
+        polling_updater: PollingIntervalUpdater,
         device_resolver: DeviceResolverProtocol,
         property_applier: PropertyApplierProtocol,
         listener_notifier: ListenerNotifierProtocol,
@@ -132,11 +133,9 @@ class MqttRuntime:
         self._connect_state_tracker = connect_state_tracker
         self._group_reconciler = group_reconciler
 
-        self._polling_updater: Any = None
-
         self._connection_manager = MqttConnectionManager(
             hass=hass,
-            polling_updater=self,
+            polling_updater=polling_updater,
             base_scan_interval=base_scan_interval,
             polling_multiplier=polling_multiplier,
             logger=_LOGGER,
@@ -151,12 +150,35 @@ class MqttRuntime:
 
         self._message_handler = self._create_message_handler()
 
-    def set_polling_updater(self, updater: Any) -> None:
-        """Inject polling interval updater dependency (legacy compatibility)."""
-        self._polling_updater = updater
+    def bind_transport(self, mqtt_client: MqttTransportFacade) -> None:
+        """Bind one protocol-owned MQTT transport to this runtime."""
+        self._mqtt_client = mqtt_client
+        self._last_transport_error = None
+
+    def detach_transport(self) -> None:
+        """Detach the currently bound MQTT transport from this runtime."""
+        self._mqtt_client = None
+
+    @property
+    def has_transport(self) -> bool:
+        """Return whether one MQTT transport is currently bound."""
+        return self._mqtt_client is not None
 
     def _create_message_handler(self) -> MqttMessageHandler:
         """Create message handler with injected dependencies."""
+
+        class DeviceResolverAdapter:
+            """Adapter for callable-or-object device resolution ports."""
+
+            def __init__(self, resolver: DeviceResolverProtocol) -> None:
+                self._resolver = resolver
+
+            def get_device_by_id(self, device_id: str) -> LiproDevice | None:
+                resolver = self._resolver
+                method = getattr(resolver, "get_device_by_id", None)
+                if callable(method):
+                    return method(device_id)
+                return resolver(device_id)
 
         class PropertyApplierAdapter:
             """Adapter to convert bool-returning applier to dict-returning."""
@@ -171,50 +193,74 @@ class MqttRuntime:
                 success = await self._applier(device, properties, "mqtt")
                 return properties if success else {}
 
+        class ListenerNotifierAdapter:
+            """Adapter for callable-or-object listener notification ports."""
+
+            def __init__(self, notifier: ListenerNotifierProtocol) -> None:
+                self._notifier = notifier
+
+            def schedule_listener_update(self) -> None:
+                notifier = self._notifier
+                method = getattr(notifier, "schedule_listener_update", None)
+                if callable(method):
+                    method()
+                    return
+                notifier()
+
+        class ConnectStateTrackerAdapter:
+            """Adapter for callable-or-object connect-state tracking ports."""
+
+            def __init__(self, tracker: ConnectStateTrackerProtocol) -> None:
+                self._tracker = tracker
+
+            def record_connect_state(
+                self, device_serial: str, timestamp: float, is_online: bool
+            ) -> None:
+                tracker = self._tracker
+                method = getattr(tracker, "record_connect_state", None)
+                if callable(method):
+                    method(device_serial, timestamp, is_online)
+                    return
+                tracker(device_serial, timestamp, is_online)
+
+        class GroupReconcilerAdapter:
+            """Adapter for callable-or-object group reconciliation ports."""
+
+            def __init__(self, reconciler: GroupReconcilerProtocol) -> None:
+                self._reconciler = reconciler
+
+            def schedule_group_reconciliation(
+                self, device_name: str, timestamp: float
+            ) -> None:
+                reconciler = self._reconciler
+                method = getattr(reconciler, "schedule_group_reconciliation", None)
+                if callable(method):
+                    method(device_name, timestamp)
+                    return
+                reconciler(device_name, timestamp)
+
         return MqttMessageHandler(
-            device_resolver=self._device_resolver,
+            device_resolver=DeviceResolverAdapter(self._device_resolver),
             property_applier=PropertyApplierAdapter(self._property_applier),
-            listener_notifier=self._listener_notifier,
-            connect_state_tracker=self._connect_state_tracker,
-            group_reconciler=self._group_reconciler,
+            listener_notifier=ListenerNotifierAdapter(self._listener_notifier),
+            connect_state_tracker=ConnectStateTrackerAdapter(self._connect_state_tracker),
+            group_reconciler=GroupReconcilerAdapter(self._group_reconciler),
             logger=_LOGGER,
         )
-
-    def update_polling_interval(self, interval: timedelta) -> None:
-        """Update polling interval via injected updater."""
-        if self._polling_updater is not None:
-            self._polling_updater.update_interval = interval
-
-    async def setup(self) -> bool:
-        """Set up MQTT connection (no-op if client not initialized).
-
-        This is a compatibility method for coordinator integration.
-        The actual MQTT client setup happens in coordinator.async_setup_mqtt().
-
-        Returns:
-            True if MQTT client is available, False otherwise
-        """
-        if self._mqtt_client is None:
-            _LOGGER.debug("MQTT client not initialized, skipping setup")
-            return False
-        return True
 
     async def connect(
         self,
         *,
         device_ids: list[str],
-        biz_id: str | None = None,
     ) -> bool:
         """Start the MQTT background loop and wait for real transport connection.
 
         Args:
             device_ids: List of device identifiers to subscribe to.
-            biz_id: Deprecated compatibility argument (handled by client credentials).
 
         Returns:
             True if startup succeeded and the broker handshake completed.
         """
-        del biz_id
 
         if self._mqtt_client is None:
             _LOGGER.error("MQTT client not initialized")
@@ -373,6 +419,20 @@ class MqttRuntime:
     def is_connected(self) -> bool:
         """Return current MQTT connection state."""
         return self._connection_manager.is_connected
+
+    def get_runtime_metrics(self) -> dict[str, Any]:
+        """Return lightweight MQTT runtime telemetry."""
+        last_transport_error = self._last_transport_error
+        return {
+            "has_transport": self.has_transport,
+            "is_connected": self._connection_manager.is_connected,
+            "disconnect_time": self._connection_manager.disconnect_time,
+            "disconnect_notified": self._connection_manager.disconnect_notified,
+            "last_transport_error": (
+                type(last_transport_error).__name__ if last_transport_error is not None else None
+            ),
+            "backoff_gate_logged": self._reconnect_manager.backoff_gate_logged,
+        }
 
     def _track_background_task(
         self,

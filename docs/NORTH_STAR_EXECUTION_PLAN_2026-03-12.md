@@ -1,8 +1,8 @@
 # Lipro 北极星架构执行计划（2026-03-12）
 
-> **Status**: Active / In Progress
-> **Goal**: 把“北极星目标架构”从文档标准推进为实际代码结构。
-> **Strategy**: 原子提交、分平面推进、主代理仲裁、子代理并行巡检与落地。
+> **Status**: Historical snapshot / Archived execution context
+> **Goal**: 记录 2026-03-12 当日的执行思路快照，不再作为当前 phase/status 真源。
+> **Current authority**: `docs/NORTH_STAR_TARGET_ARCHITECTURE.md` + `.planning/ROADMAP.md` + `.planning/REQUIREMENTS.md` + `.planning/STATE.md` + `.planning/reviews/FILE_MATRIX.md`
 
 ## 0. GSD 工作集
 

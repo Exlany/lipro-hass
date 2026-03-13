@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import pytest
 
+from custom_components.lipro.core.capability import CapabilitySnapshot
 from custom_components.lipro.core.device import (
-    DeviceCapabilities,
     DeviceIdentity,
     DeviceNetworkInfo,
     DeviceState,
@@ -34,7 +34,7 @@ def test_lipro_device_exposes_extracted_helper_objects(make_device) -> None:
     )
 
     assert isinstance(device.identity, DeviceIdentity)
-    assert isinstance(device.capabilities, DeviceCapabilities)
+    assert isinstance(device.capabilities, CapabilitySnapshot)
     assert isinstance(device.state, DeviceState)
     assert isinstance(device.network_info, DeviceNetworkInfo)
     assert device.identity.serial == device.serial

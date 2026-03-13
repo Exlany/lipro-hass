@@ -12,14 +12,20 @@ from ..core.utils.log_safety import safe_error_placeholder
 _ResultT = TypeVar("_ResultT")
 
 
+class CoordinatorAuthSurface(Protocol):
+    """Formal runtime-auth surface used by service execution."""
+
+    async def async_ensure_authenticated(self) -> None:
+        """Validate runtime auth state before a service call."""
+
+    async def async_trigger_reauth(self, reason: str) -> None:
+        """Start the Home Assistant reauth flow for one failure reason."""
+
+
 class AuthenticatedCoordinator(Protocol):
     """Coordinator contract required by authenticated service calls."""
 
-    def _async_ensure_authenticated(self) -> Awaitable[None]:
-        """Validate the coordinator auth state before a service call."""
-
-    def _trigger_reauth(self, reason: str) -> Awaitable[None]:
-        """Start the Home Assistant reauth flow for the config entry."""
+    auth_service: CoordinatorAuthSurface
 
 
 class ServiceErrorRaiser(Protocol):
@@ -51,22 +57,16 @@ async def _async_await_if_needed(result: object) -> None:
 async def _async_ensure_authenticated(
     coordinator: AuthenticatedCoordinator,
 ) -> None:
-    """Run coordinator authentication when available."""
-    ensure_authenticated = getattr(coordinator, "_async_ensure_authenticated", None)
-    if ensure_authenticated is None:
-        return
-    await _async_await_if_needed(ensure_authenticated())
+    """Run formal coordinator auth validation before a service call."""
+    await _async_await_if_needed(coordinator.auth_service.async_ensure_authenticated())
 
 
 async def _async_trigger_reauth(
     coordinator: AuthenticatedCoordinator,
     reason: str,
 ) -> None:
-    """Trigger coordinator reauth when available."""
-    trigger_reauth = getattr(coordinator, "_trigger_reauth", None)
-    if trigger_reauth is None:
-        return
-    await _async_await_if_needed(trigger_reauth(reason))
+    """Trigger formal coordinator reauth flow for one auth failure."""
+    await _async_await_if_needed(coordinator.auth_service.async_trigger_reauth(reason))
 
 
 async def async_execute_coordinator_call(
@@ -76,7 +76,7 @@ async def async_execute_coordinator_call(
     raise_service_error: ServiceErrorRaiser,
     handle_api_error: LiproApiErrorHandler | None = None,
 ) -> _ResultT:
-    """Execute one service call through a shared auth and error chain."""
+    """Execute one service call through the shared auth and error chain."""
     try:
         await _async_ensure_authenticated(coordinator)
         return await call()
@@ -99,6 +99,7 @@ async def async_execute_coordinator_call(
 
 __all__ = [
     "AuthenticatedCoordinator",
+    "CoordinatorAuthSurface",
     "LiproApiErrorHandler",
     "ServiceErrorRaiser",
     "async_execute_coordinator_call",

@@ -16,12 +16,7 @@ from ...command.result import (
     is_command_push_failed,
 )
 from ...command.trace import build_command_trace, update_trace_with_exception
-from ..types import (
-    CommandTrace,
-    ConnectStatusRefreshSetter,
-    DeviceKeyNormalizer,
-    ReauthCallback,
-)
+from ..types import CommandTrace, ReauthCallback
 
 if TYPE_CHECKING:
     from ...device import LiproDevice
@@ -46,9 +41,6 @@ class CommandRuntime:
         sender: CommandSender,
         retry: RetryStrategy,
         confirmation: ConfirmationManager,
-        connect_status_priority_ids: set[str],
-        normalize_device_key: DeviceKeyNormalizer,
-        force_connect_status_refresh_setter: ConnectStatusRefreshSetter,
         trigger_reauth: ReauthCallback,
         debug_mode: bool = False,
     ) -> None:
@@ -57,9 +49,6 @@ class CommandRuntime:
         self._sender = sender
         self._retry = retry
         self._confirmation = confirmation
-        self._connect_status_priority_ids = connect_status_priority_ids
-        self._normalize_device_key = normalize_device_key
-        self._force_connect_status_refresh_setter = force_connect_status_refresh_setter
         self._trigger_reauth = trigger_reauth
         self._debug_mode = debug_mode
         self._traces: deque[CommandTrace] = deque(maxlen=_MAX_TRACES)
@@ -69,6 +58,21 @@ class CommandRuntime:
     def last_command_failure(self) -> CommandTrace | None:
         """Get latest command failure."""
         return dict(self._last_failure) if self._last_failure else None
+
+    def get_recent_traces(self, *, limit: int | None = None) -> list[CommandTrace]:
+        """Return recent command traces in newest-first order."""
+        traces = [dict(trace) for trace in reversed(self._traces)]
+        if limit is None or limit >= len(traces):
+            return traces
+        return traces[:limit]
+
+    def get_runtime_metrics(self) -> dict[str, Any]:
+        """Return lightweight command-runtime telemetry."""
+        return {
+            "debug_enabled": self._debug_mode,
+            "trace_count": len(self._traces),
+            "last_failure": self.last_command_failure,
+        }
 
     def _record_trace(self, trace: CommandTrace) -> None:
         """Record trace if debug enabled."""
@@ -226,11 +230,6 @@ class CommandRuntime:
         self._confirmation.track_command_expectation(
             device_serial=device.serial, command=command, properties=properties
         )
-        if not device.is_group:
-            self._connect_status_priority_ids.add(
-                self._normalize_device_key(device.serial)
-            )
-        self._force_connect_status_refresh_setter(True)
         adaptive_delay = self._confirmation.get_adaptive_post_refresh_delay(
             device.serial
         )

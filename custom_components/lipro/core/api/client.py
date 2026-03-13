@@ -269,6 +269,24 @@ class LiproRestFacade(_ClientBase):
     def set_token_refresh_callback(self, callback) -> None:
         self._auth_recovery.set_token_refresh_callback(callback)
 
+    async def login(
+        self,
+        phone: str,
+        password: str,
+        *,
+        password_is_hashed: bool = False,
+    ) -> dict[str, Any]:
+        """Compatibility auth entrypoint for auth-manager consumers."""
+        return await self._auth_endpoints.login(
+            phone,
+            password,
+            password_is_hashed=password_is_hashed,
+        )
+
+    async def refresh_access_token(self) -> dict[str, Any]:
+        """Compatibility refresh entrypoint for auth-manager consumers."""
+        return await self._auth_endpoints.refresh_access_token()
+
     async def _get_session(self) -> aiohttp.ClientSession:
         return await self._transport_executor.get_session()
 

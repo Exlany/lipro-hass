@@ -9,11 +9,9 @@
 | Legacy public names | `custom_components.lipro.core.api.LiproClient`、`.core.LiproClient` 及 entry/config-flow/runtime 邻接 seam 中的 legacy constructor name | Phase 2 | `02-04 public-surface demotion`（API owner 收口；Entry/Auth owner 与 Runtime owner 迁移下游） | 内部类型与正式 public-root 叙事切到 `LiproRestFacade`；`LiproClient` 仅剩可删除 compat shell / factory alias |
 | Split-root protocol surfaces | `LiproRestFacade` / `LiproMqttClient` 并行作为 runtime-facing protocol entry 的剩余认知，以及 `core/mqtt/__init__.py` 的旧导出方向 | Phase 2.5 | `02.5 unified protocol root closeout`（Protocol owner 主责，Runtime owner 配合迁移） | runtime-facing allowed consumers 只依赖 `LiproProtocolFacade`；child façade / compat shell 不再被当作正式 public root |
 | Control-plane scatter | diagnostics / system_health / service wiring 分散 | Phase 3 | `Phase 3 control-plane closeout` | control plane public surface 收口 |
-| Capability duplication | domain / entity / platform 多处表达 | Phase 4 | `Phase 4 capability registry closeout` | capability registry 成为单一真源 |
 | Capability compat public name | `custom_components/lipro/core/device/capabilities.py` 继续提供 `DeviceCapabilities` 旧导入名 | Phase 4 | `04-03 capability compat cleanup` | 直接消费者改用 `CapabilitySnapshot` / `CapabilityRegistry`，旧 public name 不再必要 |
 | External-boundary advisory naming | firmware remote advisory / support payload generated field naming 仍带 legacy semantics | Phase 2.6 | `02.6 external-boundary closeout` | authority truth 已固定后完成术语清理 |
 | Legacy service wiring carrier | `custom_components/lipro/services/wiring.py` 仍承载部分实现闭包 | Phase 3 | `Phase 7 cleanup sweep` | `control.service_router` 完全接管且测试 patch seam 不再依赖 wiring carrier |
-| Private runtime auth seam | `custom_components/lipro/services/execution.py` 仍存在 coordinator 私有 auth hook seam | Phase 3 / 5 | `Phase 5 runtime hardening` | 正式 runtime/auth contract 提供可替代 public surface |
 
 ## Rules
 
@@ -63,11 +61,16 @@
 
 - `Control-plane scatter` residual 已从生产主链显著缩小：正式 owner 已迁入 `custom_components/lipro/control/`，剩余问题集中在 legacy carrier 与少量 private seam。
 - 新增 `Legacy service wiring carrier` residual family，显式登记 `custom_components/lipro/services/wiring.py` 的删除条件。
-- 新增 `Private runtime auth seam` residual family，显式登记 `custom_components/lipro/services/execution.py` 对 coordinator 私有 auth hook 的过渡依赖。
+- `custom_components/lipro/services/execution.py` 的私有 auth hook seam 已在 Phase 5 关闭：service execution 现在只消费正式 `auth_service` contract。
 
 
-## Phase 04 / `04-01` Residual Delta
+## Phase 04 Residual Delta
 
-- `Capability duplication` residual 已从“没有正式 root”收敛到“已有正式 root，但仍有旧 consumer / helper 未迁移”的状态。
-- `DeviceCapabilities` 已降级为显式 compat bridge；其继续存在的理由是保持 `core/device` 旧导入面稳定，删除动作后移到 `04-03 / Phase 7`。
-- `state_accessors.supports_color_temp`、平台/实体投影判断与 helper 影子规则仍待 `04-02 / 04-03` 继续清退。
+- `Capability duplication` 已从生产主链关闭：platform/entity/device/state 的正式能力判断现在都围绕 canonical capability truth。
+- `DeviceCapabilities` residual 继续存在，但已被明确缩减为旧 public-name compat alias；它不再定义任何正式 capability 语义。
+
+
+## Phase 05 Residual Delta
+
+- `Private runtime auth seam` 已关闭：`custom_components/lipro/services/execution.py` 不再依赖 coordinator 私有 auth hook，而只通过正式 `auth_service` contract 获取认证上下文。
+- runtime signal ports 已 formalize；`connect-status` shadow chain 未被 resurrect，相关 dead modules 已转入 Phase 7 治理 closeout。

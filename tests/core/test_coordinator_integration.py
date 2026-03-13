@@ -125,7 +125,7 @@ class TestCoordinatorUpdateFlow:
             mock_lipro_api_client.get_device_list.reset_mock()
 
             # Request force refresh
-            coordinator.device_runtime.request_force_refresh()
+            coordinator.device_refresh_service.request_force_refresh()
             await coordinator._async_update_data()
 
         mock_lipro_api_client.get_device_list.assert_called_once()
@@ -381,7 +381,7 @@ class TestCoordinatorRefreshDevices:
             mock_lipro_api_client.get_device_list.reset_mock()
 
             # Request force refresh via device runtime
-            coordinator.device_runtime.request_force_refresh()
+            coordinator.device_refresh_service.request_force_refresh()
 
             # Next update should force refresh
             await coordinator._async_update_data()

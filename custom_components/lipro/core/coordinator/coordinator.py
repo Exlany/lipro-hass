@@ -21,17 +21,21 @@ from ..api import (
     LiproConnectionError,
     LiproRefreshTokenExpiredError,
 )
-from ..protocol import LiproMqttFacade, LiproProtocolFacade
+from ..protocol import LiproProtocolFacade
+from .mqtt.setup import build_mqtt_subscription_device_ids
 from .mqtt_lifecycle import async_setup_mqtt as setup_mqtt_lifecycle
 from .orchestrator import RuntimeOrchestrator
 from .outlet_power import apply_outlet_power_info, should_reraise_outlet_power_error
 from .runtime.outlet_power_runtime import query_outlet_power
 from .runtime_context import RuntimeContext
 from .services import (
+    CoordinatorAuthService,
     CoordinatorCommandService,
     CoordinatorDeviceRefreshService,
     CoordinatorMqttService,
+    CoordinatorSignalService,
     CoordinatorStateService,
+    CoordinatorTelemetryService,
 )
 
 if TYPE_CHECKING:
@@ -84,7 +88,6 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
         self.config_entry = config_entry
         self._config_entry = config_entry
         self._scan_interval_seconds = int(update_interval)
-        self._force_connect_status_refresh: bool = False
 
         # Build runtime components via orchestrator
         orchestrator = RuntimeOrchestrator(
@@ -99,13 +102,27 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
         # Build state containers
         self._state = orchestrator.build_state_containers()
 
+        # Formal runtime service surfaces
+        self.auth_service = CoordinatorAuthService(
+            hass=hass,
+            auth_manager=auth_manager,
+            config_entry=config_entry,
+        )
+
+        self.signal_service = CoordinatorSignalService(
+            telemetry_service_getter=lambda: self.telemetry_service,
+            device_refresh_service_getter=lambda: self.device_refresh_service,
+        )
+
         # Build runtime context (unified dependency injection)
         context = RuntimeContext(
             get_device_by_id=self._get_device_by_id,
             apply_properties_update=self._apply_properties_update,
             schedule_listener_update=self._schedule_listener_update,
+            record_connect_state=self.signal_service,
+            request_group_reconciliation=self.signal_service,
             request_refresh=self.async_request_refresh,
-            trigger_reauth=self._trigger_reauth,
+            trigger_reauth=self.auth_service.async_trigger_reauth,
             is_mqtt_connected=self._is_mqtt_connected,
         )
 
@@ -113,12 +130,8 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
         self._runtimes = orchestrator.build_runtimes(
             context=context,
             state=self._state,
-            force_connect_status_refresh_setter=self._set_force_connect_status_refresh,
+            polling_updater=self,
         )
-
-        # Inject polling_updater into MqttRuntime (Phase H4)
-        # MqttRuntime can adjust coordinator polling interval via update_interval
-        self._runtimes.mqtt.set_polling_updater(self)
 
         # Initialize service layer
         self._init_service_layer()
@@ -155,73 +168,44 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
         """Schedule listener update (RuntimeContext callback)."""
         self.async_set_updated_data(self._state.devices)
 
-    async def _trigger_reauth(self, reason: str) -> None:
-        """Trigger re-authentication (RuntimeContext callback)."""
-        _LOGGER.warning("Re-authentication required: %s", reason)
-        if self.config_entry:
-            self.config_entry.async_start_reauth(self.hass)
-        raise ConfigEntryAuthFailed(reason)
-
     def _is_mqtt_connected(self) -> bool:
         """Check MQTT connection status (RuntimeContext callback)."""
-        return self._runtimes.mqtt.is_connected if self._runtimes.mqtt else False
+        return self._runtimes.mqtt.is_connected
 
-    def _set_force_connect_status_refresh(self, value: bool) -> None:
-        """Set force connect status refresh flag."""
-        self._force_connect_status_refresh = value
+    def update_polling_interval(self, interval: timedelta) -> None:
+        """Apply one coordinator polling interval update requested by MQTT runtime."""
+        self.update_interval = interval
 
     def _init_service_layer(self) -> None:
-        """Initialize service layer that delegates to runtime components."""
-        self.command_service = CoordinatorCommandService(self)
-        self.device_refresh_service = CoordinatorDeviceRefreshService(self)
-        self.mqtt_service = CoordinatorMqttService(self)
-        self.state_service = CoordinatorStateService(self)
-
-    # Public accessors for runtime components (used by service layer)
-    @property
-    def command_runtime(self):  # type: ignore[no-untyped-def]
-        """Access command runtime (public API for services)."""
-        return self._runtimes.command
-
-    @property
-    def device_runtime(self):  # type: ignore[no-untyped-def]
-        """Access device runtime (public API for services)."""
-        return self._runtimes.device
-
-    @property
-    def mqtt_runtime(self):  # type: ignore[no-untyped-def]
-        """Access MQTT runtime (public API for services)."""
-        return self._runtimes.mqtt
-
-    @property
-    def state_runtime(self):  # type: ignore[no-untyped-def]
-        """Access state runtime (public API for services)."""
-        return self._runtimes.state
-
-    @property
-    def status_runtime(self):  # type: ignore[no-untyped-def]
-        """Access status runtime (public API for services)."""
-        return self._runtimes.status
-
-    @property
-    def tuning_runtime(self):  # type: ignore[no-untyped-def]
-        """Access tuning runtime (public API for services)."""
-        return self._runtimes.tuning
-
-    @property
-    def background_task_manager(self):  # type: ignore[no-untyped-def]
-        """Access coordinator-owned background task manager."""
-        return self._state.background_task_manager
-
-    @property
-    def mqtt_client(self) -> LiproMqttFacade | None:
-        """Access MQTT client (public API for services)."""
-        return self._state.mqtt_client
-
-    @property
-    def biz_id(self) -> str | None:
-        """Access MQTT biz_id (public API for services)."""
-        return self._state.biz_id
+        """Initialize formal runtime service surfaces."""
+        self.command_service = CoordinatorCommandService(
+            command_runtime=self._runtimes.command,
+            tuning_runtime=self._runtimes.tuning,
+        )
+        self.device_refresh_service = CoordinatorDeviceRefreshService(
+            device_runtime=self._runtimes.device,
+            state_runtime=self._runtimes.state,
+            refresh_callback=self.async_refresh_devices,
+        )
+        self.mqtt_service = CoordinatorMqttService(
+            devices_getter=lambda: self._state.devices,
+            mqtt_runtime_getter=lambda: self._runtimes.mqtt,
+            setup_callback=self.async_setup_mqtt,
+        )
+        self.state_service = CoordinatorStateService(state_runtime=self._runtimes.state)
+        self.telemetry_service = CoordinatorTelemetryService(
+            mqtt_service=self.mqtt_service,
+            command_runtime=self._runtimes.command,
+            status_runtime=self._runtimes.status,
+            tuning_runtime=self._runtimes.tuning,
+            mqtt_runtime_getter=lambda: self._runtimes.mqtt,
+            device_count_getter=lambda: len(self._state.devices),
+            polling_interval_seconds_getter=lambda: (
+                int(self.update_interval.total_seconds())
+                if self.update_interval is not None
+                else None
+            ),
+        )
 
     @property
     def devices(self) -> dict[str, LiproDevice]:
@@ -481,7 +465,7 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
         return [
             device.iot_device_id
             for device in self._state.devices.values()
-            if device.is_outlet and device.iot_device_id
+            if device.capabilities.is_outlet and device.iot_device_id
         ]
 
     async def _async_run_outlet_power_polling(self) -> None:
@@ -514,12 +498,6 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
         status_runtime.mark_power_query_complete()
         status_runtime.advance_outlet_power_cycle(outlet_ids)
 
-    # Helper methods for authentication and reauth
-
-    async def _async_ensure_authenticated(self) -> None:
-        """Ensure coordinator authentication is valid."""
-        await self.auth_manager.async_ensure_authenticated()
-
     async def async_setup_mqtt(self) -> bool:
         """Set up MQTT client for real-time updates.
 
@@ -532,28 +510,25 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
             _LOGGER.error("Cannot setup MQTT: config_entry is None")
             return False
 
-        result = await setup_mqtt_lifecycle(
-            hass=self.hass,
-            client=self.client,
-            config_entry=self.config_entry,
-            state_runtime=self._runtimes.state,
-            background_task_manager=self._state.background_task_manager,
-            devices=self._state.devices,
-            scan_interval_seconds=self._scan_interval_seconds,
-            apply_properties_update=self._apply_properties_update,
-            set_updated_data=self.async_set_updated_data,
-        )
-
-        if result is None:
+        device_ids = build_mqtt_subscription_device_ids(self._state.devices)
+        if not device_ids:
             return False
 
-        mqtt_runtime, mqtt_client, biz_id = result
-        self._state.mqtt_client = mqtt_client
-        self._state.biz_id = biz_id
-        self._runtimes.mqtt = mqtt_runtime
-        self._runtimes.mqtt.set_polling_updater(self)
+        mqtt_runtime = self._runtimes.mqtt
+        if mqtt_runtime.has_transport:
+            if mqtt_runtime.is_connected:
+                await mqtt_runtime.sync_subscriptions(device_ids)
+                return True
+            return await mqtt_runtime.connect(device_ids=device_ids)
 
-        return True
+        result = await setup_mqtt_lifecycle(
+            client=self.client,
+            config_entry=self.config_entry,
+            background_task_manager=self._state.background_task_manager,
+            devices=self._state.devices,
+            mqtt_runtime=mqtt_runtime,
+        )
+        return result is not None
 
     async def async_shutdown(self) -> None:
         """Release coordinator-owned MQTT and background resources."""
@@ -590,8 +565,8 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
                 type(err).__name__,
             )
 
-        self._state.mqtt_client = None
-        self._state.biz_id = None
+        self.client.attach_mqtt_facade(None)
+        self._runtimes.mqtt.detach_transport()
         self._runtimes.mqtt.reset()
         self._runtimes.device.reset()
         await super().async_shutdown()
@@ -607,7 +582,7 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
         self._state.devices.clear()
         self._state.devices.update(snapshot.devices)
 
-        if self._state.mqtt_client is None:
+        if not self._runtimes.mqtt.has_transport:
             return
 
         if mqtt_timeout_seconds is None:
@@ -683,7 +658,7 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
             # Add total timeout protection (30 seconds)
             async with asyncio.timeout(30):
                 # Ensure authentication is valid (no specific timeout, uses API timeout)
-                await self._async_ensure_authenticated()
+                await self.auth_service.async_ensure_authenticated()
 
                 # Refresh device list if needed (10 seconds timeout)
                 if self._runtimes.device.should_refresh_device_list():
@@ -694,7 +669,7 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
                         )
 
                 # Schedule MQTT setup if needed (5 seconds timeout)
-                if self._state.mqtt_client is None and self._state.devices:
+                if not self._runtimes.mqtt.has_transport and self._state.devices:
                     async with asyncio.timeout(5):
                         await self.async_setup_mqtt()
 

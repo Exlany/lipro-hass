@@ -7,5 +7,14 @@
     'last_command_failure': None,
     'mqtt_connected': True,
     'runtime_class': 'Coordinator',
+    'telemetry': dict({
+      'command': dict({
+        'trace_count': 0,
+      }),
+      'device_count': 1,
+      'mqtt': dict({
+        'connected': True,
+      }),
+    }),
   })
 # ---

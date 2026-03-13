@@ -45,7 +45,7 @@ def create_platform_entities[EntityT: Entity](
     Example:
         entities = create_platform_entities(
             coordinator,
-            device_filter=lambda d: d.is_light,
+            device_filter=lambda d: d.capabilities.is_light,
             entity_factory=lambda c, d: LiproLight(c, d),
         )
 

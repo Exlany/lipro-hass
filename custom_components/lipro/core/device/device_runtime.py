@@ -23,6 +23,7 @@ def get_device_state(device: LiproDevice) -> DeviceState:
             device.min_color_temp_kelvin,
             device.max_color_temp_kelvin,
             device.max_fan_gear,
+            device.capabilities.supports_color_temp,
         )
     return device._state_cache
 

@@ -7,7 +7,7 @@ and support optional transformations.
 Key features:
 - Full mypy type safety via Generic[T] + @overload
 - Automatic unit conversions (0-100 → 0-255 for brightness)
-- Conditional attributes (only when device has capability)
+- Conditional attributes (only when capability snapshot declares support)
 - Zero runtime overhead compared to manual properties
 """
 
@@ -22,6 +22,14 @@ if TYPE_CHECKING:
     from .base import LiproEntity
 
 T = TypeVar("T")
+
+
+def _resolve_attr_path(source: object, path: str) -> object:
+    """Resolve one dotted attribute path from the given source object."""
+    value = source
+    for part in path.split("."):
+        value = getattr(value, part)
+    return value
 
 
 class DeviceAttr(Generic[T]):
@@ -81,11 +89,7 @@ class DeviceAttr(Generic[T]):
         if obj is None:
             return self
 
-        # Support dot notation for nested attributes (e.g., "state.brightness")
-        value = obj.device
-        for part in self.attr.split("."):
-            value = getattr(value, part)
-
+        value = _resolve_attr_path(obj.device, self.attr)
         if self.transform is not None:
             return self.transform(value)
         return value  # type: ignore[return-value]
@@ -120,14 +124,15 @@ class ScaledBrightness(DeviceAttr[int | None]):
 class ConditionalAttr(DeviceAttr[T | None]):
     """Conditional descriptor that returns None when device lacks capability.
 
-    Only returns the attribute value when the device has the specified capability.
-    Otherwise returns None, allowing HA to hide unsupported features.
+    Only returns the attribute value when the specified capability snapshot path
+    evaluates to truthy. Otherwise returns None, allowing HA to hide unsupported
+    features.
 
     Example:
         class LiproLight(LiproEntity, LightEntity):
             color_temp_kelvin = ConditionalAttr[int](
                 "color_temp",
-                capability="supports_color_temp"
+                capability="capabilities.supports_color_temp"
             )
     """
 
@@ -142,7 +147,7 @@ class ConditionalAttr(DeviceAttr[T | None]):
 
         Args:
             attr: Device attribute path
-            capability: Capability attribute to check (e.g., "supports_color_temp")
+            capability: Capability snapshot path to check
             transform: Optional transformation function
         """
         super().__init__(attr, transform=transform)
@@ -169,8 +174,7 @@ class ConditionalAttr(DeviceAttr[T | None]):
         if obj is None:
             return self
 
-        # Check if device has the required capability
-        if not getattr(obj.device, self.capability, False):
+        if not _resolve_attr_path(obj, self.capability):
             return None
 
         return super().__get__(obj, objtype)
@@ -217,7 +221,6 @@ class KelvinToPercent(DeviceAttr[int]):
             return self
 
         kelvin = super().__get__(obj, objtype)
-        # Use device-specific kelvin range for conversion
         return obj.device.kelvin_to_percent_for_device(kelvin)
 
 

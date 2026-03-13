@@ -44,7 +44,7 @@ def kelvin_to_percent_for_device(self: DeviceState, kelvin: int) -> int:
 
 def supports_color_temp(self: DeviceState) -> bool:
     """Return whether color temperature adjustment is supported."""
-    return self.max_color_temp_kelvin > 0 and self.min_color_temp_kelvin > 0
+    return self._supports_color_temp
 
 
 def is_connected(self: DeviceState) -> bool:

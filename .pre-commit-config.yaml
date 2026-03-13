@@ -32,9 +32,21 @@ repos:
         name: pytest diagnostics gate (uv)
         entry: >-
           uv run --extra dev pytest -q
-          tests/test_diagnostics.py::TestAsyncGetConfigEntryDiagnostics::test_collects_and_redacts_diagnostics
-          tests/test_diagnostics.py::TestAsyncGetConfigEntryDiagnostics::test_handles_no_devices
-          tests/test_diagnostics.py::TestAsyncGetConfigEntryDiagnostics::test_diagnostics_snapshot
+          tests/core/test_diagnostics.py::TestAsyncGetConfigEntryDiagnostics::test_collects_and_redacts_diagnostics
+          tests/core/test_diagnostics.py::TestAsyncGetConfigEntryDiagnostics::test_handles_no_devices
+          tests/core/test_diagnostics.py::TestAsyncGetConfigEntryDiagnostics::test_diagnostics_snapshot
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-push]
+
+      - id: pytest-governance-gate
+        name: pytest governance gate (uv)
+        entry: >-
+          uv run --extra dev pytest -q
+          tests/meta/test_dependency_guards.py
+          tests/meta/test_public_surface_guards.py
+          tests/meta/test_governance_guards.py
         language: system
         pass_filenames: false
         always_run: true

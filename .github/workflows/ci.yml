@@ -51,6 +51,37 @@ jobs:
       - name: Check translations
         run: uv run python scripts/check_translations.py
 
+  governance:
+    name: Governance & Architecture Guards
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
+        with:
+          python-version: "3.13"
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@0ca8f610542aa7f4acaf39e65cf4eb3c35091883
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --frozen --extra dev
+
+      - name: Check file matrix and active authority docs
+        run: uv run python scripts/check_file_matrix.py --check
+
+      - name: Run governance and architecture guards
+        run: >-
+          uv run pytest -q
+          tests/meta/test_dependency_guards.py
+          tests/meta/test_public_surface_guards.py
+          tests/meta/test_governance_guards.py
+
   security:
     name: Security Audit
     runs-on: ubuntu-latest

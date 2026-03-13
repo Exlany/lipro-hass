@@ -1,21 +1,4 @@
-"""Coordinator state service - API stability layer.
-
-This service provides a stable facade over the state runtime, implementing
-the Stable Interface Pattern from Clean Architecture.
-
-Design rationale:
-- **API Stability**: Isolates Entity layer from StateRuntime implementation changes
-- **Dependency Inversion**: Entity depends on Service interface, not Runtime
-- **Single Responsibility**: Focused on device state access coordination
-
-Architecture role:
-- NOT a business logic layer (logic lives in StateRuntime)
-- NOT a repository pattern (StateRuntime already provides that)
-- IS a stable API boundary (protects Entity layer from Runtime refactoring)
-
-This is intentional "thin proxy" design - the value is in API stability,
-not in adding query complexity.
-"""
+"""Coordinator state service - stable device/state access surface."""
 
 from __future__ import annotations
 
@@ -25,40 +8,31 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from ...device import LiproDevice
-    from ..coordinator import Coordinator
+    from ..runtime.state_runtime import StateRuntime
 
 
 @dataclass(slots=True)
 class CoordinatorStateService:
-    """Expose coordinator state access through a service boundary."""
+    """Expose state access without leaking runtime registry details."""
 
-    coordinator: Coordinator
+    state_runtime: StateRuntime
 
     @property
     def devices(self) -> dict[str, LiproDevice]:
-        """Return the wrapped coordinator device mapping."""
-        return self.coordinator.state_runtime.get_all_devices()  # type: ignore[no-any-return]
-
+        """Return the latest device mapping."""
+        return self.state_runtime.get_all_devices()
 
     def get_device(self, serial: str) -> LiproDevice | None:
         """Resolve a device by serial."""
-        return self.coordinator.state_runtime.get_device_by_serial(serial)  # type: ignore[no-any-return]
+        return self.state_runtime.get_device_by_serial(serial)
 
     def get_device_by_id(self, device_id: str) -> LiproDevice | None:
         """Resolve a device by any known identifier."""
-        return self.coordinator.state_runtime.get_device_by_id(device_id)  # type: ignore[no-any-return]
+        return self.state_runtime.get_device_by_id(device_id)
 
     def get_device_lock(self, device_serial: str) -> asyncio.Lock:
-        """Return the per-device update lock.
-
-        Args:
-            device_serial: Device serial number
-
-        Returns:
-            Lock for the device
-        """
+        """Return the canonical per-device update lock."""
         device = self.get_device(device_serial)
         if device is None:
-            # Return a new lock for unknown devices (shouldn't happen)
             return asyncio.Lock()
-        return self.coordinator.state_runtime.get_device_lock(device)  # type: ignore[no-any-return]
+        return self.state_runtime.get_device_lock(device)

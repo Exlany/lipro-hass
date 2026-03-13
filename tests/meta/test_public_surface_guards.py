@@ -13,6 +13,10 @@ _COORDINATOR_ENTRY = _ROOT / "custom_components" / "lipro" / "coordinator_entry.
 _CORE_API_INIT = (
     _ROOT / "custom_components" / "lipro" / "core" / "api" / "__init__.py"
 )
+_COORDINATOR_MODULE = (
+    _ROOT / "custom_components" / "lipro" / "core" / "coordinator" / "coordinator.py"
+)
+_SERVICE_EXECUTION = _ROOT / "custom_components" / "lipro" / "services" / "execution.py"
 _FORBIDDEN_CORE_API_EXPORTS = {
     "client_auth_recovery",
     "client_transport",
@@ -51,7 +55,24 @@ def _extract_all(path: Path) -> list[str]:
             for element in node.value.elts
             if isinstance(element, ast.Constant) and isinstance(element.value, str)
         ]
-    raise AssertionError(f"Could not find __all__ in {path.relative_to(_ROOT)}")
+    message = f"Could not find __all__ in {path.relative_to(_ROOT)}"
+    raise AssertionError(message)
+
+
+def _extract_property_names(path: Path, class_name: str) -> set[str]:
+    tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+    for node in tree.body:
+        if not isinstance(node, ast.ClassDef) or node.name != class_name:
+            continue
+        property_names: set[str] = set()
+        for child in node.body:
+            if not isinstance(child, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                continue
+            if any(isinstance(decorator, ast.Name) and decorator.id == "property" for decorator in child.decorator_list):
+                property_names.add(child.name)
+        return property_names
+    message = f"Could not find class {class_name} in {path.relative_to(_ROOT)}"
+    raise AssertionError(message)
 
 
 def test_public_surface_baseline_keeps_canonical_transitional_and_forbidden_roles_distinct() -> None:
@@ -91,3 +112,30 @@ def test_core_api_package_keeps_transport_internals_out_of_public_exports() -> N
 
     assert "LiproClient" in public_symbols
     assert public_symbols.isdisjoint(_FORBIDDEN_CORE_API_EXPORTS)
+
+
+def test_coordinator_runtime_surface_stays_service_oriented() -> None:
+    property_names = _extract_property_names(_COORDINATOR_MODULE, "Coordinator")
+
+    assert "devices" in property_names
+    assert property_names.isdisjoint(
+        {
+            "command_runtime",
+            "device_runtime",
+            "mqtt_runtime",
+            "state_runtime",
+            "status_runtime",
+            "tuning_runtime",
+            "background_task_manager",
+            "mqtt_client",
+            "biz_id",
+        }
+    )
+
+
+def test_service_execution_uses_formal_auth_surface_instead_of_private_backdoor() -> None:
+    execution_text = _SERVICE_EXECUTION.read_text(encoding="utf-8")
+
+    assert 'getattr(coordinator, "_async_ensure_authenticated"' not in execution_text
+    assert 'getattr(coordinator, "_trigger_reauth"' not in execution_text
+    assert 'auth_service' in execution_text

@@ -2,17 +2,10 @@
 
 This module replaces the scattered DI wiring in factory.py with a clean,
 context-driven orchestration pattern.
-
-Key improvements over factory.py:
-- Single RuntimeContext injection point (no lambda closures)
-- Explicit dependency graph (no hidden callbacks)
-- Testable in isolation (mock RuntimeContext)
-- < 200 LOC (vs ~280 LOC in factory.py)
 """
 
 from __future__ import annotations
 
-import asyncio
 import logging
 from typing import TYPE_CHECKING, Any
 
@@ -39,41 +32,24 @@ from .runtime.tuning_runtime import TuningRuntime
 from .runtime_context import RuntimeContext
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
-
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.core import HomeAssistant
 
-    from ..protocol import LiproProtocolFacade
     from ..auth import LiproAuthManager
     from ..device import LiproDevice
+    from .runtime.mqtt.connection import PollingIntervalUpdater
 
 _LOGGER = logging.getLogger(__name__)
 
 
 class RuntimeOrchestrator:
-    """Orchestrates runtime component initialization with unified context.
-
-    This orchestrator eliminates the need for:
-    - Lambda closures in factory.py (replaced by RuntimeContext)
-    - Setter injection in MqttRuntime (replaced by constructor injection)
-    - Scattered callback definitions (centralized in RuntimeContext)
-
-    Usage:
-        orchestrator = RuntimeOrchestrator(hass, client, auth_manager, config_entry)
-        context = orchestrator.build_context(
-            get_device_by_id=coordinator.get_device,
-            apply_properties_update=coordinator._apply_properties_update,
-            ...
-        )
-        state, runtimes = orchestrator.build_runtimes(context)
-    """
+    """Orchestrates runtime component initialization with unified context."""
 
     def __init__(
         self,
         *,
         hass: HomeAssistant,
-        client: LiproProtocolFacade,
+        client,
         auth_manager: LiproAuthManager,
         config_entry: ConfigEntry,
         update_interval: int,
@@ -109,8 +85,6 @@ class RuntimeOrchestrator:
             device_identity_index=DeviceIdentityIndex(),
             background_task_manager=background_task_manager,
             confirmation_tracker=confirmation_tracker,
-            mqtt_client=None,
-            biz_id=None,
         )
 
     def build_runtimes(
@@ -118,27 +92,13 @@ class RuntimeOrchestrator:
         *,
         context: RuntimeContext,
         state: CoordinatorStateContainers,
-        force_connect_status_refresh_setter: Callable[[bool], None],
+        polling_updater: PollingIntervalUpdater,
     ) -> CoordinatorRuntimes:
-        """Build all runtime components with unified context injection.
-
-        Args:
-            context: Unified dependency context (replaces lambda closures)
-            state: Mutable state containers
-            force_connect_status_refresh_setter: Legacy setter for connect status
-
-        Returns:
-            CoordinatorRuntimes with all components wired
-        """
-        # 1. Tuning runtime (no dependencies)
-        # Phase H4: consumed by CoordinatorCommandService for user-action metrics
-        # and by Coordinator._async_run_status_polling() for adaptive batch tuning.
+        """Build all runtime components with unified context injection."""
         tuning_runtime = TuningRuntime(
             initial_batch_size=32,
-            initial_mqtt_stale_window=180.0,
         )
 
-        # 2. State runtime (owns device/entity registries)
         state_runtime = StateRuntime(
             devices=state.devices,
             device_identity_index=state.device_identity_index,
@@ -147,7 +107,6 @@ class RuntimeOrchestrator:
             normalize_device_key=normalize_device_key,
         )
 
-        # 3. Device runtime (API client wrapper)
         device_runtime = DeviceRuntime(
             client=self.client,
             auth_manager=self.auth_manager,
@@ -155,9 +114,6 @@ class RuntimeOrchestrator:
             filter_config_options=dict(self.config_entry.options),
         )
 
-        # 4. Status runtime (device status polling)
-        # Phase H4: consumed by Coordinator._async_run_status_polling() for
-        # adaptive REST polling and coordinator-driven outlet power refresh.
         async def _query_device_status_batch(
             device_ids: list[str],
         ) -> dict[str, dict[str, Any]]:
@@ -186,16 +142,22 @@ class RuntimeOrchestrator:
                     continue
 
                 status[device_id] = {
-                    key: value for key, value in row.items() if key not in {"iotId", "deviceId", "id"}
+                    key: value
+                    for key, value in row.items()
+                    if key not in {"iotId", "deviceId", "id"}
                 }
             return status
 
         async def _apply_properties_update(
-            device: LiproDevice, properties: dict[str, Any], source: str
+            device: LiproDevice,
+            properties: dict[str, Any],
+            source: str,
         ) -> bool:
-            """Apply properties update (wrapper for state_runtime)."""
+            """Apply properties update (wrapper for state runtime)."""
             return await state_runtime.apply_properties_update(
-                device, properties, source=source
+                device,
+                properties,
+                source=source,
             )
 
         status_runtime = StatusRuntime(
@@ -208,25 +170,19 @@ class RuntimeOrchestrator:
             get_device_by_id=state_runtime.get_device_by_id,
         )
 
-        # 5. MQTT runtime (uses RuntimeContext - no more setters!)
         mqtt_runtime = MqttRuntime(
             hass=self.hass,
-            mqtt_client=state.mqtt_client,
+            mqtt_client=None,
             base_scan_interval=self.update_interval,
+            polling_updater=polling_updater,
             device_resolver=context.get_device_by_id,  # type: ignore[arg-type]
             property_applier=context.apply_properties_update,
             listener_notifier=context.schedule_listener_update,  # type: ignore[arg-type]
-            connect_state_tracker=lambda device_serial, timestamp, is_online: None,  # type: ignore[arg-type]
-            group_reconciler=lambda device_name, timestamp: None,  # type: ignore[arg-type]
+            connect_state_tracker=context.record_connect_state,  # type: ignore[arg-type]
+            group_reconciler=context.request_group_reconciliation,  # type: ignore[arg-type]
             polling_multiplier=2,
             background_task_manager=state.background_task_manager,
         )
-
-        # 6. Command runtime (uses RuntimeContext for confirmation)
-        pending_expectations: dict[str, Any] = {}
-        device_state_latency_seconds: dict[str, float] = {}
-        post_command_refresh_tasks: dict[str, asyncio.Task[Any]] = {}
-        connect_status_priority_ids: set[str] = set()
 
         command_builder = CommandBuilder(debug_mode=False)
         command_sender = CommandSender(client=self.client)
@@ -234,12 +190,12 @@ class RuntimeOrchestrator:
 
         confirmation_manager = ConfirmationManager(
             confirmation_tracker=state.confirmation_tracker,
-            pending_expectations=pending_expectations,
-            device_state_latency_seconds=device_state_latency_seconds,
-            post_command_refresh_tasks=post_command_refresh_tasks,
+            pending_expectations={},
+            device_state_latency_seconds={},
+            post_command_refresh_tasks={},
             track_background_task=state.background_task_manager.create,
-            request_refresh=context.request_refresh,  # From context!
-            mqtt_connected_provider=context.is_mqtt_connected,  # From context!
+            request_refresh=context.request_refresh,
+            mqtt_connected_provider=context.is_mqtt_connected,
         )
 
         command_runtime = CommandRuntime(
@@ -247,10 +203,7 @@ class RuntimeOrchestrator:
             sender=command_sender,
             retry=retry_strategy,
             confirmation=confirmation_manager,
-            connect_status_priority_ids=connect_status_priority_ids,
-            normalize_device_key=normalize_device_key,
-            force_connect_status_refresh_setter=force_connect_status_refresh_setter,
-            trigger_reauth=context.trigger_reauth,  # From context!
+            trigger_reauth=context.trigger_reauth,
             debug_mode=False,
         )
 

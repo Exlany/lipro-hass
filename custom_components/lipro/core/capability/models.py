@@ -69,5 +69,14 @@ class CapabilitySnapshot:
         """Return whether the device is a gateway."""
         return self.category == DeviceCategory.GATEWAY
 
+    @property
+    def is_panel(self) -> bool:
+        """Return whether the device is a switch-panel device."""
+        return self.category == DeviceCategory.SWITCH
+
+    def supports_platform(self, platform: str) -> bool:
+        """Return whether the capability snapshot serves one HA platform."""
+        return platform in self.platforms
+
 
 __all__ = ["CapabilitySnapshot"]

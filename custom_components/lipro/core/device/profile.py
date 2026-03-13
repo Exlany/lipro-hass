@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from ...const.api import DEFAULT_MAX_FAN_GEAR
-from ...const.categories import DeviceCategory, get_platforms_for_category
 from ...const.device_types import (
     DEVICE_TYPE_MAP,
     IOT_NAME_TO_DEFAULT_MAX_FAN_GEAR,
@@ -37,14 +36,7 @@ def resolve_device_type_hex(
     return DEVICE_TYPE_MAP.get(device_type, f"ff{device_type:06x}")
 
 
-
-def resolve_platforms(category: DeviceCategory) -> list[str]:
-    """Return Home Assistant platforms for one device category."""
-    return get_platforms_for_category(category)
-
-
 __all__ = [
     "default_max_fan_gear_for_iot_name",
     "resolve_device_type_hex",
-    "resolve_platforms",
 ]

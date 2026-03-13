@@ -29,7 +29,7 @@
 | `LiproMqttClient` compat shell | Phase 2.5 / 7 cleanup only | 仅剩 transport-level compat/export seam；runtime/control 正式入口不再感知它是 public root |
 | legacy wrapper outputs | active migration only | 新 canonical contracts 覆盖旧 consumers |
 | `DeviceCapabilities` compat alias | Phase 4 / 7 cleanup only | `core/device/capabilities.py` 的旧导入点迁移到 `CapabilitySnapshot` / `CapabilityRegistry` |
-| cluster-level `FILE_MATRIX` | pre-Phase 7 | 升级为 file-level 378/378 视图 |
+| cluster-level `FILE_MATRIX` | pre-Phase 7 | 升级为 file-level 406/406 视图 |
 
 ## Forbidden As Formal Roots
 

@@ -1,255 +1,414 @@
 # File Matrix
 
-**Python files total:** 406
+**Python files total:** 404
+**Status:** File-level governance authority
+**Rule:** workspace inventory excluding caches / virtual env / tooling artifacts
 
-## Phase Ownership by Cluster
+## File-Level Governance Matrix
 
-| Cluster | Python files | Primary phase | Status |
-|---------|--------------|---------------|--------|
-| `custom_components/lipro/core/api` | 33 | Phase 2 | `02-01` matrix locked |
-| `tests/core/api` | 14 | Phase 2 | `02-01` matrix locked |
-| `tests/snapshots` | 5 | Phase 1 / 2 / 6 | Phase 01 baseline locked |
-| `custom_components/lipro/core/coordinator` | 56 | Phase 5 | Pending |
-| `custom_components/lipro/core/capability` | 3 | Phase 4 | `04-01 formal root landed` |
-| `custom_components/lipro/core/device` | 23 | Phase 4 | `04-01 registry seeded` |
-| `custom_components/lipro/core/mqtt` | 12 | Phase 2 / 5 / 6 | Pending |
-| `custom_components/lipro/control` | 9 | Phase 3 | `03 closeout recorded` |
-| `custom_components/lipro/services` | 16 | Phase 3 | `03 closeout recorded` |
-| `custom_components/lipro/flow` + entry files | 14 | Phase 3 | `03 closeout recorded` |
-| `custom_components/lipro/entities` + platform modules | 13 | Phase 4 | `04-02/03 pending` |
-| `tests/core/capability` | 2 | Phase 4 | `04-01 proof landed` |
-| Remaining helpers / scripts / tests | remainder | Cross-cutting | Pending |
-
-## Current Focus Slice
-
-### Phase 4 Slice
-
-- `custom_components/lipro/core/capability/**/*.py`
-- `custom_components/lipro/core/device/{capabilities,device_snapshots,device_views}.py`
-- `tests/core/capability/**/*.py`
-- `tests/core/device/test_capabilities.py`
-- `custom_components/lipro/entities` + platform modules 保持待迁移状态，进入 `04-02 / 04-03`
-
-### Phase 2 Slice
-
-- `custom_components/lipro/core/api/**/*.py`
-- `tests/core/api/**/*.py`
-- `tests/snapshots/test_api_snapshots.py`
-- `tests/flows/test_config_flow.py`
-- direct consumer tests that directly `import custom_components.lipro.core.api...`、patch `core.api` 私有路径，或直接 spec/patch/实例化 `LiproClient`
-
-### Direct Consumer Scope Notes
-
-- `02-01` 的 direct consumer set 只覆盖 **直接依赖 API slice** 的测试文件；不把整个 runtime / control-plane 测试簇都算进来。
-- `tests/test_coordinator_runtime.py` 与 `tests/platforms/test_update_task_callback.py` 仍是 Phase 2 邻接验证，但它们未直接消费 `core.api`，因此本次不新增 file-level 条目。
-- `tests/meta/test_public_surface_guards.py` 属于治理护栏，不与 compat/direct consumer tests 混为一类；它继续由 baseline asset pack 管理。
-
-## Classification Vocabulary
-
-- `保留`：符合北极星终态，仅做轻微整理
-- `重构`：保留职责，但必须按新架构重写内部实现
-- `迁移适配`：阶段性桥接层，必须登记删除条件
-- `删除`：不进入终态，待消费者清零后移除
-
-## Phase 02 Detailed Governance Matrix (`02-01`)
-
-### `custom_components/lipro/core/api` Public Surface 与主链
-
-| File | 分类 | `02-01` 裁决 |
-|------|------|--------------|
-| `custom_components/lipro/core/api/__init__.py` | 重构 | canonical export 已锁定到 `LiproRestFacade`；`LiproClient` 明确降级为 transitional compat shell，而非正式根 |
-| `custom_components/lipro/core/api/client.py` | 迁移适配 | `LiproRestFacade` + collaborator graph 已成为正式主链；`LiproClient` 仅保留受控 compat wrappers 与 legacy constructor seam |
-| `custom_components/lipro/core/api/errors.py` | 保留 | API error taxonomy 继续作为正式 public surface |
-| `custom_components/lipro/core/api/types.py` | 保留 | typed payload contracts 继续作为 canonical protocol types |
-
-### `custom_components/lipro/core/api` Mixin Spine 与删除候选
-
-| File | 分类 | `02-01` 裁决 |
-|------|------|--------------|
-| `custom_components/lipro/core/api/client_base.py` | 重构 | 保留 `ClientSessionState` 作为正式 session state owner；`_ClientBase` 仅为过渡期 typing anchor，后续再清理残余 compat spine |
-| `custom_components/lipro/core/api/client_pacing.py` | 迁移适配 | 正式 pacing owner 已是 `RequestPolicy`；本文件仅保留 legacy patch seam 与 compat mixin，待后续相位删除 |
-| `custom_components/lipro/core/api/client_auth_recovery.py` | 重构 | `AuthRecoveryCoordinator` 已成为正式 owner；legacy mixin shell 仅为兼容 seam，不能再被视为正式根 |
-| `custom_components/lipro/core/api/client_transport.py` | 重构 | `TransportExecutor` + `TransportCore` 已成为正式 transport chain；legacy mixin shell 仅剩过渡职责 |
-| `custom_components/lipro/core/api/endpoints/__init__.py` | 重构 | 正式角色已切换为 endpoint collaborator registry；`_ClientEndpointsMixin` 仅保留 narrow compat / helper-test 语义 |
-
-### `custom_components/lipro/core/api` Explicit Collaborators 与 Helper 基座
-
-| File | 分类 | `02-01` 裁决 |
-|------|------|--------------|
-| `custom_components/lipro/core/api/auth_service.py` | 重构 | auth endpoint helper 保留职责，但不得继续通过 `Any + _smart_home_request` 绑定旧 client |
-| `custom_components/lipro/core/api/command_api_service.py` | 重构 | 保留命令编码/重试语义，移除 “`LiproClient`-compatible call” 假设 |
-| `custom_components/lipro/core/api/diagnostics_api_service.py` | 保留 | 继续作为 canonical diagnostics collaborator；不承载 compat shell 语义 |
-| `custom_components/lipro/core/api/mqtt_api_service.py` | 保留 | Phase 2 不重写 MQTT，但保留 canonical helper 与 contract seam |
-| `custom_components/lipro/core/api/observability.py` | 保留 | 继续作为 auth/transport telemetry hook surface |
-| `custom_components/lipro/core/api/power_service.py` | 重构 | helper 可保留，但多行 `{"data": ...}` compat shaping 必须收口到 compat shell / normalizer boundary |
-| `custom_components/lipro/core/api/request_codec.py` | 保留 | 作为 request encoding helper 保持稳定 |
-| `custom_components/lipro/core/api/request_policy.py` | 保留 | backoff / pacing / retry policy 作为显式 collaborator 保留 |
-| `custom_components/lipro/core/api/response_safety.py` | 保留 | response masking / code normalization 继续作为 boundary safety 基座 |
-| `custom_components/lipro/core/api/schedule_codec.py` | 保留 | canonical schedule payload parsing 保留 |
-| `custom_components/lipro/core/api/schedule_endpoint.py` | 保留 | schedule body builders 保留为 collaborator helper |
-| `custom_components/lipro/core/api/schedule_service.py` | 重构 | schedule collaborator 保留职责，但不得继续依赖 client 私有协议方法 |
-| `custom_components/lipro/core/api/status_service.py` | 保留 | status batching / fallback helpers 继续作为 explicit service seam |
-| `custom_components/lipro/core/api/transport_core.py` | 保留 | 作为 HTTP execution primitive 并入 `TransportExecutor` |
-| `custom_components/lipro/core/api/transport_retry.py` | 保留 | rate-limit / retry primitive 继续保留 |
-| `custom_components/lipro/core/api/transport_signing.py` | 保留 | signing primitive 继续保留 |
-
-### `custom_components/lipro/core/api/endpoints` Modules
-
-| File | 分类 | `02-01` 裁决 |
-|------|------|--------------|
-| `custom_components/lipro/core/api/endpoints/auth.py` | 重构 | auth endpoint methods 从 mixin class 改为显式 collaborator |
-| `custom_components/lipro/core/api/endpoints/commands.py` | 重构 | command endpoint methods 从 mixin class 改为显式 collaborator |
-| `custom_components/lipro/core/api/endpoints/connect_status.py` | 保留 | 纯 coercion helper，可直接留在 normalizer/helper 层 |
-| `custom_components/lipro/core/api/endpoints/devices.py` | 重构 | device endpoint methods 从 mixin class 改为显式 collaborator |
-| `custom_components/lipro/core/api/endpoints/misc.py` | 重构 | misc endpoint methods 从 mixin class 改为显式 collaborator |
-| `custom_components/lipro/core/api/endpoints/payloads.py` | 重构 | payload helpers 去 mixin 化，转入 canonical normalizers / shared helper seam |
-| `custom_components/lipro/core/api/endpoints/schedule.py` | 重构 | schedule endpoint methods 从 mixin class 改为显式 collaborator |
-| `custom_components/lipro/core/api/endpoints/status.py` | 重构 | status endpoint methods 从 mixin class 改为显式 collaborator |
-
-### `tests/core/api` Suites
-
-| File | 分类 | `02-01` 裁决 |
-|------|------|--------------|
-| `tests/core/api/__init__.py` | 保留 | test package marker，无迁移语义 |
-| `tests/core/api/test_api.py` | 重构 | mega-client suite 必须拆分为 facade / collaborator / compat shell 三类测试 |
-| `tests/core/api/test_api_client_transport.py` | 重构 | 取消 `_ClientTransportMixin` dummy host，改测 explicit transport chain |
-| `tests/core/api/test_api_command_service.py` | 保留 | helper-level command contract 继续保留 |
-| `tests/core/api/test_api_diagnostics_service.py` | 保留 | diagnostics collaborator contracts 继续保留 |
-| `tests/core/api/test_api_schedule_endpoints.py` | 重构 | 旧 mixin endpoint helpers 改测显式 schedule collaborator/normalizer seam |
-| `tests/core/api/test_api_schedule_service.py` | 重构 | schedule service tests 去除 client 私有协议假设 |
-| `tests/core/api/test_api_status_service.py` | 保留 | status batching / fallback contract 继续保留 |
-| `tests/core/api/test_api_types_smoke.py` | 保留 | typed payload smoke guards 继续保留 |
-| `tests/core/api/test_helper_modules.py` | 重构 | `_ClientPacingMixin` 与 compat helper 断言需要迁至 request policy / compat shell tests |
-| `tests/core/api/test_protocol_contract_matrix.py` | 保留 | Phase 1 protocol truth 护栏，Phase 2 不得回退 |
-| `tests/core/api/test_request_codec.py` | 保留 | request codec contract 继续保留 |
-| `tests/core/api/test_schedule_codec.py` | 保留 | canonical schedule codec guard 继续保留 |
-| `tests/core/api/test_schedule_endpoint.py` | 保留 | pure endpoint body builders 继续保留 |
-
-### Direct Consumer Tests
-
-| File | 直接依赖 | 分类 | `02-01` 裁决 |
-|------|----------|------|--------------|
-| `tests/snapshots/test_api_snapshots.py` | diagnostics/mqtt/types helpers | 保留 | Phase 1 canonical snapshot baseline，继续作为 Phase 2 contract truth |
-| `tests/flows/test_config_flow.py` | `LiproApiError` / `LiproAuthError`；patch `config_flow.LiproClient` | 迁移适配 | 保留错误语义断言，但 constructor seam 后续需从 legacy public name 脱钩 |
-| `tests/core/test_anonymous_share.py` | `LiproClient`、`observability`、patch `client_auth_recovery._record_api_error` | 重构 | 改测 facade/auth-recovery observability seam，不再 patch mixin-era 私有路径 |
-| `tests/core/test_auth.py` | `LiproClient`、auth errors | 迁移适配 | auth manager 不能长期依赖 legacy public root 作为 spec 类型 |
-| `tests/core/test_boundary_conditions.py` | public errors；局部直接实例化 `LiproClient` | 迁移适配 | 剩余 constructor edge cases 收敛到 compat shell / façade split tests |
-| `tests/core/test_command_dispatch.py` | `LiproApiError` | 保留 | 仅验证 public error mapping |
-| `tests/core/test_command_trace.py` | `LiproApiError` | 保留 | 仅验证 public error tracing |
-| `tests/core/test_coordinator.py` | `LiproAuthError` / `LiproConnectionError` | 保留 | 继续消费正式错误 surface，不绑定 mixin 细节 |
-| `tests/core/test_coordinator_integration.py` | API error family | 保留 | 继续消费正式错误 surface，不绑定 mixin 细节 |
-| `tests/core/test_exceptions.py` | `errors.py` public hierarchy | 保留 | 继续锁定 shared exception layering |
-| `tests/core/test_outlet_power.py` | API error family | 保留 | 仅验证 public error / helper behavior |
-| `tests/core/test_outlet_power_runtime.py` | `LiproApiError` | 保留 | 仅验证 runtime error propagation |
-| `tests/core/coordinator/runtime/test_command_runtime.py` | `LiproApiError` / `LiproAuthError` | 保留 | 继续消费正式错误 surface |
-| `tests/core/coordinator/runtime/test_device_runtime.py` | `LiproClient` spec + compat methods | 迁移适配 | runtime 仍依赖 `get_device_list/query_*_devices` compat surface，必须在 Phase 2 清点后迁移 |
-| `tests/core/coordinator/services/test_command_service.py` | `LiproApiError` | 保留 | 仅验证 public error mapping |
-| `tests/meta/test_modularization_surfaces.py` | `custom_components.lipro.core.api` symbol surface | 保留 | 继续约束 canonical helper symbols，不与 compat consumer 混淆 |
-
-### Direct Consumer Test Support / Legacy Public-Name Consumers
-
-| File | 直接依赖 | 分类 | `02-01` 裁决 |
-|------|----------|------|--------------|
-| `tests/conftest.py` | patch `config_flow.LiproClient`、shared auth/connection mocks | 迁移适配 | 共享夹具仍承载 legacy constructor 假设，后续需切换到 façade-aware factory seam |
-| `tests/core/test_device_refresh.py` | compat methods `get_device_list/query_iot_devices/query_group_devices/query_outlet_devices` | 迁移适配 | 视作 compat wrapper 高风险消费者，在 wrapper 删除前必须先迁移 |
-| `tests/core/test_init.py` | top-level `LiproClient` patch / factory wiring | 迁移适配 | 入口装配仍假设 legacy public name，需与 control/runtime handoff 同步迁移 |
-| `tests/core/test_token_persistence.py` | `LiproClient` 作为 auth/client factory | 迁移适配 | token persistence factory seam 后续需从 legacy public name 脱钩 |
-
-## Phase 01 Closeout Review
-
-- 已检查 `tests/fixtures/api_contracts/**`、`tests/core/api/test_protocol_contract_matrix.py` 与 `tests/snapshots/test_api_snapshots.py`，确认它们构成 Phase 01 的 baseline 资产面。
-- 本次未调整文件归属：协议实现与大多数 API 测试仍归后续 Phase 2 收口；Phase 01 只负责锁定 contract baseline。
-- `tests/snapshots` 状态更新为 `Phase 01 baseline locked`，表示已有 canonical contract 观察面，但后续 Phase 2 / 6 仍可在同一承载面继续扩展。
-
-## Phase 02 / `02-01` Governance Delta
-
-- `custom_components/lipro/core/api/**/*.py`、`tests/core/api/**/*.py` 与 direct consumer tests 已补齐 file-level target fate，不再只停留在 cluster 级别。
-- `LiproClient`、compat wrappers、mixin spine 与 legacy public-name consumers 已被明确标成 `迁移适配` / `删除` / `重构`，为 `02-02` ~ `02-04` 提供可执行边界。
-- 本次只做治理归档，不修改业务代码、不改测试实现。
-
-
-## Phase 02 / `02-04` Governance Delta
-
-- `LiproRestFacade` 已脱离 `_ClientEndpointsMixin` 继承链，正式 public truth 改为 façade + explicit collaborator graph。
-- `custom_components/lipro/core/api/client_base.py`、`client_auth_recovery.py`、`client_transport.py`、`endpoints/__init__.py` 不再被按“整文件删除”理解；真正待清理的是其内残余 compat spine。
-- direct consumer annotations 已开始转向 `LiproRestFacade`，`LiproClient` 只在 constructor / compat wrapper / flow seam 中保留过渡角色。
-
-
-## Phase 02.5 Detailed Governance Matrix (`02.5-01`)
-
-### `custom_components/lipro/core/protocol` Logical Root Slice
-
-| File / Logical Slice | 分类 | `02.5-01` 裁决 |
-|------|------|--------------|
-| `custom_components/lipro/core/protocol/facade.py` (planned) | 新增 / 重构 | `LiproProtocolFacade` 作为唯一正式协议根，拥有 root-owned shared truth |
-| `custom_components/lipro/core/protocol/{session,telemetry,diagnostics_context,contracts,compat}.py` (planned) | 新增 / 重构 | shared auth/session、telemetry、protocol diagnostics context、canonical contracts 与 compat demotion 逻辑统一归属 protocol root |
-
-### `custom_components/lipro/core/mqtt` Child Façade 与 Helpers
-
-| File | 分类 | `02.5-01` 裁决 |
-|------|------|--------------|
-| `custom_components/lipro/core/mqtt/__init__.py` | 重构 | canonical export 必须转向 `LiproMqttFacade`；`LiproMqttClient` 只保留 transitional compat 语义 |
-| `custom_components/lipro/core/mqtt/mqtt_client.py` | 迁移适配 | 当前薄 façade 需降级为 compat shell 或由 `LiproMqttFacade` 接管正式 child-façade 地位 |
-| `custom_components/lipro/core/mqtt/client_runtime.py` | 重构 | 继续保留 runtime bridge 职责，但其 owner 必须是 `LiproMqttFacade`，而不是 split-root public surface |
-| `custom_components/lipro/core/mqtt/{connection_manager,subscription_manager,message_processor,topic_builder,payload,topics,message,credentials,setup_backoff}.py` | 保留 | 作为 MQTT transport-specific collaborators 保留，但不得定义 protocol-wide truth |
-
-### `tests/core/mqtt` Coverage Slice
-
-| File Cluster | 分类 | `02.5-01` 裁决 |
-|------|------|--------------|
-| `tests/core/mqtt/**/*.py` | 重构 | 继续验证 MQTT child-façade helpers，但要为 `LiproProtocolFacade` / `LiproMqttFacade` 留出 canonical public-surface proof |
-| `tests/integration/test_mqtt_coordinator_integration.py` | 迁移适配 | 允许短期 patch `LiproMqttClient` compat shell，但 Phase 2.5 closeout 前必须明确其与 `LiproMqttFacade` 的关系 |
-
-## Phase 02.5 / `02.5-02 ~ 02.5-03` Governance Delta
-
-- `custom_components/lipro/core/protocol/{__init__,facade,session,telemetry,diagnostics_context,contracts,compat}.py` 已从 planned slice 变为真实 unified-root artifacts；protocol root 的 shared session / telemetry / diagnostics / canonical contracts 现在有了明确载体。
-- `custom_components/lipro/core/coordinator/{mqtt_lifecycle,coordinator,orchestrator,factory}.py` 与 `custom_components/lipro/core/coordinator/runtime/{mqtt_runtime,device_runtime,device/snapshot.py,command/sender.py}` 的正式类型入口已切到 `LiproProtocolFacade` / `MqttTransportFacade`，runtime-facing consumer 不再把 REST/MQTT 当成两个 formal roots。
-- `custom_components/lipro/{__init__.py,config_flow.py}` 已改由 `LiproProtocolFacade` 构造协议面；`LiproClient` 只剩显式 compat alias，不再承载生产主链。
-- `tests/core/api/test_protocol_contract_matrix.py` 与 `tests/integration/test_mqtt_coordinator_integration.py` 已新增/更新 unified-root proof，证明 root-owned session/request-policy 与 MQTT child-façade handoff 已落到真实代码与回归套件。
-
-
-## Phase 02.6 Governance Delta
-
-### External-Boundary Slice
-
-| File / Cluster | 分类 | `02.6` 裁决 |
-|------|------|--------------|
-| `custom_components/lipro/core/anonymous_share/report_builder.py` | 重构 | canonical payload builder 继续保留，但 generated timestamp / dynamic fields 只能通过显式 normalization 规则输出 |
-| `custom_components/lipro/services/share.py` | 重构 | share response shaping 被定义为 registered external-boundary consumer，不得再默默定义 share-worker truth |
-| `custom_components/lipro/services/diagnostics/helpers.py` | 重构 | developer feedback payload helper 升级为 formal support-payload consumer，必须绑定 fixture family |
-| `custom_components/lipro/firmware_manifest.py` | 重构 | firmware support manifest role 被固定为 local trust root + remote advisory only |
-| `custom_components/lipro/core/ota/candidate.py` | 重构 | certification 决策必须委托 local manifest trust root，remote advisory 不得单独 certify |
-| `tests/fixtures/external_boundaries/**` | 保留 | 作为 external-boundary fixture truth family 保留并持续扩展 |
-| `tests/meta/test_external_boundary_authority.py` | 保留 | authority / owner / generated-truth drift 守卫 |
-| `tests/meta/test_external_boundary_fixtures.py` | 保留 | fixture family completeness 守卫 |
-| `tests/meta/test_firmware_support_manifest_repo_asset.py` | 保留 | bundled firmware manifest repo-asset 守卫 |
-
-## Phase 03 Governance Delta
-
-### Control-Plane Slice
-
-| File / Cluster | 分类 | `03` 裁决 |
-|------|------|--------------|
-| `custom_components/lipro/control/**/*.py` | 保留 / 新增 | `control/` 成为正式 control-plane home，后续 phase 只扩展、不回退到 root script scattering |
-| `custom_components/lipro/__init__.py` | 重构 | HA entry root 退化为 thin adapter；正式 lifecycle owner 下沉到 `EntryLifecycleController` |
-| `custom_components/lipro/diagnostics.py` | 重构 | 只保留 HA diagnostics adapter；正式 redaction / aggregation 已下沉到 `DiagnosticsSurface` |
-| `custom_components/lipro/system_health.py` | 重构 | 只保留 HA system-health adapter；正式 health aggregation 已下沉到 `SystemHealthSurface` |
-| `custom_components/lipro/services/registrations.py` | 重构 | service callback 正式根切到 `control.service_router` |
-| `custom_components/lipro/services/wiring.py` | 迁移适配 | 仍是 legacy implementation carrier，但已失去正式 root 地位；删除 gate 进入 `Phase 7` |
-| `custom_components/lipro/services/execution.py` | 迁移适配 | 生产功能保留，但 coordinator 私有 auth seam 需在 `Phase 5 / 7` 清理 |
-| `tests/core/test_control_plane.py` | 保留 | control-plane formal owner regression suite |
-| `tests/meta/test_dependency_guards.py` / `tests/meta/test_public_surface_guards.py` | 保留 | 已扩展到覆盖 `control/` 与 control/runtime/public-surface 邻接规则 |
-
-
-## Phase 04 / `04-01` Registration Note
-
-- `custom_components/lipro/core/capability/` 已作为新的 domain truth cluster 登记到治理矩阵。
-- `custom_components/lipro/core/device/` 已完成 capability registry seed 接入，但 device aggregate / state accessor 的重复规则清理仍留给 `04-02 / 04-03`。
-- `custom_components/lipro/entities` 与平台模块尚未迁移到统一 capability projection，因此继续保持 `Phase 4` pending 状态。
-
-
-## Phase 04 / `04-01` Governance Delta
-
-- 新增 `custom_components/lipro/core/capability/**` 作为 Phase 4 的正式 capability truth slice。
-- `custom_components/lipro/core/device/capabilities.py` 已从真实推导逻辑降级为 compat alias；`device_snapshots.py` 与 `device_views.py` 已切到 canonical capability chain。
-- `custom_components/lipro/entities` + platform modules 暂未迁移完成，继续由 `04-02` 负责 consumer-side convergence。
+| Path | Area | Owner phase | Fate | Residual / delete gate |
+|------|------|-------------|------|-------------------------|
+| `custom_components/lipro/__init__.py` | Control | Phase 3 | 保留 | - |
+| `custom_components/lipro/binary_sensor.py` | Domain | Phase 4 | 保留 | - |
+| `custom_components/lipro/climate.py` | Domain | Phase 4 | 保留 | - |
+| `custom_components/lipro/config_flow.py` | Control | Phase 3 | 保留 | - |
+| `custom_components/lipro/const/__init__.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `custom_components/lipro/const/api.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `custom_components/lipro/const/base.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `custom_components/lipro/const/categories.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `custom_components/lipro/const/config.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `custom_components/lipro/const/device_types.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `custom_components/lipro/const/entity_config.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `custom_components/lipro/const/properties.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `custom_components/lipro/control/__init__.py` | Control | Phase 3 | 保留 | - |
+| `custom_components/lipro/control/diagnostics_surface.py` | Control | Phase 3 | 保留 | - |
+| `custom_components/lipro/control/entry_lifecycle_controller.py` | Control | Phase 3 | 保留 | - |
+| `custom_components/lipro/control/models.py` | Control | Phase 3 | 保留 | - |
+| `custom_components/lipro/control/redaction.py` | Control | Phase 3 | 保留 | - |
+| `custom_components/lipro/control/runtime_access.py` | Control | Phase 3 | 保留 | - |
+| `custom_components/lipro/control/service_registry.py` | Control | Phase 3 | 保留 | - |
+| `custom_components/lipro/control/service_router.py` | Control | Phase 3 | 保留 | - |
+| `custom_components/lipro/control/system_health_surface.py` | Control | Phase 3 | 保留 | - |
+| `custom_components/lipro/coordinator_entry.py` | Control | Phase 3 | 保留 | - |
+| `custom_components/lipro/core/__init__.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `custom_components/lipro/core/anonymous_share/__init__.py` | Protocol | Phase 2.6 | 保留 | - |
+| `custom_components/lipro/core/anonymous_share/capabilities.py` | Protocol | Phase 2.6 | 保留 | - |
+| `custom_components/lipro/core/anonymous_share/collector.py` | Protocol | Phase 2.6 | 保留 | - |
+| `custom_components/lipro/core/anonymous_share/const.py` | Protocol | Phase 2.6 | 保留 | - |
+| `custom_components/lipro/core/anonymous_share/manager.py` | Protocol | Phase 2.6 | 保留 | - |
+| `custom_components/lipro/core/anonymous_share/models.py` | Protocol | Phase 2.6 | 保留 | - |
+| `custom_components/lipro/core/anonymous_share/report_builder.py` | Protocol | Phase 2.6 | 保留 | - |
+| `custom_components/lipro/core/anonymous_share/sanitize.py` | Protocol | Phase 2.6 | 保留 | - |
+| `custom_components/lipro/core/anonymous_share/share_client.py` | Protocol | Phase 2.6 | 保留 | - |
+| `custom_components/lipro/core/anonymous_share/storage.py` | Protocol | Phase 2.6 | 保留 | - |
+| `custom_components/lipro/core/api/__init__.py` | Protocol | Phase 2.5 | 迁移适配 | LiproClient compat export |
+| `custom_components/lipro/core/api/auth_service.py` | Protocol | Phase 2 | 重构 | - |
+| `custom_components/lipro/core/api/client.py` | Protocol | Phase 2 / 7 | 迁移适配 | LiproClient compat shell |
+| `custom_components/lipro/core/api/client_auth_recovery.py` | Protocol | Phase 2 | 重构 | - |
+| `custom_components/lipro/core/api/client_base.py` | Protocol | Phase 2 | 重构 | - |
+| `custom_components/lipro/core/api/client_pacing.py` | Protocol | Phase 2 | 重构 | - |
+| `custom_components/lipro/core/api/client_transport.py` | Protocol | Phase 2 | 重构 | - |
+| `custom_components/lipro/core/api/command_api_service.py` | Protocol | Phase 2 | 重构 | - |
+| `custom_components/lipro/core/api/diagnostics_api_service.py` | Protocol | Phase 2 | 重构 | - |
+| `custom_components/lipro/core/api/endpoints/__init__.py` | Protocol | Phase 2 | 重构 | - |
+| `custom_components/lipro/core/api/endpoints/auth.py` | Protocol | Phase 2 | 重构 | - |
+| `custom_components/lipro/core/api/endpoints/commands.py` | Protocol | Phase 2 | 重构 | - |
+| `custom_components/lipro/core/api/endpoints/connect_status.py` | Protocol | Phase 2 | 重构 | - |
+| `custom_components/lipro/core/api/endpoints/devices.py` | Protocol | Phase 2 | 重构 | - |
+| `custom_components/lipro/core/api/endpoints/misc.py` | Protocol | Phase 2 | 重构 | - |
+| `custom_components/lipro/core/api/endpoints/payloads.py` | Protocol | Phase 2 | 重构 | - |
+| `custom_components/lipro/core/api/endpoints/schedule.py` | Protocol | Phase 2 | 重构 | - |
+| `custom_components/lipro/core/api/endpoints/status.py` | Protocol | Phase 2 | 重构 | - |
+| `custom_components/lipro/core/api/errors.py` | Protocol | Phase 2 | 重构 | - |
+| `custom_components/lipro/core/api/mqtt_api_service.py` | Protocol | Phase 2 | 重构 | - |
+| `custom_components/lipro/core/api/observability.py` | Protocol | Phase 2 | 重构 | - |
+| `custom_components/lipro/core/api/power_service.py` | Protocol | Phase 2 | 重构 | - |
+| `custom_components/lipro/core/api/request_codec.py` | Protocol | Phase 2 | 重构 | - |
+| `custom_components/lipro/core/api/request_policy.py` | Protocol | Phase 2 | 重构 | - |
+| `custom_components/lipro/core/api/response_safety.py` | Protocol | Phase 2 | 重构 | - |
+| `custom_components/lipro/core/api/schedule_codec.py` | Protocol | Phase 2 | 重构 | - |
+| `custom_components/lipro/core/api/schedule_endpoint.py` | Protocol | Phase 2 | 重构 | - |
+| `custom_components/lipro/core/api/schedule_service.py` | Protocol | Phase 2 | 重构 | - |
+| `custom_components/lipro/core/api/status_service.py` | Protocol | Phase 2 | 重构 | - |
+| `custom_components/lipro/core/api/transport_core.py` | Protocol | Phase 2 | 重构 | - |
+| `custom_components/lipro/core/api/transport_retry.py` | Protocol | Phase 2 | 重构 | - |
+| `custom_components/lipro/core/api/transport_signing.py` | Protocol | Phase 2 | 重构 | - |
+| `custom_components/lipro/core/api/types.py` | Protocol | Phase 2 | 重构 | - |
+| `custom_components/lipro/core/auth/__init__.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `custom_components/lipro/core/auth/manager.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `custom_components/lipro/core/capability/__init__.py` | Domain | Phase 4 | 保留 | - |
+| `custom_components/lipro/core/capability/models.py` | Domain | Phase 4 | 保留 | - |
+| `custom_components/lipro/core/capability/registry.py` | Domain | Phase 4 | 保留 | - |
+| `custom_components/lipro/core/command/__init__.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `custom_components/lipro/core/command/confirmation_tracker.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `custom_components/lipro/core/command/dispatch.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `custom_components/lipro/core/command/expectation.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `custom_components/lipro/core/command/post_refresh.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `custom_components/lipro/core/command/result.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `custom_components/lipro/core/command/trace.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `custom_components/lipro/core/coordinator/__init__.py` | Runtime | Phase 5 | 重构 | - |
+| `custom_components/lipro/core/coordinator/coordinator.py` | Runtime | Phase 5 | 重构 | - |
+| `custom_components/lipro/core/coordinator/entity_protocol.py` | Runtime | Phase 5 | 重构 | - |
+| `custom_components/lipro/core/coordinator/factory.py` | Runtime | Phase 5 | 重构 | - |
+| `custom_components/lipro/core/coordinator/mqtt/__init__.py` | Runtime | Phase 5 | 重构 | - |
+| `custom_components/lipro/core/coordinator/mqtt/setup.py` | Runtime | Phase 5 | 重构 | - |
+| `custom_components/lipro/core/coordinator/mqtt_lifecycle.py` | Runtime | Phase 5 | 重构 | - |
+| `custom_components/lipro/core/coordinator/orchestrator.py` | Runtime | Phase 5 | 重构 | - |
+| `custom_components/lipro/core/coordinator/outlet_power.py` | Runtime | Phase 5 | 重构 | - |
+| `custom_components/lipro/core/coordinator/runtime/__init__.py` | Runtime | Phase 5 | 重构 | - |
+| `custom_components/lipro/core/coordinator/runtime/command/__init__.py` | Runtime | Phase 5 | 重构 | - |
+| `custom_components/lipro/core/coordinator/runtime/command/builder.py` | Runtime | Phase 5 | 重构 | - |
+| `custom_components/lipro/core/coordinator/runtime/command/confirmation.py` | Runtime | Phase 5 | 重构 | - |
+| `custom_components/lipro/core/coordinator/runtime/command/retry.py` | Runtime | Phase 5 | 重构 | - |
+| `custom_components/lipro/core/coordinator/runtime/command/sender.py` | Runtime | Phase 5 | 重构 | - |
+| `custom_components/lipro/core/coordinator/runtime/command_runtime.py` | Runtime | Phase 5 | 重构 | - |
+| `custom_components/lipro/core/coordinator/runtime/device/__init__.py` | Runtime | Phase 5 | 重构 | - |
+| `custom_components/lipro/core/coordinator/runtime/device/batch_optimizer.py` | Runtime | Phase 5 | 重构 | - |
+| `custom_components/lipro/core/coordinator/runtime/device/filter.py` | Runtime | Phase 5 | 重构 | - |
+| `custom_components/lipro/core/coordinator/runtime/device/refresh_strategy.py` | Runtime | Phase 5 | 重构 | - |
+| `custom_components/lipro/core/coordinator/runtime/device/snapshot.py` | Runtime | Phase 5 | 重构 | - |
+| `custom_components/lipro/core/coordinator/runtime/device_runtime.py` | Runtime | Phase 5 | 重构 | - |
+| `custom_components/lipro/core/coordinator/runtime/mqtt/__init__.py` | Runtime | Phase 5 | 重构 | - |
+| `custom_components/lipro/core/coordinator/runtime/mqtt/connection.py` | Runtime | Phase 5 | 重构 | - |
+| `custom_components/lipro/core/coordinator/runtime/mqtt/dedup.py` | Runtime | Phase 5 | 重构 | - |
+| `custom_components/lipro/core/coordinator/runtime/mqtt/message_handler.py` | Runtime | Phase 5 | 重构 | - |
+| `custom_components/lipro/core/coordinator/runtime/mqtt/reconnect.py` | Runtime | Phase 5 | 重构 | - |
+| `custom_components/lipro/core/coordinator/runtime/mqtt_runtime.py` | Runtime | Phase 5 | 重构 | - |
+| `custom_components/lipro/core/coordinator/runtime/outlet_power_runtime.py` | Runtime | Phase 5 | 重构 | - |
+| `custom_components/lipro/core/coordinator/runtime/state/__init__.py` | Runtime | Phase 5 | 重构 | - |
+| `custom_components/lipro/core/coordinator/runtime/state/index.py` | Runtime | Phase 5 | 重构 | - |
+| `custom_components/lipro/core/coordinator/runtime/state/reader.py` | Runtime | Phase 5 | 重构 | - |
+| `custom_components/lipro/core/coordinator/runtime/state/updater.py` | Runtime | Phase 5 | 重构 | - |
+| `custom_components/lipro/core/coordinator/runtime/state_runtime.py` | Runtime | Phase 5 | 重构 | - |
+| `custom_components/lipro/core/coordinator/runtime/status/__init__.py` | Runtime | Phase 5 | 重构 | - |
+| `custom_components/lipro/core/coordinator/runtime/status/executor.py` | Runtime | Phase 5 | 重构 | - |
+| `custom_components/lipro/core/coordinator/runtime/status/scheduler.py` | Runtime | Phase 5 | 重构 | - |
+| `custom_components/lipro/core/coordinator/runtime/status/strategy.py` | Runtime | Phase 5 | 重构 | - |
+| `custom_components/lipro/core/coordinator/runtime/status_runtime.py` | Runtime | Phase 5 | 重构 | - |
+| `custom_components/lipro/core/coordinator/runtime/tuning/__init__.py` | Runtime | Phase 5 | 重构 | - |
+| `custom_components/lipro/core/coordinator/runtime/tuning/adjuster.py` | Runtime | Phase 5 | 重构 | - |
+| `custom_components/lipro/core/coordinator/runtime/tuning/algorithm.py` | Runtime | Phase 5 | 重构 | - |
+| `custom_components/lipro/core/coordinator/runtime/tuning/metrics.py` | Runtime | Phase 5 | 重构 | - |
+| `custom_components/lipro/core/coordinator/runtime/tuning_runtime.py` | Runtime | Phase 5 | 重构 | - |
+| `custom_components/lipro/core/coordinator/runtime_context.py` | Runtime | Phase 5 | 重构 | - |
+| `custom_components/lipro/core/coordinator/services/__init__.py` | Runtime | Phase 5 | 重构 | - |
+| `custom_components/lipro/core/coordinator/services/auth_service.py` | Runtime | Phase 5 | 重构 | - |
+| `custom_components/lipro/core/coordinator/services/command_service.py` | Runtime | Phase 5 | 重构 | - |
+| `custom_components/lipro/core/coordinator/services/device_refresh_service.py` | Runtime | Phase 5 | 重构 | - |
+| `custom_components/lipro/core/coordinator/services/mqtt_service.py` | Runtime | Phase 5 | 重构 | - |
+| `custom_components/lipro/core/coordinator/services/state_service.py` | Runtime | Phase 5 | 重构 | - |
+| `custom_components/lipro/core/coordinator/services/telemetry_service.py` | Runtime | Phase 5 | 重构 | - |
+| `custom_components/lipro/core/coordinator/types.py` | Runtime | Phase 5 | 重构 | - |
+| `custom_components/lipro/core/device/__init__.py` | Domain | Phase 4 | 重构 | - |
+| `custom_components/lipro/core/device/capabilities.py` | Domain | Phase 7 | 迁移适配 | DeviceCapabilities compat name |
+| `custom_components/lipro/core/device/device.py` | Domain | Phase 4 | 重构 | - |
+| `custom_components/lipro/core/device/device_delegation.py` | Domain | Phase 4 | 重构 | - |
+| `custom_components/lipro/core/device/device_factory.py` | Domain | Phase 4 | 重构 | - |
+| `custom_components/lipro/core/device/device_runtime.py` | Domain | Phase 4 | 重构 | - |
+| `custom_components/lipro/core/device/device_snapshots.py` | Domain | Phase 4 | 重构 | - |
+| `custom_components/lipro/core/device/device_views.py` | Domain | Phase 4 | 重构 | - |
+| `custom_components/lipro/core/device/extra_support.py` | Domain | Phase 4 | 重构 | - |
+| `custom_components/lipro/core/device/extras.py` | Domain | Phase 4 | 重构 | - |
+| `custom_components/lipro/core/device/extras_features.py` | Domain | Phase 4 | 重构 | - |
+| `custom_components/lipro/core/device/extras_payloads.py` | Domain | Phase 4 | 重构 | - |
+| `custom_components/lipro/core/device/group_status.py` | Domain | Phase 4 | 重构 | - |
+| `custom_components/lipro/core/device/identity.py` | Domain | Phase 4 | 重构 | - |
+| `custom_components/lipro/core/device/identity_index.py` | Domain | Phase 4 | 重构 | - |
+| `custom_components/lipro/core/device/network_info.py` | Domain | Phase 4 | 重构 | - |
+| `custom_components/lipro/core/device/parsing.py` | Domain | Phase 4 | 重构 | - |
+| `custom_components/lipro/core/device/profile.py` | Domain | Phase 4 | 重构 | - |
+| `custom_components/lipro/core/device/state.py` | Domain | Phase 4 | 重构 | - |
+| `custom_components/lipro/core/device/state_accessors.py` | Domain | Phase 4 | 重构 | - |
+| `custom_components/lipro/core/device/state_fields.py` | Domain | Phase 4 | 重构 | - |
+| `custom_components/lipro/core/device/state_getters.py` | Domain | Phase 4 | 重构 | - |
+| `custom_components/lipro/core/device/state_math.py` | Domain | Phase 4 | 重构 | - |
+| `custom_components/lipro/core/exceptions.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `custom_components/lipro/core/mqtt/__init__.py` | Protocol | Phase 2.5 / 7 | 迁移适配 | LiproMqttClient legacy root name |
+| `custom_components/lipro/core/mqtt/client_runtime.py` | Protocol | Phase 2.5 | 重构 | - |
+| `custom_components/lipro/core/mqtt/connection_manager.py` | Protocol | Phase 2.5 | 重构 | - |
+| `custom_components/lipro/core/mqtt/credentials.py` | Protocol | Phase 2.5 | 重构 | - |
+| `custom_components/lipro/core/mqtt/message.py` | Protocol | Phase 2.5 | 重构 | - |
+| `custom_components/lipro/core/mqtt/message_processor.py` | Protocol | Phase 2.5 | 重构 | - |
+| `custom_components/lipro/core/mqtt/mqtt_client.py` | Protocol | Phase 2.5 | 重构 | - |
+| `custom_components/lipro/core/mqtt/payload.py` | Protocol | Phase 2.5 | 重构 | - |
+| `custom_components/lipro/core/mqtt/setup_backoff.py` | Protocol | Phase 2.5 | 重构 | - |
+| `custom_components/lipro/core/mqtt/subscription_manager.py` | Protocol | Phase 2.5 | 重构 | - |
+| `custom_components/lipro/core/mqtt/topic_builder.py` | Protocol | Phase 2.5 | 重构 | - |
+| `custom_components/lipro/core/mqtt/topics.py` | Protocol | Phase 2.5 | 重构 | - |
+| `custom_components/lipro/core/ota/__init__.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `custom_components/lipro/core/ota/candidate.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `custom_components/lipro/core/ota/manifest.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `custom_components/lipro/core/ota/row_selector.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `custom_components/lipro/core/ota/rows_cache.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `custom_components/lipro/core/protocol/__init__.py` | Protocol | Phase 2.5 | 保留 | - |
+| `custom_components/lipro/core/protocol/compat.py` | Protocol | Phase 2.5 | 保留 | - |
+| `custom_components/lipro/core/protocol/contracts.py` | Protocol | Phase 2.5 | 保留 | - |
+| `custom_components/lipro/core/protocol/diagnostics_context.py` | Protocol | Phase 2.5 | 保留 | - |
+| `custom_components/lipro/core/protocol/facade.py` | Protocol | Phase 2.5 | 保留 | - |
+| `custom_components/lipro/core/protocol/session.py` | Protocol | Phase 2.5 | 保留 | - |
+| `custom_components/lipro/core/protocol/telemetry.py` | Protocol | Phase 2.5 | 保留 | - |
+| `custom_components/lipro/core/utils/__init__.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `custom_components/lipro/core/utils/background_task_manager.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `custom_components/lipro/core/utils/boollike.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `custom_components/lipro/core/utils/coerce.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `custom_components/lipro/core/utils/debounce.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `custom_components/lipro/core/utils/developer_report.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `custom_components/lipro/core/utils/identifiers.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `custom_components/lipro/core/utils/log_safety.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `custom_components/lipro/core/utils/property_normalization.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `custom_components/lipro/core/utils/redaction.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `custom_components/lipro/core/utils/retry_after.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `custom_components/lipro/core/utils/vendor_crypto.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `custom_components/lipro/cover.py` | Domain | Phase 4 | 保留 | - |
+| `custom_components/lipro/diagnostics.py` | Control | Phase 3 | 保留 | - |
+| `custom_components/lipro/domain_data.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `custom_components/lipro/entities/__init__.py` | Domain | Phase 4 | 保留 | - |
+| `custom_components/lipro/entities/base.py` | Domain | Phase 4 | 保留 | - |
+| `custom_components/lipro/entities/commands.py` | Domain | Phase 4 | 保留 | - |
+| `custom_components/lipro/entities/descriptors.py` | Domain | Phase 4 | 保留 | - |
+| `custom_components/lipro/entities/firmware_update.py` | Domain | Phase 4 | 保留 | - |
+| `custom_components/lipro/entry_auth.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `custom_components/lipro/entry_options.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `custom_components/lipro/fan.py` | Domain | Phase 4 | 保留 | - |
+| `custom_components/lipro/firmware_manifest.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `custom_components/lipro/flow/__init__.py` | Control | Phase 3 | 保留 | - |
+| `custom_components/lipro/flow/credentials.py` | Control | Phase 3 | 保留 | - |
+| `custom_components/lipro/flow/login.py` | Control | Phase 3 | 保留 | - |
+| `custom_components/lipro/flow/options_flow.py` | Control | Phase 3 | 保留 | - |
+| `custom_components/lipro/flow/schemas.py` | Control | Phase 3 | 保留 | - |
+| `custom_components/lipro/helpers/__init__.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `custom_components/lipro/helpers/platform.py` | Domain | Phase 4 | 保留 | - |
+| `custom_components/lipro/light.py` | Domain | Phase 4 | 保留 | - |
+| `custom_components/lipro/runtime_infra.py` | Control | Phase 3 | 保留 | - |
+| `custom_components/lipro/runtime_types.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `custom_components/lipro/select.py` | Domain | Phase 4 | 保留 | - |
+| `custom_components/lipro/sensor.py` | Domain | Phase 4 | 保留 | - |
+| `custom_components/lipro/services/__init__.py` | Control | Phase 3 | 保留 | - |
+| `custom_components/lipro/services/command.py` | Control | Phase 3 | 保留 | - |
+| `custom_components/lipro/services/contracts.py` | Control | Phase 3 | 保留 | - |
+| `custom_components/lipro/services/device_lookup.py` | Control | Phase 3 | 保留 | - |
+| `custom_components/lipro/services/diagnostics/__init__.py` | Control | Phase 3 | 保留 | - |
+| `custom_components/lipro/services/diagnostics/handlers.py` | Control | Phase 3 | 保留 | - |
+| `custom_components/lipro/services/diagnostics/helpers.py` | Control | Phase 3 | 保留 | - |
+| `custom_components/lipro/services/diagnostics/types.py` | Control | Phase 3 | 保留 | - |
+| `custom_components/lipro/services/errors.py` | Control | Phase 3 | 保留 | - |
+| `custom_components/lipro/services/execution.py` | Control | Phase 5 | 保留 | formal runtime-auth surface |
+| `custom_components/lipro/services/maintenance.py` | Control | Phase 3 | 保留 | - |
+| `custom_components/lipro/services/registrations.py` | Control | Phase 3 | 保留 | - |
+| `custom_components/lipro/services/registry.py` | Control | Phase 3 | 保留 | - |
+| `custom_components/lipro/services/schedule.py` | Control | Phase 3 | 保留 | - |
+| `custom_components/lipro/services/share.py` | Control | Phase 3 | 保留 | - |
+| `custom_components/lipro/services/wiring.py` | Control | Phase 7 | 删除候选 | legacy implementation carrier |
+| `custom_components/lipro/switch.py` | Domain | Phase 4 | 保留 | - |
+| `custom_components/lipro/system_health.py` | Control | Phase 3 | 保留 | - |
+| `custom_components/lipro/update.py` | Domain | Phase 4 | 保留 | - |
+| `scripts/__init__.py` | Assurance | Phase 6 / 7 | 保留 | - |
+| `scripts/agent_worker.py` | Assurance | Phase 6 / 7 | 保留 | - |
+| `scripts/check_file_matrix.py` | Assurance | Phase 6 / 7 | 保留 | - |
+| `scripts/check_translations.py` | Assurance | Phase 6 / 7 | 保留 | - |
+| `scripts/coverage_diff.py` | Assurance | Phase 6 / 7 | 保留 | - |
+| `scripts/orchestrator.py` | Assurance | Phase 6 / 7 | 保留 | - |
+| `scripts/refactor_tools.py` | Assurance | Phase 6 / 7 | 保留 | - |
+| `tests/__init__.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `tests/benchmarks/__init__.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `tests/benchmarks/test_command_benchmark.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `tests/benchmarks/test_coordinator_performance.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `tests/benchmarks/test_device_refresh_benchmark.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `tests/benchmarks/test_mqtt_benchmark.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `tests/conftest.py` | Assurance | Phase 6 | 保留 | - |
+| `tests/conftest_shared.py` | Assurance | Phase 6 | 保留 | - |
+| `tests/core/__init__.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `tests/core/api/__init__.py` | Protocol | Phase 2 | 保留 | - |
+| `tests/core/api/test_api.py` | Protocol | Phase 2 | 保留 | - |
+| `tests/core/api/test_api_client_transport.py` | Protocol | Phase 2 | 保留 | - |
+| `tests/core/api/test_api_command_service.py` | Protocol | Phase 2 | 保留 | - |
+| `tests/core/api/test_api_diagnostics_service.py` | Protocol | Phase 2 | 保留 | - |
+| `tests/core/api/test_api_schedule_endpoints.py` | Protocol | Phase 2 | 保留 | - |
+| `tests/core/api/test_api_schedule_service.py` | Protocol | Phase 2 | 保留 | - |
+| `tests/core/api/test_api_status_service.py` | Protocol | Phase 2 | 保留 | - |
+| `tests/core/api/test_api_types_smoke.py` | Protocol | Phase 2 | 保留 | - |
+| `tests/core/api/test_helper_modules.py` | Protocol | Phase 2 | 保留 | - |
+| `tests/core/api/test_protocol_contract_matrix.py` | Protocol | Phase 2 | 保留 | - |
+| `tests/core/api/test_request_codec.py` | Protocol | Phase 2 | 保留 | - |
+| `tests/core/api/test_schedule_codec.py` | Protocol | Phase 2 | 保留 | - |
+| `tests/core/api/test_schedule_endpoint.py` | Protocol | Phase 2 | 保留 | - |
+| `tests/core/capability/__init__.py` | Domain | Phase 4 | 保留 | - |
+| `tests/core/capability/test_registry.py` | Domain | Phase 4 | 保留 | - |
+| `tests/core/coordinator/__init__.py` | Runtime | Phase 5 / 6 | 保留 | - |
+| `tests/core/coordinator/mqtt/__init__.py` | Runtime | Phase 5 / 6 | 保留 | - |
+| `tests/core/coordinator/runtime/__init__.py` | Runtime | Phase 5 / 6 | 保留 | - |
+| `tests/core/coordinator/runtime/test_command_runtime.py` | Runtime | Phase 5 / 6 | 保留 | - |
+| `tests/core/coordinator/runtime/test_device_runtime.py` | Runtime | Phase 5 / 6 | 保留 | - |
+| `tests/core/coordinator/runtime/test_mqtt_runtime.py` | Runtime | Phase 5 / 6 | 保留 | - |
+| `tests/core/coordinator/runtime/test_runtime_telemetry_methods.py` | Runtime | Phase 5 / 6 | 保留 | - |
+| `tests/core/coordinator/runtime/test_state_runtime.py` | Runtime | Phase 5 / 6 | 保留 | - |
+| `tests/core/coordinator/runtime/test_status_runtime.py` | Runtime | Phase 5 / 6 | 保留 | - |
+| `tests/core/coordinator/runtime/test_tuning_runtime.py` | Runtime | Phase 5 / 6 | 保留 | - |
+| `tests/core/coordinator/services/__init__.py` | Runtime | Phase 5 / 6 | 保留 | - |
+| `tests/core/coordinator/services/test_auth_service.py` | Runtime | Phase 5 / 6 | 保留 | - |
+| `tests/core/coordinator/services/test_command_service.py` | Runtime | Phase 5 / 6 | 保留 | - |
+| `tests/core/coordinator/services/test_device_refresh_service.py` | Runtime | Phase 5 / 6 | 保留 | - |
+| `tests/core/coordinator/services/test_mqtt_service.py` | Runtime | Phase 5 / 6 | 保留 | - |
+| `tests/core/coordinator/services/test_state_service.py` | Runtime | Phase 5 / 6 | 保留 | - |
+| `tests/core/coordinator/services/test_telemetry_service.py` | Runtime | Phase 5 / 6 | 保留 | - |
+| `tests/core/coordinator/test_entity_protocol.py` | Runtime | Phase 5 / 6 | 保留 | - |
+| `tests/core/device/__init__.py` | Domain | Phase 4 | 保留 | - |
+| `tests/core/device/test_capabilities.py` | Domain | Phase 4 | 保留 | - |
+| `tests/core/device/test_device.py` | Domain | Phase 4 | 保留 | - |
+| `tests/core/device/test_extras_features.py` | Domain | Phase 4 | 保留 | - |
+| `tests/core/device/test_identity.py` | Domain | Phase 4 | 保留 | - |
+| `tests/core/device/test_network_info.py` | Domain | Phase 4 | 保留 | - |
+| `tests/core/device/test_state.py` | Domain | Phase 4 | 保留 | - |
+| `tests/core/mqtt/__init__.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `tests/core/mqtt/test_client_refactored.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `tests/core/mqtt/test_connection_manager.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `tests/core/mqtt/test_message_processor.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `tests/core/mqtt/test_mqtt.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `tests/core/mqtt/test_mqtt_backoff.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `tests/core/mqtt/test_mqtt_message.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `tests/core/mqtt/test_mqtt_payload.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `tests/core/mqtt/test_mqtt_setup.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `tests/core/mqtt/test_topic_builder.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `tests/core/ota/__init__.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `tests/core/ota/test_firmware_manifest.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `tests/core/ota/test_ota_candidate.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `tests/core/ota/test_ota_row_selector.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `tests/core/ota/test_ota_rows_cache.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `tests/core/ota/test_ota_utils.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `tests/core/test_anonymous_share.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `tests/core/test_anonymous_share_cov_missing.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `tests/core/test_anonymous_share_storage.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `tests/core/test_auth.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `tests/core/test_background_task_manager.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `tests/core/test_boundary_conditions.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `tests/core/test_categories.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `tests/core/test_command_confirmation_helpers.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `tests/core/test_command_dispatch.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `tests/core/test_command_result.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `tests/core/test_command_trace.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `tests/core/test_control_plane.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `tests/core/test_coordinator.py` | Runtime | Phase 5 / 6 | 保留 | - |
+| `tests/core/test_coordinator_integration.py` | Runtime | Phase 5 / 6 | 保留 | - |
+| `tests/core/test_debounce.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `tests/core/test_developer_report.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `tests/core/test_device.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `tests/core/test_device_list_snapshot.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `tests/core/test_device_refresh.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `tests/core/test_diagnostics.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `tests/core/test_entry_update_listener.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `tests/core/test_exceptions.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `tests/core/test_group_status.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `tests/core/test_helpers.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `tests/core/test_identity_index.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `tests/core/test_init.py` | Control | Phase 3 / 7 | 保留 | - |
+| `tests/core/test_init_edge_cases.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `tests/core/test_log_safety.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `tests/core/test_outlet_power.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `tests/core/test_outlet_power_runtime.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `tests/core/test_property_normalization.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `tests/core/test_report_builder.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `tests/core/test_runtime_support.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `tests/core/test_share_client.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `tests/core/test_system_health.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `tests/core/test_token_persistence.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `tests/core/test_utils_coerce.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `tests/core/test_utils_identifiers.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `tests/core/test_utils_redaction.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `tests/entities/__init__.py` | Domain | Phase 4 | 保留 | - |
+| `tests/entities/test_commands.py` | Domain | Phase 4 | 保留 | - |
+| `tests/entities/test_descriptors.py` | Domain | Phase 4 | 保留 | - |
+| `tests/flows/__init__.py` | Control | Phase 3 / 7 | 保留 | - |
+| `tests/flows/test_config_flow.py` | Control | Phase 3 / 7 | 保留 | - |
+| `tests/flows/test_flow_credentials.py` | Control | Phase 3 / 7 | 保留 | - |
+| `tests/flows/test_options_flow_utils.py` | Control | Phase 3 / 7 | 保留 | - |
+| `tests/helpers/__init__.py` | Assurance | Phase 6 | 保留 | - |
+| `tests/helpers/external_boundary_fixtures.py` | Assurance | Phase 6 | 保留 | - |
+| `tests/helpers/repo_root.py` | Assurance | Phase 6 | 保留 | - |
+| `tests/helpers/service_call.py` | Assurance | Phase 6 | 保留 | - |
+| `tests/integration/__init__.py` | Runtime | Phase 5 / 6 | 保留 | - |
+| `tests/integration/test_mqtt_coordinator_integration.py` | Runtime | Phase 5 / 6 | 保留 | - |
+| `tests/meta/__init__.py` | Assurance | Phase 6 | 保留 | - |
+| `tests/meta/test_blueprints.py` | Assurance | Phase 6 | 保留 | - |
+| `tests/meta/test_dependency_guards.py` | Assurance | Phase 6 | 保留 | - |
+| `tests/meta/test_external_boundary_authority.py` | Assurance | Phase 6 | 保留 | - |
+| `tests/meta/test_external_boundary_fixtures.py` | Assurance | Phase 6 | 保留 | - |
+| `tests/meta/test_firmware_support_manifest_repo_asset.py` | Assurance | Phase 6 | 保留 | - |
+| `tests/meta/test_governance_guards.py` | Assurance | Phase 6 | 保留 | - |
+| `tests/meta/test_install_sh_guards.py` | Assurance | Phase 6 | 保留 | - |
+| `tests/meta/test_modularization_surfaces.py` | Assurance | Phase 6 | 保留 | - |
+| `tests/meta/test_public_surface_guards.py` | Assurance | Phase 6 | 保留 | - |
+| `tests/meta/test_service_translation_sync.py` | Assurance | Phase 6 | 保留 | - |
+| `tests/meta/test_translation_tree_sync.py` | Assurance | Phase 6 | 保留 | - |
+| `tests/meta/test_version_sync.py` | Assurance | Phase 6 | 保留 | - |
+| `tests/platforms/__init__.py` | Domain | Phase 4 | 保留 | - |
+| `tests/platforms/test_binary_sensor.py` | Domain | Phase 4 | 保留 | - |
+| `tests/platforms/test_climate.py` | Domain | Phase 4 | 保留 | - |
+| `tests/platforms/test_cover.py` | Domain | Phase 4 | 保留 | - |
+| `tests/platforms/test_entity_base.py` | Domain | Phase 4 | 保留 | - |
+| `tests/platforms/test_entity_behavior.py` | Domain | Phase 4 | 保留 | - |
+| `tests/platforms/test_fan.py` | Domain | Phase 4 | 保留 | - |
+| `tests/platforms/test_firmware_update_entity_edges.py` | Domain | Phase 4 | 保留 | - |
+| `tests/platforms/test_light.py` | Domain | Phase 4 | 保留 | - |
+| `tests/platforms/test_platform_entities_behavior.py` | Domain | Phase 4 | 保留 | - |
+| `tests/platforms/test_select.py` | Domain | Phase 4 | 保留 | - |
+| `tests/platforms/test_sensor.py` | Domain | Phase 4 | 保留 | - |
+| `tests/platforms/test_switch.py` | Domain | Phase 4 | 保留 | - |
+| `tests/platforms/test_update.py` | Domain | Phase 4 | 保留 | - |
+| `tests/platforms/test_update_task_callback.py` | Domain | Phase 4 | 保留 | - |
+| `tests/services/__init__.py` | Control | Phase 3 / 7 | 保留 | - |
+| `tests/services/test_device_lookup.py` | Control | Phase 3 / 7 | 保留 | - |
+| `tests/services/test_execution.py` | Control | Phase 3 / 7 | 保留 | - |
+| `tests/services/test_maintenance.py` | Control | Phase 3 / 7 | 保留 | - |
+| `tests/services/test_service_resilience.py` | Control | Phase 3 / 7 | 保留 | - |
+| `tests/services/test_services_diagnostics.py` | Control | Phase 3 / 7 | 保留 | - |
+| `tests/services/test_services_registry.py` | Control | Phase 3 / 7 | 保留 | - |
+| `tests/services/test_services_schedule.py` | Control | Phase 3 / 7 | 保留 | - |
+| `tests/services/test_services_share.py` | Control | Phase 3 / 7 | 保留 | - |
+| `tests/snapshots/__init__.py` | Assurance | Phase 6 | 保留 | - |
+| `tests/snapshots/test_api_snapshots.py` | Assurance | Phase 6 | 保留 | - |
+| `tests/snapshots/test_coordinator_public_snapshots.py` | Assurance | Phase 6 | 保留 | - |
+| `tests/snapshots/test_device_facade_snapshot.py` | Assurance | Phase 6 | 保留 | - |
+| `tests/snapshots/test_device_snapshots.py` | Assurance | Phase 6 | 保留 | - |
+| `tests/test_coordinator_public.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `tests/test_coordinator_runtime.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `tests/test_refactor_tools.py` | Cross-cutting | Phase 7 | 保留 | - |

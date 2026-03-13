@@ -13,14 +13,45 @@ from custom_components.lipro.core.coordinator.services.device_refresh_service im
 
 def test_device_refresh_service_exposes_lookup_and_devices() -> None:
     device = MagicMock()
-    coordinator = MagicMock()
-    coordinator.state_runtime.get_all_devices.return_value = {"dev1": device}
-    coordinator.state_runtime.get_device_by_id.return_value = device
-    service = CoordinatorDeviceRefreshService(coordinator)
+    state_runtime = MagicMock()
+    state_runtime.get_all_devices.return_value = {"dev1": device}
+    state_runtime.get_device_by_id.return_value = device
+    device_runtime = MagicMock()
+    service = CoordinatorDeviceRefreshService(
+        device_runtime=device_runtime,
+        state_runtime=state_runtime,
+        refresh_callback=AsyncMock(),
+    )
 
     assert service.devices == {"dev1": device}
     assert service.get_device_by_id("dev1") is device
-    coordinator.state_runtime.get_device_by_id.assert_called_once_with("dev1")
+    state_runtime.get_device_by_id.assert_called_once_with("dev1")
+
+
+def test_device_refresh_service_requests_force_refresh_from_device_runtime() -> None:
+    device_runtime = MagicMock()
+    service = CoordinatorDeviceRefreshService(
+        device_runtime=device_runtime,
+        state_runtime=MagicMock(),
+        refresh_callback=AsyncMock(),
+    )
+
+    service.request_force_refresh()
+
+    device_runtime.request_force_refresh.assert_called_once_with()
+
+
+def test_device_refresh_service_requests_group_reconciliation_via_force_refresh() -> None:
+    device_runtime = MagicMock()
+    service = CoordinatorDeviceRefreshService(
+        device_runtime=device_runtime,
+        state_runtime=MagicMock(),
+        refresh_callback=AsyncMock(),
+    )
+
+    service.request_group_reconciliation(device_name="Group 1", timestamp=2.0)
+
+    device_runtime.request_force_refresh.assert_called_once_with()
 
 
 @pytest.mark.asyncio
@@ -42,27 +73,18 @@ async def test_device_refresh_service_refreshes_and_exposes_latest_snapshot() ->
     async def _refresh() -> None:
         state_runtime._devices = {"dev1": device}
 
-    coordinator = MagicMock()
-    coordinator.state_runtime = state_runtime
-    coordinator.async_refresh_devices = AsyncMock(side_effect=_refresh)
-    service = CoordinatorDeviceRefreshService(coordinator)
+    refresh_callback = AsyncMock(side_effect=_refresh)
+    service = CoordinatorDeviceRefreshService(
+        device_runtime=MagicMock(),
+        state_runtime=state_runtime,
+        refresh_callback=refresh_callback,
+    )
 
     assert service.devices == {}
     assert service.get_device_by_id("dev1") is None
 
     await service.async_refresh_devices()
 
-    coordinator.async_refresh_devices.assert_awaited_once()
+    refresh_callback.assert_awaited_once()
     assert service.devices == {"dev1": device}
     assert service.get_device_by_id("dev1") is device
-
-
-@pytest.mark.asyncio
-async def test_device_refresh_service_delegates_refresh() -> None:
-    coordinator = MagicMock()
-    coordinator.async_refresh_devices = AsyncMock()
-    service = CoordinatorDeviceRefreshService(coordinator)
-
-    await service.async_refresh_devices()
-
-    coordinator.async_refresh_devices.assert_awaited_once()

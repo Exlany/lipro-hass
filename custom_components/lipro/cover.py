@@ -42,7 +42,7 @@ async def async_setup_entry(
     """Set up Lipro covers."""
     entities = create_platform_entities(
         entry.runtime_data,
-        device_filter=lambda d: d.is_curtain,
+        device_filter=lambda d: d.capabilities.supports_platform("cover"),
         entity_factory=LiproCover,
     )
     async_add_entities(entities)

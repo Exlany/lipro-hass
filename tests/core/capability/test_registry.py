@@ -47,6 +47,18 @@ def test_capability_registry_builds_snapshot_from_device(make_device) -> None:
     assert snapshot.is_fan_light is True
 
 
+def test_capability_snapshot_supports_platform_and_panel() -> None:
+    """Capability snapshots should expose platform and panel projections."""
+    switch_snapshot = CapabilityRegistry().from_device_type("ff000003")
+    outlet_snapshot = CapabilityRegistry().from_device_type("ff000006")
+
+    assert switch_snapshot.is_panel is True
+    assert switch_snapshot.supports_platform("switch") is True
+    assert switch_snapshot.supports_platform("light") is False
+    assert outlet_snapshot.is_panel is False
+    assert outlet_snapshot.is_outlet is True
+
+
 def test_device_views_follow_capability_snapshot(monkeypatch, make_device) -> None:
     """Device views should derive category/platforms from capability truth."""
     device = make_device("light", serial="03ab5ccd7c555555")

@@ -109,8 +109,6 @@ type ReauthCallback = Callable[[str], Awaitable[None]]
 type DeviceKeyNormalizer = Callable[[str], str]
 """Function to normalize device identifiers to serial strings."""
 
-type ConnectStatusRefreshSetter = Callable[[bool], None]
-"""Function to set the next connect-status refresh as required."""
 
 # Metrics and runtime types
 class RuntimeMetrics(TypedDict, total=False):
@@ -194,7 +192,6 @@ __all__ = [
     "ApiSuccessResponse",
     "CommandPayload",
     "CommandTrace",
-    "ConnectStatusRefreshSetter",
     "DeviceApiData",
     "DeviceFilter",
     "DeviceKeyNormalizer",

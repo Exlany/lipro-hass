@@ -1,47 +1,48 @@
-"""Coordinator device refresh service - API stability layer.
-
-This service provides a stable facade over the device runtime, implementing
-the Stable Interface Pattern from Clean Architecture.
-
-Design rationale:
-- **API Stability**: Isolates Entity layer from DeviceRuntime implementation changes
-- **Dependency Inversion**: Entity depends on Service interface, not Runtime
-- **Single Responsibility**: Focused on device refresh coordination
-
-Architecture role:
-- NOT a business logic layer (logic lives in DeviceRuntime)
-- NOT a data loader (DeviceRuntime handles that)
-- IS a stable API boundary (protects Entity layer from Runtime refactoring)
-
-This is intentional "thin proxy" design - the value is in API stability,
-not in adding refresh complexity.
-"""
+"""Coordinator device refresh service - stable read/refresh surface."""
 
 from __future__ import annotations
 
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from ...device import LiproDevice
-    from ..coordinator import Coordinator
+    from ..runtime.device_runtime import DeviceRuntime
+    from ..runtime.state_runtime import StateRuntime
 
 
 @dataclass(slots=True)
 class CoordinatorDeviceRefreshService:
-    """Expose device lookup/refresh through a composition-friendly adapter."""
+    """Expose device lookup and full-refresh through a stable adapter."""
 
-    coordinator: Coordinator
+    device_runtime: DeviceRuntime
+    state_runtime: StateRuntime
+    refresh_callback: Callable[[], Awaitable[dict[str, LiproDevice]]]
 
     @property
     def devices(self) -> dict[str, LiproDevice]:
-        """Return the wrapped coordinator device map."""
-        return self.coordinator.state_runtime.get_all_devices()  # type: ignore[no-any-return]
+        """Return the latest coordinator device map."""
+        return self.state_runtime.get_all_devices()
 
     def get_device_by_id(self, device_id: str) -> LiproDevice | None:
         """Resolve one device by any known coordinator identifier."""
-        return self.coordinator.state_runtime.get_device_by_id(device_id)  # type: ignore[no-any-return]
+        return self.state_runtime.get_device_by_id(device_id)
+
+    def request_force_refresh(self) -> None:
+        """Request the next refresh call to rebuild the full device snapshot."""
+        self.device_runtime.request_force_refresh()
+
+    def request_group_reconciliation(
+        self,
+        *,
+        device_name: str,
+        timestamp: float,
+    ) -> None:
+        """Request canonical refresh when a mesh group comes online via MQTT."""
+        del device_name, timestamp
+        self.request_force_refresh()
 
     async def async_refresh_devices(self) -> None:
-        """Trigger the coordinator's full refresh path and publish new state."""
-        await self.coordinator.async_refresh_devices()
+        """Trigger the coordinator's canonical full-refresh path."""
+        await self.refresh_callback()

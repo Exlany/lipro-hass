@@ -147,7 +147,7 @@ class SnapshotBuilder:
 
                 device = LiproDevice.from_api_data(device_data)
 
-                if device.is_gateway:
+                if device.capabilities.is_gateway:
                     diagnostic_gateway_devices[device.serial] = device
                     continue
 
@@ -171,7 +171,7 @@ class SnapshotBuilder:
                 if device.is_group:
                     if device.iot_device_id:
                         group_ids.append(device.iot_device_id)
-                elif device.is_outlet:
+                elif device.capabilities.is_outlet:
                     if device.iot_device_id:
                         outlet_ids.append(device.iot_device_id)
                 elif device.iot_device_id:

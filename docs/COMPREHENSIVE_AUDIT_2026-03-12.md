@@ -3,7 +3,7 @@
 > 审计范围：`custom_components/`、`scripts/`、`tests/` 下全部 Python 文件  
 > 实际覆盖：377 个 Python 文件（生产 224 / 测试 153）  
 > 复核方式：主代理仲裁 + 并行子代理只读复核 + 仓库级静态检查与全量测试  
-> 当前状态：本文件为本轮唯一权威审计/收口报告
+> 历史状态：本文件为 2026-03-12 轮次的历史审计/收口快照；当前权威以 `docs/NORTH_STAR_TARGET_ARCHITECTURE.md`、`.planning/*` / `.planning/reviews/*` 与 `docs/FINAL_CLOSEOUT_REPORT_2026-03-13.md` 为准。
 
 ---
 
@@ -151,10 +151,10 @@
 
 ### 7.1 活跃文档
 
-- `docs/COMPREHENSIVE_AUDIT_2026-03-12.md`：当前权威审计/验证报告
+- `docs/COMPREHENSIVE_AUDIT_2026-03-12.md`：历史审计/验证快照（仅供回溯）
 - `docs/developer_architecture.md`：当前收敛架构与边界说明
 - `docs/NORTH_STAR_TARGET_ARCHITECTURE.md`：北极星终态设计基准
-- `docs/NORTH_STAR_EXECUTION_PLAN_2026-03-12.md`：北极星执行计划、分工与启动批次
+- `docs/NORTH_STAR_EXECUTION_PLAN_2026-03-12.md`：历史执行计划快照（仅供回溯）
 - `docs/adr/README.md` + `docs/adr/*.md`：长期生效的架构决策记录
 
 ### 7.2 已归档历史文档

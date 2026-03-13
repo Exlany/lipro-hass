@@ -1,11 +1,12 @@
 # Lipro Home Assistant Integration - Developer Architecture
 
-> **Last Updated**: 2026-03-12  \
+> **Last Updated**: 2026-03-13  \
 > **Version**: 3.7 (North-star architecture docs + execution plan aligned)
 >
 > ⚠️ 本文档仅描述"当前收敛后的架构与模块边界"，不硬编码评分/覆盖率/通过率等易失真指标。  \
-> 北极星目标架构请见 `docs/NORTH_STAR_TARGET_ARCHITECTURE.md`；执行路线请见 `docs/NORTH_STAR_EXECUTION_PLAN_2026-03-12.md`。  \
-> 当前实现状态、验证结果与风险优先级请以 `docs/COMPREHENSIVE_AUDIT_2026-03-12.md` 为准。
+> 北极星终态裁决请见 `docs/NORTH_STAR_TARGET_ARCHITECTURE.md`。  \
+> 当前阶段、需求、状态与治理真源请以 `.planning/ROADMAP.md`、`.planning/REQUIREMENTS.md`、`.planning/STATE.md`、`.planning/reviews/FILE_MATRIX.md` 为准。  \
+> `docs/NORTH_STAR_EXECUTION_PLAN_2026-03-12.md` 与 `docs/COMPREHENSIVE_AUDIT_2026-03-12.md` 均为历史快照，仅供回溯。
 
 ## 快速导航
 
@@ -224,7 +225,7 @@ Coordinator
 
 ### API Client / Protocol Plane (`core/api/`, `core/mqtt/`)
 
-- `client.py`：当前 public shell 仍可能是 `LiproClient`；北极星终态正式根应为 `LiproProtocolFacade`
+- `client.py`：当前仍保留 `LiproClient` compat shell；正式 protocol-plane root 已是 `LiproProtocolFacade`
 - `core/api/`：Phase 2 先收敛为 `LiproRestFacade` + transport / auth / endpoint collaborators
 - `core/mqtt/`：后续与 REST 一起并入 `LiproMqttFacade`，共同挂接到统一协议根
 - `transport_core.py` / `transport_retry.py` / `transport_signing.py`：请求核心/重试/签名
@@ -238,7 +239,7 @@ Coordinator
 
 - `device.py`：`LiproDevice`（薄 facade, dataclass + property delegation）
 - `state.py`：`DeviceState`（可变状态视图 + derived accessors）
-- `capabilities.py`：`DeviceCapabilities`（不可变能力描述）
+- `capabilities.py`：`DeviceCapabilities` compat alias（正式能力真源已迁到 `core/capability/`）
 - `identity.py`：`DeviceIdentity`（设备身份信息）
 - `network_info.py`：`DeviceNetworkInfo`（网络诊断）
 - `extras.py`：`DeviceExtras`（扩展数据）
@@ -348,7 +349,7 @@ Coordinator._async_update_data() (首次)
     → async_setup_mqtt()
         → mqtt_lifecycle.setup_mqtt_lifecycle()
             → 解密 MQTT 凭证
-            → 创建 LiproMqttClient
+            → 创建 `LiproMqttClient` concrete transport（formal root 仍是 `LiproProtocolFacade`）
             → 创建 MqttRuntime (with RuntimeContext)
             → 替换 _runtimes.mqtt
 ```
@@ -411,7 +412,7 @@ custom_components/lipro/
 │   │       ├── mqtt_service.py
 │   │       └── device_refresh_service.py
 │   ├── api/                       # REST / IoT protocol slice
-│   │   ├── client.py              # 当前 public shell；终态 formal root = LiproProtocolFacade
+│   │   ├── client.py              # compat shell；formal root = LiproProtocolFacade
 │   │   ├── endpoints/             # 按域拆分端点
 │   │   └── transport_*.py         # 请求核心/重试/签名
 │   ├── mqtt/                      # MQTT protocol slice (future child under LiproProtocolFacade)
@@ -421,7 +422,7 @@ custom_components/lipro/
 │   ├── device/                    # Device 领域模型
 │   │   ├── device.py              # LiproDevice (property delegation)
 │   │   ├── state.py               # DeviceState (mutable)
-│   │   ├── capabilities.py        # DeviceCapabilities (immutable)
+│   │   ├── capabilities.py        # DeviceCapabilities compat alias
 │   │   └── identity.py            # DeviceIdentity
 │   ├── auth/                      # 认证管理
 │   ├── command/                   # 命令执行
@@ -548,9 +549,9 @@ uv run pytest -q                                         # 全量测试
 
 ## 参考文档
 
-- `docs/COMPREHENSIVE_AUDIT_2026-03-12.md` — 当前权威审计/验证报告
+- `.planning/ROADMAP.md` / `.planning/REQUIREMENTS.md` / `.planning/STATE.md` / `.planning/reviews/FILE_MATRIX.md` — 当前执行、状态与治理真源
 - `docs/NORTH_STAR_TARGET_ARCHITECTURE.md` — 北极星目标架构（终态基准）
-- `docs/NORTH_STAR_EXECUTION_PLAN_2026-03-12.md` — 北极星执行计划与分工
+- `docs/NORTH_STAR_EXECUTION_PLAN_2026-03-12.md` — 历史执行计划快照（仅供回溯）
 - `docs/adr/README.md` — 长期生效的架构决策索引
 - `docs/archive/` — 历史审计、重构计划与过期快照
 - `CHANGELOG.md` — 变更日志

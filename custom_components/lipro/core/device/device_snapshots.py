@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import TYPE_CHECKING, Any
 
-from .capabilities import DeviceCapabilities
+from ..capability import CapabilityRegistry, CapabilitySnapshot
 from .identity import DeviceIdentity
 from .network_info import DeviceNetworkInfo
 
@@ -32,9 +32,9 @@ def build_identity_snapshot(device: LiproDevice) -> DeviceIdentity:
     )
 
 
-def build_capabilities_snapshot(device: LiproDevice) -> DeviceCapabilities:
+def build_capabilities_snapshot(device: LiproDevice) -> CapabilitySnapshot:
     """Build one immutable capability snapshot from a live device."""
-    return DeviceCapabilities.from_device(device)
+    return CapabilityRegistry.from_device(device)
 
 
 def build_network_info(properties: Mapping[str, Any]) -> DeviceNetworkInfo:

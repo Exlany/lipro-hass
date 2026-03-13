@@ -62,10 +62,12 @@ def mqtt_runtime(mock_hass: Mock, mock_mqtt_client: Mock) -> MqttRuntime:
     group_reconciler = Mock()
     group_reconciler.schedule_group_reconciliation = Mock()
 
-    return MqttRuntime(
+    polling_updater = Mock()
+    runtime = MqttRuntime(
         hass=mock_hass,
         mqtt_client=mock_mqtt_client,
         base_scan_interval=30,
+        polling_updater=polling_updater,
         device_resolver=device_resolver,
         property_applier=property_applier,
         listener_notifier=listener_notifier,
@@ -76,7 +78,8 @@ def mqtt_runtime(mock_hass: Mock, mock_mqtt_client: Mock) -> MqttRuntime:
         reconnect_base_delay=1.0,
         reconnect_max_delay=60.0,
     )
-
+    runtime._test_polling_updater = polling_updater
+    return runtime
 
 
 class TestMqttRuntimeInitialization:
@@ -108,10 +111,12 @@ class TestMqttRuntimeInitialization:
         group_reconciler = Mock()
         group_reconciler.schedule_group_reconciliation = Mock()
 
+        polling_updater = Mock()
         runtime = MqttRuntime(
             hass=mock_hass,
             mqtt_client=mock_mqtt_client,
             base_scan_interval=30,
+            polling_updater=polling_updater,
             device_resolver=device_resolver,
             property_applier=property_applier,
             listener_notifier=listener_notifier,
@@ -122,6 +127,7 @@ class TestMqttRuntimeInitialization:
             reconnect_base_delay=2.0,
             reconnect_max_delay=120.0,
         )
+        runtime._test_polling_updater = polling_updater
 
         assert runtime._mqtt_client is mock_mqtt_client
         assert runtime._base_scan_interval == 30
@@ -144,7 +150,7 @@ class TestMqttRuntimeConnection:
             _wait_until_connected
         )
 
-        result = await mqtt_runtime.connect(device_ids=device_ids, biz_id="test_biz")
+        result = await mqtt_runtime.connect(device_ids=device_ids)
 
         assert result is True
         cast(AsyncMock, mock_mqtt_client.start).assert_awaited_once_with(device_ids)
@@ -160,7 +166,7 @@ class TestMqttRuntimeConnection:
         """Test MQTT connection failure."""
         cast(AsyncMock, mock_mqtt_client.start).side_effect = Exception("Connection failed")
 
-        result = await mqtt_runtime.connect(device_ids=["device1"], biz_id="test_biz")
+        result = await mqtt_runtime.connect(device_ids=["device1"])
 
         assert result is False
         assert mqtt_runtime.is_connected is False
@@ -169,7 +175,7 @@ class TestMqttRuntimeConnection:
         """Test connection attempt without MQTT client."""
         runtime = _create_mqtt_runtime_with_deps(mock_hass, None)
 
-        result = await runtime.connect(device_ids=["device1"], biz_id="test_biz")
+        result = await runtime.connect(device_ids=["device1"])
 
         assert result is False
 
@@ -180,7 +186,7 @@ class TestMqttRuntimeConnection:
         cast(AsyncMock, mock_mqtt_client.start).side_effect = asyncio.CancelledError()
 
         with pytest.raises(asyncio.CancelledError):
-            await mqtt_runtime.connect(device_ids=["device1"], biz_id="test_biz")
+            await mqtt_runtime.connect(device_ids=["device1"])
 
     async def test_disconnect(
         self, mqtt_runtime: MqttRuntime, mock_mqtt_client: Mock
@@ -195,7 +201,7 @@ class TestMqttRuntimeConnection:
             _wait_until_connected
         )
 
-        await mqtt_runtime.connect(device_ids=["device1"], biz_id="test_biz")
+        await mqtt_runtime.connect(device_ids=["device1"])
         assert mqtt_runtime.is_connected is True
 
         await mqtt_runtime.disconnect()
@@ -238,7 +244,7 @@ class TestMqttRuntimeConnection:
             "boom"
         )
 
-        result = await mqtt_runtime.connect(device_ids=["device1"], biz_id="test_biz")
+        result = await mqtt_runtime.connect(device_ids=["device1"])
 
         assert result is False
         assert mqtt_runtime.is_connected is False
@@ -259,14 +265,15 @@ class TestMqttRuntimeConnection:
         self, mqtt_runtime: MqttRuntime
     ) -> None:
         """Real transport callbacks should drive coordinator polling interval."""
-        updater = Mock()
-        mqtt_runtime.set_polling_updater(updater)
-
         mqtt_runtime.on_transport_connected()
-        assert updater.update_interval == timedelta(seconds=60)
+        mqtt_runtime._test_polling_updater.update_polling_interval.assert_called_with(
+            timedelta(seconds=60)
+        )
 
         mqtt_runtime.on_transport_disconnected()
-        assert updater.update_interval == timedelta(seconds=30)
+        mqtt_runtime._test_polling_updater.update_polling_interval.assert_called_with(
+            timedelta(seconds=30)
+        )
 
 
 class TestMqttRuntimeMessageHandling:
@@ -359,7 +366,7 @@ class TestMqttRuntimeReconnection:
 
         assert mqtt_runtime.should_attempt_reconnect() is True
 
-        asyncio.run(mqtt_runtime.connect(device_ids=["device1"], biz_id="test_biz"))
+        asyncio.run(mqtt_runtime.connect(device_ids=["device1"]))
 
         assert mqtt_runtime._reconnect_manager._backoff._failure_count > 0
 
@@ -448,10 +455,12 @@ class TestMqttRuntimeDisconnectNotification:
         group_reconciler = Mock()
         group_reconciler.schedule_group_reconciliation = Mock()
 
+        polling_updater = Mock()
         runtime = MqttRuntime(
             hass=mock_hass,
             mqtt_client=mock_mqtt_client,
             base_scan_interval=30,
+            polling_updater=polling_updater,
             device_resolver=device_resolver,
             property_applier=property_applier,
             listener_notifier=listener_notifier,
@@ -474,7 +483,7 @@ class TestMqttRuntimeReset:
         self, mqtt_runtime: MqttRuntime, mock_mqtt_client: Mock
     ) -> None:
         """Test reset clears all runtime state."""
-        await mqtt_runtime.connect(device_ids=["device1"], biz_id="test_biz")
+        await mqtt_runtime.connect(device_ids=["device1"])
 
         resolver = cast(Mock, mqtt_runtime._device_resolver)
         resolver.get_device_by_id.return_value = Mock(
@@ -492,16 +501,17 @@ class TestMqttRuntimeReset:
 class TestMqttRuntimeDependencyInjection:
     """Test dependency injection (constructor-based)."""
 
-    def test_update_polling_interval_sets_interval_on_injected_updater(
+    def test_bind_and_detach_transport_track_runtime_presence(
         self, mqtt_runtime: MqttRuntime
     ) -> None:
-        """Polling updater should receive the new interval."""
-        updater = Mock()
-        mqtt_runtime.set_polling_updater(updater)
+        """Transport binding should be explicit and observable."""
+        transport = Mock()
 
-        mqtt_runtime.update_polling_interval(timedelta(seconds=45))
+        mqtt_runtime.bind_transport(transport)
+        assert mqtt_runtime.has_transport is True
 
-        assert updater.update_interval == timedelta(seconds=45)
+        mqtt_runtime.detach_transport()
+        assert mqtt_runtime.has_transport is False
 
 
 def _create_mqtt_runtime_with_deps(
@@ -518,16 +528,20 @@ def _create_mqtt_runtime_with_deps(
     group_reconciler = Mock()
     group_reconciler.schedule_group_reconciliation = Mock()
 
-    return MqttRuntime(
+    polling_updater = Mock()
+    runtime = MqttRuntime(
         hass=mock_hass,
         mqtt_client=mock_mqtt_client,
         base_scan_interval=30,
+        polling_updater=polling_updater,
         device_resolver=device_resolver,
         property_applier=property_applier,
         listener_notifier=listener_notifier,
         connect_state_tracker=connect_state_tracker,
         group_reconciler=group_reconciler,
     )
+    runtime._test_polling_updater = polling_updater
+    return runtime
 
 
 @pytest.mark.asyncio
@@ -537,8 +551,8 @@ async def test_setup_reports_client_presence(mock_hass: Mock, mock_mqtt_client: 
     runtime_without_client = _create_mqtt_runtime_with_deps(mock_hass, None)
     runtime_with_client = _create_mqtt_runtime_with_deps(mock_hass, mock_mqtt_client)
 
-    assert await runtime_without_client.setup() is False
-    assert await runtime_with_client.setup() is True
+    assert runtime_without_client.has_transport is False
+    assert runtime_with_client.has_transport is True
 
 
 @pytest.mark.asyncio

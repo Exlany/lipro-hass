@@ -24,6 +24,7 @@ def test_device_state_from_api_data_reads_common_properties() -> None:
         min_color_temp_kelvin=2700,
         max_color_temp_kelvin=6500,
         max_fan_gear=6,
+        supports_color_temp=True,
     )
 
     assert state.is_on is True
@@ -39,6 +40,7 @@ def test_device_state_color_temp_conversions_use_device_range() -> None:
         min_color_temp_kelvin=2700,
         max_color_temp_kelvin=6500,
         max_fan_gear=6,
+        _supports_color_temp=True,
     )
 
     assert state.color_temp == 4600
@@ -53,6 +55,7 @@ def test_device_state_update_from_properties_merges_new_values() -> None:
         min_color_temp_kelvin=2700,
         max_color_temp_kelvin=6500,
         max_fan_gear=6,
+        _supports_color_temp=True,
     )
 
     state.update_from_properties({PROP_BRIGHTNESS: "88", PROP_POWER_STATE: 1})
@@ -68,12 +71,14 @@ def test_device_state_clamps_fan_gear_and_position() -> None:
         min_color_temp_kelvin=2700,
         max_color_temp_kelvin=6500,
         max_fan_gear=6,
+        _supports_color_temp=True,
     )
     low = DeviceState(
         properties={PROP_POSITION: -10},
         min_color_temp_kelvin=2700,
         max_color_temp_kelvin=6500,
         max_fan_gear=6,
+        _supports_color_temp=True,
     )
 
     assert high.position == 100
