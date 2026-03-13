@@ -115,6 +115,14 @@ Plans:
 - [ ] 08-01: 定义 evidence pack schema、pseudo-id 与 redaction 策略
 - [ ] 08-02: 实现 evidence pack exporter + tests + governance handoff
 
+## Cross-Phase Arbitration (7.3-8)
+
+- `07.3` 只拥有 telemetry truth：exporter contracts、redaction、cardinality、timestamp / pseudo-id compatibility
+- `07.4` 只拥有 replay truth：manifests、deterministic driver、replay assertions、run summary
+- `07.5` 只拥有 governance closeout：matrices、evidence index、residual、delete gates
+- `08` 只拥有 AI debug packaging：pull-only collector、pack schema、exporter entrypoint
+- 执行顺序固定为 `7.3 -> 7.4 -> 7.5 -> 8`，避免真源反转与职责重叠
+
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -125,4 +133,4 @@ Plans:
 | 7.3 Telemetry Exporter | v1.1 | 0/2 | Planned | - |
 | 7.4 Replay Harness | v1.1 | 0/3 | Planned | - |
 | 7.5 Governance & Verification | v1.1 | 0/2 | Planned | - |
-| 8 AI Debug Evidence Pack | v1.1 | 0/2 | Proposed | - |
+| 8 AI Debug Evidence Pack | v1.1 | 0/2 | Planned | - |

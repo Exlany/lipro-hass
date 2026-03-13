@@ -1,15 +1,11 @@
-# Requirements: Lipro-HASS v1.1 Protocol Fidelity & Operability
+# Requirements: Lipro-HASS v1.1
 
-**Defined:** 2026-03-13
-**Current milestone:** `v1.1 Protocol Fidelity & Operability`
-**Previous milestone archive:** `.planning/milestones/v1.0-REQUIREMENTS.md`
+## Core Requirements
 
-## v1.1 Requirements
+### Protocol Boundary
 
-### Boundary Fidelity
-
-- [x] **BND-01**: protocol plane 必须拥有单一 boundary decoder family，REST/MQTT 的 decode authority 收口到 `LiproProtocolFacade` 之下
-- [x] **BND-02**: decoder 输出必须继续对齐 canonical contracts，runtime/domain/entity 不得直接消费 decoder 私有类型或 raw vendor payload
+- [x] **BND-01**: REST/MQTT 边界必须通过正式 decoder family 输出 canonical contract，禁止 raw payload 穿透
+- [x] **BND-02**: boundary family 必须拥有 authority inventory、fixture family、drift detection 与 canonical result contract
 - [x] **BND-03**: 高漂移 boundary family 必须具备可版本化 schema/decoder 注册点、drift flags 与 authority source
 
 ### Architecture Enforcement
@@ -37,12 +33,20 @@
 - [ ] **AID-01**: 必须能从正式真源（exporter/replay/boundary inventory/governance pointers）pull 导出结构化 evidence pack，供 AI 调试与分析
 - [ ] **AID-02**: evidence pack 必须遵循统一脱敏策略：凭证等价物永不出现；允许报告内稳定、跨报告不可关联的伪匿名引用；允许真实时间戳
 
+## Cross-Phase Arbitration
+
+- `07.3` 锁定 telemetry contracts / redaction / cardinality / timestamp-pseudo-id compatibility
+- `07.4` 锁定 replay manifests / deterministic driver / replay assertions / run summary
+- `07.5` 锁定 governance matrices / evidence index / residual / delete gates
+- `08` 锁定 AI debug packaging / exporter entrypoint / pack schema
+
 ## Future Requirements
 
 - **OBS-03**: 如需要外部监控对接，再评估 Prometheus / OpenTelemetry sink
 - **BND-04**: 如 manual validators 成本继续升高，再裁决局部 `pydantic v2` backend
 - **ENF-03**: 如 AST/meta guards 复杂度继续上升，再评估 `import-linter/grimp`
 - **SIM-03**: 如需要更强双向仿真，再补 broker/cloud behavioral simulator
+- **AID-03**: 如 evidence pack 编码/校验成本成为瓶颈，再单独裁决 encoding backend，而不是提前绑定 `msgspec` / `pydantic v2`
 
 ## Out of Scope
 
@@ -68,13 +72,12 @@
 | SIM-02 | Phase 7.4 | Planned |
 | GOV-06 | Phase 7.5 | Planned |
 | GOV-07 | Phase 7.5 | Planned |
-| AID-01 | Phase 8 | Proposed |
-| AID-02 | Phase 8 | Proposed |
+| AID-01 | Phase 8 | Planned |
+| AID-02 | Phase 8 | Planned |
 
 **Coverage:**
-- active milestone requirements: 11 total
 - active milestone requirements: 13 total
 - mapped to phases: 13
 - unmapped: 0 ✓
 
-*Last updated: 2026-03-13 after Phase 7.2 enforcement completion*
+*Last updated: 2026-03-13 after planning Phases 7.4 / 7.5 / 8*

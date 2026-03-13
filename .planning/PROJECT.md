@@ -1,151 +1,164 @@
-# Lipro-HASS North Star Rebuild
+# Project: Lipro-HASS North Star Evolution v1.1
 
-## Current Milestone: v1.1 Protocol Fidelity & Operability
-
+**Status:** Active
 **Goal:** 把 `protocol truth`、`architecture policy`、`runtime telemetry export`、`replay evidence`、`ai-debug evidence pack` 五条演进线统一纳入北极星主链，进入“可保真、可观测、可仲裁、可回放、可给 AI 调试/分析”的下一里程碑。
 
-**Target features:**
-- protocol boundary schema / decoder family，仅在协议边界局部增强，不扩散第二真源
-- stronger architecture enforcement，把 plane/root/surface/authority 规则升级为更强自动守卫
+## Why This Milestone Exists
+
+`v1.0` 已完成北极星主链重建，但还缺少几类“高杠杆正式能力”：
+
+- protocol boundary schema / decoder family，让外部输入在边界被统一规范化
+- architecture enforcement，把北极星裁决从文档提升为可自动阻断的规则链
 - runtime telemetry exporter，把当前 snapshot/diagnostics 进化为正式导出面
 - protocol replay / simulator harness，把逆向协议证据沉淀为可重复回放的 assurance asset
 - AI debug evidence pack：把 telemetry/replay/边界库存统一导出为“可给 AI 分析”的脱敏证据包
 
-## North Star 2.0 Addendum (HA-only)
+这些能力不是孤立功能，而是为了让仓库进入下一阶段：
 
-在 `v1.1` 范围内，本项目继续坚持“只服务 Home Assistant”的最佳终态：先进性不来自重型框架，而来自 **边界契约化 + 单主链收敛 + 可观测/可回放证据**。
-
+- **协议变更可被回放与比对**
+- **结构回退可被规则自动拦截**
+- **运行信号能被正式导出，而不是散落在 diagnostics 里**
 - **AI 可分析优先**：telemetry/export/replay/evidence 的产物必须机器友好（结构化、稳定 schema、可版本化、带时间戳、带事件序列），同时严格脱敏。
-- **Exporter 以 pull 为主**：exporter 只读 protocol/runtime sources；sources 可维护有界事件 ring-buffer，避免把 exporter 变成事件总线。
-- **伪匿名化优先**：允许输出“伪装字符/伪匿名标识”（报告内稳定、跨报告不可关联），禁止 token/secret/`password_hash` 等凭证等价物进入任何 sink。
 
-**Shipped milestone:** `v1.0 North Star Rebuild` 已于 `2026-03-13` 归档，见 `.planning/MILESTONES.md` 与 `.planning/milestones/v1.0-ROADMAP.md`。
+## What Changes In v1.1
 
-## What This Is
+### 1. Boundary Truth 更严格
 
-这是一个面向 **Home Assistant** 的 `Lipro` 智能家居平台自定义集成重构项目。
+- protocol boundary family 成为 decode authority 的正式归属
+- REST / MQTT 进入 runtime 前，必须先落 canonical contract
+- schema / decoder / authority / fixture / drift detection 形成统一链路
 
-本项目不是“在旧代码上继续打补丁”，而是以 **脱离历史成本约束的终态设计基准** 为前提，重新定义这类 HA 插件在协议边界、运行时编排、领域建模、控制平面、保障平面上的最佳实现方式，再分阶段把现有仓库收敛到该目标。
+### 2. Architecture Policy 更可执行
 
-它有几个不可回避的现实边界：
+- 北极星约束不再只存在于文档里
+- plane / root / public surface / authority / residual 规则可由 CI 与 meta tests 执行
+- 双主链、compat 回流、跨层直连与 raw payload leakage 被更早阻断
 
-- 上游接口并非官方公开 SDK，而是基于 App 逆向与抓包整理出的协议集合
-- 部分签名算法、请求字段、固定密钥与设备约定属于供应商协议事实，而不是本项目可自由设计的内容
-- 运行环境必须服从 Home Assistant 的集成模型、生命周期、质量尺度与用户体验约束
-- 代码与测试代码都要一起现代化，不能出现“生产代码新架构、测试仍围着旧结构打补丁”的双轨状态
+### 3. Telemetry / Replay / Evidence 形成 assurance 主链
 
-## Core Value
+- telemetry exporter 收口 runtime/protocol 的正式运维信号
+- replay harness 用正式 public path 回放协议样本
+- evidence pack 从正式真源 pull 结构化证据给 AI 调试与分析
 
-把 `lipro-hass` 收敛成一个：
+## Architectural Stance
 
-- **终态明确**：先定义正确架构，再安排迁移
-- **边界清晰**：供应商协议、HA 适配、运行时编排、领域能力、保障约束各归其位
-- **实现优雅**：显式组合、单一正式主链、低认知负担、易推断
-- **可持续演进**：任何迁移残留都有台账、删除条件和最终去向
-- **全仓一致**：全部 `412` 个 Python 文件均纳入治理矩阵，包含 `165` 个测试文件
+本 milestone 继续遵守 `v1.0` 的北极星哲学，并对“先进性”做出更克制、但更正确的裁决：
 
-## North Star Product Framing
+### 1. 不为“先进”引入错误复杂度
 
-### Product Type
+明确不把以下内容作为默认正确答案：
+- 全局 DI 容器
+- 全局事件总线
+- 重型 observability stack（Prometheus / OpenTelemetry）
+- 全域 schema 框架替换
 
-- Home Assistant custom integration
-- Reverse-engineered protocol adapter for Lipro cloud / IoT / MQTT
-- Coordinator-centered runtime system with domain projections to HA entities/platforms
+### 2. 先进性来自“更强正式边界”而非“更多基础设施”
 
-### Users and Maintainers
+本 milestone 的先进化重点是：
+- boundary schema / decoder formalization
+- executable architecture policy
+- single telemetry exporter truth
+- deterministic replay evidence
+- AI-debug-ready evidence pack
 
-- **终端用户**：希望稳定接入 Lipro 设备、状态同步及时、命令反馈可靠
-- **维护者**：需要低心智负担地定位协议问题、运行时问题、能力模型问题与 HA 生命周期问题
-- **重构执行者**：需要明确知道哪些文件保留、哪些迁移、哪些删除、哪些仅作 compat shell
+### 3. HA-only 裁决
 
-## Architectural North Star
+本仓库当前只服务 Home Assistant，不追求跨平台 SDK 抽象层。
+因此新增能力都必须服务于：
+- HA runtime 正式主链
+- HA diagnostics / system health / services
+- repo-local assurance / verification / AI debug tooling
 
-### Formal Planes
+## North Star 2.0 (AI Debug Ready, HA-only)
 
-1. **Protocol Plane**
-   - 终态唯一正式根：`LiproProtocolFacade`
-   - 子门面：`LiproRestFacade`、`LiproMqttFacade`
-   - 职责：协议 IO、认证恢复、请求策略、归一化、compat adapter 收口
+在 v1.1 / Phase 8 的裁决下，本仓库新增以下硬性原则：
 
-2. **Runtime Plane**
-   - 终态唯一编排根：`Coordinator`
-   - 装配根：`RuntimeOrchestrator`
-   - 回调注入边界：`RuntimeContext`
-   - 运行时组件：命令、设备刷新、状态写入、MQTT 生命周期、状态轮询、调优
-
-3. **Domain Plane**
-   - 单一能力真源
-   - 统一设备聚合、能力快照、命令模型、属性描述
-   - 平台层只做投影，不二次定义领域规则
-
-4. **Control Plane**
-   - `config entry`、`options`、`diagnostics`、`system health`、`services`、`reauth` 形成单一叙事
-   - 控制面通过稳定 public surface 与运行面对接
-
-5. **Assurance Plane**
-   - 契约测试、架构守卫、快照、集成验证、质量门禁、残留台账
-   - 目标不是“有测试”，而是“能裁决架构回退”
-
-### Non-Negotiable Design Laws
-
-- 显式组合优于继承聚合
-- 单一正式主链优于多套并行合法入口
-- 协议边界归一化优于原始 payload 内部漫游
-- 领域单一真源优于平台/实体重复表达
-- compat 只允许作为**显式、可计数、可删除**的过渡残留
-- 历史债只影响迁移顺序，不参与终态正确性裁决
-
-## Immutable Constraints
-
-以下约束必须被承认、隔离并制度化，而不是在代码中零散扩散：
-
-1. **逆向协议约束**
-   - 请求路径、字段、密钥、签名算法、设备 topic 规则可能是固定事实
-   - 这些约束必须集中在 protocol boundary，不得扩散进 entity / service / runtime 内部
-
-2. **Home Assistant 约束**
-   - 必须遵循 config flow、DataUpdateCoordinator、entity lifecycle、diagnostics redaction、quality scale 等最佳实践
-   - 不允许为了“更先进”而违背 HA 集成生态的自然边界
-
-3. **安全约束**
-   - 固定密钥与敏感字段不可出现在日志、诊断、测试快照明文中
-   - 所有协议样例必须经过脱敏与固定化处理
-
-4. **演进约束**
-   - 不接受“新架构 + 旧兼容 + 半迁移中间态”长期并存
-   - 每个阶段都必须更新治理矩阵、残留台账与删除触发条件
-
-## Baseline Asset Package
-
-为了让 `.planning/` 不只是“强路线图”，还成为“强基准”，本项目将以下资产视为正式工程真源：
-
-- `.planning/baseline/TARGET_TOPOLOGY.md` — 五平面目标拓扑、正式组件与目标目录映射
-- `.planning/baseline/DEPENDENCY_MATRIX.md` — 允许/禁止的依赖方向矩阵
-- `.planning/baseline/PUBLIC_SURFACES.md` — 各平面的 canonical public surfaces
-- `.planning/baseline/VERIFICATION_MATRIX.md` — requirement → artifact → test → doc → phase 的验证闭环
-- `.planning/baseline/AUTHORITY_MATRIX.md` — 文档、fixtures、generated、implementation 的权威来源与同步方向
-
-这些资产必须早于大规模重构落地，作为 Phase 1.5 的正式交付物。
-
-## Required Governance Artifacts
-
-除基准资产外，以下治理产物同样属于正式工程真源：
-
-- `.planning/reviews/FILE_MATRIX.md` — 全仓 Python 文件治理矩阵
-- `.planning/reviews/RESIDUAL_LEDGER.md` — 迁移残留与退出条件台账
-- `.planning/reviews/KILL_LIST.md` — 已裁定应删除对象的正式清单
-
-每个 phase 完成时，必须显式回写这三类治理产物或说明“本 phase 无新增变化”。
+1. **AI Debug Ready**：exporter / replay / evidence 产物必须结构化、稳定、可版本化、可回放。
+2. **HA-only**：不为跨平台预留重型抽象层。
+3. **Pull-first observability**：telemetry exporter 与 evidence pack 以 pull 为主，sources 可以维护有界摘要，但不建设事件总线。
+4. **Pseudonymous-by-default**：允许 `entry_ref` / `device_ref` 这类报告内稳定、跨报告不可关联的伪匿名引用；真实标识、凭证等价物严禁进入正式输出。
+5. **Real timestamps allowed**：真实时间戳允许用于 AI 调试与回放对齐，但仍受 redaction / cardinality / authority 约束。
 
 ## Success Definition
 
-本项目完成时，应满足以下终态信号：
+当 v1.1 完成时，应能同时回答以下问题：
 
-- `LiproClient` 不再是正式架构根，最多只剩短期 compat shell，最终清零
-- `REST / MQTT` 统一收口到 `LiproProtocolFacade`
-- control / runtime / domain / assurance 各平面拥有单一正式 public surface
-- 新增协议变体时，只需要在 boundary family 内扩展，不再向 runtime/entity/control 泄漏原始形态
-- 架构回退、兼容层回流、边界漂移、未登记残留，都会被 meta guards / CI / ledger 明确阻断
+- 一条 REST/MQTT 输入是由谁 decode、谁拥有 schema authority、由哪个 fixture 证明？
+- 哪些架构回退会被 CI / meta guards 自动拦截？
+- 当前 runtime/protocol 的关键运维信号，是否已通过单一 exporter 输出？
+- 某个协议问题，能否通过 deterministic replay 在本地与 CI 复现？
+- AI / 维护者是否能从统一 evidence pack 获得可调试、可追溯、已脱敏的证据？
+
+## Scope
+
+### In Scope
+
+1. **Protocol boundary formalization**
+   - schema/decoder family
+   - authority / fixture / drift detection
+
+2. **Executable architecture policy**
+   - phase/root/surface/authority guards
+   - fail-fast local/CI checks
+
+3. **Runtime telemetry exporter**
+   - 统一 exporter contracts / sinks / redaction / cardinality
+   - diagnostics / system health / developer/CI 共用 truth
+
+4. **Protocol replay harness**
+   - deterministic replay corpus + driver
+   - canonical / drift / telemetry assertions
+
+5. **AI Debug evidence pack**
+   - 从 exporter / replay / governance 真源 pull 证据
+   - 输出 AI 可消费、结构化、脱敏的 pack
+
+### Out of Scope
+
+- 跨平台 SDK 适配层
+- 全局事件总线 / 全局 DI 容器
+- 与里程碑目标无直接关系的大规模换栈
+- 为 replay / telemetry / evidence 再造第二套 production 实现
+
+## Constraints
+
+### Technical Constraints
+
+- 必须保持 HA integration 的正式主链不被 replay/evidence 反客为主
+- replay / evidence 只能作为 assurance/tooling layer
+- 所有新增 public surface 都必须登记到治理真源
+- 任何 residual/compat 必须显式记录 owner / phase / delete gate
+
+### Product Constraints
+
+- 不破坏现有可工作的 HA 集成主行为
+- 新增能力必须可验证、可回滚、可阶段性交付
+- 任何“为了 AI 调试”增加的数据，都必须先通过脱敏与 authority 仲裁
+
+## Target Topology (v1.1 Extension)
+
+1. **Protocol Plane**
+   - `core/protocol/boundary/*`
+   - `LiproProtocolFacade`
+   - authority fixtures / decoders / contracts
+
+2. **Runtime Plane**
+   - `Coordinator`
+   - 正式 runtime services / orchestration
+
+3. **Control Plane**
+   - diagnostics / system health / services / runtime access / redaction
+
+4. **Assurance Plane**
+   - architecture guards / scripts / meta tests
+   - telemetry exporter truth
+   - replay harness
+   - AI debug evidence pack exporter
+
+5. **Governance Layer**
+   - `.planning/baseline/*`
+   - `.planning/reviews/*`
+   - roadmap / requirements / state / phase summaries
 
 ## Derived Requirements To Enforce
 
@@ -154,13 +167,28 @@ v1.1 进入执行期后，新增演进必须额外满足：
 - **边界 schema 只是 collaborator，不是新 root**
 - **telemetry exporter 只是 observer，不得获得编排权**
 - **replay harness 属于 assurance plane，不得复制生产主链**
+- **AI evidence pack 属于 tooling export，不得变成第二 diagnostics / runtime root**
 - **新依赖若引入，只允许局部落在 boundary plane，且必须有 authority / delete gate / rollback story**
 
-## Out of Scope
+## Phase 7.3-8 Arbitration
 
-- 为了“更先进”而引入全局事件总线、全局 DI 容器、全域重型 schema 框架
-- 复制第二套 protocol/runtime truth 给 simulator、fixtures、diagnostics 或 exporter
-- 与北极星口径无关的大规模换栈
+为避免 `07.3-08` 职责冲突，锁定以下仲裁：
+
+- **`07.3` owns telemetry truth**
+  - exporter contracts、redaction、cardinality、timestamp / pseudo-id compatibility 在此锁定；
+  - 后续 phase 只能消费，不得私改字段语义。
+
+- **`07.4` owns replay truth**
+  - replay manifests、deterministic driver、replay assertions、run summary 在此锁定；
+  - 不得改写 boundary authority 或 exporter truth。
+
+- **`07.5` owns governance closeout**
+  - 矩阵、owner、delete gate、evidence index、summary 在此锁定；
+  - 不得实现 evidence pack exporter。
+
+- **`08` owns AI debug packaging**
+  - 只 pull `07.3/07.4/07.5` 正式输出；
+  - 不得反向定义 telemetry / replay / governance 真源。
 
 ## Execution Doctrine
 
@@ -195,4 +223,4 @@ v1.1 进入执行期后，新增演进必须额外满足：
 9. `.planning/reviews/*.md`
 10. `docs/FINAL_CLOSEOUT_REPORT_2026-03-13.md`
 
-*Last updated: 2026-03-13 after v1.0 archival and v1.1 milestone initialization*
+*Last updated: 2026-03-13 after planning Phases 7.4 / 7.5 / 8 and locking 7.3-8 arbitration*

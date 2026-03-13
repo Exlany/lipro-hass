@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: protocol-fidelity-operability
 status: planning
-last_updated: "2026-03-13T07:10:10Z"
+last_updated: "2026-03-13T10:30:00Z"
 progress:
   total_phases: 5
   completed_phases: 2
@@ -18,8 +18,8 @@ progress:
 See: `.planning/PROJECT.md`
 
 **Current milestone:** `v1.1 Protocol Fidelity & Operability`
-**Core value:** 在既有北极星单一主链基础上，把 fidelity / enforcement / telemetry / replay 做成下一层正式能力。
-**Current mode:** `Phase 7.2 nyquist-compliant`，architecture enforcement 已完成 Nyquist 校验，当前可进入 `Phase 7.3` 规划。
+**Core value:** 在既有北极星单一主链基础上，把 fidelity / enforcement / telemetry / replay / AI-debug evidence 做成下一层正式能力。
+**Current mode:** `Phases 7.3 / 7.4 / 7.5 / 8 planned`，当前应从 `Phase 7.3` 开始顺序执行并保持 7.3-8 真源边界不交叉。
 
 ## Current Position
 
@@ -27,7 +27,10 @@ See: `.planning/PROJECT.md`
 - `v1.1` 已完成里程碑初始化、研究收敛、requirements/roadmap 落表
 - `Phase 7.1` 已完成：boundary inventory / decoder skeleton / representative REST+MQTT pipeline / replay-ready fixtures / governance handoff
 - `Phase 7.2` 已完成：architecture policy baseline、shared policy helpers、architecture script、meta guards refactor、CI fail-fast ordering 与 verification evidence 已落地
-- `verify-work` 对 `v1.0` 仍建议进行一次交互式 UAT，但它不阻塞 `v1.1` 执行推进
+- `Phase 7.3` 已规划：telemetry exporter formal home、runtime/protocol sources、统一 telemetry truth
+- `Phase 7.4` 已规划：replay manifests、deterministic driver、REST/MQTT replay assertions、replay run summary
+- `Phase 7.5` 已规划：governance matrix sync、evidence index、phase closeout handoff
+- `Phase 8` 已规划：AI debug evidence pack schema、tooling exporter、authority-aware pack validation
 
 ## Active Milestone Scope
 
@@ -45,6 +48,14 @@ See: `.planning/PROJECT.md`
 - control / domain / assurance 平面裁决不变
 - compat/residual 仍必须显式登记，不能重新合法化
 - canonical normalization 仍必须在 protocol boundary 完成
+- telemetry/replay/evidence 都只能 pull 正式真源，不得反向定义第二套事实
+
+## Cross-Phase Arbitration (7.3-8)
+
+1. `07.3` 只锁定 telemetry truth（fields / redaction / cardinality / timestamp / pseudo-id compatibility）
+2. `07.4` 只锁定 replay truth（manifests / deterministic driver / replay assertions / run summary）
+3. `07.5` 只锁定 governance closeout（matrices / evidence index / residual / delete gate）
+4. `08` 只锁定 AI debug packaging（collector / schema / exporter entrypoint）
 
 ## Governance Truth Sources
 
@@ -61,9 +72,9 @@ See: `.planning/PROJECT.md`
 
 ## Recommended Next Command
 
-1. `$gsd-plan-phase 7.3` —— 进入 Runtime Telemetry Exporter 正式化规划
-2. 规划完成后执行 `$gsd-execute-phase 7.3`
-3. 然后在执行后运行 `$gsd-validate-phase 7.3`
+1. `$gsd-execute-phase 7.3` —— 从 telemetry exporter 开始顺序执行 `7.3 -> 7.4 -> 7.5 -> 8`
+2. 执行完成后运行 `$gsd-validate-phase 7.3`
+3. 然后继续 `$gsd-execute-phase 7.4`
 
 ## Session Continuity
 
@@ -77,4 +88,7 @@ If resuming, read in this order:
 7. `.planning/ROADMAP.md`
 8. `.planning/STATE.md`
 9. `.planning/research/SUMMARY.md`
-10. `.planning/phases/07.2-architecture-enforcement/`
+10. `.planning/phases/07.3-runtime-telemetry-exporter/`
+11. `.planning/phases/07.4-protocol-replay-simulator-harness/`
+12. `.planning/phases/07.5-integration-governance-verification-closeout/`
+13. `.planning/phases/08-ai-debug-evidence-pack/`
