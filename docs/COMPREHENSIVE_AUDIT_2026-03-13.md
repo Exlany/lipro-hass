@@ -1,6 +1,6 @@
 # Lipro-HASS 全量审查报告（2026-03-13）
 
-> 审查对象：`git ls-files '*.py'` 锁定的 `435` 个 Python 文件  
+> 审查对象：`git ls-files '*.py'` 锁定的 `443` 个 Python 文件  
 > 审查基线：`docs/NORTH_STAR_TARGET_ARCHITECTURE.md`、`docs/developer_architecture.md`、`.planning/baseline/*.md`、`.planning/reviews/*.md`  
 > 审查方式：仓库级守卫与全量测试 + 分区子代理复核 + 主代理重点手审 + 架构/依赖模式扫描  
 > 注意：本报告基于**当前工作树**，其中已包含未提交的 `Phase 8` 相关工件与规划文档变更。
@@ -19,7 +19,7 @@
 
 ### 2.1 范围锁定
 
-- 以 `git ls-files '*.py'` 统计，当前仓库共有 `435` 个 tracked Python 文件。
+- 以 `git ls-files '*.py'` 统计，当前仓库共有 `443` 个 tracked Python 文件。
 - 生产代码主要分布：
   - `custom_components/lipro/core/**`
   - `custom_components/lipro/control/**`
@@ -41,6 +41,7 @@
   - `uv run pytest -q tests/core/mqtt/test_connection_manager.py tests/core/mqtt/test_mqtt.py tests/core/test_coordinator.py` → `113 passed`
   - `uv run pytest -q tests/integration/test_ai_debug_evidence_pack.py tests/meta/test_evidence_pack_authority.py` → `7 passed`
 - Repo 级 lint：`uv run ruff check .` 仍报 `145` 项，主要为 docstring/import-order/脚本输出与个别测试清洁度问题；本轮未把它们当作运行时 blocker。
+- 二次模式扫描：针对 compat surface、状态旁写、catch-all 异常与危险关键字做了仓库级 `rg` 复查；未发现超出本报告已登记残留范围之外的新 P0/P1。
 
 ### 2.3 子代理与主代理复核
 
