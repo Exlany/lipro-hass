@@ -239,12 +239,22 @@ def classify_path(path: str) -> FileGovernanceRow:
         return row("Domain", "Phase 4", "保留")
     if path.startswith("custom_components/lipro/core/coordinator/"):
         return row("Runtime", "Phase 5", "重构")
+    if path == "tests/meta/test_protocol_replay_assets.py":
+        return row("Assurance", "Phase 7.4", "保留")
     if path.startswith("tests/meta/"):
         return row("Assurance", "Phase 6", "保留")
+    if path.startswith("tests/harness/protocol/") or path == "tests/harness/__init__.py":
+        return row("Assurance", "Phase 7.4", "保留")
     if path.startswith("tests/snapshots/"):
         return row("Assurance", "Phase 6", "保留")
     if path == "tests/integration/test_telemetry_exporter_integration.py":
         return row("Runtime", "Phase 7.3", "保留")
+    if path == "tests/integration/test_protocol_replay_harness.py":
+        return row("Assurance", "Phase 7.4", "保留")
+    if path == "tests/core/api/test_protocol_replay_rest.py":
+        return row("Protocol", "Phase 7.4", "保留")
+    if path == "tests/core/mqtt/test_protocol_replay_mqtt.py":
+        return row("Protocol", "Phase 7.4", "保留")
     if path.startswith("tests/core/coordinator/") or path == "tests/core/test_coordinator.py" or path == "tests/core/test_coordinator_integration.py" or path.startswith("tests/integration/"):
         return row("Runtime", "Phase 5 / 6", "保留")
     if path.startswith("tests/core/api/"):

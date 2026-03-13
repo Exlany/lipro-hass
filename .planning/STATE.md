@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: protocol-fidelity-operability
 status: executing
-last_updated: "2026-03-13T14:18:48Z"
+last_updated: "2026-03-13T15:10:00Z"
 progress:
-  total_phases: 5
-  completed_phases: 3
+  total_phases: 6
+  completed_phases: 4
   total_plans: 14
-  completed_plans: 8
+  completed_plans: 11
 ---
 
 # Project State
@@ -19,7 +19,7 @@ See: `.planning/PROJECT.md`
 
 **Current milestone:** `v1.1 Protocol Fidelity & Operability`
 **Core value:** 在既有北极星单一主链基础上，把 fidelity / enforcement / telemetry / replay / AI-debug evidence 做成下一层正式能力。
-**Current mode:** `Phase 7.3 completed`，`Phase 7.4 ready`；执行顺序仍固定为 `7.3 -> 7.4 -> 7.5 -> 8` 以避免真源交叉。
+**Current mode:** `Phase 7.4 completed`，`Phase 7.5 ready`；执行顺序仍固定为 `7.3 -> 7.4 -> 7.5 -> 8` 以避免真源交叉。
 
 ## Current Position
 
@@ -28,8 +28,8 @@ See: `.planning/PROJECT.md`
 - `Phase 7.1` 已完成：boundary inventory / decoder skeleton / representative REST+MQTT pipeline / replay-ready fixtures / governance handoff
 - `Phase 7.2` 已完成：architecture policy baseline、shared policy helpers、architecture script、meta guards refactor、CI fail-fast ordering 与 verification evidence 已落地
 - `Phase 7.3` 已完成：exporter formal home、真实运行信号、consumer convergence、black-box evidence 与治理回写均已落地
-- `Phase 7.4` 已就绪：可直接复用 `07.3` exporter truth 建立 replay manifests、deterministic driver、REST/MQTT replay assertions 与 run summary
-- `Phase 7.5` 已规划：governance matrix sync、evidence index、phase closeout handoff
+- `Phase 7.4` 已完成：authority-indexed replay manifests、deterministic driver、REST/MQTT replay assertions、replay run summary 与 meta guards 已形成 assurance 资产
+- `Phase 7.5` 已就绪：可基于 `07.4` replay summary / residual handoff 完成 governance matrix sync、evidence index 与 closeout arbitration
 - `Phase 8` 已规划：AI debug evidence pack schema、tooling exporter、authority-aware pack validation
 
 ## Active Milestone Scope
@@ -72,9 +72,9 @@ See: `.planning/PROJECT.md`
 
 ## Recommended Next Command
 
-1. `$gsd-execute-phase 7.4` —— 继续 replay harness 主线，复用 `07.3` exporter truth
-2. 如需先补审计闭环，运行 `$gsd-validate-phase 7.3`
-3. 然后按顺序继续 `$gsd-execute-phase 7.5` 与 `$gsd-execute-phase 8`
+1. `$gsd-execute-phase 7.5` —— 进入 governance / verification closeout 主线
+2. 如需先补审计闭环，运行 `$gsd-validate-phase 7.4`
+3. 然后按顺序继续 `$gsd-execute-phase 8`
 
 ## Session Continuity
 

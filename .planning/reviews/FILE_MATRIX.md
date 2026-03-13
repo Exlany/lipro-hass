@@ -1,6 +1,6 @@
 # File Matrix
 
-**Python files total:** 424
+**Python files total:** 435
 **Status:** File-level governance authority
 **Rule:** workspace inventory excluding caches / virtual env / tooling artifacts
 
@@ -282,6 +282,7 @@
 | `tests/core/api/test_auth_recovery_telemetry.py` | Protocol | Phase 2 | 保留 | - |
 | `tests/core/api/test_helper_modules.py` | Protocol | Phase 2 | 保留 | - |
 | `tests/core/api/test_protocol_contract_matrix.py` | Protocol | Phase 2 | 保留 | - |
+| `tests/core/api/test_protocol_replay_rest.py` | Protocol | Phase 7.4 | 保留 | - |
 | `tests/core/api/test_request_codec.py` | Protocol | Phase 2 | 保留 | - |
 | `tests/core/api/test_schedule_codec.py` | Protocol | Phase 2 | 保留 | - |
 | `tests/core/api/test_schedule_endpoint.py` | Protocol | Phase 2 | 保留 | - |
@@ -321,6 +322,7 @@
 | `tests/core/mqtt/test_mqtt_message.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `tests/core/mqtt/test_mqtt_payload.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `tests/core/mqtt/test_mqtt_setup.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `tests/core/mqtt/test_protocol_replay_mqtt.py` | Protocol | Phase 7.4 | 保留 | - |
 | `tests/core/mqtt/test_topic_builder.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `tests/core/ota/__init__.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `tests/core/ota/test_firmware_manifest.py` | Cross-cutting | Phase 7 | 保留 | - |
@@ -378,6 +380,13 @@
 | `tests/flows/test_config_flow.py` | Control | Phase 3 / 7 | 保留 | - |
 | `tests/flows/test_flow_credentials.py` | Control | Phase 3 / 7 | 保留 | - |
 | `tests/flows/test_options_flow_utils.py` | Control | Phase 3 / 7 | 保留 | - |
+| `tests/harness/__init__.py` | Assurance | Phase 7.4 | 保留 | - |
+| `tests/harness/protocol/__init__.py` | Assurance | Phase 7.4 | 保留 | - |
+| `tests/harness/protocol/replay_assertions.py` | Assurance | Phase 7.4 | 保留 | - |
+| `tests/harness/protocol/replay_driver.py` | Assurance | Phase 7.4 | 保留 | - |
+| `tests/harness/protocol/replay_loader.py` | Assurance | Phase 7.4 | 保留 | - |
+| `tests/harness/protocol/replay_models.py` | Assurance | Phase 7.4 | 保留 | - |
+| `tests/harness/protocol/replay_report.py` | Assurance | Phase 7.4 | 保留 | - |
 | `tests/helpers/__init__.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/helpers/architecture_policy.py` | Assurance | Phase 7.2 | 保留 | - |
 | `tests/helpers/ast_guard_utils.py` | Assurance | Phase 7.2 | 保留 | - |
@@ -386,6 +395,7 @@
 | `tests/helpers/service_call.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/integration/__init__.py` | Runtime | Phase 5 / 6 | 保留 | - |
 | `tests/integration/test_mqtt_coordinator_integration.py` | Runtime | Phase 5 / 6 | 保留 | - |
+| `tests/integration/test_protocol_replay_harness.py` | Assurance | Phase 7.4 | 保留 | - |
 | `tests/integration/test_telemetry_exporter_integration.py` | Runtime | Phase 7.3 | 保留 | - |
 | `tests/meta/__init__.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_blueprints.py` | Assurance | Phase 6 | 保留 | - |
@@ -396,6 +406,7 @@
 | `tests/meta/test_governance_guards.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_install_sh_guards.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_modularization_surfaces.py` | Assurance | Phase 6 | 保留 | - |
+| `tests/meta/test_protocol_replay_assets.py` | Assurance | Phase 7.4 | 保留 | - |
 | `tests/meta/test_public_surface_guards.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_service_translation_sync.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_translation_tree_sync.py` | Assurance | Phase 6 | 保留 | - |

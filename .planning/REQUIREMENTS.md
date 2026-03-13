@@ -20,8 +20,8 @@
 
 ### Replay & Operability
 
-- [ ] **SIM-01**: protocol replay harness 必须复用正式 façade/decoder 路径，对 REST/MQTT 边界输入进行确定性回放
-- [ ] **SIM-02**: replay corpus 必须有 authority source、版本戳、drift detection，与现有 fixture/governance 体系对齐
+- [x] **SIM-01**: protocol replay harness 必须复用正式 façade/decoder 路径，对 REST/MQTT 边界输入进行确定性回放
+- [x] **SIM-02**: replay corpus 必须有 authority source、版本戳、drift detection，与现有 fixture/governance 体系对齐
 
 ### Governance
 
@@ -68,8 +68,8 @@
 | ENF-02 | Phase 7.2 | Complete |
 | OBS-01 | Phase 7.3 | Complete |
 | OBS-02 | Phase 7.3 | Complete |
-| SIM-01 | Phase 7.4 | Planned |
-| SIM-02 | Phase 7.4 | Planned |
+| SIM-01 | Phase 7.4 | Complete |
+| SIM-02 | Phase 7.4 | Complete |
 | GOV-06 | Phase 7.5 | Planned |
 | GOV-07 | Phase 7.5 | Planned |
 | AID-01 | Phase 8 | Planned |
@@ -80,4 +80,4 @@
 - mapped to phases: 13
 - unmapped: 0 ✓
 
-*Last updated: 2026-03-13 after completing Phase 7.3 telemetry exporter*
+*Last updated: 2026-03-13 after completing Phase 7.4 replay harness*

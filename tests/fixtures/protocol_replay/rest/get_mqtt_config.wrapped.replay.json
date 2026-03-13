@@ -1,0 +1,12 @@
+{
+  "scenario_id": "rest.get_mqtt_config.wrapped.v1",
+  "channel": "rest",
+  "family": "rest.mqtt-config",
+  "version": "v1",
+  "operation": "protocol.contracts.normalize_mqtt_config",
+  "authority_path": "tests/fixtures/api_contracts/get_mqtt_config.wrapped.json",
+  "seed": 740102,
+  "clock_baseline": "2026-03-13T00:00:01Z",
+  "assertion_families": ["canonical", "drift", "telemetry"],
+  "notes": "Representative wrapped REST payload replay for MQTT config normalization."
+}

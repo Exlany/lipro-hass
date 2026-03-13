@@ -82,9 +82,9 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 07.4-01: 建立 replay assets authority、fixture layout 与 deterministic driver
-- [ ] 07.4-02: 为 REST/MQTT contract flows 接入 replay assertions
-- [ ] 07.4-03: 补 operability diagnostics 与 replay-based regression suite
+- [x] 07.4-01: 建立 replay assets authority、fixture layout 与 deterministic driver
+- [x] 07.4-02: 为 REST/MQTT contract flows 接入 replay assertions
+- [x] 07.4-03: 补 operability diagnostics 与 replay-based regression suite
 
 ### Phase 7.5: Integration / Governance / Verification 收尾
 **Goal**: 对 v1.1 新增 boundary/exporter/replay/enforcement 组件做 file-level governance、verification matrix、closeout evidence 与 residual arbitration。
@@ -131,6 +131,6 @@ Plans:
 | 7.1 Boundary Schema/Decoder | v1.1 | 3/3 | Complete | 2026-03-13 |
 | 7.2 Enforcement | v1.1 | 2/2 | Complete | 2026-03-13 |
 | 7.3 Telemetry Exporter | v1.1 | 2/2 | Complete | 2026-03-13 |
-| 7.4 Replay Harness | v1.1 | 0/3 | Planned | - |
+| 7.4 Replay Harness | v1.1 | 3/3 | Complete | 2026-03-13 |
 | 7.5 Governance & Verification | v1.1 | 0/2 | Planned | - |
 | 8 AI Debug Evidence Pack | v1.1 | 0/2 | Planned | - |

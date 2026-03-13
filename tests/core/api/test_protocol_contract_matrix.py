@@ -20,6 +20,7 @@ from custom_components.lipro.core.api.mqtt_api_service import (
 )
 from custom_components.lipro.core.protocol import LiproProtocolFacade
 from custom_components.lipro.core.protocol.boundary import decode_mqtt_config_payload
+from tests.harness.protocol import iter_replay_manifests
 
 FIXTURE_DIR = Path(__file__).resolve().parents[2] / "fixtures" / "api_contracts"
 EXPECTED_MQTT_CONFIG = {
@@ -152,3 +153,16 @@ def test_phase_1_truth_endpoints_are_not_duplicated_into_external_boundary_fixtu
 
     assert not (external_boundary_dir / "get_city.success.json").exists()
     assert not (external_boundary_dir / "query_user_cloud.success.json").exists()
+
+
+def test_rest_replay_manifests_reuse_phase_1_contract_fixtures() -> None:
+    manifests = iter_replay_manifests(channel="rest")
+
+    assert [manifest.authority_path.name for manifest in manifests] == [
+        "get_mqtt_config.direct.json",
+        "get_mqtt_config.wrapped.json",
+    ]
+    assert all(
+        "tests/fixtures/api_contracts/" in manifest.authority_path.as_posix()
+        for manifest in manifests
+    )

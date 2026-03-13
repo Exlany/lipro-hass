@@ -13,6 +13,7 @@
 | External-boundary advisory naming | firmware remote advisory / support payload generated field naming 仍带 legacy semantics | Phase 2.6 | `02.6 external-boundary closeout` | authority truth 已固定后完成术语清理 |
 | Legacy service wiring carrier | `custom_components/lipro/services/wiring.py` 仍承载部分实现闭包 | Phase 3 | `Phase 7 cleanup sweep` | `control.service_router` 完全接管且测试 patch seam 不再依赖 wiring carrier |
 | Protocol-boundary family coverage | `rest.list-envelope.v1`、`rest.schedule-json.v1`、`mqtt.topic.v1`、`mqtt.message-envelope.v1` 仍停留在 inventory / helper collaborator 层，尚未全部 registry-backed | Phase 7.1 | `07.1 boundary expansion handoff` | inventory 中登记的 family 全部完成 registry-backed 接线，或在 v1.1 closeout 中被明确裁决为 de-scope / retire |
+| Replay scenario coverage | `tests/fixtures/protocol_replay/` 目前只覆盖 representative `rest.mqtt-config@v1` 与 `mqtt.properties@v1`；其余 inventory/replay-worthy families 尚未建立 manifests | Phase 7.4 | `07.5 replay coverage arbitration` | v1.1 closeout 前对 inventory families 做 expand / de-scope 裁决，并为保留 family 补 manifest 或明确 retire |
 
 ## Rules
 
@@ -100,3 +101,9 @@
 - `Telemetry consumer convergence` residual family 已关闭：diagnostics / system health / developer / CI sinks 的生产路径现在都统一 pull exporter truth。
 - `services/diagnostics/helpers.py` 保留的 legacy `build_developer_report()` 分支只作为测试 / patch seam 兼容位，不再定义生产 telemetry 真相。
 - 本计划**无新增 compat shell**；`07.4` replay harness 与 `08` evidence pack 只能继续 pull `07.3` exporter truth，不能平行定义第二套 telemetry schema。
+
+## Phase 07.4 / `07.4-03` Residual Delta
+
+- 新增 `Replay scenario coverage` residual family：当前 replay harness 已 formalize，但仍只覆盖 representative `rest.mqtt-config@v1` 与 `mqtt.properties@v1` 场景；其余 replay-worthy family 留给 `07.5` 做 expand / de-scope 裁决。
+- `tests/harness/protocol/`、`tests/fixtures/protocol_replay/` 与 replay run summary 已形成 assurance-only 正式家园；后续 phase 只能 pull 它们，不得重新长出第二套 simulator truth。
+- 本 phase **无新增 compat shell**；replay 只是 assurance consumer，不构成新的 protocol/runtime root。
