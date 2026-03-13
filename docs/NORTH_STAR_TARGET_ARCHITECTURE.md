@@ -1,6 +1,6 @@
 # Lipro 北极星目标架构（North Star Target Architecture）
 
-> **Last Updated**: 2026-03-12
+> **Last Updated**: 2026-03-13
 > **Status**: Target State / Active Reference
 > **Role**: 定义“什么是正确终态”，不被历史债、迁移成本、临时兼容层左右。
 
@@ -248,3 +248,24 @@ custom_components/lipro/
 3. 建立全仓文件治理矩阵，防止重构过程再次产生双标准
 4. 收敛 control plane、domain plane、runtime plane 的正式 public surface
 5. 把 assurance plane 从“补充项”升级为正式平面
+
+## 9. 北极星 2.0（AI Debug Ready, HA-only）
+
+北极星 2.0 不是“换技术栈”，而是在不破坏北极星单主链的前提下，把 **可观测 / 可回放 / 可给 AI 分析的证据链**升级为正式能力。
+
+### 9.1 核心裁决
+
+- **仍只服务 Home Assistant**：不为跨平台 SDK 设计 second root。
+- **Telemetry/Replay/Evidence 一条真相链**：
+  - `ProtocolTelemetry` + runtime telemetry sources → `RuntimeTelemetryExporter` → diagnostics/system-health/developer/CI sinks
+  - replay harness 必须复用同一 exporter 输出作为 telemetry assertions，不得另造第二套 telemetry truth
+- **Exporter 以 pull 为主**：exporter 只读 sources；sources 可维护有界事件摘要（ring-buffer），但 exporter 不作为事件总线。
+- **允许真实时间戳**：为定位时序与 AI 分析，telemetry/evidence 允许输出真实时间戳字段；但必须遵守脱敏与基数预算。
+- **伪匿名化优先**：允许输出“报告内稳定、跨报告不可关联”的伪匿名引用（例如 `entry_ref`/`device_ref`）；禁止输出可长期关联的真实标识。
+- **凭证等价物永不出现在 sinks**：`password_hash`、token、secret、refresh/access key 等都必须被视作凭证等价物，不得进入任何 telemetry/evidence sink。
+
+### 9.2 终态目标增量
+
+- Assurance plane 增加一类正式资产：`AI Debug Evidence Pack`。
+  - 它从正式真源 pull 导出结构化 evidence（默认 JSON + index），用于 AI 调试/分析与演进仲裁。
+  - 其权威性由 `.planning/*` 与 baseline matrices（`PUBLIC_SURFACES` / `VERIFICATION_MATRIX` / `AUTHORITY_MATRIX`）共同裁决。

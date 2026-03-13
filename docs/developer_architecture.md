@@ -29,6 +29,19 @@
 
 ## 架构概览
 
+## North Star 2.0 Addendum (AI Debug Ready, HA-only)
+
+本仓库的“先进化”方向已升级为北极星 2.0：在不引入第二条主链的前提下，把 **可观测 / 可回放 / 可给 AI 分析的证据链**正式化。
+
+关键裁决：
+
+- **Telemetry truth 单一**：telemetry 的正式真相链必须收口为 exporter → sinks；diagnostics/system-health 不得再二次拼 truth。
+- **Pull-first exporter**：exporter 只读 protocol/runtime sources；sources 可维护有界事件摘要，但 exporter 不作为事件总线。
+- **伪匿名化引用**：sinks 可输出 `entry_ref`/`device_ref` 作为报告内稳定关联键（跨报告不可关联）；禁止输出凭证等价物。
+- **允许真实时间戳**：telemetry/evidence 允许包含真实时间戳（用于时序定位与 AI 分析），仍需遵守脱敏与基数预算。
+
+参考真源：`.planning/ROADMAP.md` / `.planning/REQUIREMENTS.md` / `.planning/STATE.md` / `docs/NORTH_STAR_TARGET_ARCHITECTURE.md`。
+
 ### 分层架构图
 
 ```
