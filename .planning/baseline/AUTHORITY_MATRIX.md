@@ -8,6 +8,7 @@
 
 - 本文件是 docs / fixtures / generated / implementation 同步方向的正式 baseline 真源。
 - `Phase 2.6` 起，external boundary family 不能再只靠 implementation 口头约定；必须声明 authority source、fixture family 与 drift guard。
+- `Phase 7.2` 起，architecture enforcement 也必须遵守同一 authority order：north-star / baseline 先裁决，再由 helper / script / tests / CI 执行。
 - 后续 phase 只能扩展 authority families 或补充验证证据，不能绕开本文件另造平行真相。
 
 ## Authority Sources
@@ -16,6 +17,7 @@
 |-----------------|------------------|----------------|-------|
 | 终态架构原则 | `docs/NORTH_STAR_TARGET_ARCHITECTURE.md` | north-star -> planning/docs/code review | 终态判断真源 |
 | 基准资产 | `.planning/baseline/*.md` | baseline -> phase design / review / verification | downstream phase docs 只能解释或扩展，不能反向改写 |
+| architecture enforcement policy | `.planning/baseline/ARCHITECTURE_POLICY.md` | baseline -> helpers / scripts / meta guards / CI | `Phase 7.2` 起的执行型 policy truth，不得被 tests/scripts 倒逼改写 |
 | 项目目标与阶段路线 | `.planning/PROJECT.md`, `.planning/ROADMAP.md`, `.planning/STATE.md` | planning -> phase execution | GSD 执行真源 |
 | 当前工程落地说明 | `docs/developer_architecture.md` | codebase/planning -> developer docs | 当前态解释真源，不凌驾于 baseline 之上 |
 | 文件治理状态 | `.planning/reviews/FILE_MATRIX.md` | execution -> governance review | 最终需提升到 file-level |
@@ -48,6 +50,7 @@
 - **fixtures**：`baseline/contracts -> fixture family -> owning tests`，fixture 漂移必须伴随 baseline、summary 或 validation 解释。
 - **generated**：`fixture families + canonical normalization rules -> generated expectation -> implementation review`，禁止由实现临时输出反向定义真相。
 - **implementation**：`north-star + baseline + tests -> code`，实现是载体，不是 authority source。
+- **enforcement**：`baseline -> policy doc -> helpers/scripts/tests/CI`，脚本、测试与工作流只能执行规则，不能成为规则真源。
 
 出现以下任一情况时，必须同步检查 authority matrix：
 
@@ -57,6 +60,7 @@
 - 文档与实现出现双口径风险
 - external-boundary truth 从“实现 folklore”升级为“formal contract”
 - protocol-boundary decoder family 新增/升级/删除 family、version 或 authority source
+- architecture policy 新增 rule family、例外、extension hook 或 CI gate
 
 ---
-*Used by: external boundary formalization, docs hygiene, and audit arbitration*
+*Used by: external boundary formalization, architecture policy enforcement, docs hygiene, and audit arbitration*

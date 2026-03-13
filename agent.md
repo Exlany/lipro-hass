@@ -28,8 +28,8 @@
 
 - Active milestone: `v1.1 Protocol Fidelity & Operability`
 - Active phase: `Phase 7.2 Architecture Enforcement 加固`
-- Current state: `7.2 planned`
-- Recommended next command: `$gsd-execute-phase 7.2`
+- Current state: `7.2 nyquist-compliant`
+- Recommended next command: `$gsd-plan-phase 7.3`
 
 ## Rules
 

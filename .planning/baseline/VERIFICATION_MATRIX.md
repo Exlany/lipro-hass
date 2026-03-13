@@ -8,7 +8,7 @@
 
 - 本文件是 `Phase 1.5` 及其下游 phases 的正式 acceptance truth；phase docs / summaries 只能引用、实例化或扩展，不得平行定义 exit contract。
 - 任一 phase 只有同时交付 requirement evidence、artifact updates、verification proof 与 governance disposition，才可宣称完成。
-- 若新增、降级或删除正式 public surface，改变 dependency truth，或扩展 authority family，必须先回写对应 baseline doc，再更新实现、测试与 summary。
+- 若新增、降级或删除正式 public surface，改变 dependency truth，扩展 authority family，或新增 architecture policy rule family / CI gate，必须先回写对应 baseline doc，再更新实现、测试与 summary。
 - 若 `.planning/reviews/FILE_MATRIX.md`、`.planning/reviews/RESIDUAL_LEDGER.md`、`.planning/reviews/KILL_LIST.md` 无变化，phase summary 也必须明确写出“为何无变化”。
 
 ## Requirement-to-Acceptance Mapping
@@ -23,6 +23,7 @@
 | `ASSR-*` | seed guards、meta guards、telemetry hooks、CI gates、verification docs | meta tests + observability evidence + CI proof | 1.5 / 6 | 结构未退化成为默认验收门，而非收尾补丁 |
 | `INTG-*` | external boundary docs、fixtures、generated expectations、authority updates | targeted contract tests + fixture audits + drift checks | 2.6 | 外部边界 contract 成为后续 phase 的可引用真源 |
 | `BND-*` | protocol boundary inventory、decoder family、schema registry、decode result、authority updates | boundary inventory review + protocol contract tests + governance guards | 7.1 | telemetry / replay / enforcement 继承单一 boundary truth，不再各自生长 decode authority |
+| `ENF-*` | `ARCHITECTURE_POLICY.md`、shared policy helpers、architecture script、focused meta guards、governance CI gate | architecture-policy checks + meta guards + CI fail-fast proof | 7.2 | `07.3 / 07.4` 继承单一 enforcement taxonomy，而不是再造第二套规则真源 |
 | `GOV-*` | `FILE_MATRIX`、`RESIDUAL_LEDGER`、`KILL_LIST`、final report | governance review + cleanup proof + audit summaries | 7 | 仓库最终收口具备完整治理证据链 |
 
 ## Locked Upstream Inputs
@@ -46,6 +47,7 @@
 | 6 | 本文件、seed guards、prior formal surfaces、Phase 5 runtime proof | assurance taxonomy、hardened guards、CI gates、coverage / quality proof | meta guards + CI proof + test-structure alignment review | “结构未退化” 成为默认质量门；后续变更必须先经过 assurance contract |
 | 7 | all prior summaries + governance docs + baseline asset pack | final `FILE_MATRIX`、`RESIDUAL_LEDGER`、`KILL_LIST`、closeout report | full governance review + cleanup / deletion proof | 形成仓库级最终 acceptance record |
 | 7.1 | baseline asset pack、Phase 2 / 2.5 protocol outputs、`tests/fixtures/api_contracts/**`、`tests/fixtures/protocol_boundary/**`、`.planning/phases/07.1-protocol-boundary-schema-decoder/07.1-ARCHITECTURE.md` | boundary inventory、`core/protocol/boundary/` family、`07.1-01~03-SUMMARY.md`、authority/file-matrix/residual updates | targeted protocol contract tests + governance guards + replay/telemetry handoff review | decode authority 必须在 `LiproProtocolFacade` 之下形成单一 boundary family home，且首批 family 要留下 replay-ready fixture evidence |
+| 7.2 | baseline asset pack、`.planning/baseline/ARCHITECTURE_POLICY.md`、`07.2-ARCHITECTURE.md`、`07.2-VALIDATION.md`、Phase 7.1 boundary outputs | architecture policy baseline、shared policy helpers、`scripts/check_architecture_policy.py`、`07.2-01/02-SUMMARY.md`、CI governance ordering updates | `uv run python scripts/check_architecture_policy.py --check` + `uv run python scripts/check_file_matrix.py --check` + `uv run pytest -q -x tests/meta/test_dependency_guards.py tests/meta/test_public_surface_guards.py tests/meta/test_governance_guards.py` | plane/root/surface/authority 规则必须形成单一 enforcement chain，且为 `07.3` observer-only surface 与 `07.4` assurance-only boundary consumer 预留 extension hooks |
 
 ## Phase 02 Exit Contract
 

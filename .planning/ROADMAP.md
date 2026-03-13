@@ -54,8 +54,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 07.2-01: 定义 architecture policy spec 与 rule categories
-- [ ] 07.2-02: 升级 meta guards、CI gates 与开发期快速校验链
+- [x] 07.2-01: 定义 architecture policy spec 与 rule categories
+- [x] 07.2-02: 升级 meta guards、CI gates 与开发期快速校验链
 
 ### Phase 7.3: Runtime Telemetry Exporter 正式化
 **Goal**: 把 runtime/protocol telemetry 收口到 exporter surface，使 diagnostics、system health、developer/CI sinks 共享同一真源。
@@ -106,7 +106,7 @@ Plans:
 |-------|-----------|----------------|--------|-----------|
 | 1-7 (+1.5/2.5/2.6) | v1.0 | 32/32 | Complete | 2026-03-13 |
 | 7.1 Boundary Schema/Decoder | v1.1 | 3/3 | Complete | 2026-03-13 |
-| 7.2 Enforcement | v1.1 | 0/2 | Planned | - |
+| 7.2 Enforcement | v1.1 | 2/2 | Complete | 2026-03-13 |
 | 7.3 Telemetry Exporter | v1.1 | 0/2 | Planned | - |
 | 7.4 Replay Harness | v1.1 | 0/3 | Planned | - |
 | 7.5 Governance & Verification | v1.1 | 0/2 | Planned | - |

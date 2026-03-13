@@ -1,6 +1,6 @@
 # File Matrix
 
-**Python files total:** 409
+**Python files total:** 412
 **Status:** File-level governance authority
 **Rule:** workspace inventory excluding caches / virtual env / tooling artifacts
 
@@ -249,6 +249,7 @@
 | `custom_components/lipro/update.py` | Domain | Phase 4 | 保留 | - |
 | `scripts/__init__.py` | Assurance | Phase 6 / 7 | 保留 | - |
 | `scripts/agent_worker.py` | Assurance | Phase 6 / 7 | 保留 | - |
+| `scripts/check_architecture_policy.py` | Assurance | Phase 7.2 | 保留 | - |
 | `scripts/check_file_matrix.py` | Assurance | Phase 6 / 7 | 保留 | - |
 | `scripts/check_translations.py` | Assurance | Phase 6 / 7 | 保留 | - |
 | `scripts/coverage_diff.py` | Assurance | Phase 6 / 7 | 保留 | - |
@@ -367,6 +368,8 @@
 | `tests/flows/test_flow_credentials.py` | Control | Phase 3 / 7 | 保留 | - |
 | `tests/flows/test_options_flow_utils.py` | Control | Phase 3 / 7 | 保留 | - |
 | `tests/helpers/__init__.py` | Assurance | Phase 6 | 保留 | - |
+| `tests/helpers/architecture_policy.py` | Assurance | Phase 7.2 | 保留 | - |
+| `tests/helpers/ast_guard_utils.py` | Assurance | Phase 7.2 | 保留 | - |
 | `tests/helpers/external_boundary_fixtures.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/helpers/repo_root.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/helpers/service_call.py` | Assurance | Phase 6 | 保留 | - |

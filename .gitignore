@@ -82,8 +82,12 @@ assets/
 .planning/*
 !.planning/STATE.md
 !.planning/ROADMAP.md
+!.planning/baseline/
+!.planning/baseline/ARCHITECTURE_POLICY.md
 !.planning/phases/
 .planning/phases/*
+!.planning/phases/07.2-architecture-enforcement/
+!.planning/phases/07.2-architecture-enforcement/**
 !.planning/phases/04-capability-model-unification/
 !.planning/phases/04-capability-model-unification/**
 

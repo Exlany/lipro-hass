@@ -32,6 +32,7 @@ ACTIVE_DOC_PATHS = [
     Path("docs/NORTH_STAR_TARGET_ARCHITECTURE.md"),
     Path("docs/developer_architecture.md"),
     Path("docs/adr/README.md"),
+    Path(".planning/baseline/ARCHITECTURE_POLICY.md"),
     AGENTS_PATH,
     AGENT_POINTER_PATH,
 ]
@@ -135,6 +136,27 @@ OVERRIDES: dict[str, FileGovernanceRow] = {
         owner_phase="Phase 7",
         fate="删除候选",
         residual="shadow helper",
+    ),
+    "scripts/check_architecture_policy.py": FileGovernanceRow(
+        path="scripts/check_architecture_policy.py",
+        area="Assurance",
+        owner_phase="Phase 7.2",
+        fate="保留",
+        residual="-",
+    ),
+    "tests/helpers/architecture_policy.py": FileGovernanceRow(
+        path="tests/helpers/architecture_policy.py",
+        area="Assurance",
+        owner_phase="Phase 7.2",
+        fate="保留",
+        residual="-",
+    ),
+    "tests/helpers/ast_guard_utils.py": FileGovernanceRow(
+        path="tests/helpers/ast_guard_utils.py",
+        area="Assurance",
+        owner_phase="Phase 7.2",
+        fate="保留",
+        residual="-",
     ),
 }
 

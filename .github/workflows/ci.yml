@@ -72,12 +72,15 @@ jobs:
       - name: Install dependencies
         run: uv sync --frozen --extra dev
 
+      - name: Check architecture policy
+        run: uv run python scripts/check_architecture_policy.py --check
+
       - name: Check file matrix and active authority docs
         run: uv run python scripts/check_file_matrix.py --check
 
       - name: Run governance and architecture guards
         run: >-
-          uv run pytest -q
+          uv run pytest -q -x
           tests/meta/test_dependency_guards.py
           tests/meta/test_public_surface_guards.py
           tests/meta/test_governance_guards.py

@@ -1,146 +1,62 @@
-"""Seed dependency guards for baseline architecture boundaries."""
+"""Architecture dependency guards derived from the baseline policy truth."""
 
 from __future__ import annotations
 
-import ast
 from pathlib import Path
 
-from tests.helpers.repo_root import repo_root
+from tests.helpers.architecture_policy import (
+    load_structural_rules,
+    policy_root,
+    resolve_policy_paths,
+)
+from tests.helpers.ast_guard_utils import find_forbidden_imports
 
-_ROOT = repo_root(Path(__file__))
+_ROOT = policy_root(Path(__file__))
 _DEPENDENCY_MATRIX = _ROOT / ".planning" / "baseline" / "DEPENDENCY_MATRIX.md"
-
-_ENTITY_PLATFORM_SEED_PATHS = [
-    _ROOT / "custom_components" / "lipro" / "binary_sensor.py",
-    _ROOT / "custom_components" / "lipro" / "climate.py",
-    _ROOT / "custom_components" / "lipro" / "cover.py",
-    _ROOT / "custom_components" / "lipro" / "fan.py",
-    _ROOT / "custom_components" / "lipro" / "light.py",
-    _ROOT / "custom_components" / "lipro" / "select.py",
-    _ROOT / "custom_components" / "lipro" / "sensor.py",
-    _ROOT / "custom_components" / "lipro" / "switch.py",
-    _ROOT / "custom_components" / "lipro" / "update.py",
-    _ROOT / "custom_components" / "lipro" / "helpers" / "platform.py",
-]
-_ENTITY_SUPPORT_SEED_PATHS = sorted(
-    (_ROOT / "custom_components" / "lipro" / "entities").glob("*.py")
-)
-_CONTROL_SURFACE_SEED_PATHS = [
-    _ROOT / "custom_components" / "lipro" / "runtime_infra.py",
-    _ROOT / "custom_components" / "lipro" / "diagnostics.py",
-    _ROOT / "custom_components" / "lipro" / "system_health.py",
-    _ROOT / "custom_components" / "lipro" / "services" / "registry.py",
-    _ROOT / "custom_components" / "lipro" / "services" / "registrations.py",
-    _ROOT / "custom_components" / "lipro" / "control" / "entry_lifecycle_controller.py",
-    _ROOT / "custom_components" / "lipro" / "control" / "runtime_access.py",
-    _ROOT / "custom_components" / "lipro" / "control" / "service_registry.py",
-    _ROOT / "custom_components" / "lipro" / "control" / "service_router.py",
-    _ROOT / "custom_components" / "lipro" / "control" / "diagnostics_surface.py",
-    _ROOT / "custom_components" / "lipro" / "control" / "system_health_surface.py",
-]
-
-_PROTOCOL_INTERNAL_PREFIXES = (
-    ".core.api",
-    "..core.api",
-    "custom_components.lipro.core.api",
-    ".core.mqtt",
-    "..core.mqtt",
-    "custom_components.lipro.core.mqtt",
-)
-_CONTROL_ONLY_FORBIDDEN_PREFIXES = (
-    ".core.coordinator",
-    "..core.coordinator",
-    "custom_components.lipro.core.coordinator",
-)
-_BOUNDARY_INTERNAL_PREFIXES = (
-    ".core.protocol.boundary",
-    "..core.protocol.boundary",
-    "custom_components.lipro.core.protocol.boundary",
-)
-_ALLOWED_BOUNDARY_IMPORT_ROOTS = (
-    _ROOT / "custom_components" / "lipro" / "core" / "protocol",
-    _ROOT / "custom_components" / "lipro" / "core" / "api",
-    _ROOT / "custom_components" / "lipro" / "core" / "mqtt",
-)
+_RULES = load_structural_rules(_ROOT)
 
 
-def _iter_import_modules(path: Path) -> list[str]:
-    tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
-    modules: set[str] = set()
+def _violations_for_rule(rule_id: str) -> list[str]:
+    rule = _RULES[rule_id]
+    governed_paths, missing_governed = resolve_policy_paths(rule.governed_targets, root=_ROOT)
+    allowed_paths, missing_allowed = resolve_policy_paths(
+        rule.allowed_or_required_signals,
+        root=_ROOT,
+    )
 
-    for node in ast.walk(tree):
-        if isinstance(node, ast.Import):
-            modules.update(alias.name for alias in node.names)
-            continue
-        if isinstance(node, ast.ImportFrom):
-            module = node.module or ""
-            dotted = f"{'.' * node.level}{module}" if node.level else module
-            if dotted:
-                modules.add(dotted)
+    missing = [
+        *[f"{rule_id} unresolved governed path pattern: {pattern}" for pattern in missing_governed],
+        *[f"{rule_id} unresolved allowed path pattern: {pattern}" for pattern in missing_allowed],
+    ]
+    if missing:
+        return missing
 
-    return sorted(modules)
-
-
-def _find_forbidden_imports(
-    paths: list[Path], forbidden_prefixes: tuple[str, ...]
-) -> list[str]:
-    violations: list[str] = []
-    for path in paths:
-        bad_imports = [
-            module
-            for module in _iter_import_modules(path)
-            if any(
-                module == prefix or module.startswith(f"{prefix}.")
-                for prefix in forbidden_prefixes
-            )
-        ]
-        if bad_imports:
-            joined = ", ".join(bad_imports)
-            violations.append(f"{path.relative_to(_ROOT)} -> {joined}")
-    return violations
+    allowed_path_set = set(allowed_paths)
+    scanned_paths = [path for path in governed_paths if path not in allowed_path_set]
+    violations = find_forbidden_imports(
+        scanned_paths,
+        tuple(rule.forbidden_signals),
+        root=_ROOT,
+    )
+    return [f"{rule_id}: {violation}" for violation in violations]
 
 
-def test_dependency_matrix_documents_seed_guard_scope() -> None:
+def test_dependency_matrix_references_architecture_policy() -> None:
     dependency_matrix = _DEPENDENCY_MATRIX.read_text(encoding="utf-8")
 
-    assert (
-        "| Entity / Platform | raw protocol internals, `core/protocol/boundary/*`, MQTT client, REST transport |"
-        in dependency_matrix
-    )
-    assert (
-        "| Control plane | protocol internals, `core/protocol/boundary/*`, runtime internals bypassing public surface |"
-        in dependency_matrix
-    )
-    assert "tests/meta/test_dependency_guards.py" in dependency_matrix
-    assert "core.api`、`core.mqtt`、`core.protocol.boundary` 与 `core.coordinator` internals" in dependency_matrix
-    assert "control/" in dependency_matrix
+    assert ".planning/baseline/ARCHITECTURE_POLICY.md" in dependency_matrix
+    assert "ENF-IMP-ENTITY-PROTOCOL-INTERNALS" in dependency_matrix
+    assert "ENF-IMP-CONTROL-NO-BYPASS" in dependency_matrix
+    assert "ENF-IMP-BOUNDARY-LOCALITY" in dependency_matrix
 
 
-def test_entity_seed_files_do_not_import_protocol_internals_directly() -> None:
-    violations = _find_forbidden_imports(
-        _ENTITY_PLATFORM_SEED_PATHS + _ENTITY_SUPPORT_SEED_PATHS,
-        _PROTOCOL_INTERNAL_PREFIXES,
-    )
-    assert not violations, "\n".join(violations)
+def test_entity_platform_surfaces_do_not_import_protocol_internals_directly() -> None:
+    assert not _violations_for_rule("ENF-IMP-ENTITY-PROTOCOL-INTERNALS")
 
 
-def test_control_surface_seed_files_do_not_bypass_public_runtime_surfaces() -> None:
-    violations = _find_forbidden_imports(
-        _CONTROL_SURFACE_SEED_PATHS,
-        _PROTOCOL_INTERNAL_PREFIXES + _CONTROL_ONLY_FORBIDDEN_PREFIXES,
-    )
-    assert not violations, "\n".join(violations)
+def test_control_surfaces_do_not_bypass_runtime_public_surfaces() -> None:
+    assert not _violations_for_rule("ENF-IMP-CONTROL-NO-BYPASS")
 
 
 def test_boundary_decoder_package_stays_inside_protocol_plane() -> None:
-    disallowed_paths = [
-        path
-        for path in (_ROOT / "custom_components" / "lipro").rglob("*.py")
-        if not any(path.is_relative_to(prefix) for prefix in _ALLOWED_BOUNDARY_IMPORT_ROOTS)
-    ]
-
-    violations = _find_forbidden_imports(
-        sorted(disallowed_paths),
-        _BOUNDARY_INTERNAL_PREFIXES,
-    )
-    assert not violations, "\n".join(violations)
+    assert not _violations_for_rule("ENF-IMP-BOUNDARY-LOCALITY")
