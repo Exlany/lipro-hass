@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: protocol-fidelity-operability
 status: executing
-last_updated: "2026-03-13T15:10:00Z"
+last_updated: "2026-03-13T16:00:32Z"
 progress:
   total_phases: 6
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 14
-  completed_plans: 11
+  completed_plans: 13
 ---
 
 # Project State
@@ -19,7 +19,7 @@ See: `.planning/PROJECT.md`
 
 **Current milestone:** `v1.1 Protocol Fidelity & Operability`
 **Core value:** 在既有北极星单一主链基础上，把 fidelity / enforcement / telemetry / replay / AI-debug evidence 做成下一层正式能力。
-**Current mode:** `Phase 7.4 completed`，`Phase 7.5 ready`；执行顺序仍固定为 `7.3 -> 7.4 -> 7.5 -> 8` 以避免真源交叉。
+**Current mode:** `Phase 7.5 completed`，`Phase 8 ready`；执行顺序仍固定为 `7.3 -> 7.4 -> 7.5 -> 8` 以避免真源交叉。
 
 ## Current Position
 
@@ -29,8 +29,8 @@ See: `.planning/PROJECT.md`
 - `Phase 7.2` 已完成：architecture policy baseline、shared policy helpers、architecture script、meta guards refactor、CI fail-fast ordering 与 verification evidence 已落地
 - `Phase 7.3` 已完成：exporter formal home、真实运行信号、consumer convergence、black-box evidence 与治理回写均已落地
 - `Phase 7.4` 已完成：authority-indexed replay manifests、deterministic driver、REST/MQTT replay assertions、replay run summary 与 meta guards 已形成 assurance 资产
-- `Phase 7.5` 已就绪：可基于 `07.4` replay summary / residual handoff 完成 governance matrix sync、evidence index 与 closeout arbitration
-- `Phase 8` 已规划：AI debug evidence pack schema、tooling exporter、authority-aware pack validation
+- `Phase 7.5` 已完成：governance matrix sync、`V1_1_EVIDENCE_INDEX.md`、`07.5-SUMMARY.md`、residual/delete gate closeout arbitration 已落地
+- `Phase 8` 已就绪：可基于 `V1_1_EVIDENCE_INDEX.md`、baseline truths、`07.3` exporter evidence 与 `07.4` replay evidence 继续实现 AI debug evidence pack
 
 ## Active Milestone Scope
 
@@ -72,9 +72,9 @@ See: `.planning/PROJECT.md`
 
 ## Recommended Next Command
 
-1. `$gsd-execute-phase 7.5` —— 进入 governance / verification closeout 主线
-2. 如需先补审计闭环，运行 `$gsd-validate-phase 7.4`
-3. 然后按顺序继续 `$gsd-execute-phase 8`
+1. `$gsd-execute-phase 8` —— 进入 AI debug evidence pack 主线
+2. 如需回看本轮治理 closeout，可阅读 `.planning/reviews/V1_1_EVIDENCE_INDEX.md` 与 `.planning/phases/07.5-integration-governance-verification-closeout/07.5-SUMMARY.md`
+3. 如需人工验收 closeout 结果，可运行 `$gsd-verify-work 7.5`
 
 ## Session Continuity
 

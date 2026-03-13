@@ -97,8 +97,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 07.5-01: 回写 governance truth sources 与 file-level ownership
-- [ ] 07.5-02: 生成 v1.1 verification/closeout package 与 next-step recommendations
+- [x] 07.5-01: 回写 governance truth sources 与 file-level ownership
+- [x] 07.5-02: 生成 v1.1 verification/closeout package 与 next-step recommendations
 
 ### Phase 8: AI Debug Evidence Pack
 
@@ -132,5 +132,5 @@ Plans:
 | 7.2 Enforcement | v1.1 | 2/2 | Complete | 2026-03-13 |
 | 7.3 Telemetry Exporter | v1.1 | 2/2 | Complete | 2026-03-13 |
 | 7.4 Replay Harness | v1.1 | 3/3 | Complete | 2026-03-13 |
-| 7.5 Governance & Verification | v1.1 | 0/2 | Planned | - |
+| 7.5 Governance & Verification | v1.1 | 2/2 | Complete | 2026-03-13 |
 | 8 AI Debug Evidence Pack | v1.1 | 0/2 | Planned | - |

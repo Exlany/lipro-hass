@@ -23,6 +23,14 @@ def test_public_surface_baseline_references_architecture_policy() -> None:
     assert "ENF-BACKDOOR-SERVICE-AUTH" in public_surfaces
 
 
+def test_public_surface_baseline_registers_assurance_only_replay_and_evidence_surfaces() -> None:
+    public_surfaces = _PUBLIC_SURFACES.read_text(encoding="utf-8")
+
+    assert "tests/harness/protocol/*" in public_surfaces
+    assert "V1_1_EVIDENCE_INDEX.md" in public_surfaces
+    assert "pull-only evidence pointers" in public_surfaces
+
+
 def test_coordinator_entry_exports_only_runtime_surface_symbol() -> None:
     rule = _RULES["ENF-SURFACE-COORDINATOR-ENTRY"]
     file_path = _ROOT / rule.governed_targets[0]

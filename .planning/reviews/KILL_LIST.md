@@ -77,3 +77,9 @@
 
 - `custom_components/lipro/services/execution.py` 的 coordinator 私有 auth hook seam 已关闭；不再作为 active kill target。
 - Phase 5 新增的 signal formalization 与 shadow cleanup 不引入新的 file-level kill target。
+
+## Phase 07.5 Status Update
+
+- `07.5` 只完成 governance / closeout arbitration：本 phase **无新增 file-level kill target**，也不把 evidence index、telemetry exporter 或 replay harness 误登记为删除候选。
+- 现有 delete gates 维持不变：`services/wiring.py`、legacy protocol public names、`DeviceCapabilities` compat alias 仍按既有 gate 收口。
+- `V1_1_EVIDENCE_INDEX.md`、`07.5-SUMMARY.md` 与 phase summaries 属于 closeout governance artifacts，不进入 kill list。

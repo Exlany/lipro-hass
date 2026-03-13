@@ -25,8 +25,8 @@
 
 ### Governance
 
-- [ ] **GOV-06**: v1.1 新增组件、fixtures、guards、exporters 必须同步回写 `FILE_MATRIX / AUTHORITY_MATRIX / VERIFICATION_MATRIX / RESIDUAL_LEDGER`
-- [ ] **GOV-07**: 每个 v1.1 phase 必须显式给出 delete gate、验收命令与 phase closeout evidence
+- [x] **GOV-06**: v1.1 新增组件、fixtures、guards、exporters 必须同步回写 `FILE_MATRIX / AUTHORITY_MATRIX / VERIFICATION_MATRIX / RESIDUAL_LEDGER`
+- [x] **GOV-07**: 每个 v1.1 phase 必须显式给出 delete gate、验收命令与 phase closeout evidence
 
 ### AI Debug Evidence Pack
 
@@ -70,8 +70,8 @@
 | OBS-02 | Phase 7.3 | Complete |
 | SIM-01 | Phase 7.4 | Complete |
 | SIM-02 | Phase 7.4 | Complete |
-| GOV-06 | Phase 7.5 | Planned |
-| GOV-07 | Phase 7.5 | Planned |
+| GOV-06 | Phase 7.5 | Complete |
+| GOV-07 | Phase 7.5 | Complete |
 | AID-01 | Phase 8 | Planned |
 | AID-02 | Phase 8 | Planned |
 
@@ -80,4 +80,4 @@
 - mapped to phases: 13
 - unmapped: 0 ✓
 
-*Last updated: 2026-03-13 after completing Phase 7.4 replay harness*
+*Last updated: 2026-03-13 after completing Phase 7.5 governance closeout*

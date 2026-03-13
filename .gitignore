@@ -87,6 +87,8 @@ assets/
 !.planning/MILESTONES.md
 !.planning/baseline/
 !.planning/baseline/ARCHITECTURE_POLICY.md
+!.planning/reviews/
+!.planning/reviews/V1_1_EVIDENCE_INDEX.md
 !.planning/phases/
 .planning/phases/*
 !.planning/phases/07.1-protocol-boundary-schema-decoder/
@@ -103,7 +105,6 @@ assets/
 !.planning/phases/08-ai-debug-evidence-pack/**
 !.planning/phases/04-capability-model-unification/
 !.planning/phases/04-capability-model-unification/**
-
 # Benchmarks (generated)
 .benchmarks/
 benchmark_results.json

@@ -54,3 +54,55 @@ def test_architecture_policy_rule_inventory_is_stable() -> None:
         "ENF-BACKDOOR-COORDINATOR-PROPERTIES",
         "ENF-BACKDOOR-SERVICE-AUTH",
     }
+
+
+
+def test_v1_1_closeout_assets_exist_and_are_pull_only() -> None:
+    evidence_index = _ROOT / ".planning" / "reviews" / "V1_1_EVIDENCE_INDEX.md"
+    phase_summary = _ROOT / ".planning" / "phases" / "07.5-integration-governance-verification-closeout" / "07.5-SUMMARY.md"
+    plan_01_summary = _ROOT / ".planning" / "phases" / "07.5-integration-governance-verification-closeout" / "07.5-01-SUMMARY.md"
+    plan_02_summary = _ROOT / ".planning" / "phases" / "07.5-integration-governance-verification-closeout" / "07.5-02-SUMMARY.md"
+    verification = _ROOT / ".planning" / "phases" / "07.5-integration-governance-verification-closeout" / "07.5-VERIFICATION.md"
+
+    assert evidence_index.exists()
+    assert phase_summary.exists()
+    assert plan_01_summary.exists()
+    assert plan_02_summary.exists()
+    assert verification.exists()
+
+    evidence_text = evidence_index.read_text(encoding="utf-8")
+    assert "## Pull Contract" in evidence_text
+    assert "07.3-runtime-telemetry-exporter" in evidence_text
+    assert "07.4-protocol-replay-simulator-harness" in evidence_text
+    assert "Phase 8 Pull Boundary" in evidence_text
+
+
+def test_governance_truth_registers_v1_1_closeout_assets() -> None:
+    authority_text = (_ROOT / ".planning" / "baseline" / "AUTHORITY_MATRIX.md").read_text(encoding="utf-8")
+    verification_text = (_ROOT / ".planning" / "baseline" / "VERIFICATION_MATRIX.md").read_text(encoding="utf-8")
+    residual_text = (_ROOT / ".planning" / "reviews" / "RESIDUAL_LEDGER.md").read_text(encoding="utf-8")
+    kill_text = (_ROOT / ".planning" / "reviews" / "KILL_LIST.md").read_text(encoding="utf-8")
+
+    assert "runtime telemetry exporter family" in authority_text
+    assert "v1.1 closeout evidence index" in authority_text
+    assert "| 7.5 |" in verification_text
+    assert "V1_1_EVIDENCE_INDEX.md" in verification_text
+    assert "## Phase 07.5 Residual Delta" in residual_text
+    assert "de-scope" in residual_text
+    assert "## Phase 07.5 Status Update" in kill_text
+
+
+
+def test_phase_7_5_planning_truth_is_consistent() -> None:
+    roadmap_text = (_ROOT / ".planning" / "ROADMAP.md").read_text(encoding="utf-8")
+    requirements_text = (_ROOT / ".planning" / "REQUIREMENTS.md").read_text(encoding="utf-8")
+    state_text = (_ROOT / ".planning" / "STATE.md").read_text(encoding="utf-8")
+    validation_text = (_ROOT / ".planning" / "phases" / "07.5-integration-governance-verification-closeout" / "07.5-VALIDATION.md").read_text(encoding="utf-8")
+
+    assert "| 7.5 Governance & Verification | v1.1 | 2/2 | Complete | 2026-03-13 |" in roadmap_text
+    assert "| GOV-06 | Phase 7.5 | Complete |" in requirements_text
+    assert "| GOV-07 | Phase 7.5 | Complete |" in requirements_text
+    assert "**Current mode:** `Phase 7.5 completed`，`Phase 8 ready`" in state_text
+    assert "status: passed" in validation_text
+    assert "- [x] `.planning/reviews/V1_1_EVIDENCE_INDEX.md`" in validation_text
+    assert "- [x] All tasks have automated verify or Wave 0 dependencies" in validation_text
