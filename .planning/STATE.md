@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: protocol-fidelity-operability
 status: planning
-last_updated: "2026-03-13T05:08:38Z"
+last_updated: "2026-03-13T06:41:34Z"
 progress:
   total_phases: 5
   completed_phases: 1
@@ -19,14 +19,15 @@ See: `.planning/PROJECT.md`
 
 **Current milestone:** `v1.1 Protocol Fidelity & Operability`
 **Core value:** 在既有北极星单一主链基础上，把 fidelity / enforcement / telemetry / replay 做成下一层正式能力。
-**Current mode:** `Phase 7.1 completed`，当前进入 `Phase 7.2 planning` 准备态。
+**Current mode:** `Phase 7.2 planned`，当前已具备执行 `07.2` 的完整上下文、研究、架构与 plan artifacts。
 
 ## Current Position
 
 - `v1.0` 已归档到 `.planning/MILESTONES.md` 与 `.planning/milestones/v1.0-*.md`
 - `v1.1` 已完成里程碑初始化、研究收敛、requirements/roadmap 落表
 - `Phase 7.1` 已完成：boundary inventory / decoder skeleton / representative REST+MQTT pipeline / replay-ready fixtures / governance handoff
-- `verify-work` 对 `v1.0` 仍建议进行一次交互式 UAT，但它不阻塞 `v1.1` 首 phase 启动
+- `Phase 7.2` 已完成 planning：context / research / architecture / validation / `07.2-01` / `07.2-02` plan 均已落地
+- `verify-work` 对 `v1.0` 仍建议进行一次交互式 UAT，但它不阻塞 `v1.1` 执行推进
 
 ## Active Milestone Scope
 
@@ -59,9 +60,9 @@ See: `.planning/PROJECT.md`
 
 ## Recommended Next Command
 
-1. `$gsd-plan-phase 7.2` —— 进入 architecture enforcement phase planning
-2. `07.2` 规划完成后执行 `$gsd-execute-phase 7.2`
-3. 需要人工 UAT 时再执行 `$gsd-verify-work 7`
+1. `$gsd-execute-phase 7.2` —— 执行 architecture enforcement phase 的两条计划
+2. 执行完成后运行 `$gsd-validate-phase 7.2`
+3. `07.2` 验证通过后进入 `$gsd-plan-phase 7.3`
 
 ## Session Continuity
 
@@ -75,4 +76,4 @@ If resuming, read in this order:
 7. `.planning/ROADMAP.md`
 8. `.planning/STATE.md`
 9. `.planning/research/SUMMARY.md`
-10. `.planning/phases/07.1-protocol-boundary-schema-decoder/`
+10. `.planning/phases/07.2-architecture-enforcement/`
