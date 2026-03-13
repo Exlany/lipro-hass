@@ -82,12 +82,25 @@ assets/
 .planning/*
 !.planning/STATE.md
 !.planning/ROADMAP.md
+!.planning/PROJECT.md
+!.planning/REQUIREMENTS.md
+!.planning/MILESTONES.md
 !.planning/baseline/
 !.planning/baseline/ARCHITECTURE_POLICY.md
 !.planning/phases/
 .planning/phases/*
+!.planning/phases/07.1-protocol-boundary-schema-decoder/
+!.planning/phases/07.1-protocol-boundary-schema-decoder/**
 !.planning/phases/07.2-architecture-enforcement/
 !.planning/phases/07.2-architecture-enforcement/**
+!.planning/phases/07.3-runtime-telemetry-exporter/
+!.planning/phases/07.3-runtime-telemetry-exporter/**
+!.planning/phases/07.4-protocol-replay-simulator-harness/
+!.planning/phases/07.4-protocol-replay-simulator-harness/**
+!.planning/phases/07.5-integration-governance-verification-closeout/
+!.planning/phases/07.5-integration-governance-verification-closeout/**
+!.planning/phases/08-ai-debug-evidence-pack/
+!.planning/phases/08-ai-debug-evidence-pack/**
 !.planning/phases/04-capability-model-unification/
 !.planning/phases/04-capability-model-unification/**
 

@@ -7,7 +7,7 @@ last_updated: "2026-03-13T07:10:10Z"
 progress:
   total_phases: 5
   completed_phases: 2
-  total_plans: 12
+  total_plans: 14
   completed_plans: 5
 ---
 
@@ -36,6 +36,7 @@ See: `.planning/PROJECT.md`
 - `Phase 7.3`：Runtime Telemetry Exporter 正式化
 - `Phase 7.4`：Protocol Replay / Simulator Harness 建立
 - `Phase 7.5`：Integration / Governance / Verification 收尾
+- `Phase 8`：AI Debug Evidence Pack
 
 ## Carry-Forward Truths
 

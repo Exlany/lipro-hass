@@ -100,6 +100,21 @@ Plans:
 - [ ] 07.5-01: 回写 governance truth sources 与 file-level ownership
 - [ ] 07.5-02: 生成 v1.1 verification/closeout package 与 next-step recommendations
 
+### Phase 8: AI Debug Evidence Pack
+
+**Goal**: 把 telemetry/replay/boundary/governance 产物统一导出为“可给 AI 调试/分析”的脱敏证据包（Assurance/Tooling only）。
+**Depends on**: Phase 7.5
+**Requirements**: [AID-01, AID-02]
+**Success Criteria**:
+  1. evidence pack schema 版本化且稳定，默认 JSON 输出，附带 index。
+  2. 证据包只 pull 正式真源（exporter/replay/boundary inventory/governance pointers），不生成第二套事实。
+  3. 脱敏策略明确：凭证等价物永不出现；允许报告内稳定、跨报告不可关联的伪匿名引用；允许真实时间戳。
+**Plans**: 2 plans
+
+Plans:
+- [ ] 08-01: 定义 evidence pack schema、pseudo-id 与 redaction 策略
+- [ ] 08-02: 实现 evidence pack exporter + tests + governance handoff
+
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -110,3 +125,4 @@ Plans:
 | 7.3 Telemetry Exporter | v1.1 | 0/2 | Planned | - |
 | 7.4 Replay Harness | v1.1 | 0/3 | Planned | - |
 | 7.5 Governance & Verification | v1.1 | 0/2 | Planned | - |
+| 8 AI Debug Evidence Pack | v1.1 | 0/2 | Proposed | - |
