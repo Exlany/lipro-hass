@@ -21,6 +21,7 @@ from tests.helpers.architecture_policy import (
 from tests.helpers.ast_guard_utils import (
     extract_all,
     extract_property_names,
+    extract_top_level_bindings,
     find_forbidden_imports,
 )
 
@@ -40,6 +41,10 @@ _EXPECTED_TARGETED_BAN_IDS = {
     "ENF-SURFACE-PROTOCOL-EXPORTS",
     "ENF-BACKDOOR-COORDINATOR-PROPERTIES",
     "ENF-BACKDOOR-SERVICE-AUTH",
+    "ENF-COMPAT-ROOT-NO-LEGACY-CLIENT",
+    "ENF-COMPAT-CONFIG-FLOW-NO-LEGACY-CLIENT",
+    "ENF-COMPAT-CORE-PACKAGE-NO-LEGACY-CLIENTS",
+    "ENF-COMPAT-MQTT-PACKAGE-NO-LEGACY-CLIENT",
 }
 
 
@@ -209,6 +214,25 @@ def _check_file_contains_disjoint_rule(root: Path, rule: ArchitecturePolicyRule)
     return errors
 
 
+def _check_top_level_bindings_disjoint_rule(root: Path, rule: ArchitecturePolicyRule) -> list[str]:
+    file_path = root / rule.governed_targets[0]
+    bindings = set(extract_top_level_bindings(file_path, root=root))
+    errors: list[str] = []
+
+    missing = sorted(set(rule.allowed_or_required_signals) - bindings)
+    forbidden = sorted(bindings.intersection(rule.forbidden_signals))
+
+    if missing:
+        errors.append(
+            f"{rule.rule_id}: {_relative(file_path, root=root)} missing required bindings: {missing}"
+        )
+    if forbidden:
+        errors.append(
+            f"{rule.rule_id}: {_relative(file_path, root=root)} binds forbidden names: {forbidden}"
+        )
+    return errors
+
+
 def validate_structural_rules(root: Path) -> list[str]:
     """Validate import and governance rules declared in `ARCHITECTURE_POLICY.md`."""
     errors: list[str] = []
@@ -241,6 +265,9 @@ def validate_targeted_bans(root: Path) -> list[str]:
             continue
         if rule.mode == "file_contains_disjoint":
             errors.extend(_check_file_contains_disjoint_rule(root, rule))
+            continue
+        if rule.mode == "top_level_bindings_disjoint":
+            errors.extend(_check_top_level_bindings_disjoint_rule(root, rule))
             continue
         errors.append(f"{rule.rule_id}: unsupported targeted ban mode '{rule.mode}'")
     return errors

@@ -39,7 +39,7 @@ class TestLiproConnectivitySensor:
         from custom_components.lipro.binary_sensor import LiproConnectivitySensor
 
         device = make_device("light", properties={"connectState": "1"})
-        mock_coordinator.devices[device.serial] = device
+        mock_coordinator.set_device(device)
         sensor = LiproConnectivitySensor(mock_coordinator, device)
 
         # Device goes offline
@@ -57,7 +57,7 @@ class TestLiproConnectivitySensor:
         from custom_components.lipro.binary_sensor import LiproConnectivitySensor
 
         device = make_device("light", properties={"connectState": "1"})
-        mock_coordinator.devices[device.serial] = device
+        mock_coordinator.set_device(device)
         sensor = LiproConnectivitySensor(mock_coordinator, device)
 
         # Coordinator fails

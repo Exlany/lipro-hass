@@ -128,9 +128,9 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 09-01: 收窄 protocol root surface 与 compat exports
-- [ ] 09-02: 正式化 runtime 只读设备视图与 outlet power primitive
-- [ ] 09-03: 回写 governance residual ledger、delete gate 与 regression guards
+- [x] 09-01: 收窄 protocol root surface 与 compat exports
+- [x] 09-02: 正式化 runtime 只读设备视图与 outlet power primitive
+- [x] 09-03: 回写 governance residual ledger、delete gate 与 regression guards
 
 ## Cross-Phase Arbitration (7.3-9)
 
@@ -152,4 +152,4 @@ Plans:
 | 7.4 Replay Harness | v1.1 | 3/3 | Complete | 2026-03-13 |
 | 7.5 Governance & Verification | v1.1 | 2/2 | Complete | 2026-03-13 |
 | 8 AI Debug Evidence Pack | v1.1 | 2/2 | Complete | 2026-03-13 |
-| 9 Residual Surface Closure | v1.1 | 0/3 | Planned | — |
+| 9 Residual Surface Closure | v1.1 | 3/3 | Complete | 2026-03-14 |

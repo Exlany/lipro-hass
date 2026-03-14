@@ -30,7 +30,8 @@ from custom_components.lipro.const.properties import (
     PROP_WAKE_UP_ENABLE,
     PROP_WIND_GEAR,
 )
-from custom_components.lipro.core import LiproApiError, LiproClient
+from custom_components.lipro.core import LiproApiError
+from custom_components.lipro.core.api import LiproClient
 from custom_components.lipro.core.capability import CapabilitySnapshot
 from custom_components.lipro.core.anonymous_share import manager as manager_module
 from custom_components.lipro.core.anonymous_share.capabilities import (

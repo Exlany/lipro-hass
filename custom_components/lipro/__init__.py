@@ -14,11 +14,7 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from .const.base import DOMAIN
 from .control import EntryLifecycleController, ServiceRegistry
 from .coordinator_entry import Coordinator
-from .core import (
-    LiproAuthManager,
-    LiproClient as _LiproClientCompat,
-    LiproProtocolFacade,
-)
+from .core import LiproAuthManager, LiproProtocolFacade
 from .entry_auth import (
     async_authenticate_entry,
     build_entry_auth_context,
@@ -46,7 +42,6 @@ from .services.registrations import (
 )
 from .services.registry import async_setup_services, remove_services
 
-LiproClient = _LiproClientCompat
 
 if TYPE_CHECKING:
     from homeassistant.helpers.typing import ConfigType

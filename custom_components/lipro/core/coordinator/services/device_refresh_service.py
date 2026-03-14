@@ -7,6 +7,8 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
+    from collections.abc import Mapping
+
     from ...device import LiproDevice
     from ..runtime.device_runtime import DeviceRuntime
     from ..runtime.state_runtime import StateRuntime
@@ -21,8 +23,8 @@ class CoordinatorDeviceRefreshService:
     refresh_callback: Callable[[], Awaitable[dict[str, LiproDevice]]]
 
     @property
-    def devices(self) -> dict[str, LiproDevice]:
-        """Return the latest coordinator device map."""
+    def devices(self) -> Mapping[str, LiproDevice]:
+        """Return the latest read-only coordinator device map."""
         return self.state_runtime.get_all_devices()
 
     def get_device_by_id(self, device_id: str) -> LiproDevice | None:

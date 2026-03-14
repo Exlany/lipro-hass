@@ -2,7 +2,7 @@
 
 **Purpose:** 建立 requirement → artifact → test → doc → phase acceptance / handoff 的统一验证闭环。
 **Status:** Formal baseline asset (`BASE-03` phase acceptance truth source)
-**Updated:** 2026-03-13
+**Updated:** 2026-03-14
 
 ## Formal Role
 
@@ -28,6 +28,7 @@
 | `SIM-*` | `tests/harness/protocol/`、`tests/fixtures/protocol_replay/`、`07.4-VALIDATION.md`、replay summaries / run summary | replay contract tests + integration harness + exporter-backed telemetry assertions + replay asset meta guards | 7.4 | `07.5 / 08` 必须 pull 同一 replay summary / authority pointer truth，不得反向定义第二套 simulator schema |
 | `GOV-*` | `FILE_MATRIX`、`AUTHORITY_MATRIX`、`PUBLIC_SURFACES`、`VERIFICATION_MATRIX`、`RESIDUAL_LEDGER`、`KILL_LIST`、`V1_1_EVIDENCE_INDEX.md`、phase closeout summaries | governance review + matrix sync proof + closeout summaries + audit summaries | 7 / 7.5 | v1.1 新资产必须同时具备 owner、authority、verification、residual/delete gate，与 Phase 8 可 pull 的稳定证据入口 |
 | `AID-*` | `tests/harness/evidence_pack/`、`scripts/export_ai_debug_evidence_pack.py`、`08-VALIDATION.md`、`08-01/02-SUMMARY.md`、`08-VERIFICATION.md`、更新后的 governance matrices / reviews | evidence-pack integration tests + authority/meta guards + governance sync proof | 8 | AI debug evidence pack 必须保持 assurance-only / pull-only；每个 section 都要能回溯 formal source，且统一继承 `07.3/07.4/07.5` 真相链 |
+| `RSC-*` | `custom_components/lipro/core/protocol/facade.py`、`custom_components/lipro/core/coordinator/{coordinator,outlet_power}.py`、`custom_components/lipro/core/device/device.py`、`tests/meta/test_public_surface_guards.py`、`09-01/02/03-SUMMARY.md`、`09-VERIFICATION.md`、更新后的 baseline/review docs | targeted protocol/runtime regressions + meta guards + full-suite proof | 9 | residual surface closure 必须同时关闭隐式 protocol root、runtime live mutable mapping 泄露与 outlet power side-write，并把剩余 compat seam 变成显式 delete-gated 残留 |
 
 ## Locked Upstream Inputs
 
@@ -55,6 +56,7 @@
 | 7.4 | baseline asset pack、`07.4-ARCHITECTURE.md`、`07.4-VALIDATION.md`、`07.3` exporter truth、protocol-boundary authority fixtures | `tests/harness/protocol/`、`tests/fixtures/protocol_replay/`、`07.4-01/02/03-SUMMARY.md`、replay report/meta guards、governance delta updates | `uv run ruff check tests/harness/protocol tests/core/api/test_protocol_replay_rest.py tests/core/mqtt/test_protocol_replay_mqtt.py tests/integration/test_protocol_replay_harness.py tests/meta/test_protocol_replay_assets.py` + `uv run pytest -q -x tests/core/api/test_protocol_replay_rest.py tests/core/mqtt/test_protocol_replay_mqtt.py tests/integration/test_protocol_replay_harness.py tests/meta/test_protocol_replay_assets.py tests/meta/test_external_boundary_authority.py tests/meta/test_external_boundary_fixtures.py` | replay harness 必须保持 assurance-only、deterministic、authority-indexed，且 telemetry assertions 只能 pull `07.3` exporter truth |
 | 7.5 | baseline asset pack、`07.3/07.4` summaries + validation evidence、`07.4-UAT.md` residual handoff、`.planning/phases/07.5-integration-governance-verification-closeout/07.5-ARCHITECTURE.md` | `07.5-01/02-SUMMARY.md`、`07.5-SUMMARY.md`、`V1_1_EVIDENCE_INDEX.md`、governance matrix deltas、updated `ROADMAP / REQUIREMENTS / STATE` | `uv run python scripts/check_architecture_policy.py --check` + `uv run python scripts/check_file_matrix.py --check` + `uv run pytest -q -x tests/meta/test_dependency_guards.py tests/meta/test_public_surface_guards.py tests/meta/test_governance_guards.py tests/meta/test_protocol_replay_assets.py` | `07.5` 只能做治理仲裁与 closeout evidence；`08` 只能 pull evidence index + 正式真源，不得重新扫描仓库拼装第二套事实 |
 | 8 | `07.3` exporter truth、`07.4` replay harness/report truth、`07.5` evidence index / governance matrices、`08-ARCHITECTURE.md`、`08-VALIDATION.md` | `tests/harness/evidence_pack/`、`scripts/export_ai_debug_evidence_pack.py`、`tests/integration/test_ai_debug_evidence_pack.py`、`tests/meta/test_evidence_pack_authority.py`、`08-01/02-SUMMARY.md`、`08-VERIFICATION.md`、governance delta updates | `uv run ruff check scripts/export_ai_debug_evidence_pack.py tests/harness/evidence_pack tests/integration/test_ai_debug_evidence_pack.py tests/meta/test_evidence_pack_authority.py` + `uv run pytest -q -x tests/integration/test_ai_debug_evidence_pack.py tests/meta/test_evidence_pack_authority.py tests/meta/test_governance_guards.py tests/meta/test_public_surface_guards.py` | AI debug evidence pack 必须保持 assurance-only / pull-only；不得新建 runtime root；只允许导出统一脱敏、可追溯、可给 AI 调试/分析的 evidence outputs |
+| 9 | `docs/COMPREHENSIVE_AUDIT_2026-03-13.md`、`09-ARCHITECTURE.md`、`09-VALIDATION.md`、baseline/review truth docs | `09-01/02/03-SUMMARY.md`、`09-UAT.md`、`09-VERIFICATION.md`、governance delta updates、updated `ROADMAP / REQUIREMENTS / STATE` | `uv run pytest -q tests/core/api/test_protocol_contract_matrix.py tests/integration/test_mqtt_coordinator_integration.py tests/meta/test_public_surface_guards.py tests/core/test_outlet_power.py tests/test_coordinator_public.py tests/platforms/test_sensor.py tests/core/test_diagnostics.py tests/meta/test_governance_guards.py tests/meta/test_dependency_guards.py` + `uv run python scripts/check_architecture_policy.py --check` + `uv run python scripts/check_file_matrix.py --check` + `uv run pytest -q` | residual surface closure 必须把 compat seams 收窄为显式、可计数、可删除的最小集合；不得回流 implicit root delegation、live mutable runtime public surface 或 `extra_data` power side-write |
 
 ## Phase 02 Exit Contract
 
@@ -74,6 +76,13 @@
 - **Required artifacts:** `.planning/baseline/TARGET_TOPOLOGY.md`、`.planning/baseline/DEPENDENCY_MATRIX.md`、`.planning/baseline/PUBLIC_SURFACES.md`、`.planning/baseline/VERIFICATION_MATRIX.md`、`.planning/baseline/AUTHORITY_MATRIX.md`、`tests/meta/test_dependency_guards.py`、`tests/meta/test_public_surface_guards.py`、`01.5-01/02/03-SUMMARY.md`。
 - **Required proof:** Phase 1 upstream closeout artifacts 已存在；baseline docs wording 无双口径；seed guards 可作为最小 runnable proof；summary 记录 governance docs 的变更或无变更原因。
 - **Unblock effect:** `Phase 2`、`2.5`、`2.6`、`3` 从此必须把 baseline asset pack 视为正式 handoff contract，而不是只引用 phase prose。
+
+## Phase 09 Exit Contract
+
+- **Required artifacts:** `custom_components/lipro/core/protocol/{facade,__init__,compat}.py`、`custom_components/lipro/{__init__,config_flow.py}`、`custom_components/lipro/core/{__init__,api/__init__,mqtt/__init__}.py`、`custom_components/lipro/core/coordinator/{coordinator.py,outlet_power.py}`、`custom_components/lipro/core/device/device.py`、`custom_components/lipro/{sensor.py}`、`custom_components/lipro/control/diagnostics_surface.py`、`09-01/02/03-SUMMARY.md`、`09-UAT.md`、`09-VERIFICATION.md`，以及更新后的 baseline / review truth docs。
+- **Required governance proof:** `PUBLIC_SURFACES.md`、`AUTHORITY_MATRIX.md`、`VERIFICATION_MATRIX.md`、`FILE_MATRIX.md`、`RESIDUAL_LEDGER.md` 与 `KILL_LIST.md` 必须同步反映 explicit protocol root、remaining compat seams、read-only coordinator device surface 与 formal outlet-power primitive。
+- **Required runnable proof:** 至少保持 `uv run pytest -q tests/core/api/test_protocol_contract_matrix.py tests/integration/test_mqtt_coordinator_integration.py tests/meta/test_public_surface_guards.py tests/core/test_outlet_power.py tests/test_coordinator_public.py tests/platforms/test_sensor.py tests/core/test_diagnostics.py tests/meta/test_governance_guards.py tests/meta/test_dependency_guards.py`、`uv run python scripts/check_architecture_policy.py --check`、`uv run python scripts/check_file_matrix.py --check` 与 `uv run pytest -q` 通过。
+- **Unblock effect:** `Phase 9` 完成后，仓库只剩显式登记的 compat shell / seam（如 `core.api.LiproClient`、`LiproProtocolFacade.get_device_list`、`LiproMqttFacade.raw_client`）；后续 cleanup phase 只需围绕这些可计数残留继续删除，而不是再次裁决正式主链。
 
 ## Governance Update Triggers
 

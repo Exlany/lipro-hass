@@ -46,14 +46,12 @@ def build_device_diagnostics(
     if device.is_mesh_gateway:
         device_info["is_mesh_gateway"] = True
 
-    if device.extra_data:
-        safe_extra: dict[str, Any] = {}
-        if "power_info" in device.extra_data:
-            safe_extra["power_info"] = device.extra_data["power_info"]
-        if "gateway_device_id" in device.extra_data:
-            safe_extra["gateway_device_id"] = "**REDACTED**"
-        if safe_extra:
-            device_info["extra_data"] = safe_extra
+    outlet_power_info = device.outlet_power_info
+    if outlet_power_info is not None:
+        device_info["outlet_power_info"] = dict(outlet_power_info)
+
+    if device.extra_data and "gateway_device_id" in device.extra_data:
+        device_info["extra_data"] = {"gateway_device_id": "**REDACTED**"}
 
     return device_info
 

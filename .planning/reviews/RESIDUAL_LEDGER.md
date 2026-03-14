@@ -6,8 +6,8 @@
 |--------|------------------|-------------|----------------|----------------|
 | API compat wrappers | `custom_components/lipro/core/api/client.py` 中 `_build_compat_list_payload`、`get_device_list`、`query_iot_devices`、`query_outlet_devices`、`query_group_devices`，以及 `power_service.py` 的多行 `{"data": ...}` shaping | Phase 2 | `02-04 compat shell cleanup`（API/Protocol owner 主责，Runtime/Coordinator owner 迁移消费者） | `LiproRestFacade` canonical outputs 被 direct consumers 接受，compat wrappers 从 `LiproClient` / helper 层移除 |
 | API mixin inheritance | `_ClientBase` temporary typing anchor、`_ClientPacingMixin` / `_ClientAuthRecoveryMixin` / `_ClientTransportMixin` compat shells、`_ClientEndpointsMixin` 与 endpoint mixin helper classes | Phase 2 | `02-04 demixin closeout handoff`（API owner 主责，Phase 2.5/6 继续清退） | 生产路径已脱离 mixin 根；剩余 mixin 仅限 helper-test / patch seam / typing 过渡角色，并在后续相位被删除 |
-| Legacy public names | `custom_components.lipro.core.api.LiproClient`、`.core.LiproClient` 及 entry/config-flow/runtime 邻接 seam 中的 legacy constructor name | Phase 2 | `02-04 public-surface demotion`（API owner 收口；Entry/Auth owner 与 Runtime owner 迁移下游） | 内部类型与正式 public-root 叙事切到 `LiproRestFacade`；`LiproClient` 仅剩可删除 compat shell / factory alias |
-| Split-root protocol surfaces | `LiproRestFacade` / `LiproMqttClient` 并行作为 runtime-facing protocol entry 的剩余认知，以及 `core/mqtt/__init__.py` 的旧导出方向 | Phase 2.5 | `02.5 unified protocol root closeout`（Protocol owner 主责，Runtime owner 配合迁移） | runtime-facing allowed consumers 只依赖 `LiproProtocolFacade`；child façade / compat shell 不再被当作正式 public root |
+| Legacy public names | `custom_components.lipro.core.api.LiproClient` 显式 compat shell（root / flow / core 包级再导出已于 Phase 9 收口） | Phase 2 | `02-04 public-surface demotion`（API owner 收口；Entry/Auth owner 与 Runtime owner 迁移下游） | `LiproClient` 仅剩 `core.api` 显式 compat shell；当 direct tests/consumers 不再依赖 legacy constructor name 时删除 |
+| Split-root protocol surfaces | `custom_components/lipro/core/protocol/facade.py` 中 `LiproMqttFacade.raw_client` compat/test seam，以及 direct transport class 的 legacy naming | Phase 2.5 | `02.5 unified protocol root closeout`（Protocol owner 主责，Runtime owner 配合迁移） | runtime-facing allowed consumers 只依赖 `LiproProtocolFacade`；剩余 concrete transport seam 只限显式 compat/test 使用并带 delete gate |
 | Control-plane scatter | diagnostics / system_health / service wiring 分散 | Phase 3 | `Phase 3 control-plane closeout` | control plane public surface 收口 |
 | Capability compat public name | `custom_components/lipro/core/device/capabilities.py` 继续提供 `DeviceCapabilities` 旧导入名 | Phase 4 | `04-03 capability compat cleanup` | 直接消费者改用 `CapabilitySnapshot` / `CapabilityRegistry`，旧 public name 不再必要 |
 | External-boundary advisory naming | firmware remote advisory / support payload generated field naming 仍带 legacy semantics | Phase 2.6 | `02.6 external-boundary closeout` | authority truth 已固定后完成术语清理 |
@@ -119,3 +119,12 @@
 - 本 phase **无新增 residual family**：AI debug evidence pack 只 pull `07.3 / 07.4 / 07.5` 正式真源，不扩大 replay corpus，也不新建第二套 telemetry / governance truth。
 - `entry_ref` / `device_ref` 的报告内稳定、跨报告不可关联策略继续继承 `07.3` exporter 裁决；这属于既有政策的消费，不新增新的隐含残留。
 - 本 phase **无新增 compat shell / file-level kill target**；evidence-pack tooling 与导出产物仅作为 assurance-only artifacts 保留。
+
+## Phase 09 Residual Delta
+
+- `LiproProtocolFacade` 与 `LiproMqttFacade` 的 `__getattr__` / `__dir__` 隐式扩面已关闭；formal protocol contract 改为显式 methods/properties，child surface 不再反向定义 root。
+- `custom_components/lipro/__init__.py`、`config_flow.py`、`core/__init__.py` 与 `core/mqtt/__init__.py` 的 legacy public-name / compat exports 已关闭；`Legacy public names` residual 已缩窄为 `core.api.LiproClient` 显式 compat shell、`LiproProtocolFacade.get_device_list` compat wrapper，以及 direct transport module / `LiproMqttFacade.raw_client` seam。
+- protocol root 的 implicit child-defined surface 已关闭后，`Split-root protocol surfaces` residual 只剩 `raw_client` concrete-transport seam；该 seam 仅作为显式、可计数、可删除的 compat/test seam 存在。
+- runtime public surface 已收口：`Coordinator.devices` 改为 read-only mapping，`LiproDevice.outlet_power_info` 成为 outlet power formal primitive，sensor/diagnostics/runtime 统一读取该真源。
+- `extra_data["power_info"]` 已退出正式 outlet-power truth 角色，仅设备对象内部保留 legacy read fallback，以承接旧夹具/旧构造。
+- 本 phase **未关闭全部 compat residual**：现存 residual 只能继续收窄，不能回流为 formal public surface。

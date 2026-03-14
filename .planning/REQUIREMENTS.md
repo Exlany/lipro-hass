@@ -35,10 +35,10 @@
 
 ### Residual Surface Closure
 
-- [ ] **RSC-01**: `LiproProtocolFacade` 的正式 public surface 必须显式声明；child façade 不得再通过 `__getattr__` / `__dir__` 隐式定义 protocol root contract
-- [ ] **RSC-02**: concrete transport / compat shell 只能存在于显式 transitional seam；`raw_client` 与根模块 compat exports 不得继续作为正式 public surface 扩散
-- [ ] **RSC-03**: runtime 对设备集合的正式访问不得暴露 live mutable dict；平台/diagnostics/helpers 必须改走只读 view 或正式 service contract
-- [ ] **RSC-04**: outlet power 与类似补充状态必须通过正式 primitive 承载，禁止以 `extra_data` 旁写充当正式路径；相关 governance / guards / residual delete gate 必须同步收口
+- [x] **RSC-01**: `LiproProtocolFacade` 的正式 public surface 必须显式声明；child façade 不得再通过 `__getattr__` / `__dir__` 隐式定义 protocol root contract
+- [x] **RSC-02**: concrete transport / compat shell 只能存在于显式 transitional seam；`raw_client` 与根模块 compat exports 不得继续作为正式 public surface 扩散
+- [x] **RSC-03**: runtime 对设备集合的正式访问不得暴露 live mutable dict；平台/diagnostics/helpers 必须改走只读 view 或正式 service contract
+- [x] **RSC-04**: outlet power 与类似补充状态必须通过正式 primitive 承载，禁止以 `extra_data` 旁写充当正式路径；相关 governance / guards / residual delete gate 必须同步收口
 
 ## Cross-Phase Arbitration
 
@@ -82,14 +82,14 @@
 | GOV-07 | Phase 7.5 | Complete |
 | AID-01 | Phase 8 | Complete |
 | AID-02 | Phase 8 | Complete |
-| RSC-01 | Phase 9 | Planned |
-| RSC-02 | Phase 9 | Planned |
-| RSC-03 | Phase 9 | Planned |
-| RSC-04 | Phase 9 | Planned |
+| RSC-01 | Phase 9 | Complete |
+| RSC-02 | Phase 9 | Complete |
+| RSC-03 | Phase 9 | Complete |
+| RSC-04 | Phase 9 | Complete |
 
 **Coverage:**
 - active milestone requirements: 17 total
 - mapped to phases: 17
 - unmapped: 0 ✓
 
-*Last updated: 2026-03-14 after planning Phase 9 residual surface closure*
+*Last updated: 2026-03-14 after completing Phase 9 residual surface closure*

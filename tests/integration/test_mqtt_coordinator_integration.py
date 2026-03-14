@@ -9,6 +9,7 @@ import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.lipro.const.base import DOMAIN
+from custom_components.lipro.core.protocol.facade import LiproMqttFacade
 
 _CONFIG_ENTRY_DATA = {
     "phone": "13800000000",
@@ -42,15 +43,42 @@ class _FakeMqttClient:
         self.on_connect = on_connect
         self.on_disconnect = on_disconnect
         self.on_error = on_error
-        self.start = AsyncMock()
-        self.stop = AsyncMock()
-        self.sync_subscriptions = AsyncMock()
+        self.is_connected = False
+        self.last_error = None
+        self.subscribed_devices: set[str] = set()
+        self.start = AsyncMock(side_effect=self._start)
+        self.stop = AsyncMock(side_effect=self._stop)
+        self.sync_subscriptions = AsyncMock(side_effect=self._sync_subscriptions)
         self.wait_until_connected = AsyncMock(side_effect=self._wait_until_connected)
 
-    async def _wait_until_connected(self) -> bool:
+    @property
+    def subscribed_count(self) -> int:
+        return len(self.subscribed_devices)
+
+    async def _start(self, device_ids: list[str]) -> None:
+        self.subscribed_devices = set(device_ids)
+
+    async def _stop(self) -> None:
+        self.is_connected = False
+
+    async def _sync_subscriptions(self, device_ids: set[str]) -> None:
+        self.subscribed_devices = set(device_ids)
+
+    async def _wait_until_connected(self, timeout: float | None = None) -> bool:
+        self.is_connected = True
         if self.on_connect is not None:
             self.on_connect()
         return True
+
+
+class _FakeMqttFacade(LiproMqttFacade):
+    """Test façade that preserves explicit raw-client access."""
+
+    def __init__(self, **kwargs) -> None:
+        self._client = _FakeMqttClient(**kwargs)
+        self._session_state = MagicMock()
+        self._telemetry = MagicMock()
+        self._diagnostics_context = MagicMock()
 
 
 def _make_device(
@@ -329,7 +357,7 @@ async def test_async_setup_mqtt_message_callback_bridges_to_runtime_and_coordina
     }
 
     mock_lipro_api_client.build_mqtt_facade = MagicMock(
-        side_effect=lambda **kwargs: _FakeMqttClient(**kwargs)
+        side_effect=lambda **kwargs: _FakeMqttFacade(**kwargs)
     )
 
     with (
@@ -347,7 +375,8 @@ async def test_async_setup_mqtt_message_callback_bridges_to_runtime_and_coordina
     assert ok is True
     mqtt_client = coordinator._runtimes.mqtt._mqtt_client
     assert mqtt_client is not None
-    raw_client = getattr(mqtt_client, "raw_client", mqtt_client)
+    assert isinstance(mqtt_client, LiproMqttFacade)
+    raw_client = mqtt_client.raw_client
     assert isinstance(raw_client, _FakeMqttClient)
 
     assert raw_client.on_message is not None
@@ -375,7 +404,7 @@ async def test_async_setup_mqtt_client_callbacks_drive_runtime_connection_state(
     }
 
     mock_lipro_api_client.build_mqtt_facade = MagicMock(
-        side_effect=lambda **kwargs: _FakeMqttClient(**kwargs)
+        side_effect=lambda **kwargs: _FakeMqttFacade(**kwargs)
     )
 
     with (
@@ -393,7 +422,8 @@ async def test_async_setup_mqtt_client_callbacks_drive_runtime_connection_state(
     assert ok is True
     mqtt_client = coordinator._runtimes.mqtt._mqtt_client
     assert mqtt_client is not None
-    raw_client = getattr(mqtt_client, "raw_client", mqtt_client)
+    assert isinstance(mqtt_client, LiproMqttFacade)
+    raw_client = mqtt_client.raw_client
     assert isinstance(raw_client, _FakeMqttClient)
     assert coordinator._runtimes.mqtt is not None
     assert coordinator._runtimes.mqtt.is_connected

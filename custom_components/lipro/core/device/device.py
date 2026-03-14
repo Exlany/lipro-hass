@@ -46,6 +46,9 @@ class LiproDevice:
     _last_mqtt_update_at: float = field(
         default=0.0, init=False, repr=False, compare=False
     )
+    _outlet_power_info: dict[str, Any] | None = field(
+        default=None, init=False, repr=False, compare=False
+    )
     _delegated_attributes: ClassVar[dict[str, str]] = DEVICE_DELEGATED_ATTRIBUTES
 
     identity = property(device_views.identity)
@@ -73,6 +76,22 @@ class LiproDevice:
     def extras(self) -> DeviceExtras:
         """Return device-specific structured extras and cached payloads."""
         return device_runtime.get_device_extras(self)
+
+    @property
+    def outlet_power_info(self) -> dict[str, Any] | None:
+        """Return the formal outlet-power primitive with legacy fallback."""
+        if self._outlet_power_info is not None:
+            return self._outlet_power_info
+        legacy_power_info = self.extra_data.get("power_info")
+        if isinstance(legacy_power_info, dict):
+            return legacy_power_info
+        return None
+
+    @outlet_power_info.setter
+    def outlet_power_info(self, value: dict[str, Any] | None) -> None:
+        """Persist the formal outlet-power primitive and clear legacy side-car state."""
+        self._outlet_power_info = None if value is None else dict(value)
+        self.extra_data.pop("power_info", None)
 
     @property
     def is_online(self) -> bool:

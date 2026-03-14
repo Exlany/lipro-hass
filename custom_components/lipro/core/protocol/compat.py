@@ -4,7 +4,8 @@ from __future__ import annotations
 
 TRANSITIONAL_PROTOCOL_PUBLIC_SURFACES = (
     "LiproClient",
-    "LiproMqttClient",
+    "LiproProtocolFacade.get_device_list",
+    "LiproMqttFacade.raw_client",
 )
 
 

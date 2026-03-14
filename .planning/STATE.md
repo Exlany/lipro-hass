@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: protocol-fidelity-operability
-status: planning
-last_updated: "2026-03-14T00:50:00Z"
+status: completed
+last_updated: "2026-03-14T03:30:00Z"
 progress:
   total_phases: 7
-  completed_phases: 6
+  completed_phases: 7
   total_plans: 17
-  completed_plans: 14
+  completed_plans: 17
 ---
 
 # Project State
@@ -19,7 +19,7 @@ See: `.planning/PROJECT.md`
 
 **Current milestone:** `v1.1 Protocol Fidelity & Operability`
 **Core value:** 在既有北极星单一主链基础上，把 fidelity / enforcement / telemetry / replay / AI-debug evidence 做成下一层正式能力。
-**Current mode:** `Phase 9 planning`；基于全量审查报告中已登记 residual，现进入 residual-surface closure 的规划与验证循环。
+**Current mode:** `Phase 9 completed`；protocol/runtime residual surface 已完成执行、治理回写与回归验证，可进入 `$gsd-verify-work 9`。
 
 ## Current Position
 
@@ -31,7 +31,7 @@ See: `.planning/PROJECT.md`
 - `Phase 7.4` 已完成：authority-indexed replay manifests、deterministic driver、REST/MQTT replay assertions、replay run summary 与 meta guards 已形成 assurance 资产
 - `Phase 7.5` 已完成：governance matrix sync、`V1_1_EVIDENCE_INDEX.md`、`07.5-SUMMARY.md`、residual/delete gate closeout arbitration 已落地
 - `Phase 8` 已完成：AI debug evidence pack formal home、唯一 exporter entrypoint、integration/meta guards 与 governance handoff 已全部落地
-- `Phase 9` 已立项：将把 protocol/runtime residual surface、compat export 与 outlet power side-write 收口到正式 contract
+- `Phase 9` 已完成：protocol explicit root contract、compat export 收口、runtime read-only device view 与 outlet-power primitive 已全部落地
 
 ## Active Milestone Scope
 
@@ -58,7 +58,7 @@ See: `.planning/PROJECT.md`
 2. `07.4` 只锁定 replay truth（manifests / deterministic driver / replay assertions / run summary）
 3. `07.5` 只锁定 governance closeout（matrices / evidence index / residual / delete gate）
 4. `08` 只锁定 AI debug packaging（collector / schema / exporter entrypoint）
-5. `09` 只锁定 residual surface closure（protocol/runtime 收口、compat seam 压缩、formal primitive / read-only view 与 delete gate 回写）
+5. `09` 已完成 residual surface closure（protocol/runtime 收口、compat seam 压缩、formal primitive / read-only view 与 delete gate 回写）
 
 ## Governance Truth Sources
 
@@ -75,8 +75,8 @@ See: `.planning/PROJECT.md`
 
 ## Recommended Next Command
 
-1. `$gsd-execute-phase 9` —— 执行 residual surface closure 的三波计划
-2. `$gsd-verify-work 9` —— 在执行完成后验收 protocol/runtime 收口是否真的达到审查目标
+1. `$gsd-verify-work 9` —— 对话式验收 protocol/runtime residual closure 的实际效果
+2. 如需继续清理 compat seam，可在 verify 后为 `core.api.LiproClient` / `LiproMqttFacade.raw_client` 再开后续 phase
 3. 如需回看 Phase 9 的输入证据，请阅读 `docs/COMPREHENSIVE_AUDIT_2026-03-13.md` 与 `.planning/reviews/RESIDUAL_LEDGER.md`
 
 ## Session Continuity

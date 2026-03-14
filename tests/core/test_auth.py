@@ -11,9 +11,9 @@ import pytest
 
 from custom_components.lipro.core.api import (
     LiproAuthError,
-    LiproClient,
     LiproRefreshTokenExpiredError,
 )
+from custom_components.lipro.core.protocol import LiproProtocolFacade
 from custom_components.lipro.core.auth import LiproAuthManager
 
 
@@ -22,7 +22,7 @@ class TestLiproAuthManagerInit:
 
     def test_init(self):
         """Test initialization."""
-        client = MagicMock(spec=LiproClient)
+        client = MagicMock(spec=LiproProtocolFacade)
         client.access_token = None  # Explicitly set to None
         manager = LiproAuthManager(client)
 
@@ -34,7 +34,7 @@ class TestLiproAuthManagerInit:
 
     def test_init_registers_callback(self):
         """Test that init registers token refresh callback."""
-        client = MagicMock(spec=LiproClient)
+        client = MagicMock(spec=LiproProtocolFacade)
         client.access_token = None
 
         LiproAuthManager(client)
@@ -43,7 +43,7 @@ class TestLiproAuthManagerInit:
 
     def test_notify_tokens_updated_callback_failure_is_suppressed(self, caplog):
         """Token-updated callback failures should not raise."""
-        client = MagicMock(spec=LiproClient)
+        client = MagicMock(spec=LiproProtocolFacade)
         client.access_token = None
         manager = LiproAuthManager(client)
 
@@ -63,7 +63,7 @@ class TestLiproAuthManagerCredentials:
 
     def test_set_credentials(self):
         """Test setting credentials always stores MD5 hash."""
-        client = MagicMock(spec=LiproClient)
+        client = MagicMock(spec=LiproProtocolFacade)
         manager = LiproAuthManager(client)
 
         manager.set_credentials("13800000000", "password123")
@@ -78,7 +78,7 @@ class TestLiproAuthManagerCredentials:
 
     def test_set_tokens(self):
         """Test setting tokens."""
-        client = MagicMock(spec=LiproClient)
+        client = MagicMock(spec=LiproProtocolFacade)
         manager = LiproAuthManager(client)
 
         manager.set_tokens(
@@ -93,7 +93,7 @@ class TestLiproAuthManagerCredentials:
 
     def test_set_tokens_auto_expiry(self):
         """Test setting tokens with auto-calculated expiry."""
-        client = MagicMock(spec=LiproClient)
+        client = MagicMock(spec=LiproProtocolFacade)
         manager = LiproAuthManager(client)
 
         before = time.time()
@@ -106,7 +106,7 @@ class TestLiproAuthManagerCredentials:
 
     def test_set_tokens_does_not_mark_recent_refresh(self):
         """Restored tokens should not suppress first runtime 401 refresh."""
-        client = MagicMock(spec=LiproClient)
+        client = MagicMock(spec=LiproProtocolFacade)
         manager = LiproAuthManager(client)
 
         manager.set_tokens("access", "refresh")
@@ -120,7 +120,7 @@ class TestLiproAuthManagerLogin:
     @pytest.mark.asyncio
     async def test_login_success(self):
         """Test successful login."""
-        client = MagicMock(spec=LiproClient)
+        client = MagicMock(spec=LiproProtocolFacade)
         client.login = AsyncMock(
             return_value={
                 "access_token": "new_access",
@@ -142,7 +142,7 @@ class TestLiproAuthManagerLogin:
     @pytest.mark.asyncio
     async def test_login_resets_expiry(self):
         """Test that login resets adaptive expiry."""
-        client = MagicMock(spec=LiproClient)
+        client = MagicMock(spec=LiproProtocolFacade)
         client.login = AsyncMock(
             return_value={
                 "access_token": "token",
@@ -168,7 +168,7 @@ class TestLiproAuthManagerRefresh:
     @pytest.mark.asyncio
     async def test_refresh_token_success(self):
         """Test successful token refresh."""
-        client = MagicMock(spec=LiproClient)
+        client = MagicMock(spec=LiproProtocolFacade)
         client.refresh_access_token = AsyncMock(
             return_value={
                 "access_token": "new_access",
@@ -187,7 +187,7 @@ class TestLiproAuthManagerRefresh:
     @pytest.mark.asyncio
     async def test_refresh_token_expired_with_credentials(self):
         """Test refresh token expired triggers re-login."""
-        client = MagicMock(spec=LiproClient)
+        client = MagicMock(spec=LiproProtocolFacade)
         client.refresh_access_token = AsyncMock(
             side_effect=LiproAuthError("Token expired", 20002)
         )
@@ -214,7 +214,7 @@ class TestLiproAuthManagerRefresh:
     @pytest.mark.asyncio
     async def test_refresh_token_expired_no_credentials(self):
         """Test refresh token expired without credentials raises error."""
-        client = MagicMock(spec=LiproClient)
+        client = MagicMock(spec=LiproProtocolFacade)
         client.refresh_access_token = AsyncMock(
             side_effect=LiproAuthError("Token expired", 20002)
         )
@@ -228,7 +228,7 @@ class TestLiproAuthManagerRefresh:
     @pytest.mark.asyncio
     async def test_relogin_fails_with_invalid_credentials(self):
         """Test behavior when re-login fails due to invalid credentials (e.g., password changed)."""
-        client = MagicMock(spec=LiproClient)
+        client = MagicMock(spec=LiproProtocolFacade)
         client.refresh_access_token = AsyncMock(
             side_effect=LiproAuthError("Token expired", 20002)
         )
@@ -248,7 +248,7 @@ class TestLiproAuthManagerRefresh:
     @pytest.mark.asyncio
     async def test_refresh_other_auth_error_with_credentials(self):
         """Test other auth errors trigger re-login."""
-        client = MagicMock(spec=LiproClient)
+        client = MagicMock(spec=LiproProtocolFacade)
         client.refresh_access_token = AsyncMock(
             side_effect=LiproAuthError("Some error", 999)
         )
@@ -275,7 +275,7 @@ class TestLiproAuthManagerEnsureValidToken:
     @pytest.mark.asyncio
     async def test_ensure_valid_token_not_authenticated(self):
         """Test ensure_valid_token when not authenticated."""
-        client = MagicMock(spec=LiproClient)
+        client = MagicMock(spec=LiproProtocolFacade)
         client.access_token = None
         client.login = AsyncMock(
             return_value={
@@ -294,7 +294,7 @@ class TestLiproAuthManagerEnsureValidToken:
     @pytest.mark.asyncio
     async def test_ensure_valid_token_no_credentials(self):
         """Test ensure_valid_token without credentials raises error."""
-        client = MagicMock(spec=LiproClient)
+        client = MagicMock(spec=LiproProtocolFacade)
         client.access_token = None
 
         manager = LiproAuthManager(client)
@@ -305,7 +305,7 @@ class TestLiproAuthManagerEnsureValidToken:
     @pytest.mark.asyncio
     async def test_ensure_valid_token_not_expired(self):
         """Test ensure_valid_token when token is still valid."""
-        client = MagicMock(spec=LiproClient)
+        client = MagicMock(spec=LiproProtocolFacade)
         client.access_token = "valid_token"
 
         manager = LiproAuthManager(client)
@@ -318,7 +318,7 @@ class TestLiproAuthManagerEnsureValidToken:
     @pytest.mark.asyncio
     async def test_ensure_valid_token_expiring_soon(self):
         """Test ensure_valid_token refreshes when expiring soon."""
-        client = MagicMock(spec=LiproClient)
+        client = MagicMock(spec=LiproProtocolFacade)
         client.access_token = "expiring_token"
         client.refresh_access_token = AsyncMock(
             return_value={
@@ -340,7 +340,7 @@ class TestLiproAuthManagerAdaptiveExpiry:
 
     def test_adjust_expiry_on_401(self):
         """Test expiry adjustment when 401 received."""
-        client = MagicMock(spec=LiproClient)
+        client = MagicMock(spec=LiproProtocolFacade)
         manager = LiproAuthManager(client)
 
         # Simulate token was refreshed 100 seconds ago
@@ -354,7 +354,7 @@ class TestLiproAuthManagerAdaptiveExpiry:
 
     def test_adjust_expiry_minimum(self):
         """Test expiry doesn't go below minimum."""
-        client = MagicMock(spec=LiproClient)
+        client = MagicMock(spec=LiproProtocolFacade)
         client.access_token = None
         manager = LiproAuthManager(client)
 
@@ -378,7 +378,7 @@ class TestLiproAuthManagerDoubleCheckedLocking:
     @pytest.mark.asyncio
     async def test_concurrent_refresh_only_once(self):
         """Test that concurrent 401s only trigger one refresh."""
-        client = MagicMock(spec=LiproClient)
+        client = MagicMock(spec=LiproProtocolFacade)
         client.access_token = "token"
         client.refresh_access_token = AsyncMock(
             return_value={
@@ -406,7 +406,7 @@ class TestLiproAuthManagerDoubleCheckedLocking:
     @pytest.mark.asyncio
     async def test_skip_recent_refresh(self):
         """Test that refresh is skipped if done recently."""
-        client = MagicMock(spec=LiproClient)
+        client = MagicMock(spec=LiproProtocolFacade)
         client.access_token = "token"
         client.refresh_access_token = AsyncMock(
             return_value={
@@ -430,7 +430,7 @@ class TestLiproAuthManagerGetAuthData:
 
     def test_get_auth_data(self):
         """Test getting auth data for storage."""
-        client = MagicMock(spec=LiproClient)
+        client = MagicMock(spec=LiproProtocolFacade)
         client.access_token = "access123"
         client.refresh_token = "refresh456"
         client.user_id = 10001
@@ -453,7 +453,7 @@ class TestLiproAuthManagerProperties:
 
     def test_is_authenticated(self):
         """Test is_authenticated property."""
-        client = MagicMock(spec=LiproClient)
+        client = MagicMock(spec=LiproProtocolFacade)
 
         manager = LiproAuthManager(client)
 
@@ -467,7 +467,7 @@ class TestLiproAuthManagerProperties:
 
     def test_token_expires_at(self):
         """Test token_expires_at property."""
-        client = MagicMock(spec=LiproClient)
+        client = MagicMock(spec=LiproProtocolFacade)
         manager = LiproAuthManager(client)
 
         manager._token_expires_at = 1000167890.0
@@ -476,7 +476,7 @@ class TestLiproAuthManagerProperties:
 
     def test_current_expiry_seconds(self):
         """Test current_expiry_seconds property."""
-        client = MagicMock(spec=LiproClient)
+        client = MagicMock(spec=LiproProtocolFacade)
         manager = LiproAuthManager(client)
 
         manager._current_expiry_seconds = 1800
@@ -489,7 +489,7 @@ class TestLiproAuthManagerEdgeCases:
 
     def test_set_credentials_with_already_hashed_password(self):
         """Test set_credentials with pre-hashed password stores as-is."""
-        client = MagicMock(spec=LiproClient)
+        client = MagicMock(spec=LiproProtocolFacade)
         manager = LiproAuthManager(client)
 
         hashed = "e10adc3949ba59abbe56e057f20f883e"
@@ -501,7 +501,7 @@ class TestLiproAuthManagerEdgeCases:
     @pytest.mark.asyncio
     async def test_refresh_other_auth_error_no_credentials_raises(self):
         """Test non-expired auth error without credentials re-raises."""
-        client = MagicMock(spec=LiproClient)
+        client = MagicMock(spec=LiproProtocolFacade)
         client.refresh_access_token = AsyncMock(
             side_effect=LiproAuthError("Some error", 999)
         )
@@ -515,7 +515,7 @@ class TestLiproAuthManagerEdgeCases:
     @pytest.mark.asyncio
     async def test_concurrent_ensure_valid_token_only_one_refresh(self):
         """Test concurrent ensure_valid_token calls only trigger one refresh."""
-        client = MagicMock(spec=LiproClient)
+        client = MagicMock(spec=LiproProtocolFacade)
         client.access_token = "expiring_token"
         client.refresh_access_token = AsyncMock(
             return_value={
@@ -541,7 +541,7 @@ class TestLiproAuthManagerEdgeCases:
 
     def test_set_tokens_with_zero_expires_at_uses_default(self):
         """Test set_tokens with expires_at=0 calculates default expiry."""
-        client = MagicMock(spec=LiproClient)
+        client = MagicMock(spec=LiproProtocolFacade)
         manager = LiproAuthManager(client)
 
         before = time.time()
@@ -552,7 +552,7 @@ class TestLiproAuthManagerEdgeCases:
 
     def test_set_tokens_with_none_expires_at_uses_default(self):
         """Test set_tokens with expires_at=None calculates default expiry."""
-        client = MagicMock(spec=LiproClient)
+        client = MagicMock(spec=LiproProtocolFacade)
         manager = LiproAuthManager(client)
 
         before = time.time()
@@ -562,7 +562,7 @@ class TestLiproAuthManagerEdgeCases:
 
     def test_adjust_expiry_no_change_when_after_expected(self):
         """Test _adjust_expiry_on_401 doesn't change when 401 comes after expected expiry."""
-        client = MagicMock(spec=LiproClient)
+        client = MagicMock(spec=LiproProtocolFacade)
         manager = LiproAuthManager(client)
 
         original_expiry = 3600

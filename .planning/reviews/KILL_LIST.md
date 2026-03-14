@@ -12,9 +12,10 @@
 | legacy endpoint mixin classes | `custom_components/lipro/core/api/endpoints/{auth,commands,devices,misc,payloads,schedule,status}.py` | `02-03 endpoint collaborator migration` | Phase 2 | 各 endpoint / payload helper 已迁成 explicit collaborators / normalizers | 已登记，未删除 |
 | `_build_compat_list_payload` | `custom_components/lipro/core/api/client.py` | `02-04 compat shell cleanup` | Phase 2 | direct consumers 不再要求 `{"data": [...]}` envelope | 已登记，未删除 |
 | legacy compat wrapper methods | `custom_components/lipro/core/api/client.py::{get_device_list,query_iot_devices,query_outlet_devices,query_group_devices}` | `02-04 compat shell cleanup` | Phase 2 | runtime / tests 改用 canonical façade outputs 或统一 compat adapter |
-| `LiproClient` 作为正式 REST root name | `custom_components/lipro/core/api/__init__.py` 及其再导出链 | `02-04 public-surface demotion`（与 Phase 2.5 handoff 对齐） | Phase 2.5+ | `PUBLIC_SURFACES.md`、downstream imports 与 direct consumer tests 已切换到 `LiproRestFacade` / unified protocol surface | 已登记，未删除 |
-| `LiproMqttClient` 作为正式 MQTT root name | `custom_components/lipro/core/mqtt/__init__.py` 及其再导出链 | `02.5 unified-root closeout` | Phase 2.5 | `LiproMqttFacade` 成为正式 child façade，runtime-facing consumers 改面向 `LiproProtocolFacade` | 已登记，未删除 |
-| split-root protocol public semantics | runtime / tests 中并行感知 `LiproRestFacade` 与 `LiproMqttClient` 的入口语义 | `02.5 unified-root closeout` | Phase 2.5 | `PUBLIC_SURFACES.md` 与 runtime-facing consumers 只承认 `LiproProtocolFacade` 为正式协议根 | 已登记，未删除 |
+| `LiproClient` 作为 legacy constructor name | `custom_components/lipro/core/api/__init__.py` | `02-04 public-surface demotion`（与 Phase 9 handoff 对齐） | Phase 9+ | 只剩 `core.api` 显式 compat shell；direct tests/consumers 完成迁移后删除 | 已登记，未删除 |
+| `LiproMqttClient` 作为 legacy transport root name | `custom_components/lipro/core/mqtt/mqtt_client.py` 与 `LiproMqttFacade.raw_client` seam | `02.5 unified-root closeout` | Phase 9+ | integration/tests 不再需要 concrete transport seam，且 package-level public export 已收口 | 已登记，未删除 |
+| `LiproMqttFacade.raw_client` compat seam | `custom_components/lipro/core/protocol/facade.py` | `09 residual surface closure` | Phase 9+ | runtime/integration assertions 改用 formal child façade，不再需要 concrete transport object | 已登记，未删除 |
+| split-root protocol public semantics | runtime / tests 中并行感知 `LiproRestFacade` 与 `LiproMqttClient` 的入口语义 | `02.5 unified-root closeout` | Phase 2.5 | `PUBLIC_SURFACES.md` 与 runtime-facing consumers 只承认 `LiproProtocolFacade` 为正式协议根 | 已关闭（Phase 9：implicit root delegation and package-level MQTT root export removed） |
 | 多行 power payload 的 compat wrapping | `custom_components/lipro/core/api/power_service.py` | `02-04 compat shell cleanup` | Phase 2 | power helper 只返回 canonical rows；兼容 envelope 仅存在于 compat shell | 已登记，未删除 |
 | `services/wiring.py` 作为正式控制面根 | `custom_components/lipro/services/wiring.py` | `03 service-router convergence` | Phase 7 | `control.service_router` 及相关 tests/patch seams 全面接管，不再需要 legacy implementation carrier | 已登记，未删除 |
 | coordinator 私有 auth hook seam | `custom_components/lipro/services/execution.py` | `03/05 runtime-auth hardening` | Phase 5 | service execution 只通过正式 runtime/auth contract 获取 auth context | 已关闭（Phase 5） |
@@ -89,3 +90,10 @@
 - `08` 只新增 assurance-only evidence-pack tooling：本 phase **无新增 file-level kill target**，也不把 `tests/harness/evidence_pack/*`、`scripts/export_ai_debug_evidence_pack.py` 或导出产物误登记为删除候选。
 - 现有 delete gates 维持不变：`services/wiring.py`、legacy protocol public names、`DeviceCapabilities` compat alias 继续按既有条件收口。
 - `ai_debug_evidence_pack.json` / `ai_debug_evidence_pack.index.md` 属于可再生 assurance outputs；其 formal home 是 tooling/export chain，而不是 kill list target。
+
+## Phase 09 Status Update
+
+- `custom_components/lipro/__init__.py`、`config_flow.py`、`core/__init__.py` 与 `core/mqtt/__init__.py` 的 legacy public-name / export chain 已关闭；它们不再是 active kill target，只保留正式 adapter / helper 角色。
+- remaining protocol delete targets 只剩 `core.api.LiproClient`、`LiproProtocolFacade.get_device_list` compat seam 与 `LiproMqttFacade.raw_client` explicit seam。
+- `LiproMqttClient` kill target 已缩窄到 direct transport class 与 `LiproMqttFacade.raw_client` compat seam；删除门槛是 integration/tests 不再需要 concrete transport object。
+- `raw_client` 已显式登记为 future kill target；本 phase 没有引入新的无 gate compat，剩余 delete target 都是显式、可计数、可回归验证的 seam。

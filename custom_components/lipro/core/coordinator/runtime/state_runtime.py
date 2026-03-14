@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, Any
 from .state import StateIndexManager, StateReader, StateUpdater
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
+    from collections.abc import Callable, Mapping
 
     from ...device import LiproDevice
     from ...device.identity_index import DeviceIdentityIndex
@@ -64,8 +64,8 @@ class StateRuntime:
         """Look up a device by serial number."""
         return self._reader.get_device_by_serial(serial)
 
-    def get_all_devices(self) -> dict[str, LiproDevice]:
-        """Get all devices."""
+    def get_all_devices(self) -> Mapping[str, LiproDevice]:
+        """Get a read-only view of all devices."""
         return self._reader.get_all_devices()
 
     def get_device_count(self) -> int:

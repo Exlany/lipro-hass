@@ -33,7 +33,7 @@ def test_should_reraise_outlet_power_error_for_auth_and_connection() -> None:
     assert should_reraise_outlet_power_error(LiproApiError("invalid")) is False
 
 
-def test_apply_outlet_power_info_updates_device_extra_data() -> None:
+def test_apply_outlet_power_info_updates_device_formal_primitive() -> None:
     device = _make_device()
 
     updated = apply_outlet_power_info(
@@ -42,7 +42,9 @@ def test_apply_outlet_power_info_updates_device_extra_data() -> None:
     )
 
     assert updated is True
-    assert device.extra_data["power_info"]["nowPower"] == 42.5
+    assert device.outlet_power_info is not None
+    assert device.outlet_power_info["nowPower"] == 42.5
+    assert "power_info" not in device.extra_data
 
 
 def test_apply_outlet_power_info_with_missing_device_or_payload() -> None:

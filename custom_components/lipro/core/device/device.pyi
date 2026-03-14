@@ -28,6 +28,7 @@ class LiproDevice:
     has_unknown_physical_model: bool
     _state_cache: DeviceState | None
     _extras_cache: DeviceExtras | None
+    _outlet_power_info: dict[str, Any] | None
     _delegated_attributes: ClassVar[dict[str, str]]
 
     is_light: bool
@@ -141,6 +142,12 @@ class LiproDevice:
 
     @property
     def is_online(self) -> bool: ...
+
+    @property
+    def outlet_power_info(self) -> dict[str, Any] | None: ...
+
+    @outlet_power_info.setter
+    def outlet_power_info(self, value: dict[str, Any] | None) -> None: ...
 
     def mark_mqtt_update(self, *, timestamp: float | None = ...) -> None: ...
 

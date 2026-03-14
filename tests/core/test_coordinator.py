@@ -311,7 +311,7 @@ class TestCoordinatorRuntimeComponents:
 
         coordinator._runtimes.device.refresh_devices.assert_awaited_once_with(force=True)
         sync_subscriptions.assert_awaited_once()
-        coordinator.async_set_updated_data.assert_called_once_with(coordinator._state.devices)
+        coordinator.async_set_updated_data.assert_called_once_with(coordinator.devices)
         assert result == {"dev1": device}
         assert coordinator.devices == {"dev1": device}
 
@@ -429,7 +429,9 @@ class TestCoordinatorRuntimeComponents:
 
         await coordinator._async_run_status_polling()
 
-        assert device.extra_data["power_info"]["nowPower"] == 12.5
+        assert device.outlet_power_info is not None
+        assert device.outlet_power_info["nowPower"] == 12.5
+        assert "power_info" not in device.extra_data
         mock_lipro_api_client.fetch_outlet_power_info.assert_awaited_once_with(serial)
         coordinator._runtimes.status.mark_power_query_complete.assert_called_once_with()
         coordinator._runtimes.status.advance_outlet_power_cycle.assert_called_once_with(

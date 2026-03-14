@@ -4,7 +4,6 @@ from .anonymous_share import AnonymousShareManager, get_anonymous_share_manager
 from .api import (
     LiproApiError,
     LiproAuthError,
-    LiproClient,
     LiproConnectionError,
     LiproRateLimitError,
     LiproRefreshTokenExpiredError,
@@ -32,7 +31,6 @@ __all__ = [
     "LiproApiError",
     "LiproAuthError",
     "LiproAuthManager",
-    "LiproClient",
     "LiproConnectionError",
     "LiproDevice",
     "LiproError",

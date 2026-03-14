@@ -2,10 +2,6 @@
 
 from __future__ import annotations
 
-from .compat import (
-    TRANSITIONAL_PROTOCOL_PUBLIC_SURFACES,
-    is_transitional_protocol_surface,
-)
 from .contracts import (
     CanonicalMqttConfig,
     CanonicalProtocolContracts,
@@ -17,7 +13,6 @@ from .session import ProtocolSessionState
 from .telemetry import ProtocolTelemetry
 
 __all__ = [
-    "TRANSITIONAL_PROTOCOL_PUBLIC_SURFACES",
     "CanonicalMqttConfig",
     "CanonicalProtocolContracts",
     "LiproMqttFacade",
@@ -26,5 +21,4 @@ __all__ = [
     "ProtocolDiagnosticsContext",
     "ProtocolSessionState",
     "ProtocolTelemetry",
-    "is_transitional_protocol_surface",
 ]

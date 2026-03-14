@@ -48,6 +48,50 @@ def find_forbidden_imports(
     return violations
 
 
+def _collect_target_names(target: ast.expr) -> set[str]:
+    names: set[str] = set()
+    if isinstance(target, ast.Name):
+        names.add(target.id)
+        return names
+    if isinstance(target, (ast.Tuple, ast.List)):
+        for element in target.elts:
+            names.update(_collect_target_names(element))
+    return names
+
+
+def extract_top_level_bindings(path: Path, *, root: Path) -> list[str]:
+    """Extract top-level bound names from one module."""
+    tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+    bindings: set[str] = set()
+    type_alias = getattr(ast, "TypeAlias", None)
+
+    for node in tree.body:
+        if isinstance(node, ast.Import):
+            bindings.update(alias.asname or alias.name.split(".")[0] for alias in node.names)
+            continue
+        if isinstance(node, ast.ImportFrom):
+            bindings.update(alias.asname or alias.name for alias in node.names)
+            continue
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+            bindings.add(node.name)
+            continue
+        if isinstance(node, ast.Assign):
+            for target in node.targets:
+                bindings.update(_collect_target_names(target))
+            continue
+        if isinstance(node, ast.AnnAssign):
+            bindings.update(_collect_target_names(node.target))
+            continue
+        if type_alias is not None and isinstance(node, type_alias):
+            if isinstance(node.name, ast.Name):
+                bindings.add(node.name.id)
+
+    if not bindings:
+        message = f"Could not find top-level bindings in {path.relative_to(root)}"
+        raise AssertionError(message)
+    return sorted(bindings)
+
+
 def extract_all(path: Path, *, root: Path) -> list[str]:
     """Extract `__all__` string exports from one module."""
     tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))

@@ -11,8 +11,10 @@ Note: On Windows, this may require Microsoft C++ Build Tools.
 
 from __future__ import annotations
 
-from collections.abc import Generator
+import asyncio
+from collections.abc import Generator, Mapping
 import pathlib
+from types import MappingProxyType
 from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -108,58 +110,80 @@ def make_device():
     return _make
 
 
+class _CoordinatorDouble:
+    """Coordinator test double with a read-only public device surface."""
+
+    def __init__(self) -> None:
+        self._devices_store: dict[str, Any] = {}
+        self._devices_view = MappingProxyType(self._devices_store)
+        self._device_locks: dict[str, asyncio.Lock] = {}
+        self.last_update_success = True
+        self.async_send_command = AsyncMock(return_value=True)
+        self.async_request_refresh = AsyncMock()
+        self.async_update_listeners = MagicMock()
+        self.register_entity = MagicMock()
+        self.unregister_entity = MagicMock()
+        self.get_device = MagicMock(side_effect=lambda serial: self._devices_store.get(serial))
+        self.get_device_lock = MagicMock(side_effect=self._get_device_lock)
+        self.client = MagicMock()
+        self.client.query_ota_info = AsyncMock(return_value=[])
+        self.client.query_command_result = AsyncMock(return_value={})
+        self.client.get_city = AsyncMock(return_value={})
+        self.client.query_user_cloud = AsyncMock(return_value={})
+        self.client.fetch_body_sensor_history = AsyncMock(return_value={})
+        self.client.fetch_door_sensor_history = AsyncMock(return_value={})
+
+        async def _async_query_ota_info(**kwargs: Any) -> Any:
+            return await self.client.query_ota_info(**kwargs)
+
+        async def _async_query_command_result(**kwargs: Any) -> Any:
+            return await self.client.query_command_result(**kwargs)
+
+        async def _async_get_city() -> Any:
+            return await self.client.get_city()
+
+        async def _async_query_user_cloud() -> Any:
+            return await self.client.query_user_cloud()
+
+        async def _async_fetch_body_sensor_history(**kwargs: Any) -> Any:
+            return await self.client.fetch_body_sensor_history(**kwargs)
+
+        async def _async_fetch_door_sensor_history(**kwargs: Any) -> Any:
+            return await self.client.fetch_door_sensor_history(**kwargs)
+
+        self.async_query_ota_info = AsyncMock(side_effect=_async_query_ota_info)
+        self.async_query_command_result = AsyncMock(
+            side_effect=_async_query_command_result
+        )
+        self.async_get_city = AsyncMock(side_effect=_async_get_city)
+        self.async_query_user_cloud = AsyncMock(side_effect=_async_query_user_cloud)
+        self.async_fetch_body_sensor_history = AsyncMock(
+            side_effect=_async_fetch_body_sensor_history
+        )
+        self.async_fetch_door_sensor_history = AsyncMock(
+            side_effect=_async_fetch_door_sensor_history
+        )
+
+    @property
+    def devices(self) -> Mapping[str, Any]:
+        return self._devices_view
+
+    @devices.setter
+    def devices(self, value: Mapping[str, Any]) -> None:
+        self._devices_store = dict(value)
+        self._devices_view = MappingProxyType(self._devices_store)
+
+    def _get_device_lock(self, serial: str) -> asyncio.Lock:
+        return self._device_locks.setdefault(serial, asyncio.Lock())
+
+    def set_device(self, device: Any) -> None:
+        self._devices_store[device.serial] = device
+
+
 @pytest.fixture
 def mock_coordinator():
-    """Create a mock coordinator for testing."""
-    coordinator = MagicMock()
-    coordinator.devices = {}
-    coordinator.last_update_success = True
-    coordinator.async_send_command = AsyncMock(return_value=True)
-    coordinator.async_request_refresh = AsyncMock()
-    coordinator.register_entity = MagicMock()
-    coordinator.unregister_entity = MagicMock()
-    coordinator.get_device = MagicMock(side_effect=coordinator.devices.get)
-    coordinator.client = MagicMock()
-    coordinator.client.query_ota_info = AsyncMock(return_value=[])
-    coordinator.client.query_command_result = AsyncMock(return_value={})
-    coordinator.client.get_city = AsyncMock(return_value={})
-    coordinator.client.query_user_cloud = AsyncMock(return_value={})
-    coordinator.client.fetch_body_sensor_history = AsyncMock(return_value={})
-    coordinator.client.fetch_door_sensor_history = AsyncMock(return_value={})
-
-    async def _async_query_ota_info(**kwargs: Any) -> Any:
-        return await coordinator.client.query_ota_info(**kwargs)
-
-    async def _async_query_command_result(**kwargs: Any) -> Any:
-        return await coordinator.client.query_command_result(**kwargs)
-
-    async def _async_get_city() -> Any:
-        return await coordinator.client.get_city()
-
-    async def _async_query_user_cloud() -> Any:
-        return await coordinator.client.query_user_cloud()
-
-    async def _async_fetch_body_sensor_history(**kwargs: Any) -> Any:
-        return await coordinator.client.fetch_body_sensor_history(**kwargs)
-
-    async def _async_fetch_door_sensor_history(**kwargs: Any) -> Any:
-        return await coordinator.client.fetch_door_sensor_history(**kwargs)
-
-    coordinator.async_query_ota_info = AsyncMock(side_effect=_async_query_ota_info)
-    coordinator.async_query_command_result = AsyncMock(
-        side_effect=_async_query_command_result
-    )
-    coordinator.async_get_city = AsyncMock(side_effect=_async_get_city)
-    coordinator.async_query_user_cloud = AsyncMock(
-        side_effect=_async_query_user_cloud
-    )
-    coordinator.async_fetch_body_sensor_history = AsyncMock(
-        side_effect=_async_fetch_body_sensor_history
-    )
-    coordinator.async_fetch_door_sensor_history = AsyncMock(
-        side_effect=_async_fetch_door_sensor_history
-    )
-    return coordinator
+    """Create a coordinator double for testing."""
+    return _CoordinatorDouble()
 
 
 @pytest.fixture(autouse=True)

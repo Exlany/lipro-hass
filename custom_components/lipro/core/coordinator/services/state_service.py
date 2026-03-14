@@ -7,6 +7,8 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
+    from collections.abc import Mapping
+
     from ...device import LiproDevice
     from ..runtime.state_runtime import StateRuntime
 
@@ -18,8 +20,8 @@ class CoordinatorStateService:
     state_runtime: StateRuntime
 
     @property
-    def devices(self) -> dict[str, LiproDevice]:
-        """Return the latest device mapping."""
+    def devices(self) -> Mapping[str, LiproDevice]:
+        """Return the latest read-only device mapping."""
         return self.state_runtime.get_all_devices()
 
     def get_device(self, serial: str) -> LiproDevice | None:

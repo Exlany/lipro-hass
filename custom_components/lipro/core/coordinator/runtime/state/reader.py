@@ -2,9 +2,12 @@
 
 from __future__ import annotations
 
+from types import MappingProxyType
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
+    from collections.abc import Mapping
+
     from ....device import LiproDevice
     from ....device.identity_index import DeviceIdentityIndex
 
@@ -30,9 +33,9 @@ class StateReader:
         """Look up a device by serial number."""
         return self._devices.get(serial)
 
-    def get_all_devices(self) -> dict[str, LiproDevice]:
-        """Return the live device mapping."""
-        return self._devices
+    def get_all_devices(self) -> Mapping[str, LiproDevice]:
+        """Return a read-only device mapping view."""
+        return MappingProxyType(self._devices)
 
     def get_device_count(self) -> int:
         """Return total device count."""

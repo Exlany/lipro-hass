@@ -30,7 +30,7 @@ from .const.config import (
     DEFAULT_REMEMBER_PASSWORD_HASH,
 )
 from .core import LiproProtocolFacade
-from .core.api import LiproApiError, LiproClient as _LiproClientCompat
+from .core.api import LiproApiError
 from .core.utils.log_safety import safe_error_placeholder
 from .flow.credentials import (
     mask_phone_for_title as _mask_phone_for_title,
@@ -49,7 +49,6 @@ from .flow.schemas import (
     build_reconfigure_data_schema as _build_reconfigure_data_schema,
 )
 
-LiproClient = _LiproClientCompat
 
 _LOGGER = logging.getLogger(__name__)
 

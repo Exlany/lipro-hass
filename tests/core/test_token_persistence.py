@@ -18,7 +18,7 @@ from custom_components.lipro.const.config import (
     CONF_REFRESH_TOKEN,
     CONF_USER_ID,
 )
-from custom_components.lipro.core import LiproAuthManager, LiproClient
+from custom_components.lipro.core import LiproAuthManager, LiproProtocolFacade
 from custom_components.lipro.entry_auth import build_entry_auth_context
 
 _TEST_LOGGER = logging.getLogger(__name__)
@@ -44,7 +44,7 @@ async def test_refresh_token_persists_config_entry_tokens(hass) -> None:
         hass,
         entry,
         get_client_session=lambda _: MagicMock(),
-        client_factory=LiproClient,
+        client_factory=LiproProtocolFacade,
         auth_manager_factory=LiproAuthManager,
         logger=_TEST_LOGGER,
     )

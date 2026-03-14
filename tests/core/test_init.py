@@ -41,8 +41,8 @@ from custom_components.lipro.core import (
     LiproApiError,
     LiproAuthError,
     LiproAuthManager,
-    LiproClient,
     LiproConnectionError,
+    LiproProtocolFacade,
 )
 from custom_components.lipro.core.device import LiproDevice
 from custom_components.lipro.entry_auth import (
@@ -807,7 +807,7 @@ class TestInitRuntimeBehavior:
                 hass,
                 entry,
                 get_client_session=lambda _: MagicMock(),
-                client_factory=LiproClient,
+                client_factory=LiproProtocolFacade,
                 auth_manager_factory=LiproAuthManager,
                 logger=_TEST_LOGGER,
             )
@@ -826,7 +826,7 @@ class TestInitRuntimeBehavior:
                 hass,
                 entry,
                 get_client_session=lambda _: MagicMock(),
-                client_factory=LiproClient,
+                client_factory=LiproProtocolFacade,
                 auth_manager_factory=LiproAuthManager,
                 logger=_TEST_LOGGER,
             )

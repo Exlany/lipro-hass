@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import timedelta
+from types import MappingProxyType
 import json
 from unittest.mock import MagicMock, patch
 
@@ -218,14 +219,15 @@ class TestAsyncGetConfigEntryDiagnostics:
                 "meshGateway": "1",
             },
             extra_data={
-                "power_info": {"nowPower": 12.5, "energyList": []},
                 "gateway_device_id": "03abdeadbeefcafe",
                 "ignored": "secret",
             },
             room_name="Bedroom",
         )
+        device.outlet_power_info = {"nowPower": 12.5, "energyList": []}
+
         coordinator = MagicMock()
-        coordinator.devices = {device.serial: device}
+        coordinator.devices = MappingProxyType({device.serial: device})
         coordinator.last_update_success = True
         coordinator.update_interval = timedelta(seconds=30)
         coordinator.mqtt_service.connected = True
@@ -274,15 +276,16 @@ class TestAsyncGetConfigEntryDiagnostics:
         assert device_info["properties"]["ip"] == "**REDACTED**"
         assert device_info["properties"]["wifi_ssid"] == "**REDACTED**"
         assert device_info["properties"]["powerState"] == "1"
-        assert device_info["extra_data"]["power_info"]["nowPower"] == 12.5
+        assert device_info["outlet_power_info"]["nowPower"] == 12.5
         assert device_info["extra_data"]["gateway_device_id"] == "**REDACTED**"
         assert "ignored" not in device_info["extra_data"]
+        assert "power_info" not in device_info["extra_data"]
 
     @pytest.mark.asyncio
     async def test_handles_no_devices(self, hass):
         """Test diagnostics output when coordinator has no devices."""
         coordinator = MagicMock()
-        coordinator.devices = {}
+        coordinator.devices = MappingProxyType({})
         coordinator.last_update_success = False
         coordinator.update_interval = timedelta(seconds=60)
         coordinator.mqtt_service.connected = False
@@ -324,7 +327,7 @@ class TestAsyncGetConfigEntryDiagnostics:
             },
         )
         coordinator = MagicMock()
-        coordinator.devices = {device.serial: device}
+        coordinator.devices = MappingProxyType({device.serial: device})
         coordinator.last_update_success = True
         coordinator.update_interval = timedelta(seconds=30)
         coordinator.mqtt_service.connected = True
@@ -368,13 +371,14 @@ class TestAsyncGetConfigEntryDiagnostics:
                 "ipAddress": "192.168.1.8",
             },
             extra_data={
-                "power_info": {"nowPower": 0.0, "energyList": []},
                 "gateway_device_id": "03ab5ccd7c999999",
             },
             room_name="Master Bedroom",
         )
+        device.outlet_power_info = {"nowPower": 0.0, "energyList": []}
+
         coordinator = MagicMock()
-        coordinator.devices = {device.serial: device}
+        coordinator.devices = MappingProxyType({device.serial: device})
         coordinator.last_update_success = True
         coordinator.update_interval = timedelta(seconds=45)
         coordinator.mqtt_service.connected = True
@@ -449,8 +453,8 @@ class TestAsyncGetConfigEntryDiagnostics:
                         "mac": "**REDACTED**",
                         "ipAddress": "**REDACTED**",
                     },
+                    "outlet_power_info": {"nowPower": 0.0, "energyList": []},
                     "extra_data": {
-                        "power_info": {"nowPower": 0.0, "energyList": []},
                         "gateway_device_id": "**REDACTED**",
                     },
                 },
@@ -489,7 +493,7 @@ class TestAsyncGetDeviceDiagnostics:
         )
 
         coordinator = MagicMock()
-        coordinator.devices = {device.serial: device}
+        coordinator.devices = MappingProxyType({device.serial: device})
         coordinator.get_device = MagicMock(return_value=device)
         coordinator.last_update_success = True
         coordinator.update_interval = timedelta(seconds=30)
@@ -524,7 +528,7 @@ class TestAsyncGetDeviceDiagnostics:
     async def test_missing_lipro_identifier_returns_error(self, hass):
         """Test diagnostics handles device entries outside lipro domain."""
         coordinator = MagicMock()
-        coordinator.devices = {}
+        coordinator.devices = MappingProxyType({})
         coordinator.get_device = MagicMock(return_value=None)
 
         entry = MagicMock()
@@ -544,7 +548,7 @@ class TestAsyncGetDeviceDiagnostics:
     async def test_unknown_lipro_device_returns_error(self, hass):
         """Test diagnostics handles missing device in coordinator cache."""
         coordinator = MagicMock()
-        coordinator.devices = {}
+        coordinator.devices = MappingProxyType({})
         coordinator.get_device = MagicMock(return_value=None)
 
         entry = MagicMock()

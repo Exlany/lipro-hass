@@ -20,8 +20,8 @@ def apply_outlet_power_info(
     device: LiproDevice | None,
     power_data: PropertyDict,
 ) -> bool:
-    """Write outlet power payload to runtime model when possible."""
+    """Write outlet power payload to the formal device primitive when possible."""
     if device is None or not power_data:
         return False
-    device.extra_data["power_info"] = power_data
-    return True
+    device.outlet_power_info = power_data
+    return device.outlet_power_info is not None

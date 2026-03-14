@@ -6,9 +6,11 @@ Refactored to use RuntimeContext + Orchestrator pattern (Phase C - Aggressive Re
 from __future__ import annotations
 
 import asyncio
+from collections.abc import Mapping
 from contextlib import suppress
 from datetime import timedelta
 import logging
+from types import MappingProxyType
 from typing import TYPE_CHECKING, Any
 
 from homeassistant.exceptions import ConfigEntryAuthFailed
@@ -166,7 +168,7 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
 
     def _schedule_listener_update(self) -> None:
         """Schedule listener update (RuntimeContext callback)."""
-        self.async_set_updated_data(self._state.devices)
+        self.async_set_updated_data(self.devices)
 
     def _is_mqtt_connected(self) -> bool:
         """Check MQTT connection status (RuntimeContext callback)."""
@@ -208,9 +210,9 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
         )
 
     @property
-    def devices(self) -> dict[str, LiproDevice]:
-        """Access device dictionary (public API for services)."""
-        return self._state.devices
+    def devices(self) -> Mapping[str, LiproDevice]:
+        """Return one read-only view of the runtime device registry."""
+        return MappingProxyType(self._state.devices)
 
     # Public methods for entity integration
     def get_device(self, serial: str) -> LiproDevice | None:
@@ -316,11 +318,11 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
             device, command, properties
         )
 
-    async def async_refresh_devices(self) -> dict[str, LiproDevice]:
+    async def async_refresh_devices(self) -> Mapping[str, LiproDevice]:
         """Force a full device snapshot refresh and publish the latest state."""
         await self._async_refresh_device_snapshot(force=True, mqtt_timeout_seconds=5)
-        self.async_set_updated_data(self._state.devices)
-        return self._state.devices
+        self.async_set_updated_data(self.devices)
+        return self.devices
 
 
     async def async_get_device_schedules(

@@ -117,8 +117,7 @@ class TestLiproEntityDeviceProperty:
         updated = make_device("light", name="Updated")
         entity = _make_entity(mock_coordinator, original)
 
-        # Put updated device into coordinator's device dict (keyed by serial)
-        mock_coordinator.devices[original.serial] = updated
+        mock_coordinator.set_device(updated)
 
         assert entity.device.name == "Updated"
 

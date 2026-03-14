@@ -71,11 +71,8 @@ class LiproSensor(LiproEntity, SensorEntity):
     """Base class for Lipro sensors."""
 
     def _get_power_info(self) -> dict[str, Any] | None:
-        """Get power info from device extra_data.
-
-        Power info is stored by coordinator during outlet power queries.
-        """
-        return self.device.extra_data.get("power_info")
+        """Get power info from the device's formal outlet-power primitive."""
+        return self.device.outlet_power_info
 
 
 class LiproOutletPowerSensor(LiproSensor):

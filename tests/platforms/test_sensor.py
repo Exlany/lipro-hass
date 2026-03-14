@@ -14,8 +14,20 @@ from custom_components.lipro.core.device import LiproDevice
 class TestLiproOutletPowerSensor:
     """Tests for LiproOutletPowerSensor entity."""
 
-    def test_power_info_available(self, make_device):
-        """Test power info is available."""
+    def test_power_info_available_from_formal_primitive(self, make_device):
+        """Test power info is available from the formal primitive."""
+        device = make_device("outlet")
+        device.outlet_power_info = {
+            "nowPower": 150.5,
+            "energyList": [{"t": "20240101", "v": 10.5}],
+        }
+
+        power_info = device.outlet_power_info
+        assert power_info is not None
+        assert power_info["nowPower"] == 150.5
+
+    def test_power_info_available_from_legacy_fallback(self, make_device):
+        """Test legacy fallback still reads power info when primitive is absent."""
         device = make_device(
             "outlet",
             extra_data={
@@ -26,7 +38,7 @@ class TestLiproOutletPowerSensor:
             },
         )
 
-        power_info = device.extra_data.get("power_info")
+        power_info = device.outlet_power_info
         assert power_info is not None
         assert power_info["nowPower"] == 150.5
 
@@ -34,17 +46,15 @@ class TestLiproOutletPowerSensor:
         """Test power info is not available."""
         device = make_device("outlet")
 
-        power_info = device.extra_data.get("power_info")
+        power_info = device.outlet_power_info
         assert power_info is None
 
     def test_now_power_value(self, make_device):
         """Test nowPower value extraction."""
-        device = make_device(
-            "outlet",
-            extra_data={"power_info": {"nowPower": 75.3}},
-        )
+        device = make_device("outlet")
+        device.outlet_power_info = {"nowPower": 75.3}
 
-        power_info = device.extra_data.get("power_info")
+        power_info = device.outlet_power_info
         assert power_info["nowPower"] == 75.3
 
 
@@ -53,20 +63,16 @@ class TestLiproOutletEnergySensor:
 
     def test_energy_list_sum(self, make_device):
         """Test energy list sum calculation."""
-        device = make_device(
-            "outlet",
-            extra_data={
-                "power_info": {
-                    "energyList": [
-                        {"t": "20240101", "v": 10.5},
-                        {"t": "20240102", "v": 20.3},
-                        {"t": "20240103", "v": 5.2},
-                    ],
-                }
-            },
-        )
+        device = make_device("outlet")
+        device.outlet_power_info = {
+            "energyList": [
+                {"t": "20240101", "v": 10.5},
+                {"t": "20240102", "v": 20.3},
+                {"t": "20240103", "v": 5.2},
+            ],
+        }
 
-        power_info = device.extra_data.get("power_info")
+        power_info = device.outlet_power_info
         energy_list = power_info.get("energyList", [])
 
         total_energy = 0.0
@@ -79,21 +85,20 @@ class TestLiproOutletEnergySensor:
 
     def test_energy_list_empty(self, make_device):
         """Test empty energy list."""
-        device = make_device(
-            "outlet",
-            extra_data={"power_info": {"energyList": []}},
-        )
+        device = make_device("outlet")
+        device.outlet_power_info = {"energyList": []}
 
-        power_info = device.extra_data.get("power_info")
+        power_info = device.outlet_power_info
         energy_list = power_info.get("energyList", [])
 
         assert len(energy_list) == 0
 
     def test_energy_list_missing(self, make_device):
         """Test missing energy list."""
-        device = make_device("outlet", extra_data={"power_info": {}})
+        device = make_device("outlet")
+        device.outlet_power_info = {}
 
-        power_info = device.extra_data.get("power_info")
+        power_info = device.outlet_power_info
         energy_list = power_info.get("energyList", [])
 
         assert energy_list == []
@@ -182,10 +187,8 @@ class TestLiproOutletPowerSensorEntity:
 
         from custom_components.lipro.sensor import LiproOutletPowerSensor
 
-        device = make_device(
-            "outlet",
-            extra_data={"power_info": {"nowPower": 150.5}},
-        )
+        device = make_device("outlet")
+        device.outlet_power_info = {"nowPower": 150.5}
         mock_coordinator.get_device = MagicMock(return_value=device)
         sensor = LiproOutletPowerSensor(mock_coordinator, device)
 
@@ -213,17 +216,13 @@ class TestLiproOutletEnergySensorEntity:
 
         from custom_components.lipro.sensor import LiproOutletEnergySensor
 
-        device = make_device(
-            "outlet",
-            extra_data={
-                "power_info": {
-                    "energyList": [
-                        {"t": "20240101", "v": 10.5},
-                        {"t": "20240102", "v": 20.3},
-                    ],
-                }
-            },
-        )
+        device = make_device("outlet")
+        device.outlet_power_info = {
+            "energyList": [
+                {"t": "20240101", "v": 10.5},
+                {"t": "20240102", "v": 20.3},
+            ]
+        }
         mock_coordinator.get_device = MagicMock(return_value=device)
         sensor = LiproOutletEnergySensor(mock_coordinator, device)
 
@@ -235,10 +234,8 @@ class TestLiproOutletEnergySensorEntity:
 
         from custom_components.lipro.sensor import LiproOutletEnergySensor
 
-        device = make_device(
-            "outlet",
-            extra_data={"power_info": {"energyList": []}},
-        )
+        device = make_device("outlet")
+        device.outlet_power_info = {"energyList": []}
         mock_coordinator.get_device = MagicMock(return_value=device)
         sensor = LiproOutletEnergySensor(mock_coordinator, device)
 

@@ -53,6 +53,10 @@ def test_architecture_policy_rule_inventory_is_stable() -> None:
         "ENF-SURFACE-PROTOCOL-EXPORTS",
         "ENF-BACKDOOR-COORDINATOR-PROPERTIES",
         "ENF-BACKDOOR-SERVICE-AUTH",
+        "ENF-COMPAT-ROOT-NO-LEGACY-CLIENT",
+        "ENF-COMPAT-CONFIG-FLOW-NO-LEGACY-CLIENT",
+        "ENF-COMPAT-CORE-PACKAGE-NO-LEGACY-CLIENTS",
+        "ENF-COMPAT-MQTT-PACKAGE-NO-LEGACY-CLIENT",
     }
 
 
@@ -102,7 +106,7 @@ def test_phase_7_5_planning_truth_is_consistent() -> None:
     assert "| 7.5 Governance & Verification | v1.1 | 2/2 | Complete | 2026-03-13 |" in roadmap_text
     assert "| GOV-06 | Phase 7.5 | Complete |" in requirements_text
     assert "| GOV-07 | Phase 7.5 | Complete |" in requirements_text
-    assert "**Current mode:** `Phase 8 completed`" in state_text
+    assert "**Current mode:** `Phase 9 completed`" in state_text
     assert "status: passed" in validation_text
     assert "- [x] `.planning/reviews/V1_1_EVIDENCE_INDEX.md`" in validation_text
     assert "- [x] All tasks have automated verify or Wave 0 dependencies" in validation_text
@@ -118,8 +122,42 @@ def test_phase_8_planning_truth_is_consistent() -> None:
     assert "| 8 AI Debug Evidence Pack | v1.1 | 2/2 | Complete | 2026-03-13 |" in roadmap_text
     assert "| AID-01 | Phase 8 | Complete |" in requirements_text
     assert "| AID-02 | Phase 8 | Complete |" in requirements_text
-    assert "`Phase 8 completed`" in state_text
+    assert "`Phase 9 completed`" in state_text
     assert "status: passed" in validation_text
     assert "nyquist_compliant: true" in validation_text
     assert "wave_0_complete: true" in validation_text
     assert "status: passed" in verification_text
+
+
+def test_phase_9_governance_truth_is_consistent() -> None:
+    roadmap_text = (_ROOT / ".planning" / "ROADMAP.md").read_text(encoding="utf-8")
+    requirements_text = (_ROOT / ".planning" / "REQUIREMENTS.md").read_text(encoding="utf-8")
+    state_text = (_ROOT / ".planning" / "STATE.md").read_text(encoding="utf-8")
+    validation_text = (_ROOT / ".planning" / "phases" / "09-residual-surface-closure" / "09-VALIDATION.md").read_text(encoding="utf-8")
+    verification_text = (_ROOT / ".planning" / "phases" / "09-residual-surface-closure" / "09-VERIFICATION.md").read_text(encoding="utf-8")
+    uat_text = (_ROOT / ".planning" / "phases" / "09-residual-surface-closure" / "09-UAT.md").read_text(encoding="utf-8")
+    public_text = (_ROOT / ".planning" / "baseline" / "PUBLIC_SURFACES.md").read_text(encoding="utf-8")
+    authority_text = (_ROOT / ".planning" / "baseline" / "AUTHORITY_MATRIX.md").read_text(encoding="utf-8")
+    residual_text = (_ROOT / ".planning" / "reviews" / "RESIDUAL_LEDGER.md").read_text(encoding="utf-8")
+    kill_text = (_ROOT / ".planning" / "reviews" / "KILL_LIST.md").read_text(encoding="utf-8")
+
+    assert '- [x] 09-01: 收窄 protocol root surface 与 compat exports' in roadmap_text
+    assert '| RSC-01 | Phase 9 | Complete |' in requirements_text
+    assert '| RSC-04 | Phase 9 | Complete |' in requirements_text
+    assert '`Phase 9 completed`' in state_text
+    assert 'status: passed' in validation_text
+    assert 'status: passed' in verification_text
+    assert '## Automated UAT Verdict' in uat_text
+    assert 'core.api.LiproClient' in public_text
+    assert 'LiproProtocolFacade.get_device_list' in public_text
+    assert 'LiproMqttFacade.raw_client' in public_text
+    assert 'runtime supplemental state primitives' in authority_text
+    assert residual_text.count('## Phase 09 Residual Delta') == 1
+    assert kill_text.count('## Phase 09 Status Update') == 1
+    for seam in (
+        'core.api.LiproClient',
+        'LiproProtocolFacade.get_device_list',
+        'LiproMqttFacade.raw_client',
+    ):
+        assert seam in residual_text
+        assert seam in kill_text

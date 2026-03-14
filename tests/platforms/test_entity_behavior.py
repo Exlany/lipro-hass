@@ -253,16 +253,16 @@ class TestSensorEntityBehavior:
         """Test outlet power sensor value."""
         device = make_device("outlet")
 
-        # Power info is stored in extra_data
-        device.extra_data["power_info"] = {"nowPower": 150}
+        device.outlet_power_info = {"nowPower": 150}
 
-        assert device.extra_data.get("power_info", {}).get("nowPower") == 150
+        assert device.outlet_power_info is not None
+        assert device.outlet_power_info.get("nowPower") == 150
 
     def test_outlet_energy_list(self, make_device):
         """Test outlet energy list parsing."""
         device = make_device("outlet")
 
-        device.extra_data["power_info"] = {
+        device.outlet_power_info = {
             "nowPower": 100,
             "energyList": [
                 {"t": "20260207", "v": 1.5},
@@ -270,7 +270,7 @@ class TestSensorEntityBehavior:
             ],
         }
 
-        energy_list = device.extra_data.get("power_info", {}).get("energyList", [])
+        energy_list = device.outlet_power_info.get("energyList", [])
         assert len(energy_list) == 2
         assert energy_list[0]["v"] == 1.5
 

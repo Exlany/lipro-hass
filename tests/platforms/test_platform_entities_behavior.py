@@ -144,13 +144,11 @@ async def test_sensor_and_select_platforms_entity_behavior(
     outlet = make_device(
         "outlet",
         serial="outlet_1",
-        extra_data={
-            "power_info": {
-                "nowPower": 18.2,
-                "energyList": [{"t": "20240101", "v": 1.1}],
-            }
-        },
     )
+    outlet.outlet_power_info = {
+        "nowPower": 18.2,
+        "energyList": [{"t": "20240101", "v": 1.1}],
+    }
     light = make_device(
         "light",
         serial="light_gear",

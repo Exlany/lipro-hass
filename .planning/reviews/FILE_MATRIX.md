@@ -8,10 +8,10 @@
 
 | Path | Area | Owner phase | Fate | Residual / delete gate |
 |------|------|-------------|------|-------------------------|
-| `custom_components/lipro/__init__.py` | Control | Phase 3 | 保留 | - |
+| `custom_components/lipro/__init__.py` | Control | Phase 3 | 保留 | Phase 9：thin adapter only；不再再导出 `LiproClient` |
 | `custom_components/lipro/binary_sensor.py` | Domain | Phase 4 | 保留 | - |
 | `custom_components/lipro/climate.py` | Domain | Phase 4 | 保留 | - |
-| `custom_components/lipro/config_flow.py` | Control | Phase 3 | 保留 | - |
+| `custom_components/lipro/config_flow.py` | Control | Phase 3 | 保留 | Phase 9：config-flow 只消费 `LiproProtocolFacade`；不再再导出 `LiproClient` |
 | `custom_components/lipro/const/__init__.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/const/api.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/const/base.py` | Cross-cutting | Phase 7 | 保留 | - |
@@ -21,7 +21,7 @@
 | `custom_components/lipro/const/entity_config.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/const/properties.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/control/__init__.py` | Control | Phase 3 | 保留 | - |
-| `custom_components/lipro/control/diagnostics_surface.py` | Control | Phase 3 | 保留 | - |
+| `custom_components/lipro/control/diagnostics_surface.py` | Control | Phase 3 | 保留 | Phase 9：diagnostics 改读 `outlet_power_info` formal primitive |
 | `custom_components/lipro/control/entry_lifecycle_controller.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/control/models.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/control/redaction.py` | Control | Phase 3 | 保留 | - |
@@ -31,7 +31,7 @@
 | `custom_components/lipro/control/system_health_surface.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/control/telemetry_surface.py` | Control | Phase 7.3 | 保留 | - |
 | `custom_components/lipro/coordinator_entry.py` | Control | Phase 3 | 保留 | - |
-| `custom_components/lipro/core/__init__.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `custom_components/lipro/core/__init__.py` | Cross-cutting | Phase 7 | 保留 | Phase 9：包级 public surface 已移除 `LiproClient` 再导出 |
 | `custom_components/lipro/core/anonymous_share/__init__.py` | Protocol | Phase 2.6 | 保留 | - |
 | `custom_components/lipro/core/anonymous_share/capabilities.py` | Protocol | Phase 2.6 | 保留 | - |
 | `custom_components/lipro/core/anonymous_share/collector.py` | Protocol | Phase 2.6 | 保留 | - |
@@ -88,14 +88,14 @@
 | `custom_components/lipro/core/command/result.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/core/command/trace.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/core/coordinator/__init__.py` | Runtime | Phase 5 | 重构 | - |
-| `custom_components/lipro/core/coordinator/coordinator.py` | Runtime | Phase 5 | 重构 | - |
+| `custom_components/lipro/core/coordinator/coordinator.py` | Runtime | Phase 5 | 重构 | Phase 9：`devices` public surface 改为 read-only mapping |
 | `custom_components/lipro/core/coordinator/entity_protocol.py` | Runtime | Phase 5 | 重构 | - |
 | `custom_components/lipro/core/coordinator/factory.py` | Runtime | Phase 5 | 重构 | - |
 | `custom_components/lipro/core/coordinator/mqtt/__init__.py` | Runtime | Phase 5 | 重构 | - |
 | `custom_components/lipro/core/coordinator/mqtt/setup.py` | Runtime | Phase 5 | 重构 | - |
 | `custom_components/lipro/core/coordinator/mqtt_lifecycle.py` | Runtime | Phase 5 | 重构 | - |
 | `custom_components/lipro/core/coordinator/orchestrator.py` | Runtime | Phase 5 | 重构 | - |
-| `custom_components/lipro/core/coordinator/outlet_power.py` | Runtime | Phase 5 | 重构 | - |
+| `custom_components/lipro/core/coordinator/outlet_power.py` | Runtime | Phase 5 | 重构 | Phase 9：写路径收口到 `LiproDevice.outlet_power_info` |
 | `custom_components/lipro/core/coordinator/runtime/__init__.py` | Runtime | Phase 5 | 重构 | - |
 | `custom_components/lipro/core/coordinator/runtime/command/__init__.py` | Runtime | Phase 5 | 重构 | - |
 | `custom_components/lipro/core/coordinator/runtime/command/builder.py` | Runtime | Phase 5 | 重构 | - |
@@ -142,7 +142,7 @@
 | `custom_components/lipro/core/coordinator/types.py` | Runtime | Phase 5 | 重构 | - |
 | `custom_components/lipro/core/device/__init__.py` | Domain | Phase 4 | 重构 | - |
 | `custom_components/lipro/core/device/capabilities.py` | Domain | Phase 7 | 迁移适配 | DeviceCapabilities compat name |
-| `custom_components/lipro/core/device/device.py` | Domain | Phase 4 | 重构 | - |
+| `custom_components/lipro/core/device/device.py` | Domain | Phase 4 | 重构 | Phase 9：新增 `outlet_power_info` formal primitive，保留 legacy fallback |
 | `custom_components/lipro/core/device/device_delegation.py` | Domain | Phase 4 | 重构 | - |
 | `custom_components/lipro/core/device/device_factory.py` | Domain | Phase 4 | 重构 | - |
 | `custom_components/lipro/core/device/device_runtime.py` | Domain | Phase 4 | 重构 | - |
@@ -164,7 +164,7 @@
 | `custom_components/lipro/core/device/state_getters.py` | Domain | Phase 4 | 重构 | - |
 | `custom_components/lipro/core/device/state_math.py` | Domain | Phase 4 | 重构 | - |
 | `custom_components/lipro/core/exceptions.py` | Cross-cutting | Phase 7 | 保留 | - |
-| `custom_components/lipro/core/mqtt/__init__.py` | Protocol | Phase 2.5 / 7 | 迁移适配 | LiproMqttClient legacy root name |
+| `custom_components/lipro/core/mqtt/__init__.py` | Protocol | Phase 2.5 / 7 | 保留 | Phase 9：包级只保留 decrypt helper；`LiproMqttClient` 不再作为 package public surface |
 | `custom_components/lipro/core/mqtt/client_runtime.py` | Protocol | Phase 2.5 | 重构 | - |
 | `custom_components/lipro/core/mqtt/connection_manager.py` | Protocol | Phase 2.5 | 重构 | - |
 | `custom_components/lipro/core/mqtt/credentials.py` | Protocol | Phase 2.5 | 重构 | - |
@@ -181,7 +181,7 @@
 | `custom_components/lipro/core/ota/manifest.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/core/ota/row_selector.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/core/ota/rows_cache.py` | Cross-cutting | Phase 7 | 保留 | - |
-| `custom_components/lipro/core/protocol/__init__.py` | Protocol | Phase 2.5 | 保留 | - |
+| `custom_components/lipro/core/protocol/__init__.py` | Protocol | Phase 2.5 | 保留 | Phase 9：包级 formal export 收窄为 `LiproProtocolFacade` / `LiproMqttFacade` |
 | `custom_components/lipro/core/protocol/boundary/__init__.py` | Protocol | Phase 7.1 | 保留 | - |
 | `custom_components/lipro/core/protocol/boundary/mqtt_decoder.py` | Protocol | Phase 7.1 | 保留 | - |
 | `custom_components/lipro/core/protocol/boundary/rest_decoder.py` | Protocol | Phase 7.1 | 保留 | - |
@@ -190,7 +190,7 @@
 | `custom_components/lipro/core/protocol/compat.py` | Protocol | Phase 2.5 | 保留 | - |
 | `custom_components/lipro/core/protocol/contracts.py` | Protocol | Phase 2.5 | 保留 | - |
 | `custom_components/lipro/core/protocol/diagnostics_context.py` | Protocol | Phase 2.5 | 保留 | - |
-| `custom_components/lipro/core/protocol/facade.py` | Protocol | Phase 2.5 | 保留 | - |
+| `custom_components/lipro/core/protocol/facade.py` | Protocol | Phase 2.5 | 保留 | Phase 9：显式 protocol root contract；`raw_client` 仅剩 compat/test seam |
 | `custom_components/lipro/core/protocol/session.py` | Protocol | Phase 2.5 | 保留 | - |
 | `custom_components/lipro/core/protocol/telemetry.py` | Protocol | Phase 2.5 | 保留 | - |
 | `custom_components/lipro/core/telemetry/__init__.py` | Assurance | Phase 7.3 | 保留 | - |
@@ -233,7 +233,7 @@
 | `custom_components/lipro/runtime_infra.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/runtime_types.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/select.py` | Domain | Phase 4 | 保留 | - |
-| `custom_components/lipro/sensor.py` | Domain | Phase 4 | 保留 | - |
+| `custom_components/lipro/sensor.py` | Domain | Phase 4 | 保留 | Phase 9：outlet sensors 改读 `outlet_power_info` formal primitive |
 | `custom_components/lipro/services/__init__.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/services/command.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/services/contracts.py` | Control | Phase 3 | 保留 | - |
@@ -411,11 +411,11 @@
 | `tests/meta/test_external_boundary_authority.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_external_boundary_fixtures.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_firmware_support_manifest_repo_asset.py` | Assurance | Phase 6 | 保留 | - |
-| `tests/meta/test_governance_guards.py` | Assurance | Phase 6 | 保留 | - |
+| `tests/meta/test_governance_guards.py` | Assurance | Phase 6 | 保留 | Phase 9：追加 residual-surface closeout truth checks |
 | `tests/meta/test_install_sh_guards.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_modularization_surfaces.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_protocol_replay_assets.py` | Assurance | Phase 7.4 | 保留 | - |
-| `tests/meta/test_public_surface_guards.py` | Assurance | Phase 6 | 保留 | - |
+| `tests/meta/test_public_surface_guards.py` | Assurance | Phase 6 | 保留 | Phase 9：守住显式 protocol root、read-only devices 与 power primitive |
 | `tests/meta/test_service_translation_sync.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_translation_tree_sync.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_version_sync.py` | Assurance | Phase 6 | 保留 | - |
@@ -430,7 +430,7 @@
 | `tests/platforms/test_light.py` | Domain | Phase 4 | 保留 | - |
 | `tests/platforms/test_platform_entities_behavior.py` | Domain | Phase 4 | 保留 | - |
 | `tests/platforms/test_select.py` | Domain | Phase 4 | 保留 | - |
-| `tests/platforms/test_sensor.py` | Domain | Phase 4 | 保留 | - |
+| `tests/platforms/test_sensor.py` | Domain | Phase 4 | 保留 | Phase 9：验证 outlet power formal primitive 读路径 |
 | `tests/platforms/test_switch.py` | Domain | Phase 4 | 保留 | - |
 | `tests/platforms/test_update.py` | Domain | Phase 4 | 保留 | - |
 | `tests/platforms/test_update_task_callback.py` | Domain | Phase 4 | 保留 | - |
@@ -451,3 +451,10 @@
 | `tests/test_coordinator_public.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `tests/test_coordinator_runtime.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `tests/test_refactor_tools.py` | Cross-cutting | Phase 7 | 保留 | - |
+
+
+## Phase 09 Status Update
+
+- `custom_components/lipro/__init__.py`、`config_flow.py`、`core/__init__.py`、`core/protocol/__init__.py` 与 `core/mqtt/__init__.py` 已完成 legacy protocol export 收口；其中 `core.api.__init__.py` 是唯一仍保留 `LiproClient` 显式 compat shell 的公共聚合点。
+- `custom_components/lipro/core/coordinator/coordinator.py` 的 public `devices` surface 已收口为 read-only mapping，不再暴露 live mutable registry。
+- `custom_components/lipro/core/device/device.py` 已新增 `outlet_power_info` formal primitive，`sensor.py` 与 `control/diagnostics_surface.py` 只读取该正式 truth。

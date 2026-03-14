@@ -1,7 +1,7 @@
 ---
 phase: 09
 slug: residual-surface-closure
-status: draft
+status: passed
 nyquist_compliant: true
 wave_0_complete: true
 created: 2026-03-14
@@ -39,17 +39,23 @@ updated: 2026-03-14
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| `09-01-01` | `09-01` | 1 | `RSC-01`, `RSC-02` | protocol surface regression | `uv run pytest -q tests/core/mqtt/test_mqtt.py tests/meta/test_public_surface_guards.py` | ✅ | ⬜ pending |
-| `09-01-02` | `09-01` | 1 | `RSC-01`, `RSC-02` | compat export / integration | `uv run pytest -q tests/integration/test_mqtt_coordinator_integration.py tests/meta/test_governance_guards.py` | ✅ | ⬜ pending |
-| `09-01-03` | `09-01` | 1 | `RSC-01`, `RSC-02` | package/public-surface proof | `uv run pytest -q tests/meta/test_public_surface_guards.py tests/meta/test_dependency_guards.py` | ✅ | ⬜ pending |
-| `09-02-01` | `09-02` | 1 | `RSC-03` | runtime read-only access | `uv run pytest -q tests/core/test_coordinator.py tests/test_coordinator_public.py` | ✅ | ⬜ pending |
-| `09-02-02` | `09-02` | 1 | `RSC-04` | outlet power primitive | `uv run pytest -q tests/core/test_outlet_power.py tests/platforms/test_sensor.py` | ✅ | ⬜ pending |
-| `09-02-03` | `09-02` | 1 | `RSC-03`, `RSC-04` | diagnostics / helper convergence | `uv run pytest -q tests/core/test_diagnostics.py tests/core/test_coordinator.py tests/platforms/test_sensor.py` | ✅ | ⬜ pending |
-| `09-03-01` | `09-03` | 2 | `RSC-01`, `RSC-02` | governance sync | `uv run pytest -q tests/meta/test_governance_guards.py tests/meta/test_public_surface_guards.py` | ✅ | ⬜ pending |
-| `09-03-02` | `09-03` | 2 | `RSC-03`, `RSC-04` | authority / file ownership | `uv run pytest -q tests/meta/test_governance_guards.py tests/meta/test_dependency_guards.py` | ✅ | ⬜ pending |
-| `09-03-03` | `09-03` | 2 | `RSC-01`, `RSC-02`, `RSC-03`, `RSC-04` | full regression | `uv run pytest -q` | ✅ | ⬜ pending |
+| `09-01-01` | `09-01` | 1 | `RSC-01`, `RSC-02` | protocol surface regression | `uv run pytest -q tests/core/mqtt/test_mqtt.py tests/meta/test_public_surface_guards.py` | ✅ | ✅ green |
+| `09-01-02` | `09-01` | 1 | `RSC-01`, `RSC-02` | compat export / integration | `uv run pytest -q tests/integration/test_mqtt_coordinator_integration.py tests/meta/test_governance_guards.py` | ✅ | ✅ green |
+| `09-01-03` | `09-01` | 1 | `RSC-01`, `RSC-02` | package/public-surface proof | `uv run pytest -q tests/meta/test_public_surface_guards.py tests/meta/test_dependency_guards.py` | ✅ | ✅ green |
+| `09-02-01` | `09-02` | 1 | `RSC-03` | runtime read-only access | `uv run pytest -q tests/core/test_coordinator.py tests/test_coordinator_public.py` | ✅ | ✅ green |
+| `09-02-02` | `09-02` | 1 | `RSC-04` | outlet power primitive | `uv run pytest -q tests/core/test_outlet_power.py tests/platforms/test_sensor.py` | ✅ | ✅ green |
+| `09-02-03` | `09-02` | 1 | `RSC-03`, `RSC-04` | diagnostics / helper convergence | `uv run pytest -q tests/core/test_diagnostics.py tests/core/test_coordinator.py tests/platforms/test_sensor.py` | ✅ | ✅ green |
+| `09-03-01` | `09-03` | 2 | `RSC-01`, `RSC-02` | governance sync | `uv run pytest -q tests/meta/test_governance_guards.py tests/meta/test_public_surface_guards.py` | ✅ | ✅ green |
+| `09-03-02` | `09-03` | 2 | `RSC-03`, `RSC-04` | authority / file ownership | `uv run pytest -q tests/meta/test_governance_guards.py tests/meta/test_dependency_guards.py` | ✅ | ✅ green |
+| `09-03-03` | `09-03` | 2 | `RSC-01`, `RSC-02`, `RSC-03`, `RSC-04` | full regression | `uv run pytest -q` | ✅ | ✅ green |
 
-*Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
+*Status: ✅ all listed task verifications green*
+
+## Final Regression Snapshot
+
+- governance/policy checks：`uv run pytest -q tests/meta/test_public_surface_guards.py tests/meta/test_governance_guards.py tests/meta/test_dependency_guards.py` → `23 passed`
+- architecture/file-matrix checks：`uv run python scripts/check_architecture_policy.py --check`、`uv run python scripts/check_file_matrix.py --check` → passed
+- full suite：`uv run pytest -q` → `2133 passed`
 
 ---
 
@@ -74,4 +80,4 @@ All phase behaviors have automated verification.
 - [x] Feedback latency < 60s
 - [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** passed

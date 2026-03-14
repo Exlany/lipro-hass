@@ -2,7 +2,7 @@
 
 **Purpose:** 定义各平面的 canonical public surfaces、过渡公开面与禁止作为正式入口的对象。
 **Status:** Formal baseline asset (`BASE-01` public-surface truth source)
-**Updated:** 2026-03-13
+**Updated:** 2026-03-14
 
 ## Formal Role
 
@@ -15,9 +15,9 @@
 
 | Plane / Scope | Canonical Surface | Formal Role | Notes |
 |---------------|-------------------|-------------|-------|
-| Protocol | `LiproProtocolFacade` | target-state formal protocol root | 终态唯一正式协议根 |
+| Protocol | `LiproProtocolFacade` | target-state formal protocol root | 终态唯一正式协议根；formal contract 由显式 methods/properties 定义，不再由 child `__getattr__` / `__dir__` 隐式扩面 |
 | Protocol (Phase 2) | `LiproRestFacade` | phase-local canonical REST sub-facade | Phase 2 可直接引用的正式 REST surface，但必须收敛到 `LiproProtocolFacade` |
-| Runtime | `Coordinator` + runtime services/public surface | runtime orchestration root + stable service surface | 运行面唯一正式编排出口 |
+| Runtime | `Coordinator` + runtime services/public surface | runtime orchestration root + stable service surface | 运行面唯一正式编排出口；`devices` 只允许以 read-only mapping 暴露，outlet power 真源收口到 `LiproDevice.outlet_power_info` |
 | Domain | `CapabilityRegistry` / `CapabilitySnapshot` / command contracts | domain truth surface family | `custom_components/lipro/core/capability/` 为统一能力真源与投影来源 |
 | Control | `EntryLifecycleController`, `ServiceRegistry`, `DiagnosticsSurface`, `SystemHealthSurface`, `telemetry_surface` bridge helpers | control-plane formal surface set | `custom_components/lipro/control/` 为正式内部控制面 home；HA 根模块只保留 adapter 职责，telemetry bridge 只负责定位 exporter |
 | Assurance | contract suites, invariant suites, meta guards, ledgers, `RuntimeTelemetryExporter` / telemetry contracts, replay harness/report surfaces, `V1_1_EVIDENCE_INDEX.md`, `tests/harness/evidence_pack/*`, `scripts/export_ai_debug_evidence_pack.py` | assurance arbitration surface set | exporter / replay / evidence index / evidence-pack tooling 只作为 assurance-only 或 pull-only truth consumers，不得反向成为 runtime/control/public root |
@@ -33,11 +33,18 @@
 
 | Surface | Allowed Until | Exit Condition |
 |---------|---------------|----------------|
-| `LiproClient` compat shell | Phase 2 / 2.5 migration only | production constructors / runtime-facing consumers 已切到 `LiproProtocolFacade`，仅剩显式 compat alias / wrapper 可删除 |
-| `LiproMqttClient` compat shell | Phase 2.5 / 7 cleanup only | 仅剩 transport-level compat/export seam；runtime/control 正式入口不再感知它是 public root |
-| legacy wrapper outputs | active migration only | 新 canonical contracts 覆盖旧 consumers |
+| `core.api.LiproClient` compat shell | Phase 9+ cleanup only | 仅保留 `custom_components.lipro.core.api` 显式 compat shell；root / flow / core 包级再导出已收口 |
+| `LiproMqttClient` compat shell | Phase 9+ cleanup only | 仅剩 direct transport module 与 `LiproMqttFacade.raw_client` 测试 seam；包级 public export 已收口 |
+| `LiproProtocolFacade.get_device_list` compat wrapper | active migration only | direct consumers 迁移到 canonical device contracts 后删除 wrapper |
 | `DeviceCapabilities` compat alias | Phase 4 / 7 cleanup only | `core/device/capabilities.py` 的旧导入点迁移到 `CapabilitySnapshot` / `CapabilityRegistry` |
 | cluster-level `FILE_MATRIX` | pre-Phase 7 | 升级为 file-level governance view |
+
+## Phase 09 Surface Closure Notes
+
+- `custom_components/lipro/core/protocol/facade.py` 已改为显式 root contract：`LiproProtocolFacade` 与 `LiproMqttFacade` 不再通过 `__getattr__` / `__dir__` 扩面，child surface 不再反向定义 root。
+- `custom_components/lipro/__init__.py`、`custom_components/lipro/config_flow.py`、`custom_components/lipro/core/__init__.py` 与 `custom_components/lipro/core/mqtt/__init__.py` 的 legacy public-name / compat export 已收口；`custom_components/lipro/core/api/__init__.py` 中的 `LiproClient` 是唯一仍登记的显式 compat shell。
+- `Coordinator.devices` 现在只暴露 read-only mapping；live mutable runtime registry 继续留在 coordinator internal state，不再作为 formal public surface。
+- `custom_components/lipro/core/device/device.py` 中的 `LiproDevice.outlet_power_info` 已成为 outlet power 单一正式 primitive；`extra_data["power_info"]` 仅允许作为 legacy read fallback，不再承担正式 truth 角色。
 
 ## Forbidden As Formal Roots
 
@@ -58,6 +65,10 @@
 | `ENF-SURFACE-PROTOCOL-EXPORTS` | `core/protocol/__init__.py` 不导出 boundary decoder internals | `boundary/*` 维持 protocol-local collaborator 身份 |
 | `ENF-BACKDOOR-COORDINATOR-PROPERTIES` | `Coordinator` 不暴露 runtime internals properties | 防止 runtime surface 变宽 |
 | `ENF-BACKDOOR-SERVICE-AUTH` | service execution 不再回退到 coordinator 私有 auth seam | backdoor ban |
+| `ENF-COMPAT-ROOT-NO-LEGACY-CLIENT` | root adapter 不得重新绑定 `LiproClient` / `LiproMqttClient` | Phase 9 compat export ban |
+| `ENF-COMPAT-CONFIG-FLOW-NO-LEGACY-CLIENT` | config flow 只使用 `LiproProtocolFacade`，不得回流 legacy client names | Phase 9 compat export ban |
+| `ENF-COMPAT-CORE-PACKAGE-NO-LEGACY-CLIENTS` | `core/__init__.py` 不得重新导出 legacy client names | package-level compat demotion guard |
+| `ENF-COMPAT-MQTT-PACKAGE-NO-LEGACY-CLIENT` | `core/mqtt/__init__.py` 不得重新暴露 `LiproMqttClient` | MQTT package compat demotion guard |
 
 ## Update Rule
 

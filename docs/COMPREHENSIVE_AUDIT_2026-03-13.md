@@ -1,9 +1,16 @@
-# Lipro-HASS 全量审查报告（2026-03-13）
+# Lipro-HASS 全量审查报告（2026-03-13，Phase 9 refreshed 2026-03-14）
 
 > 审查对象：`git ls-files '*.py'` 锁定的 `443` 个 Python 文件  
 > 审查基线：`docs/NORTH_STAR_TARGET_ARCHITECTURE.md`、`docs/developer_architecture.md`、`.planning/baseline/*.md`、`.planning/reviews/*.md`  
 > 审查方式：仓库级守卫与全量测试 + 分区子代理复核 + 主代理重点手审 + 架构/依赖模式扫描  
-> 注意：本报告基于**当前工作树**，其中已包含未提交的 `Phase 8` 相关工件与规划文档变更。
+> 注意：本报告基于**当前工作树**，其中已包含未提交的 `Phase 8` / `Phase 9` 相关工件与治理文档变更。
+
+## 0. 2026-03-14 Phase 9 Closeout Update
+
+- `Phase 9` 已执行完成：`LiproProtocolFacade` / `LiproMqttFacade` 的 implicit delegation 已关闭，protocol formal surface 改为显式 contract。
+- `custom_components/lipro/__init__.py`、`config_flow.py`、`core/__init__.py` 与 `core/mqtt/__init__.py` 的 legacy public-name 再导出已收口；`LiproClient` 只剩 `core.api` 显式 compat shell，`LiproMqttFacade.raw_client` 只剩显式 compat/test seam。
+- runtime `devices` public surface 已改为 read-only mapping；outlet power 已迁到 `LiproDevice.outlet_power_info` formal primitive，sensor / diagnostics / runtime 统一读取。
+- 因此本报告第 `5.1`、`5.3`、`5.4`、`5.5` 节登记的 residual 已在 `Phase 9` 收口或显著缩窄；后续剩余开放项主要是 low-priority hygiene 与显式 delete-gated compat seam。
 
 ## 1. 结论先行
 
@@ -12,8 +19,17 @@
   1. MQTT 重连退避在成功连接后未真正复位；
   2. live unsubscribe 失败后不会在同一会话内重试，可能遗留过订阅；
   3. REST 状态轮询绕过 `Coordinator._apply_properties_update()`，跳过命令确认过滤链。
-- 自动化证据强：`uv run pytest -q` 当前通过 `2128` 项；架构/治理守卫与 `Phase 8` 专项测试均通过。
-- 仍有若干**中低优先级架构残留**需要后续收口，主要集中在：protocol 包出口面过宽、compat 名称暴露仍多、少量状态旁写与异常吞噬。
+- 自动化证据强：`uv run pytest -q` 当前通过 `2133` 项；架构/治理守卫与 `Phase 9` 收口专项回归均通过。
+- 已登记的 protocol/runtime residual surface 已在 `Phase 9` 收口；当前剩余开放项以低优先级 hygiene、模块级缓存/异常可观测性与显式 delete-gated compat seam 为主。
+
+
+## 1.1 Phase 09 Refresh（2026-03-14）
+
+- `LiproProtocolFacade` / `LiproMqttFacade` 已移除 `__getattr__` / `__dir__`，protocol root contract 改为显式 public surface；protocol 包级 export 也已收窄。
+- `custom_components/lipro/__init__.py`、`config_flow.py`、`core/__init__.py` 与 `core/mqtt/__init__.py` 的 compat exports 已关闭；`core.api.LiproClient` 是唯一仍登记的显式 compat shell。
+- `Coordinator.devices` 已收口为 read-only mapping；`LiproDevice.outlet_power_info` 已成为正式 primitive，`extra_data["power_info"]` 退出正式写路径。
+- 最新 targeted Phase 9 regression 已通过：`uv run pytest -q tests/core/api/test_protocol_contract_matrix.py tests/integration/test_mqtt_coordinator_integration.py tests/meta/test_public_surface_guards.py tests/core/test_outlet_power.py tests/test_coordinator_public.py tests/platforms/test_sensor.py tests/core/test_diagnostics.py` → `295 passed`。
+- 本报告第 5.1 / 5.3 / 5.4 与 5.5 中关于 implicit protocol delegation、live mutable runtime map、outlet power side-write、root/config-flow/core/mqtt compat export 扩散的发现，已由 Phase 9 修复并回写治理真源；剩余 residual 以 `09-VERIFICATION.md`、`RESIDUAL_LEDGER.md` 与 `KILL_LIST.md` 为准。
 
 ## 2. 方法与证据
 
@@ -33,16 +49,16 @@
 
 ### 2.2 证据链
 
-- 全量回归：`uv run pytest -q` → `2128 passed`
+- 全量回归：`uv run pytest -q` → `2133 passed`
 - 架构守卫：
-  - `uv run pytest -q tests/meta/test_dependency_guards.py tests/meta/test_public_surface_guards.py tests/meta/test_governance_guards.py` → `18 passed`
+  - `uv run pytest -q tests/meta/test_dependency_guards.py tests/meta/test_public_surface_guards.py tests/meta/test_governance_guards.py` → `23 passed`
   - `uv run pytest -q tests/meta/test_external_boundary_authority.py tests/meta/test_external_boundary_fixtures.py tests/meta/test_firmware_support_manifest_repo_asset.py` → `7 passed`
 - 审查中修复后的定向回归：
   - `uv run pytest -q tests/core/mqtt/test_connection_manager.py tests/core/mqtt/test_mqtt.py tests/core/test_coordinator.py` → `113 passed`
   - `uv run pytest -q tests/integration/test_ai_debug_evidence_pack.py tests/meta/test_evidence_pack_authority.py` → `7 passed`
 - Repo 级 lint：`uv run ruff check .` 仍报 `145` 项，主要为 docstring/import-order/脚本输出与个别测试清洁度问题；本轮未把它们当作运行时 blocker。
 - 二次模式扫描：针对 compat surface、状态旁写、catch-all 异常与危险关键字做了仓库级 `rg` 复查；未发现超出本报告已登记残留范围之外的新 P0/P1。
-- 2026-03-14 复跑确认：`uv run pytest -q` 再次通过 `2128` 项；`scripts/export_ai_debug_evidence_pack.py` 的双目录烟测已生成并核验 JSON/index 产物，随后临时文件已删除。
+- 2026-03-14 复跑确认：`uv run pytest -q` 再次通过 `2133` 项；Phase 9 policy/governance hardening 回归 `150 passed`，`scripts/export_ai_debug_evidence_pack.py` 烟测临时产物未留在当前工作树。
 
 ### 2.3 子代理与主代理复核
 
@@ -62,9 +78,9 @@
 
 ### 3.2 主要残留
 
-- protocol 包级出口面仍偏宽，削弱“唯一正式 root”的可仲裁性。
-- compat 名称 `LiproClient` / `LiproMqttClient` 仍在多个公开入口继续可见，虽已不再是正式主链，但仍放大历史语义。
-- 少量 runtime 状态更新与 `extra_data` 写入仍未完全收口到统一 public primitive。
+- protocol 包级出口仍偏宽，但 child-defined implicit delegation 已在 Phase 9 关闭；当前残留主要是 collaborator/helper type surface 的治理宽度。
+- `core.api.LiproClient`、`LiproProtocolFacade.get_device_list` 与 `LiproMqttFacade.raw_client` 已压缩为显式、可计数、可删除的 compat seam。
+- 仍开放的后续工作以 low-priority hygiene、模块级缓存/异常可观测性，以及 formal primitive 的进一步不可变性加固为主。
 
 ## 4. 本轮已确认并修复的问题
 
@@ -91,14 +107,14 @@
 
 ## 5. 仍需后续收口的发现
 
-### 5.1 `Medium`：protocol 包出口面过宽
+### 5.1 `Medium/Low`：protocol 包出口仍偏宽，但 implicit child-defined contract 已关闭
 
 - `custom_components/lipro/core/protocol/__init__.py:7`
 - `custom_components/lipro/core/protocol/facade.py:202`
 - `custom_components/lipro/core/protocol/facade.py:206`
 
-问题：`LiproProtocolFacade` 之外，还公开导出/透传了 `LiproMqttFacade`、`ProtocolTelemetry`、`ProtocolSessionState`、`CanonicalProtocolContracts` 等对象；同时 `__getattr__` / `__dir__` 让 root 的外部 contract 实际继续由 REST child 隐式定义。  
-裁决：这更像**架构残留**而非立刻崩溃缺陷，但确实削弱“单一 protocol root”的正式性。
+问题：`LiproProtocolFacade` 之外，protocol 包仍公开导出 `LiproMqttFacade`、`ProtocolTelemetry`、`ProtocolSessionState`、`CanonicalProtocolContracts` 等 collaborator/type surface。Phase 9 已关闭 `__getattr__` / `__dir__` 隐式扩面，因此这里剩下的是**包级治理宽度**，不是 child surface 重新定义 root contract。  
+裁决：属于后续可继续收口的架构 hygiene，不是当前主链 blocker。
 
 ### 5.2 `Medium`：`raw_client` concrete transport 暴露仍在
 
@@ -107,24 +123,24 @@
 问题：`raw_client` 继续把 `LiproMqttClient` concrete transport 暴露给外层，放大 compat/export seam。  
 裁决：建议未来仅保留显式测试 seam 或删除 gate，不再让其作为稳定公开面长期存在。
 
-### 5.3 `Medium`：mutable device map 仍可外泄
+### 5.3 `Resolved in Phase 9 / Low`：mutable device map public leak 已收口
 
 - `custom_components/lipro/core/coordinator/coordinator.py:210`
 - `custom_components/lipro/core/coordinator/services/state_service.py:20`
 - `custom_components/lipro/core/coordinator/services/device_refresh_service.py:23`
 
-问题：`Coordinator.devices` 直接返回 live dict，外层可获得可变状态引用。  
-裁决：当前未见真实误用，但这与 runtime public surface “显式、可仲裁、避免内部可变结构泄漏”的方向不完全一致。
+历史问题：`Coordinator.devices` 曾直接返回 live dict，外层可获得可变状态引用。  
+当前状态：Phase 9 已把 `Coordinator.devices` 收口为 read-only mapping；剩余风险仅是设备对象本身仍为浅可变，这符合当前 contract，但后续可再加固。
 
-### 5.4 `Medium`：outlet power 仍是额外状态旁写
+### 5.4 `Resolved in Phase 9 / Low`：outlet power side-write 已迁到 formal primitive
 
 - `custom_components/lipro/core/coordinator/outlet_power.py:19`
 - `custom_components/lipro/core/coordinator/coordinator.py:485`
 
-问题：`power_info` 直接写入 `device.extra_data`，未经过统一状态更新 primitive。  
-裁决：功能上目前可用，但从北极星角度看仍属于“旁路扩展状态”。
+历史问题：`power_info` 曾直接写入 `device.extra_data`，未经过统一状态更新 primitive。  
+当前状态：Phase 9 已把正式写路径迁到 `LiproDevice.outlet_power_info`；`extra_data["power_info"]` 只剩 legacy read fallback，不再承担正式 truth。
 
-### 5.5 `Medium/Low`：compat 名称继续在多个公开入口放大
+### 5.5 `Resolved in Phase 9 / Medium/Low`：多入口 compat export 扩散已收口为显式 seam
 
 - `custom_components/lipro/__init__.py:49`
 - `custom_components/lipro/config_flow.py:52`
@@ -132,8 +148,8 @@
 - `custom_components/lipro/core/__init__.py:4`
 - `custom_components/lipro/core/mqtt/__init__.py:5`
 
-问题：`LiproClient` / `LiproMqttClient` 虽然已不再承载正式 root 语义，但仍被多个 public/export 点重新可见化。  
-裁决：属于 residual cleanup，需结合 delete gate 与外部兼容面谨慎收口。
+历史问题：`LiproClient` / `LiproMqttClient` 曾被多个 public/export 点重新可见化。  
+当前状态：Phase 9 已关闭 root / flow / core / mqtt 包级 compat exports；remaining delete-gated seam 只剩 `core.api.LiproClient`、`LiproProtocolFacade.get_device_list` 与 `LiproMqttFacade.raw_client`。
 
 ### 5.6 `Low`：模块级缓存/弱可观测点
 
@@ -152,15 +168,15 @@
 
 ## 6. 测试与治理面判断
 
-- 当前 meta guards 与 governance truth 在当前工作树里是自洽的；`Phase 8` summary / verification / state / roadmap 已更新到完成态。
-- 当前 `Phase 8` 相关文件已存在并通过专项测试，说明“代码实现”与“治理登记”在工作树中已基本闭环。
+- 当前 meta guards 与 governance truth 在当前工作树里是自洽的；`Phase 9` summary / validation / verification / state / roadmap 已更新到完成态。
+- 当前 `Phase 8` / `Phase 9` 相关文件已存在并通过专项测试，说明“代码实现”与“治理登记”在工作树中已形成闭环。
 - repo 级 `ruff` 仍有较多遗留，但它们暂未表现为运行时风险；如果后续要追求更高整洁度，可单开 hygiene 清扫轮次。
 
 ## 7. 当前建议优先级
 
 1. **已完成**：MQTT 退避复位、unsubscribe 重试、status 回写统一主链。
-2. **下一优先级**：收口 protocol 出口面与 compat export seam。
-3. **其后**：把 `outlet_power` / mutable `devices` surface 收回更正式的 runtime public primitive。
+2. **下一优先级**：继续收窄 `core.api.LiproClient`、`LiproProtocolFacade.get_device_list` 与 `LiproMqttFacade.raw_client` 这些 delete-gated compat seam。
+3. **其后**：若继续加固，可评估 `outlet_power_info` 的深层只读语义与 protocol package collaborator export 的进一步收口。
 4. **治理型低优先级**：清理 broad exception / 全局缓存 / schedule codec 依赖残留 / repo-wide lint 噪音。
 
 ## 8. 审查边界声明
