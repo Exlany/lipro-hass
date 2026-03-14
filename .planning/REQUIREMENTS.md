@@ -70,6 +70,14 @@
 - [x] **GOV-09**: developer-facing docs / config truth（architecture docs、quality scale、devcontainer、baseline/review truth）已对齐当前实现。
 - [x] **GOV-10**: contributor-facing CI/open-source contract 已与真实仓库治理对齐；`security` job、`CODE_OF_CONDUCT.md`、`SUPPORT.md` 与 shell 脚本 lint 门禁均已纳入正式口径。
 
+### Explicit Domain Surface, Governance Guard Hardening & Hotspot Boundary Decomposition
+
+- [x] **DOM-01**: `LiproDevice` 与 `DeviceState` 的正式领域表面必须显式可枚举；设备域不得再依赖 `__getattr__` 动态扩面。
+- [x] **DOM-02**: device/domain 内部消费者应优先走 `state` / `network_info` / `extras` / `capabilities` 组合根，避免新的隐式叶子 surface 继续反向定义领域真相。
+- [x] **RUN-02**: `core/coordinator/orchestrator.py` 必须拆成更小的 runtime builder helpers，并把内部协议依赖的术语从模糊 `client` 收口到 `protocol`。
+- [x] **RUN-03**: `core/api/status_service.py` 的 binary-split fallback 与 batch query 主链必须拆成可审计 helper / context / accumulator 边界，而不是继续堆在单个巨型函数里。
+- [x] **GOV-11**: README / README_zh / CONTRIBUTING / SUPPORT / CODEOWNERS / quality-scale / devcontainer 与 meta guards 必须形成结构化、一致、可自动校验的开源治理入口。
+
 ## Cross-Phase Arbitration
 
 - `07.3` 锁定 telemetry contracts / redaction / cardinality / timestamp-pseudo-id compatibility
@@ -79,6 +87,7 @@
 - `09` 锁定 residual surface closure / compat seam narrowing / read-only runtime access / formal outlet-power primitive
 - `10` 锁定 API drift isolation / core-boundary prep / host-neutral contracts；不得把跨平台 SDK 抽离提升为本里程碑正式 root
 - `12` 锁定 type contract convergence / compat narrowing / hotspot slimming / contributor-facing governance hygiene；不得重新打开已在 Phase 11 关闭的 residual truth
+- `13` 锁定显式设备域表面、runtime/status 热点 helper 边界与公开治理资产结构化守卫；后续 closeout 不得重新引入 device/state 动态委托
 
 ## Future Requirements
 
@@ -140,10 +149,15 @@
 | HOT-01 | Phase 12 | Complete |
 | GOV-09 | Phase 12 | Complete |
 | GOV-10 | Phase 12 | Complete |
+| DOM-01 | Phase 13 | Complete |
+| DOM-02 | Phase 13 | Complete |
+| RUN-02 | Phase 13 | Complete |
+| RUN-03 | Phase 13 | Complete |
+| GOV-11 | Phase 13 | Complete |
 
 **Coverage:**
-- active milestone requirements: 37 total
-- mapped to phases: 37
+- active milestone requirements: 42 total
+- mapped to phases: 42
 - unmapped: 0 ✓
 
-*Last updated: 2026-03-14 after executing Phase 12 closeout work*
+*Last updated: 2026-03-14 after executing Phase 13 closeout work*

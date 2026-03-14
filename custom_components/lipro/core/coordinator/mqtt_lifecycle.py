@@ -22,9 +22,23 @@ if TYPE_CHECKING:
 _LOGGER = logging.getLogger(__name__)
 
 
+async def _teardown_failed_mqtt_setup(
+    *,
+    protocol: LiproProtocolFacade,
+    mqtt_runtime: MqttRuntime,
+    mqtt_client: LiproMqttFacade | None,
+) -> None:
+    """Detach a partially constructed MQTT transport after setup failure."""
+    if mqtt_client is not None:
+        with suppress(Exception):
+            await mqtt_runtime.disconnect()
+    mqtt_runtime.detach_transport()
+    protocol.attach_mqtt_facade(None)
+
+
 async def async_setup_mqtt(
     *,
-    client: LiproProtocolFacade,
+    protocol: LiproProtocolFacade,
     config_entry: ConfigEntry,
     background_task_manager: BackgroundTaskManager,
     devices: dict[str, LiproDevice],
@@ -36,7 +50,7 @@ async def async_setup_mqtt(
     try:
         try:
             async with asyncio.timeout(10):
-                mqtt_config = await client.get_mqtt_config()
+                mqtt_config = await protocol.get_mqtt_config()
         except TimeoutError:
             _LOGGER.error("MQTT config fetch timeout after 10 seconds")
             return None
@@ -70,7 +84,9 @@ async def async_setup_mqtt(
             try:
                 await mqtt_runtime.handle_message(topic, payload)
             except Exception as err:
-                if isinstance(err, (asyncio.CancelledError, KeyboardInterrupt, SystemExit)):
+                if isinstance(
+                    err, (asyncio.CancelledError, KeyboardInterrupt, SystemExit)
+                ):
                     raise
                 mqtt_runtime.handle_transport_error(err)
                 raise
@@ -84,7 +100,7 @@ async def async_setup_mqtt(
                 ),
             )
 
-        mqtt_client = client.build_mqtt_facade(
+        mqtt_client = protocol.build_mqtt_facade(
             access_key=access_key,
             secret_key=secret_key,
             biz_id=biz_id,
@@ -101,26 +117,32 @@ async def async_setup_mqtt(
                 connected = await mqtt_runtime.connect(device_ids=device_ids)
         except TimeoutError:
             _LOGGER.error("MQTT connection timeout after 15 seconds")
-            await mqtt_runtime.disconnect()
-            mqtt_runtime.detach_transport()
-            client.attach_mqtt_facade(None)
+            await _teardown_failed_mqtt_setup(
+                protocol=protocol,
+                mqtt_runtime=mqtt_runtime,
+                mqtt_client=mqtt_client,
+            )
             return None
 
         if not connected or not mqtt_runtime.is_connected:
             _LOGGER.warning("MQTT client not connected after setup")
-            await mqtt_runtime.disconnect()
-            mqtt_runtime.detach_transport()
-            client.attach_mqtt_facade(None)
+            await _teardown_failed_mqtt_setup(
+                protocol=protocol,
+                mqtt_runtime=mqtt_runtime,
+                mqtt_client=mqtt_client,
+            )
             return None
 
         return (mqtt_client, biz_id)
 
-    except Exception:
-        if mqtt_client is not None:
-            with suppress(Exception):
-                await mqtt_runtime.disconnect()
-            mqtt_runtime.detach_transport()
-            client.attach_mqtt_facade(None)
+    except Exception as err:
+        if isinstance(err, (asyncio.CancelledError, KeyboardInterrupt, SystemExit)):
+            raise
+        await _teardown_failed_mqtt_setup(
+            protocol=protocol,
+            mqtt_runtime=mqtt_runtime,
+            mqtt_client=mqtt_client,
+        )
         _LOGGER.exception("Failed to setup MQTT")
         return None
 

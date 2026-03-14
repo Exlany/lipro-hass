@@ -229,8 +229,8 @@ See `SUPPORT.md` for usage questions, bug triage expectations, and security rout
 
 ## Questions? / 有问题？
 
-Feel free to open an issue for discussion!
-欢迎开启 Issue 进行讨论！
+Feel free to open a GitHub Discussion for questions or early design discussion; use Issues for confirmed bugs and trackable work!
+欢迎先通过 GitHub Discussions 提问或讨论设计；确认缺陷与可追踪工作再开 Issue！
 
 ---
 

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 import re
 from typing import Any
@@ -23,10 +24,18 @@ from tests.helpers.architecture_policy import load_structural_rules, load_target
 _ROOT = repo_root(Path(__file__))
 _FILE_MATRIX = _ROOT / ".planning" / "reviews" / "FILE_MATRIX.md"
 _DOCS_README = _ROOT / "docs" / "README.md"
+_README = _ROOT / "README.md"
+_README_ZH = _ROOT / "README_zh.md"
 _AGENTS = _ROOT / "AGENTS.md"
 _CONTRIBUTING = _ROOT / "CONTRIBUTING.md"
-_PR_TEMPLATE = _ROOT / ".github" / "pull_request_template.md"
+_SUPPORT = _ROOT / "SUPPORT.md"
 _SECURITY = _ROOT / "SECURITY.md"
+_CODE_OF_CONDUCT = _ROOT / "CODE_OF_CONDUCT.md"
+_CODEOWNERS = _ROOT / ".github" / "CODEOWNERS"
+_MANIFEST = _ROOT / "custom_components" / "lipro" / "manifest.json"
+_QUALITY_SCALE = _ROOT / "custom_components" / "lipro" / "quality_scale.yaml"
+_DEVCONTAINER = _ROOT / ".devcontainer.json"
+_PR_TEMPLATE = _ROOT / ".github" / "pull_request_template.md"
 _CI_WORKFLOW = _ROOT / ".github" / "workflows" / "ci.yml"
 _RELEASE_WORKFLOW = _ROOT / ".github" / "workflows" / "release.yml"
 _ISSUE_CONFIG = _ROOT / ".github" / "ISSUE_TEMPLATE" / "config.yml"
@@ -54,6 +63,12 @@ def _load_yaml(path: Path) -> dict[str, Any]:
     assert isinstance(loaded, dict)
     if True in loaded and "on" not in loaded:
         loaded["on"] = loaded.pop(True)
+    return loaded
+
+
+def _load_json(path: Path) -> dict[str, Any]:
+    loaded = json.loads(path.read_text(encoding="utf-8"))
+    assert isinstance(loaded, dict)
     return loaded
 
 
@@ -85,7 +100,16 @@ def _extract_checklist_labels(text: str) -> dict[str, str]:
     return items
 
 
+def _count_numbered_markdown_items(section_text: str) -> int:
+    return len(re.findall(r"^\d+\. ", section_text, flags=re.MULTILINE))
 
+
+def _parse_codeowners_handles(text: str) -> list[str]:
+    for line in text.splitlines():
+        stripped = line.strip()
+        if stripped.startswith("* "):
+            return stripped.split()[1:]
+    raise AssertionError("Missing wildcard CODEOWNERS entry")
 
 
 def _assert_current_mode_tracks_phase_lifecycle(state_text: str) -> None:
@@ -93,6 +117,7 @@ def _assert_current_mode_tracks_phase_lifecycle(state_text: str) -> None:
         r"\*\*Current mode:\*\* `Phase \d+(?:\.\d+)? [a-z][a-z0-9_ -]+`",
         state_text,
     )
+
 
 def test_governance_checker_reports_no_drift() -> None:
     assert run_checks(_ROOT) == []
@@ -340,6 +365,100 @@ def test_phase_11_execution_truth_is_consistent() -> None:
     assert scores["requirements"] == "30/30"
 
 
+def test_readme_exposes_community_and_governance_entrypoints() -> None:
+    for readme_path in (_README, _README_ZH):
+        readme_text = readme_path.read_text(encoding="utf-8")
+        for asset in (
+            "CONTRIBUTING.md",
+            "SUPPORT.md",
+            "SECURITY.md",
+            "CODE_OF_CONDUCT.md",
+            "custom_components/lipro/quality_scale.yaml",
+            ".devcontainer.json",
+        ):
+            assert asset in readme_text
+
+
+def test_manifest_codeowners_match_repo_codeowners() -> None:
+    manifest = _load_json(_MANIFEST)
+    assert manifest.get("codeowners") == _parse_codeowners_handles(
+        _CODEOWNERS.read_text(encoding="utf-8")
+    )
+
+
+def test_support_and_issue_routing_are_consistent() -> None:
+    support_text = _SUPPORT.read_text(encoding="utf-8")
+    contributing_text = _CONTRIBUTING.read_text(encoding="utf-8")
+    issue_config = _load_yaml(_ISSUE_CONFIG)
+    contact_urls = [link["url"] for link in issue_config.get("contact_links", [])]
+
+    assert "SUPPORT.md" in contributing_text
+    assert "SECURITY.md" in contributing_text
+    assert any("discussions" in url.lower() for url in contact_urls)
+    assert any("security/policy" in url.lower() for url in contact_urls)
+    assert "Discussion" in support_text or "讨论" in support_text
+    assert "SECURITY.md" in support_text
+
+
+def test_quality_scale_and_devcontainer_truth_are_in_sync() -> None:
+    quality_scale = _load_yaml(_QUALITY_SCALE)
+    known_limitations_comment = quality_scale["rules"]["docs-known-limitations"]["comment"]
+    match = re.search(r"(\d+) known limitations", known_limitations_comment)
+    assert match is not None
+    expected_known_limitations = int(match.group(1))
+
+    readme_section = _extract_markdown_section(
+        _README.read_text(encoding="utf-8"),
+        "Known Limitations",
+    )
+    assert _count_numbered_markdown_items(readme_section) == expected_known_limitations
+    assert "tests/flows/test_config_flow.py" in quality_scale["rules"]["config-flow-test-coverage"]["comment"]
+    assert (_ROOT / "tests" / "flows" / "test_config_flow.py").exists()
+
+    devcontainer = _load_json(_DEVCONTAINER)
+    settings = devcontainer["customizations"]["vscode"]["settings"]
+    assert settings["python.defaultInterpreterPath"].endswith("/.venv/bin/python")
+
+
+def test_phase_13_execution_truth_is_consistent() -> None:
+    phase_root = (
+        _ROOT
+        / ".planning"
+        / "phases"
+        / "13-explicit-domain-surface-governance-guard-hardening-hotspot-boundary-decomposition"
+    )
+    project_text = (_ROOT / ".planning" / "PROJECT.md").read_text(encoding="utf-8")
+    roadmap_text = (_ROOT / ".planning" / "ROADMAP.md").read_text(encoding="utf-8")
+    requirements_text = (_ROOT / ".planning" / "REQUIREMENTS.md").read_text(encoding="utf-8")
+    state_text = (_ROOT / ".planning" / "STATE.md").read_text(encoding="utf-8")
+    public_text = (_ROOT / ".planning" / "baseline" / "PUBLIC_SURFACES.md").read_text(encoding="utf-8")
+    residual_text = (_ROOT / ".planning" / "reviews" / "RESIDUAL_LEDGER.md").read_text(encoding="utf-8")
+    kill_text = (_ROOT / ".planning" / "reviews" / "KILL_LIST.md").read_text(encoding="utf-8")
+    file_matrix_text = (_ROOT / ".planning" / "reviews" / "FILE_MATRIX.md").read_text(encoding="utf-8")
+    research_text = (phase_root / "13-RESEARCH.md").read_text(encoding="utf-8")
+    prd_text = (phase_root / "13-PRD.md").read_text(encoding="utf-8")
+    validation_text = (phase_root / "13-VALIDATION.md").read_text(encoding="utf-8")
+    verification_text = (phase_root / "13-VERIFICATION.md").read_text(encoding="utf-8")
+
+    assert "### 8. Phase 13 显式领域表面 / 治理守卫 / 热点边界收口已完成" in project_text
+    assert (
+        "| 13 Explicit Domain Surface, Governance Guard Hardening & Hotspot Boundary Decomposition | v1.1 | 3/3 | Complete | 2026-03-14 |"
+        in roadmap_text
+    )
+    assert "| DOM-01 | Phase 13 | Complete |" in requirements_text
+    assert "| GOV-11 | Phase 13 | Complete |" in requirements_text
+    _assert_current_mode_tracks_phase_lifecycle(state_text)
+    assert "`__getattr__`" in prd_text
+    assert "3 plans / 2 waves" in research_text
+    assert "status: passed" in validation_text
+    assert "status: passed" in verification_text
+    assert "device_delegation.py" not in file_matrix_text
+    assert "Domain dynamic delegation" in residual_text
+    assert "## Phase 13 Residual Delta" in residual_text
+    assert "## Phase 13 Status Update" in kill_text
+    assert "## Phase 13 Surface Closure Notes" in public_text
+
+
 def test_phase_12_execution_truth_is_consistent() -> None:
     phase_root = _ROOT / ".planning" / "phases" / "12-type-contract-alignment-residual-cleanup-and-governance-hygiene"
     project_text = (_ROOT / ".planning" / "PROJECT.md").read_text(encoding="utf-8")
@@ -352,12 +471,12 @@ def test_phase_12_execution_truth_is_consistent() -> None:
     research_text = (phase_root / "12-RESEARCH.md").read_text(encoding="utf-8")
     prd_text = (phase_root / "12-PRD.md").read_text(encoding="utf-8")
 
-    assert "**Status:** Active — `Phase 12` 已完成" in project_text
+    assert "**Status:** Active" in project_text
+    assert "### 7. Phase 12 Type / Residual / Governance 收口已完成" in project_text
     assert "| 12 Type Contract Alignment, Residual Cleanup & Governance Hygiene | v1.1 | 5/5 | Complete | 2026-03-14 |" in roadmap_text
     assert "**Requirements**: TYP-01, TYP-02, CMP-01, CMP-02, HOT-01, GOV-09, GOV-10" in roadmap_text
     assert "| TYP-01 | Phase 12 | Complete |" in requirements_text
     assert "| GOV-10 | Phase 12 | Complete |" in requirements_text
-    assert "**Current mode:** `Phase 12 complete`" in state_text
     _assert_current_mode_tracks_phase_lifecycle(state_text)
     assert "Already Fixed / Must Not Be Replanned" in prd_text
     assert "5 plans / 3 waves" in research_text

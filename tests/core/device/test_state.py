@@ -13,6 +13,14 @@ from custom_components.lipro.const.properties import (
 from custom_components.lipro.core.device import DeviceState
 
 
+def test_device_state_surface_is_explicit() -> None:
+    """The state helper should expose concrete properties without __getattr__."""
+    assert "__getattr__" not in DeviceState.__dict__
+    assert "is_on" in DeviceState.__dict__
+    assert "brightness" in DeviceState.__dict__
+    assert "fan_mode" in DeviceState.__dict__
+
+
 def test_device_state_from_api_data_reads_common_properties() -> None:
     """State snapshot should expose normalized common accessors."""
     state = DeviceState.from_api_data(

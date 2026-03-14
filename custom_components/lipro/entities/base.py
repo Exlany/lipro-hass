@@ -77,8 +77,8 @@ class LiproEntity(CoordinatorEntity[Any]):
         )
         if not device.is_group and device.serial:
             device_info["serial_number"] = device.serial
-        if device.firmware_version:
-            device_info["sw_version"] = device.firmware_version
+        if device.network_info.firmware_version:
+            device_info["sw_version"] = device.network_info.firmware_version
         if device.iot_name:
             device_info["hw_version"] = device.iot_name
         self._attr_device_info = device_info

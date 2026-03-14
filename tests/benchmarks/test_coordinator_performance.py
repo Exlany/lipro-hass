@@ -45,14 +45,16 @@ def device_identity_index():
 def device_runtime(mock_client, mock_auth_manager, device_identity_index):
     """Create device runtime for benchmarking."""
     return DeviceRuntime(
-        client=mock_client,
+        protocol=mock_client,
         auth_manager=mock_auth_manager,
         device_identity_index=device_identity_index,
         filter_config_options={},
     )
 
 
-def test_device_identity_index_registration(benchmark, device_identity_index, make_device):
+def test_device_identity_index_registration(
+    benchmark, device_identity_index, make_device
+):
     """Benchmark device registration in identity index."""
     device = make_device("light", serial="test_device_001")
 
@@ -102,7 +104,9 @@ def test_normalize_device_key_performance(benchmark):
     assert result == "device_123"
 
 
-def test_device_identity_index_bulk_registration(benchmark, device_identity_index, make_device):
+def test_device_identity_index_bulk_registration(
+    benchmark, device_identity_index, make_device
+):
     """Benchmark bulk device registration."""
     devices = [make_device("light", serial=f"bulk_{i:03d}") for i in range(50)]
 
@@ -117,7 +121,9 @@ def test_device_identity_index_bulk_registration(benchmark, device_identity_inde
     assert device_identity_index.get("bulk_049") is devices[49]
 
 
-def test_device_identity_index_bulk_lookup(benchmark, device_identity_index, make_device):
+def test_device_identity_index_bulk_lookup(
+    benchmark, device_identity_index, make_device
+):
     """Benchmark bulk device lookups."""
     # Populate identity index
     for i in range(100):

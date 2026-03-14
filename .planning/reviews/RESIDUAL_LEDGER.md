@@ -15,6 +15,7 @@
 
 - `Legacy public names` 已在 Phase 12 关闭：`core.api.LiproClient` compat shell 已删除，legacy constructor name 不再作为生产 public surface 存在。
 - `Capability compat public name` 已在 Phase 12 关闭：`DeviceCapabilities` 与 `custom_components/lipro/core/device/capabilities.py` 已删除。
+- `Domain dynamic delegation` 已在 Phase 13 关闭：`LiproDevice.__getattr__` / `DeviceState.__getattr__` 已移除，`custom_components/lipro/core/device/device_delegation.py` 已删除。
 - `Control-plane scatter` 已在 Phase 11 关闭：formal router、runtime locator 与 HA adapter 边界已固定，control plane 不再以散落 helper / wiring 叙事存在。
 - `Legacy service wiring carrier` 已在 Phase 11 关闭：`custom_components/lipro/services/wiring.py` 已正式删除，control-plane formal router truth 收口到 `custom_components/lipro/control/service_router.py`。
 - `API aggregate endpoint mixin` 已在 Phase 11 关闭：`custom_components/lipro/core/api/endpoints/__init__.py` 不再导出 `_ClientEndpointsMixin`，active residual 只剩 endpoint helper-class-level demixin cleanup。
@@ -156,3 +157,10 @@
 - `LiproMqttFacade.raw_client` compat seam 已删除；concrete transport 不再通过 protocol façade 暴露。
 - `DeviceCapabilities` compat alias 与 `core/device/capabilities.py` 已删除；能力真源固定为 `CapabilityRegistry` / `CapabilitySnapshot`。
 - `_ClientBase` 保留为 internal endpoint typing contract，但不再被视为 active public residual 或 compat shell。
+
+## Phase 13 Residual Delta
+
+- `LiproDevice` 与 `DeviceState` 的动态 `__getattr__` 已删除；domain surface 正式改成显式 property / method 集合。
+- `custom_components/lipro/core/device/device_delegation.py` 已物理删除；`state_accessors.py` 仅保留显式 helper 角色。
+- 本 phase **无新增 residual family**：收口的是既有 domain dynamic delegation，而不是引入新的 compat 层。
+- active residual 继续集中在 API helper mixin / `_ClientBase` typing spine、`LiproMqttClient` legacy naming，以及高温热点文件的后续减温。

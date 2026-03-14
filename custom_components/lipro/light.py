@@ -58,10 +58,10 @@ class LiproLight(LiproEntity, LightEntity):
     """Representation of a Lipro light."""
 
     # Declarative properties using descriptors (eliminates 3 manual @property methods)
-    is_on = DeviceAttr[bool]("is_on")
+    is_on = DeviceAttr[bool]("state.is_on")
     brightness = ScaledBrightness()  # Auto-converts 0-100 → 0-255
     color_temp_kelvin = ConditionalAttr[int](
-        "color_temp",
+        "state.color_temp",
         capability="capabilities.supports_color_temp",
     )
 
@@ -129,7 +129,7 @@ class LiproLight(LiproEntity, LightEntity):
             self.capabilities.min_color_temp_kelvin,
             min(self.capabilities.max_color_temp_kelvin, kelvin),
         )
-        return self.device.kelvin_to_percent_for_device(clamped_kelvin)
+        return self.device.state.kelvin_to_percent_for_device(clamped_kelvin)
 
     def _merge_slider_state(self, state_changes: dict[str, int]) -> dict[str, int]:
         """Merge brightness/temperature into one payload when both are known.
@@ -141,13 +141,17 @@ class LiproLight(LiproEntity, LightEntity):
         has_brightness = PROP_BRIGHTNESS in merged
         has_temperature = PROP_TEMPERATURE in merged
 
-        if has_brightness and not has_temperature and self.capabilities.supports_color_temp:
-            temperature = self.device.get_optional_int_property(PROP_TEMPERATURE)
+        if (
+            has_brightness
+            and not has_temperature
+            and self.capabilities.supports_color_temp
+        ):
+            temperature = self.device.state.get_optional_int_property(PROP_TEMPERATURE)
             if temperature is not None:
                 merged[PROP_TEMPERATURE] = max(0, min(100, temperature))
 
         if has_temperature and not has_brightness:
-            brightness = self.device.get_optional_int_property(PROP_BRIGHTNESS)
+            brightness = self.device.state.get_optional_int_property(PROP_BRIGHTNESS)
             if brightness is not None:
                 merged[PROP_BRIGHTNESS] = max(
                     MIN_BRIGHTNESS,

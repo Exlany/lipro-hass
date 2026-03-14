@@ -1,7 +1,7 @@
 # Project: Lipro-HASS North Star Evolution v1.1
 
-**Status:** Active — `Phase 12` 已完成，milestone closeout pending
-**Goal:** 把 `protocol truth`、`architecture policy`、`runtime telemetry export`、`replay evidence`、`ai-debug evidence pack`、`residual surface closure`、`api drift isolation / core-boundary prep`、`control router / runtime-access / OTA / governance coherence`、`type contract alignment / residual cleanup / contributor governance hygiene` 九条演进线统一纳入北极星主链，进入“可保真、可观测、可仲裁、可回放、可给 AI 调试/分析”的下一里程碑。
+**Status:** Active — `Phase 13` 已完成，milestone closeout pending
+**Goal:** 把 `protocol truth`、`architecture policy`、`runtime telemetry export`、`replay evidence`、`ai-debug evidence pack`、`residual surface closure`、`api drift isolation / core-boundary prep`、`control router / runtime-access / OTA / governance coherence`、`type contract alignment / residual cleanup / contributor governance hygiene` 与 `explicit domain surface / governance guard hardening / hotspot boundary decomposition` 十条演进线统一纳入北极星主链，进入“可保真、可观测、可仲裁、可回放、可给 AI 调试/分析”的下一里程碑。
 
 ## Why This Milestone Exists
 
@@ -65,6 +65,12 @@
 - `core.api.LiproClient`、`LiproProtocolFacade.get_device_list`、`LiproMqttFacade.raw_client` 与 `DeviceCapabilities` 已从生产 public surface 清退，不再为测试保留插件 compat 入口
 - `core/api/client.py` 与 device snapshot 主链继续沿 formal boundary 收薄，未引入任何第二 orchestration story
 - contributor-facing docs / config / CI / community governance 已同步到当前仓库真相，shellcheck 已纳入 lint 门禁
+
+### 8. Phase 13 显式领域表面 / 治理守卫 / 热点边界收口已完成
+
+- `core/device/device.py`、`state.py` 与相关测试已移除动态 `__getattr__`，设备域正式表面变成显式 property / method 集合
+- `core/coordinator/orchestrator.py`、`core/api/status_service.py` 与 `core/coordinator/mqtt_lifecycle.py` 已进一步拆成更小 helper，runtime 内部协议协作者术语继续向 `protocol` 收口
+- README / README_zh / CONTRIBUTING / SUPPORT / CODEOWNERS / quality-scale / devcontainer 已被 meta guards 结构化校验，治理入口不再只靠文案约定
 
 ## Architectural Stance
 
@@ -258,4 +264,4 @@ v1.1 进入执行期后，新增演进必须额外满足：
 9. `.planning/reviews/*.md`
 10. `docs/archive/FINAL_CLOSEOUT_REPORT_2026-03-13.md`
 
-*Last updated: 2026-03-14 after executing Phase 12 closeout work*
+*Last updated: 2026-03-14 after executing Phase 13 closeout work*

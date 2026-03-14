@@ -71,7 +71,7 @@ class LiproCover(LiproEntity, CoverEntity):
         """
         if PROP_POSITION not in self.device.properties:
             return None
-        return self.device.position
+        return self.device.state.position
 
     @property
     def is_closed(self) -> bool | None:
@@ -81,17 +81,17 @@ class LiproCover(LiproEntity, CoverEntity):
         """
         if PROP_POSITION not in self.device.properties:
             return None
-        return self.device.position == 0
+        return self.device.state.position == 0
 
     @property
     def is_opening(self) -> bool:
         """Return if the cover is opening."""
-        return self.device.is_moving and self.device.direction == "opening"
+        return self.device.state.is_moving and self.device.state.direction == "opening"
 
     @property
     def is_closing(self) -> bool:
         """Return if the cover is closing."""
-        return self.device.is_moving and self.device.direction == "closing"
+        return self.device.state.is_moving and self.device.state.direction == "closing"
 
     async def async_open_cover(self, **kwargs: Any) -> None:
         """Open the cover."""

@@ -162,14 +162,14 @@ class LiproFan(LiproEntity, FanEntity):
 
         Runtime validation shows cycle mode does not support gear/speed adjustment.
         """
-        if self.device.fan_mode == FAN_MODE_CYCLE:
+        if self.device.state.fan_mode == FAN_MODE_CYCLE:
             return FAN_FEATURES_BASE
         return FAN_FEATURES_WITH_SPEED
 
     @property
     def is_on(self) -> bool:
         """Return true if fan is on."""
-        return self.device.fan_is_on
+        return self.device.state.fan_is_on
 
     @property
     def percentage(self) -> int | None:
@@ -177,13 +177,13 @@ class LiproFan(LiproEntity, FanEntity):
         if not self.is_on:
             return 0
         return ranged_value_to_percentage(
-            self.device.fan_speed_range, self.device.fan_gear
+            self.device.fan_speed_range, self.device.state.fan_gear
         )
 
     @property
     def preset_mode(self) -> str | None:
         """Return the current preset mode."""
-        mode = self.device.fan_mode
+        mode = self.device.state.fan_mode
         return MODE_TO_PRESET.get(mode, PRESET_MODE_CYCLE)
 
     async def async_turn_on(
@@ -209,7 +209,7 @@ class LiproFan(LiproEntity, FanEntity):
                 )
 
         if percentage is not None:
-            effective_mode = mode if mode is not None else self.device.fan_mode
+            effective_mode = mode if mode is not None else self.device.state.fan_mode
             if effective_mode != FAN_MODE_CYCLE:
                 gear = self._percentage_to_gear(percentage)
                 properties[PROP_FAN_GEAR] = gear
@@ -233,7 +233,7 @@ class LiproFan(LiproEntity, FanEntity):
             await self.async_turn_off()
             return
 
-        if self.device.fan_mode == FAN_MODE_CYCLE:
+        if self.device.state.fan_mode == FAN_MODE_CYCLE:
             _LOGGER.debug(
                 "Ignoring speed change in cycle mode for %s",
                 self.device.name,
@@ -285,12 +285,12 @@ class LiproHeaterVentFan(LiproEntity, FanEntity):
     @property
     def is_on(self) -> bool:
         """Return true if ventilation fan is on."""
-        return self.device.aeration_is_on
+        return self.device.state.aeration_is_on
 
     @property
     def preset_mode(self) -> str | None:
         """Return the current preset mode."""
-        return AERATION_TO_PRESET.get(self.device.aeration_gear, PRESET_VENT_OFF)
+        return AERATION_TO_PRESET.get(self.device.state.aeration_gear, PRESET_VENT_OFF)
 
     async def _async_set_aeration_from_preset(
         self,

@@ -14,6 +14,15 @@ from custom_components.lipro.core.device import (
 )
 
 
+def test_lipro_device_surface_is_explicit() -> None:
+    """The device facade should no longer rely on dynamic attribute delegation."""
+    assert "__getattr__" not in LiproDevice.__dict__
+    assert "is_light" in LiproDevice.__dict__
+    assert "brightness" in LiproDevice.__dict__
+    assert "wifi_rssi" in LiproDevice.__dict__
+    assert "gear_list" in LiproDevice.__dict__
+
+
 def test_lipro_device_exposes_extracted_helper_objects(make_device) -> None:
     """The facade should compose extracted helper models consistently."""
     device = make_device(

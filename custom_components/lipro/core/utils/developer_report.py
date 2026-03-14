@@ -163,7 +163,7 @@ def _build_panel_capability_snapshot(
         if supports_led or supports_memory or pair_key_full_present or panel_info:
             configurable_panel_count += 1
 
-        pair_key_full = dev.panel_pair_key_full if pair_key_full_present else None
+        pair_key_full = dev.state.panel_pair_key_full if pair_key_full_present else None
         if pair_key_full is True:
             pair_key_full_count += 1
 
@@ -177,11 +177,13 @@ def _build_panel_capability_snapshot(
                 "is_connected": dev.is_connected,
                 "led": {
                     "supported": supports_led,
-                    "enabled": dev.panel_led_enabled if supports_led else None,
+                    "enabled": dev.state.panel_led_enabled if supports_led else None,
                 },
                 "memory": {
                     "supported": supports_memory,
-                    "enabled": dev.panel_memory_enabled if supports_memory else None,
+                    "enabled": dev.state.panel_memory_enabled
+                    if supports_memory
+                    else None,
                 },
                 "pair_key_full_present": pair_key_full_present,
                 "pair_key_full": pair_key_full,
@@ -265,7 +267,11 @@ def _build_ir_remote_inventory_snapshot(
     bound_remote_total = 0
 
     for dev in devices.values():
-        if dev.is_group or not dev.capabilities.is_gateway or dev.is_ir_remote_device:
+        if (
+            dev.is_group
+            or not dev.capabilities.is_gateway
+            or dev.extras.is_ir_remote_device
+        ):
             continue
         gateway_devices.setdefault(dev.serial, dev)
 
@@ -276,7 +282,7 @@ def _build_ir_remote_inventory_snapshot(
             for entry in dev.rc_list
         ]
         remote_count = len(rc_entries)
-        firmware_gate = _firmware_meets_ir_emit_floor(dev.firmware_version)
+        firmware_gate = _firmware_meets_ir_emit_floor(dev.network_info.firmware_version)
         supports_ir = dev.supports_ir_switch
         if supports_ir or remote_count:
             ir_capable_gateway_count += 1
@@ -285,9 +291,9 @@ def _build_ir_remote_inventory_snapshot(
             {
                 "device_id": redact_identifier(dev.serial),
                 "name": dev.name,
-                "firmware_version": dev.firmware_version,
+                "firmware_version": dev.network_info.firmware_version,
                 "supports_ir_switch": supports_ir,
-                "ir_switch": dev.ir_switch_enabled,
+                "ir_switch": dev.state.ir_switch_enabled,
                 "ir_emit_supported_by_firmware": firmware_gate,
                 "remote_count": remote_count,
                 "rc_list": rc_entries,
@@ -297,7 +303,7 @@ def _build_ir_remote_inventory_snapshot(
     ir_remote_devices: list[dict[str, Any]] = []
     orphan_count = 0
     for dev in devices.values():
-        if not dev.is_ir_remote_device:
+        if not dev.extras.is_ir_remote_device:
             continue
 
         gateway_device_id = dev.ir_remote_gateway_device_id

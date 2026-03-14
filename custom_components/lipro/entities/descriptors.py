@@ -40,11 +40,11 @@ class DeviceAttr(Generic[T]):
 
     Examples:
         class LiproLight(LiproEntity, LightEntity):
-            is_on = DeviceAttr[bool]("is_on")
-            brightness = DeviceAttr[int]("brightness", transform=lambda x: int(x * 2.55))
+            is_on = DeviceAttr[bool]("state.is_on")
+            brightness = DeviceAttr[int]("state.brightness", transform=lambda x: int(x * 2.55))
 
     Args:
-        attr: Device attribute path (e.g., "is_on", "state.brightness")
+        attr: Device attribute path (e.g., "state.is_on", "state.brightness")
         transform: Optional transformation function applied to the value
     """
 
@@ -74,9 +74,7 @@ class DeviceAttr(Generic[T]):
     @overload
     def __get__(self, obj: LiproEntity, objtype: type | None = None) -> T: ...
 
-    def __get__(
-        self, obj: LiproEntity | None, objtype: type | None = None
-    ) -> T | Self:
+    def __get__(self, obj: LiproEntity | None, objtype: type | None = None) -> T | Self:
         """Get attribute value from device with optional transformation.
 
         Args:
@@ -103,14 +101,14 @@ class ScaledBrightness(DeviceAttr[int | None]):
 
     Example:
         class LiproLight(LiproEntity, LightEntity):
-            brightness = ScaledBrightness()  # Reads from device.brightness
+            brightness = ScaledBrightness()  # Reads from device.state.brightness
     """
 
-    def __init__(self, attr: str = "brightness") -> None:
+    def __init__(self, attr: str = "state.brightness") -> None:
         """Initialize scaled brightness descriptor.
 
         Args:
-            attr: Device attribute path (default: "brightness")
+            attr: Device attribute path (default: "state.brightness")
         """
 
         def scale_brightness(value: int) -> int:
@@ -221,7 +219,7 @@ class KelvinToPercent(DeviceAttr[int]):
             return self
 
         kelvin = super().__get__(obj, objtype)
-        return obj.device.kelvin_to_percent_for_device(kelvin)
+        return obj.device.state.kelvin_to_percent_for_device(kelvin)
 
 
 __all__ = [

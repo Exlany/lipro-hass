@@ -332,7 +332,10 @@ This integration is implemented by reverse engineering the Lipro cloud API and i
 
 ## Contributing
 
-Pull Requests and Issues are welcome!
+- Bug reports and pull requests: start with `CONTRIBUTING.md` and the GitHub issue / PR templates
+- Usage questions and idea discussion: start with `SUPPORT.md` and GitHub Discussions
+- Security issues: follow `SECURITY.md` and use private disclosure first
+- Community expectations: `CODE_OF_CONDUCT.md`
 
 ## Documentation
 
@@ -340,6 +343,12 @@ Pull Requests and Issues are welcome!
 - `docs/NORTH_STAR_TARGET_ARCHITECTURE.md` - target architecture and authority baseline
 - `docs/developer_architecture.md` - current package layout and runtime/control/protocol flow
 - `docs/adr/README.md` - long-lived architecture decisions and trade-offs
+- `CONTRIBUTING.md` - contributor workflow, CI contract, and review expectations
+- `SUPPORT.md` - support routing, triage expectations, and question handling
+- `SECURITY.md` - private vulnerability disclosure policy
+- `CODE_OF_CONDUCT.md` - community behavior expectations
+- `custom_components/lipro/quality_scale.yaml` - Home Assistant quality-scale mapping
+- `.devcontainer.json` - reproducible development container settings
 - `AGENTS.md` - canonical cross-agent repository contract
 - `CLAUDE.md` - Claude Code compatibility entry, always defers to `AGENTS.md`
 

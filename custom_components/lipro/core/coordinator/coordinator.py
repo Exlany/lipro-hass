@@ -64,7 +64,7 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
     def __init__(
         self,
         hass: HomeAssistant,
-        client: LiproProtocolFacade,
+        protocol: LiproProtocolFacade,
         auth_manager: LiproAuthManager,
         config_entry: ConfigEntry,
         update_interval: int = DEFAULT_SCAN_INTERVAL,
@@ -73,7 +73,7 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
 
         Args:
             hass: Home Assistant instance
-            client: Lipro API client
+            protocol: Formal protocol facade
             auth_manager: Authentication manager
             config_entry: Configuration entry
             update_interval: Polling interval in seconds
@@ -86,7 +86,7 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
             config_entry=config_entry,
             always_update=True,
         )
-        self.client = client
+        self.client = protocol
         self.auth_manager = auth_manager
         self.config_entry = config_entry
         self._config_entry = config_entry
@@ -95,7 +95,7 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
         # Build runtime components via orchestrator
         orchestrator = RuntimeOrchestrator(
             hass=hass,
-            client=client,
+            protocol=protocol,
             auth_manager=auth_manager,
             config_entry=config_entry,
             update_interval=update_interval,
@@ -274,7 +274,9 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
 
         # Only unregister through the shared runtime if this is still
         # the active entity instance for the entity_id.
-        should_unregister_from_runtime = self._state.entities.get(entity.entity_id) is entity
+        should_unregister_from_runtime = (
+            self._state.entities.get(entity.entity_id) is entity
+        )
         if should_unregister_from_runtime:
             self._runtimes.state.unregister_entity(entity.entity_id)
 
@@ -325,7 +327,6 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
         refreshed_devices = dict(self._state.devices)
         self.async_set_updated_data(refreshed_devices)
         return refreshed_devices
-
 
     async def async_get_device_schedules(
         self,
@@ -491,9 +492,9 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
             round_robin_index=0,
             resolve_cycle_size=lambda total_devices: total_devices,
             fetch_outlet_power_info=self.async_fetch_outlet_power_info,
-            get_device_by_id=lambda device_id: self.get_device_by_id(device_id)
-            if isinstance(device_id, str)
-            else None,
+            get_device_by_id=lambda device_id: (
+                self.get_device_by_id(device_id) if isinstance(device_id, str) else None
+            ),
             apply_outlet_power_info=apply_outlet_power_info,
             should_reraise_outlet_power_error=should_reraise_outlet_power_error,
             logger=_LOGGER,
@@ -526,7 +527,7 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
             return await mqtt_runtime.connect(device_ids=device_ids)
 
         result = await setup_mqtt_lifecycle(
-            client=self.client,
+            protocol=self.client,
             config_entry=self.config_entry,
             background_task_manager=self._state.background_task_manager,
             devices=self._state.devices,

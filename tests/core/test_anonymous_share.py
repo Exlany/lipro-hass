@@ -9,7 +9,6 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import aiohttp
 import pytest
 
-from custom_components.lipro.const.categories import DeviceCategory
 from custom_components.lipro.const.properties import (
     PROP_ACTIVATED,
     PROP_AERATION_GEAR,
@@ -58,7 +57,6 @@ from custom_components.lipro.core.api import LiproRestFacade
 from custom_components.lipro.core.api.observability import (
     record_api_error as record_observed_api_error,
 )
-from custom_components.lipro.core.capability import CapabilitySnapshot
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -106,39 +104,23 @@ def _make_mock_device(
     device.min_color_temp_kelvin = min_color_temp_kelvin
     device.max_color_temp_kelvin = max_color_temp_kelvin
     device.gear_list = gear_list or []
-    device.is_light = is_light
-    device.is_fan_light = is_fan_light
-    device.is_curtain = is_curtain
-    device.is_sensor = is_sensor
-    device.is_heater = is_heater
-    device.is_switch = is_switch
-    device.is_outlet = is_outlet
-    device.has_gear_presets = has_gear_presets
     device.has_unknown_physical_model = False
-    if is_fan_light:
-        category = DeviceCategory.FAN_LIGHT
-    elif is_curtain:
-        category = DeviceCategory.CURTAIN
-    elif is_sensor:
-        category = DeviceCategory.BODY_SENSOR
-    elif is_heater:
-        category = DeviceCategory.HEATER
-    elif is_outlet:
-        category = DeviceCategory.OUTLET
-    elif is_switch:
-        category = DeviceCategory.SWITCH
-    elif physical_model == "gateway":
-        category = DeviceCategory.GATEWAY
-    else:
-        category = DeviceCategory.LIGHT if is_light else DeviceCategory.UNKNOWN
-    device.capabilities = CapabilitySnapshot(
-        device_type_hex=f"ff{device_type:06x}",
-        category=category,
-        platforms=(),
-        supports_color_temp=min_color_temp_kelvin > 0 and max_color_temp_kelvin > 0,
-        min_color_temp_kelvin=min_color_temp_kelvin,
-        max_color_temp_kelvin=max_color_temp_kelvin,
+    device.extras = MagicMock(has_gear_presets=has_gear_presets)
+    capability_snapshot = MagicMock()
+    capability_snapshot.is_light = is_light
+    capability_snapshot.is_fan_light = is_fan_light
+    capability_snapshot.is_curtain = is_curtain
+    capability_snapshot.is_sensor = is_sensor
+    capability_snapshot.is_heater = is_heater
+    capability_snapshot.is_switch = is_switch
+    capability_snapshot.is_outlet = is_outlet
+    capability_snapshot.supports_color_temp = (
+        min_color_temp_kelvin > 0 and max_color_temp_kelvin > 0
     )
+    capability_snapshot.min_color_temp_kelvin = min_color_temp_kelvin
+    capability_snapshot.max_color_temp_kelvin = max_color_temp_kelvin
+    capability_snapshot.device_type_hex = f"ff{device_type:06x}"
+    device.capabilities = capability_snapshot
     device.category = MagicMock()
     device.category.value = "light"
     return device

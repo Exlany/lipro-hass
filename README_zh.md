@@ -332,7 +332,10 @@ data:
 
 ## 贡献
 
-欢迎提交 Pull Request 和 Issue！
+- 缺陷报告与 Pull Request：先阅读 `CONTRIBUTING.md`，并使用 GitHub Issue / PR 模板
+- 使用问题与想法讨论：先查看 `SUPPORT.md`，优先走 GitHub Discussions
+- 安全问题：遵循 `SECURITY.md`，优先使用私密披露流程
+- 社区行为约定：`CODE_OF_CONDUCT.md`
 
 ## 文档入口
 
@@ -340,6 +343,12 @@ data:
 - `docs/NORTH_STAR_TARGET_ARCHITECTURE.md` - 目标架构与权威基线
 - `docs/developer_architecture.md` - 当前代码布局与 runtime/control/protocol 主链说明
 - `docs/adr/README.md` - 长期架构决策与取舍记录
+- `CONTRIBUTING.md` - 贡献流程、CI 契约与评审预期
+- `SUPPORT.md` - 支持路由、分流预期与提问方式
+- `SECURITY.md` - 私密漏洞披露策略
+- `CODE_OF_CONDUCT.md` - 社区行为约定
+- `custom_components/lipro/quality_scale.yaml` - Home Assistant 质量等级映射
+- `.devcontainer.json` - 可复现的开发容器配置
 - `AGENTS.md` - 仓库统一执行契约
 - `CLAUDE.md` - Claude Code 兼容入口，始终以 `AGENTS.md` 为准
 

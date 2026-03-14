@@ -27,7 +27,7 @@ class DeviceRuntime:
     def __init__(
         self,
         *,
-        client: LiproProtocolFacade,
+        protocol: LiproProtocolFacade,
         auth_manager: LiproAuthManager,
         device_identity_index: DeviceIdentityIndex,
         filter_config_options: dict[str, Any] | None = None,
@@ -35,12 +35,12 @@ class DeviceRuntime:
         """Initialize device runtime.
 
         Args:
-            client: API client for device queries
+            protocol: Formal protocol facade for device queries
             auth_manager: Auth manager for credential validation
             device_identity_index: Device identity index for alias registration
             filter_config_options: Optional filter configuration from config entry
         """
-        self._client = client
+        self._protocol = protocol
         self._auth_manager = auth_manager
         self._device_identity_index = device_identity_index
 
@@ -50,7 +50,7 @@ class DeviceRuntime:
         self._refresh_strategy = RefreshStrategy()
         self._stale_tracker = StaleDeviceTracker()
         self._snapshot_builder = SnapshotBuilder(
-            client=client,
+            client=protocol,
             device_identity_index=device_identity_index,
             device_filter=self._device_filter,
         )

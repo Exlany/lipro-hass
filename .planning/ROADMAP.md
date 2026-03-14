@@ -3,7 +3,7 @@
 ## Milestones
 
 - ✅ **v1.0 North Star Rebuild** - Phases 1-7 (+ 1.5 / 2.5 / 2.6), shipped 2026-03-13
-- ✅ **v1.1 Protocol Fidelity & Operability** - Phases 7.1-12 complete; milestone closeout ready (updated 2026-03-14)
+- ✅ **v1.1 Protocol Fidelity & Operability** - Phases 7.1-13 complete; milestone closeout ready (updated 2026-03-14)
 
 ## Required Phase Outputs
 
@@ -28,7 +28,7 @@
 
 **Milestone Goal:** 在不破坏既有北极星单一主链的前提下，正式引入 boundary decoder family、architecture policy enforcement、runtime telemetry exporter、replay evidence，并把已登记 residual surfaces 收口到显式、可删除、可验证的最小集合。
 
-**Current Status:** `Phase 7.1` 到 `Phase 12` 已全部完成（截至 2026-03-14）；`v1.1` 里程碑当前进入 closeout / archive 准备态。
+**Current Status:** `Phase 7.1` 到 `Phase 13` 已全部完成（截至 2026-03-14）；`v1.1` 里程碑继续保持 closeout / archive 准备态。
 
 ### Phase 7.1: Protocol Boundary Schema/Decoder 收口
 **Goal**: 把 REST/MQTT 的 decode authority 收口到 protocol boundary family，形成可版本化 schema/decoder registry，同时阻断 raw payload 穿透。
@@ -183,6 +183,7 @@ Plans:
 | 10 API Drift Isolation & Core Boundary Prep | v1.1 | 4/4 | Complete | 2026-03-14 |
 | 11 Control Router Formalization & Wiring Residual Demotion | v1.1 | 8/8 | Complete | 2026-03-14 |
 | 12 Type Contract Alignment, Residual Cleanup & Governance Hygiene | v1.1 | 5/5 | Complete | 2026-03-14 |
+| 13 Explicit Domain Surface, Governance Guard Hardening & Hotspot Boundary Decomposition | v1.1 | 3/3 | Complete | 2026-03-14 |
 
 ### Phase 11: Control Router Formalization & Wiring Residual Demotion
 
@@ -214,3 +215,15 @@ Plans:
 - [x] 12-03: compat surface narrowing and core api skeleton slimming (completed 2026-03-14)
 - [x] 12-04: hotspot decomposition and exception boundary tightening (completed 2026-03-14)
 - [x] 12-05: contributor contract and governance hygiene sync (completed 2026-03-14)
+
+### Phase 13: Explicit Domain Surface, Governance Guard Hardening & Hotspot Boundary Decomposition
+
+**Goal:** 把设备域的动态委托收口为显式 formal surface，继续拆薄 runtime/status 热点边界，并把 README / support / CODEOWNERS / quality-scale / devcontainer 等公开治理资产纳入结构化 guard。
+**Requirements**: DOM-01, DOM-02, RUN-02, RUN-03, GOV-11
+**Depends on:** Phase 12
+**Plans:** 3/3 plans complete
+
+Plans:
+- [x] 13-01: explicit device and state surfaces (completed 2026-03-14)
+- [x] 13-02: runtime hotspot decomposition and protocol terminology convergence (completed 2026-03-14)
+- [x] 13-03: governance guard hardening and documentation sync (completed 2026-03-14)

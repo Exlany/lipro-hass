@@ -1,4 +1,4 @@
-from typing import Any, ClassVar
+from typing import Any
 
 from custom_components.lipro.const.categories import DeviceCategory
 from custom_components.lipro.core.capability import CapabilitySnapshot
@@ -29,7 +29,6 @@ class LiproDevice:
     _state_cache: DeviceState | None
     _extras_cache: DeviceExtras | None
     _outlet_power_info: dict[str, Any] | None
-    _delegated_attributes: ClassVar[dict[str, str]]
 
     is_light: bool
     is_fan_light: bool

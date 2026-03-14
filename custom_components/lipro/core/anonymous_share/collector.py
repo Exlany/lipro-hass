@@ -79,7 +79,7 @@ class AnonymousShareCollector:
         sanitized_props = sanitize_properties(device.properties)
         capabilities = detect_device_capabilities(device)
 
-        gear_list = device.gear_list
+        gear_list = device.extras.gear_list
         has_gear_presets = bool(gear_list)
         gear_count = len(gear_list) if gear_list else 0
 
@@ -92,7 +92,7 @@ class AnonymousShareCollector:
             product_id=device.product_id,
             is_group=device.is_group,
             category=str(device.category.value),
-            firmware_version=device.firmware_version,
+            firmware_version=device.network_info.firmware_version,
             property_keys=property_keys,
             properties=sanitized_props,
             min_color_temp_kelvin=device.min_color_temp_kelvin,

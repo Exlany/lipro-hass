@@ -2,7 +2,7 @@
 
 **Purpose:** 定义各平面的 canonical public surfaces、过渡公开面与禁止作为正式入口的对象。
 **Status:** Formal baseline asset (`BASE-01` public-surface truth source)
-**Updated:** 2026-03-14 (Phase 12 executed)
+**Updated:** 2026-03-14 (Phase 13 executed)
 
 ## Formal Role
 
@@ -18,7 +18,7 @@
 | Protocol | `LiproProtocolFacade` | target-state formal protocol root | 终态唯一正式协议根；formal contract 由显式 methods/properties 定义，不再由 child `__getattr__` / `__dir__` 隐式扩面 |
 | Protocol (Phase 2) | `LiproRestFacade` | phase-local canonical REST sub-facade | Phase 2 可直接引用的正式 REST surface，但必须收敛到 `LiproProtocolFacade` |
 | Runtime | `Coordinator` + runtime services/public surface | runtime orchestration root + stable service surface | 运行面唯一正式编排出口；`devices` 只允许以 read-only mapping 暴露，outlet power 真源收口到 `LiproDevice.outlet_power_info` |
-| Domain | `CapabilityRegistry` / `CapabilitySnapshot` / command contracts | domain truth surface family | `custom_components/lipro/core/capability/` 为统一能力真源与投影来源 |
+| Domain | `CapabilityRegistry` / `CapabilitySnapshot` / `LiproDevice` + `DeviceState` explicit surface / command contracts | domain truth surface family | `custom_components/lipro/core/capability/` 与 `custom_components/lipro/core/device/` 共同定义显式设备域真源；动态 `__getattr__` 不再合法化 |
 | Control | `EntryLifecycleController`, `ServiceRegistry`, `service_router`, `DiagnosticsSurface`, `SystemHealthSurface`, `telemetry_surface` bridge helpers | control-plane formal surface set | `custom_components/lipro/control/` 为正式内部控制面 home；`control/service_router.py` 是 service callback formal home；HA 根模块只保留 adapter 职责，telemetry bridge 只负责定位 exporter |
 | Assurance | contract suites, invariant suites, meta guards, ledgers, `RuntimeTelemetryExporter` / telemetry contracts, replay harness/report surfaces, `V1_1_EVIDENCE_INDEX.md`, `tests/harness/evidence_pack/*`, `scripts/export_ai_debug_evidence_pack.py` | assurance arbitration surface set | exporter / replay / evidence index / evidence-pack tooling 只作为 assurance-only 或 pull-only truth consumers，不得反向成为 runtime/control/public root |
 
@@ -35,6 +35,12 @@
 |---------|---------------|----------------|
 | `LiproMqttClient` compat shell | Phase 12+ cleanup only | 仅剩 direct transport module；不得再通过 protocol façade 暴露 concrete transport，也不得恢复 `raw_client` seam |
 | cluster-level `FILE_MATRIX` | pre-Phase 7 | 升级为 file-level governance view |
+
+## Phase 13 Surface Closure Notes
+
+- `LiproDevice` 与 `DeviceState` 不再通过 `__getattr__` 动态扩面；设备域正式 surface 现在由显式 property / method 集合定义。
+- `custom_components/lipro/core/device/device_delegation.py` 已删除；动态 delegation carrier 不再存在于仓库。
+- `state_accessors.py` 仅保留显式 accessor helper 角色，不再承担动态派生 surface 责任。
 
 ## Phase 12 Surface Closure Notes
 

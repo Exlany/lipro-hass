@@ -154,7 +154,7 @@ class LiproBatterySensor(LiproSensor):
     @property
     def native_value(self) -> int | None:
         """Return the battery level percentage."""
-        return self.device.battery_level
+        return self.device.state.battery_level
 
     @property
     def icon(self) -> str | None:
@@ -164,7 +164,7 @@ class LiproBatterySensor(LiproSensor):
         conditions (charging state is a separate device property, not the
         entity's own state value).
         """
-        if self.device.is_charging:
+        if self.device.state.is_charging:
             return "mdi:battery-charging"
         return None  # Let HA handle battery level icons via device_class
 
@@ -172,7 +172,7 @@ class LiproBatterySensor(LiproSensor):
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return extra state attributes."""
         return {
-            "charging": self.device.is_charging,
+            "charging": self.device.state.is_charging,
         }
 
 
@@ -193,7 +193,7 @@ class LiproWiFiSignalSensor(LiproSensor):
     @property
     def native_value(self) -> int | None:
         """Return the WiFi signal strength in dBm."""
-        return self.device.wifi_rssi
+        return self.device.network_info.wifi_rssi
 
     @property
     def icon(self) -> str:
@@ -202,7 +202,7 @@ class LiproWiFiSignalSensor(LiproSensor):
         Programmatic override: icons.json cannot express numeric-range
         thresholds on the entity's native value (dBm RSSI).
         """
-        rssi = self.device.wifi_rssi
+        rssi = self.device.network_info.wifi_rssi
         if rssi is None:
             return "mdi:wifi-off"
         if rssi >= _WIFI_RSSI_EXCELLENT:
@@ -219,6 +219,6 @@ class LiproWiFiSignalSensor(LiproSensor):
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return extra state attributes."""
         attrs: dict[str, Any] = {}
-        if self.device.net_type:
-            attrs["network_type"] = self.device.net_type
+        if self.device.network_info.net_type:
+            attrs["network_type"] = self.device.network_info.net_type
         return attrs

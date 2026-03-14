@@ -140,7 +140,9 @@ def test_device_filter_has_active_filter_returns_false_when_all_off():
 def test_device_filter_has_active_filter_returns_true_when_any_active():
     """Test _has_active_filter returns True when any rule is active."""
     config = DeviceFilterConfig(
-        did=DeviceFilterRule(mode=DEVICE_FILTER_MODE_INCLUDE, values=frozenset({"device1"}))
+        did=DeviceFilterRule(
+            mode=DEVICE_FILTER_MODE_INCLUDE, values=frozenset({"device1"})
+        )
     )
     device_filter = DeviceFilter(config=config)
 
@@ -203,10 +205,14 @@ def test_device_filter_is_device_included_by_model_include():
 
     # Should include
     assert device_filter.is_device_included({"serial": "xxx", "physicalModel": "light"})
-    assert device_filter.is_device_included({"serial": "xxx", "physicalModel": "switch"})
+    assert device_filter.is_device_included(
+        {"serial": "xxx", "physicalModel": "switch"}
+    )
 
     # Should exclude
-    assert not device_filter.is_device_included({"serial": "xxx", "physicalModel": "outlet"})
+    assert not device_filter.is_device_included(
+        {"serial": "xxx", "physicalModel": "outlet"}
+    )
 
 
 def test_device_filter_is_device_included_by_home_include():
@@ -290,7 +296,9 @@ def test_device_filter_skips_ssid_check_when_mode_off():
     device_filter = DeviceFilter(config=config)
 
     # Should not parse deviceInfo JSON when SSID mode is OFF
-    with patch("custom_components.lipro.core.coordinator.runtime.device.filter.json.loads") as json_loads:
+    with patch(
+        "custom_components.lipro.core.coordinator.runtime.device.filter.json.loads"
+    ) as json_loads:
         assert device_filter.is_device_included(
             {
                 "serial": "03ab5ccd7c000001",
@@ -345,7 +353,9 @@ async def test_snapshot_builder_build_full_snapshot_single_page(
         }
     )
 
-    with patch("custom_components.lipro.core.device.LiproDevice.from_api_data") as from_api:
+    with patch(
+        "custom_components.lipro.core.device.LiproDevice.from_api_data"
+    ) as from_api:
         from_api.side_effect = lambda data: make_device(
             "light", serial=data["serial"], name=data["name"]
         )
@@ -367,17 +377,23 @@ async def test_snapshot_builder_build_full_snapshot_multiple_pages(
     mock_client.get_devices = AsyncMock(
         side_effect=[
             {
-                "devices": [{"serial": "03ab000000000001", "name": "Device 1", "deviceType": 1}],
+                "devices": [
+                    {"serial": "03ab000000000001", "name": "Device 1", "deviceType": 1}
+                ],
                 "total": 2,
             },
             {
-                "devices": [{"serial": "03ab000000000002", "name": "Device 2", "deviceType": 1}],
+                "devices": [
+                    {"serial": "03ab000000000002", "name": "Device 2", "deviceType": 1}
+                ],
                 "total": 2,
             },
         ]
     )
 
-    with patch("custom_components.lipro.core.device.LiproDevice.from_api_data") as from_api:
+    with patch(
+        "custom_components.lipro.core.device.LiproDevice.from_api_data"
+    ) as from_api:
         from_api.side_effect = lambda data: make_device(
             "light", serial=data["serial"], name=data["name"]
         )
@@ -421,7 +437,9 @@ async def test_snapshot_builder_applies_device_filter(
         }
     )
 
-    with patch("custom_components.lipro.core.device.LiproDevice.from_api_data") as from_api:
+    with patch(
+        "custom_components.lipro.core.device.LiproDevice.from_api_data"
+    ) as from_api:
         from_api.side_effect = lambda data: make_device(
             "light", serial=data["serial"], name=data["name"]
         )
@@ -450,7 +468,9 @@ async def test_snapshot_builder_categorizes_devices_by_type(
         }
     )
 
-    with patch("custom_components.lipro.core.device.LiproDevice.from_api_data") as from_api:
+    with patch(
+        "custom_components.lipro.core.device.LiproDevice.from_api_data"
+    ) as from_api:
 
         def make_device_by_serial(data):
             serial = data["serial"]
@@ -486,7 +506,9 @@ async def test_snapshot_builder_handles_parse_errors_gracefully(
         }
     )
 
-    with patch("custom_components.lipro.core.device.LiproDevice.from_api_data") as from_api:
+    with patch(
+        "custom_components.lipro.core.device.LiproDevice.from_api_data"
+    ) as from_api:
 
         def parse_device(data):
             if data["serial"] == "invalid":
@@ -529,7 +551,7 @@ def mock_auth_manager():
 def device_runtime(mock_client, mock_auth_manager, mock_device_identity_index):
     """Create DeviceRuntime with mocked dependencies."""
     return DeviceRuntime(
-        client=mock_client,
+        protocol=mock_client,
         auth_manager=mock_auth_manager,
         device_identity_index=mock_device_identity_index,
         filter_config_options={},
@@ -550,7 +572,9 @@ async def test_device_runtime_refresh_devices_force(
         }
     )
 
-    with patch("custom_components.lipro.core.device.LiproDevice.from_api_data") as from_api:
+    with patch(
+        "custom_components.lipro.core.device.LiproDevice.from_api_data"
+    ) as from_api:
         from_api.side_effect = lambda data: make_device("light", serial=data["serial"])
 
         snapshot = await device_runtime.refresh_devices(force=True)
@@ -574,7 +598,9 @@ async def test_device_runtime_first_refresh_is_always_full(
         }
     )
 
-    with patch("custom_components.lipro.core.device.LiproDevice.from_api_data") as from_api:
+    with patch(
+        "custom_components.lipro.core.device.LiproDevice.from_api_data"
+    ) as from_api:
         from_api.side_effect = lambda data: make_device("light", serial=data["serial"])
 
         snapshot = await device_runtime.refresh_devices(force=False)
@@ -599,7 +625,9 @@ async def test_device_runtime_cached_refresh_reuses_existing_snapshot(
         }
     )
 
-    with patch("custom_components.lipro.core.device.LiproDevice.from_api_data") as from_api:
+    with patch(
+        "custom_components.lipro.core.device.LiproDevice.from_api_data"
+    ) as from_api:
         from_api.side_effect = lambda data: make_device(
             "light", serial=data["serial"], iot_device_id="iot_001"
         )
@@ -678,5 +706,3 @@ def test_device_runtime_reset(device_runtime):
 
     assert device_runtime.get_last_snapshot() is None
     assert len(device_runtime._cloud_serials_last_seen) == 0
-
-

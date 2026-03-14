@@ -83,7 +83,9 @@ def should_expose_light_property_switch(
     property_key: str,
 ) -> bool:
     """Return whether one light-only supplemental switch should be exposed."""
-    return device.capabilities.is_light and device_has_raw_property(device, property_key)
+    return device.capabilities.is_light and device_has_raw_property(
+        device, property_key
+    )
 
 
 def should_expose_panel_property_switch(
@@ -92,12 +94,14 @@ def should_expose_panel_property_switch(
     property_key: str,
 ) -> bool:
     """Return whether one panel-only supplemental switch should be exposed."""
-    return device.capabilities.is_panel and device_has_raw_property(device, property_key)
+    return device.capabilities.is_panel and device_has_raw_property(
+        device, property_key
+    )
 
 
 def should_expose_light_gear_select(device: LiproDevice) -> bool:
     """Return whether one light should expose the gear select surface."""
-    return device.capabilities.is_light and device.has_gear_presets
+    return device.capabilities.is_light and device.extras.has_gear_presets
 
 
 def should_expose_firmware_update_entity(device: LiproDevice) -> bool:

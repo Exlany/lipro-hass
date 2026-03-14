@@ -1,6 +1,6 @@
 # File Matrix
 
-**Python files total:** 446
+**Python files total:** 445
 **Status:** File-level governance authority
 **Rule:** workspace inventory excluding caches / virtual env / tooling artifacts
 
@@ -142,7 +142,6 @@
 | `custom_components/lipro/core/coordinator/types.py` | Runtime | Phase 5 | 重构 | - |
 | `custom_components/lipro/core/device/__init__.py` | Domain | Phase 4 | 重构 | - |
 | `custom_components/lipro/core/device/device.py` | Domain | Phase 4 | 重构 | - |
-| `custom_components/lipro/core/device/device_delegation.py` | Domain | Phase 4 | 重构 | - |
 | `custom_components/lipro/core/device/device_factory.py` | Domain | Phase 4 | 重构 | - |
 | `custom_components/lipro/core/device/device_runtime.py` | Domain | Phase 4 | 重构 | - |
 | `custom_components/lipro/core/device/device_snapshots.py` | Domain | Phase 4 | 重构 | - |
@@ -242,7 +241,7 @@
 | `custom_components/lipro/services/diagnostics/helpers.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/services/diagnostics/types.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/services/errors.py` | Control | Phase 3 | 保留 | - |
-| `custom_components/lipro/services/execution.py` | Control | Phase 5 / 7 | 迁移适配 | runtime-auth seam |
+| `custom_components/lipro/services/execution.py` | Control | Phase 5 / 7 | 保留 | formal auth-execution façade |
 | `custom_components/lipro/services/maintenance.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/services/registrations.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/services/registry.py` | Control | Phase 3 | 保留 | - |

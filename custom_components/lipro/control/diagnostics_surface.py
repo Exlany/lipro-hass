@@ -35,20 +35,20 @@ def build_device_diagnostics(
         "is_group": device.is_group,
         "room_name": "**REDACTED**",
         "available": device.available,
-        "is_connected": device.is_connected,
+        "is_connected": device.state.is_connected,
         "properties": redact_device_properties(device.properties),
     }
-    if device.firmware_version:
-        device_info["firmware_version"] = device.firmware_version
-    if device.wifi_rssi is not None:
-        device_info["wifi_rssi"] = device.wifi_rssi
-    if device.net_type:
-        device_info["net_type"] = device.net_type
-    if device.mesh_address is not None:
-        device_info["mesh_address"] = device.mesh_address
-    if device.mesh_type is not None:
-        device_info["mesh_type"] = device.mesh_type
-    if device.is_mesh_gateway:
+    if device.network_info.firmware_version:
+        device_info["firmware_version"] = device.network_info.firmware_version
+    if device.network_info.wifi_rssi is not None:
+        device_info["wifi_rssi"] = device.network_info.wifi_rssi
+    if device.network_info.net_type:
+        device_info["net_type"] = device.network_info.net_type
+    if device.network_info.mesh_address is not None:
+        device_info["mesh_address"] = device.network_info.mesh_address
+    if device.network_info.mesh_type is not None:
+        device_info["mesh_type"] = device.network_info.mesh_type
+    if device.network_info.is_mesh_gateway:
         device_info["is_mesh_gateway"] = True
 
     outlet_power_info = device.outlet_power_info
@@ -69,7 +69,9 @@ def extract_device_serial(device: DeviceEntry, *, domain: str) -> str | None:
     return None
 
 
-def _build_coordinator_view(entry: Any, coordinator: Any) -> tuple[dict[str, Any], list[str]]:
+def _build_coordinator_view(
+    entry: Any, coordinator: Any
+) -> tuple[dict[str, Any], list[str]]:
     snapshot = build_runtime_snapshot(entry)
     degraded: list[str] = []
     if not isinstance(getattr(coordinator, "devices", None), Mapping):

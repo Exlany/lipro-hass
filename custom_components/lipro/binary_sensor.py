@@ -56,7 +56,7 @@ class LiproPropertyBinarySensor(LiproBinarySensor):
     @property
     def is_on(self) -> bool:
         """Return true if the sensor is on."""
-        value = getattr(self.device, self._device_property, False)
+        value = getattr(self.device.state, self._device_property, False)
         return not value if self._invert else bool(value)
 
 
@@ -136,7 +136,9 @@ def _build_device_binary_sensors(
                 (LiproMotionSensor, LiproLightLevelSensor, LiproBatteryLowSensor),
             ),
             (
-                lambda d: d.capabilities.is_door_sensor and not d.capabilities.is_body_sensor,
+                lambda d: (
+                    d.capabilities.is_door_sensor and not d.capabilities.is_body_sensor
+                ),
                 (LiproDoorSensor, LiproLightLevelSensor, LiproBatteryLowSensor),
             ),
         ),

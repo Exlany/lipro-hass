@@ -241,7 +241,7 @@ class LiproLightGearSelect(LiproSelect):
     @property
     def options(self) -> list[str]:
         """Return gear options based on actual device gear count."""
-        count = len(self.device.gear_list)
+        count = len(self.device.extras.gear_list)
         if not count:
             return []
         if count < len(GEAR_OPTIONS):
@@ -255,12 +255,12 @@ class LiproLightGearSelect(LiproSelect):
         Uses exact matching of brightness and temperature percentage values.
         Returns None if current values don't match any preset (custom state).
         """
-        gear_list = self.device.gear_list
+        gear_list = self.device.extras.gear_list
         if not gear_list:
             return None
 
-        current_brightness = self.device.brightness
-        current_temp_pct = self.device.get_int_property(PROP_TEMPERATURE, -1)
+        current_brightness = self.device.state.brightness
+        current_temp_pct = self.device.state.get_int_property(PROP_TEMPERATURE, -1)
 
         for i, gear in enumerate(gear_list[:_MAX_GEAR_COUNT]):
             values = self._extract_gear_values(gear)
@@ -280,14 +280,14 @@ class LiproLightGearSelect(LiproSelect):
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return extra state attributes showing gear details."""
         attrs: dict[str, Any] = {}
-        gear_list = self.device.gear_list
+        gear_list = self.device.extras.gear_list
 
         for i, gear in enumerate(gear_list[:_MAX_GEAR_COUNT]):
             values = self._extract_gear_values(gear)
             if values is None:
                 continue
             brightness, temp_pct = values
-            temp_k = self.device.percent_to_kelvin_for_device(temp_pct)
+            temp_k = self.device.state.percent_to_kelvin_for_device(temp_pct)
             attrs[f"preset_{_GEAR_PRESET_NAMES[i]}"] = f"{brightness}% / {temp_k}K"
 
         if self.capabilities.supports_color_temp:
@@ -299,7 +299,7 @@ class LiproLightGearSelect(LiproSelect):
 
     async def async_select_option(self, option: str) -> None:
         """Apply the selected gear preset."""
-        gear_list = self.device.gear_list
+        gear_list = self.device.extras.gear_list
         if not gear_list:
             _LOGGER.warning("No gear presets available for %s", self.device.name)
             return
@@ -333,7 +333,7 @@ class LiproLightGearSelect(LiproSelect):
             self.device.name,
             brightness,
             temp_pct,
-            self.device.percent_to_kelvin_for_device(temp_pct),
+            self.device.state.percent_to_kelvin_for_device(temp_pct),
         )
 
         success = await self.async_change_state(

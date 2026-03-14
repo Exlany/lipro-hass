@@ -13,7 +13,7 @@ from ...const.properties import (
     PROP_POSITION,
     PROP_TEMPERATURE,
 )
-from .state_fields import BOOL_PROPERTY_MAP, INT_PROPERTY_MAP
+from .state_fields import INT_PROPERTY_MAP
 from .state_math import (
     direction_to_ha,
     kelvin_to_percent_for_bounds,
@@ -89,17 +89,6 @@ def aeration_is_on(self: DeviceState) -> bool:
     return self.get_int_property(INT_PROPERTY_MAP["aeration_gear"][0], 0) > 0
 
 
-def resolve_state_attribute(self: DeviceState, name: str) -> object:
-    """Resolve simple derived state attributes lazily."""
-    if name in BOOL_PROPERTY_MAP:
-        return self.get_bool_property(BOOL_PROPERTY_MAP[name])
-    if name in INT_PROPERTY_MAP:
-        key, default = INT_PROPERTY_MAP[name]
-        return self.get_int_property(key, default)
-    msg = f"{type(self).__name__!s} has no attribute {name!r}"
-    raise AttributeError(msg)
-
-
 __all__ = [
     "aeration_is_on",
     "battery_level",
@@ -111,6 +100,5 @@ __all__ = [
     "kelvin_to_percent_for_device",
     "percent_to_kelvin_for_device",
     "position",
-    "resolve_state_attribute",
     "supports_color_temp",
 ]

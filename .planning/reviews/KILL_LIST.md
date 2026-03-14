@@ -20,6 +20,8 @@
 | `services/wiring.py` compat shell | `custom_components/lipro/services/wiring.py` | `11 control-router formalization` | Phase 11+ | formal router ownership 收口后删除 compat shell | 已关闭（Phase 11：compat shell removed） |
 | coordinator 私有 auth hook seam | `custom_components/lipro/services/execution.py` | `03/05 runtime-auth hardening` | Phase 5 | service execution 只通过正式 runtime/auth contract 获取 auth context | 已关闭（Phase 5） |
 | `DeviceCapabilities` legacy public name | `custom_components/lipro/core/device/capabilities.py` | `04-03 capability compat cleanup` | Phase 4 / 7 | 直接导入点已迁到 `custom_components/lipro/core/capability`，device facade 不再依赖 legacy alias | 已关闭（Phase 12：compat alias removed） |
+| `device_delegation.py` dynamic delegation carrier | `custom_components/lipro/core/device/device_delegation.py` | `13 explicit domain surface` | Phase 13 | device/state 正式表面已改成显式 property / method surface，不再需要独立 delegation carrier | 已关闭（Phase 13：file removed） |
+| `LiproDevice.__getattr__` / `DeviceState.__getattr__` | `custom_components/lipro/core/device/{device.py,state.py}` | `13 explicit domain surface` | Phase 13 | focused tests 锁定 no-`__getattr__` contract，device/state surface 只由显式 façade 定义 | 已关闭（Phase 13：dynamic delegation removed） |
 
 ## Deletion Gate
 
@@ -109,7 +111,7 @@
 
 - `custom_components/lipro/services/wiring.py` compat shell 已物理删除；相关 kill target 已关闭。
 - `_ClientEndpointsMixin` aggregate export 已删除；API mixin inheritance delete gate 继续收缩到 remaining helper mixin consumers。
-- remaining active kill targets 继续集中在 `core.api.LiproClient`、`LiproProtocolFacade.get_device_list` compat seam、`LiproMqttClient` / `LiproMqttFacade.raw_client` 与 `DeviceCapabilities` compat alias。
+- remaining active kill targets 现主要集中在 `LiproMqttClient` legacy naming 与 remaining helper mixin / typing spine。
 
 
 ## Phase 12 Status Update
@@ -119,3 +121,10 @@
 - 已删除：`LiproMqttFacade.raw_client` compat seam。
 - 已删除：`DeviceCapabilities` legacy public name 与 `custom_components/lipro/core/device/capabilities.py`。
 - 保留但降格：`_ClientBase` 仅作为 internal typing contract，不再作为 active public skeleton。
+
+## Phase 13 Status Update
+
+- 已删除：`custom_components/lipro/core/device/device_delegation.py` dynamic delegation carrier。
+- 已删除：`LiproDevice.__getattr__` / `DeviceState.__getattr__` 动态领域扩面。
+- formal device/domain surface 现由显式 property / method 集合与 focused tests 共同锁定。
+- remaining active delete gates 与 Phase 13 无新增长尾 compat。

@@ -1,7 +1,7 @@
 # Lipro Home Assistant Integration - Developer Architecture
 
 > **Last Updated**: 2026-03-14  \
-> **Version**: 3.9 (Phase 11 completed truth aligned)
+> **Version**: 4.0 (Phase 13 completed truth aligned)
 >
 > ⚠️ 本文档仅描述"当前收敛后的架构与模块边界"，不硬编码评分/覆盖率/通过率等易失真指标。  \
 > 北极星终态裁决请见 `docs/NORTH_STAR_TARGET_ARCHITECTURE.md`。  \
@@ -230,7 +230,7 @@ Coordinator
 | Runtime | 职责 | 关键依赖 |
 |---------|------|---------|
 | `StateRuntime` | 设备查找、属性更新、实体注册索引 | devices dict, identity index |
-| `DeviceRuntime` | 全量设备快照刷新、过滤策略、缓存复用、设备增删对齐 | API client, auth manager |
+| `DeviceRuntime` | 全量设备快照刷新、过滤策略、缓存复用、设备增删对齐 | protocol façade, auth manager |
 | `StatusRuntime` | REST 状态轮询（批次优化 + 二分回退） | query callback, state runtime |
 | `MqttRuntime` | MQTT 消息分发 + 设备状态应用 | RuntimeContext callbacks |
 | `CommandRuntime` | 命令发送、确认跟踪、post-refresh 策略 | builder, sender, confirmation |
@@ -263,14 +263,14 @@ Coordinator
 
 ### Device Model (`core/device/`)
 
-- `device.py`：`LiproDevice`（薄 facade, dataclass + property delegation）
-- `state.py`：`DeviceState`（可变状态视图 + derived accessors）
+- `device.py`：`LiproDevice`（薄 façade，显式 property / method surface + 组合根）
+- `state.py`：`DeviceState`（显式状态视图 + leaf accessors；不再依赖动态 `__getattr__`）
 - `core/capability/`：`CapabilityRegistry` / `CapabilitySnapshot` 是唯一正式能力真源；`DeviceCapabilities` compat alias 已在 Phase 12 删除
 - `identity.py`：`DeviceIdentity`（设备身份信息）
 - `network_info.py`：`DeviceNetworkInfo`（网络诊断）
 - `extras.py`：`DeviceExtras`（扩展数据）
 - `device_views.py`：派生视图
-- `device_delegation.py`：`__getattr__` 委托
+- `state_accessors.py`：显式状态 accessor helpers（内部实现细节，不再承担动态扩面职责）
 
 ### Entity Layer (`entities/`)
 

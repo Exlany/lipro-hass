@@ -80,14 +80,14 @@ class LiproHeater(LiproEntity, ClimateEntity):
     @property
     def hvac_mode(self) -> HVACMode:
         """Return current HVAC mode."""
-        if self.device.heater_is_on:
+        if self.device.state.heater_is_on:
             return HVACMode.HEAT
         return HVACMode.OFF
 
     @property
     def preset_mode(self) -> str | None:
         """Return current preset mode."""
-        mode = self.device.heater_mode
+        mode = self.device.state.heater_mode
         return MODE_TO_PRESET.get(mode, PRESET_DEFAULT)
 
     async def async_set_hvac_mode(self, hvac_mode: HVACMode) -> None:

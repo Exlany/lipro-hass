@@ -85,13 +85,13 @@ def detect_device_capabilities(device: LiproDevice) -> list[str]:
     properties = device.properties
 
     capability_snapshot = device.capabilities
-    is_light = capability_snapshot.is_light or bool(getattr(device, "is_light", False))
-    is_fan_light = capability_snapshot.is_fan_light or bool(getattr(device, "is_fan_light", False))
-    is_curtain = capability_snapshot.is_curtain or bool(getattr(device, "is_curtain", False))
-    is_sensor = capability_snapshot.is_sensor or bool(getattr(device, "is_sensor", False))
-    is_heater = capability_snapshot.is_heater or bool(getattr(device, "is_heater", False))
-    is_switch = capability_snapshot.is_switch or bool(getattr(device, "is_switch", False))
-    is_outlet = capability_snapshot.is_outlet or bool(getattr(device, "is_outlet", False))
+    is_light = capability_snapshot.is_light
+    is_fan_light = capability_snapshot.is_fan_light
+    is_curtain = capability_snapshot.is_curtain
+    is_sensor = capability_snapshot.is_sensor
+    is_heater = capability_snapshot.is_heater
+    is_switch = capability_snapshot.is_switch
+    is_outlet = capability_snapshot.is_outlet
 
     if is_light:
         detected.append("light")
@@ -100,7 +100,7 @@ def detect_device_capabilities(device: LiproDevice) -> list[str]:
             properties,
             _LIGHT_PRIMARY_PROPERTY_CAPABILITIES,
         )
-        if device.has_gear_presets:
+        if device.extras.has_gear_presets:
             detected.append("gear_presets")
         _append_capabilities_for_properties(
             detected,

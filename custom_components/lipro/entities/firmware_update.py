@@ -82,8 +82,8 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
         self._on_error = on_error
         self._last_error: Exception | None = None
         self._unverified_confirm_until = 0.0
-        self._attr_installed_version = device.firmware_version
-        self._attr_latest_version = device.firmware_version
+        self._attr_installed_version = device.network_info.firmware_version
+        self._attr_latest_version = device.network_info.firmware_version
         self._attr_in_progress = False
 
     @property
@@ -132,7 +132,7 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
 
     def _handle_coordinator_update(self) -> None:
         """React to coordinator updates and refresh OTA metadata lazily."""
-        self._attr_installed_version = self.device.firmware_version
+        self._attr_installed_version = self.device.network_info.firmware_version
         self._schedule_ota_refresh(force=False)
         super()._handle_coordinator_update()
 
@@ -166,7 +166,9 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
                 "translation_key": install_eval.error_key,
             }
             if install_eval.error_placeholders is not None:
-                error_kwargs["translation_placeholders"] = install_eval.error_placeholders
+                error_kwargs["translation_placeholders"] = (
+                    install_eval.error_placeholders
+                )
             raise HomeAssistantError(**error_kwargs)
 
         install_command = install_eval.install_command
@@ -340,7 +342,7 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
 
             self._ota_candidate = build_candidate(
                 arbitration.selected_row,
-                device_firmware_version=self.device.firmware_version,
+                device_firmware_version=self.device.network_info.firmware_version,
                 device_iot_name=self.device.iot_name,
                 local_manifest=firmware_manifest.load_verified_firmware_manifest(),
                 is_version_newer=self._is_version_newer,
@@ -354,7 +356,7 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
         """Apply candidate values to update-entity attributes."""
         projection = project_candidate(
             self._ota_candidate,
-            current_installed_version=self.device.firmware_version,
+            current_installed_version=self.device.network_info.firmware_version,
         )
         self._attr_release_summary = projection.release_summary
         self._attr_release_url = projection.release_url
@@ -373,7 +375,6 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
                 err,
             )
             return False
-
 
     def _has_pending_unverified_confirmation(self) -> bool:
         """Return True if unverified install confirmation is active."""

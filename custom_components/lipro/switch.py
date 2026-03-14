@@ -80,7 +80,7 @@ class LiproSwitch(LiproEntity, SwitchEntity):
     @property
     def is_on(self) -> bool:
         """Return true if switch is on."""
-        return self.device.is_on
+        return self.device.state.is_on
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn on the switch."""
@@ -111,7 +111,7 @@ class LiproPropertySwitch(LiproEntity, SwitchEntity):
     @property
     def is_on(self) -> bool:
         """Return true if the feature is enabled."""
-        return self.device.get_bool_property(self._config.property_key)
+        return self.device.state.get_bool_property(self._config.property_key)
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Enable the feature."""
@@ -142,7 +142,7 @@ class LiproPanelPropertySwitch(LiproEntity, SwitchEntity):
     @property
     def is_on(self) -> bool:
         """Return true if the feature is enabled."""
-        return self.device.get_bool_property(self._config.property_key)
+        return self.device.state.get_bool_property(self._config.property_key)
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Enable the panel feature."""
@@ -211,9 +211,11 @@ _SWITCH_RULES: list[
     (lambda d: d.capabilities.supports_platform("switch"), [LiproSwitch]),
     *[
         (
-            lambda d, property_key=cfg.property_key: should_expose_light_property_switch(
-                d,
-                property_key=property_key,
+            lambda d, property_key=cfg.property_key: (
+                should_expose_light_property_switch(
+                    d,
+                    property_key=property_key,
+                )
             ),
             [lambda c, d, cfg=cfg: LiproPropertySwitch(c, d, cfg)],
         )
@@ -221,9 +223,11 @@ _SWITCH_RULES: list[
     ],
     *[
         (
-            lambda d, property_key=cfg.property_key: should_expose_panel_property_switch(
-                d,
-                property_key=property_key,
+            lambda d, property_key=cfg.property_key: (
+                should_expose_panel_property_switch(
+                    d,
+                    property_key=property_key,
+                )
             ),
             [lambda c, d, cfg=cfg: LiproPanelPropertySwitch(c, d, cfg)],
         )
