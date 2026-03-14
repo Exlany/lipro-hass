@@ -8,6 +8,8 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Any
 
+from .row_selector import OtaDeviceFingerprint, arbitrate_rows
+
 OTA_SHARED_ROWS_CACHE_TTL = timedelta(minutes=10)
 OTA_SHARED_ROWS_CACHE_MAX_ENTRIES = 256
 
@@ -25,6 +27,36 @@ class OtaRowsCacheEntry:
 _OTA_ROWS_CACHE: dict[OtaRowsCacheKey, OtaRowsCacheEntry] = {}
 _OTA_ROWS_INFLIGHT: dict[OtaRowsCacheKey, asyncio.Task[list[dict[str, Any]]]] = {}
 _OTA_ROWS_CACHE_LOCK = asyncio.Lock()
+
+
+def _coerce_cache_product_id(product_id: int | str | None) -> int:
+    try:
+        return int(product_id or 0)
+    except (TypeError, ValueError):
+        return 0
+
+
+def build_ota_rows_cache_key(
+    coordinator: object,
+    *,
+    device_type: str,
+    iot_name: str | None,
+    product_id: int | str | None,
+) -> OtaRowsCacheKey:
+    """Build the shared OTA cache key for one model-like OTA identity."""
+    return (
+        coordinator,
+        str(device_type).strip().lower(),
+        str(iot_name or "").strip().lower(),
+        _coerce_cache_product_id(product_id),
+    )
+
+
+def normalize_ota_rows(rows: object) -> list[dict[str, object]]:
+    """Normalize OTA cloud payloads into a stable list-of-dicts shape."""
+    if not isinstance(rows, list):
+        return []
+    return [dict(row) for row in rows if isinstance(row, dict)]
 
 
 def clear_shared_ota_rows_cache() -> None:
@@ -102,3 +134,32 @@ async def async_get_rows_with_shared_cache(
         )
         prune_ota_rows_cache(now_time)
     return rows, False
+
+
+async def async_select_row_with_shared_cache(
+    cache_key: OtaRowsCacheKey,
+    *,
+    fetcher: Callable[[], Coroutine[Any, Any, list[dict[str, Any]]]],
+    now: Callable[[], datetime],
+    fingerprint: OtaDeviceFingerprint,
+) -> dict[str, Any] | None:
+    """Select one OTA row, bypassing cache when it points at another device."""
+    rows, from_cache = await async_get_rows_with_shared_cache(
+        cache_key,
+        fetcher=fetcher,
+        now=now,
+    )
+    arbitration = arbitrate_rows(
+        rows,
+        fingerprint=fingerprint,
+        from_cache=from_cache,
+    )
+    if not arbitration.should_retry_without_cache:
+        return arbitration.selected_row
+
+    fresh_rows = await fetcher()
+    return arbitrate_rows(
+        fresh_rows,
+        fingerprint=fingerprint,
+        from_cache=False,
+    ).selected_row

@@ -1,5 +1,8 @@
 blank_issues_enabled: false
 contact_links:
+  - name: 🔐 Security Policy / 安全策略
+    url: https://github.com/Exlany/lipro-hass/security/policy
+    about: Report vulnerabilities privately before any public disclosure / 安全漏洞请先按私密流程披露
   - name: 📖 Documentation / 文档
     url: https://github.com/Exlany/lipro-hass#readme
     about: Read the documentation before opening an issue / 提交问题前请先阅读文档

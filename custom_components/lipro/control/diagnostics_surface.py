@@ -2,9 +2,14 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from typing import TYPE_CHECKING, Any
 
-from .runtime_access import build_runtime_snapshot, get_entry_runtime_coordinator
+from .runtime_access import (
+    build_runtime_snapshot,
+    get_entry_runtime_coordinator,
+    get_runtime_device_mapping,
+)
 from .telemetry_surface import build_entry_diagnostics_view
 
 if TYPE_CHECKING:
@@ -64,6 +69,55 @@ def extract_device_serial(device: DeviceEntry, *, domain: str) -> str | None:
     return None
 
 
+def _build_coordinator_view(entry: Any, coordinator: Any) -> tuple[dict[str, Any], list[str]]:
+    snapshot = build_runtime_snapshot(entry)
+    degraded: list[str] = []
+    if not isinstance(getattr(coordinator, "devices", None), Mapping):
+        degraded.append("devices")
+
+    view = {
+        "last_update_success": bool(
+            snapshot.last_update_success if snapshot is not None else False
+        ),
+        "update_interval": str(getattr(coordinator, "update_interval", "")),
+        "device_count": snapshot.device_count if snapshot is not None else 0,
+        "mqtt_connected": snapshot.mqtt_connected if snapshot is not None else None,
+    }
+    return view, degraded
+
+
+def _build_anonymous_share_view(share_manager: Any) -> tuple[dict[str, Any], bool]:
+    enabled = bool(getattr(share_manager, "is_enabled", False))
+    pending_count = getattr(share_manager, "pending_count", None)
+    degraded = False
+    pending_devices = 0
+    pending_errors = 0
+    if (
+        isinstance(pending_count, tuple)
+        and len(pending_count) == 2
+        and all(isinstance(item, int) for item in pending_count)
+    ):
+        pending_devices, pending_errors = pending_count
+    else:
+        degraded = True
+
+    payload = {
+        "enabled": enabled,
+        "pending_devices": pending_devices,
+        "pending_errors": pending_errors,
+    }
+    if degraded:
+        payload["degraded"] = True
+    return payload, degraded
+
+
+def _get_device_from_runtime(coordinator: Any, serial: str) -> Any | None:
+    getter = getattr(coordinator, "get_device", None)
+    if callable(getter):
+        return getter(serial)
+    return get_runtime_device_mapping(coordinator).get(serial)
+
+
 async def async_get_config_entry_diagnostics(
     hass: HomeAssistant,
     entry: LiproConfigEntry,
@@ -81,11 +135,12 @@ async def async_get_config_entry_diagnostics(
         return {"error": "entry_not_loaded"}
 
     devices_info = [
-        build_device_diagnostics_fn(device) for device in coordinator.devices.values()
+        build_device_diagnostics_fn(device)
+        for device in get_runtime_device_mapping(coordinator).values()
     ]
     share_manager = get_anonymous_share_manager(hass, entry_id=entry.entry_id)
-    device_count, error_count = share_manager.pending_count
-    snapshot = build_runtime_snapshot(entry)
+    coordinator_view, degraded_runtime = _build_coordinator_view(entry, coordinator)
+    anonymous_share_view, degraded_share = _build_anonymous_share_view(share_manager)
     telemetry_view = build_entry_diagnostics_view(entry)
 
     payload = {
@@ -94,25 +149,16 @@ async def async_get_config_entry_diagnostics(
             "data": async_redact_data(entry.data, to_redact),
             "options": async_redact_data(entry.options, options_to_redact),
         },
-        "coordinator": {
-            "last_update_success": bool(
-                snapshot.last_update_success if snapshot is not None else False
-            ),
-            "update_interval": str(getattr(coordinator, "update_interval", "")),
-            "device_count": snapshot.device_count if snapshot is not None else 0,
-            "mqtt_connected": (
-                snapshot.mqtt_connected if snapshot is not None else None
-            ),
-        },
-        "anonymous_share": {
-            "enabled": share_manager.is_enabled,
-            "pending_devices": device_count,
-            "pending_errors": error_count,
-        },
+        "coordinator": coordinator_view,
+        "anonymous_share": anonymous_share_view,
         "devices": devices_info,
     }
+    if degraded_runtime:
+        payload["coordinator"]["degraded_fields"] = degraded_runtime
     if telemetry_view is not None:
         payload["telemetry"] = telemetry_view
+    if degraded_share:
+        payload["anonymous_share"]["source"] = "degraded_runtime_access"
     return payload
 
 
@@ -138,26 +184,22 @@ async def async_get_device_diagnostics(
     if serial is None:
         return {"error": "device_not_in_lipro_domain"}
 
-    lipro_device = coordinator.get_device(serial)
+    lipro_device = _get_device_from_runtime(coordinator, serial)
     if lipro_device is None:
+        if not isinstance(getattr(coordinator, "devices", None), Mapping):
+            return {"error": "device_cache_unavailable"}
         return {"error": "device_not_found"}
 
-    snapshot = build_runtime_snapshot(entry)
-    return {
+    coordinator_view, degraded_runtime = _build_coordinator_view(entry, coordinator)
+    payload = {
         "entry": {
             "title": redact_entry_title(entry.title),
             "data": async_redact_data(entry.data, to_redact),
             "options": async_redact_data(entry.options, options_to_redact),
         },
-        "coordinator": {
-            "last_update_success": bool(
-                snapshot.last_update_success if snapshot is not None else False
-            ),
-            "update_interval": str(getattr(coordinator, "update_interval", "")),
-            "device_count": snapshot.device_count if snapshot is not None else 0,
-            "mqtt_connected": (
-                snapshot.mqtt_connected if snapshot is not None else None
-            ),
-        },
+        "coordinator": coordinator_view,
         "device": build_device_diagnostics_fn(lipro_device),
     }
+    if degraded_runtime:
+        payload["coordinator"]["degraded_fields"] = degraded_runtime
+    return payload

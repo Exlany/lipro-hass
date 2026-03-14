@@ -124,37 +124,6 @@ class LiproRestFacade(_ClientBase):
         self._command_endpoints = CommandEndpoints(self)
         self._misc_endpoints = MiscEndpoints(self)
         self._schedule_endpoints = ScheduleEndpoints(self)
-        self._endpoint_exports: dict[str, Any] = {}
-        self._install_endpoint_exports()
-
-    def _install_endpoint_exports(self) -> None:
-        self._endpoint_collaborators = {
-            "auth": self._auth_endpoints,
-            "device": self._device_endpoints,
-            "status": self._status_endpoints,
-            "command": self._command_endpoints,
-            "misc": self._misc_endpoints,
-            "schedule": self._schedule_endpoints,
-        }
-        endpoint_exports: dict[str, Any] = {}
-        for collaborator in self._endpoint_collaborators.values():
-            for name in collaborator.EXPORTED_METHODS:
-                endpoint_exports[name] = getattr(collaborator, name)
-        self._endpoint_exports = endpoint_exports
-
-    def __getattr__(self, name: str) -> Any:
-        """Resolve endpoint-exported collaborator methods on demand."""
-        endpoint_exports = self.__dict__.get("_endpoint_exports", {})
-        if name in endpoint_exports:
-            return endpoint_exports[name]
-        msg = f"{type(self).__name__!s} object has no attribute {name!r}"
-        raise AttributeError(msg)
-
-    def __dir__(self) -> list[str]:
-        """Expose endpoint-exported collaborator methods to introspection tools."""
-        return sorted(
-            set(super().__dir__()) | set(self.__dict__.get("_endpoint_exports", {}))
-        )
 
     @property
     def phone_id(self) -> str:
@@ -655,6 +624,268 @@ class LiproRestFacade(_ClientBase):
     @staticmethod
     def _is_invalid_param_error_code(code: Any) -> bool:
         return AuthRecoveryCoordinator.is_invalid_param_error_code(code)
+
+    async def get_devices(self, offset: int = 0, limit: int = 100) -> dict[str, Any]:
+        """Return canonical device rows through the explicit device endpoint."""
+        return await self._device_endpoints.get_devices(offset=offset, limit=limit)
+
+    async def get_product_configs(self) -> list[dict[str, Any]]:
+        """Return canonical product configuration rows."""
+        return await self._device_endpoints.get_product_configs()
+
+    async def query_device_status(
+        self,
+        device_ids: list[str],
+        *,
+        max_devices_per_query: int = 100,
+        on_batch_metric: Any = None,
+    ) -> list[dict[str, Any]]:
+        """Return canonical device-status rows through the explicit status endpoint."""
+        return await self._status_endpoints.query_device_status(
+            device_ids,
+            max_devices_per_query=max_devices_per_query,
+            on_batch_metric=on_batch_metric,
+        )
+
+    async def query_mesh_group_status(
+        self,
+        group_ids: list[str],
+    ) -> list[dict[str, Any]]:
+        """Return canonical mesh-group status rows."""
+        return await self._status_endpoints.query_mesh_group_status(group_ids)
+
+    async def query_connect_status(self, device_ids: list[str]) -> dict[str, bool]:
+        """Return connectivity status for the requested devices."""
+        return await self._status_endpoints.query_connect_status(device_ids)
+
+    async def send_command(
+        self,
+        device_id: str,
+        command: str,
+        device_type: int | str,
+        properties: list[dict[str, str]] | None = None,
+        iot_name: str = "",
+    ) -> dict[str, Any]:
+        """Send one device command through the explicit command endpoint."""
+        return await self._command_endpoints.send_command(
+            device_id=device_id,
+            command=command,
+            device_type=device_type,
+            properties=properties,
+            iot_name=iot_name,
+        )
+
+    async def send_group_command(
+        self,
+        group_id: str,
+        command: str,
+        device_type: int | str,
+        properties: list[dict[str, str]] | None = None,
+        iot_name: str = "",
+    ) -> dict[str, Any]:
+        """Send one group command through the explicit command endpoint."""
+        return await self._command_endpoints.send_group_command(
+            group_id=group_id,
+            command=command,
+            device_type=device_type,
+            properties=properties,
+            iot_name=iot_name,
+        )
+
+    async def get_mqtt_config(self) -> dict[str, Any]:
+        """Return MQTT configuration through the explicit misc endpoint."""
+        return await self._misc_endpoints.get_mqtt_config()
+
+    async def fetch_outlet_power_info(self, device_id: str) -> dict[str, Any]:
+        """Return outlet power information for one device."""
+        return await self._misc_endpoints.fetch_outlet_power_info(device_id)
+
+    async def query_command_result(
+        self,
+        *,
+        msg_sn: str,
+        device_id: str,
+        device_type: int | str,
+    ) -> dict[str, Any]:
+        """Return the command-result payload for one message serial number."""
+        return await self._misc_endpoints.query_command_result(
+            msg_sn=msg_sn,
+            device_id=device_id,
+            device_type=device_type,
+        )
+
+    async def get_city(self) -> dict[str, Any]:
+        """Return the current city capability payload."""
+        return await self._misc_endpoints.get_city()
+
+    async def query_user_cloud(self) -> dict[str, Any]:
+        """Return the user-cloud capability payload."""
+        return await self._misc_endpoints.query_user_cloud()
+
+    async def query_ota_info(
+        self,
+        device_id: str,
+        device_type: int | str,
+        *,
+        iot_name: str | None = None,
+        allow_rich_v2_fallback: bool = False,
+    ) -> list[dict[str, Any]]:
+        """Return OTA metadata for one device through the explicit misc endpoint."""
+        return await self._misc_endpoints.query_ota_info(
+            device_id=device_id,
+            device_type=device_type,
+            iot_name=iot_name,
+            allow_rich_v2_fallback=allow_rich_v2_fallback,
+        )
+
+    async def fetch_body_sensor_history(
+        self,
+        device_id: str,
+        device_type: int | str,
+        sensor_device_id: str,
+        mesh_type: str,
+    ) -> dict[str, Any]:
+        """Return body-sensor history through the explicit misc endpoint."""
+        return await self._misc_endpoints.fetch_body_sensor_history(
+            device_id=device_id,
+            device_type=device_type,
+            sensor_device_id=sensor_device_id,
+            mesh_type=mesh_type,
+        )
+
+    async def fetch_door_sensor_history(
+        self,
+        device_id: str,
+        device_type: int | str,
+        sensor_device_id: str,
+        mesh_type: str,
+    ) -> dict[str, Any]:
+        """Return door-sensor history through the explicit misc endpoint."""
+        return await self._misc_endpoints.fetch_door_sensor_history(
+            device_id=device_id,
+            device_type=device_type,
+            sensor_device_id=sensor_device_id,
+            mesh_type=mesh_type,
+        )
+
+    async def get_device_schedules(
+        self,
+        device_id: str,
+        device_type: int | str,
+        *,
+        mesh_gateway_id: str = "",
+        mesh_member_ids: list[str] | None = None,
+    ) -> list[dict[str, Any]]:
+        """Return device schedules through the explicit schedule endpoint."""
+        return await self._schedule_endpoints.get_device_schedules(
+            device_id=device_id,
+            device_type=device_type,
+            mesh_gateway_id=mesh_gateway_id,
+            mesh_member_ids=mesh_member_ids,
+        )
+
+    async def add_device_schedule(
+        self,
+        device_id: str,
+        device_type: int | str,
+        days: list[int],
+        times: list[int],
+        events: list[int],
+        *,
+        mesh_gateway_id: str = "",
+        mesh_member_ids: list[str] | None = None,
+    ) -> list[dict[str, Any]]:
+        """Add schedules through the explicit schedule endpoint."""
+        return await self._schedule_endpoints.add_device_schedule(
+            device_id=device_id,
+            device_type=device_type,
+            days=days,
+            times=times,
+            events=events,
+            mesh_gateway_id=mesh_gateway_id,
+            mesh_member_ids=mesh_member_ids,
+        )
+
+    async def delete_device_schedules(
+        self,
+        device_id: str,
+        device_type: int | str,
+        schedule_ids: list[int],
+        *,
+        mesh_gateway_id: str = "",
+        mesh_member_ids: list[str] | None = None,
+    ) -> list[dict[str, Any]]:
+        """Delete schedules through the explicit schedule endpoint."""
+        return await self._schedule_endpoints.delete_device_schedules(
+            device_id=device_id,
+            device_type=device_type,
+            schedule_ids=schedule_ids,
+            mesh_gateway_id=mesh_gateway_id,
+            mesh_member_ids=mesh_member_ids,
+        )
+
+    def _is_mesh_group_id(self, device_id: str) -> bool:
+        """Return whether the given identifier is a mesh-group id."""
+        return self._schedule_endpoints._is_mesh_group_id(device_id)  # noqa: SLF001
+
+    def _require_mesh_schedule_candidate_ids(
+        self,
+        *,
+        device_id: str,
+        mesh_gateway_id: str,
+        mesh_member_ids: list[str] | None,
+    ) -> list[str]:
+        """Resolve candidate ids for mesh-schedule operations."""
+        return self._schedule_endpoints._require_mesh_schedule_candidate_ids(  # noqa: SLF001
+            device_id=device_id,
+            mesh_gateway_id=mesh_gateway_id,
+            mesh_member_ids=mesh_member_ids,
+        )
+
+    async def _get_mesh_schedules_by_candidates(
+        self,
+        candidate_device_ids: list[str],
+    ) -> list[dict[str, Any]]:
+        """Return mesh schedules aggregated from candidate devices."""
+        return await self._schedule_endpoints._get_mesh_schedules_by_candidates(  # noqa: SLF001
+            candidate_device_ids
+        )
+
+    async def _request_schedule_timings(
+        self,
+        path: str,
+        body: dict[str, object],
+    ) -> list[dict[str, Any]]:
+        """Execute one schedule timing request through the explicit schedule endpoint."""
+        return await self._schedule_endpoints._request_schedule_timings(path, body)  # noqa: SLF001
+
+    async def _add_mesh_schedule_by_candidates(
+        self,
+        candidate_device_ids: list[str],
+        *,
+        days: list[int],
+        times: list[int],
+        events: list[int],
+    ) -> list[dict[str, Any]]:
+        """Add mesh schedules across candidate devices."""
+        return await self._schedule_endpoints._add_mesh_schedule_by_candidates(  # noqa: SLF001
+            candidate_device_ids,
+            days=days,
+            times=times,
+            events=events,
+        )
+
+    async def _delete_mesh_schedules_by_candidates(
+        self,
+        candidate_device_ids: list[str],
+        *,
+        schedule_ids: list[int],
+    ) -> list[dict[str, Any]]:
+        """Delete mesh schedules across candidate devices."""
+        return await self._schedule_endpoints._delete_mesh_schedules_by_candidates(  # noqa: SLF001
+            candidate_device_ids,
+            schedule_ids=schedule_ids,
+        )
 
 
 class LiproClient(LiproRestFacade):

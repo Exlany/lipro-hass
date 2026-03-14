@@ -60,6 +60,8 @@ Notes:
 
 - `./scripts/lint` runs `pip-audit` against exported runtime requirements by default.
   `./scripts/lint` 默认仅对导出的 runtime 依赖运行 `pip-audit`。
+- `./scripts/lint` 是本地便捷包装；CI 的正式裁决仍以下面的显式 `uv run ...` 命令为准。
+  `./scripts/lint` is a local convenience wrapper; the canonical CI contract remains the explicit `uv run ...` commands below.
 - To also audit dev dependencies locally (may be noisy), set `PIP_AUDIT_INCLUDE_DEV=1`.
   如需在本地额外审计 dev 依赖（可能较吵），可设置 `PIP_AUDIT_INCLUDE_DEV=1`。
 
@@ -83,6 +85,18 @@ uv run pytest tests/core/test_diagnostics.py::TestAsyncGetConfigEntryDiagnostics
 # Phase 10 boundary/auth/core-surface regression / Phase 10 边界/认证/核心表面回归
 uv run pytest -q tests/core/api/test_protocol_contract_matrix.py tests/core/test_auth.py tests/flows/test_config_flow.py tests/meta/test_public_surface_guards.py tests/test_coordinator_public.py
 ```
+
+### CI Contract / CI 契约
+
+Use the same command groups as GitHub Actions:
+请与 GitHub Actions 使用同一组命令：
+
+- **lint**: `uv run ruff check .`、`uv run ruff format --check .`、`uv run mypy`；若涉及用户可见文案，再跑 `uv run python scripts/check_translations.py`
+- **governance**: `uv run python scripts/check_architecture_policy.py --check`、`uv run python scripts/check_file_matrix.py --check`、`uv run pytest -q -x tests/meta/test_dependency_guards.py tests/meta/test_public_surface_guards.py tests/meta/test_governance_guards.py tests/meta/test_version_sync.py`
+- **test**: `uv run pytest tests/ -v --ignore=tests/benchmarks --cov=custom_components/lipro --cov-fail-under=95 --cov-report=json --cov-report=xml --cov-report=term-missing`、`uv run pytest tests/snapshots/ -v`、`uv run python scripts/coverage_diff.py coverage.json --minimum 95`、`uv run python scripts/refactor_tools.py --coverage-json coverage.json --minimum-coverage 95`
+- **benchmark**: `uv run pytest tests/benchmarks/ -v --benchmark-only --benchmark-json=.benchmarks/benchmark.json`；仅在性能敏感改动或手动对齐 `schedule` / `workflow_dispatch` 时需要
+- **validate**: GitHub Actions 会额外运行 `HACS` 与 `Hassfest` 校验；本地通常不必手动复刻，但提交前应确保仓库元数据仍符合这些约束
+- **release**: tag release 先复用 `.github/workflows/ci.yml`，再由 `.github/workflows/release.yml` 打包并发布资产；不要旁路门禁直接发版
 
 ### Type Hints / 类型提示
 
@@ -113,13 +127,20 @@ async def async_turn_on(self, **kwargs: Any) -> None:
 
 3. **Run linting and tests / 运行代码检查和测试**
    ```bash
-   ./scripts/lint
+   uv run ruff check .
+   uv run ruff format --check .
    uv run mypy
-   uv run pytest tests/ -v --cov=custom_components/lipro --cov-fail-under=95 --cov-report=xml --cov-report=term-missing
+   uv run python scripts/check_architecture_policy.py --check
+   uv run python scripts/check_file_matrix.py --check
+   uv run pytest -q -x tests/meta/test_dependency_guards.py tests/meta/test_public_surface_guards.py tests/meta/test_governance_guards.py tests/meta/test_version_sync.py
+   uv run pytest tests/ -v --ignore=tests/benchmarks --cov=custom_components/lipro --cov-fail-under=95 --cov-report=json --cov-report=xml --cov-report=term-missing
+   uv run pytest tests/snapshots/ -v
+   uv run python scripts/coverage_diff.py coverage.json --minimum 95
+   uv run python scripts/refactor_tools.py --coverage-json coverage.json --minimum-coverage 95
    ```
 
-   For protocol/auth/control public-surface changes, prefer adding the Phase 10 targeted regression above before a full run.
-   对于 protocol/auth/control public-surface 变更，建议先运行上面的 Phase 10 定向回归，再做全量测试。
+   For protocol/auth/control public-surface changes, prefer adding the Phase 10 targeted regression above before the full run; only run benchmarks when performance is part of the change.
+   对于 protocol/auth/control public-surface 变更，建议先运行上面的 Phase 10 定向回归再做全量；只有性能相关改动才需要跑 benchmark。
 
 4. **Submit Pull Request / 提交 Pull Request**
    - Provide a clear description of the changes
@@ -167,10 +188,20 @@ When reporting bugs, please include:
 报告错误时，请包括：
 
 - Integration version / 集成版本
-- Home Assistant version / Home Assistant 版本
+- Home Assistant version / Home Assistant 版本（最低支持 `2026.2.3`）
 - Steps to reproduce / 复现步骤
 - Expected vs actual behavior / 预期与实际行为
 - Relevant logs (with debug logging enabled) / 相关日志（启用调试日志）
+
+### Security Reports / 安全问题报告
+
+Do not open a public issue for vulnerabilities.
+安全漏洞不要走公开 Issue。
+
+- Follow `SECURITY.md` and use the GitHub private vulnerability reporting path first.
+  请先遵循 `SECURITY.md`，使用 GitHub 私密漏洞披露流程。
+- Only open a public issue after maintainers confirm the fix is ready to disclose.
+  仅在维护者确认可以公开后，再开启公开问题。
 
 ### Feature Requests / 功能请求
 

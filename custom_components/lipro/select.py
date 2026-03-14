@@ -19,7 +19,11 @@ from .const.properties import (
     WIND_DIRECTION_FIX,
 )
 from .entities.base import LiproEntity
-from .helpers.platform import build_device_entities_from_rules, create_device_entities
+from .helpers.platform import (
+    build_device_entities_from_rules,
+    create_device_entities,
+    should_expose_light_gear_select,
+)
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
@@ -83,7 +87,7 @@ def _build_device_select_entities(
                 lambda d: d.capabilities.is_heater,
                 (LiproHeaterWindDirectionSelect, LiproHeaterLightModeSelect),
             ),
-            (lambda d: d.capabilities.is_light and d.has_gear_presets, (LiproLightGearSelect,)),
+            (should_expose_light_gear_select, (LiproLightGearSelect,)),
         ),
     )
 
@@ -97,22 +101,83 @@ class LiproMappedPropertySelect(LiproSelect):
 
     _option_to_value: dict[str, int]
     _value_to_option: dict[int, str]
-    _default_option: str
     _property_key: str
-    _device_property: str
+    _last_unknown_value: Any = None
+
+    @staticmethod
+    def _coerce_mapped_value(raw_value: Any) -> int | None:
+        """Convert one raw property value into an integer enum value."""
+        try:
+            if raw_value is None:
+                return None
+            return int(raw_value)
+        except (TypeError, ValueError):
+            return None
+
+    def _get_raw_property_value(self) -> Any:
+        """Return the raw normalized property value for this select."""
+        return self.device.properties.get(self._property_key)
+
+    def _log_unknown_mapped_value(self, raw_value: Any) -> None:
+        """Log one unknown enum value once per distinct raw value."""
+        if raw_value == self._last_unknown_value:
+            return
+        self._last_unknown_value = raw_value
+        _LOGGER.warning(
+            "Unknown %s value %r for %s",
+            self._property_key,
+            raw_value,
+            self.device.name,
+        )
 
     @property
     def current_option(self) -> str | None:
-        """Return the current option from device property value."""
-        value = getattr(self.device, self._device_property)
-        return self._value_to_option.get(value, self._default_option)
+        """Return the current option from the raw property mapping."""
+        raw_value = self._get_raw_property_value()
+        if raw_value is None:
+            self._last_unknown_value = None
+            return None
+
+        value = self._coerce_mapped_value(raw_value)
+        if value is None:
+            self._log_unknown_mapped_value(raw_value)
+            return None
+
+        option = self._value_to_option.get(value)
+        if option is None:
+            self._log_unknown_mapped_value(raw_value)
+            return None
+
+        self._last_unknown_value = None
+        return option
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        """Expose raw enum state when the device reports an unknown value."""
+        raw_value = self._get_raw_property_value()
+        if raw_value is None:
+            return {}
+
+        value = self._coerce_mapped_value(raw_value)
+        if value is not None and value in self._value_to_option:
+            return {}
+
+        return {
+            "property_key": self._property_key,
+            "raw_value": raw_value,
+        }
 
     async def async_select_option(self, option: str) -> None:
         """Set the option by mapped property value."""
-        value = self._option_to_value.get(
-            option,
-            self._option_to_value[self._default_option],
-        )
+        value = self._option_to_value.get(option)
+        if value is None:
+            _LOGGER.warning(
+                "Ignoring unsupported %s option %r for %s",
+                self._property_key,
+                option,
+                self.device.name,
+            )
+            return
         await self.async_change_state({self._property_key: value})
 
 
@@ -124,9 +189,7 @@ class LiproHeaterWindDirectionSelect(LiproMappedPropertySelect):
     _entity_suffix = "wind_direction"
     _option_to_value = WIND_DIRECTION_TO_VALUE
     _value_to_option = VALUE_TO_WIND_DIRECTION
-    _default_option = "auto"
     _property_key = PROP_WIND_DIRECTION_MODE
-    _device_property = "wind_direction_mode"
 
 
 class LiproHeaterLightModeSelect(LiproMappedPropertySelect):
@@ -137,9 +200,7 @@ class LiproHeaterLightModeSelect(LiproMappedPropertySelect):
     _entity_suffix = "light_mode"
     _option_to_value = LIGHT_MODE_TO_VALUE
     _value_to_option = VALUE_TO_LIGHT_MODE
-    _default_option = "off"
     _property_key = PROP_LIGHT_MODE
-    _device_property = "light_mode"
 
 
 class LiproLightGearSelect(LiproSelect):
@@ -198,33 +259,26 @@ class LiproLightGearSelect(LiproSelect):
         if not gear_list:
             return None
 
-        # Get current values as percentages (same format as gearList)
         current_brightness = self.device.brightness
         current_temp_pct = self.device.get_int_property(PROP_TEMPERATURE, -1)
 
-        # Exact match: brightness and temperature percentage must match exactly
         for i, gear in enumerate(gear_list[:_MAX_GEAR_COUNT]):
             values = self._extract_gear_values(gear)
             if values is None:
                 continue
             gear_brightness, gear_temp_pct = values
 
-            # Exact match (no tolerance - API test confirmed this is correct)
             if (
                 current_brightness == gear_brightness
                 and current_temp_pct == gear_temp_pct
             ):
                 return GEAR_OPTIONS[i]
 
-        # No match - return None to indicate custom/unknown state
         return None
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
-        """Return extra state attributes showing gear details.
-
-        Shows brightness and color temperature (in Kelvin) for each preset.
-        """
+        """Return extra state attributes showing gear details."""
         attrs: dict[str, Any] = {}
         gear_list = self.device.gear_list
 
@@ -233,14 +287,9 @@ class LiproLightGearSelect(LiproSelect):
             if values is None:
                 continue
             brightness, temp_pct = values
-
-            # Convert percentage to Kelvin using centralized device method
             temp_k = self.device.percent_to_kelvin_for_device(temp_pct)
-
-            # Use descriptive names matching the translations
             attrs[f"preset_{_GEAR_PRESET_NAMES[i]}"] = f"{brightness}% / {temp_k}K"
 
-        # Also show the device's color temp range
         if self.capabilities.supports_color_temp:
             min_k = self.capabilities.min_color_temp_kelvin
             max_k = self.capabilities.max_color_temp_kelvin
@@ -255,7 +304,6 @@ class LiproLightGearSelect(LiproSelect):
             _LOGGER.warning("No gear presets available for %s", self.device.name)
             return
 
-        # Get gear index from option
         try:
             gear_index = GEAR_OPTIONS.index(option)
         except ValueError:
@@ -288,14 +336,11 @@ class LiproLightGearSelect(LiproSelect):
             self.device.percent_to_kelvin_for_device(temp_pct),
         )
 
-        # Use async_send_command for consistent optimistic update + error recovery.
-        await self.async_change_state(
+        success = await self.async_change_state(
             {
                 PROP_BRIGHTNESS: brightness,
                 PROP_TEMPERATURE: temp_pct,
             }
         )
-
-        # Notify other entities (e.g., light) sharing this device about the
-        # brightness/temperature change applied above.
-        self.coordinator.async_update_listeners()
+        if success:
+            await self.coordinator.async_request_refresh()

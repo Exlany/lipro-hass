@@ -24,7 +24,12 @@ from .entities.commands import (
     PowerCommand,
     PropertyToggleCommand,
 )
-from .helpers.platform import build_device_entities_from_rules, create_device_entities
+from .helpers.platform import (
+    build_device_entities_from_rules,
+    create_device_entities,
+    should_expose_light_property_switch,
+    should_expose_panel_property_switch,
+)
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
@@ -45,7 +50,6 @@ class PropertySwitchConfig:
     translation_key: str
     entity_suffix: str
     property_key: str
-    device_property: str
 
 
 # ── Entity classes ──────────────────────────────────────────────────
@@ -107,7 +111,7 @@ class LiproPropertySwitch(LiproEntity, SwitchEntity):
     @property
     def is_on(self) -> bool:
         """Return true if the feature is enabled."""
-        return bool(getattr(self.device, self._config.device_property, False))
+        return self.device.get_bool_property(self._config.property_key)
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Enable the feature."""
@@ -138,7 +142,7 @@ class LiproPanelPropertySwitch(LiproEntity, SwitchEntity):
     @property
     def is_on(self) -> bool:
         """Return true if the feature is enabled."""
-        return bool(getattr(self.device, self._config.device_property, False))
+        return self.device.get_bool_property(self._config.property_key)
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Enable the panel feature."""
@@ -157,31 +161,26 @@ LIGHT_FEATURE_SWITCHES = [
         translation_key="fade",
         entity_suffix="fade",
         property_key=PROP_FADE_STATE,
-        device_property="fade_state",
     ),
     PropertySwitchConfig(
         translation_key="sleep_aid",
         entity_suffix="sleep_aid",
         property_key=PROP_SLEEP_AID_ENABLE,
-        device_property="sleep_aid_enabled",
     ),
     PropertySwitchConfig(
         translation_key="wake_up",
         entity_suffix="wake_up",
         property_key=PROP_WAKE_UP_ENABLE,
-        device_property="wake_up_enabled",
     ),
     PropertySwitchConfig(
         translation_key="focus_mode",
         entity_suffix="focus_mode",
         property_key=PROP_FOCUS_MODE,
-        device_property="focus_mode_enabled",
     ),
     PropertySwitchConfig(
         translation_key="body_reactive",
         entity_suffix="body_reactive",
         property_key=PROP_BODY_REACTIVE,
-        device_property="body_reactive_enabled",
     ),
 ]
 
@@ -191,13 +190,11 @@ PANEL_FEATURE_SWITCHES = [
         translation_key="panel_led",
         entity_suffix="panel_led",
         property_key=PROP_LED,
-        device_property="panel_led_enabled",
     ),
     PropertySwitchConfig(
         translation_key="panel_memory",
         entity_suffix="panel_memory",
         property_key=PROP_MEMORY,
-        device_property="panel_memory_enabled",
     ),
 ]
 
@@ -212,21 +209,21 @@ _SWITCH_RULES: list[
 ] = [
     # Main switch entity (outlet or panel)
     (lambda d: d.capabilities.supports_platform("switch"), [LiproSwitch]),
-    # Light feature switches — one rule per config with hasattr guard in predicate
     *[
         (
-            lambda d, prop=cfg.device_property: d.capabilities.is_light and hasattr(d, prop),
+            lambda d, property_key=cfg.property_key: should_expose_light_property_switch(
+                d,
+                property_key=property_key,
+            ),
             [lambda c, d, cfg=cfg: LiproPropertySwitch(c, d, cfg)],
         )
         for cfg in LIGHT_FEATURE_SWITCHES
     ],
-    # Panel feature switches — one rule per config with hasattr guard in predicate
     *[
         (
-            lambda d, prop=cfg.device_property: (
-                d.capabilities.is_panel
-                and (PROP_LED in d.properties or PROP_MEMORY in d.properties)
-                and hasattr(d, prop)
+            lambda d, property_key=cfg.property_key: should_expose_panel_property_switch(
+                d,
+                property_key=property_key,
             ),
             [lambda c, d, cfg=cfg: LiproPanelPropertySwitch(c, d, cfg)],
         )
@@ -253,6 +250,4 @@ def _build_device_switches(
     device: LiproDevice,
 ) -> list[SwitchEntity]:
     """Build switch entities for one device using declarative rules."""
-    return build_device_entities_from_rules(
-        coordinator, device, rules=_SWITCH_RULES,
-    )
+    return build_device_entities_from_rules(coordinator, device, rules=_SWITCH_RULES)

@@ -9,6 +9,9 @@ body:
         感谢你提交 Bug 报告！请尽量详细描述问题，以便我们快速定位和修复。
         Thanks for taking the time to fill out this bug report!
 
+        若你要报告的是安全漏洞，请不要使用此公开表单；请改走 `SECURITY.md` 中的私密披露路径。
+        If you are reporting a security vulnerability, do not use this public form; follow the private disclosure path in `SECURITY.md`.
+
   - type: checkboxes
     attributes:
       label: Checklist / 检查清单
@@ -92,8 +95,8 @@ body:
     id: ha-version
     attributes:
       label: Home Assistant Version / Home Assistant 版本
-      description: "Minimum required: 2025.10.2 / 最低要求: 2025.10.2"
-      placeholder: "e.g., 2025.10.2"
+      description: "Minimum supported: 2026.2.3 / 最低支持版本：2026.2.3"
+      placeholder: "e.g., 2026.2.3"
     validations:
       required: true
 

@@ -16,6 +16,9 @@ from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.exceptions import HomeAssistantError
 
 from ...const.base import DOMAIN
+from ...control.runtime_access import (
+    find_runtime_entry_for_coordinator as _find_runtime_entry_for_coordinator,
+)
 from ...core import LiproApiError
 from ...core.api.types import DiagnosticsApiResponse
 from ...core.utils.log_safety import safe_error_placeholder
@@ -83,19 +86,6 @@ def _coerce_service_float(call: ServiceCall, key: str, default: float) -> float:
 
 
 # Capability collection utilities
-def _find_runtime_entry_for_coordinator(
-    hass: HomeAssistant,
-    coordinator: object,
-) -> object | None:
-    """Return the config entry that owns one runtime coordinator."""
-    config_entry = getattr(coordinator, "config_entry", None)
-    if getattr(config_entry, "runtime_data", None) is coordinator:
-        return config_entry
-    for entry in hass.config_entries.async_entries(DOMAIN):
-        if getattr(entry, "runtime_data", None) is coordinator:
-            return entry
-    return None
-
 
 def _collect_exporter_developer_report(
     hass: HomeAssistant,

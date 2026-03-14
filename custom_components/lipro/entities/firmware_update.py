@@ -20,9 +20,25 @@ from homeassistant.util import dt as dt_util
 from .. import firmware_manifest
 from ..const.base import DOMAIN
 from ..core import LiproApiError
-from ..core.ota.candidate import _OtaCandidate, build_candidate
-from ..core.ota.row_selector import row_targets_other_device, select_best_row
-from ..core.ota.rows_cache import OtaRowsCacheKey, async_get_rows_with_shared_cache
+from ..core.ota.candidate import (
+    _OtaCandidate,
+    build_candidate,
+    consume_confirmation,
+    evaluate_install,
+    has_pending_confirmation,
+    project_candidate,
+)
+from ..core.ota.row_selector import (
+    OtaDeviceFingerprint,
+    arbitrate_rows,
+    build_device_fingerprint,
+)
+from ..core.ota.rows_cache import (
+    OtaRowsCacheKey,
+    async_get_rows_with_shared_cache,
+    build_ota_rows_cache_key,
+    normalize_ota_rows,
+)
 from ..core.utils.log_safety import safe_error_placeholder
 from ..entities.base import LiproEntity
 
@@ -66,8 +82,6 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
         self._on_error = on_error
         self._last_error: Exception | None = None
         self._unverified_confirm_until = 0.0
-        self._remote_verified_versions: frozenset[str] = frozenset()
-        self._remote_versions_by_type: dict[str, frozenset[str]] = {}
         self._attr_installed_version = device.firmware_version
         self._attr_latest_version = device.firmware_version
         self._attr_in_progress = False
@@ -136,38 +150,27 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
         del backup, kwargs
         await self._async_refresh_ota(force=True)
 
-        candidate = self._ota_candidate
-        if candidate is None or not candidate.update_available:
-            raise HomeAssistantError(
-                translation_domain=DOMAIN,
-                translation_key="firmware_no_update",
-            )
+        install_eval = evaluate_install(
+            self._ota_candidate,
+            requested_version=version,
+            confirm_until=self._unverified_confirm_until,
+            now_monotonic=asyncio.get_running_loop().time(),
+            confirmation_window_seconds=_UNVERIFIED_CONFIRM_WINDOW_SECONDS,
+        )
+        self._unverified_confirm_until = install_eval.confirm_until
+        if install_eval.error_key is not None:
+            if install_eval.error_key == "firmware_unverified_confirm_required":
+                self.async_write_ha_state()
+            error_kwargs: dict[str, Any] = {
+                "translation_domain": DOMAIN,
+                "translation_key": install_eval.error_key,
+            }
+            if install_eval.error_placeholders is not None:
+                error_kwargs["translation_placeholders"] = install_eval.error_placeholders
+            raise HomeAssistantError(**error_kwargs)
 
-        if (
-            version is not None
-            and candidate.latest_version is not None
-            and version != candidate.latest_version
-        ):
-            raise HomeAssistantError(
-                translation_domain=DOMAIN,
-                translation_key="firmware_version_mismatch",
-                translation_placeholders={"version": version},
-            )
-
-        if not candidate.certified and not self._consume_unverified_confirmation():
-            self._unverified_confirm_until = (
-                monotonic() + _UNVERIFIED_CONFIRM_WINDOW_SECONDS
-            )
-            self.async_write_ha_state()
-            raise HomeAssistantError(
-                translation_domain=DOMAIN,
-                translation_key="firmware_unverified_confirm_required",
-                translation_placeholders={
-                    "seconds": str(_UNVERIFIED_CONFIRM_WINDOW_SECONDS),
-                },
-            )
-
-        if candidate.install_command is None:
+        install_command = install_eval.install_command
+        if install_command is None:
             raise HomeAssistantError(
                 translation_domain=DOMAIN,
                 translation_key="firmware_install_unsupported",
@@ -178,8 +181,8 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
         try:
             success = await self.coordinator.async_send_command(
                 self.device,
-                candidate.install_command.command,
-                candidate.install_command.properties,
+                install_command.command,
+                install_command.properties,
             )
             if not success:
                 raise HomeAssistantError(
@@ -256,16 +259,22 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
 
     def _ota_rows_cache_key(self) -> OtaRowsCacheKey:
         """Build a shared OTA rows cache key scoped by model-like identifiers."""
-        return (
+        return build_ota_rows_cache_key(
             self.coordinator,
-            self.device.device_type_hex.lower(),
-            str(self.device.iot_name or "").strip().lower(),
-            int(self.device.product_id or 0),
+            device_type=self.device.device_type_hex,
+            iot_name=self.device.iot_name,
+            product_id=self.device.product_id,
         )
 
-    def _selected_row_is_for_other_device(self, row: dict[str, Any] | None) -> bool:
-        """Return True when selected row explicitly targets a different device."""
-        return row_targets_other_device(row, expected_serial=self.device.serial)
+    def _ota_device_fingerprint(self) -> OtaDeviceFingerprint:
+        """Return the normalized fingerprint used for OTA row selection."""
+        return build_device_fingerprint(
+            serial=self.device.serial,
+            device_type=self.device.device_type_hex,
+            iot_name=self.device.iot_name,
+            product_id=self.device.product_id,
+            physical_model=self.device.physical_model,
+        )
 
     async def _query_ota_rows_from_cloud(self) -> list[dict[str, object]]:
         """Query OTA rows once and normalize unknown payload variants."""
@@ -275,7 +284,7 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
             iot_name=self.device.iot_name or None,
             allow_rich_v2_fallback=self.device.capabilities.is_light,
         )
-        return [dict(row) for row in rows] if isinstance(rows, list) else []
+        return normalize_ota_rows(rows)
 
     async def _query_ota_rows_with_shared_cache(
         self,
@@ -293,8 +302,14 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
             return
 
         async with _OTA_REFRESH_SEMAPHORE:
+            fingerprint = self._ota_device_fingerprint()
             try:
                 rows, from_cache = await self._query_ota_rows_with_shared_cache()
+                arbitration = arbitrate_rows(
+                    rows,
+                    fingerprint=fingerprint,
+                    from_cache=from_cache,
+                )
             except LiproApiError as err:
                 _LOGGER.debug(
                     "Failed to refresh OTA info for %s: %s",
@@ -305,10 +320,14 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
                 self.async_write_ha_state()
                 return
 
-            row = self._select_best_ota_row(rows)
-            if from_cache and self._selected_row_is_for_other_device(row):
+            if arbitration.should_retry_without_cache:
                 try:
                     rows = await self._query_ota_rows_from_cloud()
+                    arbitration = arbitrate_rows(
+                        rows,
+                        fingerprint=fingerprint,
+                        from_cache=False,
+                    )
                 except LiproApiError as err:
                     _LOGGER.debug(
                         "Failed to refresh OTA info for %s after cache mismatch: %s",
@@ -318,27 +337,12 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
                     self._set_last_error(err)
                     self.async_write_ha_state()
                     return
-                row = self._select_best_ota_row(rows)
 
-            if self.hass is not None:
-                (
-                    self._remote_verified_versions,
-                    self._remote_versions_by_type,
-                ) = await firmware_manifest.async_load_remote_firmware_manifest(
-                    self.hass
-                )
-
-            local_verified_versions, local_versions_by_type = (
-                firmware_manifest.load_verified_firmware_manifest()
-            )
             self._ota_candidate = build_candidate(
-                row,
+                arbitration.selected_row,
                 device_firmware_version=self.device.firmware_version,
                 device_iot_name=self.device.iot_name,
-                remote_verified_versions=self._remote_verified_versions,
-                remote_versions_by_type=self._remote_versions_by_type,
-                local_verified_versions=local_verified_versions,
-                local_versions_by_type=local_versions_by_type,
+                local_manifest=firmware_manifest.load_verified_firmware_manifest(),
                 is_version_newer=self._is_version_newer,
             )
             self._apply_ota_candidate()
@@ -348,33 +352,14 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
 
     def _apply_ota_candidate(self) -> None:
         """Apply candidate values to update-entity attributes."""
-        candidate = self._ota_candidate
-        installed = self.device.firmware_version
-        latest = installed
-        if candidate is not None:
-            installed = candidate.installed_version or installed
-            if candidate.latest_version is not None:
-                latest = candidate.latest_version
-            self._attr_release_summary = candidate.release_summary
-            self._attr_release_url = candidate.release_url
-        else:
-            self._attr_release_summary = None
-            self._attr_release_url = None
-
-        self._attr_installed_version = installed
-        self._attr_latest_version = latest
-
-    def _select_best_ota_row(self, rows: list[Any]) -> dict[str, Any] | None:
-        """Pick the most relevant OTA row for current device."""
-        return select_best_row(
-            rows,
-            serial=self.device.serial.lower(),
-            device_type=self.device.device_type_hex.lower(),
-            iot_name=(self.device.iot_name or "").lower(),
-            product_id=str(self.device.product_id),
-            physical_model=(self.device.physical_model or "").lower(),
+        projection = project_candidate(
+            self._ota_candidate,
+            current_installed_version=self.device.firmware_version,
         )
-
+        self._attr_release_summary = projection.release_summary
+        self._attr_release_url = projection.release_url
+        self._attr_installed_version = projection.installed_version
+        self._attr_latest_version = projection.latest_version
 
     def _is_version_newer(self, candidate: str, current: str) -> bool:
         """Compare versions with HA helper, fallback to conservative False."""
@@ -392,11 +377,16 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
 
     def _has_pending_unverified_confirmation(self) -> bool:
         """Return True if unverified install confirmation is active."""
-        return monotonic() < self._unverified_confirm_until
+        return has_pending_confirmation(
+            self._unverified_confirm_until,
+            now_monotonic=monotonic(),
+        )
 
     def _consume_unverified_confirmation(self) -> bool:
         """Consume current unverified confirmation window if still active."""
-        if not self._has_pending_unverified_confirmation():
-            return False
-        self._unverified_confirm_until = 0.0
-        return True
+        consumed, confirm_until = consume_confirmation(
+            self._unverified_confirm_until,
+            now_monotonic=monotonic(),
+        )
+        self._unverified_confirm_until = confirm_until
+        return consumed

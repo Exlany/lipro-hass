@@ -94,3 +94,26 @@ def test_runtime_snapshot_uses_telemetry_surface_projection() -> None:
     assert snapshot.device_count == 5
     assert snapshot.mqtt_connected is True
     assert snapshot.last_update_success is True
+
+
+def test_runtime_access_filters_debug_runtime_coordinators(hass) -> None:
+    from custom_components.lipro.control.runtime_access import (
+        has_debug_mode_runtime_entry,
+        iter_developer_runtime_coordinators,
+    )
+
+    debug_entry = MockConfigEntry(domain=DOMAIN, options={"debug_mode": True})
+    debug_entry.runtime_data = MagicMock(name="debug")
+    quiet_entry = MockConfigEntry(domain=DOMAIN, options={"debug_mode": False})
+    quiet_entry.runtime_data = MagicMock(name="quiet")
+    unloaded_entry = MockConfigEntry(domain=DOMAIN, options={"debug_mode": True})
+    unloaded_entry.runtime_data = None
+
+    debug_entry.add_to_hass(hass)
+    quiet_entry.add_to_hass(hass)
+    unloaded_entry.add_to_hass(hass)
+
+    coordinators = iter_developer_runtime_coordinators(hass)
+
+    assert coordinators == [debug_entry.runtime_data]
+    assert has_debug_mode_runtime_entry(hass) is True

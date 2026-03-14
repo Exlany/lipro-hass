@@ -20,10 +20,8 @@ from custom_components.lipro.core.device.identity_index import DeviceIdentityInd
 def mock_client():
     """Mock API client."""
     client = Mock()
-    client.get_devices = AsyncMock(return_value=[])
-    client.get_device_status = AsyncMock(return_value={})
-    client.status = Mock()
-    client.status.query_device_status = AsyncMock(return_value=[])
+    client.get_devices = AsyncMock(return_value={"devices": [], "total": 0})
+    client.query_device_status = AsyncMock(return_value=[])
     return client
 
 

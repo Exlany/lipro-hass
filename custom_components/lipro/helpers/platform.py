@@ -30,26 +30,7 @@ def create_platform_entities[EntityT: Entity](
     device_filter: Callable[[LiproDevice], bool],
     entity_factory: Callable[[LiproCoordinator, LiproDevice], EntityT],
 ) -> list[EntityT]:
-    """Create entities for a platform using a filter and factory function.
-
-    This is a helper function to reduce boilerplate in platform setup.
-
-    Args:
-        coordinator: The data update coordinator.
-        device_filter: Function that returns True for devices that should have entities.
-        entity_factory: Function that creates an entity for a device.
-
-    Returns:
-        List of created entities.
-
-    Example:
-        entities = create_platform_entities(
-            coordinator,
-            device_filter=lambda d: d.capabilities.is_light,
-            entity_factory=lambda c, d: LiproLight(c, d),
-        )
-
-    """
+    """Create entities for a platform using a filter and factory function."""
     return [
         entity_factory(coordinator, device)
         for device in coordinator.devices.values()
@@ -89,3 +70,36 @@ def build_device_entities_from_rules[EntityT: Entity](
             continue
         entities.extend(factory(coordinator, device) for factory in factories)
     return entities
+
+
+def device_has_raw_property(device: LiproDevice, property_key: str) -> bool:
+    """Return whether the normalized device payload explicitly includes a property."""
+    return property_key in device.properties
+
+
+def should_expose_light_property_switch(
+    device: LiproDevice,
+    *,
+    property_key: str,
+) -> bool:
+    """Return whether one light-only supplemental switch should be exposed."""
+    return device.capabilities.is_light and device_has_raw_property(device, property_key)
+
+
+def should_expose_panel_property_switch(
+    device: LiproDevice,
+    *,
+    property_key: str,
+) -> bool:
+    """Return whether one panel-only supplemental switch should be exposed."""
+    return device.capabilities.is_panel and device_has_raw_property(device, property_key)
+
+
+def should_expose_light_gear_select(device: LiproDevice) -> bool:
+    """Return whether one light should expose the gear select surface."""
+    return device.capabilities.is_light and device.has_gear_presets
+
+
+def should_expose_firmware_update_entity(device: LiproDevice) -> bool:
+    """Return whether one device qualifies for the firmware update platform."""
+    return not device.is_group and device.has_valid_iot_id

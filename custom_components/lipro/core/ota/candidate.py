@@ -1,4 +1,4 @@
-"""OTA candidate normalization helpers (no Home Assistant imports)."""
+"""OTA candidate normalization and install-policy helpers."""
 
 from __future__ import annotations
 
@@ -53,6 +53,8 @@ _COMMAND_CONTAINER_KEYS = (
 _COMMAND_KEYS = ("command", "cmd", "name")
 _COMMAND_PROPERTIES_KEYS = ("properties", "params", "arguments", "payload")
 
+type FirmwareManifestVersions = tuple[frozenset[str], dict[str, frozenset[str]]]
+
 
 @dataclass(slots=True)
 class _InstallCommand:
@@ -75,18 +77,54 @@ class _OtaCandidate:
     install_command: _InstallCommand | None
 
 
+@dataclass(frozen=True, slots=True)
+class OtaCandidateProjection:
+    """Projection payload consumed by the Home Assistant update entity."""
+
+    installed_version: str | None
+    latest_version: str | None
+    release_summary: str | None
+    release_url: str | None
+
+
+@dataclass(frozen=True, slots=True)
+class OtaInstallEvaluation:
+    """Result of validating one user-triggered install request."""
+
+    install_command: _InstallCommand | None
+    confirm_until: float
+    error_key: str | None = None
+    error_placeholders: dict[str, str] | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class OtaManifestTruth:
+    """Bundled manifest truth used for certification arbitration."""
+
+    verified_versions: frozenset[str]
+    versions_by_type: dict[str, frozenset[str]]
+
+
+def _build_manifest_truth(
+    local_manifest: FirmwareManifestVersions,
+) -> OtaManifestTruth:
+    verified_versions, versions_by_type = local_manifest
+    return OtaManifestTruth(
+        verified_versions=verified_versions,
+        versions_by_type=versions_by_type,
+    )
+
+
 def build_candidate(
     row: dict[str, Any] | None,
     *,
     device_firmware_version: str | None,
     device_iot_name: str | None,
-    remote_verified_versions: frozenset[str],
-    remote_versions_by_type: dict[str, frozenset[str]],
-    local_verified_versions: frozenset[str],
-    local_versions_by_type: dict[str, frozenset[str]],
+    local_manifest: FirmwareManifestVersions,
     is_version_newer: Callable[[str, str], bool],
 ) -> _OtaCandidate:
     """Normalize one OTA row into update-entity candidate metadata."""
+    manifest_truth = _build_manifest_truth(local_manifest)
     installed = device_firmware_version or first_text(row, _CURRENT_VERSION_KEYS)
     latest = resolve_latest_version(row, installed)
     update_available = resolve_update_available(
@@ -100,10 +138,7 @@ def build_candidate(
         installed=installed,
         latest=latest,
         device_iot_name=device_iot_name,
-        remote_verified_versions=remote_verified_versions,
-        remote_versions_by_type=remote_versions_by_type,
-        local_verified_versions=local_verified_versions,
-        local_versions_by_type=local_versions_by_type,
+        manifest_truth=manifest_truth,
         is_version_newer=is_version_newer,
     )
     install_payload = extract_install_command(
@@ -128,6 +163,119 @@ def build_candidate(
         release_summary=first_text(row, _RELEASE_SUMMARY_KEYS),
         release_url=first_text(row, _RELEASE_URL_KEYS),
         install_command=install_command,
+    )
+
+
+def project_candidate(
+    candidate: _OtaCandidate | None,
+    *,
+    current_installed_version: str | None,
+) -> OtaCandidateProjection:
+    """Project normalized OTA candidate metadata onto update-entity fields."""
+    installed = current_installed_version
+    latest = current_installed_version
+    release_summary = None
+    release_url = None
+
+    if candidate is not None:
+        installed = candidate.installed_version or current_installed_version
+        latest = candidate.latest_version or installed
+        release_summary = candidate.release_summary
+        release_url = candidate.release_url
+
+    return OtaCandidateProjection(
+        installed_version=installed,
+        latest_version=latest,
+        release_summary=release_summary,
+        release_url=release_url,
+    )
+
+
+def has_pending_confirmation(
+    confirm_until: float,
+    *,
+    now_monotonic: float,
+) -> bool:
+    """Return whether unverified-install confirmation window is active."""
+    return now_monotonic < confirm_until
+
+
+def start_confirmation_window(
+    *,
+    now_monotonic: float,
+    confirmation_window_seconds: int,
+) -> float:
+    """Return deadline for one new unverified-install confirmation window."""
+    return now_monotonic + confirmation_window_seconds
+
+
+def consume_confirmation(
+    confirm_until: float,
+    *,
+    now_monotonic: float,
+) -> tuple[bool, float]:
+    """Consume one pending confirmation window when it is still active."""
+    if not has_pending_confirmation(confirm_until, now_monotonic=now_monotonic):
+        return False, confirm_until
+    return True, 0.0
+
+
+def evaluate_install(
+    candidate: _OtaCandidate | None,
+    *,
+    requested_version: str | None,
+    confirm_until: float,
+    now_monotonic: float,
+    confirmation_window_seconds: int,
+) -> OtaInstallEvaluation:
+    """Validate install intent and return the install/confirmation decision."""
+    if candidate is None or not candidate.update_available:
+        return OtaInstallEvaluation(
+            install_command=None,
+            confirm_until=confirm_until,
+            error_key="firmware_no_update",
+        )
+
+    if (
+        requested_version is not None
+        and candidate.latest_version is not None
+        and requested_version != candidate.latest_version
+    ):
+        return OtaInstallEvaluation(
+            install_command=None,
+            confirm_until=confirm_until,
+            error_key="firmware_version_mismatch",
+            error_placeholders={"version": requested_version},
+        )
+
+    next_confirm_until = confirm_until
+    if not candidate.certified:
+        confirmed, next_confirm_until = consume_confirmation(
+            confirm_until,
+            now_monotonic=now_monotonic,
+        )
+        if not confirmed:
+            next_confirm_until = start_confirmation_window(
+                now_monotonic=now_monotonic,
+                confirmation_window_seconds=confirmation_window_seconds,
+            )
+            return OtaInstallEvaluation(
+                install_command=None,
+                confirm_until=next_confirm_until,
+                error_key="firmware_unverified_confirm_required",
+                error_placeholders={"seconds": str(confirmation_window_seconds)},
+            )
+
+    if candidate.install_command is None:
+        return OtaInstallEvaluation(
+            install_command=None,
+            confirm_until=next_confirm_until,
+            error_key="firmware_install_unsupported",
+        )
+
+    return OtaInstallEvaluation(
+        install_command=candidate.install_command,
+        confirm_until=next_confirm_until,
     )
 
 
@@ -177,7 +325,6 @@ def resolve_update_available(
             latest,
             err,
         )
-        # Be conservative on parse failures: avoid false positive upgrades.
         return False
 
 
@@ -187,18 +334,10 @@ def resolve_certification(
     installed: str | None,
     latest: str | None,
     device_iot_name: str | None,
-    remote_verified_versions: frozenset[str],
-    remote_versions_by_type: dict[str, frozenset[str]],
-    local_verified_versions: frozenset[str],
-    local_versions_by_type: dict[str, frozenset[str]],
+    manifest_truth: OtaManifestTruth,
     is_version_newer: Callable[[str, str], bool],
 ) -> bool:
-    """Resolve certification from inline data and the local trust root.
-
-    Remote firmware manifest payloads remain advisory only. They may influence
-    update discovery, but they must never elevate certification on their own.
-    """
-    del remote_verified_versions, remote_versions_by_type
+    """Resolve certification from inline data and the bundled manifest truth."""
     explicit_or_inline = resolve_inline_certification(
         row,
         installed=installed,
@@ -213,8 +352,7 @@ def resolve_certification(
         installed=installed,
         latest=latest,
         device_iot_name=device_iot_name,
-        local_verified_versions=local_verified_versions,
-        local_versions_by_type=local_versions_by_type,
+        manifest_truth=manifest_truth,
         is_version_newer=is_version_newer,
     )
 
@@ -225,8 +363,7 @@ def resolve_local_manifest_certification(
     installed: str | None,
     latest: str | None,
     device_iot_name: str | None,
-    local_verified_versions: frozenset[str],
-    local_versions_by_type: dict[str, frozenset[str]],
+    manifest_truth: OtaManifestTruth,
     is_version_newer: Callable[[str, str], bool],
 ) -> bool:
     """Resolve certification using only the bundled local manifest authority."""
@@ -240,8 +377,8 @@ def resolve_local_manifest_certification(
     )
     return matches_manifest_certification(
         candidate_types,
-        local_versions_by_type,
-        local_verified_versions,
+        manifest_truth.versions_by_type,
+        manifest_truth.verified_versions,
         installed=installed,
         latest=latest,
         is_version_newer=is_version_newer,

@@ -4,6 +4,9 @@ from __future__ import annotations
 
 from pathlib import Path
 import re
+from typing import Any
+
+import yaml
 
 from scripts.check_architecture_policy import (
     run_checks as run_architecture_policy_checks,
@@ -19,6 +22,14 @@ from tests.helpers.architecture_policy import load_structural_rules, load_target
 
 _ROOT = repo_root(Path(__file__))
 _FILE_MATRIX = _ROOT / ".planning" / "reviews" / "FILE_MATRIX.md"
+_DOCS_README = _ROOT / "docs" / "README.md"
+_AGENTS = _ROOT / "AGENTS.md"
+_CONTRIBUTING = _ROOT / "CONTRIBUTING.md"
+_PR_TEMPLATE = _ROOT / ".github" / "pull_request_template.md"
+_SECURITY = _ROOT / "SECURITY.md"
+_CI_WORKFLOW = _ROOT / ".github" / "workflows" / "ci.yml"
+_RELEASE_WORKFLOW = _ROOT / ".github" / "workflows" / "release.yml"
+_ISSUE_CONFIG = _ROOT / ".github" / "ISSUE_TEMPLATE" / "config.yml"
 
 
 def test_file_matrix_covers_workspace_python_inventory() -> None:
@@ -27,6 +38,42 @@ def test_file_matrix_covers_workspace_python_inventory() -> None:
 
     assert extract_reported_total(matrix_text) == len(inventory)
     assert parse_file_matrix_paths(matrix_text) == inventory
+
+
+def _load_yaml(path: Path) -> dict[str, Any]:
+    loaded = yaml.safe_load(path.read_text(encoding="utf-8"))
+    assert isinstance(loaded, dict)
+    if True in loaded and "on" not in loaded:
+        loaded["on"] = loaded.pop(True)
+    return loaded
+
+
+def _extract_markdown_section(text: str, heading_fragment: str) -> str:
+    match = re.search(
+        rf"^#{{2,}} [^\n]*{re.escape(heading_fragment)}[^\n]*\n(?P<body>.*?)(?=^#{{2,}} |\Z)",
+        text,
+        flags=re.MULTILINE | re.DOTALL,
+    )
+    assert match, f"Missing section containing heading: {heading_fragment}"
+    return match.group("body")
+
+
+def _extract_labeled_bullets(section_text: str) -> dict[str, str]:
+    bullets: dict[str, str] = {}
+    for line in section_text.splitlines():
+        match = re.match(r"- \*\*(?P<label>[^*]+)\*\*[:：]\s*(?P<body>.+)", line.strip())
+        if match:
+            bullets[match.group("label").strip()] = match.group("body").strip()
+    return bullets
+
+
+def _extract_checklist_labels(text: str) -> dict[str, str]:
+    items: dict[str, str] = {}
+    for line in text.splitlines():
+        match = re.match(r"- \[ \] `(?P<label>[^`]+)`:\s*(?P<body>.+)", line.strip())
+        if match:
+            items[match.group("label").strip()] = match.group("body").strip()
+    return items
 
 
 
@@ -70,6 +117,88 @@ def test_architecture_policy_rule_inventory_is_stable() -> None:
         "ENF-COMPAT-CORE-PACKAGE-NO-LEGACY-CLIENTS",
         "ENF-COMPAT-MQTT-PACKAGE-NO-LEGACY-CLIENT",
     }
+
+
+def test_phase_asset_identity_is_documented_consistently() -> None:
+    docs_bullets = _extract_labeled_bullets(
+        _extract_markdown_section(
+            _DOCS_README.read_text(encoding="utf-8"),
+            "Phase 资产身份与开源治理",
+        )
+    )
+    agents_bullets = _extract_labeled_bullets(
+        _extract_markdown_section(
+            _AGENTS.read_text(encoding="utf-8"),
+            "Phase 资产身份与开源治理",
+        )
+    )
+
+    for bullets in (docs_bullets, agents_bullets):
+        assert {"默认身份", "提升条件", "发布门禁", "对外入口"} <= set(bullets)
+        assert ".planning/phases/**" in bullets["默认身份"]
+        assert ".planning/ROADMAP.md" in bullets["提升条件"]
+        assert ".planning/baseline/VERIFICATION_MATRIX.md" in bullets["提升条件"]
+        assert ".github/workflows/ci.yml" in bullets["发布门禁"]
+        assert ".github/workflows/release.yml" in bullets["发布门禁"]
+        assert "CONTRIBUTING.md" in bullets["对外入口"]
+        assert "SECURITY.md" in bullets["对外入口"]
+
+
+def test_ci_and_release_workflows_share_governance_and_version_gates() -> None:
+    ci_workflow = _load_yaml(_CI_WORKFLOW)
+    release_workflow = _load_yaml(_RELEASE_WORKFLOW)
+
+    assert "workflow_call" in ci_workflow["on"]
+
+    governance_steps = ci_workflow["jobs"]["governance"]["steps"]
+    governance_runs = "\n".join(step.get("run", "") for step in governance_steps)
+    assert "tests/meta/test_governance_guards.py" in governance_runs
+    assert "tests/meta/test_version_sync.py" in governance_runs
+
+    validate_job = release_workflow["jobs"]["validate"]
+    assert validate_job["uses"] == "./.github/workflows/ci.yml"
+    assert validate_job["secrets"] == "inherit"
+
+    build_job = release_workflow["jobs"]["build"]
+    assert build_job["needs"] == "validate"
+    step_names = {step["name"] for step in build_job["steps"]}
+    assert "Verify tag matches project version" in step_names
+    version_guard = next(
+        step["run"]
+        for step in build_job["steps"]
+        if step.get("name") == "Verify tag matches project version"
+    )
+    assert "pyproject.toml" in version_guard
+    assert "RELEASE_TAG" in version_guard
+
+
+def test_contributor_contract_matches_ci_language() -> None:
+    contributing_bullets = _extract_labeled_bullets(
+        _extract_markdown_section(
+            _CONTRIBUTING.read_text(encoding="utf-8"),
+            "CI Contract / CI 契约",
+        )
+    )
+    pr_checklist = _extract_checklist_labels(_PR_TEMPLATE.read_text(encoding="utf-8"))
+
+    assert {"lint", "governance", "test", "benchmark", "validate", "release"} <= set(
+        contributing_bullets
+    )
+    assert {"lint", "governance", "test", "benchmark"} <= set(pr_checklist)
+    assert "tests/meta/test_governance_guards.py" in contributing_bullets["governance"]
+    assert "tests/meta/test_version_sync.py" in contributing_bullets["governance"]
+    assert "--ignore=tests/benchmarks" in contributing_bullets["test"]
+    assert "tests/benchmarks/" in contributing_bullets["benchmark"]
+
+
+def test_security_disclosure_path_is_present() -> None:
+    security_text = _SECURITY.read_text(encoding="utf-8")
+    issue_config = _load_yaml(_ISSUE_CONFIG)
+    contact_urls = {link["url"] for link in issue_config["contact_links"]}
+
+    assert "/security/advisories/new" in security_text
+    assert "public GitHub issue" in security_text
+    assert "https://github.com/Exlany/lipro-hass/security/policy" in contact_urls
 
 
 
@@ -179,7 +308,7 @@ def test_phase_9_governance_truth_is_consistent() -> None:
 
 
 
-def test_phase_11_replanning_truth_is_consistent() -> None:
+def test_phase_11_execution_truth_is_consistent() -> None:
     roadmap_text = (_ROOT / ".planning" / "ROADMAP.md").read_text(encoding="utf-8")
     requirements_text = (_ROOT / ".planning" / "REQUIREMENTS.md").read_text(encoding="utf-8")
     state_text = (_ROOT / ".planning" / "STATE.md").read_text(encoding="utf-8")
@@ -187,14 +316,14 @@ def test_phase_11_replanning_truth_is_consistent() -> None:
     research_text = (_ROOT / ".planning" / "phases" / "11-control-router-formalization-wiring-residual-demotion" / "11-RESEARCH.md").read_text(encoding="utf-8")
     audit_text = (_ROOT / ".planning" / "v1.1-MILESTONE-AUDIT.md").read_text(encoding="utf-8")
 
-    assert "| 11 Control Router Formalization & Wiring Residual Demotion | v1.1 | 3/8 | In Progress | 2026-03-14 |" in roadmap_text
-    assert "| SURF-01 | Phase 11 | Planned |" in requirements_text
-    assert "| CTRL-04 | Phase 11 | Planned |" in requirements_text
-    assert "| RUN-01 | Phase 11 | Planned |" in requirements_text
-    assert "| ENT-01 | Phase 11 | Planned |" in requirements_text
-    assert "| ENT-02 | Phase 11 | Planned |" in requirements_text
-    assert "| GOV-08 | Phase 11 | Planned |" in requirements_text
-    assert "**Current mode:** `Phase 11 replanning`" in state_text
+    assert "| 11 Control Router Formalization & Wiring Residual Demotion | v1.1 | 8/8 | Complete | 2026-03-14 |" in roadmap_text
+    assert "| SURF-01 | Phase 11 | Complete |" in requirements_text
+    assert "| CTRL-04 | Phase 11 | Complete |" in requirements_text
+    assert "| RUN-01 | Phase 11 | Complete |" in requirements_text
+    assert "| ENT-01 | Phase 11 | Complete |" in requirements_text
+    assert "| ENT-02 | Phase 11 | Complete |" in requirements_text
+    assert "| GOV-08 | Phase 11 | Complete |" in requirements_text
+    assert "**Current mode:** `Phase 11 execution complete`" in state_text
     _assert_current_mode_tracks_phase_lifecycle(state_text)
     assert "**Status:** Reopened for expanded planning" in context_text
     assert "11-04 ~ 11-08 addendum plans" in research_text

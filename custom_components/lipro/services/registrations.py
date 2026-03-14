@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping
-from typing import Any, Final
+from typing import Final
 
-from homeassistant.core import HomeAssistant, SupportsResponse
+from homeassistant.core import SupportsResponse
 
-from ..const.base import DOMAIN
-from ..const.config import CONF_DEBUG_MODE, DEFAULT_DEBUG_MODE
+from ..control.runtime_access import (
+    has_debug_mode_runtime_entry,
+    is_debug_mode_enabled_for_entry,
+)
 from ..control.service_router import (
     async_handle_add_schedule,
     async_handle_delete_schedules,
@@ -121,23 +122,6 @@ DEVELOPER_SERVICE_REGISTRATIONS: Final[tuple[ServiceRegistration, ...]] = (
 SERVICE_REGISTRATIONS: Final[tuple[ServiceRegistration, ...]] = (
     PUBLIC_SERVICE_REGISTRATIONS + DEVELOPER_SERVICE_REGISTRATIONS
 )
-
-
-def is_debug_mode_enabled_for_entry(entry: Any) -> bool:
-    """Return whether one config entry has developer diagnostics enabled."""
-    options = getattr(entry, "options", None)
-    if not isinstance(options, Mapping):
-        return DEFAULT_DEBUG_MODE
-    return bool(options.get(CONF_DEBUG_MODE, DEFAULT_DEBUG_MODE))
-
-
-def has_debug_mode_runtime_entry(hass: HomeAssistant) -> bool:
-    """Return True when any active Lipro runtime entry opts into debug mode."""
-    return any(
-        getattr(entry, "runtime_data", None) is not None
-        and is_debug_mode_enabled_for_entry(entry)
-        for entry in hass.config_entries.async_entries(DOMAIN)
-    )
 
 
 __all__ = [

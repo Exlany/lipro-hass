@@ -214,6 +214,13 @@
 - `.planning/REQUIREMENTS.md`
 - 如需长期保留阶段结论，回写 `.planning/milestones/*.md` 或相应 governance docs；`phase` 目录下的 `*-SUMMARY.md` / `*-VALIDATION.md` 默认视为本地执行痕迹，不要求纳入 Git
 
+### 6.4 Phase 资产身份与开源治理
+
+- **默认身份**：`.planning/phases/**` 默认是执行工作区；`*-PLAN.md`、`*-CONTEXT.md`、`*-RESEARCH.md` 与临时过程文件按执行痕迹处理，不自动成为长期治理真源。
+- **提升条件**：只有被 `.planning/ROADMAP.md`、`.planning/baseline/VERIFICATION_MATRIX.md`、`.planning/milestones/*.md` 或 `.planning/reviews/*.md` 显式引用的 phase 资产，才算长期治理/CI 证据。
+- **发布门禁**：`.github/workflows/release.yml` 必须复用 `.github/workflows/ci.yml` 的版本/治理守卫，不得建立旁路发版故事线。
+- **对外入口**：贡献者契约以 `CONTRIBUTING.md`、`.github/pull_request_template.md`、`.github/ISSUE_TEMPLATE/*.yml` 与 `SECURITY.md` 为准。
+
 ## 7. 测试与检查命令
 
 ### 7.1 基本规则
@@ -242,7 +249,7 @@
 - `uv run pytest tests/core/test_control_plane.py tests/core/test_init.py tests/core/test_diagnostics.py tests/core/test_system_health.py tests/services/test_services_registry.py tests/services/test_service_resilience.py tests/flows/test_config_flow.py -q`
 
 **架构守卫**
-- `uv run pytest tests/meta/test_dependency_guards.py tests/meta/test_public_surface_guards.py -q`
+- `uv run pytest tests/meta/test_dependency_guards.py tests/meta/test_public_surface_guards.py tests/meta/test_governance_guards.py tests/meta/test_version_sync.py -q`
 
 ## 8. 代码修改偏好
 

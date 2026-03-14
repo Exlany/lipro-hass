@@ -5,25 +5,69 @@ on:
     tags:
       - "v*"
   workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag (for example `v1.0.0`)
+        required: true
+        type: string
+
+concurrency:
+  group: release-${{ github.event.inputs.tag || github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: write
 
+env:
+  RELEASE_TAG: ${{ github.event.inputs.tag || github.ref_name }}
+
 jobs:
+  validate:
+    name: Reuse CI Gates
+    uses: ./.github/workflows/ci.yml
+    secrets: inherit
+
   build:
     name: Build Release Assets
     runs-on: ubuntu-latest
+    needs: validate
     timeout-minutes: 10
     steps:
       - name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
+        with:
+          python-version: "3.13"
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@0ca8f610542aa7f4acaf39e65cf4eb3c35091883
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --frozen --extra dev
+
+      - name: Verify tag matches project version
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          project_version="$(uv run python -c 'import tomllib; from pathlib import Path; print(tomllib.loads(Path("pyproject.toml").read_text(encoding="utf-8"))["project"]["version"])')"
+          expected_tag="v${project_version}"
+
+          if [[ "${RELEASE_TAG}" != "${expected_tag}" ]]; then
+            echo "Release tag ${RELEASE_TAG} does not match project version ${project_version}" >&2
+            exit 1
+          fi
 
       - name: Build zip and checksums
         shell: bash
         run: |
           set -euo pipefail
 
-          tag="${GITHUB_REF_NAME}"
+          tag="${RELEASE_TAG}"
           dist="dist"
           root="lipro-hass-${tag}"
 
@@ -41,7 +85,8 @@ jobs:
       - name: Publish release assets
         uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b
         with:
+          tag_name: ${{ env.RELEASE_TAG }}
           files: |
-            dist/lipro-hass-${{ github.ref_name }}.zip
+            dist/lipro-hass-${{ env.RELEASE_TAG }}.zip
             dist/SHA256SUMS
           generate_release_notes: true

@@ -325,9 +325,7 @@ class TestCoordinatorRuntimeComponents:
             "data": [make_api_device(serial=serial)],
             "hasMore": False,
         }
-        coordinator.client.status = MagicMock()
-        coordinator.client.status.query_device_status = MagicMock()
-        coordinator.client.status.query_device_status.return_value = None
+        coordinator.client.query_device_status = MagicMock(return_value=None)
 
         with patch(
             "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager"
@@ -337,7 +335,7 @@ class TestCoordinatorRuntimeComponents:
 
         device = coordinator.get_device(serial)
         assert device is not None
-        coordinator.client.status.query_device_status = AsyncMock(
+        coordinator.client.query_device_status = AsyncMock(
             return_value=[
                 {"iotId": serial, "powerState": "1"},
                 {"ignored": True},
@@ -360,8 +358,7 @@ class TestCoordinatorRuntimeComponents:
             "data": [make_api_device(serial=serial)],
             "hasMore": False,
         }
-        coordinator.client.status = MagicMock()
-        coordinator.client.status.query_device_status = MagicMock(return_value=None)
+        coordinator.client.query_device_status = MagicMock(return_value=None)
 
         with patch(
             "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager"
@@ -371,7 +368,7 @@ class TestCoordinatorRuntimeComponents:
 
         device = coordinator.get_device(serial)
         assert device is not None
-        coordinator.client.status.query_device_status = AsyncMock(
+        coordinator.client.query_device_status = AsyncMock(
             return_value=[{"iotId": serial, "powerState": "1"}]
         )
         coordinator._runtimes.command.filter_pending_state_properties = MagicMock(

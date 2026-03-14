@@ -259,14 +259,16 @@ def mock_lipro_api_client():
             devices = response.get("devices")
             if isinstance(devices, list):
                 return response
-            compat_devices = response.get("data")
-            if isinstance(compat_devices, list):
-                total = offset + len(compat_devices) + int(bool(response.get("hasMore")))
-                return {
-                    "devices": list(compat_devices),
-                    "total": total,
-                }
-        return {"devices": []}
+            page_view = client.contracts.normalize_device_list_page(
+                response,
+                offset=offset,
+            )
+            devices = list(page_view.get("devices", []))
+            return {
+                "devices": devices,
+                "total": offset + len(devices) + int(bool(page_view.get("has_more"))),
+            }
+        return {"devices": [], "total": 0}
 
     client.get_devices = AsyncMock(side_effect=_get_devices)
     client.query_device_status = AsyncMock(return_value=[])

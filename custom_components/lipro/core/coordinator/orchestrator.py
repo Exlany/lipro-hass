@@ -119,13 +119,7 @@ class RuntimeOrchestrator:
             device_ids: list[str],
         ) -> dict[str, dict[str, Any]]:
             """Query device status batch through the formal protocol contract."""
-            status_endpoint = getattr(self.client, "status", None)
-            query_device_status = getattr(status_endpoint, "query_device_status", None)
-            if query_device_status is None:
-                rows = await self.client.query_device_status(device_ids)
-            else:
-                rows = await query_device_status(device_ids)
-
+            rows = await self.client.query_device_status(device_ids)
             return self.client.contracts.build_device_status_map(rows)
 
         async def _apply_properties_update(

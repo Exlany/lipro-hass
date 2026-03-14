@@ -1,9 +1,8 @@
-## Checklist
-- [ ] `uv run ruff check custom_components/lipro tests`
-- [ ] `uv run ruff format --check custom_components/lipro tests`
-- [ ] `uv run mypy custom_components/lipro`
-- [ ] `uv run pytest -q`
-- [ ] If user-facing: translations updated (run `uv run python scripts/check_translations.py`)
+## CI Contract
+- [ ] `lint`: `uv run ruff check .`, `uv run ruff format --check .`, `uv run mypy`（如改到用户可见文案，再跑 `uv run python scripts/check_translations.py`）
+- [ ] `governance`: `uv run python scripts/check_architecture_policy.py --check`、`uv run python scripts/check_file_matrix.py --check`、`uv run pytest -q -x tests/meta/test_dependency_guards.py tests/meta/test_public_surface_guards.py tests/meta/test_governance_guards.py tests/meta/test_version_sync.py`
+- [ ] `test`: `uv run pytest tests/ -v --ignore=tests/benchmarks --cov=custom_components/lipro --cov-fail-under=95 --cov-report=json --cov-report=xml --cov-report=term-missing`、`uv run pytest tests/snapshots/ -v`、`uv run python scripts/coverage_diff.py coverage.json --minimum 95`、`uv run python scripts/refactor_tools.py --coverage-json coverage.json --minimum-coverage 95`
+- [ ] `benchmark`: 仅在性能敏感改动或手动对齐 schedule/workflow_dispatch 时执行 `uv run pytest tests/benchmarks/ -v --benchmark-only --benchmark-json=.benchmarks/benchmark.json`
 - [ ] No sensitive data in logs, diagnostics, or test fixtures
 
 ## Summary
@@ -11,4 +10,3 @@
 
 ## Testing
 <!-- What tests were run? Paste relevant output or describe coverage. -->
-

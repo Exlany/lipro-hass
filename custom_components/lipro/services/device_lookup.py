@@ -10,6 +10,8 @@ from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers import entity_registry as er
 
+from ..control.runtime_access import get_entry_runtime_coordinator, iter_runtime_entries
+
 
 def _normalize_entity_ids(entity_ids: Any) -> list[str]:
     """Normalize entity_id inputs into a clean list of entity_id strings."""
@@ -114,11 +116,11 @@ def iter_runtime_coordinators(
     domain: str,
 ) -> Iterator[Any]:
     """Iterate all active coordinators for the Lipro domain."""
-    for entry in hass.config_entries.async_entries(domain):
-        coordinator = getattr(entry, "runtime_data", None)
-        if coordinator is None:
-            continue
-        yield coordinator
+    del domain
+    for entry in iter_runtime_entries(hass):
+        coordinator = get_entry_runtime_coordinator(entry)
+        if coordinator is not None:
+            yield coordinator
 
 
 async def get_device_and_coordinator(

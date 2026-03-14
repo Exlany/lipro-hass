@@ -64,23 +64,10 @@ class StatusExecutor:
         start = monotonic()
         updated_count = 0
         error: str | None = None
+        apply_errors: list[str] = []
 
         try:
             status_data = await self._query_device_status(device_ids)
-
-            for device_id, properties in status_data.items():
-                device = self._get_device_by_id(device_id)
-                if device is None:
-                    continue
-
-                changed = await self._apply_properties_update(
-                    device,
-                    properties,
-                    "rest_status",
-                )
-                if changed:
-                    updated_count += 1
-
         except Exception as err:  # noqa: BLE001 - catch-all for status query errors
             error = str(err)
             _LOGGER.warning(
@@ -88,6 +75,37 @@ class StatusExecutor:
                 len(device_ids),
                 error,
             )
+            duration = monotonic() - start
+            return {
+                "duration": duration,
+                "device_count": len(device_ids),
+                "updated_count": updated_count,
+                "error": error,
+                "apply_errors": None,
+            }
+
+        for device_id, properties in status_data.items():
+            device = self._get_device_by_id(device_id)
+            if device is None:
+                continue
+
+            try:
+                changed = await self._apply_properties_update(
+                    device,
+                    properties,
+                    "rest_status",
+                )
+            except Exception as err:  # noqa: BLE001 - isolate one device apply failure
+                apply_errors.append(f"{device_id}:{err}")
+                _LOGGER.warning(
+                    "Status apply failed for %s: %s",
+                    device_id,
+                    type(err).__name__,
+                )
+                continue
+
+            if changed:
+                updated_count += 1
 
         duration = monotonic() - start
 
@@ -96,6 +114,7 @@ class StatusExecutor:
             "device_count": len(device_ids),
             "updated_count": updated_count,
             "error": error,
+            "apply_errors": apply_errors or None,
         }
 
     async def execute_parallel_queries(

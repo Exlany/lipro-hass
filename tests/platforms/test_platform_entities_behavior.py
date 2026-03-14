@@ -70,6 +70,25 @@ async def test_switch_async_setup_entry_builds_main_and_feature_switches(
 
 
 @pytest.mark.asyncio
+async def test_switch_async_setup_entry_skips_supplemental_switches_without_raw_properties(
+    hass, mock_coordinator, make_device
+):
+    """Switch platform should not mis-model supplemental switches from default accessors."""
+    from custom_components.lipro.switch import async_setup_entry
+
+    plain_light = make_device("light", serial="light_plain")
+    mock_coordinator.set_devices(plain_light)
+    async_add_entities = MagicMock()
+
+    await async_setup_entry(
+        hass, _entry_with_runtime(mock_coordinator), async_add_entities
+    )
+    entities = async_add_entities.call_args[0][0]
+
+    assert entities == []
+
+
+@pytest.mark.asyncio
 async def test_climate_async_setup_entry_and_preset_command(
     hass, mock_coordinator, make_device
 ):
@@ -181,6 +200,7 @@ async def test_sensor_and_select_platforms_entity_behavior(
             {"key": "temperature", "value": "20"},
         ],
     )
+    mock_coordinator.async_request_refresh.assert_awaited_once()
 
 
 @pytest.mark.asyncio

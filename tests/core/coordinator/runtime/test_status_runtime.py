@@ -235,6 +235,34 @@ class TestStatusExecutor:
         assert result["error"] == "boom"
 
     @pytest.mark.asyncio
+    async def test_status_executor_isolates_single_device_apply_failures(self) -> None:
+        first = MagicMock(serial="device1")
+        second = MagicMock(serial="device2")
+
+        async def _apply(device, properties, source):
+            assert source == "rest_status"
+            if device.serial == "device1":
+                raise RuntimeError("apply-boom")
+            return bool(properties)
+
+        executor = StatusExecutor(
+            query_device_status=AsyncMock(
+                return_value={
+                    "device1": {"powerState": "1"},
+                    "device2": {"powerState": "0"},
+                }
+            ),
+            apply_properties_update=AsyncMock(side_effect=_apply),
+            get_device_by_id=lambda device_id: {"device1": first, "device2": second}.get(device_id),
+        )
+
+        result = await executor.execute_status_query(["device1", "device2"])
+
+        assert result["updated_count"] == 1
+        assert result["error"] is None
+        assert result["apply_errors"] == ["device1:apply-boom"]
+
+    @pytest.mark.asyncio
     async def test_status_executor_parallel_queries_return_empty_for_empty_batches(
         self,
     ) -> None:

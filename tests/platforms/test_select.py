@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections.abc import Iterable
 from types import SimpleNamespace
 from typing import cast
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 
@@ -325,10 +325,10 @@ class TestSelectEntityBehavior:
         assert len(captured) == 3
 
     @pytest.mark.asyncio
-    async def test_mapped_select_invalid_option_fallback_to_default(
+    async def test_mapped_select_invalid_option_returns_early(
         self, mock_coordinator, make_device
     ) -> None:
-        """Mapped select should fallback to default value for unknown option."""
+        """Mapped select should ignore unsupported options instead of forcing defaults."""
         from custom_components.lipro.select import LiproHeaterLightModeSelect
 
         device = make_device("heater", properties={"lightMode": "1"})
@@ -341,14 +341,12 @@ class TestSelectEntityBehavior:
         with patch.object(select, "async_write_ha_state"):
             await select.async_select_option("invalid")
 
-        call_args = mock_coordinator.async_send_command.call_args
-        properties = call_args[0][2]
-        assert any(p["key"] == "lightMode" and p["value"] == "0" for p in properties)
+        mock_coordinator.async_send_command.assert_not_called()
 
-    def test_mapped_select_current_option_unknown_value_uses_default(
+    def test_mapped_select_current_option_unknown_value_is_observable(
         self, mock_coordinator, make_device
     ) -> None:
-        """Mapped select current option should fallback to default for unknown values."""
+        """Mapped select current option should surface unknown raw values."""
         from custom_components.lipro.select import LiproHeaterLightModeSelect
 
         device = make_device("heater", properties={"lightMode": "99"})
@@ -358,7 +356,11 @@ class TestSelectEntityBehavior:
         )
         select = LiproHeaterLightModeSelect(mock_coordinator, device)
 
-        assert select.current_option == "off"
+        assert select.current_option is None
+        assert select.extra_state_attributes == {
+            "property_key": "lightMode",
+            "raw_value": "99",
+        }
 
     @pytest.mark.asyncio
     async def test_light_gear_select_options_are_trimmed(
@@ -611,13 +613,14 @@ class TestSelectEntityBehavior:
             serial
         )
         mock_coordinator.async_send_command = AsyncMock(return_value=True)
-        mock_coordinator.async_update_listeners = MagicMock()
+        mock_coordinator.async_request_refresh = AsyncMock()
         select = LiproLightGearSelect(mock_coordinator, device)
 
         assert select.current_option == "gear_1"
         with patch.object(select, "async_write_ha_state"):
             await select.async_select_option("gear_1")
         mock_coordinator.async_send_command.assert_called_once()
+        mock_coordinator.async_request_refresh.assert_awaited_once()
 
     @pytest.mark.asyncio
     async def test_light_gear_select_invalid_numeric_payload_returns_early(
@@ -643,10 +646,10 @@ class TestSelectEntityBehavior:
         mock_coordinator.async_send_command.assert_not_called()
 
     @pytest.mark.asyncio
-    async def test_light_gear_select_valid_option_updates_and_notifies(
+    async def test_light_gear_select_valid_option_updates_and_requests_refresh(
         self, mock_coordinator, make_device
     ) -> None:
-        """Valid gear option should send state change and notify listeners."""
+        """Valid gear option should send state change and request formal refresh."""
         from custom_components.lipro.select import LiproLightGearSelect
 
         device = make_device(
@@ -657,11 +660,11 @@ class TestSelectEntityBehavior:
             serial
         )
         mock_coordinator.async_send_command = AsyncMock(return_value=True)
-        mock_coordinator.async_update_listeners = MagicMock()
+        mock_coordinator.async_request_refresh = AsyncMock()
         select = LiproLightGearSelect(mock_coordinator, device)
 
         with patch.object(select, "async_write_ha_state"):
             await select.async_select_option("gear_1")
 
         mock_coordinator.async_send_command.assert_called_once()
-        assert mock_coordinator.async_update_listeners.called
+        mock_coordinator.async_request_refresh.assert_awaited_once()

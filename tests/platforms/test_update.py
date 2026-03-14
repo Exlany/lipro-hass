@@ -109,6 +109,67 @@ def test_parse_remote_manifest_payload_derives_type_keys_without_certification_k
     assert versions_by_type["21p3"] == frozenset({"7.10.9"})
 
 
+def test_evaluate_install_requires_confirmation_before_unverified_install() -> None:
+    """Unverified install policy should open a confirmation window before execution."""
+    from custom_components.lipro.core.ota.candidate import (
+        _InstallCommand,
+        _OtaCandidate,
+        evaluate_install,
+        has_pending_confirmation,
+    )
+
+    evaluation = evaluate_install(
+        _OtaCandidate(
+            installed_version="1.0.0",
+            latest_version="1.1.0",
+            update_available=True,
+            certified=False,
+            release_summary=None,
+            release_url=None,
+            install_command=_InstallCommand(
+                command="CHANGE_STATE",
+                properties=[{"key": "version", "value": "1.1.0"}],
+            ),
+        ),
+        requested_version=None,
+        confirm_until=0.0,
+        now_monotonic=100.0,
+        confirmation_window_seconds=120,
+    )
+
+    assert evaluation.error_key == "firmware_unverified_confirm_required"
+    assert evaluation.confirm_until == 220.0
+    assert has_pending_confirmation(evaluation.confirm_until, now_monotonic=101.0) is True
+
+
+def test_arbitrate_rows_requests_direct_query_when_cached_row_targets_other_device() -> None:
+    """Serial-targeted cached rows should request one direct refresh before use."""
+    from custom_components.lipro.core.ota.row_selector import (
+        arbitrate_rows,
+        build_device_fingerprint,
+    )
+
+    fingerprint = build_device_fingerprint(
+        serial="03ab5ccd7c111111",
+        device_type="ff000001",
+        iot_name="21P3",
+        product_id=11,
+        physical_model="light",
+    )
+
+    arbitration = arbitrate_rows(
+        [{"deviceId": "03ab5ccd7c222222", "latestVersion": "1.1.0"}],
+        fingerprint=fingerprint,
+        from_cache=True,
+    )
+
+    assert arbitration.selected_row == {
+        "deviceId": "03ab5ccd7c222222",
+        "latestVersion": "1.1.0",
+    }
+    assert arbitration.should_retry_without_cache is True
+
+
 @pytest.mark.asyncio
 async def test_update_async_setup_entry_filters_groups(
     hass, mock_coordinator, make_device
@@ -832,8 +893,9 @@ async def test_update_entity_select_best_ota_row_prefers_higher_score(
     mock_coordinator, make_device
 ):
     """Best OTA row selection should prefer the row with the highest score."""
-    from custom_components.lipro.entities.firmware_update import (
-        LiproFirmwareUpdateEntity,
+    from custom_components.lipro.core.ota.row_selector import (
+        build_device_fingerprint,
+        select_best_row_for_device,
     )
 
     device = make_device(
@@ -843,7 +905,13 @@ async def test_update_entity_select_best_ota_row_prefers_higher_score(
         product_id=11,
         properties={"version": "7.10.8"},
     )
-    entity = LiproFirmwareUpdateEntity(mock_coordinator, device)
+    fingerprint = build_device_fingerprint(
+        serial=device.serial,
+        device_type=device.device_type_hex,
+        iot_name=device.iot_name,
+        product_id=device.product_id,
+        physical_model=device.physical_model,
+    )
 
     low_score = {
         "deviceType": device.device_type_hex,
@@ -857,7 +925,10 @@ async def test_update_entity_select_best_ota_row_prefers_higher_score(
         "latestVersion": "7.10.9",
     }
 
-    assert entity._select_best_ota_row([low_score, high_score]) is high_score
+    assert select_best_row_for_device(
+        [low_score, high_score],
+        fingerprint=fingerprint,
+    ) is high_score
 
 
 @pytest.mark.asyncio

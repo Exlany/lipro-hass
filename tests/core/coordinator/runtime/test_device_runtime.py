@@ -23,6 +23,24 @@ def mock_client() -> Mock:
     """Create mock API client."""
     client = Mock(spec=LiproProtocolFacade)
     client.get_device_list = AsyncMock()
+
+    async def _get_devices(*, offset: int = 0, limit: int = 100) -> dict[str, Any]:
+        page_size = max(1, limit)
+        page = max(1, (offset // page_size) + 1)
+        response = await client.get_device_list(page=page)
+        if isinstance(response, dict):
+            page_view = client.contracts.normalize_device_list_page(
+                response,
+                offset=offset,
+            )
+            devices = list(page_view.get("devices", []))
+            return {
+                "devices": devices,
+                "total": offset + len(devices) + int(bool(page_view.get("has_more"))),
+            }
+        return {"devices": [], "total": 0}
+
+    client.get_devices = AsyncMock(side_effect=_get_devices)
     client.query_iot_devices = AsyncMock()
     client.query_group_devices = AsyncMock()
     client.query_outlet_devices = AsyncMock()
@@ -165,6 +183,7 @@ class TestDeviceRuntimeRefresh:
         assert len(snapshot.devices) == 2
         assert "serial1" in snapshot.devices
         assert "serial2" in snapshot.devices
+        assert mock_client.get_devices.await_count == 2
         assert mock_client.get_device_list.call_count == 2
 
     @pytest.mark.asyncio

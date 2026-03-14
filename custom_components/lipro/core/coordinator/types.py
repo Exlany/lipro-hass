@@ -155,6 +155,7 @@ class StatusQueryMetrics(TypedDict, total=False):
     device_count: int
     updated_count: int
     error: str | None
+    apply_errors: list[str] | None
 
 
 # Filter and validation types

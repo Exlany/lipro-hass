@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Awaitable, Callable, Iterator, Mapping
+from collections.abc import Awaitable, Callable, Iterator
 import logging
 import re
 from typing import Any, Final, NoReturn
@@ -12,7 +12,6 @@ from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from ..const.base import DOMAIN, IOT_DEVICE_ID_PREFIX
-from ..const.config import CONF_DEBUG_MODE, DEFAULT_DEBUG_MODE
 from ..core import LiproApiError, LiproDevice, get_anonymous_share_manager
 from ..core.utils.redaction import redact_identifier as _redact_identifier
 from ..runtime_types import LiproCoordinator
@@ -22,7 +21,6 @@ from ..services.command import (
 )
 from ..services.device_lookup import (
     get_device_and_coordinator as _get_device_and_coordinator_service,
-    iter_runtime_coordinators as _iter_runtime_coordinators_service,
 )
 from ..services.diagnostics import (
     async_call_optional_capability as _async_call_optional_capability_service,
@@ -53,6 +51,14 @@ from ..services.share import (
     async_handle_get_anonymous_share_report as _async_handle_get_anonymous_share_report_service,
     async_handle_submit_anonymous_share as _async_handle_submit_anonymous_share_service,
 )
+from .runtime_access import (
+    find_runtime_entry_for_coordinator as _find_runtime_entry_for_coordinator,
+    get_entry_runtime_coordinator as _get_entry_runtime_coordinator,
+    is_debug_mode_enabled_for_entry as _is_debug_mode_enabled_for_entry,
+    is_developer_runtime_coordinator as _is_developer_runtime_coordinator,
+    iter_developer_runtime_coordinators as _iter_developer_runtime_coordinators,
+    iter_runtime_entries as _iter_runtime_entries,
+)
 
 _LOGGER = logging.getLogger(__name__)
 _SERIAL_PATTERN: Final = re.compile(
@@ -73,13 +79,6 @@ def _summarize_service_properties(properties: Any) -> dict[str, Any]:
     return {"count": len(properties), "keys": keys}
 
 
-def _iter_runtime_coordinators(
-    hass: HomeAssistant,
-) -> Iterator[LiproCoordinator]:
-    """Iterate all active coordinators for the Lipro domain."""
-    yield from _iter_runtime_coordinators_service(hass, domain=DOMAIN)
-
-
 def _build_single_runtime_coordinator_iterator(
     coordinator: object,
 ) -> Callable[[HomeAssistant], Iterator[object]]:
@@ -91,14 +90,6 @@ def _build_single_runtime_coordinator_iterator(
     return _iter_single_runtime_coordinator
 
 
-def _is_debug_mode_enabled_for_entry(entry: Any) -> bool:
-    """Return True when one config entry explicitly opts into debug services."""
-    options = getattr(entry, "options", None)
-    if not isinstance(options, Mapping):
-        return DEFAULT_DEBUG_MODE
-    return bool(options.get(CONF_DEBUG_MODE, DEFAULT_DEBUG_MODE))
-
-
 def _raise_developer_mode_not_enabled(*, entry_id: str | None = None) -> NoReturn:
     """Raise a consistent validation error for disabled developer services."""
     del entry_id
@@ -108,45 +99,13 @@ def _raise_developer_mode_not_enabled(*, entry_id: str | None = None) -> NoRetur
     )
 
 
-def _find_runtime_entry_for_coordinator(
-    hass: HomeAssistant,
-    coordinator: LiproCoordinator,
-) -> Any | None:
-    """Return the config entry that owns one active coordinator."""
-    config_entry = getattr(coordinator, "config_entry", None)
-    if getattr(config_entry, "runtime_data", None) is coordinator:
-        return config_entry
-    for entry in hass.config_entries.async_entries(DOMAIN):
-        if getattr(entry, "runtime_data", None) is coordinator:
-            return entry
-    return None
-
-
-def _is_developer_coordinator(
-    hass: HomeAssistant,
-    coordinator: LiproCoordinator,
-) -> bool:
-    """Return whether the coordinator belongs to a debug-enabled entry."""
-    entry = _find_runtime_entry_for_coordinator(hass, coordinator)
-    return entry is not None and _is_debug_mode_enabled_for_entry(entry)
-
-
-def _iter_developer_runtime_coordinators(
-    hass: HomeAssistant,
-) -> Iterator[LiproCoordinator]:
-    """Iterate runtime coordinators that explicitly opted into debug mode."""
-    for coordinator in _iter_runtime_coordinators(hass):
-        if _is_developer_coordinator(hass, coordinator):
-            yield coordinator
-
-
 async def _get_developer_device_and_coordinator(
     hass: HomeAssistant,
     call: ServiceCall,
 ) -> tuple[LiproDevice, LiproCoordinator]:
     """Resolve one device/coordinator pair and require debug-mode opt-in."""
     device, coordinator = await _get_device_and_coordinator(hass, call)
-    if not _is_developer_coordinator(hass, coordinator):
+    if not _is_developer_runtime_coordinator(hass, coordinator):
         entry = _find_runtime_entry_for_coordinator(hass, coordinator)
         _raise_developer_mode_not_enabled(entry_id=getattr(entry, "entry_id", None))
     return device, coordinator
@@ -294,10 +253,10 @@ def _collect_developer_reports(
 ) -> list[dict[str, Any]]:
     """Collect developer reports from debug-enabled runtime entries only."""
     if requested_entry_id is not None:
-        for entry in hass.config_entries.async_entries(DOMAIN):
+        for entry in _iter_runtime_entries(hass, entry_id=requested_entry_id):
             if entry.entry_id != requested_entry_id:
                 continue
-            coordinator = getattr(entry, "runtime_data", None)
+            coordinator = _get_entry_runtime_coordinator(entry)
             if coordinator is None:
                 raise ServiceValidationError(
                     translation_domain=DOMAIN,

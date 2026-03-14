@@ -282,6 +282,40 @@ class TestAsyncGetConfigEntryDiagnostics:
         assert "power_info" not in device_info["extra_data"]
 
     @pytest.mark.asyncio
+    @pytest.mark.asyncio
+    async def test_degrades_malformed_runtime_devices_and_share_manager(self, hass):
+        """Malformed runtime/share-manager inputs should degrade instead of crashing."""
+        coordinator = MagicMock()
+        coordinator.devices = object()
+        coordinator.last_update_success = False
+        coordinator.update_interval = timedelta(seconds=60)
+        coordinator.mqtt_service.connected = "unknown"
+
+        entry = MagicMock()
+        entry.entry_id = "entry-1"
+        entry.runtime_data = coordinator
+        entry.title = "Lipro Broken"
+        entry.data = {"phone": "13800000000"}
+        entry.options = {}
+
+        share_manager = MagicMock()
+        share_manager.is_enabled = True
+        share_manager.pending_count = "broken"
+
+        with patch(
+            "custom_components.lipro.diagnostics.get_anonymous_share_manager",
+            return_value=share_manager,
+        ):
+            result = await async_get_config_entry_diagnostics(hass, entry)
+
+        assert result["devices"] == []
+        assert result["coordinator"]["device_count"] == 0
+        assert result["coordinator"]["mqtt_connected"] is None
+        assert result["coordinator"]["degraded_fields"] == ["devices"]
+        assert result["anonymous_share"]["pending_devices"] == 0
+        assert result["anonymous_share"]["pending_errors"] == 0
+        assert result["anonymous_share"]["degraded"] is True
+
     async def test_handles_no_devices(self, hass):
         """Test diagnostics output when coordinator has no devices."""
         coordinator = MagicMock()
@@ -545,6 +579,26 @@ class TestAsyncGetDeviceDiagnostics:
         assert result == {"error": "device_not_in_lipro_domain"}
 
     @pytest.mark.asyncio
+    @pytest.mark.asyncio
+    async def test_device_diagnostics_reports_unavailable_cache_for_malformed_runtime(self, hass):
+        coordinator = MagicMock()
+        coordinator.devices = object()
+        coordinator.get_device = None
+
+        entry = MagicMock()
+        entry.entry_id = "entry-1"
+        entry.runtime_data = coordinator
+        entry.title = "Lipro (13800000000)"
+        entry.data = {}
+        entry.options = {}
+
+        device_entry = MagicMock()
+        device_entry.identifiers = {(DOMAIN, "03ab5ccd7c111111")}
+
+        result = await async_get_device_diagnostics(hass, entry, device_entry)
+
+        assert result == {"error": "device_cache_unavailable"}
+
     async def test_unknown_lipro_device_returns_error(self, hass):
         """Test diagnostics handles missing device in coordinator cache."""
         coordinator = MagicMock()

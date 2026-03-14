@@ -110,31 +110,20 @@ class SnapshotBuilder:
         return offset + len(devices_data) < max(total_count, 0)
 
     async def _fetch_device_page(self, *, page: int) -> tuple[list[dict[str, Any]], bool]:
-        """Fetch one device page through the formal contract, with compat fallback."""
+        """Fetch one device page through the formal canonical contract."""
         offset = (page - 1) * _DEFAULT_DEVICE_PAGE_SIZE
-        get_devices = getattr(self._client, "get_devices", None)
-        if callable(get_devices):
-            response = get_devices(offset=offset, limit=_DEFAULT_DEVICE_PAGE_SIZE)
-            if hasattr(response, "__await__"):
-                response = await response
-            if isinstance(response, dict):
-                devices_data = response.get("devices")
-                if isinstance(devices_data, list):
-                    return list(devices_data), self._canonical_page_has_more(
-                        offset=offset,
-                        devices_data=devices_data,
-                        total=response.get("total"),
-                    )
-
-        response = await self._client.get_device_list(page=page)
+        response = await self._client.get_devices(
+            offset=offset,
+            limit=_DEFAULT_DEVICE_PAGE_SIZE,
+        )
         if isinstance(response, dict):
-            compat_devices = response.get("data")
-            if isinstance(compat_devices, list):
-                return [
-                    self._normalize_compat_device_row(device_data)
-                    for device_data in compat_devices
-                    if isinstance(device_data, dict)
-                ], bool(response.get("hasMore", False))
+            devices_data = response.get("devices")
+            if isinstance(devices_data, list):
+                return list(devices_data), self._canonical_page_has_more(
+                    offset=offset,
+                    devices_data=devices_data,
+                    total=response.get("total"),
+                )
 
         page_view = self._client.contracts.normalize_device_list_page(
             response,

@@ -129,6 +129,14 @@ def test_lipro_rest_facade_is_available_as_phase_2_rest_child_facade() -> None:
     assert LiproRestFacade.__name__ == "LiproRestFacade"
 
 
+def test_lipro_rest_facade_uses_explicit_surface_instead_of_dynamic_delegation() -> None:
+    for base in LiproRestFacade.__mro__:
+        if base is object:
+            continue
+        assert "__getattr__" not in base.__dict__
+        assert "__dir__" not in base.__dict__
+
+
 def test_lipro_rest_facade_no_longer_uses_aggregate_endpoint_mixin() -> None:
     assert _ClientEndpointsMixin not in LiproRestFacade.__mro__
 

@@ -17,6 +17,7 @@ from homeassistant.core import (
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers import device_registry as dr
 
+from ..control.runtime_access import get_entry_runtime_coordinator, iter_runtime_entries
 from ..core.utils.redaction import redact_identifier as _redact_identifier
 
 
@@ -27,14 +28,12 @@ def _iter_runtime_entry_coordinators(
     requested_entry_id: str | None,
 ) -> list[tuple[str, Any]]:
     """Collect runtime coordinators for one entry or all entries."""
+    del domain
     targets: list[tuple[str, Any]] = []
-    for entry in hass.config_entries.async_entries(domain):
-        if requested_entry_id and entry.entry_id != requested_entry_id:
-            continue
-        coordinator = getattr(entry, "runtime_data", None)
-        if coordinator is None:
-            continue
-        targets.append((entry.entry_id, coordinator))
+    for entry in iter_runtime_entries(hass, entry_id=requested_entry_id):
+        coordinator = get_entry_runtime_coordinator(entry)
+        if coordinator is not None:
+            targets.append((entry.entry_id, coordinator))
     return targets
 
 
