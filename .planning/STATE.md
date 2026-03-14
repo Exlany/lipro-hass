@@ -3,11 +3,11 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: protocol-fidelity-operability
 status: active
-last_updated: "2026-03-14T13:49:57Z"
+last_updated: "2026-03-14T15:10:00Z"
 progress:
-  total_phases: 9
+  total_phases: 10
   completed_phases: 9
-  total_plans: 31
+  total_plans: 36
   completed_plans: 31
 ---
 
@@ -18,8 +18,8 @@ progress:
 See: `.planning/PROJECT.md`
 
 **Current milestone:** `v1.1 Protocol Fidelity & Operability`
-**Core value:** 在既有北极星单一主链基础上，把 fidelity / enforcement / telemetry / replay / AI-debug evidence 做成下一层正式能力。
-**Current mode:** `Phase 11 execution complete`；control-plane、surface/runtime、entity/OTA 与 governance addendum 均已落地，当前待里程碑 closeout。
+**Core value:** 在既有北极星单一主链基础上，把 fidelity / enforcement / telemetry / replay / AI-debug evidence 做成下一层正式能力，并继续把类型契约、残留收口与 contributor-facing governance 做成可验证的正式能力。
+**Current mode:** `Phase 12 planning complete`；当前已完成审阅复核、PRD/CONTEXT/RESEARCH 与 5 份计划资产落表，待执行。
 
 ## Current Position
 
@@ -34,6 +34,7 @@ See: `.planning/PROJECT.md`
 - `Phase 9` 已完成：production residual closure + `09-04` / `09-05` legacy test convergence addendum 均已落地；API mega-test、runtime/platform/integration tests 与治理文档已对齐到正式架构
 - `Phase 10` 已完成：`rest.device-list` / `rest.device-status` / `rest.mesh-group-status` boundary family 与 canonical contracts 已正式落地，`AuthSessionSnapshot` 成为 formal auth/session truth，`core/__init__.py` 已不再导出 `Coordinator`，governance / replay / meta guards 已同步收口
 - `Phase 11` 已完成：control router formalization、wiring compat demotion、REST/runtime surface convergence、runtime-access hardening、entity/platform truth convergence、firmware-update hotspot slimming 与 governance/open-source coherence 已统一收口
+- `Phase 12` 已规划：typed surface convergence、compat narrowing、hotspot decomposition 与 contributor-facing governance hygiene 已形成正式计划，待执行
 
 ## Active Milestone Scope
 
@@ -46,6 +47,8 @@ See: `.planning/PROJECT.md`
 - `Phase 9`：Residual Surface Closure
 - `Phase 10`：API Drift Isolation & Core Boundary Prep
 - `Phase 11`：Control Router Formalization & Wiring Residual Demotion
+- `Phase 12`：Type Contract Alignment Residual Cleanup and Governance Hygiene
+- `Phase 12`：Type Contract Alignment, Residual Cleanup & Governance Hygiene
 
 ## Carry-Forward Truths
 
@@ -57,7 +60,7 @@ See: `.planning/PROJECT.md`
 - telemetry/replay/evidence 都只能 pull 正式真源，不得反向定义第二套事实
 - 未来 CLI / 其他宿主若要复用，只能建立在 host-neutral boundary/auth/device contracts 之上，而不是把 HA runtime 抽成 second root
 
-## Cross-Phase Arbitration (7.3-11)
+## Cross-Phase Arbitration (7.3-12)
 
 1. `07.3` 只锁定 telemetry truth（fields / redaction / cardinality / timestamp / pseudo-id compatibility）
 2. `07.4` 只锁定 replay truth（manifests / deterministic driver / replay assertions / run summary）
@@ -66,6 +69,7 @@ See: `.planning/PROJECT.md`
 5. `09` 已完整完成：production residual surface closure 与 `09-04` / `09-05` test convergence addendum 已统一收敛到相同 formal surface / shared harness / explicit compat seam
 6. `10` 已完整完成：boundary contract closure、host-neutral auth/result contracts、HA adapter 降耦与文档/治理同步均已落地；仍不把 physical shared core 抽离提升为正式里程碑目标
 7. `11` 已完整完成：control-plane formal router ownership、explicit surface convergence、runtime-access story、entity/OTA truth 与 governance/open-source coherence 已全部落地，并通过 closeout verification 锁定
+8. `12` 已完成规划：类型契约收口、compat residual narrowing、热点降温与 contributor-facing governance hygiene 将作为当前唯一新增执行波次，不重做已完成的 Phase 11 工作
 
 ## Accumulated Context
 
@@ -74,6 +78,7 @@ See: `.planning/PROJECT.md`
 - Phase 10 executed and completed: API Drift Isolation & Core Boundary Prep
 - Phase 11 executed and completed: Control Router Formalization & Wiring Residual Demotion
 - Phase 11 audit-expansion addendum executed and closed
+- Phase 12 planned: Type Contract Alignment, Residual Cleanup & Governance Hygiene (5 plans / 4 waves)
 
 ## Governance Truth Sources
 
@@ -90,9 +95,9 @@ See: `.planning/PROJECT.md`
 
 ## Recommended Next Command
 
-1. `$gsd-complete-milestone` —— 归档 v1.1 并准备下一里程碑
-2. `$gsd-progress` —— 查看当前已完成里程碑与后续路线
-3. `uv run pytest -q` —— 若需要再确认当前基线稳定性，可重跑全量回归
+1. `$gsd-execute-phase 12` —— 执行已规划的 type/residual/governance 收口波次
+2. `cat .planning/phases/12-type-contract-alignment-residual-cleanup-and-governance-hygiene/*-PLAN.md` —— 复核 Phase 12 五份计划
+3. `$gsd-progress` —— 查看当前里程碑与后续路线
 
 ## Session Continuity
 

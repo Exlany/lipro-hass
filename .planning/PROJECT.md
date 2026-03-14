@@ -1,7 +1,7 @@
 # Project: Lipro-HASS North Star Evolution v1.1
 
-**Status:** Active — `Phase 11` 已完成，milestone closeout / archive pending
-**Goal:** 把 `protocol truth`、`architecture policy`、`runtime telemetry export`、`replay evidence`、`ai-debug evidence pack`、`residual surface closure`、`api drift isolation / core-boundary prep`、`control router / runtime-access / OTA / governance coherence` 八条演进线统一纳入北极星主链，进入“可保真、可观测、可仲裁、可回放、可给 AI 调试/分析”的下一里程碑。
+**Status:** Active — `Phase 12` 已规划，execution pending
+**Goal:** 把 `protocol truth`、`architecture policy`、`runtime telemetry export`、`replay evidence`、`ai-debug evidence pack`、`residual surface closure`、`api drift isolation / core-boundary prep`、`control router / runtime-access / OTA / governance coherence`、`type contract alignment / residual cleanup / contributor governance hygiene` 九条演进线统一纳入北极星主链，进入“可保真、可观测、可仲裁、可回放、可给 AI 调试/分析”的下一里程碑。
 
 ## Why This Milestone Exists
 
@@ -58,6 +58,13 @@
 - runtime-access / diagnostics / status isolation 已统一到 `control/runtime_access.py` 与 formal runtime contract
 - supplemental entity truth、firmware update projection 与 OTA helper cluster 已收敛为单一正式故事线
 - release / CI / issue / PR / security disclosure / phase assets 已形成一致的开源治理口径
+
+### 7. Phase 12 Type / Residual / Governance 收口已规划
+
+- `uv run mypy` 仍是当前唯一真实红灯，Phase 12 将以 typed surface convergence 为首要验收门
+- remaining compat seams 将继续按 delete gate 收窄：`LiproClient`、`get_device_list`、`raw_client`、`DeviceCapabilities` 不得回流为正式入口
+- `core/api/client.py`、`Coordinator`、`status_service.py`、`service_router.py` 等热点将只沿 formal boundary 切薄，不新增第三条故事线
+- contributor-facing docs / config / CI contract 将同步到当前仓库真相，避免再次出现“实现一套、治理一套”的漂移
 
 ## Architectural Stance
 
@@ -251,4 +258,4 @@ v1.1 进入执行期后，新增演进必须额外满足：
 9. `.planning/reviews/*.md`
 10. `docs/archive/FINAL_CLOSEOUT_REPORT_2026-03-13.md`
 
-*Last updated: 2026-03-14 after completing Phase 11 and closing active v1.1 execution work*
+*Last updated: 2026-03-14 after planning Phase 12 from revalidated remaining debt*

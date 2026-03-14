@@ -319,16 +319,13 @@ def test_phase_9_governance_truth_is_consistent() -> None:
 
 
 def test_phase_11_execution_truth_is_consistent() -> None:
-    project_text = (_ROOT / ".planning" / "PROJECT.md").read_text(encoding="utf-8")
     roadmap_text = (_ROOT / ".planning" / "ROADMAP.md").read_text(encoding="utf-8")
     requirements_text = (_ROOT / ".planning" / "REQUIREMENTS.md").read_text(encoding="utf-8")
-    state_text = (_ROOT / ".planning" / "STATE.md").read_text(encoding="utf-8")
     public_text = (_ROOT / ".planning" / "baseline" / "PUBLIC_SURFACES.md").read_text(encoding="utf-8")
     file_matrix_text = (_ROOT / ".planning" / "reviews" / "FILE_MATRIX.md").read_text(encoding="utf-8")
     research_text = (_ROOT / ".planning" / "phases" / "11-control-router-formalization-wiring-residual-demotion" / "11-RESEARCH.md").read_text(encoding="utf-8")
     audit_frontmatter = _load_frontmatter(_ROOT / ".planning" / "v1.1-MILESTONE-AUDIT.md")
 
-    assert "**Status:** Active — `Phase 11` 已完成" in project_text
     assert "| 11 Control Router Formalization & Wiring Residual Demotion | v1.1 | 8/8 | Complete | 2026-03-14 |" in roadmap_text
     assert "| SURF-01 | Phase 11 | Complete |" in requirements_text
     assert "| CTRL-04 | Phase 11 | Complete |" in requirements_text
@@ -336,16 +333,37 @@ def test_phase_11_execution_truth_is_consistent() -> None:
     assert "| ENT-01 | Phase 11 | Complete |" in requirements_text
     assert "| ENT-02 | Phase 11 | Complete |" in requirements_text
     assert "| GOV-08 | Phase 11 | Complete |" in requirements_text
-    assert "**Current mode:** `Phase 11 execution complete`" in state_text
-    _assert_current_mode_tracks_phase_lifecycle(state_text)
     assert "services/wiring.py" not in public_text
     assert "custom_components/lipro/services/wiring.py" not in file_matrix_text
     assert "11-04 ~ 11-08 addendum plans" in research_text
-    assert audit_frontmatter["status"] == "current_snapshot"
+    assert audit_frontmatter["status"] == "superseded_snapshot"
     assert audit_frontmatter["snapshot_scope"] == "phase_11_complete_pre_closeout"
     scores = audit_frontmatter["scores"]
     assert isinstance(scores, dict)
     assert scores["requirements"] == "30/30"
+
+
+def test_phase_12_planning_truth_is_consistent() -> None:
+    project_text = (_ROOT / ".planning" / "PROJECT.md").read_text(encoding="utf-8")
+    roadmap_text = (_ROOT / ".planning" / "ROADMAP.md").read_text(encoding="utf-8")
+    requirements_text = (_ROOT / ".planning" / "REQUIREMENTS.md").read_text(encoding="utf-8")
+    state_text = (_ROOT / ".planning" / "STATE.md").read_text(encoding="utf-8")
+    context_text = (_ROOT / ".planning" / "phases" / "12-type-contract-alignment-residual-cleanup-and-governance-hygiene" / "12-CONTEXT.md").read_text(encoding="utf-8")
+    research_text = (_ROOT / ".planning" / "phases" / "12-type-contract-alignment-residual-cleanup-and-governance-hygiene" / "12-RESEARCH.md").read_text(encoding="utf-8")
+    prd_text = (_ROOT / ".planning" / "phases" / "12-type-contract-alignment-residual-cleanup-and-governance-hygiene" / "12-PRD.md").read_text(encoding="utf-8")
+
+    assert "**Status:** Active — `Phase 12` 已规划" in project_text
+    assert "| 12 Type Contract Alignment, Residual Cleanup & Governance Hygiene | v1.1 | 5 planned | Planned | - |" in roadmap_text
+    assert "**Requirements**: TYP-01, TYP-02, CMP-01, CMP-02, HOT-01, GOV-09, GOV-10" in roadmap_text
+    assert "| TYP-01 | Phase 12 | Planned |" in requirements_text
+    assert "| GOV-10 | Phase 12 | Planned |" in requirements_text
+    assert "**Current mode:** `Phase 12 planning complete`" in state_text
+    _assert_current_mode_tracks_phase_lifecycle(state_text)
+    assert "Already Fixed / Must Not Be Replanned" in prd_text
+    assert "5 plans / 3 waves" in research_text
+    assert "**Status:** Planned from PRD Express Path" in context_text
+    for plan_name in ("12-01-PLAN.md", "12-02-PLAN.md", "12-03-PLAN.md", "12-04-PLAN.md", "12-05-PLAN.md"):
+        assert (_ROOT / ".planning" / "phases" / "12-type-contract-alignment-residual-cleanup-and-governance-hygiene" / plan_name).exists()
 
 
 def test_phase_10_governance_truth_is_consistent() -> None:

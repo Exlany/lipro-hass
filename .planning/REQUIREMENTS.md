@@ -60,6 +60,16 @@
 - [x] **ENT-02**: `entities/firmware_update.py` 必须拆薄为平台投影层，OTA policy/candidate/cache/arbitration 应进一步下沉到 formal helper cluster。
 - [x] **GOV-08**: docs / phase assets / CI / release / issue / PR / security disclosure 必须形成一致的开源项目治理口径，governance guards 尽量结构化。
 
+### Type Contract Alignment, Residual Cleanup & Governance Hygiene
+
+- [ ] **TYP-01**: `LiproCoordinator` public protocol、`Coordinator` implementation、platform setup entrypoints 与 diagnostics/entity adapters 必须在正式 typed runtime surface 上重新对齐，`uv run mypy` 不得再依赖 `Any` / `cast` 掩盖漂移。
+- [ ] **TYP-02**: `LiproRestFacade`、typed API service protocols 与 canonical result rows 必须在返回类型上完全一致，禁止把已结构化 contract 再放宽成 `dict[str, Any]` / `object` 作为正式 truth。
+- [ ] **CMP-01**: remaining explicit compat seams（`core.api.LiproClient`、`LiproProtocolFacade.get_device_list`、`LiproMqttFacade.raw_client`、`DeviceCapabilities`）必须继续收窄；若本 phase 后仍保留，必须拥有更清晰的 delete gate 与更小 direct-consumer 面。
+- [ ] **CMP-02**: `core/api` 的 historical skeleton（`_ClientBase` 与相关 compat spine）必须进一步削薄，但不得重新引入动态 surface、ghost export 或第三条 API 主链。
+- [ ] **HOT-01**: `core/api/client.py`、`core/coordinator/coordinator.py`、`core/api/status_service.py`、`control/service_router.py` 等热点文件必须顺着 formal boundary 继续切薄，并收窄真正会掩盖 contract/runtime boundary 的宽泛异常处理。
+- [ ] **GOV-09**: `docs/developer_architecture.md`、`custom_components/lipro/quality_scale.yaml`、`.devcontainer.json` 与其他 contributor-facing docs/config 必须同步到当前仓库真相，不得继续陈述旧文件规模、旧测试路径、旧解释器路径或旧 README facts。
+- [ ] **GOV-10**: contributor-facing CI/open-source contract 必须与真实仓库治理对齐：明确 `security` job 口径，并裁决 `CODE_OF_CONDUCT.md` / `SUPPORT.md` / shell 脚本 lint 门禁哪些进入本 phase、哪些保留为显式 backlog。
+
 ## Cross-Phase Arbitration
 
 - `07.3` 锁定 telemetry contracts / redaction / cardinality / timestamp-pseudo-id compatibility
@@ -68,6 +78,7 @@
 - `08` 锁定 AI debug packaging / exporter entrypoint / pack schema
 - `09` 锁定 residual surface closure / compat seam narrowing / read-only runtime access / formal outlet-power primitive
 - `10` 锁定 API drift isolation / core-boundary prep / host-neutral contracts；不得把跨平台 SDK 抽离提升为本里程碑正式 root
+- `12` 锁定 type contract convergence / compat narrowing / hotspot slimming / contributor-facing governance hygiene；不得重新打开已在 Phase 11 关闭的 residual truth
 
 ## Future Requirements
 
@@ -76,6 +87,7 @@
 - **ENF-03**: 如 AST/meta guards 复杂度继续上升，再评估 `import-linter/grimp`
 - **SIM-03**: 如需要更强双向仿真，再补 broker/cloud behavioral simulator
 - **AID-03**: 如 evidence pack 编码/校验成本成为瓶颈，再单独裁决 encoding backend，而不是提前绑定 `msgspec` / `pydantic v2`
+
 
 ## Out of Scope
 
@@ -121,9 +133,17 @@
 | ENT-02 | Phase 11 | Complete |
 | GOV-08 | Phase 11 | Complete |
 
+| TYP-01 | Phase 12 | Planned |
+| TYP-02 | Phase 12 | Planned |
+| CMP-01 | Phase 12 | Planned |
+| CMP-02 | Phase 12 | Planned |
+| HOT-01 | Phase 12 | Planned |
+| GOV-09 | Phase 12 | Planned |
+| GOV-10 | Phase 12 | Planned |
+
 **Coverage:**
-- active milestone requirements: 30 total
-- mapped to phases: 30
+- active milestone requirements: 37 total
+- mapped to phases: 37
 - unmapped: 0 ✓
 
-*Last updated: 2026-03-14 after completing Phase 11 full execution closeout*
+*Last updated: 2026-03-14 after planning Phase 12 from revalidated remaining debt*
