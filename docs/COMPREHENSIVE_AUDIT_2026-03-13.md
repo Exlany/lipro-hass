@@ -42,6 +42,7 @@
   - `uv run pytest -q tests/integration/test_ai_debug_evidence_pack.py tests/meta/test_evidence_pack_authority.py` → `7 passed`
 - Repo 级 lint：`uv run ruff check .` 仍报 `145` 项，主要为 docstring/import-order/脚本输出与个别测试清洁度问题；本轮未把它们当作运行时 blocker。
 - 二次模式扫描：针对 compat surface、状态旁写、catch-all 异常与危险关键字做了仓库级 `rg` 复查；未发现超出本报告已登记残留范围之外的新 P0/P1。
+- 2026-03-14 复跑确认：`uv run pytest -q` 再次通过 `2128` 项；`scripts/export_ai_debug_evidence_pack.py` 的双目录烟测已生成并核验 JSON/index 产物，随后临时文件已删除。
 
 ### 2.3 子代理与主代理复核
 
