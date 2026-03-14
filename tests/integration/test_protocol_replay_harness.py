@@ -4,7 +4,12 @@ from __future__ import annotations
 
 from dataclasses import replace
 
-from tests.core.api.test_protocol_contract_matrix import EXPECTED_MQTT_CONFIG
+from tests.core.api.test_protocol_contract_matrix import (
+    EXPECTED_DEVICE_LIST_DEVICES,
+    EXPECTED_DEVICE_STATUS_ROWS,
+    EXPECTED_MESH_GROUP_STATUS_ROWS,
+    EXPECTED_MQTT_CONFIG,
+)
 from tests.harness.protocol import (
     ProtocolReplayDriver,
     build_replay_run_summary,
@@ -17,21 +22,52 @@ from tests.harness.protocol.replay_assertions import (
 )
 
 
+def _expected_canonical_for_manifest(manifest) -> object:
+    """Return the expected canonical contract for one replay manifest."""
+    if manifest.channel == "mqtt":
+        fixture = load_replay_fixture(manifest)
+        return fixture.authority_metadata["canonical"]
+    if manifest.family == "rest.mqtt-config":
+        return EXPECTED_MQTT_CONFIG
+    if manifest.family == "rest.device-list":
+        return {
+            "devices": EXPECTED_DEVICE_LIST_DEVICES,
+            "has_more": True,
+        }
+    if manifest.family == "rest.device-status":
+        return EXPECTED_DEVICE_STATUS_ROWS
+    if manifest.family == "rest.mesh-group-status":
+        return EXPECTED_MESH_GROUP_STATUS_ROWS
+    msg = f"Unhandled replay manifest family: {manifest.family}"
+    raise AssertionError(msg)
+
+
 def test_protocol_replay_harness_runs_all_registered_manifests_in_order() -> None:
     manifests = iter_replay_manifests()
     driver = ProtocolReplayDriver()
 
-    scenario_ids = [manifest.scenario_id for manifest in manifests]
+    manifest_paths = [manifest.manifest_path.as_posix() for manifest in manifests]
     results = [driver.run_manifest(manifest) for manifest in manifests]
 
-    assert scenario_ids == [
-        "mqtt.device_state.v1",
-        "rest.get_mqtt_config.direct.v1",
-        "rest.get_mqtt_config.wrapped.v1",
-    ]
+    assert manifest_paths == sorted(manifest_paths)
+    assert {manifest.family for manifest in manifests} >= {
+        "mqtt.properties",
+        "rest.mqtt-config",
+        "rest.device-list",
+        "rest.device-status",
+        "rest.mesh-group-status",
+    }
     assert all(result.error_category is None for result in results)
-    assert results[1].canonical == EXPECTED_MQTT_CONFIG
-    assert results[1].canonical == results[2].canonical
+    for manifest, result in zip(manifests, results, strict=True):
+        assert result.canonical == _expected_canonical_for_manifest(manifest)
+
+    mqtt_config_results = [
+        result
+        for manifest, result in zip(manifests, results, strict=True)
+        if manifest.family == "rest.mqtt-config"
+    ]
+    assert len(mqtt_config_results) >= 2
+    assert all(result.canonical == EXPECTED_MQTT_CONFIG for result in mqtt_config_results)
 
 
 def test_protocol_replay_harness_pulls_telemetry_assertions_from_exporter_truth() -> None:
@@ -42,17 +78,16 @@ def test_protocol_replay_harness_pulls_telemetry_assertions_from_exporter_truth(
         result = driver.run_fixture(fixture)
         views = assert_exporter_backed_replay_telemetry(manifest, result)
         assert views.ci["summary"]["command_confirmation_timeout_total"] == 0
-        if manifest.channel == "mqtt":
-            assert_replay_canonical_contract(
-                result,
-                expected_canonical=fixture.authority_metadata["canonical"],
-                expected_fingerprint=fixture.authority_metadata["fingerprint"],
-            )
-        else:
-            assert_replay_canonical_contract(
-                result,
-                expected_canonical=EXPECTED_MQTT_CONFIG,
-            )
+        expected_fingerprint = (
+            fixture.authority_metadata["fingerprint"]
+            if manifest.channel == "mqtt"
+            else None
+        )
+        assert_replay_canonical_contract(
+            result,
+            expected_canonical=_expected_canonical_for_manifest(manifest),
+            expected_fingerprint=expected_fingerprint,
+        )
 
 
 def test_protocol_replay_harness_builds_structured_run_summary() -> None:

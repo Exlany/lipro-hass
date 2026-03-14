@@ -36,6 +36,27 @@ class FetchedDeviceSnapshot:
 class SnapshotBuilder:
     """Builds device snapshots from API responses."""
 
+    @staticmethod
+    def _normalize_compat_device_row(device_data: dict[str, Any]) -> dict[str, Any]:
+        """Promote a compat-shaped device row into the runtime's expected shape."""
+        normalized = dict(device_data)
+        if "deviceName" not in normalized and isinstance(normalized.get("name"), str):
+            normalized["deviceName"] = normalized["name"]
+        if "type" not in normalized and "deviceType" in normalized:
+            normalized["type"] = normalized["deviceType"]
+
+        identity_aliases = {
+            candidate.strip()
+            for candidate in (
+                normalized.get("serial"),
+                normalized.get("iotDeviceId"),
+            )
+            if isinstance(candidate, str) and candidate.strip()
+        }
+        if identity_aliases and "identityAliases" not in normalized:
+            normalized["identityAliases"] = sorted(identity_aliases)
+        return normalized
+
     async def _async_enrich_mesh_group_metadata(
         self,
         *,
@@ -48,7 +69,14 @@ class SnapshotBuilder:
 
         try:
             rows = await self._client.query_mesh_group_status(group_ids)
-            rows = self._client.contracts.normalize_mesh_group_status_rows(rows)
+            contracts = getattr(self._client, "contracts", None)
+            normalize_rows = getattr(contracts, "normalize_mesh_group_status_rows", None)
+            if callable(normalize_rows):
+                normalized_rows = normalize_rows(rows)
+                if hasattr(normalized_rows, "__await__"):
+                    normalized_rows = await normalized_rows
+                if isinstance(normalized_rows, list):
+                    rows = normalized_rows
         except Exception as err:
             if isinstance(err, (asyncio.CancelledError, KeyboardInterrupt, SystemExit)):
                 raise
@@ -56,6 +84,9 @@ class SnapshotBuilder:
                 "Mesh group metadata enrich failed (%s), keeping snapshot without topology",
                 type(err).__name__,
             )
+            return
+
+        if not isinstance(rows, list):
             return
 
         for row in rows:
@@ -66,6 +97,53 @@ class SnapshotBuilder:
             if device is None:
                 continue
             sync_mesh_group_extra_data(device, row)
+
+    @staticmethod
+    def _canonical_page_has_more(
+        *,
+        offset: int,
+        devices_data: list[dict[str, Any]],
+        total: Any,
+    ) -> bool:
+        """Return whether one canonical device page has more rows to fetch."""
+        try:
+            total_count = int(total)
+        except (TypeError, ValueError):
+            total_count = offset + len(devices_data)
+        return offset + len(devices_data) < max(total_count, 0)
+
+    async def _fetch_device_page(self, *, page: int) -> tuple[list[dict[str, Any]], bool]:
+        """Fetch one device page through the formal contract, with compat fallback."""
+        offset = (page - 1) * _DEFAULT_DEVICE_PAGE_SIZE
+        get_devices = getattr(self._client, "get_devices", None)
+        if callable(get_devices):
+            response = get_devices(offset=offset, limit=_DEFAULT_DEVICE_PAGE_SIZE)
+            if hasattr(response, "__await__"):
+                response = await response
+            if isinstance(response, dict):
+                devices_data = response.get("devices")
+                if isinstance(devices_data, list):
+                    return list(devices_data), self._canonical_page_has_more(
+                        offset=offset,
+                        devices_data=devices_data,
+                        total=response.get("total"),
+                    )
+
+        response = await self._client.get_device_list(page=page)
+        if isinstance(response, dict):
+            compat_devices = response.get("data")
+            if isinstance(compat_devices, list):
+                return [
+                    self._normalize_compat_device_row(device_data)
+                    for device_data in compat_devices
+                    if isinstance(device_data, dict)
+                ], bool(response.get("hasMore", False))
+
+        page_view = self._client.contracts.normalize_device_list_page(
+            response,
+            offset=offset,
+        )
+        return list(page_view.get("devices", [])), bool(page_view.get("has_more", False))
 
     def __init__(
         self,
@@ -103,19 +181,13 @@ class SnapshotBuilder:
 
         while page <= max_pages:
             try:
-                response = await self._client.get_device_list(page=page)
-                page_view = self._client.contracts.normalize_device_list_page(
-                    response,
-                    offset=(page - 1) * _DEFAULT_DEVICE_PAGE_SIZE,
-                )
-                devices_data = list(page_view.get("devices", []))
+                devices_data, has_more = await self._fetch_device_page(page=page)
 
                 if not devices_data:
                     break
 
                 all_devices.extend(devices_data)
 
-                has_more = bool(page_view.get("has_more", False))
                 if not has_more:
                     break
 

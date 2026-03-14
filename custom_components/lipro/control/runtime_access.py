@@ -31,14 +31,20 @@ def iter_runtime_coordinators(hass: HomeAssistant) -> list[Any]:
     return coordinators
 
 
+def build_entry_system_health_view(entry: Any) -> dict[str, Any]:
+    """Return the control-plane system-health projection for one config entry."""
+    telemetry_surface = import_module("custom_components.lipro.control.telemetry_surface")
+    view = telemetry_surface.build_entry_system_health_view(entry)
+    return view if isinstance(view, dict) else {}
+
+
 def build_runtime_snapshot(entry: Any) -> RuntimeCoordinatorSnapshot | None:
     """Build one control-plane runtime snapshot from a config entry."""
     coordinator = get_entry_runtime_coordinator(entry)
     if coordinator is None:
         return None
 
-    telemetry_surface = import_module("custom_components.lipro.control.telemetry_surface")
-    telemetry_view = telemetry_surface.build_entry_system_health_view(entry) or {}
+    telemetry_view = build_entry_system_health_view(entry)
     device_count = telemetry_view.get("device_count")
     if not isinstance(device_count, int):
         devices = getattr(coordinator, "devices", None)

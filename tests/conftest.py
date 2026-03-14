@@ -248,8 +248,27 @@ def mock_lipro_api_client():
     from custom_components.lipro.core.protocol import CanonicalProtocolContracts
 
     client = AsyncMock()
-    client.get_devices = AsyncMock(return_value={"devices": []})
     client.get_device_list = AsyncMock(return_value={"data": [], "hasMore": False})
+
+    async def _get_devices(*, offset: int = 0, limit: int = 100):
+        """Bridge legacy test fixtures to the canonical device-page contract."""
+        page_size = max(1, limit)
+        page = max(1, (offset // page_size) + 1)
+        response = await client.get_device_list(page=page)
+        if isinstance(response, dict):
+            devices = response.get("devices")
+            if isinstance(devices, list):
+                return response
+            compat_devices = response.get("data")
+            if isinstance(compat_devices, list):
+                total = offset + len(compat_devices) + int(bool(response.get("hasMore")))
+                return {
+                    "devices": list(compat_devices),
+                    "total": total,
+                }
+        return {"devices": []}
+
+    client.get_devices = AsyncMock(side_effect=_get_devices)
     client.query_device_status = AsyncMock(return_value=[])
     client.query_mesh_group_status = AsyncMock(return_value=[])
     client.query_connect_status = AsyncMock(return_value={})
