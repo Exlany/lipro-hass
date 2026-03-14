@@ -5,8 +5,9 @@ from __future__ import annotations
 import asyncio
 from dataclasses import dataclass, field
 import logging
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any
 
+from custom_components.lipro.core.api.types import DeviceListItem
 from custom_components.lipro.core.device import LiproDevice
 from custom_components.lipro.core.device.group_status import sync_mesh_group_extra_data
 
@@ -99,7 +100,7 @@ class SnapshotBuilder:
     def _canonical_page_has_more(
         *,
         offset: int,
-        devices_data: list[dict[str, Any]],
+        devices_data: list[DeviceListItem],
         total: Any,
     ) -> bool:
         """Return whether one canonical device page has more rows to fetch."""
@@ -116,21 +117,12 @@ class SnapshotBuilder:
             offset=offset,
             limit=_DEFAULT_DEVICE_PAGE_SIZE,
         )
-        if isinstance(response, dict):
-            devices_data = response.get("devices")
-            if isinstance(devices_data, list):
-                return list(devices_data), self._canonical_page_has_more(
-                    offset=offset,
-                    devices_data=devices_data,
-                    total=response.get("total"),
-                )
-
-        page_view = self._client.contracts.normalize_device_list_page(
-            response,
+        raw_devices = list(response.get("devices", []))
+        devices_data = [dict(row) for row in raw_devices if isinstance(row, dict)]
+        return devices_data, self._canonical_page_has_more(
             offset=offset,
-        )
-        return cast(list[dict[str, Any]], list(page_view.get("devices", []))), bool(
-            page_view.get("has_more", False)
+            devices_data=raw_devices,
+            total=response.get("total"),
         )
 
     def __init__(

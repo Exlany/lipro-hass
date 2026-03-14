@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 from collections.abc import Awaitable, Callable, Sequence
 import logging
-from typing import Any, TypeVar, cast
+from typing import Any, TypeVar
 
 import aiohttp
 
@@ -45,7 +45,7 @@ from .request_policy import (
     throttle_change_state as _throttle_change_state_policy,
 )
 from .schedule_service import ScheduleApiService
-from .types import LoginResponse
+from .types import DeviceListResponse, LoginResponse, OtaInfoRow, ScheduleTimingRow
 
 _LOGGER = logging.getLogger(__name__)
 MappingRequestSender = Callable[[], Awaitable[tuple[int, Any, dict[str, str], str | None]]]
@@ -56,8 +56,8 @@ _MappingPayloadT = TypeVar("_MappingPayloadT")
 class LiproRestFacade(_ClientBase):
     """Formal REST root built from explicit collaborators.
 
-    This is the Phase 2 canonical REST facade. Any legacy `LiproClient` surface is
-    now a transitional compat shell layered on top of this root.
+    This is the canonical REST facade under the unified protocol root.
+    It owns the only supported REST entry surface for runtime/control consumers.
     """
 
     _extract_list_payload = staticmethod(EndpointPayloadNormalizers.extract_list_payload)
@@ -78,13 +78,10 @@ class LiproRestFacade(_ClientBase):
         rows: Sequence[object],
         *,
         fallback_device_id: str = "",
-    ) -> list[dict[str, Any]]:
-        return cast(
-            list[dict[str, Any]],
-            ScheduleEndpoints.normalize_mesh_timing_rows(
-                rows,
-                fallback_device_id=fallback_device_id,
-            ),
+    ) -> list[ScheduleTimingRow]:
+        return ScheduleEndpoints.normalize_mesh_timing_rows(
+            rows,
+            fallback_device_id=fallback_device_id,
         )
 
     def __init__(
@@ -625,7 +622,7 @@ class LiproRestFacade(_ClientBase):
     def _is_invalid_param_error_code(code: Any) -> bool:
         return AuthRecoveryCoordinator.is_invalid_param_error_code(code)
 
-    async def get_devices(self, offset: int = 0, limit: int = 100) -> dict[str, Any]:
+    async def get_devices(self, offset: int = 0, limit: int = 100) -> DeviceListResponse:
         """Return canonical device rows through the explicit device endpoint."""
         return await self._device_endpoints.get_devices(offset=offset, limit=limit)
 
@@ -729,7 +726,7 @@ class LiproRestFacade(_ClientBase):
         *,
         iot_name: str | None = None,
         allow_rich_v2_fallback: bool = False,
-    ) -> list[dict[str, Any]]:
+    ) -> list[OtaInfoRow]:
         """Return OTA metadata for one device through the explicit misc endpoint."""
         return await self._misc_endpoints.query_ota_info(
             device_id=device_id,
@@ -775,7 +772,7 @@ class LiproRestFacade(_ClientBase):
         *,
         mesh_gateway_id: str = "",
         mesh_member_ids: list[str] | None = None,
-    ) -> list[dict[str, Any]]:
+    ) -> list[ScheduleTimingRow]:
         """Return device schedules through the explicit schedule endpoint."""
         return await self._schedule_endpoints.get_device_schedules(
             device_id=device_id,
@@ -794,7 +791,7 @@ class LiproRestFacade(_ClientBase):
         *,
         mesh_gateway_id: str = "",
         mesh_member_ids: list[str] | None = None,
-    ) -> list[dict[str, Any]]:
+    ) -> list[ScheduleTimingRow]:
         """Add schedules through the explicit schedule endpoint."""
         return await self._schedule_endpoints.add_device_schedule(
             device_id=device_id,
@@ -814,7 +811,7 @@ class LiproRestFacade(_ClientBase):
         *,
         mesh_gateway_id: str = "",
         mesh_member_ids: list[str] | None = None,
-    ) -> list[dict[str, Any]]:
+    ) -> list[ScheduleTimingRow]:
         """Delete schedules through the explicit schedule endpoint."""
         return await self._schedule_endpoints.delete_device_schedules(
             device_id=device_id,
@@ -845,7 +842,7 @@ class LiproRestFacade(_ClientBase):
     async def _get_mesh_schedules_by_candidates(
         self,
         candidate_device_ids: list[str],
-    ) -> list[dict[str, Any]]:
+    ) -> list[ScheduleTimingRow]:
         """Return mesh schedules aggregated from candidate devices."""
         return await self._schedule_endpoints._get_mesh_schedules_by_candidates(  # noqa: SLF001
             candidate_device_ids
@@ -855,7 +852,7 @@ class LiproRestFacade(_ClientBase):
         self,
         path: str,
         body: dict[str, object],
-    ) -> list[dict[str, Any]]:
+    ) -> list[ScheduleTimingRow]:
         """Execute one schedule timing request through the explicit schedule endpoint."""
         return await self._schedule_endpoints._request_schedule_timings(path, body)  # noqa: SLF001
 
@@ -866,7 +863,7 @@ class LiproRestFacade(_ClientBase):
         days: list[int],
         times: list[int],
         events: list[int],
-    ) -> list[dict[str, Any]]:
+    ) -> list[ScheduleTimingRow]:
         """Add mesh schedules across candidate devices."""
         return await self._schedule_endpoints._add_mesh_schedule_by_candidates(  # noqa: SLF001
             candidate_device_ids,
@@ -880,7 +877,7 @@ class LiproRestFacade(_ClientBase):
         candidate_device_ids: list[str],
         *,
         schedule_ids: list[int],
-    ) -> list[dict[str, Any]]:
+    ) -> list[ScheduleTimingRow]:
         """Delete mesh schedules across candidate devices."""
         return await self._schedule_endpoints._delete_mesh_schedules_by_candidates(  # noqa: SLF001
             candidate_device_ids,
@@ -888,65 +885,5 @@ class LiproRestFacade(_ClientBase):
         )
 
 
-class LiproClient(LiproRestFacade):
-    """Transitional compatibility shell around the formal REST facade."""
 
-    @staticmethod
-    def _build_compat_list_payload(rows: list[object]) -> dict[str, Any]:
-        """Return a compatibility payload shaped as ``{"data": [...]}``."""
-        data: list[dict[str, Any]] = []
-        for row in rows:
-            if not isinstance(row, dict):
-                continue
-            normalized = dict(row)
-            if "id" not in normalized:
-                for key in ("iotId", "deviceId", "groupId"):
-                    candidate = normalized.get(key)
-                    if isinstance(candidate, str) and candidate.strip():
-                        normalized["id"] = candidate
-                        break
-            data.append(normalized)
-        return {"data": data}
-
-    async def get_device_list(
-        self,
-        *,
-        page: int = 1,
-        page_size: int = 100,
-    ) -> dict[str, Any]:
-        """Compatibility wrapper around :meth:`get_devices`."""
-        resolved_page = max(1, int(page))
-        resolved_page_size = max(1, int(page_size))
-        offset = (resolved_page - 1) * resolved_page_size
-
-        response = await self.get_devices(offset=offset, limit=resolved_page_size)
-        devices = list(response.get("devices", []))
-        total = response.get("total", len(devices))
-        try:
-            total_count = int(total)
-        except (TypeError, ValueError):
-            total_count = len(devices)
-
-        has_more = offset + len(devices) < total_count
-        return {
-            "data": devices,
-            "hasMore": has_more,
-        }
-
-    async def query_iot_devices(self, device_ids: list[str]) -> dict[str, Any]:
-        """Compatibility wrapper that returns IoT device status rows under ``data``."""
-        rows = await self.query_device_status(device_ids)
-        return self._build_compat_list_payload(list(rows))
-
-    async def query_outlet_devices(self, device_ids: list[str]) -> dict[str, Any]:
-        """Compatibility wrapper that returns outlet status rows under ``data``."""
-        rows = await self.query_device_status(device_ids)
-        return self._build_compat_list_payload(list(rows))
-
-    async def query_group_devices(self, group_ids: list[str]) -> dict[str, Any]:
-        """Compatibility wrapper that returns mesh-group status rows under ``data``."""
-        rows = await self.query_mesh_group_status(group_ids)
-        return self._build_compat_list_payload(list(rows))
-
-
-__all__ = ["LiproClient", "LiproRestFacade"]
+__all__ = ["LiproRestFacade"]

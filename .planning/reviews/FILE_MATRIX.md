@@ -1,6 +1,6 @@
 # File Matrix
 
-**Python files total:** 447
+**Python files total:** 446
 **Status:** File-level governance authority
 **Rule:** workspace inventory excluding caches / virtual env / tooling artifacts
 
@@ -42,9 +42,9 @@
 | `custom_components/lipro/core/anonymous_share/sanitize.py` | Protocol | Phase 2.6 | 保留 | - |
 | `custom_components/lipro/core/anonymous_share/share_client.py` | Protocol | Phase 2.6 | 保留 | - |
 | `custom_components/lipro/core/anonymous_share/storage.py` | Protocol | Phase 2.6 | 保留 | - |
-| `custom_components/lipro/core/api/__init__.py` | Protocol | Phase 2.5 | 迁移适配 | LiproClient compat export |
+| `custom_components/lipro/core/api/__init__.py` | Protocol | Phase 2.5 / 12 | 重构 | - |
 | `custom_components/lipro/core/api/auth_service.py` | Protocol | Phase 2 | 重构 | - |
-| `custom_components/lipro/core/api/client.py` | Protocol | Phase 2 / 7 | 迁移适配 | LiproClient compat shell |
+| `custom_components/lipro/core/api/client.py` | Protocol | Phase 2 / 7 / 12 | 重构 | internal typing spine only |
 | `custom_components/lipro/core/api/client_auth_recovery.py` | Protocol | Phase 2 | 重构 | - |
 | `custom_components/lipro/core/api/client_base.py` | Protocol | Phase 2 | 重构 | - |
 | `custom_components/lipro/core/api/client_pacing.py` | Protocol | Phase 2 | 重构 | - |
@@ -141,7 +141,6 @@
 | `custom_components/lipro/core/coordinator/services/telemetry_service.py` | Runtime | Phase 5 | 重构 | - |
 | `custom_components/lipro/core/coordinator/types.py` | Runtime | Phase 5 | 重构 | - |
 | `custom_components/lipro/core/device/__init__.py` | Domain | Phase 4 | 重构 | - |
-| `custom_components/lipro/core/device/capabilities.py` | Domain | Phase 7 | 迁移适配 | DeviceCapabilities compat name |
 | `custom_components/lipro/core/device/device.py` | Domain | Phase 4 | 重构 | - |
 | `custom_components/lipro/core/device/device_delegation.py` | Domain | Phase 4 | 重构 | - |
 | `custom_components/lipro/core/device/device_factory.py` | Domain | Phase 4 | 重构 | - |

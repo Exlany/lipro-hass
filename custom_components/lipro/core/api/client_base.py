@@ -1,4 +1,4 @@
-"""Shared state and typing base for Lipro REST protocol collaborators."""
+"""Shared state and internal typing contracts for REST collaborators."""
 
 from __future__ import annotations
 
@@ -50,10 +50,10 @@ class ClientSessionState:
 
 
 class _ClientBase:
-    """Shared protocol surface expected by endpoint mixins and helpers.
+    """Internal typing contract consumed by endpoint mixins and adapters.
 
-    This remains as a temporary typing anchor during Phase 2. The formal REST
-    root is now ``LiproRestFacade`` with explicit collaborators.
+    The formal runtime entry is ``LiproRestFacade``; this class is no longer a
+    public-facing skeleton and exists only to type internal collaborators.
     """
 
     _auth_api: AuthApiService
@@ -241,4 +241,4 @@ class _ClientBase:
         return self._is_invalid_param_error_code(code)
 
 
-__all__ = ["ClientSessionState", "_ClientBase"]
+__all__ = ["ClientSessionState"]

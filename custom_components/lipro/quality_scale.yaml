@@ -17,7 +17,7 @@ rules:
     comment: UI-based config flow with user step, reauth, reconfigure, and options flow.
   config-flow-test-coverage:
     status: done
-    comment: tests/test_config_flow.py now has 100% coverage for user/reauth/reconfigure/options flows, including error-recovery paths and unique ID mismatch guard.
+    comment: tests/flows/test_config_flow.py covers user/reauth/reconfigure/options flows, including error-recovery paths and unique ID mismatch guard.
   dependency-transparency:
     status: done
     comment: manifest.json declares aiomqtt and pycryptodome as requirements.
@@ -108,7 +108,7 @@ rules:
     comment: README provides 3 automation examples (sunset lighting, motion-activated, scheduled curtain).
   docs-known-limitations:
     status: done
-    comment: README documents 5 known limitations (cloud-only, no discovery, no gateway, API limits, sensor battery).
+    comment: README documents 6 known limitations, including the configurable brightness/color-temperature behavior while off.
   docs-supported-devices:
     status: done
     comment: README includes tested devices table with status (tested/untested/not supported).

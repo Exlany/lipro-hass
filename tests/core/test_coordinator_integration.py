@@ -21,7 +21,11 @@ from custom_components.lipro.core.api import (
 )
 from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.update_coordinator import UpdateFailed
-from tests.conftest_shared import make_api_device, refresh_and_sync_devices
+from tests.conftest_shared import (
+    make_api_device,
+    make_device_page,
+    refresh_and_sync_devices,
+)
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -71,12 +75,9 @@ class TestCoordinatorUpdateFlow:
         self, coordinator, mock_lipro_api_client
     ):
         """First call should fetch devices from API."""
-        mock_lipro_api_client.get_device_list.return_value = {
-            "data": [
+        mock_lipro_api_client.get_devices.return_value = make_device_page([
                 make_api_device(serial="03ab5ccd7c000001", name="Light 1"),
-            ],
-            "hasMore": False,
-        }
+            ])
 
         with patch(
             "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager"
@@ -85,60 +86,57 @@ class TestCoordinatorUpdateFlow:
             result = await coordinator._async_update_data()
 
         assert "03ab5ccd7c000001" in result
-        mock_lipro_api_client.get_device_list.assert_called_once_with(page=1)
+        mock_lipro_api_client.get_devices.assert_awaited_once_with(
+            offset=0,
+            limit=MAX_DEVICES_PER_QUERY,
+        )
 
     @pytest.mark.asyncio
     async def test_second_update_skips_device_fetch(
         self, coordinator, mock_lipro_api_client
     ):
         """Subsequent calls should NOT re-fetch devices."""
-        mock_lipro_api_client.get_device_list.return_value = {
-            "data": [make_api_device(serial="03ab5ccd7c000001")],
-            "hasMore": False,
-        }
+        mock_lipro_api_client.get_devices.return_value = make_device_page([make_api_device(serial="03ab5ccd7c000001")])
 
         with patch(
             "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager"
         ) as mock_share:
             mock_share.return_value = MagicMock(is_enabled=False)
             await coordinator._async_update_data()
-            mock_lipro_api_client.get_device_list.reset_mock()
+            mock_lipro_api_client.get_devices.reset_mock()
             await coordinator._async_update_data()
 
-        mock_lipro_api_client.get_device_list.assert_not_called()
+        mock_lipro_api_client.get_devices.assert_not_awaited()
 
     @pytest.mark.asyncio
     async def test_periodic_update_refetches_device_list(
         self, coordinator, mock_lipro_api_client
     ):
         """Periodic refresh should re-fetch devices."""
-        mock_lipro_api_client.get_device_list.return_value = {
-            "data": [make_api_device(serial="03ab5ccd7c000001")],
-            "hasMore": False,
-        }
+        mock_lipro_api_client.get_devices.return_value = make_device_page([make_api_device(serial="03ab5ccd7c000001")])
 
         with patch(
             "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager"
         ) as mock_share:
             mock_share.return_value = MagicMock(is_enabled=False)
             await coordinator._async_update_data()
-            mock_lipro_api_client.get_device_list.reset_mock()
+            mock_lipro_api_client.get_devices.reset_mock()
 
             # Request force refresh
             coordinator.device_refresh_service.request_force_refresh()
             await coordinator._async_update_data()
 
-        mock_lipro_api_client.get_device_list.assert_called_once()
+        mock_lipro_api_client.get_devices.assert_awaited_once_with(
+            offset=0,
+            limit=MAX_DEVICES_PER_QUERY,
+        )
 
     @pytest.mark.asyncio
     async def test_ensure_valid_token_called(
         self, coordinator, mock_lipro_api_client, mock_auth_manager
     ):
         """_async_update_data must call async_ensure_authenticated before anything else."""
-        mock_lipro_api_client.get_device_list.return_value = {
-            "data": [make_api_device()],
-            "hasMore": False,
-        }
+        mock_lipro_api_client.get_devices.return_value = make_device_page([make_api_device()])
 
         with patch(
             "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager"
@@ -161,10 +159,7 @@ class TestCoordinatorFetchDevices:
     async def test_single_page(self, coordinator, mock_lipro_api_client):
         """Fewer than MAX_DEVICES_PER_QUERY devices should require one page."""
         devices = [make_api_device(serial=f"03ab5ccd7c{i:06x}") for i in range(3)]
-        mock_lipro_api_client.get_device_list.return_value = {
-            "data": devices,
-            "hasMore": False,
-        }
+        mock_lipro_api_client.get_devices.return_value = make_device_page(devices)
 
         with patch(
             "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager"
@@ -173,7 +168,10 @@ class TestCoordinatorFetchDevices:
             await refresh_and_sync_devices(coordinator)
 
         assert len(coordinator.devices) == 3
-        mock_lipro_api_client.get_device_list.assert_called_once_with(page=1)
+        mock_lipro_api_client.get_devices.assert_awaited_once_with(
+            offset=0,
+            limit=MAX_DEVICES_PER_QUERY,
+        )
 
     @pytest.mark.asyncio
     async def test_pagination_multiple_pages(self, coordinator, mock_lipro_api_client):
@@ -183,9 +181,9 @@ class TestCoordinatorFetchDevices:
             for i in range(MAX_DEVICES_PER_QUERY)
         ]
         page2 = [make_api_device(serial=f"03ab5ccd7d{i:06x}") for i in range(5)]
-        mock_lipro_api_client.get_device_list.side_effect = [
-            {"data": page1, "hasMore": True},
-            {"data": page2, "hasMore": False},
+        mock_lipro_api_client.get_devices.side_effect = [
+            make_device_page(page1, total=len(page1) + len(page2)),
+            make_device_page(page2, total=len(page1) + len(page2)),
         ]
 
         with patch(
@@ -195,17 +193,14 @@ class TestCoordinatorFetchDevices:
             await refresh_and_sync_devices(coordinator)
 
         assert len(coordinator.devices) == MAX_DEVICES_PER_QUERY + 5
-        assert mock_lipro_api_client.get_device_list.call_count == 2
+        assert mock_lipro_api_client.get_devices.call_count == 2
 
     @pytest.mark.asyncio
     async def test_fetch_devices_rejects_malformed_devices_payload(
         self, coordinator, mock_lipro_api_client
     ):
         """Malformed devices payload should be skipped gracefully."""
-        mock_lipro_api_client.get_device_list.return_value = {
-            "data": "invalid",
-            "hasMore": False,
-        }
+        mock_lipro_api_client.get_devices.return_value = make_device_page("invalid")
 
         with patch(
             "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager"
@@ -222,14 +217,11 @@ class TestCoordinatorFetchDevices:
         self, coordinator, mock_lipro_api_client
     ):
         """Non-dict device rows should be ignored without breaking refresh."""
-        mock_lipro_api_client.get_device_list.return_value = {
-            "data": [
+        mock_lipro_api_client.get_devices.return_value = make_device_page([
                 make_api_device(serial="03ab5ccd7c000001"),
                 "bad-row",
                 123,
-            ],
-            "hasMore": False,
-        }
+            ])
 
         with patch(
             "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager"
@@ -252,10 +244,7 @@ class TestCoordinatorFetchDevices:
                 device_type=11,
             ),
         ]
-        mock_lipro_api_client.get_device_list.return_value = {
-            "data": devices,
-            "hasMore": False,
-        }
+        mock_lipro_api_client.get_devices.return_value = make_device_page(devices)
 
         with patch(
             "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager"
@@ -319,7 +308,7 @@ class TestCoordinatorErrorHandling:
         empty snapshot. The error is only raised if it happens during auth check.
         """
         # Simulate API error during authentication check (before device fetch)
-        mock_lipro_api_client.get_device_list.side_effect = LiproApiError(
+        mock_lipro_api_client.get_devices.side_effect = LiproApiError(
             "server error"
         )
 
@@ -341,7 +330,7 @@ class TestCoordinatorErrorHandling:
         device fetch and returns empty snapshot. Auth errors only propagate
         from the initial auth check.
         """
-        mock_lipro_api_client.get_device_list.side_effect = LiproAuthError(
+        mock_lipro_api_client.get_devices.side_effect = LiproAuthError(
             "unauthorized"
         )
 
@@ -367,10 +356,7 @@ class TestCoordinatorRefreshDevices:
         self, coordinator, mock_lipro_api_client
     ):
         """Requesting force refresh should cause next update to re-fetch devices."""
-        mock_lipro_api_client.get_device_list.return_value = {
-            "data": [make_api_device(serial="03ab5ccd7c000001")],
-            "hasMore": False,
-        }
+        mock_lipro_api_client.get_devices.return_value = make_device_page([make_api_device(serial="03ab5ccd7c000001")])
 
         with patch(
             "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager"
@@ -378,7 +364,7 @@ class TestCoordinatorRefreshDevices:
             mock_share.return_value = MagicMock(is_enabled=False)
             # First update
             await coordinator._async_update_data()
-            mock_lipro_api_client.get_device_list.reset_mock()
+            mock_lipro_api_client.get_devices.reset_mock()
 
             # Request force refresh via device runtime
             coordinator.device_refresh_service.request_force_refresh()
@@ -386,4 +372,7 @@ class TestCoordinatorRefreshDevices:
             # Next update should force refresh
             await coordinator._async_update_data()
 
-        mock_lipro_api_client.get_device_list.assert_called_once()
+        mock_lipro_api_client.get_devices.assert_awaited_once_with(
+            offset=0,
+            limit=MAX_DEVICES_PER_QUERY,
+        )

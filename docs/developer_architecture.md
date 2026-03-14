@@ -98,7 +98,7 @@
 │  ┌────────────────────────────────────────────────────────┐  │
 │  │ LiproDevice (薄 facade + property delegation)          │  │
 │  │  ├─ DeviceState        (可变状态)                      │  │
-│  │  ├─ DeviceCapabilities (不可变能力)                    │  │
+│  │  ├─ CapabilitySnapshot (不可变能力真源)                │  │
 │  │  ├─ DeviceNetworkInfo  (网络诊断)                      │  │
 │  │  └─ DeviceExtras       (扩展特性)                      │  │
 │  ├────────────────────────────────────────────────────────┤  │
@@ -184,7 +184,7 @@ class RuntimeContext:
 
 ### Coordinator (`core/coordinator/coordinator.py`)
 
-**职责**（约 450 LOC）：
+**职责**（约 712 LOC，需持续沿 formal boundary 继续切薄）：
 
 - 维护运行时状态容器（`_state: CoordinatorStateContainers`）
 - 持有运行时组件注册表（`_runtimes: CoordinatorRuntimes`）
@@ -238,7 +238,7 @@ Coordinator
 
 ### API Client / Protocol Plane (`core/api/`, `core/mqtt/`)
 
-- `client.py`：当前仍保留 `LiproClient` compat shell；正式 protocol-plane root 已是 `LiproProtocolFacade`
+- `client.py`：`LiproRestFacade` 是唯一正式 REST child façade；`LiproClient` compat shell 已在 Phase 12 删除
 - `core/api/`：`LiproRestFacade` + transport / auth / endpoint collaborators；高漂移 REST 形态在 `core/protocol/boundary/rest_decoder.py` 与 `CanonicalProtocolContracts` 中先完成 canonicalization
 - `core/mqtt/`：MQTT transport collaborators 已作为 `LiproMqttFacade` child façade 挂到统一协议根，生产路径通过 `LiproProtocolFacade` 协作
 - `core/auth/`：`LiproAuthManager` + `AuthSessionSnapshot`；HA adapters 通过 formal auth/session contract 协作，而不是解析 raw login dict
@@ -265,7 +265,7 @@ Coordinator
 
 - `device.py`：`LiproDevice`（薄 facade, dataclass + property delegation）
 - `state.py`：`DeviceState`（可变状态视图 + derived accessors）
-- `capabilities.py`：`DeviceCapabilities` compat alias（正式能力真源已迁到 `core/capability/`）
+- `core/capability/`：`CapabilityRegistry` / `CapabilitySnapshot` 是唯一正式能力真源；`DeviceCapabilities` compat alias 已在 Phase 12 删除
 - `identity.py`：`DeviceIdentity`（设备身份信息）
 - `network_info.py`：`DeviceNetworkInfo`（网络诊断）
 - `extras.py`：`DeviceExtras`（扩展数据）
@@ -448,7 +448,7 @@ custom_components/lipro/
 │   ├── device/                    # Device 领域模型
 │   │   ├── device.py              # LiproDevice (property delegation)
 │   │   ├── state.py               # DeviceState (mutable)
-│   │   ├── capabilities.py        # DeviceCapabilities compat alias
+│   │   ├── ../capability/          # CapabilityRegistry / CapabilitySnapshot 真源
 │   │   └── identity.py            # DeviceIdentity
 │   ├── auth/                      # 认证管理
 │   ├── command/                   # 命令执行

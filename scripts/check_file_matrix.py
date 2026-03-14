@@ -63,16 +63,16 @@ OVERRIDES: dict[str, FileGovernanceRow] = {
     "custom_components/lipro/core/api/__init__.py": FileGovernanceRow(
         path="custom_components/lipro/core/api/__init__.py",
         area="Protocol",
-        owner_phase="Phase 2.5",
-        fate="迁移适配",
-        residual="LiproClient compat export",
+        owner_phase="Phase 2.5 / 12",
+        fate="重构",
+        residual="-",
     ),
     "custom_components/lipro/core/api/client.py": FileGovernanceRow(
         path="custom_components/lipro/core/api/client.py",
         area="Protocol",
-        owner_phase="Phase 2 / 7",
-        fate="迁移适配",
-        residual="LiproClient compat shell",
+        owner_phase="Phase 2 / 7 / 12",
+        fate="重构",
+        residual="internal typing spine only",
     ),
     "custom_components/lipro/core/mqtt/__init__.py": FileGovernanceRow(
         path="custom_components/lipro/core/mqtt/__init__.py",
@@ -87,13 +87,6 @@ OVERRIDES: dict[str, FileGovernanceRow] = {
         owner_phase="Phase 5 / 7",
         fate="迁移适配",
         residual="runtime-auth seam",
-    ),
-    "custom_components/lipro/core/device/capabilities.py": FileGovernanceRow(
-        path="custom_components/lipro/core/device/capabilities.py",
-        area="Domain",
-        owner_phase="Phase 7",
-        fate="迁移适配",
-        residual="DeviceCapabilities compat name",
     ),
     "custom_components/lipro/core/coordinator/runtime/status_strategy.py": FileGovernanceRow(
         path="custom_components/lipro/core/coordinator/runtime/status_strategy.py",

@@ -20,7 +20,7 @@
         "redhat.vscode-yaml"
       ],
       "settings": {
-        "python.defaultInterpreterPath": "/workspaces/lipro-hass/venv/bin/python",
+        "python.defaultInterpreterPath": "/workspaces/lipro-hass/.venv/bin/python",
         "editor.defaultFormatter": "charliermarsh.ruff",
         "editor.formatOnSave": true,
         "editor.codeActionsOnSave": {

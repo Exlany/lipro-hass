@@ -31,6 +31,12 @@ echo ""
 echo "Checking translations..."
 uv run python scripts/check_translations.py
 
+if command -v shellcheck >/dev/null 2>&1; then
+    echo ""
+    echo "Running shellcheck..."
+    shellcheck install.sh scripts/develop scripts/lint scripts/setup
+fi
+
 echo ""
 echo "Running pip-audit..."
 # Audit exported runtime requirements to avoid:

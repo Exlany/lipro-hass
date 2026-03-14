@@ -84,7 +84,7 @@
 - **Required artifacts:** `custom_components/lipro/core/protocol/{facade,__init__,compat}.py`、`custom_components/lipro/{__init__,config_flow.py}`、`custom_components/lipro/core/{__init__,api/__init__,mqtt/__init__}.py`、`custom_components/lipro/core/coordinator/{coordinator.py,outlet_power.py}`、`custom_components/lipro/core/device/device.py`、`custom_components/lipro/{sensor.py}`、`custom_components/lipro/control/diagnostics_surface.py`、`09-01/02/03-SUMMARY.md`、`09-UAT.md`、`09-VERIFICATION.md`，以及更新后的 baseline / review truth docs。
 - **Required governance proof:** `PUBLIC_SURFACES.md`、`AUTHORITY_MATRIX.md`、`VERIFICATION_MATRIX.md`、`FILE_MATRIX.md`、`RESIDUAL_LEDGER.md` 与 `KILL_LIST.md` 必须同步反映 explicit protocol root、remaining compat seams、read-only coordinator device surface 与 formal outlet-power primitive。
 - **Required runnable proof:** 至少保持 `uv run pytest -q tests/core/api/test_protocol_contract_matrix.py tests/integration/test_mqtt_coordinator_integration.py tests/meta/test_public_surface_guards.py tests/core/test_outlet_power.py tests/test_coordinator_public.py tests/platforms/test_sensor.py tests/core/test_diagnostics.py tests/meta/test_governance_guards.py tests/meta/test_dependency_guards.py`、`uv run python scripts/check_architecture_policy.py --check`、`uv run python scripts/check_file_matrix.py --check` 与 `uv run pytest -q` 通过。
-- **Unblock effect:** `Phase 9` 完成后，仓库只剩显式登记的 compat shell / seam（如 `core.api.LiproClient`、`LiproProtocolFacade.get_device_list`、`LiproMqttFacade.raw_client`）；后续 cleanup phase 只需围绕这些可计数残留继续删除，而不是再次裁决正式主链。
+- **Unblock effect:** `Phase 12` 完成后，typed runtime / REST / diagnostics 合同与显式 compat seams 已同步收口；后续阶段可以直接基于单一正式主链规划新里程碑，而不是继续为 legacy public names 支付治理成本。
 
 ## Phase 10 Exit Contract
 
@@ -104,3 +104,11 @@
 
 ---
 *Used by: phase exit review, downstream handoff, and final audit arbitration*
+
+
+## Phase 12 Exit Contract
+
+- **Required artifacts:** `custom_components/lipro/runtime_types.py`、`custom_components/lipro/core/{api/client.py,protocol/facade.py}`、`custom_components/lipro/core/coordinator/{coordinator.py,runtime/device/snapshot.py}`、`custom_components/lipro/control/diagnostics_surface.py`、`custom_components/lipro/services/diagnostics/helpers.py`、`custom_components/lipro/core/api/__init__.py`、`custom_components/lipro/core/device/__init__.py`、`12-01~12-05-SUMMARY.md`、`12-VALIDATION.md`、`12-VERIFICATION.md` 与更新后的 baseline/review/governance docs。
+- **Required governance proof:** `PUBLIC_SURFACES.md`、`VERIFICATION_MATRIX.md`、`FILE_MATRIX.md`、`RESIDUAL_LEDGER.md`、`KILL_LIST.md`、`CONTRIBUTING.md`、`.github/pull_request_template.md`、`.github/workflows/ci.yml` 必须同时反映 seam retirement、shellcheck gate、community governance files 与 single-maintainer support contract。
+- **Required runnable proof:** 至少保持 `uv run mypy`、`uv run pytest -q tests/core/api/test_api.py tests/core/test_anonymous_share.py tests/core/test_boundary_conditions.py tests/core/device/test_capabilities.py`、`uv run pytest -q tests/meta/test_governance_guards.py tests/meta/test_version_sync.py`、`uv run python scripts/check_architecture_policy.py --check`、`uv run python scripts/check_file_matrix.py --check` 通过。
+- **Unblock effect:** `v1.1` 可以进入 milestone closeout；后续规划不再需要把 legacy REST constructor、device-list compat wrapper、MQTT raw transport seam 或 capability alias 当作 active residual。

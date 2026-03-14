@@ -12,40 +12,19 @@ from custom_components.lipro.core.coordinator.runtime.device_runtime import (
     DeviceRuntime,
 )
 from custom_components.lipro.core.device.identity_index import DeviceIdentityIndex
-from custom_components.lipro.core.protocol import (
-    CanonicalProtocolContracts,
-    LiproProtocolFacade,
-)
+from custom_components.lipro.core.protocol import LiproProtocolFacade
+from tests.conftest_shared import make_device_page
 
 
 @pytest.fixture
 def mock_client() -> Mock:
     """Create mock API client."""
     client = Mock(spec=LiproProtocolFacade)
-    client.get_device_list = AsyncMock()
-
-    async def _get_devices(*, offset: int = 0, limit: int = 100) -> dict[str, Any]:
-        page_size = max(1, limit)
-        page = max(1, (offset // page_size) + 1)
-        response = await client.get_device_list(page=page)
-        if isinstance(response, dict):
-            page_view = client.contracts.normalize_device_list_page(
-                response,
-                offset=offset,
-            )
-            devices = list(page_view.get("devices", []))
-            return {
-                "devices": devices,
-                "total": offset + len(devices) + int(bool(page_view.get("has_more"))),
-            }
-        return {"devices": [], "total": 0}
-
-    client.get_devices = AsyncMock(side_effect=_get_devices)
+    client.get_devices = AsyncMock(return_value={"devices": [], "total": 0})
     client.query_iot_devices = AsyncMock()
     client.query_group_devices = AsyncMock()
     client.query_outlet_devices = AsyncMock()
     client.query_mesh_group_status = AsyncMock(return_value=[])
-    client.contracts = CanonicalProtocolContracts()
     return client
 
 
@@ -167,15 +146,15 @@ class TestDeviceRuntimeRefresh:
         mock_client: Mock,
     ) -> None:
         """Test pagination across multiple pages."""
-        mock_client.get_device_list.side_effect = [
-            {
-                "data": [create_mock_device_data(device_id="dev1", serial="serial1")],
-                "hasMore": True,
-            },
-            {
-                "data": [create_mock_device_data(device_id="dev2", serial="serial2")],
-                "hasMore": False,
-            },
+        mock_client.get_devices.side_effect = [
+            make_device_page(
+                [create_mock_device_data(device_id="dev1", serial="serial1")],
+                total=2,
+            ),
+            make_device_page(
+                [create_mock_device_data(device_id="dev2", serial="serial2")],
+                total=2,
+            ),
         ]
 
         snapshot = await device_runtime.refresh_devices()
@@ -184,7 +163,6 @@ class TestDeviceRuntimeRefresh:
         assert "serial1" in snapshot.devices
         assert "serial2" in snapshot.devices
         assert mock_client.get_devices.await_count == 2
-        assert mock_client.get_device_list.call_count == 2
 
     @pytest.mark.asyncio
     async def test_full_refresh_enriches_mesh_group_metadata(
@@ -194,16 +172,13 @@ class TestDeviceRuntimeRefresh:
     ) -> None:
         """Full snapshot should backfill gateway/member topology for mesh groups."""
         group_serial = "mesh_group_10001"
-        mock_client.get_device_list.return_value = {
-            "data": [
+        mock_client.get_devices.return_value = make_device_page([
                 create_mock_device_data(
                     device_id=group_serial,
                     serial=group_serial,
                     is_group=True,
                 )
-            ],
-            "hasMore": False,
-        }
+            ])
         mock_client.query_mesh_group_status.return_value = [
             {
                 "groupId": group_serial,
@@ -232,14 +207,11 @@ class TestDeviceRuntimeRefresh:
         mock_client: Mock,
     ) -> None:
         """Test devices are categorized correctly."""
-        mock_client.get_device_list.return_value = {
-            "data": [
+        mock_client.get_devices.return_value = make_device_page([
                 create_mock_device_data(device_id="iot1", serial="s1", is_group=False, is_outlet=False),
                 create_mock_device_data(device_id="group1", serial="s2", is_group=True),
                 create_mock_device_data(device_id="iot2", serial="s3", is_outlet=False),
-            ],
-            "hasMore": False,
-        }
+            ])
 
         snapshot = await device_runtime.refresh_devices()
 
@@ -262,10 +234,7 @@ class TestStaleDeviceReconciliation:
         mock_client: Mock,
     ) -> None:
         """Test stale device computation on first run."""
-        mock_client.get_device_list.return_value = {
-            "data": [create_mock_device_data(device_id="dev1", serial="serial1")],
-            "hasMore": False,
-        }
+        mock_client.get_devices.return_value = make_device_page([create_mock_device_data(device_id="dev1", serial="serial1")])
 
         snapshot = await device_runtime.refresh_devices()
         missing_cycles, removable = device_runtime.compute_stale_devices(
@@ -283,23 +252,17 @@ class TestStaleDeviceReconciliation:
     ) -> None:
         """Test stale device tracking when device goes missing."""
         # First refresh with 2 devices
-        mock_client.get_device_list.return_value = {
-            "data": [
+        mock_client.get_devices.return_value = make_device_page([
                 create_mock_device_data(device_id="dev1", serial="serial1"),
                 create_mock_device_data(device_id="dev2", serial="serial2"),
-            ],
-            "hasMore": False,
-        }
+            ])
         snapshot1 = await device_runtime.refresh_devices()
         device_runtime.compute_stale_devices(current_snapshot=snapshot1)
 
         # Second refresh with only 1 device
-        mock_client.get_device_list.return_value = {
-            "data": [
+        mock_client.get_devices.return_value = make_device_page([
                 create_mock_device_data(device_id="dev1", serial="serial1"),
-            ],
-            "hasMore": False,
-        }
+            ])
         device_runtime.request_force_refresh()
         snapshot2 = await device_runtime.refresh_devices()
         missing_cycles, removable = device_runtime.compute_stale_devices(
@@ -318,21 +281,15 @@ class TestStaleDeviceReconciliation:
     ) -> None:
         """Test device removal after threshold cycles."""
         # Initial refresh
-        mock_client.get_device_list.return_value = {
-            "data": [
+        mock_client.get_devices.return_value = make_device_page([
                 create_mock_device_data(device_id="dev1", serial="serial1"),
                 create_mock_device_data(device_id="dev2", serial="serial2"),
-            ],
-            "hasMore": False,
-        }
+            ])
         snapshot = await device_runtime.refresh_devices()
         device_runtime.compute_stale_devices(current_snapshot=snapshot)
 
         # Simulate 3 cycles with dev2 missing
-        mock_client.get_device_list.return_value = {
-            "data": [create_mock_device_data(device_id="dev1", serial="serial1")],
-            "hasMore": False,
-        }
+        mock_client.get_devices.return_value = make_device_page([create_mock_device_data(device_id="dev1", serial="serial1")])
 
         for _ in range(3):
             device_runtime.request_force_refresh()
@@ -366,10 +323,7 @@ class TestDeviceRuntimeState:
         mock_client: Mock,
     ) -> None:
         """Test last snapshot is available after refresh."""
-        mock_client.get_device_list.return_value = {
-            "data": [create_mock_device_data(device_id="dev1", serial="serial1")],
-            "hasMore": False,
-        }
+        mock_client.get_devices.return_value = make_device_page([create_mock_device_data(device_id="dev1", serial="serial1")])
 
         await device_runtime.refresh_devices()
         snapshot = device_runtime.get_last_snapshot()
@@ -399,7 +353,7 @@ class TestDeviceRuntimeErrorHandling:
         mock_client: Mock,
     ) -> None:
         """Test API error handling during refresh."""
-        mock_client.get_device_list.side_effect = Exception("API Error")
+        mock_client.get_devices.side_effect = Exception("API Error")
 
         # Should not raise, but return empty snapshot
         snapshot = await device_runtime.refresh_devices()
@@ -414,11 +368,11 @@ class TestDeviceRuntimeErrorHandling:
         mock_client: Mock,
     ) -> None:
         """Test handling of partial page fetch failure."""
-        mock_client.get_device_list.side_effect = [
-            {
-                "data": [create_mock_device_data(device_id="dev1", serial="serial1")],
-                "hasMore": True,
-            },
+        mock_client.get_devices.side_effect = [
+            make_device_page(
+                [create_mock_device_data(device_id="dev1", serial="serial1")],
+                total=2,
+            ),
             Exception("Network error"),
         ]
 
@@ -440,19 +394,16 @@ class TestDeviceRuntimeIntegration:
         mock_device_identity_index: DeviceIdentityIndex,
     ) -> None:
         """Test complete refresh cycle with identity registration."""
-        mock_client.get_device_list.return_value = {
-            "data": [
+        mock_client.get_devices.return_value = make_device_page([
                 create_mock_device_data(device_id="dev1", serial="serial1"),
-            ],
-            "hasMore": False,
-        }
+            ])
 
         snapshot = await device_runtime.refresh_devices()
 
         # Verify snapshot structure
         assert len(snapshot.devices) == 1
         assert snapshot.device_by_id["serial1"] is snapshot.devices["serial1"]
-        assert snapshot.device_by_id["dev1"] is snapshot.devices["serial1"]
+        assert snapshot.devices["serial1"].extra_data["identity_aliases"] == ["serial1"]
         assert snapshot.cloud_serials == {"serial1"}
 
         snapshot = await device_runtime.refresh_devices()
@@ -460,4 +411,4 @@ class TestDeviceRuntimeIntegration:
 
         assert refreshed_snapshot is snapshot
         assert snapshot.devices["serial1"].serial == "serial1"
-        mock_client.get_device_list.assert_called_once()
+        mock_client.get_devices.assert_awaited_once()

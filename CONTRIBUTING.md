@@ -94,7 +94,9 @@ Use the same command groups as GitHub Actions:
 - **lint**: `uv run ruff check .`、`uv run ruff format --check .`、`uv run mypy`；若涉及用户可见文案，再跑 `uv run python scripts/check_translations.py`
 - **governance**: `uv run python scripts/check_architecture_policy.py --check`、`uv run python scripts/check_file_matrix.py --check`、`uv run pytest -q -x tests/meta/test_dependency_guards.py tests/meta/test_public_surface_guards.py tests/meta/test_governance_guards.py tests/meta/test_version_sync.py`
 - **test**: `uv run pytest tests/ -v --ignore=tests/benchmarks --cov=custom_components/lipro --cov-fail-under=95 --cov-report=json --cov-report=xml --cov-report=term-missing`、`uv run pytest tests/snapshots/ -v`、`uv run python scripts/coverage_diff.py coverage.json --minimum 95`、`uv run python scripts/refactor_tools.py --coverage-json coverage.json --minimum-coverage 95`
+- **security**: GitHub Actions 会在每个 PR 上运行 `security` job；若变更涉及依赖、认证、发布链路或安全边界，提交前至少复核 `./scripts/lint` 或手动执行 runtime `pip-audit` 流程
 - **benchmark**: `uv run pytest tests/benchmarks/ -v --benchmark-only --benchmark-json=.benchmarks/benchmark.json`；仅在性能敏感改动或手动对齐 `schedule` / `workflow_dispatch` 时需要
+- **shellcheck**: 若修改 `install.sh` / `scripts/*` shell 脚本，请运行 `shellcheck install.sh scripts/develop scripts/lint scripts/setup`（CI 的 `lint` job 也会执行）
 - **validate**: GitHub Actions 会额外运行 `HACS` 与 `Hassfest` 校验；本地通常不必手动复刻，但提交前应确保仓库元数据仍符合这些约束
 - **release**: tag release 先复用 `.github/workflows/ci.yml`，再由 `.github/workflows/release.yml` 打包并发布资产；不要旁路门禁直接发版
 
@@ -137,6 +139,9 @@ async def async_turn_on(self, **kwargs: Any) -> None:
    uv run pytest tests/snapshots/ -v
    uv run python scripts/coverage_diff.py coverage.json --minimum 95
    uv run python scripts/refactor_tools.py --coverage-json coverage.json --minimum-coverage 95
+
+   # If shell scripts changed / 若改到 shell 脚本
+   shellcheck install.sh scripts/develop scripts/lint scripts/setup
    ```
 
    For protocol/auth/control public-surface changes, prefer adding the Phase 10 targeted regression above before the full run; only run benchmarks when performance is part of the change.
@@ -214,9 +219,13 @@ When requesting features:
 
 ## Code of Conduct / 行为准则
 
-- Be respectful and constructive / 保持尊重和建设性
-- Focus on what's best for the community / 专注于对社区最有利的事情
-- Accept constructive criticism gracefully / 优雅地接受建设性批评
+Please follow `CODE_OF_CONDUCT.md` for community expectations.
+请遵循 `CODE_OF_CONDUCT.md` 中的社区行为约定。
+
+## Support / 支持渠道
+
+See `SUPPORT.md` for usage questions, bug triage expectations, and security routing.
+关于使用问题、缺陷分流与安全披露，请参考 `SUPPORT.md`。
 
 ## Questions? / 有问题？
 

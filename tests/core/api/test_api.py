@@ -31,9 +31,9 @@ from custom_components.lipro.const.api import (
 from custom_components.lipro.core.api import (
     LiproApiError,
     LiproAuthError,
-    LiproClient,
     LiproConnectionError,
     LiproRefreshTokenExpiredError,
+    LiproRestFacade,
     request_policy as request_policy_module,
 )
 from custom_components.lipro.core.api.request_policy import (
@@ -41,13 +41,13 @@ from custom_components.lipro.core.api.request_policy import (
 )
 
 
-class TestLiproClientInit:
-    """Tests for LiproClient initialization."""
+class TestLiproRestFacadeInit:
+    """Tests for LiproRestFacade initialization."""
 
     def test_init_with_session(self):
         """Test initialization with provided session."""
         session = MagicMock(spec=aiohttp.ClientSession)
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000", session)
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000", session)
 
         assert client.phone_id == "550e8400-e29b-41d4-a716-446655440000"
         assert client.access_token is None
@@ -56,18 +56,18 @@ class TestLiproClientInit:
 
     def test_init_without_session(self):
         """Test initialization without session."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
 
         assert client.phone_id == "550e8400-e29b-41d4-a716-446655440000"
         assert client._session is None
 
 
-class TestLiproClientTokens:
+class TestLiproRestFacadeTokens:
     """Tests for token management."""
 
     def test_set_tokens(self):
         """Test setting tokens."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens(
             access_token="access123",
             refresh_token="refresh456",
@@ -81,19 +81,19 @@ class TestLiproClientTokens:
 
     def test_set_token_refresh_callback(self):
         """Test setting token refresh callback."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         callback = AsyncMock()
         client.set_token_refresh_callback(callback)
 
         assert client._on_token_refresh is callback
 
 
-class TestLiproClientSignature:
+class TestLiproRestFacadeSignature:
     """Tests for API signature generation."""
 
     def test_smart_home_sign(self):
         """Test Smart Home API signature generation."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         sign = client._smart_home_sign()
 
         # Verify it's a valid MD5 hash (32 hex chars)
@@ -102,7 +102,7 @@ class TestLiproClientSignature:
 
     def test_iot_sign(self):
         """Test IoT API signature generation."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("access_token_123", "refresh_token")
 
         sign = client._iot_sign(1234567890, '{"test": "body"}')
@@ -112,13 +112,13 @@ class TestLiproClientSignature:
         assert all(c in "0123456789abcdef" for c in sign)
 
 
-class TestLiproClientLogin:
+class TestLiproRestFacadeLogin:
     """Tests for login functionality."""
 
     @pytest.mark.asyncio
     async def test_login_success(self):
         """Test successful login."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
 
         mock_response = {
             "code": 0,
@@ -148,7 +148,7 @@ class TestLiproClientLogin:
     @pytest.mark.asyncio
     async def test_login_password_hashed(self):
         """Test that password is MD5 hashed before sending."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
 
         captured_data = {}
 
@@ -168,13 +168,13 @@ class TestLiproClientLogin:
             assert captured_data.get("password") == expected_hash
 
 
-class TestLiproClientRefreshToken:
+class TestLiproRestFacadeRefreshToken:
     """Tests for token refresh functionality."""
 
     @pytest.mark.asyncio
     async def test_refresh_token_success(self):
         """Test successful token refresh."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("old_access", "old_refresh")
 
         with patch.object(
@@ -194,19 +194,19 @@ class TestLiproClientRefreshToken:
     @pytest.mark.asyncio
     async def test_refresh_token_no_token(self):
         """Test refresh fails without refresh token."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
 
         with pytest.raises(LiproAuthError, match="No refresh token"):
             await client.refresh_access_token()
 
 
-class TestLiproClientDevices:
+class TestLiproRestFacadeDevices:
     """Tests for device-related API calls."""
 
     @pytest.mark.asyncio
     async def test_get_devices(self):
         """Test getting devices."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("access_token", "refresh_token")
 
         mock_response = {
@@ -232,7 +232,7 @@ class TestLiproClientDevices:
     @pytest.mark.asyncio
     async def test_query_device_status_empty(self):
         """Test querying status with empty device list."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("access_token", "refresh_token")
 
         result = await client.query_device_status([])
@@ -240,13 +240,13 @@ class TestLiproClientDevices:
         assert result == []
 
 
-class TestLiproClientCommands:
+class TestLiproRestFacadeCommands:
     """Tests for command sending."""
 
     @pytest.mark.asyncio
     async def test_send_command(self):
         """Test sending command to device."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("access_token", "refresh_token")
 
         with patch.object(
@@ -274,7 +274,7 @@ class TestLiproClientCommands:
     @pytest.mark.asyncio
     async def test_send_command_hex_device_type(self):
         """Test sending command with hex device type."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("access_token", "refresh_token")
 
         with patch.object(
@@ -295,7 +295,7 @@ class TestLiproClientCommands:
     @pytest.mark.asyncio
     async def test_send_command_decimal_string_device_type(self):
         """Decimal string device type should be normalized to hex."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("access_token", "refresh_token")
 
         with patch.object(
@@ -316,7 +316,7 @@ class TestLiproClientCommands:
     @pytest.mark.asyncio
     async def test_send_command_invalid_string_device_type_raises(self):
         """Non-hex/non-numeric device type strings should be rejected."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("access_token", "refresh_token")
 
         with pytest.raises(ValueError, match="Invalid deviceType format"):
@@ -329,7 +329,7 @@ class TestLiproClientCommands:
     @pytest.mark.asyncio
     async def test_send_group_command(self):
         """Test sending command to mesh group."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("access_token", "refresh_token")
 
         with patch.object(
@@ -349,13 +349,13 @@ class TestLiproClientCommands:
             assert body["groupId"] == "mesh_group_10001"
 
 
-class TestLiproClientErrorHandling:
+class TestLiproRestFacadeErrorHandling:
     """Tests for error handling."""
 
     @pytest.mark.asyncio
     async def test_connection_error(self):
         """Test handling connection errors."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
 
         with patch.object(
             client, "_get_session", new_callable=AsyncMock
@@ -376,7 +376,7 @@ class TestLiproClientErrorHandling:
     @pytest.mark.asyncio
     async def test_timeout_error(self):
         """Test handling timeout errors."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
 
         with patch.object(
             client, "_get_session", new_callable=AsyncMock
@@ -393,7 +393,7 @@ class TestLiproClientErrorHandling:
     @pytest.mark.asyncio
     async def test_invalid_json_error_does_not_expose_raw_body(self):
         """Invalid JSON exceptions should avoid leaking raw response body."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
 
         response = AsyncMock()
         response.status = 500
@@ -420,7 +420,7 @@ class TestLiproClientErrorHandling:
     @pytest.mark.asyncio
     async def test_invalid_json_masks_only_truncated_body_preview(self):
         """Invalid JSON logging should avoid masking the entire response body."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
 
         large_body = '{"access_token":"secret"}' * 2000
         response = AsyncMock()
@@ -454,7 +454,7 @@ class TestLiproClientErrorHandling:
     @pytest.mark.asyncio
     async def test_api_error(self):
         """Test handling API errors."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
 
         mock_response = {
             "code": 500,
@@ -480,13 +480,13 @@ class TestLiproClientErrorHandling:
                 await client.login("phone", "password")
 
 
-class TestLiproClient401Handling:
+class TestLiproRestFacade401Handling:
     """Tests for 401 error handling and token refresh."""
 
     @pytest.mark.asyncio
     async def test_401_triggers_refresh(self):
         """Test that 401 triggers token refresh callback."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("old_access", "old_refresh")
 
         refresh_callback = AsyncMock(
@@ -504,7 +504,7 @@ class TestLiproClient401Handling:
     @pytest.mark.asyncio
     async def test_401_double_check_skips_if_token_changed(self):
         """Test that refresh is skipped if token already changed."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("new_access", "refresh")  # Token already changed
 
         refresh_callback = AsyncMock()
@@ -520,7 +520,7 @@ class TestLiproClient401Handling:
     @pytest.mark.asyncio
     async def test_401_refresh_callback_without_token_update_returns_false(self):
         """Refresh callback must update token to trigger retry."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("old_access", "old_refresh")
 
         refresh_callback = AsyncMock()
@@ -532,7 +532,7 @@ class TestLiproClient401Handling:
     @pytest.mark.asyncio
     async def test_401_refresh_connection_error_bubbles(self):
         """Transient refresh network errors should bubble as LiproConnectionError."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("old_access", "old_refresh")
 
         refresh_callback = AsyncMock(side_effect=LiproConnectionError("timeout"))
@@ -544,7 +544,7 @@ class TestLiproClient401Handling:
     @pytest.mark.asyncio
     async def test_401_no_infinite_retry(self):
         """Test that 401 doesn't cause infinite retry loop."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("access", "refresh")
 
         refresh_callback = AsyncMock()
@@ -577,7 +577,7 @@ class TestLiproClient401Handling:
     @pytest.mark.asyncio
     async def test_401_refresh_connection_error_not_reclassified_as_auth(self):
         """Refresh network failure should not be converted to auth failure."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("access", "refresh")
 
         refresh_callback = AsyncMock(side_effect=LiproConnectionError("timeout"))
@@ -604,7 +604,7 @@ class TestLiproClient401Handling:
                 await client.get_devices()
 
 
-class TestLiproClientMqtt:
+class TestLiproRestFacadeMqtt:
     """Tests for MQTT configuration."""
 
     @pytest.mark.asyncio
@@ -614,7 +614,7 @@ class TestLiproClientMqtt:
         Real API returns: {"accessKey": "hex64", "secretKey": "hex64"}
         without the usual {"code": "0000", "data": {...}} wrapper.
         """
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("access_token", "refresh_token")
 
         # Simulate the real API response (no code field)
@@ -641,7 +641,7 @@ class TestLiproClientMqtt:
     @pytest.mark.asyncio
     async def test_get_mqtt_config_data_only_wrapper_returns_payload(self):
         """Data-only MQTT config response without code should still unwrap."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("access_token", "refresh_token")
 
         wrapped_response = {
@@ -667,7 +667,7 @@ class TestLiproClientMqtt:
     @pytest.mark.asyncio
     async def test_get_mqtt_config_standard_wrapped_response_returns_payload(self):
         """Wrapped MQTT config responses should unwrap successful data payloads."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("access_token", "refresh_token")
 
         wrapped_response = {
@@ -694,7 +694,7 @@ class TestLiproClientMqtt:
     @pytest.mark.asyncio
     async def test_get_mqtt_config_non_object_response_raises_api_error(self):
         """Non-object MQTT config payload should raise LiproApiError."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("access_token", "refresh_token")
 
         with patch.object(
@@ -713,7 +713,7 @@ class TestLiproClientMqtt:
     @pytest.mark.asyncio
     async def test_get_mqtt_config_401_raises_auth_error(self):
         """Test getMqttConfig raises LiproAuthError on 401."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("access_token", "refresh_token")
 
         with patch.object(
@@ -732,20 +732,20 @@ class TestLiproClientMqtt:
     @pytest.mark.asyncio
     async def test_get_mqtt_config_no_token(self):
         """Test getMqttConfig raises LiproAuthError without token."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         # No tokens set
 
         with pytest.raises(LiproAuthError, match="No access token"):
             await client.get_mqtt_config()
 
 
-class TestLiproClientSuccessCodes:
+class TestLiproRestFacadeSuccessCodes:
     """Tests for success-code behavior."""
 
     @pytest.mark.asyncio
     async def test_smart_home_request_accepts_string_success_code(self):
         """Smart Home API should accept string success code variants."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
 
         with patch.object(
             client, "_execute_request", new_callable=AsyncMock
@@ -766,7 +766,7 @@ class TestLiproClientSuccessCodes:
     @pytest.mark.asyncio
     async def test_smart_home_request_accepts_zero_success_code(self):
         """Smart Home API should accept legacy numeric zero success code."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
 
         with patch.object(
             client, "_execute_request", new_callable=AsyncMock
@@ -787,7 +787,7 @@ class TestLiproClientSuccessCodes:
     @pytest.mark.asyncio
     async def test_smart_home_request_accepts_whitespace_success_code(self):
         """Smart Home API should tolerate string success codes with spaces."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
 
         with patch.object(
             client, "_execute_request", new_callable=AsyncMock
@@ -812,7 +812,7 @@ class TestLiproClientSuccessCodes:
     @pytest.mark.asyncio
     async def test_smart_home_request_preserves_empty_list_value(self):
         """Smart Home API should preserve empty list payload on success."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
 
         with patch.object(
             client, "_execute_request", new_callable=AsyncMock
@@ -833,7 +833,7 @@ class TestLiproClientSuccessCodes:
     @pytest.mark.asyncio
     async def test_smart_home_request_non_object_response_raises_api_error(self):
         """Non-object Smart Home response should raise LiproApiError."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
 
         with patch.object(
             client, "_execute_request", new_callable=AsyncMock
@@ -853,7 +853,7 @@ class TestLiproClientSuccessCodes:
     @pytest.mark.asyncio
     async def test_smart_home_request_accepts_string_auth_code(self):
         """Smart Home API should treat string auth code variants as auth errors."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
 
         with patch.object(
             client, "_execute_request", new_callable=AsyncMock
@@ -877,7 +877,7 @@ class TestLiproClientSuccessCodes:
     @pytest.mark.asyncio
     async def test_smart_home_request_auth_error_without_auth_skips_refresh(self):
         """require_auth=False auth errors should not trigger token refresh callback."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         refresh_callback = AsyncMock()
         client.set_token_refresh_callback(refresh_callback)
 
@@ -901,7 +901,7 @@ class TestLiproClientSuccessCodes:
     @pytest.mark.asyncio
     async def test_smart_home_request_prefers_error_code_for_auth_error(self):
         """Auth errors in errorCode field should propagate with the right code."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
 
         with patch.object(
             client, "_execute_request", new_callable=AsyncMock
@@ -927,7 +927,7 @@ class TestLiproClientSuccessCodes:
     @pytest.mark.asyncio
     async def test_smart_home_request_non_auth_prefers_error_code(self):
         """Non-auth errors should keep the more specific errorCode value."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
 
         with patch.object(
             client, "_execute_request", new_callable=AsyncMock
@@ -953,7 +953,7 @@ class TestLiproClientSuccessCodes:
     @pytest.mark.asyncio
     async def test_smart_home_request_token_expired_case_insensitive(self):
         """token_expired auth code should be matched case-insensitively."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
 
         with patch.object(
             client, "_execute_request", new_callable=AsyncMock
@@ -979,7 +979,7 @@ class TestLiproClientSuccessCodes:
     @pytest.mark.asyncio
     async def test_smart_home_request_refresh_expired_treated_as_auth_error(self):
         """Refresh-expired codes should be classified as LiproAuthError."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
 
         with patch.object(
             client, "_execute_request", new_callable=AsyncMock
@@ -1005,7 +1005,7 @@ class TestLiproClientSuccessCodes:
     @pytest.mark.asyncio
     async def test_iot_request_accepts_string_success_code(self):
         """IoT API should accept string success code variants."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("access", "refresh")
 
         with patch.object(
@@ -1023,7 +1023,7 @@ class TestLiproClientSuccessCodes:
     @pytest.mark.asyncio
     async def test_iot_request_accepts_zero_string_success_code(self):
         """IoT API should accept legacy string zero success code."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("access", "refresh")
 
         with patch.object(
@@ -1041,7 +1041,7 @@ class TestLiproClientSuccessCodes:
     @pytest.mark.asyncio
     async def test_iot_request_auth_error_with_whitespace_code(self):
         """IoT API should treat space-padded auth code as auth failure."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("access", "refresh")
 
         with patch.object(
@@ -1064,7 +1064,7 @@ class TestLiproClientSuccessCodes:
     @pytest.mark.asyncio
     async def test_iot_request_non_auth_prefers_error_code(self):
         """IoT non-auth errors should preserve specific errorCode."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("access", "refresh")
 
         with patch.object(
@@ -1087,7 +1087,7 @@ class TestLiproClientSuccessCodes:
     @pytest.mark.asyncio
     async def test_iot_request_token_expired_error_code_case_insensitive(self):
         """IoT errorCode token_expired should be case-insensitive."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("access", "refresh")
 
         with patch.object(
@@ -1110,7 +1110,7 @@ class TestLiproClientSuccessCodes:
     @pytest.mark.asyncio
     async def test_iot_request_refresh_expired_treated_as_auth_error(self):
         """IoT refresh-expired-like codes should be treated as auth failures."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("access", "refresh")
 
         with patch.object(
@@ -1133,7 +1133,7 @@ class TestLiproClientSuccessCodes:
     @pytest.mark.asyncio
     async def test_iot_request_preserves_empty_data_payload(self):
         """IoT API should keep empty data payload instead of wrapper fields."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("access", "refresh")
 
         with patch.object(
@@ -1155,7 +1155,7 @@ class TestLiproClientSuccessCodes:
     @pytest.mark.asyncio
     async def test_iot_request_none_data_payload_returns_empty_dict(self):
         """IoT API should normalize data=None to empty dict."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("access", "refresh")
 
         with patch.object(
@@ -1173,7 +1173,7 @@ class TestLiproClientSuccessCodes:
     @pytest.mark.asyncio
     async def test_iot_request_non_object_response_raises_api_error(self):
         """Non-object IoT response should raise LiproApiError."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("access", "refresh")
 
         with patch.object(
@@ -1188,14 +1188,14 @@ class TestLiproClientSuccessCodes:
                     await client._iot_request("/test", {})
 
 
-class TestLiproClientClose:
+class TestLiproRestFacadeClose:
     """Tests for client cleanup."""
 
     @pytest.mark.asyncio
     async def test_close_clears_session(self):
         """Test close clears session reference."""
         session = MagicMock(spec=aiohttp.ClientSession)
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000", session)
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000", session)
 
         await client.close()
 
@@ -1206,7 +1206,7 @@ class TestLiproClientClose:
     async def test_close_external_session(self):
         """Test close does not close HA-managed session."""
         session = MagicMock(spec=aiohttp.ClientSession)
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000", session)
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000", session)
 
         await client.close()
 
@@ -1214,13 +1214,13 @@ class TestLiproClientClose:
         session.close.assert_not_called()
 
 
-class TestLiproClientDeviceStatus:
+class TestLiproRestFacadeDeviceStatus:
     """Tests for device status queries."""
 
     @pytest.mark.asyncio
     async def test_query_device_status_success(self):
         """Test querying device status successfully."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("access_token", "refresh_token")
 
         mock_result = [
@@ -1243,7 +1243,7 @@ class TestLiproClientDeviceStatus:
     @pytest.mark.asyncio
     async def test_query_device_status_with_dict_response(self):
         """Test querying device status with dict response containing data key."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("access_token", "refresh_token")
 
         mock_result = {
@@ -1264,7 +1264,7 @@ class TestLiproClientDeviceStatus:
     @pytest.mark.asyncio
     async def test_query_device_status_offline_fallback(self):
         """Test fallback to individual queries when batch fails with 140003."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("access_token", "refresh_token")
 
         call_count = 0
@@ -1292,7 +1292,7 @@ class TestLiproClientDeviceStatus:
     @pytest.mark.asyncio
     async def test_query_device_status_140003_fallback_logs_debug_not_warning(self):
         """Expected 140003 fallback should not emit warning-level noise."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("access_token", "refresh_token")
 
         call_count = 0
@@ -1322,7 +1322,7 @@ class TestLiproClientDeviceStatus:
     @pytest.mark.asyncio
     async def test_query_device_status_other_error_raises(self):
         """Test that non-140003 errors are re-raised."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("access_token", "refresh_token")
 
         with patch.object(
@@ -1338,7 +1338,7 @@ class TestLiproClientDeviceStatus:
         self,
     ):
         """Retriable non-offline fallback warning should include code and endpoint."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("access_token", "refresh_token")
 
         call_count = 0
@@ -1367,13 +1367,13 @@ class TestLiproClientDeviceStatus:
         )
 
 
-class TestLiproClientMeshGroupStatus:
+class TestLiproRestFacadeMeshGroupStatus:
     """Tests for mesh group status queries."""
 
     @pytest.mark.asyncio
     async def test_query_mesh_group_status_empty(self):
         """Test querying status with empty group list."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("access_token", "refresh_token")
 
         result = await client.query_mesh_group_status([])
@@ -1383,7 +1383,7 @@ class TestLiproClientMeshGroupStatus:
     @pytest.mark.asyncio
     async def test_query_mesh_group_status_success(self):
         """Test querying mesh group status successfully."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("access_token", "refresh_token")
 
         mock_result = [
@@ -1403,7 +1403,7 @@ class TestLiproClientMeshGroupStatus:
     @pytest.mark.asyncio
     async def test_query_mesh_group_status_non_list_response(self):
         """Test querying mesh group status with non-list response."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("access_token", "refresh_token")
 
         with patch.object(
@@ -1418,7 +1418,7 @@ class TestLiproClientMeshGroupStatus:
     @pytest.mark.asyncio
     async def test_query_mesh_group_status_offline_fallback(self):
         """Test fallback to individual queries when batch fails with 140003."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("access_token", "refresh_token")
 
         call_count = 0
@@ -1440,13 +1440,13 @@ class TestLiproClientMeshGroupStatus:
             assert call_count == 3
 
 
-class TestLiproClientConnectStatus:
+class TestLiproRestFacadeConnectStatus:
     """Tests for connection-status parsing."""
 
     @pytest.mark.asyncio
     async def test_query_connect_status_coerces_backend_variants(self):
         """Bool/int/string variants should be normalized to bool."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("access", "refresh")
 
         with patch.object(
@@ -1483,7 +1483,7 @@ class TestLiproClientConnectStatus:
     @pytest.mark.asyncio
     async def test_query_connect_status_non_dict_response_returns_empty(self):
         """Non-dict API payload should be ignored safely."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("access", "refresh")
 
         with patch.object(
@@ -1497,7 +1497,7 @@ class TestLiproClientConnectStatus:
     @pytest.mark.asyncio
     async def test_query_connect_status_unknown_values_default_to_false(self):
         """Unknown backend variants should be treated as offline."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("access", "refresh")
 
         with patch.object(
@@ -1520,7 +1520,7 @@ class TestLiproClientConnectStatus:
     @pytest.mark.asyncio
     async def test_query_connect_status_ignores_wrapped_payload(self):
         """Wrapped payload should not be interpreted as device-status map."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("access", "refresh")
 
         with patch.object(
@@ -1539,7 +1539,7 @@ class TestLiproClientConnectStatus:
     @pytest.mark.asyncio
     async def test_query_connect_status_filters_invalid_ids(self):
         """Non-IoT IDs should be filtered out before API request."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("access", "refresh")
 
         with patch.object(
@@ -1564,7 +1564,7 @@ class TestLiproClientConnectStatus:
     @pytest.mark.asyncio
     async def test_query_connect_status_all_invalid_ids_short_circuit(self):
         """All invalid IDs should return empty result without API call."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("access", "refresh")
 
         with patch.object(
@@ -1576,13 +1576,13 @@ class TestLiproClientConnectStatus:
         assert result == {}
 
 
-class TestLiproClientOutletPower:
+class TestLiproRestFacadeOutletPower:
     """Tests for outlet power-info queries."""
 
     @pytest.mark.asyncio
     async def test_fetch_outlet_power_info_filters_invalid_ids(self):
         """Power-info should skip invalid IDs before request."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("access", "refresh")
 
         with patch.object(
@@ -1596,7 +1596,7 @@ class TestLiproClientOutletPower:
     @pytest.mark.asyncio
     async def test_fetch_outlet_power_info_accepts_mesh_group_id(self):
         """Power-info should accept mesh-group IDs supported by the endpoint."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("access", "refresh")
 
         with patch.object(
@@ -1614,7 +1614,7 @@ class TestLiproClientOutletPower:
     @pytest.mark.asyncio
     async def test_fetch_outlet_power_info_normalizes_iot_ids(self):
         """Power-info should normalize valid IoT IDs before request."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("access", "refresh")
 
         with patch.object(
@@ -1632,7 +1632,7 @@ class TestLiproClientOutletPower:
     @pytest.mark.asyncio
     async def test_fetch_outlet_power_info_invalid_param_error_returns_empty(self):
         """Endpoint-level invalid-param code should degrade to empty payload."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("access", "refresh")
 
         with patch.object(
@@ -1647,7 +1647,7 @@ class TestLiproClientOutletPower:
     @pytest.mark.asyncio
     async def test_fetch_outlet_power_info_other_api_error_raises(self):
         """Non-invalid-param API errors should still bubble up."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("access", "refresh")
 
         with patch.object(
@@ -1658,13 +1658,13 @@ class TestLiproClientOutletPower:
                 await client.fetch_outlet_power_info("03ab5ccd7cabcdef")
 
 
-class TestLiproClientOptionalCapabilities:
+class TestLiproRestFacadeOptionalCapabilities:
     """Tests for optional developer capability APIs."""
 
     @pytest.mark.asyncio
     async def test_query_command_result(self):
         """query_command_result should call endpoint with msgSn payload."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
 
         success_payload = {"code": "0000", "message": "success", "success": True}
 
@@ -1691,7 +1691,7 @@ class TestLiproClientOptionalCapabilities:
     @pytest.mark.asyncio
     async def test_query_command_result_returns_raw_failure_mapping(self):
         """query_command_result should preserve backend business failure payload."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         failure_payload = {
             "code": "140006",
             "message": "设备未响应",
@@ -1721,7 +1721,7 @@ class TestLiproClientOptionalCapabilities:
     @pytest.mark.asyncio
     async def test_get_city(self):
         """get_city should send empty body and return mapping payload."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
 
         with patch.object(
             client, "_iot_request", new_callable=AsyncMock
@@ -1735,7 +1735,7 @@ class TestLiproClientOptionalCapabilities:
     @pytest.mark.asyncio
     async def test_query_user_cloud(self):
         """query_user_cloud should use the verified raw empty-body payload."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
 
         with patch.object(
             client, "_request_iot_mapping_raw", new_callable=AsyncMock
@@ -1749,7 +1749,7 @@ class TestLiproClientOptionalCapabilities:
     @pytest.mark.asyncio
     async def test_query_ota_info(self):
         """query_ota_info should merge v1/v2 and controller OTA payloads."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         ota_v1_rows = [{"deviceType": "ff000001", "firmwareVersion": "7.10.9"}]
         controller_rows = [{"bleName": "T21JC", "version": "2.6.43"}]
 
@@ -1781,7 +1781,7 @@ class TestLiproClientOptionalCapabilities:
     @pytest.mark.asyncio
     async def test_query_ota_info_light_v2_fallback(self):
         """query_ota_info should probe richer v2 payload for light devices."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         ota_v2_rows = [{"deviceType": "ff000001", "firmwareVersion": "7.10.9"}]
 
         with patch.object(
@@ -1819,7 +1819,7 @@ class TestLiproClientOptionalCapabilities:
     @pytest.mark.asyncio
     async def test_fetch_body_sensor_history(self):
         """fetch_body_sensor_history should follow API contract fields."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
 
         with patch.object(
             client, "_iot_request", new_callable=AsyncMock
@@ -1846,7 +1846,7 @@ class TestLiproClientOptionalCapabilities:
     @pytest.mark.asyncio
     async def test_fetch_door_sensor_history(self):
         """fetch_door_sensor_history should follow API contract fields."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
 
         with patch.object(
             client, "_iot_request", new_callable=AsyncMock
@@ -1871,13 +1871,13 @@ class TestLiproClientOptionalCapabilities:
         )
 
 
-class TestLiproClient429Handling:
+class TestLiproRestFacade429Handling:
     """Tests for 429 rate limit handling."""
 
     @pytest.mark.asyncio
     async def test_429_with_retry_after_seconds(self):
         """Test 429 handling with Retry-After header in seconds."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("access_token", "refresh_token")
 
         call_count = 0
@@ -1912,7 +1912,7 @@ class TestLiproClient429Handling:
         """Test 429 raises error after max retries."""
         from custom_components.lipro.core.api import LiproRateLimitError
 
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("access_token", "refresh_token")
 
         async def mock_execute_request(request_ctx, path):
@@ -1937,22 +1937,22 @@ class TestLiproClient429Handling:
 
     def test_parse_retry_after_seconds(self):
         """Test parsing Retry-After header with seconds value."""
-        result = LiproClient._parse_retry_after({"Retry-After": "30"})
+        result = LiproRestFacade._parse_retry_after({"Retry-After": "30"})
         assert result == 30.0
 
     def test_parse_retry_after_float(self):
         """Test parsing Retry-After header with float value."""
-        result = LiproClient._parse_retry_after({"Retry-After": "1.5"})
+        result = LiproRestFacade._parse_retry_after({"Retry-After": "1.5"})
         assert result == 1.5
 
     def test_parse_retry_after_missing(self):
         """Test parsing missing Retry-After header."""
-        result = LiproClient._parse_retry_after({})
+        result = LiproRestFacade._parse_retry_after({})
         assert result is None
 
     def test_parse_retry_after_invalid(self):
         """Test parsing invalid Retry-After header."""
-        result = LiproClient._parse_retry_after({"Retry-After": "invalid"})
+        result = LiproRestFacade._parse_retry_after({"Retry-After": "invalid"})
         # Invalid string that's not a number and not a valid HTTP date
         assert result is None
 
@@ -1963,7 +1963,7 @@ class TestLiproClient429Handling:
 
         future = datetime.now(UTC) + timedelta(seconds=60)
         http_date = future.strftime("%a, %d %b %Y %H:%M:%S GMT")
-        result = LiproClient._parse_retry_after({"Retry-After": http_date})
+        result = LiproRestFacade._parse_retry_after({"Retry-After": http_date})
         # Should return approximately 60 seconds (allow some tolerance)
         assert result is not None
         assert 55 <= result <= 65
@@ -1975,34 +1975,34 @@ class TestLiproClient429Handling:
         future = datetime.now(UTC) + timedelta(seconds=60)
         naive_future = future.replace(tzinfo=None)
         http_date = naive_future.strftime("%a, %d %b %Y %H:%M:%S")
-        result = LiproClient._parse_retry_after({"Retry-After": http_date})
+        result = LiproRestFacade._parse_retry_after({"Retry-After": http_date})
         assert result is not None
         assert 55 <= result <= 65
 
     def test_parse_retry_after_lowercase_header(self):
         """Test parsing lowercase retry-after header."""
-        result = LiproClient._parse_retry_after({"retry-after": "10"})
+        result = LiproRestFacade._parse_retry_after({"retry-after": "10"})
         assert result == 10.0
 
     def test_parse_retry_after_negative(self):
         """Test parsing negative Retry-After value."""
         # Negative values should still be parsed (clamping happens at usage site)
-        result = LiproClient._parse_retry_after({"Retry-After": "-5"})
+        result = LiproRestFacade._parse_retry_after({"Retry-After": "-5"})
         assert result == -5.0
 
     def test_parse_retry_after_zero(self):
         """Test parsing zero Retry-After value."""
-        result = LiproClient._parse_retry_after({"Retry-After": "0"})
+        result = LiproRestFacade._parse_retry_after({"Retry-After": "0"})
         assert result == 0.0
 
 
-class TestLiproClientCommandsExtended:
+class TestLiproRestFacadeCommandsExtended:
     """Extended tests for command sending."""
 
     @pytest.mark.asyncio
     async def test_send_command_with_properties(self):
         """Test sending command with properties."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("access_token", "refresh_token")
 
         with patch.object(
@@ -2032,7 +2032,7 @@ class TestLiproClientCommandsExtended:
     @pytest.mark.asyncio
     async def test_send_command_without_properties(self):
         """Test sending command without properties sends empty list."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("access_token", "refresh_token")
 
         with patch.object(
@@ -2054,7 +2054,7 @@ class TestLiproClientCommandsExtended:
     @pytest.mark.asyncio
     async def test_send_group_command_with_properties(self):
         """Test sending group command with properties."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("access_token", "refresh_token")
 
         with patch.object(
@@ -2078,7 +2078,7 @@ class TestLiproClientCommandsExtended:
     @pytest.mark.asyncio
     async def test_send_group_command_retries_on_device_busy(self):
         """Transient busy response should be retried for group commands."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("access_token", "refresh_token")
 
         with (
@@ -2115,7 +2115,7 @@ class TestLiproClientCommandsExtended:
     @pytest.mark.asyncio
     async def test_send_command_retries_on_device_busy_message(self):
         """Busy-message variants should also trigger retry for single device."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("access_token", "refresh_token")
 
         with (
@@ -2149,7 +2149,7 @@ class TestLiproClientCommandsExtended:
     @pytest.mark.asyncio
     async def test_send_command_non_busy_error_does_not_retry(self):
         """Non-busy errors should propagate without retry."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("access_token", "refresh_token")
 
         with (
@@ -2180,7 +2180,7 @@ class TestLiproClientCommandsExtended:
     @pytest.mark.asyncio
     async def test_send_group_command_busy_retry_exhausted_raises(self):
         """Busy retries should stop after the configured max attempts."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("access_token", "refresh_token")
 
         with (
@@ -2213,7 +2213,7 @@ class TestLiproClientCommandsExtended:
     @pytest.mark.asyncio
     async def test_throttle_change_state_waits_for_same_target(self):
         """CHANGE_STATE should pace repeated sends to the same target."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         client._last_change_state_at["mesh_group_10001"] = 100.0
 
         with (
@@ -2238,7 +2238,7 @@ class TestLiproClientCommandsExtended:
     @pytest.mark.asyncio
     async def test_throttle_change_state_skips_non_change_state(self):
         """Non-CHANGE_STATE commands should not be rate-limited."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         client._last_change_state_at["mesh_group_10001"] = 100.0
 
         with patch(
@@ -2252,7 +2252,7 @@ class TestLiproClientCommandsExtended:
     @pytest.mark.asyncio
     async def test_record_change_state_busy_increases_adaptive_interval(self):
         """Busy responses should increase per-target CHANGE_STATE interval."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
 
         interval1, count1 = await client._record_change_state_busy(
             "mesh_group_10001", "CHANGE_STATE"
@@ -2270,7 +2270,7 @@ class TestLiproClientCommandsExtended:
     @pytest.mark.asyncio
     async def test_record_change_state_success_recovers_adaptive_interval(self):
         """Successful CHANGE_STATE should recover interval and clear busy count."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
 
         await client._record_change_state_busy("mesh_group_10001", "CHANGE_STATE")
         busy_interval = client._change_state_min_interval["mesh_group_10001"]
@@ -2285,7 +2285,7 @@ class TestLiproClientCommandsExtended:
     @pytest.mark.asyncio
     async def test_record_change_state_busy_skips_non_change_state(self):
         """Non-CHANGE_STATE command should not alter adaptive pacing caches."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
 
         interval, count = await client._record_change_state_busy(
             "mesh_group_10001", "POWER_ON"
@@ -2297,13 +2297,13 @@ class TestLiproClientCommandsExtended:
         assert client._change_state_busy_count == {}
 
 
-class TestLiproClientIotRequest:
+class TestLiproRestFacadeIotRequest:
     """Tests for IoT API request handling."""
 
     @pytest.mark.asyncio
     async def test_iot_request_no_access_token(self):
         """Test IoT request fails without access token."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         # No tokens set
 
         with pytest.raises(LiproAuthError, match="No access token"):
@@ -2312,7 +2312,7 @@ class TestLiproClientIotRequest:
     @pytest.mark.asyncio
     async def test_iot_request_auth_error_codes(self):
         """Test IoT request handles various auth error codes."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("access_token", "refresh_token")
 
         # Test different auth error codes
@@ -2341,7 +2341,7 @@ class TestLiproClientIotRequest:
                     await client._iot_request("/test", {})
 
 
-class TestLiproClientSchedules:
+class TestLiproRestFacadeSchedules:
     """Tests for schedule API response parsing."""
 
     @pytest.mark.asyncio
@@ -2349,7 +2349,7 @@ class TestLiproClientSchedules:
         self,
     ):
         """Mesh schedule GET should use BLE endpoint and normalize scheduleJson."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("access", "refresh")
 
         gateway_id = "03ab0000000000a1"
@@ -2387,7 +2387,7 @@ class TestLiproClientSchedules:
     @pytest.mark.asyncio
     async def test_get_device_schedules_mesh_falls_back_to_member_id(self):
         """Mesh schedule GET should try member IDs when gateway has no tasks."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("access", "refresh")
 
         gateway_id = "03ab0000000000a1"
@@ -2427,7 +2427,7 @@ class TestLiproClientSchedules:
     @pytest.mark.asyncio
     async def test_get_device_schedules_mesh_parses_canonical_schedule_json(self):
         """Mesh GET should parse verified canonical scheduleJson payloads."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("access", "refresh")
 
         gateway_id = "03ab0000000000a1"
@@ -2452,7 +2452,7 @@ class TestLiproClientSchedules:
     @pytest.mark.asyncio
     async def test_add_device_schedule_mesh_uses_ble_endpoint(self):
         """Mesh schedule ADD should call BLE endpoint with scheduleJson payload."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("access", "refresh")
 
         gateway_id = "03ab0000000000a1"
@@ -2498,7 +2498,7 @@ class TestLiproClientSchedules:
     @pytest.mark.asyncio
     async def test_add_device_schedule_mesh_uses_first_free_schedule_id(self):
         """Mesh schedule ADD should append to the first free schedule slot."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("access", "refresh")
 
         gateway_id = "03ab0000000000a1"
@@ -2538,7 +2538,7 @@ class TestLiproClientSchedules:
 
     async def test_delete_device_schedules_mesh_uses_ble_endpoint(self):
         """Mesh schedule DELETE should call BLE delete endpoint."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("access", "refresh")
 
         gateway_id = "03ab0000000000a1"
@@ -2571,7 +2571,7 @@ class TestLiproClientSchedules:
     @pytest.mark.asyncio
     async def test_get_device_schedules_standard_accepts_list_response(self):
         """Standard schedule GET should accept list payload returned by real API."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("access", "refresh")
 
         rows = [{"id": 1, "active": True, "schedule": {"days": [1], "time": [3600]}}]
@@ -2594,7 +2594,7 @@ class TestLiproClientSchedules:
     @pytest.mark.asyncio
     async def test_get_device_schedules_standard_accepts_dict_timings_response(self):
         """Standard schedule GET should also support wrapped timings payload."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("access", "refresh")
 
         rows = [{"id": 2, "active": False, "schedule": {"days": [2], "time": [7200]}}]
@@ -2617,7 +2617,7 @@ class TestLiproClientSchedules:
     @pytest.mark.asyncio
     async def test_add_device_schedule_standard_accepts_list_response(self):
         """Standard schedule ADD should accept list payload variants."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("access", "refresh")
 
         rows = [{"id": 3, "active": True, "schedule": {"days": [3], "time": [10800]}}]
@@ -2649,7 +2649,7 @@ class TestLiproClientSchedules:
     @pytest.mark.asyncio
     async def test_delete_device_schedules_standard_accepts_data_wrapper(self):
         """Standard schedule DELETE should accept data-wrapped rows."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("access", "refresh")
 
         rows = [{"id": 4, "active": True, "schedule": {"days": [1], "time": [0]}}]
@@ -2679,7 +2679,7 @@ class TestLiproClientSchedules:
     @pytest.mark.asyncio
     async def test_get_device_schedules_standard_invalid_payload_returns_empty(self):
         """Unexpected standard schedule payload should degrade to empty list."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("access", "refresh")
 
         with patch.object(
@@ -2701,7 +2701,7 @@ class TestLiproClientSchedules:
     @pytest.mark.asyncio
     async def test_get_device_schedules_non_mesh_uses_standard_endpoint(self):
         """Non-mesh schedule GET should use the standard endpoint directly."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("access", "refresh")
 
         with patch.object(
@@ -2722,7 +2722,7 @@ class TestLiproClientSchedules:
     @pytest.mark.asyncio
     async def test_get_device_schedules_non_mesh_bubbles_standard_error(self):
         """Standard GET errors should bubble for non-mesh devices."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("access", "refresh")
 
         with patch.object(
@@ -2744,7 +2744,7 @@ class TestLiproClientSchedules:
     @pytest.mark.asyncio
     async def test_add_delete_schedule_non_mesh_bubble_standard_errors(self):
         """Standard ADD/DELETE errors should bubble for non-mesh devices."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("access", "refresh")
 
         with patch.object(
@@ -2793,12 +2793,12 @@ class TestLiproClientSchedules:
         )
 
 
-class TestLiproClientBizId:
+class TestLiproRestFacadeBizId:
     """Tests for biz_id handling."""
 
     def test_biz_id_stored(self):
         """Test that biz_id is stored when setting tokens."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens(
             access_token="access",
             refresh_token="refresh",
@@ -2810,7 +2810,7 @@ class TestLiproClientBizId:
 
     def test_biz_id_default(self):
         """Test that biz_id defaults to None."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("access", "refresh")
 
         assert client._biz_id is None
@@ -2818,7 +2818,7 @@ class TestLiproClientBizId:
     @pytest.mark.asyncio
     async def test_429_with_huge_retry_after_is_capped(self):
         """Test that 429 with huge Retry-After doesn't hang (integration test)."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("access_token", "refresh_token")
 
         call_count = 0
@@ -2850,7 +2850,7 @@ class TestLiproClientBizId:
         assert actual_wait == 60.0
 
 
-class TestLiproClientAdditionalBranchCoverage:
+class TestLiproRestFacadeAdditionalBranchCoverage:
     """Additional branch-focused tests for API client helpers and edge paths."""
 
     def test_normalize_iot_device_id_non_string(self):
@@ -2864,24 +2864,24 @@ class TestLiproClientAdditionalBranchCoverage:
     @pytest.mark.asyncio
     async def test_get_session_without_injected_session_raises(self):
         """Session access should fail fast when no aiohttp session is injected."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
 
         with pytest.raises(LiproConnectionError, match="No aiohttp session"):
             await client._get_session()
 
     def test_resolve_error_code_returns_none_for_empty_values(self):
         """Empty/zero code fields should normalize to None."""
-        assert LiproClient._resolve_error_code(None, 0) is None
+        assert LiproRestFacade._resolve_error_code(None, 0) is None
 
     def test_is_command_busy_error_false_for_empty_message(self):
         """Empty error message with non-busy code should not be treated as busy."""
-        assert LiproClient._is_command_busy_error(LiproApiError("", 500)) is False
+        assert LiproRestFacade._is_command_busy_error(LiproApiError("", 500)) is False
 
     def test_client_pacing_change_state_command_and_normalize_target_wrappers(self):
         """Pacing wrappers should delegate to request-policy helpers."""
-        assert LiproClient._is_change_state_command("change_state") is True
-        assert LiproClient._is_change_state_command("POWER_ON") is False
-        assert LiproClient._normalize_pacing_target("  TaRgEt  ") == "target"
+        assert LiproRestFacade._is_change_state_command("change_state") is True
+        assert LiproRestFacade._is_change_state_command("POWER_ON") is False
+        assert LiproRestFacade._normalize_pacing_target("  TaRgEt  ") == "target"
 
     def test_enforce_command_pacing_cache_limit_handles_empty_last_change_state_at_and_drops_idle_lock(
         self,
@@ -2890,7 +2890,7 @@ class TestLiproClientAdditionalBranchCoverage:
         """Eviction must handle missing timestamps and drop idle locks safely."""
         monkeypatch.setattr(request_policy_module, "COMMAND_PACING_CACHE_MAX_SIZE", 0)
 
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         target = "target"
 
         # Keep last_change_state_at empty so policy takes the tracked_targets fallback.
@@ -2906,7 +2906,7 @@ class TestLiproClientAdditionalBranchCoverage:
 
     def test_enforce_command_pacing_cache_limit_drops_oldest_targets(self):
         """Pacing cache should stay bounded by evicting oldest tracked targets."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         total = COMMAND_PACING_CACHE_MAX_SIZE + 2
         for idx in range(total):
             key = f"target_{idx}"
@@ -2925,7 +2925,7 @@ class TestLiproClientAdditionalBranchCoverage:
     @pytest.mark.asyncio
     async def test_enforce_command_pacing_cache_limit_keeps_lock_with_waiters(self):
         """Lock entries with queued waiters must not be evicted."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         total = COMMAND_PACING_CACHE_MAX_SIZE + 1
         for idx in range(total):
             key = f"target_{idx}"
@@ -2954,7 +2954,7 @@ class TestLiproClientAdditionalBranchCoverage:
     @pytest.mark.asyncio
     async def test_record_change_state_busy_ignores_blank_target(self):
         """Blank target IDs should not mutate pacing state."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
 
         interval, count = await client._record_change_state_busy("   ", "CHANGE_STATE")
 
@@ -2965,7 +2965,7 @@ class TestLiproClientAdditionalBranchCoverage:
     @pytest.mark.asyncio
     async def test_record_change_state_success_ignores_blank_target(self):
         """Blank target IDs should skip recovery logic safely."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         client._change_state_min_interval["target"] = 0.6
         client._change_state_busy_count["target"] = 2
 
@@ -2977,7 +2977,7 @@ class TestLiproClientAdditionalBranchCoverage:
     @pytest.mark.asyncio
     async def test_iot_request_with_busy_retry_non_mapping_success_returns_empty(self):
         """Busy-retry helper should normalize non-dict success payloads to empty dict."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
 
         with patch.object(
             client, "_iot_request", new_callable=AsyncMock
@@ -2995,7 +2995,7 @@ class TestLiproClientAdditionalBranchCoverage:
     @pytest.mark.asyncio
     async def test_throttle_change_state_ignores_blank_target(self):
         """Throttle should no-op when target is blank after normalization."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
 
         with patch(
             "custom_components.lipro.core.api.client_pacing.asyncio.sleep",
@@ -3010,7 +3010,7 @@ class TestLiproClientAdditionalBranchCoverage:
         """Authenticated smart-home requests should fail without access token."""
         session = MagicMock()
         session.closed = False
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000", session)
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000", session)
 
         with pytest.raises(LiproAuthError, match="No access token available"):
             await client._smart_home_request("/test", {"k": "v"}, require_auth=True)
@@ -3018,7 +3018,7 @@ class TestLiproClientAdditionalBranchCoverage:
     @pytest.mark.asyncio
     async def test_smart_home_request_typed_value_paths(self):
         """typedValue response should be unwrapped, including None fallback."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
 
         with (
             patch.object(
@@ -3042,7 +3042,7 @@ class TestLiproClientAdditionalBranchCoverage:
     @pytest.mark.asyncio
     async def test_iot_request_429_retries_then_succeeds(self):
         """IoT request should retry once on 429 and then return success payload."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("access", "refresh")
 
         with (
@@ -3070,7 +3070,7 @@ class TestLiproClientAdditionalBranchCoverage:
     @pytest.mark.asyncio
     async def test_iot_request_http_401_without_refresh_raises_auth_error(self):
         """HTTP 401 should raise auth error when refresh retry is unavailable."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("access", "refresh")
 
         with (
@@ -3089,7 +3089,7 @@ class TestLiproClientAdditionalBranchCoverage:
     @pytest.mark.asyncio
     async def test_iot_request_auth_code_refreshes_and_retries(self):
         """Auth error in body should refresh token once and retry request."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("access_old", "refresh")
         refresh_callback = AsyncMock(
             side_effect=lambda: client.set_tokens("access_new", "refresh")
@@ -3117,12 +3117,12 @@ class TestLiproClientAdditionalBranchCoverage:
     def test_unwrap_iot_success_payload_without_data_returns_original(self):
         """IoT success unwrapping should keep original payload when data key is absent."""
         payload = {"code": 200, "message": "ok"}
-        assert LiproClient._unwrap_iot_success_payload(payload) == payload
+        assert LiproRestFacade._unwrap_iot_success_payload(payload) == payload
 
     @pytest.mark.asyncio
     async def test_handle_401_without_refresh_callback_returns_false(self):
         """Without callback, 401 handler should indicate no retry possible."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("access", "refresh")
 
         assert await client._handle_401_with_refresh("access") is False
@@ -3130,7 +3130,7 @@ class TestLiproClientAdditionalBranchCoverage:
     @pytest.mark.asyncio
     async def test_handle_401_refresh_token_expired_bubbles(self):
         """Refresh-token-expired errors should propagate for reauth handling."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("access", "refresh")
         client.set_token_refresh_callback(
             AsyncMock(side_effect=LiproRefreshTokenExpiredError("expired"))
@@ -3142,7 +3142,7 @@ class TestLiproClientAdditionalBranchCoverage:
     @pytest.mark.asyncio
     async def test_handle_401_refresh_auth_error_returns_false(self):
         """Authentication errors during refresh should disable retry."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("access", "refresh")
         client.set_token_refresh_callback(
             AsyncMock(side_effect=LiproAuthError("invalid"))
@@ -3153,7 +3153,7 @@ class TestLiproClientAdditionalBranchCoverage:
     @pytest.mark.asyncio
     async def test_login_with_prehashed_password_keeps_hash(self):
         """login(password_is_hashed=True) should pass hash through unchanged."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         captured_data: dict[str, str] = {}
 
         async def _capture(path, data, require_auth=True):
@@ -3168,7 +3168,7 @@ class TestLiproClientAdditionalBranchCoverage:
     @pytest.mark.asyncio
     async def test_login_missing_tokens_raises_auth_error(self):
         """Login response without tokens should fail explicitly."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
 
         with patch.object(
             client, "_smart_home_request", new_callable=AsyncMock
@@ -3182,7 +3182,7 @@ class TestLiproClientAdditionalBranchCoverage:
     @pytest.mark.asyncio
     async def test_refresh_access_token_missing_tokens_raises_auth_error(self):
         """Refresh endpoint response without token pair should raise auth error."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("old_access", "old_refresh")
 
         with patch.object(
@@ -3197,7 +3197,7 @@ class TestLiproClientAdditionalBranchCoverage:
     @pytest.mark.asyncio
     async def test_get_product_configs_handles_list_and_non_list_payloads(self):
         """Product configs should return list payload or empty list fallback."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
 
         with patch.object(
             client, "_smart_home_request", new_callable=AsyncMock
@@ -3215,7 +3215,7 @@ class TestLiproClientAdditionalBranchCoverage:
     @pytest.mark.asyncio
     async def test_get_mqtt_config_429_retries_then_succeeds(self):
         """MQTT config endpoint should retry once on 429."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("access", "refresh")
 
         with (
@@ -3243,7 +3243,7 @@ class TestLiproClientAdditionalBranchCoverage:
     @pytest.mark.asyncio
     async def test_get_mqtt_config_401_refresh_retry_success(self):
         """MQTT config endpoint should retry after successful token refresh."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("access_old", "refresh")
         refresh_callback = AsyncMock(
             side_effect=lambda: client.set_tokens("access_new", "refresh")
@@ -3271,7 +3271,7 @@ class TestLiproClientAdditionalBranchCoverage:
     @pytest.mark.asyncio
     async def test_get_mqtt_config_non_success_response_raises_api_error(self):
         """Non-success wrapped MQTT config should raise LiproApiError."""
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("access", "refresh")
 
         with (

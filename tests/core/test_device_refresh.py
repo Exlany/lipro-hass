@@ -307,7 +307,7 @@ def test_device_filter_skips_ssid_check_when_mode_off():
 
 @pytest.fixture
 def mock_client():
-    """Create mock LiproClient."""
+    """Create mock protocol facade."""
     return AsyncMock()
 
 

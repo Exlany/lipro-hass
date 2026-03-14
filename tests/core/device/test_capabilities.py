@@ -5,13 +5,15 @@ from __future__ import annotations
 import pytest
 
 from custom_components.lipro.const.categories import DeviceCategory
-from custom_components.lipro.core.capability import CapabilitySnapshot
-from custom_components.lipro.core.device import DeviceCapabilities
+from custom_components.lipro.core.capability import (
+    CapabilityRegistry,
+    CapabilitySnapshot,
+)
 
 
 def test_device_capabilities_from_device_profile_exposes_light_flags() -> None:
     """Profile metadata should derive the expected light capability set."""
-    caps = DeviceCapabilities.from_device_profile(
+    caps = CapabilityRegistry.from_device_profile(
         device_type_hex="ff000001",
         min_color_temp_kelvin=2700,
         max_color_temp_kelvin=6500,
@@ -54,7 +56,7 @@ def test_device_capabilities_from_device_type_maps_categories(
     attr_name: str,
 ) -> None:
     """Type-only capability snapshots should still expose category flags."""
-    caps = DeviceCapabilities.from_device_type(device_type_hex)
+    caps = CapabilityRegistry.from_device_type(device_type_hex)
 
     assert caps.category == expected_category
     assert caps.platforms == expected_platforms

@@ -54,7 +54,7 @@ from custom_components.lipro.core.anonymous_share.sanitize import (
     sanitize_value,
 )
 from custom_components.lipro.core.anonymous_share.share_client import ShareWorkerClient
-from custom_components.lipro.core.api import LiproClient
+from custom_components.lipro.core.api import LiproRestFacade
 from custom_components.lipro.core.api.observability import (
     record_api_error as record_observed_api_error,
 )
@@ -1132,7 +1132,7 @@ class TestClientObservabilityScope:
             "custom_components.lipro.core.api.client_auth_recovery._record_api_error",
             _capture,
         )
-        client = LiproClient("550e8400-e29b-41d4-a716-446655440000", entry_id="entry-2")
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000", entry_id="entry-2")
 
         with pytest.raises(LiproApiError, match="boom"):
             await client._finalize_mapping_result(

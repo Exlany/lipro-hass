@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from .capabilities import DeviceCapabilities
 from .device import LiproDevice
 from .extras import DeviceExtras
 from .identity import DeviceIdentity
@@ -11,7 +10,6 @@ from .parsing import parse_properties_list
 from .state import DeviceState
 
 __all__ = [
-    "DeviceCapabilities",
     "DeviceExtras",
     "DeviceIdentity",
     "DeviceNetworkInfo",

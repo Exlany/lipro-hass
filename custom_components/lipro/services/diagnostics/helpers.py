@@ -22,6 +22,7 @@ from ...control.runtime_access import (
 from ...core import LiproApiError
 from ...core.api.types import DiagnosticsApiResponse
 from ...core.utils.log_safety import safe_error_placeholder
+from ...runtime_types import LiproCoordinator
 from ..execution import (
     AuthenticatedCoordinator,
     ServiceErrorRaiser,
@@ -89,7 +90,7 @@ def _coerce_service_float(call: ServiceCall, key: str, default: float) -> float:
 
 def _collect_exporter_developer_report(
     hass: HomeAssistant,
-    coordinator: object,
+    coordinator: LiproCoordinator,
 ) -> DeveloperReport | None:
     """Return exporter-backed developer view when coordinator lacks a legacy builder."""
     telemetry_surface = import_module("custom_components.lipro.control.telemetry_surface")
@@ -160,7 +161,9 @@ def collect_developer_reports(
             if callable(builder):
                 reports.append(cast(DeveloperReport, builder()))
                 continue
-            exporter_report = _collect_exporter_developer_report(hass, coordinator)
+            exporter_report = _collect_exporter_developer_report(
+                hass, cast("LiproCoordinator", coordinator)
+            )
             if exporter_report is not None:
                 reports.append(exporter_report)
         except Exception as err:  # noqa: BLE001

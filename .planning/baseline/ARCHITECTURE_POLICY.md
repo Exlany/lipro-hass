@@ -2,7 +2,7 @@
 
 **Purpose:** 把 north-star 与 baseline 的结构约束翻译成单一、可执行、可扩展的 architecture enforcement baseline。
 **Status:** Formal baseline asset (`ENF-01` / `ENF-02` policy truth source)
-**Updated:** 2026-03-13
+**Updated:** 2026-03-14
 
 ## Formal Role
 
@@ -42,7 +42,7 @@
 | Rule ID | Taxonomy | Mode | Governed File | Required Signals | Forbidden Signals | Source Refs | Enforcement |
 |--------|----------|------|---------------|------------------|-------------------|-------------|-------------|
 | `ENF-SURFACE-COORDINATOR-ENTRY` | Root | `all_exact` | `custom_components/lipro/coordinator_entry.py` | `Coordinator` | `-` | `.planning/baseline/PUBLIC_SURFACES.md` | `scripts/check_architecture_policy.py`<br>`tests/meta/test_public_surface_guards.py` |
-| `ENF-SURFACE-API-EXPORTS` | Surface | `all_contains_disjoint` | `custom_components/lipro/core/api/__init__.py` | `LiproClient`<br>`LiproRestFacade` | `client_auth_recovery`<br>`client_transport`<br>`request_codec`<br>`request_policy`<br>`response_safety`<br>`transport_core`<br>`transport_retry`<br>`transport_signing`<br>`_COMMAND_PACING_CACHE_MAX_SIZE`<br>`_mask_sensitive_data`<br>`_normalize_response_code` | `.planning/baseline/PUBLIC_SURFACES.md` | `scripts/check_architecture_policy.py`<br>`tests/meta/test_public_surface_guards.py` |
+| `ENF-SURFACE-API-EXPORTS` | Surface | `all_contains_disjoint` | `custom_components/lipro/core/api/__init__.py` | `LiproRestFacade` | `client_auth_recovery`<br>`client_transport`<br>`request_codec`<br>`request_policy`<br>`response_safety`<br>`transport_core`<br>`transport_retry`<br>`transport_signing`<br>`_COMMAND_PACING_CACHE_MAX_SIZE`<br>`_mask_sensitive_data`<br>`_normalize_response_code` | `.planning/baseline/PUBLIC_SURFACES.md` | `scripts/check_architecture_policy.py`<br>`tests/meta/test_public_surface_guards.py` |
 | `ENF-SURFACE-PROTOCOL-EXPORTS` | Surface | `all_contains_disjoint` | `custom_components/lipro/core/protocol/__init__.py` | `LiproProtocolFacade`<br>`LiproMqttFacade` | `BoundaryDecodeResult`<br>`BoundaryDecoderKey`<br>`BoundaryDecoderRegistry`<br>`build_protocol_boundary_registry`<br>`decode_mqtt_config_payload`<br>`decode_mqtt_properties_payload` | `.planning/baseline/PUBLIC_SURFACES.md` | `scripts/check_architecture_policy.py`<br>`tests/meta/test_public_surface_guards.py` |
 | `ENF-BACKDOOR-COORDINATOR-PROPERTIES` | Backdoor | `property_contains_disjoint` | `custom_components/lipro/core/coordinator/coordinator.py::Coordinator` | `devices` | `command_runtime`<br>`device_runtime`<br>`mqtt_runtime`<br>`state_runtime`<br>`status_runtime`<br>`tuning_runtime`<br>`background_task_manager`<br>`mqtt_client`<br>`biz_id` | `.planning/baseline/PUBLIC_SURFACES.md`<br>`.planning/reviews/RESIDUAL_LEDGER.md` | `scripts/check_architecture_policy.py`<br>`tests/meta/test_public_surface_guards.py` |
 | `ENF-BACKDOOR-SERVICE-AUTH` | Backdoor | `file_contains_disjoint` | `custom_components/lipro/services/execution.py` | `auth_service` | `getattr(coordinator, "_async_ensure_authenticated"`<br>`getattr(coordinator, "_trigger_reauth"` | `.planning/reviews/RESIDUAL_LEDGER.md`<br>`.planning/baseline/PUBLIC_SURFACES.md` | `scripts/check_architecture_policy.py`<br>`tests/meta/test_public_surface_guards.py` |

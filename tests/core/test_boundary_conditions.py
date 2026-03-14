@@ -290,18 +290,18 @@ class TestSignatureEdgeCases:
 
     def test_iot_sign_with_empty_body(self):
         """Test IoT signature with empty body produces valid MD5."""
-        from custom_components.lipro.core.api import LiproClient
+        from custom_components.lipro.core.api import LiproRestFacade
 
-        client = LiproClient(phone_id="test_id")
+        client = LiproRestFacade(phone_id="test_id")
         client._access_token = "test_token"
         signature = client._iot_sign(1000167890, "")
         assert len(signature) == 32  # MD5 produces 32 hex chars
 
     def test_iot_sign_with_whitespace_body(self):
         """Test IoT signature trims whitespace from body."""
-        from custom_components.lipro.core.api import LiproClient
+        from custom_components.lipro.core.api import LiproRestFacade
 
-        client = LiproClient(phone_id="test_id")
+        client = LiproRestFacade(phone_id="test_id")
         client._access_token = "test_token"
         nonce = 1000167890
         sig_trimmed = client._iot_sign(nonce, '{"key": "value"}')

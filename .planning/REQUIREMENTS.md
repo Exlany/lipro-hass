@@ -62,13 +62,13 @@
 
 ### Type Contract Alignment, Residual Cleanup & Governance Hygiene
 
-- [ ] **TYP-01**: `LiproCoordinator` public protocol、`Coordinator` implementation、platform setup entrypoints 与 diagnostics/entity adapters 必须在正式 typed runtime surface 上重新对齐，`uv run mypy` 不得再依赖 `Any` / `cast` 掩盖漂移。
-- [ ] **TYP-02**: `LiproRestFacade`、typed API service protocols 与 canonical result rows 必须在返回类型上完全一致，禁止把已结构化 contract 再放宽成 `dict[str, Any]` / `object` 作为正式 truth。
-- [ ] **CMP-01**: remaining explicit compat seams（`core.api.LiproClient`、`LiproProtocolFacade.get_device_list`、`LiproMqttFacade.raw_client`、`DeviceCapabilities`）必须继续收窄；若本 phase 后仍保留，必须拥有更清晰的 delete gate 与更小 direct-consumer 面。
-- [ ] **CMP-02**: `core/api` 的 historical skeleton（`_ClientBase` 与相关 compat spine）必须进一步削薄，但不得重新引入动态 surface、ghost export 或第三条 API 主链。
-- [ ] **HOT-01**: `core/api/client.py`、`core/coordinator/coordinator.py`、`core/api/status_service.py`、`control/service_router.py` 等热点文件必须顺着 formal boundary 继续切薄，并收窄真正会掩盖 contract/runtime boundary 的宽泛异常处理。
-- [ ] **GOV-09**: `docs/developer_architecture.md`、`custom_components/lipro/quality_scale.yaml`、`.devcontainer.json` 与其他 contributor-facing docs/config 必须同步到当前仓库真相，不得继续陈述旧文件规模、旧测试路径、旧解释器路径或旧 README facts。
-- [ ] **GOV-10**: contributor-facing CI/open-source contract 必须与真实仓库治理对齐：明确 `security` job 口径，并裁决 `CODE_OF_CONDUCT.md` / `SUPPORT.md` / shell 脚本 lint 门禁哪些进入本 phase、哪些保留为显式 backlog。
+- [x] **TYP-01**: `LiproCoordinator` public protocol、`Coordinator` implementation、platform setup entrypoints 与 diagnostics/entity adapters 已重新对齐到正式 typed runtime surface。
+- [x] **TYP-02**: `LiproRestFacade`、typed API service protocols 与 canonical result rows 已在返回类型上完全一致。
+- [x] **CMP-01**: remaining explicit compat seams（`core.api.LiproClient`、`LiproProtocolFacade.get_device_list`、`LiproMqttFacade.raw_client`、`DeviceCapabilities`）已从生产 public surface 清退。
+- [x] **CMP-02**: `core/api` historical skeleton 已进一步削薄；`_ClientBase` 仅保留 internal typing contract 角色，不再承担 public skeleton 语义。
+- [x] **HOT-01**: `core/api/client.py`、`snapshot.py` 与相关 typed/runtime 热点已继续沿 formal boundary 收口，未引入第二 orchestration story。
+- [x] **GOV-09**: developer-facing docs / config truth（architecture docs、quality scale、devcontainer、baseline/review truth）已对齐当前实现。
+- [x] **GOV-10**: contributor-facing CI/open-source contract 已与真实仓库治理对齐；`security` job、`CODE_OF_CONDUCT.md`、`SUPPORT.md` 与 shell 脚本 lint 门禁均已纳入正式口径。
 
 ## Cross-Phase Arbitration
 
@@ -133,17 +133,17 @@
 | ENT-02 | Phase 11 | Complete |
 | GOV-08 | Phase 11 | Complete |
 
-| TYP-01 | Phase 12 | Planned |
-| TYP-02 | Phase 12 | Planned |
-| CMP-01 | Phase 12 | Planned |
-| CMP-02 | Phase 12 | Planned |
-| HOT-01 | Phase 12 | Planned |
-| GOV-09 | Phase 12 | Planned |
-| GOV-10 | Phase 12 | Planned |
+| TYP-01 | Phase 12 | Complete |
+| TYP-02 | Phase 12 | Complete |
+| CMP-01 | Phase 12 | Complete |
+| CMP-02 | Phase 12 | Complete |
+| HOT-01 | Phase 12 | Complete |
+| GOV-09 | Phase 12 | Complete |
+| GOV-10 | Phase 12 | Complete |
 
 **Coverage:**
 - active milestone requirements: 37 total
 - mapped to phases: 37
 - unmapped: 0 ✓
 
-*Last updated: 2026-03-14 after planning Phase 12 from revalidated remaining debt*
+*Last updated: 2026-03-14 after executing Phase 12 closeout work*

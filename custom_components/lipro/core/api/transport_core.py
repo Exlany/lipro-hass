@@ -1,4 +1,4 @@
-"""Core HTTP transport and request execution for LiproClient."""
+"""Core HTTP transport and request execution for the formal REST facade."""
 
 from __future__ import annotations
 

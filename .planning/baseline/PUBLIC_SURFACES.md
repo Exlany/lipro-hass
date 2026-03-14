@@ -2,7 +2,7 @@
 
 **Purpose:** 定义各平面的 canonical public surfaces、过渡公开面与禁止作为正式入口的对象。
 **Status:** Formal baseline asset (`BASE-01` public-surface truth source)
-**Updated:** 2026-03-14
+**Updated:** 2026-03-14 (Phase 12 executed)
 
 ## Formal Role
 
@@ -33,16 +33,21 @@
 
 | Surface | Allowed Until | Exit Condition |
 |---------|---------------|----------------|
-| `core.api.LiproClient` compat shell | Phase 9+ cleanup only | 仅保留 `custom_components.lipro.core.api` 显式 compat shell；root / flow / core 包级再导出已收口 |
-| `LiproMqttClient` compat shell | Phase 9+ cleanup only | 仅剩 direct transport module 与 `LiproMqttFacade.raw_client` 测试 seam；包级 public export 已收口 |
-| `LiproProtocolFacade.get_device_list` compat wrapper | active migration only | wrapper 仍保留显式 compat 语义，但正式真源已切到 `rest.device-list@v1` + `CanonicalProtocolContracts.normalize_device_list_page`；direct consumers 清零后删除 |
-| `DeviceCapabilities` compat alias | Phase 4 / 7 cleanup only | `core/device/capabilities.py` 的旧导入点迁移到 `CapabilitySnapshot` / `CapabilityRegistry` |
+| `LiproMqttClient` compat shell | Phase 12+ cleanup only | 仅剩 direct transport module；不得再通过 protocol façade 暴露 concrete transport，也不得恢复 `raw_client` seam |
 | cluster-level `FILE_MATRIX` | pre-Phase 7 | 升级为 file-level governance view |
+
+## Phase 12 Surface Closure Notes
+
+- `core.api.LiproClient` compat shell 已删除；`custom_components/lipro/core/api/__init__.py` 只暴露正式 `LiproRestFacade`。
+- `LiproProtocolFacade.get_device_list` compat wrapper 已删除；device-list canonical truth 固定为 `rest.device-list@v1` + `CanonicalProtocolContracts.normalize_device_list_page`。
+- `LiproMqttFacade.raw_client` compat seam 已删除；测试与运行面不得再通过 protocol façade 直取 concrete transport。
+- `DeviceCapabilities` compat alias 与 `core/device/capabilities.py` 已删除；能力真源固定在 `core/capability/CapabilityRegistry` / `CapabilitySnapshot`。
+- `_ClientBase` 继续存在，但仅作为 internal endpoint typing contract，不再构成 public skeleton / compat shell 叙事。
 
 ## Phase 09 Surface Closure Notes
 
 - `custom_components/lipro/core/protocol/facade.py` 已改为显式 root contract：`LiproProtocolFacade` 与 `LiproMqttFacade` 不再通过 `__getattr__` / `__dir__` 扩面，child surface 不再反向定义 root。
-- `custom_components/lipro/__init__.py`、`custom_components/lipro/config_flow.py`、`custom_components/lipro/core/__init__.py` 与 `custom_components/lipro/core/mqtt/__init__.py` 的 legacy public-name / compat export 已收口；`custom_components/lipro/core/api/__init__.py` 中的 `LiproClient` 是唯一仍登记的显式 compat shell。
+- `custom_components/lipro/__init__.py`、`custom_components/lipro/config_flow.py`、`custom_components/lipro/core/__init__.py` 与 `custom_components/lipro/core/mqtt/__init__.py` 的 legacy public-name / compat export 已在 Phase 09 收口；当时 `custom_components/lipro/core/api/__init__.py` 中仍残留最后一个显式 `LiproClient` compat shell，而该 seam 已在 Phase 12 正式删除。
 - `Coordinator.devices` 现在只暴露 read-only mapping；live mutable runtime registry 继续留在 coordinator internal state，不再作为 formal public surface。
 - `custom_components/lipro/core/device/device.py` 中的 `LiproDevice.outlet_power_info` 已成为 outlet power 单一正式 primitive；`extra_data["power_info"]` 仅允许作为 legacy read fallback，不再承担正式 truth 角色。
 

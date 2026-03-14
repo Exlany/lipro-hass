@@ -58,6 +58,18 @@ def make_api_device(
     return device
 
 
+def make_device_page(
+    devices: Any,
+    *,
+    total: int | None = None,
+) -> dict[str, Any]:
+    """Build a canonical device-page payload for `get_devices` tests."""
+    resolved_total = total
+    if resolved_total is None:
+        resolved_total = len(devices) if isinstance(devices, list) else 0
+    return {"devices": devices, "total": resolved_total}
+
+
 async def refresh_and_sync_devices(coordinator: Coordinator) -> None:
     """Refresh devices and sync to coordinator state.
 
@@ -87,6 +99,7 @@ def mock_anonymous_share_manager() -> MagicMock:
 
 __all__ = [
     "make_api_device",
+    "make_device_page",
     "mock_anonymous_share_manager",
     "refresh_and_sync_devices",
 ]

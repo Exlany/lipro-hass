@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping
 import logging
 from typing import Any
 
@@ -25,7 +24,7 @@ from .payloads import _ClientEndpointPayloadsMixin, _EndpointAdapter
 # so tests patching client._LOGGER.* still intercept logs here.
 _LOGGER = logging.getLogger("custom_components.lipro.core.api.client")
 
-type ResponseMapping = Mapping[str, object]
+type ResponseMapping = dict[str, object]
 
 
 class _ClientMiscEndpointsMixin(_ClientEndpointPayloadsMixin):

@@ -224,7 +224,7 @@ def mock_setup_entry() -> Generator[AsyncMock]:
 
 @pytest.fixture
 def mock_lipro_client() -> Generator[MagicMock]:
-    """Create a mock LiproClient."""
+    """Create a mock Lipro protocol facade."""
     with patch(
         "custom_components.lipro.config_flow.LiproProtocolFacade",
         autospec=True,
@@ -244,33 +244,11 @@ def mock_lipro_client() -> Generator[MagicMock]:
 
 @pytest.fixture
 def mock_lipro_api_client():
-    """Create a mock LiproClient with common API responses for coordinator tests."""
+    """Create a mock Lipro protocol facade with common API responses for coordinator tests."""
     from custom_components.lipro.core.protocol import CanonicalProtocolContracts
 
     client = AsyncMock()
-    client.get_device_list = AsyncMock(return_value={"data": [], "hasMore": False})
-
-    async def _get_devices(*, offset: int = 0, limit: int = 100):
-        """Bridge legacy test fixtures to the canonical device-page contract."""
-        page_size = max(1, limit)
-        page = max(1, (offset // page_size) + 1)
-        response = await client.get_device_list(page=page)
-        if isinstance(response, dict):
-            devices = response.get("devices")
-            if isinstance(devices, list):
-                return response
-            page_view = client.contracts.normalize_device_list_page(
-                response,
-                offset=offset,
-            )
-            devices = list(page_view.get("devices", []))
-            return {
-                "devices": devices,
-                "total": offset + len(devices) + int(bool(page_view.get("has_more"))),
-            }
-        return {"devices": [], "total": 0}
-
-    client.get_devices = AsyncMock(side_effect=_get_devices)
+    client.get_devices = AsyncMock(return_value={"devices": [], "total": 0})
     client.query_device_status = AsyncMock(return_value=[])
     client.query_mesh_group_status = AsyncMock(return_value=[])
     client.query_connect_status = AsyncMock(return_value={})
@@ -302,7 +280,6 @@ def mock_lipro_api_client():
     mock_mqtt_facade.subscribed_devices = set()
     mock_mqtt_facade.subscribed_count = 0
     mock_mqtt_facade.last_error = None
-    mock_mqtt_facade.raw_client = MagicMock()
     client.build_mqtt_facade = MagicMock(return_value=mock_mqtt_facade)
     return client
 
@@ -318,7 +295,7 @@ def mock_auth_manager():
 
 @pytest.fixture
 def mock_lipro_client_auth_error() -> Generator[MagicMock]:
-    """Create a mock LiproClient that raises auth error."""
+    """Create a mock protocol facade that raises auth error."""
     with patch(
         "custom_components.lipro.config_flow.LiproProtocolFacade",
         autospec=True,
@@ -332,7 +309,7 @@ def mock_lipro_client_auth_error() -> Generator[MagicMock]:
 
 @pytest.fixture
 def mock_lipro_client_connection_error() -> Generator[MagicMock]:
-    """Create a mock LiproClient that raises connection error."""
+    """Create a mock protocol facade that raises connection error."""
     with patch(
         "custom_components.lipro.config_flow.LiproProtocolFacade",
         autospec=True,

@@ -7,6 +7,7 @@ from collections.abc import Mapping
 from typing import TYPE_CHECKING, Any, Protocol
 
 if TYPE_CHECKING:
+    from .core.api.types import OtaInfoRow
     from .core.device import LiproDevice
 
 
@@ -14,17 +15,19 @@ class LiproCoordinator(Protocol):
     """Narrow public runtime surface consumed outside the coordinator plane."""
 
     config_entry: Any | None
-    devices: Mapping[str, LiproDevice]
     last_update_success: bool
     update_interval: Any
     device_refresh_service: Any
     mqtt_service: Any
 
+    @property
+    def devices(self) -> Mapping[str, LiproDevice]: ...
+
     async def async_request_refresh(self) -> None: ...
 
-    async def async_send_command(self, *args: Any, **kwargs: Any) -> Any: ...
+    async def async_send_command(self, *args: Any, **kwargs: Any) -> bool: ...
 
-    async def async_query_ota_info(self, *args: Any, **kwargs: Any) -> list[dict[str, Any]]: ...
+    async def async_query_ota_info(self, *args: Any, **kwargs: Any) -> list[OtaInfoRow]: ...
 
     def get_device(self, device_id: str) -> LiproDevice | None: ...
 

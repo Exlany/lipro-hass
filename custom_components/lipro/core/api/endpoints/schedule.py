@@ -1,4 +1,4 @@
-"""Schedule-related endpoints and helpers for LiproClient."""
+"""Schedule-related endpoints and helpers for the formal REST facade."""
 
 from __future__ import annotations
 
@@ -318,16 +318,13 @@ class _ClientScheduleEndpointsMixin(_ClientEndpointPayloadsMixin):
         *,
         mesh_gateway_id: str = "",
         mesh_member_ids: list[str] | None = None,
-    ) -> list[dict[str, Any]]:
+    ) -> ScheduleRows:
         """Get timing schedules for a device."""
-        return cast(
-            list[dict[str, Any]],
-            await self._schedule_api.get_device_schedules(
-                device_id,
-                device_type,
-                mesh_gateway_id=mesh_gateway_id,
-                mesh_member_ids=mesh_member_ids,
-            ),
+        return await self._schedule_api.get_device_schedules(
+            device_id,
+            device_type,
+            mesh_gateway_id=mesh_gateway_id,
+            mesh_member_ids=mesh_member_ids,
         )
 
     async def add_device_schedule(
@@ -341,23 +338,20 @@ class _ClientScheduleEndpointsMixin(_ClientEndpointPayloadsMixin):
         *,
         mesh_gateway_id: str = "",
         mesh_member_ids: list[str] | None = None,
-    ) -> list[dict[str, Any]]:
+    ) -> ScheduleRows:
         """Add or update a timing schedule for a device."""
         if len(times) != len(events):
             msg = "times and events must have same length"
             raise ValueError(msg)
-        return cast(
-            list[dict[str, Any]],
-            await self._schedule_api.add_device_schedule(
-                device_id,
-                device_type,
-                days,
-                times,
-                events,
-                group_id,
-                mesh_gateway_id=mesh_gateway_id,
-                mesh_member_ids=mesh_member_ids,
-            ),
+        return await self._schedule_api.add_device_schedule(
+            device_id,
+            device_type,
+            days,
+            times,
+            events,
+            group_id,
+            mesh_gateway_id=mesh_gateway_id,
+            mesh_member_ids=mesh_member_ids,
         )
 
     async def delete_device_schedules(
@@ -369,18 +363,15 @@ class _ClientScheduleEndpointsMixin(_ClientEndpointPayloadsMixin):
         *,
         mesh_gateway_id: str = "",
         mesh_member_ids: list[str] | None = None,
-    ) -> list[dict[str, Any]]:
+    ) -> ScheduleRows:
         """Delete timing schedules for a device."""
-        return cast(
-            list[dict[str, Any]],
-            await self._schedule_api.delete_device_schedules(
-                device_id,
-                device_type,
-                schedule_ids,
-                group_id,
-                mesh_gateway_id=mesh_gateway_id,
-                mesh_member_ids=mesh_member_ids,
-            ),
+        return await self._schedule_api.delete_device_schedules(
+            device_id,
+            device_type,
+            schedule_ids,
+            group_id,
+            mesh_gateway_id=mesh_gateway_id,
+            mesh_member_ids=mesh_member_ids,
         )
 
 

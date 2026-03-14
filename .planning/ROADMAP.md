@@ -3,7 +3,7 @@
 ## Milestones
 
 - ✅ **v1.0 North Star Rebuild** - Phases 1-7 (+ 1.5 / 2.5 / 2.6), shipped 2026-03-13
-- 🚧 **v1.1 Protocol Fidelity & Operability** - Phases 7.1-11 complete; Phase 12 planned from audit revalidation (updated 2026-03-14)
+- ✅ **v1.1 Protocol Fidelity & Operability** - Phases 7.1-12 complete; milestone closeout ready (updated 2026-03-14)
 
 ## Required Phase Outputs
 
@@ -28,7 +28,7 @@
 
 **Milestone Goal:** 在不破坏既有北极星单一主链的前提下，正式引入 boundary decoder family、architecture policy enforcement、runtime telemetry exporter、replay evidence，并把已登记 residual surfaces 收口到显式、可删除、可验证的最小集合。
 
-**Current Status:** `Phase 7.1` 到 `Phase 11` 已全部完成（截至 2026-03-14）；基于复核后的未完成项，`Phase 12` 已正式规划，当前里程碑进入“类型 / residual / governance hygiene”收口准备态。
+**Current Status:** `Phase 7.1` 到 `Phase 12` 已全部完成（截至 2026-03-14）；`v1.1` 里程碑当前进入 closeout / archive 准备态。
 
 ### Phase 7.1: Protocol Boundary Schema/Decoder 收口
 **Goal**: 把 REST/MQTT 的 decode authority 收口到 protocol boundary family，形成可版本化 schema/decoder registry，同时阻断 raw payload 穿透。
@@ -182,7 +182,7 @@ Plans:
 | 9 Residual Surface Closure | v1.1 | 5/5 | Complete | 2026-03-14 |
 | 10 API Drift Isolation & Core Boundary Prep | v1.1 | 4/4 | Complete | 2026-03-14 |
 | 11 Control Router Formalization & Wiring Residual Demotion | v1.1 | 8/8 | Complete | 2026-03-14 |
-| 12 Type Contract Alignment, Residual Cleanup & Governance Hygiene | v1.1 | 5 planned | Planned | - |
+| 12 Type Contract Alignment, Residual Cleanup & Governance Hygiene | v1.1 | 5/5 | Complete | 2026-03-14 |
 
 ### Phase 11: Control Router Formalization & Wiring Residual Demotion
 
@@ -206,11 +206,11 @@ Plans:
 **Goal:** 在不回退 Phase 11 已完成真相的前提下，清空当前 `mypy` 类型红灯，继续收窄显式 compat seams 与 `core/api` 历史骨架，顺着 formal boundary 切薄热点文件，并把 contributor-facing docs/config/open-source contract 同步到当前仓库真相。
 **Requirements**: TYP-01, TYP-02, CMP-01, CMP-02, HOT-01, GOV-09, GOV-10
 **Depends on:** Phase 11
-**Plans:** 5 plans
+**Plans:** 5/5 plans complete
 
 Plans:
-- [ ] 12-01: runtime public type contract convergence
-- [ ] 12-02: rest facade typed return alignment
-- [ ] 12-03: compat surface narrowing and core api skeleton slimming
-- [ ] 12-04: hotspot decomposition and exception boundary tightening
-- [ ] 12-05: contributor contract and governance hygiene sync
+- [x] 12-01: runtime public type contract convergence (completed 2026-03-14)
+- [x] 12-02: rest facade typed return alignment (completed 2026-03-14)
+- [x] 12-03: compat surface narrowing and core api skeleton slimming (completed 2026-03-14)
+- [x] 12-04: hotspot decomposition and exception boundary tightening (completed 2026-03-14)
+- [x] 12-05: contributor contract and governance hygiene sync (completed 2026-03-14)

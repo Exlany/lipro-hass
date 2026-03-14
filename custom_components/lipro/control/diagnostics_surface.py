@@ -143,7 +143,7 @@ async def async_get_config_entry_diagnostics(
     anonymous_share_view, degraded_share = _build_anonymous_share_view(share_manager)
     telemetry_view = build_entry_diagnostics_view(entry)
 
-    payload = {
+    payload: dict[str, Any] = {
         "entry": {
             "title": redact_entry_title(entry.title),
             "data": async_redact_data(entry.data, to_redact),
@@ -191,7 +191,7 @@ async def async_get_device_diagnostics(
         return {"error": "device_not_found"}
 
     coordinator_view, degraded_runtime = _build_coordinator_view(entry, coordinator)
-    payload = {
+    payload: dict[str, Any] = {
         "entry": {
             "title": redact_entry_title(entry.title),
             "data": async_redact_data(entry.data, to_redact),

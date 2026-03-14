@@ -47,6 +47,12 @@ jobs:
       - name: Run Ruff formatter
         run: uv run ruff format --check .
 
+      - name: Install shellcheck
+        run: sudo apt-get update && sudo apt-get install -y shellcheck
+
+      - name: Run shellcheck
+        run: shellcheck install.sh scripts/develop scripts/lint scripts/setup
+
       - name: Run mypy
         run: uv run mypy
       - name: Check translations

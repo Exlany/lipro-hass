@@ -1,13 +1,13 @@
 """Lipro API package.
 
 `LiproRestFacade` is the explicit REST child facade under the unified
-`LiproProtocolFacade` protocol root. `LiproClient` remains an explicit
-transitional compatibility shell for legacy constructors and wrapper methods.
+`LiproProtocolFacade` protocol root. Package exports now expose only the
+formal REST surface, not legacy compat constructors.
 """
 
 from __future__ import annotations
 
-from .client import LiproClient as _LiproClientCompat, LiproRestFacade
+from .client import LiproRestFacade
 from .errors import (
     LiproApiError,
     LiproAuthError,
@@ -25,8 +25,6 @@ from .types import (
     ScheduleTimingRow,
 )
 
-LiproClient = _LiproClientCompat
-
 __all__ = [
     "CommandResultApiResponse",
     "DeviceApiResponse",
@@ -34,7 +32,6 @@ __all__ = [
     "DiagnosticsApiResponse",
     "LiproApiError",
     "LiproAuthError",
-    "LiproClient",
     "LiproConnectionError",
     "LiproRateLimitError",
     "LiproRefreshTokenExpiredError",

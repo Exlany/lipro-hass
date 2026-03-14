@@ -81,7 +81,7 @@
 
 - `LiproProtocolFacade` 是**唯一正式 protocol-plane root**
 - `LiproRestFacade` / `LiproMqttFacade` 是 child façade
-- `LiproClient` / `LiproMqttClient` 只允许作为 **compat shell** 存在
+- `LiproMqttClient` 仍是 direct transport class；`LiproClient` 已移除，不得以 compat shell 形式回流
 - payload normalization 必须在 protocol plane 或已登记的 external-boundary family 内完成
 
 ### 3.2 Runtime Plane
@@ -149,9 +149,9 @@
    - 现状：仍有 coordinator 私有 auth seam
    - 处理原则：后续必须用正式 runtime/auth contract 替代，不要再扩散新的私有 hook
 
-2. `LiproClient` / `LiproMqttClient`
-   - 现状：compat shell
-   - 处理原则：不得再被提升为正式架构根，不得新增新的生产路径依赖它们
+2. `LiproMqttClient`
+   - 现状：direct transport class（非 protocol root）
+   - 处理原则：不得新增新的生产路径直连 concrete transport，也不得恢复 `LiproClient` legacy constructor name
 
 ## 5. 关键实现陷阱
 

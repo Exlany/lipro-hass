@@ -1,4 +1,4 @@
-"""Schedule endpoint service for the Lipro API client."""
+"""Schedule endpoint service for the formal Lipro REST facade."""
 # ruff: noqa: SLF001
 
 from __future__ import annotations
@@ -314,7 +314,7 @@ async def delete_mesh_schedules_by_candidates(
 
 
 class ScheduleApiService:
-    """Schedule endpoints extracted from ``LiproClient``."""
+    """Schedule endpoints extracted from the formal REST facade."""
 
     def __init__(self, client: ScheduleClientProtocol) -> None:
         """Initialize the schedule endpoint service."""

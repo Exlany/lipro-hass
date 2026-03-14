@@ -11,7 +11,7 @@ from .types import ApiResponse, LoginResponse
 
 
 class AuthApiService:
-    """Auth endpoints extracted from LiproClient."""
+    """Auth endpoints extracted from the formal REST facade."""
 
     def __init__(
         self, client: Any, auth_error_cls: type[Exception], logger: Any

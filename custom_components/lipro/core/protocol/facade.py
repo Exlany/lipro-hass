@@ -11,7 +11,7 @@ from ...const.api import REQUEST_TIMEOUT
 from ..api.client import LiproRestFacade
 from ..api.client_base import ClientSessionState
 from ..api.request_policy import RequestPolicy
-from ..api.types import LoginResponse
+from ..api.types import DeviceListResponse, LoginResponse, OtaInfoRow, ScheduleTimingRow
 from ..mqtt.mqtt_client import LiproMqttClient
 from .contracts import CanonicalProtocolContracts
 from .diagnostics_context import ProtocolDiagnosticsContext
@@ -44,7 +44,7 @@ class _RestFacadePort(Protocol):
     ) -> LoginResponse: ...
 
     async def refresh_access_token(self) -> LoginResponse: ...
-    async def get_devices(self, offset: int = 0, limit: int = 100) -> dict[str, Any]: ...
+    async def get_devices(self, offset: int = 0, limit: int = 100) -> DeviceListResponse: ...
     async def get_product_configs(self) -> list[dict[str, Any]]: ...
     async def query_device_status(
         self,
@@ -89,7 +89,7 @@ class _RestFacadePort(Protocol):
         *,
         iot_name: str | None = None,
         allow_rich_v2_fallback: bool = False,
-    ) -> list[dict[str, Any]]: ...
+    ) -> list[OtaInfoRow]: ...
     async def fetch_body_sensor_history(
         self,
         device_id: str,
@@ -111,7 +111,7 @@ class _RestFacadePort(Protocol):
         *,
         mesh_gateway_id: str = "",
         mesh_member_ids: list[str] | None = None,
-    ) -> list[dict[str, Any]]: ...
+    ) -> list[ScheduleTimingRow]: ...
     async def add_device_schedule(
         self,
         device_id: str,
@@ -123,7 +123,7 @@ class _RestFacadePort(Protocol):
         *,
         mesh_gateway_id: str = "",
         mesh_member_ids: list[str] | None = None,
-    ) -> list[dict[str, Any]]: ...
+    ) -> list[ScheduleTimingRow]: ...
     async def delete_device_schedules(
         self,
         device_id: str,
@@ -133,7 +133,7 @@ class _RestFacadePort(Protocol):
         *,
         mesh_gateway_id: str = "",
         mesh_member_ids: list[str] | None = None,
-    ) -> list[dict[str, Any]]: ...
+    ) -> list[ScheduleTimingRow]: ...
 
     def auth_recovery_telemetry_snapshot(self) -> dict[str, Any]: ...
 
@@ -189,11 +189,6 @@ class LiproMqttFacade:
             telemetry=telemetry,
             diagnostics_context=diagnostics_context,
         )
-
-    @property
-    def raw_client(self) -> LiproMqttClient:
-        """Expose the wrapped concrete transport for explicit compat seams only."""
-        return self._client
 
     @property
     def protocol_session_state(self) -> ProtocolSessionState:
@@ -448,27 +443,9 @@ class LiproProtocolFacade:
         """Refresh access token through the REST child façade."""
         return await self._rest_port.refresh_access_token()
 
-    async def get_devices(self, offset: int = 0, limit: int = 100) -> dict[str, Any]:
+    async def get_devices(self, offset: int = 0, limit: int = 100) -> DeviceListResponse:
         """Return canonical device rows from the REST child façade."""
         return await self._rest_port.get_devices(offset=offset, limit=limit)
-
-    async def get_device_list(
-        self,
-        *,
-        page: int = 1,
-        page_size: int = 100,
-    ) -> dict[str, Any]:
-        """Compatibility device-list seam backed by the formal protocol contract."""
-        resolved_page = max(1, int(page))
-        resolved_page_size = max(1, int(page_size))
-        offset = (resolved_page - 1) * resolved_page_size
-
-        response = await self.get_devices(offset=offset, limit=resolved_page_size)
-        page_view = self._contracts.normalize_device_list_page(response, offset=offset)
-        return {
-            "data": list(page_view.get("devices", [])),
-            "hasMore": bool(page_view.get("has_more", False)),
-        }
 
     async def get_product_configs(self) -> list[dict[str, Any]]:
         """Return canonical product-configuration rows."""
@@ -570,7 +547,7 @@ class LiproProtocolFacade:
         *,
         iot_name: str | None = None,
         allow_rich_v2_fallback: bool = False,
-    ) -> list[dict[str, Any]]:
+    ) -> list[OtaInfoRow]:
         """Fetch OTA info through the REST child façade."""
         return await self._rest_port.query_ota_info(
             device_id,
@@ -616,7 +593,7 @@ class LiproProtocolFacade:
         *,
         mesh_gateway_id: str = "",
         mesh_member_ids: list[str] | None = None,
-    ) -> list[dict[str, Any]]:
+    ) -> list[ScheduleTimingRow]:
         """Fetch device schedules through the REST child façade."""
         return await self._rest_port.get_device_schedules(
             device_id,
@@ -636,7 +613,7 @@ class LiproProtocolFacade:
         *,
         mesh_gateway_id: str = "",
         mesh_member_ids: list[str] | None = None,
-    ) -> list[dict[str, Any]]:
+    ) -> list[ScheduleTimingRow]:
         """Add one device schedule through the REST child façade."""
         return await self._rest_port.add_device_schedule(
             device_id,
@@ -658,7 +635,7 @@ class LiproProtocolFacade:
         *,
         mesh_gateway_id: str = "",
         mesh_member_ids: list[str] | None = None,
-    ) -> list[dict[str, Any]]:
+    ) -> list[ScheduleTimingRow]:
         """Delete device schedules through the REST child façade."""
         return await self._rest_port.delete_device_schedules(
             device_id,

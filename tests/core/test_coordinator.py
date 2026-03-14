@@ -16,6 +16,7 @@ from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.update_coordinator import UpdateFailed
 from tests.conftest_shared import (
     make_api_device,
+    make_device_page,
     mock_anonymous_share_manager,
     refresh_and_sync_devices,
 )
@@ -70,10 +71,7 @@ class TestCoordinatorServices:
         self, coordinator, mock_lipro_api_client
     ):
         """Test device refresh service provides device access."""
-        mock_lipro_api_client.get_device_list.return_value = {
-            "data": [make_api_device(serial="03ab5ccd7c000001")],
-            "hasMore": False,
-        }
+        mock_lipro_api_client.get_devices.return_value = make_device_page([make_api_device(serial="03ab5ccd7c000001")])
 
         with patch(
             "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager"
@@ -90,10 +88,7 @@ class TestCoordinatorServices:
         self, coordinator, mock_lipro_api_client
     ):
         """Test device lookup by ID through service layer."""
-        mock_lipro_api_client.get_device_list.return_value = {
-            "data": [make_api_device(serial="03ab5ccd7c000001")],
-            "hasMore": False,
-        }
+        mock_lipro_api_client.get_devices.return_value = make_device_page([make_api_device(serial="03ab5ccd7c000001")])
 
         with patch(
             "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager"
@@ -110,10 +105,7 @@ class TestCoordinatorServices:
         self, coordinator, mock_lipro_api_client
     ):
         """Test state service provides device access."""
-        mock_lipro_api_client.get_device_list.return_value = {
-            "data": [make_api_device(serial="03ab5ccd7c000001")],
-            "hasMore": False,
-        }
+        mock_lipro_api_client.get_devices.return_value = make_device_page([make_api_device(serial="03ab5ccd7c000001")])
 
         with patch(
             "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager"
@@ -221,10 +213,7 @@ class TestCoordinatorRuntimeComponents:
     ):
         """Test public coordinator entrypoints expose the current device state."""
         serial = "03ab5ccd7c000001"
-        mock_lipro_api_client.get_device_list.return_value = {
-            "data": [make_api_device(serial=serial)],
-            "hasMore": False,
-        }
+        mock_lipro_api_client.get_devices.return_value = make_device_page([make_api_device(serial=serial)])
 
         with patch(
             "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager"
@@ -321,10 +310,7 @@ class TestCoordinatorRuntimeComponents:
     ):
         """Test status polling updates coordinator-managed device state."""
         serial = "03ab5ccd7c000001"
-        mock_lipro_api_client.get_device_list.return_value = {
-            "data": [make_api_device(serial=serial)],
-            "hasMore": False,
-        }
+        mock_lipro_api_client.get_devices.return_value = make_device_page([make_api_device(serial=serial)])
         coordinator.client.query_device_status = MagicMock(return_value=None)
 
         with patch(
@@ -354,10 +340,7 @@ class TestCoordinatorRuntimeComponents:
     ) -> None:
         """REST status polling should still pass through coordinator confirmation filtering."""
         serial = "03ab5ccd7c000001"
-        mock_lipro_api_client.get_device_list.return_value = {
-            "data": [make_api_device(serial=serial)],
-            "hasMore": False,
-        }
+        mock_lipro_api_client.get_devices.return_value = make_device_page([make_api_device(serial=serial)])
         coordinator.client.query_device_status = MagicMock(return_value=None)
 
         with patch(
@@ -393,17 +376,14 @@ class TestCoordinatorRuntimeComponents:
     ) -> None:
         """Outlet power polling should run on the coordinator main status path."""
         serial = "03ab5ccd7c000006"
-        mock_lipro_api_client.get_device_list.return_value = {
-            "data": [
+        mock_lipro_api_client.get_devices.return_value = make_device_page([
                 make_api_device(
                     serial=serial,
                     device_type=6,
                     iot_name="lipro_outlet",
                     physical_model="outlet",
                 )
-            ],
-            "hasMore": False,
-        }
+            ])
         mock_lipro_api_client.fetch_outlet_power_info = AsyncMock(
             return_value={"nowPower": 12.5}
         )
@@ -441,10 +421,7 @@ class TestCoordinatorRuntimeComponents:
     ):
         """Test public command dispatch triggers reauth on auth failures."""
         serial = "03ab5ccd7c000001"
-        mock_lipro_api_client.get_device_list.return_value = {
-            "data": [make_api_device(serial=serial)],
-            "hasMore": False,
-        }
+        mock_lipro_api_client.get_devices.return_value = make_device_page([make_api_device(serial=serial)])
         mock_lipro_api_client.send_command.side_effect = LiproAuthError("Auth failed")
 
         with patch(
@@ -469,10 +446,7 @@ class TestCoordinatorEntityLifecycle:
     ):
         """Test registering an entity exposes it once for later state updates."""
         serial = "03ab5ccd7c000001"
-        mock_lipro_api_client.get_device_list.return_value = {
-            "data": [make_api_device(serial=serial)],
-            "hasMore": False,
-        }
+        mock_lipro_api_client.get_devices.return_value = make_device_page([make_api_device(serial=serial)])
 
         with patch(
             "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager"
@@ -495,10 +469,7 @@ class TestCoordinatorEntityLifecycle:
     ):
         """Test entity registration still works when the entity reports a formatted serial."""
         serial = "03ab5ccd7c000001"
-        mock_lipro_api_client.get_device_list.return_value = {
-            "data": [make_api_device(serial=serial)],
-            "hasMore": False,
-        }
+        mock_lipro_api_client.get_devices.return_value = make_device_page([make_api_device(serial=serial)])
 
         with patch(
             "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager"
@@ -531,10 +502,7 @@ class TestCoordinatorEntityLifecycle:
     ):
         """Test unregistering a stale entity instance does not drop the live one."""
         serial = "03ab5ccd7c000001"
-        mock_lipro_api_client.get_device_list.return_value = {
-            "data": [make_api_device(serial=serial)],
-            "hasMore": False,
-        }
+        mock_lipro_api_client.get_devices.return_value = make_device_page([make_api_device(serial=serial)])
 
         with patch(
             "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager"
@@ -576,10 +544,7 @@ class TestCoordinatorUpdateFlow:
         self, coordinator, mock_lipro_api_client, mock_auth_manager
     ):
         """Test update flow calls authentication check."""
-        mock_lipro_api_client.get_device_list.return_value = {
-            "data": [make_api_device()],
-            "hasMore": False,
-        }
+        mock_lipro_api_client.get_devices.return_value = make_device_page([make_api_device()])
 
         with patch(
             "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager"

@@ -301,10 +301,7 @@ def test_phase_9_governance_truth_is_consistent() -> None:
     assert 'status: passed' in validation_text
     assert 'status: passed' in verification_text
     assert '## Automated UAT Verdict' in uat_text
-    assert 'core.api.LiproClient' in public_text
-    assert 'LiproProtocolFacade.get_device_list' in public_text
     assert 'services/wiring.py' not in public_text
-    assert 'LiproMqttFacade.raw_client' in public_text
     assert 'runtime supplemental state primitives' in authority_text
     assert residual_text.count('## Phase 09 Residual Delta') == 1
     assert kill_text.count('## Phase 09 Status Update') == 1
@@ -343,27 +340,62 @@ def test_phase_11_execution_truth_is_consistent() -> None:
     assert scores["requirements"] == "30/30"
 
 
-def test_phase_12_planning_truth_is_consistent() -> None:
+def test_phase_12_execution_truth_is_consistent() -> None:
+    phase_root = _ROOT / ".planning" / "phases" / "12-type-contract-alignment-residual-cleanup-and-governance-hygiene"
     project_text = (_ROOT / ".planning" / "PROJECT.md").read_text(encoding="utf-8")
     roadmap_text = (_ROOT / ".planning" / "ROADMAP.md").read_text(encoding="utf-8")
     requirements_text = (_ROOT / ".planning" / "REQUIREMENTS.md").read_text(encoding="utf-8")
     state_text = (_ROOT / ".planning" / "STATE.md").read_text(encoding="utf-8")
-    context_text = (_ROOT / ".planning" / "phases" / "12-type-contract-alignment-residual-cleanup-and-governance-hygiene" / "12-CONTEXT.md").read_text(encoding="utf-8")
-    research_text = (_ROOT / ".planning" / "phases" / "12-type-contract-alignment-residual-cleanup-and-governance-hygiene" / "12-RESEARCH.md").read_text(encoding="utf-8")
-    prd_text = (_ROOT / ".planning" / "phases" / "12-type-contract-alignment-residual-cleanup-and-governance-hygiene" / "12-PRD.md").read_text(encoding="utf-8")
+    public_text = (_ROOT / ".planning" / "baseline" / "PUBLIC_SURFACES.md").read_text(encoding="utf-8")
+    residual_text = (_ROOT / ".planning" / "reviews" / "RESIDUAL_LEDGER.md").read_text(encoding="utf-8")
+    kill_text = (_ROOT / ".planning" / "reviews" / "KILL_LIST.md").read_text(encoding="utf-8")
+    research_text = (phase_root / "12-RESEARCH.md").read_text(encoding="utf-8")
+    prd_text = (phase_root / "12-PRD.md").read_text(encoding="utf-8")
 
-    assert "**Status:** Active — `Phase 12` 已规划" in project_text
-    assert "| 12 Type Contract Alignment, Residual Cleanup & Governance Hygiene | v1.1 | 5 planned | Planned | - |" in roadmap_text
+    assert "**Status:** Active — `Phase 12` 已完成" in project_text
+    assert "| 12 Type Contract Alignment, Residual Cleanup & Governance Hygiene | v1.1 | 5/5 | Complete | 2026-03-14 |" in roadmap_text
     assert "**Requirements**: TYP-01, TYP-02, CMP-01, CMP-02, HOT-01, GOV-09, GOV-10" in roadmap_text
-    assert "| TYP-01 | Phase 12 | Planned |" in requirements_text
-    assert "| GOV-10 | Phase 12 | Planned |" in requirements_text
-    assert "**Current mode:** `Phase 12 planning complete`" in state_text
+    assert "| TYP-01 | Phase 12 | Complete |" in requirements_text
+    assert "| GOV-10 | Phase 12 | Complete |" in requirements_text
+    assert "**Current mode:** `Phase 12 complete`" in state_text
     _assert_current_mode_tracks_phase_lifecycle(state_text)
     assert "Already Fixed / Must Not Be Replanned" in prd_text
     assert "5 plans / 3 waves" in research_text
-    assert "**Status:** Planned from PRD Express Path" in context_text
-    for plan_name in ("12-01-PLAN.md", "12-02-PLAN.md", "12-03-PLAN.md", "12-04-PLAN.md", "12-05-PLAN.md"):
-        assert (_ROOT / ".planning" / "phases" / "12-type-contract-alignment-residual-cleanup-and-governance-hygiene" / plan_name).exists()
+    active_residual_text = _extract_markdown_section(residual_text, "Active Residual Families")
+    assert "## Phase 12 Surface Closure Notes" in public_text
+    assert "## Phase 12 Residual Delta" in residual_text
+    assert "## Phase 12 Status Update" in kill_text
+    assert '`core.api.LiproClient` compat shell 已删除' in public_text
+    assert '`LiproProtocolFacade.get_device_list` compat wrapper 已删除' in public_text
+    assert '`LiproMqttFacade.raw_client` compat seam 已删除' in public_text
+    assert '`DeviceCapabilities` compat alias' in public_text
+    assert '已关闭（Phase 12：compat shell removed）' in kill_text
+    assert '已关闭（Phase 12：compat seam removed）' in kill_text
+    assert '已关闭（Phase 12：compat alias removed）' in kill_text
+    for seam in (
+        'core.api.LiproClient',
+        'LiproProtocolFacade.get_device_list',
+        'LiproMqttFacade.raw_client',
+        'DeviceCapabilities',
+    ):
+        assert seam in public_text
+        assert seam in kill_text
+        assert seam not in active_residual_text
+    for artifact_name in (
+        "12-01-PLAN.md",
+        "12-02-PLAN.md",
+        "12-03-PLAN.md",
+        "12-04-PLAN.md",
+        "12-05-PLAN.md",
+        "12-01-SUMMARY.md",
+        "12-02-SUMMARY.md",
+        "12-03-SUMMARY.md",
+        "12-04-SUMMARY.md",
+        "12-05-SUMMARY.md",
+        "12-VALIDATION.md",
+        "12-VERIFICATION.md",
+    ):
+        assert (phase_root / artifact_name).exists()
 
 
 def test_phase_10_governance_truth_is_consistent() -> None:

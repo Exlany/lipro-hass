@@ -1,12 +1,8 @@
-"""Explicit compat markers for protocol-root migration."""
+"""Compat markers retained for historical audits only."""
 
 from __future__ import annotations
 
-TRANSITIONAL_PROTOCOL_PUBLIC_SURFACES = (
-    "LiproClient",
-    "LiproProtocolFacade.get_device_list",
-    "LiproMqttFacade.raw_client",
-)
+TRANSITIONAL_PROTOCOL_PUBLIC_SURFACES: tuple[str, ...] = ()
 
 
 def is_transitional_protocol_surface(name: str) -> bool:

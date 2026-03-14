@@ -16,7 +16,7 @@ type IsCommandBusyError = Callable[[Exception], bool]
 
 
 class BusyRetryRequest(Protocol):
-    """Protocol for LiproClient._iot_request_with_busy_retry-compatible call."""
+    """Protocol for REST facade busy-retry execution callbacks."""
 
     async def __call__(
         self,

@@ -78,7 +78,7 @@
 - 对外协议入口最终只从 `LiproProtocolFacade` 暴露
 - `LiproRestFacade` / `LiproMqttFacade` 是协议平面下的子门面，而不是彼此割裂的根
 - `LiproApiFacade` 若在 Phase 2 出现，只是收敛 REST 主链的中间台阶，不是绝对终态
-- `LiproClient` 不属于终态正式设计；若迁移期仍存在，也只能是短期 compat adapter / shell
+- `LiproClient` 已从正式 public surface 清退；后续不得以 legacy constructor name 重新引入第二套 REST 入口
 - 端点协作者不再通过多重继承聚合行为
 - 401 / 429 / connection error 恢复链路在 protocol plane 内闭环
 - canonical contract 在 protocol plane 边界完成，运行面不消费原始供应商形态
@@ -244,7 +244,7 @@ custom_components/lipro/
 ## 8. 当前最高优先级
 
 1. 完成 `v1.1` 里程碑 closeout / archive，确保 roadmap、requirements、audit、verification 口径统一
-2. 继续清零已登记 compat seams：`core.api.LiproClient`、`LiproProtocolFacade.get_device_list`、`LiproMqttFacade.raw_client`
+2. 维持 Phase 12 后的 seam 关闭状态：不得重新引入 `core.api.LiproClient`、`LiproProtocolFacade.get_device_list`、`LiproMqttFacade.raw_client`
 3. 收紧设备域动态委托与测试锚点，避免 `__getattr__` 与 legacy constructor name 长期合法化
 4. 保持 control / runtime / OTA / governance 单一正式主链，不再接受 addendum 回流
 5. 基于当前单主链事实规划下一里程碑，而不是恢复历史迁移叙事

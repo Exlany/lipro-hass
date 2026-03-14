@@ -1,4 +1,4 @@
-"""Small shared helpers for LiproClient endpoints."""
+"""Small shared helpers for REST-facade status endpoints."""
 
 from __future__ import annotations
 

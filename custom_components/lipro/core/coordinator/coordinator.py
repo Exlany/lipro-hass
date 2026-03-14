@@ -44,6 +44,7 @@ if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.core import HomeAssistant
 
+    from ..api.types import OtaInfoRow, ScheduleTimingRow
     from ..auth import LiproAuthManager
     from ..device import LiproDevice
     from .types import StatusQueryMetrics
@@ -333,7 +334,7 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
         *,
         mesh_gateway_id: str = "",
         mesh_member_ids: list[str] | None = None,
-    ) -> list[dict[str, Any]]:
+    ) -> list[ScheduleTimingRow]:
         """Query schedules through the coordinator facade."""
         return await self.client.get_device_schedules(
             device_id,
@@ -352,7 +353,7 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
         *,
         mesh_gateway_id: str = "",
         mesh_member_ids: list[str] | None = None,
-    ) -> list[dict[str, Any]]:
+    ) -> list[ScheduleTimingRow]:
         """Create a schedule through the coordinator facade."""
         return await self.client.add_device_schedule(
             device_id,
@@ -372,7 +373,7 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
         *,
         mesh_gateway_id: str = "",
         mesh_member_ids: list[str] | None = None,
-    ) -> list[dict[str, Any]]:
+    ) -> list[ScheduleTimingRow]:
         """Delete schedules through the coordinator facade."""
         return await self.client.delete_device_schedules(
             device_id,
@@ -447,7 +448,7 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
         device_type: str | int,
         iot_name: str | None,
         allow_rich_v2_fallback: bool,
-    ) -> object:
+    ) -> list[OtaInfoRow]:
         """Query OTA metadata through the coordinator facade."""
         return await self.client.query_ota_info(
             device_id=device_id,
