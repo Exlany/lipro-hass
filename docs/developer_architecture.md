@@ -292,10 +292,11 @@ Coordinator
 
 ### Service Layer (`services/`)
 
+- `control/service_router.py`：正式 control-plane service callback home
 - `registry.py`：声明式 HA 服务注册框架
-- `registrations.py`：服务声明列表
+- `registrations.py`：服务声明列表（绑定 formal router）
 - `diagnostics/`：开发者诊断服务包（按 handler / types / wiring 拆分）
-- `wiring.py`：服务层布线
+- `wiring.py`：compat re-export shell（不得再承载正式实现）
 
 ## 边界规则
 

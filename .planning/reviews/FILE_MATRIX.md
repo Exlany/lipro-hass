@@ -27,7 +27,7 @@
 | `custom_components/lipro/control/redaction.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/control/runtime_access.py` | Control | Phase 3 | 保留 | control-plane runtime-home locator; scattered `entry.runtime_data` reads must converge here |
 | `custom_components/lipro/control/service_registry.py` | Control | Phase 3 | 保留 | - |
-| `custom_components/lipro/control/service_router.py` | Control | Phase 3 | 保留 | - |
+| `custom_components/lipro/control/service_router.py` | Control | Phase 3 / 11 | 保留 | formal service callback home |
 | `custom_components/lipro/control/system_health_surface.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/control/telemetry_surface.py` | Control | Phase 7.3 | 保留 | observer-only bridge; must resolve `Coordinator` via `runtime_access` |
 | `custom_components/lipro/coordinator_entry.py` | Control | Phase 3 | 保留 | - |
@@ -249,7 +249,7 @@
 | `custom_components/lipro/services/registry.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/services/schedule.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/services/share.py` | Control | Phase 3 | 保留 | - |
-| `custom_components/lipro/services/wiring.py` | Control | Phase 7 | 删除候选 | legacy implementation carrier |
+| `custom_components/lipro/services/wiring.py` | Control | Phase 7 / 11 | 删除候选 | compat re-export shell only; delete once downstream imports clear |
 | `custom_components/lipro/switch.py` | Domain | Phase 4 | 保留 | - |
 | `custom_components/lipro/system_health.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/update.py` | Domain | Phase 4 | 保留 | - |

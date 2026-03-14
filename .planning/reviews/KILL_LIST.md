@@ -17,7 +17,7 @@
 | `LiproMqttFacade.raw_client` compat seam | `custom_components/lipro/core/protocol/facade.py` | `09 residual surface closure` | Phase 9+ | runtime/integration assertions 改用 formal child façade，不再需要 concrete transport object | 已登记，未删除 |
 | split-root protocol public semantics | runtime / tests 中并行感知 `LiproRestFacade` 与 `LiproMqttClient` 的入口语义 | `02.5 unified-root closeout` | Phase 2.5 | `PUBLIC_SURFACES.md` 与 runtime-facing consumers 只承认 `LiproProtocolFacade` 为正式协议根 | 已关闭（Phase 9：implicit root delegation and package-level MQTT root export removed） |
 | 多行 power payload 的 compat wrapping | `custom_components/lipro/core/api/power_service.py` | `02-04 compat shell cleanup` | Phase 2 | power helper 只返回 canonical rows；兼容 envelope 仅存在于 compat shell | 已登记，未删除 |
-| `services/wiring.py` 作为正式控制面根 | `custom_components/lipro/services/wiring.py` | `03 service-router convergence` | Phase 7 | `control.service_router` 及相关 tests/patch seams 全面接管，不再需要 legacy implementation carrier | 已登记，未删除 |
+| `services/wiring.py` compat shell | `custom_components/lipro/services/wiring.py` | `11 control-router formalization` | Phase 11+ | 仓库内 tests/production 已切离；remaining downstream imports 清零后删除 compat shell | 已登记，未删除 |
 | coordinator 私有 auth hook seam | `custom_components/lipro/services/execution.py` | `03/05 runtime-auth hardening` | Phase 5 | service execution 只通过正式 runtime/auth contract 获取 auth context | 已关闭（Phase 5） |
 | `DeviceCapabilities` legacy public name | `custom_components/lipro/core/device/capabilities.py` | `04-03 capability compat cleanup` | Phase 4 / 7 | 直接导入点已迁到 `custom_components/lipro/core/capability`，device facade 不再依赖 legacy alias | 已登记，未删除 |
 
@@ -62,7 +62,7 @@
 
 ## Phase 03 / `03-02 ~ 03-03` Status Update
 
-- `custom_components/lipro/services/wiring.py` 已失去正式控制面根地位；当前保留仅为 legacy implementation carrier 与过渡 patch seam。
+- `custom_components/lipro/services/wiring.py` 已完成 formal-root demotion；当前仅保留为显式 compat re-export shell，仓库内测试与生产路径已切离。
 - `custom_components/lipro/services/execution.py` 的 coordinator 私有 auth hook seam 已在 Phase 5 收口；当前保留的是正式 service execution facade，而不是 private seam。
 - `custom_components/lipro/diagnostics.py`、`system_health.py` 与 `__init__.py` 不再进入 kill list：它们保留为 HA adapter 薄层，终态角色已被明确保留。
 

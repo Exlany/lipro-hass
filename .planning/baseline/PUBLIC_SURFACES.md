@@ -19,7 +19,7 @@
 | Protocol (Phase 2) | `LiproRestFacade` | phase-local canonical REST sub-facade | Phase 2 可直接引用的正式 REST surface，但必须收敛到 `LiproProtocolFacade` |
 | Runtime | `Coordinator` + runtime services/public surface | runtime orchestration root + stable service surface | 运行面唯一正式编排出口；`devices` 只允许以 read-only mapping 暴露，outlet power 真源收口到 `LiproDevice.outlet_power_info` |
 | Domain | `CapabilityRegistry` / `CapabilitySnapshot` / command contracts | domain truth surface family | `custom_components/lipro/core/capability/` 为统一能力真源与投影来源 |
-| Control | `EntryLifecycleController`, `ServiceRegistry`, `DiagnosticsSurface`, `SystemHealthSurface`, `telemetry_surface` bridge helpers | control-plane formal surface set | `custom_components/lipro/control/` 为正式内部控制面 home；HA 根模块只保留 adapter 职责，telemetry bridge 只负责定位 exporter |
+| Control | `EntryLifecycleController`, `ServiceRegistry`, `service_router`, `DiagnosticsSurface`, `SystemHealthSurface`, `telemetry_surface` bridge helpers | control-plane formal surface set | `custom_components/lipro/control/` 为正式内部控制面 home；`control/service_router.py` 是 service callback formal home；HA 根模块只保留 adapter 职责，telemetry bridge 只负责定位 exporter |
 | Assurance | contract suites, invariant suites, meta guards, ledgers, `RuntimeTelemetryExporter` / telemetry contracts, replay harness/report surfaces, `V1_1_EVIDENCE_INDEX.md`, `tests/harness/evidence_pack/*`, `scripts/export_ai_debug_evidence_pack.py` | assurance arbitration surface set | exporter / replay / evidence index / evidence-pack tooling 只作为 assurance-only 或 pull-only truth consumers，不得反向成为 runtime/control/public root |
 
 ## Assurance-only Extension Rules
@@ -37,6 +37,7 @@
 | `LiproMqttClient` compat shell | Phase 9+ cleanup only | 仅剩 direct transport module 与 `LiproMqttFacade.raw_client` 测试 seam；包级 public export 已收口 |
 | `LiproProtocolFacade.get_device_list` compat wrapper | active migration only | wrapper 仍保留显式 compat 语义，但正式真源已切到 `rest.device-list@v1` + `CanonicalProtocolContracts.normalize_device_list_page`；direct consumers 清零后删除 |
 | `DeviceCapabilities` compat alias | Phase 4 / 7 cleanup only | `core/device/capabilities.py` 的旧导入点迁移到 `CapabilitySnapshot` / `CapabilityRegistry` |
+| `services/wiring.py` compat shell | Phase 11+ cleanup only | 仓库内 tests/production 已切离；remaining downstream imports 清零后删除 compat shell |
 | cluster-level `FILE_MATRIX` | pre-Phase 7 | 升级为 file-level governance view |
 
 ## Phase 09 Surface Closure Notes

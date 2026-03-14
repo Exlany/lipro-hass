@@ -3,7 +3,7 @@
 ## Milestones
 
 - ✅ **v1.0 North Star Rebuild** - Phases 1-7 (+ 1.5 / 2.5 / 2.6), shipped 2026-03-13
-- 🚧 **v1.1 Protocol Fidelity & Operability** - Phases 7.1-10 complete, closeout pending (initialized 2026-03-13)
+- 🚧 **v1.1 Protocol Fidelity & Operability** - Phases 7.1-11 complete, closeout pending (initialized 2026-03-13)
 
 ## Required Phase Outputs
 
@@ -179,3 +179,16 @@ Plans:
 | 8 AI Debug Evidence Pack | v1.1 | 2/2 | Complete | 2026-03-13 |
 | 9 Residual Surface Closure | v1.1 | 5/5 | Complete | 2026-03-14 |
 | 10 API Drift Isolation & Core Boundary Prep | v1.1 | 4/4 | Complete | 2026-03-14 |
+| 11 Control Router Formalization & Wiring Residual Demotion | v1.1 | 3/3 | Complete | 2026-03-14 |
+
+### Phase 11: Control Router Formalization & Wiring Residual Demotion
+
+**Goal:** 让 `custom_components/lipro/control/service_router.py` 成为 Home Assistant service callback 的唯一正式 control-plane home，把 `custom_components/lipro/services/wiring.py` 收敛为显式 compat shell，并同步收口 tests / docs / governance，不改变运行时行为。
+**Requirements**: CTRL-01, CTRL-02, CTRL-03
+**Depends on:** Phase 10
+**Plans:** 3/3 plans complete
+
+Plans:
+- [x] 11-01: formal router implementation inversion (completed 2026-03-14)
+- [x] 11-02: legacy wiring demotion and test truth alignment (completed 2026-03-14)
+- [x] 11-03: governance synchronization and verification closeout (completed 2026-03-14)

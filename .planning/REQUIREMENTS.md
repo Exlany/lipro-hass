@@ -47,6 +47,13 @@
 - [x] **ISO-03**: `core` formal public surface 必须继续与 HA runtime root 解耦；`Coordinator` 保持通过 `coordinator_entry` 暴露，`core/__init__.py` 不得把 HA runtime 当作 host-neutral core truth 的一部分继续输出。
 - [x] **ISO-04**: 与 API drift isolation 相关的 roadmap/context/research/validation/verification/governance docs、replay fixtures 与 meta guards 必须同轮更新；未来 CLI / 其他宿主只能建立在 formal boundary 之上，而不是反向长成 second root。
 
+
+### Control Router Formalization & Wiring Residual Demotion
+
+- [x] **CTRL-01**: `custom_components/lipro/control/service_router.py` 已成为 HA services callback、router wrapper 与 control-facing helper 的唯一正式 home；`custom_components/lipro/services/wiring.py` 不再承载 primary handler orchestration。
+- [x] **CTRL-02**: service registrations、developer/public diagnostics handlers 与匿名分享提交路径已经正式 control router 组合；重复 wrapper / helper 逻辑已进一步合并，legacy seam 仅保留显式 compat re-export。
+- [x] **CTRL-03**: 与 control router formalization 相关的 tests、ROADMAP/STATE/PROJECT/developer_architecture、FILE_MATRIX/RESIDUAL_LEDGER 等治理资产已同步更新，并明确 `services/wiring.py` 的 delete gate / residual status。
+
 ## Cross-Phase Arbitration
 
 - `07.3` 锁定 telemetry contracts / redaction / cardinality / timestamp-pseudo-id compatibility
@@ -98,10 +105,13 @@
 | ISO-02 | Phase 10 | Complete |
 | ISO-03 | Phase 10 | Complete |
 | ISO-04 | Phase 10 | Complete |
+| CTRL-01 | Phase 11 | Complete |
+| CTRL-02 | Phase 11 | Complete |
+| CTRL-03 | Phase 11 | Complete |
 
 **Coverage:**
-- active milestone requirements: 21 total
-- mapped to phases: 21
+- active milestone requirements: 24 total
+- mapped to phases: 24
 - unmapped: 0 ✓
 
-*Last updated: 2026-03-14 after completing Phase 10 API drift isolation / core-boundary prep*
+*Last updated: 2026-03-14 after completing Phase 11 control-router formalization and wiring residual demotion*

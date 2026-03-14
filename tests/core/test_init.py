@@ -37,6 +37,24 @@ from custom_components.lipro.const.config import (
     DEFAULT_REQUEST_TIMEOUT,
     MAX_SCAN_INTERVAL,
 )
+from custom_components.lipro.control.service_router import (
+    _get_device_and_coordinator,
+    _summarize_service_properties,
+    async_handle_add_schedule,
+    async_handle_delete_schedules,
+    async_handle_fetch_body_sensor_history,
+    async_handle_fetch_door_sensor_history,
+    async_handle_get_anonymous_share_report,
+    async_handle_get_city,
+    async_handle_get_developer_report,
+    async_handle_get_schedules,
+    async_handle_query_command_result,
+    async_handle_query_user_cloud,
+    async_handle_refresh_devices,
+    async_handle_send_command,
+    async_handle_submit_anonymous_share,
+    async_handle_submit_developer_feedback,
+)
 from custom_components.lipro.core import (
     LiproApiError,
     LiproAuthError,
@@ -94,24 +112,6 @@ from custom_components.lipro.services.contracts import (
     SERVICE_SUBMIT_ANONYMOUS_SHARE_SCHEMA,
     SERVICE_SUBMIT_DEVELOPER_FEEDBACK,
     SERVICE_SUBMIT_DEVELOPER_FEEDBACK_SCHEMA,
-)
-from custom_components.lipro.services.wiring import (
-    _async_handle_add_schedule,
-    _async_handle_delete_schedules,
-    _async_handle_fetch_body_sensor_history,
-    _async_handle_fetch_door_sensor_history,
-    _async_handle_get_anonymous_share_report,
-    _async_handle_get_city,
-    _async_handle_get_developer_report,
-    _async_handle_get_schedules,
-    _async_handle_query_command_result,
-    _async_handle_query_user_cloud,
-    _async_handle_refresh_devices,
-    _async_handle_send_command,
-    _async_handle_submit_anonymous_share,
-    _async_handle_submit_developer_feedback,
-    _get_device_and_coordinator,
-    _summarize_service_properties,
 )
 from homeassistant.const import ATTR_ENTITY_ID, Platform
 from homeassistant.exceptions import (
@@ -1339,7 +1339,7 @@ class TestInitRuntimeBehavior:
         second_service.async_refresh_devices = AsyncMock()
         second.runtime_data = MagicMock(device_refresh_service=second_service)
 
-        result = await _async_handle_refresh_devices(hass, service_call(hass, {}))
+        result = await async_handle_refresh_devices(hass, service_call(hass, {}))
 
         assert result["success"] is True
         assert result["refreshed_entries"] == 2
@@ -1369,7 +1369,7 @@ class TestInitRuntimeBehavior:
         second_service.async_refresh_devices = AsyncMock()
         second.runtime_data = MagicMock(device_refresh_service=second_service)
 
-        result = await _async_handle_refresh_devices(
+        result = await async_handle_refresh_devices(
             hass,
             service_call(hass, {ATTR_ENTRY_ID: second.entry_id}),
         )
@@ -1383,7 +1383,7 @@ class TestInitRuntimeBehavior:
     async def test_refresh_devices_handler_unknown_entry_raises(self, hass) -> None:
         """refresh_devices should raise translated validation error for bad entry_id."""
         with pytest.raises(ServiceValidationError) as exc:
-            await _async_handle_refresh_devices(
+            await async_handle_refresh_devices(
                 hass,
                 service_call(hass, {ATTR_ENTRY_ID: "missing_entry"}),
             )
@@ -1712,7 +1712,7 @@ class TestInitRuntimeBehavior:
         )
 
         with pytest.raises(ServiceValidationError):
-            await _async_handle_add_schedule(hass, call)
+            await async_handle_add_schedule(hass, call)
 
     async def test_submit_anonymous_share_disabled_raises(self, hass) -> None:
         """submit_anonymous_share validates opt-in flag."""
@@ -1721,12 +1721,12 @@ class TestInitRuntimeBehavior:
 
         with (
             patch(
-                "custom_components.lipro.services.wiring.get_anonymous_share_manager",
+                "custom_components.lipro.control.service_router.get_anonymous_share_manager",
                 return_value=share_manager,
             ),
             pytest.raises(ServiceValidationError),
         ):
-            await _async_handle_submit_anonymous_share(hass, service_call(hass, {}))
+            await async_handle_submit_anonymous_share(hass, service_call(hass, {}))
 
     async def test_get_anonymous_share_report_returns_data(self, hass) -> None:
         """get_anonymous_share_report exposes pending report summary."""
@@ -1740,10 +1740,10 @@ class TestInitRuntimeBehavior:
         share_manager.get_pending_report.return_value = report
 
         with patch(
-            "custom_components.lipro.services.wiring.get_anonymous_share_manager",
+            "custom_components.lipro.control.service_router.get_anonymous_share_manager",
             return_value=share_manager,
         ):
-            result = await _async_handle_get_anonymous_share_report(
+            result = await async_handle_get_anonymous_share_report(
                 hass, service_call(hass, {})
             )
 
@@ -1763,10 +1763,10 @@ class TestInitRuntimeBehavior:
         share_manager.submit_report = AsyncMock(return_value=True)
 
         with patch(
-            "custom_components.lipro.services.wiring.get_anonymous_share_manager",
+            "custom_components.lipro.control.service_router.get_anonymous_share_manager",
             return_value=share_manager,
         ) as get_share_manager:
-            result = await _async_handle_submit_anonymous_share(
+            result = await async_handle_submit_anonymous_share(
                 hass,
                 service_call(hass, {ATTR_ENTRY_ID: "entry-2"}),
             )
@@ -1790,10 +1790,10 @@ class TestInitRuntimeBehavior:
         }
 
         with patch(
-            "custom_components.lipro.services.wiring.get_anonymous_share_manager",
+            "custom_components.lipro.control.service_router.get_anonymous_share_manager",
             return_value=share_manager,
         ) as get_share_manager:
-            result = await _async_handle_get_anonymous_share_report(
+            result = await async_handle_get_anonymous_share_report(
                 hass,
                 service_call(hass, {ATTR_ENTRY_ID: "entry-3"}),
             )
@@ -1821,7 +1821,7 @@ class TestInitRuntimeBehavior:
         entry.add_to_hass(hass)
         entry.runtime_data = coordinator
 
-        result = await _async_handle_get_developer_report(hass, service_call(hass, {}))
+        result = await async_handle_get_developer_report(hass, service_call(hass, {}))
 
         assert result == {
             "entry_count": 1,
@@ -1852,7 +1852,7 @@ class TestInitRuntimeBehavior:
         entry_2.add_to_hass(hass)
         entry_2.runtime_data = second
 
-        result = await _async_handle_get_developer_report(
+        result = await async_handle_get_developer_report(
             hass,
             service_call(hass, {ATTR_ENTRY_ID: entry_2.entry_id}),
         )
@@ -1873,7 +1873,7 @@ class TestInitRuntimeBehavior:
         entry.runtime_data = coordinator
 
         with pytest.raises(ServiceValidationError):
-            await _async_handle_get_developer_report(
+            await async_handle_get_developer_report(
                 hass,
                 service_call(hass, {ATTR_ENTRY_ID: entry.entry_id}),
             )
@@ -1903,7 +1903,7 @@ class TestInitRuntimeBehavior:
         entry_2.add_to_hass(hass)
         entry_2.runtime_data = healthy
 
-        result = await _async_handle_get_developer_report(hass, service_call(hass, {}))
+        result = await async_handle_get_developer_report(hass, service_call(hass, {}))
 
         assert result == {
             "entry_count": 1,
@@ -1929,7 +1929,7 @@ class TestInitRuntimeBehavior:
         entry.add_to_hass(hass)
         entry.runtime_data = coordinator
 
-        result = await _async_handle_query_command_result(
+        result = await async_handle_query_command_result(
             hass,
             service_call(
                 hass,
@@ -1966,7 +1966,7 @@ class TestInitRuntimeBehavior:
         entry.runtime_data = coordinator
 
         with pytest.raises(ServiceValidationError):
-            await _async_handle_query_command_result(
+            await async_handle_query_command_result(
                 hass,
                 service_call(
                     hass,
@@ -2004,7 +2004,7 @@ class TestInitRuntimeBehavior:
             "custom_components.lipro.core.command.result.asyncio.sleep",
             new=sleep_mock,
         ):
-            result = await _async_handle_query_command_result(
+            result = await async_handle_query_command_result(
                 hass,
                 service_call(
                     hass,
@@ -2039,7 +2039,7 @@ class TestInitRuntimeBehavior:
         entry.add_to_hass(hass)
         entry.runtime_data = coordinator
 
-        result = await _async_handle_get_city(hass, service_call(hass, {}))
+        result = await async_handle_get_city(hass, service_call(hass, {}))
         assert result == {"result": {"province": "广东省", "city": "江门市"}}
 
     async def test_get_city_service_returns_empty_without_debug_mode(
@@ -2055,7 +2055,7 @@ class TestInitRuntimeBehavior:
         entry.add_to_hass(hass)
         entry.runtime_data = coordinator
 
-        result = await _async_handle_get_city(hass, service_call(hass, {}))
+        result = await async_handle_get_city(hass, service_call(hass, {}))
 
         assert result == {"result": {}}
         coordinator.async_get_city.assert_not_awaited()
@@ -2073,7 +2073,7 @@ class TestInitRuntimeBehavior:
         entry.add_to_hass(hass)
         entry.runtime_data = coordinator
 
-        result = await _async_handle_query_user_cloud(hass, service_call(hass, {}))
+        result = await async_handle_query_user_cloud(hass, service_call(hass, {}))
         assert result == {"result": {"data": []}}
 
     async def test_get_city_service_falls_back_to_next_coordinator(self, hass) -> None:
@@ -2103,7 +2103,7 @@ class TestInitRuntimeBehavior:
         entry_2.add_to_hass(hass)
         entry_2.runtime_data = second
 
-        result = await _async_handle_get_city(hass, service_call(hass, {}))
+        result = await async_handle_get_city(hass, service_call(hass, {}))
         assert result == {"result": {"province": "广东省", "city": "深圳市"}}
 
     async def test_get_city_service_skips_unexpected_error(self, hass) -> None:
@@ -2131,7 +2131,7 @@ class TestInitRuntimeBehavior:
         entry_2.add_to_hass(hass)
         entry_2.runtime_data = second
 
-        result = await _async_handle_get_city(hass, service_call(hass, {}))
+        result = await async_handle_get_city(hass, service_call(hass, {}))
         assert result == {"result": {"province": "浙江省", "city": "杭州市"}}
 
     async def test_query_user_cloud_service_falls_back_to_next_coordinator(
@@ -2161,7 +2161,7 @@ class TestInitRuntimeBehavior:
         entry_2.add_to_hass(hass)
         entry_2.runtime_data = second
 
-        result = await _async_handle_query_user_cloud(hass, service_call(hass, {}))
+        result = await async_handle_query_user_cloud(hass, service_call(hass, {}))
         assert result == {"result": {"data": [1, 2]}}
 
     async def test_query_user_cloud_service_skips_unexpected_error(self, hass) -> None:
@@ -2187,7 +2187,7 @@ class TestInitRuntimeBehavior:
         entry_2.add_to_hass(hass)
         entry_2.runtime_data = second
 
-        result = await _async_handle_query_user_cloud(hass, service_call(hass, {}))
+        result = await async_handle_query_user_cloud(hass, service_call(hass, {}))
         assert result == {"result": {"data": []}}
 
     async def test_fetch_body_sensor_history_service(self, hass) -> None:
@@ -2207,7 +2207,7 @@ class TestInitRuntimeBehavior:
         entry.add_to_hass(hass)
         entry.runtime_data = coordinator
 
-        result = await _async_handle_fetch_body_sensor_history(
+        result = await async_handle_fetch_body_sensor_history(
             hass,
             service_call(
                 hass,
@@ -2243,7 +2243,7 @@ class TestInitRuntimeBehavior:
         entry.runtime_data = coordinator
 
         with pytest.raises(ServiceValidationError):
-            await _async_handle_fetch_body_sensor_history(
+            await async_handle_fetch_body_sensor_history(
                 hass,
                 service_call(
                     hass,
@@ -2274,7 +2274,7 @@ class TestInitRuntimeBehavior:
         entry.add_to_hass(hass)
         entry.runtime_data = coordinator
 
-        result = await _async_handle_fetch_door_sensor_history(
+        result = await async_handle_fetch_door_sensor_history(
             hass,
             service_call(
                 hass,
@@ -2312,15 +2312,15 @@ class TestInitRuntimeBehavior:
 
         with (
             patch(
-                "custom_components.lipro.services.wiring.get_anonymous_share_manager",
+                "custom_components.lipro.control.service_router.get_anonymous_share_manager",
                 return_value=share_manager,
             ) as get_share_manager,
             patch(
-                "custom_components.lipro.services.wiring.async_get_clientsession",
+                "custom_components.lipro.control.service_router.async_get_clientsession",
                 return_value=MagicMock(),
             ),
         ):
-            result = await _async_handle_submit_developer_feedback(
+            result = await async_handle_submit_developer_feedback(
                 hass,
                 service_call(
                     hass,
@@ -2354,16 +2354,16 @@ class TestInitRuntimeBehavior:
 
         with (
             patch(
-                "custom_components.lipro.services.wiring.get_anonymous_share_manager",
+                "custom_components.lipro.control.service_router.get_anonymous_share_manager",
                 return_value=share_manager,
             ),
             patch(
-                "custom_components.lipro.services.wiring.async_get_clientsession",
+                "custom_components.lipro.control.service_router.async_get_clientsession",
                 return_value=MagicMock(),
             ),
             pytest.raises(HomeAssistantError),
         ):
-            await _async_handle_submit_developer_feedback(hass, service_call(hass, {}))
+            await async_handle_submit_developer_feedback(hass, service_call(hass, {}))
 
     async def test_send_command_handler_success(self, hass) -> None:
         """send_command returns success payload on coordinator success."""
@@ -2382,7 +2382,7 @@ class TestInitRuntimeBehavior:
         entry.add_to_hass(hass)
         entry.runtime_data = coordinator
 
-        result = await _async_handle_send_command(
+        result = await async_handle_send_command(
             hass,
             service_call(
                 hass,
@@ -2422,7 +2422,7 @@ class TestInitRuntimeBehavior:
         entry.add_to_hass(hass)
         entry.runtime_data = coordinator
 
-        result = await _async_handle_send_command(
+        result = await async_handle_send_command(
             hass,
             service_call(
                 hass,
@@ -2467,7 +2467,7 @@ class TestInitRuntimeBehavior:
         entry.runtime_data = coordinator
 
         with pytest.raises(HomeAssistantError):
-            await _async_handle_send_command(
+            await async_handle_send_command(
                 hass,
                 service_call(
                     hass,
@@ -2499,7 +2499,7 @@ class TestInitRuntimeBehavior:
         entry.runtime_data = coordinator
 
         with pytest.raises(HomeAssistantError) as exc:
-            await _async_handle_send_command(
+            await async_handle_send_command(
                 hass,
                 service_call(
                     hass,
@@ -2529,7 +2529,7 @@ class TestInitRuntimeBehavior:
         entry.runtime_data = coordinator
 
         with pytest.raises(HomeAssistantError) as exc:
-            await _async_handle_send_command(
+            await async_handle_send_command(
                 hass,
                 service_call(
                     hass,
@@ -2557,7 +2557,7 @@ class TestInitRuntimeBehavior:
         entry.runtime_data = coordinator
 
         with pytest.raises(HomeAssistantError) as exc:
-            await _async_handle_send_command(
+            await async_handle_send_command(
                 hass,
                 service_call(
                     hass,
@@ -2586,7 +2586,7 @@ class TestInitRuntimeBehavior:
         entry.runtime_data = coordinator
 
         with pytest.raises(HomeAssistantError):
-            await _async_handle_send_command(
+            await async_handle_send_command(
                 hass,
                 service_call(
                     hass,
@@ -2616,7 +2616,7 @@ class TestInitRuntimeBehavior:
         entry.runtime_data = coordinator
 
         with pytest.raises(HomeAssistantError) as exc:
-            await _async_handle_send_command(
+            await async_handle_send_command(
                 hass,
                 service_call(
                     hass,
@@ -2647,7 +2647,7 @@ class TestInitRuntimeBehavior:
         entry.runtime_data = coordinator
 
         with pytest.raises(HomeAssistantError) as exc:
-            await _async_handle_send_command(
+            await async_handle_send_command(
                 hass,
                 service_call(
                     hass,
@@ -2678,7 +2678,7 @@ class TestInitRuntimeBehavior:
         entry.runtime_data = coordinator
 
         with pytest.raises(HomeAssistantError) as exc:
-            await _async_handle_send_command(
+            await async_handle_send_command(
                 hass,
                 service_call(
                     hass,
@@ -2715,7 +2715,7 @@ class TestInitRuntimeBehavior:
         entry.add_to_hass(hass)
         entry.runtime_data = coordinator
 
-        result = await _async_handle_get_schedules(
+        result = await async_handle_get_schedules(
             hass, service_call(hass, {ATTR_DEVICE_ID: device.serial})
         )
 
@@ -2763,7 +2763,7 @@ class TestInitRuntimeBehavior:
             .entity_id
         )
 
-        result = await _async_handle_get_schedules(
+        result = await async_handle_get_schedules(
             hass, service_call(hass, {ATTR_ENTITY_ID: entity_id})
         )
 
@@ -2809,7 +2809,7 @@ class TestInitRuntimeBehavior:
         entry.add_to_hass(hass)
         entry.runtime_data = coordinator
 
-        result = await _async_handle_get_schedules(
+        result = await async_handle_get_schedules(
             hass, service_call(hass, {ATTR_DEVICE_ID: device.serial})
         )
 
@@ -2849,7 +2849,7 @@ class TestInitRuntimeBehavior:
         entry.add_to_hass(hass)
         entry.runtime_data = coordinator
 
-        await _async_handle_get_schedules(
+        await async_handle_get_schedules(
             hass, service_call(hass, {ATTR_DEVICE_ID: device.serial})
         )
 
@@ -2883,7 +2883,7 @@ class TestInitRuntimeBehavior:
         entry.add_to_hass(hass)
         entry.runtime_data = coordinator
 
-        result = await _async_handle_add_schedule(
+        result = await async_handle_add_schedule(
             hass,
             service_call(
                 hass,
@@ -2938,7 +2938,7 @@ class TestInitRuntimeBehavior:
             .entity_id
         )
 
-        result = await _async_handle_add_schedule(
+        result = await async_handle_add_schedule(
             hass,
             service_call(
                 hass,
@@ -2987,7 +2987,7 @@ class TestInitRuntimeBehavior:
         entry.add_to_hass(hass)
         entry.runtime_data = coordinator
 
-        result = await _async_handle_delete_schedules(
+        result = await async_handle_delete_schedules(
             hass,
             service_call(
                 hass,
@@ -3023,7 +3023,7 @@ class TestInitRuntimeBehavior:
         entry.add_to_hass(hass)
         entry.runtime_data = coordinator
 
-        await _async_handle_delete_schedules(
+        await async_handle_delete_schedules(
             hass,
             service_call(
                 hass,
@@ -3072,7 +3072,7 @@ class TestInitRuntimeBehavior:
             .entity_id
         )
 
-        result = await _async_handle_delete_schedules(
+        result = await async_handle_delete_schedules(
             hass,
             service_call(
                 hass,
@@ -3101,10 +3101,10 @@ class TestInitRuntimeBehavior:
         share_manager.pending_count = (0, 0)
 
         with patch(
-            "custom_components.lipro.services.wiring.get_anonymous_share_manager",
+            "custom_components.lipro.control.service_router.get_anonymous_share_manager",
             return_value=share_manager,
         ):
-            result = await _async_handle_submit_anonymous_share(
+            result = await async_handle_submit_anonymous_share(
                 hass, service_call(hass, {})
             )
 
@@ -3124,12 +3124,12 @@ class TestInitRuntimeBehavior:
 
         with (
             patch(
-                "custom_components.lipro.services.wiring.get_anonymous_share_manager",
+                "custom_components.lipro.control.service_router.get_anonymous_share_manager",
                 return_value=share_manager,
             ),
             pytest.raises(HomeAssistantError),
         ):
-            await _async_handle_submit_anonymous_share(hass, service_call(hass, {}))
+            await async_handle_submit_anonymous_share(hass, service_call(hass, {}))
 
     async def test_get_anonymous_share_report_returns_empty(self, hass) -> None:
         """get_anonymous_share_report returns empty payload when no report."""
@@ -3137,10 +3137,10 @@ class TestInitRuntimeBehavior:
         share_manager.get_pending_report.return_value = None
 
         with patch(
-            "custom_components.lipro.services.wiring.get_anonymous_share_manager",
+            "custom_components.lipro.control.service_router.get_anonymous_share_manager",
             return_value=share_manager,
         ):
-            result = await _async_handle_get_anonymous_share_report(
+            result = await async_handle_get_anonymous_share_report(
                 hass, service_call(hass, {})
             )
 

@@ -6,6 +6,8 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
+from custom_components.lipro.control import service_router
+from custom_components.lipro.services.registrations import SERVICE_REGISTRATIONS
 from custom_components.lipro.services.registry import (
     ServiceRegistration,
     register_service,
@@ -40,3 +42,12 @@ async def test_register_service_executes_handler() -> None:
 
     assert result == {"ok": True}
     handler.assert_awaited_once_with(hass, call)
+
+
+def test_service_registrations_bind_formal_router_handlers() -> None:
+    """All service registrations must bind to the formal control-plane router."""
+    assert SERVICE_REGISTRATIONS
+    assert all(
+        registration.handler.__module__ == service_router.__name__
+        for registration in SERVICE_REGISTRATIONS
+    )

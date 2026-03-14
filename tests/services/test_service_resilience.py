@@ -11,6 +11,7 @@ import voluptuous as vol
 
 from custom_components.lipro.const.base import DOMAIN
 from custom_components.lipro.const.config import CONF_DEBUG_MODE
+from custom_components.lipro.control.service_router import async_handle_get_city
 from custom_components.lipro.core import LiproApiError
 from custom_components.lipro.services.contracts import (
     ATTR_COMMAND,
@@ -30,7 +31,6 @@ from custom_components.lipro.services.contracts import (
     SERVICE_SEND_COMMAND_SCHEMA,
     SERVICE_SUBMIT_DEVELOPER_FEEDBACK_SCHEMA,
 )
-from custom_components.lipro.services.wiring import _async_handle_get_city
 from homeassistant.exceptions import HomeAssistantError
 from tests.helpers.service_call import service_call
 
@@ -262,7 +262,7 @@ async def test_get_city_raises_last_api_error_when_all_coordinators_fail(hass) -
     _add_runtime_entry(hass, second, phone="13900000000")
 
     with pytest.raises(HomeAssistantError, match=r"code=250001"):
-        await _async_handle_get_city(hass, service_call(hass, {}))
+        await async_handle_get_city(hass, service_call(hass, {}))
 
     assert first.async_get_city.await_count == 1
     assert second.async_get_city.await_count == 1
@@ -296,7 +296,7 @@ async def test_get_city_mixed_coordinator_results_return_first_success(hass) -> 
     _add_runtime_entry(hass, success_coordinator, phone="13700000000")
     _add_runtime_entry(hass, never_called_after_success, phone="13600000000")
 
-    result = await _async_handle_get_city(hass, service_call(hass, {}))
+    result = await async_handle_get_city(hass, service_call(hass, {}))
 
     assert result == {"result": {"province": "江苏省", "city": "苏州市"}}
     assert runtime_error_coordinator.async_get_city.await_count == 1
@@ -312,7 +312,7 @@ async def test_get_city_returns_empty_result_without_active_coordinators(hass) -
     entry.add_to_hass(hass)
     entry.runtime_data = None
 
-    result = await _async_handle_get_city(hass, service_call(hass, {}))
+    result = await async_handle_get_city(hass, service_call(hass, {}))
     assert result == {"result": {}}
 
 
@@ -339,7 +339,7 @@ async def test_get_city_concurrent_calls_with_mixed_coordinators_are_stable(
     call_count = 25
     results = await asyncio.gather(
         *(
-            _async_handle_get_city(hass, service_call(hass, {}))
+            async_handle_get_city(hass, service_call(hass, {}))
             for _ in range(call_count)
         )
     )

@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: protocol-fidelity-operability
 status: active
-last_updated: "2026-03-14T06:58:00Z"
+last_updated: "2026-03-14T11:20:19Z"
 progress:
-  total_phases: 8
-  completed_phases: 8
-  total_plans: 23
-  completed_plans: 23
+  total_phases: 9
+  completed_phases: 9
+  total_plans: 26
+  completed_plans: 26
 ---
 
 # Project State
@@ -19,7 +19,7 @@ See: `.planning/PROJECT.md`
 
 **Current milestone:** `v1.1 Protocol Fidelity & Operability`
 **Core value:** 在既有北极星单一主链基础上，把 fidelity / enforcement / telemetry / replay / AI-debug evidence 做成下一层正式能力。
-**Current mode:** `Phase 10 completed`；API drift isolation、host-neutral auth/session contract、runtime-home demotion 与治理同步均已落地，等待最终 verify / milestone closeout。
+**Current mode:** `Phase 11 completed`；control router formalization、test truth alignment、compat demotion 与治理同步均已落地，等待 milestone closeout。
 
 ## Current Position
 
@@ -33,6 +33,7 @@ See: `.planning/PROJECT.md`
 - `Phase 8` 已完成：AI debug evidence pack formal home、唯一 exporter entrypoint、integration/meta guards 与 governance handoff 已全部落地
 - `Phase 9` 已完成：production residual closure + `09-04` / `09-05` legacy test convergence addendum 均已落地；API mega-test、runtime/platform/integration tests 与治理文档已对齐到正式架构
 - `Phase 10` 已完成：`rest.device-list` / `rest.device-status` / `rest.mesh-group-status` boundary family 与 canonical contracts 已正式落地，`AuthSessionSnapshot` 成为 formal auth/session truth，`core/__init__.py` 已不再导出 `Coordinator`，governance / replay / meta guards 已同步收口
+- `Phase 11` 已完成：`control/service_router.py` 已成为真实 formal router，仓库 tests 已切到 formal seam，`services/wiring.py` 已降为显式 compat shell，治理与验证资产已同步回写
 
 ## Active Milestone Scope
 
@@ -44,6 +45,7 @@ See: `.planning/PROJECT.md`
 - `Phase 8`：AI Debug Evidence Pack
 - `Phase 9`：Residual Surface Closure
 - `Phase 10`：API Drift Isolation & Core Boundary Prep
+- `Phase 11`：Control Router Formalization & Wiring Residual Demotion
 
 ## Carry-Forward Truths
 
@@ -55,7 +57,7 @@ See: `.planning/PROJECT.md`
 - telemetry/replay/evidence 都只能 pull 正式真源，不得反向定义第二套事实
 - 未来 CLI / 其他宿主若要复用，只能建立在 host-neutral boundary/auth/device contracts 之上，而不是把 HA runtime 抽成 second root
 
-## Cross-Phase Arbitration (7.3-10)
+## Cross-Phase Arbitration (7.3-11)
 
 1. `07.3` 只锁定 telemetry truth（fields / redaction / cardinality / timestamp / pseudo-id compatibility）
 2. `07.4` 只锁定 replay truth（manifests / deterministic driver / replay assertions / run summary）
@@ -63,12 +65,14 @@ See: `.planning/PROJECT.md`
 4. `08` 只锁定 AI debug packaging（collector / schema / exporter entrypoint）
 5. `09` 已完整完成：production residual surface closure 与 `09-04` / `09-05` test convergence addendum 已统一收敛到相同 formal surface / shared harness / explicit compat seam
 6. `10` 已完整完成：boundary contract closure、host-neutral auth/result contracts、HA adapter 降耦与文档/治理同步均已落地；仍不把 physical shared core 抽离提升为正式里程碑目标
+7. `11` 已完整完成：control-plane formal router ownership、test-truth alignment、compat shell demotion 与 governance closeout 已统一收敛
 
 ## Accumulated Context
 
 ### Roadmap Evolution
 
 - Phase 10 executed and completed: API Drift Isolation & Core Boundary Prep
+- Phase 11 executed and completed: Control Router Formalization & Wiring Residual Demotion
 
 ## Governance Truth Sources
 
@@ -85,9 +89,9 @@ See: `.planning/PROJECT.md`
 
 ## Recommended Next Command
 
-1. `$gsd-verify-work 10` —— 以 Phase 10 summaries / verification / UAT 做正式收尾验收
-2. `$gsd-complete-milestone` —— 若验收通过，归档 v1.1 并准备下一里程碑
-3. `uv run pytest -q` —— 若需要 milestone 级最终信心，再跑一次全量回归
+1. `$gsd-complete-milestone` —— 归档 v1.1 并准备下一里程碑
+2. `uv run pytest -q` —— 若需要 milestone 级最终信心，再跑一次全量回归
+3. `$gsd-progress` —— 查看 closeout 后的下一步路由
 
 ## Session Continuity
 
