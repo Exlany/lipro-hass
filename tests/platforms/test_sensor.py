@@ -183,25 +183,21 @@ class TestLiproOutletPowerSensorEntity:
 
     def test_native_value_returns_now_power(self, mock_coordinator, make_device):
         """Test native_value returns nowPower from power_info."""
-        from unittest.mock import MagicMock
-
         from custom_components.lipro.sensor import LiproOutletPowerSensor
 
         device = make_device("outlet")
         device.outlet_power_info = {"nowPower": 150.5}
-        mock_coordinator.get_device = MagicMock(return_value=device)
+        mock_coordinator.set_device(device)
         sensor = LiproOutletPowerSensor(mock_coordinator, device)
 
         assert sensor.native_value == 150.5
 
     def test_native_value_none_when_no_power_info(self, mock_coordinator, make_device):
         """Test native_value returns None when no power_info."""
-        from unittest.mock import MagicMock
-
         from custom_components.lipro.sensor import LiproOutletPowerSensor
 
         device = make_device("outlet")
-        mock_coordinator.get_device = MagicMock(return_value=device)
+        mock_coordinator.set_device(device)
         sensor = LiproOutletPowerSensor(mock_coordinator, device)
 
         assert sensor.native_value is None
@@ -212,8 +208,6 @@ class TestLiproOutletEnergySensorEntity:
 
     def test_native_value_sums_energy_list(self, mock_coordinator, make_device):
         """Test native_value sums energy list values."""
-        from unittest.mock import MagicMock
-
         from custom_components.lipro.sensor import LiproOutletEnergySensor
 
         device = make_device("outlet")
@@ -223,32 +217,28 @@ class TestLiproOutletEnergySensorEntity:
                 {"t": "20240102", "v": 20.3},
             ]
         }
-        mock_coordinator.get_device = MagicMock(return_value=device)
+        mock_coordinator.set_device(device)
         sensor = LiproOutletEnergySensor(mock_coordinator, device)
 
         assert sensor.native_value == pytest.approx(30.8, rel=0.01)
 
     def test_native_value_none_when_empty_list(self, mock_coordinator, make_device):
         """Test native_value returns None for empty energy list."""
-        from unittest.mock import MagicMock
-
         from custom_components.lipro.sensor import LiproOutletEnergySensor
 
         device = make_device("outlet")
         device.outlet_power_info = {"energyList": []}
-        mock_coordinator.get_device = MagicMock(return_value=device)
+        mock_coordinator.set_device(device)
         sensor = LiproOutletEnergySensor(mock_coordinator, device)
 
         assert sensor.native_value is None
 
     def test_native_value_none_when_no_power_info(self, mock_coordinator, make_device):
         """Test native_value returns None when power_info is missing."""
-        from unittest.mock import MagicMock
-
         from custom_components.lipro.sensor import LiproOutletEnergySensor
 
         device = make_device("outlet")
-        mock_coordinator.get_device = MagicMock(return_value=device)
+        mock_coordinator.set_device(device)
         sensor = LiproOutletEnergySensor(mock_coordinator, device)
 
         assert sensor.native_value is None
@@ -267,36 +257,30 @@ class TestLiproBatterySensorEntity:
 
     def test_native_value_returns_battery_level(self, mock_coordinator, make_device):
         """Test native_value returns battery level."""
-        from unittest.mock import MagicMock
-
         from custom_components.lipro.sensor import LiproBatterySensor
 
         device = make_device("light", properties={"battery": "85"})
-        mock_coordinator.get_device = MagicMock(return_value=device)
+        mock_coordinator.set_device(device)
         sensor = LiproBatterySensor(mock_coordinator, device)
 
         assert sensor.native_value == 85
 
     def test_charging_icon(self, mock_coordinator, make_device):
         """Test icon returns charging icon when charging."""
-        from unittest.mock import MagicMock
-
         from custom_components.lipro.sensor import LiproBatterySensor
 
         device = make_device("light", properties={"battery": "50", "charging": "1"})
-        mock_coordinator.get_device = MagicMock(return_value=device)
+        mock_coordinator.set_device(device)
         sensor = LiproBatterySensor(mock_coordinator, device)
 
         assert sensor.icon == "mdi:battery-charging"
 
     def test_no_charging_icon(self, mock_coordinator, make_device):
         """Test icon returns None when not charging (let HA handle)."""
-        from unittest.mock import MagicMock
-
         from custom_components.lipro.sensor import LiproBatterySensor
 
         device = make_device("light", properties={"battery": "50", "charging": "0"})
-        mock_coordinator.get_device = MagicMock(return_value=device)
+        mock_coordinator.set_device(device)
         sensor = LiproBatterySensor(mock_coordinator, device)
 
         assert sensor.icon is None
@@ -305,12 +289,10 @@ class TestLiproBatterySensorEntity:
         self, mock_coordinator, make_device
     ):
         """Test extra_state_attributes exposes charging state."""
-        from unittest.mock import MagicMock
-
         from custom_components.lipro.sensor import LiproBatterySensor
 
         device = make_device("light", properties={"battery": "50", "charging": "1"})
-        mock_coordinator.get_device = MagicMock(return_value=device)
+        mock_coordinator.set_device(device)
         sensor = LiproBatterySensor(mock_coordinator, device)
 
         assert sensor.extra_state_attributes == {"charging": True}
@@ -321,84 +303,70 @@ class TestLiproWiFiSignalSensorEntity:
 
     def test_native_value_returns_rssi(self, mock_coordinator, make_device):
         """Test native_value returns wifi_rssi."""
-        from unittest.mock import MagicMock
-
         from custom_components.lipro.sensor import LiproWiFiSignalSensor
 
         device = make_device("light", properties={"wifi_rssi": "-55"})
-        mock_coordinator.get_device = MagicMock(return_value=device)
+        mock_coordinator.set_device(device)
         sensor = LiproWiFiSignalSensor(mock_coordinator, device)
 
         assert sensor.native_value == -55
 
     def test_icon_excellent_signal(self, mock_coordinator, make_device):
         """Test icon for excellent signal (>= -50 dBm)."""
-        from unittest.mock import MagicMock
-
         from custom_components.lipro.sensor import LiproWiFiSignalSensor
 
         device = make_device("light", properties={"wifi_rssi": "-45"})
-        mock_coordinator.get_device = MagicMock(return_value=device)
+        mock_coordinator.set_device(device)
         sensor = LiproWiFiSignalSensor(mock_coordinator, device)
 
         assert sensor.icon == "mdi:wifi-strength-4"
 
     def test_icon_good_signal(self, mock_coordinator, make_device):
         """Test icon for good signal (>= -60 dBm)."""
-        from unittest.mock import MagicMock
-
         from custom_components.lipro.sensor import LiproWiFiSignalSensor
 
         device = make_device("light", properties={"wifi_rssi": "-58"})
-        mock_coordinator.get_device = MagicMock(return_value=device)
+        mock_coordinator.set_device(device)
         sensor = LiproWiFiSignalSensor(mock_coordinator, device)
 
         assert sensor.icon == "mdi:wifi-strength-3"
 
     def test_icon_fair_signal(self, mock_coordinator, make_device):
         """Test icon for fair signal (>= -70 dBm)."""
-        from unittest.mock import MagicMock
-
         from custom_components.lipro.sensor import LiproWiFiSignalSensor
 
         device = make_device("light", properties={"wifi_rssi": "-68"})
-        mock_coordinator.get_device = MagicMock(return_value=device)
+        mock_coordinator.set_device(device)
         sensor = LiproWiFiSignalSensor(mock_coordinator, device)
 
         assert sensor.icon == "mdi:wifi-strength-2"
 
     def test_icon_weak_signal(self, mock_coordinator, make_device):
         """Test icon for weak signal (>= -80 dBm)."""
-        from unittest.mock import MagicMock
-
         from custom_components.lipro.sensor import LiproWiFiSignalSensor
 
         device = make_device("light", properties={"wifi_rssi": "-75"})
-        mock_coordinator.get_device = MagicMock(return_value=device)
+        mock_coordinator.set_device(device)
         sensor = LiproWiFiSignalSensor(mock_coordinator, device)
 
         assert sensor.icon == "mdi:wifi-strength-1"
 
     def test_icon_very_weak_signal(self, mock_coordinator, make_device):
         """Test icon for very weak signal (< -80 dBm)."""
-        from unittest.mock import MagicMock
-
         from custom_components.lipro.sensor import LiproWiFiSignalSensor
 
         device = make_device("light", properties={"wifi_rssi": "-85"})
-        mock_coordinator.get_device = MagicMock(return_value=device)
+        mock_coordinator.set_device(device)
         sensor = LiproWiFiSignalSensor(mock_coordinator, device)
 
         assert sensor.icon == "mdi:wifi-strength-alert-outline"
 
     def test_icon_no_signal(self, mock_coordinator, make_device):
         """Test icon when no signal."""
-        from unittest.mock import MagicMock
-
         from custom_components.lipro.sensor import LiproWiFiSignalSensor
 
         device = make_device("light")
-        mock_coordinator.get_device = MagicMock(return_value=device)
+        mock_coordinator.set_device(device)
         sensor = LiproWiFiSignalSensor(mock_coordinator, device)
 
         assert sensor.icon == "mdi:wifi-off"
@@ -407,14 +375,12 @@ class TestLiproWiFiSignalSensorEntity:
         self, mock_coordinator, make_device
     ):
         """Test extra_state_attributes includes network_type when available."""
-        from unittest.mock import MagicMock
-
         from custom_components.lipro.sensor import LiproWiFiSignalSensor
 
         device = make_device(
             "light", properties={"wifi_rssi": "-55", "net_type": "wifi"}
         )
-        mock_coordinator.get_device = MagicMock(return_value=device)
+        mock_coordinator.set_device(device)
         sensor = LiproWiFiSignalSensor(mock_coordinator, device)
 
         assert sensor.extra_state_attributes == {"network_type": "wifi"}
@@ -423,12 +389,10 @@ class TestLiproWiFiSignalSensorEntity:
         self, mock_coordinator, make_device
     ):
         """Test extra_state_attributes is empty when network type is missing."""
-        from unittest.mock import MagicMock
-
         from custom_components.lipro.sensor import LiproWiFiSignalSensor
 
         device = make_device("light", properties={"wifi_rssi": "-55"})
-        mock_coordinator.get_device = MagicMock(return_value=device)
+        mock_coordinator.set_device(device)
         sensor = LiproWiFiSignalSensor(mock_coordinator, device)
 
         assert sensor.extra_state_attributes == {}
@@ -476,7 +440,7 @@ class TestSensorPlatformSetupCoverage:
             "outlet",
             properties={"battery": "85", "wifi_rssi": "-55"},
         )
-        mock_coordinator.get_device = MagicMock(return_value=device)
+        mock_coordinator.set_device(device)
 
         sensors = _build_device_sensors(mock_coordinator, device)
 

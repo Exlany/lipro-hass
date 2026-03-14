@@ -24,6 +24,16 @@ class DummyApiError(Exception):
         self.code = code
 
 
+def _extract_rows(payload: object) -> list[dict[str, str]]:
+    if isinstance(payload, list):
+        return [row for row in payload if isinstance(row, dict)]
+    if isinstance(payload, dict):
+        rows = payload.get("data")
+        if isinstance(rows, list):
+            return [row for row in rows if isinstance(row, dict)]
+    return []
+
+
 @pytest.mark.asyncio
 async def test_query_with_fallback_non_retriable_raises() -> None:
     iot_request = AsyncMock(side_effect=DummyApiError("fatal", 500))

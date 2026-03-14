@@ -20,8 +20,7 @@ async def test_cover_async_setup_entry_and_command(hass, mock_coordinator, make_
     from custom_components.lipro.cover import LiproCover, async_setup_entry
 
     curtain = make_device("curtain", serial="curtain_1", properties={"position": "40"})
-    mock_coordinator.devices = {curtain.serial: curtain}
-    mock_coordinator.get_device = MagicMock(side_effect=mock_coordinator.devices.get)
+    mock_coordinator.set_devices(curtain)
     async_add_entities = MagicMock()
 
     await async_setup_entry(
@@ -53,8 +52,7 @@ async def test_switch_async_setup_entry_builds_main_and_feature_switches(
 
     outlet = make_device("outlet", serial="outlet_1")
     light = make_device("light", serial="light_1", properties={"fadeState": "1"})
-    mock_coordinator.devices = {outlet.serial: outlet, light.serial: light}
-    mock_coordinator.get_device = MagicMock(side_effect=mock_coordinator.devices.get)
+    mock_coordinator.set_devices(outlet, light)
     async_add_entities = MagicMock()
 
     await async_setup_entry(
@@ -80,8 +78,7 @@ async def test_climate_async_setup_entry_and_preset_command(
     from custom_components.lipro.const.properties import HEATER_MODE_DRY
 
     heater = make_device("heater", serial="heater_1", properties={"heaterMode": "1"})
-    mock_coordinator.devices = {heater.serial: heater}
-    mock_coordinator.get_device = MagicMock(side_effect=mock_coordinator.devices.get)
+    mock_coordinator.set_devices(heater)
     async_add_entities = MagicMock()
 
     await async_setup_entry(
@@ -113,8 +110,7 @@ async def test_binary_sensor_async_setup_entry_creates_composed_entities(
     )
 
     body_sensor = make_device("bodySensor", serial="body_1")
-    mock_coordinator.devices = {body_sensor.serial: body_sensor}
-    mock_coordinator.get_device = MagicMock(side_effect=mock_coordinator.devices.get)
+    mock_coordinator.set_devices(body_sensor)
     async_add_entities = MagicMock()
 
     await async_setup_entry(
@@ -159,12 +155,7 @@ async def test_sensor_and_select_platforms_entity_behavior(
         serial="light_bat",
         properties={"battery": "88"},
     )
-    mock_coordinator.devices = {
-        outlet.serial: outlet,
-        light.serial: light,
-        battery_light.serial: battery_light,
-    }
-    mock_coordinator.get_device = MagicMock(side_effect=mock_coordinator.devices.get)
+    mock_coordinator.set_devices(outlet, light, battery_light)
 
     sensor_add = MagicMock()
     await setup_sensor(hass, _entry_with_runtime(mock_coordinator), sensor_add)
@@ -212,8 +203,7 @@ async def test_switch_async_setup_entry_builds_panel_config_switches(
         serial="outlet_1",
         properties={"memory": "1"},
     )
-    mock_coordinator.devices = {panel.serial: panel, outlet.serial: outlet}
-    mock_coordinator.get_device = MagicMock(side_effect=mock_coordinator.devices.get)
+    mock_coordinator.set_devices(panel, outlet)
     async_add_entities = MagicMock()
 
     await async_setup_entry(
@@ -228,4 +218,3 @@ async def test_switch_async_setup_entry_builds_panel_config_switches(
     # Should have 2 panel switches (LED + Memory) for panel device only
     assert len(panel_switches) == 2
     assert all(entity.device.serial == panel.serial for entity in panel_switches)
-

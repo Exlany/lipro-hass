@@ -40,6 +40,13 @@
 - [x] **RSC-03**: runtime 对设备集合的正式访问不得暴露 live mutable dict；平台/diagnostics/helpers 必须改走只读 view 或正式 service contract
 - [x] **RSC-04**: outlet power 与类似补充状态必须通过正式 primitive 承载，禁止以 `extra_data` 旁写充当正式路径；相关 governance / guards / residual delete gate 必须同步收口
 
+### API Drift Isolation & Core Boundary Prep
+
+- [ ] **ISO-01**: `login`、`device_list`、`query_device_status`、`query_mesh_group_status`、OTA/support-critical payload 等高漂移 REST/MQTT 输入必须在 protocol boundary 输出 canonical contract；runtime/domain/control/platform 不得再自行解析 vendor envelope、field alias 或分页形态。
+- [ ] **ISO-02**: host-neutral auth / session / query-result contracts 必须显式化；`config_flow`、`entry_auth` 与其他 control adapters 只能消费 formal use case / result contract，不得依赖 raw response dict shape。
+- [ ] **ISO-03**: `core` formal public surface 必须继续与 HA runtime root 解耦；`Coordinator` 保持通过 `coordinator_entry` 暴露，`core/__init__.py` 不得把 HA runtime 当作 host-neutral core truth 的一部分继续输出。
+- [ ] **ISO-04**: 与 API drift isolation 相关的 roadmap/context/research/validation/verification/governance docs、replay fixtures 与 meta guards 必须同轮更新；未来 CLI / 其他宿主只能建立在 formal boundary 之上，而不是反向长成 second root。
+
 ## Cross-Phase Arbitration
 
 - `07.3` 锁定 telemetry contracts / redaction / cardinality / timestamp-pseudo-id compatibility
@@ -47,6 +54,7 @@
 - `07.5` 锁定 governance matrices / evidence index / residual / delete gates
 - `08` 锁定 AI debug packaging / exporter entrypoint / pack schema
 - `09` 锁定 residual surface closure / compat seam narrowing / read-only runtime access / formal outlet-power primitive
+- `10` 锁定 API drift isolation / core-boundary prep / host-neutral contracts；不得把跨平台 SDK 抽离提升为本里程碑正式 root
 
 ## Future Requirements
 
@@ -86,10 +94,14 @@
 | RSC-02 | Phase 9 | Complete |
 | RSC-03 | Phase 9 | Complete |
 | RSC-04 | Phase 9 | Complete |
+| ISO-01 | Phase 10 | Planned |
+| ISO-02 | Phase 10 | Planned |
+| ISO-03 | Phase 10 | Planned |
+| ISO-04 | Phase 10 | Planned |
 
 **Coverage:**
-- active milestone requirements: 17 total
-- mapped to phases: 17
+- active milestone requirements: 21 total
+- mapped to phases: 21
 - unmapped: 0 ✓
 
-*Last updated: 2026-03-14 after completing Phase 9 residual surface closure*
+*Last updated: 2026-03-14 after adding Phase 10 API drift isolation / core-boundary prep requirements*

@@ -35,5 +35,15 @@ def test_require_mesh_schedule_candidate_ids_returns_gateway_then_members() -> N
 def test_require_mesh_schedule_candidate_ids_raises_when_no_candidates() -> None:
     client = _DummyClient()
 
-    with pytest.raises(LiproApiError, match="Mesh schedule candidate IoT IDs unavailable"):
+    with pytest.raises(
+        LiproApiError, match="Mesh schedule candidate IoT IDs unavailable"
+    ):
         client._require_mesh_schedule_candidate_ids(device_id="mesh_group_49155")
+
+
+def test_resolve_ble_schedule_candidate_ids_non_mesh_returns_normalized_id() -> None:
+    client = _DummyClient()
+
+    assert client._resolve_ble_schedule_candidate_ids(device_id="03ab5ccd7caaaaaa") == [
+        "03ab5ccd7caaaaaa"
+    ]

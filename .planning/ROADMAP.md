@@ -131,19 +131,38 @@ Plans:
 - [x] 09-01: 收窄 protocol root surface 与 compat exports
 - [x] 09-02: 正式化 runtime 只读设备视图与 outlet power primitive
 - [x] 09-03: 回写 governance residual ledger、delete gate 与 regression guards
-- [ ] 09-04: 收敛 API/compat 旧测试夹具与 request patch 模式
-- [ ] 09-05: 收敛 runtime/platform/integration 旧测试到正式 surfaces
+- [x] 09-04: 收敛 API/compat 旧测试夹具与 request patch 模式
+- [x] 09-05: 收敛 runtime/platform/integration 旧测试到正式 surfaces
 
-**Planning addendum (2026-03-14):** 在 production/gov residual closure 已完成的基础上，继续把 legacy tests 收敛到 formal surface、shared harness 与显式 compat seam，避免旧测试把历史语义重新合法化。
+**Planning addendum (2026-03-14):** 已完成 legacy test convergence：API mega-test、runtime/platform/integration tests 已收敛到 formal surface、shared harness 与显式 compat seam，旧测试不再反向放大历史语义。
 
-## Cross-Phase Arbitration (7.3-9)
+### Phase 10: API Drift Isolation & Core Boundary Prep
+
+**Goal:** 在不引入第二条正式主链、也不提前物理抽离跨平台 SDK 的前提下，把逆向 API 的高漂移形态继续收口到 protocol boundary，提炼 host-neutral protocol/auth/device contracts，并收窄 HA adapter 对 protocol/runtime concrete shape 的依赖，让未来 CLI / 其他宿主只能建立在正式边界之上。
+**Requirements**: [ISO-01, ISO-02, ISO-03, ISO-04]
+**Depends on:** Phase 9
+**Success Criteria**:
+  1. `login`、`device_list`、`query_device_status`、`query_mesh_group_status`、OTA/support-critical payload 等高漂移输入在 protocol boundary 完成 canonicalization；runtime/domain/control 不再自行解析 vendor envelope、field alias 或分页形态。
+  2. `config_flow` / `entry_auth` / control adapters 通过 formal auth/result contract 或显式 use case 协作，而不是直接依赖 raw response dict shape；底层 API 漂移不再直接打穿 HA adapter。
+  3. `core` formal public surface 与 HA runtime root 的边界继续收窄：`Coordinator` 保持由 `coordinator_entry` 暴露，`core/__init__.py` 不再承担 host-neutral core truth 之外的 HA runtime 叙事。
+  4. 与 drift isolation 相关的 roadmap/context/research/validation/verification/governance docs、replay fixtures 与 meta guards 同轮更新，确保未来 CLI / 其他宿主只能复用 formal boundary，而不是催生 second root。
+**Plans**: 4 plans
+
+Plans:
+- [ ] 10-01: 高漂移 protocol boundary canonicalization 收口
+- [ ] 10-02: formal auth/result contracts 与 HA control adapter 降耦
+- [ ] 10-03: `core` formal surface 与 HA runtime home 继续收窄
+- [ ] 10-04: docs / governance / replay / meta guard 同步闭环
+
+## Cross-Phase Arbitration (7.3-10)
 
 - `07.3` 只拥有 telemetry truth：exporter contracts、redaction、cardinality、timestamp / pseudo-id compatibility
 - `07.4` 只拥有 replay truth：manifests、deterministic driver、replay assertions、run summary
 - `07.5` 只拥有 governance closeout：matrices、evidence index、residual、delete gates
 - `08` 只拥有 AI debug packaging：pull-only collector、pack schema、exporter entrypoint
 - `09` 只拥有 residual surface closure：protocol/runtime 收口、compat seam 压缩、formal primitive / read-only view 收敛、governance delete gate 回写
-- 执行顺序固定为 `7.3 -> 7.4 -> 7.5 -> 8 -> 9`，避免真源反转与职责重叠
+- `10` 只拥有 API drift isolation / core-boundary prep：boundary contract closure、host-neutral auth/result contracts、HA adapter 降耦与治理同步；不得在本 phase 内把 shared core / cross-platform SDK 提升为正式 root
+- 执行顺序固定为 `7.3 -> 7.4 -> 7.5 -> 8 -> 9 -> 10`，避免真源反转与职责重叠
 
 ## Progress
 
@@ -156,4 +175,5 @@ Plans:
 | 7.4 Replay Harness | v1.1 | 3/3 | Complete | 2026-03-13 |
 | 7.5 Governance & Verification | v1.1 | 2/2 | Complete | 2026-03-13 |
 | 8 AI Debug Evidence Pack | v1.1 | 2/2 | Complete | 2026-03-13 |
-| 9 Residual Surface Closure | v1.1 | 3/5 | In Progress | — |
+| 9 Residual Surface Closure | v1.1 | 5/5 | Complete | 2026-03-14 |
+| 10 API Drift Isolation & Core Boundary Prep | v1.1 | 0/4 | Planned | - |

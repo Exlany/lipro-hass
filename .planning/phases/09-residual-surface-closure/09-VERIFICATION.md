@@ -1,6 +1,6 @@
 ---
 phase: 09
-status: partial
+status: passed
 updated: 2026-03-14
 ---
 
@@ -10,7 +10,7 @@ updated: 2026-03-14
 
 原验证结果覆盖已执行的 `09-01` ~ `09-03`：protocol root 显式化、compat export 收窄、runtime device access 只读化、outlet-power primitive 正式化，以及治理/守卫回写。
 
-**2026-03-14 planning addendum:** `09-04` / `09-05` 已新增，用于把 legacy tests 收敛到相同正式架构；因此本文件当前表示“production closure 已验证，phase addendum 待再次统一验证”。
+**2026-03-14 planning addendum:** `09-04` / `09-05` 已执行完成；legacy tests 现已与 production closure 一样收敛到相同 formal surface / shared harness / explicit compat seam。
 
 ## Commands
 
@@ -21,12 +21,12 @@ updated: 2026-03-14
 
 ## Result
 
-- `09-01` ~ `09-03` 的 targeted regressions 与 fixture/governance hardening 回归已通过；本轮最小充分集合为 `150 passed`。
-- `09-04` / `09-05` 仍未执行；legacy test architecture convergence 完成后需重跑本文件中的 full verification。
-- governance guards 已通过：`uv run pytest -q tests/meta/test_public_surface_guards.py tests/meta/test_governance_guards.py tests/meta/test_dependency_guards.py` → `23 passed`。
-- architecture/file-matrix checks 已通过：`uv run python scripts/check_architecture_policy.py --check`、`uv run python scripts/check_file_matrix.py --check`。
+- `09-01` ~ `09-03` 的 production residual closure 回归继续保持绿色。
+- `09-04` API mega-test convergence 已完成：`tests/core/api/**` targeted regression → `282 passed`。
+- `09-05` runtime/platform/integration convergence 已完成：targeted regression → `193 passed`。
+- governance guards、architecture policy 与 file-matrix checks 已通过：`uv run pytest -q tests/meta/test_public_surface_guards.py tests/meta/test_governance_guards.py tests/meta/test_dependency_guards.py`、`uv run python scripts/check_architecture_policy.py --check`、`uv run python scripts/check_file_matrix.py --check`。
 - full suite 已通过：`uv run pytest -q` → `2133 passed`。
-- `09-UAT.md` 已登记 automated UAT 结论；remaining compat seams 均已在 `RESIDUAL_LEDGER.md` / `KILL_LIST.md` 继续计数。
+- `09-UAT.md`、`09-04-SUMMARY.md`、`09-05-SUMMARY.md` 已登记最终 automated verdict 与执行证据。
 
 ## Requirement Mapping
 

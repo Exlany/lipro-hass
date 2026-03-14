@@ -123,7 +123,9 @@ class _CoordinatorDouble:
         self.async_update_listeners = MagicMock()
         self.register_entity = MagicMock()
         self.unregister_entity = MagicMock()
-        self.get_device = MagicMock(side_effect=lambda serial: self._devices_store.get(serial))
+        self.get_device = MagicMock(
+            side_effect=lambda serial: self._devices_store.get(serial)
+        )
         self.get_device_lock = MagicMock(side_effect=self._get_device_lock)
         self.client = MagicMock()
         self.client.query_ota_info = AsyncMock(return_value=[])
@@ -178,6 +180,9 @@ class _CoordinatorDouble:
 
     def set_device(self, device: Any) -> None:
         self._devices_store[device.serial] = device
+
+    def set_devices(self, *devices: Any) -> None:
+        self.devices = {device.serial: device for device in devices}
 
 
 @pytest.fixture

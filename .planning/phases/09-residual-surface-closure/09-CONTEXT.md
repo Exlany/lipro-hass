@@ -3,7 +3,7 @@
 **Phase:** `9 Residual Surface Closure`
 **Milestone:** `v1.1 Protocol Fidelity & Operability (residual closure extension)`
 **Date:** 2026-03-14
-**Status:** Proposed
+**Status:** Completed
 
 ## Why Phase 9 Exists
 
@@ -52,3 +52,10 @@
 - 优先复用 `tests/conftest.py` 中的共享 fixture / factory / double，不再散落重复夹具；
 - 对重复 3 次以上的 payload/build/patch 模式进行收口，必要时参数化；
 - 本追加计划只重构测试与测试治理，不重开已完成的生产行为裁决。
+
+
+## Execution Closeout (2026-03-14)
+
+- `09-04` 已完成：`tests/core/api/test_api.py` 中 formal helper / status / schedule / response-safety 断言已迁回分层 test home，并新增 `test_response_safety.py`、`test_api_status_endpoints.py` 等 focused tests。
+- `09-05` 已完成：`tests/conftest.py` 的 coordinator double 新增 `set_devices()`，platform tests 改走共享 device store；integration MQTT tests 改为 façade-level callback emit helper，不再把 `raw_client` 当通用测试入口。
+- 定向与全量回归均已通过，治理文档已同步回写。

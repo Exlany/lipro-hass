@@ -13,7 +13,7 @@ def test_entity_exposes_capability_projection(mock_coordinator, make_device):
     from custom_components.lipro.light import LiproLight
 
     device = make_device("fanLight", serial="03ab5ccd7c999999")
-    mock_coordinator.devices = {device.serial: device}
+    mock_coordinator.set_device(device)
     light = LiproLight(mock_coordinator, device)
 
     assert light.capabilities == device.capabilities
