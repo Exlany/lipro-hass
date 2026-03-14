@@ -2,12 +2,12 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: protocol-fidelity-operability
-status: completed
-last_updated: "2026-03-14T03:30:00Z"
+status: in_progress
+last_updated: "2026-03-14T03:14:28Z"
 progress:
   total_phases: 7
-  completed_phases: 7
-  total_plans: 17
+  completed_phases: 6
+  total_plans: 19
   completed_plans: 17
 ---
 
@@ -19,7 +19,7 @@ See: `.planning/PROJECT.md`
 
 **Current milestone:** `v1.1 Protocol Fidelity & Operability`
 **Core value:** 在既有北极星单一主链基础上，把 fidelity / enforcement / telemetry / replay / AI-debug evidence 做成下一层正式能力。
-**Current mode:** `Phase 9 completed`；protocol/runtime residual surface 已完成执行、治理回写与回归验证，可进入 `$gsd-verify-work 9`。
+**Current mode:** `Phase 9 replanned`；production residual closure 已完成，但 legacy test convergence addendum（`09-04` / `09-05`）待执行，下一步应进入 `$gsd-execute-phase 9`。
 
 ## Current Position
 
@@ -31,7 +31,7 @@ See: `.planning/PROJECT.md`
 - `Phase 7.4` 已完成：authority-indexed replay manifests、deterministic driver、REST/MQTT replay assertions、replay run summary 与 meta guards 已形成 assurance 资产
 - `Phase 7.5` 已完成：governance matrix sync、`V1_1_EVIDENCE_INDEX.md`、`07.5-SUMMARY.md`、residual/delete gate closeout arbitration 已落地
 - `Phase 8` 已完成：AI debug evidence pack formal home、唯一 exporter entrypoint、integration/meta guards 与 governance handoff 已全部落地
-- `Phase 9` 已完成：protocol explicit root contract、compat export 收口、runtime read-only device view 与 outlet-power primitive 已全部落地
+- `Phase 9` 已完成 production residual closure：protocol explicit root contract、compat export 收口、runtime read-only device view 与 outlet-power primitive 已落地；现追加 `09-04` / `09-05` 用于把 legacy tests 全面收敛到新架构
 
 ## Active Milestone Scope
 
@@ -58,7 +58,7 @@ See: `.planning/PROJECT.md`
 2. `07.4` 只锁定 replay truth（manifests / deterministic driver / replay assertions / run summary）
 3. `07.5` 只锁定 governance closeout（matrices / evidence index / residual / delete gate）
 4. `08` 只锁定 AI debug packaging（collector / schema / exporter entrypoint）
-5. `09` 已完成 residual surface closure（protocol/runtime 收口、compat seam 压缩、formal primitive / read-only view 与 delete gate 回写）
+5. `09` 已完成 production residual surface closure；新增 `09-04` / `09-05` 将继续收敛 legacy tests 到相同 formal surface 与 shared harness，不改变既有生产裁决
 
 ## Governance Truth Sources
 
@@ -75,9 +75,9 @@ See: `.planning/PROJECT.md`
 
 ## Recommended Next Command
 
-1. `$gsd-verify-work 9` —— 对话式验收 protocol/runtime residual closure 的实际效果
-2. 如需继续清理 compat seam，可在 verify 后为 `core.api.LiproClient` / `LiproMqttFacade.raw_client` 再开后续 phase
-3. 如需回看 Phase 9 的输入证据，请阅读 `docs/COMPREHENSIVE_AUDIT_2026-03-13.md` 与 `.planning/reviews/RESIDUAL_LEDGER.md`
+1. `$gsd-execute-phase 9` —— 执行新增 `09-04` / `09-05`，完成 legacy test architecture convergence
+2. `cat .planning/phases/09-residual-surface-closure/09-04-PLAN.md .planning/phases/09-residual-surface-closure/09-05-PLAN.md` —— 先复核新增计划
+3. 待执行完成后再运行 `$gsd-verify-work 9`，统一验收 production closure + test convergence
 
 ## Session Continuity
 

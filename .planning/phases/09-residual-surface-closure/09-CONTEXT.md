@@ -40,3 +40,15 @@
 - 不得用文档声明掩盖代码事实；
 - 不得破坏 `Phase 8` exporter/evidence truth chain；
 - 所有收口都必须有 targeted regression proof，并在必要时补 meta/public-surface guards。
+
+## Planning Addendum — Legacy Test Convergence (2026-03-14)
+
+`09-01` ~ `09-03` 已完成生产代码与治理收口，但旧测试层仍残留一批前架构时期的重复模式：超大单文件、重复 `LiproClient(...)` 构造、重复 request patch、重复 ad-hoc doubles、以及对显式 compat seam 的过度扩散式断言。
+
+本轮追加计划的目标不是重开 production surface，而是把测试也收敛到当前正式架构事实：
+
+- 测试默认围绕 formal root / formal primitive / read-only view / explicit compat seam 断言；
+- compat shell / `raw_client` 仅留在少量显式 compatibility tests 中，不再成为普遍测试入口；
+- 优先复用 `tests/conftest.py` 中的共享 fixture / factory / double，不再散落重复夹具；
+- 对重复 3 次以上的 payload/build/patch 模式进行收口，必要时参数化；
+- 本追加计划只重构测试与测试治理，不重开已完成的生产行为裁决。

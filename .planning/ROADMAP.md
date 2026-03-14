@@ -125,12 +125,16 @@ Plans:
   2. runtime 对设备集合的对外访问不再暴露 live mutable dict；平台/diagnostics/helpers 改走只读 view 或正式 service contract。
   3. outlet power 不再通过 `device.extra_data["power_info"]` 旁写作为正式路径；实体/diagnostics/runtime 共用同一正式 primitive，并保留必要迁移兼容与回归证明。
   4. compat exports、governance matrices、residual/delete gate 与 meta/public-surface guards 全部同步，防止 residual surface 回流。
-**Plans**: 3 plans
+**Plans**: 5 plans
 
 Plans:
 - [x] 09-01: 收窄 protocol root surface 与 compat exports
 - [x] 09-02: 正式化 runtime 只读设备视图与 outlet power primitive
 - [x] 09-03: 回写 governance residual ledger、delete gate 与 regression guards
+- [ ] 09-04: 收敛 API/compat 旧测试夹具与 request patch 模式
+- [ ] 09-05: 收敛 runtime/platform/integration 旧测试到正式 surfaces
+
+**Planning addendum (2026-03-14):** 在 production/gov residual closure 已完成的基础上，继续把 legacy tests 收敛到 formal surface、shared harness 与显式 compat seam，避免旧测试把历史语义重新合法化。
 
 ## Cross-Phase Arbitration (7.3-9)
 
@@ -152,4 +156,4 @@ Plans:
 | 7.4 Replay Harness | v1.1 | 3/3 | Complete | 2026-03-13 |
 | 7.5 Governance & Verification | v1.1 | 2/2 | Complete | 2026-03-13 |
 | 8 AI Debug Evidence Pack | v1.1 | 2/2 | Complete | 2026-03-13 |
-| 9 Residual Surface Closure | v1.1 | 3/3 | Complete | 2026-03-14 |
+| 9 Residual Surface Closure | v1.1 | 3/5 | In Progress | — |

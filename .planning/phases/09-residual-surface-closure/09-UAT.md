@@ -1,6 +1,6 @@
 ---
 phase: 09
-status: passed
+status: partial
 updated: 2026-03-14
 ---
 
@@ -8,6 +8,8 @@ updated: 2026-03-14
 
 ## Automated UAT Verdict
 
+- ✅ `09-01` ~ `09-03` 的 production closure verdict 仍成立。
+- ⚠ `09-04` / `09-05` 已追加为 legacy test convergence addendum；完成执行前，本文件表示“核心 UAT 已通过，但 phase addendum 待补齐”。
 - ✅ Protocol root 只暴露显式 contract；implicit delegation 已移除。
 - ✅ Root/core/config-flow/MQTT package 不再重新导出 legacy protocol root names。
 - ✅ `Coordinator.devices` 为 read-only mapping，无法经 public surface 直接改写 runtime registry。
