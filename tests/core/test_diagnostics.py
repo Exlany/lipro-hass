@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 from datetime import timedelta
-from types import MappingProxyType
 import json
+from types import MappingProxyType
 from unittest.mock import MagicMock, patch
 
 import pytest

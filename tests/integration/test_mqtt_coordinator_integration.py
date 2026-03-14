@@ -331,7 +331,6 @@ async def test_coordinator_mqtt_service_sync_and_stop_use_client_runtime(
         "mesh_group_1": _make_device("mesh_group_1", is_group=True),
     }
 
-    mock_client = AsyncMock()
     coordinator._runtimes.mqtt.has_transport = True
 
     await coordinator.mqtt_service.async_sync_subscriptions()
