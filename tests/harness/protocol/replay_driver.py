@@ -54,6 +54,60 @@ class ProtocolReplayDriver:
                     error_category=None,
                 )
 
+            if manifest.operation == "protocol.contracts.normalize_device_list_page":
+                protocol = self._protocol_factory(
+                    "replay-phone-id",
+                    entry_id=f"replay:{manifest.scenario_id}",
+                )
+                canonical = protocol.contracts.normalize_device_list_page(
+                    fixture.authority_payload
+                )
+                return ReplayExecutionResult(
+                    manifest=manifest,
+                    public_path="LiproProtocolFacade.contracts.normalize_device_list_page",
+                    started_at=started_at,
+                    finished_at=finished_at,
+                    canonical=canonical,
+                    drift_flags=(),
+                    error_category=None,
+                )
+
+            if manifest.operation == "protocol.contracts.normalize_device_status_rows":
+                protocol = self._protocol_factory(
+                    "replay-phone-id",
+                    entry_id=f"replay:{manifest.scenario_id}",
+                )
+                canonical = protocol.contracts.normalize_device_status_rows(
+                    fixture.authority_payload
+                )
+                return ReplayExecutionResult(
+                    manifest=manifest,
+                    public_path="LiproProtocolFacade.contracts.normalize_device_status_rows",
+                    started_at=started_at,
+                    finished_at=finished_at,
+                    canonical=canonical,
+                    drift_flags=(),
+                    error_category=None,
+                )
+
+            if manifest.operation == "protocol.contracts.normalize_mesh_group_status_rows":
+                protocol = self._protocol_factory(
+                    "replay-phone-id",
+                    entry_id=f"replay:{manifest.scenario_id}",
+                )
+                canonical = protocol.contracts.normalize_mesh_group_status_rows(
+                    fixture.authority_payload
+                )
+                return ReplayExecutionResult(
+                    manifest=manifest,
+                    public_path="LiproProtocolFacade.contracts.normalize_mesh_group_status_rows",
+                    started_at=started_at,
+                    finished_at=finished_at,
+                    canonical=canonical,
+                    drift_flags=(),
+                    error_category=None,
+                )
+
             if manifest.operation == "protocol.boundary.decode_mqtt_properties":
                 metadata = fixture.authority_metadata
                 payload = metadata.get("payload")

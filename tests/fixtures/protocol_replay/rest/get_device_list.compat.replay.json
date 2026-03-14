@@ -1,0 +1,12 @@
+{
+  "scenario_id": "rest-get-device-list-compat",
+  "channel": "rest",
+  "family": "rest.device-list",
+  "version": "v1",
+  "operation": "protocol.contracts.normalize_device_list_page",
+  "authority_path": "tests/fixtures/api_contracts/get_device_list.compat.json",
+  "assertion_families": ["canonical", "drift", "telemetry"],
+  "seed": 7401,
+  "clock_baseline": "2026-03-14T00:00:00Z",
+  "notes": "compat-shaped pagination must normalize before runtime consumption"
+}

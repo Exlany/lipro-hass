@@ -93,6 +93,14 @@ def test_legacy_protocol_exports_do_not_reexpand_root_packages() -> None:
         assert set(rule.allowed_or_required_signals).issubset(bindings)
         assert bindings.isdisjoint(rule.forbidden_signals)
 
+
+def test_core_package_does_not_reexport_runtime_home_symbols() -> None:
+    from custom_components.lipro import coordinator_entry, core
+
+    assert not hasattr(core, "Coordinator")
+    assert hasattr(coordinator_entry, "Coordinator")
+
+
 def test_coordinator_runtime_surface_stays_service_oriented() -> None:
     rule = _RULES["ENF-BACKDOOR-COORDINATOR-PROPERTIES"]
     relative_path, class_name = rule.governed_targets[0].split("::", maxsplit=1)

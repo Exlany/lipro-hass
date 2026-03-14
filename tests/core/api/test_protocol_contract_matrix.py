@@ -19,7 +19,12 @@ from custom_components.lipro.core.api.mqtt_api_service import (
     _extract_mqtt_config_payload,
 )
 from custom_components.lipro.core.protocol import LiproProtocolFacade
-from custom_components.lipro.core.protocol.boundary import decode_mqtt_config_payload
+from custom_components.lipro.core.protocol.boundary import (
+    decode_device_list_payload,
+    decode_device_status_payload,
+    decode_mesh_group_status_payload,
+    decode_mqtt_config_payload,
+)
 from tests.harness.protocol import iter_replay_manifests
 
 FIXTURE_DIR = Path(__file__).resolve().parents[2] / "fixtures" / "api_contracts"
@@ -29,6 +34,78 @@ EXPECTED_MQTT_CONFIG = {
     "endpoint": "tcp://mqtt.example.com:1883",
     "clientId": "cid-direct",
 }
+EXPECTED_DEVICE_LIST_DEVICES = [
+    {
+        "deviceId": 1,
+        "serial": "03ab5ccd7c000001",
+        "deviceName": "Living Light",
+        "type": 1,
+        "iotName": "lipro_led",
+        "roomId": 11,
+        "roomName": "Living Room",
+        "productId": 101,
+        "physicalModel": "light",
+        "isGroup": False,
+        "properties": {
+            "fanOnoff": "1",
+            "brightness": "80",
+        },
+        "identityAliases": ["03ab5ccd7c000001"],
+    },
+    {
+        "deviceId": "mesh_group_10001",
+        "serial": "mesh_group_10001",
+        "deviceName": "Zone Group",
+        "type": 9,
+        "iotName": "lipro_group",
+        "physicalModel": "group",
+        "isGroup": True,
+        "properties": {},
+        "identityAliases": ["mesh_group_10001"],
+    },
+]
+EXPECTED_DEVICE_STATUS_ROWS = [
+    {
+        "deviceId": "03ab5ccd7c000001",
+        "properties": {
+            "fanOnoff": "1",
+            "wifi_ssid": "mesh-net",
+        },
+    },
+    {
+        "deviceId": "mesh_group_10001",
+        "properties": {
+            "powerState": "1",
+            "wifi_rssi": "-60",
+        },
+    },
+    {
+        "deviceId": "03ab5ccd7c000002",
+        "properties": {
+            "brightness": "40",
+            "position": "50",
+        },
+    },
+]
+EXPECTED_MESH_GROUP_STATUS_ROWS = [
+    {
+        "groupId": "mesh_group_10001",
+        "gatewayDeviceId": "03ab5ccd7c0000a1",
+        "devices": [
+            {"deviceId": "03ab5ccd7c000001"},
+            {"deviceId": "03ab5ccd7c000002"},
+        ],
+        "properties": {
+            "powerState": "1",
+        },
+    },
+    {
+        "groupId": "mesh_group_10002",
+        "gatewayDeviceId": None,
+        "devices": [],
+        "properties": {},
+    },
+]
 
 
 def _load_fixture(name: str) -> object:
@@ -91,6 +168,86 @@ def test_protocol_root_contracts_normalize_mqtt_config(
     assert client.contracts.normalize_mqtt_config(payload) == EXPECTED_MQTT_CONFIG
 
 
+@pytest.mark.parametrize(
+    "fixture_name",
+    ["get_device_list.direct.json", "get_device_list.compat.json"],
+)
+def test_protocol_root_contracts_normalize_device_list_pages(
+    fixture_name: str,
+) -> None:
+    payload = _load_fixture(fixture_name)
+
+    client = LiproProtocolFacade("test-phone-id")
+    result = client.contracts.normalize_device_list_page(payload)
+
+    assert result["devices"] == EXPECTED_DEVICE_LIST_DEVICES
+    assert result["has_more"] is True
+
+
+@pytest.mark.parametrize(
+    "fixture_name",
+    ["get_device_list.direct.json", "get_device_list.compat.json"],
+)
+def test_rest_boundary_decoder_returns_canonical_device_list_page(
+    fixture_name: str,
+) -> None:
+    payload = _load_fixture(fixture_name)
+
+    result = decode_device_list_payload(payload)
+
+    assert result.key.label == "rest.device-list@v1"
+    assert result.authority == "tests/fixtures/api_contracts/get_device_list.*.json"
+    assert result.canonical["devices"] == EXPECTED_DEVICE_LIST_DEVICES
+    assert result.canonical["has_more"] is True
+
+
+def test_protocol_root_contracts_normalize_device_status_rows() -> None:
+    payload = _load_fixture("query_device_status.mixed.json")
+
+    client = LiproProtocolFacade("test-phone-id")
+
+    assert client.contracts.normalize_device_status_rows(payload) == EXPECTED_DEVICE_STATUS_ROWS
+    assert client.contracts.build_device_status_map(payload) == {
+        "03ab5ccd7c000001": {"fanOnoff": "1", "wifi_ssid": "mesh-net"},
+        "mesh_group_10001": {"powerState": "1", "wifi_rssi": "-60"},
+        "03ab5ccd7c000002": {"brightness": "40", "position": "50"},
+    }
+
+
+def test_rest_boundary_decoder_returns_canonical_device_status_rows() -> None:
+    payload = _load_fixture("query_device_status.mixed.json")
+
+    result = decode_device_status_payload(payload)
+
+    assert result.key.label == "rest.device-status@v1"
+    assert result.authority == "tests/fixtures/api_contracts/query_device_status.*.json"
+    assert result.canonical == EXPECTED_DEVICE_STATUS_ROWS
+
+
+def test_protocol_root_contracts_normalize_mesh_group_status_rows() -> None:
+    payload = _load_fixture("query_mesh_group_status.topology.json")
+
+    client = LiproProtocolFacade("test-phone-id")
+
+    assert (
+        client.contracts.normalize_mesh_group_status_rows(payload)
+        == EXPECTED_MESH_GROUP_STATUS_ROWS
+    )
+
+
+def test_rest_boundary_decoder_returns_canonical_mesh_group_status_rows() -> None:
+    payload = _load_fixture("query_mesh_group_status.topology.json")
+
+    result = decode_mesh_group_status_payload(payload)
+
+    assert result.key.label == "rest.mesh-group-status@v1"
+    assert (
+        result.authority
+        == "tests/fixtures/api_contracts/query_mesh_group_status.*.json"
+    )
+    assert result.canonical == EXPECTED_MESH_GROUP_STATUS_ROWS
+
+
 @pytest.mark.asyncio
 async def test_get_city_fixture_matches_current_contract() -> None:
     payload = _load_fixture("get_city.success.json")
@@ -133,8 +290,17 @@ def test_protocol_boundary_registry_lists_initial_decoder_families() -> None:
     labels = {descriptor.key.label for descriptor in descriptors}
     channels = {descriptor.key.label: descriptor.channel for descriptor in descriptors}
 
-    assert labels >= {"rest.mqtt-config@v1", "mqtt.properties@v1"}
+    assert labels >= {
+        "rest.mqtt-config@v1",
+        "rest.device-list@v1",
+        "rest.device-status@v1",
+        "rest.mesh-group-status@v1",
+        "mqtt.properties@v1",
+    }
     assert channels["rest.mqtt-config@v1"] == "rest"
+    assert channels["rest.device-list@v1"] == "rest"
+    assert channels["rest.device-status@v1"] == "rest"
+    assert channels["rest.mesh-group-status@v1"] == "rest"
     assert channels["mqtt.properties@v1"] == "mqtt"
 
 
@@ -159,8 +325,11 @@ def test_rest_replay_manifests_reuse_phase_1_contract_fixtures() -> None:
     manifests = iter_replay_manifests(channel="rest")
 
     assert [manifest.authority_path.name for manifest in manifests] == [
+        "get_device_list.compat.json",
         "get_mqtt_config.direct.json",
         "get_mqtt_config.wrapped.json",
+        "query_device_status.mixed.json",
+        "query_mesh_group_status.topology.json",
     ]
     assert all(
         "tests/fixtures/api_contracts/" in manifest.authority_path.as_posix()

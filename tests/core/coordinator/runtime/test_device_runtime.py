@@ -13,6 +13,7 @@ from custom_components.lipro.core.coordinator.runtime.device_runtime import (
     DeviceRuntime,
 )
 from custom_components.lipro.core.device.identity_index import DeviceIdentityIndex
+from custom_components.lipro.core.protocol import CanonicalProtocolContracts
 
 
 @pytest.fixture
@@ -24,6 +25,7 @@ def mock_client() -> Mock:
     client.query_group_devices = AsyncMock()
     client.query_outlet_devices = AsyncMock()
     client.query_mesh_group_status = AsyncMock(return_value=[])
+    client.contracts = CanonicalProtocolContracts()
     return client
 
 

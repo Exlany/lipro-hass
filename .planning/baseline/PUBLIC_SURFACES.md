@@ -35,7 +35,7 @@
 |---------|---------------|----------------|
 | `core.api.LiproClient` compat shell | Phase 9+ cleanup only | 仅保留 `custom_components.lipro.core.api` 显式 compat shell；root / flow / core 包级再导出已收口 |
 | `LiproMqttClient` compat shell | Phase 9+ cleanup only | 仅剩 direct transport module 与 `LiproMqttFacade.raw_client` 测试 seam；包级 public export 已收口 |
-| `LiproProtocolFacade.get_device_list` compat wrapper | active migration only | direct consumers 迁移到 canonical device contracts 后删除 wrapper |
+| `LiproProtocolFacade.get_device_list` compat wrapper | active migration only | wrapper 仍保留显式 compat 语义，但正式真源已切到 `rest.device-list@v1` + `CanonicalProtocolContracts.normalize_device_list_page`；direct consumers 清零后删除 |
 | `DeviceCapabilities` compat alias | Phase 4 / 7 cleanup only | `core/device/capabilities.py` 的旧导入点迁移到 `CapabilitySnapshot` / `CapabilityRegistry` |
 | cluster-level `FILE_MATRIX` | pre-Phase 7 | 升级为 file-level governance view |
 
@@ -45,6 +45,13 @@
 - `custom_components/lipro/__init__.py`、`custom_components/lipro/config_flow.py`、`custom_components/lipro/core/__init__.py` 与 `custom_components/lipro/core/mqtt/__init__.py` 的 legacy public-name / compat export 已收口；`custom_components/lipro/core/api/__init__.py` 中的 `LiproClient` 是唯一仍登记的显式 compat shell。
 - `Coordinator.devices` 现在只暴露 read-only mapping；live mutable runtime registry 继续留在 coordinator internal state，不再作为 formal public surface。
 - `custom_components/lipro/core/device/device.py` 中的 `LiproDevice.outlet_power_info` 已成为 outlet power 单一正式 primitive；`extra_data["power_info"]` 仅允许作为 legacy read fallback，不再承担正式 truth 角色。
+
+## Phase 10 Surface Boundary Notes
+
+- `custom_components/lipro/core/__init__.py` 现在只保留 host-neutral exports：`LiproProtocolFacade`、`LiproMqttFacade`、`LiproRestFacade`、`AuthSessionSnapshot` 等；`Coordinator` 不再从这里导出。
+- `custom_components/lipro/coordinator_entry.py` 继续是 `Coordinator` 的唯一 runtime-home public surface；HA adapters 应通过该 home 或 `custom_components/lipro/control/runtime_access.py` 读取 runtime root。
+- `custom_components/lipro/control/telemetry_surface.py` 现在必须经 `runtime_access.get_entry_runtime_coordinator()` 定位 runtime home，避免 `entry.runtime_data` 访问在 control plane 四处蔓延。
+- `custom_components/lipro/config_flow.py` 与 `custom_components/lipro/entry_auth.py` 已切到 `AuthSessionSnapshot` / auth manager formal contract，不再把 raw login/result dict 当 public surface。
 
 ## Forbidden As Formal Roots
 
@@ -67,7 +74,7 @@
 | `ENF-BACKDOOR-SERVICE-AUTH` | service execution 不再回退到 coordinator 私有 auth seam | backdoor ban |
 | `ENF-COMPAT-ROOT-NO-LEGACY-CLIENT` | root adapter 不得重新绑定 `LiproClient` / `LiproMqttClient` | Phase 9 compat export ban |
 | `ENF-COMPAT-CONFIG-FLOW-NO-LEGACY-CLIENT` | config flow 只使用 `LiproProtocolFacade`，不得回流 legacy client names | Phase 9 compat export ban |
-| `ENF-COMPAT-CORE-PACKAGE-NO-LEGACY-CLIENTS` | `core/__init__.py` 不得重新导出 legacy client names | package-level compat demotion guard |
+| `ENF-COMPAT-CORE-PACKAGE-NO-LEGACY-CLIENTS` | `core/__init__.py` 不得重新导出 legacy client names 或 `Coordinator` | package-level compat/runtime-home demotion guard |
 | `ENF-COMPAT-MQTT-PACKAGE-NO-LEGACY-CLIENT` | `core/mqtt/__init__.py` 不得重新暴露 `LiproMqttClient` | MQTT package compat demotion guard |
 
 ## Update Rule

@@ -7,6 +7,7 @@ from typing import Any
 
 from ..core.telemetry import RuntimeTelemetryExporter, TelemetrySnapshot, TelemetryViews
 from ..core.telemetry.ports import ProtocolTelemetrySource, RuntimeTelemetrySource
+from .runtime_access import get_entry_runtime_coordinator
 
 
 def _get_explicit_attr(obj: Any, name: str) -> Any | None:
@@ -66,14 +67,9 @@ class _CoordinatorTelemetrySource(RuntimeTelemetrySource):
         return {"entry_id": self._entry_id} if self._entry_id else {}
 
 
-def _get_entry_runtime_coordinator(entry: Any) -> Any | None:
-    """Return the coordinator attached to a config entry, if loaded."""
-    return _get_explicit_attr(entry, "runtime_data")
-
-
 def get_entry_telemetry_exporter(entry: Any) -> RuntimeTelemetryExporter | None:
     """Return a telemetry exporter for one config entry, when available."""
-    coordinator = _get_entry_runtime_coordinator(entry)
+    coordinator = get_entry_runtime_coordinator(entry)
     if coordinator is None:
         return None
     protocol = _get_explicit_attr(coordinator, "client")

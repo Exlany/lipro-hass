@@ -16,9 +16,15 @@ from .mqtt_decoder import (
     decode_mqtt_properties_payload,
 )
 from .rest_decoder import (
+    DeviceListRestDecoder,
+    DeviceStatusRestDecoder,
+    MeshGroupStatusRestDecoder,
     MqttConfigRestDecoder,
     RestBoundaryDecoder,
     RestDecodeContext,
+    decode_device_list_payload,
+    decode_device_status_payload,
+    decode_mesh_group_status_payload,
     decode_mqtt_config_payload,
 )
 from .result import BoundaryDecodeResult, BoundaryDecoderKey
@@ -36,6 +42,9 @@ def build_protocol_boundary_registry(
     """Build the protocol-owned registry for the first boundary families."""
     registry = BoundaryDecoderRegistry()
     registry.register(MqttConfigRestDecoder(is_success_code=is_success_code), channel="rest")
+    registry.register(DeviceListRestDecoder(), channel="rest")
+    registry.register(DeviceStatusRestDecoder(), channel="rest")
+    registry.register(MeshGroupStatusRestDecoder(), channel="rest")
     registry.register(MqttPropertiesDecoder(), channel="mqtt")
     return registry
 
@@ -46,6 +55,9 @@ __all__ = [
     "BoundaryDecoderDescriptor",
     "BoundaryDecoderKey",
     "BoundaryDecoderRegistry",
+    "DeviceListRestDecoder",
+    "DeviceStatusRestDecoder",
+    "MeshGroupStatusRestDecoder",
     "MqttBoundaryDecoder",
     "MqttConfigRestDecoder",
     "MqttDecodeContext",
@@ -53,6 +65,9 @@ __all__ = [
     "RestBoundaryDecoder",
     "RestDecodeContext",
     "build_protocol_boundary_registry",
+    "decode_device_list_payload",
+    "decode_device_status_payload",
+    "decode_mesh_group_status_payload",
     "decode_mqtt_config_payload",
     "decode_mqtt_properties_payload",
 ]

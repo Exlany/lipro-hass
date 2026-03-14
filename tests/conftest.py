@@ -245,6 +245,8 @@ def mock_lipro_client() -> Generator[MagicMock]:
 @pytest.fixture
 def mock_lipro_api_client():
     """Create a mock LiproClient with common API responses for coordinator tests."""
+    from custom_components.lipro.core.protocol import CanonicalProtocolContracts
+
     client = AsyncMock()
     client.get_devices = AsyncMock(return_value={"devices": []})
     client.get_device_list = AsyncMock(return_value={"data": [], "hasMore": False})
@@ -268,6 +270,7 @@ def mock_lipro_api_client():
     client.refresh_token = "test_refresh"
     client.user_id = 10001
     client.phone_id = "test_phone_id"
+    client.contracts = CanonicalProtocolContracts()
 
     mock_mqtt_facade = MagicMock()
     mock_mqtt_facade.start = AsyncMock()

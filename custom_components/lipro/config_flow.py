@@ -17,19 +17,16 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .const.base import DOMAIN
 from .const.config import (
-    CONF_ACCESS_TOKEN,
-    CONF_BIZ_ID,
     CONF_COMMAND_RESULT_VERIFY,
     CONF_PASSWORD_HASH,
     CONF_PHONE,
     CONF_PHONE_ID,
-    CONF_REFRESH_TOKEN,
     CONF_REMEMBER_PASSWORD_HASH,
     CONF_USER_ID,
     DEFAULT_COMMAND_RESULT_VERIFY,
     DEFAULT_REMEMBER_PASSWORD_HASH,
 )
-from .core import LiproProtocolFacade
+from .core import LiproAuthManager, LiproProtocolFacade
 from .core.api import LiproApiError
 from .core.utils.log_safety import safe_error_placeholder
 from .flow.credentials import (
@@ -88,13 +85,18 @@ class LiproConfigFlow(ConfigFlow, domain=DOMAIN):
         """
         session = async_get_clientsession(self.hass)
         client = LiproProtocolFacade(phone_id, session)
-        result = await client.login(phone, password_hash, password_is_hashed=True)
+        auth_manager = LiproAuthManager(client)
+        session_result = await auth_manager.login(
+            phone,
+            password_hash,
+            password_is_hashed=True,
+        )
 
         return LoginResult(
-            access_token=result[CONF_ACCESS_TOKEN],
-            refresh_token=result[CONF_REFRESH_TOKEN],
-            user_id=result[CONF_USER_ID],
-            biz_id=result.get(CONF_BIZ_ID),
+            access_token=session_result.access_token or "",
+            refresh_token=session_result.refresh_token or "",
+            user_id=session_result.user_id or 0,
+            biz_id=session_result.biz_id,
         )
 
     async def _async_try_login(

@@ -149,10 +149,10 @@ Plans:
 **Plans**: 4 plans
 
 Plans:
-- [ ] 10-01: 高漂移 protocol boundary canonicalization 收口
-- [ ] 10-02: formal auth/result contracts 与 HA control adapter 降耦
-- [ ] 10-03: `core` formal surface 与 HA runtime home 继续收窄
-- [ ] 10-04: docs / governance / replay / meta guard 同步闭环
+- [x] 10-01: 高漂移 protocol boundary canonicalization 收口
+- [x] 10-02: formal auth/result contracts 与 HA control adapter 降耦
+- [x] 10-03: `core` formal surface 与 HA runtime home 继续收窄
+- [x] 10-04: docs / governance / replay / meta guard 同步闭环
 
 ## Cross-Phase Arbitration (7.3-10)
 
@@ -176,4 +176,4 @@ Plans:
 | 7.5 Governance & Verification | v1.1 | 2/2 | Complete | 2026-03-13 |
 | 8 AI Debug Evidence Pack | v1.1 | 2/2 | Complete | 2026-03-13 |
 | 9 Residual Surface Closure | v1.1 | 5/5 | Complete | 2026-03-14 |
-| 10 API Drift Isolation & Core Boundary Prep | v1.1 | 0/4 | Planned | - |
+| 10 API Drift Isolation & Core Boundary Prep | v1.1 | 4/4 | Complete | 2026-03-14 |

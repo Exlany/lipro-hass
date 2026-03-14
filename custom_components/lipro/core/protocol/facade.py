@@ -334,23 +334,16 @@ class LiproProtocolFacade:
         page: int = 1,
         page_size: int = 100,
     ) -> dict[str, Any]:
-        """Compatibility device-list seam pending runtime migration."""
+        """Compatibility device-list seam backed by the formal protocol contract."""
         resolved_page = max(1, int(page))
         resolved_page_size = max(1, int(page_size))
         offset = (resolved_page - 1) * resolved_page_size
 
         response = await self.get_devices(offset=offset, limit=resolved_page_size)
-        devices = list(response.get("devices", []))
-        total = response.get("total", len(devices))
-        try:
-            total_count = int(total)
-        except (TypeError, ValueError):
-            total_count = len(devices)
-
-        has_more = offset + len(devices) < total_count
+        page_view = self._contracts.normalize_device_list_page(response, offset=offset)
         return {
-            "data": devices,
-            "hasMore": has_more,
+            "data": list(page_view.get("devices", [])),
+            "hasMore": bool(page_view.get("has_more", False)),
         }
 
     async def get_product_configs(self) -> list[dict[str, Any]]:

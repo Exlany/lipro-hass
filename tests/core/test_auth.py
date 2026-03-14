@@ -88,7 +88,7 @@ class TestLiproAuthManagerCredentials:
             expires_at=1234567890.0,
         )
 
-        client.set_tokens.assert_called_once_with("access123", "refresh456", 10001)
+        client.set_tokens.assert_called_once_with("access123", "refresh456", 10001, None)
         assert manager._token_expires_at == 1234567890.0
 
     def test_set_tokens_auto_expiry(self):
@@ -133,9 +133,9 @@ class TestLiproAuthManagerLogin:
 
         result = await manager.login("13800000000", "password")
 
-        assert result["access_token"] == "new_access"
-        assert result["refresh_token"] == "new_refresh"
-        assert "expires_at" in result
+        assert result.access_token == "new_access"
+        assert result.refresh_token == "new_refresh"
+        assert result.expires_at is not None
         assert manager._phone == "13800000000"
         assert manager._password_is_hashed is True
 
@@ -181,8 +181,8 @@ class TestLiproAuthManagerRefresh:
 
         result = await manager.refresh_token()
 
-        assert result["access_token"] == "new_access"
-        assert "expires_at" in result
+        assert result.access_token == "new_access"
+        assert result.expires_at is not None
 
     @pytest.mark.asyncio
     async def test_refresh_token_expired_with_credentials(self):
@@ -209,7 +209,7 @@ class TestLiproAuthManagerRefresh:
         call_args = client.login.call_args
         assert call_args[0][0] == "phone"
         assert call_args[1]["password_is_hashed"] is True
-        assert result["access_token"] == "new_access"
+        assert result.access_token == "new_access"
 
     @pytest.mark.asyncio
     async def test_refresh_token_expired_no_credentials(self):
@@ -266,7 +266,7 @@ class TestLiproAuthManagerRefresh:
         result = await manager.refresh_token()
 
         client.login.assert_called_once()
-        assert result["access_token"] == "new_access"
+        assert result.access_token == "new_access"
 
 
 class TestLiproAuthManagerEnsureValidToken:

@@ -1,0 +1,12 @@
+{
+  "scenario_id": "rest-query-device-status-mixed",
+  "channel": "rest",
+  "family": "rest.device-status",
+  "version": "v1",
+  "operation": "protocol.contracts.normalize_device_status_rows",
+  "authority_path": "tests/fixtures/api_contracts/query_device_status.mixed.json",
+  "assertion_families": ["canonical", "drift", "telemetry"],
+  "seed": 7402,
+  "clock_baseline": "2026-03-14T00:00:00Z",
+  "notes": "mixed id aliases and flat property payloads must normalize at boundary"
+}

@@ -42,10 +42,10 @@
 
 ### API Drift Isolation & Core Boundary Prep
 
-- [ ] **ISO-01**: `login`、`device_list`、`query_device_status`、`query_mesh_group_status`、OTA/support-critical payload 等高漂移 REST/MQTT 输入必须在 protocol boundary 输出 canonical contract；runtime/domain/control/platform 不得再自行解析 vendor envelope、field alias 或分页形态。
-- [ ] **ISO-02**: host-neutral auth / session / query-result contracts 必须显式化；`config_flow`、`entry_auth` 与其他 control adapters 只能消费 formal use case / result contract，不得依赖 raw response dict shape。
-- [ ] **ISO-03**: `core` formal public surface 必须继续与 HA runtime root 解耦；`Coordinator` 保持通过 `coordinator_entry` 暴露，`core/__init__.py` 不得把 HA runtime 当作 host-neutral core truth 的一部分继续输出。
-- [ ] **ISO-04**: 与 API drift isolation 相关的 roadmap/context/research/validation/verification/governance docs、replay fixtures 与 meta guards 必须同轮更新；未来 CLI / 其他宿主只能建立在 formal boundary 之上，而不是反向长成 second root。
+- [x] **ISO-01**: `login`、`device_list`、`query_device_status`、`query_mesh_group_status`、OTA/support-critical payload 等高漂移 REST/MQTT 输入必须在 protocol boundary 输出 canonical contract；runtime/domain/control/platform 不得再自行解析 vendor envelope、field alias 或分页形态。
+- [x] **ISO-02**: host-neutral auth / session / query-result contracts 必须显式化；`config_flow`、`entry_auth` 与其他 control adapters 只能消费 formal use case / result contract，不得依赖 raw response dict shape。
+- [x] **ISO-03**: `core` formal public surface 必须继续与 HA runtime root 解耦；`Coordinator` 保持通过 `coordinator_entry` 暴露，`core/__init__.py` 不得把 HA runtime 当作 host-neutral core truth 的一部分继续输出。
+- [x] **ISO-04**: 与 API drift isolation 相关的 roadmap/context/research/validation/verification/governance docs、replay fixtures 与 meta guards 必须同轮更新；未来 CLI / 其他宿主只能建立在 formal boundary 之上，而不是反向长成 second root。
 
 ## Cross-Phase Arbitration
 
@@ -94,14 +94,14 @@
 | RSC-02 | Phase 9 | Complete |
 | RSC-03 | Phase 9 | Complete |
 | RSC-04 | Phase 9 | Complete |
-| ISO-01 | Phase 10 | Planned |
-| ISO-02 | Phase 10 | Planned |
-| ISO-03 | Phase 10 | Planned |
-| ISO-04 | Phase 10 | Planned |
+| ISO-01 | Phase 10 | Complete |
+| ISO-02 | Phase 10 | Complete |
+| ISO-03 | Phase 10 | Complete |
+| ISO-04 | Phase 10 | Complete |
 
 **Coverage:**
 - active milestone requirements: 21 total
 - mapped to phases: 21
 - unmapped: 0 ✓
 
-*Last updated: 2026-03-14 after adding Phase 10 API drift isolation / core-boundary prep requirements*
+*Last updated: 2026-03-14 after completing Phase 10 API drift isolation / core-boundary prep*

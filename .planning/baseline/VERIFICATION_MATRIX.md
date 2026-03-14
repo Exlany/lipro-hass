@@ -30,6 +30,8 @@
 | `AID-*` | `tests/harness/evidence_pack/`、`scripts/export_ai_debug_evidence_pack.py`、`08-VALIDATION.md`、`08-01/02-SUMMARY.md`、`08-VERIFICATION.md`、更新后的 governance matrices / reviews | evidence-pack integration tests + authority/meta guards + governance sync proof | 8 | AI debug evidence pack 必须保持 assurance-only / pull-only；每个 section 都要能回溯 formal source，且统一继承 `07.3/07.4/07.5` 真相链 |
 | `RSC-*` | `custom_components/lipro/core/protocol/facade.py`、`custom_components/lipro/core/coordinator/{coordinator,outlet_power}.py`、`custom_components/lipro/core/device/device.py`、`tests/meta/test_public_surface_guards.py`、`09-01/02/03-SUMMARY.md`、`09-VERIFICATION.md`、更新后的 baseline/review docs | targeted protocol/runtime regressions + meta guards + full-suite proof | 9 | residual surface closure 必须同时关闭隐式 protocol root、runtime live mutable mapping 泄露与 outlet power side-write，并把剩余 compat seam 变成显式 delete-gated 残留 |
 
+| `ISO-*` | `custom_components/lipro/core/protocol/boundary/rest_decoder.py`、`custom_components/lipro/core/protocol/contracts.py`、`custom_components/lipro/core/auth/manager.py`、`custom_components/lipro/{config_flow.py,entry_auth.py}`、`10-01/02/03/04-SUMMARY.md`、`10-VERIFICATION.md`、更新后的 baseline/review docs | protocol contract matrix + REST/MQTT replay + auth/flow regressions + public-surface/dependency/governance guards | 10 | API drift 必须优先失败在 protocol boundary；HA adapters 只能消费 formal auth/session contract；未来 CLI / other host 只能建立在 boundary-first nucleus 之上 |
+
 ## Locked Upstream Inputs
 
 | Upstream Phase | Required Inputs Before Acceptance | Why It Matters |
@@ -83,6 +85,13 @@
 - **Required governance proof:** `PUBLIC_SURFACES.md`、`AUTHORITY_MATRIX.md`、`VERIFICATION_MATRIX.md`、`FILE_MATRIX.md`、`RESIDUAL_LEDGER.md` 与 `KILL_LIST.md` 必须同步反映 explicit protocol root、remaining compat seams、read-only coordinator device surface 与 formal outlet-power primitive。
 - **Required runnable proof:** 至少保持 `uv run pytest -q tests/core/api/test_protocol_contract_matrix.py tests/integration/test_mqtt_coordinator_integration.py tests/meta/test_public_surface_guards.py tests/core/test_outlet_power.py tests/test_coordinator_public.py tests/platforms/test_sensor.py tests/core/test_diagnostics.py tests/meta/test_governance_guards.py tests/meta/test_dependency_guards.py`、`uv run python scripts/check_architecture_policy.py --check`、`uv run python scripts/check_file_matrix.py --check` 与 `uv run pytest -q` 通过。
 - **Unblock effect:** `Phase 9` 完成后，仓库只剩显式登记的 compat shell / seam（如 `core.api.LiproClient`、`LiproProtocolFacade.get_device_list`、`LiproMqttFacade.raw_client`）；后续 cleanup phase 只需围绕这些可计数残留继续删除，而不是再次裁决正式主链。
+
+## Phase 10 Exit Contract
+
+- **Required artifacts:** `custom_components/lipro/core/protocol/{boundary/rest_decoder.py,contracts.py,facade.py}`、`custom_components/lipro/core/auth/{__init__.py,manager.py}`、`custom_components/lipro/{config_flow.py,entry_auth.py}`、`custom_components/lipro/control/{runtime_access.py,telemetry_surface.py}`、`custom_components/lipro/core/__init__.py`、`10-01/02/03/04-SUMMARY.md`、`10-UAT.md`、`10-VERIFICATION.md`，以及更新后的 baseline / review truth docs。
+- **Required governance proof:** `PUBLIC_SURFACES.md`、`DEPENDENCY_MATRIX.md`、`AUTHORITY_MATRIX.md`、`VERIFICATION_MATRIX.md`、`FILE_MATRIX.md`、`RESIDUAL_LEDGER.md` 与 `KILL_LIST.md` 必须同步反映 `rest.device-list` / `rest.device-status` / `rest.mesh-group-status` authority、`AuthSessionSnapshot` formal home、`core/__init__.py` 不再导出 `Coordinator`、以及 remaining compat seams。
+- **Required runnable proof:** 至少保持 `uv run ruff check custom_components/lipro tests`、`uv run pytest -q -x tests/core/api/test_protocol_contract_matrix.py tests/core/api/test_protocol_replay_rest.py tests/core/mqtt/test_protocol_replay_mqtt.py tests/core/test_auth.py tests/core/test_init.py tests/flows/test_config_flow.py tests/meta/test_modularization_surfaces.py tests/meta/test_public_surface_guards.py tests/meta/test_dependency_guards.py tests/meta/test_governance_guards.py tests/meta/test_protocol_replay_assets.py tests/test_coordinator_public.py tests/core/test_diagnostics.py tests/core/test_system_health.py`、`uv run python scripts/check_architecture_policy.py --check` 与 `uv run python scripts/check_file_matrix.py --check` 通过。
+- **Unblock effect:** 后续若真的要做 CLI / other host，只需复用已锁定的 boundary/auth/device nucleus，而不用再次把 `Coordinator` 或 HA adapter 从仓库里物理抽成 second root。
 
 ## Governance Update Triggers
 

@@ -128,3 +128,10 @@
 - runtime public surface 已收口：`Coordinator.devices` 改为 read-only mapping，`LiproDevice.outlet_power_info` 成为 outlet power formal primitive，sensor/diagnostics/runtime 统一读取该真源。
 - `extra_data["power_info"]` 已退出正式 outlet-power truth 角色，仅设备对象内部保留 legacy read fallback，以承接旧夹具/旧构造。
 - 本 phase **未关闭全部 compat residual**：现存 residual 只能继续收窄，不能回流为 formal public surface。
+
+## Phase 10 Residual Delta
+
+- `rest.device-list@v1`、`rest.device-status@v1` 与 `rest.mesh-group-status@v1` 已完成 boundary-first 收口：API drift 应先打在 protocol contract / replay proof，而不是 runtime 或 HA adapter。
+- `AuthSessionSnapshot` 已成为 formal auth/session truth；`config_flow.py` 与 `entry_auth.py` 已迁到 auth manager formal contract。`get_auth_data()` fallback 仅为 legacy mocks / older callers 保留，仍属显式 compat seam。
+- `custom_components/lipro/core/__init__.py` 不再导出 `Coordinator`；runtime home 继续固定在 `custom_components/lipro/coordinator_entry.py`，`control/runtime_access.py` 成为 control-plane locator。
+- remaining active delete-gated compat seams 仍集中在 `core.api.LiproClient`、`LiproProtocolFacade.get_device_list` 与 `LiproMqttFacade.raw_client`；本 phase 未新增新的无 gate compat root。

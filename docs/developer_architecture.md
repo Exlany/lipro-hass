@@ -239,14 +239,21 @@ Coordinator
 ### API Client / Protocol Plane (`core/api/`, `core/mqtt/`)
 
 - `client.py`：当前仍保留 `LiproClient` compat shell；正式 protocol-plane root 已是 `LiproProtocolFacade`
-- `core/api/`：Phase 2 先收敛为 `LiproRestFacade` + transport / auth / endpoint collaborators
-- `core/mqtt/`：后续与 REST 一起并入 `LiproMqttFacade`，共同挂接到统一协议根
+- `core/api/`：`LiproRestFacade` + transport / auth / endpoint collaborators；高漂移 REST 形态在 `core/protocol/boundary/rest_decoder.py` 与 `CanonicalProtocolContracts` 中先完成 canonicalization
+- `core/mqtt/`：MQTT transport collaborators 已作为 `LiproMqttFacade` child façade 挂到统一协议根，生产路径通过 `LiproProtocolFacade` 协作
+- `core/auth/`：`LiproAuthManager` + `AuthSessionSnapshot`；HA adapters 通过 formal auth/session contract 协作，而不是解析 raw login dict
 - `transport_core.py` / `transport_retry.py` / `transport_signing.py`：请求核心/重试/签名
 - `endpoints/`：按域拆分端点（auth / status / devices / commands / ...）
 - `*_service.py`：协议级服务封装（auth / schedule / mqtt / status）
 - `connection_manager.py`：指数退避重连
 - `subscription_manager.py`：订阅管理
 - `payload.py` / `topics.py`：消息解析、主题生成
+
+### Phase 10 Boundary Clarifications
+
+- `rest.device-list`、`rest.device-status`、`rest.mesh-group-status` 等高漂移 family 现在都要求先在 protocol boundary 输出 canonical contract；runtime / control / platform 不再自己理解 vendor envelope、field alias 或分页差异。
+- `core/__init__.py` 不再导出 `Coordinator`；HA runtime home 继续固定在 `custom_components/lipro/coordinator_entry.py`，`control/runtime_access.py` 负责控制面定位 runtime root。
+- 未来 CLI / 其他宿主若要复用，只能建立在 `LiproProtocolFacade`、boundary contracts、`AuthSessionSnapshot` 与 device/capability truth 之上，而不是把 HA runtime 直接抽成 shared core。
 
 ### Device Model (`core/device/`)
 

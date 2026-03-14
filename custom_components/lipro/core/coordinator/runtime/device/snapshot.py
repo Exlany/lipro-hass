@@ -17,6 +17,7 @@ if TYPE_CHECKING:
     from .filter import DeviceFilter
 
 _LOGGER = logging.getLogger(__name__)
+_DEFAULT_DEVICE_PAGE_SIZE = 100
 
 
 @dataclass(frozen=True)
@@ -47,6 +48,7 @@ class SnapshotBuilder:
 
         try:
             rows = await self._client.query_mesh_group_status(group_ids)
+            rows = self._client.contracts.normalize_mesh_group_status_rows(rows)
         except Exception as err:
             if isinstance(err, (asyncio.CancelledError, KeyboardInterrupt, SystemExit)):
                 raise
@@ -57,7 +59,7 @@ class SnapshotBuilder:
             return
 
         for row in rows:
-            group_id = row.get("groupId") or row.get("id")
+            group_id = row.get("groupId")
             if not isinstance(group_id, str) or not group_id.strip():
                 continue
             device = device_by_id.get(group_id.strip())
@@ -102,14 +104,18 @@ class SnapshotBuilder:
         while page <= max_pages:
             try:
                 response = await self._client.get_device_list(page=page)
-                devices_data = response.get("data") or response.get("devices", [])
+                page_view = self._client.contracts.normalize_device_list_page(
+                    response,
+                    offset=(page - 1) * _DEFAULT_DEVICE_PAGE_SIZE,
+                )
+                devices_data = list(page_view.get("devices", []))
 
                 if not devices_data:
                     break
 
                 all_devices.extend(devices_data)
 
-                has_more = response.get("hasMore", False)
+                has_more = bool(page_view.get("has_more", False))
                 if not has_more:
                     break
 
@@ -153,13 +159,14 @@ class SnapshotBuilder:
 
                 devices[device.serial] = device
 
-                identity_aliases = {device.serial}
+                identity_aliases = {
+                    alias
+                    for alias in device_data.get("identityAliases", [])
+                    if isinstance(alias, str) and alias.strip()
+                }
+                identity_aliases.add(device.serial)
                 if device.iot_device_id:
                     identity_aliases.add(device.iot_device_id)
-                for key in ("id", "iotId", "iotDeviceId", "groupId"):
-                    candidate = device_data.get(key)
-                    if isinstance(candidate, str) and candidate.strip():
-                        identity_aliases.add(candidate.strip())
 
                 device.extra_data["identity_aliases"] = sorted(identity_aliases)
                 for identity_alias in identity_aliases:

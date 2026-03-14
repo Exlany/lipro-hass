@@ -21,12 +21,13 @@ def test_api_helpers_use_canonical_submodule_symbols() -> None:
     assert not hasattr(api, "_COMMAND_PACING_CACHE_MAX_SIZE")
 
 
-def test_coordinator_module_exports_only_canonical_surface() -> None:
-    """`custom_components.lipro.core` should no longer export deprecated coordinator aliases."""
-    from custom_components.lipro import core
+def test_coordinator_runtime_home_is_localized_to_coordinator_entry() -> None:
+    """`Coordinator` should remain at the HA runtime home, not `core` root."""
+    from custom_components.lipro import coordinator_entry, core
     from custom_components.lipro.core import coordinator
 
-    assert hasattr(core, "Coordinator")
+    assert not hasattr(core, "Coordinator")
+    assert hasattr(coordinator_entry, "Coordinator")
     assert hasattr(coordinator, "Coordinator")
     assert not hasattr(core, "LiproDataUpdateCoordinator")
     assert not hasattr(coordinator, "LiproDataUpdateCoordinator")

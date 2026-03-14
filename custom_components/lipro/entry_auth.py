@@ -12,6 +12,7 @@ from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
 
 from .const.config import (
     CONF_ACCESS_TOKEN,
+    CONF_BIZ_ID,
     CONF_EXPIRES_AT,
     CONF_PASSWORD_HASH,
     CONF_PHONE,
@@ -111,6 +112,7 @@ def build_entry_auth_context(
             entry.data[CONF_REFRESH_TOKEN],
             entry.data.get(CONF_USER_ID),
             entry.data.get(CONF_EXPIRES_AT),
+            entry.data.get(CONF_BIZ_ID),
         )
 
     if remember_password_hash and isinstance(password_hash, str) and password_hash:
@@ -139,22 +141,43 @@ def persist_entry_tokens_if_changed(
     auth_manager: LiproAuthManager,
 ) -> None:
     """Persist refreshed access/refresh tokens when they changed."""
-    auth_data = auth_manager.get_auth_data()
-    if not auth_data.get(CONF_ACCESS_TOKEN) or not auth_data.get(CONF_REFRESH_TOKEN):
+    auth_session_getter = getattr(auth_manager, "get_auth_session", None)
+    auth_session = auth_session_getter() if callable(auth_session_getter) else None
+    access_token = getattr(auth_session, "access_token", None)
+    refresh_token = getattr(auth_session, "refresh_token", None)
+    expires_at = getattr(auth_session, "expires_at", None)
+    biz_id = getattr(auth_session, "biz_id", None)
+
+    if not isinstance(access_token, str) or not access_token:
+        auth_data = auth_manager.get_auth_data()
+        access_token = auth_data.get(CONF_ACCESS_TOKEN)
+        refresh_token = auth_data.get(CONF_REFRESH_TOKEN)
+        expires_at = auth_data.get(CONF_EXPIRES_AT)
+        biz_id = auth_data.get(CONF_BIZ_ID)
+
+    if not isinstance(access_token, str) or not access_token:
         return
-    if auth_data[CONF_ACCESS_TOKEN] == entry.data.get(CONF_ACCESS_TOKEN) and auth_data[
-        CONF_REFRESH_TOKEN
-    ] == entry.data.get(CONF_REFRESH_TOKEN):
+    if not isinstance(refresh_token, str) or not refresh_token:
         return
+    if (
+        access_token == entry.data.get(CONF_ACCESS_TOKEN)
+        and refresh_token == entry.data.get(CONF_REFRESH_TOKEN)
+        and biz_id == entry.data.get(CONF_BIZ_ID)
+    ):
+        return
+
+    updated_data = {
+        **entry.data,
+        CONF_ACCESS_TOKEN: access_token,
+        CONF_REFRESH_TOKEN: refresh_token,
+        CONF_EXPIRES_AT: expires_at,
+    }
+    if isinstance(biz_id, str) and biz_id:
+        updated_data[CONF_BIZ_ID] = biz_id
 
     hass.config_entries.async_update_entry(
         entry,
-        data={
-            **entry.data,
-            CONF_ACCESS_TOKEN: auth_data[CONF_ACCESS_TOKEN],
-            CONF_REFRESH_TOKEN: auth_data[CONF_REFRESH_TOKEN],
-            CONF_EXPIRES_AT: auth_data[CONF_EXPIRES_AT],
-        },
+        data=updated_data,
     )
 
 

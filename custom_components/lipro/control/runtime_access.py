@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
+from importlib import import_module
 from typing import Any
 
 from homeassistant.core import HomeAssistant
 
 from ..const.base import DOMAIN
 from .models import RuntimeCoordinatorSnapshot
-from .telemetry_surface import build_entry_system_health_view
 
 
 def get_entry_runtime_coordinator(entry: Any) -> Any | None:
@@ -37,7 +37,8 @@ def build_runtime_snapshot(entry: Any) -> RuntimeCoordinatorSnapshot | None:
     if coordinator is None:
         return None
 
-    telemetry_view = build_entry_system_health_view(entry) or {}
+    telemetry_surface = import_module("custom_components.lipro.control.telemetry_surface")
+    telemetry_view = telemetry_surface.build_entry_system_health_view(entry) or {}
     device_count = telemetry_view.get("device_count")
     if not isinstance(device_count, int):
         devices = getattr(coordinator, "devices", None)

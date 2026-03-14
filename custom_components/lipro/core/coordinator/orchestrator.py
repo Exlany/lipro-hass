@@ -117,7 +117,7 @@ class RuntimeOrchestrator:
         async def _query_device_status_batch(
             device_ids: list[str],
         ) -> dict[str, dict[str, Any]]:
-            """Query device status batch (extracted from factory.py)."""
+            """Query device status batch through the formal protocol contract."""
             status_endpoint = getattr(self.client, "status", None)
             query_device_status = getattr(status_endpoint, "query_device_status", None)
             if query_device_status is None:
@@ -125,28 +125,7 @@ class RuntimeOrchestrator:
             else:
                 rows = await query_device_status(device_ids)
 
-            status: dict[str, dict[str, Any]] = {}
-            for row in rows:
-                device_id: str | None = None
-                for key in ("iotId", "deviceId", "id"):
-                    candidate = row.get(key)
-                    if isinstance(candidate, str) and candidate.strip():
-                        device_id = candidate
-                        break
-                if device_id is None:
-                    continue
-
-                properties = row.get("properties")
-                if isinstance(properties, dict):
-                    status[device_id] = dict(properties)
-                    continue
-
-                status[device_id] = {
-                    key: value
-                    for key, value in row.items()
-                    if key not in {"iotId", "deviceId", "id"}
-                }
-            return status
+            return self.client.contracts.build_device_status_map(rows)
 
         async def _apply_properties_update(
             device: LiproDevice,

@@ -1,0 +1,30 @@
+{
+  "data": [
+    {
+      "deviceId": 1,
+      "serial": "03ab5ccd7c000001",
+      "iotDeviceId": " 03AB5CCD7C000001 ",
+      "deviceName": "Living Light",
+      "type": 1,
+      "iotName": "lipro_led",
+      "physicalModel": "light",
+      "roomId": 11,
+      "roomName": "Living Room",
+      "productId": 101,
+      "properties": {
+        "fanOnOff": "1",
+        "brightness": "80"
+      }
+    },
+    {
+      "groupId": "mesh_group_10001",
+      "serial": "mesh_group_10001",
+      "name": "Zone Group",
+      "deviceType": 9,
+      "iotName": "lipro_group",
+      "isGroup": true,
+      "physicalModel": "group"
+    }
+  ],
+  "hasMore": true
+}

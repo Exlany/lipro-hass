@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+from dataclasses import dataclass
 import hashlib
 import logging
 import time
@@ -31,6 +32,23 @@ _LOGGER = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
     from collections.abc import Callable
+
+
+@dataclass(frozen=True, slots=True)
+class AuthSessionSnapshot:
+    """Formal auth/session contract consumed by HA adapters and control code."""
+
+    access_token: str | None
+    refresh_token: str | None
+    user_id: int | None
+    expires_at: float | None
+    phone_id: str | None
+    biz_id: str | None = None
+
+    @property
+    def has_tokens(self) -> bool:
+        """Return whether both access and refresh tokens are present."""
+        return bool(self.access_token and self.refresh_token)
 
 
 class LiproAuthManager:
@@ -129,6 +147,7 @@ class LiproAuthManager:
         refresh_token: str,
         user_id: int | None = None,
         expires_at: float | None = None,
+        biz_id: str | None = None,
     ) -> None:
         """Set authentication tokens.
 
@@ -139,7 +158,7 @@ class LiproAuthManager:
             expires_at: Optional expiry timestamp.
 
         """
-        self._client.set_tokens(access_token, refresh_token, user_id)
+        self._client.set_tokens(access_token, refresh_token, user_id, biz_id)
         # Use expires_at if provided and valid (not None and not 0)
         if expires_at is not None and expires_at > 0:
             self._token_expires_at = expires_at
@@ -149,13 +168,37 @@ class LiproAuthManager:
         # This keeps the first runtime 401 eligible for an immediate refresh.
         self._last_refresh_time = 0.0
 
+    def _sync_client_tokens_from_result(self, result: dict[str, Any]) -> None:
+        """Apply one formal login/refresh result to the protocol client state."""
+        access_token = result[CONF_ACCESS_TOKEN]
+        refresh_token = result[CONF_REFRESH_TOKEN]
+        user_id = result.get(CONF_USER_ID)
+        biz_id = result.get("biz_id")
+        self._client.set_tokens(access_token, refresh_token, user_id, biz_id)
+        self._client.access_token = access_token
+        self._client.refresh_token = refresh_token
+        self._client.user_id = user_id
+        if hasattr(self._client, "biz_id"):
+            self._client.biz_id = biz_id
+
+    def get_auth_session(self) -> AuthSessionSnapshot:
+        """Return the current formal auth/session snapshot."""
+        return AuthSessionSnapshot(
+            access_token=self._client.access_token,
+            refresh_token=self._client.refresh_token,
+            user_id=self._client.user_id,
+            expires_at=self._token_expires_at,
+            phone_id=self._client.phone_id,
+            biz_id=getattr(self._client, "biz_id", None),
+        )
+
     async def login(
         self,
         phone: str,
         password: str,
         *,
         password_is_hashed: bool = False,
-    ) -> dict[str, Any]:
+    ) -> AuthSessionSnapshot:
         """Login with credentials.
 
         Args:
@@ -172,6 +215,7 @@ class LiproAuthManager:
         result = await self._client.login(
             phone, password, password_is_hashed=password_is_hashed
         )
+        self._sync_client_tokens_from_result(result)
         # Reset adaptive expiry on successful login
         self._current_expiry_seconds = ACCESS_TOKEN_EXPIRY_SECONDS
         self._token_expires_at = time.time() + self._current_expiry_seconds
@@ -183,12 +227,9 @@ class LiproAuthManager:
         )
         self._notify_tokens_updated()
 
-        return {
-            **result,
-            "expires_at": self._token_expires_at,
-        }
+        return self.get_auth_session()
 
-    async def refresh_token(self) -> dict[str, Any]:
+    async def refresh_token(self) -> AuthSessionSnapshot:
         """Refresh the access token.
 
         Returns:
@@ -201,6 +242,7 @@ class LiproAuthManager:
         """
         try:
             result = await self._client.refresh_access_token()
+            self._sync_client_tokens_from_result(result)
             self._token_expires_at = time.time() + self._current_expiry_seconds
             self._last_refresh_time = time.time()
 
@@ -210,10 +252,7 @@ class LiproAuthManager:
             )
             self._notify_tokens_updated()
 
-            return {
-                **result,
-                "expires_at": self._token_expires_at,
-            }
+            return self.get_auth_session()
         except LiproAuthError as err:
             # Check for refresh token expired error codes
             if err.code in ERROR_REFRESH_TOKEN_EXPIRED:
@@ -338,16 +377,12 @@ class LiproAuthManager:
                     await self.refresh_token()
 
     def get_auth_data(self) -> dict[str, Any]:
-        """Get authentication data for storage.
-
-        Returns:
-            Dictionary with auth data.
-
-        """
+        """Get compatibility auth data for legacy storage callers."""
+        snapshot = self.get_auth_session()
         return {
-            CONF_ACCESS_TOKEN: self._client.access_token,
-            CONF_REFRESH_TOKEN: self._client.refresh_token,
-            CONF_USER_ID: self._client.user_id,
-            CONF_PHONE_ID: self._client.phone_id,
-            CONF_EXPIRES_AT: self._token_expires_at,
+            CONF_ACCESS_TOKEN: snapshot.access_token,
+            CONF_REFRESH_TOKEN: snapshot.refresh_token,
+            CONF_USER_ID: snapshot.user_id,
+            CONF_PHONE_ID: snapshot.phone_id,
+            CONF_EXPIRES_AT: snapshot.expires_at,
         }

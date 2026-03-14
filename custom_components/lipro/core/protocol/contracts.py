@@ -16,6 +16,9 @@ from .boundary import (
     BoundaryDecoderDescriptor,
     BoundaryDecoderRegistry,
     build_protocol_boundary_registry,
+    decode_device_list_payload,
+    decode_device_status_payload,
+    decode_mesh_group_status_payload,
 )
 
 
@@ -26,6 +29,52 @@ class CanonicalMqttConfig(TypedDict):
     secretKey: str
     endpoint: str
     clientId: str
+
+
+class CanonicalDeviceListItem(TypedDict, total=False):
+    """Canonical device-catalog row consumed by runtime snapshot builders."""
+
+    deviceId: int | str
+    serial: str
+    deviceName: str
+    type: int | str
+    iotName: str
+    roomId: int | str
+    roomName: str
+    productId: int | str
+    physicalModel: str
+    model: str
+    isGroup: bool
+    online: bool
+    category: str
+    homeId: str
+    homeName: str
+    properties: dict[str, Any]
+    identityAliases: list[str]
+
+
+class CanonicalDeviceListPage(TypedDict, total=False):
+    """Canonical device-catalog page exposed by the protocol boundary."""
+
+    devices: list[CanonicalDeviceListItem]
+    has_more: bool
+    total: int
+
+
+class CanonicalDeviceStatusRow(TypedDict):
+    """Canonical device-status row with normalized identity and properties."""
+
+    deviceId: str
+    properties: dict[str, Any]
+
+
+class CanonicalMeshGroupStatusRow(TypedDict, total=False):
+    """Canonical mesh-group topology row used by runtime enrichment."""
+
+    groupId: str
+    gatewayDeviceId: str | None
+    devices: list[dict[str, str]]
+    properties: dict[str, Any]
 
 
 class MqttTransportFacade(Protocol):
@@ -104,6 +153,40 @@ class CanonicalProtocolContracts:
         result = decoder.decode(payload)
         return cast(CanonicalMqttConfig, result.canonical)
 
+    def normalize_device_list_page(
+        self,
+        payload: object,
+        *,
+        offset: int = 0,
+    ) -> CanonicalDeviceListPage:
+        """Normalize one device-list page to the formal catalog-page contract."""
+        result = decode_device_list_payload(payload, offset=offset)
+        return cast(CanonicalDeviceListPage, result.canonical)
+
+    def normalize_device_status_rows(
+        self,
+        payload: object,
+    ) -> list[CanonicalDeviceStatusRow]:
+        """Normalize device-status rows to canonical id/properties contracts."""
+        result = decode_device_status_payload(payload)
+        return cast(list[CanonicalDeviceStatusRow], result.canonical)
+
+    def build_device_status_map(self, payload: object) -> dict[str, dict[str, Any]]:
+        """Build the runtime-ready device-status mapping from raw boundary payloads."""
+        return {
+            row["deviceId"]: dict(row["properties"])
+            for row in self.normalize_device_status_rows(payload)
+            if row["deviceId"]
+        }
+
+    def normalize_mesh_group_status_rows(
+        self,
+        payload: object,
+    ) -> list[CanonicalMeshGroupStatusRow]:
+        """Normalize mesh-group topology rows through the protocol boundary."""
+        result = decode_mesh_group_status_payload(payload)
+        return cast(list[CanonicalMeshGroupStatusRow], result.canonical)
+
     @classmethod
     def snapshot_schedule_rows(
         cls,
@@ -119,6 +202,10 @@ class CanonicalProtocolContracts:
 
 
 __all__ = [
+    "CanonicalDeviceListItem",
+    "CanonicalDeviceListPage",
+    "CanonicalDeviceStatusRow",
+    "CanonicalMeshGroupStatusRow",
     "CanonicalMqttConfig",
     "CanonicalProtocolContracts",
     "MqttTransportFacade",

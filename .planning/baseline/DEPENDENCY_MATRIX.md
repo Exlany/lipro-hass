@@ -2,7 +2,7 @@
 
 **Purpose:** 定义允许/禁止的跨平面依赖方向，并作为 architecture guards 的语义真源。
 **Status:** Baseline reference
-**Updated:** 2026-03-13
+**Updated:** 2026-03-14
 
 ## Formal Role
 
@@ -52,6 +52,12 @@
 - `custom_components/lipro/core/telemetry/*` 只允许 pull `ProtocolTelemetrySource` / `RuntimeTelemetrySource` ports、pure models 与 sink projections；不得反向依赖 `control/*`、`Coordinator` internals 或 child façade internals。
 - `custom_components/lipro/control/telemetry_surface.py` 是 control-plane 唯一 bridge：可以装配 `RuntimeTelemetryExporter`，但 diagnostics / system-health consumers 不得绕过它回退到 runtime private fields。
 - exporter family 属于 `observer-only surface`：允许读取正式 runtime / protocol telemetry truth，不得获得编排权、服务注册权或第二套事件总线语义。
+
+## Phase 10 Control / Core Boundary Clarifications
+
+- `custom_components/lipro/control/runtime_access.py` 是 control plane 读取 runtime-home `Coordinator` 的唯一 helper；`entry.runtime_data.coordinator` 不得在 adapter / control surface 中散落读取。
+- `custom_components/lipro/control/telemetry_surface.py` 必须通过 `runtime_access.get_entry_runtime_coordinator()` 定位 runtime root；telemetry bridge 不能重新承担 runtime-home 叙事。
+- `custom_components/lipro/config_flow.py`、`custom_components/lipro/entry_auth.py` 允许依赖 `LiproAuthManager` / `AuthSessionSnapshot` 这类 host-neutral contract；不允许依赖 raw login/result payload 或 boundary decoder internals。
 
 ## Review Checklist
 

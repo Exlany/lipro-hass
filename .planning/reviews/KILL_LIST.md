@@ -97,3 +97,10 @@
 - remaining protocol delete targets 只剩 `core.api.LiproClient`、`LiproProtocolFacade.get_device_list` compat seam 与 `LiproMqttFacade.raw_client` explicit seam。
 - `LiproMqttClient` kill target 已缩窄到 direct transport class 与 `LiproMqttFacade.raw_client` compat seam；删除门槛是 integration/tests 不再需要 concrete transport object。
 - `raw_client` 已显式登记为 future kill target；本 phase 没有引入新的无 gate compat，剩余 delete target 都是显式、可计数、可回归验证的 seam。
+
+## Phase 10 Status Update
+
+- `custom_components/lipro/core/__init__.py` 的 runtime-home export chain 已关闭；它不再是 active kill target，只保留 host-neutral core export 角色。
+- `AuthSessionSnapshot` / `LiproAuthManager` 已成为 formal auth/session contract home；`get_auth_data()` fallback 仍是 compat/test seam，但本 phase 不把它提升为新的 file-level kill target。
+- remaining protocol delete targets 维持不变：`core.api.LiproClient`、`LiproProtocolFacade.get_device_list` compat seam 与 `LiproMqttFacade.raw_client` explicit seam 继续按既有 gate 收口。
+- 本 phase 没有引入新的 file-level kill target；future host work 必须复用 boundary-first nucleus，而不是重开 shared-core / runtime-root 抽离。

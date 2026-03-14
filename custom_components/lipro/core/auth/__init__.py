@@ -2,6 +2,6 @@
 
 from __future__ import annotations
 
-from .manager import LiproAuthManager
+from .manager import AuthSessionSnapshot, LiproAuthManager
 
-__all__ = ["LiproAuthManager"]
+__all__ = ["AuthSessionSnapshot", "LiproAuthManager"]
