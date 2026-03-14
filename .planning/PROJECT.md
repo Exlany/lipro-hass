@@ -1,7 +1,7 @@
 # Project: Lipro-HASS North Star Evolution v1.1
 
-**Status:** Active
-**Goal:** 把 `protocol truth`、`architecture policy`、`runtime telemetry export`、`replay evidence`、`ai-debug evidence pack` 五条演进线统一纳入北极星主链，进入“可保真、可观测、可仲裁、可回放、可给 AI 调试/分析”的下一里程碑。
+**Status:** Active — `Phase 10` 已完成，milestone verify / closeout pending
+**Goal:** 把 `protocol truth`、`architecture policy`、`runtime telemetry export`、`replay evidence`、`ai-debug evidence pack`、`residual surface closure`、`api drift isolation / core-boundary prep` 七条演进线统一纳入北极星主链，进入“可保真、可观测、可仲裁、可回放、可给 AI 调试/分析”的下一里程碑。
 
 ## Why This Milestone Exists
 
@@ -39,6 +39,18 @@
 - telemetry exporter 收口 runtime/protocol 的正式运维信号
 - replay harness 用正式 public path 回放协议样本
 - evidence pack 从正式真源 pull 结构化证据给 AI 调试与分析
+
+### 4. Residual Surface 更收敛
+
+- protocol formal public surface 已显式化；child-defined contract 与 compat export 不再反向定义正式主链
+- runtime 对设备集合的正式访问已收口为只读 view / formal primitive
+- outlet power 已进入正式 primitive；remaining compat seam 只能作为显式 residual 存在
+
+### 5. API Drift Isolation / Core Boundary Prep 已完成
+
+- `rest.device-list` / `rest.device-status` / `rest.mesh-group-status` 已在 protocol boundary 输出 canonical contract
+- `AuthSessionSnapshot` 已成为 host-neutral auth/session truth；`config_flow` / `entry_auth` 不再依赖 raw login dict
+- `core/__init__.py` 已不再导出 `Coordinator`；HA runtime home 继续固定在 `custom_components/lipro/coordinator_entry.py`
 
 ## Architectural Stance
 
@@ -140,14 +152,15 @@
 1. **Protocol Plane**
    - `core/protocol/boundary/*`
    - `LiproProtocolFacade`
-   - authority fixtures / decoders / contracts
+   - authority fixtures / decoders / contracts / replay evidence
 
 2. **Runtime Plane**
-   - `Coordinator`
-   - 正式 runtime services / orchestration
+   - `Coordinator`（runtime home = `custom_components/lipro/coordinator_entry.py`）
+   - 正式 runtime services / orchestration / read-only runtime access
 
 3. **Control Plane**
    - diagnostics / system health / services / runtime access / redaction
+   - formal auth/session consumers（`AuthSessionSnapshot` / use-case results）
 
 4. **Assurance Plane**
    - architecture guards / scripts / meta tests
@@ -170,7 +183,7 @@ v1.1 进入执行期后，新增演进必须额外满足：
 - **AI evidence pack 属于 tooling export，不得变成第二 diagnostics / runtime root**
 - **新依赖若引入，只允许局部落在 boundary plane，且必须有 authority / delete gate / rollback story**
 
-## Phase 7.3-8 Arbitration
+## Phase 7.3-10 Arbitration
 
 为避免 `07.3-08` 职责冲突，锁定以下仲裁：
 
@@ -189,6 +202,14 @@ v1.1 进入执行期后，新增演进必须额外满足：
 - **`08` owns AI debug packaging**
   - 只 pull `07.3/07.4/07.5` 正式输出；
   - 不得反向定义 telemetry / replay / governance 真源。
+
+- **`09` owns residual surface closure**
+  - formal public surface、compat seam、read-only runtime access 与 outlet-power primitive 在此锁定；
+  - 不得重新把 live mutable runtime surface 或 child-defined contract 洗白成正式路径。
+
+- **`10` owns API drift isolation / core-boundary prep**
+  - high-drift boundary contracts、`AuthSessionSnapshot`、`core/__init__.py` 去 runtime-root 叙事在此锁定；
+  - 未来宿主只能消费 formal boundary/auth/device nucleus，不得反向抽出 HA runtime 形成 second root。
 
 ## Execution Doctrine
 

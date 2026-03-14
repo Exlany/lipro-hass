@@ -7,7 +7,7 @@ from collections.abc import Awaitable, Callable
 from importlib import import_module
 import logging
 from time import monotonic
-from typing import Final
+from typing import Final, Protocol, cast
 
 from ...const.api import (
     ERROR_DEVICE_BUSY,
@@ -29,10 +29,36 @@ CHANGE_STATE_BUSY_MULTIPLIER: Final = 1.6
 CHANGE_STATE_RECOVERY_MULTIPLIER: Final = 0.8
 COMMAND_PACING_CACHE_MAX_SIZE: Final = 256
 
+type SleepFn = Callable[[float], Awaitable[None]]
 
-def _get_iot_busy_retry_service():
+
+class IoTBusyRetryService(Protocol):
+    """Callable contract for the busy-retry command helper."""
+
+    async def __call__(
+        self,
+        *,
+        path: str,
+        body_data: dict[str, object],
+        target_id: str,
+        command: str,
+        attempt_limit: int,
+        base_delay_seconds: float,
+        iot_request: Callable[[str, dict[str, object]], Awaitable[object]],
+        throttle_change_state: Callable[[str, str], Awaitable[None]],
+        record_change_state_success: Callable[[str, str], Awaitable[None]],
+        is_command_busy_error: Callable[[Exception], bool],
+        lipro_api_error: type[Exception],
+        record_change_state_busy: Callable[[str, str], Awaitable[tuple[float, int]]],
+        sleep: SleepFn,
+        logger: logging.Logger,
+    ) -> dict[str, object]:
+        """Execute one IoT request with explicit busy-retry policy."""
+
+
+def _get_iot_busy_retry_service() -> IoTBusyRetryService:
     module = import_module("custom_components.lipro.core.api.command_api_service")
-    return module.iot_request_with_busy_retry
+    return cast(IoTBusyRetryService, module.iot_request_with_busy_retry)
 
 
 def is_change_state_command(command: str) -> bool:
@@ -168,7 +194,7 @@ async def throttle_change_state(
     change_state_min_interval: dict[str, float],
     change_state_busy_count: dict[str, int],
     monotonic: Callable[[], float],
-    sleep: Callable[[float], Awaitable[None]],
+    sleep: SleepFn,
 ) -> None:
     """Pace high-frequency CHANGE_STATE sends for the same target."""
     if not is_change_state_command(command):
@@ -208,7 +234,8 @@ async def throttle_change_state(
                 )
                 return
 
-        await (sleep or asyncio.sleep)(wait_time)
+        sleep_fn = sleep if sleep is not None else asyncio.sleep
+        await sleep_fn(wait_time)
 
         async with command_pacing_lock:
             last_change_state_at[normalized_target] = monotonic()
@@ -301,7 +328,7 @@ class RequestPolicy:
         retry_count: int,
         *,
         logger: logging.Logger = _LOGGER,
-        sleep: Callable[[float], Awaitable[None]] | None = None,
+        sleep: SleepFn | None = None,
     ) -> float:
         """Handle 429 retry/backoff as an explicit policy decision."""
         retry_after = parse_retry_after(headers)
@@ -327,7 +354,8 @@ class RequestPolicy:
             retry_count + 1,
             MAX_RATE_LIMIT_RETRIES,
         )
-        await (sleep or asyncio.sleep)(wait_time)
+        wait = asyncio.sleep if sleep is None else sleep
+        await wait(wait_time)
         return wait_time
 
     @staticmethod

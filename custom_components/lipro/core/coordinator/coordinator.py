@@ -168,7 +168,7 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
 
     def _schedule_listener_update(self) -> None:
         """Schedule listener update (RuntimeContext callback)."""
-        self.async_set_updated_data(self.devices)
+        self.async_set_updated_data(dict(self._state.devices))
 
     def _is_mqtt_connected(self) -> bool:
         """Check MQTT connection status (RuntimeContext callback)."""
@@ -318,11 +318,12 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
             device, command, properties
         )
 
-    async def async_refresh_devices(self) -> Mapping[str, LiproDevice]:
+    async def async_refresh_devices(self) -> dict[str, LiproDevice]:
         """Force a full device snapshot refresh and publish the latest state."""
         await self._async_refresh_device_snapshot(force=True, mqtt_timeout_seconds=5)
-        self.async_set_updated_data(self.devices)
-        return self.devices
+        refreshed_devices = dict(self._state.devices)
+        self.async_set_updated_data(refreshed_devices)
+        return refreshed_devices
 
 
     async def async_get_device_schedules(

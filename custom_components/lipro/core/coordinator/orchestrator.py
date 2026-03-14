@@ -37,6 +37,7 @@ if TYPE_CHECKING:
 
     from ..auth import LiproAuthManager
     from ..device import LiproDevice
+    from ..protocol import LiproProtocolFacade
     from .runtime.mqtt.connection import PollingIntervalUpdater
 
 _LOGGER = logging.getLogger(__name__)
@@ -49,7 +50,7 @@ class RuntimeOrchestrator:
         self,
         *,
         hass: HomeAssistant,
-        client,
+        client: LiproProtocolFacade,
         auth_manager: LiproAuthManager,
         config_entry: ConfigEntry,
         update_interval: int,
@@ -145,16 +146,48 @@ class RuntimeOrchestrator:
             get_device_by_id=state_runtime.get_device_by_id,
         )
 
+        class _DeviceResolverPort:
+            def get_device_by_id(self, device_id: str) -> LiproDevice | None:
+                return context.get_device_by_id(device_id)
+
+        class _ListenerNotifierPort:
+            def schedule_listener_update(self) -> None:
+                context.schedule_listener_update()
+
+        class _ConnectStateTrackerPort:
+            def record_connect_state(
+                self,
+                device_serial: str,
+                timestamp: float,
+                is_online: bool,
+            ) -> None:
+                context.record_connect_state.record_connect_state(
+                    device_serial,
+                    timestamp,
+                    is_online,
+                )
+
+        class _GroupReconcilerPort:
+            def schedule_group_reconciliation(
+                self,
+                device_name: str,
+                timestamp: float,
+            ) -> None:
+                context.request_group_reconciliation.schedule_group_reconciliation(
+                    device_name,
+                    timestamp,
+                )
+
         mqtt_runtime = MqttRuntime(
             hass=self.hass,
             mqtt_client=None,
             base_scan_interval=self.update_interval,
             polling_updater=polling_updater,
-            device_resolver=context.get_device_by_id,  # type: ignore[arg-type]
+            device_resolver=_DeviceResolverPort(),
             property_applier=context.apply_properties_update,
-            listener_notifier=context.schedule_listener_update,  # type: ignore[arg-type]
-            connect_state_tracker=context.record_connect_state,  # type: ignore[arg-type]
-            group_reconciler=context.request_group_reconciliation,  # type: ignore[arg-type]
+            listener_notifier=_ListenerNotifierPort(),
+            connect_state_tracker=_ConnectStateTrackerPort(),
+            group_reconciler=_GroupReconcilerPort(),
             polling_multiplier=2,
             background_task_manager=state.background_task_manager,
         )

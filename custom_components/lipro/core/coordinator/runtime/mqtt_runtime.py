@@ -7,9 +7,10 @@ components without inheriting from _CoordinatorBase.
 from __future__ import annotations
 
 import asyncio
+from collections.abc import Callable
 import logging
 from time import monotonic
-from typing import TYPE_CHECKING, Any, Protocol
+from typing import TYPE_CHECKING, Any, Protocol, cast
 
 from homeassistant.helpers.issue_registry import (
     IssueSeverity,
@@ -31,6 +32,10 @@ if TYPE_CHECKING:
 
     from ...device import LiproDevice
     from ...protocol import MqttTransportFacade
+
+    DeviceResolverCallable = Callable[[str], LiproDevice | None]
+else:
+    DeviceResolverCallable = Callable[[str], Any]
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -174,10 +179,13 @@ class MqttRuntime:
 
             def get_device_by_id(self, device_id: str) -> LiproDevice | None:
                 resolver = self._resolver
-                method = getattr(resolver, "get_device_by_id", None)
-                if callable(method):
+                method = cast(
+                    DeviceResolverCallable | None,
+                    getattr(resolver, "get_device_by_id", None),
+                )
+                if method is not None:
                     return method(device_id)
-                return resolver(device_id)
+                return cast(DeviceResolverCallable, resolver)(device_id)
 
         class PropertyApplierAdapter:
             """Adapter to convert bool-returning applier to dict-returning."""
@@ -200,11 +208,14 @@ class MqttRuntime:
 
             def schedule_listener_update(self) -> None:
                 notifier = self._notifier
-                method = getattr(notifier, "schedule_listener_update", None)
-                if callable(method):
+                method = cast(
+                    Callable[[], None] | None,
+                    getattr(notifier, "schedule_listener_update", None),
+                )
+                if method is not None:
                     method()
                     return
-                notifier()
+                cast(Callable[[], None], notifier)()
 
         class ConnectStateTrackerAdapter:
             """Adapter for callable-or-object connect-state tracking ports."""
@@ -216,11 +227,18 @@ class MqttRuntime:
                 self, device_serial: str, timestamp: float, is_online: bool
             ) -> None:
                 tracker = self._tracker
-                method = getattr(tracker, "record_connect_state", None)
-                if callable(method):
+                method = cast(
+                    Callable[[str, float, bool], None] | None,
+                    getattr(tracker, "record_connect_state", None),
+                )
+                if method is not None:
                     method(device_serial, timestamp, is_online)
                     return
-                tracker(device_serial, timestamp, is_online)
+                cast(Callable[[str, float, bool], None], tracker)(
+                    device_serial,
+                    timestamp,
+                    is_online,
+                )
 
         class GroupReconcilerAdapter:
             """Adapter for callable-or-object group reconciliation ports."""
@@ -232,11 +250,17 @@ class MqttRuntime:
                 self, device_name: str, timestamp: float
             ) -> None:
                 reconciler = self._reconciler
-                method = getattr(reconciler, "schedule_group_reconciliation", None)
-                if callable(method):
+                method = cast(
+                    Callable[[str, float], None] | None,
+                    getattr(reconciler, "schedule_group_reconciliation", None),
+                )
+                if method is not None:
                     method(device_name, timestamp)
                     return
-                reconciler(device_name, timestamp)
+                cast(Callable[[str, float], None], reconciler)(
+                    device_name,
+                    timestamp,
+                )
 
         return MqttMessageHandler(
             device_resolver=DeviceResolverAdapter(self._device_resolver),

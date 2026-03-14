@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import cast
+from typing import assert_never
 
 from custom_components.lipro.core.protocol import LiproProtocolFacade
 from custom_components.lipro.core.protocol.boundary import (
@@ -36,79 +36,8 @@ class ProtocolReplayDriver:
         started_at = manifest.controls.clock_baseline
         finished_at = manifest.controls.clock_baseline
         try:
-            if manifest.operation == "protocol.contracts.normalize_mqtt_config":
-                protocol = self._protocol_factory(
-                    "replay-phone-id",
-                    entry_id=f"replay:{manifest.scenario_id}",
-                )
-                canonical = protocol.contracts.normalize_mqtt_config(
-                    fixture.authority_payload
-                )
-                return ReplayExecutionResult(
-                    manifest=manifest,
-                    public_path="LiproProtocolFacade.contracts.normalize_mqtt_config",
-                    started_at=started_at,
-                    finished_at=finished_at,
-                    canonical=canonical,
-                    drift_flags=(),
-                    error_category=None,
-                )
-
-            if manifest.operation == "protocol.contracts.normalize_device_list_page":
-                protocol = self._protocol_factory(
-                    "replay-phone-id",
-                    entry_id=f"replay:{manifest.scenario_id}",
-                )
-                canonical = protocol.contracts.normalize_device_list_page(
-                    fixture.authority_payload
-                )
-                return ReplayExecutionResult(
-                    manifest=manifest,
-                    public_path="LiproProtocolFacade.contracts.normalize_device_list_page",
-                    started_at=started_at,
-                    finished_at=finished_at,
-                    canonical=canonical,
-                    drift_flags=(),
-                    error_category=None,
-                )
-
-            if manifest.operation == "protocol.contracts.normalize_device_status_rows":
-                protocol = self._protocol_factory(
-                    "replay-phone-id",
-                    entry_id=f"replay:{manifest.scenario_id}",
-                )
-                canonical = protocol.contracts.normalize_device_status_rows(
-                    fixture.authority_payload
-                )
-                return ReplayExecutionResult(
-                    manifest=manifest,
-                    public_path="LiproProtocolFacade.contracts.normalize_device_status_rows",
-                    started_at=started_at,
-                    finished_at=finished_at,
-                    canonical=canonical,
-                    drift_flags=(),
-                    error_category=None,
-                )
-
-            if manifest.operation == "protocol.contracts.normalize_mesh_group_status_rows":
-                protocol = self._protocol_factory(
-                    "replay-phone-id",
-                    entry_id=f"replay:{manifest.scenario_id}",
-                )
-                canonical = protocol.contracts.normalize_mesh_group_status_rows(
-                    fixture.authority_payload
-                )
-                return ReplayExecutionResult(
-                    manifest=manifest,
-                    public_path="LiproProtocolFacade.contracts.normalize_mesh_group_status_rows",
-                    started_at=started_at,
-                    finished_at=finished_at,
-                    canonical=canonical,
-                    drift_flags=(),
-                    error_category=None,
-                )
-
-            if manifest.operation == "protocol.boundary.decode_mqtt_properties":
+            operation = manifest.operation
+            if operation == "protocol.boundary.decode_mqtt_properties":
                 metadata = fixture.authority_metadata
                 payload = metadata.get("payload")
                 result = decode_mqtt_properties_payload(payload)
@@ -123,8 +52,46 @@ class ProtocolReplayDriver:
                     fingerprint=result.fingerprint,
                 )
 
-            msg = f"Unsupported replay operation: {manifest.operation}"
-            raise ValueError(msg)
+            protocol = self._protocol_factory(
+                "replay-phone-id",
+                entry_id=f"replay:{manifest.scenario_id}",
+            )
+            canonical: object
+            public_path: str
+            if operation == "protocol.contracts.normalize_mqtt_config":
+                canonical = protocol.contracts.normalize_mqtt_config(
+                    fixture.authority_payload
+                )
+                public_path = "LiproProtocolFacade.contracts.normalize_mqtt_config"
+            elif operation == "protocol.contracts.normalize_device_list_page":
+                canonical = protocol.contracts.normalize_device_list_page(
+                    fixture.authority_payload
+                )
+                public_path = "LiproProtocolFacade.contracts.normalize_device_list_page"
+            elif operation == "protocol.contracts.normalize_device_status_rows":
+                canonical = protocol.contracts.normalize_device_status_rows(
+                    fixture.authority_payload
+                )
+                public_path = "LiproProtocolFacade.contracts.normalize_device_status_rows"
+            elif operation == "protocol.contracts.normalize_mesh_group_status_rows":
+                canonical = protocol.contracts.normalize_mesh_group_status_rows(
+                    fixture.authority_payload
+                )
+                public_path = (
+                    "LiproProtocolFacade.contracts.normalize_mesh_group_status_rows"
+                )
+            else:
+                assert_never(operation)
+
+            return ReplayExecutionResult(
+                manifest=manifest,
+                public_path=public_path,
+                started_at=started_at,
+                finished_at=finished_at,
+                canonical=canonical,
+                drift_flags=(),
+                error_category=None,
+            )
         except Exception as err:  # noqa: BLE001
             return ReplayExecutionResult(
                 manifest=manifest,
@@ -145,4 +112,4 @@ class ProtocolReplayDriver:
     def authority_fingerprint(fixture: LoadedReplayFixture) -> str | None:
         """Return the authority fingerprint recorded on one fixture, if any."""
         fingerprint = fixture.authority_metadata.get("fingerprint")
-        return cast(str, fingerprint) if isinstance(fingerprint, str) else None
+        return fingerprint if isinstance(fingerprint, str) else None

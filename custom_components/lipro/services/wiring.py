@@ -493,4 +493,6 @@ __all__ = [
     "_async_handle_submit_developer_feedback",
     "_get_device_and_coordinator",
     "_summarize_service_properties",
+    "async_get_clientsession",
+    "get_anonymous_share_manager",
 ]

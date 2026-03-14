@@ -7,19 +7,21 @@ from unittest.mock import AsyncMock, Mock
 
 import pytest
 
-from custom_components.lipro.core.api import LiproClient
 from custom_components.lipro.core.auth import LiproAuthManager
 from custom_components.lipro.core.coordinator.runtime.device_runtime import (
     DeviceRuntime,
 )
 from custom_components.lipro.core.device.identity_index import DeviceIdentityIndex
-from custom_components.lipro.core.protocol import CanonicalProtocolContracts
+from custom_components.lipro.core.protocol import (
+    CanonicalProtocolContracts,
+    LiproProtocolFacade,
+)
 
 
 @pytest.fixture
 def mock_client() -> Mock:
     """Create mock API client."""
-    client = Mock(spec=LiproClient)
+    client = Mock(spec=LiproProtocolFacade)
     client.get_device_list = AsyncMock()
     client.query_iot_devices = AsyncMock()
     client.query_group_devices = AsyncMock()
@@ -51,7 +53,7 @@ def device_runtime(
 ) -> DeviceRuntime:
     """Create DeviceRuntime instance."""
     return DeviceRuntime(
-        client=cast(LiproClient, mock_client),
+        client=cast(LiproProtocolFacade, mock_client),
         auth_manager=mock_auth_manager,
         device_identity_index=mock_device_identity_index,
     )
@@ -103,7 +105,7 @@ class TestDeviceRuntimeInitialization:
     ) -> None:
         """Test initialization with minimal arguments."""
         runtime = DeviceRuntime(
-            client=cast(LiproClient, mock_client),
+            client=cast(LiproProtocolFacade, mock_client),
             auth_manager=mock_auth_manager,
             device_identity_index=mock_device_identity_index,
         )
@@ -127,7 +129,7 @@ class TestDeviceRuntimeInitialization:
         }
 
         runtime = DeviceRuntime(
-            client=cast(LiproClient, mock_client),
+            client=cast(LiproProtocolFacade, mock_client),
             auth_manager=mock_auth_manager,
             device_identity_index=mock_device_identity_index,
             filter_config_options=filter_options,

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+from collections.abc import Mapping
 from dataclasses import dataclass
 import hashlib
 import logging
@@ -168,7 +169,7 @@ class LiproAuthManager:
         # This keeps the first runtime 401 eligible for an immediate refresh.
         self._last_refresh_time = 0.0
 
-    def _sync_client_tokens_from_result(self, result: dict[str, Any]) -> None:
+    def _sync_client_tokens_from_result(self, result: Mapping[str, Any]) -> None:
         """Apply one formal login/refresh result to the protocol client state."""
         access_token = result[CONF_ACCESS_TOKEN]
         refresh_token = result[CONF_REFRESH_TOKEN]

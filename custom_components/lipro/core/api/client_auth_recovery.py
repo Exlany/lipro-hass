@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Awaitable, Callable
 import logging
 from time import monotonic, time
 from typing import Any, TypeVar
@@ -29,6 +30,7 @@ from .observability import record_api_error as _record_api_error
 _LOGGER = logging.getLogger("custom_components.lipro.core.api.client")
 
 _MappingPayloadT = TypeVar("_MappingPayloadT")
+TokenRefreshCallback = Callable[[], Awaitable[None]]
 
 
 class AuthRecoveryCoordinator:
@@ -78,7 +80,7 @@ class AuthRecoveryCoordinator:
             biz_id=biz_id,
         )
 
-    def set_token_refresh_callback(self, callback) -> None:
+    def set_token_refresh_callback(self, callback: TokenRefreshCallback) -> None:
         """Register the async callback used to refresh expired tokens."""
         self._state.on_token_refresh = callback
 
@@ -173,8 +175,8 @@ class AuthRecoveryCoordinator:
         request_token: str | None,
         is_retry: bool,
         retry_on_auth_error: bool,
-        retry_request,
-        success_payload,
+        retry_request: Callable[[], Awaitable[_MappingPayloadT]] | None,
+        success_payload: Callable[[dict[str, Any]], _MappingPayloadT],
     ) -> _MappingPayloadT:
         """Finalize one mapping result with auth classification and retries."""
         code = result.get("code")
@@ -312,6 +314,9 @@ class AuthRecoveryCoordinator:
 class _ClientAuthRecoveryMixin:
     """Thin compatibility adapter over ``AuthRecoveryCoordinator``."""
 
+    _session_state: ClientSessionState
+    _auth_recovery: AuthRecoveryCoordinator
+
     def _init_auth_recovery(self, *, entry_id: str | None = None) -> None:
         self._session_state.entry_id = entry_id
         self._auth_recovery = AuthRecoveryCoordinator(self._session_state)
@@ -342,7 +347,7 @@ class _ClientAuthRecoveryMixin:
             biz_id=biz_id,
         )
 
-    def set_token_refresh_callback(self, callback) -> None:
+    def set_token_refresh_callback(self, callback: TokenRefreshCallback) -> None:
         self._auth_recovery.set_token_refresh_callback(callback)
 
     async def _handle_auth_error_and_retry(
@@ -383,8 +388,8 @@ class _ClientAuthRecoveryMixin:
         request_token: str | None,
         is_retry: bool,
         retry_on_auth_error: bool,
-        retry_request,
-        success_payload,
+        retry_request: Callable[[], Awaitable[_MappingPayloadT]] | None,
+        success_payload: Callable[[dict[str, Any]], _MappingPayloadT],
     ) -> _MappingPayloadT:
         return await self._auth_recovery.finalize_mapping_result(
             path=path,

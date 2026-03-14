@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Awaitable, Callable
 import logging
 from typing import Any
 
@@ -39,6 +40,8 @@ from .transport_retry import TransportRetry
 from .transport_signing import TransportSigning
 
 _LOGGER = logging.getLogger("custom_components.lipro.core.api.client")
+
+MappingRequestSender = Callable[[], Awaitable[tuple[int, Any, dict[str, str], str | None]]]
 
 
 class TransportExecutor:
@@ -121,7 +124,7 @@ class TransportExecutor:
         *,
         path: str,
         retry_count: int,
-        send_request,
+        send_request: MappingRequestSender,
     ) -> tuple[int, dict[str, Any], str | None]:
         """Execute one mapping request with policy-owned rate-limit retries."""
         return await self._transport_retry.execute_with_rate_limit_retry(
@@ -324,6 +327,11 @@ class TransportExecutor:
 class _ClientTransportMixin:
     """Thin compatibility adapter over the explicit ``TransportExecutor``."""
 
+    _session_state: ClientSessionState
+    _request_policy: RequestPolicy
+    _auth_recovery: AuthRecoveryCoordinator
+    _transport_executor: TransportExecutor
+
     def _init_transport(
         self,
         *,
@@ -391,7 +399,7 @@ class _ClientTransportMixin:
         *,
         path: str,
         retry_count: int,
-        send_request,
+        send_request: MappingRequestSender,
     ) -> tuple[int, dict[str, Any], str | None]:
         return await self._transport_executor.execute_mapping_request_with_rate_limit(
             path=path,

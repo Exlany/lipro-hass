@@ -256,7 +256,7 @@ def _decode_device_list_canonical(
     ]
 
     has_more = False
-    total = None
+    total: int | None = None
     if isinstance(payload, dict):
         if "hasMore" in payload:
             has_more = _coerce_bool(payload.get("hasMore"))
@@ -265,13 +265,13 @@ def _decode_device_list_canonical(
             if total is not None:
                 has_more = offset + len(devices) < total
 
-    canonical: dict[str, Any] = {
+    page_canonical: dict[str, Any] = {
         "devices": devices,
         "has_more": has_more,
     }
     if total is not None:
-        canonical["total"] = total
-    return canonical
+        page_canonical["total"] = total
+    return page_canonical
 
 
 def _decode_device_status_canonical(payload: object) -> list[dict[str, Any]]:

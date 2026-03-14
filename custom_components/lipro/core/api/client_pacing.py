@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+from collections.abc import Awaitable, Callable
 import logging
 import time
 
@@ -22,6 +23,9 @@ _LOGGER = logging.getLogger("custom_components.lipro.core.api.client")
 
 class _ClientPacingMixin:
     """Thin compatibility adapter over the explicit ``RequestPolicy`` collaborator."""
+
+    _request_policy: RequestPolicy
+    _iot_request: Callable[[str, dict[str, object]], Awaitable[object]]
 
     def _init_pacing(self) -> None:
         """Initialize the request policy collaborator and legacy aliases."""
@@ -115,4 +119,4 @@ class _ClientPacingMixin:
         return RequestPolicy.parse_retry_after(headers)
 
 
-__all__ = ["_ClientPacingMixin"]
+__all__ = ["MONOTONIC", "_ClientPacingMixin", "asyncio", "time"]

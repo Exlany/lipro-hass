@@ -63,7 +63,7 @@ def mqtt_runtime(mock_hass: Mock, mock_mqtt_client: Mock) -> MqttRuntime:
     group_reconciler.schedule_group_reconciliation = Mock()
 
     polling_updater = Mock()
-    runtime = MqttRuntime(
+    return MqttRuntime(
         hass=mock_hass,
         mqtt_client=mock_mqtt_client,
         base_scan_interval=30,
@@ -78,8 +78,11 @@ def mqtt_runtime(mock_hass: Mock, mock_mqtt_client: Mock) -> MqttRuntime:
         reconnect_base_delay=1.0,
         reconnect_max_delay=60.0,
     )
-    runtime._test_polling_updater = polling_updater
-    return runtime
+
+
+def _get_polling_updater(runtime: MqttRuntime) -> Mock:
+    """Return the injected polling updater mock."""
+    return cast(Mock, runtime._connection_manager._polling_updater)
 
 
 class TestMqttRuntimeInitialization:
@@ -127,7 +130,6 @@ class TestMqttRuntimeInitialization:
             reconnect_base_delay=2.0,
             reconnect_max_delay=120.0,
         )
-        runtime._test_polling_updater = polling_updater
 
         assert runtime._mqtt_client is mock_mqtt_client
         assert runtime._base_scan_interval == 30
@@ -265,15 +267,13 @@ class TestMqttRuntimeConnection:
         self, mqtt_runtime: MqttRuntime
     ) -> None:
         """Real transport callbacks should drive coordinator polling interval."""
+        polling_updater = _get_polling_updater(mqtt_runtime)
+
         mqtt_runtime.on_transport_connected()
-        mqtt_runtime._test_polling_updater.update_polling_interval.assert_called_with(
-            timedelta(seconds=60)
-        )
+        polling_updater.update_polling_interval.assert_called_with(timedelta(seconds=60))
 
         mqtt_runtime.on_transport_disconnected()
-        mqtt_runtime._test_polling_updater.update_polling_interval.assert_called_with(
-            timedelta(seconds=30)
-        )
+        polling_updater.update_polling_interval.assert_called_with(timedelta(seconds=30))
 
 
 class TestMqttRuntimeMessageHandling:
@@ -529,7 +529,7 @@ def _create_mqtt_runtime_with_deps(
     group_reconciler.schedule_group_reconciliation = Mock()
 
     polling_updater = Mock()
-    runtime = MqttRuntime(
+    return MqttRuntime(
         hass=mock_hass,
         mqtt_client=mock_mqtt_client,
         base_scan_interval=30,
@@ -540,8 +540,6 @@ def _create_mqtt_runtime_with_deps(
         connect_state_tracker=connect_state_tracker,
         group_reconciler=group_reconciler,
     )
-    runtime._test_polling_updater = polling_updater
-    return runtime
 
 
 @pytest.mark.asyncio

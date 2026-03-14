@@ -11,6 +11,8 @@
 
 - 一键安装脚本，便于自定义集成部署。
 - 设备诊断报告导出，并增强诊断脱敏相关测试覆盖。
+- `rest.device-list` / `rest.device-status` / `rest.mesh-group-status` 的 canonical boundary contracts 与 replay/contract fixtures。
+- `AuthSessionSnapshot` formal auth/session contract，供 `config_flow` / `entry_auth` / control adapters 统一消费。
 
 ### 变更（Changed）
 
@@ -19,14 +21,16 @@
 - 重构 coordinator 的更新/指令工作流，提升可维护性。
 - 重构匿名分享能力检测逻辑，改为更清晰的规则映射。
 - 重构共享 sensor 实体初始化，并进行更广泛的类型安全/代码质量清理。
-- 将 coordinator 的房间同步与 stale-device registry 操作重构到
-  `core/device/device_registry_sync.py`，让 `coordinator.py` 聚焦编排逻辑。
+- 删除 room sync / stale-device 的 shadow runtime 链（含历史 `device_registry_sync.py`），让正式 coordinator 主链只保留编排职责。
 - 重构 device identity index，使用更严格的注册 API，并移除遗留的直接修改兼容路径。
 - 移除 `core.api` 的旧兼容别名，改为使用标准子模块符号（`api_response_safety` / `request_policy`）。
 - 移除 `login_with_hash` 兼容入口；config flow 直接使用
   `login(..., password_is_hashed=True)`。
 - 重构平台模块：直接导入 helper 子模块，移除 `helpers` 包级兼容 re-export。
 - 移除根模块遗留的 service contract re-export；以 `services/contracts.py` 作为权威来源。
+- `core/__init__.py` 不再导出 `Coordinator`；HA runtime-home public surface 固定为 `custom_components/lipro/coordinator_entry.py`。
+- control adapters 改为消费 formal auth/session/result contracts，而不是依赖 raw login dict shape。
+- governance / replay / meta guards 已同步到 `Phase 10 completed` 口径，future-host 叙事仅允许建立在 formal boundary/auth/device nucleus 之上。
 
 ### 修复（Fixed）
 

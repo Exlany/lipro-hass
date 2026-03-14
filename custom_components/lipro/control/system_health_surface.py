@@ -7,6 +7,7 @@ from typing import Any
 from homeassistant.components import system_health
 from homeassistant.core import HomeAssistant
 
+from ..const.base import VERSION
 from .runtime_access import build_runtime_snapshots, iter_runtime_entries
 
 
@@ -21,8 +22,7 @@ async def async_register(
 
 async def system_health_info(
     hass: HomeAssistant,
-    *,
-    version: str,
+    version: str = VERSION,
 ) -> dict[str, Any]:
     """Return system health information for the Lipro integration."""
     entries = iter_runtime_entries(hass)

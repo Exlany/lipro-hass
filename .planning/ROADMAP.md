@@ -3,7 +3,7 @@
 ## Milestones
 
 - ✅ **v1.0 North Star Rebuild** - Phases 1-7 (+ 1.5 / 2.5 / 2.6), shipped 2026-03-13
-- 🚧 **v1.1 Protocol Fidelity & Operability** - Phases 7.1-9, initialized 2026-03-13
+- 🚧 **v1.1 Protocol Fidelity & Operability** - Phases 7.1-10 complete, closeout pending (initialized 2026-03-13)
 
 ## Required Phase Outputs
 
@@ -27,6 +27,8 @@
 ### 🚧 v1.1 Protocol Fidelity & Operability
 
 **Milestone Goal:** 在不破坏既有北极星单一主链的前提下，正式引入 boundary decoder family、architecture policy enforcement、runtime telemetry exporter、replay evidence，并把已登记 residual surfaces 收口到显式、可删除、可验证的最小集合。
+
+**Current Status:** `Phase 7.1` 到 `Phase 10` 已全部完成（截至 2026-03-14）；当前仅剩 milestone verify / closeout。
 
 ### Phase 7.1: Protocol Boundary Schema/Decoder 收口
 **Goal**: 把 REST/MQTT 的 decode authority 收口到 protocol boundary family，形成可版本化 schema/decoder registry，同时阻断 raw payload 穿透。

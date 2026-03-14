@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
+from typing import cast
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
+from custom_components.lipro.core.coordinator.runtime.state_runtime import StateRuntime
 from custom_components.lipro.core.coordinator.services.device_refresh_service import (
     CoordinatorDeviceRefreshService,
 )
@@ -68,10 +70,12 @@ async def test_device_refresh_service_refreshes_and_exposes_latest_snapshot() ->
         def get_device_by_id(self, device_id: str) -> object | None:
             return self._devices.get(device_id)
 
-    state_runtime = _StateRuntime()
+    raw_state_runtime = _StateRuntime()
 
     async def _refresh() -> None:
-        state_runtime._devices = {"dev1": device}
+        raw_state_runtime._devices = {"dev1": device}
+
+    state_runtime = cast(StateRuntime, raw_state_runtime)
 
     refresh_callback = AsyncMock(side_effect=_refresh)
     service = CoordinatorDeviceRefreshService(

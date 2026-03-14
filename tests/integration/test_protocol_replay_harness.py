@@ -11,6 +11,7 @@ from tests.core.api.test_protocol_contract_matrix import (
     EXPECTED_MQTT_CONFIG,
 )
 from tests.harness.protocol import (
+    LoadedReplayFixture,
     ProtocolReplayDriver,
     build_replay_run_summary,
     iter_replay_manifests,
@@ -95,8 +96,16 @@ def test_protocol_replay_harness_builds_structured_run_summary() -> None:
     driver = ProtocolReplayDriver()
     good_result = driver.run_manifest(manifests[0])
     drift_result = replace(good_result, drift_flags=("fingerprint_mismatch",))
-    error_manifest = replace(manifests[1], operation="protocol.unsupported")
-    error_result = driver.run_manifest(error_manifest)
+    error_manifest = next(
+        manifest for manifest in manifests if manifest.family == "rest.mqtt-config"
+    )
+    error_result = driver.run_fixture(
+        LoadedReplayFixture(
+            manifest=error_manifest,
+            authority_payload="bad",
+            authority_metadata={},
+        )
+    )
 
     telemetry_views = {
         good_result.manifest.scenario_id: assert_exporter_backed_replay_telemetry(

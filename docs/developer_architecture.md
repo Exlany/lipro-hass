@@ -1,7 +1,7 @@
 # Lipro Home Assistant Integration - Developer Architecture
 
-> **Last Updated**: 2026-03-13  \
-> **Version**: 3.7 (North-star architecture docs + execution plan aligned)
+> **Last Updated**: 2026-03-14  \
+> **Version**: 3.8 (Phase 10 completed truth aligned)
 >
 > ⚠️ 本文档仅描述"当前收敛后的架构与模块边界"，不硬编码评分/覆盖率/通过率等易失真指标。  \
 > 北极星终态裁决请见 `docs/NORTH_STAR_TARGET_ARCHITECTURE.md`。  \
@@ -102,7 +102,7 @@
 │  │  ├─ DeviceNetworkInfo  (网络诊断)                      │  │
 │  │  └─ DeviceExtras       (扩展特性)                      │  │
 │  ├────────────────────────────────────────────────────────┤  │
-│  │ API Client (显式 facade 目标态) │ MQTT Client │ AuthManager │  │
+│  │ Protocol Plane (formal root + child façades) │ MQTT │ AuthManager │  │
 │  └────────────────────────────────────────────────────────┘  │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -435,7 +435,7 @@ custom_components/lipro/
 │   │   ├── client.py              # compat shell；formal root = LiproProtocolFacade
 │   │   ├── endpoints/             # 按域拆分端点
 │   │   └── transport_*.py         # 请求核心/重试/签名
-│   ├── mqtt/                      # MQTT protocol slice (future child under LiproProtocolFacade)
+│   ├── mqtt/                      # MQTT protocol slice（child façade under LiproProtocolFacade）
 │   │   ├── mqtt_client.py
 │   │   ├── connection_manager.py
 │   │   └── subscription_manager.py
@@ -505,7 +505,7 @@ uv run pytest -q                                         # 全量测试
 | `core/mqtt/**` | `uv run pytest tests/core/mqtt tests/integration/test_mqtt_coordinator_integration.py -q` |
 | `entities/**` / `platforms/**` | `uv run pytest tests/entities tests/platforms -q` |
 | `config_flow.py` / `entry_options.py` / config entry 生命周期 | `uv run pytest tests/flows -q` |
-| 仅文档改动 | 链接 / 路径 grep + `git diff -- docs/ README*.md` 自检 |
+| 仅文档改动 | 链接 / 路径 grep + `git diff -- docs/developer_architecture.md .planning/ROADMAP.md .planning/PROJECT.md CONTRIBUTING.md CHANGELOG.md` 自检 |
 
 ## 贡献约定
 
@@ -537,17 +537,15 @@ uv run pytest -q                                         # 全量测试
 | 可观测性 | 增加命令确认延迟、刷新耗时、MQTT 恢复时间的结构化指标 | 当线上问题定位成本继续升高时 |
 | 契约测试 | 为供应商协议增加 golden payload / snapshot contract tests | 当端到端回归覆盖仍不足以防协议漂移时 |
 | 边界专用强类型库 | 若外部 payload 复杂度继续上升，可仅在边界层评估 `pydantic v2` 或 `msgspec` | 当手写校验与 TypedDict 维护成本显著上升时 |
-| Protocol Plane 收敛 | 目标态正式根为 `LiproProtocolFacade`；Phase 2 先建立 `LiproRestFacade`，Phase 2.5 再把 MQTT 一起统一进来 | 当 REST / MQTT 仍以分裂根存在，或旧 public name 继续主导正式结构时就应推进 |
+| Protocol Plane 漂移隔离 | 已完成：正式根为 `LiproProtocolFacade`；`LiproRestFacade` / `LiproMqttFacade` 作为 child façade 协作，高漂移 REST family 已在 boundary 完成 canonicalization | 当新增 drift family、host-neutral contract 或 replay authority 需要扩展时，必须继续沿 formal boundary 演进 |
 
 ### 建议的演进顺序（按性价比）
 
-1. **先补 ADR 与边界审查清单**：已完成第一步，后续继续用 ADR 固化新增重大决策
-2. **Phase 2 先收敛 REST 主链**：建立 `LiproRestFacade`，清空 `LiproClient` / mixin 的正式地位
-3. **Phase 2.5 统一协议根**：把 `LiproRestFacade` 与 `LiproMqttFacade` 一起并入 `LiproProtocolFacade`
-2. **再补协议契约测试**：把供应商返回 payload 固化为 golden fixtures，优先守住 REST / MQTT 边界
-3. **再补可观测性**：把“命令确认慢、刷新慢、MQTT 恢复慢”从体感问题变成可量化问题
-4. **推进 API Client 去 mixin 化**：所有层遵循同一套显式组合标准，不接受“API 层例外”
-5. **最后才评估边界层强类型升级**：只有当外部协议复杂度继续上升时，才考虑在 boundary layer 引入更强 schema 工具
+1. **继续用 ADR 固化重大决策**：避免再次出现“代码已演进、文档口径未收敛”
+2. **新增高漂移 payload 时先补 boundary contract / replay fixtures**：让 drift 先失败在 protocol proof
+3. **协议 / auth / control 变更优先跑 targeted guards**：先覆盖 contract matrix、auth、public-surface、governance guards
+4. **再补结构化 observability 指标**：把命令确认延迟、刷新耗时、MQTT 恢复时间继续沉淀为 exporter truth
+5. **最后才评估边界层强类型升级**：只在外部 payload 复杂度继续上升时考虑 `pydantic v2` / `msgspec`
 
 ### 当前不建议引入的重型方案
 

@@ -6,13 +6,28 @@ from functools import lru_cache
 from importlib import import_module
 import json
 import re
-from typing import Any, Final
+from typing import TYPE_CHECKING, Any, Final, Protocol, cast
+
+if TYPE_CHECKING:
+    from custom_components.lipro.core.protocol.boundary import BoundaryDecodeResult
+
+
+class _BoundaryDecoderModule(Protocol):
+    """Typed view of the lazily imported boundary module."""
+
+    def decode_mqtt_properties_payload(
+        self,
+        payload: Any,
+    ) -> BoundaryDecodeResult[dict[str, Any]]: ...
 
 
 @lru_cache(maxsize=1)
-def _boundary_decoder_module() -> Any:
+def _boundary_decoder_module() -> _BoundaryDecoderModule:
     """Resolve the protocol-boundary module lazily to avoid import cycles."""
-    return import_module("custom_components.lipro.core.protocol.boundary")
+    return cast(
+        _BoundaryDecoderModule,
+        import_module("custom_components.lipro.core.protocol.boundary"),
+    )
 
 
 # Hard limit for incoming MQTT payloads to avoid excessive memory/log churn.

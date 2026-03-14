@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from hashlib import sha256
 from secrets import token_hex
 from time import time
@@ -32,8 +32,8 @@ class RuntimeTelemetryExporter:
         sinks: Sequence[TelemetrySink] = DEFAULT_TELEMETRY_SINKS,
         sensitivity: TelemetrySensitivity | None = None,
         cardinality_budget: CardinalityBudget | None = None,
-        time_provider=time,
-        report_id_factory=token_hex,
+        time_provider: Callable[[], float] = time,
+        report_id_factory: Callable[..., str] = token_hex,
     ) -> None:
         """Initialize the exporter with explicit source/sink collaborators."""
         self._protocol_source = protocol_source

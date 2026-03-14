@@ -3,12 +3,15 @@
 from __future__ import annotations
 
 import asyncio
+from collections.abc import Callable
+from typing import Any, cast
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.lipro.const.base import DOMAIN
+from custom_components.lipro.core.mqtt.mqtt_client import LiproMqttClient
 from custom_components.lipro.core.protocol.facade import LiproMqttFacade
 
 _CONFIG_ENTRY_DATA = {
@@ -30,10 +33,10 @@ class _FakeMqttClient:
         secret_key: str,
         biz_id: str,
         phone_id: str,
-        on_message=None,
-        on_connect=None,
-        on_disconnect=None,
-        on_error=None,
+        on_message: Callable[[str, dict[str, Any]], None] | None = None,
+        on_connect: Callable[[], None] | None = None,
+        on_disconnect: Callable[[], None] | None = None,
+        on_error: Callable[[Exception], None] | None = None,
     ) -> None:
         self.access_key = access_key
         self.secret_key = secret_key
@@ -44,7 +47,7 @@ class _FakeMqttClient:
         self.on_disconnect = on_disconnect
         self.on_error = on_error
         self.is_connected = False
-        self.last_error = None
+        self.last_error: Exception | None = None
         self.subscribed_devices: set[str] = set()
         self.start = AsyncMock(side_effect=self._start)
         self.stop = AsyncMock(side_effect=self._stop)
@@ -74,24 +77,25 @@ class _FakeMqttClient:
 class _FakeMqttFacade(LiproMqttFacade):
     """Test façade with explicit callback emit helpers."""
 
-    def __init__(self, **kwargs) -> None:
-        self._client = _FakeMqttClient(**kwargs)
+    def __init__(self, **kwargs: Any) -> None:
+        self._fake_client = _FakeMqttClient(**kwargs)
+        self._client = cast(LiproMqttClient, self._fake_client)
         self._session_state = MagicMock()
         self._telemetry = MagicMock()
         self._diagnostics_context = MagicMock()
 
     def emit_message(self, device_id: str, payload: dict[str, str]) -> None:
-        callback = self._client.on_message
+        callback = self._fake_client.on_message
         assert callback is not None
         callback(device_id, payload)
 
     def emit_disconnect(self) -> None:
-        callback = self._client.on_disconnect
+        callback = self._fake_client.on_disconnect
         assert callback is not None
         callback()
 
     def emit_connect(self) -> None:
-        callback = self._client.on_connect
+        callback = self._fake_client.on_connect
         assert callback is not None
         callback()
 

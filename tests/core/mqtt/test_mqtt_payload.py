@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import cast
 
 from custom_components.lipro.core.mqtt import payload as payload_module
 from custom_components.lipro.core.protocol.boundary import (
@@ -14,7 +15,10 @@ _FIXTURE_DIR = Path(__file__).resolve().parents[2] / "fixtures" / "protocol_boun
 
 
 def _load_fixture(name: str) -> dict[str, object]:
-    return json.loads((_FIXTURE_DIR / name).read_text(encoding="utf-8"))
+    return cast(
+        "dict[str, object]",
+        json.loads((_FIXTURE_DIR / name).read_text(encoding="utf-8")),
+    )
 
 
 def test_sanitize_malformed_json_string_falls_back_to_plain_text() -> None:

@@ -110,3 +110,13 @@ async def async_load_remote_firmware_manifest(
 
         _REMOTE_MANIFEST_STATE.time = now
         return cached_data
+
+
+__all__ = [
+    "LOCAL_FIRMWARE_SUPPORT_MANIFEST_FILENAME",
+    "LOCAL_FIRMWARE_SUPPORT_MANIFEST_PATH",
+    "REMOTE_FIRMWARE_ADVISORY_URLS",
+    "async_load_remote_firmware_manifest",
+    "load_verified_firmware_manifest",
+    "parse_verified_firmware_manifest_payload",
+]

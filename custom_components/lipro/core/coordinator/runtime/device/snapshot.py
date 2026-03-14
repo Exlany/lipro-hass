@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 from dataclasses import dataclass, field
 import logging
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 from custom_components.lipro.core.device import LiproDevice
 from custom_components.lipro.core.device.group_status import sync_mesh_group_extra_data
@@ -86,9 +86,6 @@ class SnapshotBuilder:
             )
             return
 
-        if not isinstance(rows, list):
-            return
-
         for row in rows:
             group_id = row.get("groupId")
             if not isinstance(group_id, str) or not group_id.strip():
@@ -143,7 +140,9 @@ class SnapshotBuilder:
             response,
             offset=offset,
         )
-        return list(page_view.get("devices", [])), bool(page_view.get("has_more", False))
+        return cast(list[dict[str, Any]], list(page_view.get("devices", []))), bool(
+            page_view.get("has_more", False)
+        )
 
     def __init__(
         self,

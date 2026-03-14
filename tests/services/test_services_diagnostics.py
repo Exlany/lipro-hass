@@ -99,7 +99,7 @@ def test_collect_developer_reports_mixed_coordinator_outcomes(
 
 def test_collect_developer_reports_falls_back_to_exporter_view() -> None:
     """collect_developer_reports should use exporter truth when legacy builder is absent."""
-    hass = cast(HomeAssistant, MagicMock())
+    hass = MagicMock()
     entry = MagicMock(entry_id='entry-1')
     coordinator = SimpleNamespace(config_entry=entry)
     entry.runtime_data = coordinator
@@ -110,7 +110,7 @@ def test_collect_developer_reports_falls_back_to_exporter_view() -> None:
         return_value={'entry_ref': 'entry:1', 'runtime': {'ok': True}},
     ) as get_entry_telemetry_view:
         result = collect_developer_reports(
-            hass,
+            cast(HomeAssistant, hass),
             iter_runtime_coordinators=lambda _: iter([coordinator]),
         )
 

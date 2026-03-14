@@ -6,6 +6,7 @@ from collections.abc import Sequence
 from typing import Any, Protocol, TypedDict, cast
 
 from ..api.client_auth_recovery import AuthRecoveryCoordinator
+from ..api.endpoints.connect_status import coerce_connect_status
 from ..api.endpoints.payloads import EndpointPayloadNormalizers
 from ..api.schedule_codec import (
     coerce_int_list,
@@ -195,10 +196,18 @@ class CanonicalProtocolContracts:
         fallback_device_id: str = "",
     ) -> list[dict[str, Any]]:
         """Normalize schedule rows for protocol-level snapshotting."""
-        return cls.normalize_mesh_timing_rows(
+        normalized_rows = cls.normalize_mesh_timing_rows(
             rows,
             fallback_device_id=fallback_device_id,
+            parse_schedule_json=(
+                lambda schedule_json: parse_mesh_schedule_json(
+                    schedule_json,
+                    mask_sensitive_data=lambda value: value,
+                )
+            ),
+            coerce_connect_status=coerce_connect_status,
         )
+        return cast(list[dict[str, Any]], normalized_rows)
 
 
 __all__ = [

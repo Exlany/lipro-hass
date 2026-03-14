@@ -9,11 +9,32 @@ from pathlib import Path
 from typing import Any, Literal
 
 ReplayChannel = Literal["rest", "mqtt"]
+REPLAY_CHANNEL_VALUES: Mapping[str, ReplayChannel] = {
+    "rest": "rest",
+    "mqtt": "mqtt",
+}
+
 ReplayOperation = Literal[
     "protocol.contracts.normalize_mqtt_config",
+    "protocol.contracts.normalize_device_list_page",
+    "protocol.contracts.normalize_device_status_rows",
+    "protocol.contracts.normalize_mesh_group_status_rows",
     "protocol.boundary.decode_mqtt_properties",
 ]
+REPLAY_OPERATION_VALUES: Mapping[str, ReplayOperation] = {
+    "protocol.contracts.normalize_mqtt_config": "protocol.contracts.normalize_mqtt_config",
+    "protocol.contracts.normalize_device_list_page": "protocol.contracts.normalize_device_list_page",
+    "protocol.contracts.normalize_device_status_rows": "protocol.contracts.normalize_device_status_rows",
+    "protocol.contracts.normalize_mesh_group_status_rows": "protocol.contracts.normalize_mesh_group_status_rows",
+    "protocol.boundary.decode_mqtt_properties": "protocol.boundary.decode_mqtt_properties",
+}
+
 AssertionFamily = Literal["canonical", "drift", "telemetry"]
+ASSERTION_FAMILY_VALUES: Mapping[str, AssertionFamily] = {
+    "canonical": "canonical",
+    "drift": "drift",
+    "telemetry": "telemetry",
+}
 
 
 @dataclass(frozen=True, slots=True)

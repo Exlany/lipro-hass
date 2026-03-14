@@ -3,24 +3,17 @@
 from __future__ import annotations
 
 import asyncio
-from collections.abc import Sequence
+from collections.abc import Awaitable, Callable, Sequence
 import logging
-from typing import Any
+from typing import Any, TypeVar, cast
 
 import aiohttp
 
 from ...const.api import (
     CONTENT_TYPE_FORM,
-    CONTENT_TYPE_JSON,
-    HEADER_ACCESS_TOKEN,
-    HEADER_CACHE_CONTROL,
     HEADER_CONTENT_TYPE,
-    HEADER_MERCHANT_CODE,
-    HEADER_NONCE,
-    HEADER_SIGN,
     HEADER_USER_AGENT,
     IOT_API_URL,
-    MERCHANT_CODE,
     REQUEST_TIMEOUT,
     SMART_HOME_API_URL,
     USER_AGENT,
@@ -52,8 +45,12 @@ from .request_policy import (
     throttle_change_state as _throttle_change_state_policy,
 )
 from .schedule_service import ScheduleApiService
+from .types import LoginResponse
 
 _LOGGER = logging.getLogger(__name__)
+MappingRequestSender = Callable[[], Awaitable[tuple[int, Any, dict[str, str], str | None]]]
+TokenRefreshCallback = Callable[[], Awaitable[None]]
+_MappingPayloadT = TypeVar("_MappingPayloadT")
 
 
 class LiproRestFacade(_ClientBase):
@@ -82,9 +79,12 @@ class LiproRestFacade(_ClientBase):
         *,
         fallback_device_id: str = "",
     ) -> list[dict[str, Any]]:
-        return ScheduleEndpoints.normalize_mesh_timing_rows(
-            rows,
-            fallback_device_id=fallback_device_id,
+        return cast(
+            list[dict[str, Any]],
+            ScheduleEndpoints.normalize_mesh_timing_rows(
+                rows,
+                fallback_device_id=fallback_device_id,
+            ),
         )
 
     def __init__(
@@ -253,15 +253,15 @@ class LiproRestFacade(_ClientBase):
         self._session_state.entry_id = value
 
     @property
-    def _refresh_lock(self):
+    def _refresh_lock(self) -> asyncio.Lock:
         return self._session_state.refresh_lock
 
     @property
-    def _on_token_refresh(self):
+    def _on_token_refresh(self) -> TokenRefreshCallback | None:
         return self._session_state.on_token_refresh
 
     @_on_token_refresh.setter
-    def _on_token_refresh(self, value) -> None:
+    def _on_token_refresh(self, value: TokenRefreshCallback | None) -> None:
         self._session_state.on_token_refresh = value
 
     def set_tokens(
@@ -279,7 +279,7 @@ class LiproRestFacade(_ClientBase):
             biz_id=biz_id,
         )
 
-    def set_token_refresh_callback(self, callback) -> None:
+    def set_token_refresh_callback(self, callback: TokenRefreshCallback) -> None:
         """Register the async callback used to refresh access tokens."""
         self._auth_recovery.set_token_refresh_callback(callback)
 
@@ -293,7 +293,7 @@ class LiproRestFacade(_ClientBase):
         password: str,
         *,
         password_is_hashed: bool = False,
-    ) -> dict[str, Any]:
+    ) -> LoginResponse:
         """Compatibility auth entrypoint for auth-manager consumers."""
         return await self._auth_endpoints.login(
             phone,
@@ -301,7 +301,7 @@ class LiproRestFacade(_ClientBase):
             password_is_hashed=password_is_hashed,
         )
 
-    async def refresh_access_token(self) -> dict[str, Any]:
+    async def refresh_access_token(self) -> LoginResponse:
         """Compatibility refresh entrypoint for auth-manager consumers."""
         return await self._auth_endpoints.refresh_access_token()
 
@@ -329,7 +329,7 @@ class LiproRestFacade(_ClientBase):
         *,
         path: str,
         retry_count: int,
-        send_request,
+        send_request: MappingRequestSender,
     ) -> tuple[int, dict[str, Any], str | None]:
         return await self._transport_executor.execute_mapping_request_with_rate_limit(
             path=path,
@@ -358,9 +358,9 @@ class LiproRestFacade(_ClientBase):
         request_token: str | None,
         is_retry: bool,
         retry_on_auth_error: bool,
-        retry_request,
-        success_payload,
-    ) -> Any:
+        retry_request: Callable[[], Awaitable[_MappingPayloadT]] | None,
+        success_payload: Callable[[dict[str, Any]], _MappingPayloadT],
+    ) -> _MappingPayloadT:
         return await self._auth_recovery.finalize_mapping_result(
             path=path,
             result=result,
@@ -533,18 +533,6 @@ class LiproRestFacade(_ClientBase):
             success_payload=extract_smart_home_success_payload,
         )
 
-    def _build_iot_headers(self, body: str) -> dict[str, str]:
-        nonce = self._get_timestamp_ms()
-        sign = self._iot_sign(nonce, body)
-        return {
-            HEADER_CONTENT_TYPE: CONTENT_TYPE_JSON,
-            HEADER_CACHE_CONTROL: "no-cache",
-            HEADER_USER_AGENT: USER_AGENT,
-            HEADER_ACCESS_TOKEN: self._access_token or "",
-            HEADER_MERCHANT_CODE: MERCHANT_CODE,
-            HEADER_NONCE: str(nonce),
-            HEADER_SIGN: sign,
-        }
 
     async def _request_iot_mapping_raw(
         self,

@@ -76,9 +76,12 @@ uv run pytest tests/ -v --cov=custom_components/lipro --cov-fail-under=95 --cov-
 uv run pytest tests/
 
 # Diagnostics focused tests (used by pre-push hook)
-uv run pytest tests/test_diagnostics.py::TestAsyncGetConfigEntryDiagnostics::test_collects_and_redacts_diagnostics
-uv run pytest tests/test_diagnostics.py::TestAsyncGetConfigEntryDiagnostics::test_handles_no_devices
-uv run pytest tests/test_diagnostics.py::TestAsyncGetConfigEntryDiagnostics::test_diagnostics_snapshot
+uv run pytest tests/core/test_diagnostics.py::TestAsyncGetConfigEntryDiagnostics::test_collects_and_redacts_diagnostics
+uv run pytest tests/core/test_diagnostics.py::TestAsyncGetConfigEntryDiagnostics::test_handles_no_devices
+uv run pytest tests/core/test_diagnostics.py::TestAsyncGetConfigEntryDiagnostics::test_diagnostics_snapshot
+
+# Phase 10 boundary/auth/core-surface regression / Phase 10 边界/认证/核心表面回归
+uv run pytest -q tests/core/api/test_protocol_contract_matrix.py tests/core/test_auth.py tests/flows/test_config_flow.py tests/meta/test_public_surface_guards.py tests/test_coordinator_public.py
 ```
 
 ### Type Hints / 类型提示
@@ -114,6 +117,9 @@ async def async_turn_on(self, **kwargs: Any) -> None:
    uv run mypy
    uv run pytest tests/ -v --cov=custom_components/lipro --cov-fail-under=95 --cov-report=xml --cov-report=term-missing
    ```
+
+   For protocol/auth/control public-surface changes, prefer adding the Phase 10 targeted regression above before a full run.
+   对于 protocol/auth/control public-surface 变更，建议先运行上面的 Phase 10 定向回归，再做全量测试。
 
 4. **Submit Pull Request / 提交 Pull Request**
    - Provide a clear description of the changes

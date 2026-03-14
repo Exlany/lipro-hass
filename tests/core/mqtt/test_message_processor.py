@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import logging
 from pathlib import Path
+from typing import cast
 from unittest.mock import MagicMock
 
 from custom_components.lipro.core.mqtt import payload as payload_module
@@ -17,7 +18,10 @@ _FIXTURE_DIR = Path(__file__).resolve().parents[2] / "fixtures" / "protocol_boun
 
 
 def _load_fixture(name: str) -> dict[str, object]:
-    return json.loads((_FIXTURE_DIR / name).read_text(encoding="utf-8"))
+    return cast(
+        "dict[str, object]",
+        json.loads((_FIXTURE_DIR / name).read_text(encoding="utf-8")),
+    )
 
 
 def test_decode_payload_text_returns_string_for_valid_text() -> None:

@@ -1171,6 +1171,7 @@ async def test_submit_developer_feedback_matches_boundary_fixture() -> None:
     result = await mgr.submit_developer_feedback(session, {"note": "manual run"})
 
     assert result is True
+    assert submit_share_payload.await_args is not None
     report = submit_share_payload.await_args.args[1]
     assert canonicalize_generated_payload(report) == load_external_boundary_fixture(
         "share_worker",
