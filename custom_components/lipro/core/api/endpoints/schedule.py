@@ -148,6 +148,34 @@ class _ClientScheduleEndpointsMixin(_ClientEndpointPayloadsMixin):
             coerce_connect_status=coerce_connect_status,
         )
 
+    @staticmethod
+    def coerce_int_list(value: object) -> list[int]:
+        """Convert mixed list payloads into a clean integer list."""
+        return _coerce_schedule_int_list(value)
+
+    @classmethod
+    def parse_mesh_schedule_json(cls, schedule_json: object) -> dict[str, list[int]]:
+        """Parse mesh ``scheduleJson`` into canonical ``days/time/evt`` arrays."""
+        return _parse_mesh_schedule_payload(
+            schedule_json,
+            mask_sensitive_data=_response_safety.mask_sensitive_data,
+        )
+
+    @classmethod
+    def normalize_mesh_timing_rows(
+        cls,
+        rows: Sequence[object],
+        *,
+        fallback_device_id: str = "",
+    ) -> ScheduleRows:
+        """Normalize mesh timing rows into schedule-aware dictionaries."""
+        return _normalize_mesh_schedule_rows(
+            list(rows),
+            fallback_device_id=fallback_device_id,
+            parse_schedule_json=cls.parse_mesh_schedule_json,
+            coerce_connect_status=coerce_connect_status,
+        )
+
     async def _execute_mesh_schedule_candidate_request(
         self,
         *,

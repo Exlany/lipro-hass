@@ -26,7 +26,7 @@ from ...const.base import APP_VERSION_CODE, APP_VERSION_NAME
 from ...const.device_types import DEVICE_TYPE_MAP
 from .client_auth_recovery import AuthRecoveryCoordinator
 from .client_base import ClientSessionState
-from .errors import LiproAuthError, LiproConnectionError
+from .errors import LiproAuthError
 from .request_codec import (
     build_smart_home_request_data,
     encode_iot_request_body,
@@ -50,6 +50,7 @@ class TransportExecutor:
         auth_recovery: AuthRecoveryCoordinator,
         request_policy: RequestPolicy,
     ) -> None:
+        """Initialize transport execution collaborators around shared session state."""
         self._state = state
         self._auth_recovery = auth_recovery
         self._request_policy = request_policy
@@ -64,22 +65,28 @@ class TransportExecutor:
 
     @property
     def phone_id(self) -> str:
+        """Return the phone identifier used when signing requests."""
         return self._state.phone_id
 
     async def get_session(self) -> aiohttp.ClientSession:
+        """Return the active aiohttp session, creating one if needed."""
         return await self._transport_core.get_session()
 
     def close(self) -> None:
+        """Detach and close the transport-owned aiohttp session."""
         self._state.clear_session()
         self._transport_core.close_session()
 
     def smart_home_sign(self) -> str:
+        """Return the Smart Home signature for the next request."""
         return self._transport_signing.smart_home_sign()
 
     def iot_sign(self, nonce: int, body: str) -> str:
+        """Return the signed IoT request digest for one payload."""
         return self._transport_signing.iot_sign(self._state.access_token or "", nonce, body)
 
     def to_device_type_hex(self, device_type: int | str) -> str:
+        """Normalize one device type into the transport hex representation."""
         if isinstance(device_type, int):
             return DEVICE_TYPE_MAP.get(device_type, f"ff{device_type:06x}")
         normalized = device_type.strip().lower()
@@ -93,6 +100,7 @@ class TransportExecutor:
         raise ValueError(msg)
 
     def get_timestamp_ms(self) -> int:
+        """Return the signing timestamp in milliseconds."""
         return self._transport_signing.get_timestamp_ms()
 
     async def execute_request(
@@ -100,10 +108,12 @@ class TransportExecutor:
         request_ctx: Any,
         path: str,
     ) -> tuple[int, dict[str, Any], dict[str, str]]:
+        """Execute one low-level HTTP request context and normalize the response."""
         return await self._transport_core.execute_request(request_ctx, path)
 
     @staticmethod
     def require_mapping_response(path: str, result: Any) -> dict[str, Any]:
+        """Require one mapping response payload to be a JSON object."""
         return TransportCore.require_mapping_response(path, result)
 
     async def execute_mapping_request_with_rate_limit(
@@ -113,6 +123,7 @@ class TransportExecutor:
         retry_count: int,
         send_request,
     ) -> tuple[int, dict[str, Any], str | None]:
+        """Execute one mapping request with policy-owned rate-limit retries."""
         return await self._transport_retry.execute_with_rate_limit_retry(
             path=path,
             retry_count=retry_count,
@@ -130,6 +141,7 @@ class TransportExecutor:
         is_retry: bool = False,
         retry_count: int = 0,
     ) -> tuple[dict[str, Any], str | None]:
+        """Request one Smart Home mapping payload and preserve retry context."""
         url = f"{SMART_HOME_API_URL}{path}"
 
         async def _send_request() -> tuple[int, Any, dict[str, str], str | None]:
@@ -178,6 +190,7 @@ class TransportExecutor:
         is_retry: bool = False,
         retry_count: int = 0,
     ) -> Any:
+        """Execute one Smart Home request and finalize auth-aware mapping results."""
         result, request_token = await self.request_smart_home_mapping(
             path,
             data,
@@ -201,6 +214,7 @@ class TransportExecutor:
         )
 
     def build_iot_headers(self, body: str) -> dict[str, str]:
+        """Build signed headers for one IoT request payload."""
         nonce = self.get_timestamp_ms()
         sign = self.iot_sign(nonce, body)
         return {
@@ -221,6 +235,7 @@ class TransportExecutor:
         is_retry: bool = False,
         retry_count: int = 0,
     ) -> tuple[dict[str, Any], str | None]:
+        """Request one raw IoT mapping payload and preserve retry context."""
         url = f"{IOT_API_URL}{path}"
 
         async def _send_request() -> tuple[int, Any, dict[str, str], str | None]:
@@ -272,6 +287,7 @@ class TransportExecutor:
         is_retry: bool = False,
         retry_count: int = 0,
     ) -> tuple[dict[str, Any], str | None]:
+        """Encode and request one IoT mapping payload."""
         body = encode_iot_request_body(body_data)
         return await self.request_iot_mapping_raw(
             path,
@@ -287,6 +303,7 @@ class TransportExecutor:
         is_retry: bool = False,
         retry_count: int = 0,
     ) -> Any:
+        """Execute one IoT request and finalize auth-aware mapping results."""
         result, request_token = await self.request_iot_mapping(
             path,
             body_data,

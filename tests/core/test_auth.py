@@ -13,8 +13,8 @@ from custom_components.lipro.core.api import (
     LiproAuthError,
     LiproRefreshTokenExpiredError,
 )
-from custom_components.lipro.core.protocol import LiproProtocolFacade
 from custom_components.lipro.core.auth import LiproAuthManager
+from custom_components.lipro.core.protocol import LiproProtocolFacade
 
 
 class TestLiproAuthManagerInit:

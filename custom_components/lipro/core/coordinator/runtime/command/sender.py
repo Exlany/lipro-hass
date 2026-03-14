@@ -17,8 +17,8 @@ from ....utils.redaction import redact_identifier as _redact_identifier
 from ...types import CommandTrace
 
 if TYPE_CHECKING:
-    from ....protocol import LiproProtocolFacade
     from ....device import LiproDevice
+    from ....protocol import LiproProtocolFacade
 
 _LOGGER = logging.getLogger(__name__)
 

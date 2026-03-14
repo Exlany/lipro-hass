@@ -23,10 +23,7 @@ from ...const.config import (
     CONF_REFRESH_TOKEN,
     CONF_USER_ID,
 )
-from ..api import (
-    LiproAuthError,
-    LiproRefreshTokenExpiredError,
-)
+from ..api import LiproAuthError, LiproRefreshTokenExpiredError
 from ..protocol import LiproProtocolFacade
 from ..utils.log_safety import safe_error_placeholder
 

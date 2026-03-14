@@ -10,9 +10,9 @@ from .device.refresh_strategy import RefreshStrategy, StaleDeviceTracker
 from .device.snapshot import FetchedDeviceSnapshot, SnapshotBuilder
 
 if TYPE_CHECKING:
-    from custom_components.lipro.core.protocol import LiproProtocolFacade
     from custom_components.lipro.core.auth import LiproAuthManager
     from custom_components.lipro.core.device.identity_index import DeviceIdentityIndex
+    from custom_components.lipro.core.protocol import LiproProtocolFacade
 
 _LOGGER = logging.getLogger(__name__)
 

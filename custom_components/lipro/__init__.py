@@ -42,7 +42,6 @@ from .services.registrations import (
 )
 from .services.registry import async_setup_services, remove_services
 
-
 if TYPE_CHECKING:
     from homeassistant.helpers.typing import ConfigType
 

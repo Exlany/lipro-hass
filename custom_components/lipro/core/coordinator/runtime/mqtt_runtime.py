@@ -26,7 +26,6 @@ from .mqtt.reconnect import MqttReconnectManager
 
 if TYPE_CHECKING:
     from collections.abc import Coroutine
-    from datetime import timedelta
 
     from homeassistant.core import HomeAssistant
 

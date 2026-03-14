@@ -13,6 +13,8 @@ from .request_policy import (
     compute_rate_limit_wait_time as _compute_rate_limit_wait_time,
 )
 
+MONOTONIC = time.monotonic
+
 # Use the same logger instance as custom_components.lipro.core.api.client._LOGGER
 # so tests patching client._LOGGER.* still intercept logs here.
 _LOGGER = logging.getLogger("custom_components.lipro.core.api.client")
@@ -64,7 +66,7 @@ class _ClientPacingMixin:
         return wait_time
 
     def _enforce_command_pacing_cache_limit(self) -> None:
-        self._request_policy._enforce_command_pacing_cache_limit()  # type: ignore[attr-defined]
+        self._request_policy.enforce_command_pacing_cache_limit()
 
     @staticmethod
     def _is_command_busy_error(err: Exception) -> bool:
@@ -72,11 +74,11 @@ class _ClientPacingMixin:
 
     @staticmethod
     def _is_change_state_command(command: str) -> bool:
-        return RequestPolicy.is_change_state_command(command)  # type: ignore[attr-defined]
+        return RequestPolicy.is_change_state_command(command)
 
     @staticmethod
     def _normalize_pacing_target(target_id: str) -> str:
-        return RequestPolicy.normalize_pacing_target(target_id)  # type: ignore[attr-defined]
+        return RequestPolicy.normalize_pacing_target(target_id)
 
     async def _record_change_state_busy(
         self,
@@ -110,7 +112,7 @@ class _ClientPacingMixin:
 
     @staticmethod
     def _parse_retry_after(headers: dict[str, str]) -> float | None:
-        return RequestPolicy.parse_retry_after(headers)  # type: ignore[attr-defined]
+        return RequestPolicy.parse_retry_after(headers)
 
 
 __all__ = ["_ClientPacingMixin"]

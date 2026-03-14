@@ -14,7 +14,9 @@ from custom_components.lipro.core.api.diagnostics_api_service import (
     get_city,
     query_user_cloud,
 )
-from custom_components.lipro.core.api.mqtt_api_service import _extract_mqtt_config_payload
+from custom_components.lipro.core.api.mqtt_api_service import (
+    _extract_mqtt_config_payload,
+)
 from custom_components.lipro.core.api.types import (
     CommandResultApiResponse,
     DiagnosticsApiResponse,

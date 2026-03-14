@@ -33,6 +33,7 @@ class TuningMetrics:
         metrics_window: int,
         sample_size: int,
     ) -> None:
+        """Initialize bounded metric buffers for adaptive tuning."""
         self._metrics_window = metrics_window
         self._sample_size = sample_size
         self._batch_metrics: deque[BatchMetric] = deque(maxlen=metrics_window)
@@ -46,6 +47,7 @@ class TuningMetrics:
         device_count: int,
         fallback_depth: int = 0,
     ) -> None:
+        """Record one batch-query observation for later tuning decisions."""
         self._batch_metrics.append(
             BatchMetric(
                 batch_size=int(batch_size),
@@ -61,6 +63,7 @@ class TuningMetrics:
         device_serial: str,
         command: str,
     ) -> None:
+        """Record one user command that may influence tuning context."""
         self._user_actions.append(
             UserActionMetric(
                 device_serial=device_serial,
@@ -70,6 +73,7 @@ class TuningMetrics:
         )
 
     def get_average_latency(self) -> float | None:
+        """Return the average latency across the recent metric sample window."""
         if not self._batch_metrics:
             return None
         recent = list(self._batch_metrics)[-self._sample_size :]
@@ -79,6 +83,7 @@ class TuningMetrics:
         return total_duration / len(recent)
 
     def get_average_batch_size(self) -> float | None:
+        """Return the average batch size across the recent metric sample window."""
         if not self._batch_metrics:
             return None
         recent = list(self._batch_metrics)[-self._sample_size :]
@@ -88,6 +93,7 @@ class TuningMetrics:
         return total_size / len(recent)
 
     def get_metrics_summary(self) -> dict[str, object]:
+        """Return a serializable snapshot of current tuning metrics."""
         return {
             "sample_count": len(self._batch_metrics),
             "avg_latency": self.get_average_latency(),
@@ -98,6 +104,7 @@ class TuningMetrics:
         }
 
     def clear_metrics(self) -> None:
+        """Drop all collected tuning metrics and user-action samples."""
         self._batch_metrics.clear()
         self._user_actions.clear()
 

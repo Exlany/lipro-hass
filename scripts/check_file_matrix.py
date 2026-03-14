@@ -3,10 +3,11 @@
 from __future__ import annotations
 
 import argparse
+from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
 import re
-from typing import Iterable
+import sys
 
 EXCLUDED_DIR_NAMES = {
     ".git",
@@ -52,6 +53,8 @@ DISALLOWED_AUTHORITY_PHRASES = (
 
 @dataclass(frozen=True, slots=True)
 class FileGovernanceRow:
+    """One normalized file-governance record from the matrix inventory."""
+
     path: str
     area: str
     owner_phase: str
@@ -162,6 +165,7 @@ OVERRIDES: dict[str, FileGovernanceRow] = {
 
 
 def repo_root(start: Path | None = None) -> Path:
+    """Locate the repository root by walking upward to ``pyproject.toml``."""
     candidate = (start or Path(__file__)).resolve()
     if candidate.is_file():
         candidate = candidate.parent
@@ -173,6 +177,7 @@ def repo_root(start: Path | None = None) -> Path:
 
 
 def iter_python_files(root: Path) -> list[str]:
+    """Return the sorted Python file inventory for governance checks."""
     files: list[str] = []
     for path in root.rglob("*.py"):
         relative = path.relative_to(root)
@@ -182,49 +187,32 @@ def iter_python_files(root: Path) -> list[str]:
     return sorted(files)
 
 
-def classify_path(path: str) -> FileGovernanceRow:
-    if path in OVERRIDES:
-        return OVERRIDES[path]
+def _row_for_path(
+    path: str,
+    area: str,
+    owner_phase: str,
+    fate: str = "保留",
+    residual: str = "-",
+) -> FileGovernanceRow:
+    return FileGovernanceRow(
+        path=path,
+        area=area,
+        owner_phase=owner_phase,
+        fate=fate,
+        residual=residual,
+    )
 
-    def row(area: str, owner_phase: str, fate: str = "保留", residual: str = "-") -> FileGovernanceRow:
-        return FileGovernanceRow(path=path, area=area, owner_phase=owner_phase, fate=fate, residual=residual)
 
-    if path.startswith("custom_components/lipro/core/api/"):
-        return row("Protocol", "Phase 2", "重构")
-    if path.startswith("custom_components/lipro/core/protocol/boundary/"):
-        return row("Protocol", "Phase 7.1", "保留")
-    if path.startswith("custom_components/lipro/core/protocol/"):
-        return row("Protocol", "Phase 2.5", "保留")
-    if path.startswith("custom_components/lipro/core/mqtt/"):
-        return row("Protocol", "Phase 2.5", "重构")
-    if path.startswith("custom_components/lipro/core/anonymous_share/"):
-        return row("Protocol", "Phase 2.6", "保留")
-    if path.startswith("custom_components/lipro/core/telemetry/"):
-        return row("Assurance", "Phase 7.3", "保留")
-    if path == "custom_components/lipro/control/telemetry_surface.py":
-        return row("Control", "Phase 7.3", "保留")
-    if path.startswith("custom_components/lipro/control/"):
-        return row("Control", "Phase 3", "保留")
-    if path in {
+def _classify_component_path(path: str) -> FileGovernanceRow | None:
+    control_root_files = {
         "custom_components/lipro/__init__.py",
         "custom_components/lipro/diagnostics.py",
         "custom_components/lipro/system_health.py",
         "custom_components/lipro/config_flow.py",
         "custom_components/lipro/runtime_infra.py",
         "custom_components/lipro/coordinator_entry.py",
-    }:
-        return row("Control", "Phase 3", "保留")
-    if path.startswith("custom_components/lipro/services/"):
-        return row("Control", "Phase 3", "保留")
-    if path.startswith("custom_components/lipro/flow/"):
-        return row("Control", "Phase 3", "保留")
-    if path.startswith("custom_components/lipro/core/capability/"):
-        return row("Domain", "Phase 4", "保留")
-    if path.startswith("custom_components/lipro/core/device/"):
-        return row("Domain", "Phase 4", "重构")
-    if path.startswith("custom_components/lipro/entities/"):
-        return row("Domain", "Phase 4", "保留")
-    if path in {
+    }
+    domain_platform_files = {
         "custom_components/lipro/binary_sensor.py",
         "custom_components/lipro/climate.py",
         "custom_components/lipro/cover.py",
@@ -235,52 +223,119 @@ def classify_path(path: str) -> FileGovernanceRow:
         "custom_components/lipro/sensor.py",
         "custom_components/lipro/switch.py",
         "custom_components/lipro/update.py",
-    }:
-        return row("Domain", "Phase 4", "保留")
+    }
+
+    if path.startswith("custom_components/lipro/core/api/"):
+        return _row_for_path(path, "Protocol", "Phase 2", "重构")
+    if path.startswith("custom_components/lipro/core/protocol/boundary/"):
+        return _row_for_path(path, "Protocol", "Phase 7.1")
+    if path.startswith("custom_components/lipro/core/protocol/"):
+        return _row_for_path(path, "Protocol", "Phase 2.5")
+    if path.startswith("custom_components/lipro/core/mqtt/"):
+        return _row_for_path(path, "Protocol", "Phase 2.5", "重构")
+    if path.startswith("custom_components/lipro/core/anonymous_share/"):
+        return _row_for_path(path, "Protocol", "Phase 2.6")
+    if path.startswith("custom_components/lipro/core/telemetry/"):
+        return _row_for_path(path, "Assurance", "Phase 7.3")
+    if path == "custom_components/lipro/control/telemetry_surface.py":
+        return _row_for_path(path, "Control", "Phase 7.3")
+    if path.startswith("custom_components/lipro/control/"):
+        return _row_for_path(path, "Control", "Phase 3")
+    if path in control_root_files:
+        return _row_for_path(path, "Control", "Phase 3")
+    if path.startswith("custom_components/lipro/services/"):
+        return _row_for_path(path, "Control", "Phase 3")
+    if path.startswith("custom_components/lipro/flow/"):
+        return _row_for_path(path, "Control", "Phase 3")
+    if path.startswith("custom_components/lipro/core/capability/"):
+        return _row_for_path(path, "Domain", "Phase 4")
+    if path.startswith("custom_components/lipro/core/device/"):
+        return _row_for_path(path, "Domain", "Phase 4", "重构")
+    if path.startswith("custom_components/lipro/entities/"):
+        return _row_for_path(path, "Domain", "Phase 4")
+    if path in domain_platform_files:
+        return _row_for_path(path, "Domain", "Phase 4")
     if path.startswith("custom_components/lipro/core/coordinator/"):
-        return row("Runtime", "Phase 5", "重构")
+        return _row_for_path(path, "Runtime", "Phase 5", "重构")
+    return None
+
+
+def _classify_test_path(path: str) -> FileGovernanceRow | None:
+    runtime_test_files = {
+        "tests/core/test_coordinator.py",
+        "tests/core/test_coordinator_integration.py",
+    }
+    domain_test_prefixes = (
+        "tests/core/capability/",
+        "tests/core/device/",
+        "tests/entities/",
+        "tests/platforms/",
+    )
+    control_test_prefixes = ("tests/services/", "tests/flows/")
+
     if path == "tests/meta/test_protocol_replay_assets.py":
-        return row("Assurance", "Phase 7.4", "保留")
+        return _row_for_path(path, "Assurance", "Phase 7.4")
     if path == "tests/meta/test_evidence_pack_authority.py":
-        return row("Assurance", "Phase 8", "保留")
+        return _row_for_path(path, "Assurance", "Phase 8")
     if path.startswith("tests/meta/"):
-        return row("Assurance", "Phase 6", "保留")
+        return _row_for_path(path, "Assurance", "Phase 6")
     if path.startswith("tests/harness/evidence_pack/"):
-        return row("Assurance", "Phase 8", "保留")
+        return _row_for_path(path, "Assurance", "Phase 8")
     if path.startswith("tests/harness/protocol/") or path == "tests/harness/__init__.py":
-        return row("Assurance", "Phase 7.4", "保留")
+        return _row_for_path(path, "Assurance", "Phase 7.4")
     if path.startswith("tests/snapshots/"):
-        return row("Assurance", "Phase 6", "保留")
+        return _row_for_path(path, "Assurance", "Phase 6")
     if path == "tests/integration/test_ai_debug_evidence_pack.py":
-        return row("Assurance", "Phase 8", "保留")
+        return _row_for_path(path, "Assurance", "Phase 8")
     if path == "tests/integration/test_telemetry_exporter_integration.py":
-        return row("Runtime", "Phase 7.3", "保留")
+        return _row_for_path(path, "Runtime", "Phase 7.3")
     if path == "tests/integration/test_protocol_replay_harness.py":
-        return row("Assurance", "Phase 7.4", "保留")
+        return _row_for_path(path, "Assurance", "Phase 7.4")
     if path == "tests/core/api/test_protocol_replay_rest.py":
-        return row("Protocol", "Phase 7.4", "保留")
+        return _row_for_path(path, "Protocol", "Phase 7.4")
     if path == "tests/core/mqtt/test_protocol_replay_mqtt.py":
-        return row("Protocol", "Phase 7.4", "保留")
-    if path.startswith("tests/core/coordinator/") or path == "tests/core/test_coordinator.py" or path == "tests/core/test_coordinator_integration.py" or path.startswith("tests/integration/"):
-        return row("Runtime", "Phase 5 / 6", "保留")
+        return _row_for_path(path, "Protocol", "Phase 7.4")
+    if path.startswith(("tests/core/coordinator/", "tests/integration/")) or path in runtime_test_files:
+        return _row_for_path(path, "Runtime", "Phase 5 / 6")
     if path.startswith("tests/core/api/"):
-        return row("Protocol", "Phase 2", "保留")
+        return _row_for_path(path, "Protocol", "Phase 2")
     if path.startswith("tests/core/telemetry/"):
-        return row("Assurance", "Phase 7.3", "保留")
-    if path.startswith("tests/core/capability/") or path.startswith("tests/core/device/") or path.startswith("tests/entities/") or path.startswith("tests/platforms/"):
-        return row("Domain", "Phase 4", "保留")
-    if path.startswith("tests/services/") or path.startswith("tests/flows/") or path.startswith("tests/core/test_init.py"):
-        return row("Control", "Phase 3 / 7", "保留")
+        return _row_for_path(path, "Assurance", "Phase 7.3")
+    if path.startswith(domain_test_prefixes):
+        return _row_for_path(path, "Domain", "Phase 4")
+    if path.startswith(control_test_prefixes) or path == "tests/core/test_init.py":
+        return _row_for_path(path, "Control", "Phase 3 / 7")
     if path.startswith("tests/helpers/") or path in {"tests/conftest.py", "tests/conftest_shared.py"}:
-        return row("Assurance", "Phase 6", "保留")
+        return _row_for_path(path, "Assurance", "Phase 6")
+    return None
+
+
+def _classify_script_path(path: str) -> FileGovernanceRow | None:
     if path == "scripts/export_ai_debug_evidence_pack.py":
-        return row("Assurance", "Phase 8", "保留")
+        return _row_for_path(path, "Assurance", "Phase 8")
     if path.startswith("scripts/"):
-        return row("Assurance", "Phase 6 / 7", "保留")
-    return row("Cross-cutting", "Phase 7", "保留")
+        return _row_for_path(path, "Assurance", "Phase 6 / 7")
+    return None
+
+
+def classify_path(path: str) -> FileGovernanceRow:
+    """Map one Python file path to its governed area and phase ownership."""
+    if path in OVERRIDES:
+        return OVERRIDES[path]
+
+    for classifier in (
+        _classify_component_path,
+        _classify_test_path,
+        _classify_script_path,
+    ):
+        row = classifier(path)
+        if row is not None:
+            return row
+    return _row_for_path(path, "Cross-cutting", "Phase 7")
 
 
 def generate_file_matrix_markdown(files: Iterable[str]) -> str:
+    """Render the current Python inventory into ``FILE_MATRIX.md`` markdown."""
     rows = [classify_path(path) for path in files]
     lines = [
         "# File Matrix",
@@ -302,10 +357,12 @@ def generate_file_matrix_markdown(files: Iterable[str]) -> str:
 
 
 def parse_file_matrix_paths(text: str) -> list[str]:
+    """Extract Python file paths from the file-matrix markdown table."""
     return FILE_MATRIX_ROW_PATTERN.findall(text)
 
 
 def extract_reported_total(text: str) -> int:
+    """Extract the declared Python file count from file-matrix markdown."""
     match = FILE_MATRIX_HEADER_PATTERN.search(text)
     if match is None:
         msg = "FILE_MATRIX missing '**Python files total:** <n>' header"
@@ -314,6 +371,7 @@ def extract_reported_total(text: str) -> int:
 
 
 def validate_file_matrix(root: Path) -> list[str]:
+    """Validate FILE_MATRIX coverage, counts, and duplicate rows."""
     errors: list[str] = []
     inventory = iter_python_files(root)
     matrix_text = (root / FILE_MATRIX_PATH).read_text(encoding="utf-8")
@@ -344,18 +402,20 @@ def validate_file_matrix(root: Path) -> list[str]:
 
 
 def validate_active_doc_counts(root: Path) -> list[str]:
+    """Validate that active governance docs report the current file count."""
     errors: list[str] = []
     total = len(iter_python_files(root))
     for relative_path in [ROADMAP_PATH, STATE_PATH, REQUIREMENTS_PATH, FILE_MATRIX_PATH]:
         text = (root / relative_path).read_text(encoding="utf-8")
         counts = {int(match) for match in COUNT_PATTERN.findall(text)}
-        stale = sorted(count for count in counts if count not in {total})
+        stale = sorted(count for count in counts if count != total)
         if stale:
             errors.append(f"{relative_path} contains stale Python count(s): {stale}")
     return errors
 
 
 def validate_doc_authority(root: Path) -> list[str]:
+    """Validate that active and historical docs keep the correct authority labels."""
     errors: list[str] = []
     for relative_path in ACTIVE_DOC_PATHS:
         path = root / relative_path
@@ -376,6 +436,7 @@ def validate_doc_authority(root: Path) -> list[str]:
 
 
 def run_checks(root: Path) -> list[str]:
+    """Run all governance checks and return the accumulated error list."""
     errors: list[str] = []
     errors.extend(validate_file_matrix(root))
     errors.extend(validate_active_doc_counts(root))
@@ -383,7 +444,12 @@ def run_checks(root: Path) -> list[str]:
     return errors
 
 
+def _write_line(message: str) -> None:
+    sys.stdout.write(f"{message}\n")
+
+
 def main() -> int:
+    """Run the governance CLI entry point."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--write", action="store_true", help="rewrite FILE_MATRIX.md from current inventory")
     parser.add_argument("--check", action="store_true", help="validate governance artifacts")
@@ -400,19 +466,19 @@ def main() -> int:
         )
 
     if args.report:
-        print(f"python_files_total={len(inventory)}")
+        _write_line(f"python_files_total={len(inventory)}")
         phase_counts: dict[str, int] = {}
         for path in inventory:
             phase = classify_path(path).owner_phase
             phase_counts[phase] = phase_counts.get(phase, 0) + 1
         for phase, count in sorted(phase_counts.items()):
-            print(f"{phase}={count}")
+            _write_line(f"{phase}={count}")
 
     if args.check:
         errors = run_checks(root)
         if errors:
             for error in errors:
-                print(error)
+                _write_line(error)
             return 1
 
     if not any((args.write, args.check, args.report)):

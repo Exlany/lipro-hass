@@ -37,8 +37,8 @@ class _EndpointAdapter:
         retry_count: int = 0,
     ) -> Any:
         if require_auth is True and not is_retry and not retry_count:
-            return await self._client._smart_home_request(path, data)
-        return await self._client._smart_home_request(
+            return await self._client.smart_home_request(path, data)
+        return await self._client.smart_home_request(
             path,
             data,
             require_auth=require_auth,
@@ -54,8 +54,8 @@ class _EndpointAdapter:
         retry_count: int = 0,
     ) -> Any:
         if not is_retry and not retry_count:
-            return await self._client._iot_request(path, body_data)
-        return await self._client._iot_request(
+            return await self._client.iot_request(path, body_data)
+        return await self._client.iot_request(
             path,
             body_data,
             is_retry=is_retry,
@@ -71,8 +71,8 @@ class _EndpointAdapter:
         retry_count: int = 0,
     ) -> tuple[dict[str, Any], str | None]:
         if not is_retry and not retry_count:
-            return await self._client._request_iot_mapping(path, body_data)
-        return await self._client._request_iot_mapping(
+            return await self._client.request_iot_mapping(path, body_data)
+        return await self._client.request_iot_mapping(
             path,
             body_data,
             is_retry=is_retry,
@@ -88,8 +88,8 @@ class _EndpointAdapter:
         retry_count: int = 0,
     ) -> tuple[dict[str, Any], str | None]:
         if not is_retry and not retry_count:
-            return await self._client._request_iot_mapping_raw(path, body)
-        return await self._client._request_iot_mapping_raw(
+            return await self._client.request_iot_mapping_raw(path, body)
+        return await self._client.request_iot_mapping_raw(
             path,
             body,
             is_retry=is_retry,
@@ -104,7 +104,7 @@ class _EndpointAdapter:
         target_id: str,
         command: str,
     ) -> dict[str, Any]:
-        return await self._client._iot_request_with_busy_retry(
+        return await self._client.iot_request_with_busy_retry(
             path,
             body_data,
             target_id=target_id,
@@ -112,19 +112,19 @@ class _EndpointAdapter:
         )
 
     def _to_device_type_hex(self, device_type: int | str) -> str:
-        return self._client._to_device_type_hex(device_type)
+        return self._client.to_device_type_hex(device_type)
 
     def _is_success_code(self, code: Any) -> bool:
-        return self._client._is_success_code(code)
+        return self._client.is_success_code(code)
 
     def _unwrap_iot_success_payload(self, result: dict[str, Any]) -> Any:
-        return self._client._unwrap_iot_success_payload(result)
+        return self._client.unwrap_iot_success_payload(result)
 
     def _require_mapping_response(self, path: str, result: Any) -> dict[str, Any]:
-        return self._client._require_mapping_response(path, result)
+        return self._client.require_mapping_response(path, result)
 
     def _is_invalid_param_error_code(self, code: Any) -> bool:
-        return self._client._is_invalid_param_error_code(code)
+        return self._client.is_invalid_param_error_code(code)
 
     def __getattr__(self, name: str) -> Any:
         return getattr(self._client, name)
@@ -138,6 +138,7 @@ class EndpointPayloadNormalizers:
         result: object,
         *keys: str,
     ) -> list[JsonObject]:
+        """Extract a filtered list payload from one response object."""
         if isinstance(result, list):
             return [row for row in result if _is_json_object(row)]
         if isinstance(result, dict):
@@ -149,10 +150,12 @@ class EndpointPayloadNormalizers:
 
     @staticmethod
     def extract_data_list(result: object) -> list[JsonObject]:
+        """Extract the canonical ``data`` list payload from one response object."""
         return EndpointPayloadNormalizers.extract_list_payload(result, "data")
 
     @staticmethod
     def extract_timings_list(result: object) -> list[ScheduleTimingRow]:
+        """Extract schedule timing rows from timing- or data-shaped payloads."""
         return [
             cast(ScheduleTimingRow, row)
             for row in EndpointPayloadNormalizers.extract_list_payload(
@@ -166,6 +169,7 @@ class EndpointPayloadNormalizers:
         *,
         endpoint: str,
     ) -> list[str]:
+        """Filter, normalize, and de-duplicate IoT device identifiers."""
         valid_ids: list[str] = []
         seen: set[str] = set()
         skipped = 0
@@ -189,6 +193,7 @@ class EndpointPayloadNormalizers:
 
     @staticmethod
     def normalize_power_target_id(device_id: object) -> str | None:
+        """Normalize one power target into an IoT or mesh-group identifier."""
         return _normalize_iot_device_id(device_id) or _normalize_mesh_group_id(
             device_id
         )

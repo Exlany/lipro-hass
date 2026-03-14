@@ -21,6 +21,7 @@ class TuningRuntime:
         sample_size: int = 6,
         initial_batch_size: int = 32,
     ) -> None:
+        """Initialize the standalone adaptive tuning collaborators."""
         self._algorithm = TuningAlgorithm(
             batch_size_min=batch_size_min,
             batch_size_max=batch_size_max,
@@ -36,6 +37,7 @@ class TuningRuntime:
         self._adjuster.reset_adjustments(batch_size=initial_batch_size)
 
     def record_user_action(self, device_serial: str, command: str) -> None:
+        """Record one user command for runtime tuning context."""
         self._metrics.record_user_action(device_serial=device_serial, command=command)
 
     def record_batch_metric(
@@ -46,6 +48,7 @@ class TuningRuntime:
         device_count: int,
         fallback_depth: int = 0,
     ) -> None:
+        """Record one batch execution metric for adaptive tuning."""
         self._metrics.record_batch_metric(
             batch_size=batch_size,
             duration=duration,
@@ -54,12 +57,15 @@ class TuningRuntime:
         )
 
     def get_average_latency(self) -> float | None:
+        """Return the recent average batch latency, if any samples exist."""
         return self._metrics.get_average_latency()
 
     def get_average_batch_size(self) -> float | None:
+        """Return the recent average batch size, if any samples exist."""
         return self._metrics.get_average_batch_size()
 
     def compute_adaptive_batch_size(self) -> int | None:
+        """Compute the next adaptive batch size from current runtime metrics."""
         avg_latency = self._metrics.get_average_latency()
         if avg_latency is None:
             return None
@@ -69,18 +75,23 @@ class TuningRuntime:
         )
 
     def apply_batch_size_adjustment(self, new_size: int) -> bool:
+        """Apply one computed batch-size adjustment to runtime state."""
         return self._adjuster.apply_batch_size_adjustment(new_size)
 
     def get_current_batch_size(self) -> int:
+        """Return the currently active runtime batch size."""
         return self._adjuster.get_current_batch_size()
 
     def clear_metrics(self) -> None:
+        """Clear all accumulated runtime tuning metrics."""
         self._metrics.clear_metrics()
 
     def reset_adjustments(self, *, batch_size: int) -> None:
+        """Reset runtime adjustment state to a known batch size."""
         self._adjuster.reset_adjustments(batch_size=batch_size)
 
     def get_runtime_metrics(self) -> RuntimeMetrics:
+        """Return a consolidated snapshot of tuning runtime state."""
         return {
             "algorithm": self._algorithm.get_algorithm_config(),
             "metrics": self._metrics.get_metrics_summary(),

@@ -31,8 +31,6 @@ from custom_components.lipro.const.properties import (
     PROP_WIND_GEAR,
 )
 from custom_components.lipro.core import LiproApiError
-from custom_components.lipro.core.api import LiproClient
-from custom_components.lipro.core.capability import CapabilitySnapshot
 from custom_components.lipro.core.anonymous_share import manager as manager_module
 from custom_components.lipro.core.anonymous_share.capabilities import (
     detect_device_capabilities,
@@ -56,9 +54,11 @@ from custom_components.lipro.core.anonymous_share.sanitize import (
     sanitize_value,
 )
 from custom_components.lipro.core.anonymous_share.share_client import ShareWorkerClient
+from custom_components.lipro.core.api import LiproClient
 from custom_components.lipro.core.api.observability import (
     record_api_error as record_observed_api_error,
 )
+from custom_components.lipro.core.capability import CapabilitySnapshot
 
 # ---------------------------------------------------------------------------
 # Helpers

@@ -10,7 +10,9 @@ import aiohttp
 import pytest
 
 from custom_components.lipro.core.api import LiproApiError
-from custom_components.lipro.core.api.client_auth_recovery import AuthRecoveryCoordinator
+from custom_components.lipro.core.api.client_auth_recovery import (
+    AuthRecoveryCoordinator,
+)
 from custom_components.lipro.core.api.client_base import ClientSessionState
 from custom_components.lipro.core.api.client_transport import TransportExecutor
 from custom_components.lipro.core.api.request_policy import RequestPolicy

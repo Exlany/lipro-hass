@@ -11,8 +11,8 @@ from custom_components.lipro.core.device import LiproDevice
 from custom_components.lipro.core.device.group_status import sync_mesh_group_extra_data
 
 if TYPE_CHECKING:
-    from custom_components.lipro.core.protocol import LiproProtocolFacade
     from custom_components.lipro.core.device.identity_index import DeviceIdentityIndex
+    from custom_components.lipro.core.protocol import LiproProtocolFacade
 
     from .filter import DeviceFilter
 

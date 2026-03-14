@@ -49,7 +49,6 @@ from .flow.schemas import (
     build_reconfigure_data_schema as _build_reconfigure_data_schema,
 )
 
-
 _LOGGER = logging.getLogger(__name__)
 
 

@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import asyncio
-import logging
 from collections.abc import Awaitable, Callable
+from importlib import import_module
+import logging
+from time import monotonic
 from typing import Final
 
 from ...const.api import (
@@ -13,9 +15,9 @@ from ...const.api import (
     MAX_RATE_LIMIT_RETRIES,
     MAX_RETRY_AFTER,
 )
+from ..utils.retry_after import parse_retry_after as _parse_retry_after_util
 from . import response_safety as _response_safety
 from .errors import LiproApiError, LiproRateLimitError
-from ..utils.retry_after import parse_retry_after as _parse_retry_after_util
 
 _LOGGER = logging.getLogger("custom_components.lipro.core.api.client")
 
@@ -26,6 +28,11 @@ CHANGE_STATE_MAX_INTERVAL_SECONDS: Final = 1.2
 CHANGE_STATE_BUSY_MULTIPLIER: Final = 1.6
 CHANGE_STATE_RECOVERY_MULTIPLIER: Final = 0.8
 COMMAND_PACING_CACHE_MAX_SIZE: Final = 256
+
+
+def _get_iot_busy_retry_service():
+    module = import_module("custom_components.lipro.core.api.command_api_service")
+    return module.iot_request_with_busy_retry
 
 
 def is_change_state_command(command: str) -> bool:
@@ -254,32 +261,38 @@ class RequestPolicy:
 
     @staticmethod
     def is_change_state_command(command: str) -> bool:
+        """Return whether one command participates in pacing rules."""
         return is_change_state_command(command)
 
     @staticmethod
     def normalize_pacing_target(target_id: str) -> str:
+        """Normalize one pacing target into the cache-key form."""
         return normalize_pacing_target(target_id)
 
     @staticmethod
     def parse_retry_after(headers: dict[str, str]) -> float | None:
+        """Parse one Retry-After header mapping into seconds."""
         return parse_retry_after(headers)
 
-    """Explicit owner for pacing, busy-retry, and retry/backoff policy state."""
-
     def __init__(self) -> None:
+        """Initialize mutable pacing state owned by the request policy."""
         self.command_pacing_lock = asyncio.Lock()
         self.command_pacing_target_locks: dict[str, asyncio.Lock] = {}
         self.last_change_state_at: dict[str, float] = {}
         self.change_state_min_interval: dict[str, float] = {}
         self.change_state_busy_count: dict[str, int] = {}
 
-    def _enforce_command_pacing_cache_limit(self) -> None:
+    def enforce_command_pacing_cache_limit(self) -> None:
+        """Trim per-target pacing caches to the configured maximum size."""
         enforce_command_pacing_cache_limit(
             last_change_state_at=self.last_change_state_at,
             change_state_min_interval=self.change_state_min_interval,
             change_state_busy_count=self.change_state_busy_count,
             command_pacing_target_locks=self.command_pacing_target_locks,
         )
+
+    def _enforce_command_pacing_cache_limit(self) -> None:
+        self.enforce_command_pacing_cache_limit()
 
     async def handle_rate_limit(
         self,
@@ -370,7 +383,7 @@ class RequestPolicy:
             last_change_state_at=self.last_change_state_at,
             change_state_min_interval=self.change_state_min_interval,
             change_state_busy_count=self.change_state_busy_count,
-            monotonic=__import__("time").monotonic,
+            monotonic=monotonic,
             sleep=asyncio.sleep,
         )
 
@@ -385,9 +398,9 @@ class RequestPolicy:
         logger: logging.Logger = _LOGGER,
     ) -> dict[str, object]:
         """Execute one IoT command request with explicit policy-owned pacing."""
-        from .command_api_service import iot_request_with_busy_retry as _iot_busy_retry_service
+        iot_busy_retry_service = _get_iot_busy_retry_service()
 
-        return await _iot_busy_retry_service(
+        return await iot_busy_retry_service(
             path=path,
             body_data=body_data,
             target_id=target_id,

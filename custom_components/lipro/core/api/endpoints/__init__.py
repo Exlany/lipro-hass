@@ -32,10 +32,10 @@ ENDPOINT_COLLABORATOR_TYPES = (
 
 
 __all__ = [
+    "ENDPOINT_COLLABORATOR_TYPES",
     "AuthEndpoints",
     "CommandEndpoints",
     "DeviceEndpoints",
-    "ENDPOINT_COLLABORATOR_TYPES",
     "MiscEndpoints",
     "ScheduleEndpoints",
     "StatusEndpoints",

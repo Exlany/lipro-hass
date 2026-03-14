@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 from collections.abc import Sequence
 import logging
 from typing import Any
@@ -25,10 +26,12 @@ from ...const.api import (
     USER_AGENT,
 )
 from ...const.base import APP_VERSION_CODE, APP_VERSION_NAME
+from . import client_pacing as _client_pacing
 from .auth_service import AuthApiService
 from .client_auth_recovery import AuthRecoveryCoordinator
 from .client_base import ClientSessionState, _ClientBase
 from .client_transport import TransportExecutor
+from .command_api_service import iot_request_with_busy_retry as _iot_busy_retry_service
 from .endpoints import (
     AuthEndpoints,
     CommandEndpoints,
@@ -44,7 +47,10 @@ from .request_codec import (
     encode_iot_request_body,
     extract_smart_home_success_payload,
 )
-from .request_policy import RequestPolicy
+from .request_policy import (
+    RequestPolicy,
+    throttle_change_state as _throttle_change_state_policy,
+)
 from .schedule_service import ScheduleApiService
 
 _LOGGER = logging.getLogger(__name__)
@@ -62,12 +68,12 @@ class LiproRestFacade(_ClientBase):
     _extract_timings_list = staticmethod(EndpointPayloadNormalizers.extract_timings_list)
     _sanitize_iot_device_ids = staticmethod(EndpointPayloadNormalizers.sanitize_iot_device_ids)
     _normalize_power_target_id = staticmethod(EndpointPayloadNormalizers.normalize_power_target_id)
-    _is_retriable_device_error = staticmethod(StatusEndpoints._is_retriable_device_error)
-    _coerce_int_list = staticmethod(ScheduleEndpoints._coerce_int_list)
+    _is_retriable_device_error = staticmethod(StatusEndpoints.is_retriable_device_error)
+    _coerce_int_list = staticmethod(ScheduleEndpoints.coerce_int_list)
 
     @classmethod
     def _parse_mesh_schedule_json(cls, schedule_json: object) -> dict[str, list[int]]:
-        return ScheduleEndpoints._parse_mesh_schedule_json(schedule_json)
+        return ScheduleEndpoints.parse_mesh_schedule_json(schedule_json)
 
     @classmethod
     def _normalize_mesh_timing_rows(
@@ -76,7 +82,7 @@ class LiproRestFacade(_ClientBase):
         *,
         fallback_device_id: str = "",
     ) -> list[dict[str, Any]]:
-        return ScheduleEndpoints._normalize_mesh_timing_rows(
+        return ScheduleEndpoints.normalize_mesh_timing_rows(
             rows,
             fallback_device_id=fallback_device_id,
         )
@@ -91,6 +97,7 @@ class LiproRestFacade(_ClientBase):
         session_state: ClientSessionState | None = None,
         request_policy: RequestPolicy | None = None,
     ) -> None:
+        """Initialize the formal REST facade and its explicit collaborators."""
         self._session_state = session_state or ClientSessionState(
             phone_id=phone_id,
             session=session,
@@ -136,24 +143,27 @@ class LiproRestFacade(_ClientBase):
         self._endpoint_exports = endpoint_exports
 
     def __getattr__(self, name: str) -> Any:
+        """Resolve endpoint-exported collaborator methods on demand."""
         endpoint_exports = self.__dict__.get("_endpoint_exports", {})
         if name in endpoint_exports:
             return endpoint_exports[name]
-        raise AttributeError(
-            f"{type(self).__name__!s} object has no attribute {name!r}"
-        )
+        msg = f"{type(self).__name__!s} object has no attribute {name!r}"
+        raise AttributeError(msg)
 
     def __dir__(self) -> list[str]:
+        """Expose endpoint-exported collaborator methods to introspection tools."""
         return sorted(
             set(super().__dir__()) | set(self.__dict__.get("_endpoint_exports", {}))
         )
 
     @property
     def phone_id(self) -> str:
+        """Return the phone identifier bound to this REST facade."""
         return self._session_state.phone_id
 
     @property
     def access_token(self) -> str | None:
+        """Return the current access token stored in session state."""
         return self._session_state.access_token
 
     @access_token.setter
@@ -162,6 +172,7 @@ class LiproRestFacade(_ClientBase):
 
     @property
     def refresh_token(self) -> str | None:
+        """Return the current refresh token stored in session state."""
         return self._session_state.refresh_token
 
     @refresh_token.setter
@@ -170,6 +181,7 @@ class LiproRestFacade(_ClientBase):
 
     @property
     def user_id(self) -> int | None:
+        """Return the authenticated user identifier stored in session state."""
         return self._session_state.user_id
 
     @user_id.setter
@@ -259,6 +271,7 @@ class LiproRestFacade(_ClientBase):
         user_id: int | None = None,
         biz_id: str | None = None,
     ) -> None:
+        """Persist freshly issued authentication tokens into facade state."""
         self._auth_recovery.set_tokens(
             access_token,
             refresh_token,
@@ -267,6 +280,7 @@ class LiproRestFacade(_ClientBase):
         )
 
     def set_token_refresh_callback(self, callback) -> None:
+        """Register the async callback used to refresh access tokens."""
         self._auth_recovery.set_token_refresh_callback(callback)
 
     def auth_recovery_telemetry_snapshot(self) -> dict[str, Any]:
@@ -379,9 +393,6 @@ class LiproRestFacade(_ClientBase):
         await self._request_policy.record_change_state_success(target_id, command)
 
     async def _throttle_change_state(self, target_id: str, command: str) -> None:
-        from . import client_pacing as _client_pacing
-        from .request_policy import throttle_change_state as _throttle_change_state_policy
-
         await _throttle_change_state_policy(
             target_id=target_id,
             command=command,
@@ -435,9 +446,10 @@ class LiproRestFacade(_ClientBase):
         return RequestPolicy.normalize_pacing_target(target_id)
 
     def _enforce_command_pacing_cache_limit(self) -> None:
-        self._request_policy._enforce_command_pacing_cache_limit()
+        self._request_policy.enforce_command_pacing_cache_limit()
 
     async def close(self) -> None:
+        """Close transport-owned session resources for this facade."""
         self._transport_executor.close()
 
     async def _request_smart_home_mapping(
@@ -628,8 +640,6 @@ class LiproRestFacade(_ClientBase):
         target_id: str,
         command: str,
     ) -> dict[str, Any]:
-        from .command_api_service import iot_request_with_busy_retry as _iot_busy_retry_service
-
         return await _iot_busy_retry_service(
             path=path,
             body_data=body_data,
@@ -643,7 +653,7 @@ class LiproRestFacade(_ClientBase):
             is_command_busy_error=self._is_command_busy_error,
             lipro_api_error=LiproApiError,
             record_change_state_busy=self._record_change_state_busy,
-            sleep=__import__("custom_components.lipro.core.api.client_pacing", fromlist=["asyncio"]).asyncio.sleep,
+            sleep=asyncio.sleep,
             logger=_LOGGER,
         )
 
@@ -705,14 +715,17 @@ class LiproClient(LiproRestFacade):
         }
 
     async def query_iot_devices(self, device_ids: list[str]) -> dict[str, Any]:
+        """Compatibility wrapper that returns IoT device status rows under ``data``."""
         rows = await self.query_device_status(device_ids)
         return self._build_compat_list_payload(list(rows))
 
     async def query_outlet_devices(self, device_ids: list[str]) -> dict[str, Any]:
+        """Compatibility wrapper that returns outlet status rows under ``data``."""
         rows = await self.query_device_status(device_ids)
         return self._build_compat_list_payload(list(rows))
 
     async def query_group_devices(self, group_ids: list[str]) -> dict[str, Any]:
+        """Compatibility wrapper that returns mesh-group status rows under ``data``."""
         rows = await self.query_mesh_group_status(group_ids)
         return self._build_compat_list_payload(list(rows))
 

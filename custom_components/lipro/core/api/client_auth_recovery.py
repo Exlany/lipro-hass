@@ -35,6 +35,7 @@ class AuthRecoveryCoordinator:
     """Explicit owner for auth classification, refresh, and replay decisions."""
 
     def __init__(self, state: ClientSessionState) -> None:
+        """Initialize auth-recovery bookkeeping around shared session state."""
         self._state = state
         self._auth_error_count = 0
         self._refresh_attempt_count = 0
@@ -49,14 +50,17 @@ class AuthRecoveryCoordinator:
 
     @property
     def access_token(self) -> str | None:
+        """Return the access token currently stored in session state."""
         return self._state.access_token
 
     @property
     def refresh_token(self) -> str | None:
+        """Return the refresh token currently stored in session state."""
         return self._state.refresh_token
 
     @property
     def user_id(self) -> int | None:
+        """Return the authenticated user identifier from session state."""
         return self._state.user_id
 
     def set_tokens(
@@ -66,6 +70,7 @@ class AuthRecoveryCoordinator:
         user_id: int | None = None,
         biz_id: str | None = None,
     ) -> None:
+        """Persist freshly issued tokens into shared session state."""
         self._state.set_tokens(
             access_token,
             refresh_token,
@@ -74,10 +79,12 @@ class AuthRecoveryCoordinator:
         )
 
     def set_token_refresh_callback(self, callback) -> None:
+        """Register the async callback used to refresh expired tokens."""
         self._state.on_token_refresh = callback
 
     @staticmethod
     def is_auth_error_code(code: Any) -> bool:
+        """Return whether one response code denotes an auth failure."""
         normalized = _response_safety.normalize_response_code(code)
         if isinstance(normalized, str) and normalized.lower() == "token_expired":
             return True
@@ -87,6 +94,7 @@ class AuthRecoveryCoordinator:
 
     @staticmethod
     def is_success_code(code: Any) -> bool:
+        """Return whether one response code denotes success."""
         normalized = _response_safety.normalize_response_code(code)
         return normalized in RESPONSE_SUCCESS_CODES
 
@@ -96,6 +104,7 @@ class AuthRecoveryCoordinator:
         code: Any,
         error_code: Any,
     ) -> int | str | None:
+        """Resolve the effective auth error code from response variants."""
         for candidate in (code, error_code):
             if not cls.is_auth_error_code(candidate):
                 continue
@@ -107,6 +116,7 @@ class AuthRecoveryCoordinator:
 
     @staticmethod
     def resolve_error_code(code: Any, error_code: Any) -> int | str | None:
+        """Resolve the effective error code from response variants."""
         normalized_error_code = _response_safety.normalize_response_code(error_code)
         if normalized_error_code not in (None, "", 0):
             return normalized_error_code
@@ -128,6 +138,7 @@ class AuthRecoveryCoordinator:
         self._last_refresh_error_type = error_type
 
     def telemetry_snapshot(self) -> dict[str, Any]:
+        """Return a serializable snapshot of auth-recovery telemetry."""
         return {
             "auth_error_count": self._auth_error_count,
             "refresh_attempt_count": self._refresh_attempt_count,
@@ -147,6 +158,7 @@ class AuthRecoveryCoordinator:
         request_token: str | None,
         is_retry: bool,
     ) -> bool:
+        """Handle one auth failure and trigger refresh/replay when allowed."""
         self._auth_error_count += 1
         if is_retry or not self._state.on_token_refresh:
             return False
@@ -164,6 +176,7 @@ class AuthRecoveryCoordinator:
         retry_request,
         success_payload,
     ) -> _MappingPayloadT:
+        """Finalize one mapping result with auth classification and retries."""
         code = result.get("code")
         if self.is_success_code(code):
             return success_payload(result)
@@ -200,17 +213,20 @@ class AuthRecoveryCoordinator:
 
     @staticmethod
     def is_invalid_param_error_code(code: Any) -> bool:
+        """Return whether one code denotes an invalid-parameter response."""
         normalized = _response_safety.normalize_response_code(code)
         return normalized in (ERROR_INVALID_PARAM, ERROR_INVALID_PARAM_STR)
 
     @staticmethod
     def unwrap_iot_success_payload(result: dict[str, Any]) -> Any:
+        """Extract the canonical success payload from one IoT response."""
         if "data" in result:
             data = result["data"]
             return {} if data is None else data
         return result
 
     async def handle_401_with_refresh(self, request_token: str | None) -> bool:
+        """Refresh tokens after one HTTP 401 and indicate whether replay is safe."""
         if not self._state.on_token_refresh:
             return False
 

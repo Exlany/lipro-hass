@@ -76,6 +76,26 @@ class _ClientStatusEndpointsMixin(_ClientEndpointPayloadsMixin):
             ERROR_NO_PERMISSION_STR,
         )
 
+    @staticmethod
+    def is_retriable_device_error(err: Exception) -> bool:
+        """Return whether one device error should trigger fallback retries."""
+        return _response_safety.normalize_response_code(
+            getattr(err, "code", None)
+        ) in (
+            ERROR_DEVICE_OFFLINE,
+            ERROR_DEVICE_OFFLINE_STR,
+            ERROR_DEVICE_OFFLINE_LEGACY,
+            ERROR_DEVICE_OFFLINE_LEGACY_STR,
+            ERROR_DEVICE_NOT_CONNECTED,
+            ERROR_DEVICE_NOT_CONNECTED_STR,
+            ERROR_DEVICE_NOT_FOUND,
+            ERROR_DEVICE_NOT_FOUND_STR,
+            ERROR_DEVICE_UPDATING,
+            ERROR_DEVICE_UPDATING_STR,
+            ERROR_NO_PERMISSION,
+            ERROR_NO_PERMISSION_STR,
+        )
+
     async def query_device_status(
         self,
         device_ids: list[str],
