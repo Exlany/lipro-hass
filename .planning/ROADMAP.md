@@ -3,7 +3,7 @@
 ## Milestones
 
 - ✅ **v1.0 North Star Rebuild** - Phases 1-7 (+ 1.5 / 2.5 / 2.6), shipped 2026-03-13
-- 🚧 **v1.1 Protocol Fidelity & Operability** - Phases 7.1-11 complete, closeout pending (initialized 2026-03-13)
+- 🚧 **v1.1 Protocol Fidelity & Operability** - Phases 7.1-10 complete; Phase 11 expanded replanning active (initialized 2026-03-13)
 
 ## Required Phase Outputs
 
@@ -28,7 +28,7 @@
 
 **Milestone Goal:** 在不破坏既有北极星单一主链的前提下，正式引入 boundary decoder family、architecture policy enforcement、runtime telemetry exporter、replay evidence，并把已登记 residual surfaces 收口到显式、可删除、可验证的最小集合。
 
-**Current Status:** `Phase 7.1` 到 `Phase 10` 已全部完成（截至 2026-03-14）；当前仅剩 milestone verify / closeout。
+**Current Status:** `Phase 7.1` 到 `Phase 10` 已全部完成（截至 2026-03-14）；`Phase 11` 第一波 `11-01 ~ 11-03` 已完成，当前正进行 addendum planning，并等待执行 `11-04 ~ 11-08`。
 
 ### Phase 7.1: Protocol Boundary Schema/Decoder 收口
 **Goal**: 把 REST/MQTT 的 decode authority 收口到 protocol boundary family，形成可版本化 schema/decoder registry，同时阻断 raw payload 穿透。
@@ -179,16 +179,21 @@ Plans:
 | 8 AI Debug Evidence Pack | v1.1 | 2/2 | Complete | 2026-03-13 |
 | 9 Residual Surface Closure | v1.1 | 5/5 | Complete | 2026-03-14 |
 | 10 API Drift Isolation & Core Boundary Prep | v1.1 | 4/4 | Complete | 2026-03-14 |
-| 11 Control Router Formalization & Wiring Residual Demotion | v1.1 | 3/3 | Complete | 2026-03-14 |
+| 11 Control Router Formalization & Wiring Residual Demotion | v1.1 | 3/8 | In Progress | 2026-03-14 |
 
 ### Phase 11: Control Router Formalization & Wiring Residual Demotion
 
-**Goal:** 让 `custom_components/lipro/control/service_router.py` 成为 Home Assistant service callback 的唯一正式 control-plane home，把 `custom_components/lipro/services/wiring.py` 收敛为显式 compat shell，并同步收口 tests / docs / governance，不改变运行时行为。
-**Requirements**: CTRL-01, CTRL-02, CTRL-03
+**Goal:** 在 control router formalization 已落地的基础上，继续收口本轮全仓复审暴露的 protocol/runtime residual surfaces、runtime access / diagnostics gaps、entity/platform modeling truth 与 governance/open-source maturity gaps。
+**Requirements**: CTRL-01, CTRL-02, CTRL-03, SURF-01, CTRL-04, RUN-01, ENT-01, ENT-02, GOV-08
 **Depends on:** Phase 10
-**Plans:** 3/3 plans complete
+**Plans:** 3/8 plans complete
 
 Plans:
 - [x] 11-01: formal router implementation inversion (completed 2026-03-14)
 - [x] 11-02: legacy wiring demotion and test truth alignment (completed 2026-03-14)
 - [x] 11-03: governance synchronization and verification closeout (completed 2026-03-14)
+- [ ] 11-04: protocol and runtime formal surface convergence
+- [ ] 11-05: runtime access diagnostics and isolation hardening
+- [ ] 11-06: entity and platform truth convergence
+- [ ] 11-07: firmware update hotspot slimming
+- [ ] 11-08: governance release and open-source coherence

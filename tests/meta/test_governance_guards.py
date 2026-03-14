@@ -32,8 +32,11 @@ def test_file_matrix_covers_workspace_python_inventory() -> None:
 
 
 
-def _assert_current_mode_phase_completed(state_text: str) -> None:
-    assert re.search(r"\*\*Current mode:\*\* `Phase \d+(?:\.\d+)? completed`", state_text)
+def _assert_current_mode_tracks_phase_lifecycle(state_text: str) -> None:
+    assert re.search(
+        r"\*\*Current mode:\*\* `Phase \d+(?:\.\d+)? [a-z][a-z0-9_ -]+`",
+        state_text,
+    )
 
 def test_governance_checker_reports_no_drift() -> None:
     assert run_checks(_ROOT) == []
@@ -116,7 +119,7 @@ def test_phase_7_5_planning_truth_is_consistent() -> None:
     assert "| 7.5 Governance & Verification | v1.1 | 2/2 | Complete | 2026-03-13 |" in roadmap_text
     assert "| GOV-06 | Phase 7.5 | Complete |" in requirements_text
     assert "| GOV-07 | Phase 7.5 | Complete |" in requirements_text
-    _assert_current_mode_phase_completed(state_text)
+    _assert_current_mode_tracks_phase_lifecycle(state_text)
     assert "status: passed" in validation_text
     assert "- [x] `.planning/reviews/V1_1_EVIDENCE_INDEX.md`" in validation_text
     assert "- [x] All tasks have automated verify or Wave 0 dependencies" in validation_text
@@ -133,7 +136,7 @@ def test_phase_8_planning_truth_is_consistent() -> None:
     assert "| 8 AI Debug Evidence Pack | v1.1 | 2/2 | Complete | 2026-03-13 |" in roadmap_text
     assert "| AID-01 | Phase 8 | Complete |" in requirements_text
     assert "| AID-02 | Phase 8 | Complete |" in requirements_text
-    _assert_current_mode_phase_completed(state_text)
+    _assert_current_mode_tracks_phase_lifecycle(state_text)
     assert "status: passed" in validation_text
     assert "nyquist_compliant: true" in validation_text
     assert "wave_0_complete: true" in validation_text
@@ -156,7 +159,7 @@ def test_phase_9_governance_truth_is_consistent() -> None:
     assert '- [x] 09-01: 收窄 protocol root surface 与 compat exports' in roadmap_text
     assert '| RSC-01 | Phase 9 | Complete |' in requirements_text
     assert '| RSC-04 | Phase 9 | Complete |' in requirements_text
-    _assert_current_mode_phase_completed(state_text)
+    _assert_current_mode_tracks_phase_lifecycle(state_text)
     assert 'status: passed' in validation_text
     assert 'status: passed' in verification_text
     assert '## Automated UAT Verdict' in uat_text
@@ -174,6 +177,29 @@ def test_phase_9_governance_truth_is_consistent() -> None:
         assert seam in residual_text
         assert seam in kill_text
 
+
+
+def test_phase_11_replanning_truth_is_consistent() -> None:
+    roadmap_text = (_ROOT / ".planning" / "ROADMAP.md").read_text(encoding="utf-8")
+    requirements_text = (_ROOT / ".planning" / "REQUIREMENTS.md").read_text(encoding="utf-8")
+    state_text = (_ROOT / ".planning" / "STATE.md").read_text(encoding="utf-8")
+    context_text = (_ROOT / ".planning" / "phases" / "11-control-router-formalization-wiring-residual-demotion" / "11-CONTEXT.md").read_text(encoding="utf-8")
+    research_text = (_ROOT / ".planning" / "phases" / "11-control-router-formalization-wiring-residual-demotion" / "11-RESEARCH.md").read_text(encoding="utf-8")
+    audit_text = (_ROOT / ".planning" / "v1.1-MILESTONE-AUDIT.md").read_text(encoding="utf-8")
+
+    assert "| 11 Control Router Formalization & Wiring Residual Demotion | v1.1 | 3/8 | In Progress | 2026-03-14 |" in roadmap_text
+    assert "| SURF-01 | Phase 11 | Planned |" in requirements_text
+    assert "| CTRL-04 | Phase 11 | Planned |" in requirements_text
+    assert "| RUN-01 | Phase 11 | Planned |" in requirements_text
+    assert "| ENT-01 | Phase 11 | Planned |" in requirements_text
+    assert "| ENT-02 | Phase 11 | Planned |" in requirements_text
+    assert "| GOV-08 | Phase 11 | Planned |" in requirements_text
+    assert "**Current mode:** `Phase 11 replanning`" in state_text
+    _assert_current_mode_tracks_phase_lifecycle(state_text)
+    assert "**Status:** Reopened for expanded planning" in context_text
+    assert "11-04 ~ 11-08 addendum plans" in research_text
+    assert "status: superseded_snapshot" in audit_text
+    assert "Snapshot notice (2026-03-14)" in audit_text
 
 
 def test_phase_10_governance_truth_is_consistent() -> None:
@@ -201,7 +227,7 @@ def test_phase_10_governance_truth_is_consistent() -> None:
     assert "| 10 API Drift Isolation & Core Boundary Prep | v1.1 | 4/4 | Complete | 2026-03-14 |" in roadmap_text
     assert "| ISO-01 | Phase 10 | Complete |" in requirements_text
     assert "| ISO-04 | Phase 10 | Complete |" in requirements_text
-    _assert_current_mode_phase_completed(state_text)
+    _assert_current_mode_tracks_phase_lifecycle(state_text)
     assert "status: passed" in validation_text
     assert "tests/meta/test_governance_guards.py" in validation_text
     assert "status: passed" in verification_text

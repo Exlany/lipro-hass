@@ -53,6 +53,12 @@
 - [x] **CTRL-01**: `custom_components/lipro/control/service_router.py` 已成为 HA services callback、router wrapper 与 control-facing helper 的唯一正式 home；`custom_components/lipro/services/wiring.py` 不再承载 primary handler orchestration。
 - [x] **CTRL-02**: service registrations、developer/public diagnostics handlers 与匿名分享提交路径已经正式 control router 组合；重复 wrapper / helper 逻辑已进一步合并，legacy seam 仅保留显式 compat re-export。
 - [x] **CTRL-03**: 与 control router formalization 相关的 tests、ROADMAP/STATE/PROJECT/developer_architecture、FILE_MATRIX/RESIDUAL_LEDGER 等治理资产已同步更新，并明确 `services/wiring.py` 的 delete gate / residual status。
+- [ ] **SURF-01**: `LiproRestFacade`、runtime refresh path 与 orchestrator wiring 中残留的 dynamic surface、ghost surface 与 compat fallback 必须收敛到显式 formal contract。
+- [ ] **CTRL-04**: control / services 中 runtime locator、debug-mode gating 与 diagnostics access 必须收敛到统一 formal runtime-access story。
+- [ ] **RUN-01**: runtime public typing 必须窄化为 public protocol；status executor 必须把 query 失败与单设备 apply 失败分层隔离。
+- [ ] **ENT-01**: supplemental entity 暴露规则必须收口到单一领域真源，并修复 `switch.py` 的 `hasattr()` 误建模与 unknown-enum 静默 fallback。
+- [ ] **ENT-02**: `entities/firmware_update.py` 必须拆薄为平台投影层，OTA policy/candidate/cache/arbitration 应进一步下沉到 formal helper cluster。
+- [ ] **GOV-08**: docs / phase assets / CI / release / issue / PR / security disclosure 必须形成一致的开源项目治理口径，governance guards 尽量结构化。
 
 ## Cross-Phase Arbitration
 
@@ -108,10 +114,16 @@
 | CTRL-01 | Phase 11 | Complete |
 | CTRL-02 | Phase 11 | Complete |
 | CTRL-03 | Phase 11 | Complete |
+| SURF-01 | Phase 11 | Planned |
+| CTRL-04 | Phase 11 | Planned |
+| RUN-01 | Phase 11 | Planned |
+| ENT-01 | Phase 11 | Planned |
+| ENT-02 | Phase 11 | Planned |
+| GOV-08 | Phase 11 | Planned |
 
 **Coverage:**
-- active milestone requirements: 24 total
-- mapped to phases: 24
+- active milestone requirements: 30 total
+- mapped to phases: 30
 - unmapped: 0 ✓
 
-*Last updated: 2026-03-14 after completing Phase 11 control-router formalization and wiring residual demotion*
+*Last updated: 2026-03-14 after reopening Phase 11 planning to absorb full-repo audit expansion*
