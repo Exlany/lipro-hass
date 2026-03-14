@@ -334,7 +334,14 @@ This integration is implemented by reverse engineering the Lipro cloud API and i
 
 Pull Requests and Issues are welcome!
 
-For internal package layout, see `docs/developer_architecture.md`.
+## Documentation
+
+- `docs/README.md` - canonical documentation map and archive guide
+- `docs/NORTH_STAR_TARGET_ARCHITECTURE.md` - target architecture and authority baseline
+- `docs/developer_architecture.md` - current package layout and runtime/control/protocol flow
+- `docs/adr/README.md` - long-lived architecture decisions and trade-offs
+- `AGENTS.md` - canonical cross-agent repository contract
+- `CLAUDE.md` - Claude Code compatibility entry, always defers to `AGENTS.md`
 
 ## License
 

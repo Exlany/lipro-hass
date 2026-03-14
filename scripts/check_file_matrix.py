@@ -25,7 +25,7 @@ ROADMAP_PATH = Path(".planning/ROADMAP.md")
 STATE_PATH = Path(".planning/STATE.md")
 REQUIREMENTS_PATH = Path(".planning/REQUIREMENTS.md")
 AGENTS_PATH = Path("AGENTS.md")
-AGENT_POINTER_PATH = Path("agent.md")
+CLAUDE_COMPAT_PATH = Path("CLAUDE.md")
 ACTIVE_DOC_PATHS = [
     ROADMAP_PATH,
     STATE_PATH,
@@ -35,12 +35,9 @@ ACTIVE_DOC_PATHS = [
     Path("docs/adr/README.md"),
     Path(".planning/baseline/ARCHITECTURE_POLICY.md"),
     AGENTS_PATH,
-    AGENT_POINTER_PATH,
+    CLAUDE_COMPAT_PATH,
 ]
-HISTORICAL_DOC_PATHS = [
-    Path("docs/COMPREHENSIVE_AUDIT_2026-03-12.md"),
-    Path("docs/NORTH_STAR_EXECUTION_PLAN_2026-03-12.md"),
-]
+HISTORICAL_DOC_PATHS: list[Path] = []
 COUNT_PATTERN = re.compile(r"(?:全部 `|Python files total:\*\* |Python files total: )(\d+)")
 FILE_MATRIX_HEADER_PATTERN = re.compile(r"\*\*Python files total:\*\*\s+(\d+)")
 FILE_MATRIX_ROW_PATTERN = re.compile(r"^\| `([^`]+\.py)` \|", re.MULTILINE)

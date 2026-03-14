@@ -221,6 +221,6 @@ v1.1 进入执行期后，新增演进必须额外满足：
 7. `.planning/STATE.md`
 8. `.planning/baseline/*.md`
 9. `.planning/reviews/*.md`
-10. `docs/FINAL_CLOSEOUT_REPORT_2026-03-13.md`
+10. `docs/archive/FINAL_CLOSEOUT_REPORT_2026-03-13.md`
 
 *Last updated: 2026-03-13 after planning Phases 7.4 / 7.5 / 8 and locking 7.3-8 arbitration*

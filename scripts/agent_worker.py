@@ -10,7 +10,7 @@ LOGGER = logging.getLogger(__name__)
 
 _DEPRECATION_MESSAGE = (
     "scripts/agent_worker.py 已退役；当前仓库改用主代理主控 + 子代理按需派发，"
-    "历史重构档案已归档到 docs/archive/refactoring/。"
+    "历史重构档案不再保留在仓库中。"
 )
 
 

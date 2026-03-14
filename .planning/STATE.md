@@ -81,7 +81,7 @@ See: `.planning/PROJECT.md`
 7. `.planning/reviews/*.md`
 8. `docs/developer_architecture.md`
 9. `AGENTS.md`
-10. `agent.md`
+10. `CLAUDE.md`（若使用 Claude Code）
 
 ## Recommended Next Command
 
@@ -100,8 +100,8 @@ If resuming, read in this order:
 6. `.planning/REQUIREMENTS.md`
 7. `.planning/ROADMAP.md`
 8. `.planning/STATE.md`
-9. `.planning/research/SUMMARY.md`
-10. `.planning/phases/07.5-integration-governance-verification-closeout/`
-11. `.planning/phases/08-ai-debug-evidence-pack/`
-12. `.planning/phases/09-residual-surface-closure/`
-13. `.planning/phases/10-api-drift-isolation-core-boundary-prep/`
+9. `.planning/baseline/*.md`
+10. `.planning/reviews/*.md`
+11. `AGENTS.md`
+12. `CLAUDE.md`（若使用 Claude Code）
+13. `docs/developer_architecture.md`

@@ -53,11 +53,11 @@ config/*
 home-assistant_v2.db*
 home-assistant.log*
 
-# Claude Code
+# AI agent tooling
 .claude/
 .specstory/
 .specify/
-CLAUDE.md
+agent.md
 
 # Secrets
 secrets.yaml
@@ -78,35 +78,20 @@ CODE_REVIEW_PLAN.md
 # Assets (extracted from APK, not for distribution)
 assets/
 
-# gsd
+# gsd / governance truth
 .planning/*
 !.planning/STATE.md
 !.planning/ROADMAP.md
 !.planning/PROJECT.md
 !.planning/REQUIREMENTS.md
 !.planning/MILESTONES.md
+!.planning/milestones/
+.planning/milestones/*
+!.planning/milestones/*.md
 !.planning/baseline/
-!.planning/baseline/ARCHITECTURE_POLICY.md
+!.planning/baseline/*.md
 !.planning/reviews/
-!.planning/reviews/V1_1_EVIDENCE_INDEX.md
-!.planning/phases/
-.planning/phases/*
-!.planning/phases/07.1-protocol-boundary-schema-decoder/
-!.planning/phases/07.1-protocol-boundary-schema-decoder/**
-!.planning/phases/07.2-architecture-enforcement/
-!.planning/phases/07.2-architecture-enforcement/**
-!.planning/phases/07.3-runtime-telemetry-exporter/
-!.planning/phases/07.3-runtime-telemetry-exporter/**
-!.planning/phases/07.4-protocol-replay-simulator-harness/
-!.planning/phases/07.4-protocol-replay-simulator-harness/**
-!.planning/phases/07.5-integration-governance-verification-closeout/
-!.planning/phases/07.5-integration-governance-verification-closeout/**
-!.planning/phases/08-ai-debug-evidence-pack/
-!.planning/phases/08-ai-debug-evidence-pack/**
-!.planning/phases/09-residual-surface-closure/
-!.planning/phases/09-residual-surface-closure/**
-!.planning/phases/04-capability-model-unification/
-!.planning/phases/04-capability-model-unification/**
+!.planning/reviews/*.md
 # Benchmarks (generated)
 .benchmarks/
 benchmark_results.json

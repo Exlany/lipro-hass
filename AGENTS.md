@@ -40,7 +40,7 @@
 6. `.planning/reviews/*.md`
 7. `docs/developer_architecture.md`
 8. `AGENTS.md`
-9. `agent.md`（若存在，仅作 pointer / 索引，不另立规则）
+9. `CLAUDE.md`（若存在，仅作 Claude Code 兼容入口，不另立规则）
 10. 历史执行/审计/归档文档
 
 ## 2. 北极星硬约束
@@ -212,7 +212,7 @@
 - `.planning/STATE.md`
 - `.planning/ROADMAP.md`
 - `.planning/REQUIREMENTS.md`
-- 对应 phase 目录下的 `*-SUMMARY.md` / `*-VALIDATION.md`
+- 如需长期保留阶段结论，回写 `.planning/milestones/*.md` 或相应 governance docs；`phase` 目录下的 `*-SUMMARY.md` / `*-VALIDATION.md` 默认视为本地执行痕迹，不要求纳入 Git
 
 ## 7. 测试与检查命令
 

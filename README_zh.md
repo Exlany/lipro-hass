@@ -334,7 +334,14 @@ data:
 
 欢迎提交 Pull Request 和 Issue！
 
-如需了解内部代码结构，请阅读 `docs/developer_architecture.md`。
+## 文档入口
+
+- `docs/README.md` - 文档总索引与历史归档说明
+- `docs/NORTH_STAR_TARGET_ARCHITECTURE.md` - 目标架构与权威基线
+- `docs/developer_architecture.md` - 当前代码布局与 runtime/control/protocol 主链说明
+- `docs/adr/README.md` - 长期架构决策与取舍记录
+- `AGENTS.md` - 仓库统一执行契约
+- `CLAUDE.md` - Claude Code 兼容入口，始终以 `AGENTS.md` 为准
 
 ## 许可证
 

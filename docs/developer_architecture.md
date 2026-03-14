@@ -6,7 +6,7 @@
 > ⚠️ 本文档仅描述"当前收敛后的架构与模块边界"，不硬编码评分/覆盖率/通过率等易失真指标。  \
 > 北极星终态裁决请见 `docs/NORTH_STAR_TARGET_ARCHITECTURE.md`。  \
 > 当前阶段、需求、状态与治理真源请以 `.planning/ROADMAP.md`、`.planning/REQUIREMENTS.md`、`.planning/STATE.md`、`.planning/reviews/FILE_MATRIX.md` 为准。  \
-> `docs/NORTH_STAR_EXECUTION_PLAN_2026-03-12.md` 与 `docs/COMPREHENSIVE_AUDIT_2026-03-12.md` 均为历史快照，仅供回溯。
+> 历史审计/执行计划已从仓库中移除；当前以 `docs/NORTH_STAR_TARGET_ARCHITECTURE.md`、`.planning/*` 与 `AGENTS.md` 为准。
 
 ## 快速导航
 
@@ -177,7 +177,7 @@ class RuntimeContext:
 ### 6) 文档策略
 
 - 不维护易失真的数字指标（覆盖率/测试数量/行数）
-- 指标以 CI 或本地命令输出为准；历史快照统一归档在 `docs/archive/`
+- 指标以 CI 或本地命令输出为准；不再依赖仓库内历史快照
 - 若后续继续演进，建议把长期有效的架构决策沉淀到 `docs/adr/`，避免再次出现“代码已演进、文档口径未收敛”
 
 ## 核心组件详解
@@ -571,8 +571,6 @@ uv run pytest -q                                         # 全量测试
 
 - `.planning/ROADMAP.md` / `.planning/REQUIREMENTS.md` / `.planning/STATE.md` / `.planning/reviews/FILE_MATRIX.md` — 当前执行、状态与治理真源
 - `docs/NORTH_STAR_TARGET_ARCHITECTURE.md` — 北极星目标架构（终态基准）
-- `docs/NORTH_STAR_EXECUTION_PLAN_2026-03-12.md` — 历史执行计划快照（仅供回溯）
 - `docs/adr/README.md` — 长期生效的架构决策索引
-- `docs/archive/` — 历史审计、重构计划与过期快照
 - `CHANGELOG.md` — 变更日志
 - Home Assistant Developer Docs: https://developers.home-assistant.io/

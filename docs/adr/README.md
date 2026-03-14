@@ -8,7 +8,7 @@
 
 `.planning/ROADMAP.md`、`.planning/REQUIREMENTS.md`、`.planning/STATE.md` 与 `.planning/reviews/*.md` 负责回答“当前阶段是什么、真实状态如何、治理真相在哪里”；
 `docs/developer_architecture.md` 负责回答“当前架构如何分层、主链如何流动、边界如何约束”；
-`docs/COMPREHENSIVE_AUDIT_2026-03-12.md` 与 `docs/NORTH_STAR_EXECUTION_PLAN_2026-03-12.md` 只保留为历史快照；
+历史审计/执行计划不再保留在仓库中；
 `docs/adr/*.md` 负责回答“为什么这样设计、当初权衡了什么、什么情况下才应该推翻当前决策”。
 
 这三层文档分工不同，避免未来再次出现“代码已演进，但历史审计和架构口径混在一起”的失真。

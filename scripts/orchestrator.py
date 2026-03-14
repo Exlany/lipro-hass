@@ -10,7 +10,7 @@ LOGGER = logging.getLogger(__name__)
 
 _DEPRECATION_MESSAGE = (
     "scripts/orchestrator.py 已退役；当前仓库不再依赖重构编排平台，"
-    "历史重构档案已归档到 docs/archive/refactoring/。"
+    "历史重构档案不再保留在仓库中。"
 )
 
 
