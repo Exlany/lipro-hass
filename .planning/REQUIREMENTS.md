@@ -33,12 +33,20 @@
 - [x] **AID-01**: 必须能从正式真源（exporter/replay/boundary inventory/governance pointers）pull 导出结构化 evidence pack，供 AI 调试与分析
 - [x] **AID-02**: evidence pack 必须遵循统一脱敏策略：凭证等价物永不出现；允许报告内稳定、跨报告不可关联的伪匿名引用；允许真实时间戳
 
+### Residual Surface Closure
+
+- [ ] **RSC-01**: `LiproProtocolFacade` 的正式 public surface 必须显式声明；child façade 不得再通过 `__getattr__` / `__dir__` 隐式定义 protocol root contract
+- [ ] **RSC-02**: concrete transport / compat shell 只能存在于显式 transitional seam；`raw_client` 与根模块 compat exports 不得继续作为正式 public surface 扩散
+- [ ] **RSC-03**: runtime 对设备集合的正式访问不得暴露 live mutable dict；平台/diagnostics/helpers 必须改走只读 view 或正式 service contract
+- [ ] **RSC-04**: outlet power 与类似补充状态必须通过正式 primitive 承载，禁止以 `extra_data` 旁写充当正式路径；相关 governance / guards / residual delete gate 必须同步收口
+
 ## Cross-Phase Arbitration
 
 - `07.3` 锁定 telemetry contracts / redaction / cardinality / timestamp-pseudo-id compatibility
 - `07.4` 锁定 replay manifests / deterministic driver / replay assertions / run summary
 - `07.5` 锁定 governance matrices / evidence index / residual / delete gates
 - `08` 锁定 AI debug packaging / exporter entrypoint / pack schema
+- `09` 锁定 residual surface closure / compat seam narrowing / read-only runtime access / formal outlet-power primitive
 
 ## Future Requirements
 
@@ -74,10 +82,14 @@
 | GOV-07 | Phase 7.5 | Complete |
 | AID-01 | Phase 8 | Complete |
 | AID-02 | Phase 8 | Complete |
+| RSC-01 | Phase 9 | Planned |
+| RSC-02 | Phase 9 | Planned |
+| RSC-03 | Phase 9 | Planned |
+| RSC-04 | Phase 9 | Planned |
 
 **Coverage:**
-- active milestone requirements: 13 total
-- mapped to phases: 13
+- active milestone requirements: 17 total
+- mapped to phases: 17
 - unmapped: 0 ✓
 
-*Last updated: 2026-03-13 after completing Phase 8 AI debug evidence pack*
+*Last updated: 2026-03-14 after planning Phase 9 residual surface closure*

@@ -103,6 +103,8 @@ assets/
 !.planning/phases/07.5-integration-governance-verification-closeout/**
 !.planning/phases/08-ai-debug-evidence-pack/
 !.planning/phases/08-ai-debug-evidence-pack/**
+!.planning/phases/09-residual-surface-closure/
+!.planning/phases/09-residual-surface-closure/**
 !.planning/phases/04-capability-model-unification/
 !.planning/phases/04-capability-model-unification/**
 # Benchmarks (generated)

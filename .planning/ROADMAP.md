@@ -3,7 +3,7 @@
 ## Milestones
 
 - ✅ **v1.0 North Star Rebuild** - Phases 1-7 (+ 1.5 / 2.5 / 2.6), shipped 2026-03-13
-- 🚧 **v1.1 Protocol Fidelity & Operability** - Phases 7.1-7.5, initialized 2026-03-13
+- 🚧 **v1.1 Protocol Fidelity & Operability** - Phases 7.1-9, initialized 2026-03-13
 
 ## Required Phase Outputs
 
@@ -26,7 +26,7 @@
 
 ### 🚧 v1.1 Protocol Fidelity & Operability
 
-**Milestone Goal:** 在不破坏既有北极星单一主链的前提下，正式引入 boundary decoder family、architecture policy enforcement、runtime telemetry exporter 与 replay evidence。
+**Milestone Goal:** 在不破坏既有北极星单一主链的前提下，正式引入 boundary decoder family、architecture policy enforcement、runtime telemetry exporter、replay evidence，并把已登记 residual surfaces 收口到显式、可删除、可验证的最小集合。
 
 ### Phase 7.1: Protocol Boundary Schema/Decoder 收口
 **Goal**: 把 REST/MQTT 的 decode authority 收口到 protocol boundary family，形成可版本化 schema/decoder registry，同时阻断 raw payload 穿透。
@@ -115,13 +115,31 @@ Plans:
 - [x] 08-01: 定义 evidence pack schema、pseudo-id 与 redaction 策略
 - [x] 08-02: 实现 evidence pack exporter + tests + governance handoff
 
-## Cross-Phase Arbitration (7.3-8)
+### Phase 9: Residual Surface Closure
+
+**Goal**: 收口审查报告中已登记的 protocol/runtime 残留：消除 child-defined protocol contract、收窄 compat exports、封住 live mutable runtime surface，并把 outlet power 旁写迁移到正式 primitive。
+**Depends on**: Phase 8
+**Requirements**: [RSC-01, RSC-02, RSC-03, RSC-04]
+**Success Criteria**:
+  1. `LiproProtocolFacade` 的正式 public surface 显式可裁决，child façade 不再通过 `__getattr__` / `__dir__` 隐式定义 protocol root；`raw_client` 仅允许存在于显式 compat/test seam 或被正式删除。
+  2. runtime 对设备集合的对外访问不再暴露 live mutable dict；平台/diagnostics/helpers 改走只读 view 或正式 service contract。
+  3. outlet power 不再通过 `device.extra_data["power_info"]` 旁写作为正式路径；实体/diagnostics/runtime 共用同一正式 primitive，并保留必要迁移兼容与回归证明。
+  4. compat exports、governance matrices、residual/delete gate 与 meta/public-surface guards 全部同步，防止 residual surface 回流。
+**Plans**: 3 plans
+
+Plans:
+- [ ] 09-01: 收窄 protocol root surface 与 compat exports
+- [ ] 09-02: 正式化 runtime 只读设备视图与 outlet power primitive
+- [ ] 09-03: 回写 governance residual ledger、delete gate 与 regression guards
+
+## Cross-Phase Arbitration (7.3-9)
 
 - `07.3` 只拥有 telemetry truth：exporter contracts、redaction、cardinality、timestamp / pseudo-id compatibility
 - `07.4` 只拥有 replay truth：manifests、deterministic driver、replay assertions、run summary
 - `07.5` 只拥有 governance closeout：matrices、evidence index、residual、delete gates
 - `08` 只拥有 AI debug packaging：pull-only collector、pack schema、exporter entrypoint
-- 执行顺序固定为 `7.3 -> 7.4 -> 7.5 -> 8`，避免真源反转与职责重叠
+- `09` 只拥有 residual surface closure：protocol/runtime 收口、compat seam 压缩、formal primitive / read-only view 收敛、governance delete gate 回写
+- 执行顺序固定为 `7.3 -> 7.4 -> 7.5 -> 8 -> 9`，避免真源反转与职责重叠
 
 ## Progress
 
@@ -134,3 +152,4 @@ Plans:
 | 7.4 Replay Harness | v1.1 | 3/3 | Complete | 2026-03-13 |
 | 7.5 Governance & Verification | v1.1 | 2/2 | Complete | 2026-03-13 |
 | 8 AI Debug Evidence Pack | v1.1 | 2/2 | Complete | 2026-03-13 |
+| 9 Residual Surface Closure | v1.1 | 0/3 | Planned | — |

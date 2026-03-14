@@ -2,12 +2,12 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: protocol-fidelity-operability
-status: verifying
-last_updated: "2026-03-13T16:40:32Z"
+status: planning
+last_updated: "2026-03-14T00:50:00Z"
 progress:
-  total_phases: 6
+  total_phases: 7
   completed_phases: 6
-  total_plans: 14
+  total_plans: 17
   completed_plans: 14
 ---
 
@@ -19,7 +19,7 @@ See: `.planning/PROJECT.md`
 
 **Current milestone:** `v1.1 Protocol Fidelity & Operability`
 **Core value:** 在既有北极星单一主链基础上，把 fidelity / enforcement / telemetry / replay / AI-debug evidence 做成下一层正式能力。
-**Current mode:** `Phase 8 completed`；下一步进入 `verify-work 7.5 -> 8`，确认 closeout 与 evidence pack 都符合你的实际目标。
+**Current mode:** `Phase 9 planning`；基于全量审查报告中已登记 residual，现进入 residual-surface closure 的规划与验证循环。
 
 ## Current Position
 
@@ -31,6 +31,7 @@ See: `.planning/PROJECT.md`
 - `Phase 7.4` 已完成：authority-indexed replay manifests、deterministic driver、REST/MQTT replay assertions、replay run summary 与 meta guards 已形成 assurance 资产
 - `Phase 7.5` 已完成：governance matrix sync、`V1_1_EVIDENCE_INDEX.md`、`07.5-SUMMARY.md`、residual/delete gate closeout arbitration 已落地
 - `Phase 8` 已完成：AI debug evidence pack formal home、唯一 exporter entrypoint、integration/meta guards 与 governance handoff 已全部落地
+- `Phase 9` 已立项：将把 protocol/runtime residual surface、compat export 与 outlet power side-write 收口到正式 contract
 
 ## Active Milestone Scope
 
@@ -40,6 +41,7 @@ See: `.planning/PROJECT.md`
 - `Phase 7.4`：Protocol Replay / Simulator Harness 建立
 - `Phase 7.5`：Integration / Governance / Verification 收尾
 - `Phase 8`：AI Debug Evidence Pack
+- `Phase 9`：Residual Surface Closure
 
 ## Carry-Forward Truths
 
@@ -50,12 +52,13 @@ See: `.planning/PROJECT.md`
 - canonical normalization 仍必须在 protocol boundary 完成
 - telemetry/replay/evidence 都只能 pull 正式真源，不得反向定义第二套事实
 
-## Cross-Phase Arbitration (7.3-8)
+## Cross-Phase Arbitration (7.3-9)
 
 1. `07.3` 只锁定 telemetry truth（fields / redaction / cardinality / timestamp / pseudo-id compatibility）
 2. `07.4` 只锁定 replay truth（manifests / deterministic driver / replay assertions / run summary）
 3. `07.5` 只锁定 governance closeout（matrices / evidence index / residual / delete gate）
 4. `08` 只锁定 AI debug packaging（collector / schema / exporter entrypoint）
+5. `09` 只锁定 residual surface closure（protocol/runtime 收口、compat seam 压缩、formal primitive / read-only view 与 delete gate 回写）
 
 ## Governance Truth Sources
 
@@ -72,9 +75,9 @@ See: `.planning/PROJECT.md`
 
 ## Recommended Next Command
 
-1. `$gsd-verify-work 7.5` —— 验收 governance closeout 是否真的达到你的目标
-2. `$gsd-verify-work 8` —— 在 7.5 通过后验收 evidence pack 是否真能给 AI/你自己排障使用
-3. 如需回看正式证据入口，可阅读 `.planning/reviews/V1_1_EVIDENCE_INDEX.md` 与 `.planning/phases/08-ai-debug-evidence-pack/08-VERIFICATION.md`
+1. `$gsd-execute-phase 9` —— 执行 residual surface closure 的三波计划
+2. `$gsd-verify-work 9` —— 在执行完成后验收 protocol/runtime 收口是否真的达到审查目标
+3. 如需回看 Phase 9 的输入证据，请阅读 `docs/COMPREHENSIVE_AUDIT_2026-03-13.md` 与 `.planning/reviews/RESIDUAL_LEDGER.md`
 
 ## Session Continuity
 
@@ -90,3 +93,4 @@ If resuming, read in this order:
 9. `.planning/research/SUMMARY.md`
 10. `.planning/phases/07.5-integration-governance-verification-closeout/`
 11. `.planning/phases/08-ai-debug-evidence-pack/`
+12. `.planning/phases/09-residual-surface-closure/`
