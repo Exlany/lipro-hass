@@ -1,6 +1,6 @@
 # File Matrix
 
-**Python files total:** 448
+**Python files total:** 447
 **Status:** File-level governance authority
 **Rule:** workspace inventory excluding caches / virtual env / tooling artifacts
 
@@ -11,7 +11,7 @@
 | `custom_components/lipro/__init__.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/binary_sensor.py` | Domain | Phase 4 | 保留 | - |
 | `custom_components/lipro/climate.py` | Domain | Phase 4 | 保留 | - |
-| `custom_components/lipro/config_flow.py` | Control | Phase 3 | 保留 | consumes `AuthSessionSnapshot` / auth manager formal contract; no raw login dict parsing |
+| `custom_components/lipro/config_flow.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/const/__init__.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/const/api.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/const/base.py` | Cross-cutting | Phase 7 | 保留 | - |
@@ -25,13 +25,13 @@
 | `custom_components/lipro/control/entry_lifecycle_controller.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/control/models.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/control/redaction.py` | Control | Phase 3 | 保留 | - |
-| `custom_components/lipro/control/runtime_access.py` | Control | Phase 3 | 保留 | control-plane runtime-home locator; scattered `entry.runtime_data` reads must converge here |
+| `custom_components/lipro/control/runtime_access.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/control/service_registry.py` | Control | Phase 3 | 保留 | - |
-| `custom_components/lipro/control/service_router.py` | Control | Phase 3 / 11 | 保留 | formal service callback home |
+| `custom_components/lipro/control/service_router.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/control/system_health_surface.py` | Control | Phase 3 | 保留 | - |
-| `custom_components/lipro/control/telemetry_surface.py` | Control | Phase 7.3 | 保留 | observer-only bridge; must resolve `Coordinator` via `runtime_access` |
+| `custom_components/lipro/control/telemetry_surface.py` | Control | Phase 7.3 | 保留 | - |
 | `custom_components/lipro/coordinator_entry.py` | Control | Phase 3 | 保留 | - |
-| `custom_components/lipro/core/__init__.py` | Cross-cutting | Phase 7 | 保留 | host-neutral core exports only; `Coordinator` no longer re-exported |
+| `custom_components/lipro/core/__init__.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/core/anonymous_share/__init__.py` | Protocol | Phase 2.6 | 保留 | - |
 | `custom_components/lipro/core/anonymous_share/capabilities.py` | Protocol | Phase 2.6 | 保留 | - |
 | `custom_components/lipro/core/anonymous_share/collector.py` | Protocol | Phase 2.6 | 保留 | - |
@@ -76,7 +76,7 @@
 | `custom_components/lipro/core/api/transport_signing.py` | Protocol | Phase 2 | 重构 | - |
 | `custom_components/lipro/core/api/types.py` | Protocol | Phase 2 | 重构 | - |
 | `custom_components/lipro/core/auth/__init__.py` | Cross-cutting | Phase 7 | 保留 | - |
-| `custom_components/lipro/core/auth/manager.py` | Cross-cutting | Phase 7 | 保留 | `AuthSessionSnapshot` formal auth/session contract; `get_auth_data()` remains compat fallback |
+| `custom_components/lipro/core/auth/manager.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/core/capability/__init__.py` | Domain | Phase 4 | 保留 | - |
 | `custom_components/lipro/core/capability/models.py` | Domain | Phase 4 | 保留 | - |
 | `custom_components/lipro/core/capability/registry.py` | Domain | Phase 4 | 保留 | - |
@@ -184,11 +184,11 @@
 | `custom_components/lipro/core/protocol/__init__.py` | Protocol | Phase 2.5 | 保留 | - |
 | `custom_components/lipro/core/protocol/boundary/__init__.py` | Protocol | Phase 7.1 | 保留 | - |
 | `custom_components/lipro/core/protocol/boundary/mqtt_decoder.py` | Protocol | Phase 7.1 | 保留 | - |
-| `custom_components/lipro/core/protocol/boundary/rest_decoder.py` | Protocol | Phase 7.1 | 保留 | authority home for `rest.device-list` / `rest.device-status` / `rest.mesh-group-status` families |
+| `custom_components/lipro/core/protocol/boundary/rest_decoder.py` | Protocol | Phase 7.1 | 保留 | - |
 | `custom_components/lipro/core/protocol/boundary/result.py` | Protocol | Phase 7.1 | 保留 | - |
 | `custom_components/lipro/core/protocol/boundary/schema_registry.py` | Protocol | Phase 7.1 | 保留 | - |
 | `custom_components/lipro/core/protocol/compat.py` | Protocol | Phase 2.5 | 保留 | - |
-| `custom_components/lipro/core/protocol/contracts.py` | Protocol | Phase 2.5 | 保留 | canonical device-list/status/group-status contracts live here |
+| `custom_components/lipro/core/protocol/contracts.py` | Protocol | Phase 2.5 | 保留 | - |
 | `custom_components/lipro/core/protocol/diagnostics_context.py` | Protocol | Phase 2.5 | 保留 | - |
 | `custom_components/lipro/core/protocol/facade.py` | Protocol | Phase 2.5 | 保留 | - |
 | `custom_components/lipro/core/protocol/session.py` | Protocol | Phase 2.5 | 保留 | - |
@@ -218,7 +218,7 @@
 | `custom_components/lipro/entities/commands.py` | Domain | Phase 4 | 保留 | - |
 | `custom_components/lipro/entities/descriptors.py` | Domain | Phase 4 | 保留 | - |
 | `custom_components/lipro/entities/firmware_update.py` | Domain | Phase 4 | 保留 | - |
-| `custom_components/lipro/entry_auth.py` | Cross-cutting | Phase 7 | 保留 | token persistence consumes `AuthSessionSnapshot`; legacy `get_auth_data()` fallback is explicit compat seam |
+| `custom_components/lipro/entry_auth.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/entry_options.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/fan.py` | Domain | Phase 4 | 保留 | - |
 | `custom_components/lipro/firmware_manifest.py` | Cross-cutting | Phase 7 | 保留 | - |
@@ -249,7 +249,6 @@
 | `custom_components/lipro/services/registry.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/services/schedule.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/services/share.py` | Control | Phase 3 | 保留 | - |
-| `custom_components/lipro/services/wiring.py` | Control | Phase 7 / 11 | 删除候选 | compat re-export shell only; delete once downstream imports clear |
 | `custom_components/lipro/switch.py` | Domain | Phase 4 | 保留 | - |
 | `custom_components/lipro/system_health.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/update.py` | Domain | Phase 4 | 保留 | - |

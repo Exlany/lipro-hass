@@ -8,7 +8,7 @@ This test suite covers:
 
 from __future__ import annotations
 
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, call, patch
 
 import pytest
 
@@ -335,13 +335,13 @@ async def test_snapshot_builder_build_full_snapshot_single_page(
     snapshot_builder, mock_client, make_device
 ):
     """Test building full snapshot with single page of devices."""
-    mock_client.get_device_list = AsyncMock(
+    mock_client.get_devices = AsyncMock(
         return_value={
-            "data": [
+            "devices": [
                 {"serial": "03ab000000000001", "name": "Device 1", "deviceType": 1},
                 {"serial": "03ab000000000002", "name": "Device 2", "deviceType": 1},
             ],
-            "hasMore": False,
+            "total": 2,
         }
     )
 
@@ -356,7 +356,7 @@ async def test_snapshot_builder_build_full_snapshot_single_page(
     assert "03ab000000000001" in snapshot.devices
     assert "03ab000000000002" in snapshot.devices
     assert len(snapshot.cloud_serials) == 2
-    mock_client.get_device_list.assert_called_once_with(page=1)
+    mock_client.get_devices.assert_awaited_once_with(offset=0, limit=100)
 
 
 @pytest.mark.asyncio
@@ -364,15 +364,15 @@ async def test_snapshot_builder_build_full_snapshot_multiple_pages(
     snapshot_builder, mock_client, make_device
 ):
     """Test building full snapshot with pagination."""
-    mock_client.get_device_list = AsyncMock(
+    mock_client.get_devices = AsyncMock(
         side_effect=[
             {
-                "data": [{"serial": "03ab000000000001", "name": "Device 1", "deviceType": 1}],
-                "hasMore": True,
+                "devices": [{"serial": "03ab000000000001", "name": "Device 1", "deviceType": 1}],
+                "total": 2,
             },
             {
-                "data": [{"serial": "03ab000000000002", "name": "Device 2", "deviceType": 1}],
-                "hasMore": False,
+                "devices": [{"serial": "03ab000000000002", "name": "Device 2", "deviceType": 1}],
+                "total": 2,
             },
         ]
     )
@@ -385,7 +385,10 @@ async def test_snapshot_builder_build_full_snapshot_multiple_pages(
         snapshot = await snapshot_builder.build_full_snapshot()
 
     assert len(snapshot.devices) == 2
-    assert mock_client.get_device_list.call_count == 2
+    assert mock_client.get_devices.await_args_list == [
+        call(offset=0, limit=100),
+        call(offset=100, limit=100),
+    ]
 
 
 @pytest.mark.asyncio
@@ -408,13 +411,13 @@ async def test_snapshot_builder_applies_device_filter(
         device_filter=device_filter,
     )
 
-    mock_client.get_device_list = AsyncMock(
+    mock_client.get_devices = AsyncMock(
         return_value={
-            "data": [
+            "devices": [
                 {"serial": "03ab000000000001", "name": "Device 1", "deviceType": 1},
                 {"serial": "03ab000000000002", "name": "Device 2", "deviceType": 1},
             ],
-            "hasMore": False,
+            "total": 2,
         }
     )
 
@@ -436,14 +439,14 @@ async def test_snapshot_builder_categorizes_devices_by_type(
     snapshot_builder, mock_client, make_device
 ):
     """Test that devices are categorized into iot_ids, group_ids, outlet_ids."""
-    mock_client.get_device_list = AsyncMock(
+    mock_client.get_devices = AsyncMock(
         return_value={
-            "data": [
+            "devices": [
                 {"serial": "light1", "name": "Light", "deviceType": 1},
                 {"serial": "group1", "name": "Group", "deviceType": 1},
                 {"serial": "outlet1", "name": "Outlet", "deviceType": 6},
             ],
-            "hasMore": False,
+            "total": 3,
         }
     )
 
@@ -473,13 +476,13 @@ async def test_snapshot_builder_handles_parse_errors_gracefully(
     snapshot_builder, mock_client
 ):
     """Test that snapshot builder skips devices that fail to parse."""
-    mock_client.get_device_list = AsyncMock(
+    mock_client.get_devices = AsyncMock(
         return_value={
-            "data": [
+            "devices": [
                 {"serial": "03ab000000000001", "name": "Valid Device", "deviceType": 1},
                 {"serial": "invalid", "name": "Invalid Device"},  # Missing deviceType
             ],
-            "hasMore": False,
+            "total": 2,
         }
     )
 
@@ -538,12 +541,12 @@ async def test_device_runtime_refresh_devices_force(
     device_runtime, mock_client, make_device
 ):
     """Test forced device refresh."""
-    mock_client.get_device_list = AsyncMock(
+    mock_client.get_devices = AsyncMock(
         return_value={
-            "data": [
+            "devices": [
                 {"serial": "03ab000000000001", "name": "Device 1", "deviceType": 1},
             ],
-            "hasMore": False,
+            "total": 1,
         }
     )
 
@@ -554,7 +557,7 @@ async def test_device_runtime_refresh_devices_force(
 
     assert snapshot is not None
     assert len(snapshot.devices) == 1
-    mock_client.get_device_list.assert_called_once()
+    mock_client.get_devices.assert_awaited_once()
 
 
 @pytest.mark.asyncio
@@ -562,12 +565,12 @@ async def test_device_runtime_first_refresh_is_always_full(
     device_runtime, mock_client, make_device
 ):
     """Test that first refresh is always full even without force."""
-    mock_client.get_device_list = AsyncMock(
+    mock_client.get_devices = AsyncMock(
         return_value={
-            "data": [
+            "devices": [
                 {"serial": "03ab000000000001", "name": "Device 1", "deviceType": 1},
             ],
-            "hasMore": False,
+            "total": 1,
         }
     )
 
@@ -578,7 +581,7 @@ async def test_device_runtime_first_refresh_is_always_full(
 
     assert snapshot is not None
     assert len(snapshot.devices) == 1
-    mock_client.get_device_list.assert_called_once()
+    mock_client.get_devices.assert_awaited_once()
 
 
 @pytest.mark.asyncio
@@ -587,12 +590,12 @@ async def test_device_runtime_cached_refresh_reuses_existing_snapshot(
 ):
     """Test that a non-due refresh reuses the cached snapshot."""
     # First refresh (full)
-    mock_client.get_device_list = AsyncMock(
+    mock_client.get_devices = AsyncMock(
         return_value={
-            "data": [
+            "devices": [
                 {"serial": "03ab000000000001", "name": "Device 1", "deviceType": 1},
             ],
-            "hasMore": False,
+            "total": 1,
         }
     )
 
@@ -603,14 +606,14 @@ async def test_device_runtime_cached_refresh_reuses_existing_snapshot(
 
         first_snapshot = await device_runtime.refresh_devices(force=True)
 
-    # Second refresh is not due yet - should not call get_device_list again
-    mock_client.get_device_list.reset_mock()
+    # Second refresh is not due yet - should not call get_devices again
+    mock_client.get_devices.reset_mock()
 
     second_snapshot = await device_runtime.refresh_devices(force=False)
 
     # Should reuse snapshot
     assert second_snapshot is first_snapshot
-    mock_client.get_device_list.assert_not_called()
+    mock_client.get_devices.assert_not_called()
 
 
 def test_device_runtime_should_refresh_device_list(device_runtime):

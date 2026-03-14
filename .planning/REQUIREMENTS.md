@@ -50,9 +50,9 @@
 
 ### Control Router Formalization & Wiring Residual Demotion
 
-- [x] **CTRL-01**: `custom_components/lipro/control/service_router.py` 已成为 HA services callback、router wrapper 与 control-facing helper 的唯一正式 home；`custom_components/lipro/services/wiring.py` 不再承载 primary handler orchestration。
+- [x] **CTRL-01**: `custom_components/lipro/control/service_router.py` 已成为 HA services callback、router wrapper 与 control-facing helper 的唯一正式 home；`custom_components/lipro/services/wiring.py` compat shell 已删除。
 - [x] **CTRL-02**: service registrations、developer/public diagnostics handlers 与匿名分享提交路径已经正式 control router 组合；重复 wrapper / helper 逻辑已进一步合并，legacy seam 仅保留显式 compat re-export。
-- [x] **CTRL-03**: 与 control router formalization 相关的 tests、ROADMAP/STATE/PROJECT/developer_architecture、FILE_MATRIX/RESIDUAL_LEDGER 等治理资产已同步更新，并明确 `services/wiring.py` 的 delete gate / residual status。
+- [x] **CTRL-03**: 与 control router formalization 相关的 tests、ROADMAP/STATE/PROJECT/developer_architecture、FILE_MATRIX/RESIDUAL_LEDGER 等治理资产已同步更新，并关闭 `services/wiring.py` residual/delete gate。
 - [x] **SURF-01**: `LiproRestFacade`、runtime refresh path 与 orchestrator wiring 中残留的 dynamic surface、ghost surface 与 compat fallback 必须收敛到显式 formal contract。
 - [x] **CTRL-04**: control / services 中 runtime locator、debug-mode gating 与 diagnostics access 必须收敛到统一 formal runtime-access story。
 - [x] **RUN-01**: runtime public typing 必须窄化为 public protocol；status executor 必须把 query 失败与单设备 apply 失败分层隔离。

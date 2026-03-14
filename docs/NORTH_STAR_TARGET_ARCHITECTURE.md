@@ -243,11 +243,11 @@ custom_components/lipro/
 
 ## 8. 当前最高优先级
 
-1. 完成协议契约基线，锁定 protocol boundary 真相
-2. 重建 `API Client` 为显式 facade + collaborators
-3. 建立全仓文件治理矩阵，防止重构过程再次产生双标准
-4. 收敛 control plane、domain plane、runtime plane 的正式 public surface
-5. 把 assurance plane 从“补充项”升级为正式平面
+1. 完成 `v1.1` 里程碑 closeout / archive，确保 roadmap、requirements、audit、verification 口径统一
+2. 继续清零已登记 compat seams：`core.api.LiproClient`、`LiproProtocolFacade.get_device_list`、`LiproMqttFacade.raw_client`
+3. 收紧设备域动态委托与测试锚点，避免 `__getattr__` 与 legacy constructor name 长期合法化
+4. 保持 control / runtime / OTA / governance 单一正式主链，不再接受 addendum 回流
+5. 基于当前单主链事实规划下一里程碑，而不是恢复历史迁移叙事
 
 ## 9. 北极星 2.0（AI Debug Ready, HA-only）
 

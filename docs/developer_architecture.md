@@ -1,7 +1,7 @@
 # Lipro Home Assistant Integration - Developer Architecture
 
 > **Last Updated**: 2026-03-14  \
-> **Version**: 3.8 (Phase 10 completed truth aligned)
+> **Version**: 3.9 (Phase 11 completed truth aligned)
 >
 > ⚠️ 本文档仅描述"当前收敛后的架构与模块边界"，不硬编码评分/覆盖率/通过率等易失真指标。  \
 > 北极星终态裁决请见 `docs/NORTH_STAR_TARGET_ARCHITECTURE.md`。  \
@@ -255,6 +255,12 @@ Coordinator
 - `core/__init__.py` 不再导出 `Coordinator`；HA runtime home 继续固定在 `custom_components/lipro/coordinator_entry.py`，`control/runtime_access.py` 负责控制面定位 runtime root。
 - 未来 CLI / 其他宿主若要复用，只能建立在 `LiproProtocolFacade`、boundary contracts、`AuthSessionSnapshot` 与 device/capability truth 之上，而不是把 HA runtime 直接抽成 shared core。
 
+### Phase 11 Control-Plane Closeout
+
+- `custom_components/lipro/control/service_router.py` 已成为唯一正式 service callback home；`services/registrations.py` 只负责把 HA service declaration 绑定到 formal router。
+- `custom_components/lipro/services/wiring.py` 已正式删除；control plane 不再保留 legacy wiring compat shell。
+- control-facing runtime lookup 继续经 `custom_components/lipro/control/runtime_access.py` 收口，避免 `entry.runtime_data` 访问重新散落。
+
 ### Device Model (`core/device/`)
 
 - `device.py`：`LiproDevice`（薄 facade, dataclass + property delegation）
@@ -296,7 +302,6 @@ Coordinator
 - `registry.py`：声明式 HA 服务注册框架
 - `registrations.py`：服务声明列表（绑定 formal router）
 - `diagnostics/`：开发者诊断服务包（按 handler / types / wiring 拆分）
-- `wiring.py`：compat re-export shell（不得再承载正式实现）
 
 ## 边界规则
 

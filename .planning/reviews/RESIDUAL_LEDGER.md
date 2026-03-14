@@ -5,15 +5,19 @@
 | Family | Current example | Owner phase | Residual owner | Exit condition |
 |--------|------------------|-------------|----------------|----------------|
 | API compat wrappers | `custom_components/lipro/core/api/client.py` 中 `_build_compat_list_payload`、`get_device_list`、`query_iot_devices`、`query_outlet_devices`、`query_group_devices`，以及 `power_service.py` 的多行 `{"data": ...}` shaping | Phase 2 | `02-04 compat shell cleanup`（API/Protocol owner 主责，Runtime/Coordinator owner 迁移消费者） | `LiproRestFacade` canonical outputs 被 direct consumers 接受，compat wrappers 从 `LiproClient` / helper 层移除 |
-| API mixin inheritance | `_ClientBase` temporary typing anchor、`_ClientPacingMixin` / `_ClientAuthRecoveryMixin` / `_ClientTransportMixin` compat shells、`_ClientEndpointsMixin` 与 endpoint mixin helper classes | Phase 2 | `02-04 demixin closeout handoff`（API owner 主责，Phase 2.5/6 继续清退） | 生产路径已脱离 mixin 根；剩余 mixin 仅限 helper-test / patch seam / typing 过渡角色，并在后续相位被删除 |
+| API mixin inheritance | `_ClientBase` temporary typing anchor、`_ClientPacingMixin` / `_ClientAuthRecoveryMixin` / `_ClientTransportMixin` compat shells，以及 endpoint mixin helper classes | Phase 2 | `02-04 demixin closeout handoff`（API owner 主责，Phase 2.5/6 继续清退） | `_ClientEndpointsMixin` aggregate carrier 已删除；剩余 mixin 仅限 helper-test / patch seam / typing 过渡角色，并在后续相位被删除 |
 | Legacy public names | `custom_components.lipro.core.api.LiproClient` 显式 compat shell（root / flow / core 包级再导出已于 Phase 9 收口） | Phase 2 | `02-04 public-surface demotion`（API owner 收口；Entry/Auth owner 与 Runtime owner 迁移下游） | `LiproClient` 仅剩 `core.api` 显式 compat shell；当 direct tests/consumers 不再依赖 legacy constructor name 时删除 |
 | Split-root protocol surfaces | `custom_components/lipro/core/protocol/facade.py` 中 `LiproMqttFacade.raw_client` compat/test seam，以及 direct transport class 的 legacy naming | Phase 2.5 | `02.5 unified protocol root closeout`（Protocol owner 主责，Runtime owner 配合迁移） | runtime-facing allowed consumers 只依赖 `LiproProtocolFacade`；剩余 concrete transport seam 只限显式 compat/test 使用并带 delete gate |
-| Control-plane scatter | diagnostics / system_health / service wiring 分散 | Phase 3 | `Phase 3 control-plane closeout` | control plane public surface 收口 |
 | Capability compat public name | `custom_components/lipro/core/device/capabilities.py` 继续提供 `DeviceCapabilities` 旧导入名 | Phase 4 | `04-03 capability compat cleanup` | 直接消费者改用 `CapabilitySnapshot` / `CapabilityRegistry`，旧 public name 不再必要 |
 | External-boundary advisory naming | firmware remote advisory / support payload generated field naming 仍带 legacy semantics | Phase 2.6 | `02.6 external-boundary closeout` | authority truth 已固定后完成术语清理 |
-| Legacy service wiring carrier | `custom_components/lipro/services/wiring.py` 已降为显式 compat re-export shell | Phase 3 / 11 | `Phase 11 formal router inversion` | 仓库内 tests/production 不再依赖 wiring；remaining downstream imports 清零后可删除 |
 | Protocol-boundary family coverage | `rest.list-envelope.v1`、`rest.schedule-json.v1`、`mqtt.topic.v1`、`mqtt.message-envelope.v1` 仍停留在 inventory / helper collaborator 层，尚未全部 registry-backed | Phase 7.1 | `07.1 boundary expansion handoff` | inventory 中登记的 family 全部完成 registry-backed 接线，或在 v1.1 closeout 中被明确裁决为 de-scope / retire |
 | Replay scenario coverage | `tests/fixtures/protocol_replay/` 当前只正式保留 representative `rest.mqtt-config@v1` 与 `mqtt.properties@v1`；`rest.list-envelope.v1`、`rest.schedule-json.v1`、`mqtt.topic.v1`、`mqtt.message-envelope.v1` 已在 `07.5` 被显式裁决为 v1.1 de-scope，而非隐式遗漏 | Phase 7.4 | `07.5 closeout arbitration` | 若未来确有 black-box replay 价值，必须以新 phase 重新登记 family、补 manifest/evidence；`08` 只消费现有 representative corpus 与 evidence index，不直接扩大 replay 范围 |
+
+## Closed Residual Families
+
+- `Control-plane scatter` 已在 Phase 11 关闭：formal router、runtime locator 与 HA adapter 边界已固定，control plane 不再以散落 helper / wiring 叙事存在。
+- `Legacy service wiring carrier` 已在 Phase 11 关闭：`custom_components/lipro/services/wiring.py` 已正式删除，control-plane formal router truth 收口到 `custom_components/lipro/control/service_router.py`。
+- `API aggregate endpoint mixin` 已在 Phase 11 关闭：`custom_components/lipro/core/api/endpoints/__init__.py` 不再导出 `_ClientEndpointsMixin`，active residual 只剩 endpoint helper-class-level demixin cleanup。
 
 ## Rules
 
@@ -62,7 +66,7 @@
 ## Phase 03 Residual Delta
 
 - `Control-plane scatter` residual 已从生产主链显著缩小：正式 owner 已迁入 `custom_components/lipro/control/`，剩余问题集中在 legacy carrier 与少量 private seam。
-- 新增 `Legacy service wiring carrier` residual family，显式登记 `custom_components/lipro/services/wiring.py` 的删除条件。
+- 本 phase 曾新增 `Legacy service wiring carrier` residual family；该 residual 已在 Phase 11 随 `services/wiring.py` 删除而关闭。
 - `custom_components/lipro/services/execution.py` 的私有 auth hook seam 已在 Phase 5 关闭：service execution 现在只消费正式 `auth_service` contract。
 
 
@@ -141,4 +145,5 @@
 
 - `custom_components/lipro/control/service_router.py` 已成为真实 formal router implementation home；`services/registrations.py` 继续绑定 control-plane handler。
 - 仓库内测试已迁移到 `custom_components.lipro.control.service_router`，不再把 `services/wiring.py` 当成 patch-first truth。
-- `custom_components/lipro/services/wiring.py` 当前只保留显式 compat re-export shell；delete gate 从“测试缝迁移完成”收紧为“remaining downstream imports 清零”。
+- `custom_components/lipro/services/wiring.py` compat shell 已删除，`Legacy service wiring carrier` residual family 已关闭。
+- `custom_components/lipro/core/api/endpoints/__init__.py` 不再导出 `_ClientEndpointsMixin`；`API mixin inheritance` residual 现只覆盖 remaining helper mixin / typing anchors。

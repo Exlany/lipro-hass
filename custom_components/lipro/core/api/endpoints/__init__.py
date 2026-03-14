@@ -2,24 +2,12 @@
 
 from __future__ import annotations
 
-from .auth import AuthEndpoints, _ClientAuthEndpointsMixin
-from .commands import CommandEndpoints, _ClientCommandEndpointsMixin
-from .devices import DeviceEndpoints, _ClientDeviceEndpointsMixin
-from .misc import MiscEndpoints, _ClientMiscEndpointsMixin
-from .schedule import ScheduleEndpoints, _ClientScheduleEndpointsMixin
-from .status import StatusEndpoints, _ClientStatusEndpointsMixin
-
-
-class _ClientEndpointsMixin(
-    _ClientAuthEndpointsMixin,
-    _ClientDeviceEndpointsMixin,
-    _ClientStatusEndpointsMixin,
-    _ClientCommandEndpointsMixin,
-    _ClientMiscEndpointsMixin,
-    _ClientScheduleEndpointsMixin,
-):
-    """Legacy aggregate mixin kept only for narrow compatibility tests."""
-
+from .auth import AuthEndpoints
+from .commands import CommandEndpoints
+from .devices import DeviceEndpoints
+from .misc import MiscEndpoints
+from .schedule import ScheduleEndpoints
+from .status import StatusEndpoints
 
 ENDPOINT_COLLABORATOR_TYPES = (
     AuthEndpoints,
@@ -39,5 +27,4 @@ __all__ = [
     "MiscEndpoints",
     "ScheduleEndpoints",
     "StatusEndpoints",
-    "_ClientEndpointsMixin",
 ]

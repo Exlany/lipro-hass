@@ -1,7 +1,7 @@
 # Project: Lipro-HASS North Star Evolution v1.1
 
-**Status:** Active — `Phase 10` 已完成，milestone verify / closeout pending
-**Goal:** 把 `protocol truth`、`architecture policy`、`runtime telemetry export`、`replay evidence`、`ai-debug evidence pack`、`residual surface closure`、`api drift isolation / core-boundary prep` 七条演进线统一纳入北极星主链，进入“可保真、可观测、可仲裁、可回放、可给 AI 调试/分析”的下一里程碑。
+**Status:** Active — `Phase 11` 已完成，milestone closeout / archive pending
+**Goal:** 把 `protocol truth`、`architecture policy`、`runtime telemetry export`、`replay evidence`、`ai-debug evidence pack`、`residual surface closure`、`api drift isolation / core-boundary prep`、`control router / runtime-access / OTA / governance coherence` 八条演进线统一纳入北极星主链，进入“可保真、可观测、可仲裁、可回放、可给 AI 调试/分析”的下一里程碑。
 
 ## Why This Milestone Exists
 
@@ -51,6 +51,13 @@
 - `rest.device-list` / `rest.device-status` / `rest.mesh-group-status` 已在 protocol boundary 输出 canonical contract
 - `AuthSessionSnapshot` 已成为 host-neutral auth/session truth；`config_flow` / `entry_auth` 不再依赖 raw login dict
 - `core/__init__.py` 已不再导出 `Coordinator`；HA runtime home 继续固定在 `custom_components/lipro/coordinator_entry.py`
+
+### 6. Phase 11 Control / Runtime / OTA / Governance 收口已完成
+
+- `control/service_router.py` 已成为 formal control-plane service callback home，`services/wiring.py` compat shell 已删除
+- runtime-access / diagnostics / status isolation 已统一到 `control/runtime_access.py` 与 formal runtime contract
+- supplemental entity truth、firmware update projection 与 OTA helper cluster 已收敛为单一正式故事线
+- release / CI / issue / PR / security disclosure / phase assets 已形成一致的开源治理口径
 
 ## Architectural Stance
 
@@ -244,4 +251,4 @@ v1.1 进入执行期后，新增演进必须额外满足：
 9. `.planning/reviews/*.md`
 10. `docs/archive/FINAL_CLOSEOUT_REPORT_2026-03-13.md`
 
-*Last updated: 2026-03-13 after planning Phases 7.4 / 7.5 / 8 and locking 7.3-8 arbitration*
+*Last updated: 2026-03-14 after completing Phase 11 and closing active v1.1 execution work*

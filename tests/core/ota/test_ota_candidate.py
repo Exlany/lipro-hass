@@ -5,6 +5,7 @@ from __future__ import annotations
 from unittest.mock import MagicMock
 
 from custom_components.lipro.core.ota.candidate import (
+    OtaManifestTruth,
     resolve_certification,
     resolve_inline_certification,
     resolve_latest_version,
@@ -88,10 +89,10 @@ def test_resolve_certification_returns_false_when_latest_missing() -> None:
             installed="1.0.0",
             latest=None,
             device_iot_name="21P3",
-            remote_verified_versions=frozenset({"1.1.0"}),
-            remote_versions_by_type={"21p3": frozenset({"1.1.0"})},
-            local_verified_versions=frozenset({"1.1.0"}),
-            local_versions_by_type={"21p3": frozenset({"1.1.0"})},
+            manifest_truth=OtaManifestTruth(
+                verified_versions=frozenset({"1.1.0"}),
+                versions_by_type={"21p3": frozenset({"1.1.0"})},
+            ),
             is_version_newer=_is_version_newer,
         )
         is False

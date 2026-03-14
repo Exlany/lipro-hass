@@ -37,7 +37,6 @@
 | `LiproMqttClient` compat shell | Phase 9+ cleanup only | 仅剩 direct transport module 与 `LiproMqttFacade.raw_client` 测试 seam；包级 public export 已收口 |
 | `LiproProtocolFacade.get_device_list` compat wrapper | active migration only | wrapper 仍保留显式 compat 语义，但正式真源已切到 `rest.device-list@v1` + `CanonicalProtocolContracts.normalize_device_list_page`；direct consumers 清零后删除 |
 | `DeviceCapabilities` compat alias | Phase 4 / 7 cleanup only | `core/device/capabilities.py` 的旧导入点迁移到 `CapabilitySnapshot` / `CapabilityRegistry` |
-| `services/wiring.py` compat shell | Phase 11+ cleanup only | 仓库内 tests/production 已切离；remaining downstream imports 清零后删除 compat shell |
 | cluster-level `FILE_MATRIX` | pre-Phase 7 | 升级为 file-level governance view |
 
 ## Phase 09 Surface Closure Notes
@@ -53,6 +52,12 @@
 - `custom_components/lipro/coordinator_entry.py` 继续是 `Coordinator` 的唯一 runtime-home public surface；HA adapters 应通过该 home 或 `custom_components/lipro/control/runtime_access.py` 读取 runtime root。
 - `custom_components/lipro/control/telemetry_surface.py` 现在必须经 `runtime_access.get_entry_runtime_coordinator()` 定位 runtime home，避免 `entry.runtime_data` 访问在 control plane 四处蔓延。
 - `custom_components/lipro/config_flow.py` 与 `custom_components/lipro/entry_auth.py` 已切到 `AuthSessionSnapshot` / auth manager formal contract，不再把 raw login/result dict 当 public surface。
+
+## Phase 11 Control / Surface Closeout Notes
+
+- `custom_components/lipro/control/service_router.py` 已成为 control-plane 唯一正式 service callback home；`custom_components/lipro/services/registrations.py` 只做 HA service declaration 绑定。
+- legacy wiring compat shell 已正式删除，不再属于 transitional public surface，也不得作为 patch / import truth 回流。
+- `custom_components/lipro/control/runtime_access.py` 继续是 control-plane runtime locator；control adapters 不得再旁路读取 coordinator internals。
 
 ## Forbidden As Formal Roots
 

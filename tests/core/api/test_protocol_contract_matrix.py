@@ -14,7 +14,6 @@ from custom_components.lipro.core.api.diagnostics_api_service import (
     get_city,
     query_user_cloud,
 )
-from custom_components.lipro.core.api.endpoints import _ClientEndpointsMixin
 from custom_components.lipro.core.api.mqtt_api_service import (
     _extract_mqtt_config_payload,
 )
@@ -137,8 +136,17 @@ def test_lipro_rest_facade_uses_explicit_surface_instead_of_dynamic_delegation()
         assert "__dir__" not in base.__dict__
 
 
-def test_lipro_rest_facade_no_longer_uses_aggregate_endpoint_mixin() -> None:
-    assert _ClientEndpointsMixin not in LiproRestFacade.__mro__
+def test_lipro_rest_facade_no_longer_exports_aggregate_endpoint_mixin() -> None:
+    module_text = (
+        Path(__file__).resolve().parents[3]
+        / "custom_components"
+        / "lipro"
+        / "core"
+        / "api"
+        / "endpoints"
+        / "__init__.py"
+    ).read_text(encoding="utf-8")
+    assert "_ClientEndpointsMixin" not in module_text
 
 
 def test_protocol_root_owns_shared_rest_session_and_request_policy() -> None:

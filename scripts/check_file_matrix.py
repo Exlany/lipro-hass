@@ -81,13 +81,6 @@ OVERRIDES: dict[str, FileGovernanceRow] = {
         fate="迁移适配",
         residual="LiproMqttClient legacy root name",
     ),
-    "custom_components/lipro/services/wiring.py": FileGovernanceRow(
-        path="custom_components/lipro/services/wiring.py",
-        area="Control",
-        owner_phase="Phase 7",
-        fate="删除候选",
-        residual="legacy implementation carrier",
-    ),
     "custom_components/lipro/services/execution.py": FileGovernanceRow(
         path="custom_components/lipro/services/execution.py",
         area="Control",

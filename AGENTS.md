@@ -145,16 +145,11 @@
 
 以下残留已登记，但**现在不要误删**：
 
-1. `custom_components/lipro/services/wiring.py`
-   - 现状：不是正式 service root
-   - 但：仍是 legacy implementation carrier / patch seam
-   - 处理原则：只有当 `control.service_router` 完全接管且测试不再依赖其闭包行为时，才能进入删除
-
-2. `custom_components/lipro/services/execution.py`
+1. `custom_components/lipro/services/execution.py`
    - 现状：仍有 coordinator 私有 auth seam
    - 处理原则：后续必须用正式 runtime/auth contract 替代，不要再扩散新的私有 hook
 
-3. `LiproClient` / `LiproMqttClient`
+2. `LiproClient` / `LiproMqttClient`
    - 现状：compat shell
    - 处理原则：不得再被提升为正式架构根，不得新增新的生产路径依赖它们
 

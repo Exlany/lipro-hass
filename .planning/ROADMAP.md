@@ -156,7 +156,7 @@ Plans:
 - [x] 10-03: `core` formal surface 与 HA runtime home 继续收窄
 - [x] 10-04: docs / governance / replay / meta guard 同步闭环
 
-## Cross-Phase Arbitration (7.3-10)
+## Cross-Phase Arbitration (7.3-11)
 
 - `07.3` 只拥有 telemetry truth：exporter contracts、redaction、cardinality、timestamp / pseudo-id compatibility
 - `07.4` 只拥有 replay truth：manifests、deterministic driver、replay assertions、run summary
@@ -164,7 +164,8 @@ Plans:
 - `08` 只拥有 AI debug packaging：pull-only collector、pack schema、exporter entrypoint
 - `09` 只拥有 residual surface closure：protocol/runtime 收口、compat seam 压缩、formal primitive / read-only view 收敛、governance delete gate 回写
 - `10` 只拥有 API drift isolation / core-boundary prep：boundary contract closure、host-neutral auth/result contracts、HA adapter 降耦与治理同步；不得在本 phase 内把 shared core / cross-platform SDK 提升为正式 root
-- 执行顺序固定为 `7.3 -> 7.4 -> 7.5 -> 8 -> 9 -> 10`，避免真源反转与职责重叠
+- `11` 只拥有 control router formalization、runtime-access hardening、entity/OTA truth convergence 与 open-source governance coherence；不得重新合法化 compat service carrier 或 dynamic protocol surface
+- 执行顺序固定为 `7.3 -> 7.4 -> 7.5 -> 8 -> 9 -> 10 -> 11`，避免真源反转与职责重叠
 
 ## Progress
 
