@@ -500,11 +500,12 @@ def test_phase_11_execution_truth_is_consistent() -> None:
     assert "services/wiring.py" not in public_text
     assert "custom_components/lipro/services/wiring.py" not in file_matrix_text
     assert "11-04 ~ 11-08 addendum plans" in research_text
-    assert audit_frontmatter["status"] == "superseded_snapshot"
-    assert audit_frontmatter["snapshot_scope"] == "phase_11_complete_pre_closeout"
+    assert audit_frontmatter["status"] in {"superseded_snapshot", "tech_debt"}
     scores = audit_frontmatter["scores"]
     assert isinstance(scores, dict)
-    assert scores["requirements"] == "30/30"
+    assert scores["requirements"] in {"30/30", "65/65"}
+    if audit_frontmatter["status"] == "superseded_snapshot":
+        assert audit_frontmatter["snapshot_scope"] == "phase_11_complete_pre_closeout"
 
 
 def test_readme_exposes_community_and_governance_entrypoints() -> None:
@@ -625,7 +626,7 @@ def test_phase_15_execution_truth_is_consistent() -> None:
         "RES-01",
     ):
         assert f"| {req_id} | Phase 15 | Complete |" in requirements_text
-    assert "**Current mode:** `Phase 16 complete`" in state_text
+    assert re.search(r"\*\*Current mode:\*\* `Phase 16 (?:complete|milestone audit complete)`", state_text)
     assert "completed_phases: 14" in state_text
     assert "completed_plans: 54" in state_text
     assert "2026.3.1" in prd_text
@@ -767,7 +768,7 @@ def test_phase_16_execution_truth_is_consistent() -> None:
         "DOC-02",
     ):
         assert f"| {req_id} | Phase 16 | Complete |" in requirements_text
-    assert "**Current mode:** `Phase 16 complete`" in state_text
+    assert re.search(r"\*\*Current mode:\*\* `Phase 16 (?:complete|milestone audit complete)`", state_text)
     assert "total_phases: 14" in state_text
     assert "completed_phases: 14" in state_text
     assert "total_plans: 54" in state_text

@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: protocol-fidelity-operability
 status: active
-last_updated: "2026-03-15T15:08:58Z"
+last_updated: "2026-03-15T15:54:30Z"
 progress:
   total_phases: 14
   completed_phases: 14
@@ -19,7 +19,7 @@ See: `.planning/PROJECT.md`
 
 **Current milestone:** `v1.1 Protocol Fidelity & Operability`
 **Core value:** 在既有北极星单一主链基础上，把 fidelity / enforcement / telemetry / replay / AI-debug evidence 做成下一层正式能力，并继续把类型契约、残留收口、热点拆薄、测试分层与 contributor-facing governance 做成可验证的正式能力。
-**Current mode:** `Phase 16 complete`；当前已完成 `Phase 7.1-16` 执行，`Phase 16` 的三条 wave 已全部收口，`v1.1` 进入 milestone audit / closeout 准备态。
+**Current mode:** `Phase 16 milestone audit complete`；当前已完成 `Phase 7.1-16` 执行与里程碑审计，`v1.1` 现处于 archive-ready / closeout decision point。
 
 ## Current Position
 
@@ -39,6 +39,7 @@ See: `.planning/PROJECT.md`
 - `Phase 14` 已完成：`CoordinatorProtocolService`、schedule residual closeout、`status_fallback.py` / `developer_router_support.py` helper-home extraction 与 governance truth consolidation 已全部落地并通过治理回写
 - `Phase 15` 已完成：developer feedback upload contract、governance/source-path truth、README/support/version truth、support hotspot typing narrowing 与 tooling/residual arbitration 已全部落地并通过治理回写
 - `Phase 16` 已完成：post-audit truth alignment、toolchain/DX truth、control/service contract、protocol/runtime hotspot decomposition、domain/entity/OTA rationalization 与 test-layer/docs follow-through `6 plans / 3 waves` 已全部落地
+- `v1.1` 里程碑审计已更新：`.planning/v1.1-MILESTONE-AUDIT.md` 现覆盖 `Phase 7.1-16` 全范围，判定为 `tech_debt`（无 blocker、可归档、仍保留显式登记 residual）
 
 ## Active Milestone Scope
 
