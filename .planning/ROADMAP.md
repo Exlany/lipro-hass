@@ -313,3 +313,87 @@ Plans:
 - [x] 17-02: auth session and outlet-power contract convergence (completed 2026-03-15)
 - [x] 17-03: mqtt transport naming demotion and locality guard hardening (completed 2026-03-15)
 - [x] 17-04: phase 17 governance closeout and final repo audit (completed 2026-03-15)
+
+
+## Proposed Next Milestone
+
+### ⏭️ Proposed v1.2: Host-Neutral Core & Replay Completion
+
+**Milestone Goal:** 在不破坏 `LiproProtocolFacade` / `Coordinator` 单一正式主链的前提下，把 future-host shared-core debt、remaining boundary/replay family debt 与关键 broad-catch / observability debt 提升为正式交付，让仓库从“HA 内部高治理集成”继续迈向“可复用、可回放、可宿主扩展、但不多根分裂”的下一阶段。
+
+**Draft Scope:** `Phase 18 -> Phase 22`（5 phases / 15 plans draft）
+
+### Phase 18: Host-Neutral Boundary Nucleus Extraction
+**Goal**: 把 boundary/auth/device 方向中已成熟的 host-neutral nucleus 从 HA adapter 语义中继续抽离，但不新建第二条 runtime story。
+**Depends on**: Phase 17
+**Requirements**: [CORE-01, CORE-03]
+**Draft Success Criteria**:
+  1. host-neutral nucleus 不再引用 HA entry/runtime adapter 类型。
+  2. `LiproProtocolFacade` / `Coordinator` 仍保持正式根身份，提取只发生在 helper/service/nucleus 层。
+  3. meta guards 能阻断 HA-specific imports 重新回流到 nucleus。
+**Plans**: 3 draft plans
+
+Plans:
+- [ ] 18-01: 提炼 host-neutral contracts 与 adapter seams
+- [ ] 18-02: 抽离 auth/device/shared helpers 到 nucleus home
+- [ ] 18-03: 补齐 locality guards 与 focused regression
+
+### Phase 19: Headless Consumer Proof & Adapter Demotion
+**Goal**: 证明同一套 nucleus 能被 headless / CLI-style consumer 复用，而不是复制第二实现。
+**Depends on**: Phase 18
+**Requirements**: [CORE-02]
+**Draft Success Criteria**:
+  1. headless composition root 能走通 auth + device discovery + replay/evidence proof。
+  2. HA adapter 继续只是 adapter，不再携带可复用业务根语义。
+  3. 不出现 “CLI root / HA root” 双合法入口。
+**Plans**: 3 draft plans
+
+Plans:
+- [ ] 19-01: 建立 headless composition root 与 boot contract
+- [ ] 19-02: 证明 auth/device/replay 使用同一 nucleus
+- [ ] 19-03: 继续 demote HA-only adapter assumptions
+
+### Phase 20: Remaining Boundary Family Completion
+**Goal**: 把 `rest.list-envelope.v1`、`rest.schedule-json.v1`、`mqtt.topic.v1`、`mqtt.message-envelope.v1` 全部升级为 registry-backed boundary families。
+**Depends on**: Phase 19
+**Requirements**: [SIM-03, SIM-05]
+**Draft Success Criteria**:
+  1. 上述 families 全部具备 authority source、fixtures、decoder registry 与 drift assertions。
+  2. inventory / authority / fixtures / manifests 不再把这些 families 记为 partial/de-scope。
+  3. helper-level ad-hoc handling 进一步减少。
+**Plans**: 3 draft plans
+
+Plans:
+- [ ] 20-01: formalize remaining REST families
+- [ ] 20-02: formalize remaining MQTT families
+- [ ] 20-03: sync inventory / fixtures / manifests / guards
+
+### Phase 21: Replay / Observability / Exception Hardening
+**Goal**: 把新增 families 纳入 replay/evidence，并继续收窄 protocol/runtime/control 关键 broad-catch 与失败分类语义。
+**Depends on**: Phase 20
+**Requirements**: [SIM-04, ERR-02, OBS-03]
+**Draft Success Criteria**:
+  1. replay harness 与 evidence pack 能覆盖新 formalized families。
+  2. 关键 `except Exception` 点要么被收窄，要么具备 documented arbitration。
+  3. diagnostics / system health / evidence 使用统一失败分类。
+**Plans**: 3 draft plans
+
+Plans:
+- [ ] 21-01: expand replay + evidence over completed families
+- [ ] 21-02: tighten broad-catch exception arbitration
+- [ ] 21-03: expose classified failure signals to diagnostics surfaces
+
+### Phase 22: Governance, Docs & Release Readiness Closeout
+**Goal**: 回写 v1.2 期间新增的 host-neutral / replay-complete / observability-hardening 真相，并完成下一轮 milestone closeout 准备。
+**Depends on**: Phase 21
+**Requirements**: [GOV-16]
+**Draft Success Criteria**:
+  1. roadmap / requirements / state / baseline / reviews / docs 对 v1.2 讲同一条故事。
+  2. contributor/runbook/meta guards 能解释并约束新的 host-neutral + headless proof story。
+  3. v1.2 closeout 前没有新的 silent defer。
+**Plans**: 3 draft plans
+
+Plans:
+- [ ] 22-01: sync governance truth and authority ledgers
+- [ ] 22-02: extend contributor/runbook/meta guard coverage
+- [ ] 22-03: final repo audit and milestone closeout prep

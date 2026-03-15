@@ -232,3 +232,48 @@
 - unmapped: 0 ✓
 
 *Last updated: 2026-03-15 after Phase 17 closeout and final repo audit*
+
+
+## Proposed Next Milestone (v1.2 Draft)
+
+> 该部分是下一轮规划草案；不影响当前 `v1.1` 已完成 requirements / traceability 真相。
+
+### Core Reuse / Host-Neutral Nucleus
+
+- [ ] **CORE-01**: boundary/auth/device 的共享 nucleus 可在不依赖 HA entry/runtime adapter 类型的前提下独立组合。
+- [ ] **CORE-02**: 同一套 nucleus 必须能被 headless / CLI-style consumer 复用，完成认证、设备发现与 replay/evidence proof。
+- [ ] **CORE-03**: HA adapter 只能保留 adapter 身份，不得继续把 host-specific wiring 泄露回共享 nucleus。
+
+### Replay / Boundary Completion
+
+- [ ] **SIM-03**: `rest.list-envelope.v1`、`rest.schedule-json.v1`、`mqtt.topic.v1`、`mqtt.message-envelope.v1` 必须成为 registry-backed boundary families。
+- [ ] **SIM-04**: replay harness 与 evidence pack 必须覆盖新增 formalized families，并复用同一正式 public path。
+- [ ] **SIM-05**: 当前 authority/inventory 中对 remaining replay families 的 de-scope / partial 标记，必须在 coverage 落地后被移除或缩窄为真实剩余项。
+
+### Error / Observability Hardening
+
+- [ ] **ERR-02**: protocol/runtime/control 关键 broad-catch 必须继续收窄或改成 documented arbitration，不得让 catch-all 成为默认策略。
+- [ ] **OBS-03**: diagnostics / system health / evidence export 必须对 auth/network/protocol/runtime failure 使用统一分类语言。
+
+### Governance
+
+- [ ] **GOV-16**: v1.2 的 host-neutral / replay-complete / observability-hardening 真相必须同步到 roadmap / state / baseline / reviews / docs / meta guards。
+
+## Draft Traceability for v1.2
+
+| Requirement | Planned Phase | Status |
+|-------------|---------------|--------|
+| CORE-01 | Phase 18 | Draft |
+| CORE-02 | Phase 19 | Draft |
+| CORE-03 | Phase 18 | Draft |
+| SIM-03 | Phase 20 | Draft |
+| SIM-04 | Phase 21 | Draft |
+| SIM-05 | Phase 20 | Draft |
+| ERR-02 | Phase 21 | Draft |
+| OBS-03 | Phase 21 | Draft |
+| GOV-16 | Phase 22 | Draft |
+
+**Draft Coverage:**
+- Proposed v1.2 requirements: 9 total
+- Draft mapped: 9
+- Draft unmapped: 0 ✓

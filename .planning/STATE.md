@@ -115,11 +115,18 @@ See: `.planning/PROJECT.md`
 9. `AGENTS.md`
 10. `CLAUDE.md`（若使用 Claude Code）
 
+## Next Milestone Candidate
+
+- **Milestone draft:** `v1.2 Host-Neutral Core & Replay Completion`
+- **Planned phase range:** `18 -> 22`
+- **Draft focus:** host-neutral nucleus extraction、headless consumer proof、remaining boundary/replay family completion、broad-catch/observability hardening、governance closeout
+- **Do not confuse with current state:** `v1.1` 仍是当前 archive-ready milestone；`v1.2` 现阶段只是已落表的 next-round plan，不会覆盖 `Phase 17` 完成态
+
 ## Recommended Next Command
 
-1. `$gsd-complete-milestone v1.1` —— 归档已完成的 `v1.1` 里程碑并准备下一轮 roadmap
-2. `batcat .planning/v1.1-MILESTONE-AUDIT.md --style=plain --paging=never` —— 查看 Phase 17 更新后的里程碑审计
-3. `batcat .planning/phases/17-final-residual-retirement-typed-contract-tightening-and-milestone-closeout/17-VERIFICATION.md --style=plain --paging=never` —— 查看最终验证证据
+1. `$gsd-complete-milestone v1.1` —— 正式归档当前 archive-ready 里程碑
+2. `$gsd-plan-phase 18` —— 直接开始下一轮 `Phase 18` 详细规划
+3. `$gsd-discuss-phase 18` —— 先围绕 host-neutral nucleus / headless proof 讨论收口范围
 
 ## Session Continuity
 
