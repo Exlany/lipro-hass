@@ -1,7 +1,7 @@
 # Project: Lipro-HASS North Star Evolution v1.1
 
-**Status:** Active — `Phase 15` 已执行完成，milestone closeout pending
-**Goal:** 把 `protocol truth`、`architecture policy`、`runtime telemetry export`、`replay evidence`、`ai-debug evidence pack`、`residual surface closure`、`api drift isolation / core-boundary prep`、`control router / runtime-access / OTA / governance coherence`、`type contract alignment / residual cleanup / contributor governance hygiene`、`explicit domain surface / governance guard hardening / hotspot boundary decomposition`、`legacy stack final closure / API spine demolition / governance truth consolidation` 与 `support feedback contract hardening / governance truth repair / maintainability follow-through` 十二条演进线统一纳入北极星主链，进入“可保真、可观测、可仲裁、可回放、可给 AI 调试/分析”的下一里程碑。
+**Status:** Active — `Phase 16` 已规划完成，execution pending
+**Goal:** 把 `protocol truth`、`architecture policy`、`runtime telemetry export`、`replay evidence`、`ai-debug evidence pack`、`residual surface closure`、`api drift isolation / core-boundary prep`、`control router / runtime-access / OTA / governance coherence`、`type contract alignment / residual cleanup / contributor governance hygiene`、`explicit domain surface / governance guard hardening / hotspot boundary decomposition`、`legacy stack final closure / API spine demolition / governance truth consolidation`、`support feedback contract hardening / governance truth repair / maintainability follow-through` 与 `post-audit truth alignment / hotspot decomposition / residual endgame` 十三条演进线统一纳入北极星主链，进入“可保真、可观测、可仲裁、可回放、可给 AI 调试/分析、可持续收尾”的下一里程碑。
 
 ## Why This Milestone Exists
 
@@ -84,6 +84,14 @@
 - developer feedback upload contract 与 local debug view 已正式分家：上传保留 `iotName` 等供应商判型标识，但匿名化 `deviceName` / `name` / `roomName` / `productName` / `keyName` / IR 资产展示名等用户自定义标签。
 - `PROJECT / ROADMAP / STATE / Phase 15 assets`、README / SUPPORT / SECURITY / bug template 与 source-path guards 已讲同一条完成态故事线，不再容忍死链、版本漂移或 phase-status drift。
 - support hotspot typing narrowing、tooling/security arbitration 与 residual locality governance 已完成收口；`service_router.py` 仍保持 public handler home，未重开第二条正式主链。
+
+### 11. Phase 16 后审计收口线已规划
+
+- `Phase 16` 已按 `3 waves / 6 plans` 落盘，目标是把终极审阅仍然成立的问题收束为一条不偏离北极星主链的收尾执行线。
+- **Wave 1**：先校准 governance truth、codebase-map policy、toolchain truth 与 local DX contract，消除 Phase 15 完成态与 post-audit 规划态之间的叙事漂移。
+- **Wave 2**：聚焦 control/service/config-flow 与 protocol/runtime hotspots，继续拆薄 `service_router.py`、`config_flow.py`、`client.py`、`facade.py`、`coordinator.py`，同步收紧类型与异常语义。
+- **Wave 3**：收口 device/capability/entity/OTA 边界、平台测试分层、troubleshooting / release runbook / contributor navigation 等开源维护路径。
+- `Phase 16` 明确禁止：重开第二条正式主链、无 gate rename campaign、与北极星无关的大规模换栈、把 residual cleanup 包装成物理重命名工程。
 
 ## Architectural Stance
 
@@ -275,8 +283,14 @@ v1.1 进入执行期后，新增演进必须额外满足：
 7. `.planning/STATE.md`
 8. `.planning/baseline/*.md`
 9. `.planning/reviews/*.md`
-10. `.planning/phases/15-support-feedback-contract-hardening-governance-truth-repair-and-maintainability-follow-through/15-PRD.md`
-11. `.planning/phases/15-support-feedback-contract-hardening-governance-truth-repair-and-maintainability-follow-through/15-VALIDATION.md`
-12. `.planning/phases/15-support-feedback-contract-hardening-governance-truth-repair-and-maintainability-follow-through/15-VERIFICATION.md`
+10. `.planning/phases/16-post-audit-truth-alignment-hotspot-decomposition-and-residual-endgame/16-PRD.md`
+11. `.planning/phases/16-post-audit-truth-alignment-hotspot-decomposition-and-residual-endgame/16-RESEARCH.md`
+12. `.planning/phases/16-post-audit-truth-alignment-hotspot-decomposition-and-residual-endgame/16-VALIDATION.md`
+13. `.planning/phases/16-post-audit-truth-alignment-hotspot-decomposition-and-residual-endgame/16-01-PLAN.md`
+14. `.planning/phases/16-post-audit-truth-alignment-hotspot-decomposition-and-residual-endgame/16-02-PLAN.md`
+15. `.planning/phases/16-post-audit-truth-alignment-hotspot-decomposition-and-residual-endgame/16-03-PLAN.md`
+16. `.planning/phases/16-post-audit-truth-alignment-hotspot-decomposition-and-residual-endgame/16-04-PLAN.md`
+17. `.planning/phases/16-post-audit-truth-alignment-hotspot-decomposition-and-residual-endgame/16-05-PLAN.md`
+18. `.planning/phases/16-post-audit-truth-alignment-hotspot-decomposition-and-residual-endgame/16-06-PLAN.md`
 
-*Last updated: 2026-03-15 after completing Phase 15*
+*Last updated: 2026-03-15 after planning Phase 16*

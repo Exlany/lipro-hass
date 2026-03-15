@@ -456,7 +456,7 @@ def test_phase_15_execution_truth_is_consistent() -> None:
     assert "**Requirements**: [SPT-01, GOV-13, DOC-01, HOT-03, QLT-01, TYP-03, RES-01]" in roadmap_text
     for req_id in ("SPT-01", "GOV-13", "DOC-01", "HOT-03", "QLT-01", "TYP-03", "RES-01"):
         assert f"| {req_id} | Phase 15 | Complete |" in requirements_text
-    assert '**Current mode:** `Phase 15 complete`' in state_text
+    assert '**Current mode:** `Phase 16 planned`' in state_text
     assert 'completed_phases: 13' in state_text
     assert 'completed_plans: 48' in state_text
     assert '2026.3.1' in prd_text
@@ -486,6 +486,63 @@ def test_phase_15_execution_truth_is_consistent() -> None:
         "15-05-SUMMARY.md",
         "15-VALIDATION.md",
         "15-VERIFICATION.md",
+    ):
+        assert (phase_root / artifact_name).exists()
+
+
+def test_phase_16_planning_truth_is_consistent() -> None:
+    phase_root = (
+        _ROOT
+        / ".planning"
+        / "phases"
+        / "16-post-audit-truth-alignment-hotspot-decomposition-and-residual-endgame"
+    )
+    project_text = (_ROOT / ".planning" / "PROJECT.md").read_text(encoding="utf-8")
+    roadmap_text = (_ROOT / ".planning" / "ROADMAP.md").read_text(encoding="utf-8")
+    requirements_text = (_ROOT / ".planning" / "REQUIREMENTS.md").read_text(encoding="utf-8")
+    state_text = (_ROOT / ".planning" / "STATE.md").read_text(encoding="utf-8")
+    validation_text = (phase_root / "16-VALIDATION.md").read_text(encoding="utf-8")
+
+    assert "### 11. Phase 16 后审计收口线已规划" in project_text
+    assert (
+        "| 16 Post-audit Truth Alignment, Hotspot Decomposition & Residual Endgame | v1.1 | 0/6 | Planned | - |"
+        in roadmap_text
+    )
+    assert "**Plans:** 6 planned across 3 waves" in roadmap_text
+    for req_id in (
+        "GOV-14",
+        "QLT-02",
+        "HOT-04",
+        "TYP-04",
+        "ERR-01",
+        "RES-02",
+        "CTRL-06",
+        "DOM-03",
+        "OTA-01",
+        "TST-01",
+        "DOC-02",
+    ):
+        assert f"| {req_id} | Phase 16 | Planned |" in requirements_text
+    assert '**Current mode:** `Phase 16 planned`' in state_text
+    assert 'total_phases: 14' in state_text
+    assert 'completed_phases: 13' in state_text
+    assert 'total_plans: 54' in state_text
+    assert 'completed_plans: 48' in state_text
+    assert '| 16-02-00 | 16-02 | 1 | QLT-02 / DOC-02 |' in validation_text
+    assert '| 16-03-00 | 16-03 | 2 | CTRL-06 / ERR-01 / TYP-04 |' in validation_text
+    assert '| 16-05-00 | 16-05 | 3 | DOM-03 / OTA-01 |' in validation_text
+
+    for artifact_name in (
+        "16-PRD.md",
+        "16-CONTEXT.md",
+        "16-RESEARCH.md",
+        "16-VALIDATION.md",
+        "16-01-PLAN.md",
+        "16-02-PLAN.md",
+        "16-03-PLAN.md",
+        "16-04-PLAN.md",
+        "16-05-PLAN.md",
+        "16-06-PLAN.md",
     ):
         assert (phase_root / artifact_name).exists()
 

@@ -97,6 +97,20 @@
 - [x] **TYP-03**: `control/runtime_access.py` 与相邻 control seams 中可收窄的 `Any` / 宽口 host-side typing 必须继续向 formal runtime contracts 收口。
 - [x] **RES-01**: `core/api/client_*` helper spine、`LiproMqttClient` legacy naming 与已登记 residuals 必须继续本地化、加固 guard 或缩窄 delete gate，不得重新回流为正式 surface。
 
+### Post-Audit Truth Alignment, Hotspot Decomposition & Residual Endgame
+
+- [ ] **GOV-14**: `AGENTS.md`、`PROJECT.md`、`ROADMAP.md`、`STATE.md`、baseline/review docs 与 `.planning/codebase/*` policy 必须重新对齐到 Phase 16 规划真相，不得继续把已关闭 seam 或过期 codebase map 当成活跃裁决来源。
+- [ ] **QLT-02**: Python / Ruff / pre-commit / devcontainer / pytest marker truth 必须一致：运行时、类型检查与 lint 目标版本不能漂移，名存实亡的 marker / tooling contract 必须落地或删除。
+- [ ] **HOT-04**: `core/api/client.py`、`core/protocol/facade.py`、`core/coordinator/coordinator.py`、`control/service_router.py`、`config_flow.py` 与 `entities/firmware_update.py` 等热点必须继续沿正式边界拆薄，避免 façade/root 继续承载 strategy、shape normalization、exception mapping 与 glue 内核。
+- [ ] **TYP-04**: `core/api`、`core/protocol`、`control` 与相邻 residual seams 中的 `Any` / 反射式宽口必须进一步收窄到 `Protocol`、typed alias、`TypedDict` 或明确 contract，不得仅靠 `cast` 掩盖边界漂移。
+- [ ] **ERR-01**: protocol/runtime/control/support 关键链路中的 catch-all 异常必须收窄或显式写成 documented arbitration，日志、重试与 reauth 语义必须可判定。
+- [ ] **RES-02**: `_ClientBase` / `_Client*Mixin`、endpoint mixin exports、`LiproMqttClient` legacy naming、`get_auth_data()` fallback 与 helper-level compat envelope 必须继续本地化、减语义或退场，不得再制造旧 root / old client 仍合法的错觉。
+- [ ] **CTRL-06**: `send_command`、share/developer-report 路径、runtime access 与相关 response schema 必须统一到更清晰的 formal control/runtime contract：auth/error 主链一致、service payload shape 稳定、动态导入/反射式探测继续下降。
+- [ ] **DOM-03**: `LiproDevice`、`CapabilitySnapshot`、entity descriptors 与平台能力消费协议必须进一步收口到单一领域真源；死接口、重复透传属性与双轨 capability 语义不得继续扩散。
+- [ ] **OTA-01**: firmware update entity 必须回到 projection + action bridge 身份；manifest 读取、row arbitration、cache/hot-path I/O 与 install policy 应进一步下沉到更合适的 service/helper home。
+- [ ] **TST-01**: platform/domain test layering 必须纠偏：平台测试优先验证真实 entity adapter，领域测试验证 device/capability semantics，OTA 策略测试不再长期停留在 platform test home。
+- [ ] **DOC-02**: troubleshooting、contributor navigation、maintainer release runbook 与 `scripts/develop` 等本地 DX 入口必须与高治理仓库的真实维护路径对齐，降低新贡献者与单维护者的操作负担。
+
 ## Cross-Phase Arbitration
 
 - `07.3` 锁定 telemetry contracts / redaction / cardinality / timestamp-pseudo-id compatibility
@@ -109,6 +123,7 @@
 - `13` 锁定显式设备域表面、runtime/status 热点 helper 边界与公开治理资产结构化守卫；后续 closeout 不得重新引入 device/state 动态委托
 - `14` 锁定 legacy stack final closure、API spine demolition、helper-home extraction 与 governance truth consolidation；后续 milestone audit 不得再把 `Coordinator.client`、`ScheduleApiService` 或 helper-home modules 回流成正式 surface
 - `15` 锁定 developer feedback contract、governance truth repair、contributor/install docs sync、support hotspot follow-through 与 testing/tooling gate clarification；不得因修补支持面问题而重开第二条正式主链
+- `16` 锁定 post-audit truth alignment、hotspot decomposition、type/exception tightening、residual endgame、domain/entity/OTA rationalization 与 contributor DX follow-through；不得因为收尾改进而重开第二条正式主链、第二套 protocol/runtime story 或无 gate rename campaign
 
 ## Future Requirements
 
@@ -188,10 +203,21 @@
 | QLT-01 | Phase 15 | Complete |
 | TYP-03 | Phase 15 | Complete |
 | RES-01 | Phase 15 | Complete |
+| GOV-14 | Phase 16 | Planned |
+| QLT-02 | Phase 16 | Planned |
+| HOT-04 | Phase 16 | Planned |
+| TYP-04 | Phase 16 | Planned |
+| ERR-01 | Phase 16 | Planned |
+| RES-02 | Phase 16 | Planned |
+| CTRL-06 | Phase 16 | Planned |
+| DOM-03 | Phase 16 | Planned |
+| OTA-01 | Phase 16 | Planned |
+| TST-01 | Phase 16 | Planned |
+| DOC-02 | Phase 16 | Planned |
 
 **Coverage:**
-- active milestone requirements: 54 total
-- mapped to phases: 54
+- active milestone requirements: 65 total
+- mapped to phases: 65
 - unmapped: 0 ✓
 
-*Last updated: 2026-03-15 after completing Phase 15*
+*Last updated: 2026-03-15 after planning Phase 16 scope*

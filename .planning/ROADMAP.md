@@ -3,7 +3,7 @@
 ## Milestones
 
 - ✅ **v1.0 North Star Rebuild** - Phases 1-7 (+ 1.5 / 2.5 / 2.6), shipped 2026-03-13
-- 🚧 **v1.1 Protocol Fidelity & Operability** - Phases 7.1-15 complete; milestone ready for closeout review (updated 2026-03-15)
+- 🚧 **v1.1 Protocol Fidelity & Operability** - Phases 7.1-15 complete; Phase 16 planned for post-audit closeout hardening (updated 2026-03-15)
 
 ## Required Phase Outputs
 
@@ -28,7 +28,7 @@
 
 **Milestone Goal:** 在不破坏既有北极星单一主链的前提下，正式引入 boundary decoder family、architecture policy enforcement、runtime telemetry exporter、replay evidence，并把已登记 residual surfaces 收口到显式、可删除、可验证的最小集合。
 
-**Current Status:** `Phase 7.1` 到 `Phase 15` 已全部完成（5 plans / 3 waves，2026-03-15）；`v1.1` 现处于 active closeout-ready 状态。
+**Current Status:** `Phase 7.1` 到 `Phase 15` 已全部完成（48/48 plans executed，2026-03-15）；`Phase 16` 已规划完成（6 plans / 3 waves），`v1.1` 转入 post-audit closeout hardening。
 
 ### Phase 7.1: Protocol Boundary Schema/Decoder 收口
 **Goal**: 把 REST/MQTT 的 decode authority 收口到 protocol boundary family，形成可版本化 schema/decoder registry，同时阻断 raw payload 穿透。
@@ -189,6 +189,7 @@ Plans:
 | 13 Explicit Domain Surface, Governance Guard Hardening & Hotspot Boundary Decomposition | v1.1 | 3/3 | Complete | 2026-03-14 |
 | 14 Legacy Stack Final Closure, API Spine Demolition & Governance Truth Consolidation | v1.1 | 4/4 | Complete | 2026-03-15 |
 | 15 Support Feedback Contract Hardening, Governance Truth Repair & Maintainability Follow-Through | v1.1 | 5/5 | Complete | 2026-03-15 |
+| 16 Post-audit Truth Alignment, Hotspot Decomposition & Residual Endgame | v1.1 | 0/6 | Planned | - |
 
 ### Phase 11: Control Router Formalization & Wiring Residual Demotion
 
@@ -270,3 +271,25 @@ Plans:
 - [x] 15-03: install support and version truth sync (completed 2026-03-15)
 - [x] 15-04: support hotspot decomposition and runtime-access typing narrowing (completed 2026-03-15)
 - [x] 15-05: tooling security and residual policy arbitration (completed 2026-03-15)
+
+### Phase 16: Post-audit truth alignment, hotspot decomposition, and residual endgame
+
+**Goal:** 在不偏离北极星单一正式主链的前提下，把终极审阅确认仍然成立的剩余问题统一收口：校准治理/工具链真相，拆薄 `core/api` / `core/protocol` / `core/coordinator` / `control` / domain / OTA 热点，继续收紧类型与异常语义，削弱 residual/compat 认知债，并补齐测试分层与开源 DX 跟进。
+**Requirements**: [GOV-14, QLT-02, HOT-04, TYP-04, ERR-01, RES-02, CTRL-06, DOM-03, OTA-01, TST-01, DOC-02]
+**Depends on:** Phase 15
+**Success Criteria**:
+  1. `AGENTS.md`、`PROJECT.md`、`ROADMAP.md`、`STATE.md`、baseline/review truth 与 `.planning/codebase/*` policy 对活跃 phase / residual / authority / toolchain 讲同一条故事，不再出现已关闭 seam 被误记为 active residual 的冲突。
+  2. Python / Ruff / pre-commit / devcontainer / pytest marker truth 完全对齐，测试与 lint 规则集不再出现“运行时 3.14、规则仍按 3.13”这类认知漂移。
+  3. `LiproRestFacade`、`LiproProtocolFacade`、`Coordinator`、`service_router.py`、`config_flow.py`、`firmware_update.py` 等热点沿正式边界继续拆薄，strategy / normalizer / exception mapping / helper glue 进一步下沉。
+  4. `core/api` helper spine、`LiproMqttClient` residual naming、`get_auth_data()` fallback、多态 power compat envelope 等 remaining residual 都有更窄、更诚实的本地语义，不再对新维护者形成正式故事线错觉。
+  5. device / capability / entity / OTA / platform test layering 更接近单一领域真源：`LiproDevice` 不再继续膨胀成第二套 public surface，capability 消费协议与 OTA projection/service 边界更清晰。
+  6. troubleshooting / contributor navigation / release runbook / local develop workflow 与 CI / docs / support truth 对齐，开源维护体验与当前高治理仓库的真实复杂度相匹配。
+**Plans:** 6 planned across 3 waves
+
+Plans:
+- [ ] 16-01: governance truth calibration and codebase-map policy arbitration
+- [ ] 16-02: toolchain truth alignment and local DX contract cleanup
+- [ ] 16-03: control/service contract unification and response-shape stabilization
+- [ ] 16-04: protocol/runtime hotspot decomposition, typing narrowing, and exception semantics tightening
+- [ ] 16-05: domain/entity/OTA surface rationalization
+- [ ] 16-06: test-layer correction and open-source maintenance follow-through
