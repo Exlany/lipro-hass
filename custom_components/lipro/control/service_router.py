@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 import re
-from typing import Any, Final
+from typing import Any, Final, cast
 
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
@@ -21,6 +21,9 @@ from ..services.device_lookup import (
     get_device_and_coordinator as _get_device_and_coordinator_service,
 )
 from ..services.diagnostics import (
+    AnonymousShareManagerFactory,
+    DiagnosticsCoordinator,
+    DiagnosticsDevice,
     async_handle_fetch_body_sensor_history as _async_handle_fetch_body_sensor_history_service,
     async_handle_fetch_door_sensor_history as _async_handle_fetch_door_sensor_history_service,
     async_handle_get_city as _async_handle_get_city_service,
@@ -81,13 +84,15 @@ def _summarize_service_properties(properties: Any) -> dict[str, Any]:
 async def _get_developer_device_and_coordinator(
     hass: HomeAssistant,
     call: ServiceCall,
-) -> tuple[LiproDevice, LiproCoordinator]:
+) -> tuple[DiagnosticsDevice, DiagnosticsCoordinator]:
     """Resolve one device/coordinator pair and require debug-mode opt-in."""
     device, coordinator = await _get_device_and_coordinator(hass, call)
     if not _is_developer_runtime_coordinator(hass, coordinator):
         entry = _find_runtime_entry_for_coordinator(hass, coordinator)
-        _raise_developer_mode_not_enabled(entry_id=getattr(entry, "entry_id", None))
-    return device, coordinator
+        _raise_developer_mode_not_enabled(
+            entry_id=entry.entry_id if entry is not None else None
+        )
+    return cast(DiagnosticsDevice, device), cast(DiagnosticsCoordinator, coordinator)
 
 
 def _log_send_command_call(
@@ -205,7 +210,9 @@ async def async_handle_submit_anonymous_share(
     return await _async_handle_submit_anonymous_share_service(
         hass,
         call,
-        get_anonymous_share_manager=get_anonymous_share_manager,
+        get_anonymous_share_manager=cast(
+            AnonymousShareManagerFactory, get_anonymous_share_manager
+        ),
         get_client_session=async_get_clientsession,
         raise_service_error=_raise_service_error,
         domain=DOMAIN,
@@ -282,7 +289,9 @@ async def async_handle_get_city(
     return await _async_handle_get_city_service(
         hass,
         call,
-        iter_runtime_coordinators=lambda _hass: iter(coordinators),
+        iter_runtime_coordinators=lambda _hass: (
+            cast(DiagnosticsCoordinator, coordinator) for coordinator in coordinators
+        ),
         raise_optional_error=_raise_optional_capability_error,
         service_get_city=_contracts.SERVICE_GET_CITY,
     )
@@ -296,7 +305,9 @@ async def async_handle_query_user_cloud(
     return await _async_handle_query_user_cloud_service(
         hass,
         call,
-        iter_runtime_coordinators=lambda _hass: iter(coordinators),
+        iter_runtime_coordinators=lambda _hass: (
+            cast(DiagnosticsCoordinator, coordinator) for coordinator in coordinators
+        ),
         raise_optional_error=_raise_optional_capability_error,
         service_query_user_cloud=_contracts.SERVICE_QUERY_USER_CLOUD,
     )

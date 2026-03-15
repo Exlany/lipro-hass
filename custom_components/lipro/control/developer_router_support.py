@@ -4,19 +4,25 @@ from __future__ import annotations
 
 from collections.abc import Awaitable, Callable, Iterator
 import logging
-from typing import Any, NoReturn
+from typing import Any, NoReturn, TypeVar
 
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.exceptions import ServiceValidationError
 
 from ..const.base import DOMAIN
 from ..core import LiproApiError
+from ..runtime_types import LiproCoordinator
 from ..services import contracts as _contracts
 from ..services.diagnostics import (
     async_call_optional_capability as _async_call_optional_capability_service,
     build_sensor_history_result as _build_sensor_history_result_service,
     collect_developer_reports as _collect_developer_reports_service,
     raise_optional_capability_error as _raise_optional_capability_error_service,
+)
+from ..services.diagnostics.types import (
+    DeveloperReport,
+    DeveloperReportCoordinatorIterator,
+    GetDeviceAndCoordinator,
 )
 from ..services.errors import raise_service_error as _raise_service_error
 from .runtime_access import (
@@ -27,17 +33,21 @@ from .runtime_access import (
 )
 
 _LOGGER = logging.getLogger(__name__)
+_ResultT = TypeVar("_ResultT")
 
 
 def build_single_runtime_coordinator_iterator(
-    coordinator: object,
-) -> Callable[[HomeAssistant], Iterator[object]]:
+    coordinator: LiproCoordinator,
+) -> DeveloperReportCoordinatorIterator:
     """Build a stable iterator factory for one runtime coordinator."""
 
-    def _iter_single_runtime_coordinator(_hass: HomeAssistant) -> Iterator[object]:
+    def _iter_single_runtime_coordinator(
+        _hass: HomeAssistant,
+    ) -> Iterator[LiproCoordinator]:
         return iter((coordinator,))
 
     return _iter_single_runtime_coordinator
+
 
 
 def raise_developer_mode_not_enabled(*, entry_id: str | None = None) -> NoReturn:
@@ -49,11 +59,12 @@ def raise_developer_mode_not_enabled(*, entry_id: str | None = None) -> NoReturn
     )
 
 
+
 def collect_developer_reports(
     hass: HomeAssistant,
     *,
     requested_entry_id: str | None = None,
-) -> list[dict[str, Any]]:
+) -> list[DeveloperReport]:
     """Collect developer reports from debug-enabled runtime entries only."""
     if requested_entry_id is not None:
         for entry in _iter_runtime_entries(hass, entry_id=requested_entry_id):
@@ -88,6 +99,7 @@ def collect_developer_reports(
     )
 
 
+
 def raise_optional_capability_error(capability: str, err: LiproApiError) -> NoReturn:
     """Raise a concise service-layer error for optional diagnostic capabilities."""
     _raise_optional_capability_error_service(capability, err, logger=_LOGGER)
@@ -95,9 +107,9 @@ def raise_optional_capability_error(capability: str, err: LiproApiError) -> NoRe
 
 async def async_call_optional_capability(
     capability: str,
-    method: Callable[..., Awaitable[Any]],
+    method: Callable[..., Awaitable[_ResultT]],
     **kwargs: Any,
-) -> Any:
+) -> _ResultT:
     """Call optional capability API and map auth/API failures to service errors."""
     return await _async_call_optional_capability_service(
         capability,
@@ -112,11 +124,11 @@ async def async_handle_fetch_sensor_history(
     hass: HomeAssistant,
     call: ServiceCall,
     *,
-    service_handler: Callable[..., Awaitable[dict[str, Any]]],
+    service_handler: Callable[..., Awaitable[dict[str, object]]],
     service_name_kw: str,
     service_name: str,
-    get_device_and_coordinator: Callable[..., Awaitable[tuple[Any, Any]]],
-) -> dict[str, Any]:
+    get_device_and_coordinator: GetDeviceAndCoordinator,
+) -> dict[str, object]:
     """Shared wrapper for body/door sensor-history service handlers."""
     return await service_handler(
         hass,

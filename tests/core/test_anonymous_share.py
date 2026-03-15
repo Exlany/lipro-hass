@@ -1150,7 +1150,50 @@ async def test_submit_developer_feedback_matches_boundary_fixture() -> None:
     submit_share_payload = AsyncMock(return_value=True)
     mgr._share_client = MagicMock(submit_share_payload=submit_share_payload)
 
-    result = await mgr.submit_developer_feedback(session, {"note": "manual run"})
+    result = await mgr.submit_developer_feedback(
+        session,
+        {
+            "note": "manual run",
+            "requested_entry_id": "entry-2",
+            "reports": [
+                {
+                    "name": "Bedroom Gateway",
+                    "iotName": "lipro_gateway",
+                    "deviceName": "Bedroom Gateway Alias",
+                    "roomName": "Master Bedroom",
+                    "productName": "Evening Scene",
+                    "panel_capability_snapshot": {
+                        "panels": [
+                            {
+                                "name": "Wall Panel",
+                                "iot_name": "21JD",
+                                "panel_info": [{"keyName": "Bedside"}],
+                            }
+                        ]
+                    },
+                    "ir_remote_inventory_snapshot": {
+                        "gateways": [
+                            {
+                                "name": "Main Gateway",
+                                "rc_list": [
+                                    {
+                                        "name": "Fan Light Remote",
+                                        "address": "masked-remote-address",
+                                    }
+                                ],
+                            }
+                        ],
+                        "ir_remote_devices": [
+                            {
+                                "name": "TV Remote",
+                                "gateway_device_id": "masked-gateway-id",
+                            }
+                        ],
+                    },
+                }
+            ],
+        },
+    )
 
     assert result is True
     assert submit_share_payload.await_args is not None

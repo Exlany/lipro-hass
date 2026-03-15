@@ -147,9 +147,7 @@ async def async_handle_query_command_result(
     raise_service_error: ServiceErrorRaiser,
 ) -> dict[str, object]:
     """Handle the query_command_result service."""
-    raw_device, raw_coordinator = await get_device_and_coordinator(hass, call)
-    device = cast(DiagnosticsDevice, raw_device)
-    coordinator = cast(DiagnosticsCoordinator, raw_coordinator)
+    device, coordinator = await get_device_and_coordinator(hass, call)
     return await _async_query_command_result_with_optional_polling(
         coordinator=coordinator,
         device=device,
@@ -179,7 +177,7 @@ async def async_handle_get_city(
     """Handle the get_city service."""
     del call
     has_result, result, last_err = await _async_get_first_coordinator_capability_result(
-        (cast(DiagnosticsCoordinator, coordinator) for coordinator in iter_runtime_coordinators(hass)),
+        iter_runtime_coordinators(hass),
         capability="get_city",
         collector=lambda coordinator: coordinator.async_get_city(),
     )
@@ -201,7 +199,7 @@ async def async_handle_query_user_cloud(
     """Handle the query_user_cloud service."""
     del call
     has_result, result, last_err = await _async_get_first_coordinator_capability_result(
-        (cast(DiagnosticsCoordinator, coordinator) for coordinator in iter_runtime_coordinators(hass)),
+        iter_runtime_coordinators(hass),
         capability="query_user_cloud",
         collector=lambda coordinator: coordinator.async_query_user_cloud(),
     )
@@ -225,9 +223,7 @@ async def _async_handle_fetch_sensor_history(
     get_client_method: Callable[[DiagnosticsCoordinator], SensorHistoryClientMethod],
 ) -> dict[str, object]:
     """Shared handler for sensor-history diagnostics services."""
-    raw_device, raw_coordinator = await get_device_and_coordinator(hass, call)
-    device = cast(DiagnosticsDevice, raw_device)
-    coordinator = cast(DiagnosticsCoordinator, raw_coordinator)
+    device, coordinator = await get_device_and_coordinator(hass, call)
     sensor_device_id = _get_required_service_string(call, attr_sensor_device_id)
     mesh_type = _get_required_service_string(call, attr_mesh_type)
     result = await async_call_optional_capability(

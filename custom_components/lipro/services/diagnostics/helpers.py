@@ -20,6 +20,7 @@ from ...control.runtime_access import (
     find_runtime_entry_for_coordinator as _find_runtime_entry_for_coordinator,
 )
 from ...core import LiproApiError
+from ...core.anonymous_share.report_builder import project_developer_feedback_upload
 from ...core.api.types import DiagnosticsApiResponse
 from ...core.utils.log_safety import safe_error_placeholder
 from ...runtime_types import LiproCoordinator
@@ -32,12 +33,11 @@ from .types import (
     AnonymousShareManagerFactory,
     ClientSessionGetter,
     DeveloperFeedbackResponse,
-    DeveloperFeedbackShareManager,
     DeveloperReport,
     DeveloperReportCollector,
+    DeveloperReportCoordinatorIterator,
     DeveloperReportResponse,
     DiagnosticsCoordinator,
-    RuntimeCoordinatorIterator,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -151,7 +151,7 @@ async def _async_get_first_coordinator_capability_result(
 def collect_developer_reports(
     hass: HomeAssistant,
     *,
-    iter_runtime_coordinators: RuntimeCoordinatorIterator,
+    iter_runtime_coordinators: DeveloperReportCoordinatorIterator,
 ) -> list[DeveloperReport]:
     """Collect developer reports from active config entries."""
     reports: list[DeveloperReport] = []
@@ -162,7 +162,7 @@ def collect_developer_reports(
                 reports.append(cast(DeveloperReport, builder()))
                 continue
             exporter_report = _collect_exporter_developer_report(
-                hass, cast("LiproCoordinator", coordinator)
+                hass, coordinator
             )
             if exporter_report is not None:
                 reports.append(exporter_report)
@@ -190,7 +190,7 @@ def build_developer_feedback_payload(
         "generated_at": datetime.now(UTC).isoformat(),
         "entry_count": len(reports),
         "note": note,
-        "reports": reports,
+        "reports": cast(list[DeveloperReport], project_developer_feedback_upload(reports)),
     }
     if requested_entry_id is not None:
         payload["requested_entry_id"] = requested_entry_id
@@ -253,9 +253,8 @@ async def async_handle_submit_developer_feedback(
         requested_entry_id=requested_entry_id,
     )
 
-    share_manager = cast(
-        DeveloperFeedbackShareManager,
-        get_anonymous_share_manager(hass, entry_id=requested_entry_id),
+    share_manager = get_anonymous_share_manager(
+        hass, entry_id=requested_entry_id
     )
     success = await share_manager.submit_developer_feedback(
         get_client_session(hass),

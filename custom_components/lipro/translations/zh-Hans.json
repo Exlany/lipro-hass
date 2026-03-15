@@ -337,7 +337,7 @@
     },
     "get_developer_report": {
       "name": "获取开发者报告",
-      "description": "导出脱敏运行诊断报告，用于真实设备调试。包含 mesh 拓扑快照、面板能力快照、红外资产快照、最近命令轨迹和运行选项。",
+      "description": "导出脱敏运行诊断报告，用于本地真实设备调试。该本地视图会保留 iotName 等供应商诊断标识与本地标签，方便识别正在测试的设备。",
       "fields": {
         "entry_id": {
           "name": "配置项 ID",
@@ -347,7 +347,7 @@
     },
     "submit_developer_feedback": {
       "name": "提交开发者反馈",
-      "description": "一键提交脱敏开发者诊断到 share worker，可附带备注便于排查。",
+      "description": "一键提交开发者诊断到 share worker。上传会保留 iotName 等供应商诊断标识，但会匿名化设备/房间/面板/红外资产名称等用户自定义标签；可附带备注便于排查。",
       "fields": {
         "entry_id": {
           "name": "配置项 ID",

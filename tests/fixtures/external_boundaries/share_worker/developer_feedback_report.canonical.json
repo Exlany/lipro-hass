@@ -9,6 +9,45 @@
   "devices": [],
   "errors": [],
   "developer_feedback": {
-    "note": "manual run"
+    "note": "manual run",
+    "reports": [
+      {
+        "name": "[user_label]",
+        "iotName": "lipro_gateway",
+        "productName": "[user_product_label]",
+        "panel_capability_snapshot": {
+          "panels": [
+            {
+              "name": "[user_label]",
+              "iot_name": "21JD",
+              "panel_info": [
+                {
+                  "keyName": {}
+                }
+              ]
+            }
+          ]
+        },
+        "ir_remote_inventory_snapshot": {
+          "gateways": [
+            {
+              "name": "[user_label]",
+              "rc_list": [
+                {
+                  "name": {},
+                  "address": {}
+                }
+              ]
+            }
+          ],
+          "ir_remote_devices": [
+            {
+              "name": "[user_label]"
+            }
+          ]
+        }
+      }
+    ],
+    "requested_entry_id": "entry-2"
   }
 }

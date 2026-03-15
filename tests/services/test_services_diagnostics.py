@@ -15,6 +15,7 @@ from custom_components.lipro.services.diagnostics import (
     async_handle_get_developer_report,
     async_handle_query_user_cloud,
     async_handle_submit_developer_feedback,
+    build_developer_feedback_payload,
     collect_developer_reports,
 )
 from custom_components.lipro.services.diagnostics.handlers import (
@@ -28,6 +29,38 @@ from custom_components.lipro.services.diagnostics.helpers import (
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 from tests.helpers.service_call import service_call
+
+
+def _developer_feedback_report_fixture() -> dict[str, object]:
+    return {
+        "name": "Bedroom Gateway",
+        "iotName": "lipro_gateway",
+        "deviceName": "Bedroom Gateway Alias",
+        "roomName": "Master Bedroom",
+        "productName": "Evening Scene",
+        "panel_capability_snapshot": {
+            "panels": [
+                {
+                    "name": "Wall Panel",
+                    "iot_name": "21JD",
+                    "panel_info": [{"keyName": "Bedside"}],
+                }
+            ]
+        },
+        "ir_remote_inventory_snapshot": {
+            "gateways": [
+                {
+                    "name": "Main Gateway",
+                    "rc_list": [
+                        {"name": "Fan Light Remote", "address": "masked-remote-address"}
+                    ],
+                }
+            ],
+            "ir_remote_devices": [
+                {"name": "TV Remote", "gateway_device_id": "masked-gateway-id"}
+            ],
+        },
+    }
 
 
 def _build_report_coordinator(
@@ -227,7 +260,7 @@ async def test_async_handle_get_developer_report_forwards_entry_id() -> None:
     """get_developer_report should scope collection when entry_id is provided."""
     hass = cast(HomeAssistant, MagicMock())
     call = service_call(hass, {"entry_id": "entry-2"})
-    collect_reports = MagicMock(return_value=[{"runtime": {"ok": True}}])
+    collect_reports = MagicMock(return_value=[_developer_feedback_report_fixture()])
 
     result = await async_handle_get_developer_report(
         hass,
@@ -238,7 +271,7 @@ async def test_async_handle_get_developer_report_forwards_entry_id() -> None:
 
     assert result == {
         "entry_count": 1,
-        "reports": [{"runtime": {"ok": True}}],
+        "reports": [_developer_feedback_report_fixture()],
         "requested_entry_id": "entry-2",
     }
     collect_reports.assert_called_once_with(hass, requested_entry_id="entry-2")
@@ -249,7 +282,7 @@ async def test_async_handle_submit_developer_feedback_forwards_entry_id() -> Non
     """submit_developer_feedback should forward scoped entry_id to report collection and share manager."""
     hass = cast(HomeAssistant, MagicMock())
     call = service_call(hass, {"entry_id": "entry-2", "note": "manual run"})
-    collect_reports = MagicMock(return_value=[{"runtime": {"ok": True}}])
+    collect_reports = MagicMock(return_value=[_developer_feedback_report_fixture()])
     share_manager = MagicMock()
     share_manager.submit_developer_feedback = AsyncMock(return_value=True)
     get_anonymous_share_manager = MagicMock(return_value=share_manager)
@@ -278,8 +311,16 @@ async def test_async_handle_submit_developer_feedback_forwards_entry_id() -> Non
     collect_reports.assert_called_once_with(hass, requested_entry_id="entry-2")
     get_anonymous_share_manager.assert_called_once_with(hass, entry_id="entry-2")
     share_manager.submit_developer_feedback.assert_awaited_once()
+    from custom_components.lipro.core.anonymous_share.report_builder import (
+        canonicalize_generated_payload,
+    )
+    from tests.helpers.external_boundary_fixtures import load_external_boundary_fixture
+
     payload = share_manager.submit_developer_feedback.await_args.args[1]
-    assert payload["requested_entry_id"] == "entry-2"
+    assert canonicalize_generated_payload(payload) == load_external_boundary_fixture(
+        "support_payload",
+        "developer_feedback_service.canonical.json",
+    )
 
 
 @pytest.mark.asyncio
@@ -412,13 +453,10 @@ def test_build_developer_feedback_payload_matches_boundary_fixture() -> None:
     from custom_components.lipro.core.anonymous_share.report_builder import (
         canonicalize_generated_payload,
     )
-    from custom_components.lipro.services.diagnostics import (
-        build_developer_feedback_payload,
-    )
     from tests.helpers.external_boundary_fixtures import load_external_boundary_fixture
 
     payload = build_developer_feedback_payload(
-        reports=[{"runtime": {"ok": True}}],
+        reports=[_developer_feedback_report_fixture()],
         note="manual run",
         domain="lipro",
         service_name="submit_developer_feedback",

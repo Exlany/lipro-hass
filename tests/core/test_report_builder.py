@@ -121,3 +121,56 @@ def test_build_lite_report_truncates_string_developer_feedback() -> None:
     lite = build_lite_report(report)
 
     assert lite["developer_feedback"] == long_feedback[:2000]
+
+
+def test_build_developer_feedback_report_matches_boundary_fixture() -> None:
+    report = build_developer_feedback_report(
+        installation_id="install-001",
+        ha_version="2026.3.0",
+        feedback={
+            "note": "manual run",
+            "requested_entry_id": "entry-2",
+            "reports": [
+                {
+                    "name": "Bedroom Gateway",
+                    "iotName": "lipro_gateway",
+                    "deviceName": "Bedroom Gateway Alias",
+                    "roomName": "Master Bedroom",
+                    "productName": "Evening Scene",
+                    "panel_capability_snapshot": {
+                        "panels": [
+                            {
+                                "name": "Wall Panel",
+                                "iot_name": "21JD",
+                                "panel_info": [{"keyName": "Bedside"}],
+                            }
+                        ]
+                    },
+                    "ir_remote_inventory_snapshot": {
+                        "gateways": [
+                            {
+                                "name": "Main Gateway",
+                                "rc_list": [
+                                    {
+                                        "name": "Fan Light Remote",
+                                        "address": "masked-remote-address",
+                                    }
+                                ],
+                            }
+                        ],
+                        "ir_remote_devices": [
+                            {
+                                "name": "TV Remote",
+                                "gateway_device_id": "masked-gateway-id",
+                            }
+                        ],
+                    },
+                }
+            ],
+        },
+    )
+
+    assert canonicalize_generated_payload(report) == load_external_boundary_fixture(
+        "share_worker",
+        "developer_feedback_report.canonical.json",
+    )

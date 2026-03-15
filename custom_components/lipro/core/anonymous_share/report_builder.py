@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 from datetime import UTC, datetime
-from typing import Any
+from typing import Any, Final
 
 from ...const.base import VERSION
 from .models import SharedDevice, SharedError
@@ -15,6 +15,17 @@ TIMESTAMP_PLACEHOLDER = "<timestamp>"
 _CANONICAL_DYNAMIC_FIELDS = {
     "generated_at": GENERATED_AT_PLACEHOLDER,
     "timestamp": TIMESTAMP_PLACEHOLDER,
+}
+_DEVELOPER_FEEDBACK_LABEL_PLACEHOLDERS: Final[dict[str, str]] = {
+    "name": "[user_label]",
+    "deviceName": "[user_device_label]",
+    "device_name": "[user_device_label]",
+    "roomName": "[user_room_label]",
+    "room_name": "[user_room_label]",
+    "productName": "[user_product_label]",
+    "product_name": "[user_product_label]",
+    "keyName": "[user_panel_key_label]",
+    "key_name": "[user_panel_key_label]",
 }
 
 
@@ -36,6 +47,23 @@ def canonicalize_generated_payload(payload: Mapping[str, Any]) -> dict[str, Any]
         msg = "Generated payload canonicalization must return a mapping"
         raise TypeError(msg)
     return canonical
+
+
+def project_developer_feedback_upload(value: Any) -> Any:
+    """Project developer-feedback payloads to the upload privacy contract."""
+    if isinstance(value, dict):
+        projected: dict[str, Any] = {}
+        for key, item in value.items():
+            placeholder = _DEVELOPER_FEEDBACK_LABEL_PLACEHOLDERS.get(key)
+            if placeholder is not None and isinstance(item, str):
+                normalized = item.strip()
+                projected[key] = placeholder if normalized else item
+                continue
+            projected[key] = project_developer_feedback_upload(item)
+        return projected
+    if isinstance(value, list):
+        return [project_developer_feedback_upload(item) for item in value]
+    return value
 
 
 def build_anonymous_share_report(
@@ -66,7 +94,8 @@ def build_developer_feedback_report(
     feedback: dict[str, Any],
 ) -> dict[str, Any]:
     """Build one developer-feedback report payload."""
-    sanitized_feedback = sanitize_value(feedback, preserve_structure=True)
+    projected_feedback = project_developer_feedback_upload(feedback)
+    sanitized_feedback = sanitize_value(projected_feedback, preserve_structure=True)
     if not isinstance(sanitized_feedback, dict):
         sanitized_feedback = {"value": sanitized_feedback}
 

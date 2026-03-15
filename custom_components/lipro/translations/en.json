@@ -337,7 +337,7 @@
     },
     "get_developer_report": {
       "name": "Get Developer Report",
-      "description": "Export a sanitized runtime diagnostics report for real-device debugging. Includes mesh topology snapshot, panel capability snapshot, IR remote inventory snapshot, recent command traces, and runtime options.",
+      "description": "Export a redacted runtime diagnostics report for local real-device debugging. This local view keeps vendor diagnosis identifiers such as iotName and local labels so you can identify the device under test.",
       "fields": {
         "entry_id": {
           "name": "Entry ID",
@@ -347,7 +347,7 @@
     },
     "submit_developer_feedback": {
       "name": "Submit Developer Feedback",
-      "description": "One-click submit sanitized developer diagnostics to the share worker. Optionally include a note for easier triage.",
+      "description": "One-click submit developer diagnostics to the share worker. Upload keeps vendor diagnosis identifiers such as iotName, but anonymizes user-defined labels such as device/room/panel/IR names. Optionally include a note for easier triage.",
       "fields": {
         "entry_id": {
           "name": "Entry ID",
