@@ -3,7 +3,7 @@
 ## Milestones
 
 - ✅ **v1.0 North Star Rebuild** - Phases 1-7 (+ 1.5 / 2.5 / 2.6), shipped 2026-03-13
-- 🚧 **v1.1 Protocol Fidelity & Operability** - Phases 7.1-15 complete; Phase 16 planned for post-audit closeout hardening (updated 2026-03-15)
+- 🚧 **v1.1 Protocol Fidelity & Operability** - Phases 7.1-15 complete; Phase 16 executing for post-audit closeout hardening (Wave 1 complete, updated 2026-03-15)
 
 ## Required Phase Outputs
 
@@ -189,7 +189,7 @@ Plans:
 | 13 Explicit Domain Surface, Governance Guard Hardening & Hotspot Boundary Decomposition | v1.1 | 3/3 | Complete | 2026-03-14 |
 | 14 Legacy Stack Final Closure, API Spine Demolition & Governance Truth Consolidation | v1.1 | 4/4 | Complete | 2026-03-15 |
 | 15 Support Feedback Contract Hardening, Governance Truth Repair & Maintainability Follow-Through | v1.1 | 5/5 | Complete | 2026-03-15 |
-| 16 Post-audit Truth Alignment, Hotspot Decomposition & Residual Endgame | v1.1 | 0/6 | Planned | - |
+| 16 Post-audit Truth Alignment, Hotspot Decomposition & Residual Endgame | v1.1 | 2/6 | In Progress | 2026-03-15 |
 
 ### Phase 11: Control Router Formalization & Wiring Residual Demotion
 
@@ -278,7 +278,7 @@ Plans:
 **Requirements**: [GOV-14, QLT-02, HOT-04, TYP-04, ERR-01, RES-02, CTRL-06, DOM-03, OTA-01, TST-01, DOC-02]
 **Depends on:** Phase 15
 **Success Criteria**:
-  1. `AGENTS.md`、`PROJECT.md`、`ROADMAP.md`、`STATE.md`、baseline/review truth 与 `.planning/codebase/*` policy 对活跃 phase / residual / authority / toolchain 讲同一条故事，不再出现已关闭 seam 被误记为 active residual 的冲突。
+  1. `AGENTS.md`、`PROJECT.md`、`ROADMAP.md`、`STATE.md`、baseline/review truth 与 `.planning/codebase/*` policy 对活跃 phase / residual / authority / toolchain 讲同一条故事，不再出现已关闭 seam 被误记为 active residual 的冲突；`.planning/codebase/*` 明确只作为 derived collaboration maps。
   2. Python / Ruff / pre-commit / devcontainer / pytest marker truth 完全对齐，测试与 lint 规则集不再出现“运行时 3.14、规则仍按 3.13”这类认知漂移，`scripts/develop` 的非破坏性也有显式 smoke/manual gate。
   3. `LiproRestFacade`、`LiproProtocolFacade`、`Coordinator`、`service_router.py`、`config_flow.py`、`firmware_update.py` 及其 second-pass 暴露的 entry-lifecycle / diagnostics / telemetry / request-policy / status-fallback / mqtt-runtime / rest-decoder 等 secondary hotspots 都被纳入明确计划，不存在高风险热点游离于计划之外。
   4. `Any` / `type: ignore` / reflection / catch-all exception 的收口有真实 contract 与异常语义结果，热点文件需记录 before/after 指标，且关键 debt 不得净增。
@@ -288,8 +288,8 @@ Plans:
 **Plans:** 6 planned across 3 waves
 
 Plans:
-- [ ] 16-01: governance truth calibration and codebase-map policy arbitration
-- [ ] 16-02: toolchain truth alignment and local DX contract cleanup
+- [x] 16-01: governance truth calibration and codebase-map policy arbitration (completed 2026-03-15)
+- [x] 16-02: toolchain truth alignment and local DX contract cleanup (completed 2026-03-15)
 - [ ] 16-03: control/service contract unification and response-shape stabilization
 - [ ] 16-04: protocol/runtime hotspot decomposition, typing narrowing, and exception semantics tightening
 - [ ] 16-05: domain/entity/OTA surface rationalization

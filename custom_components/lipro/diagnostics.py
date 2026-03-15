@@ -46,9 +46,20 @@ def _redact_property_value(value: Any, key: str | None = None) -> Any:
     return _redact_property_value_surface(value, key)
 
 
-def _redact_device_properties(properties: dict[str, Any]) -> dict[str, Any]:
+def _redact_device_properties(properties: object) -> dict[str, Any]:
     """Redact sensitive keys from device properties."""
+    if not isinstance(properties, dict):
+        return {}
     return _redact_device_properties_surface(properties)
+
+
+def _get_anonymous_share_manager_for_diagnostics(
+    hass: HomeAssistant,
+    *,
+    entry_id: str | None = None,
+) -> Any:
+    """Resolve the anonymous-share manager for diagnostics surfaces."""
+    return get_anonymous_share_manager(hass, entry_id=entry_id)
 
 
 def _build_device_diagnostics(device: LiproDevice) -> dict[str, Any]:
@@ -72,7 +83,7 @@ async def async_get_config_entry_diagnostics(
     return await _async_get_config_entry_diagnostics_surface(
         hass,
         entry,
-        get_anonymous_share_manager=get_anonymous_share_manager,
+        get_anonymous_share_manager=_get_anonymous_share_manager_for_diagnostics,
         async_redact_data=async_redact_data,
         redact_entry_title=_redact_entry_title,
         build_device_diagnostics_fn=_build_device_diagnostics,
@@ -95,7 +106,7 @@ async def async_get_device_diagnostics(
         async_redact_data=async_redact_data,
         redact_entry_title=_redact_entry_title,
         build_device_diagnostics_fn=_build_device_diagnostics,
-        extract_device_serial_fn=_extract_device_serial_surface,
+        extract_device_serial_fn=_extract_device_serial,
         to_redact=TO_REDACT,
         options_to_redact=OPTIONS_TO_REDACT,
     )

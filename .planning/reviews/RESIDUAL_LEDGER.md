@@ -18,6 +18,7 @@
 - `Domain dynamic delegation` 已在 Phase 13 关闭：`LiproDevice.__getattr__` / `DeviceState.__getattr__` 已移除，`custom_components/lipro/core/device/device_delegation.py` 已删除。
 - `Control-plane scatter` 已在 Phase 11 关闭：formal router、runtime locator 与 HA adapter 边界已固定，control plane 不再以散落 helper / wiring 叙事存在。
 - `Legacy service wiring carrier` 已在 Phase 11 关闭：`custom_components/lipro/services/wiring.py` 已正式删除，control-plane formal router truth 收口到 `custom_components/lipro/control/service_router.py`。
+- `Private runtime auth seam` 已在 Phase 5 关闭：`custom_components/lipro/services/execution.py` 只保留正式 service execution facade 身份，不再作为 active residual family。
 - `API aggregate endpoint mixin` 已在 Phase 11 关闭：`custom_components/lipro/core/api/endpoints/__init__.py` 不再导出 `_ClientEndpointsMixin`，active residual 只剩 endpoint helper-class-level demixin cleanup。
 
 ## Rules
@@ -179,3 +180,8 @@
 - `_ClientBase` / helper mixin family 继续仅作为 `core/api` 本地 residual；`FILE_MATRIX` 与 `PUBLIC_SURFACES` 已显式写明 locality / ownership。
 - `LiproMqttClient` 继续仅作为 `core/mqtt` direct transport residual；Phase 15 只加固 guard-backed wording，不重开 physical rename story。
 - `coverage_diff.py`、benchmark lane 与 dev `pip-audit` 现已被裁决为明确工具语义 / advisory policy，而不是 residual family。
+
+## Phase 16 Residual Delta
+
+- `custom_components/lipro/services/execution.py` 的 coordinator 私有 auth seam 继续保持关闭；Phase 16 只允许把它记为正式 service execution facade，而不是 active residual / kill target。
+- active residual inventory 继续集中在 `_ClientBase` / helper mixin typing spine、`LiproMqttClient` legacy naming 与 helper-level compatibility envelope；codebase-map drift 不再被允许误导这条账本。

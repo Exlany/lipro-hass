@@ -23,6 +23,8 @@ from typing import TYPE_CHECKING, Any
 
 import aiohttp
 
+from homeassistant.core import HomeAssistant
+
 from ...domain_data import ensure_domain_data
 from .collector import AnonymousShareCollector
 from .const import (
@@ -31,6 +33,7 @@ from .const import (
     MAX_PENDING_ERRORS,
     MIN_UPLOAD_INTERVAL,
 )
+from .models import SharedDevice, SharedError
 from .report_builder import (
     build_anonymous_share_report,
     build_developer_feedback_report,
@@ -39,7 +42,10 @@ from .share_client import ShareWorkerClient
 from .storage import load_reported_device_keys, save_reported_device_keys
 
 if TYPE_CHECKING:
+    from homeassistant.core import HomeAssistant
+
     from ..device import LiproDevice
+    from .models import SharedDevice, SharedError
 
 _LOGGER = logging.getLogger(__package__ or __name__)
 _DEFAULT_SCOPE = "__default__"
@@ -280,7 +286,9 @@ class AnonymousShareManager:
             devices, reported_device_keys=self._reported_device_keys
         )
 
-    def record_unknown_property(self, device_type: str, key: str, value: Any) -> None:
+    def record_unknown_property(
+        self, device_type: str, key: str, value: object
+    ) -> None:
         """Record one unknown property for the current scope."""
         self._collector.record_unknown_property(device_type, key, value)
 
@@ -330,8 +338,8 @@ class AnonymousShareManager:
                 devices=self._collector.devices,
                 errors=list(self._collector.errors),
             )
-        devices: dict[str, Any] = {}
-        errors: list[Any] = []
+        devices: dict[str, SharedDevice] = {}
+        errors: list[SharedError] = []
         for scope_key, state in self._iter_scope_states():
             devices.update(
                 {
@@ -451,7 +459,7 @@ def _get_root_manager() -> AnonymousShareManager:
 
 
 def get_anonymous_share_manager(
-    hass: Any = None,
+    hass: HomeAssistant | None = None,
     *,
     entry_id: str | None = None,
 ) -> AnonymousShareManager:

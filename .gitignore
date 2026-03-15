@@ -90,8 +90,12 @@ assets/
 !.planning/milestones/*.md
 !.planning/baseline/
 !.planning/baseline/*.md
+!.planning/codebase/
+!.planning/codebase/*.md
 !.planning/reviews/
 !.planning/reviews/*.md
+!.planning/codebase/
+!.planning/codebase/*.md
 !.planning/phases/
 !.planning/phases/12-type-contract-alignment-residual-cleanup-and-governance-hygiene/
 !.planning/phases/12-type-contract-alignment-residual-cleanup-and-governance-hygiene/*.md

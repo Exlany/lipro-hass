@@ -1,11 +1,12 @@
 # Lipro Home Assistant Integration - Developer Architecture
 
 > **Last Updated**: 2026-03-15  \
-> **Version**: 4.1 (Phase 14 executed truth aligned)
+> **Version**: 4.2 (Phase 16 governance truth aligned)
 >
 > ⚠️ 本文档仅描述"当前收敛后的架构与模块边界"，不硬编码评分/覆盖率/通过率等易失真指标。  \
 > 北极星终态裁决请见 `docs/NORTH_STAR_TARGET_ARCHITECTURE.md`。  \
 > 当前阶段、需求、状态与治理真源请以 `.planning/ROADMAP.md`、`.planning/REQUIREMENTS.md`、`.planning/STATE.md`、`.planning/baseline/PUBLIC_SURFACES.md`、`.planning/baseline/ARCHITECTURE_POLICY.md`、`.planning/baseline/VERIFICATION_MATRIX.md`、`.planning/reviews/FILE_MATRIX.md`、`.planning/reviews/RESIDUAL_LEDGER.md`、`.planning/reviews/KILL_LIST.md` 为准。  \
+> `.planning/codebase/*.md` 只是 derived collaboration maps / 协作图谱：帮助维护者快速理解仓库，但不构成新的 authority chain。  \
 > 历史审计/执行计划已从仓库中移除；当前以 `docs/NORTH_STAR_TARGET_ARCHITECTURE.md`、`.planning/*` 与 `AGENTS.md` 为准。
 
 ## 快速导航
@@ -574,6 +575,12 @@ uv run pytest -q                                         # 全量测试
 ### 总结判断
 
 当前技术选型整体是合理的，**提升空间主要在“文档化、契约化、可观测性”三个方向，而不是框架级重写**。如果继续演进，最优先的不是换技术栈，而是让既有架构决策更显式、边界更可审计、协议回归更自动化。
+
+## 协作图谱身份
+
+- `.planning/codebase/*.md` 是受约束的协作图谱 / 派生视图：帮助贡献者理解目录、热点、测试镜像与治理边界，但**不高于** north-star、ROADMAP/STATE、baseline 或 review 真源。
+- 若 codebase map 与 `.planning/baseline/*.md`、`.planning/reviews/*.md`、`docs/NORTH_STAR_TARGET_ARCHITECTURE.md` 或 `AGENTS.md` 冲突，必须以后者为准，并回写 codebase map。
+- codebase map 可以总结、导航、局部解释，但不能反向定义 public surface、authority、residual 或 delete gate。
 
 ## 参考文档
 

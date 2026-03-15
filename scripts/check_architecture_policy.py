@@ -39,6 +39,17 @@ _EXPECTED_STRUCTURAL_RULE_IDS = {
     "ENF-IMP-MQTT-TRANSPORT-LOCALITY",
     "ENF-IMP-ASSURANCE-NO-PRODUCTION-BACKFLOW",
 }
+_DOC_REQUIRED_TOKENS = {
+    Path("AGENTS.md"): ("Phase 5 已关闭 coordinator 私有 auth seam", ".planning/codebase/*.md"),
+    Path("docs/developer_architecture.md"): ("协作图谱身份", ".planning/codebase/*.md", "派生视图"),
+}
+_DOC_FORBIDDEN_TOKENS = {
+    Path("AGENTS.md"): ("仍有 coordinator 私有 auth seam",),
+    Path(".planning/codebase/STRUCTURE.md"): ("runtime-auth seam",),
+    Path(".planning/codebase/ARCHITECTURE.md"): ("runtime-auth seam：`custom_components/lipro/services/execution.py`",),
+    Path(".planning/reviews/FILE_MATRIX.md"): ("| `custom_components/lipro/services/execution.py` | Control | Phase 5 / 7 | 迁移适配 | runtime-auth seam |",),
+}
+
 _EXPECTED_TARGETED_BAN_IDS = {
     "ENF-SURFACE-COORDINATOR-ENTRY",
     "ENF-SURFACE-API-EXPORTS",
@@ -277,6 +288,44 @@ def validate_targeted_bans(root: Path) -> list[str]:
     return errors
 
 
+
+def validate_governance_story(root: Path) -> list[str]:
+    """Validate cross-doc architecture wording that must not drift back to legacy seams."""
+    errors: list[str] = []
+
+    for relative_path, required_tokens in _DOC_REQUIRED_TOKENS.items():
+        text = (root / relative_path).read_text(encoding="utf-8")
+        for token in required_tokens:
+            if token not in text:
+                errors.append(f"{_relative(root / relative_path, root=root)} missing governance token: {token}")
+
+    for relative_path, forbidden_tokens in _DOC_FORBIDDEN_TOKENS.items():
+        text = (root / relative_path).read_text(encoding="utf-8")
+        for token in forbidden_tokens:
+            if token in text:
+                errors.append(f"{_relative(root / relative_path, root=root)} still contains forbidden legacy token: {token}")
+
+    return errors
+
+def validate_governance_truth_alignment(root: Path) -> list[str]:
+    """Validate derived-collaboration-map wording and closed-seam governance truth."""
+    errors: list[str] = []
+    agents_text = (root / 'AGENTS.md').read_text(encoding='utf-8')
+    public_text = (root / '.planning' / 'baseline' / 'PUBLIC_SURFACES.md').read_text(encoding='utf-8')
+    authority_text = (root / '.planning' / 'baseline' / 'AUTHORITY_MATRIX.md').read_text(encoding='utf-8')
+    developer_text = (root / 'docs' / 'developer_architecture.md').read_text(encoding='utf-8')
+
+    if '仍有 coordinator 私有 auth seam' in agents_text:
+        errors.append('AGENTS.md still describes service execution private auth seam as active')
+    if 'derived collaboration maps' not in public_text:
+        errors.append('PUBLIC_SURFACES.md missing derived collaboration maps wording')
+    if 'derived collaboration maps' not in authority_text:
+        errors.append('AUTHORITY_MATRIX.md missing derived collaboration maps row')
+    if 'derived collaboration maps / 协作图谱' not in developer_text:
+        errors.append('docs/developer_architecture.md missing codebase-map identity note')
+    return errors
+
+
 def run_checks(root: Path | None = None) -> list[str]:
     """Return all architecture-policy drift or violation messages."""
     resolved_root = root or policy_root(Path(__file__))
@@ -284,6 +333,8 @@ def run_checks(root: Path | None = None) -> list[str]:
     errors.extend(_validate_policy_inventory(resolved_root))
     errors.extend(validate_structural_rules(resolved_root))
     errors.extend(validate_targeted_bans(resolved_root))
+    errors.extend(validate_governance_story(resolved_root))
+    errors.extend(validate_governance_truth_alignment(resolved_root))
     return errors
 
 

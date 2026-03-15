@@ -10,6 +10,7 @@
 - 任一 phase 只有同时交付 requirement evidence、artifact updates、verification proof 与 governance disposition，才可宣称完成。
 - 若新增、降级或删除正式 public surface，改变 dependency truth，扩展 authority family，或新增 architecture policy rule family / CI gate，必须先回写对应 baseline doc，再更新实现、测试与 summary。
 - 若 `.planning/reviews/FILE_MATRIX.md`、`.planning/reviews/RESIDUAL_LEDGER.md`、`.planning/reviews/KILL_LIST.md` 无变化，phase summary 也必须明确写出“为何无变化”。
+- `.planning/codebase/*.md` 若被保留，必须通过 `README.md`、统一 derived collaboration map disclaimer 与治理守卫声明其从属身份，不能越权成为第二条 authority chain。
 
 ## Requirement-to-Acceptance Mapping
 
@@ -137,3 +138,9 @@
 - **Required governance proof:** `PROJECT.md`、`ROADMAP.md`、`STATE.md`、`REQUIREMENTS.md`、`PUBLIC_SURFACES.md`、`VERIFICATION_MATRIX.md`、`FILE_MATRIX.md`、`RESIDUAL_LEDGER.md`、`KILL_LIST.md` 必须同时反映 upload-only developer feedback truth、source-path guards、version/support truth、tooling arbitration 与 residual locality wording。
 - **Required runnable proof:** 至少保持 `uv run ruff check .`、`uv run mypy`、`uv run python scripts/check_architecture_policy.py --check`、`uv run python scripts/check_file_matrix.py --check`、`uv run pytest -q tests/core/test_developer_report.py tests/core/test_report_builder.py tests/core/test_anonymous_share.py tests/core/test_control_plane.py tests/services/test_services_diagnostics.py tests/meta/test_governance_guards.py tests/meta/test_public_surface_guards.py tests/meta/test_version_sync.py` 与 `uv run python scripts/coverage_diff.py coverage.json --minimum 95` 通过。
 - **Unblock effect:** `v1.1` 已具备 milestone audit / closeout 输入；remaining residual 只允许继续本地化与 delete-gated 收口，不得回流为正式 surface。
+
+## Phase 16 Governance / Toolchain Entry Contract
+
+- **Required governance proof:** `.planning/codebase/README.md` 必须存在；`.planning/codebase/*.md` 必须带 derived collaboration map disclaimer；`.gitignore` 必须允许 track `.planning/codebase/*.md`。
+- **Required drift proof:** `AGENTS.md`、`FILE_MATRIX.md` 与 `.planning/codebase/STRUCTURE.md` / `ARCHITECTURE.md` 不得再把 `custom_components/lipro/services/execution.py` 写成 active `runtime-auth seam`。
+- **Required executable proof:** `scripts/check_architecture_policy.py --check`、`scripts/check_file_matrix.py --check` 与 `tests/meta/test_governance_guards.py` 必须对上述真相 fail-fast。

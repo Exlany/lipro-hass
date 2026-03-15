@@ -3,10 +3,14 @@
 from __future__ import annotations
 
 import asyncio
+from collections.abc import Awaitable, Callable, Coroutine
 from functools import partial
 import logging
-from typing import Any
+from typing import Any, Protocol
 
+from aiohttp import ClientSession
+
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 
@@ -16,7 +20,63 @@ from ..const.config import (
     MAX_SCAN_INTERVAL,
     MIN_SCAN_INTERVAL,
 )
+from ..coordinator_entry import Coordinator
+from ..core import LiproAuthManager, LiproProtocolFacade
 from .service_registry import ServiceRegistry
+
+type EntryLike = ConfigEntry[Any]
+type ClientFactory = Callable[..., LiproProtocolFacade]
+type AuthManagerFactory = Callable[[LiproProtocolFacade], LiproAuthManager]
+type GetClientSession = Callable[[HomeAssistant], ClientSession]
+type BuildEntryAuthContext = Callable[..., tuple[LiproProtocolFacade, LiproAuthManager]]
+type AuthenticateEntry = Callable[[LiproAuthManager], Awaitable[None]]
+type ClearEntryRuntimeData = Callable[[EntryLike], None]
+type GetEntryIntOption = Callable[..., int]
+type PersistEntryTokens = Callable[[HomeAssistant, EntryLike, LiproAuthManager], None]
+type StoreEntryOptionsSnapshot = Callable[[HomeAssistant, EntryLike], None]
+type RemoveEntryOptionsSnapshot = Callable[[HomeAssistant, str], None]
+type ReloadEntryIfOptionsChanged = Callable[[HomeAssistant, EntryLike], Coroutine[Any, Any, None]]
+type EnsureRuntimeInfra = Callable[..., Awaitable[None]]
+type RemoveDeviceRegistryListener = Callable[[HomeAssistant], None]
+
+
+class SetupDeviceRegistryListener(Protocol):
+    """Attach the shared device-registry listener using one logger."""
+
+    def __call__(self, hass: HomeAssistant, *, logger: logging.Logger) -> None:
+        """Register the shared listener with the provided logger."""
+
+
+class HasOtherRuntimeEntries(Protocol):
+    """Return whether another runtime entry is still active."""
+
+    def __call__(self, hass: HomeAssistant, *, exclude_entry_id: str) -> bool:
+        """Return whether another runtime entry remains active."""
+
+
+class CoordinatorRuntimeLike(Protocol):
+    """Minimal coordinator lifecycle surface owned by the control plane."""
+
+    async def async_config_entry_first_refresh(self) -> None:
+        """Perform the first runtime refresh for one config entry."""
+
+    async def async_shutdown(self) -> None:
+        """Release runtime resources held by one coordinator."""
+
+
+class CoordinatorFactory(Protocol):
+    """Construct the runtime coordinator for one config entry."""
+
+    def __call__(
+        self,
+        hass: HomeAssistant,
+        protocol: LiproProtocolFacade,
+        auth_manager: LiproAuthManager,
+        config_entry: EntryLike,
+        *,
+        update_interval: int = DEFAULT_SCAN_INTERVAL,
+    ) -> Coordinator:
+        """Return one configured runtime coordinator."""
 
 
 class EntryLifecycleController:
@@ -28,22 +88,22 @@ class EntryLifecycleController:
         logger: logging.Logger,
         domain: str,
         platforms: list[Platform],
-        client_factory: Any,
-        auth_manager_factory: Any,
-        coordinator_factory: Any,
-        get_client_session: Any,
-        build_entry_auth_context: Any,
-        async_authenticate_entry: Any,
-        clear_entry_runtime_data: Any,
-        get_entry_int_option: Any,
-        persist_entry_tokens_if_changed: Any,
-        store_entry_options_snapshot: Any,
-        remove_entry_options_snapshot: Any,
-        async_reload_entry_if_options_changed: Any,
-        async_ensure_runtime_infra: Any,
-        setup_device_registry_listener: Any,
-        remove_device_registry_listener: Any,
-        has_other_runtime_entries: Any,
+        client_factory: ClientFactory,
+        auth_manager_factory: AuthManagerFactory,
+        coordinator_factory: CoordinatorFactory,
+        get_client_session: GetClientSession,
+        build_entry_auth_context: BuildEntryAuthContext,
+        async_authenticate_entry: AuthenticateEntry,
+        clear_entry_runtime_data: ClearEntryRuntimeData,
+        get_entry_int_option: GetEntryIntOption,
+        persist_entry_tokens_if_changed: PersistEntryTokens,
+        store_entry_options_snapshot: StoreEntryOptionsSnapshot,
+        remove_entry_options_snapshot: RemoveEntryOptionsSnapshot,
+        async_reload_entry_if_options_changed: ReloadEntryIfOptionsChanged,
+        async_ensure_runtime_infra: EnsureRuntimeInfra,
+        setup_device_registry_listener: SetupDeviceRegistryListener,
+        remove_device_registry_listener: RemoveDeviceRegistryListener,
+        has_other_runtime_entries: HasOtherRuntimeEntries,
         service_registry: ServiceRegistry,
     ) -> None:
         """Initialize the control-plane owner with explicit collaborators."""
@@ -70,31 +130,40 @@ class EntryLifecycleController:
         self._has_other_runtime_entries = has_other_runtime_entries
         self._service_registry = service_registry
 
-    async def async_setup_component(self, hass: HomeAssistant, config: Any) -> bool:
+    def _build_setup_listener(self) -> Callable[[HomeAssistant], None]:
+        """Bind the shared device-registry listener to the controller logger."""
+        return partial(
+            self._setup_device_registry_listener,
+            logger=self._logger,
+        )
+
+    async def _async_ensure_runtime_infra_ready(self, hass: HomeAssistant) -> None:
+        """Ensure shared runtime services and listeners are ready before entry work."""
+        await self._async_ensure_runtime_infra(
+            hass,
+            setup_services=self._service_registry.async_sync,
+            setup_device_registry_listener=self._build_setup_listener(),
+        )
+
+    async def _async_abort_setup(
+        self,
+        *,
+        entry: EntryLike,
+        coordinator: CoordinatorRuntimeLike,
+    ) -> None:
+        """Shut down partially started runtime state before re-raising setup errors."""
+        await coordinator.async_shutdown()
+        self._clear_entry_runtime_data(entry)
+
+    async def async_setup_component(self, hass: HomeAssistant, config: object) -> bool:
         """Set up shared runtime infrastructure for the integration."""
         del config
-        setup_listener = partial(
-            self._setup_device_registry_listener,
-            logger=self._logger,
-        )
-        await self._async_ensure_runtime_infra(
-            hass,
-            setup_services=self._service_registry.async_sync,
-            setup_device_registry_listener=setup_listener,
-        )
+        await self._async_ensure_runtime_infra_ready(hass)
         return True
 
-    async def async_setup_entry(self, hass: HomeAssistant, entry: Any) -> bool:
+    async def async_setup_entry(self, hass: HomeAssistant, entry: EntryLike) -> bool:
         """Set up one Lipro config entry."""
-        setup_listener = partial(
-            self._setup_device_registry_listener,
-            logger=self._logger,
-        )
-        await self._async_ensure_runtime_infra(
-            hass,
-            setup_services=self._service_registry.async_sync,
-            setup_device_registry_listener=setup_listener,
-        )
+        await self._async_ensure_runtime_infra_ready(hass)
 
         client, auth_manager = self._build_entry_auth_context(
             hass,
@@ -125,8 +194,7 @@ class EntryLifecycleController:
         try:
             await coordinator.async_config_entry_first_refresh()
         except Exception:
-            await coordinator.async_shutdown()
-            self._clear_entry_runtime_data(entry)
+            await self._async_abort_setup(entry=entry, coordinator=coordinator)
             raise
 
         entry.runtime_data = coordinator
@@ -135,8 +203,7 @@ class EntryLifecycleController:
             self._persist_entry_tokens_if_changed(hass, entry, auth_manager)
             await hass.config_entries.async_forward_entry_setups(entry, self._platforms)
         except Exception:
-            await coordinator.async_shutdown()
-            self._clear_entry_runtime_data(entry)
+            await self._async_abort_setup(entry=entry, coordinator=coordinator)
             raise
 
         self._store_entry_options_snapshot(hass, entry)
@@ -146,7 +213,7 @@ class EntryLifecycleController:
         await self._service_registry.async_sync_with_lock(hass)
         return True
 
-    async def async_unload_entry(self, hass: HomeAssistant, entry: Any) -> bool:
+    async def async_unload_entry(self, hass: HomeAssistant, entry: EntryLike) -> bool:
         """Unload one Lipro config entry."""
         result = await hass.config_entries.async_unload_platforms(
             entry, self._platforms
@@ -177,6 +244,6 @@ class EntryLifecycleController:
 
         return result
 
-    async def async_reload_entry(self, hass: HomeAssistant, entry: Any) -> None:
+    async def async_reload_entry(self, hass: HomeAssistant, entry: EntryLike) -> None:
         """Reload one config entry."""
         await hass.config_entries.async_reload(entry.entry_id)

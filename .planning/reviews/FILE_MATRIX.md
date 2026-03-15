@@ -1,6 +1,6 @@
 # File Matrix
 
-**Python files total:** 448
+**Python files total:** 449
 **Status:** File-level governance authority
 **Rule:** workspace inventory excluding caches / virtual env / tooling artifacts
 
@@ -244,7 +244,7 @@
 | `custom_components/lipro/services/diagnostics/helpers.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/services/diagnostics/types.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/services/errors.py` | Control | Phase 3 | 保留 | - |
-| `custom_components/lipro/services/execution.py` | Control | Phase 5 / 7 | 迁移适配 | runtime-auth seam |
+| `custom_components/lipro/services/execution.py` | Control | Phase 3 / 5 / 7 | 保留 | formal service execution facade; private auth seam closed |
 | `custom_components/lipro/services/maintenance.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/services/registrations.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/services/registry.py` | Control | Phase 3 | 保留 | - |
@@ -422,6 +422,7 @@
 | `tests/meta/test_protocol_replay_assets.py` | Assurance | Phase 7.4 | 保留 | - |
 | `tests/meta/test_public_surface_guards.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_service_translation_sync.py` | Assurance | Phase 6 | 保留 | - |
+| `tests/meta/test_toolchain_truth.py` | Assurance | Phase 16 | 保留 | - |
 | `tests/meta/test_translation_tree_sync.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_version_sync.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/platforms/__init__.py` | Domain | Phase 4 | 保留 | - |

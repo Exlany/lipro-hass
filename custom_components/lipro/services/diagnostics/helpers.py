@@ -10,12 +10,13 @@ from collections.abc import Awaitable, Callable, Iterator
 from datetime import UTC, datetime
 from importlib import import_module
 import logging
-from typing import NoReturn, TypeVar, cast
+from typing import NoReturn, Protocol, TypeVar, cast
 
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.exceptions import HomeAssistantError
 
 from ...const.base import DOMAIN
+from ...control import telemetry_surface as _telemetry_surface
 from ...control.runtime_access import (
     find_runtime_entry_for_coordinator as _find_runtime_entry_for_coordinator,
 )
@@ -39,6 +40,25 @@ from .types import (
     DeveloperReportResponse,
     DiagnosticsCoordinator,
 )
+
+
+class _TelemetrySurfaceModule(Protocol):
+    """Minimal telemetry-surface module contract used by diagnostics helpers."""
+
+    def get_entry_telemetry_view(
+        self,
+        entry: object,
+        sink_name: str,
+    ) -> dict[str, object] | None:
+        """Return one telemetry sink view for one runtime entry."""
+
+
+def _load_telemetry_surface() -> _TelemetrySurfaceModule:
+    """Resolve telemetry surface lazily without local import statements."""
+    return cast(
+        _TelemetrySurfaceModule,
+        import_module("custom_components.lipro.control.telemetry_surface"),
+    )
 
 _LOGGER = logging.getLogger(__name__)
 _ResultT = TypeVar("_ResultT")
@@ -88,19 +108,18 @@ def _coerce_service_float(call: ServiceCall, key: str, default: float) -> float:
 
 # Capability collection utilities
 
+
 def _collect_exporter_developer_report(
     hass: HomeAssistant,
     coordinator: LiproCoordinator,
 ) -> DeveloperReport | None:
     """Return exporter-backed developer view when coordinator lacks a legacy builder."""
-    telemetry_surface = import_module("custom_components.lipro.control.telemetry_surface")
-
     entry = _find_runtime_entry_for_coordinator(hass, coordinator)
     if entry is None:
         return None
-    view = telemetry_surface.get_entry_telemetry_view(entry, "developer")
+    view = _telemetry_surface.get_entry_telemetry_view(entry, "developer")
     if isinstance(view, dict):
-        return cast(DeveloperReport, view)
+        return view
     return None
 
 
@@ -161,9 +180,7 @@ def collect_developer_reports(
             if callable(builder):
                 reports.append(cast(DeveloperReport, builder()))
                 continue
-            exporter_report = _collect_exporter_developer_report(
-                hass, coordinator
-            )
+            exporter_report = _collect_exporter_developer_report(hass, coordinator)
             if exporter_report is not None:
                 reports.append(exporter_report)
         except Exception as err:  # noqa: BLE001
@@ -190,7 +207,9 @@ def build_developer_feedback_payload(
         "generated_at": datetime.now(UTC).isoformat(),
         "entry_count": len(reports),
         "note": note,
-        "reports": cast(list[DeveloperReport], project_developer_feedback_upload(reports)),
+        "reports": cast(
+            list[DeveloperReport], project_developer_feedback_upload(reports)
+        ),
     }
     if requested_entry_id is not None:
         payload["requested_entry_id"] = requested_entry_id
@@ -253,9 +272,7 @@ async def async_handle_submit_developer_feedback(
         requested_entry_id=requested_entry_id,
     )
 
-    share_manager = get_anonymous_share_manager(
-        hass, entry_id=requested_entry_id
-    )
+    share_manager = get_anonymous_share_manager(hass, entry_id=requested_entry_id)
     success = await share_manager.submit_developer_feedback(
         get_client_session(hass),
         feedback_payload,

@@ -15,13 +15,14 @@ from ..core.utils.redaction import redact_identifier as _redact_identifier
 from ..runtime_types import LiproCoordinator
 from ..services import contracts as _contracts
 from ..services.command import (
+    DeviceAndCoordinatorGetter,
     async_handle_send_command as _async_handle_send_command_service,
 )
+from ..services.contracts import ServicePropertySummary
 from ..services.device_lookup import (
     get_device_and_coordinator as _get_device_and_coordinator_service,
 )
 from ..services.diagnostics import (
-    AnonymousShareManagerFactory,
     DiagnosticsCoordinator,
     DiagnosticsDevice,
     async_handle_fetch_body_sensor_history as _async_handle_fetch_body_sensor_history_service,
@@ -45,6 +46,7 @@ from ..services.schedule import (
     async_handle_get_schedules as _async_handle_get_schedules_service,
 )
 from ..services.share import (
+    AnonymousShareManagerFactory as ShareAnonymousShareManagerFactory,
     async_handle_get_anonymous_share_report as _async_handle_get_anonymous_share_report_service,
     async_handle_submit_anonymous_share as _async_handle_submit_anonymous_share_service,
 )
@@ -66,19 +68,21 @@ _SERIAL_PATTERN: Final = re.compile(
 )
 
 
-def _summarize_service_properties(properties: Any) -> dict[str, Any]:
+def _summarize_service_properties(
+    properties: object,
+) -> ServicePropertySummary:
     """Build a log-safe summary for service properties."""
     if not isinstance(properties, list):
         return {"count": 0, "keys": []}
 
-    keys = [
-        item.get("key")
-        for item in properties
-        if isinstance(item, dict) and isinstance(item.get("key"), str)
-    ]
+    keys: list[str] = []
+    for item in properties:
+        if not isinstance(item, dict):
+            continue
+        key = item.get("key")
+        if isinstance(key, str):
+            keys.append(key)
     return {"count": len(properties), "keys": keys}
-
-
 
 
 async def _get_developer_device_and_coordinator(
@@ -99,7 +103,7 @@ def _log_send_command_call(
     requested_device_id: str | None,
     resolved_serial: str,
     command: str,
-    properties_summary: dict[str, Any],
+    properties_summary: ServicePropertySummary,
 ) -> bool:
     """Log send_command call details and return whether alias resolution occurred."""
     is_alias_resolution = bool(
@@ -144,18 +148,22 @@ async def async_handle_send_command(
     hass: HomeAssistant, call: ServiceCall
 ) -> dict[str, Any]:
     """Handle the send_command service call."""
-    return await _async_handle_send_command_service(
-        hass,
-        call,
-        get_device_and_coordinator=_get_device_and_coordinator,
-        summarize_service_properties=_summarize_service_properties,
-        log_send_command_call=_log_send_command_call,
-        resolve_command_failure_translation_key=_resolve_command_failure_translation_key,
-        raise_service_error=_raise_service_error,
-        logger=_LOGGER,
-        attr_command=_contracts.ATTR_COMMAND,
-        attr_properties=_contracts.ATTR_PROPERTIES,
-        attr_device_id=_contracts.ATTR_DEVICE_ID,
+    return dict(
+        await _async_handle_send_command_service(
+            hass,
+            call,
+            get_device_and_coordinator=cast(
+                DeviceAndCoordinatorGetter, _get_device_and_coordinator
+            ),
+            summarize_service_properties=_summarize_service_properties,
+            log_send_command_call=_log_send_command_call,
+            resolve_command_failure_translation_key=_resolve_command_failure_translation_key,
+            raise_service_error=_raise_service_error,
+            logger=_LOGGER,
+            attr_command=_contracts.ATTR_COMMAND,
+            attr_properties=_contracts.ATTR_PROPERTIES,
+            attr_device_id=_contracts.ATTR_DEVICE_ID,
+        )
     )
 
 
@@ -211,7 +219,7 @@ async def async_handle_submit_anonymous_share(
         hass,
         call,
         get_anonymous_share_manager=cast(
-            AnonymousShareManagerFactory, get_anonymous_share_manager
+            ShareAnonymousShareManagerFactory, get_anonymous_share_manager
         ),
         get_client_session=async_get_clientsession,
         raise_service_error=_raise_service_error,
@@ -227,11 +235,11 @@ async def async_handle_get_anonymous_share_report(
     return await _async_handle_get_anonymous_share_report_service(
         hass,
         call,
-        get_anonymous_share_manager=get_anonymous_share_manager,
+        get_anonymous_share_manager=cast(
+            ShareAnonymousShareManagerFactory, get_anonymous_share_manager
+        ),
         attr_entry_id=_contracts.ATTR_ENTRY_ID,
     )
-
-
 
 
 async def async_handle_get_developer_report(
@@ -262,8 +270,6 @@ async def async_handle_submit_developer_feedback(
         attr_entry_id=_contracts.ATTR_ENTRY_ID,
         raise_service_error=_raise_service_error,
     )
-
-
 
 
 async def async_handle_query_command_result(
@@ -313,8 +319,6 @@ async def async_handle_query_user_cloud(
     )
 
 
-
-
 async def async_handle_fetch_body_sensor_history(
     hass: HomeAssistant, call: ServiceCall
 ) -> dict[str, Any]:
@@ -347,11 +351,13 @@ async def async_handle_refresh_devices(
     hass: HomeAssistant, call: ServiceCall
 ) -> dict[str, Any]:
     """Handle the refresh_devices service call."""
-    return await _async_handle_refresh_devices_service(
-        hass,
-        call,
-        domain=DOMAIN,
-        attr_entry_id=_contracts.ATTR_ENTRY_ID,
+    return dict(
+        await _async_handle_refresh_devices_service(
+            hass,
+            call,
+            domain=DOMAIN,
+            attr_entry_id=_contracts.ATTR_ENTRY_ID,
+        )
     )
 
 

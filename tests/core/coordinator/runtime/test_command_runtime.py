@@ -524,3 +524,23 @@ class TestCommandRuntime:
         runtime._record_trace(trace)
 
         assert len(runtime._traces) == 0
+
+
+@pytest.mark.asyncio
+async def test_verify_command_delivery_auth_errors_bubble(mock_client, mock_device):
+    sender = CommandSender(client=mock_client)
+    trace: dict[str, Any] = {}
+
+    with (
+        patch(
+            "custom_components.lipro.core.coordinator.runtime.command.sender.query_command_result_once",
+            side_effect=LiproAuthError("auth boom"),
+        ),
+        pytest.raises(LiproAuthError, match="auth boom"),
+    ):
+        await sender.verify_command_delivery(
+                msg_sn="12345",
+                retry_delays=[0.001],
+                trace=trace,
+                device=mock_device,
+            )

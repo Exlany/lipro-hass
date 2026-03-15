@@ -2,20 +2,25 @@
 
 from __future__ import annotations
 
-from typing import Any, cast
+from collections.abc import Awaitable, Callable
+import logging
 
-OutletPowerInfoPayload = dict[str, Any]
+type OutletPowerInfoPayload = dict[str, object]
+type NormalizePowerTargetId = Callable[[str], str | None]
+type IoTRequest = Callable[[str, dict[str, str]], Awaitable[object]]
+type RequireMappingResponse = Callable[[str, object], OutletPowerInfoPayload]
+type IsInvalidParamErrorCode = Callable[[object], bool]
 
 
 async def fetch_outlet_power_info(
     *,
     device_id: str,
-    normalize_power_target_id: Any,
-    iot_request: Any,
-    require_mapping_response: Any,
-    is_invalid_param_error_code: Any,
+    normalize_power_target_id: NormalizePowerTargetId,
+    iot_request: IoTRequest,
+    require_mapping_response: RequireMappingResponse,
+    is_invalid_param_error_code: IsInvalidParamErrorCode,
     lipro_api_error: type[Exception],
-    logger: Any,
+    logger: logging.Logger,
     path_query_outlet_power: str,
 ) -> OutletPowerInfoPayload:
     """Fetch power information for one outlet-power target."""
@@ -40,10 +45,7 @@ async def fetch_outlet_power_info(
         raise
 
     if isinstance(result, dict):
-        return cast(
-            dict[str, Any],
-            require_mapping_response(path_query_outlet_power, result),
-        )
+        return require_mapping_response(path_query_outlet_power, result)
 
     if isinstance(result, list):
         rows = [row for row in result if isinstance(row, dict)]
@@ -55,7 +57,9 @@ async def fetch_outlet_power_info(
             )
         if not rows:
             return {}
-        return rows[0] if len(rows) == 1 else {"data": rows}
+        if len(rows) == 1:
+            return dict(rows[0])
+        return {"data": [dict(row) for row in rows]}
 
     logger.debug(
         "Power-info payload returned unexpected type (%s) for %s, skipping",

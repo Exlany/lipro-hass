@@ -141,13 +141,13 @@
 - 远端 advisory **不能单独决定 certified**
 - `get_city / query_user_cloud` 继续复用 `tests/fixtures/api_contracts/**`，不要复制第二套真源
 
-## 4. 当前已知残留与禁止误清理项
+## 4. 当前已知历史残留 / 禁止误清理项
 
-以下残留已登记，但**现在不要误删**：
+以下对象带有历史迁移背景或显式 delete gate，但**现在不要误删**：
 
 1. `custom_components/lipro/services/execution.py`
-   - 现状：仍有 coordinator 私有 auth seam
-   - 处理原则：后续必须用正式 runtime/auth contract 替代，不要再扩散新的私有 hook
+   - 现状：Phase 5 已关闭 coordinator 私有 auth seam；当前保留的是正式 service execution facade
+   - 处理原则：不得把已关闭 seam 写回 active residual / active kill target；后续若继续精修，只能围绕正式 runtime/auth contract 收敛局部命名与错误语义
 
 2. `LiproMqttClient`
    - 现状：direct transport class（非 protocol root）
@@ -211,6 +211,7 @@
 
 ### 6.4 Phase 资产身份与开源治理
 
+- **codebase map 身份**：`.planning/codebase/*.md` 是受约束的协作图谱 / 派生视图，只能帮助导航、审阅与 onboarding；若与 north-star、baseline、review、ROADMAP 或 STATE 冲突，以后者为准。
 - **默认身份**：`.planning/phases/**` 默认是执行工作区；`*-PLAN.md`、`*-CONTEXT.md`、`*-RESEARCH.md` 与临时过程文件按执行痕迹处理，不自动成为长期治理真源。
 - **提升条件**：只有被 `.planning/ROADMAP.md`、`.planning/baseline/VERIFICATION_MATRIX.md`、`.planning/milestones/*.md` 或 `.planning/reviews/*.md` 显式引用的 phase 资产，才算长期治理/CI 证据。
 - **发布门禁**：`.github/workflows/release.yml` 必须复用 `.github/workflows/ci.yml` 的版本/治理守卫，不得建立旁路发版故事线。

@@ -5,15 +5,26 @@ from __future__ import annotations
 import asyncio
 import logging
 from time import monotonic
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, cast
+
+from ....api import LiproApiError, LiproAuthError, LiproConnectionError
+from ...types import PropertyDict, StatusQueryMetrics
 
 if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable
 
     from ....device import LiproDevice
-    from ...types import StatusQueryMetrics
 
 _LOGGER = logging.getLogger(__name__)
+_NON_FATAL_STATUS_QUERY_EXCEPTIONS = (
+    LiproApiError,
+    LiproConnectionError,
+    OSError,
+    RuntimeError,
+    TimeoutError,
+    ValueError,
+)
+_NON_FATAL_STATUS_APPLY_EXCEPTIONS = (KeyError, RuntimeError, ValueError)
 
 
 class StatusExecutor:
@@ -22,12 +33,8 @@ class StatusExecutor:
     def __init__(
         self,
         *,
-        query_device_status: Callable[
-            [list[str]], Awaitable[dict[str, dict[str, Any]]]
-        ],
-        apply_properties_update: Callable[
-            [LiproDevice, dict[str, Any], str], Awaitable[bool]
-        ],
+        query_device_status: Callable[[list[str]], Awaitable[dict[str, PropertyDict]]],
+        apply_properties_update: Callable[[LiproDevice, PropertyDict, str], Awaitable[bool]],
         get_device_by_id: Callable[[str], LiproDevice | None],
     ) -> None:
         """Initialize status executor.
@@ -68,7 +75,9 @@ class StatusExecutor:
 
         try:
             status_data = await self._query_device_status(device_ids)
-        except Exception as err:  # noqa: BLE001 - catch-all for status query errors
+        except LiproAuthError:
+            raise
+        except _NON_FATAL_STATUS_QUERY_EXCEPTIONS as err:
             error = str(err)
             _LOGGER.warning(
                 "Status query failed for %d devices: %s",
@@ -95,7 +104,7 @@ class StatusExecutor:
                     properties,
                     "rest_status",
                 )
-            except Exception as err:  # noqa: BLE001 - isolate one device apply failure
+            except _NON_FATAL_STATUS_APPLY_EXCEPTIONS as err:
                 apply_errors.append(f"{device_id}:{err}")
                 _LOGGER.warning(
                     "Status apply failed for %s: %s",
@@ -148,7 +157,9 @@ class StatusExecutor:
 
         metrics: list[StatusQueryMetrics] = []
         for i, result in enumerate(results):
-            if isinstance(result, BaseException):
+            if isinstance(result, asyncio.CancelledError):
+                raise result
+            if isinstance(result, Exception):
                 failure_metrics: StatusQueryMetrics = {
                     "duration": 0.0,
                     "device_count": len(batches[i]),
@@ -157,7 +168,7 @@ class StatusExecutor:
                 }
                 metrics.append(failure_metrics)
             else:
-                metrics.append(result)
+                metrics.append(cast(StatusQueryMetrics, result))
 
         return metrics
 

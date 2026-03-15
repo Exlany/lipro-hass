@@ -5,10 +5,12 @@ from __future__ import annotations
 import asyncio
 from collections.abc import Callable
 import logging
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
+from ....api import LiproApiError, LiproAuthError, LiproConnectionError
 from ....command.dispatch import execute_command_plan_with_trace
 from ....command.result import (
+    CommandResultPayload,
     classify_command_result_payload,
     query_command_result_once,
 )
@@ -21,6 +23,13 @@ if TYPE_CHECKING:
     from ....protocol import LiproProtocolFacade
 
 _LOGGER = logging.getLogger(__name__)
+_NON_FATAL_VERIFICATION_QUERY_EXCEPTIONS = (
+    LiproConnectionError,
+    OSError,
+    RuntimeError,
+    TimeoutError,
+    ValueError,
+)
 
 
 class CommandSender:
@@ -44,7 +53,7 @@ class CommandSender:
         properties: list[dict[str, str]] | None,
         fallback_device_id: str | None,
         trace: CommandTrace,
-    ) -> tuple[dict[str, Any], str]:
+    ) -> tuple[CommandResultPayload, str]:
         """Send command to device and return result with route.
 
         Returns:
@@ -78,7 +87,7 @@ class CommandSender:
             try:
                 result = await query_command_result_once(
                     query_command_result=self._client.query_command_result,
-                    lipro_api_error=Exception,
+                    lipro_api_error=LiproApiError,
                     device_name=device.name,
                     device_serial=device.serial,
                     device_type_hex=getattr(device, "device_type_hex", "unknown"),
@@ -86,8 +95,9 @@ class CommandSender:
                     attempt=attempt,
                     attempt_limit=len(retry_delays) + 1,
                     logger=_LOGGER,
+                    should_reraise=lambda err: isinstance(err, LiproAuthError),
                 )
-            except Exception as err:  # noqa: BLE001 - retry on any query error
+            except _NON_FATAL_VERIFICATION_QUERY_EXCEPTIONS as err:
                 _LOGGER.debug(
                     "Command result query attempt %d failed: %s",
                     attempt,

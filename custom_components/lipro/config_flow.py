@@ -136,9 +136,9 @@ class LiproConfigFlow(ConfigFlow, domain=DOMAIN):
                 exc_info=_LOGGER.isEnabledFor(logging.DEBUG),
             )
             errors["base"] = "unknown"
-        except Exception as err:
+        except (AttributeError, RuntimeError) as err:
             _LOGGER.error(
-                "Unexpected error during %s (%s)",
+                "Unexpected login failure during %s (%s)",
                 context_name,
                 safe_error_placeholder(err),
                 exc_info=_LOGGER.isEnabledFor(logging.DEBUG),

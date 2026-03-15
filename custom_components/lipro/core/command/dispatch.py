@@ -2,22 +2,26 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
 from enum import StrEnum
 import logging
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from ...const.device_types import DEVICE_TYPE_PANEL
 from ..api import LiproApiError
 from ..device import LiproDevice
 from ..utils.identifiers import is_valid_iot_device_id
-from .result import is_command_push_failed
+from .result import CommandResultPayload, is_command_push_failed
 from .trace import update_trace_with_resolved_request, update_trace_with_response
 
 if TYPE_CHECKING:
     from ..protocol import LiproProtocolFacade
 
 _LOGGER = logging.getLogger(__name__)
+
+type RedactIdentifier = Callable[[str | None], str | None]
+type CommandTracePayload = dict[str, object]
 
 
 class CommandRoute(StrEnum):
@@ -174,7 +178,7 @@ async def _send_member_command(
     device: LiproDevice,
     command: str,
     properties: list[dict[str, str]] | None,
-) -> Any:
+) -> CommandResultPayload:
     """Send a command to a specific member device."""
     return await client.send_command(
         member_id,
@@ -194,8 +198,8 @@ async def _fallback_to_member(
     properties: list[dict[str, str]] | None,
     route: CommandRoute,
     log_message: str,
-    log_args: tuple[Any, ...],
-) -> tuple[Any, str]:
+    log_args: tuple[object, ...],
+) -> tuple[CommandResultPayload, str]:
     """Run one fallback send to the resolved member and return updated route."""
     _LOGGER.warning(log_message, *log_args)
     result = await _send_member_command(
@@ -213,7 +217,7 @@ async def _send_group_with_error_fallback(
     *,
     device: LiproDevice,
     plan: CommandDispatchPlan,
-) -> tuple[Any, str]:
+) -> tuple[CommandResultPayload, str]:
     """Send group command and fallback on group API error when allowed."""
     try:
         result = await client.send_group_command(
@@ -247,7 +251,7 @@ async def _send_group_with_error_fallback(
 def _should_fallback_after_group_result(
     *,
     member_fallback_id: str | None,
-    result: Any,
+    result: object,
 ) -> bool:
     """Return whether group push result should fallback to member command."""
     return member_fallback_id is not None and is_command_push_failed(result)
@@ -258,7 +262,7 @@ async def _execute_panel_command(
     *,
     device: LiproDevice,
     plan: CommandDispatchPlan,
-) -> tuple[Any, str]:
+) -> tuple[CommandResultPayload, str]:
     """Execute panel command via group endpoint."""
     result = await client.send_group_command(
         device.serial,
@@ -275,7 +279,7 @@ async def _execute_device_command(
     *,
     device: LiproDevice,
     plan: CommandDispatchPlan,
-) -> tuple[Any, str]:
+) -> tuple[CommandResultPayload, str]:
     """Execute direct device command."""
     result = await _send_member_command(
         client,
@@ -292,7 +296,7 @@ async def _execute_group_command(
     *,
     device: LiproDevice,
     plan: CommandDispatchPlan,
-) -> tuple[Any, str]:
+) -> tuple[CommandResultPayload, str]:
     """Execute group command with fallback logic."""
     result, route = await _send_group_with_error_fallback(
         client,
@@ -330,7 +334,7 @@ async def execute_command_dispatch(
     *,
     device: LiproDevice,
     plan: CommandDispatchPlan,
-) -> tuple[Any, str]:
+) -> tuple[CommandResultPayload, str]:
     """Execute direct/group command send with fallback routing."""
     if plan.route == CommandRoute.PANEL_DIRECT:
         return await _execute_panel_command(client, device=device, plan=plan)
@@ -348,9 +352,9 @@ async def execute_command_plan_with_trace(
     command: str,
     properties: list[dict[str, str]] | None,
     fallback_device_id: str | None,
-    trace: dict[str, Any],
-    redact_identifier: Any,
-) -> tuple[CommandDispatchPlan, dict[str, Any], str]:
+    trace: CommandTracePayload,
+    redact_identifier: RedactIdentifier,
+) -> tuple[CommandDispatchPlan, CommandResultPayload, str]:
     """Plan command dispatch and append resolved request/response trace fields.
 
     Returns:

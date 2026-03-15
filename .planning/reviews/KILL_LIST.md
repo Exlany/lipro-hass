@@ -65,7 +65,7 @@
 ## Phase 03 / `03-02 ~ 03-03` Status Update
 
 - `custom_components/lipro/services/wiring.py` 已在 Phase 11 删除；formal control-plane service ownership 现仅归属 `custom_components/lipro/control/service_router.py`。
-- `custom_components/lipro/services/execution.py` 的 coordinator 私有 auth hook seam 已在 Phase 5 收口；当前保留的是正式 service execution facade，而不是 private seam。
+- `custom_components/lipro/services/execution.py` 的 coordinator 私有 auth hook seam 已在 Phase 5 收口；当前保留的是正式 service execution facade，而不是 active kill target。
 - `custom_components/lipro/diagnostics.py`、`system_health.py` 与 `__init__.py` 不再进入 kill list：它们保留为 HA adapter 薄层，终态角色已被明确保留。
 
 
@@ -142,3 +142,8 @@
 - 本 phase **无新增 file-level kill target**；developer feedback/upload truth、governance/source-path truth 与 tooling semantics 只做裁决与收口。
 - `_ClientBase` 与 `LiproMqttClient` 的 delete gate 维持不变，但 `FILE_MATRIX` / `PUBLIC_SURFACES` / `RESIDUAL_LEDGER` 现已明确写出 locality / ownership。
 - `coverage_diff.py` 被保留为 coverage floor + optional baseline diff 工具；benchmark 与 dev `pip-audit` 被明确为 advisory lanes，不进入 kill list。
+
+## Phase 16 Status Update
+
+- `custom_components/lipro/services/execution.py` 的 coordinator 私有 auth hook seam 继续维持关闭；本 phase 明确禁止把它重新登记成 active kill target。
+- remaining active delete gates 仍集中在 `_ClientBase` / helper mixin family、`LiproMqttClient` legacy naming 与少量 helper-level compatibility envelope。

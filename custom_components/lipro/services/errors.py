@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from typing import Any, NoReturn
+from typing import NoReturn
 
 from homeassistant.exceptions import HomeAssistantError
 
@@ -20,6 +20,8 @@ from ..const.api import (
     ERROR_DEVICE_OFFLINE_STR,
 )
 from ..const.base import DOMAIN
+
+type CommandFailureContext = Mapping[str, object]
 
 
 def raise_service_error(
@@ -41,20 +43,41 @@ def raise_service_error(
     raise service_error
 
 
+def _normalize_response_code(value: object) -> int | str | None:
+    """Return one supported response code value from arbitrary input."""
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, (int, str)):
+        return value
+    return None
+
+
+def _extract_error_code(err: object | None) -> int | str | None:
+    """Extract a supported error code from one exception-like object."""
+    if err is None:
+        return None
+    return _normalize_response_code(getattr(err, "code", None))
+
+
+def _extract_failure_code(failure: CommandFailureContext | None) -> int | str | None:
+    """Extract a supported error code from one command failure payload."""
+    if failure is None:
+        return None
+    return _normalize_response_code(failure.get("code"))
+
+
 def resolve_command_failure_translation_key(
     *,
-    failure: dict[str, Any] | None = None,
-    err: Any | None = None,
+    failure: CommandFailureContext | None = None,
+    err: object | None = None,
 ) -> str:
     """Map command failure context to user-facing translation key."""
-    if isinstance(failure, dict) and failure.get("reason") == "push_failed":
+    if failure is not None and failure.get("reason") == "push_failed":
         return "command_push_failed"
 
-    code: Any = None
-    if err is not None:
-        code = getattr(err, "code", None)
-    elif isinstance(failure, dict):
-        code = failure.get("code")
+    code = _extract_error_code(err)
+    if code is None:
+        code = _extract_failure_code(failure)
 
     if code in (ERROR_DEVICE_NOT_CONNECTED, ERROR_DEVICE_NOT_CONNECTED_STR):
         return "command_device_not_connected"

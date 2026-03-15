@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Start Home Assistant with Lipro integration for development
+# Start Home Assistant with the Lipro integration for local development.
 
 set -euo pipefail
 
@@ -15,19 +15,33 @@ if [ ! -d ".venv" ]; then
     ./scripts/setup
 fi
 
-# Create config directory if it doesn't exist
-mkdir -p config
+source_component_dir="custom_components/lipro"
+config_dir="${LIPRO_DEVELOP_CONFIG_DIR:-config}"
+custom_components_dir="$config_dir/custom_components"
+target_component_dir="$custom_components_dir/lipro"
 
-# Copy custom_components to config directory
-echo "Copying custom_components to config directory..."
-rm -rf config/custom_components
-mkdir -p config/custom_components
-cp -r custom_components/lipro config/custom_components/
+if [ ! -d "$source_component_dir" ]; then
+    echo "Missing $source_component_dir; run this script from the repository root." >&2
+    exit 1
+fi
+
+mkdir -p "$custom_components_dir"
+
+echo "Refreshing Lipro integration in $target_component_dir"
+rm -rf "$target_component_dir"
+cp -r "$source_component_dir" "$custom_components_dir/"
+echo "Preserved other custom integrations in $custom_components_dir"
+
+if [ "${LIPRO_DEVELOP_SMOKE_ONLY:-0}" = "1" ]; then
+    echo "Smoke-only mode: copied the Lipro integration without starting Home Assistant."
+    exit 0
+fi
 
 echo "Starting Home Assistant..."
 echo ""
 echo "Access the UI at: http://localhost:8123"
+echo "Config directory: $config_dir"
 echo ""
 
-# Start Home Assistant
-cd config && uv run hass -c .
+cd "$config_dir"
+uv run hass -c .

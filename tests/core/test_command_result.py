@@ -417,3 +417,28 @@ async def test_poll_command_result_state_returns_unconfirmed_after_pending_budge
     assert state == "unconfirmed"
     assert attempt == 2
     assert payload == {"message": "still waiting"}
+
+
+@pytest.mark.asyncio
+async def test_query_command_result_once_reraises_when_predicate_matches() -> None:
+    class DummyApiError(Exception):
+        def __init__(self, code: int, message: str) -> None:
+            super().__init__(message)
+            self.code = code
+
+    async def _raise_query(**_: object) -> dict[str, object]:
+        raise DummyApiError(401, "auth failed")
+
+    with pytest.raises(DummyApiError, match="auth failed"):
+        await query_command_result_once(
+            query_command_result=_raise_query,
+            lipro_api_error=DummyApiError,
+            device_name="Living Room Light",
+            device_serial="03ab111111111111",
+            device_type_hex="0x0133",
+            msg_sn="682550445474476112",
+            attempt=1,
+            attempt_limit=1,
+            logger=MagicMock(),
+            should_reraise=lambda err: getattr(err, "code", None) == 401,
+        )

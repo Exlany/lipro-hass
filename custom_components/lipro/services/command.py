@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 import logging
-from typing import Any, Protocol
+from typing import Protocol, cast
 
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.exceptions import HomeAssistantError
@@ -11,7 +12,15 @@ from homeassistant.exceptions import HomeAssistantError
 from ..core import LiproApiError
 from ..core.utils.log_safety import safe_error_placeholder as _safe_error_placeholder
 from ..core.utils.redaction import redact_identifier as _redact_identifier
+from .contracts import (
+    CommandFailureSummary,
+    SendCommandResult,
+    ServiceProperty,
+    ServicePropertySummary,
+)
 from .execution import ServiceErrorRaiser
+
+type CommandProperties = list[ServiceProperty]
 
 
 class CommandDevice(Protocol):
@@ -24,14 +33,14 @@ class CommandService(Protocol):
     """Command service contract used by the send_command service."""
 
     @property
-    def last_failure(self) -> dict[str, Any] | None:
+    def last_failure(self) -> CommandFailureSummary | None:
         """Return the latest command failure payload, if any."""
 
     async def async_send_command(
         self,
         device: CommandDevice,
         command: str,
-        properties: list[dict[str, str]] | None = None,
+        properties: CommandProperties | None = None,
         fallback_device_id: str | None = None,
     ) -> bool:
         """Dispatch one command via the coordinator."""
@@ -43,16 +52,83 @@ class CommandCoordinator(Protocol):
     command_service: CommandService
 
 
+class DeviceAndCoordinatorGetter(Protocol):
+    """Resolve one device/coordinator pair for a service call."""
+
+    async def __call__(
+        self,
+        hass: HomeAssistant,
+        call: ServiceCall,
+    ) -> tuple[CommandDevice, CommandCoordinator]:
+        """Return the resolved device and coordinator."""
+
+
+class ServicePropertySummarizer(Protocol):
+    """Summarize send_command properties for logging."""
+
+    def __call__(
+        self,
+        properties: CommandProperties | None,
+    ) -> ServicePropertySummary:
+        """Return one log-safe property summary."""
+
+
+class SendCommandLogger(Protocol):
+    """Emit the send_command audit log and report alias resolution."""
+
+    def __call__(
+        self,
+        requested_device_id: str | None,
+        resolved_serial: str,
+        command: str,
+        properties_summary: ServicePropertySummary,
+    ) -> bool:
+        """Return whether alias resolution happened."""
+
+
 class CommandFailureTranslationResolver(Protocol):
     """Resolve command failures into translated service keys."""
 
     def __call__(
         self,
         *,
-        failure: dict[str, Any] | None = None,
+        failure: Mapping[str, object] | None = None,
         err: LiproApiError | None = None,
     ) -> str:
         """Return one translated command failure key."""
+
+
+def _coerce_command_properties(properties: object) -> CommandProperties | None:
+    """Normalize one raw service-call property payload into the command contract."""
+    if properties is None:
+        return None
+    if not isinstance(properties, list):
+        return None
+
+    normalized: CommandProperties = []
+    for item in properties:
+        if not isinstance(item, dict):
+            return None
+        key = item.get("key")
+        value = item.get("value")
+        if not isinstance(key, str) or not isinstance(value, str):
+            return None
+        normalized.append({"key": key, "value": value})
+    return normalized
+
+
+def _build_failure_summary(
+    failure_context: CommandFailureSummary | None,
+) -> CommandFailureSummary | None:
+    """Return a trimmed failure summary for warning logs."""
+    if failure_context is None:
+        return None
+    summary: CommandFailureSummary = {}
+    for key in ("reason", "code", "route"):
+        value = failure_context.get(key)
+        if isinstance(value, (int, str)) and not isinstance(value, bool):
+            summary[key] = value
+    return summary or None
 
 
 async def async_send_command_with_service_errors(
@@ -60,7 +136,7 @@ async def async_send_command_with_service_errors(
     device: CommandDevice,
     *,
     command: str,
-    properties: list[dict[str, str]] | None,
+    properties: CommandProperties | None,
     requested_device_id: str | None,
     failure_log: str,
     api_error_log: str,
@@ -80,19 +156,12 @@ async def async_send_command_with_service_errors(
             return
 
         failure_context = coordinator.command_service.last_failure
-        failure_summary: dict[str, Any] | None = None
-        if isinstance(failure_context, dict):
-            failure_summary = {
-                "reason": failure_context.get("reason"),
-                "code": failure_context.get("code"),
-                "route": failure_context.get("route"),
-            }
         logger.warning(
             failure_log,
             command,
             _redact_identifier(requested_device_id) or "***",
             _redact_identifier(device.serial) or "***",
-            failure_summary,
+            _build_failure_summary(failure_context),
         )
         raise_service_error(
             resolve_command_failure_translation_key(
@@ -114,9 +183,9 @@ def build_send_command_result(
     *,
     requested_device_id: str | None,
     is_alias_resolution: bool,
-) -> dict[str, Any]:
+) -> SendCommandResult:
     """Build send_command response payload with alias metadata."""
-    result: dict[str, Any] = {
+    result: SendCommandResult = {
         "success": True,
         "serial": resolved_serial,
     }
@@ -130,25 +199,29 @@ async def async_handle_send_command(
     hass: HomeAssistant,
     call: ServiceCall,
     *,
-    get_device_and_coordinator: Any,
-    summarize_service_properties: Any,
-    log_send_command_call: Any,
+    get_device_and_coordinator: DeviceAndCoordinatorGetter,
+    summarize_service_properties: ServicePropertySummarizer,
+    log_send_command_call: SendCommandLogger,
     resolve_command_failure_translation_key: CommandFailureTranslationResolver,
     raise_service_error: ServiceErrorRaiser,
     logger: logging.Logger,
     attr_command: str,
     attr_properties: str,
     attr_device_id: str,
-) -> dict[str, Any]:
+) -> SendCommandResult:
     """Handle the send_command service call."""
-    command = call.data[attr_command]
-    properties = call.data.get(attr_properties)
-    properties_summary = summarize_service_properties(properties)
+    command = cast(str, call.data[attr_command])
+    raw_properties = call.data.get(attr_properties)
     requested_device_id = call.data.get(attr_device_id)
+    resolved_requested_device_id = (
+        requested_device_id if isinstance(requested_device_id, str) else None
+    )
+    properties = _coerce_command_properties(raw_properties)
+    properties_summary = summarize_service_properties(properties)
 
     device, coordinator = await get_device_and_coordinator(hass, call)
     is_alias_resolution = log_send_command_call(
-        requested_device_id,
+        resolved_requested_device_id,
         device.serial,
         command,
         properties_summary,
@@ -159,7 +232,7 @@ async def async_handle_send_command(
         device,
         command=command,
         properties=properties,
-        requested_device_id=requested_device_id,
+        requested_device_id=resolved_requested_device_id,
         failure_log=(
             "send_command failed (command=%s, device_id=%s, "
             "resolved_serial=%s, failure=%s)"
@@ -171,6 +244,6 @@ async def async_handle_send_command(
     )
     return build_send_command_result(
         device.serial,
-        requested_device_id=requested_device_id,
+        requested_device_id=resolved_requested_device_id,
         is_alias_resolution=is_alias_resolution,
     )

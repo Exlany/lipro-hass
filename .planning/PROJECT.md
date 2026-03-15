@@ -283,14 +283,19 @@ v1.1 进入执行期后，新增演进必须额外满足：
 7. `.planning/STATE.md`
 8. `.planning/baseline/*.md`
 9. `.planning/reviews/*.md`
-10. `.planning/phases/16-post-audit-truth-alignment-hotspot-decomposition-and-residual-endgame/16-PRD.md`
-11. `.planning/phases/16-post-audit-truth-alignment-hotspot-decomposition-and-residual-endgame/16-RESEARCH.md`
-12. `.planning/phases/16-post-audit-truth-alignment-hotspot-decomposition-and-residual-endgame/16-VALIDATION.md`
-13. `.planning/phases/16-post-audit-truth-alignment-hotspot-decomposition-and-residual-endgame/16-01-PLAN.md`
-14. `.planning/phases/16-post-audit-truth-alignment-hotspot-decomposition-and-residual-endgame/16-02-PLAN.md`
-15. `.planning/phases/16-post-audit-truth-alignment-hotspot-decomposition-and-residual-endgame/16-03-PLAN.md`
-16. `.planning/phases/16-post-audit-truth-alignment-hotspot-decomposition-and-residual-endgame/16-04-PLAN.md`
-17. `.planning/phases/16-post-audit-truth-alignment-hotspot-decomposition-and-residual-endgame/16-05-PLAN.md`
-18. `.planning/phases/16-post-audit-truth-alignment-hotspot-decomposition-and-residual-endgame/16-06-PLAN.md`
 
-*Last updated: 2026-03-15 after planning Phase 16*
+## Current Execution Workspace Inputs
+
+- `.planning/phases/16-post-audit-truth-alignment-hotspot-decomposition-and-residual-endgame/16-PRD.md`
+- `.planning/phases/16-post-audit-truth-alignment-hotspot-decomposition-and-residual-endgame/16-RESEARCH.md`
+- `.planning/phases/16-post-audit-truth-alignment-hotspot-decomposition-and-residual-endgame/16-VALIDATION.md`
+- `.planning/phases/16-post-audit-truth-alignment-hotspot-decomposition-and-residual-endgame/16-01-PLAN.md`
+- `.planning/phases/16-post-audit-truth-alignment-hotspot-decomposition-and-residual-endgame/16-02-PLAN.md`
+- `.planning/phases/16-post-audit-truth-alignment-hotspot-decomposition-and-residual-endgame/16-03-PLAN.md`
+- `.planning/phases/16-post-audit-truth-alignment-hotspot-decomposition-and-residual-endgame/16-04-PLAN.md`
+- `.planning/phases/16-post-audit-truth-alignment-hotspot-decomposition-and-residual-endgame/16-05-PLAN.md`
+- `.planning/phases/16-post-audit-truth-alignment-hotspot-decomposition-and-residual-endgame/16-06-PLAN.md`
+
+- 当前 phase 资产默认是执行工作区输入；只有被 `ROADMAP.md`、baseline docs 或 review ledgers 显式提升时，才成为长期治理真源。
+
+*Last updated: 2026-03-15 after Phase 16 Wave 1 execution and Wave 2 local hardening*

@@ -17,6 +17,7 @@ type PendingExpectations = dict[str, object]
 type CommandFailurePayload = dict[str, object]
 type QueryCommandResult = Callable[..., Awaitable[Mapping[str, object]]]
 type QueryCommandResultAttempt = Callable[[int], Awaitable[CommandResultPayload | None]]
+type ShouldReraiseCommandResultError = Callable[[Exception], bool]
 type CommandResultClassifier = Callable[[CommandResultPayload], str]
 
 
@@ -239,6 +240,7 @@ async def query_command_result_once(
     attempt: int,
     attempt_limit: int,
     logger: LoggerLike,
+    should_reraise: ShouldReraiseCommandResultError | None = None,
 ) -> CommandResultPayload | None:
     """Query command result once and return payload when available."""
     try:
@@ -249,6 +251,8 @@ async def query_command_result_once(
         )
         return dict(payload)
     except lipro_api_error as err:
+        if should_reraise is not None and should_reraise(err):
+            raise
         safe_msg_sn = redact_identifier(msg_sn) or "***"
         logger.debug(
             "query_command_result failed (device=%s, msgSn=%s, attempt=%s/%s, code=%s) (%s)",

@@ -2,7 +2,7 @@
 
 **Purpose:** 定义文档、fixtures、generated、implementation 的权威来源与同步方向，避免多口径漂移。
 **Status:** Formal baseline asset (`BASE-01` authority truth source)
-**Updated:** 2026-03-14
+**Updated:** 2026-03-15
 
 ## Formal Role
 
@@ -20,6 +20,7 @@
 | architecture enforcement policy | `.planning/baseline/ARCHITECTURE_POLICY.md` | baseline -> helpers / scripts / meta guards / CI | `Phase 7.2` 起的执行型 policy truth，不得被 tests/scripts 倒逼改写 |
 | 项目目标与阶段路线 | `.planning/PROJECT.md`, `.planning/ROADMAP.md`, `.planning/STATE.md` | planning -> phase execution | GSD 执行真源 |
 | 当前工程落地说明 | `docs/developer_architecture.md` | codebase/planning -> developer docs | 当前态解释真源，不凌驾于 baseline 之上 |
+| 本地 codebase maps | `.planning/codebase/README.md`, `.planning/codebase/*.md` | governance truth -> derived collaboration maps -> contributor navigation | 只允许派生解释，不得升级为 baseline/review/roadmap/state 的平行 authority chain |
 | 文件治理状态 | `.planning/reviews/FILE_MATRIX.md` | execution -> governance review | 最终需提升到 file-level |
 | 残留状态 | `.planning/reviews/RESIDUAL_LEDGER.md` | execution -> cleanup / audit | compat/residual 真源 |
 | 删除裁决 | `.planning/reviews/KILL_LIST.md` | execution -> cleanup / audit | kill decision 真源 |

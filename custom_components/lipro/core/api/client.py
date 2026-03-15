@@ -153,6 +153,15 @@ class LiproRestFacade(_ClientBase):
         self._session_state.user_id = value
 
     @property
+    def biz_id(self) -> str | None:
+        """Return the authenticated biz identifier stored in session state."""
+        return self._session_state.biz_id
+
+    @biz_id.setter
+    def biz_id(self, value: str | None) -> None:
+        self._session_state.biz_id = value
+
+    @property
     def _phone_id(self) -> str:
         return self._session_state.phone_id
 

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import re
-from typing import Final
+from typing import Final, NotRequired, TypedDict
 
 import voluptuous as vol
 
@@ -239,3 +239,43 @@ SERVICE_REFRESH_DEVICES_SCHEMA = vol.Schema(
         ),
     },
 )
+
+
+class ServiceProperty(TypedDict):
+    """One key/value property item accepted by send_command."""
+
+    key: str
+    value: str
+
+
+class ServicePropertySummary(TypedDict):
+    """Log-safe summary of the requested command properties."""
+
+    count: int
+    keys: list[str]
+
+
+class CommandFailureSummary(TypedDict, total=False):
+    """Normalized command failure details exposed to control/service callers."""
+
+    reason: str
+    code: int | str
+    route: str
+    device_id: str
+
+
+class SendCommandResult(TypedDict):
+    """Structured response payload returned by send_command."""
+
+    success: bool
+    serial: str
+    requested_device_id: NotRequired[str]
+    resolved_device_id: NotRequired[str]
+
+
+class RefreshDevicesResult(TypedDict):
+    """Structured response payload returned by refresh_devices."""
+
+    success: bool
+    refreshed_entries: int
+    requested_entry_id: NotRequired[str]

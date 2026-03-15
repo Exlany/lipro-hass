@@ -23,6 +23,9 @@ from tests.helpers.architecture_policy import load_structural_rules, load_target
 
 _ROOT = repo_root(Path(__file__))
 _FILE_MATRIX = _ROOT / ".planning" / "reviews" / "FILE_MATRIX.md"
+_CODEBASE_DIR = _ROOT / ".planning" / "codebase"
+_CODEBASE_README = _CODEBASE_DIR / "README.md"
+_GITIGNORE = _ROOT / ".gitignore"
 _DOCS_README = _ROOT / "docs" / "README.md"
 _README = _ROOT / "README.md"
 _README_ZH = _ROOT / "README_zh.md"
@@ -85,7 +88,9 @@ def _extract_markdown_section(text: str, heading_fragment: str) -> str:
 def _extract_labeled_bullets(section_text: str) -> dict[str, str]:
     bullets: dict[str, str] = {}
     for line in section_text.splitlines():
-        match = re.match(r"- \*\*(?P<label>[^*]+)\*\*[:：]\s*(?P<body>.+)", line.strip())
+        match = re.match(
+            r"- \*\*(?P<label>[^*]+)\*\*[:：]\s*(?P<body>.+)", line.strip()
+        )
         if match:
             bullets[match.group("label").strip()] = match.group("body").strip()
     return bullets
@@ -123,10 +128,8 @@ def test_governance_checker_reports_no_drift() -> None:
     assert run_checks(_ROOT) == []
 
 
-
 def test_architecture_policy_checker_reports_no_drift() -> None:
     assert run_architecture_policy_checks(_ROOT) == []
-
 
 
 def test_architecture_policy_rule_inventory_is_stable() -> None:
@@ -239,13 +242,36 @@ def test_security_disclosure_path_is_present() -> None:
     assert "https://github.com/Exlany/lipro-hass/security/policy" in contact_urls
 
 
-
 def test_v1_1_closeout_assets_exist_and_are_pull_only() -> None:
     evidence_index = _ROOT / ".planning" / "reviews" / "V1_1_EVIDENCE_INDEX.md"
-    phase_summary = _ROOT / ".planning" / "phases" / "07.5-integration-governance-verification-closeout" / "07.5-SUMMARY.md"
-    plan_01_summary = _ROOT / ".planning" / "phases" / "07.5-integration-governance-verification-closeout" / "07.5-01-SUMMARY.md"
-    plan_02_summary = _ROOT / ".planning" / "phases" / "07.5-integration-governance-verification-closeout" / "07.5-02-SUMMARY.md"
-    verification = _ROOT / ".planning" / "phases" / "07.5-integration-governance-verification-closeout" / "07.5-VERIFICATION.md"
+    phase_summary = (
+        _ROOT
+        / ".planning"
+        / "phases"
+        / "07.5-integration-governance-verification-closeout"
+        / "07.5-SUMMARY.md"
+    )
+    plan_01_summary = (
+        _ROOT
+        / ".planning"
+        / "phases"
+        / "07.5-integration-governance-verification-closeout"
+        / "07.5-01-SUMMARY.md"
+    )
+    plan_02_summary = (
+        _ROOT
+        / ".planning"
+        / "phases"
+        / "07.5-integration-governance-verification-closeout"
+        / "07.5-02-SUMMARY.md"
+    )
+    verification = (
+        _ROOT
+        / ".planning"
+        / "phases"
+        / "07.5-integration-governance-verification-closeout"
+        / "07.5-VERIFICATION.md"
+    )
 
     assert evidence_index.exists()
     assert phase_summary.exists()
@@ -260,12 +286,19 @@ def test_v1_1_closeout_assets_exist_and_are_pull_only() -> None:
     assert "Phase 8 Pull Boundary" in evidence_text
 
 
-
 def test_governance_truth_registers_v1_1_closeout_assets() -> None:
-    authority_text = (_ROOT / ".planning" / "baseline" / "AUTHORITY_MATRIX.md").read_text(encoding="utf-8")
-    verification_text = (_ROOT / ".planning" / "baseline" / "VERIFICATION_MATRIX.md").read_text(encoding="utf-8")
-    residual_text = (_ROOT / ".planning" / "reviews" / "RESIDUAL_LEDGER.md").read_text(encoding="utf-8")
-    kill_text = (_ROOT / ".planning" / "reviews" / "KILL_LIST.md").read_text(encoding="utf-8")
+    authority_text = (
+        _ROOT / ".planning" / "baseline" / "AUTHORITY_MATRIX.md"
+    ).read_text(encoding="utf-8")
+    verification_text = (
+        _ROOT / ".planning" / "baseline" / "VERIFICATION_MATRIX.md"
+    ).read_text(encoding="utf-8")
+    residual_text = (_ROOT / ".planning" / "reviews" / "RESIDUAL_LEDGER.md").read_text(
+        encoding="utf-8"
+    )
+    kill_text = (_ROOT / ".planning" / "reviews" / "KILL_LIST.md").read_text(
+        encoding="utf-8"
+    )
 
     assert "runtime telemetry exporter family" in authority_text
     assert "v1.1 closeout evidence index" in authority_text
@@ -276,31 +309,60 @@ def test_governance_truth_registers_v1_1_closeout_assets() -> None:
     assert "## Phase 07.5 Status Update" in kill_text
 
 
-
 def test_phase_7_5_planning_truth_is_consistent() -> None:
     roadmap_text = (_ROOT / ".planning" / "ROADMAP.md").read_text(encoding="utf-8")
-    requirements_text = (_ROOT / ".planning" / "REQUIREMENTS.md").read_text(encoding="utf-8")
+    requirements_text = (_ROOT / ".planning" / "REQUIREMENTS.md").read_text(
+        encoding="utf-8"
+    )
     state_text = (_ROOT / ".planning" / "STATE.md").read_text(encoding="utf-8")
-    validation_text = (_ROOT / ".planning" / "phases" / "07.5-integration-governance-verification-closeout" / "07.5-VALIDATION.md").read_text(encoding="utf-8")
+    validation_text = (
+        _ROOT
+        / ".planning"
+        / "phases"
+        / "07.5-integration-governance-verification-closeout"
+        / "07.5-VALIDATION.md"
+    ).read_text(encoding="utf-8")
 
-    assert "| 7.5 Governance & Verification | v1.1 | 2/2 | Complete | 2026-03-13 |" in roadmap_text
+    assert (
+        "| 7.5 Governance & Verification | v1.1 | 2/2 | Complete | 2026-03-13 |"
+        in roadmap_text
+    )
     assert "| GOV-06 | Phase 7.5 | Complete |" in requirements_text
     assert "| GOV-07 | Phase 7.5 | Complete |" in requirements_text
     _assert_current_mode_tracks_phase_lifecycle(state_text)
     assert "status: passed" in validation_text
     assert "- [x] `.planning/reviews/V1_1_EVIDENCE_INDEX.md`" in validation_text
-    assert "- [x] All tasks have automated verify or Wave 0 dependencies" in validation_text
-
+    assert (
+        "- [x] All tasks have automated verify or Wave 0 dependencies"
+        in validation_text
+    )
 
 
 def test_phase_8_planning_truth_is_consistent() -> None:
     roadmap_text = (_ROOT / ".planning" / "ROADMAP.md").read_text(encoding="utf-8")
-    requirements_text = (_ROOT / ".planning" / "REQUIREMENTS.md").read_text(encoding="utf-8")
+    requirements_text = (_ROOT / ".planning" / "REQUIREMENTS.md").read_text(
+        encoding="utf-8"
+    )
     state_text = (_ROOT / ".planning" / "STATE.md").read_text(encoding="utf-8")
-    validation_text = (_ROOT / ".planning" / "phases" / "08-ai-debug-evidence-pack" / "08-VALIDATION.md").read_text(encoding="utf-8")
-    verification_text = (_ROOT / ".planning" / "phases" / "08-ai-debug-evidence-pack" / "08-VERIFICATION.md").read_text(encoding="utf-8")
+    validation_text = (
+        _ROOT
+        / ".planning"
+        / "phases"
+        / "08-ai-debug-evidence-pack"
+        / "08-VALIDATION.md"
+    ).read_text(encoding="utf-8")
+    verification_text = (
+        _ROOT
+        / ".planning"
+        / "phases"
+        / "08-ai-debug-evidence-pack"
+        / "08-VERIFICATION.md"
+    ).read_text(encoding="utf-8")
 
-    assert "| 8 AI Debug Evidence Pack | v1.1 | 2/2 | Complete | 2026-03-13 |" in roadmap_text
+    assert (
+        "| 8 AI Debug Evidence Pack | v1.1 | 2/2 | Complete | 2026-03-13 |"
+        in roadmap_text
+    )
     assert "| AID-01 | Phase 8 | Complete |" in requirements_text
     assert "| AID-02 | Phase 8 | Complete |" in requirements_text
     _assert_current_mode_tracks_phase_lifecycle(state_text)
@@ -310,49 +372,88 @@ def test_phase_8_planning_truth_is_consistent() -> None:
     assert "status: passed" in verification_text
 
 
-
 def test_phase_9_governance_truth_is_consistent() -> None:
     roadmap_text = (_ROOT / ".planning" / "ROADMAP.md").read_text(encoding="utf-8")
-    requirements_text = (_ROOT / ".planning" / "REQUIREMENTS.md").read_text(encoding="utf-8")
+    requirements_text = (_ROOT / ".planning" / "REQUIREMENTS.md").read_text(
+        encoding="utf-8"
+    )
     state_text = (_ROOT / ".planning" / "STATE.md").read_text(encoding="utf-8")
-    validation_text = (_ROOT / ".planning" / "phases" / "09-residual-surface-closure" / "09-VALIDATION.md").read_text(encoding="utf-8")
-    verification_text = (_ROOT / ".planning" / "phases" / "09-residual-surface-closure" / "09-VERIFICATION.md").read_text(encoding="utf-8")
-    uat_text = (_ROOT / ".planning" / "phases" / "09-residual-surface-closure" / "09-UAT.md").read_text(encoding="utf-8")
-    public_text = (_ROOT / ".planning" / "baseline" / "PUBLIC_SURFACES.md").read_text(encoding="utf-8")
-    authority_text = (_ROOT / ".planning" / "baseline" / "AUTHORITY_MATRIX.md").read_text(encoding="utf-8")
-    residual_text = (_ROOT / ".planning" / "reviews" / "RESIDUAL_LEDGER.md").read_text(encoding="utf-8")
-    kill_text = (_ROOT / ".planning" / "reviews" / "KILL_LIST.md").read_text(encoding="utf-8")
+    validation_text = (
+        _ROOT
+        / ".planning"
+        / "phases"
+        / "09-residual-surface-closure"
+        / "09-VALIDATION.md"
+    ).read_text(encoding="utf-8")
+    verification_text = (
+        _ROOT
+        / ".planning"
+        / "phases"
+        / "09-residual-surface-closure"
+        / "09-VERIFICATION.md"
+    ).read_text(encoding="utf-8")
+    uat_text = (
+        _ROOT / ".planning" / "phases" / "09-residual-surface-closure" / "09-UAT.md"
+    ).read_text(encoding="utf-8")
+    public_text = (_ROOT / ".planning" / "baseline" / "PUBLIC_SURFACES.md").read_text(
+        encoding="utf-8"
+    )
+    authority_text = (
+        _ROOT / ".planning" / "baseline" / "AUTHORITY_MATRIX.md"
+    ).read_text(encoding="utf-8")
+    residual_text = (_ROOT / ".planning" / "reviews" / "RESIDUAL_LEDGER.md").read_text(
+        encoding="utf-8"
+    )
+    kill_text = (_ROOT / ".planning" / "reviews" / "KILL_LIST.md").read_text(
+        encoding="utf-8"
+    )
 
-    assert '- [x] 09-01: 收窄 protocol root surface 与 compat exports' in roadmap_text
-    assert '| RSC-01 | Phase 9 | Complete |' in requirements_text
-    assert '| RSC-04 | Phase 9 | Complete |' in requirements_text
+    assert "- [x] 09-01: 收窄 protocol root surface 与 compat exports" in roadmap_text
+    assert "| RSC-01 | Phase 9 | Complete |" in requirements_text
+    assert "| RSC-04 | Phase 9 | Complete |" in requirements_text
     _assert_current_mode_tracks_phase_lifecycle(state_text)
-    assert 'status: passed' in validation_text
-    assert 'status: passed' in verification_text
-    assert '## Automated UAT Verdict' in uat_text
-    assert 'services/wiring.py' not in public_text
-    assert 'runtime supplemental state primitives' in authority_text
-    assert residual_text.count('## Phase 09 Residual Delta') == 1
-    assert kill_text.count('## Phase 09 Status Update') == 1
+    assert "status: passed" in validation_text
+    assert "status: passed" in verification_text
+    assert "## Automated UAT Verdict" in uat_text
+    assert "services/wiring.py" not in public_text
+    assert "runtime supplemental state primitives" in authority_text
+    assert residual_text.count("## Phase 09 Residual Delta") == 1
+    assert kill_text.count("## Phase 09 Status Update") == 1
     for seam in (
-        'core.api.LiproClient',
-        'LiproProtocolFacade.get_device_list',
-        'LiproMqttFacade.raw_client',
+        "core.api.LiproClient",
+        "LiproProtocolFacade.get_device_list",
+        "LiproMqttFacade.raw_client",
     ):
         assert seam in residual_text
         assert seam in kill_text
 
 
-
 def test_phase_11_execution_truth_is_consistent() -> None:
     roadmap_text = (_ROOT / ".planning" / "ROADMAP.md").read_text(encoding="utf-8")
-    requirements_text = (_ROOT / ".planning" / "REQUIREMENTS.md").read_text(encoding="utf-8")
-    public_text = (_ROOT / ".planning" / "baseline" / "PUBLIC_SURFACES.md").read_text(encoding="utf-8")
-    file_matrix_text = (_ROOT / ".planning" / "reviews" / "FILE_MATRIX.md").read_text(encoding="utf-8")
-    research_text = (_ROOT / ".planning" / "phases" / "11-control-router-formalization-wiring-residual-demotion" / "11-RESEARCH.md").read_text(encoding="utf-8")
-    audit_frontmatter = _load_frontmatter(_ROOT / ".planning" / "v1.1-MILESTONE-AUDIT.md")
+    requirements_text = (_ROOT / ".planning" / "REQUIREMENTS.md").read_text(
+        encoding="utf-8"
+    )
+    public_text = (_ROOT / ".planning" / "baseline" / "PUBLIC_SURFACES.md").read_text(
+        encoding="utf-8"
+    )
+    file_matrix_text = (_ROOT / ".planning" / "reviews" / "FILE_MATRIX.md").read_text(
+        encoding="utf-8"
+    )
+    research_text = (
+        _ROOT
+        / ".planning"
+        / "phases"
+        / "11-control-router-formalization-wiring-residual-demotion"
+        / "11-RESEARCH.md"
+    ).read_text(encoding="utf-8")
+    audit_frontmatter = _load_frontmatter(
+        _ROOT / ".planning" / "v1.1-MILESTONE-AUDIT.md"
+    )
 
-    assert "| 11 Control Router Formalization & Wiring Residual Demotion | v1.1 | 8/8 | Complete | 2026-03-14 |" in roadmap_text
+    assert (
+        "| 11 Control Router Formalization & Wiring Residual Demotion | v1.1 | 8/8 | Complete | 2026-03-14 |"
+        in roadmap_text
+    )
     assert "| SURF-01 | Phase 11 | Complete |" in requirements_text
     assert "| CTRL-04 | Phase 11 | Complete |" in requirements_text
     assert "| RUN-01 | Phase 11 | Complete |" in requirements_text
@@ -406,7 +507,9 @@ def test_support_and_issue_routing_are_consistent() -> None:
 
 def test_quality_scale_and_devcontainer_truth_are_in_sync() -> None:
     quality_scale = _load_yaml(_QUALITY_SCALE)
-    known_limitations_comment = quality_scale["rules"]["docs-known-limitations"]["comment"]
+    known_limitations_comment = quality_scale["rules"]["docs-known-limitations"][
+        "comment"
+    ]
     match = re.search(r"(\d+) known limitations", known_limitations_comment)
     assert match is not None
     expected_known_limitations = int(match.group(1))
@@ -416,14 +519,15 @@ def test_quality_scale_and_devcontainer_truth_are_in_sync() -> None:
         "Known Limitations",
     )
     assert _count_numbered_markdown_items(readme_section) == expected_known_limitations
-    assert "tests/flows/test_config_flow.py" in quality_scale["rules"]["config-flow-test-coverage"]["comment"]
+    assert (
+        "tests/flows/test_config_flow.py"
+        in quality_scale["rules"]["config-flow-test-coverage"]["comment"]
+    )
     assert (_ROOT / "tests" / "flows" / "test_config_flow.py").exists()
 
     devcontainer = _load_json(_DEVCONTAINER)
     settings = devcontainer["customizations"]["vscode"]["settings"]
     assert settings["python.defaultInterpreterPath"].endswith("/.venv/bin/python")
-
-
 
 
 def test_phase_15_execution_truth_is_consistent() -> None:
@@ -435,43 +539,76 @@ def test_phase_15_execution_truth_is_consistent() -> None:
     )
     project_text = (_ROOT / ".planning" / "PROJECT.md").read_text(encoding="utf-8")
     roadmap_text = (_ROOT / ".planning" / "ROADMAP.md").read_text(encoding="utf-8")
-    requirements_text = (_ROOT / ".planning" / "REQUIREMENTS.md").read_text(encoding="utf-8")
+    requirements_text = (_ROOT / ".planning" / "REQUIREMENTS.md").read_text(
+        encoding="utf-8"
+    )
     state_text = (_ROOT / ".planning" / "STATE.md").read_text(encoding="utf-8")
-    public_text = (_ROOT / ".planning" / "baseline" / "PUBLIC_SURFACES.md").read_text(encoding="utf-8")
-    architecture_policy_text = (_ROOT / ".planning" / "baseline" / "ARCHITECTURE_POLICY.md").read_text(encoding="utf-8")
-    verification_matrix_text = (_ROOT / ".planning" / "baseline" / "VERIFICATION_MATRIX.md").read_text(encoding="utf-8")
-    residual_text = (_ROOT / ".planning" / "reviews" / "RESIDUAL_LEDGER.md").read_text(encoding="utf-8")
-    kill_text = (_ROOT / ".planning" / "reviews" / "KILL_LIST.md").read_text(encoding="utf-8")
-    file_matrix_text = (_ROOT / ".planning" / "reviews" / "FILE_MATRIX.md").read_text(encoding="utf-8")
+    public_text = (_ROOT / ".planning" / "baseline" / "PUBLIC_SURFACES.md").read_text(
+        encoding="utf-8"
+    )
+    architecture_policy_text = (
+        _ROOT / ".planning" / "baseline" / "ARCHITECTURE_POLICY.md"
+    ).read_text(encoding="utf-8")
+    verification_matrix_text = (
+        _ROOT / ".planning" / "baseline" / "VERIFICATION_MATRIX.md"
+    ).read_text(encoding="utf-8")
+    residual_text = (_ROOT / ".planning" / "reviews" / "RESIDUAL_LEDGER.md").read_text(
+        encoding="utf-8"
+    )
+    kill_text = (_ROOT / ".planning" / "reviews" / "KILL_LIST.md").read_text(
+        encoding="utf-8"
+    )
+    file_matrix_text = (_ROOT / ".planning" / "reviews" / "FILE_MATRIX.md").read_text(
+        encoding="utf-8"
+    )
     prd_text = (phase_root / "15-PRD.md").read_text(encoding="utf-8")
     context_text = (phase_root / "15-CONTEXT.md").read_text(encoding="utf-8")
     validation_text = (phase_root / "15-VALIDATION.md").read_text(encoding="utf-8")
     verification_text = (phase_root / "15-VERIFICATION.md").read_text(encoding="utf-8")
 
-    assert "### 10. Phase 15 支持反馈契约 / 治理真源修补 / 可维护性跟进已完成" in project_text
+    assert (
+        "### 10. Phase 15 支持反馈契约 / 治理真源修补 / 可维护性跟进已完成"
+        in project_text
+    )
     assert (
         "| 15 Support Feedback Contract Hardening, Governance Truth Repair & Maintainability Follow-Through | v1.1 | 5/5 | Complete | 2026-03-15 |"
         in roadmap_text
     )
-    assert "**Requirements**: [SPT-01, GOV-13, DOC-01, HOT-03, QLT-01, TYP-03, RES-01]" in roadmap_text
-    for req_id in ("SPT-01", "GOV-13", "DOC-01", "HOT-03", "QLT-01", "TYP-03", "RES-01"):
+    assert (
+        "**Requirements**: [SPT-01, GOV-13, DOC-01, HOT-03, QLT-01, TYP-03, RES-01]"
+        in roadmap_text
+    )
+    for req_id in (
+        "SPT-01",
+        "GOV-13",
+        "DOC-01",
+        "HOT-03",
+        "QLT-01",
+        "TYP-03",
+        "RES-01",
+    ):
         assert f"| {req_id} | Phase 15 | Complete |" in requirements_text
-    assert '**Current mode:** `Phase 16 planned`' in state_text
-    assert 'completed_phases: 13' in state_text
-    assert 'completed_plans: 48' in state_text
-    assert '2026.3.1' in prd_text
-    assert '2026.3.1' in context_text
-    assert 'status: passed' in validation_text
-    assert 'status: passed' in verification_text
-    assert '## Phase 15 Surface Closure Notes' in public_text
-    assert '## Phase 15 Exit Contract' in verification_matrix_text
-    assert '## Phase 15 Residual Delta' in residual_text
-    assert '## Phase 15 Status Update' in kill_text
-    assert '## Phase 15 Policy Follow-Through' in architecture_policy_text
-    assert 'custom_components/lipro/core/api/client_base.py' in file_matrix_text
-    assert 'internal typing spine only; locality limited to core/api' in file_matrix_text
-    assert 'custom_components/lipro/core/mqtt/mqtt_client.py' in file_matrix_text
-    assert 'direct transport residual; locality limited to core/mqtt + protocol seam' in file_matrix_text
+    assert "**Current mode:** `Phase 16 executing`" in state_text
+    assert "completed_phases: 13" in state_text
+    assert "completed_plans: 48" in state_text
+    assert "2026.3.1" in prd_text
+    assert "2026.3.1" in context_text
+    assert "status: passed" in validation_text
+    assert "status: passed" in verification_text
+    assert "## Phase 15 Surface Closure Notes" in public_text
+    assert "## Phase 15 Exit Contract" in verification_matrix_text
+    assert "## Phase 15 Residual Delta" in residual_text
+    assert "## Phase 15 Status Update" in kill_text
+    assert "## Phase 15 Policy Follow-Through" in architecture_policy_text
+    assert "custom_components/lipro/core/api/client_base.py" in file_matrix_text
+    assert (
+        "internal typing spine only; locality limited to core/api" in file_matrix_text
+    )
+    assert "custom_components/lipro/core/mqtt/mqtt_client.py" in file_matrix_text
+    assert (
+        "direct transport residual; locality limited to core/mqtt + protocol seam"
+        in file_matrix_text
+    )
 
     for artifact_name in (
         "15-01-PLAN.md",
@@ -490,6 +627,65 @@ def test_phase_15_execution_truth_is_consistent() -> None:
         assert (phase_root / artifact_name).exists()
 
 
+def test_codebase_maps_are_explicitly_derived_assets() -> None:
+    codebase_readme = _ROOT / ".planning" / "codebase" / "README.md"
+    gitignore_text = (_ROOT / ".gitignore").read_text(encoding="utf-8")
+
+    assert codebase_readme.exists()
+    readme_text = codebase_readme.read_text(encoding="utf-8")
+    assert "Derived collaboration map" in readme_text
+    assert "Authority order" in readme_text
+    assert "Conflict rule" in readme_text
+    assert "!.planning/codebase/" in gitignore_text
+    assert "!.planning/codebase/*.md" in gitignore_text
+
+    for relative_path in (
+        ".planning/codebase/ARCHITECTURE.md",
+        ".planning/codebase/CONCERNS.md",
+        ".planning/codebase/CONVENTIONS.md",
+        ".planning/codebase/INTEGRATIONS.md",
+        ".planning/codebase/STACK.md",
+        ".planning/codebase/STRUCTURE.md",
+        ".planning/codebase/TESTING.md",
+    ):
+        text = (_ROOT / relative_path).read_text(encoding="utf-8")
+        assert "Derived collaboration map" in text
+        assert "协作图谱 / 派生视图" in text
+
+
+def test_execution_service_is_not_marked_as_active_runtime_auth_seam() -> None:
+    agents_text = _AGENTS.read_text(encoding="utf-8")
+    file_matrix_text = (_ROOT / ".planning" / "reviews" / "FILE_MATRIX.md").read_text(
+        encoding="utf-8"
+    )
+    residual_text = (_ROOT / ".planning" / "reviews" / "RESIDUAL_LEDGER.md").read_text(
+        encoding="utf-8"
+    )
+    kill_text = (_ROOT / ".planning" / "reviews" / "KILL_LIST.md").read_text(
+        encoding="utf-8"
+    )
+    structure_text = (_ROOT / ".planning" / "codebase" / "STRUCTURE.md").read_text(
+        encoding="utf-8"
+    )
+    architecture_text = (
+        _ROOT / ".planning" / "codebase" / "ARCHITECTURE.md"
+    ).read_text(encoding="utf-8")
+
+    assert "Phase 5 已关闭 coordinator 私有 auth seam" in agents_text
+    assert "仍有 coordinator 私有 auth seam" not in agents_text
+    assert (
+        "| `custom_components/lipro/services/execution.py` | Control | Phase 3 / 5 / 7 | 保留 | "
+        "formal service execution facade; private auth seam closed |"
+    ) in file_matrix_text
+    assert "runtime-auth seam" not in structure_text
+    assert (
+        "runtime-auth seam：`custom_components/lipro/services/execution.py`"
+        not in architecture_text
+    )
+    assert "私有 auth hook seam 已在 Phase 5 关闭" in residual_text
+    assert "不再作为 active kill target" in kill_text
+
+
 def test_phase_16_planning_truth_is_consistent() -> None:
     phase_root = (
         _ROOT
@@ -499,13 +695,24 @@ def test_phase_16_planning_truth_is_consistent() -> None:
     )
     project_text = (_ROOT / ".planning" / "PROJECT.md").read_text(encoding="utf-8")
     roadmap_text = (_ROOT / ".planning" / "ROADMAP.md").read_text(encoding="utf-8")
-    requirements_text = (_ROOT / ".planning" / "REQUIREMENTS.md").read_text(encoding="utf-8")
+    requirements_text = (_ROOT / ".planning" / "REQUIREMENTS.md").read_text(
+        encoding="utf-8"
+    )
     state_text = (_ROOT / ".planning" / "STATE.md").read_text(encoding="utf-8")
     validation_text = (phase_root / "16-VALIDATION.md").read_text(encoding="utf-8")
+    authority_text = (
+        _ROOT / ".planning" / "baseline" / "AUTHORITY_MATRIX.md"
+    ).read_text(encoding="utf-8")
+    public_text = (_ROOT / ".planning" / "baseline" / "PUBLIC_SURFACES.md").read_text(
+        encoding="utf-8"
+    )
+    verification_matrix_text = (
+        _ROOT / ".planning" / "baseline" / "VERIFICATION_MATRIX.md"
+    ).read_text(encoding="utf-8")
 
     assert "### 11. Phase 16 后审计收口线已规划" in project_text
     assert (
-        "| 16 Post-audit Truth Alignment, Hotspot Decomposition & Residual Endgame | v1.1 | 0/6 | Planned | - |"
+        "| 16 Post-audit Truth Alignment, Hotspot Decomposition & Residual Endgame | v1.1 | 2/6 | In Progress | 2026-03-15 |"
         in roadmap_text
     )
     assert "**Plans:** 6 planned across 3 waves" in roadmap_text
@@ -523,14 +730,19 @@ def test_phase_16_planning_truth_is_consistent() -> None:
         "DOC-02",
     ):
         assert f"| {req_id} | Phase 16 | Planned |" in requirements_text
-    assert '**Current mode:** `Phase 16 planned`' in state_text
-    assert 'total_phases: 14' in state_text
-    assert 'completed_phases: 13' in state_text
-    assert 'total_plans: 54' in state_text
-    assert 'completed_plans: 48' in state_text
-    assert '| 16-02-00 | 16-02 | 1 | QLT-02 / DOC-02 |' in validation_text
-    assert '| 16-03-00 | 16-03 | 2 | CTRL-06 / ERR-01 / TYP-04 |' in validation_text
-    assert '| 16-05-00 | 16-05 | 3 | DOM-03 / OTA-01 |' in validation_text
+    assert "**Current mode:** `Phase 16 executing`" in state_text
+    assert "total_phases: 14" in state_text
+    assert "completed_phases: 13" in state_text
+    assert "total_plans: 54" in state_text
+    assert "completed_plans: 48" in state_text
+    assert "| 16-02-00 | 16-02 | 1 | QLT-02 / DOC-02 |" in validation_text
+    assert "| 16-03-00 | 16-03 | 2 | CTRL-06 / ERR-01 / TYP-04 |" in validation_text
+    assert "| 16-05-00 | 16-05 | 3 | DOM-03 / OTA-01 |" in validation_text
+    assert "本地 codebase maps" in authority_text
+    assert "## Phase 16 Governance Calibration Notes" in public_text
+    assert (
+        "## Phase 16 Governance / Toolchain Entry Contract" in verification_matrix_text
+    )
 
     for artifact_name in (
         "16-PRD.md",
@@ -556,15 +768,31 @@ def test_phase_14_execution_truth_is_consistent() -> None:
     )
     project_text = (_ROOT / ".planning" / "PROJECT.md").read_text(encoding="utf-8")
     roadmap_text = (_ROOT / ".planning" / "ROADMAP.md").read_text(encoding="utf-8")
-    requirements_text = (_ROOT / ".planning" / "REQUIREMENTS.md").read_text(encoding="utf-8")
+    requirements_text = (_ROOT / ".planning" / "REQUIREMENTS.md").read_text(
+        encoding="utf-8"
+    )
     state_text = (_ROOT / ".planning" / "STATE.md").read_text(encoding="utf-8")
-    public_text = (_ROOT / ".planning" / "baseline" / "PUBLIC_SURFACES.md").read_text(encoding="utf-8")
-    architecture_policy_text = (_ROOT / ".planning" / "baseline" / "ARCHITECTURE_POLICY.md").read_text(encoding="utf-8")
-    verification_matrix_text = (_ROOT / ".planning" / "baseline" / "VERIFICATION_MATRIX.md").read_text(encoding="utf-8")
-    residual_text = (_ROOT / ".planning" / "reviews" / "RESIDUAL_LEDGER.md").read_text(encoding="utf-8")
-    kill_text = (_ROOT / ".planning" / "reviews" / "KILL_LIST.md").read_text(encoding="utf-8")
-    file_matrix_text = (_ROOT / ".planning" / "reviews" / "FILE_MATRIX.md").read_text(encoding="utf-8")
-    structure_text = (_ROOT / ".planning" / "codebase" / "STRUCTURE.md").read_text(encoding="utf-8")
+    public_text = (_ROOT / ".planning" / "baseline" / "PUBLIC_SURFACES.md").read_text(
+        encoding="utf-8"
+    )
+    architecture_policy_text = (
+        _ROOT / ".planning" / "baseline" / "ARCHITECTURE_POLICY.md"
+    ).read_text(encoding="utf-8")
+    verification_matrix_text = (
+        _ROOT / ".planning" / "baseline" / "VERIFICATION_MATRIX.md"
+    ).read_text(encoding="utf-8")
+    residual_text = (_ROOT / ".planning" / "reviews" / "RESIDUAL_LEDGER.md").read_text(
+        encoding="utf-8"
+    )
+    kill_text = (_ROOT / ".planning" / "reviews" / "KILL_LIST.md").read_text(
+        encoding="utf-8"
+    )
+    file_matrix_text = (_ROOT / ".planning" / "reviews" / "FILE_MATRIX.md").read_text(
+        encoding="utf-8"
+    )
+    structure_text = (_ROOT / ".planning" / "codebase" / "STRUCTURE.md").read_text(
+        encoding="utf-8"
+    )
     research_text = (phase_root / "14-RESEARCH.md").read_text(encoding="utf-8")
     prd_text = (phase_root / "14-PRD.md").read_text(encoding="utf-8")
     validation_text = (phase_root / "14-VALIDATION.md").read_text(encoding="utf-8")
@@ -589,9 +817,15 @@ def test_phase_14_execution_truth_is_consistent() -> None:
     assert "## Phase 14 Status Update" in kill_text
     assert "ENF-IMP-API-LEGACY-SPINE-LOCALITY" in architecture_policy_text
     assert "ENF-GOV-RELEASE-CI-REUSE" in architecture_policy_text
-    assert "custom_components/lipro/control/developer_router_support.py" in file_matrix_text
+    assert (
+        "custom_components/lipro/control/developer_router_support.py"
+        in file_matrix_text
+    )
     assert "custom_components/lipro/core/api/status_fallback.py" in file_matrix_text
-    assert "custom_components/lipro/core/coordinator/services/protocol_service.py" in file_matrix_text
+    assert (
+        "custom_components/lipro/core/coordinator/services/protocol_service.py"
+        in file_matrix_text
+    )
     assert "client.py              # compat shell" not in structure_text
     assert "LiproMqttClient compat shell" not in public_text
 
@@ -609,6 +843,7 @@ def test_phase_14_execution_truth_is_consistent() -> None:
     ):
         assert (phase_root / artifact_name).exists()
 
+
 def test_phase_13_execution_truth_is_consistent() -> None:
     phase_root = (
         _ROOT
@@ -618,18 +853,30 @@ def test_phase_13_execution_truth_is_consistent() -> None:
     )
     project_text = (_ROOT / ".planning" / "PROJECT.md").read_text(encoding="utf-8")
     roadmap_text = (_ROOT / ".planning" / "ROADMAP.md").read_text(encoding="utf-8")
-    requirements_text = (_ROOT / ".planning" / "REQUIREMENTS.md").read_text(encoding="utf-8")
+    requirements_text = (_ROOT / ".planning" / "REQUIREMENTS.md").read_text(
+        encoding="utf-8"
+    )
     state_text = (_ROOT / ".planning" / "STATE.md").read_text(encoding="utf-8")
-    public_text = (_ROOT / ".planning" / "baseline" / "PUBLIC_SURFACES.md").read_text(encoding="utf-8")
-    residual_text = (_ROOT / ".planning" / "reviews" / "RESIDUAL_LEDGER.md").read_text(encoding="utf-8")
-    kill_text = (_ROOT / ".planning" / "reviews" / "KILL_LIST.md").read_text(encoding="utf-8")
-    file_matrix_text = (_ROOT / ".planning" / "reviews" / "FILE_MATRIX.md").read_text(encoding="utf-8")
+    public_text = (_ROOT / ".planning" / "baseline" / "PUBLIC_SURFACES.md").read_text(
+        encoding="utf-8"
+    )
+    residual_text = (_ROOT / ".planning" / "reviews" / "RESIDUAL_LEDGER.md").read_text(
+        encoding="utf-8"
+    )
+    kill_text = (_ROOT / ".planning" / "reviews" / "KILL_LIST.md").read_text(
+        encoding="utf-8"
+    )
+    file_matrix_text = (_ROOT / ".planning" / "reviews" / "FILE_MATRIX.md").read_text(
+        encoding="utf-8"
+    )
     research_text = (phase_root / "13-RESEARCH.md").read_text(encoding="utf-8")
     prd_text = (phase_root / "13-PRD.md").read_text(encoding="utf-8")
     validation_text = (phase_root / "13-VALIDATION.md").read_text(encoding="utf-8")
     verification_text = (phase_root / "13-VERIFICATION.md").read_text(encoding="utf-8")
 
-    assert "### 8. Phase 13 显式领域表面 / 治理守卫 / 热点边界收口已完成" in project_text
+    assert (
+        "### 8. Phase 13 显式领域表面 / 治理守卫 / 热点边界收口已完成" in project_text
+    )
     assert (
         "| 13 Explicit Domain Surface, Governance Guard Hardening & Hotspot Boundary Decomposition | v1.1 | 3/3 | Complete | 2026-03-14 |"
         in roadmap_text
@@ -649,42 +896,63 @@ def test_phase_13_execution_truth_is_consistent() -> None:
 
 
 def test_phase_12_execution_truth_is_consistent() -> None:
-    phase_root = _ROOT / ".planning" / "phases" / "12-type-contract-alignment-residual-cleanup-and-governance-hygiene"
+    phase_root = (
+        _ROOT
+        / ".planning"
+        / "phases"
+        / "12-type-contract-alignment-residual-cleanup-and-governance-hygiene"
+    )
     project_text = (_ROOT / ".planning" / "PROJECT.md").read_text(encoding="utf-8")
     roadmap_text = (_ROOT / ".planning" / "ROADMAP.md").read_text(encoding="utf-8")
-    requirements_text = (_ROOT / ".planning" / "REQUIREMENTS.md").read_text(encoding="utf-8")
+    requirements_text = (_ROOT / ".planning" / "REQUIREMENTS.md").read_text(
+        encoding="utf-8"
+    )
     state_text = (_ROOT / ".planning" / "STATE.md").read_text(encoding="utf-8")
-    public_text = (_ROOT / ".planning" / "baseline" / "PUBLIC_SURFACES.md").read_text(encoding="utf-8")
-    residual_text = (_ROOT / ".planning" / "reviews" / "RESIDUAL_LEDGER.md").read_text(encoding="utf-8")
-    kill_text = (_ROOT / ".planning" / "reviews" / "KILL_LIST.md").read_text(encoding="utf-8")
+    public_text = (_ROOT / ".planning" / "baseline" / "PUBLIC_SURFACES.md").read_text(
+        encoding="utf-8"
+    )
+    residual_text = (_ROOT / ".planning" / "reviews" / "RESIDUAL_LEDGER.md").read_text(
+        encoding="utf-8"
+    )
+    kill_text = (_ROOT / ".planning" / "reviews" / "KILL_LIST.md").read_text(
+        encoding="utf-8"
+    )
     research_text = (phase_root / "12-RESEARCH.md").read_text(encoding="utf-8")
     prd_text = (phase_root / "12-PRD.md").read_text(encoding="utf-8")
 
     assert "**Status:** Active" in project_text
     assert "### 7. Phase 12 Type / Residual / Governance 收口已完成" in project_text
-    assert "| 12 Type Contract Alignment, Residual Cleanup & Governance Hygiene | v1.1 | 5/5 | Complete | 2026-03-14 |" in roadmap_text
-    assert "**Requirements**: TYP-01, TYP-02, CMP-01, CMP-02, HOT-01, GOV-09, GOV-10" in roadmap_text
+    assert (
+        "| 12 Type Contract Alignment, Residual Cleanup & Governance Hygiene | v1.1 | 5/5 | Complete | 2026-03-14 |"
+        in roadmap_text
+    )
+    assert (
+        "**Requirements**: TYP-01, TYP-02, CMP-01, CMP-02, HOT-01, GOV-09, GOV-10"
+        in roadmap_text
+    )
     assert "| TYP-01 | Phase 12 | Complete |" in requirements_text
     assert "| GOV-10 | Phase 12 | Complete |" in requirements_text
     _assert_current_mode_tracks_phase_lifecycle(state_text)
     assert "Already Fixed / Must Not Be Replanned" in prd_text
     assert "5 plans / 3 waves" in research_text
-    active_residual_text = _extract_markdown_section(residual_text, "Active Residual Families")
+    active_residual_text = _extract_markdown_section(
+        residual_text, "Active Residual Families"
+    )
     assert "## Phase 12 Surface Closure Notes" in public_text
     assert "## Phase 12 Residual Delta" in residual_text
     assert "## Phase 12 Status Update" in kill_text
-    assert '`core.api.LiproClient` compat shell 已删除' in public_text
-    assert '`LiproProtocolFacade.get_device_list` compat wrapper 已删除' in public_text
-    assert '`LiproMqttFacade.raw_client` compat seam 已删除' in public_text
-    assert '`DeviceCapabilities` compat alias' in public_text
-    assert '已关闭（Phase 12：compat shell removed）' in kill_text
-    assert '已关闭（Phase 12：compat seam removed）' in kill_text
-    assert '已关闭（Phase 12：compat alias removed）' in kill_text
+    assert "`core.api.LiproClient` compat shell 已删除" in public_text
+    assert "`LiproProtocolFacade.get_device_list` compat wrapper 已删除" in public_text
+    assert "`LiproMqttFacade.raw_client` compat seam 已删除" in public_text
+    assert "`DeviceCapabilities` compat alias" in public_text
+    assert "已关闭（Phase 12：compat shell removed）" in kill_text
+    assert "已关闭（Phase 12：compat seam removed）" in kill_text
+    assert "已关闭（Phase 12：compat alias removed）" in kill_text
     for seam in (
-        'core.api.LiproClient',
-        'LiproProtocolFacade.get_device_list',
-        'LiproMqttFacade.raw_client',
-        'DeviceCapabilities',
+        "core.api.LiproClient",
+        "LiproProtocolFacade.get_device_list",
+        "LiproMqttFacade.raw_client",
+        "DeviceCapabilities",
     ):
         assert seam in public_text
         assert seam in kill_text
@@ -708,17 +976,49 @@ def test_phase_12_execution_truth_is_consistent() -> None:
 
 def test_phase_10_governance_truth_is_consistent() -> None:
     roadmap_text = (_ROOT / ".planning" / "ROADMAP.md").read_text(encoding="utf-8")
-    requirements_text = (_ROOT / ".planning" / "REQUIREMENTS.md").read_text(encoding="utf-8")
+    requirements_text = (_ROOT / ".planning" / "REQUIREMENTS.md").read_text(
+        encoding="utf-8"
+    )
     state_text = (_ROOT / ".planning" / "STATE.md").read_text(encoding="utf-8")
-    validation_text = (_ROOT / ".planning" / "phases" / "10-api-drift-isolation-core-boundary-prep" / "10-VALIDATION.md").read_text(encoding="utf-8")
-    verification_text = (_ROOT / ".planning" / "phases" / "10-api-drift-isolation-core-boundary-prep" / "10-VERIFICATION.md").read_text(encoding="utf-8")
-    uat_text = (_ROOT / ".planning" / "phases" / "10-api-drift-isolation-core-boundary-prep" / "10-UAT.md").read_text(encoding="utf-8")
-    public_text = (_ROOT / ".planning" / "baseline" / "PUBLIC_SURFACES.md").read_text(encoding="utf-8")
-    dependency_text = (_ROOT / ".planning" / "baseline" / "DEPENDENCY_MATRIX.md").read_text(encoding="utf-8")
-    authority_text = (_ROOT / ".planning" / "baseline" / "AUTHORITY_MATRIX.md").read_text(encoding="utf-8")
-    verification_matrix_text = (_ROOT / ".planning" / "baseline" / "VERIFICATION_MATRIX.md").read_text(encoding="utf-8")
-    residual_text = (_ROOT / ".planning" / "reviews" / "RESIDUAL_LEDGER.md").read_text(encoding="utf-8")
-    kill_text = (_ROOT / ".planning" / "reviews" / "KILL_LIST.md").read_text(encoding="utf-8")
+    validation_text = (
+        _ROOT
+        / ".planning"
+        / "phases"
+        / "10-api-drift-isolation-core-boundary-prep"
+        / "10-VALIDATION.md"
+    ).read_text(encoding="utf-8")
+    verification_text = (
+        _ROOT
+        / ".planning"
+        / "phases"
+        / "10-api-drift-isolation-core-boundary-prep"
+        / "10-VERIFICATION.md"
+    ).read_text(encoding="utf-8")
+    uat_text = (
+        _ROOT
+        / ".planning"
+        / "phases"
+        / "10-api-drift-isolation-core-boundary-prep"
+        / "10-UAT.md"
+    ).read_text(encoding="utf-8")
+    public_text = (_ROOT / ".planning" / "baseline" / "PUBLIC_SURFACES.md").read_text(
+        encoding="utf-8"
+    )
+    dependency_text = (
+        _ROOT / ".planning" / "baseline" / "DEPENDENCY_MATRIX.md"
+    ).read_text(encoding="utf-8")
+    authority_text = (
+        _ROOT / ".planning" / "baseline" / "AUTHORITY_MATRIX.md"
+    ).read_text(encoding="utf-8")
+    verification_matrix_text = (
+        _ROOT / ".planning" / "baseline" / "VERIFICATION_MATRIX.md"
+    ).read_text(encoding="utf-8")
+    residual_text = (_ROOT / ".planning" / "reviews" / "RESIDUAL_LEDGER.md").read_text(
+        encoding="utf-8"
+    )
+    kill_text = (_ROOT / ".planning" / "reviews" / "KILL_LIST.md").read_text(
+        encoding="utf-8"
+    )
 
     for summary_name in (
         "10-01-SUMMARY.md",
@@ -726,9 +1026,18 @@ def test_phase_10_governance_truth_is_consistent() -> None:
         "10-03-SUMMARY.md",
         "10-04-SUMMARY.md",
     ):
-        assert (_ROOT / ".planning" / "phases" / "10-api-drift-isolation-core-boundary-prep" / summary_name).exists()
+        assert (
+            _ROOT
+            / ".planning"
+            / "phases"
+            / "10-api-drift-isolation-core-boundary-prep"
+            / summary_name
+        ).exists()
 
-    assert "| 10 API Drift Isolation & Core Boundary Prep | v1.1 | 4/4 | Complete | 2026-03-14 |" in roadmap_text
+    assert (
+        "| 10 API Drift Isolation & Core Boundary Prep | v1.1 | 4/4 | Complete | 2026-03-14 |"
+        in roadmap_text
+    )
     assert "| ISO-01 | Phase 10 | Complete |" in requirements_text
     assert "| ISO-04 | Phase 10 | Complete |" in requirements_text
     _assert_current_mode_tracks_phase_lifecycle(state_text)
@@ -757,3 +1066,63 @@ def test_phase_10_governance_truth_is_consistent() -> None:
     ):
         assert seam in residual_text
         assert seam in kill_text
+
+
+def test_codebase_maps_are_derived_collaboration_views() -> None:
+    gitignore_text = (_ROOT / ".gitignore").read_text(encoding="utf-8")
+    authority_text = (
+        _ROOT / ".planning" / "baseline" / "AUTHORITY_MATRIX.md"
+    ).read_text(encoding="utf-8")
+    developer_text = (_ROOT / "docs" / "developer_architecture.md").read_text(
+        encoding="utf-8"
+    )
+    project_text = (_ROOT / ".planning" / "PROJECT.md").read_text(encoding="utf-8")
+
+    assert "!.planning/codebase/" in gitignore_text
+    assert "!.planning/codebase/*.md" in gitignore_text
+    assert "derived collaboration maps" in authority_text
+    assert "derived collaboration maps / 协作图谱" in developer_text
+    assert "## Current Execution Workspace Inputs" in project_text
+
+    for path in sorted((_ROOT / ".planning" / "codebase").glob("*.md")):
+        text = path.read_text(encoding="utf-8")
+        assert "Derived collaboration map" in text, path.as_posix()
+
+
+def test_closed_service_execution_seam_is_not_active_governance_truth() -> None:
+    agents_text = (_ROOT / "AGENTS.md").read_text(encoding="utf-8")
+    file_matrix_text = (_ROOT / ".planning" / "reviews" / "FILE_MATRIX.md").read_text(
+        encoding="utf-8"
+    )
+    architecture_text = (
+        _ROOT / ".planning" / "codebase" / "ARCHITECTURE.md"
+    ).read_text(encoding="utf-8")
+    structure_text = (_ROOT / ".planning" / "codebase" / "STRUCTURE.md").read_text(
+        encoding="utf-8"
+    )
+    residual_text = (_ROOT / ".planning" / "reviews" / "RESIDUAL_LEDGER.md").read_text(
+        encoding="utf-8"
+    )
+    kill_text = (_ROOT / ".planning" / "reviews" / "KILL_LIST.md").read_text(
+        encoding="utf-8"
+    )
+
+    assert "仍有 coordinator 私有 auth seam" not in agents_text
+    assert (
+        "formal service execution facade; private auth seam closed" in file_matrix_text
+    )
+    assert (
+        "runtime-auth seam：`custom_components/lipro/services/execution.py`"
+        not in architecture_text
+    )
+    assert "过渡性 runtime-auth seam" not in structure_text
+    assert "Private runtime auth seam" in residual_text
+    assert "active kill target" in kill_text
+
+
+def test_project_primary_sources_do_not_include_phase_workspace_assets() -> None:
+    project_text = (_ROOT / ".planning" / "PROJECT.md").read_text(encoding="utf-8")
+    primary_sources = _extract_markdown_section(project_text, "Primary Sources")
+
+    assert ".planning/phases/" not in primary_sources
+    assert "Current Execution Workspace Inputs" in project_text

@@ -2,9 +2,30 @@
 
 from __future__ import annotations
 
-from typing import Any
+import asyncio
+from collections.abc import Awaitable, Callable, Sequence
+from typing import Protocol
 
 from homeassistant.core import HomeAssistant
+
+type ServiceRegistrations = Sequence[object]
+type SetupServicesFn = Callable[..., Awaitable[None]]
+type RemoveServicesFn = Callable[..., None]
+type HasDebugModeRuntimeEntryFn = Callable[[HomeAssistant], bool]
+type GetRuntimeInfraLockFn = Callable[[HomeAssistant], asyncio.Lock | None]
+
+
+class ServiceRegistryLike(Protocol):
+    """Protocol for service registry synchronization collaborators."""
+
+    async def async_sync(self, hass: HomeAssistant) -> None:
+        """Synchronize services for the current runtime state."""
+
+    async def async_sync_with_lock(self, hass: HomeAssistant) -> None:
+        """Synchronize services while holding the shared lock."""
+
+    def remove_all(self, hass: HomeAssistant) -> None:
+        """Remove all registered services for the domain."""
 
 
 class ServiceRegistry:
@@ -14,13 +35,13 @@ class ServiceRegistry:
         self,
         *,
         domain: str,
-        public_registrations: Any,
-        developer_registrations: Any,
-        service_registrations: Any,
-        async_setup_services: Any,
-        remove_services: Any,
-        has_debug_mode_runtime_entry: Any,
-        get_runtime_infra_lock: Any,
+        public_registrations: ServiceRegistrations,
+        developer_registrations: ServiceRegistrations,
+        service_registrations: ServiceRegistrations,
+        async_setup_services: SetupServicesFn,
+        remove_services: RemoveServicesFn,
+        has_debug_mode_runtime_entry: HasDebugModeRuntimeEntryFn,
+        get_runtime_infra_lock: GetRuntimeInfraLockFn,
     ) -> None:
         """Initialize the control-plane owner with explicit collaborators."""
         self._domain = domain

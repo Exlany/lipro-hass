@@ -27,6 +27,19 @@ STATE_PATH = Path(".planning/STATE.md")
 REQUIREMENTS_PATH = Path(".planning/REQUIREMENTS.md")
 AGENTS_PATH = Path("AGENTS.md")
 CLAUDE_COMPAT_PATH = Path("CLAUDE.md")
+GITIGNORE_PATH = Path(".gitignore")
+CODEBASE_MAP_DIR = Path(".planning/codebase")
+CODEBASE_MAP_README_PATH = CODEBASE_MAP_DIR / "README.md"
+CODEBASE_MAP_PATHS = [
+    CODEBASE_MAP_README_PATH,
+    CODEBASE_MAP_DIR / "ARCHITECTURE.md",
+    CODEBASE_MAP_DIR / "CONCERNS.md",
+    CODEBASE_MAP_DIR / "CONVENTIONS.md",
+    CODEBASE_MAP_DIR / "INTEGRATIONS.md",
+    CODEBASE_MAP_DIR / "STACK.md",
+    CODEBASE_MAP_DIR / "STRUCTURE.md",
+    CODEBASE_MAP_DIR / "TESTING.md",
+]
 ACTIVE_DOC_PATHS = [
     PROJECT_PATH,
     ROADMAP_PATH,
@@ -40,7 +53,9 @@ ACTIVE_DOC_PATHS = [
     CLAUDE_COMPAT_PATH,
 ]
 HISTORICAL_DOC_PATHS: list[Path] = []
-COUNT_PATTERN = re.compile(r"(?:全部 `|Python files total:\*\* |Python files total: )(\d+)")
+COUNT_PATTERN = re.compile(
+    r"(?:全部 `|Python files total:\*\* |Python files total: )(\d+)"
+)
 FILE_MATRIX_HEADER_PATTERN = re.compile(r"\*\*Python files total:\*\*\s+(\d+)")
 FILE_MATRIX_ROW_PATTERN = re.compile(r"^\| `([^`]+\.py)` \|", re.MULTILINE)
 DISALLOWED_AUTHORITY_PHRASES = (
@@ -54,6 +69,7 @@ SECTION_SOURCE_PATH_HEADINGS: dict[Path, tuple[str, ...]] = {
 }
 GLOB_CHARS = ("*", "?", "[")
 BACKTICK_TOKEN_PATTERN = re.compile(r"`([^`]+)`")
+PROJECT_WORKSPACE_INPUTS_HEADER = "## Current Execution Workspace Inputs"
 
 
 @dataclass(frozen=True, slots=True)
@@ -93,8 +109,15 @@ OVERRIDES: dict[str, FileGovernanceRow] = {
         path="custom_components/lipro/services/execution.py",
         area="Control",
         owner_phase="Phase 5 / 7",
-        fate="迁移适配",
-        residual="runtime-auth seam",
+        fate="保留",
+        residual="formal service execution facade; private auth seam closed",
+    ),
+    "tests/meta/test_toolchain_truth.py": FileGovernanceRow(
+        path="tests/meta/test_toolchain_truth.py",
+        area="Assurance",
+        owner_phase="Phase 16",
+        fate="保留",
+        residual="-",
     ),
     "custom_components/lipro/core/coordinator/runtime/status_strategy.py": FileGovernanceRow(
         path="custom_components/lipro/core/coordinator/runtime/status_strategy.py",
@@ -152,7 +175,6 @@ OVERRIDES: dict[str, FileGovernanceRow] = {
         fate="保留",
         residual="-",
     ),
-
     "custom_components/lipro/control/developer_router_support.py": FileGovernanceRow(
         path="custom_components/lipro/control/developer_router_support.py",
         area="Control",
@@ -174,41 +196,41 @@ OVERRIDES: dict[str, FileGovernanceRow] = {
         fate="重构",
         residual="internal typing spine only; locality limited to core/api",
     ),
-"custom_components/lipro/core/api/schedule_service.py": FileGovernanceRow(
-    path="custom_components/lipro/core/api/schedule_service.py",
-    area="Protocol",
-    owner_phase="Phase 2 / 14",
-    fate="重构",
-    residual="helper-only schedule support",
-),
-"custom_components/lipro/core/api/status_fallback.py": FileGovernanceRow(
-    path="custom_components/lipro/core/api/status_fallback.py",
-    area="Protocol",
-    owner_phase="Phase 14",
-    fate="保留",
-    residual="status fallback kernel home",
-),
-"custom_components/lipro/core/api/status_service.py": FileGovernanceRow(
-    path="custom_components/lipro/core/api/status_service.py",
-    area="Protocol",
-    owner_phase="Phase 2 / 13 / 14",
-    fate="重构",
-    residual="public status orchestration home",
-),
-"custom_components/lipro/core/coordinator/coordinator.py": FileGovernanceRow(
-    path="custom_components/lipro/core/coordinator/coordinator.py",
-    area="Runtime",
-    owner_phase="Phase 5 / 14",
-    fate="重构",
-    residual="HA-facing runtime façade hotspot",
-),
-"custom_components/lipro/core/coordinator/services/protocol_service.py": FileGovernanceRow(
-    path="custom_components/lipro/core/coordinator/services/protocol_service.py",
-    area="Runtime",
-    owner_phase="Phase 14",
-    fate="保留",
-    residual="protocol-facing runtime service surface",
-),
+    "custom_components/lipro/core/api/schedule_service.py": FileGovernanceRow(
+        path="custom_components/lipro/core/api/schedule_service.py",
+        area="Protocol",
+        owner_phase="Phase 2 / 14",
+        fate="重构",
+        residual="helper-only schedule support",
+    ),
+    "custom_components/lipro/core/api/status_fallback.py": FileGovernanceRow(
+        path="custom_components/lipro/core/api/status_fallback.py",
+        area="Protocol",
+        owner_phase="Phase 14",
+        fate="保留",
+        residual="status fallback kernel home",
+    ),
+    "custom_components/lipro/core/api/status_service.py": FileGovernanceRow(
+        path="custom_components/lipro/core/api/status_service.py",
+        area="Protocol",
+        owner_phase="Phase 2 / 13 / 14",
+        fate="重构",
+        residual="public status orchestration home",
+    ),
+    "custom_components/lipro/core/coordinator/coordinator.py": FileGovernanceRow(
+        path="custom_components/lipro/core/coordinator/coordinator.py",
+        area="Runtime",
+        owner_phase="Phase 5 / 14",
+        fate="重构",
+        residual="HA-facing runtime façade hotspot",
+    ),
+    "custom_components/lipro/core/coordinator/services/protocol_service.py": FileGovernanceRow(
+        path="custom_components/lipro/core/coordinator/services/protocol_service.py",
+        area="Runtime",
+        owner_phase="Phase 14",
+        fate="保留",
+        residual="protocol-facing runtime service surface",
+    ),
     "custom_components/lipro/core/mqtt/mqtt_client.py": FileGovernanceRow(
         path="custom_components/lipro/core/mqtt/mqtt_client.py",
         area="Protocol",
@@ -336,7 +358,10 @@ def _classify_test_path(path: str) -> FileGovernanceRow | None:
         return _row_for_path(path, "Assurance", "Phase 6")
     if path.startswith("tests/harness/evidence_pack/"):
         return _row_for_path(path, "Assurance", "Phase 8")
-    if path.startswith("tests/harness/protocol/") or path == "tests/harness/__init__.py":
+    if (
+        path.startswith("tests/harness/protocol/")
+        or path == "tests/harness/__init__.py"
+    ):
         return _row_for_path(path, "Assurance", "Phase 7.4")
     if path.startswith("tests/snapshots/"):
         return _row_for_path(path, "Assurance", "Phase 6")
@@ -350,7 +375,10 @@ def _classify_test_path(path: str) -> FileGovernanceRow | None:
         return _row_for_path(path, "Protocol", "Phase 7.4")
     if path == "tests/core/mqtt/test_protocol_replay_mqtt.py":
         return _row_for_path(path, "Protocol", "Phase 7.4")
-    if path.startswith(("tests/core/coordinator/", "tests/integration/")) or path in runtime_test_files:
+    if (
+        path.startswith(("tests/core/coordinator/", "tests/integration/"))
+        or path in runtime_test_files
+    ):
         return _row_for_path(path, "Runtime", "Phase 5 / 6")
     if path.startswith("tests/core/api/"):
         return _row_for_path(path, "Protocol", "Phase 2")
@@ -360,7 +388,10 @@ def _classify_test_path(path: str) -> FileGovernanceRow | None:
         return _row_for_path(path, "Domain", "Phase 4")
     if path.startswith(control_test_prefixes) or path == "tests/core/test_init.py":
         return _row_for_path(path, "Control", "Phase 3 / 7")
-    if path.startswith("tests/helpers/") or path in {"tests/conftest.py", "tests/conftest_shared.py"}:
+    if path.startswith("tests/helpers/") or path in {
+        "tests/conftest.py",
+        "tests/conftest_shared.py",
+    }:
         return _row_for_path(path, "Assurance", "Phase 6")
     return None
 
@@ -445,11 +476,17 @@ def validate_file_matrix(root: Path) -> list[str]:
     duplicates = sorted({path for path in matrix_paths if matrix_paths.count(path) > 1})
 
     if missing:
-        errors.append(f"FILE_MATRIX missing {len(missing)} files: {', '.join(missing[:10])}")
+        errors.append(
+            f"FILE_MATRIX missing {len(missing)} files: {', '.join(missing[:10])}"
+        )
     if extra:
-        errors.append(f"FILE_MATRIX contains {len(extra)} non-inventory files: {', '.join(extra[:10])}")
+        errors.append(
+            f"FILE_MATRIX contains {len(extra)} non-inventory files: {', '.join(extra[:10])}"
+        )
     if duplicates:
-        errors.append(f"FILE_MATRIX duplicates {len(duplicates)} files: {', '.join(duplicates[:10])}")
+        errors.append(
+            f"FILE_MATRIX duplicates {len(duplicates)} files: {', '.join(duplicates[:10])}"
+        )
     if "remainder" in matrix_text.lower():
         errors.append("FILE_MATRIX still contains remainder bucket")
 
@@ -460,7 +497,12 @@ def validate_active_doc_counts(root: Path) -> list[str]:
     """Validate that active governance docs report the current file count."""
     errors: list[str] = []
     total = len(iter_python_files(root))
-    for relative_path in [ROADMAP_PATH, STATE_PATH, REQUIREMENTS_PATH, FILE_MATRIX_PATH]:
+    for relative_path in [
+        ROADMAP_PATH,
+        STATE_PATH,
+        REQUIREMENTS_PATH,
+        FILE_MATRIX_PATH,
+    ]:
         text = (root / relative_path).read_text(encoding="utf-8")
         counts = {int(match) for match in COUNT_PATTERN.findall(text)}
         stale = sorted(count for count in counts if count != total)
@@ -479,7 +521,9 @@ def validate_doc_authority(root: Path) -> list[str]:
         text = path.read_text(encoding="utf-8")
         hit = [phrase for phrase in DISALLOWED_AUTHORITY_PHRASES if phrase in text]
         if hit:
-            errors.append(f"{relative_path} still contains disallowed authority phrases: {hit}")
+            errors.append(
+                f"{relative_path} still contains disallowed authority phrases: {hit}"
+            )
     for relative_path in HISTORICAL_DOC_PATHS:
         path = root / relative_path
         if not path.exists():
@@ -525,6 +569,58 @@ def validate_active_source_paths(root: Path) -> list[str]:
     return errors
 
 
+def validate_codebase_map_policy(root: Path) -> list[str]:
+    """Validate that local codebase maps stay explicitly derived and non-authoritative."""
+    errors: list[str] = []
+
+    gitignore_text = (root / ".gitignore").read_text(encoding="utf-8")
+    for token in ("!.planning/codebase/", "!.planning/codebase/*.md"):
+        if token not in gitignore_text:
+            errors.append(f".gitignore missing codebase-map tracking rule: {token}")
+
+    readme_path = root / CODEBASE_MAP_README_PATH
+    if not readme_path.exists():
+        errors.append(f"missing codebase map authority note: {CODEBASE_MAP_README_PATH}")
+        return errors
+
+    readme_text = readme_path.read_text(encoding="utf-8")
+    for token in ("Derived collaboration map", "Authority order", "Conflict rule"):
+        if token not in readme_text:
+            errors.append(f"{CODEBASE_MAP_README_PATH} missing required token: {token}")
+
+    for relative_path in CODEBASE_MAP_PATHS[1:]:
+        doc_text = (root / relative_path).read_text(encoding="utf-8")
+        for token in ("Derived collaboration map", "协作图谱 / 派生视图"):
+            if token not in doc_text:
+                errors.append(
+                    f"{relative_path} missing derived collaboration disclaimer token: {token}"
+                )
+
+    agents_text = (root / AGENTS_PATH).read_text(encoding="utf-8")
+    if "仍有 coordinator 私有 auth seam" in agents_text:
+        errors.append("AGENTS.md still marks execution.py as an active private auth seam")
+    if "Phase 5 已关闭 coordinator 私有 auth seam" not in agents_text:
+        errors.append("AGENTS.md missing closed-seam wording for execution.py")
+
+    file_matrix_text = (root / FILE_MATRIX_PATH).read_text(encoding="utf-8")
+    expected_row = (
+        "| `custom_components/lipro/services/execution.py` | Control | Phase 3 / 5 / 7 | 保留 | "
+        "formal service execution facade; private auth seam closed |"
+    )
+    if expected_row not in file_matrix_text:
+        errors.append("FILE_MATRIX execution.py row is not aligned with the closed-seam truth")
+
+    for relative_path in (
+        CODEBASE_MAP_DIR / "STRUCTURE.md",
+        CODEBASE_MAP_DIR / "ARCHITECTURE.md",
+    ):
+        doc_text = (root / relative_path).read_text(encoding="utf-8")
+        if "runtime-auth seam" in doc_text:
+            errors.append(
+                f"{relative_path} still treats execution.py as an active runtime-auth seam"
+            )
+
+    return errors
 def run_checks(root: Path) -> list[str]:
     """Run all governance checks and return the accumulated error list."""
     errors: list[str] = []
@@ -532,6 +628,7 @@ def run_checks(root: Path) -> list[str]:
     errors.extend(validate_active_doc_counts(root))
     errors.extend(validate_doc_authority(root))
     errors.extend(validate_active_source_paths(root))
+    errors.extend(validate_codebase_map_policy(root))
     return errors
 
 
@@ -542,9 +639,17 @@ def _write_line(message: str) -> None:
 def main() -> int:
     """Run the governance CLI entry point."""
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--write", action="store_true", help="rewrite FILE_MATRIX.md from current inventory")
-    parser.add_argument("--check", action="store_true", help="validate governance artifacts")
-    parser.add_argument("--report", action="store_true", help="print current inventory summary")
+    parser.add_argument(
+        "--write",
+        action="store_true",
+        help="rewrite FILE_MATRIX.md from current inventory",
+    )
+    parser.add_argument(
+        "--check", action="store_true", help="validate governance artifacts"
+    )
+    parser.add_argument(
+        "--report", action="store_true", help="print current inventory summary"
+    )
     args = parser.parse_args()
 
     root = repo_root()

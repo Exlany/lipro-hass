@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 from collections.abc import Awaitable, Callable
 import functools
-from typing import Any
+from typing import Any, Protocol
 
 from homeassistant.core import (
     CALLBACK_TYPE,
@@ -19,6 +19,20 @@ from homeassistant.helpers import device_registry as dr
 
 from ..control.runtime_access import get_entry_runtime_coordinator, iter_runtime_entries
 from ..core.utils.redaction import redact_identifier as _redact_identifier
+from .contracts import RefreshDevicesResult
+
+
+class _DeviceRefreshService(Protocol):
+    """Coordinator service used by the refresh_devices handler."""
+
+    async def async_refresh_devices(self) -> None:
+        """Refresh devices for the owning runtime."""
+
+
+class _RefreshDevicesCoordinator(Protocol):
+    """Minimal coordinator contract for refresh_devices."""
+
+    device_refresh_service: _DeviceRefreshService
 
 
 def _iter_runtime_entry_coordinators(
@@ -26,10 +40,10 @@ def _iter_runtime_entry_coordinators(
     *,
     domain: str,
     requested_entry_id: str | None,
-) -> list[tuple[str, Any]]:
+) -> list[tuple[str, _RefreshDevicesCoordinator]]:
     """Collect runtime coordinators for one entry or all entries."""
     del domain
-    targets: list[tuple[str, Any]] = []
+    targets: list[tuple[str, _RefreshDevicesCoordinator]] = []
     for entry in iter_runtime_entries(hass, entry_id=requested_entry_id):
         coordinator = get_entry_runtime_coordinator(entry)
         if coordinator is not None:
@@ -43,7 +57,7 @@ async def async_handle_refresh_devices(
     *,
     domain: str,
     attr_entry_id: str,
-) -> dict[str, Any]:
+) -> RefreshDevicesResult:
     """Handle refresh_devices service call."""
     requested_entry_id = call.data.get(attr_entry_id)
     targets = _iter_runtime_entry_coordinators(
@@ -64,7 +78,7 @@ async def async_handle_refresh_devices(
         await coordinator.device_refresh_service.async_refresh_devices()
         refreshed_entries += 1
 
-    result: dict[str, Any] = {"success": True, "refreshed_entries": refreshed_entries}
+    result: RefreshDevicesResult = {"success": True, "refreshed_entries": refreshed_entries}
     if requested_entry_id:
         result["requested_entry_id"] = requested_entry_id
     return result

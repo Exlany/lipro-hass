@@ -19,7 +19,7 @@ See: `.planning/PROJECT.md`
 
 **Current milestone:** `v1.1 Protocol Fidelity & Operability`
 **Core value:** 在既有北极星单一主链基础上，把 fidelity / enforcement / telemetry / replay / AI-debug evidence 做成下一层正式能力，并继续把类型契约、残留收口、热点拆薄、测试分层与 contributor-facing governance 做成可验证的正式能力。
-**Current mode:** `Phase 16 planned`；当前已完成 `Phase 7.1-15` 执行，`Phase 16` 的 `6 plans / 3 waves` 已落盘，下一步进入执行阶段。
+**Current mode:** `Phase 16 executing`；当前已完成 `Phase 7.1-15` 执行，`Phase 16` 已进入执行期：Wave 1（`16-01` / `16-02`）已完成并通过治理/工具链验证，Wave 2 热点收口已落地关键代码与回归验证，`16-05` / `16-06` 收口审计仍待继续。
 
 ## Current Position
 
@@ -67,6 +67,7 @@ See: `.planning/PROJECT.md`
 - telemetry/replay/evidence 都只能 pull 正式真源，不得反向定义第二套事实
 - 未来 CLI / 其他宿主若要复用，只能建立在 host-neutral boundary/auth/device contracts 之上，而不是把 HA runtime 抽成 second root
 - Phase 16 只允许“统一工具链真相、削薄热点、收紧 residual/exception/type”，不允许无 gate rename campaign 或第二条 formal story
+- `.planning/codebase/*.md` 只作为 derived collaboration maps / 协作图谱；若与 north-star、baseline 或 review truth 冲突，必须优先修正图谱而非倒逼真源
 
 ## Cross-Phase Arbitration (7.3-16)
 
@@ -94,7 +95,7 @@ See: `.planning/PROJECT.md`
 - Phase 13 added and completed: Explicit Domain Surface, Governance Guard Hardening & Hotspot Boundary Decomposition (3 plans / 2 waves)
 - Phase 14 added and completed: Legacy Stack Final Closure, API Spine Demolition & Governance Truth Consolidation (4 plans / 3 waves)
 - Phase 15 completed: Support feedback contract hardening, governance truth repair, and maintainability follow-through (5 plans / 3 waves)
-- Phase 16 planned: Post-audit truth alignment, hotspot decomposition, and residual endgame (6 plans / 3 waves)
+- Phase 16 executing: Post-audit truth alignment, hotspot decomposition, and residual endgame (Wave 1 complete; Wave 2 code hardening validated locally; Wave 3 closeout pending)
 
 ## Governance Truth Sources
 

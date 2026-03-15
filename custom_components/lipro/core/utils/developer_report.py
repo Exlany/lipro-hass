@@ -70,7 +70,7 @@ def _build_mesh_group_entries(
     return mesh_groups
 
 
-def _build_report_options(options: Mapping[str, Any]) -> dict[str, Any]:
+def _build_report_options(options: Mapping[str, object]) -> dict[str, Any]:
     """Build normalized developer-report options section."""
     return {
         "scan_interval": options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL),
@@ -96,10 +96,10 @@ def _build_report_options(options: Mapping[str, Any]) -> dict[str, Any]:
 
 
 def _sanitize_last_command_failure(
-    failure: Mapping[str, Any] | None,
+    failure: Mapping[str, object] | None,
     *,
     device_id: str,
-) -> dict[str, Any] | None:
+) -> dict[str, object] | None:
     """Return a minimal failure summary when it belongs to this device."""
     if not isinstance(failure, Mapping):
         return None
@@ -107,7 +107,7 @@ def _sanitize_last_command_failure(
     if not isinstance(failure_device_id, str) or failure_device_id != device_id:
         return None
 
-    result: dict[str, Any] = {}
+    result: dict[str, object] = {}
     for key in ("reason", "code", "route"):
         value = failure.get(key)
         if isinstance(value, str) and value:
@@ -116,12 +116,12 @@ def _sanitize_last_command_failure(
 
 
 def _sanitize_panel_info_entry(
-    entry: dict[str, Any],
+    entry: dict[str, object],
     *,
     redact_identifier: Callable[[str | None], str | None],
 ) -> dict[str, Any]:
     """Sanitize one panelInfo entry for developer diagnostics."""
-    result: dict[str, Any] = {}
+    result: dict[str, object] = {}
     for key in ("index", "mode", "addr", "iconIndex", "roomId"):
         value = entry.get(key)
         if isinstance(value, int) and not isinstance(value, bool):
@@ -142,7 +142,7 @@ def _build_panel_capability_snapshot(
     devices: Mapping[str, LiproDevice],
     *,
     redact_identifier: Callable[[str | None], str | None],
-    last_command_failure: Mapping[str, Any] | None,
+    last_command_failure: Mapping[str, object] | None,
 ) -> dict[str, Any]:
     """Build developer-only panel capability snapshot from runtime devices."""
     panel_entries: list[dict[str, Any]] = []
@@ -234,18 +234,17 @@ def _firmware_meets_ir_emit_floor(version: str | None) -> bool | None:
 
 
 def _sanitize_rc_entry(
-    entry: dict[str, Any],
+    entry: dict[str, object],
     *,
     redact_identifier: Callable[[str | None], str | None],
 ) -> dict[str, Any]:
     """Sanitize one rcList entry for developer diagnostics."""
-    result: dict[str, Any] = {}
+    result: dict[str, object] = {}
     name = entry.get("name")
     if isinstance(name, str) and name.strip():
         result["name"] = name.strip()
-    result["address"] = redact_identifier(
-        entry.get("address") if isinstance(entry.get("address"), str) else None
-    )
+    address = entry.get("address")
+    result["address"] = redact_identifier(address if isinstance(address, str) else None)
     for key in ("version", "timestamp", "keycount", "keyindex", "selfIndex"):
         value = entry.get(key)
         if isinstance(value, (str, int)) and not isinstance(value, bool):
@@ -350,8 +349,8 @@ def build_developer_report(
     outlet_count: int,
     pending_devices: int,
     pending_errors: int,
-    command_traces: Sequence[dict[str, Any]],
-    last_command_failure: Mapping[str, Any] | None,
+    command_traces: Sequence[dict[str, object]],
+    last_command_failure: Mapping[str, object] | None,
     redact_identifier: Callable[[str | None], str | None],
 ) -> dict[str, Any]:
     """Build sanitized coordinator runtime report."""
@@ -374,7 +373,7 @@ def build_developer_report(
         redact_identifier=redact_identifier,
     )
 
-    report: dict[str, Any] = {
+    report: dict[str, object] = {
         "entry_id": redact_identifier(entry_id),
         "unique_id": redact_identifier(unique_id),
         "phone": redact_identifier(phone),

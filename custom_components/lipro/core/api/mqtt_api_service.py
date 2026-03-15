@@ -2,44 +2,48 @@
 
 from __future__ import annotations
 
-from functools import lru_cache
-from importlib import import_module
-from typing import Any, cast
+from collections.abc import Awaitable, Callable
 
-
-@lru_cache(maxsize=1)
-def _boundary_decoder_module() -> Any:
-    """Resolve the protocol-boundary module lazily to avoid import cycles."""
-    return import_module("custom_components.lipro.core.protocol.boundary")
+type MappingPayload = dict[str, object]
+type RequestIotMapping = Callable[..., Awaitable[tuple[object, str | None]]]
+type IsSuccessCode = Callable[[object], bool]
+type UnwrapIoTSuccessPayload = Callable[[MappingPayload], object]
+type RequireMappingResponse = Callable[[str, object], object]
 
 
 def _extract_mqtt_config_payload(
-    result: Any,
+    result: object,
     *,
-    is_success_code: Any,
-) -> dict[str, Any] | None:
-    """Extract MQTT config through the formal boundary decoder family."""
-    try:
-        decoded = _boundary_decoder_module().decode_mqtt_config_payload(
-            result,
-            is_success_code=is_success_code,
-        )
-    except ValueError:
+    is_success_code: IsSuccessCode,
+) -> MappingPayload | None:
+    """Decode MQTT config through the same canonical shape without importing protocol."""
+    if not isinstance(result, dict):
         return None
-    return cast(dict[str, Any], decoded.canonical)
+
+    if "accessKey" in result and "secretKey" in result:
+        return dict(result)
+
+    payload = result.get("data")
+    if not isinstance(payload, dict):
+        return None
+    if "accessKey" not in payload or "secretKey" not in payload:
+        return None
+    if "code" not in result or is_success_code(result.get("code")):
+        return dict(payload)
+    return None
 
 
 async def get_mqtt_config(
     *,
-    request_iot_mapping: Any,
-    is_success_code: Any,
-    unwrap_iot_success_payload: Any,
-    require_mapping_response: Any,
+    request_iot_mapping: RequestIotMapping,
+    is_success_code: IsSuccessCode,
+    unwrap_iot_success_payload: UnwrapIoTSuccessPayload,
+    require_mapping_response: RequireMappingResponse,
     lipro_api_error: type[Exception],
     path_get_mqtt_config: str,
     is_retry: bool = False,
     retry_count: int = 0,
-) -> dict[str, Any]:
+) -> MappingPayload:
     """Get MQTT configuration with direct-contract first and wrapped fallback."""
     result, _ = await request_iot_mapping(
         path_get_mqtt_config,
@@ -53,12 +57,14 @@ async def get_mqtt_config(
         return payload
 
     if isinstance(result, dict) and is_success_code(result.get("code")):
-        payload = require_mapping_response(
+        wrapped_payload = require_mapping_response(
             path_get_mqtt_config,
             unwrap_iot_success_payload(result),
         )
-        if "accessKey" in payload and "secretKey" in payload:
-            return cast(dict[str, Any], payload)
+        if isinstance(wrapped_payload, dict):
+            mapping_payload = dict(wrapped_payload)
+            if "accessKey" in mapping_payload and "secretKey" in mapping_payload:
+                return mapping_payload
 
     if isinstance(result, dict):
         raise lipro_api_error(

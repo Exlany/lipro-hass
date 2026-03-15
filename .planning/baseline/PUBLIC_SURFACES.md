@@ -2,7 +2,7 @@
 
 **Purpose:** 定义各平面的 canonical public surfaces、过渡公开面与禁止作为正式入口的对象。
 **Status:** Formal baseline asset (`BASE-01` public-surface truth source)
-**Updated:** 2026-03-15 (Phase 15 executed)
+**Updated:** 2026-03-15 (Phase 16 governance calibration)
 
 ## Formal Role
 
@@ -36,6 +36,16 @@
 | `LiproMqttClient` direct transport residual | Phase 14+ residual-guard hardening | physical rename 继续 deferred；Phase 14 只加固 residual ownership / import guard，且不得再通过 protocol façade 暴露 concrete transport，也不得恢复 `raw_client` seam |
 | cluster-level `FILE_MATRIX` | pre-Phase 7 | 升级为 file-level governance view |
 
+
+## Phase 16 Governance Calibration Notes
+
+- `custom_components/lipro/services/execution.py` 继续保留为正式 service execution facade；coordinator 私有 auth seam 已在 Phase 5 关闭，不得重新登记为 active public residual。
+- `.planning/codebase/*.md` 只承担 derived collaboration map 角色；它们可以解释 public surface locality，但不能反向定义 canonical / transitional / forbidden surface truth。
+
+## Phase 16 Surface Truth Alignment Notes
+
+- `.planning/codebase/*.md` 只允许作为 derived collaboration maps / 协作图谱：帮助理解当前仓库，不构成新的 authority chain。
+- `custom_components/lipro/services/execution.py` 保留正式 service execution facade 身份；coordinator 私有 auth seam 已在 Phase 5 关闭，不得重新登记为 active residual / active kill target。
 
 ## Phase 15 Surface Closure Notes
 

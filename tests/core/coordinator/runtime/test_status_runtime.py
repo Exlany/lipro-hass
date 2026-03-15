@@ -6,6 +6,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
+from custom_components.lipro.core.api import LiproAuthError
 from custom_components.lipro.core.coordinator.runtime.status.executor import (
     StatusExecutor,
 )
@@ -320,3 +321,15 @@ class TestStatusExecutor:
         metrics = status_runtime.get_runtime_metrics()
         assert "scheduler" in metrics
         assert "strategy" in metrics
+
+
+@pytest.mark.asyncio
+async def test_status_executor_auth_errors_bubble() -> None:
+    executor = StatusExecutor(
+        query_device_status=AsyncMock(side_effect=LiproAuthError("auth boom")),
+        apply_properties_update=AsyncMock(return_value=True),
+        get_device_by_id=lambda _device_id: MagicMock(),
+    )
+
+    with pytest.raises(LiproAuthError, match="auth boom"):
+        await executor.execute_status_query(["device1"])

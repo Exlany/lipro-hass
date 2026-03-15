@@ -68,11 +68,6 @@ testpaths = ["tests"]
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
 pythonpath = ["."]
-markers = [
-    "github: tests specifically for GitHub Actions CI",
-    "integration: tests requiring external services or full HA environment",
-    "slow: tests that take longer to run",
-]
 filterwarnings = [
     # Suppress DeprecationWarnings from third-party dependencies only;
     # our own code should not trigger deprecation warnings.
@@ -113,7 +108,7 @@ disable_error_code = ["no-untyped-def", "no-untyped-call"]
 # Based on https://github.com/ludeeus/integration_blueprint
 # and https://github.com/home-assistant/core
 required-version = ">=0.15.0"
-target-version = "py313"
+target-version = "py314"
 
 [tool.ruff.lint]
 select = ["ALL"]

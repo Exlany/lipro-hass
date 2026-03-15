@@ -14,6 +14,8 @@ Thank you for your interest in contributing to the Lipro Smart Home integration!
 ### Version Truth / 版本真源
 
 - Canonical minimum supported Home Assistant version: `2026.3.1` from `pyproject.toml` (`homeassistant==2026.3.1`).
+- Canonical Python toolchain truth: Python `3.14` (`requires-python`, `mypy`, `ruff`, `pre-commit`, devcontainer, and CI all align here).
+- 唯一 Python 工具链真相：Python `3.14`（`requires-python`、`mypy`、`ruff`、`pre-commit`、devcontainer 与 CI 全部对齐到这里）。
 - 唯一最低支持 Home Assistant 版本真源：`pyproject.toml` 中的 `homeassistant==2026.3.1`。
 - Private repository / fork note: CI skips HACS validation because HACS only supports public GitHub repositories.
 - 私有仓库 / fork 说明：CI 会跳过 HACS validation，因为 HACS 只支持公开 GitHub 仓库。
@@ -36,6 +38,15 @@ Thank you for your interest in contributing to the Lipro Smart Home integration!
 3. **Start Home Assistant for development / 启动 Home Assistant 进行开发**
    ```bash
    ./scripts/develop
+   ```
+
+   The development entrypoint keeps other `config/custom_components/*` integrations intact and only refreshes `config/custom_components/lipro` before starting Home Assistant with `uv run hass -c config`.
+   该开发入口会保留其他 `config/custom_components/*` 集成，仅刷新 `config/custom_components/lipro`，然后用 `uv run hass -c config` 启动 Home Assistant。
+
+   For a non-destructive smoke check, run:
+   如需执行非破坏性 smoke 验证，可运行：
+   ```bash
+   LIPRO_DEVELOP_SMOKE_ONLY=1 ./scripts/develop
    ```
 
    Access Home Assistant at http://localhost:8123

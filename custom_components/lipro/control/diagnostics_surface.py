@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping
-from typing import TYPE_CHECKING, Any
+from collections.abc import Callable, Mapping
+from typing import TYPE_CHECKING, Protocol, cast
 
+from ..runtime_types import LiproCoordinator
 from .runtime_access import (
     build_runtime_snapshot,
     get_entry_runtime_coordinator,
@@ -19,14 +20,32 @@ if TYPE_CHECKING:
     from .. import LiproConfigEntry
     from ..core.device import LiproDevice
 
+type DiagnosticsPayload = dict[str, object]
+type RedactDataFn = Callable[[Mapping[str, object], set[str]], object]
+type RedactTitleFn = Callable[[str], str]
+type RedactDevicePropertiesFn = Callable[[object], object]
+type BuildDeviceDiagnosticsFn = Callable[[LiproDevice], DiagnosticsPayload]
+type ExtractDeviceSerialFn = Callable[..., str | None]
+
+
+class _AnonymousShareManagerLike(Protocol):
+    """Minimal anonymous-share surface consumed by diagnostics."""
+
+    is_enabled: bool
+    pending_count: tuple[int, int]
+
+
+type AnonymousShareManagerFactory = Callable[..., _AnonymousShareManagerLike]
+
+
 
 def build_device_diagnostics(
     device: LiproDevice,
     *,
-    redact_device_properties: Any,
-) -> dict[str, Any]:
+    redact_device_properties: RedactDevicePropertiesFn,
+) -> DiagnosticsPayload:
     """Build redacted diagnostics payload for a single device."""
-    device_info: dict[str, Any] = {
+    device_info: DiagnosticsPayload = {
         "name": "**REDACTED**",
         "device_type": device.device_type,
         "device_type_hex": device.device_type_hex,
@@ -70,14 +89,15 @@ def extract_device_serial(device: DeviceEntry, *, domain: str) -> str | None:
 
 
 def _build_coordinator_view(
-    entry: Any, coordinator: Any
-) -> tuple[dict[str, Any], list[str]]:
+    entry: LiproConfigEntry,
+    coordinator: LiproCoordinator,
+) -> tuple[DiagnosticsPayload, list[str]]:
     snapshot = build_runtime_snapshot(entry)
     degraded: list[str] = []
     if not isinstance(getattr(coordinator, "devices", None), Mapping):
         degraded.append("devices")
 
-    view = {
+    view: DiagnosticsPayload = {
         "last_update_success": bool(
             snapshot.last_update_success if snapshot is not None else False
         ),
@@ -88,7 +108,9 @@ def _build_coordinator_view(
     return view, degraded
 
 
-def _build_anonymous_share_view(share_manager: Any) -> tuple[dict[str, Any], bool]:
+def _build_anonymous_share_view(
+    share_manager: _AnonymousShareManagerLike,
+) -> tuple[DiagnosticsPayload, bool]:
     enabled = bool(getattr(share_manager, "is_enabled", False))
     pending_count = getattr(share_manager, "pending_count", None)
     degraded = False
@@ -103,7 +125,7 @@ def _build_anonymous_share_view(share_manager: Any) -> tuple[dict[str, Any], boo
     else:
         degraded = True
 
-    payload = {
+    payload: DiagnosticsPayload = {
         "enabled": enabled,
         "pending_devices": pending_devices,
         "pending_errors": pending_errors,
@@ -113,10 +135,15 @@ def _build_anonymous_share_view(share_manager: Any) -> tuple[dict[str, Any], boo
     return payload, degraded
 
 
-def _get_device_from_runtime(coordinator: Any, serial: str) -> Any | None:
+def _get_device_from_runtime(
+    coordinator: LiproCoordinator,
+    serial: str,
+) -> LiproDevice | None:
     getter = getattr(coordinator, "get_device", None)
     if callable(getter):
-        return getter(serial)
+        device = cast("LiproDevice | None", getter(serial))
+        if device is not None:
+            return device
     return get_runtime_device_mapping(coordinator).get(serial)
 
 
@@ -124,13 +151,13 @@ async def async_get_config_entry_diagnostics(
     hass: HomeAssistant,
     entry: LiproConfigEntry,
     *,
-    get_anonymous_share_manager: Any,
-    async_redact_data: Any,
-    redact_entry_title: Any,
-    build_device_diagnostics_fn: Any,
+    get_anonymous_share_manager: AnonymousShareManagerFactory,
+    async_redact_data: RedactDataFn,
+    redact_entry_title: RedactTitleFn,
+    build_device_diagnostics_fn: BuildDeviceDiagnosticsFn,
     to_redact: set[str],
     options_to_redact: set[str],
-) -> dict[str, Any]:
+) -> DiagnosticsPayload:
     """Return diagnostics payload for one config entry."""
     coordinator = get_entry_runtime_coordinator(entry)
     if coordinator is None:
@@ -145,7 +172,7 @@ async def async_get_config_entry_diagnostics(
     anonymous_share_view, degraded_share = _build_anonymous_share_view(share_manager)
     telemetry_view = build_entry_diagnostics_view(entry)
 
-    payload: dict[str, Any] = {
+    payload: DiagnosticsPayload = {
         "entry": {
             "title": redact_entry_title(entry.title),
             "data": async_redact_data(entry.data, to_redact),
@@ -156,11 +183,11 @@ async def async_get_config_entry_diagnostics(
         "devices": devices_info,
     }
     if degraded_runtime:
-        payload["coordinator"]["degraded_fields"] = degraded_runtime
+        coordinator_view["degraded_fields"] = degraded_runtime
     if telemetry_view is not None:
         payload["telemetry"] = telemetry_view
     if degraded_share:
-        payload["anonymous_share"]["source"] = "degraded_runtime_access"
+        anonymous_share_view["source"] = "degraded_runtime_access"
     return payload
 
 
@@ -170,19 +197,19 @@ async def async_get_device_diagnostics(
     device: DeviceEntry,
     *,
     domain: str,
-    async_redact_data: Any,
-    redact_entry_title: Any,
-    build_device_diagnostics_fn: Any,
-    extract_device_serial_fn: Any,
+    async_redact_data: RedactDataFn,
+    redact_entry_title: RedactTitleFn,
+    build_device_diagnostics_fn: BuildDeviceDiagnosticsFn,
+    extract_device_serial_fn: ExtractDeviceSerialFn,
     to_redact: set[str],
     options_to_redact: set[str],
-) -> dict[str, Any]:
+) -> DiagnosticsPayload:
     """Return diagnostics payload for one device entry."""
     del hass
     coordinator = get_entry_runtime_coordinator(entry)
     if coordinator is None:
         return {"error": "entry_not_loaded"}
-    serial = extract_device_serial_fn(device, domain=domain)
+    serial = extract_device_serial_fn(device)
     if serial is None:
         return {"error": "device_not_in_lipro_domain"}
 
@@ -193,7 +220,7 @@ async def async_get_device_diagnostics(
         return {"error": "device_not_found"}
 
     coordinator_view, degraded_runtime = _build_coordinator_view(entry, coordinator)
-    payload: dict[str, Any] = {
+    payload: DiagnosticsPayload = {
         "entry": {
             "title": redact_entry_title(entry.title),
             "data": async_redact_data(entry.data, to_redact),
@@ -203,5 +230,5 @@ async def async_get_device_diagnostics(
         "device": build_device_diagnostics_fn(lipro_device),
     }
     if degraded_runtime:
-        payload["coordinator"]["degraded_fields"] = degraded_runtime
+        coordinator_view["degraded_fields"] = degraded_runtime
     return payload
