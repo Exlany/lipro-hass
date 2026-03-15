@@ -3,7 +3,7 @@
 ## Milestones
 
 - ✅ **v1.0 North Star Rebuild** - Phases 1-7 (+ 1.5 / 2.5 / 2.6), shipped 2026-03-13
-- ✅ **v1.1 Protocol Fidelity & Operability** - Phases 7.1-14 complete; milestone closeout ready (updated 2026-03-15)
+- 🚧 **v1.1 Protocol Fidelity & Operability** - Phases 7.1-15 complete; milestone ready for closeout review (updated 2026-03-15)
 
 ## Required Phase Outputs
 
@@ -28,7 +28,7 @@
 
 **Milestone Goal:** 在不破坏既有北极星单一主链的前提下，正式引入 boundary decoder family、architecture policy enforcement、runtime telemetry exporter、replay evidence，并把已登记 residual surfaces 收口到显式、可删除、可验证的最小集合。
 
-**Current Status:** `Phase 7.1` 到 `Phase 14` 已全部完成（截至 2026-03-15）；`v1.1` 里程碑继续保持 closeout / archive 准备态。
+**Current Status:** `Phase 7.1` 到 `Phase 15` 已全部完成（5 plans / 3 waves，2026-03-15）；`v1.1` 现处于 active closeout-ready 状态。
 
 ### Phase 7.1: Protocol Boundary Schema/Decoder 收口
 **Goal**: 把 REST/MQTT 的 decode authority 收口到 protocol boundary family，形成可版本化 schema/decoder registry，同时阻断 raw payload 穿透。
@@ -168,7 +168,8 @@ Plans:
 - `12` 只拥有 type contract convergence、compat residual narrowing、hotspot slimming 与 contributor-facing governance hygiene；不得重新打开已在 Phase 11 关闭的 residual truth
 - `13` 只拥有显式设备域表面、runtime/status 热点 helper 边界与公开治理资产结构化守卫；不得重新合法化动态 delegation
 - `14` 只拥有 legacy stack final closure、API spine demolition 与 governance truth consolidation；不得把 `Coordinator.client` / `ScheduleApiService` / helper-home modules 回流为正式主链
-- 执行顺序固定为 `7.3 -> 7.4 -> 7.5 -> 8 -> 9 -> 10 -> 11 -> 12 -> 13 -> 14`，避免真源反转与职责重叠
+- `15` 只拥有 developer feedback contract、governance truth repair、install/support truth sync、support hotspot follow-through 与 tooling/residual arbitration；不得因支持面修补重开第二条正式主链
+- 执行顺序固定为 `7.3 -> 7.4 -> 7.5 -> 8 -> 9 -> 10 -> 11 -> 12 -> 13 -> 14 -> 15`，避免真源反转与职责重叠
 
 ## Progress
 
@@ -187,6 +188,7 @@ Plans:
 | 12 Type Contract Alignment, Residual Cleanup & Governance Hygiene | v1.1 | 5/5 | Complete | 2026-03-14 |
 | 13 Explicit Domain Surface, Governance Guard Hardening & Hotspot Boundary Decomposition | v1.1 | 3/3 | Complete | 2026-03-14 |
 | 14 Legacy Stack Final Closure, API Spine Demolition & Governance Truth Consolidation | v1.1 | 4/4 | Complete | 2026-03-15 |
+| 15 Support Feedback Contract Hardening, Governance Truth Repair & Maintainability Follow-Through | v1.1 | 5/5 | Complete | 2026-03-15 |
 
 ### Phase 11: Control Router Formalization & Wiring Residual Demotion
 
@@ -248,3 +250,23 @@ Plans:
 - [x] 14-02: api schedule residual closure and endpoint helper spine slimming (completed 2026-03-15)
 - [x] 14-03: status fallback kernel and control-router glue extraction (completed 2026-03-15)
 - [x] 14-04: governance truth refresh and residual guard hardening (completed 2026-03-15)
+
+### Phase 15: Support feedback contract hardening, governance truth repair, and maintainability follow-through
+
+**Goal:** 把终极审阅中确认仍然存在的问题收敛为单一正式修复线：明确 developer feedback 上传契约（保留 `iotName` 等供应商诊断标识、匿名化用户自定义名称）、修补治理真源死链与状态漂移、同步外部安装/支持文档、继续拆薄 support hotspots，并把测试/安全/工具链缺口收口为可执行门禁。
+**Requirements**: [SPT-01, GOV-13, DOC-01, HOT-03, QLT-01, TYP-03, RES-01]
+**Depends on:** Phase 14
+**Success Criteria**:
+  1. developer feedback contract、fixtures、docs 与 tests 对 `iotName` / user-defined labels 的处理完全一致。
+  2. active governance docs 不再引用不存在 source，phase/status/date/footer consistency 受守卫保护。
+  3. README / README_zh / SUPPORT / CI / version metadata 对最低 HA 版本与 HACS/private-repo caveat 保持一致。
+  4. `service_router.py` 与 developer feedback / report hotspots 进一步拆薄，upload shaping 与 local debug view 明确分家。
+  5. 审阅确认的 testing/tooling/security gaps 被转成明确 gate、baseline、fixture 或 documented arbitration；remaining residual naming/typing 继续收口而不回流。
+**Plans:** 5/5 plans complete across 3 waves
+
+Plans:
+- [x] 15-01: developer feedback upload contract projector and support-copy truth (completed 2026-03-15)
+- [x] 15-02: governance truth repair and phase-state guard hardening (completed 2026-03-15)
+- [x] 15-03: install support and version truth sync (completed 2026-03-15)
+- [x] 15-04: support hotspot decomposition and runtime-access typing narrowing (completed 2026-03-15)
+- [x] 15-05: tooling security and residual policy arbitration (completed 2026-03-15)

@@ -135,3 +135,10 @@
 - 本 phase **无新增 file-level kill target**；`ScheduleApiService` 已退出正式 schedule 主链，但不需要作为独立 kill target 继续登记。
 - `custom_components/lipro/core/api/status_fallback.py` 与 `custom_components/lipro/control/developer_router_support.py` 属于 focused helper homes，不进入 kill list。
 - remaining active delete gates 继续集中在 `_ClientBase` / helper mixin family、`LiproMqttClient` legacy naming 与少量 helper-level compatibility envelope。
+
+
+## Phase 15 Status Update
+
+- 本 phase **无新增 file-level kill target**；developer feedback/upload truth、governance/source-path truth 与 tooling semantics 只做裁决与收口。
+- `_ClientBase` 与 `LiproMqttClient` 的 delete gate 维持不变，但 `FILE_MATRIX` / `PUBLIC_SURFACES` / `RESIDUAL_LEDGER` 现已明确写出 locality / ownership。
+- `coverage_diff.py` 被保留为 coverage floor + optional baseline diff 工具；benchmark 与 dev `pip-audit` 被明确为 advisory lanes，不进入 kill list。

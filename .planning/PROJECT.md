@@ -1,7 +1,7 @@
 # Project: Lipro-HASS North Star Evolution v1.1
 
-**Status:** Active — `Phase 14` 已完成，milestone closeout pending
-**Goal:** 把 `protocol truth`、`architecture policy`、`runtime telemetry export`、`replay evidence`、`ai-debug evidence pack`、`residual surface closure`、`api drift isolation / core-boundary prep`、`control router / runtime-access / OTA / governance coherence`、`type contract alignment / residual cleanup / contributor governance hygiene`、`explicit domain surface / governance guard hardening / hotspot boundary decomposition` 与 `legacy stack final closure / API spine demolition / governance truth consolidation` 十一条演进线统一纳入北极星主链，进入“可保真、可观测、可仲裁、可回放、可给 AI 调试/分析”的下一里程碑。
+**Status:** Active — `Phase 15` 已执行完成，milestone closeout pending
+**Goal:** 把 `protocol truth`、`architecture policy`、`runtime telemetry export`、`replay evidence`、`ai-debug evidence pack`、`residual surface closure`、`api drift isolation / core-boundary prep`、`control router / runtime-access / OTA / governance coherence`、`type contract alignment / residual cleanup / contributor governance hygiene`、`explicit domain surface / governance guard hardening / hotspot boundary decomposition`、`legacy stack final closure / API spine demolition / governance truth consolidation` 与 `support feedback contract hardening / governance truth repair / maintainability follow-through` 十二条演进线统一纳入北极星主链，进入“可保真、可观测、可仲裁、可回放、可给 AI 调试/分析”的下一里程碑。
 
 ## Why This Milestone Exists
 
@@ -78,6 +78,12 @@
 - `ScheduleApiService` 与 schedule passthrough 已退出正式主链；schedule truth 固定为 `ScheduleEndpoints` + focused helpers。
 - `core/api/status_fallback.py` 与 `control/developer_router_support.py` 已承接 fallback/glue 内核；`status_service.py` 与 `service_router.py` 仅保留 public orchestration / handler 身份。
 - `PUBLIC_SURFACES`、`ARCHITECTURE_POLICY`、`VERIFICATION_MATRIX`、`FILE_MATRIX`、`RESIDUAL_LEDGER`、`KILL_LIST` 与 Phase 14 closeout 资产已同步到当前仓库真相。
+
+### 10. Phase 15 支持反馈契约 / 治理真源修补 / 可维护性跟进已完成
+
+- developer feedback upload contract 与 local debug view 已正式分家：上传保留 `iotName` 等供应商判型标识，但匿名化 `deviceName` / `name` / `roomName` / `productName` / `keyName` / IR 资产展示名等用户自定义标签。
+- `PROJECT / ROADMAP / STATE / Phase 15 assets`、README / SUPPORT / SECURITY / bug template 与 source-path guards 已讲同一条完成态故事线，不再容忍死链、版本漂移或 phase-status drift。
+- support hotspot typing narrowing、tooling/security arbitration 与 residual locality governance 已完成收口；`service_router.py` 仍保持 public handler home，未重开第二条正式主链。
 
 ## Architectural Stance
 
@@ -269,6 +275,8 @@ v1.1 进入执行期后，新增演进必须额外满足：
 7. `.planning/STATE.md`
 8. `.planning/baseline/*.md`
 9. `.planning/reviews/*.md`
-10. `docs/archive/FINAL_CLOSEOUT_REPORT_2026-03-13.md`
+10. `.planning/phases/15-support-feedback-contract-hardening-governance-truth-repair-and-maintainability-follow-through/15-PRD.md`
+11. `.planning/phases/15-support-feedback-contract-hardening-governance-truth-repair-and-maintainability-follow-through/15-VALIDATION.md`
+12. `.planning/phases/15-support-feedback-contract-hardening-governance-truth-repair-and-maintainability-follow-through/15-VERIFICATION.md`
 
-*Last updated: 2026-03-14 after executing Phase 13 closeout work*
+*Last updated: 2026-03-15 after completing Phase 15*

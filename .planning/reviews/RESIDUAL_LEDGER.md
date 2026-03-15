@@ -171,3 +171,11 @@
 - 本 phase **无新增 residual family**：`Coordinator` 的 protocol-facing passthrough 已收口到 `CoordinatorProtocolService`，但这不是新的兼容层。
 - `ScheduleApiService` 已退出正式 schedule 主链；remaining API residual 继续集中在 `_ClientBase` / helper mixin family 与 helper-level compatibility，而不是 service-loop 回环。
 - `custom_components/lipro/core/api/status_fallback.py` 与 `custom_components/lipro/control/developer_router_support.py` 已成为 internal helper homes；`status_service.py` 与 `service_router.py` 保留 public orchestration / handler identity。
+
+
+## Phase 15 Residual Delta
+
+- 本 phase **无新增 residual family**：收口的是既有 support/governance/tooling truth，而不是引入新的 compat 层。
+- `_ClientBase` / helper mixin family 继续仅作为 `core/api` 本地 residual；`FILE_MATRIX` 与 `PUBLIC_SURFACES` 已显式写明 locality / ownership。
+- `LiproMqttClient` 继续仅作为 `core/mqtt` direct transport residual；Phase 15 只加固 guard-backed wording，不重开 physical rename story。
+- `coverage_diff.py`、benchmark lane 与 dev `pip-audit` 现已被裁决为明确工具语义 / advisory policy，而不是 residual family。

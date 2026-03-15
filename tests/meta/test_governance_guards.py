@@ -426,6 +426,70 @@ def test_quality_scale_and_devcontainer_truth_are_in_sync() -> None:
 
 
 
+def test_phase_15_execution_truth_is_consistent() -> None:
+    phase_root = (
+        _ROOT
+        / ".planning"
+        / "phases"
+        / "15-support-feedback-contract-hardening-governance-truth-repair-and-maintainability-follow-through"
+    )
+    project_text = (_ROOT / ".planning" / "PROJECT.md").read_text(encoding="utf-8")
+    roadmap_text = (_ROOT / ".planning" / "ROADMAP.md").read_text(encoding="utf-8")
+    requirements_text = (_ROOT / ".planning" / "REQUIREMENTS.md").read_text(encoding="utf-8")
+    state_text = (_ROOT / ".planning" / "STATE.md").read_text(encoding="utf-8")
+    public_text = (_ROOT / ".planning" / "baseline" / "PUBLIC_SURFACES.md").read_text(encoding="utf-8")
+    architecture_policy_text = (_ROOT / ".planning" / "baseline" / "ARCHITECTURE_POLICY.md").read_text(encoding="utf-8")
+    verification_matrix_text = (_ROOT / ".planning" / "baseline" / "VERIFICATION_MATRIX.md").read_text(encoding="utf-8")
+    residual_text = (_ROOT / ".planning" / "reviews" / "RESIDUAL_LEDGER.md").read_text(encoding="utf-8")
+    kill_text = (_ROOT / ".planning" / "reviews" / "KILL_LIST.md").read_text(encoding="utf-8")
+    file_matrix_text = (_ROOT / ".planning" / "reviews" / "FILE_MATRIX.md").read_text(encoding="utf-8")
+    prd_text = (phase_root / "15-PRD.md").read_text(encoding="utf-8")
+    context_text = (phase_root / "15-CONTEXT.md").read_text(encoding="utf-8")
+    validation_text = (phase_root / "15-VALIDATION.md").read_text(encoding="utf-8")
+    verification_text = (phase_root / "15-VERIFICATION.md").read_text(encoding="utf-8")
+
+    assert "### 10. Phase 15 支持反馈契约 / 治理真源修补 / 可维护性跟进已完成" in project_text
+    assert (
+        "| 15 Support Feedback Contract Hardening, Governance Truth Repair & Maintainability Follow-Through | v1.1 | 5/5 | Complete | 2026-03-15 |"
+        in roadmap_text
+    )
+    assert "**Requirements**: [SPT-01, GOV-13, DOC-01, HOT-03, QLT-01, TYP-03, RES-01]" in roadmap_text
+    for req_id in ("SPT-01", "GOV-13", "DOC-01", "HOT-03", "QLT-01", "TYP-03", "RES-01"):
+        assert f"| {req_id} | Phase 15 | Complete |" in requirements_text
+    assert '**Current mode:** `Phase 15 complete`' in state_text
+    assert 'completed_phases: 13' in state_text
+    assert 'completed_plans: 48' in state_text
+    assert '2026.3.1' in prd_text
+    assert '2026.3.1' in context_text
+    assert 'status: passed' in validation_text
+    assert 'status: passed' in verification_text
+    assert '## Phase 15 Surface Closure Notes' in public_text
+    assert '## Phase 15 Exit Contract' in verification_matrix_text
+    assert '## Phase 15 Residual Delta' in residual_text
+    assert '## Phase 15 Status Update' in kill_text
+    assert '## Phase 15 Policy Follow-Through' in architecture_policy_text
+    assert 'custom_components/lipro/core/api/client_base.py' in file_matrix_text
+    assert 'internal typing spine only; locality limited to core/api' in file_matrix_text
+    assert 'custom_components/lipro/core/mqtt/mqtt_client.py' in file_matrix_text
+    assert 'direct transport residual; locality limited to core/mqtt + protocol seam' in file_matrix_text
+
+    for artifact_name in (
+        "15-01-PLAN.md",
+        "15-02-PLAN.md",
+        "15-03-PLAN.md",
+        "15-04-PLAN.md",
+        "15-05-PLAN.md",
+        "15-01-SUMMARY.md",
+        "15-02-SUMMARY.md",
+        "15-03-SUMMARY.md",
+        "15-04-SUMMARY.md",
+        "15-05-SUMMARY.md",
+        "15-VALIDATION.md",
+        "15-VERIFICATION.md",
+    ):
+        assert (phase_root / artifact_name).exists()
+
+
 def test_phase_14_execution_truth_is_consistent() -> None:
     phase_root = (
         _ROOT

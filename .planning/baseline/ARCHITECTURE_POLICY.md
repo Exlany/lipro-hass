@@ -71,3 +71,9 @@
 
 ---
 *Used by: Phase 7.2 enforcement execution, local-fast architecture checks, and CI fail-fast gates*
+
+
+## Phase 15 Policy Follow-Through
+
+- `ENF-IMP-API-LEGACY-SPINE-LOCALITY` 继续把 `_ClientBase` / helper spine 限定在 `core/api` 本地，不允许向 control/runtime/domain 扩散。
+- `ENF-IMP-MQTT-TRANSPORT-LOCALITY` 继续把 `LiproMqttClient` 限定在 `core/mqtt` + protocol seam，本 phase 只加固 ownership 文案与 residual guard，不恢复 concrete transport public semantics。

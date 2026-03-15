@@ -2,7 +2,7 @@
 
 **Purpose:** 定义各平面的 canonical public surfaces、过渡公开面与禁止作为正式入口的对象。
 **Status:** Formal baseline asset (`BASE-01` public-surface truth source)
-**Updated:** 2026-03-15 (Phase 14 executed)
+**Updated:** 2026-03-15 (Phase 15 executed)
 
 ## Formal Role
 
@@ -36,6 +36,12 @@
 | `LiproMqttClient` direct transport residual | Phase 14+ residual-guard hardening | physical rename 继续 deferred；Phase 14 只加固 residual ownership / import guard，且不得再通过 protocol façade 暴露 concrete transport，也不得恢复 `raw_client` seam |
 | cluster-level `FILE_MATRIX` | pre-Phase 7 | 升级为 file-level governance view |
 
+
+## Phase 15 Surface Closure Notes
+
+- `get_developer_report` local debug view 与 developer-feedback upload projector 现在明确分家：上传 shaping 固定在 `core/anonymous_share/report_builder.py`，而不是回流到 `service_router.py`。
+- `control/service_router.py` 继续保留 public handler home 身份；`developer_router_support.py` 与 `runtime_access.py` 承接 diagnostics glue 与 host-side typing follow-through。
+- `_ClientBase` 与 `LiproMqttClient` 继续只是本地 residual；Phase 15 只加固 locality / ownership，不启动 rename campaign。
 
 ## Phase 14 Surface Closure Notes
 

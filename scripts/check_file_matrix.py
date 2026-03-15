@@ -21,12 +21,14 @@ EXCLUDED_DIR_NAMES = {
     "node_modules",
 }
 FILE_MATRIX_PATH = Path(".planning/reviews/FILE_MATRIX.md")
+PROJECT_PATH = Path(".planning/PROJECT.md")
 ROADMAP_PATH = Path(".planning/ROADMAP.md")
 STATE_PATH = Path(".planning/STATE.md")
 REQUIREMENTS_PATH = Path(".planning/REQUIREMENTS.md")
 AGENTS_PATH = Path("AGENTS.md")
 CLAUDE_COMPAT_PATH = Path("CLAUDE.md")
 ACTIVE_DOC_PATHS = [
+    PROJECT_PATH,
     ROADMAP_PATH,
     STATE_PATH,
     REQUIREMENTS_PATH,
@@ -46,6 +48,12 @@ DISALLOWED_AUTHORITY_PHRASES = (
     "唯一权威审计",
     "当前权威审计",
 )
+SECTION_SOURCE_PATH_HEADINGS: dict[Path, tuple[str, ...]] = {
+    PROJECT_PATH: ("Primary Sources",),
+    STATE_PATH: ("Governance Truth Sources", "Session Continuity"),
+}
+GLOB_CHARS = ("*", "?", "[")
+BACKTICK_TOKEN_PATTERN = re.compile(r"`([^`]+)`")
 
 
 @dataclass(frozen=True, slots=True)
@@ -145,20 +153,27 @@ OVERRIDES: dict[str, FileGovernanceRow] = {
         residual="-",
     ),
 
-"custom_components/lipro/control/developer_router_support.py": FileGovernanceRow(
-    path="custom_components/lipro/control/developer_router_support.py",
-    area="Control",
-    owner_phase="Phase 14",
-    fate="保留",
-    residual="service_router private glue home",
-),
-"custom_components/lipro/control/service_router.py": FileGovernanceRow(
-    path="custom_components/lipro/control/service_router.py",
-    area="Control",
-    owner_phase="Phase 3 / 14",
-    fate="保留",
-    residual="public handler home; private glue extracted",
-),
+    "custom_components/lipro/control/developer_router_support.py": FileGovernanceRow(
+        path="custom_components/lipro/control/developer_router_support.py",
+        area="Control",
+        owner_phase="Phase 14 / 15",
+        fate="保留",
+        residual="developer diagnostics glue + typed helper home",
+    ),
+    "custom_components/lipro/control/service_router.py": FileGovernanceRow(
+        path="custom_components/lipro/control/service_router.py",
+        area="Control",
+        owner_phase="Phase 3 / 14 / 15",
+        fate="保留",
+        residual="public handler home; upload/report glue kept out-of-line",
+    ),
+    "custom_components/lipro/core/api/client_base.py": FileGovernanceRow(
+        path="custom_components/lipro/core/api/client_base.py",
+        area="Protocol",
+        owner_phase="Phase 2 / 15",
+        fate="重构",
+        residual="internal typing spine only; locality limited to core/api",
+    ),
 "custom_components/lipro/core/api/schedule_service.py": FileGovernanceRow(
     path="custom_components/lipro/core/api/schedule_service.py",
     area="Protocol",
@@ -194,6 +209,13 @@ OVERRIDES: dict[str, FileGovernanceRow] = {
     fate="保留",
     residual="protocol-facing runtime service surface",
 ),
+    "custom_components/lipro/core/mqtt/mqtt_client.py": FileGovernanceRow(
+        path="custom_components/lipro/core/mqtt/mqtt_client.py",
+        area="Protocol",
+        owner_phase="Phase 2.5 / 15",
+        fate="重构",
+        residual="direct transport residual; locality limited to core/mqtt + protocol seam",
+    ),
 }
 
 
@@ -468,12 +490,48 @@ def validate_doc_authority(root: Path) -> list[str]:
     return errors
 
 
+def _extract_markdown_section(text: str, heading_fragment: str) -> str | None:
+    match = re.search(
+        rf"^## [^\n]*{re.escape(heading_fragment)}[^\n]*\n(?P<body>.*?)(?=^## |\Z)",
+        text,
+        flags=re.MULTILINE | re.DOTALL,
+    )
+    if match is None:
+        return None
+    return match.group("body")
+
+
+def _path_exists_or_matches(root: Path, candidate: str) -> bool:
+    if any(char in candidate for char in GLOB_CHARS):
+        return any(root.glob(candidate))
+    return (root / candidate).exists()
+
+
+def validate_active_source_paths(root: Path) -> list[str]:
+    """Validate that active governance docs only cite real source paths."""
+    errors: list[str] = []
+    for relative_path, headings in SECTION_SOURCE_PATH_HEADINGS.items():
+        text = (root / relative_path).read_text(encoding="utf-8")
+        for heading in headings:
+            section = _extract_markdown_section(text, heading)
+            if section is None:
+                errors.append(f"{relative_path} is missing required section: {heading}")
+                continue
+            for candidate in BACKTICK_TOKEN_PATTERN.findall(section):
+                if not _path_exists_or_matches(root, candidate):
+                    errors.append(
+                        f"{relative_path} references missing source path in '{heading}': {candidate}"
+                    )
+    return errors
+
+
 def run_checks(root: Path) -> list[str]:
     """Run all governance checks and return the accumulated error list."""
     errors: list[str] = []
     errors.extend(validate_file_matrix(root))
     errors.extend(validate_active_doc_counts(root))
     errors.extend(validate_doc_authority(root))
+    errors.extend(validate_active_source_paths(root))
     return errors
 
 

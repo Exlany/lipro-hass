@@ -39,6 +39,16 @@ def test_public_surface_baseline_registers_assurance_only_replay_and_evidence_su
     assert "pull-only evidence pointers" in public_surfaces
 
 
+def test_phase_15_surface_notes_keep_support_and_residual_truth_localized() -> None:
+    public_surfaces = _PUBLIC_SURFACES.read_text(encoding="utf-8")
+
+    assert "## Phase 15 Surface Closure Notes" in public_surfaces
+    assert "local debug view" in public_surfaces
+    assert "upload projector" in public_surfaces
+    assert "_ClientBase" in public_surfaces
+    assert "LiproMqttClient" in public_surfaces
+
+
 def test_coordinator_entry_exports_only_runtime_surface_symbol() -> None:
     rule = _RULES["ENF-SURFACE-COORDINATOR-ENTRY"]
     file_path = _ROOT / rule.governed_targets[0]

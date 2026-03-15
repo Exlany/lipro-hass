@@ -87,6 +87,16 @@
 - [x] **GOV-12**: subordinate docs、file/review ledgers、architecture policy 与 meta guards 必须同步到 Phase 14 真相，并显式锁定 `_ClientBase` / helper mixin family、`LiproMqttClient` residual ownership 与 assurance-only backflow ban。
 
 
+### Support Feedback, Governance Truth & Maintainability Follow-Through
+
+- [x] **SPT-01**: developer feedback 上传契约必须明确区分供应商诊断标识与用户自定义标签：`iotName` 等设备判型真源保持可用，`deviceName` / room labels / panel key labels / IR asset display names 等用户自定义名称必须匿名化或改写为非识别性表示，且 docs / fixtures / tests 同步锁定该裁决。
+- [x] **GOV-13**: active governance docs 不得再引用不存在的 source path；phase/status/date/footer/authority wording 必须保持自洽，并由脚本或 meta guards fail-fast 校验。
+- [x] **DOC-01**: README / README_zh / CONTRIBUTING / SUPPORT / CI / version metadata 必须对最低支持的 Home Assistant 版本与 HACS private-repo caveat 保持一致。
+- [x] **HOT-03**: `control/service_router.py`、developer report 与 developer feedback upload 相关热点必须继续拆薄；public handler home、local debug view 与 upload payload shaping 必须明确分层。
+- [x] **QLT-01**: 本轮审阅确认的 testing/tooling/security gap 必须转成明确结论：marker registry 要么真实落地要么删除，coverage diff 必须有 baseline 语义或更名澄清，benchmark/dev-audit policy 必须写成可执行 gate 或显式 documented arbitration。
+- [x] **TYP-03**: `control/runtime_access.py` 与相邻 control seams 中可收窄的 `Any` / 宽口 host-side typing 必须继续向 formal runtime contracts 收口。
+- [x] **RES-01**: `core/api/client_*` helper spine、`LiproMqttClient` legacy naming 与已登记 residuals 必须继续本地化、加固 guard 或缩窄 delete gate，不得重新回流为正式 surface。
+
 ## Cross-Phase Arbitration
 
 - `07.3` 锁定 telemetry contracts / redaction / cardinality / timestamp-pseudo-id compatibility
@@ -98,6 +108,7 @@
 - `12` 锁定 type contract convergence / compat narrowing / hotspot slimming / contributor-facing governance hygiene；不得重新打开已在 Phase 11 关闭的 residual truth
 - `13` 锁定显式设备域表面、runtime/status 热点 helper 边界与公开治理资产结构化守卫；后续 closeout 不得重新引入 device/state 动态委托
 - `14` 锁定 legacy stack final closure、API spine demolition、helper-home extraction 与 governance truth consolidation；后续 milestone audit 不得再把 `Coordinator.client`、`ScheduleApiService` 或 helper-home modules 回流成正式 surface
+- `15` 锁定 developer feedback contract、governance truth repair、contributor/install docs sync、support hotspot follow-through 与 testing/tooling gate clarification；不得因修补支持面问题而重开第二条正式主链
 
 ## Future Requirements
 
@@ -170,9 +181,17 @@
 | RUN-05 | Phase 14 | Complete |
 | GOV-12 | Phase 14 | Complete |
 
+| SPT-01 | Phase 15 | Complete |
+| GOV-13 | Phase 15 | Complete |
+| DOC-01 | Phase 15 | Complete |
+| HOT-03 | Phase 15 | Complete |
+| QLT-01 | Phase 15 | Complete |
+| TYP-03 | Phase 15 | Complete |
+| RES-01 | Phase 15 | Complete |
+
 **Coverage:**
-- active milestone requirements: 47 total
-- mapped to phases: 47
+- active milestone requirements: 54 total
+- mapped to phases: 54
 - unmapped: 0 ✓
 
-*Last updated: 2026-03-15 after executing Phase 14 closeout work*
+*Last updated: 2026-03-15 after completing Phase 15*

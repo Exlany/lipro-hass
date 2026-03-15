@@ -21,14 +21,14 @@
 | `custom_components/lipro/const/entity_config.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/const/properties.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/control/__init__.py` | Control | Phase 3 | 保留 | - |
-| `custom_components/lipro/control/developer_router_support.py` | Control | Phase 14 | 保留 | service_router private glue home |
+| `custom_components/lipro/control/developer_router_support.py` | Control | Phase 14 / 15 | 保留 | developer diagnostics glue + typed helper home |
 | `custom_components/lipro/control/diagnostics_surface.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/control/entry_lifecycle_controller.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/control/models.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/control/redaction.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/control/runtime_access.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/control/service_registry.py` | Control | Phase 3 | 保留 | - |
-| `custom_components/lipro/control/service_router.py` | Control | Phase 3 / 14 | 保留 | public handler home; private glue extracted |
+| `custom_components/lipro/control/service_router.py` | Control | Phase 3 / 14 / 15 | 保留 | public handler home; upload/report glue kept out-of-line |
 | `custom_components/lipro/control/system_health_surface.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/control/telemetry_surface.py` | Control | Phase 7.3 | 保留 | - |
 | `custom_components/lipro/coordinator_entry.py` | Control | Phase 3 | 保留 | - |
@@ -47,7 +47,7 @@
 | `custom_components/lipro/core/api/auth_service.py` | Protocol | Phase 2 | 重构 | - |
 | `custom_components/lipro/core/api/client.py` | Protocol | Phase 2 / 7 / 12 / 14 | 重构 | internal typing spine only |
 | `custom_components/lipro/core/api/client_auth_recovery.py` | Protocol | Phase 2 | 重构 | - |
-| `custom_components/lipro/core/api/client_base.py` | Protocol | Phase 2 | 重构 | - |
+| `custom_components/lipro/core/api/client_base.py` | Protocol | Phase 2 / 15 | 重构 | internal typing spine only; locality limited to core/api |
 | `custom_components/lipro/core/api/client_pacing.py` | Protocol | Phase 2 | 重构 | - |
 | `custom_components/lipro/core/api/client_transport.py` | Protocol | Phase 2 | 重构 | - |
 | `custom_components/lipro/core/api/command_api_service.py` | Protocol | Phase 2 | 重构 | - |
@@ -171,7 +171,7 @@
 | `custom_components/lipro/core/mqtt/credentials.py` | Protocol | Phase 2.5 | 重构 | - |
 | `custom_components/lipro/core/mqtt/message.py` | Protocol | Phase 2.5 | 重构 | - |
 | `custom_components/lipro/core/mqtt/message_processor.py` | Protocol | Phase 2.5 | 重构 | - |
-| `custom_components/lipro/core/mqtt/mqtt_client.py` | Protocol | Phase 2.5 | 重构 | - |
+| `custom_components/lipro/core/mqtt/mqtt_client.py` | Protocol | Phase 2.5 / 15 | 重构 | direct transport residual; locality limited to core/mqtt + protocol seam |
 | `custom_components/lipro/core/mqtt/payload.py` | Protocol | Phase 2.5 | 重构 | - |
 | `custom_components/lipro/core/mqtt/setup_backoff.py` | Protocol | Phase 2.5 | 重构 | - |
 | `custom_components/lipro/core/mqtt/subscription_manager.py` | Protocol | Phase 2.5 | 重构 | - |

@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: protocol-fidelity-operability
 status: active
-last_updated: "2026-03-15T12:00:00Z"
+last_updated: "2026-03-15T09:17:49Z"
 progress:
-  total_phases: 12
-  completed_phases: 12
-  total_plans: 43
-  completed_plans: 43
+  total_phases: 13
+  completed_phases: 13
+  total_plans: 48
+  completed_plans: 48
 ---
 
 # Project State
@@ -19,7 +19,7 @@ See: `.planning/PROJECT.md`
 
 **Current milestone:** `v1.1 Protocol Fidelity & Operability`
 **Core value:** 在既有北极星单一主链基础上，把 fidelity / enforcement / telemetry / replay / AI-debug evidence 做成下一层正式能力，并继续把类型契约、残留收口与 contributor-facing governance 做成可验证的正式能力。
-**Current mode:** `Phase 14 complete`；当前已完成 legacy stack final closure、API spine demolition 与 governance truth consolidation，同步保持 milestone closeout pending。
+**Current mode:** `Phase 15 complete`；当前已完成 `Phase 7.1-15` 执行，`v1.1` 下一步进入 milestone closeout / audit。
 
 ## Current Position
 
@@ -37,6 +37,7 @@ See: `.planning/PROJECT.md`
 - `Phase 12` 已完成：typed surface convergence、compat narrowing、hotspot decomposition 与 contributor-facing governance hygiene 已全部落地并通过治理回写
 - `Phase 13` 已完成：explicit domain surface、runtime/status hotspot boundary decomposition 与 governance guard hardening 已全部落地并通过治理回写
 - `Phase 14` 已完成：`CoordinatorProtocolService`、schedule residual closeout、`status_fallback.py` / `developer_router_support.py` helper-home extraction 与 governance truth consolidation 已全部落地并通过治理回写
+- `Phase 15` 已完成：developer feedback upload contract、governance/source-path truth、README/support/version truth、support hotspot typing narrowing 与 tooling/residual arbitration 已全部落地并通过治理回写
 
 ## Active Milestone Scope
 
@@ -52,6 +53,7 @@ See: `.planning/PROJECT.md`
 - `Phase 12`：Type Contract Alignment, Residual Cleanup & Governance Hygiene
 - `Phase 13`：Explicit Domain Surface, Governance Guard Hardening & Hotspot Boundary Decomposition
 - `Phase 14`：Legacy Stack Final Closure, API Spine Demolition & Governance Truth Consolidation
+- `Phase 15`：Support Feedback Contract Hardening, Governance Truth Repair & Maintainability Follow-Through
 
 ## Carry-Forward Truths
 
@@ -63,7 +65,7 @@ See: `.planning/PROJECT.md`
 - telemetry/replay/evidence 都只能 pull 正式真源，不得反向定义第二套事实
 - 未来 CLI / 其他宿主若要复用，只能建立在 host-neutral boundary/auth/device contracts 之上，而不是把 HA runtime 抽成 second root
 
-## Cross-Phase Arbitration (7.3-14)
+## Cross-Phase Arbitration (7.3-15)
 
 1. `07.3` 只锁定 telemetry truth（fields / redaction / cardinality / timestamp / pseudo-id compatibility）
 2. `07.4` 只锁定 replay truth（manifests / deterministic driver / replay assertions / run summary）
@@ -75,6 +77,7 @@ See: `.planning/PROJECT.md`
 8. `12` 已完整执行：类型契约收口、compat seam retirement、热点降温与 contributor-facing governance hygiene 已全部落地，不重开已完成的 Phase 11 工作
 9. `13` 已完整执行：device/state 动态委托已关闭，runtime/status helper 边界继续收薄，community/governance 入口已纳入结构化 guards，不重新合法化隐式设备域表面
 10. `14` 已完整执行：`Coordinator.client` / `ScheduleApiService` 已退出正式故事线，`status_fallback.py` 与 `developer_router_support.py` 成为 helper homes，residual guard hardening 与 subordinate governance truth 已同步落地
+11. `15` 已完整执行：developer feedback upload truth、active governance source-path guard、install/support/version truth、support hotspot typing narrowing 与 tooling/residual arbitration 已统一收口；未重开第二条正式主链
 
 ## Accumulated Context
 
@@ -87,6 +90,7 @@ See: `.planning/PROJECT.md`
 - Phase 13 added: Explicit Domain Surface, Governance Guard Hardening & Hotspot Boundary Decomposition
 - Phase 13 completed: Explicit Domain Surface, Governance Guard Hardening & Hotspot Boundary Decomposition (3 plans / 2 waves)
 - Phase 14 added and completed: Legacy Stack Final Closure, API Spine Demolition & Governance Truth Consolidation (4 plans / 3 waves)
+- Phase 15 completed: Support feedback contract hardening, governance truth repair, and maintainability follow-through (5 plans / 3 waves)
 
 ## Governance Truth Sources
 
@@ -103,9 +107,9 @@ See: `.planning/PROJECT.md`
 
 ## Recommended Next Command
 
-1. `$gsd-audit-milestone` —— 对 `v1.1` 做完成度与遗留缺口审计
-2. `$gsd-complete-milestone` —— 若审计通过，归档 `v1.1` 并准备下一里程碑
-3. `batcat .planning/phases/14-legacy-stack-final-closure-api-spine-demolition-governance-truth-consolidation/14-VERIFICATION.md --style=plain --paging=never` —— 查看 Phase 14 验证结论
+1. `$gsd-audit-milestone` —— 对 `v1.1` 做 milestone 完成度审计
+2. `batcat .planning/phases/15-support-feedback-contract-hardening-governance-truth-repair-and-maintainability-follow-through/15-VERIFICATION.md --style=plain --paging=never` —— 查看 Phase 15 验证结论
+3. `batcat .planning/baseline/VERIFICATION_MATRIX.md --style=plain --paging=never` —— 复核 v1.1 当前 exit contract
 
 ## Session Continuity
 
@@ -118,8 +122,12 @@ If resuming, read in this order:
 6. `.planning/REQUIREMENTS.md`
 7. `.planning/ROADMAP.md`
 8. `.planning/STATE.md`
-9. `.planning/baseline/*.md`
-10. `.planning/reviews/*.md`
-11. `AGENTS.md`
-12. `CLAUDE.md`（若使用 Claude Code）
-13. `docs/developer_architecture.md`
+9. `.planning/phases/15-support-feedback-contract-hardening-governance-truth-repair-and-maintainability-follow-through/15-PRD.md`
+10. `.planning/phases/15-support-feedback-contract-hardening-governance-truth-repair-and-maintainability-follow-through/15-RESEARCH.md`
+11. `.planning/phases/15-support-feedback-contract-hardening-governance-truth-repair-and-maintainability-follow-through/15-VALIDATION.md`
+12. `.planning/phases/15-support-feedback-contract-hardening-governance-truth-repair-and-maintainability-follow-through/15-VERIFICATION.md`
+13. `.planning/baseline/*.md`
+14. `.planning/reviews/*.md`
+15. `AGENTS.md`
+16. `CLAUDE.md`（若使用 Claude Code）
+17. `docs/developer_architecture.md`

@@ -1,0 +1,3 @@
+- `coverage_diff.py` 已裁决为 coverage floor + optional baseline diff；CI、CONTRIBUTING 与 verification docs 现使用同一语义。
+- `pytest-benchmark` 保持 advisory benchmark lane，runtime `pip-audit` 继续是 PR 门禁，dev `pip-audit` 保持 schedule/workflow_dispatch non-blocking；`pytest-xdist` / `pytest-mypy-plugins` 已从 dev 依赖移除。
+- `_ClientBase` 与 `LiproMqttClient` 的 locality / ownership 已同步回写到 `PUBLIC_SURFACES`、`FILE_MATRIX`、`RESIDUAL_LEDGER` 与 `KILL_LIST`。

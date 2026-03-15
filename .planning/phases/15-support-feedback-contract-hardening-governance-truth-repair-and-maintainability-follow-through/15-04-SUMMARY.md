@@ -1,0 +1,2 @@
+- `RuntimeAccess` 与 diagnostics 相邻 seams 已拆出更明确的小型类型契约：developer-report iterator、device/coordinator lookup 与 share-session surface 不再共用宽 `object` 别名。
+- `service_router.py` 保持 public handler home；upload/report glue 与 host-side typing follow-through 已下沉到 focused helper。

@@ -1,0 +1,2 @@
+- `submit_developer_feedback` 现在走 upload-only projector：保留 `iotName` / `iot_name` 等供应商判型标识，但将 `name`、`deviceName`、`roomName`、`productName`、`keyName` 等用户标签投影为非识别性占位。
+- `get_developer_report` 的本地调试视图保持原语义不变；相关 support/share-worker fixtures、README / services / translations 已同步说明“本地视图”与“上传契约”的差异。

@@ -1,4 +1,4 @@
-"""Summarize and validate coverage JSON reports."""
+"""Check coverage floors with optional baseline diff support."""
 
 from __future__ import annotations
 
@@ -22,11 +22,11 @@ def load_percent(path: Path) -> float:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    """Build the CLI parser for coverage diff checks."""
+    """Build the CLI parser for coverage floor / diff checks."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("coverage_json", nargs="?", default="coverage.json")
-    parser.add_argument("--baseline", help="Optional baseline coverage.json to compare against")
-    parser.add_argument("--minimum", type=float, default=95.0)
+    parser.add_argument("--baseline", help="Optional baseline coverage.json for diff mode")
+    parser.add_argument("--minimum", type=float, default=95.0, help="Coverage floor percentage")
     return parser
 
 
