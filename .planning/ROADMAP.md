@@ -274,16 +274,17 @@ Plans:
 
 ### Phase 16: Post-audit truth alignment, hotspot decomposition, and residual endgame
 
-**Goal:** 在不偏离北极星单一正式主链的前提下，把终极审阅确认仍然成立的剩余问题统一收口：校准治理/工具链真相，拆薄 `core/api` / `core/protocol` / `core/coordinator` / `control` / domain / OTA 热点，继续收紧类型与异常语义，削弱 residual/compat 认知债，并补齐测试分层与开源 DX 跟进。
+**Goal:** 在不偏离北极星单一正式主链的前提下，把终极审阅确认仍然成立的剩余问题统一收口：校准治理/工具链真相，拆薄 `core/api` / `core/protocol` / `core/coordinator` / `control` / domain / OTA 热点及其 secondary glue hotspots，继续收紧类型与异常语义，削弱 residual/compat 认知债，并补齐测试分层、开源 DX 与 closeout audit 跟进。
 **Requirements**: [GOV-14, QLT-02, HOT-04, TYP-04, ERR-01, RES-02, CTRL-06, DOM-03, OTA-01, TST-01, DOC-02]
 **Depends on:** Phase 15
 **Success Criteria**:
   1. `AGENTS.md`、`PROJECT.md`、`ROADMAP.md`、`STATE.md`、baseline/review truth 与 `.planning/codebase/*` policy 对活跃 phase / residual / authority / toolchain 讲同一条故事，不再出现已关闭 seam 被误记为 active residual 的冲突。
-  2. Python / Ruff / pre-commit / devcontainer / pytest marker truth 完全对齐，测试与 lint 规则集不再出现“运行时 3.14、规则仍按 3.13”这类认知漂移。
-  3. `LiproRestFacade`、`LiproProtocolFacade`、`Coordinator`、`service_router.py`、`config_flow.py`、`firmware_update.py` 等热点沿正式边界继续拆薄，strategy / normalizer / exception mapping / helper glue 进一步下沉。
-  4. `core/api` helper spine、`LiproMqttClient` residual naming、`get_auth_data()` fallback、多态 power compat envelope 等 remaining residual 都有更窄、更诚实的本地语义，不再对新维护者形成正式故事线错觉。
-  5. device / capability / entity / OTA / platform test layering 更接近单一领域真源：`LiproDevice` 不再继续膨胀成第二套 public surface，capability 消费协议与 OTA projection/service 边界更清晰。
-  6. troubleshooting / contributor navigation / release runbook / local develop workflow 与 CI / docs / support truth 对齐，开源维护体验与当前高治理仓库的真实复杂度相匹配。
+  2. Python / Ruff / pre-commit / devcontainer / pytest marker truth 完全对齐，测试与 lint 规则集不再出现“运行时 3.14、规则仍按 3.13”这类认知漂移，`scripts/develop` 的非破坏性也有显式 smoke/manual gate。
+  3. `LiproRestFacade`、`LiproProtocolFacade`、`Coordinator`、`service_router.py`、`config_flow.py`、`firmware_update.py` 及其 second-pass 暴露的 entry-lifecycle / diagnostics / telemetry / request-policy / status-fallback / mqtt-runtime / rest-decoder 等 secondary hotspots 都被纳入明确计划，不存在高风险热点游离于计划之外。
+  4. `Any` / `type: ignore` / reflection / catch-all exception 的收口有真实 contract 与异常语义结果，热点文件需记录 before/after 指标，且关键 debt 不得净增。
+  5. `core/api` helper spine、`LiproMqttClient` residual naming、`get_auth_data()` fallback、多态 power compat envelope 等 remaining residual 都有更窄、更诚实的本地语义，并通过 residual closeout 表写清 `item / disposition / owner / phase / delete gate / evidence`。
+  6. device / capability / entity / OTA / platform test layering 更接近单一领域真源：`LiproDevice` 不再继续膨胀成第二套 public surface，capability 消费协议与 OTA projection/service 边界更清晰。
+  7. troubleshooting / contributor navigation / release runbook / local develop workflow 与 CI / docs / support truth 对齐，且 phase closeout 包含 second-pass repo audit，证明不存在未登记的高风险 carry-forward。
 **Plans:** 6 planned across 3 waves
 
 Plans:
