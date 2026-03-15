@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 from importlib import import_module
-from typing import Any
+from typing import Protocol, cast
 
 from homeassistant.core import HomeAssistant
 
@@ -13,24 +13,45 @@ from ..const.config import CONF_DEBUG_MODE, DEFAULT_DEBUG_MODE
 from ..runtime_types import LiproCoordinator
 from .models import RuntimeCoordinatorSnapshot
 
+type RuntimeTelemetryView = dict[str, object]
 
-def get_entry_runtime_coordinator(entry: Any) -> LiproCoordinator | None:
+
+class RuntimeEntryLike(Protocol):
+    """Minimal config-entry surface consumed by control runtime access."""
+
+    entry_id: str
+    runtime_data: LiproCoordinator | None
+    options: Mapping[str, object]
+
+
+class _MqttServiceLike(Protocol):
+    """Minimal MQTT service surface needed for snapshots."""
+
+    connected: bool
+
+
+def get_entry_runtime_coordinator(
+    entry: RuntimeEntryLike | object,
+) -> LiproCoordinator | None:
     """Return the coordinator attached to a config entry, if loaded."""
     coordinator = getattr(entry, "runtime_data", None)
-    return coordinator if coordinator is not None else None
+    return cast(LiproCoordinator | None, coordinator)
+
 
 
 def iter_runtime_entries(
     hass: HomeAssistant,
     *,
     entry_id: str | None = None,
-) -> list[Any]:
+) -> list[RuntimeEntryLike]:
     """Return Lipro config entries, optionally scoped to one entry id."""
-    return [
-        entry
-        for entry in hass.config_entries.async_entries(DOMAIN)
-        if entry_id is None or getattr(entry, "entry_id", None) == entry_id
-    ]
+    entries: list[RuntimeEntryLike] = []
+    for entry in hass.config_entries.async_entries(DOMAIN):
+        runtime_entry = cast(RuntimeEntryLike, entry)
+        if entry_id is None or runtime_entry.entry_id == entry_id:
+            entries.append(runtime_entry)
+    return entries
+
 
 
 def iter_runtime_coordinators(
@@ -47,13 +68,14 @@ def iter_runtime_coordinators(
     return coordinators
 
 
+
 def find_runtime_entry_for_coordinator(
     hass: HomeAssistant,
     coordinator: LiproCoordinator,
-) -> Any | None:
+) -> RuntimeEntryLike | None:
     """Return the config entry that owns one active coordinator."""
-    config_entry = getattr(coordinator, "config_entry", None)
-    if get_entry_runtime_coordinator(config_entry) is coordinator:
+    config_entry = cast(RuntimeEntryLike | None, coordinator.config_entry)
+    if config_entry is not None and get_entry_runtime_coordinator(config_entry) is coordinator:
         return config_entry
     for entry in iter_runtime_entries(hass):
         if get_entry_runtime_coordinator(entry) is coordinator:
@@ -61,12 +83,14 @@ def find_runtime_entry_for_coordinator(
     return None
 
 
-def is_debug_mode_enabled_for_entry(entry: Any) -> bool:
+
+def is_debug_mode_enabled_for_entry(entry: RuntimeEntryLike | object) -> bool:
     """Return whether one config entry explicitly opts into debug services."""
     options = getattr(entry, "options", None)
     if not isinstance(options, Mapping):
         return DEFAULT_DEBUG_MODE
     return bool(options.get(CONF_DEBUG_MODE, DEFAULT_DEBUG_MODE))
+
 
 
 def has_debug_mode_runtime_entry(hass: HomeAssistant) -> bool:
@@ -78,6 +102,7 @@ def has_debug_mode_runtime_entry(hass: HomeAssistant) -> bool:
     )
 
 
+
 def is_developer_runtime_coordinator(
     hass: HomeAssistant,
     coordinator: LiproCoordinator,
@@ -85,6 +110,7 @@ def is_developer_runtime_coordinator(
     """Return whether the coordinator belongs to a debug-enabled entry."""
     entry = find_runtime_entry_for_coordinator(hass, coordinator)
     return entry is not None and is_debug_mode_enabled_for_entry(entry)
+
 
 
 def iter_developer_runtime_coordinators(hass: HomeAssistant) -> list[LiproCoordinator]:
@@ -96,57 +122,75 @@ def iter_developer_runtime_coordinators(hass: HomeAssistant) -> list[LiproCoordi
     ]
 
 
-def build_entry_system_health_view(entry: Any) -> dict[str, Any]:
+
+def build_entry_system_health_view(entry: RuntimeEntryLike | object) -> RuntimeTelemetryView:
     """Return the control-plane system-health projection for one config entry."""
     telemetry_surface = import_module("custom_components.lipro.control.telemetry_surface")
     view = telemetry_surface.build_entry_system_health_view(entry)
     return view if isinstance(view, dict) else {}
 
 
-def get_runtime_device_mapping(coordinator: Any) -> Mapping[str, Any]:
+
+def get_runtime_device_mapping(coordinator: LiproCoordinator) -> Mapping[str, object]:
     """Return a safe device mapping view for one runtime coordinator."""
-    devices = getattr(coordinator, "devices", None)
+    devices = coordinator.devices
     return devices if isinstance(devices, Mapping) else {}
 
 
-def _coerce_device_count(telemetry_view: dict[str, Any], coordinator: Any) -> int:
+
+def _coerce_device_count(
+    telemetry_view: RuntimeTelemetryView,
+    coordinator: LiproCoordinator,
+) -> int:
     device_count = telemetry_view.get("device_count")
     if isinstance(device_count, int):
         return device_count
-    devices = get_runtime_device_mapping(coordinator)
-    return len(devices)
+    return len(get_runtime_device_mapping(coordinator))
 
 
-def _coerce_mqtt_connected(telemetry_view: dict[str, Any], coordinator: Any) -> bool | None:
+
+def _coerce_mqtt_connected(
+    telemetry_view: RuntimeTelemetryView,
+    coordinator: LiproCoordinator,
+) -> bool | None:
     mqtt_connected = telemetry_view.get("mqtt_connected")
     if isinstance(mqtt_connected, bool):
         return mqtt_connected
-    mqtt_service = getattr(coordinator, "mqtt_service", None)
+    mqtt_service = cast(
+        _MqttServiceLike | object | None, getattr(coordinator, "mqtt_service", None)
+    )
     connected = getattr(mqtt_service, "connected", None)
     return connected if isinstance(connected, bool) else None
 
 
-def _coerce_last_update_success(telemetry_view: dict[str, Any], coordinator: Any) -> bool:
+
+def _coerce_last_update_success(
+    telemetry_view: RuntimeTelemetryView,
+    coordinator: LiproCoordinator,
+) -> bool:
     last_update_success = telemetry_view.get("last_update_success")
     if isinstance(last_update_success, bool):
         return last_update_success
-    return bool(getattr(coordinator, "last_update_success", False))
+    return coordinator.last_update_success
 
 
-def build_runtime_snapshot(entry: Any) -> RuntimeCoordinatorSnapshot | None:
+
+def build_runtime_snapshot(entry: RuntimeEntryLike | object) -> RuntimeCoordinatorSnapshot | None:
     """Build one control-plane runtime snapshot from a config entry."""
     coordinator = get_entry_runtime_coordinator(entry)
     if coordinator is None:
         return None
 
-    telemetry_view = build_entry_system_health_view(entry)
+    entry_ref = cast(RuntimeEntryLike, entry)
+    telemetry_view = build_entry_system_health_view(entry_ref)
     return RuntimeCoordinatorSnapshot(
-        entry_id=str(getattr(entry, "entry_id", "")),
+        entry_id=entry_ref.entry_id,
         coordinator=coordinator,
         device_count=_coerce_device_count(telemetry_view, coordinator),
         last_update_success=_coerce_last_update_success(telemetry_view, coordinator),
         mqtt_connected=_coerce_mqtt_connected(telemetry_view, coordinator),
     )
+
 
 
 def build_runtime_snapshots(hass: HomeAssistant) -> list[RuntimeCoordinatorSnapshot]:

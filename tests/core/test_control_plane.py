@@ -96,6 +96,30 @@ def test_runtime_snapshot_uses_telemetry_surface_projection() -> None:
     assert snapshot.last_update_success is True
 
 
+def test_find_runtime_entry_for_coordinator_prefers_bound_entry() -> None:
+    from custom_components.lipro.control.runtime_access import (
+        find_runtime_entry_for_coordinator,
+    )
+
+    entry = MagicMock(entry_id="entry-1")
+    coordinator = MagicMock(config_entry=entry)
+    entry.runtime_data = coordinator
+
+    assert find_runtime_entry_for_coordinator(MagicMock(), coordinator) is entry
+
+
+def test_build_single_runtime_coordinator_iterator_returns_stable_singleton(hass) -> None:
+    from custom_components.lipro.control.developer_router_support import (
+        build_single_runtime_coordinator_iterator,
+    )
+
+    coordinator = MagicMock(name="coordinator")
+    iterator_factory = build_single_runtime_coordinator_iterator(coordinator)
+
+    assert list(iterator_factory(hass)) == [coordinator]
+    assert list(iterator_factory(hass)) == [coordinator]
+
+
 def test_runtime_access_filters_debug_runtime_coordinators(hass) -> None:
     from custom_components.lipro.control.runtime_access import (
         has_debug_mode_runtime_entry,
