@@ -5,8 +5,8 @@
 | Family | Current example | Owner phase | Residual owner | Exit condition |
 |--------|------------------|-------------|----------------|----------------|
 | API compat wrappers | `custom_components/lipro/core/api/power_service.py` 中仍保留的 canonical-to-legacy envelope shaping 与少量 helper-level payload compatibility 语义 | Phase 2 | `02-04 compat shell cleanup`（API/Protocol owner 主责，Runtime/Coordinator owner 迁移消费者） | legacy envelope shaping 不再出现在 REST/public façade 主链；剩余 helper-level compatibility 语义 继续向 canonical rows 收口 |
-| API mixin inheritance | `_ClientBase` temporary typing anchor、`_ClientPacingMixin` / `_ClientAuthRecoveryMixin` / `_ClientTransportMixin` compat shells，以及 endpoint mixin helper classes | Phase 2 | `02-04 demixin closeout handoff`（API owner 主责，Phase 2.5/6 继续清退） | `_ClientEndpointsMixin` aggregate carrier 已删除；剩余 mixin 仅限 helper-test / patch seam / typing 过渡角色，并在后续相位被删除 |
-| Split-root protocol surfaces | `custom_components/lipro/core/mqtt/mqtt_client.py` 中 direct transport class 的 legacy naming（Phase 12 已删除 façade-level concrete-transport seam） | Phase 2.5 | `02.5 unified protocol root closeout`（Protocol owner 主责，Runtime owner 配合迁移） | runtime-facing allowed consumers 只依赖 `LiproProtocolFacade`；剩余 direct transport naming 不再泄露为 façade/public seam |
+| API mixin inheritance | `_ClientBase` temporary typing anchor、`_ClientPacingMixin` / `_ClientAuthRecoveryMixin` / `_ClientTransportMixin` compat shells，以及 endpoint mixin helper classes | Phase 2 | `02-04 demixin closeout handoff`（API owner 主责，Phase 2.5/6/14 继续清退） | `_ClientEndpointsMixin` aggregate carrier 已删除；remaining helper spine 只能停留在 `core/api`，并受 architecture-policy locality guard 约束 |
+| Split-root protocol surfaces | `custom_components/lipro/core/mqtt/mqtt_client.py` 中 direct transport class 的 legacy naming（Phase 12 已删除 façade-level concrete-transport seam） | Phase 2.5 | `02.5 unified protocol root closeout`（Protocol owner 主责，Runtime owner 配合迁移） | runtime-facing allowed consumers 只依赖 `LiproProtocolFacade`；Phase 14 只加固 residual ownership / import guard，physical rename 继续 deferred |
 | External-boundary advisory naming | firmware remote advisory / support payload generated field naming 仍带 legacy semantics | Phase 2.6 | `02.6 external-boundary closeout` | authority truth 已固定后完成术语清理 |
 | Protocol-boundary family coverage | `rest.list-envelope.v1`、`rest.schedule-json.v1`、`mqtt.topic.v1`、`mqtt.message-envelope.v1` 仍停留在 inventory / helper collaborator 层，尚未全部 registry-backed | Phase 7.1 | `07.1 boundary expansion handoff` | inventory 中登记的 family 全部完成 registry-backed 接线，或在 v1.1 closeout 中被明确裁决为 de-scope / retire |
 | Replay scenario coverage | `tests/fixtures/protocol_replay/` 当前只正式保留 representative `rest.mqtt-config@v1` 与 `mqtt.properties@v1`；`rest.list-envelope.v1`、`rest.schedule-json.v1`、`mqtt.topic.v1`、`mqtt.message-envelope.v1` 已在 `07.5` 被显式裁决为 v1.1 de-scope，而非隐式遗漏 | Phase 7.4 | `07.5 closeout arbitration` | 若未来确有 black-box replay 价值，必须以新 phase 重新登记 family、补 manifest/evidence；`08` 只消费现有 representative corpus 与 evidence index，不直接扩大 replay 范围 |
@@ -163,4 +163,11 @@
 - `LiproDevice` 与 `DeviceState` 的动态 `__getattr__` 已删除；domain surface 正式改成显式 property / method 集合。
 - `custom_components/lipro/core/device/device_delegation.py` 已物理删除；`state_accessors.py` 仅保留显式 helper 角色。
 - 本 phase **无新增 residual family**：收口的是既有 domain dynamic delegation，而不是引入新的 compat 层。
-- active residual 继续集中在 API helper mixin / `_ClientBase` typing spine、`LiproMqttClient` legacy naming，以及高温热点文件的后续减温。
+- active residual 现主要集中在 `_ClientBase` / `_Client*Mixin` typing/helper spine、`LiproMqttClient` legacy naming 与 helper-level compatibility envelope；hotspot glue 已完成第一次拆分。
+
+
+## Phase 14 Residual Delta
+
+- 本 phase **无新增 residual family**：`Coordinator` 的 protocol-facing passthrough 已收口到 `CoordinatorProtocolService`，但这不是新的兼容层。
+- `ScheduleApiService` 已退出正式 schedule 主链；remaining API residual 继续集中在 `_ClientBase` / helper mixin family 与 helper-level compatibility，而不是 service-loop 回环。
+- `custom_components/lipro/core/api/status_fallback.py` 与 `custom_components/lipro/control/developer_router_support.py` 已成为 internal helper homes；`status_service.py` 与 `service_router.py` 保留 public orchestration / handler identity。

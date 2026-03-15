@@ -27,6 +27,7 @@ class _EndpointAdapter:
 
     def __init__(self, client: _ClientBase) -> None:
         self._client = client
+        self._auth_api = client._auth_api  # noqa: SLF001
 
     async def _smart_home_request(
         self,
@@ -126,8 +127,36 @@ class _EndpointAdapter:
     def _is_invalid_param_error_code(self, code: Any) -> bool:
         return self._client.is_invalid_param_error_code(code)
 
-    def __getattr__(self, name: str) -> Any:
-        return getattr(self._client, name)
+
+    @staticmethod
+    def _extract_list_payload(
+        result: object,
+        *keys: str,
+    ) -> list[JsonObject]:
+        return EndpointPayloadNormalizers.extract_list_payload(result, *keys)
+
+    @staticmethod
+    def _extract_data_list(result: object) -> list[JsonObject]:
+        return EndpointPayloadNormalizers.extract_data_list(result)
+
+    @staticmethod
+    def _extract_timings_list(result: object) -> list[ScheduleTimingRow]:
+        return EndpointPayloadNormalizers.extract_timings_list(result)
+
+    @staticmethod
+    def _sanitize_iot_device_ids(
+        device_ids: list[str],
+        *,
+        endpoint: str,
+    ) -> list[str]:
+        return EndpointPayloadNormalizers.sanitize_iot_device_ids(
+            device_ids,
+            endpoint=endpoint,
+        )
+
+    @staticmethod
+    def _normalize_power_target_id(device_id: object) -> str | None:
+        return EndpointPayloadNormalizers.normalize_power_target_id(device_id)
 
 
 class EndpointPayloadNormalizers:

@@ -1,0 +1,2 @@
+- `Coordinator` 内部正式协议真源已统一收口到 `protocol`，protocol-facing runtime ops 下沉到 `CoordinatorProtocolService`。
+- 相关测试与夹具已从 `coordinator.client` 迁到 `coordinator.protocol`，不为测试保留生产 compat。

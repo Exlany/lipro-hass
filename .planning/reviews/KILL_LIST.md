@@ -13,7 +13,7 @@
 | `_build_compat_list_payload` | `custom_components/lipro/core/api/client.py` | `02-04 compat shell cleanup` | Phase 2 | direct consumers 不再要求 `{"data": [...]}` envelope | 已关闭（Phase 12：compat payload helper removed） |
 | legacy compat wrapper methods | `custom_components/lipro/core/api/client.py::{get_device_list,query_iot_devices,query_outlet_devices,query_group_devices}` | `02-04 compat shell cleanup` | Phase 2 | runtime / tests 改用 canonical façade outputs 或统一 compat adapter | 已关闭（Phase 12：compat wrapper methods removed） |
 | `LiproClient` 作为 legacy constructor name | `custom_components/lipro/core/api/__init__.py` | `02-04 public-surface demotion`（与 Phase 9 handoff 对齐） | Phase 9+ | 只剩 `core.api` 显式 compat shell；direct tests/consumers 完成迁移后删除 | 已关闭（Phase 12：compat shell removed） |
-| `LiproMqttClient` 作为 legacy transport root name | `custom_components/lipro/core/mqtt/mqtt_client.py`（`LiproMqttFacade.raw_client` seam 已在 Phase 12 删除） | `02.5 unified-root closeout` | Phase 9+ | integration/tests 不再需要 concrete transport object，且 direct transport legacy naming 完成收口 | 已登记，未删除 |
+| `LiproMqttClient` 作为 legacy transport root name | `custom_components/lipro/core/mqtt/mqtt_client.py`（`LiproMqttFacade.raw_client` seam 已在 Phase 12 删除） | `02.5 unified-root closeout` | Phase 9+ | integration/tests 不再需要 concrete transport object，且 direct transport legacy naming 完成收口；Phase 14 只加固 residual ownership / import guard，physical rename 继续 deferred | 已登记，未删除 |
 | `LiproMqttFacade.raw_client` compat seam | `custom_components/lipro/core/protocol/facade.py` | `09 residual surface closure` | Phase 9+ | runtime/integration assertions 改用 formal child façade，不再需要 concrete transport object | 已关闭（Phase 12：compat seam removed） |
 | split-root protocol public semantics | runtime / tests 中并行感知 `LiproRestFacade` 与 `LiproMqttClient` 的入口语义 | `02.5 unified-root closeout` | Phase 2.5 | `PUBLIC_SURFACES.md` 与 runtime-facing consumers 只承认 `LiproProtocolFacade` 为正式协议根 | 已关闭（Phase 9：implicit root delegation and package-level MQTT root export removed） |
 | 多行 power payload 的 compat wrapping | `custom_components/lipro/core/api/power_service.py` | `02-04 compat shell cleanup` | Phase 2 | power helper 只返回 canonical rows；兼容 envelope 仅存在于 compat shell | 已登记，未删除 |
@@ -128,3 +128,10 @@
 - 已删除：`LiproDevice.__getattr__` / `DeviceState.__getattr__` 动态领域扩面。
 - formal device/domain surface 现由显式 property / method 集合与 focused tests 共同锁定。
 - remaining active delete gates 与 Phase 13 无新增长尾 compat。
+
+
+## Phase 14 Status Update
+
+- 本 phase **无新增 file-level kill target**；`ScheduleApiService` 已退出正式 schedule 主链，但不需要作为独立 kill target 继续登记。
+- `custom_components/lipro/core/api/status_fallback.py` 与 `custom_components/lipro/control/developer_router_support.py` 属于 focused helper homes，不进入 kill list。
+- remaining active delete gates 继续集中在 `_ClientBase` / helper mixin family、`LiproMqttClient` legacy naming 与少量 helper-level compatibility envelope。

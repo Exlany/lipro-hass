@@ -6,11 +6,11 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
+from custom_components.lipro.core.api.status_fallback import query_with_fallback
 from custom_components.lipro.core.api.status_service import (
     query_connect_status,
     query_device_status,
     query_mesh_group_status,
-    query_with_fallback,
 )
 
 

@@ -306,8 +306,8 @@ async def test_query_ota_rows_with_shared_cache_rechecks_cache_inside_lock(
     mock_coordinator, make_device
 ) -> None:
     device = make_device("light", serial="03ab5ccd7c707070")
-    mock_coordinator.client = MagicMock()
-    mock_coordinator.client.query_ota_info = AsyncMock(return_value=[])
+    mock_coordinator.protocol = MagicMock()
+    mock_coordinator.protocol.query_ota_info = AsyncMock(return_value=[])
     entity = LiproFirmwareUpdateEntity(mock_coordinator, device)
     cache_key = entity._ota_rows_cache_key()
     cached_rows = [{"deviceId": device.serial, "latestVersion": "1.1.0"}]
@@ -323,7 +323,7 @@ async def test_query_ota_rows_with_shared_cache_rechecks_cache_inside_lock(
     rows, from_cache = await task
     assert rows == cached_rows
     assert from_cache is True
-    mock_coordinator.client.query_ota_info.assert_not_awaited()
+    mock_coordinator.protocol.query_ota_info.assert_not_awaited()
 
 
 @pytest.mark.asyncio
@@ -352,12 +352,12 @@ async def test_query_ota_rows_from_cloud_prefers_light_v2_fallback(
         iot_name="21P3",
     )
     entity = LiproFirmwareUpdateEntity(mock_coordinator, device)
-    mock_coordinator.client.query_ota_info = AsyncMock(return_value=[{"deviceType": "ff000001"}])
+    mock_coordinator.protocol.query_ota_info = AsyncMock(return_value=[{"deviceType": "ff000001"}])
 
     result = await entity._query_ota_rows_from_cloud()
 
     assert result == [{"deviceType": "ff000001"}]
-    mock_coordinator.client.query_ota_info.assert_awaited_once_with(
+    mock_coordinator.protocol.query_ota_info.assert_awaited_once_with(
         device_id="mesh_group_49155",
         device_type=device.device_type_hex,
         iot_name="21P3",

@@ -3,7 +3,7 @@
 ## Milestones
 
 - ✅ **v1.0 North Star Rebuild** - Phases 1-7 (+ 1.5 / 2.5 / 2.6), shipped 2026-03-13
-- ✅ **v1.1 Protocol Fidelity & Operability** - Phases 7.1-13 complete; milestone closeout ready (updated 2026-03-14)
+- ✅ **v1.1 Protocol Fidelity & Operability** - Phases 7.1-14 complete; milestone closeout ready (updated 2026-03-15)
 
 ## Required Phase Outputs
 
@@ -28,7 +28,7 @@
 
 **Milestone Goal:** 在不破坏既有北极星单一主链的前提下，正式引入 boundary decoder family、architecture policy enforcement、runtime telemetry exporter、replay evidence，并把已登记 residual surfaces 收口到显式、可删除、可验证的最小集合。
 
-**Current Status:** `Phase 7.1` 到 `Phase 13` 已全部完成（截至 2026-03-14）；`v1.1` 里程碑继续保持 closeout / archive 准备态。
+**Current Status:** `Phase 7.1` 到 `Phase 14` 已全部完成（截至 2026-03-15）；`v1.1` 里程碑继续保持 closeout / archive 准备态。
 
 ### Phase 7.1: Protocol Boundary Schema/Decoder 收口
 **Goal**: 把 REST/MQTT 的 decode authority 收口到 protocol boundary family，形成可版本化 schema/decoder registry，同时阻断 raw payload 穿透。
@@ -156,7 +156,7 @@ Plans:
 - [x] 10-03: `core` formal surface 与 HA runtime home 继续收窄
 - [x] 10-04: docs / governance / replay / meta guard 同步闭环
 
-## Cross-Phase Arbitration (7.3-11)
+## Cross-Phase Arbitration (7.3-14)
 
 - `07.3` 只拥有 telemetry truth：exporter contracts、redaction、cardinality、timestamp / pseudo-id compatibility
 - `07.4` 只拥有 replay truth：manifests、deterministic driver、replay assertions、run summary
@@ -166,7 +166,9 @@ Plans:
 - `10` 只拥有 API drift isolation / core-boundary prep：boundary contract closure、host-neutral auth/result contracts、HA adapter 降耦与治理同步；不得在本 phase 内把 shared core / cross-platform SDK 提升为正式 root
 - `11` 只拥有 control router formalization、runtime-access hardening、entity/OTA truth convergence 与 open-source governance coherence；不得重新合法化 compat service carrier 或 dynamic protocol surface
 - `12` 只拥有 type contract convergence、compat residual narrowing、hotspot slimming 与 contributor-facing governance hygiene；不得重新打开已在 Phase 11 关闭的 residual truth
-- 执行顺序固定为 `7.3 -> 7.4 -> 7.5 -> 8 -> 9 -> 10 -> 11 -> 12`，避免真源反转与职责重叠
+- `13` 只拥有显式设备域表面、runtime/status 热点 helper 边界与公开治理资产结构化守卫；不得重新合法化动态 delegation
+- `14` 只拥有 legacy stack final closure、API spine demolition 与 governance truth consolidation；不得把 `Coordinator.client` / `ScheduleApiService` / helper-home modules 回流为正式主链
+- 执行顺序固定为 `7.3 -> 7.4 -> 7.5 -> 8 -> 9 -> 10 -> 11 -> 12 -> 13 -> 14`，避免真源反转与职责重叠
 
 ## Progress
 
@@ -184,6 +186,7 @@ Plans:
 | 11 Control Router Formalization & Wiring Residual Demotion | v1.1 | 8/8 | Complete | 2026-03-14 |
 | 12 Type Contract Alignment, Residual Cleanup & Governance Hygiene | v1.1 | 5/5 | Complete | 2026-03-14 |
 | 13 Explicit Domain Surface, Governance Guard Hardening & Hotspot Boundary Decomposition | v1.1 | 3/3 | Complete | 2026-03-14 |
+| 14 Legacy Stack Final Closure, API Spine Demolition & Governance Truth Consolidation | v1.1 | 4/4 | Complete | 2026-03-15 |
 
 ### Phase 11: Control Router Formalization & Wiring Residual Demotion
 
@@ -227,3 +230,21 @@ Plans:
 - [x] 13-01: explicit device and state surfaces (completed 2026-03-14)
 - [x] 13-02: runtime hotspot decomposition and protocol terminology convergence (completed 2026-03-14)
 - [x] 13-03: governance guard hardening and documentation sync (completed 2026-03-14)
+
+### Phase 14: Legacy Stack Final Closure, API Spine Demolition & Governance Truth Consolidation
+
+**Goal:** 彻底收口 `Coordinator` / `core/api` / `service_router` 周边最后一批旧 API spine 与 helper 回环：把 `Coordinator` 内部协议真源统一为 `protocol`，删除 `ScheduleApiService` 与 schedule passthrough，抽离 `status_service` fallback kernel 与 `service_router` developer glue，并把 subordinate governance truth / residual guards 完整回写到当前代码真相。
+**Requirements**: RUN-04, HOT-02, CTRL-05, RUN-05, GOV-12
+**Depends on:** Phase 13
+**Success Criteria**:
+  1. `Coordinator` 内部不再以 `client` 术语承载正式协议真源；protocol-facing runtime ops 经 `CoordinatorProtocolService` 收口。
+  2. `ScheduleApiService` 与 `client.py` 尾部 schedule 私有 passthrough 已删除；schedule truth 固定为 `ScheduleEndpoints` + focused helpers。
+  3. `status_service.py` 与 `service_router.py` 仅保留 public orchestration / handler 身份；fallback/glue 内核分别下沉到 `status_fallback.py` 与 `developer_router_support.py`。
+  4. `PUBLIC_SURFACES / ARCHITECTURE_POLICY / VERIFICATION_MATRIX / FILE_MATRIX / RESIDUAL_LEDGER / KILL_LIST / PROJECT / STATE / ROADMAP / REQUIREMENTS` 与 meta guards 全部同步到 Phase 14 完成态。
+**Plans:** 4/4 plans complete
+
+Plans:
+- [x] 14-01: coordinator protocol terminology convergence and api-spine slimming (completed 2026-03-15)
+- [x] 14-02: api schedule residual closure and endpoint helper spine slimming (completed 2026-03-15)
+- [x] 14-03: status fallback kernel and control-router glue extraction (completed 2026-03-15)
+- [x] 14-04: governance truth refresh and residual guard hardening (completed 2026-03-15)

@@ -1,131 +1,97 @@
-"""Tests for ScheduleApiService wrapper behavior."""
+"""Tests for schedule endpoint public behavior."""
 
 from __future__ import annotations
 
-from types import SimpleNamespace
-from unittest.mock import AsyncMock
+from typing import Any, cast
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
+from custom_components.lipro.core.api.endpoints.schedule import ScheduleEndpoints
 from custom_components.lipro.core.api.errors import LiproApiError
-from custom_components.lipro.core.api.schedule_service import ScheduleApiService
+
+
+def _make_endpoint() -> ScheduleEndpoints:
+    client = MagicMock()
+    client.to_device_type_hex.side_effect = str
+    return ScheduleEndpoints(client)
 
 
 @pytest.mark.asyncio
-async def test_schedule_api_service_get_uses_mesh_candidates_for_mesh_groups() -> None:
-    client = SimpleNamespace(
-        _is_mesh_group_id=lambda device_id: device_id.startswith("mesh_group_"),
-        _require_mesh_schedule_candidate_ids=lambda **_kwargs: ["03ab0000000000a1"],
-        _get_mesh_schedules_by_candidates=AsyncMock(return_value=[{"id": 7}]),
-        _request_schedule_timings=AsyncMock(return_value=[{"id": 8}]),
-        _to_device_type_hex=lambda value: str(value),
-    )
+async def test_schedule_endpoint_get_uses_mesh_candidates_for_mesh_groups() -> None:
+    endpoint = cast(Any, _make_endpoint())
+    endpoint._get_mesh_schedules_by_candidates = AsyncMock(return_value=[{"id": 7}])
 
-    service = ScheduleApiService(client)
-    result = await service.get_device_schedules("mesh_group_49155", "ff000001")
+    result = await endpoint.get_device_schedules(
+        "mesh_group_49155",
+        "ff000001",
+        mesh_gateway_id="03ab0000000000a1",
+    )
 
     assert result == [{"id": 7}]
-    client._get_mesh_schedules_by_candidates.assert_awaited_once_with(
-        ["03ab0000000000a1"]
-    )
-    client._request_schedule_timings.assert_not_awaited()
+    endpoint._get_mesh_schedules_by_candidates.assert_awaited_once_with(["03ab0000000000a1"])
 
 
 @pytest.mark.asyncio
-async def test_schedule_api_service_add_uses_mesh_candidates_for_mesh_groups() -> None:
-    client = SimpleNamespace(
-        _is_mesh_group_id=lambda device_id: device_id.startswith("mesh_group_"),
-        _require_mesh_schedule_candidate_ids=lambda **_kwargs: ["03ab0000000000a1"],
-        _add_mesh_schedule_by_candidates=AsyncMock(return_value=[{"id": 1}]),
-        _request_schedule_timings=AsyncMock(return_value=[{"id": 2}]),
-        _to_device_type_hex=lambda value: str(value),
-    )
+async def test_schedule_endpoint_add_uses_mesh_candidates_for_mesh_groups() -> None:
+    endpoint = cast(Any, _make_endpoint())
+    endpoint._add_mesh_schedule_by_candidates = AsyncMock(return_value=[{"id": 1}])
 
-    service = ScheduleApiService(client)
-    result = await service.add_device_schedule(
+    result = await endpoint.add_device_schedule(
         "mesh_group_49155",
         "ff000001",
         [1],
         [3600],
         [1],
         group_id="mesh_group_49155",
+        mesh_gateway_id="03ab0000000000a1",
     )
 
     assert result == [{"id": 1}]
-    client._add_mesh_schedule_by_candidates.assert_awaited_once_with(
+    endpoint._add_mesh_schedule_by_candidates.assert_awaited_once_with(
         ["03ab0000000000a1"],
         days=[1],
         times=[3600],
         events=[1],
     )
-    client._request_schedule_timings.assert_not_awaited()
 
 
 @pytest.mark.asyncio
-async def test_schedule_api_service_delete_uses_mesh_candidates_for_mesh_groups() -> (
-    None
-):
-    client = SimpleNamespace(
-        _is_mesh_group_id=lambda device_id: device_id.startswith("mesh_group_"),
-        _require_mesh_schedule_candidate_ids=lambda **_kwargs: ["03ab0000000000a1"],
-        _delete_mesh_schedules_by_candidates=AsyncMock(return_value=[{"id": 1}]),
-        _request_schedule_timings=AsyncMock(return_value=[{"id": 2}]),
-        _to_device_type_hex=lambda value: str(value),
-    )
+async def test_schedule_endpoint_delete_uses_mesh_candidates_for_mesh_groups() -> None:
+    endpoint = cast(Any, _make_endpoint())
+    endpoint._delete_mesh_schedules_by_candidates = AsyncMock(return_value=[{"id": 1}])
 
-    service = ScheduleApiService(client)
-    result = await service.delete_device_schedules(
+    result = await endpoint.delete_device_schedules(
         "mesh_group_49155",
         "ff000001",
         [1],
         group_id="mesh_group_49155",
+        mesh_gateway_id="03ab0000000000a1",
     )
 
     assert result == [{"id": 1}]
-    client._delete_mesh_schedules_by_candidates.assert_awaited_once_with(
+    endpoint._delete_mesh_schedules_by_candidates.assert_awaited_once_with(
         ["03ab0000000000a1"],
         schedule_ids=[1],
     )
-    client._request_schedule_timings.assert_not_awaited()
 
 
 @pytest.mark.asyncio
-async def test_schedule_api_service_get_propagates_missing_mesh_candidates() -> None:
-    client = SimpleNamespace(
-        _is_mesh_group_id=lambda device_id: device_id.startswith("mesh_group_"),
-        _require_mesh_schedule_candidate_ids=lambda **_kwargs: (_ for _ in ()).throw(
-            LiproApiError(
-                "Mesh schedule candidate IoT IDs unavailable",
-                code="mesh_schedule_candidates_unavailable",
-            )
-        ),
-        _get_mesh_schedules_by_candidates=AsyncMock(return_value=[]),
-        _request_schedule_timings=AsyncMock(return_value=[]),
-        _to_device_type_hex=lambda value: str(value),
-    )
+async def test_schedule_endpoint_get_propagates_missing_mesh_candidates() -> None:
+    endpoint = _make_endpoint()
 
-    service = ScheduleApiService(client)
     with pytest.raises(
         LiproApiError, match="Mesh schedule candidate IoT IDs unavailable"
     ):
-        await service.get_device_schedules("mesh_group_49155", "ff000001")
-
-    client._request_schedule_timings.assert_not_awaited()
+        await endpoint.get_device_schedules("mesh_group_49155", "ff000001")
 
 
 @pytest.mark.asyncio
-async def test_schedule_api_service_add_validates_matching_time_and_event_lengths() -> (
-    None
-):
-    client = SimpleNamespace(
-        _is_mesh_group_id=lambda _device_id: False,
-        _request_schedule_timings=AsyncMock(),
-        _to_device_type_hex=lambda value: str(value),
-    )
+async def test_schedule_endpoint_add_validates_matching_time_and_event_lengths() -> None:
+    endpoint = _make_endpoint()
 
-    service = ScheduleApiService(client)
     with pytest.raises(ValueError, match="times and events must have same length"):
-        await service.add_device_schedule(
+        await endpoint.add_device_schedule(
             "03ab5ccd7c123456",
             "ff000001",
             [1],

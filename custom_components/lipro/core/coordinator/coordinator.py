@@ -35,6 +35,7 @@ from .services import (
     CoordinatorCommandService,
     CoordinatorDeviceRefreshService,
     CoordinatorMqttService,
+    CoordinatorProtocolService,
     CoordinatorSignalService,
     CoordinatorStateService,
     CoordinatorTelemetryService,
@@ -58,7 +59,7 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
     Refactored to use:
     - RuntimeContext: Unified dependency injection
     - RuntimeOrchestrator: Centralized component wiring
-    - Thin facade: < 250 LOC, pure HA adapter
+    - Focused coordinator-owned services for public runtime surfaces
     """
 
     def __init__(
@@ -86,7 +87,7 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
             config_entry=config_entry,
             always_update=True,
         )
-        self.client = protocol
+        self.protocol = protocol
         self.auth_manager = auth_manager
         self.config_entry = config_entry
         self._config_entry = config_entry
@@ -110,6 +111,9 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
             hass=hass,
             auth_manager=auth_manager,
             config_entry=config_entry,
+        )
+        self.protocol_service = CoordinatorProtocolService(
+            protocol_getter=lambda: self.protocol,
         )
 
         self.signal_service = CoordinatorSignalService(
@@ -336,12 +340,12 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
         mesh_gateway_id: str = "",
         mesh_member_ids: list[str] | None = None,
     ) -> list[ScheduleTimingRow]:
-        """Query schedules through the coordinator facade."""
-        return await self.client.get_device_schedules(
+        """Query schedules through the coordinator-owned protocol service."""
+        return await self.protocol_service.async_get_device_schedules(
             device_id,
             device_type,
             mesh_gateway_id=mesh_gateway_id,
-            mesh_member_ids=list(mesh_member_ids or []),
+            mesh_member_ids=mesh_member_ids,
         )
 
     async def async_add_device_schedule(
@@ -355,15 +359,15 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
         mesh_gateway_id: str = "",
         mesh_member_ids: list[str] | None = None,
     ) -> list[ScheduleTimingRow]:
-        """Create a schedule through the coordinator facade."""
-        return await self.client.add_device_schedule(
+        """Create a schedule through the coordinator-owned protocol service."""
+        return await self.protocol_service.async_add_device_schedule(
             device_id,
             device_type,
             days,
             times,
             events,
             mesh_gateway_id=mesh_gateway_id,
-            mesh_member_ids=list(mesh_member_ids or []),
+            mesh_member_ids=mesh_member_ids,
         )
 
     async def async_delete_device_schedules(
@@ -375,13 +379,13 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
         mesh_gateway_id: str = "",
         mesh_member_ids: list[str] | None = None,
     ) -> list[ScheduleTimingRow]:
-        """Delete schedules through the coordinator facade."""
-        return await self.client.delete_device_schedules(
+        """Delete schedules through the coordinator-owned protocol service."""
+        return await self.protocol_service.async_delete_device_schedules(
             device_id,
             device_type,
             schedule_ids,
             mesh_gateway_id=mesh_gateway_id,
-            mesh_member_ids=list(mesh_member_ids or []),
+            mesh_member_ids=mesh_member_ids,
         )
 
     async def async_query_command_result(
@@ -391,20 +395,20 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
         device_id: str,
         device_type: str | int,
     ) -> Any:
-        """Query command-result diagnostics through the coordinator facade."""
-        return await self.client.query_command_result(
+        """Query command-result diagnostics through the coordinator-owned protocol service."""
+        return await self.protocol_service.async_query_command_result(
             msg_sn=msg_sn,
             device_id=device_id,
             device_type=device_type,
         )
 
     async def async_get_city(self) -> dict[str, object]:
-        """Query city metadata through the coordinator facade."""
-        return dict(await self.client.get_city())
+        """Query city metadata through the coordinator-owned protocol service."""
+        return await self.protocol_service.async_get_city()
 
     async def async_query_user_cloud(self) -> dict[str, object]:
-        """Query user-cloud metadata through the coordinator facade."""
-        return dict(await self.client.query_user_cloud())
+        """Query user-cloud metadata through the coordinator-owned protocol service."""
+        return await self.protocol_service.async_query_user_cloud()
 
     async def async_fetch_body_sensor_history(
         self,
@@ -414,14 +418,12 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
         sensor_device_id: str,
         mesh_type: str,
     ) -> dict[str, object]:
-        """Query body-sensor history through the coordinator facade."""
-        return dict(
-            await self.client.fetch_body_sensor_history(
-                device_id=device_id,
-                device_type=device_type,
-                sensor_device_id=sensor_device_id,
-                mesh_type=mesh_type,
-            )
+        """Query body-sensor history through the coordinator-owned protocol service."""
+        return await self.protocol_service.async_fetch_body_sensor_history(
+            device_id=device_id,
+            device_type=device_type,
+            sensor_device_id=sensor_device_id,
+            mesh_type=mesh_type,
         )
 
     async def async_fetch_door_sensor_history(
@@ -432,14 +434,12 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
         sensor_device_id: str,
         mesh_type: str,
     ) -> dict[str, object]:
-        """Query door-sensor history through the coordinator facade."""
-        return dict(
-            await self.client.fetch_door_sensor_history(
-                device_id=device_id,
-                device_type=device_type,
-                sensor_device_id=sensor_device_id,
-                mesh_type=mesh_type,
-            )
+        """Query door-sensor history through the coordinator-owned protocol service."""
+        return await self.protocol_service.async_fetch_door_sensor_history(
+            device_id=device_id,
+            device_type=device_type,
+            sensor_device_id=sensor_device_id,
+            mesh_type=mesh_type,
         )
 
     async def async_query_ota_info(
@@ -450,8 +450,8 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
         iot_name: str | None,
         allow_rich_v2_fallback: bool,
     ) -> list[OtaInfoRow]:
-        """Query OTA metadata through the coordinator facade."""
-        return await self.client.query_ota_info(
+        """Query OTA metadata through the coordinator-owned protocol service."""
+        return await self.protocol_service.async_query_ota_info(
             device_id=device_id,
             device_type=device_type,
             iot_name=iot_name,
@@ -459,8 +459,8 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
         )
 
     async def async_fetch_outlet_power_info(self, device_id: str) -> object:
-        """Query outlet power info through the coordinator facade."""
-        return await self.client.fetch_outlet_power_info(device_id)
+        """Query outlet power info through the coordinator-owned protocol service."""
+        return await self.protocol_service.async_fetch_outlet_power_info(device_id)
 
     def _get_outlet_ids_for_power_polling(self) -> list[str]:
         """Resolve the current outlet IDs participating in power polling."""
@@ -527,7 +527,7 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
             return await mqtt_runtime.connect(device_ids=device_ids)
 
         result = await setup_mqtt_lifecycle(
-            protocol=self.client,
+            protocol=self.protocol,
             config_entry=self.config_entry,
             background_task_manager=self._state.background_task_manager,
             devices=self._state.devices,
@@ -570,7 +570,7 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
                 type(err).__name__,
             )
 
-        self.client.attach_mqtt_facade(None)
+        self.protocol.attach_mqtt_facade(None)
         self._runtimes.mqtt.detach_transport()
         self._runtimes.mqtt.reset()
         self._runtimes.device.reset()

@@ -2,7 +2,7 @@
 
 **Purpose:** 建立 requirement → artifact → test → doc → phase acceptance / handoff 的统一验证闭环。
 **Status:** Formal baseline asset (`BASE-03` phase acceptance truth source)
-**Updated:** 2026-03-14
+**Updated:** 2026-03-15
 
 ## Formal Role
 
@@ -19,7 +19,8 @@
 | `PROT-*` | protocol facades、auth/policy/normalizers、fixtures、snapshots | contract tests + snapshot suite + integration checks | 1 / 2 / 2.5 | runtime/control 只消费正式协议 surface，不再回到 mega client / mixin truth |
 | `CTRL-*` | control surfaces、flows、diagnostics / system health / services docs | flow tests + lifecycle checks + diagnostics/service coverage + redaction proof | 3 | control plane 以正式 public surface 对接 runtime，而非 backdoor |
 | `DOM-*` | capability registry / snapshot、projection contracts、domain docs | domain tests + entity/platform tests + snapshots | 4 | 平台/实体只消费 capability truth，不再并行生长第二套规则 |
-| `RUN-*` | coordinator/runtime services、runtime invariants docs | invariant suite + integration checks + orchestration review | 5 | `Coordinator` 继续作为唯一正式 runtime root |
+| `RUN-*` | coordinator/runtime services、runtime invariants docs | invariant suite + integration checks + orchestration review | 5 / 14 | `Coordinator` 继续作为唯一正式 runtime root，protocol-facing runtime ops 只能沿 formal service surface 收口 |
+| `HOT-*` | hotspot decomposition artifacts、focused helper homes、hotspot closeout summaries | focused regressions + targeted full-suite proof + governance sync | 12 / 13 / 14 | 热点拆解只能让 orchestration 更薄，不得引入第二条业务故事线 |
 | `ASSR-*` | seed guards、meta guards、telemetry hooks、CI gates、verification docs | meta tests + observability evidence + CI proof | 1.5 / 6 | 结构未退化成为默认验收门，而非收尾补丁 |
 | `INTG-*` | external boundary docs、fixtures、generated expectations、authority updates | targeted contract tests + fixture audits + drift checks | 2.6 | 外部边界 contract 成为后续 phase 的可引用真源 |
 | `BND-*` | protocol boundary inventory、decoder family、schema registry、decode result、authority updates | boundary inventory review + protocol contract tests + governance guards | 7.1 | telemetry / replay / enforcement 继承单一 boundary truth，不再各自生长 decode authority |
@@ -101,6 +102,7 @@
 | `.planning/reviews/FILE_MATRIX.md` | 文件归属、phase owner、cluster scope 或 target fate 发生变化 | summary 明确“无 file-governance delta” |
 | `.planning/reviews/RESIDUAL_LEDGER.md` | 新 residual family、exit condition 变化、或 residual 横跨额外 phase | summary 明确“无 residual delta” |
 | `.planning/reviews/KILL_LIST.md` | 新删除候选、删除门槛变化、或某删除项被正式关闭 | summary 明确“无 deletion delta” |
+| `.planning/baseline/ARCHITECTURE_POLICY.md` | rule ids、governed paths、forbidden/required signals、enforcement scope 发生变化 | summary 明确“无 architecture-policy delta” |
 
 ---
 *Used by: phase exit review, downstream handoff, and final audit arbitration*
@@ -112,3 +114,18 @@
 - **Required governance proof:** `PUBLIC_SURFACES.md`、`VERIFICATION_MATRIX.md`、`FILE_MATRIX.md`、`RESIDUAL_LEDGER.md`、`KILL_LIST.md`、`CONTRIBUTING.md`、`.github/pull_request_template.md`、`.github/workflows/ci.yml` 必须同时反映 seam retirement、shellcheck gate、community governance files 与 single-maintainer support contract。
 - **Required runnable proof:** 至少保持 `uv run mypy`、`uv run pytest -q tests/core/api/test_api.py tests/core/test_anonymous_share.py tests/core/test_boundary_conditions.py tests/core/device/test_capabilities.py`、`uv run pytest -q tests/meta/test_governance_guards.py tests/meta/test_version_sync.py`、`uv run python scripts/check_architecture_policy.py --check`、`uv run python scripts/check_file_matrix.py --check` 通过。
 - **Unblock effect:** `v1.1` 可以进入 milestone closeout；后续规划不再需要把 legacy REST constructor、device-list compat wrapper、MQTT raw transport seam 或 capability alias 当作 active residual。
+
+
+## Phase 13 Exit Contract
+
+- **Required artifacts:** `custom_components/lipro/core/device/{device.py,state.py,state_accessors.py}`、`custom_components/lipro/core/coordinator/{orchestrator.py,mqtt_lifecycle.py}`、`custom_components/lipro/core/api/status_service.py`、README/support/governance assets、`13-01~13-03-SUMMARY.md`、`13-VALIDATION.md`、`13-VERIFICATION.md` 与更新后的 baseline/review/governance docs。
+- **Required governance proof:** `PUBLIC_SURFACES.md`、`VERIFICATION_MATRIX.md`、`FILE_MATRIX.md`、`RESIDUAL_LEDGER.md`、`KILL_LIST.md`、README / README_zh / CONTRIBUTING / SUPPORT / CODEOWNERS / quality-scale / devcontainer 必须同步反映显式 device/state surface、hotspot helper boundaries 与公开治理入口结构化守卫。
+- **Required runnable proof:** 至少保持 `uv run pytest -q tests/core/device/test_device.py tests/core/device/test_state.py tests/core/coordinator/runtime/test_device_runtime.py tests/core/test_device_refresh.py tests/core/api/test_api_status_service.py tests/core/api/test_api_status_service_regressions.py`、`uv run pytest -q tests/meta/test_governance_guards.py tests/meta/test_public_surface_guards.py tests/meta/test_dependency_guards.py tests/meta/test_version_sync.py`、`uv run ruff check .`、`uv run mypy` 与 `uv run pytest -q` 通过。
+- **Unblock effect:** 设备域正式表面、runtime/status 热点 helper 边界与 contributor-facing governance truth 可以作为 Phase 14 的稳定输入，而不是继续依赖动态委托或文案约定。
+
+## Phase 14 Exit Contract
+
+- **Required artifacts:** `custom_components/lipro/core/coordinator/coordinator.py`、`custom_components/lipro/core/coordinator/services/protocol_service.py`、`custom_components/lipro/core/api/{client.py,client_base.py,endpoints/payloads.py,endpoints/schedule.py,schedule_service.py,status_service.py,status_fallback.py}`、`custom_components/lipro/control/{service_router.py,developer_router_support.py}`、`14-01~14-04-SUMMARY.md`、`14-VALIDATION.md`、`14-VERIFICATION.md` 与更新后的 baseline/review/governance docs。
+- **Required governance proof:** `PUBLIC_SURFACES.md`、`ARCHITECTURE_POLICY.md`、`VERIFICATION_MATRIX.md`、`FILE_MATRIX.md`、`RESIDUAL_LEDGER.md`、`KILL_LIST.md`、`docs/developer_architecture.md` 与 `.planning/codebase/STRUCTURE.md` 必须同步反映 `CoordinatorProtocolService`、schedule residual closeout、`status_fallback.py` / `developer_router_support.py` helper homes、以及 residual-guard hardening truth。
+- **Required runnable proof:** 至少保持 `uv run ruff check .`、`uv run mypy`、`uv run python scripts/check_architecture_policy.py --check`、`uv run python scripts/check_file_matrix.py --check`、`uv run pytest -q tests/meta/test_governance_guards.py tests/meta/test_public_surface_guards.py tests/meta/test_dependency_guards.py tests/meta/test_version_sync.py` 与 `uv run pytest -q` 通过。
+- **Unblock effect:** `Coordinator.client` / `ScheduleApiService` 等旧 API spine 语义退出正式故事线，remaining residual 只剩 `_ClientBase` / helper mixin family、`LiproMqttClient` legacy naming 与 helper-level compatibility；`v1.1` 可进入 milestone audit / closeout。

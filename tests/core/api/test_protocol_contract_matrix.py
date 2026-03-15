@@ -149,6 +149,18 @@ def test_lipro_rest_facade_no_longer_exports_aggregate_endpoint_mixin() -> None:
     assert "_ClientEndpointsMixin" not in module_text
 
 
+def test_schedule_api_service_no_longer_shapes_rest_schedule_surface() -> None:
+    module_text = (
+        Path(__file__).resolve().parents[3]
+        / "custom_components"
+        / "lipro"
+        / "core"
+        / "api"
+        / "client.py"
+    ).read_text(encoding="utf-8")
+    assert "ScheduleApiService" not in module_text
+
+
 def test_protocol_root_owns_shared_rest_session_and_request_policy() -> None:
     client = LiproProtocolFacade("test-phone-id")
 

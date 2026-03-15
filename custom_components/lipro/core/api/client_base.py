@@ -12,7 +12,6 @@ if TYPE_CHECKING:
     import aiohttp
 
     from .auth_service import AuthApiService
-    from .schedule_service import ScheduleApiService
 
 
 @dataclass(slots=True)
@@ -57,7 +56,6 @@ class _ClientBase:
     """
 
     _auth_api: AuthApiService
-    _schedule_api: ScheduleApiService
     _session_state: ClientSessionState
 
     async def _smart_home_request(  # pragma: no cover

@@ -1,4 +1,4 @@
-"""Lipro REST protocol facade and transitional compat shell."""
+"""Lipro REST protocol child façade under the unified protocol root."""
 
 from __future__ import annotations
 
@@ -44,7 +44,6 @@ from .request_policy import (
     RequestPolicy,
     throttle_change_state as _throttle_change_state_policy,
 )
-from .schedule_service import ScheduleApiService
 from .types import DeviceListResponse, LoginResponse, OtaInfoRow, ScheduleTimingRow
 
 _LOGGER = logging.getLogger(__name__)
@@ -114,7 +113,6 @@ class LiproRestFacade(_ClientBase):
             self._request_policy,
         )
         self._auth_api = AuthApiService(self, LiproAuthError, _LOGGER)
-        self._schedule_api = ScheduleApiService(self)
         self._auth_endpoints = AuthEndpoints(self)
         self._device_endpoints = DeviceEndpoints(self)
         self._status_endpoints = StatusEndpoints(self)
@@ -821,68 +819,6 @@ class LiproRestFacade(_ClientBase):
             mesh_member_ids=mesh_member_ids,
         )
 
-    def _is_mesh_group_id(self, device_id: str) -> bool:
-        """Return whether the given identifier is a mesh-group id."""
-        return self._schedule_endpoints._is_mesh_group_id(device_id)  # noqa: SLF001
-
-    def _require_mesh_schedule_candidate_ids(
-        self,
-        *,
-        device_id: str,
-        mesh_gateway_id: str,
-        mesh_member_ids: list[str] | None,
-    ) -> list[str]:
-        """Resolve candidate ids for mesh-schedule operations."""
-        return self._schedule_endpoints._require_mesh_schedule_candidate_ids(  # noqa: SLF001
-            device_id=device_id,
-            mesh_gateway_id=mesh_gateway_id,
-            mesh_member_ids=mesh_member_ids,
-        )
-
-    async def _get_mesh_schedules_by_candidates(
-        self,
-        candidate_device_ids: list[str],
-    ) -> list[ScheduleTimingRow]:
-        """Return mesh schedules aggregated from candidate devices."""
-        return await self._schedule_endpoints._get_mesh_schedules_by_candidates(  # noqa: SLF001
-            candidate_device_ids
-        )
-
-    async def _request_schedule_timings(
-        self,
-        path: str,
-        body: dict[str, object],
-    ) -> list[ScheduleTimingRow]:
-        """Execute one schedule timing request through the explicit schedule endpoint."""
-        return await self._schedule_endpoints._request_schedule_timings(path, body)  # noqa: SLF001
-
-    async def _add_mesh_schedule_by_candidates(
-        self,
-        candidate_device_ids: list[str],
-        *,
-        days: list[int],
-        times: list[int],
-        events: list[int],
-    ) -> list[ScheduleTimingRow]:
-        """Add mesh schedules across candidate devices."""
-        return await self._schedule_endpoints._add_mesh_schedule_by_candidates(  # noqa: SLF001
-            candidate_device_ids,
-            days=days,
-            times=times,
-            events=events,
-        )
-
-    async def _delete_mesh_schedules_by_candidates(
-        self,
-        candidate_device_ids: list[str],
-        *,
-        schedule_ids: list[int],
-    ) -> list[ScheduleTimingRow]:
-        """Delete mesh schedules across candidate devices."""
-        return await self._schedule_endpoints._delete_mesh_schedules_by_candidates(  # noqa: SLF001
-            candidate_device_ids,
-            schedule_ids=schedule_ids,
-        )
 
 
 

@@ -2702,7 +2702,7 @@ class TestInitRuntimeBehavior:
         )
         coordinator = MagicMock()
         coordinator.get_device.return_value = device
-        coordinator.client = client
+        coordinator.protocol = client
         coordinator.async_get_device_schedules = client.get_device_schedules
         coordinator.async_add_device_schedule = client.add_device_schedule
         coordinator.async_delete_device_schedules = client.delete_device_schedules
@@ -2739,7 +2739,7 @@ class TestInitRuntimeBehavior:
         client.get_device_schedules = AsyncMock(return_value=[])
         coordinator = MagicMock()
         coordinator.get_device.return_value = device
-        coordinator.client = client
+        coordinator.protocol = client
         coordinator.async_get_device_schedules = client.get_device_schedules
         coordinator.async_add_device_schedule = client.add_device_schedule
         coordinator.async_delete_device_schedules = client.delete_device_schedules
@@ -2796,7 +2796,7 @@ class TestInitRuntimeBehavior:
         )
         coordinator = MagicMock()
         coordinator.get_device.return_value = device
-        coordinator.client = client
+        coordinator.protocol = client
         coordinator.async_get_device_schedules = client.get_device_schedules
         coordinator.async_add_device_schedule = client.add_device_schedule
         coordinator.async_delete_device_schedules = client.delete_device_schedules
@@ -2836,7 +2836,7 @@ class TestInitRuntimeBehavior:
         client.get_device_schedules = AsyncMock(return_value=[])
         coordinator = MagicMock()
         coordinator.get_device.return_value = device
-        coordinator.client = client
+        coordinator.protocol = client
         coordinator.async_get_device_schedules = client.get_device_schedules
         coordinator.async_add_device_schedule = client.add_device_schedule
         coordinator.async_delete_device_schedules = client.delete_device_schedules
@@ -2870,7 +2870,7 @@ class TestInitRuntimeBehavior:
         client.add_device_schedule = AsyncMock(return_value=[{"id": 1}])
         coordinator = MagicMock()
         coordinator.get_device.return_value = device
-        coordinator.client = client
+        coordinator.protocol = client
         coordinator.async_get_device_schedules = client.get_device_schedules
         coordinator.async_add_device_schedule = client.add_device_schedule
         coordinator.async_delete_device_schedules = client.delete_device_schedules
@@ -2914,7 +2914,7 @@ class TestInitRuntimeBehavior:
         client.add_device_schedule = AsyncMock(return_value=[{"id": 1}])
         coordinator = MagicMock()
         coordinator.get_device.return_value = device
-        coordinator.client = client
+        coordinator.protocol = client
         coordinator.async_get_device_schedules = client.get_device_schedules
         coordinator.async_add_device_schedule = client.add_device_schedule
         coordinator.async_delete_device_schedules = client.delete_device_schedules
@@ -2974,7 +2974,7 @@ class TestInitRuntimeBehavior:
         client.delete_device_schedules = AsyncMock(return_value=[{"id": 2}, {"id": 3}])
         coordinator = MagicMock()
         coordinator.get_device.return_value = device
-        coordinator.client = client
+        coordinator.protocol = client
         coordinator.async_get_device_schedules = client.get_device_schedules
         coordinator.async_add_device_schedule = client.add_device_schedule
         coordinator.async_delete_device_schedules = client.delete_device_schedules
@@ -3010,7 +3010,7 @@ class TestInitRuntimeBehavior:
         client.delete_device_schedules = AsyncMock(return_value=[])
         coordinator = MagicMock()
         coordinator.get_device.return_value = device
-        coordinator.client = client
+        coordinator.protocol = client
         coordinator.async_get_device_schedules = client.get_device_schedules
         coordinator.async_add_device_schedule = client.add_device_schedule
         coordinator.async_delete_device_schedules = client.delete_device_schedules
@@ -3048,7 +3048,7 @@ class TestInitRuntimeBehavior:
         client.delete_device_schedules = AsyncMock(return_value=[])
         coordinator = MagicMock()
         coordinator.get_device.return_value = device
-        coordinator.client = client
+        coordinator.protocol = client
         coordinator.async_get_device_schedules = client.get_device_schedules
         coordinator.async_add_device_schedule = client.add_device_schedule
         coordinator.async_delete_device_schedules = client.delete_device_schedules

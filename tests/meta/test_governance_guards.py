@@ -139,6 +139,10 @@ def test_architecture_policy_rule_inventory_is_stable() -> None:
         "ENF-GOV-AUTHORITY-POLICY-REF",
         "ENF-GOV-VERIFICATION-POLICY-REF",
         "ENF-GOV-CI-FAIL-FAST",
+        "ENF-GOV-RELEASE-CI-REUSE",
+        "ENF-IMP-API-LEGACY-SPINE-LOCALITY",
+        "ENF-IMP-MQTT-TRANSPORT-LOCALITY",
+        "ENF-IMP-ASSURANCE-NO-PRODUCTION-BACKFLOW",
     }
     assert set(load_targeted_bans(_ROOT)) == {
         "ENF-SURFACE-COORDINATOR-ENTRY",
@@ -419,6 +423,70 @@ def test_quality_scale_and_devcontainer_truth_are_in_sync() -> None:
     settings = devcontainer["customizations"]["vscode"]["settings"]
     assert settings["python.defaultInterpreterPath"].endswith("/.venv/bin/python")
 
+
+
+
+def test_phase_14_execution_truth_is_consistent() -> None:
+    phase_root = (
+        _ROOT
+        / ".planning"
+        / "phases"
+        / "14-legacy-stack-final-closure-api-spine-demolition-governance-truth-consolidation"
+    )
+    project_text = (_ROOT / ".planning" / "PROJECT.md").read_text(encoding="utf-8")
+    roadmap_text = (_ROOT / ".planning" / "ROADMAP.md").read_text(encoding="utf-8")
+    requirements_text = (_ROOT / ".planning" / "REQUIREMENTS.md").read_text(encoding="utf-8")
+    state_text = (_ROOT / ".planning" / "STATE.md").read_text(encoding="utf-8")
+    public_text = (_ROOT / ".planning" / "baseline" / "PUBLIC_SURFACES.md").read_text(encoding="utf-8")
+    architecture_policy_text = (_ROOT / ".planning" / "baseline" / "ARCHITECTURE_POLICY.md").read_text(encoding="utf-8")
+    verification_matrix_text = (_ROOT / ".planning" / "baseline" / "VERIFICATION_MATRIX.md").read_text(encoding="utf-8")
+    residual_text = (_ROOT / ".planning" / "reviews" / "RESIDUAL_LEDGER.md").read_text(encoding="utf-8")
+    kill_text = (_ROOT / ".planning" / "reviews" / "KILL_LIST.md").read_text(encoding="utf-8")
+    file_matrix_text = (_ROOT / ".planning" / "reviews" / "FILE_MATRIX.md").read_text(encoding="utf-8")
+    structure_text = (_ROOT / ".planning" / "codebase" / "STRUCTURE.md").read_text(encoding="utf-8")
+    research_text = (phase_root / "14-RESEARCH.md").read_text(encoding="utf-8")
+    prd_text = (phase_root / "14-PRD.md").read_text(encoding="utf-8")
+    validation_text = (phase_root / "14-VALIDATION.md").read_text(encoding="utf-8")
+    verification_text = (phase_root / "14-VERIFICATION.md").read_text(encoding="utf-8")
+
+    assert "### 9. Phase 14 旧 API Spine 终局收口与治理真源归一已完成" in project_text
+    assert (
+        "| 14 Legacy Stack Final Closure, API Spine Demolition & Governance Truth Consolidation | v1.1 | 4/4 | Complete | 2026-03-15 |"
+        in roadmap_text
+    )
+    assert "**Requirements**: RUN-04, HOT-02, CTRL-05, RUN-05, GOV-12" in roadmap_text
+    assert "| RUN-04 | Phase 14 | Complete |" in requirements_text
+    assert "| GOV-12 | Phase 14 | Complete |" in requirements_text
+    _assert_current_mode_tracks_phase_lifecycle(state_text)
+    assert "CoordinatorProtocolService" in prd_text
+    assert "4 plans / 3 waves" in research_text
+    assert "status: passed" in validation_text
+    assert "status: passed" in verification_text
+    assert "## Phase 14 Surface Closure Notes" in public_text
+    assert "## Phase 14 Exit Contract" in verification_matrix_text
+    assert "## Phase 14 Residual Delta" in residual_text
+    assert "## Phase 14 Status Update" in kill_text
+    assert "ENF-IMP-API-LEGACY-SPINE-LOCALITY" in architecture_policy_text
+    assert "ENF-GOV-RELEASE-CI-REUSE" in architecture_policy_text
+    assert "custom_components/lipro/control/developer_router_support.py" in file_matrix_text
+    assert "custom_components/lipro/core/api/status_fallback.py" in file_matrix_text
+    assert "custom_components/lipro/core/coordinator/services/protocol_service.py" in file_matrix_text
+    assert "client.py              # compat shell" not in structure_text
+    assert "LiproMqttClient compat shell" not in public_text
+
+    for artifact_name in (
+        "14-01-PLAN.md",
+        "14-02-PLAN.md",
+        "14-03-PLAN.md",
+        "14-04-PLAN.md",
+        "14-01-SUMMARY.md",
+        "14-02-SUMMARY.md",
+        "14-03-SUMMARY.md",
+        "14-04-SUMMARY.md",
+        "14-VALIDATION.md",
+        "14-VERIFICATION.md",
+    ):
+        assert (phase_root / artifact_name).exists()
 
 def test_phase_13_execution_truth_is_consistent() -> None:
     phase_root = (

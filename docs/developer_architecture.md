@@ -1,11 +1,11 @@
 # Lipro Home Assistant Integration - Developer Architecture
 
-> **Last Updated**: 2026-03-14  \
-> **Version**: 4.0 (Phase 13 completed truth aligned)
+> **Last Updated**: 2026-03-15  \
+> **Version**: 4.1 (Phase 14 executed truth aligned)
 >
 > ⚠️ 本文档仅描述"当前收敛后的架构与模块边界"，不硬编码评分/覆盖率/通过率等易失真指标。  \
 > 北极星终态裁决请见 `docs/NORTH_STAR_TARGET_ARCHITECTURE.md`。  \
-> 当前阶段、需求、状态与治理真源请以 `.planning/ROADMAP.md`、`.planning/REQUIREMENTS.md`、`.planning/STATE.md`、`.planning/reviews/FILE_MATRIX.md` 为准。  \
+> 当前阶段、需求、状态与治理真源请以 `.planning/ROADMAP.md`、`.planning/REQUIREMENTS.md`、`.planning/STATE.md`、`.planning/baseline/PUBLIC_SURFACES.md`、`.planning/baseline/ARCHITECTURE_POLICY.md`、`.planning/baseline/VERIFICATION_MATRIX.md`、`.planning/reviews/FILE_MATRIX.md`、`.planning/reviews/RESIDUAL_LEDGER.md`、`.planning/reviews/KILL_LIST.md` 为准。  \
 > 历史审计/执行计划已从仓库中移除；当前以 `docs/NORTH_STAR_TARGET_ARCHITECTURE.md`、`.planning/*` 与 `AGENTS.md` 为准。
 
 ## 快速导航
@@ -238,13 +238,16 @@ Coordinator
 
 ### API Client / Protocol Plane (`core/api/`, `core/mqtt/`)
 
-- `client.py`：`LiproRestFacade` 是唯一正式 REST child façade；`LiproClient` compat shell 已在 Phase 12 删除
+- `client.py`：`LiproRestFacade` 是唯一正式 REST child façade；其残余仅限 `core/api` 内部 typing/helper spine，而非 compat shell
 - `core/api/`：`LiproRestFacade` + transport / auth / endpoint collaborators；高漂移 REST 形态在 `core/protocol/boundary/rest_decoder.py` 与 `CanonicalProtocolContracts` 中先完成 canonicalization
+- `schedule_service.py`：仅保留 focused schedule helpers；`ScheduleApiService` 已退出正式故事线，schedule truth 固定为 `ScheduleEndpoints` + helper modules
+- `status_service.py` / `status_fallback.py`：`status_service.py` 保留 public orchestration，binary-split fallback kernel 下沉到 `status_fallback.py`
 - `core/mqtt/`：MQTT transport collaborators 已作为 `LiproMqttFacade` child façade 挂到统一协议根，生产路径通过 `LiproProtocolFacade` 协作
 - `core/auth/`：`LiproAuthManager` + `AuthSessionSnapshot`；HA adapters 通过 formal auth/session contract 协作，而不是解析 raw login dict
 - `transport_core.py` / `transport_retry.py` / `transport_signing.py`：请求核心/重试/签名
 - `endpoints/`：按域拆分端点（auth / status / devices / commands / ...）
-- `*_service.py`：协议级服务封装（auth / schedule / mqtt / status）
+- `core/coordinator/services/protocol_service.py`：`CoordinatorProtocolService` 承接 runtime protocol-facing ops，统一 `Coordinator` 内部 `protocol` 术语
+- `*_service.py`：协议级服务封装（auth / mqtt / status helper families）；schedule 已从 service class 回环收回 formal endpoint 协作者
 - `connection_manager.py`：指数退避重连
 - `subscription_manager.py`：订阅管理
 - `payload.py` / `topics.py`：消息解析、主题生成
@@ -258,6 +261,7 @@ Coordinator
 ### Phase 11 Control-Plane Closeout
 
 - `custom_components/lipro/control/service_router.py` 已成为唯一正式 service callback home；`services/registrations.py` 只负责把 HA service declaration 绑定到 formal router。
+- `custom_components/lipro/control/developer_router_support.py` 已承接 developer report collection、optional capability glue 与 sensor-history shared wrapper；`service_router.py` 保留 public handler 身份。
 - `custom_components/lipro/services/wiring.py` 已正式删除；control plane 不再保留 legacy wiring compat shell。
 - control-facing runtime lookup 继续经 `custom_components/lipro/control/runtime_access.py` 收口，避免 `entry.runtime_data` 访问重新散落。
 
@@ -375,7 +379,7 @@ Coordinator._async_update_data() (首次)
     → async_setup_mqtt()
         → mqtt_lifecycle.setup_mqtt_lifecycle()
             → 解密 MQTT 凭证
-            → 创建 `LiproMqttClient` concrete transport（formal root 仍是 `LiproProtocolFacade`）
+            → 创建 `LiproMqttClient` concrete transport（direct transport seam；formal root 仍是 `LiproProtocolFacade`）
             → 创建 MqttRuntime (with RuntimeContext)
             → 替换 _runtimes.mqtt
 ```
@@ -438,7 +442,7 @@ custom_components/lipro/
 │   │       ├── mqtt_service.py
 │   │       └── device_refresh_service.py
 │   ├── api/                       # REST / IoT protocol slice
-│   │   ├── client.py              # compat shell；formal root = LiproProtocolFacade
+│   │   ├── client.py              # `LiproRestFacade` + explicit endpoint collaborators
 │   │   ├── endpoints/             # 按域拆分端点
 │   │   └── transport_*.py         # 请求核心/重试/签名
 │   ├── mqtt/                      # MQTT protocol slice（child façade under LiproProtocolFacade）

@@ -1,0 +1,2 @@
+- `status_service.py` 仅保留 public orchestration，binary-split fallback kernel 已迁到 `status_fallback.py`。
+- `service_router.py` 保留 public handler home，developer/private glue 已迁到 `developer_router_support.py`。

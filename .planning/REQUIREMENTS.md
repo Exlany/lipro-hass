@@ -78,6 +78,15 @@
 - [x] **RUN-03**: `core/api/status_service.py` 的 binary-split fallback 与 batch query 主链必须拆成可审计 helper / context / accumulator 边界，而不是继续堆在单个巨型函数里。
 - [x] **GOV-11**: README / README_zh / CONTRIBUTING / SUPPORT / CODEOWNERS / quality-scale / devcontainer 与 meta guards 必须形成结构化、一致、可自动校验的开源治理入口。
 
+### Legacy Stack Final Closure, API Spine Demolition & Governance Truth Consolidation
+
+- [x] **RUN-04**: `Coordinator` 内部正式协议真源必须统一命名为 `protocol`，protocol-facing runtime ops 通过 `CoordinatorProtocolService` 收口，不再保留 `Coordinator.client` 合法故事线。
+- [x] **HOT-02**: `core/api` 的 schedule residual 必须完成 closeout：`ScheduleApiService` 与 `LiproRestFacade` 尾部 schedule passthrough 退出正式故事线，schedule truth 固定为 `ScheduleEndpoints` + focused helpers。
+- [x] **CTRL-05**: `control/service_router.py` 必须保留 public handler home 身份，但 developer report / optional capability / sensor-history 私有 glue 要下沉到 focused helper home。
+- [x] **RUN-05**: `core/api/status_service.py` 的 binary-split fallback kernel 必须迁入可审计 helper module，public orchestration 行为保持不变。
+- [x] **GOV-12**: subordinate docs、file/review ledgers、architecture policy 与 meta guards 必须同步到 Phase 14 真相，并显式锁定 `_ClientBase` / helper mixin family、`LiproMqttClient` residual ownership 与 assurance-only backflow ban。
+
+
 ## Cross-Phase Arbitration
 
 - `07.3` 锁定 telemetry contracts / redaction / cardinality / timestamp-pseudo-id compatibility
@@ -88,6 +97,7 @@
 - `10` 锁定 API drift isolation / core-boundary prep / host-neutral contracts；不得把跨平台 SDK 抽离提升为本里程碑正式 root
 - `12` 锁定 type contract convergence / compat narrowing / hotspot slimming / contributor-facing governance hygiene；不得重新打开已在 Phase 11 关闭的 residual truth
 - `13` 锁定显式设备域表面、runtime/status 热点 helper 边界与公开治理资产结构化守卫；后续 closeout 不得重新引入 device/state 动态委托
+- `14` 锁定 legacy stack final closure、API spine demolition、helper-home extraction 与 governance truth consolidation；后续 milestone audit 不得再把 `Coordinator.client`、`ScheduleApiService` 或 helper-home modules 回流成正式 surface
 
 ## Future Requirements
 
@@ -154,10 +164,15 @@
 | RUN-02 | Phase 13 | Complete |
 | RUN-03 | Phase 13 | Complete |
 | GOV-11 | Phase 13 | Complete |
+| RUN-04 | Phase 14 | Complete |
+| HOT-02 | Phase 14 | Complete |
+| CTRL-05 | Phase 14 | Complete |
+| RUN-05 | Phase 14 | Complete |
+| GOV-12 | Phase 14 | Complete |
 
 **Coverage:**
-- active milestone requirements: 42 total
-- mapped to phases: 42
+- active milestone requirements: 47 total
+- mapped to phases: 47
 - unmapped: 0 ✓
 
-*Last updated: 2026-03-14 after executing Phase 13 closeout work*
+*Last updated: 2026-03-15 after executing Phase 14 closeout work*

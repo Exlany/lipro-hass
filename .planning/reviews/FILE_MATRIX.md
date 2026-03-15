@@ -1,6 +1,6 @@
 # File Matrix
 
-**Python files total:** 445
+**Python files total:** 448
 **Status:** File-level governance authority
 **Rule:** workspace inventory excluding caches / virtual env / tooling artifacts
 
@@ -21,13 +21,14 @@
 | `custom_components/lipro/const/entity_config.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/const/properties.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/control/__init__.py` | Control | Phase 3 | 保留 | - |
+| `custom_components/lipro/control/developer_router_support.py` | Control | Phase 14 | 保留 | service_router private glue home |
 | `custom_components/lipro/control/diagnostics_surface.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/control/entry_lifecycle_controller.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/control/models.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/control/redaction.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/control/runtime_access.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/control/service_registry.py` | Control | Phase 3 | 保留 | - |
-| `custom_components/lipro/control/service_router.py` | Control | Phase 3 | 保留 | - |
+| `custom_components/lipro/control/service_router.py` | Control | Phase 3 / 14 | 保留 | public handler home; private glue extracted |
 | `custom_components/lipro/control/system_health_surface.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/control/telemetry_surface.py` | Control | Phase 7.3 | 保留 | - |
 | `custom_components/lipro/coordinator_entry.py` | Control | Phase 3 | 保留 | - |
@@ -44,7 +45,7 @@
 | `custom_components/lipro/core/anonymous_share/storage.py` | Protocol | Phase 2.6 | 保留 | - |
 | `custom_components/lipro/core/api/__init__.py` | Protocol | Phase 2.5 / 12 | 重构 | - |
 | `custom_components/lipro/core/api/auth_service.py` | Protocol | Phase 2 | 重构 | - |
-| `custom_components/lipro/core/api/client.py` | Protocol | Phase 2 / 7 / 12 | 重构 | internal typing spine only |
+| `custom_components/lipro/core/api/client.py` | Protocol | Phase 2 / 7 / 12 / 14 | 重构 | internal typing spine only |
 | `custom_components/lipro/core/api/client_auth_recovery.py` | Protocol | Phase 2 | 重构 | - |
 | `custom_components/lipro/core/api/client_base.py` | Protocol | Phase 2 | 重构 | - |
 | `custom_components/lipro/core/api/client_pacing.py` | Protocol | Phase 2 | 重构 | - |
@@ -69,8 +70,9 @@
 | `custom_components/lipro/core/api/response_safety.py` | Protocol | Phase 2 | 重构 | - |
 | `custom_components/lipro/core/api/schedule_codec.py` | Protocol | Phase 2 | 重构 | - |
 | `custom_components/lipro/core/api/schedule_endpoint.py` | Protocol | Phase 2 | 重构 | - |
-| `custom_components/lipro/core/api/schedule_service.py` | Protocol | Phase 2 | 重构 | - |
-| `custom_components/lipro/core/api/status_service.py` | Protocol | Phase 2 | 重构 | - |
+| `custom_components/lipro/core/api/schedule_service.py` | Protocol | Phase 2 / 14 | 重构 | helper-only schedule support |
+| `custom_components/lipro/core/api/status_fallback.py` | Protocol | Phase 14 | 保留 | status fallback kernel home |
+| `custom_components/lipro/core/api/status_service.py` | Protocol | Phase 2 / 13 / 14 | 重构 | public status orchestration home |
 | `custom_components/lipro/core/api/transport_core.py` | Protocol | Phase 2 | 重构 | - |
 | `custom_components/lipro/core/api/transport_retry.py` | Protocol | Phase 2 | 重构 | - |
 | `custom_components/lipro/core/api/transport_signing.py` | Protocol | Phase 2 | 重构 | - |
@@ -88,7 +90,7 @@
 | `custom_components/lipro/core/command/result.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/core/command/trace.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/core/coordinator/__init__.py` | Runtime | Phase 5 | 重构 | - |
-| `custom_components/lipro/core/coordinator/coordinator.py` | Runtime | Phase 5 | 重构 | - |
+| `custom_components/lipro/core/coordinator/coordinator.py` | Runtime | Phase 5 / 14 | 重构 | HA-facing runtime façade hotspot |
 | `custom_components/lipro/core/coordinator/entity_protocol.py` | Runtime | Phase 5 | 重构 | - |
 | `custom_components/lipro/core/coordinator/factory.py` | Runtime | Phase 5 | 重构 | - |
 | `custom_components/lipro/core/coordinator/mqtt/__init__.py` | Runtime | Phase 5 | 重构 | - |
@@ -137,6 +139,7 @@
 | `custom_components/lipro/core/coordinator/services/command_service.py` | Runtime | Phase 5 | 重构 | - |
 | `custom_components/lipro/core/coordinator/services/device_refresh_service.py` | Runtime | Phase 5 | 重构 | - |
 | `custom_components/lipro/core/coordinator/services/mqtt_service.py` | Runtime | Phase 5 | 重构 | - |
+| `custom_components/lipro/core/coordinator/services/protocol_service.py` | Runtime | Phase 14 | 保留 | protocol-facing runtime service surface |
 | `custom_components/lipro/core/coordinator/services/state_service.py` | Runtime | Phase 5 | 重构 | - |
 | `custom_components/lipro/core/coordinator/services/telemetry_service.py` | Runtime | Phase 5 | 重构 | - |
 | `custom_components/lipro/core/coordinator/types.py` | Runtime | Phase 5 | 重构 | - |
@@ -241,7 +244,7 @@
 | `custom_components/lipro/services/diagnostics/helpers.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/services/diagnostics/types.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/services/errors.py` | Control | Phase 3 | 保留 | - |
-| `custom_components/lipro/services/execution.py` | Control | Phase 5 / 7 | 保留 | formal auth-execution façade |
+| `custom_components/lipro/services/execution.py` | Control | Phase 5 / 7 | 迁移适配 | runtime-auth seam |
 | `custom_components/lipro/services/maintenance.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/services/registrations.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/services/registry.py` | Control | Phase 3 | 保留 | - |

@@ -127,31 +127,31 @@ class _CoordinatorDouble:
             side_effect=lambda serial: self._devices_store.get(serial)
         )
         self.get_device_lock = MagicMock(side_effect=self._get_device_lock)
-        self.client = MagicMock()
-        self.client.query_ota_info = AsyncMock(return_value=[])
-        self.client.query_command_result = AsyncMock(return_value={})
-        self.client.get_city = AsyncMock(return_value={})
-        self.client.query_user_cloud = AsyncMock(return_value={})
-        self.client.fetch_body_sensor_history = AsyncMock(return_value={})
-        self.client.fetch_door_sensor_history = AsyncMock(return_value={})
+        self.protocol = MagicMock()
+        self.protocol.query_ota_info = AsyncMock(return_value=[])
+        self.protocol.query_command_result = AsyncMock(return_value={})
+        self.protocol.get_city = AsyncMock(return_value={})
+        self.protocol.query_user_cloud = AsyncMock(return_value={})
+        self.protocol.fetch_body_sensor_history = AsyncMock(return_value={})
+        self.protocol.fetch_door_sensor_history = AsyncMock(return_value={})
 
         async def _async_query_ota_info(**kwargs: Any) -> Any:
-            return await self.client.query_ota_info(**kwargs)
+            return await self.protocol.query_ota_info(**kwargs)
 
         async def _async_query_command_result(**kwargs: Any) -> Any:
-            return await self.client.query_command_result(**kwargs)
+            return await self.protocol.query_command_result(**kwargs)
 
         async def _async_get_city() -> Any:
-            return await self.client.get_city()
+            return await self.protocol.get_city()
 
         async def _async_query_user_cloud() -> Any:
-            return await self.client.query_user_cloud()
+            return await self.protocol.query_user_cloud()
 
         async def _async_fetch_body_sensor_history(**kwargs: Any) -> Any:
-            return await self.client.fetch_body_sensor_history(**kwargs)
+            return await self.protocol.fetch_body_sensor_history(**kwargs)
 
         async def _async_fetch_door_sensor_history(**kwargs: Any) -> Any:
-            return await self.client.fetch_door_sensor_history(**kwargs)
+            return await self.protocol.fetch_door_sensor_history(**kwargs)
 
         self.async_query_ota_info = AsyncMock(side_effect=_async_query_ota_info)
         self.async_query_command_result = AsyncMock(

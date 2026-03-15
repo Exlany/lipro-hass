@@ -341,13 +341,13 @@ async def test_async_get_first_coordinator_capability_result_raises_homeassistan
     None
 ):
     coordinator = MagicMock()
-    coordinator.client.get_city = AsyncMock(side_effect=HomeAssistantError("stop"))
+    coordinator.protocol.get_city = AsyncMock(side_effect=HomeAssistantError("stop"))
 
     with pytest.raises(HomeAssistantError, match="stop"):
         await _async_get_first_coordinator_capability_result(
             iter([coordinator]),
             capability="get_city",
-            collector=lambda item: cast(Any, item).client.get_city(),
+            collector=lambda item: cast(Any, item).protocol.get_city(),
         )
 
 
@@ -356,9 +356,9 @@ async def test_async_get_first_coordinator_capability_result_keeps_last_api_erro
     None
 ):
     first = MagicMock()
-    first.client.get_city = AsyncMock(side_effect=RuntimeError("boom"))
+    first.protocol.get_city = AsyncMock(side_effect=RuntimeError("boom"))
     second = MagicMock()
-    second.client.get_city = AsyncMock(side_effect=LiproApiError("api down", code=503))
+    second.protocol.get_city = AsyncMock(side_effect=LiproApiError("api down", code=503))
 
     (
         has_result,
@@ -367,7 +367,7 @@ async def test_async_get_first_coordinator_capability_result_keeps_last_api_erro
     ) = await _async_get_first_coordinator_capability_result(
         iter([first, second]),
         capability="get_city",
-        collector=lambda item: cast(Any, item).client.get_city(),
+        collector=lambda item: cast(Any, item).protocol.get_city(),
     )
 
     assert has_result is False

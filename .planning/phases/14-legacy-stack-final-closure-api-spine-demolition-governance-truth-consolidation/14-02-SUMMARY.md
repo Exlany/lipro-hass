@@ -1,0 +1,2 @@
+- `ScheduleApiService` 已退出生产主链，schedule truth 固定为 `ScheduleEndpoints` + focused helpers。
+- `LiproRestFacade` 尾部 schedule passthrough 与 `_EndpointAdapter.__getattr__` 隐式协作者表面已清理。

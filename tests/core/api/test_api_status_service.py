@@ -6,13 +6,15 @@ from unittest.mock import ANY, AsyncMock, MagicMock
 
 import pytest
 
-from custom_components.lipro.core.api import status_service as status_service_module
-from custom_components.lipro.core.api.status_service import (
+from custom_components.lipro.core.api import status_fallback as status_fallback_module
+from custom_components.lipro.core.api.status_fallback import (
     _query_items_by_binary_split,
     _resolve_device_status_batch_size,
+    query_with_fallback,
+)
+from custom_components.lipro.core.api.status_service import (
     query_connect_status,
     query_device_status,
-    query_with_fallback,
 )
 
 
@@ -447,7 +449,7 @@ async def test_query_with_fallback_large_subset_non_retriable_error_raises() -> 
 async def test_query_with_fallback_can_recurse_into_empty_subset_branch(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    monkeypatch.setattr(status_service_module, "_SMALL_SUBSET_BATCH_QUERY_THRESHOLD", 0)
+    monkeypatch.setattr(status_fallback_module, "_SMALL_SUBSET_BATCH_QUERY_THRESHOLD", 0)
 
     attempts: dict[tuple[str, ...], int] = {}
 

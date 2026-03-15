@@ -10,6 +10,9 @@ from ....const.api import (
     PATH_BLE_SCHEDULE_ADD,
     PATH_BLE_SCHEDULE_DELETE,
     PATH_BLE_SCHEDULE_GET,
+    PATH_SCHEDULE_ADD,
+    PATH_SCHEDULE_DELETE,
+    PATH_SCHEDULE_GET,
 )
 from ...utils.identifiers import normalize_iot_device_id as _normalize_iot_device_id
 from .. import response_safety as _response_safety
@@ -23,6 +26,9 @@ from ..schedule_endpoint import (
     build_mesh_schedule_add_body,
     build_mesh_schedule_delete_body,
     build_mesh_schedule_get_body,
+    build_schedule_add_body,
+    build_schedule_delete_body,
+    build_schedule_get_body,
     encode_mesh_schedule_json,
     is_mesh_group_id,
     resolve_mesh_schedule_candidate_ids,
@@ -46,7 +52,7 @@ _LOGGER = logging.getLogger("custom_components.lipro.core.api.client")
 
 
 class _ClientScheduleEndpointsMixin(_ClientEndpointPayloadsMixin):
-    """Endpoints/helpers used by :class:`ScheduleApiService`."""
+    """Legacy schedule helper mixin retained for focused helper coverage."""
 
     @staticmethod
     def _is_mesh_group_id(device_id: str) -> bool:
@@ -320,11 +326,18 @@ class _ClientScheduleEndpointsMixin(_ClientEndpointPayloadsMixin):
         mesh_member_ids: list[str] | None = None,
     ) -> ScheduleRows:
         """Get timing schedules for a device."""
-        return await self._schedule_api.get_device_schedules(
-            device_id,
-            device_type,
-            mesh_gateway_id=mesh_gateway_id,
-            mesh_member_ids=mesh_member_ids,
+        if self._is_mesh_group_id(device_id):
+            candidate_ids = self._require_mesh_schedule_candidate_ids(
+                device_id=device_id,
+                mesh_gateway_id=mesh_gateway_id,
+                mesh_member_ids=mesh_member_ids,
+            )
+            return await self._get_mesh_schedules_by_candidates(candidate_ids)
+
+        device_type_hex = self._to_device_type_hex(device_type)
+        return await self._request_schedule_timings(
+            PATH_SCHEDULE_GET,
+            build_schedule_get_body(device_id, device_type_hex=device_type_hex),
         )
 
     async def add_device_schedule(
@@ -343,15 +356,30 @@ class _ClientScheduleEndpointsMixin(_ClientEndpointPayloadsMixin):
         if len(times) != len(events):
             msg = "times and events must have same length"
             raise ValueError(msg)
-        return await self._schedule_api.add_device_schedule(
-            device_id,
-            device_type,
-            days,
-            times,
-            events,
-            group_id,
-            mesh_gateway_id=mesh_gateway_id,
-            mesh_member_ids=mesh_member_ids,
+        if self._is_mesh_group_id(device_id):
+            candidate_ids = self._require_mesh_schedule_candidate_ids(
+                device_id=device_id,
+                mesh_gateway_id=mesh_gateway_id,
+                mesh_member_ids=mesh_member_ids,
+            )
+            return await self._add_mesh_schedule_by_candidates(
+                candidate_ids,
+                days=days,
+                times=times,
+                events=events,
+            )
+
+        device_type_hex = self._to_device_type_hex(device_type)
+        return await self._request_schedule_timings(
+            PATH_SCHEDULE_ADD,
+            build_schedule_add_body(
+                device_id,
+                device_type_hex=device_type_hex,
+                days=days,
+                times=times,
+                events=events,
+                group_id=group_id,
+            ),
         )
 
     async def delete_device_schedules(
@@ -365,13 +393,26 @@ class _ClientScheduleEndpointsMixin(_ClientEndpointPayloadsMixin):
         mesh_member_ids: list[str] | None = None,
     ) -> ScheduleRows:
         """Delete timing schedules for a device."""
-        return await self._schedule_api.delete_device_schedules(
-            device_id,
-            device_type,
-            schedule_ids,
-            group_id,
-            mesh_gateway_id=mesh_gateway_id,
-            mesh_member_ids=mesh_member_ids,
+        if self._is_mesh_group_id(device_id):
+            candidate_ids = self._require_mesh_schedule_candidate_ids(
+                device_id=device_id,
+                mesh_gateway_id=mesh_gateway_id,
+                mesh_member_ids=mesh_member_ids,
+            )
+            return await self._delete_mesh_schedules_by_candidates(
+                candidate_ids,
+                schedule_ids=schedule_ids,
+            )
+
+        device_type_hex = self._to_device_type_hex(device_type)
+        return await self._request_schedule_timings(
+            PATH_SCHEDULE_DELETE,
+            build_schedule_delete_body(
+                device_id,
+                device_type_hex=device_type_hex,
+                schedule_ids=schedule_ids,
+                group_id=group_id,
+            ),
         )
 
 

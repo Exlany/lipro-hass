@@ -215,8 +215,8 @@ async def test_update_entity_parses_latest_and_certified(mock_coordinator, make_
     )
     mock_coordinator.devices = {device.serial: device}
     mock_coordinator.get_device = MagicMock(return_value=device)
-    mock_coordinator.client = MagicMock()
-    mock_coordinator.client.query_ota_info = AsyncMock(
+    mock_coordinator.protocol = MagicMock()
+    mock_coordinator.protocol.query_ota_info = AsyncMock(
         return_value=[
             {
                 "deviceType": "ff000006",
@@ -242,7 +242,7 @@ async def test_update_entity_parses_latest_and_certified(mock_coordinator, make_
     assert entity.installed_version == "1.0.0"
     assert entity.latest_version == "1.1.0"
     assert entity.extra_state_attributes["certified"] is True
-    mock_coordinator.client.query_ota_info.assert_awaited_once_with(
+    mock_coordinator.protocol.query_ota_info.assert_awaited_once_with(
         device_id=device.serial,
         device_type=device.device_type_hex,
         iot_name=device.iot_name,
@@ -276,8 +276,8 @@ async def test_update_entity_reuses_shared_ota_rows_cache_for_same_model(
     mock_coordinator.get_device = MagicMock(
         side_effect=lambda serial: mock_coordinator.devices.get(serial)
     )
-    mock_coordinator.client = MagicMock()
-    mock_coordinator.client.query_ota_info = AsyncMock(
+    mock_coordinator.protocol = MagicMock()
+    mock_coordinator.protocol.query_ota_info = AsyncMock(
         return_value=[
             {
                 "deviceType": dev_a.device_type_hex,
@@ -299,7 +299,7 @@ async def test_update_entity_reuses_shared_ota_rows_cache_for_same_model(
 
     assert ent_a.latest_version == "1.1.0"
     assert ent_b.latest_version == "1.1.0"
-    assert mock_coordinator.client.query_ota_info.await_count == 1
+    assert mock_coordinator.protocol.query_ota_info.await_count == 1
 
 
 @pytest.mark.asyncio
@@ -328,8 +328,8 @@ async def test_update_entity_cache_row_for_other_device_falls_back_to_direct_que
     mock_coordinator.get_device = MagicMock(
         side_effect=lambda serial: mock_coordinator.devices.get(serial)
     )
-    mock_coordinator.client = MagicMock()
-    mock_coordinator.client.query_ota_info = AsyncMock(
+    mock_coordinator.protocol = MagicMock()
+    mock_coordinator.protocol.query_ota_info = AsyncMock(
         side_effect=[
             [
                 {
@@ -360,7 +360,7 @@ async def test_update_entity_cache_row_for_other_device_falls_back_to_direct_que
 
     assert ent_a.latest_version == "1.1.0"
     assert ent_b.latest_version == "1.2.0"
-    assert mock_coordinator.client.query_ota_info.await_count == 2
+    assert mock_coordinator.protocol.query_ota_info.await_count == 2
 
 
 @pytest.mark.asyncio
@@ -389,8 +389,8 @@ async def test_update_entity_shared_ota_rows_cache_enforces_hard_size_cap(
     )
     mock_coordinator.devices = {device.serial: device}
     mock_coordinator.get_device = MagicMock(return_value=device)
-    mock_coordinator.client = MagicMock()
-    mock_coordinator.client.query_ota_info = AsyncMock(
+    mock_coordinator.protocol = MagicMock()
+    mock_coordinator.protocol.query_ota_info = AsyncMock(
         return_value=[
             {
                 "deviceType": device.device_type_hex,
@@ -425,8 +425,8 @@ async def test_update_entity_installs_certified_firmware(mock_coordinator, make_
     )
     mock_coordinator.devices = {device.serial: device}
     mock_coordinator.get_device = MagicMock(return_value=device)
-    mock_coordinator.client = MagicMock()
-    mock_coordinator.client.query_ota_info = AsyncMock(
+    mock_coordinator.protocol = MagicMock()
+    mock_coordinator.protocol.query_ota_info = AsyncMock(
         return_value=[
             {
                 "deviceType": device.device_type_hex,
@@ -472,8 +472,8 @@ async def test_update_entity_requires_confirmation_for_unverified(
     )
     mock_coordinator.devices = {device.serial: device}
     mock_coordinator.get_device = MagicMock(return_value=device)
-    mock_coordinator.client = MagicMock()
-    mock_coordinator.client.query_ota_info = AsyncMock(
+    mock_coordinator.protocol = MagicMock()
+    mock_coordinator.protocol.query_ota_info = AsyncMock(
         return_value=[
             {
                 "deviceType": device.device_type_hex,
@@ -520,8 +520,8 @@ async def test_update_entity_raises_when_install_command_missing(
     )
     mock_coordinator.devices = {device.serial: device}
     mock_coordinator.get_device = MagicMock(return_value=device)
-    mock_coordinator.client = MagicMock()
-    mock_coordinator.client.query_ota_info = AsyncMock(
+    mock_coordinator.protocol = MagicMock()
+    mock_coordinator.protocol.query_ota_info = AsyncMock(
         return_value=[
             {
                 "deviceType": device.device_type_hex,
@@ -557,8 +557,8 @@ async def test_update_entity_uses_manifest_certification_fallback(
     )
     mock_coordinator.devices = {device.serial: device}
     mock_coordinator.get_device = MagicMock(return_value=device)
-    mock_coordinator.client = MagicMock()
-    mock_coordinator.client.query_ota_info = AsyncMock(
+    mock_coordinator.protocol = MagicMock()
+    mock_coordinator.protocol.query_ota_info = AsyncMock(
         return_value=[
             {
                 "deviceType": device.device_type_hex,
@@ -596,8 +596,8 @@ async def test_update_entity_remote_manifest_does_not_certify_on_its_own(
     )
     mock_coordinator.devices = {device.serial: device}
     mock_coordinator.get_device = MagicMock(return_value=device)
-    mock_coordinator.client = MagicMock()
-    mock_coordinator.client.query_ota_info = AsyncMock(
+    mock_coordinator.protocol = MagicMock()
+    mock_coordinator.protocol.query_ota_info = AsyncMock(
         return_value=[
             {
                 "deviceType": device.device_type_hex,
@@ -647,8 +647,8 @@ async def test_update_entity_accepts_newer_locally_certified_version_than_instal
     )
     mock_coordinator.devices = {device.serial: device}
     mock_coordinator.get_device = MagicMock(return_value=device)
-    mock_coordinator.client = MagicMock()
-    mock_coordinator.client.query_ota_info = AsyncMock(
+    mock_coordinator.protocol = MagicMock()
+    mock_coordinator.protocol.query_ota_info = AsyncMock(
         return_value=[
             {
                 "deviceType": device.device_type_hex,
@@ -698,8 +698,8 @@ async def test_update_entity_type_manifest_blocks_global_fallback(
     )
     mock_coordinator.devices = {device.serial: device}
     mock_coordinator.get_device = MagicMock(return_value=device)
-    mock_coordinator.client = MagicMock()
-    mock_coordinator.client.query_ota_info = AsyncMock(
+    mock_coordinator.protocol = MagicMock()
+    mock_coordinator.protocol.query_ota_info = AsyncMock(
         return_value=[
             {
                 "deviceType": device.device_type_hex,
@@ -754,8 +754,8 @@ async def test_update_entity_uses_ble_name_for_type_certification(
     )
     mock_coordinator.devices = {device.serial: device}
     mock_coordinator.get_device = MagicMock(return_value=device)
-    mock_coordinator.client = MagicMock()
-    mock_coordinator.client.query_ota_info = AsyncMock(
+    mock_coordinator.protocol = MagicMock()
+    mock_coordinator.protocol.query_ota_info = AsyncMock(
         return_value=[
             {
                 "bleName": "T21JC",
@@ -806,8 +806,8 @@ async def test_update_entity_prefers_controller_row_matching_device_iot_name(
     )
     mock_coordinator.devices = {device.serial: device}
     mock_coordinator.get_device = MagicMock(return_value=device)
-    mock_coordinator.client = MagicMock()
-    mock_coordinator.client.query_ota_info = AsyncMock(
+    mock_coordinator.protocol = MagicMock()
+    mock_coordinator.protocol.query_ota_info = AsyncMock(
         return_value=[
             {
                 "bleName": "T21JC",
@@ -855,8 +855,8 @@ async def test_update_entity_uses_iot_name_for_type_certification(
     )
     mock_coordinator.devices = {device.serial: device}
     mock_coordinator.get_device = MagicMock(return_value=device)
-    mock_coordinator.client = MagicMock()
-    mock_coordinator.client.query_ota_info = AsyncMock(
+    mock_coordinator.protocol = MagicMock()
+    mock_coordinator.protocol.query_ota_info = AsyncMock(
         return_value=[
             {
                 "deviceType": "ff000001",
@@ -947,8 +947,8 @@ async def test_update_entity_version_compare_error_is_conservative(
     )
     mock_coordinator.devices = {device.serial: device}
     mock_coordinator.get_device = MagicMock(return_value=device)
-    mock_coordinator.client = MagicMock()
-    mock_coordinator.client.query_ota_info = AsyncMock(
+    mock_coordinator.protocol = MagicMock()
+    mock_coordinator.protocol.query_ota_info = AsyncMock(
         return_value=[
             {
                 "deviceType": device.device_type_hex,

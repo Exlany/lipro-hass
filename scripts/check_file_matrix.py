@@ -70,7 +70,7 @@ OVERRIDES: dict[str, FileGovernanceRow] = {
     "custom_components/lipro/core/api/client.py": FileGovernanceRow(
         path="custom_components/lipro/core/api/client.py",
         area="Protocol",
-        owner_phase="Phase 2 / 7 / 12",
+        owner_phase="Phase 2 / 7 / 12 / 14",
         fate="重构",
         residual="internal typing spine only",
     ),
@@ -144,6 +144,56 @@ OVERRIDES: dict[str, FileGovernanceRow] = {
         fate="保留",
         residual="-",
     ),
+
+"custom_components/lipro/control/developer_router_support.py": FileGovernanceRow(
+    path="custom_components/lipro/control/developer_router_support.py",
+    area="Control",
+    owner_phase="Phase 14",
+    fate="保留",
+    residual="service_router private glue home",
+),
+"custom_components/lipro/control/service_router.py": FileGovernanceRow(
+    path="custom_components/lipro/control/service_router.py",
+    area="Control",
+    owner_phase="Phase 3 / 14",
+    fate="保留",
+    residual="public handler home; private glue extracted",
+),
+"custom_components/lipro/core/api/schedule_service.py": FileGovernanceRow(
+    path="custom_components/lipro/core/api/schedule_service.py",
+    area="Protocol",
+    owner_phase="Phase 2 / 14",
+    fate="重构",
+    residual="helper-only schedule support",
+),
+"custom_components/lipro/core/api/status_fallback.py": FileGovernanceRow(
+    path="custom_components/lipro/core/api/status_fallback.py",
+    area="Protocol",
+    owner_phase="Phase 14",
+    fate="保留",
+    residual="status fallback kernel home",
+),
+"custom_components/lipro/core/api/status_service.py": FileGovernanceRow(
+    path="custom_components/lipro/core/api/status_service.py",
+    area="Protocol",
+    owner_phase="Phase 2 / 13 / 14",
+    fate="重构",
+    residual="public status orchestration home",
+),
+"custom_components/lipro/core/coordinator/coordinator.py": FileGovernanceRow(
+    path="custom_components/lipro/core/coordinator/coordinator.py",
+    area="Runtime",
+    owner_phase="Phase 5 / 14",
+    fate="重构",
+    residual="HA-facing runtime façade hotspot",
+),
+"custom_components/lipro/core/coordinator/services/protocol_service.py": FileGovernanceRow(
+    path="custom_components/lipro/core/coordinator/services/protocol_service.py",
+    area="Runtime",
+    owner_phase="Phase 14",
+    fate="保留",
+    residual="protocol-facing runtime service surface",
+),
 }
 
 

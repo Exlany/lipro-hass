@@ -105,8 +105,8 @@ async def test_async_update_success_clears_last_error(
         serial="03ab5ccd7c333333",
         properties={"version": "1.0.0"},
     )
-    mock_coordinator.client = MagicMock()
-    mock_coordinator.client.query_ota_info = AsyncMock(
+    mock_coordinator.protocol = MagicMock()
+    mock_coordinator.protocol.query_ota_info = AsyncMock(
         return_value=[
             {
                 "deviceType": device.device_type_hex,
