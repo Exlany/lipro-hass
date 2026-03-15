@@ -203,21 +203,21 @@
 | QLT-01 | Phase 15 | Complete |
 | TYP-03 | Phase 15 | Complete |
 | RES-01 | Phase 15 | Complete |
-| GOV-14 | Phase 16 | Planned |
-| QLT-02 | Phase 16 | Planned |
-| HOT-04 | Phase 16 | Planned |
-| TYP-04 | Phase 16 | Planned |
-| ERR-01 | Phase 16 | Planned |
-| RES-02 | Phase 16 | Planned |
-| CTRL-06 | Phase 16 | Planned |
-| DOM-03 | Phase 16 | Planned |
-| OTA-01 | Phase 16 | Planned |
-| TST-01 | Phase 16 | Planned |
-| DOC-02 | Phase 16 | Planned |
+| GOV-14 | Phase 16 | Complete |
+| QLT-02 | Phase 16 | Complete |
+| HOT-04 | Phase 16 | Complete |
+| TYP-04 | Phase 16 | Complete |
+| ERR-01 | Phase 16 | Complete |
+| RES-02 | Phase 16 | Complete |
+| CTRL-06 | Phase 16 | Complete |
+| DOM-03 | Phase 16 | Complete |
+| OTA-01 | Phase 16 | Complete |
+| TST-01 | Phase 16 | Complete |
+| DOC-02 | Phase 16 | Complete |
 
 **Coverage:**
 - active milestone requirements: 65 total
 - mapped to phases: 65
 - unmapped: 0 ✓
 
-*Last updated: 2026-03-15 after planning Phase 16 scope*
+*Last updated: 2026-03-15 after Phase 16 execution closeout*

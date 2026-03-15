@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import time
+from typing import cast
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import aiohttp
@@ -570,17 +571,19 @@ class TestBuildReport:
         device = _make_mock_device(iot_name="lipro_led", physical_model="light")
         mgr.record_device(device)
         report = mgr.build_report()
+        devices = cast(list[dict[str, object]], report["devices"])
         assert report["device_count"] == 1
-        assert len(report["devices"]) == 1
-        assert report["devices"][0]["iot_name"] == "lipro_led"
+        assert len(devices) == 1
+        assert devices[0]["iot_name"] == "lipro_led"
 
     def test_report_contains_recorded_errors(self):
         mgr = _make_manager()
         mgr.record_api_error(endpoint="/api/test", code=404, message="Not Found")
         report = mgr.build_report()
+        errors = cast(list[dict[str, object]], report["errors"])
         assert report["error_count"] == 1
-        assert len(report["errors"]) == 1
-        assert report["errors"][0]["type"] == "api_error"
+        assert len(errors) == 1
+        assert errors[0]["type"] == "api_error"
 
     def test_report_installation_id(self):
         mgr = _make_manager()
@@ -1061,7 +1064,8 @@ class TestObservabilityScope:
         assert manager.pending_count == (0, 1)
         report = manager.get_pending_report()
         assert report is not None
-        assert report["errors"][0]["endpoint"] == "/api/default"
+        errors = cast(list[dict[str, object]], report["errors"])
+        assert errors[0]["endpoint"] == "/api/default"
 
     def test_observability_entry_scope_targets_matching_manager(self, monkeypatch):
         monkeypatch.setattr(manager_module, "_share_manager", None)

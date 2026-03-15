@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import re
-from typing import Any
 
 import voluptuous as vol
 
@@ -13,7 +12,7 @@ _MIN_PASSWORD_LEN: int = 6
 _MAX_PHONE_LEN: int = 30
 
 
-def normalize_phone(phone: Any) -> str:
+def normalize_phone(phone: object) -> str:
     """Normalize and validate user-provided phone value.
 
     Validates:
@@ -77,7 +76,7 @@ def mask_phone_for_title(phone: str) -> str:
     return f"{prefix}{digits[:3]}****{digits[-4:]}"
 
 
-def validate_password(password: Any) -> str:
+def validate_password(password: object) -> str:
     """Validate user-provided password value.
 
     Validates:

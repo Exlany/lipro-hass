@@ -2,11 +2,15 @@
 
 from __future__ import annotations
 
-from typing import Any, TypedDict
+from typing import TypedDict
 
 type JsonScalar = str | int | float | bool | None
 type JsonValue = JsonScalar | list[JsonValue] | dict[str, JsonValue]
 type JsonObject = dict[str, JsonValue]
+
+type ApiResponseData = JsonValue | list[JsonObject] | JsonObject
+type DevicePropertyMap = dict[str, JsonValue]
+type DeviceStatusItem = dict[str, JsonValue]
 
 
 class ApiResponse(TypedDict, total=False):
@@ -14,7 +18,7 @@ class ApiResponse(TypedDict, total=False):
 
     code: int
     msg: str
-    data: Any
+    data: ApiResponseData
 
 
 class LoginResponse(TypedDict):
@@ -36,7 +40,7 @@ class DeviceListItem(TypedDict, total=False):
     name: str
     deviceType: int
     online: bool
-    properties: dict[str, Any]
+    properties: DevicePropertyMap
 
 
 class DeviceListResponse(TypedDict):
@@ -44,10 +48,6 @@ class DeviceListResponse(TypedDict):
 
     devices: list[DeviceListItem]
     total: int
-
-
-type DeviceStatusItem = dict[str, Any]
-"""Device status item structure."""
 
 
 class MqttConfigResponse(TypedDict, total=False):
@@ -140,15 +140,17 @@ class DiagnosticsApiResponse(TypedDict, total=False):
     code: str | int
     message: str
     success: bool
-    data: list[dict[str, JsonValue]] | dict[str, JsonValue]
+    data: list[JsonObject] | JsonObject
 
 
 __all__ = [
     "ApiResponse",
+    "ApiResponseData",
     "CommandResultApiResponse",
     "DeviceApiResponse",
     "DeviceListItem",
     "DeviceListResponse",
+    "DevicePropertyMap",
     "DevicePropertyRow",
     "DeviceStatusItem",
     "DiagnosticsApiResponse",

@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: protocol-fidelity-operability
 status: active
-last_updated: "2026-03-15T11:47:33Z"
+last_updated: "2026-03-15T15:08:58Z"
 progress:
   total_phases: 14
-  completed_phases: 13
+  completed_phases: 14
   total_plans: 54
-  completed_plans: 48
+  completed_plans: 54
 ---
 
 # Project State
@@ -19,7 +19,7 @@ See: `.planning/PROJECT.md`
 
 **Current milestone:** `v1.1 Protocol Fidelity & Operability`
 **Core value:** 在既有北极星单一主链基础上，把 fidelity / enforcement / telemetry / replay / AI-debug evidence 做成下一层正式能力，并继续把类型契约、残留收口、热点拆薄、测试分层与 contributor-facing governance 做成可验证的正式能力。
-**Current mode:** `Phase 16 executing`；当前已完成 `Phase 7.1-15` 执行，`Phase 16` 已进入执行期：Wave 1（`16-01` / `16-02`）已完成并通过治理/工具链验证，Wave 2 热点收口已落地关键代码与回归验证，`16-05` / `16-06` 收口审计仍待继续。
+**Current mode:** `Phase 16 complete`；当前已完成 `Phase 7.1-16` 执行，`Phase 16` 的三条 wave 已全部收口，`v1.1` 进入 milestone audit / closeout 准备态。
 
 ## Current Position
 
@@ -38,7 +38,7 @@ See: `.planning/PROJECT.md`
 - `Phase 13` 已完成：explicit domain surface、runtime/status hotspot boundary decomposition 与 governance guard hardening 已全部落地并通过治理回写
 - `Phase 14` 已完成：`CoordinatorProtocolService`、schedule residual closeout、`status_fallback.py` / `developer_router_support.py` helper-home extraction 与 governance truth consolidation 已全部落地并通过治理回写
 - `Phase 15` 已完成：developer feedback upload contract、governance/source-path truth、README/support/version truth、support hotspot typing narrowing 与 tooling/residual arbitration 已全部落地并通过治理回写
-- `Phase 16` 已规划：post-audit truth alignment、toolchain/DX truth、control/service contract、protocol/runtime hotspot decomposition、domain/entity/OTA rationalization 与 test-layer/docs follow-through 已拆为 `6 plans / 3 waves`
+- `Phase 16` 已完成：post-audit truth alignment、toolchain/DX truth、control/service contract、protocol/runtime hotspot decomposition、domain/entity/OTA rationalization 与 test-layer/docs follow-through `6 plans / 3 waves` 已全部落地
 
 ## Active Milestone Scope
 
@@ -95,7 +95,7 @@ See: `.planning/PROJECT.md`
 - Phase 13 added and completed: Explicit Domain Surface, Governance Guard Hardening & Hotspot Boundary Decomposition (3 plans / 2 waves)
 - Phase 14 added and completed: Legacy Stack Final Closure, API Spine Demolition & Governance Truth Consolidation (4 plans / 3 waves)
 - Phase 15 completed: Support feedback contract hardening, governance truth repair, and maintainability follow-through (5 plans / 3 waves)
-- Phase 16 executing: Post-audit truth alignment, hotspot decomposition, and residual endgame (Wave 1 complete; Wave 2 code hardening validated locally; Wave 3 closeout pending)
+- Phase 16 completed: Post-audit truth alignment, hotspot decomposition, and residual endgame (all 6 plans complete; second-pass audit recorded)
 
 ## Governance Truth Sources
 
@@ -112,9 +112,9 @@ See: `.planning/PROJECT.md`
 
 ## Recommended Next Command
 
-1. `$gsd-execute-phase 16` —— 开始执行 Phase 16 的 6 个原子计划
-2. `batcat .planning/phases/16-post-audit-truth-alignment-hotspot-decomposition-and-residual-endgame/16-PRD.md --style=plain --paging=never` —— 查看 Phase 16 的总目标与约束
-3. `batcat .planning/phases/16-post-audit-truth-alignment-hotspot-decomposition-and-residual-endgame/16-VALIDATION.md --style=plain --paging=never` —— 查看 Wave / Plan 验证契约
+1. `$gsd-audit-milestone` —— 对 `v1.1` 做里程碑审计与 closeout 复核
+2. `batcat .planning/phases/16-post-audit-truth-alignment-hotspot-decomposition-and-residual-endgame/16-06-SUMMARY.md --style=plain --paging=never` —— 查看 Phase 16 文档 / closeout 执行摘要
+3. `batcat .planning/phases/16-post-audit-truth-alignment-hotspot-decomposition-and-residual-endgame/16-VALIDATION.md --style=plain --paging=never` —— 查看 Phase 16 最终验证证据
 
 ## Session Continuity
 

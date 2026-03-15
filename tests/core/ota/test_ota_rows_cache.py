@@ -45,7 +45,7 @@ def test_prune_ota_rows_cache_removes_stale_entries() -> None:
 async def test_async_get_rows_with_shared_cache_hits_fresh_cache() -> None:
     now = datetime(2025, 1, 1, 0, 0, 0, tzinfo=UTC)
     cache_key = (object(), "model_a", "type_a", 1)
-    cached_rows = [{"latestVersion": "1.0.1"}]
+    cached_rows: rows_cache.OtaRows = [{"latestVersion": "1.0.1"}]
     rows_cache._OTA_ROWS_CACHE[cache_key] = rows_cache.OtaRowsCacheEntry(
         time=now,
         rows=cached_rows,
@@ -68,10 +68,10 @@ async def test_async_get_rows_with_shared_cache_deduplicates_inflight_fetches() 
     now = datetime(2025, 1, 1, 0, 0, 0, tzinfo=UTC)
     cache_key = (object(), "model_a", "type_a", 1)
     release_fetch = asyncio.Event()
-    rows = [{"latestVersion": "1.0.2"}]
+    rows: rows_cache.OtaRows = [{"latestVersion": "1.0.2"}]
     fetch_calls = 0
 
-    async def fetcher() -> list[dict[str, str]]:
+    async def fetcher() -> rows_cache.OtaRows:
         nonlocal fetch_calls
         fetch_calls += 1
         await release_fetch.wait()
@@ -119,7 +119,7 @@ async def test_async_get_rows_with_shared_cache_clears_failed_inflight_state() -
     assert cache_key not in rows_cache._OTA_ROWS_INFLIGHT
     assert cache_key not in rows_cache._OTA_ROWS_CACHE
 
-    recovery_rows = [{"latestVersion": "1.0.3"}]
+    recovery_rows: rows_cache.OtaRows = [{"latestVersion": "1.0.3"}]
     recovery_fetcher = AsyncMock(return_value=recovery_rows)
     rows, from_cache = await rows_cache.async_get_rows_with_shared_cache(
         cache_key,
@@ -136,8 +136,8 @@ async def test_async_get_rows_with_shared_cache_clears_failed_inflight_state() -
 async def test_async_get_rows_with_shared_cache_refreshes_stale_entry() -> None:
     now = datetime(2025, 1, 1, 0, 0, 0, tzinfo=UTC)
     cache_key = (object(), "model_a", "type_a", 1)
-    stale_rows = [{"latestVersion": "1.0.0"}]
-    fresh_rows = [{"latestVersion": "1.0.4"}]
+    stale_rows: rows_cache.OtaRows = [{"latestVersion": "1.0.0"}]
+    fresh_rows: rows_cache.OtaRows = [{"latestVersion": "1.0.4"}]
     rows_cache._OTA_ROWS_CACHE[cache_key] = rows_cache.OtaRowsCacheEntry(
         time=now - rows_cache.OTA_SHARED_ROWS_CACHE_TTL - timedelta(seconds=1),
         rows=stale_rows,

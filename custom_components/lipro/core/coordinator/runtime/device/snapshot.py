@@ -3,22 +3,54 @@
 from __future__ import annotations
 
 import asyncio
+from collections.abc import Mapping
 from dataclasses import dataclass, field
+import inspect
 import logging
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Protocol, cast
 
-from custom_components.lipro.core.api.types import DeviceListItem
+from custom_components.lipro.core.api.types import DeviceListItem, DeviceListResponse
+from custom_components.lipro.core.coordinator.types import PropertyDict
 from custom_components.lipro.core.device import LiproDevice
 from custom_components.lipro.core.device.group_status import sync_mesh_group_extra_data
+from custom_components.lipro.core.protocol.contracts import CanonicalMeshGroupStatusRow
 
 if TYPE_CHECKING:
     from custom_components.lipro.core.device.identity_index import DeviceIdentityIndex
-    from custom_components.lipro.core.protocol import LiproProtocolFacade
 
     from .filter import DeviceFilter
 
 _LOGGER = logging.getLogger(__name__)
 _DEFAULT_DEVICE_PAGE_SIZE = 100
+
+type DeviceRow = PropertyDict
+
+
+class SnapshotProtocolClient(Protocol):
+    """Minimal protocol-facade surface consumed by snapshot builder."""
+
+    async def get_devices(self, offset: int = 0, limit: int = 100) -> DeviceListResponse:
+        """Return one canonical device-list page."""
+
+    async def query_mesh_group_status(
+        self,
+        group_ids: list[str],
+    ) -> list[dict[str, object]]:
+        """Return raw/canonical mesh-group rows for the requested groups."""
+
+    @property
+    def contracts(self) -> SnapshotProtocolContracts:
+        """Expose protocol-owned normalization helpers."""
+
+
+class SnapshotProtocolContracts(Protocol):
+    """Contract helpers required by runtime snapshot builder."""
+
+    def normalize_mesh_group_status_rows(
+        self,
+        payload: object,
+    ) -> list[CanonicalMeshGroupStatusRow]:
+        """Normalize mesh-group topology rows."""
 
 
 @dataclass(frozen=True)
@@ -38,7 +70,7 @@ class SnapshotBuilder:
     """Builds device snapshots from API responses."""
 
     @staticmethod
-    def _normalize_compat_device_row(device_data: dict[str, Any]) -> dict[str, Any]:
+    def _normalize_compat_device_row(device_data: Mapping[str, object]) -> DeviceRow:
         """Promote a compat-shaped device row into the runtime's expected shape."""
         normalized = dict(device_data)
         if "deviceName" not in normalized and isinstance(normalized.get("name"), str):
@@ -56,7 +88,7 @@ class SnapshotBuilder:
         }
         if identity_aliases and "identityAliases" not in normalized:
             normalized["identityAliases"] = sorted(identity_aliases)
-        return normalized
+        return cast(DeviceRow, normalized)
 
     async def _async_enrich_mesh_group_metadata(
         self,
@@ -70,47 +102,56 @@ class SnapshotBuilder:
 
         try:
             rows = await self._client.query_mesh_group_status(group_ids)
-            contracts = getattr(self._client, "contracts", None)
-            normalize_rows = getattr(contracts, "normalize_mesh_group_status_rows", None)
-            if callable(normalize_rows):
-                normalized_rows = normalize_rows(rows)
-                if hasattr(normalized_rows, "__await__"):
-                    normalized_rows = await normalized_rows
-                if isinstance(normalized_rows, list):
-                    rows = normalized_rows
-        except Exception as err:
-            if isinstance(err, (asyncio.CancelledError, KeyboardInterrupt, SystemExit)):
-                raise
+            normalized_rows_obj: object = self._contracts.normalize_mesh_group_status_rows(rows)
+            if inspect.isawaitable(normalized_rows_obj):
+                normalized_rows_obj = await normalized_rows_obj
+        except asyncio.CancelledError:
+            raise
+        except Exception as err:  # noqa: BLE001
             _LOGGER.debug(
                 "Mesh group metadata enrich failed (%s), keeping snapshot without topology",
                 type(err).__name__,
             )
             return
 
-        for row in rows:
+        if isinstance(normalized_rows_obj, list):
+            normalized_rows = normalized_rows_obj
+        else:
+            normalized_rows = [row for row in rows if isinstance(row, dict)]
+
+        for row in normalized_rows:
             group_id = row.get("groupId")
             if not isinstance(group_id, str) or not group_id.strip():
                 continue
             device = device_by_id.get(group_id.strip())
             if device is None:
                 continue
-            sync_mesh_group_extra_data(device, row)
+            sync_mesh_group_extra_data(device, cast(dict[str, Any], row))
 
     @staticmethod
     def _canonical_page_has_more(
         *,
         offset: int,
         devices_data: list[DeviceListItem],
-        total: Any,
+        total: object,
     ) -> bool:
         """Return whether one canonical device page has more rows to fetch."""
-        try:
+        if isinstance(total, bool):
+            total_count = offset + len(devices_data)
+        elif isinstance(total, int):
+            total_count = total
+        elif isinstance(total, float) and total.is_integer():
             total_count = int(total)
-        except (TypeError, ValueError):
+        elif isinstance(total, str):
+            try:
+                total_count = int(total)
+            except ValueError:
+                total_count = offset + len(devices_data)
+        else:
             total_count = offset + len(devices_data)
         return offset + len(devices_data) < max(total_count, 0)
 
-    async def _fetch_device_page(self, *, page: int) -> tuple[list[dict[str, Any]], bool]:
+    async def _fetch_device_page(self, *, page: int) -> tuple[list[DeviceRow], bool]:
         """Fetch one device page through the formal canonical contract."""
         offset = (page - 1) * _DEFAULT_DEVICE_PAGE_SIZE
         response = await self._client.get_devices(
@@ -118,7 +159,10 @@ class SnapshotBuilder:
             limit=_DEFAULT_DEVICE_PAGE_SIZE,
         )
         raw_devices = list(response.get("devices", []))
-        devices_data = [dict(row) for row in raw_devices if isinstance(row, dict)]
+        devices_data = cast(
+            list[DeviceRow],
+            [dict(row) for row in raw_devices if isinstance(row, dict)],
+        )
         return devices_data, self._canonical_page_has_more(
             offset=offset,
             devices_data=raw_devices,
@@ -128,18 +172,13 @@ class SnapshotBuilder:
     def __init__(
         self,
         *,
-        client: LiproProtocolFacade,
+        client: SnapshotProtocolClient,
         device_identity_index: DeviceIdentityIndex,
         device_filter: DeviceFilter,
     ) -> None:
-        """Initialize snapshot builder.
-
-        Args:
-            client: API client for device queries
-            device_identity_index: Device identity index for alias registration
-            device_filter: Device filter for inclusion checks
-        """
+        """Initialize snapshot builder."""
         self._client = client
+        self._contracts = client.contracts
         self._device_identity_index = device_identity_index
         self._device_filter = device_filter
 
@@ -148,39 +187,30 @@ class SnapshotBuilder:
         *,
         max_pages: int = 50,
     ) -> FetchedDeviceSnapshot:
-        """Build complete device snapshot from paginated API.
-
-        Args:
-            max_pages: Maximum pagination pages to prevent infinite loops
-
-        Returns:
-            FetchedDeviceSnapshot with all devices and indexes
-        """
-        all_devices: list[dict[str, Any]] = []
+        """Build complete device snapshot from paginated API."""
+        all_devices: list[DeviceRow] = []
         page = 1
 
         while page <= max_pages:
             try:
                 devices_data, has_more = await self._fetch_device_page(page=page)
-
-                if not devices_data:
-                    break
-
-                all_devices.extend(devices_data)
-
-                if not has_more:
-                    break
-
-                page += 1
-            except Exception as err:
-                if isinstance(err, (asyncio.CancelledError, KeyboardInterrupt, SystemExit)):
-                    raise
+            except asyncio.CancelledError:
+                raise
+            except Exception as err:  # noqa: BLE001
                 _LOGGER.error(
                     "Device list fetch failed on page %d (%s), stopping pagination",
                     page,
                     type(err).__name__,
                 )
                 break
+
+            if not devices_data:
+                break
+
+            all_devices.extend(devices_data)
+            if not has_more:
+                break
+            page += 1
 
         if page > max_pages:
             _LOGGER.error(
@@ -199,51 +229,55 @@ class SnapshotBuilder:
 
         for device_data in all_devices:
             try:
-                if not self._device_filter.is_device_included(device_data):
+                normalized_row = self._normalize_compat_device_row(device_data)
+                if not self._device_filter.is_device_included(normalized_row):
                     _LOGGER.debug("Device filtered out by configuration")
                     continue
 
-                device = LiproDevice.from_api_data(device_data)
-
-                if device.capabilities.is_gateway:
-                    diagnostic_gateway_devices[device.serial] = device
-                    continue
-
-                devices[device.serial] = device
-
-                identity_aliases = {
-                    alias
-                    for alias in device_data.get("identityAliases", [])
-                    if isinstance(alias, str) and alias.strip()
-                }
-                identity_aliases.add(device.serial)
-                if device.iot_device_id:
-                    identity_aliases.add(device.iot_device_id)
-
-                device.extra_data["identity_aliases"] = sorted(identity_aliases)
-                for identity_alias in identity_aliases:
-                    device_by_id[identity_alias] = device
-                    identity_mapping[identity_alias] = device
-
-                cloud_serials.add(device.serial)
-
-                if device.is_group:
-                    if device.iot_device_id:
-                        group_ids.append(device.iot_device_id)
-                elif device.capabilities.is_outlet:
-                    if device.iot_device_id:
-                        outlet_ids.append(device.iot_device_id)
-                elif device.iot_device_id:
-                    iot_ids.append(device.iot_device_id)
-
-            except Exception as err:
-                if isinstance(err, (asyncio.CancelledError, KeyboardInterrupt, SystemExit)):
-                    raise
+                device = LiproDevice.from_api_data(cast(dict[str, object], normalized_row))
+            except asyncio.CancelledError:
+                raise
+            except Exception as err:  # noqa: BLE001
                 _LOGGER.debug(
                     "Failed to parse device from API data (%s: %s), skipping",
                     type(err).__name__,
                     str(err),
                 )
+                continue
+
+            if device.capabilities.is_gateway:
+                diagnostic_gateway_devices[device.serial] = device
+                continue
+
+            devices[device.serial] = device
+
+            raw_identity_aliases = normalized_row.get("identityAliases")
+            display_identity_aliases = {device.serial}
+            device.extra_data["identity_aliases"] = sorted(display_identity_aliases)
+
+            index_identity_aliases = {
+                alias
+                for alias in raw_identity_aliases
+                if isinstance(alias, str) and alias.strip()
+            } if isinstance(raw_identity_aliases, list) else set()
+            index_identity_aliases.update(display_identity_aliases)
+            if device.iot_device_id:
+                index_identity_aliases.add(device.iot_device_id)
+
+            for identity_alias in index_identity_aliases:
+                device_by_id[identity_alias] = device
+                identity_mapping[identity_alias] = device
+
+            cloud_serials.add(device.serial)
+
+            if device.is_group:
+                if device.iot_device_id:
+                    group_ids.append(device.iot_device_id)
+            elif device.capabilities.is_outlet:
+                if device.iot_device_id:
+                    outlet_ids.append(device.iot_device_id)
+            elif device.iot_device_id:
+                iot_ids.append(device.iot_device_id)
 
         await self._async_enrich_mesh_group_metadata(
             device_by_id=device_by_id,

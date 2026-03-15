@@ -7,7 +7,7 @@ used by diagnostics service handlers.
 from __future__ import annotations
 
 from collections.abc import Awaitable, Callable, Iterator
-from typing import Any, Protocol, TypedDict
+from typing import Protocol, TypedDict
 
 from aiohttp import ClientSession
 
@@ -136,20 +136,25 @@ class DeveloperFeedbackShareManager(Protocol):
     async def submit_developer_feedback(
         self,
         session: ClientSession,
-        payload: dict[str, Any],
+        payload: DeveloperFeedbackPayload,
     ) -> bool:
         """Submit the serialized developer-feedback payload."""
 
 
 # Type aliases
+type DeveloperFeedbackPayload = dict[str, object]
 # Keep developer-report collection separate from capability iterators so exporter
 # fallback can continue to work with lighter runtime coordinators.
 type DeveloperReport = dict[str, object]
 type CapabilityPayload = dict[str, object]
 type SensorHistoryClientMethod = Callable[..., Awaitable[DiagnosticsApiResponse]]
 type DeveloperReportCollector = Callable[..., list[DeveloperReport]]
-type DiagnosticsCoordinatorIterator = Callable[[HomeAssistant], Iterator[DiagnosticsCoordinator]]
-type DeveloperReportCoordinatorIterator = Callable[[HomeAssistant], Iterator[LiproCoordinator]]
+type DiagnosticsCoordinatorIterator = Callable[
+    [HomeAssistant], Iterator[DiagnosticsCoordinator]
+]
+type DeveloperReportCoordinatorIterator = Callable[
+    [HomeAssistant], Iterator[LiproCoordinator]
+]
 type RuntimeCoordinatorIterator = DiagnosticsCoordinatorIterator
 type AnonymousShareManagerFactory = Callable[..., DeveloperFeedbackShareManager]
 type ClientSessionGetter = Callable[[HomeAssistant], ClientSession]
@@ -158,4 +163,4 @@ type GetDeviceAndCoordinator = Callable[
     Awaitable[tuple[DiagnosticsDevice, DiagnosticsCoordinator]],
 ]
 type OptionalCapabilityCaller = Callable[..., Awaitable[DiagnosticsApiResponse]]
-type SensorHistoryResultBuilder = Callable[..., dict[str, object]]
+type SensorHistoryResultBuilder = Callable[..., SensorHistoryResponse]

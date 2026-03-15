@@ -19,7 +19,7 @@ import asyncio
 from dataclasses import dataclass, field
 import logging
 import time
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 import aiohttp
 
@@ -329,7 +329,7 @@ class AnonymousShareManager:
             command, device_type, code, message, params
         )
 
-    def build_report(self) -> dict[str, Any]:
+    def build_report(self) -> dict[str, object]:
         """Build the anonymous share report."""
         if not self._aggregate:
             return build_anonymous_share_report(
@@ -357,14 +357,14 @@ class AnonymousShareManager:
             errors=errors,
         )
 
-    def get_pending_report(self) -> dict[str, Any] | None:
+    def get_pending_report(self) -> dict[str, object] | None:
         """Get pending report data for user review."""
         if self.pending_count == (0, 0):
             return None
         return self.build_report()
 
     async def submit_developer_feedback(
-        self, session: aiohttp.ClientSession, feedback: dict[str, Any]
+        self, session: aiohttp.ClientSession, feedback: dict[str, object]
     ) -> bool:
         """Submit one developer-feedback payload immediately."""
         state = self._primary_state() if self._aggregate else self._state

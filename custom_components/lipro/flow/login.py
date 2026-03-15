@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import logging
-from typing import Any
 
 from ..const.config import (
     CONF_ACCESS_TOKEN,
@@ -56,9 +55,9 @@ class LoginResult:
         phone_id: str,
         *,
         remember_password_hash: bool,
-    ) -> dict[str, Any]:
+    ) -> dict[str, object]:
         """Convert to config entry data dict."""
-        entry_data: dict[str, Any] = {
+        entry_data: dict[str, object] = {
             CONF_PHONE: phone,
             CONF_PHONE_ID: phone_id,
             CONF_ACCESS_TOKEN: self.access_token,

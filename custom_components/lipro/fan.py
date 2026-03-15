@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 import math
-from typing import TYPE_CHECKING, Any, Final
+from typing import TYPE_CHECKING, Final
 
 from homeassistant.components.fan import FanEntity, FanEntityFeature
 from homeassistant.util.percentage import (
@@ -36,11 +36,9 @@ if TYPE_CHECKING:
     from .core.device import LiproDevice
     from .runtime_types import LiproCoordinator
 
-# Limit parallel updates to avoid overwhelming the API
 PARALLEL_UPDATES = 1
 _LOGGER = logging.getLogger(__name__)
 
-# Preset modes for fan light
 PRESET_MODE_DIRECT: Final = "direct"
 PRESET_MODE_NATURAL: Final = "natural"
 PRESET_MODE_CYCLE: Final = "cycle"
@@ -53,8 +51,6 @@ PRESET_MODES: Final = [
 ]
 
 MODE_TO_PRESET: Final = {
-    # Runtime verification against App semantics:
-    # 0=直吹风, 1=自然风, 2=循环风, 3=柔风
     FAN_MODE_DIRECT: PRESET_MODE_DIRECT,
     FAN_MODE_NATURAL: PRESET_MODE_NATURAL,
     FAN_MODE_CYCLE: PRESET_MODE_CYCLE,
@@ -72,7 +68,6 @@ FAN_FEATURES_BASE: Final = (
 )
 FAN_FEATURES_WITH_SPEED: Final = FAN_FEATURES_BASE | FanEntityFeature.SET_SPEED
 
-# Preset modes for heater ventilation fan
 PRESET_VENT_OFF: Final = "off"
 PRESET_VENT_STRONG: Final = "strong"
 PRESET_VENT_WEAK: Final = "weak"
@@ -86,6 +81,11 @@ AERATION_TO_PRESET: Final = {
 }
 
 PRESET_TO_AERATION: Final = {v: k for k, v in AERATION_TO_PRESET.items()}
+
+
+def _fan_speed_range(device: LiproDevice) -> tuple[int, int]:
+    """Return the HA-facing speed range from the capability snapshot."""
+    return (1, max(1, device.capabilities.max_fan_gear))
 
 
 async def async_setup_entry(
@@ -137,7 +137,7 @@ class LiproFan(LiproEntity, FanEntity):
 
     def _percentage_to_gear(self, percentage: int) -> int:
         """Convert percentage to gear value, clamped to device range."""
-        speed_range = self.device.fan_speed_range
+        speed_range = _fan_speed_range(self.device)
         gear = math.ceil(percentage_to_ranged_value(speed_range, percentage))
         return max(speed_range[0], min(speed_range[1], gear))
 
@@ -177,7 +177,8 @@ class LiproFan(LiproEntity, FanEntity):
         if not self.is_on:
             return 0
         return ranged_value_to_percentage(
-            self.device.fan_speed_range, self.device.state.fan_gear
+            _fan_speed_range(self.device),
+            self.device.state.fan_gear,
         )
 
     @property
@@ -190,9 +191,10 @@ class LiproFan(LiproEntity, FanEntity):
         self,
         percentage: int | None = None,
         preset_mode: str | None = None,
-        **kwargs: Any,
+        **kwargs: object,
     ) -> None:
         """Turn on the fan."""
+        del kwargs
         properties: dict[str, int] = {}
         self._set_power_properties(properties, 1)
 
@@ -221,8 +223,9 @@ class LiproFan(LiproEntity, FanEntity):
 
         await self.async_change_state(properties)
 
-    async def async_turn_off(self, **kwargs: Any) -> None:
+    async def async_turn_off(self, **kwargs: object) -> None:
         """Turn off the fan."""
+        del kwargs
         properties: dict[str, int] = {}
         self._set_power_properties(properties, 0)
         await self.async_change_state(properties)
@@ -267,11 +270,7 @@ class LiproFan(LiproEntity, FanEntity):
 
 
 class LiproHeaterVentFan(LiproEntity, FanEntity):
-    """Representation of a Lipro heater ventilation fan (换气扇).
-
-    This entity controls the ventilation/exhaust fan in bathroom heaters.
-    It has two speed presets: strong (强) and weak (弱).
-    """
+    """Representation of a Lipro heater ventilation fan (换气扇)."""
 
     _attr_supported_features = (
         FanEntityFeature.PRESET_MODE
@@ -304,17 +303,18 @@ class LiproHeaterVentFan(LiproEntity, FanEntity):
         self,
         percentage: int | None = None,
         preset_mode: str | None = None,
-        **kwargs: Any,
+        **kwargs: object,
     ) -> None:
         """Turn on the ventilation fan."""
-        # Default to strong if no preset specified
+        del percentage, kwargs
         if preset_mode is None:
             preset_mode = PRESET_VENT_STRONG
 
         await self._async_set_aeration_from_preset(preset_mode)
 
-    async def async_turn_off(self, **kwargs: Any) -> None:
+    async def async_turn_off(self, **kwargs: object) -> None:
         """Turn off the ventilation fan."""
+        del kwargs
         await self.async_change_state({PROP_AERATION_GEAR: AERATION_OFF})
 
     async def async_set_preset_mode(self, preset_mode: str) -> None:

@@ -1,10 +1,11 @@
 # Support
 
-## Getting Help
+## Start Here
 
-- **Usage questions**: open a GitHub Discussion or Issue with reproduction details, logs, and versions.
-- **Bug reports**: prefer the bug-report template and include diagnostics that are safe to share.
-- **Security reports**: follow `SECURITY.md` and use private disclosure first.
+- Troubleshooting first: `docs/TROUBLESHOOTING.md`
+- Usage/help routing: GitHub Discussions or Issues, depending on whether the problem is a question or a confirmed bug
+- Security reports: follow `SECURITY.md` and use private disclosure first
+- Maintainer-only release flow: `docs/MAINTAINER_RELEASE_RUNBOOK.md`
 
 ## Version & Validation Truth
 
@@ -13,15 +14,23 @@
 
 ## Maintainer Model
 
-This repository currently follows a single-maintainer review model. Triage and release timing may therefore be asynchronous.
+This repository currently follows a single-maintainer review model. Triage and release timing may therefore be asynchronous, but high-risk issues should still be recorded explicitly rather than silently deferred.
 
 ## What Helps Most
 
-- Exact integration version and Home Assistant version
-- Clear reproduction steps
+- Exact integration version, Home Assistant version, and installation method
+- Clear reproduction steps and expected-vs-actual behavior
 - Sanitized logs / diagnostics
-- Whether the issue is cloud API drift, MQTT behavior, or Home Assistant platform behavior
+- Whether the issue is cloud API drift, MQTT behavior, OTA metadata, or Home Assistant platform behavior
+- Developer report / one-click feedback when the issue needs deep protocol or runtime inspection
+
+## Routing Guide
+
+- Usage questions or “is this expected?”: start with `docs/TROUBLESHOOTING.md`, then GitHub Discussions.
+- Confirmed bugs/regressions: use the bug template and include diagnostics.
+- Security-sensitive reports: use the private path in `SECURITY.md`, not a public Issue.
+- Release/packaging questions for maintainers: `docs/MAINTAINER_RELEASE_RUNBOOK.md`.
 
 ## Response Expectations
 
-Best effort support is provided for verified bugs and well-scoped regressions. Feature requests may be deferred when they conflict with the project's architecture or maintenance budget.
+Best effort support is provided for verified bugs and well-scoped regressions. Feature requests may be deferred when they conflict with the project's architecture or maintenance budget, but unresolved high-risk issues must be documented explicitly instead of being silently carried forward.

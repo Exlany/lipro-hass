@@ -8,7 +8,7 @@ from dataclasses import dataclass
 import hashlib
 import logging
 import time
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, TypedDict
 
 from ...const.api import (
     ACCESS_TOKEN_EXPIRY_SECONDS,
@@ -35,6 +35,17 @@ if TYPE_CHECKING:
     from collections.abc import Callable
 
 
+class AuthDataSnapshot(TypedDict, total=False):
+    """Legacy storage payload projected from the formal auth session."""
+
+    access_token: str | None
+    refresh_token: str | None
+    user_id: int | None
+    phone_id: str | None
+    expires_at: float | None
+    biz_id: str | None
+
+
 @dataclass(frozen=True, slots=True)
 class AuthSessionSnapshot:
     """Formal auth/session contract consumed by HA adapters and control code."""
@@ -50,6 +61,28 @@ class AuthSessionSnapshot:
     def has_tokens(self) -> bool:
         """Return whether both access and refresh tokens are present."""
         return bool(self.access_token and self.refresh_token)
+
+
+
+
+def _require_text(value: object, *, field_name: str) -> str:
+    """Return one required text field from a protocol result mapping."""
+    if isinstance(value, str):
+        return value
+    msg = f"Missing or invalid {field_name} in auth result"
+    raise TypeError(msg)
+
+
+def _optional_text(value: object) -> str | None:
+    """Return one optional text field when present."""
+    return value if isinstance(value, str) else None
+
+
+def _optional_int(value: object) -> int | None:
+    """Return one optional integer field when present."""
+    if isinstance(value, bool):
+        return None
+    return value if isinstance(value, int) else None
 
 
 class LiproAuthManager:
@@ -169,12 +202,18 @@ class LiproAuthManager:
         # This keeps the first runtime 401 eligible for an immediate refresh.
         self._last_refresh_time = 0.0
 
-    def _sync_client_tokens_from_result(self, result: Mapping[str, Any]) -> None:
+    def _sync_client_tokens_from_result(self, result: Mapping[str, object]) -> None:
         """Apply one formal login/refresh result to the protocol client state."""
-        access_token = result[CONF_ACCESS_TOKEN]
-        refresh_token = result[CONF_REFRESH_TOKEN]
-        user_id = result.get(CONF_USER_ID)
-        biz_id = result.get("biz_id")
+        access_token = _require_text(
+            result.get(CONF_ACCESS_TOKEN),
+            field_name=CONF_ACCESS_TOKEN,
+        )
+        refresh_token = _require_text(
+            result.get(CONF_REFRESH_TOKEN),
+            field_name=CONF_REFRESH_TOKEN,
+        )
+        user_id = _optional_int(result.get(CONF_USER_ID))
+        biz_id = _optional_text(result.get("biz_id"))
         self._client.set_tokens(access_token, refresh_token, user_id, biz_id)
         self._client.access_token = access_token
         self._client.refresh_token = refresh_token
@@ -190,7 +229,7 @@ class LiproAuthManager:
             user_id=self._client.user_id,
             expires_at=self._token_expires_at,
             phone_id=self._client.phone_id,
-            biz_id=getattr(self._client, "biz_id", None),
+            biz_id=self._client.biz_id,
         )
 
     async def login(
@@ -377,7 +416,7 @@ class LiproAuthManager:
                     )
                     await self.refresh_token()
 
-    def get_auth_data(self) -> dict[str, Any]:
+    def get_auth_data(self) -> AuthDataSnapshot:
         """Get compatibility auth data for legacy storage callers."""
         snapshot = self.get_auth_session()
         return {
@@ -386,4 +425,5 @@ class LiproAuthManager:
             CONF_USER_ID: snapshot.user_id,
             CONF_PHONE_ID: snapshot.phone_id,
             CONF_EXPIRES_AT: snapshot.expires_at,
+            "biz_id": snapshot.biz_id,
         }

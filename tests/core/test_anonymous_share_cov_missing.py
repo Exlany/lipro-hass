@@ -51,7 +51,8 @@ def test_manager_get_pending_report_includes_method_prefix_and_count_suffix() ->
     assert report["error_count"] == 1
 
     # method prefix (collector.py:161) + count suffix (models.py:27)
-    msg = report["errors"][0]["message"]
+    errors = cast(list[dict[str, object]], report["errors"])
+    msg = cast(str, errors[0]["message"])
     assert "[500] GET /api/x: fail" in msg
     assert msg.endswith(" (x2)")
 

@@ -1,7 +1,7 @@
 ---
 phase: 16
 slug: post-audit-truth-alignment-hotspot-decomposition-and-residual-endgame
-status: draft
+status: passed
 nyquist_compliant: true
 wave_0_complete: true
 created: 2026-03-15
@@ -40,12 +40,12 @@ created: 2026-03-15
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 16-01-00 | 16-01 | 1 | GOV-14 | governance/meta/script guards | `uv run pytest -q tests/meta/test_governance_guards.py tests/meta/test_public_surface_guards.py tests/meta/test_dependency_guards.py tests/meta/test_version_sync.py && uv run python scripts/check_architecture_policy.py --check && uv run python scripts/check_file_matrix.py --check` | ✅ | ⬜ pending |
-| 16-02-00 | 16-02 | 1 | QLT-02 / DOC-02 | config/tooling/docs guard | `uv run ruff check . && uv run mypy && uv run pytest -q tests/meta/test_toolchain_truth.py tests/meta/test_version_sync.py tests/meta/test_governance_guards.py && shellcheck scripts/develop` | ✅ | ⬜ pending |
-| 16-03-00 | 16-03 | 2 | CTRL-06 / ERR-01 / TYP-04 | focused control/service regression + typing | `uv run pytest -q tests/core/test_control_plane.py tests/core/test_init.py tests/core/test_diagnostics.py tests/core/test_system_health.py tests/services/test_execution.py tests/services/test_services_registry.py tests/services/test_service_resilience.py tests/services/test_services_share.py tests/services/test_services_diagnostics.py tests/services/test_device_lookup.py tests/services/test_maintenance.py tests/flows/test_config_flow.py && uv run mypy` | ✅ | ⬜ pending |
-| 16-04-00 | 16-04 | 2 | HOT-04 / TYP-04 / RES-02 / ERR-01 | protocol/runtime + typing | `uv run pytest -q tests/core/api tests/core/mqtt tests/core/coordinator tests/core/coordinator/runtime/test_mqtt_runtime.py tests/integration/test_mqtt_coordinator_integration.py tests/snapshots/test_api_snapshots.py && uv run mypy && uv run python scripts/check_architecture_policy.py --check` | ✅ | ⬜ pending |
-| 16-05-00 | 16-05 | 3 | DOM-03 / OTA-01 | domain/entity/OTA focused regression | `uv run pytest -q tests/core/device tests/core/ota tests/entities tests/platforms/test_entity_behavior.py tests/platforms/test_update.py tests/platforms/test_firmware_update_entity_edges.py tests/platforms/test_entity_base.py` | ✅ | ⬜ pending |
-| 16-06-00 | 16-06 | 3 | TST-01 / DOC-02 / GOV-14 | test-layer + DX docs + closeout re-audit | `uv run pytest -q tests/platforms tests/flows/test_config_flow.py tests/meta/test_governance_guards.py tests/meta/test_version_sync.py tests/meta/test_toolchain_truth.py && uv run python scripts/check_file_matrix.py --check && uv run python scripts/check_architecture_policy.py --check` | ✅ | ⬜ pending |
+| 16-01-00 | 16-01 | 1 | GOV-14 | governance/meta/script guards | `uv run pytest -q tests/meta/test_governance_guards.py tests/meta/test_public_surface_guards.py tests/meta/test_dependency_guards.py tests/meta/test_version_sync.py && uv run python scripts/check_architecture_policy.py --check && uv run python scripts/check_file_matrix.py --check` | ✅ | ✅ green |
+| 16-02-00 | 16-02 | 1 | QLT-02 / DOC-02 | config/tooling/docs guard | `uv run ruff check . && uv run mypy && uv run pytest -q tests/meta/test_toolchain_truth.py tests/meta/test_version_sync.py tests/meta/test_governance_guards.py && shellcheck scripts/develop` | ✅ | ✅ green |
+| 16-03-00 | 16-03 | 2 | CTRL-06 / ERR-01 / TYP-04 | focused control/service regression + typing | `uv run pytest -q tests/core/test_control_plane.py tests/core/test_init.py tests/core/test_diagnostics.py tests/core/test_system_health.py tests/services/test_execution.py tests/services/test_services_registry.py tests/services/test_service_resilience.py tests/services/test_services_share.py tests/services/test_services_diagnostics.py tests/services/test_device_lookup.py tests/services/test_maintenance.py tests/flows/test_config_flow.py && uv run mypy` | ✅ | ✅ green |
+| 16-04-00 | 16-04 | 2 | HOT-04 / TYP-04 / RES-02 / ERR-01 | protocol/runtime + typing | `uv run pytest -q tests/core/api tests/core/mqtt tests/core/coordinator tests/core/coordinator/runtime/test_mqtt_runtime.py tests/integration/test_mqtt_coordinator_integration.py tests/snapshots/test_api_snapshots.py && uv run mypy && uv run python scripts/check_architecture_policy.py --check` | ✅ | ✅ green |
+| 16-05-00 | 16-05 | 3 | DOM-03 / OTA-01 | domain/entity/OTA focused regression | `uv run pytest -q tests/core/device tests/core/ota tests/entities tests/platforms/test_entity_behavior.py tests/platforms/test_update.py tests/platforms/test_firmware_update_entity_edges.py tests/platforms/test_entity_base.py` | ✅ | ✅ green |
+| 16-06-00 | 16-06 | 3 | TST-01 / DOC-02 / GOV-14 | test-layer + DX docs + closeout re-audit | `uv run pytest -q tests/platforms tests/flows/test_config_flow.py tests/meta/test_governance_guards.py tests/meta/test_version_sync.py tests/meta/test_toolchain_truth.py && uv run python scripts/check_file_matrix.py --check && uv run python scripts/check_architecture_policy.py --check` | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -100,6 +100,16 @@ created: 2026-03-15
 - [x] No watch-mode flags are present.
 - [x] `nyquist_compliant: true` is set in frontmatter.
 - [x] Phase closeout explicitly includes a debt audit / no-silent-defer gate.
-- [ ] Plan-local execution evidence has not yet been collected.
+- [x] Plan-local execution evidence has been collected and synced to summaries / governance artifacts.
 
-**Approval:** pending
+**Approval:** passed
+
+---
+
+## Final Closeout Evidence
+
+- Final rerun on `2026-03-15` completed with one coherent gate: `uv run ruff check .`, `uv run mypy`, `uv run python scripts/check_architecture_policy.py --check`, `uv run python scripts/check_file_matrix.py --check`, `uv run pytest -q`.
+- Result summary: `ruff` ✅, `mypy` ✅ (`Success: no issues found in 440 source files`), governance scripts ✅, full `pytest` ✅ (`2194 passed in 38.59s`, no warnings).
+- Final second-pass repo audit: `Any=711`, `except Exception=36`, `type: ignore=12`, dead pytest markers (`github|integration|slow`) `=0`.
+- Remaining residual inventory stays identical to `.planning/reviews/RESIDUAL_LEDGER.md` / `.planning/reviews/KILL_LIST.md`; no new unowned hotspot or silent defer surfaced during closeout.
+- `SnapshotBuilder` mesh-group enrichment now tolerates degraded `AsyncMock` contract doubles without unawaited-coroutine warnings, so the final full-suite rerun is warning-free.

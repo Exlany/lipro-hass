@@ -54,6 +54,10 @@ def _build_mesh_group_entries(
         if not isinstance(member_count, int):
             member_count = len(safe_member_ids)
 
+        gateway_device_id = dev.extra_data.get("gateway_device_id")
+        if not isinstance(gateway_device_id, str):
+            gateway_device_id = None
+
         mesh_groups.append(
             {
                 "group_id": redact_identifier(dev.serial),
@@ -61,9 +65,7 @@ def _build_mesh_group_entries(
                 "device_type": dev.device_type,
                 "physical_model": dev.physical_model,
                 "member_count": member_count,
-                "gateway_device_id": redact_identifier(
-                    dev.extra_data.get("gateway_device_id")
-                ),
+                "gateway_device_id": redact_identifier(gateway_device_id),
                 "member_ids": safe_member_ids,
             }
         )
@@ -110,6 +112,13 @@ def _sanitize_last_command_failure(
     result: dict[str, object] = {}
     for key in ("reason", "code", "route"):
         value = failure.get(key)
+        if (
+            key == "code"
+            and isinstance(value, (int, str))
+            and not isinstance(value, bool)
+        ):
+            result[key] = value
+            continue
         if isinstance(value, str) and value:
             result[key] = value
     return result or None

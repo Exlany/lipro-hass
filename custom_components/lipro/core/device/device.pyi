@@ -7,6 +7,10 @@ from custom_components.lipro.core.device.identity import DeviceIdentity
 from custom_components.lipro.core.device.network_info import DeviceNetworkInfo
 from custom_components.lipro.core.device.state import DeviceState
 
+type DevicePropertyMap = dict[str, object]
+type DeviceExtraDataMap = dict[str, object]
+type OutletPowerInfo = dict[str, object]
+
 class LiproDevice:
     device_number: int
     serial: str
@@ -18,8 +22,8 @@ class LiproDevice:
     is_group: bool
     product_id: int | None
     physical_model: str | None
-    properties: dict[str, Any]
-    extra_data: dict[str, Any]
+    properties: DevicePropertyMap
+    extra_data: DeviceExtraDataMap
     available: bool
     min_color_temp_kelvin: int
     max_color_temp_kelvin: int
@@ -28,7 +32,7 @@ class LiproDevice:
     has_unknown_physical_model: bool
     _state_cache: DeviceState | None
     _extras_cache: DeviceExtras | None
-    _outlet_power_info: dict[str, Any] | None
+    _outlet_power_info: OutletPowerInfo | None
 
     is_light: bool
     is_fan_light: bool
@@ -114,8 +118,8 @@ class LiproDevice:
         is_group: bool = ...,
         product_id: int | None = ...,
         physical_model: str | None = ...,
-        properties: dict[str, Any] = ...,
-        extra_data: dict[str, Any] = ...,
+        properties: DevicePropertyMap = ...,
+        extra_data: DeviceExtraDataMap = ...,
         available: bool = ...,
         min_color_temp_kelvin: int = ...,
         max_color_temp_kelvin: int = ...,
@@ -143,10 +147,10 @@ class LiproDevice:
     def is_online(self) -> bool: ...
 
     @property
-    def outlet_power_info(self) -> dict[str, Any] | None: ...
+    def outlet_power_info(self) -> OutletPowerInfo | None: ...
 
     @outlet_power_info.setter
-    def outlet_power_info(self, value: dict[str, Any] | None) -> None: ...
+    def outlet_power_info(self, value: OutletPowerInfo | None) -> None: ...
 
     def mark_mqtt_update(self, *, timestamp: float | None = ...) -> None: ...
 
@@ -184,9 +188,9 @@ class LiproDevice:
 
     def kelvin_to_percent_for_device(self, kelvin: int) -> int: ...
 
-    def update_properties(self, properties: dict[str, Any]) -> None: ...
+    def update_properties(self, properties: DevicePropertyMap) -> None: ...
 
     def has_recent_mqtt_update(self, *, stale_window_seconds: float = ...) -> bool: ...
 
     @classmethod
-    def from_api_data(cls, data: dict[str, Any]) -> LiproDevice: ...
+    def from_api_data(cls, data: DevicePropertyMap) -> LiproDevice: ...

@@ -8,9 +8,8 @@ from __future__ import annotations
 
 from collections.abc import Awaitable, Callable, Iterator
 from datetime import UTC, datetime
-from importlib import import_module
 import logging
-from typing import NoReturn, Protocol, TypeVar, cast
+from typing import NoReturn, TypeVar
 
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.exceptions import HomeAssistantError
@@ -33,32 +32,15 @@ from ..execution import (
 from .types import (
     AnonymousShareManagerFactory,
     ClientSessionGetter,
+    DeveloperFeedbackPayload,
     DeveloperFeedbackResponse,
     DeveloperReport,
     DeveloperReportCollector,
     DeveloperReportCoordinatorIterator,
     DeveloperReportResponse,
     DiagnosticsCoordinator,
+    SensorHistoryResponse,
 )
-
-
-class _TelemetrySurfaceModule(Protocol):
-    """Minimal telemetry-surface module contract used by diagnostics helpers."""
-
-    def get_entry_telemetry_view(
-        self,
-        entry: object,
-        sink_name: str,
-    ) -> dict[str, object] | None:
-        """Return one telemetry sink view for one runtime entry."""
-
-
-def _load_telemetry_surface() -> _TelemetrySurfaceModule:
-    """Resolve telemetry surface lazily without local import statements."""
-    return cast(
-        _TelemetrySurfaceModule,
-        import_module("custom_components.lipro.control.telemetry_surface"),
-    )
 
 _LOGGER = logging.getLogger(__name__)
 _ResultT = TypeVar("_ResultT")
@@ -68,7 +50,7 @@ _CoordinatorT = TypeVar("_CoordinatorT")
 # Parameter extraction utilities
 def _get_optional_service_string(call: ServiceCall, key: str) -> str | None:
     """Return one optional string service field after light normalization."""
-    value = cast(object, call.data.get(key))
+    value = call.data.get(key)
     if not isinstance(value, str):
         return None
     normalized = value.strip()
@@ -77,18 +59,22 @@ def _get_optional_service_string(call: ServiceCall, key: str) -> str | None:
 
 def _get_required_service_string(call: ServiceCall, key: str) -> str:
     """Return one required string service field validated by the schema layer."""
-    return cast(str, call.data[key])
+    value = call.data[key]
+    if not isinstance(value, str):
+        msg = f"Service field {key} must be text"
+        raise TypeError(msg)
+    return value
 
 
 def _get_optional_note(call: ServiceCall, key: str) -> str:
     """Return one optional note field while preserving caller formatting."""
-    value = cast(object, call.data.get(key, ""))
+    value = call.data.get(key, "")
     return value if isinstance(value, str) else ""
 
 
 def _coerce_service_int(call: ServiceCall, key: str, default: int) -> int:
     """Coerce one optional numeric service field to int."""
-    value = cast(object, call.data.get(key, default))
+    value = call.data.get(key, default)
     if isinstance(value, bool):
         return int(value)
     if isinstance(value, (int, float, str)):
@@ -98,7 +84,7 @@ def _coerce_service_int(call: ServiceCall, key: str, default: int) -> int:
 
 def _coerce_service_float(call: ServiceCall, key: str, default: float) -> float:
     """Coerce one optional numeric service field to float."""
-    value = cast(object, call.data.get(key, default))
+    value = call.data.get(key, default)
     if isinstance(value, bool):
         return float(value)
     if isinstance(value, (int, float, str)):
@@ -178,7 +164,9 @@ def collect_developer_reports(
         try:
             builder = getattr(coordinator, "build_developer_report", None)
             if callable(builder):
-                reports.append(cast(DeveloperReport, builder()))
+                report = builder()
+                if isinstance(report, dict):
+                    reports.append(report)
                 continue
             exporter_report = _collect_exporter_developer_report(hass, coordinator)
             if exporter_report is not None:
@@ -199,18 +187,19 @@ def build_developer_feedback_payload(
     domain: str,
     service_name: str,
     requested_entry_id: str | None,
-) -> dict[str, object]:
+) -> DeveloperFeedbackPayload:
     """Build the canonical developer-feedback service payload."""
-    payload: dict[str, object] = {
+    payload: DeveloperFeedbackPayload = {
         "source": "home_assistant_service",
         "service": f"{domain}.{service_name}",
         "generated_at": datetime.now(UTC).isoformat(),
         "entry_count": len(reports),
         "note": note,
-        "reports": cast(
-            list[DeveloperReport], project_developer_feedback_upload(reports)
-        ),
+        "reports": reports,
     }
+    projected_reports = project_developer_feedback_upload(reports)
+    if isinstance(projected_reports, list):
+        payload["reports"] = [report for report in projected_reports if isinstance(report, dict)]
     if requested_entry_id is not None:
         payload["requested_entry_id"] = requested_entry_id
     return payload
@@ -223,7 +212,7 @@ async def async_handle_get_developer_report(
     *,
     collect_reports: DeveloperReportCollector,
     attr_entry_id: str,
-) -> dict[str, object]:
+) -> DeveloperReportResponse:
     """Handle the get_developer_report service."""
     requested_entry_id = _get_optional_service_string(call, attr_entry_id)
     result: DeveloperReportResponse = {
@@ -235,7 +224,7 @@ async def async_handle_get_developer_report(
     result["reports"] = reports
     if requested_entry_id is not None:
         result["requested_entry_id"] = requested_entry_id
-    return cast(dict[str, object], result)
+    return result
 
 
 async def async_handle_submit_developer_feedback(
@@ -250,7 +239,7 @@ async def async_handle_submit_developer_feedback(
     attr_note: str,
     attr_entry_id: str,
     raise_service_error: ServiceErrorRaiser,
-) -> dict[str, object]:
+) -> DeveloperFeedbackResponse:
     """Handle the submit_developer_feedback service."""
     requested_entry_id = _get_optional_service_string(call, attr_entry_id)
     reports = collect_reports(hass, requested_entry_id=requested_entry_id)
@@ -262,7 +251,7 @@ async def async_handle_submit_developer_feedback(
         }
         if requested_entry_id is not None:
             result["requested_entry_id"] = requested_entry_id
-        return cast(dict[str, object], result)
+        return result
 
     feedback_payload = build_developer_feedback_payload(
         reports=reports,
@@ -286,7 +275,7 @@ async def async_handle_submit_developer_feedback(
     }
     if requested_entry_id is not None:
         success_result["requested_entry_id"] = requested_entry_id
-    return cast(dict[str, object], success_result)
+    return success_result
 
 
 # Error handling utilities
@@ -345,11 +334,12 @@ def build_sensor_history_result(
     sensor_device_id: str,
     mesh_type: str,
     result: DiagnosticsApiResponse,
-) -> dict[str, object]:
+) -> SensorHistoryResponse:
     """Build the common response payload for sensor-history diagnostics."""
-    return {
+    payload: SensorHistoryResponse = {
         "serial": serial,
         "sensor_device_id": sensor_device_id,
         "mesh_type": mesh_type,
         "result": result,
     }
+    return payload

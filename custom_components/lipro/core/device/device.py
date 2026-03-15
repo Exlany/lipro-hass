@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from time import monotonic
-from typing import Any
 
 from ...const.api import DEFAULT_MAX_FAN_GEAR
 from ...const.properties import MAX_COLOR_TEMP_KELVIN, MIN_COLOR_TEMP_KELVIN
@@ -13,11 +12,15 @@ from .device_factory import build_device_from_api_data
 from .extras import DeviceExtras
 from .state import DeviceState
 
+type DevicePropertyMap = dict[str, object]
+type DeviceExtraDataMap = dict[str, object]
+type OutletPowerInfo = dict[str, object]
+
 
 def _component_property(component_name: str, attr_name: str) -> property:
     """Create one explicit facade property backed by a composed helper."""
 
-    def _getter(self: LiproDevice) -> Any:
+    def _getter(self: LiproDevice) -> object:
         return getattr(getattr(self, component_name), attr_name)
 
     return property(_getter)
@@ -26,7 +29,7 @@ def _component_property(component_name: str, attr_name: str) -> property:
 def _component_method(component_name: str, method_name: str):
     """Create one explicit facade method backed by a composed helper."""
 
-    def _method(self: LiproDevice, *args: Any, **kwargs: Any) -> Any:
+    def _method(self: LiproDevice, *args: object, **kwargs: object) -> object:
         return getattr(getattr(self, component_name), method_name)(*args, **kwargs)
 
     _method.__name__ = method_name
@@ -47,8 +50,8 @@ class LiproDevice:
     is_group: bool = False
     product_id: int | None = None
     physical_model: str | None = None
-    properties: dict[str, Any] = field(default_factory=dict)
-    extra_data: dict[str, Any] = field(default_factory=dict)
+    properties: DevicePropertyMap = field(default_factory=dict)
+    extra_data: DeviceExtraDataMap = field(default_factory=dict)
     available: bool = True
     min_color_temp_kelvin: int = MIN_COLOR_TEMP_KELVIN
     max_color_temp_kelvin: int = MAX_COLOR_TEMP_KELVIN
@@ -64,7 +67,7 @@ class LiproDevice:
     _last_mqtt_update_at: float = field(
         default=0.0, init=False, repr=False, compare=False
     )
-    _outlet_power_info: dict[str, Any] | None = field(
+    _outlet_power_info: OutletPowerInfo | None = field(
         default=None, init=False, repr=False, compare=False
     )
 
@@ -179,7 +182,7 @@ class LiproDevice:
         return device_runtime.get_device_extras(self)
 
     @property
-    def outlet_power_info(self) -> dict[str, Any] | None:
+    def outlet_power_info(self) -> OutletPowerInfo | None:
         """Return the formal outlet-power primitive with legacy fallback."""
         if self._outlet_power_info is not None:
             return self._outlet_power_info
@@ -189,7 +192,7 @@ class LiproDevice:
         return None
 
     @outlet_power_info.setter
-    def outlet_power_info(self, value: dict[str, Any] | None) -> None:
+    def outlet_power_info(self, value: OutletPowerInfo | None) -> None:
         """Persist the formal outlet-power primitive and clear legacy side-car state."""
         self._outlet_power_info = None if value is None else dict(value)
         self.extra_data.pop("power_info", None)
@@ -209,12 +212,12 @@ class LiproDevice:
             return False
         return monotonic() - self._last_mqtt_update_at <= stale_window_seconds
 
-    def update_properties(self, properties: dict[str, Any]) -> None:
+    def update_properties(self, properties: DevicePropertyMap) -> None:
         """Merge normalized properties into the live facade state."""
         device_runtime.update_device_properties(self, properties)
 
     @classmethod
-    def from_api_data(cls, data: dict[str, Any]) -> LiproDevice:
+    def from_api_data(cls, data: DevicePropertyMap) -> LiproDevice:
         """Build a device facade from one raw API payload."""
         return build_device_from_api_data(cls, data)
 

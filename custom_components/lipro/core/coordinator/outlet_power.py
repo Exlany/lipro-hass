@@ -23,5 +23,5 @@ def apply_outlet_power_info(
     """Write outlet power payload to the formal device primitive when possible."""
     if device is None or not power_data:
         return False
-    device.outlet_power_info = power_data
+    device.outlet_power_info = dict(power_data)
     return device.outlet_power_info is not None

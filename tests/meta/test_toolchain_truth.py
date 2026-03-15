@@ -20,6 +20,7 @@ _PYPROJECT = _ROOT / "pyproject.toml"
 _PRE_COMMIT = _ROOT / ".pre-commit-config.yaml"
 _DEVCONTAINER = _ROOT / ".devcontainer.json"
 _CI_WORKFLOW = _ROOT / ".github" / "workflows" / "ci.yml"
+_RELEASE_WORKFLOW = _ROOT / ".github" / "workflows" / "release.yml"
 _DEVELOP_SCRIPT = _ROOT / "scripts" / "develop"
 _SETUP_PYTHON = "actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405"
 
@@ -52,6 +53,7 @@ def test_python_toolchain_truth_is_aligned_to_314() -> None:
     pre_commit = _load_yaml(_PRE_COMMIT)
     devcontainer = _load_devcontainer()
     ci = _load_yaml(_CI_WORKFLOW)
+    release = _load_yaml(_RELEASE_WORKFLOW)
 
     assert project["requires-python"] == ">=3.14.2"
     assert mypy["python_version"] == "3.14"
@@ -60,20 +62,21 @@ def test_python_toolchain_truth_is_aligned_to_314() -> None:
     assert devcontainer["image"].endswith("python:3.14")
 
     setup_python_versions: list[str] = []
-    jobs = ci["jobs"]
-    assert isinstance(jobs, dict)
-    for job in jobs.values():
-        assert isinstance(job, dict)
-        steps = job.get("steps", [])
-        assert isinstance(steps, list)
-        for step in steps:
-            if not isinstance(step, dict) or step.get("uses") != _SETUP_PYTHON:
-                continue
-            with_block = step.get("with")
-            assert isinstance(with_block, dict)
-            python_version = with_block.get("python-version")
-            assert python_version == "3.14"
-            setup_python_versions.append(python_version)
+    for workflow in (ci, release):
+        jobs = workflow["jobs"]
+        assert isinstance(jobs, dict)
+        for job in jobs.values():
+            assert isinstance(job, dict)
+            steps = job.get("steps", [])
+            assert isinstance(steps, list)
+            for step in steps:
+                if not isinstance(step, dict) or step.get("uses") != _SETUP_PYTHON:
+                    continue
+                with_block = step.get("with")
+                assert isinstance(with_block, dict)
+                python_version = with_block.get("python-version")
+                assert python_version == "3.14"
+                setup_python_versions.append(python_version)
 
     assert setup_python_versions
 

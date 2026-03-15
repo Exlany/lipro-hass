@@ -14,7 +14,7 @@ Key features:
 from __future__ import annotations
 
 from collections.abc import Callable
-from typing import TYPE_CHECKING, Any, Generic, TypeVar, overload
+from typing import TYPE_CHECKING, Generic, TypeVar, cast, overload
 
 if TYPE_CHECKING:
     from typing import Self
@@ -52,7 +52,7 @@ class DeviceAttr(Generic[T]):
         self,
         attr: str,
         *,
-        transform: Callable[[Any], T] | None = None,
+        transform: Callable[[object], T] | None = None,
     ) -> None:
         """Initialize device attribute descriptor.
 
@@ -90,7 +90,7 @@ class DeviceAttr(Generic[T]):
         value = _resolve_attr_path(obj.device, self.attr)
         if self.transform is not None:
             return self.transform(value)
-        return value  # type: ignore[return-value]
+        return cast(T, value)
 
 
 class ScaledBrightness(DeviceAttr[int | None]):
@@ -111,8 +111,10 @@ class ScaledBrightness(DeviceAttr[int | None]):
             attr: Device attribute path (default: "state.brightness")
         """
 
-        def scale_brightness(value: int) -> int:
+        def scale_brightness(value: object) -> int:
             """Scale 0-100 to 0-255 with clamping."""
+            if not isinstance(value, int):
+                return 0
             clamped = max(0, min(100, value))
             return round(clamped * 255 / 100)
 
@@ -139,7 +141,7 @@ class ConditionalAttr(DeviceAttr[T | None]):
         attr: str,
         *,
         capability: str,
-        transform: Callable[[Any], T] | None = None,
+        transform: Callable[[object], T] | None = None,
     ) -> None:
         """Initialize conditional attribute descriptor.
 

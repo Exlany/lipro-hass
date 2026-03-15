@@ -2,15 +2,15 @@
 
 from __future__ import annotations
 
-from collections.abc import Awaitable, Callable, Iterable
+from collections.abc import Awaitable, Callable, Iterable, Mapping
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, cast
 
 import voluptuous as vol
 
 from homeassistant.core import HomeAssistant, ServiceCall, SupportsResponse
 
-ServiceHandler = Callable[[HomeAssistant, ServiceCall], Awaitable[dict[str, Any]]]
+ServiceHandler = Callable[[HomeAssistant, ServiceCall], Awaitable[Mapping[str, object]]]
 
 
 @dataclass(frozen=True, slots=True)
@@ -36,13 +36,13 @@ def register_service(
     if registration.schema is not None:
         register_kwargs["schema"] = registration.schema
 
-    async def _handle(call: ServiceCall) -> dict[str, Any]:
-        return await registration.handler(hass, call)
+    async def _handle(call: ServiceCall) -> dict[str, object]:
+        return dict(await registration.handler(hass, call))
 
     hass.services.async_register(
         domain,
         registration.name,
-        _handle,
+        cast(Any, _handle),
         **register_kwargs,
     )
 

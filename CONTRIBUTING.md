@@ -52,6 +52,14 @@ Thank you for your interest in contributing to the Lipro Smart Home integration!
    Access Home Assistant at http://localhost:8123
    在 http://localhost:8123 访问 Home Assistant
 
+## Documentation & Maintainer Entry Points / 文档与维护入口
+
+- User / contributor troubleshooting: `docs/TROUBLESHOOTING.md`
+- Maintainer release flow: `docs/MAINTAINER_RELEASE_RUNBOOK.md`
+- Support routing and response expectations: `SUPPORT.md`
+- Private vulnerability disclosure: `SECURITY.md`
+- If you touch README / SUPPORT / SECURITY / `.github/*` / release workflow, update these entry points together and do not leave silent defer behind.
+
 ## Code Standards / 代码规范
 
 ### Linting and Formatting / 代码检查和格式化
@@ -116,7 +124,7 @@ Use the same command groups as GitHub Actions:
 - **benchmark**: `uv run pytest tests/benchmarks/ -v --benchmark-only --benchmark-json=.benchmarks/benchmark.json`；当前是 advisory observability lane，仅在性能敏感改动或手动对齐 `schedule` / `workflow_dispatch` 时需要
 - **shellcheck**: 若修改 `install.sh` / `scripts/*` shell 脚本，请运行 `shellcheck install.sh scripts/develop scripts/lint scripts/setup`（CI 的 `lint` job 也会执行）
 - **validate**: GitHub Actions 会额外运行 `HACS` 与 `Hassfest` 校验；若仓库或 fork 为 private，CI 会跳过 HACS validation，因为 HACS 只支持公开 GitHub 仓库；本地通常不必手动复刻，但提交前应确保仓库元数据仍符合这些约束
-- **release**: tag release 先复用 `.github/workflows/ci.yml`，再由 `.github/workflows/release.yml` 打包并发布资产；不要旁路门禁直接发版
+- **release**: tag release 先复用 `.github/workflows/ci.yml`，再由 `.github/workflows/release.yml` 从 `refs/tags/${RELEASE_TAG}` 打包并发布资产；维护者操作手册见 `docs/MAINTAINER_RELEASE_RUNBOOK.md`，不要旁路门禁直接发版
 
 ### Type Hints / 类型提示
 
@@ -242,8 +250,8 @@ Please follow `CODE_OF_CONDUCT.md` for community expectations.
 
 ## Support / 支持渠道
 
-See `SUPPORT.md` for usage questions, bug triage expectations, and security routing.
-关于使用问题、缺陷分流与安全披露，请参考 `SUPPORT.md`。
+See `docs/TROUBLESHOOTING.md` first, then `SUPPORT.md` for usage questions, bug triage expectations, and security routing.
+如需排障请先看 `docs/TROUBLESHOOTING.md`，再通过 `SUPPORT.md` 获取使用问题、缺陷分流与安全披露路径。
 
 ## Questions? / 有问题？
 

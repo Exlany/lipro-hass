@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 import asyncio
-from collections.abc import Awaitable, Callable
+from collections.abc import Awaitable, Callable, Iterable
 import functools
-from typing import Any, Protocol
+import logging
+from typing import Protocol, runtime_checkable
 
 from homeassistant.core import (
     CALLBACK_TYPE,
@@ -35,6 +36,21 @@ class _RefreshDevicesCoordinator(Protocol):
     device_refresh_service: _DeviceRefreshService
 
 
+@runtime_checkable
+class _DeviceRegistryEntryLike(Protocol):
+    """Device-registry surface used by reload listeners."""
+
+    identifiers: Iterable[object]
+    config_entries: Iterable[object]
+    disabled_by: object | None
+
+
+class _ConfigEntryCarrier(Protocol):
+    """Minimal device-like surface that exposes config entries."""
+
+    config_entries: Iterable[object]
+
+
 def _iter_runtime_entry_coordinators(
     hass: HomeAssistant,
     *,
@@ -59,7 +75,8 @@ async def async_handle_refresh_devices(
     attr_entry_id: str,
 ) -> RefreshDevicesResult:
     """Handle refresh_devices service call."""
-    requested_entry_id = call.data.get(attr_entry_id)
+    raw_entry_id = call.data.get(attr_entry_id)
+    requested_entry_id = raw_entry_id if isinstance(raw_entry_id, str) else None
     targets = _iter_runtime_entry_coordinators(
         hass,
         domain=domain,
@@ -78,15 +95,24 @@ async def async_handle_refresh_devices(
         await coordinator.device_refresh_service.async_refresh_devices()
         refreshed_entries += 1
 
-    result: RefreshDevicesResult = {"success": True, "refreshed_entries": refreshed_entries}
+    result: RefreshDevicesResult = {
+        "success": True,
+        "refreshed_entries": refreshed_entries,
+    }
     if requested_entry_id:
         result["requested_entry_id"] = requested_entry_id
     return result
 
 
-def _is_lipro_device_entry(device_entry: Any, *, domain: str) -> bool:
+def _is_lipro_device_entry(
+    device_entry: _DeviceRegistryEntryLike | object,
+    *,
+    domain: str,
+) -> bool:
     """Return True when a device-registry entry belongs to Lipro integration."""
-    for identifier in getattr(device_entry, "identifiers", set()):
+    if not isinstance(device_entry, _DeviceRegistryEntryLike):
+        return False
+    for identifier in device_entry.identifiers:
         if (
             isinstance(identifier, tuple)
             and len(identifier) == 2
@@ -102,11 +128,15 @@ def _iter_lipro_config_entry_ids_for_device(
     hass: HomeAssistant,
     *,
     domain: str,
-    device_entry: Any,
+    device_entry: _ConfigEntryCarrier | object,
 ) -> list[str]:
     """List Lipro config entries linked to one device-registry entry."""
+    config_entries = getattr(device_entry, "config_entries", None)
+    if not isinstance(config_entries, Iterable):
+        return []
+
     matched_entry_ids: list[str] = []
-    for entry_id in getattr(device_entry, "config_entries", set()):
+    for entry_id in config_entries:
         if not isinstance(entry_id, str) or not entry_id:
             continue
         config_entry = hass.config_entries.async_get_entry(entry_id)
@@ -120,17 +150,17 @@ def async_setup_device_registry_listener(
     hass: HomeAssistant,
     *,
     domain: str,
-    logger: Any,
-    reload_entry: Callable[[str], Awaitable[Any]],
+    logger: logging.Logger,
+    reload_entry: Callable[[str], Awaitable[object]],
 ) -> CALLBACK_TYPE:
     """Listen for Lipro device registry disable/enable changes and reload entries."""
-    pending_reload_tasks: dict[str, asyncio.Task[Any]] = {}
+    pending_reload_tasks: dict[str, asyncio.Task[None]] = {}
 
     async def _async_reload_entry(entry_id: str) -> None:
         """Reload one config entry."""
         await reload_entry(entry_id)
 
-    def _handle_reload_task_done(entry_id: str, task: asyncio.Task[Any]) -> None:
+    def _handle_reload_task_done(entry_id: str, task: asyncio.Task[None]) -> None:
         """Clear bookkeeping and surface task failures without leaking tasks."""
         pending_reload_tasks.pop(entry_id, None)
         if task.cancelled():
@@ -191,10 +221,7 @@ def async_setup_device_registry_listener(
             )
             task = hass.async_create_task(_async_reload_entry(entry_id))
             pending_reload_tasks[entry_id] = task
-
-            task.add_done_callback(
-                functools.partial(_handle_reload_task_done, entry_id)
-            )
+            task.add_done_callback(functools.partial(_handle_reload_task_done, entry_id))
 
     unsubscribe = hass.bus.async_listen(
         dr.EVENT_DEVICE_REGISTRY_UPDATED,

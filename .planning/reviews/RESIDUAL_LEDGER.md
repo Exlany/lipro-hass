@@ -184,4 +184,12 @@
 ## Phase 16 Residual Delta
 
 - `custom_components/lipro/services/execution.py` 的 coordinator 私有 auth seam 继续保持关闭；Phase 16 只允许把它记为正式 service execution facade，而不是 active residual / kill target。
-- active residual inventory 继续集中在 `_ClientBase` / helper mixin typing spine、`LiproMqttClient` legacy naming 与 helper-level compatibility envelope；codebase-map drift 不再被允许误导这条账本。
+- 本 phase 完成 second-pass audit 后，remaining residual inventory 仍集中在 `_ClientBase` / helper mixin typing spine、`LiproMqttClient` legacy naming、`get_auth_data()` fallback 与 helper-level compatibility envelope；不再允许无 owner / 无 delete gate / 无 evidence 的 silent carry-forward。
+- Final closeout audit (`2026-03-15`) recorded `Any=711`、`except Exception=36`、`type: ignore=12`、dead pytest markers `=0`；remaining hits均落在既有 owner / delete gate 约束内，没有新的无主高风险残留。
+
+| Item | Disposition | Owner | Phase | Delete gate | Evidence |
+|------|-------------|-------|-------|-------------|----------|
+| `_ClientBase` / `_Client*Mixin` typing spine | 保留为本地 residual | `core/api` | Phase 16 closeout | 当 helper consumers 全部收敛到显式 typed helpers，且不再存在 legacy mixin import 需求时删除 | `custom_components/lipro/core/api/client_base.py`, `.planning/reviews/KILL_LIST.md`, `.planning/baseline/PUBLIC_SURFACES.md` |
+| `LiproMqttClient` legacy transport name | 保留为局部 legacy naming residual | `core/mqtt` | Phase 16 closeout | 当 transport-facing tests / imports 不再需要 concrete transport legacy name 时重命名/退场 | `custom_components/lipro/core/mqtt/mqtt_client.py`, `.planning/reviews/KILL_LIST.md` |
+| `get_auth_data()` fallback in `persist_entry_tokens_if_changed()` | 保留为狭义 compatibility fallback | `entry_auth` | Phase 16 closeout | 当所有调用者 / test doubles 都以 `AuthSessionSnapshot` 为唯一正式契约时删除 | `custom_components/lipro/entry_auth.py`, `tests/core/test_init.py` |
+| helper-level compatibility envelope (`power_service.py`) | 保留为低风险 helper-level compatibility | `core/api` | Phase 16 closeout | 当 power payload shape 只剩单一正式 contract，且 outlet-power callers 不再需要旧 shape 容忍时删除 | `custom_components/lipro/core/api/power_service.py`, `custom_components/lipro/core/coordinator/outlet_power.py` |

@@ -1,6 +1,6 @@
 # Project: Lipro-HASS North Star Evolution v1.1
 
-**Status:** Active — `Phase 16` 已规划完成，execution pending
+**Status:** Active — `Phase 16` 已完成，milestone closeout pending
 **Goal:** 把 `protocol truth`、`architecture policy`、`runtime telemetry export`、`replay evidence`、`ai-debug evidence pack`、`residual surface closure`、`api drift isolation / core-boundary prep`、`control router / runtime-access / OTA / governance coherence`、`type contract alignment / residual cleanup / contributor governance hygiene`、`explicit domain surface / governance guard hardening / hotspot boundary decomposition`、`legacy stack final closure / API spine demolition / governance truth consolidation`、`support feedback contract hardening / governance truth repair / maintainability follow-through` 与 `post-audit truth alignment / hotspot decomposition / residual endgame` 十三条演进线统一纳入北极星主链，进入“可保真、可观测、可仲裁、可回放、可给 AI 调试/分析、可持续收尾”的下一里程碑。
 
 ## Why This Milestone Exists
@@ -85,13 +85,12 @@
 - `PROJECT / ROADMAP / STATE / Phase 15 assets`、README / SUPPORT / SECURITY / bug template 与 source-path guards 已讲同一条完成态故事线，不再容忍死链、版本漂移或 phase-status drift。
 - support hotspot typing narrowing、tooling/security arbitration 与 residual locality governance 已完成收口；`service_router.py` 仍保持 public handler home，未重开第二条正式主链。
 
-### 11. Phase 16 后审计收口线已规划
+### 11. Phase 16 后审计收口线已完成
 
-- `Phase 16` 已按 `3 waves / 6 plans` 落盘，目标是把终极审阅仍然成立的问题收束为一条不偏离北极星主链的收尾执行线。
-- **Wave 1**：先校准 governance truth、codebase-map policy、toolchain truth 与 local DX contract，消除 Phase 15 完成态与 post-audit 规划态之间的叙事漂移。
-- **Wave 2**：聚焦 control/service/config-flow 与 protocol/runtime hotspots，继续拆薄 `service_router.py`、`config_flow.py`、`client.py`、`facade.py`、`coordinator.py`，同步收紧类型与异常语义。
-- **Wave 3**：收口 device/capability/entity/OTA 边界、平台测试分层、troubleshooting / release runbook / contributor navigation 等开源维护路径。
-- `Phase 16` 明确禁止：重开第二条正式主链、无 gate rename campaign、与北极星无关的大规模换栈、把 residual cleanup 包装成物理重命名工程。
+- `Phase 16` 的 `3 waves / 6 plans` 已全部执行完成：governance/toolchain truth、control/service contract、protocol/runtime hardening、domain/entity/OTA rationalization 与 docs/test-layer closeout 已统一落地。
+- 第二轮全仓审计已执行并回写到 `VERIFICATION_MATRIX.md`、`RESIDUAL_LEDGER.md` 与 `KILL_LIST.md`；remaining residual 只允许以 owner/delete-gate/evidence 清晰的本地低风险形态存在。
+- `docs/TROUBLESHOOTING.md` 与 `docs/MAINTAINER_RELEASE_RUNBOOK.md` 已成为 contributor / maintainer 的唯一正式入口；`release.yml` 继续复用 CI 并从 tag ref 构建资产。
+- `Phase 16` 的最终裁决仍然遵守同一禁令：不重开第二条正式主链、不做无 gate rename campaign、不把 residual cleanup 包装成物理重命名工程。
 
 ## Architectural Stance
 
@@ -298,4 +297,4 @@ v1.1 进入执行期后，新增演进必须额外满足：
 
 - 当前 phase 资产默认是执行工作区输入；只有被 `ROADMAP.md`、baseline docs 或 review ledgers 显式提升时，才成为长期治理真源。
 
-*Last updated: 2026-03-15 after Phase 16 Wave 1 execution and Wave 2 local hardening*
+*Last updated: 2026-03-15 after Phase 16 closeout execution and second-pass audit*

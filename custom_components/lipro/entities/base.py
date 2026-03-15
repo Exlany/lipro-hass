@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections.abc import Mapping
 import logging
 from time import monotonic
-from typing import TYPE_CHECKING, Any, Final, cast
+from typing import TYPE_CHECKING, Any, Final
 
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
@@ -53,7 +53,7 @@ class LiproEntity(CoordinatorEntity[Any]):
                 Falls back to class attribute _entity_suffix if not provided.
 
         """
-        super().__init__(cast(Any, coordinator))
+        super().__init__(coordinator)
         self._device = device
         self._entity_suffix = entity_suffix or getattr(type(self), "_entity_suffix", "")
         self._debouncer: Debouncer | None = None
@@ -141,7 +141,7 @@ class LiproEntity(CoordinatorEntity[Any]):
 
     @staticmethod
     def _normalize_property_map(
-        properties: Mapping[str, Any],
+        properties: Mapping[str, object],
     ) -> tuple[list[dict[str, str]], dict[str, str]]:
         """Convert a property mapping to API payload and optimistic state."""
         property_dict = {key: str(value) for key, value in properties.items()}
@@ -150,9 +150,9 @@ class LiproEntity(CoordinatorEntity[Any]):
 
     async def async_change_state(
         self,
-        properties: Mapping[str, Any],
+        properties: Mapping[str, object],
         *,
-        optimistic_state: Mapping[str, Any] | None = None,
+        optimistic_state: Mapping[str, object] | None = None,
         debounced: bool = False,
     ) -> bool | None:
         """Send a CHANGE_STATE command with normalized property payload.
@@ -168,8 +168,9 @@ class LiproEntity(CoordinatorEntity[Any]):
 
         """
         payload, default_optimistic = self._normalize_property_map(properties)
+        optimistic: dict[str, object]
         if optimistic_state is None:
-            optimistic = default_optimistic
+            optimistic = dict(default_optimistic)
         else:
             optimistic = {key: str(value) for key, value in optimistic_state.items()}
 
@@ -191,7 +192,7 @@ class LiproEntity(CoordinatorEntity[Any]):
         self,
         command: str,
         properties: list[dict[str, str]] | None = None,
-        optimistic_state: dict[str, Any] | None = None,
+        optimistic_state: dict[str, object] | None = None,
     ) -> bool:
         """Send a command to the device with optimistic state update.
 
@@ -234,7 +235,7 @@ class LiproEntity(CoordinatorEntity[Any]):
         self,
         command: str,
         properties: list[dict[str, str]] | None = None,
-        optimistic_state: dict[str, Any] | None = None,
+        optimistic_state: dict[str, object] | None = None,
     ) -> None:
         """Send a command with debouncing for slider controls.
 
@@ -282,7 +283,7 @@ class LiproEntity(CoordinatorEntity[Any]):
         self,
         command: str,
         properties: list[dict[str, str]] | None,
-        optimistic_state: dict[str, Any] | None,
+        optimistic_state: dict[str, object] | None,
     ) -> None:
         """Internal method to send command (called by debouncer).
 

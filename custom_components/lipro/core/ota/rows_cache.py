@@ -6,14 +6,15 @@ import asyncio
 from collections.abc import Callable, Coroutine
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from typing import Any
 
-from .row_selector import OtaDeviceFingerprint, arbitrate_rows
+from .row_selector import OtaDeviceFingerprint, OtaRow, arbitrate_rows
 
 OTA_SHARED_ROWS_CACHE_TTL = timedelta(minutes=10)
 OTA_SHARED_ROWS_CACHE_MAX_ENTRIES = 256
 
+type OtaRows = list[OtaRow]
 type OtaRowsCacheKey = tuple[object, str, str, int]
+type OtaRowsFetcher = Callable[[], Coroutine[object, object, OtaRows]]
 
 
 @dataclass(slots=True)
@@ -21,11 +22,11 @@ class OtaRowsCacheEntry:
     """Shared OTA rows cache entry for model-scoped lookups."""
 
     time: datetime
-    rows: list[dict[str, Any]]
+    rows: OtaRows
 
 
 _OTA_ROWS_CACHE: dict[OtaRowsCacheKey, OtaRowsCacheEntry] = {}
-_OTA_ROWS_INFLIGHT: dict[OtaRowsCacheKey, asyncio.Task[list[dict[str, Any]]]] = {}
+_OTA_ROWS_INFLIGHT: dict[OtaRowsCacheKey, asyncio.Task[OtaRows]] = {}
 _OTA_ROWS_CACHE_LOCK = asyncio.Lock()
 
 
@@ -52,7 +53,7 @@ def build_ota_rows_cache_key(
     )
 
 
-def normalize_ota_rows(rows: object) -> list[dict[str, object]]:
+def normalize_ota_rows(rows: object) -> OtaRows:
     """Normalize OTA cloud payloads into a stable list-of-dicts shape."""
     if not isinstance(rows, list):
         return []
@@ -95,9 +96,9 @@ def prune_ota_rows_cache(now: datetime) -> None:
 async def async_get_rows_with_shared_cache(
     cache_key: OtaRowsCacheKey,
     *,
-    fetcher: Callable[[], Coroutine[Any, Any, list[dict[str, Any]]]],
+    fetcher: OtaRowsFetcher,
     now: Callable[[], datetime],
-) -> tuple[list[dict[str, Any]], bool]:
+) -> tuple[OtaRows, bool]:
     """Query OTA rows with model-scoped shared cache and in-flight dedup."""
     now_time = now()
     cached = _OTA_ROWS_CACHE.get(cache_key)
@@ -105,7 +106,7 @@ async def async_get_rows_with_shared_cache(
         return cached.rows, True
 
     creator = False
-    task: asyncio.Task[list[dict[str, Any]]]
+    task: asyncio.Task[OtaRows]
     async with _OTA_ROWS_CACHE_LOCK:
         now_time = now()
         cached = _OTA_ROWS_CACHE.get(cache_key)
@@ -139,10 +140,10 @@ async def async_get_rows_with_shared_cache(
 async def async_select_row_with_shared_cache(
     cache_key: OtaRowsCacheKey,
     *,
-    fetcher: Callable[[], Coroutine[Any, Any, list[dict[str, Any]]]],
+    fetcher: OtaRowsFetcher,
     now: Callable[[], datetime],
     fingerprint: OtaDeviceFingerprint,
-) -> dict[str, Any] | None:
+) -> OtaRow | None:
     """Select one OTA row, bypassing cache when it points at another device."""
     rows, from_cache = await async_get_rows_with_shared_cache(
         cache_key,

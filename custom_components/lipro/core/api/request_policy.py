@@ -4,10 +4,9 @@ from __future__ import annotations
 
 import asyncio
 from collections.abc import Awaitable, Callable
-from importlib import import_module
 import logging
 from time import monotonic
-from typing import Final, Protocol, cast
+from typing import Final, Protocol
 
 from ...const.api import (
     ERROR_DEVICE_BUSY,
@@ -57,8 +56,9 @@ class IoTBusyRetryService(Protocol):
 
 
 def _get_iot_busy_retry_service() -> IoTBusyRetryService:
-    module = import_module("custom_components.lipro.core.api.command_api_service")
-    return cast(IoTBusyRetryService, module.iot_request_with_busy_retry)
+    from .command_api_service import iot_request_with_busy_retry  # noqa: PLC0415
+
+    return iot_request_with_busy_retry
 
 
 def is_change_state_command(command: str) -> bool:

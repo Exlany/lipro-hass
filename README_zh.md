@@ -291,45 +291,42 @@ data:
 
 ## 故障排除
 
-### 认证失败
+规范排障入口：`docs/TROUBLESHOOTING.md`。
 
-- 确保手机号和密码正确
-- 检查 Lipro 官方 App 是否能正常登录
-- 如果密码已更改，使用重新配置功能更新密码
+### 快速检查
 
-### 设备不可用
+#### 认证失败
 
-- 检查设备是否在线
-- 尝试在 Lipro App 中操作设备
-- 重新加载集成
-- 检查网络连接
+- 先确认手机号、密码在 Lipro 官方 App 中仍可正常使用。
+- 若密码已变更，请使用重新配置/更新凭据，不要直接删除集成。
+- 若 reauth 反复失败，请附上 diagnostics 与脱敏后的 developer report。
 
-### 状态更新延迟
+#### 设备不可用 / 未显示
 
-- 这是云端轮询集成的正常现象
-- 可以在选项中减少更新间隔（最小 10 秒）
-- 操作后会立即进行乐观更新
+- 确认设备已在 Lipro App 中存在。
+- 新增硬件后可重新加载集成，或执行 `lipro.refresh_devices`。
+- 网关设备只承担桥接角色，不会直接创建 Home Assistant 实体。
 
-### 设备未显示
+#### 状态更新延迟 / MQTT 漂移
 
-- 确保设备已在 Lipro App 中配对
-- 重新加载集成以同步新设备
-- 检查日志中是否有错误信息
+- MQTT 推送是 best effort，轮询仍是最终兜底。
+- 如有需要，可在选项中降低轮询间隔（最小 10 秒）。
+- 若状态持续漂移，请说明问题更像云端轮询、MQTT 推送，还是实体投影异常。
 
-### 诊断信息
+### 诊断与安全分享
 
-如需提交问题报告，请下载诊断信息：
-
-1. 进入 设置 → 设备与服务 → Lipro
-2. 点击三个点菜单 → 下载诊断信息
-3. 诊断信息已自动脱敏，可安全分享
+1. 进入 设置 → 设备与服务 → Lipro。
+2. 点击三个点菜单 → 下载诊断信息。
+3. 诊断信息已自动脱敏，可安全分享。
 
 脱敏范围包含账号凭据/Token（`phone`, `password`, `access_token`, `refresh_token`）、云端/设备标识（`userId`/`bizId`, `serial`/`deviceId`/`iotDeviceId`）以及网络标识（WiFi SSID/MAC/IP）。
 
-如需匿名分享/上报，可先在本地预览相关载荷：
+如需更深层调试，可先在本地预览或上报以下载荷：
 - `lipro.get_developer_report` - 本地调试报告；保留 `iotName` 等供应商诊断标识与本地标签，便于识别实测设备
 - `lipro.submit_developer_feedback` - 上传契约；保留 `iotName`，但会匿名化设备/房间/面板/红外资产名称等用户自定义标签
 - `lipro.get_anonymous_share_report` - 脱敏匿名分享报告
+
+另见：`SUPPORT.md`（问题分流）、`SECURITY.md`（私密漏洞披露）与 `docs/MAINTAINER_RELEASE_RUNBOOK.md`（维护者发版问题）。
 
 ## 免责声明
 
@@ -347,6 +344,8 @@ data:
 - `docs/README.md` - 文档总索引与历史归档说明
 - `docs/NORTH_STAR_TARGET_ARCHITECTURE.md` - 目标架构与权威基线
 - `docs/developer_architecture.md` - 当前代码布局与 runtime/control/protocol 主链说明
+- `docs/TROUBLESHOOTING.md` - 规范排障与诊断入口
+- `docs/MAINTAINER_RELEASE_RUNBOOK.md` - 维护者发版 / 打包 / 标签流程
 - `docs/adr/README.md` - 长期架构决策与取舍记录
 - `CONTRIBUTING.md` - 贡献流程、CI 契约与评审预期
 - `SUPPORT.md` - 支持路由、分流预期与提问方式

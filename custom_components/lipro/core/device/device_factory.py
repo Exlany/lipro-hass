@@ -38,7 +38,7 @@ def build_device_from_api_data(
         data.get("isGroup", False),
         context="API",
     ) or coerce_boollike(data.get("group", False), context="API")
-    extra_data = (
+    extra_data: dict[str, object] = (
         {"is_ir_remote": coerce_boollike(data.get("isIrRemote"), context="API")}
         if "isIrRemote" in data
         else {}

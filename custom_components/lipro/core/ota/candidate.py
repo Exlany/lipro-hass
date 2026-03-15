@@ -2,10 +2,9 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 import logging
-from typing import Any
 
 from .manifest import (
     build_manifest_type_candidates,
@@ -53,6 +52,8 @@ _COMMAND_CONTAINER_KEYS = (
 _COMMAND_KEYS = ("command", "cmd", "name")
 _COMMAND_PROPERTIES_KEYS = ("properties", "params", "arguments", "payload")
 
+type OtaRow = dict[str, object]
+type OtaCommandProperty = dict[str, str]
 type FirmwareManifestVersions = tuple[frozenset[str], dict[str, frozenset[str]]]
 
 
@@ -61,7 +62,7 @@ class _InstallCommand:
     """Normalized install command payload."""
 
     command: str
-    properties: list[dict[str, str]] | None
+    properties: list[OtaCommandProperty] | None
 
 
 @dataclass(slots=True)
@@ -116,7 +117,7 @@ def _build_manifest_truth(
 
 
 def build_candidate(
-    row: dict[str, Any] | None,
+    row: Mapping[str, object] | None,
     *,
     device_firmware_version: str | None,
     device_iot_name: str | None,
@@ -280,7 +281,7 @@ def evaluate_install(
 
 
 def resolve_latest_version(
-    row: dict[str, Any] | None,
+    row: Mapping[str, object] | None,
     installed: str | None,
 ) -> str | None:
     """Resolve latest firmware version from OTA row."""
@@ -298,7 +299,7 @@ def resolve_latest_version(
 
 
 def resolve_update_available(
-    row: dict[str, Any] | None,
+    row: Mapping[str, object] | None,
     *,
     installed: str | None,
     latest: str | None,
@@ -329,7 +330,7 @@ def resolve_update_available(
 
 
 def resolve_certification(
-    row: dict[str, Any] | None,
+    row: Mapping[str, object] | None,
     *,
     installed: str | None,
     latest: str | None,
@@ -358,7 +359,7 @@ def resolve_certification(
 
 
 def resolve_local_manifest_certification(
-    row: dict[str, Any] | None,
+    row: Mapping[str, object] | None,
     *,
     installed: str | None,
     latest: str | None,
@@ -386,7 +387,7 @@ def resolve_local_manifest_certification(
 
 
 def resolve_inline_certification(
-    row: dict[str, Any] | None,
+    row: Mapping[str, object] | None,
     *,
     installed: str | None,
     latest: str | None,

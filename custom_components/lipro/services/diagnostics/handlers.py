@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 import logging
-from typing import NoReturn, cast
+from typing import NoReturn
 
 from homeassistant.core import HomeAssistant, ServiceCall
 
@@ -29,7 +29,7 @@ from .helpers import (
     _get_required_service_string,
 )
 from .types import (
-    CapabilityPayload,
+    CapabilityResponse,
     DiagnosticsCoordinator,
     DiagnosticsDevice,
     GetDeviceAndCoordinator,
@@ -38,6 +38,7 @@ from .types import (
     QueryCommandResultResponse,
     RuntimeCoordinatorIterator,
     SensorHistoryClientMethod,
+    SensorHistoryResponse,
     SensorHistoryResultBuilder,
 )
 
@@ -68,7 +69,7 @@ async def _async_query_command_result_with_optional_polling(
     max_attempts: int,
     time_budget_seconds: float,
     raise_service_error: ServiceErrorRaiser,
-) -> dict[str, object]:
+) -> QueryCommandResultResponse:
     """Query command-result diagnostics with bounded polling."""
     retry_delays_seconds = build_progressive_retry_delays(
         base_delay_seconds=_QUERY_COMMAND_RESULT_DIAGNOSTIC_BASE_DELAY_SECONDS,
@@ -133,7 +134,7 @@ async def _async_query_command_result_with_optional_polling(
     last_error_payload = _build_last_error_payload(last_error)
     if result is None and last_error_payload is not None:
         response["last_error"] = last_error_payload
-    return cast(dict[str, object], response)
+    return response
 
 
 async def async_handle_query_command_result(
@@ -145,7 +146,7 @@ async def async_handle_query_command_result(
     attr_max_attempts: str,
     attr_time_budget_seconds: str,
     raise_service_error: ServiceErrorRaiser,
-) -> dict[str, object]:
+) -> QueryCommandResultResponse:
     """Handle the query_command_result service."""
     device, coordinator = await get_device_and_coordinator(hass, call)
     return await _async_query_command_result_with_optional_polling(
@@ -173,7 +174,7 @@ async def async_handle_get_city(
     iter_runtime_coordinators: RuntimeCoordinatorIterator,
     raise_optional_error: Callable[[str, LiproApiError], NoReturn],
     service_get_city: str,
-) -> dict[str, object]:
+) -> CapabilityResponse:
     """Handle the get_city service."""
     del call
     has_result, result, last_err = await _async_get_first_coordinator_capability_result(
@@ -181,8 +182,8 @@ async def async_handle_get_city(
         capability="get_city",
         collector=lambda coordinator: coordinator.async_get_city(),
     )
-    if has_result:
-        return {"result": cast(CapabilityPayload, result)}
+    if has_result and result is not None:
+        return {"result": result}
     if last_err is not None:
         raise_optional_error(service_get_city, last_err)
     return {"result": {}}
@@ -195,7 +196,7 @@ async def async_handle_query_user_cloud(
     iter_runtime_coordinators: RuntimeCoordinatorIterator,
     raise_optional_error: Callable[[str, LiproApiError], NoReturn],
     service_query_user_cloud: str,
-) -> dict[str, object]:
+) -> CapabilityResponse:
     """Handle the query_user_cloud service."""
     del call
     has_result, result, last_err = await _async_get_first_coordinator_capability_result(
@@ -203,8 +204,8 @@ async def async_handle_query_user_cloud(
         capability="query_user_cloud",
         collector=lambda coordinator: coordinator.async_query_user_cloud(),
     )
-    if has_result:
-        return {"result": cast(CapabilityPayload, result)}
+    if has_result and result is not None:
+        return {"result": result}
     if last_err is not None:
         raise_optional_error(service_query_user_cloud, last_err)
     return {"result": {}}
@@ -221,7 +222,7 @@ async def _async_handle_fetch_sensor_history(
     attr_mesh_type: str,
     service_name: str,
     get_client_method: Callable[[DiagnosticsCoordinator], SensorHistoryClientMethod],
-) -> dict[str, object]:
+) -> SensorHistoryResponse:
     """Shared handler for sensor-history diagnostics services."""
     device, coordinator = await get_device_and_coordinator(hass, call)
     sensor_device_id = _get_required_service_string(call, attr_sensor_device_id)
@@ -253,7 +254,7 @@ async def async_handle_fetch_body_sensor_history(
     attr_sensor_device_id: str,
     attr_mesh_type: str,
     service_fetch_body_sensor_history: str,
-) -> dict[str, object]:
+) -> SensorHistoryResponse:
     """Handle the fetch_body_sensor_history service."""
     return await _async_handle_fetch_sensor_history(
         hass,
@@ -264,7 +265,9 @@ async def async_handle_fetch_body_sensor_history(
         attr_sensor_device_id=attr_sensor_device_id,
         attr_mesh_type=attr_mesh_type,
         service_name=service_fetch_body_sensor_history,
-        get_client_method=lambda coordinator: coordinator.async_fetch_body_sensor_history,
+        get_client_method=lambda coordinator: (
+            coordinator.async_fetch_body_sensor_history
+        ),
     )
 
 
@@ -278,7 +281,7 @@ async def async_handle_fetch_door_sensor_history(
     attr_sensor_device_id: str,
     attr_mesh_type: str,
     service_fetch_door_sensor_history: str,
-) -> dict[str, object]:
+) -> SensorHistoryResponse:
     """Handle the fetch_door_sensor_history service."""
     return await _async_handle_fetch_sensor_history(
         hass,
@@ -289,5 +292,7 @@ async def async_handle_fetch_door_sensor_history(
         attr_sensor_device_id=attr_sensor_device_id,
         attr_mesh_type=attr_mesh_type,
         service_name=service_fetch_door_sensor_history,
-        get_client_method=lambda coordinator: coordinator.async_fetch_door_sensor_history,
+        get_client_method=lambda coordinator: (
+            coordinator.async_fetch_door_sensor_history
+        ),
     )

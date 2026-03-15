@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import Any
 import uuid
 
 import voluptuous as vol
@@ -148,7 +147,7 @@ class LiproConfigFlow(ConfigFlow, domain=DOMAIN):
 
     async def async_step_user(
         self,
-        user_input: dict[str, Any] | None = None,
+        user_input: dict[str, object] | None = None,
     ) -> ConfigFlowResult:
         """Handle the initial step."""
         errors: dict[str, str] = {}
@@ -210,13 +209,13 @@ class LiproConfigFlow(ConfigFlow, domain=DOMAIN):
             errors=errors,
         )
 
-    async def async_step_reauth(self, entry_data: dict[str, Any]) -> ConfigFlowResult:
+    async def async_step_reauth(self, entry_data: dict[str, object]) -> ConfigFlowResult:
         """Handle reauthorization."""
         return await self.async_step_reauth_confirm()
 
     async def async_step_reauth_confirm(
         self,
-        user_input: dict[str, Any] | None = None,
+        user_input: dict[str, object] | None = None,
     ) -> ConfigFlowResult:
         """Handle reauthorization confirmation."""
         errors: dict[str, str] = {}
@@ -301,7 +300,7 @@ class LiproConfigFlow(ConfigFlow, domain=DOMAIN):
 
     async def async_step_reconfigure(
         self,
-        user_input: dict[str, Any] | None = None,
+        user_input: dict[str, object] | None = None,
     ) -> ConfigFlowResult:
         """Handle reconfiguration."""
         errors: dict[str, str] = {}

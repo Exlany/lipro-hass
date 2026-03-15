@@ -23,6 +23,8 @@ _README_ZH = _ROOT / "README_zh.md"
 _CONTRIBUTING = _ROOT / "CONTRIBUTING.md"
 _SUPPORT = _ROOT / "SUPPORT.md"
 _SECURITY = _ROOT / "SECURITY.md"
+_TROUBLESHOOTING = _ROOT / "docs" / "TROUBLESHOOTING.md"
+_RUNBOOK = _ROOT / "docs" / "MAINTAINER_RELEASE_RUNBOOK.md"
 _CI_WORKFLOW = _ROOT / ".github" / "workflows" / "ci.yml"
 _PHASE_15_PRD = (
     _ROOT
@@ -129,6 +131,8 @@ def test_public_docs_track_homeassistant_min_version() -> None:
         _CONTRIBUTING,
         _SUPPORT,
         _SECURITY,
+        _TROUBLESHOOTING,
+        _RUNBOOK,
         _PHASE_15_PRD,
         _PHASE_15_CONTEXT,
     ):
@@ -137,5 +141,5 @@ def test_public_docs_track_homeassistant_min_version() -> None:
 
 def test_private_repo_hacs_caveat_is_consistent() -> None:
     """Docs and CI should say the same thing about private-repo HACS validation."""
-    for path in (_README, _README_ZH, _CONTRIBUTING, _SUPPORT, _SECURITY, _BUG_TEMPLATE, _CI_WORKFLOW):
+    for path in (_README, _README_ZH, _CONTRIBUTING, _SUPPORT, _SECURITY, _TROUBLESHOOTING, _RUNBOOK, _BUG_TEMPLATE, _CI_WORKFLOW):
         _assert_contains_private_repo_hacs_caveat(path)

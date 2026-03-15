@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 import re
-from typing import Any, Final, cast
+from typing import Final, cast
 
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
@@ -18,7 +18,11 @@ from ..services.command import (
     DeviceAndCoordinatorGetter,
     async_handle_send_command as _async_handle_send_command_service,
 )
-from ..services.contracts import ServicePropertySummary
+from ..services.contracts import (
+    RefreshDevicesResult,
+    SendCommandResult,
+    ServicePropertySummary,
+)
 from ..services.device_lookup import (
     get_device_and_coordinator as _get_device_and_coordinator_service,
 )
@@ -32,6 +36,13 @@ from ..services.diagnostics import (
     async_handle_query_command_result as _async_handle_query_command_result_service,
     async_handle_query_user_cloud as _async_handle_query_user_cloud_service,
     async_handle_submit_developer_feedback as _async_handle_submit_developer_feedback_service,
+)
+from ..services.diagnostics.types import (
+    CapabilityResponse,
+    DeveloperFeedbackResponse,
+    DeveloperReportResponse,
+    QueryCommandResultResponse,
+    SensorHistoryResponse,
 )
 from ..services.errors import (
     raise_service_error as _raise_service_error,
@@ -47,6 +58,7 @@ from ..services.schedule import (
 )
 from ..services.share import (
     AnonymousShareManagerFactory as ShareAnonymousShareManagerFactory,
+    ShareServiceResponse,
     async_handle_get_anonymous_share_report as _async_handle_get_anonymous_share_report_service,
     async_handle_submit_anonymous_share as _async_handle_submit_anonymous_share_service,
 )
@@ -146,30 +158,28 @@ async def _get_device_and_coordinator(
 
 async def async_handle_send_command(
     hass: HomeAssistant, call: ServiceCall
-) -> dict[str, Any]:
+) -> SendCommandResult:
     """Handle the send_command service call."""
-    return dict(
-        await _async_handle_send_command_service(
-            hass,
-            call,
-            get_device_and_coordinator=cast(
-                DeviceAndCoordinatorGetter, _get_device_and_coordinator
-            ),
-            summarize_service_properties=_summarize_service_properties,
-            log_send_command_call=_log_send_command_call,
-            resolve_command_failure_translation_key=_resolve_command_failure_translation_key,
-            raise_service_error=_raise_service_error,
-            logger=_LOGGER,
-            attr_command=_contracts.ATTR_COMMAND,
-            attr_properties=_contracts.ATTR_PROPERTIES,
-            attr_device_id=_contracts.ATTR_DEVICE_ID,
-        )
+    return await _async_handle_send_command_service(
+        hass,
+        call,
+        get_device_and_coordinator=cast(
+            DeviceAndCoordinatorGetter, _get_device_and_coordinator
+        ),
+        summarize_service_properties=_summarize_service_properties,
+        log_send_command_call=_log_send_command_call,
+        resolve_command_failure_translation_key=_resolve_command_failure_translation_key,
+        raise_service_error=_raise_service_error,
+        logger=_LOGGER,
+        attr_command=_contracts.ATTR_COMMAND,
+        attr_properties=_contracts.ATTR_PROPERTIES,
+        attr_device_id=_contracts.ATTR_DEVICE_ID,
     )
 
 
 async def async_handle_get_schedules(
     hass: HomeAssistant, call: ServiceCall
-) -> dict[str, Any]:
+) -> dict[str, object]:
     """Handle the get_schedules service call."""
     return await _async_handle_get_schedules_service(
         hass,
@@ -182,7 +192,7 @@ async def async_handle_get_schedules(
 
 async def async_handle_add_schedule(
     hass: HomeAssistant, call: ServiceCall
-) -> dict[str, Any]:
+) -> dict[str, object]:
     """Handle the add_schedule service call."""
     return await _async_handle_add_schedule_service(
         hass,
@@ -199,7 +209,7 @@ async def async_handle_add_schedule(
 
 async def async_handle_delete_schedules(
     hass: HomeAssistant, call: ServiceCall
-) -> dict[str, Any]:
+) -> dict[str, object]:
     """Handle the delete_schedules service call."""
     return await _async_handle_delete_schedules_service(
         hass,
@@ -213,7 +223,7 @@ async def async_handle_delete_schedules(
 
 async def async_handle_submit_anonymous_share(
     hass: HomeAssistant, call: ServiceCall
-) -> dict[str, Any]:
+) -> ShareServiceResponse:
     """Handle the submit_anonymous_share service call."""
     return await _async_handle_submit_anonymous_share_service(
         hass,
@@ -230,7 +240,7 @@ async def async_handle_submit_anonymous_share(
 
 async def async_handle_get_anonymous_share_report(
     hass: HomeAssistant, call: ServiceCall
-) -> dict[str, Any]:
+) -> ShareServiceResponse:
     """Handle the get_anonymous_share_report service call."""
     return await _async_handle_get_anonymous_share_report_service(
         hass,
@@ -244,7 +254,7 @@ async def async_handle_get_anonymous_share_report(
 
 async def async_handle_get_developer_report(
     hass: HomeAssistant, call: ServiceCall
-) -> dict[str, Any]:
+) -> DeveloperReportResponse:
     """Handle the get_developer_report service call."""
     return await _async_handle_get_developer_report_service(
         hass,
@@ -256,7 +266,7 @@ async def async_handle_get_developer_report(
 
 async def async_handle_submit_developer_feedback(
     hass: HomeAssistant, call: ServiceCall
-) -> dict[str, Any]:
+) -> DeveloperFeedbackResponse:
     """Handle the submit_developer_feedback service call."""
     return await _async_handle_submit_developer_feedback_service(
         hass,
@@ -274,7 +284,7 @@ async def async_handle_submit_developer_feedback(
 
 async def async_handle_query_command_result(
     hass: HomeAssistant, call: ServiceCall
-) -> dict[str, Any]:
+) -> QueryCommandResultResponse:
     """Developer-only service: query command result status by msgSn."""
     return await _async_handle_query_command_result_service(
         hass,
@@ -289,7 +299,7 @@ async def async_handle_query_command_result(
 
 async def async_handle_get_city(
     hass: HomeAssistant, call: ServiceCall
-) -> dict[str, Any]:
+) -> CapabilityResponse:
     """Developer-only service: get city information."""
     coordinators = list(_iter_developer_runtime_coordinators(hass))
     return await _async_handle_get_city_service(
@@ -305,7 +315,7 @@ async def async_handle_get_city(
 
 async def async_handle_query_user_cloud(
     hass: HomeAssistant, call: ServiceCall
-) -> dict[str, Any]:
+) -> CapabilityResponse:
     """Developer-only service: query user cloud information."""
     coordinators = list(_iter_developer_runtime_coordinators(hass))
     return await _async_handle_query_user_cloud_service(
@@ -321,7 +331,7 @@ async def async_handle_query_user_cloud(
 
 async def async_handle_fetch_body_sensor_history(
     hass: HomeAssistant, call: ServiceCall
-) -> dict[str, Any]:
+) -> SensorHistoryResponse:
     """Developer-only service: fetch body-sensor history payload."""
     return await _async_handle_fetch_sensor_history_support(
         hass=hass,
@@ -335,7 +345,7 @@ async def async_handle_fetch_body_sensor_history(
 
 async def async_handle_fetch_door_sensor_history(
     hass: HomeAssistant, call: ServiceCall
-) -> dict[str, Any]:
+) -> SensorHistoryResponse:
     """Developer-only service: fetch door-sensor history payload."""
     return await _async_handle_fetch_sensor_history_support(
         hass=hass,
@@ -349,15 +359,13 @@ async def async_handle_fetch_door_sensor_history(
 
 async def async_handle_refresh_devices(
     hass: HomeAssistant, call: ServiceCall
-) -> dict[str, Any]:
+) -> RefreshDevicesResult:
     """Handle the refresh_devices service call."""
-    return dict(
-        await _async_handle_refresh_devices_service(
-            hass,
-            call,
-            domain=DOMAIN,
-            attr_entry_id=_contracts.ATTR_ENTRY_ID,
-        )
+    return await _async_handle_refresh_devices_service(
+        hass,
+        call,
+        domain=DOMAIN,
+        attr_entry_id=_contracts.ATTR_ENTRY_ID,
     )
 
 

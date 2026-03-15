@@ -23,6 +23,7 @@ from ..services.diagnostics.types import (
     DeveloperReport,
     DeveloperReportCoordinatorIterator,
     GetDeviceAndCoordinator,
+    SensorHistoryResponse,
 )
 from ..services.errors import raise_service_error as _raise_service_error
 from .runtime_access import (
@@ -124,11 +125,11 @@ async def async_handle_fetch_sensor_history(
     hass: HomeAssistant,
     call: ServiceCall,
     *,
-    service_handler: Callable[..., Awaitable[dict[str, object]]],
+    service_handler: Callable[..., Awaitable[SensorHistoryResponse]],
     service_name_kw: str,
     service_name: str,
     get_device_and_coordinator: GetDeviceAndCoordinator,
-) -> dict[str, object]:
+) -> SensorHistoryResponse:
     """Shared wrapper for body/door sensor-history service handlers."""
     return await service_handler(
         hass,

@@ -146,4 +146,12 @@
 ## Phase 16 Status Update
 
 - `custom_components/lipro/services/execution.py` 的 coordinator 私有 auth hook seam 继续维持关闭；本 phase 明确禁止把它重新登记成 active kill target。
-- remaining active delete gates 仍集中在 `_ClientBase` / helper mixin family、`LiproMqttClient` legacy naming 与少量 helper-level compatibility envelope。
+- remaining active delete gates 仍集中在 `_ClientBase` / helper mixin family、`LiproMqttClient` legacy naming、`get_auth_data()` fallback 与少量 helper-level compatibility envelope。
+- Final closeout audit (`2026-03-15`) 未发现新的 file-level kill target；repo-wide residual counts 为 `Any=711`、`except Exception=36`、`type: ignore=12`、dead pytest markers `=0`，全部继续受现有 delete gate 约束。
+
+| Item | Current status | Owner | Delete gate | Evidence |
+|------|----------------|-------|-------------|----------|
+| `_ClientBase` / helper mixin family | 已登记，未删除 | `core/api` | helper consumers 不再依赖 legacy mixin spine，且 import guards / tests 已迁出 | `custom_components/lipro/core/api/client_base.py`, `.planning/reviews/RESIDUAL_LEDGER.md` |
+| `LiproMqttClient` legacy naming | 已登记，未删除 | `core/mqtt` | direct transport legacy name 不再出现在 tests / child façade imports / documentation 中 | `custom_components/lipro/core/mqtt/mqtt_client.py`, `.planning/reviews/RESIDUAL_LEDGER.md` |
+| `get_auth_data()` fallback | 新登记，低风险保留 | `entry_auth` | `AuthSessionSnapshot` 成为唯一调用/测试契约后删除 fallback | `custom_components/lipro/entry_auth.py`, `tests/core/test_init.py` |
+| helper-level power compatibility envelope | 已登记，未删除 | `core/api` | outlet power / service callers 仅消费单一正式 payload shape 后删除 | `custom_components/lipro/core/api/power_service.py`, `custom_components/lipro/core/coordinator/outlet_power.py` |

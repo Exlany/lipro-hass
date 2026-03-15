@@ -6,7 +6,7 @@ import asyncio
 from datetime import UTC, datetime, timedelta
 import logging
 from time import monotonic
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from homeassistant.components.update import (
     UpdateDeviceClass,
@@ -50,19 +50,21 @@ if TYPE_CHECKING:
 
 _LOGGER = logging.getLogger(__name__)
 
-# Query OTA metadata at a low frequency to avoid extra cloud load.
 _OTA_REFRESH_INTERVAL = timedelta(hours=6)
 _UNVERIFIED_CONFIRM_WINDOW_SECONDS = 120
 _TIME_MIN_UTC = datetime.min.replace(tzinfo=UTC)
 _OTA_REFRESH_CONCURRENCY = 3
 _OTA_REFRESH_SEMAPHORE = asyncio.Semaphore(_OTA_REFRESH_CONCURRENCY)
 
+type OtaRow = dict[str, object]
+type FirmwareStateAttributes = dict[str, object]
+
 
 class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
     """Firmware update entity for one Lipro device."""
 
     _attr_translation_key = "firmware"
-    _attr_name = None  # Use custom device name for easier identification
+    _attr_name = None
     _attr_device_class = UpdateDeviceClass.FIRMWARE
     _attr_entity_category = EntityCategory.DIAGNOSTIC
     _entity_suffix = "firmware"
@@ -92,12 +94,10 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
         return self._last_error
 
     @property
-    def extra_state_attributes(self) -> dict[str, Any]:
+    def extra_state_attributes(self) -> FirmwareStateAttributes:
         """Expose OTA metadata for advanced users."""
-        attrs: dict[str, Any] = {
-            "certified": self._ota_candidate.certified
-            if self._ota_candidate
-            else False,
+        attrs: FirmwareStateAttributes = {
+            "certified": self._ota_candidate.certified if self._ota_candidate else False,
             "confirmation_required": self._has_pending_unverified_confirmation(),
         }
 
@@ -116,13 +116,12 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
 
     async def async_will_remove_from_hass(self) -> None:
         """Cancel OTA refresh task when entity is removed."""
-        if self._ota_refresh_task and not self._ota_refresh_task.done():
-            self._ota_refresh_task.cancel()
-            try:
-                await self._ota_refresh_task
-            except asyncio.CancelledError:
-                pass
-            except Exception as err:  # noqa: BLE001
+        task = self._ota_refresh_task
+        if task is not None and not task.done():
+            task.cancel()
+            result = await asyncio.gather(task, return_exceptions=True)
+            err = self._consume_wait_result(result[0])
+            if err is not None:
                 _LOGGER.debug(
                     "OTA refresh task failed during removal (%s)",
                     safe_error_placeholder(err),
@@ -144,7 +143,7 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
         self,
         version: str | None,
         backup: bool,
-        **kwargs: Any,
+        **kwargs: object,
     ) -> None:
         """Install firmware update."""
         del backup, kwargs
@@ -161,22 +160,14 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
         if install_eval.error_key is not None:
             if install_eval.error_key == "firmware_unverified_confirm_required":
                 self.async_write_ha_state()
-            error_kwargs: dict[str, Any] = {
-                "translation_domain": DOMAIN,
-                "translation_key": install_eval.error_key,
-            }
-            if install_eval.error_placeholders is not None:
-                error_kwargs["translation_placeholders"] = (
-                    install_eval.error_placeholders
-                )
-            raise HomeAssistantError(**error_kwargs)
+            raise self._build_translated_error(
+                install_eval.error_key,
+                placeholders=install_eval.error_placeholders,
+            )
 
         install_command = install_eval.install_command
         if install_command is None:
-            raise HomeAssistantError(
-                translation_domain=DOMAIN,
-                translation_key="firmware_install_unsupported",
-            )
+            raise self._build_translated_error("firmware_install_unsupported")
 
         self._attr_in_progress = True
         self.async_write_ha_state()
@@ -187,10 +178,7 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
                 install_command.properties,
             )
             if not success:
-                raise HomeAssistantError(
-                    translation_domain=DOMAIN,
-                    translation_key="firmware_install_failed",
-                )
+                raise self._build_translated_error("firmware_install_failed")
 
             self._unverified_confirm_until = 0.0
             await self.coordinator.async_request_refresh()
@@ -223,13 +211,20 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
         self.async_write_ha_state()
 
     @staticmethod
+    def _consume_wait_result(result: object) -> Exception | None:
+        """Normalize gather(return_exceptions=True) output into an exception."""
+        if isinstance(result, asyncio.CancelledError):
+            return None
+        return result if isinstance(result, Exception) else None
+
+    @staticmethod
     def _async_clear_refresh_task(task: asyncio.Task[None]) -> Exception | None:
         """Consume task exception to avoid warning logs."""
         try:
-            task.result()
+            err = task.exception()
         except asyncio.CancelledError:
             return None
-        except Exception as err:  # noqa: BLE001
+        if isinstance(err, Exception):
             _LOGGER.debug(
                 "Background OTA refresh task failed (%s)",
                 safe_error_placeholder(err),
@@ -278,7 +273,7 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
             physical_model=self.device.physical_model,
         )
 
-    async def _query_ota_rows_from_cloud(self) -> list[dict[str, object]]:
+    async def _query_ota_rows_from_cloud(self) -> list[OtaRow]:
         """Query OTA rows once and normalize unknown payload variants."""
         rows = await self.coordinator.async_query_ota_info(
             device_id=self.device.serial,
@@ -288,10 +283,8 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
         )
         return normalize_ota_rows(rows)
 
-    async def _query_ota_rows_with_shared_cache(
-        self,
-    ) -> tuple[list[dict[str, Any]], bool]:
-        """Query OTA rows with model-scoped shared cache and in-flight dedup."""
+    async def _query_ota_rows_with_shared_cache(self) -> tuple[list[OtaRow], bool]:
+        """Fetch OTA rows through the shared cache without local arbitration."""
         return await async_get_rows_with_shared_cache(
             self._ota_rows_cache_key(),
             fetcher=self._query_ota_rows_from_cloud,
@@ -304,14 +297,21 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
             return
 
         async with _OTA_REFRESH_SEMAPHORE:
-            fingerprint = self._ota_device_fingerprint()
             try:
                 rows, from_cache = await self._query_ota_rows_with_shared_cache()
                 arbitration = arbitrate_rows(
                     rows,
-                    fingerprint=fingerprint,
+                    fingerprint=self._ota_device_fingerprint(),
                     from_cache=from_cache,
                 )
+                if arbitration.should_retry_without_cache:
+                    rows = await self._query_ota_rows_from_cloud()
+                    arbitration = arbitrate_rows(
+                        rows,
+                        fingerprint=self._ota_device_fingerprint(),
+                        from_cache=False,
+                    )
+                selected_row = arbitration.selected_row
             except LiproApiError as err:
                 _LOGGER.debug(
                     "Failed to refresh OTA info for %s: %s",
@@ -322,26 +322,8 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
                 self.async_write_ha_state()
                 return
 
-            if arbitration.should_retry_without_cache:
-                try:
-                    rows = await self._query_ota_rows_from_cloud()
-                    arbitration = arbitrate_rows(
-                        rows,
-                        fingerprint=fingerprint,
-                        from_cache=False,
-                    )
-                except LiproApiError as err:
-                    _LOGGER.debug(
-                        "Failed to refresh OTA info for %s after cache mismatch: %s",
-                        self.device.serial,
-                        err,
-                    )
-                    self._set_last_error(err)
-                    self.async_write_ha_state()
-                    return
-
             self._ota_candidate = build_candidate(
-                arbitration.selected_row,
+                selected_row,
                 device_firmware_version=self.device.network_info.firmware_version,
                 device_iot_name=self.device.iot_name,
                 local_manifest=firmware_manifest.load_verified_firmware_manifest(),
@@ -391,3 +373,21 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
         )
         self._unverified_confirm_until = confirm_until
         return consumed
+
+    @staticmethod
+    def _build_translated_error(
+        translation_key: str,
+        *,
+        placeholders: dict[str, str] | None = None,
+    ) -> HomeAssistantError:
+        """Build one Home Assistant translated error instance."""
+        if placeholders is None:
+            return HomeAssistantError(
+                translation_domain=DOMAIN,
+                translation_key=translation_key,
+            )
+        return HomeAssistantError(
+            translation_domain=DOMAIN,
+            translation_key=translation_key,
+            translation_placeholders=placeholders,
+        )

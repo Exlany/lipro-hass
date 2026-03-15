@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
-from typing import Any
 
 from .manifest import first_text as _first_ota_text
 
@@ -34,6 +34,8 @@ _OTA_MATCH_SCORE_PRODUCT_ID_EXACT = 3
 _OTA_MATCH_SCORE_PHYSICAL_MODEL_EXACT = 2
 _OTA_MATCH_SCORE_HAS_VERSION = 1
 
+type OtaRow = dict[str, object]
+
 
 @dataclass(frozen=True, slots=True)
 class OtaDeviceFingerprint:
@@ -50,7 +52,7 @@ class OtaDeviceFingerprint:
 class OtaRowArbitration:
     """Selection result with cache-bypass guidance."""
 
-    selected_row: dict[str, Any] | None
+    selected_row: OtaRow | None
     should_retry_without_cache: bool
 
 
@@ -73,7 +75,7 @@ def build_device_fingerprint(
 
 
 def score_exact_text_match(
-    row: dict[str, Any],
+    row: Mapping[str, object],
     keys: tuple[str, ...],
     *,
     expected: str,
@@ -90,7 +92,7 @@ def score_exact_text_match(
 
 
 def score_row(
-    row: dict[str, Any],
+    row: Mapping[str, object],
     *,
     serial: str,
     device_type: str,
@@ -143,19 +145,19 @@ def score_row(
 
 
 def select_best_row(
-    rows: list[Any],
+    rows: Sequence[object],
     *,
     serial: str,
     device_type: str,
     iot_name: str,
     product_id: str,
     physical_model: str,
-) -> dict[str, Any] | None:
+) -> OtaRow | None:
     """Pick the most relevant OTA row for a device."""
     if not rows:
         return None
 
-    best_row: dict[str, Any] | None = None
+    best_row: OtaRow | None = None
     best_score = -1
     for row in rows:
         if not isinstance(row, dict):
@@ -176,10 +178,10 @@ def select_best_row(
 
 
 def select_best_row_for_device(
-    rows: list[Any],
+    rows: Sequence[object],
     *,
     fingerprint: OtaDeviceFingerprint,
-) -> dict[str, Any] | None:
+) -> OtaRow | None:
     """Pick the best OTA row for one normalized device fingerprint."""
     return select_best_row(
         rows,
@@ -192,7 +194,7 @@ def select_best_row_for_device(
 
 
 def arbitrate_rows(
-    rows: list[Any],
+    rows: Sequence[object],
     *,
     fingerprint: OtaDeviceFingerprint,
     from_cache: bool,
@@ -212,10 +214,12 @@ def arbitrate_rows(
 
 
 def row_targets_other_device(
-    row: dict[str, Any] | None, *, expected_serial: str
+    row: Mapping[str, object] | None,
+    *,
+    expected_serial: str,
 ) -> bool:
     """Return True when selected row explicitly targets a different device."""
-    if not isinstance(row, dict):
+    if row is None:
         return False
     expected = expected_serial.strip().lower()
     for key in _SERIAL_KEYS:

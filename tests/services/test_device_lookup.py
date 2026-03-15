@@ -25,9 +25,11 @@ _SERIAL_PATTERN = re.compile(
 
 def test_normalize_entity_ids_filters_non_string_values() -> None:
     """Normalization should skip non-string and blank entity ids."""
-    result = _normalize_entity_ids(
-        [" light.demo ", 123, "", "   ", None, "switch.demo"]
-    )
+    entity_ids: list[object] = [
+        " light.demo ", 123, "", "   ", None, "switch.demo"
+    ]
+
+    result = _normalize_entity_ids(entity_ids)
 
     assert result == ["light.demo", "switch.demo"]
 

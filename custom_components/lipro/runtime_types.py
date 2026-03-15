@@ -3,8 +3,10 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from typing import TYPE_CHECKING, Any, Protocol
+
+from homeassistant.core import CALLBACK_TYPE, callback
 
 if TYPE_CHECKING:
     from .core.api.types import OtaInfoRow
@@ -22,6 +24,12 @@ class LiproCoordinator(Protocol):
 
     @property
     def devices(self) -> Mapping[str, LiproDevice]: ...
+
+
+    @callback
+    def async_add_listener(
+        self, update_callback: CALLBACK_TYPE, context: Any = None
+    ) -> Callable[[], None]: ...
 
     async def async_request_refresh(self) -> None: ...
 

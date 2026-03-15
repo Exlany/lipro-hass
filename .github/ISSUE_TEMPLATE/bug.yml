@@ -18,6 +18,9 @@ body:
         若仓库或 fork 为私有，CI 会跳过 HACS validation，因为 HACS 只支持公开 GitHub 仓库。
         If this repository or fork is private, CI skips HACS validation because HACS only supports public GitHub repositories.
 
+        若你还没开始系统排障，请先阅读 `docs/TROUBLESHOOTING.md`；若问题涉及发版/打包，请维护者参考 `docs/MAINTAINER_RELEASE_RUNBOOK.md`。
+        If you have not started structured troubleshooting yet, read `docs/TROUBLESHOOTING.md` first; maintainer-only release/package issues belong in `docs/MAINTAINER_RELEASE_RUNBOOK.md`.
+
   - type: checkboxes
     attributes:
       label: Checklist / 检查清单

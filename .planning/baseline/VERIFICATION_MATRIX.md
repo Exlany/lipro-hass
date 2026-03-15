@@ -144,3 +144,11 @@
 - **Required governance proof:** `.planning/codebase/README.md` 必须存在；`.planning/codebase/*.md` 必须带 derived collaboration map disclaimer；`.gitignore` 必须允许 track `.planning/codebase/*.md`。
 - **Required drift proof:** `AGENTS.md`、`FILE_MATRIX.md` 与 `.planning/codebase/STRUCTURE.md` / `ARCHITECTURE.md` 不得再把 `custom_components/lipro/services/execution.py` 写成 active `runtime-auth seam`。
 - **Required executable proof:** `scripts/check_architecture_policy.py --check`、`scripts/check_file_matrix.py --check` 与 `tests/meta/test_governance_guards.py` 必须对上述真相 fail-fast。
+
+
+## Phase 16 Closeout Contract
+
+- **Required artifacts:** `docs/TROUBLESHOOTING.md`、`docs/MAINTAINER_RELEASE_RUNBOOK.md`、`README.md`、`README_zh.md`、`CONTRIBUTING.md`、`SUPPORT.md`、`SECURITY.md`、`.github/pull_request_template.md`、`.github/ISSUE_TEMPLATE/bug.yml`、`.github/workflows/release.yml`、`16-03~16-06-SUMMARY.md` 与更新后的 Phase 16 governance ledgers。
+- **Required closeout proof:** `RESIDUAL_LEDGER.md` / `KILL_LIST.md` 必须写出 `item / disposition / owner / phase / delete gate / evidence`；任何 high-risk carry-forward 若保留，必须显式登记，不允许 silent defer。
+- **Required runnable proof:** `uv run ruff check .`、`uv run mypy`、`uv run python scripts/check_architecture_policy.py --check`、`uv run python scripts/check_file_matrix.py --check`、`uv run pytest -q tests/meta/test_governance_guards.py tests/meta/test_version_sync.py tests/meta/test_toolchain_truth.py`、`uv run pytest -q tests/platforms tests/flows/test_config_flow.py` 与 targeted Phase 16 code suites 通过。
+- **Unblock effect:** `Phase 16` 可标记为 `6/6 complete`，`v1.1` 进入 milestone audit / closeout；remaining residual 仅允许以低风险、本地化、delete-gated 形态保留。

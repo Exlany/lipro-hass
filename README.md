@@ -291,45 +291,42 @@ Available options in integration settings:
 
 ## Troubleshooting
 
-### Authentication Failed
+Canonical troubleshooting guide: `docs/TROUBLESHOOTING.md`.
 
-- Ensure phone number and password are correct
-- Check if Lipro official app can login normally
-- If password changed, use reconfigure to update
+### Quick Checks
 
-### Device Unavailable
+#### Authentication Failed
 
-- Check if device is online
-- Try operating device in Lipro App
-- Reload the integration
-- Check network connection
+- Ensure the phone number and password still work in the Lipro app.
+- If the password changed, use reconfigure/update credentials instead of deleting the integration.
+- For repeated reauth failures, include diagnostics plus a redacted developer report.
 
-### State Update Delay
+#### Device Unavailable / Not Showing
 
-- This is normal for cloud polling integrations
-- You can reduce update interval in options (minimum 10 seconds)
-- Optimistic update happens immediately after action
+- Confirm the device already exists in the Lipro app.
+- Reload the integration or run `lipro.refresh_devices` after adding hardware.
+- Gateway devices only act as bridges and do not create Home Assistant entities by themselves.
 
-### Device Not Showing
+#### State Update Delay / MQTT Drift
 
-- Ensure device is paired in Lipro App
-- Reload integration to sync new devices
-- Check logs for error messages
+- MQTT push is best effort; polling remains the safety net.
+- Reduce the polling interval in options if needed (minimum 10 seconds).
+- When drift persists, mention whether the issue is cloud polling, MQTT push, or entity projection.
 
-### Diagnostics
+### Diagnostics & Safe Sharing
 
-To submit an issue report, please download diagnostics:
-
-1. Go to Settings → Devices & Services → Lipro
-2. Click three-dot menu → Download diagnostics
-3. Diagnostics are automatically redacted, safe to share
+1. Go to Settings → Devices & Services → Lipro.
+2. Click the three-dot menu → Download diagnostics.
+3. Diagnostics are automatically redacted and safe to share.
 
 Redaction includes account credentials/tokens (`phone`, `password`, `access_token`, `refresh_token`), cloud/device identifiers (`userId`/`bizId`, `serial`/`deviceId`/`iotDeviceId`), and network identifiers (WiFi SSID/MAC/IP).
 
-For opt-in sharing/reporting, you can preview the payloads first:
+For deeper debugging, you can preview or submit the opt-in payloads first:
 - `lipro.get_developer_report` - local debugging report; keeps vendor diagnosis identifiers such as `iotName` plus local labels so you can recognize the device under test
 - `lipro.submit_developer_feedback` - upload contract; keeps `iotName` but anonymizes user-defined labels such as device/room/panel/IR names before upload
 - `lipro.get_anonymous_share_report` - sanitized anonymous-share payload
+
+See also: `SUPPORT.md` for routing, `SECURITY.md` for private vulnerability disclosure, and `docs/MAINTAINER_RELEASE_RUNBOOK.md` for maintainer-only release issues.
 
 ## Disclaimer
 
@@ -347,6 +344,8 @@ This integration is implemented by reverse engineering the Lipro cloud API and i
 - `docs/README.md` - canonical documentation map and archive guide
 - `docs/NORTH_STAR_TARGET_ARCHITECTURE.md` - target architecture and authority baseline
 - `docs/developer_architecture.md` - current package layout and runtime/control/protocol flow
+- `docs/TROUBLESHOOTING.md` - canonical troubleshooting and diagnostics path
+- `docs/MAINTAINER_RELEASE_RUNBOOK.md` - maintainer release/tag/package workflow
 - `docs/adr/README.md` - long-lived architecture decisions and trade-offs
 - `CONTRIBUTING.md` - contributor workflow, CI contract, and review expectations
 - `SUPPORT.md` - support routing, triage expectations, and question handling

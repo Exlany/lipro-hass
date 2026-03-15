@@ -27,6 +27,8 @@ _CODEBASE_DIR = _ROOT / ".planning" / "codebase"
 _CODEBASE_README = _CODEBASE_DIR / "README.md"
 _GITIGNORE = _ROOT / ".gitignore"
 _DOCS_README = _ROOT / "docs" / "README.md"
+_TROUBLESHOOTING = _ROOT / "docs" / "TROUBLESHOOTING.md"
+_RUNBOOK = _ROOT / "docs" / "MAINTAINER_RELEASE_RUNBOOK.md"
 _README = _ROOT / "README.md"
 _README_ZH = _ROOT / "README_zh.md"
 _AGENTS = _ROOT / "AGENTS.md"
@@ -203,7 +205,14 @@ def test_ci_and_release_workflows_share_governance_and_version_gates() -> None:
     build_job = release_workflow["jobs"]["build"]
     assert build_job["needs"] == "validate"
     step_names = {step["name"] for step in build_job["steps"]}
+    assert "Checkout tagged release ref" in step_names
     assert "Verify tag matches project version" in step_names
+    checkout_step = next(
+        step for step in build_job["steps"] if step.get("name") == "Checkout tagged release ref"
+    )
+    checkout_with = checkout_step.get("with")
+    assert isinstance(checkout_with, dict)
+    assert checkout_with.get("ref") == "refs/tags/${{ env.RELEASE_TAG }}"
     version_guard = next(
         step["run"]
         for step in build_job["steps"]
@@ -230,6 +239,34 @@ def test_contributor_contract_matches_ci_language() -> None:
     assert "tests/meta/test_version_sync.py" in contributing_bullets["governance"]
     assert "--ignore=tests/benchmarks" in contributing_bullets["test"]
     assert "tests/benchmarks/" in contributing_bullets["benchmark"]
+
+
+def test_troubleshooting_and_runbook_navigation_is_consistent() -> None:
+    assert _TROUBLESHOOTING.exists()
+    assert _RUNBOOK.exists()
+
+    troubleshooting_targets = (
+        _README,
+        _README_ZH,
+        _CONTRIBUTING,
+        _SUPPORT,
+        _DOCS_README,
+    )
+    runbook_targets = (
+        _README,
+        _README_ZH,
+        _CONTRIBUTING,
+        _SUPPORT,
+        _SECURITY,
+        _DOCS_README,
+        _PR_TEMPLATE,
+        _ROOT / ".github" / "ISSUE_TEMPLATE" / "bug.yml",
+    )
+
+    for path in troubleshooting_targets:
+        assert "docs/TROUBLESHOOTING.md" in path.read_text(encoding="utf-8")
+    for path in runbook_targets:
+        assert "docs/MAINTAINER_RELEASE_RUNBOOK.md" in path.read_text(encoding="utf-8")
 
 
 def test_security_disclosure_path_is_present() -> None:
@@ -588,9 +625,9 @@ def test_phase_15_execution_truth_is_consistent() -> None:
         "RES-01",
     ):
         assert f"| {req_id} | Phase 15 | Complete |" in requirements_text
-    assert "**Current mode:** `Phase 16 executing`" in state_text
-    assert "completed_phases: 13" in state_text
-    assert "completed_plans: 48" in state_text
+    assert "**Current mode:** `Phase 16 complete`" in state_text
+    assert "completed_phases: 14" in state_text
+    assert "completed_plans: 54" in state_text
     assert "2026.3.1" in prd_text
     assert "2026.3.1" in context_text
     assert "status: passed" in validation_text
@@ -686,7 +723,7 @@ def test_execution_service_is_not_marked_as_active_runtime_auth_seam() -> None:
     assert "不再作为 active kill target" in kill_text
 
 
-def test_phase_16_planning_truth_is_consistent() -> None:
+def test_phase_16_execution_truth_is_consistent() -> None:
     phase_root = (
         _ROOT
         / ".planning"
@@ -710,12 +747,12 @@ def test_phase_16_planning_truth_is_consistent() -> None:
         _ROOT / ".planning" / "baseline" / "VERIFICATION_MATRIX.md"
     ).read_text(encoding="utf-8")
 
-    assert "### 11. Phase 16 后审计收口线已规划" in project_text
+    assert "### 11. Phase 16 后审计收口线已完成" in project_text
     assert (
-        "| 16 Post-audit Truth Alignment, Hotspot Decomposition & Residual Endgame | v1.1 | 2/6 | In Progress | 2026-03-15 |"
+        "| 16 Post-audit Truth Alignment, Hotspot Decomposition & Residual Endgame | v1.1 | 6/6 | Complete | 2026-03-15 |"
         in roadmap_text
     )
-    assert "**Plans:** 6 planned across 3 waves" in roadmap_text
+    assert "**Plans:** 6/6 complete across 3 waves" in roadmap_text
     for req_id in (
         "GOV-14",
         "QLT-02",
@@ -729,20 +766,23 @@ def test_phase_16_planning_truth_is_consistent() -> None:
         "TST-01",
         "DOC-02",
     ):
-        assert f"| {req_id} | Phase 16 | Planned |" in requirements_text
-    assert "**Current mode:** `Phase 16 executing`" in state_text
+        assert f"| {req_id} | Phase 16 | Complete |" in requirements_text
+    assert "**Current mode:** `Phase 16 complete`" in state_text
     assert "total_phases: 14" in state_text
-    assert "completed_phases: 13" in state_text
+    assert "completed_phases: 14" in state_text
     assert "total_plans: 54" in state_text
-    assert "completed_plans: 48" in state_text
+    assert "completed_plans: 54" in state_text
+    assert "status: passed" in validation_text
     assert "| 16-02-00 | 16-02 | 1 | QLT-02 / DOC-02 |" in validation_text
     assert "| 16-03-00 | 16-03 | 2 | CTRL-06 / ERR-01 / TYP-04 |" in validation_text
     assert "| 16-05-00 | 16-05 | 3 | DOM-03 / OTA-01 |" in validation_text
+    assert "| 16-06-00 | 16-06 | 3 | TST-01 / DOC-02 / GOV-14 |" in validation_text
     assert "本地 codebase maps" in authority_text
     assert "## Phase 16 Governance Calibration Notes" in public_text
     assert (
         "## Phase 16 Governance / Toolchain Entry Contract" in verification_matrix_text
     )
+    assert "## Phase 16 Closeout Contract" in verification_matrix_text
 
     for artifact_name in (
         "16-PRD.md",
@@ -755,6 +795,10 @@ def test_phase_16_planning_truth_is_consistent() -> None:
         "16-04-PLAN.md",
         "16-05-PLAN.md",
         "16-06-PLAN.md",
+        "16-03-SUMMARY.md",
+        "16-04-SUMMARY.md",
+        "16-05-SUMMARY.md",
+        "16-06-SUMMARY.md",
     ):
         assert (phase_root / artifact_name).exists()
 

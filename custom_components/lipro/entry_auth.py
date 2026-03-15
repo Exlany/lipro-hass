@@ -36,13 +36,17 @@ from .core.utils.log_safety import safe_error_placeholder
 
 if TYPE_CHECKING:
     from collections.abc import Callable
-    from typing import Any
+
+    import aiohttp
 
     from homeassistant.core import HomeAssistant
 
 
+ConfigEntryLike = ConfigEntry[object]
+
+
 def get_entry_int_option(
-    entry: ConfigEntry[Any],
+    entry: ConfigEntryLike,
     *,
     option_name: str,
     default: int,
@@ -63,9 +67,9 @@ def get_entry_int_option(
 
 def build_entry_auth_context(
     hass: HomeAssistant,
-    entry: ConfigEntry[Any],
+    entry: ConfigEntryLike,
     *,
-    get_client_session: Callable[[HomeAssistant], Any],
+    get_client_session: Callable[[HomeAssistant], aiohttp.ClientSession],
     client_factory: type[LiproProtocolFacade],
     auth_manager_factory: type[LiproAuthManager],
     logger: logging.Logger,
@@ -137,23 +141,23 @@ async def async_authenticate_entry(auth_manager: LiproAuthManager) -> None:
 
 def persist_entry_tokens_if_changed(
     hass: HomeAssistant,
-    entry: ConfigEntry[Any],
+    entry: ConfigEntryLike,
     auth_manager: LiproAuthManager,
 ) -> None:
     """Persist refreshed access/refresh tokens when they changed."""
-    auth_session_getter = getattr(auth_manager, "get_auth_session", None)
-    auth_session = auth_session_getter() if callable(auth_session_getter) else None
-    access_token = getattr(auth_session, "access_token", None)
-    refresh_token = getattr(auth_session, "refresh_token", None)
-    expires_at = getattr(auth_session, "expires_at", None)
-    biz_id = getattr(auth_session, "biz_id", None)
+    auth_session = auth_manager.get_auth_session()
+    access_token = auth_session.access_token
+    refresh_token = auth_session.refresh_token
+    expires_at = auth_session.expires_at
+    biz_id = auth_session.biz_id
 
     if not isinstance(access_token, str) or not access_token:
         auth_data = auth_manager.get_auth_data()
         access_token = auth_data.get(CONF_ACCESS_TOKEN)
         refresh_token = auth_data.get(CONF_REFRESH_TOKEN)
         expires_at = auth_data.get(CONF_EXPIRES_AT)
-        biz_id = auth_data.get(CONF_BIZ_ID)
+        raw_biz_id = auth_data.get(CONF_BIZ_ID)
+        biz_id = raw_biz_id if isinstance(raw_biz_id, str) else None
 
     if not isinstance(access_token, str) or not access_token:
         return
@@ -181,7 +185,7 @@ def persist_entry_tokens_if_changed(
     )
 
 
-def clear_entry_runtime_data(entry: ConfigEntry[Any]) -> None:
+def clear_entry_runtime_data(entry: ConfigEntryLike) -> None:
     """Clear runtime_data field defensively after failed setup/unload."""
-    with suppress(Exception):
+    with suppress(AttributeError):
         entry.runtime_data = None

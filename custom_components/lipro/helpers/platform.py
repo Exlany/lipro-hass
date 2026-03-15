@@ -8,6 +8,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from ..core.utils.identifiers import normalize_iot_device_id
+
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterable, Sequence
 
@@ -106,4 +108,7 @@ def should_expose_light_gear_select(device: LiproDevice) -> bool:
 
 def should_expose_firmware_update_entity(device: LiproDevice) -> bool:
     """Return whether one device qualifies for the firmware update platform."""
-    return not device.is_group and device.has_valid_iot_id
+    return (
+        not device.is_group
+        and normalize_iot_device_id(device.serial) is not None
+    )
