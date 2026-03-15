@@ -20,20 +20,8 @@ from homeassistant.helpers import device_registry as dr
 
 from ..control.runtime_access import get_entry_runtime_coordinator, iter_runtime_entries
 from ..core.utils.redaction import redact_identifier as _redact_identifier
+from ..runtime_types import LiproCoordinator
 from .contracts import RefreshDevicesResult
-
-
-class _DeviceRefreshService(Protocol):
-    """Coordinator service used by the refresh_devices handler."""
-
-    async def async_refresh_devices(self) -> None:
-        """Refresh devices for the owning runtime."""
-
-
-class _RefreshDevicesCoordinator(Protocol):
-    """Minimal coordinator contract for refresh_devices."""
-
-    device_refresh_service: _DeviceRefreshService
 
 
 @runtime_checkable
@@ -56,10 +44,10 @@ def _iter_runtime_entry_coordinators(
     *,
     domain: str,
     requested_entry_id: str | None,
-) -> list[tuple[str, _RefreshDevicesCoordinator]]:
+) -> list[tuple[str, LiproCoordinator]]:
     """Collect runtime coordinators for one entry or all entries."""
     del domain
-    targets: list[tuple[str, _RefreshDevicesCoordinator]] = []
+    targets: list[tuple[str, LiproCoordinator]] = []
     for entry in iter_runtime_entries(hass, entry_id=requested_entry_id):
         coordinator = get_entry_runtime_coordinator(entry)
         if coordinator is not None:
