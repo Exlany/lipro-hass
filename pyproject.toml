@@ -8,7 +8,7 @@ version = "1.0.0"
 description = "Home Assistant integration for Lipro Smart Home devices"
 readme = "README.md"
 license = "MIT"
-requires-python = ">=3.13.2"
+requires-python = ">=3.14.2"
 authors = [
     {name = "Exlany"},
 ]
@@ -18,7 +18,7 @@ classifiers = [
     "Intended Audience :: Developers",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Topic :: Home Automation",
 ]
 
@@ -32,7 +32,7 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "colorlog==6.10.1",
-    "homeassistant==2026.2.3",
+    "homeassistant==2026.3.1",
     "pip>=21.3.1",
     "pip-audit>=2.9.0",
     "pre-commit>=3.7.0",
@@ -42,8 +42,6 @@ dev = [
     "pytest-cov>=4.0.0",
     "pytest-homeassistant-custom-component>=0.13.0",
     "pytest-benchmark>=5.1.0",
-    "pytest-mypy-plugins>=3.2.0",
-    "pytest-xdist>=3.8.0",
     "syrupy>=5.0.0",
     "mypy>=1.0.0",
     "types-PyYAML>=6.0.12.0",
@@ -86,10 +84,10 @@ filterwarnings = [
 ]
 
 [tool.uv]
-override-dependencies = ["pillow==12.1.1"]
+override-dependencies = ["pillow==12.1.1", "orjson==3.11.6", "pyjwt==2.12.0"]
 
 [tool.mypy]
-python_version = "3.13"
+python_version = "3.14"
 files = ["custom_components/lipro", "tests"]
 
 # Home Assistant custom components live under a namespace package layout:

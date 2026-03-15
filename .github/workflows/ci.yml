@@ -31,7 +31,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
         with:
-          python-version: "3.13"
+          python-version: "3.14"
 
       - name: Set up uv
         uses: astral-sh/setup-uv@0ca8f610542aa7f4acaf39e65cf4eb3c35091883
@@ -69,7 +69,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
         with:
-          python-version: "3.13"
+          python-version: "3.14"
 
       - name: Set up uv
         uses: astral-sh/setup-uv@0ca8f610542aa7f4acaf39e65cf4eb3c35091883
@@ -104,7 +104,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
         with:
-          python-version: "3.13"
+          python-version: "3.14"
 
       - name: Set up uv
         uses: astral-sh/setup-uv@0ca8f610542aa7f4acaf39e65cf4eb3c35091883
@@ -129,26 +129,18 @@ jobs:
       - name: Run pip-audit (runtime)
         run: uv run --extra dev pip-audit --progress-spinner off -r requirements-runtime.txt
 
-      - name: Export dev requirements
-        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
-        run: >-
-          uv export
-          --format requirements.txt
-          --frozen
-          --no-header
-          --no-annotate
-          --no-hashes
-          --no-emit-project
-          --extra dev
-          -o requirements-dev.txt
-
-      - name: Run pip-audit (dev) (non-blocking)
+      - name: Run pip-audit (dev environment advisory only, non-blocking)
         if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
         id: pip_audit_dev
         continue-on-error: true
-        run: uv run --extra dev pip-audit --progress-spinner off -r requirements-dev.txt
+        run: >-
+          uv run --extra dev pip-audit
+          --local
+          --skip-editable
+          --cache-dir "${RUNNER_TEMP}/pip-audit-dev-cache"
+          --progress-spinner off
 
-      - name: Record pip-audit (dev) outcome
+      - name: Record pip-audit (dev advisory) outcome
         if: always() && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
         run: >-
           echo "pip-audit (dev) outcome: ${{ steps.pip_audit_dev.outcome }}" >> "$GITHUB_STEP_SUMMARY"
@@ -164,7 +156,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
         with:
-          python-version: "3.13"
+          python-version: "3.14"
 
       - name: Set up uv
         uses: astral-sh/setup-uv@0ca8f610542aa7f4acaf39e65cf4eb3c35091883
@@ -188,7 +180,7 @@ jobs:
       - name: Run snapshot tests
         run: uv run pytest tests/snapshots/ -v
 
-      - name: Check coverage diff
+      - name: Check coverage floor / optional baseline diff
         run: uv run python scripts/coverage_diff.py coverage.json --minimum 95
 
       - name: Run refactor tool smoke check
@@ -215,7 +207,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
         with:
-          python-version: "3.13"
+          python-version: "3.14"
 
       - name: Set up uv
         uses: astral-sh/setup-uv@0ca8f610542aa7f4acaf39e65cf4eb3c35091883
@@ -225,7 +217,7 @@ jobs:
       - name: Install dependencies
         run: uv sync --frozen --extra dev
 
-      - name: Run benchmarks
+      - name: Run advisory benchmarks
         run: >-
           uv run pytest tests/benchmarks/
           -v

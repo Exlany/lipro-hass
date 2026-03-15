@@ -42,8 +42,8 @@ Home Assistant integration for controlling Lipro Smart Home devices.
 - `lipro.delete_schedules` - Delete schedules by IDs; mesh groups delete through BLE/gateway-member candidates only, because tested standard `schedule/delete.do` may report success without deleting the target schedule
 - `lipro.submit_anonymous_share` - Submit anonymous share report manually
 - `lipro.get_anonymous_share_report` - Preview anonymous share report
-- `lipro.get_developer_report` - Export sanitized runtime diagnostics report (all entries or one `entry_id`)
-- `lipro.submit_developer_feedback` - One-click submit developer diagnostics report (all entries or one `entry_id`)
+- `lipro.get_developer_report` - Export a redacted local debugging report; keeps vendor diagnosis identifiers such as `iotName` plus local labels to identify the device under test (all entries or one `entry_id`)
+- `lipro.submit_developer_feedback` - One-click submit developer diagnostics; upload keeps `iotName` but anonymizes user-defined labels such as device/room/panel/IR names (all entries or one `entry_id`)
 - `lipro.query_command_result` - Query cloud-reported command status by message serial number with bounded polling (developer capability)
 - `lipro.get_city` - Query cloud city metadata using the verified empty-object payload contract (developer capability)
 - `lipro.query_user_cloud` - Query user cloud metadata using the verified raw empty-body contract (`-d ''`); tested responses may contain only top-level `data` without a `code` wrapper (developer capability)
@@ -70,6 +70,10 @@ This integration uses a **hybrid mode** to fetch device status:
 - **Exponential Backoff**: Auto-reconnect on MQTT disconnect, prevents server overload
 
 ## Installation
+
+Minimum supported Home Assistant version: `2026.3.1` (canonical source: `pyproject.toml`).
+
+Private repository / fork note: CI skips HACS validation because HACS only supports public GitHub repositories.
 
 ### HACS (Recommended)
 
@@ -323,7 +327,8 @@ To submit an issue report, please download diagnostics:
 Redaction includes account credentials/tokens (`phone`, `password`, `access_token`, `refresh_token`), cloud/device identifiers (`userId`/`bizId`, `serial`/`deviceId`/`iotDeviceId`), and network identifiers (WiFi SSID/MAC/IP).
 
 For opt-in sharing/reporting, you can preview the payloads first:
-- `lipro.get_developer_report` - sanitized runtime report (mesh snapshot + recent command traces, scoped by optional `entry_id`)
+- `lipro.get_developer_report` - local debugging report; keeps vendor diagnosis identifiers such as `iotName` plus local labels so you can recognize the device under test
+- `lipro.submit_developer_feedback` - upload contract; keeps `iotName` but anonymizes user-defined labels such as device/room/panel/IR names before upload
 - `lipro.get_anonymous_share_report` - sanitized anonymous-share payload
 
 ## Disclaimer

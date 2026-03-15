@@ -6,6 +6,11 @@
 - **Bug reports**: prefer the bug-report template and include diagnostics that are safe to share.
 - **Security reports**: follow `SECURITY.md` and use private disclosure first.
 
+## Version & Validation Truth
+
+- Minimum supported Home Assistant version: `2026.3.1` (canonical source: `pyproject.toml`).
+- Private repository / fork note: CI skips HACS validation because HACS only supports public GitHub repositories.
+
 ## Maintainer Model
 
 This repository currently follows a single-maintainer review model. Triage and release timing may therefore be asynchronous.

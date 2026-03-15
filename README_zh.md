@@ -41,8 +41,8 @@ Home Assistant 集成，用于控制 Lipro 智能家居设备。
 - `lipro.delete_schedules` - 按 ID 删除定时任务；mesh group 仅通过 BLE/gateway-member 候选删除，因为实测标准 `schedule/delete.do` 可能回成功但并未删除目标任务
 - `lipro.submit_anonymous_share` - 手动提交匿名分享报告
 - `lipro.get_anonymous_share_report` - 预览匿名分享报告
-- `lipro.get_developer_report` - 导出脱敏运行诊断报告（全部条目或指定 entry_id）
-- `lipro.submit_developer_feedback` - 一键提交开发者诊断反馈（全部条目或指定 entry_id）
+- `lipro.get_developer_report` - 导出本地调试用脱敏报告；保留 `iotName` 等供应商诊断标识与本地标签，方便识别正在测试的设备（全部条目或指定 entry_id）
+- `lipro.submit_developer_feedback` - 一键提交开发者诊断反馈；上传保留 `iotName`，但会匿名化设备/房间/面板/红外资产名称等用户自定义标签（全部条目或指定 entry_id）
 - `lipro.query_command_result` - 按消息序列号查询云端上报的命令状态（开发者能力）
 - `lipro.get_city` - 按已验证的空对象 payload 契约查询云端城市元数据（开发者能力）
 - `lipro.query_user_cloud` - 按已验证的原始空 body 契约（`-d ''`）查询用户云端元数据；实测响应可能只有顶层 `data`，没有 `code` 包装（开发者能力）
@@ -69,6 +69,10 @@ Home Assistant 集成，用于控制 Lipro 智能家居设备。
 - **指数退避**：MQTT 断连时自动重连，避免服务器过载
 
 ## 安装
+
+最低支持的 Home Assistant 版本：`2026.3.1`（唯一版本真源：`pyproject.toml`）。
+
+私有仓库 / fork 说明：CI 会跳过 HACS validation，因为 HACS 只支持公开 GitHub 仓库。
 
 ### HACS（推荐）
 
@@ -322,8 +326,9 @@ data:
 
 脱敏范围包含账号凭据/Token（`phone`, `password`, `access_token`, `refresh_token`）、云端/设备标识（`userId`/`bizId`, `serial`/`deviceId`/`iotDeviceId`）以及网络标识（WiFi SSID/MAC/IP）。
 
-如需匿名分享/上报，可先在本地预览脱敏后的载荷：
-- `lipro.get_developer_report` - 脱敏运行报告（mesh 快照 + 近期命令轨迹，可选 entry_id 限定）
+如需匿名分享/上报，可先在本地预览相关载荷：
+- `lipro.get_developer_report` - 本地调试报告；保留 `iotName` 等供应商诊断标识与本地标签，便于识别实测设备
+- `lipro.submit_developer_feedback` - 上传契约；保留 `iotName`，但会匿名化设备/房间/面板/红外资产名称等用户自定义标签
 - `lipro.get_anonymous_share_report` - 脱敏匿名分享报告
 
 ## 免责声明

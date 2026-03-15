@@ -1,6 +1,6 @@
 {
   "name": "Lipro Smart Home",
-  "homeassistant": "2026.2.3",
+  "homeassistant": "2026.3.1",
   "content_in_root": false,
   "render_readme": true,
   "country": "CN"

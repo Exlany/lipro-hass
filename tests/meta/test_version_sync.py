@@ -18,6 +18,26 @@ _MANIFEST = _ROOT / "custom_components" / "lipro" / "manifest.json"
 _HACS = _ROOT / "hacs.json"
 _BASE_CONST = _ROOT / "custom_components" / "lipro" / "const" / "base.py"
 _BUG_TEMPLATE = _ROOT / ".github" / "ISSUE_TEMPLATE" / "bug.yml"
+_README = _ROOT / "README.md"
+_README_ZH = _ROOT / "README_zh.md"
+_CONTRIBUTING = _ROOT / "CONTRIBUTING.md"
+_SUPPORT = _ROOT / "SUPPORT.md"
+_SECURITY = _ROOT / "SECURITY.md"
+_CI_WORKFLOW = _ROOT / ".github" / "workflows" / "ci.yml"
+_PHASE_15_PRD = (
+    _ROOT
+    / ".planning"
+    / "phases"
+    / "15-support-feedback-contract-hardening-governance-truth-repair-and-maintainability-follow-through"
+    / "15-PRD.md"
+)
+_PHASE_15_CONTEXT = (
+    _ROOT
+    / ".planning"
+    / "phases"
+    / "15-support-feedback-contract-hardening-governance-truth-repair-and-maintainability-follow-through"
+    / "15-CONTEXT.md"
+)
 
 _BASE_VERSION_RE = re.compile(r'^VERSION:\s+Final\s*=\s*"(?P<version>[^"]+)"\s*$')
 
@@ -40,6 +60,18 @@ def _read_homeassistant_version() -> str:
     dev_deps: list[str] = pyproject["project"]["optional-dependencies"]["dev"]
     ha_pin = next(dep for dep in dev_deps if dep.startswith("homeassistant=="))
     return ha_pin.split("==", 1)[1]
+
+
+def _assert_contains_version(path: Path, version: str) -> None:
+    text = path.read_text(encoding="utf-8")
+    assert version in text, f"{path} does not mention canonical HA version {version}"
+
+
+def _assert_contains_private_repo_hacs_caveat(path: Path) -> None:
+    text = path.read_text(encoding="utf-8")
+    assert "HACS" in text
+    assert ("private" in text.lower()) or ("私有" in text)
+    assert ("public GitHub repositories" in text) or ("公开 GitHub 仓库" in text)
 
 
 def test_integration_version_is_consistent() -> None:
@@ -72,3 +104,38 @@ def test_bug_report_template_tracks_homeassistant_min_version() -> None:
 
     assert ha_version in attributes["description"]
     assert ha_version in attributes["placeholder"]
+
+
+def test_bug_report_template_lists_supported_install_methods() -> None:
+    """Bug report template should cover the supported installation paths."""
+    template = _load_yaml(_BUG_TEMPLATE)
+    body = template["body"]
+    install_method_field = next(item for item in body if item.get("id") == "install-method")
+    options = install_method_field["attributes"]["options"]
+
+    assert "HACS" in options
+    assert any("Shell" in option for option in options)
+    assert any("shell_command" in option for option in options)
+    assert any("Manual" in option for option in options)
+
+
+def test_public_docs_track_homeassistant_min_version() -> None:
+    """User-facing docs should surface the canonical minimum supported HA version."""
+    ha_version = _read_homeassistant_version()
+
+    for path in (
+        _README,
+        _README_ZH,
+        _CONTRIBUTING,
+        _SUPPORT,
+        _SECURITY,
+        _PHASE_15_PRD,
+        _PHASE_15_CONTEXT,
+    ):
+        _assert_contains_version(path, ha_version)
+
+
+def test_private_repo_hacs_caveat_is_consistent() -> None:
+    """Docs and CI should say the same thing about private-repo HACS validation."""
+    for path in (_README, _README_ZH, _CONTRIBUTING, _SUPPORT, _SECURITY, _BUG_TEMPLATE, _CI_WORKFLOW):
+        _assert_contains_private_repo_hacs_caveat(path)

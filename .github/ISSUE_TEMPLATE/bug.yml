@@ -12,6 +12,12 @@ body:
         若你要报告的是安全漏洞，请不要使用此公开表单；请改走 `SECURITY.md` 中的私密披露路径。
         If you are reporting a security vulnerability, do not use this public form; follow the private disclosure path in `SECURITY.md`.
 
+        最低支持的 Home Assistant 版本真源为 `pyproject.toml` 中的 `2026.3.1`。
+        The canonical minimum supported Home Assistant version is `2026.3.1` from `pyproject.toml`.
+
+        若仓库或 fork 为私有，CI 会跳过 HACS validation，因为 HACS 只支持公开 GitHub 仓库。
+        If this repository or fork is private, CI skips HACS validation because HACS only supports public GitHub repositories.
+
   - type: checkboxes
     attributes:
       label: Checklist / 检查清单
@@ -95,8 +101,8 @@ body:
     id: ha-version
     attributes:
       label: Home Assistant Version / Home Assistant 版本
-      description: "Minimum supported: 2026.2.3 / 最低支持版本：2026.2.3"
-      placeholder: "e.g., 2026.2.3"
+      description: "Minimum supported: 2026.3.1 / 最低支持版本：2026.3.1"
+      placeholder: "e.g., 2026.3.1"
     validations:
       required: true
 
@@ -112,8 +118,11 @@ body:
     id: install-method
     attributes:
       label: Installation Method / 安装方式
+      description: "HACS / Shell / shell_command / Manual；private repos or forks skip CI HACS validation. / 私有仓库或 fork 会跳过 CI HACS validation。"
       options:
         - "HACS"
+        - "Shell / SSH installer / SSH 安装脚本"
+        - "shell_command"
         - "Manual / 手动安装"
     validations:
       required: true

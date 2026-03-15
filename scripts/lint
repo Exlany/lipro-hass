@@ -44,7 +44,8 @@ echo "Running pip-audit..."
 # - mixing dev-only dependencies (e.g. HA) into runtime security checks
 tmp_requirements_runtime="$(mktemp)"
 tmp_requirements_dev=""
-trap 'rm -f "$tmp_requirements_runtime" "${tmp_requirements_dev:-}"' EXIT
+tmp_pip_audit_cache=""
+trap 'rm -f "$tmp_requirements_runtime" "${tmp_requirements_dev:-}"; if [ -n "${tmp_pip_audit_cache:-}" ]; then rm -rf "$tmp_pip_audit_cache"; fi' EXIT
 
 uv export \
     --format requirements.txt \
@@ -64,6 +65,7 @@ if [[ "${PIP_AUDIT_INCLUDE_DEV:-}" == "1" || "${PIP_AUDIT_INCLUDE_DEV:-}" == "tr
     echo "Running pip-audit (dev dependencies)..."
 
     tmp_requirements_dev="$(mktemp)"
+    tmp_pip_audit_cache="$(mktemp -d)"
     uv export \
         --format requirements.txt \
         --frozen \
@@ -73,7 +75,13 @@ if [[ "${PIP_AUDIT_INCLUDE_DEV:-}" == "1" || "${PIP_AUDIT_INCLUDE_DEV:-}" == "tr
         --no-emit-project \
         --extra dev \
         -o "$tmp_requirements_dev"
-    uv run --extra dev pip-audit "${pip_audit_common_args[@]}" -r "$tmp_requirements_dev"
+    # Dev overrides may intentionally outrun upstream metadata for security fixes,
+    # so audit the installed environment instead of re-resolving exported requirements.
+    uv run --extra dev pip-audit \
+        "${pip_audit_common_args[@]}" \
+        --local \
+        --skip-editable \
+        --cache-dir "$tmp_pip_audit_cache"
 fi
 
 echo ""
