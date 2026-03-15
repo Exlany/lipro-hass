@@ -27,7 +27,6 @@ from custom_components.lipro.const.base import DOMAIN
 from custom_components.lipro.const.config import (
     CONF_ACCESS_TOKEN,
     CONF_DEBUG_MODE,
-    CONF_EXPIRES_AT,
     CONF_PASSWORD_HASH,
     CONF_PHONE,
     CONF_PHONE_ID,
@@ -56,6 +55,7 @@ from custom_components.lipro.control.service_router import (
     async_handle_submit_developer_feedback,
 )
 from custom_components.lipro.core import (
+    AuthSessionSnapshot,
     LiproApiError,
     LiproAuthError,
     LiproAuthManager,
@@ -745,11 +745,14 @@ class TestInitRuntimeBehavior:
         mock_auth.set_tokens = MagicMock()
         mock_auth.set_credentials = MagicMock()
         mock_auth.ensure_valid_token = AsyncMock()
-        mock_auth.get_auth_data.return_value = {
-            CONF_ACCESS_TOKEN: "new_access",
-            CONF_REFRESH_TOKEN: "new_refresh",
-            CONF_EXPIRES_AT: 1234567890,
-        }
+        mock_auth.get_auth_session.return_value = AuthSessionSnapshot(
+            access_token="new_access",
+            refresh_token="new_refresh",
+            user_id=None,
+            expires_at=1234567890,
+            phone_id="phone-id",
+            biz_id=None,
+        )
 
         mock_coordinator = MagicMock()
         mock_coordinator.async_config_entry_first_refresh = AsyncMock()
@@ -871,7 +874,14 @@ class TestInitRuntimeBehavior:
         entry.add_to_hass(hass)
 
         mock_auth = MagicMock()
-        mock_auth.get_auth_data.return_value = {}
+        mock_auth.get_auth_session.return_value = AuthSessionSnapshot(
+            access_token=None,
+            refresh_token=None,
+            user_id=None,
+            expires_at=None,
+            phone_id="phone-id",
+            biz_id=None,
+        )
 
         with patch.object(hass.config_entries, "async_update_entry") as mock_update:
             persist_entry_tokens_if_changed(hass, entry, mock_auth)
@@ -900,11 +910,14 @@ class TestInitRuntimeBehavior:
         mock_auth.set_tokens = MagicMock()
         mock_auth.set_credentials = MagicMock()
         mock_auth.ensure_valid_token = AsyncMock()
-        mock_auth.get_auth_data.return_value = {
-            CONF_ACCESS_TOKEN: "new_access",
-            CONF_REFRESH_TOKEN: "new_refresh",
-            CONF_EXPIRES_AT: 1234567890,
-        }
+        mock_auth.get_auth_session.return_value = AuthSessionSnapshot(
+            access_token="new_access",
+            refresh_token="new_refresh",
+            user_id=None,
+            expires_at=1234567890,
+            phone_id="phone-id",
+            biz_id=None,
+        )
 
         mock_coordinator = MagicMock()
         mock_coordinator.async_config_entry_first_refresh = AsyncMock()
@@ -961,11 +974,14 @@ class TestInitRuntimeBehavior:
         mock_auth.set_tokens = MagicMock()
         mock_auth.set_credentials = MagicMock()
         mock_auth.ensure_valid_token = AsyncMock()
-        mock_auth.get_auth_data.return_value = {
-            CONF_ACCESS_TOKEN: "old_access",
-            CONF_REFRESH_TOKEN: "old_refresh",
-            CONF_EXPIRES_AT: 1234567890,
-        }
+        mock_auth.get_auth_session.return_value = AuthSessionSnapshot(
+            access_token="old_access",
+            refresh_token="old_refresh",
+            user_id=None,
+            expires_at=1234567890,
+            phone_id="phone-id",
+            biz_id=None,
+        )
 
         mock_coordinator = MagicMock()
         mock_coordinator.async_config_entry_first_refresh = AsyncMock(
@@ -1052,11 +1068,14 @@ class TestInitRuntimeBehavior:
         mock_auth.set_tokens = MagicMock()
         mock_auth.set_credentials = MagicMock()
         mock_auth.ensure_valid_token = AsyncMock()
-        mock_auth.get_auth_data.return_value = {
-            CONF_ACCESS_TOKEN: "access",
-            CONF_REFRESH_TOKEN: "refresh",
-            CONF_EXPIRES_AT: 1234567890,
-        }
+        mock_auth.get_auth_session.return_value = AuthSessionSnapshot(
+            access_token="access",
+            refresh_token="refresh",
+            user_id=None,
+            expires_at=1234567890,
+            phone_id="phone-id",
+            biz_id=None,
+        )
 
         mock_client = MagicMock()
         mock_coordinator = MagicMock()

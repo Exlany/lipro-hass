@@ -5,12 +5,11 @@ from __future__ import annotations
 from typing import Any, cast
 
 from ....const.api import PATH_FETCH_DEVICES, PATH_GET_PRODUCT_CONFIGS
-from ..client_base import _ClientBase
 from ..types import DeviceListResponse
 from .payloads import _EndpointAdapter
 
 
-class _ClientDeviceEndpointsMixin(_ClientBase):
+class DeviceEndpoints(_EndpointAdapter):
     """Legacy device endpoint mixin retained for focused helper tests."""
 
     async def get_devices(self, offset: int = 0, limit: int = 100) -> DeviceListResponse:
@@ -42,13 +41,4 @@ class _ClientDeviceEndpointsMixin(_ClientBase):
         return []
 
 
-class DeviceEndpoints(_EndpointAdapter, _ClientDeviceEndpointsMixin):
-    """Explicit device endpoint collaborator for ``LiproRestFacade``."""
-
-    EXPORTED_METHODS = (
-        "get_devices",
-        "get_product_configs",
-    )
-
-
-__all__ = ["DeviceEndpoints", "_ClientDeviceEndpointsMixin"]
+__all__ = ["DeviceEndpoints"]

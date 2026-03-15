@@ -44,14 +44,14 @@ from ..schedule_service import (
     get_mesh_schedules_by_candidates as get_mesh_schedules_by_candidates_service,
 )
 from .connect_status import coerce_connect_status
-from .payloads import _ClientEndpointPayloadsMixin, _EndpointAdapter
+from .payloads import _EndpointAdapter
 
 # Use the same logger instance as custom_components.lipro.core.api.client._LOGGER
 # so tests patching client._LOGGER.* still intercept logs here.
 _LOGGER = logging.getLogger("custom_components.lipro.core.api.client")
 
 
-class _ClientScheduleEndpointsMixin(_ClientEndpointPayloadsMixin):
+class ScheduleEndpoints(_EndpointAdapter):
     """Legacy schedule helper mixin retained for focused helper coverage."""
 
     @staticmethod
@@ -416,28 +416,6 @@ class _ClientScheduleEndpointsMixin(_ClientEndpointPayloadsMixin):
         )
 
 
-class ScheduleEndpoints(_EndpointAdapter, _ClientScheduleEndpointsMixin):
-    """Explicit schedule endpoint collaborator for ``LiproRestFacade``."""
-
-    EXPORTED_METHODS = (
-        "_is_mesh_group_id",
-        "_resolve_mesh_schedule_candidate_ids",
-        "_require_mesh_schedule_candidate_ids",
-        "_schedule_iot_request",
-        "_extract_schedule_timing_rows",
-        "_request_schedule_timings",
-        "_coerce_int_list",
-        "_parse_mesh_schedule_json",
-        "_normalize_mesh_timing_rows",
-        "_execute_mesh_schedule_candidate_request",
-        "_get_mesh_schedules_by_candidates",
-        "_add_mesh_schedule_by_candidates",
-        "_resolve_ble_schedule_candidate_ids",
-        "_delete_mesh_schedules_by_candidates",
-        "get_device_schedules",
-        "add_device_schedule",
-        "delete_device_schedules",
-    )
 
 
-__all__ = ["ScheduleEndpoints", "_ClientScheduleEndpointsMixin"]
+__all__ = ["ScheduleEndpoints"]

@@ -11,7 +11,7 @@ import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.lipro.const.base import DOMAIN
-from custom_components.lipro.core.mqtt.mqtt_client import LiproMqttClient
+from custom_components.lipro.core.protocol.contracts import MqttTransportFacade
 from custom_components.lipro.core.protocol.facade import LiproMqttFacade
 
 _CONFIG_ENTRY_DATA = {
@@ -79,7 +79,7 @@ class _FakeMqttFacade(LiproMqttFacade):
 
     def __init__(self, **kwargs: Any) -> None:
         self._fake_client = _FakeMqttClient(**kwargs)
-        self._client = cast(LiproMqttClient, self._fake_client)
+        self._client = cast(MqttTransportFacade, self._fake_client)
         self._session_state = MagicMock()
         self._telemetry = MagicMock()
         self._diagnostics_context = MagicMock()

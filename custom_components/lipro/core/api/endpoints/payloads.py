@@ -3,14 +3,13 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, TypeGuard, cast
+from typing import Any, Protocol, TypeGuard, cast
 
 from ...utils.identifiers import (
     normalize_iot_device_id as _normalize_iot_device_id,
     normalize_mesh_group_id as _normalize_mesh_group_id,
 )
-from ..client_base import _ClientBase
-from ..types import JsonValue, ScheduleTimingRow
+from ..types import JsonValue, LoginResponse, ScheduleTimingRow
 
 type JsonObject = dict[str, JsonValue]
 
@@ -22,10 +21,77 @@ def _is_json_object(value: object) -> TypeGuard[JsonObject]:
     return isinstance(value, dict)
 
 
+class _AuthApiPort(Protocol):
+    async def login(
+        self,
+        phone: str,
+        password: str,
+        *,
+        password_is_hashed: bool = False,
+    ) -> LoginResponse: ...
+
+    async def refresh_access_token(self) -> LoginResponse: ...
+
+
+class _EndpointClientPort(Protocol):
+    @property
+    def _auth_api(self) -> _AuthApiPort: ...
+
+    async def smart_home_request(
+        self,
+        path: str,
+        data: dict[str, Any],
+        require_auth: bool = True,
+        is_retry: bool = False,
+        retry_count: int = 0,
+    ) -> Any: ...
+
+    async def iot_request(
+        self,
+        path: str,
+        body_data: dict[str, Any],
+        is_retry: bool = False,
+        retry_count: int = 0,
+    ) -> Any: ...
+
+    async def request_iot_mapping(
+        self,
+        path: str,
+        body_data: dict[str, Any],
+        *,
+        is_retry: bool = False,
+        retry_count: int = 0,
+    ) -> tuple[dict[str, Any], str | None]: ...
+
+    async def request_iot_mapping_raw(
+        self,
+        path: str,
+        body: str,
+        *,
+        is_retry: bool = False,
+        retry_count: int = 0,
+    ) -> tuple[dict[str, Any], str | None]: ...
+
+    async def iot_request_with_busy_retry(
+        self,
+        path: str,
+        body_data: dict[str, Any],
+        *,
+        target_id: str,
+        command: str,
+    ) -> dict[str, Any]: ...
+
+    def to_device_type_hex(self, device_type: int | str) -> str: ...
+    def is_success_code(self, code: Any) -> bool: ...
+    def unwrap_iot_success_payload(self, result: dict[str, Any]) -> Any: ...
+    def require_mapping_response(self, path: str, result: Any) -> dict[str, Any]: ...
+    def is_invalid_param_error_code(self, code: Any) -> bool: ...
+
+
 class _EndpointAdapter:
     """Base adapter that delegates shared protocol operations to the facade."""
 
-    def __init__(self, client: _ClientBase) -> None:
+    def __init__(self, client: _EndpointClientPort) -> None:
         self._client = client
         self._auth_api = client._auth_api  # noqa: SLF001
 
@@ -228,42 +294,4 @@ class EndpointPayloadNormalizers:
         )
 
 
-class _ClientEndpointPayloadsMixin(_ClientBase):
-    """Thin compatibility mixin over explicit payload normalizers."""
-
-    @staticmethod
-    def _extract_list_payload(
-        result: object,
-        *keys: str,
-    ) -> list[JsonObject]:
-        return EndpointPayloadNormalizers.extract_list_payload(result, *keys)
-
-    @staticmethod
-    def _extract_data_list(result: object) -> list[JsonObject]:
-        return EndpointPayloadNormalizers.extract_data_list(result)
-
-    @staticmethod
-    def _extract_timings_list(result: object) -> list[ScheduleTimingRow]:
-        return EndpointPayloadNormalizers.extract_timings_list(result)
-
-    @staticmethod
-    def _sanitize_iot_device_ids(
-        device_ids: list[str],
-        *,
-        endpoint: str,
-    ) -> list[str]:
-        return EndpointPayloadNormalizers.sanitize_iot_device_ids(
-            device_ids,
-            endpoint=endpoint,
-        )
-
-    @staticmethod
-    def _normalize_power_target_id(device_id: object) -> str | None:
-        return EndpointPayloadNormalizers.normalize_power_target_id(device_id)
-
-
-__all__ = [
-    "EndpointPayloadNormalizers",
-    "_ClientEndpointPayloadsMixin",
-    "_EndpointAdapter",
-]
+__all__ = ["EndpointPayloadNormalizers"]

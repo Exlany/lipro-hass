@@ -24,6 +24,7 @@ from ..api import (
     LiproRefreshTokenExpiredError,
 )
 from ..protocol import LiproProtocolFacade
+from ..protocol.contracts import OutletPowerInfoResult
 from .mqtt.setup import build_mqtt_subscription_device_ids
 from .mqtt_lifecycle import async_setup_mqtt as setup_mqtt_lifecycle
 from .orchestrator import RuntimeOrchestrator
@@ -458,7 +459,7 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
             allow_rich_v2_fallback=allow_rich_v2_fallback,
         )
 
-    async def async_fetch_outlet_power_info(self, device_id: str) -> object:
+    async def async_fetch_outlet_power_info(self, device_id: str) -> OutletPowerInfoResult:
         """Query outlet power info through the coordinator-owned protocol service."""
         return await self.protocol_service.async_fetch_outlet_power_info(device_id)
 

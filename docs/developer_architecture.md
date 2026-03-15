@@ -1,7 +1,7 @@
 # Lipro Home Assistant Integration - Developer Architecture
 
 > **Last Updated**: 2026-03-15  \
-> **Version**: 4.2 (Phase 16 governance truth aligned)
+> **Version**: 4.3 (Phase 17 closeout truth aligned)
 >
 > ⚠️ 本文档仅描述"当前收敛后的架构与模块边界"，不硬编码评分/覆盖率/通过率等易失真指标。  \
 > 北极星终态裁决请见 `docs/NORTH_STAR_TARGET_ARCHITECTURE.md`。  \
@@ -243,7 +243,7 @@ Coordinator
 - `core/api/`：`LiproRestFacade` + transport / auth / endpoint collaborators；高漂移 REST 形态在 `core/protocol/boundary/rest_decoder.py` 与 `CanonicalProtocolContracts` 中先完成 canonicalization
 - `schedule_service.py`：仅保留 focused schedule helpers；`ScheduleApiService` 已退出正式故事线，schedule truth 固定为 `ScheduleEndpoints` + helper modules
 - `status_service.py` / `status_fallback.py`：`status_service.py` 保留 public orchestration，binary-split fallback kernel 下沉到 `status_fallback.py`
-- `core/mqtt/`：MQTT transport collaborators 已作为 `LiproMqttFacade` child façade 挂到统一协议根，生产路径通过 `LiproProtocolFacade` 协作
+- `core/mqtt/`：MQTT transport collaborators 与 `MqttTransportClient` 已作为 `LiproMqttFacade` child façade 挂到统一协议根，生产路径通过 `LiproProtocolFacade` / `MqttTransportFacade` contract 协作
 - `core/auth/`：`LiproAuthManager` + `AuthSessionSnapshot`；HA adapters 通过 formal auth/session contract 协作，而不是解析 raw login dict
 - `transport_core.py` / `transport_retry.py` / `transport_signing.py`：请求核心/重试/签名
 - `endpoints/`：按域拆分端点（auth / status / devices / commands / ...）
@@ -380,7 +380,7 @@ Coordinator._async_update_data() (首次)
     → async_setup_mqtt()
         → mqtt_lifecycle.setup_mqtt_lifecycle()
             → 解密 MQTT 凭证
-            → 创建 `LiproMqttClient` concrete transport（direct transport seam；formal root 仍是 `LiproProtocolFacade`）
+            → 创建 `MqttTransportClient` concrete transport（localized concrete transport；formal root 仍是 `LiproProtocolFacade`）
             → 创建 MqttRuntime (with RuntimeContext)
             → 替换 _runtimes.mqtt
 ```

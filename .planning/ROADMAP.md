@@ -3,7 +3,7 @@
 ## Milestones
 
 - ✅ **v1.0 North Star Rebuild** - Phases 1-7 (+ 1.5 / 2.5 / 2.6), shipped 2026-03-13
-- 🚧 **v1.1 Protocol Fidelity & Operability** - Phases 7.1-16 complete; milestone audit / closeout pending (updated 2026-03-15)
+- 🚧 **v1.1 Protocol Fidelity & Operability** - Phases 7.1-17 complete; final audit complete, archive-ready pending milestone archival (updated 2026-03-15)
 
 ## Required Phase Outputs
 
@@ -28,7 +28,7 @@
 
 **Milestone Goal:** 在不破坏既有北极星单一主链的前提下，正式引入 boundary decoder family、architecture policy enforcement、runtime telemetry exporter、replay evidence，并把已登记 residual surfaces 收口到显式、可删除、可验证的最小集合。
 
-**Current Status:** `Phase 7.1` 到 `Phase 16` 已全部完成（54/54 plans executed，2026-03-15）；`v1.1` 已完成 post-audit closeout hardening，待进入 milestone audit / closeout。
+**Current Status:** `Phase 7.1` 到 `Phase 17` 已全部完成（58/58 plans executed，2026-03-15）；`v1.1` 的 final closeout 与 repo audit 已落地，当前处于 archive-ready、待执行 milestone archival。
 
 ### Phase 7.1: Protocol Boundary Schema/Decoder 收口
 **Goal**: 把 REST/MQTT 的 decode authority 收口到 protocol boundary family，形成可版本化 schema/decoder registry，同时阻断 raw payload 穿透。
@@ -190,6 +190,7 @@ Plans:
 | 14 Legacy Stack Final Closure, API Spine Demolition & Governance Truth Consolidation | v1.1 | 4/4 | Complete | 2026-03-15 |
 | 15 Support Feedback Contract Hardening, Governance Truth Repair & Maintainability Follow-Through | v1.1 | 5/5 | Complete | 2026-03-15 |
 | 16 Post-audit Truth Alignment, Hotspot Decomposition & Residual Endgame | v1.1 | 6/6 | Complete | 2026-03-15 |
+| 17 Final Residual Retirement, Typed-Contract Tightening & Milestone Closeout | v1.1 | 4/4 | Complete | 2026-03-15 |
 
 ### Phase 11: Control Router Formalization & Wiring Residual Demotion
 
@@ -282,7 +283,7 @@ Plans:
   2. Python / Ruff / pre-commit / devcontainer / pytest marker truth 完全对齐，测试与 lint 规则集不再出现“运行时 3.14、规则仍按 3.13”这类认知漂移，`scripts/develop` 的非破坏性也有显式 smoke/manual gate。
   3. `LiproRestFacade`、`LiproProtocolFacade`、`Coordinator`、`service_router.py`、`config_flow.py`、`firmware_update.py` 及其 second-pass 暴露的 entry-lifecycle / diagnostics / telemetry / request-policy / status-fallback / mqtt-runtime / rest-decoder 等 secondary hotspots 都被纳入明确计划，不存在高风险热点游离于计划之外。
   4. `Any` / `type: ignore` / reflection / catch-all exception 的收口有真实 contract 与异常语义结果，热点文件需记录 before/after 指标，且关键 debt 不得净增。
-  5. `core/api` helper spine、`LiproMqttClient` residual naming、`get_auth_data()` fallback、多态 power compat envelope 等 remaining residual 都有更窄、更诚实的本地语义，并通过 residual closeout 表写清 `item / disposition / owner / phase / delete gate / evidence`。
+  5. `core/api` helper spine、legacy MQTT naming、auth compat seam 与 outlet-power compat envelope 等当时 remaining residual 都已获得更窄、更诚实的本地语义，并通过 residual closeout 表写清 `item / disposition / owner / phase / delete gate / evidence`；其最终 physical retirement / truthful disposition 已在 Phase 17 完成。
   6. device / capability / entity / OTA / platform test layering 更接近单一领域真源：`LiproDevice` 不再继续膨胀成第二套 public surface，capability 消费协议与 OTA projection/service 边界更清晰。
   7. troubleshooting / contributor navigation / release runbook / local develop workflow 与 CI / docs / support truth 对齐，且 phase closeout 包含 second-pass repo audit，证明不存在未登记的高风险 carry-forward。
 **Plans:** 6/6 complete across 3 waves
@@ -294,3 +295,21 @@ Plans:
 - [x] 16-04: protocol/runtime hotspot decomposition, typing narrowing, and exception semantics tightening (completed 2026-03-15)
 - [x] 16-05: domain/entity/OTA surface rationalization (completed 2026-03-15)
 - [x] 16-06: test-layer correction and open-source maintenance follow-through (completed 2026-03-15)
+
+### Phase 17: Final residual retirement, typed-contract tightening and milestone closeout
+
+**Goal:** 完成 v1.1 最后一轮 physical closeout：删除 API dead shells 与 legacy mixin spine，统一 auth / outlet-power typed contract，完成 MQTT canonical transport naming 与 no-export ban，并把所有 final closeout truth 回写到治理资产、里程碑审计与最终 repo audit 证据中。
+**Requirements**: RES-03, TYP-05, MQT-01, GOV-15
+**Depends on:** Phase 16
+**Success Criteria**:
+  1. `_ClientTransportMixin`、endpoint legacy mixin family、`_ClientPacingMixin`、`_ClientAuthRecoveryMixin` 与 `get_auth_data()` compat projection 已物理退场。
+  2. `client_base.py` 只剩 `ClientSessionState`，`power_service.py` / protocol/runtime outlet-power path 只承认 explicit row/list contract，不再产生 synthetic wrapper。
+  3. MQTT concrete transport 的 canonical 名称统一为 `MqttTransportClient`，且 root/core package no-export bans 与 locality guard 已同步到 baseline/tests。
+  4. `ROADMAP / REQUIREMENTS / STATE / PROJECT / baseline / review ledgers / AGENTS / developer_architecture / milestone audit` 对 Phase 17 讲同一条完成态故事线。
+**Plans:** 4/4 complete
+
+Plans:
+- [x] 17-01: api residual spine retirement and endpoint-port convergence (completed 2026-03-15)
+- [x] 17-02: auth session and outlet-power contract convergence (completed 2026-03-15)
+- [x] 17-03: mqtt transport naming demotion and locality guard hardening (completed 2026-03-15)
+- [x] 17-04: phase 17 governance closeout and final repo audit (completed 2026-03-15)

@@ -1,6 +1,6 @@
 # Project: Lipro-HASS North Star Evolution v1.1
 
-**Status:** Active — `Phase 16` 已完成，milestone closeout pending
+**Status:** Active — `Phase 17` 已完成，milestone archive-ready
 **Goal:** 把 `protocol truth`、`architecture policy`、`runtime telemetry export`、`replay evidence`、`ai-debug evidence pack`、`residual surface closure`、`api drift isolation / core-boundary prep`、`control router / runtime-access / OTA / governance coherence`、`type contract alignment / residual cleanup / contributor governance hygiene`、`explicit domain surface / governance guard hardening / hotspot boundary decomposition`、`legacy stack final closure / API spine demolition / governance truth consolidation`、`support feedback contract hardening / governance truth repair / maintainability follow-through` 与 `post-audit truth alignment / hotspot decomposition / residual endgame` 十三条演进线统一纳入北极星主链，进入“可保真、可观测、可仲裁、可回放、可给 AI 调试/分析、可持续收尾”的下一里程碑。
 
 ## Why This Milestone Exists
@@ -91,6 +91,13 @@
 - 第二轮全仓审计已执行并回写到 `VERIFICATION_MATRIX.md`、`RESIDUAL_LEDGER.md` 与 `KILL_LIST.md`；remaining residual 只允许以 owner/delete-gate/evidence 清晰的本地低风险形态存在。
 - `docs/TROUBLESHOOTING.md` 与 `docs/MAINTAINER_RELEASE_RUNBOOK.md` 已成为 contributor / maintainer 的唯一正式入口；`release.yml` 继续复用 CI 并从 tag ref 构建资产。
 - `Phase 16` 的最终裁决仍然遵守同一禁令：不重开第二条正式主链、不做无 gate rename campaign、不把 residual cleanup 包装成物理重命名工程。
+
+### 12. Phase 17 最终残留退役 / 类型契约收紧 / 里程碑收官已完成
+
+- `Phase 17` 的 `3 waves / 4 plans` 已全部执行完成：API residual spine 已物理退场，`_ClientTransportMixin`、endpoint legacy mixin family、`LiproMqttClient` legacy naming、`get_auth_data()` compat projection 与 synthetic outlet-power wrapper 均已退出正式故事线。
+- `client_base.py` 现只保留 `ClientSessionState`；`client_transport.py` 现只保留 `TransportExecutor` 与显式 transport helpers；`core/mqtt` concrete transport 名称统一到 `MqttTransportClient`，并由 no-export ban / locality guard fail-fast 锁定。
+- `ROADMAP / REQUIREMENTS / STATE / baseline / review ledgers / AGENTS / developer_architecture / milestone audit` 已统一到同一条 final closeout story；`v1.1` 当前达到 archive-ready 水位。
+- `Phase 17` 的最终裁决继续遵守同一禁令：不重开第二条正式主链、不把 cleanup 伪装成新架构、不留下 silent defer。
 
 ## Architectural Stance
 
@@ -285,16 +292,15 @@ v1.1 进入执行期后，新增演进必须额外满足：
 
 ## Current Execution Workspace Inputs
 
-- `.planning/phases/16-post-audit-truth-alignment-hotspot-decomposition-and-residual-endgame/16-PRD.md`
-- `.planning/phases/16-post-audit-truth-alignment-hotspot-decomposition-and-residual-endgame/16-RESEARCH.md`
-- `.planning/phases/16-post-audit-truth-alignment-hotspot-decomposition-and-residual-endgame/16-VALIDATION.md`
-- `.planning/phases/16-post-audit-truth-alignment-hotspot-decomposition-and-residual-endgame/16-01-PLAN.md`
-- `.planning/phases/16-post-audit-truth-alignment-hotspot-decomposition-and-residual-endgame/16-02-PLAN.md`
-- `.planning/phases/16-post-audit-truth-alignment-hotspot-decomposition-and-residual-endgame/16-03-PLAN.md`
-- `.planning/phases/16-post-audit-truth-alignment-hotspot-decomposition-and-residual-endgame/16-04-PLAN.md`
-- `.planning/phases/16-post-audit-truth-alignment-hotspot-decomposition-and-residual-endgame/16-05-PLAN.md`
-- `.planning/phases/16-post-audit-truth-alignment-hotspot-decomposition-and-residual-endgame/16-06-PLAN.md`
+- `.planning/phases/17-final-residual-retirement-typed-contract-tightening-and-milestone-closeout/17-CONTEXT.md`
+- `.planning/phases/17-final-residual-retirement-typed-contract-tightening-and-milestone-closeout/17-RESEARCH.md`
+- `.planning/phases/17-final-residual-retirement-typed-contract-tightening-and-milestone-closeout/17-01-PLAN.md`
+- `.planning/phases/17-final-residual-retirement-typed-contract-tightening-and-milestone-closeout/17-02-PLAN.md`
+- `.planning/phases/17-final-residual-retirement-typed-contract-tightening-and-milestone-closeout/17-03-PLAN.md`
+- `.planning/phases/17-final-residual-retirement-typed-contract-tightening-and-milestone-closeout/17-04-PLAN.md`
+- `.planning/phases/17-final-residual-retirement-typed-contract-tightening-and-milestone-closeout/17-VALIDATION.md`
+- `.planning/phases/17-final-residual-retirement-typed-contract-tightening-and-milestone-closeout/17-VERIFICATION.md`
 
 - 当前 phase 资产默认是执行工作区输入；只有被 `ROADMAP.md`、baseline docs 或 review ledgers 显式提升时，才成为长期治理真源。
 
-*Last updated: 2026-03-15 after Phase 16 closeout execution and second-pass audit*
+*Last updated: 2026-03-15 after Phase 17 closeout execution and final repo audit*

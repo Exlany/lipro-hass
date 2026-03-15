@@ -2,12 +2,11 @@
 
 from __future__ import annotations
 
-from ..client_base import _ClientBase
 from ..types import LoginResponse
 from .payloads import _EndpointAdapter
 
 
-class _ClientAuthEndpointsMixin(_ClientBase):
+class AuthEndpoints(_EndpointAdapter):
     """Legacy auth endpoint mixin retained for focused helper tests."""
 
     async def login(
@@ -29,13 +28,4 @@ class _ClientAuthEndpointsMixin(_ClientBase):
         return await self._auth_api.refresh_access_token()
 
 
-class AuthEndpoints(_EndpointAdapter, _ClientAuthEndpointsMixin):
-    """Explicit auth endpoint collaborator for ``LiproRestFacade``."""
-
-    EXPORTED_METHODS = (
-        "login",
-        "refresh_access_token",
-    )
-
-
-__all__ = ["AuthEndpoints", "_ClientAuthEndpointsMixin"]
+__all__ = ["AuthEndpoints"]

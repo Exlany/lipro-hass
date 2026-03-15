@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING, Any
 if TYPE_CHECKING:
     from ...api.types import OtaInfoRow, ScheduleTimingRow
     from ...protocol import LiproProtocolFacade
+from ...protocol.contracts import OutletPowerInfoResult
 
 
 @dataclass(slots=True)
@@ -147,7 +148,7 @@ class CoordinatorProtocolService:
             allow_rich_v2_fallback=allow_rich_v2_fallback,
         )
 
-    async def async_fetch_outlet_power_info(self, device_id: str) -> object:
+    async def async_fetch_outlet_power_info(self, device_id: str) -> OutletPowerInfoResult:
         """Query outlet-power info through the formal protocol surface."""
         return await self.protocol_getter().fetch_outlet_power_info(device_id)
 

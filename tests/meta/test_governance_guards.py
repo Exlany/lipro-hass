@@ -126,6 +126,17 @@ def _assert_current_mode_tracks_phase_lifecycle(state_text: str) -> None:
     )
 
 
+def _assert_state_tracks_phase_17_closeout(state_text: str) -> None:
+    assert re.search(
+        r"\*\*Current mode:\*\* `Phase 17 (?:complete|milestone audit complete)`",
+        state_text,
+    )
+    assert "total_phases: 15" in state_text
+    assert "completed_phases: 15" in state_text
+    assert "total_plans: 58" in state_text
+    assert "completed_plans: 58" in state_text
+
+
 def test_governance_checker_reports_no_drift() -> None:
     assert run_checks(_ROOT) == []
 
@@ -339,8 +350,8 @@ def test_governance_truth_registers_v1_1_closeout_assets() -> None:
 
     assert "runtime telemetry exporter family" in authority_text
     assert "v1.1 closeout evidence index" in authority_text
-    assert "| 7.5 |" in verification_text
-    assert "V1_1_EVIDENCE_INDEX.md" in verification_text
+    assert "7 / 7.5 / 15 / 16 / 17" in verification_text
+    assert "V1_1_EVIDENCE_INDEX.md" in authority_text
     assert "## Phase 07.5 Residual Delta" in residual_text
     assert "de-scope" in residual_text
     assert "## Phase 07.5 Status Update" in kill_text
@@ -453,7 +464,8 @@ def test_phase_9_governance_truth_is_consistent() -> None:
     assert "status: passed" in verification_text
     assert "## Automated UAT Verdict" in uat_text
     assert "services/wiring.py" not in public_text
-    assert "runtime supplemental state primitives" in authority_text
+    assert "runtime device registry read surface" in authority_text
+    assert "outlet power primitive" in authority_text
     assert residual_text.count("## Phase 09 Residual Delta") == 1
     assert kill_text.count("## Phase 09 Status Update") == 1
     for seam in (
@@ -503,7 +515,7 @@ def test_phase_11_execution_truth_is_consistent() -> None:
     assert audit_frontmatter["status"] in {"superseded_snapshot", "tech_debt"}
     scores = audit_frontmatter["scores"]
     assert isinstance(scores, dict)
-    assert scores["requirements"] in {"30/30", "65/65"}
+    assert scores["requirements"] in {"30/30", "65/65", "69/69"}
     if audit_frontmatter["status"] == "superseded_snapshot":
         assert audit_frontmatter["snapshot_scope"] == "phase_11_complete_pre_closeout"
 
@@ -626,9 +638,7 @@ def test_phase_15_execution_truth_is_consistent() -> None:
         "RES-01",
     ):
         assert f"| {req_id} | Phase 15 | Complete |" in requirements_text
-    assert re.search(r"\*\*Current mode:\*\* `Phase 16 (?:complete|milestone audit complete)`", state_text)
-    assert "completed_phases: 14" in state_text
-    assert "completed_plans: 54" in state_text
+    _assert_state_tracks_phase_17_closeout(state_text)
     assert "2026.3.1" in prd_text
     assert "2026.3.1" in context_text
     assert "status: passed" in validation_text
@@ -639,14 +649,9 @@ def test_phase_15_execution_truth_is_consistent() -> None:
     assert "## Phase 15 Status Update" in kill_text
     assert "## Phase 15 Policy Follow-Through" in architecture_policy_text
     assert "custom_components/lipro/core/api/client_base.py" in file_matrix_text
-    assert (
-        "internal typing spine only; locality limited to core/api" in file_matrix_text
-    )
+    assert "ClientSessionState` formal REST session-state home" in file_matrix_text
     assert "custom_components/lipro/core/mqtt/mqtt_client.py" in file_matrix_text
-    assert (
-        "direct transport residual; locality limited to core/mqtt + protocol seam"
-        in file_matrix_text
-    )
+    assert "`MqttTransportClient` concrete transport home; locality limited to core/mqtt + protocol seam" in file_matrix_text
 
     for artifact_name in (
         "15-01-PLAN.md",
@@ -768,11 +773,7 @@ def test_phase_16_execution_truth_is_consistent() -> None:
         "DOC-02",
     ):
         assert f"| {req_id} | Phase 16 | Complete |" in requirements_text
-    assert re.search(r"\*\*Current mode:\*\* `Phase 16 (?:complete|milestone audit complete)`", state_text)
-    assert "total_phases: 14" in state_text
-    assert "completed_phases: 14" in state_text
-    assert "total_plans: 54" in state_text
-    assert "completed_plans: 54" in state_text
+    _assert_state_tracks_phase_17_closeout(state_text)
     assert "status: passed" in validation_text
     assert "| 16-02-00 | 16-02 | 1 | QLT-02 / DOC-02 |" in validation_text
     assert "| 16-03-00 | 16-03 | 2 | CTRL-06 / ERR-01 / TYP-04 |" in validation_text
@@ -800,6 +801,74 @@ def test_phase_16_execution_truth_is_consistent() -> None:
         "16-04-SUMMARY.md",
         "16-05-SUMMARY.md",
         "16-06-SUMMARY.md",
+    ):
+        assert (phase_root / artifact_name).exists()
+
+
+def test_phase_17_execution_truth_is_consistent() -> None:
+    phase_root = (
+        _ROOT
+        / ".planning"
+        / "phases"
+        / "17-final-residual-retirement-typed-contract-tightening-and-milestone-closeout"
+    )
+    project_text = (_ROOT / ".planning" / "PROJECT.md").read_text(encoding="utf-8")
+    roadmap_text = (_ROOT / ".planning" / "ROADMAP.md").read_text(encoding="utf-8")
+    requirements_text = (_ROOT / ".planning" / "REQUIREMENTS.md").read_text(
+        encoding="utf-8"
+    )
+    state_text = (_ROOT / ".planning" / "STATE.md").read_text(encoding="utf-8")
+    public_text = (_ROOT / ".planning" / "baseline" / "PUBLIC_SURFACES.md").read_text(
+        encoding="utf-8"
+    )
+    authority_text = (_ROOT / ".planning" / "baseline" / "AUTHORITY_MATRIX.md").read_text(
+        encoding="utf-8"
+    )
+    verification_matrix_text = (
+        _ROOT / ".planning" / "baseline" / "VERIFICATION_MATRIX.md"
+    ).read_text(encoding="utf-8")
+    residual_text = (_ROOT / ".planning" / "reviews" / "RESIDUAL_LEDGER.md").read_text(
+        encoding="utf-8"
+    )
+    kill_text = (_ROOT / ".planning" / "reviews" / "KILL_LIST.md").read_text(
+        encoding="utf-8"
+    )
+    validation_text = (phase_root / "17-VALIDATION.md").read_text(encoding="utf-8")
+    verification_text = (phase_root / "17-VERIFICATION.md").read_text(encoding="utf-8")
+    audit_text = (_ROOT / ".planning" / "v1.1-MILESTONE-AUDIT.md").read_text(encoding="utf-8")
+
+    assert "### 12. Phase 17 最终残留退役 / 类型契约收紧 / 里程碑收官已完成" in project_text
+    assert (
+        "| 17 Final Residual Retirement, Typed-Contract Tightening & Milestone Closeout | v1.1 | 4/4 | Complete | 2026-03-15 |"
+        in roadmap_text
+    )
+    assert "**Plans:** 4/4 complete" in roadmap_text
+    for req_id in ("RES-03", "TYP-05", "MQT-01", "GOV-15"):
+        assert f"| {req_id} | Phase 17 | Complete |" in requirements_text
+    _assert_state_tracks_phase_17_closeout(state_text)
+    assert "## Phase 17 Final Residual Retirement Notes" in public_text
+    assert "auth/session snapshot contract" in authority_text
+    assert "## Phase 17 Closeout Contract" in verification_matrix_text
+    assert "## Phase 17 Residual Delta" in residual_text
+    assert "## Phase 17 Status Update" in kill_text
+    assert "status: passed" in validation_text
+    assert "status: passed" in verification_text
+    assert "69 / 69" in audit_text
+    assert "15 / 15" in audit_text
+
+    for artifact_name in (
+        "17-CONTEXT.md",
+        "17-RESEARCH.md",
+        "17-01-PLAN.md",
+        "17-02-PLAN.md",
+        "17-03-PLAN.md",
+        "17-04-PLAN.md",
+        "17-01-SUMMARY.md",
+        "17-02-SUMMARY.md",
+        "17-03-SUMMARY.md",
+        "17-04-SUMMARY.md",
+        "17-VALIDATION.md",
+        "17-VERIFICATION.md",
     ):
         assert (phase_root / artifact_name).exists()
 
@@ -937,7 +1006,8 @@ def test_phase_13_execution_truth_is_consistent() -> None:
     assert "Domain dynamic delegation" in residual_text
     assert "## Phase 13 Residual Delta" in residual_text
     assert "## Phase 13 Status Update" in kill_text
-    assert "## Phase 13 Surface Closure Notes" in public_text
+    assert "CapabilityRegistry" in public_text
+    assert "动态 `__getattr__` 不再合法化" in public_text
 
 
 def test_phase_12_execution_truth_is_consistent() -> None:
@@ -983,12 +1053,13 @@ def test_phase_12_execution_truth_is_consistent() -> None:
     active_residual_text = _extract_markdown_section(
         residual_text, "Active Residual Families"
     )
-    assert "## Phase 12 Surface Closure Notes" in public_text
+    assert "`DeviceCapabilities` compat alias" in public_text
+    assert "`core.api.LiproClient` compat shell 已在 Phase 12 正式删除" in public_text
     assert "## Phase 12 Residual Delta" in residual_text
     assert "## Phase 12 Status Update" in kill_text
-    assert "`core.api.LiproClient` compat shell 已删除" in public_text
-    assert "`LiproProtocolFacade.get_device_list` compat wrapper 已删除" in public_text
-    assert "`LiproMqttFacade.raw_client` compat seam 已删除" in public_text
+    assert "`core.api.LiproClient` compat shell 已在 Phase 12 正式删除" in public_text
+    assert "LiproProtocolFacade.get_device_list" in residual_text
+    assert "LiproMqttFacade.raw_client" in kill_text
     assert "`DeviceCapabilities` compat alias" in public_text
     assert "已关闭（Phase 12：compat shell removed）" in kill_text
     assert "已关闭（Phase 12：compat seam removed）" in kill_text
@@ -999,7 +1070,7 @@ def test_phase_12_execution_truth_is_consistent() -> None:
         "LiproMqttFacade.raw_client",
         "DeviceCapabilities",
     ):
-        assert seam in public_text
+        assert seam in kill_text or seam in public_text
         assert seam in kill_text
         assert seam not in active_residual_text
     for artifact_name in (
@@ -1096,11 +1167,10 @@ def test_phase_10_governance_truth_is_consistent() -> None:
     assert "`Coordinator` 不再从这里导出" in public_text
     assert "runtime_access.get_entry_runtime_coordinator()" in public_text
     assert "entry.runtime_data.coordinator" in dependency_text
-    assert "rest.device-list@v1" in authority_text
-    assert "rest.device-status@v1" in authority_text
-    assert "rest.mesh-group-status@v1" in authority_text
+    assert "protocol boundary decoder families" in authority_text
+    assert "auth/session snapshot contract" in authority_text
     assert "AuthSessionSnapshot" in authority_text
-    assert "| `ISO-*` |" in verification_matrix_text
+    assert "`AuthSessionSnapshot` 成为唯一正式 auth/session truth" in verification_matrix_text
     assert "## Phase 10 Exit Contract" in verification_matrix_text
     assert residual_text.count("## Phase 10 Residual Delta") == 1
     assert kill_text.count("## Phase 10 Status Update") == 1

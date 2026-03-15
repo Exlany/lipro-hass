@@ -20,7 +20,7 @@ from .topic_builder import MqttTopicBuilder
 _MQTT_SUBSCRIPTION_BATCH_SIZE: Final[int] = 50
 
 
-class LiproMqttClient:
+class MqttTransportClient:
     """Thin MQTT facade composed from focused runtime helpers."""
 
     def __init__(
@@ -173,4 +173,4 @@ class LiproMqttClient:
         return decode_payload_text(raw_payload, device_id)
 
 
-__all__ = ["LiproMqttClient"]
+__all__ = ["MqttTransportClient"]

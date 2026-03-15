@@ -16,7 +16,7 @@ from custom_components.lipro.core.mqtt.credentials import (
     MqttCredentials,
     decrypt_mqtt_credential,
 )
-from custom_components.lipro.core.mqtt.mqtt_client import LiproMqttClient
+from custom_components.lipro.core.mqtt.mqtt_client import MqttTransportClient
 from custom_components.lipro.core.mqtt.payload import (
     _MAX_MQTT_PAYLOAD_BYTES,
     _sanitize_mqtt_log_value,
@@ -409,12 +409,12 @@ class TestParseMqttPayload:
         assert result["brightness"] == "0"
 
 
-class TestLiproMqttClient:
-    """Tests for LiproMqttClient class."""
+class TestMqttTransportClient:
+    """Tests for MqttTransportClient class."""
 
     def test_init(self):
         """Test client initialization."""
-        client = LiproMqttClient(
+        client = MqttTransportClient(
             access_key="access",
             secret_key="secret",
             biz_id="biz001",
@@ -430,7 +430,7 @@ class TestLiproMqttClient:
         on_connect = MagicMock()
         on_disconnect = MagicMock()
 
-        client = LiproMqttClient(
+        client = MqttTransportClient(
             access_key="access",
             secret_key="secret",
             biz_id="biz001",
@@ -447,7 +447,7 @@ class TestLiproMqttClient:
     @pytest.mark.asyncio
     async def test_start(self):
         """Test starting MQTT client."""
-        client = LiproMqttClient(
+        client = MqttTransportClient(
             access_key="access",
             secret_key="secret",
             biz_id="biz001",
@@ -466,7 +466,7 @@ class TestLiproMqttClient:
     @pytest.mark.asyncio
     async def test_start_already_running(self):
         """Test starting already running client."""
-        client = LiproMqttClient(
+        client = MqttTransportClient(
             access_key="access",
             secret_key="secret",
             biz_id="biz001",
@@ -485,7 +485,7 @@ class TestLiproMqttClient:
     @pytest.mark.asyncio
     async def test_stop(self):
         """Test stopping MQTT client."""
-        client = LiproMqttClient(
+        client = MqttTransportClient(
             access_key="access",
             secret_key="secret",
             biz_id="biz001",
@@ -513,7 +513,7 @@ class TestLiproMqttClient:
     def test_handle_disconnect(self):
         """Test disconnect handling."""
         on_disconnect = MagicMock()
-        client = LiproMqttClient(
+        client = MqttTransportClient(
             access_key="access",
             secret_key="secret",
             biz_id="biz001",
@@ -532,7 +532,7 @@ class TestLiproMqttClient:
     def test_handle_disconnect_callback_failure_sets_last_error(self, caplog):
         """Disconnect callback exceptions should be captured as last_error."""
         on_disconnect = MagicMock(side_effect=RuntimeError("boom"))
-        client = LiproMqttClient(
+        client = MqttTransportClient(
             access_key="access",
             secret_key="secret",
             biz_id="biz001",
@@ -551,7 +551,7 @@ class TestLiproMqttClient:
     def test_process_message(self):
         """Test message processing."""
         on_message = MagicMock()
-        client = LiproMqttClient(
+        client = MqttTransportClient(
             access_key="access",
             secret_key="secret",
             biz_id="biz001",
@@ -574,7 +574,7 @@ class TestLiproMqttClient:
     def test_process_message_memoryview_payload(self):
         """Test message processing with memoryview payload."""
         on_message = MagicMock()
-        client = LiproMqttClient(
+        client = MqttTransportClient(
             access_key="access",
             secret_key="secret",
             biz_id="biz001",
@@ -596,7 +596,7 @@ class TestLiproMqttClient:
     def test_process_message_ignores_mismatched_biz_id(self):
         """Messages for a different biz ID should be ignored."""
         on_message = MagicMock()
-        client = LiproMqttClient(
+        client = MqttTransportClient(
             access_key="access",
             secret_key="secret",
             biz_id="biz001",
@@ -616,7 +616,7 @@ class TestLiproMqttClient:
     def test_process_message_invalid_json(self):
         """Test message processing with invalid JSON."""
         on_message = MagicMock()
-        client = LiproMqttClient(
+        client = MqttTransportClient(
             access_key="access",
             secret_key="secret",
             biz_id="biz001",
@@ -636,7 +636,7 @@ class TestLiproMqttClient:
     def test_process_message_invalid_topic(self, caplog):
         """Test message processing with invalid topic."""
         on_message = MagicMock()
-        client = LiproMqttClient(
+        client = MqttTransportClient(
             access_key="access",
             secret_key="secret",
             biz_id="biz001",
@@ -658,7 +658,7 @@ class TestLiproMqttClient:
     def test_process_message_invalid_topic_warns_when_debug_disabled(self, caplog):
         """Non-debug invalid topic path should emit warning without topic content."""
         on_message = MagicMock()
-        client = LiproMqttClient(
+        client = MqttTransportClient(
             access_key="access",
             secret_key="secret",
             biz_id="biz001",
@@ -680,7 +680,7 @@ class TestLiproMqttClient:
     def test_process_message_empty_properties(self):
         """Test message processing with empty properties."""
         on_message = MagicMock()
-        client = LiproMqttClient(
+        client = MqttTransportClient(
             access_key="access",
             secret_key="secret",
             biz_id="biz001",
@@ -700,7 +700,7 @@ class TestLiproMqttClient:
     def test_process_message_payload_not_object(self):
         """Test message processing ignores JSON payloads that are not objects."""
         on_message = MagicMock()
-        client = LiproMqttClient(
+        client = MqttTransportClient(
             access_key="access",
             secret_key="secret",
             biz_id="biz001",
@@ -729,12 +729,12 @@ class TestLiproMqttClient:
         with pytest.raises(asyncio.CancelledError):
             await task
 
-        assert LiproMqttClient._consume_task_exception(task) is None
+        assert MqttTransportClient._consume_task_exception(task) is None
 
     def test_process_message_redacts_sensitive_debug_payload(self, caplog):
         """Debug payload log should redact sensitive fields and identifiers."""
         on_message = MagicMock()
-        client = LiproMqttClient(
+        client = MqttTransportClient(
             access_key="access",
             secret_key="secret",
             biz_id="biz001",
@@ -768,7 +768,7 @@ class TestLiproMqttClient:
     def test_process_message_skips_oversized_payload(self):
         """Oversized MQTT payloads should be dropped defensively."""
         on_message = MagicMock()
-        client = LiproMqttClient(
+        client = MqttTransportClient(
             access_key="access",
             secret_key="secret",
             biz_id="biz001",
@@ -790,7 +790,7 @@ class TestLiproMqttClient:
     def test_process_message_skips_oversized_unicode_string_payload(self):
         """Oversized unicode string payloads should be checked by UTF-8 byte size."""
         on_message = MagicMock()
-        client = LiproMqttClient(
+        client = MqttTransportClient(
             access_key="access",
             secret_key="secret",
             biz_id="biz001",
@@ -810,7 +810,7 @@ class TestLiproMqttClient:
     def test_process_message_empty_payload(self):
         """Empty payload should be skipped early."""
         on_message = MagicMock()
-        client = LiproMqttClient(
+        client = MqttTransportClient(
             access_key="access",
             secret_key="secret",
             biz_id="biz001",
@@ -829,7 +829,7 @@ class TestLiproMqttClient:
     def test_process_message_unexpected_exception(self, caplog):
         """Unexpected errors should be swallowed and logged."""
         on_message = MagicMock()
-        client = LiproMqttClient(
+        client = MqttTransportClient(
             access_key="access",
             secret_key="secret",
             biz_id="biz001",
@@ -858,7 +858,7 @@ class TestLiproMqttClient:
         """Callback exceptions should be observable via last_error and on_error."""
         on_message = MagicMock(side_effect=RuntimeError("message boom"))
         on_error = MagicMock()
-        client = LiproMqttClient(
+        client = MqttTransportClient(
             access_key="access",
             secret_key="secret",
             biz_id="biz001",
@@ -879,7 +879,7 @@ class TestLiproMqttClient:
         """Error hook failures should not replace original callback exception."""
         on_message = MagicMock(side_effect=ValueError("message failed"))
         on_error = MagicMock(side_effect=RuntimeError("hook failed"))
-        client = LiproMqttClient(
+        client = MqttTransportClient(
             access_key="access",
             secret_key="secret",
             biz_id="biz001",
@@ -899,7 +899,7 @@ class TestLiproMqttClient:
     def test_process_message_success_clears_last_error(self):
         """Successful message processing should clear stale error state."""
         on_message = MagicMock()
-        client = LiproMqttClient(
+        client = MqttTransportClient(
             access_key="access",
             secret_key="secret",
             biz_id="biz001",
@@ -916,12 +916,12 @@ class TestLiproMqttClient:
         assert client.last_error is None
 
 
-class TestLiproMqttClientProperties:
+class TestMqttTransportClientProperties:
     """Tests for MQTT client properties."""
 
     def test_is_connected(self):
         """Test is_connected property."""
-        client = LiproMqttClient(
+        client = MqttTransportClient(
             access_key="access",
             secret_key="secret",
             biz_id="biz001",
@@ -935,7 +935,7 @@ class TestLiproMqttClientProperties:
 
     def test_subscribed_count(self):
         """Test subscribed_count property."""
-        client = LiproMqttClient(
+        client = MqttTransportClient(
             access_key="access",
             secret_key="secret",
             biz_id="biz001",
@@ -949,7 +949,7 @@ class TestLiproMqttClientProperties:
 
     def test_subscribed_devices_returns_copy(self):
         """Test subscribed_devices returns a copy, not the internal set."""
-        client = LiproMqttClient(
+        client = MqttTransportClient(
             access_key="access",
             secret_key="secret",
             biz_id="biz001",
@@ -971,7 +971,7 @@ class TestSyncSubscriptions:
     @pytest.mark.asyncio
     async def test_sync_add_devices(self):
         """Test adding new device subscriptions."""
-        client = LiproMqttClient(
+        client = MqttTransportClient(
             access_key="access",
             secret_key="secret",
             biz_id="biz001",
@@ -985,7 +985,7 @@ class TestSyncSubscriptions:
     @pytest.mark.asyncio
     async def test_sync_remove_devices(self):
         """Test removing device subscriptions."""
-        client = LiproMqttClient(
+        client = MqttTransportClient(
             access_key="access",
             secret_key="secret",
             biz_id="biz001",
@@ -1000,7 +1000,7 @@ class TestSyncSubscriptions:
     @pytest.mark.asyncio
     async def test_sync_no_change(self):
         """Test sync with no changes is a no-op."""
-        client = LiproMqttClient(
+        client = MqttTransportClient(
             access_key="access",
             secret_key="secret",
             biz_id="biz001",
@@ -1015,7 +1015,7 @@ class TestSyncSubscriptions:
     @pytest.mark.asyncio
     async def test_sync_add_and_remove(self):
         """Test simultaneous add and remove."""
-        client = LiproMqttClient(
+        client = MqttTransportClient(
             access_key="access",
             secret_key="secret",
             biz_id="biz001",
@@ -1030,7 +1030,7 @@ class TestSyncSubscriptions:
     @pytest.mark.asyncio
     async def test_sync_connected_subscribes_to_broker(self):
         """Test sync actually subscribes/unsubscribes when connected."""
-        client = LiproMqttClient(
+        client = MqttTransportClient(
             access_key="access",
             secret_key="secret",
             biz_id="biz001",
@@ -1051,7 +1051,7 @@ class TestSyncSubscriptions:
     @pytest.mark.asyncio
     async def test_sync_connected_batches_broker_updates(self):
         """Large syncs should batch subscribe/unsubscribe requests."""
-        client = LiproMqttClient(
+        client = MqttTransportClient(
             access_key="access",
             secret_key="secret",
             biz_id="biz001",
@@ -1071,7 +1071,7 @@ class TestSyncSubscriptions:
     @pytest.mark.asyncio
     async def test_sync_connected_skips_invalid_device_id(self, caplog):
         """Test sync skips invalid topic IDs without breaking valid subscriptions."""
-        client = LiproMqttClient(
+        client = MqttTransportClient(
             access_key="access",
             secret_key="secret",
             biz_id="biz001",
@@ -1092,7 +1092,7 @@ class TestSyncSubscriptions:
     @pytest.mark.asyncio
     async def test_sync_connected_subscribe_mqtt_error_keeps_running(self):
         """Subscribe errors should be logged without breaking sync flow."""
-        client = LiproMqttClient(
+        client = MqttTransportClient(
             access_key="access",
             secret_key="secret",
             biz_id="biz001",
@@ -1111,7 +1111,7 @@ class TestSyncSubscriptions:
     @pytest.mark.asyncio
     async def test_sync_connected_unsubscribe_invalid_id_skips(self):
         """Invalid unsubscribe device IDs should be skipped safely."""
-        client = LiproMqttClient(
+        client = MqttTransportClient(
             access_key="access",
             secret_key="secret",
             biz_id="biz001",
@@ -1128,7 +1128,7 @@ class TestSyncSubscriptions:
     @pytest.mark.asyncio
     async def test_sync_connected_unsubscribe_mqtt_error_keeps_running(self):
         """Unsubscribe errors should not break synchronization."""
-        client = LiproMqttClient(
+        client = MqttTransportClient(
             access_key="access",
             secret_key="secret",
             biz_id="biz001",
@@ -1149,7 +1149,7 @@ class TestSyncSubscriptions:
     @pytest.mark.asyncio
     async def test_sync_connected_retries_pending_unsubscribe_until_success(self):
         """Failed live unsubscribes should retry on later sync calls in the same session."""
-        client = LiproMqttClient(
+        client = MqttTransportClient(
             access_key="access",
             secret_key="secret",
             biz_id="biz001",
@@ -1182,7 +1182,7 @@ class TestConnectAndDecode:
         Also verifies TLS context is cached across reconnects to avoid rebuilding it.
         """
         on_connect = MagicMock()
-        client = LiproMqttClient(
+        client = MqttTransportClient(
             access_key="access",
             secret_key="secret",
             biz_id="biz001",
@@ -1245,7 +1245,7 @@ class TestConnectAndDecode:
     @pytest.mark.asyncio
     async def test_connect_and_listen_batches_pending_and_current_topics(self):
         """Connect/listen should batch queued unsubscribes and subscriptions."""
-        client = LiproMqttClient(
+        client = MqttTransportClient(
             access_key="access",
             secret_key="secret",
             biz_id="biz001",
@@ -1280,7 +1280,7 @@ class TestConnectAndDecode:
     async def test_connect_and_listen_keeps_last_error_when_on_connect_fails(self):
         """on_connect callback failures should remain observable via last_error."""
         on_connect = MagicMock(side_effect=RuntimeError("callback boom"))
-        client = LiproMqttClient(
+        client = MqttTransportClient(
             access_key="access",
             secret_key="secret",
             biz_id="biz001",
@@ -1310,12 +1310,12 @@ class TestConnectAndDecode:
 
     def test_decode_payload_text_string(self):
         """String payload should pass through unchanged when size is valid."""
-        decoded = LiproMqttClient._decode_payload_text("{}", "dev1")
+        decoded = MqttTransportClient._decode_payload_text("{}", "dev1")
         assert decoded == "{}"
 
     def test_decode_payload_text_unexpected_type(self):
         """Unexpected payload types should be ignored."""
-        decoded = LiproMqttClient._decode_payload_text(123, "dev1")
+        decoded = MqttTransportClient._decode_payload_text(123, "dev1")
         assert decoded is None
 
 
@@ -1324,7 +1324,7 @@ class TestConnectionLoop:
 
     @pytest.mark.asyncio
     async def test_connection_loop_retries_after_mqtt_error(self):
-        client = LiproMqttClient(
+        client = MqttTransportClient(
             access_key="access",
             secret_key="secret",
             biz_id="biz001",
@@ -1357,7 +1357,7 @@ class TestConnectionLoop:
 
     @pytest.mark.asyncio
     async def test_connection_loop_handles_oserror(self):
-        client = LiproMqttClient(
+        client = MqttTransportClient(
             access_key="access",
             secret_key="secret",
             biz_id="biz001",
@@ -1390,7 +1390,7 @@ class TestConnectionLoop:
 
     @pytest.mark.asyncio
     async def test_connection_loop_handles_value_error(self):
-        client = LiproMqttClient(
+        client = MqttTransportClient(
             access_key="access",
             secret_key="secret",
             biz_id="biz001",
@@ -1423,7 +1423,7 @@ class TestConnectionLoop:
 
     @pytest.mark.asyncio
     async def test_connection_loop_handles_unexpected_exception(self):
-        client = LiproMqttClient(
+        client = MqttTransportClient(
             access_key="access",
             secret_key="secret",
             biz_id="biz001",
@@ -1458,7 +1458,7 @@ class TestConnectionLoop:
     async def test_finalize_connection_task_sets_last_error_and_calls_error_hook(self):
         """Background connection task failures should be observable."""
         on_error = MagicMock()
-        client = LiproMqttClient(
+        client = MqttTransportClient(
             access_key="access",
             secret_key="secret",
             biz_id="biz001",

@@ -52,9 +52,13 @@ def test_normalize_device_id_and_single_payload_handle_invalid_shapes() -> None:
     assert _normalize_single_outlet_power_payload({"abc": {"nowPower": 1}}, requested_id="ABC") == {
         "nowPower": 1
     }
-    assert _normalize_single_outlet_power_payload([{"nowPower": 1}, {"nowPower": 2}], requested_id="abc") == {
-        "data": [{"nowPower": 1}, {"nowPower": 2}]
-    }
+    assert _normalize_single_outlet_power_payload(
+        [
+            {"deviceId": "other", "nowPower": 1},
+            {"deviceId": "abc", "nowPower": 2},
+        ],
+        requested_id="abc",
+    ) == {"deviceId": "abc", "nowPower": 2}
     assert _normalize_single_outlet_power_payload(["bad-row"], requested_id="abc") is None
     assert _normalize_single_outlet_power_payload("bad", requested_id="abc") is None
     assert _normalize_single_outlet_power_payload({}, requested_id="   ") is None

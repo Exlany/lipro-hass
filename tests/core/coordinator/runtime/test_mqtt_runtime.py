@@ -12,7 +12,7 @@ import pytest
 
 from custom_components.lipro.core.coordinator.runtime.mqtt_runtime import MqttRuntime
 from custom_components.lipro.core.device import LiproDevice
-from custom_components.lipro.core.mqtt.mqtt_client import LiproMqttClient
+from custom_components.lipro.core.protocol.contracts import MqttTransportFacade
 
 
 @pytest.fixture
@@ -27,7 +27,7 @@ def mock_hass() -> Mock:
 @pytest.fixture
 def mock_mqtt_client() -> Mock:
     """Create mock MQTT client."""
-    client = Mock(spec=LiproMqttClient)
+    client = Mock(spec=MqttTransportFacade)
     client.start = AsyncMock()
     client.stop = AsyncMock()
     client.sync_subscriptions = AsyncMock()

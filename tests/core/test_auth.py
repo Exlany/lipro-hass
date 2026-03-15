@@ -425,29 +425,6 @@ class TestLiproAuthManagerDoubleCheckedLocking:
         client.refresh_access_token.assert_not_called()
 
 
-class TestLiproAuthManagerGetAuthData:
-    """Tests for getting auth data."""
-
-    def test_get_auth_data(self):
-        """Test getting auth data for storage."""
-        client = MagicMock(spec=LiproProtocolFacade)
-        client.access_token = "access123"
-        client.refresh_token = "refresh456"
-        client.user_id = 10001
-        client.phone_id = "550e8400-e29b-41d4-a716-446655440000"
-
-        manager = LiproAuthManager(client)
-        manager._token_expires_at = 1000167890.0
-
-        data = manager.get_auth_data()
-
-        assert data["access_token"] == "access123"
-        assert data["refresh_token"] == "refresh456"
-        assert data["user_id"] == 10001
-        assert data["phone_id"] == "550e8400-e29b-41d4-a716-446655440000"
-        assert data["expires_at"] == 1000167890.0
-
-
 class TestLiproAuthManagerProperties:
     """Tests for auth manager properties."""
 

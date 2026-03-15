@@ -4,9 +4,6 @@
 
 | Family | Current example | Owner phase | Residual owner | Exit condition |
 |--------|------------------|-------------|----------------|----------------|
-| API compat wrappers | `custom_components/lipro/core/api/power_service.py` 中仍保留的 canonical-to-legacy envelope shaping 与少量 helper-level payload compatibility 语义 | Phase 2 | `02-04 compat shell cleanup`（API/Protocol owner 主责，Runtime/Coordinator owner 迁移消费者） | legacy envelope shaping 不再出现在 REST/public façade 主链；剩余 helper-level compatibility 语义 继续向 canonical rows 收口 |
-| API mixin inheritance | `_ClientBase` temporary typing anchor、`_ClientPacingMixin` / `_ClientAuthRecoveryMixin` / `_ClientTransportMixin` compat shells，以及 endpoint mixin helper classes | Phase 2 | `02-04 demixin closeout handoff`（API owner 主责，Phase 2.5/6/14 继续清退） | `_ClientEndpointsMixin` aggregate carrier 已删除；remaining helper spine 只能停留在 `core/api`，并受 architecture-policy locality guard 约束 |
-| Split-root protocol surfaces | `custom_components/lipro/core/mqtt/mqtt_client.py` 中 direct transport class 的 legacy naming（Phase 12 已删除 façade-level concrete-transport seam） | Phase 2.5 | `02.5 unified protocol root closeout`（Protocol owner 主责，Runtime owner 配合迁移） | runtime-facing allowed consumers 只依赖 `LiproProtocolFacade`；Phase 14 只加固 residual ownership / import guard，physical rename 继续 deferred |
 | External-boundary advisory naming | firmware remote advisory / support payload generated field naming 仍带 legacy semantics | Phase 2.6 | `02.6 external-boundary closeout` | authority truth 已固定后完成术语清理 |
 | Protocol-boundary family coverage | `rest.list-envelope.v1`、`rest.schedule-json.v1`、`mqtt.topic.v1`、`mqtt.message-envelope.v1` 仍停留在 inventory / helper collaborator 层，尚未全部 registry-backed | Phase 7.1 | `07.1 boundary expansion handoff` | inventory 中登记的 family 全部完成 registry-backed 接线，或在 v1.1 closeout 中被明确裁决为 de-scope / retire |
 | Replay scenario coverage | `tests/fixtures/protocol_replay/` 当前只正式保留 representative `rest.mqtt-config@v1` 与 `mqtt.properties@v1`；`rest.list-envelope.v1`、`rest.schedule-json.v1`、`mqtt.topic.v1`、`mqtt.message-envelope.v1` 已在 `07.5` 被显式裁决为 v1.1 de-scope，而非隐式遗漏 | Phase 7.4 | `07.5 closeout arbitration` | 若未来确有 black-box replay 价值，必须以新 phase 重新登记 family、补 manifest/evidence；`08` 只消费现有 representative corpus 与 evidence index，不直接扩大 replay 范围 |
@@ -20,6 +17,14 @@
 - `Legacy service wiring carrier` 已在 Phase 11 关闭：`custom_components/lipro/services/wiring.py` 已正式删除，control-plane formal router truth 收口到 `custom_components/lipro/control/service_router.py`。
 - `Private runtime auth seam` 已在 Phase 5 关闭：`custom_components/lipro/services/execution.py` 只保留正式 service execution facade 身份，不再作为 active residual family。
 - `API aggregate endpoint mixin` 已在 Phase 11 关闭：`custom_components/lipro/core/api/endpoints/__init__.py` 不再导出 `_ClientEndpointsMixin`，active residual 只剩 endpoint helper-class-level demixin cleanup。
+
+- `API compat wrappers` 已在 Phase 17 关闭：`power_service.py` 与 outlet-power runtime/protocol formal path 只承认 explicit row/list contract，synthetic `{"data": rows}` envelope 已退场。
+
+- `API mixin inheritance` 已在 Phase 17 关闭：`_ClientBase`、`_ClientPacingMixin`、`_ClientAuthRecoveryMixin`、`_ClientTransportMixin` 与 endpoint legacy mixin family 已完成 physical retirement 或 truthful demotion。
+
+- `Split-root protocol surfaces` 已在 Phase 17 关闭：legacy `LiproMqttClient` naming 已退场，`MqttTransportClient` 仅保留为 localized concrete transport。
+
+- `Auth/session compat projection` 已在 Phase 17 关闭：token persistence 只消费 `AuthSessionSnapshot`，`get_auth_data()` compat projection 已删除。
 
 ## Rules
 
@@ -193,3 +198,11 @@
 | `LiproMqttClient` legacy transport name | 保留为局部 legacy naming residual | `core/mqtt` | Phase 16 closeout | 当 transport-facing tests / imports 不再需要 concrete transport legacy name 时重命名/退场 | `custom_components/lipro/core/mqtt/mqtt_client.py`, `.planning/reviews/KILL_LIST.md` |
 | `get_auth_data()` fallback in `persist_entry_tokens_if_changed()` | 保留为狭义 compatibility fallback | `entry_auth` | Phase 16 closeout | 当所有调用者 / test doubles 都以 `AuthSessionSnapshot` 为唯一正式契约时删除 | `custom_components/lipro/entry_auth.py`, `tests/core/test_init.py` |
 | helper-level compatibility envelope (`power_service.py`) | 保留为低风险 helper-level compatibility | `core/api` | Phase 16 closeout | 当 power payload shape 只剩单一正式 contract，且 outlet-power callers 不再需要旧 shape 容忍时删除 | `custom_components/lipro/core/api/power_service.py`, `custom_components/lipro/core/coordinator/outlet_power.py` |
+
+
+## Phase 17 Residual Delta
+
+- `_ClientBase` / `_ClientPacingMixin` / `_ClientAuthRecoveryMixin` / `_ClientTransportMixin` 与 endpoint legacy mixin family 已完成 final disposition：production truth 不再把它们当作合法 skeleton / compat spine。
+- `MqttTransportClient` 现为唯一 canonical concrete transport naming；legacy `LiproMqttClient` naming 已退出治理真源、package export 与 production/test mainline。
+- `get_auth_data()` compat projection 与 helper-level outlet-power synthetic wrapper 已物理退场；`AuthSessionSnapshot` 与 explicit `OutletPowerInfoRow | list[OutletPowerInfoRow]` 成为唯一正式 typed contract。
+- v1.1 remaining active residual 现只保留明确 de-scope / out-of-scope debt：external-boundary advisory naming、boundary family coverage 与 representative replay coverage。

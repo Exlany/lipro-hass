@@ -22,7 +22,7 @@ from .payload import parse_mqtt_payload
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-    from .mqtt_client import LiproMqttClient
+    from .mqtt_client import MqttTransportClient
 
 _LOGGER = logging.getLogger(__package__ or __name__)
 
@@ -30,7 +30,7 @@ _LOGGER = logging.getLogger(__package__ or __name__)
 class MqttClientRuntime:
     """Bridge owner state into focused MQTT runtime helpers."""
 
-    def __init__(self, client: LiproMqttClient) -> None:
+    def __init__(self, client: MqttTransportClient) -> None:
         """Bind one thin client facade to the runtime bridge."""
         self._client = client
 

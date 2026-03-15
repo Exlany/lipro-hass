@@ -152,14 +152,6 @@ def persist_entry_tokens_if_changed(
     biz_id = auth_session.biz_id
 
     if not isinstance(access_token, str) or not access_token:
-        auth_data = auth_manager.get_auth_data()
-        access_token = auth_data.get(CONF_ACCESS_TOKEN)
-        refresh_token = auth_data.get(CONF_REFRESH_TOKEN)
-        expires_at = auth_data.get(CONF_EXPIRES_AT)
-        raw_biz_id = auth_data.get(CONF_BIZ_ID)
-        biz_id = raw_biz_id if isinstance(raw_biz_id, str) else None
-
-    if not isinstance(access_token, str) or not access_token:
         return
     if not isinstance(refresh_token, str) or not refresh_token:
         return

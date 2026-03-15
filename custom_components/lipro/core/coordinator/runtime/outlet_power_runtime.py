@@ -6,9 +6,10 @@ import asyncio
 from collections.abc import Awaitable, Callable
 import logging
 import math
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 from ...api import LiproApiError
+from ...protocol.contracts import OutletPowerInfoResult
 from ..types import PropertyDict
 
 if TYPE_CHECKING:
@@ -26,7 +27,7 @@ def _normalize_device_id(value: object) -> str | None:
 
 
 def _normalize_single_outlet_power_payload(
-    payload: object,
+    payload: OutletPowerInfoResult | object,
     *,
     requested_id: str,
 ) -> PropertyDict | None:
@@ -38,17 +39,21 @@ def _normalize_single_outlet_power_payload(
     if isinstance(payload, dict):
         nested = payload.get(normalized_requested_id)
         if isinstance(nested, dict):
-            return nested
+            return cast(PropertyDict, nested)
         nested = payload.get(requested_id)
         if isinstance(nested, dict):
-            return nested
-        return payload or None
+            return cast(PropertyDict, nested)
+        return cast(PropertyDict, payload) if payload else None
 
     if isinstance(payload, list):
         rows = [row for row in payload if isinstance(row, dict)]
         if not rows:
             return None
-        return rows[0] if len(rows) == 1 else {"data": rows}
+        for row in rows:
+            row_device_id = _normalize_device_id(row.get("deviceId"))
+            if row_device_id == normalized_requested_id:
+                return cast(PropertyDict, row)
+        return cast(PropertyDict, rows[0])
 
     return None
 
@@ -82,7 +87,7 @@ async def query_outlet_power(
     outlet_ids_to_query: list[str],
     round_robin_index: int,
     resolve_cycle_size: Callable[[int], int],
-    fetch_outlet_power_info: Callable[[str], Awaitable[object]],
+    fetch_outlet_power_info: Callable[[str], Awaitable[OutletPowerInfoResult]],
     get_device_by_id: Callable[[object], LiproDevice | None],
     apply_outlet_power_info: Callable[[LiproDevice, PropertyDict], bool],
     should_reraise_outlet_power_error: Callable[[LiproApiError], bool],
@@ -138,7 +143,7 @@ async def query_outlet_power(
 async def query_single_outlet_power(
     *,
     device_id: str,
-    fetch_outlet_power_info: Callable[[str], Awaitable[object]],
+    fetch_outlet_power_info: Callable[[str], Awaitable[OutletPowerInfoResult]],
     get_device_by_id: Callable[[object], LiproDevice | None],
     apply_outlet_power_info: Callable[[LiproDevice, PropertyDict], bool],
     should_reraise_outlet_power_error: Callable[[LiproApiError], bool],

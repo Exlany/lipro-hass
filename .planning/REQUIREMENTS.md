@@ -99,17 +99,24 @@
 
 ### Post-Audit Truth Alignment, Hotspot Decomposition & Residual Endgame
 
-- [ ] **GOV-14**: `AGENTS.md`、`PROJECT.md`、`ROADMAP.md`、`STATE.md`、baseline/review docs 与 `.planning/codebase/*` policy 必须重新对齐到 Phase 16 规划真相，不得继续把已关闭 seam 或过期 codebase map 当成活跃裁决来源；Phase 16 closeout 不允许留下无 owner / 无 delete gate / 无风险说明的高风险 carry-forward。
-- [ ] **QLT-02**: Python / Ruff / pre-commit / devcontainer / pytest marker truth 必须一致：运行时、类型检查与 lint 目标版本不能漂移，名存实亡的 marker / tooling contract 必须落地或删除；本地 DX 与 closeout 质量门禁必须把这套真相可执行化。
-- [ ] **HOT-04**: `core/api/client.py`、`core/protocol/facade.py`、`core/coordinator/coordinator.py`、`control/service_router.py`、`config_flow.py`、`entities/firmware_update.py` 及其 second-pass 发现的 secondary hotspots（如 entry-lifecycle / diagnostics / telemetry / request-policy / status-fallback / mqtt-runtime / rest-decoder 等）必须继续沿正式边界拆薄，避免 façade/root 与其紧邻协作者继续承载 strategy、shape normalization、exception mapping 与 glue 内核。
-- [ ] **TYP-04**: `core/api`、`core/protocol`、`control` 与相邻 residual seams 中的 `Any` / `type: ignore` / `cast` / `getattr` / `import_module` 等宽口必须进一步收窄到 `Protocol`、typed alias、`TypedDict` 或明确 contract，不得仅靠技术性掩饰继续掩盖边界漂移。
-- [ ] **ERR-01**: protocol/runtime/control/support 关键链路中的 catch-all 异常必须收窄或显式写成 documented arbitration，日志、重试与 reauth 语义必须可判定；entry-lifecycle、diagnostics/telemetry、mqtt-runtime、firmware-update 与相邻 glue seams 不得继续保留 undocumented broad-catch。
-- [ ] **RES-02**: `_ClientBase` / `_Client*Mixin`、endpoint mixin exports、`LiproMqttClient` legacy naming、`get_auth_data()` fallback 与 helper-level compat envelope 必须继续本地化、减语义或退场，不得再制造旧 root / old client 仍合法的错觉。
-- [ ] **CTRL-06**: `send_command`、share/developer-report、entry lifecycle、diagnostics/telemetry、maintenance/device-lookup、runtime access 与相关 response schema 必须统一到更清晰的 formal control/runtime contract：auth/error 主链一致、service payload shape 稳定、动态导入/反射式探测继续下降。
-- [ ] **DOM-03**: `LiproDevice`、`CapabilitySnapshot`、entity descriptors 与平台能力消费协议必须进一步收口到单一领域真源；死接口、重复透传属性与双轨 capability 语义不得继续扩散。
-- [ ] **OTA-01**: firmware update entity 必须回到 projection + action bridge 身份；manifest 读取、row arbitration、cache/hot-path I/O 与 install policy 应进一步下沉到更合适的 service/helper home。
-- [ ] **TST-01**: platform/domain test layering 必须纠偏：平台测试优先验证真实 entity adapter，领域测试验证 device/capability semantics，OTA 策略测试不再长期停留在 platform test home。
-- [ ] **DOC-02**: troubleshooting、contributor navigation、maintainer release runbook 与 `scripts/develop` 等本地 DX 入口必须与高治理仓库的真实维护路径对齐，降低新贡献者与单维护者的操作负担；Phase 16 closeout 还必须给出 second-pass re-audit 与 residual closeout story。
+- [x] **GOV-14**: `AGENTS.md`、`PROJECT.md`、`ROADMAP.md`、`STATE.md`、baseline/review docs 与 `.planning/codebase/*` policy 必须重新对齐到 Phase 16 规划真相，不得继续把已关闭 seam 或过期 codebase map 当成活跃裁决来源；Phase 16 closeout 不允许留下无 owner / 无 delete gate / 无风险说明的高风险 carry-forward。
+- [x] **QLT-02**: Python / Ruff / pre-commit / devcontainer / pytest marker truth 必须一致：运行时、类型检查与 lint 目标版本不能漂移，名存实亡的 marker / tooling contract 必须落地或删除；本地 DX 与 closeout 质量门禁必须把这套真相可执行化。
+- [x] **HOT-04**: `core/api/client.py`、`core/protocol/facade.py`、`core/coordinator/coordinator.py`、`control/service_router.py`、`config_flow.py`、`entities/firmware_update.py` 及其 second-pass 发现的 secondary hotspots（如 entry-lifecycle / diagnostics / telemetry / request-policy / status-fallback / mqtt-runtime / rest-decoder 等）必须继续沿正式边界拆薄，避免 façade/root 与其紧邻协作者继续承载 strategy、shape normalization、exception mapping 与 glue 内核。
+- [x] **TYP-04**: `core/api`、`core/protocol`、`control` 与相邻 residual seams 中的 `Any` / `type: ignore` / `cast` / `getattr` / `import_module` 等宽口必须进一步收窄到 `Protocol`、typed alias、`TypedDict` 或明确 contract，不得仅靠技术性掩饰继续掩盖边界漂移。
+- [x] **ERR-01**: protocol/runtime/control/support 关键链路中的 catch-all 异常必须收窄或显式写成 documented arbitration，日志、重试与 reauth 语义必须可判定；entry-lifecycle、diagnostics/telemetry、mqtt-runtime、firmware-update 与相邻 glue seams 不得继续保留 undocumented broad-catch。
+- [x] **RES-02**: `_ClientBase` / `_Client*Mixin`、endpoint mixin exports、`LiproMqttClient` legacy naming、`get_auth_data()` fallback 与 helper-level compat envelope 已被缩窄到可审计范围，并在 Phase 17 完成最终 physical retirement / truthful disposition，不再制造旧 root / old client 仍合法的错觉。
+- [x] **CTRL-06**: `send_command`、share/developer-report、entry lifecycle、diagnostics/telemetry、maintenance/device-lookup、runtime access 与相关 response schema 必须统一到更清晰的 formal control/runtime contract：auth/error 主链一致、service payload shape 稳定、动态导入/反射式探测继续下降。
+- [x] **DOM-03**: `LiproDevice`、`CapabilitySnapshot`、entity descriptors 与平台能力消费协议必须进一步收口到单一领域真源；死接口、重复透传属性与双轨 capability 语义不得继续扩散。
+- [x] **OTA-01**: firmware update entity 必须回到 projection + action bridge 身份；manifest 读取、row arbitration、cache/hot-path I/O 与 install policy 应进一步下沉到更合适的 service/helper home。
+- [x] **TST-01**: platform/domain test layering 必须纠偏：平台测试优先验证真实 entity adapter，领域测试验证 device/capability semantics，OTA 策略测试不再长期停留在 platform test home。
+- [x] **DOC-02**: troubleshooting、contributor navigation、maintainer release runbook 与 `scripts/develop` 等本地 DX 入口必须与高治理仓库的真实维护路径对齐，降低新贡献者与单维护者的操作负担；Phase 16 closeout 还必须给出 second-pass re-audit 与 residual closeout story。
+
+### Final Residual Retirement, Typed-Contract Tightening & Milestone Closeout
+
+- [x] **RES-03**: `_ClientTransportMixin`、`_ClientBase` skeleton、`_ClientEndpointPayloadsMixin` 与 endpoint legacy mixin family 已完成 physical retirement：formal REST path 现只通过 explicit collaborator composition + local typed ports 表达。
+- [x] **TYP-05**: `persist_entry_tokens_if_changed()` 与 outlet-power helper contract 已收口到显式 typed truth：`AuthSessionSnapshot` 是 token persistence 的唯一正式契约，`power_service.py` 只返回 explicit row/list contract，不再输出 synthetic compat envelope。
+- [x] **MQT-01**: MQTT concrete transport 的 legacy naming 与 locality 已完成 demote：production code 与非 transport-focused tests 已切到 canonical transport naming / `MqttTransportFacade` contract，并由 focused meta guard 与 no-export bans fail-fast 锁定 `ENF-IMP-MQTT-TRANSPORT-LOCALITY`。
+- [x] **GOV-15**: `Phase 17` closeout 已把 `ROADMAP`、`REQUIREMENTS`、`STATE`、baseline/review ledgers、`v1.1` milestone audit 与最终 repo audit counts/evidence 完整回写；不存在新的 silent defer 或 authority drift。
 
 ## Cross-Phase Arbitration
 
@@ -204,6 +211,10 @@
 | TYP-03 | Phase 15 | Complete |
 | RES-01 | Phase 15 | Complete |
 | GOV-14 | Phase 16 | Complete |
+| RES-03 | Phase 17 | Complete |
+| TYP-05 | Phase 17 | Complete |
+| MQT-01 | Phase 17 | Complete |
+| GOV-15 | Phase 17 | Complete |
 | QLT-02 | Phase 16 | Complete |
 | HOT-04 | Phase 16 | Complete |
 | TYP-04 | Phase 16 | Complete |
@@ -220,4 +231,4 @@
 - mapped to phases: 65
 - unmapped: 0 ✓
 
-*Last updated: 2026-03-15 after Phase 16 execution closeout*
+*Last updated: 2026-03-15 after Phase 17 closeout and final repo audit*

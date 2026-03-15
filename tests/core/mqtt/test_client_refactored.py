@@ -11,13 +11,13 @@ import pytest
 
 from custom_components.lipro.core.mqtt.connection_manager import MqttConnectionManager
 from custom_components.lipro.core.mqtt.message_processor import MqttMessageProcessor
-from custom_components.lipro.core.mqtt.mqtt_client import LiproMqttClient
+from custom_components.lipro.core.mqtt.mqtt_client import MqttTransportClient
 from custom_components.lipro.core.mqtt.payload import parse_mqtt_payload
 from custom_components.lipro.core.mqtt.topic_builder import MqttTopicBuilder
 
 
-def _make_client(**kwargs) -> LiproMqttClient:
-    return LiproMqttClient(
+def _make_client(**kwargs) -> MqttTransportClient:
+    return MqttTransportClient(
         access_key="access",
         secret_key="secret",
         biz_id="biz001",

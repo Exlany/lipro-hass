@@ -22,7 +22,7 @@ from ...const.base import APP_VERSION_CODE, APP_VERSION_NAME
 from . import client_pacing as _client_pacing
 from .auth_service import AuthApiService
 from .client_auth_recovery import AuthRecoveryCoordinator
-from .client_base import ClientSessionState, _ClientBase
+from .client_base import ClientSessionState
 from .client_transport import TransportExecutor
 from .command_api_service import iot_request_with_busy_retry as _iot_busy_retry_service
 from .endpoints import (
@@ -35,6 +35,7 @@ from .endpoints import (
 )
 from .endpoints.payloads import EndpointPayloadNormalizers
 from .errors import LiproApiError, LiproAuthError
+from .power_service import OutletPowerInfoResult
 from .request_codec import (
     build_smart_home_request_data,
     encode_iot_request_body,
@@ -52,7 +53,7 @@ TokenRefreshCallback = Callable[[], Awaitable[None]]
 _MappingPayloadT = TypeVar("_MappingPayloadT")
 
 
-class LiproRestFacade(_ClientBase):
+class LiproRestFacade:
     """Formal REST root built from explicit collaborators.
 
     This is the canonical REST facade under the unified protocol root.
@@ -629,6 +630,118 @@ class LiproRestFacade(_ClientBase):
     def _is_invalid_param_error_code(code: Any) -> bool:
         return AuthRecoveryCoordinator.is_invalid_param_error_code(code)
 
+    async def smart_home_request(
+        self,
+        path: str,
+        data: dict[str, Any],
+        require_auth: bool = True,
+        is_retry: bool = False,
+        retry_count: int = 0,
+    ) -> Any:
+        """Execute one Smart Home request through the formal transport pipeline."""
+        if require_auth is True and not is_retry and not retry_count:
+            return await self._smart_home_request(path, data)
+        return await self._smart_home_request(
+            path,
+            data,
+            require_auth=require_auth,
+            is_retry=is_retry,
+            retry_count=retry_count,
+        )
+
+    async def iot_request(
+        self,
+        path: str,
+        body_data: dict[str, Any],
+        is_retry: bool = False,
+        retry_count: int = 0,
+    ) -> Any:
+        """Execute one IoT request through the formal transport pipeline."""
+        if not is_retry and not retry_count:
+            return await self._iot_request(path, body_data)
+        return await self._iot_request(
+            path,
+            body_data,
+            is_retry=is_retry,
+            retry_count=retry_count,
+        )
+
+    async def request_iot_mapping(
+        self,
+        path: str,
+        body_data: dict[str, Any],
+        *,
+        is_retry: bool = False,
+        retry_count: int = 0,
+    ) -> tuple[dict[str, Any], str | None]:
+        """Request one IoT mapping payload with retry context preserved."""
+        if not is_retry and not retry_count:
+            return await self._request_iot_mapping(path, body_data)
+        return await self._request_iot_mapping(
+            path,
+            body_data,
+            is_retry=is_retry,
+            retry_count=retry_count,
+        )
+
+    async def request_iot_mapping_raw(
+        self,
+        path: str,
+        body: str,
+        *,
+        is_retry: bool = False,
+        retry_count: int = 0,
+    ) -> tuple[dict[str, Any], str | None]:
+        """Request one raw IoT mapping payload without result finalization."""
+        if not is_retry and not retry_count:
+            return await self._request_iot_mapping_raw(path, body)
+        return await self._request_iot_mapping_raw(
+            path,
+            body,
+            is_retry=is_retry,
+            retry_count=retry_count,
+        )
+
+    async def iot_request_with_busy_retry(
+        self,
+        path: str,
+        body_data: dict[str, Any],
+        *,
+        target_id: str,
+        command: str,
+    ) -> dict[str, Any]:
+        """Execute one IoT command with the formal busy-retry policy."""
+        return await self._iot_request_with_busy_retry(
+            path,
+            body_data,
+            target_id=target_id,
+            command=command,
+        )
+
+    def to_device_type_hex(self, device_type: int | str) -> str:
+        """Normalize one device type into the transport hex representation."""
+        return self._to_device_type_hex(device_type)
+
+    @staticmethod
+    def is_success_code(code: Any) -> bool:
+        """Return whether one vendor response code represents success."""
+        return AuthRecoveryCoordinator.is_success_code(code)
+
+    @staticmethod
+    def unwrap_iot_success_payload(result: dict[str, Any]) -> Any:
+        """Extract the canonical success payload from one IoT response."""
+        return AuthRecoveryCoordinator.unwrap_iot_success_payload(result)
+
+    @staticmethod
+    def require_mapping_response(path: str, result: Any) -> dict[str, Any]:
+        """Require one mapping response payload to be a JSON object."""
+        return TransportExecutor.require_mapping_response(path, result)
+
+    @staticmethod
+    def is_invalid_param_error_code(code: Any) -> bool:
+        """Return whether one response code indicates an invalid-parameter error."""
+        return AuthRecoveryCoordinator.is_invalid_param_error_code(code)
+
     async def get_devices(self, offset: int = 0, limit: int = 100) -> DeviceListResponse:
         """Return canonical device rows through the explicit device endpoint."""
         return await self._device_endpoints.get_devices(offset=offset, limit=limit)
@@ -700,7 +813,7 @@ class LiproRestFacade(_ClientBase):
         """Return MQTT configuration through the explicit misc endpoint."""
         return await self._misc_endpoints.get_mqtt_config()
 
-    async def fetch_outlet_power_info(self, device_id: str) -> dict[str, Any]:
+    async def fetch_outlet_power_info(self, device_id: str) -> OutletPowerInfoResult:
         """Return outlet power information for one device."""
         return await self._misc_endpoints.fetch_outlet_power_info(device_id)
 

@@ -101,9 +101,9 @@ OVERRIDES: dict[str, FileGovernanceRow] = {
     "custom_components/lipro/core/mqtt/__init__.py": FileGovernanceRow(
         path="custom_components/lipro/core/mqtt/__init__.py",
         area="Protocol",
-        owner_phase="Phase 2.5 / 7",
+        owner_phase="Phase 2.5 / 7 / 17",
         fate="迁移适配",
-        residual="LiproMqttClient legacy root name",
+        residual="package export intentionally minimal; no concrete transport export",
     ),
     "custom_components/lipro/services/execution.py": FileGovernanceRow(
         path="custom_components/lipro/services/execution.py",
@@ -192,9 +192,9 @@ OVERRIDES: dict[str, FileGovernanceRow] = {
     "custom_components/lipro/core/api/client_base.py": FileGovernanceRow(
         path="custom_components/lipro/core/api/client_base.py",
         area="Protocol",
-        owner_phase="Phase 2 / 15",
+        owner_phase="Phase 2 / 15 / 17",
         fate="重构",
-        residual="internal typing spine only; locality limited to core/api",
+        residual="ClientSessionState formal REST session-state home",
     ),
     "custom_components/lipro/core/api/schedule_service.py": FileGovernanceRow(
         path="custom_components/lipro/core/api/schedule_service.py",

@@ -78,6 +78,10 @@ class CanonicalMeshGroupStatusRow(TypedDict, total=False):
     properties: dict[str, Any]
 
 
+type OutletPowerInfoRow = dict[str, object]
+type OutletPowerInfoResult = OutletPowerInfoRow | list[OutletPowerInfoRow]
+
+
 class MqttTransportFacade(Protocol):
     """Stable transport contract consumed by runtime-facing MQTT collaborators."""
 
@@ -218,4 +222,6 @@ __all__ = [
     "CanonicalMqttConfig",
     "CanonicalProtocolContracts",
     "MqttTransportFacade",
+    "OutletPowerInfoResult",
+    "OutletPowerInfoRow",
 ]

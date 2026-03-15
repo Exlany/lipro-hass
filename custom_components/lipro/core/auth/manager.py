@@ -18,13 +18,7 @@ from ...const.api import (
     TOKEN_REFRESH_BUFFER,
     TOKEN_REFRESH_DEDUP_WINDOW,
 )
-from ...const.config import (
-    CONF_ACCESS_TOKEN,
-    CONF_EXPIRES_AT,
-    CONF_PHONE_ID,
-    CONF_REFRESH_TOKEN,
-    CONF_USER_ID,
-)
+from ...const.config import CONF_ACCESS_TOKEN, CONF_REFRESH_TOKEN, CONF_USER_ID
 from ..api import LiproAuthError, LiproRefreshTokenExpiredError
 from ..protocol import LiproProtocolFacade
 from ..utils.log_safety import safe_error_placeholder
@@ -416,14 +410,3 @@ class LiproAuthManager:
                     )
                     await self.refresh_token()
 
-    def get_auth_data(self) -> AuthDataSnapshot:
-        """Get compatibility auth data for legacy storage callers."""
-        snapshot = self.get_auth_session()
-        return {
-            CONF_ACCESS_TOKEN: snapshot.access_token,
-            CONF_REFRESH_TOKEN: snapshot.refresh_token,
-            CONF_USER_ID: snapshot.user_id,
-            CONF_PHONE_ID: snapshot.phone_id,
-            CONF_EXPIRES_AT: snapshot.expires_at,
-            "biz_id": snapshot.biz_id,
-        }

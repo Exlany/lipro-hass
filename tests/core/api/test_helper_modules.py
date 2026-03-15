@@ -89,7 +89,7 @@ async def test_fetch_outlet_power_info_returns_empty_for_list_without_mapping_ro
 
 
 @pytest.mark.asyncio
-async def test_fetch_outlet_power_info_wraps_multiple_mapping_rows_in_data_key() -> (
+async def test_fetch_outlet_power_info_returns_multiple_mapping_rows_as_explicit_list() -> (
     None
 ):
     rows = [{"nowPower": 1.0}, {"nowPower": 2.0}]
@@ -105,7 +105,7 @@ async def test_fetch_outlet_power_info_wraps_multiple_mapping_rows_in_data_key()
         path_query_outlet_power="/power",
     )
 
-    assert result == {"data": rows}
+    assert result == rows
 
 
 @pytest.mark.asyncio

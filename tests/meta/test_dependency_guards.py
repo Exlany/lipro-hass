@@ -60,3 +60,7 @@ def test_control_surfaces_do_not_bypass_runtime_public_surfaces() -> None:
 
 def test_boundary_decoder_package_stays_inside_protocol_plane() -> None:
     assert not _violations_for_rule("ENF-IMP-BOUNDARY-LOCALITY")
+
+
+def test_mqtt_transport_imports_stay_localized_to_protocol_and_transport_modules() -> None:
+    assert not _violations_for_rule("ENF-IMP-MQTT-TRANSPORT-LOCALITY")

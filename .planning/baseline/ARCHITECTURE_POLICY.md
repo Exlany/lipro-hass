@@ -2,7 +2,7 @@
 
 **Purpose:** 把 north-star 与 baseline 的结构约束翻译成单一、可执行、可扩展的 architecture enforcement baseline。
 **Status:** Formal baseline asset (`ENF-01` / `ENF-02` policy truth source)
-**Updated:** 2026-03-15
+**Updated:** 2026-03-15 (Phase 17 closeout aligned)
 
 ## Formal Role
 
@@ -50,10 +50,10 @@
 | `ENF-SURFACE-PROTOCOL-EXPORTS` | Surface | `all_contains_disjoint` | `custom_components/lipro/core/protocol/__init__.py` | `LiproProtocolFacade`<br>`LiproMqttFacade` | `BoundaryDecodeResult`<br>`BoundaryDecoderKey`<br>`BoundaryDecoderRegistry`<br>`build_protocol_boundary_registry`<br>`decode_mqtt_config_payload`<br>`decode_mqtt_properties_payload` | `.planning/baseline/PUBLIC_SURFACES.md` | `scripts/check_architecture_policy.py`<br>`tests/meta/test_public_surface_guards.py` |
 | `ENF-BACKDOOR-COORDINATOR-PROPERTIES` | Backdoor | `property_contains_disjoint` | `custom_components/lipro/core/coordinator/coordinator.py::Coordinator` | `devices` | `command_runtime`<br>`device_runtime`<br>`mqtt_runtime`<br>`state_runtime`<br>`status_runtime`<br>`tuning_runtime`<br>`background_task_manager`<br>`mqtt_client`<br>`biz_id` | `.planning/baseline/PUBLIC_SURFACES.md`<br>`.planning/reviews/RESIDUAL_LEDGER.md` | `scripts/check_architecture_policy.py`<br>`tests/meta/test_public_surface_guards.py` |
 | `ENF-BACKDOOR-SERVICE-AUTH` | Backdoor | `file_contains_disjoint` | `custom_components/lipro/services/execution.py` | `auth_service` | `getattr(coordinator, "_async_ensure_authenticated"`<br>`getattr(coordinator, "_trigger_reauth"` | `.planning/reviews/RESIDUAL_LEDGER.md`<br>`.planning/baseline/PUBLIC_SURFACES.md` | `scripts/check_architecture_policy.py`<br>`tests/meta/test_public_surface_guards.py` |
-| `ENF-COMPAT-ROOT-NO-LEGACY-CLIENT` | Compat | `top_level_bindings_disjoint` | `custom_components/lipro/__init__.py` | `LiproProtocolFacade`<br>`LiproAuthManager` | `LiproClient`<br>`LiproMqttClient` | `.planning/baseline/PUBLIC_SURFACES.md`<br>`.planning/reviews/RESIDUAL_LEDGER.md` | `scripts/check_architecture_policy.py`<br>`tests/meta/test_public_surface_guards.py` |
-| `ENF-COMPAT-CONFIG-FLOW-NO-LEGACY-CLIENT` | Compat | `top_level_bindings_disjoint` | `custom_components/lipro/config_flow.py` | `LiproProtocolFacade` | `LiproClient`<br>`LiproMqttClient` | `.planning/baseline/PUBLIC_SURFACES.md`<br>`.planning/reviews/RESIDUAL_LEDGER.md` | `scripts/check_architecture_policy.py`<br>`tests/meta/test_public_surface_guards.py` |
-| `ENF-COMPAT-CORE-PACKAGE-NO-LEGACY-CLIENTS` | Compat | `top_level_bindings_disjoint` | `custom_components/lipro/core/__init__.py` | `LiproProtocolFacade`<br>`LiproMqttFacade`<br>`AuthSessionSnapshot` | `LiproClient`<br>`LiproMqttClient`<br>`Coordinator` | `.planning/baseline/PUBLIC_SURFACES.md`<br>`.planning/reviews/RESIDUAL_LEDGER.md` | `scripts/check_architecture_policy.py`<br>`tests/meta/test_public_surface_guards.py` |
-| `ENF-COMPAT-MQTT-PACKAGE-NO-LEGACY-CLIENT` | Compat | `top_level_bindings_disjoint` | `custom_components/lipro/core/mqtt/__init__.py` | `decrypt_mqtt_credential` | `LiproMqttClient` | `.planning/baseline/PUBLIC_SURFACES.md`<br>`.planning/reviews/RESIDUAL_LEDGER.md` | `scripts/check_architecture_policy.py`<br>`tests/meta/test_public_surface_guards.py` |
+| `ENF-COMPAT-ROOT-NO-LEGACY-CLIENT` | Compat | `top_level_bindings_disjoint` | `custom_components/lipro/__init__.py` | `LiproProtocolFacade`<br>`LiproAuthManager` | `LiproClient`<br>`LiproMqttClient`<br>`MqttTransportClient` | `.planning/baseline/PUBLIC_SURFACES.md`<br>`.planning/reviews/RESIDUAL_LEDGER.md` | `scripts/check_architecture_policy.py`<br>`tests/meta/test_public_surface_guards.py` |
+| `ENF-COMPAT-CONFIG-FLOW-NO-LEGACY-CLIENT` | Compat | `top_level_bindings_disjoint` | `custom_components/lipro/config_flow.py` | `LiproProtocolFacade` | `LiproClient`<br>`LiproMqttClient`<br>`MqttTransportClient` | `.planning/baseline/PUBLIC_SURFACES.md`<br>`.planning/reviews/RESIDUAL_LEDGER.md` | `scripts/check_architecture_policy.py`<br>`tests/meta/test_public_surface_guards.py` |
+| `ENF-COMPAT-CORE-PACKAGE-NO-LEGACY-CLIENTS` | Compat | `top_level_bindings_disjoint` | `custom_components/lipro/core/__init__.py` | `LiproProtocolFacade`<br>`LiproMqttFacade`<br>`AuthSessionSnapshot` | `LiproClient`<br>`LiproMqttClient`<br>`MqttTransportClient`<br>`Coordinator` | `.planning/baseline/PUBLIC_SURFACES.md`<br>`.planning/reviews/RESIDUAL_LEDGER.md` | `scripts/check_architecture_policy.py`<br>`tests/meta/test_public_surface_guards.py` |
+| `ENF-COMPAT-MQTT-PACKAGE-NO-LEGACY-CLIENT` | Compat | `top_level_bindings_disjoint` | `custom_components/lipro/core/mqtt/__init__.py` | `decrypt_mqtt_credential` | `LiproMqttClient`<br>`MqttTransportClient` | `.planning/baseline/PUBLIC_SURFACES.md`<br>`.planning/reviews/RESIDUAL_LEDGER.md` | `scripts/check_architecture_policy.py`<br>`tests/meta/test_public_surface_guards.py` |
 
 ## Extension Hooks
 
@@ -69,11 +69,15 @@
 - [ ] 例外是否带 residual gate / future hook
 - [ ] 是否避免把 compat、observer、replay tool 误提升为正式 root
 
----
-*Used by: Phase 7.2 enforcement execution, local-fast architecture checks, and CI fail-fast gates*
-
-
 ## Phase 15 Policy Follow-Through
 
-- `ENF-IMP-API-LEGACY-SPINE-LOCALITY` 继续把 `_ClientBase` / helper spine 限定在 `core/api` 本地，不允许向 control/runtime/domain 扩散。
-- `ENF-IMP-MQTT-TRANSPORT-LOCALITY` 继续把 `LiproMqttClient` 限定在 `core/mqtt` + protocol seam，本 phase 只加固 ownership 文案与 residual guard，不恢复 concrete transport public semantics。
+- `ENF-IMP-API-LEGACY-SPINE-LOCALITY` 在 Phase 15 只负责把 `core/api` 残余 helper spine 局部化，不允许向 control/runtime/domain 扩散。
+- `ENF-IMP-MQTT-TRANSPORT-LOCALITY` 在 Phase 15 只负责把 direct transport 限定在 `core/mqtt` + protocol seam，不恢复 concrete transport public semantics。
+
+## Phase 17 Policy Follow-Through
+
+- `ENF-IMP-API-LEGACY-SPINE-LOCALITY` 现在锁定的是 `client_base.py`、`client_pacing.py`、`client_auth_recovery.py`、`client_transport.py` 这些 local helper/session homes；legacy mixin classes 已全部退场。
+- `ENF-IMP-MQTT-TRANSPORT-LOCALITY` 现在锁定 `MqttTransportClient` concrete transport 的 locality；targeted bans 同时禁止 `LiproMqttClient` 与 `MqttTransportClient` 从 root/core package 回流成导出面。
+
+---
+*Used by: Phase 7.2 enforcement execution, local-fast architecture checks, and CI fail-fast gates*

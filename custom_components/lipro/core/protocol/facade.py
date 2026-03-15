@@ -12,8 +12,12 @@ from ..api.client import LiproRestFacade
 from ..api.client_base import ClientSessionState
 from ..api.request_policy import RequestPolicy
 from ..api.types import DeviceListResponse, LoginResponse, OtaInfoRow, ScheduleTimingRow
-from ..mqtt.mqtt_client import LiproMqttClient
-from .contracts import CanonicalProtocolContracts
+from ..mqtt.mqtt_client import MqttTransportClient
+from .contracts import (
+    CanonicalProtocolContracts,
+    MqttTransportFacade,
+    OutletPowerInfoResult,
+)
 from .diagnostics_context import ProtocolDiagnosticsContext
 from .session import ProtocolSessionState
 from .telemetry import ProtocolTelemetry
@@ -72,7 +76,7 @@ class _RestFacadePort(Protocol):
         iot_name: str = "",
     ) -> dict[str, Any]: ...
     async def get_mqtt_config(self) -> dict[str, Any]: ...
-    async def fetch_outlet_power_info(self, device_id: str) -> dict[str, Any]: ...
+    async def fetch_outlet_power_info(self, device_id: str) -> OutletPowerInfoResult: ...
     async def query_command_result(
         self,
         *,
@@ -143,7 +147,7 @@ class LiproMqttFacade:
 
     def __init__(
         self,
-        client: LiproMqttClient,
+        client: MqttTransportFacade,
         *,
         session_state: ProtocolSessionState,
         telemetry: ProtocolTelemetry,
@@ -175,7 +179,7 @@ class LiproMqttFacade:
         """Build one MQTT child façade bound to the protocol root state."""
         session_state.bind_mqtt_biz_id(biz_id)
         return cls(
-            LiproMqttClient(
+            MqttTransportClient(
                 access_key=access_key,
                 secret_key=secret_key,
                 biz_id=biz_id,
@@ -514,7 +518,7 @@ class LiproProtocolFacade:
         """Fetch MQTT credentials through the REST child façade."""
         return await self._rest_port.get_mqtt_config()
 
-    async def fetch_outlet_power_info(self, device_id: str) -> dict[str, Any]:
+    async def fetch_outlet_power_info(self, device_id: str) -> OutletPowerInfoResult:
         """Fetch outlet power info through the REST child façade."""
         return await self._rest_port.fetch_outlet_power_info(device_id)
 

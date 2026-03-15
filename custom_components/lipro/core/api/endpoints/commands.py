@@ -5,14 +5,13 @@ from __future__ import annotations
 from typing import Any
 
 from ....const.api import PATH_SEND_COMMAND, PATH_SEND_GROUP_COMMAND
-from ..client_base import _ClientBase
 from ..command_api_service import (
     send_command_to_target as send_command_to_target_service,
 )
 from .payloads import _EndpointAdapter
 
 
-class _ClientCommandEndpointsMixin(_ClientBase):
+class CommandEndpoints(_EndpointAdapter):
     """Legacy command endpoint mixin retained for focused helper tests."""
 
     async def send_command(
@@ -57,13 +56,4 @@ class _ClientCommandEndpointsMixin(_ClientBase):
         )
 
 
-class CommandEndpoints(_EndpointAdapter, _ClientCommandEndpointsMixin):
-    """Explicit command endpoint collaborator for ``LiproRestFacade``."""
-
-    EXPORTED_METHODS = (
-        "send_command",
-        "send_group_command",
-    )
-
-
-__all__ = ["CommandEndpoints", "_ClientCommandEndpointsMixin"]
+__all__ = ["CommandEndpoints"]

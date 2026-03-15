@@ -45,11 +45,11 @@
 | `custom_components/lipro/core/anonymous_share/storage.py` | Protocol | Phase 2.6 | 保留 | - |
 | `custom_components/lipro/core/api/__init__.py` | Protocol | Phase 2.5 / 12 | 重构 | - |
 | `custom_components/lipro/core/api/auth_service.py` | Protocol | Phase 2 | 重构 | - |
-| `custom_components/lipro/core/api/client.py` | Protocol | Phase 2 / 7 / 12 / 14 | 重构 | internal typing spine only |
-| `custom_components/lipro/core/api/client_auth_recovery.py` | Protocol | Phase 2 | 重构 | - |
-| `custom_components/lipro/core/api/client_base.py` | Protocol | Phase 2 / 15 | 重构 | internal typing spine only; locality limited to core/api |
-| `custom_components/lipro/core/api/client_pacing.py` | Protocol | Phase 2 | 重构 | - |
-| `custom_components/lipro/core/api/client_transport.py` | Protocol | Phase 2 | 重构 | - |
+| `custom_components/lipro/core/api/client.py` | Protocol | Phase 2 / 7 / 12 / 14 / 17 | 重构 | explicit REST child façade + local collaborator composition |
+| `custom_components/lipro/core/api/client_auth_recovery.py` | Protocol | Phase 2 / 17 | 重构 | `AuthRecoveryCoordinator` formal auth recovery home |
+| `custom_components/lipro/core/api/client_base.py` | Protocol | Phase 2 / 15 / 17 | 重构 | `ClientSessionState` formal REST session-state home |
+| `custom_components/lipro/core/api/client_pacing.py` | Protocol | Phase 2 / 17 | 重构 | request pacing helper home (`MONOTONIC` / `asyncio` / `time`) |
+| `custom_components/lipro/core/api/client_transport.py` | Protocol | Phase 2 / 17 | 重构 | `TransportExecutor` formal transport execution home; `_ClientTransportMixin` removed |
 | `custom_components/lipro/core/api/command_api_service.py` | Protocol | Phase 2 | 重构 | - |
 | `custom_components/lipro/core/api/diagnostics_api_service.py` | Protocol | Phase 2 | 重构 | - |
 | `custom_components/lipro/core/api/endpoints/__init__.py` | Protocol | Phase 2 | 重构 | - |
@@ -64,7 +64,7 @@
 | `custom_components/lipro/core/api/errors.py` | Protocol | Phase 2 | 重构 | - |
 | `custom_components/lipro/core/api/mqtt_api_service.py` | Protocol | Phase 2 | 重构 | - |
 | `custom_components/lipro/core/api/observability.py` | Protocol | Phase 2 | 重构 | - |
-| `custom_components/lipro/core/api/power_service.py` | Protocol | Phase 2 | 重构 | - |
+| `custom_components/lipro/core/api/power_service.py` | Protocol | Phase 2 / 17 | 重构 | typed outlet-power contract home (`row | list[row]`) |
 | `custom_components/lipro/core/api/request_codec.py` | Protocol | Phase 2 | 重构 | - |
 | `custom_components/lipro/core/api/request_policy.py` | Protocol | Phase 2 | 重构 | - |
 | `custom_components/lipro/core/api/response_safety.py` | Protocol | Phase 2 | 重构 | - |
@@ -165,13 +165,13 @@
 | `custom_components/lipro/core/device/state_getters.py` | Domain | Phase 4 | 重构 | - |
 | `custom_components/lipro/core/device/state_math.py` | Domain | Phase 4 | 重构 | - |
 | `custom_components/lipro/core/exceptions.py` | Cross-cutting | Phase 7 | 保留 | - |
-| `custom_components/lipro/core/mqtt/__init__.py` | Protocol | Phase 2.5 / 7 | 迁移适配 | LiproMqttClient legacy root name |
+| `custom_components/lipro/core/mqtt/__init__.py` | Protocol | Phase 2.5 / 7 / 17 | 迁移适配 | package export intentionally minimal; no concrete transport export |
 | `custom_components/lipro/core/mqtt/client_runtime.py` | Protocol | Phase 2.5 | 重构 | - |
 | `custom_components/lipro/core/mqtt/connection_manager.py` | Protocol | Phase 2.5 | 重构 | - |
 | `custom_components/lipro/core/mqtt/credentials.py` | Protocol | Phase 2.5 | 重构 | - |
 | `custom_components/lipro/core/mqtt/message.py` | Protocol | Phase 2.5 | 重构 | - |
 | `custom_components/lipro/core/mqtt/message_processor.py` | Protocol | Phase 2.5 | 重构 | - |
-| `custom_components/lipro/core/mqtt/mqtt_client.py` | Protocol | Phase 2.5 / 15 | 重构 | direct transport residual; locality limited to core/mqtt + protocol seam |
+| `custom_components/lipro/core/mqtt/mqtt_client.py` | Protocol | Phase 2.5 / 15 / 17 | 重构 | `MqttTransportClient` concrete transport home; locality limited to core/mqtt + protocol seam |
 | `custom_components/lipro/core/mqtt/payload.py` | Protocol | Phase 2.5 | 重构 | - |
 | `custom_components/lipro/core/mqtt/setup_backoff.py` | Protocol | Phase 2.5 | 重构 | - |
 | `custom_components/lipro/core/mqtt/subscription_manager.py` | Protocol | Phase 2.5 | 重构 | - |
