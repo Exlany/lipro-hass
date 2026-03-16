@@ -124,8 +124,10 @@ north-star、STATE 与 baseline 对 future host 的裁决非常明确：
 建议优先把 Phase 19 的第一步聚焦在 “auth/bootstrap composition contract” 上：
 
 - 明确 `AuthBootstrapSeed` / `build_protocol_auth_context()` / `async_login_with_password_hash()` 哪些已经足够作为 shared boot contract；
+- 把 shared boot contract 的最小边界写清：至少覆盖 session ownership、authenticated protocol/auth manager 暴露方式、以及 auth-session snapshot 取回方式，而不是只统一 hashed-login 入口；
 - 让 `config_flow.py` 与 `entry_auth.py` 继续 inward 到同一 boot contract，而不是各自拼 session / factory / token glue；
-- 让 headless proof consumer 通过同一 contract 启动，而不是复制 `config_flow` 或 `entry_auth` 的 logic。
+- 让 headless proof consumer 通过同一 contract 启动，而不是复制 `config_flow` 或 `entry_auth` 的 logic；
+- 明写这条 boot contract 是 local boot seam，不是 canonical/transitional public surface，也不是未来长期 public API 承诺。
 
 ### 2. 用最小 proof harness 证明 `auth -> device -> replay/evidence` 同链成立
 
@@ -133,7 +135,9 @@ north-star、STATE 与 baseline 对 future host 的裁决非常明确：
 
 - 可行落点包括 `tests/harness/**` + focused integration test，必要时辅以 `scripts/**` proof helper；
 - proof 要求复用同一 protocol root、same canonical contracts、same device/capability truth、same replay/evidence path；
-- proof 输出应证明 future host 可复用 truth，而不是引入第二条 production story。
+- 设备真相的最小证明路径应先走 `LiproDevice.from_api_data()` materialize device，再通过 `device.capabilities` 触发 capability/registry truth，而不是先手工拼一份 `CapabilityRegistry` 输出；
+- proof 输出应证明 future host 可复用 truth，而不是引入第二条 production story；
+- wave 2 还应补一条 explicit bridge assertion：证明 headless proof 触达的 canonical/device truth 与 replay/evidence 使用的是同一 formal truth family，而不是只把几组测试并排跑绿。
 
 ### 3. 继续 demote adapter-only assumptions，但只处理“宿主壳”，不去撬正式根
 
@@ -149,8 +153,9 @@ north-star、STATE 与 baseline 对 future host 的裁决非常明确：
 建议在计划中预留一轮 governance / guard follow-through：
 
 - 更新 baseline wording，明确 headless proof 是 proof-only / assurance-style consumer；
-- 新增 targeted bans，防止 `custom_components/lipro/__init__.py`、`custom_components/lipro/core/__init__.py`、`custom_components/lipro/core/protocol/__init__.py` 等模块出现 headless/CLI proof export；
-- 在 docs wording 中防止“CLI root / HA root”叙事出现。
+- 新增 targeted bans，防止 `custom_components/lipro/__init__.py`、`custom_components/lipro/core/__init__.py`、`custom_components/lipro/core/protocol/__init__.py` 等模块出现 headless/CLI proof export，并显式禁止 proof home 依赖 `custom_components/lipro/control/runtime_access.py`、`custom_components/lipro/helpers/platform.py` 与 platform setup seams；
+- 在 docs wording 中防止“CLI root / HA root”叙事出现；
+- 把 authority 默认裁决写透：除非发生新的 truth-source family、authority precedence 变化或 sync owner 变化，否则 `Phase 19` 的 authority disposition 默认为 no-change；proof outputs 只消费 authority path，永不成为 authority path。
 
 ## Explicit Defers
 
@@ -195,6 +200,12 @@ north-star、STATE 与 baseline 对 future host 的裁决非常明确：
 
 **Mitigation:** 在 proof 计划里明确要求 single-chain verification，而不是分散的点状回归。
 
+### 6. 如果没有显式 bridge assertion，single-chain 叙事仍可能是假连通
+
+当前 replay 与 evidence 都建立在既有 fixture / collector 正式路径之上，但它们不会天然证明 headless proof 的 auth/device 输出与后半段消费的是同一 formal truth family。
+
+**Mitigation:** 新增一个 bridge assertion，只证明“同一 truth family 被触达”，而不是让 evidence/exporter 直接改吃 headless proof 输出。
+
 ## Validation Architecture
 
 ### Fast feedback loop
@@ -220,6 +231,16 @@ north-star、STATE 与 baseline 对 future host 的裁决非常明确：
 - Wave 1 必须先证明 boot contract 被 adapter 与 proof consumer 共用，而不是继续双装配；
 - Wave 2 必须证明 `auth -> device -> replay/evidence` 使用同一 nucleus 与 formal public path；
 - Wave 3 必须证明 adapter demotion + governance wording/guards 已锁定 “proof consumer ≠ second root”。
+
+## Forced Re-Research Addendum
+
+A second forced-research pass tightened several execution details without changing the overall Phase 19 story:
+
+- `AuthBootstrapSeed` / bootstrap helpers are sufficient to define the auth/bootstrap seam, but not yet sufficient alone to define the full headless discovery seam; the boot contract should explicitly state session ownership, authenticated protocol exposure, and auth-session snapshot retrieval.
+- The minimal device-truth path should materialize devices via `LiproDevice.from_api_data()` first, then observe `device.capabilities` / registry truth; proof should not start by precomputing `CapabilityRegistry` outputs out-of-band.
+- The replay/evidence half already reuses formal paths, but Phase 19 still needs an explicit bridge assertion proving headless proof touches the same formal truth family, rather than merely running headless tests and replay/evidence tests side by side.
+- Governance wording should state that headless proof is an assurance/proof-only consumer, boot contract is not a canonical/transitional public surface, and authority disposition remains `no-change` unless truth-source family, precedence, or sync owner changes.
+- The chosen proof home should be guarded not only against `homeassistant` and `Coordinator`, but also against `custom_components/lipro/control/runtime_access.py`, `custom_components/lipro/helpers/platform.py`, and platform setup seams.
 
 ## Final Arbitration
 
