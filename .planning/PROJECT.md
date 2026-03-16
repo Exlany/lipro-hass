@@ -1,7 +1,7 @@
 # Project: Lipro-HASS North Star Evolution
 
-**Status:** Active — `v1.2` 执行中；`Phase 18-20` 已完成，当前下一步是 `Phase 21 Replay / Observability / Exception Hardening`。
-**Goal:** 把 `host-neutral nucleus`、`headless consumer proof`、`remaining boundary family completion`、`replay / observability / exception hardening` 与 `governance / docs / release closeout` 统一纳入当前 `v1.2` 里程碑，同时延续 `v1.1` 已建立的北极星单一主链、assurance 与开源治理能力。
+**Status:** Active — `v1.2` 执行中；`Phase 18-20` 已完成，`Phase 21-24` 已完成整体规划，当前下一步是 `Phase 21 Replay Coverage & Exception Taxonomy Hardening`。
+**Goal:** 把 `host-neutral nucleus`、`headless consumer proof`、`remaining boundary family completion`、`replay / evidence expansion`、`exception classification / observability hardening`、`governance / contributor docs / release evidence closeout` 与 `milestone audit / v1.3 handoff` 统一纳入当前 `v1.2` 里程碑，同时延续 `v1.1` 已建立的北极星单一主链、assurance 与开源治理能力。
 
 ## Current Milestone (v1.2)
 
@@ -23,11 +23,11 @@
 
 1. host-neutral boundary/auth/device nucleus 被正式抽出，但 `LiproProtocolFacade` 与 `Coordinator` 仍保持单一正式根叙事
 2. `rest.list-envelope.v1`、`rest.schedule-json.v1`、`mqtt.topic.v1`、`mqtt.message-envelope.v1` 从 de-scope/partial state 升格为 registry-backed / replay-covered families
-3. protocol/runtime/control 关键 broad-catch 与 observability arbitration 再收紧一轮，让 headless/CLI proof 与 diagnostics/evidence 使用同一失败分类语言
+3. replay / evidence 对新增 formalized families 实现 full public-path coverage，且不再留下 assurance blind spot
 
-**Phase range:** `Phase 18 -> 22`
+**Phase range:** `Phase 18 -> 24`
 
-**Execution status:** `Phase 18-20` complete; `Phase 21-22` pending
+**Execution status:** `Phase 18-20` complete; `Phase 21-24` planned
 
 ## Why This Milestone Exists
 
@@ -46,7 +46,7 @@
 - **运行信号能被正式导出，而不是散落在 diagnostics 里**
 - **AI 可分析优先**：telemetry/export/replay/evidence 的产物必须机器友好（结构化、稳定 schema、可版本化、带时间戳、带事件序列），同时严格脱敏。
 
-## What Changes In v1.1
+## Current Foundation Before v1.2
 
 ### 1. Boundary Truth 更严格
 
@@ -329,4 +329,4 @@ v1.1 进入执行期后，新增演进必须额外满足：
 
 - 当前 phase 资产默认是执行工作区输入；只有被 `ROADMAP.md`、baseline docs 或 review ledgers 显式提升时，才成为长期治理真源。
 
-*Last updated: 2026-03-15 after Phase 17 closeout execution and final repo audit*
+*Last updated: 2026-03-16 after Phase 21-24 planning truth sync*

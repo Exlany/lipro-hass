@@ -231,12 +231,12 @@
 - mapped to phases: 65
 - unmapped: 0 ✓
 
-*Last updated: 2026-03-16 after Phase 20 completion truth sync*
+*Last updated: 2026-03-16 after Phase 21-24 planning truth sync*
 
 
 ## Current Milestone (v1.2)
 
-> `v1.2` 已进入执行态；以下 requirement / traceability 反映 Phase 18-19 当前完成度。
+> `v1.2` 已进入执行态；以下 requirement / traceability 反映 `Phase 18-20` 已完成、`Phase 21-24` 已完成整体规划的当前真相。
 
 ### Core Reuse / Host-Neutral Nucleus
 
@@ -258,6 +258,8 @@
 ### Governance
 
 - [ ] **GOV-16**: v1.2 的 host-neutral / replay-complete / observability-hardening 真相必须同步到 roadmap / state / baseline / reviews / docs / meta guards。
+- [ ] **GOV-17**: contributor-facing docs、issue/PR templates、support/security/install/version surfaces 与 release evidence 必须对齐最终 v1.2 架构与治理门禁。
+- [ ] **GOV-18**: milestone closeout 必须留下 final repo audit、residual arbitration、archive-ready verification assets 与 v1.3 handoff，不得遗留 silent defer。
 
 ## Traceability for v1.2
 
@@ -270,10 +272,12 @@
 | SIM-04 | Phase 21 | Draft |
 | SIM-05 | Phase 20 | Complete |
 | ERR-02 | Phase 21 | Draft |
-| OBS-03 | Phase 21 | Draft |
-| GOV-16 | Phase 22 | Draft |
+| OBS-03 | Phase 22 | Draft |
+| GOV-16 | Phase 23 | Draft |
+| GOV-17 | Phase 23 | Draft |
+| GOV-18 | Phase 24 | Draft |
 
 **Current Coverage:**
-- v1.2 requirements: 9 total
-- Current mapped: 9
+- v1.2 requirements: 11 total
+- Current mapped: 11
 - Current unmapped: 0 ✓

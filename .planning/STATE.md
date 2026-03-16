@@ -5,9 +5,9 @@ milestone_name: Host-Neutral Core & Replay Completion
 status: active
 last_updated: "2026-03-16T09:15:00Z"
 progress:
-  total_phases: 5
+  total_phases: 7
   completed_phases: 3
-  total_plans: 15
+  total_plans: 22
   completed_plans: 10
 ---
 
@@ -19,7 +19,7 @@ See: `.planning/PROJECT.md`
 
 **Current milestone:** `v1.2 Host-Neutral Core & Replay Completion`
 **Core value:** 在不破坏 `LiproProtocolFacade` / `Coordinator` 单一正式主链的前提下，把 host-neutral nucleus、headless proof、remaining boundary/replay family 收口与 observability/governance follow-through 推进成下一轮正式能力。
-**Current mode:** `Phase 20 complete`；`Phase 18-20` 已执行完成，当前下一步是 `Phase 21 Replay / Observability / Exception Hardening`。
+**Current mode:** `Phase 20 complete`；`Phase 18-20` 已执行完成，当前下一步是 `Phase 21 Replay Coverage & Exception Taxonomy Hardening`。
 
 ## Current Position
 
@@ -50,8 +50,10 @@ See: `.planning/PROJECT.md`
 - `Phase 18`：Host-Neutral Boundary Nucleus Extraction（complete）
 - `Phase 19`：Headless Consumer Proof & Adapter Demotion（complete）
 - `Phase 20`：Remaining Boundary Family Completion（complete）
-- `Phase 21`：Replay / Observability / Exception Hardening（next）
-- `Phase 22`：Governance, Docs & Release Readiness Closeout
+- `Phase 21`：Replay Coverage & Exception Taxonomy Hardening（next）
+- `Phase 22`：Observability Surface Convergence & Signal Exposure
+- `Phase 23`：Governance convergence, contributor docs and release evidence closure
+- `Phase 24`：Final milestone audit, archive readiness and v1.3 handoff prep
 
 ## Carry-Forward Truths
 
@@ -85,6 +87,9 @@ See: `.planning/PROJECT.md`
 
 ### Roadmap Evolution
 
+- Phase 23 added: Governance convergence, contributor docs and release evidence closure
+- Phase 24 added: Final milestone audit, archive readiness and v1.3 handoff prep
+
 - Phase 10 executed and completed: API Drift Isolation & Core Boundary Prep
 - Phase 11 executed and completed: Control Router Formalization & Wiring Residual Demotion
 - Phase 11 audit-expansion addendum executed and closed
@@ -111,15 +116,15 @@ See: `.planning/PROJECT.md`
 ## Current Milestone Status
 
 - **Milestone:** `v1.2 Host-Neutral Core & Replay Completion`
-- **Phase range:** `18 -> 22`
+- **Phase range:** `18 -> 24`
 - **Completed so far:** `Phase 18`, `Phase 19`, `Phase 20`
-- **Next focus:** replay/evidence expansion、broad-catch 收窄与 observability/governance hardening
+- **Next focus:** replay/evidence expansion、exception taxonomy hardening、observability surface convergence 与 milestone closeout planning
 
 ## Recommended Next Command
 
-1. `$gsd-plan-phase 21` —— 为 replay / observability / exception hardening 制定详细执行计划
-2. `$gsd-execute-phase 21` —— 执行 broad-catch / observability hardening
-3. `$gsd-progress` —— 查看 v1.2 当前推进态
+1. `$gsd-execute-phase 21` —— 执行 replay/evidence 扩面与 exception taxonomy hardening
+2. `$gsd-progress` —— 复核 `Phase 21-24` 规划与当前推进态
+3. `$gsd-execute-phase 22` —— 在 `Phase 21` 收官后推进 observability surface convergence
 
 ## Session Continuity
 
