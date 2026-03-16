@@ -231,7 +231,7 @@
 - mapped to phases: 65
 - unmapped: 0 ✓
 
-*Last updated: 2026-03-16 after Phase 19 completion truth sync*
+*Last updated: 2026-03-16 after Phase 20 completion truth sync*
 
 
 ## Current Milestone (v1.2)
@@ -246,9 +246,9 @@
 
 ### Replay / Boundary Completion
 
-- [ ] **SIM-03**: `rest.list-envelope.v1`、`rest.schedule-json.v1`、`mqtt.topic.v1`、`mqtt.message-envelope.v1` 必须成为 registry-backed boundary families。
+- [x] **SIM-03**: `rest.list-envelope.v1`、`rest.schedule-json.v1`、`mqtt.topic.v1`、`mqtt.message-envelope.v1` 已成为 registry-backed boundary families。
 - [ ] **SIM-04**: replay harness 与 evidence pack 必须覆盖新增 formalized families，并复用同一正式 public path。
-- [ ] **SIM-05**: 当前 authority/inventory 中对 remaining replay families 的 de-scope / partial 标记，必须在 coverage 落地后被移除或缩窄为真实剩余项。
+- [x] **SIM-05**: 当前 authority/inventory 中对 remaining replay families 的 de-scope / partial 标记，已随 coverage 落地被移除或缩窄为真实剩余项。
 
 ### Error / Observability Hardening
 
@@ -266,9 +266,9 @@
 | CORE-01 | Phase 18 | Complete |
 | CORE-02 | Phase 19 | Complete |
 | CORE-03 | Phase 18 | Complete |
-| SIM-03 | Phase 20 | Draft |
+| SIM-03 | Phase 20 | Complete |
 | SIM-04 | Phase 21 | Draft |
-| SIM-05 | Phase 20 | Draft |
+| SIM-05 | Phase 20 | Complete |
 | ERR-02 | Phase 21 | Draft |
 | OBS-03 | Phase 21 | Draft |
 | GOV-16 | Phase 22 | Draft |

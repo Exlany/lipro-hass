@@ -1,0 +1,12 @@
+{
+  "scenario_id": "mqtt.topic.device_state.v1",
+  "channel": "mqtt",
+  "family": "mqtt.topic",
+  "version": "v1",
+  "operation": "protocol.boundary.decode_mqtt_topic",
+  "authority_path": "tests/fixtures/protocol_boundary/mqtt_topic.device_state.v1.json",
+  "seed": 740104,
+  "clock_baseline": "2026-03-16T00:00:00Z",
+  "assertion_families": ["canonical", "drift", "telemetry"],
+  "notes": "Formal MQTT topic grammar replay for device-state subscription topics."
+}

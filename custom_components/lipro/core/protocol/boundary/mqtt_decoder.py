@@ -2,16 +2,30 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass
+import json
 from typing import Any, Protocol, TypeVar
 
+from ....const.api import MQTT_TOPIC_PREFIX
+from ...mqtt.payload import _MAX_MQTT_PAYLOAD_BYTES
+from ...mqtt.topics import normalize_mqtt_biz_id
 from ...utils.property_normalization import normalize_properties
 from .result import BoundaryDecodeResult, BoundaryDecoderKey
 
 CanonicalT = TypeVar("CanonicalT")
+_MQTT_TOPIC_FAMILY = "mqtt.topic"
+_MQTT_TOPIC_VERSION = "v1"
+_MQTT_TOPIC_AUTHORITY = "tests/fixtures/protocol_boundary/mqtt_topic.device_state.v1.json"
+_MQTT_MESSAGE_ENVELOPE_FAMILY = "mqtt.message-envelope"
+_MQTT_MESSAGE_ENVELOPE_VERSION = "v1"
+_MQTT_MESSAGE_ENVELOPE_AUTHORITY = (
+    "tests/fixtures/protocol_boundary/mqtt_message_envelope.device_state.v1.json"
+)
 _MQTT_PROPERTIES_FAMILY = "mqtt.properties"
 _MQTT_PROPERTIES_VERSION = "v1"
 _MQTT_PROPERTIES_AUTHORITY = "tests/core/mqtt/test_mqtt.py"
+_MQTT_STATE_TOPIC_FAMILY = f"{MQTT_TOPIC_PREFIX}/*"
 _MQTT_PROPERTY_GROUPS = (
     "common",
     "light",
@@ -24,25 +38,86 @@ _MQTT_PROPERTY_GROUPS = (
 _NOISE_VALUES = frozenset({"-1", ""})
 
 
-def _select_property_source(payload: dict[str, Any]) -> dict[str, Any]:
-    """Select the mapping that actually contains device property groups."""
+def _normalize_device_id(value: object) -> str | None:
+    if not isinstance(value, str):
+        return None
+    normalized = value.strip()
+    if not normalized or not all(char.isalnum() or char in "-_" for char in normalized):
+        return None
+    return normalized
+
+
+def _select_message_source(payload: dict[str, Any]) -> tuple[dict[str, Any], str]:
+    """Select the mapping containing property groups plus the wrapper path."""
     current = payload
+    path = "root"
     for _ in range(3):
         if any(
             isinstance(current.get(group_name), dict)
             for group_name in _MQTT_PROPERTY_GROUPS
         ):
-            return current
+            return current, path
         next_payload = None
+        next_key = None
         for wrapper_key in ("data", "payload"):
             candidate = current.get(wrapper_key)
             if isinstance(candidate, dict):
                 next_payload = candidate
+                next_key = wrapper_key
                 break
-        if next_payload is None:
-            return current
+        if next_payload is None or next_key is None:
+            return current, path
         current = next_payload
-    return current
+        path = next_key if path == "root" else f"{path}.{next_key}"
+    return current, path
+
+
+def _select_property_source(payload: dict[str, Any]) -> dict[str, Any]:
+    """Select the mapping that actually contains device property groups."""
+    source, _ = _select_message_source(payload)
+    return source
+
+
+def _build_topic_fingerprint(topic: object) -> str:
+    if not isinstance(topic, str):
+        return type(topic).__name__
+    parts = topic.split("/")
+    prefix = parts[0] if parts else ""
+    return f"{prefix}/{len(parts)}"
+
+
+def _build_message_envelope_fingerprint(payload: object) -> str:
+    if not isinstance(payload, dict):
+        return type(payload).__name__
+    source, path = _select_message_source(payload)
+    groups = sorted(str(key) for key, value in source.items() if isinstance(value, Mapping))
+    if not groups:
+        return path
+    return f"{path}:{'|'.join(groups)}"
+
+
+def _coerce_message_mapping(payload: object) -> dict[str, Any] | None:
+    if isinstance(payload, memoryview):
+        payload = payload.tobytes()
+    if isinstance(payload, (bytes, bytearray)):
+        raw_bytes = bytes(payload)
+        if len(raw_bytes) > _MAX_MQTT_PAYLOAD_BYTES:
+            return None
+        try:
+            payload = json.loads(raw_bytes.decode("utf-8"))
+        except (json.JSONDecodeError, UnicodeError):
+            return None
+    elif isinstance(payload, str):
+        if len(payload.encode("utf-8")) > _MAX_MQTT_PAYLOAD_BYTES:
+            return None
+        try:
+            payload = json.loads(payload)
+        except (json.JSONDecodeError, UnicodeError):
+            return None
+
+    if not isinstance(payload, dict):
+        return None
+    return dict(payload)
 
 
 def _build_property_fingerprint(payload: object) -> str:
@@ -98,6 +173,133 @@ class MqttBoundaryDecoder(Protocol[CanonicalT]):
         ...
 
 
+class MqttTopicDecoder:
+    """Decode MQTT topic grammar into canonical biz/device identifiers."""
+
+    def __init__(self, *, expected_biz_id: str | None = None) -> None:
+        """Bind the decoder to an optional expected biz identifier."""
+        self._expected_biz_id = expected_biz_id
+        self._context = MqttDecodeContext(
+            family=_MQTT_TOPIC_FAMILY,
+            topic_family=_MQTT_STATE_TOPIC_FAMILY,
+            authority=_MQTT_TOPIC_AUTHORITY,
+            version=_MQTT_TOPIC_VERSION,
+        )
+
+    @property
+    def context(self) -> MqttDecodeContext:
+        """Return the metadata describing this decoder family."""
+        return self._context
+
+    @property
+    def key(self) -> BoundaryDecoderKey:
+        """Return the family/version identity used by the registry."""
+        return self._context.key
+
+    @property
+    def authority(self) -> str:
+        """Return the authoritative fixture source backing this family."""
+        return self._context.authority
+
+    def decode(self, payload: object) -> BoundaryDecodeResult[dict[str, str]]:
+        """Decode one MQTT topic into normalized biz/device identifiers."""
+        fingerprint = _build_topic_fingerprint(payload)
+        if not isinstance(payload, str):
+            return BoundaryDecodeResult(
+                key=self.key,
+                canonical={},
+                authority=self.authority,
+                fingerprint=fingerprint,
+            )
+
+        parts = payload.split("/")
+        if len(parts) != 3 or parts[0] != MQTT_TOPIC_PREFIX:
+            return BoundaryDecodeResult(
+                key=self.key,
+                canonical={},
+                authority=self.authority,
+                fingerprint=fingerprint,
+            )
+
+        biz_id = normalize_mqtt_biz_id(parts[1])
+        device_id = _normalize_device_id(parts[2])
+        if biz_id is None or device_id is None:
+            return BoundaryDecodeResult(
+                key=self.key,
+                canonical={},
+                authority=self.authority,
+                fingerprint=fingerprint,
+            )
+
+        if self._expected_biz_id is not None:
+            normalized_expected = normalize_mqtt_biz_id(self._expected_biz_id)
+            if normalized_expected is None or normalized_expected != biz_id:
+                return BoundaryDecodeResult(
+                    key=self.key,
+                    canonical={},
+                    authority=self.authority,
+                    fingerprint=fingerprint,
+                )
+
+        return BoundaryDecodeResult(
+            key=self.key,
+            canonical={
+                "bizId": biz_id,
+                "deviceId": device_id,
+                "topicFamily": _MQTT_STATE_TOPIC_FAMILY,
+            },
+            authority=self.authority,
+            fingerprint=fingerprint,
+        )
+
+
+class MqttMessageEnvelopeDecoder:
+    """Decode MQTT payload envelopes before property canonicalization."""
+
+    def __init__(self) -> None:
+        """Initialize the metadata describing the message-envelope family."""
+        self._context = MqttDecodeContext(
+            family=_MQTT_MESSAGE_ENVELOPE_FAMILY,
+            topic_family=_MQTT_STATE_TOPIC_FAMILY,
+            authority=_MQTT_MESSAGE_ENVELOPE_AUTHORITY,
+            version=_MQTT_MESSAGE_ENVELOPE_VERSION,
+        )
+
+    @property
+    def context(self) -> MqttDecodeContext:
+        """Return the metadata describing this decoder family."""
+        return self._context
+
+    @property
+    def key(self) -> BoundaryDecoderKey:
+        """Return the family/version identity used by the registry."""
+        return self._context.key
+
+    @property
+    def authority(self) -> str:
+        """Return the authoritative fixture source backing this family."""
+        return self._context.authority
+
+    def decode(self, payload: object) -> BoundaryDecodeResult[dict[str, Any]]:
+        """Decode one MQTT payload envelope into the canonical source mapping."""
+        mapping = _coerce_message_mapping(payload)
+        if mapping is None:
+            return BoundaryDecodeResult(
+                key=self.key,
+                canonical={},
+                authority=self.authority,
+                fingerprint=type(payload).__name__,
+            )
+
+        canonical, _ = _select_message_source(mapping)
+        return BoundaryDecodeResult(
+            key=self.key,
+            canonical=dict(canonical),
+            authority=self.authority,
+            fingerprint=_build_message_envelope_fingerprint(mapping),
+        )
+
+
 class MqttPropertiesDecoder:
     """Decode MQTT device-property frames into canonical property mappings."""
 
@@ -127,16 +329,10 @@ class MqttPropertiesDecoder:
 
     def decode(self, payload: object) -> BoundaryDecodeResult[dict[str, Any]]:
         """Decode one MQTT property payload into canonical device properties."""
-        if not isinstance(payload, dict):
-            return BoundaryDecodeResult(
-                key=self.key,
-                canonical={},
-                authority=self.authority,
-                fingerprint=type(payload).__name__,
-            )
+        envelope = decode_mqtt_message_envelope_payload(payload)
+        source = envelope.canonical
 
         properties: dict[str, Any] = {}
-        source = _select_property_source(payload)
         for group_name in _MQTT_PROPERTY_GROUPS:
             group_data = source.get(group_name)
             if not isinstance(group_data, dict):
@@ -152,8 +348,24 @@ class MqttPropertiesDecoder:
             key=self.key,
             canonical=normalize_properties(properties),
             authority=self.authority,
-            fingerprint=_build_property_fingerprint(payload),
+            fingerprint=_build_property_fingerprint(source),
         )
+
+
+def decode_mqtt_topic_payload(
+    payload: object,
+    *,
+    expected_biz_id: str | None = None,
+) -> BoundaryDecodeResult[dict[str, str]]:
+    """Decode one MQTT topic through the formal topic grammar family."""
+    return MqttTopicDecoder(expected_biz_id=expected_biz_id).decode(payload)
+
+
+def decode_mqtt_message_envelope_payload(
+    payload: object,
+) -> BoundaryDecodeResult[dict[str, Any]]:
+    """Decode one MQTT payload envelope before property canonicalization."""
+    return MqttMessageEnvelopeDecoder().decode(payload)
 
 
 def decode_mqtt_properties_payload(

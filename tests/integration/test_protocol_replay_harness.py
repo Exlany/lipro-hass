@@ -31,6 +31,10 @@ def _expected_canonical_for_manifest(manifest) -> object:
         return fixture.authority_metadata["canonical"]
     if manifest.family == "rest.mqtt-config":
         return EXPECTED_MQTT_CONFIG
+    if manifest.family == "rest.list-envelope":
+        fixture = load_replay_fixture(manifest)
+        assert isinstance(fixture.authority_payload, dict)
+        return {"rows": fixture.authority_payload["data"], "has_more": True}
     if manifest.family == "rest.device-list":
         return {
             "devices": EXPECTED_DEVICE_LIST_DEVICES,
@@ -40,6 +44,8 @@ def _expected_canonical_for_manifest(manifest) -> object:
         return EXPECTED_DEVICE_STATUS_ROWS
     if manifest.family == "rest.mesh-group-status":
         return EXPECTED_MESH_GROUP_STATUS_ROWS
+    if manifest.family == "rest.schedule-json":
+        return {"days": [1, 3], "time": [3600, 7200], "evt": [0, 1]}
     msg = f"Unhandled replay manifest family: {manifest.family}"
     raise AssertionError(msg)
 
@@ -53,11 +59,15 @@ def test_protocol_replay_harness_runs_all_registered_manifests_in_order() -> Non
 
     assert manifest_paths == sorted(manifest_paths)
     assert {manifest.family for manifest in manifests} >= {
+        "mqtt.topic",
+        "mqtt.message-envelope",
         "mqtt.properties",
         "rest.mqtt-config",
+        "rest.list-envelope",
         "rest.device-list",
         "rest.device-status",
         "rest.mesh-group-status",
+        "rest.schedule-json",
     }
     assert all(result.error_category is None for result in results)
     for manifest, result in zip(manifests, results, strict=True):

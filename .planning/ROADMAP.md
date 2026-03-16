@@ -364,12 +364,13 @@ Plans:
   1. 上述 families 全部具备 authority source、fixtures、decoder registry 与 drift assertions。
   2. inventory / authority / fixtures / manifests 不再把这些 families 记为 partial/de-scope。
   3. helper-level ad-hoc handling 进一步减少。
-**Plans**: 3 draft plans
+**Status**: Complete (`2026-03-16`)
+**Plans**: 3/3 complete
 
 Plans:
-- [ ] 20-01: formalize remaining REST families
-- [ ] 20-02: formalize remaining MQTT families
-- [ ] 20-03: sync inventory / fixtures / manifests / guards
+- [x] 20-01: formalize remaining REST families
+- [x] 20-02: formalize remaining MQTT families
+- [x] 20-03: sync inventory / fixtures / manifests / guards
 
 ### Phase 21: Replay / Observability / Exception Hardening
 **Goal**: 把新增 families 纳入 replay/evidence，并继续收窄 protocol/runtime/control 关键 broad-catch 与失败分类语义。

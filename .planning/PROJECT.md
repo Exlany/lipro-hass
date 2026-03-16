@@ -1,6 +1,6 @@
 # Project: Lipro-HASS North Star Evolution
 
-**Status:** Active — `v1.2` 执行中；`Phase 18-19` 已完成，当前下一步是 `Phase 20 Remaining Boundary Family Completion`。
+**Status:** Active — `v1.2` 执行中；`Phase 18-20` 已完成，当前下一步是 `Phase 21 Replay / Observability / Exception Hardening`。
 **Goal:** 把 `host-neutral nucleus`、`headless consumer proof`、`remaining boundary family completion`、`replay / observability / exception hardening` 与 `governance / docs / release closeout` 统一纳入当前 `v1.2` 里程碑，同时延续 `v1.1` 已建立的北极星单一主链、assurance 与开源治理能力。
 
 ## Current Milestone (v1.2)
@@ -27,7 +27,7 @@
 
 **Phase range:** `Phase 18 -> 22`
 
-**Execution status:** `Phase 18-19` complete; `Phase 20-22` pending
+**Execution status:** `Phase 18-20` complete; `Phase 21-22` pending
 
 ## Why This Milestone Exists
 

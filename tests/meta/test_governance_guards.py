@@ -926,17 +926,17 @@ def test_phase_19_execution_truth_is_consistent() -> None:
     verification_text = (phase_root / "19-VERIFICATION.md").read_text(encoding="utf-8")
 
     assert "## Current Milestone (v1.2)" in project_text
-    assert "**Execution status:** `Phase 18-19` complete; `Phase 20-22` pending" in project_text
+    assert "**Execution status:** `Phase 18-20` complete; `Phase 21-22` pending" in project_text
     assert "## Current Milestone" in roadmap_text
     assert "### Phase 19: Headless Consumer Proof & Adapter Demotion" in roadmap_text
     assert "**Requirements**: [CORE-02]" in roadmap_text
     assert "**Status**: Complete (`2026-03-16`)" in roadmap_text
     assert "**Plans**: 4/4 complete" in roadmap_text
     assert "# Requirements: Lipro-HASS" in requirements_text
-    assert "*Last updated: 2026-03-16 after Phase 19 completion truth sync*" in requirements_text
+    assert "*Last updated: 2026-03-16 after Phase 20 completion truth sync*" in requirements_text
     assert "## Traceability for v1.2" in requirements_text
     assert "| CORE-02 | Phase 19 | Complete |" in requirements_text
-    assert "**Current mode:** `Phase 19 complete`" in state_text
+    assert "**Current mode:** `Phase 20 complete`" in state_text
     assert "## Phase 19 Headless Proof & Adapter Shell Notes" in public_text
     assert "## Phase 19 Headless Consumer Proof Contract" in verification_matrix_text
     assert "## Phase 19 Residual Delta" in residual_text
@@ -957,6 +957,47 @@ def test_phase_19_execution_truth_is_consistent() -> None:
         "19-04-SUMMARY.md",
         "19-VALIDATION.md",
         "19-VERIFICATION.md",
+    ):
+        assert (phase_root / artifact_name).exists()
+
+
+def test_phase_20_execution_truth_is_consistent() -> None:
+    phase_root = (
+        _ROOT
+        / ".planning"
+        / "phases"
+        / "20-remaining-boundary-family-completion"
+    )
+    project_text = (_ROOT / ".planning" / "PROJECT.md").read_text(encoding="utf-8")
+    roadmap_text = (_ROOT / ".planning" / "ROADMAP.md").read_text(encoding="utf-8")
+    requirements_text = (_ROOT / ".planning" / "REQUIREMENTS.md").read_text(
+        encoding="utf-8"
+    )
+    state_text = (_ROOT / ".planning" / "STATE.md").read_text(encoding="utf-8")
+    verification_text = (phase_root / "20-VERIFICATION.md").read_text(encoding="utf-8")
+
+    assert "**Execution status:** `Phase 18-20` complete; `Phase 21-22` pending" in project_text
+    assert "### Phase 20: Remaining Boundary Family Completion" in roadmap_text
+    assert "**Status**: Complete (`2026-03-16`)" in roadmap_text
+    assert "**Plans**: 3/3 complete" in roadmap_text
+    assert "- [x] **SIM-03**" in requirements_text
+    assert "- [x] **SIM-05**" in requirements_text
+    assert "| SIM-03 | Phase 20 | Complete |" in requirements_text
+    assert "| SIM-05 | Phase 20 | Complete |" in requirements_text
+    assert "**Current mode:** `Phase 20 complete`" in state_text
+    assert "status: passed" in verification_text
+
+    for artifact_name in (
+        "20-CONTEXT.md",
+        "20-RESEARCH.md",
+        "20-VALIDATION.md",
+        "20-01-PLAN.md",
+        "20-02-PLAN.md",
+        "20-03-PLAN.md",
+        "20-01-SUMMARY.md",
+        "20-02-SUMMARY.md",
+        "20-03-SUMMARY.md",
+        "20-VERIFICATION.md",
     ):
         assert (phase_root / artifact_name).exists()
 

@@ -2,7 +2,7 @@
 
 **Purpose:** 建立 requirement → artifact → test → doc → phase acceptance / handoff 的统一验证闭环。
 **Status:** Formal baseline asset (`BASE-03` phase acceptance truth source)
-**Updated:** 2026-03-16 (Phase 18 nucleus locality aligned)
+**Updated:** 2026-03-16 (Phase 20 boundary closeout contract aligned)
 
 ## Formal Role
 
@@ -125,3 +125,10 @@
 - **Required bridge proof:** headless consumer proof 只能复用 `LiproProtocolFacade`、`CapabilityRegistry`、`LiproDevice`、replay manifests 与 evidence-pack formal source paths；proof outputs 不得反向成为 authority source。
 - **Required runnable proof:** `uv run python scripts/check_architecture_policy.py --check`、`uv run python scripts/check_file_matrix.py --check`、`uv run pytest -q tests/core/test_headless_boot.py tests/flows/test_config_flow.py tests/core/test_init.py tests/core/test_token_persistence.py`、`uv run pytest -q tests/integration/test_headless_consumer_proof.py tests/integration/test_protocol_replay_harness.py tests/integration/test_ai_debug_evidence_pack.py tests/meta/test_evidence_pack_authority.py`、`uv run pytest -q tests/core/test_helpers.py tests/core/test_control_plane.py -k runtime_access tests/platforms/test_entity_behavior.py`、`uv run pytest -q tests/meta/test_dependency_guards.py tests/meta/test_public_surface_guards.py tests/meta/test_governance_guards.py tests/meta/test_version_sync.py`、`uv run ruff check .` 与 `uv run mypy` 通过。
 - **Unblock effect:** `CORE-02` 获得 single-chain proof；Phase 20 可以继续 boundary family completion，而不会把 headless proof 误读成第二 root。
+
+## Phase 20 Remaining Boundary Family Completion Contract
+
+- **Required artifacts:** `.planning/baseline/{AUTHORITY_MATRIX,VERIFICATION_MATRIX}.md`、`.planning/reviews/{FILE_MATRIX,RESIDUAL_LEDGER,KILL_LIST}.md`、`tests/fixtures/protocol_boundary/README.md`、`tests/fixtures/protocol_replay/README.md`、`tests/meta/test_protocol_replay_assets.py`、`tests/integration/test_protocol_replay_harness.py`、`20-VALIDATION.md`；`20-VERIFICATION.md` 与 `.planning/{ROADMAP,REQUIREMENTS,STATE}.md` 只允许在 final gate 后回写。
+- **Required governance proof:** `rest.list-envelope.v1`、`rest.schedule-json.v1`、`mqtt.topic.v1`、`mqtt.message-envelope.v1` 必须被描述为 formal boundary/replay family，而不是 service helper、transport util、`topics.py`、`message_processor.py` 或 `payload.py` 的隐式局部约定。
+- **Required runnable proof:** `uv run pytest -q tests/core/api/test_protocol_contract_matrix.py tests/core/mqtt/test_mqtt.py tests/core/mqtt/test_topic_builder.py tests/core/mqtt/test_mqtt_payload.py tests/core/mqtt/test_message_processor.py tests/core/mqtt/test_client_refactored.py tests/core/mqtt/test_protocol_replay_mqtt.py`、`uv run pytest -q tests/integration/test_protocol_replay_harness.py tests/meta/test_protocol_replay_assets.py tests/meta/test_evidence_pack_authority.py`、`uv run python scripts/check_architecture_policy.py --check`、`uv run python scripts/check_file_matrix.py --check`、`uv run pytest -q tests/meta/test_dependency_guards.py tests/meta/test_public_surface_guards.py tests/meta/test_governance_guards.py tests/meta/test_version_sync.py`、`uv run ruff check .` 与 `uv run mypy` 通过。
+- **Unblock effect:** `SIM-03` / `SIM-05` 获得 boundary-first、replay-visible、governance-aligned 闭环；Phase 21 可以专注 exception / observability hardening，而不是继续携带 remaining-family 漂移。

@@ -6,7 +6,9 @@ from typing import assert_never
 
 from custom_components.lipro.core.protocol import LiproProtocolFacade
 from custom_components.lipro.core.protocol.boundary import (
+    decode_mqtt_message_envelope_payload,
     decode_mqtt_properties_payload,
+    decode_mqtt_topic_payload,
 )
 from tests.harness.protocol.replay_loader import load_replay_fixture
 from tests.harness.protocol.replay_models import (
@@ -37,6 +39,35 @@ class ProtocolReplayDriver:
         finished_at = manifest.controls.clock_baseline
         try:
             operation = manifest.operation
+            if operation == "protocol.boundary.decode_mqtt_topic":
+                metadata = fixture.authority_metadata
+                topic = metadata.get("topic")
+                expected_biz_id = metadata.get("expected_biz_id")
+                result = decode_mqtt_topic_payload(topic, expected_biz_id=expected_biz_id)
+                return ReplayExecutionResult(
+                    manifest=manifest,
+                    public_path="core.protocol.boundary.decode_mqtt_topic_payload",
+                    started_at=started_at,
+                    finished_at=finished_at,
+                    canonical=result.canonical,
+                    drift_flags=(),
+                    error_category=None,
+                    fingerprint=result.fingerprint,
+                )
+            if operation == "protocol.boundary.decode_mqtt_message_envelope":
+                metadata = fixture.authority_metadata
+                payload = metadata.get("payload")
+                result = decode_mqtt_message_envelope_payload(payload)
+                return ReplayExecutionResult(
+                    manifest=manifest,
+                    public_path="core.protocol.boundary.decode_mqtt_message_envelope_payload",
+                    started_at=started_at,
+                    finished_at=finished_at,
+                    canonical=result.canonical,
+                    drift_flags=(),
+                    error_category=None,
+                    fingerprint=result.fingerprint,
+                )
             if operation == "protocol.boundary.decode_mqtt_properties":
                 metadata = fixture.authority_metadata
                 payload = metadata.get("payload")
@@ -63,6 +94,11 @@ class ProtocolReplayDriver:
                     fixture.authority_payload
                 )
                 public_path = "LiproProtocolFacade.contracts.normalize_mqtt_config"
+            elif operation == "protocol.contracts.normalize_list_envelope":
+                canonical = protocol.contracts.normalize_list_envelope(
+                    fixture.authority_payload
+                )
+                public_path = "LiproProtocolFacade.contracts.normalize_list_envelope"
             elif operation == "protocol.contracts.normalize_device_list_page":
                 canonical = protocol.contracts.normalize_device_list_page(
                     fixture.authority_payload
@@ -80,6 +116,11 @@ class ProtocolReplayDriver:
                 public_path = (
                     "LiproProtocolFacade.contracts.normalize_mesh_group_status_rows"
                 )
+            elif operation == "protocol.contracts.normalize_schedule_json":
+                canonical = protocol.contracts.normalize_schedule_json(
+                    fixture.authority_payload
+                )
+                public_path = "LiproProtocolFacade.contracts.normalize_schedule_json"
             else:
                 assert_never(operation)
 

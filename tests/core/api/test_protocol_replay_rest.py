@@ -25,19 +25,34 @@ from tests.harness.protocol.replay_models import ReplayManifest
 _REST_MANIFESTS = iter_replay_manifests(channel="rest")
 _EXPECTED_PUBLIC_PATHS = {
     "rest.mqtt-config": "LiproProtocolFacade.contracts.normalize_mqtt_config",
+    "rest.list-envelope": "LiproProtocolFacade.contracts.normalize_list_envelope",
     "rest.device-list": "LiproProtocolFacade.contracts.normalize_device_list_page",
     "rest.device-status": "LiproProtocolFacade.contracts.normalize_device_status_rows",
     "rest.mesh-group-status": "LiproProtocolFacade.contracts.normalize_mesh_group_status_rows",
+    "rest.schedule-json": "LiproProtocolFacade.contracts.normalize_schedule_json",
 }
-_EXPECTED_CANONICAL = {
-    "rest.mqtt-config": EXPECTED_MQTT_CONFIG,
-    "rest.device-list": {
-        "devices": EXPECTED_DEVICE_LIST_DEVICES,
-        "has_more": True,
-    },
-    "rest.device-status": EXPECTED_DEVICE_STATUS_ROWS,
-    "rest.mesh-group-status": EXPECTED_MESH_GROUP_STATUS_ROWS,
-}
+
+
+def _expected_canonical(manifest: ReplayManifest) -> object:
+    if manifest.family == "rest.mqtt-config":
+        return EXPECTED_MQTT_CONFIG
+    if manifest.family == "rest.list-envelope":
+        fixture = load_replay_fixture(manifest)
+        assert isinstance(fixture.authority_payload, dict)
+        return {"rows": fixture.authority_payload["data"], "has_more": True}
+    if manifest.family == "rest.device-list":
+        return {
+            "devices": EXPECTED_DEVICE_LIST_DEVICES,
+            "has_more": True,
+        }
+    if manifest.family == "rest.device-status":
+        return EXPECTED_DEVICE_STATUS_ROWS
+    if manifest.family == "rest.mesh-group-status":
+        return EXPECTED_MESH_GROUP_STATUS_ROWS
+    if manifest.family == "rest.schedule-json":
+        return {"days": [1, 3], "time": [3600, 7200], "evt": [0, 1]}
+    msg = f"Unhandled REST replay family: {manifest.family}"
+    raise AssertionError(msg)
 
 
 @pytest.mark.parametrize(
@@ -59,7 +74,7 @@ def test_rest_replay_scenarios_use_unified_protocol_root(manifest: ReplayManifes
     )
     assert_replay_canonical_contract(
         result,
-        expected_canonical=_EXPECTED_CANONICAL[manifest.family],
+        expected_canonical=_expected_canonical(manifest),
     )
     views = assert_exporter_backed_replay_telemetry(manifest, result)
     assert views.system_health["auth_refresh_success_count"] == 1

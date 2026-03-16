@@ -20,6 +20,13 @@ def _is_mapping(value: object) -> TypeGuard[dict[str, object]]:
     return isinstance(value, dict)
 
 
+def _coerce_sequence_items(value: object) -> list[object]:
+    """Return list items for sequence-like schedule payloads."""
+    if isinstance(value, Sequence) and not isinstance(value, (str, bytes, bytearray)):
+        return list(value)
+    return []
+
+
 def _align_time_event_pairs(
     times: list[int],
     events: list[int],
@@ -63,6 +70,26 @@ def _coerce_int_item(item: object) -> int | None:
     return None
 
 
+def build_mesh_schedule_json_payload(
+    days: object,
+    times: object,
+    events: object,
+) -> ScheduleJsonPayload:
+    """Build one canonical mesh ``scheduleJson`` payload mapping."""
+    canonical_days = coerce_int_list(_coerce_sequence_items(days))
+    canonical_times = coerce_int_list(_coerce_sequence_items(times))
+    canonical_events = coerce_int_list(_coerce_sequence_items(events))
+    canonical_times, canonical_events = _align_time_event_pairs(
+        canonical_times,
+        canonical_events,
+    )
+    return {
+        "days": canonical_days,
+        "time": canonical_times,
+        "evt": canonical_events,
+    }
+
+
 def parse_mesh_schedule_json(
     schedule_json: object,
     *,
@@ -89,11 +116,11 @@ def parse_mesh_schedule_json(
     if not _is_mapping(payload):
         return empty
 
-    days = coerce_int_list(payload.get("days"))
-    times = coerce_int_list(payload.get("time"))
-    events = coerce_int_list(payload.get("evt"))
-    times, events = _align_time_event_pairs(times, events)
-    return {"days": days, "time": times, "evt": events}
+    return build_mesh_schedule_json_payload(
+        payload.get("days", []),
+        payload.get("time", []),
+        payload.get("evt", []),
+    )
 
 
 def normalize_mesh_timing_rows(

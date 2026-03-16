@@ -16,6 +16,7 @@ plane before drift can leak into runtime / control / HA adapter code.
 | `get_device_list` | historical device-list payload variants normalized by `protocol.contracts.normalize_device_list_page` | `get_device_list.direct.json`, `get_device_list.compat.json` | `tests/core/api/test_protocol_contract_matrix.py` |
 | `query_device_status` | `PATH_QUERY_DEVICE_STATUS` | `query_device_status.mixed.json` | `tests/core/api/test_protocol_contract_matrix.py` |
 | `query_mesh_group_status` | `PATH_QUERY_MESH_GROUP_STATUS` | `query_mesh_group_status.topology.json` | `tests/core/api/test_protocol_contract_matrix.py` |
+| `query_mesh_schedule_json` | BLE mesh schedule payload normalized by `protocol.contracts.normalize_schedule_json` | `query_mesh_schedule_json.v1.json` | `tests/core/api/test_protocol_contract_matrix.py` |
 | `get_city` | `PATH_GET_CITY` | `get_city.success.json` | `tests/core/api/test_protocol_contract_matrix.py` |
 | `query_user_cloud` | `PATH_QUERY_USER_CLOUD` | `query_user_cloud.success.json` | `tests/core/api/test_protocol_contract_matrix.py` |
 
@@ -25,6 +26,7 @@ plane before drift can leak into runtime / control / HA adapter code.
 - `get_device_list` direct and compat fixtures describe the same canonical catalog page; pagination truth is normalized by `protocol.contracts.normalize_device_list_page` before runtime consumption.
 - `query_device_status` canonical output is a list of normalized `{deviceId, properties}` rows; alias IDs and flat property payloads are absorbed at the boundary.
 - `query_mesh_group_status` canonical output is a list of normalized topology rows with canonical `groupId`, `gatewayDeviceId`, and member device IDs.
+- `query_mesh_schedule_json` locks the row-level `scheduleJson` source payload that both request-side encoding and decode-side boundary normalization must share.
 - `get_city` and `query_user_cloud` remain thin validated mapping contracts and are intentionally not duplicated elsewhere.
 
 ## Why These Fixtures Exist

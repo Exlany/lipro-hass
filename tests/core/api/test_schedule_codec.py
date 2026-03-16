@@ -5,6 +5,7 @@ from __future__ import annotations
 import pytest
 
 from custom_components.lipro.core.api.schedule_codec import (
+    build_mesh_schedule_json_payload,
     coerce_int_list,
     normalize_mesh_timing_rows,
     parse_mesh_schedule_json,
@@ -41,6 +42,12 @@ def test_parse_mesh_schedule_json_truncates_mismatched_time_event_pairs() -> Non
         mask_sensitive_data=_mask,
     )
     assert parsed == {"days": [1], "time": [100], "evt": [1]}
+
+
+def test_build_mesh_schedule_json_payload_canonicalizes_lists() -> None:
+    payload = build_mesh_schedule_json_payload([1, " 2 ", True], [100, "200", 300], [0, "1"])
+
+    assert payload == {"days": [1, 2], "time": [100, 200], "evt": [0, 1]}
 
 
 def test_parse_mesh_schedule_json_rejects_legacy_wrapped_payload() -> None:

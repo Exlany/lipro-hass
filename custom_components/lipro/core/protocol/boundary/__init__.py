@@ -12,20 +12,28 @@ from collections.abc import Callable
 from .mqtt_decoder import (
     MqttBoundaryDecoder,
     MqttDecodeContext,
+    MqttMessageEnvelopeDecoder,
     MqttPropertiesDecoder,
+    MqttTopicDecoder,
+    decode_mqtt_message_envelope_payload,
     decode_mqtt_properties_payload,
+    decode_mqtt_topic_payload,
 )
 from .rest_decoder import (
     DeviceListRestDecoder,
     DeviceStatusRestDecoder,
+    ListEnvelopeRestDecoder,
     MeshGroupStatusRestDecoder,
     MqttConfigRestDecoder,
     RestBoundaryDecoder,
     RestDecodeContext,
+    ScheduleJsonRestDecoder,
     decode_device_list_payload,
     decode_device_status_payload,
+    decode_list_envelope_payload,
     decode_mesh_group_status_payload,
     decode_mqtt_config_payload,
+    decode_schedule_json_payload,
 )
 from .result import BoundaryDecodeResult, BoundaryDecoderKey
 from .schema_registry import (
@@ -42,9 +50,13 @@ def build_protocol_boundary_registry(
     """Build the protocol-owned registry for the first boundary families."""
     registry = BoundaryDecoderRegistry()
     registry.register(MqttConfigRestDecoder(is_success_code=is_success_code), channel="rest")
+    registry.register(ListEnvelopeRestDecoder(), channel="rest")
+    registry.register(ScheduleJsonRestDecoder(), channel="rest")
     registry.register(DeviceListRestDecoder(), channel="rest")
     registry.register(DeviceStatusRestDecoder(), channel="rest")
     registry.register(MeshGroupStatusRestDecoder(), channel="rest")
+    registry.register(MqttTopicDecoder(), channel="mqtt")
+    registry.register(MqttMessageEnvelopeDecoder(), channel="mqtt")
     registry.register(MqttPropertiesDecoder(), channel="mqtt")
     return registry
 
@@ -57,17 +69,25 @@ __all__ = [
     "BoundaryDecoderRegistry",
     "DeviceListRestDecoder",
     "DeviceStatusRestDecoder",
+    "ListEnvelopeRestDecoder",
     "MeshGroupStatusRestDecoder",
     "MqttBoundaryDecoder",
     "MqttConfigRestDecoder",
     "MqttDecodeContext",
+    "MqttMessageEnvelopeDecoder",
     "MqttPropertiesDecoder",
+    "MqttTopicDecoder",
     "RestBoundaryDecoder",
     "RestDecodeContext",
+    "ScheduleJsonRestDecoder",
     "build_protocol_boundary_registry",
     "decode_device_list_payload",
     "decode_device_status_payload",
+    "decode_list_envelope_payload",
     "decode_mesh_group_status_payload",
     "decode_mqtt_config_payload",
+    "decode_mqtt_message_envelope_payload",
     "decode_mqtt_properties_payload",
+    "decode_mqtt_topic_payload",
+    "decode_schedule_json_payload",
 ]

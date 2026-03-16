@@ -15,6 +15,11 @@ if TYPE_CHECKING:
 class _BoundaryDecoderModule(Protocol):
     """Typed view of the lazily imported boundary module."""
 
+    def decode_mqtt_message_envelope_payload(
+        self,
+        payload: Any,
+    ) -> BoundaryDecodeResult[dict[str, Any]]: ...
+
     def decode_mqtt_properties_payload(
         self,
         payload: Any,
@@ -87,7 +92,9 @@ _MQTT_LOG_STRING_PATTERNS: Final[tuple[tuple[re.Pattern[str], str], ...]] = (
 
 def parse_mqtt_payload(payload: Any) -> dict[str, Any]:
     """Decode MQTT payloads via the formal protocol boundary family."""
-    return _boundary_decoder_module().decode_mqtt_properties_payload(payload).canonical
+    module = _boundary_decoder_module()
+    envelope = module.decode_mqtt_message_envelope_payload(payload).canonical
+    return module.decode_mqtt_properties_payload(envelope).canonical
 
 
 def _sanitize_mqtt_log_value(value: Any, key: str | None = None) -> Any:

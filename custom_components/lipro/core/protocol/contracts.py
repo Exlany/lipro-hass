@@ -19,7 +19,9 @@ from .boundary import (
     build_protocol_boundary_registry,
     decode_device_list_payload,
     decode_device_status_payload,
+    decode_list_envelope_payload,
     decode_mesh_group_status_payload,
+    decode_schedule_json_payload,
 )
 
 
@@ -76,6 +78,22 @@ class CanonicalMeshGroupStatusRow(TypedDict, total=False):
     gatewayDeviceId: str | None
     devices: list[dict[str, str]]
     properties: dict[str, Any]
+
+
+class CanonicalListEnvelope(TypedDict, total=False):
+    """Canonical generic REST list envelope before domain projection."""
+
+    rows: list[object]
+    has_more: bool
+    total: int
+
+
+class CanonicalScheduleJson(TypedDict):
+    """Canonical mesh schedule JSON triple used across request/decode flows."""
+
+    days: list[int]
+    time: list[int]
+    evt: list[int]
 
 
 type OutletPowerInfoRow = dict[str, object]
@@ -168,6 +186,16 @@ class CanonicalProtocolContracts:
         result = decode_device_list_payload(payload, offset=offset)
         return cast(CanonicalDeviceListPage, result.canonical)
 
+    @staticmethod
+    def normalize_list_envelope(
+        payload: object,
+        *,
+        offset: int = 0,
+    ) -> CanonicalListEnvelope:
+        """Normalize one list-like REST envelope before endpoint-specific projection."""
+        result = decode_list_envelope_payload(payload, offset=offset)
+        return cast(CanonicalListEnvelope, result.canonical)
+
     def normalize_device_status_rows(
         self,
         payload: object,
@@ -175,6 +203,12 @@ class CanonicalProtocolContracts:
         """Normalize device-status rows to canonical id/properties contracts."""
         result = decode_device_status_payload(payload)
         return cast(list[CanonicalDeviceStatusRow], result.canonical)
+
+    @staticmethod
+    def normalize_schedule_json(payload: object) -> dict[str, list[int]]:
+        """Normalize mesh schedule JSON through the formal boundary family."""
+        result = decode_schedule_json_payload(payload)
+        return result.canonical
 
     def build_device_status_map(self, payload: object) -> dict[str, dict[str, Any]]:
         """Build the runtime-ready device-status mapping from raw boundary payloads."""
@@ -203,12 +237,7 @@ class CanonicalProtocolContracts:
         normalized_rows = cls.normalize_mesh_timing_rows(
             rows,
             fallback_device_id=fallback_device_id,
-            parse_schedule_json=(
-                lambda schedule_json: parse_mesh_schedule_json(
-                    schedule_json,
-                    mask_sensitive_data=lambda value: value,
-                )
-            ),
+            parse_schedule_json=cls.normalize_schedule_json,
             coerce_connect_status=coerce_connect_status,
         )
         return cast(list[dict[str, Any]], normalized_rows)
@@ -218,9 +247,11 @@ __all__ = [
     "CanonicalDeviceListItem",
     "CanonicalDeviceListPage",
     "CanonicalDeviceStatusRow",
+    "CanonicalListEnvelope",
     "CanonicalMeshGroupStatusRow",
     "CanonicalMqttConfig",
     "CanonicalProtocolContracts",
+    "CanonicalScheduleJson",
     "MqttTransportFacade",
     "OutletPowerInfoResult",
     "OutletPowerInfoRow",

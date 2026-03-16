@@ -16,16 +16,24 @@ REPLAY_CHANNEL_VALUES: Mapping[str, ReplayChannel] = {
 
 ReplayOperation = Literal[
     "protocol.contracts.normalize_mqtt_config",
+    "protocol.contracts.normalize_list_envelope",
     "protocol.contracts.normalize_device_list_page",
     "protocol.contracts.normalize_device_status_rows",
     "protocol.contracts.normalize_mesh_group_status_rows",
+    "protocol.contracts.normalize_schedule_json",
+    "protocol.boundary.decode_mqtt_topic",
+    "protocol.boundary.decode_mqtt_message_envelope",
     "protocol.boundary.decode_mqtt_properties",
 ]
 REPLAY_OPERATION_VALUES: Mapping[str, ReplayOperation] = {
     "protocol.contracts.normalize_mqtt_config": "protocol.contracts.normalize_mqtt_config",
+    "protocol.contracts.normalize_list_envelope": "protocol.contracts.normalize_list_envelope",
     "protocol.contracts.normalize_device_list_page": "protocol.contracts.normalize_device_list_page",
     "protocol.contracts.normalize_device_status_rows": "protocol.contracts.normalize_device_status_rows",
     "protocol.contracts.normalize_mesh_group_status_rows": "protocol.contracts.normalize_mesh_group_status_rows",
+    "protocol.contracts.normalize_schedule_json": "protocol.contracts.normalize_schedule_json",
+    "protocol.boundary.decode_mqtt_topic": "protocol.boundary.decode_mqtt_topic",
+    "protocol.boundary.decode_mqtt_message_envelope": "protocol.boundary.decode_mqtt_message_envelope",
     "protocol.boundary.decode_mqtt_properties": "protocol.boundary.decode_mqtt_properties",
 }
 

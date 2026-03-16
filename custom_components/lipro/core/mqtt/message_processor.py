@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 from collections.abc import Callable
+from functools import lru_cache
+from importlib import import_module
 import json
 import logging
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Protocol, cast
 
 from ..utils.redaction import redact_identifier as _redact_identifier
 from .payload import (
@@ -13,12 +15,33 @@ from .payload import (
     _MAX_MQTT_PAYLOAD_BYTES,
     _format_mqtt_payload_for_log,
 )
-from .topics import parse_topic
 
 if TYPE_CHECKING:
     import aiomqtt
 
+    from custom_components.lipro.core.protocol.boundary import BoundaryDecodeResult
+
 _LOGGER = logging.getLogger(__package__ or __name__)
+
+
+class _BoundaryDecoderModule(Protocol):
+    """Typed view of the lazily imported boundary module."""
+
+    def decode_mqtt_topic_payload(
+        self,
+        payload: object,
+        *,
+        expected_biz_id: str | None = None,
+    ) -> BoundaryDecodeResult[dict[str, str]]: ...
+
+
+@lru_cache(maxsize=1)
+def _boundary_decoder_module() -> _BoundaryDecoderModule:
+    """Resolve the protocol-boundary module lazily to avoid import cycles."""
+    return cast(
+        _BoundaryDecoderModule,
+        import_module("custom_components.lipro.core.protocol.boundary"),
+    )
 
 
 def decode_payload_text(raw_payload: object, device_id: str) -> str | None:
@@ -93,7 +116,11 @@ class MqttMessageProcessor:
         """Parse one MQTT message and forward flattened properties."""
         try:
             topic = str(message.topic)
-            device_id = parse_topic(topic, expected_biz_id=self._biz_id)
+            topic_result = _boundary_decoder_module().decode_mqtt_topic_payload(
+                topic,
+                expected_biz_id=self._biz_id,
+            )
+            device_id = topic_result.canonical.get("deviceId")
 
             if not device_id:
                 self.log_invalid_topic(topic)
@@ -140,7 +167,11 @@ class MqttMessageProcessor:
         except Exception as err:
             set_last_error(err)
             topic = str(getattr(message, "topic", "unknown"))
-            device_id = parse_topic(topic, expected_biz_id=self._biz_id)
+            topic_result = _boundary_decoder_module().decode_mqtt_topic_payload(
+                topic,
+                expected_biz_id=self._biz_id,
+            )
+            device_id = topic_result.canonical.get("deviceId")
             topic_context = (
                 f"device={_redact_identifier(device_id) or '***'}"
                 if device_id

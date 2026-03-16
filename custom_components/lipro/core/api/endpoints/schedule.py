@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
+from importlib import import_module
 import logging
 from typing import Any, cast
 
@@ -15,12 +16,10 @@ from ....const.api import (
     PATH_SCHEDULE_GET,
 )
 from ...utils.identifiers import normalize_iot_device_id as _normalize_iot_device_id
-from .. import response_safety as _response_safety
 from ..errors import LiproApiError, LiproAuthError
 from ..schedule_codec import (
     coerce_int_list as _coerce_schedule_int_list,
     normalize_mesh_timing_rows as _normalize_mesh_schedule_rows,
-    parse_mesh_schedule_json as _parse_mesh_schedule_payload,
 )
 from ..schedule_endpoint import (
     build_mesh_schedule_add_body,
@@ -49,6 +48,14 @@ from .payloads import _EndpointAdapter
 # Use the same logger instance as custom_components.lipro.core.api.client._LOGGER
 # so tests patching client._LOGGER.* still intercept logs here.
 _LOGGER = logging.getLogger("custom_components.lipro.core.api.client")
+
+
+def _decode_schedule_json_boundary(payload: object) -> dict[str, list[int]]:
+    """Decode scheduleJson via the protocol-boundary family without import cycles."""
+    decoder = import_module(
+        "custom_components.lipro.core.protocol.boundary"
+    ).decode_schedule_json_payload
+    return cast(dict[str, list[int]], decoder(payload).canonical)
 
 
 class ScheduleEndpoints(_EndpointAdapter):
@@ -134,10 +141,7 @@ class ScheduleEndpoints(_EndpointAdapter):
     @classmethod
     def _parse_mesh_schedule_json(cls, schedule_json: object) -> dict[str, list[int]]:
         """Parse mesh ``scheduleJson`` into ``days/time/evt`` arrays."""
-        return _parse_mesh_schedule_payload(
-            schedule_json,
-            mask_sensitive_data=_response_safety.mask_sensitive_data,
-        )
+        return _decode_schedule_json_boundary(schedule_json)
 
     @classmethod
     def _normalize_mesh_timing_rows(
@@ -162,10 +166,7 @@ class ScheduleEndpoints(_EndpointAdapter):
     @classmethod
     def parse_mesh_schedule_json(cls, schedule_json: object) -> dict[str, list[int]]:
         """Parse mesh ``scheduleJson`` into canonical ``days/time/evt`` arrays."""
-        return _parse_mesh_schedule_payload(
-            schedule_json,
-            mask_sensitive_data=_response_safety.mask_sensitive_data,
-        )
+        return _decode_schedule_json_boundary(schedule_json)
 
     @classmethod
     def normalize_mesh_timing_rows(

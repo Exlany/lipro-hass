@@ -167,28 +167,28 @@
 | `custom_components/lipro/core/device/state_math.py` | Domain | Phase 4 | 重构 | - |
 | `custom_components/lipro/core/exceptions.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/core/mqtt/__init__.py` | Protocol | Phase 2.5 / 7 / 17 | 迁移适配 | package export intentionally minimal; no concrete transport export |
-| `custom_components/lipro/core/mqtt/client_runtime.py` | Protocol | Phase 2.5 | 重构 | - |
+| `custom_components/lipro/core/mqtt/client_runtime.py` | Protocol | Phase 2.5 / 20 | 重构 | MQTT runtime bridge; formal boundary truth stays upstream |
 | `custom_components/lipro/core/mqtt/connection_manager.py` | Protocol | Phase 2.5 | 重构 | - |
 | `custom_components/lipro/core/mqtt/credentials.py` | Protocol | Phase 2.5 | 重构 | - |
 | `custom_components/lipro/core/mqtt/message.py` | Protocol | Phase 2.5 | 重构 | - |
-| `custom_components/lipro/core/mqtt/message_processor.py` | Protocol | Phase 2.5 | 重构 | - |
+| `custom_components/lipro/core/mqtt/message_processor.py` | Protocol | Phase 2.5 / 20 | 重构 | concrete MQTT consumer; topic/envelope authority must stay in protocol boundary |
 | `custom_components/lipro/core/mqtt/mqtt_client.py` | Protocol | Phase 2.5 / 15 / 17 | 重构 | `MqttTransportClient` concrete transport home; locality limited to core/mqtt + protocol seam |
-| `custom_components/lipro/core/mqtt/payload.py` | Protocol | Phase 2.5 | 重构 | - |
+| `custom_components/lipro/core/mqtt/payload.py` | Protocol | Phase 2.5 / 20 | 重构 | MQTT shim + log sanitization; no second authority path |
 | `custom_components/lipro/core/mqtt/setup_backoff.py` | Protocol | Phase 2.5 | 重构 | - |
 | `custom_components/lipro/core/mqtt/subscription_manager.py` | Protocol | Phase 2.5 | 重构 | - |
-| `custom_components/lipro/core/mqtt/topic_builder.py` | Protocol | Phase 2.5 | 重构 | - |
-| `custom_components/lipro/core/mqtt/topics.py` | Protocol | Phase 2.5 | 重构 | - |
+| `custom_components/lipro/core/mqtt/topic_builder.py` | Protocol | Phase 2.5 / 20 | 重构 | concrete topic batching home; grammar truth stays in boundary family |
+| `custom_components/lipro/core/mqtt/topics.py` | Protocol | Phase 2.5 / 20 | 重构 | concrete MQTT topic helper home; formal grammar must stay registry-backed |
 | `custom_components/lipro/core/ota/__init__.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/core/ota/candidate.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/core/ota/manifest.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/core/ota/row_selector.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/core/ota/rows_cache.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/core/protocol/__init__.py` | Protocol | Phase 2.5 | 保留 | - |
-| `custom_components/lipro/core/protocol/boundary/__init__.py` | Protocol | Phase 7.1 | 保留 | - |
-| `custom_components/lipro/core/protocol/boundary/mqtt_decoder.py` | Protocol | Phase 7.1 | 保留 | - |
+| `custom_components/lipro/core/protocol/boundary/__init__.py` | Protocol | Phase 7.1 / 20 | 保留 | protocol-boundary registry home for remaining family completion |
+| `custom_components/lipro/core/protocol/boundary/mqtt_decoder.py` | Protocol | Phase 7.1 / 20 | 保留 | MQTT boundary family home (`topic` / `message-envelope` / `properties`) |
 | `custom_components/lipro/core/protocol/boundary/rest_decoder.py` | Protocol | Phase 7.1 | 保留 | - |
 | `custom_components/lipro/core/protocol/boundary/result.py` | Protocol | Phase 7.1 | 保留 | - |
-| `custom_components/lipro/core/protocol/boundary/schema_registry.py` | Protocol | Phase 7.1 | 保留 | - |
+| `custom_components/lipro/core/protocol/boundary/schema_registry.py` | Protocol | Phase 7.1 / 20 | 保留 | registry-backed boundary family inventory home |
 | `custom_components/lipro/core/protocol/compat.py` | Protocol | Phase 2.5 | 保留 | - |
 | `custom_components/lipro/core/protocol/contracts.py` | Protocol | Phase 2.5 | 保留 | - |
 | `custom_components/lipro/core/protocol/diagnostics_context.py` | Protocol | Phase 2.5 | 保留 | - |
@@ -323,16 +323,16 @@
 | `tests/core/device/test_network_info.py` | Domain | Phase 4 | 保留 | - |
 | `tests/core/device/test_state.py` | Domain | Phase 4 | 保留 | - |
 | `tests/core/mqtt/__init__.py` | Cross-cutting | Phase 7 | 保留 | - |
-| `tests/core/mqtt/test_client_refactored.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `tests/core/mqtt/test_client_refactored.py` | Cross-cutting | Phase 7 / 20 | 保留 | MQTT client/runtime delegation guard |
 | `tests/core/mqtt/test_connection_manager.py` | Cross-cutting | Phase 7 | 保留 | - |
-| `tests/core/mqtt/test_message_processor.py` | Cross-cutting | Phase 7 | 保留 | - |
-| `tests/core/mqtt/test_mqtt.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `tests/core/mqtt/test_message_processor.py` | Cross-cutting | Phase 7 / 20 | 保留 | concrete consumer must reuse formal MQTT boundary truth |
+| `tests/core/mqtt/test_mqtt.py` | Cross-cutting | Phase 7 / 20 | 保留 | focused MQTT regression + boundary descriptor guard |
 | `tests/core/mqtt/test_mqtt_backoff.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `tests/core/mqtt/test_mqtt_message.py` | Cross-cutting | Phase 7 | 保留 | - |
-| `tests/core/mqtt/test_mqtt_payload.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `tests/core/mqtt/test_mqtt_payload.py` | Cross-cutting | Phase 7 / 20 | 保留 | MQTT boundary shim / decoder regression |
 | `tests/core/mqtt/test_mqtt_setup.py` | Cross-cutting | Phase 7 | 保留 | - |
-| `tests/core/mqtt/test_protocol_replay_mqtt.py` | Protocol | Phase 7.4 | 保留 | - |
-| `tests/core/mqtt/test_topic_builder.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `tests/core/mqtt/test_protocol_replay_mqtt.py` | Protocol | Phase 7.4 / 20 | 保留 | MQTT replay visibility over remaining boundary families |
+| `tests/core/mqtt/test_topic_builder.py` | Cross-cutting | Phase 7 / 20 | 保留 | topic grammar consumer regression |
 | `tests/core/ota/__init__.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `tests/core/ota/test_firmware_manifest.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `tests/core/ota/test_ota_candidate.py` | Cross-cutting | Phase 7 | 保留 | - |
@@ -399,9 +399,9 @@
 | `tests/harness/headless_consumer.py` | Assurance | Phase 19 | 保留 | proof-only headless consumer harness |
 | `tests/harness/protocol/__init__.py` | Assurance | Phase 7.4 | 保留 | - |
 | `tests/harness/protocol/replay_assertions.py` | Assurance | Phase 7.4 | 保留 | - |
-| `tests/harness/protocol/replay_driver.py` | Assurance | Phase 7.4 | 保留 | - |
+| `tests/harness/protocol/replay_driver.py` | Assurance | Phase 7.4 / 20 | 保留 | deterministic replay dispatch for remaining boundary families |
 | `tests/harness/protocol/replay_loader.py` | Assurance | Phase 7.4 | 保留 | - |
-| `tests/harness/protocol/replay_models.py` | Assurance | Phase 7.4 | 保留 | - |
+| `tests/harness/protocol/replay_models.py` | Assurance | Phase 7.4 / 20 | 保留 | typed replay manifest operation inventory |
 | `tests/harness/protocol/replay_report.py` | Assurance | Phase 7.4 | 保留 | - |
 | `tests/helpers/__init__.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/helpers/architecture_policy.py` | Assurance | Phase 7.2 | 保留 | - |
@@ -413,7 +413,7 @@
 | `tests/integration/test_ai_debug_evidence_pack.py` | Assurance | Phase 8 / 19 | 保留 | evidence authority trace covers headless-proof bridge without promoting proof assets |
 | `tests/integration/test_headless_consumer_proof.py` | Assurance | Phase 19 | 保留 | single-chain headless consumer proof |
 | `tests/integration/test_mqtt_coordinator_integration.py` | Runtime | Phase 5 / 6 | 保留 | - |
-| `tests/integration/test_protocol_replay_harness.py` | Assurance | Phase 7.4 / 19 | 保留 | replay harness covers headless-proof assertion families |
+| `tests/integration/test_protocol_replay_harness.py` | Assurance | Phase 7.4 / 19 / 20 | 保留 | replay harness covers headless-proof assertion families + remaining boundary family visibility |
 | `tests/integration/test_telemetry_exporter_integration.py` | Runtime | Phase 7.3 | 保留 | - |
 | `tests/meta/__init__.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_blueprints.py` | Assurance | Phase 6 | 保留 | - |
@@ -425,7 +425,7 @@
 | `tests/meta/test_governance_guards.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_install_sh_guards.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_modularization_surfaces.py` | Assurance | Phase 6 | 保留 | - |
-| `tests/meta/test_protocol_replay_assets.py` | Assurance | Phase 7.4 | 保留 | - |
+| `tests/meta/test_protocol_replay_assets.py` | Assurance | Phase 7.4 / 20 | 保留 | replay manifest / authority / guard inventory for remaining families |
 | `tests/meta/test_public_surface_guards.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_service_translation_sync.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_toolchain_truth.py` | Assurance | Phase 16 | 保留 | - |

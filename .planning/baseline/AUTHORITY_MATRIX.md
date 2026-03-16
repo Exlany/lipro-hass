@@ -2,7 +2,7 @@
 
 **Purpose:** 定义文档、fixtures、generated、implementation 的权威来源与同步方向，避免多口径漂移。
 **Status:** Formal baseline asset (`BASE-01` authority truth source)
-**Updated:** 2026-03-15 (Phase 17 closeout aligned)
+**Updated:** 2026-03-16 (Phase 20 authority continuity aligned)
 
 ## Formal Role
 
@@ -69,6 +69,12 @@
 - external-boundary truth 从“实现 folklore”升级为“formal contract”
 - protocol-boundary decoder family 新增/升级/删除 family、version 或 authority source
 - architecture policy 新增 rule family、例外、extension hook 或 CI gate
+
+## Phase 20 Continuity Note
+
+- `Phase 20` 只允许扩充既有 `protocol boundary decoder families` 与 `replay manifest + run summary families` authority chain，不得改变 authority precedence。
+- `rest.list-envelope.v1`、`rest.schedule-json.v1`、`mqtt.topic.v1`、`mqtt.message-envelope.v1` 若落地，authority 仍必须收口到 boundary inventory、`custom_components/lipro/core/protocol/boundary/`、`tests/fixtures/api_contracts/`、`tests/fixtures/protocol_boundary/` 与 `tests/fixtures/protocol_replay/`，不得把 `schedule_codec.py`、`topics.py`、`message_processor.py`、`payload.py` 提升为第二 authority chain。
+- `ROADMAP.md`、`REQUIREMENTS.md` 与 `STATE.md` 的 phase-complete 回写继续以 final gate 为前提；本文件只提前锁定 authority continuity，不提前宣告 Phase 20 已完成。
 
 ---
 *Used by: external boundary formalization, architecture policy enforcement, docs hygiene, and audit arbitration*

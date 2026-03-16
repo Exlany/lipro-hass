@@ -21,8 +21,10 @@ from custom_components.lipro.core.protocol import LiproProtocolFacade
 from custom_components.lipro.core.protocol.boundary import (
     decode_device_list_payload,
     decode_device_status_payload,
+    decode_list_envelope_payload,
     decode_mesh_group_status_payload,
     decode_mqtt_config_payload,
+    decode_schedule_json_payload,
 )
 from tests.harness.protocol import iter_replay_manifests
 
@@ -229,6 +231,59 @@ def test_rest_boundary_decoder_returns_canonical_device_list_page(
     assert result.canonical["has_more"] is True
 
 
+@pytest.mark.parametrize(
+    ("fixture_name", "expected_rows_key", "expected_total"),
+    [
+        ("get_device_list.direct.json", "devices", 3),
+        ("get_device_list.compat.json", "data", None),
+    ],
+)
+def test_protocol_root_contracts_normalize_list_envelope(
+    fixture_name: str,
+    expected_rows_key: str,
+    expected_total: int | None,
+) -> None:
+    payload = _load_fixture(fixture_name)
+    assert isinstance(payload, dict)
+
+    client = LiproProtocolFacade("test-phone-id")
+    result = client.contracts.normalize_list_envelope(payload)
+
+    assert result["rows"] == payload[expected_rows_key]
+    assert result["has_more"] is True
+    if expected_total is not None:
+        assert result["total"] == expected_total
+    else:
+        assert "total" not in result
+
+
+@pytest.mark.parametrize(
+    ("fixture_name", "expected_rows_key", "expected_total"),
+    [
+        ("get_device_list.direct.json", "devices", 3),
+        ("get_device_list.compat.json", "data", None),
+    ],
+)
+def test_rest_boundary_decoder_returns_canonical_list_envelope(
+    fixture_name: str,
+    expected_rows_key: str,
+    expected_total: int | None,
+) -> None:
+    payload = _load_fixture(fixture_name)
+    assert isinstance(payload, dict)
+
+    result = decode_list_envelope_payload(payload)
+
+    assert result.key.label == "rest.list-envelope@v1"
+    assert result.authority == "tests/fixtures/api_contracts/get_device_list.*.json"
+    assert result.canonical["rows"] == payload[expected_rows_key]
+    assert result.canonical["has_more"] is True
+    if expected_total is not None:
+        assert result.canonical["total"] == expected_total
+    else:
+        assert "total" not in result.canonical
+
+
 def test_protocol_root_contracts_normalize_device_status_rows() -> None:
     payload = _load_fixture("query_device_status.mixed.json")
 
@@ -276,6 +331,28 @@ def test_rest_boundary_decoder_returns_canonical_mesh_group_status_rows() -> Non
     assert result.canonical == EXPECTED_MESH_GROUP_STATUS_ROWS
 
 
+def test_protocol_root_contracts_normalize_schedule_json() -> None:
+    payload = _load_fixture("query_mesh_schedule_json.v1.json")
+
+    client = LiproProtocolFacade("test-phone-id")
+
+    assert client.contracts.normalize_schedule_json(payload) == {
+        "days": [1, 3],
+        "time": [3600, 7200],
+        "evt": [0, 1],
+    }
+
+
+def test_rest_boundary_decoder_returns_canonical_schedule_json() -> None:
+    payload = _load_fixture("query_mesh_schedule_json.v1.json")
+
+    result = decode_schedule_json_payload(payload)
+
+    assert result.key.label == "rest.schedule-json@v1"
+    assert result.authority == "tests/fixtures/api_contracts/query_mesh_schedule_json.v1.json"
+    assert result.canonical == {"days": [1, 3], "time": [3600, 7200], "evt": [0, 1]}
+
+
 @pytest.mark.asyncio
 async def test_get_city_fixture_matches_current_contract() -> None:
     payload = _load_fixture("get_city.success.json")
@@ -319,16 +396,24 @@ def test_protocol_boundary_registry_lists_initial_decoder_families() -> None:
     channels = {descriptor.key.label: descriptor.channel for descriptor in descriptors}
 
     assert labels >= {
+        "mqtt.topic@v1",
+        "mqtt.message-envelope@v1",
         "rest.mqtt-config@v1",
+        "rest.list-envelope@v1",
         "rest.device-list@v1",
         "rest.device-status@v1",
         "rest.mesh-group-status@v1",
+        "rest.schedule-json@v1",
         "mqtt.properties@v1",
     }
+    assert channels["mqtt.topic@v1"] == "mqtt"
+    assert channels["mqtt.message-envelope@v1"] == "mqtt"
     assert channels["rest.mqtt-config@v1"] == "rest"
+    assert channels["rest.list-envelope@v1"] == "rest"
     assert channels["rest.device-list@v1"] == "rest"
     assert channels["rest.device-status@v1"] == "rest"
     assert channels["rest.mesh-group-status@v1"] == "rest"
+    assert channels["rest.schedule-json@v1"] == "rest"
     assert channels["mqtt.properties@v1"] == "mqtt"
 
 
@@ -354,10 +439,12 @@ def test_rest_replay_manifests_reuse_phase_1_contract_fixtures() -> None:
 
     assert [manifest.authority_path.name for manifest in manifests] == [
         "get_device_list.compat.json",
+        "get_device_list.compat.json",
         "get_mqtt_config.direct.json",
         "get_mqtt_config.wrapped.json",
         "query_device_status.mixed.json",
         "query_mesh_group_status.topology.json",
+        "query_mesh_schedule_json.v1.json",
     ]
     assert all(
         "tests/fixtures/api_contracts/" in manifest.authority_path.as_posix()

@@ -175,3 +175,9 @@
 - 本 phase **无新增 active kill target**；`custom_components/lipro/headless/boot.py`、`tests/harness/headless_consumer.py` 与平台 thin setup shells 都是正式 proof/helper/adapter homes，而不是新的 compat shell。
 - `build_password_login_seed()` 已从 `flow/login.py` 退出，headless proof 不再需要经由 HA flow 包复用 host-neutral seed helper。
 - authority 继续维持 **no-change**：未新增 truth-source family、未改变 authority precedence、未改变 sync owner；proof outputs 只消费 authority path，不反向成为 authority path。
+
+## Phase 20 Status Update
+
+- 本 phase **无新增 active kill target**；remaining boundary family completion 的主线是 authority / fixture / replay / guard 收口，不是新增 compat shell 或 file-level cleanup story。
+- `mqtt.topic.v1`、`mqtt.message-envelope.v1` 与 remaining REST family 的 closeout 只能压缩 active residual / replay gap，不得借机把 `topics.py`、`message_processor.py`、`payload.py`、fixture README 或 replay docs 重新合法化为第二 authority root。
+- Wave 3 侧线可以先同步 inventory / governance / verification truth；`.planning/{ROADMAP,REQUIREMENTS,STATE}.md` 与 `20-VERIFICATION.md` 仍必须等 full gate 通过后再写完成态。

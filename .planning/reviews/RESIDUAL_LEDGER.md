@@ -5,8 +5,8 @@
 | Family | Current example | Owner phase | Residual owner | Exit condition |
 |--------|------------------|-------------|----------------|----------------|
 | External-boundary advisory naming | firmware remote advisory / support payload generated field naming 仍带 legacy semantics | Phase 2.6 | `02.6 external-boundary closeout` | authority truth 已固定后完成术语清理 |
-| Protocol-boundary family coverage | `rest.list-envelope.v1`、`rest.schedule-json.v1`、`mqtt.topic.v1`、`mqtt.message-envelope.v1` 仍停留在 inventory / helper collaborator 层，尚未全部 registry-backed | Phase 7.1 | `07.1 boundary expansion handoff` | inventory 中登记的 family 全部完成 registry-backed 接线，或在 v1.1 closeout 中被明确裁决为 de-scope / retire |
-| Replay scenario coverage | `tests/fixtures/protocol_replay/` 当前只正式保留 representative `rest.mqtt-config@v1` 与 `mqtt.properties@v1`；`rest.list-envelope.v1`、`rest.schedule-json.v1`、`mqtt.topic.v1`、`mqtt.message-envelope.v1` 已在 `07.5` 被显式裁决为 v1.1 de-scope，而非隐式遗漏 | Phase 7.4 | `07.5 closeout arbitration` | 若未来确有 black-box replay 价值，必须以新 phase 重新登记 family、补 manifest/evidence；`08` 只消费现有 representative corpus 与 evidence index，不直接扩大 replay 范围 |
+| Protocol-boundary family coverage | `Phase 20` 已重新接管 `rest.list-envelope.v1`、`rest.schedule-json.v1`、`mqtt.topic.v1`、`mqtt.message-envelope.v1` 的 formalization closeout；在 Wave 2 / Wave 3 完结前，它们仍属于 active residual，但不再是 v1.1 de-scope carry-forward folklore | Phase 20 | `20 remaining-boundary-family-completion` | remaining family 全部完成 registry-backed authority / fixture / manifest / guard 接线；若仍有剩余，ledger 必须缩窄到真实未完成 family |
+| Replay scenario coverage | `tests/fixtures/protocol_replay/` 当前仍以已落地 corpus 为准；`Phase 20` 已重新打开 `rest.list-envelope.v1`、`rest.schedule-json.v1`、`mqtt.topic.v1`、`mqtt.message-envelope.v1` 的 replay closeout，不再沿用 `07.5` de-scope 叙事作为长期终态 | Phase 20 | `20 remaining-boundary-family-completion` | remaining family 获得 authority-indexed manifests / driver / asset guards；若 coverage 未齐，残留必须收敛为真实缺口，而不是继续保留“future maybe”叙事 |
 
 ## Closed Residual Families
 
@@ -220,3 +220,9 @@
 - `config_flow.py` 与 `entry_auth.py` 已统一 inward 到 shared headless boot seam；HA-specific projection、exception mapping 与 token persistence 继续留在 adapter shell，没有回灌到 nucleus。
 - `helpers/platform.py` 与各平台 `async_setup_entry()` 现在显式收敛到 thin headless setup shell；`control/runtime_access.py` 仍是 control-plane locator，而不是 platform bridge。
 - 本 phase **无新增 active residual family / compat shell / authority no-change exception**；新增的是 second-root / backflow 守卫与 proof-only identity wording。
+
+## Phase 20 Residual Delta
+
+- `Protocol-boundary family coverage` 与 `Replay scenario coverage` 两条 residual 已转交 `Phase 20` 负责关闭；Wave 3 侧线先同步 owner 与 exit condition，不提前写成 closed。
+- governance / inventory 真源现已明确：remaining families 只能沿既有 boundary / replay authority chain 收口，不得继续描述为 helper implicit behavior 或 v1.1 de-scope folklore。
+- `.planning/{ROADMAP,REQUIREMENTS,STATE}.md` 的 phase-complete truth 继续等待 final gate；本 ledger 只记录 active residual 的当前关闭路径。

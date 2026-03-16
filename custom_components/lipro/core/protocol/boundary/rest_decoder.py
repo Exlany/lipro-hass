@@ -6,6 +6,7 @@ from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
 from typing import Any, Protocol, TypeVar
 
+from ...api.schedule_codec import parse_mesh_schedule_json
 from ...utils.identifiers import normalize_iot_device_id, normalize_mesh_group_id
 from ...utils.property_normalization import normalize_properties
 from .result import BoundaryDecodeResult, BoundaryDecoderKey
@@ -25,6 +26,12 @@ _REST_MESH_GROUP_STATUS_VERSION = "v1"
 _REST_MESH_GROUP_STATUS_AUTHORITY = (
     "tests/fixtures/api_contracts/query_mesh_group_status.*.json"
 )
+_REST_LIST_ENVELOPE_FAMILY = "rest.list-envelope"
+_REST_LIST_ENVELOPE_VERSION = "v1"
+_REST_LIST_ENVELOPE_AUTHORITY = "tests/fixtures/api_contracts/get_device_list.*.json"
+_REST_SCHEDULE_JSON_FAMILY = "rest.schedule-json"
+_REST_SCHEDULE_JSON_VERSION = "v1"
+_REST_SCHEDULE_JSON_AUTHORITY = "tests/fixtures/api_contracts/query_mesh_schedule_json.v1.json"
 _DEVICE_ROW_ID_KEYS = (
     "serial",
     "iotDeviceId",
@@ -243,39 +250,86 @@ def _extract_mqtt_config_mapping(
     return None
 
 
-def _decode_device_list_canonical(
+def _decode_list_envelope_canonical(
     payload: object,
     *,
     offset: int = 0,
 ) -> dict[str, Any]:
     rows = _extract_list_payload(payload)
+    canonical: dict[str, Any] = {
+        "rows": rows,
+        "has_more": False,
+    }
+    if not isinstance(payload, dict):
+        return canonical
+
+    if "hasMore" in payload:
+        canonical["has_more"] = _coerce_bool(payload.get("hasMore"))
+        return canonical
+
+    total = _coerce_total(payload.get("total"))
+    if total is None:
+        return canonical
+
+    canonical["total"] = total
+    canonical["has_more"] = offset + len(rows) < total
+    return canonical
+
+
+def _extract_schedule_json_source(payload: object) -> object:
+    if not isinstance(payload, Mapping):
+        return payload
+    if "scheduleJson" in payload:
+        return payload.get("scheduleJson")
+    if "payload" in payload:
+        return payload.get("payload")
+    return payload
+
+
+def _decode_schedule_json_canonical(payload: object) -> dict[str, list[int]]:
+    return parse_mesh_schedule_json(
+        _extract_schedule_json_source(payload),
+        mask_sensitive_data=lambda value: value,
+    )
+
+
+def _build_schedule_json_fingerprint(payload: object) -> str:
+    canonical = _decode_schedule_json_canonical(payload)
+    return (
+        f"days:{len(canonical['days'])}|"
+        f"time:{len(canonical['time'])}|"
+        f"evt:{len(canonical['evt'])}"
+    )
+
+
+def _decode_device_list_canonical(
+    payload: object,
+    *,
+    offset: int = 0,
+) -> dict[str, Any]:
+    envelope = _decode_list_envelope_canonical(payload, offset=offset)
+    rows_value = envelope.get("rows", [])
+    rows = rows_value if isinstance(rows_value, list) else []
     devices = [
         canonical
         for row in rows
         if (canonical := _normalize_device_catalog_row(row)) is not None
     ]
 
-    has_more = False
-    total: int | None = None
-    if isinstance(payload, dict):
-        if "hasMore" in payload:
-            has_more = _coerce_bool(payload.get("hasMore"))
-        else:
-            total = _coerce_total(payload.get("total"))
-            if total is not None:
-                has_more = offset + len(devices) < total
-
     page_canonical: dict[str, Any] = {
         "devices": devices,
-        "has_more": has_more,
+        "has_more": bool(envelope.get("has_more", False)),
     }
-    if total is not None:
+    total = envelope.get("total")
+    if isinstance(total, int):
         page_canonical["total"] = total
     return page_canonical
 
 
 def _decode_device_status_canonical(payload: object) -> list[dict[str, Any]]:
-    rows = _extract_list_payload(payload)
+    envelope = _decode_list_envelope_canonical(payload)
+    rows_value = envelope.get("rows", [])
+    rows = rows_value if isinstance(rows_value, list) else []
     canonical_rows: list[dict[str, Any]] = []
     for row in rows:
         device_id = None
@@ -301,7 +355,9 @@ def _decode_device_status_canonical(payload: object) -> list[dict[str, Any]]:
 
 
 def _decode_mesh_group_status_canonical(payload: object) -> list[dict[str, Any]]:
-    rows = _extract_list_payload(payload)
+    envelope = _decode_list_envelope_canonical(payload)
+    rows_value = envelope.get("rows", [])
+    rows = rows_value if isinstance(rows_value, list) else []
     canonical_rows: list[dict[str, Any]] = []
     for row in rows:
         group_id = _normalize_identifier(row.get("groupId") or row.get("id"))
@@ -421,6 +477,81 @@ class MqttConfigRestDecoder:
         )
 
 
+class ListEnvelopeRestDecoder:
+    """Decode generic REST list envelopes into a canonical transport shape."""
+
+    def __init__(self, *, offset: int = 0) -> None:
+        """Bind the decoder to one pagination offset for `has_more` calculation."""
+        self._offset = offset
+        self._context = RestDecodeContext(
+            family=_REST_LIST_ENVELOPE_FAMILY,
+            endpoint="generic_list",
+            authority=_REST_LIST_ENVELOPE_AUTHORITY,
+            version=_REST_LIST_ENVELOPE_VERSION,
+        )
+
+    @property
+    def context(self) -> RestDecodeContext:
+        """Return the metadata describing this decoder family."""
+        return self._context
+
+    @property
+    def key(self) -> BoundaryDecoderKey:
+        """Return the family/version identity used by the registry."""
+        return self._context.key
+
+    @property
+    def authority(self) -> str:
+        """Return the authoritative source backing this family."""
+        return self._context.authority
+
+    def decode(self, payload: object) -> BoundaryDecodeResult[dict[str, Any]]:
+        """Decode one REST list envelope into canonical rows/metadata."""
+        return BoundaryDecodeResult(
+            key=self.key,
+            canonical=_decode_list_envelope_canonical(payload, offset=self._offset),
+            authority=self.authority,
+            fingerprint=_build_payload_fingerprint(payload),
+        )
+
+
+class ScheduleJsonRestDecoder:
+    """Decode scheduleJson payloads into canonical schedule triples."""
+
+    def __init__(self) -> None:
+        """Initialize one decoder bound to the schedule-json authority family."""
+        self._context = RestDecodeContext(
+            family=_REST_SCHEDULE_JSON_FAMILY,
+            endpoint="schedule_json",
+            authority=_REST_SCHEDULE_JSON_AUTHORITY,
+            version=_REST_SCHEDULE_JSON_VERSION,
+        )
+
+    @property
+    def context(self) -> RestDecodeContext:
+        """Return the metadata describing this decoder family."""
+        return self._context
+
+    @property
+    def key(self) -> BoundaryDecoderKey:
+        """Return the family/version identity used by the registry."""
+        return self._context.key
+
+    @property
+    def authority(self) -> str:
+        """Return the authoritative source backing this family."""
+        return self._context.authority
+
+    def decode(self, payload: object) -> BoundaryDecodeResult[dict[str, list[int]]]:
+        """Decode one scheduleJson payload into the canonical triple contract."""
+        return BoundaryDecodeResult(
+            key=self.key,
+            canonical=_decode_schedule_json_canonical(payload),
+            authority=self.authority,
+            fingerprint=_build_schedule_json_fingerprint(payload),
+        )
+
+
 class DeviceListRestDecoder:
     """Decode device-list payloads into a canonical catalog page contract."""
 
@@ -532,6 +663,22 @@ class MeshGroupStatusRestDecoder:
             authority=self.authority,
             fingerprint=_build_payload_fingerprint(payload),
         )
+
+
+def decode_list_envelope_payload(
+    payload: object,
+    *,
+    offset: int = 0,
+) -> BoundaryDecodeResult[dict[str, Any]]:
+    """Decode one REST list envelope into canonical rows/metadata."""
+    return ListEnvelopeRestDecoder(offset=offset).decode(payload)
+
+
+def decode_schedule_json_payload(
+    payload: object,
+) -> BoundaryDecodeResult[dict[str, list[int]]]:
+    """Decode one scheduleJson payload through the formal boundary family."""
+    return ScheduleJsonRestDecoder().decode(payload)
 
 
 def decode_mqtt_config_payload(

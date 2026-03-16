@@ -7,6 +7,7 @@ import json
 from typing import Any
 
 from ..utils.identifiers import is_mesh_group_id_prefix
+from .schedule_codec import build_mesh_schedule_json_payload
 
 
 def is_mesh_group_id(device_id: str) -> bool:
@@ -46,7 +47,7 @@ def encode_mesh_schedule_json(
 ) -> str:
     """Encode mesh schedule payload as compact JSON."""
     return json.dumps(
-        {"days": days, "time": times, "evt": events},
+        build_mesh_schedule_json_payload(days, times, events),
         separators=(",", ":"),
         ensure_ascii=False,
     )

@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Host-Neutral Core & Replay Completion
 status: active
-last_updated: "2026-03-16T06:02:00Z"
+last_updated: "2026-03-16T09:15:00Z"
 progress:
   total_phases: 5
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 15
-  completed_plans: 7
+  completed_plans: 10
 ---
 
 # Project State
@@ -19,7 +19,7 @@ See: `.planning/PROJECT.md`
 
 **Current milestone:** `v1.2 Host-Neutral Core & Replay Completion`
 **Core value:** 在不破坏 `LiproProtocolFacade` / `Coordinator` 单一正式主链的前提下，把 host-neutral nucleus、headless proof、remaining boundary/replay family 收口与 observability/governance follow-through 推进成下一轮正式能力。
-**Current mode:** `Phase 19 complete`；`Phase 18-19` 已执行完成，当前下一步是 `Phase 20 Remaining Boundary Family Completion`。
+**Current mode:** `Phase 20 complete`；`Phase 18-20` 已执行完成，当前下一步是 `Phase 21 Replay / Observability / Exception Hardening`。
 
 ## Current Position
 
@@ -43,13 +43,14 @@ See: `.planning/PROJECT.md`
 - `v1.1` 里程碑审计已更新：`.planning/v1.1-MILESTONE-AUDIT.md` 现覆盖 `Phase 7.1-17` 全范围，记录 `69/69 requirements`、`15/15 phases`，判定为 `tech_debt`（仅保留明确 de-scope/out-of-scope debt，不再保留 Phase 16 carry-forward residual）
 - `Phase 18` 已完成：host-neutral boundary nucleus、shared auth bootstrap、device/capability truth 与 adapter projection guards 已全部落地。
 - `Phase 19` 已完成：headless proof boot seam、single-chain device/replay/evidence proof、platform thin-shell demotion 与 second-root guards 已全部落地。
+- `Phase 20` 已完成：remaining REST/MQTT boundary families、authority/replay fixtures、inventory/governance closeout 与 full gate evidence 已全部落地。
 
 ## Active Milestone Scope
 
 - `Phase 18`：Host-Neutral Boundary Nucleus Extraction（complete）
 - `Phase 19`：Headless Consumer Proof & Adapter Demotion（complete）
-- `Phase 20`：Remaining Boundary Family Completion（next）
-- `Phase 21`：Replay / Observability / Exception Hardening
+- `Phase 20`：Remaining Boundary Family Completion（complete）
+- `Phase 21`：Replay / Observability / Exception Hardening（next）
 - `Phase 22`：Governance, Docs & Release Readiness Closeout
 
 ## Carry-Forward Truths
@@ -111,13 +112,13 @@ See: `.planning/PROJECT.md`
 
 - **Milestone:** `v1.2 Host-Neutral Core & Replay Completion`
 - **Phase range:** `18 -> 22`
-- **Completed so far:** `Phase 18`, `Phase 19`
-- **Next focus:** remaining boundary/replay family completion、broad-catch/observability hardening、governance closeout
+- **Completed so far:** `Phase 18`, `Phase 19`, `Phase 20`
+- **Next focus:** replay/evidence expansion、broad-catch 收窄与 observability/governance hardening
 
 ## Recommended Next Command
 
-1. `$gsd-plan-phase 20` —— 为 remaining boundary families 制定详细执行计划
-2. `$gsd-execute-phase 20` —— 执行 boundary family completion
+1. `$gsd-plan-phase 21` —— 为 replay / observability / exception hardening 制定详细执行计划
+2. `$gsd-execute-phase 21` —— 执行 broad-catch / observability hardening
 3. `$gsd-progress` —— 查看 v1.2 当前推进态
 
 ## Session Continuity

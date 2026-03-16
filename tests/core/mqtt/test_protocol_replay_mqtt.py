@@ -17,6 +17,11 @@ from tests.harness.protocol.replay_assertions import (
 from tests.harness.protocol.replay_models import ReplayManifest
 
 _MQTT_MANIFESTS = iter_replay_manifests(channel="mqtt")
+_EXPECTED_PUBLIC_PATHS = {
+    "mqtt.topic": "core.protocol.boundary.decode_mqtt_topic_payload",
+    "mqtt.message-envelope": "core.protocol.boundary.decode_mqtt_message_envelope_payload",
+    "mqtt.properties": "core.protocol.boundary.decode_mqtt_properties_payload",
+}
 
 
 @pytest.mark.parametrize(
@@ -32,10 +37,10 @@ def test_mqtt_replay_scenarios_use_boundary_decoder_public_path(
 
     result = driver.run_fixture(fixture)
 
-    assert result.public_path == "core.protocol.boundary.decode_mqtt_properties_payload"
+    assert result.public_path == _EXPECTED_PUBLIC_PATHS[manifest.family]
     assert_replay_has_no_drift(
         result,
-        expected_family="mqtt.properties",
+        expected_family=manifest.family,
         expected_version="v1",
     )
     assert_replay_canonical_contract(
