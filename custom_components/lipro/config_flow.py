@@ -27,6 +27,11 @@ from .const.config import (
 )
 from .core import LiproAuthManager, LiproProtocolFacade
 from .core.api import LiproApiError
+from .core.auth import (
+    AuthBootstrapSeed,
+    AuthSessionSnapshot,
+    async_login_with_password_hash,
+)
 from .core.utils.log_safety import safe_error_placeholder
 from .flow.credentials import (
     mask_phone_for_title as _mask_phone_for_title,
@@ -34,7 +39,7 @@ from .flow.credentials import (
     validate_password as _validate_password,
 )
 from .flow.login import (
-    LoginResult,
+    ConfigEntryLoginProjection,
     hash_password as _hash_password,
     map_login_error as _map_login_error,
 )
@@ -67,7 +72,7 @@ class LiproConfigFlow(ConfigFlow, domain=DOMAIN):
         phone: str,
         password_hash: str,
         phone_id: str,
-    ) -> LoginResult:
+    ) -> AuthSessionSnapshot:
         """Perform login and return result.
 
         Args:
@@ -76,26 +81,23 @@ class LiproConfigFlow(ConfigFlow, domain=DOMAIN):
             phone_id: Device UUID.
 
         Returns:
-            LoginResult with tokens and user info.
+            Formal auth/session snapshot with tokens and user info.
 
         Raises:
             LiproApiError: If login fails.
 
         """
         session = async_get_clientsession(self.hass)
-        client = LiproProtocolFacade(phone_id, session)
-        auth_manager = LiproAuthManager(client)
-        session_result = await auth_manager.login(
-            phone,
-            password_hash,
-            password_is_hashed=True,
+        login_seed = AuthBootstrapSeed(
+            phone=phone,
+            phone_id=phone_id,
+            password_hash=password_hash,
         )
-
-        return LoginResult(
-            access_token=session_result.access_token or "",
-            refresh_token=session_result.refresh_token or "",
-            user_id=session_result.user_id or 0,
-            biz_id=session_result.biz_id,
+        return await async_login_with_password_hash(
+            login_seed,
+            session,
+            client_factory=LiproProtocolFacade,
+            auth_manager_factory=LiproAuthManager,
         )
 
     async def _async_try_login(
@@ -105,7 +107,7 @@ class LiproConfigFlow(ConfigFlow, domain=DOMAIN):
         phone_id: str,
         errors: dict[str, str],
         context_name: str,
-    ) -> LoginResult | None:
+    ) -> AuthSessionSnapshot | None:
         """Attempt login and populate errors dict on failure.
 
         Args:
@@ -116,7 +118,7 @@ class LiproConfigFlow(ConfigFlow, domain=DOMAIN):
             context_name: Name for logging (e.g. "login", "reauth").
 
         Returns:
-            LoginResult on success, None on failure.
+            Formal auth/session snapshot on success, None on failure.
 
         """
         try:
@@ -183,16 +185,17 @@ class LiproConfigFlow(ConfigFlow, domain=DOMAIN):
                 self._user_flow_phone_id = str(uuid.uuid4())
             phone_id = self._user_flow_phone_id
 
-            login_result = await self._async_try_login(
+            auth_session = await self._async_try_login(
                 phone, password_hash, phone_id, errors, "login"
             )
-            if login_result is not None:
-                await self.async_set_unique_id(f"lipro_{login_result.user_id}")
+            if auth_session is not None:
+                entry_login = ConfigEntryLoginProjection.from_auth_session(auth_session)
+                await self.async_set_unique_id(f"lipro_{entry_login.user_id}")
                 self._abort_if_unique_id_configured()
 
                 return self.async_create_entry(
                     title=f"Lipro ({_mask_phone_for_title(phone)})",
-                    data=login_result.to_entry_data(
+                    data=entry_login.to_entry_data(
                         phone,
                         password_hash,
                         phone_id,
@@ -247,10 +250,11 @@ class LiproConfigFlow(ConfigFlow, domain=DOMAIN):
 
             password_hash = _hash_password(password)
 
-            login_result = await self._async_try_login(
+            auth_session = await self._async_try_login(
                 phone, password_hash, phone_id, errors, "reauth"
             )
-            if login_result is not None:
+            if auth_session is not None:
+                entry_login = ConfigEntryLoginProjection.from_auth_session(auth_session)
                 expected_user_id: int | None = None
                 raw_user_id = reauth_entry.data.get(CONF_USER_ID)
                 if isinstance(raw_user_id, int) and not isinstance(raw_user_id, bool):
@@ -264,14 +268,14 @@ class LiproConfigFlow(ConfigFlow, domain=DOMAIN):
 
                 if (
                     expected_user_id is not None
-                    and expected_user_id != login_result.user_id
+                    and expected_user_id != entry_login.user_id
                 ):
                     errors["base"] = "reauth_user_mismatch"
                     return self._show_reauth_form(reauth_entry, errors)
 
                 return self.async_update_reload_and_abort(
                     reauth_entry,
-                    data=login_result.to_entry_data(
+                    data=entry_login.to_entry_data(
                         phone,
                         password_hash,
                         phone_id,
@@ -341,17 +345,18 @@ class LiproConfigFlow(ConfigFlow, domain=DOMAIN):
                 errors["base"] = "unknown"
                 return self._show_reconfigure_form(reconfigure_entry, errors)
 
-            login_result = await self._async_try_login(
+            auth_session = await self._async_try_login(
                 phone, password_hash, phone_id, errors, "reconfigure"
             )
-            if login_result is not None:
+            if auth_session is not None:
+                entry_login = ConfigEntryLoginProjection.from_auth_session(auth_session)
                 # Verify unique_id matches when switching accounts
-                await self.async_set_unique_id(f"lipro_{login_result.user_id}")
+                await self.async_set_unique_id(f"lipro_{entry_login.user_id}")
                 self._abort_if_unique_id_mismatch()
 
                 return self.async_update_reload_and_abort(
                     reconfigure_entry,
-                    data=login_result.to_entry_data(
+                    data=entry_login.to_entry_data(
                         phone,
                         password_hash,
                         phone_id,

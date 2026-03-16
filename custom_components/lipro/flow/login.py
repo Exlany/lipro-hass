@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import logging
+from typing import TYPE_CHECKING
 
 from ..const.config import (
     CONF_ACCESS_TOKEN,
@@ -16,37 +17,53 @@ from ..const.config import (
     CONF_USER_ID,
 )
 from ..core.api import LiproApiError, LiproAuthError, LiproConnectionError
+from ..core.auth import hash_password_for_auth
 from ..core.utils.log_safety import safe_error_placeholder
-from ..core.utils.vendor_crypto import md5_compat_hexdigest
+
+if TYPE_CHECKING:
+    from ..core.auth import AuthSessionSnapshot
 
 _LOGGER = logging.getLogger(__name__)
 
 
 def hash_password(password: str) -> str:
-    """Hash password using the vendor-mandated MD5 compatibility digest."""
-    return md5_compat_hexdigest(password)
+    """Hash password using the host-neutral auth helper."""
+    return hash_password_for_auth(password)
 
 
 def map_login_error(err: LiproApiError) -> str:
     """Map login exception to error key for UI display."""
     if isinstance(err, LiproAuthError):
-        _LOGGER.warning("Authentication failed (%s)", safe_error_placeholder(err))
-        return "invalid_auth"
+        _LOGGER.warning('Authentication failed (%s)', safe_error_placeholder(err))
+        return 'invalid_auth'
     if isinstance(err, LiproConnectionError):
-        _LOGGER.warning("Connection failed (%s)", safe_error_placeholder(err))
-        return "cannot_connect"
-    _LOGGER.warning("API error (%s)", safe_error_placeholder(err))
-    return "unknown"
+        _LOGGER.warning('Connection failed (%s)', safe_error_placeholder(err))
+        return 'cannot_connect'
+    _LOGGER.warning('API error (%s)', safe_error_placeholder(err))
+    return 'unknown'
 
 
-@dataclass
-class LoginResult:
-    """Result of a successful login."""
+@dataclass(frozen=True, slots=True)
+class ConfigEntryLoginProjection:
+    """HA config-entry projection derived from the formal auth session."""
 
     access_token: str
     refresh_token: str
     user_id: int
     biz_id: str | None
+
+    @classmethod
+    def from_auth_session(
+        cls,
+        auth_session: AuthSessionSnapshot,
+    ) -> ConfigEntryLoginProjection:
+        """Project one formal auth/session snapshot to config-entry payload fields."""
+        return cls(
+            access_token=auth_session.access_token or '',
+            refresh_token=auth_session.refresh_token or '',
+            user_id=auth_session.user_id or 0,
+            biz_id=auth_session.biz_id,
+        )
 
     def to_entry_data(
         self,
@@ -56,7 +73,7 @@ class LoginResult:
         *,
         remember_password_hash: bool,
     ) -> dict[str, object]:
-        """Convert to config entry data dict."""
+        """Convert the HA projection to config-entry data."""
         entry_data: dict[str, object] = {
             CONF_PHONE: phone,
             CONF_PHONE_ID: phone_id,

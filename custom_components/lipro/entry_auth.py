@@ -31,6 +31,7 @@ from .core import (
     LiproConnectionError,
     LiproProtocolFacade,
 )
+from .core.auth import AuthBootstrapSeed, build_protocol_auth_context
 from .core.utils.coerce import coerce_int_option
 from .core.utils.log_safety import safe_error_placeholder
 
@@ -43,6 +44,65 @@ if TYPE_CHECKING:
 
 
 ConfigEntryLike = ConfigEntry[object]
+
+
+def _build_entry_auth_seed(
+    entry: ConfigEntryLike,
+    *,
+    logger: logging.Logger,
+) -> AuthBootstrapSeed:
+    """Build one host-neutral auth/bootstrap seed from config-entry state."""
+    phone_id = entry.data.get(CONF_PHONE_ID)
+    phone = entry.data.get(CONF_PHONE)
+    if not isinstance(phone_id, str) or not phone_id:
+        msg = (
+            "Missing phone_id in config entry data; "
+            "please remove and re-add the integration"
+        )
+        raise ConfigEntryAuthFailed(msg)
+    if not isinstance(phone, str) or not phone:
+        msg = "Missing phone in config entry data; please remove and re-add the integration"
+        raise ConfigEntryAuthFailed(msg)
+
+    password_hash = entry.data.get(CONF_PASSWORD_HASH)
+    remember_password_hash = entry.data.get(CONF_REMEMBER_PASSWORD_HASH)
+    if remember_password_hash is None:
+        remember_password_hash = bool(password_hash)
+
+    request_timeout = get_entry_int_option(
+        entry,
+        option_name=CONF_REQUEST_TIMEOUT,
+        default=DEFAULT_REQUEST_TIMEOUT,
+        min_value=MIN_REQUEST_TIMEOUT,
+        max_value=MAX_REQUEST_TIMEOUT,
+        logger=logger,
+    )
+
+    return AuthBootstrapSeed(
+        phone=phone,
+        phone_id=phone_id,
+        password_hash=password_hash if isinstance(password_hash, str) else None,
+        remember_password_hash=bool(remember_password_hash),
+        request_timeout=request_timeout,
+        entry_id=entry.entry_id,
+        access_token=(
+            entry.data.get(CONF_ACCESS_TOKEN)
+            if isinstance(entry.data.get(CONF_ACCESS_TOKEN), str)
+            else None
+        ),
+        refresh_token=(
+            entry.data.get(CONF_REFRESH_TOKEN)
+            if isinstance(entry.data.get(CONF_REFRESH_TOKEN), str)
+            else None
+        ),
+        user_id=entry.data.get(CONF_USER_ID),
+        expires_at=entry.data.get(CONF_EXPIRES_AT),
+        biz_id=(
+            entry.data.get(CONF_BIZ_ID)
+            if isinstance(entry.data.get(CONF_BIZ_ID), str)
+            else None
+        ),
+    )
 
 
 def get_entry_int_option(
@@ -75,52 +135,14 @@ def build_entry_auth_context(
     logger: logging.Logger,
 ) -> tuple[LiproProtocolFacade, LiproAuthManager]:
     """Build API client and auth manager from config entry data."""
-    phone_id = entry.data.get(CONF_PHONE_ID)
-    phone = entry.data.get(CONF_PHONE)
-    if not isinstance(phone_id, str) or not phone_id:
-        msg = (
-            "Missing phone_id in config entry data; "
-            "please remove and re-add the integration"
-        )
-        raise ConfigEntryAuthFailed(msg)
-    if not isinstance(phone, str) or not phone:
-        msg = "Missing phone in config entry data; please remove and re-add the integration"
-        raise ConfigEntryAuthFailed(msg)
-
-    password_hash = entry.data.get(CONF_PASSWORD_HASH)
-    remember_password_hash = entry.data.get(CONF_REMEMBER_PASSWORD_HASH)
-    if remember_password_hash is None:
-        remember_password_hash = bool(password_hash)
-
-    request_timeout = get_entry_int_option(
-        entry,
-        option_name=CONF_REQUEST_TIMEOUT,
-        default=DEFAULT_REQUEST_TIMEOUT,
-        min_value=MIN_REQUEST_TIMEOUT,
-        max_value=MAX_REQUEST_TIMEOUT,
-        logger=logger,
-    )
-
+    seed = _build_entry_auth_seed(entry, logger=logger)
     session = get_client_session(hass)
-    client = client_factory(
-        phone_id,
+    client, auth_manager = build_protocol_auth_context(
+        seed,
         session,
-        request_timeout=request_timeout,
-        entry_id=entry.entry_id,
+        client_factory=client_factory,
+        auth_manager_factory=auth_manager_factory,
     )
-    auth_manager = auth_manager_factory(client)
-
-    if CONF_ACCESS_TOKEN in entry.data and CONF_REFRESH_TOKEN in entry.data:
-        auth_manager.set_tokens(
-            entry.data[CONF_ACCESS_TOKEN],
-            entry.data[CONF_REFRESH_TOKEN],
-            entry.data.get(CONF_USER_ID),
-            entry.data.get(CONF_EXPIRES_AT),
-            entry.data.get(CONF_BIZ_ID),
-        )
-
-    if remember_password_hash and isinstance(password_hash, str) and password_hash:
-        auth_manager.set_credentials(phone, password_hash, password_is_hashed=True)
     auth_manager.set_tokens_updated_callback(
         partial(persist_entry_tokens_if_changed, hass, entry, auth_manager)
     )

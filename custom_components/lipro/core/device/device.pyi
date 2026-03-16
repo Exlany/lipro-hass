@@ -161,9 +161,6 @@ class LiproDevice:
     def category(self) -> DeviceCategory: ...
 
     @property
-    def platforms(self) -> list[str]: ...
-
-    @property
     def unique_id(self) -> str: ...
 
     @property

@@ -29,6 +29,11 @@ def test_public_surface_baseline_references_architecture_policy() -> None:
     assert "ENF-COMPAT-CONFIG-FLOW-NO-LEGACY-CLIENT" in public_surfaces
     assert "ENF-COMPAT-CORE-PACKAGE-NO-LEGACY-CLIENTS" in public_surfaces
     assert "ENF-COMPAT-MQTT-PACKAGE-NO-LEGACY-CLIENT" in public_surfaces
+    assert "ENF-ADAPTER-CONFIG-FLOW-USES-AUTH-PROJECTION" in public_surfaces
+    assert "ENF-ADAPTER-ENTRY-AUTH-USES-BOOTSTRAP" in public_surfaces
+    assert "ENF-HOSTPROJ-CATEGORIES-NO-HA-PLATFORMS" in public_surfaces
+    assert "ENF-HOSTPROJ-CAPABILITY-NO-PLATFORM-FIELD" in public_surfaces
+    assert "ENF-HOSTPROJ-DEVICE-VIEWS-NO-PLATFORM-PROJECTION" in public_surfaces
 
 
 def test_public_surface_baseline_registers_assurance_only_replay_and_evidence_surfaces() -> None:
@@ -57,6 +62,16 @@ def test_phase_17_surface_notes_capture_final_residual_retirement() -> None:
     assert "`MqttTransportClient` 是 canonical MQTT concrete transport" in public_surfaces
     assert "`get_auth_data()` compatibility projection 已从正式路径退场" in public_surfaces
     assert 'synthetic `{"data": rows}` 已退出 formal path' in public_surfaces
+
+
+def test_phase_18_surface_notes_capture_host_neutral_nucleus_alignment() -> None:
+    public_surfaces = _PUBLIC_SURFACES.read_text(encoding="utf-8")
+
+    assert "## Phase 18 Host-Neutral Nucleus Notes" in public_surfaces
+    assert "core/auth/bootstrap.py" in public_surfaces
+    assert "ConfigEntryLoginProjection" in public_surfaces
+    assert "helpers/platform.py" in public_surfaces
+    assert "targeted bans 阻断回流" in public_surfaces
 
 
 def test_coordinator_entry_exports_only_runtime_surface_symbol() -> None:
@@ -98,6 +113,24 @@ def test_protocol_root_rest_child_and_mqtt_child_do_not_reintroduce_implicit_sur
                 continue
             assert "__getattr__" not in base.__dict__
             assert "__dir__" not in base.__dict__
+
+
+def test_phase_18_adapter_and_projection_bans_keep_nucleus_host_neutral() -> None:
+    for rule_id in (
+        "ENF-ADAPTER-CONFIG-FLOW-USES-AUTH-PROJECTION",
+        "ENF-ADAPTER-ENTRY-AUTH-USES-BOOTSTRAP",
+        "ENF-HOSTPROJ-CATEGORIES-NO-HA-PLATFORMS",
+        "ENF-HOSTPROJ-CAPABILITY-NO-PLATFORM-FIELD",
+        "ENF-HOSTPROJ-DEVICE-VIEWS-NO-PLATFORM-PROJECTION",
+    ):
+        rule = _RULES[rule_id]
+        file_path = _ROOT / rule.governed_targets[0]
+        governed_text = file_path.read_text(encoding="utf-8")
+
+        for signal in rule.allowed_or_required_signals:
+            assert signal in governed_text
+        for signal in rule.forbidden_signals:
+            assert signal not in governed_text
 
 
 def test_legacy_protocol_exports_do_not_reexpand_root_packages() -> None:

@@ -76,7 +76,6 @@ class LiproDevice:
     network_info = property(device_views.network_info)
     device_type_hex = property(device_views.device_type_hex)
     category = property(device_views.category)
-    platforms = property(device_views.platforms)
     unique_id = property(device_views.unique_id)
     iot_device_id = property(device_views.iot_device_id)
     has_valid_iot_id = property(device_views.has_valid_iot_id_property)

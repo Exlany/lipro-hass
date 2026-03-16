@@ -21,7 +21,6 @@ class _DescriptorProbe:
         self.capabilities = CapabilitySnapshot(
             device_type_hex="ff000001",
             category=DeviceCategory.LIGHT,
-            platforms=("light",),
             supports_color_temp=supports_color_temp,
         )
 

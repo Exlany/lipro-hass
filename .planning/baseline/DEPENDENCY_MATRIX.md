@@ -2,7 +2,7 @@
 
 **Purpose:** 定义允许/禁止的跨平面依赖方向，并作为 architecture guards 的语义真源。
 **Status:** Baseline reference
-**Updated:** 2026-03-14
+**Updated:** 2026-03-16 (Phase 18 nucleus locality aligned)
 
 ## Formal Role
 
@@ -36,6 +36,8 @@
 | `ENF-IMP-ENTITY-PROTOCOL-INTERNALS` | Entity / Platform 不直连 `core.api`、`core.mqtt`、`core.protocol.boundary` internals | 结构性 import 规则 |
 | `ENF-IMP-CONTROL-NO-BYPASS` | Control surface 不直连 protocol internals 或 runtime internals bypass | 阻断 backdoor / split-root 回流 |
 | `ENF-IMP-BOUNDARY-LOCALITY` | `core/protocol/boundary/*` 仅限 protocol-plane internal collaborators 合法消费 | future assurance-only 例外必须先登记 |
+| `ENF-IMP-NUCLEUS-NO-HOMEASSISTANT-IMPORT` | `core/auth` / `core/capability` / `core/device` nucleus homes 不吸入 `homeassistant` imports | host-neutral truth 不得宿主化 |
+| `ENF-IMP-NUCLEUS-NO-PLATFORM-BACKFLOW` | nucleus homes 不反向依赖 `helpers/platform.py` | HA platform projection 必须停留在 adapter seam |
 
 ## Guard Chain
 
@@ -43,6 +45,8 @@
 |------|---------------------|--------------------------|
 | Entity 不直连 protocol internals / boundary decoders | `scripts/check_architecture_policy.py` + `tests/meta/test_dependency_guards.py` | local-fast + CI fail-fast |
 | Control 只走 runtime public surface | `scripts/check_architecture_policy.py` + `tests/meta/test_dependency_guards.py` | local-fast + CI fail-fast |
+| Host-neutral nucleus 不 import `homeassistant` | `scripts/check_architecture_policy.py` + `tests/meta/test_dependency_guards.py` | local-fast + CI fail-fast |
+| Host-neutral nucleus 不依赖 adapter platform projection | `scripts/check_architecture_policy.py` + `tests/meta/test_dependency_guards.py` | local-fast + CI fail-fast |
 | Protocol 不依赖 coordinator/entity | import scan + reviewer checklist | future protocol/root checks |
 | Compat 不成为 public truth | `ARCHITECTURE_POLICY.md` + public-surface guards | residual kill gate |
 | Runtime/control 不直连 child façade roots | protocol/root contract tests + integration proof | stronger dependency guards |
@@ -58,6 +62,12 @@
 - `custom_components/lipro/control/runtime_access.py` 是 control plane 读取 runtime-home `Coordinator` 的唯一 helper；`entry.runtime_data.coordinator` 不得在 adapter / control surface 中散落读取。
 - `custom_components/lipro/control/telemetry_surface.py` 必须通过 `runtime_access.get_entry_runtime_coordinator()` 定位 runtime root；telemetry bridge 不能重新承担 runtime-home 叙事。
 - `custom_components/lipro/config_flow.py`、`custom_components/lipro/entry_auth.py` 允许依赖 `LiproAuthManager` / `AuthSessionSnapshot` 这类 host-neutral contract；不允许依赖 raw login/result payload 或 boundary decoder internals。
+
+## Phase 18 Host-Neutral Nucleus / Adapter Projection Clarifications
+
+- `custom_components/lipro/core/auth/bootstrap.py`、`custom_components/lipro/core/capability/*` 与 `custom_components/lipro/core/device/*` 共同构成 host-neutral nucleus helper/contract family；这些 homes 可以被 HA adapter 消费，但不得直接 import `homeassistant`。
+- `custom_components/lipro/helpers/platform.py` 是 adapter-only HA platform projection home；entities / platform setup 可以消费它，但 nucleus homes 不得反向依赖它来定义 category/capability/device truth。
+- `custom_components/lipro/config_flow.py`、`custom_components/lipro/entry_auth.py` 与 `custom_components/lipro/flow/login.py` 只承担 HA adapter / projection 角色：`AuthSessionSnapshot` 继续是 formal auth truth，`ConfigEntryLoginProjection` 只是 config-entry payload projection。
 
 ## Review Checklist
 

@@ -9,11 +9,10 @@ from ...const.categories import DeviceCategory
 
 @dataclass(frozen=True, slots=True)
 class CapabilitySnapshot:
-    """Stable capability truth consumed by platforms and entities."""
+    """Stable device capability truth derived from normalized metadata."""
 
     device_type_hex: str
     category: DeviceCategory
-    platforms: tuple[str, ...]
     supports_color_temp: bool
     max_fan_gear: int = 1
     min_color_temp_kelvin: int = 0
@@ -74,9 +73,5 @@ class CapabilitySnapshot:
         """Return whether the device is a switch-panel device."""
         return self.category == DeviceCategory.SWITCH
 
-    def supports_platform(self, platform: str) -> bool:
-        """Return whether the capability snapshot serves one HA platform."""
-        return platform in self.platforms
 
-
-__all__ = ["CapabilitySnapshot"]
+__all__ = ['CapabilitySnapshot']

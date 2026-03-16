@@ -1,13 +1,14 @@
 """Platform helper utilities for Lipro integration.
 
-This module provides common utilities for platform setup to reduce code duplication
-across light.py, switch.py, cover.py, fan.py, climate.py, etc.
+This module provides adapter-only Home Assistant platform projections and
+common utilities for platform setup.
 """
 
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from ..const.categories import DeviceCategory
 from ..core.utils.identifiers import normalize_iot_device_id
 
 if TYPE_CHECKING:
@@ -15,6 +16,7 @@ if TYPE_CHECKING:
 
     from homeassistant.helpers.entity import Entity
 
+    from ..core.capability import CapabilitySnapshot
     from ..core.device import LiproDevice
     from ..runtime_types import LiproCoordinator
 
@@ -25,6 +27,38 @@ if TYPE_CHECKING:
     type DeviceEntityRule[EntityT: Entity] = tuple[
         DevicePredicate, Sequence[DeviceEntityFactory[EntityT]]
     ]
+
+
+_CATEGORY_TO_PLATFORM_NAMES: dict[DeviceCategory, tuple[str, ...]] = {
+    DeviceCategory.LIGHT: ('light',),
+    DeviceCategory.FAN_LIGHT: ('light', 'fan'),
+    DeviceCategory.CURTAIN: ('cover',),
+    DeviceCategory.SWITCH: ('switch',),
+    DeviceCategory.OUTLET: ('switch',),
+    DeviceCategory.HEATER: ('climate',),
+    DeviceCategory.BODY_SENSOR: ('binary_sensor',),
+    DeviceCategory.DOOR_SENSOR: ('binary_sensor',),
+    DeviceCategory.GATEWAY: (),
+    DeviceCategory.UNKNOWN: (),
+}
+
+
+def platforms_for_category(category: DeviceCategory) -> tuple[str, ...]:
+    """Return Home Assistant platform names for one device category."""
+    return _CATEGORY_TO_PLATFORM_NAMES.get(category, ())
+
+
+def capability_supports_platform(
+    capabilities: CapabilitySnapshot,
+    platform: str,
+) -> bool:
+    """Return whether one capability snapshot should project to an HA platform."""
+    return platform in platforms_for_category(capabilities.category)
+
+
+def device_supports_platform(device: LiproDevice, platform: str) -> bool:
+    """Return whether one device should project to the given HA platform."""
+    return platform in platforms_for_category(device.category)
 
 
 def create_platform_entities[EntityT: Entity](

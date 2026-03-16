@@ -27,6 +27,7 @@ from .entities.commands import (
 from .helpers.platform import (
     build_device_entities_from_rules,
     create_device_entities,
+    device_supports_platform,
     should_expose_light_property_switch,
     should_expose_panel_property_switch,
 )
@@ -208,7 +209,7 @@ _SWITCH_RULES: list[
     ]
 ] = [
     # Main switch entity (outlet or panel)
-    (lambda d: d.capabilities.supports_platform("switch"), [LiproSwitch]),
+    (lambda d: device_supports_platform(d, "switch"), [LiproSwitch]),
     *[
         (
             lambda d, property_key=cfg.property_key: (

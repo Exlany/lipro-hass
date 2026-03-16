@@ -23,7 +23,7 @@ from .core.utils.coerce import coerce_bool_option
 from .entities.base import LiproEntity
 from .entities.commands import PowerCommand
 from .entities.descriptors import ConditionalAttr, DeviceAttr, ScaledBrightness
-from .helpers.platform import create_platform_entities
+from .helpers.platform import create_platform_entities, device_supports_platform
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
@@ -48,7 +48,7 @@ async def async_setup_entry(
     """Set up Lipro lights."""
     entities = create_platform_entities(
         entry.runtime_data,
-        device_filter=lambda d: d.capabilities.supports_platform("light"),
+        device_filter=lambda d: device_supports_platform(d, "light"),
         entity_factory=LiproLight,
     )
     async_add_entities(entities)

@@ -22,7 +22,6 @@ def test_capability_registry_builds_light_snapshot_from_profile() -> None:
     assert isinstance(snapshot, CapabilitySnapshot)
     assert snapshot.device_type_hex == "ff000001"
     assert snapshot.category == DeviceCategory.LIGHT
-    assert snapshot.platforms == ("light",)
     assert snapshot.supports_color_temp is True
     assert snapshot.max_fan_gear == 6
 
@@ -41,31 +40,29 @@ def test_capability_registry_builds_snapshot_from_device(make_device) -> None:
 
     assert snapshot.device_type_hex == device.device_type_hex
     assert snapshot.category == device.category
-    assert snapshot.platforms == tuple(device.platforms)
     assert snapshot.max_fan_gear == 8
     assert snapshot.supports_color_temp is True
     assert snapshot.is_fan_light is True
 
 
-def test_capability_snapshot_supports_platform_and_panel() -> None:
-    """Capability snapshots should expose platform and panel projections."""
+def test_capability_snapshot_preserves_panel_and_outlet_flags() -> None:
+    """Capability snapshots should preserve host-neutral category semantics."""
     switch_snapshot = CapabilityRegistry().from_device_type("ff000003")
     outlet_snapshot = CapabilityRegistry().from_device_type("ff000006")
 
     assert switch_snapshot.is_panel is True
-    assert switch_snapshot.supports_platform("switch") is True
-    assert switch_snapshot.supports_platform("light") is False
+    assert switch_snapshot.is_switch is True
+    assert switch_snapshot.is_outlet is False
     assert outlet_snapshot.is_panel is False
     assert outlet_snapshot.is_outlet is True
 
 
 def test_device_views_follow_capability_snapshot(monkeypatch, make_device) -> None:
-    """Device views should derive category/platforms from capability truth."""
+    """Device views should derive category and fan range from capability truth."""
     device = make_device("light", serial="03ab5ccd7c555555")
     snapshot = CapabilitySnapshot(
         device_type_hex="ff000006",
         category=DeviceCategory.OUTLET,
-        platforms=("switch",),
         supports_color_temp=False,
         max_fan_gear=3,
     )
@@ -74,5 +71,4 @@ def test_device_views_follow_capability_snapshot(monkeypatch, make_device) -> No
 
     assert device_views.capabilities(device) == snapshot
     assert device_views.category(device) == DeviceCategory.OUTLET
-    assert device_views.platforms(device) == ["switch"]
     assert device_views.fan_speed_range(device) == (1, 3)

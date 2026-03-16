@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from ...const.categories import get_device_category, get_platforms_for_category
+from ...const.categories import get_device_category
 from .models import CapabilitySnapshot
 
 if TYPE_CHECKING:
@@ -46,7 +46,6 @@ class CapabilityRegistry:
         return CapabilitySnapshot(
             device_type_hex=normalized_type,
             category=category,
-            platforms=tuple(get_platforms_for_category(category)),
             supports_color_temp=normalized_min > 0 and normalized_max > 0,
             max_fan_gear=_positive_int(max_fan_gear, default=1),
             min_color_temp_kelvin=normalized_min,
@@ -63,4 +62,4 @@ class CapabilityRegistry:
         )
 
 
-__all__ = ["CapabilityRegistry"]
+__all__ = ['CapabilityRegistry']

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from custom_components.lipro.const.categories import DeviceCategory
 from custom_components.lipro.core.device import LiproDevice, parse_properties_list
 from custom_components.lipro.core.utils.identifiers import (
     is_valid_iot_device_id,
@@ -149,8 +150,8 @@ class TestLiproDevice:
         assert device.iot_device_id == "03ab5ccd7caaaaaa"
         assert device.iot_device_id == device.serial
 
-    def test_platforms(self):
-        """platforms property maps category to HA platforms."""
+    def test_category(self):
+        """category property should expose the host-neutral device kind."""
         device = LiproDevice(
             device_number=1,
             serial="03ab5ccd7caaaaaa",
@@ -160,8 +161,8 @@ class TestLiproDevice:
             physical_model="light",
         )
 
-        assert device.platforms == ["light"]
-        assert device.capabilities.platforms == ("light",)
+        assert device.category == DeviceCategory.LIGHT
+        assert device.capabilities.category == DeviceCategory.LIGHT
 
     def test_has_valid_iot_id_device(self):
         """Test valid IoT ID check for regular device."""

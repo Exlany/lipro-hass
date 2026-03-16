@@ -16,7 +16,6 @@ def _device_snapshot(device: LiproDevice) -> dict[str, object]:
             "room_name": device.identity.room_name,
         },
         "category": device.category.value,
-        "platforms": device.platforms,
         "state": {
             "is_on": device.is_on,
             "brightness": device.brightness,

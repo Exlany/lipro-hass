@@ -163,3 +163,9 @@
 - 已关闭：`LiproMqttClient` legacy transport root name；canonical concrete naming 统一为 `MqttTransportClient`，且 package/root public-surface bans 已同步。
 - 已关闭：`get_auth_data()` fallback 与 helper-level power compatibility envelope；token persistence / outlet-power helper contract 均已收口到单一正式 typed truth。
 - 当前 kill list 仅保留明确 de-scope / out-of-scope cleanup 议题，不再保留 Phase 16 carry-forward residual 作为 active delete gate。
+
+## Phase 18 Status Update
+
+- 本 phase **无新增 active kill target**；`core/auth/bootstrap.py`、`flow/login.py::ConfigEntryLoginProjection` 与 `helpers/platform.py` 都是正式 helper / adapter homes，而不是新的 compat shell。
+- `CATEGORY_TO_PLATFORMS`、`get_platforms_for_category()`、`CapabilitySnapshot.platforms`、`supports_platform()` 与 `device_views.platforms()` 已从治理真源退场；其回流风险由 Phase 18 targeted bans 负责阻断，而非留作新的 delete-gated carry-forward。
+- `entry_auth.py` 与 `config_flow.py` 已统一复用 shared auth bootstrap wiring；后续若再优化，只允许继续收窄 adapter 语义，不得重建第二套 auth bootstrap truth。

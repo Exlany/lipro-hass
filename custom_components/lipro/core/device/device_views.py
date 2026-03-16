@@ -45,18 +45,13 @@ def device_type_hex(device: LiproDevice) -> str:
 
 
 def category(device: LiproDevice) -> DeviceCategory:
-    """Return the Home Assistant category for this device."""
+    """Return the normalized device category for this device."""
     return capabilities(device).category
-
-
-def platforms(device: LiproDevice) -> list[str]:
-    """Return Home Assistant platforms for this device."""
-    return list(capabilities(device).platforms)
 
 
 def unique_id(device: LiproDevice) -> str:
     """Return the stable entity unique-id prefix for this device."""
-    return f"lipro_{device.serial}"
+    return f'lipro_{device.serial}'
 
 
 def iot_device_id(device: LiproDevice) -> str:
@@ -80,15 +75,14 @@ def fan_speed_range(device: LiproDevice) -> tuple[int, int]:
 
 
 __all__ = [
-    "capabilities",
-    "category",
-    "device_type_hex",
-    "fan_speed_range",
-    "has_valid_iot_id_property",
-    "identity",
-    "iot_device_id",
-    "network_info",
-    "panel_type",
-    "platforms",
-    "unique_id",
+    'capabilities',
+    'category',
+    'device_type_hex',
+    'fan_speed_range',
+    'has_valid_iot_id_property',
+    'identity',
+    'iot_device_id',
+    'network_info',
+    'panel_type',
+    'unique_id',
 ]

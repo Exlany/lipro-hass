@@ -18,7 +18,7 @@ from .const.properties import (
 )
 from .entities.base import LiproEntity
 from .entities.commands import PowerCommand
-from .helpers.platform import create_platform_entities
+from .helpers.platform import create_platform_entities, device_supports_platform
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
@@ -55,7 +55,7 @@ async def async_setup_entry(
     """Set up Lipro climate entities."""
     entities = create_platform_entities(
         entry.runtime_data,
-        device_filter=lambda d: d.capabilities.supports_platform("climate"),
+        device_filter=lambda d: device_supports_platform(d, "climate"),
         entity_factory=LiproHeater,
     )
     async_add_entities(entities)

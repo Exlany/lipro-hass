@@ -49,7 +49,6 @@ def test_lipro_device_exposes_extracted_helper_objects(make_device) -> None:
     assert device.identity.serial == device.serial
     assert device.identity.room_name == device.room_name
     assert device.capabilities.category == device.category
-    assert device.capabilities.platforms == tuple(device.platforms)
     assert device.capabilities.supports_color_temp == device.supports_color_temp
     assert device.state.brightness == device.brightness
     assert device.state.color_temp == device.color_temp
@@ -107,7 +106,7 @@ def test_lipro_device_type_hex_falls_back_to_type_and_iot_name() -> None:
     assert case_insensitive.device_type_hex == "ff000009"
 
 
-def test_lipro_device_ids_platforms_and_valid_iot_ids(make_device) -> None:
+def test_lipro_device_identity_helpers_and_valid_iot_ids(make_device) -> None:
     """Facade identity helpers should remain stable for entities and groups."""
     device = make_device("light", serial="03ab5ccd7caaaaaa", name="Test Light")
     group = make_device(
@@ -119,7 +118,6 @@ def test_lipro_device_ids_platforms_and_valid_iot_ids(make_device) -> None:
 
     assert device.unique_id == "lipro_03ab5ccd7caaaaaa"
     assert device.iot_device_id == device.serial
-    assert device.platforms == ["light"]
     assert device.has_valid_iot_id is True
     assert device.fan_speed_range == (1, device.max_fan_gear)
     assert group.has_valid_iot_id is True

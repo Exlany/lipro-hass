@@ -2,7 +2,7 @@
 
 **Purpose:** 定义各平面的 canonical public surfaces、过渡公开面与禁止作为正式入口的对象。
 **Status:** Formal baseline asset (`BASE-01` public-surface truth source)
-**Updated:** 2026-03-15 (Phase 17 final residual retirement)
+**Updated:** 2026-03-16 (Phase 18 host-neutral nucleus alignment)
 
 ## Formal Role
 
@@ -19,7 +19,7 @@
 | Protocol | `LiproProtocolFacade` | target-state formal protocol root | 终态唯一正式协议根；formal contract 由显式 methods/properties 定义，不再由 child `__getattr__` / `__dir__` 隐式扩面 |
 | Protocol (REST child) | `LiproRestFacade` | canonical REST child façade | formal REST child surface；必须始终收敛到 `LiproProtocolFacade` |
 | Runtime | `Coordinator` + runtime services/public surface | runtime orchestration root + stable service surface | protocol-facing runtime ops 统一经 `CoordinatorProtocolService` 收口；`devices` 只允许以 read-only mapping 暴露；outlet power 真源收口到 `LiproDevice.outlet_power_info` |
-| Domain | `CapabilityRegistry` / `CapabilitySnapshot` / `LiproDevice` + `DeviceState` explicit surface / command contracts | domain truth surface family | `custom_components/lipro/core/capability/` 与 `custom_components/lipro/core/device/` 共同定义显式设备域真源；动态 `__getattr__` 不再合法化 |
+| Domain | `CapabilityRegistry` / `CapabilitySnapshot` / `LiproDevice` + `DeviceState` explicit surface / command contracts | domain truth surface family | `custom_components/lipro/core/capability/` 与 `custom_components/lipro/core/device/` 共同定义显式设备域真源；动态 `__getattr__` 不再合法化；HA platform strings / config-entry projection 只允许停留在 adapter seams |
 | Control | `EntryLifecycleController`、`ServiceRegistry`、`service_router`、`DiagnosticsSurface`、`SystemHealthSurface`、`telemetry_surface` bridge helpers | control-plane formal surface set | `custom_components/lipro/control/` 为正式内部控制面 home；HA 根模块只保留 adapter 职责 |
 | Assurance | contract suites、invariant suites、meta guards、ledgers、`RuntimeTelemetryExporter` / telemetry contracts、replay harness/report surfaces、`V1_1_EVIDENCE_INDEX.md`、`tests/harness/evidence_pack/*`、`scripts/export_ai_debug_evidence_pack.py` | assurance arbitration surface set | exporter / replay / evidence index / evidence-pack tooling 只作为 assurance-only 或 pull-only truth consumers，不得反向成为 runtime/control/public root |
 
@@ -44,6 +44,14 @@
 - `MqttTransportClient` 是 canonical MQTT concrete transport，但不是 public surface；只允许停留在 `core/mqtt` + `core/protocol`。
 - token persistence 只消费 `AuthSessionSnapshot`；`get_auth_data()` compatibility projection 已从正式路径退场。
 - outlet-power 正式 contract 只承认 `OutletPowerInfoRow | list[OutletPowerInfoRow]`；synthetic `{"data": rows}` 已退出 formal path。
+
+## Phase 18 Host-Neutral Nucleus Notes
+
+- `custom_components/lipro/core/auth/bootstrap.py` 现在是 host-neutral auth/bootstrap helper home：`config_flow.py` 与 `entry_auth.py` 只允许通过它装配 protocol/auth collaborators，不得把它误判成新的 protocol 或 control root。
+- `custom_components/lipro/flow/login.py::ConfigEntryLoginProjection` 是 HA config-entry projection home；`AuthSessionSnapshot` 继续是唯一正式 auth/session truth。
+- `custom_components/lipro/helpers/platform.py` 是唯一 HA platform projection home；`DeviceCategory`、`CapabilitySnapshot`、`CapabilityRegistry`、`LiproDevice` 与 `device_views` 继续保持 host-neutral nucleus 身份。
+- `CATEGORY_TO_PLATFORMS`、`get_platforms_for_category()`、`CapabilitySnapshot.platforms`、`supports_platform()` 与 `device_views.platforms()` 已从 nucleus truth 退场，并由 targeted bans 阻断回流。
+
 
 ## Phase 16 Governance Calibration Notes
 
@@ -103,12 +111,19 @@
 | `ENF-BACKDOOR-SERVICE-AUTH` | service execution 不再回退到 coordinator 私有 auth seam | backdoor ban |
 | `ENF-IMP-API-LEGACY-SPINE-LOCALITY` | `client_base.py` / `client_pacing.py` / `client_auth_recovery.py` / `client_transport.py` 只能继续局部停留在 `core/api` | local helper/session modules 不得扩散到生产其它平面 |
 | `ENF-IMP-MQTT-TRANSPORT-LOCALITY` | `MqttTransportClient` 不能新增 direct production consumers | concrete transport 继续局限在 protocol/mqtt seam |
+| `ENF-IMP-NUCLEUS-NO-HOMEASSISTANT-IMPORT` | `core/auth` / `core/capability` / `core/device` nucleus homes 不得直接 import `homeassistant` | host-neutral nucleus 不得吸入宿主生命周期语义 |
+| `ENF-IMP-NUCLEUS-NO-PLATFORM-BACKFLOW` | nucleus homes 不得反向依赖 `helpers/platform.py` | adapter-only HA platform projection 不能定义 domain truth |
 | `ENF-IMP-ASSURANCE-NO-PRODUCTION-BACKFLOW` | assurance-only artifacts 不得被 production path 反向依赖 | replay / evidence 继续保持 pull-only / assurance-only |
 | `ENF-GOV-RELEASE-CI-REUSE` | `release.yml` 必须复用 `ci.yml` 并保持 validate gate | 发布链不得旁路治理与版本守卫 |
 | `ENF-COMPAT-ROOT-NO-LEGACY-CLIENT` | root adapter 不得重新绑定 legacy names 或 concrete transport exports | `LiproClient` / `LiproMqttClient` / `MqttTransportClient` 都不得回流 |
 | `ENF-COMPAT-CONFIG-FLOW-NO-LEGACY-CLIENT` | config flow 只使用 `LiproProtocolFacade`，不得回流 legacy client names 或 concrete transport | Phase 9 compat export ban + Phase 17 no-concrete-export follow-through |
 | `ENF-COMPAT-CORE-PACKAGE-NO-LEGACY-CLIENTS` | `core/__init__.py` 不得重新导出 legacy client names、`Coordinator` 或 concrete transport | package-level compat/runtime-home demotion guard |
 | `ENF-COMPAT-MQTT-PACKAGE-NO-LEGACY-CLIENT` | `core/mqtt/__init__.py` 不得重新暴露 `LiproMqttClient` 或 `MqttTransportClient` | MQTT package no-concrete-transport-export guard |
+| `ENF-ADAPTER-CONFIG-FLOW-USES-AUTH-PROJECTION` | `config_flow.py` 必须通过 shared auth bootstrap + entry projection 组织登录路径 | HA adapter 不得重建第二套 auth truth |
+| `ENF-ADAPTER-ENTRY-AUTH-USES-BOOTSTRAP` | `entry_auth.py` 必须复用 shared bootstrap wiring，而不是手工拼装 token / credential glue | outward seam 稳定，内部装配统一 |
+| `ENF-HOSTPROJ-CATEGORIES-NO-HA-PLATFORMS` | `const/categories.py` 不得重新长回 HA platform mapping symbols | category truth 保持 host-neutral |
+| `ENF-HOSTPROJ-CAPABILITY-NO-PLATFORM-FIELD` | `CapabilitySnapshot` 不得重新携带 `platforms` / `supports_platform()` | capability truth 保持 host-neutral |
+| `ENF-HOSTPROJ-DEVICE-VIEWS-NO-PLATFORM-PROJECTION` | `device_views.py` 不得重新提供 `platforms()` projection helper | device views 只保留 host-neutral read-only surfaces |
 
 ## Update Rule
 

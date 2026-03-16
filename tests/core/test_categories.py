@@ -3,10 +3,8 @@
 import pytest
 
 from custom_components.lipro.const.categories import (
-    CATEGORY_TO_PLATFORMS,
     DeviceCategory,
     get_device_category,
-    get_platforms_for_category,
     is_light_category,
     is_sensor_category,
     is_switch_category,
@@ -43,7 +41,7 @@ class TestDeviceCategory:
             "GATEWAY",
             "UNKNOWN",
         }
-        actual = {c.name for c in DeviceCategory}
+        actual = {category.name for category in DeviceCategory}
         assert actual == expected
 
 
@@ -137,48 +135,3 @@ class TestIsSwitchCategory:
         assert is_switch_category(DeviceCategory.DOOR_SENSOR) is False
         assert is_switch_category(DeviceCategory.GATEWAY) is False
         assert is_switch_category(DeviceCategory.UNKNOWN) is False
-
-
-class TestCategoryToPlatforms:
-    """Test CATEGORY_TO_PLATFORMS mapping."""
-
-    def test_all_categories_have_mapping(self) -> None:
-        """Test all categories have a platform mapping."""
-        for category in DeviceCategory:
-            assert category in CATEGORY_TO_PLATFORMS
-
-    @pytest.mark.parametrize(
-        ("category", "expected_platforms"),
-        [
-            (DeviceCategory.LIGHT, ["light"]),
-            (DeviceCategory.FAN_LIGHT, ["light", "fan"]),
-            (DeviceCategory.CURTAIN, ["cover"]),
-            (DeviceCategory.SWITCH, ["switch"]),
-            (DeviceCategory.OUTLET, ["switch"]),
-            (DeviceCategory.HEATER, ["climate"]),
-            (DeviceCategory.BODY_SENSOR, ["binary_sensor"]),
-            (DeviceCategory.DOOR_SENSOR, ["binary_sensor"]),
-            (DeviceCategory.GATEWAY, []),
-            (DeviceCategory.UNKNOWN, []),
-        ],
-    )
-    def test_platform_mappings(
-        self, category: DeviceCategory, expected_platforms: list[str]
-    ) -> None:
-        """Test platform mappings are correct."""
-        assert CATEGORY_TO_PLATFORMS[category] == expected_platforms
-
-
-class TestGetPlatformsForCategory:
-    """Test get_platforms_for_category function."""
-
-    def test_known_categories(self) -> None:
-        """Test known categories return correct platforms."""
-        assert get_platforms_for_category(DeviceCategory.LIGHT) == ["light"]
-        assert get_platforms_for_category(DeviceCategory.FAN_LIGHT) == ["light", "fan"]
-        assert get_platforms_for_category(DeviceCategory.CURTAIN) == ["cover"]
-
-    def test_unknown_category_returns_empty(self) -> None:
-        """Test unknown category returns empty list."""
-        assert get_platforms_for_category(DeviceCategory.UNKNOWN) == []
-        assert get_platforms_for_category(DeviceCategory.GATEWAY) == []

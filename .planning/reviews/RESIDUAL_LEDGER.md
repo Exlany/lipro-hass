@@ -206,3 +206,10 @@
 - `MqttTransportClient` 现为唯一 canonical concrete transport naming；legacy `LiproMqttClient` naming 已退出治理真源、package export 与 production/test mainline。
 - `get_auth_data()` compat projection 与 helper-level outlet-power synthetic wrapper 已物理退场；`AuthSessionSnapshot` 与 explicit `OutletPowerInfoRow | list[OutletPowerInfoRow]` 成为唯一正式 typed contract。
 - v1.1 remaining active residual 现只保留明确 de-scope / out-of-scope debt：external-boundary advisory naming、boundary family coverage 与 representative replay coverage。
+
+## Phase 18 Residual Delta
+
+- `custom_components/lipro/core/auth/bootstrap.py` 现为正式 host-neutral auth/bootstrap helper home；`config_flow.py` 与 `entry_auth.py` 只复用它装配 protocol/auth collaborators，没有引入新的 control/protocol root。
+- `custom_components/lipro/helpers/platform.py` 现为唯一 HA platform projection home；`const/categories.py`、`CapabilitySnapshot`、`CapabilityRegistry`、`LiproDevice` 与 `device_views` 已不再把 HA platform strings 当成 domain truth。
+- `ConfigEntryLoginProjection` 明确降格为 HA adapter projection，而不是新的 auth/session truth；`AuthSessionSnapshot` 继续是唯一正式 contract。
+- 本 phase **无新增 active residual family / compat shell / file-level kill target**；新增的是更窄的 locality 守卫与 targeted bans，用来阻断旧 projection token 回流。

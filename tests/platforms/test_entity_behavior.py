@@ -17,8 +17,27 @@ def test_entity_exposes_capability_projection(mock_coordinator, make_device):
     light = LiproLight(mock_coordinator, device)
 
     assert light.capabilities == device.capabilities
-    assert light.capabilities.supports_platform("light") is True
+    from custom_components.lipro.helpers.platform import capability_supports_platform
+
+    assert capability_supports_platform(light.capabilities, "light") is True
     assert light.capabilities.is_fan_light is True
+
+
+def test_platform_projection_helpers_follow_category_truth(make_device):
+    """Adapter helpers should project HA platforms from host-neutral categories."""
+    from custom_components.lipro.const.categories import DeviceCategory
+    from custom_components.lipro.helpers.platform import (
+        capability_supports_platform,
+        device_supports_platform,
+        platforms_for_category,
+    )
+
+    device = make_device("fanLight", serial="03ab5ccd7c999998")
+
+    assert platforms_for_category(DeviceCategory.FAN_LIGHT) == ("light", "fan")
+    assert capability_supports_platform(device.capabilities, "light") is True
+    assert device_supports_platform(device, "fan") is True
+    assert device_supports_platform(device, "switch") is False
 
 
 class TestLightEntityBehavior:

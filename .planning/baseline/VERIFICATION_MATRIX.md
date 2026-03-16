@@ -2,7 +2,7 @@
 
 **Purpose:** 建立 requirement → artifact → test → doc → phase acceptance / handoff 的统一验证闭环。
 **Status:** Formal baseline asset (`BASE-03` phase acceptance truth source)
-**Updated:** 2026-03-15 (Phase 17 closeout aligned)
+**Updated:** 2026-03-16 (Phase 18 nucleus locality aligned)
 
 ## Formal Role
 
@@ -110,3 +110,10 @@
 - **Required governance proof:** `_ClientTransportMixin`、endpoint legacy mixin family、`LiproMqttClient` legacy naming、`get_auth_data()` compat projection 与 synthetic outlet-power wrapper 都必须在 governance truth 中得到正确 disposition：已删除、已退场、或只剩 local helper locality，不得继续登记为 active residual。
 - **Required runnable proof:** `uv run python scripts/check_architecture_policy.py --check`、`uv run python scripts/check_file_matrix.py --check`、`uv run pytest -q tests/meta/test_governance_guards.py tests/meta/test_dependency_guards.py tests/meta/test_public_surface_guards.py tests/meta/test_version_sync.py`、`uv run ruff check .`、`uv run mypy`、`uv run pytest -q`。
 - **Unblock effect:** `Phase 17` 可标记为 `4/4 complete`，`v1.1` closeout 与 final repo audit 完成，里程碑进入 archive-ready 状态。
+
+## Phase 18 Host-Neutral Nucleus Contract
+
+- **Required artifacts:** `.planning/baseline/{PUBLIC_SURFACES,DEPENDENCY_MATRIX,ARCHITECTURE_POLICY,VERIFICATION_MATRIX}.md`、`.planning/reviews/{FILE_MATRIX,RESIDUAL_LEDGER,KILL_LIST}.md`、`scripts/check_architecture_policy.py`、`tests/meta/test_dependency_guards.py`、`tests/meta/test_public_surface_guards.py`、`custom_components/lipro/core/auth/bootstrap.py` 与对齐后的 auth/device/platform focused suites。
+- **Required governance proof:** `core/auth` / `core/capability` / `core/device` nucleus homes 不得重新吸入 `homeassistant` 或 `helpers/platform.py`；`helpers/platform.py` 必须保持 adapter-only HA platform projection 身份；`ConfigEntryLoginProjection` 只能作为 HA config-entry projection，不得替代 `AuthSessionSnapshot` formal truth。
+- **Required runnable proof:** `uv run python scripts/check_architecture_policy.py --check`、`uv run python scripts/check_file_matrix.py --check`、`uv run pytest -q tests/meta/test_dependency_guards.py tests/meta/test_public_surface_guards.py tests/meta/test_governance_guards.py tests/meta/test_version_sync.py`、`uv run pytest -q tests/flows/test_config_flow.py tests/core/test_init.py tests/core/test_token_persistence.py tests/core/test_categories.py tests/core/device/test_capabilities.py tests/core/capability/test_registry.py tests/core/test_device.py tests/core/device/test_device.py tests/platforms/test_entity_behavior.py tests/entities/test_descriptors.py tests/snapshots/test_device_snapshots.py`、`uv run ruff check .` 与 `uv run mypy` 通过。
+- **Unblock effect:** `Phase 18` 的 host-neutral nucleus extraction / adapter projection demotion 获得 baseline、guard 与 focused regression 三重闭环，而不引入第二 root 或 silent residual。

@@ -1,6 +1,6 @@
 # File Matrix
 
-**Python files total:** 449
+**Python files total:** 450
 **Status:** File-level governance authority
 **Rule:** workspace inventory excluding caches / virtual env / tooling artifacts
 
@@ -11,11 +11,11 @@
 | `custom_components/lipro/__init__.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/binary_sensor.py` | Domain | Phase 4 | 保留 | - |
 | `custom_components/lipro/climate.py` | Domain | Phase 4 | 保留 | - |
-| `custom_components/lipro/config_flow.py` | Control | Phase 3 | 保留 | - |
+| `custom_components/lipro/config_flow.py` | Control | Phase 3 / 18 | 保留 | HA login adapter; projects `AuthSessionSnapshot` into entry data |
 | `custom_components/lipro/const/__init__.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/const/api.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/const/base.py` | Cross-cutting | Phase 7 | 保留 | - |
-| `custom_components/lipro/const/categories.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `custom_components/lipro/const/categories.py` | Cross-cutting | Phase 7 / 18 | 保留 | host-neutral device category truth; no HA platform mapping |
 | `custom_components/lipro/const/config.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/const/device_types.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/const/entity_config.py` | Cross-cutting | Phase 7 | 保留 | - |
@@ -77,11 +77,12 @@
 | `custom_components/lipro/core/api/transport_retry.py` | Protocol | Phase 2 | 重构 | - |
 | `custom_components/lipro/core/api/transport_signing.py` | Protocol | Phase 2 | 重构 | - |
 | `custom_components/lipro/core/api/types.py` | Protocol | Phase 2 | 重构 | - |
-| `custom_components/lipro/core/auth/__init__.py` | Cross-cutting | Phase 7 | 保留 | - |
-| `custom_components/lipro/core/auth/manager.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `custom_components/lipro/core/auth/__init__.py` | Cross-cutting | Phase 7 / 18 | 保留 | formal auth/session + bootstrap export surface |
+| `custom_components/lipro/core/auth/bootstrap.py` | Cross-cutting | Phase 18 | 保留 | host-neutral auth/bootstrap seed + collaborator wiring home |
+| `custom_components/lipro/core/auth/manager.py` | Cross-cutting | Phase 7 / 18 | 保留 | formal `AuthSessionSnapshot` / auth-manager truth home |
 | `custom_components/lipro/core/capability/__init__.py` | Domain | Phase 4 | 保留 | - |
-| `custom_components/lipro/core/capability/models.py` | Domain | Phase 4 | 保留 | - |
-| `custom_components/lipro/core/capability/registry.py` | Domain | Phase 4 | 保留 | - |
+| `custom_components/lipro/core/capability/models.py` | Domain | Phase 4 / 18 | 保留 | host-neutral capability truth; HA platform projection forbidden |
+| `custom_components/lipro/core/capability/registry.py` | Domain | Phase 4 / 18 | 保留 | host-neutral capability/category derivation home |
 | `custom_components/lipro/core/command/__init__.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/core/command/confirmation_tracker.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/core/command/dispatch.py` | Cross-cutting | Phase 7 | 保留 | - |
@@ -144,11 +145,11 @@
 | `custom_components/lipro/core/coordinator/services/telemetry_service.py` | Runtime | Phase 5 | 重构 | - |
 | `custom_components/lipro/core/coordinator/types.py` | Runtime | Phase 5 | 重构 | - |
 | `custom_components/lipro/core/device/__init__.py` | Domain | Phase 4 | 重构 | - |
-| `custom_components/lipro/core/device/device.py` | Domain | Phase 4 | 重构 | - |
+| `custom_components/lipro/core/device/device.py` | Domain | Phase 4 / 18 | 重构 | explicit domain façade; HA platform projection removed |
 | `custom_components/lipro/core/device/device_factory.py` | Domain | Phase 4 | 重构 | - |
 | `custom_components/lipro/core/device/device_runtime.py` | Domain | Phase 4 | 重构 | - |
 | `custom_components/lipro/core/device/device_snapshots.py` | Domain | Phase 4 | 重构 | - |
-| `custom_components/lipro/core/device/device_views.py` | Domain | Phase 4 | 重构 | - |
+| `custom_components/lipro/core/device/device_views.py` | Domain | Phase 4 / 18 | 重构 | host-neutral read-only views; no `platforms()` projection helper |
 | `custom_components/lipro/core/device/extra_support.py` | Domain | Phase 4 | 重构 | - |
 | `custom_components/lipro/core/device/extras.py` | Domain | Phase 4 | 重构 | - |
 | `custom_components/lipro/core/device/extras_features.py` | Domain | Phase 4 | 重构 | - |
@@ -219,17 +220,17 @@
 | `custom_components/lipro/entities/commands.py` | Domain | Phase 4 | 保留 | - |
 | `custom_components/lipro/entities/descriptors.py` | Domain | Phase 4 | 保留 | - |
 | `custom_components/lipro/entities/firmware_update.py` | Domain | Phase 4 | 保留 | - |
-| `custom_components/lipro/entry_auth.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `custom_components/lipro/entry_auth.py` | Cross-cutting | Phase 7 / 18 | 保留 | HA adapter auth bootstrap + token persistence seam |
 | `custom_components/lipro/entry_options.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/fan.py` | Domain | Phase 4 | 保留 | - |
 | `custom_components/lipro/firmware_manifest.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/flow/__init__.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/flow/credentials.py` | Control | Phase 3 | 保留 | - |
-| `custom_components/lipro/flow/login.py` | Control | Phase 3 | 保留 | - |
+| `custom_components/lipro/flow/login.py` | Control | Phase 3 / 18 | 保留 | HA config-entry login projection home |
 | `custom_components/lipro/flow/options_flow.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/flow/schemas.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/helpers/__init__.py` | Cross-cutting | Phase 7 | 保留 | - |
-| `custom_components/lipro/helpers/platform.py` | Domain | Phase 4 | 保留 | - |
+| `custom_components/lipro/helpers/platform.py` | Domain | Phase 4 / 18 | 保留 | adapter-only HA platform projection home |
 | `custom_components/lipro/light.py` | Domain | Phase 4 | 保留 | - |
 | `custom_components/lipro/runtime_infra.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/runtime_types.py` | Cross-cutting | Phase 7 | 保留 | - |
