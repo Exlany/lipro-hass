@@ -166,6 +166,7 @@ class TestLiproFanPresetModes:
         from custom_components.lipro.const.properties import (
             FAN_MODE_CYCLE,
             FAN_MODE_DIRECT,
+            FAN_MODE_GENTLE_WIND,
             FAN_MODE_NATURAL,
         )
         from custom_components.lipro.fan import PRESET_TO_MODE
@@ -173,7 +174,7 @@ class TestLiproFanPresetModes:
         assert PRESET_TO_MODE["direct"] == FAN_MODE_DIRECT
         assert PRESET_TO_MODE["natural"] == FAN_MODE_NATURAL
         assert PRESET_TO_MODE["cycle"] == FAN_MODE_CYCLE
-        assert "gentle_wind" not in PRESET_TO_MODE
+        assert PRESET_TO_MODE["gentle_wind"] == FAN_MODE_GENTLE_WIND
 
     def test_bidirectional_consistency(self):
         """Test MODE_TO_PRESET and PRESET_TO_MODE are consistent."""
@@ -251,6 +252,17 @@ class TestLiproHeaterVentPresetModes:
 
         for aeration, preset in AERATION_TO_PRESET.items():
             assert PRESET_TO_AERATION[preset] == aeration
+
+    def test_vent_preset_modes_include_off(self, mock_coordinator, make_device) -> None:
+        """Vent preset options should include the current off state."""
+        from custom_components.lipro.fan import LiproHeaterVentFan
+
+        device = make_device("heater", properties={"aerationGear": "0"})
+        mock_coordinator.get_device = MagicMock(return_value=device)
+        fan = LiproHeaterVentFan(mock_coordinator, device)
+
+        assert fan.preset_mode == "off"
+        assert fan.preset_modes == ["off", "strong", "weak"]
 
     def test_aeration_constants(self):
         """Test aeration gear constants."""
@@ -544,13 +556,13 @@ class TestLiproFanEntityBehavior:
         mock_coordinator.get_device = MagicMock(return_value=device)
         fan = LiproFan(mock_coordinator, device)
         assert fan.preset_mode == "gentle_wind"
-        assert "gentle_wind" not in (fan.preset_modes or [])
+        assert "gentle_wind" in (fan.preset_modes or [])
 
     @pytest.mark.asyncio
-    async def test_set_preset_mode_gentle_wind_is_ignored(
+    async def test_set_preset_mode_gentle_wind_dispatches_command(
         self, mock_coordinator, make_device
     ) -> None:
-        """Unsupported gentle_wind should be ignored (keep current mode)."""
+        """gentle_wind should be a supported preset mode."""
         from custom_components.lipro.fan import LiproFan
 
         device = make_device("fanLight", properties={"fanOnoff": "1", "fanMode": "0"})
@@ -560,7 +572,9 @@ class TestLiproFanEntityBehavior:
         with patch.object(fan, "async_write_ha_state"):
             await fan.async_set_preset_mode("gentle_wind")
 
-        mock_coordinator.async_send_command.assert_not_called()
+        call_args = mock_coordinator.async_send_command.call_args
+        properties = call_args[0][2]
+        assert any(p["key"] == "fanMode" and p["value"] == "3" for p in properties)
 
     def test_supported_features_cycle_mode_disables_set_speed(
         self, mock_coordinator, make_device

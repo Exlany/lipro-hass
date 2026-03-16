@@ -70,24 +70,21 @@ class SnapshotBuilder:
     """Builds device snapshots from API responses."""
 
     @staticmethod
-    def _normalize_compat_device_row(device_data: Mapping[str, object]) -> DeviceRow:
-        """Promote a compat-shaped device row into the runtime's expected shape."""
+    def _canonicalize_device_row(device_data: Mapping[str, object]) -> DeviceRow:
+        """Return one runtime-ready canonical device row."""
         normalized = dict(device_data)
-        if "deviceName" not in normalized and isinstance(normalized.get("name"), str):
-            normalized["deviceName"] = normalized["name"]
-        if "type" not in normalized and "deviceType" in normalized:
-            normalized["type"] = normalized["deviceType"]
-
-        identity_aliases = {
-            candidate.strip()
-            for candidate in (
-                normalized.get("serial"),
-                normalized.get("iotDeviceId"),
-            )
-            if isinstance(candidate, str) and candidate.strip()
-        }
-        if identity_aliases and "identityAliases" not in normalized:
-            normalized["identityAliases"] = sorted(identity_aliases)
+        identity_aliases = normalized.get("identityAliases")
+        if not isinstance(identity_aliases, list):
+            derived_aliases = {
+                candidate.strip()
+                for candidate in (
+                    normalized.get("serial"),
+                    normalized.get("iotDeviceId"),
+                )
+                if isinstance(candidate, str) and candidate.strip()
+            }
+            if derived_aliases:
+                normalized["identityAliases"] = sorted(derived_aliases)
         return cast(DeviceRow, normalized)
 
     async def _async_enrich_mesh_group_metadata(
@@ -229,7 +226,7 @@ class SnapshotBuilder:
 
         for device_data in all_devices:
             try:
-                normalized_row = self._normalize_compat_device_row(device_data)
+                normalized_row = self._canonicalize_device_row(device_data)
                 if not self._device_filter.is_device_included(normalized_row):
                     _LOGGER.debug("Device filtered out by configuration")
                     continue

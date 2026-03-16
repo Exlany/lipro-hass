@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
+from dataclasses import dataclass
 from typing import TYPE_CHECKING, Protocol, cast, runtime_checkable
 
 from homeassistant.core import HomeAssistant
@@ -18,28 +19,38 @@ from .models import FailureSummary, RuntimeCoordinatorSnapshot, empty_failure_su
 type RuntimeTelemetryView = dict[str, object]
 
 
+@dataclass(frozen=True, slots=True)
+class _RuntimeEntryProjection:
+    """Immutable runtime-entry projection for control-plane readers."""
+
+    entry_id: str
+    runtime_data: LiproCoordinator | None
+    options: Mapping[str, object]
+
+
 def _as_runtime_entry(entry: object) -> RuntimeEntryLike | None:
     """Return a runtime-entry view when the object exposes the required fields."""
-    entry_id = getattr(entry, "entry_id", None)
     if not hasattr(entry, "runtime_data"):
         return None
+
+    entry_id = getattr(entry, "entry_id", "")
     if not isinstance(entry_id, str):
-        obj_dict = getattr(entry, "__dict__", None)
-        if not isinstance(obj_dict, dict):
-            return None
-        obj_dict["entry_id"] = ""
+        entry_id = ""
 
-    options = getattr(entry, "options", None)
+    options = getattr(entry, "options", {})
     if not isinstance(options, Mapping):
-        obj_dict = getattr(entry, "__dict__", None)
-        if not isinstance(obj_dict, dict):
-            return None
-        obj_dict["options"] = {}
-        options = getattr(entry, "options", None)
-        if not isinstance(options, Mapping):
-            return None
+        options = {}
 
-    return cast(RuntimeEntryLike, entry)
+    runtime_data = cast(RuntimeEntryLike, entry).runtime_data
+
+    return cast(
+        RuntimeEntryLike,
+        _RuntimeEntryProjection(
+            entry_id=entry_id,
+            runtime_data=runtime_data,
+            options=cast(Mapping[str, object], options),
+        ),
+    )
 
 
 class RuntimeEntryLike(Protocol):

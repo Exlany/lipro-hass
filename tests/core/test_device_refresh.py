@@ -346,8 +346,8 @@ async def test_snapshot_builder_build_full_snapshot_single_page(
     mock_client.get_devices = AsyncMock(
         return_value={
             "devices": [
-                {"serial": "03ab000000000001", "name": "Device 1", "deviceType": 1},
-                {"serial": "03ab000000000002", "name": "Device 2", "deviceType": 1},
+                {"serial": "03ab000000000001", "deviceName": "Device 1", "type": 1},
+                {"serial": "03ab000000000002", "deviceName": "Device 2", "type": 1},
             ],
             "total": 2,
         }
@@ -357,7 +357,7 @@ async def test_snapshot_builder_build_full_snapshot_single_page(
         "custom_components.lipro.core.device.LiproDevice.from_api_data"
     ) as from_api:
         from_api.side_effect = lambda data: make_device(
-            "light", serial=data["serial"], name=data["name"]
+            "light", serial=data["serial"], name=data["deviceName"]
         )
 
         snapshot = await snapshot_builder.build_full_snapshot()
@@ -378,13 +378,13 @@ async def test_snapshot_builder_build_full_snapshot_multiple_pages(
         side_effect=[
             {
                 "devices": [
-                    {"serial": "03ab000000000001", "name": "Device 1", "deviceType": 1}
+                    {"serial": "03ab000000000001", "deviceName": "Device 1", "type": 1}
                 ],
                 "total": 2,
             },
             {
                 "devices": [
-                    {"serial": "03ab000000000002", "name": "Device 2", "deviceType": 1}
+                    {"serial": "03ab000000000002", "deviceName": "Device 2", "type": 1}
                 ],
                 "total": 2,
             },
@@ -395,7 +395,7 @@ async def test_snapshot_builder_build_full_snapshot_multiple_pages(
         "custom_components.lipro.core.device.LiproDevice.from_api_data"
     ) as from_api:
         from_api.side_effect = lambda data: make_device(
-            "light", serial=data["serial"], name=data["name"]
+            "light", serial=data["serial"], name=data["deviceName"]
         )
 
         snapshot = await snapshot_builder.build_full_snapshot()
@@ -430,8 +430,8 @@ async def test_snapshot_builder_applies_device_filter(
     mock_client.get_devices = AsyncMock(
         return_value={
             "devices": [
-                {"serial": "03ab000000000001", "name": "Device 1", "deviceType": 1},
-                {"serial": "03ab000000000002", "name": "Device 2", "deviceType": 1},
+                {"serial": "03ab000000000001", "deviceName": "Device 1", "type": 1},
+                {"serial": "03ab000000000002", "deviceName": "Device 2", "type": 1},
             ],
             "total": 2,
         }
@@ -441,7 +441,7 @@ async def test_snapshot_builder_applies_device_filter(
         "custom_components.lipro.core.device.LiproDevice.from_api_data"
     ) as from_api:
         from_api.side_effect = lambda data: make_device(
-            "light", serial=data["serial"], name=data["name"]
+            "light", serial=data["serial"], name=data["deviceName"]
         )
 
         snapshot = await snapshot_builder.build_full_snapshot()
@@ -460,9 +460,9 @@ async def test_snapshot_builder_categorizes_devices_by_type(
     mock_client.get_devices = AsyncMock(
         return_value={
             "devices": [
-                {"serial": "light1", "name": "Light", "deviceType": 1},
-                {"serial": "group1", "name": "Group", "deviceType": 1},
-                {"serial": "outlet1", "name": "Outlet", "deviceType": 6},
+                {"serial": "light1", "deviceName": "Light", "type": 1},
+                {"serial": "group1", "deviceName": "Group", "type": 1},
+                {"serial": "outlet1", "deviceName": "Outlet", "type": 6},
             ],
             "total": 3,
         }
@@ -499,8 +499,8 @@ async def test_snapshot_builder_handles_parse_errors_gracefully(
     mock_client.get_devices = AsyncMock(
         return_value={
             "devices": [
-                {"serial": "03ab000000000001", "name": "Valid Device", "deviceType": 1},
-                {"serial": "invalid", "name": "Invalid Device"},  # Missing deviceType
+                {"serial": "03ab000000000001", "deviceName": "Valid Device", "type": 1},
+                {"serial": "invalid", "deviceName": "Invalid Device"},  # Missing deviceType
             ],
             "total": 2,
         }
@@ -518,8 +518,8 @@ async def test_snapshot_builder_handles_parse_errors_gracefully(
             return LiproDevice(
                 device_number=1,
                 serial=data["serial"],
-                name=data["name"],
-                device_type=data["deviceType"],
+                name=data["deviceName"],
+                device_type=data["type"],
                 iot_name="lipro_led",
                 physical_model="light",
             )
@@ -566,7 +566,7 @@ async def test_device_runtime_refresh_devices_force(
     mock_client.get_devices = AsyncMock(
         return_value={
             "devices": [
-                {"serial": "03ab000000000001", "name": "Device 1", "deviceType": 1},
+                {"serial": "03ab000000000001", "deviceName": "Device 1", "type": 1},
             ],
             "total": 1,
         }
@@ -592,7 +592,7 @@ async def test_device_runtime_first_refresh_is_always_full(
     mock_client.get_devices = AsyncMock(
         return_value={
             "devices": [
-                {"serial": "03ab000000000001", "name": "Device 1", "deviceType": 1},
+                {"serial": "03ab000000000001", "deviceName": "Device 1", "type": 1},
             ],
             "total": 1,
         }
@@ -619,7 +619,7 @@ async def test_device_runtime_cached_refresh_reuses_existing_snapshot(
     mock_client.get_devices = AsyncMock(
         return_value={
             "devices": [
-                {"serial": "03ab000000000001", "name": "Device 1", "deviceType": 1},
+                {"serial": "03ab000000000001", "deviceName": "Device 1", "type": 1},
             ],
             "total": 1,
         }

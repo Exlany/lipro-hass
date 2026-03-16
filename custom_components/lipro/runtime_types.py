@@ -60,6 +60,17 @@ class MqttServiceLike(Protocol):
     async def async_sync_subscriptions(self) -> None: ...
 
 
+class CommandServiceLike(Protocol):
+    """Stable command-dispatch surface exposed by the coordinator."""
+
+    async def async_send_command(
+        self,
+        device: LiproDevice,
+        command: str,
+        properties: list[dict[str, str]] | None = None,
+    ) -> bool: ...
+
+
 class LiproCoordinator(Protocol):
     """Narrow public runtime surface consumed outside the coordinator plane."""
 
@@ -72,6 +83,9 @@ class LiproCoordinator(Protocol):
 
     @property
     def mqtt_service(self) -> MqttServiceLike: ...
+
+    @property
+    def command_service(self) -> CommandServiceLike: ...
 
     @property
     def devices(self) -> Mapping[str, LiproDevice]: ...
@@ -115,6 +129,7 @@ class LiproCoordinator(Protocol):
 
 
 __all__ = [
+    "CommandServiceLike",
     "DeviceRefreshServiceLike",
     "LiproCoordinator",
     "MqttServiceLike",

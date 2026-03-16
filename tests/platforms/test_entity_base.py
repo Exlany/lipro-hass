@@ -162,6 +162,26 @@ class TestLiproEntitySendCommand:
             device, "powerOn", [{"key": "powerState", "value": "1"}]
         )
 
+    async def test_send_command_prefers_command_service_when_available(
+        self, mock_coordinator, make_device
+    ) -> None:
+        """Runtime command dispatch should prefer the formal command_service."""
+        device = make_device("light")
+        mock_coordinator.get_device.return_value = device
+        mock_coordinator.command_service = MagicMock()
+        mock_coordinator.command_service.async_send_command = AsyncMock(return_value=True)
+        entity = _make_entity(mock_coordinator, device)
+
+        result = await entity.async_send_command(
+            "powerOn", [{"key": "powerState", "value": "1"}]
+        )
+
+        assert result is True
+        mock_coordinator.command_service.async_send_command.assert_awaited_once_with(
+            device, "powerOn", [{"key": "powerState", "value": "1"}]
+        )
+        mock_coordinator.async_send_command.assert_not_awaited()
+
     async def test_send_command_with_optimistic_state_updates_device(
         self, mock_coordinator, make_device
     ):

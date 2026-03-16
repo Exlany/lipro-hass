@@ -188,6 +188,25 @@ class LiproEntity(CoordinatorEntity[Any]):
             optimistic,
         )
 
+    async def _async_dispatch_runtime_command(
+        self,
+        command: str,
+        properties: list[dict[str, str]] | None = None,
+    ) -> bool:
+        """Dispatch one command through the formal runtime command surface."""
+        command_service = getattr(self.coordinator, "command_service", None)
+        if command_service is not None and hasattr(command_service, "async_send_command"):
+            return await command_service.async_send_command(
+                self.device,
+                command,
+                properties,
+            )
+        return await self.coordinator.async_send_command(
+            self.device,
+            command,
+            properties,
+        )
+
     async def async_send_command(
         self,
         command: str,
@@ -219,8 +238,7 @@ class LiproEntity(CoordinatorEntity[Any]):
                 self.device.update_properties(optimistic_state)
             self.async_write_ha_state()
 
-        success = await self.coordinator.async_send_command(
-            self.device,
+        success = await self._async_dispatch_runtime_command(
             command,
             properties,
         )
@@ -293,8 +311,7 @@ class LiproEntity(CoordinatorEntity[Any]):
             optimistic_state: State that was optimistically set.
 
         """
-        success = await self.coordinator.async_send_command(
-            self.device,
+        success = await self._async_dispatch_runtime_command(
             command,
             properties,
         )
