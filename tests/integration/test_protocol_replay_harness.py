@@ -10,6 +10,7 @@ from tests.core.api.test_protocol_contract_matrix import (
     EXPECTED_MESH_GROUP_STATUS_ROWS,
     EXPECTED_MQTT_CONFIG,
 )
+from tests.harness.headless_consumer import HEADLESS_PROOF_ASSERTION_FAMILIES
 from tests.harness.protocol import (
     LoadedReplayFixture,
     ProtocolReplayDriver,
@@ -89,6 +90,12 @@ def test_protocol_replay_harness_pulls_telemetry_assertions_from_exporter_truth(
             expected_canonical=_expected_canonical_for_manifest(manifest),
             expected_fingerprint=expected_fingerprint,
         )
+
+
+def test_protocol_replay_harness_covers_headless_proof_families() -> None:
+    assert set(HEADLESS_PROOF_ASSERTION_FAMILIES).issubset(
+        {manifest.family for manifest in iter_replay_manifests()}
+    )
 
 
 def test_protocol_replay_harness_builds_structured_run_summary() -> None:

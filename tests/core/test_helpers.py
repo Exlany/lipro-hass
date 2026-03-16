@@ -6,6 +6,7 @@ from typing import Any, cast
 from unittest.mock import MagicMock
 
 from custom_components.lipro.helpers.platform import (
+    add_entry_entities,
     build_device_entities_from_rules,
     create_device_entities,
     create_platform_entities,
@@ -17,6 +18,24 @@ def _make_entity(tag: str) -> Entity:
     entity = MagicMock(spec=Entity)
     entity.tag = tag
     return cast(Entity, entity)
+
+
+class TestAddEntryEntities:
+    """Tests for the thin platform adapter shell helper."""
+
+    def test_projects_runtime_data_once(self, mock_coordinator):
+        """Entry shell should only pass runtime_data into the entity builder."""
+        entry = MagicMock(runtime_data=mock_coordinator)
+        async_add_entities = MagicMock()
+        entities = [_make_entity('first'), _make_entity('second')]
+
+        add_entry_entities(
+            entry,
+            async_add_entities,
+            entity_builder=lambda coordinator: entities if coordinator is mock_coordinator else [],
+        )
+
+        async_add_entities.assert_called_once_with(entities)
 
 
 class TestCreatePlatformEntities:

@@ -31,9 +31,10 @@ from .core import (
     LiproConnectionError,
     LiproProtocolFacade,
 )
-from .core.auth import AuthBootstrapSeed, build_protocol_auth_context
+from .core.auth import AuthBootstrapSeed
 from .core.utils.coerce import coerce_int_option
 from .core.utils.log_safety import safe_error_placeholder
+from .headless.boot import build_headless_boot_context
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -137,16 +138,21 @@ def build_entry_auth_context(
     """Build API client and auth manager from config entry data."""
     seed = _build_entry_auth_seed(entry, logger=logger)
     session = get_client_session(hass)
-    client, auth_manager = build_protocol_auth_context(
+    boot_context = build_headless_boot_context(
         seed,
         session,
         client_factory=client_factory,
         auth_manager_factory=auth_manager_factory,
     )
-    auth_manager.set_tokens_updated_callback(
-        partial(persist_entry_tokens_if_changed, hass, entry, auth_manager)
+    boot_context.auth_manager.set_tokens_updated_callback(
+        partial(
+            persist_entry_tokens_if_changed,
+            hass,
+            entry,
+            boot_context.auth_manager,
+        )
     )
-    return client, auth_manager
+    return boot_context.protocol, boot_context.auth_manager
 
 
 async def async_authenticate_entry(auth_manager: LiproAuthManager) -> None:

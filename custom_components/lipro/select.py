@@ -20,6 +20,7 @@ from .const.properties import (
 )
 from .entities.base import LiproEntity
 from .helpers.platform import (
+    add_entry_entities,
     build_device_entities_from_rules,
     create_device_entities,
     should_expose_light_gear_select,
@@ -69,9 +70,14 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up Lipro select entities."""
-    coordinator = entry.runtime_data
-    entities = create_device_entities(coordinator, _build_device_select_entities)
-    async_add_entities(entities)
+    add_entry_entities(
+        entry,
+        async_add_entities,
+        entity_builder=lambda coordinator: create_device_entities(
+            coordinator,
+            _build_device_select_entities,
+        ),
+    )
 
 
 def _build_device_select_entities(

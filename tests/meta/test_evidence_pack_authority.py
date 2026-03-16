@@ -7,7 +7,10 @@ from typing import Any
 
 from scripts.check_file_matrix import classify_path
 from tests.harness.evidence_pack.collector import AiDebugEvidenceCollector
-from tests.harness.evidence_pack.sources import ALLOWED_FORMAL_SOURCE_PATHS
+from tests.harness.evidence_pack.sources import (
+    ALLOWED_FORMAL_SOURCE_PATHS,
+    NON_AUTHORITY_PROOF_PATHS,
+)
 from tests.helpers.repo_root import repo_root
 
 _ROOT = repo_root(Path(__file__))
@@ -65,6 +68,12 @@ def test_evidence_pack_governance_truth_registers_phase_8_assets() -> None:
     assert "AI debug evidence pack" in evidence_index_text
     assert "scripts/export_ai_debug_evidence_pack.py" in evidence_index_text
     assert "## Phase 08 Residual Delta" in residual_text
+
+
+def test_headless_proof_assets_do_not_become_evidence_authority_sources() -> None:
+    allowed = set(ALLOWED_FORMAL_SOURCE_PATHS)
+
+    assert allowed.isdisjoint(NON_AUTHORITY_PROOF_PATHS)
 
 
 def test_evidence_pack_redaction_contract_blocks_sensitive_key_names() -> None:

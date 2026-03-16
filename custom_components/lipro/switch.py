@@ -25,6 +25,7 @@ from .entities.commands import (
     PropertyToggleCommand,
 )
 from .helpers.platform import (
+    add_entry_entities,
     build_device_entities_from_rules,
     create_device_entities,
     device_supports_platform,
@@ -246,8 +247,14 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up Lipro switches."""
-    entities = create_device_entities(entry.runtime_data, _build_device_switches)
-    async_add_entities(entities)
+    add_entry_entities(
+        entry,
+        async_add_entities,
+        entity_builder=lambda coordinator: create_device_entities(
+            coordinator,
+            _build_device_switches,
+        ),
+    )
 
 
 def _build_device_switches(

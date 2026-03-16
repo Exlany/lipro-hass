@@ -25,6 +25,10 @@ STATE_PATH = ".planning/STATE.md"
 REPLAY_FIXTURE_ROOT = "tests/fixtures/protocol_replay"
 API_CONTRACT_ROOT = "tests/fixtures/api_contracts"
 BOUNDARY_FIXTURE_ROOT = "tests/fixtures/protocol_boundary"
+NON_AUTHORITY_PROOF_PATHS = (
+    "tests/harness/headless_consumer.py",
+    "tests/integration/test_headless_consumer_proof.py",
+)
 
 ALLOWED_FORMAL_SOURCE_PATHS = (
     BOUNDARY_INVENTORY_PATH,

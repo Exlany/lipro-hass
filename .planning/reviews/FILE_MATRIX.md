@@ -1,6 +1,6 @@
 # File Matrix
 
-**Python files total:** 450
+**Python files total:** 455
 **Status:** File-level governance authority
 **Rule:** workspace inventory excluding caches / virtual env / tooling artifacts
 
@@ -26,7 +26,7 @@
 | `custom_components/lipro/control/entry_lifecycle_controller.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/control/models.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/control/redaction.py` | Control | Phase 3 | 保留 | - |
-| `custom_components/lipro/control/runtime_access.py` | Control | Phase 3 | 保留 | - |
+| `custom_components/lipro/control/runtime_access.py` | Control | Phase 3 / 19 | 保留 | control-plane runtime locator only |
 | `custom_components/lipro/control/service_registry.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/control/service_router.py` | Control | Phase 3 / 14 / 15 | 保留 | public handler home; upload/report glue kept out-of-line |
 | `custom_components/lipro/control/system_health_surface.py` | Control | Phase 3 | 保留 | - |
@@ -212,7 +212,7 @@
 | `custom_components/lipro/core/utils/redaction.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/core/utils/retry_after.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/core/utils/vendor_crypto.py` | Cross-cutting | Phase 7 | 保留 | - |
-| `custom_components/lipro/cover.py` | Domain | Phase 4 | 保留 | - |
+| `custom_components/lipro/cover.py` | Domain | Phase 4 / 19 | 保留 | thin HA platform setup shell + cover entity home |
 | `custom_components/lipro/diagnostics.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/domain_data.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/entities/__init__.py` | Domain | Phase 4 | 保留 | - |
@@ -220,21 +220,23 @@
 | `custom_components/lipro/entities/commands.py` | Domain | Phase 4 | 保留 | - |
 | `custom_components/lipro/entities/descriptors.py` | Domain | Phase 4 | 保留 | - |
 | `custom_components/lipro/entities/firmware_update.py` | Domain | Phase 4 | 保留 | - |
-| `custom_components/lipro/entry_auth.py` | Cross-cutting | Phase 7 / 18 | 保留 | HA adapter auth bootstrap + token persistence seam |
+| `custom_components/lipro/entry_auth.py` | Cross-cutting | Phase 7 / 18 / 19 | 保留 | HA adapter auth bootstrap + shared headless boot + token persistence seam |
 | `custom_components/lipro/entry_options.py` | Cross-cutting | Phase 7 | 保留 | - |
-| `custom_components/lipro/fan.py` | Domain | Phase 4 | 保留 | - |
+| `custom_components/lipro/fan.py` | Domain | Phase 4 / 19 | 保留 | thin HA platform setup shell + fan entity home |
 | `custom_components/lipro/firmware_manifest.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/flow/__init__.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/flow/credentials.py` | Control | Phase 3 | 保留 | - |
-| `custom_components/lipro/flow/login.py` | Control | Phase 3 / 18 | 保留 | HA config-entry login projection home |
+| `custom_components/lipro/flow/login.py` | Control | Phase 3 / 18 / 19 | 保留 | HA config-entry login projection + adapter-only login error shell |
 | `custom_components/lipro/flow/options_flow.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/flow/schemas.py` | Control | Phase 3 | 保留 | - |
+| `custom_components/lipro/headless/__init__.py` | Cross-cutting | Phase 19 | 保留 | proof-only package with no public exports |
+| `custom_components/lipro/headless/boot.py` | Cross-cutting | Phase 19 | 保留 | local proof-only headless boot seam |
 | `custom_components/lipro/helpers/__init__.py` | Cross-cutting | Phase 7 | 保留 | - |
-| `custom_components/lipro/helpers/platform.py` | Domain | Phase 4 / 18 | 保留 | adapter-only HA platform projection home |
-| `custom_components/lipro/light.py` | Domain | Phase 4 | 保留 | - |
+| `custom_components/lipro/helpers/platform.py` | Domain | Phase 4 / 18 / 19 | 保留 | adapter-only HA platform projection + thin setup-shell helper home |
+| `custom_components/lipro/light.py` | Domain | Phase 4 / 19 | 保留 | thin HA platform setup shell + light entity home |
 | `custom_components/lipro/runtime_infra.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/runtime_types.py` | Cross-cutting | Phase 7 | 保留 | - |
-| `custom_components/lipro/select.py` | Domain | Phase 4 | 保留 | - |
+| `custom_components/lipro/select.py` | Domain | Phase 4 / 19 | 保留 | thin HA platform setup shell + select entity home |
 | `custom_components/lipro/sensor.py` | Domain | Phase 4 | 保留 | - |
 | `custom_components/lipro/services/__init__.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/services/command.py` | Control | Phase 3 | 保留 | - |
@@ -251,9 +253,9 @@
 | `custom_components/lipro/services/registry.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/services/schedule.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/services/share.py` | Control | Phase 3 | 保留 | - |
-| `custom_components/lipro/switch.py` | Domain | Phase 4 | 保留 | - |
+| `custom_components/lipro/switch.py` | Domain | Phase 4 / 19 | 保留 | thin HA platform setup shell + switch entity home |
 | `custom_components/lipro/system_health.py` | Control | Phase 3 | 保留 | - |
-| `custom_components/lipro/update.py` | Domain | Phase 4 | 保留 | - |
+| `custom_components/lipro/update.py` | Domain | Phase 4 / 19 | 保留 | thin HA platform setup shell + firmware-update entity home |
 | `scripts/__init__.py` | Assurance | Phase 6 / 7 | 保留 | - |
 | `scripts/agent_worker.py` | Assurance | Phase 6 / 7 | 保留 | - |
 | `scripts/check_architecture_policy.py` | Assurance | Phase 7.2 | 保留 | - |
@@ -364,7 +366,8 @@
 | `tests/core/test_entry_update_listener.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `tests/core/test_exceptions.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `tests/core/test_group_status.py` | Cross-cutting | Phase 7 | 保留 | - |
-| `tests/core/test_helpers.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `tests/core/test_headless_boot.py` | Cross-cutting | Phase 19 | 保留 | focused regression for local headless boot seam |
+| `tests/core/test_helpers.py` | Cross-cutting | Phase 7 / 19 | 保留 | thin setup-shell helper coverage |
 | `tests/core/test_identity_index.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `tests/core/test_init.py` | Control | Phase 3 / 7 | 保留 | - |
 | `tests/core/test_init_edge_cases.py` | Cross-cutting | Phase 7 | 保留 | - |
@@ -393,6 +396,7 @@
 | `tests/harness/evidence_pack/redaction.py` | Assurance | Phase 8 | 保留 | - |
 | `tests/harness/evidence_pack/schema.py` | Assurance | Phase 8 | 保留 | - |
 | `tests/harness/evidence_pack/sources.py` | Assurance | Phase 8 | 保留 | - |
+| `tests/harness/headless_consumer.py` | Assurance | Phase 19 | 保留 | proof-only headless consumer harness |
 | `tests/harness/protocol/__init__.py` | Assurance | Phase 7.4 | 保留 | - |
 | `tests/harness/protocol/replay_assertions.py` | Assurance | Phase 7.4 | 保留 | - |
 | `tests/harness/protocol/replay_driver.py` | Assurance | Phase 7.4 | 保留 | - |
@@ -406,14 +410,15 @@
 | `tests/helpers/repo_root.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/helpers/service_call.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/integration/__init__.py` | Runtime | Phase 5 / 6 | 保留 | - |
-| `tests/integration/test_ai_debug_evidence_pack.py` | Assurance | Phase 8 | 保留 | - |
+| `tests/integration/test_ai_debug_evidence_pack.py` | Assurance | Phase 8 / 19 | 保留 | evidence authority trace covers headless-proof bridge without promoting proof assets |
+| `tests/integration/test_headless_consumer_proof.py` | Assurance | Phase 19 | 保留 | single-chain headless consumer proof |
 | `tests/integration/test_mqtt_coordinator_integration.py` | Runtime | Phase 5 / 6 | 保留 | - |
-| `tests/integration/test_protocol_replay_harness.py` | Assurance | Phase 7.4 | 保留 | - |
+| `tests/integration/test_protocol_replay_harness.py` | Assurance | Phase 7.4 / 19 | 保留 | replay harness covers headless-proof assertion families |
 | `tests/integration/test_telemetry_exporter_integration.py` | Runtime | Phase 7.3 | 保留 | - |
 | `tests/meta/__init__.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_blueprints.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_dependency_guards.py` | Assurance | Phase 6 | 保留 | - |
-| `tests/meta/test_evidence_pack_authority.py` | Assurance | Phase 8 | 保留 | - |
+| `tests/meta/test_evidence_pack_authority.py` | Assurance | Phase 8 / 19 | 保留 | proof assets stay out of authority source allowlist |
 | `tests/meta/test_external_boundary_authority.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_external_boundary_fixtures.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_firmware_support_manifest_repo_asset.py` | Assurance | Phase 6 | 保留 | - |

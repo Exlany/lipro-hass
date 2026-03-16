@@ -1,4 +1,4 @@
-# Requirements: Lipro-HASS v1.1
+# Requirements: Lipro-HASS
 
 ## Core Requirements
 
@@ -231,18 +231,18 @@
 - mapped to phases: 65
 - unmapped: 0 ✓
 
-*Last updated: 2026-03-15 after Phase 17 closeout and final repo audit*
+*Last updated: 2026-03-16 after Phase 19 completion truth sync*
 
 
-## Proposed Next Milestone (v1.2 Draft)
+## Current Milestone (v1.2)
 
-> 该部分是下一轮规划草案；不影响当前 `v1.1` 已完成 requirements / traceability 真相。
+> `v1.2` 已进入执行态；以下 requirement / traceability 反映 Phase 18-19 当前完成度。
 
 ### Core Reuse / Host-Neutral Nucleus
 
-- [ ] **CORE-01**: boundary/auth/device 的共享 nucleus 可在不依赖 HA entry/runtime adapter 类型的前提下独立组合。
-- [ ] **CORE-02**: 同一套 nucleus 必须能被 headless / CLI-style consumer 复用，完成认证、设备发现与 replay/evidence proof。
-- [ ] **CORE-03**: HA adapter 只能保留 adapter 身份，不得继续把 host-specific wiring 泄露回共享 nucleus。
+- [x] **CORE-01**: boundary/auth/device 的共享 nucleus 可在不依赖 HA entry/runtime adapter 类型的前提下独立组合。
+- [x] **CORE-02**: 同一套 nucleus 必须能被 headless / CLI-style consumer 复用，完成认证、设备发现与 replay/evidence proof。
+- [x] **CORE-03**: HA adapter 只能保留 adapter 身份，不得继续把 host-specific wiring 泄露回共享 nucleus。
 
 ### Replay / Boundary Completion
 
@@ -259,13 +259,13 @@
 
 - [ ] **GOV-16**: v1.2 的 host-neutral / replay-complete / observability-hardening 真相必须同步到 roadmap / state / baseline / reviews / docs / meta guards。
 
-## Draft Traceability for v1.2
+## Traceability for v1.2
 
 | Requirement | Planned Phase | Status |
 |-------------|---------------|--------|
-| CORE-01 | Phase 18 | Draft |
-| CORE-02 | Phase 19 | Draft |
-| CORE-03 | Phase 18 | Draft |
+| CORE-01 | Phase 18 | Complete |
+| CORE-02 | Phase 19 | Complete |
+| CORE-03 | Phase 18 | Complete |
 | SIM-03 | Phase 20 | Draft |
 | SIM-04 | Phase 21 | Draft |
 | SIM-05 | Phase 20 | Draft |
@@ -273,7 +273,7 @@
 | OBS-03 | Phase 21 | Draft |
 | GOV-16 | Phase 22 | Draft |
 
-**Draft Coverage:**
-- Proposed v1.2 requirements: 9 total
-- Draft mapped: 9
-- Draft unmapped: 0 ✓
+**Current Coverage:**
+- v1.2 requirements: 9 total
+- Current mapped: 9
+- Current unmapped: 0 ✓

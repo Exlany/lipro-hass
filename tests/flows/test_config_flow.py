@@ -9,7 +9,7 @@ Note: On Windows, this may require Microsoft C++ Build Tools.
 from __future__ import annotations
 
 import asyncio
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
@@ -43,6 +43,7 @@ from custom_components.lipro.const.config import (
     MAX_DEVICE_FILTER_LIST_CHARS,
 )
 from custom_components.lipro.core.api import LiproApiError, LiproAuthError
+from custom_components.lipro.core.auth import AuthSessionSnapshot
 from custom_components.lipro.flow.schemas import (
     STEP_REAUTH_DATA_SCHEMA,
     STEP_USER_DATA_SCHEMA,
@@ -488,6 +489,50 @@ async def test_async_try_login_propagates_cancelled_error(
             {},
             "login",
         )
+
+
+async def test_async_do_login_uses_shared_headless_boot_contract(
+    hass: HomeAssistant,
+) -> None:
+    """Config flow login should inward to the shared headless boot seam."""
+    flow = LiproConfigFlow()
+    flow.hass = hass
+    auth_session = AuthSessionSnapshot(
+        access_token='access',
+        refresh_token='refresh',
+        user_id=10001,
+        expires_at=123.0,
+        phone_id='phone-id',
+        biz_id='biz-id',
+    )
+    boot_context = MagicMock(name='boot_context')
+    boot_context.async_login_with_password_hash = AsyncMock(return_value=auth_session)
+
+    with (
+        patch(
+            'custom_components.lipro.config_flow.async_get_clientsession',
+            return_value=MagicMock(name='session'),
+        ) as mock_get_session,
+        patch(
+            'custom_components.lipro.config_flow.build_headless_boot_context',
+            return_value=boot_context,
+        ) as mock_build,
+    ):
+        result = await flow._async_do_login(
+            '13800000000',
+            'hashed-password',
+            'phone-id',
+        )
+
+    assert result == auth_session
+    mock_get_session.assert_called_once_with(hass)
+    mock_build.assert_called_once()
+    seed, session = mock_build.call_args.args
+    assert seed.phone == '13800000000'
+    assert seed.phone_id == 'phone-id'
+    assert seed.password_hash == 'hashed-password'
+    assert session is mock_get_session.return_value
+    boot_context.async_login_with_password_hash.assert_awaited_once_with()
 
 
 async def test_form_already_configured(

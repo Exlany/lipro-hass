@@ -26,7 +26,11 @@ from .const.properties import (
     PROP_FAN_ONOFF,
 )
 from .entities.base import LiproEntity
-from .helpers.platform import build_device_entities_from_rules, create_device_entities
+from .helpers.platform import (
+    add_entry_entities,
+    build_device_entities_from_rules,
+    create_device_entities,
+)
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
@@ -94,9 +98,14 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up Lipro fans."""
-    coordinator = entry.runtime_data
-    entities = create_device_entities(coordinator, _build_device_fan_entities)
-    async_add_entities(entities)
+    add_entry_entities(
+        entry,
+        async_add_entities,
+        entity_builder=lambda coordinator: create_device_entities(
+            coordinator,
+            _build_device_fan_entities,
+        ),
+    )
 
 
 def _build_device_fan_entities(

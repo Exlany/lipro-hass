@@ -31,6 +31,7 @@ def hash_password(password: str) -> str:
     return hash_password_for_auth(password)
 
 
+
 def map_login_error(err: LiproApiError) -> str:
     """Map login exception to error key for UI display."""
     if isinstance(err, LiproAuthError):

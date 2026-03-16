@@ -169,3 +169,9 @@
 - 本 phase **无新增 active kill target**；`core/auth/bootstrap.py`、`flow/login.py::ConfigEntryLoginProjection` 与 `helpers/platform.py` 都是正式 helper / adapter homes，而不是新的 compat shell。
 - `CATEGORY_TO_PLATFORMS`、`get_platforms_for_category()`、`CapabilitySnapshot.platforms`、`supports_platform()` 与 `device_views.platforms()` 已从治理真源退场；其回流风险由 Phase 18 targeted bans 负责阻断，而非留作新的 delete-gated carry-forward。
 - `entry_auth.py` 与 `config_flow.py` 已统一复用 shared auth bootstrap wiring；后续若再优化，只允许继续收窄 adapter 语义，不得重建第二套 auth bootstrap truth。
+
+## Phase 19 Status Update
+
+- 本 phase **无新增 active kill target**；`custom_components/lipro/headless/boot.py`、`tests/harness/headless_consumer.py` 与平台 thin setup shells 都是正式 proof/helper/adapter homes，而不是新的 compat shell。
+- `build_password_login_seed()` 已从 `flow/login.py` 退出，headless proof 不再需要经由 HA flow 包复用 host-neutral seed helper。
+- authority 继续维持 **no-change**：未新增 truth-source family、未改变 authority precedence、未改变 sync owner；proof outputs 只消费 authority path，不反向成为 authority path。

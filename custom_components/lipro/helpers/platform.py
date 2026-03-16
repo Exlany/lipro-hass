@@ -15,11 +15,16 @@ if TYPE_CHECKING:
     from collections.abc import Callable, Iterable, Sequence
 
     from homeassistant.helpers.entity import Entity
+    from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
+    from .. import LiproConfigEntry
     from ..core.capability import CapabilitySnapshot
     from ..core.device import LiproDevice
     from ..runtime_types import LiproCoordinator
 
+    type CoordinatorEntityBuilder[EntityT: Entity] = Callable[
+        [LiproCoordinator], Iterable[EntityT]
+    ]
     type DevicePredicate = Callable[[LiproDevice], bool]
     type DeviceEntityFactory[EntityT: Entity] = Callable[
         [LiproCoordinator, LiproDevice], EntityT
@@ -59,6 +64,16 @@ def capability_supports_platform(
 def device_supports_platform(device: LiproDevice, platform: str) -> bool:
     """Return whether one device should project to the given HA platform."""
     return platform in platforms_for_category(device.category)
+
+
+def add_entry_entities[EntityT: Entity](
+    entry: LiproConfigEntry,
+    async_add_entities: AddEntitiesCallback,
+    *,
+    entity_builder: CoordinatorEntityBuilder[EntityT],
+) -> None:
+    """Project one runtime coordinator into HA entities via a thin adapter shell."""
+    async_add_entities(list(entity_builder(entry.runtime_data)))
 
 
 def create_platform_entities[EntityT: Entity](

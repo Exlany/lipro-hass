@@ -1,14 +1,14 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.1
-milestone_name: protocol-fidelity-operability
+milestone: v1.2
+milestone_name: Host-Neutral Core & Replay Completion
 status: active
-last_updated: "2026-03-15T18:20:00Z"
+last_updated: "2026-03-16T06:02:00Z"
 progress:
-  total_phases: 15
-  completed_phases: 15
-  total_plans: 58
-  completed_plans: 58
+  total_phases: 5
+  completed_phases: 2
+  total_plans: 15
+  completed_plans: 7
 ---
 
 # Project State
@@ -17,9 +17,9 @@ progress:
 
 See: `.planning/PROJECT.md`
 
-**Current milestone:** `v1.1 Protocol Fidelity & Operability`
-**Core value:** 在既有北极星单一主链基础上，把 fidelity / enforcement / telemetry / replay / AI-debug evidence 做成下一层正式能力，并继续把类型契约、残留收口、热点拆薄、测试分层与 contributor-facing governance 做成可验证的正式能力。
-**Current mode:** `Phase 17 complete`；`Phase 7.1-17` 已全部执行完成，`v1.1` closeout 与 final repo audit 已落地，当前处于 milestone archive-ready 状态。
+**Current milestone:** `v1.2 Host-Neutral Core & Replay Completion`
+**Core value:** 在不破坏 `LiproProtocolFacade` / `Coordinator` 单一正式主链的前提下，把 host-neutral nucleus、headless proof、remaining boundary/replay family 收口与 observability/governance follow-through 推进成下一轮正式能力。
+**Current mode:** `Phase 19 complete`；`Phase 18-19` 已执行完成，当前下一步是 `Phase 20 Remaining Boundary Family Completion`。
 
 ## Current Position
 
@@ -41,24 +41,16 @@ See: `.planning/PROJECT.md`
 - `Phase 16` 已完成：post-audit truth alignment、toolchain/DX truth、control/service contract、protocol/runtime hotspot decomposition、domain/entity/OTA rationalization 与 test-layer/docs follow-through `6 plans / 3 waves` 已全部落地
 - `Phase 17` 已完成：API residual spine 物理退场、auth/outlet-power typed contract 收口、MQTT canonical naming/no-export guard、governance closeout 与 final repo audit 已全部落地
 - `v1.1` 里程碑审计已更新：`.planning/v1.1-MILESTONE-AUDIT.md` 现覆盖 `Phase 7.1-17` 全范围，记录 `69/69 requirements`、`15/15 phases`，判定为 `tech_debt`（仅保留明确 de-scope/out-of-scope debt，不再保留 Phase 16 carry-forward residual）
+- `Phase 18` 已完成：host-neutral boundary nucleus、shared auth bootstrap、device/capability truth 与 adapter projection guards 已全部落地。
+- `Phase 19` 已完成：headless proof boot seam、single-chain device/replay/evidence proof、platform thin-shell demotion 与 second-root guards 已全部落地。
 
 ## Active Milestone Scope
 
-- `Phase 7.1`：Protocol Boundary Schema/Decoder 收口
-- `Phase 7.2`：Architecture Enforcement 加固
-- `Phase 7.3`：Runtime Telemetry Exporter 正式化
-- `Phase 7.4`：Protocol Replay / Simulator Harness 建立
-- `Phase 7.5`：Integration / Governance / Verification 收尾
-- `Phase 8`：AI Debug Evidence Pack
-- `Phase 9`：Residual Surface Closure
-- `Phase 10`：API Drift Isolation & Core Boundary Prep
-- `Phase 11`：Control Router Formalization & Wiring Residual Demotion
-- `Phase 12`：Type Contract Alignment, Residual Cleanup & Governance Hygiene
-- `Phase 13`：Explicit Domain Surface, Governance Guard Hardening & Hotspot Boundary Decomposition
-- `Phase 14`：Legacy Stack Final Closure, API Spine Demolition & Governance Truth Consolidation
-- `Phase 15`：Support Feedback Contract Hardening, Governance Truth Repair & Maintainability Follow-Through
-- `Phase 16`：Post-audit Truth Alignment, Hotspot Decomposition & Residual Endgame
-- `Phase 17`：Final Residual Retirement, Typed-Contract Tightening & Milestone Closeout
+- `Phase 18`：Host-Neutral Boundary Nucleus Extraction（complete）
+- `Phase 19`：Headless Consumer Proof & Adapter Demotion（complete）
+- `Phase 20`：Remaining Boundary Family Completion（next）
+- `Phase 21`：Replay / Observability / Exception Hardening
+- `Phase 22`：Governance, Docs & Release Readiness Closeout
 
 ## Carry-Forward Truths
 
@@ -115,18 +107,18 @@ See: `.planning/PROJECT.md`
 9. `AGENTS.md`
 10. `CLAUDE.md`（若使用 Claude Code）
 
-## Next Milestone Candidate
+## Current Milestone Status
 
-- **Milestone draft:** `v1.2 Host-Neutral Core & Replay Completion`
-- **Planned phase range:** `18 -> 22`
-- **Draft focus:** host-neutral nucleus extraction、headless consumer proof、remaining boundary/replay family completion、broad-catch/observability hardening、governance closeout
-- **Do not confuse with current state:** `v1.1` 仍是当前 archive-ready milestone；`v1.2` 现阶段只是已落表的 next-round plan，不会覆盖 `Phase 17` 完成态
+- **Milestone:** `v1.2 Host-Neutral Core & Replay Completion`
+- **Phase range:** `18 -> 22`
+- **Completed so far:** `Phase 18`, `Phase 19`
+- **Next focus:** remaining boundary/replay family completion、broad-catch/observability hardening、governance closeout
 
 ## Recommended Next Command
 
-1. `$gsd-complete-milestone v1.1` —— 正式归档当前 archive-ready 里程碑
-2. `$gsd-plan-phase 18` —— 直接开始下一轮 `Phase 18` 详细规划
-3. `$gsd-discuss-phase 18` —— 先围绕 host-neutral nucleus / headless proof 讨论收口范围
+1. `$gsd-plan-phase 20` —— 为 remaining boundary families 制定详细执行计划
+2. `$gsd-execute-phase 20` —— 执行 boundary family completion
+3. `$gsd-progress` —— 查看 v1.2 当前推进态
 
 ## Session Continuity
 
@@ -139,16 +131,19 @@ If resuming, read in this order:
 6. `.planning/REQUIREMENTS.md`
 7. `.planning/ROADMAP.md`
 8. `.planning/STATE.md`
-9. `.planning/phases/17-final-residual-retirement-typed-contract-tightening-and-milestone-closeout/17-CONTEXT.md`
-10. `.planning/phases/17-final-residual-retirement-typed-contract-tightening-and-milestone-closeout/17-RESEARCH.md`
-11. `.planning/phases/17-final-residual-retirement-typed-contract-tightening-and-milestone-closeout/17-VALIDATION.md`
-12. `.planning/phases/17-final-residual-retirement-typed-contract-tightening-and-milestone-closeout/17-VERIFICATION.md`
-13. `.planning/phases/17-final-residual-retirement-typed-contract-tightening-and-milestone-closeout/17-01-PLAN.md`
-14. `.planning/phases/17-final-residual-retirement-typed-contract-tightening-and-milestone-closeout/17-02-PLAN.md`
-15. `.planning/phases/17-final-residual-retirement-typed-contract-tightening-and-milestone-closeout/17-03-PLAN.md`
-16. `.planning/phases/17-final-residual-retirement-typed-contract-tightening-and-milestone-closeout/17-04-PLAN.md`
-17. `.planning/baseline/*.md`
-18. `.planning/reviews/*.md`
-19. `AGENTS.md`
-20. `CLAUDE.md`（若使用 Claude Code）
-21. `docs/developer_architecture.md`
+9. `.planning/phases/18-host-neutral-boundary-nucleus-extraction/18-CONTEXT.md`
+10. `.planning/phases/18-host-neutral-boundary-nucleus-extraction/18-RESEARCH.md`
+11. `.planning/phases/18-host-neutral-boundary-nucleus-extraction/18-VERIFICATION.md`
+12. `.planning/phases/19-headless-consumer-proof-adapter-demotion/19-CONTEXT.md`
+13. `.planning/phases/19-headless-consumer-proof-adapter-demotion/19-RESEARCH.md`
+14. `.planning/phases/19-headless-consumer-proof-adapter-demotion/19-VALIDATION.md`
+15. `.planning/phases/19-headless-consumer-proof-adapter-demotion/19-VERIFICATION.md`
+16. `.planning/phases/19-headless-consumer-proof-adapter-demotion/19-01-PLAN.md`
+17. `.planning/phases/19-headless-consumer-proof-adapter-demotion/19-02-PLAN.md`
+18. `.planning/phases/19-headless-consumer-proof-adapter-demotion/19-03-PLAN.md`
+19. `.planning/phases/19-headless-consumer-proof-adapter-demotion/19-04-PLAN.md`
+20. `.planning/baseline/*.md`
+21. `.planning/reviews/*.md`
+22. `AGENTS.md`
+23. `CLAUDE.md`（若使用 Claude Code）
+24. `docs/developer_architecture.md`

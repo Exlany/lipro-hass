@@ -315,13 +315,13 @@ Plans:
 - [x] 17-04: phase 17 governance closeout and final repo audit (completed 2026-03-15)
 
 
-## Proposed Next Milestone
+## Current Milestone
 
-### ⏭️ Proposed v1.2: Host-Neutral Core & Replay Completion
+### 🚧 v1.2: Host-Neutral Core & Replay Completion
 
 **Milestone Goal:** 在不破坏 `LiproProtocolFacade` / `Coordinator` 单一正式主链的前提下，把 future-host shared-core debt、remaining boundary/replay family debt 与关键 broad-catch / observability debt 提升为正式交付，让仓库从“HA 内部高治理集成”继续迈向“可复用、可回放、可宿主扩展、但不多根分裂”的下一阶段。
 
-**Draft Scope:** `Phase 18 -> Phase 22`（5 phases / 15 plans draft）
+**Execution Scope:** `Phase 18 -> Phase 22`（5 phases / 15 plans；截至 2026-03-16 已完成 2 phases / 7 plans）
 
 ### Phase 18: Host-Neutral Boundary Nucleus Extraction
 **Goal**: 把 boundary/auth/device 方向中已成熟的 host-neutral nucleus 从 HA adapter 语义中继续抽离，但不新建第二条 runtime story。
@@ -331,12 +331,13 @@ Plans:
   1. host-neutral nucleus 不再引用 HA entry/runtime adapter 类型。
   2. `LiproProtocolFacade` / `Coordinator` 仍保持正式根身份，提取只发生在 helper/service/nucleus 层。
   3. meta guards 能阻断 HA-specific imports 重新回流到 nucleus。
-**Plans**: 3 draft plans
+**Status**: Complete (`2026-03-16`)
+**Plans**: 3/3 complete
 
 Plans:
-- [ ] 18-01: 提炼 host-neutral contracts 与 adapter seams
-- [ ] 18-02: 抽离 auth/device/shared helpers 到 nucleus home
-- [ ] 18-03: 补齐 locality guards 与 focused regression
+- [x] 18-01: 提炼 host-neutral contracts 与 adapter seams
+- [x] 18-02: 抽离 auth/device/shared helpers 到 nucleus home
+- [x] 18-03: 补齐 locality guards 与 focused regression
 
 ### Phase 19: Headless Consumer Proof & Adapter Demotion
 **Goal**: 证明同一套 nucleus 能被 headless / CLI-style consumer 复用，而不是复制第二实现。
@@ -346,13 +347,14 @@ Plans:
   1. headless composition root 能走通 auth + device discovery + replay/evidence proof。
   2. HA adapter 继续只是 adapter，不再携带可复用业务根语义。
   3. 不出现 “CLI root / HA root” 双合法入口。
-**Plans**: 4 draft plans
+**Status**: Complete (`2026-03-16`)
+**Plans**: 4/4 complete
 
 Plans:
-- [ ] 19-01: 建立 headless composition root 与 boot contract
-- [ ] 19-02: 证明 auth/device/replay 使用同一 nucleus
-- [ ] 19-03: 继续 demote HA-only adapter assumptions
-- [ ] 19-04: sync long-term truth and second-root guards
+- [x] 19-01: 建立 headless composition root 与 boot contract
+- [x] 19-02: 证明 auth/device/replay 使用同一 nucleus
+- [x] 19-03: 继续 demote HA-only adapter assumptions
+- [x] 19-04: sync long-term truth and second-root guards
 
 ### Phase 20: Remaining Boundary Family Completion
 **Goal**: 把 `rest.list-envelope.v1`、`rest.schedule-json.v1`、`mqtt.topic.v1`、`mqtt.message-envelope.v1` 全部升级为 registry-backed boundary families。

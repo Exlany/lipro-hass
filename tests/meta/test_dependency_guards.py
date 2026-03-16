@@ -50,6 +50,8 @@ def test_dependency_matrix_references_architecture_policy() -> None:
     assert "ENF-IMP-BOUNDARY-LOCALITY" in dependency_matrix
     assert "ENF-IMP-NUCLEUS-NO-HOMEASSISTANT-IMPORT" in dependency_matrix
     assert "ENF-IMP-NUCLEUS-NO-PLATFORM-BACKFLOW" in dependency_matrix
+    assert "ENF-IMP-HEADLESS-PROOF-LOCALITY" in dependency_matrix
+    assert "ENF-IMP-PLATFORM-SHELL-NO-CONTROL-LOCATOR" in dependency_matrix
 
 
 def test_entity_platform_surfaces_do_not_import_protocol_internals_directly() -> None:
@@ -74,3 +76,11 @@ def test_host_neutral_nucleus_does_not_depend_on_adapter_platform_projection() -
 
 def test_mqtt_transport_imports_stay_localized_to_protocol_and_transport_modules() -> None:
     assert not _violations_for_rule("ENF-IMP-MQTT-TRANSPORT-LOCALITY")
+
+
+def test_headless_proof_boot_stays_out_of_host_runtime_and_control_planes() -> None:
+    assert not _violations_for_rule("ENF-IMP-HEADLESS-PROOF-LOCALITY")
+
+
+def test_platform_setup_shells_do_not_import_control_runtime_locator() -> None:
+    assert not _violations_for_rule("ENF-IMP-PLATFORM-SHELL-NO-CONTROL-LOCATOR")

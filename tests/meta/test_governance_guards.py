@@ -126,15 +126,28 @@ def _assert_current_mode_tracks_phase_lifecycle(state_text: str) -> None:
     )
 
 
-def _assert_state_tracks_phase_17_closeout(state_text: str) -> None:
+def _assert_state_preserves_phase_17_closeout_history(state_text: str) -> None:
+    assert "`v1.1` 已完成全部计划执行：`15 phases / 58 plans` 全绿落表" in state_text
+    assert "- `Phase 17` 已完成：" in state_text
+
+    if "milestone: v1.1" in state_text:
+        assert re.search(
+            r"\*\*Current mode:\*\* `Phase 17 (?:complete|milestone audit complete)`",
+            state_text,
+        )
+        assert "total_phases: 15" in state_text
+        assert "completed_phases: 15" in state_text
+        assert "total_plans: 58" in state_text
+        assert "completed_plans: 58" in state_text
+        return
+
+    assert "milestone: v1.2" in state_text
+    assert "milestone_name: Host-Neutral Core & Replay Completion" in state_text
+    assert "**Current milestone:** `v1.2 Host-Neutral Core & Replay Completion`" in state_text
     assert re.search(
-        r"\*\*Current mode:\*\* `Phase 17 (?:complete|milestone audit complete)`",
+        r"\*\*Current mode:\*\* `Phase (?:1[89]|[2-9]\d)(?:\.\d+)? [a-z][a-z0-9_ -]+`",
         state_text,
     )
-    assert "total_phases: 15" in state_text
-    assert "completed_phases: 15" in state_text
-    assert "total_plans: 58" in state_text
-    assert "completed_plans: 58" in state_text
 
 
 def test_governance_checker_reports_no_drift() -> None:
@@ -160,6 +173,8 @@ def test_architecture_policy_rule_inventory_is_stable() -> None:
         "ENF-IMP-MQTT-TRANSPORT-LOCALITY",
         "ENF-IMP-NUCLEUS-NO-HOMEASSISTANT-IMPORT",
         "ENF-IMP-NUCLEUS-NO-PLATFORM-BACKFLOW",
+        "ENF-IMP-HEADLESS-PROOF-LOCALITY",
+        "ENF-IMP-PLATFORM-SHELL-NO-CONTROL-LOCATOR",
         "ENF-IMP-ASSURANCE-NO-PRODUCTION-BACKFLOW",
     }
     assert set(load_targeted_bans(_ROOT)) == {
@@ -177,6 +192,8 @@ def test_architecture_policy_rule_inventory_is_stable() -> None:
         "ENF-HOSTPROJ-CATEGORIES-NO-HA-PLATFORMS",
         "ENF-HOSTPROJ-CAPABILITY-NO-PLATFORM-FIELD",
         "ENF-HOSTPROJ-DEVICE-VIEWS-NO-PLATFORM-PROJECTION",
+        "ENF-PROOF-HEADLESS-PACKAGE-NO-EXPORTS",
+        "ENF-PROOF-HEADLESS-BOOT-NO-SECOND-ROOT-BACKFLOW",
     }
 
 
@@ -645,7 +662,7 @@ def test_phase_15_execution_truth_is_consistent() -> None:
         "RES-01",
     ):
         assert f"| {req_id} | Phase 15 | Complete |" in requirements_text
-    _assert_state_tracks_phase_17_closeout(state_text)
+    _assert_state_preserves_phase_17_closeout_history(state_text)
     assert "2026.3.1" in prd_text
     assert "2026.3.1" in context_text
     assert "status: passed" in validation_text
@@ -780,7 +797,7 @@ def test_phase_16_execution_truth_is_consistent() -> None:
         "DOC-02",
     ):
         assert f"| {req_id} | Phase 16 | Complete |" in requirements_text
-    _assert_state_tracks_phase_17_closeout(state_text)
+    _assert_state_preserves_phase_17_closeout_history(state_text)
     assert "status: passed" in validation_text
     assert "| 16-02-00 | 16-02 | 1 | QLT-02 / DOC-02 |" in validation_text
     assert "| 16-03-00 | 16-03 | 2 | CTRL-06 / ERR-01 / TYP-04 |" in validation_text
@@ -852,7 +869,7 @@ def test_phase_17_execution_truth_is_consistent() -> None:
     assert "**Plans:** 4/4 complete" in roadmap_text
     for req_id in ("RES-03", "TYP-05", "MQT-01", "GOV-15"):
         assert f"| {req_id} | Phase 17 | Complete |" in requirements_text
-    _assert_state_tracks_phase_17_closeout(state_text)
+    _assert_state_preserves_phase_17_closeout_history(state_text)
     assert "## Phase 17 Final Residual Retirement Notes" in public_text
     assert "auth/session snapshot contract" in authority_text
     assert "## Phase 17 Closeout Contract" in verification_matrix_text
@@ -876,6 +893,70 @@ def test_phase_17_execution_truth_is_consistent() -> None:
         "17-04-SUMMARY.md",
         "17-VALIDATION.md",
         "17-VERIFICATION.md",
+    ):
+        assert (phase_root / artifact_name).exists()
+
+
+def test_phase_19_execution_truth_is_consistent() -> None:
+    phase_root = (
+        _ROOT
+        / ".planning"
+        / "phases"
+        / "19-headless-consumer-proof-adapter-demotion"
+    )
+    project_text = (_ROOT / ".planning" / "PROJECT.md").read_text(encoding="utf-8")
+    roadmap_text = (_ROOT / ".planning" / "ROADMAP.md").read_text(encoding="utf-8")
+    requirements_text = (_ROOT / ".planning" / "REQUIREMENTS.md").read_text(
+        encoding="utf-8"
+    )
+    state_text = (_ROOT / ".planning" / "STATE.md").read_text(encoding="utf-8")
+    public_text = (_ROOT / ".planning" / "baseline" / "PUBLIC_SURFACES.md").read_text(
+        encoding="utf-8"
+    )
+    verification_matrix_text = (
+        _ROOT / ".planning" / "baseline" / "VERIFICATION_MATRIX.md"
+    ).read_text(encoding="utf-8")
+    residual_text = (_ROOT / ".planning" / "reviews" / "RESIDUAL_LEDGER.md").read_text(
+        encoding="utf-8"
+    )
+    kill_text = (_ROOT / ".planning" / "reviews" / "KILL_LIST.md").read_text(
+        encoding="utf-8"
+    )
+    validation_text = (phase_root / "19-VALIDATION.md").read_text(encoding="utf-8")
+    verification_text = (phase_root / "19-VERIFICATION.md").read_text(encoding="utf-8")
+
+    assert "## Current Milestone (v1.2)" in project_text
+    assert "**Execution status:** `Phase 18-19` complete; `Phase 20-22` pending" in project_text
+    assert "## Current Milestone" in roadmap_text
+    assert "### Phase 19: Headless Consumer Proof & Adapter Demotion" in roadmap_text
+    assert "**Requirements**: [CORE-02]" in roadmap_text
+    assert "**Status**: Complete (`2026-03-16`)" in roadmap_text
+    assert "**Plans**: 4/4 complete" in roadmap_text
+    assert "# Requirements: Lipro-HASS" in requirements_text
+    assert "*Last updated: 2026-03-16 after Phase 19 completion truth sync*" in requirements_text
+    assert "## Traceability for v1.2" in requirements_text
+    assert "| CORE-02 | Phase 19 | Complete |" in requirements_text
+    assert "**Current mode:** `Phase 19 complete`" in state_text
+    assert "## Phase 19 Headless Proof & Adapter Shell Notes" in public_text
+    assert "## Phase 19 Headless Consumer Proof Contract" in verification_matrix_text
+    assert "## Phase 19 Residual Delta" in residual_text
+    assert "## Phase 19 Status Update" in kill_text
+    assert "status: passed" in validation_text
+    assert "status: passed" in verification_text
+
+    for artifact_name in (
+        "19-CONTEXT.md",
+        "19-RESEARCH.md",
+        "19-01-PLAN.md",
+        "19-02-PLAN.md",
+        "19-03-PLAN.md",
+        "19-04-PLAN.md",
+        "19-01-SUMMARY.md",
+        "19-02-SUMMARY.md",
+        "19-03-SUMMARY.md",
+        "19-04-SUMMARY.md",
+        "19-VALIDATION.md",
+        "19-VERIFICATION.md",
     ):
         assert (phase_root / artifact_name).exists()
 

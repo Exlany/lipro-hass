@@ -1,9 +1,9 @@
-# Project: Lipro-HASS North Star Evolution v1.1
+# Project: Lipro-HASS North Star Evolution
 
-**Status:** Active — `Phase 17` 已完成，milestone archive-ready
-**Goal:** 把 `protocol truth`、`architecture policy`、`runtime telemetry export`、`replay evidence`、`ai-debug evidence pack`、`residual surface closure`、`api drift isolation / core-boundary prep`、`control router / runtime-access / OTA / governance coherence`、`type contract alignment / residual cleanup / contributor governance hygiene`、`explicit domain surface / governance guard hardening / hotspot boundary decomposition`、`legacy stack final closure / API spine demolition / governance truth consolidation`、`support feedback contract hardening / governance truth repair / maintainability follow-through` 与 `post-audit truth alignment / hotspot decomposition / residual endgame` 十三条演进线统一纳入北极星主链，进入“可保真、可观测、可仲裁、可回放、可给 AI 调试/分析、可持续收尾”的下一里程碑。
+**Status:** Active — `v1.2` 执行中；`Phase 18-19` 已完成，当前下一步是 `Phase 20 Remaining Boundary Family Completion`。
+**Goal:** 把 `host-neutral nucleus`、`headless consumer proof`、`remaining boundary family completion`、`replay / observability / exception hardening` 与 `governance / docs / release closeout` 统一纳入当前 `v1.2` 里程碑，同时延续 `v1.1` 已建立的北极星单一主链、assurance 与开源治理能力。
 
-## Next Milestone Candidate (v1.2)
+## Current Milestone (v1.2)
 
 **Name:** `v1.2 Host-Neutral Core & Replay Completion`
 
@@ -19,13 +19,15 @@
 - 不让 replay/evidence 反向成为 authority source
 - 不把 host-neutral extraction 演化成“全新框架化”
 
-**Candidate outcomes:**
+**Milestone outcomes:**
 
 1. host-neutral boundary/auth/device nucleus 被正式抽出，但 `LiproProtocolFacade` 与 `Coordinator` 仍保持单一正式根叙事
 2. `rest.list-envelope.v1`、`rest.schedule-json.v1`、`mqtt.topic.v1`、`mqtt.message-envelope.v1` 从 de-scope/partial state 升格为 registry-backed / replay-covered families
 3. protocol/runtime/control 关键 broad-catch 与 observability arbitration 再收紧一轮，让 headless/CLI proof 与 diagnostics/evidence 使用同一失败分类语言
 
-**Draft phase range:** `Phase 18 -> 22`
+**Phase range:** `Phase 18 -> 22`
+
+**Execution status:** `Phase 18-19` complete; `Phase 20-22` pending
 
 ## Why This Milestone Exists
 

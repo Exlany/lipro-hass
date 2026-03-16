@@ -38,6 +38,8 @@
 | `ENF-IMP-BOUNDARY-LOCALITY` | `core/protocol/boundary/*` 仅限 protocol-plane internal collaborators 合法消费 | future assurance-only 例外必须先登记 |
 | `ENF-IMP-NUCLEUS-NO-HOMEASSISTANT-IMPORT` | `core/auth` / `core/capability` / `core/device` nucleus homes 不吸入 `homeassistant` imports | host-neutral truth 不得宿主化 |
 | `ENF-IMP-NUCLEUS-NO-PLATFORM-BACKFLOW` | nucleus homes 不反向依赖 `helpers/platform.py` | HA platform projection 必须停留在 adapter seam |
+| `ENF-IMP-HEADLESS-PROOF-LOCALITY` | headless boot seam 不得吸入 `homeassistant` / control / runtime / platform projection imports | proof consumer 不得长成第二 root |
+| `ENF-IMP-PLATFORM-SHELL-NO-CONTROL-LOCATOR` | platform setup shell 不得依赖 `control/runtime_access.py` | platform adapter 必须保持 headless setup shell 身份 |
 
 ## Guard Chain
 
@@ -78,3 +80,7 @@
 
 ---
 *Used by: Phase 1.5 seed guards, Phase 7.2 architecture policy, and CI-level dependency enforcement*
+
+- `custom_components/lipro/headless/boot.py` 是 local proof seam：它只能依赖 host-neutral auth/protocol truth，不能导入 `homeassistant`、`Coordinator`、`custom_components/lipro/control/*` 或 `helpers/platform.py`。
+- platform `async_setup_entry()` 壳只允许通过 `helpers/platform.add_entry_entities()` 把 `entry.runtime_data` 投影为实体列表；它们不得导入 `custom_components/lipro/control/runtime_access.py` 或其他 control locator。
+

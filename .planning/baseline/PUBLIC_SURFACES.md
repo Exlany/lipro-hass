@@ -2,7 +2,7 @@
 
 **Purpose:** 定义各平面的 canonical public surfaces、过渡公开面与禁止作为正式入口的对象。
 **Status:** Formal baseline asset (`BASE-01` public-surface truth source)
-**Updated:** 2026-03-16 (Phase 18 host-neutral nucleus alignment)
+**Updated:** 2026-03-16 (Phase 19 headless proof & adapter demotion)
 
 ## Formal Role
 
@@ -141,3 +141,13 @@
 
 ---
 *Used by: API/runtime/control/capability phase planning, public-surface guards, and targeted regression bans*
+
+## Phase 19 Headless Proof & Adapter Shell Notes
+
+- `custom_components/lipro/headless/boot.py` 是 local proof-only boot seam：它只复用 `AuthBootstrapSeed` / `AuthSessionSnapshot` / `build_protocol_auth_context()`，不构成 canonical 或 transitional public surface。
+- `custom_components/lipro/headless/__init__.py` 必须保持 no-export package 身份；`HeadlessBootContext`、`build_headless_boot_context()` 与 `build_password_boot_seed()` 只能通过具体文件路径被 proof/adapter 使用。
+- `tests/harness/headless_consumer.py` 与 `tests/integration/test_headless_consumer_proof.py` 只属于 proof-only assurance consumer：允许证明 `auth -> device -> replay/evidence` 共用同一 nucleus，但不得升级成 authority source、runtime root 或 contributor-facing product surface。
+- `config_flow.py` 与 `entry_auth.py` 现在共同 inward 到 `build_headless_boot_context()`；`ConfigEntryLoginProjection` 继续只属于 HA config-entry projection，`AuthSessionSnapshot` 继续是唯一正式 auth/session truth。
+- `helpers/platform.py` 继续是唯一 HA platform projection home；各平台 `async_setup_entry()` 现在只保留 thin headless setup shell，`control/runtime_access.py` 仍是 control-plane locator，不得成为 platform/entity bridge。
+- Phase 19 enforcement 由 `ENF-IMP-HEADLESS-PROOF-LOCALITY`、`ENF-IMP-PLATFORM-SHELL-NO-CONTROL-LOCATOR`、`ENF-PROOF-HEADLESS-PACKAGE-NO-EXPORTS` 与 `ENF-PROOF-HEADLESS-BOOT-NO-SECOND-ROOT-BACKFLOW` 共同负责。
+

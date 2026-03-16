@@ -213,3 +213,10 @@
 - `custom_components/lipro/helpers/platform.py` 现为唯一 HA platform projection home；`const/categories.py`、`CapabilitySnapshot`、`CapabilityRegistry`、`LiproDevice` 与 `device_views` 已不再把 HA platform strings 当成 domain truth。
 - `ConfigEntryLoginProjection` 明确降格为 HA adapter projection，而不是新的 auth/session truth；`AuthSessionSnapshot` 继续是唯一正式 contract。
 - 本 phase **无新增 active residual family / compat shell / file-level kill target**；新增的是更窄的 locality 守卫与 targeted bans，用来阻断旧 projection token 回流。
+
+## Phase 19 Residual Delta
+
+- `custom_components/lipro/headless/boot.py` 与 `tests/harness/headless_consumer.py` 只属于 local proof seam / assurance consumer；它们消费 formal truth，但不构成新的 protocol root、runtime root 或 authority family。
+- `config_flow.py` 与 `entry_auth.py` 已统一 inward 到 shared headless boot seam；HA-specific projection、exception mapping 与 token persistence 继续留在 adapter shell，没有回灌到 nucleus。
+- `helpers/platform.py` 与各平台 `async_setup_entry()` 现在显式收敛到 thin headless setup shell；`control/runtime_access.py` 仍是 control-plane locator，而不是 platform bridge。
+- 本 phase **无新增 active residual family / compat shell / authority no-change exception**；新增的是 second-root / backflow 守卫与 proof-only identity wording。

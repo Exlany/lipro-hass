@@ -22,7 +22,11 @@ from .const.properties import (
     PROP_POSITION,
 )
 from .entities.base import LiproEntity
-from .helpers.platform import create_platform_entities, device_supports_platform
+from .helpers.platform import (
+    add_entry_entities,
+    create_platform_entities,
+    device_supports_platform,
+)
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
@@ -40,12 +44,15 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up Lipro covers."""
-    entities = create_platform_entities(
-        entry.runtime_data,
-        device_filter=lambda d: device_supports_platform(d, "cover"),
-        entity_factory=LiproCover,
+    add_entry_entities(
+        entry,
+        async_add_entities,
+        entity_builder=lambda coordinator: create_platform_entities(
+            coordinator,
+            device_filter=lambda d: device_supports_platform(d, "cover"),
+            entity_factory=LiproCover,
+        ),
     )
-    async_add_entities(entities)
 
 
 class LiproCover(LiproEntity, CoverEntity):

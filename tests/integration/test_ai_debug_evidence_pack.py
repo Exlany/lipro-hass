@@ -10,6 +10,10 @@ from tests.harness.evidence_pack.schema import (
     EVIDENCE_PACK_SCHEMA_VERSION,
     PACK_SECTIONS,
 )
+from tests.harness.evidence_pack.sources import (
+    API_CONTRACT_ROOT,
+    NON_AUTHORITY_PROOF_PATHS,
+)
 
 _FIXED_GENERATED_AT = "2026-03-13T00:00:00Z"
 
@@ -66,6 +70,19 @@ def test_evidence_pack_preserves_real_timestamps_and_report_local_refs() -> None
         first_view["snapshot"]["runtime"]["recent_command_traces"][0]["device_ref"]
         != second_view["snapshot"]["runtime"]["recent_command_traces"][0]["device_ref"]
     )
+
+
+def test_evidence_pack_authority_trace_stays_on_formal_truth_for_headless_proof() -> None:
+    payload = AiDebugEvidenceCollector().collect(
+        report_id='headless-proof-authority',
+        generated_at=_FIXED_GENERATED_AT,
+    ).to_dict()
+
+    assert API_CONTRACT_ROOT in payload['boundary']['source_paths']
+    assert API_CONTRACT_ROOT in payload['index']['section_authority_trace']['boundary']
+    for proof_path in NON_AUTHORITY_PROOF_PATHS:
+        assert proof_path not in payload['boundary']['source_paths']
+        assert proof_path not in payload['governance']['source_paths']
 
 
 def test_evidence_pack_blocks_sensitive_values_and_uses_repo_relative_authority_paths() -> None:

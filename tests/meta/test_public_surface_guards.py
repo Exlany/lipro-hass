@@ -34,6 +34,8 @@ def test_public_surface_baseline_references_architecture_policy() -> None:
     assert "ENF-HOSTPROJ-CATEGORIES-NO-HA-PLATFORMS" in public_surfaces
     assert "ENF-HOSTPROJ-CAPABILITY-NO-PLATFORM-FIELD" in public_surfaces
     assert "ENF-HOSTPROJ-DEVICE-VIEWS-NO-PLATFORM-PROJECTION" in public_surfaces
+    assert "ENF-PROOF-HEADLESS-PACKAGE-NO-EXPORTS" in public_surfaces
+    assert "ENF-PROOF-HEADLESS-BOOT-NO-SECOND-ROOT-BACKFLOW" in public_surfaces
 
 
 def test_public_surface_baseline_registers_assurance_only_replay_and_evidence_surfaces() -> None:
@@ -72,6 +74,16 @@ def test_phase_18_surface_notes_capture_host_neutral_nucleus_alignment() -> None
     assert "ConfigEntryLoginProjection" in public_surfaces
     assert "helpers/platform.py" in public_surfaces
     assert "targeted bans 阻断回流" in public_surfaces
+
+
+def test_phase_19_surface_notes_capture_headless_proof_identity() -> None:
+    public_surfaces = _PUBLIC_SURFACES.read_text(encoding="utf-8")
+
+    assert "## Phase 19 Headless Proof & Adapter Shell Notes" in public_surfaces
+    assert "local proof-only boot seam" in public_surfaces
+    assert "no-export package" in public_surfaces
+    assert "thin headless setup shell" in public_surfaces
+    assert "ENF-PROOF-HEADLESS-PACKAGE-NO-EXPORTS" in public_surfaces
 
 
 def test_coordinator_entry_exports_only_runtime_surface_symbol() -> None:
@@ -131,6 +143,23 @@ def test_phase_18_adapter_and_projection_bans_keep_nucleus_host_neutral() -> Non
             assert signal in governed_text
         for signal in rule.forbidden_signals:
             assert signal not in governed_text
+
+
+def test_phase_19_headless_proof_bans_keep_boot_local_and_non_public() -> None:
+    package_rule = _RULES["ENF-PROOF-HEADLESS-PACKAGE-NO-EXPORTS"]
+    package_bindings = set(
+        extract_top_level_bindings(_ROOT / package_rule.governed_targets[0], root=_ROOT)
+    )
+
+    assert set(package_rule.allowed_or_required_signals).issubset(package_bindings)
+    assert package_bindings.isdisjoint(package_rule.forbidden_signals)
+
+    boot_rule = _RULES["ENF-PROOF-HEADLESS-BOOT-NO-SECOND-ROOT-BACKFLOW"]
+    boot_text = (_ROOT / boot_rule.governed_targets[0]).read_text(encoding="utf-8")
+    for signal in boot_rule.allowed_or_required_signals:
+        assert signal in boot_text
+    for signal in boot_rule.forbidden_signals:
+        assert signal not in boot_text
 
 
 def test_legacy_protocol_exports_do_not_reexpand_root_packages() -> None:

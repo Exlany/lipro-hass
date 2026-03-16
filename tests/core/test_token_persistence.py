@@ -21,7 +21,46 @@ from custom_components.lipro.const.config import (
 from custom_components.lipro.core import LiproAuthManager, LiproProtocolFacade
 from custom_components.lipro.entry_auth import build_entry_auth_context
 
+_HASHED_VALUE = "hashed-value"
+
 _TEST_LOGGER = logging.getLogger(__name__)
+
+
+def test_build_entry_auth_context_reuses_shared_headless_boot_contract(hass) -> None:
+    """Entry auth should only add HA callback glue on top of the shared boot seam."""
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={
+            CONF_PHONE_ID: "phone-id",
+            CONF_PHONE: "13800000000",
+            CONF_PASSWORD_HASH: _HASHED_VALUE,
+            CONF_ACCESS_TOKEN: "old_access",
+            CONF_REFRESH_TOKEN: "old_refresh",
+            CONF_USER_ID: 10001,
+        },
+    )
+    entry.add_to_hass(hass)
+    boot_context = MagicMock(name="boot_context")
+    boot_context.protocol = MagicMock(name="protocol")
+    boot_context.auth_manager = MagicMock(name="auth_manager")
+
+    with patch(
+        "custom_components.lipro.entry_auth.build_headless_boot_context",
+        return_value=boot_context,
+    ) as mock_build:
+        protocol, auth_manager = build_entry_auth_context(
+            hass,
+            entry,
+            get_client_session=lambda _: MagicMock(name="session"),
+            client_factory=LiproProtocolFacade,
+            auth_manager_factory=LiproAuthManager,
+            logger=_TEST_LOGGER,
+        )
+
+    assert protocol is boot_context.protocol
+    assert auth_manager is boot_context.auth_manager
+    mock_build.assert_called_once()
+    boot_context.auth_manager.set_tokens_updated_callback.assert_called_once()
 
 
 @pytest.mark.asyncio

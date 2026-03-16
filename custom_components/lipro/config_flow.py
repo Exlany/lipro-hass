@@ -27,11 +27,7 @@ from .const.config import (
 )
 from .core import LiproAuthManager, LiproProtocolFacade
 from .core.api import LiproApiError
-from .core.auth import (
-    AuthBootstrapSeed,
-    AuthSessionSnapshot,
-    async_login_with_password_hash,
-)
+from .core.auth import AuthSessionSnapshot
 from .core.utils.log_safety import safe_error_placeholder
 from .flow.credentials import (
     mask_phone_for_title as _mask_phone_for_title,
@@ -48,6 +44,10 @@ from .flow.schemas import (
     STEP_REAUTH_DATA_SCHEMA,
     STEP_USER_DATA_SCHEMA,
     build_reconfigure_data_schema as _build_reconfigure_data_schema,
+)
+from .headless.boot import (
+    build_headless_boot_context,
+    build_password_boot_seed as _build_password_boot_seed,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -88,17 +88,13 @@ class LiproConfigFlow(ConfigFlow, domain=DOMAIN):
 
         """
         session = async_get_clientsession(self.hass)
-        login_seed = AuthBootstrapSeed(
-            phone=phone,
-            phone_id=phone_id,
-            password_hash=password_hash,
-        )
-        return await async_login_with_password_hash(
-            login_seed,
+        boot_context = build_headless_boot_context(
+            _build_password_boot_seed(phone, password_hash, phone_id),
             session,
             client_factory=LiproProtocolFacade,
             auth_manager_factory=LiproAuthManager,
         )
+        return await boot_context.async_login_with_password_hash()
 
     async def _async_try_login(
         self,

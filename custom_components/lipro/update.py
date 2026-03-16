@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 
 from .entities.firmware_update import LiproFirmwareUpdateEntity
 from .helpers.platform import (
+    add_entry_entities,
     create_platform_entities,
     should_expose_firmware_update_entity,
 )
@@ -23,9 +24,12 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up Lipro firmware update entities."""
-    entities = create_platform_entities(
-        entry.runtime_data,
-        should_expose_firmware_update_entity,
-        LiproFirmwareUpdateEntity,
+    add_entry_entities(
+        entry,
+        async_add_entities,
+        entity_builder=lambda coordinator: create_platform_entities(
+            coordinator,
+            should_expose_firmware_update_entity,
+            LiproFirmwareUpdateEntity,
+        ),
     )
-    async_add_entities(entities)
