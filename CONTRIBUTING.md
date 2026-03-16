@@ -60,6 +60,7 @@ Thank you for your interest in contributing to the Lipro Smart Home integration!
 - Support routing and response expectations: `SUPPORT.md`
 - Private vulnerability disclosure: `SECURITY.md`
 - If you touch `README.md` / `README_zh.md` / `CONTRIBUTING.md` / `SUPPORT.md` / `SECURITY.md` / `.github/*` / release workflow, update these entry points together and do not leave silent defer behind.
+- Public bug reports should start with diagnostics; developer report / one-click feedback is an escalation path only when diagnostics are insufficient or a maintainer explicitly asks for deeper debugging.
 
 ## Code Standards / 代码规范
 

@@ -100,7 +100,7 @@ wget -O - https://raw.githubusercontent.com/Exlany/lipro-hass/main/install.sh | 
 wget -O - https://raw.githubusercontent.com/Exlany/lipro-hass/main/install.sh | LIPRO_ALLOW_MIRROR=1 HUB_DOMAIN=ghfast.top ARCHIVE_TAG=v1.0.0 bash -
 ```
 
-说明：`ARCHIVE_TAG` 用于指定安装版本（tag/branch）。`latest` 会解析为 GitHub Releases 的最新版本；如解析失败安装脚本会报错退出。建议固定到具体 tag（例如 `v1.0.0`）以获得可复现安装；如需开发版请显式使用 `ARCHIVE_TAG=main`。
+说明：默认推荐的脚本安装入口就是 `ARCHIVE_TAG=latest`。`latest` 会解析为 GitHub Releases 的最新版本；如解析失败安装脚本会报错退出。只有在你需要可复现安装时，才建议固定到具体 tag（例如 `v1.0.0`）；如需开发版请显式使用 `ARCHIVE_TAG=main`。
 
 说明：`HUB_DOMAIN` 仅影响脚本内请求 Release 信息与源码压缩包的域名，不会改变 `install.sh` 本身的下载地址（仍为 `raw.githubusercontent.com`）。
 
@@ -300,7 +300,7 @@ data:
 
 - 先确认手机号、密码在 Lipro 官方 App 中仍可正常使用。
 - 若密码已变更，请使用重新配置/更新凭据，不要直接删除集成。
-- 若 reauth 反复失败，请附上 diagnostics 与脱敏后的 developer report。
+- 若 reauth 反复失败，请先附上 diagnostics；只有当 diagnostics 仍不足以解释问题，或维护者要求进一步排查时，再补充脱敏后的 developer report。
 - 若可获取，请同时附上 diagnostics / system health / developer report 导出的 `failure_summary` / `failure_entries`。
 
 #### 设备不可用 / 未显示
@@ -324,7 +324,7 @@ data:
 
 脱敏范围包含账号凭据/Token（`phone`, `password`, `access_token`, `refresh_token`）、云端/设备标识（`userId`/`bizId`, `serial`/`deviceId`/`iotDeviceId`）以及网络标识（WiFi SSID/MAC/IP）。
 
-如需更深层调试，可先在本地预览或上报以下载荷：
+若 diagnostics 仍不足以解释问题，或维护者要求进一步排查，可再在本地预览或上报以下载荷：
 - `lipro.get_developer_report` - 本地调试报告；保留 `iotName` 等供应商诊断标识与本地标签，便于识别实测设备
 - `lipro.submit_developer_feedback` - 上传契约；保留 `iotName`，但会匿名化设备/房间/面板/红外资产名称等用户自定义标签
 - 若可获取，请把 `failure_summary` / `failure_entries` 与 diagnostics 一并提供，便于维护者快速判型

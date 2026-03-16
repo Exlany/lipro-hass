@@ -98,3 +98,29 @@ def test_file_matrix_classifier_registers_phase_8_assets() -> None:
     assert classify_path("tests/integration/test_ai_debug_evidence_pack.py").owner_phase == "Phase 8"
     assert classify_path("tests/meta/test_evidence_pack_authority.py").owner_phase == "Phase 8"
     assert classify_path("scripts/export_ai_debug_evidence_pack.py").owner_phase == "Phase 8"
+
+
+def test_evidence_pack_export_script_stays_pull_only_from_registered_harness() -> None:
+    script_text = (_ROOT / "scripts" / "export_ai_debug_evidence_pack.py").read_text(encoding="utf-8")
+
+    assert "tests.harness.evidence_pack" in script_text
+    assert "AiDebugEvidenceCollector" in script_text
+    assert "build_pack_index_markdown" in script_text
+    assert "tests.helpers" not in script_text
+    assert "tests.meta" not in script_text
+    assert ".planning" not in script_text
+
+
+def test_v1_2_evidence_index_keeps_phase_23_release_boundary_explicit() -> None:
+    evidence_text = (_ROOT / ".planning" / "reviews" / "V1_2_EVIDENCE_INDEX.md").read_text(encoding="utf-8")
+
+    for token in (
+        "23-01~23-08-SUMMARY.md",
+        "testing-map drift guard",
+        "provenance",
+        "SBOM",
+        "signing",
+        "firmware manifest metadata",
+        "SHA256SUMS",
+    ):
+        assert token in evidence_text

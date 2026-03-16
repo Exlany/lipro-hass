@@ -17,7 +17,9 @@
 - 漏洞披露：`SECURITY.md`
 - 维护者发版：`docs/MAINTAINER_RELEASE_RUNBOOK.md`
 
-## 活跃治理真源
+## 维护者治理真源
+
+以下 `.planning/*` 与治理契约主要服务维护者 / 评审者，不是普通用户排障入口；用户仍应优先沿 README → troubleshooting → support 主链导航。
 
 以下内容统一作为当前仓库真源：
 

@@ -100,7 +100,7 @@ wget -O - https://raw.githubusercontent.com/Exlany/lipro-hass/main/install.sh | 
 wget -O - https://raw.githubusercontent.com/Exlany/lipro-hass/main/install.sh | LIPRO_ALLOW_MIRROR=1 HUB_DOMAIN=ghfast.top ARCHIVE_TAG=v1.0.0 bash -
 ```
 
-Note: `ARCHIVE_TAG` selects what to install (tag/branch). `latest` resolves to the latest GitHub Release tag; if resolution fails the installer will exit with an error. Pin a tag (e.g. `v1.0.0`) for reproducible installs, or use `ARCHIVE_TAG=main` explicitly for the bleeding-edge version.
+Note: the default supported shell installer path is `ARCHIVE_TAG=latest`. `latest` resolves to the latest GitHub Release tag; if resolution fails the installer exits with an error. Pin a tag (for example `v1.0.0`) only when you need a reproducible install, or use `ARCHIVE_TAG=main` explicitly for the bleeding-edge version.
 
 Note: `HUB_DOMAIN` only affects where the installer fetches release metadata and source archives from. It does not change how `install.sh` itself is downloaded (still `raw.githubusercontent.com`).
 
@@ -299,7 +299,7 @@ Canonical troubleshooting guide: `docs/TROUBLESHOOTING.md`.
 
 - Ensure the phone number and password still work in the Lipro app.
 - If the password changed, use reconfigure/update credentials instead of deleting the integration.
-- For repeated reauth failures, include diagnostics plus a redacted developer report.
+- For repeated reauth failures, start with diagnostics; add a redacted developer report only when diagnostics still do not explain the failure or when a maintainer asks for deeper debugging.
 - If available, also include `failure_summary` / `failure_entries` from diagnostics, system health, or developer-report exports.
 
 #### Device Unavailable / Not Showing
@@ -323,7 +323,7 @@ Canonical troubleshooting guide: `docs/TROUBLESHOOTING.md`.
 
 Redaction includes account credentials/tokens (`phone`, `password`, `access_token`, `refresh_token`), cloud/device identifiers (`userId`/`bizId`, `serial`/`deviceId`/`iotDeviceId`), and network identifiers (WiFi SSID/MAC/IP).
 
-For deeper debugging, you can preview or submit the opt-in payloads first:
+If diagnostics are not enough, or a maintainer asks for deeper debugging, you can preview or submit the opt-in payloads first:
 - `lipro.get_developer_report` - local debugging report; keeps vendor diagnosis identifiers such as `iotName` plus local labels so you can recognize the device under test
 - `lipro.submit_developer_feedback` - upload contract; keeps `iotName` but anonymizes user-defined labels such as device/room/panel/IR names before upload
 - When available, include `failure_summary` / `failure_entries` alongside diagnostics so maintainers can classify the failure path faster

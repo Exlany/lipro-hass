@@ -11,8 +11,27 @@ This repository currently follows a single-maintainer release model. Every tagge
 - Canonical public support/security paths: `README.md`, `README_zh.md`, `CONTRIBUTING.md`, `SUPPORT.md`, `SECURITY.md`
 - Canonical troubleshooting path: `docs/TROUBLESHOOTING.md`
 - Canonical v1.2 closeout evidence pointer: `.planning/reviews/V1_2_EVIDENCE_INDEX.md`
+- Canonical firmware certification truth root: `custom_components/lipro/firmware_support_manifest.json`
 
 Private repositories and forks skip CI HACS validation because HACS only supports public GitHub repositories; do not treat a skipped HACS job as a release blocker in that case.
+
+## Current Supply-Chain Posture
+
+Currently enforced release hardening in this repository:
+
+- pinned GitHub Actions revisions in `ci.yml` / `release.yml`
+- mandatory CI reuse before packaging
+- tagged checkout via `refs/tags/${RELEASE_TAG}`
+- tag/version match against `pyproject.toml`
+- release archive checksum publication via `dist/SHA256SUMS`
+
+Explicitly deferred beyond this phase (must stay recorded, not implied):
+
+- `provenance` / artifact attestations
+- published `SBOM` assets
+- release artifact `signing`
+- making `code scanning` a hard release gate
+- richer firmware manifest metadata beyond the current local certified-truth root
 
 ## Preconditions
 

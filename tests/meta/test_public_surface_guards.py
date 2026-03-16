@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import ast
 from pathlib import Path
 
 from tests.helpers.architecture_policy import load_targeted_bans, policy_root
@@ -14,6 +15,29 @@ from tests.helpers.ast_guard_utils import (
 _ROOT = policy_root(Path(__file__))
 _PUBLIC_SURFACES = _ROOT / ".planning" / "baseline" / "PUBLIC_SURFACES.md"
 _RULES = load_targeted_bans(_ROOT)
+
+_ALLOWED_SCRIPT_TEST_IMPORT_PREFIXES = {
+    "scripts/check_architecture_policy.py": (
+        "tests.helpers.architecture_policy",
+        "tests.helpers.ast_guard_utils",
+    ),
+    "scripts/export_ai_debug_evidence_pack.py": (
+        "tests.harness.evidence_pack",
+    ),
+}
+
+
+def _iter_test_imports(path: Path) -> set[str]:
+    tree = ast.parse(path.read_text(encoding="utf-8"), filename=path.as_posix())
+    modules: set[str] = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.ImportFrom) and node.module and node.module.startswith("tests."):
+            modules.add(node.module)
+        elif isinstance(node, ast.Import):
+            for alias in node.names:
+                if alias.name.startswith("tests."):
+                    modules.add(alias.name)
+    return modules
 
 
 def test_public_surface_baseline_references_architecture_policy() -> None:
@@ -44,6 +68,21 @@ def test_public_surface_baseline_registers_assurance_only_replay_and_evidence_su
     assert "tests/harness/protocol/*" in public_surfaces
     assert "V1_1_EVIDENCE_INDEX.md" in public_surfaces
     assert "pull-only evidence pointers" in public_surfaces
+
+
+def test_scripts_keep_tests_imports_helper_only_and_pull_only() -> None:
+    actual: dict[str, set[str]] = {}
+    for script_path in sorted((_ROOT / "scripts").glob("*.py")):
+        imports = _iter_test_imports(script_path)
+        if imports:
+            actual[script_path.relative_to(_ROOT).as_posix()] = imports
+
+    assert set(actual) == set(_ALLOWED_SCRIPT_TEST_IMPORT_PREFIXES)
+    for relative_path, imports in actual.items():
+        prefixes = _ALLOWED_SCRIPT_TEST_IMPORT_PREFIXES[relative_path]
+        assert imports
+        for module in imports:
+            assert module.startswith(prefixes), (relative_path, module, prefixes)
 
 
 def test_phase_15_surface_notes_keep_support_truth_localized() -> None:

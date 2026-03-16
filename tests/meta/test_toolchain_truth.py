@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import os
 from pathlib import Path
+import re
 import shutil
 import stat
 import subprocess
@@ -24,6 +25,11 @@ _RELEASE_WORKFLOW = _ROOT / ".github" / "workflows" / "release.yml"
 _DEVELOP_SCRIPT = _ROOT / "scripts" / "develop"
 _SETUP_PYTHON = "actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405"
 
+_TESTING_MAP = _ROOT / ".planning" / "codebase" / "TESTING.md"
+_TESTING_COUNTS_RE = re.compile(
+    r"当前仓库共有 `(?P<total>\d+)` 个 `test_\*\.py` 文件；其中 `(?P<meta>\d+)` 个 meta guard、`(?P<integration>\d+)` 个 integration、`(?P<benchmark>\d+)` 个 benchmark、`(?P<snapshot>\d+)` 个 snapshot 文件；另有 `(?P<fixture_readmes>\d+)` 个 fixture family readme"
+)
+
 
 def _load_pyproject() -> dict[str, Any]:
     return tomllib.loads(_PYPROJECT.read_text(encoding="utf-8"))
@@ -39,6 +45,20 @@ def _load_devcontainer() -> dict[str, Any]:
     loaded = json.loads(_DEVCONTAINER.read_text(encoding="utf-8"))
     assert isinstance(loaded, dict)
     return loaded
+
+
+def _count_testing_inventory() -> dict[str, int]:
+    tests_root = _ROOT / "tests"
+    test_files = sorted(tests_root.rglob("test_*.py"))
+    fixture_readmes = sorted((tests_root / "fixtures").glob("*/README.md"))
+    return {
+        "total": len(test_files),
+        "meta": sum(1 for path in test_files if path.is_relative_to(tests_root / "meta")),
+        "integration": sum(1 for path in test_files if path.is_relative_to(tests_root / "integration")),
+        "benchmark": sum(1 for path in test_files if path.is_relative_to(tests_root / "benchmarks")),
+        "snapshot": sum(1 for path in test_files if path.is_relative_to(tests_root / "snapshots")),
+        "fixture_readmes": len(fixture_readmes),
+    }
 
 
 def test_python_toolchain_truth_is_aligned_to_314() -> None:
@@ -91,6 +111,20 @@ def test_pytest_marker_contract_has_no_dead_declarations() -> None:
     pytest_options = pytest_table["ini_options"]
     assert isinstance(pytest_options, dict)
     assert "markers" not in pytest_options
+
+
+def test_testing_map_counts_and_script_boundary_notes_match_repo_facts() -> None:
+    """Derived testing map should track current counts and explicit script/test boundary notes."""
+    testing_text = _TESTING_MAP.read_text(encoding="utf-8")
+    match = _TESTING_COUNTS_RE.search(testing_text)
+    assert match is not None
+
+    documented = {key: int(value) for key, value in match.groupdict().items()}
+    assert documented == _count_testing_inventory()
+    assert "scripts/check_architecture_policy.py" in testing_text
+    assert "scripts/export_ai_debug_evidence_pack.py" in testing_text
+    assert "helper-only / pull-only" in testing_text
+    assert "tests/meta/test_toolchain_truth.py" in testing_text
 
 
 def test_develop_script_smoke_mode_preserves_other_integrations(

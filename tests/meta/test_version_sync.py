@@ -123,6 +123,23 @@ def test_bug_report_template_lists_supported_install_methods() -> None:
     assert any("Manual" in option for option in options)
 
 
+def test_bug_report_template_keeps_developer_report_as_optional_escalation_path() -> None:
+    """Developer report should remain an escalation path, not a hard bug-report gate."""
+    template = _load_yaml(_BUG_TEMPLATE)
+    checklist = next(item for item in template["body"] if item["type"] == "checkboxes")
+    labels = {option["label"]: option.get("required", False) for option in checklist["attributes"]["options"]}
+    optional_label = next(label for label in labels if "diagnostics were not enough" in label or "diagnostics 不足" in label)
+
+    assert labels[optional_label] is False
+
+    method_field = next(item for item in template["body"] if item.get("id") == "developer-feedback-method")
+    report_field = next(item for item in template["body"] if item.get("id") == "developer-report")
+
+    assert any("Not available" in option for option in method_field["attributes"]["options"])
+    assert report_field["validations"]["required"] is False
+    assert "Optional unless diagnostics still cannot explain the issue" in report_field["attributes"]["description"]
+
+
 def test_public_docs_track_homeassistant_min_version() -> None:
     """User-facing docs should surface the canonical minimum supported HA version."""
     ha_version = _read_homeassistant_version()
@@ -156,6 +173,19 @@ def test_release_runbook_references_v1_2_evidence_index() -> None:
     assert "V1_2_EVIDENCE_INDEX.md" in runbook_text
     assert "## Pull Contract" in evidence_text
     assert "archive-ready" in evidence_text
+
+
+def test_release_docs_capture_supply_chain_posture_and_firmware_defer() -> None:
+    """Runbook and closeout index should keep current release hardening plus explicit defers visible."""
+    runbook_text = _RUNBOOK.read_text(encoding="utf-8")
+    evidence_text = _V1_2_EVIDENCE_INDEX.read_text(encoding="utf-8")
+
+    for token in ("SHA256SUMS", "provenance", "SBOM", "signing", "code scanning"):
+        assert token in runbook_text
+        assert token in evidence_text
+    assert "firmware_support_manifest.json" in runbook_text
+    assert "firmware manifest metadata" in evidence_text
+    assert "23-01~23-08-SUMMARY.md" in evidence_text
 
 
 def test_issue_config_routes_docs_to_troubleshooting() -> None:

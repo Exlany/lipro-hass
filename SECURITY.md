@@ -16,6 +16,9 @@ The canonical source is the `homeassistant==2026.3.1` pin in `pyproject.toml`.
 For private repositories or forks, CI skips HACS validation because HACS only supports public GitHub repositories.
 若仓库或 fork 为私有，CI 会跳过 HACS validation，因为 HACS 只支持公开 GitHub 仓库。
 
+This repository currently follows a single-maintainer security review model; acknowledgement and remediation timing are therefore best effort.
+本仓库当前采用单维护者安全审查模式，因此确认与修复节奏均为 best effort。
+
 If your report is not security-sensitive, use `docs/TROUBLESHOOTING.md` and `SUPPORT.md` instead of the private disclosure path.
 若问题并非安全敏感，请优先使用 `docs/TROUBLESHOOTING.md` 与 `SUPPORT.md`，不要占用私密披露通道。
 

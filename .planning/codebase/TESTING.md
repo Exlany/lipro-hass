@@ -1,5 +1,5 @@
 # TESTING
-> Refreshed: `2026-03-15`
+> Refreshed: `2026-03-16`
 > Scope: `tests/**/*.py`、CI/pre-commit、fixtures/readmes、governance baselines 中的测试策略与质量门禁
 > Derived collaboration map: 本文件是受约束的协作图谱 / 派生视图，仅用于导航、协作与局部审阅。
 > Authority: 若与 `docs/NORTH_STAR_TARGET_ARCHITECTURE.md`、`.planning/{ROADMAP,REQUIREMENTS,STATE}.md`、`.planning/baseline/*.md`、`.planning/reviews/*.md` 或 `docs/developer_architecture.md` 冲突，以后者为准；本图谱必须同步回写或标记为过时。
@@ -28,7 +28,7 @@
 
 - 测试栈完整：`pytest`、`pytest-asyncio`、`pytest-cov`、`pytest-homeassistant-custom-component`、`pytest-benchmark`、`syrupy`、`mypy`、`xdist` 全部进入 dev 依赖。证据：`pyproject.toml:33`。
 - CI 把质量拆成 `lint`、`governance`、`security`、`test`、`benchmark`、`validate` 六道门，release 先复用 CI，再做版本校验与打包。证据：`.github/workflows/ci.yml:22`, `.github/workflows/release.yml:25`, `tests/meta/test_governance_guards.py:185`。
-- 当前仓库共有 `154` 个 `test_*.py` 文件；其中 `14` 个 meta guard、`4` 个 integration、`4` 个 benchmark、`4` 个 snapshot 文件；另有 `5` 个 fixture family readme 维护 authority/用途说明。
+- 当前仓库共有 `157` 个 `test_*.py` 文件；其中 `15` 个 meta guard、`5` 个 integration、`4` 个 benchmark、`4` 个 snapshot 文件；另有 `5` 个 fixture family readme 维护 authority/用途说明。
 - Coverage gate 是硬门槛：主测试 job 以 `95%` 为下限，快照单独运行，之后再跑 coverage diff 与 refactor smoke。证据：`.github/workflows/ci.yml:177`, `CONTRIBUTING.md:94`。
 
 ## 3. 测试分层图谱
@@ -56,6 +56,7 @@
   - `external_boundaries/` 保存 support/share/firmware 等外部边界样本。证据：`tests/fixtures/external_boundaries/README.md:1`。
   - `evidence_pack/` 规定 AI evidence pack 只能 pull 正式真源，且严禁泄露 token / secret / `password_hash`。证据：`tests/fixtures/evidence_pack/README.md:3`。
 - 这套 fixture/readme 结构与北极星“authority 单一真源”一致，避免 contract、replay、diagnostics 各自维护分叉样本。证据：`AGENTS.md:126`, `.planning/baseline/ARCHITECTURE_POLICY.md:21`, `tests/core/api/test_protocol_contract_matrix.py:345`。
+- `scripts/*.py` 与 `tests.*` 的耦合已被显式裁决为受限 helper-only / pull-only 边界：`scripts/check_architecture_policy.py` 只允许 pull `tests/helpers/{architecture_policy,ast_guard_utils}.py`；`scripts/export_ai_debug_evidence_pack.py` 只允许 pull `tests/harness/evidence_pack/*`。除此之外，新增 `scripts/*.py -> tests.*` 依赖前必须同步更新治理守卫与本图谱说明。
 
 ## 5. Meta Guards 与治理门禁
 
@@ -95,6 +96,7 @@
 - **marker registry 与实际切分脱节**：`pyproject.toml` 声明了 `github` / `integration` / `slow` markers，但当前跟踪到的 `test_*.py` 文件没有使用这些 marker；套件切分主要靠目录，而不是 marker 选择。证据：`pyproject.toml:73`，以及本次仓库扫描结果。
 - **benchmark 只有执行，没有阈值**：CI 只在 schedule/manual 跑 benchmark，并输出 `.benchmarks/benchmark.json`；没有历史基线、回归阈值或 PR 级别性能门槛。证据：`.github/workflows/ci.yml:206`, `.github/workflows/ci.yml:228`。
 - **coverage diff 目前更像第二个最低线检查**：CI 调用 `scripts/coverage_diff.py` 时只传 `--minimum 95`，没有 baseline 文件，因此不会真正比较“相对退步”。证据：`.github/workflows/ci.yml:191`。
+- 上述测试文件统计与 scripts/tests 边界由 `tests/meta/test_toolchain_truth.py`、`tests/meta/test_public_surface_guards.py` 与 `tests/meta/test_evidence_pack_authority.py` 显式守护；新增测试目录或 helper-only / pull-only 例外时，必须同步刷新本图谱。
 - **工具依赖有前瞻性，但尚未 fully exploited**：`pytest-mypy-plugins` 与 `pytest-xdist` 已进入 dev 依赖，但仓库内没有对应 type-checking plugin case，也未在 CI 中并行运行测试。证据：`pyproject.toml:45`, `pyproject.toml:46`, `.github/workflows/ci.yml:177`。
 - **快照覆盖仍然很克制**：这有利于稳定，但 control-plane 输出、服务响应体、evidence-pack markdown index 等仍主要依赖常规断言，而非 snapshot 守护。证据：`tests/snapshots/test_api_snapshots.py:42`, `tests/integration/test_ai_debug_evidence_pack.py:21`。
 

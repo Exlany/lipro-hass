@@ -6,6 +6,7 @@
 - Private repositories and forks skip CI HACS validation because HACS only supports public GitHub repositories.
 - Security reports do **not** belong in public issues; follow `SECURITY.md` instead.
 - Maintainer-facing release and packaging steps live in `docs/MAINTAINER_RELEASE_RUNBOOK.md`.
+- Default shell installs should continue to use `ARCHIVE_TAG=latest`; pin a tag only when reproducing an older release-specific issue.
 
 ## Before Opening an Issue
 
@@ -13,7 +14,7 @@
 2. Read `SUPPORT.md` to choose the right path for usage questions, bug reports, and security issues.
 3. Enable debug logging and reproduce the problem once with fresh logs.
 4. Download Home Assistant diagnostics for the Lipro config entry.
-5. If the issue needs deeper debugging, enable debug mode and export `lipro.get_developer_report` or submit `lipro.submit_developer_feedback`.
+5. If diagnostics still do not explain the issue, or a maintainer asks for deeper debugging, enable debug mode and export `lipro.get_developer_report` or submit `lipro.submit_developer_feedback`.
 
 ```yaml
 logger:
@@ -28,7 +29,7 @@ logger:
 
 - Verify the phone number, password, and region in the Lipro app first.
 - If the password changed, use reconfigure/update credentials instead of removing the integration.
-- When reauth keeps failing, attach diagnostics plus the redacted developer report.
+- When reauth keeps failing, attach diagnostics first; add the redacted developer report only when diagnostics still do not explain the failure or when a maintainer asks for it.
 - If available, include `failure_summary` / `failure_entries` from diagnostics, system health, or developer-report exports.
 
 ### Devices Not Discovered
@@ -48,10 +49,11 @@ logger:
 
 - Certified firmware truth comes from `custom_components/lipro/firmware_support_manifest.json`.
 - Update entities may surface uncertified firmware, but uncertified installs require explicit confirmation.
-- If OTA data looks wrong, include the firmware entity attributes and the developer report in the issue.
+- If OTA data looks wrong, include the firmware entity attributes first; add the developer report when diagnostics alone are not enough.
 
 ### Developer / Diagnostics Services
 
+- These services are escalation paths after diagnostics, not hard prerequisites for every public bug report.
 - `lipro.get_developer_report` keeps vendor diagnosis identifiers such as `iotName`, but anonymizes user-defined labels before upload when using `lipro.submit_developer_feedback`.
 - If a report or diagnostics export already contains `failure_summary` / `failure_entries`, keep those fields intact when filing the issue; they are part of the shared failure vocabulary.
 - `lipro.get_anonymous_share_report` is the safe preview path before anonymous sharing.
@@ -66,6 +68,6 @@ logger:
 ## Escalation Paths
 
 - Usage questions or expected-behavior clarification: `SUPPORT.md` and GitHub Discussions.
-- Confirmed bugs or regressions: GitHub bug template plus diagnostics/developer report.
+- Confirmed bugs or regressions: GitHub bug template plus diagnostics first; add developer report / one-click feedback when diagnostics are insufficient or a maintainer asks for deeper debugging.
 - Security concerns: `SECURITY.md` private disclosure path.
 - Maintainer-only release, tag, or packaging issues: `docs/MAINTAINER_RELEASE_RUNBOOK.md`.

@@ -21,6 +21,9 @@ body:
         若你还没开始系统排障，请先阅读 `docs/TROUBLESHOOTING.md`；若问题涉及发版/打包，请维护者参考 `docs/MAINTAINER_RELEASE_RUNBOOK.md`。
         If you have not started structured troubleshooting yet, read `docs/TROUBLESHOOTING.md` first; maintainer-only release/package issues belong in `docs/MAINTAINER_RELEASE_RUNBOOK.md`.
 
+        对大多数公开 Bug 报告，diagnostics 就是第一优先证据；developer report / 一键反馈是升级排障路径，而不是硬门槛。
+        For most public bug reports, diagnostics are the first-line evidence; developer report / one-click feedback is an escalation path, not a hard gate.
+
   - type: checkboxes
     attributes:
       label: Checklist / 检查清单
@@ -31,8 +34,8 @@ body:
           required: true
         - label: I have enabled debug logging. / 我已启用调试日志。
           required: true
-        - label: I have enabled debug mode and provided a developer report (or submitted one-click feedback). / 我已启用调试模式并提供开发者报告（或已一键提交反馈）。
-          required: true
+        - label: If diagnostics were not enough, I also provided a developer report (or submitted one-click feedback). / 若 diagnostics 不足，我也已补充开发者报告（或已一键提交反馈）。
+          required: false
 
   - type: dropdown
     id: problem-type
@@ -164,8 +167,8 @@ body:
     attributes:
       label: Developer Report JSON / 开发者报告 JSON
       description: |
-        Paste output from `lipro.get_developer_report` (or key parts), or mention submission time if you used one-click feedback. If available, also keep `failure_summary` / `failure_entries`.
-        请粘贴 `lipro.get_developer_report` 输出（或关键片段），若使用一键反馈请注明提交时间；若可获取，也请保留 `failure_summary` / `failure_entries`。
+        Optional unless diagnostics still cannot explain the issue or a maintainer asked for deeper debugging. Paste output from `lipro.get_developer_report` (or key parts), or mention submission time if you used one-click feedback. If available, also keep `failure_summary` / `failure_entries`.
+        仅当 diagnostics 仍不足以解释问题，或维护者要求更深层排查时才必须提供。请粘贴 `lipro.get_developer_report` 输出（或关键片段）；若使用一键反馈请注明提交时间；若可获取，也请保留 `failure_summary` / `failure_entries`。
       render: json
     validations:
       required: false

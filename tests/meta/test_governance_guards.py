@@ -281,6 +281,51 @@ def test_contributor_contract_matches_ci_language() -> None:
     assert "tests/benchmarks/" in contributing_bullets["benchmark"]
 
 
+def test_default_shell_installer_path_stays_latest() -> None:
+    install_text = (_ROOT / "install.sh").read_text(encoding="utf-8")
+    readme_text = _README.read_text(encoding="utf-8")
+    readme_zh_text = _README_ZH.read_text(encoding="utf-8")
+    troubleshooting_text = _TROUBLESHOOTING.read_text(encoding="utf-8")
+
+    assert '[ -z "$ARCHIVE_TAG" ] && ARCHIVE_TAG="latest"' in install_text
+    assert 'ARCHIVE_TAG=latest bash -' in readme_text
+    assert 'ARCHIVE_TAG=latest bash -' in readme_zh_text
+    assert readme_text.index('ARCHIVE_TAG=latest bash -') < readme_text.index('ARCHIVE_TAG=v1.0.0 bash -')
+    assert readme_zh_text.index('ARCHIVE_TAG=latest bash -') < readme_zh_text.index('ARCHIVE_TAG=v1.0.0 bash -')
+    assert '`ARCHIVE_TAG=latest`' in troubleshooting_text
+
+
+def test_phase_23_audit_checklist_covers_addendum_and_explicit_defers() -> None:
+    checklist_text = (
+        _ROOT
+        / ".planning"
+        / "phases"
+        / "23-governance-convergence-contributor-docs-and-release-evidence-closure"
+        / "23-AUDIT-CHECKLIST.md"
+    ).read_text(encoding="utf-8")
+
+    for token in (
+        "`23-04`",
+        "`23-05`",
+        "`23-06`",
+        "`23-07`",
+        "`23-08`",
+        ".planning/codebase/TESTING.md",
+        "script ↔ tests coupling",
+        "wording-guard brittleness",
+        "giant tests / private-internal coupling",
+        "release supply-chain hardening",
+        "firmware manifest metadata",
+        "No item may be silently dropped.",
+        "`ARCHIVE_TAG=latest`",
+        "provenance",
+        "SBOM",
+        "signing",
+        "code scanning",
+    ):
+        assert token in checklist_text
+
+
 def test_troubleshooting_and_runbook_navigation_is_consistent() -> None:
     assert _TROUBLESHOOTING.exists()
     assert _RUNBOOK.exists()
@@ -1152,9 +1197,20 @@ def test_phase_21_to_24_execution_truth_is_consistent() -> None:
             "23-01-PLAN.md",
             "23-02-PLAN.md",
             "23-03-PLAN.md",
+            "23-04-PLAN.md",
+            "23-05-PLAN.md",
+            "23-06-PLAN.md",
+            "23-07-PLAN.md",
+            "23-08-PLAN.md",
             "23-01-SUMMARY.md",
             "23-02-SUMMARY.md",
             "23-03-SUMMARY.md",
+            "23-04-SUMMARY.md",
+            "23-05-SUMMARY.md",
+            "23-06-SUMMARY.md",
+            "23-07-SUMMARY.md",
+            "23-08-SUMMARY.md",
+            "23-AUDIT-CHECKLIST.md",
             "23-VERIFICATION.md",
         ],
         "24-final-milestone-audit-archive-readiness-and-v1-3-handoff-prep": [
