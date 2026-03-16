@@ -346,12 +346,13 @@ Plans:
   1. headless composition root 能走通 auth + device discovery + replay/evidence proof。
   2. HA adapter 继续只是 adapter，不再携带可复用业务根语义。
   3. 不出现 “CLI root / HA root” 双合法入口。
-**Plans**: 3 draft plans
+**Plans**: 4 draft plans
 
 Plans:
 - [ ] 19-01: 建立 headless composition root 与 boot contract
 - [ ] 19-02: 证明 auth/device/replay 使用同一 nucleus
 - [ ] 19-03: 继续 demote HA-only adapter assumptions
+- [ ] 19-04: sync long-term truth and second-root guards
 
 ### Phase 20: Remaining Boundary Family Completion
 **Goal**: 把 `rest.list-envelope.v1`、`rest.schedule-json.v1`、`mqtt.topic.v1`、`mqtt.message-envelope.v1` 全部升级为 registry-backed boundary families。
