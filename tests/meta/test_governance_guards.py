@@ -143,7 +143,10 @@ def _assert_state_preserves_phase_17_closeout_history(state_text: str) -> None:
 
     assert "milestone: v1.2" in state_text
     assert "milestone_name: Host-Neutral Core & Replay Completion" in state_text
-    assert "**Current milestone:** `v1.2 Host-Neutral Core & Replay Completion`" in state_text
+    assert (
+        "**Current milestone:** `v1.2 Host-Neutral Core & Replay Completion`"
+        in state_text
+    )
     assert re.search(
         r"\*\*Current mode:\*\* `Phase (?:1[89]|[2-9]\d)(?:\.\d+)? [a-z][a-z0-9_ -]+`",
         state_text,
@@ -243,7 +246,9 @@ def test_ci_and_release_workflows_share_governance_and_version_gates() -> None:
     assert "Checkout tagged release ref" in step_names
     assert "Verify tag matches project version" in step_names
     checkout_step = next(
-        step for step in build_job["steps"] if step.get("name") == "Checkout tagged release ref"
+        step
+        for step in build_job["steps"]
+        if step.get("name") == "Checkout tagged release ref"
     )
     checkout_with = checkout_step.get("with")
     assert isinstance(checkout_with, dict)
@@ -675,7 +680,10 @@ def test_phase_15_execution_truth_is_consistent() -> None:
     assert "custom_components/lipro/core/api/client_base.py" in file_matrix_text
     assert "ClientSessionState` formal REST session-state home" in file_matrix_text
     assert "custom_components/lipro/core/mqtt/mqtt_client.py" in file_matrix_text
-    assert "`MqttTransportClient` concrete transport home; locality limited to core/mqtt + protocol seam" in file_matrix_text
+    assert (
+        "`MqttTransportClient` concrete transport home; locality limited to core/mqtt + protocol seam"
+        in file_matrix_text
+    )
 
     for artifact_name in (
         "15-01-PLAN.md",
@@ -845,9 +853,9 @@ def test_phase_17_execution_truth_is_consistent() -> None:
     public_text = (_ROOT / ".planning" / "baseline" / "PUBLIC_SURFACES.md").read_text(
         encoding="utf-8"
     )
-    authority_text = (_ROOT / ".planning" / "baseline" / "AUTHORITY_MATRIX.md").read_text(
-        encoding="utf-8"
-    )
+    authority_text = (
+        _ROOT / ".planning" / "baseline" / "AUTHORITY_MATRIX.md"
+    ).read_text(encoding="utf-8")
     verification_matrix_text = (
         _ROOT / ".planning" / "baseline" / "VERIFICATION_MATRIX.md"
     ).read_text(encoding="utf-8")
@@ -859,9 +867,14 @@ def test_phase_17_execution_truth_is_consistent() -> None:
     )
     validation_text = (phase_root / "17-VALIDATION.md").read_text(encoding="utf-8")
     verification_text = (phase_root / "17-VERIFICATION.md").read_text(encoding="utf-8")
-    audit_text = (_ROOT / ".planning" / "v1.1-MILESTONE-AUDIT.md").read_text(encoding="utf-8")
+    audit_text = (_ROOT / ".planning" / "v1.1-MILESTONE-AUDIT.md").read_text(
+        encoding="utf-8"
+    )
 
-    assert "### 12. Phase 17 最终残留退役 / 类型契约收紧 / 里程碑收官已完成" in project_text
+    assert (
+        "### 12. Phase 17 最终残留退役 / 类型契约收紧 / 里程碑收官已完成"
+        in project_text
+    )
     assert (
         "| 17 Final Residual Retirement, Typed-Contract Tightening & Milestone Closeout | v1.1 | 4/4 | Complete | 2026-03-15 |"
         in roadmap_text
@@ -899,10 +912,7 @@ def test_phase_17_execution_truth_is_consistent() -> None:
 
 def test_phase_19_execution_truth_is_consistent() -> None:
     phase_root = (
-        _ROOT
-        / ".planning"
-        / "phases"
-        / "19-headless-consumer-proof-adapter-demotion"
+        _ROOT / ".planning" / "phases" / "19-headless-consumer-proof-adapter-demotion"
     )
     project_text = (_ROOT / ".planning" / "PROJECT.md").read_text(encoding="utf-8")
     roadmap_text = (_ROOT / ".planning" / "ROADMAP.md").read_text(encoding="utf-8")
@@ -926,14 +936,20 @@ def test_phase_19_execution_truth_is_consistent() -> None:
     verification_text = (phase_root / "19-VERIFICATION.md").read_text(encoding="utf-8")
 
     assert "## Current Milestone (v1.2)" in project_text
-    assert "**Execution status:** `Phase 18-20` complete; `Phase 21-24` planned" in project_text
+    assert (
+        "**Execution status:** `Phase 18-20` complete; `Phase 21-24` planned"
+        in project_text
+    )
     assert "## Current Milestone" in roadmap_text
     assert "### Phase 19: Headless Consumer Proof & Adapter Demotion" in roadmap_text
     assert "**Requirements**: [CORE-02]" in roadmap_text
     assert "**Status**: Complete (`2026-03-16`)" in roadmap_text
     assert "**Plans**: 4/4 complete" in roadmap_text
     assert "# Requirements: Lipro-HASS" in requirements_text
-    assert "*Last updated: 2026-03-16 after Phase 21-24 planning truth sync*" in requirements_text
+    assert (
+        "*Last updated: 2026-03-16 after Phase 21-24 planning truth sync*"
+        in requirements_text
+    )
     assert "## Traceability for v1.2" in requirements_text
     assert "| CORE-02 | Phase 19 | Complete |" in requirements_text
     assert "**Current mode:** `Phase 20 complete`" in state_text
@@ -963,28 +979,72 @@ def test_phase_19_execution_truth_is_consistent() -> None:
 
 def test_phase_21_to_24_planning_truth_is_consistent() -> None:
     roadmap_text = (_ROOT / ".planning" / "ROADMAP.md").read_text(encoding="utf-8")
-    requirements_text = (_ROOT / ".planning" / "REQUIREMENTS.md").read_text(encoding="utf-8")
+    requirements_text = (_ROOT / ".planning" / "REQUIREMENTS.md").read_text(
+        encoding="utf-8"
+    )
     state_text = (_ROOT / ".planning" / "STATE.md").read_text(encoding="utf-8")
     project_text = (_ROOT / ".planning" / "PROJECT.md").read_text(encoding="utf-8")
 
-    assert "### Phase 21: Replay Coverage & Exception Taxonomy Hardening" in roadmap_text
-    assert "### Phase 22: Observability Surface Convergence & Signal Exposure" in roadmap_text
-    assert "### Phase 23: Governance convergence, contributor docs and release evidence closure" in roadmap_text
-    assert "### Phase 24: Final milestone audit, archive readiness and v1.3 handoff prep" in roadmap_text
+    assert (
+        "### Phase 21: Replay Coverage & Exception Taxonomy Hardening" in roadmap_text
+    )
+    assert (
+        "### Phase 22: Observability Surface Convergence & Signal Exposure"
+        in roadmap_text
+    )
+    assert (
+        "### Phase 23: Governance convergence, contributor docs and release evidence closure"
+        in roadmap_text
+    )
+    assert (
+        "### Phase 24: Final milestone audit, archive readiness and v1.3 handoff prep"
+        in roadmap_text
+    )
     assert "| OBS-03 | Phase 22 | Draft |" in requirements_text
     assert "| GOV-16 | Phase 23 | Draft |" in requirements_text
     assert "| GOV-17 | Phase 23 | Draft |" in requirements_text
     assert "| GOV-18 | Phase 24 | Draft |" in requirements_text
     assert "**Current mode:** `Phase 20 complete`" in state_text
-    assert "**Execution status:** `Phase 18-20` complete; `Phase 21-24` planned" in project_text
+    assert (
+        "**Execution status:** `Phase 18-20` complete; `Phase 21-24` planned"
+        in project_text
+    )
 
     assert (_ROOT / ".planning" / "phases" / "21-24-v1.2-closeout-strategy.md").exists()
 
     expected = {
-        "21-replay-exception-taxonomy-hardening": ["21-CONTEXT.md", "21-RESEARCH.md", "21-VALIDATION.md", "21-01-PLAN.md", "21-02-PLAN.md", "21-03-PLAN.md"],
-        "22-observability-surface-convergence-and-signal-exposure": ["22-CONTEXT.md", "22-RESEARCH.md", "22-VALIDATION.md", "22-01-PLAN.md", "22-02-PLAN.md", "22-03-PLAN.md"],
-        "23-governance-convergence-contributor-docs-and-release-evidence-closure": ["23-CONTEXT.md", "23-RESEARCH.md", "23-VALIDATION.md", "23-01-PLAN.md", "23-02-PLAN.md", "23-03-PLAN.md"],
-        "24-final-milestone-audit-archive-readiness-and-v1-3-handoff-prep": ["24-CONTEXT.md", "24-RESEARCH.md", "24-VALIDATION.md", "24-01-PLAN.md", "24-02-PLAN.md", "24-03-PLAN.md"],
+        "21-replay-exception-taxonomy-hardening": [
+            "21-CONTEXT.md",
+            "21-RESEARCH.md",
+            "21-VALIDATION.md",
+            "21-01-PLAN.md",
+            "21-02-PLAN.md",
+            "21-03-PLAN.md",
+        ],
+        "22-observability-surface-convergence-and-signal-exposure": [
+            "22-CONTEXT.md",
+            "22-RESEARCH.md",
+            "22-VALIDATION.md",
+            "22-01-PLAN.md",
+            "22-02-PLAN.md",
+            "22-03-PLAN.md",
+        ],
+        "23-governance-convergence-contributor-docs-and-release-evidence-closure": [
+            "23-CONTEXT.md",
+            "23-RESEARCH.md",
+            "23-VALIDATION.md",
+            "23-01-PLAN.md",
+            "23-02-PLAN.md",
+            "23-03-PLAN.md",
+        ],
+        "24-final-milestone-audit-archive-readiness-and-v1-3-handoff-prep": [
+            "24-CONTEXT.md",
+            "24-RESEARCH.md",
+            "24-VALIDATION.md",
+            "24-01-PLAN.md",
+            "24-02-PLAN.md",
+            "24-03-PLAN.md",
+        ],
     }
     for phase_dir, artifacts in expected.items():
         root = _ROOT / ".planning" / "phases" / phase_dir
@@ -994,10 +1054,7 @@ def test_phase_21_to_24_planning_truth_is_consistent() -> None:
 
 def test_phase_20_execution_truth_is_consistent() -> None:
     phase_root = (
-        _ROOT
-        / ".planning"
-        / "phases"
-        / "20-remaining-boundary-family-completion"
+        _ROOT / ".planning" / "phases" / "20-remaining-boundary-family-completion"
     )
     project_text = (_ROOT / ".planning" / "PROJECT.md").read_text(encoding="utf-8")
     roadmap_text = (_ROOT / ".planning" / "ROADMAP.md").read_text(encoding="utf-8")
@@ -1007,7 +1064,10 @@ def test_phase_20_execution_truth_is_consistent() -> None:
     state_text = (_ROOT / ".planning" / "STATE.md").read_text(encoding="utf-8")
     verification_text = (phase_root / "20-VERIFICATION.md").read_text(encoding="utf-8")
 
-    assert "**Execution status:** `Phase 18-20` complete; `Phase 21-24` planned" in project_text
+    assert (
+        "**Execution status:** `Phase 18-20` complete; `Phase 21-24` planned"
+        in project_text
+    )
     assert "### Phase 20: Remaining Boundary Family Completion" in roadmap_text
     assert "**Status**: Complete (`2026-03-16`)" in roadmap_text
     assert "**Plans**: 3/3 complete" in roadmap_text
@@ -1330,7 +1390,10 @@ def test_phase_10_governance_truth_is_consistent() -> None:
     assert "protocol boundary decoder families" in authority_text
     assert "auth/session snapshot contract" in authority_text
     assert "AuthSessionSnapshot" in authority_text
-    assert "`AuthSessionSnapshot` 成为唯一正式 auth/session truth" in verification_matrix_text
+    assert (
+        "`AuthSessionSnapshot` 成为唯一正式 auth/session truth"
+        in verification_matrix_text
+    )
     assert "## Phase 10 Exit Contract" in verification_matrix_text
     assert residual_text.count("## Phase 10 Residual Delta") == 1
     assert kill_text.count("## Phase 10 Status Update") == 1
@@ -1401,3 +1464,26 @@ def test_project_primary_sources_do_not_include_phase_workspace_assets() -> None
 
     assert ".planning/phases/" not in primary_sources
     assert "Current Execution Workspace Inputs" in project_text
+
+
+def test_phase_22_observability_consumer_governance_truth_is_synced() -> None:
+    verification_matrix_text = (
+        _ROOT / ".planning" / "baseline" / "VERIFICATION_MATRIX.md"
+    ).read_text(encoding="utf-8")
+    file_matrix_text = (_ROOT / ".planning" / "reviews" / "FILE_MATRIX.md").read_text(
+        encoding="utf-8"
+    )
+    residual_text = (_ROOT / ".planning" / "reviews" / "RESIDUAL_LEDGER.md").read_text(
+        encoding="utf-8"
+    )
+
+    assert (
+        "## Phase 22 Observability Consumer Convergence Contract"
+        in verification_matrix_text
+    )
+    assert "复用共享 `failure_summary` vocabulary" in verification_matrix_text
+    assert "control-plane `failure_summary` projection home" in file_matrix_text
+    assert "aggregate `failure_entries` system-health consumer home" in file_matrix_text
+    assert "developer report / feedback failure-signal merge home" in file_matrix_text
+    assert "## Phase 22 Residual Delta" in residual_text
+    assert "legacy `build_developer_report()` 分支" in residual_text

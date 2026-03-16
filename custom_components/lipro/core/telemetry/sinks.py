@@ -7,6 +7,47 @@ from typing import Any
 
 from .models import TelemetrySnapshot
 
+type FailureSummary = dict[str, str | None]
+
+
+_NETWORK_ERROR_MARKERS = (
+    "timeout",
+    "disconnect",
+    "connect",
+    "network",
+    "socket",
+    "connection",
+    "clienterror",
+    "serverdisconnected",
+    "oserror",
+)
+_AUTH_ERROR_MARKERS = (
+    "auth",
+    "token",
+    "credential",
+    "login",
+    "permission",
+    "forbidden",
+    "unauthorized",
+)
+_PROTOCOL_ERROR_MARKERS = (
+    "value",
+    "parse",
+    "decode",
+    "encode",
+    "schema",
+    "protocol",
+    "payload",
+    "json",
+    "keyerror",
+)
+_RUNTIME_ERROR_MARKERS = (
+    "runtime",
+    "cancel",
+    "state",
+    "attribute",
+)
+
 
 def _header(snapshot: TelemetrySnapshot) -> dict[str, Any]:
     return {
@@ -15,6 +56,108 @@ def _header(snapshot: TelemetrySnapshot) -> dict[str, Any]:
         "generated_at": snapshot.generated_at,
         "entry_ref": snapshot.entry_ref,
     }
+
+
+def _empty_failure_summary() -> FailureSummary:
+    return {
+        "failure_category": None,
+        "failure_origin": None,
+        "handling_policy": None,
+        "error_type": None,
+    }
+
+
+def _coerce_text(value: object) -> str | None:
+    if not isinstance(value, str):
+        return None
+    text = value.strip()
+    return text or None
+
+
+def _classify_failure_category(error_type: str | None) -> str | None:
+    if error_type is None:
+        return None
+    normalized = error_type.casefold()
+    if any(marker in normalized for marker in _AUTH_ERROR_MARKERS):
+        return "auth"
+    if any(marker in normalized for marker in _NETWORK_ERROR_MARKERS):
+        return "network"
+    if any(marker in normalized for marker in _PROTOCOL_ERROR_MARKERS):
+        return "protocol"
+    if any(marker in normalized for marker in _RUNTIME_ERROR_MARKERS):
+        return "runtime"
+    return "unexpected"
+
+
+def _handling_policy_for_category(category: str | None) -> str | None:
+    if category is None:
+        return None
+    return {
+        "auth": "reauth",
+        "network": "retry",
+        "protocol": "inspect",
+        "runtime": "inspect",
+        "unexpected": "escalate",
+    }.get(category)
+
+
+def _extract_failure_summary(
+    payload: Mapping[str, Any] | object,
+    *,
+    default_origin: str,
+    raw_error_keys: tuple[str, ...],
+) -> FailureSummary:
+    if not isinstance(payload, Mapping):
+        return _empty_failure_summary()
+
+    explicit = payload.get("failure_summary")
+    summary_payload = explicit if isinstance(explicit, Mapping) else payload
+
+    error_type = _coerce_text(summary_payload.get("error_type")) or _coerce_text(
+        summary_payload.get("raw_error_type")
+    )
+    if error_type is None:
+        for key in raw_error_keys:
+            error_type = _coerce_text(summary_payload.get(key))
+            if error_type is not None:
+                break
+
+    failure_category = _coerce_text(
+        summary_payload.get("failure_category")
+    ) or _classify_failure_category(error_type)
+    failure_origin = _coerce_text(summary_payload.get("failure_origin"))
+    if failure_origin is None and (
+        failure_category is not None or error_type is not None
+    ):
+        failure_origin = default_origin
+    handling_policy = _coerce_text(
+        summary_payload.get("handling_policy")
+    ) or _handling_policy_for_category(failure_category)
+
+    return {
+        "failure_category": failure_category,
+        "failure_origin": failure_origin,
+        "handling_policy": handling_policy,
+        "error_type": error_type,
+    }
+
+
+def _build_failure_summary(snapshot: TelemetrySnapshot) -> FailureSummary:
+    protocol_telemetry = snapshot.protocol.get("telemetry")
+    runtime_mqtt = snapshot.runtime.get("mqtt")
+
+    for payload, origin, raw_error_keys in (
+        (protocol_telemetry, "protocol.mqtt", ("mqtt_last_error_type",)),
+        (runtime_mqtt, "runtime.mqtt", ("last_transport_error",)),
+    ):
+        summary = _extract_failure_summary(
+            payload,
+            default_origin=origin,
+            raw_error_keys=raw_error_keys,
+        )
+        if summary["failure_category"] is not None or summary["error_type"] is not None:
+            return summary
+    return _empty_failure_summary()
 
 
 class DiagnosticsTelemetrySink:
@@ -26,6 +169,7 @@ class DiagnosticsTelemetrySink:
         """Return the diagnostics projection for one snapshot."""
         return {
             **_header(snapshot),
+            "failure_summary": _build_failure_summary(snapshot),
             "protocol": snapshot.protocol,
             "runtime": snapshot.runtime,
         }
@@ -45,20 +189,25 @@ class SystemHealthTelemetrySink:
         protocol_telemetry = snapshot.protocol.get("telemetry")
         protocol_auth_recovery = snapshot.protocol.get("auth_recovery")
         command_confirmation = (
-            runtime_command.get("confirmation") if isinstance(runtime_command, dict) else None
+            runtime_command.get("confirmation")
+            if isinstance(runtime_command, dict)
+            else None
         )
         tuning_metrics = (
             runtime_tuning.get("metrics") if isinstance(runtime_tuning, dict) else None
         )
         return {
             **_header(snapshot),
+            "failure_summary": _build_failure_summary(snapshot),
             "device_count": snapshot.runtime.get("device_count", 0),
             "polling_interval_seconds": snapshot.runtime.get(
                 "polling_interval_seconds"
             ),
             "last_update_success": snapshot.runtime.get("last_update_success"),
             "mqtt_connected": (
-                runtime_mqtt.get("connected") if isinstance(runtime_mqtt, dict) else None
+                runtime_mqtt.get("connected")
+                if isinstance(runtime_mqtt, dict)
+                else None
             ),
             "mqtt_disconnect_notified": (
                 runtime_mqtt.get("disconnect_notified")
@@ -96,7 +245,9 @@ class SystemHealthTelemetrySink:
                 else 0
             ),
             "refresh_avg_latency_seconds": (
-                tuning_metrics.get("avg_latency") if isinstance(tuning_metrics, dict) else None
+                tuning_metrics.get("avg_latency")
+                if isinstance(tuning_metrics, dict)
+                else None
             ),
             "protocol_mqtt_last_error_type": (
                 protocol_telemetry.get("mqtt_last_error_type")
@@ -126,6 +277,7 @@ class DeveloperTelemetrySink:
         protocol_session = snapshot.protocol.get("session")
         return {
             **_header(snapshot),
+            "failure_summary": _build_failure_summary(snapshot),
             "protocol": snapshot.protocol,
             "runtime": snapshot.runtime,
             "protocol_session_flags": (

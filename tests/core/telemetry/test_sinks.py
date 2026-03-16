@@ -58,6 +58,12 @@ def test_diagnostics_sink_keeps_full_snapshot_shape() -> None:
     view = DiagnosticsTelemetrySink().build_view(_snapshot())
 
     assert view["entry_ref"] == "entry_deadbeef"
+    assert view["failure_summary"] == {
+        "failure_category": "network",
+        "failure_origin": "protocol.mqtt",
+        "handling_policy": "retry",
+        "error_type": "TimeoutError",
+    }
     assert view["protocol"]["telemetry"]["mqtt_last_error_type"] == "TimeoutError"
     assert view["runtime"]["device_count"] == 3
 
@@ -68,6 +74,12 @@ def test_system_health_sink_reduces_to_summary_metrics() -> None:
     assert view["device_count"] == 3
     assert view["mqtt_connected"] is True
     assert view["command_trace_count"] == 2
+    assert view["failure_summary"] == {
+        "failure_category": "network",
+        "failure_origin": "protocol.mqtt",
+        "handling_policy": "retry",
+        "error_type": "TimeoutError",
+    }
     assert view["protocol_mqtt_last_error_type"] == "TimeoutError"
     assert view["command_confirmation_avg_latency_seconds"] == 1.5
     assert view["command_confirmation_timeout_total"] == 1

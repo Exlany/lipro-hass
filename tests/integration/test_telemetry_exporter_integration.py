@@ -119,20 +119,40 @@ async def test_entry_runtime_bridges_to_exporter_diagnostics_and_system_health(
     assert views is not None
     assert diagnostics["coordinator"]["device_count"] == 2
     assert diagnostics["coordinator"]["mqtt_connected"] is True
-    assert diagnostics["telemetry"]["protocol"]["auth_recovery"]["refresh_success_count"] == 2
+    assert (
+        diagnostics["telemetry"]["protocol"]["auth_recovery"]["refresh_success_count"]
+        == 2
+    )
     assert (
         diagnostics["telemetry"]["runtime"]["command"]["confirmation"][
             "avg_latency_seconds"
         ]
         == 1.25
     )
+    assert diagnostics["telemetry"]["runtime"]["recent_command_traces"][0][
+        "device_ref"
+    ].startswith("device_")
     assert (
-        diagnostics["telemetry"]["runtime"]["recent_command_traces"][0]["device_ref"]
-        .startswith("device_")
+        "password_hash"
+        not in diagnostics["telemetry"]["runtime"]["recent_command_traces"][0]
     )
-    assert "password_hash" not in diagnostics["telemetry"]["runtime"]["recent_command_traces"][0]
     assert views.system_health["device_count"] == 2
     assert views.system_health["command_confirmation_timeout_total"] == 1
     assert views.system_health["refresh_avg_latency_seconds"] == 1.75
+    assert views.system_health["failure_summary"] == {
+        "failure_category": "network",
+        "failure_origin": "protocol.mqtt",
+        "handling_policy": "retry",
+        "error_type": "TimeoutError",
+    }
+    assert (
+        diagnostics["coordinator"]["failure_summary"]
+        == views.system_health["failure_summary"]
+    )
     assert health["total_devices"] == 2
     assert health["mqtt_connected_entries"] == 1
+    failure_entry = health["failure_entries"][0]
+    assert failure_entry["entry_ref"].startswith("entry_")
+    assert {
+        key: value for key, value in failure_entry.items() if key != "entry_ref"
+    } == (views.system_health["failure_summary"])

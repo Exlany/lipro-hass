@@ -22,15 +22,15 @@
 | `custom_components/lipro/const/properties.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/control/__init__.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/control/developer_router_support.py` | Control | Phase 14 / 15 | 保留 | developer diagnostics glue + typed helper home |
-| `custom_components/lipro/control/diagnostics_surface.py` | Control | Phase 3 | 保留 | - |
+| `custom_components/lipro/control/diagnostics_surface.py` | Control | Phase 3 / 22 | 保留 | control-plane `failure_summary` projection home |
 | `custom_components/lipro/control/entry_lifecycle_controller.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/control/models.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/control/redaction.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/control/runtime_access.py` | Control | Phase 3 / 19 | 保留 | control-plane runtime locator only |
 | `custom_components/lipro/control/service_registry.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/control/service_router.py` | Control | Phase 3 / 14 / 15 | 保留 | public handler home; upload/report glue kept out-of-line |
-| `custom_components/lipro/control/system_health_surface.py` | Control | Phase 3 | 保留 | - |
-| `custom_components/lipro/control/telemetry_surface.py` | Control | Phase 7.3 | 保留 | - |
+| `custom_components/lipro/control/system_health_surface.py` | Control | Phase 3 / 22 | 保留 | aggregate `failure_entries` system-health consumer home |
+| `custom_components/lipro/control/telemetry_surface.py` | Control | Phase 7.3 / 22 | 保留 | exporter bridge used by diagnostics / developer consumer convergence |
 | `custom_components/lipro/coordinator_entry.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/core/__init__.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/core/anonymous_share/__init__.py` | Protocol | Phase 2.6 | 保留 | - |
@@ -39,7 +39,7 @@
 | `custom_components/lipro/core/anonymous_share/const.py` | Protocol | Phase 2.6 | 保留 | - |
 | `custom_components/lipro/core/anonymous_share/manager.py` | Protocol | Phase 2.6 | 保留 | - |
 | `custom_components/lipro/core/anonymous_share/models.py` | Protocol | Phase 2.6 | 保留 | - |
-| `custom_components/lipro/core/anonymous_share/report_builder.py` | Protocol | Phase 2.6 | 保留 | - |
+| `custom_components/lipro/core/anonymous_share/report_builder.py` | Protocol | Phase 2.6 / 22 | 保留 | developer-feedback upload projector preserves shared `failure_summary` |
 | `custom_components/lipro/core/anonymous_share/sanitize.py` | Protocol | Phase 2.6 | 保留 | - |
 | `custom_components/lipro/core/anonymous_share/share_client.py` | Protocol | Phase 2.6 | 保留 | - |
 | `custom_components/lipro/core/anonymous_share/storage.py` | Protocol | Phase 2.6 | 保留 | - |
@@ -243,8 +243,8 @@
 | `custom_components/lipro/services/contracts.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/services/device_lookup.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/services/diagnostics/__init__.py` | Control | Phase 3 | 保留 | - |
-| `custom_components/lipro/services/diagnostics/handlers.py` | Control | Phase 3 | 保留 | - |
-| `custom_components/lipro/services/diagnostics/helpers.py` | Control | Phase 3 | 保留 | - |
+| `custom_components/lipro/services/diagnostics/handlers.py` | Control | Phase 3 / 22 | 保留 | diagnostics-service `last_error` payload carries shared `failure_summary` |
+| `custom_components/lipro/services/diagnostics/helpers.py` | Control | Phase 3 / 22 | 保留 | developer report / feedback failure-signal merge home |
 | `custom_components/lipro/services/diagnostics/types.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/services/errors.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/services/execution.py` | Control | Phase 3 / 5 / 7 | 保留 | formal service execution facade; private auth seam closed |
@@ -410,11 +410,11 @@
 | `tests/helpers/repo_root.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/helpers/service_call.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/integration/__init__.py` | Runtime | Phase 5 / 6 | 保留 | - |
-| `tests/integration/test_ai_debug_evidence_pack.py` | Assurance | Phase 8 / 19 | 保留 | evidence authority trace covers headless-proof bridge without promoting proof assets |
+| `tests/integration/test_ai_debug_evidence_pack.py` | Assurance | Phase 8 / 19 / 22 | 保留 | evidence authority trace covers headless-proof bridge and shared `failure_summary` consumers |
 | `tests/integration/test_headless_consumer_proof.py` | Assurance | Phase 19 | 保留 | single-chain headless consumer proof |
 | `tests/integration/test_mqtt_coordinator_integration.py` | Runtime | Phase 5 / 6 | 保留 | - |
 | `tests/integration/test_protocol_replay_harness.py` | Assurance | Phase 7.4 / 19 / 20 | 保留 | replay harness covers headless-proof assertion families + remaining boundary family visibility |
-| `tests/integration/test_telemetry_exporter_integration.py` | Runtime | Phase 7.3 | 保留 | - |
+| `tests/integration/test_telemetry_exporter_integration.py` | Runtime | Phase 7.3 / 22 | 保留 | diagnostics / system health convergence proof for shared `failure_summary` |
 | `tests/meta/__init__.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_blueprints.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_dependency_guards.py` | Assurance | Phase 6 | 保留 | - |

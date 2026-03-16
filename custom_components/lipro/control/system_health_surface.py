@@ -43,4 +43,15 @@ async def system_health_info(
     if mqtt_connected_values:
         health_info["mqtt_connected_entries"] = sum(mqtt_connected_values)
 
+    failure_entries = [
+        {
+            "entry_ref": snapshot.entry_ref or snapshot.entry_id,
+            **snapshot.failure_summary,
+        }
+        for snapshot in snapshots
+        if snapshot.failure_summary["error_type"] is not None
+    ]
+    if failure_entries:
+        health_info["failure_entries"] = failure_entries
+
     return health_info

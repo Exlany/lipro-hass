@@ -13,7 +13,7 @@ from ..runtime_types import LiproCoordinator
 
 if TYPE_CHECKING:
     from ..core.device import LiproDevice
-from .models import RuntimeCoordinatorSnapshot
+from .models import FailureSummary, RuntimeCoordinatorSnapshot, empty_failure_summary
 
 type RuntimeTelemetryView = dict[str, object]
 
@@ -164,7 +164,9 @@ def build_entry_system_health_view(
     return dict(view) if isinstance(view, Mapping) else {}
 
 
-def get_runtime_device_mapping(coordinator: LiproCoordinator) -> Mapping[str, LiproDevice]:
+def get_runtime_device_mapping(
+    coordinator: LiproCoordinator,
+) -> Mapping[str, LiproDevice]:
     """Return a safe device mapping view for one runtime coordinator."""
     devices = coordinator.devices
     return devices if isinstance(devices, Mapping) else {}
@@ -204,6 +206,22 @@ def _coerce_last_update_success(
     return coordinator.last_update_success
 
 
+def _coerce_entry_ref(telemetry_view: RuntimeTelemetryView) -> str | None:
+    entry_ref = telemetry_view.get("entry_ref")
+    return entry_ref if isinstance(entry_ref, str) else None
+
+
+def _coerce_failure_summary(telemetry_view: RuntimeTelemetryView) -> FailureSummary:
+    failure_summary = telemetry_view.get("failure_summary")
+    normalized = empty_failure_summary()
+    if not isinstance(failure_summary, Mapping):
+        return normalized
+    for key in normalized:
+        value = failure_summary.get(key)
+        normalized[key] = value if isinstance(value, str) else None
+    return normalized
+
+
 def build_runtime_snapshot(
     entry: RuntimeEntryLike | object,
 ) -> RuntimeCoordinatorSnapshot | None:
@@ -222,10 +240,12 @@ def build_runtime_snapshot(
 
     return RuntimeCoordinatorSnapshot(
         entry_id=runtime_entry.entry_id,
+        entry_ref=_coerce_entry_ref(telemetry_view),
         coordinator=coordinator,
         device_count=_coerce_device_count(telemetry_view, coordinator),
         last_update_success=_coerce_last_update_success(telemetry_view, coordinator),
         mqtt_connected=_coerce_mqtt_connected(telemetry_view, coordinator),
+        failure_summary=_coerce_failure_summary(telemetry_view),
     )
 
 

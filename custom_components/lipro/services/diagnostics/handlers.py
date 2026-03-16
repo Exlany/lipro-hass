@@ -32,6 +32,7 @@ from .types import (
     CapabilityResponse,
     DiagnosticsCoordinator,
     DiagnosticsDevice,
+    FailureSummaryPayload,
     GetDeviceAndCoordinator,
     LastErrorPayload,
     OptionalCapabilityCaller,
@@ -48,11 +49,31 @@ _DEFAULT_QUERY_COMMAND_RESULT_MAX_ATTEMPTS = 6
 _DEFAULT_QUERY_COMMAND_RESULT_TIME_BUDGET_SECONDS = 3.0
 
 
+def _build_api_failure_summary(err: LiproApiError) -> FailureSummaryPayload:
+    """Map one diagnostics-service API error into the shared failure vocabulary."""
+    if err.code in {401, 403}:
+        failure_category = "auth"
+        handling_policy = "reauth"
+    elif err.code in {408, 429, 500, 502, 503, 504}:
+        failure_category = "network"
+        handling_policy = "retry"
+    else:
+        failure_category = "protocol"
+        handling_policy = "inspect"
+
+    return {
+        "failure_category": failure_category,
+        "failure_origin": "service.api",
+        "handling_policy": handling_policy,
+        "error_type": type(err).__name__,
+    }
+
+
 def _build_last_error_payload(err: LiproApiError | None) -> LastErrorPayload | None:
     """Build serializable last-error details for diagnostics output."""
     if err is None:
         return None
-    payload: LastErrorPayload = {}
+    payload: LastErrorPayload = {"failure_summary": _build_api_failure_summary(err)}
     if err.code is not None:
         payload["code"] = err.code
     message = str(err).strip()

@@ -263,6 +263,12 @@ class TestAsyncGetConfigEntryDiagnostics:
         assert result["entry"]["data"]["safe_value"] == "ok"
         assert result["coordinator"]["device_count"] == 1
         assert result["coordinator"]["mqtt_connected"] is True
+        assert result["coordinator"]["failure_summary"] == {
+            "failure_category": None,
+            "failure_origin": None,
+            "handling_policy": None,
+            "error_type": None,
+        }
         assert result["anonymous_share"] == {
             "enabled": True,
             "pending_devices": 2,
@@ -280,6 +286,58 @@ class TestAsyncGetConfigEntryDiagnostics:
         assert device_info["extra_data"]["gateway_device_id"] == "**REDACTED**"
         assert "ignored" not in device_info["extra_data"]
         assert "power_info" not in device_info["extra_data"]
+
+    @pytest.mark.asyncio
+    async def test_projects_normalized_failure_summary_into_coordinator_view(
+        self, hass
+    ):
+        """Diagnostics coordinator view should expose the shared failure summary."""
+        coordinator = MagicMock()
+        coordinator.devices = MappingProxyType({})
+        coordinator.last_update_success = False
+        coordinator.update_interval = timedelta(seconds=30)
+        coordinator.mqtt_service.connected = False
+
+        entry = MagicMock()
+        entry.entry_id = "entry-1"
+        entry.runtime_data = coordinator
+        entry.title = "Lipro"
+        entry.data = {}
+        entry.options = {}
+
+        share_manager = MagicMock()
+        share_manager.is_enabled = False
+        share_manager.pending_count = (0, 0)
+        failure_summary = {
+            "failure_category": "network",
+            "failure_origin": "protocol.mqtt",
+            "handling_policy": "retry",
+            "error_type": "TimeoutError",
+        }
+
+        with (
+            patch(
+                "custom_components.lipro.control.diagnostics_surface.build_runtime_snapshot",
+                return_value=MagicMock(
+                    last_update_success=False,
+                    device_count=0,
+                    mqtt_connected=False,
+                    failure_summary=failure_summary,
+                ),
+            ),
+            patch(
+                "custom_components.lipro.control.diagnostics_surface.build_entry_diagnostics_view",
+                return_value={"failure_summary": failure_summary},
+            ),
+            patch(
+                "custom_components.lipro.diagnostics.get_anonymous_share_manager",
+                return_value=share_manager,
+            ),
+        ):
+            result = await async_get_config_entry_diagnostics(hass, entry)
+
+        assert result["coordinator"]["failure_summary"] == failure_summary
+        assert result["telemetry"]["failure_summary"] == failure_summary
 
     @pytest.mark.asyncio
     @pytest.mark.asyncio
@@ -463,6 +521,12 @@ class TestAsyncGetConfigEntryDiagnostics:
                 "update_interval": "0:00:45",
                 "mqtt_connected": True,
                 "device_count": 1,
+                "failure_summary": {
+                    "failure_category": None,
+                    "failure_origin": None,
+                    "handling_policy": None,
+                    "error_type": None,
+                },
             },
             "anonymous_share": {
                 "enabled": True,
@@ -580,7 +644,9 @@ class TestAsyncGetDeviceDiagnostics:
 
     @pytest.mark.asyncio
     @pytest.mark.asyncio
-    async def test_device_diagnostics_reports_unavailable_cache_for_malformed_runtime(self, hass):
+    async def test_device_diagnostics_reports_unavailable_cache_for_malformed_runtime(
+        self, hass
+    ):
         coordinator = MagicMock()
         coordinator.devices = object()
         coordinator.get_device = None

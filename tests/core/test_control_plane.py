@@ -18,6 +18,7 @@ from custom_components.lipro.const.base import DOMAIN
 
 @pytest.mark.asyncio
 async def test_async_setup_delegates_to_entry_lifecycle_controller(hass) -> None:
+    """async_setup should delegate component setup to the controller."""
     controller = MagicMock()
     controller.async_setup_component = AsyncMock(return_value=True)
     with patch(
@@ -31,6 +32,7 @@ async def test_async_setup_delegates_to_entry_lifecycle_controller(hass) -> None
 
 @pytest.mark.asyncio
 async def test_async_setup_entry_delegates_to_entry_lifecycle_controller(hass) -> None:
+    """async_setup_entry should delegate entry setup to the controller."""
     entry = MockConfigEntry(domain=DOMAIN)
     controller = MagicMock()
     controller.async_setup_entry = AsyncMock(return_value=True)
@@ -45,6 +47,7 @@ async def test_async_setup_entry_delegates_to_entry_lifecycle_controller(hass) -
 
 @pytest.mark.asyncio
 async def test_async_unload_entry_delegates_to_entry_lifecycle_controller(hass) -> None:
+    """async_unload_entry should delegate entry unload to the controller."""
     entry = MockConfigEntry(domain=DOMAIN)
     controller = MagicMock()
     controller.async_unload_entry = AsyncMock(return_value=True)
@@ -59,6 +62,7 @@ async def test_async_unload_entry_delegates_to_entry_lifecycle_controller(hass) 
 
 @pytest.mark.asyncio
 async def test_async_reload_entry_delegates_to_entry_lifecycle_controller(hass) -> None:
+    """async_reload_entry should delegate entry reload to the controller."""
     entry = MockConfigEntry(domain=DOMAIN)
     controller = MagicMock()
     controller.async_reload_entry = AsyncMock(return_value=None)
@@ -83,17 +87,31 @@ def test_runtime_snapshot_uses_telemetry_surface_projection() -> None:
     with patch(
         "custom_components.lipro.control.runtime_access.build_entry_system_health_view",
         return_value={
+            "entry_ref": "entry_deadbeef",
             "device_count": 5,
             "mqtt_connected": True,
             "last_update_success": True,
+            "failure_summary": {
+                "failure_category": "network",
+                "failure_origin": "protocol.mqtt",
+                "handling_policy": "retry",
+                "error_type": "TimeoutError",
+            },
         },
     ):
         snapshot = build_runtime_snapshot(entry)
 
     assert snapshot is not None
+    assert snapshot.entry_ref == "entry_deadbeef"
     assert snapshot.device_count == 5
     assert snapshot.mqtt_connected is True
     assert snapshot.last_update_success is True
+    assert snapshot.failure_summary == {
+        "failure_category": "network",
+        "failure_origin": "protocol.mqtt",
+        "handling_policy": "retry",
+        "error_type": "TimeoutError",
+    }
 
 
 def test_find_runtime_entry_for_coordinator_prefers_bound_entry() -> None:
@@ -108,7 +126,9 @@ def test_find_runtime_entry_for_coordinator_prefers_bound_entry() -> None:
     assert find_runtime_entry_for_coordinator(MagicMock(), coordinator) is entry
 
 
-def test_build_single_runtime_coordinator_iterator_returns_stable_singleton(hass) -> None:
+def test_build_single_runtime_coordinator_iterator_returns_stable_singleton(
+    hass,
+) -> None:
     from custom_components.lipro.control.developer_router_support import (
         build_single_runtime_coordinator_iterator,
     )

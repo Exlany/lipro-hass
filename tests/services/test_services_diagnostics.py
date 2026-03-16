@@ -130,25 +130,85 @@ def test_collect_developer_reports_mixed_coordinator_outcomes(
     assert result == expected_reports
 
 
+def test_collect_developer_reports_merges_failure_summary_into_legacy_builder() -> None:
+    """Legacy builder output should inherit exporter-backed failure signals."""
+    hass = MagicMock()
+    entry = MagicMock(entry_id="entry-1")
+    coordinator = MagicMock(config_entry=entry)
+    coordinator.build_developer_report.return_value = {"runtime": {"ok": True}}
+    entry.runtime_data = coordinator
+    hass.config_entries.async_entries.return_value = [entry]
+
+    with patch(
+        "custom_components.lipro.control.telemetry_surface.get_entry_telemetry_view",
+        return_value={
+            "entry_ref": "entry:1",
+            "failure_summary": {
+                "failure_category": "network",
+                "failure_origin": "protocol.mqtt",
+                "handling_policy": "retry",
+                "error_type": "TimeoutError",
+            },
+        },
+    ):
+        result = collect_developer_reports(
+            cast(HomeAssistant, hass),
+            iter_runtime_coordinators=lambda _: iter([coordinator]),
+        )
+
+    assert result == [
+        {
+            "entry_ref": "entry:1",
+            "failure_summary": {
+                "failure_category": "network",
+                "failure_origin": "protocol.mqtt",
+                "handling_policy": "retry",
+                "error_type": "TimeoutError",
+            },
+            "runtime": {"ok": True},
+        }
+    ]
+
+
 def test_collect_developer_reports_falls_back_to_exporter_view() -> None:
     """collect_developer_reports should use exporter truth when legacy builder is absent."""
     hass = MagicMock()
-    entry = MagicMock(entry_id='entry-1')
+    entry = MagicMock(entry_id="entry-1")
     coordinator = SimpleNamespace(config_entry=entry)
     entry.runtime_data = coordinator
     hass.config_entries.async_entries.return_value = [entry]
 
     with patch(
-        'custom_components.lipro.control.telemetry_surface.get_entry_telemetry_view',
-        return_value={'entry_ref': 'entry:1', 'runtime': {'ok': True}},
+        "custom_components.lipro.control.telemetry_surface.get_entry_telemetry_view",
+        return_value={
+            "entry_ref": "entry:1",
+            "failure_summary": {
+                "failure_category": "network",
+                "failure_origin": "protocol.mqtt",
+                "handling_policy": "retry",
+                "error_type": "TimeoutError",
+            },
+            "runtime": {"ok": True},
+        },
     ) as get_entry_telemetry_view:
         result = collect_developer_reports(
             cast(HomeAssistant, hass),
             iter_runtime_coordinators=lambda _: iter([coordinator]),
         )
 
-    assert result == [{'entry_ref': 'entry:1', 'runtime': {'ok': True}}]
-    get_entry_telemetry_view.assert_called_once_with(entry, 'developer')
+    assert result == [
+        {
+            "entry_ref": "entry:1",
+            "failure_summary": {
+                "failure_category": "network",
+                "failure_origin": "protocol.mqtt",
+                "handling_policy": "retry",
+                "error_type": "TimeoutError",
+            },
+            "runtime": {"ok": True},
+        }
+    ]
+    get_entry_telemetry_view.assert_called_once_with(entry, "developer")
 
 
 @pytest.mark.asyncio
@@ -399,7 +459,9 @@ async def test_async_get_first_coordinator_capability_result_keeps_last_api_erro
     first = MagicMock()
     first.protocol.get_city = AsyncMock(side_effect=RuntimeError("boom"))
     second = MagicMock()
-    second.protocol.get_city = AsyncMock(side_effect=LiproApiError("api down", code=503))
+    second.protocol.get_city = AsyncMock(
+        side_effect=LiproApiError("api down", code=503)
+    )
 
     (
         has_result,
@@ -420,10 +482,23 @@ async def test_async_get_first_coordinator_capability_result_keeps_last_api_erro
 def test_build_last_error_payload_omits_empty_message_and_none_code() -> None:
     """Serializable last-error payload should only include meaningful fields."""
     assert _build_last_error_payload(None) is None
-    assert _build_last_error_payload(LiproApiError("   ", code=None)) is None
+    assert _build_last_error_payload(LiproApiError("   ", code=None)) == {
+        "failure_summary": {
+            "failure_category": "protocol",
+            "failure_origin": "service.api",
+            "handling_policy": "inspect",
+            "error_type": "LiproApiError",
+        }
+    }
     assert _build_last_error_payload(LiproApiError("bad gateway", code=502)) == {
         "code": 502,
         "message": "bad gateway",
+        "failure_summary": {
+            "failure_category": "network",
+            "failure_origin": "service.api",
+            "handling_policy": "retry",
+            "error_type": "LiproApiError",
+        },
     }
 
 

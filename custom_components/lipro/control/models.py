@@ -6,13 +6,27 @@ from dataclasses import dataclass
 
 from ..runtime_types import LiproCoordinator
 
+type FailureSummary = dict[str, str | None]
+
+
+def empty_failure_summary() -> FailureSummary:
+    """Return the stable empty failure-summary shape."""
+    return {
+        "failure_category": None,
+        "failure_origin": None,
+        "handling_policy": None,
+        "error_type": None,
+    }
+
 
 @dataclass(frozen=True, slots=True)
 class RuntimeCoordinatorSnapshot:
     """Read-model snapshot exposed from control plane to support surfaces."""
 
     entry_id: str
+    entry_ref: str | None
     coordinator: LiproCoordinator
     device_count: int
     last_update_success: bool
     mqtt_connected: bool | None
+    failure_summary: FailureSummary

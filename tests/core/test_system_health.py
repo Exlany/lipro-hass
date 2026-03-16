@@ -69,6 +69,49 @@ async def test_system_health_info_aggregates_entries(hass) -> None:
 
 
 @pytest.mark.asyncio
+async def test_system_health_info_surfaces_failure_entries_from_telemetry(hass) -> None:
+    """System health should expose normalized failure summaries when available."""
+    entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+    entry.add_to_hass(hass)
+    entry.runtime_data = SimpleNamespace(
+        client=SimpleNamespace(
+            protocol_diagnostics_snapshot=lambda: {
+                "entry_id": entry.entry_id,
+                "telemetry": {"mqtt_last_error_type": "TimeoutError"},
+            }
+        ),
+        telemetry_service=SimpleNamespace(
+            build_snapshot=lambda: {
+                "device_count": 1,
+                "last_update_success": False,
+                "mqtt": {
+                    "connected": False,
+                    "last_transport_error": "RuntimeError",
+                },
+            }
+        ),
+        devices={"d1": object()},
+        last_update_success=False,
+        mqtt_service=SimpleNamespace(connected=False),
+    )
+
+    result = await system_health_info(hass)
+
+    failure_entry = result["failure_entries"][0]
+
+    assert failure_entry["entry_ref"].startswith("entry_")
+    assert result["failure_entries"] == [
+        {
+            "entry_ref": failure_entry["entry_ref"],
+            "failure_category": "network",
+            "failure_origin": "protocol.mqtt",
+            "handling_policy": "retry",
+            "error_type": "TimeoutError",
+        }
+    ]
+
+
+@pytest.mark.asyncio
 async def test_system_health_info_omits_mqtt_count_when_unavailable(hass) -> None:
     """mqtt_connected_entries should be omitted when runtime has no mqtt field."""
     _add_runtime_entry(hass, phone="13800000000", runtime_data=None)

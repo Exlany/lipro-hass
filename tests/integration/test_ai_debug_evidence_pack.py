@@ -43,6 +43,10 @@ def test_evidence_pack_exporter_writes_json_and_markdown_index(tmp_path) -> None
     )
     assert payload["boundary"]["representative_families"]
     assert payload["governance"]["verify_commands"]
+    first_view = payload["telemetry"]["views"][0]
+    assert "failure_summary" in first_view["diagnostics"]
+    assert "failure_summary" in first_view["system_health"]
+    assert "failure_summary" in first_view["developer"]
     assert "# AI Debug Evidence Pack Index" in index_text
     assert "`report_id`: `phase8-report`" in index_text
     assert "### telemetry" in index_text
@@ -50,8 +54,12 @@ def test_evidence_pack_exporter_writes_json_and_markdown_index(tmp_path) -> None
 
 def test_evidence_pack_preserves_real_timestamps_and_report_local_refs() -> None:
     collector = AiDebugEvidenceCollector()
-    first = collector.collect(report_id="report-one", generated_at=_FIXED_GENERATED_AT).to_dict()
-    second = collector.collect(report_id="report-two", generated_at=_FIXED_GENERATED_AT).to_dict()
+    first = collector.collect(
+        report_id="report-one", generated_at=_FIXED_GENERATED_AT
+    ).to_dict()
+    second = collector.collect(
+        report_id="report-two", generated_at=_FIXED_GENERATED_AT
+    ).to_dict()
 
     first_view = first["telemetry"]["views"][0]
     first_scenario = first["replay"]["summary"]["scenarios"][0]
@@ -60,7 +68,10 @@ def test_evidence_pack_preserves_real_timestamps_and_report_local_refs() -> None
     assert isinstance(first_view["snapshot"]["generated_at"], float)
     assert first_scenario["started_at"].endswith("Z")
     assert first_scenario["finished_at"].endswith("Z")
-    assert first_view["snapshot"]["entry_ref"] == first_scenario["telemetry_alignment"]["entry_ref"]
+    assert (
+        first_view["snapshot"]["entry_ref"]
+        == first_scenario["telemetry_alignment"]["entry_ref"]
+    )
     assert (
         first_view["snapshot"]["runtime"]["recent_command_traces"][0]["device_ref"]
         == first_scenario["telemetry_alignment"]["device_ref"]
@@ -72,24 +83,36 @@ def test_evidence_pack_preserves_real_timestamps_and_report_local_refs() -> None
     )
 
 
-def test_evidence_pack_authority_trace_stays_on_formal_truth_for_headless_proof() -> None:
-    payload = AiDebugEvidenceCollector().collect(
-        report_id='headless-proof-authority',
-        generated_at=_FIXED_GENERATED_AT,
-    ).to_dict()
+def test_evidence_pack_authority_trace_stays_on_formal_truth_for_headless_proof() -> (
+    None
+):
+    payload = (
+        AiDebugEvidenceCollector()
+        .collect(
+            report_id="headless-proof-authority",
+            generated_at=_FIXED_GENERATED_AT,
+        )
+        .to_dict()
+    )
 
-    assert API_CONTRACT_ROOT in payload['boundary']['source_paths']
-    assert API_CONTRACT_ROOT in payload['index']['section_authority_trace']['boundary']
+    assert API_CONTRACT_ROOT in payload["boundary"]["source_paths"]
+    assert API_CONTRACT_ROOT in payload["index"]["section_authority_trace"]["boundary"]
     for proof_path in NON_AUTHORITY_PROOF_PATHS:
-        assert proof_path not in payload['boundary']['source_paths']
-        assert proof_path not in payload['governance']['source_paths']
+        assert proof_path not in payload["boundary"]["source_paths"]
+        assert proof_path not in payload["governance"]["source_paths"]
 
 
-def test_evidence_pack_blocks_sensitive_values_and_uses_repo_relative_authority_paths() -> None:
-    payload = AiDebugEvidenceCollector().collect(
-        report_id="report-check",
-        generated_at=_FIXED_GENERATED_AT,
-    ).to_dict()
+def test_evidence_pack_blocks_sensitive_values_and_uses_repo_relative_authority_paths() -> (
+    None
+):
+    payload = (
+        AiDebugEvidenceCollector()
+        .collect(
+            report_id="report-check",
+            generated_at=_FIXED_GENERATED_AT,
+        )
+        .to_dict()
+    )
     rendered = json.dumps(payload, ensure_ascii=False)
     family = payload["boundary"]["representative_families"][0]
 

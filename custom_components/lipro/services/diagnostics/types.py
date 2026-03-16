@@ -52,11 +52,21 @@ class SensorHistoryResponse(TypedDict):
     result: DiagnosticsApiResponse
 
 
+class FailureSummaryPayload(TypedDict, total=False):
+    """Shared failure-summary vocabulary for diagnostics-service payloads."""
+
+    failure_category: str | None
+    failure_origin: str | None
+    handling_policy: str | None
+    error_type: str | None
+
+
 class LastErrorPayload(TypedDict, total=False):
     """Serializable API error details for diagnostics output."""
 
     code: int | str
     message: str
+    failure_summary: FailureSummaryPayload
 
 
 class QueryCommandResultResponse(TypedDict, total=False):

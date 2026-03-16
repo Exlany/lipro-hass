@@ -6,7 +6,7 @@ capability collection, error handling, and result building.
 
 from __future__ import annotations
 
-from collections.abc import Awaitable, Callable, Iterator
+from collections.abc import Awaitable, Callable, Iterator, Mapping
 from datetime import UTC, datetime
 import logging
 from typing import NoReturn, TypeVar
@@ -39,6 +39,7 @@ from .types import (
     DeveloperReportCoordinatorIterator,
     DeveloperReportResponse,
     DiagnosticsCoordinator,
+    FailureSummaryPayload,
     SensorHistoryResponse,
 )
 
@@ -109,6 +110,54 @@ def _collect_exporter_developer_report(
     return None
 
 
+def _normalize_failure_summary(value: object) -> FailureSummaryPayload | None:
+    """Return the shared failure-summary shape when present."""
+    if not isinstance(value, Mapping):
+        return None
+
+    failure_category = value.get("failure_category")
+    failure_origin = value.get("failure_origin")
+    handling_policy = value.get("handling_policy")
+    error_type = value.get("error_type")
+    has_signal = any(
+        isinstance(item, str)
+        for item in (failure_category, failure_origin, handling_policy, error_type)
+    )
+    if not has_signal:
+        return None
+
+    normalized: FailureSummaryPayload = {
+        "failure_category": (
+            failure_category if isinstance(failure_category, str) else None
+        ),
+        "failure_origin": failure_origin if isinstance(failure_origin, str) else None,
+        "handling_policy": (
+            handling_policy if isinstance(handling_policy, str) else None
+        ),
+        "error_type": error_type if isinstance(error_type, str) else None,
+    }
+    return normalized
+
+
+def _merge_exporter_failure_signals(
+    report: DeveloperReport,
+    exporter_report: DeveloperReport | None,
+) -> DeveloperReport:
+    """Attach shared failure signals to one developer report when available."""
+    merged = dict(report)
+    if not isinstance(exporter_report, Mapping):
+        return merged
+
+    entry_ref = exporter_report.get("entry_ref")
+    if isinstance(entry_ref, str):
+        merged["entry_ref"] = entry_ref
+
+    failure_summary = _normalize_failure_summary(exporter_report.get("failure_summary"))
+    if failure_summary is not None:
+        merged["failure_summary"] = failure_summary
+    return merged
+
+
 def _collect_coordinator_capability_results(
     coordinators: Iterator[_CoordinatorT],
     *,
@@ -162,15 +211,19 @@ def collect_developer_reports(
     reports: list[DeveloperReport] = []
     for coordinator in iter_runtime_coordinators(hass):
         try:
+            exporter_report = _collect_exporter_developer_report(hass, coordinator)
             builder = getattr(coordinator, "build_developer_report", None)
             if callable(builder):
                 report = builder()
                 if isinstance(report, dict):
-                    reports.append(report)
+                    reports.append(
+                        _merge_exporter_failure_signals(report, exporter_report)
+                    )
                 continue
-            exporter_report = _collect_exporter_developer_report(hass, coordinator)
             if exporter_report is not None:
-                reports.append(exporter_report)
+                reports.append(
+                    _merge_exporter_failure_signals(exporter_report, exporter_report)
+                )
         except Exception as err:  # noqa: BLE001
             _LOGGER.warning(
                 "Skip one %s capability due to error (%s)",
@@ -199,7 +252,9 @@ def build_developer_feedback_payload(
     }
     projected_reports = project_developer_feedback_upload(reports)
     if isinstance(projected_reports, list):
-        payload["reports"] = [report for report in projected_reports if isinstance(report, dict)]
+        payload["reports"] = [
+            report for report in projected_reports if isinstance(report, dict)
+        ]
     if requested_entry_id is not None:
         payload["requested_entry_id"] = requested_entry_id
     return payload

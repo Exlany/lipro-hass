@@ -6,6 +6,7 @@ from collections.abc import Callable, Mapping
 from typing import TYPE_CHECKING, Protocol, cast
 
 from ..runtime_types import LiproCoordinator
+from .models import empty_failure_summary
 from .runtime_access import (
     build_runtime_snapshot,
     get_entry_runtime_coordinator,
@@ -36,7 +37,6 @@ class _AnonymousShareManagerLike(Protocol):
 
 
 type AnonymousShareManagerFactory = Callable[..., _AnonymousShareManagerLike]
-
 
 
 def build_device_diagnostics(
@@ -97,6 +97,11 @@ def _build_coordinator_view(
     if not isinstance(getattr(coordinator, "devices", None), Mapping):
         degraded.append("devices")
 
+    failure_summary = (
+        dict(snapshot.failure_summary)
+        if snapshot is not None
+        else empty_failure_summary()
+    )
     view: DiagnosticsPayload = {
         "last_update_success": bool(
             snapshot.last_update_success if snapshot is not None else False
@@ -104,6 +109,7 @@ def _build_coordinator_view(
         "update_interval": str(getattr(coordinator, "update_interval", "")),
         "device_count": snapshot.device_count if snapshot is not None else 0,
         "mqtt_connected": snapshot.mqtt_connected if snapshot is not None else None,
+        "failure_summary": failure_summary,
     }
     return view, degraded
 

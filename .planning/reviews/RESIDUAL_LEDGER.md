@@ -221,6 +221,12 @@
 - `helpers/platform.py` 与各平台 `async_setup_entry()` 现在显式收敛到 thin headless setup shell；`control/runtime_access.py` 仍是 control-plane locator，而不是 platform bridge。
 - 本 phase **无新增 active residual family / compat shell / authority no-change exception**；新增的是 second-root / backflow 守卫与 proof-only identity wording。
 
+## Phase 22 Residual Delta
+
+- `Observability consumer convergence` residual 已进一步收口：diagnostics / system health / developer / support / evidence consumers 现在共同暴露共享 `failure_summary` vocabulary，raw transport / API error fields 仅保留为 debug detail。
+- legacy `build_developer_report()` 分支继续保留为 compat / test seam，但其 failure signals 现已从 exporter-backed truth 继承，不再独立定义 observability 语言。
+- 本 phase **无新增 compat shell**；`failure_summary` contract 继续 pull exporter / service truth，后续 docs / release 只允许消费这些结果，不能再平行讲述第二套失败语义。
+
 ## Phase 20 Residual Delta
 
 - `Protocol-boundary family coverage` 与 `Replay scenario coverage` 两条 residual 已转交 `Phase 20` 负责关闭；Wave 3 侧线先同步 owner 与 exit condition，不提前写成 closed。
