@@ -27,8 +27,6 @@ from ..services.device_lookup import (
     get_device_and_coordinator as _get_device_and_coordinator_service,
 )
 from ..services.diagnostics import (
-    DiagnosticsCoordinator,
-    DiagnosticsDevice,
     async_handle_fetch_body_sensor_history as _async_handle_fetch_body_sensor_history_service,
     async_handle_fetch_door_sensor_history as _async_handle_fetch_door_sensor_history_service,
     async_handle_get_city as _async_handle_get_city_service,
@@ -64,14 +62,10 @@ from ..services.share import (
 )
 from .developer_router_support import (
     async_handle_fetch_sensor_history as _async_handle_fetch_sensor_history_support,
+    build_developer_runtime_coordinator_iterator as _build_developer_runtime_coordinator_iterator,
     collect_developer_reports as _collect_developer_reports,
-    raise_developer_mode_not_enabled as _raise_developer_mode_not_enabled,
+    get_developer_device_and_coordinator as _get_developer_device_and_coordinator_support,
     raise_optional_capability_error as _raise_optional_capability_error,
-)
-from .runtime_access import (
-    find_runtime_entry_for_coordinator as _find_runtime_entry_for_coordinator,
-    is_developer_runtime_coordinator as _is_developer_runtime_coordinator,
-    iter_developer_runtime_coordinators as _iter_developer_runtime_coordinators,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -95,20 +89,6 @@ def _summarize_service_properties(
         if isinstance(key, str):
             keys.append(key)
     return {"count": len(properties), "keys": keys}
-
-
-async def _get_developer_device_and_coordinator(
-    hass: HomeAssistant,
-    call: ServiceCall,
-) -> tuple[DiagnosticsDevice, DiagnosticsCoordinator]:
-    """Resolve one device/coordinator pair and require debug-mode opt-in."""
-    device, coordinator = await _get_device_and_coordinator(hass, call)
-    if not _is_developer_runtime_coordinator(hass, coordinator):
-        entry = _find_runtime_entry_for_coordinator(hass, coordinator)
-        _raise_developer_mode_not_enabled(
-            entry_id=entry.entry_id if entry is not None else None
-        )
-    return cast(DiagnosticsDevice, device), cast(DiagnosticsCoordinator, coordinator)
 
 
 def _log_send_command_call(
@@ -289,7 +269,11 @@ async def async_handle_query_command_result(
     return await _async_handle_query_command_result_service(
         hass,
         call,
-        get_device_and_coordinator=_get_developer_device_and_coordinator,
+        get_device_and_coordinator=lambda _hass, _call: _get_developer_device_and_coordinator_support(
+            _hass,
+            _call,
+            get_device_and_coordinator=_get_device_and_coordinator,
+        ),
         attr_msg_sn=_contracts.ATTR_MSG_SN,
         attr_max_attempts=_contracts.ATTR_MAX_ATTEMPTS,
         attr_time_budget_seconds=_contracts.ATTR_TIME_BUDGET_SECONDS,
@@ -301,13 +285,10 @@ async def async_handle_get_city(
     hass: HomeAssistant, call: ServiceCall
 ) -> CapabilityResponse:
     """Developer-only service: get city information."""
-    coordinators = list(_iter_developer_runtime_coordinators(hass))
     return await _async_handle_get_city_service(
         hass,
         call,
-        iter_runtime_coordinators=lambda _hass: (
-            cast(DiagnosticsCoordinator, coordinator) for coordinator in coordinators
-        ),
+        iter_runtime_coordinators=_build_developer_runtime_coordinator_iterator(hass),
         raise_optional_error=_raise_optional_capability_error,
         service_get_city=_contracts.SERVICE_GET_CITY,
     )
@@ -317,13 +298,10 @@ async def async_handle_query_user_cloud(
     hass: HomeAssistant, call: ServiceCall
 ) -> CapabilityResponse:
     """Developer-only service: query user cloud information."""
-    coordinators = list(_iter_developer_runtime_coordinators(hass))
     return await _async_handle_query_user_cloud_service(
         hass,
         call,
-        iter_runtime_coordinators=lambda _hass: (
-            cast(DiagnosticsCoordinator, coordinator) for coordinator in coordinators
-        ),
+        iter_runtime_coordinators=_build_developer_runtime_coordinator_iterator(hass),
         raise_optional_error=_raise_optional_capability_error,
         service_query_user_cloud=_contracts.SERVICE_QUERY_USER_CLOUD,
     )
@@ -339,7 +317,11 @@ async def async_handle_fetch_body_sensor_history(
         service_handler=_async_handle_fetch_body_sensor_history_service,
         service_name_kw="service_fetch_body_sensor_history",
         service_name=_contracts.SERVICE_FETCH_BODY_SENSOR_HISTORY,
-        get_device_and_coordinator=_get_developer_device_and_coordinator,
+        get_device_and_coordinator=lambda _hass, _call: _get_developer_device_and_coordinator_support(
+            _hass,
+            _call,
+            get_device_and_coordinator=_get_device_and_coordinator,
+        ),
     )
 
 
@@ -353,7 +335,11 @@ async def async_handle_fetch_door_sensor_history(
         service_handler=_async_handle_fetch_door_sensor_history_service,
         service_name_kw="service_fetch_door_sensor_history",
         service_name=_contracts.SERVICE_FETCH_DOOR_SENSOR_HISTORY,
-        get_device_and_coordinator=_get_developer_device_and_coordinator,
+        get_device_and_coordinator=lambda _hass, _call: _get_developer_device_and_coordinator_support(
+            _hass,
+            _call,
+            get_device_and_coordinator=_get_device_and_coordinator,
+        ),
     )
 
 

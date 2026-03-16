@@ -246,6 +246,7 @@
 - contributor docs / templates / runbook / evidence index 现已统一消费 baseline / review / milestone truth；本 phase **无新增 active residual family**。
 - `failure_summary` / `failure_entries` 提示已进入 support / troubleshooting / bug-report 路径，但这些公开入口只消费 shared contract，不新增第二套 consumer vocabulary。
 - workflow narrative 维持 **no-change**：release 继续复用 `ci.yml` gate，`V1_2_EVIDENCE_INDEX.md` 只作为 pull-only evidence pointer，而不是新的 authority chain。
+- `custom_components/lipro/core/coordinator/coordinator.py` 与 `custom_components/lipro/core/api/client.py` 已完成本轮第一刀减重 / 边界澄清，但更深拆分仍登记为 post-closeout follow-up，不再默认为 silent debt。
 
 ## Phase 24 Final Audit Disposition
 

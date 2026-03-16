@@ -97,6 +97,38 @@ def _build_report_options(options: Mapping[str, object]) -> dict[str, Any]:
     }
 
 
+def _build_runtime_report_section(
+    *,
+    mqtt_enabled: bool,
+    mqtt_connected: bool,
+    polling_interval_seconds: int | None,
+    last_update_success: bool,
+) -> dict[str, object]:
+    """Build the runtime status section for the local developer view."""
+    return {
+        "mqtt_enabled": mqtt_enabled,
+        "mqtt_connected": mqtt_connected,
+        "polling_interval_seconds": polling_interval_seconds,
+        "last_update_success": last_update_success,
+    }
+
+
+def _build_device_inventory_section(
+    *,
+    devices: Mapping[str, LiproDevice],
+    group_count: int,
+    individual_count: int,
+    outlet_count: int,
+) -> dict[str, int]:
+    """Build the aggregate device inventory section."""
+    return {
+        "total": len(devices),
+        "group_count": group_count,
+        "individual_count": individual_count,
+        "outlet_count": outlet_count,
+    }
+
+
 def _sanitize_last_command_failure(
     failure: Mapping[str, object] | None,
     *,
@@ -387,19 +419,19 @@ def build_developer_report(
         "unique_id": redact_identifier(unique_id),
         "phone": redact_identifier(phone),
         "debug_mode_enabled": debug_mode,
-        "runtime": {
-            "mqtt_enabled": mqtt_enabled,
-            "mqtt_connected": mqtt_connected,
-            "polling_interval_seconds": polling_interval_seconds,
-            "last_update_success": last_update_success,
-        },
+        "runtime": _build_runtime_report_section(
+            mqtt_enabled=mqtt_enabled,
+            mqtt_connected=mqtt_connected,
+            polling_interval_seconds=polling_interval_seconds,
+            last_update_success=last_update_success,
+        ),
         "options": _build_report_options(options),
-        "devices": {
-            "total": len(devices),
-            "group_count": group_count,
-            "individual_count": individual_count,
-            "outlet_count": outlet_count,
-        },
+        "devices": _build_device_inventory_section(
+            devices=devices,
+            group_count=group_count,
+            individual_count=individual_count,
+            outlet_count=outlet_count,
+        ),
         "mesh_groups": mesh_groups,
         "panel_capability_snapshot": panel_capability_snapshot,
         "ir_remote_inventory_snapshot": ir_remote_inventory_snapshot,

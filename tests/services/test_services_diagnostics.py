@@ -208,7 +208,10 @@ def test_collect_developer_reports_falls_back_to_exporter_view() -> None:
             "runtime": {"ok": True},
         }
     ]
-    get_entry_telemetry_view.assert_called_once_with(entry, "developer")
+    called_entry, called_sink = get_entry_telemetry_view.call_args.args
+    assert called_sink == "developer"
+    assert getattr(called_entry, "entry_id", None) == entry.entry_id
+    assert getattr(called_entry, "runtime_data", None) is coordinator
 
 
 @pytest.mark.asyncio

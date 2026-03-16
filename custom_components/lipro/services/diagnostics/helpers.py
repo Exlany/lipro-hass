@@ -240,6 +240,38 @@ def collect_developer_reports(
     return reports
 
 
+def _project_feedback_reports(
+    reports: list[DeveloperReport],
+) -> list[DeveloperReport]:
+    """Project local developer reports into the upload-safe boundary shape."""
+    projected_reports = project_developer_feedback_upload(reports)
+    if not isinstance(projected_reports, list):
+        return reports
+    return [report for report in projected_reports if isinstance(report, dict)]
+
+
+def _build_feedback_envelope(
+    *,
+    entry_count: int,
+    note: str,
+    domain: str,
+    service_name: str,
+    requested_entry_id: str | None,
+) -> DeveloperFeedbackPayload:
+    """Build the outer developer-feedback envelope without upload projection."""
+    payload: DeveloperFeedbackPayload = {
+        "source": "home_assistant_service",
+        "service": f"{domain}.{service_name}",
+        "generated_at": datetime.now(UTC).isoformat(),
+        "entry_count": entry_count,
+        "note": note,
+        "reports": [],
+    }
+    if requested_entry_id is not None:
+        payload["requested_entry_id"] = requested_entry_id
+    return payload
+
+
 def build_developer_feedback_payload(
     *,
     reports: list[DeveloperReport],
@@ -249,21 +281,14 @@ def build_developer_feedback_payload(
     requested_entry_id: str | None,
 ) -> DeveloperFeedbackPayload:
     """Build the canonical developer-feedback service payload."""
-    payload: DeveloperFeedbackPayload = {
-        "source": "home_assistant_service",
-        "service": f"{domain}.{service_name}",
-        "generated_at": datetime.now(UTC).isoformat(),
-        "entry_count": len(reports),
-        "note": note,
-        "reports": reports,
-    }
-    projected_reports = project_developer_feedback_upload(reports)
-    if isinstance(projected_reports, list):
-        payload["reports"] = [
-            report for report in projected_reports if isinstance(report, dict)
-        ]
-    if requested_entry_id is not None:
-        payload["requested_entry_id"] = requested_entry_id
+    payload = _build_feedback_envelope(
+        entry_count=len(reports),
+        note=note,
+        domain=domain,
+        service_name=service_name,
+        requested_entry_id=requested_entry_id,
+    )
+    payload["reports"] = _project_feedback_reports(reports)
     return payload
 
 

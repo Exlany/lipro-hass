@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Awaitable, Callable, Iterator
 import logging
-from typing import Any, NoReturn, TypeVar
+from typing import Any, NoReturn, TypeVar, cast
 
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.exceptions import ServiceValidationError
@@ -22,13 +22,17 @@ from ..services.diagnostics import (
 from ..services.diagnostics.types import (
     DeveloperReport,
     DeveloperReportCoordinatorIterator,
+    DiagnosticsCoordinator,
+    DiagnosticsDevice,
     GetDeviceAndCoordinator,
     SensorHistoryResponse,
 )
 from ..services.errors import raise_service_error as _raise_service_error
 from .runtime_access import (
+    find_runtime_entry_for_coordinator as _find_runtime_entry_for_coordinator,
     get_entry_runtime_coordinator as _get_entry_runtime_coordinator,
     is_debug_mode_enabled_for_entry as _is_debug_mode_enabled_for_entry,
+    is_developer_runtime_coordinator as _is_developer_runtime_coordinator,
     iter_developer_runtime_coordinators as _iter_developer_runtime_coordinators,
     iter_runtime_entries as _iter_runtime_entries,
 )
@@ -48,6 +52,34 @@ def build_single_runtime_coordinator_iterator(
         return iter((coordinator,))
 
     return _iter_single_runtime_coordinator
+
+
+def build_developer_runtime_coordinator_iterator(
+    hass: HomeAssistant,
+) -> DeveloperReportCoordinatorIterator:
+    """Freeze the current debug-enabled coordinators into one iterator factory."""
+    coordinators = list(_iter_developer_runtime_coordinators(hass))
+
+    def _iter_runtime_coordinators(_hass: HomeAssistant) -> Iterator[DiagnosticsCoordinator]:
+        return iter(cast(list[DiagnosticsCoordinator], coordinators))
+
+    return _iter_runtime_coordinators
+
+
+async def get_developer_device_and_coordinator(
+    hass: HomeAssistant,
+    call: ServiceCall,
+    *,
+    get_device_and_coordinator: GetDeviceAndCoordinator,
+) -> tuple[DiagnosticsDevice, DiagnosticsCoordinator]:
+    """Resolve one runtime device/coordinator pair and require debug opt-in."""
+    device, coordinator = await get_device_and_coordinator(hass, call)
+    if not _is_developer_runtime_coordinator(hass, coordinator):
+        entry = _find_runtime_entry_for_coordinator(hass, coordinator)
+        raise_developer_mode_not_enabled(
+            entry_id=entry.entry_id if entry is not None else None
+        )
+    return cast(DiagnosticsDevice, device), cast(DiagnosticsCoordinator, coordinator)
 
 
 
@@ -146,8 +178,10 @@ async def async_handle_fetch_sensor_history(
 __all__ = [
     "async_call_optional_capability",
     "async_handle_fetch_sensor_history",
+    "build_developer_runtime_coordinator_iterator",
     "build_single_runtime_coordinator_iterator",
     "collect_developer_reports",
+    "get_developer_device_and_coordinator",
     "raise_developer_mode_not_enabled",
     "raise_optional_capability_error",
 ]
