@@ -28,6 +28,7 @@
 **Phase range:** `Phase 18 -> 24`
 
 **Execution status:** `Phase 18-24` complete
+**Archive assets:** `.planning/milestones/v1.1-ROADMAP.md`, `.planning/milestones/v1.1-REQUIREMENTS.md`, `.planning/milestones/v1.2-ROADMAP.md`, `.planning/milestones/v1.2-REQUIREMENTS.md`
 
 ## Why This Milestone Exists
 
@@ -209,7 +210,7 @@
 
 ## Success Definition
 
-当 v1.1 完成时，应能同时回答以下问题：
+当当前里程碑完成时，应能同时回答以下问题：
 
 - 一条 REST/MQTT 输入是由谁 decode、谁拥有 schema authority、由哪个 fixture 证明？
 - 哪些架构回退会被 CI / meta guards 自动拦截？
@@ -353,11 +354,15 @@ v1.1 进入执行期后，新增演进必须额外满足：
 2. `.planning/MILESTONES.md`
 3. `.planning/milestones/v1.0-ROADMAP.md`
 4. `.planning/milestones/v1.0-REQUIREMENTS.md`
-5. `.planning/ROADMAP.md`
-6. `.planning/REQUIREMENTS.md`
-7. `.planning/STATE.md`
-8. `.planning/baseline/*.md`
-9. `.planning/reviews/*.md`
+5. `.planning/milestones/v1.1-ROADMAP.md`
+6. `.planning/milestones/v1.1-REQUIREMENTS.md`
+7. `.planning/milestones/v1.2-ROADMAP.md`
+8. `.planning/milestones/v1.2-REQUIREMENTS.md`
+9. `.planning/ROADMAP.md`
+10. `.planning/REQUIREMENTS.md`
+11. `.planning/STATE.md`
+12. `.planning/baseline/*.md`
+13. `.planning/reviews/*.md`
 
 ## Current Execution Workspace Inputs
 

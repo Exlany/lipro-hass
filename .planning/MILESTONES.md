@@ -17,7 +17,7 @@
 
 **Phase range:** `7.1 -> 17`
 **Phases completed:** 15 phases, 58 plans, 0 tasks
-**Status:** archive-ready
+**Status:** archived / evidence-ready
 
 **Key accomplishments:**
 - formalized boundary decoder families、architecture policy enforcement、runtime telemetry exporter 与 replay/evidence 主链
@@ -27,6 +27,8 @@
 **Closeout assets:**
 - `.planning/v1.1-MILESTONE-AUDIT.md`
 - `.planning/reviews/V1_1_EVIDENCE_INDEX.md`
+- `.planning/milestones/v1.1-ROADMAP.md`
+- `.planning/milestones/v1.1-REQUIREMENTS.md`
 
 ---
 
@@ -34,7 +36,7 @@
 
 **Phase range:** `18 -> 24`
 **Phases completed:** 7 phases, 22 plans, 0 tasks
-**Status:** complete / archive-ready / handoff-ready
+**Status:** archived snapshots created / handoff-ready
 
 **Key accomplishments:**
 - 完成 host-neutral boundary/auth/device nucleus 抽取，并以 headless consumer proof 证明 single-chain reuse
@@ -45,5 +47,7 @@
 - `.planning/reviews/V1_2_EVIDENCE_INDEX.md`
 - `.planning/v1.2-MILESTONE-AUDIT.md`
 - `.planning/v1.3-HANDOFF.md`
+- `.planning/milestones/v1.2-ROADMAP.md`
+- `.planning/milestones/v1.2-REQUIREMENTS.md`
 
 ---

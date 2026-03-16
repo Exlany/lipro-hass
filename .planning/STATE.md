@@ -25,6 +25,7 @@ See: `.planning/PROJECT.md`
 
 - `v1.0` 已归档到 `.planning/MILESTONES.md` 与 `.planning/milestones/v1.0-*.md`
 - `v1.1` 已完成全部计划执行：`15 phases / 58 plans` 全绿落表
+- `v1.1` / `v1.2` 的 roadmap / requirements archive snapshots 已落入 `.planning/milestones/`，后续里程碑可停止复用同一份历史 planning truth
 - `Phase 7.1` 已完成：boundary inventory / decoder skeleton / representative REST+MQTT pipeline / replay-ready fixtures / governance handoff
 - `Phase 7.2` 已完成：architecture policy baseline、shared policy helpers、architecture script、meta guards refactor、CI fail-fast ordering 与 verification evidence 已落地
 - `Phase 7.3` 已完成：exporter formal home、真实运行信号、consumer convergence、black-box evidence 与治理回写均已落地
@@ -108,13 +109,14 @@ See: `.planning/PROJECT.md`
 - **Phase range:** `18 -> 24`
 - **Completed so far:** `Phase 18` 到 `Phase 24`
 - **Closeout state:** `archive-ready`, `handoff-ready`
-- **Next focus:** 执行 milestone archival，或基于 `v1.3-HANDOFF.md` 启动下一里程碑
+- **Archive snapshots:** `.planning/milestones/v1.2-ROADMAP.md`, `.planning/milestones/v1.2-REQUIREMENTS.md`
+- **Next focus:** 基于 `v1.3-HANDOFF.md` 启动下一里程碑，或进一步收缩 active planning docs
 
 ## Recommended Next Command
 
-1. `$gsd-complete-milestone` —— 归档 `v1.2` 并切换到下一里程碑工作区
-2. `$gsd-new-milestone` —— 基于 `v1.3-HANDOFF.md` 启动下一轮 roadmap / requirements
-3. `$gsd-progress` —— 复核 closeout / archive / handoff 当前状态
+1. `$gsd-new-milestone` —— 基于 `v1.3-HANDOFF.md` 启动下一轮 roadmap / requirements
+2. `$gsd-progress` —— 复核 archive snapshots / handoff / active truth 当前状态
+3. `$gsd-complete-milestone` —— 若要继续收缩 active planning docs，可在现有 archive snapshots 基础上执行最终切换
 
 ## Session Continuity
 

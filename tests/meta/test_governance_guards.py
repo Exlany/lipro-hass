@@ -444,12 +444,55 @@ def test_governance_truth_registers_v1_2_closeout_assets() -> None:
     assert "## v1.2 Host-Neutral Core & Replay Completion" in milestones_text
 
 
+
+
+def test_milestone_archive_snapshots_exist_and_are_referenced() -> None:
+    roadmap_text = (_ROOT / ".planning" / "ROADMAP.md").read_text(encoding="utf-8")
+    requirements_text = (_ROOT / ".planning" / "REQUIREMENTS.md").read_text(
+        encoding="utf-8"
+    )
+    project_text = (_ROOT / ".planning" / "PROJECT.md").read_text(encoding="utf-8")
+    state_text = (_ROOT / ".planning" / "STATE.md").read_text(encoding="utf-8")
+
+    milestones_text = (_ROOT / ".planning" / "MILESTONES.md").read_text(encoding="utf-8")
+
+    archive_paths = (
+        _ROOT / ".planning" / "milestones" / "v1.1-ROADMAP.md",
+        _ROOT / ".planning" / "milestones" / "v1.1-REQUIREMENTS.md",
+        _ROOT / ".planning" / "milestones" / "v1.2-ROADMAP.md",
+        _ROOT / ".planning" / "milestones" / "v1.2-REQUIREMENTS.md",
+    )
+
+    for path in archive_paths:
+        assert path.exists()
+
+    for needle in (
+        "v1.1-ROADMAP.md",
+        "v1.1-REQUIREMENTS.md",
+        "v1.2-ROADMAP.md",
+        "v1.2-REQUIREMENTS.md",
+    ):
+        assert needle in roadmap_text
+        assert needle in requirements_text or needle in project_text or needle in milestones_text
+
+    assert "archive snapshots 已落入 `.planning/milestones/`" in state_text
+    assert "archived / evidence-ready" in milestones_text
+    assert "archived snapshots created / handoff-ready" in milestones_text
+
+    v1_1_archive_text = (
+        _ROOT / ".planning" / "milestones" / "v1.1-ROADMAP.md"
+    ).read_text(encoding="utf-8")
+
+    assert "待执行 milestone archival" not in v1_1_archive_text
+    assert "当当前里程碑完成时，应能同时回答以下问题：" in project_text
+
 def test_phase_7_5_planning_truth_is_consistent() -> None:
     roadmap_text = (_ROOT / ".planning" / "ROADMAP.md").read_text(encoding="utf-8")
     requirements_text = (_ROOT / ".planning" / "REQUIREMENTS.md").read_text(
         encoding="utf-8"
     )
     state_text = (_ROOT / ".planning" / "STATE.md").read_text(encoding="utf-8")
+
     validation_text = (
         _ROOT
         / ".planning"
@@ -479,6 +522,7 @@ def test_phase_8_planning_truth_is_consistent() -> None:
         encoding="utf-8"
     )
     state_text = (_ROOT / ".planning" / "STATE.md").read_text(encoding="utf-8")
+
     validation_text = (
         _ROOT
         / ".planning"
@@ -513,6 +557,7 @@ def test_phase_9_governance_truth_is_consistent() -> None:
         encoding="utf-8"
     )
     state_text = (_ROOT / ".planning" / "STATE.md").read_text(encoding="utf-8")
+
     validation_text = (
         _ROOT
         / ".planning"
@@ -680,6 +725,7 @@ def test_phase_15_execution_truth_is_consistent() -> None:
         encoding="utf-8"
     )
     state_text = (_ROOT / ".planning" / "STATE.md").read_text(encoding="utf-8")
+
     public_text = (_ROOT / ".planning" / "baseline" / "PUBLIC_SURFACES.md").read_text(
         encoding="utf-8"
     )
@@ -832,6 +878,7 @@ def test_phase_16_execution_truth_is_consistent() -> None:
         encoding="utf-8"
     )
     state_text = (_ROOT / ".planning" / "STATE.md").read_text(encoding="utf-8")
+
     validation_text = (phase_root / "16-VALIDATION.md").read_text(encoding="utf-8")
     authority_text = (
         _ROOT / ".planning" / "baseline" / "AUTHORITY_MATRIX.md"
@@ -908,6 +955,7 @@ def test_phase_17_execution_truth_is_consistent() -> None:
         encoding="utf-8"
     )
     state_text = (_ROOT / ".planning" / "STATE.md").read_text(encoding="utf-8")
+
     public_text = (_ROOT / ".planning" / "baseline" / "PUBLIC_SURFACES.md").read_text(
         encoding="utf-8"
     )
@@ -978,6 +1026,7 @@ def test_phase_19_execution_truth_is_consistent() -> None:
         encoding="utf-8"
     )
     state_text = (_ROOT / ".planning" / "STATE.md").read_text(encoding="utf-8")
+
     public_text = (_ROOT / ".planning" / "baseline" / "PUBLIC_SURFACES.md").read_text(
         encoding="utf-8"
     )
@@ -1041,6 +1090,7 @@ def test_phase_21_to_24_execution_truth_is_consistent() -> None:
         encoding="utf-8"
     )
     state_text = (_ROOT / ".planning" / "STATE.md").read_text(encoding="utf-8")
+
     project_text = (_ROOT / ".planning" / "PROJECT.md").read_text(encoding="utf-8")
 
     for heading in (
@@ -1136,6 +1186,7 @@ def test_phase_20_execution_truth_is_consistent() -> None:
         encoding="utf-8"
     )
     state_text = (_ROOT / ".planning" / "STATE.md").read_text(encoding="utf-8")
+
     verification_text = (phase_root / "20-VERIFICATION.md").read_text(encoding="utf-8")
 
     assert (
@@ -1180,6 +1231,7 @@ def test_phase_14_execution_truth_is_consistent() -> None:
         encoding="utf-8"
     )
     state_text = (_ROOT / ".planning" / "STATE.md").read_text(encoding="utf-8")
+
     public_text = (_ROOT / ".planning" / "baseline" / "PUBLIC_SURFACES.md").read_text(
         encoding="utf-8"
     )
@@ -1265,6 +1317,7 @@ def test_phase_13_execution_truth_is_consistent() -> None:
         encoding="utf-8"
     )
     state_text = (_ROOT / ".planning" / "STATE.md").read_text(encoding="utf-8")
+
     public_text = (_ROOT / ".planning" / "baseline" / "PUBLIC_SURFACES.md").read_text(
         encoding="utf-8"
     )
@@ -1317,6 +1370,7 @@ def test_phase_12_execution_truth_is_consistent() -> None:
         encoding="utf-8"
     )
     state_text = (_ROOT / ".planning" / "STATE.md").read_text(encoding="utf-8")
+
     public_text = (_ROOT / ".planning" / "baseline" / "PUBLIC_SURFACES.md").read_text(
         encoding="utf-8"
     )
@@ -1390,6 +1444,7 @@ def test_phase_10_governance_truth_is_consistent() -> None:
         encoding="utf-8"
     )
     state_text = (_ROOT / ".planning" / "STATE.md").read_text(encoding="utf-8")
+
     validation_text = (
         _ROOT
         / ".planning"
