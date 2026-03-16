@@ -25,6 +25,7 @@
 - `custom_components/lipro/services/schedule.py`
 - `custom_components/lipro/core/mqtt/topics.py`
 - `custom_components/lipro/core/mqtt/message_processor.py`
+- `tests/fixtures/api_contracts/README.md`
 - `tests/fixtures/protocol_boundary/README.md`
 - `tests/fixtures/protocol_replay/README.md`
 - `tests/core/api/test_protocol_contract_matrix.py`
@@ -98,6 +99,36 @@ schedule 路径目前主要分布于：
 
 ### 5. replay / fixture / meta 资产当前覆盖的是 representative families，不是 remaining families
 
+### 6. registry visibility 本身就是 formalization 的一部分
+
+`Phase 20` 的目标写的是“registry-backed boundary families”，这意味着代码层面的 formalization 不能停在新增 helper/decoder：
+
+- `custom_components/lipro/core/protocol/boundary/__init__.py::build_protocol_boundary_registry()` 必须显式登记新增 families；
+- `custom_components/lipro/core/protocol/contracts.py::CanonicalProtocolContracts.describe_boundary_decoders()` 的输出必须稳定暴露这些 families；
+- `tests/core/api/test_protocol_contract_matrix.py` 当前只断言 5 个 families（`rest.mqtt-config`、`rest.device-list`、`rest.device-status`、`rest.mesh-group-status`、`mqtt.properties`），Phase 20 必须把新增 families 纳入同一 registry descriptor truth。
+
+若这一步不做，即使内部 helper 已经存在，也不能诚实地称为“registry-backed”。
+
+### 7. schedule candidate-query path 是 `rest.schedule-json.v1` 的隐性回归面
+
+`schedule` 路径不只是一组 parse/normalize helpers。`custom_components/lipro/core/api/endpoints/schedule.py` 还承接 mesh candidate fallback、candidate request orchestration 与 `normalize_mesh_timing_rows()` 的组合，而这条链有专门测试：`tests/core/api/test_api_schedule_candidate_queries.py`。
+
+这意味着 `rest.schedule-json.v1` 的 formalization 若只覆盖 `schedule_codec.py` 与 service-layer normalization，会遗漏最容易回归的 mesh candidate semantics。
+
+Phase 20 的验证必须至少把以下两类测试一起纳入：
+
+- `tests/core/api/test_schedule_codec.py`（codec canonicalization）
+- `tests/core/api/test_api_schedule_candidate_queries.py`（candidate fallback / orchestration）
+
+### 8. `parse_mqtt_payload()` 是 MQTT remaining family 的额外 public shim
+
+`custom_components/lipro/core/mqtt/payload.py::parse_mqtt_payload()` 当前是通向 `decode_mqtt_properties_payload()` 的 lazy-import shim。若 `mqtt.message-envelope.v1` 在 `Phase 20` 中被正式化，这个 shim 的职责边界也必须被重新审视：
+
+- 它要么继续只代理“envelope 之后的 properties canonicalization”；
+- 要么显式接到新的 envelope family 后再向下游委派；
+
+但无论如何，不能让 `payload.py` 自己长成第二条 formal authority path。
+
 当前 replay/fixture truth 主要覆盖：
 
 - REST：`rest.mqtt-config`、`rest.device-list`、`rest.device-status`、`rest.mesh-group-status`
@@ -105,6 +136,7 @@ schedule 路径目前主要分布于：
 
 证据位于：
 
+- `tests/fixtures/api_contracts/README.md`
 - `tests/fixtures/protocol_boundary/README.md`
 - `tests/fixtures/protocol_replay/README.md`
 - `tests/core/api/test_protocol_contract_matrix.py`
@@ -114,6 +146,30 @@ schedule 路径目前主要分布于：
 - `tests/meta/test_protocol_replay_assets.py`
 
 这意味着 `Phase 20` 不能只改代码：必须同步 fixture families、replay manifests、asset guards 与 verification truth，才能真正关闭 `SIM-03` / `SIM-05`。
+
+### 9. `rest.schedule-json.v1` 还必须覆盖 request-side grammar 与 facade public path
+
+`custom_components/lipro/core/api/schedule_service.py` 承接 mesh candidate orchestration，`custom_components/lipro/core/api/schedule_endpoint.py` 承接 `scheduleJson` request-body encode、candidate 去重/排序与 endpoint-level contract，而 `custom_components/lipro/core/api/client.py` / `tests/core/api/test_api.py` 则是正式 REST facade 暴露 schedule 行为的 public path。
+
+因此 `Phase 20` 若只 formalize read-side codec / endpoint normalization，会留下两类假闭环：
+
+- 读路径进入 boundary family，但写路径仍保留第二套 `scheduleJson` grammar；
+- helper / endpoint 测试通过，但 `LiproRestFacade` 的正式 public path 未被一起验证。
+
+`20-01` 必须同时把以下锚点纳入计划与验证：
+
+- `custom_components/lipro/core/api/schedule_service.py`
+- `custom_components/lipro/core/api/schedule_endpoint.py`
+- `custom_components/lipro/core/api/client.py`
+- `tests/core/api/test_schedule_endpoint.py`
+- `tests/core/api/test_api_schedule_endpoints.py`
+- `tests/core/api/test_api.py` 中的 schedule-focused facade regression
+
+### 10. replay harness typed operation whitelist / driver dispatch 必须与新 manifest 同轮演进
+
+新增 `rest.schedule-json.v1`、`mqtt.topic.v1`、`mqtt.message-envelope.v1` 若要进入 replay manifest，仅补 fixture / manifest / integration test 还不够。`tests/harness/protocol/replay_models.py` 的 typed operation whitelist 与 `tests/harness/protocol/replay_driver.py` 的 public-path dispatch 也必须同轮扩展，否则 manifest 可以落盘，但 replay driver 仍会卡在 operation validation 或 `assert_never()`。
+
+这意味着 `20-01` / `20-02` 中任何新增 replay operation 的任务，都必须把 harness model + driver 视为同一原子修改，而不是推迟到后续 phase 补洞。
 
 ## Family-by-Family Gap Analysis
 
@@ -195,6 +251,7 @@ schedule 路径目前主要分布于：
 - `tests/fixtures/api_contracts/`
 - `tests/core/api/test_protocol_contract_matrix.py`
 - `tests/core/api/test_protocol_replay_rest.py`
+- `tests/core/api/test_api_schedule_candidate_queries.py`
 
 ### `20-02`: formalize remaining MQTT families
 
@@ -209,9 +266,12 @@ schedule 路径目前主要分布于：
 
 - `custom_components/lipro/core/mqtt/topics.py`
 - `custom_components/lipro/core/mqtt/message_processor.py`
+- `custom_components/lipro/core/mqtt/payload.py`
 - `custom_components/lipro/core/protocol/boundary/mqtt_decoder.py`
 - `custom_components/lipro/core/protocol/boundary/__init__.py`
+- `custom_components/lipro/core/protocol/contracts.py`
 - `tests/fixtures/protocol_boundary/`
+- `tests/core/api/test_protocol_contract_matrix.py`
 - `tests/core/mqtt/test_mqtt_payload.py`
 - `tests/core/mqtt/test_message_processor.py`
 - `tests/core/mqtt/test_protocol_replay_mqtt.py`
@@ -227,6 +287,7 @@ schedule 路径目前主要分布于：
 
 建议文件中心：
 
+- `tests/fixtures/api_contracts/README.md`
 - `tests/fixtures/protocol_boundary/README.md`
 - `tests/fixtures/protocol_replay/README.md`
 - `tests/meta/test_protocol_replay_assets.py`
@@ -268,11 +329,11 @@ schedule 路径目前主要分布于：
 
 ### REST-focused loop
 
-- `uv run pytest -q tests/core/api/test_protocol_contract_matrix.py tests/core/api/test_protocol_replay_rest.py tests/core/api/test_schedule_codec.py tests/core/api/test_api_schedule_service.py`
+- `uv run pytest -q tests/core/api/test_protocol_contract_matrix.py tests/core/api/test_protocol_replay_rest.py tests/core/api/test_schedule_codec.py tests/core/api/test_schedule_endpoint.py tests/core/api/test_api_schedule_endpoints.py tests/core/api/test_api_schedule_service.py tests/core/api/test_api_schedule_candidate_queries.py tests/services/test_services_schedule.py tests/core/api/test_api.py -k "schedule"`
 
 ### MQTT-focused loop
 
-- `uv run pytest -q tests/core/mqtt/test_mqtt.py tests/core/mqtt/test_mqtt_payload.py tests/core/mqtt/test_message_processor.py tests/core/mqtt/test_protocol_replay_mqtt.py`
+- `uv run pytest -q tests/core/api/test_protocol_contract_matrix.py tests/core/mqtt/test_mqtt.py tests/core/mqtt/test_topic_builder.py tests/core/mqtt/test_mqtt_payload.py tests/core/mqtt/test_message_processor.py tests/core/mqtt/test_client_refactored.py tests/core/mqtt/test_protocol_replay_mqtt.py`
 
 ### Replay / asset loop
 

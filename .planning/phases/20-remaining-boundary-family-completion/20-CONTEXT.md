@@ -3,7 +3,7 @@
 **Phase:** `20 Remaining Boundary Family Completion`
 **Milestone:** `v1.2 Host-Neutral Core & Replay Completion`
 **Date:** 2026-03-16
-**Status:** Ready for planning
+**Status:** Planning complete
 **Source:** current roadmap/requirements/state truth + Phase 19 closeout + focused code scan
 
 ## Why Phase 20 Exists
