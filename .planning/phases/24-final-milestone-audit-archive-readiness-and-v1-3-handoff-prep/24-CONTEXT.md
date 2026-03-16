@@ -4,26 +4,26 @@
 **Milestone:** `v1.2 Host-Neutral Core & Replay Completion`
 **Date:** `2026-03-16`
 **Status:** `Ready for planning`
-**Source:** `Phase 20` closeout truth + current roadmap/requirements/state + v1.2 endgame decomposition
+**Source:** `Phase 23` governance/docs/release-ready truth + current roadmap/requirements/state + final milestone closeout objective
 
 ## Why Phase 24 Exists
 
-即使 21-23 全部落地，若没有 final repo audit、residual arbitration、archive-ready closeout bundle 与下一里程碑 handoff，v1.2 仍不能算真正收官。
+即使 `Phase 21-23` 全部完成，若没有 final repo audit、residual arbitration、archive-ready closeout bundle 与 `v1.3` handoff，`GOV-18` 依然不能宣称完成。
 
 ## Goal
 
-1. 完成 final repo audit 与 residual arbitration。
-2. 形成 archive-ready verification / evidence / closeout bundle。
-3. 给 v1.3 留下清晰 handoff 与 phase seed。
+1. 对 `v1.2` 做最终 repo audit，并给出全部 residual 的关闭 / 保留 / defer disposition。
+2. 形成 archive-ready milestone audit / evidence / closeout bundle。
+3. 留下清晰、无 silent defer 的 `v1.3` handoff 与 next-phase seed。
 
 ## Decisions (Locked)
 
-- 本 phase 只做终审与 closeout，不再扩新能力。
-- 所有未完成项必须显式 defer 到 v1.3。
-- closeout evidence 必须可审计、可回放、可仲裁。
+- 本 phase 不再扩新能力，只做 closeout / audit / handoff。
+- 所有未完成项都必须明确写入 residual / audit / handoff truth，禁止口头递延。
+- 若需要新增 milestone-level 文档，必须与现有 `MILESTONES.md` / runbook / governance guards 配套，而不是另立平行收官故事。
 
 ## Non-Negotiable Constraints
 
-- 不得重开第二条正式主链、第二套 replay/evidence story 或第二套 governance authority。
-- 不得把未在本 phase 范围内的问题偷跑进来，破坏 `21 -> 24` 的严格依赖链。
-- 所有 phase 产出都必须可验证、可回写、可仲裁，并能被后续 phase 消费。
+- 不得把 `Phase 23` 应做的 contributor-doc / release-evidence closure 留到 `24` 才补。
+- 不得在 `24` 里重新打开实现性重构或新的 phase planning 主线。
+- final audit / archive-ready / handoff 资产必须相互引用、可审计、可执行。
