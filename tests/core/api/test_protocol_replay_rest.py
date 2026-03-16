@@ -23,6 +23,10 @@ from tests.harness.protocol.replay_assertions import (
 from tests.harness.protocol.replay_models import ReplayManifest
 
 _REST_MANIFESTS = iter_replay_manifests(channel="rest")
+_EXPLICIT_REST_ASSURANCE_FAMILIES = (
+    "rest.list-envelope",
+    "rest.schedule-json",
+)
 _EXPECTED_PUBLIC_PATHS = {
     "rest.mqtt-config": "LiproProtocolFacade.contracts.normalize_mqtt_config",
     "rest.list-envelope": "LiproProtocolFacade.contracts.normalize_list_envelope",
@@ -79,3 +83,24 @@ def test_rest_replay_scenarios_use_unified_protocol_root(manifest: ReplayManifes
     views = assert_exporter_backed_replay_telemetry(manifest, result)
     assert views.system_health["auth_refresh_success_count"] == 1
     assert fixture.authority_payload is not None
+
+
+def test_rest_remaining_families_have_explicit_replay_coverage_contract() -> None:
+    manifests = {manifest.family: manifest for manifest in _REST_MANIFESTS}
+    driver = ProtocolReplayDriver()
+
+    assert set(_EXPLICIT_REST_ASSURANCE_FAMILIES) <= manifests.keys()
+    for family in _EXPLICIT_REST_ASSURANCE_FAMILIES:
+        manifest = manifests[family]
+        result = driver.run_manifest(manifest)
+
+        assert result.public_path == _EXPECTED_PUBLIC_PATHS[family]
+        assert_replay_has_no_drift(
+            result,
+            expected_family=family,
+            expected_version="v1",
+        )
+        assert_replay_canonical_contract(
+            result,
+            expected_canonical=_expected_canonical(manifest),
+        )

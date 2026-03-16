@@ -26,6 +26,8 @@ _SECURITY = _ROOT / "SECURITY.md"
 _TROUBLESHOOTING = _ROOT / "docs" / "TROUBLESHOOTING.md"
 _RUNBOOK = _ROOT / "docs" / "MAINTAINER_RELEASE_RUNBOOK.md"
 _CI_WORKFLOW = _ROOT / ".github" / "workflows" / "ci.yml"
+_ISSUE_CONFIG = _ROOT / ".github" / "ISSUE_TEMPLATE" / "config.yml"
+_V1_2_EVIDENCE_INDEX = _ROOT / ".planning" / "reviews" / "V1_2_EVIDENCE_INDEX.md"
 _PHASE_15_PRD = (
     _ROOT
     / ".planning"
@@ -143,3 +145,22 @@ def test_private_repo_hacs_caveat_is_consistent() -> None:
     """Docs and CI should say the same thing about private-repo HACS validation."""
     for path in (_README, _README_ZH, _CONTRIBUTING, _SUPPORT, _SECURITY, _TROUBLESHOOTING, _RUNBOOK, _BUG_TEMPLATE, _CI_WORKFLOW):
         _assert_contains_private_repo_hacs_caveat(path)
+
+
+
+def test_release_runbook_references_v1_2_evidence_index() -> None:
+    """Maintainer runbook should point at the canonical v1.2 evidence index."""
+    runbook_text = _RUNBOOK.read_text(encoding="utf-8")
+    evidence_text = _V1_2_EVIDENCE_INDEX.read_text(encoding="utf-8")
+
+    assert "V1_2_EVIDENCE_INDEX.md" in runbook_text
+    assert "## Pull Contract" in evidence_text
+    assert "archive-ready" in evidence_text
+
+
+def test_issue_config_routes_docs_to_troubleshooting() -> None:
+    """Issue contact links should route documentation requests to troubleshooting."""
+    config = _load_yaml(_ISSUE_CONFIG)
+    doc_link = next(link for link in config["contact_links"] if "Documentation" in link["name"])
+
+    assert doc_link["url"].endswith("docs/TROUBLESHOOTING.md")

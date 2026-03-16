@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from dataclasses import replace
 
+from custom_components.lipro.core.protocol.contracts import CanonicalProtocolContracts
+from custom_components.lipro.core.protocol.facade import LiproProtocolFacade
 from tests.core.api.test_protocol_contract_matrix import (
     EXPECTED_DEVICE_LIST_DEVICES,
     EXPECTED_DEVICE_STATUS_ROWS,
@@ -12,7 +14,6 @@ from tests.core.api.test_protocol_contract_matrix import (
 )
 from tests.harness.headless_consumer import HEADLESS_PROOF_ASSERTION_FAMILIES
 from tests.harness.protocol import (
-    LoadedReplayFixture,
     ProtocolReplayDriver,
     build_replay_run_summary,
     iter_replay_manifests,
@@ -22,6 +23,19 @@ from tests.harness.protocol.replay_assertions import (
     assert_exporter_backed_replay_telemetry,
     assert_replay_canonical_contract,
 )
+from tests.harness.protocol.replay_report import EXPLICIT_REPLAY_ASSURANCE_FAMILIES
+
+
+class _FailingScheduleJsonContracts(CanonicalProtocolContracts):
+    @staticmethod
+    def normalize_schedule_json(_payload: object) -> dict[str, list[int]]:
+        raise ValueError("schedule-json representative failure")
+
+
+class _FailingScheduleJsonProtocolFacade(LiproProtocolFacade):
+    @property
+    def contracts(self) -> CanonicalProtocolContracts:
+        return _FailingScheduleJsonContracts()
 
 
 def _expected_canonical_for_manifest(manifest) -> object:
@@ -109,46 +123,90 @@ def test_protocol_replay_harness_covers_headless_proof_families() -> None:
 
 
 def test_protocol_replay_harness_builds_structured_run_summary() -> None:
-    manifests = iter_replay_manifests()
+    manifests = {
+        manifest.family: manifest
+        for manifest in iter_replay_manifests()
+        if manifest.family in EXPLICIT_REPLAY_ASSURANCE_FAMILIES
+    }
     driver = ProtocolReplayDriver()
-    good_result = driver.run_manifest(manifests[0])
-    drift_result = replace(good_result, drift_flags=("fingerprint_mismatch",))
-    error_manifest = next(
-        manifest for manifest in manifests if manifest.family == "rest.mqtt-config"
-    )
-    error_result = driver.run_fixture(
-        LoadedReplayFixture(
-            manifest=error_manifest,
-            authority_payload="bad",
-            authority_metadata={},
-        )
+    list_envelope_result = driver.run_manifest(manifests["rest.list-envelope"])
+    error_result = ProtocolReplayDriver(
+        protocol_factory=_FailingScheduleJsonProtocolFacade
+    ).run_manifest(manifests["rest.schedule-json"])
+    topic_result = driver.run_manifest(manifests["mqtt.topic"])
+    drift_result = replace(
+        driver.run_manifest(manifests["mqtt.message-envelope"]),
+        drift_flags=("fingerprint_mismatch",),
     )
 
     telemetry_views = {
-        good_result.manifest.scenario_id: assert_exporter_backed_replay_telemetry(
-            good_result.manifest,
-            good_result,
-        ),
-        drift_result.manifest.scenario_id: assert_exporter_backed_replay_telemetry(
-            drift_result.manifest,
-            drift_result,
+        list_envelope_result.manifest.scenario_id: assert_exporter_backed_replay_telemetry(
+            list_envelope_result.manifest,
+            list_envelope_result,
         ),
         error_result.manifest.scenario_id: assert_exporter_backed_replay_telemetry(
             error_result.manifest,
             error_result,
         ),
+        topic_result.manifest.scenario_id: assert_exporter_backed_replay_telemetry(
+            topic_result.manifest,
+            topic_result,
+        ),
+        drift_result.manifest.scenario_id: assert_exporter_backed_replay_telemetry(
+            drift_result.manifest,
+            drift_result,
+        ),
     }
 
     summary = build_replay_run_summary(
-        [good_result, drift_result, error_result],
+        [list_envelope_result, error_result, topic_result, drift_result],
         telemetry_views_by_scenario=telemetry_views,
     )
+    coverage_by_family = {
+        entry["family"]: entry for entry in summary["explicit_family_coverage"]
+    }
+    representative_story = summary["representative_failure_drift"]
 
     assert summary["schema_version"] == "replay.report.v1"
-    assert summary["scenario_count"] == 3
-    assert summary["passed_count"] == 1
+    assert summary["scenario_count"] == 4
+    assert summary["passed_count"] == 2
     assert summary["failed_count"] == 2
     assert summary["scenarios"][0]["result"] == "passed"
-    assert summary["scenarios"][1]["drift_flags"] == ["fingerprint_mismatch"]
-    assert summary["scenarios"][2]["error_category"] == "ValueError"
+    assert summary["scenarios"][1]["error_category"] == "protocol"
+    assert summary["scenarios"][1]["error_type"] == "ValueError"
+    assert summary["scenarios"][1]["failure_summary"] == {
+        "failure_category": "protocol",
+        "failure_origin": "protocol.replay",
+        "handling_policy": "inspect",
+        "error_type": "ValueError",
+    }
+    assert summary["scenarios"][3]["drift_flags"] == ["fingerprint_mismatch"]
+    assert summary["scenarios"][3]["failure_summary"] == {
+        "failure_category": None,
+        "failure_origin": None,
+        "handling_policy": None,
+        "error_type": None,
+    }
     assert summary["scenarios"][0]["telemetry_alignment"]["device_ref"].startswith("device_")
+    assert [entry["family"] for entry in summary["explicit_family_coverage"]] == list(
+        EXPLICIT_REPLAY_ASSURANCE_FAMILIES
+    )
+    assert coverage_by_family["rest.list-envelope"]["public_paths"] == [
+        "LiproProtocolFacade.contracts.normalize_list_envelope"
+    ]
+    assert coverage_by_family["rest.schedule-json"]["results"] == ["failed"]
+    assert coverage_by_family["mqtt.topic"]["results"] == ["passed"]
+    assert coverage_by_family["mqtt.message-envelope"]["results"] == ["failed"]
+    assert representative_story["remaining_family_channels"] == ["rest", "mqtt"]
+    assert [
+        scenario["family"]
+        for scenario in representative_story["remaining_family_representatives"]
+    ] == ["rest.schedule-json", "mqtt.message-envelope"]
+    assert representative_story["error_scenarios"][0]["public_path"] == (
+        "LiproProtocolFacade.contracts.normalize_schedule_json"
+    )
+    assert representative_story["error_scenarios"][0]["error_category"] == "protocol"
+    assert representative_story["error_scenarios"][0]["error_type"] == "ValueError"
+    assert representative_story["drift_scenarios"][0]["public_path"] == (
+        "core.protocol.boundary.decode_mqtt_message_envelope_payload"
+    )

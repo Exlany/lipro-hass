@@ -164,8 +164,8 @@ body:
     attributes:
       label: Developer Report JSON / 开发者报告 JSON
       description: |
-        Paste output from `lipro.get_developer_report` (or key parts), or mention submission time if you used one-click feedback.
-        请粘贴 `lipro.get_developer_report` 输出（或关键片段），若使用一键反馈请注明提交时间。
+        Paste output from `lipro.get_developer_report` (or key parts), or mention submission time if you used one-click feedback. If available, also keep `failure_summary` / `failure_entries`.
+        请粘贴 `lipro.get_developer_report` 输出（或关键片段），若使用一键反馈请注明提交时间；若可获取，也请保留 `failure_summary` / `failure_entries`。
       render: json
     validations:
       required: false

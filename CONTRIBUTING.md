@@ -54,11 +54,12 @@ Thank you for your interest in contributing to the Lipro Smart Home integration!
 
 ## Documentation & Maintainer Entry Points / 文档与维护入口
 
+- Public entry docs: `README.md`, `README_zh.md`, `CONTRIBUTING.md`
 - User / contributor troubleshooting: `docs/TROUBLESHOOTING.md`
 - Maintainer release flow: `docs/MAINTAINER_RELEASE_RUNBOOK.md`
 - Support routing and response expectations: `SUPPORT.md`
 - Private vulnerability disclosure: `SECURITY.md`
-- If you touch README / SUPPORT / SECURITY / `.github/*` / release workflow, update these entry points together and do not leave silent defer behind.
+- If you touch `README.md` / `README_zh.md` / `CONTRIBUTING.md` / `SUPPORT.md` / `SECURITY.md` / `.github/*` / release workflow, update these entry points together and do not leave silent defer behind.
 
 ## Code Standards / 代码规范
 
@@ -108,7 +109,7 @@ uv run pytest tests/core/test_diagnostics.py::TestAsyncGetConfigEntryDiagnostics
 uv run pytest tests/core/test_diagnostics.py::TestAsyncGetConfigEntryDiagnostics::test_handles_no_devices
 uv run pytest tests/core/test_diagnostics.py::TestAsyncGetConfigEntryDiagnostics::test_diagnostics_snapshot
 
-# Phase 10 boundary/auth/core-surface regression / Phase 10 边界/认证/核心表面回归
+# Targeted protocol/auth/control public-surface regression / 定向 protocol/auth/control public-surface 回归
 uv run pytest -q tests/core/api/test_protocol_contract_matrix.py tests/core/test_auth.py tests/flows/test_config_flow.py tests/meta/test_public_surface_guards.py tests/test_coordinator_public.py
 ```
 
@@ -170,8 +171,8 @@ async def async_turn_on(self, **kwargs: Any) -> None:
    shellcheck install.sh scripts/develop scripts/lint scripts/setup
    ```
 
-   For protocol/auth/control public-surface changes, prefer adding the Phase 10 targeted regression above before the full run; only run benchmarks when performance is part of the change.
-   对于 protocol/auth/control public-surface 变更，建议先运行上面的 Phase 10 定向回归再做全量；只有性能相关改动才需要跑 benchmark。
+   For protocol/auth/control public-surface changes, prefer adding the targeted regression above before the full run; only run benchmarks when performance is part of the change.
+   对于 protocol/auth/control public-surface 变更，建议先运行上面的定向回归再做全量；只有性能相关改动才需要跑 benchmark。
 
 4. **Submit Pull Request / 提交 Pull Request**
    - Provide a clear description of the changes

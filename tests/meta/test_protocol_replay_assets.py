@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 
 from tests.harness.protocol import iter_replay_manifests
+from tests.harness.protocol.replay_report import EXPLICIT_REPLAY_ASSURANCE_FAMILIES
 from tests.helpers.repo_root import repo_root
 
 _ROOT = repo_root(Path(__file__))
@@ -143,3 +144,15 @@ def test_phase_10_replay_readmes_document_boundary_first_rule() -> None:
     assert "future-host rule" in contract_readme
     assert "CLI / other platforms may only reuse formal boundary contracts" in contract_readme
     assert "protocol contracts public path" in replay_readme
+
+
+def test_phase_21_explicit_replay_assurance_families_stay_registered() -> None:
+    manifests = {manifest.family for manifest in iter_replay_manifests()}
+
+    assert EXPLICIT_REPLAY_ASSURANCE_FAMILIES == (
+        "rest.list-envelope",
+        "rest.schedule-json",
+        "mqtt.topic",
+        "mqtt.message-envelope",
+    )
+    assert set(EXPLICIT_REPLAY_ASSURANCE_FAMILIES).issubset(manifests)

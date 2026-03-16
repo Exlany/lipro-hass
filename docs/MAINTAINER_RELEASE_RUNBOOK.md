@@ -10,6 +10,7 @@ This repository currently follows a single-maintainer release model. Every tagge
 - Canonical minimum supported Home Assistant version: `2026.3.1` from `pyproject.toml`
 - Canonical public support/security paths: `README.md`, `README_zh.md`, `CONTRIBUTING.md`, `SUPPORT.md`, `SECURITY.md`
 - Canonical troubleshooting path: `docs/TROUBLESHOOTING.md`
+- Canonical v1.2 closeout evidence pointer: `.planning/reviews/V1_2_EVIDENCE_INDEX.md`
 
 Private repositories and forks skip CI HACS validation because HACS only supports public GitHub repositories; do not treat a skipped HACS job as a release blocker in that case.
 
@@ -19,8 +20,8 @@ Before creating or publishing a tag:
 
 1. Working tree is clean and all intended docs/code changes are committed.
 2. Version truth is synchronized across `pyproject.toml`, `manifest.json`, and `const/base.py`.
-3. Public navigation is synchronized across README / CONTRIBUTING / SUPPORT / SECURITY / troubleshooting docs.
-4. Residual/governance closeout tables are updated when the release carries architectural cleanup.
+3. Public navigation is synchronized across `README.md` / `README_zh.md` / `CONTRIBUTING.md` / `SUPPORT.md` / `SECURITY.md` / troubleshooting docs.
+4. Residual/governance closeout tables and `.planning/reviews/V1_2_EVIDENCE_INDEX.md` are updated when the release carries architectural cleanup.
 5. The following commands pass locally whenever the change scope justifies a release:
 
 ```bash
@@ -47,8 +48,8 @@ uv run pytest -q tests/meta/test_governance_guards.py tests/meta/test_version_sy
 
 - Confirm the GitHub release points at the expected tag.
 - Download the zip once and verify it contains only `custom_components/lipro` under the release root.
-- Spot-check README / SUPPORT / SECURITY links on the rendered release page.
-- If the release contains troubleshooting or runbook changes, ensure both docs still point at each other and at the canonical public entry points.
+- Spot-check README / README_zh / CONTRIBUTING / SUPPORT / SECURITY links on the rendered release page.
+- If the release contains troubleshooting, public-entry, or runbook changes, ensure those docs still point at each other, at `.planning/reviews/V1_2_EVIDENCE_INDEX.md`, and at the canonical public entry points.
 
 ## Incident Notes
 

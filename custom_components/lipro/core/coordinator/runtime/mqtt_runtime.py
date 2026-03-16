@@ -20,6 +20,11 @@ from homeassistant.helpers.issue_registry import (
 
 from ....const.api import MQTT_DISCONNECT_NOTIFY_THRESHOLD
 from ....const.base import DOMAIN
+from ...telemetry.models import (
+    FailureSummary,
+    build_failure_summary_from_exception,
+    empty_failure_summary,
+)
 from .mqtt.connection import MqttConnectionManager, PollingIntervalUpdater
 from .mqtt.dedup import MqttDedupManager
 from .mqtt.message_handler import MqttMessageHandler
@@ -130,6 +135,8 @@ class MqttRuntime:
         self._base_scan_interval = base_scan_interval
         self._background_task_manager = background_task_manager
         self._last_transport_error: Exception | None = None
+        self._last_transport_error_stage: str | None = None
+        self._failure_summary: FailureSummary = empty_failure_summary()
 
         self._device_resolver = device_resolver
         self._property_applier = property_applier
@@ -158,6 +165,8 @@ class MqttRuntime:
         """Bind one protocol-owned MQTT transport to this runtime."""
         self._mqtt_client = mqtt_client
         self._last_transport_error = None
+        self._last_transport_error_stage = None
+        self._failure_summary = empty_failure_summary()
 
     def detach_transport(self) -> None:
         """Detach the currently bound MQTT transport from this runtime."""
@@ -293,9 +302,10 @@ class MqttRuntime:
             await self._mqtt_client.start(device_ids)
             await self._mqtt_client.sync_subscriptions(set(device_ids))
             connected = await self._mqtt_client.wait_until_connected()
+        except asyncio.CancelledError:
+            raise
         except Exception as err:
-            if isinstance(err, (asyncio.CancelledError, KeyboardInterrupt, SystemExit)):
-                raise
+            self.handle_transport_error(err, stage="connect")
             _LOGGER.exception("MQTT connection failed")
             self._reconnect_manager.on_reconnect_failure()
             return False
@@ -313,9 +323,10 @@ class MqttRuntime:
 
         try:
             await self._mqtt_client.sync_subscriptions(set(device_ids))
+        except asyncio.CancelledError:
+            raise
         except Exception as err:
-            if isinstance(err, (asyncio.CancelledError, KeyboardInterrupt, SystemExit)):
-                raise
+            self.handle_transport_error(err, stage="sync_subscriptions")
             _LOGGER.exception("Failed to sync MQTT subscriptions")
             return False
 
@@ -328,9 +339,10 @@ class MqttRuntime:
 
         try:
             await self._mqtt_client.stop()
+        except asyncio.CancelledError:
+            raise
         except Exception as err:
-            if isinstance(err, (asyncio.CancelledError, KeyboardInterrupt, SystemExit)):
-                raise
+            self.handle_transport_error(err, stage="disconnect")
             _LOGGER.exception("MQTT disconnect failed")
         finally:
             self.on_transport_disconnected()
@@ -380,12 +392,23 @@ class MqttRuntime:
             return
         self._connection_manager.on_disconnect()
 
-    def handle_transport_error(self, err: Exception) -> None:
+    def handle_transport_error(
+        self,
+        err: Exception,
+        *,
+        stage: str = "transport",
+    ) -> None:
         """Record transport-level errors for diagnostics without mutating state."""
         self._last_transport_error = err
+        self._last_transport_error_stage = stage
+        self._failure_summary = build_failure_summary_from_exception(
+            err,
+            failure_origin="runtime.mqtt",
+        )
         _LOGGER.debug(
-            "MQTT transport reported error (%s)",
+            "MQTT transport reported error (%s) during %s",
             type(err).__name__,
+            stage,
         )
 
     def should_attempt_reconnect(self) -> bool:
@@ -437,6 +460,8 @@ class MqttRuntime:
         self._dedup_manager.reset()
         self._reconnect_manager.reset()
         self._last_transport_error = None
+        self._last_transport_error_stage = None
+        self._failure_summary = empty_failure_summary()
 
     @property
     def is_connected(self) -> bool:
@@ -454,6 +479,8 @@ class MqttRuntime:
             "last_transport_error": (
                 type(last_transport_error).__name__ if last_transport_error is not None else None
             ),
+            "last_transport_error_stage": self._last_transport_error_stage,
+            "failure_summary": dict(self._failure_summary),
             "backoff_gate_logged": self._reconnect_manager.backoff_gate_logged,
         }
 

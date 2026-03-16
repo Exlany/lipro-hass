@@ -37,6 +37,13 @@ def test_telemetry_service_builds_runtime_snapshot() -> None:
     assert service.build_snapshot() == {
         "device_count": 3,
         "polling_interval_seconds": 15,
+        "failure_summary": {
+            "failure_category": None,
+            "failure_origin": None,
+            "handling_policy": None,
+            "error_type": None,
+        },
+        "last_runtime_failure_stage": None,
         "mqtt": {"connected": True, "is_connected": True},
         "command": {
             "trace_count": 2,

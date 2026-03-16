@@ -386,6 +386,64 @@ def test_governance_truth_registers_v1_1_closeout_assets() -> None:
     assert "## Phase 07.5 Status Update" in kill_text
 
 
+def test_v1_2_closeout_assets_exist_and_are_pull_only() -> None:
+    evidence_index = _ROOT / ".planning" / "reviews" / "V1_2_EVIDENCE_INDEX.md"
+    milestone_audit = _ROOT / ".planning" / "v1.2-MILESTONE-AUDIT.md"
+    handoff = _ROOT / ".planning" / "v1.3-HANDOFF.md"
+    phase_23_verification = (
+        _ROOT
+        / ".planning"
+        / "phases"
+        / "23-governance-convergence-contributor-docs-and-release-evidence-closure"
+        / "23-VERIFICATION.md"
+    )
+    phase_24_verification = (
+        _ROOT
+        / ".planning"
+        / "phases"
+        / "24-final-milestone-audit-archive-readiness-and-v1-3-handoff-prep"
+        / "24-VERIFICATION.md"
+    )
+
+    assert evidence_index.exists()
+    assert milestone_audit.exists()
+    assert handoff.exists()
+    assert phase_23_verification.exists()
+    assert phase_24_verification.exists()
+
+    evidence_text = evidence_index.read_text(encoding="utf-8")
+    assert "## Pull Contract" in evidence_text
+    assert "21-VERIFICATION.md" in evidence_text
+    assert "24-VERIFICATION.md" in evidence_text
+    assert "archive-ready" in evidence_text
+    assert "handoff-ready" in evidence_text
+
+
+def test_governance_truth_registers_v1_2_closeout_assets() -> None:
+    authority_text = (
+        _ROOT / ".planning" / "baseline" / "AUTHORITY_MATRIX.md"
+    ).read_text(encoding="utf-8")
+    verification_text = (
+        _ROOT / ".planning" / "baseline" / "VERIFICATION_MATRIX.md"
+    ).read_text(encoding="utf-8")
+    residual_text = (_ROOT / ".planning" / "reviews" / "RESIDUAL_LEDGER.md").read_text(
+        encoding="utf-8"
+    )
+    kill_text = (_ROOT / ".planning" / "reviews" / "KILL_LIST.md").read_text(
+        encoding="utf-8"
+    )
+    milestones_text = (_ROOT / ".planning" / "MILESTONES.md").read_text(
+        encoding="utf-8"
+    )
+
+    assert "V1_2_EVIDENCE_INDEX.md" in authority_text
+    assert "## Phase 21 Replay / Exception Taxonomy Contract" in verification_text
+    assert "## Phase 24 Final Audit / Archive-Ready / Handoff Contract" in verification_text
+    assert "## Phase 24 Final Audit Disposition" in residual_text
+    assert "## Phase 24 Status Update" in kill_text
+    assert "## v1.2 Host-Neutral Core & Replay Completion" in milestones_text
+
+
 def test_phase_7_5_planning_truth_is_consistent() -> None:
     roadmap_text = (_ROOT / ".planning" / "ROADMAP.md").read_text(encoding="utf-8")
     requirements_text = (_ROOT / ".planning" / "REQUIREMENTS.md").read_text(
@@ -937,7 +995,7 @@ def test_phase_19_execution_truth_is_consistent() -> None:
 
     assert "## Current Milestone (v1.2)" in project_text
     assert (
-        "**Execution status:** `Phase 18-20` complete; `Phase 21-24` planned"
+        "**Execution status:** `Phase 18-24` complete"
         in project_text
     )
     assert "## Current Milestone" in roadmap_text
@@ -947,12 +1005,12 @@ def test_phase_19_execution_truth_is_consistent() -> None:
     assert "**Plans**: 4/4 complete" in roadmap_text
     assert "# Requirements: Lipro-HASS" in requirements_text
     assert (
-        "*Last updated: 2026-03-16 after Phase 21-24 planning truth sync*"
+        "*Last updated: 2026-03-16 after Phase 24 closeout truth sync*"
         in requirements_text
     )
     assert "## Traceability for v1.2" in requirements_text
     assert "| CORE-02 | Phase 19 | Complete |" in requirements_text
-    assert "**Current mode:** `Phase 20 complete`" in state_text
+    assert "**Current mode:** `Phase 24 complete`" in state_text
     assert "## Phase 19 Headless Proof & Adapter Shell Notes" in public_text
     assert "## Phase 19 Headless Consumer Proof Contract" in verification_matrix_text
     assert "## Phase 19 Residual Delta" in residual_text
@@ -977,7 +1035,7 @@ def test_phase_19_execution_truth_is_consistent() -> None:
         assert (phase_root / artifact_name).exists()
 
 
-def test_phase_21_to_24_planning_truth_is_consistent() -> None:
+def test_phase_21_to_24_execution_truth_is_consistent() -> None:
     roadmap_text = (_ROOT / ".planning" / "ROADMAP.md").read_text(encoding="utf-8")
     requirements_text = (_ROOT / ".planning" / "REQUIREMENTS.md").read_text(
         encoding="utf-8"
@@ -985,32 +1043,32 @@ def test_phase_21_to_24_planning_truth_is_consistent() -> None:
     state_text = (_ROOT / ".planning" / "STATE.md").read_text(encoding="utf-8")
     project_text = (_ROOT / ".planning" / "PROJECT.md").read_text(encoding="utf-8")
 
-    assert (
-        "### Phase 21: Replay Coverage & Exception Taxonomy Hardening" in roadmap_text
-    )
-    assert (
-        "### Phase 22: Observability Surface Convergence & Signal Exposure"
-        in roadmap_text
-    )
-    assert (
-        "### Phase 23: Governance convergence, contributor docs and release evidence closure"
-        in roadmap_text
-    )
-    assert (
-        "### Phase 24: Final milestone audit, archive readiness and v1.3 handoff prep"
-        in roadmap_text
-    )
-    assert "| OBS-03 | Phase 22 | Draft |" in requirements_text
-    assert "| GOV-16 | Phase 23 | Draft |" in requirements_text
-    assert "| GOV-17 | Phase 23 | Draft |" in requirements_text
-    assert "| GOV-18 | Phase 24 | Draft |" in requirements_text
-    assert "**Current mode:** `Phase 20 complete`" in state_text
-    assert (
-        "**Execution status:** `Phase 18-20` complete; `Phase 21-24` planned"
-        in project_text
-    )
+    for heading in (
+        "### Phase 21: Replay Coverage & Exception Taxonomy Hardening",
+        "### Phase 22: Observability Surface Convergence & Signal Exposure",
+        "### Phase 23: Governance convergence, contributor docs and release evidence closure",
+        "### Phase 24: Final milestone audit, archive readiness and v1.3 handoff prep",
+    ):
+        assert heading in roadmap_text
+    assert roadmap_text.count("**Status**: Complete (`2026-03-16`)") >= 4
+    assert "**Plans**: 3/3 complete" in roadmap_text
+
+    for req_id in ("SIM-04", "ERR-02", "OBS-03", "GOV-16", "GOV-17", "GOV-18"):
+        assert f"| {req_id} | Phase" in requirements_text
+        assert f"| {req_id} | Phase" in requirements_text and "| Complete |" in requirements_text
+    assert "completed_phases: 7" in state_text
+    assert "completed_plans: 22" in state_text
+    assert "**Current mode:** `Phase 24 complete`" in state_text
+    assert "**Execution status:** `Phase 18-24` complete" in project_text
+    assert "archive-ready / `v1.3` handoff-ready" in project_text
 
     assert (_ROOT / ".planning" / "phases" / "21-24-v1.2-closeout-strategy.md").exists()
+    for artifact in (
+        _ROOT / ".planning" / "reviews" / "V1_2_EVIDENCE_INDEX.md",
+        _ROOT / ".planning" / "v1.2-MILESTONE-AUDIT.md",
+        _ROOT / ".planning" / "v1.3-HANDOFF.md",
+    ):
+        assert artifact.exists()
 
     expected = {
         "21-replay-exception-taxonomy-hardening": [
@@ -1020,6 +1078,10 @@ def test_phase_21_to_24_planning_truth_is_consistent() -> None:
             "21-01-PLAN.md",
             "21-02-PLAN.md",
             "21-03-PLAN.md",
+            "21-01-SUMMARY.md",
+            "21-02-SUMMARY.md",
+            "21-03-SUMMARY.md",
+            "21-VERIFICATION.md",
         ],
         "22-observability-surface-convergence-and-signal-exposure": [
             "22-CONTEXT.md",
@@ -1028,6 +1090,10 @@ def test_phase_21_to_24_planning_truth_is_consistent() -> None:
             "22-01-PLAN.md",
             "22-02-PLAN.md",
             "22-03-PLAN.md",
+            "22-01-SUMMARY.md",
+            "22-02-SUMMARY.md",
+            "22-03-SUMMARY.md",
+            "22-VERIFICATION.md",
         ],
         "23-governance-convergence-contributor-docs-and-release-evidence-closure": [
             "23-CONTEXT.md",
@@ -1036,6 +1102,10 @@ def test_phase_21_to_24_planning_truth_is_consistent() -> None:
             "23-01-PLAN.md",
             "23-02-PLAN.md",
             "23-03-PLAN.md",
+            "23-01-SUMMARY.md",
+            "23-02-SUMMARY.md",
+            "23-03-SUMMARY.md",
+            "23-VERIFICATION.md",
         ],
         "24-final-milestone-audit-archive-readiness-and-v1-3-handoff-prep": [
             "24-CONTEXT.md",
@@ -1044,12 +1114,16 @@ def test_phase_21_to_24_planning_truth_is_consistent() -> None:
             "24-01-PLAN.md",
             "24-02-PLAN.md",
             "24-03-PLAN.md",
+            "24-01-SUMMARY.md",
+            "24-02-SUMMARY.md",
+            "24-03-SUMMARY.md",
+            "24-VERIFICATION.md",
         ],
     }
     for phase_dir, artifacts in expected.items():
-        root = _ROOT / ".planning" / "phases" / phase_dir
-        for artifact in artifacts:
-            assert (root / artifact).exists()
+        phase_root = _ROOT / ".planning" / "phases" / phase_dir
+        for artifact_name in artifacts:
+            assert (phase_root / artifact_name).exists()
 
 
 def test_phase_20_execution_truth_is_consistent() -> None:
@@ -1065,7 +1139,7 @@ def test_phase_20_execution_truth_is_consistent() -> None:
     verification_text = (phase_root / "20-VERIFICATION.md").read_text(encoding="utf-8")
 
     assert (
-        "**Execution status:** `Phase 18-20` complete; `Phase 21-24` planned"
+        "**Execution status:** `Phase 18-24` complete"
         in project_text
     )
     assert "### Phase 20: Remaining Boundary Family Completion" in roadmap_text
@@ -1075,7 +1149,7 @@ def test_phase_20_execution_truth_is_consistent() -> None:
     assert "- [x] **SIM-05**" in requirements_text
     assert "| SIM-03 | Phase 20 | Complete |" in requirements_text
     assert "| SIM-05 | Phase 20 | Complete |" in requirements_text
-    assert "**Current mode:** `Phase 20 complete`" in state_text
+    assert "**Current mode:** `Phase 24 complete`" in state_text
     assert "status: passed" in verification_text
 
     for artifact_name in (
@@ -1255,7 +1329,7 @@ def test_phase_12_execution_truth_is_consistent() -> None:
     research_text = (phase_root / "12-RESEARCH.md").read_text(encoding="utf-8")
     prd_text = (phase_root / "12-PRD.md").read_text(encoding="utf-8")
 
-    assert "**Status:** Active" in project_text
+    assert any(status in project_text for status in ("**Status:** Active", "**Status:** Complete"))
     assert "### 7. Phase 12 Type / Residual / Governance 收口已完成" in project_text
     assert (
         "| 12 Type Contract Alignment, Residual Cleanup & Governance Hygiene | v1.1 | 5/5 | Complete | 2026-03-14 |"

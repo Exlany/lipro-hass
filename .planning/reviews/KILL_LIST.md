@@ -180,4 +180,29 @@
 
 - 本 phase **无新增 active kill target**；remaining boundary family completion 的主线是 authority / fixture / replay / guard 收口，不是新增 compat shell 或 file-level cleanup story。
 - `mqtt.topic.v1`、`mqtt.message-envelope.v1` 与 remaining REST family 的 closeout 只能压缩 active residual / replay gap，不得借机把 `topics.py`、`message_processor.py`、`payload.py`、fixture README 或 replay docs 重新合法化为第二 authority root。
-- Wave 3 侧线可以先同步 inventory / governance / verification truth；`.planning/{ROADMAP,REQUIREMENTS,STATE}.md` 与 `20-VERIFICATION.md` 仍必须等 full gate 通过后再写完成态。
+- `20-VERIFICATION.md` 与 `.planning/{ROADMAP,REQUIREMENTS,STATE}.md` 的完成态已在 full gate 通过后同步；Phase 20 不再保留“等待 final gate”的 carry-forward 说明。
+
+
+## Phase 21 Status Update
+
+- 本 phase **无新增 active kill target**；replay harness、evidence pack、failure taxonomy helper 与 telemetry sink 都是正式 assurance / contract homes，不应被误登记为待删对象。
+- broad-catch 收紧的目标是改正 arbitration 语义，而不是制造一轮 rename-or-delete campaign；remaining `except Exception` 只作为 future v1.3 typed hardening backlog 记录。
+- `failure_summary` / `error_category` / `error_type` contract 现由 shared telemetry truth 锁定，后续 phase 只能消费它，不能把它重新降格成临时 compatibility wrapper。
+
+## Phase 22 Status Update
+
+- 本 phase **无新增 active kill target**；diagnostics / system health / developer report / evidence consumer convergence 是 contract closure，不是 file-level cleanup campaign。
+- `failure_entries` 聚合、legacy `build_developer_report()` compat / test seam 与 diagnostics-service `last_error` payload 继续保留正式 consumer/home 身份，不进入 kill list。
+- 后续 docs / release closeout 只能继续消费 shared `failure_summary` truth，不得以“文档清理”为名把这些 consumer surfaces 重新写回 helper folklore。
+
+## Phase 23 Status Update
+
+- 本 phase **无新增 active kill target**；`V1_2_EVIDENCE_INDEX.md`、README / SUPPORT / TROUBLESHOOTING / runbook / template 同步都属于长期治理资产，而不是可删临时文件。
+- release workflow 继续复用 `.github/workflows/ci.yml`；未新增第二套 gate，因此也没有新的 workflow-level kill target。
+- 若未来更新 contributor/release docs，只允许沿既有 authority / verification chain 收口，不得重新造“phase-specific temp checklist”文件族。
+
+## Phase 24 Status Update
+
+- 本 phase **无新增 active kill target**；`v1.2-MILESTONE-AUDIT.md`、`V1_2_EVIDENCE_INDEX.md`、`v1.3-HANDOFF.md` 与 `MILESTONES.md` 都是正式 closeout / handoff assets。
+- final repo audit 仅把 distributed tech debt 转化为显式 backlog / retain disposition，没有为“看起来更整洁”而追加新的 file-level kill target。
+- `v1.2` 当前只差外层 archival workflow；closeout bundle 本身不得再被误判为 short-lived temp artifact。

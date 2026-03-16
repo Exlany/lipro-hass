@@ -684,9 +684,16 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
                     async with asyncio.timeout(10):
                         await self._async_run_status_polling()
 
+            self.telemetry_service.record_update_success()
             return self._state.devices
 
+        except asyncio.CancelledError:
+            raise
         except TimeoutError:
+            self.telemetry_service.record_update_failure(
+                TimeoutError("Update timeout"),
+                stage="timeout",
+            )
             _LOGGER.error("Update data timeout after 30 seconds")
             raise UpdateFailed("Update timeout") from None
 
@@ -694,6 +701,7 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
             LiproRefreshTokenExpiredError,
             LiproAuthError,
         ) as err:
+            self.telemetry_service.record_update_failure(err, stage="auth")
             _LOGGER.error("Authentication failed: %s", err)
             error_message = f"Authentication failed: {err}"
             raise ConfigEntryAuthFailed(error_message) from err
@@ -702,11 +710,13 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
             LiproConnectionError,
             LiproApiError,
         ) as err:
+            self.telemetry_service.record_update_failure(err, stage="protocol")
             _LOGGER.error("Update failed: %s", err)
             error_message = f"Update failed: {err}"
             raise UpdateFailed(error_message) from err
 
         except Exception as err:
+            self.telemetry_service.record_update_failure(err, stage="unexpected")
             _LOGGER.exception("Unexpected update failure")
             raise UpdateFailed("Unexpected update failure") from err
 

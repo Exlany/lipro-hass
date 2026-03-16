@@ -10,12 +10,57 @@ from custom_components.lipro.core.protocol.boundary import (
     decode_mqtt_properties_payload,
     decode_mqtt_topic_payload,
 )
+from custom_components.lipro.core.telemetry.models import (
+    build_failure_summary_from_exception,
+    empty_failure_summary,
+)
 from tests.harness.protocol.replay_loader import load_replay_fixture
 from tests.harness.protocol.replay_models import (
     LoadedReplayFixture,
     ReplayExecutionResult,
     ReplayManifest,
+    ReplayOperation,
 )
+
+_PUBLIC_PATH_BY_OPERATION: dict[ReplayOperation, str] = {
+    "protocol.boundary.decode_mqtt_topic": "core.protocol.boundary.decode_mqtt_topic_payload",
+    "protocol.boundary.decode_mqtt_message_envelope": "core.protocol.boundary.decode_mqtt_message_envelope_payload",
+    "protocol.boundary.decode_mqtt_properties": "core.protocol.boundary.decode_mqtt_properties_payload",
+    "protocol.contracts.normalize_mqtt_config": "LiproProtocolFacade.contracts.normalize_mqtt_config",
+    "protocol.contracts.normalize_list_envelope": "LiproProtocolFacade.contracts.normalize_list_envelope",
+    "protocol.contracts.normalize_device_list_page": "LiproProtocolFacade.contracts.normalize_device_list_page",
+    "protocol.contracts.normalize_device_status_rows": "LiproProtocolFacade.contracts.normalize_device_status_rows",
+    "protocol.contracts.normalize_mesh_group_status_rows": "LiproProtocolFacade.contracts.normalize_mesh_group_status_rows",
+    "protocol.contracts.normalize_schedule_json": "LiproProtocolFacade.contracts.normalize_schedule_json",
+}
+
+
+def _public_path_for_operation(operation: ReplayOperation) -> str:
+    """Return the formal public-path contract for one replay operation."""
+    return _PUBLIC_PATH_BY_OPERATION[operation]
+
+
+def _build_success_result(
+    *,
+    fixture: LoadedReplayFixture,
+    public_path: str,
+    canonical: object,
+    fingerprint: str | None = None,
+) -> ReplayExecutionResult:
+    """Return the canonical replay result for one successful execution."""
+    manifest = fixture.manifest
+    return ReplayExecutionResult(
+        manifest=manifest,
+        public_path=public_path,
+        started_at=manifest.controls.clock_baseline,
+        finished_at=manifest.controls.clock_baseline,
+        canonical=canonical,
+        drift_flags=(),
+        error_category=None,
+        error_type=None,
+        failure_summary=empty_failure_summary(),
+        fingerprint=fingerprint,
+    )
 
 
 class ProtocolReplayDriver:
@@ -35,51 +80,38 @@ class ProtocolReplayDriver:
     def run_fixture(self, fixture: LoadedReplayFixture) -> ReplayExecutionResult:
         """Execute one loaded replay fixture deterministically."""
         manifest = fixture.manifest
-        started_at = manifest.controls.clock_baseline
-        finished_at = manifest.controls.clock_baseline
+        operation = manifest.operation
+        public_path = _public_path_for_operation(operation)
         try:
-            operation = manifest.operation
             if operation == "protocol.boundary.decode_mqtt_topic":
                 metadata = fixture.authority_metadata
                 topic = metadata.get("topic")
                 expected_biz_id = metadata.get("expected_biz_id")
                 result = decode_mqtt_topic_payload(topic, expected_biz_id=expected_biz_id)
-                return ReplayExecutionResult(
-                    manifest=manifest,
-                    public_path="core.protocol.boundary.decode_mqtt_topic_payload",
-                    started_at=started_at,
-                    finished_at=finished_at,
+                return _build_success_result(
+                    fixture=fixture,
+                    public_path=public_path,
                     canonical=result.canonical,
-                    drift_flags=(),
-                    error_category=None,
                     fingerprint=result.fingerprint,
                 )
             if operation == "protocol.boundary.decode_mqtt_message_envelope":
                 metadata = fixture.authority_metadata
                 payload = metadata.get("payload")
                 result = decode_mqtt_message_envelope_payload(payload)
-                return ReplayExecutionResult(
-                    manifest=manifest,
-                    public_path="core.protocol.boundary.decode_mqtt_message_envelope_payload",
-                    started_at=started_at,
-                    finished_at=finished_at,
+                return _build_success_result(
+                    fixture=fixture,
+                    public_path=public_path,
                     canonical=result.canonical,
-                    drift_flags=(),
-                    error_category=None,
                     fingerprint=result.fingerprint,
                 )
             if operation == "protocol.boundary.decode_mqtt_properties":
                 metadata = fixture.authority_metadata
                 payload = metadata.get("payload")
                 result = decode_mqtt_properties_payload(payload)
-                return ReplayExecutionResult(
-                    manifest=manifest,
-                    public_path="core.protocol.boundary.decode_mqtt_properties_payload",
-                    started_at=started_at,
-                    finished_at=finished_at,
+                return _build_success_result(
+                    fixture=fixture,
+                    public_path=public_path,
                     canonical=result.canonical,
-                    drift_flags=(),
-                    error_category=None,
                     fingerprint=result.fingerprint,
                 )
 
@@ -88,60 +120,53 @@ class ProtocolReplayDriver:
                 entry_id=f"replay:{manifest.scenario_id}",
             )
             canonical: object
-            public_path: str
             if operation == "protocol.contracts.normalize_mqtt_config":
                 canonical = protocol.contracts.normalize_mqtt_config(
                     fixture.authority_payload
                 )
-                public_path = "LiproProtocolFacade.contracts.normalize_mqtt_config"
             elif operation == "protocol.contracts.normalize_list_envelope":
                 canonical = protocol.contracts.normalize_list_envelope(
                     fixture.authority_payload
                 )
-                public_path = "LiproProtocolFacade.contracts.normalize_list_envelope"
             elif operation == "protocol.contracts.normalize_device_list_page":
                 canonical = protocol.contracts.normalize_device_list_page(
                     fixture.authority_payload
                 )
-                public_path = "LiproProtocolFacade.contracts.normalize_device_list_page"
             elif operation == "protocol.contracts.normalize_device_status_rows":
                 canonical = protocol.contracts.normalize_device_status_rows(
                     fixture.authority_payload
                 )
-                public_path = "LiproProtocolFacade.contracts.normalize_device_status_rows"
             elif operation == "protocol.contracts.normalize_mesh_group_status_rows":
                 canonical = protocol.contracts.normalize_mesh_group_status_rows(
                     fixture.authority_payload
-                )
-                public_path = (
-                    "LiproProtocolFacade.contracts.normalize_mesh_group_status_rows"
                 )
             elif operation == "protocol.contracts.normalize_schedule_json":
                 canonical = protocol.contracts.normalize_schedule_json(
                     fixture.authority_payload
                 )
-                public_path = "LiproProtocolFacade.contracts.normalize_schedule_json"
             else:
                 assert_never(operation)
 
+            return _build_success_result(
+                fixture=fixture,
+                public_path=public_path,
+                canonical=canonical,
+            )
+        except Exception as err:  # noqa: BLE001
+            failure_summary = build_failure_summary_from_exception(
+                err,
+                failure_origin="protocol.replay",
+            )
             return ReplayExecutionResult(
                 manifest=manifest,
                 public_path=public_path,
-                started_at=started_at,
-                finished_at=finished_at,
-                canonical=canonical,
-                drift_flags=(),
-                error_category=None,
-            )
-        except Exception as err:  # noqa: BLE001
-            return ReplayExecutionResult(
-                manifest=manifest,
-                public_path=manifest.operation,
-                started_at=started_at,
-                finished_at=finished_at,
+                started_at=manifest.controls.clock_baseline,
+                finished_at=manifest.controls.clock_baseline,
                 canonical=None,
                 drift_flags=("driver_error",),
-                error_category=type(err).__name__,
+                error_category=failure_summary["failure_category"],
+                error_type=failure_summary["error_type"],
+                failure_summary=failure_summary,
             )
 
     @staticmethod

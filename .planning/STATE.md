@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Host-Neutral Core & Replay Completion
-status: active
-last_updated: "2026-03-16T09:15:00Z"
+status: handoff_ready
+last_updated: "2026-03-16T18:40:00Z"
 progress:
   total_phases: 7
-  completed_phases: 3
+  completed_phases: 7
   total_plans: 22
-  completed_plans: 10
+  completed_plans: 22
 ---
 
 # Project State
@@ -18,8 +18,8 @@ progress:
 See: `.planning/PROJECT.md`
 
 **Current milestone:** `v1.2 Host-Neutral Core & Replay Completion`
-**Core value:** 在不破坏 `LiproProtocolFacade` / `Coordinator` 单一正式主链的前提下，把 host-neutral nucleus、headless proof、remaining boundary/replay family 收口与 observability/governance follow-through 推进成下一轮正式能力。
-**Current mode:** `Phase 20 complete`；`Phase 18-20` 已执行完成，当前下一步是 `Phase 21 Replay Coverage & Exception Taxonomy Hardening`。
+**Core value:** 在不破坏 `LiproProtocolFacade` / `Coordinator` 单一正式主链的前提下，把 host-neutral nucleus、headless proof、remaining boundary/replay family 收口、failure taxonomy / observability convergence、治理 closeout 与 handoff bundle 推进成单一正式能力链。
+**Current mode:** `Phase 24 complete`；`Phase 18-24` 已全部执行完成，当前状态为 archive-ready / `v1.3` handoff-ready。
 
 ## Current Position
 
@@ -40,20 +40,24 @@ See: `.planning/PROJECT.md`
 - `Phase 15` 已完成：developer feedback upload contract、governance/source-path truth、README/support/version truth、support hotspot typing narrowing 与 tooling/residual arbitration 已全部落地并通过治理回写
 - `Phase 16` 已完成：post-audit truth alignment、toolchain/DX truth、control/service contract、protocol/runtime hotspot decomposition、domain/entity/OTA rationalization 与 test-layer/docs follow-through `6 plans / 3 waves` 已全部落地
 - `Phase 17` 已完成：API residual spine 物理退场、auth/outlet-power typed contract 收口、MQTT canonical naming/no-export guard、governance closeout 与 final repo audit 已全部落地
-- `v1.1` 里程碑审计已更新：`.planning/v1.1-MILESTONE-AUDIT.md` 现覆盖 `Phase 7.1-17` 全范围，记录 `69/69 requirements`、`15/15 phases`，判定为 `tech_debt`（仅保留明确 de-scope/out-of-scope debt，不再保留 Phase 16 carry-forward residual）
 - `Phase 18` 已完成：host-neutral boundary nucleus、shared auth bootstrap、device/capability truth 与 adapter projection guards 已全部落地。
 - `Phase 19` 已完成：headless proof boot seam、single-chain device/replay/evidence proof、platform thin-shell demotion 与 second-root guards 已全部落地。
 - `Phase 20` 已完成：remaining REST/MQTT boundary families、authority/replay fixtures、inventory/governance closeout 与 full gate evidence 已全部落地。
+- `Phase 21` 已完成：remaining families replay/evidence coverage、shared failure taxonomy、broad-catch arbitration tightening 与 replay/evidence failure contract 已全部落地。
+- `Phase 22` 已完成：diagnostics / system health / developer / support / evidence consumers 的 shared `failure_summary` vocabulary 收口与 governance sync 已全部落地。
+- `Phase 23` 已完成：baseline/reviews/lifecycle truth、contributor docs/templates 与 release evidence pointer 已统一到 v1.2 最终故事线。
+- `Phase 24` 已完成：final repo audit、milestone audit、evidence index、archive-ready bundle 与 `v1.3` handoff 已全部落地。
+- `v1.2` 里程碑 closeout 已冻结：`.planning/reviews/V1_2_EVIDENCE_INDEX.md`、`.planning/v1.2-MILESTONE-AUDIT.md` 与 `.planning/v1.3-HANDOFF.md` 现构成 archive-ready / handoff-ready bundle。
 
-## Active Milestone Scope
+## Completed Milestone Scope
 
 - `Phase 18`：Host-Neutral Boundary Nucleus Extraction（complete）
 - `Phase 19`：Headless Consumer Proof & Adapter Demotion（complete）
 - `Phase 20`：Remaining Boundary Family Completion（complete）
-- `Phase 21`：Replay Coverage & Exception Taxonomy Hardening（next）
-- `Phase 22`：Observability Surface Convergence & Signal Exposure
-- `Phase 23`：Governance convergence, contributor docs and release evidence closure
-- `Phase 24`：Final milestone audit, archive readiness and v1.3 handoff prep
+- `Phase 21`：Replay Coverage & Exception Taxonomy Hardening（complete）
+- `Phase 22`：Observability Surface Convergence & Signal Exposure（complete）
+- `Phase 23`：Governance convergence, contributor docs and release evidence closure（complete）
+- `Phase 24`：Final milestone audit, archive readiness and v1.3 handoff prep（complete）
 
 ## Carry-Forward Truths
 
@@ -65,23 +69,7 @@ See: `.planning/PROJECT.md`
 - telemetry/replay/evidence 都只能 pull 正式真源，不得反向定义第二套事实
 - 未来 CLI / 其他宿主若要复用，只能建立在 host-neutral boundary/auth/device contracts 之上，而不是把 HA runtime 抽成 second root
 - `.planning/codebase/*.md` 只作为 derived collaboration maps / 协作图谱；若与 north-star、baseline 或 review truth 冲突，必须优先修正图谱而非倒逼真源
-- `MqttTransportClient` 只是 localized concrete transport，不得回流成 package/root public surface
-
-## Cross-Phase Arbitration (7.3-17)
-
-1. `07.3` 只锁定 telemetry truth（fields / redaction / cardinality / timestamp / pseudo-id compatibility）
-2. `07.4` 只锁定 replay truth（manifests / deterministic driver / replay assertions / run summary）
-3. `07.5` 只锁定 governance closeout（matrices / evidence index / residual / delete gate）
-4. `08` 只锁定 AI debug packaging（collector / schema / exporter entrypoint）
-5. `09` 已完整完成：production residual surface closure 与 legacy test convergence 已统一收敛到 formal surface / shared harness / explicit compat seam
-6. `10` 已完整完成：boundary contract closure、host-neutral auth/result contracts、HA adapter 降耦与文档/治理同步均已落地；仍不把 physical shared core 抽离提升为正式里程碑目标
-7. `11` 已完整完成：control router formalization、runtime access/diagnostics hardening、entity/platform truth convergence 与 OTA hotspot slimming 已统一到同一条正式故事线
-8. `12` 已完整完成：typed surface convergence、compat narrowing、hotspot decomposition 与 contributor-facing governance hygiene 已落地；不得重新打开已在 `Phase 11` 关闭的 residual truth
-9. `13` 已完整完成：显式领域表面、runtime/status 热点 helper 边界与公开治理资产结构化守卫已锁定；后续不得重新引入 device/state 动态委托
-10. `14` 已完整完成：`Coordinator.client` / `ScheduleApiService` 已退出正式故事线，`status_fallback.py` 与 `developer_router_support.py` 成为 helper homes，residual guard hardening 与 subordinate governance truth 已同步落地
-11. `15` 已完整完成：developer feedback upload truth、active governance source-path guard、install/support/version truth、support hotspot typing narrowing 与 tooling/residual arbitration 已统一收口；未重开第二条正式主链
-12. `16` 已完整完成：只做 post-audit truth alignment、hotspot decomposition、type/exception tightening、residual endgame、domain/entity/OTA rationalization 与 contributor DX follow-through；未重开第二条正式主链、第二套 protocol/runtime story 或无 gate rename campaign
-13. `17` 已完整完成：Phase 16 carry-forward residual 全部得到真实 disposition；governance / audit / docs / guards 已同步到 final closeout truth
+- `MqttTransportClient` 继续只是 localized concrete transport，不得被回抬为 protocol root 或 public surface
 
 ## Accumulated Context
 
@@ -99,6 +87,7 @@ See: `.planning/PROJECT.md`
 - Phase 15 completed: Support feedback contract hardening, governance truth repair, and maintainability follow-through (5 plans / 3 waves)
 - Phase 16 completed: Post-audit truth alignment, hotspot decomposition, and residual endgame (all 6 plans complete; second-pass audit recorded)
 - Phase 17 completed: Final residual retirement, typed-contract tightening, governance closeout, and final repo audit (4 plans / 3 waves)
+- Phase 18-24 completed: host-neutral nucleus -> headless proof -> remaining-family completion -> replay / observability / governance / milestone closeout 全链条收官。
 
 ## Governance Truth Sources
 
@@ -117,39 +106,34 @@ See: `.planning/PROJECT.md`
 
 - **Milestone:** `v1.2 Host-Neutral Core & Replay Completion`
 - **Phase range:** `18 -> 24`
-- **Completed so far:** `Phase 18`, `Phase 19`, `Phase 20`
-- **Next focus:** replay/evidence expansion、exception taxonomy hardening、observability surface convergence 与 milestone closeout planning
+- **Completed so far:** `Phase 18` 到 `Phase 24`
+- **Closeout state:** `archive-ready`, `handoff-ready`
+- **Next focus:** 执行 milestone archival，或基于 `v1.3-HANDOFF.md` 启动下一里程碑
 
 ## Recommended Next Command
 
-1. `$gsd-execute-phase 21` —— 执行 replay/evidence 扩面与 exception taxonomy hardening
-2. `$gsd-progress` —— 复核 `Phase 21-24` 规划与当前推进态
-3. `$gsd-execute-phase 22` —— 在 `Phase 21` 收官后推进 observability surface convergence
+1. `$gsd-complete-milestone` —— 归档 `v1.2` 并切换到下一里程碑工作区
+2. `$gsd-new-milestone` —— 基于 `v1.3-HANDOFF.md` 启动下一轮 roadmap / requirements
+3. `$gsd-progress` —— 复核 closeout / archive / handoff 当前状态
 
 ## Session Continuity
 
 If resuming, read in this order:
 1. `docs/NORTH_STAR_TARGET_ARCHITECTURE.md`
 2. `.planning/MILESTONES.md`
-3. `.planning/milestones/v1.0-ROADMAP.md`
-4. `.planning/milestones/v1.0-REQUIREMENTS.md`
-5. `.planning/PROJECT.md`
-6. `.planning/REQUIREMENTS.md`
-7. `.planning/ROADMAP.md`
-8. `.planning/STATE.md`
-9. `.planning/phases/18-host-neutral-boundary-nucleus-extraction/18-CONTEXT.md`
-10. `.planning/phases/18-host-neutral-boundary-nucleus-extraction/18-RESEARCH.md`
-11. `.planning/phases/18-host-neutral-boundary-nucleus-extraction/18-VERIFICATION.md`
-12. `.planning/phases/19-headless-consumer-proof-adapter-demotion/19-CONTEXT.md`
-13. `.planning/phases/19-headless-consumer-proof-adapter-demotion/19-RESEARCH.md`
-14. `.planning/phases/19-headless-consumer-proof-adapter-demotion/19-VALIDATION.md`
-15. `.planning/phases/19-headless-consumer-proof-adapter-demotion/19-VERIFICATION.md`
-16. `.planning/phases/19-headless-consumer-proof-adapter-demotion/19-01-PLAN.md`
-17. `.planning/phases/19-headless-consumer-proof-adapter-demotion/19-02-PLAN.md`
-18. `.planning/phases/19-headless-consumer-proof-adapter-demotion/19-03-PLAN.md`
-19. `.planning/phases/19-headless-consumer-proof-adapter-demotion/19-04-PLAN.md`
-20. `.planning/baseline/*.md`
-21. `.planning/reviews/*.md`
-22. `AGENTS.md`
-23. `CLAUDE.md`（若使用 Claude Code）
-24. `docs/developer_architecture.md`
+3. `.planning/PROJECT.md`
+4. `.planning/ROADMAP.md`
+5. `.planning/REQUIREMENTS.md`
+6. `.planning/STATE.md`
+7. `.planning/reviews/V1_2_EVIDENCE_INDEX.md`
+8. `.planning/v1.2-MILESTONE-AUDIT.md`
+9. `.planning/v1.3-HANDOFF.md`
+10. `.planning/phases/21-replay-exception-taxonomy-hardening/21-VERIFICATION.md`
+11. `.planning/phases/22-observability-surface-convergence-and-signal-exposure/22-VERIFICATION.md`
+12. `.planning/phases/23-governance-convergence-contributor-docs-and-release-evidence-closure/23-VERIFICATION.md`
+13. `.planning/phases/24-final-milestone-audit-archive-readiness-and-v1-3-handoff-prep/24-VERIFICATION.md`
+14. `.planning/baseline/*.md`
+15. `.planning/reviews/*.md`
+16. `AGENTS.md`
+17. `CLAUDE.md`（若使用 Claude Code）
+18. `docs/developer_architecture.md`

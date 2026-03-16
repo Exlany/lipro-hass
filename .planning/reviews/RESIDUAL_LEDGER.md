@@ -5,8 +5,6 @@
 | Family | Current example | Owner phase | Residual owner | Exit condition |
 |--------|------------------|-------------|----------------|----------------|
 | External-boundary advisory naming | firmware remote advisory / support payload generated field naming 仍带 legacy semantics | Phase 2.6 | `02.6 external-boundary closeout` | authority truth 已固定后完成术语清理 |
-| Protocol-boundary family coverage | `Phase 20` 已重新接管 `rest.list-envelope.v1`、`rest.schedule-json.v1`、`mqtt.topic.v1`、`mqtt.message-envelope.v1` 的 formalization closeout；在 Wave 2 / Wave 3 完结前，它们仍属于 active residual，但不再是 v1.1 de-scope carry-forward folklore | Phase 20 | `20 remaining-boundary-family-completion` | remaining family 全部完成 registry-backed authority / fixture / manifest / guard 接线；若仍有剩余，ledger 必须缩窄到真实未完成 family |
-| Replay scenario coverage | `tests/fixtures/protocol_replay/` 当前仍以已落地 corpus 为准；`Phase 20` 已重新打开 `rest.list-envelope.v1`、`rest.schedule-json.v1`、`mqtt.topic.v1`、`mqtt.message-envelope.v1` 的 replay closeout，不再沿用 `07.5` de-scope 叙事作为长期终态 | Phase 20 | `20 remaining-boundary-family-completion` | remaining family 获得 authority-indexed manifests / driver / asset guards；若 coverage 未齐，残留必须收敛为真实缺口，而不是继续保留“future maybe”叙事 |
 
 ## Closed Residual Families
 
@@ -25,6 +23,10 @@
 - `Split-root protocol surfaces` 已在 Phase 17 关闭：legacy `LiproMqttClient` naming 已退场，`MqttTransportClient` 仅保留为 localized concrete transport。
 
 - `Auth/session compat projection` 已在 Phase 17 关闭：token persistence 只消费 `AuthSessionSnapshot`，`get_auth_data()` compat projection 已删除。
+
+- `Protocol-boundary family coverage` 已在 Phase 20 关闭：`rest.list-envelope.v1`、`rest.schedule-json.v1`、`mqtt.topic.v1`、`mqtt.message-envelope.v1` 现全部完成 registry-backed boundary formalization，不再保留为 active residual family。
+
+- `Replay scenario coverage` 已在 Phase 21 关闭：remaining families 现已获得 explicit replay / evidence assurance coverage，不再保留 v1.1 de-scope carry-forward 叙事。
 
 ## Rules
 
@@ -221,14 +223,32 @@
 - `helpers/platform.py` 与各平台 `async_setup_entry()` 现在显式收敛到 thin headless setup shell；`control/runtime_access.py` 仍是 control-plane locator，而不是 platform bridge。
 - 本 phase **无新增 active residual family / compat shell / authority no-change exception**；新增的是 second-root / backflow 守卫与 proof-only identity wording。
 
+## Phase 20 Residual Delta
+
+- `Protocol-boundary family coverage` 已完成 closeout：`rest.list-envelope.v1`、`rest.schedule-json.v1`、`mqtt.topic.v1`、`mqtt.message-envelope.v1` 均已进入正式 boundary family / authority / fixture / guard 主链。
+- governance / inventory 真源现已明确：remaining families 只能沿既有 boundary / replay authority chain 收口，不得继续描述为 helper implicit behavior 或 v1.1 de-scope folklore。
+- 本 phase 关闭的是 boundary-family formalization residual；显式 replay assurance closeout 继续由 `Phase 21` 收官。
+
+## Phase 21 Residual Delta
+
+- `Replay scenario coverage` 已完成 closeout：remaining families 现已在 replay report、evidence pack 与 integration/meta guards 中获得显式 assurance coverage，不再保留为 active residual family。
+- failure taxonomy contract 已冻结到 shared telemetry truth；remaining `except Exception` 数量被转入 repo-wide audit metric 与 future v1.3 backlog，而不是继续以未仲裁 residual family 存在。
+- 本 phase **无新增 compat shell / authority drift**；收口的是 failure classification 语言与关键 catch-all arbitration seam。
+
 ## Phase 22 Residual Delta
 
 - `Observability consumer convergence` residual 已进一步收口：diagnostics / system health / developer / support / evidence consumers 现在共同暴露共享 `failure_summary` vocabulary，raw transport / API error fields 仅保留为 debug detail。
 - legacy `build_developer_report()` 分支继续保留为 compat / test seam，但其 failure signals 现已从 exporter-backed truth 继承，不再独立定义 observability 语言。
 - 本 phase **无新增 compat shell**；`failure_summary` contract 继续 pull exporter / service truth，后续 docs / release 只允许消费这些结果，不能再平行讲述第二套失败语义。
 
-## Phase 20 Residual Delta
+## Phase 23 Residual Delta
 
-- `Protocol-boundary family coverage` 与 `Replay scenario coverage` 两条 residual 已转交 `Phase 20` 负责关闭；Wave 3 侧线先同步 owner 与 exit condition，不提前写成 closed。
-- governance / inventory 真源现已明确：remaining families 只能沿既有 boundary / replay authority chain 收口，不得继续描述为 helper implicit behavior 或 v1.1 de-scope folklore。
-- `.planning/{ROADMAP,REQUIREMENTS,STATE}.md` 的 phase-complete truth 继续等待 final gate；本 ledger 只记录 active residual 的当前关闭路径。
+- contributor docs / templates / runbook / evidence index 现已统一消费 baseline / review / milestone truth；本 phase **无新增 active residual family**。
+- `failure_summary` / `failure_entries` 提示已进入 support / troubleshooting / bug-report 路径，但这些公开入口只消费 shared contract，不新增第二套 consumer vocabulary。
+- workflow narrative 维持 **no-change**：release 继续复用 `ci.yml` gate，`V1_2_EVIDENCE_INDEX.md` 只作为 pull-only evidence pointer，而不是新的 authority chain。
+
+## Phase 24 Final Audit Disposition
+
+- final repo audit (`2026-03-16`) 将 repo-wide metrics 记为：`Any=614`、`except Exception=36`、`type: ignore=12`；它们已被明确定性为 future v1.3 backlog / distributed tech debt，而不是 silent defer。
+- 当前 active residual family 仅保留 `External-boundary advisory naming`；remaining boundary/replay coverage 与 observability convergence 均已完成 closeout，不再悬空。
+- `v1.2` closeout 现达到 archive-ready / handoff-ready：residual disposition、milestone audit、evidence index 与 handoff assets 已讲同一条最终故事线。

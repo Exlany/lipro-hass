@@ -2,7 +2,7 @@
 
 **Purpose:** 定义文档、fixtures、generated、implementation 的权威来源与同步方向，避免多口径漂移。
 **Status:** Formal baseline asset (`BASE-01` authority truth source)
-**Updated:** 2026-03-16 (Phase 20 authority continuity aligned)
+**Updated:** 2026-03-16 (Phase 24 closeout evidence continuity aligned)
 
 ## Formal Role
 
@@ -78,3 +78,10 @@
 
 ---
 *Used by: external boundary formalization, architecture policy enforcement, docs hygiene, and audit arbitration*
+
+
+## v1.2 Closeout Evidence Note
+
+- `.planning/reviews/V1_2_EVIDENCE_INDEX.md` 是 `v1.2` closeout 的 pull-only evidence pointer；它只能索引 `Phase 18-24` verification/summaries、baseline/review ledgers 与 milestone audit，不得反向成为 authority source。
+- `.planning/v1.2-MILESTONE-AUDIT.md` 记录的是 audit verdict / scorecard / evidence references，而不是实现 authority；若与 north-star、baseline 或 review ledgers 冲突，必须先修正上游真源。
+- `.planning/v1.3-HANDOFF.md` 只记录下一轮 seed、defer 与 no-return zones；它不能覆盖 `.planning/ROADMAP.md` / `.planning/REQUIREMENTS.md` / `.planning/STATE.md` 的当前 closeout truth。

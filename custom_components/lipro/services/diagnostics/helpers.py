@@ -6,6 +6,7 @@ capability collection, error handling, and result building.
 
 from __future__ import annotations
 
+import asyncio
 from collections.abc import Awaitable, Callable, Iterator, Mapping
 from datetime import UTC, datetime
 import logging
@@ -169,6 +170,8 @@ def _collect_coordinator_capability_results(
     for coordinator in coordinators:
         try:
             results.append(collector(coordinator))
+        except asyncio.CancelledError:
+            raise
         except Exception as err:  # noqa: BLE001
             _LOGGER.warning(
                 "Skip one %s capability due to error (%s)",
@@ -189,6 +192,8 @@ async def _async_get_first_coordinator_capability_result(
     for coordinator in coordinators:
         try:
             return True, await collector(coordinator), None
+        except asyncio.CancelledError:
+            raise
         except HomeAssistantError:
             raise
         except LiproApiError as err:
@@ -224,6 +229,8 @@ def collect_developer_reports(
                 reports.append(
                     _merge_exporter_failure_signals(exporter_report, exporter_report)
                 )
+        except asyncio.CancelledError:
+            raise
         except Exception as err:  # noqa: BLE001
             _LOGGER.warning(
                 "Skip one %s capability due to error (%s)",

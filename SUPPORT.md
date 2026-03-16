@@ -23,11 +23,12 @@ This repository currently follows a single-maintainer review model. Triage and r
 - Sanitized logs / diagnostics
 - Whether the issue is cloud API drift, MQTT behavior, OTA metadata, or Home Assistant platform behavior
 - Developer report / one-click feedback when the issue needs deep protocol or runtime inspection
+- `failure_summary` / `failure_entries` from diagnostics, system health, or developer-report exports when those fields are available
 
 ## Routing Guide
 
 - Usage questions or “is this expected?”: start with `docs/TROUBLESHOOTING.md`, then GitHub Discussions.
-- Confirmed bugs/regressions: use the bug template and include diagnostics.
+- Confirmed bugs/regressions: use the bug template and include diagnostics; add `failure_summary` / `failure_entries` too when available.
 - Security-sensitive reports: use the private path in `SECURITY.md`, not a public Issue.
 - Release/packaging questions for maintainers: `docs/MAINTAINER_RELEASE_RUNBOOK.md`.
 

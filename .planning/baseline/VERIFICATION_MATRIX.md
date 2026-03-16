@@ -2,7 +2,7 @@
 
 **Purpose:** 建立 requirement → artifact → test → doc → phase acceptance / handoff 的统一验证闭环。
 **Status:** Formal baseline asset (`BASE-03` phase acceptance truth source)
-**Updated:** 2026-03-16 (Phase 20 boundary closeout contract aligned)
+**Updated:** 2026-03-16 (Phase 24 milestone closeout / handoff contract aligned)
 
 ## Formal Role
 
@@ -133,9 +133,32 @@
 - **Required runnable proof:** `uv run pytest -q tests/core/api/test_protocol_contract_matrix.py tests/core/mqtt/test_mqtt.py tests/core/mqtt/test_topic_builder.py tests/core/mqtt/test_mqtt_payload.py tests/core/mqtt/test_message_processor.py tests/core/mqtt/test_client_refactored.py tests/core/mqtt/test_protocol_replay_mqtt.py`、`uv run pytest -q tests/integration/test_protocol_replay_harness.py tests/meta/test_protocol_replay_assets.py tests/meta/test_evidence_pack_authority.py`、`uv run python scripts/check_architecture_policy.py --check`、`uv run python scripts/check_file_matrix.py --check`、`uv run pytest -q tests/meta/test_dependency_guards.py tests/meta/test_public_surface_guards.py tests/meta/test_governance_guards.py tests/meta/test_version_sync.py`、`uv run ruff check .` 与 `uv run mypy` 通过。
 - **Unblock effect:** `SIM-03` / `SIM-05` 获得 boundary-first、replay-visible、governance-aligned 闭环；Phase 21 可以专注 exception / observability hardening，而不是继续携带 remaining-family 漂移。
 
+
+## Phase 21 Replay / Exception Taxonomy Contract
+
+- **Required artifacts:** `custom_components/lipro/core/telemetry/{models,sinks}.py`、`custom_components/lipro/core/protocol/{facade,telemetry}.py`、`custom_components/lipro/core/coordinator/{coordinator,mqtt_lifecycle.py}`、`custom_components/lipro/core/coordinator/runtime/mqtt_runtime.py`、`custom_components/lipro/core/coordinator/services/telemetry_service.py`、`custom_components/lipro/control/entry_lifecycle_controller.py`、`custom_components/lipro/services/diagnostics/helpers.py`、`tests/harness/protocol/{replay_models,replay_driver,replay_assertions,replay_report}.py`、`tests/harness/evidence_pack/collector.py`、`21-01~21-03-SUMMARY.md`、`21-VERIFICATION.md`。
+- **Required governance proof:** remaining boundary families 必须在 replay / evidence surfaces 中显式可见；shared `failure_summary` / `error_category` / `error_type` contract 只能由 telemetry truth 输出，不能由 replay report 或 diagnostics helper 私自再定义。
+- **Required runnable proof:** `uv run pytest -q tests/core/api/test_protocol_replay_rest.py tests/core/mqtt/test_protocol_replay_mqtt.py tests/integration/test_protocol_replay_harness.py tests/integration/test_ai_debug_evidence_pack.py tests/meta/test_protocol_replay_assets.py tests/meta/test_evidence_pack_authority.py tests/core/telemetry/test_models.py tests/core/telemetry/test_sinks.py tests/core/telemetry/test_exporter.py tests/core/coordinator/runtime/test_runtime_telemetry_methods.py tests/core/coordinator/services/test_telemetry_service.py tests/integration/test_telemetry_exporter_integration.py`、`uv run pytest -q tests/core/test_init.py tests/core/test_init_edge_cases.py tests/core/test_coordinator.py tests/core/coordinator/runtime/test_mqtt_runtime.py tests/core/coordinator/services/test_telemetry_service.py tests/services/test_service_resilience.py tests/integration/test_mqtt_coordinator_integration.py`、`uv run ruff check .` 与 `uv run mypy` 通过。
+- **Unblock effect:** `SIM-04` / `ERR-02` 获得 replay-complete、failure-taxonomy-stable、typed-arbitration-aware 的 assurance 闭环；Phase 22 只需消费共享 failure language，而不再补 replay blind spot。
+
 ## Phase 22 Observability Consumer Convergence Contract
 
 - **Required artifacts:** `custom_components/lipro/control/{diagnostics_surface.py,system_health_surface.py}`、`custom_components/lipro/core/telemetry/sinks.py`、`custom_components/lipro/services/diagnostics/{helpers.py,handlers.py}`、`custom_components/lipro/core/anonymous_share/report_builder.py`、`tests/core/{test_diagnostics.py,test_system_health.py,test_control_plane.py,test_report_builder.py,test_developer_report.py}`、`tests/core/telemetry/test_sinks.py`、`tests/services/{test_services_diagnostics.py,test_services_share.py,test_execution.py}`、`tests/integration/{test_telemetry_exporter_integration.py,test_ai_debug_evidence_pack.py}` 与 `.planning/reviews/{FILE_MATRIX,RESIDUAL_LEDGER}.md`。
 - **Required governance proof:** diagnostics / system health / developer / support / evidence consumers 必须复用共享 `failure_summary` vocabulary；raw `mqtt_last_error_type`、`last_transport_error` 与 service `last_error.message` 只能作为 debug detail 保留，不得重新成为 consumer canonical truth。
 - **Required runnable proof:** `uv run pytest -q tests/core/test_diagnostics.py tests/core/test_system_health.py tests/core/test_control_plane.py tests/core/telemetry/test_sinks.py tests/integration/test_telemetry_exporter_integration.py`、`uv run pytest -q tests/services/test_services_diagnostics.py tests/services/test_services_share.py tests/services/test_execution.py tests/core/test_report_builder.py tests/core/test_developer_report.py tests/integration/test_ai_debug_evidence_pack.py`、`uv run python scripts/check_file_matrix.py --check`、`uv run pytest -q tests/meta/test_dependency_guards.py tests/meta/test_public_surface_guards.py tests/meta/test_governance_guards.py tests/meta/test_version_sync.py`、`uv run ruff check .` 与 `uv run mypy` 通过。
 - **Unblock effect:** `OBS-03` 获得 control/service/evidence 三层 consumer convergence proof；Phase 23 可以只处理 governance/docs/release closure，而不必再次解释 observability consumer 语义。
+
+
+## Phase 23 Governance / Contributor / Release Evidence Contract
+
+- **Required artifacts:** `.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE}.md`、`.planning/baseline/{PUBLIC_SURFACES,VERIFICATION_MATRIX}.md`、`.planning/reviews/{FILE_MATRIX,RESIDUAL_LEDGER,KILL_LIST,V1_2_EVIDENCE_INDEX.md}`、`README.md`、`README_zh.md`、`CONTRIBUTING.md`、`SUPPORT.md`、`docs/TROUBLESHOOTING.md`、`docs/MAINTAINER_RELEASE_RUNBOOK.md`、`.github/pull_request_template.md`、`.github/ISSUE_TEMPLATE/{bug.yml,config.yml}`、`23-01~23-03-SUMMARY.md`、`23-VERIFICATION.md`。
+- **Required governance proof:** baseline / reviews / lifecycle docs 必须先于 public entry points 对齐；`V1_2_EVIDENCE_INDEX.md` 只能作为 pull-only evidence pointer，不能反向替代 authority matrix、verification matrix 或 milestone audit。
+- **Required runnable proof:** `uv run python scripts/check_architecture_policy.py --check`、`uv run python scripts/check_file_matrix.py --check`、`uv run pytest -q tests/meta/test_dependency_guards.py tests/meta/test_public_surface_guards.py tests/meta/test_governance_guards.py tests/meta/test_version_sync.py`、`uv run ruff check .` 通过。
+- **Unblock effect:** `GOV-16` / `GOV-17` 获得 contributor-facing docs、release narrative 与 governance truth 的单一故事线；Phase 24 可以直接消费 closeout bundle 做 final audit / handoff。
+
+## Phase 24 Final Audit / Archive-Ready / Handoff Contract
+
+- **Required artifacts:** `.planning/reviews/{RESIDUAL_LEDGER,KILL_LIST}.md`、`.planning/v1.2-MILESTONE-AUDIT.md`、`.planning/MILESTONES.md`、`.planning/reviews/V1_2_EVIDENCE_INDEX.md`、`.planning/v1.3-HANDOFF.md`、`.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE}.md`、`24-01~24-03-SUMMARY.md`、`24-VERIFICATION.md`。
+- **Required governance proof:** final repo audit 必须给所有 remaining items 明确 close / retain / defer disposition；`archive-ready` 与 `handoff-ready` 只能建立在 evidence index、milestone audit 与 handoff doc 同步一致之上，不得只在单一文件口头宣告。
+- **Required runnable proof:** `uv run python scripts/check_architecture_policy.py --check`、`uv run python scripts/check_file_matrix.py --check`、`uv run pytest -q tests/meta/test_dependency_guards.py tests/meta/test_public_surface_guards.py tests/meta/test_governance_guards.py tests/meta/test_version_sync.py`、`uv run ruff check .`、`uv run mypy` 通过。
+- **Unblock effect:** `GOV-18` 获得 archive-ready / handoff-ready closeout bundle；下一轮维护者可直接从 `v1.3-HANDOFF.md` 起步，而不再依赖 phase 对话残影。

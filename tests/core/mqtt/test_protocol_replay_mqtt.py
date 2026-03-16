@@ -17,6 +17,10 @@ from tests.harness.protocol.replay_assertions import (
 from tests.harness.protocol.replay_models import ReplayManifest
 
 _MQTT_MANIFESTS = iter_replay_manifests(channel="mqtt")
+_EXPLICIT_MQTT_ASSURANCE_FAMILIES = (
+    "mqtt.topic",
+    "mqtt.message-envelope",
+)
 _EXPECTED_PUBLIC_PATHS = {
     "mqtt.topic": "core.protocol.boundary.decode_mqtt_topic_payload",
     "mqtt.message-envelope": "core.protocol.boundary.decode_mqtt_message_envelope_payload",
@@ -50,3 +54,26 @@ def test_mqtt_replay_scenarios_use_boundary_decoder_public_path(
     )
     views = assert_exporter_backed_replay_telemetry(manifest, result)
     assert views.system_health["mqtt_connected"] is True
+
+
+def test_mqtt_remaining_families_have_explicit_replay_coverage_contract() -> None:
+    manifests = {manifest.family: manifest for manifest in _MQTT_MANIFESTS}
+    driver = ProtocolReplayDriver()
+
+    assert set(_EXPLICIT_MQTT_ASSURANCE_FAMILIES) <= manifests.keys()
+    for family in _EXPLICIT_MQTT_ASSURANCE_FAMILIES:
+        manifest = manifests[family]
+        fixture = load_replay_fixture(manifest)
+        result = driver.run_fixture(fixture)
+
+        assert result.public_path == _EXPECTED_PUBLIC_PATHS[family]
+        assert_replay_has_no_drift(
+            result,
+            expected_family=family,
+            expected_version="v1",
+        )
+        assert_replay_canonical_contract(
+            result,
+            expected_canonical=fixture.authority_metadata["canonical"],
+            expected_fingerprint=fixture.authority_metadata["fingerprint"],
+        )

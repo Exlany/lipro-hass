@@ -11,6 +11,7 @@ from tests.harness.evidence_pack.sources import (
     ALLOWED_FORMAL_SOURCE_PATHS,
     NON_AUTHORITY_PROOF_PATHS,
 )
+from tests.harness.protocol.replay_report import EXPLICIT_REPLAY_ASSURANCE_FAMILIES
 from tests.helpers.repo_root import repo_root
 
 _ROOT = repo_root(Path(__file__))
@@ -51,6 +52,13 @@ def test_evidence_pack_only_emits_registered_formal_source_paths() -> None:
         assert set(payload[section]["source_paths"]).issubset(allowed)
     for sources in payload["index"]["section_authority_trace"].values():
         assert set(sources).issubset(allowed)
+    assert [
+        family["family"]
+        for family in payload["boundary"]["remaining_family_projections"]
+    ] == list(EXPLICIT_REPLAY_ASSURANCE_FAMILIES)
+    for family in payload["boundary"]["remaining_family_projections"]:
+        assert family["manifest_path"].startswith("tests/fixtures/protocol_replay/")
+        assert family["authority_path"].startswith("tests/fixtures/")
 
 
 def test_evidence_pack_governance_truth_registers_phase_8_assets() -> None:

@@ -8,6 +8,10 @@ from custom_components.lipro.core.telemetry import (
     TelemetrySnapshot,
     TelemetryViews,
 )
+from custom_components.lipro.core.telemetry.models import (
+    build_failure_summary,
+    extract_failure_summary,
+)
 
 
 def test_telemetry_sensitivity_blocks_credential_equivalent_fields() -> None:
@@ -56,3 +60,48 @@ def test_cardinality_budget_defaults_stay_bounded() -> None:
     assert budget.max_mapping_items == 32
     assert budget.max_sequence_items == 20
     assert budget.max_string_length == 256
+
+
+def test_build_failure_summary_normalizes_category_and_policy() -> None:
+    assert build_failure_summary(
+        error_type="ValueError",
+        failure_origin="protocol.replay",
+    ) == {
+        "failure_category": "protocol",
+        "failure_origin": "protocol.replay",
+        "handling_policy": "inspect",
+        "error_type": "ValueError",
+    }
+
+
+def test_extract_failure_summary_prefers_explicit_payload_and_raw_fallback() -> None:
+    explicit = extract_failure_summary(
+        {
+            "failure_summary": {
+                "failure_category": "runtime",
+                "failure_origin": "runtime.update",
+                "handling_policy": "inspect",
+                "error_type": "RuntimeError",
+            }
+        },
+        default_origin="protocol.mqtt",
+        raw_error_keys=("mqtt_last_error_type",),
+    )
+    fallback = extract_failure_summary(
+        {"mqtt_last_error_type": "TimeoutError"},
+        default_origin="protocol.mqtt",
+        raw_error_keys=("mqtt_last_error_type",),
+    )
+
+    assert explicit == {
+        "failure_category": "runtime",
+        "failure_origin": "runtime.update",
+        "handling_policy": "inspect",
+        "error_type": "RuntimeError",
+    }
+    assert fallback == {
+        "failure_category": "network",
+        "failure_origin": "protocol.mqtt",
+        "handling_policy": "retry",
+        "error_type": "TimeoutError",
+    }

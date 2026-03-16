@@ -3,10 +3,15 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Literal
+
+from custom_components.lipro.core.telemetry.models import (
+    FailureSummary,
+    empty_failure_summary,
+)
 
 ReplayChannel = Literal["rest", "mqtt"]
 REPLAY_CHANNEL_VALUES: Mapping[str, ReplayChannel] = {
@@ -93,4 +98,6 @@ class ReplayExecutionResult:
     canonical: object | None
     drift_flags: tuple[str, ...]
     error_category: str | None
+    error_type: str | None = None
+    failure_summary: FailureSummary = field(default_factory=empty_failure_summary)
     fingerprint: str | None = None

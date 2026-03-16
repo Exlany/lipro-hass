@@ -231,12 +231,12 @@
 - mapped to phases: 65
 - unmapped: 0 ✓
 
-*Last updated: 2026-03-16 after Phase 21-24 planning truth sync*
+*Last updated: 2026-03-16 after Phase 24 closeout truth sync*
 
 
 ## Current Milestone (v1.2)
 
-> `v1.2` 已进入执行态；以下 requirement / traceability 反映 `Phase 18-20` 已完成、`Phase 21-24` 已完成整体规划的当前真相。
+> `v1.2` 已完成全部执行与 closeout；以下 requirement / traceability 反映 `Phase 18-24` 全部完成、且当前已进入 archive-ready / handoff-ready 的最终真相。
 
 ### Core Reuse / Host-Neutral Nucleus
 
@@ -247,19 +247,19 @@
 ### Replay / Boundary Completion
 
 - [x] **SIM-03**: `rest.list-envelope.v1`、`rest.schedule-json.v1`、`mqtt.topic.v1`、`mqtt.message-envelope.v1` 已成为 registry-backed boundary families。
-- [ ] **SIM-04**: replay harness 与 evidence pack 必须覆盖新增 formalized families，并复用同一正式 public path。
+- [x] **SIM-04**: replay harness 与 evidence pack 已覆盖新增 formalized families，并复用同一正式 public path。
 - [x] **SIM-05**: 当前 authority/inventory 中对 remaining replay families 的 de-scope / partial 标记，已随 coverage 落地被移除或缩窄为真实剩余项。
 
 ### Error / Observability Hardening
 
-- [ ] **ERR-02**: protocol/runtime/control 关键 broad-catch 必须继续收窄或改成 documented arbitration，不得让 catch-all 成为默认策略。
-- [ ] **OBS-03**: diagnostics / system health / evidence export 必须对 auth/network/protocol/runtime failure 使用统一分类语言。
+- [x] **ERR-02**: protocol/runtime/control 关键 broad-catch 已被收窄或改成 documented arbitration，catch-all 不再作为默认策略。
+- [x] **OBS-03**: diagnostics / system health / evidence export 已对 auth/network/protocol/runtime failure 使用统一分类语言。
 
 ### Governance
 
-- [ ] **GOV-16**: v1.2 的 host-neutral / replay-complete / observability-hardening 真相必须同步到 roadmap / state / baseline / reviews / docs / meta guards。
-- [ ] **GOV-17**: contributor-facing docs、issue/PR templates、support/security/install/version surfaces 与 release evidence 必须对齐最终 v1.2 架构与治理门禁。
-- [ ] **GOV-18**: milestone closeout 必须留下 final repo audit、residual arbitration、archive-ready verification assets 与 v1.3 handoff，不得遗留 silent defer。
+- [x] **GOV-16**: v1.2 的 host-neutral / replay-complete / observability-hardening 真相已同步到 roadmap / state / baseline / reviews / docs / meta guards。
+- [x] **GOV-17**: contributor-facing docs、issue/PR templates、support/security/install/version surfaces 与 release evidence 已对齐最终 v1.2 架构与治理门禁。
+- [x] **GOV-18**: milestone closeout 已留下 final repo audit、residual arbitration、archive-ready verification assets 与 v1.3 handoff，未遗留 silent defer。
 
 ## Traceability for v1.2
 
@@ -269,15 +269,16 @@
 | CORE-02 | Phase 19 | Complete |
 | CORE-03 | Phase 18 | Complete |
 | SIM-03 | Phase 20 | Complete |
-| SIM-04 | Phase 21 | Draft |
+| SIM-04 | Phase 21 | Complete |
 | SIM-05 | Phase 20 | Complete |
-| ERR-02 | Phase 21 | Draft |
-| OBS-03 | Phase 22 | Draft |
-| GOV-16 | Phase 23 | Draft |
-| GOV-17 | Phase 23 | Draft |
-| GOV-18 | Phase 24 | Draft |
+| ERR-02 | Phase 21 | Complete |
+| OBS-03 | Phase 22 | Complete |
+| GOV-16 | Phase 23 | Complete |
+| GOV-17 | Phase 23 | Complete |
+| GOV-18 | Phase 24 | Complete |
 
 **Current Coverage:**
 - v1.2 requirements: 11 total
 - Current mapped: 11
+- Current complete: 11 ✓
 - Current unmapped: 0 ✓

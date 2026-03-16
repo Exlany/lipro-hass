@@ -4,6 +4,7 @@
 
 - ✅ **v1.0 North Star Rebuild** - Phases 1-7 (+ 1.5 / 2.5 / 2.6), shipped 2026-03-13
 - 🚧 **v1.1 Protocol Fidelity & Operability** - Phases 7.1-17 complete; final audit complete, archive-ready pending milestone archival (updated 2026-03-15)
+- ✅ **v1.2 Host-Neutral Core & Replay Completion** - Phases 18-24 complete; final audit complete, archive-ready and v1.3 handoff-ready (updated 2026-03-16)
 
 ## Required Phase Outputs
 
@@ -317,11 +318,13 @@ Plans:
 
 ## Current Milestone
 
-### 🚧 v1.2: Host-Neutral Core & Replay Completion
+### ✅ v1.2: Host-Neutral Core & Replay Completion
 
 **Milestone Goal:** 在不破坏 `LiproProtocolFacade` / `Coordinator` 单一正式主链的前提下，把 future-host shared-core debt、remaining boundary/replay family debt 与关键 broad-catch / observability debt 提升为正式交付，让仓库从“HA 内部高治理集成”继续迈向“可复用、可回放、可宿主扩展、但不多根分裂”的下一阶段。
 
-**Execution Scope:** `Phase 18 -> Phase 24`（7 phases / 22 plans；截至 2026-03-16 已完成 3 phases / 10 plans）
+**Execution Scope:** `Phase 18 -> Phase 24`（7 phases / 22 plans，已于 2026-03-16 全部完成）
+
+**Current Status:** `Phase 18` 到 `Phase 24` 已全部完成（22/22 plans executed，2026-03-16）；`v1.2` 的 final repo audit、evidence index、milestone audit 与 `v1.3` handoff 已落地，当前处于 archive-ready、handoff-ready。
 
 ### Phase 18: Host-Neutral Boundary Nucleus Extraction
 **Goal**: 把 boundary/auth/device 方向中已成熟的 host-neutral nucleus 从 HA adapter 语义中继续抽离，但不新建第二条 runtime story。
@@ -376,59 +379,63 @@ Plans:
 **Goal**: 把 `Phase 20` 新正式化的 families 全部纳入 replay/evidence 正式故事线，并继续把 protocol/runtime/control 关键 broad-catch 收敛为可判定的失败分类契约。
 **Depends on**: Phase 20
 **Requirements**: [SIM-04, ERR-02]
-**Draft Success Criteria**:
+**Success Criteria**:
   1. replay harness、evidence pack 与 assertion families 覆盖 `rest.list-envelope`、`rest.schedule-json`、`mqtt.topic`、`mqtt.message-envelope`。
   2. 关键 `except Exception` 热点要么被收窄，要么具备统一的 documented arbitration / telemetry semantics。
   3. failure taxonomy 成为下游 observability surface 可复用的正式输入，而不是 helper-level 日志约定。
-**Plans**: 3 draft plans
+**Status**: Complete (`2026-03-16`)
+**Plans**: 3/3 complete
 
 Plans:
-- [ ] 21-01: expand replay and evidence across completed families
-- [ ] 21-02: tighten broad-catch exception arbitration
-- [ ] 21-03: formalize failure taxonomy contracts and guards
+- [x] 21-01: expand replay and evidence across completed families
+- [x] 21-02: tighten broad-catch exception arbitration
+- [x] 21-03: formalize failure taxonomy contracts and guards
 
 ### Phase 22: Observability Surface Convergence & Signal Exposure
 **Goal**: 把 `Phase 21` 产出的 failure taxonomy 显式暴露给 diagnostics / system health / support / developer-facing consumers，并消除消费者之间的失败语言漂移。
 **Depends on**: Phase 21
 **Requirements**: [OBS-03]
-**Draft Success Criteria**:
+**Success Criteria**:
   1. diagnostics / system health / evidence export 对 auth/network/protocol/runtime failure 使用同一分类语言。
   2. support / developer / report-building surfaces 复用同一 structured signals，而不是各自拼装失败摘要。
   3. integration / meta guards 能阻断 observability consumer 再长出第二套 failure vocabulary。
-**Plans**: 3 draft plans
+**Status**: Complete (`2026-03-16`)
+**Plans**: 3/3 complete
 
 Plans:
-- [ ] 22-01: expose classified failure signals to diagnostics and system health
-- [ ] 22-02: converge support and developer evidence consumers
-- [ ] 22-03: harden observability contracts and integration guards
+- [x] 22-01: expose classified failure signals to diagnostics and system health
+- [x] 22-02: converge support and developer evidence consumers
+- [x] 22-03: harden observability contracts and integration guards
 
 ### Phase 23: Governance convergence, contributor docs and release evidence closure
 **Goal**: 把 v1.2 期间新增的 replay-complete / host-neutral / observability-hardening 真相同步到 baseline / reviews / contributor docs / release evidence，并让开源协作面与 CI gate 讲同一条故事。
 **Depends on**: Phase 22
 **Requirements**: [GOV-16, GOV-17]
-**Draft Success Criteria**:
+**Success Criteria**:
   1. roadmap / requirements / state / baseline / reviews / docs / templates 对 v1.2 讲同一条最终治理故事。
   2. contributor-facing docs、issue/PR templates、support/security/install/version surfaces 与当前正式架构保持一致。
   3. release evidence、CI gates 与 governance guards 共享同一 authority / verification chain。
-**Plans**: 3 draft plans
+**Status**: Complete (`2026-03-16`)
+**Plans**: 3/3 complete
 
 Plans:
-- [ ] 23-01: sync governance truth and authority ledgers
-- [ ] 23-02: align contributor docs templates and support surfaces
-- [ ] 23-03: close release evidence and workflow gate alignment
+- [x] 23-01: sync governance truth and authority ledgers
+- [x] 23-02: align contributor docs templates and support surfaces
+- [x] 23-03: close release evidence and workflow gate alignment
 
 ### Phase 24: Final milestone audit, archive readiness and v1.3 handoff prep
 **Goal**: 完成 v1.2 的最终 repo audit、residual arbitration、archive-ready verification pack 与 v1.3 handoff，确保 closeout 后不残留 silent defer。
 **Depends on**: Phase 23
 **Requirements**: [GOV-18]
-**Draft Success Criteria**:
+**Success Criteria**:
   1. final repo audit 能明确关闭、保留或递延全部剩余项，并写入 residual / kill / milestone closeout truth。
   2. milestone verification、evidence index、archive-ready assets 与 closeout decision bundle 完整可审计。
   3. v1.3 handoff 起点清晰，不继续携带未仲裁的 v1.2 debt。
-**Plans**: 3 draft plans
+**Status**: Complete (`2026-03-16`)
+**Plans**: 3/3 complete
 
 Plans:
-- [ ] 24-01: run final repo audit and residual arbitration
-- [ ] 24-02: assemble milestone verification and archive bundle
-- [ ] 24-03: write v1.3 handoff and next-phase seed
+- [x] 24-01: run final repo audit and residual arbitration
+- [x] 24-02: assemble milestone verification and archive bundle
+- [x] 24-03: write v1.3 handoff and next-phase seed
 

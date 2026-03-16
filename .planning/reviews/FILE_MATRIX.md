@@ -23,7 +23,7 @@
 | `custom_components/lipro/control/__init__.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/control/developer_router_support.py` | Control | Phase 14 / 15 | 保留 | developer diagnostics glue + typed helper home |
 | `custom_components/lipro/control/diagnostics_surface.py` | Control | Phase 3 / 22 | 保留 | control-plane `failure_summary` projection home |
-| `custom_components/lipro/control/entry_lifecycle_controller.py` | Control | Phase 3 | 保留 | - |
+| `custom_components/lipro/control/entry_lifecycle_controller.py` | Control | Phase 3 / 21 | 保留 | best-effort lifecycle abort seam with cancellation passthrough |
 | `custom_components/lipro/control/models.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/control/redaction.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/control/runtime_access.py` | Control | Phase 3 / 19 | 保留 | control-plane runtime locator only |
@@ -91,12 +91,12 @@
 | `custom_components/lipro/core/command/result.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/core/command/trace.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/core/coordinator/__init__.py` | Runtime | Phase 5 | 重构 | - |
-| `custom_components/lipro/core/coordinator/coordinator.py` | Runtime | Phase 5 / 14 | 重构 | HA-facing runtime façade hotspot |
+| `custom_components/lipro/core/coordinator/coordinator.py` | Runtime | Phase 5 / 14 / 21 | 重构 | HA-facing runtime façade hotspot with typed update failure recording |
 | `custom_components/lipro/core/coordinator/entity_protocol.py` | Runtime | Phase 5 | 重构 | - |
 | `custom_components/lipro/core/coordinator/factory.py` | Runtime | Phase 5 | 重构 | - |
 | `custom_components/lipro/core/coordinator/mqtt/__init__.py` | Runtime | Phase 5 | 重构 | - |
 | `custom_components/lipro/core/coordinator/mqtt/setup.py` | Runtime | Phase 5 | 重构 | - |
-| `custom_components/lipro/core/coordinator/mqtt_lifecycle.py` | Runtime | Phase 5 | 重构 | - |
+| `custom_components/lipro/core/coordinator/mqtt_lifecycle.py` | Runtime | Phase 5 / 21 | 重构 | MQTT lifecycle failure arbitration and passthrough seam |
 | `custom_components/lipro/core/coordinator/orchestrator.py` | Runtime | Phase 5 | 重构 | - |
 | `custom_components/lipro/core/coordinator/outlet_power.py` | Runtime | Phase 5 | 重构 | - |
 | `custom_components/lipro/core/coordinator/runtime/__init__.py` | Runtime | Phase 5 | 重构 | - |
@@ -117,7 +117,7 @@
 | `custom_components/lipro/core/coordinator/runtime/mqtt/dedup.py` | Runtime | Phase 5 | 重构 | - |
 | `custom_components/lipro/core/coordinator/runtime/mqtt/message_handler.py` | Runtime | Phase 5 | 重构 | - |
 | `custom_components/lipro/core/coordinator/runtime/mqtt/reconnect.py` | Runtime | Phase 5 | 重构 | - |
-| `custom_components/lipro/core/coordinator/runtime/mqtt_runtime.py` | Runtime | Phase 5 | 重构 | - |
+| `custom_components/lipro/core/coordinator/runtime/mqtt_runtime.py` | Runtime | Phase 5 / 21 | 重构 | MQTT runtime failure recording and cancellation passthrough seam |
 | `custom_components/lipro/core/coordinator/runtime/outlet_power_runtime.py` | Runtime | Phase 5 | 重构 | - |
 | `custom_components/lipro/core/coordinator/runtime/state/__init__.py` | Runtime | Phase 5 | 重构 | - |
 | `custom_components/lipro/core/coordinator/runtime/state/index.py` | Runtime | Phase 5 | 重构 | - |
@@ -142,7 +142,7 @@
 | `custom_components/lipro/core/coordinator/services/mqtt_service.py` | Runtime | Phase 5 | 重构 | - |
 | `custom_components/lipro/core/coordinator/services/protocol_service.py` | Runtime | Phase 14 | 保留 | protocol-facing runtime service surface |
 | `custom_components/lipro/core/coordinator/services/state_service.py` | Runtime | Phase 5 | 重构 | - |
-| `custom_components/lipro/core/coordinator/services/telemetry_service.py` | Runtime | Phase 5 | 重构 | - |
+| `custom_components/lipro/core/coordinator/services/telemetry_service.py` | Runtime | Phase 5 / 21 | 重构 | runtime failure taxonomy recording service |
 | `custom_components/lipro/core/coordinator/types.py` | Runtime | Phase 5 | 重构 | - |
 | `custom_components/lipro/core/device/__init__.py` | Domain | Phase 4 | 重构 | - |
 | `custom_components/lipro/core/device/device.py` | Domain | Phase 4 / 18 | 重构 | explicit domain façade; HA platform projection removed |
@@ -192,14 +192,14 @@
 | `custom_components/lipro/core/protocol/compat.py` | Protocol | Phase 2.5 | 保留 | - |
 | `custom_components/lipro/core/protocol/contracts.py` | Protocol | Phase 2.5 | 保留 | - |
 | `custom_components/lipro/core/protocol/diagnostics_context.py` | Protocol | Phase 2.5 | 保留 | - |
-| `custom_components/lipro/core/protocol/facade.py` | Protocol | Phase 2.5 | 保留 | - |
+| `custom_components/lipro/core/protocol/facade.py` | Protocol | Phase 2.5 / 21 | 保留 | typed protocol failure arbitration and replay-visible taxonomy emission |
 | `custom_components/lipro/core/protocol/session.py` | Protocol | Phase 2.5 | 保留 | - |
-| `custom_components/lipro/core/protocol/telemetry.py` | Protocol | Phase 2.5 | 保留 | - |
+| `custom_components/lipro/core/protocol/telemetry.py` | Protocol | Phase 2.5 / 21 | 保留 | protocol failure taxonomy projection bridge |
 | `custom_components/lipro/core/telemetry/__init__.py` | Assurance | Phase 7.3 | 保留 | - |
 | `custom_components/lipro/core/telemetry/exporter.py` | Assurance | Phase 7.3 | 保留 | - |
-| `custom_components/lipro/core/telemetry/models.py` | Assurance | Phase 7.3 | 保留 | - |
+| `custom_components/lipro/core/telemetry/models.py` | Assurance | Phase 7.3 / 21 | 保留 | shared failure taxonomy and `failure_summary` contract home |
 | `custom_components/lipro/core/telemetry/ports.py` | Assurance | Phase 7.3 | 保留 | - |
-| `custom_components/lipro/core/telemetry/sinks.py` | Assurance | Phase 7.3 | 保留 | - |
+| `custom_components/lipro/core/telemetry/sinks.py` | Assurance | Phase 7.3 / 21 / 22 | 保留 | exporter-backed shared failure-summary sink normalization home |
 | `custom_components/lipro/core/utils/__init__.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/core/utils/background_task_manager.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/core/utils/boollike.py` | Cross-cutting | Phase 7 | 保留 | - |
@@ -244,7 +244,7 @@
 | `custom_components/lipro/services/device_lookup.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/services/diagnostics/__init__.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/services/diagnostics/handlers.py` | Control | Phase 3 / 22 | 保留 | diagnostics-service `last_error` payload carries shared `failure_summary` |
-| `custom_components/lipro/services/diagnostics/helpers.py` | Control | Phase 3 / 22 | 保留 | developer report / feedback failure-signal merge home |
+| `custom_components/lipro/services/diagnostics/helpers.py` | Control | Phase 3 / 21 / 22 | 保留 | developer report / feedback failure-signal merge home |
 | `custom_components/lipro/services/diagnostics/types.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/services/errors.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/services/execution.py` | Control | Phase 3 / 5 / 7 | 保留 | formal service execution facade; private auth seam closed |
@@ -290,7 +290,7 @@
 | `tests/core/api/test_auth_recovery_telemetry.py` | Protocol | Phase 2 | 保留 | - |
 | `tests/core/api/test_helper_modules.py` | Protocol | Phase 2 | 保留 | - |
 | `tests/core/api/test_protocol_contract_matrix.py` | Protocol | Phase 2 | 保留 | - |
-| `tests/core/api/test_protocol_replay_rest.py` | Protocol | Phase 7.4 | 保留 | - |
+| `tests/core/api/test_protocol_replay_rest.py` | Protocol | Phase 7.4 / 21 | 保留 | REST replay coverage over explicit remaining families |
 | `tests/core/api/test_request_codec.py` | Protocol | Phase 2 | 保留 | - |
 | `tests/core/api/test_response_safety.py` | Protocol | Phase 2 | 保留 | - |
 | `tests/core/api/test_schedule_codec.py` | Protocol | Phase 2 | 保留 | - |
@@ -303,7 +303,7 @@
 | `tests/core/coordinator/runtime/test_command_runtime.py` | Runtime | Phase 5 / 6 | 保留 | - |
 | `tests/core/coordinator/runtime/test_device_runtime.py` | Runtime | Phase 5 / 6 | 保留 | - |
 | `tests/core/coordinator/runtime/test_mqtt_runtime.py` | Runtime | Phase 5 / 6 | 保留 | - |
-| `tests/core/coordinator/runtime/test_runtime_telemetry_methods.py` | Runtime | Phase 5 / 6 | 保留 | - |
+| `tests/core/coordinator/runtime/test_runtime_telemetry_methods.py` | Runtime | Phase 5 / 6 / 21 | 保留 | runtime failure recording telemetry regression |
 | `tests/core/coordinator/runtime/test_state_runtime.py` | Runtime | Phase 5 / 6 | 保留 | - |
 | `tests/core/coordinator/runtime/test_status_runtime.py` | Runtime | Phase 5 / 6 | 保留 | - |
 | `tests/core/coordinator/runtime/test_tuning_runtime.py` | Runtime | Phase 5 / 6 | 保留 | - |
@@ -313,7 +313,7 @@
 | `tests/core/coordinator/services/test_device_refresh_service.py` | Runtime | Phase 5 / 6 | 保留 | - |
 | `tests/core/coordinator/services/test_mqtt_service.py` | Runtime | Phase 5 / 6 | 保留 | - |
 | `tests/core/coordinator/services/test_state_service.py` | Runtime | Phase 5 / 6 | 保留 | - |
-| `tests/core/coordinator/services/test_telemetry_service.py` | Runtime | Phase 5 / 6 | 保留 | - |
+| `tests/core/coordinator/services/test_telemetry_service.py` | Runtime | Phase 5 / 6 / 21 | 保留 | telemetry service failure classification regression |
 | `tests/core/coordinator/test_entity_protocol.py` | Runtime | Phase 5 / 6 | 保留 | - |
 | `tests/core/device/__init__.py` | Domain | Phase 4 | 保留 | - |
 | `tests/core/device/test_capabilities.py` | Domain | Phase 4 | 保留 | - |
@@ -331,7 +331,7 @@
 | `tests/core/mqtt/test_mqtt_message.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `tests/core/mqtt/test_mqtt_payload.py` | Cross-cutting | Phase 7 / 20 | 保留 | MQTT boundary shim / decoder regression |
 | `tests/core/mqtt/test_mqtt_setup.py` | Cross-cutting | Phase 7 | 保留 | - |
-| `tests/core/mqtt/test_protocol_replay_mqtt.py` | Protocol | Phase 7.4 / 20 | 保留 | MQTT replay visibility over remaining boundary families |
+| `tests/core/mqtt/test_protocol_replay_mqtt.py` | Protocol | Phase 7.4 / 20 / 21 | 保留 | MQTT replay visibility over explicit remaining-family assurance contract |
 | `tests/core/mqtt/test_topic_builder.py` | Cross-cutting | Phase 7 / 20 | 保留 | topic grammar consumer regression |
 | `tests/core/ota/__init__.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `tests/core/ota/test_firmware_manifest.py` | Cross-cutting | Phase 7 | 保留 | - |
@@ -341,7 +341,7 @@
 | `tests/core/ota/test_ota_utils.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `tests/core/telemetry/__init__.py` | Assurance | Phase 7.3 | 保留 | - |
 | `tests/core/telemetry/test_exporter.py` | Assurance | Phase 7.3 | 保留 | - |
-| `tests/core/telemetry/test_models.py` | Assurance | Phase 7.3 | 保留 | - |
+| `tests/core/telemetry/test_models.py` | Assurance | Phase 7.3 / 21 | 保留 | failure taxonomy / `failure_summary` model contract tests |
 | `tests/core/telemetry/test_sinks.py` | Assurance | Phase 7.3 | 保留 | - |
 | `tests/core/test_anonymous_share.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `tests/core/test_anonymous_share_cov_missing.py` | Cross-cutting | Phase 7 | 保留 | - |
@@ -392,17 +392,17 @@
 | `tests/flows/test_options_flow_utils.py` | Control | Phase 3 / 7 | 保留 | - |
 | `tests/harness/__init__.py` | Assurance | Phase 7.4 | 保留 | - |
 | `tests/harness/evidence_pack/__init__.py` | Assurance | Phase 8 | 保留 | - |
-| `tests/harness/evidence_pack/collector.py` | Assurance | Phase 8 | 保留 | - |
+| `tests/harness/evidence_pack/collector.py` | Assurance | Phase 8 / 21 | 保留 | replay/evidence family taxonomy collector |
 | `tests/harness/evidence_pack/redaction.py` | Assurance | Phase 8 | 保留 | - |
 | `tests/harness/evidence_pack/schema.py` | Assurance | Phase 8 | 保留 | - |
 | `tests/harness/evidence_pack/sources.py` | Assurance | Phase 8 | 保留 | - |
 | `tests/harness/headless_consumer.py` | Assurance | Phase 19 | 保留 | proof-only headless consumer harness |
 | `tests/harness/protocol/__init__.py` | Assurance | Phase 7.4 | 保留 | - |
-| `tests/harness/protocol/replay_assertions.py` | Assurance | Phase 7.4 | 保留 | - |
-| `tests/harness/protocol/replay_driver.py` | Assurance | Phase 7.4 / 20 | 保留 | deterministic replay dispatch for remaining boundary families |
+| `tests/harness/protocol/replay_assertions.py` | Assurance | Phase 7.4 / 21 | 保留 | replay assertions over explicit remaining-family assurance contract |
+| `tests/harness/protocol/replay_driver.py` | Assurance | Phase 7.4 / 20 / 21 | 保留 | deterministic replay dispatch with shared failure-summary taxonomy |
 | `tests/harness/protocol/replay_loader.py` | Assurance | Phase 7.4 | 保留 | - |
-| `tests/harness/protocol/replay_models.py` | Assurance | Phase 7.4 / 20 | 保留 | typed replay manifest operation inventory |
-| `tests/harness/protocol/replay_report.py` | Assurance | Phase 7.4 | 保留 | - |
+| `tests/harness/protocol/replay_models.py` | Assurance | Phase 7.4 / 20 / 21 | 保留 | typed replay manifest + failure-summary result inventory |
+| `tests/harness/protocol/replay_report.py` | Assurance | Phase 7.4 / 21 | 保留 | replay report and explicit remaining-family assurance index home |
 | `tests/helpers/__init__.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/helpers/architecture_policy.py` | Assurance | Phase 7.2 | 保留 | - |
 | `tests/helpers/ast_guard_utils.py` | Assurance | Phase 7.2 | 保留 | - |
@@ -410,22 +410,22 @@
 | `tests/helpers/repo_root.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/helpers/service_call.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/integration/__init__.py` | Runtime | Phase 5 / 6 | 保留 | - |
-| `tests/integration/test_ai_debug_evidence_pack.py` | Assurance | Phase 8 / 19 / 22 | 保留 | evidence authority trace covers headless-proof bridge and shared `failure_summary` consumers |
+| `tests/integration/test_ai_debug_evidence_pack.py` | Assurance | Phase 8 / 19 / 21 / 22 | 保留 | evidence authority trace covers remaining-family replay proof and shared `failure_summary` consumers |
 | `tests/integration/test_headless_consumer_proof.py` | Assurance | Phase 19 | 保留 | single-chain headless consumer proof |
 | `tests/integration/test_mqtt_coordinator_integration.py` | Runtime | Phase 5 / 6 | 保留 | - |
-| `tests/integration/test_protocol_replay_harness.py` | Assurance | Phase 7.4 / 19 / 20 | 保留 | replay harness covers headless-proof assertion families + remaining boundary family visibility |
+| `tests/integration/test_protocol_replay_harness.py` | Assurance | Phase 7.4 / 19 / 20 / 21 | 保留 | replay harness covers headless-proof assertion families + explicit remaining-family failure taxonomy |
 | `tests/integration/test_telemetry_exporter_integration.py` | Runtime | Phase 7.3 / 22 | 保留 | diagnostics / system health convergence proof for shared `failure_summary` |
 | `tests/meta/__init__.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_blueprints.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_dependency_guards.py` | Assurance | Phase 6 | 保留 | - |
-| `tests/meta/test_evidence_pack_authority.py` | Assurance | Phase 8 / 19 | 保留 | proof assets stay out of authority source allowlist |
+| `tests/meta/test_evidence_pack_authority.py` | Assurance | Phase 8 / 19 / 21 | 保留 | replay/evidence remaining-family assets stay out of authority source allowlist |
 | `tests/meta/test_external_boundary_authority.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_external_boundary_fixtures.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_firmware_support_manifest_repo_asset.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_governance_guards.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_install_sh_guards.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_modularization_surfaces.py` | Assurance | Phase 6 | 保留 | - |
-| `tests/meta/test_protocol_replay_assets.py` | Assurance | Phase 7.4 / 20 | 保留 | replay manifest / authority / guard inventory for remaining families |
+| `tests/meta/test_protocol_replay_assets.py` | Assurance | Phase 7.4 / 20 / 21 | 保留 | replay manifest / authority / guard inventory for explicit remaining-family assurance coverage |
 | `tests/meta/test_public_surface_guards.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_service_translation_sync.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_toolchain_truth.py` | Assurance | Phase 16 | 保留 | - |

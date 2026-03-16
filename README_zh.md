@@ -18,6 +18,7 @@ Home Assistant 集成，用于控制 Lipro 智能家居设备。
 - 🔁 指数退避重连，稳定可靠
 - 🌐 中英文双语支持
 - 🔧 诊断支持，便于故障排查
+- 🏗️ 现代化组合式架构设计（已于 2026-03 完成重构）
 
 ## 支持的平台和实体
 
@@ -300,6 +301,7 @@ data:
 - 先确认手机号、密码在 Lipro 官方 App 中仍可正常使用。
 - 若密码已变更，请使用重新配置/更新凭据，不要直接删除集成。
 - 若 reauth 反复失败，请附上 diagnostics 与脱敏后的 developer report。
+- 若可获取，请同时附上 diagnostics / system health / developer report 导出的 `failure_summary` / `failure_entries`。
 
 #### 设备不可用 / 未显示
 
@@ -312,6 +314,7 @@ data:
 - MQTT 推送是 best effort，轮询仍是最终兜底。
 - 如有需要，可在选项中降低轮询间隔（最小 10 秒）。
 - 若状态持续漂移，请说明问题更像云端轮询、MQTT 推送，还是实体投影异常。
+- 若相关路径已暴露 `failure_summary` 或聚合后的 `failure_entries`，也请一并附上。
 
 ### 诊断与安全分享
 
@@ -324,6 +327,7 @@ data:
 如需更深层调试，可先在本地预览或上报以下载荷：
 - `lipro.get_developer_report` - 本地调试报告；保留 `iotName` 等供应商诊断标识与本地标签，便于识别实测设备
 - `lipro.submit_developer_feedback` - 上传契约；保留 `iotName`，但会匿名化设备/房间/面板/红外资产名称等用户自定义标签
+- 若可获取，请把 `failure_summary` / `failure_entries` 与 diagnostics 一并提供，便于维护者快速判型
 - `lipro.get_anonymous_share_report` - 脱敏匿名分享报告
 
 另见：`SUPPORT.md`（问题分流）、`SECURITY.md`（私密漏洞披露）与 `docs/MAINTAINER_RELEASE_RUNBOOK.md`（维护者发版问题）。

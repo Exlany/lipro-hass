@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+from dataclasses import replace
 import json
 
+from custom_components.lipro.core.telemetry.models import build_failure_summary
 from scripts.export_ai_debug_evidence_pack import export_ai_debug_evidence_pack
 from tests.harness.evidence_pack.collector import AiDebugEvidenceCollector
 from tests.harness.evidence_pack.schema import (
@@ -14,8 +16,33 @@ from tests.harness.evidence_pack.sources import (
     API_CONTRACT_ROOT,
     NON_AUTHORITY_PROOF_PATHS,
 )
+from tests.harness.protocol import ProtocolReplayDriver
+from tests.harness.protocol.replay_report import EXPLICIT_REPLAY_ASSURANCE_FAMILIES
 
 _FIXED_GENERATED_AT = "2026-03-13T00:00:00Z"
+
+
+class _RepresentativeFailureDriftDriver:
+    def __init__(self) -> None:
+        self._driver = ProtocolReplayDriver()
+
+    def run_manifest(self, manifest):
+        result = self._driver.run_manifest(manifest)
+        if manifest.family == "rest.schedule-json":
+            return replace(
+                result,
+                canonical=None,
+                drift_flags=("driver_error",),
+                error_category="protocol",
+                error_type="ValueError",
+                failure_summary=build_failure_summary(
+                    error_type="ValueError",
+                    failure_origin="protocol.replay",
+                ),
+            )
+        if manifest.family == "mqtt.message-envelope":
+            return replace(result, drift_flags=("fingerprint_mismatch",))
+        return result
 
 
 def _load_json(path):
@@ -42,6 +69,14 @@ def test_evidence_pack_exporter_writes_json_and_markdown_index(tmp_path) -> None
         payload["replay"]["summary"]["scenarios"]
     )
     assert payload["boundary"]["representative_families"]
+    assert [
+        family["family"]
+        for family in payload["replay"]["summary"]["explicit_family_coverage"]
+    ] == list(EXPLICIT_REPLAY_ASSURANCE_FAMILIES)
+    assert [
+        family["family"]
+        for family in payload["boundary"]["remaining_family_projections"]
+    ] == list(EXPLICIT_REPLAY_ASSURANCE_FAMILIES)
     assert payload["governance"]["verify_commands"]
     first_view = payload["telemetry"]["views"][0]
     assert "failure_summary" in first_view["diagnostics"]
@@ -123,3 +158,37 @@ def test_evidence_pack_blocks_sensitive_values_and_uses_repo_relative_authority_
     assert "should-not-leak" not in rendered
     assert "03ab5ccd7c111111" not in rendered
     assert "03ab5ccd7c999999" not in rendered
+
+
+def test_evidence_pack_surfaces_remaining_family_failure_and_drift_story() -> None:
+    payload = (
+        AiDebugEvidenceCollector(
+            protocol_driver=_RepresentativeFailureDriftDriver(),
+        )
+        .collect(
+            report_id="remaining-family-story",
+            generated_at=_FIXED_GENERATED_AT,
+        )
+        .to_dict()
+    )
+    representative_story = payload["replay"]["summary"]["representative_failure_drift"]
+
+    assert representative_story["remaining_family_channels"] == ["rest", "mqtt"]
+    assert [
+        scenario["family"]
+        for scenario in representative_story["remaining_family_representatives"]
+    ] == ["rest.schedule-json", "mqtt.message-envelope"]
+    assert [
+        scenario["family"] for scenario in representative_story["error_scenarios"]
+    ] == ["rest.schedule-json"]
+    assert representative_story["error_scenarios"][0]["error_category"] == "protocol"
+    assert representative_story["error_scenarios"][0]["error_type"] == "ValueError"
+    assert representative_story["error_scenarios"][0]["failure_summary"] == {
+        "failure_category": "protocol",
+        "failure_origin": "protocol.replay",
+        "handling_policy": "inspect",
+        "error_type": "ValueError",
+    }
+    assert [
+        scenario["family"] for scenario in representative_story["drift_scenarios"]
+    ] == ["mqtt.message-envelope"]

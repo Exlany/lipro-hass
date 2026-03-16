@@ -7,6 +7,12 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
+from ...telemetry.models import (
+    FailureSummary,
+    build_failure_summary_from_exception,
+    empty_failure_summary,
+)
+
 if TYPE_CHECKING:
     from ..runtime.command_runtime import CommandRuntime
     from ..runtime.mqtt_runtime import MqttRuntime
@@ -37,6 +43,12 @@ class CoordinatorTelemetryService:
         init=False,
         repr=False,
     )
+    _failure_summary: FailureSummary = field(
+        default_factory=empty_failure_summary,
+        init=False,
+        repr=False,
+    )
+    _failure_stage: str | None = field(default=None, init=False, repr=False)
 
     def record_connect_state(
         self,
@@ -68,12 +80,27 @@ class CoordinatorTelemetryService:
             }
         )
 
+    def record_update_failure(self, err: Exception | None, *, stage: str) -> None:
+        """Record one coordinator update failure as runtime telemetry truth."""
+        self._failure_stage = stage if err is not None else None
+        self._failure_summary = build_failure_summary_from_exception(
+            err,
+            failure_origin="runtime.update",
+        )
+
+    def record_update_success(self) -> None:
+        """Clear the last coordinator update failure after a successful run."""
+        self._failure_stage = None
+        self._failure_summary = empty_failure_summary()
+
     def build_snapshot(self) -> dict[str, Any]:
         """Build one runtime telemetry snapshot."""
         mqtt_runtime = self.mqtt_runtime_getter()
         return {
             "device_count": self.device_count_getter(),
             "polling_interval_seconds": self.polling_interval_seconds_getter(),
+            "failure_summary": dict(self._failure_summary),
+            "last_runtime_failure_stage": self._failure_stage,
             "mqtt": {
                 "connected": self.mqtt_service.connected,
                 **mqtt_runtime.get_runtime_metrics(),

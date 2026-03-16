@@ -1,6 +1,6 @@
 # Project: Lipro-HASS North Star Evolution
 
-**Status:** Active — `v1.2` 执行中；`Phase 18-20` 已完成，`Phase 21-24` 已完成整体规划，当前下一步是 `Phase 21 Replay Coverage & Exception Taxonomy Hardening`。
+**Status:** Complete — `v1.2` closeout 已完成；`Phase 18-24` 已全部完成，当前处于 archive-ready / `v1.3` handoff-ready。
 **Goal:** 把 `host-neutral nucleus`、`headless consumer proof`、`remaining boundary family completion`、`replay / evidence expansion`、`exception classification / observability hardening`、`governance / contributor docs / release evidence closeout` 与 `milestone audit / v1.3 handoff` 统一纳入当前 `v1.2` 里程碑，同时延续 `v1.1` 已建立的北极星单一主链、assurance 与开源治理能力。
 
 ## Current Milestone (v1.2)
@@ -27,7 +27,7 @@
 
 **Phase range:** `Phase 18 -> 24`
 
-**Execution status:** `Phase 18-20` complete; `Phase 21-24` planned
+**Execution status:** `Phase 18-24` complete
 
 ## Why This Milestone Exists
 
@@ -124,6 +124,49 @@
 - `client_base.py` 现只保留 `ClientSessionState`；`client_transport.py` 现只保留 `TransportExecutor` 与显式 transport helpers；`core/mqtt` concrete transport 名称统一到 `MqttTransportClient`，并由 no-export ban / locality guard fail-fast 锁定。
 - `ROADMAP / REQUIREMENTS / STATE / baseline / review ledgers / AGENTS / developer_architecture / milestone audit` 已统一到同一条 final closeout story；`v1.1` 当前达到 archive-ready 水位。
 - `Phase 17` 的最终裁决继续遵守同一禁令：不重开第二条正式主链、不把 cleanup 伪装成新架构、不留下 silent defer。
+
+
+### 13. Phase 18 Host-Neutral Boundary Nucleus 抽取已完成
+
+- `core/auth/bootstrap.py`、host-neutral capability/device helpers 与 adapter-only projection guards 已落地；共享 nucleus 不再吸入 Home Assistant runtime 类型。
+- `ConfigEntryLoginProjection` 继续只是 HA config-entry projection；`AuthSessionSnapshot` 仍是唯一正式 auth/session truth。
+- `helpers/platform.py`、`CapabilityRegistry`、`CapabilitySnapshot` 与 `LiproDevice` 的边界已固定，Phase 18 没有引入第二 protocol/runtime root。
+
+### 14. Phase 19 Headless Consumer Proof / Adapter Demotion 已完成
+
+- `custom_components/lipro/headless/boot.py`、`tests/harness/headless_consumer.py` 与 headless integration proof 已证明同一套 nucleus 可被非 HA consumer 复用，而不是复制第二实现。
+- proof outputs 继续是 assurance-only consumer，不反向成为 authority；`LiproProtocolFacade` 与 `Coordinator` 的单一正式主链未被破坏。
+- platform thin setup shells、token persistence 与 config-entry adapters 已继续 inward 收敛到 shared boot seam。
+
+### 15. Phase 20 Remaining Boundary Family Completion 已完成
+
+- `rest.list-envelope.v1`、`rest.schedule-json.v1`、`mqtt.topic.v1`、`mqtt.message-envelope.v1` 已全部进入 registry-backed boundary / replay / fixture / authority 主链。
+- inventory / fixtures / manifests / meta guards 已不再把这些 families 记为 partial 或长期 de-scope folklore。
+- governance / authority continuity 已回写，remaining-family closeout 不再依赖 helper-level implicit behavior。
+
+### 16. Phase 21 Replay Coverage / Exception Taxonomy 收口已完成
+
+- replay harness、evidence pack 与 replay report 现在对 remaining families 提供显式 assurance coverage，而不是只靠隐式遍历命中。
+- shared failure taxonomy 已冻结到 `core/telemetry/models.py`；`failure_category`、`failure_origin`、`handling_policy`、`error_type` 与 `failure_summary` 成为统一 contract。
+- protocol/runtime/control 关键 broad-catch seam 已区分 typed arbitration 与 cancellation passthrough；catch-all 不再被默许为默认策略。
+
+### 17. Phase 22 Observability Surface Convergence 已完成
+
+- diagnostics / system health / developer / support / evidence consumers 已统一消费 shared `failure_summary` vocabulary。
+- `failure_entries` 聚合、developer report merge 路径与 exporter-backed telemetry sink 已共享同一失败语言，不再各说各话。
+- verification matrix / file ownership / residual disposition 与 meta guards 已把 `OBS-03` 固化为长期治理真源。
+
+### 18. Phase 23 Governance / Contributor Docs / Release Evidence 收口已完成
+
+- `PROJECT / ROADMAP / REQUIREMENTS / STATE / baseline / review ledgers` 已与 `Phase 21-22` 的长期真相对齐，不再维持“已规划未执行”的漂移叙事。
+- README / README_zh / CONTRIBUTING / SUPPORT / troubleshooting / maintainer runbook / issue & PR templates 现统一引用同一 support/security/troubleshooting/release evidence 故事线。
+- `V1_2_EVIDENCE_INDEX.md` 已成为 maintainer / release / milestone closeout 共用的 pull-only evidence pointer；workflow 继续复用现有 CI gate，而不是另建第二套门禁故事。
+
+### 19. Phase 24 最终里程碑审计 / 归档就绪 / v1.3 交接准备已完成
+
+- final repo audit 已对 remaining items 给出 close / retain / defer disposition；active residual 现只保留显式登记的长期 advisory naming family，不再携带 replay/boundary coverage 悬空债务。
+- `v1.2-MILESTONE-AUDIT.md`、`V1_2_EVIDENCE_INDEX.md`、`MILESTONES.md` 与 `v1.3-HANDOFF.md` 已形成 archive-ready / handoff-ready closeout bundle。
+- `v1.2` 当前达到 archive-ready / `v1.3` handoff-ready 状态；下一轮维护者可直接从 handoff asset 启动，而无需依赖对话历史。
 
 ## Architectural Stance
 
@@ -318,15 +361,14 @@ v1.1 进入执行期后，新增演进必须额外满足：
 
 ## Current Execution Workspace Inputs
 
-- `.planning/phases/17-final-residual-retirement-typed-contract-tightening-and-milestone-closeout/17-CONTEXT.md`
-- `.planning/phases/17-final-residual-retirement-typed-contract-tightening-and-milestone-closeout/17-RESEARCH.md`
-- `.planning/phases/17-final-residual-retirement-typed-contract-tightening-and-milestone-closeout/17-01-PLAN.md`
-- `.planning/phases/17-final-residual-retirement-typed-contract-tightening-and-milestone-closeout/17-02-PLAN.md`
-- `.planning/phases/17-final-residual-retirement-typed-contract-tightening-and-milestone-closeout/17-03-PLAN.md`
-- `.planning/phases/17-final-residual-retirement-typed-contract-tightening-and-milestone-closeout/17-04-PLAN.md`
-- `.planning/phases/17-final-residual-retirement-typed-contract-tightening-and-milestone-closeout/17-VALIDATION.md`
-- `.planning/phases/17-final-residual-retirement-typed-contract-tightening-and-milestone-closeout/17-VERIFICATION.md`
+- `.planning/phases/21-replay-exception-taxonomy-hardening/21-VERIFICATION.md`
+- `.planning/phases/22-observability-surface-convergence-and-signal-exposure/22-VERIFICATION.md`
+- `.planning/phases/23-governance-convergence-contributor-docs-and-release-evidence-closure/23-VERIFICATION.md`
+- `.planning/phases/24-final-milestone-audit-archive-readiness-and-v1-3-handoff-prep/24-VERIFICATION.md`
+- `.planning/reviews/V1_2_EVIDENCE_INDEX.md`
+- `.planning/v1.2-MILESTONE-AUDIT.md`
+- `.planning/v1.3-HANDOFF.md`
 
-- 当前 phase 资产默认是执行工作区输入；只有被 `ROADMAP.md`、baseline docs 或 review ledgers 显式提升时，才成为长期治理真源。
+- 当前工作区输入以 `v1.2` closeout bundle 与 `v1.3` handoff assets 为主；phase 目录资产仍默认是执行证据，只有被 `ROADMAP.md`、baseline docs、review ledgers 或 milestone audit 显式提升时，才成为长期治理真源。
 
-*Last updated: 2026-03-16 after Phase 21-24 planning truth sync*
+*Last updated: 2026-03-16 after Phase 24 closeout truth sync*

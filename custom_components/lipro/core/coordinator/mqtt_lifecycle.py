@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import asyncio
-from contextlib import suppress
 import logging
 from typing import TYPE_CHECKING
 
@@ -30,8 +29,15 @@ async def _teardown_failed_mqtt_setup(
 ) -> None:
     """Detach a partially constructed MQTT transport after setup failure."""
     if mqtt_client is not None:
-        with suppress(Exception):
+        try:
             await mqtt_runtime.disconnect()
+        except asyncio.CancelledError:
+            raise
+        except (RuntimeError, OSError, TimeoutError) as err:
+            _LOGGER.debug(
+                "Ignore MQTT teardown error after setup failure (%s)",
+                type(err).__name__,
+            )
     mqtt_runtime.detach_transport()
     protocol.attach_mqtt_facade(None)
 
@@ -52,6 +58,10 @@ async def async_setup_mqtt(
             async with asyncio.timeout(10):
                 mqtt_config = await protocol.get_mqtt_config()
         except TimeoutError:
+            mqtt_runtime.handle_transport_error(
+                TimeoutError("mqtt_config_timeout"),
+                stage="config_fetch",
+            )
             _LOGGER.error("MQTT config fetch timeout after 10 seconds")
             return None
 
@@ -83,12 +93,10 @@ async def async_setup_mqtt(
         ) -> None:
             try:
                 await mqtt_runtime.handle_message(topic, payload)
+            except asyncio.CancelledError:
+                raise
             except Exception as err:
-                if isinstance(
-                    err, (asyncio.CancelledError, KeyboardInterrupt, SystemExit)
-                ):
-                    raise
-                mqtt_runtime.handle_transport_error(err)
+                mqtt_runtime.handle_transport_error(err, stage="message_bridge")
                 raise
 
         def _on_message_bridge(topic: str, payload: dict[str, object]) -> None:
@@ -116,6 +124,10 @@ async def async_setup_mqtt(
             async with asyncio.timeout(15):
                 connected = await mqtt_runtime.connect(device_ids=device_ids)
         except TimeoutError:
+            mqtt_runtime.handle_transport_error(
+                TimeoutError("mqtt_connect_timeout"),
+                stage="connect",
+            )
             _LOGGER.error("MQTT connection timeout after 15 seconds")
             await _teardown_failed_mqtt_setup(
                 protocol=protocol,
@@ -135,9 +147,10 @@ async def async_setup_mqtt(
 
         return (mqtt_client, biz_id)
 
+    except asyncio.CancelledError:
+        raise
     except Exception as err:
-        if isinstance(err, (asyncio.CancelledError, KeyboardInterrupt, SystemExit)):
-            raise
+        mqtt_runtime.handle_transport_error(err, stage="setup")
         await _teardown_failed_mqtt_setup(
             protocol=protocol,
             mqtt_runtime=mqtt_runtime,

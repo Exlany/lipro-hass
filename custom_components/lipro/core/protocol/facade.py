@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 from collections.abc import Awaitable, Callable
 from typing import Any, Protocol, cast
 
@@ -229,7 +230,7 @@ class LiproMqttFacade:
         """Return the latest transport error while syncing telemetry."""
         err = self._client.last_error
         if err is not None:
-            self._telemetry.record_mqtt_error(err)
+            self._telemetry.record_mqtt_error(err, stage="transport")
         return err
 
     async def start(self, device_ids: list[str]) -> None:
@@ -237,8 +238,10 @@ class LiproMqttFacade:
         self._telemetry.record_mqtt_start()
         try:
             await self._client.start(device_ids)
+        except asyncio.CancelledError:
+            raise
         except Exception as err:
-            self._telemetry.record_mqtt_error(err)
+            self._telemetry.record_mqtt_error(err, stage="start")
             raise
 
     async def stop(self) -> None:
@@ -246,8 +249,10 @@ class LiproMqttFacade:
         self._telemetry.record_mqtt_stop()
         try:
             await self._client.stop()
+        except asyncio.CancelledError:
+            raise
         except Exception as err:
-            self._telemetry.record_mqtt_error(err)
+            self._telemetry.record_mqtt_error(err, stage="stop")
             raise
 
     async def sync_subscriptions(self, device_ids: set[str]) -> None:
@@ -255,19 +260,23 @@ class LiproMqttFacade:
         self._telemetry.record_mqtt_sync()
         try:
             await self._client.sync_subscriptions(device_ids)
+        except asyncio.CancelledError:
+            raise
         except Exception as err:
-            self._telemetry.record_mqtt_error(err)
+            self._telemetry.record_mqtt_error(err, stage="sync_subscriptions")
             raise
 
     async def wait_until_connected(self, timeout: float | None = None) -> bool:
         """Wait until the wrapped transport reports a real broker connection."""
         try:
             connected = await self._client.wait_until_connected(timeout=timeout)
+        except asyncio.CancelledError:
+            raise
         except Exception as err:
-            self._telemetry.record_mqtt_error(err)
+            self._telemetry.record_mqtt_error(err, stage="wait_until_connected")
             raise
         if self._client.last_error is not None:
-            self._telemetry.record_mqtt_error(self._client.last_error)
+            self._telemetry.record_mqtt_error(self._client.last_error, stage="transport")
         return connected
 
 

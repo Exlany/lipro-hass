@@ -2,7 +2,7 @@
 
 **Purpose:** 定义各平面的 canonical public surfaces、过渡公开面与禁止作为正式入口的对象。
 **Status:** Formal baseline asset (`BASE-01` public-surface truth source)
-**Updated:** 2026-03-16 (Phase 19 headless proof & adapter demotion)
+**Updated:** 2026-03-16 (Phase 24 milestone closeout / handoff aligned)
 
 ## Formal Role
 
@@ -21,13 +21,13 @@
 | Runtime | `Coordinator` + runtime services/public surface | runtime orchestration root + stable service surface | protocol-facing runtime ops 统一经 `CoordinatorProtocolService` 收口；`devices` 只允许以 read-only mapping 暴露；outlet power 真源收口到 `LiproDevice.outlet_power_info` |
 | Domain | `CapabilityRegistry` / `CapabilitySnapshot` / `LiproDevice` + `DeviceState` explicit surface / command contracts | domain truth surface family | `custom_components/lipro/core/capability/` 与 `custom_components/lipro/core/device/` 共同定义显式设备域真源；动态 `__getattr__` 不再合法化；HA platform strings / config-entry projection 只允许停留在 adapter seams |
 | Control | `EntryLifecycleController`、`ServiceRegistry`、`service_router`、`DiagnosticsSurface`、`SystemHealthSurface`、`telemetry_surface` bridge helpers | control-plane formal surface set | `custom_components/lipro/control/` 为正式内部控制面 home；HA 根模块只保留 adapter 职责 |
-| Assurance | contract suites、invariant suites、meta guards、ledgers、`RuntimeTelemetryExporter` / telemetry contracts、replay harness/report surfaces、`V1_1_EVIDENCE_INDEX.md`、`tests/harness/evidence_pack/*`、`scripts/export_ai_debug_evidence_pack.py` | assurance arbitration surface set | exporter / replay / evidence index / evidence-pack tooling 只作为 assurance-only 或 pull-only truth consumers，不得反向成为 runtime/control/public root |
+| Assurance | contract suites、invariant suites、meta guards、ledgers、`RuntimeTelemetryExporter` / telemetry contracts、replay harness/report surfaces、`V1_1_EVIDENCE_INDEX.md`、`V1_2_EVIDENCE_INDEX.md`、`tests/harness/evidence_pack/*`、`scripts/export_ai_debug_evidence_pack.py`、`v1.2-MILESTONE-AUDIT.md`、`v1.3-HANDOFF.md` | assurance arbitration surface set | exporter / replay / evidence index / milestone audit / handoff tooling 只作为 assurance-only 或 pull-only truth consumers，不得反向成为 runtime/control/public root |
 
 ## Assurance-only Extension Rules
 
 - `custom_components/lipro/core/telemetry/*` 与 `custom_components/lipro/control/telemetry_surface.py` 只承担 observer-only telemetry truth 输出与 control bridge 角色；runtime / entity / platform 不得把它们当成第二条业务主链。
 - `tests/harness/protocol/*`、`tests/fixtures/protocol_replay/*`、`tests/integration/test_protocol_replay_harness.py` 与 replay run summary 只属于 assurance-only replay surfaces；生产路径只能被它们验证，不能反向依赖它们。
-- `.planning/reviews/V1_1_EVIDENCE_INDEX.md` 与 Phase 8 evidence-pack 入口都必须是 pull-only evidence pointers：只能索引正式真源，不得重新扫描仓库拼出第二套事实。
+- `.planning/reviews/V1_1_EVIDENCE_INDEX.md`、`.planning/reviews/V1_2_EVIDENCE_INDEX.md` 与 milestone closeout evidence 入口都必须是 pull-only evidence pointers：只能索引正式真源，不得重新扫描仓库拼出第二套事实。
 - `tests/harness/evidence_pack/*`、`scripts/export_ai_debug_evidence_pack.py` 与生成的 `ai_debug_evidence_pack.json` / `ai_debug_evidence_pack.index.md` 只属于 assurance-only evidence-pack surfaces；AI / tooling 可以消费它们，但 runtime / control / entity 不得反向依赖它们。
 
 ## Transitional Public Surfaces
@@ -151,3 +151,10 @@
 - `helpers/platform.py` 继续是唯一 HA platform projection home；各平台 `async_setup_entry()` 现在只保留 thin headless setup shell，`control/runtime_access.py` 仍是 control-plane locator，不得成为 platform/entity bridge。
 - Phase 19 enforcement 由 `ENF-IMP-HEADLESS-PROOF-LOCALITY`、`ENF-IMP-PLATFORM-SHELL-NO-CONTROL-LOCATOR`、`ENF-PROOF-HEADLESS-PACKAGE-NO-EXPORTS` 与 `ENF-PROOF-HEADLESS-BOOT-NO-SECOND-ROOT-BACKFLOW` 共同负责。
 
+
+
+## Phase 21-24 Closeout Notes
+
+- shared `failure_summary` / `failure_entries` 语义属于 assurance/control consumer contract 的投影结果，不构成新的 public root，也不允许绕过 exporter / telemetry truth 直接定义正式 surface。
+- `V1_2_EVIDENCE_INDEX.md`、`v1.2-MILESTONE-AUDIT.md` 与 `v1.3-HANDOFF.md` 都是 pull-only governance / handoff assets：它们消费既有 north-star / baseline / review truth，但不替代这些真源。
+- `Phase 21-24` 对 public surfaces 的裁决是 **no new root / no new authority**：closeout 只允许同步 story 与 consumer wording，不允许把 replay、evidence、runbook 或 handoff 提升为第二业务入口。

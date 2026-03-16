@@ -193,6 +193,9 @@ class EntryLifecycleController:
 
         try:
             await coordinator.async_config_entry_first_refresh()
+        except asyncio.CancelledError:
+            await self._async_abort_setup(entry=entry, coordinator=coordinator)
+            raise
         except Exception:
             await self._async_abort_setup(entry=entry, coordinator=coordinator)
             raise
@@ -202,6 +205,9 @@ class EntryLifecycleController:
         try:
             self._persist_entry_tokens_if_changed(hass, entry, auth_manager)
             await hass.config_entries.async_forward_entry_setups(entry, self._platforms)
+        except asyncio.CancelledError:
+            await self._async_abort_setup(entry=entry, coordinator=coordinator)
+            raise
         except Exception:
             await self._async_abort_setup(entry=entry, coordinator=coordinator)
             raise

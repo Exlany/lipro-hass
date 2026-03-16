@@ -6,7 +6,7 @@ from collections.abc import Iterable
 from datetime import UTC, datetime
 import re
 from secrets import token_hex
-from typing import Any
+from typing import Any, Protocol
 
 from custom_components.lipro.core.telemetry.models import (
     SCHEMA_VERSION as TELEMETRY_SCHEMA_VERSION,
@@ -39,7 +39,11 @@ from tests.harness.evidence_pack.sources import (
 from tests.harness.protocol.replay_assertions import build_replay_exporter_views
 from tests.harness.protocol.replay_driver import ProtocolReplayDriver
 from tests.harness.protocol.replay_loader import iter_replay_manifests
-from tests.harness.protocol.replay_report import build_replay_run_summary
+from tests.harness.protocol.replay_models import ReplayExecutionResult, ReplayManifest
+from tests.harness.protocol.replay_report import (
+    EXPLICIT_REPLAY_ASSURANCE_FAMILIES,
+    build_replay_run_summary,
+)
 
 _COMMAND_PATTERN = re.compile(r"`(uv run [^`]+)`")
 _RESIDUAL_PATTERN = re.compile(
@@ -47,10 +51,14 @@ _RESIDUAL_PATTERN = re.compile(
 )
 
 
+class _ProtocolReplayManifestRunner(Protocol):
+    def run_manifest(self, manifest: ReplayManifest) -> ReplayExecutionResult: ...
+
+
 class AiDebugEvidenceCollector:
     """Build one JSON-first evidence pack from registered formal sources."""
 
-    def __init__(self, *, protocol_driver: ProtocolReplayDriver | None = None) -> None:
+    def __init__(self, *, protocol_driver: _ProtocolReplayManifestRunner | None = None) -> None:
         self._protocol_driver = protocol_driver or ProtocolReplayDriver()
 
     def collect(
@@ -110,21 +118,28 @@ class AiDebugEvidenceCollector:
                 "summary": replay_summary,
             }
         )
+        representative_families = [
+            {
+                "scenario_id": manifest.scenario_id,
+                "channel": manifest.channel,
+                "family": manifest.family,
+                "version": manifest.version,
+                "manifest_path": repo_relative(manifest.manifest_path),
+                "authority_path": repo_relative(manifest.authority_path),
+                "assertion_families": list(manifest.assertion_families),
+            }
+            for manifest in manifests
+        ]
         boundary_section = {
             "source_paths": list(boundary_source_paths()),
             "inventory_path": BOUNDARY_INVENTORY_PATH,
             "authority_matrix_path": AUTHORITY_MATRIX_PATH,
-            "representative_families": [
-                {
-                    "scenario_id": manifest.scenario_id,
-                    "channel": manifest.channel,
-                    "family": manifest.family,
-                    "version": manifest.version,
-                    "manifest_path": repo_relative(manifest.manifest_path),
-                    "authority_path": repo_relative(manifest.authority_path),
-                    "assertion_families": list(manifest.assertion_families),
-                }
-                for manifest in manifests
+            "representative_families": representative_families,
+            "remaining_family_projections": [
+                family_projection
+                for family in EXPLICIT_REPLAY_ASSURANCE_FAMILIES
+                for family_projection in representative_families
+                if family_projection["family"] == family
             ],
             "carry_forward_residuals": self._extract_residuals(
                 read_formal_text(RESIDUAL_LEDGER_PATH)

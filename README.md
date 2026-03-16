@@ -300,6 +300,7 @@ Canonical troubleshooting guide: `docs/TROUBLESHOOTING.md`.
 - Ensure the phone number and password still work in the Lipro app.
 - If the password changed, use reconfigure/update credentials instead of deleting the integration.
 - For repeated reauth failures, include diagnostics plus a redacted developer report.
+- If available, also include `failure_summary` / `failure_entries` from diagnostics, system health, or developer-report exports.
 
 #### Device Unavailable / Not Showing
 
@@ -312,6 +313,7 @@ Canonical troubleshooting guide: `docs/TROUBLESHOOTING.md`.
 - MQTT push is best effort; polling remains the safety net.
 - Reduce the polling interval in options if needed (minimum 10 seconds).
 - When drift persists, mention whether the issue is cloud polling, MQTT push, or entity projection.
+- If the affected path exposes `failure_summary` or aggregated `failure_entries`, include those fields in the report as well.
 
 ### Diagnostics & Safe Sharing
 
@@ -324,6 +326,7 @@ Redaction includes account credentials/tokens (`phone`, `password`, `access_toke
 For deeper debugging, you can preview or submit the opt-in payloads first:
 - `lipro.get_developer_report` - local debugging report; keeps vendor diagnosis identifiers such as `iotName` plus local labels so you can recognize the device under test
 - `lipro.submit_developer_feedback` - upload contract; keeps `iotName` but anonymizes user-defined labels such as device/room/panel/IR names before upload
+- When available, include `failure_summary` / `failure_entries` alongside diagnostics so maintainers can classify the failure path faster
 - `lipro.get_anonymous_share_report` - sanitized anonymous-share payload
 
 See also: `SUPPORT.md` for routing, `SECURITY.md` for private vulnerability disclosure, and `docs/MAINTAINER_RELEASE_RUNBOOK.md` for maintainer-only release issues.

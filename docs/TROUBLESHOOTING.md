@@ -29,6 +29,7 @@ logger:
 - Verify the phone number, password, and region in the Lipro app first.
 - If the password changed, use reconfigure/update credentials instead of removing the integration.
 - When reauth keeps failing, attach diagnostics plus the redacted developer report.
+- If available, include `failure_summary` / `failure_entries` from diagnostics, system health, or developer-report exports.
 
 ### Devices Not Discovered
 
@@ -41,6 +42,7 @@ logger:
 - MQTT push is best effort; polling still acts as the safety net.
 - Check whether the device works in the Lipro app and whether the integration is still authenticated.
 - If state drift persists, include diagnostics and note whether the issue is cloud polling, MQTT push, or a Home Assistant entity projection problem.
+- If the affected path exposes `failure_summary` or aggregated `failure_entries`, include those fields in the issue as well.
 
 ### OTA / Firmware Update Questions
 
@@ -51,6 +53,7 @@ logger:
 ### Developer / Diagnostics Services
 
 - `lipro.get_developer_report` keeps vendor diagnosis identifiers such as `iotName`, but anonymizes user-defined labels before upload when using `lipro.submit_developer_feedback`.
+- If a report or diagnostics export already contains `failure_summary` / `failure_entries`, keep those fields intact when filing the issue; they are part of the shared failure vocabulary.
 - `lipro.get_anonymous_share_report` is the safe preview path before anonymous sharing.
 - If a developer service fails, mention the exact service name, arguments, and whether debug mode was enabled.
 

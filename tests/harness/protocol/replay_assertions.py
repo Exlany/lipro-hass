@@ -6,7 +6,10 @@ from datetime import datetime
 from typing import Any
 
 from custom_components.lipro.core.telemetry.exporter import RuntimeTelemetryExporter
-from custom_components.lipro.core.telemetry.models import TelemetryViews
+from custom_components.lipro.core.telemetry.models import (
+    TelemetryViews,
+    empty_failure_summary,
+)
 from tests.harness.protocol.replay_models import ReplayExecutionResult, ReplayManifest
 
 
@@ -34,6 +37,8 @@ def assert_replay_canonical_contract(
 ) -> None:
     """Assert one replay result resolves to the expected canonical contract."""
     assert result.error_category is None
+    assert result.error_type is None
+    assert result.failure_summary == empty_failure_summary()
     assert result.drift_flags == ()
     assert result.canonical == expected_canonical
     if expected_fingerprint is not None:
@@ -50,6 +55,8 @@ def assert_replay_has_no_drift(
     assert result.manifest.family == expected_family
     assert result.manifest.version == expected_version
     assert result.error_category is None
+    assert result.error_type is None
+    assert result.failure_summary == empty_failure_summary()
     assert result.drift_flags == ()
 
 
@@ -69,13 +76,15 @@ def build_replay_exporter_views(
             "request_timeout": 30,
         },
         "telemetry": {
-            "mqtt_last_error_type": result.error_category,
+            "mqtt_last_error_type": result.error_type,
+            "mqtt_last_error_stage": "replay" if result.error_type is not None else None,
+            "failure_summary": result.failure_summary,
         },
         "auth_recovery": {
             "refresh_success_count": 1 if manifest.channel == "rest" else 0,
-            "refresh_failure_count": 0 if result.error_category is None else 1,
+            "refresh_failure_count": 0 if result.error_type is None else 1,
             "last_refresh_outcome": (
-                "success" if result.error_category is None else "failure"
+                "success" if result.error_type is None else "failure"
             ),
         },
     }
@@ -83,11 +92,21 @@ def build_replay_exporter_views(
         "entry_id": entry_id,
         "device_count": 1,
         "polling_interval_seconds": 15,
-        "last_update_success": result.error_category is None,
+        "failure_summary": empty_failure_summary(),
+        "last_runtime_failure_stage": None,
+        "last_update_success": result.error_type is None,
         "mqtt": {
             "connected": manifest.channel == "mqtt",
             "disconnect_notified": False,
-            "last_transport_error": result.error_category,
+            "last_transport_error": result.error_type,
+            "last_transport_error_stage": (
+                "replay" if manifest.channel == "mqtt" and result.error_type is not None else None
+            ),
+            "failure_summary": (
+                result.failure_summary
+                if manifest.channel == "mqtt"
+                else empty_failure_summary()
+            ),
         },
         "command": {
             "trace_count": 1,
@@ -132,6 +151,9 @@ def assert_exporter_backed_replay_telemetry(
     trace = diagnostics["runtime"]["recent_command_traces"][0]
 
     assert diagnostics["schema_version"] == "telemetry.v1"
+    assert diagnostics["failure_summary"] == result.failure_summary
+    assert system_health["failure_summary"] == result.failure_summary
+    assert views.developer["failure_summary"] == result.failure_summary
     assert system_health["refresh_avg_latency_seconds"] == 0.5
     assert system_health["command_confirmation_avg_latency_seconds"] == 0.25
     assert system_health["command_confirmation_timeout_total"] == 0

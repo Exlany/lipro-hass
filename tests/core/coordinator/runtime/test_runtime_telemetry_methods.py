@@ -74,5 +74,12 @@ def test_mqtt_runtime_exposes_runtime_metrics() -> None:
         "disconnect_time": None,
         "disconnect_notified": False,
         "last_transport_error": "RuntimeError",
+        "last_transport_error_stage": "transport",
+        "failure_summary": {
+            "failure_category": "runtime",
+            "failure_origin": "runtime.mqtt",
+            "handling_policy": "inspect",
+            "error_type": "RuntimeError",
+        },
         "backoff_gate_logged": False,
     }

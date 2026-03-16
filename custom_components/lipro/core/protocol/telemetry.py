@@ -2,8 +2,14 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any
+
+from ..telemetry.models import (
+    FailureSummary,
+    build_failure_summary_from_exception,
+    empty_failure_summary,
+)
 
 
 @dataclass(slots=True)
@@ -20,6 +26,8 @@ class ProtocolTelemetry:
     mqtt_stop_count: int = 0
     mqtt_sync_count: int = 0
     mqtt_last_error_type: str | None = None
+    mqtt_last_error_stage: str | None = None
+    failure_summary: FailureSummary = field(default_factory=empty_failure_summary)
 
     def record_mqtt_facade_created(self) -> None:
         """Record creation of one MQTT child façade."""
@@ -37,9 +45,14 @@ class ProtocolTelemetry:
         """Record one MQTT subscription-sync call."""
         self.mqtt_sync_count += 1
 
-    def record_mqtt_error(self, err: Exception | None) -> None:
-        """Record the latest MQTT transport error type."""
+    def record_mqtt_error(self, err: Exception | None, *, stage: str | None = None) -> None:
+        """Record the latest MQTT transport error type and normalized summary."""
         self.mqtt_last_error_type = type(err).__name__ if err is not None else None
+        self.mqtt_last_error_stage = stage if err is not None else None
+        self.failure_summary = build_failure_summary_from_exception(
+            err,
+            failure_origin="protocol.mqtt",
+        )
 
     def snapshot(
         self,
@@ -56,6 +69,8 @@ class ProtocolTelemetry:
             "mqtt_connected": mqtt_connected,
             "mqtt_subscribed_count": subscribed_count,
             "mqtt_last_error_type": self.mqtt_last_error_type,
+            "mqtt_last_error_stage": self.mqtt_last_error_stage,
+            "failure_summary": dict(self.failure_summary),
         }
 
 
