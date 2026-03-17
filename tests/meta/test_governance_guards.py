@@ -523,6 +523,7 @@ def test_milestone_archive_snapshots_exist_and_are_referenced() -> None:
     assert "archive snapshots 已落入 `.planning/milestones/`" in state_text
     assert "archived / evidence-ready" in milestones_text
     assert "archived snapshots created / handoff-ready" in milestones_text
+    assert "revalidated 2026-03-17" in milestones_text
 
     v1_1_archive_text = (
         _ROOT / ".planning" / "milestones" / "v1.1-ROADMAP.md"
@@ -1099,7 +1100,7 @@ def test_phase_19_execution_truth_is_consistent() -> None:
     assert "**Plans**: 4/4 complete" in roadmap_text
     assert "# Requirements: Lipro-HASS" in requirements_text
     assert (
-        "*Last updated: 2026-03-16 after Phase 24 closeout truth sync*"
+        "*Last updated: 2026-03-17 after Phase 24 reopen revalidation*"
         in requirements_text
     )
     assert "## Traceability for v1.2" in requirements_text
@@ -1145,14 +1146,15 @@ def test_phase_21_to_24_execution_truth_is_consistent() -> None:
         "### Phase 24: Final milestone audit, archive readiness and v1.3 handoff prep",
     ):
         assert heading in roadmap_text
-    assert roadmap_text.count("**Status**: Complete (`2026-03-16`)") >= 4
-    assert "**Plans**: 3/3 complete" in roadmap_text
+    assert roadmap_text.count("**Status**: Complete (`2026-03-16`)") >= 3
+    assert "**Status**: Complete (`2026-03-17`, revalidated after reopen)" in roadmap_text
+    assert "**Plans**: 5/5 complete" in roadmap_text
 
     for req_id in ("SIM-04", "ERR-02", "OBS-03", "GOV-16", "GOV-17", "GOV-18"):
         assert f"| {req_id} | Phase" in requirements_text
         assert f"| {req_id} | Phase" in requirements_text and "| Complete |" in requirements_text
     assert "completed_phases: 7" in state_text
-    assert "completed_plans: 22" in state_text
+    assert "completed_plans: 24" in state_text
     assert "**Current mode:** `Phase 24 complete`" in state_text
     assert "**Execution status:** `Phase 18-24` complete" in project_text
     assert "archive-ready / `v1.3` handoff-ready" in project_text

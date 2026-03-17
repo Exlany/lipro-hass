@@ -32,16 +32,17 @@
 
 ---
 
-## v1.2 Host-Neutral Core & Replay Completion (Closeout: 2026-03-16)
+## v1.2 Host-Neutral Core & Replay Completion (Closeout revalidated: 2026-03-17)
 
 **Phase range:** `18 -> 24`
-**Phases completed:** 7 phases, 22 plans, 0 tasks
-**Status:** archived snapshots created / handoff-ready
+**Phases completed:** 7 phases, 24 plans, 0 tasks
+**Status:** archived snapshots created / handoff-ready；archive-ready verdict revalidated 2026-03-17
 
 **Key accomplishments:**
 - 完成 host-neutral boundary/auth/device nucleus 抽取，并以 headless consumer proof 证明 single-chain reuse
 - 完成 remaining boundary family formalization、replay/evidence explicit coverage、shared failure taxonomy 与 observability consumer convergence
 - 完成 governance/docs/release evidence closeout、`v1.2` milestone audit、final repo audit 与 `v1.3` handoff bundle
+- `Phase 24` reopen (`24-04` / `24-05`) 已修复 closeout gate regressions，并用 fresh evidence 重新验证 archive-ready / handoff-ready verdict
 
 **Closeout assets:**
 - `.planning/reviews/V1_2_EVIDENCE_INDEX.md`

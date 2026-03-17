@@ -4,7 +4,7 @@
 
 - ✅ **v1.0 North Star Rebuild** - Phases 1-7 (+ 1.5 / 2.5 / 2.6), shipped 2026-03-13, archive: `.planning/milestones/v1.0-ROADMAP.md`
 - ✅ **v1.1 Protocol Fidelity & Operability** - Phases 7.1-17 complete; final audit complete; milestone snapshots archived at `.planning/milestones/v1.1-ROADMAP.md` / `.planning/milestones/v1.1-REQUIREMENTS.md` (updated 2026-03-16)
-- ✅ **v1.2 Host-Neutral Core & Replay Completion** - Phases 18-24 complete; final audit complete; milestone snapshots archived at `.planning/milestones/v1.2-ROADMAP.md` / `.planning/milestones/v1.2-REQUIREMENTS.md`; `v1.3` handoff-ready (updated 2026-03-16)
+- ✅ **v1.2 Host-Neutral Core & Replay Completion** - Phases 18-24 complete after Phase 24 reopen revalidation; 24 plans complete; milestone snapshots archived at `.planning/milestones/v1.2-ROADMAP.md` / `.planning/milestones/v1.2-REQUIREMENTS.md`; `v1.3` handoff-ready (revalidated 2026-03-17)
 
 ## Required Phase Outputs
 
@@ -322,9 +322,9 @@ Plans:
 
 **Milestone Goal:** 在不破坏 `LiproProtocolFacade` / `Coordinator` 单一正式主链的前提下，把 future-host shared-core debt、remaining boundary/replay family debt 与关键 broad-catch / observability debt 提升为正式交付，让仓库从“HA 内部高治理集成”继续迈向“可复用、可回放、可宿主扩展、但不多根分裂”的下一阶段。
 
-**Execution Scope:** `Phase 18 -> Phase 24`（7 phases / 22 plans，已于 2026-03-16 全部完成）
+**Execution Scope:** `Phase 18 -> Phase 24`（7 phases / 24 plans；`24-04` / `24-05` 于 2026-03-17 完成 reopen revalidation）
 
-**Current Status:** `Phase 18` 到 `Phase 24` 已全部完成（22/22 plans executed，2026-03-16）；`v1.2` 的 final repo audit、evidence index、milestone audit 与 `v1.3` handoff 已落地，archive snapshots 已写入 `.planning/milestones/v1.2-ROADMAP.md` 与 `.planning/milestones/v1.2-REQUIREMENTS.md`，当前仍保持 archive-ready、handoff-ready。
+**Current Status:** `Phase 18` 到 `Phase 24` 已全部完成（24/24 plans executed；Phase 24 于 2026-03-17 reopened 并重新验证）；`v1.2` 的 final repo audit、evidence index、milestone audit 与 `v1.3` handoff 已落地，archive snapshots 已写入 `.planning/milestones/v1.2-ROADMAP.md` 与 `.planning/milestones/v1.2-REQUIREMENTS.md`，当前维持 archive-ready、handoff-ready。
 
 ### Phase 18: Host-Neutral Boundary Nucleus Extraction
 **Goal**: 把 boundary/auth/device 方向中已成熟的 host-neutral nucleus 从 HA adapter 语义中继续抽离，但不新建第二条 runtime story。
@@ -431,11 +431,13 @@ Plans:
   1. final repo audit 能明确关闭、保留或递延全部剩余项，并写入 residual / kill / milestone closeout truth。
   2. milestone verification、evidence index、archive-ready assets 与 closeout decision bundle 完整可审计。
   3. v1.3 handoff 起点清晰，不继续携带未仲裁的 v1.2 debt。
-**Status**: Complete (`2026-03-16`)
-**Plans**: 3/3 complete
+**Status**: Complete (`2026-03-17`, revalidated after reopen)
+**Plans**: 5/5 complete
 
 Plans:
 - [x] 24-01: run final repo audit and residual arbitration
 - [x] 24-02: assemble milestone verification and archive bundle
 - [x] 24-03: write v1.3 handoff and next-phase seed
+- [x] 24-04: repair control-plane contract regressions and restore closeout gates
+- [x] 24-05: resync reopened phase-24 closeout truth with fresh gate evidence
 

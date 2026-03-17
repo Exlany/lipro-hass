@@ -117,7 +117,7 @@ def find_runtime_entry_for_coordinator(
     runtime_entry = _as_runtime_entry(config_entry)
     if runtime_entry is not None:
         if get_entry_runtime_coordinator(runtime_entry) is coordinator:
-            return runtime_entry
+            return cast(RuntimeEntryLike, config_entry)
     for entry in iter_runtime_entries(hass):
         if get_entry_runtime_coordinator(entry) is coordinator:
             return entry

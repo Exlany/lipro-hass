@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 from collections.abc import Awaitable, Callable, Iterator
+from dataclasses import dataclass
 import logging
-from typing import Any, NoReturn, TypeVar, cast
+from typing import TYPE_CHECKING, Any, NoReturn, TypeVar, cast
 
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.exceptions import ServiceValidationError
@@ -25,6 +26,7 @@ from ..services.diagnostics.types import (
     DiagnosticsCoordinator,
     DiagnosticsDevice,
     GetDeviceAndCoordinator,
+    RuntimeCoordinatorIterator,
     SensorHistoryResponse,
 )
 from ..services.errors import raise_service_error as _raise_service_error
@@ -37,8 +39,35 @@ from .runtime_access import (
     iter_runtime_entries as _iter_runtime_entries,
 )
 
+if TYPE_CHECKING:
+    from ..core.device import LiproDevice
+
 _LOGGER = logging.getLogger(__name__)
 _ResultT = TypeVar("_ResultT")
+type _RuntimeDeviceAndCoordinatorGetter = Callable[
+    [HomeAssistant, ServiceCall],
+    Awaitable[tuple[LiproDevice, LiproCoordinator]],
+]
+
+
+@dataclass(slots=True)
+class _DiagnosticsDeviceProjection:
+    """Immutable diagnostics-device projection for developer-only routes."""
+
+    serial: str
+    name: str
+    device_type: int | str
+    device_type_hex: str
+
+
+def _project_diagnostics_device(device: LiproDevice) -> DiagnosticsDevice:
+    """Project one runtime device into the diagnostics-facing device surface."""
+    return _DiagnosticsDeviceProjection(
+        serial=device.serial,
+        name=device.name,
+        device_type=device.device_type,
+        device_type_hex=device.device_type_hex,
+    )
 
 
 def build_single_runtime_coordinator_iterator(
@@ -56,12 +85,17 @@ def build_single_runtime_coordinator_iterator(
 
 def build_developer_runtime_coordinator_iterator(
     hass: HomeAssistant,
-) -> DeveloperReportCoordinatorIterator:
+) -> RuntimeCoordinatorIterator:
     """Freeze the current debug-enabled coordinators into one iterator factory."""
-    coordinators = list(_iter_developer_runtime_coordinators(hass))
+    coordinators = cast(
+        list[DiagnosticsCoordinator],
+        list(_iter_developer_runtime_coordinators(hass)),
+    )
 
-    def _iter_runtime_coordinators(_hass: HomeAssistant) -> Iterator[DiagnosticsCoordinator]:
-        return iter(cast(list[DiagnosticsCoordinator], coordinators))
+    def _iter_runtime_coordinators(
+        _hass: HomeAssistant,
+    ) -> Iterator[DiagnosticsCoordinator]:
+        return iter(coordinators)
 
     return _iter_runtime_coordinators
 
@@ -70,7 +104,7 @@ async def get_developer_device_and_coordinator(
     hass: HomeAssistant,
     call: ServiceCall,
     *,
-    get_device_and_coordinator: GetDeviceAndCoordinator,
+    get_device_and_coordinator: _RuntimeDeviceAndCoordinatorGetter,
 ) -> tuple[DiagnosticsDevice, DiagnosticsCoordinator]:
     """Resolve one runtime device/coordinator pair and require debug opt-in."""
     device, coordinator = await get_device_and_coordinator(hass, call)
@@ -79,8 +113,10 @@ async def get_developer_device_and_coordinator(
         raise_developer_mode_not_enabled(
             entry_id=entry.entry_id if entry is not None else None
         )
-    return cast(DiagnosticsDevice, device), cast(DiagnosticsCoordinator, coordinator)
-
+    return _project_diagnostics_device(device), cast(
+        DiagnosticsCoordinator,
+        coordinator,
+    )
 
 
 def raise_developer_mode_not_enabled(*, entry_id: str | None = None) -> NoReturn:
@@ -90,7 +126,6 @@ def raise_developer_mode_not_enabled(*, entry_id: str | None = None) -> NoReturn
         translation_domain=DOMAIN,
         translation_key="developer_mode_not_enabled",
     )
-
 
 
 def collect_developer_reports(
@@ -130,7 +165,6 @@ def collect_developer_reports(
         hass,
         iter_runtime_coordinators=lambda _hass: iter(coordinators),
     )
-
 
 
 def raise_optional_capability_error(capability: str, err: LiproApiError) -> NoReturn:

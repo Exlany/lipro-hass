@@ -233,12 +233,12 @@
 - mapped to phases: 65
 - unmapped: 0 ✓
 
-*Last updated: 2026-03-16 after Phase 24 closeout truth sync*
+*Last updated: 2026-03-17 after Phase 24 reopen revalidation*
 
 
 ## Current Milestone (v1.2)
 
-> `v1.2` 已完成全部执行与 closeout；以下 requirement / traceability 反映 `Phase 18-24` 全部完成、且当前已进入 archive-ready / handoff-ready 的最终真相。归档快照已写入 `.planning/milestones/v1.2-REQUIREMENTS.md`。
+> `v1.2` 已完成全部执行与 closeout；以下 requirement / traceability 反映 `Phase 18-24` 全部完成，且 `Phase 24` 已在 2026-03-17 reopen revalidation 后继续保持 archive-ready / handoff-ready。归档快照已写入 `.planning/milestones/v1.2-REQUIREMENTS.md`。
 
 ### Core Reuse / Host-Neutral Nucleus
 
@@ -261,7 +261,7 @@
 
 - [x] **GOV-16**: v1.2 的 host-neutral / replay-complete / observability-hardening 真相已同步到 roadmap / state / baseline / reviews / docs / meta guards。
 - [x] **GOV-17**: contributor-facing docs、issue/PR templates、support/security/install/version surfaces 与 release evidence 已对齐最终 v1.2 架构与治理门禁。
-- [x] **GOV-18**: milestone closeout 已留下 final repo audit、residual arbitration、archive-ready verification assets 与 v1.3 handoff，未遗留 silent defer。
+- [x] **GOV-18**: milestone closeout 已留下 final repo audit、residual arbitration、archive-ready verification assets 与 v1.3 handoff，且在 2026-03-17 reopened gates 后重新验证，无 silent defer。
 
 ## Traceability for v1.2
 

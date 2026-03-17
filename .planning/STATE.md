@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Host-Neutral Core & Replay Completion
 status: handoff_ready
-last_updated: "2026-03-16T18:40:00Z"
+last_updated: "2026-03-17T00:41:29Z"
 progress:
   total_phases: 7
   completed_phases: 7
-  total_plans: 22
-  completed_plans: 22
+  total_plans: 24
+  completed_plans: 24
 ---
 
 # Project State
@@ -19,7 +19,7 @@ See: `.planning/PROJECT.md`
 
 **Current milestone:** `v1.2 Host-Neutral Core & Replay Completion`
 **Core value:** 在不破坏 `LiproProtocolFacade` / `Coordinator` 单一正式主链的前提下，把 host-neutral nucleus、headless proof、remaining boundary/replay family 收口、failure taxonomy / observability convergence、治理 closeout 与 handoff bundle 推进成单一正式能力链。
-**Current mode:** `Phase 24 complete`；`Phase 18-24` 已全部执行完成，当前状态为 archive-ready / `v1.3` handoff-ready。
+**Current mode:** `Phase 24 complete`；`24-04` / `24-05` 已于 2026-03-17 完成 reopen revalidation，`Phase 18-24` 当前为 `24/24` plans executed，状态维持 archive-ready / `v1.3` handoff-ready。
 
 ## Current Position
 
@@ -47,8 +47,8 @@ See: `.planning/PROJECT.md`
 - `Phase 21` 已完成：remaining families replay/evidence coverage、shared failure taxonomy、broad-catch arbitration tightening 与 replay/evidence failure contract 已全部落地。
 - `Phase 22` 已完成：diagnostics / system health / developer / support / evidence consumers 的 shared `failure_summary` vocabulary 收口与 governance sync 已全部落地。
 - `Phase 23` 已完成：baseline/reviews/lifecycle truth、contributor docs/templates 与 release evidence pointer 已统一到 v1.2 最终故事线。
-- `Phase 24` 已完成：final repo audit、milestone audit、evidence index、archive-ready bundle 与 `v1.3` handoff 已全部落地。
-- `v1.2` 里程碑 closeout 已冻结：`.planning/reviews/V1_2_EVIDENCE_INDEX.md`、`.planning/v1.2-MILESTONE-AUDIT.md` 与 `.planning/v1.3-HANDOFF.md` 现构成 archive-ready / handoff-ready bundle。
+- `Phase 24` 已完成并于 2026-03-17 重新验证：final repo audit、milestone audit、evidence index、archive-ready bundle 与 `v1.3` handoff 已再次通过 fresh gates。
+- `v1.2` 里程碑 closeout bundle 已按 reopened truth 回写：`.planning/reviews/V1_2_EVIDENCE_INDEX.md`、`.planning/v1.2-MILESTONE-AUDIT.md` 与 `.planning/v1.3-HANDOFF.md` 继续构成 archive-ready / handoff-ready bundle。
 
 ## Completed Milestone Scope
 
@@ -88,7 +88,7 @@ See: `.planning/PROJECT.md`
 - Phase 15 completed: Support feedback contract hardening, governance truth repair, and maintainability follow-through (5 plans / 3 waves)
 - Phase 16 completed: Post-audit truth alignment, hotspot decomposition, and residual endgame (all 6 plans complete; second-pass audit recorded)
 - Phase 17 completed: Final residual retirement, typed-contract tightening, governance closeout, and final repo audit (4 plans / 3 waves)
-- Phase 18-24 completed: host-neutral nucleus -> headless proof -> remaining-family completion -> replay / observability / governance / milestone closeout 全链条收官。
+- Phase 18-24 completed and revalidated: host-neutral nucleus -> headless proof -> remaining-family completion -> replay / observability / governance / milestone closeout 全链条在 2026-03-17 fresh gates 下再次收官。
 
 ## Governance Truth Sources
 
@@ -108,7 +108,7 @@ See: `.planning/PROJECT.md`
 - **Milestone:** `v1.2 Host-Neutral Core & Replay Completion`
 - **Phase range:** `18 -> 24`
 - **Completed so far:** `Phase 18` 到 `Phase 24`
-- **Closeout state:** `archive-ready`, `handoff-ready`
+- **Closeout state:** `archive-ready`, `handoff-ready`（revalidated `2026-03-17`）
 - **Archive snapshots:** `.planning/milestones/v1.2-ROADMAP.md`, `.planning/milestones/v1.2-REQUIREMENTS.md`
 - **Next focus:** 基于 `v1.3-HANDOFF.md` 启动下一里程碑，或进一步收缩 active planning docs
 
