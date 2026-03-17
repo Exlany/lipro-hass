@@ -20,7 +20,7 @@ def test_iter_runtime_entry_coordinators_skips_entries_without_runtime_data() ->
     hass = MagicMock()
     hass.config_entries.async_entries.return_value = [
         SimpleNamespace(entry_id="entry-1"),
-        SimpleNamespace(entry_id="entry-2", runtime_data=coordinator),
+        SimpleNamespace(entry_id="entry-2", runtime_data=coordinator, options={}),
     ]
 
     targets = _iter_runtime_entry_coordinators(

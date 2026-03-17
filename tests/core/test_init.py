@@ -702,6 +702,15 @@ class TestInitRuntimeBehavior:
             physical_model="light",
         )
 
+    @staticmethod
+    def _attach_auth_service(coordinator: MagicMock) -> MagicMock:
+        """Attach the formal async auth surface expected by service execution."""
+        coordinator.auth_service = MagicMock(
+            async_ensure_authenticated=AsyncMock(),
+            async_trigger_reauth=AsyncMock(),
+        )
+        return coordinator
+
     async def test_async_setup_registers_services(self, hass) -> None:
         """Services are registered by async_setup and idempotent."""
         assert await async_setup(hass, {}) is True
@@ -1938,7 +1947,7 @@ class TestInitRuntimeBehavior:
     async def test_query_command_result_service(self, hass) -> None:
         """query_command_result service should return one confirmed diagnostic result."""
         device = self._create_device(serial="mesh_group_49155")
-        coordinator = MagicMock()
+        coordinator = self._attach_auth_service(MagicMock())
         coordinator.get_device.return_value = device
         coordinator.async_query_command_result = AsyncMock(
             return_value={"success": True}
@@ -1978,7 +1987,7 @@ class TestInitRuntimeBehavior:
     async def test_query_command_result_service_requires_debug_mode(self, hass) -> None:
         """query_command_result should reject entries without debug opt-in."""
         device = self._create_device(serial="mesh_group_49155")
-        coordinator = MagicMock()
+        coordinator = self._attach_auth_service(MagicMock())
         coordinator.get_device.return_value = device
         coordinator.async_query_command_result = AsyncMock(
             return_value={"success": True}
@@ -2004,7 +2013,7 @@ class TestInitRuntimeBehavior:
     ) -> None:
         """query_command_result service should keep polling pending states within budget."""
         device = self._create_device(serial="mesh_group_49155")
-        coordinator = MagicMock()
+        coordinator = self._attach_auth_service(MagicMock())
         coordinator.get_device.return_value = device
         coordinator.async_query_command_result = AsyncMock(
             side_effect=[
@@ -2216,7 +2225,7 @@ class TestInitRuntimeBehavior:
     async def test_fetch_body_sensor_history_service(self, hass) -> None:
         """fetch_body_sensor_history should pass sensor payload to client."""
         device = self._create_device(serial="mesh_group_49155")
-        coordinator = MagicMock()
+        coordinator = self._attach_auth_service(MagicMock())
         coordinator.get_device.return_value = device
         coordinator.async_fetch_body_sensor_history = AsyncMock(
             return_value={"humanSensorStateList": []}
@@ -2255,7 +2264,7 @@ class TestInitRuntimeBehavior:
     ) -> None:
         """fetch_body_sensor_history should reject entries without debug opt-in."""
         device = self._create_device(serial="mesh_group_49155")
-        coordinator = MagicMock()
+        coordinator = self._attach_auth_service(MagicMock())
         coordinator.get_device.return_value = device
         coordinator.async_fetch_body_sensor_history = AsyncMock(
             return_value={"humanSensorStateList": []}
@@ -2283,7 +2292,7 @@ class TestInitRuntimeBehavior:
     async def test_fetch_door_sensor_history_service(self, hass) -> None:
         """fetch_door_sensor_history should pass sensor payload to client."""
         device = self._create_device(serial="mesh_group_49155")
-        coordinator = MagicMock()
+        coordinator = self._attach_auth_service(MagicMock())
         coordinator.get_device.return_value = device
         coordinator.async_fetch_door_sensor_history = AsyncMock(
             return_value={"doorStateList": []}
@@ -2729,7 +2738,7 @@ class TestInitRuntimeBehavior:
                 }
             ]
         )
-        coordinator = MagicMock()
+        coordinator = self._attach_auth_service(MagicMock())
         coordinator.get_device.return_value = device
         coordinator.protocol = client
         coordinator.async_get_device_schedules = client.get_device_schedules
@@ -2766,7 +2775,7 @@ class TestInitRuntimeBehavior:
         device = self._create_device()
         client = MagicMock()
         client.get_device_schedules = AsyncMock(return_value=[])
-        coordinator = MagicMock()
+        coordinator = self._attach_auth_service(MagicMock())
         coordinator.get_device.return_value = device
         coordinator.protocol = client
         coordinator.async_get_device_schedules = client.get_device_schedules
@@ -2823,7 +2832,7 @@ class TestInitRuntimeBehavior:
                 },
             ]
         )
-        coordinator = MagicMock()
+        coordinator = self._attach_auth_service(MagicMock())
         coordinator.get_device.return_value = device
         coordinator.protocol = client
         coordinator.async_get_device_schedules = client.get_device_schedules
@@ -2863,7 +2872,7 @@ class TestInitRuntimeBehavior:
 
         client = MagicMock()
         client.get_device_schedules = AsyncMock(return_value=[])
-        coordinator = MagicMock()
+        coordinator = self._attach_auth_service(MagicMock())
         coordinator.get_device.return_value = device
         coordinator.protocol = client
         coordinator.async_get_device_schedules = client.get_device_schedules
@@ -2897,7 +2906,7 @@ class TestInitRuntimeBehavior:
 
         client = MagicMock()
         client.add_device_schedule = AsyncMock(return_value=[{"id": 1}])
-        coordinator = MagicMock()
+        coordinator = self._attach_auth_service(MagicMock())
         coordinator.get_device.return_value = device
         coordinator.protocol = client
         coordinator.async_get_device_schedules = client.get_device_schedules
@@ -2941,7 +2950,7 @@ class TestInitRuntimeBehavior:
         device = self._create_device()
         client = MagicMock()
         client.add_device_schedule = AsyncMock(return_value=[{"id": 1}])
-        coordinator = MagicMock()
+        coordinator = self._attach_auth_service(MagicMock())
         coordinator.get_device.return_value = device
         coordinator.protocol = client
         coordinator.async_get_device_schedules = client.get_device_schedules
@@ -3001,7 +3010,7 @@ class TestInitRuntimeBehavior:
         device = self._create_device()
         client = MagicMock()
         client.delete_device_schedules = AsyncMock(return_value=[{"id": 2}, {"id": 3}])
-        coordinator = MagicMock()
+        coordinator = self._attach_auth_service(MagicMock())
         coordinator.get_device.return_value = device
         coordinator.protocol = client
         coordinator.async_get_device_schedules = client.get_device_schedules
@@ -3037,7 +3046,7 @@ class TestInitRuntimeBehavior:
 
         client = MagicMock()
         client.delete_device_schedules = AsyncMock(return_value=[])
-        coordinator = MagicMock()
+        coordinator = self._attach_auth_service(MagicMock())
         coordinator.get_device.return_value = device
         coordinator.protocol = client
         coordinator.async_get_device_schedules = client.get_device_schedules
@@ -3075,7 +3084,7 @@ class TestInitRuntimeBehavior:
         device = self._create_device()
         client = MagicMock()
         client.delete_device_schedules = AsyncMock(return_value=[])
-        coordinator = MagicMock()
+        coordinator = self._attach_auth_service(MagicMock())
         coordinator.get_device.return_value = device
         coordinator.protocol = client
         coordinator.async_get_device_schedules = client.get_device_schedules
