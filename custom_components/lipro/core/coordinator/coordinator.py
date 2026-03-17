@@ -46,8 +46,9 @@ if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.core import HomeAssistant
 
-    from ..api.types import OtaInfoRow, ScheduleTimingRow
+    from ..api.types import DiagnosticsApiResponse, OtaInfoRow, ScheduleTimingRow
     from ..auth import LiproAuthManager
+    from ..command.result import CommandResultPayload
     from ..device import LiproDevice
     from .types import StatusQueryMetrics
 
@@ -395,7 +396,7 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
         msg_sn: str,
         device_id: str,
         device_type: str | int,
-    ) -> Any:
+    ) -> CommandResultPayload:
         """Query command-result diagnostics through the coordinator-owned protocol service."""
         return await self.protocol_service.async_query_command_result(
             msg_sn=msg_sn,
@@ -418,7 +419,7 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
         device_type: str | int,
         sensor_device_id: str,
         mesh_type: str,
-    ) -> dict[str, object]:
+    ) -> DiagnosticsApiResponse:
         """Query body-sensor history through the coordinator-owned protocol service."""
         return await self.protocol_service.async_fetch_body_sensor_history(
             device_id=device_id,
@@ -434,7 +435,7 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
         device_type: str | int,
         sensor_device_id: str,
         mesh_type: str,
-    ) -> dict[str, object]:
+    ) -> DiagnosticsApiResponse:
         """Query door-sensor history through the coordinator-owned protocol service."""
         return await self.protocol_service.async_fetch_door_sensor_history(
             device_id=device_id,

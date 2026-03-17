@@ -7,7 +7,7 @@ capability collection, error handling, and result building.
 from __future__ import annotations
 
 import asyncio
-from collections.abc import Awaitable, Callable, Iterator, Mapping
+from collections.abc import Awaitable, Callable, Iterator
 from datetime import UTC, datetime
 import logging
 from typing import NoReturn, TypeVar
@@ -25,11 +25,7 @@ from ...core.anonymous_share.report_builder import project_developer_feedback_up
 from ...core.api.types import DiagnosticsApiResponse
 from ...core.utils.log_safety import safe_error_placeholder
 from ...runtime_types import LiproCoordinator
-from ..execution import (
-    AuthenticatedCoordinator,
-    ServiceErrorRaiser,
-    async_execute_coordinator_call,
-)
+from ..execution import ServiceErrorRaiser, async_execute_coordinator_call
 from .types import (
     AnonymousShareManagerFactory,
     ClientSessionGetter,
@@ -37,10 +33,9 @@ from .types import (
     DeveloperFeedbackResponse,
     DeveloperReport,
     DeveloperReportCollector,
-    DeveloperReportCoordinatorIterator,
     DeveloperReportResponse,
     DiagnosticsCoordinator,
-    FailureSummaryPayload,
+    RuntimeCoordinatorIterator,
     SensorHistoryResponse,
 )
 
@@ -101,7 +96,7 @@ def _collect_exporter_developer_report(
     hass: HomeAssistant,
     coordinator: LiproCoordinator,
 ) -> DeveloperReport | None:
-    """Return exporter-backed developer view when coordinator lacks a legacy builder."""
+    """Return the exporter-backed developer report for one runtime entry."""
     entry = _find_runtime_entry_for_coordinator(hass, coordinator)
     if entry is None:
         return None
@@ -109,54 +104,6 @@ def _collect_exporter_developer_report(
     if isinstance(view, dict):
         return view
     return None
-
-
-def _normalize_failure_summary(value: object) -> FailureSummaryPayload | None:
-    """Return the shared failure-summary shape when present."""
-    if not isinstance(value, Mapping):
-        return None
-
-    failure_category = value.get("failure_category")
-    failure_origin = value.get("failure_origin")
-    handling_policy = value.get("handling_policy")
-    error_type = value.get("error_type")
-    has_signal = any(
-        isinstance(item, str)
-        for item in (failure_category, failure_origin, handling_policy, error_type)
-    )
-    if not has_signal:
-        return None
-
-    normalized: FailureSummaryPayload = {
-        "failure_category": (
-            failure_category if isinstance(failure_category, str) else None
-        ),
-        "failure_origin": failure_origin if isinstance(failure_origin, str) else None,
-        "handling_policy": (
-            handling_policy if isinstance(handling_policy, str) else None
-        ),
-        "error_type": error_type if isinstance(error_type, str) else None,
-    }
-    return normalized
-
-
-def _merge_exporter_failure_signals(
-    report: DeveloperReport,
-    exporter_report: DeveloperReport | None,
-) -> DeveloperReport:
-    """Attach shared failure signals to one developer report when available."""
-    merged = dict(report)
-    if not isinstance(exporter_report, Mapping):
-        return merged
-
-    entry_ref = exporter_report.get("entry_ref")
-    if isinstance(entry_ref, str):
-        merged["entry_ref"] = entry_ref
-
-    failure_summary = _normalize_failure_summary(exporter_report.get("failure_summary"))
-    if failure_summary is not None:
-        merged["failure_summary"] = failure_summary
-    return merged
 
 
 def _collect_coordinator_capability_results(
@@ -210,25 +157,15 @@ async def _async_get_first_coordinator_capability_result(
 def collect_developer_reports(
     hass: HomeAssistant,
     *,
-    iter_runtime_coordinators: DeveloperReportCoordinatorIterator,
+    iter_runtime_coordinators: RuntimeCoordinatorIterator,
 ) -> list[DeveloperReport]:
-    """Collect developer reports from active config entries."""
+    """Collect exporter-backed developer reports from active config entries."""
     reports: list[DeveloperReport] = []
     for coordinator in iter_runtime_coordinators(hass):
         try:
             exporter_report = _collect_exporter_developer_report(hass, coordinator)
-            builder = getattr(coordinator, "build_developer_report", None)
-            if callable(builder):
-                report = builder()
-                if isinstance(report, dict):
-                    reports.append(
-                        _merge_exporter_failure_signals(report, exporter_report)
-                    )
-                continue
             if exporter_report is not None:
-                reports.append(
-                    _merge_exporter_failure_signals(exporter_report, exporter_report)
-                )
+                reports.append(dict(exporter_report))
         except asyncio.CancelledError:
             raise
         except Exception as err:  # noqa: BLE001
@@ -391,7 +328,7 @@ async def async_call_optional_capability(
     capability: str,
     method: Callable[..., Awaitable[_ResultT]],
     *,
-    coordinator: AuthenticatedCoordinator | None = None,
+    coordinator: LiproCoordinator | None = None,
     raise_optional_error: Callable[[str, LiproApiError], NoReturn],
     raise_service_error: ServiceErrorRaiser | None = None,
     **kwargs: object,

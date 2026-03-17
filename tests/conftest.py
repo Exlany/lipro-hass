@@ -119,6 +119,18 @@ class _CoordinatorDouble:
         self._device_locks: dict[str, asyncio.Lock] = {}
         self.last_update_success = True
         self.async_send_command = AsyncMock(return_value=True)
+
+        async def _async_command_service_send_command(
+            device: Any,
+            command: str,
+            properties: list[dict[str, str]] | None = None,
+        ) -> Any:
+            return await self.async_send_command(device, command, properties)
+
+        self.command_service = MagicMock(last_failure=None)
+        self.command_service.async_send_command = AsyncMock(
+            side_effect=_async_command_service_send_command
+        )
         self.async_request_refresh = AsyncMock()
         self.async_update_listeners = MagicMock()
         self.register_entity = MagicMock()

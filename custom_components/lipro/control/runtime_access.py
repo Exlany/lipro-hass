@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from dataclasses import dataclass
 from typing import TYPE_CHECKING, Protocol, cast, runtime_checkable
 
 from homeassistant.core import HomeAssistant
@@ -19,38 +18,17 @@ from .models import FailureSummary, RuntimeCoordinatorSnapshot, empty_failure_su
 type RuntimeTelemetryView = dict[str, object]
 
 
-@dataclass(frozen=True, slots=True)
-class _RuntimeEntryProjection:
-    """Immutable runtime-entry projection for control-plane readers."""
-
-    entry_id: str
-    runtime_data: LiproCoordinator | None
-    options: Mapping[str, object]
-
-
-def _as_runtime_entry(entry: object) -> RuntimeEntryLike | None:
-    """Return a runtime-entry view when the object exposes the required fields."""
+def _coerce_runtime_entry_view(entry: object) -> RuntimeEntryLike | None:
+    """Return the live config entry when it exposes the formal runtime shape."""
     if not hasattr(entry, "runtime_data"):
         return None
 
-    entry_id = getattr(entry, "entry_id", "")
-    if not isinstance(entry_id, str):
-        entry_id = ""
+    entry_id = getattr(entry, "entry_id", None)
+    options = getattr(entry, "options", None)
+    if not isinstance(entry_id, str) or not isinstance(options, Mapping):
+        return None
 
-    options = getattr(entry, "options", {})
-    if not isinstance(options, Mapping):
-        options = {}
-
-    runtime_data = cast(RuntimeEntryLike, entry).runtime_data
-
-    return cast(
-        RuntimeEntryLike,
-        _RuntimeEntryProjection(
-            entry_id=entry_id,
-            runtime_data=runtime_data,
-            options=cast(Mapping[str, object], options),
-        ),
-    )
+    return cast(RuntimeEntryLike, entry)
 
 
 class RuntimeEntryLike(Protocol):
@@ -72,7 +50,7 @@ def get_entry_runtime_coordinator(
     entry: RuntimeEntryLike | object,
 ) -> LiproCoordinator | None:
     """Return the coordinator attached to a config entry, if loaded."""
-    runtime_entry = _as_runtime_entry(entry)
+    runtime_entry = _coerce_runtime_entry_view(entry)
     if runtime_entry is None:
         return None
     return runtime_entry.runtime_data
@@ -83,10 +61,10 @@ def iter_runtime_entries(
     *,
     entry_id: str | None = None,
 ) -> list[RuntimeEntryLike]:
-    """Return Lipro config entries, optionally scoped to one entry id."""
+    """Return live Lipro config entries, optionally scoped to one entry id."""
     entries: list[RuntimeEntryLike] = []
     for entry in hass.config_entries.async_entries(DOMAIN):
-        runtime_entry = _as_runtime_entry(entry)
+        runtime_entry = _coerce_runtime_entry_view(entry)
         if runtime_entry is None:
             continue
         if entry_id is None or runtime_entry.entry_id == entry_id:
@@ -114,10 +92,9 @@ def find_runtime_entry_for_coordinator(
 ) -> RuntimeEntryLike | None:
     """Return the config entry that owns one active coordinator."""
     config_entry = coordinator.config_entry
-    runtime_entry = _as_runtime_entry(config_entry)
-    if runtime_entry is not None:
-        if get_entry_runtime_coordinator(runtime_entry) is coordinator:
-            return cast(RuntimeEntryLike, config_entry)
+    runtime_entry = _coerce_runtime_entry_view(config_entry)
+    if runtime_entry is not None and get_entry_runtime_coordinator(config_entry) is coordinator:
+        return runtime_entry
     for entry in iter_runtime_entries(hass):
         if get_entry_runtime_coordinator(entry) is coordinator:
             return entry
@@ -126,7 +103,7 @@ def find_runtime_entry_for_coordinator(
 
 def is_debug_mode_enabled_for_entry(entry: RuntimeEntryLike | object) -> bool:
     """Return whether one config entry explicitly opts into debug services."""
-    runtime_entry = _as_runtime_entry(entry)
+    runtime_entry = _coerce_runtime_entry_view(entry)
     if runtime_entry is None:
         return DEFAULT_DEBUG_MODE
     return bool(runtime_entry.options.get(CONF_DEBUG_MODE, DEFAULT_DEBUG_MODE))
@@ -163,7 +140,7 @@ def build_entry_system_health_view(
     entry: RuntimeEntryLike | object,
 ) -> RuntimeTelemetryView:
     """Return the control-plane system-health projection for one config entry."""
-    runtime_entry = _as_runtime_entry(entry)
+    runtime_entry = _coerce_runtime_entry_view(entry)
     if runtime_entry is None:
         return {}
 
@@ -237,7 +214,7 @@ def build_runtime_snapshot(
     entry: RuntimeEntryLike | object,
 ) -> RuntimeCoordinatorSnapshot | None:
     """Build one control-plane runtime snapshot from a config entry."""
-    runtime_entry = _as_runtime_entry(entry)
+    runtime_entry = _coerce_runtime_entry_view(entry)
     if runtime_entry is None:
         return None
 

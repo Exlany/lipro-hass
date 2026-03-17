@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections.abc import Mapping
 import logging
 from time import monotonic
-from typing import TYPE_CHECKING, Any, Final, Protocol, runtime_checkable
+from typing import TYPE_CHECKING, Any, Final
 
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
@@ -28,18 +28,6 @@ DEBOUNCE_PROTECTION_WINDOW: Final = 1.5
 # Small buffer (seconds) after command is sent before clearing protection,
 # allowing the cloud response to arrive
 _POST_COMMAND_PROTECTION_BUFFER: Final = 0.5
-
-
-@runtime_checkable
-class _RuntimeCommandServiceLike(Protocol):
-    """Minimal runtime command surface used by entity dispatch."""
-
-    async def async_send_command(
-        self,
-        device: LiproDevice,
-        command: str,
-        properties: list[dict[str, str]] | None = None,
-    ) -> bool: ...
 
 
 class LiproEntity(CoordinatorEntity[Any]):
@@ -206,14 +194,7 @@ class LiproEntity(CoordinatorEntity[Any]):
         properties: list[dict[str, str]] | None = None,
     ) -> bool:
         """Dispatch one command through the formal runtime command surface."""
-        command_service = getattr(self.coordinator, "command_service", None)
-        if isinstance(command_service, _RuntimeCommandServiceLike):
-            return await command_service.async_send_command(
-                self.device,
-                command,
-                properties,
-            )
-        return await self.coordinator.async_send_command(
+        return await self.coordinator.command_service.async_send_command(
             self.device,
             command,
             properties,

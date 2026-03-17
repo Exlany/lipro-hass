@@ -3,8 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Awaitable, Callable, Mapping
-from inspect import isawaitable
-from typing import NoReturn, Protocol, TypeVar, cast
+from typing import NoReturn, Protocol, TypeVar
 
 from ..core import LiproApiError, LiproAuthError, LiproRefreshTokenExpiredError
 from ..core.utils.log_safety import safe_error_placeholder
@@ -25,7 +24,11 @@ class CoordinatorAuthSurface(Protocol):
 class AuthenticatedCoordinator(Protocol):
     """Coordinator contract required by authenticated service calls."""
 
-    auth_service: CoordinatorAuthSurface
+    @property
+    def auth_service(self) -> CoordinatorAuthSurface:
+        """Return the formal coordinator auth surface."""
+        ...
+
 
 
 class ServiceErrorRaiser(Protocol):
@@ -48,17 +51,11 @@ class LiproApiErrorHandler(Protocol):
         """Raise a service-layer error for one API failure."""
 
 
-async def _async_await_if_needed(result: object) -> None:
-    """Await async results while tolerating lightweight test doubles."""
-    if isawaitable(result):
-        await cast(Awaitable[object], result)
-
-
 async def _async_ensure_authenticated(
     coordinator: AuthenticatedCoordinator,
 ) -> None:
     """Run formal coordinator auth validation before a service call."""
-    await _async_await_if_needed(coordinator.auth_service.async_ensure_authenticated())
+    await coordinator.auth_service.async_ensure_authenticated()
 
 
 async def _async_trigger_reauth(
@@ -66,7 +63,7 @@ async def _async_trigger_reauth(
     reason: str,
 ) -> None:
     """Trigger formal coordinator reauth flow for one auth failure."""
-    await _async_await_if_needed(coordinator.auth_service.async_trigger_reauth(reason))
+    await coordinator.auth_service.async_trigger_reauth(reason)
 
 
 async def async_execute_coordinator_call(

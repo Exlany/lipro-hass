@@ -147,8 +147,10 @@ class TestLiproEntityDeviceProperty:
 class TestLiproEntitySendCommand:
     """Tests for LiproEntity.async_send_command."""
 
-    async def test_send_command_calls_coordinator(self, mock_coordinator, make_device):
-        """async_send_command delegates to coordinator.async_send_command."""
+    async def test_send_command_uses_formal_command_service_by_default(
+        self, mock_coordinator, make_device
+    ):
+        """async_send_command should route through the formal command_service."""
         device = make_device("light")
         mock_coordinator.get_device.return_value = device
         entity = _make_entity(mock_coordinator, device)
@@ -158,6 +160,9 @@ class TestLiproEntitySendCommand:
         )
 
         assert result is True
+        mock_coordinator.command_service.async_send_command.assert_awaited_once_with(
+            device, "powerOn", [{"key": "powerState", "value": "1"}]
+        )
         mock_coordinator.async_send_command.assert_awaited_once_with(
             device, "powerOn", [{"key": "powerState", "value": "1"}]
         )

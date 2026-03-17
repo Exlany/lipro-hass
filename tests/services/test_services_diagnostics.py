@@ -63,18 +63,6 @@ def _developer_feedback_report_fixture() -> dict[str, object]:
     }
 
 
-def _build_report_coordinator(
-    behavior: dict[str, Any] | Exception,
-) -> MagicMock:
-    """Create a coordinator mock for developer-report collection."""
-    coordinator = MagicMock()
-    if isinstance(behavior, Exception):
-        coordinator.build_developer_report.side_effect = behavior
-    else:
-        coordinator.build_developer_report.return_value = behavior
-    return coordinator
-
-
 def _build_city_coordinator(
     behavior: dict[str, Any] | Exception,
 ) -> MagicMock:
@@ -89,11 +77,12 @@ def _build_city_coordinator(
 
 
 @pytest.mark.parametrize(
-    ("coordinator_behaviors", "expected_reports"),
+    ("exporter_results", "expected_reports"),
     [
         (
             [
                 {"runtime": {"ok": True, "entry": 1}},
+                None,
                 RuntimeError("boom"),
                 {"runtime": {"ok": True, "entry": 3}},
             ],
@@ -112,106 +101,77 @@ def _build_city_coordinator(
     ],
 )
 def test_collect_developer_reports_mixed_coordinator_outcomes(
-    coordinator_behaviors: list[dict[str, Any] | Exception],
+    exporter_results: list[dict[str, Any] | Exception | None],
     expected_reports: list[dict[str, Any]],
 ) -> None:
-    """collect_developer_reports should keep successful entries only."""
-    coordinators = [
-        _build_report_coordinator(behavior) for behavior in coordinator_behaviors
-    ]
-    # Should be ignored when capability is unavailable.
-    coordinators.insert(1, MagicMock(spec=[]))
+    """collect_developer_reports should keep successful exporter reports only."""
+    coordinators = [MagicMock() for _ in exporter_results]
 
-    result = collect_developer_reports(
-        MagicMock(),
-        iter_runtime_coordinators=lambda _: iter(coordinators),
-    )
+    with patch(
+        "custom_components.lipro.services.diagnostics.helpers._collect_exporter_developer_report",
+        side_effect=exporter_results,
+    ):
+        result = collect_developer_reports(
+            MagicMock(),
+            iter_runtime_coordinators=lambda _: iter(coordinators),
+        )
 
     assert result == expected_reports
 
 
-def test_collect_developer_reports_merges_failure_summary_into_legacy_builder() -> None:
-    """Legacy builder output should inherit exporter-backed failure signals."""
+def test_collect_developer_reports_returns_exporter_view_for_bound_entry() -> None:
+    """collect_developer_reports should return the exporter-backed developer view."""
     hass = MagicMock()
-    entry = MagicMock(entry_id="entry-1")
+    entry = MagicMock(entry_id="entry-1", options={})
     coordinator = MagicMock(config_entry=entry)
-    coordinator.build_developer_report.return_value = {"runtime": {"ok": True}}
     entry.runtime_data = coordinator
     hass.config_entries.async_entries.return_value = [entry]
 
-    with patch(
-        "custom_components.lipro.control.telemetry_surface.get_entry_telemetry_view",
-        return_value={
-            "entry_ref": "entry:1",
-            "failure_summary": {
-                "failure_category": "network",
-                "failure_origin": "protocol.mqtt",
-                "handling_policy": "retry",
-                "error_type": "TimeoutError",
-            },
+    expected_report = {
+        "entry_ref": "entry:1",
+        "failure_summary": {
+            "failure_category": "network",
+            "failure_origin": "protocol.mqtt",
+            "handling_policy": "retry",
+            "error_type": "TimeoutError",
         },
-    ):
-        result = collect_developer_reports(
-            cast(HomeAssistant, hass),
-            iter_runtime_coordinators=lambda _: iter([coordinator]),
-        )
-
-    assert result == [
-        {
-            "entry_ref": "entry:1",
-            "failure_summary": {
-                "failure_category": "network",
-                "failure_origin": "protocol.mqtt",
-                "handling_policy": "retry",
-                "error_type": "TimeoutError",
-            },
-            "runtime": {"ok": True},
-        }
-    ]
-
-
-def test_collect_developer_reports_falls_back_to_exporter_view() -> None:
-    """collect_developer_reports should use exporter truth when legacy builder is absent."""
-    hass = MagicMock()
-    entry = MagicMock(entry_id="entry-1")
-    coordinator = SimpleNamespace(config_entry=entry)
-    entry.runtime_data = coordinator
-    hass.config_entries.async_entries.return_value = [entry]
+        "runtime": {"ok": True},
+    }
 
     with patch(
         "custom_components.lipro.control.telemetry_surface.get_entry_telemetry_view",
-        return_value={
-            "entry_ref": "entry:1",
-            "failure_summary": {
-                "failure_category": "network",
-                "failure_origin": "protocol.mqtt",
-                "handling_policy": "retry",
-                "error_type": "TimeoutError",
-            },
-            "runtime": {"ok": True},
-        },
+        return_value=expected_report,
     ) as get_entry_telemetry_view:
         result = collect_developer_reports(
             cast(HomeAssistant, hass),
             iter_runtime_coordinators=lambda _: iter([coordinator]),
         )
 
-    assert result == [
-        {
-            "entry_ref": "entry:1",
-            "failure_summary": {
-                "failure_category": "network",
-                "failure_origin": "protocol.mqtt",
-                "handling_policy": "retry",
-                "error_type": "TimeoutError",
-            },
-            "runtime": {"ok": True},
-        }
-    ]
+    assert result == [expected_report]
     called_entry, called_sink = get_entry_telemetry_view.call_args.args
     assert called_sink == "developer"
     assert getattr(called_entry, "entry_id", None) == entry.entry_id
     assert getattr(called_entry, "runtime_data", None) is coordinator
+
+
+def test_collect_developer_reports_skips_non_mapping_exporter_view() -> None:
+    """Non-dict exporter payloads should be ignored."""
+    hass = MagicMock()
+    entry = MagicMock(entry_id="entry-1", options={})
+    coordinator = SimpleNamespace(config_entry=entry)
+    entry.runtime_data = coordinator
+    hass.config_entries.async_entries.return_value = [entry]
+
+    with patch(
+        "custom_components.lipro.control.telemetry_surface.get_entry_telemetry_view",
+        return_value=None,
+    ):
+        result = collect_developer_reports(
+            cast(HomeAssistant, hass),
+            iter_runtime_coordinators=lambda _: iter([coordinator]),
+        )
+
+    assert result == []
 
 
 @pytest.mark.asyncio

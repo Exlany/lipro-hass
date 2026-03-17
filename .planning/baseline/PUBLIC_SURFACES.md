@@ -62,6 +62,7 @@
 
 - `get_developer_report` local debug view 与 developer-feedback upload projector 现在明确分家：上传 shaping 固定在 `core/anonymous_share/report_builder.py`，而不是回流到 `service_router.py`。
 - `control/service_router.py` 继续保留 public handler home 身份；`developer_router_support.py` 与 `runtime_access.py` 承接 diagnostics glue 与 host-side typing follow-through。
+- `runtime_types.LiproCoordinator` 现在同时承接 diagnostics capability 与 runtime auth/command 正式 contract；developer diagnostics 不再维护第二套平级 coordinator truth。
 - Phase 15 只完成 locality / ownership wording；Phase 17 已完成最后一批 API / MQTT residual 的物理清退与命名收口。
 
 ## Phase 14 Surface Closure Notes

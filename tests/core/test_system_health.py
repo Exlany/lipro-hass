@@ -224,8 +224,8 @@ async def test_system_health_info_omits_mqtt_count_when_mqtt_connected_is_non_bo
     assert "mqtt_connected_entries" not in result
 
 
-def test_runtime_access_projection_does_not_mutate_partial_entry() -> None:
-    """Runtime access should not inject entry_id/options into foreign objects."""
+def test_runtime_access_rejects_partial_foreign_entry() -> None:
+    """Runtime access should ignore foreign objects lacking formal entry shape."""
     from custom_components.lipro.control.runtime_access import (
         get_entry_runtime_coordinator,
         is_debug_mode_enabled_for_entry,
@@ -234,7 +234,7 @@ def test_runtime_access_projection_does_not_mutate_partial_entry() -> None:
     coordinator = SimpleNamespace(devices={}, last_update_success=True)
     entry = SimpleNamespace(runtime_data=coordinator)
 
-    assert get_entry_runtime_coordinator(entry) is coordinator
+    assert get_entry_runtime_coordinator(entry) is None
     assert is_debug_mode_enabled_for_entry(entry) is False
     assert not hasattr(entry, "entry_id")
     assert not hasattr(entry, "options")

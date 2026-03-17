@@ -4,7 +4,10 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, cast
+
+from ...api.types import DiagnosticsApiResponse
+from ...command.result import CommandResultPayload
 
 if TYPE_CHECKING:
     from ...api.types import OtaInfoRow, ScheduleTimingRow
@@ -80,12 +83,15 @@ class CoordinatorProtocolService:
         msg_sn: str,
         device_id: str,
         device_type: str | int,
-    ) -> Any:
+    ) -> CommandResultPayload:
         """Query command-result diagnostics through the formal protocol surface."""
-        return await self.protocol_getter().query_command_result(
+        return cast(
+            CommandResultPayload,
+            await self.protocol_getter().query_command_result(
             msg_sn=msg_sn,
             device_id=device_id,
             device_type=device_type,
+            ),
         )
 
     async def async_get_city(self) -> dict[str, object]:
@@ -103,15 +109,18 @@ class CoordinatorProtocolService:
         device_type: str | int,
         sensor_device_id: str,
         mesh_type: str,
-    ) -> dict[str, object]:
+    ) -> DiagnosticsApiResponse:
         """Query body-sensor history through the formal protocol surface."""
-        return dict(
+        return cast(
+            DiagnosticsApiResponse,
+            dict(
             await self.protocol_getter().fetch_body_sensor_history(
                 device_id=device_id,
                 device_type=device_type,
                 sensor_device_id=sensor_device_id,
                 mesh_type=mesh_type,
             )
+            ),
         )
 
     async def async_fetch_door_sensor_history(
@@ -121,15 +130,18 @@ class CoordinatorProtocolService:
         device_type: str | int,
         sensor_device_id: str,
         mesh_type: str,
-    ) -> dict[str, object]:
+    ) -> DiagnosticsApiResponse:
         """Query door-sensor history through the formal protocol surface."""
-        return dict(
+        return cast(
+            DiagnosticsApiResponse,
+            dict(
             await self.protocol_getter().fetch_door_sensor_history(
                 device_id=device_id,
                 device_type=device_type,
                 sensor_device_id=sensor_device_id,
                 mesh_type=mesh_type,
             )
+            ),
         )
 
     async def async_query_ota_info(

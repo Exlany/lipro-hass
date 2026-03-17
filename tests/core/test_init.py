@@ -1828,9 +1828,8 @@ class TestInitRuntimeBehavior:
         }
 
     async def test_get_developer_report_returns_entry_reports(self, hass) -> None:
-        """get_developer_report returns sanitized diagnostics per config entry."""
+        """get_developer_report returns exporter-backed diagnostics per config entry."""
         coordinator = MagicMock()
-        coordinator.build_developer_report.return_value = {"debug_mode": True}
 
         entry = MockConfigEntry(
             domain=DOMAIN,
@@ -1840,20 +1839,21 @@ class TestInitRuntimeBehavior:
         entry.add_to_hass(hass)
         entry.runtime_data = coordinator
 
-        result = await async_handle_get_developer_report(hass, service_call(hass, {}))
+        with patch(
+            "custom_components.lipro.control.telemetry_surface.get_entry_telemetry_view",
+            return_value={"debug_mode": True},
+        ):
+            result = await async_handle_get_developer_report(hass, service_call(hass, {}))
 
         assert result == {
             "entry_count": 1,
             "reports": [{"debug_mode": True}],
         }
-        coordinator.build_developer_report.assert_called_once()
 
     async def test_get_developer_report_filters_by_entry_id(self, hass) -> None:
         """get_developer_report scopes diagnostics to one requested config entry."""
         first = MagicMock()
-        first.build_developer_report.return_value = {"debug_mode": True}
         second = MagicMock()
-        second.build_developer_report.return_value = {"debug_mode": False}
 
         entry_1 = MockConfigEntry(
             domain=DOMAIN,
@@ -1871,18 +1871,24 @@ class TestInitRuntimeBehavior:
         entry_2.add_to_hass(hass)
         entry_2.runtime_data = second
 
-        result = await async_handle_get_developer_report(
-            hass,
-            service_call(hass, {ATTR_ENTRY_ID: entry_2.entry_id}),
-        )
+        def _telemetry_view(entry, sink):
+            assert sink == "developer"
+            return {"debug_mode": entry.entry_id == entry_1.entry_id}
+
+        with patch(
+            "custom_components.lipro.control.telemetry_surface.get_entry_telemetry_view",
+            side_effect=lambda entry, sink: {"debug_mode": entry.entry_id == entry_1.entry_id},
+        ):
+            result = await async_handle_get_developer_report(
+                hass,
+                service_call(hass, {ATTR_ENTRY_ID: entry_2.entry_id}),
+            )
 
         assert result == {
             "entry_count": 1,
             "reports": [{"debug_mode": False}],
             "requested_entry_id": entry_2.entry_id,
         }
-        first.build_developer_report.assert_not_called()
-        second.build_developer_report.assert_called_once()
 
     async def test_get_developer_report_rejects_non_debug_entry(self, hass) -> None:
         """Scoped developer report should reject entries without debug opt-in."""
@@ -1897,14 +1903,10 @@ class TestInitRuntimeBehavior:
                 service_call(hass, {ATTR_ENTRY_ID: entry.entry_id}),
             )
 
-        coordinator.build_developer_report.assert_not_called()
-
     async def test_get_developer_report_skips_broken_entry(self, hass) -> None:
-        """get_developer_report should skip one broken coordinator report."""
+        """get_developer_report should skip one broken exporter lookup."""
         broken = MagicMock()
-        broken.build_developer_report.side_effect = RuntimeError("boom")
         healthy = MagicMock()
-        healthy.build_developer_report.return_value = {"debug_mode": False}
 
         entry_1 = MockConfigEntry(
             domain=DOMAIN,
@@ -1922,14 +1924,16 @@ class TestInitRuntimeBehavior:
         entry_2.add_to_hass(hass)
         entry_2.runtime_data = healthy
 
-        result = await async_handle_get_developer_report(hass, service_call(hass, {}))
+        with patch(
+            "custom_components.lipro.control.telemetry_surface.get_entry_telemetry_view",
+            side_effect=[RuntimeError("boom"), {"debug_mode": False}],
+        ):
+            result = await async_handle_get_developer_report(hass, service_call(hass, {}))
 
         assert result == {
             "entry_count": 1,
             "reports": [{"debug_mode": False}],
         }
-        broken.build_developer_report.assert_called_once()
-        healthy.build_developer_report.assert_called_once()
 
     async def test_query_command_result_service(self, hass) -> None:
         """query_command_result service should return one confirmed diagnostic result."""
@@ -2316,7 +2320,6 @@ class TestInitRuntimeBehavior:
     async def test_submit_developer_feedback_success(self, hass) -> None:
         """submit_developer_feedback uploads one scoped report when entry_id is provided."""
         coordinator = MagicMock()
-        coordinator.build_developer_report.return_value = {"runtime": {"ok": True}}
 
         entry = MockConfigEntry(
             domain=DOMAIN,
@@ -2338,6 +2341,10 @@ class TestInitRuntimeBehavior:
                 "custom_components.lipro.control.service_router.async_get_clientsession",
                 return_value=MagicMock(),
             ),
+            patch(
+                "custom_components.lipro.control.telemetry_surface.get_entry_telemetry_view",
+                return_value={"runtime": {"ok": True}},
+            ),
         ):
             result = await async_handle_submit_developer_feedback(
                 hass,
@@ -2358,7 +2365,6 @@ class TestInitRuntimeBehavior:
     async def test_submit_developer_feedback_failure_raises(self, hass) -> None:
         """submit_developer_feedback raises when upload fails."""
         coordinator = MagicMock()
-        coordinator.build_developer_report.return_value = {"runtime": {"ok": True}}
 
         entry = MockConfigEntry(
             domain=DOMAIN,
@@ -2379,6 +2385,10 @@ class TestInitRuntimeBehavior:
             patch(
                 "custom_components.lipro.control.service_router.async_get_clientsession",
                 return_value=MagicMock(),
+            ),
+            patch(
+                "custom_components.lipro.control.telemetry_surface.get_entry_telemetry_view",
+                return_value={"runtime": {"ok": True}},
             ),
             pytest.raises(HomeAssistantError),
         ):

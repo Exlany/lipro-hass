@@ -263,6 +263,7 @@ Coordinator
 
 - `custom_components/lipro/control/service_router.py` 已成为唯一正式 service callback home；`services/registrations.py` 只负责把 HA service declaration 绑定到 formal router。
 - `custom_components/lipro/control/developer_router_support.py` 已承接 developer report collection、optional capability glue 与 sensor-history shared wrapper；`service_router.py` 保留 public handler 身份。
+- developer diagnostics 现直接复用 `runtime_types.LiproCoordinator` / `LiproDevice` 正式 contract；`developer_router_support.py` 不再通过投影设备或平级 diagnostics coordinator 协议自造第二层 typed truth。
 - `custom_components/lipro/services/wiring.py` 已正式删除；control plane 不再保留 legacy wiring compat shell。
 - control-facing runtime lookup 继续经 `custom_components/lipro/control/runtime_access.py` 收口，避免 `entry.runtime_data` 访问重新散落。
 

@@ -112,7 +112,7 @@
 ## Phase 07.3 / `07.3-02` Residual Delta
 
 - `Telemetry consumer convergence` residual family 已关闭：diagnostics / system health / developer / CI sinks 的生产路径现在都统一 pull exporter truth。
-- `services/diagnostics/helpers.py` 保留的 legacy `build_developer_report()` 分支只作为测试 / patch seam 兼容位，不再定义生产 telemetry 真相。
+- developer report 收集链已切到 exporter-only truth；legacy `build_developer_report()` compat / test seam 已移除。
 - 本计划**无新增 compat shell**；`07.4` replay harness 与 `08` evidence pack 只能继续 pull `07.3` exporter truth，不能平行定义第二套 telemetry schema。
 
 ## Phase 07.4 / `07.4-03` Residual Delta
@@ -238,7 +238,7 @@
 ## Phase 22 Residual Delta
 
 - `Observability consumer convergence` residual 已进一步收口：diagnostics / system health / developer / support / evidence consumers 现在共同暴露共享 `failure_summary` vocabulary，raw transport / API error fields 仅保留为 debug detail。
-- legacy `build_developer_report()` 分支继续保留为 compat / test seam，但其 failure signals 现已从 exporter-backed truth 继承，不再独立定义 observability 语言。
+- developer report consumer 已完全回归 exporter-backed truth；`build_developer_report()` compat / test seam 已物理退场，不再保留第二入口。
 - 本 phase **无新增 compat shell**；`failure_summary` contract 继续 pull exporter / service truth，后续 docs / release 只允许消费这些结果，不能再平行讲述第二套失败语义。
 
 ## Phase 23 Residual Delta

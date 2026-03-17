@@ -192,7 +192,7 @@
 ## Phase 22 Status Update
 
 - 本 phase **无新增 active kill target**；diagnostics / system health / developer report / evidence consumer convergence 是 contract closure，不是 file-level cleanup campaign。
-- `failure_entries` 聚合、legacy `build_developer_report()` compat / test seam 与 diagnostics-service `last_error` payload 继续保留正式 consumer/home 身份，不进入 kill list。
+- `failure_entries` 聚合与 diagnostics-service `last_error` payload 继续保留正式 consumer/home 身份；legacy `build_developer_report()` compat / test seam 已移除。
 - 后续 docs / release closeout 只能继续消费 shared `failure_summary` truth，不得以“文档清理”为名把这些 consumer surfaces 重新写回 helper folklore。
 
 ## Phase 23 Status Update

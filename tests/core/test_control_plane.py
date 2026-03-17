@@ -82,6 +82,7 @@ def test_runtime_snapshot_uses_telemetry_surface_projection() -> None:
     coordinator.last_update_success = False
     entry = MagicMock()
     entry.entry_id = "entry-1"
+    entry.options = {}
     entry.runtime_data = coordinator
 
     with patch(
@@ -119,11 +120,23 @@ def test_find_runtime_entry_for_coordinator_prefers_bound_entry() -> None:
         find_runtime_entry_for_coordinator,
     )
 
-    entry = MagicMock(entry_id="entry-1")
+    entry = MockConfigEntry(domain=DOMAIN, options={})
     coordinator = MagicMock(config_entry=entry)
     entry.runtime_data = coordinator
 
     assert find_runtime_entry_for_coordinator(MagicMock(), coordinator) is entry
+
+
+def test_iter_runtime_entries_preserves_live_entry_identity(hass) -> None:
+    from custom_components.lipro.control.runtime_access import iter_runtime_entries
+
+    entry = MockConfigEntry(domain=DOMAIN, options={"debug_mode": True})
+    entry.runtime_data = MagicMock(name="runtime")
+    entry.add_to_hass(hass)
+
+    [runtime_entry] = iter_runtime_entries(hass)
+
+    assert runtime_entry is entry
 
 
 def test_build_single_runtime_coordinator_iterator_returns_stable_singleton(

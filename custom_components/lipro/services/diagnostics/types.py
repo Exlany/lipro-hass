@@ -15,8 +15,8 @@ from homeassistant.core import HomeAssistant, ServiceCall
 
 from ...core.api.types import DiagnosticsApiResponse
 from ...core.command.result import CommandResultPayload
+from ...core.device import LiproDevice
 from ...runtime_types import LiproCoordinator
-from ..execution import AuthenticatedCoordinator
 
 
 # Response TypedDicts
@@ -85,59 +85,8 @@ class QueryCommandResultResponse(TypedDict, total=False):
 
 
 # Protocol definitions
-class DiagnosticsCoordinator(AuthenticatedCoordinator, Protocol):
-    """Coordinator facade required by diagnostics services."""
-
-    async def async_query_command_result(
-        self,
-        *,
-        msg_sn: str,
-        device_id: str,
-        device_type: str | int,
-    ) -> CommandResultPayload:
-        """Query one command-result payload."""
-
-    async def async_get_city(self) -> CapabilityPayload:
-        """Return city metadata from the backend."""
-
-    async def async_query_user_cloud(self) -> CapabilityPayload:
-        """Return user-cloud metadata from the backend."""
-
-    async def async_fetch_body_sensor_history(
-        self,
-        *,
-        device_id: str,
-        device_type: str | int,
-        sensor_device_id: str,
-        mesh_type: str,
-    ) -> DiagnosticsApiResponse:
-        """Fetch body-sensor history diagnostics."""
-
-    async def async_fetch_door_sensor_history(
-        self,
-        *,
-        device_id: str,
-        device_type: str | int,
-        sensor_device_id: str,
-        mesh_type: str,
-    ) -> DiagnosticsApiResponse:
-        """Fetch door-sensor history diagnostics."""
-
-
-class DeveloperReportCoordinator(DiagnosticsCoordinator, Protocol):
-    """Coordinator contract that can build developer reports."""
-
-    def build_developer_report(self) -> DeveloperReport:
-        """Build one serialized developer report."""
-
-
-class DiagnosticsDevice(Protocol):
-    """Device contract required by diagnostics services."""
-
-    serial: str
-    name: str
-    device_type: int | str
-    device_type_hex: str
+type DiagnosticsCoordinator = LiproCoordinator
+type DiagnosticsDevice = LiproDevice
 
 
 class DeveloperFeedbackShareManager(Protocol):
@@ -153,24 +102,14 @@ class DeveloperFeedbackShareManager(Protocol):
 
 # Type aliases
 type DeveloperFeedbackPayload = dict[str, object]
-# Keep developer-report collection separate from capability iterators so exporter
-# fallback can continue to work with lighter runtime coordinators.
 type DeveloperReport = dict[str, object]
 type CapabilityPayload = dict[str, object]
 type SensorHistoryClientMethod = Callable[..., Awaitable[DiagnosticsApiResponse]]
 type DeveloperReportCollector = Callable[..., list[DeveloperReport]]
-type DiagnosticsCoordinatorIterator = Callable[
-    [HomeAssistant], Iterator[DiagnosticsCoordinator]
-]
-type DeveloperReportCoordinatorIterator = Callable[
-    [HomeAssistant], Iterator[LiproCoordinator]
-]
+type DiagnosticsCoordinatorIterator = Callable[[HomeAssistant], Iterator[LiproCoordinator]]
 type RuntimeCoordinatorIterator = DiagnosticsCoordinatorIterator
 type AnonymousShareManagerFactory = Callable[..., DeveloperFeedbackShareManager]
 type ClientSessionGetter = Callable[[HomeAssistant], ClientSession]
-type GetDeviceAndCoordinator = Callable[
-    [HomeAssistant, ServiceCall],
-    Awaitable[tuple[DiagnosticsDevice, DiagnosticsCoordinator]],
-]
+type GetDeviceAndCoordinator = Callable[[HomeAssistant, ServiceCall], Awaitable[tuple[LiproDevice, LiproCoordinator]]]
 type OptionalCapabilityCaller = Callable[..., Awaitable[DiagnosticsApiResponse]]
 type SensorHistoryResultBuilder = Callable[..., SensorHistoryResponse]

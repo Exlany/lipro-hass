@@ -383,6 +383,7 @@ class TestAsyncGetConfigEntryDiagnostics:
         coordinator.mqtt_service.connected = False
 
         entry = MagicMock()
+        entry.entry_id = "entry-1"
         entry.runtime_data = coordinator
         entry.title = "Lipro Empty"
         entry.data = {"phone": "13800000000"}
@@ -425,6 +426,7 @@ class TestAsyncGetConfigEntryDiagnostics:
         coordinator.mqtt_service.connected = True
 
         entry = MagicMock()
+        entry.entry_id = "entry-1"
         entry.runtime_data = coordinator
         entry.title = 13800000000
         entry.data = {}

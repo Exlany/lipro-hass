@@ -1673,4 +1673,4 @@ def test_phase_22_observability_consumer_governance_truth_is_synced() -> None:
     assert "aggregate `failure_entries` system-health consumer home" in file_matrix_text
     assert "developer report / feedback failure-signal merge home" in file_matrix_text
     assert "## Phase 22 Residual Delta" in residual_text
-    assert "legacy `build_developer_report()` 分支" in residual_text
+    assert "exporter-only truth" in residual_text

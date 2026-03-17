@@ -1,6 +1,6 @@
 # File Matrix
 
-**Python files total:** 455
+**Python files total:** 453
 **Status:** File-level governance authority
 **Rule:** workspace inventory excluding caches / virtual env / tooling artifacts
 
@@ -205,7 +205,6 @@
 | `custom_components/lipro/core/utils/boollike.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/core/utils/coerce.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/core/utils/debounce.py` | Cross-cutting | Phase 7 | 保留 | - |
-| `custom_components/lipro/core/utils/developer_report.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/core/utils/identifiers.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/core/utils/log_safety.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/core/utils/property_normalization.py` | Cross-cutting | Phase 7 | 保留 | - |
@@ -358,7 +357,6 @@
 | `tests/core/test_coordinator.py` | Runtime | Phase 5 / 6 | 保留 | - |
 | `tests/core/test_coordinator_integration.py` | Runtime | Phase 5 / 6 | 保留 | - |
 | `tests/core/test_debounce.py` | Cross-cutting | Phase 7 | 保留 | - |
-| `tests/core/test_developer_report.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `tests/core/test_device.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `tests/core/test_device_list_snapshot.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `tests/core/test_device_refresh.py` | Cross-cutting | Phase 7 | 保留 | - |
