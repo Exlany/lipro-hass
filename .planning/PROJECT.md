@@ -34,7 +34,7 @@
 
 **Route-freeze status:** `Phase 25 -> 33` 已于 `2026-03-18` 全部执行完成；v1.3 continuation route 现已从 execution-ready 收口到 execution-complete / audit-ready。基于同日全仓终审，`Phase 33` 已被追加并执行完成，成为 post-closeout continuation tranche 的已落地 tranche。
 
-**Continuation closeout status:** `Phase 32` 与 `Phase 33` 的 execution / verification 资产现已落地，依赖链 `31 -> 32 -> 33` 已闭环；`.planning/v1.3-HANDOFF.md` 继续作为 `Phase 25 -> 31` 历史 closeout baseline，而 `33-VERIFICATION.md` / `33-SUMMARY.md` 负责承接 post-v1.3 continuation 的最终 closeout。里程碑审计现已刷新；若继续追求 10 分质量，默认 next action 是 `$gsd-plan-milestone-gaps`，否则可 `$gsd-complete-milestone v1.3` 或 `$gsd-progress` 查看更新后的路线基线。
+**Continuation closeout status:** `Phase 32` 与 `Phase 33` 的 execution / verification 资产现已落地，依赖链 `31 -> 32 -> 33` 已闭环；`.planning/v1.3-HANDOFF.md` 继续作为 `Phase 25 -> 31` 历史 closeout baseline，而 `33-VERIFICATION.md` / `33-SUMMARY.md` 负责承接 post-v1.3 continuation 的最终 closeout。里程碑审计现已刷新；若接受显式 retained debt，可 `$gsd-complete-milestone v1.3`；若继续追求 10 分质量，则进入下方 `v1.4` seed 并从 `$gsd-plan-phase 34` 开始。
 
 **Parent phase:** `Phase 25 — Quality-10 remediation master plan and execution routing`
 
@@ -84,6 +84,24 @@
 - `33-01 / 33-02` 已关闭 runtime contract dual-truth、control reflection loop、snapshot leakage 与 over-wide exports。
 - `33-03 / 33-04` 已继续切薄 giant roots，并把 exception policy / typed debt / naming residue 收口成更少、更诚实的 arbitration points。
 - `33-05 / 33-06` 已收紧 CI/pre-push/benchmark/release evidence truth、dependency posture、deep-doc parity、maintainer continuity 与 mega-test topicization。
+
+
+
+
+
+## v1.4 Seed — Sustainment, Trust Gates & Final Hotspot Burn-down
+
+**Why now:** `v1.3` 现在的真实状态不是“缺少 formal gap closure”，而是“requirements 与审计闭环已完成，但 retained tech debt 仍值得再打一轮”。因此下一步更合理的语义不是继续把 tranche 塞回 `v1.3`，而是把它们提升为 `v1.4` 的新目标：连续性冗余、硬 release gate、协议/运行根热点继续瘦身、宽异常继续 burn-down、巨石测试第三波 topicization，以及 derived truth 再对齐。
+
+**Seed contract:** `v1.4` 继续沿现有北极星主链推进，不新建第二 root、不虚构隐藏 maintainer redundancy、不把 vendor-constrained crypto 伪装成仓库内部立刻可消灭的重构债。
+
+**Seed route map:**
+1. `Phase 34` — continuity and hard release gates
+2. `Phase 35` — protocol hotspot final slimming
+3. `Phase 36` — runtime root and exception burn-down
+4. `Phase 37` — test topology and derived-truth convergence
+
+**Default next step:** `$gsd-plan-phase 34`
 
 ## Why This Milestone Exists
 

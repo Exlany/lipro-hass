@@ -623,3 +623,72 @@ Plans:
 - [x] 33-04: converge exception policy, typed debt, and residual naming truth (completed 2026-03-18)
 - [x] 33-05: harden CI/pre-push/benchmark/release-evidence gates and reproducibility posture (completed 2026-03-18)
 - [x] 33-06: topicize remaining mega-tests and close deep-doc / continuity productization gaps (completed 2026-03-18)
+
+## v1.4 Seed: Sustainment, Trust Gates & Final Hotspot Burn-down
+
+> `v1.3` milestone audit 已确认 `no critical gaps` 但保留显式 retained tech debt；这批问题属于新一轮 sustainment / hardening 目标，而不是把 `v1.3` 回写成 failed audit。以下 `Phase 34 -> 37` 是 `v1.4` seed 主线，phase 编号继续顺延，但里程碑语义从“v1.3 closeout”切到“下一轮 10 分质量 hardening”。
+
+### Phase 34: Continuity and hard release gates
+**Goal**: 把单维护者连续性与 release trust 从“诚实说明”推进到“可演练、可阻断、可审计”：建立真实的 continuity / custody / freeze contract，并为 artifact signing 与 hard code-scanning gate 做最终路由。
+**Depends on**: Phase 33
+**Requirements**: [GOV-29, QLT-08]
+**Draft Success Criteria**:
+  1. 未签名或未通过新增 hard gate 的 release asset 不能被包装成稳定 release；release workflow、README / README_zh、SUPPORT、SECURITY 与 runbook 对 trust posture 口径完全一致。
+  2. maintainer continuity 不再只有“单维护者现实”的诚实记录，而是具备 delegate / custody / freeze escalation 的正式合同与证据。
+  3. continuity / release truth 至少形成一轮可追溯的 drill、checklist 或 guard 证据，而不是只存在于叙述性文档。
+**Status**: Planned
+**Plans**: 0/3 complete
+
+Plans:
+- [ ] 34-01: formalize continuity, custody, and freeze-escalation contracts
+- [ ] 34-02: add artifact signing and hard release-trust gates
+- [ ] 34-03: converge public docs, runbook, CODEOWNERS, and guards on continuity/release truth
+
+### Phase 35: Protocol hotspot final slimming
+**Goal**: 继续拆薄 `LiproRestFacade` 与 `LiproProtocolFacade` 两个协议热点，但严格沿现有 protocol seams 下沉职责，不长出第二 root，不把 forwarding glue 合法化成永久结构。
+**Depends on**: Phase 34
+**Requirements**: [HOT-09, RES-07]
+**Draft Success Criteria**:
+  1. `custom_components/lipro/core/api/client.py` 与 `custom_components/lipro/core/protocol/facade.py` 继续显著瘦身，职责按 transport / auth / command / capability 等协作者切开。
+  2. public surface 只减不增；protocol / API 定向回归与 surface guards 继续全绿。
+  3. compat / forwarding residue 被进一步删除或显式下沉，不再在 root façade 层漂浮。
+**Status**: Planned
+**Plans**: 0/3 complete
+
+Plans:
+- [ ] 35-01: split REST child-façade collaborators along formal seams
+- [ ] 35-02: slim protocol-facade forwarding clusters and sync public-surface truth
+- [ ] 35-03: add hotspot guardrails and targeted protocol regressions
+
+### Phase 36: Runtime root and exception burn-down
+**Goal**: 收薄 `Coordinator` 运行根，并把生产宽异常从当前存量压到可守护阈值；所有新增失败语义都必须落到 typed arbitration、documented degraded contract 或 fail-closed path。
+**Depends on**: Phase 35
+**Requirements**: [HOT-10, ERR-08, TYP-09]
+**Draft Success Criteria**:
+  1. `custom_components/lipro/core/coordinator/coordinator.py` 显著瘦身，runtime/service clusters 的 home 更明确，但正式 runtime root 仍只有一条。
+  2. 生产 `except Exception` 存量明显下降，核心热点清零或收敛到 machine-guarded no-growth budget。
+  3. runtime/service/platform touched-zone 的 typed budget 与 exception policy 继续统一到单一治理故事。
+**Status**: Planned
+**Plans**: 0/3 complete
+
+Plans:
+- [ ] 36-01: extract coordinator runtime/service clusters along existing seams
+- [ ] 36-02: burn down broad exceptions into typed arbitration and guarded degraded contracts
+- [ ] 36-03: refresh runtime typed-budget and no-growth evidence
+
+### Phase 37: Test topology and derived-truth convergence
+**Goal**: 完成巨石测试第三波 topicization，并把 `.planning/codebase/*`、测试策略、verification truth 与实际套件布局重新拉回单一故事，避免 derived-map 再漂移。
+**Depends on**: Phase 36
+**Requirements**: [TST-06, GOV-30, QLT-09]
+**Draft Success Criteria**:
+  1. 剩余巨石测试被拆成更稳定、可局部执行的专题套件，失败定位速度明显提升。
+  2. `.planning/codebase/*`、测试策略文档、verification matrix 与实际命令/目录结构保持一致，并有 drift guard 约束。
+  3. governance / toolchain / test topology 的最终 closeout 证据完整，为后续 fresh audit 奠定稳定基线。
+**Status**: Planned
+**Plans**: 0/3 complete
+
+Plans:
+- [ ] 37-01: topicize remaining mega-tests into stable topical suites
+- [ ] 37-02: converge derived maps, testing strategy, and verification truth
+- [ ] 37-03: add drift guards and closeout evidence for test-topology changes
+

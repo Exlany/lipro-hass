@@ -19,7 +19,7 @@ See: `.planning/PROJECT.md`
 
 **Current milestone:** `v1.2 Host-Neutral Core & Replay Completion`
 **Core value:** 在不破坏 `LiproProtocolFacade` / `Coordinator` 单一正式主链的前提下，把 host-neutral nucleus、headless proof、remaining boundary/replay family 收口、failure taxonomy / observability convergence、治理 closeout 与 handoff bundle 推进成单一正式能力链。
-**Current mode:** `Phase 33 complete`；`v1.2` 继续保持 archive-ready / handoff-ready，`Phase 25 -> 33` 已于 `2026-03-18` 全部执行完成并通过 fresh gates；`Phase 33` 已把 runtime contract truth、control de-loop、hotspot slimming、gate honesty、mega-test topicization 与 deep-doc continuity 全部落成，里程碑审计现已完成；若继续追求 10 分质量，当前默认 next action 是 `$gsd-plan-milestone-gaps`，否则可 `$gsd-complete-milestone v1.3` 或 `$gsd-progress`。
+**Current mode:** `Phase 33 complete`；`v1.2` 继续保持 archive-ready / handoff-ready，`Phase 25 -> 33` 已于 `2026-03-18` 全部执行完成并通过 fresh gates；`v1.3` 现仍是 closeout-eligible with explicit retained tech debt，而这些 debt 已被新近路由为 `v1.4` seed 的 `Phase 34 -> 37`。它们表达的是下一里程碑 sustainment / hardening 目标，而不是把既有 milestone audit 改写成 failed gap story；若继续追求 10 分质量，当前默认 next action 现为 `$gsd-plan-phase 34`，否则可 `$gsd-complete-milestone v1.3` 或 `$gsd-progress`。
 
 ## Current Position
 
@@ -50,6 +50,7 @@ See: `.planning/PROJECT.md`
 - `Phase 24` 已完成并于 2026-03-17 重新验证：final repo audit、milestone audit、evidence index、archive-ready bundle 与 `v1.3` handoff 已再次通过 fresh gates。
 - `v1.2` 里程碑 closeout bundle 已按 reopened truth 回写：`.planning/reviews/V1_2_EVIDENCE_INDEX.md`、`.planning/v1.2-MILESTONE-AUDIT.md` 与 `.planning/v1.3-HANDOFF.md` 继续构成 archive-ready / handoff-ready bundle。
 - `Phase 25` 已从单一 tranche 改为 v1.3 的总计划母相；`25.1 / 25.2 / 26 / 27` 路线已完成 seed routing，并显式排除了“把 vendor-defined MD5 登录路径误记为仓库弱密码学债”的错误口径。
+- `v1.4` seed 已建立：`Phase 34` 聚焦 continuity / hard release gates，`Phase 35` 聚焦 protocol hotspot slimming，`Phase 36` 聚焦 runtime root / exception burn-down，`Phase 37` 聚焦 test topology / derived-truth convergence；它们是新一轮 sustainment 目标，不回写为 `v1.3` failed gap repair。
 - `Phase 25` 已完成：总计划母相已冻结 routed requirements、child-phase boundaries、no-return rules 与 next-command handoff；`.planning/codebase/*` 对本轮仍只保留 derived-map 身份。
 - `Phase 25.1` 已完成：snapshot refresh 现采用 atomic rejection + last-known-good arbitration；coordinator fail-closed 主链与相关测试切片已全部转成正式语义。
 - `Phase 25.2` 已完成：telemetry bridge 现只 pull `Coordinator.protocol` / `telemetry_service` formal surfaces；touched authority / residual / derived-map docs 已完成诚实同步。
@@ -125,14 +126,15 @@ See: `.planning/PROJECT.md`
 - **Completed so far:** `Phase 18` 到 `Phase 24`
 - **Closeout state:** `archive-ready`, `handoff-ready`（revalidated `2026-03-17`）
 - **Archive snapshots:** `.planning/milestones/v1.2-ROADMAP.md`, `.planning/milestones/v1.2-REQUIREMENTS.md`
-- **Next focus:** `$gsd-plan-milestone-gaps`——若契约者继续冲击 10 分质量；或运行 `$gsd-complete-milestone v1.3` 接受显式 retained debt 并归档。
+- **Next focus:** `$gsd-plan-phase 34`——进入 `v1.4` seed 的首个 tranche（continuity / hard release gates）；若从旧 closeout handoff 语境恢复，`$gsd-plan-milestone-gaps` 仍保留为兼容入口，但现在应被理解为“路由到已种下的 `v1.4` seed”，而不是把 `v1.3` 回写成 failed audit；或运行 `$gsd-complete-milestone v1.3` 接受显式 retained debt 并归档。
 
 ## Recommended Next Command
 
-1. `$gsd-plan-milestone-gaps` —— 若继续追求 10 分质量，把 retained tech debt 路由成新的 cleanup tranche
-2. `$gsd-complete-milestone v1.3` —— 若接受显式 retained debt，执行归档与里程碑完成流程
-3. `$gsd-progress` —— 查看 updated roadmap / requirement traceability / next route
-4. `uv run ruff check . && uv run mypy && uv run pytest -q tests/meta/test_governance*.py tests/meta/test_public_surface_guards.py tests/meta/test_version_sync.py tests/meta/test_toolchain_truth.py` —— 作为 post-audit recheck snapshot
+1. `$gsd-plan-phase 34` —— 进入 `v1.4` seed 的首个 tranche（continuity / hard release gates）
+2. `$gsd-plan-milestone-gaps` —— 兼容旧 handoff 入口；当前应把 retained debt 路由到已建立的 `v1.4` seed，而不是回写 `v1.3` failed gap story
+3. `$gsd-complete-milestone v1.3` —— 若接受显式 retained debt，执行归档与里程碑完成流程
+4. `$gsd-progress` —— 查看 updated roadmap / requirement traceability / next route
+5. `uv run ruff check . && uv run mypy && uv run pytest -q tests/meta/test_governance*.py tests/meta/test_public_surface_guards.py tests/meta/test_version_sync.py tests/meta/test_toolchain_truth.py` —— 作为 post-audit recheck snapshot
 
 **Historical launch pointer:** `$gsd-execute-phase 29`
 
