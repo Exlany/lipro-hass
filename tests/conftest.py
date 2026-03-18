@@ -141,6 +141,9 @@ class _CoordinatorDouble:
         self.get_device_lock = MagicMock(side_effect=self._get_device_lock)
         self.protocol = MagicMock()
         self.protocol.query_ota_info = AsyncMock(return_value=[])
+        self.protocol.get_device_schedules = AsyncMock(return_value=[])
+        self.protocol.add_device_schedule = AsyncMock(return_value=[])
+        self.protocol.delete_device_schedules = AsyncMock(return_value=[])
         self.protocol.query_command_result = AsyncMock(return_value={})
         self.protocol.get_city = AsyncMock(return_value={})
         self.protocol.query_user_cloud = AsyncMock(return_value={})
@@ -149,6 +152,15 @@ class _CoordinatorDouble:
 
         async def _async_query_ota_info(**kwargs: Any) -> Any:
             return await self.protocol.query_ota_info(**kwargs)
+
+        async def _async_get_device_schedules(*args: Any, **kwargs: Any) -> Any:
+            return await self.protocol.get_device_schedules(*args, **kwargs)
+
+        async def _async_add_device_schedule(*args: Any, **kwargs: Any) -> Any:
+            return await self.protocol.add_device_schedule(*args, **kwargs)
+
+        async def _async_delete_device_schedules(*args: Any, **kwargs: Any) -> Any:
+            return await self.protocol.delete_device_schedules(*args, **kwargs)
 
         async def _async_query_command_result(**kwargs: Any) -> Any:
             return await self.protocol.query_command_result(**kwargs)
@@ -175,6 +187,32 @@ class _CoordinatorDouble:
             side_effect=_async_fetch_body_sensor_history
         )
         self.async_fetch_door_sensor_history = AsyncMock(
+            side_effect=_async_fetch_door_sensor_history
+        )
+        self.protocol_service = MagicMock()
+        self.protocol_service.async_get_device_schedules = AsyncMock(
+            side_effect=_async_get_device_schedules
+        )
+        self.protocol_service.async_add_device_schedule = AsyncMock(
+            side_effect=_async_add_device_schedule
+        )
+        self.protocol_service.async_delete_device_schedules = AsyncMock(
+            side_effect=_async_delete_device_schedules
+        )
+        self.protocol_service.async_query_ota_info = AsyncMock(
+            side_effect=_async_query_ota_info
+        )
+        self.protocol_service.async_query_command_result = AsyncMock(
+            side_effect=_async_query_command_result
+        )
+        self.protocol_service.async_get_city = AsyncMock(side_effect=_async_get_city)
+        self.protocol_service.async_query_user_cloud = AsyncMock(
+            side_effect=_async_query_user_cloud
+        )
+        self.protocol_service.async_fetch_body_sensor_history = AsyncMock(
+            side_effect=_async_fetch_body_sensor_history
+        )
+        self.protocol_service.async_fetch_door_sensor_history = AsyncMock(
             side_effect=_async_fetch_door_sensor_history
         )
 
@@ -293,6 +331,7 @@ def mock_lipro_api_client():
     mock_mqtt_facade.subscribed_count = 0
     mock_mqtt_facade.last_error = None
     client.build_mqtt_facade = MagicMock(return_value=mock_mqtt_facade)
+    client.attach_mqtt_facade = MagicMock()
     return client
 
 

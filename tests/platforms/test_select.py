@@ -463,7 +463,9 @@ class TestSelectEntityBehavior:
 
         assert "preset_warm" in attrs
         assert "preset_neutral" in attrs
-        assert attrs["preset_warm"].startswith("100% / ")
+        preset_warm = attrs["preset_warm"]
+        assert isinstance(preset_warm, str)
+        assert preset_warm.startswith("100% / ")
         assert "color_temp_range" in attrs
 
     @pytest.mark.asyncio
@@ -660,6 +662,30 @@ class TestSelectEntityBehavior:
             serial
         )
         mock_coordinator.async_send_command = AsyncMock(return_value=True)
+        mock_coordinator.async_request_refresh = AsyncMock()
+        select = LiproLightGearSelect(mock_coordinator, device)
+
+        with patch.object(select, "async_write_ha_state"):
+            await select.async_select_option("gear_1")
+
+        mock_coordinator.async_send_command.assert_called_once()
+        mock_coordinator.async_request_refresh.assert_awaited_once()
+
+    @pytest.mark.asyncio
+    async def test_light_gear_select_failed_command_requests_refresh(
+        self, mock_coordinator, make_device
+    ) -> None:
+        """Failed optimistic gear command should request refresh to restore truth."""
+        from custom_components.lipro.select import LiproLightGearSelect
+
+        device = make_device(
+            "light", properties={"gearList": '[{"temperature":50,"brightness":100}]'}
+        )
+        mock_coordinator.devices = {device.serial: device}
+        mock_coordinator.get_device = lambda serial: mock_coordinator.devices.get(
+            serial
+        )
+        mock_coordinator.async_send_command = AsyncMock(return_value=False)
         mock_coordinator.async_request_refresh = AsyncMock()
         select = LiproLightGearSelect(mock_coordinator, device)
 

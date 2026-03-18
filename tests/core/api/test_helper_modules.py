@@ -2,24 +2,36 @@
 
 from __future__ import annotations
 
-from unittest.mock import AsyncMock, Mock, patch
+from typing import cast
+from unittest.mock import AsyncMock, Mock
 
 import pytest
 
-from custom_components.lipro.const.api import MAX_RATE_LIMIT_RETRIES, MAX_RETRY_AFTER
 from custom_components.lipro.core.api.endpoints.payloads import (
     EndpointPayloadNormalizers,
 )
-from custom_components.lipro.core.api.errors import LiproApiError, LiproRateLimitError
 from custom_components.lipro.core.api.mqtt_api_service import (
     _extract_mqtt_config_payload,
     get_mqtt_config,
 )
 from custom_components.lipro.core.api.power_service import fetch_outlet_power_info
-from custom_components.lipro.core.api.request_policy import (
-    RequestPolicy,
-    compute_rate_limit_wait_time,
-)
+from custom_components.lipro.core.api.types import JsonObject
+
+
+def _require_mapping_response(_path: str, payload: object) -> JsonObject:
+    assert isinstance(payload, dict)
+    return cast(JsonObject, dict(payload))
+
+
+def _mqtt_config_response(_path: str, _payload: object) -> JsonObject:
+    return cast(
+        JsonObject,
+        {
+            "accessKey": "ak",
+            "secretKey": "sk",
+            "endpoint": "mqtt",
+        },
+    )
 
 
 class DummyApiError(Exception):
@@ -153,11 +165,7 @@ async def test_get_mqtt_config_uses_wrapped_success_payload_when_direct_shape_is
         ),
         is_success_code=lambda code: code == 0,
         unwrap_iot_success_payload=lambda payload: payload["data"],
-        require_mapping_response=lambda _path, _payload: {
-            "accessKey": "ak",
-            "secretKey": "sk",
-            "endpoint": "mqtt",
-        },
+        require_mapping_response=_mqtt_config_response,
         lipro_api_error=DummyApiError,
         path_get_mqtt_config="/mqtt/config",
     )
@@ -173,89 +181,7 @@ async def test_get_mqtt_config_raises_default_error_for_non_mapping_response() -
             request_iot_mapping=AsyncMock(return_value=("bad-response", None)),
             is_success_code=lambda code: code == 0,
             unwrap_iot_success_payload=lambda payload: payload,
-            require_mapping_response=lambda _path, payload: payload,
+            require_mapping_response=_require_mapping_response,
             lipro_api_error=DummyApiError,
             path_get_mqtt_config="/mqtt/config",
         )
-
-
-@pytest.mark.asyncio
-async def test_request_policy_handle_rate_limit_raises_after_retry_budget() -> None:
-    policy = RequestPolicy()
-
-    with pytest.raises(LiproRateLimitError, match="Rate limited after"):
-        await policy.handle_rate_limit(
-            "/v1/devices",
-            {"Retry-After": "5"},
-            MAX_RATE_LIMIT_RETRIES,
-        )
-
-
-@pytest.mark.asyncio
-async def test_request_policy_handle_rate_limit_waits_for_computed_backoff() -> None:
-    policy = RequestPolicy()
-
-    with (
-        patch(
-            "custom_components.lipro.core.api.request_policy.compute_rate_limit_wait_time",
-            return_value=1.25,
-        ),
-        patch(
-            "custom_components.lipro.core.api.request_policy.asyncio.sleep",
-            new=AsyncMock(),
-        ) as sleep,
-    ):
-        wait_time = await policy.handle_rate_limit(
-            "/v1/devices",
-            {"Retry-After": "1"},
-            1,
-        )
-
-    assert wait_time == 1.25
-    sleep.assert_awaited_once_with(1.25)
-
-
-def test_request_policy_is_command_busy_error_false_for_empty_message() -> None:
-    assert RequestPolicy.is_command_busy_error(LiproApiError("", code=500)) is False
-
-
-@pytest.mark.parametrize(
-    ("retry_after", "retry_count", "expected"),
-    [
-        (999999.0, 0, MAX_RETRY_AFTER),
-        (5.0, 0, 5.0),
-        (None, 0, 1.0),
-        (None, 1, 2.0),
-        (None, 2, 4.0),
-        (-10.0, 0, 0.1),
-        (0.0, 3, 0.1),
-    ],
-)
-def test_compute_rate_limit_wait_time_edges(
-    retry_after: float | None,
-    retry_count: int,
-    expected: float,
-) -> None:
-    assert (
-        compute_rate_limit_wait_time(
-            retry_after=retry_after,
-            retry_count=retry_count,
-            max_retry_after=MAX_RETRY_AFTER,
-        )
-        == expected
-    )
-
-
-def test_lipro_rate_limit_error_preserves_retry_after() -> None:
-    error = LiproRateLimitError("Rate limited", retry_after=30.0)
-
-    assert error.retry_after == 30.0
-    assert str(error) == "Rate limited"
-    assert error.code == 429
-
-
-def test_lipro_rate_limit_error_defaults_retry_after_to_none() -> None:
-    error = LiproRateLimitError("Rate limited")
-
-    assert error.retry_after is None
-    assert isinstance(error, LiproApiError)

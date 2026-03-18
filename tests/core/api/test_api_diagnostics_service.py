@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from typing import cast
 from unittest.mock import AsyncMock
 
 import pytest
@@ -20,7 +21,7 @@ from custom_components.lipro.core.api.diagnostics_api_service import (
     query_ota_info,
     query_user_cloud,
 )
-from custom_components.lipro.core.api.types import OtaInfoRow
+from custom_components.lipro.core.api.types import JsonObject, OtaInfoRow
 
 
 class DummyApiError(Exception):
@@ -39,9 +40,9 @@ def _extract_rows(payload: object) -> list[object]:
     return []
 
 
-def _require_mapping_response(_path: str, payload: object) -> dict[str, object]:
+def _require_mapping_response(_path: str, payload: object) -> JsonObject:
     if isinstance(payload, dict):
-        return payload
+        return cast(JsonObject, payload)
     return {}
 
 
@@ -388,7 +389,7 @@ async def test_query_ota_info_degrades_when_controller_other_api_error() -> None
 async def test_fetch_sensor_history_propagates_mapping_error() -> None:
     iot_request = AsyncMock(return_value={"rows": []})
 
-    def _raise_mapping_error(_path: str, _result: object) -> dict[str, object]:
+    def _raise_mapping_error(_path: str, _result: object) -> JsonObject:
         msg = "mapping error"
         raise DummyApiError(msg)
 

@@ -2,14 +2,17 @@
 
 from __future__ import annotations
 
+import asyncio
 import json
 from pathlib import Path
-from unittest.mock import AsyncMock
+from typing import cast
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
 from custom_components.lipro.const.api import PATH_GET_CITY, PATH_QUERY_USER_CLOUD
 from custom_components.lipro.core.api.client import LiproRestFacade
+from custom_components.lipro.core.api.client_base import ClientSessionState
 from custom_components.lipro.core.api.diagnostics_api_service import (
     get_city,
     query_user_cloud,
@@ -17,6 +20,7 @@ from custom_components.lipro.core.api.diagnostics_api_service import (
 from custom_components.lipro.core.api.mqtt_api_service import (
     _extract_mqtt_config_payload,
 )
+from custom_components.lipro.core.api.types import JsonObject
 from custom_components.lipro.core.protocol import LiproProtocolFacade
 from custom_components.lipro.core.protocol.boundary import (
     decode_device_list_payload,
@@ -26,6 +30,12 @@ from custom_components.lipro.core.protocol.boundary import (
     decode_mqtt_config_payload,
     decode_schedule_json_payload,
 )
+from custom_components.lipro.core.protocol.diagnostics_context import (
+    ProtocolDiagnosticsContext,
+)
+from custom_components.lipro.core.protocol.facade import LiproMqttFacade
+from custom_components.lipro.core.protocol.session import ProtocolSessionState
+from custom_components.lipro.core.protocol.telemetry import ProtocolTelemetry
 from tests.harness.protocol import iter_replay_manifests
 
 FIXTURE_DIR = Path(__file__).resolve().parents[2] / "fixtures" / "api_contracts"
@@ -113,9 +123,9 @@ def _load_fixture(name: str) -> object:
     return json.loads((FIXTURE_DIR / name).read_text())
 
 
-def _require_mapping_response(_path: str, payload: object) -> dict[str, object]:
+def _require_mapping_response(_path: str, payload: object) -> JsonObject:
     assert isinstance(payload, dict)
-    return dict(payload)
+    return cast(JsonObject, dict(payload))
 
 
 def _is_success_code(code: object) -> bool:
@@ -128,6 +138,70 @@ def test_lipro_protocol_facade_is_available_as_unified_protocol_root() -> None:
 
 def test_lipro_rest_facade_is_available_as_phase_2_rest_child_facade() -> None:
     assert LiproRestFacade.__name__ == "LiproRestFacade"
+
+
+def _build_mqtt_facade(client: MagicMock) -> tuple[LiproMqttFacade, ProtocolTelemetry]:
+    telemetry = ProtocolTelemetry()
+    session_state = ProtocolSessionState(
+        ClientSessionState(
+            phone_id="test-phone-id",
+            session=None,
+            request_timeout=30,
+            entry_id="entry-1",
+        )
+    )
+    diagnostics_context = ProtocolDiagnosticsContext(
+        session_state=session_state,
+        telemetry=telemetry,
+        entry_id="entry-1",
+    )
+    return (
+        LiproMqttFacade(
+            client,
+            session_state=session_state,
+            telemetry=telemetry,
+            diagnostics_context=diagnostics_context,
+        ),
+        telemetry,
+    )
+
+
+@pytest.mark.asyncio
+async def test_lipro_mqtt_facade_records_transport_error_and_reraises() -> None:
+    client = MagicMock()
+    client.is_connected = False
+    client.subscribed_devices = set()
+    client.subscribed_count = 0
+    client.last_error = None
+    client.start = AsyncMock(side_effect=RuntimeError("boom"))
+
+    mqtt_facade, telemetry = _build_mqtt_facade(client)
+
+    with pytest.raises(RuntimeError, match="boom"):
+        await mqtt_facade.start(["03ab5ccd7c000001"])
+
+    assert telemetry.mqtt_start_count == 1
+    assert telemetry.mqtt_last_error_type == "RuntimeError"
+    assert telemetry.mqtt_last_error_stage == "start"
+
+
+@pytest.mark.asyncio
+async def test_lipro_mqtt_facade_reraises_cancelled_without_recording_error() -> None:
+    client = MagicMock()
+    client.is_connected = False
+    client.subscribed_devices = set()
+    client.subscribed_count = 0
+    client.last_error = None
+    client.start = AsyncMock(side_effect=asyncio.CancelledError)
+
+    mqtt_facade, telemetry = _build_mqtt_facade(client)
+
+    with pytest.raises(asyncio.CancelledError):
+        await mqtt_facade.start(["03ab5ccd7c000001"])
+
+    assert telemetry.mqtt_start_count == 1
+    assert telemetry.mqtt_last_error_type is None
+    assert telemetry.mqtt_last_error_stage is None
 
 
 def test_lipro_rest_facade_uses_explicit_surface_instead_of_dynamic_delegation() -> None:

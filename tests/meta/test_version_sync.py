@@ -175,6 +175,17 @@ def test_release_runbook_references_v1_2_evidence_index() -> None:
     assert "archive-ready" in evidence_text
 
 
+def test_runbook_and_contributing_capture_blocking_release_security_gate() -> None:
+    runbook_text = _RUNBOOK.read_text(encoding="utf-8")
+    contributing_text = _CONTRIBUTING.read_text(encoding="utf-8")
+
+    assert "tagged release security gate" in runbook_text
+    assert "gh attestation verify" in runbook_text
+    assert "release identity manifest" in runbook_text
+    assert "tagged release security gate" in contributing_text
+    assert "release identity manifest" in contributing_text
+
+
 def test_release_docs_capture_supply_chain_posture_and_firmware_defer() -> None:
     """Runbook and closeout index should keep current release hardening plus explicit defers visible."""
     runbook_text = _RUNBOOK.read_text(encoding="utf-8")
@@ -183,6 +194,9 @@ def test_release_docs_capture_supply_chain_posture_and_firmware_defer() -> None:
     for token in ("SHA256SUMS", "provenance", "SBOM", "signing", "code scanning"):
         assert token in runbook_text
         assert token in evidence_text
+    assert "gh attestation verify" in runbook_text
+    assert "release identity manifest" in runbook_text
+    assert "tagged release security gate" in runbook_text
     assert "firmware_support_manifest.json" in runbook_text
     assert "firmware manifest metadata" in evidence_text
     assert "23-01~23-08-SUMMARY.md" in evidence_text
@@ -194,3 +208,13 @@ def test_issue_config_routes_docs_to_troubleshooting() -> None:
     doc_link = next(link for link in config["contact_links"] if "Documentation" in link["name"])
 
     assert doc_link["url"].endswith("docs/TROUBLESHOOTING.md")
+
+
+def test_project_urls_expose_public_entrypoints() -> None:
+    pyproject = tomllib.loads(_PYPROJECT.read_text(encoding="utf-8"))
+    urls = pyproject["project"]["urls"]
+
+    assert urls["Documentation"].endswith("README.md")
+    assert urls["Support"].endswith("SUPPORT.md")
+    assert urls["Security"].endswith("SECURITY.md")
+    assert urls["Discussions"].endswith("/discussions")

@@ -28,6 +28,19 @@ _EXPECTED_PUBLIC_PATHS = {
 }
 
 
+def _assert_mqtt_contract_shape(manifest: ReplayManifest, canonical: object) -> None:
+    assert isinstance(canonical, dict)
+    if manifest.family == "mqtt.topic":
+        assert canonical.keys() == {"bizId", "deviceId", "topicFamily"}
+        return
+    if manifest.family == "mqtt.message-envelope":
+        assert canonical
+        assert all(isinstance(key, str) for key in canonical)
+        return
+    if manifest.family == "mqtt.properties":
+        assert all(isinstance(key, str) for key in canonical)
+
+
 @pytest.mark.parametrize(
     "manifest",
     _MQTT_MANIFESTS,
@@ -52,6 +65,7 @@ def test_mqtt_replay_scenarios_use_boundary_decoder_public_path(
         expected_canonical=fixture.authority_metadata["canonical"],
         expected_fingerprint=fixture.authority_metadata["fingerprint"],
     )
+    _assert_mqtt_contract_shape(manifest, result.canonical)
     views = assert_exporter_backed_replay_telemetry(manifest, result)
     assert views.system_health["mqtt_connected"] is True
 
@@ -77,3 +91,4 @@ def test_mqtt_remaining_families_have_explicit_replay_coverage_contract() -> Non
             expected_canonical=fixture.authority_metadata["canonical"],
             expected_fingerprint=fixture.authority_metadata["fingerprint"],
         )
+        _assert_mqtt_contract_shape(manifest, result.canonical)

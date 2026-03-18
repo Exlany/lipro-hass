@@ -92,7 +92,7 @@ async def test_entry_runtime_bridges_to_exporter_diagnostics_and_system_health(
         ],
     }
     coordinator = SimpleNamespace(
-        client=SimpleNamespace(
+        protocol=SimpleNamespace(
             protocol_diagnostics_snapshot=lambda: protocol_snapshot,
         ),
         telemetry_service=SimpleNamespace(build_snapshot=lambda: runtime_snapshot),
@@ -156,3 +156,34 @@ async def test_entry_runtime_bridges_to_exporter_diagnostics_and_system_health(
     assert {
         key: value for key, value in failure_entry.items() if key != "entry_ref"
     } == (views.system_health["failure_summary"])
+
+
+
+@pytest.mark.asyncio
+async def test_entry_runtime_telemetry_exporter_requires_protocol_surface(
+    hass,
+) -> None:
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="Lipro (13800000000)",
+        data={"phone": "13800000000"},
+    )
+    entry.add_to_hass(hass)
+    entry.runtime_data = SimpleNamespace(
+        client=SimpleNamespace(
+            protocol_diagnostics_snapshot=lambda: {"entry_id": entry.entry_id}
+        ),
+        telemetry_service=SimpleNamespace(
+            build_snapshot=lambda: {"device_count": 0, "last_update_success": True}
+        ),
+        devices={},
+        last_update_success=True,
+        update_interval=timedelta(seconds=30),
+        mqtt_service=SimpleNamespace(connected=True),
+    )
+
+    assert build_entry_telemetry_views(entry) is None
+    health = await system_health_info(hass)
+
+    assert health["logged_accounts"] == 1
+    assert "failure_entries" not in health

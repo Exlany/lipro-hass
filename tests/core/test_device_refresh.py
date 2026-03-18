@@ -32,6 +32,7 @@ from custom_components.lipro.core.coordinator.runtime.device.filter import (
     parse_filter_config,
 )
 from custom_components.lipro.core.coordinator.runtime.device.snapshot import (
+    RuntimeSnapshotRefreshRejectedError,
     SnapshotBuilder,
 )
 from custom_components.lipro.core.coordinator.runtime.device_runtime import (
@@ -251,6 +252,21 @@ def test_device_filter_is_device_included_by_ssid_exclude():
     # Should include
     assert device_filter.is_device_included(
         {"serial": "xxx", "deviceInfo": '{"wifi_ssid":"main_wifi"}'}
+    )
+
+
+def test_device_filter_invalid_device_info_json_is_ignored_for_ssid_rules():
+    """Malformed deviceInfo JSON should degrade to no-SSID-match instead of failing."""
+    config = DeviceFilterConfig(
+        ssid=DeviceFilterRule(
+            mode=DEVICE_FILTER_MODE_EXCLUDE,
+            values=frozenset({"guest_wifi"}),
+        )
+    )
+    device_filter = DeviceFilter(config=config)
+
+    assert device_filter.is_device_included(
+        {"serial": "xxx", "deviceInfo": '{"wifi_ssid":"guest_wifi"'}
     )
 
 
@@ -492,15 +508,15 @@ async def test_snapshot_builder_categorizes_devices_by_type(
 
 
 @pytest.mark.asyncio
-async def test_snapshot_builder_handles_parse_errors_gracefully(
+async def test_snapshot_builder_rejects_parse_errors_atomically(
     snapshot_builder, mock_client
 ):
-    """Test that snapshot builder skips devices that fail to parse."""
+    """Device parse failure must reject the full snapshot atomically."""
     mock_client.get_devices = AsyncMock(
         return_value={
             "devices": [
                 {"serial": "03ab000000000001", "deviceName": "Valid Device", "type": 1},
-                {"serial": "invalid", "deviceName": "Invalid Device"},  # Missing deviceType
+                {"serial": "invalid", "deviceName": "Invalid Device"},
             ],
             "total": 2,
         }
@@ -526,11 +542,45 @@ async def test_snapshot_builder_handles_parse_errors_gracefully(
 
         from_api.side_effect = parse_device
 
-        snapshot = await snapshot_builder.build_full_snapshot()
+        with pytest.raises(RuntimeSnapshotRefreshRejectedError) as exc_info:
+            await snapshot_builder.build_full_snapshot()
 
-    # Should only include valid device
-    assert len(snapshot.devices) == 1
-    assert "03ab000000000001" in snapshot.devices
+    assert exc_info.value.stage == "parse_device"
+    assert exc_info.value.device_ref == "invalid"
+
+
+@pytest.mark.asyncio
+async def test_snapshot_builder_rejects_mesh_group_topology_errors_atomically(
+    snapshot_builder, mock_client, make_device
+):
+    """Mesh-group topology normalization failure must reject the full snapshot."""
+    mock_client.get_devices = AsyncMock(
+        return_value={
+            "devices": [
+                {"serial": "mesh_group_1", "deviceName": "Group Device", "type": 1}
+            ],
+            "total": 1,
+        }
+    )
+    mock_client.query_mesh_group_status = AsyncMock(return_value=[{"groupId": "mesh_group_1"}])
+    mock_client.contracts.normalize_mesh_group_status_rows.side_effect = ValueError(
+        "bad topology"
+    )
+
+    with patch(
+        "custom_components.lipro.core.device.LiproDevice.from_api_data"
+    ) as from_api:
+        from_api.side_effect = lambda data: make_device(
+            "light",
+            serial=data["serial"],
+            name=data["deviceName"],
+            is_group=True,
+        )
+
+        with pytest.raises(RuntimeSnapshotRefreshRejectedError) as exc_info:
+            await snapshot_builder.build_full_snapshot()
+
+    assert exc_info.value.stage == "mesh_group_topology"
 
 
 # =========================================================================
@@ -628,9 +678,7 @@ async def test_device_runtime_cached_refresh_reuses_existing_snapshot(
     with patch(
         "custom_components.lipro.core.device.LiproDevice.from_api_data"
     ) as from_api:
-        from_api.side_effect = lambda data: make_device(
-            "light", serial=data["serial"], iot_device_id="iot_001"
-        )
+        from_api.side_effect = lambda data: make_device("light", serial=data["serial"])
 
         first_snapshot = await device_runtime.refresh_devices(force=True)
 

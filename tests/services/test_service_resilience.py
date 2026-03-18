@@ -250,11 +250,11 @@ def test_fetch_sensor_history_schema_accepts_mesh_type_enum(mesh_type: str) -> N
 async def test_get_city_raises_last_api_error_when_all_coordinators_fail(hass) -> None:
     """When all coordinators fail with API errors, the last error is surfaced."""
     first = MagicMock()
-    first.async_get_city = AsyncMock(
+    first.protocol_service.async_get_city = AsyncMock(
         side_effect=LiproApiError("first failure", code="140004")
     )
     second = MagicMock()
-    second.async_get_city = AsyncMock(
+    second.protocol_service.async_get_city = AsyncMock(
         side_effect=LiproApiError("last failure", code="250001")
     )
 
@@ -264,30 +264,30 @@ async def test_get_city_raises_last_api_error_when_all_coordinators_fail(hass) -
     with pytest.raises(HomeAssistantError, match=r"code=250001"):
         await async_handle_get_city(hass, service_call(hass, {}))
 
-    assert first.async_get_city.await_count == 1
-    assert second.async_get_city.await_count == 1
+    assert first.protocol_service.async_get_city.await_count == 1
+    assert second.protocol_service.async_get_city.await_count == 1
 
 
 @pytest.mark.asyncio
 async def test_get_city_mixed_coordinator_results_return_first_success(hass) -> None:
     """Unexpected/API failures should be skipped until first successful coordinator."""
     runtime_error_coordinator = MagicMock()
-    runtime_error_coordinator.async_get_city = AsyncMock(
+    runtime_error_coordinator.protocol_service.async_get_city = AsyncMock(
         side_effect=RuntimeError("boom")
     )
 
     api_error_coordinator = MagicMock()
-    api_error_coordinator.async_get_city = AsyncMock(
+    api_error_coordinator.protocol_service.async_get_city = AsyncMock(
         side_effect=LiproApiError("temporary", code="500")
     )
 
     success_coordinator = MagicMock()
-    success_coordinator.async_get_city = AsyncMock(
+    success_coordinator.protocol_service.async_get_city = AsyncMock(
         return_value={"province": "江苏省", "city": "苏州市"}
     )
 
     never_called_after_success = MagicMock()
-    never_called_after_success.async_get_city = AsyncMock(
+    never_called_after_success.protocol_service.async_get_city = AsyncMock(
         return_value={"province": "浙江省", "city": "杭州市"}
     )
 
@@ -299,10 +299,10 @@ async def test_get_city_mixed_coordinator_results_return_first_success(hass) -> 
     result = await async_handle_get_city(hass, service_call(hass, {}))
 
     assert result == {"result": {"province": "江苏省", "city": "苏州市"}}
-    assert runtime_error_coordinator.async_get_city.await_count == 1
-    assert api_error_coordinator.async_get_city.await_count == 1
-    assert success_coordinator.async_get_city.await_count == 1
-    never_called_after_success.async_get_city.assert_not_called()
+    assert runtime_error_coordinator.protocol_service.async_get_city.await_count == 1
+    assert api_error_coordinator.protocol_service.async_get_city.await_count == 1
+    assert success_coordinator.protocol_service.async_get_city.await_count == 1
+    never_called_after_success.protocol_service.async_get_city.assert_not_called()
 
 
 @pytest.mark.asyncio
@@ -322,7 +322,7 @@ async def test_get_city_concurrent_calls_with_mixed_coordinators_are_stable(
 ) -> None:
     """Concurrent get_city calls should complete without unhandled exceptions."""
     failing = MagicMock()
-    failing.async_get_city = AsyncMock(
+    failing.protocol_service.async_get_city = AsyncMock(
         side_effect=LiproApiError("transient", code="500")
     )
 
@@ -331,7 +331,7 @@ async def test_get_city_concurrent_calls_with_mixed_coordinators_are_stable(
         return {"province": "广东省", "city": "深圳市"}
 
     succeeding = MagicMock()
-    succeeding.async_get_city = AsyncMock(side_effect=_slow_success)
+    succeeding.protocol_service.async_get_city = AsyncMock(side_effect=_slow_success)
 
     _add_runtime_entry(hass, failing, phone="13800000000")
     _add_runtime_entry(hass, succeeding, phone="13900000000")
@@ -349,5 +349,5 @@ async def test_get_city_concurrent_calls_with_mixed_coordinators_are_stable(
         result == {"result": {"province": "广东省", "city": "深圳市"}}
         for result in results
     )
-    assert failing.async_get_city.await_count == call_count
-    assert succeeding.async_get_city.await_count == call_count
+    assert failing.protocol_service.async_get_city.await_count == call_count
+    assert succeeding.protocol_service.async_get_city.await_count == call_count

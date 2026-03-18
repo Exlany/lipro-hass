@@ -257,3 +257,41 @@ def test_runtime_power_surface_stays_read_only_and_formalized() -> None:
     assert "outlet_power_info" in diagnostics_text
     assert '"data": rows' not in power_service_text
     assert '"data": rows' not in runtime_text
+
+
+def test_phase_30_control_contracts_stay_private_and_system_health_minimal() -> None:
+    control_exports = set(
+        extract_all(_ROOT / "custom_components" / "lipro" / "control" / "__init__.py", root=_ROOT)
+    )
+    controller_text = (
+        _ROOT
+        / "custom_components"
+        / "lipro"
+        / "control"
+        / "entry_lifecycle_controller.py"
+    ).read_text(encoding="utf-8")
+    system_health_text = (
+        _ROOT
+        / "custom_components"
+        / "lipro"
+        / "control"
+        / "system_health_surface.py"
+    ).read_text(encoding="utf-8")
+
+    assert "LifecycleFailureContract" not in control_exports
+    for token in (
+        "setup_auth_failed",
+        "setup_not_ready",
+        "setup_failed",
+        "unload_shutdown_degraded",
+        "reload_auth_failed",
+        "reload_not_ready",
+        "reload_failed",
+    ):
+        assert token in controller_text
+
+    assert "FailureEntry" in system_health_text
+    assert "SystemHealthPayload" in system_health_text
+    assert "Any" not in system_health_text
+    assert "diagnostics" not in system_health_text
+    assert "developer" not in system_health_text

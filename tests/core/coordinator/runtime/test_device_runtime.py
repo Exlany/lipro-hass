@@ -8,6 +8,9 @@ from unittest.mock import AsyncMock, Mock
 import pytest
 
 from custom_components.lipro.core.auth import LiproAuthManager
+from custom_components.lipro.core.coordinator.runtime.device.snapshot import (
+    RuntimeSnapshotRefreshRejectedError,
+)
 from custom_components.lipro.core.coordinator.runtime.device_runtime import (
     DeviceRuntime,
 )
@@ -356,6 +359,7 @@ class TestDeviceRuntimeState:
         device_runtime.reset()
 
         assert device_runtime._last_snapshot is None
+        assert device_runtime.get_last_refresh_failure() is None
         assert device_runtime._cloud_serials_last_seen == set()
         assert device_runtime._refresh_strategy._force_refresh is False
 
@@ -364,27 +368,33 @@ class TestDeviceRuntimeErrorHandling:
     """Test error handling in DeviceRuntime."""
 
     @pytest.mark.asyncio
-    async def test_api_error_during_refresh(
+    async def test_api_error_during_refresh_rejects_without_snapshot(
         self,
         device_runtime: DeviceRuntime,
         mock_client: Mock,
     ) -> None:
-        """Test API error handling during refresh."""
+        """API error without LKG must reject the refresh explicitly."""
         mock_client.get_devices.side_effect = Exception("API Error")
 
-        # Should not raise, but return empty snapshot
-        snapshot = await device_runtime.refresh_devices()
+        with pytest.raises(RuntimeSnapshotRefreshRejectedError) as exc_info:
+            await device_runtime.refresh_devices()
 
-        # Snapshot should be minimal/empty due to error
-        assert snapshot.devices == {}
+        assert exc_info.value.stage == "fetch_page"
+        assert exc_info.value.page == 1
+        assert exc_info.value.kept_last_known_good is False
+        assert device_runtime.get_last_snapshot() is None
+        failure = device_runtime.get_last_refresh_failure()
+        assert failure is not None
+        assert failure.stage == "fetch_page"
+        assert failure.kept_last_known_good is False
 
     @pytest.mark.asyncio
-    async def test_partial_page_failure(
+    async def test_partial_page_failure_rejects_without_lkg(
         self,
         device_runtime: DeviceRuntime,
         mock_client: Mock,
     ) -> None:
-        """Test handling of partial page fetch failure."""
+        """Page-2 failure without LKG must reject the refresh."""
         mock_client.get_devices.side_effect = [
             make_device_page(
                 [create_mock_device_data(device_id="dev1", serial="serial1")],
@@ -393,11 +403,47 @@ class TestDeviceRuntimeErrorHandling:
             Exception("Network error"),
         ]
 
-        snapshot = await device_runtime.refresh_devices()
+        with pytest.raises(RuntimeSnapshotRefreshRejectedError) as exc_info:
+            await device_runtime.refresh_devices()
 
-        # Should have first page data
-        assert len(snapshot.devices) == 1
-        assert "serial1" in snapshot.devices
+        assert exc_info.value.stage == "fetch_page"
+        assert exc_info.value.page == 2
+        assert exc_info.value.kept_last_known_good is False
+        assert device_runtime.get_last_snapshot() is None
+
+    @pytest.mark.asyncio
+    async def test_partial_page_failure_retains_last_known_good_and_refresh_pressure(
+        self,
+        device_runtime: DeviceRuntime,
+        mock_client: Mock,
+    ) -> None:
+        """Rejected refresh keeps LKG and does not mark refresh as complete."""
+        mock_client.get_devices.return_value = make_device_page(
+            [create_mock_device_data(device_id="dev1", serial="serial1")]
+        )
+
+        first_snapshot = await device_runtime.refresh_devices()
+        assert first_snapshot.devices["serial1"].serial == "serial1"
+
+        device_runtime.request_force_refresh()
+        mock_client.get_devices.side_effect = [
+            make_device_page(
+                [create_mock_device_data(device_id="dev1", serial="serial1")],
+                total=2,
+            ),
+            Exception("Network error"),
+        ]
+
+        with pytest.raises(RuntimeSnapshotRefreshRejectedError) as exc_info:
+            await device_runtime.refresh_devices()
+
+        assert exc_info.value.kept_last_known_good is True
+        assert device_runtime.get_last_snapshot() is first_snapshot
+        assert device_runtime.should_refresh_device_list() is True
+        failure = device_runtime.get_last_refresh_failure()
+        assert failure is not None
+        assert failure.page == 2
+        assert failure.kept_last_known_good is True
 
 
 class TestDeviceRuntimeIntegration:

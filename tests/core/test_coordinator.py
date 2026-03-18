@@ -12,6 +12,9 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.lipro.const.base import DOMAIN
 from custom_components.lipro.core.api import LiproAuthError, LiproConnectionError
+from custom_components.lipro.core.coordinator.runtime.device.snapshot import (
+    RuntimeSnapshotRefreshRejectedError,
+)
 from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.update_coordinator import UpdateFailed
 from tests.conftest_shared import (
@@ -208,6 +211,49 @@ class TestCoordinatorRuntimeComponents:
         base_shutdown.assert_awaited_once()
 
     @pytest.mark.asyncio
+    async def test_async_shutdown_continues_after_best_effort_failures(
+        self, coordinator
+    ) -> None:
+        """Best-effort shutdown failures must not block final runtime cleanup."""
+        coordinator._runtimes.mqtt.clear_disconnect_notification = AsyncMock(
+            side_effect=RuntimeError("notification boom")
+        )
+        coordinator._runtimes.mqtt.disconnect = AsyncMock(
+            side_effect=RuntimeError("disconnect boom")
+        )
+        coordinator._runtimes.mqtt.reset = MagicMock()
+        coordinator._runtimes.device.reset = MagicMock()
+        coordinator._state.background_task_manager.cancel_all = AsyncMock(
+            side_effect=RuntimeError("cancel boom")
+        )
+        coordinator.protocol.attach_mqtt_facade = MagicMock()
+        coordinator._runtimes.mqtt.detach_transport = MagicMock()
+
+        with (
+            patch(
+                "custom_components.lipro.core.coordinator.coordinator.CoordinatorCommandService.async_shutdown",
+                new_callable=AsyncMock,
+            ) as command_shutdown,
+            patch(
+                "custom_components.lipro.core.coordinator.coordinator.DataUpdateCoordinator.async_shutdown",
+                new_callable=AsyncMock,
+            ) as base_shutdown,
+        ):
+            command_shutdown.side_effect = RuntimeError("command boom")
+            await coordinator.async_shutdown()
+
+        command_shutdown.assert_awaited_once()
+
+        coordinator._runtimes.mqtt.clear_disconnect_notification.assert_awaited_once()
+        coordinator._runtimes.mqtt.disconnect.assert_awaited_once()
+        coordinator._state.background_task_manager.cancel_all.assert_awaited_once()
+        coordinator._runtimes.mqtt.reset.assert_called_once()
+        coordinator._runtimes.device.reset.assert_called_once()
+        coordinator.protocol.attach_mqtt_facade.assert_called_once_with(None)
+        coordinator._runtimes.mqtt.detach_transport.assert_called_once()
+        base_shutdown.assert_awaited_once()
+
+    @pytest.mark.asyncio
     async def test_public_entrypoints_follow_current_device_state(
         self, coordinator, mock_lipro_api_client
     ):
@@ -303,6 +349,30 @@ class TestCoordinatorRuntimeComponents:
         coordinator.async_set_updated_data.assert_called_once_with(coordinator.devices)
         assert result == {"dev1": device}
         assert coordinator.devices == {"dev1": device}
+
+    @pytest.mark.asyncio
+    async def test_async_refresh_devices_rejects_partial_snapshot_and_keeps_state(
+        self, coordinator
+    ):
+        """Rejected refresh must not publish a shrunken device map."""
+        existing_device = MagicMock()
+        coordinator._state.devices["existing"] = existing_device
+        coordinator._runtimes.device.refresh_devices = AsyncMock(
+            side_effect=RuntimeSnapshotRefreshRejectedError(
+                stage="fetch_page",
+                page=2,
+                cause_type="Exception",
+                kept_last_known_good=True,
+            )
+        )
+        coordinator.async_set_updated_data = MagicMock()
+
+        with pytest.raises(RuntimeSnapshotRefreshRejectedError, match="page=2"):
+            await coordinator.async_refresh_devices()
+
+        coordinator.async_set_updated_data.assert_not_called()
+        assert coordinator.devices == {"existing": existing_device}
+
 
     @pytest.mark.asyncio
     async def test_status_runtime_updates_device_through_coordinator_callbacks(
@@ -597,3 +667,27 @@ class TestCoordinatorUpdateFlow:
 
         with pytest.raises(UpdateFailed, match="Unexpected update failure"):
             await coordinator._async_update_data()
+
+    @pytest.mark.asyncio
+    async def test_snapshot_rejection_raises_update_failed_and_records_runtime_failure(
+        self, coordinator, mock_auth_manager
+    ):
+        """Structured snapshot rejection should use the runtime failure path."""
+        mock_auth_manager.async_ensure_authenticated.return_value = None
+        coordinator._runtimes.device.should_refresh_device_list = MagicMock(return_value=True)
+        coordinator._runtimes.device.refresh_devices = AsyncMock(
+            side_effect=RuntimeSnapshotRefreshRejectedError(
+                stage="fetch_page",
+                page=2,
+                cause_type="Exception",
+            )
+        )
+
+        with pytest.raises(UpdateFailed, match="stage=fetch_page"):
+            await coordinator._async_update_data()
+
+        telemetry = coordinator.telemetry_service.build_snapshot()
+        assert telemetry["last_runtime_failure_stage"] == "runtime"
+        assert telemetry["failure_summary"]["error_type"] == (
+            "RuntimeSnapshotRefreshRejectedError"
+        )

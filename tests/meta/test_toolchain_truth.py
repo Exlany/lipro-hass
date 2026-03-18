@@ -24,6 +24,9 @@ _CI_WORKFLOW = _ROOT / ".github" / "workflows" / "ci.yml"
 _RELEASE_WORKFLOW = _ROOT / ".github" / "workflows" / "release.yml"
 _DEVELOP_SCRIPT = _ROOT / "scripts" / "develop"
 _SETUP_PYTHON = "actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405"
+_README = _ROOT / "README.md"
+_README_ZH = _ROOT / "README_zh.md"
+_CODEBASE_DIR = _ROOT / ".planning" / "codebase"
 
 _TESTING_MAP = _ROOT / ".planning" / "codebase" / "TESTING.md"
 _TESTING_COUNTS_RE = re.compile(
@@ -101,6 +104,63 @@ def test_python_toolchain_truth_is_aligned_to_314() -> None:
     assert setup_python_versions
 
 
+def test_release_workflow_keeps_identity_evidence_tools_in_sync() -> None:
+    release = _load_yaml(_RELEASE_WORKFLOW)
+    build_job = release["jobs"]["build"]
+    steps = build_job["steps"]
+    step_names = {step["name"] for step in steps}
+
+    assert "Generate artifact attestation" in step_names
+    assert "Verify generated artifact attestations" in step_names
+    assert "Write release identity manifest" in step_names
+
+
+def test_release_identity_manifest_keeps_current_defers_explicit() -> None:
+    release = _load_yaml(_RELEASE_WORKFLOW)
+    build_job = release["jobs"]["build"]
+    steps = build_job["steps"]
+    assert isinstance(steps, list)
+
+    manifest_step = next(
+        step
+        for step in steps
+        if isinstance(step, dict)
+        and step.get("name") == "Write release identity manifest"
+    )
+    run_block = manifest_step["run"]
+    assert isinstance(run_block, str)
+
+    for token in (
+        "identity_evidence=SHA256SUMS",
+        "identity_evidence=SBOM",
+        "identity_evidence=GitHub artifact attestation",
+        "provenance=GitHub artifact attestation",
+        "identity_verification=gh attestation verify",
+        "signing=deferred",
+        "code_scanning=deferred",
+    ):
+        assert token in run_block
+
+
+def test_bilingual_readmes_capture_release_asset_identity_truth() -> None:
+    readme_text = _README.read_text(encoding="utf-8")
+    readme_zh_text = _README_ZH.read_text(encoding="utf-8")
+
+    for text in (readme_text, readme_zh_text):
+        for token in (
+            "SHA256SUMS",
+            "SBOM",
+            "attestation",
+            "provenance",
+            "signing",
+            "code scanning",
+        ):
+            assert token in text
+
+    assert "single-maintainer model" in readme_text
+    assert "单维护者模型" in readme_zh_text
+
+
 def test_pytest_marker_contract_has_no_dead_declarations() -> None:
     """Only live pytest markers should remain declared in pyproject."""
     pyproject = _load_pyproject()
@@ -123,8 +183,28 @@ def test_testing_map_counts_and_script_boundary_notes_match_repo_facts() -> None
     assert documented == _count_testing_inventory()
     assert "scripts/check_architecture_policy.py" in testing_text
     assert "scripts/export_ai_debug_evidence_pack.py" in testing_text
+    assert "tests/core/test_init_service_handlers.py" in testing_text
+    assert "tests/meta/test_governance_closeout_guards.py" in testing_text
     assert "helper-only / pull-only" in testing_text
     assert "tests/meta/test_toolchain_truth.py" in testing_text
+
+
+def test_codebase_maps_publish_snapshot_freshness_and_authority_boundaries() -> None:
+    for path in sorted(_CODEBASE_DIR.glob("*.md")):
+        text = path.read_text(encoding="utf-8")
+
+        assert "Snapshot:" in text, path.as_posix()
+        assert "Freshness:" in text, path.as_posix()
+        assert "Derived collaboration map" in text, path.as_posix()
+
+        if path.name == "README.md":
+            assert "Authority order:" in text, path.as_posix()
+            assert "Conflict rule:" in text, path.as_posix()
+            assert "不得自称当前治理真源" in text, path.as_posix()
+            continue
+
+        assert "Authority:" in text, path.as_posix()
+        assert "不得反向充当当前治理真源" in text, path.as_posix()
 
 
 def test_develop_script_smoke_mode_preserves_other_integrations(

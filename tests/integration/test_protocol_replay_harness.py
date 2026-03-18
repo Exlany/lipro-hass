@@ -4,7 +4,10 @@ from __future__ import annotations
 
 from dataclasses import replace
 
-from custom_components.lipro.core.protocol.contracts import CanonicalProtocolContracts
+from custom_components.lipro.core.protocol.contracts import (
+    CanonicalProtocolContracts,
+    CanonicalScheduleJson,
+)
 from custom_components.lipro.core.protocol.facade import LiproProtocolFacade
 from tests.core.api.test_protocol_contract_matrix import (
     EXPECTED_DEVICE_LIST_DEVICES,
@@ -28,7 +31,7 @@ from tests.harness.protocol.replay_report import EXPLICIT_REPLAY_ASSURANCE_FAMIL
 
 class _FailingScheduleJsonContracts(CanonicalProtocolContracts):
     @staticmethod
-    def normalize_schedule_json(_payload: object) -> dict[str, list[int]]:
+    def normalize_schedule_json(_payload: object) -> CanonicalScheduleJson:
         raise ValueError("schedule-json representative failure")
 
 

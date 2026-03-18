@@ -25,6 +25,7 @@ _ROOT = repo_root(Path(__file__))
 _FILE_MATRIX = _ROOT / ".planning" / "reviews" / "FILE_MATRIX.md"
 _CODEBASE_DIR = _ROOT / ".planning" / "codebase"
 _CODEBASE_README = _CODEBASE_DIR / "README.md"
+_PRE_COMMIT = _ROOT / ".pre-commit-config.yaml"
 _GITIGNORE = _ROOT / ".gitignore"
 _DOCS_README = _ROOT / "docs" / "README.md"
 _TROUBLESHOOTING = _ROOT / "docs" / "TROUBLESHOOTING.md"
@@ -234,17 +235,38 @@ def test_ci_and_release_workflows_share_governance_and_version_gates() -> None:
     governance_steps = ci_workflow["jobs"]["governance"]["steps"]
     governance_runs = "\n".join(step.get("run", "") for step in governance_steps)
     assert "tests/meta/test_governance_guards.py" in governance_runs
+    assert "tests/meta/test_governance_closeout_guards.py" in governance_runs
     assert "tests/meta/test_version_sync.py" in governance_runs
+
+    security_job = ci_workflow["jobs"]["security"]
+    security_step_names = {step["name"] for step in security_job["steps"]}
+    assert "Export runtime requirements" in security_step_names
+    assert "Run pip-audit (runtime)" in security_step_names
 
     validate_job = release_workflow["jobs"]["validate"]
     assert validate_job["uses"] == "./.github/workflows/ci.yml"
     assert validate_job["secrets"] == "inherit"
 
+    security_gate = release_workflow["jobs"]["security_gate"]
+    assert security_gate["needs"] == "validate"
+    security_gate_steps = {step["name"] for step in security_gate["steps"]}
+    assert "Checkout tagged release ref" in security_gate_steps
+    assert "Run pip-audit (runtime, tagged release)" in security_gate_steps
+
+    assert release_workflow["permissions"]["contents"] == "write"
+    assert release_workflow["permissions"]["attestations"] == "write"
+    assert release_workflow["permissions"]["id-token"] == "write"
+
     build_job = release_workflow["jobs"]["build"]
-    assert build_job["needs"] == "validate"
+    assert set(build_job["needs"]) == {"validate", "security_gate"}
     step_names = {step["name"] for step in build_job["steps"]}
     assert "Checkout tagged release ref" in step_names
     assert "Verify tag matches project version" in step_names
+    assert "Build zip, installer, and checksums" in step_names
+    assert "Export SBOM" in step_names
+    assert "Generate artifact attestation" in step_names
+    assert "Verify generated artifact attestations" in step_names
+    assert "Write release identity manifest" in step_names
     checkout_step = next(
         step
         for step in build_job["steps"]
@@ -261,6 +283,28 @@ def test_ci_and_release_workflows_share_governance_and_version_gates() -> None:
     assert "pyproject.toml" in version_guard
     assert "RELEASE_TAG" in version_guard
 
+    publish_release = next(
+        step
+        for step in build_job["steps"]
+        if step.get("name") == "Publish release assets"
+    )
+    published_files = publish_release["with"]["files"]
+    assert "dist/install.sh" in published_files
+    assert "SHA256SUMS" in published_files
+    assert ".spdx.json" in published_files
+    assert ".release-identity.txt" in published_files
+
+
+def test_governance_closeout_suite_is_wired_into_daily_gate_commands() -> None:
+    agents_text = _AGENTS.read_text(encoding="utf-8")
+    contributing_text = _CONTRIBUTING.read_text(encoding="utf-8")
+    pre_commit_text = _PRE_COMMIT.read_text(encoding="utf-8")
+    runbook_text = _RUNBOOK.read_text(encoding="utf-8")
+    ci_text = _CI_WORKFLOW.read_text(encoding="utf-8")
+
+    for text in (agents_text, contributing_text, pre_commit_text, runbook_text, ci_text):
+        assert "tests/meta/test_governance_closeout_guards.py" in text
+
 
 def test_contributor_contract_matches_ci_language() -> None:
     contributing_bullets = _extract_labeled_bullets(
@@ -276,23 +320,27 @@ def test_contributor_contract_matches_ci_language() -> None:
     )
     assert {"lint", "governance", "test", "benchmark"} <= set(pr_checklist)
     assert "tests/meta/test_governance_guards.py" in contributing_bullets["governance"]
+    assert "tests/meta/test_governance_closeout_guards.py" in contributing_bullets["governance"]
     assert "tests/meta/test_version_sync.py" in contributing_bullets["governance"]
     assert "--ignore=tests/benchmarks" in contributing_bullets["test"]
     assert "tests/benchmarks/" in contributing_bullets["benchmark"]
 
 
-def test_default_shell_installer_path_stays_latest() -> None:
+def test_supported_shell_installer_path_uses_verified_release_assets() -> None:
     install_text = (_ROOT / "install.sh").read_text(encoding="utf-8")
     readme_text = _README.read_text(encoding="utf-8")
     readme_zh_text = _README_ZH.read_text(encoding="utf-8")
     troubleshooting_text = _TROUBLESHOOTING.read_text(encoding="utf-8")
 
-    assert '[ -z "$ARCHIVE_TAG" ] && ARCHIVE_TAG="latest"' in install_text
-    assert 'ARCHIVE_TAG=latest bash -' in readme_text
-    assert 'ARCHIVE_TAG=latest bash -' in readme_zh_text
-    assert readme_text.index('ARCHIVE_TAG=latest bash -') < readme_text.index('ARCHIVE_TAG=v1.0.0 bash -')
-    assert readme_zh_text.index('ARCHIVE_TAG=latest bash -') < readme_zh_text.index('ARCHIVE_TAG=v1.0.0 bash -')
-    assert '`ARCHIVE_TAG=latest`' in troubleshooting_text
+    assert "--archive-file" in install_text
+    assert "--checksum-file" in install_text
+    assert "ARCHIVE_TAG=latest bash -" not in readme_text
+    assert "ARCHIVE_TAG=latest bash -" not in readme_zh_text
+    assert "bash ./install.sh --archive-file ./lipro-hass-v1.0.0.zip --checksum-file ./SHA256SUMS" in readme_text
+    assert "bash ./install.sh --archive-file ./lipro-hass-v1.0.0.zip --checksum-file ./SHA256SUMS" in readme_zh_text
+    assert "verified GitHub Release assets" in troubleshooting_text
+    assert "ARCHIVE_TAG=main" in readme_text
+    assert "ARCHIVE_TAG=main" in readme_zh_text
 
 
 def test_phase_23_audit_checklist_covers_addendum_and_explicit_defers() -> None:
@@ -364,174 +412,6 @@ def test_security_disclosure_path_is_present() -> None:
     assert "https://github.com/Exlany/lipro-hass/security/policy" in contact_urls
 
 
-def test_v1_1_closeout_assets_exist_and_are_pull_only() -> None:
-    evidence_index = _ROOT / ".planning" / "reviews" / "V1_1_EVIDENCE_INDEX.md"
-    phase_summary = (
-        _ROOT
-        / ".planning"
-        / "phases"
-        / "07.5-integration-governance-verification-closeout"
-        / "07.5-SUMMARY.md"
-    )
-    plan_01_summary = (
-        _ROOT
-        / ".planning"
-        / "phases"
-        / "07.5-integration-governance-verification-closeout"
-        / "07.5-01-SUMMARY.md"
-    )
-    plan_02_summary = (
-        _ROOT
-        / ".planning"
-        / "phases"
-        / "07.5-integration-governance-verification-closeout"
-        / "07.5-02-SUMMARY.md"
-    )
-    verification = (
-        _ROOT
-        / ".planning"
-        / "phases"
-        / "07.5-integration-governance-verification-closeout"
-        / "07.5-VERIFICATION.md"
-    )
-
-    assert evidence_index.exists()
-    assert phase_summary.exists()
-    assert plan_01_summary.exists()
-    assert plan_02_summary.exists()
-    assert verification.exists()
-
-    evidence_text = evidence_index.read_text(encoding="utf-8")
-    assert "## Pull Contract" in evidence_text
-    assert "07.3-runtime-telemetry-exporter" in evidence_text
-    assert "07.4-protocol-replay-simulator-harness" in evidence_text
-    assert "Phase 8 Pull Boundary" in evidence_text
-
-
-def test_governance_truth_registers_v1_1_closeout_assets() -> None:
-    authority_text = (
-        _ROOT / ".planning" / "baseline" / "AUTHORITY_MATRIX.md"
-    ).read_text(encoding="utf-8")
-    verification_text = (
-        _ROOT / ".planning" / "baseline" / "VERIFICATION_MATRIX.md"
-    ).read_text(encoding="utf-8")
-    residual_text = (_ROOT / ".planning" / "reviews" / "RESIDUAL_LEDGER.md").read_text(
-        encoding="utf-8"
-    )
-    kill_text = (_ROOT / ".planning" / "reviews" / "KILL_LIST.md").read_text(
-        encoding="utf-8"
-    )
-
-    assert "runtime telemetry exporter family" in authority_text
-    assert "v1.1 closeout evidence index" in authority_text
-    assert "7 / 7.5 / 15 / 16 / 17" in verification_text
-    assert "V1_1_EVIDENCE_INDEX.md" in authority_text
-    assert "## Phase 07.5 Residual Delta" in residual_text
-    assert "de-scope" in residual_text
-    assert "## Phase 07.5 Status Update" in kill_text
-
-
-def test_v1_2_closeout_assets_exist_and_are_pull_only() -> None:
-    evidence_index = _ROOT / ".planning" / "reviews" / "V1_2_EVIDENCE_INDEX.md"
-    milestone_audit = _ROOT / ".planning" / "v1.2-MILESTONE-AUDIT.md"
-    handoff = _ROOT / ".planning" / "v1.3-HANDOFF.md"
-    phase_23_verification = (
-        _ROOT
-        / ".planning"
-        / "phases"
-        / "23-governance-convergence-contributor-docs-and-release-evidence-closure"
-        / "23-VERIFICATION.md"
-    )
-    phase_24_verification = (
-        _ROOT
-        / ".planning"
-        / "phases"
-        / "24-final-milestone-audit-archive-readiness-and-v1-3-handoff-prep"
-        / "24-VERIFICATION.md"
-    )
-
-    assert evidence_index.exists()
-    assert milestone_audit.exists()
-    assert handoff.exists()
-    assert phase_23_verification.exists()
-    assert phase_24_verification.exists()
-
-    evidence_text = evidence_index.read_text(encoding="utf-8")
-    assert "## Pull Contract" in evidence_text
-    assert "21-VERIFICATION.md" in evidence_text
-    assert "24-VERIFICATION.md" in evidence_text
-    assert "archive-ready" in evidence_text
-    assert "handoff-ready" in evidence_text
-
-
-def test_governance_truth_registers_v1_2_closeout_assets() -> None:
-    authority_text = (
-        _ROOT / ".planning" / "baseline" / "AUTHORITY_MATRIX.md"
-    ).read_text(encoding="utf-8")
-    verification_text = (
-        _ROOT / ".planning" / "baseline" / "VERIFICATION_MATRIX.md"
-    ).read_text(encoding="utf-8")
-    residual_text = (_ROOT / ".planning" / "reviews" / "RESIDUAL_LEDGER.md").read_text(
-        encoding="utf-8"
-    )
-    kill_text = (_ROOT / ".planning" / "reviews" / "KILL_LIST.md").read_text(
-        encoding="utf-8"
-    )
-    milestones_text = (_ROOT / ".planning" / "MILESTONES.md").read_text(
-        encoding="utf-8"
-    )
-
-    assert "V1_2_EVIDENCE_INDEX.md" in authority_text
-    assert "## Phase 21 Replay / Exception Taxonomy Contract" in verification_text
-    assert "## Phase 24 Final Audit / Archive-Ready / Handoff Contract" in verification_text
-    assert "## Phase 24 Final Audit Disposition" in residual_text
-    assert "## Phase 24 Status Update" in kill_text
-    assert "## v1.2 Host-Neutral Core & Replay Completion" in milestones_text
-
-
-
-
-def test_milestone_archive_snapshots_exist_and_are_referenced() -> None:
-    roadmap_text = (_ROOT / ".planning" / "ROADMAP.md").read_text(encoding="utf-8")
-    requirements_text = (_ROOT / ".planning" / "REQUIREMENTS.md").read_text(
-        encoding="utf-8"
-    )
-    project_text = (_ROOT / ".planning" / "PROJECT.md").read_text(encoding="utf-8")
-    state_text = (_ROOT / ".planning" / "STATE.md").read_text(encoding="utf-8")
-
-    milestones_text = (_ROOT / ".planning" / "MILESTONES.md").read_text(encoding="utf-8")
-
-    archive_paths = (
-        _ROOT / ".planning" / "milestones" / "v1.1-ROADMAP.md",
-        _ROOT / ".planning" / "milestones" / "v1.1-REQUIREMENTS.md",
-        _ROOT / ".planning" / "milestones" / "v1.2-ROADMAP.md",
-        _ROOT / ".planning" / "milestones" / "v1.2-REQUIREMENTS.md",
-    )
-
-    for path in archive_paths:
-        assert path.exists()
-
-    for needle in (
-        "v1.1-ROADMAP.md",
-        "v1.1-REQUIREMENTS.md",
-        "v1.2-ROADMAP.md",
-        "v1.2-REQUIREMENTS.md",
-    ):
-        assert needle in roadmap_text
-        assert needle in requirements_text or needle in project_text or needle in milestones_text
-
-    assert "archive snapshots 已落入 `.planning/milestones/`" in state_text
-    assert "archived / evidence-ready" in milestones_text
-    assert "archived snapshots created / handoff-ready" in milestones_text
-    assert "revalidated 2026-03-17" in milestones_text
-
-    v1_1_archive_text = (
-        _ROOT / ".planning" / "milestones" / "v1.1-ROADMAP.md"
-    ).read_text(encoding="utf-8")
-
-    assert "待执行 milestone archival" not in v1_1_archive_text
-    assert "当当前里程碑完成时，应能同时回答以下问题：" in project_text
-
 def test_phase_7_5_planning_truth_is_consistent() -> None:
     roadmap_text = (_ROOT / ".planning" / "ROADMAP.md").read_text(encoding="utf-8")
     requirements_text = (_ROOT / ".planning" / "REQUIREMENTS.md").read_text(
@@ -560,6 +440,69 @@ def test_phase_7_5_planning_truth_is_consistent() -> None:
         "- [x] All tasks have automated verify or Wave 0 dependencies"
         in validation_text
     )
+
+
+def test_phase_30_31_typed_closeout_truth_is_consistent() -> None:
+    state_text = (_ROOT / ".planning" / "STATE.md").read_text(encoding="utf-8")
+    handoff_text = (_ROOT / ".planning" / "v1.3-HANDOFF.md").read_text(
+        encoding="utf-8"
+    )
+    validation_30_text = (
+        _ROOT
+        / ".planning"
+        / "phases"
+        / "30-protocol-control-typed-contract-tightening"
+        / "30-VALIDATION.md"
+    ).read_text(encoding="utf-8")
+    verification_30_text = (
+        _ROOT
+        / ".planning"
+        / "phases"
+        / "30-protocol-control-typed-contract-tightening"
+        / "30-VERIFICATION.md"
+    ).read_text(encoding="utf-8")
+    validation_31_text = (
+        _ROOT
+        / ".planning"
+        / "phases"
+        / "31-runtime-service-typed-budget-and-exception-closure"
+        / "31-VALIDATION.md"
+    ).read_text(encoding="utf-8")
+    verification_31_text = (
+        _ROOT
+        / ".planning"
+        / "phases"
+        / "31-runtime-service-typed-budget-and-exception-closure"
+        / "31-VERIFICATION.md"
+    ).read_text(encoding="utf-8")
+
+    assert "`Phase 30` 已完成：REST response/result spine" in state_text
+    assert "`Phase 31` 已完成：runtime/service/platform touched zones" in state_text
+    assert "setup_auth_failed/setup_not_ready/setup_failed" in handoff_text
+    assert "unload_shutdown_degraded" in handoff_text
+    assert "shared `failure_summary`" in handoff_text
+    assert "Phase 31 只承接 runtime/service/platform typed budget" in handoff_text
+    assert "`tests/meta/test_phase31_runtime_budget_guards.py` 已把 `sanctioned_any`、`backlog_any`" in handoff_text
+
+    assert "status: passed" in validation_30_text
+    assert "30-01-01" in validation_30_text and "✅ passed" in validation_30_text
+    assert "30-02-01" in validation_30_text and "✅ passed" in validation_30_text
+    assert "30-03-02" in validation_30_text and "✅ passed" in validation_30_text
+    assert "30-VERIFICATION.md" in validation_30_text
+    assert "# Phase 30 Verification" in verification_30_text
+    assert "status: passed" in verification_30_text
+    assert "18 passed" in verification_30_text
+    assert "215 passed" in verification_30_text
+
+    assert "status: passed" in validation_31_text
+    assert "31-01-01" in validation_31_text and "✅ passed" in validation_31_text
+    assert "31-04-02" in validation_31_text and "✅ passed" in validation_31_text
+    assert "31-VERIFICATION.md" in validation_31_text
+    assert "# Phase 31 Verification" in verification_31_text
+    assert "status: passed" in verification_31_text
+    assert "sanctioned_any" in verification_31_text
+    assert "backlog_any" in verification_31_text
+    assert "tests/meta/test_phase31_runtime_budget_guards.py" in verification_31_text
 
 
 def test_phase_8_planning_truth_is_consistent() -> None:
@@ -719,18 +662,38 @@ def test_manifest_codeowners_match_repo_codeowners() -> None:
     )
 
 
+def test_release_runbook_and_support_docs_expose_continuity_truth() -> None:
+    runbook_text = _RUNBOOK.read_text(encoding="utf-8")
+    support_text = _SUPPORT.read_text(encoding="utf-8")
+    security_text = _SECURITY.read_text(encoding="utf-8")
+    codeowners_text = _CODEOWNERS.read_text(encoding="utf-8")
+
+    for token in ("single-maintainer", "release custody", "freeze", "best effort"):
+        assert token in runbook_text
+    assert "triage owner" in support_text
+    assert "best effort" in support_text
+    assert "freeze new tagged releases" in security_text
+    assert "release custody" in codeowners_text
+
+
 def test_support_and_issue_routing_are_consistent() -> None:
     support_text = _SUPPORT.read_text(encoding="utf-8")
+    security_text = _SECURITY.read_text(encoding="utf-8")
     contributing_text = _CONTRIBUTING.read_text(encoding="utf-8")
     issue_config = _load_yaml(_ISSUE_CONFIG)
     contact_urls = [link["url"] for link in issue_config.get("contact_links", [])]
 
     assert "SUPPORT.md" in contributing_text
     assert "SECURITY.md" in contributing_text
+    assert "verified release assets" in contributing_text
     assert any("discussions" in url.lower() for url in contact_urls)
     assert any("security/policy" in url.lower() for url in contact_urls)
     assert "Discussion" in support_text or "讨论" in support_text
     assert "SECURITY.md" in support_text
+    assert "single-maintainer" in support_text
+    assert "verified GitHub Release assets" in support_text
+    assert "Best effort" in security_text or "best effort" in security_text
+    assert "verified GitHub Release assets" in security_text
 
 
 def test_quality_scale_and_devcontainer_truth_are_in_sync() -> None:
@@ -828,10 +791,10 @@ def test_phase_15_execution_truth_is_consistent() -> None:
     assert "## Phase 15 Status Update" in kill_text
     assert "## Phase 15 Policy Follow-Through" in architecture_policy_text
     assert "custom_components/lipro/core/api/client_base.py" in file_matrix_text
-    assert "ClientSessionState` formal REST session-state home" in file_matrix_text
+    assert "ClientSessionState formal REST session-state home" in file_matrix_text
     assert "custom_components/lipro/core/mqtt/mqtt_client.py" in file_matrix_text
     assert (
-        "`MqttTransportClient` concrete transport home; locality limited to core/mqtt + protocol seam"
+        "direct transport residual; locality limited to core/mqtt + protocol seam"
         in file_matrix_text
     )
 
@@ -1669,8 +1632,7 @@ def test_phase_22_observability_consumer_governance_truth_is_synced() -> None:
         in verification_matrix_text
     )
     assert "复用共享 `failure_summary` vocabulary" in verification_matrix_text
-    assert "control-plane `failure_summary` projection home" in file_matrix_text
-    assert "aggregate `failure_entries` system-health consumer home" in file_matrix_text
-    assert "developer report / feedback failure-signal merge home" in file_matrix_text
+    assert "custom_components/lipro/control/diagnostics_surface.py" in file_matrix_text
+    assert "custom_components/lipro/control/system_health_surface.py" in file_matrix_text
     assert "## Phase 22 Residual Delta" in residual_text
     assert "exporter-only truth" in residual_text

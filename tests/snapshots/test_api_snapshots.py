@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import cast
 from unittest.mock import AsyncMock
 
 import pytest
@@ -20,6 +21,7 @@ from custom_components.lipro.core.api.mqtt_api_service import (
 from custom_components.lipro.core.api.types import (
     CommandResultApiResponse,
     DiagnosticsApiResponse,
+    JsonObject,
     ScheduleApiResponse,
 )
 
@@ -30,9 +32,9 @@ def _load_contract_fixture(name: str) -> object:
     return json.loads((CONTRACT_FIXTURE_DIR / name).read_text())
 
 
-def _require_mapping_response(_path: str, payload: object) -> dict[str, object]:
+def _require_mapping_response(_path: str, payload: object) -> JsonObject:
     assert isinstance(payload, dict)
-    return dict(payload)
+    return cast(JsonObject, payload)
 
 
 def _is_success_code(code: object) -> bool:

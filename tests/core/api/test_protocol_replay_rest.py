@@ -37,6 +37,51 @@ _EXPECTED_PUBLIC_PATHS = {
 }
 
 
+def _assert_rest_contract_shape(manifest: ReplayManifest, canonical: object) -> None:
+    if manifest.family == "rest.mqtt-config":
+        assert isinstance(canonical, dict)
+        assert canonical.keys() == {"accessKey", "secretKey", "endpoint", "clientId"}
+        return
+    if manifest.family == "rest.list-envelope":
+        assert isinstance(canonical, dict)
+        assert canonical.keys() >= {"rows", "has_more"}
+        assert isinstance(canonical["rows"], list)
+        assert all(isinstance(row, dict) for row in canonical["rows"])
+        return
+    if manifest.family == "rest.device-list":
+        assert isinstance(canonical, dict)
+        assert canonical.keys() >= {"devices", "has_more"}
+        assert isinstance(canonical["devices"], list)
+        assert all(
+            row.keys() >= {
+                "deviceId",
+                "serial",
+                "deviceName",
+                "type",
+                "iotName",
+                "isGroup",
+                "properties",
+                "identityAliases",
+            }
+            for row in canonical["devices"]
+        )
+        return
+    if manifest.family == "rest.device-status":
+        assert isinstance(canonical, list)
+        assert all(row.keys() == {"deviceId", "properties"} for row in canonical)
+        return
+    if manifest.family == "rest.mesh-group-status":
+        assert isinstance(canonical, list)
+        assert all(
+            row.keys() >= {"groupId", "gatewayDeviceId", "devices", "properties"}
+            for row in canonical
+        )
+        return
+    if manifest.family == "rest.schedule-json":
+        assert isinstance(canonical, dict)
+        assert canonical.keys() == {"days", "time", "evt"}
+
+
 def _expected_canonical(manifest: ReplayManifest) -> object:
     if manifest.family == "rest.mqtt-config":
         return EXPECTED_MQTT_CONFIG
@@ -80,6 +125,7 @@ def test_rest_replay_scenarios_use_unified_protocol_root(manifest: ReplayManifes
         result,
         expected_canonical=_expected_canonical(manifest),
     )
+    _assert_rest_contract_shape(manifest, result.canonical)
     views = assert_exporter_backed_replay_telemetry(manifest, result)
     assert views.system_health["auth_refresh_success_count"] == 1
     assert fixture.authority_payload is not None
@@ -104,3 +150,4 @@ def test_rest_remaining_families_have_explicit_replay_coverage_contract() -> Non
             result,
             expected_canonical=_expected_canonical(manifest),
         )
+        _assert_rest_contract_shape(manifest, result.canonical)

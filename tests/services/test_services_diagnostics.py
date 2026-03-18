@@ -68,11 +68,11 @@ def _build_city_coordinator(
 ) -> MagicMock:
     """Create a coordinator mock for get_city capability."""
     coordinator = MagicMock()
-    coordinator.async_get_city = AsyncMock()
+    coordinator.protocol_service.async_get_city = AsyncMock()
     if isinstance(behavior, Exception):
-        coordinator.async_get_city.side_effect = behavior
+        coordinator.protocol_service.async_get_city.side_effect = behavior
     else:
-        coordinator.async_get_city.return_value = behavior
+        coordinator.protocol_service.async_get_city.return_value = behavior
     return coordinator
 
 
@@ -469,7 +469,7 @@ def test_build_last_error_payload_omits_empty_message_and_none_code() -> None:
 async def test_async_handle_query_user_cloud_raises_last_api_error() -> None:
     """query_user_cloud should surface the last API error when all entries fail."""
     coordinator = MagicMock()
-    coordinator.async_query_user_cloud = AsyncMock(
+    coordinator.protocol_service.async_query_user_cloud = AsyncMock(
         side_effect=LiproApiError("cloud unavailable", code=504)
     )
     raise_optional_error = MagicMock(side_effect=RuntimeError("mapped error"))

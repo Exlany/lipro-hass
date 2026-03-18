@@ -407,6 +407,56 @@ async def test_async_setup_mqtt_message_callback_bridges_to_runtime_and_coordina
 
 
 @pytest.mark.asyncio
+async def test_async_setup_mqtt_message_callback_records_bridge_failures(
+    coordinator,
+    mock_lipro_api_client,
+) -> None:
+    device = _make_device("mesh_group_1", is_group=True)
+    coordinator._state.devices = {device.serial: device}
+    coordinator._runtimes.state.get_device_by_id = MagicMock(return_value=device)
+    coordinator._runtimes.state.apply_properties_update = AsyncMock(
+        side_effect=RuntimeError("bridge boom")
+    )
+    coordinator.async_set_updated_data = MagicMock()
+    mock_lipro_api_client.get_mqtt_config.return_value = {
+        "accessKey": "enc-ak",
+        "secretKey": "enc-sk",
+    }
+
+    mock_lipro_api_client.build_mqtt_facade = MagicMock(
+        side_effect=lambda **kwargs: _FakeMqttFacade(**kwargs)
+    )
+
+    with (
+        patch(
+            "custom_components.lipro.core.coordinator.mqtt_lifecycle.decrypt_mqtt_credential",
+            side_effect=["ak", "sk"],
+        ),
+        patch(
+            "custom_components.lipro.core.coordinator.mqtt_lifecycle.resolve_mqtt_biz_id",
+            return_value="biz001",
+        ),
+    ):
+        ok = await coordinator.async_setup_mqtt()
+
+    assert ok is True
+    mqtt_client = coordinator._runtimes.mqtt._mqtt_client
+    assert mqtt_client is not None
+    assert isinstance(mqtt_client, _FakeMqttFacade)
+
+    mqtt_client.emit_message(device.serial, {"connectState": "1"})
+    await asyncio.gather(
+        *tuple(coordinator._state.background_task_manager.tasks),
+        return_exceptions=True,
+    )
+
+    metrics = coordinator._runtimes.mqtt.get_runtime_metrics()
+    assert metrics["last_transport_error_stage"] == "message_bridge"
+    assert metrics["failure_summary"]["error_type"] == "RuntimeError"
+    coordinator.async_set_updated_data.assert_not_called()
+
+
+@pytest.mark.asyncio
 async def test_async_setup_mqtt_client_callbacks_drive_runtime_connection_state(
     coordinator,
     mock_lipro_api_client,

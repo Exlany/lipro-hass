@@ -92,6 +92,7 @@ def test_runtime_snapshot_uses_telemetry_surface_projection() -> None:
             "device_count": 5,
             "mqtt_connected": True,
             "last_update_success": True,
+            "lifecycle_contract": "setup_failed",
             "failure_summary": {
                 "failure_category": "network",
                 "failure_origin": "protocol.mqtt",
@@ -113,6 +114,7 @@ def test_runtime_snapshot_uses_telemetry_surface_projection() -> None:
         "handling_policy": "retry",
         "error_type": "TimeoutError",
     }
+    assert not hasattr(snapshot, "lifecycle_contract")
 
 
 def test_find_runtime_entry_for_coordinator_prefers_bound_entry() -> None:

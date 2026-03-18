@@ -87,32 +87,35 @@ class ProtocolReplayDriver:
                 metadata = fixture.authority_metadata
                 topic = metadata.get("topic")
                 expected_biz_id = metadata.get("expected_biz_id")
-                result = decode_mqtt_topic_payload(topic, expected_biz_id=expected_biz_id)
+                topic_result = decode_mqtt_topic_payload(
+                    topic,
+                    expected_biz_id=expected_biz_id,
+                )
                 return _build_success_result(
                     fixture=fixture,
                     public_path=public_path,
-                    canonical=result.canonical,
-                    fingerprint=result.fingerprint,
+                    canonical=topic_result.canonical,
+                    fingerprint=topic_result.fingerprint,
                 )
             if operation == "protocol.boundary.decode_mqtt_message_envelope":
                 metadata = fixture.authority_metadata
                 payload = metadata.get("payload")
-                result = decode_mqtt_message_envelope_payload(payload)
+                envelope_result = decode_mqtt_message_envelope_payload(payload)
                 return _build_success_result(
                     fixture=fixture,
                     public_path=public_path,
-                    canonical=result.canonical,
-                    fingerprint=result.fingerprint,
+                    canonical=envelope_result.canonical,
+                    fingerprint=envelope_result.fingerprint,
                 )
             if operation == "protocol.boundary.decode_mqtt_properties":
                 metadata = fixture.authority_metadata
                 payload = metadata.get("payload")
-                result = decode_mqtt_properties_payload(payload)
+                properties_result = decode_mqtt_properties_payload(payload)
                 return _build_success_result(
                     fixture=fixture,
                     public_path=public_path,
-                    canonical=result.canonical,
-                    fingerprint=result.fingerprint,
+                    canonical=properties_result.canonical,
+                    fingerprint=properties_result.fingerprint,
                 )
 
             protocol = self._protocol_factory(

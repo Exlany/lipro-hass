@@ -199,37 +199,29 @@ class TestCoordinatorFetchDevices:
     async def test_fetch_devices_rejects_malformed_devices_payload(
         self, coordinator, mock_lipro_api_client
     ):
-        """Malformed devices payload should be skipped gracefully."""
+        """Malformed devices payload must reject the refresh atomically."""
         mock_lipro_api_client.get_devices.return_value = make_device_page("invalid")
 
-        with patch(
-            "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager"
-        ) as mock_share:
-            mock_share.return_value = MagicMock(is_enabled=False)
-            # Should not raise, just skip invalid data
+        with pytest.raises(Exception, match="stage=page_payload"):
             await refresh_and_sync_devices(coordinator)
 
-        # No devices should be added
         assert len(coordinator.devices) == 0
 
     @pytest.mark.asyncio
-    async def test_fetch_devices_skips_non_dict_rows(
+    async def test_fetch_devices_rejects_non_dict_rows_atomically(
         self, coordinator, mock_lipro_api_client
     ):
-        """Non-dict device rows should be ignored without breaking refresh."""
+        """Non-dict rows must reject the full refresh atomically."""
         mock_lipro_api_client.get_devices.return_value = make_device_page([
                 make_api_device(serial="03ab5ccd7c000001"),
                 "bad-row",
                 123,
             ])
 
-        with patch(
-            "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager"
-        ) as mock_share:
-            mock_share.return_value = MagicMock(is_enabled=False)
+        with pytest.raises(Exception, match="stage=page_row"):
             await refresh_and_sync_devices(coordinator)
 
-        assert set(coordinator.devices) == {"03ab5ccd7c000001"}
+        assert coordinator.devices == {}
 
     @pytest.mark.asyncio
     async def test_gateway_devices_filtered_out(
@@ -302,12 +294,7 @@ class TestCoordinatorErrorHandling:
     async def test_api_error_raises_update_failed(
         self, coordinator, mock_lipro_api_client
     ):
-        """LiproApiError during device fetch -> UpdateFailed.
-
-        Note: In new architecture, snapshot builder catches API errors and returns
-        empty snapshot. The error is only raised if it happens during auth check.
-        """
-        # Simulate API error during authentication check (before device fetch)
+        """LiproApiError during device fetch -> UpdateFailed."""
         mock_lipro_api_client.get_devices.side_effect = LiproApiError(
             "server error"
         )
@@ -316,20 +303,14 @@ class TestCoordinatorErrorHandling:
             "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager"
         ) as mock_share:
             mock_share.return_value = MagicMock(is_enabled=False)
-            # Should not raise - returns empty device list instead
-            result = await coordinator._async_update_data()
-            assert len(result) == 0
+            with pytest.raises(UpdateFailed, match="server error"):
+                await coordinator._async_update_data()
 
     @pytest.mark.asyncio
     async def test_auth_error_during_fetch_raises_config_entry_auth_failed(
         self, coordinator, mock_lipro_api_client
     ):
-        """LiproAuthError during get_devices -> ConfigEntryAuthFailed.
-
-        Note: In new architecture, snapshot builder catches auth errors during
-        device fetch and returns empty snapshot. Auth errors only propagate
-        from the initial auth check.
-        """
+        """LiproAuthError during get_devices -> ConfigEntryAuthFailed."""
         mock_lipro_api_client.get_devices.side_effect = LiproAuthError(
             "unauthorized"
         )
@@ -338,9 +319,41 @@ class TestCoordinatorErrorHandling:
             "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager"
         ) as mock_share:
             mock_share.return_value = MagicMock(is_enabled=False)
-            # Should not raise - returns empty device list instead
-            result = await coordinator._async_update_data()
-            assert len(result) == 0
+            with pytest.raises(ConfigEntryAuthFailed):
+                await coordinator._async_update_data()
+
+
+    @pytest.mark.asyncio
+    async def test_rejected_refresh_keeps_last_known_good_state(
+        self, coordinator, mock_lipro_api_client
+    ):
+        """Rejected page-2 refresh must preserve current coordinator state."""
+        serial = "03ab5ccd7c000001"
+        mock_lipro_api_client.get_devices.return_value = make_device_page(
+            [make_api_device(serial=serial)]
+        )
+
+        with patch(
+            "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager"
+        ) as mock_share:
+            mock_share.return_value = MagicMock(is_enabled=False)
+            await coordinator._async_update_data()
+
+            coordinator.device_refresh_service.request_force_refresh()
+            mock_lipro_api_client.get_devices.side_effect = [
+                make_device_page([make_api_device(serial=serial)], total=2),
+                Exception("Network error"),
+            ]
+
+            with pytest.raises(UpdateFailed, match="page=2"):
+                await coordinator._async_update_data()
+
+        assert set(coordinator.devices) == {serial}
+        telemetry = coordinator.telemetry_service.build_snapshot()
+        assert telemetry["last_runtime_failure_stage"] == "runtime"
+        assert telemetry["failure_summary"]["error_type"] == (
+            "RuntimeSnapshotRefreshRejectedError"
+        )
 
 
 # =========================================================================

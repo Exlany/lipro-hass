@@ -33,7 +33,10 @@ def test_install_sh_has_preflight_and_symlink_guards() -> None:
     assert "LIPRO_ALLOW_BRANCH_FALLBACK" in install_sh
     assert "Tag-only install mode" in install_sh
 
-    # Optional checksum verification (Release assets).
-    assert "LIPRO_REQUIRE_CHECKSUM" in install_sh
-    assert "SHA256SUMS" in install_sh
+    # Verified local release-asset installs should be first-class and tool-independent.
+    assert "--archive-file" in install_sh
+    assert "--checksum-file" in install_sh
+    assert "hashlib" in install_sh
+    assert "Local release-asset installs require --checksum-file" in install_sh
     assert "Checksum verified" in install_sh
+    assert "preview-only and unsupported" in install_sh

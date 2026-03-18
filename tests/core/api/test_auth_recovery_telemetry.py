@@ -2,11 +2,15 @@
 
 from __future__ import annotations
 
-from unittest.mock import MagicMock
+from unittest.mock import AsyncMock, MagicMock
 
 import aiohttp
 import pytest
 
+from custom_components.lipro.core.api import (
+    LiproConnectionError,
+    LiproRefreshTokenExpiredError,
+)
 from custom_components.lipro.core.api.client_auth_recovery import (
     AuthRecoveryCoordinator,
 )
@@ -64,3 +68,62 @@ async def test_auth_recovery_telemetry_tracks_auth_failure() -> None:
     assert snapshot["refresh_failure_count"] == 1
     assert snapshot["last_refresh_outcome"] == "auth_error"
     assert snapshot["last_refresh_error_type"] == "LiproAuthError"
+
+
+@pytest.mark.asyncio
+async def test_auth_recovery_without_refresh_callback_returns_false() -> None:
+    state = _state()
+    state.access_token = "access"
+    coordinator = AuthRecoveryCoordinator(state)
+
+    assert await coordinator.handle_401_with_refresh("access") is False
+
+
+@pytest.mark.asyncio
+async def test_auth_recovery_without_token_update_returns_false() -> None:
+    state = _state()
+    state.access_token = "old-token"
+    coordinator = AuthRecoveryCoordinator(state)
+    refresh = AsyncMock()
+    coordinator.set_token_refresh_callback(refresh)
+
+    assert await coordinator.handle_401_with_refresh("old-token") is False
+    refresh.assert_awaited_once()
+
+
+@pytest.mark.asyncio
+async def test_auth_recovery_connection_error_bubbles() -> None:
+    state = _state()
+    state.access_token = "access"
+    coordinator = AuthRecoveryCoordinator(state)
+    coordinator.set_token_refresh_callback(
+        AsyncMock(side_effect=LiproConnectionError("timeout"))
+    )
+
+    with pytest.raises(LiproConnectionError, match="timeout"):
+        await coordinator.handle_401_with_refresh("access")
+
+
+@pytest.mark.asyncio
+async def test_auth_recovery_refresh_token_expired_bubbles() -> None:
+    state = _state()
+    state.access_token = "access"
+    coordinator = AuthRecoveryCoordinator(state)
+    coordinator.set_token_refresh_callback(
+        AsyncMock(side_effect=LiproRefreshTokenExpiredError("expired"))
+    )
+
+    with pytest.raises(LiproRefreshTokenExpiredError, match="expired"):
+        await coordinator.handle_401_with_refresh("access")
+
+
+@pytest.mark.asyncio
+async def test_auth_recovery_refresh_auth_error_returns_false() -> None:
+    state = _state()
+    state.access_token = "access"
+    coordinator = AuthRecoveryCoordinator(state)
+    coordinator.set_token_refresh_callback(
+        AsyncMock(side_effect=LiproAuthError("invalid"))
+    )
+
+    assert await coordinator.handle_401_with_refresh("access") is False

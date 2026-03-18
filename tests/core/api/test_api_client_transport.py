@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 import logging
-from unittest.mock import MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import aiohttp
 import pytest
@@ -133,3 +133,31 @@ async def test_execute_request_logs_response_when_debug_enabled(caplog) -> None:
     assert any(
         "API response from /v2/test" in rec.getMessage() for rec in caplog.records
     )
+
+
+@pytest.mark.asyncio
+async def test_smart_home_request_returns_typed_value_payload() -> None:
+    executor = _build_executor()
+
+    with patch.object(
+        executor,
+        "request_smart_home_mapping",
+        new=AsyncMock(return_value=({"code": 0, "typedValue": [1, 2, 3]}, "token")),
+    ):
+        result = await executor.smart_home_request("/v2/test", {"scope": "all"})
+
+    assert result == [1, 2, 3]
+
+
+@pytest.mark.asyncio
+async def test_iot_request_returns_empty_mapping_for_null_success_data() -> None:
+    executor = _build_executor()
+
+    with patch.object(
+        executor,
+        "request_iot_mapping",
+        new=AsyncMock(return_value=({"code": 0, "data": None}, "token")),
+    ):
+        result = await executor.iot_request("/v2/test", {"deviceId": "03ab5ccd7c000001"})
+
+    assert result == {}

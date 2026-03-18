@@ -74,7 +74,7 @@ async def test_system_health_info_surfaces_failure_entries_from_telemetry(hass) 
     entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
     entry.add_to_hass(hass)
     entry.runtime_data = SimpleNamespace(
-        client=SimpleNamespace(
+        protocol=SimpleNamespace(
             protocol_diagnostics_snapshot=lambda: {
                 "entry_id": entry.entry_id,
                 "telemetry": {"mqtt_last_error_type": "TimeoutError"},
@@ -100,6 +100,13 @@ async def test_system_health_info_surfaces_failure_entries_from_telemetry(hass) 
     failure_entry = result["failure_entries"][0]
 
     assert failure_entry["entry_ref"].startswith("entry_")
+    assert set(failure_entry) == {
+        "entry_ref",
+        "failure_category",
+        "failure_origin",
+        "handling_policy",
+        "error_type",
+    }
     assert result["failure_entries"] == [
         {
             "entry_ref": failure_entry["entry_ref"],

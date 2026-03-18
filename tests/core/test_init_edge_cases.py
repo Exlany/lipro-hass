@@ -8,7 +8,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.lipro import async_unload_entry
+from custom_components.lipro import async_reload_entry, async_unload_entry
 from custom_components.lipro.const.base import DOMAIN
 from custom_components.lipro.entry_options import (
     async_reload_entry_if_options_changed,
@@ -63,3 +63,19 @@ async def test_async_unload_entry_reraises_cancelled_error_from_shutdown(hass) -
 
         with pytest.raises(asyncio.CancelledError):
             await async_unload_entry(hass, entry)
+
+
+@pytest.mark.asyncio
+async def test_async_reload_entry_reraises_cancelled_error(hass) -> None:
+    entry = MockConfigEntry(domain=DOMAIN)
+    entry.add_to_hass(hass)
+
+    with patch.object(
+        hass.config_entries,
+        "async_reload",
+        new_callable=AsyncMock,
+    ) as reload_entry:
+        reload_entry.side_effect = asyncio.CancelledError
+
+        with pytest.raises(asyncio.CancelledError):
+            await async_reload_entry(hass, entry)

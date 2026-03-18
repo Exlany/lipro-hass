@@ -92,3 +92,18 @@ async def test_device_refresh_service_refreshes_and_exposes_latest_snapshot() ->
     refresh_callback.assert_awaited_once()
     assert service.devices == {"dev1": device}
     assert service.get_device_by_id("dev1") is device
+
+
+@pytest.mark.asyncio
+async def test_device_refresh_service_propagates_refresh_rejection() -> None:
+    refresh_callback = AsyncMock(side_effect=RuntimeError("boom"))
+    service = CoordinatorDeviceRefreshService(
+        device_runtime=MagicMock(),
+        state_runtime=MagicMock(),
+        refresh_callback=refresh_callback,
+    )
+
+    with pytest.raises(RuntimeError, match="boom"):
+        await service.async_refresh_devices()
+
+    refresh_callback.assert_awaited_once()
