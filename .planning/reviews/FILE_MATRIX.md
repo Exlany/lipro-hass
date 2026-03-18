@@ -1,6 +1,6 @@
 # File Matrix
 
-**Python files total:** 457
+**Python files total:** 468
 **Status:** File-level governance authority
 **Rule:** workspace inventory excluding caches / virtual env / tooling artifacts
 
@@ -89,6 +89,7 @@
 | `custom_components/lipro/core/command/expectation.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/core/command/post_refresh.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/core/command/result.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `custom_components/lipro/core/command/result_policy.py` | Cross-cutting | Phase 33 | 保留 | command-result classification / retry / delayed-refresh policy home |
 | `custom_components/lipro/core/command/trace.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/core/coordinator/__init__.py` | Runtime | Phase 5 | 重构 | - |
 | `custom_components/lipro/core/coordinator/coordinator.py` | Runtime | Phase 5 / 14 | 重构 | HA-facing runtime façade hotspot |
@@ -111,8 +112,10 @@
 | `custom_components/lipro/core/coordinator/runtime/device/filter.py` | Runtime | Phase 5 | 重构 | - |
 | `custom_components/lipro/core/coordinator/runtime/device/refresh_strategy.py` | Runtime | Phase 5 | 重构 | - |
 | `custom_components/lipro/core/coordinator/runtime/device/snapshot.py` | Runtime | Phase 5 | 重构 | - |
+| `custom_components/lipro/core/coordinator/runtime/device/snapshot_models.py` | Runtime | Phase 33 | 保留 | typed snapshot container + rejection contract home |
 | `custom_components/lipro/core/coordinator/runtime/device_runtime.py` | Runtime | Phase 5 | 重构 | - |
 | `custom_components/lipro/core/coordinator/runtime/mqtt/__init__.py` | Runtime | Phase 5 | 重构 | - |
+| `custom_components/lipro/core/coordinator/runtime/mqtt/adapters.py` | Runtime | Phase 33 | 保留 | MQTT callback adapter helper home |
 | `custom_components/lipro/core/coordinator/runtime/mqtt/connection.py` | Runtime | Phase 5 | 重构 | - |
 | `custom_components/lipro/core/coordinator/runtime/mqtt/dedup.py` | Runtime | Phase 5 | 重构 | - |
 | `custom_components/lipro/core/coordinator/runtime/mqtt/message_handler.py` | Runtime | Phase 5 | 重构 | - |
@@ -187,6 +190,7 @@
 | `custom_components/lipro/core/protocol/boundary/__init__.py` | Protocol | Phase 7.1 | 保留 | - |
 | `custom_components/lipro/core/protocol/boundary/mqtt_decoder.py` | Protocol | Phase 7.1 | 保留 | - |
 | `custom_components/lipro/core/protocol/boundary/rest_decoder.py` | Protocol | Phase 7.1 | 保留 | - |
+| `custom_components/lipro/core/protocol/boundary/rest_decoder_support.py` | Protocol | Phase 33 | 保留 | REST decoder canonicalization helper home |
 | `custom_components/lipro/core/protocol/boundary/result.py` | Protocol | Phase 7.1 | 保留 | - |
 | `custom_components/lipro/core/protocol/boundary/schema_registry.py` | Protocol | Phase 7.1 | 保留 | - |
 | `custom_components/lipro/core/protocol/compat.py` | Protocol | Phase 2.5 | 保留 | - |
@@ -274,9 +278,11 @@
 | `tests/conftest_shared.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/core/__init__.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `tests/core/api/__init__.py` | Protocol | Phase 2 | 保留 | - |
-| `tests/core/api/test_api.py` | Protocol | Phase 2 | 保留 | - |
+| `tests/core/api/test_api.py` | Protocol | Phase 33 | 保留 | topic root for auth/init REST regressions |
 | `tests/core/api/test_api_client_transport.py` | Protocol | Phase 2 | 保留 | - |
 | `tests/core/api/test_api_command_service.py` | Protocol | Phase 2 | 保留 | - |
+| `tests/core/api/test_api_command_surface.py` | Protocol | Phase 33 | 保留 | topicized command / request-edge regression home |
+| `tests/core/api/test_api_device_surface.py` | Protocol | Phase 33 | 保留 | topicized device / capability regression home |
 | `tests/core/api/test_api_diagnostics_service.py` | Protocol | Phase 2 | 保留 | - |
 | `tests/core/api/test_api_request_policy.py` | Protocol | Phase 2 | 保留 | - |
 | `tests/core/api/test_api_schedule_candidate_mutations.py` | Protocol | Phase 2 | 保留 | - |
@@ -286,6 +292,7 @@
 | `tests/core/api/test_api_status_endpoints.py` | Protocol | Phase 2 | 保留 | - |
 | `tests/core/api/test_api_status_service.py` | Protocol | Phase 2 | 保留 | - |
 | `tests/core/api/test_api_status_service_regressions.py` | Protocol | Phase 2 | 保留 | - |
+| `tests/core/api/test_api_transport_and_schedule.py` | Protocol | Phase 33 | 保留 | topicized transport / schedule regression home |
 | `tests/core/api/test_api_types_smoke.py` | Protocol | Phase 2 | 保留 | - |
 | `tests/core/api/test_auth_recovery_telemetry.py` | Protocol | Phase 2 | 保留 | - |
 | `tests/core/api/test_helper_modules.py` | Protocol | Phase 2 | 保留 | - |
@@ -368,8 +375,10 @@
 | `tests/core/test_headless_boot.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `tests/core/test_helpers.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `tests/core/test_identity_index.py` | Cross-cutting | Phase 7 | 保留 | - |
-| `tests/core/test_init.py` | Control | Phase 3 / 7 | 保留 | - |
+| `tests/core/test_init.py` | Control | Phase 33 | 保留 | topic root for init contract regressions |
 | `tests/core/test_init_edge_cases.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `tests/core/test_init_runtime_behavior.py` | Control | Phase 33 | 保留 | runtime/lifecycle-focused init regression home |
+| `tests/core/test_init_schema_validation.py` | Control | Phase 33 | 保留 | schema-focused init regression home |
 | `tests/core/test_init_service_handlers.py` | Control | Phase 27 | 保留 | - |
 | `tests/core/test_log_safety.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `tests/core/test_outlet_power.py` | Cross-cutting | Phase 7 | 保留 | - |
@@ -423,7 +432,9 @@
 | `tests/meta/test_external_boundary_fixtures.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_firmware_support_manifest_repo_asset.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_governance_closeout_guards.py` | Assurance | Phase 27 | 保留 | - |
-| `tests/meta/test_governance_guards.py` | Assurance | Phase 6 | 保留 | - |
+| `tests/meta/test_governance_guards.py` | Assurance | Phase 33 | 保留 | inventory / policy governance topic root |
+| `tests/meta/test_governance_phase_history.py` | Assurance | Phase 33 | 保留 | phase-history governance topic home |
+| `tests/meta/test_governance_release_contract.py` | Assurance | Phase 33 | 保留 | release / contributor contract governance topic home |
 | `tests/meta/test_install_sh_guards.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_modularization_surfaces.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_phase31_runtime_budget_guards.py` | Assurance | Phase 6 | 保留 | - |

@@ -31,6 +31,7 @@ _TYPE_GUARD_TARGETS = {
     "core/coordinator/runtime/state/updater.py",
     "core/coordinator/runtime/device_runtime.py",
     "core/coordinator/runtime/device/snapshot.py",
+    "core/utils/background_task_manager.py",
     "services/diagnostics/helpers.py",
     "services/maintenance.py",
     "select.py",
@@ -40,7 +41,7 @@ _TYPE_GUARD_TARGETS = {
 _ANY_BUDGET: dict[str, _AnyBudgetEntry] = {
     "core/coordinator/runtime/mqtt_runtime.py": {
         "sanctioned_any": {
-            "from typing import TYPE_CHECKING, Any, Protocol, TypeVar, cast": 1,
+            "from typing import TYPE_CHECKING, Any, Protocol, TypeVar": 1,
             "coro: Coroutine[Any, Any, Any],": 2,
             "create_task: Callable[[Coroutine[Any, Any, Any]], asyncio.Task[Any]] | None = None,": 1,
             ") -> asyncio.Task[Any]:": 1,
@@ -54,6 +55,19 @@ _ANY_BUDGET: dict[str, _AnyBudgetEntry] = {
         "backlog_any": {
             "sync_mesh_group_extra_data(device, cast(dict[str, Any], row))": 1,
         },
+    },
+    "core/utils/background_task_manager.py": {
+        "sanctioned_any": {
+            "from typing import Any": 1,
+            "create_task: Callable[[Coroutine[Any, Any, Any]], asyncio.Task[Any]],": 1,
+            "self._tasks: set[asyncio.Task[Any]] = set()": 1,
+            "def tasks(self) -> set[asyncio.Task[Any]]:": 1,
+            "coro: Coroutine[Any, Any, Any],": 1,
+            "Callable[[Coroutine[Any, Any, Any]], asyncio.Task[Any]] | None": 1,
+            ") -> asyncio.Task[Any]:": 1,
+            "def on_done(self, task: asyncio.Task[Any]) -> None:": 1,
+        },
+        "backlog_any": {},
     },
 }
 
@@ -101,10 +115,8 @@ _BROAD_CATCH_BUDGET: dict[str, _BroadCatchBudgetEntry] = {
         },
     },
     "services/maintenance.py": {
-        "expected_count": 1,
-        "semantic_markers": {
-            "Config entry reload failed after device registry update (%s, %s)": 1,
-        },
+        "expected_count": 0,
+        "semantic_markers": {},
     },
 }
 

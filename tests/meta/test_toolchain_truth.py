@@ -24,8 +24,13 @@ _CI_WORKFLOW = _ROOT / ".github" / "workflows" / "ci.yml"
 _RELEASE_WORKFLOW = _ROOT / ".github" / "workflows" / "release.yml"
 _DEVELOP_SCRIPT = _ROOT / "scripts" / "develop"
 _SETUP_PYTHON = "actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405"
+_UPLOAD_ARTIFACT = "actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02"
 _README = _ROOT / "README.md"
 _README_ZH = _ROOT / "README_zh.md"
+_SUPPORT = _ROOT / "SUPPORT.md"
+_SECURITY = _ROOT / "SECURITY.md"
+_TROUBLESHOOTING = _ROOT / "docs" / "TROUBLESHOOTING.md"
+_RUNBOOK = _ROOT / "docs" / "MAINTAINER_RELEASE_RUNBOOK.md"
 _CODEBASE_DIR = _ROOT / ".planning" / "codebase"
 
 _TESTING_MAP = _ROOT / ".planning" / "codebase" / "TESTING.md"
@@ -56,10 +61,18 @@ def _count_testing_inventory() -> dict[str, int]:
     fixture_readmes = sorted((tests_root / "fixtures").glob("*/README.md"))
     return {
         "total": len(test_files),
-        "meta": sum(1 for path in test_files if path.is_relative_to(tests_root / "meta")),
-        "integration": sum(1 for path in test_files if path.is_relative_to(tests_root / "integration")),
-        "benchmark": sum(1 for path in test_files if path.is_relative_to(tests_root / "benchmarks")),
-        "snapshot": sum(1 for path in test_files if path.is_relative_to(tests_root / "snapshots")),
+        "meta": sum(
+            1 for path in test_files if path.is_relative_to(tests_root / "meta")
+        ),
+        "integration": sum(
+            1 for path in test_files if path.is_relative_to(tests_root / "integration")
+        ),
+        "benchmark": sum(
+            1 for path in test_files if path.is_relative_to(tests_root / "benchmarks")
+        ),
+        "snapshot": sum(
+            1 for path in test_files if path.is_relative_to(tests_root / "snapshots")
+        ),
         "fixture_readmes": len(fixture_readmes),
     }
 
@@ -161,6 +174,73 @@ def test_bilingual_readmes_capture_release_asset_identity_truth() -> None:
     assert "单维护者模型" in readme_zh_text
 
 
+def test_pre_push_contract_runs_translation_and_governance_truth_early() -> None:
+    """Local pre-push should surface the same translation/governance drift CI blocks on."""
+    pre_commit = _load_yaml(_PRE_COMMIT)
+    hooks = pre_commit["repos"][0]["hooks"]
+    hook_by_id = {hook["id"]: hook for hook in hooks}
+
+    assert (
+        hook_by_id["translations-truth"]["entry"]
+        == "uv run --extra dev python scripts/check_translations.py"
+    )
+    assert (
+        hook_by_id["architecture-policy"]["entry"]
+        == "uv run --extra dev python scripts/check_architecture_policy.py --check"
+    )
+    assert (
+        hook_by_id["file-matrix"]["entry"]
+        == "uv run --extra dev python scripts/check_file_matrix.py --check"
+    )
+    assert (
+        "tests/meta/test_governance*.py"
+        in hook_by_id["pytest-governance-gate"]["entry"]
+    )
+    assert (
+        "tests/meta/test_toolchain_truth.py"
+        in hook_by_id["pytest-governance-gate"]["entry"]
+    )
+
+
+def test_ci_test_and_benchmark_lanes_keep_one_snapshot_story() -> None:
+    """CI should avoid duplicate snapshot cost and keep benchmark evidence advisory."""
+    ci = _load_yaml(_CI_WORKFLOW)
+
+    test_steps = ci["jobs"]["test"]["steps"]
+    test_step_names = {step["name"] for step in test_steps}
+    assert "Run snapshot tests" not in test_step_names
+    contract_step = next(
+        step for step in test_steps if step.get("name") == "Record test lane contract"
+    )
+    assert "snapshot coverage: included in the main tests/ lane" in contract_step["run"]
+
+    benchmark_steps = ci["jobs"]["benchmark"]["steps"]
+    benchmark_run = next(
+        step
+        for step in benchmark_steps
+        if step.get("name") == "Run advisory benchmarks"
+    )
+    assert benchmark_run["continue-on-error"] is True
+    assert benchmark_run["id"] == "benchmark_run"
+    assert "--benchmark-json=.benchmarks/benchmark.json" in benchmark_run["run"]
+
+    upload_step = next(
+        step
+        for step in benchmark_steps
+        if step.get("name") == "Upload advisory benchmark artifact"
+    )
+    assert upload_step["uses"] == _UPLOAD_ARTIFACT
+    assert upload_step["with"]["path"] == ".benchmarks/benchmark.json"
+
+    summary_step = next(
+        step
+        for step in benchmark_steps
+        if step.get("name") == "Record benchmark advisory posture"
+    )
+    assert "advisory-with-budget" in summary_step["run"]
+    assert "steps.benchmark_run.outcome" in summary_step["run"]
+
+
 def test_pytest_marker_contract_has_no_dead_declarations() -> None:
     """Only live pytest markers should remain declared in pyproject."""
     pyproject = _load_pyproject()
@@ -205,6 +285,26 @@ def test_codebase_maps_publish_snapshot_freshness_and_authority_boundaries() -> 
 
         assert "Authority:" in text, path.as_posix()
         assert "不得反向充当当前治理真源" in text, path.as_posix()
+
+
+def test_deep_docs_keep_single_maintainer_continuity_truth() -> None:
+    """Support/security/troubleshooting/runbook should tell one honest continuity story."""
+    support_text = _SUPPORT.read_text(encoding="utf-8")
+    security_text = _SECURITY.read_text(encoding="utf-8")
+    troubleshooting_text = _TROUBLESHOOTING.read_text(encoding="utf-8")
+    runbook_text = _RUNBOOK.read_text(encoding="utf-8")
+
+    assert "single-maintainer" in support_text
+    assert "single-maintainer" in security_text
+    assert "single-maintainer" in runbook_text
+    assert "单维护者" in troubleshooting_text
+    assert "freeze new tagged releases" in security_text
+    assert "freeze new release promises" in support_text
+    assert "freeze new tagged releases" in runbook_text
+    assert "freeze new release promises" in troubleshooting_text
+    assert "SECURITY.md" in troubleshooting_text
+    assert "SUPPORT.md" in troubleshooting_text
+    assert "docs/MAINTAINER_RELEASE_RUNBOOK.md" in troubleshooting_text
 
 
 def test_develop_script_smoke_mode_preserves_other_integrations(

@@ -70,6 +70,15 @@ def test_public_surface_baseline_registers_assurance_only_replay_and_evidence_su
     assert "pull-only evidence pointers" in public_surfaces
 
 
+def test_root_adapter_uses_runtime_types_for_runtime_coordinator_truth() -> None:
+    root_adapter_text = (_ROOT / "custom_components" / "lipro" / "__init__.py").read_text(encoding="utf-8")
+    runtime_types_text = (_ROOT / "custom_components" / "lipro" / "runtime_types.py").read_text(encoding="utf-8")
+
+    assert "from .runtime_types import LiproRuntimeCoordinator" in root_adapter_text
+    assert "class LiproRuntimeCoordinator(Protocol):" not in root_adapter_text
+    assert "class LiproRuntimeCoordinator(Protocol):" in runtime_types_text
+
+
 def test_scripts_keep_tests_imports_helper_only_and_pull_only() -> None:
     actual: dict[str, set[str]] = {}
     for script_path in sorted((_ROOT / "scripts").glob("*.py")):
@@ -295,3 +304,12 @@ def test_phase_30_control_contracts_stay_private_and_system_health_minimal() -> 
     assert "Any" not in system_health_text
     assert "diagnostics" not in system_health_text
     assert "developer" not in system_health_text
+    for token in (
+        "RuntimeCoordinatorSnapshot",
+        "iter_runtime_entries",
+        "iter_runtime_coordinators",
+        "build_entry_telemetry_snapshot",
+        "build_entry_telemetry_views",
+        "get_entry_telemetry_exporter",
+    ):
+        assert token not in control_exports

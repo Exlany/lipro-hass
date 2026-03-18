@@ -361,6 +361,7 @@ data:
 - 稳定支持目标：最新标签版本与与其一致的 HACS 安装
 - 预览路径（`ARCHIVE_TAG=main`、branch fallback、mirror 安装）：仅属 best effort
 - 分流与发版 custody 仍遵循单维护者模型；若维护者不可用，应冻结 release 承诺，而不是静默绕过门禁或暗示存在隐藏的备用维护者
+- 深层文档也必须讲同一条故事：`SUPPORT.md`、`SECURITY.md`、`docs/TROUBLESHOOTING.md` 与 `docs/MAINTAINER_RELEASE_RUNBOOK.md` 需要持续对齐 custody / freeze 真相
 
 ## 贡献
 

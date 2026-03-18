@@ -374,39 +374,39 @@
 
 ### Architecture / Control Truth
 
-- [ ] **ARC-03**: runtime public surface 必须只有一份正式类型真源；HA 顶层 adapter 可以 import / alias，但不得继续自定义第二份 `LiproRuntimeCoordinator` 契约。
-- [ ] **CTRL-07**: control-plane telemetry / runtime-access / support read-model 必须改成 acyclic、port-based 边界；`RuntimeCoordinatorSnapshot` 必须变成纯 DTO，不再携带活体 runtime root。
+- [x] **ARC-03**: runtime public surface 必须只有一份正式类型真源；HA 顶层 adapter 可以 import / alias，但不得继续自定义第二份 `LiproRuntimeCoordinator` 契约。
+- [x] **CTRL-07**: control-plane telemetry / runtime-access / support read-model 必须改成 acyclic、port-based 边界；`RuntimeCoordinatorSnapshot` 必须变成纯 DTO，不再携带活体 runtime root。
 
 ### Hotspots / Quality Gates
 
-- [ ] **HOT-08**: giant runtime/protocol/helper hotspots 必须继续沿现有正式 seams 切薄；`LiproRestFacade`、`LiproProtocolFacade`、`Coordinator`、`SnapshotBuilder`、`CommandResult` family 不得被长期合法化为 forwarding roots。
-- [ ] **ERR-07**: remaining broad-catch paths 必须收敛到 named arbitration、documented degraded semantics 或 fail-closed contract；新增 catch-all regression 必须被 no-growth guards 拦截。
-- [ ] **QLT-06**: local / CI / release / benchmark gates 必须收敛到 machine-checkable truth；snapshot duplicate execution、local late feedback 与 performance advisory-only posture 必须被修正。
-- [ ] **QLT-07**: dependency / compatibility posture 必须更可复现、更显式；runtime dependency bounds、Python floor、support window 与 release posture 必须讲同一条故事。
+- [x] **HOT-08**: giant runtime/protocol/helper hotspots 必须继续沿现有正式 seams 切薄；`LiproRestFacade`、`LiproProtocolFacade`、`Coordinator`、`SnapshotBuilder`、`CommandResult` family 不得被长期合法化为 forwarding roots。
+- [x] **ERR-07**: remaining broad-catch paths 必须收敛到 named arbitration、documented degraded semantics 或 fail-closed contract；新增 catch-all regression 必须被 no-growth guards 拦截。
+- [x] **QLT-06**: local / CI / release / benchmark gates 必须收敛到 machine-checkable truth；snapshot duplicate execution、local late feedback 与 performance advisory-only posture 必须被修正。
+- [x] **QLT-07**: dependency / compatibility posture 必须更可复现、更显式；runtime dependency bounds、Python floor、support window 与 release posture 必须讲同一条故事。
 
 ### Governance / Productization / Testing
 
-- [ ] **GOV-27**: control public exports、empty compat shells、legacy/mixin naming residue 与 internal helper exposure 必须缩面或重分类，不能继续暗示第二条 public story。
-- [ ] **GOV-28**: 深层 public docs 必须朝 bilingual parity、support/security continuity 与 maintainer custody honesty 再推进一轮；`signing` / `code scanning` / release custody 仍须显式、非虚构。
-- [ ] **TST-05**: remaining giant test suites 必须继续 topicize 成更稳定、可局部执行的专题面，同时保持治理门禁强度与回归信号。
+- [x] **GOV-27**: control public exports、empty compat shells、legacy/mixin naming residue 与 internal helper exposure 必须缩面或重分类，不能继续暗示第二条 public story。
+- [x] **GOV-28**: 深层 public docs 必须朝 bilingual parity、support/security continuity 与 maintainer custody honesty 再推进一轮；`signing` / `code scanning` / release custody 仍须显式、非虚构。
+- [x] **TST-05**: remaining giant test suites 必须继续 topicize 成更稳定、可局部执行的专题面，同时保持治理门禁强度与回归信号。
 
 ## Traceability for Phase 33 continuation
 
 | Requirement | Planned Phase | Status |
 |-------------|---------------|--------|
-| ARC-03 | Phase 33 | Planned |
-| CTRL-07 | Phase 33 | Planned |
-| HOT-08 | Phase 33 | Planned |
-| ERR-07 | Phase 33 | Planned |
-| TST-05 | Phase 33 | Planned |
-| QLT-06 | Phase 33 | Planned |
-| GOV-27 | Phase 33 | Planned |
-| GOV-28 | Phase 33 | Planned |
-| QLT-07 | Phase 33 | Planned |
+| ARC-03 | Phase 33 | Complete |
+| CTRL-07 | Phase 33 | Complete |
+| HOT-08 | Phase 33 | Complete |
+| ERR-07 | Phase 33 | Complete |
+| TST-05 | Phase 33 | Complete |
+| QLT-06 | Phase 33 | Complete |
+| GOV-27 | Phase 33 | Complete |
+| GOV-28 | Phase 33 | Complete |
+| QLT-07 | Phase 33 | Complete |
 
 **Seed Coverage:**
 - Phase 33 routed requirements: 9 total
 - Current mapped: 9
-- Current complete: 0
-- Current pending: 9
+- Current complete: 9
+- Current pending: 0
 - Current unmapped: 0 ✓

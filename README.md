@@ -360,6 +360,7 @@ This integration is implemented by reverse engineering the Lipro cloud API and i
 - Stable support targets: the latest tagged release and the matching HACS install
 - Preview paths (`ARCHIVE_TAG=main`, branch fallback, mirror installs): best effort only
 - Triage and release custody follow a single-maintainer model; if the maintainer is unavailable, release promises freeze rather than silently bypassing gates or implying a hidden backup maintainer
+- Deep-doc continuity follows the same story: `SUPPORT.md`, `SECURITY.md`, `docs/TROUBLESHOOTING.md`, and `docs/MAINTAINER_RELEASE_RUNBOOK.md` must stay aligned on custody / freeze truth
 
 ## Contributing
 

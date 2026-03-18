@@ -175,6 +175,76 @@ OVERRIDES: dict[str, FileGovernanceRow] = {
         fate="保留",
         residual="-",
     ),
+    "tests/core/api/test_api.py": FileGovernanceRow(
+        path="tests/core/api/test_api.py",
+        area="Protocol",
+        owner_phase="Phase 33",
+        fate="保留",
+        residual="topic root for auth/init REST regressions",
+    ),
+    "tests/core/api/test_api_command_surface.py": FileGovernanceRow(
+        path="tests/core/api/test_api_command_surface.py",
+        area="Protocol",
+        owner_phase="Phase 33",
+        fate="保留",
+        residual="topicized command / request-edge regression home",
+    ),
+    "tests/core/api/test_api_device_surface.py": FileGovernanceRow(
+        path="tests/core/api/test_api_device_surface.py",
+        area="Protocol",
+        owner_phase="Phase 33",
+        fate="保留",
+        residual="topicized device / capability regression home",
+    ),
+    "tests/core/api/test_api_transport_and_schedule.py": FileGovernanceRow(
+        path="tests/core/api/test_api_transport_and_schedule.py",
+        area="Protocol",
+        owner_phase="Phase 33",
+        fate="保留",
+        residual="topicized transport / schedule regression home",
+    ),
+    "tests/core/test_init.py": FileGovernanceRow(
+        path="tests/core/test_init.py",
+        area="Control",
+        owner_phase="Phase 33",
+        fate="保留",
+        residual="topic root for init contract regressions",
+    ),
+    "tests/core/test_init_schema_validation.py": FileGovernanceRow(
+        path="tests/core/test_init_schema_validation.py",
+        area="Control",
+        owner_phase="Phase 33",
+        fate="保留",
+        residual="schema-focused init regression home",
+    ),
+    "tests/core/test_init_runtime_behavior.py": FileGovernanceRow(
+        path="tests/core/test_init_runtime_behavior.py",
+        area="Control",
+        owner_phase="Phase 33",
+        fate="保留",
+        residual="runtime/lifecycle-focused init regression home",
+    ),
+    "tests/meta/test_governance_guards.py": FileGovernanceRow(
+        path="tests/meta/test_governance_guards.py",
+        area="Assurance",
+        owner_phase="Phase 33",
+        fate="保留",
+        residual="inventory / policy governance topic root",
+    ),
+    "tests/meta/test_governance_release_contract.py": FileGovernanceRow(
+        path="tests/meta/test_governance_release_contract.py",
+        area="Assurance",
+        owner_phase="Phase 33",
+        fate="保留",
+        residual="release / contributor contract governance topic home",
+    ),
+    "tests/meta/test_governance_phase_history.py": FileGovernanceRow(
+        path="tests/meta/test_governance_phase_history.py",
+        area="Assurance",
+        owner_phase="Phase 33",
+        fate="保留",
+        residual="phase-history governance topic home",
+    ),
     "custom_components/lipro/control/developer_router_support.py": FileGovernanceRow(
         path="custom_components/lipro/control/developer_router_support.py",
         area="Control",
@@ -230,6 +300,34 @@ OVERRIDES: dict[str, FileGovernanceRow] = {
         owner_phase="Phase 14",
         fate="保留",
         residual="protocol-facing runtime service surface",
+    ),
+    "custom_components/lipro/core/command/result_policy.py": FileGovernanceRow(
+        path="custom_components/lipro/core/command/result_policy.py",
+        area="Cross-cutting",
+        owner_phase="Phase 33",
+        fate="保留",
+        residual="command-result classification / retry / delayed-refresh policy home",
+    ),
+    "custom_components/lipro/core/coordinator/runtime/device/snapshot_models.py": FileGovernanceRow(
+        path="custom_components/lipro/core/coordinator/runtime/device/snapshot_models.py",
+        area="Runtime",
+        owner_phase="Phase 33",
+        fate="保留",
+        residual="typed snapshot container + rejection contract home",
+    ),
+    "custom_components/lipro/core/coordinator/runtime/mqtt/adapters.py": FileGovernanceRow(
+        path="custom_components/lipro/core/coordinator/runtime/mqtt/adapters.py",
+        area="Runtime",
+        owner_phase="Phase 33",
+        fate="保留",
+        residual="MQTT callback adapter helper home",
+    ),
+    "custom_components/lipro/core/protocol/boundary/rest_decoder_support.py": FileGovernanceRow(
+        path="custom_components/lipro/core/protocol/boundary/rest_decoder_support.py",
+        area="Protocol",
+        owner_phase="Phase 33",
+        fate="保留",
+        residual="REST decoder canonicalization helper home",
     ),
     "custom_components/lipro/core/mqtt/mqtt_client.py": FileGovernanceRow(
         path="custom_components/lipro/core/mqtt/mqtt_client.py",
@@ -584,7 +682,9 @@ def validate_codebase_map_policy(root: Path) -> list[str]:
 
     readme_path = root / CODEBASE_MAP_README_PATH
     if not readme_path.exists():
-        errors.append(f"missing codebase map authority note: {CODEBASE_MAP_README_PATH}")
+        errors.append(
+            f"missing codebase map authority note: {CODEBASE_MAP_README_PATH}"
+        )
         return errors
 
     readme_text = readme_path.read_text(encoding="utf-8")
@@ -602,7 +702,9 @@ def validate_codebase_map_policy(root: Path) -> list[str]:
 
     agents_text = (root / AGENTS_PATH).read_text(encoding="utf-8")
     if "仍有 coordinator 私有 auth seam" in agents_text:
-        errors.append("AGENTS.md still marks execution.py as an active private auth seam")
+        errors.append(
+            "AGENTS.md still marks execution.py as an active private auth seam"
+        )
     if "Phase 5 已关闭 coordinator 私有 auth seam" not in agents_text:
         errors.append("AGENTS.md missing closed-seam wording for execution.py")
 
@@ -612,7 +714,9 @@ def validate_codebase_map_policy(root: Path) -> list[str]:
         "formal service execution facade; private auth seam closed |"
     )
     if expected_row not in file_matrix_text:
-        errors.append("FILE_MATRIX execution.py row is not aligned with the closed-seam truth")
+        errors.append(
+            "FILE_MATRIX execution.py row is not aligned with the closed-seam truth"
+        )
 
     for relative_path in (
         CODEBASE_MAP_DIR / "STRUCTURE.md",
@@ -625,6 +729,8 @@ def validate_codebase_map_policy(root: Path) -> list[str]:
             )
 
     return errors
+
+
 def run_checks(root: Path) -> list[str]:
     """Run all governance checks and return the accumulated error list."""
     errors: list[str] = []

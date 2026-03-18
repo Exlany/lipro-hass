@@ -4,8 +4,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from ..runtime_types import LiproCoordinator
-
 type FailureSummary = dict[str, str | None]
 
 
@@ -25,7 +23,6 @@ class RuntimeCoordinatorSnapshot:
 
     entry_id: str
     entry_ref: str | None
-    coordinator: LiproCoordinator
     device_count: int
     last_update_success: bool
     mqtt_connected: bool | None

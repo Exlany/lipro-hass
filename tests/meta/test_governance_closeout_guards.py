@@ -316,11 +316,12 @@ def test_phase_32_completion_truth_is_consistent() -> None:
     assert "- Current complete: 29" in requirements_text
     assert "- Current pending: 0" in requirements_text
 
-    assert "`Phase 25 -> 32` 已于 `2026-03-18` 全部执行完成" in project_text
+    assert "`Phase 25 -> 33` 已于 `2026-03-18` 全部执行完成" in project_text
     assert "`Phase 32` — truth convergence, gate honesty, and quality-10 closeout" in project_text
-    assert "`Phase 25 -> 32` 已于 `2026-03-18` 全部执行完成并通过 fresh gates" in state_text
-    assert "$gsd-execute-phase 33" in state_text
+    assert "`Phase 32` 已执行完成" in state_text
+    assert "`Phase 25 -> 33` 已于 `2026-03-18` 全部执行完成并通过 fresh gates" in state_text
     assert "$gsd-audit-milestone" in state_text
+    assert "$gsd-progress" in state_text
 
 
 def test_phase_33_planning_truth_is_consistent() -> None:
@@ -347,6 +348,14 @@ def test_phase_33_planning_truth_is_consistent() -> None:
         "33-05-PLAN.md",
         "33-06-PLAN.md",
         "33-VALIDATION.md",
+        "33-01-SUMMARY.md",
+        "33-02-SUMMARY.md",
+        "33-03-SUMMARY.md",
+        "33-04-SUMMARY.md",
+        "33-05-SUMMARY.md",
+        "33-06-SUMMARY.md",
+        "33-SUMMARY.md",
+        "33-VERIFICATION.md",
     ):
         assert (phase_root / artifact_name).exists()
 
@@ -355,35 +364,35 @@ def test_phase_33_planning_truth_is_consistent() -> None:
         "**Requirements**: [ARC-03, CTRL-07, HOT-08, ERR-07, TST-05, QLT-06, GOV-27, GOV-28, QLT-07]"
         in roadmap_text
     )
-    assert "**Status**: Planned (`2026-03-18`)" in roadmap_text
-    assert "**Plans**: 0/6 complete" in roadmap_text
+    assert "**Status**: Complete (`2026-03-18`)" in roadmap_text
+    assert "**Plans**: 6/6 complete" in roadmap_text
 
     for needle in (
-        "- [ ] **ARC-03**",
-        "- [ ] **CTRL-07**",
-        "- [ ] **HOT-08**",
-        "- [ ] **ERR-07**",
-        "- [ ] **TST-05**",
-        "- [ ] **QLT-06**",
-        "- [ ] **GOV-27**",
-        "- [ ] **GOV-28**",
-        "- [ ] **QLT-07**",
-        "| ARC-03 | Phase 33 | Planned |",
-        "| CTRL-07 | Phase 33 | Planned |",
-        "| HOT-08 | Phase 33 | Planned |",
-        "| ERR-07 | Phase 33 | Planned |",
-        "| TST-05 | Phase 33 | Planned |",
-        "| QLT-06 | Phase 33 | Planned |",
-        "| GOV-27 | Phase 33 | Planned |",
-        "| GOV-28 | Phase 33 | Planned |",
-        "| QLT-07 | Phase 33 | Planned |",
+        "- [x] **ARC-03**",
+        "- [x] **CTRL-07**",
+        "- [x] **HOT-08**",
+        "- [x] **ERR-07**",
+        "- [x] **TST-05**",
+        "- [x] **QLT-06**",
+        "- [x] **GOV-27**",
+        "- [x] **GOV-28**",
+        "- [x] **QLT-07**",
+        "| ARC-03 | Phase 33 | Complete |",
+        "| CTRL-07 | Phase 33 | Complete |",
+        "| HOT-08 | Phase 33 | Complete |",
+        "| ERR-07 | Phase 33 | Complete |",
+        "| TST-05 | Phase 33 | Complete |",
+        "| QLT-06 | Phase 33 | Complete |",
+        "| GOV-27 | Phase 33 | Complete |",
+        "| GOV-28 | Phase 33 | Complete |",
+        "| QLT-07 | Phase 33 | Complete |",
     ):
         assert needle in requirements_text
 
-    assert "`Phase 33` 已被追加为 post-closeout continuation tranche" in project_text
+    assert "`Phase 33` 已被追加并执行完成，成为 post-closeout continuation tranche 的已落地 tranche" in project_text
     assert "## Phase 33 Audit-Driven Continuation" in project_text
-    assert "`33-05 / 33-06` 再收紧 CI/pre-push/benchmark/release evidence truth、dependency posture、deep-doc parity、maintainer continuity 与 mega-test topicization。" in project_text
-    assert "`Phase 33` 已完成规划立项" in state_text
-    assert "runtime contract dual-truth、control de-loop、giant roots、exception policy、gate drift、dependency posture、deep-doc parity 与 mega-test topicization" in state_text
-    assert "$gsd-execute-phase 33" in state_text
+    assert "`33-05 / 33-06` 已收紧 CI/pre-push/benchmark/release evidence truth、dependency posture、deep-doc parity、maintainer continuity 与 mega-test topicization。" in project_text
+    assert "`Phase 33 complete`" in state_text
+    assert "runtime contract dual-truth、control 去回路、giant hotspots / broad-catch / gate drift / dependency posture / deep-doc continuity / mega-test topicization 已全部收口" in state_text
     assert "$gsd-audit-milestone" in state_text
+    assert "$gsd-progress" in state_text

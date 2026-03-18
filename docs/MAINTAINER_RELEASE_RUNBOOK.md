@@ -4,9 +4,12 @@
 
 This repository currently follows a single-maintainer release model. Every tagged release must reuse `.github/workflows/ci.yml`; `.github/workflows/release.yml` is only the tagged security / packaging / publishing tail of that same gate.
 
+> Continuity note / 连续性说明：do not imply hidden backup maintainers. If the maintainer is unavailable, freeze new tagged releases and keep `SUPPORT.md` / `SECURITY.md` routing honest.
+
 ## Truth Sources
 
 - Canonical package version: `pyproject.toml`, `custom_components/lipro/manifest.json`, `custom_components/lipro/const/base.py`
+- Canonical runtime dependency envelope: `pyproject.toml` (full runtime floor/bounds) + `custom_components/lipro/manifest.json` (Home Assistant-installed subset)
 - Canonical minimum supported Home Assistant version: `2026.3.1` from `pyproject.toml`
 - Canonical public support/security paths: `README.md`, `README_zh.md`, `CONTRIBUTING.md`, `SUPPORT.md`, `SECURITY.md`
 - Canonical troubleshooting path: `docs/TROUBLESHOOTING.md`
@@ -55,7 +58,7 @@ uv run ruff check .
 uv run mypy
 uv run python scripts/check_architecture_policy.py --check
 uv run python scripts/check_file_matrix.py --check
-uv run pytest -q tests/meta/test_governance_guards.py tests/meta/test_governance_closeout_guards.py tests/meta/test_version_sync.py tests/meta/test_toolchain_truth.py
+uv run pytest -q tests/meta/test_governance*.py tests/meta/test_version_sync.py tests/meta/test_toolchain_truth.py
 ```
 
 ## Release Freeze / Custody Truth

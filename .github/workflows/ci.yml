@@ -90,8 +90,7 @@ jobs:
           uv run pytest -q -x
           tests/meta/test_dependency_guards.py
           tests/meta/test_public_surface_guards.py
-          tests/meta/test_governance_guards.py
-          tests/meta/test_governance_closeout_guards.py
+          tests/meta/test_governance*.py
           tests/meta/test_version_sync.py
 
   security:
@@ -184,8 +183,11 @@ jobs:
           --cov-report=xml
           --cov-report=term-missing
 
-      - name: Run snapshot tests
-        run: uv run pytest tests/snapshots/ -v
+      - name: Record test lane contract
+        if: always()
+        run: |
+          echo "snapshot coverage: included in the main tests/ lane; no separate snapshot rerun" >> "$GITHUB_STEP_SUMMARY"
+          echo "benchmark coverage: excluded from the blocking test lane and handled by the advisory benchmark lane" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Check coverage floor / optional baseline diff
         run: uv run python scripts/coverage_diff.py coverage.json --minimum 95
@@ -225,11 +227,32 @@ jobs:
         run: uv sync --frozen --extra dev
 
       - name: Run advisory benchmarks
+        id: benchmark_run
+        continue-on-error: true
         run: >-
           uv run pytest tests/benchmarks/
           -v
           --benchmark-only
           --benchmark-json=.benchmarks/benchmark.json
+
+      - name: Upload advisory benchmark artifact
+        if: always() && hashFiles('.benchmarks/benchmark.json') != ''
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: advisory-benchmark-json-${{ github.run_id }}
+          path: .benchmarks/benchmark.json
+          if-no-files-found: error
+
+      - name: Record benchmark advisory posture
+        if: always()
+        run: |
+          echo "benchmark lane: advisory-with-budget, non-blocking on PRs, and only runs on schedule/workflow_dispatch" >> "$GITHUB_STEP_SUMMARY"
+          echo "benchmark outcome: ${{ steps.benchmark_run.outcome }}" >> "$GITHUB_STEP_SUMMARY"
+          if [[ -f .benchmarks/benchmark.json ]]; then
+            echo "benchmark artifact: .benchmarks/benchmark.json" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "benchmark artifact: missing" >> "$GITHUB_STEP_SUMMARY"
+          fi
 
   validate:
     name: Validate

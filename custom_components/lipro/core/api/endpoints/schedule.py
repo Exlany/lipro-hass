@@ -59,7 +59,7 @@ def _decode_schedule_json_boundary(payload: object) -> dict[str, list[int]]:
 
 
 class ScheduleEndpoints(_EndpointAdapter):
-    """Legacy schedule helper mixin retained for focused helper coverage."""
+    """Schedule endpoint helpers for the formal REST facade."""
 
     @staticmethod
     def _is_mesh_group_id(device_id: str) -> bool:

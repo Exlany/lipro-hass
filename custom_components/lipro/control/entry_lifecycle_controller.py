@@ -205,14 +205,24 @@ class EntryLifecycleController:
     ) -> None:
         """Abort setup after one non-cancellation failure while preserving cleanup."""
         contract = self._classify_setup_failure(error)
-        self._logger.debug(
+        self._log_lifecycle_contract(contract)
+        await self._async_abort_setup(entry=entry, coordinator=coordinator)
+
+    def _log_lifecycle_contract(
+        self,
+        contract: LifecycleFailureContract,
+        *,
+        warning: bool = False,
+    ) -> None:
+        """Log one named lifecycle arbitration contract at the intended level."""
+        log = self._logger.warning if warning else self._logger.debug
+        log(
             "Lifecycle %s contract %s -> %s (%s)",
             contract.stage,
             contract.contract_name,
             contract.handling_policy,
             contract.error_type,
         )
-        await self._async_abort_setup(entry=entry, coordinator=coordinator)
 
     def _classify_setup_failure(
         self,
@@ -273,13 +283,7 @@ class EntryLifecycleController:
             raise
         except Exception as err:  # noqa: BLE001
             contract = self._classify_unload_failure(err)
-            self._logger.warning(
-                "Lifecycle %s contract %s -> %s (%s)",
-                contract.stage,
-                contract.contract_name,
-                contract.handling_policy,
-                contract.error_type,
-            )
+            self._log_lifecycle_contract(contract, warning=True)
 
     async def async_setup_component(self, hass: HomeAssistant, config: object) -> bool:
         """Set up shared runtime infrastructure for the integration."""
@@ -326,13 +330,6 @@ class EntryLifecycleController:
             )
         except asyncio.CancelledError:
             await self._async_abort_setup(entry=entry, coordinator=coordinator)
-            raise
-        except (ConfigEntryAuthFailed, ConfigEntryNotReady) as err:
-            await self._async_abort_setup_for_error(
-                entry=entry,
-                coordinator=coordinator,
-                error=err,
-            )
             raise
         except Exception as err:
             await self._async_abort_setup_for_error(
@@ -386,23 +383,7 @@ class EntryLifecycleController:
             await hass.config_entries.async_reload(entry.entry_id)
         except asyncio.CancelledError:
             raise
-        except (ConfigEntryAuthFailed, ConfigEntryNotReady) as err:
-            contract = self._classify_reload_failure(err)
-            self._logger.debug(
-                "Lifecycle %s contract %s -> %s (%s)",
-                contract.stage,
-                contract.contract_name,
-                contract.handling_policy,
-                contract.error_type,
-            )
-            raise
         except Exception as err:
             contract = self._classify_reload_failure(err)
-            self._logger.debug(
-                "Lifecycle %s contract %s -> %s (%s)",
-                contract.stage,
-                contract.contract_name,
-                contract.handling_policy,
-                contract.error_type,
-            )
+            self._log_lifecycle_contract(contract)
             raise

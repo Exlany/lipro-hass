@@ -10,6 +10,7 @@
 ## Version & Validation Truth
 
 - Minimum supported Home Assistant version: `2026.3.1` (canonical source: `pyproject.toml`).
+- Canonical runtime dependency envelope: `pyproject.toml` (full runtime floor/bounds) + `custom_components/lipro/manifest.json` (Home Assistant-installed subset).
 - Supported stable install paths: HACS and verified GitHub Release assets (`install.sh` + release zip + `SHA256SUMS`).
 - Current release identity evidence: published `SHA256SUMS`, `SBOM`, and GitHub artifact `attestation` / `provenance` (`gh attestation verify`). This is provenance evidence, not artifact signing.
 - Deferred release hardening: artifact `signing` and GitHub `code scanning` are not current hard gates.

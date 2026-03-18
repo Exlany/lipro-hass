@@ -114,7 +114,9 @@ def test_bug_report_template_lists_supported_install_methods() -> None:
     """Bug report template should cover the supported installation paths."""
     template = _load_yaml(_BUG_TEMPLATE)
     body = template["body"]
-    install_method_field = next(item for item in body if item.get("id") == "install-method")
+    install_method_field = next(
+        item for item in body if item.get("id") == "install-method"
+    )
     options = install_method_field["attributes"]["options"]
 
     assert "HACS" in options
@@ -123,21 +125,41 @@ def test_bug_report_template_lists_supported_install_methods() -> None:
     assert any("Manual" in option for option in options)
 
 
-def test_bug_report_template_keeps_developer_report_as_optional_escalation_path() -> None:
+def test_bug_report_template_keeps_developer_report_as_optional_escalation_path() -> (
+    None
+):
     """Developer report should remain an escalation path, not a hard bug-report gate."""
     template = _load_yaml(_BUG_TEMPLATE)
     checklist = next(item for item in template["body"] if item["type"] == "checkboxes")
-    labels = {option["label"]: option.get("required", False) for option in checklist["attributes"]["options"]}
-    optional_label = next(label for label in labels if "diagnostics were not enough" in label or "diagnostics 不足" in label)
+    labels = {
+        option["label"]: option.get("required", False)
+        for option in checklist["attributes"]["options"]
+    }
+    optional_label = next(
+        label
+        for label in labels
+        if "diagnostics were not enough" in label or "diagnostics 不足" in label
+    )
 
     assert labels[optional_label] is False
 
-    method_field = next(item for item in template["body"] if item.get("id") == "developer-feedback-method")
-    report_field = next(item for item in template["body"] if item.get("id") == "developer-report")
+    method_field = next(
+        item
+        for item in template["body"]
+        if item.get("id") == "developer-feedback-method"
+    )
+    report_field = next(
+        item for item in template["body"] if item.get("id") == "developer-report"
+    )
 
-    assert any("Not available" in option for option in method_field["attributes"]["options"])
+    assert any(
+        "Not available" in option for option in method_field["attributes"]["options"]
+    )
     assert report_field["validations"]["required"] is False
-    assert "Optional unless diagnostics still cannot explain the issue" in report_field["attributes"]["description"]
+    assert (
+        "Optional unless diagnostics still cannot explain the issue"
+        in report_field["attributes"]["description"]
+    )
 
 
 def test_public_docs_track_homeassistant_min_version() -> None:
@@ -160,9 +182,18 @@ def test_public_docs_track_homeassistant_min_version() -> None:
 
 def test_private_repo_hacs_caveat_is_consistent() -> None:
     """Docs and CI should say the same thing about private-repo HACS validation."""
-    for path in (_README, _README_ZH, _CONTRIBUTING, _SUPPORT, _SECURITY, _TROUBLESHOOTING, _RUNBOOK, _BUG_TEMPLATE, _CI_WORKFLOW):
+    for path in (
+        _README,
+        _README_ZH,
+        _CONTRIBUTING,
+        _SUPPORT,
+        _SECURITY,
+        _TROUBLESHOOTING,
+        _RUNBOOK,
+        _BUG_TEMPLATE,
+        _CI_WORKFLOW,
+    ):
         _assert_contains_private_repo_hacs_caveat(path)
-
 
 
 def test_release_runbook_references_v1_2_evidence_index() -> None:
@@ -205,7 +236,9 @@ def test_release_docs_capture_supply_chain_posture_and_firmware_defer() -> None:
 def test_issue_config_routes_docs_to_troubleshooting() -> None:
     """Issue contact links should route documentation requests to troubleshooting."""
     config = _load_yaml(_ISSUE_CONFIG)
-    doc_link = next(link for link in config["contact_links"] if "Documentation" in link["name"])
+    doc_link = next(
+        link for link in config["contact_links"] if "Documentation" in link["name"]
+    )
 
     assert doc_link["url"].endswith("docs/TROUBLESHOOTING.md")
 
@@ -218,3 +251,24 @@ def test_project_urls_expose_public_entrypoints() -> None:
     assert urls["Support"].endswith("SUPPORT.md")
     assert urls["Security"].endswith("SECURITY.md")
     assert urls["Discussions"].endswith("/discussions")
+
+
+def test_runtime_dependency_bounds_are_explicit_and_manifest_aligned() -> None:
+    """Runtime dependency bounds should stay explicit across package metadata."""
+    pyproject = tomllib.loads(_PYPROJECT.read_text(encoding="utf-8"))
+    manifest = json.loads(_MANIFEST.read_text(encoding="utf-8"))
+
+    runtime_deps = set(pyproject["project"]["dependencies"])
+    manifest_requirements = set(manifest["requirements"])
+
+    assert runtime_deps == {
+        "aiohttp>=3.12.0,<4.0.0",
+        "aiomqtt>=2.0.0,<3.0.0",
+        "pycryptodome>=3.19.0,<4.0.0",
+        "voluptuous>=0.15.2,<1.0.0",
+    }
+    assert manifest_requirements == {
+        "aiomqtt>=2.0.0,<3.0.0",
+        "pycryptodome>=3.19.0,<4.0.0",
+    }
+    assert manifest_requirements <= runtime_deps

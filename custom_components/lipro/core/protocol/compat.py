@@ -1,4 +1,4 @@
-"""Compat markers retained for historical audits only."""
+"""Historical audit markers, not an active public compatibility surface."""
 
 from __future__ import annotations
 

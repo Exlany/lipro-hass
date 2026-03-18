@@ -7,7 +7,7 @@ from .payloads import _EndpointAdapter
 
 
 class AuthEndpoints(_EndpointAdapter):
-    """Legacy auth endpoint mixin retained for focused helper tests."""
+    """Auth endpoint helpers for the formal REST facade."""
 
     async def login(
         self,

@@ -32,9 +32,9 @@
 
 ## v1.3 Closeout & Post-closeout Continuation
 
-**Route-freeze status:** `Phase 25 -> 32` 已于 `2026-03-18` 全部执行完成；v1.3 continuation route 现已从 execution-ready 收口到 execution-complete / audit-ready。基于同日全仓终审，`Phase 33` 已被追加为 post-closeout continuation tranche，用来把 remaining P1/P2 hardening debt 从口头结论转成正式执行路线。
+**Route-freeze status:** `Phase 25 -> 33` 已于 `2026-03-18` 全部执行完成；v1.3 continuation route 现已从 execution-ready 收口到 execution-complete / audit-ready。基于同日全仓终审，`Phase 33` 已被追加并执行完成，成为 post-closeout continuation tranche 的已落地 tranche。
 
-**Continuation closeout status:** `Phase 32` execution / verification 资产现已落地，依赖链 `31 -> 32` 已闭环；`.planning/v1.3-HANDOFF.md` 继续作为 `Phase 25 -> 31` 历史 closeout baseline。`Phase 33` 明确作为 **post-v1.3 continuation tranche** 存在：默认 next action 是 `$gsd-execute-phase 33`，而 `$gsd-audit-milestone` 继续作为 archive-or-promote 仲裁入口，而非与 `Phase 33` 并列的第二条 active route。
+**Continuation closeout status:** `Phase 32` 与 `Phase 33` 的 execution / verification 资产现已落地，依赖链 `31 -> 32 -> 33` 已闭环；`.planning/v1.3-HANDOFF.md` 继续作为 `Phase 25 -> 31` 历史 closeout baseline，而 `33-VERIFICATION.md` / `33-SUMMARY.md` 负责承接 post-v1.3 continuation 的最终 closeout。当前默认 next action 是 `$gsd-audit-milestone`（archive-or-promote 仲裁）或 `$gsd-progress`（查看更新后的路线基线），不再保留第二条 active execution route。
 
 **Parent phase:** `Phase 25 — Quality-10 remediation master plan and execution routing`
 
@@ -80,10 +80,10 @@
 
 **Execution promise:** `Phase 33` 不是第二套路线图，而是把上述 remaining P1/P2 全量压进单一正式主链上的下一轮 hardening tranche；任何交付都必须继续沿 `protocol / control / runtime / services / tests / docs` 现有 homes 推进。
 
-**Route promise:**
-- `33-01 / 33-02` 先关闭 runtime contract dual-truth、control reflection loop、snapshot leakage 与 over-wide exports。
-- `33-03 / 33-04` 继续切薄 giant roots，并把 exception policy / typed debt / naming residue 收口成更少、更诚实的 arbitration points。
-- `33-05 / 33-06` 再收紧 CI/pre-push/benchmark/release evidence truth、dependency posture、deep-doc parity、maintainer continuity 与 mega-test topicization。
+**Execution result:**
+- `33-01 / 33-02` 已关闭 runtime contract dual-truth、control reflection loop、snapshot leakage 与 over-wide exports。
+- `33-03 / 33-04` 已继续切薄 giant roots，并把 exception policy / typed debt / naming residue 收口成更少、更诚实的 arbitration points。
+- `33-05 / 33-06` 已收紧 CI/pre-push/benchmark/release evidence truth、dependency posture、deep-doc parity、maintainer continuity 与 mega-test topicization。
 
 ## Why This Milestone Exists
 
@@ -431,4 +431,4 @@ v1.1 进入执行期后，新增演进必须额外满足：
 
 - 当前工作区输入以 `v1.2` closeout bundle 与 `v1.3` handoff assets 为主；phase 目录资产仍默认是执行证据，只有被 `ROADMAP.md`、baseline docs、review ledgers 或 milestone audit 显式提升时，才成为长期治理真源。
 
-*Last updated: 2026-03-18 after Phase 33 planning seeded from the full-repo terminal audit*
+*Last updated: 2026-03-18 after Phase 33 execution closeout and verification sync*

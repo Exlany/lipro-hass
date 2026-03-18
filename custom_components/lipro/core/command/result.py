@@ -1,34 +1,34 @@
-"""Helpers for command result classification and refresh scheduling."""
+"""Helpers for command result failure arbitration and stable public exports."""
 
 from __future__ import annotations
 
 import asyncio
-from collections.abc import Awaitable, Callable, Mapping, Sequence
+from collections.abc import Awaitable, Callable, Sequence
 from typing import Protocol
 
 from ..api.request_policy import compute_exponential_retry_wait_time
-from ..api.response_safety import normalize_response_code
-from ..utils.log_safety import safe_error_placeholder
 from ..utils.redaction import redact_identifier
-
-type CommandResultPayload = Mapping[str, object]
-type TracePayload = dict[str, object]
-type PendingExpectations = dict[str, object]
-type CommandFailurePayload = dict[str, object]
-type QueryCommandResult = Callable[..., Awaitable[Mapping[str, object]]]
-type QueryCommandResultAttempt = Callable[[int], Awaitable[CommandResultPayload | None]]
-type ShouldReraiseCommandResultError = Callable[[Exception], bool]
-type CommandResultClassifier = Callable[[CommandResultPayload], str]
-
-
-class LoggerLike(Protocol):
-    """Minimal logger surface used by command-result helpers."""
-
-    def debug(self, msg: str, *args: object) -> None:
-        """Log one debug message."""
-
-    def warning(self, msg: str, *args: object) -> None:
-        """Log one warning message."""
+from .result_policy import (
+    CommandFailurePayload,
+    CommandResultClassifier,
+    CommandResultPayload,
+    LoggerLike,
+    PendingExpectations,
+    QueryCommandResult,
+    QueryCommandResultAttempt,
+    ShouldReraiseCommandResultError,
+    TracePayload,
+    _extract_command_result_code,
+    _extract_command_result_message,
+    classify_command_result_payload,
+    compute_adaptive_post_refresh_delay,
+    extract_msg_sn,
+    is_command_push_failed,
+    query_command_result_once,
+    resolve_delayed_refresh_delay,
+    should_schedule_delayed_refresh,
+    should_skip_immediate_post_refresh,
+)
 
 
 class ApiErrorLike(Protocol):
@@ -38,68 +38,6 @@ class ApiErrorLike(Protocol):
 
 
 type UpdateTraceWithException = Callable[..., None]
-
-_MSG_SN_KEYS: tuple[str, ...] = ("msgSn", "msg_sn", "messageSn", "message_sn")
-_BOOL_CONFIRMED_VALUES: tuple[object, ...] = (True, 1, "1", "true", "TRUE")
-_BOOL_FAILED_VALUES: tuple[object, ...] = (False, 0, "0", "false", "FALSE")
-_COMMAND_RESULT_PENDING_CODES = frozenset((100000, 140006))
-_COMMAND_RESULT_SUCCESS_CODES = frozenset((0,))
-
-
-def is_command_push_failed(result: object) -> bool:
-    """Return True when command dispatch explicitly reports push failure."""
-    return isinstance(result, dict) and result.get("pushSuccess") in _BOOL_FAILED_VALUES
-
-
-def extract_msg_sn(result: object) -> str | None:
-    """Extract command serial number from command response payload."""
-    if not isinstance(result, dict):
-        return None
-    for key in _MSG_SN_KEYS:
-        value = result.get(key)
-        if isinstance(value, str):
-            normalized = value.strip()
-            if normalized:
-                return normalized
-            continue
-        if isinstance(value, bool):
-            continue
-        if isinstance(value, int):
-            return str(value)
-        if isinstance(value, float) and value.is_integer():
-            return str(int(value))
-    return None
-
-
-def _classify_bool_state(value: object) -> str | None:
-    """Classify one boolean-like payload field into confirmed/failed/None."""
-    if value in _BOOL_CONFIRMED_VALUES:
-        return "confirmed"
-    if value in _BOOL_FAILED_VALUES:
-        return "failed"
-    return None
-
-
-def _extract_command_result_code(payload: CommandResultPayload | None) -> object | None:
-    """Extract backend result code from query_command_result payload."""
-    if not isinstance(payload, dict):
-        return None
-    for key in ("errorCode", "code"):
-        value = payload.get(key)
-        if value not in (None, ""):
-            return value
-    return None
-
-
-def _extract_command_result_message(payload: CommandResultPayload | None) -> str | None:
-    """Extract non-empty backend message from query_command_result payload."""
-    if not isinstance(payload, dict):
-        return None
-    value = payload.get("message")
-    if not isinstance(value, str):
-        return None
-    normalized = value.strip()
-    return normalized or None
 
 
 def build_progressive_retry_delays(
@@ -133,137 +71,17 @@ def build_progressive_retry_delays(
     return tuple(delays)
 
 
-def classify_command_result_payload(payload: CommandResultPayload) -> str:
-    """Classify query_command_result payload using the current observed contract."""
-    normalized_code = normalize_response_code(_extract_command_result_code(payload))
-    if normalized_code in _COMMAND_RESULT_PENDING_CODES:
-        return "pending"
-
-    success_state = _classify_bool_state(payload.get("success"))
-    if success_state is not None:
-        return success_state
-
-    if normalized_code in _COMMAND_RESULT_SUCCESS_CODES:
-        return "confirmed"
-    if normalized_code is not None:
-        return "failed"
-    return "unknown"
-
-
-def should_skip_immediate_post_refresh(
-    *,
-    command: str,
-    properties: list[dict[str, str]] | None,
-    slider_like_properties: set[str] | frozenset[str],
-) -> bool:
-    """Return True when immediate refresh can be skipped for slider-like updates."""
-    if command.upper() != "CHANGE_STATE" or not properties:
-        return False
-
-    property_keys = {
-        item.get("key")
-        for item in properties
-        if isinstance(item, dict) and isinstance(item.get("key"), str)
-    }
-    if not property_keys:
-        return False
-    return property_keys.issubset(slider_like_properties)
-
-
-def should_schedule_delayed_refresh(
-    *,
-    mqtt_connected: bool,
-    device_serial: str | None,
-    pending_expectations: PendingExpectations,
-) -> bool:
-    """Return True when post-command delayed refresh should be scheduled."""
-    if not mqtt_connected:
-        return True
-    return isinstance(device_serial, str) and device_serial in pending_expectations
-
-
-def resolve_delayed_refresh_delay(
-    *,
-    mqtt_connected: bool,
-    device_serial: str | None,
-    pending_expectations: PendingExpectations,
-    get_adaptive_post_refresh_delay: Callable[[str | None], float],
-) -> float | None:
-    """Return delayed-refresh delay when a fallback refresh should be scheduled."""
-    if not should_schedule_delayed_refresh(
-        mqtt_connected=mqtt_connected,
-        device_serial=device_serial,
-        pending_expectations=pending_expectations,
-    ):
-        return None
-    return get_adaptive_post_refresh_delay(device_serial)
-
-
-def compute_adaptive_post_refresh_delay(
-    *,
-    learned_latency_seconds: float | None,
-    default_delay_seconds: float,
-    latency_margin_seconds: float,
-    min_delay_seconds: float,
-    max_delay_seconds: float,
-) -> float:
-    """Compute bounded adaptive delayed-refresh seconds."""
-    delay = (
-        learned_latency_seconds + latency_margin_seconds
-        if learned_latency_seconds is not None
-        else default_delay_seconds
-    )
-    return max(min_delay_seconds, min(max_delay_seconds, delay))
-
-
 async def run_delayed_refresh(
     *,
     delay_seconds: float,
     request_refresh: Callable[[], Awaitable[object]],
 ) -> None:
-    """Run one delayed refresh after command to absorb API status lag."""
+    """Run one delayed refresh after a command to absorb API status lag."""
     try:
         await asyncio.sleep(delay_seconds)
         await request_refresh()
     except asyncio.CancelledError:
         return
-
-
-async def query_command_result_once(
-    *,
-    query_command_result: QueryCommandResult,
-    lipro_api_error: type[Exception],
-    device_name: str,
-    device_serial: str,
-    device_type_hex: str,
-    msg_sn: str,
-    attempt: int,
-    attempt_limit: int,
-    logger: LoggerLike,
-    should_reraise: ShouldReraiseCommandResultError | None = None,
-) -> CommandResultPayload | None:
-    """Query command result once and return payload when available."""
-    try:
-        payload = await query_command_result(
-            msg_sn=msg_sn,
-            device_id=device_serial,
-            device_type=device_type_hex,
-        )
-        return dict(payload)
-    except lipro_api_error as err:
-        if should_reraise is not None and should_reraise(err):
-            raise
-        safe_msg_sn = redact_identifier(msg_sn) or "***"
-        logger.debug(
-            "query_command_result failed (device=%s, msgSn=%s, attempt=%s/%s, code=%s) (%s)",
-            device_name,
-            safe_msg_sn,
-            attempt,
-            attempt_limit,
-            getattr(err, "code", None),
-            safe_error_placeholder(err),
-        )
-        return None
 
 
 async def poll_command_result_state(
@@ -273,7 +91,7 @@ async def poll_command_result_state(
     retry_delays_seconds: Sequence[float],
     on_attempt: Callable[[int, str], None] | None = None,
 ) -> tuple[str, int, CommandResultPayload | None]:
-    """Poll command-result endpoint until confirmed/failed or retry budget ends."""
+    """Poll until the command result is confirmed/failed or the retry budget ends."""
     retry_delays = tuple(max(0.0, float(delay)) for delay in retry_delays_seconds)
     attempt_limit = len(retry_delays) + 1
     last_payload: CommandResultPayload | None = None
@@ -294,7 +112,6 @@ async def poll_command_result_state(
             await asyncio.sleep(retry_delays[attempt - 1])
 
     return "unconfirmed", attempt_limit, last_payload
-
 
 def apply_command_result_rejected(
     *,
@@ -586,3 +403,37 @@ def apply_successful_command_trace(
     trace["adaptive_post_refresh_delay_seconds"] = round(adaptive_delay_seconds, 3)
     trace["route"] = route
     trace["success"] = True
+
+
+__all__ = [
+    "ApiErrorLike",
+    "CommandFailurePayload",
+    "CommandResultClassifier",
+    "CommandResultPayload",
+    "LoggerLike",
+    "PendingExpectations",
+    "QueryCommandResult",
+    "QueryCommandResultAttempt",
+    "ShouldReraiseCommandResultError",
+    "TracePayload",
+    "UpdateTraceWithException",
+    "apply_command_result_confirmed",
+    "apply_command_result_rejected",
+    "apply_command_result_unconfirmed",
+    "apply_missing_msg_sn_failure",
+    "apply_push_failure",
+    "apply_successful_command_trace",
+    "build_command_api_error_failure",
+    "build_progressive_retry_delays",
+    "classify_command_result_payload",
+    "compute_adaptive_post_refresh_delay",
+    "extract_msg_sn",
+    "is_command_push_failed",
+    "poll_command_result_state",
+    "query_command_result_once",
+    "resolve_delayed_refresh_delay",
+    "resolve_polled_command_result",
+    "run_delayed_refresh",
+    "should_schedule_delayed_refresh",
+    "should_skip_immediate_post_refresh",
+]

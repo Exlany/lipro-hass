@@ -9,13 +9,98 @@ from homeassistant.core import HomeAssistant
 
 from ..const.base import DOMAIN
 from ..const.config import CONF_DEBUG_MODE, DEFAULT_DEBUG_MODE
-from ..runtime_types import LiproCoordinator
+from ..core.telemetry import RuntimeTelemetryExporter
+from ..core.telemetry.ports import ProtocolTelemetrySource, RuntimeTelemetrySource
+from ..runtime_types import LiproCoordinator, ProtocolTelemetryFacadeLike
 
 if TYPE_CHECKING:
     from ..core.device import LiproDevice
 from .models import FailureSummary, RuntimeCoordinatorSnapshot, empty_failure_summary
 
 type RuntimeTelemetryView = dict[str, object]
+
+
+def _get_explicit_member(obj: object | None, name: str) -> object | None:
+    """Return one explicitly bound member without triggering MagicMock ghosts."""
+    if obj is None:
+        return None
+    obj_dict = getattr(obj, "__dict__", None)
+    if isinstance(obj_dict, dict):
+        if name in obj_dict:
+            return cast(object, obj_dict[name])
+        descriptor = vars(type(obj)).get(name)
+        if descriptor is not None:
+            return cast(object | None, getattr(obj, name, None))
+        return None
+    return cast(object | None, getattr(obj, name, None))
+
+
+class _ProtocolFacadeTelemetrySource(ProtocolTelemetrySource):
+    """Adapter exposing protocol-root telemetry through an explicit source port."""
+
+    def __init__(self, protocol: ProtocolTelemetryFacadeLike) -> None:
+        self._protocol = protocol
+
+    def get_protocol_telemetry_snapshot(self) -> Mapping[str, object]:
+        snapshot = _get_explicit_member(self._protocol, "protocol_diagnostics_snapshot")
+        if callable(snapshot):
+            result = snapshot()
+            if isinstance(result, Mapping):
+                return dict(result)
+        diagnostics_context = _get_explicit_member(self._protocol, "diagnostics_context")
+        context_snapshot = _get_explicit_member(diagnostics_context, "snapshot")
+        if callable(context_snapshot):
+            result = context_snapshot()
+            if isinstance(result, Mapping):
+                return dict(result)
+        return {}
+
+
+class _CoordinatorTelemetrySource(RuntimeTelemetrySource):
+    """Adapter exposing runtime telemetry through an explicit source port."""
+
+    def __init__(self, coordinator: LiproCoordinator, *, entry_id: str | None) -> None:
+        self._coordinator = coordinator
+        self._entry_id = entry_id
+
+    def get_runtime_telemetry_snapshot(self) -> Mapping[str, object]:
+        telemetry_service = _get_explicit_member(self._coordinator, "telemetry_service")
+        build_snapshot = _get_explicit_member(telemetry_service, "build_snapshot")
+        if callable(build_snapshot):
+            snapshot = build_snapshot()
+            if isinstance(snapshot, Mapping):
+                payload = dict(snapshot)
+                if self._entry_id:
+                    return {"entry_id": self._entry_id, **payload}
+                return payload
+        return {"entry_id": self._entry_id} if self._entry_id else {}
+
+
+def _build_entry_telemetry_exporter(
+    entry: RuntimeEntryLike | object,
+) -> RuntimeTelemetryExporter | None:
+    """Build one explicit telemetry exporter for a runtime entry when available."""
+    runtime_entry = _coerce_runtime_entry_view(entry)
+    if runtime_entry is None:
+        return None
+
+    coordinator = get_entry_runtime_coordinator(runtime_entry)
+    if coordinator is None:
+        return None
+
+    protocol = _get_explicit_member(coordinator, "protocol")
+    if protocol is None:
+        return None
+
+    return RuntimeTelemetryExporter(
+        protocol_source=_ProtocolFacadeTelemetrySource(
+            cast(ProtocolTelemetryFacadeLike, protocol)
+        ),
+        runtime_source=_CoordinatorTelemetrySource(
+            coordinator,
+            entry_id=runtime_entry.entry_id or None,
+        ),
+    )
 
 
 def _coerce_runtime_entry_view(entry: object) -> RuntimeEntryLike | None:
@@ -140,16 +225,11 @@ def build_entry_system_health_view(
     entry: RuntimeEntryLike | object,
 ) -> RuntimeTelemetryView:
     """Return the control-plane system-health projection for one config entry."""
-    runtime_entry = _coerce_runtime_entry_view(entry)
-    if runtime_entry is None:
+    exporter = _build_entry_telemetry_exporter(entry)
+    if exporter is None:
         return {}
 
-    from .telemetry_surface import (  # noqa: PLC0415
-        build_entry_system_health_view as _build_entry_system_health_view,
-    )
-
-    view = _build_entry_system_health_view(runtime_entry)
-    return dict(view) if isinstance(view, Mapping) else {}
+    return dict(exporter.export_views().system_health)
 
 
 def get_runtime_device_mapping(
@@ -229,7 +309,6 @@ def build_runtime_snapshot(
     return RuntimeCoordinatorSnapshot(
         entry_id=runtime_entry.entry_id,
         entry_ref=_coerce_entry_ref(telemetry_view),
-        coordinator=coordinator,
         device_count=_coerce_device_count(telemetry_view, coordinator),
         last_update_success=_coerce_last_update_success(telemetry_view, coordinator),
         mqtt_connected=_coerce_mqtt_connected(telemetry_view, coordinator),

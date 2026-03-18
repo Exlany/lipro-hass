@@ -53,7 +53,7 @@ _BATCH_FALLBACK_EXPECTED_OFFLINE_CODES = (
 
 
 class StatusEndpoints(_EndpointAdapter):
-    """Legacy status endpoint mixin retained for focused helper tests."""
+    """Status endpoint helpers for the formal REST facade."""
 
     @staticmethod
     def _is_retriable_device_error(err: Exception) -> bool:

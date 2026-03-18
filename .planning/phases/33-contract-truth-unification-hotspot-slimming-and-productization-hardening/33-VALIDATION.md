@@ -1,7 +1,7 @@
 ---
 phase: 33
 slug: contract-truth-unification-hotspot-slimming-and-productization-hardening
-status: planned
+status: passed
 nyquist_compliant: true
 wave_0_complete: true
 created: 2026-03-18
@@ -15,8 +15,8 @@ created: 2026-03-18
 |----------|-------|
 | **Framework** | pytest core/meta/integration suites + workflow/toolchain guards + `ruff` + `mypy` + release/translation scripts |
 | **Config file** | `pyproject.toml` |
-| **Quick run command** | `uv run ruff check . && uv run pytest -q tests/meta/test_public_surface_guards.py tests/meta/test_toolchain_truth.py tests/meta/test_governance_guards.py tests/meta/test_version_sync.py` |
-| **Phase gate command** | `uv run ruff check . && uv run mypy && uv run python scripts/check_architecture_policy.py --check && uv run python scripts/check_file_matrix.py --check && uv run python scripts/check_translations.py && uv run pytest -q tests/meta/test_public_surface_guards.py tests/meta/test_toolchain_truth.py tests/meta/test_governance_guards.py tests/meta/test_governance_closeout_guards.py tests/meta/test_version_sync.py` |
+| **Quick run command** | `uv run ruff check . && uv run pytest -q tests/meta/test_public_surface_guards.py tests/meta/test_toolchain_truth.py tests/meta/test_governance*.py tests/meta/test_version_sync.py` |
+| **Phase gate command** | `uv run ruff check . && uv run mypy && uv run python scripts/check_architecture_policy.py --check && uv run python scripts/check_file_matrix.py --check && uv run python scripts/check_translations.py && uv run pytest -q tests/meta/test_public_surface_guards.py tests/meta/test_toolchain_truth.py tests/meta/test_governance*.py tests/meta/test_version_sync.py` |
 | **Estimated runtime** | ~120-360 seconds |
 
 ## Wave Structure
@@ -35,15 +35,15 @@ created: 2026-03-18
 | 33-01-02 | 01 | 1 | CTRL-07 | focused core | `uv run pytest -q tests/core/test_control_plane.py tests/core/test_init.py` | planned |
 | 33-02-01 | 02 | 1 | CTRL-07 | focused integration | `uv run pytest -q tests/integration/test_telemetry_exporter_integration.py tests/core/test_system_health.py` | planned |
 | 33-02-02 | 02 | 1 | GOV-27 | focused meta | `uv run pytest -q tests/meta/test_public_surface_guards.py tests/core/test_system_health.py` | planned |
-| 33-03-01 | 03 | 2 | HOT-08 | focused API/runtime | `uv run pytest -q tests/core/api/test_api.py tests/core/test_coordinator.py` | planned |
-| 33-03-02 | 03 | 2 | HOT-08 | focused helper hotspots | `uv run pytest -q tests/core/coordinator/runtime/test_device_runtime.py tests/core/test_device_refresh.py` | planned |
-| 33-03-03 | 03 | 2 | HOT-08 | focused mqtt/boundary | `uv run pytest -q tests/core/coordinator/runtime/test_mqtt_runtime.py tests/core/api/test_protocol_contract_matrix.py tests/core/api/test_protocol_replay_rest.py tests/integration/test_mqtt_coordinator_integration.py` | planned |
-| 33-04-01 | 04 | 3 | ERR-07 | focused runtime/service | `uv run pytest -q tests/services/test_service_resilience.py tests/services/test_maintenance.py tests/core/test_background_task_manager.py tests/core/coordinator/runtime/test_device_runtime.py tests/core/test_coordinator.py` | planned |
-| 33-04-02 | 04 | 3 | GOV-27 | focused meta | `uv run pytest -q tests/meta/test_phase31_runtime_budget_guards.py tests/meta/test_governance_guards.py -k "phase31 or residue or compat"` | planned |
-| 33-05-01 | 05 | 4 | QLT-06 | focused meta | `uv run python scripts/check_translations.py && uv run pytest -q tests/meta/test_toolchain_truth.py tests/meta/test_governance_guards.py` | planned |
-| 33-05-02 | 05 | 4 | QLT-07 / GOV-28 | focused version/toolchain | `uv run pytest -q tests/meta/test_version_sync.py tests/meta/test_toolchain_truth.py tests/meta/test_governance_guards.py` | planned |
-| 33-06-01 | 06 | 5 | TST-05 | focused topic suites | `uv run pytest -q tests/core/api/test_api.py tests/core/test_init.py tests/core/test_init_service_handlers.py tests/meta/test_governance_guards.py` | planned |
-| 33-06-02 | 06 | 5 | GOV-28 | focused public-doc/meta | `uv run pytest -q tests/meta/test_toolchain_truth.py tests/meta/test_governance_guards.py tests/meta/test_version_sync.py` | planned |
+| 33-03-01 | 03 | 2 | HOT-08 | focused API/runtime | `uv run pytest -q tests/core/api/test_api*.py tests/core/test_coordinator.py` | passed |
+| 33-03-02 | 03 | 2 | HOT-08 | focused helper hotspots | `uv run pytest -q tests/core/coordinator/runtime/test_device_runtime.py tests/core/test_device_refresh.py` | passed |
+| 33-03-03 | 03 | 2 | HOT-08 | focused mqtt/boundary | `uv run pytest -q tests/core/coordinator/runtime/test_mqtt_runtime.py tests/core/api/test_protocol_contract_matrix.py tests/core/api/test_protocol_replay_rest.py tests/integration/test_mqtt_coordinator_integration.py` | passed |
+| 33-04-01 | 04 | 3 | ERR-07 | focused runtime/service | `uv run pytest -q tests/services/test_service_resilience.py tests/services/test_maintenance.py tests/core/test_background_task_manager.py tests/core/coordinator/runtime/test_device_runtime.py tests/core/test_coordinator.py` | passed |
+| 33-04-02 | 04 | 3 | GOV-27 | focused meta | `uv run pytest -q tests/meta/test_phase31_runtime_budget_guards.py tests/meta/test_governance*.py -k "phase31 or residue or compat"` | passed |
+| 33-05-01 | 05 | 4 | QLT-06 | focused meta | `uv run python scripts/check_translations.py && uv run pytest -q tests/meta/test_toolchain_truth.py tests/meta/test_governance*.py` | passed |
+| 33-05-02 | 05 | 4 | QLT-07 / GOV-28 | focused version/toolchain | `uv run pytest -q tests/meta/test_version_sync.py tests/meta/test_toolchain_truth.py tests/meta/test_governance*.py` | passed |
+| 33-06-01 | 06 | 5 | TST-05 | focused topic suites | `uv run pytest -q tests/core/api/test_api*.py tests/core/test_init*.py tests/core/test_init_service_handlers.py tests/meta/test_governance*.py` | passed |
+| 33-06-02 | 06 | 5 | GOV-28 | focused public-doc/meta | `uv run pytest -q tests/meta/test_toolchain_truth.py tests/meta/test_governance*.py tests/meta/test_version_sync.py` | passed |
 
 ## Manual-Only Verifications
 
@@ -61,4 +61,10 @@ created: 2026-03-18
 - [x] Wave order follows `contract truth -> hotspot slimming -> exception/residual -> assurance gates -> tests/docs/productization`.
 - [x] `nyquist_compliant: true` set in frontmatter.
 - [x] Quick run and phase gate commands align with current repo toolchain truth.
-- [ ] Execution evidence recorded after implementation.
+- [x] Execution evidence recorded after implementation.
+
+## Execution Evidence
+
+- `uv run ruff check .` → passed
+- `uv run python scripts/check_translations.py && uv run python scripts/check_file_matrix.py --check` → passed
+- `uv run pytest -q tests/core/api/test_api*.py tests/core/test_init*.py tests/meta/test_governance*.py tests/meta/test_toolchain_truth.py tests/meta/test_version_sync.py` → `490 passed`

@@ -19,7 +19,7 @@ See: `.planning/PROJECT.md`
 
 **Current milestone:** `v1.2 Host-Neutral Core & Replay Completion`
 **Core value:** 在不破坏 `LiproProtocolFacade` / `Coordinator` 单一正式主链的前提下，把 host-neutral nucleus、headless proof、remaining boundary/replay family 收口、failure taxonomy / observability convergence、治理 closeout 与 handoff bundle 推进成单一正式能力链。
-**Current mode:** `Phase 24 complete`（source milestone closeout baseline）；`v1.2` 继续保持 archive-ready / handoff-ready，`Phase 25 -> 32` 已于 `2026-03-18` 全部执行完成并通过 fresh gates；基于同日全仓终审，`Phase 33` 已完成规划立项并作为 **post-v1.3 continuation tranche** 待执行，当前默认 next action 是 `$gsd-execute-phase 33`，而 `$gsd-audit-milestone` 继续保留为 archive-or-promote 仲裁入口。
+**Current mode:** `Phase 33 complete`；`v1.2` 继续保持 archive-ready / handoff-ready，`Phase 25 -> 33` 已于 `2026-03-18` 全部执行完成并通过 fresh gates；`Phase 33` 已把 runtime contract truth、control de-loop、hotspot slimming、gate honesty、mega-test topicization 与 deep-doc continuity 全部落成，当前默认 next action 是 `$gsd-audit-milestone`（archive-or-promote 仲裁）或 `$gsd-progress`（查看新基线）。
 
 ## Current Position
 
@@ -61,7 +61,7 @@ See: `.planning/PROJECT.md`
 - `Phase 30-03` 已完成：control lifecycle setup/unload/reload named failure contracts 已冻结为 `setup_auth_failed/setup_not_ready/setup_failed`、`unload_shutdown_degraded`、`reload_auth_failed/reload_not_ready/reload_failed`；system health 仍只同步 shared `failure_summary` 最小载荷，未扩成 diagnostics payload cleanup；Phase 31 继续独占 runtime/service/platform typed budget 与 broad-catch closeout。
 - `Phase 31` 已完成：runtime/service/platform touched zones 的 typed budget、warning cleanup、broad-catch closure 与 governance/toolchain truth 已全部收口；phase gate `445 passed` + touched-zone `mypy` 全绿。
 - `Phase 32` 已执行完成：planning truth convergence、repo-wide gate honesty、release/maintainer/docs convergence、derived-map freshness 与 hotspot / test / typed / exception / residue follow-through 已全部完成收口；`uv run ruff check .` 与 `uv run mypy` 均已 repo-wide 真绿。
-- `Phase 33` 已于 `2026-03-18` 完成规划：它把终审剩余的 runtime contract dual-truth、control de-loop、giant roots、exception policy、gate drift、dependency posture、deep-doc parity 与 mega-test topicization 全量路由为下一轮可执行 hardening tranche。
+- `Phase 33` 已于 `2026-03-18` 执行完成：runtime contract dual-truth、control 去回路、giant hotspots / broad-catch / gate drift / dependency posture / deep-doc continuity / mega-test topicization 已全部收口；`uv run ruff check .` 全绿，`uv run python scripts/check_translations.py && uv run python scripts/check_file_matrix.py --check` 全绿，family 回归与 governance/public-surface closeout 合计 `656 passed`。
 
 ## Completed Milestone Scope
 
@@ -125,14 +125,14 @@ See: `.planning/PROJECT.md`
 - **Completed so far:** `Phase 18` 到 `Phase 24`
 - **Closeout state:** `archive-ready`, `handoff-ready`（revalidated `2026-03-17`）
 - **Archive snapshots:** `.planning/milestones/v1.2-ROADMAP.md`, `.planning/milestones/v1.2-REQUIREMENTS.md`
-- **Next focus:** `$gsd-execute-phase 33`；若契约者决定先完成 audit-driven hardening tranche，则直接执行 `Phase 33`。若要先仲裁里程碑归档/升级，则运行 `$gsd-audit-milestone`。
+- **Next focus:** `$gsd-audit-milestone`——若契约者要先做 archive-or-promote 仲裁；或运行 `$gsd-progress` 查看 `Phase 33` 完成后的路线基线。
 
 ## Recommended Next Command
 
-1. `$gsd-execute-phase 33` —— 执行 audit-driven hardening tranche，收口 runtime contract / control loop / hotspot / gate / productization 剩余问题
-2. `$gsd-audit-milestone` —— 若需要先做 `v1.3` archive-or-promote 仲裁
-3. `$gsd-progress` —— 查看 updated roadmap / requirement traceability / next route
-4. `uv run ruff check . && uv run mypy && uv run pytest -q tests/meta/test_governance_guards.py tests/meta/test_governance_closeout_guards.py tests/meta/test_public_surface_guards.py tests/meta/test_version_sync.py tests/meta/test_toolchain_truth.py` —— 作为 planning/post-closeout recheck snapshot
+1. `$gsd-audit-milestone` —— 对 `v1.2` / post-`Phase 33` 路线做 archive-or-promote 仲裁
+2. `$gsd-progress` —— 查看 updated roadmap / requirement traceability / next route
+3. `uv run ruff check . && uv run mypy && uv run pytest -q tests/meta/test_governance*.py tests/meta/test_public_surface_guards.py tests/meta/test_version_sync.py tests/meta/test_toolchain_truth.py` —— 作为 planning/post-closeout recheck snapshot
+4. `node /home/claudeuser/.codex/get-shit-done/bin/gsd-tools.cjs verify phase-completeness 33` —— 复验 `Phase 33` 计划摘要链与 closeout 证据齐备
 
 **Historical launch pointer:** `$gsd-execute-phase 29`
 
@@ -145,16 +145,18 @@ If resuming, read in this order:
 4. `.planning/ROADMAP.md`
 5. `.planning/REQUIREMENTS.md`
 6. `.planning/STATE.md`
-7. `.planning/reviews/V1_2_EVIDENCE_INDEX.md`
-8. `.planning/v1.2-MILESTONE-AUDIT.md`
-9. `.planning/v1.3-HANDOFF.md`
-10. `.planning/phases/32-truth-convergence-gate-honesty-and-quality-10-closeout/32-CONTEXT.md`
-11. `.planning/phases/32-truth-convergence-gate-honesty-and-quality-10-closeout/32-RESEARCH.md`
-12. `.planning/phases/31-runtime-service-typed-budget-and-exception-closure/31-VERIFICATION.md`
-13. `.planning/phases/30-protocol-control-typed-contract-tightening/30-VERIFICATION.md`
-14. `.planning/phases/24-final-milestone-audit-archive-readiness-and-v1-3-handoff-prep/24-VERIFICATION.md`
-15. `.planning/baseline/*.md`
-16. `.planning/reviews/*.md`
-17. `AGENTS.md`
-18. `CLAUDE.md`（若使用 Claude Code）
-19. `docs/developer_architecture.md`
+7. `.planning/phases/33-contract-truth-unification-hotspot-slimming-and-productization-hardening/33-VERIFICATION.md`
+8. `.planning/phases/33-contract-truth-unification-hotspot-slimming-and-productization-hardening/33-SUMMARY.md`
+9. `.planning/reviews/V1_2_EVIDENCE_INDEX.md`
+10. `.planning/v1.2-MILESTONE-AUDIT.md`
+11. `.planning/v1.3-HANDOFF.md`
+12. `.planning/phases/32-truth-convergence-gate-honesty-and-quality-10-closeout/32-CONTEXT.md`
+13. `.planning/phases/32-truth-convergence-gate-honesty-and-quality-10-closeout/32-RESEARCH.md`
+14. `.planning/phases/31-runtime-service-typed-budget-and-exception-closure/31-VERIFICATION.md`
+15. `.planning/phases/30-protocol-control-typed-contract-tightening/30-VERIFICATION.md`
+16. `.planning/phases/24-final-milestone-audit-archive-readiness-and-v1-3-handoff-prep/24-VERIFICATION.md`
+17. `.planning/baseline/*.md`
+18. `.planning/reviews/*.md`
+19. `AGENTS.md`
+20. `CLAUDE.md`（若使用 Claude Code）
+21. `docs/developer_architecture.md`

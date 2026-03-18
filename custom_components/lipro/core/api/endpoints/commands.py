@@ -12,7 +12,7 @@ from .payloads import _EndpointAdapter
 
 
 class CommandEndpoints(_EndpointAdapter):
-    """Legacy command endpoint mixin retained for focused helper tests."""
+    """Command endpoint helpers for the formal REST facade."""
 
     async def send_command(
         self,

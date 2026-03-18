@@ -613,13 +613,13 @@ Plans:
   2. `LiproRestFacade` / `LiproProtocolFacade` / `Coordinator` / `Snapshot` / `CommandResult` 等 giant roots 或 giant helpers 继续沿现有 seams 切薄，而不是长出第二 orchestration root 或 helper folklore。
   3. broad-catch、local/CI/pre-push/perf gates、release evidence posture 与 dependency/compatibility story 收敛为 machine-checkable truth，不再残留重复测试、迟到反馈或文档强于现实的 drift。
   4. control exports、naming residue、empty compat shells、mega-tests、深层双语 docs、maintainer continuity 与 signing/code-scanning roadmap 全部被正式路由到可执行计划，不再停留在口头终审意见。
-**Status**: Planned (`2026-03-18`)
-**Plans**: 0/6 complete
+**Status**: Complete (`2026-03-18`)
+**Plans**: 6/6 complete
 
 Plans:
-- [ ] 33-01: unify runtime contract truth and purify control read models
-- [ ] 33-02: remove control-plane reflection loops and shrink over-wide exports
-- [ ] 33-03: slim giant roots and forwarding clusters along formal seams
-- [ ] 33-04: converge exception policy, typed debt, and residual naming truth
-- [ ] 33-05: harden CI/pre-push/benchmark/release-evidence gates and reproducibility posture
-- [ ] 33-06: topicize remaining mega-tests and close deep-doc / continuity productization gaps
+- [x] 33-01: unify runtime contract truth and purify control read models (completed 2026-03-18)
+- [x] 33-02: remove control-plane reflection loops and shrink over-wide exports (completed 2026-03-18)
+- [x] 33-03: slim giant roots and forwarding clusters along formal seams (completed 2026-03-18)
+- [x] 33-04: converge exception policy, typed debt, and residual naming truth (completed 2026-03-18)
+- [x] 33-05: harden CI/pre-push/benchmark/release-evidence gates and reproducibility posture (completed 2026-03-18)
+- [x] 33-06: topicize remaining mega-tests and close deep-doc / continuity productization gaps (completed 2026-03-18)

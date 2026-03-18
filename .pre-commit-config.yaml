@@ -28,6 +28,30 @@ repos:
         always_run: true
         stages: [pre-push]
 
+      - id: translations-truth
+        name: translations truth gate (uv)
+        entry: uv run --extra dev python scripts/check_translations.py
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-push]
+
+      - id: architecture-policy
+        name: architecture policy gate (uv)
+        entry: uv run --extra dev python scripts/check_architecture_policy.py --check
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-push]
+
+      - id: file-matrix
+        name: file matrix gate (uv)
+        entry: uv run --extra dev python scripts/check_file_matrix.py --check
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-push]
+
       - id: pytest-gate
         name: pytest diagnostics gate (uv)
         entry: >-
@@ -46,8 +70,8 @@ repos:
           uv run --extra dev pytest -q
           tests/meta/test_dependency_guards.py
           tests/meta/test_public_surface_guards.py
-          tests/meta/test_governance_guards.py
-          tests/meta/test_governance_closeout_guards.py
+          tests/meta/test_governance*.py
+          tests/meta/test_toolchain_truth.py
           tests/meta/test_version_sync.py
         language: system
         pass_filenames: false

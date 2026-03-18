@@ -237,10 +237,16 @@ Coordinator
 | `CommandRuntime` | 命令发送、确认跟踪、post-refresh 策略 | builder, sender, confirmation |
 | `TuningRuntime` | 批次大小、命令确认延迟等调参 | 无外部依赖 |
 
+- `runtime/device/snapshot.py` 继续只负责 full snapshot orchestration；typed snapshot container 与 rejection contract 已下沉到 `runtime/device/snapshot_models.py`。
+- `runtime/mqtt_runtime.py` 继续保留 transport lifecycle / message flow / runtime metrics；message-handler callback adapters 已下沉到 `runtime/mqtt/adapters.py`。
+- `core/command/result.py` 继续作为 command-result arbitration home；classification / retry / post-refresh policy helper 已拆到 `core/command/result_policy.py`。
+
 ### API Client / Protocol Plane (`core/api/`, `core/mqtt/`)
 
 - `client.py`：`LiproRestFacade` 是唯一正式 REST child façade；其残余仅限 `core/api` 内部 typing/helper spine，而非 compat shell
 - `core/api/`：`LiproRestFacade` + transport / auth / endpoint collaborators；高漂移 REST 形态在 `core/protocol/boundary/rest_decoder.py` 与 `CanonicalProtocolContracts` 中先完成 canonicalization
+- `core/protocol/boundary/rest_decoder.py`：保留 family metadata、decoder classes 与 public wrappers；pure canonicalization helpers 已下沉到同 family 的 `rest_decoder_support.py`，避免把 payload-shape glue 继续堆回 decoder root。
+- `core/command/result_policy.py`：承接 command-result classification / retry / delayed-refresh policy；`result.py` 保留 patch-friendly arbitration seam 与 failure trace writing。
 - `schedule_service.py`：仅保留 focused schedule helpers；`ScheduleApiService` 已退出正式故事线，schedule truth 固定为 `ScheduleEndpoints` + helper modules
 - `status_service.py` / `status_fallback.py`：`status_service.py` 保留 public orchestration，binary-split fallback kernel 下沉到 `status_fallback.py`
 - `core/mqtt/`：MQTT transport collaborators 与 `MqttTransportClient` 已作为 `LiproMqttFacade` child façade 挂到统一协议根，生产路径通过 `LiproProtocolFacade` / `MqttTransportFacade` contract 协作

@@ -15,6 +15,9 @@ The contributor guides and public troubleshooting paths assume a minimum support
 The canonical source is the `homeassistant==2026.3.1` pin in `pyproject.toml`.
 唯一真源是 `pyproject.toml` 中的 `homeassistant==2026.3.1`。
 
+The runtime dependency envelope is declared in `pyproject.toml` (full runtime floor/bounds) plus `custom_components/lipro/manifest.json` (Home Assistant-installed subset).
+运行时依赖边界以 `pyproject.toml`（完整 runtime floor/bounds）和 `custom_components/lipro/manifest.json`（Home Assistant 安装子集）共同为准。
+
 Supported shell/manual installs should start from verified GitHub Release assets (`install.sh` + release zip + `SHA256SUMS`). Preview paths such as `ARCHIVE_TAG=main`, branch fallback, or mirror installs are best effort only.
 默认支持的 shell / 手动安装路径应从经过校验的 GitHub Release 资产（`install.sh` + release zip + `SHA256SUMS`）开始；`ARCHIVE_TAG=main`、branch fallback 与 mirror 安装仅属于尽力而为的预览路径。
 

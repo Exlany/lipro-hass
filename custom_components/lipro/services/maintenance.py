@@ -154,13 +154,12 @@ def async_setup_device_registry_listener(
         if task.cancelled():
             return
 
-        try:
-            task.result()
-        except Exception as err:  # noqa: BLE001
+        error = task.exception()
+        if error is not None:
             logger.warning(
                 "Config entry reload failed after device registry update (%s, %s)",
                 entry_id,
-                type(err).__name__,
+                type(error).__name__,
             )
 
     @callback

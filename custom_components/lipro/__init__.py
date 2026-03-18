@@ -2,8 +2,7 @@
 
 from __future__ import annotations
 
-import asyncio
-from collections.abc import Callable, Mapping, Sequence
+from collections.abc import Callable, Sequence
 import logging
 from typing import TYPE_CHECKING, Protocol, cast
 
@@ -27,12 +26,12 @@ from .runtime_infra import (
     remove_device_registry_listener,
     setup_device_registry_listener,
 )
+from .runtime_types import LiproRuntimeCoordinator
 from .services.registry import async_setup_services, remove_services
 
 if TYPE_CHECKING:
     from homeassistant.helpers.typing import ConfigType
 
-    from .core.device import LiproDevice
 
 
 class _CoreModule(Protocol):
@@ -135,50 +134,6 @@ LiproProtocolFacade: Callable[..., object]
 LiproAuthManager: Callable[..., object]
 Coordinator: Callable[..., object]
 
-
-class LiproRuntimeCoordinator(Protocol):
-    """Runtime coordinator surface required by HA root/platform adapters."""
-
-    last_update_success: bool
-
-    @property
-    def devices(self) -> Mapping[str, LiproDevice]:
-        """Return the runtime device map."""
-        ...
-
-    @property
-    def command_service(self) -> object:
-        """Return the command-dispatch service owned by the coordinator."""
-        ...
-
-    async def async_request_refresh(self) -> None:
-        """Trigger one coordinator refresh cycle."""
-        ...
-
-    async def async_send_command(
-        self,
-        device: LiproDevice,
-        command: str,
-        properties: list[dict[str, str]] | None = None,
-    ) -> bool:
-        """Send one device command through the formal runtime surface."""
-        ...
-
-    def get_device(self, device_id: str) -> LiproDevice | None:
-        """Return one device by identifier when present."""
-        ...
-
-    def get_device_lock(self, device_id: str) -> asyncio.Lock:
-        """Return the per-device mutation lock."""
-        ...
-
-    def register_entity(self, entity: object) -> None:
-        """Register one entity with the runtime coordinator."""
-        ...
-
-    def unregister_entity(self, entity: object) -> None:
-        """Unregister one entity from the runtime coordinator."""
-        ...
 
 _LOGGER = logging.getLogger(__name__)
 if not TYPE_CHECKING:
