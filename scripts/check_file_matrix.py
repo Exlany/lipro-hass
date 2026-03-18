@@ -108,7 +108,7 @@ OVERRIDES: dict[str, FileGovernanceRow] = {
     "custom_components/lipro/services/execution.py": FileGovernanceRow(
         path="custom_components/lipro/services/execution.py",
         area="Control",
-        owner_phase="Phase 5 / 7",
+        owner_phase="Phase 3 / 5 / 7",
         fate="保留",
         residual="formal service execution facade; private auth seam closed",
     ),
@@ -354,6 +354,8 @@ def _classify_test_path(path: str) -> FileGovernanceRow | None:
         return _row_for_path(path, "Assurance", "Phase 7.4")
     if path == "tests/meta/test_evidence_pack_authority.py":
         return _row_for_path(path, "Assurance", "Phase 8")
+    if path == "tests/meta/test_governance_closeout_guards.py":
+        return _row_for_path(path, "Assurance", "Phase 27")
     if path.startswith("tests/meta/"):
         return _row_for_path(path, "Assurance", "Phase 6")
     if path.startswith("tests/harness/evidence_pack/"):
@@ -386,6 +388,8 @@ def _classify_test_path(path: str) -> FileGovernanceRow | None:
         return _row_for_path(path, "Assurance", "Phase 7.3")
     if path.startswith(domain_test_prefixes):
         return _row_for_path(path, "Domain", "Phase 4")
+    if path == "tests/core/test_init_service_handlers.py":
+        return _row_for_path(path, "Control", "Phase 27")
     if path.startswith(control_test_prefixes) or path == "tests/core/test_init.py":
         return _row_for_path(path, "Control", "Phase 3 / 7")
     if path.startswith("tests/helpers/") or path in {

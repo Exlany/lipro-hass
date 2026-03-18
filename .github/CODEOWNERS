@@ -1,2 +1,2 @@
-# Single-maintainer review model: architectural review and release ownership are centralized.
+# Single-maintainer review model: triage ownership and release custody are centralized; if unavailable, freeze releases instead of implying hidden redundancy.
 * @Exlany

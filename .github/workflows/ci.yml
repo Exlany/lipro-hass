@@ -91,10 +91,11 @@ jobs:
           tests/meta/test_dependency_guards.py
           tests/meta/test_public_surface_guards.py
           tests/meta/test_governance_guards.py
+          tests/meta/test_governance_closeout_guards.py
           tests/meta/test_version_sync.py
 
   security:
-    name: Security Audit
+    name: Runtime Dependency Security Gate
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -144,6 +145,12 @@ jobs:
         if: always() && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
         run: >-
           echo "pip-audit (dev) outcome: ${{ steps.pip_audit_dev.outcome }}" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Record runtime release-security posture
+        if: always()
+        run: |
+          echo "runtime security gate: blocking runtime pip-audit" >> "$GITHUB_STEP_SUMMARY"
+          echo "release path: must reuse ci.yml before tagged release packaging" >> "$GITHUB_STEP_SUMMARY"
 
   test:
     name: Test

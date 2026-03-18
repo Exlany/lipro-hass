@@ -16,7 +16,9 @@ concurrency:
   cancel-in-progress: true
 
 permissions:
+  attestations: write
   contents: write
+  id-token: write
 
 env:
   RELEASE_TAG: ${{ github.event.inputs.tag || github.ref_name }}
@@ -27,10 +29,52 @@ jobs:
     uses: ./.github/workflows/ci.yml
     secrets: inherit
 
+  security_gate:
+    name: Tagged Release Security Gate
+    runs-on: ubuntu-latest
+    needs: validate
+    timeout-minutes: 10
+    steps:
+      - name: Checkout tagged release ref
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          ref: refs/tags/${{ env.RELEASE_TAG }}
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
+        with:
+          python-version: "3.14"
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@0ca8f610542aa7f4acaf39e65cf4eb3c35091883
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --frozen --extra dev
+
+      - name: Export runtime requirements
+        run: >-
+          uv export
+          --format requirements.txt
+          --frozen
+          --no-header
+          --no-annotate
+          --no-hashes
+          --no-emit-project
+          --no-dev
+          -o requirements-runtime.txt
+
+      - name: Run pip-audit (runtime, tagged release)
+        run: uv run --extra dev pip-audit --progress-spinner off -r requirements-runtime.txt
+
   build:
     name: Build Release Assets
     runs-on: ubuntu-latest
-    needs: validate
+    needs:
+      - validate
+      - security_gate
     timeout-minutes: 10
     steps:
       - name: Checkout tagged release ref
@@ -65,7 +109,7 @@ jobs:
             exit 1
           fi
 
-      - name: Build zip and checksums
+      - name: Build zip, installer, and checksums
         shell: bash
         run: |
           set -euo pipefail
@@ -78,6 +122,7 @@ jobs:
           mkdir -p "${dist}/${root}/custom_components"
 
           cp -r "custom_components/lipro" "${dist}/${root}/custom_components/"
+          cp "install.sh" "${dist}/install.sh"
 
           (
             cd "${dist}"
@@ -85,11 +130,70 @@ jobs:
             sha256sum "lipro-hass-${tag}.zip" > "SHA256SUMS"
           )
 
+      - name: Export SBOM
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          curl -fsSL \
+            -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/${{ github.repository }}/dependency-graph/sbom" \
+            -o "dist/lipro-hass-${RELEASE_TAG}.spdx.json"
+
+      - name: Generate artifact attestation
+        uses: actions/attest-build-provenance@a2bbfa25375fe432b6a289bc6b6cd05ecd0c4c32
+        with:
+          subject-path: |
+            dist/lipro-hass-${{ env.RELEASE_TAG }}.zip
+            dist/install.sh
+            dist/SHA256SUMS
+            dist/lipro-hass-${{ env.RELEASE_TAG }}.spdx.json
+
+      - name: Verify generated artifact attestations
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          gh attestation verify "dist/lipro-hass-${RELEASE_TAG}.zip" --repo "${{ github.repository }}"
+          gh attestation verify "dist/install.sh" --repo "${{ github.repository }}"
+          gh attestation verify "dist/SHA256SUMS" --repo "${{ github.repository }}"
+          gh attestation verify "dist/lipro-hass-${RELEASE_TAG}.spdx.json" --repo "${{ github.repository }}"
+
+      - name: Write release identity manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          manifest="dist/lipro-hass-${RELEASE_TAG}.release-identity.txt"
+          {
+            echo "release_tag=${RELEASE_TAG}"
+            echo "git_sha=${GITHUB_SHA}"
+            echo "ci_reuse=.github/workflows/ci.yml"
+            echo "release_security_gate=tagged runtime pip-audit"
+            echo "identity_evidence=SHA256SUMS"
+            echo "identity_evidence=SBOM"
+            echo "identity_evidence=GitHub artifact attestation"
+            echo "provenance=GitHub artifact attestation"
+            echo "identity_verification=gh attestation verify"
+            echo "signing=deferred"
+            echo "code_scanning=deferred"
+            echo "workflow_run=${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          } > "${manifest}"
+
       - name: Publish release assets
         uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b
         with:
           tag_name: ${{ env.RELEASE_TAG }}
           files: |
             dist/lipro-hass-${{ env.RELEASE_TAG }}.zip
+            dist/install.sh
             dist/SHA256SUMS
+            dist/lipro-hass-${{ env.RELEASE_TAG }}.spdx.json
+            dist/lipro-hass-${{ env.RELEASE_TAG }}.release-identity.txt
           generate_release_notes: true

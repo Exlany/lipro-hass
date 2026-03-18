@@ -52,6 +52,10 @@ dev = [
 [project.urls]
 Homepage = "https://github.com/Exlany/lipro-hass"
 Repository = "https://github.com/Exlany/lipro-hass"
+Documentation = "https://github.com/Exlany/lipro-hass/blob/main/README.md"
+Support = "https://github.com/Exlany/lipro-hass/blob/main/SUPPORT.md"
+Security = "https://github.com/Exlany/lipro-hass/blob/main/SECURITY.md"
+Discussions = "https://github.com/Exlany/lipro-hass/discussions"
 Issues = "https://github.com/Exlany/lipro-hass/issues"
 Changelog = "https://github.com/Exlany/lipro-hass/blob/main/CHANGELOG.md"
 

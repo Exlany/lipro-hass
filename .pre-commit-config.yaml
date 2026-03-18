@@ -47,6 +47,8 @@ repos:
           tests/meta/test_dependency_guards.py
           tests/meta/test_public_surface_guards.py
           tests/meta/test_governance_guards.py
+          tests/meta/test_governance_closeout_guards.py
+          tests/meta/test_version_sync.py
         language: system
         pass_filenames: false
         always_run: true
