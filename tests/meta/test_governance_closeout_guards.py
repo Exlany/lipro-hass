@@ -320,7 +320,8 @@ def test_phase_32_completion_truth_is_consistent() -> None:
     assert "`Phase 32` — truth convergence, gate honesty, and quality-10 closeout" in project_text
     assert "`Phase 32` 已执行完成" in state_text
     assert "`Phase 25 -> 33` 已于 `2026-03-18` 全部执行完成并通过 fresh gates" in state_text
-    assert "$gsd-audit-milestone" in state_text
+    assert "$gsd-plan-milestone-gaps" in state_text
+    assert "$gsd-complete-milestone v1.3" in state_text
     assert "$gsd-progress" in state_text
 
 
@@ -394,5 +395,6 @@ def test_phase_33_planning_truth_is_consistent() -> None:
     assert "`33-05 / 33-06` 已收紧 CI/pre-push/benchmark/release evidence truth、dependency posture、deep-doc parity、maintainer continuity 与 mega-test topicization。" in project_text
     assert "`Phase 33 complete`" in state_text
     assert "runtime contract dual-truth、control 去回路、giant hotspots / broad-catch / gate drift / dependency posture / deep-doc continuity / mega-test topicization 已全部收口" in state_text
-    assert "$gsd-audit-milestone" in state_text
+    assert "$gsd-plan-milestone-gaps" in state_text
+    assert "$gsd-complete-milestone v1.3" in state_text
     assert "$gsd-progress" in state_text

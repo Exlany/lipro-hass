@@ -287,7 +287,7 @@
 
 ## Next Milestone Seed (v1.3)
 
-> `Phase 25` 已被提升为 v1.3 的总计划母相：它先冻结 `25.1 / 25.2 / 26 / 27` 首轮路由，再由 `28 / 29 / 30 / 31` 完成第二梯队 closeout；`Phase 32` 已于 `2026-03-18` 完成 final truth-convergence closeout，当前下一步为 `$gsd-audit-milestone`。
+> `Phase 25` 已被提升为 v1.3 的总计划母相：它先冻结 `25.1 / 25.2 / 26 / 27` 首轮路由，再由 `28 / 29 / 30 / 31` 完成第二梯队 closeout；`Phase 32 / 33` 已于 `2026-03-18` 完成 final truth-convergence + hardening closeout。当前 `.planning/v1.3-MILESTONE-AUDIT.md` 已刷新为 `tech_debt / closeout-eligible`；若继续追求 10 分质量，下一步优先 `$gsd-plan-milestone-gaps`，否则可 `$gsd-complete-milestone v1.3`。
 
 ### Governance / Route Ownership
 

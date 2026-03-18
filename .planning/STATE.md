@@ -19,7 +19,7 @@ See: `.planning/PROJECT.md`
 
 **Current milestone:** `v1.2 Host-Neutral Core & Replay Completion`
 **Core value:** 在不破坏 `LiproProtocolFacade` / `Coordinator` 单一正式主链的前提下，把 host-neutral nucleus、headless proof、remaining boundary/replay family 收口、failure taxonomy / observability convergence、治理 closeout 与 handoff bundle 推进成单一正式能力链。
-**Current mode:** `Phase 33 complete`；`v1.2` 继续保持 archive-ready / handoff-ready，`Phase 25 -> 33` 已于 `2026-03-18` 全部执行完成并通过 fresh gates；`Phase 33` 已把 runtime contract truth、control de-loop、hotspot slimming、gate honesty、mega-test topicization 与 deep-doc continuity 全部落成，当前默认 next action 是 `$gsd-audit-milestone`（archive-or-promote 仲裁）或 `$gsd-progress`（查看新基线）。
+**Current mode:** `Phase 33 complete`；`v1.2` 继续保持 archive-ready / handoff-ready，`Phase 25 -> 33` 已于 `2026-03-18` 全部执行完成并通过 fresh gates；`Phase 33` 已把 runtime contract truth、control de-loop、hotspot slimming、gate honesty、mega-test topicization 与 deep-doc continuity 全部落成，里程碑审计现已完成；若继续追求 10 分质量，当前默认 next action 是 `$gsd-plan-milestone-gaps`，否则可 `$gsd-complete-milestone v1.3` 或 `$gsd-progress`。
 
 ## Current Position
 
@@ -125,14 +125,14 @@ See: `.planning/PROJECT.md`
 - **Completed so far:** `Phase 18` 到 `Phase 24`
 - **Closeout state:** `archive-ready`, `handoff-ready`（revalidated `2026-03-17`）
 - **Archive snapshots:** `.planning/milestones/v1.2-ROADMAP.md`, `.planning/milestones/v1.2-REQUIREMENTS.md`
-- **Next focus:** `$gsd-audit-milestone`——若契约者要先做 archive-or-promote 仲裁；或运行 `$gsd-progress` 查看 `Phase 33` 完成后的路线基线。
+- **Next focus:** `$gsd-plan-milestone-gaps`——若契约者继续冲击 10 分质量；或运行 `$gsd-complete-milestone v1.3` 接受显式 retained debt 并归档。
 
 ## Recommended Next Command
 
-1. `$gsd-audit-milestone` —— 对 `v1.2` / post-`Phase 33` 路线做 archive-or-promote 仲裁
-2. `$gsd-progress` —— 查看 updated roadmap / requirement traceability / next route
-3. `uv run ruff check . && uv run mypy && uv run pytest -q tests/meta/test_governance*.py tests/meta/test_public_surface_guards.py tests/meta/test_version_sync.py tests/meta/test_toolchain_truth.py` —— 作为 planning/post-closeout recheck snapshot
-4. `node /home/claudeuser/.codex/get-shit-done/bin/gsd-tools.cjs verify phase-completeness 33` —— 复验 `Phase 33` 计划摘要链与 closeout 证据齐备
+1. `$gsd-plan-milestone-gaps` —— 若继续追求 10 分质量，把 retained tech debt 路由成新的 cleanup tranche
+2. `$gsd-complete-milestone v1.3` —— 若接受显式 retained debt，执行归档与里程碑完成流程
+3. `$gsd-progress` —— 查看 updated roadmap / requirement traceability / next route
+4. `uv run ruff check . && uv run mypy && uv run pytest -q tests/meta/test_governance*.py tests/meta/test_public_surface_guards.py tests/meta/test_version_sync.py tests/meta/test_toolchain_truth.py` —— 作为 post-audit recheck snapshot
 
 **Historical launch pointer:** `$gsd-execute-phase 29`
 

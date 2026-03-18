@@ -34,7 +34,7 @@
 
 **Route-freeze status:** `Phase 25 -> 33` 已于 `2026-03-18` 全部执行完成；v1.3 continuation route 现已从 execution-ready 收口到 execution-complete / audit-ready。基于同日全仓终审，`Phase 33` 已被追加并执行完成，成为 post-closeout continuation tranche 的已落地 tranche。
 
-**Continuation closeout status:** `Phase 32` 与 `Phase 33` 的 execution / verification 资产现已落地，依赖链 `31 -> 32 -> 33` 已闭环；`.planning/v1.3-HANDOFF.md` 继续作为 `Phase 25 -> 31` 历史 closeout baseline，而 `33-VERIFICATION.md` / `33-SUMMARY.md` 负责承接 post-v1.3 continuation 的最终 closeout。当前默认 next action 是 `$gsd-audit-milestone`（archive-or-promote 仲裁）或 `$gsd-progress`（查看更新后的路线基线），不再保留第二条 active execution route。
+**Continuation closeout status:** `Phase 32` 与 `Phase 33` 的 execution / verification 资产现已落地，依赖链 `31 -> 32 -> 33` 已闭环；`.planning/v1.3-HANDOFF.md` 继续作为 `Phase 25 -> 31` 历史 closeout baseline，而 `33-VERIFICATION.md` / `33-SUMMARY.md` 负责承接 post-v1.3 continuation 的最终 closeout。里程碑审计现已刷新；若继续追求 10 分质量，默认 next action 是 `$gsd-plan-milestone-gaps`，否则可 `$gsd-complete-milestone v1.3` 或 `$gsd-progress` 查看更新后的路线基线。
 
 **Parent phase:** `Phase 25 — Quality-10 remediation master plan and execution routing`
 
