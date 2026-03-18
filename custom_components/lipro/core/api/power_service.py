@@ -5,10 +5,12 @@ from __future__ import annotations
 from collections.abc import Awaitable, Callable
 import logging
 
-type OutletPowerInfoRow = dict[str, object]
+from .types import JsonObject
+
+type OutletPowerInfoRow = JsonObject
 type OutletPowerInfoResult = OutletPowerInfoRow | list[OutletPowerInfoRow]
 type NormalizePowerTargetId = Callable[[str], str | None]
-type IoTRequest = Callable[[str, dict[str, str]], Awaitable[object]]
+type IoTRequest = Callable[[str, JsonObject], Awaitable[object]]
 type RequireMappingResponse = Callable[[str, object], OutletPowerInfoRow]
 type IsInvalidParamErrorCode = Callable[[object], bool]
 

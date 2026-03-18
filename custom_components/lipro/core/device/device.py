@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from time import monotonic
 
@@ -211,7 +212,7 @@ class LiproDevice:
             return False
         return monotonic() - self._last_mqtt_update_at <= stale_window_seconds
 
-    def update_properties(self, properties: DevicePropertyMap) -> None:
+    def update_properties(self, properties: Mapping[str, object]) -> None:
         """Merge normalized properties into the live facade state."""
         device_runtime.update_device_properties(self, properties)
 

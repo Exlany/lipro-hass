@@ -7,6 +7,7 @@ from typing import cast
 
 from ..core.telemetry import RuntimeTelemetryExporter, TelemetrySnapshot, TelemetryViews
 from ..core.telemetry.ports import ProtocolTelemetrySource, RuntimeTelemetrySource
+from ..runtime_types import LiproCoordinator, ProtocolTelemetryFacadeLike
 from .runtime_access import get_entry_runtime_coordinator
 
 type TelemetryPayload = dict[str, object]
@@ -30,7 +31,7 @@ def _get_explicit_attr(obj: object | None, name: str) -> object | None:
 class _ProtocolFacadeTelemetrySource(ProtocolTelemetrySource):
     """Adapter exposing protocol-root telemetry as a source port."""
 
-    def __init__(self, protocol: object) -> None:
+    def __init__(self, protocol: ProtocolTelemetryFacadeLike) -> None:
         self._protocol = protocol
 
     def get_protocol_telemetry_snapshot(self) -> Mapping[str, object]:
@@ -52,7 +53,7 @@ class _ProtocolFacadeTelemetrySource(ProtocolTelemetrySource):
 class _CoordinatorTelemetrySource(RuntimeTelemetrySource):
     """Adapter exposing coordinator runtime telemetry as a source port."""
 
-    def __init__(self, coordinator: object, *, entry_id: str | None) -> None:
+    def __init__(self, coordinator: LiproCoordinator, *, entry_id: str | None) -> None:
         self._coordinator = coordinator
         self._entry_id = entry_id
 
@@ -75,11 +76,13 @@ def get_entry_telemetry_exporter(entry: object) -> RuntimeTelemetryExporter | No
     coordinator = get_entry_runtime_coordinator(entry)
     if coordinator is None:
         return None
-    protocol = _get_explicit_attr(coordinator, "client")
+    protocol = _get_explicit_attr(coordinator, "protocol")
     if protocol is None:
         return None
     return RuntimeTelemetryExporter(
-        protocol_source=_ProtocolFacadeTelemetrySource(protocol),
+        protocol_source=_ProtocolFacadeTelemetrySource(
+            cast(ProtocolTelemetryFacadeLike, protocol)
+        ),
         runtime_source=_CoordinatorTelemetrySource(
             coordinator,
             entry_id=str(getattr(entry, "entry_id", "")) or None,

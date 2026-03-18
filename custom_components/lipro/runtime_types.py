@@ -6,15 +6,16 @@ from __future__ import annotations
 import asyncio
 from collections.abc import Callable, Mapping
 from datetime import timedelta
-from typing import TYPE_CHECKING, Protocol
+from typing import TYPE_CHECKING, Any, Protocol
 
 from homeassistant.core import CALLBACK_TYPE, callback
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
 
-    from .core.api.types import DiagnosticsApiResponse, OtaInfoRow
+    from .core.api.types import DiagnosticsApiResponse, OtaInfoRow, ScheduleTimingRow
     from .core.command.result import CommandResultPayload
+    from .core.coordinator.entity_protocol import LiproEntityProtocol
     from .core.device import LiproDevice
 
 
@@ -72,60 +73,39 @@ class CommandServiceLike(Protocol):
     ) -> bool: ...
 
 
-class RuntimeAuthServiceLike(Protocol):
-    """Stable coordinator-auth surface exposed outside the runtime plane."""
+class ProtocolServiceLike(Protocol):
+    """Stable runtime-owned protocol capability surface for external consumers."""
 
-    async def async_ensure_authenticated(self) -> None: ...
-
-    async def async_trigger_reauth(self, reason: str) -> None: ...
-
-
-class LiproCoordinator(Protocol):
-    """Formal runtime public surface consumed outside the coordinator plane."""
-
-    config_entry: ConfigEntry | None
-    last_update_success: bool
-    update_interval: timedelta | None
-
-    @property
-    def auth_service(self) -> RuntimeAuthServiceLike: ...
-
-    @property
-    def device_refresh_service(self) -> DeviceRefreshServiceLike: ...
-
-    @property
-    def mqtt_service(self) -> MqttServiceLike: ...
-
-    @property
-    def command_service(self) -> CommandServiceLike: ...
-
-    @property
-    def devices(self) -> Mapping[str, LiproDevice]: ...
-
-    @callback
-    def async_add_listener(
+    async def async_get_device_schedules(
         self,
-        update_callback: CALLBACK_TYPE,
-        context: object | None = None,
-    ) -> Callable[[], None]: ...
-
-    async def async_request_refresh(self) -> None: ...
-
-    async def async_send_command(
-        self,
-        device: LiproDevice,
-        command: str,
-        properties: list[dict[str, str]] | None = None,
-    ) -> bool: ...
-
-    async def async_query_ota_info(
-        self,
-        *,
         device_id: str,
         device_type: str | int,
-        iot_name: str | None,
-        allow_rich_v2_fallback: bool,
-    ) -> list[OtaInfoRow]: ...
+        *,
+        mesh_gateway_id: str = "",
+        mesh_member_ids: list[str] | None = None,
+    ) -> list[ScheduleTimingRow]: ...
+
+    async def async_add_device_schedule(
+        self,
+        device_id: str,
+        device_type: str | int,
+        days: list[int],
+        times: list[int],
+        events: list[int],
+        *,
+        mesh_gateway_id: str = "",
+        mesh_member_ids: list[str] | None = None,
+    ) -> list[ScheduleTimingRow]: ...
+
+    async def async_delete_device_schedules(
+        self,
+        device_id: str,
+        device_type: str | int,
+        schedule_ids: list[int],
+        *,
+        mesh_gateway_id: str = "",
+        mesh_member_ids: list[str] | None = None,
+    ) -> list[ScheduleTimingRow]: ...
 
     async def async_query_command_result(
         self,
@@ -157,24 +137,126 @@ class LiproCoordinator(Protocol):
         mesh_type: str,
     ) -> DiagnosticsApiResponse: ...
 
+    async def async_query_ota_info(
+        self,
+        *,
+        device_id: str,
+        device_type: str | int,
+        iot_name: str | None,
+        allow_rich_v2_fallback: bool,
+    ) -> list[OtaInfoRow]: ...
+
+
+class RuntimeAuthServiceLike(Protocol):
+    """Stable coordinator-auth surface exposed outside the runtime plane."""
+
+    async def async_ensure_authenticated(self) -> None: ...
+
+    async def async_trigger_reauth(self, reason: str) -> None: ...
+
+
+class ProtocolDiagnosticsContextLike(Protocol):
+    """Minimal diagnostics-context surface consumed by telemetry bridges."""
+
+    def snapshot(self, **kwargs: object) -> Mapping[str, object]: ...
+
+
+class ProtocolTelemetryFacadeLike(Protocol):
+    """Formal protocol telemetry surface exposed to control-plane bridges."""
+
+    def protocol_diagnostics_snapshot(self) -> Mapping[str, object]: ...
+
+    @property
+    def diagnostics_context(self) -> ProtocolDiagnosticsContextLike: ...
+
+
+class RuntimeTelemetryServiceLike(Protocol):
+    """Stable runtime telemetry surface consumed by control-plane bridges."""
+
+    def build_snapshot(self) -> Mapping[str, Any]: ...
+
+
+class LiproRuntimeCoordinator(Protocol):
+    """Runtime coordinator surface consumed by HA platforms and entities."""
+
+    config_entry: ConfigEntry | None
+    last_update_success: bool
+
+    @property
+    def command_service(self) -> CommandServiceLike: ...
+
+    @property
+    def protocol_service(self) -> ProtocolServiceLike: ...
+
+    @property
+    def devices(self) -> Mapping[str, LiproDevice]: ...
+
+    async def async_request_refresh(self) -> None: ...
+
+    async def async_send_command(
+        self,
+        device: LiproDevice,
+        command: str,
+        properties: list[dict[str, str]] | None = None,
+    ) -> bool: ...
+
     def get_device(self, device_id: str) -> LiproDevice | None: ...
 
     def get_device_by_id(self, device_id: str) -> LiproDevice | None: ...
 
     def get_device_lock(self, device_id: str) -> asyncio.Lock: ...
 
-    def register_entity(self, entity: RuntimeEntityLike) -> None: ...
+    def register_entity(self, entity: LiproEntityProtocol) -> None: ...
 
-    def unregister_entity(self, entity: RuntimeEntityLike) -> None: ...
+    def unregister_entity(self, entity: LiproEntityProtocol) -> None: ...
 
     def async_update_listeners(self) -> None: ...
+
+
+class LiproCoordinator(LiproRuntimeCoordinator, Protocol):
+    """Formal runtime public surface consumed outside the coordinator plane."""
+
+    update_interval: timedelta | None
+
+    @property
+    def auth_service(self) -> RuntimeAuthServiceLike: ...
+
+    @property
+    def device_refresh_service(self) -> DeviceRefreshServiceLike: ...
+
+    @property
+    def mqtt_service(self) -> MqttServiceLike: ...
+
+    @property
+    def command_service(self) -> CommandServiceLike: ...
+
+    @property
+    def protocol(self) -> ProtocolTelemetryFacadeLike: ...
+
+    @property
+    def protocol_service(self) -> ProtocolServiceLike: ...
+
+    @property
+    def telemetry_service(self) -> RuntimeTelemetryServiceLike: ...
+
+    @callback
+    def async_add_listener(
+        self,
+        update_callback: CALLBACK_TYPE,
+        context: object | None = None,
+    ) -> Callable[[], None]: ...
 
 
 __all__ = [
     "CommandServiceLike",
     "DeviceRefreshServiceLike",
     "LiproCoordinator",
+    "LiproRuntimeCoordinator",
     "MqttServiceLike",
+    "ProtocolDiagnosticsContextLike",
+    "ProtocolServiceLike",
+    "ProtocolTelemetryFacadeLike",
     "RuntimeAuthServiceLike",
     "RuntimeEntityLike",
+    "RuntimeTelemetryServiceLike",
 ]

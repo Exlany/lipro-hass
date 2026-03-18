@@ -38,7 +38,7 @@ if TYPE_CHECKING:
 
     from . import LiproConfigEntry
     from .core.device import LiproDevice
-    from .runtime_types import LiproCoordinator
+    from .runtime_types import LiproRuntimeCoordinator
 
 PARALLEL_UPDATES = 1
 _LOGGER = logging.getLogger(__name__)
@@ -111,7 +111,7 @@ async def async_setup_entry(
 
 
 def _build_device_fan_entities(
-    coordinator: LiproCoordinator,
+    coordinator: LiproRuntimeCoordinator,
     device: LiproDevice,
 ) -> list[FanEntity]:
     """Build all fan entities for one device."""

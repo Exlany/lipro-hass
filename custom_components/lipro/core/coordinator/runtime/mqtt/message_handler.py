@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 import logging
 from time import monotonic
 from typing import TYPE_CHECKING, Protocol
 
 from .....const.properties import PROP_CONNECT_STATE
 from ....mqtt.message import is_online_connect_state
-from ...types import PropertyDict
+from ...types import PropertyDict, PropertyValue
 
 if TYPE_CHECKING:
     from ....device import LiproDevice
@@ -82,7 +83,7 @@ class MqttMessageHandler:
     async def handle_message(
         self,
         device_id: str,
-        properties: PropertyDict,
+        properties: Mapping[str, PropertyValue],
         *,
         current_time: float | None = None,
     ) -> bool:
@@ -97,7 +98,10 @@ class MqttMessageHandler:
         if not properties:
             return False
 
-        applied = await self._property_applier.apply_properties_update(device, properties)
+        applied = await self._property_applier.apply_properties_update(
+            device,
+            dict(properties),
+        )
         if not applied:
             return False
 

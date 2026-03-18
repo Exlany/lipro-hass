@@ -11,7 +11,7 @@ from ..api.response_safety import normalize_response_code
 from ..utils.log_safety import safe_error_placeholder
 from ..utils.redaction import redact_identifier
 
-type CommandResultPayload = dict[str, object]
+type CommandResultPayload = Mapping[str, object]
 type TracePayload = dict[str, object]
 type PendingExpectations = dict[str, object]
 type CommandFailurePayload = dict[str, object]

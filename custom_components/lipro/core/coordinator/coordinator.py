@@ -1,17 +1,14 @@
-"""Native coordinator runtime for the Lipro integration.
-
-Refactored to use RuntimeContext + Orchestrator pattern (Phase C - Aggressive Refactor).
-"""
+"""Native coordinator runtime for the Lipro integration."""
 
 from __future__ import annotations
 
 import asyncio
-from collections.abc import Mapping
+from collections.abc import Awaitable, Callable, Mapping
 from contextlib import suppress
 from datetime import timedelta
 import logging
 from types import MappingProxyType
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
@@ -24,11 +21,11 @@ from ..api import (
     LiproRefreshTokenExpiredError,
 )
 from ..protocol import LiproProtocolFacade
-from ..protocol.contracts import OutletPowerInfoResult
 from .mqtt.setup import build_mqtt_subscription_device_ids
 from .mqtt_lifecycle import async_setup_mqtt as setup_mqtt_lifecycle
 from .orchestrator import RuntimeOrchestrator
 from .outlet_power import apply_outlet_power_info, should_reraise_outlet_power_error
+from .runtime.device.snapshot import RuntimeSnapshotRefreshRejectedError
 from .runtime.outlet_power_runtime import query_outlet_power
 from .runtime_context import RuntimeContext
 from .services import (
@@ -46,23 +43,34 @@ if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.core import HomeAssistant
 
-    from ..api.types import DiagnosticsApiResponse, OtaInfoRow, ScheduleTimingRow
     from ..auth import LiproAuthManager
-    from ..command.result import CommandResultPayload
     from ..device import LiproDevice
-    from .types import StatusQueryMetrics
+    from .entity_protocol import LiproEntityProtocol
+    from .types import PropertyDict, StatusQueryMetrics
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
-    """Coordinator runtime with RuntimeContext + Orchestrator pattern.
+async def _async_run_best_effort_shutdown_step(
+    *,
+    label: str,
+    operation: Callable[[], Awaitable[object]],
+) -> None:
+    """Run one shutdown step with explicit best-effort semantics."""
+    try:
+        await operation()
+    except asyncio.CancelledError:
+        raise
+    except Exception as err:  # noqa: BLE001
+        _LOGGER.warning(
+            "%s failed during best-effort shutdown (%s)",
+            label,
+            type(err).__name__,
+        )
 
-    Refactored to use:
-    - RuntimeContext: Unified dependency injection
-    - RuntimeOrchestrator: Centralized component wiring
-    - Focused coordinator-owned services for public runtime surfaces
-    """
+
+class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
+    """Coordinator runtime built from explicit runtime context and owned services."""
 
     def __init__(
         self,
@@ -153,7 +161,10 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
         return self._state.device_identity_index.get(device_id)
 
     async def _apply_properties_update(
-        self, device: LiproDevice, properties: dict[str, Any], source: str
+        self,
+        device: LiproDevice,
+        properties: PropertyDict,
+        source: str,
     ) -> bool:
         """Apply properties update after reconciling pending command expectations."""
         filtered_properties = self._runtimes.command.filter_pending_state_properties(
@@ -244,7 +255,7 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
         """
         return self.state_service.get_device_by_id(device_id)
 
-    def register_entity(self, entity: Any) -> None:
+    def register_entity(self, entity: LiproEntityProtocol) -> None:
         """Register entity for debounce protection tracking.
 
         Args:
@@ -268,7 +279,7 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
         if entity not in self._state.entities_by_device[device_serial]:
             self._state.entities_by_device[device_serial].append(entity)
 
-    def unregister_entity(self, entity: Any) -> None:
+    def unregister_entity(self, entity: LiproEntityProtocol) -> None:
         """Unregister entity from debounce protection tracking.
 
         Args:
@@ -334,135 +345,6 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
         self.async_set_updated_data(refreshed_devices)
         return refreshed_devices
 
-    async def async_get_device_schedules(
-        self,
-        device_id: str,
-        device_type: str | int,
-        *,
-        mesh_gateway_id: str = "",
-        mesh_member_ids: list[str] | None = None,
-    ) -> list[ScheduleTimingRow]:
-        """Query schedules through the coordinator-owned protocol service."""
-        return await self.protocol_service.async_get_device_schedules(
-            device_id,
-            device_type,
-            mesh_gateway_id=mesh_gateway_id,
-            mesh_member_ids=mesh_member_ids,
-        )
-
-    async def async_add_device_schedule(
-        self,
-        device_id: str,
-        device_type: str | int,
-        days: list[int],
-        times: list[int],
-        events: list[int],
-        *,
-        mesh_gateway_id: str = "",
-        mesh_member_ids: list[str] | None = None,
-    ) -> list[ScheduleTimingRow]:
-        """Create a schedule through the coordinator-owned protocol service."""
-        return await self.protocol_service.async_add_device_schedule(
-            device_id,
-            device_type,
-            days,
-            times,
-            events,
-            mesh_gateway_id=mesh_gateway_id,
-            mesh_member_ids=mesh_member_ids,
-        )
-
-    async def async_delete_device_schedules(
-        self,
-        device_id: str,
-        device_type: str | int,
-        schedule_ids: list[int],
-        *,
-        mesh_gateway_id: str = "",
-        mesh_member_ids: list[str] | None = None,
-    ) -> list[ScheduleTimingRow]:
-        """Delete schedules through the coordinator-owned protocol service."""
-        return await self.protocol_service.async_delete_device_schedules(
-            device_id,
-            device_type,
-            schedule_ids,
-            mesh_gateway_id=mesh_gateway_id,
-            mesh_member_ids=mesh_member_ids,
-        )
-
-    async def async_query_command_result(
-        self,
-        *,
-        msg_sn: str,
-        device_id: str,
-        device_type: str | int,
-    ) -> CommandResultPayload:
-        """Query command-result diagnostics through the coordinator-owned protocol service."""
-        return await self.protocol_service.async_query_command_result(
-            msg_sn=msg_sn,
-            device_id=device_id,
-            device_type=device_type,
-        )
-
-    async def async_get_city(self) -> dict[str, object]:
-        """Query city metadata through the coordinator-owned protocol service."""
-        return await self.protocol_service.async_get_city()
-
-    async def async_query_user_cloud(self) -> dict[str, object]:
-        """Query user-cloud metadata through the coordinator-owned protocol service."""
-        return await self.protocol_service.async_query_user_cloud()
-
-    async def async_fetch_body_sensor_history(
-        self,
-        *,
-        device_id: str,
-        device_type: str | int,
-        sensor_device_id: str,
-        mesh_type: str,
-    ) -> DiagnosticsApiResponse:
-        """Query body-sensor history through the coordinator-owned protocol service."""
-        return await self.protocol_service.async_fetch_body_sensor_history(
-            device_id=device_id,
-            device_type=device_type,
-            sensor_device_id=sensor_device_id,
-            mesh_type=mesh_type,
-        )
-
-    async def async_fetch_door_sensor_history(
-        self,
-        *,
-        device_id: str,
-        device_type: str | int,
-        sensor_device_id: str,
-        mesh_type: str,
-    ) -> DiagnosticsApiResponse:
-        """Query door-sensor history through the coordinator-owned protocol service."""
-        return await self.protocol_service.async_fetch_door_sensor_history(
-            device_id=device_id,
-            device_type=device_type,
-            sensor_device_id=sensor_device_id,
-            mesh_type=mesh_type,
-        )
-
-    async def async_query_ota_info(
-        self,
-        *,
-        device_id: str,
-        device_type: str | int,
-        iot_name: str | None,
-        allow_rich_v2_fallback: bool,
-    ) -> list[OtaInfoRow]:
-        """Query OTA metadata through the coordinator-owned protocol service."""
-        return await self.protocol_service.async_query_ota_info(
-            device_id=device_id,
-            device_type=device_type,
-            iot_name=iot_name,
-            allow_rich_v2_fallback=allow_rich_v2_fallback,
-        )
-
-    async def async_fetch_outlet_power_info(self, device_id: str) -> OutletPowerInfoResult:
-        """Query outlet power info through the coordinator-owned protocol service."""
-        return await self.protocol_service.async_fetch_outlet_power_info(device_id)
 
     def _get_outlet_ids_for_power_polling(self) -> list[str]:
         """Resolve the current outlet IDs participating in power polling."""
@@ -493,7 +375,7 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
             outlet_ids_to_query=outlet_ids_to_query,
             round_robin_index=0,
             resolve_cycle_size=lambda total_devices: total_devices,
-            fetch_outlet_power_info=self.async_fetch_outlet_power_info,
+            fetch_outlet_power_info=self.protocol_service.async_fetch_outlet_power_info,
             get_device_by_id=lambda device_id: (
                 self.get_device_by_id(device_id) if isinstance(device_id, str) else None
             ),
@@ -539,38 +421,22 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
 
     async def async_shutdown(self) -> None:
         """Release coordinator-owned MQTT and background resources."""
-        with suppress(Exception):
-            await self._runtimes.mqtt.clear_disconnect_notification()
-
-        try:
-            await self.command_service.async_shutdown()
-        except asyncio.CancelledError:
-            raise
-        except Exception as err:  # noqa: BLE001
-            _LOGGER.warning(
-                "Command service shutdown failed (%s)",
-                type(err).__name__,
-            )
-
-        try:
-            await self._runtimes.mqtt.disconnect()
-        except asyncio.CancelledError:
-            raise
-        except Exception as err:  # noqa: BLE001
-            _LOGGER.warning(
-                "MQTT shutdown failed (%s)",
-                type(err).__name__,
-            )
-
-        try:
-            await self._state.background_task_manager.cancel_all()
-        except asyncio.CancelledError:
-            raise
-        except Exception as err:  # noqa: BLE001
-            _LOGGER.warning(
-                "Background task shutdown failed (%s)",
-                type(err).__name__,
-            )
+        await _async_run_best_effort_shutdown_step(
+            label="MQTT disconnect notification cleanup",
+            operation=self._runtimes.mqtt.clear_disconnect_notification,
+        )
+        await _async_run_best_effort_shutdown_step(
+            label="Command service shutdown",
+            operation=self.command_service.async_shutdown,
+        )
+        await _async_run_best_effort_shutdown_step(
+            label="MQTT runtime shutdown",
+            operation=self._runtimes.mqtt.disconnect,
+        )
+        await _async_run_best_effort_shutdown_step(
+            label="Background task shutdown",
+            operation=self._state.background_task_manager.cancel_all,
+        )
 
         self.protocol.attach_mqtt_facade(None)
         self._runtimes.mqtt.detach_transport()
@@ -600,7 +466,7 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
             await self.mqtt_service.async_sync_subscriptions()
 
     async def _async_run_status_polling(self) -> None:
-        """Run adaptive REST status polling via StatusRuntime (Phase H4).
+        """Run adaptive REST status polling via StatusRuntime.
 
         This supplements MQTT push with periodic REST polling to:
         - Catch state drift when MQTT messages are missed
@@ -680,7 +546,7 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
                     async with asyncio.timeout(5):
                         await self.async_setup_mqtt()
 
-                # Run adaptive status polling (Phase H4)
+                # Run adaptive status polling.
                 if self._state.devices:
                     async with asyncio.timeout(10):
                         await self._async_run_status_polling()
@@ -715,6 +581,11 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
             _LOGGER.error("Update failed: %s", err)
             error_message = f"Update failed: {err}"
             raise UpdateFailed(error_message) from err
+
+        except RuntimeSnapshotRefreshRejectedError as err:
+            self.telemetry_service.record_update_failure(err, stage="runtime")
+            _LOGGER.warning("Device snapshot refresh rejected: %s", err)
+            raise UpdateFailed(str(err)) from err
 
         except Exception as err:
             self.telemetry_service.record_update_failure(err, stage="unexpected")

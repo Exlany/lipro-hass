@@ -7,7 +7,6 @@ from dataclasses import dataclass, field
 import json
 import logging
 import re
-from typing import Any
 
 from custom_components.lipro.const.config import (
     CONF_DEVICE_FILTER_DID_LIST,
@@ -25,7 +24,7 @@ from custom_components.lipro.const.config import (
     MAX_DEVICE_FILTER_LIST_ITEMS,
 )
 
-from ...types import PropertyDict, PropertyValue
+from ...types import PropertyValue
 
 _LOGGER = logging.getLogger(__name__)
 _FILTER_LIST_SPLIT_RE = re.compile(r"[\n,;]+")
@@ -120,7 +119,7 @@ class DeviceFilter:
         return True
 
 
-def _normalize_filter_value(value: Any) -> str | None:
+def _normalize_filter_value(value: object) -> str | None:
     """Normalize a filter value to lowercase string or None."""
     if value is None:
         return None
@@ -131,7 +130,7 @@ def _normalize_filter_value(value: Any) -> str | None:
 
 
 def _collect_normalized_values(
-    payload: Mapping[str, Any],
+    payload: Mapping[str, object],
     keys: tuple[str, ...],
 ) -> set[str]:
     """Collect normalized values from a mapping by candidate keys."""
@@ -144,7 +143,7 @@ def _collect_normalized_values(
 
 
 def _collect_property_values(
-    properties: Any,
+    properties: object,
     keys: tuple[str, ...],
 ) -> set[str]:
     """Collect normalized values from property payload variants."""
@@ -168,7 +167,7 @@ def _collect_property_values(
     return values
 
 
-def _collect_ssid_values(device_data: Mapping[str, Any]) -> set[str]:
+def _collect_ssid_values(device_data: Mapping[str, object]) -> set[str]:
     """Collect SSID candidates from multiple payload variants."""
     ssid_keys = ("wifi_ssid", "wifiSsid", "ssid")
     values = _collect_normalized_values(device_data, ssid_keys)
@@ -194,7 +193,7 @@ def _collect_ssid_values(device_data: Mapping[str, Any]) -> set[str]:
     return values
 
 
-def _extract_home_values(device_data: Mapping[str, Any]) -> set[str]:
+def _extract_home_values(device_data: Mapping[str, object]) -> set[str]:
     """Extract normalized home candidates from device payload."""
     return _collect_normalized_values(
         device_data,
@@ -210,7 +209,7 @@ def _extract_home_values(device_data: Mapping[str, Any]) -> set[str]:
     )
 
 
-def _extract_model_values(device_data: Mapping[str, Any]) -> set[str]:
+def _extract_model_values(device_data: Mapping[str, object]) -> set[str]:
     """Extract normalized model candidates from device payload."""
     return _collect_normalized_values(
         device_data,
@@ -226,7 +225,7 @@ def _extract_model_values(device_data: Mapping[str, Any]) -> set[str]:
     )
 
 
-def _extract_did_values(device_data: Mapping[str, Any]) -> set[str]:
+def _extract_did_values(device_data: Mapping[str, object]) -> set[str]:
     """Extract normalized did/device-id candidates from device payload."""
     return _collect_normalized_values(
         device_data,
@@ -243,7 +242,7 @@ def _extract_did_values(device_data: Mapping[str, Any]) -> set[str]:
     )
 
 
-def parse_filter_config(options: PropertyDict) -> DeviceFilterConfig:
+def parse_filter_config(options: Mapping[str, PropertyValue]) -> DeviceFilterConfig:
     """Parse device filter configuration from config entry options.
 
     Args:

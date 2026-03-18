@@ -7,10 +7,10 @@ components without inheriting from _CoordinatorBase.
 from __future__ import annotations
 
 import asyncio
-from collections.abc import Callable
+from collections.abc import Awaitable, Callable, Mapping
 import logging
 from time import monotonic
-from typing import TYPE_CHECKING, Any, Protocol, cast
+from typing import TYPE_CHECKING, Any, Protocol, TypeVar, cast
 
 from homeassistant.helpers.issue_registry import (
     IssueSeverity,
@@ -37,12 +37,14 @@ if TYPE_CHECKING:
 
     from ...device import LiproDevice
     from ...protocol import MqttTransportFacade
+    from ..types import PropertyDict, PropertyValue
 
     DeviceResolverCallable = Callable[[str], LiproDevice | None]
 else:
-    DeviceResolverCallable = Callable[[str], Any]
+    DeviceResolverCallable = Callable[[str], object]
 
 _LOGGER = logging.getLogger(__name__)
+_ResultT = TypeVar("_ResultT")
 
 
 class DeviceResolverProtocol(Protocol):
@@ -59,7 +61,7 @@ class PropertyApplierProtocol(Protocol):
     async def __call__(
         self,
         device: LiproDevice,
-        properties: dict[str, Any],
+        properties: PropertyDict,
         source: str,
     ) -> bool:
         """Apply properties update to device."""
@@ -92,6 +94,19 @@ class GroupReconcilerProtocol(Protocol):
         ...
 
 
+class BackgroundTaskManagerProtocol(Protocol):
+    """Minimal background-task surface consumed by MQTT runtime."""
+
+    def create(
+        self,
+        coro: Coroutine[Any, Any, Any],
+        *,
+        create_task: Callable[[Coroutine[Any, Any, Any]], asyncio.Task[Any]] | None = None,
+    ) -> asyncio.Task[Any]:
+        """Create and track one background task."""
+        ...
+
+
 class MqttRuntime:
     """Standalone MQTT runtime using dependency injection."""
 
@@ -111,7 +126,7 @@ class MqttRuntime:
         dedup_window: float = 0.5,
         reconnect_base_delay: float = 1.0,
         reconnect_max_delay: float = 60.0,
-        background_task_manager: Any | None = None,
+        background_task_manager: BackgroundTaskManagerProtocol | None = None,
     ) -> None:
         """Initialize MQTT runtime with all dependencies injected at construction.
 
@@ -161,6 +176,23 @@ class MqttRuntime:
 
         self._message_handler = self._create_message_handler()
 
+    async def _async_run_transport_operation(
+        self,
+        *,
+        stage: str,
+        action: str,
+        operation: Callable[[], Awaitable[_ResultT]],
+    ) -> tuple[bool, _ResultT | None]:
+        """Run one transport operation with explicit failure recording."""
+        try:
+            return True, await operation()
+        except asyncio.CancelledError:
+            raise
+        except Exception as err:
+            self.handle_transport_error(err, stage=stage)
+            _LOGGER.exception("MQTT %s failed", action)
+            return False, None
+
     def bind_transport(self, mqtt_client: MqttTransportFacade) -> None:
         """Bind one protocol-owned MQTT transport to this runtime."""
         self._mqtt_client = mqtt_client
@@ -203,8 +235,10 @@ class MqttRuntime:
                 self._applier = applier
 
             async def apply_properties_update(
-                self, device: LiproDevice, properties: dict[str, Any]
-            ) -> dict[str, Any]:
+                self,
+                device: LiproDevice,
+                properties: PropertyDict,
+            ) -> PropertyDict:
                 """Apply properties and return applied dict."""
                 success = await self._applier(device, properties, "mqtt")
                 return properties if success else {}
@@ -298,15 +332,19 @@ class MqttRuntime:
             _LOGGER.error("MQTT client not initialized")
             return False
 
-        try:
-            await self._mqtt_client.start(device_ids)
-            await self._mqtt_client.sync_subscriptions(set(device_ids))
-            connected = await self._mqtt_client.wait_until_connected()
-        except asyncio.CancelledError:
-            raise
-        except Exception as err:
-            self.handle_transport_error(err, stage="connect")
-            _LOGGER.exception("MQTT connection failed")
+        mqtt_client = self._mqtt_client
+
+        async def _connect_sequence() -> bool:
+            await mqtt_client.start(device_ids)
+            await mqtt_client.sync_subscriptions(set(device_ids))
+            return await mqtt_client.wait_until_connected()
+
+        ok, connected = await self._async_run_transport_operation(
+            stage="connect",
+            action="connection",
+            operation=_connect_sequence,
+        )
+        if not ok:
             self._reconnect_manager.on_reconnect_failure()
             return False
 
@@ -321,13 +359,17 @@ class MqttRuntime:
         if self._mqtt_client is None:
             return False
 
-        try:
-            await self._mqtt_client.sync_subscriptions(set(device_ids))
-        except asyncio.CancelledError:
-            raise
-        except Exception as err:
-            self.handle_transport_error(err, stage="sync_subscriptions")
-            _LOGGER.exception("Failed to sync MQTT subscriptions")
+        mqtt_client = self._mqtt_client
+
+        async def _sync_operation() -> None:
+            await mqtt_client.sync_subscriptions(set(device_ids))
+
+        ok, _ = await self._async_run_transport_operation(
+            stage="sync_subscriptions",
+            action="subscription sync",
+            operation=_sync_operation,
+        )
+        if not ok:
             return False
 
         return True
@@ -338,19 +380,18 @@ class MqttRuntime:
             return
 
         try:
-            await self._mqtt_client.stop()
-        except asyncio.CancelledError:
-            raise
-        except Exception as err:
-            self.handle_transport_error(err, stage="disconnect")
-            _LOGGER.exception("MQTT disconnect failed")
+            await self._async_run_transport_operation(
+                stage="disconnect",
+                action="disconnect",
+                operation=self._mqtt_client.stop,
+            )
         finally:
             self.on_transport_disconnected()
 
     async def handle_message(
         self,
         device_id: str,
-        properties: dict[str, Any],
+        properties: Mapping[str, PropertyValue],
     ) -> None:
         """Handle incoming MQTT message.
 
@@ -468,7 +509,7 @@ class MqttRuntime:
         """Return current MQTT connection state."""
         return self._connection_manager.is_connected
 
-    def get_runtime_metrics(self) -> dict[str, Any]:
+    def get_runtime_metrics(self) -> dict[str, object]:
         """Return lightweight MQTT runtime telemetry."""
         last_transport_error = self._last_transport_error
         return {

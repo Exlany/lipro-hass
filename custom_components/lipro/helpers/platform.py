@@ -6,10 +6,11 @@ common utilities for platform setup.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 from ..const.categories import DeviceCategory
 from ..core.utils.identifiers import normalize_iot_device_id
+from ..runtime_types import LiproRuntimeCoordinator
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterable, Sequence
@@ -20,29 +21,39 @@ if TYPE_CHECKING:
     from .. import LiproConfigEntry
     from ..core.capability import CapabilitySnapshot
     from ..core.device import LiproDevice
-    from ..runtime_types import LiproCoordinator
 
     type CoordinatorEntityBuilder[EntityT: Entity] = Callable[
-        [LiproCoordinator], Iterable[EntityT]
+        [LiproRuntimeCoordinator], Iterable[EntityT]
     ]
     type DevicePredicate = Callable[[LiproDevice], bool]
     type DeviceEntityFactory[EntityT: Entity] = Callable[
-        [LiproCoordinator, LiproDevice], EntityT
+        [LiproRuntimeCoordinator, LiproDevice], EntityT
     ]
     type DeviceEntityRule[EntityT: Entity] = tuple[
         DevicePredicate, Sequence[DeviceEntityFactory[EntityT]]
     ]
 
 
+def _require_entry_coordinator(entry: LiproConfigEntry) -> LiproRuntimeCoordinator:
+    """Return the loaded runtime coordinator for one config entry."""
+    coordinator = entry.runtime_data
+    if coordinator is not None:
+        return cast(LiproRuntimeCoordinator, coordinator)
+
+    entry_id = getattr(entry, "entry_id", "<unknown>")
+    msg = f"Runtime coordinator missing for entry {entry_id}"
+    raise ValueError(msg)
+
+
 _CATEGORY_TO_PLATFORM_NAMES: dict[DeviceCategory, tuple[str, ...]] = {
-    DeviceCategory.LIGHT: ('light',),
-    DeviceCategory.FAN_LIGHT: ('light', 'fan'),
-    DeviceCategory.CURTAIN: ('cover',),
-    DeviceCategory.SWITCH: ('switch',),
-    DeviceCategory.OUTLET: ('switch',),
-    DeviceCategory.HEATER: ('climate',),
-    DeviceCategory.BODY_SENSOR: ('binary_sensor',),
-    DeviceCategory.DOOR_SENSOR: ('binary_sensor',),
+    DeviceCategory.LIGHT: ("light",),
+    DeviceCategory.FAN_LIGHT: ("light", "fan"),
+    DeviceCategory.CURTAIN: ("cover",),
+    DeviceCategory.SWITCH: ("switch",),
+    DeviceCategory.OUTLET: ("switch",),
+    DeviceCategory.HEATER: ("climate",),
+    DeviceCategory.BODY_SENSOR: ("binary_sensor",),
+    DeviceCategory.DOOR_SENSOR: ("binary_sensor",),
     DeviceCategory.GATEWAY: (),
     DeviceCategory.UNKNOWN: (),
 }
@@ -73,13 +84,13 @@ def add_entry_entities[EntityT: Entity](
     entity_builder: CoordinatorEntityBuilder[EntityT],
 ) -> None:
     """Project one runtime coordinator into HA entities via a thin adapter shell."""
-    async_add_entities(list(entity_builder(entry.runtime_data)))
+    async_add_entities(list(entity_builder(_require_entry_coordinator(entry))))
 
 
 def create_platform_entities[EntityT: Entity](
-    coordinator: LiproCoordinator,
+    coordinator: LiproRuntimeCoordinator,
     device_filter: Callable[[LiproDevice], bool],
-    entity_factory: Callable[[LiproCoordinator, LiproDevice], EntityT],
+    entity_factory: Callable[[LiproRuntimeCoordinator, LiproDevice], EntityT],
 ) -> list[EntityT]:
     """Create entities for a platform using a filter and factory function."""
     return [
@@ -90,9 +101,9 @@ def create_platform_entities[EntityT: Entity](
 
 
 def create_device_entities[EntityT: Entity](
-    coordinator: LiproCoordinator,
+    coordinator: LiproRuntimeCoordinator,
     entity_builder: Callable[
-        [LiproCoordinator, LiproDevice],
+        [LiproRuntimeCoordinator, LiproDevice],
         Iterable[EntityT],
     ],
     *,
@@ -108,7 +119,7 @@ def create_device_entities[EntityT: Entity](
 
 
 def build_device_entities_from_rules[EntityT: Entity](
-    coordinator: LiproCoordinator,
+    coordinator: LiproRuntimeCoordinator,
     device: LiproDevice,
     *,
     rules: Sequence[DeviceEntityRule[EntityT]],
@@ -157,7 +168,4 @@ def should_expose_light_gear_select(device: LiproDevice) -> bool:
 
 def should_expose_firmware_update_entity(device: LiproDevice) -> bool:
     """Return whether one device qualifies for the firmware update platform."""
-    return (
-        not device.is_group
-        and normalize_iot_device_id(device.serial) is not None
-    )
+    return not device.is_group and normalize_iot_device_id(device.serial) is not None

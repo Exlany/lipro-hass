@@ -6,7 +6,7 @@ from collections.abc import Awaitable, Callable, Mapping, Sequence
 import logging
 from typing import cast
 
-from custom_components.lipro.core.api.types import OtaInfoRow
+from custom_components.lipro.core.api.types import JsonObject, JsonValue, OtaInfoRow
 
 from ...const.api import (
     PATH_FETCH_BODY_SENSOR_HISTORY,
@@ -22,13 +22,13 @@ from ..utils.log_safety import safe_error_placeholder
 
 _LOGGER = logging.getLogger(__name__)
 
-type ResponseMapping = dict[str, object]
-type RequestPayload = Mapping[str, object]
+type ResponseMapping = JsonObject
+type RequestPayload = JsonObject
 type OtaRowDedupeKey = tuple[str, str, str, str, str]
-type RequestIotMapping = Callable[..., Awaitable[tuple[ResponseMapping, str | None]]]
-type RequestIotMappingRaw = Callable[..., Awaitable[tuple[ResponseMapping, str | None]]]
-type IotRequest = Callable[..., Awaitable[Mapping[str, object]]]
-type RequireMappingResponse = Callable[[str, object], dict[str, object]]
+type RequestIotMapping = Callable[..., Awaitable[tuple[JsonObject, str | None]]]
+type RequestIotMappingRaw = Callable[..., Awaitable[tuple[JsonObject, str | None]]]
+type IotRequest = Callable[..., Awaitable[JsonValue]]
+type RequireMappingResponse = Callable[[str, object], JsonObject]
 type ExtractDataList = Callable[[object], Sequence[object]]
 type DeviceTypeHexResolver = Callable[[int | str], str]
 type InvalidParamCodeChecker = Callable[[object], bool]
@@ -103,7 +103,7 @@ async def query_command_result(
     msg_sn: str,
     device_id: str,
     device_type: int | str,
-) -> dict[str, object]:
+) -> ResponseMapping:
     """Query async command delivery result by message serial number."""
     result, _ = await request_iot_mapping(
         PATH_QUERY_COMMAND_RESULT,
@@ -120,7 +120,7 @@ async def get_city(
     *,
     iot_request: IotRequest,
     require_mapping_response: RequireMappingResponse,
-) -> dict[str, object]:
+) -> ResponseMapping:
     """Get current city metadata from IoT backend."""
     result = await iot_request(PATH_GET_CITY, {})
     return require_mapping_response(PATH_GET_CITY, result)
@@ -130,7 +130,7 @@ async def query_user_cloud(
     *,
     request_iot_mapping_raw: RequestIotMappingRaw,
     require_mapping_response: RequireMappingResponse,
-) -> dict[str, object]:
+) -> ResponseMapping:
     """Query cloud-assistant metadata using the verified empty-string contract."""
     result, _ = await request_iot_mapping_raw(PATH_QUERY_USER_CLOUD, "")
     return require_mapping_response(PATH_QUERY_USER_CLOUD, result)
@@ -252,7 +252,7 @@ async def fetch_body_sensor_history(
     device_type: int | str,
     sensor_device_id: str,
     mesh_type: str,
-) -> dict[str, object]:
+) -> ResponseMapping:
     """Fetch body sensor history snapshot for diagnostics."""
     return await fetch_sensor_history(
         iot_request=iot_request,
@@ -275,7 +275,7 @@ async def fetch_door_sensor_history(
     device_type: int | str,
     sensor_device_id: str,
     mesh_type: str,
-) -> dict[str, object]:
+) -> ResponseMapping:
     """Fetch door sensor history snapshot for diagnostics."""
     return await fetch_sensor_history(
         iot_request=iot_request,
@@ -299,7 +299,7 @@ async def fetch_sensor_history(
     device_type: int | str,
     sensor_device_id: str,
     mesh_type: str,
-) -> dict[str, object]:
+) -> ResponseMapping:
     """Fetch one sensor-history payload using shared request fields."""
     result = await iot_request(
         path,

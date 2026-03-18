@@ -35,7 +35,7 @@ if TYPE_CHECKING:
 
     from . import LiproConfigEntry
     from .core.device import LiproDevice
-    from .runtime_types import LiproCoordinator
+    from .runtime_types import LiproRuntimeCoordinator
 
 # Limit parallel updates to avoid overwhelming the API
 PARALLEL_UPDATES = 1
@@ -76,7 +76,7 @@ class LiproLight(LiproEntity, LightEntity):
 
     def __init__(
         self,
-        coordinator: LiproCoordinator,
+        coordinator: LiproRuntimeCoordinator,
         device: LiproDevice,
     ) -> None:
         """Initialize the light."""

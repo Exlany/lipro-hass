@@ -3,16 +3,18 @@
 from __future__ import annotations
 
 import asyncio
-from collections.abc import Awaitable, Callable, Coroutine
+from collections.abc import Awaitable, Callable
+from dataclasses import dataclass
 from functools import partial
 import logging
-from typing import Any, Protocol
+from typing import Any, Literal, Protocol, cast
 
 from aiohttp import ClientSession
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
 
 from ..const.config import (
     CONF_SCAN_INTERVAL,
@@ -24,7 +26,7 @@ from ..coordinator_entry import Coordinator
 from ..core import LiproAuthManager, LiproProtocolFacade
 from .service_registry import ServiceRegistry
 
-type EntryLike = ConfigEntry[Any]
+type EntryLike = ConfigEntry[Coordinator | None]
 type ClientFactory = Callable[..., LiproProtocolFacade]
 type AuthManagerFactory = Callable[[LiproProtocolFacade], LiproAuthManager]
 type GetClientSession = Callable[[HomeAssistant], ClientSession]
@@ -35,9 +37,34 @@ type GetEntryIntOption = Callable[..., int]
 type PersistEntryTokens = Callable[[HomeAssistant, EntryLike, LiproAuthManager], None]
 type StoreEntryOptionsSnapshot = Callable[[HomeAssistant, EntryLike], None]
 type RemoveEntryOptionsSnapshot = Callable[[HomeAssistant, str], None]
-type ReloadEntryIfOptionsChanged = Callable[[HomeAssistant, EntryLike], Coroutine[Any, Any, None]]
+type ReloadEntryIfOptionsChanged = Callable[[HomeAssistant, EntryLike], Awaitable[None]]
 type EnsureRuntimeInfra = Callable[..., Awaitable[None]]
 type RemoveDeviceRegistryListener = Callable[[HomeAssistant], None]
+type LifecycleStage = Literal["setup", "unload", "reload"]
+type LifecycleHandlingPolicy = Literal[
+    "cleanup_and_raise",
+    "log_and_continue",
+    "propagate",
+]
+type LifecycleContractName = Literal[
+    "setup_auth_failed",
+    "setup_failed",
+    "setup_not_ready",
+    "unload_shutdown_degraded",
+    "reload_auth_failed",
+    "reload_failed",
+    "reload_not_ready",
+]
+
+
+@dataclass(frozen=True, slots=True)
+class LifecycleFailureContract:
+    """Named lifecycle failure contract for one control-plane branch."""
+
+    stage: LifecycleStage
+    contract_name: LifecycleContractName
+    handling_policy: LifecycleHandlingPolicy
+    error_type: str
 
 
 class SetupDeviceRegistryListener(Protocol):
@@ -155,6 +182,105 @@ class EntryLifecycleController:
         await coordinator.async_shutdown()
         self._clear_entry_runtime_data(entry)
 
+    async def _async_complete_setup(
+        self,
+        *,
+        hass: HomeAssistant,
+        entry: EntryLike,
+        coordinator: CoordinatorRuntimeLike,
+        auth_manager: LiproAuthManager,
+    ) -> None:
+        """Run refresh plus platform forwarding for one prepared entry."""
+        await coordinator.async_config_entry_first_refresh()
+        entry.runtime_data = cast(Coordinator | None, coordinator)
+        self._persist_entry_tokens_if_changed(hass, entry, auth_manager)
+        await hass.config_entries.async_forward_entry_setups(entry, self._platforms)
+
+    async def _async_abort_setup_for_error(
+        self,
+        *,
+        entry: EntryLike,
+        coordinator: CoordinatorRuntimeLike,
+        error: Exception,
+    ) -> None:
+        """Abort setup after one non-cancellation failure while preserving cleanup."""
+        contract = self._classify_setup_failure(error)
+        self._logger.debug(
+            "Lifecycle %s contract %s -> %s (%s)",
+            contract.stage,
+            contract.contract_name,
+            contract.handling_policy,
+            contract.error_type,
+        )
+        await self._async_abort_setup(entry=entry, coordinator=coordinator)
+
+    def _classify_setup_failure(
+        self,
+        error: Exception,
+    ) -> LifecycleFailureContract:
+        """Classify one setup failure into a named arbitration contract."""
+        if isinstance(error, ConfigEntryAuthFailed):
+            contract_name: LifecycleContractName = "setup_auth_failed"
+        elif isinstance(error, ConfigEntryNotReady):
+            contract_name = "setup_not_ready"
+        else:
+            contract_name = "setup_failed"
+        return LifecycleFailureContract(
+            stage="setup",
+            contract_name=contract_name,
+            handling_policy="cleanup_and_raise",
+            error_type=type(error).__name__,
+        )
+
+    def _classify_unload_failure(
+        self,
+        error: Exception,
+    ) -> LifecycleFailureContract:
+        """Classify one unload degradation into a named arbitration contract."""
+        return LifecycleFailureContract(
+            stage="unload",
+            contract_name="unload_shutdown_degraded",
+            handling_policy="log_and_continue",
+            error_type=type(error).__name__,
+        )
+
+    def _classify_reload_failure(
+        self,
+        error: Exception,
+    ) -> LifecycleFailureContract:
+        """Classify one reload failure into a named arbitration contract."""
+        if isinstance(error, ConfigEntryAuthFailed):
+            contract_name: LifecycleContractName = "reload_auth_failed"
+        elif isinstance(error, ConfigEntryNotReady):
+            contract_name = "reload_not_ready"
+        else:
+            contract_name = "reload_failed"
+        return LifecycleFailureContract(
+            stage="reload",
+            contract_name=contract_name,
+            handling_policy="propagate",
+            error_type=type(error).__name__,
+        )
+
+    async def _async_shutdown_on_unload(
+        self,
+        coordinator: CoordinatorRuntimeLike,
+    ) -> None:
+        """Shutdown runtime data during unload while preserving cancel semantics."""
+        try:
+            await coordinator.async_shutdown()
+        except asyncio.CancelledError:
+            raise
+        except Exception as err:  # noqa: BLE001
+            contract = self._classify_unload_failure(err)
+            self._logger.warning(
+                "Lifecycle %s contract %s -> %s (%s)",
+                contract.stage,
+                contract.contract_name,
+                contract.handling_policy,
+                contract.error_type,
+            )
+
     async def async_setup_component(self, hass: HomeAssistant, config: object) -> bool:
         """Set up shared runtime infrastructure for the integration."""
         del config
@@ -192,30 +318,42 @@ class EntryLifecycleController:
         )
 
         try:
-            await coordinator.async_config_entry_first_refresh()
+            await self._async_complete_setup(
+                hass=hass,
+                entry=entry,
+                coordinator=coordinator,
+                auth_manager=auth_manager,
+            )
         except asyncio.CancelledError:
             await self._async_abort_setup(entry=entry, coordinator=coordinator)
             raise
-        except Exception:
-            await self._async_abort_setup(entry=entry, coordinator=coordinator)
+        except (ConfigEntryAuthFailed, ConfigEntryNotReady) as err:
+            await self._async_abort_setup_for_error(
+                entry=entry,
+                coordinator=coordinator,
+                error=err,
+            )
             raise
-
-        entry.runtime_data = coordinator
-
-        try:
-            self._persist_entry_tokens_if_changed(hass, entry, auth_manager)
-            await hass.config_entries.async_forward_entry_setups(entry, self._platforms)
-        except asyncio.CancelledError:
-            await self._async_abort_setup(entry=entry, coordinator=coordinator)
-            raise
-        except Exception:
-            await self._async_abort_setup(entry=entry, coordinator=coordinator)
+        except Exception as err:
+            await self._async_abort_setup_for_error(
+                entry=entry,
+                coordinator=coordinator,
+                error=err,
+            )
             raise
 
         self._store_entry_options_snapshot(hass, entry)
-        entry.async_on_unload(
-            entry.add_update_listener(self._async_reload_entry_if_options_changed)
-        )
+
+        async def _reload_options_bridge(
+            bridge_hass: HomeAssistant,
+            bridge_entry: ConfigEntry[Any],
+        ) -> None:
+            await self._async_reload_entry_if_options_changed(
+                bridge_hass,
+                cast(EntryLike, bridge_entry),
+            )
+
+        entry.async_on_unload(entry.add_update_listener(_reload_options_bridge))
         await self._service_registry.async_sync_with_lock(hass)
         return True
 
@@ -227,15 +365,7 @@ class EntryLifecycleController:
         if result:
             coordinator = getattr(entry, "runtime_data", None)
             if coordinator is not None:
-                try:
-                    await coordinator.async_shutdown()
-                except asyncio.CancelledError:
-                    raise
-                except Exception as err:  # noqa: BLE001
-                    self._logger.warning(
-                        "Coordinator shutdown failed during unload (%s)",
-                        type(err).__name__,
-                    )
+                await self._async_shutdown_on_unload(coordinator)
             self._clear_entry_runtime_data(entry)
             self._remove_entry_options_snapshot(hass, entry.entry_id)
 
@@ -252,4 +382,27 @@ class EntryLifecycleController:
 
     async def async_reload_entry(self, hass: HomeAssistant, entry: EntryLike) -> None:
         """Reload one config entry."""
-        await hass.config_entries.async_reload(entry.entry_id)
+        try:
+            await hass.config_entries.async_reload(entry.entry_id)
+        except asyncio.CancelledError:
+            raise
+        except (ConfigEntryAuthFailed, ConfigEntryNotReady) as err:
+            contract = self._classify_reload_failure(err)
+            self._logger.debug(
+                "Lifecycle %s contract %s -> %s (%s)",
+                contract.stage,
+                contract.contract_name,
+                contract.handling_policy,
+                contract.error_type,
+            )
+            raise
+        except Exception as err:
+            contract = self._classify_reload_failure(err)
+            self._logger.debug(
+                "Lifecycle %s contract %s -> %s (%s)",
+                contract.stage,
+                contract.contract_name,
+                contract.handling_policy,
+                contract.error_type,
+            )
+            raise

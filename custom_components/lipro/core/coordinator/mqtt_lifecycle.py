@@ -17,6 +17,7 @@ if TYPE_CHECKING:
     from ..device import LiproDevice
     from ..utils.background_task_manager import BackgroundTaskManager
     from .runtime.mqtt_runtime import MqttRuntime
+    from .types import PropertyDict
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -65,10 +66,6 @@ async def async_setup_mqtt(
             _LOGGER.error("MQTT config fetch timeout after 10 seconds")
             return None
 
-        if not mqtt_config:
-            _LOGGER.warning("No MQTT config available")
-            return None
-
         access_key = decrypt_mqtt_credential(mqtt_config.get("accessKey", ""))
         secret_key = decrypt_mqtt_credential(mqtt_config.get("secretKey", ""))
         if not access_key or not secret_key:
@@ -89,7 +86,7 @@ async def async_setup_mqtt(
 
         async def _async_handle_message(
             topic: str,
-            payload: dict[str, object],
+            payload: PropertyDict,
         ) -> None:
             try:
                 await mqtt_runtime.handle_message(topic, payload)
@@ -99,7 +96,7 @@ async def async_setup_mqtt(
                 mqtt_runtime.handle_transport_error(err, stage="message_bridge")
                 raise
 
-        def _on_message_bridge(topic: str, payload: dict[str, object]) -> None:
+        def _on_message_bridge(topic: str, payload: PropertyDict) -> None:
             background_task_manager.create(
                 _async_handle_message(topic, payload),
                 create_task=lambda coro: asyncio.create_task(

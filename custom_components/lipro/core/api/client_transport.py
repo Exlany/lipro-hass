@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from collections.abc import Awaitable, Callable
 import logging
-from typing import Any
 
 import aiohttp
 
@@ -38,10 +37,15 @@ from .response_safety import DEVICE_TYPE_HEX_PATTERN as _DEVICE_TYPE_HEX_PATTERN
 from .transport_core import TransportCore
 from .transport_retry import TransportRetry
 from .transport_signing import TransportSigning
+from .types import JsonObject, JsonValue
 
 _LOGGER = logging.getLogger("custom_components.lipro.core.api.client")
 
-MappingRequestSender = Callable[[], Awaitable[tuple[int, Any, dict[str, str], str | None]]]
+type ResponseHeaders = dict[str, str]
+MappingRequestSender = Callable[
+    [],
+    Awaitable[tuple[int, object, ResponseHeaders, str | None]],
+]
 
 
 class TransportExecutor:
@@ -108,14 +112,14 @@ class TransportExecutor:
 
     async def execute_request(
         self,
-        request_ctx: Any,
+        request_ctx: object,
         path: str,
-    ) -> tuple[int, dict[str, Any], dict[str, str]]:
+    ) -> tuple[int, JsonObject, ResponseHeaders]:
         """Execute one low-level HTTP request context and normalize the response."""
         return await self._transport_core.execute_request(request_ctx, path)
 
     @staticmethod
-    def require_mapping_response(path: str, result: Any) -> dict[str, Any]:
+    def require_mapping_response(path: str, result: object) -> JsonObject:
         """Require one mapping response payload to be a JSON object."""
         return TransportCore.require_mapping_response(path, result)
 
@@ -125,7 +129,7 @@ class TransportExecutor:
         path: str,
         retry_count: int,
         send_request: MappingRequestSender,
-    ) -> tuple[int, dict[str, Any], str | None]:
+    ) -> tuple[int, JsonObject, str | None]:
         """Execute one mapping request with policy-owned rate-limit retries."""
         return await self._transport_retry.execute_with_rate_limit_retry(
             path=path,
@@ -138,16 +142,16 @@ class TransportExecutor:
     async def request_smart_home_mapping(
         self,
         path: str,
-        data: dict[str, Any],
+        data: JsonObject,
         require_auth: bool = True,
         *,
         is_retry: bool = False,
         retry_count: int = 0,
-    ) -> tuple[dict[str, Any], str | None]:
+    ) -> tuple[JsonObject, str | None]:
         """Request one Smart Home mapping payload and preserve retry context."""
         url = f"{SMART_HOME_API_URL}{path}"
 
-        async def _send_request() -> tuple[int, Any, dict[str, str], str | None]:
+        async def _send_request() -> tuple[int, object, ResponseHeaders, str | None]:
             request_token = self._state.access_token
             if require_auth and not request_token:
                 msg = "No access token available"
@@ -188,11 +192,11 @@ class TransportExecutor:
     async def smart_home_request(
         self,
         path: str,
-        data: dict[str, Any],
+        data: JsonObject,
         require_auth: bool = True,
         is_retry: bool = False,
         retry_count: int = 0,
-    ) -> Any:
+    ) -> JsonValue:
         """Execute one Smart Home request and finalize auth-aware mapping results."""
         result, request_token = await self.request_smart_home_mapping(
             path,
@@ -216,7 +220,7 @@ class TransportExecutor:
             success_payload=extract_smart_home_success_payload,
         )
 
-    def build_iot_headers(self, body: str) -> dict[str, str]:
+    def build_iot_headers(self, body: str) -> ResponseHeaders:
         """Build signed headers for one IoT request payload."""
         nonce = self.get_timestamp_ms()
         sign = self.iot_sign(nonce, body)
@@ -237,11 +241,11 @@ class TransportExecutor:
         *,
         is_retry: bool = False,
         retry_count: int = 0,
-    ) -> tuple[dict[str, Any], str | None]:
+    ) -> tuple[JsonObject, str | None]:
         """Request one raw IoT mapping payload and preserve retry context."""
         url = f"{IOT_API_URL}{path}"
 
-        async def _send_request() -> tuple[int, Any, dict[str, str], str | None]:
+        async def _send_request() -> tuple[int, object, ResponseHeaders, str | None]:
             request_token = self._state.access_token
             if not request_token:
                 msg = "No access token available"
@@ -285,11 +289,11 @@ class TransportExecutor:
     async def request_iot_mapping(
         self,
         path: str,
-        body_data: dict[str, Any],
+        body_data: JsonObject,
         *,
         is_retry: bool = False,
         retry_count: int = 0,
-    ) -> tuple[dict[str, Any], str | None]:
+    ) -> tuple[JsonObject, str | None]:
         """Encode and request one IoT mapping payload."""
         body = encode_iot_request_body(body_data)
         return await self.request_iot_mapping_raw(
@@ -302,10 +306,10 @@ class TransportExecutor:
     async def iot_request(
         self,
         path: str,
-        body_data: dict[str, Any],
+        body_data: JsonObject,
         is_retry: bool = False,
         retry_count: int = 0,
-    ) -> Any:
+    ) -> JsonValue:
         """Execute one IoT request and finalize auth-aware mapping results."""
         result, request_token = await self.request_iot_mapping(
             path,

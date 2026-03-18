@@ -1,4 +1,4 @@
-"""Runtime context protocol for dependency injection (Phase C - Aggressive Refactor).
+"""Runtime context protocol for dependency injection.
 
 This module defines the unified dependency interface shared by all runtime components,
 eliminating the need for lambda closures and setter injection.

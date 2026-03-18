@@ -18,7 +18,11 @@ from .const.properties import (
 )
 from .entities.base import LiproEntity
 from .entities.commands import PowerCommand
-from .helpers.platform import create_platform_entities, device_supports_platform
+from .helpers.platform import (
+    add_entry_entities,
+    create_platform_entities,
+    device_supports_platform,
+)
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
@@ -53,12 +57,15 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up Lipro climate entities."""
-    entities = create_platform_entities(
-        entry.runtime_data,
-        device_filter=lambda d: device_supports_platform(d, "climate"),
-        entity_factory=LiproHeater,
+    add_entry_entities(
+        entry,
+        async_add_entities,
+        entity_builder=lambda coordinator: create_platform_entities(
+            coordinator,
+            device_filter=lambda d: device_supports_platform(d, "climate"),
+            entity_factory=LiproHeater,
+        ),
     )
-    async_add_entities(entities)
 
 
 class LiproHeater(LiproEntity, ClimateEntity):

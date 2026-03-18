@@ -1,3 +1,4 @@
+from collections.abc import Mapping
 from typing import Any
 
 from custom_components.lipro.const.categories import DeviceCategory
@@ -185,7 +186,7 @@ class LiproDevice:
 
     def kelvin_to_percent_for_device(self, kelvin: int) -> int: ...
 
-    def update_properties(self, properties: DevicePropertyMap) -> None: ...
+    def update_properties(self, properties: Mapping[str, object]) -> None: ...
 
     def has_recent_mqtt_update(self, *, stale_window_seconds: float = ...) -> bool: ...
 

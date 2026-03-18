@@ -3,9 +3,23 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any
+from typing import TypedDict
+
+import aiohttp
 
 from ..api.client_base import ClientSessionState
+
+
+class ProtocolSessionSnapshot(TypedDict):
+    """Diagnostics-friendly snapshot of shared protocol session state."""
+
+    phone_id: str
+    entry_id: str | None
+    user_id: int | None
+    biz_id: str | None
+    access_token_present: bool
+    refresh_token_present: bool
+    request_timeout: int
 
 
 @dataclass(slots=True)
@@ -30,7 +44,7 @@ class ProtocolSessionState:
         return self.rest_state.entry_id
 
     @property
-    def session(self):  # type: ignore[no-untyped-def]
+    def session(self) -> aiohttp.ClientSession | None:
         """Expose the underlying aiohttp session for child-transport use only."""
         return self.rest_state.session
 
@@ -82,7 +96,7 @@ class ProtocolSessionState:
         if biz_id:
             self.rest_state.biz_id = biz_id
 
-    def as_dict(self) -> dict[str, Any]:
+    def as_dict(self) -> ProtocolSessionSnapshot:
         """Return a lightweight diagnostics-friendly session snapshot."""
         return {
             "phone_id": self.phone_id,
@@ -95,4 +109,4 @@ class ProtocolSessionState:
         }
 
 
-__all__ = ["ProtocolSessionState"]
+__all__ = ["ProtocolSessionSnapshot", "ProtocolSessionState"]

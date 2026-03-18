@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from enum import StrEnum
 import logging
@@ -22,6 +22,11 @@ _LOGGER = logging.getLogger(__name__)
 
 type RedactIdentifier = Callable[[str | None], str | None]
 type CommandTracePayload = dict[str, object]
+
+
+def _as_command_result_payload(result: Mapping[str, object]) -> CommandResultPayload:
+    """Widen one JSON-like mapping into the canonical command-result payload alias."""
+    return dict(result)
 
 
 class CommandRoute(StrEnum):
@@ -180,12 +185,14 @@ async def _send_member_command(
     properties: list[dict[str, str]] | None,
 ) -> CommandResultPayload:
     """Send a command to a specific member device."""
-    return await client.send_command(
-        member_id,
-        command,
-        device.device_type_hex,
-        properties,
-        device.iot_name,
+    return _as_command_result_payload(
+        await client.send_command(
+            member_id,
+            command,
+            device.device_type_hex,
+            properties,
+            device.iot_name,
+        )
     )
 
 
@@ -220,12 +227,14 @@ async def _send_group_with_error_fallback(
 ) -> tuple[CommandResultPayload, str]:
     """Send group command and fallback on group API error when allowed."""
     try:
-        result = await client.send_group_command(
-            device.serial,
-            plan.command,
-            device.device_type_hex,
-            plan.properties,
-            device.iot_name,
+        result = _as_command_result_payload(
+            await client.send_group_command(
+                device.serial,
+                plan.command,
+                device.device_type_hex,
+                plan.properties,
+                device.iot_name,
+            )
         )
         return result, plan.route
     except LiproApiError as err:
@@ -264,12 +273,14 @@ async def _execute_panel_command(
     plan: CommandDispatchPlan,
 ) -> tuple[CommandResultPayload, str]:
     """Execute panel command via group endpoint."""
-    result = await client.send_group_command(
-        device.serial,
-        plan.command,
-        device.device_type_hex,
-        plan.properties,
-        device.iot_name,
+    result = _as_command_result_payload(
+        await client.send_group_command(
+            device.serial,
+            plan.command,
+            device.device_type_hex,
+            plan.properties,
+            device.iot_name,
+        )
     )
     return result, plan.route
 

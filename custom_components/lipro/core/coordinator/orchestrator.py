@@ -1,4 +1,4 @@
-"""Runtime orchestrator for aggressive refactor (Phase C).
+"""Runtime orchestrator for coordinator collaborators.
 
 This module replaces the scattered DI wiring in factory.py with a clean,
 context-driven orchestration pattern.

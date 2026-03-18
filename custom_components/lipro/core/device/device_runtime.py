@@ -3,7 +3,8 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from collections.abc import Mapping
+from typing import TYPE_CHECKING
 
 from ...const.properties import PROP_CONNECT_STATE, PROP_GEAR_LIST
 from ..utils.property_normalization import normalize_properties
@@ -59,7 +60,7 @@ def initialize_device(device: LiproDevice) -> None:
         device.available = get_device_state(device).is_connected
 
 
-def update_device_properties(device: LiproDevice, properties: dict[str, Any]) -> None:
+def update_device_properties(device: LiproDevice, properties: Mapping[str, object]) -> None:
     """Merge normalized properties into the live device facade."""
     normalized = normalize_properties(properties)
     device.properties.update(normalized)

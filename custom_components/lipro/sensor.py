@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Final
+from typing import TYPE_CHECKING, Final, cast
 
 from homeassistant.components.sensor import (
     SensorDeviceClass,
@@ -17,16 +17,57 @@ from homeassistant.const import (
     UnitOfPower,
 )
 
-from .entities.base import LiproEntity
-from .helpers.platform import build_device_entities_from_rules, create_device_entities
+from .helpers.platform import (
+    add_entry_entities,
+    build_device_entities_from_rules,
+    create_device_entities,
+)
 
 if TYPE_CHECKING:
+    from collections.abc import Mapping
+
     from homeassistant.core import HomeAssistant
     from homeassistant.helpers.entity_platform import AddEntitiesCallback
+    from homeassistant.helpers.update_coordinator import (
+        CoordinatorEntity,
+        DataUpdateCoordinator,
+    )
 
     from . import LiproConfigEntry
+    from .core.capability import CapabilitySnapshot
     from .core.device import LiproDevice
-    from .runtime_types import LiproCoordinator
+    from .runtime_types import LiproRuntimeCoordinator
+
+    class _LiproEntityBase(CoordinatorEntity[DataUpdateCoordinator[dict[str, object]]]):
+        def __init__(
+            self,
+            coordinator: LiproRuntimeCoordinator,
+            device: LiproDevice,
+            entity_suffix: str = "",
+        ) -> None: ...
+
+        @property
+        def device(self) -> LiproDevice: ...
+
+        @property
+        def capabilities(self) -> CapabilitySnapshot: ...
+
+        async def async_change_state(
+            self,
+            properties: Mapping[str, object],
+            *,
+            optimistic_state: Mapping[str, object] | None = None,
+            debounced: bool = False,
+        ) -> bool | None: ...
+
+else:
+    _LiproEntityBase = cast(
+        type[object],
+        __import__(
+            "custom_components.lipro.entities.base",
+            fromlist=["LiproEntity"],
+        ).LiproEntity,
+    )
 
 # No parallel update limit needed for read-only sensors using coordinator
 PARALLEL_UPDATES = 0
@@ -44,12 +85,18 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up Lipro sensors."""
-    entities = create_device_entities(entry.runtime_data, _build_device_sensors)
-    async_add_entities(entities)
+    add_entry_entities(
+        entry,
+        async_add_entities,
+        entity_builder=lambda coordinator: create_device_entities(
+            coordinator,
+            _build_device_sensors,
+        ),
+    )
 
 
 def _build_device_sensors(
-    coordinator: LiproCoordinator,
+    coordinator: LiproRuntimeCoordinator,
     device: LiproDevice,
 ) -> list[SensorEntity]:
     """Build all sensor entities for one device."""
@@ -59,18 +106,62 @@ def _build_device_sensors(
         rules=(
             (
                 lambda d: d.capabilities.is_outlet,
-                (LiproOutletPowerSensor, LiproOutletEnergySensor),
+                (
+                    lambda current_coordinator, current_device: LiproOutletPowerSensor(
+                        current_coordinator,
+                        current_device,
+                    ),
+                    lambda current_coordinator, current_device: LiproOutletEnergySensor(
+                        current_coordinator,
+                        current_device,
+                    ),
+                ),
             ),
-            (lambda d: d.has_battery, (LiproBatterySensor,)),
-            (lambda d: d.wifi_rssi is not None, (LiproWiFiSignalSensor,)),
+            (
+                lambda d: d.has_battery,
+                (
+                    lambda current_coordinator, current_device: LiproBatterySensor(
+                        current_coordinator,
+                        current_device,
+                    ),
+                ),
+            ),
+            (
+                lambda d: d.wifi_rssi is not None,
+                (
+                    lambda current_coordinator, current_device: LiproWiFiSignalSensor(
+                        current_coordinator,
+                        current_device,
+                    ),
+                ),
+            ),
         ),
     )
 
 
-class LiproSensor(LiproEntity, SensorEntity):
+class LiproSensor(_LiproEntityBase, SensorEntity):
     """Base class for Lipro sensors."""
 
-    def _get_power_info(self) -> dict[str, Any] | None:
+    @staticmethod
+    def _coerce_float(value: object) -> float | None:
+        """Convert one scalar-like payload value into float safely."""
+        if value is None:
+            return None
+        if isinstance(value, bool):
+            return float(value)
+        if isinstance(value, (int, float)):
+            return float(value)
+        if isinstance(value, str):
+            normalized = value.strip()
+            if not normalized:
+                return None
+            try:
+                return float(normalized)
+            except ValueError:
+                return None
+        return None
+
+    def _get_power_info(self) -> dict[str, object] | None:
         """Get power info from the device's formal outlet-power primitive."""
         return self.device.outlet_power_info
 
@@ -91,7 +182,7 @@ class LiproOutletPowerSensor(LiproSensor):
         power_info = self._get_power_info()
         if power_info is None:
             return None
-        return power_info.get("nowPower")
+        return self._coerce_float(power_info.get("nowPower"))
 
 
 class LiproOutletEnergySensor(LiproSensor):
@@ -119,8 +210,8 @@ class LiproOutletEnergySensor(LiproSensor):
 
         # Sum up all energy values from energyList
         # API returns "v" for energy value (kWh), "t" for date (YYYYMMDD)
-        energy_list = power_info.get("energyList", [])
-        if not energy_list:
+        energy_list = power_info.get("energyList")
+        if not isinstance(energy_list, list) or not energy_list:
             return None
 
         return sum(
@@ -130,13 +221,24 @@ class LiproOutletEnergySensor(LiproSensor):
         )
 
     @staticmethod
-    def _safe_energy_value(item: dict[str, Any]) -> float:
+    def _safe_energy_value(item: dict[str, object]) -> float:
         """Extract energy value from an energy list item, returning 0.0 on failure."""
-        try:
-            value = item.get("v")
-            return float(value) if value is not None else 0.0
-        except (ValueError, TypeError):
+        value = item.get("v")
+        if value is None:
             return 0.0
+        if isinstance(value, bool):
+            return float(value)
+        if isinstance(value, (int, float)):
+            return float(value)
+        if isinstance(value, str):
+            normalized = value.strip()
+            if not normalized:
+                return 0.0
+            try:
+                return float(normalized)
+            except ValueError:
+                return 0.0
+        return 0.0
 
 
 class LiproBatterySensor(LiproSensor):
@@ -169,7 +271,7 @@ class LiproBatterySensor(LiproSensor):
         return None  # Let HA handle battery level icons via device_class
 
     @property
-    def extra_state_attributes(self) -> dict[str, Any]:
+    def extra_state_attributes(self) -> dict[str, object]:
         """Return extra state attributes."""
         return {
             "charging": self.device.state.is_charging,
@@ -216,9 +318,9 @@ class LiproWiFiSignalSensor(LiproSensor):
         return "mdi:wifi-strength-alert-outline"
 
     @property
-    def extra_state_attributes(self) -> dict[str, Any]:
+    def extra_state_attributes(self) -> dict[str, object]:
         """Return extra state attributes."""
-        attrs: dict[str, Any] = {}
+        attrs: dict[str, object] = {}
         if self.device.network_info.net_type:
             attrs["network_type"] = self.device.network_info.net_type
         return attrs

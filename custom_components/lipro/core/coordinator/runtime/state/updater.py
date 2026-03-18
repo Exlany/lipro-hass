@@ -4,7 +4,9 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
+
+from ...types import PropertyDict
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -49,7 +51,7 @@ class StateUpdater:
     async def apply_properties_update(
         self,
         device: LiproDevice,
-        properties: dict[str, Any],
+        properties: PropertyDict,
         *,
         source: str = "unknown",
         skip_protected: bool = True,
@@ -93,7 +95,7 @@ class StateUpdater:
 
     async def batch_update_properties(
         self,
-        updates: list[tuple[LiproDevice, dict[str, Any]]],
+        updates: list[tuple[LiproDevice, PropertyDict]],
         *,
         source: str = "batch",
     ) -> int:
@@ -116,8 +118,8 @@ class StateUpdater:
     def _filter_protected_properties(
         self,
         device: LiproDevice,
-        properties: dict[str, Any],
-    ) -> dict[str, Any]:
+        properties: PropertyDict,
+    ) -> PropertyDict:
         """Filter out properties that are currently protected by debounce."""
         device_key = self._normalize_device_key(device.serial)
         entities = self._entities_by_device.get(device_key, [])

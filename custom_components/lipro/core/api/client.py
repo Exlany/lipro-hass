@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import asyncio
-from collections.abc import Awaitable, Callable, Sequence
+from collections.abc import Awaitable, Callable
 import logging
 from typing import Any, TypeVar
 
@@ -19,12 +19,10 @@ from ...const.api import (
     USER_AGENT,
 )
 from ...const.base import APP_VERSION_CODE, APP_VERSION_NAME
-from . import client_pacing as _client_pacing
 from .auth_service import AuthApiService
 from .client_auth_recovery import AuthRecoveryCoordinator
 from .client_base import ClientSessionState
 from .client_transport import TransportExecutor
-from .command_api_service import iot_request_with_busy_retry as _iot_busy_retry_service
 from .endpoints import (
     AuthEndpoints,
     CommandEndpoints,
@@ -33,18 +31,14 @@ from .endpoints import (
     ScheduleEndpoints,
     StatusEndpoints,
 )
-from .endpoints.payloads import EndpointPayloadNormalizers
-from .errors import LiproApiError, LiproAuthError
+from .errors import LiproAuthError
 from .power_service import OutletPowerInfoResult
 from .request_codec import (
     build_smart_home_request_data,
     encode_iot_request_body,
     extract_smart_home_success_payload,
 )
-from .request_policy import (
-    RequestPolicy,
-    throttle_change_state as _throttle_change_state_policy,
-)
+from .request_policy import RequestPolicy
 from .types import DeviceListResponse, LoginResponse, OtaInfoRow, ScheduleTimingRow
 
 _LOGGER = logging.getLogger(__name__)
@@ -59,30 +53,6 @@ class LiproRestFacade:
     This is the canonical REST facade under the unified protocol root.
     It owns the only supported REST entry surface for runtime/control consumers.
     """
-
-    _extract_list_payload = staticmethod(EndpointPayloadNormalizers.extract_list_payload)
-    _extract_data_list = staticmethod(EndpointPayloadNormalizers.extract_data_list)
-    _extract_timings_list = staticmethod(EndpointPayloadNormalizers.extract_timings_list)
-    _sanitize_iot_device_ids = staticmethod(EndpointPayloadNormalizers.sanitize_iot_device_ids)
-    _normalize_power_target_id = staticmethod(EndpointPayloadNormalizers.normalize_power_target_id)
-    _is_retriable_device_error = staticmethod(StatusEndpoints.is_retriable_device_error)
-    _coerce_int_list = staticmethod(ScheduleEndpoints.coerce_int_list)
-
-    @classmethod
-    def _parse_mesh_schedule_json(cls, schedule_json: object) -> dict[str, list[int]]:
-        return ScheduleEndpoints.parse_mesh_schedule_json(schedule_json)
-
-    @classmethod
-    def _normalize_mesh_timing_rows(
-        cls,
-        rows: Sequence[object],
-        *,
-        fallback_device_id: str = "",
-    ) -> list[ScheduleTimingRow]:
-        return ScheduleEndpoints.normalize_mesh_timing_rows(
-            rows,
-            fallback_device_id=fallback_device_id,
-        )
 
     def __init__(
         self,
@@ -102,11 +72,6 @@ class LiproRestFacade:
             entry_id=entry_id,
         )
         self._request_policy = request_policy or RequestPolicy()
-        self._command_pacing_lock = self._request_policy.command_pacing_lock
-        self._command_pacing_target_locks = self._request_policy.command_pacing_target_locks
-        self._last_change_state_at = self._request_policy.last_change_state_at
-        self._change_state_min_interval = self._request_policy.change_state_min_interval
-        self._change_state_busy_count = self._request_policy.change_state_busy_count
         self._auth_recovery = AuthRecoveryCoordinator(self._session_state)
         self._transport_executor = TransportExecutor(
             self._session_state,
@@ -259,7 +224,7 @@ class LiproRestFacade:
 
     def auth_recovery_telemetry_snapshot(self) -> dict[str, Any]:
         """Return sanitized auth-recovery telemetry for protocol diagnostics."""
-        return self._auth_recovery.telemetry_snapshot()
+        return dict(self._auth_recovery.telemetry_snapshot())
 
     async def login(
         self,
@@ -356,52 +321,9 @@ class LiproRestFacade:
     ) -> float:
         return await self._request_policy.handle_rate_limit(path, headers, retry_count)
 
-    async def _record_change_state_busy(
-        self,
-        target_id: str,
-        command: str,
-    ) -> tuple[float, int]:
-        return await self._request_policy.record_change_state_busy(target_id, command)
-
-    async def _record_change_state_success(self, target_id: str, command: str) -> None:
-        await self._request_policy.record_change_state_success(target_id, command)
-
-    async def _throttle_change_state(self, target_id: str, command: str) -> None:
-        await _throttle_change_state_policy(
-            target_id=target_id,
-            command=command,
-            command_pacing_lock=self._command_pacing_lock,
-            command_pacing_target_locks=self._command_pacing_target_locks,
-            last_change_state_at=self._last_change_state_at,
-            change_state_min_interval=self._change_state_min_interval,
-            change_state_busy_count=self._change_state_busy_count,
-            monotonic=_client_pacing.time.monotonic,
-            sleep=_client_pacing.asyncio.sleep,
-        )
-
-    @staticmethod
-    def _parse_retry_after(headers: dict[str, str]) -> float | None:
-        return RequestPolicy.parse_retry_after(headers)
-
-    @staticmethod
-    def _is_auth_error_code(code: Any) -> bool:
-        return AuthRecoveryCoordinator.is_auth_error_code(code)
-
-    @classmethod
-    def _resolve_auth_error_code(
-        cls,
-        code: Any,
-        error_code: Any,
-    ) -> int | str | None:
-        return AuthRecoveryCoordinator.resolve_auth_error_code(code, error_code)
-
     @staticmethod
     def _resolve_error_code(code: Any, error_code: Any) -> int | str | None:
         return AuthRecoveryCoordinator.resolve_error_code(code, error_code)
-
-    @staticmethod
-    def _is_success_code(code: Any) -> bool:
-        return AuthRecoveryCoordinator.is_success_code(code)
 
     @staticmethod
     def _unwrap_iot_success_payload(result: dict[str, Any]) -> Any:
@@ -418,9 +340,6 @@ class LiproRestFacade:
     @staticmethod
     def _normalize_pacing_target(target_id: str) -> str:
         return RequestPolicy.normalize_pacing_target(target_id)
-
-    def _enforce_command_pacing_cache_limit(self) -> None:
-        self._request_policy.enforce_command_pacing_cache_limit()
 
     async def close(self) -> None:
         """Close transport-owned session resources for this facade."""
@@ -507,7 +426,6 @@ class LiproRestFacade:
             success_payload=extract_smart_home_success_payload,
         )
 
-
     async def _request_iot_mapping_raw(
         self,
         path: str,
@@ -592,31 +510,6 @@ class LiproRestFacade:
             retry_on_auth_error=True,
             retry_request=lambda: self._iot_request(path, body_data, is_retry=True),
             success_payload=self._unwrap_iot_success_payload,
-        )
-
-    async def _iot_request_with_busy_retry(
-        self,
-        path: str,
-        body_data: dict[str, Any],
-        *,
-        target_id: str,
-        command: str,
-    ) -> dict[str, Any]:
-        return await _iot_busy_retry_service(
-            path=path,
-            body_data=body_data,
-            target_id=target_id,
-            command=command,
-            attempt_limit=3,
-            base_delay_seconds=0.25,
-            iot_request=self._iot_request,
-            throttle_change_state=self._throttle_change_state,
-            record_change_state_success=self._record_change_state_success,
-            is_command_busy_error=self._is_command_busy_error,
-            lipro_api_error=LiproApiError,
-            record_change_state_busy=self._record_change_state_busy,
-            sleep=asyncio.sleep,
-            logger=_LOGGER,
         )
 
     def _to_device_type_hex(self, device_type: int | str) -> str:
@@ -711,12 +604,15 @@ class LiproRestFacade:
         command: str,
     ) -> dict[str, Any]:
         """Execute one IoT command with the formal busy-retry policy."""
-        return await self._iot_request_with_busy_retry(
+        result = await self._request_policy.iot_request_with_busy_retry(
             path,
             body_data,
             target_id=target_id,
             command=command,
+            iot_request=self._iot_request,
+            logger=_LOGGER,
         )
+        return dict(result)
 
     def to_device_type_hex(self, device_type: int | str) -> str:
         """Normalize one device type into the transport hex representation."""

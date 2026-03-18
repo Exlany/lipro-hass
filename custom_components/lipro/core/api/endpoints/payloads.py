@@ -3,15 +3,13 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Protocol, TypeGuard, cast
+from typing import Protocol, TypeGuard, cast
 
 from ...utils.identifiers import (
     normalize_iot_device_id as _normalize_iot_device_id,
     normalize_mesh_group_id as _normalize_mesh_group_id,
 )
-from ..types import JsonValue, LoginResponse, ScheduleTimingRow
-
-type JsonObject = dict[str, JsonValue]
+from ..types import JsonObject, JsonValue, LoginResponse, ScheduleTimingRow
 
 _LOGGER = logging.getLogger("custom_components.lipro.core.api.client")
 
@@ -40,28 +38,28 @@ class _EndpointClientPort(Protocol):
     async def smart_home_request(
         self,
         path: str,
-        data: dict[str, Any],
+        data: JsonObject,
         require_auth: bool = True,
         is_retry: bool = False,
         retry_count: int = 0,
-    ) -> Any: ...
+    ) -> JsonValue: ...
 
     async def iot_request(
         self,
         path: str,
-        body_data: dict[str, Any],
+        body_data: JsonObject,
         is_retry: bool = False,
         retry_count: int = 0,
-    ) -> Any: ...
+    ) -> JsonValue: ...
 
     async def request_iot_mapping(
         self,
         path: str,
-        body_data: dict[str, Any],
+        body_data: JsonObject,
         *,
         is_retry: bool = False,
         retry_count: int = 0,
-    ) -> tuple[dict[str, Any], str | None]: ...
+    ) -> tuple[JsonObject, str | None]: ...
 
     async def request_iot_mapping_raw(
         self,
@@ -70,22 +68,22 @@ class _EndpointClientPort(Protocol):
         *,
         is_retry: bool = False,
         retry_count: int = 0,
-    ) -> tuple[dict[str, Any], str | None]: ...
+    ) -> tuple[JsonObject, str | None]: ...
 
     async def iot_request_with_busy_retry(
         self,
         path: str,
-        body_data: dict[str, Any],
+        body_data: JsonObject,
         *,
         target_id: str,
         command: str,
-    ) -> dict[str, Any]: ...
+    ) -> JsonObject: ...
 
     def to_device_type_hex(self, device_type: int | str) -> str: ...
-    def is_success_code(self, code: Any) -> bool: ...
-    def unwrap_iot_success_payload(self, result: dict[str, Any]) -> Any: ...
-    def require_mapping_response(self, path: str, result: Any) -> dict[str, Any]: ...
-    def is_invalid_param_error_code(self, code: Any) -> bool: ...
+    def is_success_code(self, code: object) -> bool: ...
+    def unwrap_iot_success_payload(self, result: JsonObject) -> JsonValue: ...
+    def require_mapping_response(self, path: str, result: object) -> JsonObject: ...
+    def is_invalid_param_error_code(self, code: object) -> bool: ...
 
 
 class _EndpointAdapter:
@@ -98,11 +96,11 @@ class _EndpointAdapter:
     async def _smart_home_request(
         self,
         path: str,
-        data: dict[str, Any],
+        data: JsonObject,
         require_auth: bool = True,
         is_retry: bool = False,
         retry_count: int = 0,
-    ) -> Any:
+    ) -> JsonValue:
         if require_auth is True and not is_retry and not retry_count:
             return await self._client.smart_home_request(path, data)
         return await self._client.smart_home_request(
@@ -116,10 +114,10 @@ class _EndpointAdapter:
     async def _iot_request(
         self,
         path: str,
-        body_data: dict[str, Any],
+        body_data: JsonObject,
         is_retry: bool = False,
         retry_count: int = 0,
-    ) -> Any:
+    ) -> JsonValue:
         if not is_retry and not retry_count:
             return await self._client.iot_request(path, body_data)
         return await self._client.iot_request(
@@ -132,11 +130,11 @@ class _EndpointAdapter:
     async def _request_iot_mapping(
         self,
         path: str,
-        body_data: dict[str, Any],
+        body_data: JsonObject,
         *,
         is_retry: bool = False,
         retry_count: int = 0,
-    ) -> tuple[dict[str, Any], str | None]:
+    ) -> tuple[JsonObject, str | None]:
         if not is_retry and not retry_count:
             return await self._client.request_iot_mapping(path, body_data)
         return await self._client.request_iot_mapping(
@@ -153,7 +151,7 @@ class _EndpointAdapter:
         *,
         is_retry: bool = False,
         retry_count: int = 0,
-    ) -> tuple[dict[str, Any], str | None]:
+    ) -> tuple[JsonObject, str | None]:
         if not is_retry and not retry_count:
             return await self._client.request_iot_mapping_raw(path, body)
         return await self._client.request_iot_mapping_raw(
@@ -166,11 +164,11 @@ class _EndpointAdapter:
     async def _iot_request_with_busy_retry(
         self,
         path: str,
-        body_data: dict[str, Any],
+        body_data: JsonObject,
         *,
         target_id: str,
         command: str,
-    ) -> dict[str, Any]:
+    ) -> JsonObject:
         return await self._client.iot_request_with_busy_retry(
             path,
             body_data,
@@ -181,16 +179,16 @@ class _EndpointAdapter:
     def _to_device_type_hex(self, device_type: int | str) -> str:
         return self._client.to_device_type_hex(device_type)
 
-    def _is_success_code(self, code: Any) -> bool:
+    def _is_success_code(self, code: object) -> bool:
         return self._client.is_success_code(code)
 
-    def _unwrap_iot_success_payload(self, result: dict[str, Any]) -> Any:
+    def _unwrap_iot_success_payload(self, result: JsonObject) -> JsonValue:
         return self._client.unwrap_iot_success_payload(result)
 
-    def _require_mapping_response(self, path: str, result: Any) -> dict[str, Any]:
+    def _require_mapping_response(self, path: str, result: object) -> JsonObject:
         return self._client.require_mapping_response(path, result)
 
-    def _is_invalid_param_error_code(self, code: Any) -> bool:
+    def _is_invalid_param_error_code(self, code: object) -> bool:
         return self._client.is_invalid_param_error_code(code)
 
 

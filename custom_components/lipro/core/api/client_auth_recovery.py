@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections.abc import Awaitable, Callable
 import logging
 from time import monotonic, time
-from typing import Any, TypeVar
+from typing import TypedDict, TypeVar
 
 from ...const.api import (
     ERROR_AUTH_CODES,
@@ -24,6 +24,7 @@ from .errors import (
     LiproRefreshTokenExpiredError,
 )
 from .observability import record_api_error as _record_api_error
+from .types import JsonObject, JsonValue
 
 # Use the same logger instance as custom_components.lipro.core.api.client._LOGGER
 # so tests patching client._LOGGER.* still intercept logs here.
@@ -31,6 +32,21 @@ _LOGGER = logging.getLogger("custom_components.lipro.core.api.client")
 
 _MappingPayloadT = TypeVar("_MappingPayloadT")
 TokenRefreshCallback = Callable[[], Awaitable[None]]
+
+
+class AuthRecoveryTelemetrySnapshot(TypedDict):
+    """Serializable auth-recovery telemetry emitted by the REST auth seam."""
+
+    auth_error_count: int
+    refresh_attempt_count: int
+    refresh_success_count: int
+    refresh_failure_count: int
+    refresh_expired_count: int
+    refresh_reused_count: int
+    last_refresh_duration_seconds: float | None
+    last_refresh_finished_at: float | None
+    last_refresh_outcome: str | None
+    last_refresh_error_type: str | None
 
 
 class AuthRecoveryCoordinator:
@@ -85,7 +101,7 @@ class AuthRecoveryCoordinator:
         self._state.on_token_refresh = callback
 
     @staticmethod
-    def is_auth_error_code(code: Any) -> bool:
+    def is_auth_error_code(code: object) -> bool:
         """Return whether one response code denotes an auth failure."""
         normalized = _response_safety.normalize_response_code(code)
         if isinstance(normalized, str) and normalized.lower() == "token_expired":
@@ -95,7 +111,7 @@ class AuthRecoveryCoordinator:
         )
 
     @staticmethod
-    def is_success_code(code: Any) -> bool:
+    def is_success_code(code: object) -> bool:
         """Return whether one response code denotes success."""
         normalized = _response_safety.normalize_response_code(code)
         return normalized in RESPONSE_SUCCESS_CODES
@@ -103,8 +119,8 @@ class AuthRecoveryCoordinator:
     @classmethod
     def resolve_auth_error_code(
         cls,
-        code: Any,
-        error_code: Any,
+        code: object,
+        error_code: object,
     ) -> int | str | None:
         """Resolve the effective auth error code from response variants."""
         for candidate in (code, error_code):
@@ -117,7 +133,7 @@ class AuthRecoveryCoordinator:
         return None
 
     @staticmethod
-    def resolve_error_code(code: Any, error_code: Any) -> int | str | None:
+    def resolve_error_code(code: object, error_code: object) -> int | str | None:
         """Resolve the effective error code from response variants."""
         normalized_error_code = _response_safety.normalize_response_code(error_code)
         if normalized_error_code not in (None, "", 0):
@@ -139,7 +155,7 @@ class AuthRecoveryCoordinator:
         self._last_refresh_finished_at = time()
         self._last_refresh_error_type = error_type
 
-    def telemetry_snapshot(self) -> dict[str, Any]:
+    def telemetry_snapshot(self) -> AuthRecoveryTelemetrySnapshot:
         """Return a serializable snapshot of auth-recovery telemetry."""
         return {
             "auth_error_count": self._auth_error_count,
@@ -171,12 +187,12 @@ class AuthRecoveryCoordinator:
         self,
         *,
         path: str,
-        result: dict[str, Any],
+        result: JsonObject,
         request_token: str | None,
         is_retry: bool,
         retry_on_auth_error: bool,
         retry_request: Callable[[], Awaitable[_MappingPayloadT]] | None,
-        success_payload: Callable[[dict[str, Any]], _MappingPayloadT],
+        success_payload: Callable[[JsonObject], _MappingPayloadT],
     ) -> _MappingPayloadT:
         """Finalize one mapping result with auth classification and retries."""
         code = result.get("code")
@@ -214,13 +230,13 @@ class AuthRecoveryCoordinator:
         raise LiproApiError(message, effective_code)
 
     @staticmethod
-    def is_invalid_param_error_code(code: Any) -> bool:
+    def is_invalid_param_error_code(code: object) -> bool:
         """Return whether one code denotes an invalid-parameter response."""
         normalized = _response_safety.normalize_response_code(code)
         return normalized in (ERROR_INVALID_PARAM, ERROR_INVALID_PARAM_STR)
 
     @staticmethod
-    def unwrap_iot_success_payload(result: dict[str, Any]) -> Any:
+    def unwrap_iot_success_payload(result: JsonObject) -> JsonValue:
         """Extract the canonical success payload from one IoT response."""
         if "data" in result:
             data = result["data"]
@@ -311,4 +327,4 @@ class AuthRecoveryCoordinator:
                 raise
 
 
-__all__ = ["AuthRecoveryCoordinator"]
+__all__ = ["AuthRecoveryCoordinator", "AuthRecoveryTelemetrySnapshot"]

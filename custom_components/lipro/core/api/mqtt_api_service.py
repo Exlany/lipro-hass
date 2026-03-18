@@ -4,11 +4,13 @@ from __future__ import annotations
 
 from collections.abc import Awaitable, Callable
 
-type MappingPayload = dict[str, object]
-type RequestIotMapping = Callable[..., Awaitable[tuple[object, str | None]]]
+from .types import JsonObject, JsonValue
+
+type MappingPayload = JsonObject
+type RequestIotMapping = Callable[..., Awaitable[tuple[JsonObject, str | None]]]
 type IsSuccessCode = Callable[[object], bool]
-type UnwrapIoTSuccessPayload = Callable[[MappingPayload], object]
-type RequireMappingResponse = Callable[[str, object], object]
+type UnwrapIoTSuccessPayload = Callable[[MappingPayload], JsonValue]
+type RequireMappingResponse = Callable[[str, object], JsonObject]
 
 
 def _extract_mqtt_config_payload(

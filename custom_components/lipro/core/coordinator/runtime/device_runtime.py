@@ -2,12 +2,26 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 import logging
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
+from custom_components.lipro.core.api import (
+    LiproApiError,
+    LiproAuthError,
+    LiproConnectionError,
+    LiproRefreshTokenExpiredError,
+)
+
+from ..types import PropertyValue
 from .device.filter import DeviceFilter, parse_filter_config
 from .device.refresh_strategy import RefreshStrategy, StaleDeviceTracker
-from .device.snapshot import FetchedDeviceSnapshot, SnapshotBuilder
+from .device.snapshot import (
+    FetchedDeviceSnapshot,
+    RuntimeSnapshotRefreshFailure,
+    RuntimeSnapshotRefreshRejectedError,
+    SnapshotBuilder,
+)
 
 if TYPE_CHECKING:
     from custom_components.lipro.core.auth import LiproAuthManager
@@ -30,7 +44,7 @@ class DeviceRuntime:
         protocol: LiproProtocolFacade,
         auth_manager: LiproAuthManager,
         device_identity_index: DeviceIdentityIndex,
-        filter_config_options: dict[str, Any] | None = None,
+        filter_config_options: Mapping[str, PropertyValue] | None = None,
     ) -> None:
         """Initialize device runtime.
 
@@ -56,7 +70,27 @@ class DeviceRuntime:
         )
 
         self._last_snapshot: FetchedDeviceSnapshot | None = None
+        self._last_refresh_failure: RuntimeSnapshotRefreshFailure | None = None
         self._cloud_serials_last_seen: set[str] = set()
+
+    @staticmethod
+    def _classify_refresh_failure(
+        err: Exception,
+        *,
+        kept_last_known_good: bool,
+    ) -> RuntimeSnapshotRefreshFailure:
+        """Normalize a non-runtime exception into the runtime failure view."""
+        if isinstance(err, (LiproRefreshTokenExpiredError, LiproAuthError)):
+            stage = "auth"
+        elif isinstance(err, (LiproConnectionError, LiproApiError)):
+            stage = "protocol"
+        else:
+            stage = "runtime"
+        return RuntimeSnapshotRefreshFailure(
+            stage=stage,
+            error_type=type(err).__name__,
+            kept_last_known_good=kept_last_known_good,
+        )
 
     async def refresh_devices(
         self,
@@ -78,9 +112,38 @@ class DeviceRuntime:
             self._refresh_strategy.request_force_refresh()
 
         if self._refresh_strategy.should_refresh():
-            snapshot = await self._snapshot_builder.build_full_snapshot()
+            try:
+                snapshot = await self._snapshot_builder.build_full_snapshot()
+            except RuntimeSnapshotRefreshRejectedError as err:
+                retained_last_known_good = self._last_snapshot is not None
+                runtime_err = (
+                    err.with_retained_last_known_good()
+                    if retained_last_known_good and not err.kept_last_known_good
+                    else err
+                )
+                self._last_refresh_failure = runtime_err.failure
+                if retained_last_known_good:
+                    _LOGGER.warning(
+                        "Device refresh rejected (%s), retaining last-known-good snapshot",
+                        runtime_err.stage,
+                    )
+                raise runtime_err from err
+            except Exception as err:
+                retained_last_known_good = self._last_snapshot is not None
+                self._last_refresh_failure = self._classify_refresh_failure(
+                    err,
+                    kept_last_known_good=retained_last_known_good,
+                )
+                if retained_last_known_good:
+                    _LOGGER.warning(
+                        "Device refresh failed (%s), retaining last-known-good snapshot",
+                        type(err).__name__,
+                    )
+                raise
+
             self._refresh_strategy.mark_refreshed()
             self._last_snapshot = snapshot
+            self._last_refresh_failure = None
 
             _LOGGER.info(
                 "Full device refresh completed: %d devices",
@@ -89,9 +152,20 @@ class DeviceRuntime:
             return snapshot
 
         if self._last_snapshot is None:
-            snapshot = await self._snapshot_builder.build_full_snapshot()
+            try:
+                snapshot = await self._snapshot_builder.build_full_snapshot()
+            except RuntimeSnapshotRefreshRejectedError as err:
+                self._last_refresh_failure = err.failure
+                raise
+            except Exception as err:
+                self._last_refresh_failure = self._classify_refresh_failure(
+                    err,
+                    kept_last_known_good=False,
+                )
+                raise
             self._refresh_strategy.mark_refreshed()
             self._last_snapshot = snapshot
+            self._last_refresh_failure = None
             return snapshot
 
         _LOGGER.debug("Device list refresh skipped; reusing cached snapshot")
@@ -127,6 +201,10 @@ class DeviceRuntime:
         """Get last fetched device snapshot."""
         return self._last_snapshot
 
+    def get_last_refresh_failure(self) -> RuntimeSnapshotRefreshFailure | None:
+        """Return the last structured refresh failure, if any."""
+        return self._last_refresh_failure
+
     def should_refresh_device_list(self) -> bool:
         """Check if device list should be refreshed.
 
@@ -140,6 +218,7 @@ class DeviceRuntime:
         self._refresh_strategy.reset()
         self._stale_tracker.reset()
         self._last_snapshot = None
+        self._last_refresh_failure = None
         self._cloud_serials_last_seen.clear()
 
 

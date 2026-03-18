@@ -110,7 +110,7 @@ async def _async_query_command_result_with_optional_polling(
         try:
             payload = await async_execute_coordinator_call(
                 coordinator,
-                call=lambda: coordinator.async_query_command_result(
+                call=lambda: coordinator.protocol_service.async_query_command_result(
                     msg_sn=msg_sn,
                     device_id=device_id,
                     device_type=device_type,
@@ -201,7 +201,7 @@ async def async_handle_get_city(
     has_result, result, last_err = await _async_get_first_coordinator_capability_result(
         iter_runtime_coordinators(hass),
         capability="get_city",
-        collector=lambda coordinator: coordinator.async_get_city(),
+        collector=lambda coordinator: coordinator.protocol_service.async_get_city(),
     )
     if has_result and result is not None:
         return {"result": result}
@@ -223,7 +223,7 @@ async def async_handle_query_user_cloud(
     has_result, result, last_err = await _async_get_first_coordinator_capability_result(
         iter_runtime_coordinators(hass),
         capability="query_user_cloud",
-        collector=lambda coordinator: coordinator.async_query_user_cloud(),
+        collector=lambda coordinator: coordinator.protocol_service.async_query_user_cloud(),
     )
     if has_result and result is not None:
         return {"result": result}
@@ -287,7 +287,7 @@ async def async_handle_fetch_body_sensor_history(
         attr_mesh_type=attr_mesh_type,
         service_name=service_fetch_body_sensor_history,
         get_client_method=lambda coordinator: (
-            coordinator.async_fetch_body_sensor_history
+            coordinator.protocol_service.async_fetch_body_sensor_history
         ),
     )
 
@@ -314,6 +314,6 @@ async def async_handle_fetch_door_sensor_history(
         attr_mesh_type=attr_mesh_type,
         service_name=service_fetch_door_sensor_history,
         get_client_method=lambda coordinator: (
-            coordinator.async_fetch_door_sensor_history
+            coordinator.protocol_service.async_fetch_door_sensor_history
         ),
     )

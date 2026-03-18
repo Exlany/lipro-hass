@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Any, Final
+from typing import TYPE_CHECKING, Final, Protocol, cast
 
 from homeassistant.components.select import SelectEntity
 
@@ -18,7 +18,6 @@ from .const.properties import (
     WIND_DIRECTION_AUTO,
     WIND_DIRECTION_FIX,
 )
-from .entities.base import LiproEntity
 from .helpers.platform import (
     add_entry_entities,
     build_device_entities_from_rules,
@@ -27,12 +26,54 @@ from .helpers.platform import (
 )
 
 if TYPE_CHECKING:
+    from collections.abc import Mapping
+
     from homeassistant.core import HomeAssistant
     from homeassistant.helpers.entity_platform import AddEntitiesCallback
+    from homeassistant.helpers.update_coordinator import (
+        CoordinatorEntity,
+        DataUpdateCoordinator,
+    )
 
     from . import LiproConfigEntry
+    from .core.capability import CapabilitySnapshot
     from .core.device import LiproDevice
-    from .runtime_types import LiproCoordinator
+    from .runtime_types import LiproRuntimeCoordinator
+
+    class _LiproEntityBase(CoordinatorEntity[DataUpdateCoordinator[dict[str, object]]]):
+        def __init__(
+            self,
+            coordinator: LiproRuntimeCoordinator,
+            device: LiproDevice,
+            entity_suffix: str = "",
+        ) -> None: ...
+
+        @property
+        def device(self) -> LiproDevice: ...
+
+        @property
+        def capabilities(self) -> CapabilitySnapshot: ...
+
+        async def async_change_state(
+            self,
+            properties: Mapping[str, object],
+            *,
+            optimistic_state: Mapping[str, object] | None = None,
+            debounced: bool = False,
+        ) -> bool | None: ...
+
+else:
+    class _EntityBaseModule(Protocol):
+        LiproEntity: type[object]
+
+    _entity_base_module = cast(
+        _EntityBaseModule,
+        __import__(
+            "custom_components.lipro.entities.base",
+            fromlist=["LiproEntity"],
+        ),
+    )
+    _LiproEntityBase = _entity_base_module.LiproEntity
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -81,7 +122,7 @@ async def async_setup_entry(
 
 
 def _build_device_select_entities(
-    coordinator: LiproCoordinator,
+    coordinator: LiproRuntimeCoordinator,
     device: LiproDevice,
 ) -> list[SelectEntity]:
     """Build all select entities for one device."""
@@ -98,7 +139,7 @@ def _build_device_select_entities(
     )
 
 
-class LiproSelect(LiproEntity, SelectEntity):
+class LiproSelect(_LiproEntityBase, SelectEntity):
     """Base class for Lipro select entities."""
 
 
@@ -108,23 +149,34 @@ class LiproMappedPropertySelect(LiproSelect):
     _option_to_value: dict[str, int]
     _value_to_option: dict[int, str]
     _property_key: str
-    _last_unknown_value: Any = None
+    _last_unknown_value: object | None = None
 
     @staticmethod
-    def _coerce_mapped_value(raw_value: Any) -> int | None:
+    def _coerce_mapped_value(raw_value: object) -> int | None:
         """Convert one raw property value into an integer enum value."""
-        try:
-            if raw_value is None:
-                return None
-            return int(raw_value)
-        except (TypeError, ValueError):
+        if raw_value is None:
             return None
+        if isinstance(raw_value, bool):
+            return int(raw_value)
+        if isinstance(raw_value, int):
+            return raw_value
+        if isinstance(raw_value, float):
+            return int(raw_value) if raw_value.is_integer() else None
+        if isinstance(raw_value, str):
+            normalized = raw_value.strip()
+            if not normalized:
+                return None
+            try:
+                return int(normalized)
+            except ValueError:
+                return None
+        return None
 
-    def _get_raw_property_value(self) -> Any:
+    def _get_raw_property_value(self) -> object:
         """Return the raw normalized property value for this select."""
         return self.device.properties.get(self._property_key)
 
-    def _log_unknown_mapped_value(self, raw_value: Any) -> None:
+    def _log_unknown_mapped_value(self, raw_value: object) -> None:
         """Log one unknown enum value once per distinct raw value."""
         if raw_value == self._last_unknown_value:
             return
@@ -158,7 +210,7 @@ class LiproMappedPropertySelect(LiproSelect):
         return option
 
     @property
-    def extra_state_attributes(self) -> dict[str, Any]:
+    def extra_state_attributes(self) -> dict[str, object]:
         """Expose raw enum state when the device reports an unknown value."""
         raw_value = self._get_raw_property_value()
         if raw_value is None:
@@ -223,17 +275,28 @@ class LiproLightGearSelect(LiproSelect):
     _entity_suffix = "gear"
 
     @staticmethod
-    def _coerce_gear_int(value: Any) -> int | None:
+    def _coerce_gear_int(value: object) -> int | None:
         """Convert one gear field value to int safely."""
-        try:
-            if value is None:
-                return None
-            return int(value)
-        except (TypeError, ValueError):
+        if value is None:
             return None
+        if isinstance(value, bool):
+            return int(value)
+        if isinstance(value, int):
+            return value
+        if isinstance(value, float):
+            return int(value) if value.is_integer() else None
+        if isinstance(value, str):
+            normalized = value.strip()
+            if not normalized:
+                return None
+            try:
+                return int(normalized)
+            except ValueError:
+                return None
+        return None
 
     @classmethod
-    def _extract_gear_values(cls, gear: Any) -> tuple[int, int] | None:
+    def _extract_gear_values(cls, gear: object) -> tuple[int, int] | None:
         """Extract (brightness, temperature_percent) from one gear payload."""
         if not isinstance(gear, dict):
             return None
@@ -283,9 +346,9 @@ class LiproLightGearSelect(LiproSelect):
         return None
 
     @property
-    def extra_state_attributes(self) -> dict[str, Any]:
+    def extra_state_attributes(self) -> dict[str, object]:
         """Return extra state attributes showing gear details."""
-        attrs: dict[str, Any] = {}
+        attrs: dict[str, object] = {}
         gear_list = self.device.extras.gear_list
 
         for i, gear in enumerate(gear_list[:_MAX_GEAR_COUNT]):

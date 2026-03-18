@@ -4,17 +4,28 @@ from __future__ import annotations
 
 import asyncio
 from collections.abc import Awaitable, Callable
-from typing import Any, Protocol, cast
+from typing import Protocol, TypeVar, cast
 
 import aiohttp
+import aiomqtt
 
 from ...const.api import REQUEST_TIMEOUT
 from ..api.client import LiproRestFacade
+from ..api.client_auth_recovery import AuthRecoveryTelemetrySnapshot
 from ..api.client_base import ClientSessionState
 from ..api.request_policy import RequestPolicy
-from ..api.types import DeviceListResponse, LoginResponse, OtaInfoRow, ScheduleTimingRow
+from ..api.types import (
+    DeviceListResponse,
+    JsonObject,
+    LoginResponse,
+    OtaInfoRow,
+    ScheduleTimingRow,
+)
 from ..mqtt.mqtt_client import MqttTransportClient
 from .contracts import (
+    CanonicalDeviceStatusRow,
+    CanonicalMeshGroupStatusRow,
+    CanonicalMqttConfig,
     CanonicalProtocolContracts,
     MqttTransportFacade,
     OutletPowerInfoResult,
@@ -23,10 +34,12 @@ from .diagnostics_context import ProtocolDiagnosticsContext
 from .session import ProtocolSessionState
 from .telemetry import ProtocolTelemetry
 
-MqttMessageCallback = Callable[[str, dict[str, Any]], None]
+type StatusBatchMetric = Callable[[int, float, int], None]
+MqttMessageCallback = Callable[[str, JsonObject], None]
 MqttSignalCallback = Callable[[], None]
 MqttErrorCallback = Callable[[Exception], None]
 TokenRefreshCallback = Callable[[], Awaitable[None]]
+_TransportResultT = TypeVar("_TransportResultT")
 
 
 class _RestFacadePort(Protocol):
@@ -50,15 +63,18 @@ class _RestFacadePort(Protocol):
 
     async def refresh_access_token(self) -> LoginResponse: ...
     async def get_devices(self, offset: int = 0, limit: int = 100) -> DeviceListResponse: ...
-    async def get_product_configs(self) -> list[dict[str, Any]]: ...
+    async def get_product_configs(self) -> list[JsonObject]: ...
     async def query_device_status(
         self,
         device_ids: list[str],
         *,
         max_devices_per_query: int = 100,
-        on_batch_metric: Any = None,
-    ) -> list[dict[str, Any]]: ...
-    async def query_mesh_group_status(self, group_ids: list[str]) -> list[dict[str, Any]]: ...
+        on_batch_metric: StatusBatchMetric | None = None,
+    ) -> list[CanonicalDeviceStatusRow]: ...
+    async def query_mesh_group_status(
+        self,
+        group_ids: list[str],
+    ) -> list[CanonicalMeshGroupStatusRow]: ...
     async def query_connect_status(self, device_ids: list[str]) -> dict[str, bool]: ...
     async def send_command(
         self,
@@ -67,7 +83,7 @@ class _RestFacadePort(Protocol):
         device_type: int | str,
         properties: list[dict[str, str]] | None = None,
         iot_name: str = "",
-    ) -> dict[str, Any]: ...
+    ) -> JsonObject: ...
     async def send_group_command(
         self,
         group_id: str,
@@ -75,8 +91,8 @@ class _RestFacadePort(Protocol):
         device_type: int | str,
         properties: list[dict[str, str]] | None = None,
         iot_name: str = "",
-    ) -> dict[str, Any]: ...
-    async def get_mqtt_config(self) -> dict[str, Any]: ...
+    ) -> JsonObject: ...
+    async def get_mqtt_config(self) -> CanonicalMqttConfig: ...
     async def fetch_outlet_power_info(self, device_id: str) -> OutletPowerInfoResult: ...
     async def query_command_result(
         self,
@@ -84,9 +100,9 @@ class _RestFacadePort(Protocol):
         msg_sn: str,
         device_id: str,
         device_type: int | str,
-    ) -> dict[str, Any]: ...
-    async def get_city(self) -> dict[str, Any]: ...
-    async def query_user_cloud(self) -> dict[str, Any]: ...
+    ) -> JsonObject: ...
+    async def get_city(self) -> JsonObject: ...
+    async def query_user_cloud(self) -> JsonObject: ...
     async def query_ota_info(
         self,
         device_id: str,
@@ -101,14 +117,14 @@ class _RestFacadePort(Protocol):
         device_type: int | str,
         sensor_device_id: str,
         mesh_type: str,
-    ) -> dict[str, Any]: ...
+    ) -> JsonObject: ...
     async def fetch_door_sensor_history(
         self,
         device_id: str,
         device_type: int | str,
         sensor_device_id: str,
         mesh_type: str,
-    ) -> dict[str, Any]: ...
+    ) -> JsonObject: ...
     async def get_device_schedules(
         self,
         device_id: str,
@@ -140,7 +156,7 @@ class _RestFacadePort(Protocol):
         mesh_member_ids: list[str] | None = None,
     ) -> list[ScheduleTimingRow]: ...
 
-    def auth_recovery_telemetry_snapshot(self) -> dict[str, Any]: ...
+    def auth_recovery_telemetry_snapshot(self) -> AuthRecoveryTelemetrySnapshot: ...
 
 
 class LiproMqttFacade:
@@ -233,48 +249,57 @@ class LiproMqttFacade:
             self._telemetry.record_mqtt_error(err, stage="transport")
         return err
 
+    async def _run_transport_stage(
+        self,
+        *,
+        stage: str,
+        operation: Callable[[], Awaitable[_TransportResultT]],
+    ) -> _TransportResultT:
+        """Run one MQTT transport stage with explicit error arbitration."""
+        try:
+            return await operation()
+        except asyncio.CancelledError:
+            raise
+        except (aiomqtt.MqttError, aiohttp.ClientError, OSError, TimeoutError) as err:
+            self._telemetry.record_mqtt_error(err, stage=stage)
+            raise
+        except (ValueError, TypeError, LookupError) as err:
+            self._telemetry.record_mqtt_error(err, stage=stage)
+            raise
+        except RuntimeError as err:
+            self._telemetry.record_mqtt_error(err, stage=stage)
+            raise
+
     async def start(self, device_ids: list[str]) -> None:
         """Start the wrapped MQTT transport and record telemetry."""
         self._telemetry.record_mqtt_start()
-        try:
-            await self._client.start(device_ids)
-        except asyncio.CancelledError:
-            raise
-        except Exception as err:
-            self._telemetry.record_mqtt_error(err, stage="start")
-            raise
+        await self._run_transport_stage(
+            stage="start",
+            operation=lambda: self._client.start(device_ids),
+        )
 
     async def stop(self) -> None:
         """Stop the wrapped MQTT transport and record telemetry."""
         self._telemetry.record_mqtt_stop()
-        try:
-            await self._client.stop()
-        except asyncio.CancelledError:
-            raise
-        except Exception as err:
-            self._telemetry.record_mqtt_error(err, stage="stop")
-            raise
+        await self._run_transport_stage(
+            stage="stop",
+            operation=self._client.stop,
+        )
 
     async def sync_subscriptions(self, device_ids: set[str]) -> None:
         """Sync subscriptions through the wrapped transport and record telemetry."""
         self._telemetry.record_mqtt_sync()
-        try:
-            await self._client.sync_subscriptions(device_ids)
-        except asyncio.CancelledError:
-            raise
-        except Exception as err:
-            self._telemetry.record_mqtt_error(err, stage="sync_subscriptions")
-            raise
+        await self._run_transport_stage(
+            stage="sync_subscriptions",
+            operation=lambda: self._client.sync_subscriptions(device_ids),
+        )
 
     async def wait_until_connected(self, timeout: float | None = None) -> bool:
         """Wait until the wrapped transport reports a real broker connection."""
-        try:
-            connected = await self._client.wait_until_connected(timeout=timeout)
-        except asyncio.CancelledError:
-            raise
-        except Exception as err:
-            self._telemetry.record_mqtt_error(err, stage="wait_until_connected")
-            raise
+        connected = await self._run_transport_stage(
+            stage="wait_until_connected",
+            operation=lambda: self._client.wait_until_connected(timeout=timeout),
+        )
         if self._client.last_error is not None:
             self._telemetry.record_mqtt_error(self._client.last_error, stage="transport")
         return connected
@@ -346,7 +371,7 @@ class LiproProtocolFacade:
     @property
     def session(self) -> aiohttp.ClientSession | None:
         """Expose the underlying aiohttp session for formal child surfaces."""
-        return cast(aiohttp.ClientSession | None, self._session_state.session)
+        return self._session_state.session
 
     @property
     def request_timeout(self) -> int:
@@ -460,7 +485,7 @@ class LiproProtocolFacade:
         """Return canonical device rows from the REST child façade."""
         return await self._rest_port.get_devices(offset=offset, limit=limit)
 
-    async def get_product_configs(self) -> list[dict[str, Any]]:
+    async def get_product_configs(self) -> list[JsonObject]:
         """Return canonical product-configuration rows."""
         return await self._rest_port.get_product_configs()
 
@@ -469,8 +494,8 @@ class LiproProtocolFacade:
         device_ids: list[str],
         *,
         max_devices_per_query: int = 100,
-        on_batch_metric: Any = None,
-    ) -> list[dict[str, Any]]:
+        on_batch_metric: StatusBatchMetric | None = None,
+    ) -> list[CanonicalDeviceStatusRow]:
         """Query device status through the REST child façade."""
         return await self._rest_port.query_device_status(
             device_ids,
@@ -481,7 +506,7 @@ class LiproProtocolFacade:
     async def query_mesh_group_status(
         self,
         group_ids: list[str],
-    ) -> list[dict[str, Any]]:
+    ) -> list[CanonicalMeshGroupStatusRow]:
         """Query mesh-group status through the REST child façade."""
         return await self._rest_port.query_mesh_group_status(group_ids)
 
@@ -496,7 +521,7 @@ class LiproProtocolFacade:
         device_type: int | str,
         properties: list[dict[str, str]] | None = None,
         iot_name: str = "",
-    ) -> dict[str, Any]:
+    ) -> JsonObject:
         """Send one device command through the REST child façade."""
         return await self._rest_port.send_command(
             device_id,
@@ -513,7 +538,7 @@ class LiproProtocolFacade:
         device_type: int | str,
         properties: list[dict[str, str]] | None = None,
         iot_name: str = "",
-    ) -> dict[str, Any]:
+    ) -> JsonObject:
         """Send one group command through the REST child façade."""
         return await self._rest_port.send_group_command(
             group_id,
@@ -523,7 +548,7 @@ class LiproProtocolFacade:
             iot_name=iot_name,
         )
 
-    async def get_mqtt_config(self) -> dict[str, Any]:
+    async def get_mqtt_config(self) -> CanonicalMqttConfig:
         """Fetch MQTT credentials through the REST child façade."""
         return await self._rest_port.get_mqtt_config()
 
@@ -537,7 +562,7 @@ class LiproProtocolFacade:
         msg_sn: str,
         device_id: str,
         device_type: int | str,
-    ) -> dict[str, Any]:
+    ) -> JsonObject:
         """Query one command-result payload through the REST child façade."""
         return await self._rest_port.query_command_result(
             msg_sn=msg_sn,
@@ -545,11 +570,11 @@ class LiproProtocolFacade:
             device_type=device_type,
         )
 
-    async def get_city(self) -> dict[str, Any]:
+    async def get_city(self) -> JsonObject:
         """Fetch city metadata through the REST child façade."""
         return await self._rest_port.get_city()
 
-    async def query_user_cloud(self) -> dict[str, Any]:
+    async def query_user_cloud(self) -> JsonObject:
         """Fetch user-cloud diagnostics through the REST child façade."""
         return await self._rest_port.query_user_cloud()
 
@@ -575,7 +600,7 @@ class LiproProtocolFacade:
         device_type: int | str,
         sensor_device_id: str,
         mesh_type: str,
-    ) -> dict[str, Any]:
+    ) -> JsonObject:
         """Fetch body-sensor history through the REST child façade."""
         return await self._rest_port.fetch_body_sensor_history(
             device_id,
@@ -590,7 +615,7 @@ class LiproProtocolFacade:
         device_type: int | str,
         sensor_device_id: str,
         mesh_type: str,
-    ) -> dict[str, Any]:
+    ) -> JsonObject:
         """Fetch door-sensor history through the REST child façade."""
         return await self._rest_port.fetch_door_sensor_history(
             device_id,
@@ -696,7 +721,7 @@ class LiproProtocolFacade:
         self.attach_mqtt_facade(mqtt_facade)
         return mqtt_facade
 
-    def protocol_diagnostics_snapshot(self) -> dict[str, Any]:
+    def protocol_diagnostics_snapshot(self) -> dict[str, object]:
         """Return one root-owned diagnostics snapshot."""
         mqtt = self._mqtt
         return self._diagnostics_context.snapshot(

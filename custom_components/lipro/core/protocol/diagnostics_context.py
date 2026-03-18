@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass
-from typing import Any
 
 from .session import ProtocolSessionState
 from .telemetry import ProtocolTelemetry
@@ -22,10 +22,10 @@ class ProtocolDiagnosticsContext:
         *,
         mqtt_connected: bool | None = None,
         subscribed_count: int | None = None,
-        auth_recovery: dict[str, Any] | None = None,
-    ) -> dict[str, Any]:
+        auth_recovery: Mapping[str, object] | None = None,
+    ) -> dict[str, object]:
         """Return a stable protocol-owned diagnostics snapshot."""
-        snapshot = {
+        snapshot: dict[str, object] = {
             "entry_id": self.entry_id,
             "session": self.session_state.as_dict(),
             "telemetry": self.telemetry.snapshot(

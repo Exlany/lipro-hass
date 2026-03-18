@@ -39,7 +39,7 @@ if TYPE_CHECKING:
 
     from . import LiproConfigEntry
     from .core.device import LiproDevice
-    from .runtime_types import LiproCoordinator
+    from .runtime_types import LiproRuntimeCoordinator
 
 # Limit parallel updates to avoid overwhelming the API
 PARALLEL_UPDATES = 1
@@ -66,7 +66,7 @@ class LiproSwitch(LiproEntity, SwitchEntity):
 
     def __init__(
         self,
-        coordinator: LiproCoordinator,
+        coordinator: LiproRuntimeCoordinator,
         device: LiproDevice,
     ) -> None:
         """Initialize the switch."""
@@ -100,7 +100,7 @@ class LiproPropertySwitch(LiproEntity, SwitchEntity):
 
     def __init__(
         self,
-        coordinator: LiproCoordinator,
+        coordinator: LiproRuntimeCoordinator,
         device: LiproDevice,
         config: PropertySwitchConfig,
     ) -> None:
@@ -131,7 +131,7 @@ class LiproPanelPropertySwitch(LiproEntity, SwitchEntity):
 
     def __init__(
         self,
-        coordinator: LiproCoordinator,
+        coordinator: LiproRuntimeCoordinator,
         device: LiproDevice,
         config: PropertySwitchConfig,
     ) -> None:
@@ -206,7 +206,7 @@ PANEL_FEATURE_SWITCHES = [
 _SWITCH_RULES: list[
     tuple[
         Callable[[LiproDevice], bool],
-        Sequence[Callable[[LiproCoordinator, LiproDevice], SwitchEntity]],
+        Sequence[Callable[[LiproRuntimeCoordinator, LiproDevice], SwitchEntity]],
     ]
 ] = [
     # Main switch entity (outlet or panel)
@@ -258,7 +258,7 @@ async def async_setup_entry(
 
 
 def _build_device_switches(
-    coordinator: LiproCoordinator,
+    coordinator: LiproRuntimeCoordinator,
     device: LiproDevice,
 ) -> list[SwitchEntity]:
     """Build switch entities for one device using declarative rules."""

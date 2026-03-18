@@ -13,7 +13,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from ..const.base import DOMAIN, MANUFACTURER
 from ..const.properties import CMD_CHANGE_STATE
 from ..core.utils.debounce import Debouncer
-from ..runtime_types import LiproCoordinator
+from ..runtime_types import LiproRuntimeCoordinator
 
 if TYPE_CHECKING:
     from ..core.capability import CapabilitySnapshot
@@ -33,14 +33,14 @@ _POST_COMMAND_PROTECTION_BUFFER: Final = 0.5
 class LiproEntity(CoordinatorEntity[Any]):
     """Base class for Lipro entities."""
 
-    coordinator: LiproCoordinator
+    coordinator: LiproRuntimeCoordinator
 
     _attr_has_entity_name = True
     _attr_attribution = "Data provided by Lipro Smart Home"
 
     def __init__(
         self,
-        coordinator: LiproCoordinator,
+        coordinator: LiproRuntimeCoordinator,
         device: LiproDevice,
         entity_suffix: str = "",
     ) -> None:

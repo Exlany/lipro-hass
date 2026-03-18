@@ -46,7 +46,7 @@ if TYPE_CHECKING:
     from collections.abc import Callable
 
     from ..core.device import LiproDevice
-    from ..runtime_types import LiproCoordinator
+    from ..runtime_types import LiproRuntimeCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -72,7 +72,7 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
 
     def __init__(
         self,
-        coordinator: LiproCoordinator,
+        coordinator: LiproRuntimeCoordinator,
         device: LiproDevice,
         on_error: Callable[[Exception], None] | None = None,
     ) -> None:
@@ -275,7 +275,7 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
 
     async def _query_ota_rows_from_cloud(self) -> list[OtaRow]:
         """Query OTA rows once and normalize unknown payload variants."""
-        rows = await self.coordinator.async_query_ota_info(
+        rows = await self.coordinator.protocol_service.async_query_ota_info(
             device_id=self.device.serial,
             device_type=self.device.device_type_hex,
             iot_name=self.device.iot_name or None,

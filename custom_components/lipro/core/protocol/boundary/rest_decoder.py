@@ -4,12 +4,25 @@ from __future__ import annotations
 
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
-from typing import Any, Protocol, TypeVar
+from typing import TYPE_CHECKING, Any, Protocol, TypeVar, cast
 
 from ...api.schedule_codec import parse_mesh_schedule_json
+from ...api.types import DevicePropertyMap, JsonObject
 from ...utils.identifiers import normalize_iot_device_id, normalize_mesh_group_id
 from ...utils.property_normalization import normalize_properties
 from .result import BoundaryDecodeResult, BoundaryDecoderKey
+
+if TYPE_CHECKING:
+    from ..contracts import (
+        CanonicalDeviceListItem,
+        CanonicalDeviceListPage,
+        CanonicalDeviceStatusRow,
+        CanonicalListEnvelope,
+        CanonicalMeshGroupMember,
+        CanonicalMeshGroupStatusRow,
+        CanonicalMqttConfig,
+        CanonicalScheduleJson,
+    )
 
 CanonicalT = TypeVar("CanonicalT")
 _REST_MQTT_CONFIG_FAMILY = "rest.mqtt-config"
@@ -121,15 +134,15 @@ def _coerce_bool(value: object) -> bool:
     return False
 
 
-def _normalize_property_rows(rows: Sequence[object]) -> dict[str, Any]:
-    normalized: dict[str, Any] = {}
+def _normalize_property_rows(rows: Sequence[object]) -> DevicePropertyMap:
+    normalized: DevicePropertyMap = {}
     for row in rows:
         if not isinstance(row, Mapping):
             continue
         key = row.get("key")
         if isinstance(key, str) and key:
             normalized[key] = row.get("value")
-    return normalize_properties(normalized)
+    return cast(DevicePropertyMap, normalize_properties(normalized))
 
 
 def _normalize_properties_payload(
@@ -137,9 +150,9 @@ def _normalize_properties_payload(
     *,
     fallback_mapping: Mapping[str, Any] | None = None,
     excluded_keys: set[str] | None = None,
-) -> dict[str, Any]:
+) -> DevicePropertyMap:
     if isinstance(payload, Mapping):
-        return normalize_properties(payload)
+        return cast(DevicePropertyMap, normalize_properties(payload))
     if isinstance(payload, list):
         return _normalize_property_rows(payload)
     if fallback_mapping is None:
@@ -149,17 +162,19 @@ def _normalize_properties_payload(
         for key, value in fallback_mapping.items()
         if key not in (excluded_keys or set())
     }
-    return normalize_properties(filtered)
+    return cast(DevicePropertyMap, normalize_properties(filtered))
 
 
-def _extract_list_payload(result: object) -> list[dict[str, Any]]:
+def _extract_list_payload(result: object) -> list[JsonObject]:
     if isinstance(result, list):
-        return [dict(row) for row in result if isinstance(row, dict)]
+        return [cast(JsonObject, dict(row)) for row in result if isinstance(row, dict)]
     if isinstance(result, dict):
         for key in ("devices", "data"):
             value = result.get(key)
             if isinstance(value, list):
-                return [dict(row) for row in value if isinstance(row, dict)]
+                return [
+                    cast(JsonObject, dict(row)) for row in value if isinstance(row, dict)
+                ]
     return []
 
 
@@ -187,7 +202,9 @@ def _build_identity_aliases(row: Mapping[str, Any]) -> list[str]:
     return aliases
 
 
-def _normalize_device_catalog_row(row: Mapping[str, Any]) -> dict[str, Any] | None:
+def _normalize_device_catalog_row(
+    row: Mapping[str, Any],
+) -> CanonicalDeviceListItem | None:
     identity_aliases = _build_identity_aliases(row)
     serial = next((alias for alias in identity_aliases if alias), None)
     if serial is None:
@@ -200,7 +217,7 @@ def _normalize_device_catalog_row(row: Mapping[str, Any]) -> dict[str, Any] | No
         device_number = _normalize_identifier(row.get("id") or row.get("groupId")) or row.get("id", 0)
 
     properties = _normalize_properties_payload(row.get("properties"))
-    canonical = {
+    canonical_data: dict[str, object] = {
         "deviceId": device_number,
         "serial": serial,
         "deviceName": _normalize_string(row.get("deviceName") or row.get("name"))
@@ -224,21 +241,21 @@ def _normalize_device_catalog_row(row: Mapping[str, Any]) -> dict[str, Any] | No
         ("homeName", "homeName"),
     ):
         if source_key in row:
-            canonical[target_key] = row[source_key]
-    return canonical
+            canonical_data[target_key] = row[source_key]
+    return cast("CanonicalDeviceListItem", canonical_data)
 
 
 def _extract_mqtt_config_mapping(
     result: object,
     *,
     is_success_code: Callable[[object], bool],
-) -> dict[str, Any] | None:
+) -> CanonicalMqttConfig | None:
     """Extract the canonical MQTT-config mapping from known REST envelopes."""
     if not isinstance(result, dict):
         return None
 
     if "accessKey" in result and "secretKey" in result:
-        return dict(result)
+        return cast("CanonicalMqttConfig", dict(result))
 
     payload = result.get("data")
     if not isinstance(payload, dict):
@@ -246,7 +263,7 @@ def _extract_mqtt_config_mapping(
     if "accessKey" not in payload or "secretKey" not in payload:
         return None
     if "code" not in result or is_success_code(result.get("code")):
-        return dict(payload)
+        return cast("CanonicalMqttConfig", dict(payload))
     return None
 
 
@@ -254,9 +271,9 @@ def _decode_list_envelope_canonical(
     payload: object,
     *,
     offset: int = 0,
-) -> dict[str, Any]:
+) -> CanonicalListEnvelope:
     rows = _extract_list_payload(payload)
-    canonical: dict[str, Any] = {
+    canonical: CanonicalListEnvelope = {
         "rows": rows,
         "has_more": False,
     }
@@ -286,11 +303,16 @@ def _extract_schedule_json_source(payload: object) -> object:
     return payload
 
 
-def _decode_schedule_json_canonical(payload: object) -> dict[str, list[int]]:
-    return parse_mesh_schedule_json(
+def _decode_schedule_json_canonical(payload: object) -> CanonicalScheduleJson:
+    parsed = parse_mesh_schedule_json(
         _extract_schedule_json_source(payload),
         mask_sensitive_data=lambda value: value,
     )
+    return {
+        "days": parsed["days"],
+        "time": parsed["time"],
+        "evt": parsed["evt"],
+    }
 
 
 def _build_schedule_json_fingerprint(payload: object) -> str:
@@ -306,7 +328,7 @@ def _decode_device_list_canonical(
     payload: object,
     *,
     offset: int = 0,
-) -> dict[str, Any]:
+) -> CanonicalDeviceListPage:
     envelope = _decode_list_envelope_canonical(payload, offset=offset)
     rows_value = envelope.get("rows", [])
     rows = rows_value if isinstance(rows_value, list) else []
@@ -316,7 +338,7 @@ def _decode_device_list_canonical(
         if (canonical := _normalize_device_catalog_row(row)) is not None
     ]
 
-    page_canonical: dict[str, Any] = {
+    page_canonical: CanonicalDeviceListPage = {
         "devices": devices,
         "has_more": bool(envelope.get("has_more", False)),
     }
@@ -326,11 +348,11 @@ def _decode_device_list_canonical(
     return page_canonical
 
 
-def _decode_device_status_canonical(payload: object) -> list[dict[str, Any]]:
+def _decode_device_status_canonical(payload: object) -> list[CanonicalDeviceStatusRow]:
     envelope = _decode_list_envelope_canonical(payload)
     rows_value = envelope.get("rows", [])
     rows = rows_value if isinstance(rows_value, list) else []
-    canonical_rows: list[dict[str, Any]] = []
+    canonical_rows: list[CanonicalDeviceStatusRow] = []
     for row in rows:
         device_id = None
         for key in _STATUS_ROW_ID_KEYS:
@@ -354,18 +376,20 @@ def _decode_device_status_canonical(payload: object) -> list[dict[str, Any]]:
     return canonical_rows
 
 
-def _decode_mesh_group_status_canonical(payload: object) -> list[dict[str, Any]]:
+def _decode_mesh_group_status_canonical(
+    payload: object,
+) -> list[CanonicalMeshGroupStatusRow]:
     envelope = _decode_list_envelope_canonical(payload)
     rows_value = envelope.get("rows", [])
     rows = rows_value if isinstance(rows_value, list) else []
-    canonical_rows: list[dict[str, Any]] = []
+    canonical_rows: list[CanonicalMeshGroupStatusRow] = []
     for row in rows:
         group_id = _normalize_identifier(row.get("groupId") or row.get("id"))
         if group_id is None:
             continue
 
         gateway_device_id = _normalize_identifier(row.get("gatewayDeviceId"))
-        members: list[dict[str, str]] = []
+        members: list[CanonicalMeshGroupMember] = []
         seen_member_ids: set[str] = set()
         raw_members = row.get("devices")
         if isinstance(raw_members, list):
@@ -460,7 +484,7 @@ class MqttConfigRestDecoder:
         """Return the authoritative source backing this family."""
         return self._context.authority
 
-    def decode(self, payload: object) -> BoundaryDecodeResult[dict[str, Any]]:
+    def decode(self, payload: object) -> BoundaryDecodeResult[CanonicalMqttConfig]:
         """Decode the MQTT-config response into a canonical mapping."""
         canonical = _extract_mqtt_config_mapping(
             payload,
@@ -505,7 +529,7 @@ class ListEnvelopeRestDecoder:
         """Return the authoritative source backing this family."""
         return self._context.authority
 
-    def decode(self, payload: object) -> BoundaryDecodeResult[dict[str, Any]]:
+    def decode(self, payload: object) -> BoundaryDecodeResult[CanonicalListEnvelope]:
         """Decode one REST list envelope into canonical rows/metadata."""
         return BoundaryDecodeResult(
             key=self.key,
@@ -542,7 +566,7 @@ class ScheduleJsonRestDecoder:
         """Return the authoritative source backing this family."""
         return self._context.authority
 
-    def decode(self, payload: object) -> BoundaryDecodeResult[dict[str, list[int]]]:
+    def decode(self, payload: object) -> BoundaryDecodeResult[CanonicalScheduleJson]:
         """Decode one scheduleJson payload into the canonical triple contract."""
         return BoundaryDecodeResult(
             key=self.key,
@@ -580,7 +604,7 @@ class DeviceListRestDecoder:
         """Return the authoritative fixture source backing this family."""
         return self._context.authority
 
-    def decode(self, payload: object) -> BoundaryDecodeResult[dict[str, Any]]:
+    def decode(self, payload: object) -> BoundaryDecodeResult[CanonicalDeviceListPage]:
         """Decode one device-list payload into the canonical catalog page."""
         canonical = _decode_device_list_canonical(payload, offset=self._offset)
         return BoundaryDecodeResult(
@@ -618,7 +642,10 @@ class DeviceStatusRestDecoder:
         """Return the authoritative fixture source backing this family."""
         return self._context.authority
 
-    def decode(self, payload: object) -> BoundaryDecodeResult[list[dict[str, Any]]]:
+    def decode(
+        self,
+        payload: object,
+    ) -> BoundaryDecodeResult[list[CanonicalDeviceStatusRow]]:
         """Decode one device-status payload into canonical rows."""
         return BoundaryDecodeResult(
             key=self.key,
@@ -655,7 +682,10 @@ class MeshGroupStatusRestDecoder:
         """Return the authoritative fixture source backing this family."""
         return self._context.authority
 
-    def decode(self, payload: object) -> BoundaryDecodeResult[list[dict[str, Any]]]:
+    def decode(
+        self,
+        payload: object,
+    ) -> BoundaryDecodeResult[list[CanonicalMeshGroupStatusRow]]:
         """Decode one mesh-group-status payload into canonical topology rows."""
         return BoundaryDecodeResult(
             key=self.key,
@@ -669,14 +699,14 @@ def decode_list_envelope_payload(
     payload: object,
     *,
     offset: int = 0,
-) -> BoundaryDecodeResult[dict[str, Any]]:
+) -> BoundaryDecodeResult[CanonicalListEnvelope]:
     """Decode one REST list envelope into canonical rows/metadata."""
     return ListEnvelopeRestDecoder(offset=offset).decode(payload)
 
 
 def decode_schedule_json_payload(
     payload: object,
-) -> BoundaryDecodeResult[dict[str, list[int]]]:
+) -> BoundaryDecodeResult[CanonicalScheduleJson]:
     """Decode one scheduleJson payload through the formal boundary family."""
     return ScheduleJsonRestDecoder().decode(payload)
 
@@ -685,7 +715,7 @@ def decode_mqtt_config_payload(
     payload: object,
     *,
     is_success_code: Callable[[object], bool],
-) -> BoundaryDecodeResult[dict[str, Any]]:
+) -> BoundaryDecodeResult[CanonicalMqttConfig]:
     """Decode one MQTT-config REST payload through the formal boundary family."""
     return MqttConfigRestDecoder(is_success_code=is_success_code).decode(payload)
 
@@ -694,20 +724,20 @@ def decode_device_list_payload(
     payload: object,
     *,
     offset: int = 0,
-) -> BoundaryDecodeResult[dict[str, Any]]:
+) -> BoundaryDecodeResult[CanonicalDeviceListPage]:
     """Decode one device-list REST payload into the canonical catalog page."""
     return DeviceListRestDecoder(offset=offset).decode(payload)
 
 
 def decode_device_status_payload(
     payload: object,
-) -> BoundaryDecodeResult[list[dict[str, Any]]]:
+) -> BoundaryDecodeResult[list[CanonicalDeviceStatusRow]]:
     """Decode one device-status REST payload into canonical status rows."""
     return DeviceStatusRestDecoder().decode(payload)
 
 
 def decode_mesh_group_status_payload(
     payload: object,
-) -> BoundaryDecodeResult[list[dict[str, Any]]]:
+) -> BoundaryDecodeResult[list[CanonicalMeshGroupStatusRow]]:
     """Decode one mesh-group-status REST payload into canonical topology rows."""
     return MeshGroupStatusRestDecoder().decode(payload)

@@ -20,14 +20,14 @@ from ..power_service import (
     OutletPowerInfoResult,
     fetch_outlet_power_info as fetch_outlet_power_info_service,
 )
-from ..types import OtaInfoRow
+from ..types import JsonObject, OtaInfoRow
 from .payloads import _EndpointAdapter
 
 # Use the same logger instance as custom_components.lipro.core.api.client._LOGGER
 # so tests patching client._LOGGER.* still intercept logs here.
 _LOGGER = logging.getLogger("custom_components.lipro.core.api.client")
 
-type ResponseMapping = dict[str, object]
+type ResponseMapping = JsonObject
 
 
 class MiscEndpoints(_EndpointAdapter):
