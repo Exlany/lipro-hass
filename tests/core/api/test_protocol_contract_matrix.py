@@ -244,6 +244,36 @@ def test_protocol_root_owns_shared_rest_session_and_request_policy() -> None:
     assert client.rest._request_policy is client.request_policy
 
 
+def test_protocol_root_file_keeps_rest_port_and_mqtt_child_out_of_root_body() -> None:
+    module_text = (
+        Path(__file__).resolve().parents[3]
+        / "custom_components"
+        / "lipro"
+        / "core"
+        / "protocol"
+        / "facade.py"
+    ).read_text(encoding="utf-8")
+
+    assert "from .mqtt_facade import" in module_text
+    assert "from .rest_port import" in module_text
+    assert "class LiproMqttFacade:" not in module_text
+    assert "class _RestFacadePort(" not in module_text
+
+
+def test_rest_child_facade_file_uses_local_request_and_endpoint_collaborators() -> None:
+    module_text = (
+        Path(__file__).resolve().parents[3]
+        / "custom_components"
+        / "lipro"
+        / "core"
+        / "api"
+        / "client.py"
+    ).read_text(encoding="utf-8")
+
+    assert "ClientRequestGateway" in module_text
+    assert "ClientEndpointSurface" in module_text
+
+
 @pytest.mark.parametrize(
     "fixture_name",
     ["get_mqtt_config.direct.json", "get_mqtt_config.wrapped.json"],

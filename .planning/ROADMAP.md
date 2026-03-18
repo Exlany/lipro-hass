@@ -652,13 +652,13 @@ Plans:
   1. `custom_components/lipro/core/api/client.py` 与 `custom_components/lipro/core/protocol/facade.py` 继续显著瘦身，职责按 transport / auth / command / capability 等协作者切开。
   2. public surface 只减不增；protocol / API 定向回归与 surface guards 继续全绿。
   3. compat / forwarding residue、反射/私有实现细节依赖与命名残留被进一步删除、隔离或显式下沉，不再在 root façade 层漂浮。
-**Status**: Planned
-**Plans**: 0/3 complete
+**Status**: Complete (`2026-03-18`)
+**Plans**: 3/3 complete
 
 Plans:
-- [ ] 35-01: split REST child-façade collaborators along formal seams
-- [ ] 35-02: slim protocol-facade forwarding clusters and sync public-surface truth
-- [ ] 35-03: add hotspot guardrails and targeted protocol regressions
+- [x] 35-01: split REST child-façade collaborators along formal seams (completed 2026-03-18)
+- [x] 35-02: slim protocol-facade forwarding clusters and sync public-surface truth (completed 2026-03-18)
+- [x] 35-03: add hotspot guardrails and targeted protocol regressions (completed 2026-03-18)
 
 ### Phase 36: Runtime root and exception burn-down
 **Goal**: 收薄 `Coordinator` 运行根，并把生产宽异常从当前存量压到可守护阈值；所有新增失败语义都必须落到 typed arbitration、documented degraded contract 或 fail-closed path。
@@ -668,13 +668,13 @@ Plans:
   1. `custom_components/lipro/core/coordinator/coordinator.py` 显著瘦身，runtime/service clusters 的 home 更明确，但正式 runtime root 仍只有一条。
   2. 生产 `except Exception` 存量明显下降，核心热点清零或收敛到 machine-guarded no-growth budget。
   3. runtime/service/platform touched-zone 的 typed budget 与 exception policy 继续统一到单一治理故事。
-**Status**: Planned
-**Plans**: 0/3 complete
+**Status**: Complete (`2026-03-18`)
+**Plans**: 3/3 complete
 
 Plans:
-- [ ] 36-01: extract coordinator runtime/service clusters along existing seams
-- [ ] 36-02: burn down broad exceptions into typed arbitration and guarded degraded contracts
-- [ ] 36-03: refresh runtime typed-budget and no-growth evidence
+- [x] 36-01: extract coordinator runtime/service clusters along existing seams (completed 2026-03-18)
+- [x] 36-02: burn down broad exceptions into typed arbitration and guarded degraded contracts (completed 2026-03-18)
+- [x] 36-03: refresh runtime typed-budget and no-growth evidence (completed 2026-03-18)
 
 ### Phase 37: Test topology and derived-truth convergence
 **Goal**: 完成巨石测试第三波 topicization，并把 `.planning/codebase/*`、测试策略、verification truth 与实际套件布局重新拉回单一故事，避免 derived-map 再漂移。
@@ -684,11 +684,10 @@ Plans:
   1. 剩余巨石测试被拆成更稳定、可局部执行的专题套件，失败定位速度明显提升。
   2. `.planning/codebase/*`、测试策略文档、verification matrix、public docs entry topology 与实际命令/目录结构保持一致，并有 drift guard 约束。
   3. benchmark 形成预算或基线语义，governance tests 降低 prose-coupled 高噪音断言，最终 closeout 证据完整，为后续 fresh audit 奠定稳定基线。
-**Status**: Planned
-**Plans**: 0/3 complete
+**Status**: Complete (`2026-03-18`)
+**Plans**: 3/3 complete
 
 Plans:
-- [ ] 37-01: topicize remaining mega-tests into stable topical suites
-- [ ] 37-02: converge derived maps, testing strategy, and verification truth
-- [ ] 37-03: add drift guards and closeout evidence for test-topology changes
-
+- [x] 37-01: topicize remaining mega-tests into stable topical suites (completed 2026-03-18)
+- [x] 37-02: converge derived maps, testing strategy, and verification truth (completed 2026-03-18)
+- [x] 37-03: add drift guards and closeout evidence for test-topology changes (completed 2026-03-18)

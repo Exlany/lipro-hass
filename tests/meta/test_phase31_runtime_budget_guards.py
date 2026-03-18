@@ -31,6 +31,7 @@ _TYPE_GUARD_TARGETS = {
     "core/coordinator/runtime/state/updater.py",
     "core/coordinator/runtime/device_runtime.py",
     "core/coordinator/runtime/device/snapshot.py",
+    "core/coordinator/services/command_service.py",
     "core/utils/background_task_manager.py",
     "services/diagnostics/helpers.py",
     "services/maintenance.py",
@@ -80,27 +81,27 @@ _BROAD_CATCH_BUDGET: dict[str, _BroadCatchBudgetEntry] = {
         },
     },
     "core/coordinator/runtime/mqtt_runtime.py": {
-        "expected_count": 1,
+        "expected_count": 0,
         "semantic_markers": {
             "MQTT %s failed": 1,
         },
     },
     "core/coordinator/mqtt_lifecycle.py": {
-        "expected_count": 2,
+        "expected_count": 0,
         "semantic_markers": {
             'stage="message_bridge"': 1,
             "Failed to setup MQTT": 1,
         },
     },
     "core/coordinator/runtime/device_runtime.py": {
-        "expected_count": 2,
+        "expected_count": 0,
         "semantic_markers": {
             "self._last_refresh_failure = self._classify_refresh_failure(": 2,
             "retaining last-known-good snapshot": 2,
         },
     },
     "core/coordinator/runtime/device/snapshot.py": {
-        "expected_count": 3,
+        "expected_count": 0,
         "semantic_markers": {
             'stage="mesh_group_topology"': 1,
             'stage="fetch_page"': 1,

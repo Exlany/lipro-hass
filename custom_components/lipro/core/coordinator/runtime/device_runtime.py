@@ -128,7 +128,16 @@ class DeviceRuntime:
                         runtime_err.stage,
                     )
                 raise runtime_err from err
-            except Exception as err:
+            except (
+                LiproRefreshTokenExpiredError,
+                LiproAuthError,
+                LiproConnectionError,
+                LiproApiError,
+                RuntimeError,
+                ValueError,
+                TypeError,
+                LookupError,
+            ) as err:
                 retained_last_known_good = self._last_snapshot is not None
                 self._last_refresh_failure = self._classify_refresh_failure(
                     err,
@@ -157,7 +166,16 @@ class DeviceRuntime:
             except RuntimeSnapshotRefreshRejectedError as err:
                 self._last_refresh_failure = err.failure
                 raise
-            except Exception as err:
+            except (
+                LiproRefreshTokenExpiredError,
+                LiproAuthError,
+                LiproConnectionError,
+                LiproApiError,
+                RuntimeError,
+                ValueError,
+                TypeError,
+                LookupError,
+            ) as err:
                 self._last_refresh_failure = self._classify_refresh_failure(
                     err,
                     kept_last_known_good=False,

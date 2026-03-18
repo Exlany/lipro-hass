@@ -1,6 +1,6 @@
 # ARCHITECTURE
 > Snapshot: `2026-03-18`
-> Freshness: Phase 32 对齐刷新；仅按 `AGENTS.md`、`.planning/{ROADMAP,REQUIREMENTS,STATE}.md`、`.planning/baseline/*.md`、`.planning/reviews/*.md`、`docs/developer_architecture.md` 与当前 CI/release/public-doc truth 截面成立。上述真源变更后，本图谱必须同步刷新或标记过时。
+> Freshness: Phase 37 对齐刷新；仅按 `AGENTS.md`、`.planning/{ROADMAP,REQUIREMENTS,STATE}.md`、`.planning/baseline/*.md`、`.planning/reviews/*.md`、`docs/developer_architecture.md` 与当前 CI/release/public-doc truth 截面成立。上述真源变更后，本图谱必须同步刷新或标记过时。
 > Repository: `/var/tmp/coolvibe/worktrees/edf26778937a-/lipro-hass`
 > Focus: `arch`
 > Derived collaboration map: 本文件是受约束的协作图谱 / 派生视图，仅用于导航、协作与局部审阅。
@@ -53,6 +53,11 @@ Home Assistant entry / flow / service / entity
 - Canonical contract / boundary：`custom_components/lipro/core/protocol/contracts.py`、`custom_components/lipro/core/protocol/boundary/rest_decoder.py`、`custom_components/lipro/core/protocol/boundary/mqtt_decoder.py`
 - Domain truth：`custom_components/lipro/core/capability/registry.py`、`custom_components/lipro/core/device/device.py`、`custom_components/lipro/core/device/state.py`
 - Assurance truth：`custom_components/lipro/core/telemetry/exporter.py`、`tests/meta/*.py`、`tests/harness/**`
+
+## 2.1 Phase 35-37 Sustainment Delta
+- protocol plane 已进一步收口为 `LiproProtocolFacade -> _RestFacadePort/LiproMqttFacade -> LiproRestFacade/MqttTransportClient`：`client_request_gateway.py` 与 `client_endpoint_surface.py` 只是 `LiproRestFacade` 的 localized collaborators，`rest_port.py` 与 `mqtt_facade.py` 只是 formal root 下的 child-facade contract/home，不构成新的 package-level root。
+- runtime plane 继续沿既有 home 收薄：`CoordinatorPollingService` 现承接 snapshot refresh / status polling / outlet power polling orchestration；`Coordinator` 仍是唯一 runtime root，只保留 HA-facing public entrypoints 与 root-owned wiring。
+- assurance plane 在 `Phase 37` 继续 topicize：`tests/core/test_init_service_handlers*.py`、`tests/core/test_init_runtime*.py` 与 `tests/meta/test_governance_phase_history*.py` 已成为稳定专题套件，聚合文件只保留极小 shared helpers，不再承载 mega-test 主体。
 
 ## 3. Five-Plane Mapping
 | Plane | 正式根 / 正式集合 | 目录归属 | 当前判断 |

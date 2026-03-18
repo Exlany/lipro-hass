@@ -118,6 +118,12 @@ uv run pytest tests/core/test_diagnostics.py::TestAsyncGetConfigEntryDiagnostics
 uv run pytest -q tests/core/api/test_protocol_contract_matrix.py tests/core/test_auth.py tests/flows/test_config_flow.py tests/meta/test_public_surface_guards.py tests/test_coordinator_public.py
 ```
 
+Notes:
+说明：
+
+- Init / lifecycle / service-handler 改动建议优先跑 `tests/core/test_init*.py` 与 `tests/core/test_init_service_handlers*.py`，不要再把专题用例回灌到单一 mega-test 文件。
+- Phase-history / governance closeout 改动建议补跑 `tests/meta/test_governance_phase_history*.py`，以保持 topicized closeout guards 与实际 phase 证据一致。
+
 ### CI Contract / CI 契约
 
 Use the same command groups as GitHub Actions:

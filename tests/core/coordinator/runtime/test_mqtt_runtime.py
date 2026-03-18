@@ -178,14 +178,14 @@ class TestMqttRuntimeConnection:
         self, mqtt_runtime: MqttRuntime, mock_mqtt_client: Mock
     ) -> None:
         """Test MQTT connection failure."""
-        cast(AsyncMock, mock_mqtt_client.start).side_effect = Exception("Connection failed")
+        cast(AsyncMock, mock_mqtt_client.start).side_effect = RuntimeError("Connection failed")
 
         result = await mqtt_runtime.connect(device_ids=["device1"])
 
         assert result is False
         assert mqtt_runtime.is_connected is False
         assert mqtt_runtime.get_runtime_metrics()["last_transport_error_stage"] == "connect"
-        assert _get_failure_summary(mqtt_runtime)["error_type"] == "Exception"
+        assert _get_failure_summary(mqtt_runtime)["error_type"] == "RuntimeError"
 
     async def test_connect_without_client(self, mock_hass: Mock) -> None:
         """Test connection attempt without MQTT client."""
@@ -230,14 +230,14 @@ class TestMqttRuntimeConnection:
     ) -> None:
         """Test disconnect handles exceptions gracefully."""
         mqtt_runtime.on_transport_connected()
-        cast(AsyncMock, mock_mqtt_client.stop).side_effect = Exception("Disconnect failed")
+        cast(AsyncMock, mock_mqtt_client.stop).side_effect = RuntimeError("Disconnect failed")
 
         await mqtt_runtime.disconnect()
 
         assert mqtt_runtime.is_connected is False
         assert mqtt_runtime._connection_manager.disconnect_time is not None
         assert mqtt_runtime.get_runtime_metrics()["last_transport_error_stage"] == "disconnect"
-        assert _get_failure_summary(mqtt_runtime)["error_type"] == "Exception"
+        assert _get_failure_summary(mqtt_runtime)["error_type"] == "RuntimeError"
 
     async def test_disconnect_without_client(self, mock_hass: Mock) -> None:
         """Disconnect should no-op when MQTT client is absent."""
@@ -380,7 +380,7 @@ class TestMqttRuntimeReconnection:
         self, mqtt_runtime: MqttRuntime, mock_mqtt_client: Mock
     ) -> None:
         """Test reconnection backoff after failure."""
-        cast(AsyncMock, mock_mqtt_client.start).side_effect = Exception("Connection failed")
+        cast(AsyncMock, mock_mqtt_client.start).side_effect = RuntimeError("Connection failed")
 
         assert mqtt_runtime.should_attempt_reconnect() is True
 

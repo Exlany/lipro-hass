@@ -32,9 +32,9 @@
 
 ## v1.3 Closeout & Post-closeout Continuation
 
-**Route-freeze status:** `Phase 25 -> 33` 已于 `2026-03-18` 全部执行完成；v1.3 continuation route 现已从 execution-ready 收口到 execution-complete / audit-ready。基于同日全仓终审，`Phase 33` 已被追加并执行完成，成为 post-closeout continuation tranche 的已落地 tranche。
+**Route-freeze status:** `Phase 25 -> 37` 已于 `2026-03-18` 全部执行完成；post-closeout continuation 与 `v1.4` seed sustainment route 现都已进入 execution-complete / audit-ready。`Phase 33` 关闭了 v1.3 continuation 收口线，`Phase 34 -> 37` 则把 10 分质量 hardening 种子执行到位。
 
-**Continuation closeout status:** `Phase 32` 与 `Phase 33` 的 execution / verification 资产现已落地，依赖链 `31 -> 32 -> 33` 已闭环；`.planning/v1.3-HANDOFF.md` 继续作为 `Phase 25 -> 31` 历史 closeout baseline，而 `33-VERIFICATION.md` / `33-SUMMARY.md` 负责承接 post-v1.3 continuation 的最终 closeout。里程碑审计现已刷新；若接受显式 retained debt，可 `$gsd-complete-milestone v1.3`；若继续追求 10 分质量，则进入下方 `v1.4` seed 并从 `$gsd-plan-phase 34` 开始。
+**Continuation closeout status:** `Phase 32 -> 37` 的 execution / verification 资产现已全部落地：`.planning/v1.3-HANDOFF.md` 继续作为 `Phase 25 -> 31` 历史 closeout baseline，`33-VERIFICATION.md` / `33-SUMMARY.md` 负责承接 post-v1.3 continuation closeout，而 `34-VERIFICATION.md` / `35-VERIFICATION.md` / `36-VERIFICATION.md` / `37-VERIFICATION.md` 则串成 `v1.4` seed sustainment hardening evidence chain。若继续追求 10 分质量，下一步应从 fresh audit / next tranche 重新起相，而不是回退到旧 handoff 语境。
 
 **Parent phase:** `Phase 25 — Quality-10 remediation master plan and execution routing`
 
@@ -101,11 +101,23 @@
 3. `Phase 36` — runtime root and exception burn-down
 4. `Phase 37` — test topology and derived-truth convergence
 
-**Default next step:** `$gsd-plan-phase 35`
+**Default next step:** `$gsd-progress`
 
 ## Phase 34 Seed Hardening Update
 
 `Phase 34` 已于 `2026-03-18` 完成：single-maintainer continuity 现有 formal custody / freeze / restoration contract；release path 已具备 tagged `CodeQL` hard gate、keyless `cosign` signing bundle、provenance verification 与同步后的 public docs truth。`v1.3` 仍保持 closeout-eligible with retained debt，而 `v1.4` seed 的默认下一步已切到 `Phase 35`。
+
+## Phase 35 Protocol Hotspot Slimming Update
+
+`Phase 35` 已于 `2026-03-18` 完成：`LiproRestFacade` 现通过 `ClientRequestGateway` 与 `ClientEndpointSurface` inward 收口 request/endpoint 复杂度；`LiproProtocolFacade` 则通过 `rest_port.py` 与 `mqtt_facade.py` 保持 single protocol-root story，同时没有引入新的 package-level public surface。
+
+## Phase 36 Runtime Root Burn-Down Update
+
+`Phase 36` 已于 `2026-03-18` 完成：`CoordinatorPollingService` 已正式承接 polling/status/outlet/snapshot orchestration，`Coordinator` 继续变薄；runtime 主链上的高风险 broad catches 也已收口到 typed arbitration / fail-closed semantics，并同步回写 phase31 budget truth。
+
+## Phase 37 Test Topology & Derived-Truth Update
+
+`Phase 37` 已于 `2026-03-18` 完成：`test_init_service_handlers*`、`test_init_runtime*` 与 `test_governance_phase_history*` 已 topicize 成稳定专题套件；`.planning/codebase/*`、`VERIFICATION_MATRIX`、`CONTRIBUTING.md` 与相关 drift guards 也已回写到同一条 topology truth。
 
 ## Why This Milestone Exists
 
@@ -453,4 +465,4 @@ v1.1 进入执行期后，新增演进必须额外满足：
 
 - 当前工作区输入以 `v1.2` closeout bundle 与 `v1.3` handoff assets 为主；phase 目录资产仍默认是执行证据，只有被 `ROADMAP.md`、baseline docs、review ledgers 或 milestone audit 显式提升时，才成为长期治理真源。
 
-*Last updated: 2026-03-18 after Phase 33 execution closeout and verification sync*
+*Last updated: 2026-03-18 after Phase 37 execution closeout and verification sync*

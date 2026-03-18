@@ -316,11 +316,11 @@ def test_phase_32_completion_truth_is_consistent() -> None:
     assert "- Current complete: 29" in requirements_text
     assert "- Current pending: 0" in requirements_text
 
-    assert "`Phase 25 -> 33` 已于 `2026-03-18` 全部执行完成" in project_text
+    assert "`Phase 25 -> 37` 已于 `2026-03-18` 全部执行完成" in project_text
     assert "`Phase 32` — truth convergence, gate honesty, and quality-10 closeout" in project_text
     assert "`Phase 32` 已执行完成" in state_text
-    assert "`Phase 34 complete`" in state_text
-    assert "`Phase 25 -> 34` 已于 `2026-03-18` 全部执行完成并通过 fresh gates" in state_text
+    assert "`Phase 37 complete`" in state_text
+    assert "`Phase 25 -> 37` 已于 `2026-03-18` 全部执行完成并通过 fresh gates" in state_text
     assert "$gsd-plan-milestone-gaps" in state_text
     assert "$gsd-complete-milestone v1.3" in state_text
     assert "$gsd-progress" in state_text
@@ -391,11 +391,11 @@ def test_phase_33_planning_truth_is_consistent() -> None:
     ):
         assert needle in requirements_text
 
-    assert "`Phase 33` 已被追加并执行完成，成为 post-closeout continuation tranche 的已落地 tranche" in project_text
+    assert "`Phase 33` 关闭了 v1.3 continuation 收口线" in project_text
     assert "## Phase 33 Audit-Driven Continuation" in project_text
     assert "`33-05 / 33-06` 已收紧 CI/pre-push/benchmark/release evidence truth、dependency posture、deep-doc parity、maintainer continuity 与 mega-test topicization。" in project_text
     assert "`Phase 33` 已于 `2026-03-18` 执行完成" in state_text
-    assert "`Phase 34 complete`" in state_text
+    assert "`Phase 37 complete`" in state_text
     assert "runtime contract dual-truth、control 去回路、giant hotspots / broad-catch / gate drift / dependency posture / deep-doc continuity / mega-test topicization 已全部收口" in state_text
     assert "$gsd-plan-milestone-gaps" in state_text
     assert "$gsd-complete-milestone v1.3" in state_text
@@ -448,11 +448,122 @@ def test_phase_34_planning_truth_is_consistent() -> None:
 
     assert "## Phase 34 Seed Hardening Update" in project_text
     assert "`Phase 34` 已于 `2026-03-18` 完成" in project_text
-    assert "**Default next step:** `$gsd-plan-phase 35`" in project_text
 
-    assert "`Phase 34 complete`" in state_text
-    assert "`Phase 25 -> 34` 已于 `2026-03-18` 全部执行完成" in state_text
+    assert "`Phase 34` 已于 `2026-03-18` 执行完成" in state_text
     assert "tagged `CodeQL` hard gate" in state_text
-    assert "$gsd-plan-phase 35" in state_text
+    assert "$gsd-progress" in state_text
     assert "$gsd-plan-milestone-gaps" in state_text
     assert "$gsd-complete-milestone v1.3" in state_text
+
+
+def test_phase_35_planning_truth_is_consistent() -> None:
+    phase_root = (
+        _ROOT
+        / ".planning"
+        / "phases"
+        / "35-protocol-hotspot-final-slimming"
+    )
+    roadmap_text = (_ROOT / ".planning" / "ROADMAP.md").read_text(encoding="utf-8")
+    requirements_text = (_ROOT / ".planning" / "REQUIREMENTS.md").read_text(encoding="utf-8")
+    project_text = (_ROOT / ".planning" / "PROJECT.md").read_text(encoding="utf-8")
+    state_text = (_ROOT / ".planning" / "STATE.md").read_text(encoding="utf-8")
+
+    for artifact_name in (
+        "35-CONTEXT.md",
+        "35-01-PLAN.md",
+        "35-02-PLAN.md",
+        "35-03-PLAN.md",
+        "35-VALIDATION.md",
+        "35-01-SUMMARY.md",
+        "35-02-SUMMARY.md",
+        "35-03-SUMMARY.md",
+        "35-SUMMARY.md",
+        "35-VERIFICATION.md",
+    ):
+        assert (phase_root / artifact_name).exists()
+
+    assert "### Phase 35: Protocol hotspot final slimming" in roadmap_text
+    assert "**Requirements**: [HOT-09, RES-07]" in roadmap_text
+    assert "**Status**: Complete (`2026-03-18`)" in roadmap_text
+    assert "**Plans**: 3/3 complete" in roadmap_text
+    assert "| HOT-09 | Phase 35 | Complete |" in requirements_text
+    assert "| RES-07 | Phase 35 | Complete |" in requirements_text
+    assert "## Phase 35 Protocol Hotspot Slimming Update" in project_text
+    assert "`Phase 35` 已于 `2026-03-18` 完成" in project_text
+    assert "`Phase 35` 已完成：protocol hotspot 继续 inward" in state_text
+
+
+def test_phase_36_planning_truth_is_consistent() -> None:
+    phase_root = (
+        _ROOT
+        / ".planning"
+        / "phases"
+        / "36-runtime-root-and-exception-burn-down"
+    )
+    roadmap_text = (_ROOT / ".planning" / "ROADMAP.md").read_text(encoding="utf-8")
+    requirements_text = (_ROOT / ".planning" / "REQUIREMENTS.md").read_text(encoding="utf-8")
+    project_text = (_ROOT / ".planning" / "PROJECT.md").read_text(encoding="utf-8")
+    state_text = (_ROOT / ".planning" / "STATE.md").read_text(encoding="utf-8")
+
+    for artifact_name in (
+        "36-CONTEXT.md",
+        "36-01-PLAN.md",
+        "36-02-PLAN.md",
+        "36-03-PLAN.md",
+        "36-VALIDATION.md",
+        "36-01-SUMMARY.md",
+        "36-02-SUMMARY.md",
+        "36-03-SUMMARY.md",
+        "36-SUMMARY.md",
+        "36-VERIFICATION.md",
+    ):
+        assert (phase_root / artifact_name).exists()
+
+    assert "### Phase 36: Runtime root and exception burn-down" in roadmap_text
+    assert "**Requirements**: [HOT-10, ERR-08, TYP-09]" in roadmap_text
+    assert "**Status**: Complete (`2026-03-18`)" in roadmap_text
+    assert "**Plans**: 3/3 complete" in roadmap_text
+    assert "| HOT-10 | Phase 36 | Complete |" in requirements_text
+    assert "| ERR-08 | Phase 36 | Complete |" in requirements_text
+    assert "| TYP-09 | Phase 36 | Complete |" in requirements_text
+    assert "## Phase 36 Runtime Root Burn-Down Update" in project_text
+    assert "`Phase 36` 已于 `2026-03-18` 完成" in project_text
+    assert "`Phase 36` 已完成：`CoordinatorPollingService` 已承接 polling/status/outlet/snapshot orchestration" in state_text
+
+
+def test_phase_37_planning_truth_is_consistent() -> None:
+    phase_root = (
+        _ROOT
+        / ".planning"
+        / "phases"
+        / "37-test-topology-and-derived-truth-convergence"
+    )
+    roadmap_text = (_ROOT / ".planning" / "ROADMAP.md").read_text(encoding="utf-8")
+    requirements_text = (_ROOT / ".planning" / "REQUIREMENTS.md").read_text(encoding="utf-8")
+    project_text = (_ROOT / ".planning" / "PROJECT.md").read_text(encoding="utf-8")
+    state_text = (_ROOT / ".planning" / "STATE.md").read_text(encoding="utf-8")
+
+    for artifact_name in (
+        "37-CONTEXT.md",
+        "37-01-PLAN.md",
+        "37-02-PLAN.md",
+        "37-03-PLAN.md",
+        "37-VALIDATION.md",
+        "37-01-SUMMARY.md",
+        "37-02-SUMMARY.md",
+        "37-03-SUMMARY.md",
+        "37-SUMMARY.md",
+        "37-VERIFICATION.md",
+    ):
+        assert (phase_root / artifact_name).exists()
+
+    assert "### Phase 37: Test topology and derived-truth convergence" in roadmap_text
+    assert "**Requirements**: [TST-06, GOV-30, QLT-09]" in roadmap_text
+    assert "**Status**: Complete (`2026-03-18`)" in roadmap_text
+    assert "**Plans**: 3/3 complete" in roadmap_text
+    assert "| TST-06 | Phase 37 | Complete |" in requirements_text
+    assert "| GOV-30 | Phase 37 | Complete |" in requirements_text
+    assert "| QLT-09 | Phase 37 | Complete |" in requirements_text
+    assert "**Default next step:** `$gsd-progress`" in project_text
+    assert "`Phase 37 complete`" in state_text
+    assert "$gsd-plan-phase 38" in state_text

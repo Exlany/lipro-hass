@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import re
+
 from .test_governance_guards import (
     _AGENTS,
     _CI_WORKFLOW,
@@ -29,7 +31,6 @@ from .test_governance_guards import (
     _load_json,
     _load_yaml,
     _parse_codeowners_handles,
-    re,
 )
 
 _CODEQL_WORKFLOW = _ROOT / ".github" / "workflows" / "codeql.yml"
@@ -152,7 +153,7 @@ def test_ci_and_release_workflows_share_governance_and_version_gates() -> None:
     analyze_steps = {step["name"] for step in codeql["jobs"]["analyze"]["steps"]}
     assert "Initialize CodeQL" in analyze_steps
     assert "Perform CodeQL Analysis" in analyze_steps
-    codeql_on = codeql_workflow.get("on", codeql_workflow.get(True))
+    codeql_on = codeql_workflow["on"]
     assert isinstance(codeql_on, dict)
     assert "workflow_dispatch" in codeql_on
     assert "push" in codeql_on

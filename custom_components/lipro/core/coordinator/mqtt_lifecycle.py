@@ -7,6 +7,12 @@ import logging
 from typing import TYPE_CHECKING
 
 from ...const.config import CONF_PHONE_ID
+from ..api import (
+    LiproApiError,
+    LiproAuthError,
+    LiproConnectionError,
+    LiproRefreshTokenExpiredError,
+)
 from ..mqtt.credentials import decrypt_mqtt_credential
 from ..protocol import LiproMqttFacade, LiproProtocolFacade
 from .mqtt.setup import build_mqtt_subscription_device_ids, resolve_mqtt_biz_id
@@ -92,7 +98,7 @@ async def async_setup_mqtt(
                 await mqtt_runtime.handle_message(topic, payload)
             except asyncio.CancelledError:
                 raise
-            except Exception as err:
+            except (RuntimeError, ValueError, TypeError, LookupError) as err:
                 mqtt_runtime.handle_transport_error(err, stage="message_bridge")
                 raise
 
@@ -146,7 +152,16 @@ async def async_setup_mqtt(
 
     except asyncio.CancelledError:
         raise
-    except Exception as err:
+    except (
+        LiproRefreshTokenExpiredError,
+        LiproAuthError,
+        LiproConnectionError,
+        LiproApiError,
+        RuntimeError,
+        ValueError,
+        TypeError,
+        LookupError,
+    ) as err:
         mqtt_runtime.handle_transport_error(err, stage="setup")
         await _teardown_failed_mqtt_setup(
             protocol=protocol,

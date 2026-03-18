@@ -144,7 +144,14 @@ class MqttRuntime:
             return True, await operation()
         except asyncio.CancelledError:
             raise
-        except Exception as err:
+        except (
+            TimeoutError,
+            OSError,
+            RuntimeError,
+            ValueError,
+            TypeError,
+            LookupError,
+        ) as err:
             self.handle_transport_error(err, stage=stage)
             _LOGGER.exception("MQTT %s failed", action)
             return False, None

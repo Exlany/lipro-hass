@@ -6,7 +6,7 @@ common utilities for platform setup.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING
 
 from ..const.categories import DeviceCategory
 from ..core.utils.identifiers import normalize_iot_device_id
@@ -38,7 +38,7 @@ def _require_entry_coordinator(entry: LiproConfigEntry) -> LiproRuntimeCoordinat
     """Return the loaded runtime coordinator for one config entry."""
     coordinator = entry.runtime_data
     if coordinator is not None:
-        return cast(LiproRuntimeCoordinator, coordinator)
+        return coordinator
 
     entry_id = getattr(entry, "entry_id", "<unknown>")
     msg = f"Runtime coordinator missing for entry {entry_id}"

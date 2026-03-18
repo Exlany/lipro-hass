@@ -2,7 +2,7 @@
 
 **Purpose:** 定义各平面的 canonical public surfaces、过渡公开面与禁止作为正式入口的对象。
 **Status:** Formal baseline asset (`BASE-01` public-surface truth source)
-**Updated:** 2026-03-17 (Phase 27 hotspot slimming / protocol-service convergence aligned)
+**Updated:** 2026-03-18 (Phase 37 sustainment / topology convergence aligned)
 
 ## Formal Role
 
@@ -41,6 +41,24 @@
 - `runtime_types.LiproCoordinator` 现显式暴露 bridge 真正需要的 `protocol` 与 `telemetry_service`；`Coordinator.client` 不再被视为 control-plane formal surface。
 - `custom_components/lipro/control/telemetry_surface.py` 现在只通过 `runtime_access.get_entry_runtime_coordinator()` + `Coordinator.protocol` 构建 protocol telemetry source，不再合法化 legacy `client` seam。
 - 本 phase 只关闭 source-binding honesty seam；`RuntimeTelemetryExporter` schema / sink payload 保持稳定，未引入第二条 telemetry root。
+
+## Phase 35 Protocol Hotspot Final Slimming Notes
+
+- `LiproRestFacade` 仍是唯一 canonical REST child façade，但 request pipeline 与 endpoint forwarding 复杂度已正式下沉到 `client_request_gateway.py` 与 `client_endpoint_surface.py`；它们只是 localized collaborators，不是新 public roots。
+- `LiproProtocolFacade` 继续是唯一 protocol-plane root；`rest_port.py` 只是 typed REST child-façade port，`mqtt_facade.py` 只是 MQTT child façade home，二者都不得被上层当作 package-level alternative root。
+- 本 phase 只切薄 formal root / child façade body，不新增 package export、不回流 `__getattr__` 式隐式扩面，也不改变外部 formal import story。
+
+## Phase 36 Runtime Root / Polling Surface Notes
+
+- `Coordinator` 仍是唯一 runtime orchestration root；`CoordinatorPollingService` 只是 runtime/service seam 的 helper home，用于承接 polling / snapshot / outlet power orchestration，不能被 control/entity/platform 直接当作新 public surface 消费。
+- runtime public surface 仍以 `Coordinator`、`CoordinatorProtocolService`、`CoordinatorMqttService`、`CoordinatorStateService` 与正式 service homes 为准；typed exception arbitration 只是 root/service behavior hardening，不构成第二条 runtime story。
+- `command_service.py`、`mqtt_lifecycle.py`、`device_runtime.py`、`mqtt_runtime.py` 与 `snapshot.py` 的 typed failure 语义属于 runtime internal contracts；外部公开面没有新增 broad-catch escape hatch。
+
+## Phase 37 Test Topology / Derived-Truth Notes
+
+- `tests/core/test_init_service_handlers*.py`、`tests/core/test_init_runtime*.py` 与 `tests/meta/test_governance_phase_history*.py` 属于 assurance topology topicization，不是 production public surface 的扩张。
+- 聚合测试文件现在只保留 shared helper / topic root 身份；`test_init_service_handlers.py`、`test_init_runtime_behavior.py` 与 `test_governance_phase_history.py` 不再承担所有子主题。
+- `.planning/codebase/*` 继续只是 derived collaboration maps；Phase 37 关闭的是 topology drift，而不是抬升派生文档为 authority。
 
 ## Phase 27 Hotspot Slimming & Residual-Honesty Notes
 

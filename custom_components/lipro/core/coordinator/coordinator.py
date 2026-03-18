@@ -24,15 +24,14 @@ from ..protocol import LiproProtocolFacade
 from .mqtt.setup import build_mqtt_subscription_device_ids
 from .mqtt_lifecycle import async_setup_mqtt as setup_mqtt_lifecycle
 from .orchestrator import RuntimeOrchestrator
-from .outlet_power import apply_outlet_power_info, should_reraise_outlet_power_error
 from .runtime.device.snapshot import RuntimeSnapshotRefreshRejectedError
-from .runtime.outlet_power_runtime import query_outlet_power
 from .runtime_context import RuntimeContext
 from .services import (
     CoordinatorAuthService,
     CoordinatorCommandService,
     CoordinatorDeviceRefreshService,
     CoordinatorMqttService,
+    CoordinatorPollingService,
     CoordinatorProtocolService,
     CoordinatorSignalService,
     CoordinatorStateService,
@@ -46,7 +45,7 @@ if TYPE_CHECKING:
     from ..auth import LiproAuthManager
     from ..device import LiproDevice
     from .entity_protocol import LiproEntityProtocol
-    from .types import PropertyDict, StatusQueryMetrics
+    from .types import PropertyDict
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -196,16 +195,16 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
         """Apply one coordinator polling interval update requested by MQTT runtime."""
         self.update_interval = interval
 
+    def _replace_devices(self, devices: dict[str, LiproDevice]) -> None:
+        """Replace the canonical device registry in place to preserve shared references."""
+        self._state.devices.clear()
+        self._state.devices.update(devices)
+
     def _init_service_layer(self) -> None:
         """Initialize formal runtime service surfaces."""
         self.command_service = CoordinatorCommandService(
             command_runtime=self._runtimes.command,
             tuning_runtime=self._runtimes.tuning,
-        )
-        self.device_refresh_service = CoordinatorDeviceRefreshService(
-            device_runtime=self._runtimes.device,
-            state_runtime=self._runtimes.state,
-            refresh_callback=self.async_refresh_devices,
         )
         self.mqtt_service = CoordinatorMqttService(
             devices_getter=lambda: self._state.devices,
@@ -213,6 +212,24 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
             setup_callback=self.async_setup_mqtt,
         )
         self.state_service = CoordinatorStateService(state_runtime=self._runtimes.state)
+        self._polling_service = CoordinatorPollingService(
+            device_runtime=self._runtimes.device,
+            status_runtime=self._runtimes.status,
+            tuning_runtime=self._runtimes.tuning,
+            protocol_service=self.protocol_service,
+            mqtt_service=self.mqtt_service,
+            devices_getter=lambda: self._state.devices,
+            replace_devices=self._replace_devices,
+            publish_updated_data=lambda devices: self.async_set_updated_data(devices),
+            get_device_by_id=self.get_device_by_id,
+            has_mqtt_transport_getter=lambda: self._runtimes.mqtt.has_transport,
+            logger=_LOGGER,
+        )
+        self.device_refresh_service = CoordinatorDeviceRefreshService(
+            device_runtime=self._runtimes.device,
+            state_runtime=self._runtimes.state,
+            refresh_callback=self.async_refresh_devices,
+        )
         self.telemetry_service = CoordinatorTelemetryService(
             mqtt_service=self.mqtt_service,
             command_runtime=self._runtimes.command,
@@ -340,52 +357,15 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
 
     async def async_refresh_devices(self) -> dict[str, LiproDevice]:
         """Force a full device snapshot refresh and publish the latest state."""
-        await self._async_refresh_device_snapshot(force=True, mqtt_timeout_seconds=5)
-        refreshed_devices = dict(self._state.devices)
-        self.async_set_updated_data(refreshed_devices)
-        return refreshed_devices
-
+        return await self._polling_service.async_refresh_devices()
 
     def _get_outlet_ids_for_power_polling(self) -> list[str]:
         """Resolve the current outlet IDs participating in power polling."""
-        snapshot = self._runtimes.device.get_last_snapshot()
-        if snapshot is not None and snapshot.outlet_ids:
-            return list(snapshot.outlet_ids)
-        return [
-            device.iot_device_id
-            for device in self._state.devices.values()
-            if device.capabilities.is_outlet and device.iot_device_id
-        ]
+        return self._polling_service.get_outlet_ids_for_power_polling()
 
     async def _async_run_outlet_power_polling(self) -> None:
         """Refresh outlet power info on the coordinator's scheduled main path."""
-        status_runtime = self._runtimes.status
-        if not status_runtime.should_query_power():
-            return
-
-        outlet_ids = self._get_outlet_ids_for_power_polling()
-        if not outlet_ids:
-            return
-
-        outlet_ids_to_query = status_runtime.get_outlet_power_query_slice(outlet_ids)
-        if not outlet_ids_to_query:
-            return
-
-        await query_outlet_power(
-            outlet_ids_to_query=outlet_ids_to_query,
-            round_robin_index=0,
-            resolve_cycle_size=lambda total_devices: total_devices,
-            fetch_outlet_power_info=self.protocol_service.async_fetch_outlet_power_info,
-            get_device_by_id=lambda device_id: (
-                self.get_device_by_id(device_id) if isinstance(device_id, str) else None
-            ),
-            apply_outlet_power_info=apply_outlet_power_info,
-            should_reraise_outlet_power_error=should_reraise_outlet_power_error,
-            logger=_LOGGER,
-            concurrency=max(1, min(3, len(outlet_ids_to_query))),
-        )
-        status_runtime.mark_power_query_complete()
-        status_runtime.advance_outlet_power_cycle(outlet_ids)
+        await self._polling_service.async_run_outlet_power_polling()
 
     async def async_setup_mqtt(self) -> bool:
         """Set up MQTT client for real-time updates.
@@ -451,69 +431,14 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
         mqtt_timeout_seconds: float | None = None,
     ) -> None:
         """Refresh device snapshot, synchronize coordinator state, and sync MQTT."""
-        snapshot = await self._runtimes.device.refresh_devices(force=force)
-        self._state.devices.clear()
-        self._state.devices.update(snapshot.devices)
-
-        if not self._runtimes.mqtt.has_transport:
-            return
-
-        if mqtt_timeout_seconds is None:
-            await self.mqtt_service.async_sync_subscriptions()
-            return
-
-        async with asyncio.timeout(mqtt_timeout_seconds):
-            await self.mqtt_service.async_sync_subscriptions()
-
-    async def _async_run_status_polling(self) -> None:
-        """Run adaptive REST status polling via StatusRuntime.
-
-        This supplements MQTT push with periodic REST polling to:
-        - Catch state drift when MQTT messages are missed
-        - Query devices that lack MQTT support
-        - Monitor outlet power consumption on a scheduled cycle
-
-        The StatusRuntime handles candidate filtering, batching, and parallel
-        execution. TuningRuntime receives batch metrics for adaptive tuning.
-        """
-        status_runtime = self._runtimes.status
-        mqtt_connected = self._is_mqtt_connected()
-        device_ids = list(self._state.devices.keys())
-
-        # Filter to devices needing REST query (respects MQTT freshness)
-        candidates = status_runtime.filter_query_candidates(
-            self._state.devices,
-            device_ids,
-            mqtt_connected=mqtt_connected,
+        await self._polling_service.async_refresh_device_snapshot(
+            force=force,
+            mqtt_timeout_seconds=mqtt_timeout_seconds,
         )
 
-        results: list[StatusQueryMetrics] = []
-        if candidates:
-            # Split into optimally-sized batches
-            batches = status_runtime.compute_query_batches(candidates)
-
-            if batches:
-                # Execute queries in parallel
-                results = await status_runtime.execute_parallel_queries(batches)
-
-        # Feed metrics to TuningRuntime for adaptive batch sizing
-        tuning = self._runtimes.tuning
-        for metrics in results:
-            device_count = metrics.get("device_count", 0)
-            duration = metrics.get("duration", 0.0)
-            if device_count > 0 and duration > 0:
-                tuning.record_batch_metric(
-                    batch_size=device_count,
-                    duration=duration,
-                    device_count=device_count,
-                )
-
-        # Apply adaptive batch size from TuningRuntime
-        new_batch_size = tuning.compute_adaptive_batch_size()
-        if new_batch_size is not None:
-            status_runtime.update_batch_size(new_batch_size)
-
-        await self._async_run_outlet_power_polling()
+    async def _async_run_status_polling(self) -> None:
+        """Run adaptive REST status polling via StatusRuntime."""
+        await self._polling_service.async_run_status_polling()
 
     async def _async_update_data(self) -> dict[str, LiproDevice]:
         """Fetch data from API.

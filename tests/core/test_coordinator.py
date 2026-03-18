@@ -74,7 +74,9 @@ class TestCoordinatorServices:
         self, coordinator, mock_lipro_api_client
     ):
         """Test device refresh service provides device access."""
-        mock_lipro_api_client.get_devices.return_value = make_device_page([make_api_device(serial="03ab5ccd7c000001")])
+        mock_lipro_api_client.get_devices.return_value = make_device_page(
+            [make_api_device(serial="03ab5ccd7c000001")]
+        )
 
         with patch(
             "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager"
@@ -91,7 +93,9 @@ class TestCoordinatorServices:
         self, coordinator, mock_lipro_api_client
     ):
         """Test device lookup by ID through service layer."""
-        mock_lipro_api_client.get_devices.return_value = make_device_page([make_api_device(serial="03ab5ccd7c000001")])
+        mock_lipro_api_client.get_devices.return_value = make_device_page(
+            [make_api_device(serial="03ab5ccd7c000001")]
+        )
 
         with patch(
             "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager"
@@ -108,7 +112,9 @@ class TestCoordinatorServices:
         self, coordinator, mock_lipro_api_client
     ):
         """Test state service provides device access."""
-        mock_lipro_api_client.get_devices.return_value = make_device_page([make_api_device(serial="03ab5ccd7c000001")])
+        mock_lipro_api_client.get_devices.return_value = make_device_page(
+            [make_api_device(serial="03ab5ccd7c000001")]
+        )
 
         with patch(
             "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager"
@@ -147,6 +153,7 @@ class TestCoordinatorRuntimeComponents:
         assert hasattr(coordinator, "mqtt_service")
         assert hasattr(coordinator, "telemetry_service")
         assert hasattr(coordinator, "signal_service")
+        assert hasattr(coordinator, "_polling_service")
 
     def test_group_reconciliation_callback_records_signal_and_requests_refresh(
         self, coordinator
@@ -259,7 +266,9 @@ class TestCoordinatorRuntimeComponents:
     ):
         """Test public coordinator entrypoints expose the current device state."""
         serial = "03ab5ccd7c000001"
-        mock_lipro_api_client.get_devices.return_value = make_device_page([make_api_device(serial=serial)])
+        mock_lipro_api_client.get_devices.return_value = make_device_page(
+            [make_api_device(serial=serial)]
+        )
 
         with patch(
             "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager"
@@ -271,7 +280,9 @@ class TestCoordinatorRuntimeComponents:
 
         assert device is not None
         assert coordinator.get_device_by_id(serial) is device
-        assert coordinator.get_device_lock(serial) is coordinator.get_device_lock(serial)
+        assert coordinator.get_device_lock(serial) is coordinator.get_device_lock(
+            serial
+        )
 
     @pytest.mark.asyncio
     async def test_apply_properties_update_skips_stale_pending_values(
@@ -279,9 +290,13 @@ class TestCoordinatorRuntimeComponents:
     ):
         """Stale MQTT payloads should be filtered before hitting the state runtime."""
         device = MagicMock(serial="dev1")
-        coordinator._runtimes.command.filter_pending_state_properties = MagicMock(return_value={})
+        coordinator._runtimes.command.filter_pending_state_properties = MagicMock(
+            return_value={}
+        )
         coordinator._runtimes.command.observe_state_confirmation = MagicMock()
-        coordinator._runtimes.state.apply_properties_update = AsyncMock(return_value=True)
+        coordinator._runtimes.state.apply_properties_update = AsyncMock(
+            return_value=True
+        )
 
         changed = await coordinator._apply_properties_update(
             device,
@@ -306,8 +321,12 @@ class TestCoordinatorRuntimeComponents:
         coordinator._runtimes.command.filter_pending_state_properties = MagicMock(
             return_value={"powerState": "1"}
         )
-        coordinator._runtimes.command.observe_state_confirmation = MagicMock(return_value=0.5)
-        coordinator._runtimes.state.apply_properties_update = AsyncMock(return_value=True)
+        coordinator._runtimes.command.observe_state_confirmation = MagicMock(
+            return_value=0.5
+        )
+        coordinator._runtimes.state.apply_properties_update = AsyncMock(
+            return_value=True
+        )
 
         changed = await coordinator._apply_properties_update(
             device,
@@ -344,7 +363,9 @@ class TestCoordinatorRuntimeComponents:
         ) as sync_subscriptions:
             result = await coordinator.async_refresh_devices()
 
-        coordinator._runtimes.device.refresh_devices.assert_awaited_once_with(force=True)
+        coordinator._runtimes.device.refresh_devices.assert_awaited_once_with(
+            force=True
+        )
         sync_subscriptions.assert_awaited_once()
         coordinator.async_set_updated_data.assert_called_once_with(coordinator.devices)
         assert result == {"dev1": device}
@@ -373,6 +394,59 @@ class TestCoordinatorRuntimeComponents:
         coordinator.async_set_updated_data.assert_not_called()
         assert coordinator.devices == {"existing": existing_device}
 
+    @pytest.mark.asyncio
+    async def test_polling_wrappers_delegate_to_internal_polling_service(
+        self, coordinator
+    ) -> None:
+        """Polling entrypoints should stay as thin coordinator wrappers."""
+        device = MagicMock()
+
+        with (
+            patch.object(
+                type(coordinator._polling_service),
+                "async_refresh_devices",
+                new_callable=AsyncMock,
+            ) as refresh_devices,
+            patch.object(
+                type(coordinator._polling_service),
+                "get_outlet_ids_for_power_polling",
+                return_value=["outlet-1"],
+            ) as outlet_ids,
+            patch.object(
+                type(coordinator._polling_service),
+                "async_run_outlet_power_polling",
+                new_callable=AsyncMock,
+            ) as outlet_power_polling,
+            patch.object(
+                type(coordinator._polling_service),
+                "async_refresh_device_snapshot",
+                new_callable=AsyncMock,
+            ) as refresh_snapshot,
+            patch.object(
+                type(coordinator._polling_service),
+                "async_run_status_polling",
+                new_callable=AsyncMock,
+            ) as status_polling,
+        ):
+            refresh_devices.return_value = {"dev1": device}
+
+            assert await coordinator.async_refresh_devices() == {"dev1": device}
+            assert coordinator._get_outlet_ids_for_power_polling() == ["outlet-1"]
+            await coordinator._async_run_outlet_power_polling()
+            await coordinator._async_refresh_device_snapshot(
+                force=True,
+                mqtt_timeout_seconds=5,
+            )
+            await coordinator._async_run_status_polling()
+
+        refresh_devices.assert_awaited_once_with()
+        outlet_ids.assert_called_once_with()
+        outlet_power_polling.assert_awaited_once_with()
+        refresh_snapshot.assert_awaited_once_with(
+            force=True,
+            mqtt_timeout_seconds=5,
+        )
+        status_polling.assert_awaited_once_with()
 
     @pytest.mark.asyncio
     async def test_status_runtime_updates_device_through_coordinator_callbacks(
@@ -380,7 +454,9 @@ class TestCoordinatorRuntimeComponents:
     ):
         """Test status polling updates coordinator-managed device state."""
         serial = "03ab5ccd7c000001"
-        mock_lipro_api_client.get_devices.return_value = make_device_page([make_api_device(serial=serial)])
+        mock_lipro_api_client.get_devices.return_value = make_device_page(
+            [make_api_device(serial=serial)]
+        )
         coordinator.protocol.query_device_status = MagicMock(return_value=None)
 
         with patch(
@@ -398,7 +474,9 @@ class TestCoordinatorRuntimeComponents:
             ]
         )
 
-        result = await coordinator._runtimes.status.execute_status_query([serial, "skip"])
+        result = await coordinator._runtimes.status.execute_status_query(
+            [serial, "skip"]
+        )
 
         assert result["updated_count"] == 1
         assert result["error"] is None
@@ -410,7 +488,9 @@ class TestCoordinatorRuntimeComponents:
     ) -> None:
         """REST status polling should still pass through coordinator confirmation filtering."""
         serial = "03ab5ccd7c000001"
-        mock_lipro_api_client.get_devices.return_value = make_device_page([make_api_device(serial=serial)])
+        mock_lipro_api_client.get_devices.return_value = make_device_page(
+            [make_api_device(serial=serial)]
+        )
         coordinator.protocol.query_device_status = MagicMock(return_value=None)
 
         with patch(
@@ -446,14 +526,16 @@ class TestCoordinatorRuntimeComponents:
     ) -> None:
         """Outlet power polling should run on the coordinator main status path."""
         serial = "03ab5ccd7c000006"
-        mock_lipro_api_client.get_devices.return_value = make_device_page([
+        mock_lipro_api_client.get_devices.return_value = make_device_page(
+            [
                 make_api_device(
                     serial=serial,
                     device_type=6,
                     iot_name="lipro_outlet",
                     physical_model="outlet",
                 )
-            ])
+            ]
+        )
         mock_lipro_api_client.fetch_outlet_power_info = AsyncMock(
             return_value={"nowPower": 12.5}
         )
@@ -466,7 +548,9 @@ class TestCoordinatorRuntimeComponents:
 
         device = coordinator.get_device(serial)
         assert device is not None
-        coordinator._runtimes.status.filter_query_candidates = MagicMock(return_value=[])
+        coordinator._runtimes.status.filter_query_candidates = MagicMock(
+            return_value=[]
+        )
         coordinator._runtimes.status.should_query_power = MagicMock(return_value=True)
         coordinator._runtimes.status.get_outlet_power_query_slice = MagicMock(
             return_value=[serial]
@@ -491,7 +575,9 @@ class TestCoordinatorRuntimeComponents:
     ):
         """Test public command dispatch triggers reauth on auth failures."""
         serial = "03ab5ccd7c000001"
-        mock_lipro_api_client.get_devices.return_value = make_device_page([make_api_device(serial=serial)])
+        mock_lipro_api_client.get_devices.return_value = make_device_page(
+            [make_api_device(serial=serial)]
+        )
         mock_lipro_api_client.send_command.side_effect = LiproAuthError("Auth failed")
 
         with patch(
@@ -516,7 +602,9 @@ class TestCoordinatorEntityLifecycle:
     ):
         """Test registering an entity exposes it once for later state updates."""
         serial = "03ab5ccd7c000001"
-        mock_lipro_api_client.get_devices.return_value = make_device_page([make_api_device(serial=serial)])
+        mock_lipro_api_client.get_devices.return_value = make_device_page(
+            [make_api_device(serial=serial)]
+        )
 
         with patch(
             "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager"
@@ -539,7 +627,9 @@ class TestCoordinatorEntityLifecycle:
     ):
         """Test entity registration still works when the entity reports a formatted serial."""
         serial = "03ab5ccd7c000001"
-        mock_lipro_api_client.get_devices.return_value = make_device_page([make_api_device(serial=serial)])
+        mock_lipro_api_client.get_devices.return_value = make_device_page(
+            [make_api_device(serial=serial)]
+        )
 
         with patch(
             "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager"
@@ -572,7 +662,9 @@ class TestCoordinatorEntityLifecycle:
     ):
         """Test unregistering a stale entity instance does not drop the live one."""
         serial = "03ab5ccd7c000001"
-        mock_lipro_api_client.get_devices.return_value = make_device_page([make_api_device(serial=serial)])
+        mock_lipro_api_client.get_devices.return_value = make_device_page(
+            [make_api_device(serial=serial)]
+        )
 
         with patch(
             "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager"
@@ -588,7 +680,9 @@ class TestCoordinatorEntityLifecycle:
         coordinator.register_entity(active_entity)
         coordinator.unregister_entity(stale_entity)
 
-        assert coordinator._runtimes.state.get_entities_for_device(serial) == [active_entity]
+        assert coordinator._runtimes.state.get_entities_for_device(serial) == [
+            active_entity
+        ]
 
         coordinator.unregister_entity(active_entity)
 
@@ -614,7 +708,9 @@ class TestCoordinatorUpdateFlow:
         self, coordinator, mock_lipro_api_client, mock_auth_manager
     ):
         """Test update flow calls authentication check."""
-        mock_lipro_api_client.get_devices.return_value = make_device_page([make_api_device()])
+        mock_lipro_api_client.get_devices.return_value = make_device_page(
+            [make_api_device()]
+        )
 
         with patch(
             "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager"
@@ -641,8 +737,8 @@ class TestCoordinatorUpdateFlow:
         self, coordinator, mock_auth_manager
     ):
         """Test connection error raises UpdateFailed."""
-        mock_auth_manager.async_ensure_authenticated.side_effect = (
-            LiproConnectionError("Connection failed")
+        mock_auth_manager.async_ensure_authenticated.side_effect = LiproConnectionError(
+            "Connection failed"
         )
 
         with pytest.raises(UpdateFailed):
@@ -674,7 +770,9 @@ class TestCoordinatorUpdateFlow:
     ):
         """Structured snapshot rejection should use the runtime failure path."""
         mock_auth_manager.async_ensure_authenticated.return_value = None
-        coordinator._runtimes.device.should_refresh_device_list = MagicMock(return_value=True)
+        coordinator._runtimes.device.should_refresh_device_list = MagicMock(
+            return_value=True
+        )
         coordinator._runtimes.device.refresh_devices = AsyncMock(
             side_effect=RuntimeSnapshotRefreshRejectedError(
                 stage="fetch_page",

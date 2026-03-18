@@ -422,20 +422,20 @@
 
 ### Protocol Hotspots
 
-- [ ] **HOT-09**: `LiproRestFacade` 与 `LiproProtocolFacade` 必须继续沿现有 seams 切薄，root 层 forwarding glue 不得长期合法化为协议主链的一部分。
-- [ ] **RES-07**: protocol/control touched hotspots 的 compat / forwarding residue、反射/私有实现细节依赖（如 `__dict__` / `_waiters` 类模式）与命名残留必须继续删除、下沉或显式登记 delete gate；public surface 不能借重构反向扩张。
+- [x] **HOT-09**: `LiproRestFacade` 与 `LiproProtocolFacade` 必须继续沿现有 seams 切薄，root 层 forwarding glue 不得长期合法化为协议主链的一部分。
+- [x] **RES-07**: protocol/control touched hotspots 的 compat / forwarding residue、反射/私有实现细节依赖（如 `__dict__` / `_waiters` 类模式）与命名残留必须继续删除、下沉或显式登记 delete gate；public surface 不能借重构反向扩张。
 
 ### Runtime Root & Exception Policy
 
-- [ ] **HOT-10**: `Coordinator` 运行根必须继续瘦身，并把 runtime/service 协作者 home 固化到更小、更清晰的边界。
-- [ ] **ERR-08**: 生产宽异常必须继续 burn-down 到可守护阈值；核心热点只能保留 named arbitration、documented degraded semantics 或 fail-closed path。
-- [ ] **TYP-09**: runtime/service/platform touched-zone 的 typed budget 必须继续收紧，并以 no-growth guards 固化到 daily governance gates。
+- [x] **HOT-10**: `Coordinator` 运行根必须继续瘦身，并把 runtime/service 协作者 home 固化到更小、更清晰的边界。
+- [x] **ERR-08**: 生产宽异常必须继续 burn-down 到可守护阈值；核心热点只能保留 named arbitration、documented degraded semantics 或 fail-closed path。
+- [x] **TYP-09**: runtime/service/platform touched-zone 的 typed budget 必须继续收紧，并以 no-growth guards 固化到 daily governance gates。
 
 ### Test Topology & Derived Truth
 
-- [ ] **TST-06**: 剩余巨石测试必须继续 topicize 成稳定、可局部执行的专题面，避免单文件持续吸附多条故事线。
-- [ ] **GOV-30**: `.planning/codebase/*`、测试策略文档、verification / authority truth 与 public docs entry topology 必须和真实测试命令、目录结构、support/security/docs routing 及守卫语义保持一致，并有 drift guard 约束。
-- [ ] **QLT-09**: benchmark / test-topology / closeout evidence / governance guards 必须从“可执行”提升到“可解释、可对齐、可审计”的质量故事：形成预算或基线语义、降低 prose-coupled 高噪音断言，并避免派生真相漂移于实际门禁之外。
+- [x] **TST-06**: 剩余巨石测试必须继续 topicize 成稳定、可局部执行的专题面，避免单文件持续吸附多条故事线。
+- [x] **GOV-30**: `.planning/codebase/*`、测试策略文档、verification / authority truth 与 public docs entry topology 必须和真实测试命令、目录结构、support/security/docs routing 及守卫语义保持一致，并有 drift guard 约束。
+- [x] **QLT-09**: benchmark / test-topology / closeout evidence / governance guards 必须从“可执行”提升到“可解释、可对齐、可审计”的质量故事：形成预算或基线语义、降低 prose-coupled 高噪音断言，并避免派生真相漂移于实际门禁之外。
 
 ## Traceability for v1.4 seed route
 
@@ -443,18 +443,18 @@
 |-------------|---------------|--------|
 | GOV-29 | Phase 34 | Complete |
 | QLT-08 | Phase 34 | Complete |
-| HOT-09 | Phase 35 | Pending |
-| RES-07 | Phase 35 | Pending |
-| HOT-10 | Phase 36 | Pending |
-| ERR-08 | Phase 36 | Pending |
-| TYP-09 | Phase 36 | Pending |
-| TST-06 | Phase 37 | Pending |
-| GOV-30 | Phase 37 | Pending |
-| QLT-09 | Phase 37 | Pending |
+| HOT-09 | Phase 35 | Complete |
+| RES-07 | Phase 35 | Complete |
+| HOT-10 | Phase 36 | Complete |
+| ERR-08 | Phase 36 | Complete |
+| TYP-09 | Phase 36 | Complete |
+| TST-06 | Phase 37 | Complete |
+| GOV-30 | Phase 37 | Complete |
+| QLT-09 | Phase 37 | Complete |
 
 **Seed Coverage:**
 - v1.4 seeded requirements: 10 total
 - Current mapped: 10
-- Current complete: 0
-- Current pending: 10
+- Current complete: 10
+- Current pending: 0
 - Current unmapped: 0 ✓

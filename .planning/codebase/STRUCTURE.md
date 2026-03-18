@@ -1,6 +1,6 @@
 # STRUCTURE
 > Snapshot: `2026-03-18`
-> Freshness: Phase 32 对齐刷新；仅按 `AGENTS.md`、`.planning/{ROADMAP,REQUIREMENTS,STATE}.md`、`.planning/baseline/*.md`、`.planning/reviews/*.md`、`docs/developer_architecture.md` 与当前 CI/release/public-doc truth 截面成立。上述真源变更后，本图谱必须同步刷新或标记过时。
+> Freshness: Phase 37 对齐刷新；仅按 `AGENTS.md`、`.planning/{ROADMAP,REQUIREMENTS,STATE}.md`、`.planning/baseline/*.md`、`.planning/reviews/*.md`、`docs/developer_architecture.md` 与当前 CI/release/public-doc truth 截面成立。上述真源变更后，本图谱必须同步刷新或标记过时。
 > Repository: `/var/tmp/coolvibe/worktrees/edf26778937a-/lipro-hass`
 > Focus: `arch`
 > Derived collaboration map: 本文件是受约束的协作图谱 / 派生视图，仅用于导航、协作与局部审阅。
@@ -26,6 +26,12 @@
 2. `custom_components/lipro/services/` 已从历史 wiring carrier 收敛为 control-plane support cluster。
 3. `custom_components/lipro/core/api/` 与 `custom_components/lipro/core/mqtt/` 的目录归属已经被压回 protocol slice，但命名与 helper spine 仍保留 residual 味道。
 4. `tests/` 的组织方式与五平面基本镜像，对维护性是加分项；`tests/meta/` 则把目录边界写成可执行守卫。
+
+## 2.1 Phase 35-37 结构增量
+- `custom_components/lipro/core/api/client.py` 不再同时吸附 request pipeline 与 endpoint forwarding 细节；这些复杂度已下沉到 `client_request_gateway.py` 与 `client_endpoint_surface.py`。
+- `custom_components/lipro/core/protocol/facade.py` 现在通过 `rest_port.py` 与 `mqtt_facade.py` 组合 child façade，而不是把 `_rest_port` / MQTT glue 全堆在 root body。
+- `custom_components/lipro/core/coordinator/services/polling_service.py` 已成为 runtime/service seam 的正式 helper home；`Coordinator` 中与 polling 相关的方法现为 thin wrapper。
+- `tests/core/test_init_service_handlers*.py`、`tests/core/test_init_runtime*.py` 与 `tests/meta/test_governance_phase_history*.py` 形成稳定 topic suites；聚合根文件只保留共享 helper，不再承载跨故事线巨石测试。
 
 ## 3. Top-Level Layout
 | 路径 | 归属 | 结构作用 | 维护性判断 |

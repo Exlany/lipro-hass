@@ -342,7 +342,7 @@ class TestCoordinatorErrorHandling:
             coordinator.device_refresh_service.request_force_refresh()
             mock_lipro_api_client.get_devices.side_effect = [
                 make_device_page([make_api_device(serial=serial)], total=2),
-                Exception("Network error"),
+                RuntimeError("Network error"),
             ]
 
             with pytest.raises(UpdateFailed, match="page=2"):

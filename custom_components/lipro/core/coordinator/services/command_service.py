@@ -49,8 +49,12 @@ class CoordinatorCommandService:
                     device_serial=device.serial,
                     command=command,
                 )
-            except Exception:  # noqa: BLE001
-                _LOGGER.debug("Failed to record user action for %s", device.serial)
+            except (RuntimeError, TypeError, ValueError) as err:
+                _LOGGER.debug(
+                    "Failed to record user action for %s (%s)",
+                    device.serial,
+                    type(err).__name__,
+                )
 
         return success
 

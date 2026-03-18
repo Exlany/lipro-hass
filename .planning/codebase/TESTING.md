@@ -1,6 +1,6 @@
 # TESTING
 > Snapshot: `2026-03-18`
-> Freshness: Phase 32 对齐刷新；仅按 `AGENTS.md`、`.planning/{ROADMAP,REQUIREMENTS,STATE}.md`、`.planning/baseline/*.md`、`.planning/reviews/*.md`、`docs/developer_architecture.md` 与当前 CI/release/public-doc truth 截面成立。上述真源变更后，本图谱必须同步刷新或标记过时。
+> Freshness: Phase 37 对齐刷新；仅按 `AGENTS.md`、`.planning/{ROADMAP,REQUIREMENTS,STATE}.md`、`.planning/baseline/*.md`、`.planning/reviews/*.md`、`docs/developer_architecture.md` 与当前 CI/release/public-doc truth 截面成立。上述真源变更后，本图谱必须同步刷新或标记过时。
 > Scope: `tests/**/*.py`、CI/pre-commit、fixtures/readmes、governance baselines 中的测试策略与质量门禁
 > Derived collaboration map: 本文件是受约束的协作图谱 / 派生视图，仅用于导航、协作与局部审阅。
 > Authority: 若与 `docs/NORTH_STAR_TARGET_ARCHITECTURE.md`、`.planning/{ROADMAP,REQUIREMENTS,STATE}.md`、`.planning/baseline/*.md`、`.planning/reviews/*.md` 或 `docs/developer_architecture.md` 冲突，以后者为准；本图谱不得反向充当当前治理真源，且必须同步回写、标记为过时，或注明历史观察。
@@ -29,7 +29,7 @@
 
 - 测试栈完整：`pytest`、`pytest-asyncio`、`pytest-cov`、`pytest-homeassistant-custom-component`、`pytest-benchmark`、`syrupy`、`mypy`、`xdist` 全部进入 dev 依赖。证据：`pyproject.toml:33`。
 - CI 把质量拆成 `lint`、`governance`、`security`、`test`、`benchmark`、`validate` 六道门，release 先复用 CI，再做版本校验与打包。证据：`.github/workflows/ci.yml:22`, `.github/workflows/release.yml:25`, `tests/meta/test_governance_guards.py:185`。
-- 当前仓库共有 `167` 个 `test_*.py` 文件；其中 `19` 个 meta guard、`5` 个 integration、`4` 个 benchmark、`4` 个 snapshot 文件；另有 `5` 个 fixture family readme 维护 authority/用途说明。
+- 当前仓库共有 `181` 个 `test_*.py` 文件；其中 `21` 个 meta guard、`5` 个 integration、`4` 个 benchmark、`4` 个 snapshot 文件；另有 `5` 个 fixture family readme 维护 authority/用途说明。
 - Coverage gate 是硬门槛：主测试 job 以 `95%` 为下限，snapshot coverage 已包含在主 `tests/` lane 中，之后再跑 coverage diff 与 refactor smoke；benchmark 则作为 advisory-with-budget lane 产出 `.benchmarks/benchmark.json` artifact。证据：`.github/workflows/ci.yml:177`, `CONTRIBUTING.md:94`。
 
 ## 3. 测试分层图谱
@@ -43,7 +43,7 @@
 | Integration | `tests/integration/**` | replay harness、MQTT coordinator、AI evidence pack 等 assurance mainline | `tests/integration/test_protocol_replay_harness.py:46`, `tests/integration/test_ai_debug_evidence_pack.py:21`, `tests/integration/test_mqtt_coordinator_integration.py:143` |
 | Snapshot | `tests/snapshots/**` | 稳定输出面快照：API contract、device facade、coordinator public surface | `tests/snapshots/test_api_snapshots.py:42`, `tests/snapshots/test_coordinator_public_snapshots.py:13`, `tests/snapshots/test_device_snapshots.py:34` |
 | Benchmark | `tests/benchmarks/**` | 性能 smoke + correctness 守护，覆盖 command/device refresh/MQTT/coordinator hotspots | `tests/benchmarks/test_command_benchmark.py:8`, `tests/benchmarks/test_device_refresh_benchmark.py:8`, `tests/benchmarks/test_mqtt_benchmark.py:10`, `tests/benchmarks/test_coordinator_performance.py:55` |
-| Meta guards | `tests/meta/**` | 架构依赖、public surface、governance inventory/release/phase-history、版本同步、外部边界 authority，与 milestone closeout/archive/handoff 守卫 | `tests/meta/test_dependency_guards.py:19`, `tests/meta/test_public_surface_guards.py:19`, `tests/meta/test_governance_guards.py:1`, `tests/meta/test_governance_release_contract.py:1`, `tests/meta/test_governance_phase_history.py:1` |
+| Meta guards | `tests/meta/**` | 架构依赖、public surface、governance inventory/release/phase-history、版本同步、外部边界 authority，与 milestone closeout/archive/handoff 守卫 | `tests/meta/test_dependency_guards.py:19`, `tests/meta/test_public_surface_guards.py:19`, `tests/meta/test_governance_guards.py:1`, `tests/meta/test_governance_release_contract.py:1`, `tests/meta/test_governance_phase_history.py:1`, `tests/meta/test_governance_phase_history_runtime.py:1`, `tests/meta/test_governance_phase_history_topology.py:1` |
 | Harness / fixtures | `tests/harness/**`, `tests/fixtures/**` | replay/evidence pack 基础设施与正式测试真源 | `tests/fixtures/api_contracts/README.md:5`, `tests/fixtures/protocol_replay/README.md:7`, `tests/fixtures/evidence_pack/README.md:3` |
 
 ## 4. Fixture 与测试数据策略
@@ -63,7 +63,7 @@
 
 - dependency guards 从 baseline 规则表派生，并用 AST/import 扫描阻止 entity/control 绕过正式边界。证据：`tests/meta/test_dependency_guards.py:19`, `.planning/baseline/ARCHITECTURE_POLICY.md:31`。
 - public-surface guards 把 allowed/forbidden exports 固化为断言，防止 compat shell、backdoor property、legacy naming 回流。证据：`tests/meta/test_public_surface_guards.py:19`, `.planning/baseline/ARCHITECTURE_POLICY.md:48`。
-- governance guards 现已 topicize：`test_governance_guards.py` 承接 inventory / policy truth，`test_governance_release_contract.py` 承接 CI/release/productization 合同，`test_governance_phase_history.py` 承接 phase-history truth。证据：`tests/meta/test_governance_guards.py:1`, `tests/meta/test_governance_release_contract.py:1`, `tests/meta/test_governance_phase_history.py:1`。
+- governance guards 现已进一步 topicize：`test_governance_guards.py` 承接 inventory / policy truth，`test_governance_release_contract.py` 承接 CI/release/productization 合同，`test_governance_phase_history.py` / `test_governance_phase_history_runtime.py` / `test_governance_phase_history_topology.py` 共同承接 phase-history / runtime-closeout / topology-closeout truth。证据：`tests/meta/test_governance_guards.py:1`, `tests/meta/test_governance_release_contract.py:1`, `tests/meta/test_governance_phase_history.py:1`, `tests/meta/test_governance_phase_history_runtime.py:1`, `tests/meta/test_governance_phase_history_topology.py:1`。
 - pre-push 不是跑全量，而是挑“最容易把治理打穿”的诊断三测 + governance 三测。证据：`.pre-commit-config.yaml:31`, `.pre-commit-config.yaml:43`, `CONTRIBUTING.md:80`。
 - CI governance job 先跑 policy/file-matrix checker，再跑 meta guards，形成 fail-fast。证据：`.github/workflows/ci.yml:61`, `.github/workflows/ci.yml:82`, `.planning/baseline/ARCHITECTURE_POLICY.md:38`。
 
@@ -105,7 +105,7 @@
 
 - Protocol / API / boundary 变更：先跑 `tests/core/api/**` + `tests/snapshots/test_api_snapshots.py`。证据：`AGENTS.md:233`, `docs/developer_architecture.md:513`。
 - Unified protocol root / MQTT 变更：加跑 `tests/core/mqtt/**` + `tests/integration/test_mqtt_coordinator_integration.py`。证据：`AGENTS.md:236`, `docs/developer_architecture.md:515`。
-- Control-plane / flow / services 变更：至少覆盖 `tests/core/test_control_plane.py`、`tests/core/test_init*.py`、`tests/core/test_init_service_handlers.py`、`tests/core/test_diagnostics.py`、`tests/core/test_system_health.py`、`tests/services/**`、`tests/flows/**`。证据：`AGENTS.md:243`, `CONTRIBUTING.md:85`。
+- Control-plane / flow / services 变更：至少覆盖 `tests/core/test_control_plane.py`、`tests/core/test_init*.py`、`tests/core/test_init_runtime_bootstrap.py`、`tests/core/test_init_service_handlers*.py`、`tests/core/test_diagnostics.py`、`tests/core/test_system_health.py`、`tests/services/**`、`tests/flows/**`；若改动 governance phase-history closeout，还应补跑 `tests/meta/test_governance_phase_history*.py`。证据：`AGENTS.md:243`, `CONTRIBUTING.md:85`。
 - 架构/治理/public-surface 变更：先跑 meta guards，再跑全量。证据：`AGENTS.md:246`, `CONTRIBUTING.md:95`, `.github/workflows/ci.yml:88`。
 - Milestone closeout / archive / handoff 真相变更：至少覆盖 `tests/meta/test_governance*.py`（其中包含 `tests/meta/test_governance_closeout_guards.py`）与 `tests/meta/test_toolchain_truth.py`，并同步 `FILE_MATRIX.md` / `TESTING.md`。
 - 性能相关改动：只在性能是需求的一部分时追加 benchmark；当前 benchmark 不是默认 PR gate。证据：`CONTRIBUTING.md:98`, `.github/workflows/ci.yml:206`。

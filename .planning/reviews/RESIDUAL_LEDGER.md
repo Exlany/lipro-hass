@@ -267,3 +267,22 @@
 - `Coordinator` 顶层 schedule / diagnostics / OTA / outlet-power pure forwarder cluster 已退场：external consumers 现在只 pull `coordinator.protocol_service`，不再把 runtime root 混成 protocol passthrough façade。
 - runtime 正式代码中的 `Phase C` / `Phase H4` 历史叙事已清理；关闭的是 narration seam，而不是引入新的 abstraction layer。
 - 本 phase **无新增 compat shell / second-root story / active residual family**；remaining `LiproRestFacade` hotspot 仍被诚实记录为 child-façade maintainability debt，但它不是新的 public root，也不允许反向定义 runtime truth。
+
+
+## Phase 35 Residual Delta
+
+- `client.py` / `facade.py` 的热点已继续 inward 到 localized collaborators：`client_request_gateway.py`、`client_endpoint_surface.py`、`rest_port.py` 与 `mqtt_facade.py` 现在承接具体复杂度，但它们都没有升级成新的 public root 或 compat shell。
+- `LiproRestFacade` / `LiproProtocolFacade` 仍保留为 formal child/root story；remaining residual 仅是后续可继续优化的 body-size maintainability debt，不再是 public-surface honesty seam。
+- 本 phase **无新增 active residual family / second-root story / export growth**；关闭的是 protocol hotspot ballast 与 forwarding glue 漂浮。
+
+## Phase 36 Residual Delta
+
+- `Coordinator` 仍保留少量 root-owned orchestration 与 sanctioned broad-catch budget，但 polling/status/outlet/snapshot cluster 已正式下沉到 `CoordinatorPollingService`，runtime root ballast 明显下降。
+- `snapshot.py`、`device_runtime.py`、`mqtt_runtime.py`、`mqtt_lifecycle.py` 与 `command_service.py` 的主链宽异常已收口到 typed arbitration / fail-closed path；remaining budget 只保留 machine-guarded sanctioned points。
+- 本 phase **无新增 runtime bypass seam / second manager/root**；关闭的是 broad-catch 灰区与 coordinator polling hotspot。
+
+## Phase 37 Residual Delta
+
+- init/service-handler/runtime/governance phase-history 巨石测试已拆成稳定 topic suites；保留的聚合文件只承担 shared helper / topic root 身份，不再吸附所有子故事线。
+- `.planning/codebase/*` 与 verification/testing guidance 已重新同步到真实拓扑；remaining residual 只是不时需要跟随新增测试文件刷新 derived maps，而不是 authority drift。
+- 本 phase **无新增 active residual family**；关闭的是 test-topology drift、旧单文件锚点与高噪音 prose-coupled closeout 断言。

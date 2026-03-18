@@ -2,7 +2,7 @@
 
 **Purpose:** 定义允许/禁止的跨平面依赖方向，并作为 architecture guards 的语义真源。
 **Status:** Baseline reference
-**Updated:** 2026-03-16 (Phase 18 nucleus locality aligned)
+**Updated:** 2026-03-18 (Phase 37 sustainment / topology convergence aligned)
 
 ## Formal Role
 
@@ -82,6 +82,24 @@
 - `custom_components/lipro/core/auth/bootstrap.py`、`custom_components/lipro/core/capability/*` 与 `custom_components/lipro/core/device/*` 共同构成 host-neutral nucleus helper/contract family；这些 homes 可以被 HA adapter 消费，但不得直接 import `homeassistant`。
 - `custom_components/lipro/helpers/platform.py` 是 adapter-only HA platform projection home；entities / platform setup 可以消费它，但 nucleus homes 不得反向依赖它来定义 category/capability/device truth。
 - `custom_components/lipro/config_flow.py`、`custom_components/lipro/entry_auth.py` 与 `custom_components/lipro/flow/login.py` 只承担 HA adapter / projection 角色：`AuthSessionSnapshot` 继续是 formal auth truth，`ConfigEntryLoginProjection` 只是 config-entry payload projection。
+
+## Phase 35 Protocol Hotspot Clarifications
+
+- `custom_components/lipro/core/api/client.py` 允许 inward 依赖 `client_request_gateway.py` 与 `client_endpoint_surface.py`；这两者只属于 `LiproRestFacade` 内部 collaborator family，runtime/control/tests 不得把它们当作对外 contract。
+- `custom_components/lipro/core/protocol/facade.py` 允许 inward 依赖 `rest_port.py` 与 `mqtt_facade.py`；`_RestFacadePort` 只是 typed child-façade port，`LiproMqttFacade` 只是 protocol root 下的 MQTT child façade，control/runtime 不得绕过 `LiproProtocolFacade` 直摸这些 internals。
+- protocol hotspot slimming 允许 root/body 继续变薄，但不允许把 forwarding glue 迁移成新的 external package export 或 dependency shortcut。
+
+## Phase 36 Runtime Root / Exception Clarifications
+
+- `custom_components/lipro/core/coordinator/coordinator.py` 允许 inward 依赖 `services/polling_service.py`；`CoordinatorPollingService` 只属于 runtime internal helper home，不得被 control/entity/platform 当作 bypass seam。
+- `services/polling_service.py` 可以依赖 `CoordinatorProtocolService`、`CoordinatorMqttService`、runtime state/status/tuning homes；这些依赖只在 runtime plane 内合法，不代表 external public dependency growth。
+- typed arbitration 只允许沿 runtime 主链 inward 收口；control/service/docs/test 不得通过新增 broad catch 或 raw internal exception type 建立第二套 failure story。
+
+## Phase 37 Test Topology / Derived-Truth Clarifications
+
+- `tests/core/test_init_service_handlers*.py`、`tests/core/test_init_runtime*.py` 与 `tests/meta/test_governance_phase_history*.py` 的 split 只改变 assurance topology，不改变 production dependency direction。
+- `.planning/codebase/*` 可以记录这些 topic suites 的新布局，但它们仍不得反向定义 dependency / authority truth；真正的依赖仲裁继续以 baseline + guards 为准。
+- governance/toolchain tests 允许依赖 split topical suites 与 generated file-matrix truth；production planes 不得反向依赖测试拓扑或派生映射。
 
 ## Review Checklist
 

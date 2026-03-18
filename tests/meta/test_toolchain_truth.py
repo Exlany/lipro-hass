@@ -135,7 +135,7 @@ def test_release_workflow_keeps_identity_evidence_tools_in_sync() -> None:
     assert "Sign release assets" in step_names
     assert "Verify release signatures" in step_names
 
-    codeql_on = codeql.get("on", codeql.get(True))
+    codeql_on = codeql["on"]
     assert isinstance(codeql_on, dict)
     assert "workflow_dispatch" in codeql_on
     assert "push" in codeql_on
@@ -287,7 +287,10 @@ def test_testing_map_counts_and_script_boundary_notes_match_repo_facts() -> None
     assert documented == _count_testing_inventory()
     assert "scripts/check_architecture_policy.py" in testing_text
     assert "scripts/export_ai_debug_evidence_pack.py" in testing_text
-    assert "tests/core/test_init_service_handlers.py" in testing_text
+    assert "tests/core/test_init_service_handlers*.py" in testing_text
+    assert "tests/core/test_init_runtime_bootstrap.py" in testing_text
+    assert "tests/meta/test_governance_phase_history_runtime.py" in testing_text
+    assert "tests/meta/test_governance_phase_history_topology.py" in testing_text
     assert "tests/meta/test_governance_closeout_guards.py" in testing_text
     assert "helper-only / pull-only" in testing_text
     assert "tests/meta/test_toolchain_truth.py" in testing_text

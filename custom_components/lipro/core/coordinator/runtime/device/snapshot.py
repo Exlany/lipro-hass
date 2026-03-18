@@ -120,7 +120,7 @@ class SnapshotBuilder:
             RuntimeSnapshotRefreshRejectedError,
         ):
             raise
-        except Exception as err:
+        except (RuntimeError, ValueError, TypeError, LookupError) as err:
             raise RuntimeSnapshotRefreshRejectedError(
                 stage="mesh_group_topology",
                 cause_type=type(err).__name__,
@@ -231,7 +231,7 @@ class SnapshotBuilder:
                 RuntimeSnapshotRefreshRejectedError,
             ):
                 raise
-            except Exception as err:
+            except (RuntimeError, ValueError, TypeError, LookupError) as err:
                 raise RuntimeSnapshotRefreshRejectedError(
                     stage="fetch_page",
                     page=page,
@@ -272,7 +272,7 @@ class SnapshotBuilder:
                 device = LiproDevice.from_api_data(cast(dict[str, object], normalized_row))
             except asyncio.CancelledError:
                 raise
-            except Exception as err:
+            except (RuntimeError, ValueError, TypeError, LookupError) as err:
                 raise RuntimeSnapshotRefreshRejectedError(
                     stage="parse_device",
                     page=page_number,

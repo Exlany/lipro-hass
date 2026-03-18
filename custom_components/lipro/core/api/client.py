@@ -9,19 +9,12 @@ from typing import Any, TypeVar
 
 import aiohttp
 
-from ...const.api import (
-    CONTENT_TYPE_FORM,
-    HEADER_CONTENT_TYPE,
-    HEADER_USER_AGENT,
-    IOT_API_URL,
-    REQUEST_TIMEOUT,
-    SMART_HOME_API_URL,
-    USER_AGENT,
-)
-from ...const.base import APP_VERSION_CODE, APP_VERSION_NAME
+from ...const.api import REQUEST_TIMEOUT
 from .auth_service import AuthApiService
 from .client_auth_recovery import AuthRecoveryCoordinator
 from .client_base import ClientSessionState
+from .client_endpoint_surface import ClientEndpointSurface
+from .client_request_gateway import ClientRequestGateway
 from .client_transport import TransportExecutor
 from .endpoints import (
     AuthEndpoints,
@@ -33,11 +26,6 @@ from .endpoints import (
 )
 from .errors import LiproAuthError
 from .power_service import OutletPowerInfoResult
-from .request_codec import (
-    build_smart_home_request_data,
-    encode_iot_request_body,
-    extract_smart_home_success_payload,
-)
 from .request_policy import RequestPolicy
 from .types import DeviceListResponse, LoginResponse, OtaInfoRow, ScheduleTimingRow
 
@@ -85,6 +73,8 @@ class LiproRestFacade:
         self._command_endpoints = CommandEndpoints(self)
         self._misc_endpoints = MiscEndpoints(self)
         self._schedule_endpoints = ScheduleEndpoints(self)
+        self._request_gateway = ClientRequestGateway(self)
+        self._endpoint_surface = ClientEndpointSurface(self)
 
     @property
     def phone_id(self) -> str:
@@ -354,45 +344,12 @@ class LiproRestFacade:
         is_retry: bool = False,
         retry_count: int = 0,
     ) -> tuple[dict[str, Any], str | None]:
-        url = f"{SMART_HOME_API_URL}{path}"
-
-        async def _send_request() -> tuple[int, Any, dict[str, str], str | None]:
-            request_token = self._access_token
-            if require_auth and not request_token:
-                msg = "No access token available"
-                raise LiproAuthError(msg)
-
-            request_data = build_smart_home_request_data(
-                sign=self._smart_home_sign(),
-                phone_id=self._phone_id,
-                timestamp_ms=self._get_timestamp_ms(),
-                app_version_name=APP_VERSION_NAME,
-                app_version_code=APP_VERSION_CODE,
-                data=data,
-                access_token=request_token if require_auth else None,
-            )
-
-            session = await self._get_session()
-            status, result, headers = await self._execute_request(
-                session.post(
-                    url,
-                    data=request_data,
-                    headers={
-                        HEADER_CONTENT_TYPE: CONTENT_TYPE_FORM,
-                        HEADER_USER_AGENT: USER_AGENT,
-                    },
-                    timeout=aiohttp.ClientTimeout(total=self._request_timeout),
-                ),
-                path,
-            )
-            return status, result, headers, request_token
-
-        _, result, request_token = await self._execute_mapping_request_with_rate_limit(
-            path=path,
+        return await self._request_gateway.request_smart_home_mapping(
+            path,
+            data,
+            require_auth=require_auth,
             retry_count=retry_count,
-            send_request=_send_request,
         )
-        return result, request_token
 
     async def _smart_home_request(
         self,
@@ -402,28 +359,12 @@ class LiproRestFacade:
         is_retry: bool = False,
         retry_count: int = 0,
     ) -> Any:
-        result, request_token = await self._request_smart_home_mapping(
+        return await self._request_gateway.smart_home_request(
             path,
             data,
             require_auth=require_auth,
             is_retry=is_retry,
             retry_count=retry_count,
-        )
-        return await self._finalize_mapping_result(
-            path=path,
-            result=result,
-            request_token=request_token,
-            is_retry=is_retry,
-            retry_on_auth_error=require_auth,
-            retry_request=(
-                lambda: self._smart_home_request(
-                    path,
-                    data,
-                    require_auth,
-                    is_retry=True,
-                )
-            ),
-            success_payload=extract_smart_home_success_payload,
         )
 
     async def _request_iot_mapping_raw(
@@ -434,44 +375,12 @@ class LiproRestFacade:
         is_retry: bool = False,
         retry_count: int = 0,
     ) -> tuple[dict[str, Any], str | None]:
-        url = f"{IOT_API_URL}{path}"
-
-        async def _send_request() -> tuple[int, Any, dict[str, str], str | None]:
-            request_token = self._access_token
-            if not request_token:
-                msg = "No access token available"
-                raise LiproAuthError(msg)
-
-            session = await self._get_session()
-            req_headers = self._build_iot_headers(body)
-            status, result, resp_headers = await self._execute_request(
-                session.post(
-                    url,
-                    data=body,
-                    headers=req_headers,
-                    timeout=aiohttp.ClientTimeout(total=self._request_timeout),
-                ),
-                path,
-            )
-            return status, result, resp_headers, request_token
-
-        status, result, request_token = await self._execute_mapping_request_with_rate_limit(
-            path=path,
+        return await self._request_gateway.request_iot_mapping_raw(
+            path,
+            body,
+            is_retry=is_retry,
             retry_count=retry_count,
-            send_request=_send_request,
         )
-
-        if status == 401:
-            if await self._handle_auth_error_and_retry(path, request_token, is_retry):
-                return await self._request_iot_mapping_raw(
-                    path,
-                    body,
-                    is_retry=True,
-                )
-            msg = "HTTP 401 Unauthorized"
-            raise LiproAuthError(msg, 401)
-
-        return result, request_token
 
     async def _request_iot_mapping(
         self,
@@ -481,10 +390,9 @@ class LiproRestFacade:
         is_retry: bool = False,
         retry_count: int = 0,
     ) -> tuple[dict[str, Any], str | None]:
-        body = encode_iot_request_body(body_data)
-        return await self._request_iot_mapping_raw(
+        return await self._request_gateway.request_iot_mapping(
             path,
-            body,
+            body_data,
             is_retry=is_retry,
             retry_count=retry_count,
         )
@@ -496,20 +404,11 @@ class LiproRestFacade:
         is_retry: bool = False,
         retry_count: int = 0,
     ) -> Any:
-        result, request_token = await self._request_iot_mapping(
+        return await self._request_gateway.iot_request(
             path,
             body_data,
             is_retry=is_retry,
             retry_count=retry_count,
-        )
-        return await self._finalize_mapping_result(
-            path=path,
-            result=result,
-            request_token=request_token,
-            is_retry=is_retry,
-            retry_on_auth_error=True,
-            retry_request=lambda: self._iot_request(path, body_data, is_retry=True),
-            success_payload=self._unwrap_iot_success_payload,
         )
 
     def _to_device_type_hex(self, device_type: int | str) -> str:
@@ -640,11 +539,11 @@ class LiproRestFacade:
 
     async def get_devices(self, offset: int = 0, limit: int = 100) -> DeviceListResponse:
         """Return canonical device rows through the explicit device endpoint."""
-        return await self._device_endpoints.get_devices(offset=offset, limit=limit)
+        return await self._endpoint_surface.get_devices(offset=offset, limit=limit)
 
     async def get_product_configs(self) -> list[dict[str, Any]]:
         """Return canonical product configuration rows."""
-        return await self._device_endpoints.get_product_configs()
+        return await self._endpoint_surface.get_product_configs()
 
     async def query_device_status(
         self,
@@ -654,7 +553,7 @@ class LiproRestFacade:
         on_batch_metric: Any = None,
     ) -> list[dict[str, Any]]:
         """Return canonical device-status rows through the explicit status endpoint."""
-        return await self._status_endpoints.query_device_status(
+        return await self._endpoint_surface.query_device_status(
             device_ids,
             max_devices_per_query=max_devices_per_query,
             on_batch_metric=on_batch_metric,
@@ -665,11 +564,11 @@ class LiproRestFacade:
         group_ids: list[str],
     ) -> list[dict[str, Any]]:
         """Return canonical mesh-group status rows."""
-        return await self._status_endpoints.query_mesh_group_status(group_ids)
+        return await self._endpoint_surface.query_mesh_group_status(group_ids)
 
     async def query_connect_status(self, device_ids: list[str]) -> dict[str, bool]:
         """Return connectivity status for the requested devices."""
-        return await self._status_endpoints.query_connect_status(device_ids)
+        return await self._endpoint_surface.query_connect_status(device_ids)
 
     async def send_command(
         self,
@@ -680,7 +579,7 @@ class LiproRestFacade:
         iot_name: str = "",
     ) -> dict[str, Any]:
         """Send one device command through the explicit command endpoint."""
-        return await self._command_endpoints.send_command(
+        return await self._endpoint_surface.send_command(
             device_id=device_id,
             command=command,
             device_type=device_type,
@@ -697,7 +596,7 @@ class LiproRestFacade:
         iot_name: str = "",
     ) -> dict[str, Any]:
         """Send one group command through the explicit command endpoint."""
-        return await self._command_endpoints.send_group_command(
+        return await self._endpoint_surface.send_group_command(
             group_id=group_id,
             command=command,
             device_type=device_type,
@@ -707,11 +606,11 @@ class LiproRestFacade:
 
     async def get_mqtt_config(self) -> dict[str, Any]:
         """Return MQTT configuration through the explicit misc endpoint."""
-        return await self._misc_endpoints.get_mqtt_config()
+        return await self._endpoint_surface.get_mqtt_config()
 
     async def fetch_outlet_power_info(self, device_id: str) -> OutletPowerInfoResult:
         """Return outlet power information for one device."""
-        return await self._misc_endpoints.fetch_outlet_power_info(device_id)
+        return await self._endpoint_surface.fetch_outlet_power_info(device_id)
 
     async def query_command_result(
         self,
@@ -721,7 +620,7 @@ class LiproRestFacade:
         device_type: int | str,
     ) -> dict[str, Any]:
         """Return the command-result payload for one message serial number."""
-        return await self._misc_endpoints.query_command_result(
+        return await self._endpoint_surface.query_command_result(
             msg_sn=msg_sn,
             device_id=device_id,
             device_type=device_type,
@@ -729,11 +628,11 @@ class LiproRestFacade:
 
     async def get_city(self) -> dict[str, Any]:
         """Return the current city capability payload."""
-        return await self._misc_endpoints.get_city()
+        return await self._endpoint_surface.get_city()
 
     async def query_user_cloud(self) -> dict[str, Any]:
         """Return the user-cloud capability payload."""
-        return await self._misc_endpoints.query_user_cloud()
+        return await self._endpoint_surface.query_user_cloud()
 
     async def query_ota_info(
         self,
@@ -744,7 +643,7 @@ class LiproRestFacade:
         allow_rich_v2_fallback: bool = False,
     ) -> list[OtaInfoRow]:
         """Return OTA metadata for one device through the explicit misc endpoint."""
-        return await self._misc_endpoints.query_ota_info(
+        return await self._endpoint_surface.query_ota_info(
             device_id=device_id,
             device_type=device_type,
             iot_name=iot_name,
@@ -759,7 +658,7 @@ class LiproRestFacade:
         mesh_type: str,
     ) -> dict[str, Any]:
         """Return body-sensor history through the explicit misc endpoint."""
-        return await self._misc_endpoints.fetch_body_sensor_history(
+        return await self._endpoint_surface.fetch_body_sensor_history(
             device_id=device_id,
             device_type=device_type,
             sensor_device_id=sensor_device_id,
@@ -774,7 +673,7 @@ class LiproRestFacade:
         mesh_type: str,
     ) -> dict[str, Any]:
         """Return door-sensor history through the explicit misc endpoint."""
-        return await self._misc_endpoints.fetch_door_sensor_history(
+        return await self._endpoint_surface.fetch_door_sensor_history(
             device_id=device_id,
             device_type=device_type,
             sensor_device_id=sensor_device_id,
@@ -790,7 +689,7 @@ class LiproRestFacade:
         mesh_member_ids: list[str] | None = None,
     ) -> list[ScheduleTimingRow]:
         """Return device schedules through the explicit schedule endpoint."""
-        return await self._schedule_endpoints.get_device_schedules(
+        return await self._endpoint_surface.get_device_schedules(
             device_id=device_id,
             device_type=device_type,
             mesh_gateway_id=mesh_gateway_id,
@@ -809,7 +708,7 @@ class LiproRestFacade:
         mesh_member_ids: list[str] | None = None,
     ) -> list[ScheduleTimingRow]:
         """Add schedules through the explicit schedule endpoint."""
-        return await self._schedule_endpoints.add_device_schedule(
+        return await self._endpoint_surface.add_device_schedule(
             device_id=device_id,
             device_type=device_type,
             days=days,
@@ -829,15 +728,13 @@ class LiproRestFacade:
         mesh_member_ids: list[str] | None = None,
     ) -> list[ScheduleTimingRow]:
         """Delete schedules through the explicit schedule endpoint."""
-        return await self._schedule_endpoints.delete_device_schedules(
+        return await self._endpoint_surface.delete_device_schedules(
             device_id=device_id,
             device_type=device_type,
             schedule_ids=schedule_ids,
             mesh_gateway_id=mesh_gateway_id,
             mesh_member_ids=mesh_member_ids,
         )
-
-
 
 
 __all__ = ["LiproRestFacade"]

@@ -64,6 +64,31 @@ async def test_command_service_skips_follow_up_side_effects_on_failure() -> None
 
 
 @pytest.mark.asyncio
+async def test_command_service_ignores_typed_tuning_metric_failures() -> None:
+    command_runtime = MagicMock()
+    command_runtime.send_device_command = AsyncMock(return_value=(True, "device_direct"))
+    tuning_runtime = MagicMock()
+    tuning_runtime.record_user_action.side_effect = RuntimeError("metric boom")
+    service = CoordinatorCommandService(
+        command_runtime=command_runtime,
+        tuning_runtime=tuning_runtime,
+    )
+    device = MagicMock(serial="03ab5ccd7caaaaaa")
+
+    result = await service.async_send_command(
+        device,
+        "POWER_ON",
+        [{"key": "powerState", "value": "1"}],
+    )
+
+    assert result is True
+    tuning_runtime.record_user_action.assert_called_once_with(
+        device_serial=device.serial,
+        command="POWER_ON",
+    )
+
+
+@pytest.mark.asyncio
 async def test_command_service_handles_api_error_via_runtime() -> None:
     command_runtime = MagicMock()
     command_runtime.send_device_command = AsyncMock(side_effect=LiproApiError("boom", code="500"))

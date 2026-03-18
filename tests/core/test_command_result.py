@@ -3,14 +3,13 @@
 from __future__ import annotations
 
 import asyncio
-from typing import cast
+from typing import Any, cast
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
+import custom_components.lipro.core.command.result as command_result
 from custom_components.lipro.core.command.result import (
-    _extract_command_result_code,
-    _extract_command_result_message,
     build_progressive_retry_delays,
     classify_command_result_payload,
     extract_msg_sn,
@@ -264,8 +263,8 @@ def test_build_progressive_retry_delays_stops_when_policy_returns_zero_wait() ->
 
 
 def test_extract_command_result_code_and_message_return_none_for_non_mapping() -> None:
-    assert _extract_command_result_code(None) is None
-    assert _extract_command_result_message(None) is None
+    assert cast(Any, command_result)._extract_command_result_code(None) is None
+    assert cast(Any, command_result)._extract_command_result_message(None) is None
 
 
 def test_should_skip_immediate_post_refresh_returns_false_without_valid_key() -> None:

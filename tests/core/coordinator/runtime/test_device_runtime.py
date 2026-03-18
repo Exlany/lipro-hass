@@ -374,7 +374,7 @@ class TestDeviceRuntimeErrorHandling:
         mock_client: Mock,
     ) -> None:
         """API error without LKG must reject the refresh explicitly."""
-        mock_client.get_devices.side_effect = Exception("API Error")
+        mock_client.get_devices.side_effect = RuntimeError("API Error")
 
         with pytest.raises(RuntimeSnapshotRefreshRejectedError) as exc_info:
             await device_runtime.refresh_devices()
@@ -400,7 +400,7 @@ class TestDeviceRuntimeErrorHandling:
                 [create_mock_device_data(device_id="dev1", serial="serial1")],
                 total=2,
             ),
-            Exception("Network error"),
+            RuntimeError("Network error"),
         ]
 
         with pytest.raises(RuntimeSnapshotRefreshRejectedError) as exc_info:
@@ -431,7 +431,7 @@ class TestDeviceRuntimeErrorHandling:
                 [create_mock_device_data(device_id="dev1", serial="serial1")],
                 total=2,
             ),
-            Exception("Network error"),
+            RuntimeError("Network error"),
         ]
 
         with pytest.raises(RuntimeSnapshotRefreshRejectedError) as exc_info:

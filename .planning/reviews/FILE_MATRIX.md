@@ -1,6 +1,6 @@
 # File Matrix
 
-**Python files total:** 468
+**Python files total:** 487
 **Status:** File-level governance authority
 **Rule:** workspace inventory excluding caches / virtual env / tooling artifacts
 
@@ -45,10 +45,12 @@
 | `custom_components/lipro/core/anonymous_share/storage.py` | Protocol | Phase 2.6 | 保留 | - |
 | `custom_components/lipro/core/api/__init__.py` | Protocol | Phase 2.5 / 12 | 重构 | - |
 | `custom_components/lipro/core/api/auth_service.py` | Protocol | Phase 2 | 重构 | - |
-| `custom_components/lipro/core/api/client.py` | Protocol | Phase 2 / 7 / 12 / 14 | 重构 | internal typing spine only |
+| `custom_components/lipro/core/api/client.py` | Protocol | Phase 2 / 7 / 12 / 14 / 35 | 重构 | thin REST child-façade composition root |
 | `custom_components/lipro/core/api/client_auth_recovery.py` | Protocol | Phase 2 | 重构 | - |
 | `custom_components/lipro/core/api/client_base.py` | Protocol | Phase 2 / 15 / 17 | 重构 | ClientSessionState formal REST session-state home |
+| `custom_components/lipro/core/api/client_endpoint_surface.py` | Protocol | Phase 35 | 保留 | REST endpoint forwarding collaborator home |
 | `custom_components/lipro/core/api/client_pacing.py` | Protocol | Phase 2 | 重构 | - |
+| `custom_components/lipro/core/api/client_request_gateway.py` | Protocol | Phase 35 | 保留 | REST request-pipeline collaborator home |
 | `custom_components/lipro/core/api/client_transport.py` | Protocol | Phase 2 | 重构 | - |
 | `custom_components/lipro/core/api/command_api_service.py` | Protocol | Phase 2 | 重构 | - |
 | `custom_components/lipro/core/api/diagnostics_api_service.py` | Protocol | Phase 2 | 重构 | - |
@@ -92,7 +94,7 @@
 | `custom_components/lipro/core/command/result_policy.py` | Cross-cutting | Phase 33 | 保留 | command-result classification / retry / delayed-refresh policy home |
 | `custom_components/lipro/core/command/trace.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/core/coordinator/__init__.py` | Runtime | Phase 5 | 重构 | - |
-| `custom_components/lipro/core/coordinator/coordinator.py` | Runtime | Phase 5 / 14 | 重构 | HA-facing runtime façade hotspot |
+| `custom_components/lipro/core/coordinator/coordinator.py` | Runtime | Phase 5 / 14 / 36 | 重构 | HA-facing runtime façade with polling ballast reduced |
 | `custom_components/lipro/core/coordinator/entity_protocol.py` | Runtime | Phase 5 | 重构 | - |
 | `custom_components/lipro/core/coordinator/factory.py` | Runtime | Phase 5 | 重构 | - |
 | `custom_components/lipro/core/coordinator/mqtt/__init__.py` | Runtime | Phase 5 | 重构 | - |
@@ -143,6 +145,7 @@
 | `custom_components/lipro/core/coordinator/services/command_service.py` | Runtime | Phase 5 | 重构 | - |
 | `custom_components/lipro/core/coordinator/services/device_refresh_service.py` | Runtime | Phase 5 | 重构 | - |
 | `custom_components/lipro/core/coordinator/services/mqtt_service.py` | Runtime | Phase 5 | 重构 | - |
+| `custom_components/lipro/core/coordinator/services/polling_service.py` | Runtime | Phase 36 | 保留 | polling/status/outlet/snapshot orchestration helper home |
 | `custom_components/lipro/core/coordinator/services/protocol_service.py` | Runtime | Phase 14 | 保留 | protocol-facing runtime service surface |
 | `custom_components/lipro/core/coordinator/services/state_service.py` | Runtime | Phase 5 | 重构 | - |
 | `custom_components/lipro/core/coordinator/services/telemetry_service.py` | Runtime | Phase 5 | 重构 | - |
@@ -196,7 +199,9 @@
 | `custom_components/lipro/core/protocol/compat.py` | Protocol | Phase 2.5 | 保留 | - |
 | `custom_components/lipro/core/protocol/contracts.py` | Protocol | Phase 2.5 | 保留 | - |
 | `custom_components/lipro/core/protocol/diagnostics_context.py` | Protocol | Phase 2.5 | 保留 | - |
-| `custom_components/lipro/core/protocol/facade.py` | Protocol | Phase 2.5 | 保留 | - |
+| `custom_components/lipro/core/protocol/facade.py` | Protocol | Phase 2 / 35 | 重构 | formal protocol root with localized REST/MQTT child-façade wiring |
+| `custom_components/lipro/core/protocol/mqtt_facade.py` | Protocol | Phase 35 | 保留 | MQTT child façade home under the unified protocol root |
+| `custom_components/lipro/core/protocol/rest_port.py` | Protocol | Phase 35 | 保留 | typed REST child-façade port home |
 | `custom_components/lipro/core/protocol/session.py` | Protocol | Phase 2.5 | 保留 | - |
 | `custom_components/lipro/core/protocol/telemetry.py` | Protocol | Phase 2.5 | 保留 | - |
 | `custom_components/lipro/core/telemetry/__init__.py` | Assurance | Phase 7.3 | 保留 | - |
@@ -319,6 +324,7 @@
 | `tests/core/coordinator/services/test_command_service.py` | Runtime | Phase 5 / 6 | 保留 | - |
 | `tests/core/coordinator/services/test_device_refresh_service.py` | Runtime | Phase 5 / 6 | 保留 | - |
 | `tests/core/coordinator/services/test_mqtt_service.py` | Runtime | Phase 5 / 6 | 保留 | - |
+| `tests/core/coordinator/services/test_polling_service.py` | Runtime | Phase 36 | 保留 | polling-service regression home |
 | `tests/core/coordinator/services/test_state_service.py` | Runtime | Phase 5 / 6 | 保留 | - |
 | `tests/core/coordinator/services/test_telemetry_service.py` | Runtime | Phase 5 / 6 | 保留 | - |
 | `tests/core/coordinator/test_entity_protocol.py` | Runtime | Phase 5 / 6 | 保留 | - |
@@ -377,9 +383,20 @@
 | `tests/core/test_identity_index.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `tests/core/test_init.py` | Control | Phase 33 | 保留 | topic root for init contract regressions |
 | `tests/core/test_init_edge_cases.py` | Cross-cutting | Phase 7 | 保留 | - |
-| `tests/core/test_init_runtime_behavior.py` | Control | Phase 33 | 保留 | runtime/lifecycle-focused init regression home |
+| `tests/core/test_init_runtime_behavior.py` | Control | Phase 33 / 37 | 保留 | shared helper root for topicized init runtime regressions |
+| `tests/core/test_init_runtime_bootstrap.py` | Control | Phase 37 | 保留 | bootstrap/infrastructure topic home |
+| `tests/core/test_init_runtime_registry_refresh.py` | Control | Phase 37 | 保留 | registry-refresh topic home |
+| `tests/core/test_init_runtime_setup_entry.py` | Control | Phase 37 | 保留 | setup-entry topic home |
+| `tests/core/test_init_runtime_setup_entry_failures.py` | Control | Phase 37 | 保留 | setup-entry failure topic home |
+| `tests/core/test_init_runtime_unload_reload.py` | Control | Phase 37 | 保留 | unload/reload topic home |
 | `tests/core/test_init_schema_validation.py` | Control | Phase 33 | 保留 | schema-focused init regression home |
-| `tests/core/test_init_service_handlers.py` | Control | Phase 27 | 保留 | - |
+| `tests/core/test_init_service_handlers.py` | Control | Phase 27 / 37 | 保留 | shared helper root for topicized init service-handler regressions |
+| `tests/core/test_init_service_handlers_commands.py` | Control | Phase 37 | 保留 | command-dispatch topic home |
+| `tests/core/test_init_service_handlers_debug_queries.py` | Control | Phase 37 | 保留 | debug-query topic home |
+| `tests/core/test_init_service_handlers_device_resolution.py` | Control | Phase 37 | 保留 | device-resolution topic home |
+| `tests/core/test_init_service_handlers_schedules.py` | Control | Phase 37 | 保留 | schedule-validation topic home |
+| `tests/core/test_init_service_handlers_sensor_feedback.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `tests/core/test_init_service_handlers_share_reports.py` | Control | Phase 37 | 保留 | share-report topic home |
 | `tests/core/test_log_safety.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `tests/core/test_outlet_power.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `tests/core/test_outlet_power_runtime.py` | Cross-cutting | Phase 7 | 保留 | - |
@@ -433,7 +450,9 @@
 | `tests/meta/test_firmware_support_manifest_repo_asset.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_governance_closeout_guards.py` | Assurance | Phase 27 | 保留 | - |
 | `tests/meta/test_governance_guards.py` | Assurance | Phase 33 | 保留 | inventory / policy governance topic root |
-| `tests/meta/test_governance_phase_history.py` | Assurance | Phase 33 | 保留 | phase-history governance topic home |
+| `tests/meta/test_governance_phase_history.py` | Assurance | Phase 33 / 37 | 保留 | phase-history planning/closeout topic root |
+| `tests/meta/test_governance_phase_history_runtime.py` | Assurance | Phase 37 | 保留 | runtime closeout phase-history topic home |
+| `tests/meta/test_governance_phase_history_topology.py` | Assurance | Phase 37 | 保留 | topology closeout phase-history topic home |
 | `tests/meta/test_governance_release_contract.py` | Assurance | Phase 33 | 保留 | release / contributor contract governance topic home |
 | `tests/meta/test_install_sh_guards.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_modularization_surfaces.py` | Assurance | Phase 6 | 保留 | - |
