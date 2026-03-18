@@ -4,7 +4,7 @@
 
 This repository currently follows a single-maintainer release model. Every tagged release must reuse `.github/workflows/ci.yml`; `.github/workflows/release.yml` is only the tagged security / packaging / publishing tail of that same gate.
 
-> Continuity note / 连续性说明：do not imply hidden backup maintainers. If the maintainer is unavailable, freeze new tagged releases and keep `SUPPORT.md` / `SECURITY.md` routing honest.
+> Continuity note / 连续性说明：do not imply hidden backup maintainers. No documented delegate exists today; if the maintainer is unavailable, freeze new tagged releases and freeze new release promises, keep `SUPPORT.md` / `SECURITY.md` routing honest, and restore custody only after CODEOWNERS + runbook record the real successor or delegate.
 
 ## Truth Sources
 
@@ -22,25 +22,25 @@ Private repositories and forks skip CI HACS validation because HACS only support
 
 Currently enforced release hardening in this repository:
 
-- pinned GitHub Actions revisions in `ci.yml` / `release.yml`
+- pinned GitHub Actions revisions in `ci.yml` / `release.yml` / `codeql.yml`
 - mandatory CI reuse before packaging
 - tagged checkout via `refs/tags/${RELEASE_TAG}`
 - tag/version match against `pyproject.toml`
 - tagged release security gate via blocking `pip-audit` on the tagged source
+- fail-closed tagged `CodeQL` gate: the tag must have a completed `CodeQL` analysis and zero open alerts before publish
 - release archive checksum publication via `dist/SHA256SUMS`
 - published `install.sh` release asset for verified local installs
 - published `SBOM` asset (`dist/lipro-hass-vX.Y.Z.spdx.json`)
 - GitHub artifact `attestation` / `provenance` for released assets (release identity evidence, not artifact signing)
 - machine verification of that provenance evidence via `gh attestation verify`
+- keyless `cosign sign-blob` signatures for published assets plus machine verification via `cosign verify-blob --bundle`
 - published release identity manifest (`dist/lipro-hass-vX.Y.Z.release-identity.txt`)
 
-Explicitly deferred beyond this phase (must stay recorded, not implied):
+Still deferred beyond this phase (must stay recorded, not implied):
 
-- release artifact `signing`
-- making GitHub `code scanning` an additional hard release gate on top of the current tagged runtime security gate
 - richer firmware manifest metadata beyond the current local certified-truth root
 
-GitHub artifact attestation / provenance proves how release assets were produced and can be verified; it does **not** mean repository-managed artifact signing is already in place.
+GitHub artifact attestation / provenance proves how release assets were produced and can be verified; it does **not** replace artifact signing. `cosign` signing is a second, separate proof layer.
 
 ## Preconditions
 
@@ -50,7 +50,7 @@ Before creating or publishing a tag:
 2. Version truth is synchronized across `pyproject.toml`, `manifest.json`, and `const/base.py`.
 3. Public navigation is synchronized across `README.md` / `README_zh.md` / `CONTRIBUTING.md` / `SUPPORT.md` / `SECURITY.md` / troubleshooting docs.
 4. Residual/governance closeout tables and `.planning/reviews/V1_2_EVIDENCE_INDEX.md` are updated when the release carries architectural cleanup.
-5. Release custody, freeze conditions, and rollback posture are reviewed before the tag is pushed; do not assume a delegate exists when the repository is still in a single-maintainer model.
+5. Release custody, custody-restoration rules, freeze conditions, and rollback posture are reviewed before the tag is pushed; do not assume a delegate exists unless `.github/CODEOWNERS` and this runbook explicitly document one.
 6. The following commands pass locally whenever the change scope justifies a release:
 
 ```bash
@@ -63,10 +63,11 @@ uv run pytest -q tests/meta/test_governance*.py tests/meta/test_version_sync.py 
 
 ## Release Freeze / Custody Truth
 
-- **Release custody:** release custody remains centralized in the current maintainer listed by `.github/CODEOWNERS`; do not imply backup maintainer redundancy that does not yet exist.
-- **Freeze conditions:** do not cut or republish a tag if CI reuse, the tagged release security gate, release identity verification, or public support/security wording is out of sync.
+- **Release custody:** release custody remains centralized in the current maintainer listed by `.github/CODEOWNERS`; no documented delegate exists today, so do not imply backup maintainer redundancy that does not yet exist.
+- **Custody restoration:** only resume tagged releases after `.github/CODEOWNERS`, `SUPPORT.md`, `SECURITY.md`, and this runbook record the real successor or delegate.
+- **Freeze conditions:** do not cut or republish a tag if CI reuse, the tagged release security gate, the tagged `CodeQL` gate, signature verification, release identity verification, or public support/security wording is out of sync.
 - **Rollback posture:** do not use `git push --force` or `git reset --hard` as a release recovery strategy; supersede a bad tag with a follow-up release and explicit notes instead.
-- **Maintainer unavailable:** if the maintainer is unavailable, freeze new tagged releases, keep security disclosure paths active, and record the continuity gap explicitly rather than silently bypassing gates.
+- **Maintainer unavailable:** if the maintainer is unavailable, freeze new tagged releases and freeze new release promises, keep security disclosure paths active, and record the continuity gap explicitly rather than silently bypassing gates; support triage may continue only as best effort.
 
 ## Release Path
 
@@ -76,31 +77,41 @@ uv run pytest -q tests/meta/test_governance*.py tests/meta/test_version_sync.py 
 4. Let `.github/workflows/release.yml` run:
    - `validate` reuses `.github/workflows/ci.yml`
    - `security_gate` reruns blocking runtime `pip-audit` on the tagged source
+   - `code_scanning_gate` waits for a tagged `CodeQL` analysis and fails if open alerts remain
    - `build` checks out `refs/tags/${RELEASE_TAG}`
    - the workflow verifies the tag matches `pyproject.toml`
    - assets are built from the tagged tree, not an arbitrary branch HEAD
-   - the workflow generates GitHub artifact attestations, verifies them with `gh attestation verify`, and writes the release identity manifest
-5. Verify that the workflow uploads `dist/lipro-hass-vX.Y.Z.zip`, `dist/install.sh`, `dist/SHA256SUMS`, `dist/lipro-hass-vX.Y.Z.spdx.json`, and `dist/lipro-hass-vX.Y.Z.release-identity.txt`.
+   - the workflow generates GitHub artifact attestations, verifies them with `gh attestation verify`, signs assets with `cosign sign-blob`, verifies signatures with `cosign verify-blob --bundle`, and writes the release identity manifest
+5. Verify that the workflow uploads `dist/lipro-hass-vX.Y.Z.zip`, `dist/install.sh`, `dist/SHA256SUMS`, `dist/lipro-hass-vX.Y.Z.spdx.json`, `dist/lipro-hass-vX.Y.Z.release-identity.txt`, plus their matching `.sigstore.json` bundles.
 
 ## Post-Release Checks
 
 - Confirm the GitHub release points at the expected tag.
 - Download the zip once and verify it contains only `custom_components/lipro` under the release root.
-- Download `SHA256SUMS`, `install.sh`, the published `SBOM`, and the release identity manifest, then confirm the release page also exposes the GitHub artifact attestation / provenance record.
+- Download `SHA256SUMS`, `install.sh`, the published `SBOM`, the release identity manifest, and the matching `.sigstore.json` bundles, then confirm the release page also exposes the GitHub artifact attestation / provenance record.
+- Spot-check one asset with `cosign verify-blob --bundle ...` and confirm the certificate identity matches `.github/workflows/release.yml` for the tagged release path (or the audited manual-dispatch ref when rerunning an existing tag).
 - Spot-check README / README_zh / CONTRIBUTING / SUPPORT / SECURITY links on the rendered release page.
 - If the release contains troubleshooting, public-entry, or runbook changes, ensure those docs still point at each other, at `.planning/reviews/V1_2_EVIDENCE_INDEX.md`, and at the canonical public entry points.
+
+## Continuity Drill Checklist
+
+1. Confirm the primary custodian is still the maintainer listed in `.github/CODEOWNERS`.
+2. Confirm no documented delegate has been added silently; if none exists, keep single-maintainer wording intact.
+3. If the maintainer is unavailable, freeze new tagged releases and freeze new release promises, keep `SECURITY.md` private disclosure routing active, and avoid promising recovery dates in public support channels.
+4. Restore release custody only after `.github/CODEOWNERS` and this runbook both document the delegate and the recovery path.
 
 ## Continuity / Incident Procedures
 
 ### Triage Ownership
 
 - Repository triage, release custody, and support-routing truth remain owned by the maintainer listed in `.github/CODEOWNERS`.
+- No documented delegate currently exists; do not claim custody transfer until CODEOWNERS + runbook are updated together.
 - High-risk issues must be recorded explicitly in governance assets or release notes when they cannot be resolved immediately.
 
 ### Security / Emergency Access
 
 - Security-sensitive fixes must still follow `SECURITY.md` private disclosure flow before public tagging.
-- Do not invent extra credentials, emergency maintainers, or unpublished handoff promises; if recovery depends on unavailable access, freeze the release and document the blocker.
+- Do not invent extra credentials, emergency maintainers, or unpublished handoff promises; if recovery depends on unavailable access, freeze new tagged releases and new release promises, keep the private disclosure path plus best-effort support intake active, and document the blocker.
 
 ### Bad Tag Follow-Up
 

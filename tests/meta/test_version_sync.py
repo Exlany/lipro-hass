@@ -211,20 +211,27 @@ def test_runbook_and_contributing_capture_blocking_release_security_gate() -> No
     contributing_text = _CONTRIBUTING.read_text(encoding="utf-8")
 
     assert "tagged release security gate" in runbook_text
+    assert "CodeQL" in runbook_text
     assert "gh attestation verify" in runbook_text
+    assert "cosign verify-blob --bundle" in runbook_text
     assert "release identity manifest" in runbook_text
     assert "tagged release security gate" in contributing_text
+    assert "CodeQL" in contributing_text
+    assert "cosign" in contributing_text
     assert "release identity manifest" in contributing_text
 
 
 def test_release_docs_capture_supply_chain_posture_and_firmware_defer() -> None:
-    """Runbook and closeout index should keep current release hardening plus explicit defers visible."""
+    """Runbook and closeout index should keep current hardening plus archived defer truth visible."""
     runbook_text = _RUNBOOK.read_text(encoding="utf-8")
     evidence_text = _V1_2_EVIDENCE_INDEX.read_text(encoding="utf-8")
 
-    for token in ("SHA256SUMS", "provenance", "SBOM", "signing", "code scanning"):
+    for token in ("SHA256SUMS", "provenance", "SBOM", "signing"):
         assert token in runbook_text
         assert token in evidence_text
+    assert "CodeQL" in runbook_text
+    assert "code scanning" in evidence_text
+    assert "cosign" in runbook_text
     assert "gh attestation verify" in runbook_text
     assert "release identity manifest" in runbook_text
     assert "tagged release security gate" in runbook_text

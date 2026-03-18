@@ -12,8 +12,9 @@
 - Minimum supported Home Assistant version: `2026.3.1` (canonical source: `pyproject.toml`).
 - Canonical runtime dependency envelope: `pyproject.toml` (full runtime floor/bounds) + `custom_components/lipro/manifest.json` (Home Assistant-installed subset).
 - Supported stable install paths: HACS and verified GitHub Release assets (`install.sh` + release zip + `SHA256SUMS`).
-- Current release identity evidence: published `SHA256SUMS`, `SBOM`, and GitHub artifact `attestation` / `provenance` (`gh attestation verify`). This is provenance evidence, not artifact signing.
-- Deferred release hardening: artifact `signing` and GitHub `code scanning` are not current hard gates.
+- Current release trust stack: published `SHA256SUMS`, `SBOM`, GitHub artifact `attestation` / `provenance` (`gh attestation verify`), keyless `cosign` signature bundles (`cosign verify-blob --bundle ...`), and the blocking tagged runtime `pip-audit` gate.
+- Provenance evidence is not artifact signing: GitHub artifact attestation / provenance and `cosign` signing are published and verified separately.
+- Tagged release hard gates are fail-closed: the tagged runtime `pip-audit` gate, tagged `CodeQL` analysis with zero open alerts, and signature verification must all pass before assets publish.
 - Preview / unsupported install paths: `ARCHIVE_TAG=main`, branch fallback, or mirror-backed installs. Use them only for maintainer-led testing and reproduction.
 - Private repository / fork note: CI skips HACS validation because HACS only supports public GitHub repositories.
 
@@ -26,11 +27,12 @@
 
 ## Maintainer Model / Triage Ownership
 
-This repository currently follows a single-maintainer review model. Backup maintainer redundancy is not yet established, so triage and release timing may be asynchronous; high-risk issues must still be recorded explicitly rather than silently deferred.
+This repository currently follows a single-maintainer review model. No documented delegate or backup maintainer exists today in `.github/CODEOWNERS`, so triage and release timing may be asynchronous; high-risk issues must still be recorded explicitly rather than silently deferred.
 
 - triage owner: the maintainer listed in `.github/CODEOWNERS`
-- Release custody: centralized to the same single-maintainer model until a real delegate is documented
-- Maintainer unavailable posture: freeze new release promises rather than implying hidden redundancy
+- release custody: centralized to the same single-maintainer model; no documented delegate exists today
+- maintainer unavailable posture: freeze new tagged releases and new release promises, keep the private security path active, and continue support triage only as best effort
+- custody restoration: only after `.github/CODEOWNERS` and `docs/MAINTAINER_RELEASE_RUNBOOK.md` record the real successor or delegate
 
 ## What Helps Most
 

@@ -1,2 +1,2 @@
-# Single-maintainer review model / 单维护者审阅模型：triage ownership and release custody are centralized; if unavailable, freeze releases instead of implying hidden redundancy.
+# Continuity contract / 连续性合同：the maintainer listed here is the primary triage owner and release custodian. No documented delegate exists today; if unavailable, freeze new tagged releases and new release promises, keep support/security intake active, and restore custody only after CODEOWNERS + runbook record a real successor or delegate.
 * @Exlany

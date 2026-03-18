@@ -62,7 +62,7 @@ Thank you for your interest in contributing to the Lipro Smart Home integration!
 - If you touch `README.md` / `README_zh.md` / `CONTRIBUTING.md` / `SUPPORT.md` / `SECURITY.md` / `.github/*` / release workflow, update these entry points together and do not leave silent defer behind.
 - Public bug reports should start with diagnostics; developer report / one-click feedback is an escalation path only when diagnostics are insufficient or a maintainer explicitly asks for deeper debugging.
 - Supported shell/manual install docs now start from verified release assets (`install.sh` + release zip + `SHA256SUMS`); `ARCHIVE_TAG=main` and mirror/branch fallback paths are preview-only and should not be documented as stable support routes.
-- Continuity truth: triage and release custody remain single-maintainer; if that maintainer is unavailable, freeze new tagged releases rather than implying hidden backup coverage.
+- Continuity truth: triage and release custody remain single-maintainer; no documented delegate exists today, so if that maintainer is unavailable, freeze new tagged releases and new release promises until `.github/CODEOWNERS` plus `docs/MAINTAINER_RELEASE_RUNBOOK.md` record the real successor or delegate.
 
 ## Code Standards / 代码规范
 
@@ -126,11 +126,11 @@ Use the same command groups as GitHub Actions:
 - **lint**: `uv run ruff check .`、`uv run ruff format --check .`、`uv run mypy`、`uv run python scripts/check_translations.py`；translation truth 属于 blocking lint lane，不再只是“改到文案时可选”
 - **governance**: `uv run python scripts/check_architecture_policy.py --check`、`uv run python scripts/check_file_matrix.py --check`、`uv run pytest -q -x tests/meta/test_dependency_guards.py tests/meta/test_public_surface_guards.py tests/meta/test_governance*.py tests/meta/test_toolchain_truth.py tests/meta/test_version_sync.py`
 - **test**: `uv run pytest tests/ -v --ignore=tests/benchmarks --cov=custom_components/lipro --cov-fail-under=95 --cov-report=json --cov-report=xml --cov-report=term-missing`、`uv run python scripts/coverage_diff.py coverage.json --minimum 95`（coverage floor + optional baseline diff）、`uv run python scripts/refactor_tools.py --coverage-json coverage.json --minimum-coverage 95`；snapshot coverage 已包含在 `tests/` 主阻塞 lane 中，不再单独重复执行
-- **security**: GitHub Actions 会在每个 PR 上运行 blocking runtime `pip-audit` 门禁；tag release 还会额外运行 tagged release security gate，对标签源码再做一次 runtime `pip-audit`。dev dependency audit 仅在 `schedule` / `workflow_dispatch` 作为 advisory、non-blocking 运行；GitHub `code scanning` 仍是显式 defer，不要把 attestation / pip-audit 误写成 signing。
+- **security**: GitHub Actions 会在每个 PR 上运行 blocking runtime `pip-audit` 门禁；tag release 还会额外运行 tagged release security gate，并要求 tagged `CodeQL` analysis 已完成且 open alerts 为零。dev dependency audit 仅在 `schedule` / `workflow_dispatch` 作为 advisory、non-blocking 运行；GitHub artifact attestation / provenance 仍不是 signing，请不要把 attestation / pip-audit 混写成 artifact signing。
 - **benchmark**: `uv run pytest tests/benchmarks/ -v --benchmark-only --benchmark-json=.benchmarks/benchmark.json`；当前是 advisory-with-budget lane，仅在性能敏感改动或手动对齐 `schedule` / `workflow_dispatch` 时需要；对齐 CI 时保留 `.benchmarks/benchmark.json` 作为 artifact / budget 对照
 - **shellcheck**: 若修改 `install.sh` / `scripts/*` shell 脚本，请运行 `shellcheck install.sh scripts/develop scripts/lint scripts/setup`（CI 的 `lint` job 也会执行）
 - **validate**: GitHub Actions 会额外运行 `HACS` 与 `Hassfest` 校验；若仓库或 fork 为 private，CI 会跳过 HACS validation，因为 HACS 只支持公开 GitHub 仓库；本地通常不必手动复刻，但提交前应确保仓库元数据仍符合这些约束
-- **release**: tag release 先复用 `.github/workflows/ci.yml`，再由 `.github/workflows/release.yml` 在 `refs/tags/${RELEASE_TAG}` 上运行 tagged release security gate，发布 `SHA256SUMS` / `SBOM` / GitHub artifact attestation / provenance，并写出 release identity manifest；这些是可验证的 release identity 证据，不是 artifact signing。`signing` 与 GitHub `code scanning` 仍是显式 defer；维护者操作手册见 `docs/MAINTAINER_RELEASE_RUNBOOK.md`，不要旁路门禁直接发版
+- **release**: tag release 先复用 `.github/workflows/ci.yml`，再由 `.github/workflows/release.yml` 在 `refs/tags/${RELEASE_TAG}` 上运行 tagged release security gate 与 tagged `CodeQL` gate，发布 `SHA256SUMS` / `SBOM` / GitHub artifact attestation / provenance / keyless `cosign` signature bundles，并写出 release identity manifest。attestation / provenance 是 release identity 证据，`cosign` bundle 才是 artifact signing；维护者操作手册见 `docs/MAINTAINER_RELEASE_RUNBOOK.md`，不要旁路门禁直接发版
 
 ### Type Hints / 类型提示
 

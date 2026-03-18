@@ -91,8 +91,16 @@ Private repository / fork note: CI skips HACS validation because HACS only suppo
 #   - install.sh
 #   - lipro-hass-v1.0.0.zip
 #   - SHA256SUMS
+# Optional signature bundles for local verification:
+#   - lipro-hass-v1.0.0.zip.sigstore.json
+#   - install.sh.sigstore.json
+#   - SHA256SUMS.sigstore.json
 
 # Optional local verification (the installer also verifies with Python/hashlib)
+cosign verify-blob ./lipro-hass-v1.0.0.zip \
+  --bundle ./lipro-hass-v1.0.0.zip.sigstore.json \
+  --certificate-identity-regexp "^https://github.com/Exlany/lipro-hass/.github/workflows/release\.yml@.*$" \
+  --certificate-oidc-issuer https://token.actions.githubusercontent.com
 sha256sum -c SHA256SUMS --ignore-missing
 
 # Supported shell install path
@@ -116,9 +124,9 @@ Note: `ARCHIVE_TAG=main`, branch fallback, and mirror installs are preview / uns
 ### Release Asset Trust
 
 - Stable install trust starts from verified GitHub Release assets plus `SHA256SUMS`.
-- Current release identity evidence also publishes an `SBOM` and GitHub artifact `attestation` / `provenance`, verifiable with `gh attestation verify`.
-- This is release identity / provenance evidence, not artifact signing.
-- `signing` and GitHub `code scanning` remain explicit deferred roadmap items, not current hard gates.
+- Current release trust evidence also publishes an `SBOM`, GitHub artifact `attestation` / `provenance` (`gh attestation verify`), and keyless `cosign` signature bundles (`cosign verify-blob --bundle ...`).
+- GitHub artifact attestation / provenance proves how release assets were produced; `cosign` signature bundles prove artifact signing. They are complementary, not interchangeable.
+- Tagged releases now fail closed on the release-trust stack: blocking runtime `pip-audit`, required tagged `CodeQL` analysis with zero open alerts, and signature verification must all pass before assets publish.
 
 ### shell_command Service
 
@@ -359,7 +367,8 @@ This integration is implemented by reverse engineering the Lipro cloud API and i
 
 - Stable support targets: the latest tagged release and the matching HACS install
 - Preview paths (`ARCHIVE_TAG=main`, branch fallback, mirror installs): best effort only
-- Triage and release custody follow a single-maintainer model; if the maintainer is unavailable, release promises freeze rather than silently bypassing gates or implying a hidden backup maintainer
+- Triage and release custody follow a single-maintainer model; no documented delegate currently exists, so if the maintainer is unavailable, freeze new tagged releases and new release promises, keep support/security intake active, and never imply hidden redundancy
+- Release custody resumes only after `.github/CODEOWNERS` and `docs/MAINTAINER_RELEASE_RUNBOOK.md` record the real successor or delegate
 - Deep-doc continuity follows the same story: `SUPPORT.md`, `SECURITY.md`, `docs/TROUBLESHOOTING.md`, and `docs/MAINTAINER_RELEASE_RUNBOOK.md` must stay aligned on custody / freeze truth
 
 ## Contributing

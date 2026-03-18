@@ -417,8 +417,8 @@
 
 ### Continuity & Release Trust
 
-- [ ] **GOV-29**: maintainer continuity 必须从“单维护者现实的诚实记录”升级为“delegate / custody transfer / freeze escalation”的正式合同；support / security / release 不得继续依赖隐性人治。
-- [ ] **QLT-08**: release identity 必须补齐 machine-verifiable artifact signing，并把 hard release-trust gate 与现有 `SHA256SUMS` / `SBOM` / attestation / provenance story 统一成单一 blocking contract。
+- [x] **GOV-29**: maintainer continuity 已从“单维护者现实的诚实记录”升级为“delegate / custody transfer / freeze escalation”的正式合同；support / security / release 不再依赖隐性人治。
+- [x] **QLT-08**: release identity 已补齐 machine-verifiable artifact signing，并把 hard release-trust gate 与现有 `SHA256SUMS` / `SBOM` / attestation / provenance story 统一成单一 blocking contract。
 
 ### Protocol Hotspots
 
@@ -441,8 +441,8 @@
 
 | Requirement | Planned Phase | Status |
 |-------------|---------------|--------|
-| GOV-29 | Phase 34 | Pending |
-| QLT-08 | Phase 34 | Pending |
+| GOV-29 | Phase 34 | Complete |
+| QLT-08 | Phase 34 | Complete |
 | HOT-09 | Phase 35 | Pending |
 | RES-07 | Phase 35 | Pending |
 | HOT-10 | Phase 36 | Pending |

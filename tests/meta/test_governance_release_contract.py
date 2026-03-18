@@ -32,10 +32,13 @@ from .test_governance_guards import (
     re,
 )
 
+_CODEQL_WORKFLOW = _ROOT / ".github" / "workflows" / "codeql.yml"
+
 
 def test_ci_and_release_workflows_share_governance_and_version_gates() -> None:
     ci_workflow = _load_yaml(_CI_WORKFLOW)
     release_workflow = _load_yaml(_RELEASE_WORKFLOW)
+    codeql_workflow = _load_yaml(_CODEQL_WORKFLOW)
 
     assert "workflow_call" in ci_workflow["on"]
 
@@ -88,12 +91,20 @@ def test_ci_and_release_workflows_share_governance_and_version_gates() -> None:
     assert "Checkout tagged release ref" in security_gate_steps
     assert "Run pip-audit (runtime, tagged release)" in security_gate_steps
 
+    code_scanning_gate = release_workflow["jobs"]["code_scanning_gate"]
+    assert code_scanning_gate["needs"] == "validate"
+    code_scanning_gate_steps = {step["name"] for step in code_scanning_gate["steps"]}
+    assert "Checkout tagged release ref" in code_scanning_gate_steps
+    assert "Wait for tagged CodeQL analysis" in code_scanning_gate_steps
+    assert "Fail on open CodeQL alerts for tagged ref" in code_scanning_gate_steps
+
     assert release_workflow["permissions"]["contents"] == "write"
     assert release_workflow["permissions"]["attestations"] == "write"
     assert release_workflow["permissions"]["id-token"] == "write"
+    assert release_workflow["permissions"]["security-events"] == "read"
 
     build_job = release_workflow["jobs"]["build"]
-    assert set(build_job["needs"]) == {"validate", "security_gate"}
+    assert set(build_job["needs"]) == {"validate", "security_gate", "code_scanning_gate"}
     step_names = {step["name"] for step in build_job["steps"]}
     assert "Checkout tagged release ref" in step_names
     assert "Verify tag matches project version" in step_names
@@ -101,7 +112,13 @@ def test_ci_and_release_workflows_share_governance_and_version_gates() -> None:
     assert "Export SBOM" in step_names
     assert "Generate artifact attestation" in step_names
     assert "Verify generated artifact attestations" in step_names
+    assert "Install cosign" in step_names
+    assert "Sign release assets" in step_names
+    assert "Verify release signatures" in step_names
     assert "Write release identity manifest" in step_names
+    assert "Install cosign" in step_names
+    assert "Sign release assets" in step_names
+    assert "Verify release signatures" in step_names
     checkout_step = next(
         step
         for step in build_job["steps"]
@@ -128,6 +145,22 @@ def test_ci_and_release_workflows_share_governance_and_version_gates() -> None:
     assert "SHA256SUMS" in published_files
     assert ".spdx.json" in published_files
     assert ".release-identity.txt" in published_files
+    assert ".sigstore.json" in published_files
+
+    codeql = _load_yaml(_CODEQL_WORKFLOW)
+    assert codeql["permissions"]["security-events"] == "write"
+    analyze_steps = {step["name"] for step in codeql["jobs"]["analyze"]["steps"]}
+    assert "Initialize CodeQL" in analyze_steps
+    assert "Perform CodeQL Analysis" in analyze_steps
+    codeql_on = codeql_workflow.get("on", codeql_workflow.get(True))
+    assert isinstance(codeql_on, dict)
+    assert "workflow_dispatch" in codeql_on
+    assert "push" in codeql_on
+    assert "v*" in codeql_on["push"]["tags"]
+    assert codeql_workflow["permissions"]["security-events"] == "write"
+    codeql_steps = {step["name"] for step in codeql_workflow["jobs"]["analyze"]["steps"]}
+    assert "Initialize CodeQL" in codeql_steps
+    assert "Perform CodeQL Analysis" in codeql_steps
 
 
 def test_governance_closeout_suite_is_wired_into_daily_gate_commands() -> None:
@@ -290,12 +323,16 @@ def test_release_runbook_and_support_docs_expose_continuity_truth() -> None:
     security_text = _SECURITY.read_text(encoding="utf-8")
     codeowners_text = _CODEOWNERS.read_text(encoding="utf-8")
 
-    for token in ("single-maintainer", "release custody", "freeze", "best effort"):
+    for token in ("single-maintainer", "release custody", "freeze", "best effort", "delegate"):
         assert token in runbook_text
+    assert "Continuity Drill Checklist" in runbook_text
     assert "triage owner" in support_text
     assert "best effort" in support_text
+    assert "no documented delegate exists today" in support_text
     assert "freeze new tagged releases" in security_text
-    assert "release custody" in codeowners_text
+    assert "Documented delegate: none currently" in security_text
+    assert "release custodian" in codeowners_text
+    assert "restore custody only after" in codeowners_text
 
 
 def test_support_and_issue_routing_are_consistent() -> None:

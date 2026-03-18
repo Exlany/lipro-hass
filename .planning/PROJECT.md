@@ -101,7 +101,11 @@
 3. `Phase 36` — runtime root and exception burn-down
 4. `Phase 37` — test topology and derived-truth convergence
 
-**Default next step:** `$gsd-plan-phase 34`
+**Default next step:** `$gsd-plan-phase 35`
+
+## Phase 34 Seed Hardening Update
+
+`Phase 34` 已于 `2026-03-18` 完成：single-maintainer continuity 现有 formal custody / freeze / restoration contract；release path 已具备 tagged `CodeQL` hard gate、keyless `cosign` signing bundle、provenance verification 与同步后的 public docs truth。`v1.3` 仍保持 closeout-eligible with retained debt，而 `v1.4` seed 的默认下一步已切到 `Phase 35`。
 
 ## Why This Milestone Exists
 

@@ -1106,3 +1106,35 @@ def test_phase_22_observability_consumer_governance_truth_is_synced() -> None:
     )
     assert "## Phase 22 Residual Delta" in residual_text
     assert "exporter-only truth" in residual_text
+
+
+def test_phase_34_execution_evidence_is_consistent() -> None:
+    phase_root = (
+        _ROOT
+        / ".planning"
+        / "phases"
+        / "34-continuity-and-hard-release-gates"
+    )
+    validation_text = (phase_root / "34-VALIDATION.md").read_text(encoding="utf-8")
+    verification_text = (phase_root / "34-VERIFICATION.md").read_text(encoding="utf-8")
+    summary_text = (phase_root / "34-SUMMARY.md").read_text(encoding="utf-8")
+
+    assert "status: passed" in validation_text
+    assert "nyquist_compliant: true" in validation_text
+    assert "34-01-01" in validation_text and "✅ passed" in validation_text
+    assert "34-02-01" in validation_text and "✅ passed" in validation_text
+    assert "34-03-01" in validation_text and "✅ passed" in validation_text
+    assert "**Approval:** complete" in validation_text
+
+    assert "# Phase 34 Verification" in verification_text
+    assert "status: passed" in verification_text
+    assert "GOV-29" in verification_text
+    assert "QLT-08" in verification_text
+    assert "tagged `CodeQL` gate" in verification_text
+    assert "cosign" in verification_text
+
+    assert "phase: 34" in summary_text
+    assert "status: passed" in summary_text
+    assert "`34-01`" in summary_text
+    assert "`34-02`" in summary_text
+    assert "`34-03`" in summary_text

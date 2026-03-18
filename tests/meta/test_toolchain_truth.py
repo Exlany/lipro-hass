@@ -22,6 +22,7 @@ _PRE_COMMIT = _ROOT / ".pre-commit-config.yaml"
 _DEVCONTAINER = _ROOT / ".devcontainer.json"
 _CI_WORKFLOW = _ROOT / ".github" / "workflows" / "ci.yml"
 _RELEASE_WORKFLOW = _ROOT / ".github" / "workflows" / "release.yml"
+_CODEQL_WORKFLOW = _ROOT / ".github" / "workflows" / "codeql.yml"
 _DEVELOP_SCRIPT = _ROOT / "scripts" / "develop"
 _SETUP_PYTHON = "actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405"
 _UPLOAD_ARTIFACT = "actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02"
@@ -46,6 +47,8 @@ def _load_pyproject() -> dict[str, Any]:
 def _load_yaml(path: Path) -> dict[str, Any]:
     loaded = yaml.safe_load(path.read_text(encoding="utf-8"))
     assert isinstance(loaded, dict)
+    if True in loaded and "on" not in loaded:
+        loaded["on"] = loaded.pop(True)
     return loaded
 
 
@@ -119,6 +122,8 @@ def test_python_toolchain_truth_is_aligned_to_314() -> None:
 
 def test_release_workflow_keeps_identity_evidence_tools_in_sync() -> None:
     release = _load_yaml(_RELEASE_WORKFLOW)
+    codeql = _load_yaml(_CODEQL_WORKFLOW)
+
     build_job = release["jobs"]["build"]
     steps = build_job["steps"]
     step_names = {step["name"] for step in steps}
@@ -126,9 +131,23 @@ def test_release_workflow_keeps_identity_evidence_tools_in_sync() -> None:
     assert "Generate artifact attestation" in step_names
     assert "Verify generated artifact attestations" in step_names
     assert "Write release identity manifest" in step_names
+    assert "Install cosign" in step_names
+    assert "Sign release assets" in step_names
+    assert "Verify release signatures" in step_names
+
+    codeql_on = codeql.get("on", codeql.get(True))
+    assert isinstance(codeql_on, dict)
+    assert "workflow_dispatch" in codeql_on
+    assert "push" in codeql_on
+    assert "v*" in codeql_on["push"]["tags"]
+    assert codeql["permissions"]["security-events"] == "write"
+    analyze_job = codeql["jobs"]["analyze"]
+    analyze_step_names = {step["name"] for step in analyze_job["steps"]}
+    assert "Initialize CodeQL" in analyze_step_names
+    assert "Perform CodeQL Analysis" in analyze_step_names
 
 
-def test_release_identity_manifest_keeps_current_defers_explicit() -> None:
+def test_release_identity_manifest_keeps_current_trust_stack_explicit() -> None:
     release = _load_yaml(_RELEASE_WORKFLOW)
     build_job = release["jobs"]["build"]
     steps = build_job["steps"]
@@ -147,10 +166,13 @@ def test_release_identity_manifest_keeps_current_defers_explicit() -> None:
         "identity_evidence=SHA256SUMS",
         "identity_evidence=SBOM",
         "identity_evidence=GitHub artifact attestation",
+        "identity_evidence=cosign keyless signature bundle",
         "provenance=GitHub artifact attestation",
         "identity_verification=gh attestation verify",
-        "signing=deferred",
-        "code_scanning=deferred",
+        "signing=cosign keyless sign-blob",
+        "signing_verification=cosign verify-blob --bundle",
+        "code_scanning=GitHub CodeQL hard gate",
+        "code_scanning_verification=tagged ref analysis required + zero open alerts",
     ):
         assert token in run_block
 
@@ -165,13 +187,15 @@ def test_bilingual_readmes_capture_release_asset_identity_truth() -> None:
             "SBOM",
             "attestation",
             "provenance",
-            "signing",
-            "code scanning",
+            "cosign",
+            "CodeQL",
         ):
             assert token in text
 
     assert "single-maintainer model" in readme_text
+    assert "no documented delegate currently exists" in readme_text
     assert "单维护者模型" in readme_zh_text
+    assert "当前没有已记录的 delegate" in readme_zh_text
 
 
 def test_pre_push_contract_runs_translation_and_governance_truth_early() -> None:
@@ -298,10 +322,23 @@ def test_deep_docs_keep_single_maintainer_continuity_truth() -> None:
     assert "single-maintainer" in security_text
     assert "single-maintainer" in runbook_text
     assert "单维护者" in troubleshooting_text
+    assert "no documented delegate exists today" in support_text
+    assert "Documented delegate: none currently" in security_text
+    assert "No documented delegate currently exists" in runbook_text
+    assert "没有已记录的 delegate" in troubleshooting_text
     assert "freeze new tagged releases" in security_text
-    assert "freeze new release promises" in support_text
+    assert "freeze new tagged releases" in support_text
+    assert "new release promises" in support_text
     assert "freeze new tagged releases" in runbook_text
-    assert "freeze new release promises" in troubleshooting_text
+    assert "new release promises" in runbook_text
+    assert "freeze new tagged releases" in troubleshooting_text
+    assert "new release promises" in troubleshooting_text
+    assert "no documented delegate" in support_text
+    assert "Documented delegate" in security_text
+    assert "No documented delegate" in runbook_text
+    assert "custody restoration" in support_text
+    assert "Custody restoration" in security_text
+    assert "Custody restoration" in runbook_text
     assert "SECURITY.md" in troubleshooting_text
     assert "SUPPORT.md" in troubleshooting_text
     assert "docs/MAINTAINER_RELEASE_RUNBOOK.md" in troubleshooting_text

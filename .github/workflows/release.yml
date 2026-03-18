@@ -19,6 +19,7 @@ permissions:
   attestations: write
   contents: write
   id-token: write
+  security-events: read
 
 env:
   RELEASE_TAG: ${{ github.event.inputs.tag || github.ref_name }}
@@ -40,11 +41,6 @@ jobs:
         with:
           ref: refs/tags/${{ env.RELEASE_TAG }}
           fetch-depth: 0
-
-      - name: Set up Python
-        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
-        with:
-          python-version: "3.14"
 
       - name: Set up uv
         uses: astral-sh/setup-uv@0ca8f610542aa7f4acaf39e65cf4eb3c35091883
@@ -69,13 +65,82 @@ jobs:
       - name: Run pip-audit (runtime, tagged release)
         run: uv run --extra dev pip-audit --progress-spinner off -r requirements-runtime.txt
 
+  code_scanning_gate:
+    name: Tagged Release Code Scanning Gate
+    runs-on: ubuntu-latest
+    needs: validate
+    timeout-minutes: 15
+    steps:
+      - name: Checkout tagged release ref
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          ref: refs/tags/${{ env.RELEASE_TAG }}
+          fetch-depth: 1
+
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
+        with:
+          python-version: "3.14"
+
+      - name: Wait for tagged CodeQL analysis
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          release_ref="refs/tags/${RELEASE_TAG}"
+          encoded_ref="${release_ref//\//%2F}"
+          release_sha="$(git rev-parse HEAD)"
+          analysis_count="0"
+
+          for attempt in $(seq 1 30); do
+            analyses_json="$(gh api -H 'Accept: application/vnd.github+json' \
+              "/repos/${{ github.repository }}/code-scanning/analyses?ref=${encoded_ref}&tool_name=CodeQL&per_page=100")"
+            analysis_count="$(printf '%s' "${analyses_json}" | jq --arg release_sha "${release_sha}" '[.[] | select(.commit_sha == $release_sha)] | length')"
+
+            if [[ "${analysis_count}" != "0" ]]; then
+              echo "Tagged CodeQL analyses found for ${release_ref}: ${analysis_count}" >> "$GITHUB_STEP_SUMMARY"
+              break
+            fi
+
+            if [[ "${attempt}" == "30" ]]; then
+              echo "No completed CodeQL analysis found for ${release_ref} (${release_sha})" >&2
+              exit 1
+            fi
+
+            sleep 20
+          done
+
+      - name: Fail on open CodeQL alerts for tagged ref
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          release_ref="refs/tags/${RELEASE_TAG}"
+          encoded_ref="${release_ref//\//%2F}"
+          alerts_json="$(gh api -H 'Accept: application/vnd.github+json' \
+            "/repos/${{ github.repository }}/code-scanning/alerts?ref=${encoded_ref}&state=open&tool_name=CodeQL&per_page=100")"
+          open_count="$(printf '%s' "${alerts_json}" | jq 'length')"
+
+          if [[ "${open_count}" != "0" ]]; then
+            echo "Open CodeQL alerts remain for ${release_ref}: ${open_count}" >&2
+            printf '%s' "${alerts_json}" | jq -r '.[:20][] | "\(.rule.id // "unknown-rule") @ \(.most_recent_instance.location.path // "unknown-path")"' >&2
+            exit 1
+          fi
+
+          echo "Tagged CodeQL gate: zero open alerts for ${release_ref}" >> "$GITHUB_STEP_SUMMARY"
+
   build:
     name: Build Release Assets
     runs-on: ubuntu-latest
     needs:
       - validate
       - security_gate
-    timeout-minutes: 10
+      - code_scanning_gate
+    timeout-minutes: 15
     steps:
       - name: Checkout tagged release ref
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
@@ -179,12 +244,55 @@ jobs:
             echo "identity_evidence=SHA256SUMS"
             echo "identity_evidence=SBOM"
             echo "identity_evidence=GitHub artifact attestation"
+            echo "identity_evidence=cosign keyless signature bundle"
             echo "provenance=GitHub artifact attestation"
             echo "identity_verification=gh attestation verify"
-            echo "signing=deferred"
-            echo "code_scanning=deferred"
+            echo "signing=cosign keyless sign-blob"
+            echo "signing_verification=cosign verify-blob --bundle"
+            echo "code_scanning=GitHub CodeQL hard gate"
+            echo "code_scanning_verification=tagged ref analysis required + zero open alerts"
             echo "workflow_run=${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
           } > "${manifest}"
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@faadad0cce49287aee09b3a48701e75088a2c6ad
+        with:
+          cosign-release: v3.0.5
+
+      - name: Sign release assets
+        shell: bash
+        env:
+          COSIGN_YES: "true"
+        run: |
+          set -euo pipefail
+
+          for artifact in \
+            "dist/lipro-hass-${RELEASE_TAG}.zip" \
+            "dist/install.sh" \
+            "dist/SHA256SUMS" \
+            "dist/lipro-hass-${RELEASE_TAG}.spdx.json" \
+            "dist/lipro-hass-${RELEASE_TAG}.release-identity.txt"; do
+            cosign sign-blob "${artifact}" --bundle "${artifact}.sigstore.json"
+          done
+
+      - name: Verify release signatures
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          identity_regex="^https://github.com/${GITHUB_REPOSITORY}/.github/workflows/release.yml@refs/(tags/${RELEASE_TAG}|heads/.+)$"
+
+          for artifact in \
+            "dist/lipro-hass-${RELEASE_TAG}.zip" \
+            "dist/install.sh" \
+            "dist/SHA256SUMS" \
+            "dist/lipro-hass-${RELEASE_TAG}.spdx.json" \
+            "dist/lipro-hass-${RELEASE_TAG}.release-identity.txt"; do
+            cosign verify-blob "${artifact}" \
+              --bundle "${artifact}.sigstore.json" \
+              --certificate-identity-regexp "${identity_regex}" \
+              --certificate-oidc-issuer "https://token.actions.githubusercontent.com"
+          done
 
       - name: Publish release assets
         uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b
@@ -192,8 +300,13 @@ jobs:
           tag_name: ${{ env.RELEASE_TAG }}
           files: |
             dist/lipro-hass-${{ env.RELEASE_TAG }}.zip
+            dist/lipro-hass-${{ env.RELEASE_TAG }}.zip.sigstore.json
             dist/install.sh
+            dist/install.sh.sigstore.json
             dist/SHA256SUMS
+            dist/SHA256SUMS.sigstore.json
             dist/lipro-hass-${{ env.RELEASE_TAG }}.spdx.json
+            dist/lipro-hass-${{ env.RELEASE_TAG }}.spdx.json.sigstore.json
             dist/lipro-hass-${{ env.RELEASE_TAG }}.release-identity.txt
+            dist/lipro-hass-${{ env.RELEASE_TAG }}.release-identity.txt.sigstore.json
           generate_release_notes: true

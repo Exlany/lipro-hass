@@ -636,13 +636,13 @@ Plans:
   1. 未签名或未通过新增 hard gate 的 release asset 不能被包装成稳定 release；release workflow、README / README_zh、SUPPORT、SECURITY 与 runbook 对 trust posture 口径完全一致。
   2. maintainer continuity 不再只有“单维护者现实”的诚实记录，而是具备 delegate / custody / freeze escalation 的正式合同与证据。
   3. continuity / release truth 至少形成一轮可追溯的 drill、checklist 或 guard 证据，而不是只存在于叙述性文档。
-**Status**: Planned
-**Plans**: 0/3 complete
+**Status**: Complete (`2026-03-18`)
+**Plans**: 3/3 complete
 
 Plans:
-- [ ] 34-01: formalize continuity, custody, and freeze-escalation contracts
-- [ ] 34-02: add artifact signing and hard release-trust gates
-- [ ] 34-03: converge public docs, runbook, CODEOWNERS, and guards on continuity/release truth
+- [x] 34-01: formalize continuity, custody, and freeze-escalation contracts (completed 2026-03-18)
+- [x] 34-02: add artifact signing and hard release-trust gates (completed 2026-03-18)
+- [x] 34-03: converge public docs, runbook, CODEOWNERS, and guards on continuity/release truth (completed 2026-03-18)
 
 ### Phase 35: Protocol hotspot final slimming
 **Goal**: 继续拆薄 `LiproRestFacade` 与 `LiproProtocolFacade` 两个协议热点，但严格沿现有 protocol seams 下沉职责，不长出第二 root，不把 forwarding glue 合法化成永久结构。

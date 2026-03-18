@@ -319,7 +319,8 @@ def test_phase_32_completion_truth_is_consistent() -> None:
     assert "`Phase 25 -> 33` 已于 `2026-03-18` 全部执行完成" in project_text
     assert "`Phase 32` — truth convergence, gate honesty, and quality-10 closeout" in project_text
     assert "`Phase 32` 已执行完成" in state_text
-    assert "`Phase 25 -> 33` 已于 `2026-03-18` 全部执行完成并通过 fresh gates" in state_text
+    assert "`Phase 34 complete`" in state_text
+    assert "`Phase 25 -> 34` 已于 `2026-03-18` 全部执行完成并通过 fresh gates" in state_text
     assert "$gsd-plan-milestone-gaps" in state_text
     assert "$gsd-complete-milestone v1.3" in state_text
     assert "$gsd-progress" in state_text
@@ -393,8 +394,65 @@ def test_phase_33_planning_truth_is_consistent() -> None:
     assert "`Phase 33` 已被追加并执行完成，成为 post-closeout continuation tranche 的已落地 tranche" in project_text
     assert "## Phase 33 Audit-Driven Continuation" in project_text
     assert "`33-05 / 33-06` 已收紧 CI/pre-push/benchmark/release evidence truth、dependency posture、deep-doc parity、maintainer continuity 与 mega-test topicization。" in project_text
-    assert "`Phase 33 complete`" in state_text
+    assert "`Phase 33` 已于 `2026-03-18` 执行完成" in state_text
+    assert "`Phase 34 complete`" in state_text
     assert "runtime contract dual-truth、control 去回路、giant hotspots / broad-catch / gate drift / dependency posture / deep-doc continuity / mega-test topicization 已全部收口" in state_text
     assert "$gsd-plan-milestone-gaps" in state_text
     assert "$gsd-complete-milestone v1.3" in state_text
     assert "$gsd-progress" in state_text
+
+
+def test_phase_34_planning_truth_is_consistent() -> None:
+    phase_root = (
+        _ROOT
+        / ".planning"
+        / "phases"
+        / "34-continuity-and-hard-release-gates"
+    )
+    roadmap_text = (_ROOT / ".planning" / "ROADMAP.md").read_text(encoding="utf-8")
+    requirements_text = (_ROOT / ".planning" / "REQUIREMENTS.md").read_text(
+        encoding="utf-8"
+    )
+    project_text = (_ROOT / ".planning" / "PROJECT.md").read_text(encoding="utf-8")
+    state_text = (_ROOT / ".planning" / "STATE.md").read_text(encoding="utf-8")
+
+    for artifact_name in (
+        "34-CONTEXT.md",
+        "34-01-PLAN.md",
+        "34-02-PLAN.md",
+        "34-03-PLAN.md",
+        "34-VALIDATION.md",
+        "34-01-SUMMARY.md",
+        "34-02-SUMMARY.md",
+        "34-03-SUMMARY.md",
+        "34-SUMMARY.md",
+        "34-VERIFICATION.md",
+    ):
+        assert (phase_root / artifact_name).exists()
+
+    assert "### Phase 34: Continuity and hard release gates" in roadmap_text
+    assert "**Requirements**: [GOV-29, QLT-08]" in roadmap_text
+    assert "**Status**: Complete (`2026-03-18`)" in roadmap_text
+    assert "**Plans**: 3/3 complete" in roadmap_text
+    assert "- [x] 34-01: formalize continuity, custody, and freeze-escalation contracts" in roadmap_text
+    assert "- [x] 34-02: add artifact signing and hard release-trust gates" in roadmap_text
+    assert "- [x] 34-03: converge public docs, runbook, CODEOWNERS, and guards on continuity/release truth" in roadmap_text
+
+    for needle in (
+        "- [x] **GOV-29**",
+        "- [x] **QLT-08**",
+        "| GOV-29 | Phase 34 | Complete |",
+        "| QLT-08 | Phase 34 | Complete |",
+    ):
+        assert needle in requirements_text
+
+    assert "## Phase 34 Seed Hardening Update" in project_text
+    assert "`Phase 34` 已于 `2026-03-18` 完成" in project_text
+    assert "**Default next step:** `$gsd-plan-phase 35`" in project_text
+
+    assert "`Phase 34 complete`" in state_text
+    assert "`Phase 25 -> 34` 已于 `2026-03-18` 全部执行完成" in state_text
+    assert "tagged `CodeQL` hard gate" in state_text
+    assert "$gsd-plan-phase 35" in state_text
+    assert "$gsd-plan-milestone-gaps" in state_text
+    assert "$gsd-complete-milestone v1.3" in state_text

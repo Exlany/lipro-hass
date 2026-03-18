@@ -3,7 +3,7 @@
 ## Start Here
 
 - Canonical minimum supported Home Assistant version: `2026.3.1` (source of truth: `pyproject.toml`).
-- Continuity note / 连续性说明：support、security 与 release custody 仍是单维护者模型；若维护者不可用，应 freeze new release promises，而不是假定存在隐藏冗余。
+- Continuity note / 连续性说明：support、security 与 release custody 仍是单维护者模型；当前没有已记录的 delegate。若维护者不可用，应 freeze new tagged releases 与 new release promises，同时保持 `SUPPORT.md` / `SECURITY.md` intake 有效，而不是假定存在隐藏冗余；只有当 `.github/CODEOWNERS` 与 `docs/MAINTAINER_RELEASE_RUNBOOK.md` 共同记录真实 successor / delegate 后，custody 才能恢复。
 - Private repositories and forks skip CI HACS validation because HACS only supports public GitHub repositories.
 - Security reports do **not** belong in public issues; follow `SECURITY.md` instead.
 - Maintainer-facing release and packaging steps live in `docs/MAINTAINER_RELEASE_RUNBOOK.md`.

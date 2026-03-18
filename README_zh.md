@@ -91,8 +91,16 @@ Home Assistant 集成，用于控制 Lipro 智能家居设备。
 #   - install.sh
 #   - lipro-hass-v1.0.0.zip
 #   - SHA256SUMS
+# 可选的本地签名 bundle：
+#   - lipro-hass-v1.0.0.zip.sigstore.json
+#   - install.sh.sigstore.json
+#   - SHA256SUMS.sigstore.json
 
 # 可选的本地校验（安装脚本内部也会用 Python/hashlib 再校验一次）
+cosign verify-blob ./lipro-hass-v1.0.0.zip \
+  --bundle ./lipro-hass-v1.0.0.zip.sigstore.json \
+  --certificate-identity-regexp "^https://github.com/Exlany/lipro-hass/.github/workflows/release\.yml@.*$" \
+  --certificate-oidc-issuer https://token.actions.githubusercontent.com
 sha256sum -c SHA256SUMS --ignore-missing
 
 # 默认支持的脚本安装路径
@@ -116,9 +124,9 @@ ARCHIVE_TAG=main LIPRO_ALLOW_MIRROR=1 HUB_DOMAIN=ghfast.top bash ./install.sh
 ### Release 资产信任边界
 
 - 稳定安装的信任起点是经过校验的 GitHub Release 资产与 `SHA256SUMS`。
-- 当前 release identity 证据还会发布 `SBOM` 与 GitHub artifact `attestation` / `provenance`，可用 `gh attestation verify` 校验。
-- 这属于 release identity / provenance 证据，不是 artifact signing。
-- `signing` 与 GitHub `code scanning` 仍是明确 defer 的 roadmap 项，不是当前硬门禁。
+- 当前 release trust 证据还会发布 `SBOM`、GitHub artifact `attestation` / `provenance`（`gh attestation verify`）以及 keyless `cosign` 签名 bundle（`cosign verify-blob --bundle ...`）。
+- GitHub artifact attestation / provenance 证明资产如何被构建；`cosign` 签名 bundle 证明 artifact signing。两者互补，但不能互相替代。
+- Tagged release 现在会对 release-trust 栈 fail closed：blocking runtime `pip-audit`、必须存在且无 open alerts 的 tagged `CodeQL` analysis，以及签名校验，都必须在发布前通过。
 
 ### shell_command 服务
 
@@ -360,7 +368,8 @@ data:
 
 - 稳定支持目标：最新标签版本与与其一致的 HACS 安装
 - 预览路径（`ARCHIVE_TAG=main`、branch fallback、mirror 安装）：仅属 best effort
-- 分流与发版 custody 仍遵循单维护者模型；若维护者不可用，应冻结 release 承诺，而不是静默绕过门禁或暗示存在隐藏的备用维护者
+- 分流与发版 custody 仍遵循单维护者模型；当前没有已记录的 delegate，因此若维护者不可用，应冻结新的 tagged release 与 release 承诺，保持 `SUPPORT.md` / `SECURITY.md` intake 有效，绝不暗示存在隐藏冗余
+- 只有当 `.github/CODEOWNERS` 与 `docs/MAINTAINER_RELEASE_RUNBOOK.md` 记录了真实 successor / delegate 后，release custody 才能恢复
 - 深层文档也必须讲同一条故事：`SUPPORT.md`、`SECURITY.md`、`docs/TROUBLESHOOTING.md` 与 `docs/MAINTAINER_RELEASE_RUNBOOK.md` 需要持续对齐 custody / freeze 真相
 
 ## 贡献
