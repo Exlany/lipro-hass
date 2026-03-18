@@ -30,11 +30,11 @@
 **Execution status:** `Phase 18-24` complete
 **Archive assets:** `.planning/milestones/v1.1-ROADMAP.md`, `.planning/milestones/v1.1-REQUIREMENTS.md`, `.planning/milestones/v1.2-ROADMAP.md`, `.planning/milestones/v1.2-REQUIREMENTS.md`
 
-## Next-Phase Seed (v1.3)
+## v1.3 Closeout & Post-closeout Continuation
 
-**Route-freeze status:** `Phase 25 -> 32` 已于 `2026-03-18` 全部执行完成；v1.3 continuation route 现已从 execution-ready 收口到 execution-complete / audit-ready，旧的“Phase 32 仍待执行”口径不再适用于当前 active truth。
+**Route-freeze status:** `Phase 25 -> 32` 已于 `2026-03-18` 全部执行完成；v1.3 continuation route 现已从 execution-ready 收口到 execution-complete / audit-ready。基于同日全仓终审，`Phase 33` 已被追加为 post-closeout continuation tranche，用来把 remaining P1/P2 hardening debt 从口头结论转成正式执行路线。
 
-**Continuation closeout status:** `Phase 32` execution / verification 资产现已落地，依赖链 `31 -> 32` 已闭环；`.planning/v1.3-HANDOFF.md` 继续作为 `Phase 25 -> 31` 历史 closeout baseline，而当前 active next step 已切换为 `v1.3` milestone audit / archive-or-promote arbitration。
+**Continuation closeout status:** `Phase 32` execution / verification 资产现已落地，依赖链 `31 -> 32` 已闭环；`.planning/v1.3-HANDOFF.md` 继续作为 `Phase 25 -> 31` 历史 closeout baseline。`Phase 33` 明确作为 **post-v1.3 continuation tranche** 存在：默认 next action 是 `$gsd-execute-phase 33`，而 `$gsd-audit-milestone` 继续作为 archive-or-promote 仲裁入口，而非与 `Phase 33` 并列的第二条 active route。
 
 **Parent phase:** `Phase 25 — Quality-10 remediation master plan and execution routing`
 
@@ -73,6 +73,17 @@
 - reverse-engineered vendor login flow 中要求的 `MD5` 哈希口令路径，按当前认知属于**上游协议约束**，不是本仓库单独可消灭的“弱密码学债”；除非后续确认存在可替换的上游协议路径，否则不把它登记为仓库内部独立交付目标。
 - `AES-ECB` / `SHA1` 一类协议受限实现也只在“可替换协议已被证实”时才升级为重构目标；当前先以边界隔离与诚实记录为准。
 - `Phase 32` 只处理仓库可裁决的 truth / gate / hotspot debt；不会把上游协议未证实可替换的实现伪装成仓库内部“马上可消灭”的重构目标。
+
+## Phase 33 Audit-Driven Continuation
+
+**Why now:** `Phase 25 -> 32` 关闭了旧 P0，但最新全仓终审仍明确留下了一簇 repo-internal hardening debt：runtime contract 双真源、control 回路、giant roots / forwarding layers、broad-catch arbitration、CI/perf gate drift、dependency reproducibility、deep-doc bilingual parity 与 maintainer continuity。
+
+**Execution promise:** `Phase 33` 不是第二套路线图，而是把上述 remaining P1/P2 全量压进单一正式主链上的下一轮 hardening tranche；任何交付都必须继续沿 `protocol / control / runtime / services / tests / docs` 现有 homes 推进。
+
+**Route promise:**
+- `33-01 / 33-02` 先关闭 runtime contract dual-truth、control reflection loop、snapshot leakage 与 over-wide exports。
+- `33-03 / 33-04` 继续切薄 giant roots，并把 exception policy / typed debt / naming residue 收口成更少、更诚实的 arbitration points。
+- `33-05 / 33-06` 再收紧 CI/pre-push/benchmark/release evidence truth、dependency posture、deep-doc parity、maintainer continuity 与 mega-test topicization。
 
 ## Why This Milestone Exists
 
@@ -420,4 +431,4 @@ v1.1 进入执行期后，新增演进必须额外满足：
 
 - 当前工作区输入以 `v1.2` closeout bundle 与 `v1.3` handoff assets 为主；phase 目录资产仍默认是执行证据，只有被 `ROADMAP.md`、baseline docs、review ledgers 或 milestone audit 显式提升时，才成为长期治理真源。
 
-*Last updated: 2026-03-18 after v1.3 Phase 32 execution closeout*
+*Last updated: 2026-03-18 after Phase 33 planning seeded from the full-repo terminal audit*

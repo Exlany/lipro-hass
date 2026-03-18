@@ -601,3 +601,25 @@ Plans:
 - [x] 32-03: converge release identity posture, maintainer continuity, and contributor templates
 - [x] 32-04: refresh codebase-map freshness, authority disclaimers, and bilingual public-doc sync
 - [x] 32-05: close hotspot slimming, mega-test topicization, typed/exception debt, and residual honesty
+
+## Post-v1.3 Continuation Seed
+
+### Phase 33: Contract-truth unification, hotspot slimming, and productization hardening
+**Goal**: 把 `8.8/10` 终审仍残留的 runtime contract 双真源、control 去回路、giant roots / forwarding layers、broad-catch、CI/perf gate 漂移与深层开源产品化短板统一收束成下一轮 quality-10 hardening tranche，在不引入第二 root 的前提下把仓库从“高阶工程仓库”继续推进到“国际成熟开源产品”水位。
+**Depends on**: Phase 32
+**Requirements**: [ARC-03, CTRL-07, HOT-08, ERR-07, TST-05, QLT-06, GOV-27, GOV-28, QLT-07]
+**Draft Success Criteria**:
+  1. runtime public surface 真源统一到单一合同；control-plane locator / telemetry / read-model 变为 acyclic、port-based、snapshot-pure story。
+  2. `LiproRestFacade` / `LiproProtocolFacade` / `Coordinator` / `Snapshot` / `CommandResult` 等 giant roots 或 giant helpers 继续沿现有 seams 切薄，而不是长出第二 orchestration root 或 helper folklore。
+  3. broad-catch、local/CI/pre-push/perf gates、release evidence posture 与 dependency/compatibility story 收敛为 machine-checkable truth，不再残留重复测试、迟到反馈或文档强于现实的 drift。
+  4. control exports、naming residue、empty compat shells、mega-tests、深层双语 docs、maintainer continuity 与 signing/code-scanning roadmap 全部被正式路由到可执行计划，不再停留在口头终审意见。
+**Status**: Planned (`2026-03-18`)
+**Plans**: 0/6 complete
+
+Plans:
+- [ ] 33-01: unify runtime contract truth and purify control read models
+- [ ] 33-02: remove control-plane reflection loops and shrink over-wide exports
+- [ ] 33-03: slim giant roots and forwarding clusters along formal seams
+- [ ] 33-04: converge exception policy, typed debt, and residual naming truth
+- [ ] 33-05: harden CI/pre-push/benchmark/release-evidence gates and reproducibility posture
+- [ ] 33-06: topicize remaining mega-tests and close deep-doc / continuity productization gaps
