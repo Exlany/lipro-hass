@@ -423,7 +423,7 @@
 ### Protocol Hotspots
 
 - [ ] **HOT-09**: `LiproRestFacade` 与 `LiproProtocolFacade` 必须继续沿现有 seams 切薄，root 层 forwarding glue 不得长期合法化为协议主链的一部分。
-- [ ] **RES-07**: protocol-facing compat / forwarding residue 必须继续删除、下沉或显式登记 delete gate；public surface 不能借重构反向扩张。
+- [ ] **RES-07**: protocol/control touched hotspots 的 compat / forwarding residue、反射/私有实现细节依赖（如 `__dict__` / `_waiters` 类模式）与命名残留必须继续删除、下沉或显式登记 delete gate；public surface 不能借重构反向扩张。
 
 ### Runtime Root & Exception Policy
 
@@ -434,8 +434,8 @@
 ### Test Topology & Derived Truth
 
 - [ ] **TST-06**: 剩余巨石测试必须继续 topicize 成稳定、可局部执行的专题面，避免单文件持续吸附多条故事线。
-- [ ] **GOV-30**: `.planning/codebase/*`、测试策略文档、verification / authority truth 必须与真实测试命令、目录结构和守卫语义保持一致，并有 drift guard 约束。
-- [ ] **QLT-09**: benchmark / test-topology / closeout evidence 必须从“可执行”提升到“可解释、可对齐、可审计”的质量故事，不再让派生真相漂移于实际门禁之外。
+- [ ] **GOV-30**: `.planning/codebase/*`、测试策略文档、verification / authority truth 与 public docs entry topology 必须和真实测试命令、目录结构、support/security/docs routing 及守卫语义保持一致，并有 drift guard 约束。
+- [ ] **QLT-09**: benchmark / test-topology / closeout evidence / governance guards 必须从“可执行”提升到“可解释、可对齐、可审计”的质量故事：形成预算或基线语义、降低 prose-coupled 高噪音断言，并避免派生真相漂移于实际门禁之外。
 
 ## Traceability for v1.4 seed route
 

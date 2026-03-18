@@ -651,7 +651,7 @@ Plans:
 **Draft Success Criteria**:
   1. `custom_components/lipro/core/api/client.py` 与 `custom_components/lipro/core/protocol/facade.py` 继续显著瘦身，职责按 transport / auth / command / capability 等协作者切开。
   2. public surface 只减不增；protocol / API 定向回归与 surface guards 继续全绿。
-  3. compat / forwarding residue 被进一步删除或显式下沉，不再在 root façade 层漂浮。
+  3. compat / forwarding residue、反射/私有实现细节依赖与命名残留被进一步删除、隔离或显式下沉，不再在 root façade 层漂浮。
 **Status**: Planned
 **Plans**: 0/3 complete
 
@@ -682,8 +682,8 @@ Plans:
 **Requirements**: [TST-06, GOV-30, QLT-09]
 **Draft Success Criteria**:
   1. 剩余巨石测试被拆成更稳定、可局部执行的专题套件，失败定位速度明显提升。
-  2. `.planning/codebase/*`、测试策略文档、verification matrix 与实际命令/目录结构保持一致，并有 drift guard 约束。
-  3. governance / toolchain / test topology 的最终 closeout 证据完整，为后续 fresh audit 奠定稳定基线。
+  2. `.planning/codebase/*`、测试策略文档、verification matrix、public docs entry topology 与实际命令/目录结构保持一致，并有 drift guard 约束。
+  3. benchmark 形成预算或基线语义，governance tests 降低 prose-coupled 高噪音断言，最终 closeout 证据完整，为后续 fresh audit 奠定稳定基线。
 **Status**: Planned
 **Plans**: 0/3 complete
 
