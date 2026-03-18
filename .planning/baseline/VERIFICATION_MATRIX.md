@@ -2,7 +2,7 @@
 
 **Purpose:** 建立 requirement → artifact → test → doc → phase acceptance / handoff 的统一验证闭环。
 **Status:** Formal baseline asset (`BASE-03` phase acceptance truth source)
-**Updated:** 2026-03-16 (Phase 24 milestone closeout / handoff contract aligned)
+**Updated:** 2026-03-18 (Phase 32 truth-convergence closeout aligned)
 
 ## Formal Role
 
@@ -11,7 +11,7 @@
 - 若新增、降级或删除正式 public surface，改变 dependency truth，扩展 authority family，或新增 architecture policy rule family / CI gate，必须先回写对应 baseline doc，再更新实现、测试与 summary。
 - `.planning/baseline/ARCHITECTURE_POLICY.md` 是 verification gate 的正式 policy companion；phase exit contract 与 runnable proof 只能引用或实例化它，不能绕开它自立规则。
 - 若 `.planning/reviews/FILE_MATRIX.md`、`.planning/reviews/RESIDUAL_LEDGER.md`、`.planning/reviews/KILL_LIST.md` 无变化，phase summary 也必须明确写出“为何无变化”。
-- `.planning/codebase/*.md` 若被保留，必须通过 `README.md`、统一 derived collaboration map disclaimer 与治理守卫声明其从属身份，不能越权成为第二条 authority chain。
+- `.planning/codebase/*.md` 若被保留，必须通过 `README.md`、统一 derived collaboration map disclaimer、snapshot/freshness/authority 头部与治理守卫声明其从属身份，不能越权成为第二条 authority chain。
 
 ## Requirement-to-Acceptance Mapping
 
@@ -162,3 +162,26 @@
 - **Required governance proof:** final repo audit 必须给所有 remaining items 明确 close / retain / defer disposition；`archive-ready` 与 `handoff-ready` 只能建立在 evidence index、milestone audit 与 handoff doc 同步一致之上，不得只在单一文件口头宣告。
 - **Required runnable proof:** `uv run python scripts/check_architecture_policy.py --check`、`uv run python scripts/check_file_matrix.py --check`、`uv run pytest -q tests/meta/test_dependency_guards.py tests/meta/test_public_surface_guards.py tests/meta/test_governance_guards.py tests/meta/test_version_sync.py`、`uv run ruff check .`、`uv run mypy` 通过。
 - **Unblock effect:** `GOV-18` 获得 archive-ready / handoff-ready closeout bundle；下一轮维护者可直接从 `v1.3-HANDOFF.md` 起步，而不再依赖 phase 对话残影。
+
+
+## Phase 25.2 Telemetry Formal-Surface Closure Contract
+
+- **Required artifacts:** `custom_components/lipro/{runtime_types.py,control/telemetry_surface.py}`、`tests/{integration/test_telemetry_exporter_integration.py,core/test_system_health.py}`、`.planning/codebase/STRUCTURE.md`、`.planning/baseline/{PUBLIC_SURFACES,VERIFICATION_MATRIX}.md`、`.planning/reviews/RESIDUAL_LEDGER.md`、`25.2-01~25.2-03-SUMMARY.md`、`25.2-VERIFICATION.md`。
+- **Required governance proof:** control-plane telemetry consumer 只能通过 `Coordinator.protocol` / `telemetry_service` pull formal telemetry truth；legacy `coordinator.client` ghost seam 已关闭；touched `.planning/codebase/*` 继续只是 derived collaboration maps，而不是 authority source。
+- **Required runnable proof:** `uv run pytest -q tests/integration/test_telemetry_exporter_integration.py tests/core/test_system_health.py`、`uv run pytest -q tests/meta/test_governance_guards.py tests/meta/test_public_surface_guards.py tests/meta/test_version_sync.py tests/meta/test_toolchain_truth.py`、`uv run ruff check custom_components/lipro/runtime_types.py custom_components/lipro/control/telemetry_surface.py tests/integration/test_telemetry_exporter_integration.py tests/core/test_system_health.py` 通过。
+- **Unblock effect:** `OBS-04` / `GOV-20` 获得 formal-surface honesty 与 planning-truth sync 闭环；Phase 26 可以专注 release trust chain / productization，而不再携带 telemetry ghost seam。
+
+
+## Phase 27 Hotspot Slimming / Protocol-Service Convergence Contract
+
+- **Required artifacts:** `custom_components/lipro/{runtime_types.py,services/schedule.py,services/diagnostics/handlers.py,entities/firmware_update.py}`、`custom_components/lipro/core/coordinator/{coordinator.py,runtime_context.py,orchestrator.py}`、`tests/{conftest.py,core/test_init.py,core/test_init_service_handlers.py,services/test_services_diagnostics.py,services/test_service_resilience.py,test_coordinator_public.py,meta/test_governance_guards.py,meta/test_governance_closeout_guards.py,meta/test_public_surface_guards.py,meta/test_toolchain_truth.py}`、`.planning/codebase/{STRUCTURE,TESTING}.md`、`.planning/baseline/{PUBLIC_SURFACES,DEPENDENCY_MATRIX,VERIFICATION_MATRIX}.md`、`.planning/reviews/RESIDUAL_LEDGER.md`、`27-01~27-04-SUMMARY.md`、`27-VERIFICATION.md`。
+- **Required governance proof:** external protocol-capability consumers 只能通过 `coordinator.protocol_service` 读取 schedule / diagnostics / OTA abilities；coordinator 顶层 pure forwarders 与历史 phase narration 已退场；新增测试文件后的 inventory / minimal-suite guidance 继续和仓库事实一致。
+- **Required runnable proof:** `uv run pytest -q tests/core/test_init.py tests/core/test_init_service_handlers.py tests/services/test_services_diagnostics.py tests/services/test_service_resilience.py tests/test_coordinator_public.py tests/core/test_coordinator.py`、`uv run pytest -q tests/meta/test_governance_guards.py tests/meta/test_governance_closeout_guards.py tests/meta/test_public_surface_guards.py tests/meta/test_version_sync.py tests/meta/test_toolchain_truth.py`、`uv run ruff check custom_components/lipro/runtime_types.py custom_components/lipro/services/schedule.py custom_components/lipro/services/diagnostics/handlers.py custom_components/lipro/entities/firmware_update.py custom_components/lipro/core/coordinator/coordinator.py custom_components/lipro/core/coordinator/runtime_context.py custom_components/lipro/core/coordinator/orchestrator.py tests/core/test_init.py tests/core/test_init_service_handlers.py tests/meta/test_governance_guards.py tests/meta/test_governance_closeout_guards.py` 通过。
+- **Unblock effect:** `HOT-05` / `RES-04` / `TST-02` 获得 runtime contract honesty、forwarder retirement 与 test monolith split 的同源闭环；后续 maintainability work 不再需要重复争论 protocol capability surface 应该住在哪里。
+
+## Phase 32 Truth-Convergence / Gate-Honesty / Governance Closeout Contract
+
+- **Required artifacts:** `.github/workflows/{ci,release}.yml`、`.planning/baseline/VERIFICATION_MATRIX.md`、`.planning/codebase/*.md`、`README.md`、`README_zh.md`、`CONTRIBUTING.md`、`SUPPORT.md`、`SECURITY.md`、`docs/MAINTAINER_RELEASE_RUNBOOK.md`、`tests/meta/test_toolchain_truth.py`。
+- **Required governance proof:** repo-wide `ruff` / `mypy` / governance / release claims 必须与 `ci.yml`、`release.yml` 实际门禁完全一致；GitHub artifact `attestation` / `provenance`、`SHA256SUMS`、`SBOM`、artifact `signing` defer、GitHub `code scanning` defer 必须作为不同事实分别记录；`.planning/codebase/*.md` 顶部必须显式声明 snapshot、freshness 与 derived-map 身份，不能自称当前 authority truth；双语 public docs 与 maintainer docs 必须制度化 single-maintainer continuity truth，且不得虚构 backup maintainer。
+- **Required runnable proof:** `uv run python scripts/check_translations.py`、`uv run pytest -q tests/meta/test_toolchain_truth.py`、`uv run pytest -q tests/meta/test_governance_guards.py tests/meta/test_version_sync.py -k "release or runbook or support or security"` 通过。
+- **Unblock effect:** `QLT-05` / `GOV-25` / `GOV-26` 获得 gate honesty、release identity posture 与 derived-map freshness 的单一真相闭环；后续 closeout 不再依赖维护者脑内常识维持口径一致。

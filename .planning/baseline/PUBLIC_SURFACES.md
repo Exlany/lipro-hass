@@ -2,7 +2,7 @@
 
 **Purpose:** 定义各平面的 canonical public surfaces、过渡公开面与禁止作为正式入口的对象。
 **Status:** Formal baseline asset (`BASE-01` public-surface truth source)
-**Updated:** 2026-03-16 (Phase 24 milestone closeout / handoff aligned)
+**Updated:** 2026-03-17 (Phase 27 hotspot slimming / protocol-service convergence aligned)
 
 ## Formal Role
 
@@ -18,14 +18,14 @@
 |---------------|-------------------|-------------|-------|
 | Protocol | `LiproProtocolFacade` | target-state formal protocol root | 终态唯一正式协议根；formal contract 由显式 methods/properties 定义，不再由 child `__getattr__` / `__dir__` 隐式扩面 |
 | Protocol (REST child) | `LiproRestFacade` | canonical REST child façade | formal REST child surface；必须始终收敛到 `LiproProtocolFacade` |
-| Runtime | `Coordinator` + runtime services/public surface | runtime orchestration root + stable service surface | protocol-facing runtime ops 统一经 `CoordinatorProtocolService` 收口；`devices` 只允许以 read-only mapping 暴露；outlet power 真源收口到 `LiproDevice.outlet_power_info` |
+| Runtime | `Coordinator` + runtime services/public surface | runtime orchestration root + stable service surface | protocol-facing runtime ops 统一经 `CoordinatorProtocolService` / `coordinator.protocol_service` 收口；schedule / diagnostics / OTA consumers 不再经 coordinator 顶层 pure forwarders 取能力；`devices` 只允许以 read-only mapping 暴露；outlet power 真源收口到 `LiproDevice.outlet_power_info` |
 | Domain | `CapabilityRegistry` / `CapabilitySnapshot` / `LiproDevice` + `DeviceState` explicit surface / command contracts | domain truth surface family | `custom_components/lipro/core/capability/` 与 `custom_components/lipro/core/device/` 共同定义显式设备域真源；动态 `__getattr__` 不再合法化；HA platform strings / config-entry projection 只允许停留在 adapter seams |
 | Control | `EntryLifecycleController`、`ServiceRegistry`、`service_router`、`DiagnosticsSurface`、`SystemHealthSurface`、`telemetry_surface` bridge helpers | control-plane formal surface set | `custom_components/lipro/control/` 为正式内部控制面 home；HA 根模块只保留 adapter 职责 |
 | Assurance | contract suites、invariant suites、meta guards、ledgers、`RuntimeTelemetryExporter` / telemetry contracts、replay harness/report surfaces、`V1_1_EVIDENCE_INDEX.md`、`V1_2_EVIDENCE_INDEX.md`、`tests/harness/evidence_pack/*`、`scripts/export_ai_debug_evidence_pack.py`、`v1.2-MILESTONE-AUDIT.md`、`v1.3-HANDOFF.md` | assurance arbitration surface set | exporter / replay / evidence index / milestone audit / handoff tooling 只作为 assurance-only 或 pull-only truth consumers，不得反向成为 runtime/control/public root |
 
 ## Assurance-only Extension Rules
 
-- `custom_components/lipro/core/telemetry/*` 与 `custom_components/lipro/control/telemetry_surface.py` 只承担 observer-only telemetry truth 输出与 control bridge 角色；runtime / entity / platform 不得把它们当成第二条业务主链。
+- `custom_components/lipro/core/telemetry/*` 与 `custom_components/lipro/control/telemetry_surface.py` 只承担 observer-only telemetry truth 输出与 control bridge 角色；control-plane bridge 只能通过 `runtime_access` + `Coordinator.protocol` / `telemetry_service` pull 正式 telemetry truth，runtime / entity / platform 不得把它们当成第二条业务主链。
 - `tests/harness/protocol/*`、`tests/fixtures/protocol_replay/*`、`tests/integration/test_protocol_replay_harness.py` 与 replay run summary 只属于 assurance-only replay surfaces；生产路径只能被它们验证，不能反向依赖它们。
 - `.planning/reviews/V1_1_EVIDENCE_INDEX.md`、`.planning/reviews/V1_2_EVIDENCE_INDEX.md` 与 milestone closeout evidence 入口都必须是 pull-only evidence pointers：只能索引正式真源，不得重新扫描仓库拼出第二套事实。
 - `tests/harness/evidence_pack/*`、`scripts/export_ai_debug_evidence_pack.py` 与生成的 `ai_debug_evidence_pack.json` / `ai_debug_evidence_pack.index.md` 只属于 assurance-only evidence-pack surfaces；AI / tooling 可以消费它们，但 runtime / control / entity 不得反向依赖它们。
@@ -35,6 +35,18 @@
 | Surface | Allowed Until | Exit Condition |
 |---------|---------------|----------------|
 | cluster-level `FILE_MATRIX` | pre-Phase 7 | 升级为 file-level governance view |
+
+## Phase 25.2 Telemetry Formal-Surface Closure Notes
+
+- `runtime_types.LiproCoordinator` 现显式暴露 bridge 真正需要的 `protocol` 与 `telemetry_service`；`Coordinator.client` 不再被视为 control-plane formal surface。
+- `custom_components/lipro/control/telemetry_surface.py` 现在只通过 `runtime_access.get_entry_runtime_coordinator()` + `Coordinator.protocol` 构建 protocol telemetry source，不再合法化 legacy `client` seam。
+- 本 phase 只关闭 source-binding honesty seam；`RuntimeTelemetryExporter` schema / sink payload 保持稳定，未引入第二条 telemetry root。
+
+## Phase 27 Hotspot Slimming & Residual-Honesty Notes
+
+- `runtime_types.LiproCoordinator` 现显式暴露 `protocol_service`：schedule / diagnostics / OTA capability consumers 只能 pull `coordinator.protocol_service`，不再把 coordinator 顶层 `async_*` pure forwarders 当 formal runtime surface。
+- `custom_components/lipro/core/coordinator/coordinator.py` 已删除 schedule / diagnostics / OTA / outlet-power pure forwarder cluster；保留的 `get_device` / `register_entity` / `get_device_lock` 仍属于 entity-facing runtime helper，而不是 protocol passthrough。
+- runtime 正式代码已清理 `Phase C` / `Phase H4` 这类历史迁移叙事；若未来继续切薄 hotspot，必须沿现有 service / child-façade home 下沉，而不是新增第二 root。
 
 ## Phase 17 Final Residual Retirement Notes
 

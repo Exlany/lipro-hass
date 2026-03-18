@@ -30,6 +30,50 @@
 **Execution status:** `Phase 18-24` complete
 **Archive assets:** `.planning/milestones/v1.1-ROADMAP.md`, `.planning/milestones/v1.1-REQUIREMENTS.md`, `.planning/milestones/v1.2-ROADMAP.md`, `.planning/milestones/v1.2-REQUIREMENTS.md`
 
+## Next-Phase Seed (v1.3)
+
+**Route-freeze status:** `Phase 25 -> 32` 已于 `2026-03-18` 全部执行完成；v1.3 continuation route 现已从 execution-ready 收口到 execution-complete / audit-ready，旧的“Phase 32 仍待执行”口径不再适用于当前 active truth。
+
+**Continuation closeout status:** `Phase 32` execution / verification 资产现已落地，依赖链 `31 -> 32` 已闭环；`.planning/v1.3-HANDOFF.md` 继续作为 `Phase 25 -> 31` 历史 closeout baseline，而当前 active next step 已切换为 `v1.3` milestone audit / archive-or-promote arbitration。
+
+**Parent phase:** `Phase 25 — Quality-10 remediation master plan and execution routing`
+
+**Route map:**
+1. `Phase 25.1` — snapshot atomicity and refresh arbitration
+2. `Phase 25.2` — telemetry formal-surface closure and planning-truth sync
+3. `Phase 26` — release trust chain and open-source productization hardening
+4. `Phase 27` — hotspot slimming, dependency strategy and maintainability follow-through
+5. `Phase 28` — release trust gate completion and maintainer resilience
+6. `Phase 29` — REST child-façade slimming and test topicization
+7. `Phase 30` — protocol/control typed contract tightening
+8. `Phase 31` — runtime/service typed budget and exception closure
+9. `Phase 32` — truth convergence, gate honesty, and quality-10 closeout
+
+**Review coverage promise:**
+- `P0` 安装/发布 trust chain → `Phase 26`
+- `P0` snapshot partial-failure correctness → `Phase 25.1`
+- `P0` telemetry `coordinator.client` ghost seam → `Phase 25.2`
+- `P1` giant roots / pure forwarding layers → `Phase 27`
+- `P1` dependency / compatibility / support strategy → `Phase 26` + `Phase 27`
+- `P1` governance drift / derived-map honesty → `Phase 25.2`
+- `P1` 单维护者 / 双语 / 支持矩阵 / 产品化不足 → `Phase 26`
+- `P2` naming residue / phase narration / local persistence-observability follow-through → `Phase 27`
+- `P1/P2` maintainer continuity / release identity hardening / operational governance debt → `Phase 28`
+- `P1/P2` remaining REST hotspot / child-façade overload / second-wave mega-test topicization / residual honesty debt → `Phase 29`
+- `P1/P2` protocol/control typed contract tightening / broad-catch arbitration debt → `Phase 30`
+- `P1/P2` runtime/service typed backlog / exception closure / no-growth governance debt → `Phase 31`
+- planning truth convergence / requirement traceability / supersession notes → `Phase 32`
+- repo-wide `ruff` / `mypy` / CI / docs gate honesty → `Phase 32`
+- release identity / code-scanning defer / maintainer continuity / contributor template convergence → `Phase 32`
+- `.planning/codebase` freshness / derived-map disclaimer / bilingual public-doc sync → `Phase 32`
+- giant roots / giant governance scripts / mega-test topicization → `Phase 32`
+- typed debt / broad-catch / fallback-legacy-phase residue follow-through → `Phase 32`
+
+**Explicit clarification:**
+- reverse-engineered vendor login flow 中要求的 `MD5` 哈希口令路径，按当前认知属于**上游协议约束**，不是本仓库单独可消灭的“弱密码学债”；除非后续确认存在可替换的上游协议路径，否则不把它登记为仓库内部独立交付目标。
+- `AES-ECB` / `SHA1` 一类协议受限实现也只在“可替换协议已被证实”时才升级为重构目标；当前先以边界隔离与诚实记录为准。
+- `Phase 32` 只处理仓库可裁决的 truth / gate / hotspot debt；不会把上游协议未证实可替换的实现伪装成仓库内部“马上可消灭”的重构目标。
+
 ## Why This Milestone Exists
 
 `v1.0` 已完成北极星主链重建，但还缺少几类“高杠杆正式能力”：
@@ -376,4 +420,4 @@ v1.1 进入执行期后，新增演进必须额外满足：
 
 - 当前工作区输入以 `v1.2` closeout bundle 与 `v1.3` handoff assets 为主；phase 目录资产仍默认是执行证据，只有被 `ROADMAP.md`、baseline docs、review ledgers 或 milestone audit 显式提升时，才成为长期治理真源。
 
-*Last updated: 2026-03-16 after Phase 24 closeout truth sync*
+*Last updated: 2026-03-18 after v1.3 Phase 32 execution closeout*

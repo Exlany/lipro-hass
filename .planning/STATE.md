@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Host-Neutral Core & Replay Completion
 status: handoff_ready
-last_updated: "2026-03-17T00:41:29Z"
+last_updated: "2026-03-17T23:46:11Z"
 progress:
   total_phases: 7
   completed_phases: 7
@@ -19,7 +19,7 @@ See: `.planning/PROJECT.md`
 
 **Current milestone:** `v1.2 Host-Neutral Core & Replay Completion`
 **Core value:** 在不破坏 `LiproProtocolFacade` / `Coordinator` 单一正式主链的前提下，把 host-neutral nucleus、headless proof、remaining boundary/replay family 收口、failure taxonomy / observability convergence、治理 closeout 与 handoff bundle 推进成单一正式能力链。
-**Current mode:** `Phase 24 complete`；`24-04` / `24-05` 已于 2026-03-17 完成 reopen revalidation，`Phase 18-24` 当前为 `24/24` plans executed，状态维持 archive-ready / `v1.3` handoff-ready。
+**Current mode:** `Phase 24 complete`（source milestone closeout baseline）；`v1.2` 继续保持 archive-ready / handoff-ready，`Phase 25 -> 32` 已于 `2026-03-18` 全部执行完成并通过 fresh gates；当前 active next step 已切换为 `v1.3` closeout audit / archive-or-promote 仲裁。
 
 ## Current Position
 
@@ -49,6 +49,18 @@ See: `.planning/PROJECT.md`
 - `Phase 23` 已完成：baseline/reviews/lifecycle truth、contributor docs/templates 与 release evidence pointer 已统一到 v1.2 最终故事线。
 - `Phase 24` 已完成并于 2026-03-17 重新验证：final repo audit、milestone audit、evidence index、archive-ready bundle 与 `v1.3` handoff 已再次通过 fresh gates。
 - `v1.2` 里程碑 closeout bundle 已按 reopened truth 回写：`.planning/reviews/V1_2_EVIDENCE_INDEX.md`、`.planning/v1.2-MILESTONE-AUDIT.md` 与 `.planning/v1.3-HANDOFF.md` 继续构成 archive-ready / handoff-ready bundle。
+- `Phase 25` 已从单一 tranche 改为 v1.3 的总计划母相；`25.1 / 25.2 / 26 / 27` 路线已完成 seed routing，并显式排除了“把 vendor-defined MD5 登录路径误记为仓库弱密码学债”的错误口径。
+- `Phase 25` 已完成：总计划母相已冻结 routed requirements、child-phase boundaries、no-return rules 与 next-command handoff；`.planning/codebase/*` 对本轮仍只保留 derived-map 身份。
+- `Phase 25.1` 已完成：snapshot refresh 现采用 atomic rejection + last-known-good arbitration；coordinator fail-closed 主链与相关测试切片已全部转成正式语义。
+- `Phase 25.2` 已完成：telemetry bridge 现只 pull `Coordinator.protocol` / `telemetry_service` formal surfaces；touched authority / residual / derived-map docs 已完成诚实同步。
+- `Phase 26` 已完成：默认支持安装链已切到 verified release assets，release tail 现发布 installer / SBOM / provenance attestation，support/security/product metadata 也已统一到诚实口径。
+- `Phase 27` 已完成：`protocol_service` formal capability port、coordinator pure forwarder retirement、phase residue cleanup 与测试巨石拆分/治理图谱同步已全部落地。
+- `Phase 28` 已完成：tagged release security gate、artifact attestation verification、release identity manifest 与 maintainer continuity/support lifecycle truth 已全部落地。
+- `Phase 29` 已完成：`LiproRestFacade` remaining hotspot 已沿 child-façade 主链继续切薄，REST tests 也已按 `transport/auth`、`command/pacing`、`capability wrappers` 专题化并通过 file-matrix / public-surface truth。
+- `Phase 30` 已完成：REST response/result spine、protocol boundary contracts 与 control lifecycle named failure contracts 已全部收口；phase gate `293 passed` 且 protocol/control/static truth 全绿。
+- `Phase 30-03` 已完成：control lifecycle setup/unload/reload named failure contracts 已冻结为 `setup_auth_failed/setup_not_ready/setup_failed`、`unload_shutdown_degraded`、`reload_auth_failed/reload_not_ready/reload_failed`；system health 仍只同步 shared `failure_summary` 最小载荷，未扩成 diagnostics payload cleanup；Phase 31 继续独占 runtime/service/platform typed budget 与 broad-catch closeout。
+- `Phase 31` 已完成：runtime/service/platform touched zones 的 typed budget、warning cleanup、broad-catch closure 与 governance/toolchain truth 已全部收口；phase gate `445 passed` + touched-zone `mypy` 全绿。
+- `Phase 32` 已执行完成：planning truth convergence、repo-wide gate honesty、release/maintainer/docs convergence、derived-map freshness 与 hotspot / test / typed / exception / residue follow-through 已全部完成收口；`uv run ruff check .` 与 `uv run mypy` 均已 repo-wide 真绿。
 
 ## Completed Milestone Scope
 
@@ -78,6 +90,7 @@ See: `.planning/PROJECT.md`
 
 - Phase 23 added: Governance convergence, contributor docs and release evidence closure
 - Phase 24 added: Final milestone audit, archive readiness and v1.3 handoff prep
+- Phase 32 added: Truth convergence, gate honesty, and quality-10 closeout
 
 - Phase 10 executed and completed: API Drift Isolation & Core Boundary Prep
 - Phase 11 executed and completed: Control Router Formalization & Wiring Residual Demotion
@@ -110,13 +123,15 @@ See: `.planning/PROJECT.md`
 - **Completed so far:** `Phase 18` 到 `Phase 24`
 - **Closeout state:** `archive-ready`, `handoff-ready`（revalidated `2026-03-17`）
 - **Archive snapshots:** `.planning/milestones/v1.2-ROADMAP.md`, `.planning/milestones/v1.2-REQUIREMENTS.md`
-- **Next focus:** 基于 `v1.3-HANDOFF.md` 启动下一里程碑，或进一步收缩 active planning docs
+- **Next focus:** `$gsd-audit-milestone`；`Phase 25 -> 32` 已全部执行完成并通过 current gates，下一步应对 `v1.3` 做 closeout / archive-or-promote 仲裁。
 
 ## Recommended Next Command
 
-1. `$gsd-new-milestone` —— 基于 `v1.3-HANDOFF.md` 启动下一轮 roadmap / requirements
-2. `$gsd-progress` —— 复核 archive snapshots / handoff / active truth 当前状态
-3. `$gsd-complete-milestone` —— 若要继续收缩 active planning docs，可在现有 archive snapshots 基础上执行最终切换
+1. `$gsd-audit-milestone` —— 对 `v1.3` 做 closeout / archive-or-promote 仲裁
+2. `$gsd-progress` —— 查看 updated roadmap / requirement traceability / next route
+3. `uv run ruff check . && uv run mypy && uv run pytest -q tests/meta/test_governance_guards.py tests/meta/test_governance_closeout_guards.py tests/meta/test_public_surface_guards.py tests/meta/test_version_sync.py tests/meta/test_toolchain_truth.py` —— 作为 post-closeout recheck snapshot
+
+**Historical launch pointer:** `$gsd-execute-phase 29`
 
 ## Session Continuity
 
@@ -130,12 +145,13 @@ If resuming, read in this order:
 7. `.planning/reviews/V1_2_EVIDENCE_INDEX.md`
 8. `.planning/v1.2-MILESTONE-AUDIT.md`
 9. `.planning/v1.3-HANDOFF.md`
-10. `.planning/phases/21-replay-exception-taxonomy-hardening/21-VERIFICATION.md`
-11. `.planning/phases/22-observability-surface-convergence-and-signal-exposure/22-VERIFICATION.md`
-12. `.planning/phases/23-governance-convergence-contributor-docs-and-release-evidence-closure/23-VERIFICATION.md`
-13. `.planning/phases/24-final-milestone-audit-archive-readiness-and-v1-3-handoff-prep/24-VERIFICATION.md`
-14. `.planning/baseline/*.md`
-15. `.planning/reviews/*.md`
-16. `AGENTS.md`
-17. `CLAUDE.md`（若使用 Claude Code）
-18. `docs/developer_architecture.md`
+10. `.planning/phases/32-truth-convergence-gate-honesty-and-quality-10-closeout/32-CONTEXT.md`
+11. `.planning/phases/32-truth-convergence-gate-honesty-and-quality-10-closeout/32-RESEARCH.md`
+12. `.planning/phases/31-runtime-service-typed-budget-and-exception-closure/31-VERIFICATION.md`
+13. `.planning/phases/30-protocol-control-typed-contract-tightening/30-VERIFICATION.md`
+14. `.planning/phases/24-final-milestone-audit-archive-readiness-and-v1-3-handoff-prep/24-VERIFICATION.md`
+15. `.planning/baseline/*.md`
+16. `.planning/reviews/*.md`
+17. `AGENTS.md`
+18. `CLAUDE.md`（若使用 Claude Code）
+19. `docs/developer_architecture.md`

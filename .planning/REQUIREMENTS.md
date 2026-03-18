@@ -136,10 +136,10 @@
 
 ## Future Requirements
 
-- **OBS-03**: 如需要外部监控对接，再评估 Prometheus / OpenTelemetry sink
+- **OBS-05**: 如需要外部监控对接，再评估 Prometheus / OpenTelemetry sink
 - **BND-04**: 如 manual validators 成本继续升高，再裁决局部 `pydantic v2` backend
 - **ENF-03**: 如 AST/meta guards 复杂度继续上升，再评估 `import-linter/grimp`
-- **SIM-03**: 如需要更强双向仿真，再补 broker/cloud behavioral simulator
+- **SIM-06**: 如需要更强双向仿真，再补 broker/cloud behavioral simulator
 - **AID-03**: 如 evidence pack 编码/校验成本成为瓶颈，再单独裁决 encoding backend，而不是提前绑定 `msgspec` / `pydantic v2`
 
 
@@ -282,5 +282,88 @@
 **Current Coverage:**
 - v1.2 requirements: 11 total
 - Current mapped: 11
-- Current complete: 11 ✓
+- Current complete: 101 ✓
+- Current unmapped: 0 ✓
+
+## Next Milestone Seed (v1.3)
+
+> `Phase 25` 已被提升为 v1.3 的总计划母相：它先冻结 `25.1 / 25.2 / 26 / 27` 首轮路由，再由 `28 / 29 / 30 / 31` 完成第二梯队 closeout；`Phase 32` 已于 `2026-03-18` 完成 final truth-convergence closeout，当前下一步为 `$gsd-audit-milestone`。
+
+### Governance / Route Ownership
+
+- [x] **GOV-19**: 终极复审中的全部 P0 / P1 / P2 问题必须被显式路由到 `25.1 / 25.2 / 26 / 27` 或被裁决为外部协议约束 / 非当前 debt；禁止 silent defer。
+- [x] **GOV-20**: telemetry seam closure 触及的 authority docs、residual ledgers、handoff truth 与 touched `.planning/codebase/*` derived maps 必须同步，明确 formal surface 迁移且 derived maps 继续只是协作图谱。
+- [x] **GOV-21**: release/install trust chain、support matrix、双语策略、维护者冗余与 contributor-facing productization surfaces 必须达到更成熟的开源治理标准。
+
+### Runtime / Observability Correctness
+
+- [x] **RUN-06**: 全量设备快照刷新必须满足原子性；分页失败、拓扑 enrich 失败或 parse failure 不得静默发布 partial truth 覆盖既有运行态。
+- [x] **ERR-03**: refresh failure 必须具备可判定 arbitration；`拒绝提交 / 保留 last-known-good / 结构化 degraded` 三者必须显式、可测且语义稳定。
+- [x] **OBS-04**: telemetry / diagnostics / system health consumer 只能通过正式 protocol telemetry surface 或显式 port 拉取协议信号，不得继续依赖 `Coordinator.client`、隐式属性或 ghost seam。
+
+### Productization / Maintainability Follow-Through
+
+- [x] **QLT-03**: 依赖、兼容、支持窗口与升级策略必须更诚实、更可复现，并与 release / support surfaces 保持一致。
+- [x] **HOT-05**: `Coordinator`、`LiproRestFacade` 与纯转发层必须继续沿正式边界切薄，不得再用“只是转发”合理化巨型根对象。
+- [x] **RES-04**: 过渡命名、历史 phase 叙事、残留噪声与协议受限实现说明必须更诚实；reverse-engineered vendor `MD5` 登录哈希路径被记录为协议约束，而不是仓库弱密码学债。
+- [x] **TST-02**: 巨型测试文件与贡献者高认知负担测试面必须继续拆分成稳定、可局部执行的专题套件，同时保留现有治理门禁强度。
+- [x] **GOV-22**: maintainer continuity、emergency access、support window / EOL / triage ownership 必须从“诚实说明”升级为制度化、可审计的运维/治理资产，且不虚构额外维护者。
+- [x] **QLT-04**: release identity posture 必须进一步硬化；signing、code-scanning gate 或等价 machine-enforced release security controls 必须形成一致 story。
+- [x] **HOT-06**: `LiproRestFacade` remaining hotspot 必须继续拆成更聚焦的 child collaborators / services，不得保留巨型 child façade 作为长期合法形态。
+- [x] **RES-05**: 与 `LiproRestFacade` / protocol child-collaborator decomposition 相关的命名、职责与 residual truth 必须继续收口并诚实同步。
+- [x] **TST-03**: remaining mega-test suites 必须继续专题化拆分，并保持局部可执行与治理门禁强度。
+- [x] **TYP-06**: 高价值 `core/api` / `core/protocol` / `control` hotspots 的 `Any` / `type: ignore` 必须继续沿正式 contract 收窄，不得长期停留在 boundary-adjacent distributed backlog。
+- [x] **ERR-04**: remaining broad-catch paths in touched protocol/control hotspots 必须改成 typed arbitration、documented failure contract 或显式 deferred truth。
+- [x] **TYP-07**: runtime/service/platform touched zones 的 `Any` / `type: ignore` backlog 必须建立预算、继续下降，并形成 no-growth typed hardening story。
+- [x] **ERR-05**: remaining runtime/service broad-catch paths 必须收敛为 documented fail-closed / degraded semantics 或被移除；新增 catch-all regression 必须被 guard 阻断。
+- [x] **GOV-23**: typed/exception budget、phase closeout assets 与 daily governance gates 必须机器化守护 `30/31` 的 no-growth contract，而不是依赖人工补漏。
+- [x] **GOV-24**: `.planning/PROJECT.md`、`.planning/ROADMAP.md`、`.planning/REQUIREMENTS.md`、`.planning/STATE.md` 与 retained handoff/audit pointers 已对 `Phase 25 -> 32` complete 讲同一条 current story，不再分叉。
+- [x] **QLT-05**: repo-wide `ruff` / `mypy` / CI / contributor docs gate story 已诚实且 machine-checkable；工具范围、blocking truth 与 release posture 均已被文档和 guards 显式固定。
+- [x] **GOV-25**: release identity posture、code-scanning / signing defer truth、maintainer continuity、support/security process 与 contributor-facing templates 已收敛成单一、诚实、可审计的治理故事。
+- [x] **GOV-26**: `.planning/codebase/*.md` 与双语 public docs 现已带 freshness / disclaimer / authority-boundary truth，并与 baseline/review docs 同步。
+- [x] **HOT-07**: touched runtime/platform/governance hotspots 已继续沿现有正式 seams 收口，helper/platform/runtime typing 不再并行生长第二 coordinator 故事。
+- [x] **TST-04**: touched replay/runtime/governance suites 已继续按契约与守卫专题化收口，并保持局部可执行性与守卫强度。
+- [x] **TYP-08**: 高价值 touched hotspots 的 typed debt 已进一步 burn-down，并通过 repo-wide `mypy` / Phase 31 budget guard 区分 sanctioned truth 与 backlog truth。
+- [x] **ERR-06**: touched hotspots 的 broad-catch / catch-all truth 已继续收敛为 named arbitration、documented semantics 或 explicit defer truth，并由 guard 固化。
+- [x] **RES-06**: fallback / legacy / phase residue 与 protocol-constrained crypto wording 已被继续清理或显式文档化，不再依赖口头约定。
+
+## Traceability for v1.3 route map
+
+| Requirement | Planned Phase | Status |
+|-------------|---------------|--------|
+| GOV-19 | Phase 25 | Complete |
+| RUN-06 | Phase 25.1 | Complete |
+| ERR-03 | Phase 25.1 | Complete |
+| OBS-04 | Phase 25.2 | Complete |
+| GOV-20 | Phase 25.2 | Complete |
+| GOV-21 | Phase 26 | Complete |
+| QLT-03 | Phase 26 | Complete |
+| HOT-05 | Phase 27 | Complete |
+| RES-04 | Phase 27 | Complete |
+| TST-02 | Phase 27 | Complete |
+| GOV-22 | Phase 28 | Complete |
+| QLT-04 | Phase 28 | Complete |
+| HOT-06 | Phase 29 | Complete |
+| RES-05 | Phase 29 | Complete |
+| TST-03 | Phase 29 | Complete |
+| TYP-06 | Phase 30 | Complete |
+| ERR-04 | Phase 30 | Complete |
+| TYP-07 | Phase 31 | Complete |
+| ERR-05 | Phase 31 | Complete |
+| GOV-23 | Phase 31 | Complete |
+| GOV-24 | Phase 32 | Complete |
+| QLT-05 | Phase 32 | Complete |
+| GOV-25 | Phase 32 | Complete |
+| GOV-26 | Phase 32 | Complete |
+| HOT-07 | Phase 32 | Complete |
+| TST-04 | Phase 32 | Complete |
+| TYP-08 | Phase 32 | Complete |
+| ERR-06 | Phase 32 | Complete |
+| RES-06 | Phase 32 | Complete |
+
+**Seed Coverage:**
+- v1.3 routed requirements: 29 total
+- Current mapped: 29
+- Current complete: 29
+- Current pending: 0
 - Current unmapped: 0 ✓

@@ -253,3 +253,17 @@
 - final repo audit (`2026-03-16`) 将 repo-wide metrics 记为：`Any=614`、`except Exception=36`、`type: ignore=12`；它们已被明确定性为 future v1.3 backlog / distributed tech debt，而不是 silent defer。
 - 当前 active residual family 仅保留 `External-boundary advisory naming`；remaining boundary/replay coverage 与 observability convergence 均已完成 closeout，不再悬空。
 - `v1.2` closeout 现达到 archive-ready / handoff-ready：residual disposition、milestone audit、evidence index 与 handoff assets 已讲同一条最终故事线。
+
+
+## Phase 25.2 Residual Delta
+
+- `coordinator.client` telemetry ghost seam 已关闭：`custom_components/lipro/control/telemetry_surface.py` 只再 pull `Coordinator.protocol` formal surface，不再把 legacy alias 合法化为 observer bridge 输入。
+- touched `.planning/codebase/STRUCTURE.md` 已同步这一事实，但 derived map 身份保持不变；authority 仍以 north-star / baseline / review / active truth 为准。
+- 本 phase **无新增 active residual family / compat shell / second-root story**；关闭的是 formal-surface honesty seam，而不是重做 telemetry schema。
+
+
+## Phase 27 Residual Delta
+
+- `Coordinator` 顶层 schedule / diagnostics / OTA / outlet-power pure forwarder cluster 已退场：external consumers 现在只 pull `coordinator.protocol_service`，不再把 runtime root 混成 protocol passthrough façade。
+- runtime 正式代码中的 `Phase C` / `Phase H4` 历史叙事已清理；关闭的是 narration seam，而不是引入新的 abstraction layer。
+- 本 phase **无新增 compat shell / second-root story / active residual family**；remaining `LiproRestFacade` hotspot 仍被诚实记录为 child-façade maintainability debt，但它不是新的 public root，也不允许反向定义 runtime truth。

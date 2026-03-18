@@ -84,43 +84,63 @@ Private repository / fork note: CI skips HACS validation because HACS only suppo
 3. Restart Home Assistant
 4. Add integration: Settings → Devices & Services → Add Integration → Lipro
 
-### Shell (via SSH / Terminal & SSH Add-on)
+### Shell (Verified Release Assets)
 
 ```shell
-wget -O - https://raw.githubusercontent.com/Exlany/lipro-hass/main/install.sh | ARCHIVE_TAG=latest bash -
+# Download these release assets from GitHub Releases first:
+#   - install.sh
+#   - lipro-hass-v1.0.0.zip
+#   - SHA256SUMS
 
-# Install a specific tag/branch (e.g. v1.0.0)
-# Tip: pin the installer itself by downloading it from the tag too.
-wget -O - https://raw.githubusercontent.com/Exlany/lipro-hass/v1.0.0/install.sh | ARCHIVE_TAG=v1.0.0 bash -
+# Optional local verification (the installer also verifies with Python/hashlib)
+sha256sum -c SHA256SUMS --ignore-missing
 
-# Install the bleeding-edge branch explicitly
-wget -O - https://raw.githubusercontent.com/Exlany/lipro-hass/main/install.sh | ARCHIVE_TAG=main bash -
-
-# Use a GitHub archive mirror (DANGEROUS; only if you trust the mirror)
-wget -O - https://raw.githubusercontent.com/Exlany/lipro-hass/main/install.sh | LIPRO_ALLOW_MIRROR=1 HUB_DOMAIN=ghfast.top ARCHIVE_TAG=v1.0.0 bash -
+# Supported shell install path
+bash ./install.sh --archive-file ./lipro-hass-v1.0.0.zip --checksum-file ./SHA256SUMS
 ```
 
-Note: the default supported shell installer path is `ARCHIVE_TAG=latest`. `latest` resolves to the latest GitHub Release tag; if resolution fails the installer exits with an error. Pin a tag (for example `v1.0.0`) only when you need a reproducible install, or use `ARCHIVE_TAG=main` explicitly for the bleeding-edge version.
+Note: the supported shell installer path now starts from downloaded GitHub Release assets. The installer verifies the archive checksum itself and fails closed when the zip or `SHA256SUMS` is missing or mismatched.
 
-Note: `HUB_DOMAIN` only affects where the installer fetches release metadata and source archives from. It does not change how `install.sh` itself is downloaded (still `raw.githubusercontent.com`).
+### Advanced Preview Path (Unsupported)
+
+```shell
+# Explicitly opt into the bleeding-edge branch
+ARCHIVE_TAG=main bash ./install.sh
+
+# Mirror + preview path (DANGEROUS; only if you trust the mirror)
+ARCHIVE_TAG=main LIPRO_ALLOW_MIRROR=1 HUB_DOMAIN=ghfast.top bash ./install.sh
+```
+
+Note: `ARCHIVE_TAG=main`, branch fallback, and mirror installs are preview / unsupported paths for maintainers and advanced testers. Prefer verified release assets for production installs.
+
+### Release Asset Trust
+
+- Stable install trust starts from verified GitHub Release assets plus `SHA256SUMS`.
+- Current release identity evidence also publishes an `SBOM` and GitHub artifact `attestation` / `provenance`, verifiable with `gh attestation verify`.
+- This is release identity / provenance evidence, not artifact signing.
+- `signing` and GitHub `code scanning` remain explicit deferred roadmap items, not current hard gates.
 
 ### shell_command Service
 
-1. Add the following to your `configuration.yaml`:
+1. Download `install.sh`, `lipro-hass-v1.0.0.zip`, and `SHA256SUMS` into a stable local directory first (for example `/config/lipro-release/`).
+2. Add the following to your `configuration.yaml`:
     ```yaml
     shell_command:
-      update_lipro: |-
-        wget -O - https://raw.githubusercontent.com/Exlany/lipro-hass/main/install.sh | ARCHIVE_TAG=latest bash -
+      update_lipro: >-
+        bash /config/lipro-release/install.sh
+        --archive-file /config/lipro-release/lipro-hass-v1.0.0.zip
+        --checksum-file /config/lipro-release/SHA256SUMS
     ```
-2. Restart Home Assistant
-3. Call `service: shell_command.update_lipro` in Developer Tools
-4. Restart Home Assistant again
+3. Restart Home Assistant
+4. Call `service: shell_command.update_lipro` in Developer Tools
+5. Restart Home Assistant again
 
 ### Manual Installation
 
-1. Download the latest release from [Releases](https://github.com/Exlany/lipro-hass/releases)
-2. Copy `custom_components/lipro` folder to your `config/custom_components/` directory
-3. Restart Home Assistant
+1. Download `lipro-hass-v1.0.0.zip` from [Releases](https://github.com/Exlany/lipro-hass/releases)
+2. Verify it against `SHA256SUMS`
+3. Extract the archive and copy `custom_components/lipro` to your `config/custom_components/` directory
+4. Restart Home Assistant
 
 ## Configuration
 
@@ -334,6 +354,12 @@ See also: `SUPPORT.md` for routing, `SECURITY.md` for private vulnerability disc
 ## Disclaimer
 
 This integration is implemented by reverse engineering the Lipro cloud API and is not officially supported. Use at your own risk.
+
+## Support Model
+
+- Stable support targets: the latest tagged release and the matching HACS install
+- Preview paths (`ARCHIVE_TAG=main`, branch fallback, mirror installs): best effort only
+- Triage and release custody follow a single-maintainer model; if the maintainer is unavailable, release promises freeze rather than silently bypassing gates or implying a hidden backup maintainer
 
 ## Contributing
 

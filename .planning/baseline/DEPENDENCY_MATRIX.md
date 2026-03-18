@@ -65,6 +65,18 @@
 - `custom_components/lipro/control/telemetry_surface.py` 必须通过 `runtime_access.get_entry_runtime_coordinator()` 定位 runtime root；telemetry bridge 不能重新承担 runtime-home 叙事。
 - `custom_components/lipro/config_flow.py`、`custom_components/lipro/entry_auth.py` 允许依赖 `LiproAuthManager` / `AuthSessionSnapshot` 这类 host-neutral contract；不允许依赖 raw login/result payload 或 boundary decoder internals。
 
+## Phase 25.2 Telemetry Formal-Surface Closure Clarifications
+
+- `custom_components/lipro/control/telemetry_surface.py` 现在只允许 pull `Coordinator.protocol` 与 `telemetry_service` 这两个正式 observer surfaces；`coordinator.client` 不再是 allowed dependency / bridge input。
+- `runtime_types.LiproCoordinator` 已显式承认 telemetry bridge 真实需要的 `protocol` / `telemetry_service` surfaces；任何 consumer 若继续依赖 `client`、`entry.runtime_data` 或 coordinator private fields，应视为 regression。
+- `.planning/codebase/STRUCTURE.md` 等 codebase maps 继续只是 derived collaboration views；它们可以记录 telemetry bridge wiring，但不能重新定义 authority/dependency truth。
+
+## Phase 27 Protocol-Service Convergence Clarifications
+
+- `custom_components/lipro/services/schedule.py`、`custom_components/lipro/services/diagnostics/*` 与 `custom_components/lipro/entities/firmware_update.py` 现在只允许 pull `runtime_types.LiproCoordinator.protocol_service` 这一个 runtime-owned protocol capability port；不得继续依赖 coordinator 顶层 schedule / diagnostics / OTA pure forwarders。
+- `custom_components/lipro/core/coordinator/services/protocol_service.py` 是 runtime 与 protocol root 之间的唯一 formal capability bridge；它可以依赖 `LiproProtocolFacade`，但 control/entity/platform 不得反向绕过它摸 runtime internals。
+- outlet-power polling 允许在 coordinator 内部通过 `self.protocol_service.async_fetch_outlet_power_info` 完成 runtime wiring；这属于 runtime 内部实现，不构成新的 external public surface。
+
 ## Phase 18 Host-Neutral Nucleus / Adapter Projection Clarifications
 
 - `custom_components/lipro/core/auth/bootstrap.py`、`custom_components/lipro/core/capability/*` 与 `custom_components/lipro/core/device/*` 共同构成 host-neutral nucleus helper/contract family；这些 homes 可以被 HA adapter 消费，但不得直接 import `homeassistant`。

@@ -6,7 +6,7 @@
 - Private repositories and forks skip CI HACS validation because HACS only supports public GitHub repositories.
 - Security reports do **not** belong in public issues; follow `SECURITY.md` instead.
 - Maintainer-facing release and packaging steps live in `docs/MAINTAINER_RELEASE_RUNBOOK.md`.
-- Default shell installs should continue to use `ARCHIVE_TAG=latest`; pin a tag only when reproducing an older release-specific issue.
+- Supported shell installs should use verified GitHub Release assets (`install.sh` + release zip + `SHA256SUMS`); `ARCHIVE_TAG=main` is preview-only.
 
 ## Before Opening an Issue
 

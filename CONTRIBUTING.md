@@ -61,6 +61,8 @@ Thank you for your interest in contributing to the Lipro Smart Home integration!
 - Private vulnerability disclosure: `SECURITY.md`
 - If you touch `README.md` / `README_zh.md` / `CONTRIBUTING.md` / `SUPPORT.md` / `SECURITY.md` / `.github/*` / release workflow, update these entry points together and do not leave silent defer behind.
 - Public bug reports should start with diagnostics; developer report / one-click feedback is an escalation path only when diagnostics are insufficient or a maintainer explicitly asks for deeper debugging.
+- Supported shell/manual install docs now start from verified release assets (`install.sh` + release zip + `SHA256SUMS`); `ARCHIVE_TAG=main` and mirror/branch fallback paths are preview-only and should not be documented as stable support routes.
+- Continuity truth: triage and release custody remain single-maintainer; if that maintainer is unavailable, freeze new tagged releases rather than implying hidden backup coverage.
 
 ## Code Standards / 代码规范
 
@@ -120,13 +122,13 @@ Use the same command groups as GitHub Actions:
 请与 GitHub Actions 使用同一组命令：
 
 - **lint**: `uv run ruff check .`、`uv run ruff format --check .`、`uv run mypy`；若涉及用户可见文案，再跑 `uv run python scripts/check_translations.py`
-- **governance**: `uv run python scripts/check_architecture_policy.py --check`、`uv run python scripts/check_file_matrix.py --check`、`uv run pytest -q -x tests/meta/test_dependency_guards.py tests/meta/test_public_surface_guards.py tests/meta/test_governance_guards.py tests/meta/test_version_sync.py`
+- **governance**: `uv run python scripts/check_architecture_policy.py --check`、`uv run python scripts/check_file_matrix.py --check`、`uv run pytest -q -x tests/meta/test_dependency_guards.py tests/meta/test_public_surface_guards.py tests/meta/test_governance_guards.py tests/meta/test_governance_closeout_guards.py tests/meta/test_version_sync.py`
 - **test**: `uv run pytest tests/ -v --ignore=tests/benchmarks --cov=custom_components/lipro --cov-fail-under=95 --cov-report=json --cov-report=xml --cov-report=term-missing`、`uv run pytest tests/snapshots/ -v`、`uv run python scripts/coverage_diff.py coverage.json --minimum 95`（coverage floor + optional baseline diff）、`uv run python scripts/refactor_tools.py --coverage-json coverage.json --minimum-coverage 95`
-- **security**: GitHub Actions 会在每个 PR 上运行 runtime `pip-audit` 门禁；dev dependency audit 仅在 `schedule` / `workflow_dispatch` 作为 advisory、non-blocking 运行；若变更涉及依赖、认证、发布链路或安全边界，提交前至少复核 `./scripts/lint` 或手动执行 runtime `pip-audit` 流程
+- **security**: GitHub Actions 会在每个 PR 上运行 blocking runtime `pip-audit` 门禁；tag release 还会额外运行 tagged release security gate，对标签源码再做一次 runtime `pip-audit`。dev dependency audit 仅在 `schedule` / `workflow_dispatch` 作为 advisory、non-blocking 运行；GitHub `code scanning` 仍是显式 defer，不要把 attestation / pip-audit 误写成 signing。
 - **benchmark**: `uv run pytest tests/benchmarks/ -v --benchmark-only --benchmark-json=.benchmarks/benchmark.json`；当前是 advisory observability lane，仅在性能敏感改动或手动对齐 `schedule` / `workflow_dispatch` 时需要
 - **shellcheck**: 若修改 `install.sh` / `scripts/*` shell 脚本，请运行 `shellcheck install.sh scripts/develop scripts/lint scripts/setup`（CI 的 `lint` job 也会执行）
 - **validate**: GitHub Actions 会额外运行 `HACS` 与 `Hassfest` 校验；若仓库或 fork 为 private，CI 会跳过 HACS validation，因为 HACS 只支持公开 GitHub 仓库；本地通常不必手动复刻，但提交前应确保仓库元数据仍符合这些约束
-- **release**: tag release 先复用 `.github/workflows/ci.yml`，再由 `.github/workflows/release.yml` 从 `refs/tags/${RELEASE_TAG}` 打包并发布资产；维护者操作手册见 `docs/MAINTAINER_RELEASE_RUNBOOK.md`，不要旁路门禁直接发版
+- **release**: tag release 先复用 `.github/workflows/ci.yml`，再由 `.github/workflows/release.yml` 在 `refs/tags/${RELEASE_TAG}` 上运行 tagged release security gate，发布 `SHA256SUMS` / `SBOM` / GitHub artifact attestation / provenance，并写出 release identity manifest；这些是可验证的 release identity 证据，不是 artifact signing。`signing` 与 GitHub `code scanning` 仍是显式 defer；维护者操作手册见 `docs/MAINTAINER_RELEASE_RUNBOOK.md`，不要旁路门禁直接发版
 
 ### Type Hints / 类型提示
 
@@ -162,7 +164,7 @@ async def async_turn_on(self, **kwargs: Any) -> None:
    uv run mypy
    uv run python scripts/check_architecture_policy.py --check
    uv run python scripts/check_file_matrix.py --check
-   uv run pytest -q -x tests/meta/test_dependency_guards.py tests/meta/test_public_surface_guards.py tests/meta/test_governance_guards.py tests/meta/test_version_sync.py
+   uv run pytest -q -x tests/meta/test_dependency_guards.py tests/meta/test_public_surface_guards.py tests/meta/test_governance_guards.py tests/meta/test_governance_closeout_guards.py tests/meta/test_version_sync.py
    uv run pytest tests/ -v --ignore=tests/benchmarks --cov=custom_components/lipro --cov-fail-under=95 --cov-report=json --cov-report=xml --cov-report=term-missing
    uv run pytest tests/snapshots/ -v
    uv run python scripts/coverage_diff.py coverage.json --minimum 95  # coverage floor + optional baseline diff
@@ -252,7 +254,7 @@ Please follow `CODE_OF_CONDUCT.md` for community expectations.
 
 ## Support / 支持渠道
 
-See `docs/TROUBLESHOOTING.md` first, then `SUPPORT.md` for usage questions, bug triage expectations, and security routing.
+See `docs/TROUBLESHOOTING.md` first, then `SUPPORT.md` for usage questions, bug triage expectations, support lifecycle, and security routing.
 如需排障请先看 `docs/TROUBLESHOOTING.md`，再通过 `SUPPORT.md` 获取使用问题、缺陷分流与安全披露路径。
 
 ## Questions? / 有问题？

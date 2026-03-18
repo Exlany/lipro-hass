@@ -84,43 +84,63 @@ Home Assistant 集成，用于控制 Lipro 智能家居设备。
 3. 重启 Home Assistant
 4. 添加集成：设置 → 设备与服务 → 添加集成 → Lipro
 
-### 脚本安装（通过 SSH / Terminal & SSH 插件）
+### 脚本安装（校验后的 Release 资产）
 
 ```shell
-wget -O - https://raw.githubusercontent.com/Exlany/lipro-hass/main/install.sh | ARCHIVE_TAG=latest bash -
+# 先从 GitHub Releases 下载以下资产：
+#   - install.sh
+#   - lipro-hass-v1.0.0.zip
+#   - SHA256SUMS
 
-# 安装指定版本（tag/branch，例如 v1.0.0）
-# 提示：为获得可复现安装，建议同时把 install.sh 也固定到相同 tag。
-wget -O - https://raw.githubusercontent.com/Exlany/lipro-hass/v1.0.0/install.sh | ARCHIVE_TAG=v1.0.0 bash -
+# 可选的本地校验（安装脚本内部也会用 Python/hashlib 再校验一次）
+sha256sum -c SHA256SUMS --ignore-missing
 
-# 安装开发版（请显式指定 main）
-wget -O - https://raw.githubusercontent.com/Exlany/lipro-hass/main/install.sh | ARCHIVE_TAG=main bash -
-
-# 使用镜像加速（高风险：仅在你完全信任镜像域时使用，并建议固定到 tag）
-wget -O - https://raw.githubusercontent.com/Exlany/lipro-hass/main/install.sh | LIPRO_ALLOW_MIRROR=1 HUB_DOMAIN=ghfast.top ARCHIVE_TAG=v1.0.0 bash -
+# 默认支持的脚本安装路径
+bash ./install.sh --archive-file ./lipro-hass-v1.0.0.zip --checksum-file ./SHA256SUMS
 ```
 
-说明：默认推荐的脚本安装入口就是 `ARCHIVE_TAG=latest`。`latest` 会解析为 GitHub Releases 的最新版本；如解析失败安装脚本会报错退出。只有在你需要可复现安装时，才建议固定到具体 tag（例如 `v1.0.0`）；如需开发版请显式使用 `ARCHIVE_TAG=main`。
+说明：默认支持的脚本安装路径现在从已下载的 GitHub Release 资产开始。安装脚本会自行校验压缩包摘要，并在 zip 或 `SHA256SUMS` 缺失/不匹配时 fail-closed。
 
-说明：`HUB_DOMAIN` 仅影响脚本内请求 Release 信息与源码压缩包的域名，不会改变 `install.sh` 本身的下载地址（仍为 `raw.githubusercontent.com`）。
+### 高级预览路径（不受支持）
+
+```shell
+# 显式安装开发中的 main 分支
+ARCHIVE_TAG=main bash ./install.sh
+
+# 镜像 + 预览路径（高风险：仅在你完全信任镜像域时使用）
+ARCHIVE_TAG=main LIPRO_ALLOW_MIRROR=1 HUB_DOMAIN=ghfast.top bash ./install.sh
+```
+
+说明：`ARCHIVE_TAG=main`、branch fallback 与 mirror 安装只属于维护者 / 高级测试者的 preview / unsupported 路径；生产环境请优先使用经过校验的 release 资产。
+
+### Release 资产信任边界
+
+- 稳定安装的信任起点是经过校验的 GitHub Release 资产与 `SHA256SUMS`。
+- 当前 release identity 证据还会发布 `SBOM` 与 GitHub artifact `attestation` / `provenance`，可用 `gh attestation verify` 校验。
+- 这属于 release identity / provenance 证据，不是 artifact signing。
+- `signing` 与 GitHub `code scanning` 仍是明确 defer 的 roadmap 项，不是当前硬门禁。
 
 ### shell_command 服务
 
-1. 将以下内容添加到 `configuration.yaml`：
+1. 先把 `install.sh`、`lipro-hass-v1.0.0.zip` 与 `SHA256SUMS` 下载到本地稳定目录（例如 `/config/lipro-release/`）。
+2. 将以下内容添加到 `configuration.yaml`：
     ```yaml
     shell_command:
-      update_lipro: |-
-        wget -O - https://raw.githubusercontent.com/Exlany/lipro-hass/main/install.sh | ARCHIVE_TAG=latest bash -
+      update_lipro: >-
+        bash /config/lipro-release/install.sh
+        --archive-file /config/lipro-release/lipro-hass-v1.0.0.zip
+        --checksum-file /config/lipro-release/SHA256SUMS
     ```
-2. 重启 Home Assistant
-3. 在开发者工具中调用 `service: shell_command.update_lipro`
-4. 再次重启 Home Assistant
+3. 重启 Home Assistant
+4. 在开发者工具中调用 `service: shell_command.update_lipro`
+5. 再次重启 Home Assistant
 
 ### 手动安装
 
-1. 从 [Releases](https://github.com/Exlany/lipro-hass/releases) 下载最新版本
-2. 将 `custom_components/lipro` 文件夹复制到 `config/custom_components/` 目录
-3. 重启 Home Assistant
+1. 从 [Releases](https://github.com/Exlany/lipro-hass/releases) 下载 `lipro-hass-v1.0.0.zip`
+2. 使用 `SHA256SUMS` 校验压缩包
+3. 解压后将 `custom_components/lipro` 复制到 `config/custom_components/` 目录
+4. 重启 Home Assistant
 
 ## 配置
 
@@ -335,6 +355,12 @@ data:
 ## 免责声明
 
 本集成通过逆向工程 Lipro 云端 API 实现，非官方支持。使用风险自负。
+
+## 支持模型
+
+- 稳定支持目标：最新标签版本与与其一致的 HACS 安装
+- 预览路径（`ARCHIVE_TAG=main`、branch fallback、mirror 安装）：仅属 best effort
+- 分流与发版 custody 仍遵循单维护者模型；若维护者不可用，应冻结 release 承诺，而不是静默绕过门禁或暗示存在隐藏的备用维护者
 
 ## 贡献
 

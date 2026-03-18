@@ -1,9 +1,10 @@
 # STRUCTURE
-> Snapshot: `2026-03-15`
+> Snapshot: `2026-03-18`
+> Freshness: Phase 32 对齐刷新；仅按 `AGENTS.md`、`.planning/{ROADMAP,REQUIREMENTS,STATE}.md`、`.planning/baseline/*.md`、`.planning/reviews/*.md`、`docs/developer_architecture.md` 与当前 CI/release/public-doc truth 截面成立。上述真源变更后，本图谱必须同步刷新或标记过时。
 > Repository: `/var/tmp/coolvibe/worktrees/edf26778937a-/lipro-hass`
 > Focus: `arch`
 > Derived collaboration map: 本文件是受约束的协作图谱 / 派生视图，仅用于导航、协作与局部审阅。
-> Authority: 若与 `docs/NORTH_STAR_TARGET_ARCHITECTURE.md`、`.planning/{ROADMAP,REQUIREMENTS,STATE}.md`、`.planning/baseline/*.md`、`.planning/reviews/*.md` 或 `docs/developer_architecture.md` 冲突，以后者为准；本图谱必须同步回写或标记为过时。
+> Authority: 若与 `docs/NORTH_STAR_TARGET_ARCHITECTURE.md`、`.planning/{ROADMAP,REQUIREMENTS,STATE}.md`、`.planning/baseline/*.md`、`.planning/reviews/*.md` 或 `docs/developer_architecture.md` 冲突，以后者为准；本图谱不得反向充当当前治理真源，且必须同步回写、标记为过时，或注明历史观察。
 
 ## 1. Scope And Reading Set
 本结构图谱已纳入：
@@ -61,7 +62,8 @@
 - 这是当前最清晰的目录之一：owner、adapter、locator、router、surface 各有单独文件。
 - `service_router.py` 与 `developer_router_support.py` 的拆分提升了边界清晰度：public handler 留在 router，private glue 下沉到 helper home。
 - `runtime_access.py` 把 `entry.runtime_data` 访问集中到一个位置，降低了 control/runtime 边界漂移风险。
-- 唯一明显的命名残留是 `telemetry_surface.py` 仍探测 `coordinator.client`，与 `Coordinator.protocol` 术语收口不完全一致。
+- `telemetry_surface.py` 的术语收口已在 Phase 25.2 完成：bridge helper 现只承认 `Coordinator.protocol`，辅助层与正式 runtime/protocol 术语保持一致。
+- `schedule.py`、`diagnostics/handlers.py` 与 `entities/firmware_update.py` 在 Phase 27 已统一改走 `coordinator.protocol_service`；这说明 runtime-owned protocol capability port 已真正成为正式消费面，而不是只停留在 coordinator 内部。
 
 ### 4.3 `custom_components/lipro/services/`
 关键文件：
@@ -98,7 +100,7 @@
 | 目录 | 边界清晰度 | 证据文件 | 备注 |
 |---|---|---|---|
 | `custom_components/lipro/control/` | 高 | `control/service_router.py`、`control/runtime_access.py`、`tests/core/test_control_plane.py` | 结构与职责一一对应 |
-| `custom_components/lipro/core/coordinator/` | 高 | `core/coordinator/coordinator.py`、`orchestrator.py`、`services/protocol_service.py` | 运行面边界最成熟，但 `coordinator.py` 体量仍大 |
+| `custom_components/lipro/core/coordinator/` | 高 | `core/coordinator/coordinator.py`、`orchestrator.py`、`services/protocol_service.py` | 运行面边界最成熟；Phase 27 已移除 external pure forwarders，但 `coordinator.py` 仍是后续 maintainability hotspot |
 | `custom_components/lipro/core/protocol/` | 高 | `core/protocol/facade.py`、`contracts.py`、`boundary/*.py` | root / contract / boundary 三层分工清楚 |
 | `custom_components/lipro/core/capability/` | 高 | `core/capability/registry.py` | 小而稳，authority 明确 |
 | `custom_components/lipro/core/device/` | 中高 | `core/device/device.py`、`state.py`、`device_factory.py` | 动态委托已清理，但 façade leaf surface 仍偏宽 |
@@ -118,7 +120,6 @@
 - `core/api/client_base.py`、`client_auth_recovery.py`、`client_transport.py`、`client_pacing.py`：仍保留“mega client 拆片后”的历史语义。
 - `core/mqtt/mqtt_client.py::LiproMqttClient`：虽然已经不是正式 root，但命名仍像独立 protocol root。
 - `services/execution.py`：名字仍偏泛，但语义已稳定为 service execution facade；真实历史 seam 已在 Phase 5 关闭。
-- `control/telemetry_surface.py` 对 `client` 属性的依赖，说明术语收口还没完全穿透所有辅助桥接层。
 
 ## 7. Maintainability Hotspots
 主要维护热点不是目录失控，而是少数热点文件仍偏厚：

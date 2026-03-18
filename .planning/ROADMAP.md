@@ -441,3 +441,163 @@ Plans:
 - [x] 24-04: repair control-plane contract regressions and restore closeout gates
 - [x] 24-05: resync reopened phase-24 closeout truth with fresh gate evidence
 
+## Next Milestone Seed
+
+### 🚧 v1.3: Quality-10 Remediation & Productization
+
+**Milestone Goal:** 把终极复审与 `Phase 25 -> 31` 执行后的 retained cross-cutting gaps 一并转成最终可执行 closeout：先用 `Phase 25` 完成首轮路由，再由 `25.1 / 25.2 / 26 / 27 / 28 / 29 / 30 / 31` 分 tranche 落地 correctness、formal-surface、trust chain、typed/exception/hotspot 收口，最后用 `Phase 32` 统一处理 planning truth convergence、gate honesty、derived-map freshness 与 remaining quality-10 residue。
+
+**Execution Scope:** `Phase 25 -> Phase 32`
+
+**Seed Status:** `Phase 25 -> 32` 已于 `2026-03-18` 全部执行完成；v1.3 route 已从 final closeout tranche 收口到 execution-complete / audit-ready 状态，不再保留 `Phase 32 planned / execution-ready` 的 active story。
+
+### Phase 25: Quality-10 remediation master plan and execution routing
+**Goal**: 把终极复审中的全部关键问题制度化：逐项映射到 `25.1 / 25.2 / 26 / 27`，锁定边界、优先级、success gates 与显式排除项，确保没有任何 remaining item 继续停留在口头共识里。
+**Depends on**: Phase 24
+**Requirements**: [GOV-19]
+**Draft Success Criteria**:
+  1. 终极复审中的全部 P0 / P1 / P2 项，要么被路由到 `25.1 / 25.2 / 26 / 27`，要么被显式裁决为外部约束 / 非当前 debt，而不是 silent defer。
+  2. `25.1 / 25.2 / 26 / 27` 的范围不互相踩踏：不把 trust chain、snapshot correctness、telemetry seam、hotspot slimming 混成一个黑洞 phase。
+  3. reverse-engineered vendor `MD5` 登录哈希路径被记录为协议约束，而不是被误登记为仓库内部可独立消灭的密码学重构债。
+**Status**: Complete
+**Plans**: 4 complete
+
+Plans:
+- [x] 25-01: translate final review into routed requirement ledger and explicit exclusions
+- [x] 25-02: define `25.1 / 25.2 / 26 / 27` boundaries, ordering and success gates
+- [x] 25-03: sync roadmap, requirements, project, state and handoff truths
+- [x] 25-04: freeze route-map validation, no-return rules and next-command handoff
+
+### Phase 25.1: Snapshot atomicity and refresh arbitration
+**Goal**: 消灭“部分失败覆盖全量状态”的设备快照风险，定义 refresh rejection / last-known-good / structured degraded 的正式仲裁语义。
+**Depends on**: Phase 25
+**Requirements**: [RUN-06, ERR-03]
+**Draft Success Criteria**:
+  1. page N 抓取失败时，partial snapshot 不会被当作新的全量 truth 发布到 coordinator state。
+  2. refresh failure 的处理语义可判定、可测试，并沿正式 runtime 主链暴露，而不是靠 debug log 猜测。
+  3. 与 snapshot 主链直接相关的 broad-catch / 灰区 side effects 得到收窄或结构化说明。
+**Status**: Complete (`2026-03-17`)
+**Plans**: 3/3 complete
+
+Plans:
+- [x] 25.1-01: enforce atomic snapshot rejection in builder and runtime
+- [x] 25.1-02: wire coordinator arbitration onto the canonical refresh path
+- [x] 25.1-03: close out phase truth and verification evidence
+
+### Phase 25.2: Telemetry formal-surface closure and planning-truth sync
+**Goal**: 干掉 `coordinator.client` ghost seam，让 telemetry / diagnostics / system health / planning truth 统一到正式 `protocol` surface 与诚实的 residual/derived-map 叙事。
+**Depends on**: Phase 25.1
+**Requirements**: [OBS-04, GOV-20]
+**Draft Success Criteria**:
+  1. control/exporter/diagnostics/system-health consumer 不再把 `Coordinator.client` 当合法 surface。
+  2. touched authority docs、residual ledgers 与 `.planning/codebase/*` derived maps 对 closed seam 讲同一条故事。
+  3. 过渡命名 / 历史 phase 叙事在 touched seam 上继续下降，不再让 formal surface 与旧术语并存。
+**Status**: Complete (`2026-03-17`)
+**Plans**: 3/3 complete
+
+Plans:
+- [x] 25.2-01: formalize telemetry source contracts and close the ghost seam
+- [x] 25.2-02: sync baseline, residual and derived planning truth
+- [x] 25.2-03: close out phase truth and verification evidence
+
+### Phase 26: Release trust chain and open-source productization hardening
+**Goal**: 把安装/发布 trust chain、support/version policy、双语与维护者冗余这些“国际成熟开源项目”要求收口成正式交付，而不再只停留在 runbook defer note。
+**Depends on**: Phase 25.2
+**Requirements**: [GOV-21, QLT-03]
+**Draft Success Criteria**:
+  1. 默认安装故事线从 `wget | bash` 转向“下载 release 资产 → 校验 → 安装”；release 具备更强的 provenance / signing / SBOM / attestation 路径或等价强身份保证。
+  2. `README` / `README_zh` / `CONTRIBUTING` / `SUPPORT` / `SECURITY` / runbook / `CODEOWNERS` 对支持矩阵、维护者冗余、双语策略与产品化入口讲同一条故事。
+  3. 依赖 / 兼容 / 支持策略更诚实：运行依赖、版本窗口、升级边界与支持政策被显式写明并可验证。
+**Status**: Complete (`2026-03-17`)
+**Plans**: 4/4 complete
+
+Plans:
+- [x] 26-01: harden installer and move supported shell installs to verified release assets
+- [x] 26-02: publish installer, sbom and provenance from the existing release tail
+- [x] 26-03: unify public support security contributor and productization truth
+- [x] 26-04: close out phase truth and verification evidence
+
+### Phase 27: Hotspot slimming, dependency strategy and maintainability follow-through
+**Goal**: 在不引入第二 root 的前提下，继续切薄 giant roots 与纯转发层，清理过渡命名/phase residue，分裂测试巨石，并收口次级可靠性与可观测性 debt。
+**Depends on**: Phase 26
+**Requirements**: [HOT-05, RES-04, TST-02]
+**Draft Success Criteria**:
+  1. `Coordinator` / `LiproRestFacade` / forwarding layers 沿现有 `services/`、`boundary/`、child façade 继续切薄，而不是重建新 root。
+  2. 过渡命名、历史 phase 注释、残留叙事噪声、次级 broad-catch 与 local persistence/observability follow-through 被继续收口。
+  3. `tests/core/test_init.py`、`tests/meta/test_governance_guards.py` 一类巨石套件被拆成更稳定的专题回归面，同时维持治理门禁强度。
+**Status**: Complete (`2026-03-17`)
+**Plans**: 4/4 complete
+
+Plans:
+- [x] 27-01: formalize protocol-service capability port and migrate consumers
+- [x] 27-02: retire coordinator forwarder cluster and clean phase residue
+- [x] 27-03: sync baseline, dependency and residual truth to the new formal surface
+- [x] 27-04: split test monoliths and refresh testing/toolchain truth
+
+### Phase 28: Release trust gate completion and maintainer resilience
+**Goal**: 把“诚实记录”继续推进为“制度化 hardening”：在不虚构第二维护者的前提下，补齐 maintainer continuity、release signing / scanning gate 与对外支持生命周期的机器化与可审计化。
+**Depends on**: Phase 27
+**Requirements**: [GOV-22, QLT-04]
+**Draft Success Criteria**:
+  1. release trust chain 继续从 attestation 走向更硬的 identity posture（如 signing、code-scanning gate 或等价 machine gate），并形成一致的本地/CI/runbook story。
+  2. maintainer continuity、emergency access、support window / EOL / triage responsibility 被制度化到 docs/workflows，而不是只停留在“single-maintainer 现实说明”。
+  3. public docs、release workflow、CODEOWNERS/runbook 与 support/security policy 对新的 continuity / trust posture 讲同一条故事。
+**Status**: Complete (`2026-03-17`)
+**Plans**: 3/3 complete
+
+Plans:
+- [x] 28-01: harden release identity posture and verifiable release evidence
+- [x] 28-02: close code-scanning and security gate posture on the release path
+- [x] 28-03: institutionalize maintainer continuity and support lifecycle truth
+
+### Phase 29: REST child-façade slimming and test topicization
+**Goal**: 沿北极星单一 protocol 主链继续切薄 `LiproRestFacade`，把 remaining hotspot 拆成更聚焦的 child collaborators / services，并把与这些热点耦合的 mega-tests 继续拆成稳定专题面。
+**Depends on**: Phase 28
+**Requirements**: [HOT-06, RES-05, TST-03]
+**Draft Success Criteria**:
+  1. `LiproRestFacade` 继续瘦身，但不会生成第二 protocol root、DI 容器或 bus story。
+  2. high-churn REST families 被下沉到更清晰的 child homes，formal public surface 不因此膨胀。
+  3. 与 REST hotspot 强耦合的 API mega-tests 继续按 `transport/auth`、`command/pacing`、`capability wrappers` 专题拆薄，且 touched baseline/review/test truth 对 child-façade decomposition 与 maintainability debt 讲实话。
+**Status**: Complete (`2026-03-17`)
+**Plans**: 3/3 complete
+
+### Phase 30: Protocol/control typed contract tightening
+**Goal**: 先在 protocol/control 这条高杠杆主链上继续收口 typed debt 与 broad-catch debt，把最靠近 boundary 与 child-façade 的宽口 contract 收回到正式 typed arbitration。
+**Depends on**: Phase 29
+**Requirements**: [TYP-06, ERR-04]
+**Draft Success Criteria**:
+  1. `core/api`、`core/protocol`、`control` touched hotspots 中的 `Any` / `type: ignore` / 宽口 contract 明显下降，并改用正式 typed ports、aliases 或 boundary contracts。
+  2. 上述 touched hotspots 中 remaining broad-catch 改为 typed arbitration、documented failure contract 或显式 deferred truth，而不是继续吞掉错误语义。
+  3. 这轮 tightening 不引入第二真源，也不把 helper/collaborator 回抬成 root。
+**Status**: Complete (`2026-03-17`)
+**Plans**: 3/3 complete
+
+### Phase 31: Runtime/service typed budget and exception closure
+**Goal**: 完成 repo-wide typed hardening 的第二半场，把 runtime/service/platform 剩余 typed backlog 与 broad-catch debt 收敛成可量化预算、明确语义与 no-growth guards。
+**Depends on**: Phase 30
+**Requirements**: [TYP-07, ERR-05, GOV-23]
+**Draft Success Criteria**:
+  1. 基于 handoff 基线 `Any=614`、`except Exception=36`、`type: ignore=12`，为 runtime/service/platform touched zones 建立预算并显著下降。
+  2. remaining runtime/service broad-catch 只保留 documented fail-closed / degraded semantics；新增 catch-all regression 会被 meta guards 或 governance scripts 拦截。
+  3. typed/exception budget、phase closeout truth 与 daily governance gates 形成同源 no-growth story，而不是继续依赖人工补漏。
+**Status**: Complete (`2026-03-17`)
+**Plans**: 4/4 complete
+
+### Phase 32: Truth convergence, gate honesty, and quality-10 closeout
+**Goal**: 把 `Phase 25 -> 31` 完成后仍残留的 planning truth 分叉、gate 口径漂移、derived-map freshness 与 hotspot/typed/exception/residual follow-through 统一收束成 final quality-10 closeout，不给下一轮再留 silent defer。
+**Depends on**: Phase 31
+**Requirements**: [GOV-24, QLT-05, GOV-25, GOV-26, HOT-07, TST-04, TYP-08, ERR-06, RES-06]
+**Draft Success Criteria**:
+  1. active planning truth（`PROJECT` / `ROADMAP` / `REQUIREMENTS` / `STATE`）与 retained handoff/audit pointers 对 `Phase 25 -> 31` complete + `Phase 32` pending 讲同一条故事，不再残留 stale continuation claim。
+  2. repo-wide gate story 必须诚实：`ruff` / `mypy` / CI / contributor docs 的口径与实际执行范围一致；release identity / code-scanning / maintainer continuity surface 不再相互漂移。
+  3. `.planning/codebase/*`、双语 public docs、giant roots/tests、typed/exception budgets 与 fallback/legacy residue 全部要么落到显式执行项，要么落到显式 defer truth，不再有口头约定。
+  4. reverse-engineered vendor crypto constraints（如 `MD5` 登录路径）继续按协议约束诚实登记；在未证实上游可替换前，`Phase 32` 不制造伪仓库债。
+**Status**: Complete (`2026-03-18`)
+**Plans**: 5/5 complete
+
+Plans:
+- [x] 32-01: converge planning truth and repair requirement traceability
+- [x] 32-02: align repo-wide gate honesty and toolchain reality
+- [x] 32-03: converge release identity posture, maintainer continuity, and contributor templates
+- [x] 32-04: refresh codebase-map freshness, authority disclaimers, and bilingual public-doc sync
+- [x] 32-05: close hotspot slimming, mega-test topicization, typed/exception debt, and residual honesty
