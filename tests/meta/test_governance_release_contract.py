@@ -57,6 +57,7 @@ def test_ci_and_release_workflows_share_governance_and_version_gates() -> None:
     test_step_names = {step["name"] for step in test_job["steps"]}
     assert "Run snapshot tests" not in test_step_names
     assert "Record test lane contract" in test_step_names
+    assert "Check coverage floor / explicit baseline diff" in test_step_names
 
     benchmark_job = ci_workflow["jobs"]["benchmark"]
     benchmark_steps = benchmark_job["steps"]
@@ -81,6 +82,12 @@ def test_ci_and_release_workflows_share_governance_and_version_gates() -> None:
         == "actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02"
     )
     assert upload_step["with"]["path"] == ".benchmarks/benchmark.json"
+    benchmark_summary = next(
+        step
+        for step in benchmark_steps
+        if step.get("name") == "Record benchmark advisory posture"
+    )
+    assert "advisory-with-artifact" in benchmark_summary["run"]
 
     validate_job = release_workflow["jobs"]["validate"]
     assert validate_job["uses"] == "./.github/workflows/ci.yml"
@@ -201,8 +208,10 @@ def test_contributor_contract_matches_ci_language() -> None:
     assert "--ignore=tests/benchmarks" in contributing_bullets["test"]
     assert "tests/snapshots/" not in contributing_bullets["test"]
     assert "snapshot coverage" in contributing_bullets["test"]
+    assert "--baseline" in contributing_bullets["test"]
     assert "tests/benchmarks/" in contributing_bullets["benchmark"]
     assert ".benchmarks/benchmark.json" in contributing_bullets["benchmark"]
+    assert "advisory-with-artifact" in contributing_bullets["benchmark"]
 
 
 def test_supported_shell_installer_path_uses_verified_release_assets() -> None:

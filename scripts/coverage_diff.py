@@ -47,6 +47,8 @@ def main() -> int:
         if diff < 0:
             sys.stdout.write("Coverage regressed below baseline\n")
             return 1
+    else:
+        sys.stdout.write("Coverage diff: skipped (no baseline provided)\n")
     return 0
 
 

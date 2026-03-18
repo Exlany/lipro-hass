@@ -52,7 +52,7 @@ Home Assistant integration for controlling Lipro Smart Home devices.
 - `lipro.refresh_devices` - Force a full device list refresh (all entries or one `entry_id`)
 
 Firmware validation list:
-- Certified firmware versions: `custom_components/lipro/firmware_support_manifest.json`
+- Certified firmware trust-root asset: `custom_components/lipro/firmware_support_manifest.json`
 - OTA update entities show available firmware (uncertified firmware may require confirmation)
 
 ## Data Update Mechanism

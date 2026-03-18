@@ -517,3 +517,21 @@ def test_phase_37_execution_evidence_is_consistent() -> None:
     assert "# Phase 37 Verification" in verification_text
     assert "test_governance_phase_history*.py" in verification_text
     assert "phase: 37" in summary_text
+
+
+def test_phase_38_execution_evidence_is_consistent() -> None:
+    phase_root = (
+        _ROOT
+        / ".planning"
+        / "phases"
+        / "38-external-boundary-residual-retirement-and-quality-signal-hardening"
+    )
+    validation_text = (phase_root / "38-VALIDATION.md").read_text(encoding="utf-8")
+    verification_text = (phase_root / "38-VERIFICATION.md").read_text(encoding="utf-8")
+    summary_text = (phase_root / "38-SUMMARY.md").read_text(encoding="utf-8")
+
+    assert "status: passed" in validation_text
+    assert "38-01-01" in validation_text and "✅ passed" in validation_text
+    assert "# Phase 38 Verification" in verification_text
+    assert "advisory-with-artifact" in verification_text
+    assert "phase: 38" in summary_text

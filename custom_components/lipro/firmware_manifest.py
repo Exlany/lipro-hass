@@ -1,4 +1,4 @@
-"""Firmware support manifest loading for the update platform."""
+"""Firmware trust-root and advisory loading for the update platform."""
 
 from __future__ import annotations
 
@@ -23,9 +23,9 @@ from .core.ota.manifest import (
 _LOGGER = logging.getLogger(__name__)
 
 _TIME_MIN_UTC = datetime.min.replace(tzinfo=UTC)
-LOCAL_FIRMWARE_SUPPORT_MANIFEST_FILENAME = "firmware_support_manifest.json"
-LOCAL_FIRMWARE_SUPPORT_MANIFEST_PATH = Path(__file__).with_name(
-    LOCAL_FIRMWARE_SUPPORT_MANIFEST_FILENAME
+LOCAL_FIRMWARE_TRUST_ROOT_FILENAME = "firmware_support_manifest.json"
+LOCAL_FIRMWARE_TRUST_ROOT_PATH = Path(__file__).with_name(
+    LOCAL_FIRMWARE_TRUST_ROOT_FILENAME
 )
 REMOTE_FIRMWARE_ADVISORY_URLS = (
     "https://lipro-share.lany.me/api/firmware-support",
@@ -56,9 +56,9 @@ _REMOTE_MANIFEST_LOCK = asyncio.Lock()
 def load_verified_firmware_manifest() -> _RemoteManifestData:
     """Load the local firmware trust-root manifest bundled in the repo."""
     return load_verified_firmware_manifest_file(
-        LOCAL_FIRMWARE_SUPPORT_MANIFEST_PATH,
+        LOCAL_FIRMWARE_TRUST_ROOT_PATH,
         on_error=lambda path, err: _LOGGER.debug(
-            "Failed to load firmware support manifest %s: %s",
+            "Failed to load local firmware trust-root asset %s: %s",
             path,
             err,
         ),
@@ -113,8 +113,8 @@ async def async_load_remote_firmware_manifest(
 
 
 __all__ = [
-    "LOCAL_FIRMWARE_SUPPORT_MANIFEST_FILENAME",
-    "LOCAL_FIRMWARE_SUPPORT_MANIFEST_PATH",
+    "LOCAL_FIRMWARE_TRUST_ROOT_FILENAME",
+    "LOCAL_FIRMWARE_TRUST_ROOT_PATH",
     "REMOTE_FIRMWARE_ADVISORY_URLS",
     "async_load_remote_firmware_manifest",
     "load_verified_firmware_manifest",

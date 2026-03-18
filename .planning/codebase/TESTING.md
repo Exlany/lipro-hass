@@ -30,7 +30,7 @@
 - 测试栈完整：`pytest`、`pytest-asyncio`、`pytest-cov`、`pytest-homeassistant-custom-component`、`pytest-benchmark`、`syrupy`、`mypy`、`xdist` 全部进入 dev 依赖。证据：`pyproject.toml:33`。
 - CI 把质量拆成 `lint`、`governance`、`security`、`test`、`benchmark`、`validate` 六道门，release 先复用 CI，再做版本校验与打包。证据：`.github/workflows/ci.yml:22`, `.github/workflows/release.yml:25`, `tests/meta/test_governance_guards.py:185`。
 - 当前仓库共有 `181` 个 `test_*.py` 文件；其中 `21` 个 meta guard、`5` 个 integration、`4` 个 benchmark、`4` 个 snapshot 文件；另有 `5` 个 fixture family readme 维护 authority/用途说明。
-- Coverage gate 是硬门槛：主测试 job 以 `95%` 为下限，snapshot coverage 已包含在主 `tests/` lane 中，之后再跑 coverage diff 与 refactor smoke；benchmark 则作为 advisory-with-budget lane 产出 `.benchmarks/benchmark.json` artifact。证据：`.github/workflows/ci.yml:177`, `CONTRIBUTING.md:94`。
+- Coverage gate 是硬门槛：主测试 job 以 `95%` 为下限，snapshot coverage 已包含在主 `tests/` lane 中；`coverage_diff.py` 默认执行 floor-only check，只有显式提供 baseline 才会产出 diff；benchmark 则作为 advisory-with-artifact lane 产出 `.benchmarks/benchmark.json`。证据：`.github/workflows/ci.yml:177`, `CONTRIBUTING.md:94`。
 
 ## 3. 测试分层图谱
 
@@ -94,9 +94,9 @@
 
 ## 8. Gaps 与改进空间
 
-- **marker registry 与实际切分脱节**：`pyproject.toml` 声明了 `github` / `integration` / `slow` markers，但当前跟踪到的 `test_*.py` 文件没有使用这些 marker；套件切分主要靠目录，而不是 marker 选择。证据：`pyproject.toml:73`，以及本次仓库扫描结果。
-- **benchmark 只有执行，没有阈值**：CI 只在 schedule/manual 跑 benchmark，并输出 `.benchmarks/benchmark.json`；没有历史基线、回归阈值或 PR 级别性能门槛。证据：`.github/workflows/ci.yml:206`, `.github/workflows/ci.yml:228`。
-- **coverage diff 目前更像第二个最低线检查**：CI 调用 `scripts/coverage_diff.py` 时只传 `--minimum 95`，没有 baseline 文件，因此不会真正比较“相对退步”。证据：`.github/workflows/ci.yml:191`。
+- **pytest marker registry 已 truthfully 退场**：`pyproject.toml` 不再声明 dead markers；当前套件切分主要靠目录与 CI lane，而不是伪选择器。证据：`pyproject.toml:73`, `tests/meta/test_toolchain_truth.py:268`。
+- **benchmark 仍然不是 hard gate**：CI 只在 schedule/manual 跑 benchmark，并输出 `.benchmarks/benchmark.json` artifact；当前仍没有 PR 级别性能阈值，只提供可审计产物供后续对照。证据：`.github/workflows/ci.yml:206`, `.github/workflows/ci.yml:228`。
+- **coverage diff 语义已显式化**：CI 调用 `scripts/coverage_diff.py` 时默认只传 `--minimum 95`，因此这是 floor-only check；只有显式提供 baseline 文件时才比较“相对退步”。证据：`.github/workflows/ci.yml:191`, `scripts/coverage_diff.py:46`。
 - 上述测试文件统计与 scripts/tests 边界由 `tests/meta/test_toolchain_truth.py`、`tests/meta/test_public_surface_guards.py` 与 `tests/meta/test_evidence_pack_authority.py` 显式守护；新增测试目录或 helper-only / pull-only 例外时，必须同步刷新本图谱。
 - **工具依赖有前瞻性，但尚未 fully exploited**：`pytest-mypy-plugins` 与 `pytest-xdist` 已进入 dev 依赖，但仓库内没有对应 type-checking plugin case，也未在 CI 中并行运行测试。证据：`pyproject.toml:45`, `pyproject.toml:46`, `.github/workflows/ci.yml:177`。
 - **快照覆盖仍然很克制**：这有利于稳定，但 control-plane 输出、服务响应体、evidence-pack markdown index 等仍主要依赖常规断言，而非 snapshot 守护。证据：`tests/snapshots/test_api_snapshots.py:42`, `tests/integration/test_ai_debug_evidence_pack.py:21`。

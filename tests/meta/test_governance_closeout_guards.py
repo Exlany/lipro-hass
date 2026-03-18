@@ -241,10 +241,8 @@ def test_phase_28_to_31_continuation_assets_and_tracking_truth_are_synced() -> N
     ):
         assert needle in requirements_text
 
-    assert "`Phase 28` 已完成：tagged release security gate" in state_text
-    assert "`Phase 29` 已完成：`LiproRestFacade`" in state_text
-    assert "`Phase 30` 已完成：REST response/result spine" in state_text
-    assert "`Phase 31` 已完成：runtime/service/platform touched zones" in state_text
+    assert "## Recommended Next Command" in state_text
+    assert "$gsd-progress" in state_text
 
 
 def test_phase_32_completion_truth_is_consistent() -> None:
@@ -316,11 +314,9 @@ def test_phase_32_completion_truth_is_consistent() -> None:
     assert "- Current complete: 29" in requirements_text
     assert "- Current pending: 0" in requirements_text
 
-    assert "`Phase 25 -> 37` 已于 `2026-03-18` 全部执行完成" in project_text
+    assert "## v1.3 Closeout & Post-closeout Continuation" in project_text
     assert "`Phase 32` — truth convergence, gate honesty, and quality-10 closeout" in project_text
-    assert "`Phase 32` 已执行完成" in state_text
-    assert "`Phase 37 complete`" in state_text
-    assert "`Phase 25 -> 37` 已于 `2026-03-18` 全部执行完成并通过 fresh gates" in state_text
+    assert "## Recommended Next Command" in state_text
     assert "$gsd-plan-milestone-gaps" in state_text
     assert "$gsd-complete-milestone v1.3" in state_text
     assert "$gsd-progress" in state_text
@@ -391,12 +387,9 @@ def test_phase_33_planning_truth_is_consistent() -> None:
     ):
         assert needle in requirements_text
 
-    assert "`Phase 33` 关闭了 v1.3 continuation 收口线" in project_text
     assert "## Phase 33 Audit-Driven Continuation" in project_text
-    assert "`33-05 / 33-06` 已收紧 CI/pre-push/benchmark/release evidence truth、dependency posture、deep-doc parity、maintainer continuity 与 mega-test topicization。" in project_text
-    assert "`Phase 33` 已于 `2026-03-18` 执行完成" in state_text
-    assert "`Phase 37 complete`" in state_text
-    assert "runtime contract dual-truth、control 去回路、giant hotspots / broad-catch / gate drift / dependency posture / deep-doc continuity / mega-test topicization 已全部收口" in state_text
+    assert "**Execution promise:**" in project_text
+    assert "## Recommended Next Command" in state_text
     assert "$gsd-plan-milestone-gaps" in state_text
     assert "$gsd-complete-milestone v1.3" in state_text
     assert "$gsd-progress" in state_text
@@ -447,10 +440,8 @@ def test_phase_34_planning_truth_is_consistent() -> None:
         assert needle in requirements_text
 
     assert "## Phase 34 Seed Hardening Update" in project_text
-    assert "`Phase 34` 已于 `2026-03-18` 完成" in project_text
 
-    assert "`Phase 34` 已于 `2026-03-18` 执行完成" in state_text
-    assert "tagged `CodeQL` hard gate" in state_text
+    assert "## Recommended Next Command" in state_text
     assert "$gsd-progress" in state_text
     assert "$gsd-plan-milestone-gaps" in state_text
     assert "$gsd-complete-milestone v1.3" in state_text
@@ -489,8 +480,7 @@ def test_phase_35_planning_truth_is_consistent() -> None:
     assert "| HOT-09 | Phase 35 | Complete |" in requirements_text
     assert "| RES-07 | Phase 35 | Complete |" in requirements_text
     assert "## Phase 35 Protocol Hotspot Slimming Update" in project_text
-    assert "`Phase 35` 已于 `2026-03-18` 完成" in project_text
-    assert "`Phase 35` 已完成：protocol hotspot 继续 inward" in state_text
+    assert "## Recommended Next Command" in state_text
 
 
 def test_phase_36_planning_truth_is_consistent() -> None:
@@ -527,8 +517,7 @@ def test_phase_36_planning_truth_is_consistent() -> None:
     assert "| ERR-08 | Phase 36 | Complete |" in requirements_text
     assert "| TYP-09 | Phase 36 | Complete |" in requirements_text
     assert "## Phase 36 Runtime Root Burn-Down Update" in project_text
-    assert "`Phase 36` 已于 `2026-03-18` 完成" in project_text
-    assert "`Phase 36` 已完成：`CoordinatorPollingService` 已承接 polling/status/outlet/snapshot orchestration" in state_text
+    assert "## Recommended Next Command" in state_text
 
 
 def test_phase_37_planning_truth_is_consistent() -> None:
@@ -564,6 +553,51 @@ def test_phase_37_planning_truth_is_consistent() -> None:
     assert "| TST-06 | Phase 37 | Complete |" in requirements_text
     assert "| GOV-30 | Phase 37 | Complete |" in requirements_text
     assert "| QLT-09 | Phase 37 | Complete |" in requirements_text
+    assert "## Phase 37 Test Topology & Derived-Truth Update" in project_text
     assert "**Default next step:** `$gsd-progress`" in project_text
-    assert "`Phase 37 complete`" in state_text
-    assert "$gsd-plan-phase 38" in state_text
+    assert "## Recommended Next Command" in state_text
+    assert "$gsd-plan-phase 39" in state_text
+
+
+def test_phase_38_planning_truth_is_consistent() -> None:
+    phase_root = (
+        _ROOT
+        / ".planning"
+        / "phases"
+        / "38-external-boundary-residual-retirement-and-quality-signal-hardening"
+    )
+    roadmap_text = (_ROOT / ".planning" / "ROADMAP.md").read_text(encoding="utf-8")
+    requirements_text = (_ROOT / ".planning" / "REQUIREMENTS.md").read_text(encoding="utf-8")
+    project_text = (_ROOT / ".planning" / "PROJECT.md").read_text(encoding="utf-8")
+    state_text = (_ROOT / ".planning" / "STATE.md").read_text(encoding="utf-8")
+    residual_text = (_ROOT / ".planning" / "reviews" / "RESIDUAL_LEDGER.md").read_text(
+        encoding="utf-8"
+    )
+
+    for artifact_name in (
+        "38-CONTEXT.md",
+        "38-01-PLAN.md",
+        "38-02-PLAN.md",
+        "38-03-PLAN.md",
+        "38-VALIDATION.md",
+        "38-01-SUMMARY.md",
+        "38-02-SUMMARY.md",
+        "38-03-SUMMARY.md",
+        "38-SUMMARY.md",
+        "38-VERIFICATION.md",
+    ):
+        assert (phase_root / artifact_name).exists()
+
+    assert "### Phase 38: External-boundary residual retirement and quality-signal hardening" in roadmap_text
+    assert "**Requirements**: [RES-08, QLT-10, GOV-31]" in roadmap_text
+    assert "**Status**: Complete (`2026-03-18`)" in roadmap_text
+    assert "**Plans**: 3/3 complete" in roadmap_text
+    assert "| RES-08 | Phase 38 | Complete |" in requirements_text
+    assert "| QLT-10 | Phase 38 | Complete |" in requirements_text
+    assert "| GOV-31 | Phase 38 | Complete |" in requirements_text
+    assert "## Phase 38 External-Boundary Residual & Quality-Signal Hardening Update" in project_text
+    assert "**Default next step:** `$gsd-progress`" in project_text
+    assert "`Phase 38 complete`" in state_text
+    assert "$gsd-plan-phase 39" in state_text
+    assert "| _None_ | — | — | — | Phase 38 已关闭最后一条已登记 residual family。 |" in residual_text
+    assert "## Phase 38 Residual Delta" in residual_text

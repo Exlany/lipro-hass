@@ -237,6 +237,14 @@ def test_ci_test_and_benchmark_lanes_keep_one_snapshot_story() -> None:
         step for step in test_steps if step.get("name") == "Record test lane contract"
     )
     assert "snapshot coverage: included in the main tests/ lane" in contract_step["run"]
+    assert "coverage diff: floor is always enforced; diff only runs when an explicit baseline is provided" in contract_step["run"]
+
+    coverage_step = next(
+        step for step in test_steps if step.get("name") == "Check coverage floor / explicit baseline diff"
+    )
+    assert "uv run python scripts/coverage_diff.py coverage.json --minimum 95" in coverage_step["run"]
+    coverage_diff_script = (_ROOT / "scripts" / "coverage_diff.py").read_text(encoding="utf-8")
+    assert "Coverage diff: skipped (no baseline provided)" in coverage_diff_script
 
     benchmark_steps = ci["jobs"]["benchmark"]["steps"]
     benchmark_run = next(
@@ -261,7 +269,7 @@ def test_ci_test_and_benchmark_lanes_keep_one_snapshot_story() -> None:
         for step in benchmark_steps
         if step.get("name") == "Record benchmark advisory posture"
     )
-    assert "advisory-with-budget" in summary_step["run"]
+    assert "advisory-with-artifact" in summary_step["run"]
     assert "steps.benchmark_run.outcome" in summary_step["run"]
 
 

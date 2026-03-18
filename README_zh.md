@@ -52,7 +52,7 @@ Home Assistant 集成，用于控制 Lipro 智能家居设备。
 - `lipro.refresh_devices` - 强制刷新设备列表（全部条目或指定 entry_id）
 
 固件验证清单：
-- 已认证固件版本：`custom_components/lipro/firmware_support_manifest.json`
+- 已认证固件 trust-root 资产：`custom_components/lipro/firmware_support_manifest.json`
 - OTA 更新实体会展示可用固件（未认证固件可能需要二次确认）
 
 ## 数据更新机制

@@ -691,3 +691,19 @@ Plans:
 - [x] 37-01: topicize remaining mega-tests into stable topical suites (completed 2026-03-18)
 - [x] 37-02: converge derived maps, testing strategy, and verification truth (completed 2026-03-18)
 - [x] 37-03: add drift guards and closeout evidence for test-topology changes (completed 2026-03-18)
+
+### Phase 38: External-boundary residual retirement and quality-signal hardening
+**Goal**: 关闭最后一条 external-boundary naming residual，并把 quality-signal / governance closeout truth 收紧到更诚实、可机审的单一故事线。
+**Depends on**: Phase 37
+**Requirements**: [RES-08, QLT-10, GOV-31]
+**Draft Success Criteria**:
+  1. firmware external-boundary 语义统一为 bundled local trust-root asset + remote advisory payload，保留历史文件名但不再误导 authority truth。
+  2. `coverage_diff.py` / CI / `CONTRIBUTING.md` / `.planning/codebase/TESTING.md` 讲同一条质量故事：coverage floor 始终 blocking、diff 仅在显式 baseline 下执行、benchmark 继续 advisory 但以 artifact 形式可审计。
+  3. governance closeout / phase-history guards 进一步偏向 `ROADMAP` / `REQUIREMENTS` / command anchors，减少对 `PROJECT` / `STATE` 句型复述的耦合，并形成 fresh-audit baseline。
+**Status**: Complete (`2026-03-18`)
+**Plans**: 3/3 complete
+
+Plans:
+- [x] 38-01: retire external-boundary advisory naming residual with honest trust-root terminology (completed 2026-03-18)
+- [x] 38-02: convert quality-signal wording into machine-checkable contracts (completed 2026-03-18)
+- [x] 38-03: reduce governance prose-coupling and lock fresh-audit closeout evidence (completed 2026-03-18)

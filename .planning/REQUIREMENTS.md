@@ -437,7 +437,13 @@
 - [x] **GOV-30**: `.planning/codebase/*`、测试策略文档、verification / authority truth 与 public docs entry topology 必须和真实测试命令、目录结构、support/security/docs routing 及守卫语义保持一致，并有 drift guard 约束。
 - [x] **QLT-09**: benchmark / test-topology / closeout evidence / governance guards 必须从“可执行”提升到“可解释、可对齐、可审计”的质量故事：形成预算或基线语义、降低 prose-coupled 高噪音断言，并避免派生真相漂移于实际门禁之外。
 
-## Traceability for v1.4 seed route
+### Fresh-Audit Residual & Quality-Signal Hardening
+
+- [x] **RES-08**: external-boundary firmware naming 必须退役最后一条 active residual family，统一到 bundled local trust-root asset + remote advisory payload 的诚实术语，同时保留历史资产文件名与 authority contract。
+- [x] **QLT-10**: coverage floor / explicit-baseline diff / advisory benchmark artifact posture 必须在脚本、CI、贡献文档与 derived testing map 中讲同一条 machine-checkable 质量故事，dead marker semantics 不得回流。
+- [x] **GOV-31**: governance closeout / phase-history guards 必须优先依赖 `ROADMAP` / `REQUIREMENTS` / recommended command anchors，而不是 sentence-level `PROJECT` / `STATE` prose 复述，同时保持审计强度。
+
+## Traceability for v1.4 seed route + fresh-audit tranche
 
 | Requirement | Planned Phase | Status |
 |-------------|---------------|--------|
@@ -451,10 +457,13 @@
 | TST-06 | Phase 37 | Complete |
 | GOV-30 | Phase 37 | Complete |
 | QLT-09 | Phase 37 | Complete |
+| RES-08 | Phase 38 | Complete |
+| QLT-10 | Phase 38 | Complete |
+| GOV-31 | Phase 38 | Complete |
 
-**Seed Coverage:**
-- v1.4 seeded requirements: 10 total
-- Current mapped: 10
-- Current complete: 10
+**Coverage:**
+- v1.4 seeded requirements + fresh-audit tranche: 13 total
+- Current mapped: 13
+- Current complete: 13
 - Current pending: 0
 - Current unmapped: 0 ✓

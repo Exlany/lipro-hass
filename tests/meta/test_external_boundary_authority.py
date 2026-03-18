@@ -22,7 +22,7 @@ def test_authority_matrix_records_generated_and_external_boundary_truth() -> Non
 
     assert "generated artifacts | fixture families + canonical normalization rules" in authority_matrix
     assert "share/support payload families" in authority_matrix
-    assert "firmware advisory families" in authority_matrix
+    assert "firmware trust-root/advisory families" in authority_matrix
     assert "diagnostics external endpoints" in authority_matrix
     assert "local trust root -> advisory remote -> adapters/tests" in authority_matrix
 

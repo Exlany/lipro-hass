@@ -270,7 +270,7 @@ def test_remote_firmware_list_fixture_derives_versions() -> None:
     }
 
 
-def test_local_manifest_path_points_to_repo_asset() -> None:
-    assert firmware_manifest.LOCAL_FIRMWARE_SUPPORT_MANIFEST_PATH.name == (
-        firmware_manifest.LOCAL_FIRMWARE_SUPPORT_MANIFEST_FILENAME
+def test_local_trust_root_path_points_to_repo_asset() -> None:
+    assert firmware_manifest.LOCAL_FIRMWARE_TRUST_ROOT_PATH.name == (
+        firmware_manifest.LOCAL_FIRMWARE_TRUST_ROOT_FILENAME
     )

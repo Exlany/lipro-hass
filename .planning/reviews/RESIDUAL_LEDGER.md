@@ -4,9 +4,11 @@
 
 | Family | Current example | Owner phase | Residual owner | Exit condition |
 |--------|------------------|-------------|----------------|----------------|
-| External-boundary advisory naming | firmware remote advisory / support payload generated field naming 仍带 legacy semantics | Phase 2.6 | `02.6 external-boundary closeout` | authority truth 已固定后完成术语清理 |
+| _None_ | — | — | — | Phase 38 已关闭最后一条已登记 residual family。 |
 
 ## Closed Residual Families
+
+- `External-boundary advisory naming` 已在 Phase 38 关闭：firmware external-boundary 现统一为 local trust-root / remote advisory 语义；历史资产文件名 `firmware_support_manifest.json` 被保留，但不再被表述成 advisory truth。
 
 - `Legacy public names` 已在 Phase 12 关闭：`core.api.LiproClient` compat shell 已删除，legacy constructor name 不再作为生产 public surface 存在。
 - `Capability compat public name` 已在 Phase 12 关闭：`DeviceCapabilities` 与 `custom_components/lipro/core/device/capabilities.py` 已删除。
@@ -251,9 +253,13 @@
 ## Phase 24 Final Audit Disposition
 
 - final repo audit (`2026-03-16`) 将 repo-wide metrics 记为：`Any=614`、`except Exception=36`、`type: ignore=12`；它们已被明确定性为 future v1.3 backlog / distributed tech debt，而不是 silent defer。
-- 当前 active residual family 仅保留 `External-boundary advisory naming`；remaining boundary/replay coverage 与 observability convergence 均已完成 closeout，不再悬空。
+- 当前已无 active residual family；remaining boundary/replay coverage、observability convergence 与 external-boundary naming residual 均已完成 closeout，不再悬空。
 - `v1.2` closeout 现达到 archive-ready / handoff-ready：residual disposition、milestone audit、evidence index 与 handoff assets 已讲同一条最终故事线。
 
+
+## Phase 38 Residual Delta
+
+- `External-boundary advisory naming` 已关闭：firmware authority truth 现明确为 bundled local trust-root asset + remote advisory payload；历史文件名保留，但 active residual family 已清零。
 
 ## Phase 25.2 Residual Delta
 

@@ -1,6 +1,6 @@
 # Project: Lipro-HASS North Star Evolution
 
-**Status:** Complete — `v1.2` closeout 已完成；`Phase 18-24` 已全部完成，当前处于 archive-ready / `v1.3` handoff-ready。
+**Status:** Complete — `v1.2` closeout 已完成；`Phase 18-24` 已全部完成，当前处于 archive-ready / `v1.3` handoff-ready；fresh-audit `Phase 38` 也已完成并建立新的质量基线。
 **Goal:** 把 `host-neutral nucleus`、`headless consumer proof`、`remaining boundary family completion`、`replay / evidence expansion`、`exception classification / observability hardening`、`governance / contributor docs / release evidence closeout` 与 `milestone audit / v1.3 handoff` 统一纳入当前 `v1.2` 里程碑，同时延续 `v1.1` 已建立的北极星单一主链、assurance 与开源治理能力。
 
 ## Current Milestone (v1.2)
@@ -32,9 +32,9 @@
 
 ## v1.3 Closeout & Post-closeout Continuation
 
-**Route-freeze status:** `Phase 25 -> 37` 已于 `2026-03-18` 全部执行完成；post-closeout continuation 与 `v1.4` seed sustainment route 现都已进入 execution-complete / audit-ready。`Phase 33` 关闭了 v1.3 continuation 收口线，`Phase 34 -> 37` 则把 10 分质量 hardening 种子执行到位。
+**Route-freeze status:** `Phase 25 -> 37` 已于 `2026-03-18` 全部执行完成；`Phase 38` 也已在同日作为 fresh-audit next tranche 落地，关闭最后一条 active residual family，并把 quality-signal / governance closeout baseline 收紧到更诚实的 machine-checkable story。
 
-**Continuation closeout status:** `Phase 32 -> 37` 的 execution / verification 资产现已全部落地：`.planning/v1.3-HANDOFF.md` 继续作为 `Phase 25 -> 31` 历史 closeout baseline，`33-VERIFICATION.md` / `33-SUMMARY.md` 负责承接 post-v1.3 continuation closeout，而 `34-VERIFICATION.md` / `35-VERIFICATION.md` / `36-VERIFICATION.md` / `37-VERIFICATION.md` 则串成 `v1.4` seed sustainment hardening evidence chain。若继续追求 10 分质量，下一步应从 fresh audit / next tranche 重新起相，而不是回退到旧 handoff 语境。
+**Continuation closeout status:** `Phase 32 -> 37` 的 execution / verification 资产已全部落地，`38-VERIFICATION.md` / `38-SUMMARY.md` 现进一步构成 fresh-audit follow-through evidence chain：`.planning/v1.3-HANDOFF.md` 继续作为 `Phase 25 -> 31` 历史 closeout baseline，`33-VERIFICATION.md` / `33-SUMMARY.md` 负责承接 post-v1.3 continuation closeout，而 `34-VERIFICATION.md` / `35-VERIFICATION.md` / `36-VERIFICATION.md` / `37-VERIFICATION.md` / `38-VERIFICATION.md` 则共同构成 post-closeout quality hardening baseline。若继续追求 10 分质量，下一步应从新的 fresh-audit tranche 继续起相，而不是回退到旧 handoff 语境。
 
 **Parent phase:** `Phase 25 — Quality-10 remediation master plan and execution routing`
 
@@ -101,6 +101,8 @@
 3. `Phase 36` — runtime root and exception burn-down
 4. `Phase 37` — test topology and derived-truth convergence
 
+**Fresh-audit next tranche:** `Phase 38` — external-boundary residual retirement and quality-signal hardening
+
 **Default next step:** `$gsd-progress`
 
 ## Phase 34 Seed Hardening Update
@@ -118,6 +120,10 @@
 ## Phase 37 Test Topology & Derived-Truth Update
 
 `Phase 37` 已于 `2026-03-18` 完成：`test_init_service_handlers*`、`test_init_runtime*` 与 `test_governance_phase_history*` 已 topicize 成稳定专题套件；`.planning/codebase/*`、`VERIFICATION_MATRIX`、`CONTRIBUTING.md` 与相关 drift guards 也已回写到同一条 topology truth。
+
+## Phase 38 External-Boundary Residual & Quality-Signal Hardening Update
+
+`Phase 38` 已于 `2026-03-18` 完成：最后一条 active residual family（`External-boundary advisory naming`）已关闭；firmware authority truth 现统一为 bundled local trust-root asset + remote advisory payload；`coverage_diff.py` / CI / `CONTRIBUTING.md` / `.planning/codebase/TESTING.md` 现讲同一条 floor-only + explicit-baseline-diff + advisory-with-artifact 故事，而 governance closeout guards 也进一步收敛到 `ROADMAP` / `REQUIREMENTS` / command anchors。
 
 ## Why This Milestone Exists
 
@@ -459,10 +465,12 @@ v1.1 进入执行期后，新增演进必须额外满足：
 - `.planning/phases/22-observability-surface-convergence-and-signal-exposure/22-VERIFICATION.md`
 - `.planning/phases/23-governance-convergence-contributor-docs-and-release-evidence-closure/23-VERIFICATION.md`
 - `.planning/phases/24-final-milestone-audit-archive-readiness-and-v1-3-handoff-prep/24-VERIFICATION.md`
+- `.planning/phases/38-external-boundary-residual-retirement-and-quality-signal-hardening/38-VERIFICATION.md`
+- `.planning/phases/38-external-boundary-residual-retirement-and-quality-signal-hardening/38-SUMMARY.md`
 - `.planning/reviews/V1_2_EVIDENCE_INDEX.md`
 - `.planning/v1.2-MILESTONE-AUDIT.md`
 - `.planning/v1.3-HANDOFF.md`
 
 - 当前工作区输入以 `v1.2` closeout bundle 与 `v1.3` handoff assets 为主；phase 目录资产仍默认是执行证据，只有被 `ROADMAP.md`、baseline docs、review ledgers 或 milestone audit 显式提升时，才成为长期治理真源。
 
-*Last updated: 2026-03-18 after Phase 37 execution closeout and verification sync*
+*Last updated: 2026-03-18 after Phase 38 external-boundary / quality-signal closeout and verification sync*

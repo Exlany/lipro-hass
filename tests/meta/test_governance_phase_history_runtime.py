@@ -10,7 +10,6 @@ from .test_governance_guards import (
 
 
 def test_phase_30_31_typed_closeout_truth_is_consistent() -> None:
-    state_text = (_ROOT / ".planning" / "STATE.md").read_text(encoding="utf-8")
     handoff_text = (_ROOT / ".planning" / "v1.3-HANDOFF.md").read_text(encoding="utf-8")
     validation_30_text = (
         _ROOT
@@ -41,8 +40,13 @@ def test_phase_30_31_typed_closeout_truth_is_consistent() -> None:
         / "31-VERIFICATION.md"
     ).read_text(encoding="utf-8")
 
-    assert "`Phase 30` 已完成：REST response/result spine" in state_text
-    assert "`Phase 31` 已完成：runtime/service/platform touched zones" in state_text
+    roadmap_text = (_ROOT / ".planning" / "ROADMAP.md").read_text(encoding="utf-8")
+    requirements_text = (_ROOT / ".planning" / "REQUIREMENTS.md").read_text(encoding="utf-8")
+
+    assert "### Phase 30: Protocol/control typed contract tightening" in roadmap_text
+    assert "### Phase 31: Runtime/service typed budget and exception closure" in roadmap_text
+    assert "| TYP-06 | Phase 30 | Complete |" in requirements_text
+    assert "| ERR-05 | Phase 31 | Complete |" in requirements_text
     assert "setup_auth_failed/setup_not_ready/setup_failed" in handoff_text
     assert "unload_shutdown_degraded" in handoff_text
     assert "shared `failure_summary`" in handoff_text

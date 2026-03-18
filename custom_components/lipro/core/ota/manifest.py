@@ -130,7 +130,7 @@ def normalize_versions_by_type(value: object) -> dict[str, frozenset[str]]:
 def parse_verified_firmware_manifest_payload(
     payload: object,
 ) -> tuple[frozenset[str], dict[str, frozenset[str]]]:
-    """Parse firmware support manifest payload."""
+    """Parse verified firmware trust-root/advisory payload."""
     if isinstance(payload, list):
         return normalize_version_list(payload), {}
 
@@ -186,7 +186,7 @@ def load_verified_firmware_manifest_file(
     *,
     on_error: Callable[[Path, OSError | json.JSONDecodeError], None],
 ) -> tuple[frozenset[str], dict[str, frozenset[str]]]:
-    """Load and parse one firmware support manifest file."""
+    """Load and parse one verified firmware trust-root file."""
     try:
         content = json.loads(manifest_path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as err:

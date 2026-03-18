@@ -48,7 +48,7 @@ logger:
 
 ### OTA / Firmware Update Questions
 
-- Certified firmware truth comes from `custom_components/lipro/firmware_support_manifest.json`.
+- Certified firmware truth comes from the bundled local trust-root asset `custom_components/lipro/firmware_support_manifest.json` (historical filename retained).
 - Update entities may surface uncertified firmware, but uncertified installs require explicit confirmation.
 - If OTA data looks wrong, include the firmware entity attributes first; add the developer report when diagnostics alone are not enough.
 

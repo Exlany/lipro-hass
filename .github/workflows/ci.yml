@@ -188,8 +188,9 @@ jobs:
         run: |
           echo "snapshot coverage: included in the main tests/ lane; no separate snapshot rerun" >> "$GITHUB_STEP_SUMMARY"
           echo "benchmark coverage: excluded from the blocking test lane and handled by the advisory benchmark lane" >> "$GITHUB_STEP_SUMMARY"
+          echo "coverage diff: floor is always enforced; diff only runs when an explicit baseline is provided" >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Check coverage floor / optional baseline diff
+      - name: Check coverage floor / explicit baseline diff
         run: uv run python scripts/coverage_diff.py coverage.json --minimum 95
 
       - name: Run refactor tool smoke check
@@ -246,7 +247,7 @@ jobs:
       - name: Record benchmark advisory posture
         if: always()
         run: |
-          echo "benchmark lane: advisory-with-budget, non-blocking on PRs, and only runs on schedule/workflow_dispatch" >> "$GITHUB_STEP_SUMMARY"
+          echo "benchmark lane: advisory-with-artifact, non-blocking on PRs, and only runs on schedule/workflow_dispatch" >> "$GITHUB_STEP_SUMMARY"
           echo "benchmark outcome: ${{ steps.benchmark_run.outcome }}" >> "$GITHUB_STEP_SUMMARY"
           if [[ -f .benchmarks/benchmark.json ]]; then
             echo "benchmark artifact: .benchmarks/benchmark.json" >> "$GITHUB_STEP_SUMMARY"
