@@ -124,7 +124,7 @@ def test_phase_20_execution_truth_is_consistent() -> None:
 
     verification_text = (phase_root / "20-VERIFICATION.md").read_text(encoding="utf-8")
 
-    assert "**Execution status:** `Phase 18-24` complete" in project_text
+    assert "**Historical archive assets:**" in project_text
     assert "### Phase 20: Remaining Boundary Family Completion" in roadmap_text
     assert "**Status**: Complete (`2026-03-16`)" in roadmap_text
     assert "**Plans**: 3/3 complete" in roadmap_text

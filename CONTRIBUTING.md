@@ -133,7 +133,7 @@ uv run pytest tests/core/test_diagnostics.py::TestAsyncGetConfigEntryDiagnostics
 uv run pytest tests/core/test_diagnostics.py::TestAsyncGetConfigEntryDiagnostics::test_diagnostics_snapshot
 
 # Targeted protocol/auth/control public-surface regression / 定向 protocol/auth/control public-surface 回归
-uv run pytest -q tests/core/api/test_protocol_contract_matrix.py tests/core/test_auth.py tests/flows/test_config_flow.py tests/meta/test_public_surface_guards.py tests/test_coordinator_public.py
+uv run pytest -q tests/core/api/test_protocol_contract_matrix.py tests/core/test_auth.py tests/flows/test_flow_schemas.py tests/flows/test_config_flow_user.py tests/flows/test_config_flow_reauth.py tests/flows/test_config_flow_reconfigure.py tests/flows/test_options_flow.py tests/meta/test_public_surface_guards.py tests/test_coordinator_public.py
 ```
 
 Notes:

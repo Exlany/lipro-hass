@@ -105,6 +105,18 @@ def test_promoted_phase_assets_manifest_enforces_explicit_ci_evidence() -> None:
         "34-01-PLAN.md",
         "34-VALIDATION.md",
     )
+    _assert_phase_assets_not_promoted(
+        "39-governance-current-story-convergence-control-home-clarification-and-mega-test-decomposition",
+        "39-PRD.md",
+        "39-CONTEXT.md",
+        "39-01-PLAN.md",
+        "39-02-PLAN.md",
+        "39-03-PLAN.md",
+        "39-04-PLAN.md",
+        "39-05-PLAN.md",
+        "39-06-PLAN.md",
+        "39-VALIDATION.md",
+    )
 
 
 def test_v1_1_closeout_assets_exist_and_are_pull_only() -> None:
@@ -348,7 +360,7 @@ def test_phase_32_completion_truth_is_consistent() -> None:
     assert "`Phase 32` — truth convergence, gate honesty, and quality-10 closeout" in project_text
     assert "## Recommended Next Command" in state_text
     assert "$gsd-plan-milestone-gaps" in state_text
-    assert "$gsd-complete-milestone v1.3" in state_text
+    assert "$gsd-complete-milestone v1.4" in state_text
     assert "$gsd-progress" in state_text
 
 
@@ -400,7 +412,7 @@ def test_phase_33_planning_truth_is_consistent() -> None:
     assert "**Execution promise:**" in project_text
     assert "## Recommended Next Command" in state_text
     assert "$gsd-plan-milestone-gaps" in state_text
-    assert "$gsd-complete-milestone v1.3" in state_text
+    assert "$gsd-complete-milestone v1.4" in state_text
     assert "$gsd-progress" in state_text
 
 
@@ -439,7 +451,7 @@ def test_phase_34_planning_truth_is_consistent() -> None:
     assert "## Recommended Next Command" in state_text
     assert "$gsd-progress" in state_text
     assert "$gsd-plan-milestone-gaps" in state_text
-    assert "$gsd-complete-milestone v1.3" in state_text
+    assert "$gsd-complete-milestone v1.4" in state_text
 
 
 def test_phase_35_planning_truth_is_consistent() -> None:
@@ -516,9 +528,9 @@ def test_phase_37_planning_truth_is_consistent() -> None:
     assert "| GOV-30 | Phase 37 | Complete |" in requirements_text
     assert "| QLT-09 | Phase 37 | Complete |" in requirements_text
     assert "## Phase 37 Test Topology & Derived-Truth Update" in project_text
-    assert "**Default next step:** `$gsd-progress`" in project_text
+    assert "**Default next step:** `$gsd-complete-milestone v1.4`" in project_text
     assert "## Recommended Next Command" in state_text
-    assert "$gsd-plan-phase 39" in state_text
+    assert "$gsd-complete-milestone v1.4" in state_text
 
 
 def test_phase_38_planning_truth_is_consistent() -> None:
@@ -544,8 +556,49 @@ def test_phase_38_planning_truth_is_consistent() -> None:
     assert "| QLT-10 | Phase 38 | Complete |" in requirements_text
     assert "| GOV-31 | Phase 38 | Complete |" in requirements_text
     assert "## Phase 38 External-Boundary Residual & Quality-Signal Hardening Update" in project_text
-    assert "**Default next step:** `$gsd-progress`" in project_text
-    assert "`Phase 38 complete`" in state_text
-    assert "$gsd-plan-phase 39" in state_text
+    assert "**Default next step:** `$gsd-complete-milestone v1.4`" in project_text
+    assert "`Phase 39 complete`" in state_text
+    assert "$gsd-complete-milestone v1.4" in state_text
     assert "| _None_ | — | — | — | Phase 38 已关闭最后一条已登记 residual family。 |" in residual_text
     assert "## Phase 38 Residual Delta" in residual_text
+
+
+def test_phase_39_planning_truth_is_consistent() -> None:
+    roadmap_text = (_ROOT / ".planning" / "ROADMAP.md").read_text(encoding="utf-8")
+    requirements_text = (_ROOT / ".planning" / "REQUIREMENTS.md").read_text(encoding="utf-8")
+    project_text = (_ROOT / ".planning" / "PROJECT.md").read_text(encoding="utf-8")
+    state_text = (_ROOT / ".planning" / "STATE.md").read_text(encoding="utf-8")
+    residual_text = (_ROOT / ".planning" / "reviews" / "RESIDUAL_LEDGER.md").read_text(encoding="utf-8")
+    kill_text = (_ROOT / ".planning" / "reviews" / "KILL_LIST.md").read_text(encoding="utf-8")
+
+    _assert_promoted_phase_assets(
+        "39-governance-current-story-convergence-control-home-clarification-and-mega-test-decomposition",
+        "39-SUMMARY.md",
+        "39-VERIFICATION.md",
+    )
+
+    assert "### Phase 39: Governance current-story convergence, control-home clarification, and mega-test decomposition" in roadmap_text
+    assert "**Requirements**: [GOV-32, DOC-03, CTRL-08, RES-09, TST-07]" in roadmap_text
+    assert "**Status**: Complete (`2026-03-19`)" in roadmap_text
+    assert "**Plans**: 6/6 complete" in roadmap_text
+
+    for needle in (
+        "| GOV-32 | Phase 39 | Complete |",
+        "| DOC-03 | Phase 39 | Complete |",
+        "| CTRL-08 | Phase 39 | Complete |",
+        "| RES-09 | Phase 39 | Complete |",
+        "| TST-07 | Phase 39 | Complete |",
+        "- v1.4 requirements + fresh-audit continuation: 18 total",
+        "- Current mapped: 18",
+        "- Current complete: 18",
+        "- Current pending: 0",
+    ):
+        assert needle in requirements_text
+
+    assert "## Current Milestone (v1.4)" in project_text
+    assert "## Phase 39 Governance Current-Story & Mega-Test Closeout Update" in project_text
+    assert "**Default next step:** `$gsd-complete-milestone v1.4`" in project_text
+    assert "`Phase 39 complete`" in state_text
+    assert "$gsd-complete-milestone v1.4" in state_text
+    assert "## Phase 39 Residual Delta" in residual_text
+    assert "## Phase 39 Status Update" in kill_text

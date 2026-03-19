@@ -186,7 +186,7 @@
 ## Phase 21 Status Update
 
 - 本 phase **无新增 active kill target**；replay harness、evidence pack、failure taxonomy helper 与 telemetry sink 都是正式 assurance / contract homes，不应被误登记为待删对象。
-- broad-catch 收紧的目标是改正 arbitration 语义，而不是制造一轮 rename-or-delete campaign；remaining `except Exception` 只作为 future v1.3 typed hardening backlog 记录。
+- broad-catch 收紧的目标是改正 arbitration 语义，而不是制造一轮 rename-or-delete campaign；remaining `except Exception` 只作为 future sustainment typed hardening backlog 记录。
 - `failure_summary` / `error_category` / `error_type` contract 现由 shared telemetry truth 锁定，后续 phase 只能消费它，不能把它重新降格成临时 compatibility wrapper。
 
 ## Phase 22 Status Update
@@ -206,3 +206,9 @@
 - 本 phase **无新增 active kill target**；`v1.2-MILESTONE-AUDIT.md`、`V1_2_EVIDENCE_INDEX.md`、`v1.3-HANDOFF.md` 与 `MILESTONES.md` 都是正式 closeout / handoff assets。
 - final repo audit 仅把 distributed tech debt 转化为显式 backlog / retain disposition，没有为“看起来更整洁”而追加新的 file-level kill target。
 - `v1.2` 当前只差外层 archival workflow；closeout bundle 本身不得再被误判为 short-lived temp artifact。
+
+## Phase 39 Status Update
+
+- 已关闭：`custom_components/lipro/core/protocol/compat.py` dead shell；该 kill target 不再保留为 future delete gate。
+- 本 phase **无新增 active kill target**；control-home clarification、governance current-story convergence 与 mega-test topicization 都是 formal truth / evidence closeout，不是新的 delete campaign。
+- `39-SUMMARY.md` 与 `39-VERIFICATION.md` 已作为 Phase 39 closeout evidence promoted；`39-VALIDATION.md`、`39-PRD.md`、`39-CONTEXT.md` 与 `39-0*-PLAN.md` 继续保持 execution-trace 身份。

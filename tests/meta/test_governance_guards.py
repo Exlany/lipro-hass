@@ -165,14 +165,26 @@ def _assert_state_preserves_phase_17_closeout_history(state_text: str) -> None:
         assert "completed_plans: 58" in state_text
         return
 
-    assert "milestone: v1.2" in state_text
-    assert "milestone_name: Host-Neutral Core & Replay Completion" in state_text
+    if "milestone: v1.2" in state_text:
+        assert "milestone_name: Host-Neutral Core & Replay Completion" in state_text
+        assert (
+            "**Current milestone:** `v1.2 Host-Neutral Core & Replay Completion`"
+            in state_text
+        )
+        assert re.search(
+            r"\*\*Current mode:\*\* `Phase (?:1[89]|[2-9]\d)(?:\.\d+)? [a-z][a-z0-9_ -]+`",
+            state_text,
+        )
+        return
+
+    assert "milestone: v1.4" in state_text
+    assert "milestone_name: Sustainment, Trust Gates & Final Hotspot Burn-down" in state_text
     assert (
-        "**Current milestone:** `v1.2 Host-Neutral Core & Replay Completion`"
+        "**Current milestone:** `v1.4 Sustainment, Trust Gates & Final Hotspot Burn-down`"
         in state_text
     )
     assert re.search(
-        r"\*\*Current mode:\*\* `Phase (?:1[89]|[2-9]\d)(?:\.\d+)? [a-z][a-z0-9_ -]+`",
+        r"\*\*Current mode:\*\* `Phase 3[4-9](?:\.\d+)? [a-z][a-z0-9_ -]+`",
         state_text,
     )
 
@@ -183,6 +195,20 @@ def test_governance_checker_reports_no_drift() -> None:
 
 def test_architecture_policy_checker_reports_no_drift() -> None:
     assert run_architecture_policy_checks(_ROOT) == []
+
+
+def test_control_home_truth_is_explicit_and_services_stay_helper_surface() -> None:
+    north_star_text = (_ROOT / "docs" / "NORTH_STAR_TARGET_ARCHITECTURE.md").read_text(encoding="utf-8")
+    developer_text = (_ROOT / "docs" / "developer_architecture.md").read_text(encoding="utf-8")
+    diagnostics_services_text = (
+        _ROOT / "custom_components" / "lipro" / "services" / "diagnostics" / "__init__.py"
+    ).read_text(encoding="utf-8")
+
+    assert "`custom_components/lipro/control/`" in north_star_text
+    assert "formal control-plane home" in developer_text
+    assert "`custom_components/lipro/services/`：service declarations" in north_star_text
+    assert "helper surface" in developer_text
+    assert "legacy carrier" not in diagnostics_services_text
 
 
 def test_architecture_policy_rule_inventory_is_stable() -> None:

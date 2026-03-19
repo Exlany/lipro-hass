@@ -5,7 +5,7 @@ This module provides diagnostics service handlers split into:
 - helpers: Utility functions for parameter extraction and capability collection
 - handlers: Concrete service handler implementations
 
-All public APIs are re-exported from this module to maintain backward compatibility.
+All public APIs are re-exported from this module to provide one stable diagnostics service import surface.
 """
 
 from __future__ import annotations

@@ -233,10 +233,10 @@
 - mapped to phases: 65
 - unmapped: 0 ✓
 
-*Last updated: 2026-03-17 after Phase 24 reopen revalidation*
+*Last updated: 2026-03-19 after Phase 39 current-story convergence and closeout hardening*
 
 
-## Current Milestone (v1.2)
+## Archived Milestone (v1.2)
 
 > `v1.2` 已完成全部执行与 closeout；以下 requirement / traceability 反映 `Phase 18-24` 全部完成，且 `Phase 24` 已在 2026-03-17 reopen revalidation 后继续保持 archive-ready / handoff-ready。归档快照已写入 `.planning/milestones/v1.2-REQUIREMENTS.md`。
 
@@ -411,9 +411,9 @@
 - Current pending: 0
 - Current unmapped: 0 ✓
 
-## v1.4 Seed Requirements (Phase 34 -> 37)
+## Current Milestone (v1.4)
 
-> `v1.3` 的 milestone audit 当前裁决是 `tech_debt / closeout-eligible`，不存在 formal requirement / integration / flow gap；以下 requirements 代表继续冲击 10 分质量时对 retained tech debt 的**下一里程碑种子化路由**，而不是把 `v1.3` 回写成失败补洞。
+> `v1.3` 的 milestone audit 已确认 `closeout-eligible`；以下 requirements 代表 `v1.4` 当前里程碑对 retained tech debt、fresh-audit follow-through 与 governance current-story convergence 的正式收口，而不是把 `v1.3` 回写成失败补洞。
 
 ### Continuity & Release Trust
 
@@ -443,7 +443,15 @@
 - [x] **QLT-10**: coverage floor / explicit-baseline diff / advisory benchmark artifact posture 必须在脚本、CI、贡献文档与 derived testing map 中讲同一条 machine-checkable 质量故事，dead marker semantics 不得回流。
 - [x] **GOV-31**: governance closeout / phase-history guards 必须优先依赖 `ROADMAP` / `REQUIREMENTS` / recommended command anchors，而不是 sentence-level `PROJECT` / `STATE` prose 复述，同时保持审计强度。
 
-## Traceability for v1.4 seed route + fresh-audit tranche
+### Governance Current-Story & Test Topology Closeout
+
+- [x] **GOV-32**: `ROADMAP / REQUIREMENTS / STATE / PROJECT` 必须共同承认 `v1.4 / Phase 39 complete / closeout-ready` 当前故事，coverage / traceability 算术可被守卫验证。
+- [x] **DOC-03**: `docs/NORTH_STAR_TARGET_ARCHITECTURE.md` 与 `docs/developer_architecture.md` 必须刷新到 current topology，并显式说明 `custom_components/lipro/control/` 是 formal control-plane home。
+- [x] **CTRL-08**: control-plane formal home / thin-adapter boundary / `services/` helper identity 必须同步到治理真源、review ledgers 与守卫断言。
+- [x] **RES-09**: dead protocol shell、误导性 fixture/replay authority 命名与相关 residual folklore 必须退场或历史化，不得继续暗示第二 public truth。
+- [x] **TST-07**: remaining mega-tests 与治理巨石守卫必须继续 topicize / structure 化，Phase 39 closeout evidence 必须显式 promoted。
+
+## Traceability for v1.4 route + fresh-audit continuation
 
 | Requirement | Planned Phase | Status |
 |-------------|---------------|--------|
@@ -460,10 +468,15 @@
 | RES-08 | Phase 38 | Complete |
 | QLT-10 | Phase 38 | Complete |
 | GOV-31 | Phase 38 | Complete |
+| GOV-32 | Phase 39 | Complete |
+| DOC-03 | Phase 39 | Complete |
+| CTRL-08 | Phase 39 | Complete |
+| RES-09 | Phase 39 | Complete |
+| TST-07 | Phase 39 | Complete |
 
 **Coverage:**
-- v1.4 seeded requirements + fresh-audit tranche: 13 total
-- Current mapped: 13
-- Current complete: 13
+- v1.4 requirements + fresh-audit continuation: 18 total
+- Current mapped: 18
+- Current complete: 18
 - Current pending: 0
 - Current unmapped: 0 ✓

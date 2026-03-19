@@ -13,7 +13,7 @@ plane before drift can leak into runtime / control / HA adapter code.
 | Endpoint | Transport Path | Fixture | Owning Test |
 |---|---|---|---|
 | `get_mqtt_config` | `PATH_GET_MQTT_CONFIG` | `get_mqtt_config.direct.json`, `get_mqtt_config.wrapped.json` | `tests/core/api/test_protocol_contract_matrix.py` |
-| `get_device_list` | historical device-list payload variants normalized by `protocol.contracts.normalize_device_list_page` | `get_device_list.direct.json`, `get_device_list.compat.json` | `tests/core/api/test_protocol_contract_matrix.py` |
+| `get_device_list` | direct and envelope-shaped device-list payload variants normalized by `protocol.contracts.normalize_device_list_page` | `get_device_list.direct.json`, `get_device_list.envelope.json` | `tests/core/api/test_protocol_contract_matrix.py` |
 | `query_device_status` | `PATH_QUERY_DEVICE_STATUS` | `query_device_status.mixed.json` | `tests/core/api/test_protocol_contract_matrix.py` |
 | `query_mesh_group_status` | `PATH_QUERY_MESH_GROUP_STATUS` | `query_mesh_group_status.topology.json` | `tests/core/api/test_protocol_contract_matrix.py` |
 | `query_mesh_schedule_json` | BLE mesh schedule payload normalized by `protocol.contracts.normalize_schedule_json` | `query_mesh_schedule_json.v1.json` | `tests/core/api/test_protocol_contract_matrix.py` |
@@ -23,7 +23,7 @@ plane before drift can leak into runtime / control / HA adapter code.
 ## Canonicalization Rule
 
 - `get_mqtt_config` direct and wrapped fixtures describe the same canonical payload; the wrapped sample only adds a transport envelope.
-- `get_device_list` direct and compat fixtures describe the same canonical catalog page; pagination truth is normalized by `protocol.contracts.normalize_device_list_page` before runtime consumption.
+- `get_device_list` direct and envelope fixtures describe the same canonical catalog page; pagination truth is normalized by `protocol.contracts.normalize_device_list_page` before runtime consumption.
 - `query_device_status` canonical output is a list of normalized `{deviceId, properties}` rows; alias IDs and flat property payloads are absorbed at the boundary.
 - `query_mesh_group_status` canonical output is a list of normalized topology rows with canonical `groupId`, `gatewayDeviceId`, and member device IDs.
 - `query_mesh_schedule_json` locks the row-level `scheduleJson` source payload that both request-side encoding and decode-side boundary normalization must share.

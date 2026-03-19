@@ -388,11 +388,16 @@ def test_quality_scale_and_devcontainer_truth_are_in_sync() -> None:
         "Known Limitations",
     )
     assert _count_numbered_markdown_items(readme_section) == expected_known_limitations
-    assert (
-        "tests/flows/test_config_flow.py"
-        in quality_scale["rules"]["config-flow-test-coverage"]["comment"]
-    )
-    assert (_ROOT / "tests" / "flows" / "test_config_flow.py").exists()
+    config_flow_comment = quality_scale["rules"]["config-flow-test-coverage"]["comment"]
+    for relative_path in (
+        "tests/flows/test_flow_schemas.py",
+        "tests/flows/test_config_flow_user.py",
+        "tests/flows/test_config_flow_reauth.py",
+        "tests/flows/test_config_flow_reconfigure.py",
+        "tests/flows/test_options_flow.py",
+    ):
+        assert relative_path in config_flow_comment
+        assert (_ROOT / relative_path).exists()
 
     devcontainer = _load_json(_DEVCONTAINER)
     settings = devcontainer["customizations"]["vscode"]["settings"]

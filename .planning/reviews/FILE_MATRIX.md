@@ -1,6 +1,6 @@
 # File Matrix
 
-**Python files total:** 498
+**Python files total:** 515
 **Status:** File-level governance authority
 **Rule:** workspace inventory excluding caches / virtual env / tooling artifacts
 
@@ -204,7 +204,6 @@
 | `custom_components/lipro/core/protocol/boundary/rest_decoder_support.py` | Protocol | Phase 33 | 保留 | REST decoder canonicalization helper home |
 | `custom_components/lipro/core/protocol/boundary/result.py` | Protocol | Phase 7.1 | 保留 | - |
 | `custom_components/lipro/core/protocol/boundary/schema_registry.py` | Protocol | Phase 7.1 | 保留 | - |
-| `custom_components/lipro/core/protocol/compat.py` | Protocol | Phase 2.5 | 保留 | - |
 | `custom_components/lipro/core/protocol/contracts.py` | Protocol | Phase 2.5 | 保留 | - |
 | `custom_components/lipro/core/protocol/diagnostics_context.py` | Protocol | Phase 2.5 | 保留 | - |
 | `custom_components/lipro/core/protocol/facade.py` | Protocol | Phase 2 / 35 | 重构 | formal protocol root with localized REST/MQTT child-façade wiring |
@@ -291,6 +290,13 @@
 | `tests/conftest.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/conftest_shared.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/core/__init__.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `tests/core/anonymous_share/__init__.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `tests/core/anonymous_share/support.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `tests/core/anonymous_share/test_capabilities.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `tests/core/anonymous_share/test_manager_recording.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `tests/core/anonymous_share/test_manager_submission.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `tests/core/anonymous_share/test_observability.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `tests/core/anonymous_share/test_sanitize.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `tests/core/api/__init__.py` | Protocol | Phase 2 | 保留 | - |
 | `tests/core/api/test_api.py` | Protocol | Phase 33 | 保留 | topic root for auth/init REST regressions |
 | `tests/core/api/test_api_command_service.py` | Protocol | Phase 2 | 保留 | - |
@@ -340,21 +346,29 @@
 | `tests/core/device/__init__.py` | Domain | Phase 4 | 保留 | - |
 | `tests/core/device/test_capabilities.py` | Domain | Phase 4 | 保留 | - |
 | `tests/core/device/test_device.py` | Domain | Phase 4 | 保留 | - |
+| `tests/core/device/test_device_surface.py` | Domain | Phase 4 | 保留 | - |
 | `tests/core/device/test_extras_features.py` | Domain | Phase 4 | 保留 | - |
+| `tests/core/device/test_extras_payloads.py` | Domain | Phase 4 | 保留 | - |
 | `tests/core/device/test_identity.py` | Domain | Phase 4 | 保留 | - |
+| `tests/core/device/test_network_extensions.py` | Domain | Phase 4 | 保留 | - |
 | `tests/core/device/test_network_info.py` | Domain | Phase 4 | 保留 | - |
+| `tests/core/device/test_parsing.py` | Domain | Phase 4 | 保留 | - |
 | `tests/core/device/test_state.py` | Domain | Phase 4 | 保留 | - |
+| `tests/core/device/test_state_extensions.py` | Domain | Phase 4 | 保留 | - |
 | `tests/core/mqtt/__init__.py` | Protocol | Phase 2.5 / 6 | 保留 | - |
 | `tests/core/mqtt/test_connection_manager.py` | Protocol | Phase 2.5 / 6 | 保留 | - |
+| `tests/core/mqtt/test_credentials.py` | Protocol | Phase 2.5 / 6 | 保留 | - |
 | `tests/core/mqtt/test_message_processor.py` | Protocol | Phase 2.5 / 6 | 保留 | - |
-| `tests/core/mqtt/test_mqtt.py` | Protocol | Phase 2.5 / 6 | 保留 | - |
 | `tests/core/mqtt/test_mqtt_backoff.py` | Protocol | Phase 2.5 / 6 | 保留 | - |
 | `tests/core/mqtt/test_mqtt_message.py` | Protocol | Phase 2.5 / 6 | 保留 | - |
 | `tests/core/mqtt/test_mqtt_payload.py` | Protocol | Phase 2.5 / 6 | 保留 | - |
+| `tests/core/mqtt/test_mqtt_payload_extended.py` | Protocol | Phase 2.5 / 6 | 保留 | - |
 | `tests/core/mqtt/test_mqtt_setup.py` | Protocol | Phase 2.5 / 6 | 保留 | - |
 | `tests/core/mqtt/test_protocol_replay_mqtt.py` | Protocol | Phase 7.4 | 保留 | - |
 | `tests/core/mqtt/test_topic_builder.py` | Protocol | Phase 2.5 / 6 | 保留 | - |
+| `tests/core/mqtt/test_topics.py` | Protocol | Phase 2.5 / 6 | 保留 | - |
 | `tests/core/mqtt/test_transport_refactored.py` | Protocol | Phase 2.5 / 6 | 保留 | - |
+| `tests/core/mqtt/test_transport_runtime.py` | Protocol | Phase 2.5 / 6 | 保留 | - |
 | `tests/core/ota/__init__.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `tests/core/ota/test_firmware_manifest.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `tests/core/ota/test_ota_candidate.py` | Cross-cutting | Phase 7 | 保留 | - |
@@ -365,7 +379,6 @@
 | `tests/core/telemetry/test_exporter.py` | Assurance | Phase 7.3 | 保留 | - |
 | `tests/core/telemetry/test_models.py` | Assurance | Phase 7.3 | 保留 | - |
 | `tests/core/telemetry/test_sinks.py` | Assurance | Phase 7.3 | 保留 | - |
-| `tests/core/test_anonymous_share.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `tests/core/test_anonymous_share_cov_missing.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `tests/core/test_anonymous_share_storage.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `tests/core/test_auth.py` | Cross-cutting | Phase 7 | 保留 | - |
@@ -381,7 +394,6 @@
 | `tests/core/test_coordinator.py` | Runtime | Phase 5 / 6 | 保留 | - |
 | `tests/core/test_coordinator_integration.py` | Runtime | Phase 5 / 6 | 保留 | - |
 | `tests/core/test_debounce.py` | Cross-cutting | Phase 7 | 保留 | - |
-| `tests/core/test_device.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `tests/core/test_device_list_snapshot.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `tests/core/test_device_refresh.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `tests/core/test_diagnostics.py` | Cross-cutting | Phase 7 | 保留 | - |
@@ -423,9 +435,14 @@
 | `tests/entities/test_commands.py` | Domain | Phase 4 | 保留 | - |
 | `tests/entities/test_descriptors.py` | Domain | Phase 4 | 保留 | - |
 | `tests/flows/__init__.py` | Control | Phase 3 / 7 | 保留 | - |
-| `tests/flows/test_config_flow.py` | Control | Phase 3 / 7 | 保留 | - |
+| `tests/flows/support.py` | Control | Phase 3 / 7 | 保留 | - |
+| `tests/flows/test_config_flow_reauth.py` | Control | Phase 3 / 7 | 保留 | - |
+| `tests/flows/test_config_flow_reconfigure.py` | Control | Phase 3 / 7 | 保留 | - |
+| `tests/flows/test_config_flow_user.py` | Control | Phase 3 / 7 | 保留 | - |
 | `tests/flows/test_flow_credentials.py` | Control | Phase 3 / 7 | 保留 | - |
+| `tests/flows/test_flow_schemas.py` | Control | Phase 3 / 7 | 保留 | - |
 | `tests/flows/test_flow_submission.py` | Control | Phase 3 / 7 | 保留 | - |
+| `tests/flows/test_options_flow.py` | Control | Phase 3 / 7 | 保留 | - |
 | `tests/flows/test_options_flow_utils.py` | Control | Phase 3 / 7 | 保留 | - |
 | `tests/harness/__init__.py` | Assurance | Phase 7.4 | 保留 | - |
 | `tests/harness/evidence_pack/__init__.py` | Assurance | Phase 8 | 保留 | - |

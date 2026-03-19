@@ -105,6 +105,9 @@ phases:
   38-external-boundary-residual-retirement-and-quality-signal-hardening:
     - 38-SUMMARY.md
     - 38-VERIFICATION.md
+  39-governance-current-story-convergence-control-home-clarification-and-mega-test-decomposition:
+    - 39-SUMMARY.md
+    - 39-VERIFICATION.md
 ---
 
 # Promoted Phase Assets

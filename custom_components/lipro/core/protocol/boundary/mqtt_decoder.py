@@ -32,7 +32,7 @@ _MQTT_MESSAGE_ENVELOPE_AUTHORITY = (
 )
 _MQTT_PROPERTIES_FAMILY = "mqtt.properties"
 _MQTT_PROPERTIES_VERSION = "v1"
-_MQTT_PROPERTIES_AUTHORITY = "tests/core/mqtt/test_mqtt.py"
+_MQTT_PROPERTIES_AUTHORITY = "tests/fixtures/protocol_boundary/mqtt_properties.device_state.v1.json"
 _MQTT_STATE_TOPIC_FAMILY = f"{MQTT_TOPIC_PREFIX}/*"
 _MQTT_PROPERTY_GROUPS = (
     "common",

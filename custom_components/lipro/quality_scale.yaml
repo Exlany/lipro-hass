@@ -17,7 +17,7 @@ rules:
     comment: UI-based config flow with user step, reauth, reconfigure, and options flow.
   config-flow-test-coverage:
     status: done
-    comment: tests/flows/test_config_flow.py covers user/reauth/reconfigure/options flows, including error-recovery paths and unique ID mismatch guard.
+    comment: tests/flows/test_flow_schemas.py + tests/flows/test_config_flow_user.py + tests/flows/test_config_flow_reauth.py + tests/flows/test_config_flow_reconfigure.py + tests/flows/test_options_flow.py cover user/reauth/reconfigure/options flows, including error-recovery paths and unique ID mismatch guard.
   dependency-transparency:
     status: done
     comment: manifest.json declares aiomqtt and pycryptodome as requirements.

@@ -1,271 +1,185 @@
 # Lipro 北极星目标架构（North Star Target Architecture）
 
-> **Last Updated**: 2026-03-13
+> **Last Updated**: `2026-03-19`
 > **Status**: Target State / Active Reference
-> **Role**: 定义“什么是正确终态”，不被历史债、迁移成本、临时兼容层左右。
+> **Role**: 定义“什么是正确终态”，用于裁决架构正确性，而不是复述任一临时实现。
 
 ## 1. 架构定位
 
-北极星目标架构不是“当前实现说明”，也不是“现有代码的美化版解释”，而是整个仓库的**终态设计基准**：
+北极星目标架构定义的是 **终态正确性**：
 
 - 先定义正确终态，再安排迁移路径
-- 历史债只影响排期，不影响架构判断
-- 任何偏离终态的实现，都视为待收敛偏差，而不是第二套合法架构
-- 任何“为了兼容现状而保留的例外”，都必须有清理路径、失效条件与最终删除目标
+- 历史兼容成本不改变架构裁决
+- 任何偏离终态的实现都属于待收敛偏差，而不是第二套合法架构
+- 迁移残留只能显式登记、可计数、可删除，不能长期合法化
 
 ## 2. 北极星法则
-
-### 2.1 全层同标
-
-所有层共享同一套设计法则：
 
 1. **显式组合优于继承聚合**
 2. **单一正式主链优于多入口并存**
 3. **边界归一化优于内部到处兼容供应商形态**
 4. **领域真源优于平台/实体重复表达**
-5. **控制面、运行面、协议面、领域面、保障面分离**
+5. **控制面 / 运行面 / 协议面 / 领域面 / 保障面分离**
 6. **可验证、可观测、可仲裁优于“看起来能跑”**
-7. **迁移残留必须收口，不得长期并行合法化**
+7. **迁移残留必须持续收口，不得长期并行合法化**
 
-### 2.2 依赖方向法则
+## 3. 依赖方向法则
 
-北极星终态中的依赖方向必须清晰、单向、可验证：
+- Platform / entity 只依赖 domain truth、runtime public surface、control contracts
+- Control plane 只依赖 runtime public surface 与 assurance truth
+- Runtime plane 可依赖 domain、protocol contracts、assurance hooks
+- Protocol plane 负责外部 IO、boundary normalization、auth recovery、request policy
+- Assurance plane 可以观测所有层，但不主导业务编排
 
-- **Platform / Entity** → 只依赖 `Domain`、`Service Surface`、`Control Contracts`
-- **Service Surface** → 只依赖 `Runtime Public Surface`
-- **Runtime Plane** → 可依赖 `Domain`、`Protocol Contracts`、`Assurance Hooks`
-- **Control Plane** → 可依赖 `Runtime Public Surface` 与 `Assurance`
-- **Protocol Plane** → 负责对外 IO、协议恢复、边界归一化，不反向依赖 `Runtime` / `Entity`
-- **Assurance Plane** → 可以观测所有层，但不主导业务编排
+**禁止：**
 
-禁止的反向依赖：
+- entity / platform 直连 protocol internals、MQTT concrete transport、runtime private state
+- protocol 感知 coordinator / Home Assistant lifecycle semantics
+- compatibility layer 反向定义正式 public surface
+- 用 empty shell、全局单例、隐式回调、事件总线替代正式边界
 
-- `Entity / Platform` 直连 `Client / MQTT / Runtime internals`
-- `Protocol` 感知 `Coordinator` 或 HA 平台语义
-- `Compatibility layer` 反向定义正式 public surface
+## 4. 五大平面
 
-### 2.3 明确禁止
+### 4.1 Protocol Plane
 
-以下模式不属于北极星终态：
-
-- 任意层以 `mixin` 聚合作为正式设计
-- 同一能力存在两条正式主链
-- 通过历史兼容层长期维持双标准
-- 通过全局事件总线、全局单例、隐式回调替代显式边界
-- 让原始供应商 payload 穿透协议边界进入运行面、领域面、实体面
-- 用“临时适配”规避正式设计，而不写明清理条件
-
-## 3. 五大平面与参考设计
-
-### 3.1 Protocol Plane
-
-负责外部协议、认证恢复、请求策略、边界归一化与兼容迁移。
-
-**终态正式组件**：
+**Formal components**
 
 - `LiproProtocolFacade`：唯一正式 protocol-plane root
-- `LiproRestFacade`：REST / IoT 子门面
-- `LiproMqttFacade`：MQTT 子门面
-- `TransportGateway`：统一 HTTP/IoT 请求执行
-- `AuthSession`：token、refresh、reauth 恢复状态
-- `RequestPolicy`：超时、限流、重试、幂等等策略
-- `EndpointCollaborators`：按域划分的 endpoint 处理器
-- `PayloadNormalizers`：把供应商形态归一化为 canonical contracts
-- `CompatAdapters`：仅迁移期存在，负责旧接口到新 contracts 的桥接
+- `LiproRestFacade`：REST child façade
+- `LiproMqttFacade`：MQTT child façade
+- `RequestPolicy`：超时、速率、重试等策略真源
+- canonical contracts / payload normalizers / endpoint collaborators
 
-**终态不变量**：
+**Invariants**
 
-- 对外协议入口最终只从 `LiproProtocolFacade` 暴露
-- `LiproRestFacade` / `LiproMqttFacade` 是协议平面下的子门面，而不是彼此割裂的根
-- `LiproApiFacade` 若在 Phase 2 出现，只是收敛 REST 主链的中间台阶，不是绝对终态
-- `LiproClient` 已从正式 public surface 清退；后续不得以 legacy constructor name 重新引入第二套 REST 入口
-- 端点协作者不再通过多重继承聚合行为
-- 401 / 429 / connection error 恢复链路在 protocol plane 内闭环
-- canonical contract 在 protocol plane 边界完成，运行面不消费原始供应商形态
-- `CompatAdapters` 必须是显式、可计数、可删除的临时残留
+- 对外协议入口只从 `LiproProtocolFacade` 暴露
+- canonical contracts 必须在 protocol boundary 完成
+- 401 / 429 / connection recovery 在 protocol plane 内闭环
+- `LiproClient`、`LiproMqttClient`、`raw_client`、旧 compat wrappers 不得回流
 
-### 3.2 Runtime Plane
+### 4.2 Runtime Plane
 
-负责编排、刷新、状态一致性、命令确认与 MQTT 生命周期。
+**Formal components**
 
-**终态正式组件**：
+- `Coordinator`：唯一 runtime orchestration root
+- `RuntimeOrchestrator`：唯一 wiring root
+- `RuntimeContext`：正式 callback injection contract
+- runtime collaborators: `DeviceRuntime` / `StateRuntime` / `StatusRuntime` / `MqttRuntime` / `CommandRuntime` / `TuningRuntime`
+- runtime services: polling / state / command / telemetry / mqtt / device-refresh service layer
 
-- `Coordinator`：唯一编排根
-- `RuntimeOrchestrator`：唯一 wiring / 装配根
-- `RuntimeContext`：唯一回调注入协议
-- `CommandRuntime` / `DeviceRuntime` / `StateRuntime` / `StatusRuntime` / `MqttRuntime` / `TuningRuntime`
+**Invariants**
 
-**终态不变量**：
+- 命令、刷新、状态写入、MQTT lifecycle 只有一条正式路径
+- 不允许 bypass refresh、旁路写状态、旁路 MQTT apply path
 
-- 命令、刷新、状态写入、MQTT 生命周期都只有一条正式路径
-- 运行时协作只通过显式依赖与公开 primitives 完成
-- 任何旁路刷新、旁路写状态、旁路 MQTT 应用路径都属于回归
+### 4.3 Domain Plane
 
-### 3.3 Domain Plane
+**Formal components**
 
-负责设备能力、身份、状态视图、命令模型、属性描述与平台投影。
+- `LiproDevice`：device aggregate façade
+- `CapabilityRegistry` / `CapabilitySnapshot`：唯一能力真源
+- device views / command models / platform projections
 
-**终态正式组件**：
+**Invariants**
 
-- `DeviceAggregate` / `LiproDevice`：设备聚合根（命名可演进，职责不可漂移）
-- `CapabilityRegistry`：单一能力真源
-- `CapabilitySnapshot`：供平台/实体消费的稳定快照
-- `custom_components/lipro/core/capability/`：能力真源的正式目录归属
-- `Command Model`：命令对象与写侧能力语义
-- `Platform Projections`：平台适配层，只做投影，不二次定义领域规则
+- 平台层只做 projection，不二次定义 capability truth
+- domain 不承担 protocol recovery / HA lifecycle 语义
 
-**终态不变量**：
+### 4.4 Control Plane
 
-- 能力、属性、命令、平台差异围绕同一能力真源演进
-- 平台层不重复持有“另一份规则系统”
-- 领域模型不泄漏 HA 平台细节，也不承担协议恢复逻辑
+**Formal home**
 
-### 3.4 Control Plane
+- `custom_components/lipro/control/`
 
-负责接入、配置、诊断、服务注册、支持面与生命周期治理。
+**Formal components**
 
-**终态正式组件**：
+- `EntryLifecycleController`
+- `ServiceRouter`
+- `ServiceRegistry`
+- `RuntimeAccess`
+- `DiagnosticsSurface`
+- `SystemHealthSurface`
+- `Redaction`
+- `ConfigFlow / OptionsFlow`（thin adapter + flow contracts）
 
-- `EntryLifecycleController`：setup / unload / reload / reauth / options
-- `ServiceRegistry`：HA services 的唯一注册与撤销边界
-- `DiagnosticsSurface`：诊断导出与 support payload
-- `SystemHealthSurface`：健康度与依赖探针
-- `ConfigFlow / OptionsFlow`：显式的接入与配置故事线
+**Support helpers, not alternate roots**
 
-**终态不变量**：
+- `custom_components/lipro/services/`：service declarations、request shaping、lookup、error translation、diagnostics/share/schedule helper modules
+- 根层 `__init__.py`、`diagnostics.py`、`system_health.py`、`config_flow.py`：thin adapters
 
-- 控制面和运行面解耦，但通过稳定 public surface 对接
-- `diagnostics` / `system_health` / `service wiring` / `entry lifecycle` 属于同一控制面叙事
-- 控制面改动必须有 lifecycle / flow / diagnostics 验收
+**Invariants**
 
-### 3.5 Assurance Plane
+- control plane 与 runtime plane 解耦，但只通过稳定 public surface 对接
+- `services/` 不得再被叙述为 legacy carrier 或第二 control root
+- `service wiring` 不是当前正式概念；正式概念是 `service callback home + adapter helpers`
 
-负责契约测试、可观测性、架构守卫、质量门禁与审计证据。
+### 4.5 Assurance Plane
 
-**终态正式组件**：
+**Formal components**
 
-- `Contract Suite`：golden fixtures + canonical assertions
-- `Architecture Rules`：依赖方向、双主链、跨层直连守卫
-- `Telemetry Hooks`：命令确认、刷新耗时、MQTT 恢复、auth recovery
-- `Verification Matrix`：把 phase / requirement / tests / docs 对齐
-- `CI Gates`：lint / types / tests / architecture checks
+- architecture policy / file matrix / residual ledger / kill list / verification matrix
+- contract tests / replay tests / governance tests / CI gates
+- telemetry / diagnostics / replay evidence
 
-**终态不变量**：
+**Invariants**
 
-- 不只验证功能，还验证边界、依赖方向、恢复链路与架构不变量
-- 可观测性是正式能力，不是调试临时品
+- 不只验证功能，也验证边界、依赖方向、authority truth 与 closeout story
 - 任何架构回退都应由自动化护栏发现，而不是靠再次人工审计
 
-## 4. 目标态目录映射
+## 5. 目标态目录映射
 
 ```text
 custom_components/lipro/
 ├── core/
-│   ├── coordinator/           # Runtime plane
-│   ├── api/                   # Protocol plane (explicit facade + collaborators)
-│   ├── mqtt/                  # Protocol transport
-│   ├── capability/            # Domain capability truth
-│   ├── device/                # Domain device aggregate / compat bridge
-│   ├── command/               # Domain write-side helpers
-│   └── telemetry/             # Assurance runtime metrics (target)
-├── control/                   # Control plane formal home
-├── entities/                  # Domain → HA adapter
-├── helpers/                   # Declarative builders / projection helpers
-├── services/                  # HA service adapters / legacy carriers during migration
-├── flow/                      # Control plane config flows
-├── diagnostics.py             # Control plane diagnostics export
-├── system_health.py           # Control plane health surface
-└── tests/                     # Assurance plane
+│   ├── protocol/              # protocol root + canonical contracts + diagnostics context
+│   ├── api/                   # REST child façade collaborators / request policy / endpoint surface
+│   ├── mqtt/                  # concrete MQTT transport / payload/topic helpers
+│   ├── coordinator/           # runtime root + runtimes + runtime services
+│   ├── capability/            # domain capability truth
+│   ├── device/                # domain device aggregate
+│   ├── command/               # domain write-side helpers
+│   └── anonymous_share/       # protocol-adjacent support
+├── control/                   # control plane formal home
+├── services/                  # control service adapters / declarations / helpers
+├── entities/                  # domain -> HA entity adapters
+├── helpers/                   # projection / builder helpers
+├── diagnostics.py             # thin control adapter
+├── system_health.py           # thin control adapter
+└── tests/                     # assurance plane
 ```
 
-## 5. 技术选型边界
+## 6. Definition of Done
 
-北极星的“先进”不是追求更重的框架，而是追求**长期稳定、结构透明、边界清晰、可验证**。
+只有同时满足以下条件，才可视为逼近北极星终态：
 
-### 5.1 当前最优技术立场
+1. 全层显式组合，不依赖正式 mixin 继承链
+2. protocol / runtime / control 都只有一条正式主链
+3. vendor payload 不穿透 protocol boundary
+4. capability / device / command / projection 围绕同一 domain truth 演进
+5. control plane 形成单一叙事：lifecycle / router / diagnostics / health / flow / runtime access
+6. assurance plane 由自动化护栏守护，而非只靠口头约定
+7. 全仓文件都有归属与残留裁决
+8. 历史残留可以清零，不能长期漂浮
 
-- **保留 Home Assistant custom integration + Python async 主栈**：不为“换血”而换血
-- **在 HA 生命周期内正式使用 `ConfigEntry.runtime_data` 承载 typed runtime roots**：让 setup / unload / diagnostics / strict typing 一致
-- **优先 `TypedDict + dataclass(slots=True) + Protocol`**：分别承担 contract、状态承载、边界协定，而不是一上来引入重型 schema 框架
-- **优先长期复用的 `aiohttp.ClientSession` 与显式 transport executor**：不按请求创建 session
-- **优先 `TraceConfig` 或等价轻量 hooks 做 request telemetry**：不引入全局事件总线
-- **优先显式 wiring**：不引入通用 DI 容器
+## 7. 当前最高优先级
 
-### 5.2 工程标准
+1. 维持 `control/`、`runtime/`、`protocol/`、`domain/`、`assurance/` 的单一主链，不接受第二 story 回流
+2. 维持已关闭 compat seams 的关闭状态：`LiproClient`、`LiproMqttClient`、`raw_client`、`get_device_list` compat wrappers 不得回流
+3. 保持治理真源与 machine-checkable guards 同步，不允许 stale prose 重新定义“当前现状”
+4. 继续把 dead shell、误导性命名与巨石测试收口为更干净、更可维护的正式资产
 
-- `Protocol` 主要用于静态边界，不在热路径滥用 runtime protocol checks
-- middleware 若存在，必须单一职责、顺序明确、循环有界
-- retry / auth recovery / rate limit 必须是显式、可测、可观测的协作者关系
-- diagnostics 必须走正式脱敏出口，不把 token / account data 暴露到支持面
+## 8. 北极星 2.0（AI Debug Ready, HA-only）
 
-### 5.3 未来可评估但非当前前提
+北极星 2.0 不是换技术栈，而是在不破坏单主链的前提下，把 **可观测 / 可回放 / 可给 AI 分析的证据链**升级为正式能力：
 
-只有当复杂度继续上升且现有轻量模式不再足够时，才评估：
+- telemetry truth 单一：protocol/runtime telemetry sources → exporter/surfaces → diagnostics/system-health/developer/CI consumers
+- replay 只复用 formal public path，不复制第二实现
+- diagnostics/support 输出必须走正式 redaction / authority contract
 
-- 边界 schema 工具（例如更强的结构化 payload 校验）
-- 依赖规则工具（例如更严格的 import / layer enforcement）
-- 更细粒度的 protocol collaborator 分层
+## 9. 治理产物
 
-评估标准不是“是否更现代”，而是：
-
-1. 是否显著提升可维护性与可验证性
-2. 是否降低边界漂移与理解成本
-3. 是否不会引入新的双标准与隐式魔法
-
-## 6. 全仓代码审视与重构治理
-
-北极星不是只改热点文件，而是要对**全部 Python 文件**建立正式治理：
-
-- 每个 `*.py` 文件都必须被归类为：`保留` / `重构` / `迁移适配` / `删除`
-- 每个 phase 都要明确本轮审视范围、触达文件簇、残留清单、删除清单
-- 历史兼容层必须进入 `residual ledger`，不能散落在实现里“自然存在”
-- 文档、代码、测试、phase plan 必须形成可追踪闭环
-
-建议工作产物：
-
-- `.planning/reviews/FILE_MATRIX.md`：全仓文件分类矩阵
-- `.planning/reviews/RESIDUAL_LEDGER.md`：历史残留与删除时机
-- `.planning/reviews/KILL_LIST.md`：明确待删除模块/适配层
-- `.planning/phases/*`：每个阶段的上下文、研究、执行计划、总结
-
-## 7. Definition of Done
-
-只有满足以下条件，才算真正收敛到北极星目标架构：
-
-1. **全层显式组合**：不存在被文档认可的 `mixin` 聚合例外
-2. **单一正式主链**：命令、刷新、状态写入、接入生命周期只有一条正式路径
-3. **边界归一化**：供应商 payload 不穿透 protocol plane
-4. **领域单一真源**：能力、属性、命令、平台差异围绕同一模型演进
-5. **控制面成体系**：entry lifecycle、flows、diagnostics、services 形成单一叙事
-6. **保障面正式化**：contract、observability、architecture rules 成为自动化护栏
-7. **全仓已分类治理**：所有 Python 文件都有归类与去向
-8. **历史残留可清零**：compat adapters 仅剩显式、有限、可删除的迁移桥
-
-## 8. 当前最高优先级
-
-1. 完成 `v1.1` 里程碑 closeout / archive，确保 roadmap、requirements、audit、verification 口径统一
-2. 维持 Phase 12 后的 seam 关闭状态：不得重新引入 `core.api.LiproClient`、`LiproProtocolFacade.get_device_list`、`LiproMqttFacade.raw_client`
-3. 收紧设备域动态委托与测试锚点，避免 `__getattr__` 与 legacy constructor name 长期合法化
-4. 保持 control / runtime / OTA / governance 单一正式主链，不再接受 addendum 回流
-5. 基于当前单主链事实规划下一里程碑，而不是恢复历史迁移叙事
-
-## 9. 北极星 2.0（AI Debug Ready, HA-only）
-
-北极星 2.0 不是“换技术栈”，而是在不破坏北极星单主链的前提下，把 **可观测 / 可回放 / 可给 AI 分析的证据链**升级为正式能力。
-
-### 9.1 核心裁决
-
-- **仍只服务 Home Assistant**：不为跨平台 SDK 设计 second root。
-- **Telemetry/Replay/Evidence 一条真相链**：
-  - `ProtocolTelemetry` + runtime telemetry sources → `RuntimeTelemetryExporter` → diagnostics/system-health/developer/CI sinks
-  - replay harness 必须复用同一 exporter 输出作为 telemetry assertions，不得另造第二套 telemetry truth
-- **Exporter 以 pull 为主**：exporter 只读 sources；sources 可维护有界事件摘要（ring-buffer），但 exporter 不作为事件总线。
-- **允许真实时间戳**：为定位时序与 AI 分析，telemetry/evidence 允许输出真实时间戳字段；但必须遵守脱敏与基数预算。
-- **伪匿名化优先**：允许输出“报告内稳定、跨报告不可关联”的伪匿名引用（例如 `entry_ref`/`device_ref`）；禁止输出可长期关联的真实标识。
-- **凭证等价物永不出现在 sinks**：`password_hash`、token、secret、refresh/access key 等都必须被视作凭证等价物，不得进入任何 telemetry/evidence sink。
-
-### 9.2 终态目标增量
-
-- Assurance plane 增加一类正式资产：`AI Debug Evidence Pack`。
-  - 它从正式真源 pull 导出结构化 evidence（默认 JSON + index），用于 AI 调试/分析与演进仲裁。
-  - 其权威性由 `.planning/*` 与 baseline matrices（`PUBLIC_SURFACES` / `VERIFICATION_MATRIX` / `AUTHORITY_MATRIX`）共同裁决。
+- `.planning/reviews/FILE_MATRIX.md`：文件归属与 owner truth
+- `.planning/reviews/RESIDUAL_LEDGER.md`：残留与 delete gate truth
+- `.planning/reviews/KILL_LIST.md`：历史清退记录
+- `.planning/baseline/*.md`：public surface / architecture policy / verification / authority 基线
+- `.planning/phases/*`：执行痕迹与 closeout evidence；只有 promoted assets 才能升级为长期治理证据

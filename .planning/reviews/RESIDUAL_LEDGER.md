@@ -234,7 +234,7 @@
 ## Phase 21 Residual Delta
 
 - `Replay scenario coverage` 已完成 closeout：remaining families 现已在 replay report、evidence pack 与 integration/meta guards 中获得显式 assurance coverage，不再保留为 active residual family。
-- failure taxonomy contract 已冻结到 shared telemetry truth；remaining `except Exception` 数量被转入 repo-wide audit metric 与 future v1.3 backlog，而不是继续以未仲裁 residual family 存在。
+- failure taxonomy contract 已冻结到 shared telemetry truth；remaining `except Exception` 数量被转入 repo-wide audit metric 与 future sustainment backlog，而不是继续以未仲裁 residual family 存在。
 - 本 phase **无新增 compat shell / authority drift**；收口的是 failure classification 语言与关键 catch-all arbitration seam。
 
 ## Phase 22 Residual Delta
@@ -252,7 +252,7 @@
 
 ## Phase 24 Final Audit Disposition
 
-- final repo audit (`2026-03-16`) 将 repo-wide metrics 记为：`Any=614`、`except Exception=36`、`type: ignore=12`；它们已被明确定性为 future v1.3 backlog / distributed tech debt，而不是 silent defer。
+- final repo audit (`2026-03-16`) 将 repo-wide metrics 记为：`Any=614`、`except Exception=36`、`type: ignore=12`；它们已被明确定性为 future sustainment backlog / distributed tech debt，而不是 silent defer。
 - 当前已无 active residual family；remaining boundary/replay coverage、observability convergence 与 external-boundary naming residual 均已完成 closeout，不再悬空。
 - `v1.2` closeout 现达到 archive-ready / handoff-ready：residual disposition、milestone audit、evidence index 与 handoff assets 已讲同一条最终故事线。
 
@@ -292,3 +292,10 @@
 - init/service-handler/runtime/governance phase-history 巨石测试已拆成稳定 topic suites；保留的聚合文件只承担 shared helper / topic root 身份，不再吸附所有子故事线。
 - `.planning/codebase/*` 与 verification/testing guidance 已重新同步到真实拓扑；remaining residual 只是不时需要跟随新增测试文件刷新 derived maps，而不是 authority drift。
 - 本 phase **无新增 active residual family**；关闭的是 test-topology drift、旧单文件锚点与高噪音 prose-coupled closeout 断言。
+
+## Phase 39 Residual Delta
+
+- `custom_components/lipro/core/protocol/compat.py` dead shell 已物理删除；Phase 39 不再保留任何“空 compat 壳也算合法存在”的 folklore。
+- `get_device_list.envelope.json` 现被固定为唯一 authority asset；相关 replay manifests、tests、readmes 与 guards 已完成单命名收口，不再存在 compat / wrapped / envelope 并行叙事。
+- `custom_components/lipro/control/` 已在 north-star、developer docs、review ledgers 与治理守卫中被统一确认为 formal control-plane home；`custom_components/lipro/services/` 只再承担 service declarations / adapters / helpers 身份。
+- governance current-story placeholder 已关闭：`v1.4 / Phase 39 complete / closeout-ready` 成为唯一 active story，本 phase **无新增 active residual family**。

@@ -5,6 +5,7 @@
 - ✅ **v1.0 North Star Rebuild** - Phases 1-7 (+ 1.5 / 2.5 / 2.6), shipped 2026-03-13, archive: `.planning/milestones/v1.0-ROADMAP.md`
 - ✅ **v1.1 Protocol Fidelity & Operability** - Phases 7.1-17 complete; final audit complete; milestone snapshots archived at `.planning/milestones/v1.1-ROADMAP.md` / `.planning/milestones/v1.1-REQUIREMENTS.md` (updated 2026-03-16)
 - ✅ **v1.2 Host-Neutral Core & Replay Completion** - Phases 18-24 complete after Phase 24 reopen revalidation; 24 plans complete; milestone snapshots archived at `.planning/milestones/v1.2-ROADMAP.md` / `.planning/milestones/v1.2-REQUIREMENTS.md`; `v1.3` handoff-ready (revalidated 2026-03-17)
+- 🚧 **v1.4 Sustainment, Trust Gates & Final Hotspot Burn-down** - Phases 34-39 complete; current tranche is closeout-ready pending milestone archive promotion (updated 2026-03-19)
 
 ## Required Phase Outputs
 
@@ -319,13 +320,14 @@ Plans:
 
 ## Current Milestone
 
-### ✅ v1.2: Host-Neutral Core & Replay Completion
+### 🚧 v1.4: Sustainment, Trust Gates & Final Hotspot Burn-down
 
-**Milestone Goal:** 在不破坏 `LiproProtocolFacade` / `Coordinator` 单一正式主链的前提下，把 future-host shared-core debt、remaining boundary/replay family debt 与关键 broad-catch / observability debt 提升为正式交付，让仓库从“HA 内部高治理集成”继续迈向“可复用、可回放、可宿主扩展、但不多根分裂”的下一阶段。
+**Milestone Goal:** 在保持 `LiproProtocolFacade` / `Coordinator` 单一正式主链、`custom_components/lipro/control/` formal home 与 external-boundary 单一真源的前提下，完成 continuity / release trust、protocol/runtime hotspots、typed exception hardening、governance current-story convergence 与 mega-test topology 收口，把仓库推进到 `v1.4` closeout-ready。
 
-**Execution Scope:** `Phase 18 -> Phase 24`（7 phases / 24 plans；`24-04` / `24-05` 于 2026-03-17 完成 reopen revalidation）
+**Execution Scope:** `Phase 34 -> Phase 39`（6 phases / 19 plans）
 
-**Current Status:** `Phase 18` 到 `Phase 24` 已全部完成（24/24 plans executed；Phase 24 于 2026-03-17 reopened 并重新验证）；`v1.2` 的 final repo audit、evidence index、milestone audit 与 `v1.3` handoff 已落地，archive snapshots 已写入 `.planning/milestones/v1.2-ROADMAP.md` 与 `.planning/milestones/v1.2-REQUIREMENTS.md`，当前维持 archive-ready、handoff-ready。
+**Current Status:** `Phase 34` 到 `Phase 39` 已全部完成（19/19 plans executed）；`Phase 39` 已在 `2026-03-19` 完成 governance current-story convergence、control-home clarification、dead-shell retirement、authority naming sync 与 mega-test decomposition。当前默认下一步是执行 `v1.4` 里程碑归档，而不是继续保留 `Phase 39` placeholder story。
+
 
 ### Phase 18: Host-Neutral Boundary Nucleus Extraction
 **Goal**: 把 boundary/auth/device 方向中已成熟的 host-neutral nucleus 从 HA adapter 语义中继续抽离，但不新建第二条 runtime story。
@@ -625,9 +627,9 @@ Plans:
 - [x] 33-05: harden CI/pre-push/benchmark/release-evidence gates and reproducibility posture (completed 2026-03-18)
 - [x] 33-06: topicize remaining mega-tests and close deep-doc / continuity productization gaps (completed 2026-03-18)
 
-## v1.4 Seed: Sustainment, Trust Gates & Final Hotspot Burn-down
+## v1.4: Sustainment, Trust Gates & Final Hotspot Burn-down
 
-> `v1.3` milestone audit 已确认 `no critical gaps` 但保留显式 retained tech debt；这批问题属于新一轮 sustainment / hardening 目标，而不是把 `v1.3` 回写成 failed audit。以下 `Phase 34 -> 37` 是 `v1.4` seed 主线，phase 编号继续顺延，但里程碑语义从“v1.3 closeout”切到“下一轮 10 分质量 hardening”。
+> `v1.3` milestone audit 已确认 `no critical gaps` 但保留显式 retained tech debt；这批问题属于 `v1.4` sustainment / hardening 目标，而不是把 `v1.3` 回写成 failed audit。`Phase 34 -> 39` 现已构成 `v1.4` 当前正式主线，并以 governance convergence + closeout evidence 完成 fresh-audit continuation 收口。
 
 ### Phase 34: Continuity and hard release gates
 **Goal**: 把单维护者连续性与 release trust 从“诚实说明”推进到“可演练、可阻断、可审计”：建立真实的 continuity / custody / freeze contract，并为 artifact signing 与 hard code-scanning gate 做最终路由。
@@ -708,3 +710,23 @@ Plans:
 - [x] 38-01: retire external-boundary advisory naming residual with honest trust-root terminology (completed 2026-03-18)
 - [x] 38-02: convert quality-signal wording into machine-checkable contracts (completed 2026-03-18)
 - [x] 38-03: reduce governance prose-coupling and lock fresh-audit closeout evidence (completed 2026-03-18)
+
+### Phase 39: Governance current-story convergence, control-home clarification, and mega-test decomposition
+
+**Goal:** 把 current-story canonical docs、control/services formal role、dead protocol shell、authority asset naming、governance closeout evidence 与剩余 mega-test topology 全部收口到一条诚实、可验证、可归档的 `v1.4` 故事。
+**Requirements**: [GOV-32, DOC-03, CTRL-08, RES-09, TST-07]
+**Depends on:** Phase 38
+**Draft Success Criteria**:
+  1. `ROADMAP / REQUIREMENTS / STATE / PROJECT` 对 `v1.4 / Phase 39 complete / next command` 讲同一条 current story，coverage / traceability 算术无误。
+  2. `docs/NORTH_STAR_TARGET_ARCHITECTURE.md`、`docs/developer_architecture.md`、review ledgers 与 promoted assets 清楚承认 `custom_components/lipro/control/` 是 formal control-plane home，`services/` 只承担 declarations / adapters / helpers。
+  3. `custom_components/lipro/core/protocol/compat.py` 退场，authority fixtures / replay manifests / guards / readmes 完成单命名收口；remaining mega-tests topicize 成低噪声专题面并通过完整 hard gates。
+**Status**: Complete (`2026-03-19`)
+**Plans**: 6/6 complete
+
+Plans:
+- [x] 39-01: converge roadmap requirements state and project onto one current story (completed 2026-03-19)
+- [x] 39-02: refresh authority docs and clarify control-home topology (completed 2026-03-19)
+- [x] 39-03: retire protocol dead shell and converge device-list authority assets (completed 2026-03-19)
+- [x] 39-04: topicize device mqtt config-flow and anonymous-share mega-tests (completed 2026-03-19)
+- [x] 39-05: topicize governance mega-tests and promote phase 39 closeout evidence (completed 2026-03-19)
+- [x] 39-06: run phase-39 full validation gates and finalize closeout evidence (completed 2026-03-19)

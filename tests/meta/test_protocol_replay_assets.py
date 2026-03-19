@@ -11,6 +11,7 @@ from tests.helpers.repo_root import repo_root
 
 _ROOT = repo_root(Path(__file__))
 _REPLAY_ROOT = _ROOT / "tests" / "fixtures" / "protocol_replay"
+_DEVICE_LIST_AUTHORITY_PATH = "tests/fixtures/api_contracts/get_device_list.envelope.json"
 _ALLOWED_AUTHORITY_PREFIXES = (
     "tests/fixtures/api_contracts/",
     "tests/fixtures/protocol_boundary/",
@@ -50,11 +51,11 @@ def test_phase_10_rest_replay_families_are_registered_with_expected_authority() 
 
     expected = {
         "rest.list-envelope": (
-            "tests/fixtures/api_contracts/get_device_list.compat.json",
+            _DEVICE_LIST_AUTHORITY_PATH,
             "protocol.contracts.normalize_list_envelope",
         ),
         "rest.device-list": (
-            "tests/fixtures/api_contracts/get_device_list.compat.json",
+            _DEVICE_LIST_AUTHORITY_PATH,
             "protocol.contracts.normalize_device_list_page",
         ),
         "rest.device-status": (
@@ -124,7 +125,7 @@ def test_phase_10_replay_readmes_document_boundary_first_rule() -> None:
         assert family in replay_readme
 
     for fixture_name in (
-        "get_device_list.compat.json",
+        "get_device_list.envelope.json",
         "query_device_status.mixed.json",
         "query_mesh_group_status.topology.json",
         "query_mesh_schedule_json.v1.json",

@@ -1,34 +1,32 @@
 # Project: Lipro-HASS North Star Evolution
 
-**Status:** Complete — `v1.2` closeout 已完成；`Phase 18-24` 已全部完成，当前处于 archive-ready / `v1.3` handoff-ready；fresh-audit `Phase 38` 也已完成并建立新的质量基线。
-**Goal:** 把 `host-neutral nucleus`、`headless consumer proof`、`remaining boundary family completion`、`replay / evidence expansion`、`exception classification / observability hardening`、`governance / contributor docs / release evidence closeout` 与 `milestone audit / v1.3 handoff` 统一纳入当前 `v1.2` 里程碑，同时延续 `v1.1` 已建立的北极星单一主链、assurance 与开源治理能力。
+**Status:** Active current story converged — `v1.4 / Phase 39` 已完成并通过 hard gates，当前处于 closeout-ready；`v1.2` 继续保持 archive-ready，`v1.3` 保持历史 closeout-eligible 语义。
+**Goal:** 把 continuity / release trust、protocol/runtime hotspot slimming、typed exception hardening、control-home clarification、authority naming honesty、governance closeout 与 mega-test topology 全部统一到 `v1.4` 当前里程碑，并以单一北极星主链完成最终收口。
 
-## Current Milestone (v1.2)
+## Current Milestone (v1.4)
 
-**Name:** `v1.2 Host-Neutral Core & Replay Completion`
+**Name:** `v1.4 Sustainment, Trust Gates & Final Hotspot Burn-down`
 
-**Why now:** `v1.1` 已把协议真相、治理护栏、telemetry / replay / evidence 与残留清理推进到 archive-ready 水位；下一轮最有价值的工作，不再是继续清 dead shell，而是把已明确登记的两类剩余债务转成正式交付：
+**Why now:** `v1.3` 的 formal gap 已关闭，但显式 retained tech debt 仍值得以新里程碑继续推进；`Phase 34 -> 39` 已把 continuity、release trust、protocol/runtime root、quality-signal、governance current story 与 mega-test topology 全部推进到 closeout-ready。
 
-- `Phase 10` 留下的 host-neutral shared-core / future host debt
-- `Phase 07.4` 留下的非 representative boundary/replay family de-scope debt
+**North-star fit:** 当前里程碑继续沿单一正式主链推进：
 
-**North-star fit:** 下一轮仍然必须坚持同一条正式主链：
-
-- 不创建第二个 runtime root
-- 不把 CLI / headless harness 做成平行实现
-- 不让 replay/evidence 反向成为 authority source
-- 不把 host-neutral extraction 演化成“全新框架化”
+- 不创建第二个 runtime / protocol root
+- 不把 `services/` 回写成 control-plane formal home
+- 不让 replay/fixture/readme 形成第二 authority truth
+- 不把 compat / legacy / placeholder story 重新合法化
 
 **Milestone outcomes:**
 
-1. host-neutral boundary/auth/device nucleus 被正式抽出，但 `LiproProtocolFacade` 与 `Coordinator` 仍保持单一正式根叙事
-2. `rest.list-envelope.v1`、`rest.schedule-json.v1`、`mqtt.topic.v1`、`mqtt.message-envelope.v1` 从 de-scope/partial state 升格为 registry-backed / replay-covered families
-3. replay / evidence 对新增 formalized families 实现 full public-path coverage，且不再留下 assurance blind spot
+1. continuity / release trust、protocol/runtime hotspots 与 typed exception hardening 已完成 fresh-audit 收口
+2. `custom_components/lipro/control/` 已在 north-star、developer docs、reviews 与 guards 中被固定为 formal control-plane home
+3. governance current story、promoted assets、dead-shell retirement 与 mega-test decomposition 已全部同步到 Phase 39 closeout evidence
 
-**Phase range:** `Phase 18 -> 24`
+**Phase range:** `Phase 34 -> 39`
 
-**Execution status:** `Phase 18-24` complete
-**Archive assets:** `.planning/milestones/v1.1-ROADMAP.md`, `.planning/milestones/v1.1-REQUIREMENTS.md`, `.planning/milestones/v1.2-ROADMAP.md`, `.planning/milestones/v1.2-REQUIREMENTS.md`
+**Execution status:** `Phase 34-39` complete
+**Closeout assets:** `.planning/phases/39-governance-current-story-convergence-control-home-clarification-and-mega-test-decomposition/39-SUMMARY.md`, `.planning/phases/39-governance-current-story-convergence-control-home-clarification-and-mega-test-decomposition/39-VERIFICATION.md`, `.planning/phases/39-governance-current-story-convergence-control-home-clarification-and-mega-test-decomposition/39-VALIDATION.md`
+**Historical archive assets:** `.planning/milestones/v1.1-ROADMAP.md`, `.planning/milestones/v1.1-REQUIREMENTS.md`, `.planning/milestones/v1.2-ROADMAP.md`, `.planning/milestones/v1.2-REQUIREMENTS.md`
 
 ## v1.3 Closeout & Post-closeout Continuation
 
@@ -89,21 +87,21 @@
 
 
 
-## v1.4 Seed — Sustainment, Trust Gates & Final Hotspot Burn-down
+## v1.4 Route & Hardening Updates
 
 **Why now:** `v1.3` 现在的真实状态不是“缺少 formal gap closure”，而是“requirements 与审计闭环已完成，但 retained tech debt 仍值得再打一轮”。因此下一步更合理的语义不是继续把 tranche 塞回 `v1.3`，而是把它们提升为 `v1.4` 的新目标：连续性冗余、硬 release gate、协议/运行根热点继续瘦身、宽异常继续 burn-down、巨石测试第三波 topicization，以及 derived truth 再对齐。
 
-**Seed contract:** `v1.4` 继续沿现有北极星主链推进，不新建第二 root、不虚构隐藏 maintainer redundancy、不把 vendor-constrained crypto 伪装成仓库内部立刻可消灭的重构债。
+**Milestone contract:** `v1.4` 继续沿现有北极星主链推进，不新建第二 root、不虚构隐藏 maintainer redundancy、不把 vendor-constrained crypto 伪装成仓库内部立刻可消灭的重构债。
 
-**Seed route map:**
+**Route map:**
 1. `Phase 34` — continuity and hard release gates
 2. `Phase 35` — protocol hotspot final slimming
 3. `Phase 36` — runtime root and exception burn-down
 4. `Phase 37` — test topology and derived-truth convergence
+5. `Phase 38` — external-boundary residual retirement and quality-signal hardening
+6. `Phase 39` — governance current-story convergence, control-home clarification, and mega-test decomposition
 
-**Fresh-audit next tranche:** `Phase 38` — external-boundary residual retirement and quality-signal hardening
-
-**Default next step:** `$gsd-progress`
+**Default next step:** `$gsd-complete-milestone v1.4`
 
 ## Phase 34 Seed Hardening Update
 
@@ -124,6 +122,10 @@
 ## Phase 38 External-Boundary Residual & Quality-Signal Hardening Update
 
 `Phase 38` 已于 `2026-03-18` 完成：最后一条 active residual family（`External-boundary advisory naming`）已关闭；firmware authority truth 现统一为 bundled local trust-root asset + remote advisory payload；`coverage_diff.py` / CI / `CONTRIBUTING.md` / `.planning/codebase/TESTING.md` 现讲同一条 floor-only + explicit-baseline-diff + advisory-with-artifact 故事，而 governance closeout guards 也进一步收敛到 `ROADMAP` / `REQUIREMENTS` / command anchors。
+
+## Phase 39 Governance Current-Story & Mega-Test Closeout Update
+
+`Phase 39` 已于 `2026-03-19` 完成：`ROADMAP / REQUIREMENTS / STATE / PROJECT` 现共同承认 `v1.4 / Phase 39 complete / closeout-ready` 当前故事；`docs/NORTH_STAR_TARGET_ARCHITECTURE.md` 与 `docs/developer_architecture.md` 已刷新 control-home truth；`custom_components/lipro/core/protocol/compat.py` 已删除；authority fixtures / replay manifests / guards 已完成单命名收口；device / mqtt / flows / anonymous-share / governance 套件继续 topicize，并留下 promoted closeout evidence。
 
 ## Why This Milestone Exists
 

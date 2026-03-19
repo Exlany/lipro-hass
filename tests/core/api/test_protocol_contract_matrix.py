@@ -39,6 +39,8 @@ from custom_components.lipro.core.protocol.telemetry import ProtocolTelemetry
 from tests.harness.protocol import iter_replay_manifests
 
 FIXTURE_DIR = Path(__file__).resolve().parents[2] / "fixtures" / "api_contracts"
+DEVICE_LIST_AUTHORITY_PATH = "tests/fixtures/api_contracts/get_device_list.envelope.json"
+DEVICE_LIST_FIXTURE_NAMES = ("get_device_list.direct.json", "get_device_list.envelope.json")
 EXPECTED_MQTT_CONFIG = {
     "accessKey": "ak-direct",
     "secretKey": "sk-direct",
@@ -315,7 +317,7 @@ def test_protocol_root_contracts_normalize_mqtt_config(
 
 @pytest.mark.parametrize(
     "fixture_name",
-    ["get_device_list.direct.json", "get_device_list.compat.json"],
+    list(DEVICE_LIST_FIXTURE_NAMES),
 )
 def test_protocol_root_contracts_normalize_device_list_pages(
     fixture_name: str,
@@ -331,7 +333,7 @@ def test_protocol_root_contracts_normalize_device_list_pages(
 
 @pytest.mark.parametrize(
     "fixture_name",
-    ["get_device_list.direct.json", "get_device_list.compat.json"],
+    list(DEVICE_LIST_FIXTURE_NAMES),
 )
 def test_rest_boundary_decoder_returns_canonical_device_list_page(
     fixture_name: str,
@@ -350,7 +352,7 @@ def test_rest_boundary_decoder_returns_canonical_device_list_page(
     ("fixture_name", "expected_rows_key", "expected_total"),
     [
         ("get_device_list.direct.json", "devices", 3),
-        ("get_device_list.compat.json", "data", None),
+        ("get_device_list.envelope.json", "data", None),
     ],
 )
 def test_protocol_root_contracts_normalize_list_envelope(
@@ -376,7 +378,7 @@ def test_protocol_root_contracts_normalize_list_envelope(
     ("fixture_name", "expected_rows_key", "expected_total"),
     [
         ("get_device_list.direct.json", "devices", 3),
-        ("get_device_list.compat.json", "data", None),
+        ("get_device_list.envelope.json", "data", None),
     ],
 )
 def test_rest_boundary_decoder_returns_canonical_list_envelope(
@@ -550,18 +552,18 @@ def test_phase_1_truth_endpoints_are_not_duplicated_into_external_boundary_fixtu
 
 
 def test_rest_replay_manifests_reuse_phase_1_contract_fixtures() -> None:
-    manifests = iter_replay_manifests(channel="rest")
-
-    assert [manifest.authority_path.name for manifest in manifests] == [
-        "get_device_list.compat.json",
-        "get_device_list.compat.json",
-        "get_mqtt_config.direct.json",
-        "get_mqtt_config.wrapped.json",
-        "query_device_status.mixed.json",
-        "query_mesh_group_status.topology.json",
-        "query_mesh_schedule_json.v1.json",
+    manifests = list(iter_replay_manifests(channel="rest"))
+    expected = [
+        ("rest.list-envelope", DEVICE_LIST_AUTHORITY_PATH),
+        ("rest.device-list", DEVICE_LIST_AUTHORITY_PATH),
+        ("rest.mqtt-config", "tests/fixtures/api_contracts/get_mqtt_config.direct.json"),
+        ("rest.mqtt-config", "tests/fixtures/api_contracts/get_mqtt_config.wrapped.json"),
+        ("rest.device-status", "tests/fixtures/api_contracts/query_device_status.mixed.json"),
+        ("rest.mesh-group-status", "tests/fixtures/api_contracts/query_mesh_group_status.topology.json"),
+        ("rest.schedule-json", "tests/fixtures/api_contracts/query_mesh_schedule_json.v1.json"),
     ]
-    assert all(
-        "tests/fixtures/api_contracts/" in manifest.authority_path.as_posix()
-        for manifest in manifests
-    )
+
+    assert len(expected) == len(manifests)
+    for manifest, (family, authority_path) in zip(manifests, expected, strict=True):
+        assert manifest.family == family
+        assert manifest.authority_path.as_posix().endswith(authority_path)

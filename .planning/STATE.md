@@ -1,14 +1,14 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.2
-milestone_name: Host-Neutral Core & Replay Completion
-status: handoff_ready
-last_updated: "2026-03-18T23:59:00Z"
+milestone: v1.4
+milestone_name: Sustainment, Trust Gates & Final Hotspot Burn-down
+status: closeout_ready
+last_updated: "2026-03-19T23:59:00Z"
 progress:
-  total_phases: 7
-  completed_phases: 7
-  total_plans: 24
-  completed_plans: 24
+  total_phases: 6
+  completed_phases: 6
+  total_plans: 19
+  completed_plans: 19
 ---
 
 # Project State
@@ -17,9 +17,9 @@ progress:
 
 See: `.planning/PROJECT.md`
 
-**Current milestone:** `v1.2 Host-Neutral Core & Replay Completion`
-**Core value:** 在不破坏 `LiproProtocolFacade` / `Coordinator` 单一正式主链的前提下，把 host-neutral nucleus、headless proof、remaining boundary/replay family 收口、failure taxonomy / observability convergence、治理 closeout 与 handoff bundle 推进成单一正式能力链。
-**Current mode:** `Phase 38 complete`；`v1.2` 继续保持 archive-ready / handoff-ready，`Phase 25 -> 37` 已于 `2026-03-18` 全部执行完成并通过 fresh gates；`Phase 38` 已在同日作为 fresh-audit next tranche 完成：最后一条 active residual family 已关闭，quality-signal / governance closeout baseline 也已再次硬化。若继续追求 10 分质量，当前默认 next action 现为 `$gsd-progress` 或 `$gsd-plan-phase 39`，否则仍可 `$gsd-complete-milestone v1.3`。
+**Current milestone:** `v1.4 Sustainment, Trust Gates & Final Hotspot Burn-down`
+**Core value:** 在不回退 `LiproProtocolFacade` / `Coordinator` 单一正式主链的前提下，把 continuity / release trust、protocol/runtime hotspots、typed exception hardening、control-home truth、authority naming、governance current story 与 mega-test topology 收口成一条可验证、可归档的正式能力链。
+**Current mode:** `Phase 39 complete`；`Phase 34 -> 39` 已于 `2026-03-19` 全部执行完成并通过 fresh hard gates，`v1.4` 当前处于 closeout-ready。`v1.2` 继续保持 archive-ready / handoff-ready，`v1.3` 继续保持 closeout-eligible 历史语义；当前默认 next action 是 `$gsd-complete-milestone v1.4`，而不是继续计划 `Phase 39`。
 
 ## Current Position
 
@@ -100,6 +100,7 @@ See: `.planning/PROJECT.md`
 - Phase 32 added: Truth convergence, gate honesty, and quality-10 closeout
 - Phase 33 added: Contract-truth unification, hotspot slimming, and productization hardening
 - Phase 38 added: External-boundary residual retirement and quality-signal hardening
+- Phase 39 added: Governance current-story convergence, control-home clarification, and mega-test decomposition
 
 - Phase 10 executed and completed: API Drift Isolation & Core Boundary Prep
 - Phase 11 executed and completed: Control Router Formalization & Wiring Residual Demotion
@@ -112,6 +113,7 @@ See: `.planning/PROJECT.md`
 - Phase 17 completed: Final residual retirement, typed-contract tightening, governance closeout, and final repo audit (4 plans / 3 waves)
 - Phase 18-24 completed and revalidated: host-neutral nucleus -> headless proof -> remaining-family completion -> replay / observability / governance / milestone closeout 全链条在 2026-03-17 fresh gates 下再次收官。
 - Phase 38 completed: external-boundary residual retirement、quality-signal hardening 与 fresh-audit governance baseline alignment 已全部落地。
+- Phase 39 completed: canonical current-story convergence、control-home clarification、dead-shell retirement、authority naming sync、governance guard topicization 与 closeout evidence promotion 已全部落地。
 
 ## Governance Truth Sources
 
@@ -133,20 +135,20 @@ See: `.planning/PROJECT.md`
 
 ## Current Milestone Status
 
-- **Milestone:** `v1.2 Host-Neutral Core & Replay Completion`
-- **Phase range:** `18 -> 24`
-- **Completed so far:** `Phase 18` 到 `Phase 24`
-- **Closeout state:** `archive-ready`, `handoff-ready`（revalidated `2026-03-17`）
-- **Archive snapshots:** `.planning/milestones/v1.2-ROADMAP.md`, `.planning/milestones/v1.2-REQUIREMENTS.md`
-- **Next focus:** `$gsd-progress`——审阅已完成的 `Phase 38` fresh-audit tranche，并决定是否继续启动 `$gsd-plan-phase 39`；若从旧 closeout handoff 语境恢复，`$gsd-plan-milestone-gaps` 仍仅作兼容入口，不应再把 `v1.3` 回写成 failed audit；或运行 `$gsd-complete-milestone v1.3` 接受显式 retained debt 并归档。
+- **Milestone:** `v1.4 Sustainment, Trust Gates & Final Hotspot Burn-down`
+- **Phase range:** `34 -> 39`
+- **Completed so far:** `Phase 34` 到 `Phase 39`
+- **Closeout state:** `closeout-ready`（hard gates refreshed `2026-03-19`）
+- **Closeout assets:** `.planning/phases/39-governance-current-story-convergence-control-home-clarification-and-mega-test-decomposition/39-SUMMARY.md`, `.planning/phases/39-governance-current-story-convergence-control-home-clarification-and-mega-test-decomposition/39-VERIFICATION.md`, `.planning/phases/39-governance-current-story-convergence-control-home-clarification-and-mega-test-decomposition/39-VALIDATION.md`
+- **Historical archives:** `.planning/milestones/v1.2-ROADMAP.md`, `.planning/milestones/v1.2-REQUIREMENTS.md`
+- **Next focus:** `$gsd-complete-milestone v1.4`——归档当前里程碑并提升 Phase 39 closeout 资产；若只想复核当前 tranche，可运行 hard-gate 命令或 `$gsd-progress` 查看最终状态。
 
 ## Recommended Next Command
 
-1. `$gsd-progress` —— 查看已完成的 `Phase 38` fresh-audit tranche、updated roadmap 与 requirement traceability
-2. `$gsd-plan-phase 39` —— 若继续追求 10 分质量，从新的 fresh-audit tranche 启动下一轮计划
-3. `$gsd-plan-milestone-gaps` —— 兼容旧 handoff 入口；仅在需要把 retained debt 重新路由到新 tranche 时使用，而不是回写 `v1.3` failed gap story
-4. `$gsd-complete-milestone v1.3` —— 若接受显式 retained debt，执行归档与里程碑完成流程
-5. `uv run ruff check . && uv run mypy && uv run pytest -q tests/meta/test_governance*.py tests/meta/test_public_surface_guards.py tests/meta/test_version_sync.py tests/meta/test_toolchain_truth.py` —— 作为 post-closeout recheck snapshot
+1. `$gsd-complete-milestone v1.4` —— 归档当前里程碑并把 `Phase 39` closeout 资产提升为正式里程碑证据
+2. `$gsd-progress` —— 查看 `v1.4 / Phase 39 complete` 当前状态与 traceability
+3. `uv run ruff check . && uv run mypy && uv run pytest -q tests/meta/test_governance*.py tests/meta/test_public_surface_guards.py tests/meta/test_version_sync.py tests/meta/test_toolchain_truth.py` —— 作为 post-closeout recheck snapshot
+4. `$gsd-plan-milestone-gaps` —— 仅当新的 repo audit 发现真实缺口时使用；不得把已完成的 `Phase 39` 回写成 placeholder
 
 **Historical launch pointer:** `$gsd-execute-phase 29`
 
@@ -159,28 +161,31 @@ If resuming, read in this order:
 4. `.planning/ROADMAP.md`
 5. `.planning/REQUIREMENTS.md`
 6. `.planning/STATE.md`
-7. `.planning/phases/38-external-boundary-residual-retirement-and-quality-signal-hardening/38-VERIFICATION.md`
-8. `.planning/phases/38-external-boundary-residual-retirement-and-quality-signal-hardening/38-SUMMARY.md`
-9. `.planning/phases/37-test-topology-and-derived-truth-convergence/37-VERIFICATION.md`
-10. `.planning/phases/37-test-topology-and-derived-truth-convergence/37-SUMMARY.md`
-11. `.planning/phases/36-runtime-root-and-exception-burn-down/36-VERIFICATION.md`
-12. `.planning/phases/36-runtime-root-and-exception-burn-down/36-SUMMARY.md`
-13. `.planning/phases/35-protocol-hotspot-final-slimming/35-VERIFICATION.md`
-14. `.planning/phases/35-protocol-hotspot-final-slimming/35-SUMMARY.md`
-15. `.planning/phases/34-continuity-and-hard-release-gates/34-VERIFICATION.md`
-16. `.planning/phases/34-continuity-and-hard-release-gates/34-SUMMARY.md`
-17. `.planning/phases/33-contract-truth-unification-hotspot-slimming-and-productization-hardening/33-VERIFICATION.md`
-18. `.planning/phases/33-contract-truth-unification-hotspot-slimming-and-productization-hardening/33-SUMMARY.md`
-19. `.planning/reviews/V1_2_EVIDENCE_INDEX.md`
-20. `.planning/v1.2-MILESTONE-AUDIT.md`
-21. `.planning/v1.3-HANDOFF.md`
-22. `.planning/phases/32-truth-convergence-gate-honesty-and-quality-10-closeout/32-CONTEXT.md`
-23. `.planning/phases/32-truth-convergence-gate-honesty-and-quality-10-closeout/32-RESEARCH.md`
-24. `.planning/phases/31-runtime-service-typed-budget-and-exception-closure/31-VERIFICATION.md`
-25. `.planning/phases/30-protocol-control-typed-contract-tightening/30-VERIFICATION.md`
-26. `.planning/phases/24-final-milestone-audit-archive-readiness-and-v1-3-handoff-prep/24-VERIFICATION.md`
-27. `.planning/baseline/*.md`
-28. `.planning/reviews/*.md`
-29. `AGENTS.md`
-30. `CLAUDE.md`（若使用 Claude Code）
-31. `docs/developer_architecture.md`
+7. `.planning/phases/39-governance-current-story-convergence-control-home-clarification-and-mega-test-decomposition/39-VERIFICATION.md`
+8. `.planning/phases/39-governance-current-story-convergence-control-home-clarification-and-mega-test-decomposition/39-SUMMARY.md`
+9. `.planning/phases/39-governance-current-story-convergence-control-home-clarification-and-mega-test-decomposition/39-VALIDATION.md`
+10. `.planning/phases/38-external-boundary-residual-retirement-and-quality-signal-hardening/38-VERIFICATION.md`
+11. `.planning/phases/38-external-boundary-residual-retirement-and-quality-signal-hardening/38-SUMMARY.md`
+12. `.planning/phases/37-test-topology-and-derived-truth-convergence/37-VERIFICATION.md`
+13. `.planning/phases/37-test-topology-and-derived-truth-convergence/37-SUMMARY.md`
+14. `.planning/phases/36-runtime-root-and-exception-burn-down/36-VERIFICATION.md`
+15. `.planning/phases/36-runtime-root-and-exception-burn-down/36-SUMMARY.md`
+16. `.planning/phases/35-protocol-hotspot-final-slimming/35-VERIFICATION.md`
+17. `.planning/phases/35-protocol-hotspot-final-slimming/35-SUMMARY.md`
+18. `.planning/phases/34-continuity-and-hard-release-gates/34-VERIFICATION.md`
+19. `.planning/phases/34-continuity-and-hard-release-gates/34-SUMMARY.md`
+20. `.planning/phases/33-contract-truth-unification-hotspot-slimming-and-productization-hardening/33-VERIFICATION.md`
+21. `.planning/phases/33-contract-truth-unification-hotspot-slimming-and-productization-hardening/33-SUMMARY.md`
+22. `.planning/reviews/V1_2_EVIDENCE_INDEX.md`
+23. `.planning/v1.2-MILESTONE-AUDIT.md`
+24. `.planning/v1.3-HANDOFF.md`
+25. `.planning/phases/32-truth-convergence-gate-honesty-and-quality-10-closeout/32-CONTEXT.md`
+26. `.planning/phases/32-truth-convergence-gate-honesty-and-quality-10-closeout/32-RESEARCH.md`
+27. `.planning/phases/31-runtime-service-typed-budget-and-exception-closure/31-VERIFICATION.md`
+28. `.planning/phases/30-protocol-control-typed-contract-tightening/30-VERIFICATION.md`
+29. `.planning/phases/24-final-milestone-audit-archive-readiness-and-v1-3-handoff-prep/24-VERIFICATION.md`
+30. `.planning/baseline/*.md`
+31. `.planning/reviews/*.md`
+32. `AGENTS.md`
+33. `CLAUDE.md`（若使用 Claude Code）
+34. `docs/developer_architecture.md`

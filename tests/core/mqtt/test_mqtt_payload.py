@@ -73,7 +73,7 @@ def test_decode_mqtt_properties_payload_returns_boundary_metadata() -> None:
     result = decode_mqtt_properties_payload(payload)
 
     assert result.key.label == f"{family}@{version}"
-    assert result.authority == "tests/core/mqtt/test_mqtt.py"
+    assert result.authority.endswith("mqtt_properties.device_state.v1.json")
     assert result.fingerprint == fingerprint
     assert result.canonical == canonical
 

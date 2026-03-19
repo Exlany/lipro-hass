@@ -195,11 +195,11 @@ def test_phase_21_to_24_execution_truth_is_consistent() -> None:
             f"| {req_id} | Phase" in requirements_text
             and "| Complete |" in requirements_text
         )
-    assert "completed_phases: 7" in state_text
-    assert "completed_plans: 24" in state_text
+    assert "milestone: v1.4" in state_text
+    assert "closeout-ready" in state_text
     assert "- `Phase 24` 已完成并于 2026-03-17 重新验证" in state_text
-    assert "**Execution status:** `Phase 18-24` complete" in project_text
-    assert "archive-ready / `v1.3` handoff-ready" in project_text
+    assert "**Historical archive assets:**" in project_text
+    assert "archive-ready" in project_text
 
     for artifact in (
         _ROOT / ".planning" / "reviews" / "V1_2_EVIDENCE_INDEX.md",

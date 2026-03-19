@@ -243,7 +243,7 @@
 - `uv run pytest tests/core/test_report_builder.py tests/services/test_services_share.py tests/services/test_services_diagnostics.py tests/core/ota/test_firmware_manifest.py -q`
 
 **Control-plane 改动**
-- `uv run pytest tests/core/test_control_plane.py tests/core/test_init*.py tests/core/test_init_service_handlers.py tests/core/test_diagnostics.py tests/core/test_system_health.py tests/services/test_services_registry.py tests/services/test_service_resilience.py tests/flows/test_config_flow.py -q`
+- `uv run pytest tests/core/test_control_plane.py tests/core/test_init*.py tests/core/test_init_service_handlers.py tests/core/test_diagnostics.py tests/core/test_system_health.py tests/services/test_services_registry.py tests/services/test_service_resilience.py tests/flows/test_flow_schemas.py tests/flows/test_config_flow_user.py tests/flows/test_config_flow_reauth.py tests/flows/test_config_flow_reconfigure.py tests/flows/test_options_flow.py -q`
 
 **架构守卫**
 - `uv run pytest tests/meta/test_dependency_guards.py tests/meta/test_public_surface_guards.py tests/meta/test_governance*.py tests/meta/test_version_sync.py -q`

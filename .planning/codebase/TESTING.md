@@ -1,6 +1,6 @@
 # TESTING
-> Snapshot: `2026-03-18`
-> Freshness: Phase 37 对齐刷新；仅按 `AGENTS.md`、`.planning/{ROADMAP,REQUIREMENTS,STATE}.md`、`.planning/baseline/*.md`、`.planning/reviews/*.md`、`docs/developer_architecture.md` 与当前 CI/release/public-doc truth 截面成立。上述真源变更后，本图谱必须同步刷新或标记过时。
+> Snapshot: `2026-03-19`
+> Freshness: Phase 39 对齐刷新；仅按 `AGENTS.md`、`.planning/{ROADMAP,REQUIREMENTS,STATE}.md`、`.planning/baseline/*.md`、`.planning/reviews/*.md`、`docs/developer_architecture.md` 与当前 CI/release/public-doc truth 截面成立。上述真源变更后，本图谱必须同步刷新或标记过时。
 > Scope: `tests/**/*.py`、CI/pre-commit、fixtures/readmes、governance baselines 中的测试策略与质量门禁
 > Derived collaboration map: 本文件是受约束的协作图谱 / 派生视图，仅用于导航、协作与局部审阅。
 > Authority: 若与 `docs/NORTH_STAR_TARGET_ARCHITECTURE.md`、`.planning/{ROADMAP,REQUIREMENTS,STATE}.md`、`.planning/baseline/*.md`、`.planning/reviews/*.md` 或 `docs/developer_architecture.md` 冲突，以后者为准；本图谱不得反向充当当前治理真源，且必须同步回写、标记为过时，或注明历史观察。
@@ -29,7 +29,7 @@
 
 - 测试栈完整：`pytest`、`pytest-asyncio`、`pytest-cov`、`pytest-homeassistant-custom-component`、`pytest-benchmark`、`syrupy`、`mypy`、`xdist` 全部进入 dev 依赖。证据：`pyproject.toml:33`。
 - CI 把质量拆成 `lint`、`governance`、`security`、`test`、`benchmark`、`validate` 六道门，release 先复用 CI，再做版本校验与打包。证据：`.github/workflows/ci.yml:22`, `.github/workflows/release.yml:25`, `tests/meta/test_governance_guards.py:185`。
-- 当前仓库共有 `183` 个 `test_*.py` 文件；其中 `21` 个 meta guard、`5` 个 integration、`4` 个 benchmark、`4` 个 snapshot 文件；另有 `5` 个 fixture family readme 维护 authority/用途说明。
+- 当前仓库共有 `198` 个 `test_*.py` 文件；其中 `21` 个 meta guard、`5` 个 integration、`4` 个 benchmark、`4` 个 snapshot 文件；另有 `5` 个 fixture family readme 维护 authority/用途说明。
 - Coverage gate 是硬门槛：主测试 job 以 `95%` 为下限，snapshot coverage 已包含在主 `tests/` lane 中；`coverage_diff.py` 默认执行 floor-only check，只有显式提供 baseline 才会产出 diff；benchmark 则作为 advisory-with-artifact lane 产出 `.benchmarks/benchmark.json`。证据：`.github/workflows/ci.yml:177`, `CONTRIBUTING.md:94`。
 
 ## 3. 测试分层图谱

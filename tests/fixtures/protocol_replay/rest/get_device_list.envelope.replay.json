@@ -4,7 +4,7 @@
   "family": "rest.list-envelope",
   "version": "v1",
   "operation": "protocol.contracts.normalize_list_envelope",
-  "authority_path": "tests/fixtures/api_contracts/get_device_list.compat.json",
+  "authority_path": "tests/fixtures/api_contracts/get_device_list.envelope.json",
   "assertion_families": [
     "canonical",
     "drift",
