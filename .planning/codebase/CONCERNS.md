@@ -1,234 +1,143 @@
-# CONCERNS
-> Snapshot: `2026-03-18`
-> Freshness: Phase 32 对齐刷新；仅按 `AGENTS.md`、`.planning/{ROADMAP,REQUIREMENTS,STATE}.md`、`.planning/baseline/*.md`、`.planning/reviews/*.md`、`docs/developer_architecture.md` 与当前 CI/release/public-doc truth 截面成立。上述真源变更后，本图谱必须同步刷新或标记过时。
+# Codebase Concerns
+
+> Snapshot: `2026-03-19`
+> Freshness: governance + release + entrypoint audit for `README*` / `CONTRIBUTING.md` / `SECURITY.md` / `SUPPORT.md` / `.github/*` / `install.sh` / top-level Python & config entrypoints.
+> Repository: `/var/tmp/coolvibe/worktrees/edf26778937a-/lipro-hass`
+> Focus: `concerns + governance`
 > Derived collaboration map: 本文件是受约束的协作图谱 / 派生视图，仅用于导航、协作与局部审阅。
 > Authority: 若与 `docs/NORTH_STAR_TARGET_ARCHITECTURE.md`、`.planning/{ROADMAP,REQUIREMENTS,STATE}.md`、`.planning/baseline/*.md`、`.planning/reviews/*.md` 或 `docs/developer_architecture.md` 冲突，以后者为准；本图谱不得反向充当当前治理真源，且必须同步回写、标记为过时，或注明历史观察。
-> Focus: `concerns`
-> Scope: 技术债、架构残留、真正风险、测试盲区、文档治理、安全/敏感信息/观测面风险
 
-## 1. 裁决口径
+**Analysis Date:** 2026-03-19
 
-- **已登记的迁移残留**：已进入 `.planning/reviews/RESIDUAL_LEDGER.md` / `.planning/reviews/KILL_LIST.md`，当前仍需收口，但**不应再被当作“新发现的未登记风险”**。
-- **真正风险**：当前仓库仍可能误导贡献者、泄露敏感信息、放大架构回归或让治理真源失真；需要优先处理。
-- **误报**：看起来像问题，但按北极星、治理账本与测试守卫判断，当前属于**刻意保留、受控或已关闭**，不应升级为 active concern。
+## Tech Debt
 
-### 优先级
+**Governance truth is duplicated across many public entrypoints:**
+- Issue: continuity / release / support / disclosure truth is manually synchronized across `README.md:366`, `README_zh.md:367`, `CONTRIBUTING.md:68`, `SUPPORT.md:30`, `SECURITY.md:39`, `docs/TROUBLESHOOTING.md:1`, `docs/MAINTAINER_RELEASE_RUNBOOK.md:1`, `.github/CODEOWNERS:1`, `.github/ISSUE_TEMPLATE/bug.yml:13`, and `.github/pull_request_template.md:1`.
+- Impact: wording is honest, but every governance change becomes a many-file edit; drift tax and review surface are both high.
+- Fix approach: establish one machine-readable governance registry or generated include source for supported versions, continuity truth, and release trust stack, then lint or render downstream docs from that source.
 
-- **P1**：应尽快修补；已影响治理可信度、安全口径或回归面。
-- **P2**：应在下一轮治理/重构中处理；会持续抬高维护税。
-- **P3**：已登记并受控；继续观察，不宜越权扩大。
-- **N/A**：误报，不升级。
+**Contributor on-ramp carries unusually heavy process context:**
+- Issue: the authority chain spans `AGENTS.md:1`, `docs/README.md:20`, `.planning/PROJECT.md:1`, `.planning/baseline/AUTHORITY_MATRIX.md:1`, `.planning/reviews/FILE_MATRIX.md:1`, `scripts/check_architecture_policy.py:303`, and `scripts/check_file_matrix.py:797`.
+- Impact: maintainers get strong guardrails, but outside contributors must learn repo-specific governance before safely editing docs, wiring, or release paths.
+- Fix approach: keep maintainer truth in `.planning/*`, but add a thin contributor-facing governance index that explains the minimum required reading and the smallest passing command set.
 
-## 2. 已登记的迁移残留
+**Release process is secure but GitHub-coupled:**
+- Issue: `.github/workflows/release.yml:18`, `.github/workflows/release.yml:85`, `.github/workflows/release.yml:198`, `.github/workflows/release.yml:212`, `.github/workflows/release.yml:257`, and `.github/workflows/release.yml:297` tie release trust to GitHub Actions, CodeQL, dependency-graph SBOM export, artifact attestation, OIDC signing, and GitHub Release publishing.
+- Impact: supply-chain posture is strong, but release continuity depends on GitHub service availability and repo permissions; there is no lighter fallback release story.
+- Fix approach: document a break-glass verification-only path plus a non-publish rehearsal path that a future delegate can execute before custody transfer.
 
-### 2.1 API compat wrappers 仍在 helper 层残留
+## Known Bugs
 
-- **判定**：已登记的迁移残留，不是新的未登记架构回退。
-- **现状**：helper 侧仍保留 canonical-to-legacy envelope shaping，尤其 outlet power 路径仍会在 list 场景回吐 `{"data": rows}` 兼容形态。
-- **为何仍要盯住**：它已退出正式 public façade，但继续存在会让后续 helper 调用者误把 compat 形态当 canonical truth。
-- **建议优先级**：**P2**
-- **证据路径**：
-  - `.planning/reviews/RESIDUAL_LEDGER.md:7`
-  - `custom_components/lipro/core/api/power_service.py:38`
+**Governance routing bug in public entrypoints:**
+- Symptoms: Not detected in the audited scope; `README.md:374`, `SUPPORT.md:48`, `SECURITY.md:53`, `.github/ISSUE_TEMPLATE/config.yml:1`, and `.github/ISSUE_TEMPLATE/bug.yml:13` route users consistently.
+- Files: `README.md:374`, `SUPPORT.md:48`, `SECURITY.md:53`, `.github/ISSUE_TEMPLATE/config.yml:1`, `.github/ISSUE_TEMPLATE/bug.yml:13`
+- Trigger: Not applicable
+- Workaround: Not applicable
 
-### 2.2 API mixin / typing spine 仍是活跃技术债
+## Security Considerations
 
-- **判定**：已登记的迁移残留，不是双主链回流。
-- **现状**：`_ClientBase` 仍作为 internal typing anchor 存活，endpoint payload helper 仍挂在 compat/mixin 叙事之下。
-- **风险边界**：当前被限制在 `core/api` 内，且受 locality guard 约束；问题在于**可维护性与认知负担**，不是正式 public surface 重新外溢。
-- **建议优先级**：**P2**
-- **证据路径**：
-  - `.planning/reviews/RESIDUAL_LEDGER.md:8`
-  - `custom_components/lipro/core/api/client_base.py:51`
-  - `custom_components/lipro/core/api/endpoints/payloads.py:232`
+**Runtime dependency auditing is blocking; dev-toolchain auditing is advisory only:**
+- Risk: `.github/workflows/ci.yml:129` blocks runtime `pip-audit`, but `.github/workflows/ci.yml:132` runs dev-environment audit only on `schedule` / `workflow_dispatch` with `continue-on-error`; local `scripts/lint:41` also audits dev dependencies only when `PIP_AUDIT_INCLUDE_DEV=1` is set.
+- Files: `.github/workflows/ci.yml:129`, `.github/workflows/ci.yml:132`, `scripts/lint:41`, `scripts/lint:63`, `CONTRIBUTING.md:104`, `CONTRIBUTING.md:148`
+- Current mitigation: daily `Dependabot` in `.github/dependabot.yml:1`, scheduled advisory scans, and pinned GitHub Actions SHAs in `.github/workflows/ci.yml:28` and `.github/workflows/release.yml:39`.
+- Recommendations: define an allowlist / denylist policy for dev CVEs, and fail PRs when a dev dependency crosses a severity threshold instead of relying only on scheduled advisory output.
 
-### 2.3 `LiproMqttClient` legacy naming 仍是 split-root 残留
+**Preview installer path is intentionally less trusted than release assets:**
+- Risk: `install.sh` still supports `ARCHIVE_TAG=main`, branch fallback, and mirror-backed download modes via `install.sh:349` and `install.sh:364`; these paths do not inherit the full tagged release trust stack.
+- Files: `install.sh:349`, `install.sh:364`, `install.sh:423`, `README.md:112`, `README.md:122`, `SUPPORT.md:20`
+- Current mitigation: supported path is local verified release assets only (`README.md:87`, `install.sh:413`); the installer performs checksum verification on release assets plus zip preflight / path traversal checks at `install.sh:128` and `install.sh:458`.
+- Recommendations: keep preview modes opt-in, and consider requiring an explicit second environment flag for mirror-backed installs to make accidental trust downgrades harder.
 
-- **判定**：已登记的迁移残留。
-- **现状**：正式协议根已收口到 `LiproProtocolFacade`，但 concrete transport 仍保留 legacy root naming；delete gate 仍未关闭。
-- **风险边界**：今天它主要是**命名/认知债**，而不是 formal root 复活；真正危险在于未来新代码重新直连 concrete transport。
-- **建议优先级**：**P2**
-- **证据路径**：
-  - `.planning/reviews/RESIDUAL_LEDGER.md:9`
-  - `.planning/reviews/KILL_LIST.md:16`
-  - `custom_components/lipro/core/mqtt/mqtt_client.py:23`
+**Single release custodian is itself a security continuity risk:**
+- Risk: `.github/CODEOWNERS:1`, `SUPPORT.md:30`, `SECURITY.md:39`, `docs/MAINTAINER_RELEASE_RUNBOOK.md:64`, and `custom_components/lipro/manifest.json:4` all centralize triage and release custody to one maintainer.
+- Files: `.github/CODEOWNERS:1`, `custom_components/lipro/manifest.json:4`, `SUPPORT.md:30`, `SECURITY.md:39`, `docs/MAINTAINER_RELEASE_RUNBOOK.md:64`
+- Current mitigation: the docs are honest about freeze posture and forbid pretending there is a hidden delegate.
+- Recommendations: add a real delegate, require that person to rehearse `workflow_dispatch` release verification, and record custody restoration steps in the same sources before any incident happens.
 
-### 2.4 boundary/replay coverage 仍有显式 de-scope 残留
+## Performance Bottlenecks
 
-- **判定**：已登记的迁移残留，不应被误写成“遗漏治理”。
-- **现状**：`External-boundary advisory naming`、`Protocol-boundary family coverage`、`Replay scenario coverage` 都已被明确写进 ledger；其中一部分 family 被显式 de-scope，而不是隐式漏测。
-- **风险边界**：当前问题是**coverage debt 已登记但未清零**；若后续重新扩 scope，必须重新开 phase，而不是在现有 truth 外偷偷长出第二套边界故事线。
-- **建议优先级**：**P3**
-- **证据路径**：
-  - `.planning/reviews/RESIDUAL_LEDGER.md:10`
-  - `.planning/reviews/RESIDUAL_LEDGER.md:11`
-  - `.planning/reviews/RESIDUAL_LEDGER.md:12`
-  - `tests/meta/test_external_boundary_authority.py:17`
-  - `tests/meta/test_protocol_replay_assets.py:47`
+**Human change throughput is gated by a heavy validation contract:**
+- Problem: contributor and PR contracts require `ruff`, `mypy`, translation truth, architecture policy, file matrix, governance meta-tests, full tests with `95%` coverage, refactor-tool checks, and sometimes `shellcheck` in `CONTRIBUTING.md:145`, `CONTRIBUTING.md:181`, `.github/pull_request_template.md:2`, `.github/workflows/ci.yml:61`, and `.github/workflows/ci.yml:175`.
+- Files: `CONTRIBUTING.md:145`, `CONTRIBUTING.md:181`, `.github/pull_request_template.md:2`, `.github/workflows/ci.yml:61`, `.github/workflows/ci.yml:175`
+- Cause: the repository treats governance truth as code, so docs / config / release changes trigger many blocking gates.
+- Improvement path: preserve the strong default gate, but publish a smaller docs-only / governance-only / release-only local command matrix so outside contributors can validate the smallest sufficient subset first.
 
-## 3. 真正风险
+## Fragile Areas
 
-### 3.1 `submit_developer_feedback` 的“已脱敏”口径与实际 payload 不一致
+**Public governance narrative must stay cross-file synchronized:**
+- Files: `README.md:366`, `README_zh.md:367`, `CONTRIBUTING.md:68`, `SUPPORT.md:30`, `SECURITY.md:39`, `docs/TROUBLESHOOTING.md:1`, `docs/MAINTAINER_RELEASE_RUNBOOK.md:1`, `.github/ISSUE_TEMPLATE/bug.yml:13`, `.github/pull_request_template.md:1`
+- Why fragile: the same continuity, support, release-trust, and supported-version truths appear in many human-facing files and are also asserted by `tests/meta/test_governance_release_contract.py:39`, `tests/meta/test_toolchain_truth.py:307`, and `tests/meta/test_version_sync.py:165`.
+- Safe modification: edit all public entrypoints in one change, then rerun the governance meta suite plus the relevant doc-sync tests.
+- Test coverage: strong on wording / route parity, weaker on contributor usability and maintenance overhead.
 
-- **类型**：安全 / 敏感信息 / 文档契约失真 / 测试盲区
-- **判定**：**N/A（Phase 16 已校准）**
-- **问题**：`build_developer_report()` 会把 `dev.name`、`dev.iot_name` 等可识别字段塞进 developer report；`build_developer_feedback_report()` 只做通用 `sanitize_value()`，不会删除普通 `name` / `iot_name` 键；随后 `submit_developer_feedback()` 直接上传到 share worker。
-- **为何严重**：README、services 描述和翻译都宣称这是“sanitized developer diagnostics”；但当前实现更接近“脱敏凭证后的详细设备调试报告”，两者不是同一隐私级别。
-- **测试盲区**：现有边界 fixture 与测试只覆盖 `note`、`phone` 这类最小样本，未覆盖**包含设备名/iot_name/IR 资产/mesh 结构**的真实 developer feedback payload。
-- **建议优先级**：**已关闭**
-- **建议**：
-  - 要么在 developer-feedback upload 之前额外 drop/redact `name`、`iot_name`、用户自定义 label 等字段；
-  - 要么把对外文案改成“包含受限调试元数据的 opt-in 支持上报”，不要继续宣称等同匿名/脱敏报告；
-  - 同时补一组带 `name` / `iot_name` / `rc_list.name` 的回归测试与 external-boundary fixture。
-- **证据路径**：
-  - `custom_components/lipro/core/utils/developer_report.py:173`
-  - `custom_components/lipro/core/utils/developer_report.py:174`
-  - `custom_components/lipro/core/utils/developer_report.py:293`
-  - `custom_components/lipro/core/utils/developer_report.py:320`
-  - `custom_components/lipro/core/anonymous_share/report_builder.py:69`
-  - `custom_components/lipro/core/anonymous_share/manager.py:358`
-  - `custom_components/lipro/services.yaml:210`
-  - `custom_components/lipro/services.yaml:227`
-  - `custom_components/lipro/translations/en.json:340`
-  - `custom_components/lipro/translations/en.json:350`
-  - `README_zh.md:44`
-  - `tests/core/test_anonymous_share.py:739`
-  - `tests/core/test_anonymous_share.py:1140`
-  - `tests/fixtures/external_boundaries/share_worker/developer_feedback_report.canonical.json:11`
+**Release trust stack is strong but operationally brittle:**
+- Files: `.github/workflows/release.yml:27`, `.github/workflows/release.yml:68`, `.github/workflows/release.yml:136`, `.github/workflows/codeql.yml:1`, `docs/MAINTAINER_RELEASE_RUNBOOK.md:21`
+- Why fragile: the release chain depends on CI reuse, tagged CodeQL readiness, GitHub SBOM export, attestation generation, cosign signing, and GitHub Release publishing without a simpler fallback path.
+- Safe modification: change workflow steps and runbook together; keep tag-only checkout, version-match checks, and verification commands aligned.
+- Test coverage: good for existence and contract wording in `tests/meta/test_governance_release_contract.py:39` and `tests/meta/test_toolchain_truth.py:123`, but no rehearsal path for a second custodian exists.
 
-### 3.2 `.planning/codebase/*` 若没有明确身份与守卫，会误导贡献者把本地图谱当 active truth
+**Installer trust story spans docs + shell + tests:**
+- Files: `install.sh:128`, `install.sh:413`, `README.md:87`, `README_zh.md:87`, `tests/meta/test_install_sh_guards.py:10`
+- Why fragile: supported and unsupported install modes coexist in one script, so doc drift or flag creep could blur the trust boundary.
+- Safe modification: keep release-asset install as the only supported path, and add tests whenever new download modes, flags, or checksum behaviors appear.
+- Test coverage: minimal but targeted; only one dedicated meta guard exists for archive preflight and symlink defense.
 
-- **类型**：文档治理 / 架构仲裁 / 协作误导
-- **判定**：**真正风险**
-- **问题**：本地图谱曾混有 `Phase 14` closeout-ready、`Python 3.13`、`execution.py = runtime-auth seam` 等旧叙事；同时目录默认被 `.gitignore` 忽略，导致它既像 active doc，又不易被协作修正。
-- **为何严重**：一旦贡献者先读到本目录，就会误把派生视图当权威链，进而把已关闭 seam、过期 phase/status 或旧工具链口径重新写回仓库。
-- **测试盲区**：在 Phase 16 之前，`check_file_matrix.py` / `check_architecture_policy.py` / `test_governance_guards.py` 还没有对 `.planning/codebase/*.md` 的身份提示、README、gitignore unignore 与 closed-seam wording 做 fail-fast。
-- **建议优先级**：**P1**
-- **建议**：
-  - 为 `.planning/codebase/*.md` 建立统一 derived collaboration map disclaimer；
-  - 新增 `.planning/codebase/README.md` 明确权威顺序、使用边界与刷新策略；
-  - 给脚本与 meta guards 加上 codebase-map policy 与 closed-seam drift 守卫。
-- **证据路径**：
-  - `.planning/codebase/STACK.md:2`
-  - `.planning/codebase/STACK.md:13`
-  - `.planning/codebase/STRUCTURE.md:78`
-  - `.planning/codebase/STRUCTURE.md:118`
-  - `.planning/codebase/STRUCTURE.md:151`
-  - `.gitignore:82`
-  - `scripts/check_file_matrix.py:472`
-  - `tests/meta/test_governance_guards.py:493`
+## Scaling Limits
 
+**Bus factor remains 1 at the governance / release layer:**
+- Current capacity: `.github/CODEOWNERS:3` and `custom_components/lipro/manifest.json:4` name a single owner; `SUPPORT.md:32` and `SECURITY.md:42` explicitly say no documented delegate exists today.
+- Limit: if that maintainer is unavailable, new tagged releases and new release promises must freeze as stated in `README.md:370`, `SUPPORT.md:36`, `SECURITY.md:43`, and `docs/MAINTAINER_RELEASE_RUNBOOK.md:70`.
+- Scaling path: add at least one documented delegate, split triage / release / doc custody, and rehearse the runbook before the next release.
 
-### 3.3 对外文档落后于 CI 真相：HACS/private repo 与最低 HA 版本口径没有前置到安装入口
+**Documentation parity does not scale cheaply:**
+- Current capacity: every governance-sensitive change may need synchronized edits across `README.md`, `README_zh.md`, `CONTRIBUTING.md`, `SUPPORT.md`, `SECURITY.md`, `docs/TROUBLESHOOTING.md`, `docs/MAINTAINER_RELEASE_RUNBOOK.md`, `.github/*`, and `.planning/reviews/V1_2_EVIDENCE_INDEX.md` as required by `CONTRIBUTING.md:75` and `.github/pull_request_template.md:8`.
+- Limit: review cost and drift probability rise faster than code size, especially for bilingual and release-security narrative changes.
+- Scaling path: centralize shared facts, generate downstream excerpts where possible, and reserve manual prose only for audience-specific guidance.
 
-- **类型**：文档治理 / 发布体验 / 支持成本 / 测试盲区
-- **判定**：**真正风险**
-- **问题**：README 中仍把 HACS 作为推荐安装路径，但 CI 明确写明私有仓库会跳过 HACS validation；同时最低支持 HA 版本 `2026.2.3` 只出现在 `hacs.json`、`pyproject.toml`、`SECURITY.md`、Issue 模板与 CONTRIBUTING 中，README/README_zh 的安装入口并未前置说明。
-- **为何重要**：这不是代码漏洞，但会持续制造“本地能装/CI 过不了”与“用户环境低于最低版本却先按 README 安装”的支持噪音。
-- **测试盲区**：`test_version_sync.py` 只同步 `hacs.json` / bug template / `pyproject.toml`，不守 README 安装文案是否同步最小版本与 HACS caveat。
-- **建议优先级**：**P2**
-- **建议**：
-  - 在 `README.md` / `README_zh.md` 的 HACS 安装段直接标出最低 HA 版本；
-  - 写明 HACS validation 在 private repo 场景不会执行；
-  - 如要长期保持一致，新增 README↔`hacs.json` 的元测试。
-- **证据路径**：
-  - `README.md:74`
-  - `README_zh.md:73`
-  - `CONTRIBUTING.md:97`
-  - `CONTRIBUTING.md:100`
-  - `CONTRIBUTING.md:196`
-  - `SECURITY.md:10`
-  - `.github/workflows/ci.yml:246`
-  - `.github/workflows/ci.yml:249`
-  - `tests/meta/test_version_sync.py:55`
-  - `tests/meta/test_version_sync.py:65`
+## Dependencies at Risk
 
-### 3.4 control/support 热点仍过于集中，放大后续回归 blast radius
+**GitHub-hosted security / release services are critical operational dependencies:**
+- Risk: release publish requires reusable GitHub workflows, CodeQL results, GitHub dependency-graph SBOM export, artifact attestation, OIDC identity, and GitHub Release asset publish.
+- Impact: release continuity is vulnerable to platform outages, permission loss, or repo admin access gaps even when the code itself is ready.
+- Migration plan: document a non-publishing verification fallback and maintain local verification commands in `docs/MAINTAINER_RELEASE_RUNBOOK.md:87` and `README.md:99`.
 
-- **类型**：架构回归 / 可维护性 / 间接测试盲区
-- **判定**：**真正风险**
-- **问题**：`control/service_router.py` 仍承载 14 个 service handler；`core/utils/developer_report.py` 仍把 mesh、panel、IR、recent_commands、redaction-ish shaping 堆在一个 400+ 行文件里。
-- **为何重要**：这类热点不是“今天跑不通”的故障，但会显著抬高任何 support/diagnostics/developer-service 变更的 blast radius；`3.1` 的 sanitized 口径偏差就发生在这一热点带上。
-- **建议优先级**：**P2**
-- **建议**：
-  - 让 `service_router.py` 继续退化成 identity-only adapter，把 developer/anonymous-share/diagnostics handlers 拆到独立 home；
-  - 把 developer report 的“本地调试视图”与“上传给 worker 的 payload shaping”显式分离，避免再次共享同一对象图。
-- **证据路径**：
-  - `custom_components/lipro/control/service_router.py:138`
-  - `custom_components/lipro/control/service_router.py:335`
-  - `custom_components/lipro/core/utils/developer_report.py:36`
-  - `custom_components/lipro/core/utils/developer_report.py:338`
-  - `.planning/reviews/RESIDUAL_LEDGER.md:166`
+**Vendor API reverse-engineering remains an upstream continuity risk:**
+- Risk: `README.md:364` states the integration depends on a reverse-engineered Lipro cloud API, so upstream protocol drift can outpace volunteer maintenance.
+- Impact: governance discipline reduces reaction time, but cannot eliminate upstream breakage or closed-vendor changes.
+- Migration plan: keep replay fixtures and boundary authorities current in `tests/fixtures/**`, `tests/meta/test_external_boundary_authority.py:1`, and `tests/meta/test_protocol_replay_assets.py:1`, while continuing to isolate protocol normalization in `custom_components/lipro/core/protocol/`.
 
-### 3.5 依赖安全门更偏向 runtime，dev-toolchain 风险只做非阻塞追踪
+## Missing Critical Features
 
-- **类型**：安全 / 供应链 / 工具治理
-- **判定**：**真正风险**
-- **问题**：本地 `./scripts/lint` 默认只审计 runtime requirements；CI 中 dev dependency 的 `pip-audit` 只在 `schedule` / `workflow_dispatch` 跑，且 `continue-on-error: true`。
-- **为何重要**：这不影响运行面安全边界的主线，但会让 dev-toolchain 的供应链问题更容易拖成“知道有风险但 PR 不会 fail”的慢性债。
-- **建议优先级**：**P3**
-- **建议**：至少把高风险 dev dependency CVE 变成有记录的门禁策略，而不是仅保留 schedule/manual 的非阻塞摘要。
-- **证据路径**：
-  - `scripts/lint:41`
-  - `scripts/lint:56`
-  - `scripts/lint:62`
-  - `.github/workflows/ci.yml:145`
-  - `.github/workflows/ci.yml:148`
-  - `CONTRIBUTING.md:65`
+**No documented delegate or backup maintainer:**
+- Problem: the repository has an honest freeze story, but not an actual succession path.
+- Blocks: resilient release custody, faster security response, and lower bus-factor risk.
+- Files: `.github/CODEOWNERS:1`, `SUPPORT.md:30`, `SECURITY.md:39`, `docs/MAINTAINER_RELEASE_RUNBOOK.md:64`, `README.md:366`
 
-## 4. 误报 / 不应升级的问题
+**No single machine-readable governance manifest for shared public truths:**
+- Problem: supported-version, continuity, release-trust, and routing facts are repeated across prose documents and templates rather than generated from one canonical data source.
+- Blocks: low-friction doc maintenance, simpler contributor onboarding, and safer governance edits.
+- Files: `README.md:74`, `README_zh.md:72`, `CONTRIBUTING.md:14`, `SUPPORT.md:12`, `SECURITY.md:3`, `docs/TROUBLESHOOTING.md:3`, `.github/ISSUE_TEMPLATE/bug.yml:13`, `.github/pull_request_template.md:1`
 
-### 4.1 `LiproClient` / `raw_client` / `DeviceCapabilities` 现在是历史引用，不是 live public surface
+## Test Coverage Gaps
 
-- **判定**：**误报**
-- **原因**：这些名字仍频繁出现在治理文档、fixtures、tests 中，用于证明“已删除/已关闭”；但代码正式出口已经收口，不能再把它们当 active architecture regression。
-- **优先级**：**N/A**
-- **证据路径**：
-  - `.planning/reviews/KILL_LIST.md:15`
-  - `.planning/reviews/KILL_LIST.md:17`
-  - `.planning/reviews/KILL_LIST.md:22`
-  - `custom_components/lipro/core/api/__init__.py:1`
-  - `custom_components/lipro/core/protocol/compat.py:5`
+**Unsupported installer paths are lightly covered relative to their risk:**
+- What's not tested: mirror-backed installs, branch fallback behavior, and warning-to-enforcement boundaries for unsupported remote paths.
+- Files: `install.sh:349`, `install.sh:450`, `tests/meta/test_install_sh_guards.py:10`
+- Risk: trust-boundary regressions on preview paths could slip in without a dedicated guard.
+- Priority: Medium
 
-### 4.2 assurance tooling 依赖 `tests.harness` 不是 production backflow
+**Dev dependency security posture has policy prose, but little failure-driven regression coverage:**
+- What's not tested: a repo-level rule that escalates specific dev-toolchain CVEs from advisory to blocking, or that prevents silent weakening of local dev-audit defaults.
+- Files: `.github/workflows/ci.yml:132`, `scripts/lint:63`, `CONTRIBUTING.md:148`
+- Risk: supply-chain debt can accumulate outside the blocking runtime lane.
+- Priority: Medium
 
-- **判定**：**误报**
-- **原因**：`scripts/export_ai_debug_evidence_pack.py` 看起来像“脚本依赖测试代码”，但在本仓治理中它被明确登记为 assurance-only / pull-only truth consumer，而不是 runtime/control/public root。
-- **优先级**：**N/A**
-- **证据路径**：
-  - `.planning/baseline/PUBLIC_SURFACES.md:23`
-  - `.planning/baseline/PUBLIC_SURFACES.md:29`
-  - `.planning/baseline/PUBLIC_SURFACES.md:30`
-  - `.planning/baseline/ARCHITECTURE_POLICY.md:42`
-  - `tests/meta/test_evidence_pack_authority.py:60`
-  - `scripts/export_ai_debug_evidence_pack.py:11`
+**Continuity process is documented, not exercised:**
+- What's not tested: delegate onboarding, custody restoration rehearsal, or a break-glass release-verification drill.
+- Files: `.github/CODEOWNERS:1`, `SUPPORT.md:30`, `SECURITY.md:39`, `docs/MAINTAINER_RELEASE_RUNBOOK.md:64`
+- Risk: the first true continuity incident becomes the rehearsal.
+- Priority: High
 
-### 4.3 telemetry/evidence 中的真实时间戳与 `entry_ref` / `device_ref` 不是泄露回归
+---
 
-- **判定**：**误报**
-- **原因**：北极星已明确允许真实时间戳，以及“报告内稳定、跨报告不可关联”的伪匿名引用；集成测试也验证了跨报告 ref 不可关联。
-- **优先级**：**N/A**
-- **证据路径**：
-  - `docs/NORTH_STAR_TARGET_ARCHITECTURE.md:263`
-  - `docs/NORTH_STAR_TARGET_ARCHITECTURE.md:264`
-  - `tests/integration/test_ai_debug_evidence_pack.py:56`
-  - `tests/integration/test_ai_debug_evidence_pack.py:64`
-  - `custom_components/lipro/core/telemetry/exporter.py:54`
-
-### 4.4 平台层读取 `entry.runtime_data` 本身不是 control-plane bypass
-
-- **判定**：**误报**
-- **原因**：guard 禁的是 control surface 四处散落读取 runtime internals；平台实体把 `entry.runtime_data` 当 HA runtime home 使用是正式故事线的一部分，control 面另有 `runtime_access.py` 统一定位。
-- **优先级**：**N/A**
-- **证据路径**：
-  - `.planning/baseline/DEPENDENCY_MATRIX.md:58`
-  - `.planning/baseline/PUBLIC_SURFACES.md:71`
-  - `custom_components/lipro/control/runtime_access.py:17`
-  - `custom_components/lipro/binary_sensor.py:34`
-  - `custom_components/lipro/light.py:50`
-
-## 5. 结论
-
-- 当前仓库的主风险不再是“大架构没定”，而是 **support/reporting 路径的脱敏口径失真** 与 **active governance docs 的悬空指针**。
-- active residual 已基本被账本收口，**不要把已关闭 legacy seam 误判为 live regression**；真正需要优先处理的是 P1 文档/隐私问题。
-- 若下一轮只继续“登记 residual”而不修 P1/P2 concern，仓库会从架构收口阶段滑回**治理叙事失真 + 支持面隐私不清**的慢性维护税。
+*Concerns audit: 2026-03-19*

@@ -1,81 +1,94 @@
-# Stack Map
-> Snapshot: `2026-03-18`
-> Freshness: Phase 32 对齐刷新；仅按 `AGENTS.md`、`.planning/{ROADMAP,REQUIREMENTS,STATE}.md`、`.planning/baseline/*.md`、`.planning/reviews/*.md`、`docs/developer_architecture.md` 与当前 CI/release/public-doc truth 截面成立。上述真源变更后，本图谱必须同步刷新或标记过时。
-> Derived collaboration map: 本文件是受约束的协作图谱 / 派生视图，仅用于导航、协作与局部审阅。
-> Authority: 若与 `docs/NORTH_STAR_TARGET_ARCHITECTURE.md`、`.planning/{ROADMAP,REQUIREMENTS,STATE}.md`、`.planning/baseline/*.md`、`.planning/reviews/*.md` 或 `docs/developer_architecture.md` 冲突，以后者为准；本图谱不得反向充当当前治理真源，且必须同步回写、标记为过时，或注明历史观察。
+# Technology Stack
 
-## Product Shape
-- Primary deliverable is a Home Assistant custom integration rooted at `custom_components/lipro/`.
-- Python package metadata lives in `pyproject.toml`; HA runtime metadata lives in `custom_components/lipro/manifest.json`; HACS metadata lives in `hacs.json`.
-- Release artifacts are versioned zips built from `custom_components/lipro/` by `.github/workflows/release.yml`.
-- Architecture/governance truth is anchored by `docs/NORTH_STAR_TARGET_ARCHITECTURE.md`, `.planning/baseline/*.md`, and `.planning/reviews/*.md`.
+**Analysis Date:** 2026-03-19
 
-## Languages And Asset Types
-| Kind | Paths | Current role |
-| --- | --- | --- |
-| Python `3.14` | `custom_components/lipro/**/*.py`, `tests/**/*.py`, `scripts/*.py` | HA runtime, protocol/MQTT/telemetry, QA and governance tooling |
-| Bash | `install.sh`, `scripts/setup`, `scripts/develop`, `scripts/lint` | install/update, local DX, lint wrapper |
-| YAML | `.github/workflows/*.yml`, `custom_components/lipro/services.yaml`, `custom_components/lipro/quality_scale.yaml`, `blueprints/automation/lipro/*.yaml`, `.github/ISSUE_TEMPLATE/*.yml` | CI/CD, HA services, quality-scale, blueprint, repo governance |
-| JSON | `custom_components/lipro/manifest.json`, `hacs.json`, `custom_components/lipro/icons.json`, `custom_components/lipro/translations/*.json`, `custom_components/lipro/firmware_support_manifest.json`, `tests/fixtures/**/*.json` | HA/HACS metadata, UI translations, firmware trust root, boundary fixtures |
-| Markdown | `README.md`, `README_zh.md`, `docs/*.md`, `docs/adr/*.md`, `.planning/**/*.md` | user docs, architecture, roadmap, baseline/review governance |
+> Freshness: 基于 `AGENTS.md`、`docs/NORTH_STAR_TARGET_ARCHITECTURE.md`、`.planning/{PROJECT,STATE,ROADMAP,REQUIREMENTS}.md`、`.planning/baseline/*.md`、`.planning/reviews/*.md`、`docs/developer_architecture.md`、`pyproject.toml`、`.github/workflows/*.yml`、`custom_components/lipro/**` 与 `tests/meta/*.py` 的当前截面。
+> Derived collaboration map: 本文件是受约束的协作图谱 / 派生视图，仅用于导航、审阅与后续实现对齐。
+> Authority: 若与 `docs/NORTH_STAR_TARGET_ARCHITECTURE.md`、`.planning/{ROADMAP,REQUIREMENTS,STATE}.md`、`.planning/baseline/*.md`、`.planning/reviews/*.md` 或 `docs/developer_architecture.md` 冲突，以后者为准。
 
-## Runtime And Framework Baseline
-- Home Assistant custom-integration model: `custom_components/lipro/__init__.py`, `config_flow.py`, `diagnostics.py`, `system_health.py`, platform modules `light.py`, `cover.py`, `switch.py`, `fan.py`, `climate.py`, `binary_sensor.py`, `sensor.py`, `select.py`, `update.py`.
-- Async runtime is HA-first and `aiohttp`-backed; session injection uses `homeassistant.helpers.aiohttp_client.async_get_clientsession` in `custom_components/lipro/__init__.py`, `config_flow.py`, and `firmware_manifest.py`.
-- Typed runtime root stays in `ConfigEntry.runtime_data`; control-plane locator is `custom_components/lipro/control/runtime_access.py`; north-star runtime home remains `custom_components/lipro/coordinator_entry.py`.
-- Protocol plane is split into explicit homes: `custom_components/lipro/core/protocol/`, `custom_components/lipro/core/api/`, `custom_components/lipro/core/mqtt/`, `custom_components/lipro/core/auth/`.
-- Assurance-only telemetry/export lives in `custom_components/lipro/core/telemetry/` and is bridged into control-plane consumers by `custom_components/lipro/control/telemetry_surface.py`.
+## Languages
 
-## First-Party Stack Layout
-| Layer | Main paths | Notes |
-| --- | --- | --- |
-| Control plane | `custom_components/lipro/control/` | lifecycle, service registry/router, diagnostics/system-health surfaces, redaction, runtime access |
-| Runtime plane | `custom_components/lipro/coordinator_entry.py`, `custom_components/lipro/core/coordinator/` | single orchestration root, runtime services, MQTT lifecycle, state/command/status runtimes |
-| Domain plane | `custom_components/lipro/core/device/`, `custom_components/lipro/core/capability/`, `custom_components/lipro/entities/`, platform files | explicit device surface, capability truth, HA entity projections |
-| Protocol plane | `custom_components/lipro/core/protocol/`, `custom_components/lipro/core/api/`, `custom_components/lipro/core/mqtt/`, `custom_components/lipro/core/auth/` | boundary decoders, REST/MQTT façades, auth/session, transport helpers |
-| Assurance plane | `custom_components/lipro/core/telemetry/`, `tests/`, `.planning/baseline/`, `.planning/reviews/` | telemetry exporter, replay/evidence, meta guards, governance matrices |
+**Primary:**
+- Python 3.14 - 运行时代码位于 `custom_components/lipro/**/*.py`，测试位于 `tests/**/*.py`，治理与工具脚本位于 `scripts/*.py`。
 
-## Runtime Dependencies
-| Dependency | Declared in | Used by |
-| --- | --- | --- |
-| `aiohttp>=3.12.0` | `pyproject.toml` | REST transport, firmware advisory fetch, share worker client |
-| `aiomqtt>=2.0.0` | `pyproject.toml`, `custom_components/lipro/manifest.json` | vendor MQTT runtime in `custom_components/lipro/core/mqtt/` |
-| `pycryptodome>=3.19.0` | `pyproject.toml`, `custom_components/lipro/manifest.json` | MQTT credential AES decrypt in `custom_components/lipro/core/mqtt/credentials.py` |
-| `voluptuous>=0.15.2` | `pyproject.toml` | config flow / service schema validation in `config_flow.py` and `services/contracts.py` |
+**Secondary:**
+- Bash - `install.sh`、`scripts/setup`、`scripts/develop`、`scripts/lint`。
+- YAML - `.github/workflows/*.yml`、`custom_components/lipro/services.yaml`、`custom_components/lipro/quality_scale.yaml`、`blueprints/automation/lipro/*.yaml`、`.github/ISSUE_TEMPLATE/*.yml`。
+- JSON - `custom_components/lipro/manifest.json`、`hacs.json`、`custom_components/lipro/translations/*.json`、`custom_components/lipro/icons.json`、`custom_components/lipro/firmware_support_manifest.json`、`tests/fixtures/**/*.json`。
+- Markdown - `README.md`、`README_zh.md`、`CONTRIBUTING.md`、`SUPPORT.md`、`SECURITY.md`、`docs/**/*.md`、`.planning/**/*.md`。
 
-## Dev, Lint, Type And Test Tooling
-- Environment manager and command contract: `uv` via `uv.lock`, `scripts/setup`, `scripts/develop`, `scripts/lint`, `.pre-commit-config.yaml`, and GitHub Actions.
-- Strict typing: `pyproject.toml` sets `mypy` strict mode for `custom_components/lipro` and `tests`; typed marker is `custom_components/lipro/py.typed`.
-- Lint/format: `ruff` rules and project bans are configured in `pyproject.toml`; pre-commit runs `uv run --extra dev ruff format` and `uv run --extra dev ruff check`.
-- Tests: `pytest`, `pytest-asyncio`, `pytest-cov`, `pytest-homeassistant-custom-component`, `pytest-benchmark`, `pytest-xdist`, `pytest-mypy-plugins`, and `syrupy` are declared in `pyproject.toml`.
-- Security/static checks: `pip-audit` is wrapped by `scripts/lint` and `.github/workflows/ci.yml`; `shellcheck` covers `install.sh` and shell scripts.
-- Local reproducibility: `.devcontainer.json` pins `mcr.microsoft.com/devcontainers/python:3.14`, forwards port `8123`, and runs `scripts/setup` post-create.
+## Runtime
 
-## CI/CD And Release Toolchain
-| Surface | Paths | Current behavior |
-| --- | --- | --- |
-| CI | `.github/workflows/ci.yml` | `lint`, `governance`, `security`, `test`, `benchmark`, `validate` jobs; all use `uv sync --frozen --extra dev` |
-| Governance gates | `.github/workflows/ci.yml`, `scripts/check_architecture_policy.py`, `scripts/check_file_matrix.py`, `tests/meta/test_*guards.py` | enforces north-star dependency/public-surface/version/governance rules |
-| Coverage | `.github/workflows/ci.yml`, `scripts/coverage_diff.py`, Codecov upload | requires `--cov-fail-under=95` and uploads `coverage.xml` on push |
-| Release | `.github/workflows/release.yml` | reuses `ci.yml`, checks tag vs `pyproject.toml`, zips `custom_components/lipro`, publishes `SHA256SUMS` |
-| Dependency updates | `.github/dependabot.yml` | daily updates for `devcontainers`, `github-actions`, `pip`; ignores `homeassistant` |
-| HACS / Hassfest | `.github/workflows/ci.yml`, `hacs.json`, `custom_components/lipro/quality_scale.yaml` | validates HA packaging semantics and HACS compatibility when repo is public |
+**Environment:**
+- Home Assistant 自定义集成运行时，根入口在 `custom_components/lipro/__init__.py`，平台适配位于 `custom_components/lipro/{light,cover,switch,fan,climate,binary_sensor,sensor,select,update}.py`。
+- 最低 Home Assistant 版本为 `2026.3.1`，在 `pyproject.toml`、`hacs.json`、`README.md`、`README_zh.md` 与 `tests/meta/test_toolchain_truth.py` 中保持同步。
+- Python 要求为 `>=3.14.2`，声明于 `pyproject.toml`；本地开发与 CI 使用 Python 3.14，见 `.devcontainer.json`、`.github/workflows/ci.yml`、`.github/workflows/release.yml`、`.github/workflows/codeql.yml`。
+- `aiohttp` session 通过 `homeassistant.helpers.aiohttp_client.async_get_clientsession` 注入，见 `custom_components/lipro/__init__.py`、`custom_components/lipro/config_flow.py`、`custom_components/lipro/firmware_manifest.py`。
 
-## Config, UX, And Governance Assets
-- Integration metadata/assets: `custom_components/lipro/manifest.json`, `custom_components/lipro/icons.json`, `custom_components/lipro/icon.png`, `custom_components/lipro/services.yaml`, `custom_components/lipro/translations/en.json`, `custom_components/lipro/translations/zh-Hans.json`, `custom_components/lipro/quality_scale.yaml`.
-- Firmware/config trust assets: `custom_components/lipro/firmware_support_manifest.json` and `custom_components/lipro/firmware_manifest.py`.
-- User docs and DX contracts: `README.md`, `README_zh.md`, `CONTRIBUTING.md`, `SECURITY.md`, `SUPPORT.md`, `docs/README.md`, `docs/developer_architecture.md`, `docs/adr/README.md`.
-- Planning/governance truth: `.planning/PROJECT.md`, `.planning/STATE.md`, `.planning/ROADMAP.md`, `.planning/REQUIREMENTS.md`, `.planning/baseline/*.md`, `.planning/reviews/*.md`.
-- QA fixtures and evidence assets: `tests/fixtures/**`, `tests/harness/**`, `tests/meta/**`, `scripts/export_ai_debug_evidence_pack.py`.
+**Package Manager:**
+- `uv` - 由 `uv.lock`、`scripts/setup`、`scripts/lint`、`.github/workflows/ci.yml` 驱动。
+- Lockfile: present (`uv.lock`)。
 
-## Packaging And Delivery Model
-- Build backend is `setuptools.build_meta` in `pyproject.toml`; package discovery includes `custom_components*` namespace packages.
-- Distribution targets HA users through HACS (`hacs.json`), GitHub Releases (`release.yml`), manual copy (`README*.md`), and shell installer (`install.sh`).
-- `install.sh` downloads release archives/checksums from GitHub Releases, supports mirror override for archive metadata, and is guarded by `tests/meta/test_install_sh_guards.py`.
-- There is no Docker image, no PyPI publish flow, and no server-side deployment manifest in this repo.
+## Frameworks
 
-## Explicitly Absent Or Deferred
-- No repo-owned database, cache, ORM, or migration stack.
-- No OAuth/OIDC or third-party identity provider; auth is vendor phone/password plus token refresh.
-- No inbound webhook server.
-- No production Prometheus / OpenTelemetry sink today; `.planning/REQUIREMENTS.md` only records them as future evaluation items.
+**Core:**
+- Home Assistant custom integration - 入口与元数据位于 `custom_components/lipro/manifest.json`、`custom_components/lipro/__init__.py`、`custom_components/lipro/config_flow.py`、`custom_components/lipro/diagnostics.py`、`custom_components/lipro/system_health.py`。
+- 显式分层架构 - 北极星与开发者架构见 `docs/NORTH_STAR_TARGET_ARCHITECTURE.md`、`docs/developer_architecture.md`；协议根在 `custom_components/lipro/core/protocol/facade.py`，REST 子门面在 `custom_components/lipro/core/api/client.py`，MQTT 子门面在 `custom_components/lipro/core/protocol/mqtt_facade.py`，运行根在 `custom_components/lipro/core/coordinator/coordinator.py`。
+- HA 生态元数据 - `integration_type: hub` 与 `iot_class: cloud_push` 在 `custom_components/lipro/manifest.json`；质量映射在 `custom_components/lipro/quality_scale.yaml`。
+
+**Testing:**
+- `pytest 9.0.0`、`pytest-asyncio 1.3.0`、`pytest-cov 7.0.0`、`pytest-homeassistant-custom-component 0.13.317`、`pytest-benchmark 5.2.3`、`syrupy 5.0.0` - 版本锁定见 `uv.lock`，声明见 `pyproject.toml`。
+- 测试资产覆盖单元、集成、快照、协议回放、治理守卫，入口位于 `tests/core/`、`tests/integration/`、`tests/snapshots/`、`tests/meta/`。
+
+**Build/Dev:**
+- `setuptools.build_meta` - 构建后端在 `pyproject.toml`。
+- `ruff 0.15.4` 与 `mypy 1.19.1` - 规则与严格类型检查在 `pyproject.toml` 与 `.pre-commit-config.yaml`。
+- `pre-commit` - 本地提交前门禁在 `.pre-commit-config.yaml`。
+- GitHub Actions - CI 与发布在 `.github/workflows/ci.yml`、`.github/workflows/release.yml`、`.github/workflows/codeql.yml`。
+- HACS / Hassfest - 验证路径在 `.github/workflows/ci.yml` 与 `hacs.json`。
+
+## Key Dependencies
+
+**Critical:**
+- `aiohttp 3.13.3` - 运行时 REST 传输、固件 advisory 拉取、匿名分享上传；代码位于 `custom_components/lipro/core/api/`、`custom_components/lipro/firmware_manifest.py`、`custom_components/lipro/core/anonymous_share/share_client.py`。
+- `aiomqtt 2.5.0` - 实时 MQTT 传输；代码位于 `custom_components/lipro/core/mqtt/*.py`，运行桥接位于 `custom_components/lipro/core/protocol/mqtt_facade.py`。
+- `pycryptodome 3.23.0` - MQTT 密钥 AES 解密；代码位于 `custom_components/lipro/core/mqtt/credentials.py`。
+- `voluptuous 0.15.2` - Config Flow 与服务 schema 校验；代码位于 `custom_components/lipro/config_flow.py`、`custom_components/lipro/flow/schemas.py`、`custom_components/lipro/services/contracts.py`。
+- `homeassistant 2026.3.1` - 本地开发/测试兼容基线；声明位于 `pyproject.toml`，同步守卫位于 `tests/meta/test_toolchain_truth.py`。
+
+**Infrastructure:**
+- `pip-audit 2.10.0` - runtime 依赖安全门禁；入口见 `scripts/lint`、`.github/workflows/ci.yml`、`.github/workflows/release.yml`。
+- `colorlog 6.10.1` - 开发环境日志美化；版本锁定见 `uv.lock`。
+- `aiodns 4.0.0` 与 `pycares 5.0.1` - 开发/测试环境的异步 DNS 支持；声明位于 `pyproject.toml`。
+- `orjson 3.11.6`、`pyjwt 2.12.0`、`pillow 12.1.1` - 通过 `tool.uv.override-dependencies` 固化的开发解析覆盖项，见 `pyproject.toml`。
+
+## Configuration
+
+**Environment:**
+- 运行时凭证由 Home Assistant config entry 持有，入口位于 `custom_components/lipro/config_flow.py`、`custom_components/lipro/entry_auth.py`、`custom_components/lipro/const/config.py`；仓库根目录未检测到运行时 `.env` 文件。
+- 用户选项位于 `custom_components/lipro/flow/options_flow.py` 与 `custom_components/lipro/const/config.py`，包括 `scan_interval`、`mqtt_enabled`、`debug_mode`、`request_timeout`、功率监控、命令确认、房间同步与设备过滤等。
+- 服务契约位于 `custom_components/lipro/services.yaml`、`custom_components/lipro/services/contracts.py`、`custom_components/lipro/translations/en.json`、`custom_components/lipro/translations/zh-Hans.json`。
+- 文档入口覆盖用户、开发者、支持与发布路径，位于 `README.md`、`README_zh.md`、`CONTRIBUTING.md`、`SUPPORT.md`、`SECURITY.md`、`docs/TROUBLESHOOTING.md`、`docs/MAINTAINER_RELEASE_RUNBOOK.md`、`docs/developer_architecture.md`、`docs/adr/*.md`。
+
+**Build:**
+- 打包与版本真源位于 `pyproject.toml`、`custom_components/lipro/manifest.json`、`hacs.json`。
+- 本地 DX 入口位于 `scripts/setup`、`scripts/develop`、`scripts/lint`、`.devcontainer.json`。
+- 质量门禁位于 `.pre-commit-config.yaml`、`.github/workflows/ci.yml`、`.github/workflows/release.yml`、`.github/workflows/codeql.yml`。
+- 架构与治理守卫位于 `scripts/check_architecture_policy.py`、`scripts/check_file_matrix.py`、`tests/meta/test_dependency_guards.py`、`tests/meta/test_public_surface_guards.py`、`tests/meta/test_toolchain_truth.py`。
+
+## Platform Requirements
+
+**Development:**
+- 使用 `uv sync --frozen --extra dev` 建立环境，入口位于 `scripts/setup` 与 `.github/workflows/ci.yml`。
+- Python 3.14 开发环境来自 `.devcontainer.json` 与 GitHub Actions。
+- Home Assistant 2026.3.1 开发依赖来自 `pyproject.toml`。
+- 可选 shell 工具 `shellcheck` 在 `.github/workflows/ci.yml` 的 `lint` job 中执行，覆盖 `install.sh` 与 `scripts/*`。
+
+**Production:**
+- 目标宿主为用户自己的 Home Assistant，运行载荷位于 `custom_components/lipro/`。
+- 支持的交付路径为 HACS（`hacs.json`）、GitHub Release 资产（`.github/workflows/release.yml` 与 `install.sh`）、以及 `README.md` / `README_zh.md` 描述的手工复制。
+- HA 生态对齐体现在 `custom_components/lipro/config_flow.py`、`custom_components/lipro/diagnostics.py`、`custom_components/lipro/system_health.py`、`custom_components/lipro/quality_scale.yaml` 与 `.github/workflows/ci.yml` 的 HACS / Hassfest 校验。
+
+---
+
+*Stack analysis: 2026-03-19*

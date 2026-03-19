@@ -1,6 +1,6 @@
 # STRUCTURE
-> Snapshot: `2026-03-18`
-> Freshness: Phase 37 对齐刷新；仅按 `AGENTS.md`、`.planning/{ROADMAP,REQUIREMENTS,STATE}.md`、`.planning/baseline/*.md`、`.planning/reviews/*.md`、`docs/developer_architecture.md` 与当前 CI/release/public-doc truth 截面成立。上述真源变更后，本图谱必须同步刷新或标记过时。
+> Snapshot: `2026-03-19`
+> Freshness: Phase 38 + 本次 arch/structure 终极审阅对齐刷新；仅按 `AGENTS.md`、`.planning/{ROADMAP,REQUIREMENTS,STATE}.md`、`.planning/baseline/*.md`、`.planning/reviews/*.md`、`docs/developer_architecture.md` 与当前 CI/release/public-doc truth 截面成立。上述真源变更后，本图谱必须同步刷新或标记过时。
 > Repository: `/var/tmp/coolvibe/worktrees/edf26778937a-/lipro-hass`
 > Focus: `arch`
 > Derived collaboration map: 本文件是受约束的协作图谱 / 派生视图，仅用于导航、协作与局部审阅。
@@ -27,11 +27,12 @@
 3. `custom_components/lipro/core/api/` 与 `custom_components/lipro/core/mqtt/` 的目录归属已经被压回 protocol slice，但命名与 helper spine 仍保留 residual 味道。
 4. `tests/` 的组织方式与五平面基本镜像，对维护性是加分项；`tests/meta/` 则把目录边界写成可执行守卫。
 
-## 2.1 Phase 35-37 结构增量
+## 2.1 Phase 35-38 结构增量
 - `custom_components/lipro/core/api/client.py` 不再同时吸附 request pipeline 与 endpoint forwarding 细节；这些复杂度已下沉到 `client_request_gateway.py` 与 `client_endpoint_surface.py`。
 - `custom_components/lipro/core/protocol/facade.py` 现在通过 `rest_port.py` 与 `mqtt_facade.py` 组合 child façade，而不是把 `_rest_port` / MQTT glue 全堆在 root body。
 - `custom_components/lipro/core/coordinator/services/polling_service.py` 已成为 runtime/service seam 的正式 helper home；`Coordinator` 中与 polling 相关的方法现为 thin wrapper。
 - `tests/core/test_init_service_handlers*.py`、`tests/core/test_init_runtime*.py` 与 `tests/meta/test_governance_phase_history*.py` 形成稳定 topic suites；聚合根文件只保留共享 helper，不再承载跨故事线巨石测试。
+- `Phase 38` 未新增新的 active residual 目录；当前结构问题主要表现为热点文件偏厚与历史命名仍留在 protocol slice 内部。
 
 ## 3. Top-Level Layout
 | 路径 | 归属 | 结构作用 | 维护性判断 |
@@ -42,6 +43,15 @@
 | `tests/` | Assurance implementation | 单元、集成、治理、fixture、replay、evidence | 目录镜像良好，是仓库可维护性的关键支撑 |
 
 ## 4. Production Tree Ownership
+### 4.0 Entry Surface Matrix
+代码、文档与配置入口已经形成比较稳定的入口矩阵：
+- HA 运行入口：`custom_components/lipro/__init__.py`、`custom_components/lipro/coordinator_entry.py`、`custom_components/lipro/diagnostics.py`、`custom_components/lipro/system_health.py`
+- 配置/接入入口：`custom_components/lipro/config_flow.py`、`custom_components/lipro/flow/options_flow.py`、`custom_components/lipro/headless/boot.py`（proof-only bootstrap seam）
+- 平台投影入口：`custom_components/lipro/light.py`、`custom_components/lipro/switch.py`、`custom_components/lipro/sensor.py`、`custom_components/lipro/binary_sensor.py`、`custom_components/lipro/fan.py`、`custom_components/lipro/climate.py`、`custom_components/lipro/cover.py`、`custom_components/lipro/select.py`、`custom_components/lipro/update.py`
+- 包与发布配置入口：`pyproject.toml`、`custom_components/lipro/manifest.json`、`custom_components/lipro/services.yaml`、`custom_components/lipro/quality_scale.yaml`
+- 文档入口：`README.md`、`README_zh.md`、`docs/README.md`、`docs/NORTH_STAR_TARGET_ARCHITECTURE.md`、`docs/developer_architecture.md`、`docs/TROUBLESHOOTING.md`、`docs/MAINTAINER_RELEASE_RUNBOOK.md`、`docs/adr/README.md`
+- 治理/校验脚本入口：`scripts/check_architecture_policy.py`、`scripts/check_file_matrix.py`、`scripts/export_ai_debug_evidence_pack.py`
+
 ### 4.1 `custom_components/lipro/` 根目录
 根目录同时承载三类文件：
 - HA adapter：`__init__.py`、`config_flow.py`、`diagnostics.py`、`system_health.py`、`coordinator_entry.py`
@@ -110,8 +120,8 @@
 | `custom_components/lipro/core/protocol/` | 高 | `core/protocol/facade.py`、`contracts.py`、`boundary/*.py` | root / contract / boundary 三层分工清楚 |
 | `custom_components/lipro/core/capability/` | 高 | `core/capability/registry.py` | 小而稳，authority 明确 |
 | `custom_components/lipro/core/device/` | 中高 | `core/device/device.py`、`state.py`、`device_factory.py` | 动态委托已清理，但 façade leaf surface 仍偏宽 |
-| `custom_components/lipro/core/api/` | 中 | `core/api/client.py`、`client_base.py`、`endpoints/*.py` | 功能已收敛，命名仍有 legacy/mixin 余味 |
-| `custom_components/lipro/core/mqtt/` | 中 | `core/mqtt/mqtt_client.py` | transport 边界清楚，但 `LiproMqttClient` 命名仍像旧 root |
+| `custom_components/lipro/core/api/` | 中 | `core/api/client.py`、`client_request_gateway.py`、`client_endpoint_surface.py`、`endpoints/*.py` | 功能已收敛，但 `client_*` 命名仍保留“巨型 facade 拆片后”的历史气味 |
+| `custom_components/lipro/core/mqtt/` | 中 | `core/mqtt/mqtt_client.py` | transport 边界清楚，但 `MqttTransportClient` 文件家园仍容易被误读成 protocol root |
 | `custom_components/lipro/services/` | 中 | `services/execution.py`、`services/registrations.py` | 归属正确，但“support cluster”特征强于“层” |
 | `custom_components/lipro/entities/` + platform 根文件 | 高 | `entities/base.py`、`helpers/platform.py`、各 platform `async_setup_entry()` | 领域投影关系清楚 |
 
@@ -123,16 +133,17 @@
 - `core/protocol/boundary/rest_decoder.py`、`mqtt_decoder.py`、`schema_registry.py`：文件名直接对应 boundary 语义。
 
 ### 6.2 命名仍带 residual 气味的区域
-- `core/api/client_base.py`、`client_auth_recovery.py`、`client_transport.py`、`client_pacing.py`：仍保留“mega client 拆片后”的历史语义。
-- `core/mqtt/mqtt_client.py::LiproMqttClient`：虽然已经不是正式 root，但命名仍像独立 protocol root。
+- `core/api/client_auth_recovery.py`、`client_request_gateway.py`、`client_endpoint_surface.py`、`client_transport.py`：仍保留“mega client 拆片后”的历史语义。
+- `core/mqtt/mqtt_client.py::MqttTransportClient`：虽然已经不是正式 root，但文件名与物理位置仍像独立 protocol root。
+- `headless/boot.py`：命名已经诚实标注 proof-only，但被 `config_flow.py` 复用后，新读者仍需要额外分辨它不是正式 runtime/control 入口。
 - `services/execution.py`：名字仍偏泛，但语义已稳定为 service execution facade；真实历史 seam 已在 Phase 5 关闭。
 
 ## 7. Maintainability Hotspots
-主要维护热点不是目录失控，而是少数热点文件仍偏厚：
-- `custom_components/lipro/core/coordinator/coordinator.py`：正式 root 正确，但仍是 HA-facing runtime hotspot。
-- `custom_components/lipro/config_flow.py`：HA 流程限制导致文件自然偏大，适合继续靠 `flow/` 子目录承接细节。
-- `custom_components/lipro/core/api/client.py`：虽已是正式 REST child façade，但仍承担较宽的 façade 表面。
-- `tests/core/test_init.py`：覆盖极广，是控制面/服务面回归总枢纽，也意味着阅读成本高。
+主要维护热点不是目录失控，而是少数热点文件仍偏厚、偏热：
+- 体量热点：`custom_components/lipro/core/api/client.py`（约 808 行）、`custom_components/lipro/core/coordinator/coordinator.py`（约 543 行）、`custom_components/lipro/core/protocol/facade.py`（约 475 行）、`custom_components/lipro/config_flow.py`（约 400+ 行）、`custom_components/lipro/core/coordinator/runtime/device/snapshot.py`（约 386 行）。
+- 变更热点：`custom_components/lipro/core/coordinator/coordinator.py`、`custom_components/lipro/__init__.py`、`custom_components/lipro/config_flow.py`、`custom_components/lipro/core/api/client.py`、`docs/developer_architecture.md` 在 git 历史中都是高频触达点，说明它们既重要也脆弱。
+- 长函数热点：`Coordinator.__init__()`、`EntryLifecycleController.async_setup_entry()`、`SnapshotBuilder.build_full_snapshot()`、`MqttRuntime.__init__()`、`LiproConfigFlow.async_step_reauth_confirm()` 都已经进入“应持续拆薄”的区间。
+- 服务入口热点：`custom_components/lipro/control/service_router.py` 虽然层次正确，但其 public/developer handler 汇总特征明显，继续增长会拉高 control-plane 认知负担。
 
 相对健康、可维护的簇：
 - `custom_components/lipro/core/coordinator/services/`
@@ -154,9 +165,9 @@
 
 ## 9. Residual Structure Leftovers
 从目录结构角度看，仍应视为 active residual 的对象（不含已关闭 seam）：
-- `custom_components/lipro/core/api/client_base.py` 与 `custom_components/lipro/core/api/endpoints/*.py`：helper/type spine 尚未完全物理清退
-- `custom_components/lipro/core/mqtt/mqtt_client.py`：legacy transport naming
-- `custom_components/lipro/core/api/power_service.py`：helper-level compatibility envelope
+- `custom_components/lipro/core/api/client_*.py` 与 `custom_components/lipro/core/api/endpoints/*.py`：collaborator 归属已经正确，但命名仍保留历史 mega-client 痕迹
+- `custom_components/lipro/core/mqtt/mqtt_client.py`：localized transport naming 仍与 protocol slice 邻接，容易造成误读
+- `custom_components/lipro/headless/boot.py`：proof-only bootstrap seam 虽已明确标注 local 身份，但物理上仍在 production tree，需要持续防止被升级成正式入口
 
 这些对象的共同特征是：
 - `custom_components/lipro/services/execution.py` 已关闭的 private auth seam 属于历史项：文件仍在，但 residual 已关闭而非 active residual。
@@ -166,6 +177,6 @@
 
 ## 10. Final Verdict
 若只看目录：仓库已经具备清晰、稳定、可维护的正式骨架。
-若看剩余技术债：问题已经从“结构混乱”转为“少量 legacy naming / helper spine 尚未物理出清”。
+若看剩余技术债：问题已经从“结构混乱”转为“少量 legacy naming / hotspot 体量 / proof seam 认知成本尚未完全出清”。
 
 一句话裁决：**`lipro-hass` 的目录结构已进入收尾优化期；真正要继续治理的是 residual 命名与热点文件体量，而不是重建新的层次或再造第二条主干。**

@@ -1,72 +1,126 @@
-# Integration Map
-> Snapshot: `2026-03-18`
-> Freshness: Phase 32 对齐刷新；仅按 `AGENTS.md`、`.planning/{ROADMAP,REQUIREMENTS,STATE}.md`、`.planning/baseline/*.md`、`.planning/reviews/*.md`、`docs/developer_architecture.md` 与当前 CI/release/public-doc truth 截面成立。上述真源变更后，本图谱必须同步刷新或标记过时。
-> Derived collaboration map: 本文件是受约束的协作图谱 / 派生视图，仅用于导航、协作与局部审阅。
-> Authority: 若与 `docs/NORTH_STAR_TARGET_ARCHITECTURE.md`、`.planning/{ROADMAP,REQUIREMENTS,STATE}.md`、`.planning/baseline/*.md`、`.planning/reviews/*.md` 或 `docs/developer_architecture.md` 冲突，以后者为准；本图谱不得反向充当当前治理真源，且必须同步回写、标记为过时，或注明历史观察。
+# External Integrations
 
-## Mapping Basis
-- Mandatory sources consumed for this map: `AGENTS.md`, `docs/NORTH_STAR_TARGET_ARCHITECTURE.md`, `.planning/PROJECT.md`, `.planning/STATE.md`, `.planning/ROADMAP.md`, `.planning/REQUIREMENTS.md`, `.planning/baseline/*.md`, `.planning/reviews/*.md`, `pyproject.toml`, `.github/workflows/*`, `custom_components/lipro/manifest.json`.
-- Related integration surfaces also checked: `README.md`, `README_zh.md`, `hacs.json`, `install.sh`, `custom_components/lipro/services.yaml`, `custom_components/lipro/core/**`, `custom_components/lipro/control/**`, `blueprints/automation/lipro/*.yaml`, `tests/fixtures/**`, `tests/harness/**`, `tests/meta/**`, `scripts/*.py`.
+**Analysis Date:** 2026-03-19
 
-## Home Assistant Ecosystem Integration
-| Surface | Paths | Integration details |
-| --- | --- | --- |
-| Config entry lifecycle | `custom_components/lipro/__init__.py`, `custom_components/lipro/control/entry_lifecycle_controller.py`, `custom_components/lipro/control/service_registry.py` | sets up/unloads HA entries, platforms, services, device-registry listeners, runtime infra |
-| UI onboarding / options | `custom_components/lipro/config_flow.py`, `custom_components/lipro/flow/login.py`, `custom_components/lipro/flow/options_flow.py`, `custom_components/lipro/flow/schemas.py`, `custom_components/lipro/translations/*.json` | phone/password login, reauth, reconfigure, options and localized copy |
-| Entity platforms | `custom_components/lipro/light.py`, `cover.py`, `switch.py`, `fan.py`, `climate.py`, `binary_sensor.py`, `sensor.py`, `select.py`, `update.py`, `custom_components/lipro/entities/*.py` | maps Lipro devices into HA platforms and firmware update entities |
-| Diagnostics / health | `custom_components/lipro/diagnostics.py`, `custom_components/lipro/system_health.py`, `custom_components/lipro/control/diagnostics_surface.py`, `custom_components/lipro/control/system_health_surface.py` | HA diagnostics export and system-health reporting both consume formal control-plane surfaces |
-| Services | `custom_components/lipro/services.yaml`, `custom_components/lipro/services/contracts.py`, `custom_components/lipro/services/registrations.py`, `custom_components/lipro/control/service_router.py` | public services: `send_command`, `get_schedules`, `add_schedule`, `delete_schedules`, `submit_anonymous_share`, `get_anonymous_share_report`, `refresh_devices`; developer/debug services: `get_developer_report`, `submit_developer_feedback`, `query_command_result`, `get_city`, `query_user_cloud`, `fetch_body_sensor_history`, `fetch_door_sensor_history` |
-| HACS / HA metadata | `custom_components/lipro/manifest.json`, `hacs.json`, `custom_components/lipro/quality_scale.yaml`, `custom_components/lipro/icons.json`, `custom_components/lipro/icon.png` | HACS custom-integration distribution, quality-scale declaration, icon/service metadata |
-| Blueprint assets | `blueprints/automation/lipro/motion_light.yaml`, `blueprints/automation/lipro/device_offline_alert.yaml`, `README*.md` | importable HA automations via `my.home-assistant.io` and manual blueprint copy flow |
+> Freshness: 基于 `AGENTS.md`、`docs/NORTH_STAR_TARGET_ARCHITECTURE.md`、`.planning/{PROJECT,STATE,ROADMAP,REQUIREMENTS}.md`、`.planning/baseline/*.md`、`.planning/reviews/*.md`、`docs/developer_architecture.md`、`custom_components/lipro/**`、`.github/workflows/*.yml`、`tests/fixtures/**` 与 `tests/meta/*.py` 的当前截面。
+> Derived collaboration map: 本文件是受约束的协作图谱 / 派生视图，仅用于导航、审阅与集成边界核对。
+> Authority: 若与 `docs/NORTH_STAR_TARGET_ARCHITECTURE.md`、`.planning/baseline/AUTHORITY_MATRIX.md`、`.planning/phases/02.6-external-boundary-convergence/02.6-BOUNDARY-INVENTORY.md`、`.planning/reviews/*.md` 或 `docs/developer_architecture.md` 冲突，以后者为准。
 
-## Vendor HTTP Cloud Integration
-| Family | Paths | Current truth |
-| --- | --- | --- |
-| Base hosts | `custom_components/lipro/const/api.py` | `SMART_HOME_API_URL=https://api-hilbert.lipro.com`, `IOT_API_URL=https://api-mlink.lipro.com` |
-| Auth/session | `custom_components/lipro/core/api/endpoints/auth.py`, `custom_components/lipro/core/auth/manager.py`, `custom_components/lipro/entry_auth.py`, `custom_components/lipro/config_flow.py` | vendor phone/password login, token refresh, `phone_id`, token persistence into HA config entries |
-| Device catalog / product config | `custom_components/lipro/core/api/endpoints/devices.py`, `custom_components/lipro/const/api.py` | fetches device lists and product configs from vendor cloud |
-| Commands / status / power | `custom_components/lipro/core/api/endpoints/commands.py`, `status.py`, `custom_components/lipro/core/api/power_service.py`, `custom_components/lipro/const/api.py` | sends commands, polls device/group/connect status, queries outlet power |
-| Schedule APIs | `custom_components/lipro/core/api/endpoints/schedule.py`, `custom_components/lipro/services/schedule.py`, `custom_components/lipro/const/api.py` | weekly schedules only; mesh-group schedule read/write/delete go through BLE/gateway-member candidate strategy |
-| Developer-only misc APIs | `custom_components/lipro/core/api/endpoints/misc.py`, `custom_components/lipro/services/diagnostics/helpers.py`, `custom_components/lipro/const/api.py` | `query_command_result`, `get_city`, `query_user_cloud`, body/door sensor history, OTA info |
-| Transport layer | `custom_components/lipro/core/api/client.py`, `client_transport.py`, `transport_core.py`, `transport_signing.py`, `transport_retry.py`, `client_pacing.py`, `client_auth_recovery.py`, `observability.py`, `response_safety.py` | async HTTP client with signing, pacing, retry, auth recovery, telemetry hooks, and response safety |
-| Boundary normalization | `custom_components/lipro/core/protocol/boundary/rest_decoder.py`, `custom_components/lipro/core/protocol/contracts.py`, `tests/fixtures/api_contracts/*.json`, `tests/fixtures/protocol_replay/rest/*.json` | high-drift REST payloads are canonicalized before runtime/control consumption |
+## APIs & External Services
 
-## Vendor MQTT Integration
-| Surface | Paths | Current truth |
-| --- | --- | --- |
-| Bootstrap config | `custom_components/lipro/core/api/mqtt_api_service.py`, `custom_components/lipro/const/api.py`, `tests/fixtures/api_contracts/get_mqtt_config.*.json` | REST `get_aliyun_mqtt_config` payload is normalized first and may arrive as direct or wrapped payload |
-| Broker constants | `custom_components/lipro/const/api.py` | broker `post-cn-li93yvd5304.mqtt.aliyuncs.com:8883`, instance `post-cn-li93yvd5304`, topic prefix `Topic_Device_State` |
-| Credential handling | `custom_components/lipro/core/mqtt/credentials.py` | decrypts `accessKey`/`secretKey` with AES, derives MQTT HMAC credentials |
-| MQTT runtime | `custom_components/lipro/core/mqtt/mqtt_client.py`, `client_runtime.py`, `connection_manager.py`, `subscription_manager.py`, `message_processor.py`, `topics.py` | `aiomqtt` client, TLS connection, topic sync, reconnect/backoff, message decode |
-| Runtime bridge | `custom_components/lipro/core/coordinator/mqtt_lifecycle.py`, `custom_components/lipro/core/coordinator/runtime/mqtt/`, `custom_components/lipro/core/coordinator/services/mqtt_service.py` | keeps MQTT as runtime service under the single coordinator/root story |
-| Boundary / replay proof | `custom_components/lipro/core/protocol/boundary/mqtt_decoder.py`, `tests/fixtures/protocol_boundary/mqtt_properties.device_state.v1.json`, `tests/fixtures/protocol_replay/mqtt/device_state.v1.replay.json`, `tests/core/mqtt/test_protocol_replay_mqtt.py` | inbound state changes are verified through canonical boundary/replay assets |
+**Home Assistant Ecosystem:**
+- Home Assistant config-entry / diagnostics / system-health 集成面 - 用于入口装配、配置流、诊断导出与系统健康。
+  - SDK/Client: `homeassistant.*` API，消费点位于 `custom_components/lipro/__init__.py`、`custom_components/lipro/config_flow.py`、`custom_components/lipro/diagnostics.py`、`custom_components/lipro/system_health.py`、`custom_components/lipro/control/*.py`。
+  - Auth: 依赖 Home Assistant config entry 持久化；无独立环境变量。
+- HACS / Hassfest 校验面 - 用于自定义集成分发与元数据校验。
+  - SDK/Client: `hacs/action` 与 `home-assistant/actions/hassfest`，定义于 `.github/workflows/ci.yml`。
+  - Auth: GitHub Actions 上下文；无运行时密钥。
+- HA 质量对齐声明 - Bronze→Platinum 项在 `custom_components/lipro/quality_scale.yaml` 中显式登记。
+  - SDK/Client: 质量清单本身与 `tests/meta/test_governance_guards.py`、`tests/meta/test_toolchain_truth.py` 形成守卫。
+  - Auth: Not applicable.
 
-## Telemetry, Diagnostics, Share, Firmware
-| Surface | Paths | Current truth |
-| --- | --- | --- |
-| Runtime telemetry exporter | `custom_components/lipro/core/telemetry/exporter.py`, `models.py`, `ports.py`, `sinks.py`, `custom_components/lipro/control/telemetry_surface.py` | pull-first exporter merges protocol/runtime snapshots into diagnostics, system-health, developer, and CI views |
-| Redaction / support safety | `custom_components/lipro/control/redaction.py`, `custom_components/lipro/services/diagnostics/helpers.py`, `tests/integration/test_telemetry_exporter_integration.py` | blocks tokens, ids, MAC/IP, and device identifiers before support sharing |
-| Developer report services | `custom_components/lipro/services/diagnostics/__init__.py`, `custom_components/lipro/services/diagnostics/helpers.py`, `custom_components/lipro/services/diagnostics/types.py` | exposes sanitized runtime diagnostics and optional capability endpoints through HA services |
-| Anonymous share worker | `custom_components/lipro/core/anonymous_share/const.py`, `share_client.py`, `storage.py`, `custom_components/lipro/services/share.py`, `tests/fixtures/external_boundaries/share_worker/*.json` | outbound report submission to `https://lipro-share.lany.me/api/report` with token refresh at `/api/token/refresh` |
-| Developer feedback payload | `custom_components/lipro/services/diagnostics/helpers.py`, `tests/fixtures/external_boundaries/support_payload/*.json` | support/developer feedback payloads are canonicalized and guarded by external-boundary fixtures |
-| Firmware trust/advisory | `custom_components/lipro/firmware_support_manifest.json`, `custom_components/lipro/firmware_manifest.py`, `custom_components/lipro/entities/firmware_update.py`, `tests/fixtures/external_boundaries/firmware/*.json` | local manifest is trust root; remote `lipro-share.lany.me` advisory cannot independently widen `certified` |
-| AI debug evidence pack | `tests/harness/evidence_pack/*.py`, `scripts/export_ai_debug_evidence_pack.py`, `tests/integration/test_ai_debug_evidence_pack.py`, `.planning/reviews/V1_1_EVIDENCE_INDEX.md` | tooling-only export that pulls telemetry/replay/governance truths into AI-safe evidence artifacts |
+**Vendor Cloud REST:**
+- Lipro Smart Home / IoT 云接口 - 提供登录、刷新 token、设备目录、状态、控制、日程、OTA 与调试能力。
+  - SDK/Client: `custom_components/lipro/core/protocol/facade.py` 的 `LiproProtocolFacade` 与 `custom_components/lipro/core/api/client.py` 的 `LiproRestFacade`；具体端点定义在 `custom_components/lipro/const/api.py` 与 `custom_components/lipro/core/api/endpoints/*.py`。
+  - Auth: 用户手机号/密码经 `custom_components/lipro/config_flow.py`、`custom_components/lipro/entry_auth.py`、`custom_components/lipro/core/auth/manager.py` 登录，access/refresh token 存储在 Home Assistant config entry。
+- 协议边界版本化与 authority chain - 用于吸收上游 payload 漂移。
+  - SDK/Client: `custom_components/lipro/core/protocol/boundary/rest_decoder.py`，authority 指向 `tests/fixtures/api_contracts/*.json`。
+  - Auth: 继承 REST 主链认证态；无额外 env var。
 
-## Docs, Scripts, Release, And QA Integrations
-| Surface | Paths | Current truth |
-| --- | --- | --- |
-| User/docs entrypoints | `README.md`, `README_zh.md`, `docs/README.md`, `docs/developer_architecture.md`, `docs/adr/README.md` | installation, services, blueprints, architecture, ADR and support routing |
-| Contributor/security flows | `CONTRIBUTING.md`, `SECURITY.md`, `SUPPORT.md`, `.github/pull_request_template.md`, `.github/ISSUE_TEMPLATE/*.yml`, `.github/CODEOWNERS` | contribution, disclosure, support triage and review ownership |
-| Local scripts | `scripts/setup`, `scripts/develop`, `scripts/lint`, `install.sh` | reproducible dev env, local HA boot, lint wrapper, GitHub/manual installer |
-| CI validation | `.github/workflows/ci.yml`, `.github/workflows/release.yml` | lint/type/governance/security/test/benchmark/validate/release; release reuses CI gates |
-| External CI services | `.github/workflows/ci.yml`, `hacs.json` | Codecov upload, HACS validation, Hassfest validation, scheduled benchmark runs |
-| Dependency automation | `.github/dependabot.yml` | daily updates for devcontainer image, GitHub Actions, and pip ecosystem |
-| Fixture/replay authority | `tests/fixtures/api_contracts/`, `tests/fixtures/external_boundaries/`, `tests/fixtures/protocol_boundary/`, `tests/fixtures/protocol_replay/`, `tests/harness/protocol/` | external payload truth, replay manifests, and evidence inputs are explicit, versioned, and guarded |
-| Meta QA guards | `tests/meta/test_external_boundary_authority.py`, `test_external_boundary_fixtures.py`, `test_firmware_support_manifest_repo_asset.py`, `test_version_sync.py`, `test_blueprints.py`, `test_install_sh_guards.py` | protects version sync, blueprint validity, installer invariants, and external-boundary authority rules |
+**Vendor MQTT:**
+- Aliyun MQTT broker - 提供实时设备状态推送。
+  - SDK/Client: `aiomqtt` + `custom_components/lipro/core/protocol/mqtt_facade.py` + `custom_components/lipro/core/mqtt/{mqtt_client,client_runtime,connection_manager,subscription_manager,message_processor,topics}.py`。
+  - Auth: 先通过 REST `get_aliyun_mqtt_config` 获取配置，再在 `custom_components/lipro/core/mqtt/credentials.py` 中解密 `accessKey` / `secretKey` 并派生 MQTT 凭证；无环境变量。
+- MQTT 边界版本化与回放验证 - 用于验证主题和消息 envelope 的 canonical contract。
+  - SDK/Client: `custom_components/lipro/core/protocol/boundary/mqtt_decoder.py`、`tests/fixtures/protocol_boundary/`、`tests/fixtures/protocol_replay/`、`tests/integration/test_protocol_replay_harness.py`。
+  - Auth: 继承 MQTT transport 凭证；无独立 env var。
 
-## Explicitly Absent Integrations
-- No inbound webhook receiver.
-- No repo-owned DB/cache/search service.
-- No non-vendor broker beyond vendor Aliyun MQTT.
-- No production Prometheus/OpenTelemetry sink yet; `.planning/REQUIREMENTS.md` records them as future evaluation only.
-- No second host/runtime story outside Home Assistant; `docs/NORTH_STAR_TARGET_ARCHITECTURE.md` keeps the project HA-only.
+**Share / Support Worker:**
+- `https://lipro-share.lany.me` - 提供匿名分享上报、开发者反馈 token 刷新与远端固件 advisory。
+  - SDK/Client: `custom_components/lipro/core/anonymous_share/share_client.py`、`custom_components/lipro/core/anonymous_share/const.py`、`custom_components/lipro/services/share.py`、`custom_components/lipro/firmware_manifest.py`。
+  - Auth: 公开 `X-API-Key` 常量定义于 `custom_components/lipro/core/anonymous_share/const.py`，并辅以内存 install token；无 repo `.env`。
+
+**GitHub Platform:**
+- GitHub Releases / Issues / Discussions / Security / Actions - 提供发布、支持与供应链证明。
+  - SDK/Client: `pyproject.toml` 的 `project.urls`、`.github/ISSUE_TEMPLATE/*.yml`、`.github/pull_request_template.md`、`.github/CODEOWNERS`、`.github/workflows/{ci,release,codeql}.yml`。
+  - Auth: GitHub Actions 工作流权限与 `GITHUB_TOKEN`；不进入 Home Assistant 运行时。
+
+## Data Storage
+
+**Databases:**
+- Not detected.
+  - Connection: Not applicable.
+  - Client: Not applicable.
+
+**File Storage:**
+- Local filesystem only。
+- Repo trust assets / metadata 位于 `custom_components/lipro/firmware_support_manifest.json`、`custom_components/lipro/services.yaml`、`custom_components/lipro/translations/*.json`、`custom_components/lipro/icons.json`、`tests/fixtures/**/*.json`。
+- Home Assistant 持久化主要依赖 config entry / runtime_data，入口位于 `custom_components/lipro/entry_auth.py`、`custom_components/lipro/runtime_infra.py`。
+
+**Caching:**
+- None 外部缓存服务；仅有进程内缓存。
+- 远端固件 advisory TTL 缓存在 `custom_components/lipro/firmware_manifest.py`。
+- MQTT 连接/订阅状态缓存在 `custom_components/lipro/core/mqtt/mqtt_client.py`。
+- 命令 pacing / 重试状态缓存在 `custom_components/lipro/core/api/request_policy.py`。
+- 分享 worker token / upload 窗口缓存在 `custom_components/lipro/core/anonymous_share/share_client.py`。
+
+## Authentication & Identity
+
+**Auth Provider:**
+- Custom vendor account auth。
+  - Implementation: `custom_components/lipro/config_flow.py` → `custom_components/lipro/entry_auth.py` → `custom_components/lipro/core/auth/manager.py` → `custom_components/lipro/core/api/endpoints/auth.py` → `custom_components/lipro/core/api/client.py`。
+- Vendor protocol signing / transport identity。
+  - Implementation: REST 请求签名位于 `custom_components/lipro/core/api/transport_signing.py`；MQTT AES/HMAC 凭证派生位于 `custom_components/lipro/core/mqtt/credentials.py`；协议常量位于 `custom_components/lipro/const/api.py`。这些值是上游协议常量，不是部署期用户 secrets。
+
+## Monitoring & Observability
+
+**Error Tracking:**
+- External error-tracking SaaS: None detected.
+- 内建 exporter-backed telemetry 位于 `custom_components/lipro/core/telemetry/exporter.py`、`custom_components/lipro/core/telemetry/sinks.py`、`custom_components/lipro/control/telemetry_surface.py`。
+
+**Logs:**
+- Python `logging` 贯穿运行时；敏感信息遮罩位于 `custom_components/lipro/core/api/response_safety.py` 与 `custom_components/lipro/control/redaction.py`。
+- Diagnostics / System Health / Developer payload 出口位于 `custom_components/lipro/diagnostics.py`、`custom_components/lipro/system_health.py`、`custom_components/lipro/services/diagnostics/helpers.py`。
+- 外部边界漂移通过 `custom_components/lipro/core/protocol/boundary/*.py`、`tests/fixtures/external_boundaries/`、`tests/meta/test_external_boundary_authority.py`、`tests/meta/test_external_boundary_fixtures.py`、`tests/meta/test_firmware_support_manifest_repo_asset.py` 观察与约束。
+
+## CI/CD & Deployment
+
+**Hosting:**
+- 运行时宿主是用户自己的 Home Assistant。
+- 源码、Issue、Discussion、Release 与供应链证明宿主是 GitHub，对外入口由 `pyproject.toml` 与 `.github/*` 定义。
+
+**CI Pipeline:**
+- GitHub Actions CI 在 `.github/workflows/ci.yml`，包含 `lint`、`governance`、`security`、`test`、`benchmark`、`validate` 六类主门禁。
+- 发布在 `.github/workflows/release.yml`，复用 CI 后再执行 tagged runtime `pip-audit`、tagged `CodeQL`、SBOM、GitHub artifact attestation、`cosign` 签名与 release identity manifest。
+- 静态安全扫描在 `.github/workflows/codeql.yml`。
+- 依赖更新自动化位于 `.github/dependabot.yml`。
+
+## Environment Configuration
+
+**Required env vars:**
+- 正常 Home Assistant 运行：Not detected。
+- 本地开发：`LIPRO_DEVELOP_CONFIG_DIR`、`LIPRO_DEVELOP_SMOKE_ONLY`，定义于 `scripts/develop`。
+- 本地安全审计：`PIP_AUDIT_INCLUDE_DEV`，定义于 `scripts/lint`。
+- 安装脚本：`ARCHIVE_TAG`、`ARCHIVE_FILE`、`LIPRO_ALLOW_MIRROR`、`LIPRO_ALLOW_BRANCH_FALLBACK`、`LIPRO_INSTALL_MAX_FILES`、`LIPRO_INSTALL_MAX_UNCOMPRESSED_BYTES`、`LIPRO_INSTALL_MAX_SINGLE_FILE_BYTES`，定义于 `install.sh`。
+
+**Secrets location:**
+- 用户凭证与 token 保存在 Home Assistant config entry，入口位于 `custom_components/lipro/config_flow.py` 与 `custom_components/lipro/entry_auth.py`。
+- 分享 worker install token 仅保存在进程内存中，定义于 `custom_components/lipro/core/anonymous_share/share_client.py`。
+- 仓库根目录未检测到 `.env` 或其他运行时 secret 文件。
+
+## Webhooks & Callbacks
+
+**Incoming:**
+- None。
+- 实时外部回流仅通过 MQTT topic 进入 `custom_components/lipro/core/mqtt/*`，不存在 HTTP webhook receiver。
+
+**Outgoing:**
+- Vendor REST 调用从 `custom_components/lipro/core/api/client.py` 发往 `custom_components/lipro/const/api.py` 中定义的 `https://api-hilbert.lipro.com` 与 `https://api-mlink.lipro.com`。
+- Vendor MQTT TLS 连接从 `custom_components/lipro/core/mqtt/client_runtime.py` 发往 `custom_components/lipro/const/api.py` 中定义的 `post-cn-li93yvd5304.mqtt.aliyuncs.com:8883`。
+- 分享与支持上报从 `custom_components/lipro/core/anonymous_share/share_client.py` 发往 `https://lipro-share.lany.me/api/report` 与 `https://lipro-share.lany.me/api/token/refresh`。
+- 远端固件 advisory 从 `custom_components/lipro/firmware_manifest.py` 拉取 `https://lipro-share.lany.me/api/firmware-support` 与 `https://lipro-share.lany.me/firmware_support_manifest.json`；最终 `certified` 真相仍以 `custom_components/lipro/firmware_support_manifest.json` 为准。
+- GitHub release / attestation / code scanning 由 `.github/workflows/release.yml` 与 `.github/workflows/codeql.yml` 发起。
+
+---
+
+*Integration audit: 2026-03-19*

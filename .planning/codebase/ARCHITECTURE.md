@@ -1,6 +1,6 @@
 # ARCHITECTURE
-> Snapshot: `2026-03-18`
-> Freshness: Phase 37 对齐刷新；仅按 `AGENTS.md`、`.planning/{ROADMAP,REQUIREMENTS,STATE}.md`、`.planning/baseline/*.md`、`.planning/reviews/*.md`、`docs/developer_architecture.md` 与当前 CI/release/public-doc truth 截面成立。上述真源变更后，本图谱必须同步刷新或标记过时。
+> Snapshot: `2026-03-19`
+> Freshness: Phase 38 + 本次 arch/structure 终极审阅对齐刷新；仅按 `AGENTS.md`、`.planning/{ROADMAP,REQUIREMENTS,STATE}.md`、`.planning/baseline/*.md`、`.planning/reviews/*.md`、`docs/developer_architecture.md` 与当前 CI/release/public-doc truth 截面成立。上述真源变更后，本图谱必须同步刷新或标记过时。
 > Repository: `/var/tmp/coolvibe/worktrees/edf26778937a-/lipro-hass`
 > Focus: `arch`
 > Derived collaboration map: 本文件是受约束的协作图谱 / 派生视图，仅用于导航、协作与局部审阅。
@@ -39,7 +39,8 @@ Home Assistant entry / flow / service / entity
   -> custom_components/lipro/core/coordinator/services/*.py
   -> custom_components/lipro/core/protocol/facade.py
       -> custom_components/lipro/core/api/client.py
-      -> custom_components/lipro/core/mqtt/mqtt_client.py
+      -> custom_components/lipro/core/protocol/mqtt_facade.py
+          -> custom_components/lipro/core/mqtt/mqtt_client.py
   -> custom_components/lipro/core/protocol/contracts.py
   -> custom_components/lipro/core/protocol/boundary/*.py
   -> vendor REST / IoT / MQTT
@@ -49,15 +50,16 @@ Home Assistant entry / flow / service / entity
 - Control root：`custom_components/lipro/control/entry_lifecycle_controller.py`、`custom_components/lipro/control/service_registry.py`
 - Runtime root：`custom_components/lipro/coordinator_entry.py`、`custom_components/lipro/core/coordinator/coordinator.py`
 - Runtime wiring：`custom_components/lipro/core/coordinator/orchestrator.py`、`custom_components/lipro/core/coordinator/runtime_context.py`、`custom_components/lipro/core/coordinator/factory.py`
-- Protocol root：`custom_components/lipro/core/protocol/facade.py`
+- Protocol root：`custom_components/lipro/core/protocol/facade.py`；MQTT child façade home：`custom_components/lipro/core/protocol/mqtt_facade.py`
 - Canonical contract / boundary：`custom_components/lipro/core/protocol/contracts.py`、`custom_components/lipro/core/protocol/boundary/rest_decoder.py`、`custom_components/lipro/core/protocol/boundary/mqtt_decoder.py`
 - Domain truth：`custom_components/lipro/core/capability/registry.py`、`custom_components/lipro/core/device/device.py`、`custom_components/lipro/core/device/state.py`
 - Assurance truth：`custom_components/lipro/core/telemetry/exporter.py`、`tests/meta/*.py`、`tests/harness/**`
 
-## 2.1 Phase 35-37 Sustainment Delta
+## 2.1 Phase 35-38 Sustainment Delta
 - protocol plane 已进一步收口为 `LiproProtocolFacade -> _RestFacadePort/LiproMqttFacade -> LiproRestFacade/MqttTransportClient`：`client_request_gateway.py` 与 `client_endpoint_surface.py` 只是 `LiproRestFacade` 的 localized collaborators，`rest_port.py` 与 `mqtt_facade.py` 只是 formal root 下的 child-facade contract/home，不构成新的 package-level root。
 - runtime plane 继续沿既有 home 收薄：`CoordinatorPollingService` 现承接 snapshot refresh / status polling / outlet power polling orchestration；`Coordinator` 仍是唯一 runtime root，只保留 HA-facing public entrypoints 与 root-owned wiring。
 - assurance plane 在 `Phase 37` 继续 topicize：`tests/core/test_init_service_handlers*.py`、`tests/core/test_init_runtime*.py` 与 `tests/meta/test_governance_phase_history*.py` 已成为稳定专题套件，聚合文件只保留极小 shared helpers，不再承载 mega-test 主体。
+- `Phase 38` 未引入新的 active residual family：external-boundary advisory naming 已完成 closeout，当前残留主要回到热点体量与命名认知负担，而不是主链归属漂移。
 
 ## 3. Five-Plane Mapping
 | Plane | 正式根 / 正式集合 | 目录归属 | 当前判断 |
@@ -132,24 +134,25 @@ Home Assistant entry / flow / service / entity
 
 ## 7. Compatibility Residuals And Leftovers
 正式登记且仍活跃的残留主要有（不含已关闭 seam）：
-- `_ClientBase` 与 `_Client*Mixin` helper spine：`custom_components/lipro/core/api/client_base.py`、`custom_components/lipro/core/api/client_*.py`、`custom_components/lipro/core/api/endpoints/*.py`
-- `LiproMqttClient` legacy naming：`custom_components/lipro/core/mqtt/mqtt_client.py`
-- helper-level compatibility envelope：`custom_components/lipro/core/api/power_service.py`
+- `client_*` collaborator cluster：`custom_components/lipro/core/api/client.py`、`custom_components/lipro/core/api/client_auth_recovery.py`、`custom_components/lipro/core/api/client_request_gateway.py`、`custom_components/lipro/core/api/client_endpoint_surface.py`、`custom_components/lipro/core/api/client_transport.py`、`custom_components/lipro/core/api/endpoints/*.py`。这些模块仍保留“mega client 拆片后”的历史命名，但都已退回 `LiproRestFacade` 的局部协作者。
+- localized transport naming：`custom_components/lipro/core/mqtt/mqtt_client.py` 中的 `MqttTransportClient`。它是 concrete transport，不是 protocol root，但文件名仍会让新读者误判层级。
+- proof-only bootstrap seam：`custom_components/lipro/headless/boot.py`。它被 `custom_components/lipro/config_flow.py` 复用做登录 bootstrap，但模块头部已显式声明自己是 local/proof-only seam，不构成第二 runtime/control story。
 
 与治理文档一致的判断：
 - `.planning/reviews/RESIDUAL_LEDGER.md` 把上述对象定义为显式 residual family，而不是正式 root；`custom_components/lipro/services/execution.py` 的 coordinator 私有 auth seam 已在 Phase 5 关闭，当前只保留正式 service execution facade。
-- `.planning/reviews/KILL_LIST.md` 继续把 `_ClientBase`、legacy endpoint mixin classes、`LiproMqttClient` naming 维持为 active delete gate。
+- `.planning/reviews/KILL_LIST.md` 当前仍把 `client_*` collaborator naming / helper shells 与 localized transport naming 视为 delete-gated cleanup 目标，但这类对象不再拥有 public-root 资格。
 - `custom_components/lipro/core/api/status_fallback.py` 与 `custom_components/lipro/control/developer_router_support.py` 已被治理文档明确定义为 helper home，不属于 public surface，也不属于新的正式 root。
 
 额外的代码级观察：
 - `custom_components/lipro/services/execution.py` 现在只保留正式 service execution home 身份；旧 private auth seam 已在 Phase 5 关闭，后续不应再被写回 active residual。
-- `custom_components/lipro/control/telemetry_surface.py` 仍通过 `client` 属性探测 protocol telemetry，而 `Coordinator` 的正式术语已经在 `custom_components/lipro/core/coordinator/coordinator.py` 收口为 `protocol`；`tests/integration/test_telemetry_exporter_integration.py` 目前也以 `client` stub 驱动该桥。这是命名层的残留接缝，不改变主链归属，但会增加维护认知成本。
+- `custom_components/lipro/control/runtime_access.py` 与 `custom_components/lipro/control/telemetry_surface.py` 现在只通过 `Coordinator.protocol` / `telemetry_service` 拉取 exporter truth；旧 `client` 术语已不再是 control-plane bridge 的正式输入。
+- 真正的维护热点已收敛为体量问题而非架构分裂：`custom_components/lipro/core/api/client.py`、`custom_components/lipro/core/coordinator/coordinator.py`、`custom_components/lipro/config_flow.py` 与 `custom_components/lipro/core/coordinator/runtime/device/snapshot.py` 仍是主要阅读成本来源。
 
 ## 8. Architecture Verdict
 结论不是“仓库仍有多条合法故事线”，而是：
 - 正式主链已经稳定：`control -> runtime -> protocol -> canonical boundary -> vendor`
 - 目录归属已经与五平面基本对齐：control、runtime、protocol、domain、assurance 各有明确 home
 - public surface 已由 baseline + meta guards 固化，不再依赖历史导出习惯
-- 兼容层已被压缩到少量可计数 residual：`_ClientBase` family、`LiproMqttClient` naming、少数 helper-level seams
+- 兼容层已被压缩到少量可计数 residual：`client_*` collaborator naming、localized `MqttTransportClient` transport naming、少数 proof/helper seams
 
 一句话裁决：**`lipro-hass` 当前是“正式主链成立、兼容残留可数、保障面强约束”的北极星收尾态，而不是仍处于双架构并存态。**
