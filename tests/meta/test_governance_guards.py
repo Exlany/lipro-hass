@@ -145,9 +145,13 @@ def _parse_codeowners_handles(text: str) -> list[str]:
 
 
 def _assert_current_mode_tracks_phase_lifecycle(state_text: str) -> None:
-    assert re.search(
-        r"\*\*Current mode:\*\* `Phase \d+(?:\.\d+)? [a-z][a-z0-9_ -]+`",
-        state_text,
+    assert (
+        re.search(
+            r"\*\*Current mode:\*\* `Phase \d+(?:\.\d+)? [a-z][a-z0-9_ -]+`",
+            state_text,
+        )
+        is not None
+        or "**Current mode:** `v1.5 archived`" in state_text
     )
 
 
@@ -201,6 +205,8 @@ def _assert_state_preserves_phase_17_closeout_history(state_text: str) -> None:
     )
     assert (
         "**Current mode:** `Phase 40 execution-ready`" in state_text
+        or "**Current mode:** `Phase 40 complete`" in state_text
+        or "**Current mode:** `v1.5 archived`" in state_text
         or re.search(
             r"\*\*Current mode:\*\* `Phase 4\d(?:\.\d+)? [a-z][a-z0-9_ -]+`",
             state_text,

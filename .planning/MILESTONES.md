@@ -74,3 +74,27 @@
 - `.planning/phases/39-governance-current-story-convergence-control-home-clarification-and-mega-test-decomposition/39-VERIFICATION.md`
 
 ---
+
+
+## v1.5 Governance Truth Consolidation & Control-Surface Finalization (Shipped: 2026-03-19)
+
+**Phase range:** `40`
+**Phases completed:** 1 phase, 7 plans, 0 tasks
+**Status:** archived / evidence-ready
+
+**Key accomplishments:**
+- unified active truth, archive identity, promoted phase assets, and continuity order into one current-story contract
+- introduced `.planning/baseline/GOVERNANCE_REGISTRY.json` as machine-readable governance truth and synchronized release/support/install routing
+- converged control/services runtime reads through `runtime_access` and removed parallel traversal / lookup stories
+- unified schedule service auth/error execution through the formal shared executor and closed touched naming residue
+
+**Closeout assets:**
+- `.planning/v1.5-MILESTONE-AUDIT.md`
+- `.planning/reviews/V1_5_EVIDENCE_INDEX.md`
+- `.planning/milestones/v1.5-ROADMAP.md`
+- `.planning/milestones/v1.5-REQUIREMENTS.md`
+- `.planning/phases/40-governance-truth-consolidation-runtime-access-convergence-and-service-execution-unification/40-SUMMARY.md`
+- `.planning/phases/40-governance-truth-consolidation-runtime-access-convergence-and-service-execution-unification/40-VERIFICATION.md`
+- `.planning/phases/40-governance-truth-consolidation-runtime-access-convergence-and-service-execution-unification/40-VALIDATION.md`
+
+---

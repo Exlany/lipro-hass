@@ -39,8 +39,8 @@
 
 - `.planning/MILESTONES.md`
 - `.planning/milestones/*.md`
-- `.planning/v1.4-MILESTONE-AUDIT.md`
-- `.planning/reviews/V1_4_EVIDENCE_INDEX.md`
+- `.planning/v1.5-MILESTONE-AUDIT.md`
+- `.planning/reviews/V1_5_EVIDENCE_INDEX.md`
 
 ## Phase 资产身份与开源治理
 

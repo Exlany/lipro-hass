@@ -39,8 +39,10 @@ def _assert_state_reflects_post_v1_4_continuation(state_text: str) -> None:
         "`Phase 39 complete`" in state_text
         or "Phase 40 execution-ready" in state_text
         or "Phase 40 complete" in state_text
+        or "v1.5 archived" in state_text
         or "$gsd-execute-phase 40" in state_text
         or "$gsd-complete-milestone v1.5" in state_text
+        or "$gsd-new-milestone" in state_text
     )
 
 _ROOT = repo_root(Path(__file__))
@@ -151,6 +153,18 @@ def test_promoted_phase_assets_manifest_enforces_explicit_ci_evidence() -> None:
         "39-06-PLAN.md",
         "39-VALIDATION.md",
     )
+    _assert_phase_assets_not_promoted(
+        "40-governance-truth-consolidation-runtime-access-convergence-and-service-execution-unification",
+        "40-CONTEXT.md",
+        "40-01-PLAN.md",
+        "40-02-PLAN.md",
+        "40-03-PLAN.md",
+        "40-04-PLAN.md",
+        "40-05-PLAN.md",
+        "40-06-PLAN.md",
+        "40-07-PLAN.md",
+        "40-VALIDATION.md",
+    )
 
 
 def test_v1_1_closeout_assets_exist_and_are_pull_only() -> None:
@@ -258,6 +272,8 @@ def test_milestone_archive_snapshots_exist_and_are_referenced() -> None:
         _ROOT / ".planning" / "milestones" / "v1.2-REQUIREMENTS.md",
         _ROOT / ".planning" / "milestones" / "v1.4-ROADMAP.md",
         _ROOT / ".planning" / "milestones" / "v1.4-REQUIREMENTS.md",
+        _ROOT / ".planning" / "milestones" / "v1.5-ROADMAP.md",
+        _ROOT / ".planning" / "milestones" / "v1.5-REQUIREMENTS.md",
     )
 
     for path in archive_paths:
@@ -270,6 +286,8 @@ def test_milestone_archive_snapshots_exist_and_are_referenced() -> None:
         "v1.2-REQUIREMENTS.md",
         "v1.4-ROADMAP.md",
         "v1.4-REQUIREMENTS.md",
+        "v1.5-ROADMAP.md",
+        "v1.5-REQUIREMENTS.md",
     ):
         assert needle in roadmap_text
         assert needle in requirements_text or needle in project_text or needle in milestones_text
@@ -279,7 +297,11 @@ def test_milestone_archive_snapshots_exist_and_are_referenced() -> None:
     assert "archived snapshots created / handoff-ready" in milestones_text
     assert "revalidated 2026-03-17" in milestones_text
     assert ".planning/v1.4-MILESTONE-AUDIT.md" in milestones_text
+    assert ".planning/v1.5-MILESTONE-AUDIT.md" in milestones_text
     assert "V1_4_EVIDENCE_INDEX.md" in milestones_text
+    assert "V1_5_EVIDENCE_INDEX.md" in milestones_text
+    assert ".planning/v1.5-MILESTONE-AUDIT.md" in milestones_text
+    assert "V1_5_EVIDENCE_INDEX.md" in milestones_text
 
     v1_1_archive_text = (
         _ROOT / ".planning" / "milestones" / "v1.1-ROADMAP.md"
@@ -632,3 +654,74 @@ def test_phase_39_planning_truth_is_consistent() -> None:
     _assert_state_keeps_forward_progress_commands(state_text)
     assert "## Phase 39 Residual Delta" in residual_text
     assert "## Phase 39 Status Update" in kill_text
+
+
+def test_v1_5_closeout_assets_exist_and_are_pull_only() -> None:
+    evidence_index = _ROOT / ".planning" / "reviews" / "V1_5_EVIDENCE_INDEX.md"
+    milestone_audit = _ROOT / ".planning" / "v1.5-MILESTONE-AUDIT.md"
+
+    assert evidence_index.exists()
+    assert milestone_audit.exists()
+    assert (_ROOT / ".planning" / "milestones" / "v1.5-ROADMAP.md").exists()
+    assert (_ROOT / ".planning" / "milestones" / "v1.5-REQUIREMENTS.md").exists()
+    assert (_ROOT / ".planning" / "phases" / "40-governance-truth-consolidation-runtime-access-convergence-and-service-execution-unification" / "40-VALIDATION.md").exists()
+    _assert_promoted_phase_assets(
+        "40-governance-truth-consolidation-runtime-access-convergence-and-service-execution-unification",
+        "40-SUMMARY.md",
+        "40-VERIFICATION.md",
+    )
+
+    evidence_text = evidence_index.read_text(encoding="utf-8")
+    assert "## Pull Contract" in evidence_text
+    assert "40-VERIFICATION.md" in evidence_text
+    assert "archive-ready / shipped" in evidence_text
+    assert "V1_5_EVIDENCE_INDEX.md" in evidence_text
+
+
+def test_governance_truth_registers_v1_5_closeout_assets() -> None:
+    authority_text = (
+        _ROOT / ".planning" / "baseline" / "AUTHORITY_MATRIX.md"
+    ).read_text(encoding="utf-8")
+    public_text = (
+        _ROOT / ".planning" / "baseline" / "PUBLIC_SURFACES.md"
+    ).read_text(encoding="utf-8")
+    milestones_text = (_ROOT / ".planning" / "MILESTONES.md").read_text(encoding="utf-8")
+
+    assert "V1_5_EVIDENCE_INDEX.md" in authority_text
+    assert "v1.5-MILESTONE-AUDIT.md" in authority_text
+    assert "V1_5_EVIDENCE_INDEX.md" in public_text
+    assert "## v1.5 Governance Truth Consolidation & Control-Surface Finalization" in milestones_text
+
+
+def test_phase_40_closeout_truth_is_consistent() -> None:
+    roadmap_text = (_ROOT / ".planning" / "ROADMAP.md").read_text(encoding="utf-8")
+    requirements_text = (_ROOT / ".planning" / "REQUIREMENTS.md").read_text(encoding="utf-8")
+    project_text = (_ROOT / ".planning" / "PROJECT.md").read_text(encoding="utf-8")
+    state_text = (_ROOT / ".planning" / "STATE.md").read_text(encoding="utf-8")
+
+    assert "## v1.5: Governance Truth Consolidation & Control-Surface Finalization" in roadmap_text
+    assert "**Archive status:** `shipped / archived (2026-03-19)`" in roadmap_text
+    assert "40-VALIDATION.md" in roadmap_text
+
+    for needle in (
+        "| GOV-33 | Phase 40 | Complete |",
+        "| QLT-11 | Phase 40 | Complete |",
+        "| CTRL-09 | Phase 40 | Complete |",
+        "| ERR-10 | Phase 40 | Complete |",
+        "| RES-10 | Phase 40 | Complete |",
+        "- v1.5 routed requirements: 5 total",
+        "- Current mapped: 5",
+        "- Current complete: 5",
+        "- Current pending: 0",
+        "## Next Milestone Seed",
+    ):
+        assert needle in requirements_text
+
+    assert "## Archived Milestone (v1.5)" in project_text
+    assert "**Default next step:** `$gsd-new-milestone`" in project_text
+    assert ".planning/reviews/V1_5_EVIDENCE_INDEX.md" in project_text
+
+    assert "milestone: v1.5" in state_text
+    assert "status: archived" in state_text
+    assert "**Current mode:** `Phase 40 complete and archived`" in state_text
+    assert "$gsd-new-milestone" in state_text

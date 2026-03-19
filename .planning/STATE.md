@@ -2,8 +2,8 @@
 gsd_state_version: 1.0
 milestone: v1.5
 milestone_name: Governance Truth Consolidation & Control-Surface Finalization
-status: active
-last_updated: "2026-03-19T14:19:25Z"
+status: archived
+last_updated: "2026-03-19T14:40:02Z"
 progress:
   total_phases: 1
   completed_phases: 1
@@ -19,10 +19,11 @@ See: `.planning/PROJECT.md`
 
 **Current milestone:** `v1.5 Governance Truth Consolidation & Control-Surface Finalization`
 **Core value:** 在不回退 `LiproProtocolFacade` / `Coordinator` 单一正式主链的前提下，把 authority layering、machine-readable governance truth、runtime-access read-model 与 shared service execution contract 收口成更诚实、更可守护的 current story。
-**Current mode:** `Phase 40 complete`；`v1.4` 已于 `2026-03-19` 完成 archive promotion，`Phase 40` 已完成执行与验证，当前默认 next action 为 `$gsd-complete-milestone v1.5`。
+**Current mode:** `Phase 40 complete and archived`；`v1.5` 已完成 milestone audit 与 archive promotion，当前默认 next action 为 `$gsd-new-milestone`。
 
 ## Current Position
 
+- `v1.5` 已完成 milestone audit、archive promotion 与 local tag：`.planning/v1.5-MILESTONE-AUDIT.md`、`.planning/milestones/v1.5-ROADMAP.md`、`.planning/milestones/v1.5-REQUIREMENTS.md` 现为最新 archive baseline。
 - `v1.0` 已归档到 `.planning/MILESTONES.md` 与 `.planning/milestones/v1.0-*.md`
 - `v1.1` 已完成全部计划执行：`15 phases / 58 plans` 全绿落表
 - `v1.1` / `v1.2` 的 roadmap / requirements archive snapshots 已落入 `.planning/milestones/`，后续里程碑可停止复用同一份历史 planning truth
@@ -138,17 +139,18 @@ See: `.planning/PROJECT.md`
 
 - **Milestone:** `v1.5 Governance Truth Consolidation & Control-Surface Finalization`
 - **Phase range:** `40`
-- **Completed so far:** `Phase 40`（7/7 plans executed and verified）
+- **Completed so far:** `Phase 40`（7/7 plans executed, validated, audited, and archived）
+- **Closeout assets:** `.planning/v1.5-MILESTONE-AUDIT.md`, `.planning/reviews/V1_5_EVIDENCE_INDEX.md`, `.planning/milestones/v1.5-ROADMAP.md`, `.planning/milestones/v1.5-REQUIREMENTS.md`, `.planning/phases/40-governance-truth-consolidation-runtime-access-convergence-and-service-execution-unification/40-SUMMARY.md`, `.planning/phases/40-governance-truth-consolidation-runtime-access-convergence-and-service-execution-unification/40-VERIFICATION.md`, `.planning/phases/40-governance-truth-consolidation-runtime-access-convergence-and-service-execution-unification/40-VALIDATION.md`, local tag `v1.5`
 - **Starting baseline:** `v1.4` archive assets remain authoritative historical snapshots: `.planning/v1.4-MILESTONE-AUDIT.md`, `.planning/reviews/V1_4_EVIDENCE_INDEX.md`, `.planning/milestones/v1.4-ROADMAP.md`, `.planning/milestones/v1.4-REQUIREMENTS.md`, local tag `v1.4`
-- **Historical archives:** `.planning/milestones/v1.1-ROADMAP.md`, `.planning/milestones/v1.1-REQUIREMENTS.md`, `.planning/milestones/v1.2-ROADMAP.md`, `.planning/milestones/v1.2-REQUIREMENTS.md`, `.planning/milestones/v1.4-ROADMAP.md`, `.planning/milestones/v1.4-REQUIREMENTS.md`
-- **Next focus:** `$gsd-complete-milestone v1.5`——完成 milestone closeout、归档 `Phase 40` 证据，并维持 active/archive 单一 current story。
+- **Historical archives:** `.planning/milestones/v1.1-ROADMAP.md`, `.planning/milestones/v1.1-REQUIREMENTS.md`, `.planning/milestones/v1.2-ROADMAP.md`, `.planning/milestones/v1.2-REQUIREMENTS.md`, `.planning/milestones/v1.4-ROADMAP.md`, `.planning/milestones/v1.4-REQUIREMENTS.md`, `.planning/milestones/v1.5-ROADMAP.md`, `.planning/milestones/v1.5-REQUIREMENTS.md`
+- **Next focus:** `$gsd-new-milestone`——定义下一轮 active milestone / requirements / roadmap，保持 archive/current truth 单一分层。
 
 ## Recommended Next Command
 
-1. `$gsd-complete-milestone v1.5` —— 完成 `v1.5` 里程碑关账与归档
-2. `$gsd-progress` —— 查看 `v1.5` 当前状态与 traceability
-3. `uv run ruff check . && uv run mypy` —— 复核当前工作树静态质量
-4. `uv run pytest -q tests/meta/test_governance*.py tests/meta/test_public_surface_guards.py tests/meta/test_version_sync.py tests/meta/test_toolchain_truth.py` —— 复核 governance snapshot
+1. `$gsd-new-milestone` —— 启动下一轮 milestone，定义 fresh requirements / roadmap / state
+2. `$gsd-progress` —— 查看当前 archived status 与 latest closeout traceability
+3. `uv run pytest -q tests/meta/test_governance*.py tests/meta/test_public_surface_guards.py tests/meta/test_version_sync.py tests/meta/test_toolchain_truth.py` —— 复核 archive truth 与 latest closeout pointer
+4. `uv run ruff check . && uv run mypy` —— 复核静态质量基线
 
 **Historical launch pointer:** `$gsd-execute-phase 29`
 
@@ -160,30 +162,31 @@ If resuming, read in this order:
 3. `.planning/ROADMAP.md`
 4. `.planning/REQUIREMENTS.md`
 5. `.planning/STATE.md`
-6. `.planning/baseline/GOVERNANCE_REGISTRY.json`
-7. `.planning/baseline/AUTHORITY_MATRIX.md`
-8. `.planning/baseline/PUBLIC_SURFACES.md`
-9. `.planning/baseline/DEPENDENCY_MATRIX.md`
-10. `.planning/baseline/VERIFICATION_MATRIX.md`
-11. `.planning/reviews/PROMOTED_PHASE_ASSETS.md`
-12. `.planning/reviews/FILE_MATRIX.md`
-13. `.planning/reviews/RESIDUAL_LEDGER.md`
-14. `.planning/reviews/KILL_LIST.md`
-15. `docs/developer_architecture.md`
-16. `AGENTS.md`
-17. `CLAUDE.md`
-18. `.planning/phases/40-governance-truth-consolidation-runtime-access-convergence-and-service-execution-unification/40-VERIFICATION.md`
-19. `.planning/phases/40-governance-truth-consolidation-runtime-access-convergence-and-service-execution-unification/40-SUMMARY.md`
-20. `.planning/phases/39-governance-current-story-convergence-control-home-clarification-and-mega-test-decomposition/39-VERIFICATION.md`
-21. `.planning/phases/39-governance-current-story-convergence-control-home-clarification-and-mega-test-decomposition/39-SUMMARY.md`
-22. `.planning/phases/38-external-boundary-residual-retirement-and-quality-signal-hardening/38-VERIFICATION.md`
-23. `.planning/phases/38-external-boundary-residual-retirement-and-quality-signal-hardening/38-SUMMARY.md`
-24. `.planning/reviews/V1_4_EVIDENCE_INDEX.md`
-25. `.planning/v1.4-MILESTONE-AUDIT.md`
-26. `.planning/MILESTONES.md`
-27. `.planning/v1.3-HANDOFF.md`
-28. `.planning/phases/32-truth-convergence-gate-honesty-and-quality-10-closeout/32-CONTEXT.md`
-29. `.planning/phases/32-truth-convergence-gate-honesty-and-quality-10-closeout/32-RESEARCH.md`
-30. `.planning/phases/31-runtime-service-typed-budget-and-exception-closure/31-VERIFICATION.md`
-31. `.planning/phases/30-protocol-control-typed-contract-tightening/30-VERIFICATION.md`
-32. `.planning/phases/24-final-milestone-audit-archive-readiness-and-v1-3-handoff-prep/24-VERIFICATION.md`
+6. `.planning/reviews/V1_5_EVIDENCE_INDEX.md`
+7. `.planning/v1.5-MILESTONE-AUDIT.md`
+8. `.planning/milestones/v1.5-ROADMAP.md`
+9. `.planning/milestones/v1.5-REQUIREMENTS.md`
+10. `.planning/baseline/GOVERNANCE_REGISTRY.json`
+11. `.planning/baseline/AUTHORITY_MATRIX.md`
+12. `.planning/baseline/PUBLIC_SURFACES.md`
+13. `.planning/baseline/DEPENDENCY_MATRIX.md`
+14. `.planning/baseline/VERIFICATION_MATRIX.md`
+15. `.planning/reviews/PROMOTED_PHASE_ASSETS.md`
+16. `.planning/reviews/FILE_MATRIX.md`
+17. `.planning/reviews/RESIDUAL_LEDGER.md`
+18. `.planning/reviews/KILL_LIST.md`
+19. `docs/developer_architecture.md`
+20. `AGENTS.md`
+21. `CLAUDE.md`
+22. `.planning/phases/40-governance-truth-consolidation-runtime-access-convergence-and-service-execution-unification/40-VALIDATION.md`
+23. `.planning/phases/40-governance-truth-consolidation-runtime-access-convergence-and-service-execution-unification/40-VERIFICATION.md`
+24. `.planning/phases/40-governance-truth-consolidation-runtime-access-convergence-and-service-execution-unification/40-SUMMARY.md`
+25. `.planning/reviews/V1_4_EVIDENCE_INDEX.md`
+26. `.planning/v1.4-MILESTONE-AUDIT.md`
+27. `.planning/MILESTONES.md`
+28. `.planning/v1.3-HANDOFF.md`
+29. `.planning/phases/39-governance-current-story-convergence-control-home-clarification-and-mega-test-decomposition/39-VERIFICATION.md`
+30. `.planning/phases/39-governance-current-story-convergence-control-home-clarification-and-mega-test-decomposition/39-SUMMARY.md`
+31. `.planning/phases/38-external-boundary-residual-retirement-and-quality-signal-hardening/38-VERIFICATION.md`
+32. `.planning/phases/38-external-boundary-residual-retirement-and-quality-signal-hardening/38-SUMMARY.md`
+33. `.planning/phases/24-final-milestone-audit-archive-readiness-and-v1-3-handoff-prep/24-VERIFICATION.md`

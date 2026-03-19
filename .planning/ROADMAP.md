@@ -6,7 +6,8 @@
 - ✅ **v1.1 Protocol Fidelity & Operability** - Phases 7.1-17 complete; final audit complete; milestone snapshots archived at `.planning/milestones/v1.1-ROADMAP.md` / `.planning/milestones/v1.1-REQUIREMENTS.md` (updated 2026-03-16)
 - ✅ **v1.2 Host-Neutral Core & Replay Completion** - Phases 18-24 complete after Phase 24 reopen revalidation; 24 plans complete; milestone snapshots archived at `.planning/milestones/v1.2-ROADMAP.md` / `.planning/milestones/v1.2-REQUIREMENTS.md`; `v1.3` handoff-ready (revalidated 2026-03-17)
 - ✅ **v1.4 Sustainment, Trust Gates & Final Hotspot Burn-down** - Phases 34-39 shipped 2026-03-19; milestone audit: `.planning/v1.4-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_4_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.4-ROADMAP.md` / `.planning/milestones/v1.4-REQUIREMENTS.md`; local tag: `v1.4`
-- 🚧 **v1.5 Governance Truth Consolidation & Control-Surface Finalization** - starts with Phase 40 on 2026-03-19; focuses on authority layering, machine-readable governance truth, runtime-access convergence, and shared service execution closure
+- ✅ **v1.5 Governance Truth Consolidation & Control-Surface Finalization** - Phase 40 shipped 2026-03-19; milestone audit: `.planning/v1.5-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_5_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.5-ROADMAP.md` / `.planning/milestones/v1.5-REQUIREMENTS.md`; local tag: `v1.5`
+- 💤 **No active milestone** - next route should begin with `$gsd-new-milestone` and fresh requirements definition
 
 ## Required Phase Outputs
 
@@ -321,13 +322,19 @@ Plans:
 
 ## Current Milestone
 
-### 🚧 v1.4: Sustainment, Trust Gates & Final Hotspot Burn-down
+### ✅ v1.5: Governance Truth Consolidation & Control-Surface Finalization
 
-**Milestone Goal:** 在保持 `LiproProtocolFacade` / `Coordinator` 单一正式主链、`custom_components/lipro/control/` formal home 与 external-boundary 单一真源的前提下，完成 continuity / release trust、protocol/runtime hotspots、typed exception hardening、governance current-story convergence 与 mega-test topology 收口，并将其归档为 `v1.4` 历史基线。
+**Milestone Goal:** 在不回退 `LiproProtocolFacade` / `Coordinator` 单一正式主链、也不把 archive snapshot 误升为 active truth 的前提下，完成 governance truth layering、runtime-access read-model 与 shared service execution contract 的最终收口，并将其归档为 `v1.5` 历史基线。
 
-**Execution Scope:** `Phase 34 -> Phase 39`（6 phases / 19 plans）
+**Execution Scope:** `Phase 40`（1 phase / 7 plans）
 
-**Current Status:** `Phase 34` 到 `Phase 39` 已全部完成（19/19 plans executed，2026-03-19）；`v1.4` 的 milestone audit 已通过，归档快照已写入 `.planning/milestones/v1.4-ROADMAP.md` / `.planning/milestones/v1.4-REQUIREMENTS.md`，`V1_4_EVIDENCE_INDEX.md` 已成为最新 pull-only closeout pointer，本地 tag `v1.4` 已创建。当前默认下一步是执行 `$gsd-new-milestone`。
+**Current Status:** `Phase 40` 已于 `2026-03-19` 完成执行、验证、审计与 archive promotion；归档快照已写入 `.planning/milestones/v1.5-ROADMAP.md` / `.planning/milestones/v1.5-REQUIREMENTS.md`，`V1_5_EVIDENCE_INDEX.md` 已成为最新 pull-only closeout pointer，本地 tag `v1.5` 已创建。当前默认下一步是执行 `$gsd-new-milestone`。
+
+**Milestone Outcomes:**
+1. authority precedence、archive identity、promoted phase assets 与 derived collaboration maps 已统一到单一 current story。
+2. machine-readable governance registry 已成为 continuity / release / install / support truth 的正式补充真源。
+3. `runtime_access` 已成为 control/services 的唯一 runtime read-model home。
+4. `schedule.py` 已并回 shared service execution contract，并完成 touched naming residue 收口。
 
 
 ### Phase 18: Host-Neutral Boundary Nucleus Extraction
@@ -735,7 +742,10 @@ Plans:
 
 ## v1.5: Governance Truth Consolidation & Control-Surface Finalization
 
-> `v1.4` 已归档，但 fresh audit 仍留下三类高价值尾债：governance truth layering 漂移、control-plane runtime read-model 分叉，以及 service auth/error 执行链重复。`v1.5` 从 `Phase 40` 起，继续沿单一北极星主链做最后一轮 current-truth 与 read-model 收口，不回退 compat/legacy 第二故事线。
+> `v1.5` 已于 2026-03-19 完成 milestone audit、archive promotion 与 local tag；以下保留 `Phase 40` 的最终路线快照，archive snapshots 见 `.planning/milestones/v1.5-ROADMAP.md` / `.planning/milestones/v1.5-REQUIREMENTS.md`，审计裁决见 `.planning/v1.5-MILESTONE-AUDIT.md`。
+
+**Archive status:** `shipped / archived (2026-03-19)`
+**Archive assets:** `.planning/v1.5-MILESTONE-AUDIT.md`, `.planning/milestones/v1.5-ROADMAP.md`, `.planning/milestones/v1.5-REQUIREMENTS.md`, `.planning/phases/40-governance-truth-consolidation-runtime-access-convergence-and-service-execution-unification/40-SUMMARY.md`, `.planning/phases/40-governance-truth-consolidation-runtime-access-convergence-and-service-execution-unification/40-VERIFICATION.md`, `.planning/phases/40-governance-truth-consolidation-runtime-access-convergence-and-service-execution-unification/40-VALIDATION.md`, local tag `v1.5`
 
 ### Phase 40: Governance truth consolidation, runtime-access convergence, and service execution unification
 
@@ -749,11 +759,21 @@ Plans:
 **Status**: Complete (`2026-03-19`)
 **Plans**: 7/7 complete
 
+- [x] **Phase 40:** Governance truth consolidation, runtime-access convergence, and service execution unification (completed 2026-03-19)
+
 Plans:
-- [x] 40-01: align current-story docs with active truth and archive identity
-- [x] 40-02: sync baseline authority and governance guards with v1.5 truth
-- [x] 40-03: add governance registry and release/support/runbook truth
-- [x] 40-04: sync contributor templates and drift guards to registry-backed truth
-- [x] 40-05: converge runtime-access read model and harden runtime-only guards
-- [x] 40-06: unify shared service execution contract for schedule flows
-- [x] 40-07: retire touched naming residue and finalize review-guard sync
+- [x] 40-01: align current-story docs with active truth and archive identity (completed 2026-03-19)
+- [x] 40-02: sync baseline authority and governance guards with v1.5 truth (completed 2026-03-19)
+- [x] 40-03: add governance registry and release/support/runbook truth (completed 2026-03-19)
+- [x] 40-04: sync contributor templates and drift guards to registry-backed truth (completed 2026-03-19)
+- [x] 40-05: converge runtime-access read model and harden runtime-only guards (completed 2026-03-19)
+- [x] 40-06: unify shared service execution contract for schedule flows (completed 2026-03-19)
+- [x] 40-07: retire touched naming residue and finalize review-guard sync (completed 2026-03-19)
+
+
+**Milestone status:** `Archived / evidence-ready`
+**Closeout assets:** `.planning/v1.5-MILESTONE-AUDIT.md`, `.planning/reviews/V1_5_EVIDENCE_INDEX.md`, `.planning/milestones/v1.5-ROADMAP.md`, `.planning/milestones/v1.5-REQUIREMENTS.md`, `.planning/phases/40-governance-truth-consolidation-runtime-access-convergence-and-service-execution-unification/40-VALIDATION.md`, local tag `v1.5`
+
+## Next Milestone Seed
+
+> `v1.5` 已完成归档；后续任何新 work 都必须从 `$gsd-new-milestone` 开始，不得继续在 `v1.5` current story 上追加隐式 phase。

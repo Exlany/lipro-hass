@@ -1,10 +1,11 @@
 # Project: Lipro-HASS North Star Evolution
 
-**Status:** Active closeout — `Phase 40` 已于 `2026-03-19` 完成执行与验证；`v1.5` 当前进入 milestone closeout-ready，下一步建议 `$gsd-complete-milestone v1.5`。
-**Goal:** 以 `v1.4` 归档真相为稳定基线，完成 post-archive governance consolidation、control-plane read-model convergence 与 service execution unification，不留下 placeholder、compat folklore 或 second-story drift。
+**Status:** Shipped and archived — `v1.5` 已于 `2026-03-19` 完成 milestone audit 与 archive promotion；当前没有 active milestone，默认下一步是 `$gsd-new-milestone`。
+**Goal:** 以 `v1.5` 归档真相为最新 shipped baseline，保持 governance truth、runtime read-model 与 shared service execution contract 的单一裁决，并为下一轮 milestone 提供干净起点。
+**Default next step:** `$gsd-new-milestone`
 
 
-## Active Milestone (v1.5)
+## Archived Milestone (v1.5)
 
 **Name:** `v1.5 Governance Truth Consolidation & Control-Surface Finalization`
 
@@ -18,8 +19,9 @@
 - 不用“兼容壳保留”来掩盖 stale naming、forwarding residue 或 governance drift
 
 **Phase range:** `Phase 40`
-**Current status:** `Phase 40 complete`（seven executable plans executed and verified on `2026-03-19`; next action is `$gsd-complete-milestone v1.5`）
+**Current status:** `Phase 40 archived`（seven executable plans executed, validated, audited, and archived on `2026-03-19`; next action is `$gsd-new-milestone`）
 **Primary closeout targets:** authority layering、machine-readable governance truth、runtime-access read-model convergence、shared service execution contract、touched naming residue 收口。
+**Archive assets:** `.planning/v1.5-MILESTONE-AUDIT.md`, `.planning/reviews/V1_5_EVIDENCE_INDEX.md`, `.planning/milestones/v1.5-ROADMAP.md`, `.planning/milestones/v1.5-REQUIREMENTS.md`, `.planning/phases/40-governance-truth-consolidation-runtime-access-convergence-and-service-execution-unification/40-SUMMARY.md`, `.planning/phases/40-governance-truth-consolidation-runtime-access-convergence-and-service-execution-unification/40-VERIFICATION.md`, `.planning/phases/40-governance-truth-consolidation-runtime-access-convergence-and-service-execution-unification/40-VALIDATION.md`, local tag `v1.5`
 
 ## Archived Milestone (v1.4)
 
@@ -479,17 +481,18 @@ v1.1 进入执行期后，新增演进必须额外满足：
 
 ## Current Execution Workspace Inputs
 
+- `.planning/reviews/V1_5_EVIDENCE_INDEX.md`
+- `.planning/v1.5-MILESTONE-AUDIT.md`
+- `.planning/milestones/v1.5-ROADMAP.md`
+- `.planning/milestones/v1.5-REQUIREMENTS.md`
+- `.planning/phases/40-governance-truth-consolidation-runtime-access-convergence-and-service-execution-unification/40-VALIDATION.md`
 - `.planning/phases/40-governance-truth-consolidation-runtime-access-convergence-and-service-execution-unification/40-VERIFICATION.md`
 - `.planning/phases/40-governance-truth-consolidation-runtime-access-convergence-and-service-execution-unification/40-SUMMARY.md`
-- `.planning/phases/39-governance-current-story-convergence-control-home-clarification-and-mega-test-decomposition/39-VERIFICATION.md`
-- `.planning/phases/39-governance-current-story-convergence-control-home-clarification-and-mega-test-decomposition/39-SUMMARY.md`
-- `.planning/phases/38-external-boundary-residual-retirement-and-quality-signal-hardening/38-VERIFICATION.md`
-- `.planning/phases/38-external-boundary-residual-retirement-and-quality-signal-hardening/38-SUMMARY.md`
-- `.planning/reviews/V1_4_EVIDENCE_INDEX.md`
 - `.planning/v1.4-MILESTONE-AUDIT.md`
+- `.planning/reviews/V1_4_EVIDENCE_INDEX.md`
 - `.planning/milestones/v1.4-ROADMAP.md`
 - `.planning/milestones/v1.4-REQUIREMENTS.md`
 
-- 当前工作区输入以 `Phase 40` promoted evidence 与 `v1.4` archive bundle 为主；phase 目录资产仍默认是执行证据，只有被 `ROADMAP.md`、baseline docs、review ledgers 或 milestone audit 显式提升时，才成为长期治理真源。
+- 当前 handoff / archive 输入以 `v1.5` audit + archive bundle 为主；`Phase 40` promoted evidence 与 `v1.4` archive bundle 共同构成下一里程碑的历史基线。phase 目录资产仍默认是执行证据，只有被 `ROADMAP.md`、baseline docs、review ledgers 或 milestone audit 显式提升时，才成为长期治理真源。
 
-*Last updated: 2026-03-19 after Phase 40 execution verification and v1.5 closeout-ready promotion*
+*Last updated: 2026-03-19 after v1.5 milestone archive, audit, and tag promotion*

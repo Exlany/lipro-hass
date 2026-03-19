@@ -1,6 +1,6 @@
 # Requirements: Lipro-HASS
 
-> Archived milestone snapshots: `.planning/milestones/v1.1-REQUIREMENTS.md`, `.planning/milestones/v1.2-REQUIREMENTS.md`, `.planning/milestones/v1.4-REQUIREMENTS.md`
+> Archived milestone snapshots: `.planning/milestones/v1.1-REQUIREMENTS.md`, `.planning/milestones/v1.2-REQUIREMENTS.md`, `.planning/milestones/v1.4-REQUIREMENTS.md`, `.planning/milestones/v1.5-REQUIREMENTS.md`
 
 ## Core Requirements
 
@@ -233,7 +233,7 @@
 - mapped to phases: 65
 - unmapped: 0 ✓
 
-*Last updated: 2026-03-19 after v1.4 milestone archive and closeout promotion*
+*Last updated: 2026-03-19 after v1.5 milestone archive and closeout promotion*
 
 
 ## Archived Milestone (v1.2)
@@ -412,9 +412,9 @@
 - Current unmapped: 0 ✓
 
 
-## Active Milestone (v1.5)
+## Archived Milestone (v1.5)
 
-> `v1.5 / Phase 40` 以 `v1.4` archive truth 为基线，继续收口 governance truth layering、runtime-access read-model 与 shared service execution contract；archive snapshot 继续保留历史价值，但不再与 active truth 并列为 current source。
+> `v1.5` 已于 `2026-03-19` 完成归档；以下 requirements / traceability 保留 `Phase 40` 的最终 fulfilled contract，归档快照见 `.planning/milestones/v1.5-REQUIREMENTS.md`，审计裁决见 `.planning/v1.5-MILESTONE-AUDIT.md`，证据入口见 `.planning/reviews/V1_5_EVIDENCE_INDEX.md`。
 
 ### Governance Truth & Control-Surface Finalization
 
@@ -424,7 +424,7 @@
 - [x] **ERR-10**: service-layer auth/error execution contract 必须统一到正式 shared executor；`schedule.py` 不得继续复制 coordinator auth chain、旁路 reauth 语义或独立 broad arbitration story。
 - [x] **RES-10**: touched protocol/runtime/service hotspots 中的 `client` / `forwarding` / `mixin` stale terminology 必须继续收口到 `protocol` / `port` / `facade` / `operations` 语义；compat-leaning wording 只允许留在历史文档或显式 residual 账本中。
 
-## Traceability for v1.5 route
+## Traceability for archived v1.5 route
 
 | Requirement | Planned Phase | Status |
 |-------------|---------------|--------|
