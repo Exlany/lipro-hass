@@ -277,7 +277,7 @@
 
 ## Phase 35 Residual Delta
 
-- `client.py` / `facade.py` 的热点已继续 inward 到 localized collaborators：`transport_executor.py`、`endpoint_surface.py`、`rest_port.py` 与 `mqtt_facade.py` 现在承接具体复杂度，但它们都没有升级成新的 public root 或 compat shell。
+- `client.py` 已收窄为 stable import home，`rest_facade.py` / `request_gateway.py` / `transport_executor.py` / `endpoint_surface.py` / `rest_port.py` 与 `mqtt_facade.py` 继续承接内部复杂度；它们都没有升级成新的 public root 或 compat shell。
 - `LiproRestFacade` / `LiproProtocolFacade` 仍保留为 formal child/root story；remaining residual 仅是后续可继续优化的 body-size maintainability debt，不再是 public-surface honesty seam。
 - 本 phase **无新增 active residual family / second-root story / export growth**；关闭的是 protocol hotspot ballast 与 forwarding glue 漂浮。
 

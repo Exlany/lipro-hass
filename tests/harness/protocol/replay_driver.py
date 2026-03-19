@@ -155,7 +155,14 @@ class ProtocolReplayDriver:
                 public_path=public_path,
                 canonical=canonical,
             )
-        except Exception as err:  # noqa: BLE001
+        except (
+            AssertionError,
+            AttributeError,
+            LookupError,
+            RuntimeError,
+            TypeError,
+            ValueError,
+        ) as err:
             failure_summary = build_failure_summary_from_exception(
                 err,
                 failure_origin="protocol.replay",

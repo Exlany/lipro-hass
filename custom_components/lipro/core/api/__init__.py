@@ -1,8 +1,8 @@
 """Lipro API package.
 
 `LiproRestFacade` is the explicit REST child facade under the unified
-`LiproProtocolFacade` protocol root. Package exports now expose only the
-formal REST surface, not legacy compat constructors.
+`LiproProtocolFacade` protocol root. Package exports expose only the
+formal REST surface, not transport/auth internals.
 """
 
 from __future__ import annotations

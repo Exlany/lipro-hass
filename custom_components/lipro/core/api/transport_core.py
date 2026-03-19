@@ -15,7 +15,7 @@ from .response_safety import (
     INVALID_JSON_LOG_PREVIEW_MAX_CHARS as _INVALID_JSON_LOG_PREVIEW_MAX_CHARS,
 )
 
-_LOGGER = logging.getLogger("custom_components.lipro.core.api.client")
+_LOGGER = logging.getLogger("custom_components.lipro.core.api")
 
 
 class TransportCore:

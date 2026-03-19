@@ -1,6 +1,6 @@
 # File Matrix
 
-**Python files total:** 496
+**Python files total:** 498
 **Status:** File-level governance authority
 **Rule:** workspace inventory excluding caches / virtual env / tooling artifacts
 
@@ -69,10 +69,12 @@
 | `custom_components/lipro/core/api/observability.py` | Protocol | Phase 2 | 重构 | - |
 | `custom_components/lipro/core/api/power_service.py` | Protocol | Phase 2 | 重构 | - |
 | `custom_components/lipro/core/api/request_codec.py` | Protocol | Phase 2 | 重构 | - |
+| `custom_components/lipro/core/api/request_gateway.py` | Protocol | Phase 2 | 重构 | - |
 | `custom_components/lipro/core/api/request_policy.py` | Protocol | Phase 2 | 重构 | - |
-| `custom_components/lipro/core/api/request_shell.py` | Protocol | Phase 2 | 重构 | - |
 | `custom_components/lipro/core/api/response_safety.py` | Protocol | Phase 2 | 重构 | - |
 | `custom_components/lipro/core/api/rest_facade.py` | Protocol | Phase 2 | 重构 | - |
+| `custom_components/lipro/core/api/rest_facade_endpoint_methods.py` | Protocol | Phase 2 | 重构 | - |
+| `custom_components/lipro/core/api/rest_facade_request_methods.py` | Protocol | Phase 2 | 重构 | - |
 | `custom_components/lipro/core/api/schedule_codec.py` | Protocol | Phase 2 | 重构 | - |
 | `custom_components/lipro/core/api/schedule_endpoint.py` | Protocol | Phase 2 | 重构 | - |
 | `custom_components/lipro/core/api/schedule_service.py` | Protocol | Phase 2 / 14 | 重构 | helper-only schedule support |

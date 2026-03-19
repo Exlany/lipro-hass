@@ -13,6 +13,7 @@
 - `.planning/reviews/FILE_MATRIX.md`
 - `.planning/reviews/RESIDUAL_LEDGER.md`
 - `.planning/reviews/KILL_LIST.md`
+- `.planning/reviews/PROMOTED_PHASE_ASSETS.md`（`.planning/phases/**` 只有这里显式登记的资产才算长期治理 / CI 证据；未登记 phase 文件继续按执行痕迹处理）
 - `.planning/baseline/VERIFICATION_MATRIX.md`
 - `.planning/baseline/AUTHORITY_MATRIX.md`
 

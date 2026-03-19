@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from .test_governance_closeout_guards import _assert_promoted_phase_assets
 from .test_governance_guards import (
     _AGENTS,
     _ROOT,
@@ -11,26 +12,22 @@ from .test_governance_guards import (
 
 def test_phase_30_31_typed_closeout_truth_is_consistent() -> None:
     handoff_text = (_ROOT / ".planning" / "v1.3-HANDOFF.md").read_text(encoding="utf-8")
-    validation_30_text = (
-        _ROOT
-        / ".planning"
-        / "phases"
-        / "30-protocol-control-typed-contract-tightening"
-        / "30-VALIDATION.md"
-    ).read_text(encoding="utf-8")
+
+    _assert_promoted_phase_assets(
+        "30-protocol-control-typed-contract-tightening",
+        "30-VERIFICATION.md",
+    )
+    _assert_promoted_phase_assets(
+        "31-runtime-service-typed-budget-and-exception-closure",
+        "31-VERIFICATION.md",
+    )
+
     verification_30_text = (
         _ROOT
         / ".planning"
         / "phases"
         / "30-protocol-control-typed-contract-tightening"
         / "30-VERIFICATION.md"
-    ).read_text(encoding="utf-8")
-    validation_31_text = (
-        _ROOT
-        / ".planning"
-        / "phases"
-        / "31-runtime-service-typed-budget-and-exception-closure"
-        / "31-VALIDATION.md"
     ).read_text(encoding="utf-8")
     verification_31_text = (
         _ROOT
@@ -56,20 +53,11 @@ def test_phase_30_31_typed_closeout_truth_is_consistent() -> None:
         in handoff_text
     )
 
-    assert "status: passed" in validation_30_text
-    assert "30-01-01" in validation_30_text and "✅ passed" in validation_30_text
-    assert "30-02-01" in validation_30_text and "✅ passed" in validation_30_text
-    assert "30-03-02" in validation_30_text and "✅ passed" in validation_30_text
-    assert "30-VERIFICATION.md" in validation_30_text
     assert "# Phase 30 Verification" in verification_30_text
     assert "status: passed" in verification_30_text
     assert "18 passed" in verification_30_text
     assert "215 passed" in verification_30_text
 
-    assert "status: passed" in validation_31_text
-    assert "31-01-01" in validation_31_text and "✅ passed" in validation_31_text
-    assert "31-04-02" in validation_31_text and "✅ passed" in validation_31_text
-    assert "31-VERIFICATION.md" in validation_31_text
     assert "# Phase 31 Verification" in verification_31_text
     assert "status: passed" in verification_31_text
     assert "sanctioned_any" in verification_31_text
@@ -111,6 +99,12 @@ def test_execution_service_is_not_marked_as_active_runtime_auth_seam() -> None:
 
 
 def test_phase_16_execution_truth_is_consistent() -> None:
+    _assert_promoted_phase_assets(
+        "16-post-audit-truth-alignment-hotspot-decomposition-and-residual-endgame",
+        "16-VALIDATION.md",
+        "16-VERIFICATION.md",
+    )
+
     phase_root = (
         _ROOT
         / ".planning"
@@ -168,26 +162,14 @@ def test_phase_16_execution_truth_is_consistent() -> None:
     )
     assert "## Phase 16 Closeout Contract" in verification_matrix_text
 
-    for artifact_name in (
-        "16-PRD.md",
-        "16-CONTEXT.md",
-        "16-RESEARCH.md",
-        "16-VALIDATION.md",
-        "16-01-PLAN.md",
-        "16-02-PLAN.md",
-        "16-03-PLAN.md",
-        "16-04-PLAN.md",
-        "16-05-PLAN.md",
-        "16-06-PLAN.md",
-        "16-03-SUMMARY.md",
-        "16-04-SUMMARY.md",
-        "16-05-SUMMARY.md",
-        "16-06-SUMMARY.md",
-    ):
-        assert (phase_root / artifact_name).exists()
-
 
 def test_phase_17_execution_truth_is_consistent() -> None:
+    _assert_promoted_phase_assets(
+        "17-final-residual-retirement-typed-contract-tightening-and-milestone-closeout",
+        "17-VALIDATION.md",
+        "17-VERIFICATION.md",
+    )
+
     phase_root = (
         _ROOT
         / ".planning"
@@ -244,24 +226,14 @@ def test_phase_17_execution_truth_is_consistent() -> None:
     assert "69 / 69" in audit_text
     assert "15 / 15" in audit_text
 
-    for artifact_name in (
-        "17-CONTEXT.md",
-        "17-RESEARCH.md",
-        "17-01-PLAN.md",
-        "17-02-PLAN.md",
-        "17-03-PLAN.md",
-        "17-04-PLAN.md",
-        "17-01-SUMMARY.md",
-        "17-02-SUMMARY.md",
-        "17-03-SUMMARY.md",
-        "17-04-SUMMARY.md",
-        "17-VALIDATION.md",
-        "17-VERIFICATION.md",
-    ):
-        assert (phase_root / artifact_name).exists()
-
 
 def test_phase_19_execution_truth_is_consistent() -> None:
+    _assert_promoted_phase_assets(
+        "19-headless-consumer-proof-adapter-demotion",
+        "19-VALIDATION.md",
+        "19-VERIFICATION.md",
+    )
+
     phase_root = (
         _ROOT / ".planning" / "phases" / "19-headless-consumer-proof-adapter-demotion"
     )
@@ -309,22 +281,6 @@ def test_phase_19_execution_truth_is_consistent() -> None:
     assert "status: passed" in validation_text
     assert "status: passed" in verification_text
 
-    for artifact_name in (
-        "19-CONTEXT.md",
-        "19-RESEARCH.md",
-        "19-01-PLAN.md",
-        "19-02-PLAN.md",
-        "19-03-PLAN.md",
-        "19-04-PLAN.md",
-        "19-01-SUMMARY.md",
-        "19-02-SUMMARY.md",
-        "19-03-SUMMARY.md",
-        "19-04-SUMMARY.md",
-        "19-VALIDATION.md",
-        "19-VERIFICATION.md",
-    ):
-        assert (phase_root / artifact_name).exists()
-
 
 def test_phase_22_observability_consumer_governance_truth_is_synced() -> None:
     verification_matrix_text = (
@@ -351,18 +307,21 @@ def test_phase_22_observability_consumer_governance_truth_is_synced() -> None:
 
 
 def test_phase_36_execution_evidence_is_consistent() -> None:
+    _assert_promoted_phase_assets(
+        "36-runtime-root-and-exception-burn-down",
+        "36-SUMMARY.md",
+        "36-VERIFICATION.md",
+    )
+
     phase_root = (
         _ROOT
         / ".planning"
         / "phases"
         / "36-runtime-root-and-exception-burn-down"
     )
-    validation_text = (phase_root / "36-VALIDATION.md").read_text(encoding="utf-8")
     verification_text = (phase_root / "36-VERIFICATION.md").read_text(encoding="utf-8")
     summary_text = (phase_root / "36-SUMMARY.md").read_text(encoding="utf-8")
 
-    assert "status: passed" in validation_text
-    assert "36-01-01" in validation_text and "✅ passed" in validation_text
     assert "# Phase 36 Verification" in verification_text
     assert "CoordinatorPollingService" in verification_text
     assert "phase: 36" in summary_text

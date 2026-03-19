@@ -114,7 +114,7 @@ async def test_execute_request_invalid_json_reads_and_truncates_stream_body() ->
 async def test_execute_request_logs_response_when_debug_enabled(caplog) -> None:
     executor = _build_executor()
 
-    caplog.set_level(logging.DEBUG, logger="custom_components.lipro.core.api.client")
+    caplog.set_level(logging.DEBUG, logger="custom_components.lipro.core.api")
 
     response = _DummyResponse(
         status=200,

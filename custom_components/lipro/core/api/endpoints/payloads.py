@@ -11,7 +11,7 @@ from ...utils.identifiers import (
 )
 from ..types import JsonObject, JsonValue, LoginResponse, ScheduleTimingRow
 
-_LOGGER = logging.getLogger("custom_components.lipro.core.api.client")
+_LOGGER = logging.getLogger("custom_components.lipro.core.api")
 
 
 def _is_json_object(value: object) -> TypeGuard[JsonObject]:

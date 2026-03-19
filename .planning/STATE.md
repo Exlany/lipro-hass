@@ -126,6 +126,11 @@ See: `.planning/PROJECT.md`
 9. `AGENTS.md`
 10. `CLAUDE.md`（若使用 Claude Code）
 
+## Phase Asset Promotion Contract
+
+- `.planning/reviews/PROMOTED_PHASE_ASSETS.md` 是 `.planning/phases/**` 的显式 promoted allowlist。
+- 未列入 allowlist 的 phase `PLAN / CONTEXT / RESEARCH / PRD` 与临时 closeout 文件默认保持执行痕迹身份，不作为长期治理 / CI 证据。
+
 ## Current Milestone Status
 
 - **Milestone:** `v1.2 Host-Neutral Core & Replay Completion`

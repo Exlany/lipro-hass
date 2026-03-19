@@ -39,7 +39,7 @@ from .transport_retry import TransportRetry
 from .transport_signing import TransportSigning
 from .types import JsonObject, JsonValue
 
-_LOGGER = logging.getLogger("custom_components.lipro.core.api.client")
+_LOGGER = logging.getLogger("custom_components.lipro.core.api")
 
 type ResponseHeaders = dict[str, str]
 MappingRequestSender = Callable[

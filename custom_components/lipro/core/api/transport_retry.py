@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable
 
 
-_LOGGER = logging.getLogger("custom_components.lipro.core.api.client")
+_LOGGER = logging.getLogger("custom_components.lipro.core.api")
 
 
 class TransportRetry:

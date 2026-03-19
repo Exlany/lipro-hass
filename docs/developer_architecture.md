@@ -21,7 +21,8 @@
 | Service 层 | `core/coordinator/services/` | API 稳定边界层 |
 | 数据容器 | `core/coordinator/factory.py` | CoordinatorRuntimes + StateContainers |
 | 设备模型 | `core/device/device.py` | LiproDevice 薄 facade |
-| REST Child Façade | `core/api/client.py` | 统一协议根下的 REST formal façade |
+| REST Child Façade | `core/api/client.py` | `LiproRestFacade` 稳定 public import home |
+| REST Composition Root | `core/api/rest_facade.py` | REST child façade 显式组合根 |
 | MQTT Transport | `core/mqtt/transport.py` | MQTT 实时通信 |
 | 实体基类 | `entities/base.py` | 防抖 + 乐观更新 + CoordinatorEntity |
 | 描述符 | `entities/descriptors.py` | 声明式属性描述符 |
@@ -243,7 +244,9 @@ Coordinator
 
 ### API Client / Protocol Plane (`core/api/`, `core/mqtt/`)
 
-- `client.py`：`LiproRestFacade` 是唯一正式 REST child façade；其残余仅限 `core/api` 内部 typing/helper spine，而非 compat shell
+- `client.py`：`LiproRestFacade` 的稳定 public import home，保证 formal import story 不随内部瘦身漂移
+- `rest_facade.py`：`LiproRestFacade` 的显式组合根，负责装配 auth / transport / endpoint / request gateway 协作者
+- `request_gateway.py`：localized request-pipeline collaborator，承接 retry-aware mapping request 流程
 - `core/api/`：`LiproRestFacade` + transport / auth / endpoint collaborators；高漂移 REST 形态在 `core/protocol/boundary/rest_decoder.py` 与 `CanonicalProtocolContracts` 中先完成 canonicalization
 - `core/protocol/boundary/rest_decoder.py`：保留 family metadata、decoder classes 与 public wrappers；pure canonicalization helpers 已下沉到同 family 的 `rest_decoder_support.py`，避免把 payload-shape glue 继续堆回 decoder root。
 - `core/command/result_policy.py`：承接 command-result classification / retry / delayed-refresh policy；`result.py` 保留 patch-friendly arbitration seam 与 failure trace writing。
@@ -450,7 +453,9 @@ custom_components/lipro/
 │   │       ├── mqtt_service.py
 │   │       └── device_refresh_service.py
 │   ├── api/                       # REST / IoT protocol slice
-│   │   ├── client.py              # `LiproRestFacade` + explicit endpoint collaborators
+│   │   ├── client.py              # `LiproRestFacade` 稳定 import home
+│   │   ├── rest_facade.py         # explicit REST child-façade composition root
+│   │   ├── request_gateway.py     # retry-aware request pipeline collaborator
 │   │   ├── endpoints/             # 按域拆分端点
 │   │   └── transport_*.py         # 请求核心/重试/签名
 │   ├── mqtt/                      # MQTT protocol slice（child façade under LiproProtocolFacade）

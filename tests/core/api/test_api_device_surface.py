@@ -154,10 +154,10 @@ class TestLiproRestFacadeDeviceStatus:
         with (
             patch.object(client, "_iot_request", side_effect=mock_request),
             patch(
-                "custom_components.lipro.core.api.client._LOGGER.warning"
+                "custom_components.lipro.core.api.endpoints.status._LOGGER.warning"
             ) as mock_warning,
             patch(
-                "custom_components.lipro.core.api.client._LOGGER.debug"
+                "custom_components.lipro.core.api.endpoints.status._LOGGER.debug"
             ) as mock_debug,
         ):
             result = await client.query_device_status(["03ab5ccd7cxxxxxx"])
@@ -200,7 +200,7 @@ class TestLiproRestFacadeDeviceStatus:
         with (
             patch.object(client, "_iot_request", side_effect=mock_request),
             patch(
-                "custom_components.lipro.core.api.client._LOGGER.warning"
+                "custom_components.lipro.core.api.endpoints.status._LOGGER.warning"
             ) as mock_warning,
         ):
             result = await client.query_device_status(["03ab5ccd7cxxxxxx"])

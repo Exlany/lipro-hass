@@ -45,9 +45,7 @@ from ..schedule_service import (
 from .connect_status import coerce_connect_status
 from .payloads import _EndpointAdapter
 
-# Use the same logger instance as custom_components.lipro.core.api.client._LOGGER
-# so tests patching client._LOGGER.* still intercept logs here.
-_LOGGER = logging.getLogger("custom_components.lipro.core.api.client")
+_LOGGER = logging.getLogger("custom_components.lipro.core.api")
 
 
 def _decode_schedule_json_boundary(payload: object) -> dict[str, list[int]]:

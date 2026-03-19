@@ -74,7 +74,8 @@
 正式协议根：
 
 - `custom_components/lipro/core/protocol/facade.py` → `LiproProtocolFacade`
-- `custom_components/lipro/core/api/client.py` → `LiproRestFacade`（Phase 2 正式 REST 子门面）
+- `custom_components/lipro/core/api/client.py` → `LiproRestFacade` 稳定 public import home
+- `custom_components/lipro/core/api/rest_facade.py` → `LiproRestFacade` 显式组合根
 - `custom_components/lipro/core/mqtt/*` → MQTT transport / child-facade collaborators
 
 裁决：

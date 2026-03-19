@@ -23,9 +23,7 @@ from ..power_service import (
 from ..types import JsonObject, OtaInfoRow
 from .payloads import _EndpointAdapter
 
-# Use the same logger instance as custom_components.lipro.core.api.client._LOGGER
-# so tests patching client._LOGGER.* still intercept logs here.
-_LOGGER = logging.getLogger("custom_components.lipro.core.api.client")
+_LOGGER = logging.getLogger("custom_components.lipro.core.api")
 
 type ResponseMapping = JsonObject
 

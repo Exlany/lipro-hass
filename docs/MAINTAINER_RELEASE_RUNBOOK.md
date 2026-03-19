@@ -58,7 +58,7 @@ uv run ruff check .
 uv run mypy
 uv run python scripts/check_architecture_policy.py --check
 uv run python scripts/check_file_matrix.py --check
-uv run pytest -q tests/meta/test_governance*.py tests/meta/test_version_sync.py tests/meta/test_toolchain_truth.py
+uv run pytest -q tests/meta/test_governance*.py tests/meta/test_toolchain_truth.py tests/meta/test_version_sync.py
 ```
 
 ## Release Freeze / Custody Truth

@@ -38,9 +38,7 @@ if TYPE_CHECKING:
     from collections.abc import Callable
 
 
-# Use the same logger instance as custom_components.lipro.core.api.client._LOGGER
-# so tests patching client._LOGGER.* still intercept logs here.
-_LOGGER = logging.getLogger("custom_components.lipro.core.api.client")
+_LOGGER = logging.getLogger("custom_components.lipro.core.api")
 
 _BATCH_FALLBACK_EXPECTED_OFFLINE_CODES = (
     ERROR_DEVICE_OFFLINE,

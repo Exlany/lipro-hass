@@ -44,7 +44,7 @@
 
 ## Phase 35 Protocol Hotspot Final Slimming Notes
 
-- `LiproRestFacade` 仍是唯一 canonical REST child façade，但 request pipeline 与 endpoint forwarding 复杂度已正式下沉到 `transport_executor.py` 与 `endpoint_surface.py`；它们只是 localized collaborators，不是新 public roots。
+- `LiproRestFacade` 仍是唯一 canonical REST child façade；`client.py` 只保留 stable import home，request pipeline / endpoint forwarding 复杂度已正式下沉到 `request_gateway.py`、`transport_executor.py` 与 `endpoint_surface.py`，它们只是 localized collaborators，不是新 public roots。
 - `LiproProtocolFacade` 继续是唯一 protocol-plane root；`rest_port.py` 只是 typed REST child-façade port，`mqtt_facade.py` 只是 MQTT child façade home，二者都不得被上层当作 package-level alternative root。
 - 本 phase 只切薄 formal root / child façade body，不新增 package export、不回流 `__getattr__` 式隐式扩面，也不改变外部 formal import story。
 

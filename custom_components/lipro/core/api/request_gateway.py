@@ -1,9 +1,8 @@
-"""Compatibility request shell for the formal REST facade.
+"""Request gateway helpers for the formal REST façade.
 
-This module isolates the remaining retry-aware request helpers that still exist
-for compatibility and patch seams. The formal `LiproRestFacade` stays the only
-public REST root; this shell simply keeps legacy helper semantics explicit and
-contained.
+This module keeps retry-aware mapping flows close to the REST façade without
+inflating the composition root. It is a localized collaborator, not a second
+public root.
 """
 
 from __future__ import annotations
@@ -26,8 +25,8 @@ MappingRequestSender = Callable[[], Awaitable[tuple[int, Any, dict[str, str], st
 _MappingPayloadT = TypeVar("_MappingPayloadT")
 
 
-class RestRequestCompatFacade(Protocol):
-    """Minimal facade contract consumed by the compatibility request shell."""
+class RestRequestGatewayFacade(Protocol):
+    """Minimal façade contract consumed by the localized request gateway."""
 
     @property
     def access_token(self) -> str | None: ...
@@ -79,15 +78,14 @@ class RestRequestCompatFacade(Protocol):
         success_payload: Callable[[dict[str, Any]], _MappingPayloadT],
     ) -> _MappingPayloadT: ...
 
-    @staticmethod
-    def unwrap_iot_success_payload(result: dict[str, Any]) -> Any: ...
+    def unwrap_iot_success_payload(self, result: dict[str, Any]) -> Any: ...
 
 
-class RestRequestCompatShell:
-    """Host the remaining retry-aware request helpers behind an explicit seam."""
+class RestRequestGateway:
+    """Host retry-aware request helpers behind one explicit collaborator."""
 
-    def __init__(self, facade: RestRequestCompatFacade) -> None:
-        """Bind the shell to the canonical REST facade instance."""
+    def __init__(self, facade: RestRequestGatewayFacade) -> None:
+        """Bind the gateway to the canonical REST façade instance."""
         self._facade = facade
 
     async def request_smart_home_mapping(
@@ -292,4 +290,4 @@ class RestRequestCompatShell:
         )
 
 
-__all__ = ["RestRequestCompatShell"]
+__all__ = ["RestRequestGateway"]

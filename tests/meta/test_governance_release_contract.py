@@ -46,6 +46,7 @@ def test_ci_and_release_workflows_share_governance_and_version_gates() -> None:
     governance_steps = ci_workflow["jobs"]["governance"]["steps"]
     governance_runs = "\n".join(step.get("run", "") for step in governance_steps)
     assert "tests/meta/test_governance*.py" in governance_runs
+    assert "tests/meta/test_toolchain_truth.py" in governance_runs
     assert "tests/meta/test_version_sync.py" in governance_runs
 
     security_job = ci_workflow["jobs"]["security"]
@@ -186,6 +187,14 @@ def test_governance_closeout_suite_is_wired_into_daily_gate_commands() -> None:
         ci_text,
     ):
         assert "tests/meta/test_governance*.py" in text
+
+    for text in (
+        contributing_text,
+        pre_commit_text,
+        runbook_text,
+        ci_text,
+    ):
+        assert "tests/meta/test_toolchain_truth.py" in text
 
 
 def test_contributor_contract_matches_ci_language() -> None:

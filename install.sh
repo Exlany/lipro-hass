@@ -1,7 +1,8 @@
 #!/bin/bash
 # One-click install script for Lipro Smart Home integration
 #
-# Supported release-install path:
+# Supported install paths:
+#   bash install.sh                          # default: resolve the latest tagged release
 #   bash install.sh --archive-file ./lipro-hass-v1.0.0.zip --checksum-file ./SHA256SUMS
 #
 # Advanced / preview-only remote paths:
@@ -52,11 +53,16 @@ error() {
 show_help() {
     cat <<'HELP'
 Usage:
+  bash install.sh
   bash install.sh --archive-file <lipro-hass-vX.Y.Z.zip> --checksum-file <SHA256SUMS>
+
+Default remote path:
+  bash install.sh              # resolves the latest tagged release
 
 Advanced / preview-only remote paths:
   ARCHIVE_TAG=main bash install.sh
   ARCHIVE_TAG=<branch> LIPRO_ALLOW_BRANCH_FALLBACK=1 bash install.sh
+  ARCHIVE_TAG=main LIPRO_ALLOW_MIRROR=1 HUB_DOMAIN=<mirror> bash install.sh
 
 Options:
   --archive-file <path>   Local release zip path (supported path)

@@ -38,7 +38,7 @@ Home Assistant entry / flow / service / entity
   -> custom_components/lipro/core/coordinator/orchestrator.py
   -> custom_components/lipro/core/coordinator/services/*.py
   -> custom_components/lipro/core/protocol/facade.py
-      -> custom_components/lipro/core/api/client.py
+      -> custom_components/lipro/core/api/rest_facade.py
       -> custom_components/lipro/core/protocol/mqtt_facade.py
           -> custom_components/lipro/core/mqtt/transport.py
   -> custom_components/lipro/core/protocol/contracts.py
@@ -134,7 +134,7 @@ Home Assistant entry / flow / service / entity
 
 ## 7. Compatibility Residuals And Leftovers
 正式登记且仍活跃的残留主要有（不含已关闭 seam）：
-- REST collaborator cluster：`custom_components/lipro/core/api/client.py`、`custom_components/lipro/core/api/auth_recovery.py`、`custom_components/lipro/core/api/session_state.py`、`custom_components/lipro/core/api/transport_executor.py`、`custom_components/lipro/core/api/endpoint_surface.py`、`custom_components/lipro/core/api/endpoints/*.py`。命名已基本显式化，剩余热点主要是 `client.py` 的 façade 体量，而不是协作者命名。
+- REST collaborator cluster：`custom_components/lipro/core/api/rest_facade.py`、`custom_components/lipro/core/api/request_gateway.py`、`custom_components/lipro/core/api/auth_recovery.py`、`custom_components/lipro/core/api/session_state.py`、`custom_components/lipro/core/api/transport_executor.py`、`custom_components/lipro/core/api/endpoint_surface.py`、`custom_components/lipro/core/api/endpoints/*.py`。命名已基本显式化，剩余热点主要是 `rest_facade.py` 的 façade 体量，而不是协作者命名。
 - `custom_components/lipro/core/mqtt/transport.py` 中的 `MqttTransport` 现在是显式 concrete transport home；配合 package no-export，它不再构成 active naming residual。
 - proof-only bootstrap seam：`custom_components/lipro/headless/boot.py`。它被 `custom_components/lipro/config_flow.py` 复用做登录 bootstrap，但模块头部已显式声明自己是 local/proof-only seam，不构成第二 runtime/control story。
 
@@ -146,7 +146,7 @@ Home Assistant entry / flow / service / entity
 额外的代码级观察：
 - `custom_components/lipro/services/execution.py` 现在只保留正式 service execution home 身份；旧 private auth seam 已在 Phase 5 关闭，后续不应再被写回 active residual。
 - `custom_components/lipro/control/runtime_access.py` 与 `custom_components/lipro/control/telemetry_surface.py` 现在只通过 `Coordinator.protocol` / `telemetry_service` 拉取 exporter truth；旧 `client` 术语已不再是 control-plane bridge 的正式输入。
-- 真正的维护热点已收敛为体量问题而非架构分裂：`custom_components/lipro/core/api/client.py`、`custom_components/lipro/core/coordinator/coordinator.py`、`custom_components/lipro/config_flow.py` 与 `custom_components/lipro/core/coordinator/runtime/device/snapshot.py` 仍是主要阅读成本来源。
+- 真正的维护热点已收敛为体量问题而非架构分裂：`custom_components/lipro/core/api/rest_facade.py`、`custom_components/lipro/core/coordinator/coordinator.py`、`custom_components/lipro/config_flow.py` 与 `custom_components/lipro/core/coordinator/runtime/device/snapshot.py` 仍是主要阅读成本来源。
 
 ## 8. Architecture Verdict
 结论不是“仓库仍有多条合法故事线”，而是：

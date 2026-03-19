@@ -19,7 +19,7 @@
 
 **Vendor Cloud REST:**
 - Lipro Smart Home / IoT 云接口 - 提供登录、刷新 token、设备目录、状态、控制、日程、OTA 与调试能力。
-  - SDK/Client: `custom_components/lipro/core/protocol/facade.py` 的 `LiproProtocolFacade` 与 `custom_components/lipro/core/api/client.py` 的 `LiproRestFacade`；具体端点定义在 `custom_components/lipro/const/api.py` 与 `custom_components/lipro/core/api/endpoints/*.py`。
+  - SDK/Client: `custom_components/lipro/core/protocol/facade.py` 的 `LiproProtocolFacade`，以及 stable import home 在 `custom_components/lipro/core/api/client.py`、组合根在 `custom_components/lipro/core/api/rest_facade.py` 的 `LiproRestFacade`；具体端点定义在 `custom_components/lipro/const/api.py` 与 `custom_components/lipro/core/api/endpoints/*.py`。
   - Auth: 用户手机号/密码经 `custom_components/lipro/config_flow.py`、`custom_components/lipro/entry_auth.py`、`custom_components/lipro/core/auth/manager.py` 登录，access/refresh token 存储在 Home Assistant config entry。
 - 协议边界版本化与 authority chain - 用于吸收上游 payload 漂移。
   - SDK/Client: `custom_components/lipro/core/protocol/boundary/rest_decoder.py`，authority 指向 `tests/fixtures/api_contracts/*.json`。
@@ -66,7 +66,7 @@
 
 **Auth Provider:**
 - Custom vendor account auth。
-  - Implementation: `custom_components/lipro/config_flow.py` → `custom_components/lipro/entry_auth.py` → `custom_components/lipro/core/auth/manager.py` → `custom_components/lipro/core/api/endpoints/auth.py` → `custom_components/lipro/core/api/client.py`。
+  - Implementation: `custom_components/lipro/config_flow.py` → `custom_components/lipro/entry_auth.py` → `custom_components/lipro/core/auth/manager.py` → `custom_components/lipro/core/api/endpoints/auth.py` → `custom_components/lipro/core/api/rest_facade.py`。
 - Vendor protocol signing / transport identity。
   - Implementation: REST 请求签名位于 `custom_components/lipro/core/api/transport_signing.py`；MQTT AES/HMAC 凭证派生位于 `custom_components/lipro/core/mqtt/credentials.py`；协议常量位于 `custom_components/lipro/const/api.py`。这些值是上游协议常量，不是部署期用户 secrets。
 
@@ -113,7 +113,7 @@
 - 实时外部回流仅通过 MQTT topic 进入 `custom_components/lipro/core/mqtt/*`，不存在 HTTP webhook receiver。
 
 **Outgoing:**
-- Vendor REST 调用从 `custom_components/lipro/core/api/client.py` 发往 `custom_components/lipro/const/api.py` 中定义的 `https://api-hilbert.lipro.com` 与 `https://api-mlink.lipro.com`。
+- Vendor REST 调用从 `custom_components/lipro/core/api/rest_facade.py` 发往 `custom_components/lipro/const/api.py` 中定义的 `https://api-hilbert.lipro.com` 与 `https://api-mlink.lipro.com`。
 - Vendor MQTT TLS 连接从 `custom_components/lipro/core/mqtt/transport_runtime.py` 发往 `custom_components/lipro/const/api.py` 中定义的 `post-cn-li93yvd5304.mqtt.aliyuncs.com:8883`。
 - 分享与支持上报从 `custom_components/lipro/core/anonymous_share/share_client.py` 发往 `https://lipro-share.lany.me/api/report` 与 `https://lipro-share.lany.me/api/token/refresh`。
 - 远端固件 advisory 从 `custom_components/lipro/firmware_manifest.py` 拉取 `https://lipro-share.lany.me/api/firmware-support` 与 `https://lipro-share.lany.me/firmware_support_manifest.json`；最终 `certified` 真相仍以 `custom_components/lipro/firmware_support_manifest.json` 为准。

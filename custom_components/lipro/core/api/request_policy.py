@@ -18,7 +18,7 @@ from ..utils.retry_after import parse_retry_after as _parse_retry_after_util
 from . import response_safety as _response_safety
 from .errors import LiproApiError, LiproRateLimitError
 
-_LOGGER = logging.getLogger("custom_components.lipro.core.api.client")
+_LOGGER = logging.getLogger("custom_components.lipro.core.api")
 
 COMMAND_BUSY_RETRY_MAX_ATTEMPTS: Final = 3
 COMMAND_BUSY_RETRY_BASE_DELAY_SECONDS: Final = 0.25

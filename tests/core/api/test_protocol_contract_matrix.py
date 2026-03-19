@@ -11,7 +11,7 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 
 from custom_components.lipro.const.api import PATH_GET_CITY, PATH_QUERY_USER_CLOUD
-from custom_components.lipro.core.api.client import LiproRestFacade
+from custom_components.lipro.core.api import LiproRestFacade
 from custom_components.lipro.core.api.diagnostics_api_service import (
     get_city,
     query_user_cloud,

@@ -2,49 +2,122 @@
 
 from __future__ import annotations
 
+from functools import lru_cache
 from pathlib import Path
 
 from scripts.check_file_matrix import repo_root
 
+from .test_governance_guards import _load_frontmatter
+
 _ROOT = repo_root(Path(__file__))
+
+_PROMOTED_PHASE_ASSETS = _ROOT / ".planning" / "reviews" / "PROMOTED_PHASE_ASSETS.md"
+
+
+@lru_cache(maxsize=1)
+def _load_promoted_phase_assets() -> dict[str, frozenset[str]]:
+    manifest = _load_frontmatter(_PROMOTED_PHASE_ASSETS)
+    phases = manifest["phases"]
+    assert isinstance(phases, dict)
+
+    promoted_assets: dict[str, frozenset[str]] = {}
+    for phase_dir_name, filenames in phases.items():
+        assert isinstance(phase_dir_name, str)
+        assert isinstance(filenames, list)
+        assert filenames
+        promoted_assets[phase_dir_name] = frozenset(filenames)
+
+    return promoted_assets
+
+
+def _assert_promoted_phase_assets(phase_dir_name: str, *filenames: str) -> None:
+    promoted_assets = _load_promoted_phase_assets()
+    assert phase_dir_name in promoted_assets
+
+    phase_root = _ROOT / ".planning" / "phases" / phase_dir_name
+    for filename in filenames:
+        assert filename in promoted_assets[phase_dir_name]
+        assert (phase_root / filename).exists()
+
+
+def _assert_phase_assets_not_promoted(phase_dir_name: str, *filenames: str) -> None:
+    promoted_assets = _load_promoted_phase_assets().get(phase_dir_name, frozenset())
+
+    for filename in filenames:
+        assert filename not in promoted_assets
+
+
+def test_promoted_phase_assets_manifest_enforces_explicit_ci_evidence() -> None:
+    roadmap_text = (_ROOT / ".planning" / "ROADMAP.md").read_text(encoding="utf-8")
+    state_text = (_ROOT / ".planning" / "STATE.md").read_text(encoding="utf-8")
+    manifest = _load_frontmatter(_PROMOTED_PHASE_ASSETS)
+    policy = manifest["policy"]
+
+    assert isinstance(policy, dict)
+    assert policy["default_identity"] == "execution-trace"
+    assert ".planning/ROADMAP.md" in policy["promotion_sources"]
+    assert ".planning/baseline/VERIFICATION_MATRIX.md" in policy["promotion_sources"]
+    assert ".planning/milestones/*.md" in policy["promotion_sources"]
+    assert ".planning/reviews/*.md" in policy["promotion_sources"]
+    assert ".planning/reviews/PROMOTED_PHASE_ASSETS.md" in roadmap_text
+    assert ".planning/reviews/PROMOTED_PHASE_ASSETS.md" in state_text
+
+    for phase_dir_name, filenames in _load_promoted_phase_assets().items():
+        for filename in filenames:
+            assert not filename.endswith(
+                (
+                    "-PLAN.md",
+                    "-CONTEXT.md",
+                    "-RESEARCH.md",
+                    "-PRD.md",
+                    "-ARCHITECTURE.md",
+                    "-UAT.md",
+                )
+            )
+            assert (
+                _ROOT / ".planning" / "phases" / phase_dir_name / filename
+            ).exists()
+
+    _assert_phase_assets_not_promoted(
+        "15-support-feedback-contract-hardening-governance-truth-repair-and-maintainability-follow-through",
+        "15-CONTEXT.md",
+        "15-01-PLAN.md",
+    )
+    _assert_phase_assets_not_promoted(
+        "24-final-milestone-audit-archive-readiness-and-v1-3-handoff-prep",
+        "24-CONTEXT.md",
+        "24-03-PLAN.md",
+    )
+    _assert_phase_assets_not_promoted(
+        "30-protocol-control-typed-contract-tightening",
+        "30-VALIDATION.md",
+        "30-01-SUMMARY.md",
+    )
+    _assert_phase_assets_not_promoted(
+        "32-truth-convergence-gate-honesty-and-quality-10-closeout",
+        "32-CONTEXT.md",
+        "32-RESEARCH.md",
+        "32-01-PLAN.md",
+        "32-VALIDATION.md",
+    )
+    _assert_phase_assets_not_promoted(
+        "34-continuity-and-hard-release-gates",
+        "34-01-PLAN.md",
+        "34-VALIDATION.md",
+    )
 
 
 def test_v1_1_closeout_assets_exist_and_are_pull_only() -> None:
     evidence_index = _ROOT / ".planning" / "reviews" / "V1_1_EVIDENCE_INDEX.md"
-    phase_summary = (
-        _ROOT
-        / ".planning"
-        / "phases"
-        / "07.5-integration-governance-verification-closeout"
-        / "07.5-SUMMARY.md"
-    )
-    plan_01_summary = (
-        _ROOT
-        / ".planning"
-        / "phases"
-        / "07.5-integration-governance-verification-closeout"
-        / "07.5-01-SUMMARY.md"
-    )
-    plan_02_summary = (
-        _ROOT
-        / ".planning"
-        / "phases"
-        / "07.5-integration-governance-verification-closeout"
-        / "07.5-02-SUMMARY.md"
-    )
-    verification = (
-        _ROOT
-        / ".planning"
-        / "phases"
-        / "07.5-integration-governance-verification-closeout"
-        / "07.5-VERIFICATION.md"
-    )
 
     assert evidence_index.exists()
-    assert phase_summary.exists()
-    assert plan_01_summary.exists()
-    assert plan_02_summary.exists()
-    assert verification.exists()
+    _assert_promoted_phase_assets(
+        "07.5-integration-governance-verification-closeout",
+        "07.5-SUMMARY.md",
+        "07.5-01-SUMMARY.md",
+        "07.5-02-SUMMARY.md",
+        "07.5-VERIFICATION.md",
+    )
 
     evidence_text = evidence_index.read_text(encoding="utf-8")
     assert "## Pull Contract" in evidence_text
@@ -78,26 +151,18 @@ def test_v1_2_closeout_assets_exist_and_are_pull_only() -> None:
     evidence_index = _ROOT / ".planning" / "reviews" / "V1_2_EVIDENCE_INDEX.md"
     milestone_audit = _ROOT / ".planning" / "v1.2-MILESTONE-AUDIT.md"
     handoff = _ROOT / ".planning" / "v1.3-HANDOFF.md"
-    phase_23_verification = (
-        _ROOT
-        / ".planning"
-        / "phases"
-        / "23-governance-convergence-contributor-docs-and-release-evidence-closure"
-        / "23-VERIFICATION.md"
-    )
-    phase_24_verification = (
-        _ROOT
-        / ".planning"
-        / "phases"
-        / "24-final-milestone-audit-archive-readiness-and-v1-3-handoff-prep"
-        / "24-VERIFICATION.md"
-    )
 
     assert evidence_index.exists()
     assert milestone_audit.exists()
     assert handoff.exists()
-    assert phase_23_verification.exists()
-    assert phase_24_verification.exists()
+    _assert_promoted_phase_assets(
+        "23-governance-convergence-contributor-docs-and-release-evidence-closure",
+        "23-VERIFICATION.md",
+    )
+    _assert_promoted_phase_assets(
+        "24-final-milestone-audit-archive-readiness-and-v1-3-handoff-prep",
+        "24-VERIFICATION.md",
+    )
 
     evidence_text = evidence_index.read_text(encoding="utf-8")
     assert "## Pull Contract" in evidence_text
@@ -173,42 +238,26 @@ def test_milestone_archive_snapshots_exist_and_are_referenced() -> None:
 
 
 def test_phase_28_to_31_continuation_assets_and_tracking_truth_are_synced() -> None:
-    phase_assets = {
-        "28-release-trust-gate-completion-and-maintainer-resilience": (
-            "28-01-SUMMARY.md",
-            "28-02-SUMMARY.md",
-            "28-03-SUMMARY.md",
-            "28-VERIFICATION.md",
-            "28-VALIDATION.md",
-        ),
-        "29-rest-child-facade-slimming-and-test-topicization": (
-            "29-01-SUMMARY.md",
-            "29-02-SUMMARY.md",
-            "29-03-SUMMARY.md",
-            "29-VERIFICATION.md",
-            "29-VALIDATION.md",
-        ),
-        "30-protocol-control-typed-contract-tightening": (
-            "30-01-SUMMARY.md",
-            "30-02-SUMMARY.md",
-            "30-03-SUMMARY.md",
-            "30-VERIFICATION.md",
-            "30-VALIDATION.md",
-        ),
-        "31-runtime-service-typed-budget-and-exception-closure": (
-            "31-01-SUMMARY.md",
-            "31-02-SUMMARY.md",
-            "31-03-SUMMARY.md",
-            "31-04-SUMMARY.md",
-            "31-VERIFICATION.md",
-            "31-VALIDATION.md",
-        ),
-    }
-
-    for phase_dir_name, filenames in phase_assets.items():
-        phase_dir = _ROOT / ".planning" / "phases" / phase_dir_name
-        for filename in filenames:
-            assert (phase_dir / filename).exists()
+    _assert_phase_assets_not_promoted(
+        "28-release-trust-gate-completion-and-maintainer-resilience",
+        "28-01-SUMMARY.md",
+        "28-VERIFICATION.md",
+        "28-VALIDATION.md",
+    )
+    _assert_phase_assets_not_promoted(
+        "29-rest-child-facade-slimming-and-test-topicization",
+        "29-01-SUMMARY.md",
+        "29-VERIFICATION.md",
+        "29-VALIDATION.md",
+    )
+    _assert_promoted_phase_assets(
+        "30-protocol-control-typed-contract-tightening",
+        "30-VERIFICATION.md",
+    )
+    _assert_promoted_phase_assets(
+        "31-runtime-service-typed-budget-and-exception-closure",
+        "31-VERIFICATION.md",
+    )
 
     roadmap_text = (_ROOT / ".planning" / "ROADMAP.md").read_text(encoding="utf-8")
     requirements_text = (_ROOT / ".planning" / "REQUIREMENTS.md").read_text(
@@ -246,12 +295,6 @@ def test_phase_28_to_31_continuation_assets_and_tracking_truth_are_synced() -> N
 
 
 def test_phase_32_completion_truth_is_consistent() -> None:
-    phase_root = (
-        _ROOT
-        / ".planning"
-        / "phases"
-        / "32-truth-convergence-gate-honesty-and-quality-10-closeout"
-    )
     roadmap_text = (_ROOT / ".planning" / "ROADMAP.md").read_text(encoding="utf-8")
     requirements_text = (_ROOT / ".planning" / "REQUIREMENTS.md").read_text(
         encoding="utf-8"
@@ -259,23 +302,10 @@ def test_phase_32_completion_truth_is_consistent() -> None:
     project_text = (_ROOT / ".planning" / "PROJECT.md").read_text(encoding="utf-8")
     state_text = (_ROOT / ".planning" / "STATE.md").read_text(encoding="utf-8")
 
-    for artifact_name in (
-        "32-CONTEXT.md",
-        "32-RESEARCH.md",
-        "32-01-PLAN.md",
-        "32-02-PLAN.md",
-        "32-03-PLAN.md",
-        "32-04-PLAN.md",
-        "32-05-PLAN.md",
-        "32-VALIDATION.md",
-        "32-01-SUMMARY.md",
-        "32-02-SUMMARY.md",
-        "32-03-SUMMARY.md",
-        "32-04-SUMMARY.md",
-        "32-05-SUMMARY.md",
+    _assert_promoted_phase_assets(
+        "32-truth-convergence-gate-honesty-and-quality-10-closeout",
         "32-VERIFICATION.md",
-    ):
-        assert (phase_root / artifact_name).exists()
+    )
 
     assert "**Execution Scope:** `Phase 25 -> Phase 32`" in roadmap_text
     assert "### Phase 32: Truth convergence, gate honesty, and quality-10 closeout" in roadmap_text
@@ -323,12 +353,6 @@ def test_phase_32_completion_truth_is_consistent() -> None:
 
 
 def test_phase_33_planning_truth_is_consistent() -> None:
-    phase_root = (
-        _ROOT
-        / ".planning"
-        / "phases"
-        / "33-contract-truth-unification-hotspot-slimming-and-productization-hardening"
-    )
     roadmap_text = (_ROOT / ".planning" / "ROADMAP.md").read_text(encoding="utf-8")
     requirements_text = (_ROOT / ".planning" / "REQUIREMENTS.md").read_text(
         encoding="utf-8"
@@ -336,26 +360,11 @@ def test_phase_33_planning_truth_is_consistent() -> None:
     project_text = (_ROOT / ".planning" / "PROJECT.md").read_text(encoding="utf-8")
     state_text = (_ROOT / ".planning" / "STATE.md").read_text(encoding="utf-8")
 
-    for artifact_name in (
-        "33-CONTEXT.md",
-        "33-RESEARCH.md",
-        "33-01-PLAN.md",
-        "33-02-PLAN.md",
-        "33-03-PLAN.md",
-        "33-04-PLAN.md",
-        "33-05-PLAN.md",
-        "33-06-PLAN.md",
-        "33-VALIDATION.md",
-        "33-01-SUMMARY.md",
-        "33-02-SUMMARY.md",
-        "33-03-SUMMARY.md",
-        "33-04-SUMMARY.md",
-        "33-05-SUMMARY.md",
-        "33-06-SUMMARY.md",
+    _assert_promoted_phase_assets(
+        "33-contract-truth-unification-hotspot-slimming-and-productization-hardening",
         "33-SUMMARY.md",
         "33-VERIFICATION.md",
-    ):
-        assert (phase_root / artifact_name).exists()
+    )
 
     assert "### Phase 33: Contract-truth unification, hotspot slimming, and productization hardening" in roadmap_text
     assert (
@@ -396,12 +405,6 @@ def test_phase_33_planning_truth_is_consistent() -> None:
 
 
 def test_phase_34_planning_truth_is_consistent() -> None:
-    phase_root = (
-        _ROOT
-        / ".planning"
-        / "phases"
-        / "34-continuity-and-hard-release-gates"
-    )
     roadmap_text = (_ROOT / ".planning" / "ROADMAP.md").read_text(encoding="utf-8")
     requirements_text = (_ROOT / ".planning" / "REQUIREMENTS.md").read_text(
         encoding="utf-8"
@@ -409,19 +412,11 @@ def test_phase_34_planning_truth_is_consistent() -> None:
     project_text = (_ROOT / ".planning" / "PROJECT.md").read_text(encoding="utf-8")
     state_text = (_ROOT / ".planning" / "STATE.md").read_text(encoding="utf-8")
 
-    for artifact_name in (
-        "34-CONTEXT.md",
-        "34-01-PLAN.md",
-        "34-02-PLAN.md",
-        "34-03-PLAN.md",
-        "34-VALIDATION.md",
-        "34-01-SUMMARY.md",
-        "34-02-SUMMARY.md",
-        "34-03-SUMMARY.md",
+    _assert_promoted_phase_assets(
+        "34-continuity-and-hard-release-gates",
         "34-SUMMARY.md",
         "34-VERIFICATION.md",
-    ):
-        assert (phase_root / artifact_name).exists()
+    )
 
     assert "### Phase 34: Continuity and hard release gates" in roadmap_text
     assert "**Requirements**: [GOV-29, QLT-08]" in roadmap_text
@@ -448,30 +443,19 @@ def test_phase_34_planning_truth_is_consistent() -> None:
 
 
 def test_phase_35_planning_truth_is_consistent() -> None:
-    phase_root = (
-        _ROOT
-        / ".planning"
-        / "phases"
-        / "35-protocol-hotspot-final-slimming"
-    )
     roadmap_text = (_ROOT / ".planning" / "ROADMAP.md").read_text(encoding="utf-8")
     requirements_text = (_ROOT / ".planning" / "REQUIREMENTS.md").read_text(encoding="utf-8")
     project_text = (_ROOT / ".planning" / "PROJECT.md").read_text(encoding="utf-8")
     state_text = (_ROOT / ".planning" / "STATE.md").read_text(encoding="utf-8")
 
-    for artifact_name in (
-        "35-CONTEXT.md",
-        "35-01-PLAN.md",
-        "35-02-PLAN.md",
-        "35-03-PLAN.md",
-        "35-VALIDATION.md",
+    _assert_promoted_phase_assets(
+        "35-protocol-hotspot-final-slimming",
         "35-01-SUMMARY.md",
         "35-02-SUMMARY.md",
         "35-03-SUMMARY.md",
         "35-SUMMARY.md",
         "35-VERIFICATION.md",
-    ):
-        assert (phase_root / artifact_name).exists()
+    )
 
     assert "### Phase 35: Protocol hotspot final slimming" in roadmap_text
     assert "**Requirements**: [HOT-09, RES-07]" in roadmap_text
@@ -484,30 +468,19 @@ def test_phase_35_planning_truth_is_consistent() -> None:
 
 
 def test_phase_36_planning_truth_is_consistent() -> None:
-    phase_root = (
-        _ROOT
-        / ".planning"
-        / "phases"
-        / "36-runtime-root-and-exception-burn-down"
-    )
     roadmap_text = (_ROOT / ".planning" / "ROADMAP.md").read_text(encoding="utf-8")
     requirements_text = (_ROOT / ".planning" / "REQUIREMENTS.md").read_text(encoding="utf-8")
     project_text = (_ROOT / ".planning" / "PROJECT.md").read_text(encoding="utf-8")
     state_text = (_ROOT / ".planning" / "STATE.md").read_text(encoding="utf-8")
 
-    for artifact_name in (
-        "36-CONTEXT.md",
-        "36-01-PLAN.md",
-        "36-02-PLAN.md",
-        "36-03-PLAN.md",
-        "36-VALIDATION.md",
+    _assert_promoted_phase_assets(
+        "36-runtime-root-and-exception-burn-down",
         "36-01-SUMMARY.md",
         "36-02-SUMMARY.md",
         "36-03-SUMMARY.md",
         "36-SUMMARY.md",
         "36-VERIFICATION.md",
-    ):
-        assert (phase_root / artifact_name).exists()
+    )
 
     assert "### Phase 36: Runtime root and exception burn-down" in roadmap_text
     assert "**Requirements**: [HOT-10, ERR-08, TYP-09]" in roadmap_text
@@ -521,30 +494,19 @@ def test_phase_36_planning_truth_is_consistent() -> None:
 
 
 def test_phase_37_planning_truth_is_consistent() -> None:
-    phase_root = (
-        _ROOT
-        / ".planning"
-        / "phases"
-        / "37-test-topology-and-derived-truth-convergence"
-    )
     roadmap_text = (_ROOT / ".planning" / "ROADMAP.md").read_text(encoding="utf-8")
     requirements_text = (_ROOT / ".planning" / "REQUIREMENTS.md").read_text(encoding="utf-8")
     project_text = (_ROOT / ".planning" / "PROJECT.md").read_text(encoding="utf-8")
     state_text = (_ROOT / ".planning" / "STATE.md").read_text(encoding="utf-8")
 
-    for artifact_name in (
-        "37-CONTEXT.md",
-        "37-01-PLAN.md",
-        "37-02-PLAN.md",
-        "37-03-PLAN.md",
-        "37-VALIDATION.md",
+    _assert_promoted_phase_assets(
+        "37-test-topology-and-derived-truth-convergence",
         "37-01-SUMMARY.md",
         "37-02-SUMMARY.md",
         "37-03-SUMMARY.md",
         "37-SUMMARY.md",
         "37-VERIFICATION.md",
-    ):
-        assert (phase_root / artifact_name).exists()
+    )
 
     assert "### Phase 37: Test topology and derived-truth convergence" in roadmap_text
     assert "**Requirements**: [TST-06, GOV-30, QLT-09]" in roadmap_text
@@ -560,12 +522,6 @@ def test_phase_37_planning_truth_is_consistent() -> None:
 
 
 def test_phase_38_planning_truth_is_consistent() -> None:
-    phase_root = (
-        _ROOT
-        / ".planning"
-        / "phases"
-        / "38-external-boundary-residual-retirement-and-quality-signal-hardening"
-    )
     roadmap_text = (_ROOT / ".planning" / "ROADMAP.md").read_text(encoding="utf-8")
     requirements_text = (_ROOT / ".planning" / "REQUIREMENTS.md").read_text(encoding="utf-8")
     project_text = (_ROOT / ".planning" / "PROJECT.md").read_text(encoding="utf-8")
@@ -574,19 +530,11 @@ def test_phase_38_planning_truth_is_consistent() -> None:
         encoding="utf-8"
     )
 
-    for artifact_name in (
-        "38-CONTEXT.md",
-        "38-01-PLAN.md",
-        "38-02-PLAN.md",
-        "38-03-PLAN.md",
-        "38-VALIDATION.md",
-        "38-01-SUMMARY.md",
-        "38-02-SUMMARY.md",
-        "38-03-SUMMARY.md",
+    _assert_promoted_phase_assets(
+        "38-external-boundary-residual-retirement-and-quality-signal-hardening",
         "38-SUMMARY.md",
         "38-VERIFICATION.md",
-    ):
-        assert (phase_root / artifact_name).exists()
+    )
 
     assert "### Phase 38: External-boundary residual retirement and quality-signal hardening" in roadmap_text
     assert "**Requirements**: [RES-08, QLT-10, GOV-31]" in roadmap_text

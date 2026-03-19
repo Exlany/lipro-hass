@@ -91,6 +91,7 @@ jobs:
           tests/meta/test_dependency_guards.py
           tests/meta/test_public_surface_guards.py
           tests/meta/test_governance*.py
+          tests/meta/test_toolchain_truth.py
           tests/meta/test_version_sync.py
 
   security:

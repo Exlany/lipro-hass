@@ -26,9 +26,7 @@ from .observability import record_api_error as _record_api_error
 from .session_state import RestSessionState
 from .types import JsonObject, JsonValue
 
-# Use the same logger instance as custom_components.lipro.core.api.client._LOGGER
-# so tests patching client._LOGGER.* still intercept logs here.
-_LOGGER = logging.getLogger("custom_components.lipro.core.api.client")
+_LOGGER = logging.getLogger("custom_components.lipro.core.api")
 
 _MappingPayloadT = TypeVar("_MappingPayloadT")
 TokenRefreshCallback = Callable[[], Awaitable[None]]

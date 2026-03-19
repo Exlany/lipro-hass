@@ -161,7 +161,7 @@ def test_protocol_root_keeps_boundary_decoder_exports_internal() -> None:
 
 
 def test_protocol_root_rest_child_and_mqtt_child_do_not_reintroduce_implicit_surface_delegation() -> None:
-    from custom_components.lipro.core.api.client import LiproRestFacade
+    from custom_components.lipro.core.api import LiproRestFacade
     from custom_components.lipro.core.protocol.facade import (
         LiproMqttFacade,
         LiproProtocolFacade,

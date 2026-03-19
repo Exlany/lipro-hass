@@ -37,7 +37,7 @@
 
 **Core:**
 - Home Assistant custom integration - 入口与元数据位于 `custom_components/lipro/manifest.json`、`custom_components/lipro/__init__.py`、`custom_components/lipro/config_flow.py`、`custom_components/lipro/diagnostics.py`、`custom_components/lipro/system_health.py`。
-- 显式分层架构 - 北极星与开发者架构见 `docs/NORTH_STAR_TARGET_ARCHITECTURE.md`、`docs/developer_architecture.md`；协议根在 `custom_components/lipro/core/protocol/facade.py`，REST 子门面在 `custom_components/lipro/core/api/client.py`，MQTT 子门面在 `custom_components/lipro/core/protocol/mqtt_facade.py`，运行根在 `custom_components/lipro/core/coordinator/coordinator.py`。
+- 显式分层架构 - 北极星与开发者架构见 `docs/NORTH_STAR_TARGET_ARCHITECTURE.md`、`docs/developer_architecture.md`；协议根在 `custom_components/lipro/core/protocol/facade.py`，REST 子门面的 stable import home 在 `custom_components/lipro/core/api/client.py`、组合根在 `custom_components/lipro/core/api/rest_facade.py`，MQTT 子门面在 `custom_components/lipro/core/protocol/mqtt_facade.py`，运行根在 `custom_components/lipro/core/coordinator/coordinator.py`。
 - HA 生态元数据 - `integration_type: hub` 与 `iot_class: cloud_push` 在 `custom_components/lipro/manifest.json`；质量映射在 `custom_components/lipro/quality_scale.yaml`。
 
 **Testing:**
