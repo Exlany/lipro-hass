@@ -252,7 +252,7 @@ class TestInitServiceHandlerDeveloperDebug(_InitServiceHandlerBase):
 
     async def test_get_city_service(self, hass) -> None:
         """get_city service should return first coordinator city result."""
-        coordinator = MagicMock()
+        coordinator = self._attach_auth_service(MagicMock())
         coordinator.protocol_service.async_get_city = AsyncMock(
             return_value={"province": "广东省", "city": "江门市"}
         )
@@ -272,7 +272,7 @@ class TestInitServiceHandlerDeveloperDebug(_InitServiceHandlerBase):
         self, hass
     ) -> None:
         """get_city should ignore non-debug runtime entries when filtering coordinators."""
-        coordinator = MagicMock()
+        coordinator = self._attach_auth_service(MagicMock())
         coordinator.protocol_service.async_get_city = AsyncMock(
             return_value={"province": "广东省", "city": "江门市"}
         )
@@ -288,7 +288,7 @@ class TestInitServiceHandlerDeveloperDebug(_InitServiceHandlerBase):
 
     async def test_query_user_cloud_service(self, hass) -> None:
         """query_user_cloud service should return first coordinator result."""
-        coordinator = MagicMock()
+        coordinator = self._attach_auth_service(MagicMock())
         coordinator.protocol_service.async_query_user_cloud = AsyncMock(return_value={"data": []})
 
         entry = MockConfigEntry(
@@ -304,11 +304,11 @@ class TestInitServiceHandlerDeveloperDebug(_InitServiceHandlerBase):
 
     async def test_get_city_service_falls_back_to_next_coordinator(self, hass) -> None:
         """get_city should continue to next coordinator when one fails."""
-        first = MagicMock()
+        first = self._attach_auth_service(MagicMock())
         first.protocol_service.async_get_city = AsyncMock(
             side_effect=LiproApiError("temporary failure", code=500)
         )
-        second = MagicMock()
+        second = self._attach_auth_service(MagicMock())
         second.protocol_service.async_get_city = AsyncMock(
             return_value={"province": "广东省", "city": "深圳市"}
         )
@@ -334,9 +334,9 @@ class TestInitServiceHandlerDeveloperDebug(_InitServiceHandlerBase):
 
     async def test_get_city_service_skips_unexpected_error(self, hass) -> None:
         """get_city should skip unexpected coordinator errors and continue."""
-        first = MagicMock()
+        first = self._attach_auth_service(MagicMock())
         first.protocol_service.async_get_city = AsyncMock(side_effect=RuntimeError("boom"))
-        second = MagicMock()
+        second = self._attach_auth_service(MagicMock())
         second.protocol_service.async_get_city = AsyncMock(
             return_value={"province": "浙江省", "city": "杭州市"}
         )
@@ -364,11 +364,11 @@ class TestInitServiceHandlerDeveloperDebug(_InitServiceHandlerBase):
         self, hass
     ) -> None:
         """query_user_cloud should continue to next coordinator when one fails."""
-        first = MagicMock()
+        first = self._attach_auth_service(MagicMock())
         first.protocol_service.async_query_user_cloud = AsyncMock(
             side_effect=LiproApiError("temporary failure", code=500)
         )
-        second = MagicMock()
+        second = self._attach_auth_service(MagicMock())
         second.protocol_service.async_query_user_cloud = AsyncMock(return_value={"data": [1, 2]})
 
         entry_1 = MockConfigEntry(
@@ -392,9 +392,9 @@ class TestInitServiceHandlerDeveloperDebug(_InitServiceHandlerBase):
 
     async def test_query_user_cloud_service_skips_unexpected_error(self, hass) -> None:
         """query_user_cloud should skip unexpected coordinator errors and continue."""
-        first = MagicMock()
+        first = self._attach_auth_service(MagicMock())
         first.protocol_service.async_query_user_cloud = AsyncMock(side_effect=RuntimeError("boom"))
-        second = MagicMock()
+        second = self._attach_auth_service(MagicMock())
         second.protocol_service.async_query_user_cloud = AsyncMock(return_value={"data": []})
 
         entry_1 = MockConfigEntry(

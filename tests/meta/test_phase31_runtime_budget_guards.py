@@ -96,7 +96,7 @@ _BROAD_CATCH_BUDGET: dict[str, _BroadCatchBudgetEntry] = {
     "core/coordinator/runtime/device_runtime.py": {
         "expected_count": 0,
         "semantic_markers": {
-            "self._last_refresh_failure = self._classify_refresh_failure(": 2,
+            "self._last_refresh_failure = self._classify_refresh_failure(": 1,
             "retaining last-known-good snapshot": 2,
         },
     },
@@ -109,10 +109,10 @@ _BROAD_CATCH_BUDGET: dict[str, _BroadCatchBudgetEntry] = {
         },
     },
     "services/diagnostics/helpers.py": {
-        "expected_count": 3,
+        "expected_count": 4,
         "semantic_markers": {
             "Skip one %s capability due to error (%s)": 2,
-            "Skip one %s capability due to unexpected error (%s)": 1,
+            "Skip one %s capability due to unexpected error (%s)": 2,
         },
     },
     "services/maintenance.py": {

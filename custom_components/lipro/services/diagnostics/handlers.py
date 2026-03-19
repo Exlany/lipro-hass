@@ -23,7 +23,7 @@ from ...core.command.result import (
 )
 from ..execution import ServiceErrorRaiser, async_execute_coordinator_call
 from .helpers import (
-    _async_get_first_coordinator_capability_result,
+    _async_get_first_authenticated_coordinator_capability_result,
     _coerce_service_float,
     _coerce_service_int,
     _get_required_service_string,
@@ -198,7 +198,7 @@ async def async_handle_get_city(
 ) -> CapabilityResponse:
     """Handle the get_city service."""
     del call
-    has_result, result, last_err = await _async_get_first_coordinator_capability_result(
+    has_result, result, last_err = await _async_get_first_authenticated_coordinator_capability_result(
         iter_runtime_coordinators(hass),
         capability="get_city",
         collector=lambda coordinator: coordinator.protocol_service.async_get_city(),
@@ -220,7 +220,7 @@ async def async_handle_query_user_cloud(
 ) -> CapabilityResponse:
     """Handle the query_user_cloud service."""
     del call
-    has_result, result, last_err = await _async_get_first_coordinator_capability_result(
+    has_result, result, last_err = await _async_get_first_authenticated_coordinator_capability_result(
         iter_runtime_coordinators(hass),
         capability="query_user_cloud",
         collector=lambda coordinator: coordinator.protocol_service.async_query_user_cloud(),

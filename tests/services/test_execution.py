@@ -2,14 +2,19 @@
 
 from __future__ import annotations
 
-from unittest.mock import AsyncMock, Mock
+from unittest.mock import AsyncMock, MagicMock, Mock
 
 import pytest
+from pytest_homeassistant_custom_component.common import MockConfigEntry
 
+from custom_components.lipro.const.base import DOMAIN
 from custom_components.lipro.core import (
     LiproApiError,
     LiproAuthError,
     LiproRefreshTokenExpiredError,
+)
+from custom_components.lipro.core.coordinator.services.auth_service import (
+    CoordinatorAuthService,
 )
 from custom_components.lipro.services.execution import (
     _async_ensure_authenticated,
@@ -88,6 +93,34 @@ async def test_async_execute_coordinator_call_maps_auth_error_with_safe_placehol
         )
 
     coordinator.auth_service.async_trigger_reauth.assert_awaited_once_with("auth_error")
+    assert raise_service_error.call_args.args == ("auth_error",)
+    assert "error" in raise_service_error.call_args.kwargs["translation_placeholders"]
+
+
+@pytest.mark.asyncio
+async def test_async_execute_coordinator_call_with_real_auth_service_maps_auth_error(
+    hass,
+) -> None:
+    entry = MockConfigEntry(domain=DOMAIN, data={})
+    entry.add_to_hass(hass)
+    entry.async_start_reauth = MagicMock()
+    coordinator = Mock(
+        auth_service=CoordinatorAuthService(
+            hass=hass,
+            auth_manager=MagicMock(async_ensure_authenticated=AsyncMock()),
+            config_entry=entry,
+        )
+    )
+    raise_service_error = Mock(side_effect=RuntimeError("mapped"))
+
+    with pytest.raises(RuntimeError, match="mapped"):
+        await async_execute_coordinator_call(
+            coordinator,
+            call=AsyncMock(side_effect=LiproAuthError("bad credentials")),
+            raise_service_error=raise_service_error,
+        )
+
+    entry.async_start_reauth.assert_called_once_with(hass)
     assert raise_service_error.call_args.args == ("auth_error",)
     assert "error" in raise_service_error.call_args.kwargs["translation_placeholders"]
 

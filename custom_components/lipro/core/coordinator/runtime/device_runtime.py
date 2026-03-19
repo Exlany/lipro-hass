@@ -92,6 +92,55 @@ class DeviceRuntime:
             kept_last_known_good=kept_last_known_good,
         )
 
+    async def _async_build_snapshot(
+        self,
+        *,
+        retained_last_known_good: bool,
+    ) -> FetchedDeviceSnapshot:
+        """Build one full snapshot and normalize retained failure state."""
+        try:
+            snapshot = await self._snapshot_builder.build_full_snapshot()
+        except RuntimeSnapshotRefreshRejectedError as err:
+            runtime_err = (
+                err.with_retained_last_known_good()
+                if retained_last_known_good and not err.kept_last_known_good
+                else err
+            )
+            self._last_refresh_failure = runtime_err.failure
+            if retained_last_known_good:
+                _LOGGER.warning(
+                    "Device refresh rejected (%s), retaining last-known-good snapshot",
+                    runtime_err.stage,
+                )
+            if runtime_err is err:
+                raise
+            raise runtime_err from err
+        except (
+            LiproRefreshTokenExpiredError,
+            LiproAuthError,
+            LiproConnectionError,
+            LiproApiError,
+            RuntimeError,
+            ValueError,
+            TypeError,
+            LookupError,
+        ) as err:
+            self._last_refresh_failure = self._classify_refresh_failure(
+                err,
+                kept_last_known_good=retained_last_known_good,
+            )
+            if retained_last_known_good:
+                _LOGGER.warning(
+                    "Device refresh failed (%s), retaining last-known-good snapshot",
+                    type(err).__name__,
+                )
+            raise
+
+        self._refresh_strategy.mark_refreshed()
+        self._last_snapshot = snapshot
+        self._last_refresh_failure = None
+        return snapshot
+
     async def refresh_devices(
         self,
         *,
@@ -112,48 +161,9 @@ class DeviceRuntime:
             self._refresh_strategy.request_force_refresh()
 
         if self._refresh_strategy.should_refresh():
-            try:
-                snapshot = await self._snapshot_builder.build_full_snapshot()
-            except RuntimeSnapshotRefreshRejectedError as err:
-                retained_last_known_good = self._last_snapshot is not None
-                runtime_err = (
-                    err.with_retained_last_known_good()
-                    if retained_last_known_good and not err.kept_last_known_good
-                    else err
-                )
-                self._last_refresh_failure = runtime_err.failure
-                if retained_last_known_good:
-                    _LOGGER.warning(
-                        "Device refresh rejected (%s), retaining last-known-good snapshot",
-                        runtime_err.stage,
-                    )
-                raise runtime_err from err
-            except (
-                LiproRefreshTokenExpiredError,
-                LiproAuthError,
-                LiproConnectionError,
-                LiproApiError,
-                RuntimeError,
-                ValueError,
-                TypeError,
-                LookupError,
-            ) as err:
-                retained_last_known_good = self._last_snapshot is not None
-                self._last_refresh_failure = self._classify_refresh_failure(
-                    err,
-                    kept_last_known_good=retained_last_known_good,
-                )
-                if retained_last_known_good:
-                    _LOGGER.warning(
-                        "Device refresh failed (%s), retaining last-known-good snapshot",
-                        type(err).__name__,
-                    )
-                raise
-
-            self._refresh_strategy.mark_refreshed()
-            self._last_snapshot = snapshot
-            self._last_refresh_failure = None
-
+            snapshot = await self._async_build_snapshot(
+                retained_last_known_good=self._last_snapshot is not None,
+            )
             _LOGGER.info(
                 "Full device refresh completed: %d devices",
                 len(snapshot.devices),
@@ -161,30 +171,7 @@ class DeviceRuntime:
             return snapshot
 
         if self._last_snapshot is None:
-            try:
-                snapshot = await self._snapshot_builder.build_full_snapshot()
-            except RuntimeSnapshotRefreshRejectedError as err:
-                self._last_refresh_failure = err.failure
-                raise
-            except (
-                LiproRefreshTokenExpiredError,
-                LiproAuthError,
-                LiproConnectionError,
-                LiproApiError,
-                RuntimeError,
-                ValueError,
-                TypeError,
-                LookupError,
-            ) as err:
-                self._last_refresh_failure = self._classify_refresh_failure(
-                    err,
-                    kept_last_known_good=False,
-                )
-                raise
-            self._refresh_strategy.mark_refreshed()
-            self._last_snapshot = snapshot
-            self._last_refresh_failure = None
-            return snapshot
+            return await self._async_build_snapshot(retained_last_known_good=False)
 
         _LOGGER.debug("Device list refresh skipped; reusing cached snapshot")
         return self._last_snapshot

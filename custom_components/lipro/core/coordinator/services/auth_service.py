@@ -9,8 +9,6 @@ from dataclasses import dataclass
 import logging
 from typing import TYPE_CHECKING
 
-from homeassistant.exceptions import ConfigEntryAuthFailed
-
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.core import HomeAssistant
@@ -33,7 +31,6 @@ class CoordinatorAuthService:
         await self.auth_manager.async_ensure_authenticated()
 
     async def async_trigger_reauth(self, reason: str) -> None:
-        """Start the Home Assistant reauth flow and raise a stable auth failure."""
+        """Start the Home Assistant reauth flow for one stable failure reason."""
         _LOGGER.warning("Re-authentication required: %s", reason)
         self.config_entry.async_start_reauth(self.hass)
-        raise ConfigEntryAuthFailed(reason)

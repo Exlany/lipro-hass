@@ -295,7 +295,7 @@ class EntryLifecycleController:
         """Set up one Lipro config entry."""
         await self._async_ensure_runtime_infra_ready(hass)
 
-        client, auth_manager = self._build_entry_auth_context(
+        protocol, auth_manager = self._build_entry_auth_context(
             hass,
             entry,
             get_client_session=self._get_client_session,
@@ -315,7 +315,7 @@ class EntryLifecycleController:
         )
         coordinator = self._coordinator_factory(
             hass,
-            client,
+            protocol,
             auth_manager,
             entry,
             update_interval=scan_interval,

@@ -6,8 +6,13 @@ from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
+from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.lipro.core import LiproApiError
+from custom_components.lipro.const.base import DOMAIN
+from custom_components.lipro.core import LiproApiError, LiproAuthError
+from custom_components.lipro.core.coordinator.services.auth_service import (
+    CoordinatorAuthService,
+)
 from custom_components.lipro.services.schedule import (
     async_call_schedule_client,
     get_mesh_context,
@@ -84,6 +89,46 @@ async def test_async_call_schedule_client_maps_lipro_api_error() -> None:
     )
     logger.warning.assert_called_once_with("API error getting schedules: %s", api_error)
     raise_service_error.assert_called_once_with("schedule_fetch_failed", err=api_error)
+
+
+@pytest.mark.asyncio
+async def test_async_call_schedule_client_with_real_auth_service_maps_auth_error(
+    hass,
+) -> None:
+    """Coordinator auth flow should reauth first, then map schedule service errors."""
+    entry = MockConfigEntry(domain=DOMAIN, data={})
+    entry.add_to_hass(hass)
+    entry.async_start_reauth = MagicMock()
+    coordinator = SimpleNamespace(
+        auth_service=CoordinatorAuthService(
+            hass=hass,
+            auth_manager=MagicMock(async_ensure_authenticated=AsyncMock()),
+            config_entry=entry,
+        )
+    )
+    device = SimpleNamespace(
+        iot_device_id="03ab0000000000a1",
+        device_type_hex="0x1032",
+        extra_data={"gateway_device_id": "", "group_member_ids": []},
+    )
+    client_call = AsyncMock(side_effect=LiproAuthError("bad credentials"))
+    logger = MagicMock()
+    raise_service_error = MagicMock(side_effect=RuntimeError("mapped"))
+
+    with pytest.raises(RuntimeError, match="mapped"):
+        await async_call_schedule_client(
+            device,
+            client_call,
+            coordinator=coordinator,
+            error_log="API error getting schedules: %s",
+            error_translation_key="schedule_fetch_failed",
+            logger=logger,
+            raise_service_error=raise_service_error,
+        )
+
+    entry.async_start_reauth.assert_called_once_with(hass)
+    assert raise_service_error.call_args.args == ("auth_error",)
+    assert "error" in raise_service_error.call_args.kwargs["translation_placeholders"]
 
 
 def test_get_mesh_context_normalizes_member_ids_and_gateway() -> None:

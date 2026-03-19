@@ -11,7 +11,6 @@ from custom_components.lipro.const.base import DOMAIN
 from custom_components.lipro.core.coordinator.services.auth_service import (
     CoordinatorAuthService,
 )
-from homeassistant.exceptions import ConfigEntryAuthFailed
 
 
 @pytest.mark.asyncio
@@ -31,7 +30,7 @@ async def test_auth_service_ensures_authenticated(hass) -> None:
 
 
 @pytest.mark.asyncio
-async def test_auth_service_triggers_reauth_and_raises(hass) -> None:
+async def test_auth_service_triggers_reauth_without_raising(hass) -> None:
     entry = MockConfigEntry(domain=DOMAIN, data={})
     entry.add_to_hass(hass)
     entry.async_start_reauth = MagicMock()
@@ -41,7 +40,6 @@ async def test_auth_service_triggers_reauth_and_raises(hass) -> None:
         config_entry=entry,
     )
 
-    with pytest.raises(ConfigEntryAuthFailed, match="auth_error"):
-        await service.async_trigger_reauth("auth_error")
+    await service.async_trigger_reauth("auth_error")
 
     entry.async_start_reauth.assert_called_once_with(hass)

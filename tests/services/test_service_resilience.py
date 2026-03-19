@@ -12,7 +12,7 @@ import voluptuous as vol
 from custom_components.lipro.const.base import DOMAIN
 from custom_components.lipro.const.config import CONF_DEBUG_MODE
 from custom_components.lipro.control.service_router import async_handle_get_city
-from custom_components.lipro.core import LiproApiError
+from custom_components.lipro.core import LiproApiError, LiproAuthError
 from custom_components.lipro.services.contracts import (
     ATTR_COMMAND,
     ATTR_DEVICE_ID,
@@ -35,6 +35,14 @@ from homeassistant.exceptions import HomeAssistantError
 from tests.helpers.service_call import service_call
 
 
+def _attach_auth_service(coordinator: MagicMock) -> MagicMock:
+    coordinator.auth_service = MagicMock(
+        async_ensure_authenticated=AsyncMock(),
+        async_trigger_reauth=AsyncMock(),
+    )
+    return coordinator
+
+
 def _add_runtime_entry(hass, coordinator: MagicMock, *, phone: str) -> MockConfigEntry:
     """Attach one runtime coordinator to Home Assistant config entries."""
     entry = MockConfigEntry(
@@ -43,7 +51,7 @@ def _add_runtime_entry(hass, coordinator: MagicMock, *, phone: str) -> MockConfi
         options={CONF_DEBUG_MODE: True},
     )
     entry.add_to_hass(hass)
-    entry.runtime_data = coordinator
+    entry.runtime_data = _attach_auth_service(coordinator)
     return entry
 
 
@@ -303,6 +311,31 @@ async def test_get_city_mixed_coordinator_results_return_first_success(hass) -> 
     assert api_error_coordinator.protocol_service.async_get_city.await_count == 1
     assert success_coordinator.protocol_service.async_get_city.await_count == 1
     never_called_after_success.protocol_service.async_get_city.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_get_city_auth_failure_triggers_reauth_then_falls_through(hass) -> None:
+    """Auth failures should trigger reauth and continue to the next coordinator."""
+    auth_error_coordinator = MagicMock()
+    auth_error_coordinator.protocol_service.async_get_city = AsyncMock(
+        side_effect=LiproAuthError("expired")
+    )
+
+    success_coordinator = MagicMock()
+    success_coordinator.protocol_service.async_get_city = AsyncMock(
+        return_value={"province": "北京市", "city": "北京市"}
+    )
+
+    _add_runtime_entry(hass, auth_error_coordinator, phone="13800000000")
+    _add_runtime_entry(hass, success_coordinator, phone="13900000000")
+
+    result = await async_handle_get_city(hass, service_call(hass, {}))
+
+    assert result == {"result": {"province": "北京市", "city": "北京市"}}
+    auth_error_coordinator.auth_service.async_trigger_reauth.assert_awaited_once_with(
+        "auth_error"
+    )
+    assert success_coordinator.protocol_service.async_get_city.await_count == 1
 
 
 @pytest.mark.asyncio

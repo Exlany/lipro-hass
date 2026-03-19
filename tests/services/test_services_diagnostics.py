@@ -8,7 +8,11 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from custom_components.lipro.core import LiproApiError
+from custom_components.lipro.core import (
+    LiproApiError,
+    LiproAuthError,
+    LiproRefreshTokenExpiredError,
+)
 from custom_components.lipro.services.diagnostics import (
     async_call_optional_capability,
     async_handle_get_city,
@@ -22,6 +26,7 @@ from custom_components.lipro.services.diagnostics.handlers import (
     _build_last_error_payload,
 )
 from custom_components.lipro.services.diagnostics.helpers import (
+    _async_get_first_authenticated_coordinator_capability_result,
     _async_get_first_coordinator_capability_result,
     _coerce_service_float,
     _coerce_service_int,
@@ -63,16 +68,37 @@ def _developer_feedback_report_fixture() -> dict[str, object]:
     }
 
 
+def _attach_auth_service(coordinator: MagicMock) -> MagicMock:
+    coordinator.auth_service = MagicMock(
+        async_ensure_authenticated=AsyncMock(),
+        async_trigger_reauth=AsyncMock(),
+    )
+    return coordinator
+
+
 def _build_city_coordinator(
     behavior: dict[str, Any] | Exception,
 ) -> MagicMock:
     """Create a coordinator mock for get_city capability."""
-    coordinator = MagicMock()
+    coordinator = _attach_auth_service(MagicMock())
     coordinator.protocol_service.async_get_city = AsyncMock()
     if isinstance(behavior, Exception):
         coordinator.protocol_service.async_get_city.side_effect = behavior
     else:
         coordinator.protocol_service.async_get_city.return_value = behavior
+    return coordinator
+
+
+def _build_query_user_cloud_coordinator(
+    behavior: dict[str, Any] | Exception,
+) -> MagicMock:
+    """Create a coordinator mock for query_user_cloud capability."""
+    coordinator = _attach_auth_service(MagicMock())
+    coordinator.protocol_service.async_query_user_cloud = AsyncMock()
+    if isinstance(behavior, Exception):
+        coordinator.protocol_service.async_query_user_cloud.side_effect = behavior
+    else:
+        coordinator.protocol_service.async_query_user_cloud.return_value = behavior
     return coordinator
 
 
@@ -242,6 +268,28 @@ async def test_async_handle_get_city_mixed_coordinator_outcomes(
     )
     assert result == expected_result
     raise_optional_error.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_async_get_first_authenticated_coordinator_capability_result_reauths_and_degrades() -> None:
+    """Auth-aware helper should trigger reauth and continue until one coordinator succeeds."""
+    first = _build_city_coordinator(LiproAuthError("bad credentials"))
+    second = _build_city_coordinator({"province": "广东省", "city": "深圳市"})
+
+    has_result, result, last_error = (
+        await _async_get_first_authenticated_coordinator_capability_result(
+            iter([first, second]),
+            capability="get_city",
+            collector=lambda coordinator: coordinator.protocol_service.async_get_city(),
+        )
+    )
+
+    assert has_result is True
+    assert result == {"province": "广东省", "city": "深圳市"}
+    assert last_error is None
+    first.auth_service.async_ensure_authenticated.assert_awaited_once_with()
+    first.auth_service.async_trigger_reauth.assert_awaited_once_with("auth_error")
+    second.auth_service.async_ensure_authenticated.assert_awaited_once_with()
 
 
 @pytest.mark.asyncio
@@ -468,9 +516,8 @@ def test_build_last_error_payload_omits_empty_message_and_none_code() -> None:
 @pytest.mark.asyncio
 async def test_async_handle_query_user_cloud_raises_last_api_error() -> None:
     """query_user_cloud should surface the last API error when all entries fail."""
-    coordinator = MagicMock()
-    coordinator.protocol_service.async_query_user_cloud = AsyncMock(
-        side_effect=LiproApiError("cloud unavailable", code=504)
+    coordinator = _build_query_user_cloud_coordinator(
+        LiproApiError("cloud unavailable", code=504)
     )
     raise_optional_error = MagicMock(side_effect=RuntimeError("mapped error"))
     hass = cast(HomeAssistant, MagicMock())
@@ -485,6 +532,32 @@ async def test_async_handle_query_user_cloud_raises_last_api_error() -> None:
         )
 
     raise_optional_error.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_async_handle_query_user_cloud_reauths_before_mapping_auth_failure() -> None:
+    """query_user_cloud should trigger reauth when auth expires before surfacing error."""
+    coordinator = _build_query_user_cloud_coordinator(
+        LiproRefreshTokenExpiredError("expired")
+    )
+    raise_optional_error = MagicMock(side_effect=RuntimeError("mapped error"))
+    hass = cast(HomeAssistant, MagicMock())
+
+    with pytest.raises(RuntimeError, match="mapped error"):
+        await async_handle_query_user_cloud(
+            hass,
+            service_call(hass, {}),
+            iter_runtime_coordinators=lambda _hass: iter([coordinator]),
+            raise_optional_error=raise_optional_error,
+            service_query_user_cloud="query_user_cloud",
+        )
+
+    coordinator.auth_service.async_trigger_reauth.assert_awaited_once_with(
+        "auth_expired"
+    )
+    capability, err = raise_optional_error.call_args.args
+    assert capability == "query_user_cloud"
+    assert isinstance(err, LiproRefreshTokenExpiredError)
 
 
 def test_build_developer_feedback_payload_matches_boundary_fixture() -> None:

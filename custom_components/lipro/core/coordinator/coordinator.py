@@ -351,9 +351,21 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
         Returns:
             True if command succeeded
         """
-        return await self.command_service.async_send_command(
+        success = await self.command_service.async_send_command(
             device, command, properties
         )
+        if success:
+            return True
+
+        last_failure = self.command_service.last_failure
+        if isinstance(last_failure, dict):
+            error_type = last_failure.get("error")
+            if error_type == "LiproRefreshTokenExpiredError":
+                raise ConfigEntryAuthFailed("auth_expired")
+            if error_type == "LiproAuthError":
+                raise ConfigEntryAuthFailed("auth_error")
+
+        return False
 
     async def async_refresh_devices(self) -> dict[str, LiproDevice]:
         """Force a full device snapshot refresh and publish the latest state."""
