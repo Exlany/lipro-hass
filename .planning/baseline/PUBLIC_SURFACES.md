@@ -2,7 +2,7 @@
 
 **Purpose:** 定义各平面的 canonical public surfaces、过渡公开面与禁止作为正式入口的对象。
 **Status:** Formal baseline asset (`BASE-01` public-surface truth source)
-**Updated:** 2026-03-18 (Phase 37 sustainment / topology convergence aligned)
+**Updated:** 2026-03-19 (Phase 40 governance truth and active/archive identity aligned)
 
 ## Formal Role
 
@@ -30,6 +30,14 @@
 - `.planning/reviews/V1_1_EVIDENCE_INDEX.md`、`.planning/reviews/V1_2_EVIDENCE_INDEX.md` 与 milestone closeout evidence 入口都必须是 pull-only evidence pointers：只能索引正式真源，不得重新扫描仓库拼出第二套事实。
 - `tests/harness/evidence_pack/*`、`scripts/export_ai_debug_evidence_pack.py` 与生成的 `ai_debug_evidence_pack.json` / `ai_debug_evidence_pack.index.md` 只属于 assurance-only evidence-pack surfaces；AI / tooling 可以消费它们，但 runtime / control / entity 不得反向依赖它们。
 
+## Phase 40 Governance Truth Surface Notes
+
+- `.planning/baseline/GOVERNANCE_REGISTRY.json` 是 governance-only 的 machine-readable baseline asset：它只承载 active governance facts（版本、安装、support routing、release trust、continuity），不是 runtime / control / protocol 的 public API。
+- `.planning/MILESTONES.md`、`.planning/milestones/*.md`、`.planning/v1.4-MILESTONE-AUDIT.md` 与 `V1_4_EVIDENCE_INDEX.md` 继续只承担 archive / audit / handoff 身份；它们可以作为历史证据被引用，但不得回流为 current governance truth。
+- `custom_components/lipro/control/runtime_access.py` 是 control/services 读取 runtime entry 枚举、device lookup 与 snapshot projection 的唯一正式 read-model home。
+- `custom_components/lipro/services/execution.py` 同时保持 `formal shared service execution facade` 身份；`schedule.py` 复用它的 shared executor，而不是维护第二条 auth/error 执行链。
+- `docs/README.md` 只负责解释当前可读入口与 active-vs-archive 边界，不得把 milestone snapshots 或 phase workspace assets 重新讲成对外 current source。
+
 ## Transitional Public Surfaces
 
 | Surface | Allowed Until | Exit Condition |
@@ -44,7 +52,7 @@
 
 ## Phase 35 Protocol Hotspot Final Slimming Notes
 
-- `LiproRestFacade` 仍是唯一 canonical REST child façade；`client.py` 只保留 stable import home，request pipeline / endpoint forwarding 复杂度已正式下沉到 `request_gateway.py`、`transport_executor.py` 与 `endpoint_surface.py`，它们只是 localized collaborators，不是新 public roots。
+- `LiproRestFacade` 仍是唯一 canonical REST child façade；`client.py` 只保留 stable import home，request pipeline / endpoint-operation 复杂度已正式下沉到 `request_gateway.py`、`transport_executor.py` 与 `endpoint_surface.py`，它们只是 localized collaborators，不是新 public roots。
 - `LiproProtocolFacade` 继续是唯一 protocol-plane root；`rest_port.py` 只是 typed REST child-façade port，`mqtt_facade.py` 只是 MQTT child façade home，二者都不得被上层当作 package-level alternative root。
 - 本 phase 只切薄 formal root / child façade body，不新增 package export、不回流 `__getattr__` 式隐式扩面，也不改变外部 formal import story。
 
@@ -85,7 +93,8 @@
 
 ## Phase 16 Governance Calibration Notes
 
-- `custom_components/lipro/services/execution.py` 继续保留为正式 service execution facade；coordinator 私有 auth seam 已在 Phase 5 关闭，不得重新登记为 active public residual。
+- `custom_components/lipro/services/execution.py` 继续保留为正式 shared service execution facade；schedule 等控制面服务必须复用它，不得重新长出第二条 auth/error 执行链。
+- `custom_components/lipro/services/execution.py` 同时保持 `formal shared service execution facade` 身份；它不是 active residual，也不是 active kill target。
 - `.planning/codebase/*.md` 只承担 derived collaboration map 角色；它们可以解释 public surface locality，但不能反向定义 canonical / transitional / forbidden surface truth。
 
 ## Phase 15 Surface Closure Notes
@@ -106,6 +115,7 @@
 - `custom_components/lipro/core/protocol/facade.py` 已改为显式 root contract：`LiproProtocolFacade` 与 `LiproMqttFacade` 不再通过 `__getattr__` / `__dir__` 扩面，child surface 不再反向定义 root。
 - `custom_components/lipro/__init__.py`、`custom_components/lipro/config_flow.py`、`custom_components/lipro/core/__init__.py` 与 `custom_components/lipro/core/mqtt/__init__.py` 的 legacy public-name / compat export 已在 Phase 09 收口；`core.api.LiproClient` compat shell 已在 Phase 12 正式删除。
 - `Coordinator.devices` 现在只暴露 read-only mapping；live mutable runtime registry 继续留在 coordinator internal state，不再作为 formal public surface。
+- `custom_components/lipro/control/runtime_access.py` 是 control/services 读取 runtime entry 枚举、device lookup 与 snapshot projection 的唯一正式 read-model home。
 - `custom_components/lipro/core/device/device.py` 中的 `LiproDevice.outlet_power_info` 已成为 outlet power 单一正式 primitive；`extra_data["power_info"]` 仅允许作为 legacy read fallback，不再承担正式 truth 角色。
 
 ## Phase 10 Surface Boundary Notes

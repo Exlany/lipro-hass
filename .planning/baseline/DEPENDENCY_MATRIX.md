@@ -2,7 +2,7 @@
 
 **Purpose:** 定义允许/禁止的跨平面依赖方向，并作为 architecture guards 的语义真源。
 **Status:** Baseline reference
-**Updated:** 2026-03-18 (Phase 37 sustainment / topology convergence aligned)
+**Updated:** 2026-03-19 (Phase 40 governance-truth and runtime-access boundary aligned)
 
 ## Formal Role
 
@@ -28,6 +28,13 @@
 | Domain | HA lifecycle, auth/retry/network recovery | 会污染领域真源 |
 | Protocol | coordinator, entity, platform, diagnostics UI semantics | 协议层不应感知宿主上层语义 |
 | Compat shell | 反向定义正式 public surface | compat 只能跟随，不可主导 |
+
+## Phase 40 Governance Truth Boundary
+
+- `.planning/baseline/GOVERNANCE_REGISTRY.json` 只允许被 governance docs / contributor templates / meta guards pull 取；production code、runtime orchestration 与 service execution 不得把它当作运行时配置源。
+- `custom_components/lipro/control/runtime_access.py` 继续是 control/services 读取 runtime read-model 的唯一 helper home；diagnostics / maintenance / device lookup 不得再散落 `runtime_data`、ad hoc coordinator iteration 或 direct device lookup 读取。
+- `custom_components/lipro/control/diagnostics_surface.py`、`custom_components/lipro/services/device_lookup.py` 与 `custom_components/lipro/services/maintenance.py` 只允许通过 `runtime_access.iter_runtime_entry_coordinators()`、`find_runtime_device()` 与 `find_runtime_device_and_coordinator()` 消费 runtime readers；不得重新长回本地 locator helper。
+- `custom_components/lipro/services/execution.py` 是唯一 shared auth/error execution home；`custom_components/lipro/services/schedule.py` 只允许提供 schedule-specific 参数封装、日志与翻译 key，不得复制独立 coordinator auth chain 或 reauth story。
 
 ## Architecture Policy Mapping
 
@@ -87,7 +94,7 @@
 
 - `custom_components/lipro/core/api/client.py` 只保留 `LiproRestFacade` stable import home；`custom_components/lipro/core/api/rest_facade.py` 允许 inward 依赖 `request_gateway.py`、`transport_executor.py` 与 `endpoint_surface.py`，但 runtime/control/tests 不得把这些 collaborators 当作对外 contract。
 - `custom_components/lipro/core/protocol/facade.py` 允许 inward 依赖 `rest_port.py` 与 `mqtt_facade.py`；`_RestFacadePort` 只是 typed child-façade port，`LiproMqttFacade` 只是 protocol root 下的 MQTT child façade，control/runtime 不得绕过 `LiproProtocolFacade` 直摸这些 internals。
-- protocol hotspot slimming 允许 root/body 继续变薄，但不允许把 forwarding glue 迁移成新的 external package export 或 dependency shortcut。
+- protocol hotspot slimming 允许 root/body 继续变薄，但不允许把 endpoint-operation glue 迁移成新的 external package export 或 dependency shortcut。
 
 ## Phase 36 Runtime Root / Exception Clarifications
 

@@ -69,6 +69,13 @@ uv run pytest -q tests/meta/test_governance*.py tests/meta/test_toolchain_truth.
 - **Rollback posture:** do not use `git push --force` or `git reset --hard` as a release recovery strategy; supersede a bad tag with a follow-up release and explicit notes instead.
 - **Maintainer unavailable:** if the maintainer is unavailable, freeze new tagged releases and freeze new release promises, keep security disclosure paths active, and record the continuity gap explicitly rather than silently bypassing gates; support triage may continue only as best effort.
 
+## Break-Glass Verify-Only / Non-Publish Rehearsal
+
+- **`break-glass verify-only`**: maintainer-only path to rerun governance, security, signing, and identity verification on a tagged tree without publishing or republishing public assets.
+- **`non-publish rehearsal`**: maintainer-only dry run of the release sequence that proves CI reuse, security/code-scanning gates, artifact generation, and release-identity writing while stopping before public asset publication.
+- These modes never relax the stable install contract, support-routing truth, or release-trust gates; they only validate that the same gates would pass for a real tagged release.
+- If a rehearsal or verify-only run discovers a blocker, record it explicitly; do not silently downgrade to preview paths or publish partially verified assets.
+
 ## Release Path
 
 1. Prepare the release commit and confirm changelog/release notes inputs.

@@ -64,7 +64,7 @@ class DeviceRuntime:
         self._refresh_strategy = RefreshStrategy()
         self._stale_tracker = StaleDeviceTracker()
         self._snapshot_builder = SnapshotBuilder(
-            client=protocol,
+            protocol=protocol,
             device_identity_index=device_identity_index,
             device_filter=self._device_filter,
         )

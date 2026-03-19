@@ -18,14 +18,14 @@ The canonical source is the `homeassistant==2026.3.1` pin in `pyproject.toml`.
 The runtime dependency envelope is declared in `pyproject.toml` (full runtime floor/bounds) plus `custom_components/lipro/manifest.json` (Home Assistant-installed subset).
 运行时依赖边界以 `pyproject.toml`（完整 runtime floor/bounds）和 `custom_components/lipro/manifest.json`（Home Assistant 安装子集）共同为准。
 
-Supported shell/manual installs should start from verified GitHub Release assets (`install.sh` + release zip + `SHA256SUMS`). Preview paths such as `ARCHIVE_TAG=main`, branch fallback, or mirror installs are best effort only.
-默认支持的 shell / 手动安装路径应从经过校验的 GitHub Release 资产（`install.sh` + release zip + `SHA256SUMS`）开始；`ARCHIVE_TAG=main`、branch fallback 与 mirror 安装仅属于尽力而为的预览路径。
+Supported shell/manual installs should start from verified GitHub Release assets (`install.sh` + release zip + `SHA256SUMS`). Preview paths such as `ARCHIVE_TAG=main`, branch fallback, or mirror installs are best effort only. If the installer runs in remote mode without a pinned archive/tag, it resolves the latest tagged release by default, but that convenience does not weaken the verified-release support contract.
+默认支持的 shell / 手动安装路径应从经过校验的 GitHub Release 资产（`install.sh` + release zip + `SHA256SUMS`）开始；`ARCHIVE_TAG=main`、branch fallback 与 mirror 安装仅属于尽力而为的预览路径。若安装脚本以 remote 模式运行且未显式指定 archive/tag，则默认解析最新 tagged release（`latest`）；但这种便利性不会削弱经过校验的稳定安装契约。
 
 Current release trust evidence includes published `SHA256SUMS`, `SBOM`, GitHub artifact `attestation` / `provenance`, keyless `cosign` signature bundles, the tagged runtime `pip-audit` gate, and a fail-closed tagged `CodeQL` gate. Artifact attestation / provenance is still release-identity evidence; `cosign` bundles are the artifact-signing layer.
 当前 release trust 证据包括已发布的 `SHA256SUMS`、`SBOM`、GitHub artifact `attestation` / `provenance`、keyless `cosign` 签名 bundle、tagged runtime `pip-audit` 门禁，以及 fail-closed 的 tagged `CodeQL` 门禁。Artifact attestation / provenance 仍属于 release identity 证据；`cosign` bundle 才是 artifact signing 这一层。
 
-If a tagged `CodeQL` analysis is missing, open alerts remain, or signature verification fails, the release must block rather than silently downgrade to a softer trust posture.
-若缺少 tagged `CodeQL` analysis、仍存在 open alerts，或签名校验失败，则 release 必须阻断，而不是静默降级为更弱的 trust posture。
+If a tagged `CodeQL` analysis is missing, open alerts remain, or signature verification fails, the release must block rather than silently downgrade to a softer trust posture. Maintainer-only `break-glass verify-only` / `non-publish rehearsal` procedures may verify gates, but they must stop before public asset publication and may not invent a softer trust path.
+若缺少 tagged `CodeQL` analysis、仍存在 open alerts，或签名校验失败，则 release 必须阻断，而不是静默降级为更弱的 trust posture。维护者专用的 `break-glass verify-only` / `non-publish rehearsal` 过程可以用于核验门禁，但必须止步于公开资产发布之前，也不能虚构更软的信任路径。
 
 For private repositories or forks, CI skips HACS validation because HACS only supports public GitHub repositories.
 若仓库或 fork 为私有，CI 会跳过 HACS validation，因为 HACS 只支持公开 GitHub 仓库。

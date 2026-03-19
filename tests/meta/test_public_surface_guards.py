@@ -210,6 +210,20 @@ def test_phase_19_headless_proof_bans_keep_boot_local_and_non_public() -> None:
         assert signal not in boot_text
 
 
+def test_phase_40_review_ledgers_keep_shared_execution_facade_out_of_residual_and_kill() -> None:
+    file_matrix_text = (_ROOT / ".planning" / "reviews" / "FILE_MATRIX.md").read_text(encoding="utf-8")
+    residual_text = (_ROOT / ".planning" / "reviews" / "RESIDUAL_LEDGER.md").read_text(encoding="utf-8")
+    kill_text = (_ROOT / ".planning" / "reviews" / "KILL_LIST.md").read_text(encoding="utf-8")
+
+    assert "REST endpoint operations collaborator home" in file_matrix_text
+    assert "formal service execution facade; private auth seam closed" in file_matrix_text
+    assert "## Phase 40 Residual Delta" in residual_text
+    assert "schedule.py" in residual_text
+    assert "formal service execution facade" in residual_text
+    assert "## Phase 40 Status Update" in kill_text
+    assert "custom_components/lipro/services/execution.py" in kill_text
+
+
 def test_legacy_protocol_exports_do_not_reexpand_root_packages() -> None:
     for rule_id in (
         "ENF-COMPAT-ROOT-NO-LEGACY-CLIENT",
@@ -313,3 +327,78 @@ def test_phase_30_control_contracts_stay_private_and_system_health_minimal() -> 
         "get_entry_telemetry_exporter",
     ):
         assert token not in control_exports
+
+def test_phase_40_public_surface_notes_capture_runtime_access_and_shared_execution() -> None:
+    public_surfaces = _PUBLIC_SURFACES.read_text(encoding="utf-8")
+
+    assert "## Phase 40 Governance Truth Surface Notes" in public_surfaces
+    assert "GOVERNANCE_REGISTRY.json" in public_surfaces
+    assert "唯一正式 read-model home" in public_surfaces
+    assert "formal shared service execution facade" in public_surfaces
+
+def test_phase_40_touched_hotspots_keep_port_protocol_and_operation_wording() -> None:
+    auth_text = (
+        _ROOT / "custom_components" / "lipro" / "core" / "api" / "auth_service.py"
+    ).read_text(encoding="utf-8")
+    endpoint_text = (
+        _ROOT / "custom_components" / "lipro" / "core" / "api" / "endpoint_surface.py"
+    ).read_text(encoding="utf-8")
+    endpoint_methods_text = (
+        _ROOT
+        / "custom_components"
+        / "lipro"
+        / "core"
+        / "api"
+        / "rest_facade_endpoint_methods.py"
+    ).read_text(encoding="utf-8")
+    snapshot_text = (
+        _ROOT
+        / "custom_components"
+        / "lipro"
+        / "core"
+        / "coordinator"
+        / "runtime"
+        / "device"
+        / "snapshot.py"
+    ).read_text(encoding="utf-8")
+    sender_text = (
+        _ROOT
+        / "custom_components"
+        / "lipro"
+        / "core"
+        / "coordinator"
+        / "runtime"
+        / "command"
+        / "sender.py"
+    ).read_text(encoding="utf-8")
+
+    assert "AuthPort" in auth_text
+    assert "AuthClient" not in auth_text
+    assert "endpoint operations collaborator" in endpoint_text
+    assert "forwarding" not in endpoint_text
+    assert "endpoint-operation surface" in endpoint_methods_text
+    assert "Forwarding lives here" not in endpoint_methods_text
+    assert "SnapshotProtocolPort" in snapshot_text
+    assert "SnapshotProtocolClient" not in snapshot_text
+    assert "protocol: LiproProtocolFacade" in sender_text
+    assert "client: LiproProtocolFacade" not in sender_text
+
+
+def test_phase_40_ledgers_keep_service_execution_formal_and_non_delete_target() -> None:
+    file_matrix_text = (
+        _ROOT / ".planning" / "reviews" / "FILE_MATRIX.md"
+    ).read_text(encoding="utf-8")
+    residual_text = (
+        _ROOT / ".planning" / "reviews" / "RESIDUAL_LEDGER.md"
+    ).read_text(encoding="utf-8")
+    kill_text = (_ROOT / ".planning" / "reviews" / "KILL_LIST.md").read_text(
+        encoding="utf-8"
+    )
+
+    assert "formal service execution facade" in file_matrix_text
+    assert "services/execution.py" in residual_text
+    assert "formal service execution facade" in residual_text
+    assert "## Phase 40 Status Update" in kill_text
+    assert "formal service execution facade" in kill_text
+    assert "active kill target" in kill_text
+

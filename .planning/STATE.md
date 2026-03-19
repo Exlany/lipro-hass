@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.5
 milestone_name: Governance Truth Consolidation & Control-Surface Finalization
 status: active
-last_updated: "2026-03-19T23:59:59Z"
+last_updated: "2026-03-19T14:19:25Z"
 progress:
   total_phases: 1
-  completed_phases: 0
-  total_plans: 4
-  completed_plans: 0
+  completed_phases: 1
+  total_plans: 7
+  completed_plans: 7
 ---
 
 # Project State
@@ -19,7 +19,7 @@ See: `.planning/PROJECT.md`
 
 **Current milestone:** `v1.5 Governance Truth Consolidation & Control-Surface Finalization`
 **Core value:** 在不回退 `LiproProtocolFacade` / `Coordinator` 单一正式主链的前提下，把 authority layering、machine-readable governance truth、runtime-access read-model 与 shared service execution contract 收口成更诚实、更可守护的 current story。
-**Current mode:** `Phase 40 planning`；`v1.4` 已于 `2026-03-19` 完成 archive promotion，当前正在把 fresh-audit follow-through 路由到 `Phase 40`，默认 next action 为 `$gsd-plan-phase 40`。
+**Current mode:** `Phase 40 complete`；`v1.4` 已于 `2026-03-19` 完成 archive promotion，`Phase 40` 已完成执行与验证，当前默认 next action 为 `$gsd-complete-milestone v1.5`。
 
 ## Current Position
 
@@ -118,15 +118,16 @@ See: `.planning/PROJECT.md`
 ## Governance Truth Sources
 
 1. `docs/NORTH_STAR_TARGET_ARCHITECTURE.md`
-2. `.planning/MILESTONES.md`
+2. `.planning/PROJECT.md`
 3. `.planning/ROADMAP.md`
 4. `.planning/REQUIREMENTS.md`
 5. `.planning/STATE.md`
-6. `.planning/baseline/*.md`
+6. `.planning/baseline/*.md` 与 `.planning/baseline/GOVERNANCE_REGISTRY.json`
 7. `.planning/reviews/*.md`
 8. `docs/developer_architecture.md`
 9. `AGENTS.md`
 10. `CLAUDE.md`（若使用 Claude Code）
+11. 历史执行 / 审计 / 归档文档
 
 ## Phase Asset Promotion Contract
 
@@ -136,18 +137,18 @@ See: `.planning/PROJECT.md`
 ## Current Milestone Status
 
 - **Milestone:** `v1.5 Governance Truth Consolidation & Control-Surface Finalization`
-- **Phase range:** `40 -> ...`
-- **Completed so far:** `none`（`Phase 40` pending planning/execution）
+- **Phase range:** `40`
+- **Completed so far:** `Phase 40`（7/7 plans executed and verified）
 - **Starting baseline:** `v1.4` archive assets remain authoritative historical snapshots: `.planning/v1.4-MILESTONE-AUDIT.md`, `.planning/reviews/V1_4_EVIDENCE_INDEX.md`, `.planning/milestones/v1.4-ROADMAP.md`, `.planning/milestones/v1.4-REQUIREMENTS.md`, local tag `v1.4`
 - **Historical archives:** `.planning/milestones/v1.1-ROADMAP.md`, `.planning/milestones/v1.1-REQUIREMENTS.md`, `.planning/milestones/v1.2-ROADMAP.md`, `.planning/milestones/v1.2-REQUIREMENTS.md`, `.planning/milestones/v1.4-ROADMAP.md`, `.planning/milestones/v1.4-REQUIREMENTS.md`
-- **Next focus:** `$gsd-plan-phase 40`——先固化 plan，再执行 fresh-audit follow-through；不得回写 `Phase 39` placeholder，也不得把 archive snapshot 误升为 current truth。
+- **Next focus:** `$gsd-complete-milestone v1.5`——完成 milestone closeout、归档 `Phase 40` 证据，并维持 active/archive 单一 current story。
 
 ## Recommended Next Command
 
-1. `$gsd-plan-phase 40` —— 为 `v1.5` 的 first tranche 固化 plan / verification loop
-2. `$gsd-execute-phase 40` —— 执行 governance truth + runtime-access + shared execution 收口
-3. `$gsd-progress` —— 查看 `v1.5 / Phase 40` 当前状态与 traceability
-4. `uv run ruff check . && uv run mypy && uv run pytest -q tests/meta/test_governance*.py tests/meta/test_public_surface_guards.py tests/meta/test_version_sync.py tests/meta/test_toolchain_truth.py` —— 作为 phase-40 planning / execution snapshot
+1. `$gsd-complete-milestone v1.5` —— 完成 `v1.5` 里程碑关账与归档
+2. `$gsd-progress` —— 查看 `v1.5` 当前状态与 traceability
+3. `uv run ruff check . && uv run mypy` —— 复核当前工作树静态质量
+4. `uv run pytest -q tests/meta/test_governance*.py tests/meta/test_public_surface_guards.py tests/meta/test_version_sync.py tests/meta/test_toolchain_truth.py` —— 复核 governance snapshot
 
 **Historical launch pointer:** `$gsd-execute-phase 29`
 
@@ -155,36 +156,34 @@ See: `.planning/PROJECT.md`
 
 If resuming, read in this order:
 1. `docs/NORTH_STAR_TARGET_ARCHITECTURE.md`
-2. `.planning/MILESTONES.md`
-3. `.planning/PROJECT.md`
-4. `.planning/ROADMAP.md`
-5. `.planning/REQUIREMENTS.md`
-6. `.planning/STATE.md`
-7. `.planning/phases/39-governance-current-story-convergence-control-home-clarification-and-mega-test-decomposition/39-VERIFICATION.md`
-8. `.planning/phases/39-governance-current-story-convergence-control-home-clarification-and-mega-test-decomposition/39-SUMMARY.md`
-9. `.planning/phases/39-governance-current-story-convergence-control-home-clarification-and-mega-test-decomposition/39-VALIDATION.md`
-10. `.planning/phases/38-external-boundary-residual-retirement-and-quality-signal-hardening/38-VERIFICATION.md`
-11. `.planning/phases/38-external-boundary-residual-retirement-and-quality-signal-hardening/38-SUMMARY.md`
-12. `.planning/phases/37-test-topology-and-derived-truth-convergence/37-VERIFICATION.md`
-13. `.planning/phases/37-test-topology-and-derived-truth-convergence/37-SUMMARY.md`
-14. `.planning/phases/36-runtime-root-and-exception-burn-down/36-VERIFICATION.md`
-15. `.planning/phases/36-runtime-root-and-exception-burn-down/36-SUMMARY.md`
-16. `.planning/phases/35-protocol-hotspot-final-slimming/35-VERIFICATION.md`
-17. `.planning/phases/35-protocol-hotspot-final-slimming/35-SUMMARY.md`
-18. `.planning/phases/34-continuity-and-hard-release-gates/34-VERIFICATION.md`
-19. `.planning/phases/34-continuity-and-hard-release-gates/34-SUMMARY.md`
-20. `.planning/phases/33-contract-truth-unification-hotspot-slimming-and-productization-hardening/33-VERIFICATION.md`
-21. `.planning/phases/33-contract-truth-unification-hotspot-slimming-and-productization-hardening/33-SUMMARY.md`
-22. `.planning/reviews/V1_2_EVIDENCE_INDEX.md`
-23. `.planning/v1.2-MILESTONE-AUDIT.md`
-24. `.planning/v1.3-HANDOFF.md`
-25. `.planning/phases/32-truth-convergence-gate-honesty-and-quality-10-closeout/32-CONTEXT.md`
-26. `.planning/phases/32-truth-convergence-gate-honesty-and-quality-10-closeout/32-RESEARCH.md`
-27. `.planning/phases/31-runtime-service-typed-budget-and-exception-closure/31-VERIFICATION.md`
-28. `.planning/phases/30-protocol-control-typed-contract-tightening/30-VERIFICATION.md`
-29. `.planning/phases/24-final-milestone-audit-archive-readiness-and-v1-3-handoff-prep/24-VERIFICATION.md`
-30. `.planning/baseline/*.md`
-31. `.planning/reviews/*.md`
-32. `AGENTS.md`
-33. `CLAUDE.md`（若使用 Claude Code）
-34. `docs/developer_architecture.md`
+2. `.planning/PROJECT.md`
+3. `.planning/ROADMAP.md`
+4. `.planning/REQUIREMENTS.md`
+5. `.planning/STATE.md`
+6. `.planning/baseline/GOVERNANCE_REGISTRY.json`
+7. `.planning/baseline/AUTHORITY_MATRIX.md`
+8. `.planning/baseline/PUBLIC_SURFACES.md`
+9. `.planning/baseline/DEPENDENCY_MATRIX.md`
+10. `.planning/baseline/VERIFICATION_MATRIX.md`
+11. `.planning/reviews/PROMOTED_PHASE_ASSETS.md`
+12. `.planning/reviews/FILE_MATRIX.md`
+13. `.planning/reviews/RESIDUAL_LEDGER.md`
+14. `.planning/reviews/KILL_LIST.md`
+15. `docs/developer_architecture.md`
+16. `AGENTS.md`
+17. `CLAUDE.md`
+18. `.planning/phases/40-governance-truth-consolidation-runtime-access-convergence-and-service-execution-unification/40-VERIFICATION.md`
+19. `.planning/phases/40-governance-truth-consolidation-runtime-access-convergence-and-service-execution-unification/40-SUMMARY.md`
+20. `.planning/phases/39-governance-current-story-convergence-control-home-clarification-and-mega-test-decomposition/39-VERIFICATION.md`
+21. `.planning/phases/39-governance-current-story-convergence-control-home-clarification-and-mega-test-decomposition/39-SUMMARY.md`
+22. `.planning/phases/38-external-boundary-residual-retirement-and-quality-signal-hardening/38-VERIFICATION.md`
+23. `.planning/phases/38-external-boundary-residual-retirement-and-quality-signal-hardening/38-SUMMARY.md`
+24. `.planning/reviews/V1_4_EVIDENCE_INDEX.md`
+25. `.planning/v1.4-MILESTONE-AUDIT.md`
+26. `.planning/MILESTONES.md`
+27. `.planning/v1.3-HANDOFF.md`
+28. `.planning/phases/32-truth-convergence-gate-honesty-and-quality-10-closeout/32-CONTEXT.md`
+29. `.planning/phases/32-truth-convergence-gate-honesty-and-quality-10-closeout/32-RESEARCH.md`
+30. `.planning/phases/31-runtime-service-typed-budget-and-exception-closure/31-VERIFICATION.md`
+31. `.planning/phases/30-protocol-control-typed-contract-tightening/30-VERIFICATION.md`
+32. `.planning/phases/24-final-milestone-audit-archive-readiness-and-v1-3-handoff-prep/24-VERIFICATION.md`

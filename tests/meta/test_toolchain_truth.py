@@ -32,6 +32,7 @@ _SUPPORT = _ROOT / "SUPPORT.md"
 _SECURITY = _ROOT / "SECURITY.md"
 _TROUBLESHOOTING = _ROOT / "docs" / "TROUBLESHOOTING.md"
 _RUNBOOK = _ROOT / "docs" / "MAINTAINER_RELEASE_RUNBOOK.md"
+_GOVERNANCE_REGISTRY = _ROOT / ".planning" / "baseline" / "GOVERNANCE_REGISTRY.json"
 _CODEBASE_DIR = _ROOT / ".planning" / "codebase"
 
 _TESTING_MAP = _ROOT / ".planning" / "codebase" / "TESTING.md"
@@ -54,6 +55,11 @@ def _load_yaml(path: Path) -> dict[str, Any]:
 
 def _load_devcontainer() -> dict[str, Any]:
     loaded = json.loads(_DEVCONTAINER.read_text(encoding="utf-8"))
+    assert isinstance(loaded, dict)
+    return loaded
+
+def _load_governance_registry() -> dict[str, Any]:
+    loaded = json.loads(_GOVERNANCE_REGISTRY.read_text(encoding="utf-8"))
     assert isinstance(loaded, dict)
     return loaded
 
@@ -353,6 +359,19 @@ def test_deep_docs_keep_single_maintainer_continuity_truth() -> None:
     assert "SECURITY.md" in troubleshooting_text
     assert "SUPPORT.md" in troubleshooting_text
     assert "docs/MAINTAINER_RELEASE_RUNBOOK.md" in troubleshooting_text
+
+
+def test_governance_registry_keeps_continuity_truth_machine_readable() -> None:
+    registry = _load_governance_registry()
+    support_text = _SUPPORT.read_text(encoding="utf-8")
+    security_text = _SECURITY.read_text(encoding="utf-8")
+    runbook_text = _RUNBOOK.read_text(encoding="utf-8")
+
+    assert registry["continuity"]["maintainer_model"] == "single-maintainer"
+    assert registry["continuity"]["documented_delegate"] is False
+    for text in (support_text, security_text, runbook_text):
+        assert registry["continuity"]["maintainer_model"] in text
+        assert registry["continuity"]["freeze_phrase"] in text
 
 
 def test_develop_script_smoke_mode_preserves_other_integrations(

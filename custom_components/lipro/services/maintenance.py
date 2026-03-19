@@ -18,9 +18,8 @@ from homeassistant.core import (
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers import device_registry as dr
 
-from ..control.runtime_access import get_entry_runtime_coordinator, iter_runtime_entries
+from ..control.runtime_access import iter_runtime_entry_coordinators
 from ..core.utils.redaction import redact_identifier as _redact_identifier
-from ..runtime_types import LiproCoordinator
 from .contracts import RefreshDevicesResult
 
 
@@ -39,22 +38,6 @@ class _ConfigEntryCarrier(Protocol):
     config_entries: Iterable[object]
 
 
-def _iter_runtime_entry_coordinators(
-    hass: HomeAssistant,
-    *,
-    domain: str,
-    requested_entry_id: str | None,
-) -> list[tuple[str, LiproCoordinator]]:
-    """Collect runtime coordinators for one entry or all entries."""
-    del domain
-    targets: list[tuple[str, LiproCoordinator]] = []
-    for entry in iter_runtime_entries(hass, entry_id=requested_entry_id):
-        coordinator = get_entry_runtime_coordinator(entry)
-        if coordinator is not None:
-            targets.append((entry.entry_id, coordinator))
-    return targets
-
-
 async def async_handle_refresh_devices(
     hass: HomeAssistant,
     call: ServiceCall,
@@ -65,11 +48,7 @@ async def async_handle_refresh_devices(
     """Handle refresh_devices service call."""
     raw_entry_id = call.data.get(attr_entry_id)
     requested_entry_id = raw_entry_id if isinstance(raw_entry_id, str) else None
-    targets = _iter_runtime_entry_coordinators(
-        hass,
-        domain=domain,
-        requested_entry_id=requested_entry_id,
-    )
+    targets = iter_runtime_entry_coordinators(hass, entry_id=requested_entry_id)
 
     if requested_entry_id and not targets:
         raise ServiceValidationError(
@@ -79,7 +58,7 @@ async def async_handle_refresh_devices(
         )
 
     refreshed_entries = 0
-    for _entry_id, coordinator in targets:
+    for _entry, coordinator in targets:
         await coordinator.device_refresh_service.async_refresh_devices()
         refreshed_entries += 1
 

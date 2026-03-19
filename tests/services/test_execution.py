@@ -126,6 +126,37 @@ async def test_async_execute_coordinator_call_with_real_auth_service_maps_auth_e
 
 
 @pytest.mark.asyncio
+async def test_async_execute_coordinator_call_with_real_auth_service_maps_refresh_expiry(
+    hass,
+) -> None:
+    entry = MockConfigEntry(domain=DOMAIN, data={})
+    entry.add_to_hass(hass)
+    entry.async_start_reauth = MagicMock()
+    coordinator = Mock(
+        auth_service=CoordinatorAuthService(
+            hass=hass,
+            auth_manager=MagicMock(async_ensure_authenticated=AsyncMock()),
+            config_entry=entry,
+        )
+    )
+    raise_service_error = Mock(side_effect=RuntimeError("mapped"))
+
+    with pytest.raises(RuntimeError, match="mapped"):
+        await async_execute_coordinator_call(
+            coordinator,
+            call=AsyncMock(side_effect=LiproRefreshTokenExpiredError("expired")),
+            raise_service_error=raise_service_error,
+        )
+
+    entry.async_start_reauth.assert_called_once_with(hass)
+    assert raise_service_error.call_args.args == ("auth_expired",)
+    assert isinstance(
+        raise_service_error.call_args.kwargs["err"],
+        LiproRefreshTokenExpiredError,
+    )
+
+
+@pytest.mark.asyncio
 async def test_async_execute_coordinator_call_passes_api_errors_to_handler() -> None:
     coordinator = Mock()
     coordinator.auth_service = Mock(async_ensure_authenticated=AsyncMock())

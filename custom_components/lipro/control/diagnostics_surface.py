@@ -3,14 +3,16 @@
 from __future__ import annotations
 
 from collections.abc import Callable, Mapping
-from typing import TYPE_CHECKING, Protocol, cast
+from typing import TYPE_CHECKING, Protocol
 
 from ..runtime_types import LiproCoordinator
 from .models import empty_failure_summary
 from .runtime_access import (
     build_runtime_snapshot,
+    find_runtime_device,
     get_entry_runtime_coordinator,
     get_runtime_device_mapping,
+    is_runtime_device_mapping_degraded,
 )
 from .telemetry_surface import build_entry_diagnostics_view
 
@@ -94,7 +96,7 @@ def _build_coordinator_view(
 ) -> tuple[DiagnosticsPayload, list[str]]:
     snapshot = build_runtime_snapshot(entry)
     degraded: list[str] = []
-    if not isinstance(getattr(coordinator, "devices", None), Mapping):
+    if is_runtime_device_mapping_degraded(coordinator):
         degraded.append("devices")
 
     failure_summary = (
@@ -139,18 +141,6 @@ def _build_anonymous_share_view(
     if degraded:
         payload["degraded"] = True
     return payload, degraded
-
-
-def _get_device_from_runtime(
-    coordinator: LiproCoordinator,
-    serial: str,
-) -> LiproDevice | None:
-    getter = getattr(coordinator, "get_device", None)
-    if callable(getter):
-        device = cast("LiproDevice | None", getter(serial))
-        if device is not None:
-            return device
-    return get_runtime_device_mapping(coordinator).get(serial)
 
 
 async def async_get_config_entry_diagnostics(
@@ -219,9 +209,9 @@ async def async_get_device_diagnostics(
     if serial is None:
         return {"error": "device_not_in_lipro_domain"}
 
-    lipro_device = _get_device_from_runtime(coordinator, serial)
+    lipro_device = find_runtime_device(coordinator, serial)
     if lipro_device is None:
-        if not isinstance(getattr(coordinator, "devices", None), Mapping):
+        if is_runtime_device_mapping_degraded(coordinator):
             return {"error": "device_cache_unavailable"}
         return {"error": "device_not_found"}
 

@@ -418,27 +418,27 @@
 
 ### Governance Truth & Control-Surface Finalization
 
-- [ ] **GOV-33**: authority precedence、active truth、archive snapshots、promoted phase assets 与 derived collaboration maps 的身份必须在 `AGENTS.md`、baseline 三件套、`docs/README.md` 与 current-story docs 中讲同一条故事，并吸收 `V1_4_EVIDENCE_INDEX.md` / `v1.4-MILESTONE-AUDIT.md` / `Phase 38-39` closeout 证据。
-- [ ] **QLT-11**: continuity / release-trust / install-path / support-routing 事实必须收口到 machine-readable governance registry，并以 meta guards 强制 README、README_zh、CONTRIBUTING、SUPPORT、SECURITY、TROUBLESHOOTING、runbook、issue/PR templates 同步；同时补齐 break-glass verify-only 与 non-publish rehearsal 语义。
-- [ ] **CTRL-09**: control/services 对 runtime 的枚举、device read-model、snapshot/telemetry projection 与 diagnostics lookup 必须统一经 `runtime_access` formal home 暴露，不得继续在 `diagnostics_surface.py`、`device_lookup.py`、`maintenance.py` 各自复制 locator/read logic。
-- [ ] **ERR-10**: service-layer auth/error execution contract 必须统一到正式 shared executor；`schedule.py` 不得继续复制 coordinator auth chain、旁路 reauth 语义或独立 broad arbitration story。
-- [ ] **RES-10**: touched protocol/runtime/service hotspots 中的 `client` / `forwarding` / `mixin` stale terminology 必须继续收口到 `protocol` / `port` / `facade` / `operations` 语义；compat-leaning wording 只允许留在历史文档或显式 residual 账本中。
+- [x] **GOV-33**: authority precedence、active truth、archive snapshots、promoted phase assets 与 derived collaboration maps 的身份必须在 `AGENTS.md`、baseline 三件套、`docs/README.md` 与 current-story docs 中讲同一条故事，并吸收 `V1_4_EVIDENCE_INDEX.md` / `v1.4-MILESTONE-AUDIT.md` / `Phase 38-39` closeout 证据。
+- [x] **QLT-11**: continuity / release-trust / install-path / support-routing 事实必须收口到 machine-readable governance registry，并以 meta guards 强制 README、README_zh、CONTRIBUTING、SUPPORT、SECURITY、TROUBLESHOOTING、runbook、issue/PR templates 同步；同时补齐 break-glass verify-only 与 non-publish rehearsal 语义。
+- [x] **CTRL-09**: control/services 对 runtime 的枚举、device read-model、snapshot/telemetry projection 与 diagnostics lookup 必须统一经 `runtime_access` formal home 暴露，不得继续在 `diagnostics_surface.py`、`device_lookup.py`、`maintenance.py` 各自复制 locator/read logic。
+- [x] **ERR-10**: service-layer auth/error execution contract 必须统一到正式 shared executor；`schedule.py` 不得继续复制 coordinator auth chain、旁路 reauth 语义或独立 broad arbitration story。
+- [x] **RES-10**: touched protocol/runtime/service hotspots 中的 `client` / `forwarding` / `mixin` stale terminology 必须继续收口到 `protocol` / `port` / `facade` / `operations` 语义；compat-leaning wording 只允许留在历史文档或显式 residual 账本中。
 
 ## Traceability for v1.5 route
 
 | Requirement | Planned Phase | Status |
 |-------------|---------------|--------|
-| GOV-33 | Phase 40 | Planned |
-| QLT-11 | Phase 40 | Planned |
-| CTRL-09 | Phase 40 | Planned |
-| ERR-10 | Phase 40 | Planned |
-| RES-10 | Phase 40 | Planned |
+| GOV-33 | Phase 40 | Complete |
+| QLT-11 | Phase 40 | Complete |
+| CTRL-09 | Phase 40 | Complete |
+| ERR-10 | Phase 40 | Complete |
+| RES-10 | Phase 40 | Complete |
 
 **Coverage:**
 - v1.5 routed requirements: 5 total
 - Current mapped: 5
-- Current complete: 0
-- Current pending: 5
+- Current complete: 5
+- Current pending: 0
 - Current unmapped: 0 ✓
 
 ## Archived Milestone (v1.4)

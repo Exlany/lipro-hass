@@ -108,6 +108,9 @@ phases:
   39-governance-current-story-convergence-control-home-clarification-and-mega-test-decomposition:
     - 39-SUMMARY.md
     - 39-VERIFICATION.md
+  40-governance-truth-consolidation-runtime-access-convergence-and-service-execution-unification:
+    - 40-SUMMARY.md
+    - 40-VERIFICATION.md
 ---
 
 # Promoted Phase Assets

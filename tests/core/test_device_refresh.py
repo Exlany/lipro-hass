@@ -348,7 +348,7 @@ def snapshot_builder(mock_client, mock_device_identity_index):
     """Create SnapshotBuilder with mocked dependencies."""
     device_filter = DeviceFilter(config=DeviceFilterConfig())
     return SnapshotBuilder(
-        client=mock_client,
+        protocol=mock_client,
         device_identity_index=mock_device_identity_index,
         device_filter=device_filter,
     )
@@ -438,7 +438,7 @@ async def test_snapshot_builder_applies_device_filter(
     device_filter = DeviceFilter(config=config)
 
     snapshot_builder = SnapshotBuilder(
-        client=mock_client,
+            protocol=mock_client,
         device_identity_index=mock_device_identity_index,
         device_filter=device_filter,
     )

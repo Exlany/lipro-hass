@@ -70,9 +70,10 @@ Need routing help? Use `SUPPORT.md`. Need maintainer continuity or release custo
 - Public entry docs: `README.md`, `README_zh.md`, `CONTRIBUTING.md`
 - User / contributor troubleshooting: `docs/TROUBLESHOOTING.md`
 - Maintainer release flow: `docs/MAINTAINER_RELEASE_RUNBOOK.md`
+- Registry-backed governance truth: `.planning/baseline/GOVERNANCE_REGISTRY.json`
 - Support routing and response expectations: `SUPPORT.md`
 - Private vulnerability disclosure: `SECURITY.md`
-- If you touch `README.md` / `README_zh.md` / `CONTRIBUTING.md` / `SUPPORT.md` / `SECURITY.md` / `.github/*` / release workflow, update these entry points together and do not leave silent defer behind.
+- If you touch `README.md` / `README_zh.md` / `CONTRIBUTING.md` / `SUPPORT.md` / `SECURITY.md` / `.github/*` / release workflow, update these entry points together, keep `.planning/baseline/GOVERNANCE_REGISTRY.json` aligned, and do not leave silent defer behind.
 - Public bug reports should start with diagnostics; developer report / one-click feedback is an escalation path only when diagnostics are insufficient or a maintainer explicitly asks for deeper debugging.
 - Supported shell/manual install docs now start from verified release assets (`install.sh` + release zip + `SHA256SUMS`); `ARCHIVE_TAG=main` and mirror/branch fallback paths are preview-only and should not be documented as stable support routes.
 - Continuity truth: triage and release custody remain single-maintainer; no documented delegate exists today, so if that maintainer is unavailable, freeze new tagged releases and new release promises until `.github/CODEOWNERS` plus `docs/MAINTAINER_RELEASE_RUNBOOK.md` record the real successor or delegate.
@@ -154,7 +155,7 @@ Use the same command groups as GitHub Actions:
 - **benchmark**: `uv run pytest tests/benchmarks/ -v --benchmark-only --benchmark-json=.benchmarks/benchmark.json`；当前是 advisory-with-artifact lane，仅在性能敏感改动或手动对齐 `schedule` / `workflow_dispatch` 时需要；对齐 CI 时保留 `.benchmarks/benchmark.json` 作为可审计 artifact，对预算/基线的对照仍由后续人工或专门 phase 收紧
 - **shellcheck**: 若修改 `install.sh` / `scripts/*` shell 脚本，请运行 `shellcheck install.sh scripts/develop scripts/lint scripts/setup`（CI 的 `lint` job 也会执行）
 - **validate**: GitHub Actions 会额外运行 `HACS` 与 `Hassfest` 校验；若仓库或 fork 为 private，CI 会跳过 HACS validation，因为 HACS 只支持公开 GitHub 仓库；本地通常不必手动复刻，但提交前应确保仓库元数据仍符合这些约束
-- **release**: tag release 先复用 `.github/workflows/ci.yml`，再由 `.github/workflows/release.yml` 在 `refs/tags/${RELEASE_TAG}` 上运行 tagged release security gate 与 tagged `CodeQL` gate，发布 `SHA256SUMS` / `SBOM` / GitHub artifact attestation / provenance / keyless `cosign` signature bundles，并写出 release identity manifest。attestation / provenance 是 release identity 证据，`cosign` bundle 才是 artifact signing；维护者操作手册见 `docs/MAINTAINER_RELEASE_RUNBOOK.md`，不要旁路门禁直接发版
+- **release**: tag release 先复用 `.github/workflows/ci.yml`，再由 `.github/workflows/release.yml` 在 `refs/tags/${RELEASE_TAG}` 上运行 tagged release security gate 与 tagged `CodeQL` gate，发布 `SHA256SUMS` / `SBOM` / GitHub artifact attestation / provenance / keyless `cosign` signature bundles，并写出 release identity manifest。attestation / provenance 是 release identity 证据，`cosign` bundle 才是 artifact signing；维护者操作手册见 `docs/MAINTAINER_RELEASE_RUNBOOK.md`。若本次属于 maintainer-only `break-glass verify-only` 或 `non-publish rehearsal`，必须显式记录为不发布资产的验证演练，不能旁路门禁直接发版
 
 ### Type Hints / 类型提示
 

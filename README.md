@@ -75,6 +75,8 @@ Minimum supported Home Assistant version: `2026.3.1` (canonical source: `pyproje
 
 Private repository / fork note: CI skips HACS validation because HACS only supports public GitHub repositories.
 
+If `install.sh` runs in remote mode without a pinned archive/tag, it resolves the latest tagged release by default. Stable public guidance still prefers HACS or verified GitHub Release assets.
+
 ### HACS (Recommended)
 
 [![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=Exlany&repository=lipro-hass&category=integration)
@@ -367,6 +369,7 @@ This integration is implemented by reverse engineering the Lipro cloud API and i
 
 - Stable support targets: the latest tagged release and the matching HACS install
 - Preview paths (`ARCHIVE_TAG=main`, branch fallback, mirror installs): best effort only
+- Maintainer-only `break-glass verify-only` / `non-publish rehearsal` procedures live in `docs/MAINTAINER_RELEASE_RUNBOOK.md`; they verify gates without relaxing the public release contract or stable install routes
 - Triage and release custody follow a single-maintainer model; no documented delegate currently exists, so if the maintainer is unavailable, freeze new tagged releases and new release promises, keep support/security intake active, and never imply hidden redundancy
 - Release custody resumes only after `.github/CODEOWNERS` and `docs/MAINTAINER_RELEASE_RUNBOOK.md` record the real successor or delegate
 - Deep-doc continuity follows the same story: `SUPPORT.md`, `SECURITY.md`, `docs/TROUBLESHOOTING.md`, and `docs/MAINTAINER_RELEASE_RUNBOOK.md` must stay aligned on custody / freeze truth

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterable, Iterator
+from collections.abc import Iterable
 from re import Pattern
 from typing import Protocol, runtime_checkable
 
@@ -11,7 +11,7 @@ from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers import entity_registry as er
 
-from ..control.runtime_access import get_entry_runtime_coordinator, iter_runtime_entries
+from ..control.runtime_access import find_runtime_device_and_coordinator
 from ..core.device import LiproDevice
 from ..runtime_types import LiproCoordinator
 
@@ -21,16 +21,6 @@ class _ServiceTargetLike(Protocol):
     """Service-call target payload surface used for entity resolution."""
 
     entity_id: str | Iterable[str] | None
-
-
-class DeviceLookupCoordinator(Protocol):
-    """Coordinator surface required for device lookup."""
-
-    def get_device(self, device_id: str) -> LiproDevice | None:
-        """Resolve one device by serial."""
-
-    def get_device_by_id(self, device_id: str) -> LiproDevice | None:
-        """Resolve one device by alternate identifier."""
 
 
 EntityIdCollection = str | Iterable[object] | None
@@ -132,30 +122,6 @@ def resolve_device_id_from_service_call(
     return resolved_device_id
 
 
-def find_device_in_coordinator(
-    coordinator: DeviceLookupCoordinator,
-    device_id: str,
-) -> LiproDevice | None:
-    """Find device by serial first, then by alias mapping."""
-    device = coordinator.get_device(device_id)
-    if device is None:
-        return coordinator.get_device_by_id(device_id)
-    return device
-
-
-def iter_runtime_coordinators(
-    hass: HomeAssistant,
-    *,
-    domain: str,
-) -> Iterator[LiproCoordinator]:
-    """Iterate all active coordinators for the Lipro domain."""
-    del domain
-    for entry in iter_runtime_entries(hass):
-        coordinator = get_entry_runtime_coordinator(entry)
-        if coordinator is not None:
-            yield coordinator
-
-
 async def get_device_and_coordinator(
     hass: HomeAssistant,
     call: ServiceCall,
@@ -164,7 +130,7 @@ async def get_device_and_coordinator(
     serial_pattern: Pattern[str],
     attr_device_id: str,
 ) -> tuple[LiproDevice, LiproCoordinator]:
-    """Get device and coordinator from service call."""
+    """Resolve one runtime device and its owning coordinator from a service call."""
     device_id = resolve_device_id_from_service_call(
         hass,
         call,
@@ -173,10 +139,9 @@ async def get_device_and_coordinator(
         attr_device_id=attr_device_id,
     )
 
-    for coordinator in iter_runtime_coordinators(hass, domain=domain):
-        device = find_device_in_coordinator(coordinator, device_id)
-        if device is not None:
-            return device, coordinator
+    resolved = find_runtime_device_and_coordinator(hass, device_id=device_id)
+    if resolved is not None:
+        return resolved
 
     raise ServiceValidationError(
         translation_domain=domain,

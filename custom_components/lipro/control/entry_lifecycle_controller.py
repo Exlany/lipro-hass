@@ -228,7 +228,7 @@ class EntryLifecycleController:
         coordinator: CoordinatorRuntimeLike,
         auth_manager: LiproAuthManager,
     ) -> None:
-        """Run refresh plus platform forwarding for one prepared entry."""
+        """Run refresh plus platform setup dispatch for one prepared entry."""
         await coordinator.async_config_entry_first_refresh()
         entry.runtime_data = cast(Coordinator | None, coordinator)
         self._persist_entry_tokens_if_changed(hass, entry, auth_manager)

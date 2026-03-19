@@ -29,6 +29,7 @@ _CI_WORKFLOW = _ROOT / ".github" / "workflows" / "ci.yml"
 _ISSUE_CONFIG = _ROOT / ".github" / "ISSUE_TEMPLATE" / "config.yml"
 _V1_2_EVIDENCE_INDEX = _ROOT / ".planning" / "reviews" / "V1_2_EVIDENCE_INDEX.md"
 _V1_4_EVIDENCE_INDEX = _ROOT / ".planning" / "reviews" / "V1_4_EVIDENCE_INDEX.md"
+_GOVERNANCE_REGISTRY = _ROOT / ".planning" / "baseline" / "GOVERNANCE_REGISTRY.json"
 _PHASE_15_PRD = (
     _ROOT
     / ".planning"
@@ -58,6 +59,18 @@ def _load_yaml(path: Path) -> dict[str, Any]:
     loaded = yaml.safe_load(path.read_text(encoding="utf-8"))
     assert isinstance(loaded, dict)
     return loaded
+
+def _load_governance_registry() -> dict[str, Any]:
+    registry = json.loads(_GOVERNANCE_REGISTRY.read_text(encoding="utf-8"))
+    assert isinstance(registry, dict)
+    return registry
+
+
+def _read_python_requires() -> str:
+    pyproject = tomllib.loads(_PYPROJECT.read_text(encoding="utf-8"))
+    requires_python = pyproject["project"]["requires-python"]
+    assert isinstance(requires_python, str)
+    return requires_python
 
 
 def _read_homeassistant_version() -> str:
@@ -124,6 +137,17 @@ def test_bug_report_template_lists_supported_install_methods() -> None:
     assert any("Shell" in option for option in options)
     assert any("shell_command" in option for option in options)
     assert any("Manual" in option for option in options)
+
+
+def test_governance_registry_tracks_version_and_install_defaults() -> None:
+    registry = _load_governance_registry()
+    install_text = (_ROOT / "install.sh").read_text(encoding="utf-8")
+
+    assert registry["homeassistant"]["minimum_version"] == _read_homeassistant_version()
+    assert registry["python"]["requires_python"] == _read_python_requires()
+    assert registry["install"]["remote_default_archive_tag"] == "latest"
+    assert registry["install"]["private_repo_skips_hacs_validation"] is True
+    assert "ARCHIVE_TAG=\"latest\"" in install_text
 
 
 def test_bug_report_template_keeps_developer_report_as_optional_escalation_path() -> (

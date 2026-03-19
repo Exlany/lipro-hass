@@ -75,6 +75,8 @@ Home Assistant 集成，用于控制 Lipro 智能家居设备。
 
 私有仓库 / fork 说明：CI 会跳过 HACS validation，因为 HACS 只支持公开 GitHub 仓库。
 
+若 `install.sh` 以 remote 模式运行且未显式指定 archive/tag，默认会解析最新的 tagged release（`latest`）。但面对普通用户的稳定安装文档，仍以 HACS 或经过校验的 GitHub Release 资产为准。
+
 ### HACS（推荐）
 
 [![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=Exlany&repository=lipro-hass&category=integration)
@@ -368,6 +370,7 @@ data:
 
 - 稳定支持目标：最新标签版本与与其一致的 HACS 安装
 - 预览路径（`ARCHIVE_TAG=main`、branch fallback、mirror 安装）：仅属 best effort
+- 维护者专用的 `break-glass verify-only` / `non-publish rehearsal` 流程位于 `docs/MAINTAINER_RELEASE_RUNBOOK.md`；它们只用于验证门禁，不会放宽公开 release 契约或稳定安装路径
 - 分流与发版 custody 仍遵循单维护者模型；当前没有已记录的 delegate，因此若维护者不可用，应冻结新的 tagged release 与 release 承诺，保持 `SUPPORT.md` / `SECURITY.md` intake 有效，绝不暗示存在隐藏冗余
 - 只有当 `.github/CODEOWNERS` 与 `docs/MAINTAINER_RELEASE_RUNBOOK.md` 记录了真实 successor / delegate 后，release custody 才能恢复
 - 深层文档也必须讲同一条故事：`SUPPORT.md`、`SECURITY.md`、`docs/TROUBLESHOOTING.md` 与 `docs/MAINTAINER_RELEASE_RUNBOOK.md` 需要持续对齐 custody / freeze 真相

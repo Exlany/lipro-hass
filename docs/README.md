@@ -24,15 +24,23 @@
 以下内容统一作为当前仓库真源：
 
 - `.planning/PROJECT.md`
-- `.planning/MILESTONES.md`
 - `.planning/ROADMAP.md`
 - `.planning/REQUIREMENTS.md`
 - `.planning/STATE.md`
-- `.planning/milestones/*.md`
 - `.planning/baseline/*.md`
+- `.planning/baseline/GOVERNANCE_REGISTRY.json`
 - `.planning/reviews/*.md`
 - `AGENTS.md`
 - `CLAUDE.md`（仅作为 Claude Code 兼容入口）
+
+## 历史归档参考
+
+以下资产保留 archive / evidence / continuity 身份，供维护者审计、追溯与 handoff 使用，但**不是**当前治理真源：
+
+- `.planning/MILESTONES.md`
+- `.planning/milestones/*.md`
+- `.planning/v1.4-MILESTONE-AUDIT.md`
+- `.planning/reviews/V1_4_EVIDENCE_INDEX.md`
 
 ## Phase 资产身份与开源治理
 

@@ -9,6 +9,40 @@ from scripts.check_file_matrix import repo_root
 
 from .test_governance_guards import _load_frontmatter
 
+
+def _assert_state_keeps_forward_progress_commands(state_text: str) -> None:
+    assert "## Recommended Next Command" in state_text
+    assert "$gsd-progress" in state_text
+    assert any(
+        command in state_text
+        for command in (
+            "$gsd-plan-milestone-gaps",
+            "$gsd-new-milestone",
+            "$gsd-execute-phase 40",
+            "$gsd-complete-milestone v1.5",
+        )
+    )
+
+
+def _assert_project_allows_post_v1_4_next_step(project_text: str) -> None:
+    assert any(
+        marker in project_text
+        for marker in (
+            "**Default next step:** `$gsd-new-milestone`",
+            "**Default next step:** `$gsd-plan-phase 40` → `$gsd-execute-phase 40`",
+        )
+    )
+
+
+def _assert_state_reflects_post_v1_4_continuation(state_text: str) -> None:
+    assert (
+        "`Phase 39 complete`" in state_text
+        or "Phase 40 execution-ready" in state_text
+        or "Phase 40 complete" in state_text
+        or "$gsd-execute-phase 40" in state_text
+        or "$gsd-complete-milestone v1.5" in state_text
+    )
+
 _ROOT = repo_root(Path(__file__))
 
 _PROMOTED_PHASE_ASSETS = _ROOT / ".planning" / "reviews" / "PROMOTED_PHASE_ASSETS.md"
@@ -364,10 +398,7 @@ def test_phase_32_completion_truth_is_consistent() -> None:
 
     assert "## v1.3 Closeout & Post-closeout Continuation" in project_text
     assert "`Phase 32` — truth convergence, gate honesty, and quality-10 closeout" in project_text
-    assert "## Recommended Next Command" in state_text
-    assert "$gsd-plan-milestone-gaps" in state_text
-    assert "$gsd-new-milestone" in state_text
-    assert "$gsd-progress" in state_text
+    _assert_state_keeps_forward_progress_commands(state_text)
 
 
 def test_phase_33_planning_truth_is_consistent() -> None:
@@ -416,10 +447,7 @@ def test_phase_33_planning_truth_is_consistent() -> None:
 
     assert "## Phase 33 Audit-Driven Continuation" in project_text
     assert "**Execution promise:**" in project_text
-    assert "## Recommended Next Command" in state_text
-    assert "$gsd-plan-milestone-gaps" in state_text
-    assert "$gsd-new-milestone" in state_text
-    assert "$gsd-progress" in state_text
+    _assert_state_keeps_forward_progress_commands(state_text)
 
 
 def test_phase_34_planning_truth_is_consistent() -> None:
@@ -454,10 +482,7 @@ def test_phase_34_planning_truth_is_consistent() -> None:
 
     assert "## Phase 34 Seed Hardening Update" in project_text
 
-    assert "## Recommended Next Command" in state_text
-    assert "$gsd-progress" in state_text
-    assert "$gsd-plan-milestone-gaps" in state_text
-    assert "$gsd-new-milestone" in state_text
+    _assert_state_keeps_forward_progress_commands(state_text)
 
 
 def test_phase_35_planning_truth_is_consistent() -> None:
@@ -534,9 +559,8 @@ def test_phase_37_planning_truth_is_consistent() -> None:
     assert "| GOV-30 | Phase 37 | Complete |" in requirements_text
     assert "| QLT-09 | Phase 37 | Complete |" in requirements_text
     assert "## Phase 37 Test Topology & Derived-Truth Update" in project_text
-    assert "**Default next step:** `$gsd-new-milestone`" in project_text
-    assert "## Recommended Next Command" in state_text
-    assert "$gsd-new-milestone" in state_text
+    _assert_project_allows_post_v1_4_next_step(project_text)
+    _assert_state_keeps_forward_progress_commands(state_text)
 
 
 def test_phase_38_planning_truth_is_consistent() -> None:
@@ -562,9 +586,9 @@ def test_phase_38_planning_truth_is_consistent() -> None:
     assert "| QLT-10 | Phase 38 | Complete |" in requirements_text
     assert "| GOV-31 | Phase 38 | Complete |" in requirements_text
     assert "## Phase 38 External-Boundary Residual & Quality-Signal Hardening Update" in project_text
-    assert "**Default next step:** `$gsd-new-milestone`" in project_text
-    assert "`Phase 39 complete`" in state_text
-    assert "$gsd-new-milestone" in state_text
+    _assert_project_allows_post_v1_4_next_step(project_text)
+    _assert_state_reflects_post_v1_4_continuation(state_text)
+    _assert_state_keeps_forward_progress_commands(state_text)
     assert "| _None_ | — | — | — | Phase 38 已关闭最后一条已登记 residual family。 |" in residual_text
     assert "## Phase 38 Residual Delta" in residual_text
 
@@ -603,8 +627,8 @@ def test_phase_39_planning_truth_is_consistent() -> None:
 
     assert "## Archived Milestone (v1.4)" in project_text
     assert "## Phase 39 Governance Current-Story & Mega-Test Closeout Update" in project_text
-    assert "**Default next step:** `$gsd-new-milestone`" in project_text
-    assert "`Phase 39 complete`" in state_text
-    assert "$gsd-new-milestone" in state_text
+    _assert_project_allows_post_v1_4_next_step(project_text)
+    _assert_state_reflects_post_v1_4_continuation(state_text)
+    _assert_state_keeps_forward_progress_commands(state_text)
     assert "## Phase 39 Residual Delta" in residual_text
     assert "## Phase 39 Status Update" in kill_text

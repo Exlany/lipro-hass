@@ -685,3 +685,30 @@ class TestAsyncGetDeviceDiagnostics:
 
         result = await async_get_device_diagnostics(hass, entry, device_entry)
         assert result == {"error": "device_not_found"}
+
+    @pytest.mark.asyncio
+    async def test_device_diagnostics_delegates_device_lookup_to_runtime_access(self, hass):
+        """Device diagnostics should reuse runtime_access lookup helpers."""
+        device = MagicMock()
+        coordinator = MagicMock()
+        coordinator.devices = MappingProxyType({})
+
+        entry = MagicMock()
+        entry.entry_id = "entry-1"
+        entry.runtime_data = coordinator
+        entry.title = "Lipro (13800000000)"
+        entry.data = {}
+        entry.options = {}
+
+        device_entry = MagicMock()
+        device_entry.identifiers = {(DOMAIN, "03ab5ccd7c111111")}
+
+        with patch(
+            "custom_components.lipro.control.diagnostics_surface.find_runtime_device",
+            return_value=device,
+        ) as runtime_lookup:
+            result = await async_get_device_diagnostics(hass, entry, device_entry)
+
+        runtime_lookup.assert_called_once_with(coordinator, "03ab5ccd7c111111")
+        assert result["device"]
+

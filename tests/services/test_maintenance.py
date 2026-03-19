@@ -7,12 +7,18 @@ from types import SimpleNamespace
 from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
+import pytest
+
 from custom_components.lipro.const.base import DOMAIN
+from custom_components.lipro.control.runtime_access import (
+    iter_runtime_entry_coordinators,
+)
 from custom_components.lipro.services.maintenance import (
     _iter_lipro_config_entry_ids_for_device,
-    _iter_runtime_entry_coordinators,
+    async_handle_refresh_devices,
     async_setup_device_registry_listener,
 )
+from tests.helpers.service_call import service_call
 
 
 def test_iter_runtime_entry_coordinators_skips_entries_without_runtime_data() -> None:
@@ -23,13 +29,32 @@ def test_iter_runtime_entry_coordinators_skips_entries_without_runtime_data() ->
         SimpleNamespace(entry_id="entry-2", runtime_data=coordinator, options={}),
     ]
 
-    targets = _iter_runtime_entry_coordinators(
-        hass,
-        domain=DOMAIN,
-        requested_entry_id=None,
-    )
+    targets = iter_runtime_entry_coordinators(hass)
 
-    assert targets == [("entry-2", coordinator)]
+    assert targets == [(hass.config_entries.async_entries.return_value[1], coordinator)]
+
+
+@pytest.mark.asyncio
+async def test_async_handle_refresh_devices_uses_runtime_access_entry_pairs() -> None:
+    hass = MagicMock()
+    coordinator = MagicMock()
+    coordinator.device_refresh_service.async_refresh_devices = AsyncMock()
+    runtime_entry = SimpleNamespace(entry_id="entry-1")
+
+    with patch(
+        "custom_components.lipro.services.maintenance.iter_runtime_entry_coordinators",
+        return_value=[(runtime_entry, coordinator)],
+    ) as runtime_pairs:
+        result = await async_handle_refresh_devices(
+            hass,
+            service_call(hass, {}),
+            domain=DOMAIN,
+            attr_entry_id="entry_id",
+        )
+
+    assert result == {"success": True, "refreshed_entries": 1}
+    runtime_pairs.assert_called_once_with(hass, entry_id=None)
+    coordinator.device_refresh_service.async_refresh_devices.assert_awaited_once_with()
 
 
 def test_iter_lipro_config_entry_ids_for_device_filters_invalid_entries() -> None:

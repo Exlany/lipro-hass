@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import re
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
@@ -80,3 +80,25 @@ async def test_get_device_and_coordinator_raises_device_not_found(hass) -> None:
         )
 
     assert exc_info.value.translation_key == "device_not_found"
+
+
+@pytest.mark.asyncio
+async def test_get_device_and_coordinator_delegates_to_runtime_access_helper(hass) -> None:
+    """Service lookup should delegate runtime traversal to runtime_access."""
+    device = MagicMock()
+    coordinator = MagicMock()
+
+    with patch(
+        "custom_components.lipro.services.device_lookup.find_runtime_device_and_coordinator",
+        return_value=(device, coordinator),
+    ) as runtime_lookup:
+        resolved = await get_device_and_coordinator(
+            hass,
+            service_call(hass, {"device_id": "03ab0000000000a1"}),
+            domain="lipro",
+            serial_pattern=_SERIAL_PATTERN,
+            attr_device_id="device_id",
+        )
+
+    assert resolved == (device, coordinator)
+    runtime_lookup.assert_called_once_with(hass, device_id="03ab0000000000a1")

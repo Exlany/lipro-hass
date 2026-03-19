@@ -23,9 +23,10 @@
 7. `.planning/baseline/DEPENDENCY_MATRIX.md`
 8. `.planning/baseline/VERIFICATION_MATRIX.md`
 9. `.planning/baseline/AUTHORITY_MATRIX.md`
-10. `.planning/reviews/FILE_MATRIX.md`
-11. `.planning/reviews/RESIDUAL_LEDGER.md`
-12. `.planning/reviews/KILL_LIST.md`
+10. `.planning/baseline/GOVERNANCE_REGISTRY.json`
+11. `.planning/reviews/FILE_MATRIX.md`
+12. `.planning/reviews/RESIDUAL_LEDGER.md`
+13. `.planning/reviews/KILL_LIST.md`
 
 
 ## 1.1 当前权威顺序
@@ -33,15 +34,16 @@
 若文档之间出现冲突，按以下顺序仲裁：
 
 1. `docs/NORTH_STAR_TARGET_ARCHITECTURE.md`
-2. `.planning/ROADMAP.md`
-3. `.planning/REQUIREMENTS.md`
-4. `.planning/STATE.md`
-5. `.planning/baseline/*.md`
-6. `.planning/reviews/*.md`
-7. `docs/developer_architecture.md`
-8. `AGENTS.md`
-9. `CLAUDE.md`（若存在，仅作 Claude Code 兼容入口，不另立规则）
-10. 历史执行/审计/归档文档
+2. `.planning/PROJECT.md`
+3. `.planning/ROADMAP.md`
+4. `.planning/REQUIREMENTS.md`
+5. `.planning/STATE.md`
+6. `.planning/baseline/*.md` 与 `.planning/baseline/GOVERNANCE_REGISTRY.json`
+7. `.planning/reviews/*.md`
+8. `docs/developer_architecture.md`
+9. `AGENTS.md`
+10. `CLAUDE.md`（若存在，仅作 Claude Code 兼容入口，不另立规则）
+11. 历史执行/审计/归档文档
 
 ## 2. 北极星硬约束
 

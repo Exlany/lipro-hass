@@ -212,3 +212,9 @@
 - 已关闭：`custom_components/lipro/core/protocol/compat.py` dead shell；该 kill target 不再保留为 future delete gate。
 - 本 phase **无新增 active kill target**；control-home clarification、governance current-story convergence 与 mega-test topicization 都是 formal truth / evidence closeout，不是新的 delete campaign。
 - `39-SUMMARY.md` 与 `39-VERIFICATION.md` 已作为 Phase 39 closeout evidence promoted；`39-VALIDATION.md`、`39-PRD.md`、`39-CONTEXT.md` 与 `39-0*-PLAN.md` 继续保持 execution-trace 身份。
+
+
+## Phase 40 Status Update
+
+- `custom_components/lipro/services/execution.py` 明确保留为 formal service execution facade；Phase 40 只允许围绕 shared execution contract 收口，不得把它重新登记为 active kill target。
+- 本 phase **无新增 active kill target**；`runtime_access` helpers、governance registry truth 与 endpoint-operations wording 都是 formal truth closure，不是新的 delete campaign。

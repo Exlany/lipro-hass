@@ -1,4 +1,4 @@
-"""Command sender for executing commands via API."""
+"""Command sender for executing commands via the protocol façade."""
 
 from __future__ import annotations
 
@@ -33,16 +33,16 @@ _NON_FATAL_VERIFICATION_QUERY_EXCEPTIONS = (
 
 
 class CommandSender:
-    """Send commands to devices via API with verification support."""
+    """Send commands to devices via the protocol façade with verification support."""
 
     def __init__(
         self,
         *,
-        client: LiproProtocolFacade,
+        protocol: LiproProtocolFacade,
         redact_identifier: Callable[[str | None], str | None] = _redact_identifier,
     ) -> None:
         """Initialize command sender."""
-        self._client = client
+        self._protocol = protocol
         self._redact_identifier = redact_identifier
 
     async def send_command(
@@ -60,7 +60,7 @@ class CommandSender:
             Tuple of (api_result, route_name)
         """
         _plan, result, route = await execute_command_plan_with_trace(
-            self._client,
+            self._protocol,
             device=device,
             command=command,
             properties=properties,
@@ -86,7 +86,7 @@ class CommandSender:
 
             try:
                 result = await query_command_result_once(
-                    query_command_result=self._client.query_command_result,
+                    query_command_result=self._protocol.query_command_result,
                     lipro_api_error=LiproApiError,
                     device_name=device.name,
                     device_serial=device.serial,

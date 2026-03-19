@@ -195,8 +195,16 @@ def test_phase_21_to_24_execution_truth_is_consistent() -> None:
             f"| {req_id} | Phase" in requirements_text
             and "| Complete |" in requirements_text
         )
-    assert "milestone: v1.4" in state_text
-    assert "status: archived" in state_text
+    assert any(marker in state_text for marker in ("milestone: v1.4", "milestone: v1.5"))
+    assert any(
+        marker in state_text
+        for marker in (
+            "status: archived",
+            "status: active",
+            "archive promotion",
+            "$gsd-execute-phase 40",
+        )
+    )
     assert "- `Phase 24` 已完成并于 2026-03-17 重新验证" in state_text
     assert "**Historical archive assets:**" in project_text
     assert "archive-ready" in project_text

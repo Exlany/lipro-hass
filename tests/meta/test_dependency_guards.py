@@ -84,3 +84,64 @@ def test_headless_proof_boot_stays_out_of_host_runtime_and_control_planes() -> N
 
 def test_platform_setup_shells_do_not_import_control_runtime_locator() -> None:
     assert not _violations_for_rule("ENF-IMP-PLATFORM-SHELL-NO-CONTROL-LOCATOR")
+
+
+def test_phase_40_schedule_services_reuse_shared_execution_contract() -> None:
+    schedule_text = (
+        _ROOT / "custom_components" / "lipro" / "services" / "schedule.py"
+    ).read_text(encoding="utf-8")
+
+    assert "from .execution import (" in schedule_text
+    assert "AuthenticatedCoordinator" in schedule_text
+    assert "async_execute_coordinator_call" in schedule_text
+    assert "_async_execute_schedule_coordinator_call" not in schedule_text
+    assert "protocol_call" in schedule_text
+    assert "client_call" not in schedule_text
+
+
+def test_phase_40_schedule_services_use_shared_execution_contract() -> None:
+    schedule_text = (
+        _ROOT / "custom_components" / "lipro" / "services" / "schedule.py"
+    ).read_text(encoding="utf-8")
+    execution_text = (
+        _ROOT / "custom_components" / "lipro" / "services" / "execution.py"
+    ).read_text(encoding="utf-8")
+
+    assert "async_execute_coordinator_call" in schedule_text
+    assert "_async_execute_schedule_coordinator_call" not in schedule_text
+    for stale_signal in (
+        "LiproAuthError",
+        "LiproRefreshTokenExpiredError",
+        "safe_error_placeholder",
+        "async_ensure_authenticated",
+        "async_trigger_reauth",
+    ):
+        assert stale_signal not in schedule_text
+    assert "async_execute_coordinator_call" in execution_text
+
+
+def test_phase_40_runtime_readers_stay_on_runtime_access_helpers() -> None:
+    diagnostics_text = (
+        _ROOT / "custom_components" / "lipro" / "control" / "diagnostics_surface.py"
+    ).read_text(encoding="utf-8")
+    device_lookup_text = (
+        _ROOT / "custom_components" / "lipro" / "services" / "device_lookup.py"
+    ).read_text(encoding="utf-8")
+    maintenance_text = (
+        _ROOT / "custom_components" / "lipro" / "services" / "maintenance.py"
+    ).read_text(encoding="utf-8")
+
+    assert "find_runtime_device" in diagnostics_text
+    assert "_get_device_from_runtime" not in diagnostics_text
+    assert "get_runtime_device_mapping(coordinator).get(" not in diagnostics_text
+
+    assert "find_runtime_device_and_coordinator" in device_lookup_text
+    assert "iter_runtime_entries" not in device_lookup_text
+    assert "get_entry_runtime_coordinator" not in device_lookup_text
+
+    assert "iter_runtime_entry_coordinators" in maintenance_text
+    assert "iter_runtime_entries" not in maintenance_text
+    assert "get_entry_runtime_coordinator" not in maintenance_text
+
+    for runtime_reader_text in (diagnostics_text, device_lookup_text, maintenance_text):
+        assert ".runtime_data" not in runtime_reader_text

@@ -244,7 +244,7 @@ class RuntimeOrchestrator:
         )
         return CommandRuntime(
             builder=CommandBuilder(debug_mode=False),
-            sender=CommandSender(client=self.protocol),
+            sender=CommandSender(protocol=self.protocol),
             retry=RetryStrategy(),
             confirmation=confirmation_manager,
             trigger_reauth=context.trigger_reauth,

@@ -1,0 +1,59 @@
+{
+  "homeassistant": {
+    "minimum_version": "2026.3.1",
+    "source": "pyproject.toml"
+  },
+  "python": {
+    "minimum_version": "3.14.2",
+    "requires_python": ">=3.14.2"
+  },
+  "install": {
+    "remote_default_archive_tag": "latest",
+    "stable_paths": [
+      "HACS",
+      "verified_release_assets"
+    ],
+    "preview_paths": [
+      "ARCHIVE_TAG=main",
+      "branch_fallback",
+      "mirror_install"
+    ],
+    "private_repo_skips_hacs_validation": true,
+    "stable_shell_guidance": "verified GitHub Release assets"
+  },
+  "support": {
+    "diagnostics_first": true,
+    "developer_report_optional": true,
+    "usage_route": "docs/TROUBLESHOOTING.md -> GitHub Discussions",
+    "bug_route": "GitHub Issues",
+    "security_route": "SECURITY.md",
+    "maintainer_release_route": "docs/MAINTAINER_RELEASE_RUNBOOK.md"
+  },
+  "release": {
+    "identity_artifacts": [
+      "SHA256SUMS",
+      "SBOM",
+      "GitHub artifact attestation",
+      "provenance",
+      "cosign signature bundles",
+      "release identity manifest"
+    ],
+    "verification_commands": [
+      "gh attestation verify",
+      "cosign verify-blob --bundle"
+    ],
+    "blocking_gates": [
+      "runtime pip-audit",
+      "CodeQL zero-open-alerts",
+      "signature verification"
+    ],
+    "break_glass_verify_only_phrase": "break-glass verify-only",
+    "non_publish_rehearsal_phrase": "non-publish rehearsal"
+  },
+  "continuity": {
+    "maintainer_model": "single-maintainer",
+    "documented_delegate": false,
+    "freeze_phrase": "freeze new tagged releases and new release promises",
+    "restore_phrase": "restore custody only after"
+  }
+}

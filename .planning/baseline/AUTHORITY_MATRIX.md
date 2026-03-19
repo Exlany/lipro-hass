@@ -2,7 +2,7 @@
 
 **Purpose:** 定义文档、fixtures、generated、implementation 的权威来源与同步方向，避免多口径漂移。
 **Status:** Formal baseline asset (`BASE-01` authority truth source)
-**Updated:** 2026-03-16 (Phase 24 closeout evidence continuity aligned)
+**Updated:** 2026-03-19 (Phase 40 governance truth consolidation aligned)
 
 ## Formal Role
 
@@ -19,6 +19,8 @@
 | 基准资产 | `.planning/baseline/*.md` | baseline -> phase design / review / verification | downstream phase docs 只能解释或扩展，不能反向改写 |
 | architecture enforcement policy | `.planning/baseline/ARCHITECTURE_POLICY.md` | baseline -> helpers / scripts / meta guards / CI | `Phase 7.2` 起的执行型 policy truth，不得被 tests/scripts 倒逼改写 |
 | 项目目标与阶段路线 | `.planning/PROJECT.md`, `.planning/ROADMAP.md`, `.planning/STATE.md` | planning -> phase execution | GSD 执行真源 |
+| machine-readable governance truth | `.planning/baseline/GOVERNANCE_REGISTRY.json` | registry -> public docs / contributor templates / governance tests | 只承载 active governance facts；archive snapshots 与 milestone evidence 不能反向升级成 current truth |
+| archive milestone snapshots / evidence | `.planning/MILESTONES.md`, `.planning/milestones/*.md`, `.planning/v1.4-MILESTONE-AUDIT.md`, `.planning/reviews/V1_4_EVIDENCE_INDEX.md` | archive evidence -> audit / handoff / historical review | 历史追溯与 continuity 证据；不是 active governance truth |
 | 当前工程落地说明 | `docs/developer_architecture.md` | codebase/planning -> developer docs | 当前态解释真源，不凌驾于 baseline 之上 |
 | 本地 codebase maps | `.planning/codebase/README.md`, `.planning/codebase/*.md` | governance truth -> derived collaboration maps -> contributor navigation | 只允许派生解释，不得升级为 baseline/review/roadmap/state 的平行 authority chain |
 | 文件治理状态 | `.planning/reviews/FILE_MATRIX.md` | execution -> governance review | file-level governance truth |

@@ -36,7 +36,8 @@ _DEFAULT_DEVICE_PAGE_SIZE = 100
 
 type DeviceRow = PropertyDict
 
-class SnapshotProtocolClient(Protocol):
+
+class SnapshotProtocolPort(Protocol):
     """Minimal protocol-facade surface consumed by snapshot builder."""
 
     async def get_devices(self, offset: int = 0, limit: int = 100) -> DeviceListResponse:
@@ -104,7 +105,7 @@ class SnapshotBuilder:
             return
 
         try:
-            rows = await self._client.query_mesh_group_status(group_ids)
+            rows = await self._protocol.query_mesh_group_status(group_ids)
             normalized_rows_obj: object = self._contracts.normalize_mesh_group_status_rows(
                 rows
             )
@@ -166,7 +167,7 @@ class SnapshotBuilder:
     async def _fetch_device_page(self, *, page: int) -> tuple[list[DeviceRow], bool]:
         """Fetch one device page through the formal canonical contract."""
         offset = (page - 1) * _DEFAULT_DEVICE_PAGE_SIZE
-        response = await self._client.get_devices(
+        response = await self._protocol.get_devices(
             offset=offset,
             limit=_DEFAULT_DEVICE_PAGE_SIZE,
         )
@@ -198,13 +199,13 @@ class SnapshotBuilder:
     def __init__(
         self,
         *,
-        client: SnapshotProtocolClient,
+        protocol: SnapshotProtocolPort,
         device_identity_index: DeviceIdentityIndex,
         device_filter: DeviceFilter,
     ) -> None:
         """Initialize snapshot builder."""
-        self._client = client
-        self._contracts = client.contracts
+        self._protocol = protocol
+        self._contracts = protocol.contracts
         self._device_identity_index = device_identity_index
         self._device_filter = device_filter
 

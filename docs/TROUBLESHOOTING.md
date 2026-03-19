@@ -7,7 +7,7 @@
 - Private repositories and forks skip CI HACS validation because HACS only supports public GitHub repositories.
 - Security reports do **not** belong in public issues; follow `SECURITY.md` instead.
 - Maintainer-facing release and packaging steps live in `docs/MAINTAINER_RELEASE_RUNBOOK.md`.
-- Supported shell installs should use verified GitHub Release assets (`install.sh` + release zip + `SHA256SUMS`); `ARCHIVE_TAG=main` is preview-only.
+- Supported shell installs should use verified GitHub Release assets (`install.sh` + release zip + `SHA256SUMS`); `ARCHIVE_TAG=main` is preview-only. If `install.sh` runs in remote mode without a pinned archive/tag, it resolves the latest tagged release by default, but stable public guidance still prefers verified release assets.
 
 ## Before Opening an Issue
 
@@ -71,4 +71,4 @@ logger:
 - Usage questions or expected-behavior clarification: `SUPPORT.md` and GitHub Discussions.
 - Confirmed bugs or regressions: GitHub bug template plus diagnostics first; add developer report / one-click feedback when diagnostics are insufficient or a maintainer asks for deeper debugging.
 - Security concerns: `SECURITY.md` private disclosure path.
-- Maintainer-only release, tag, or packaging issues: `docs/MAINTAINER_RELEASE_RUNBOOK.md`.
+- Maintainer-only release, tag, or packaging issues: `docs/MAINTAINER_RELEASE_RUNBOOK.md` (including `break-glass verify-only` / `non-publish rehearsal` verification drills).

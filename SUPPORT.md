@@ -18,7 +18,9 @@
 - Provenance evidence is not artifact signing: GitHub artifact attestation / provenance and `cosign` signing are published and verified separately.
 - Tagged release hard gates are fail-closed: the tagged runtime `pip-audit` gate, tagged `CodeQL` analysis with zero open alerts, and signature verification must all pass before assets publish.
 - Preview / unsupported install paths: `ARCHIVE_TAG=main`, branch fallback, or mirror-backed installs. Use them only for maintainer-led testing and reproduction.
+- Remote installer default tag: `latest` when no archive/tag is pinned; this is convenience for maintainer-led remote installs, while stable public guidance still prefers HACS or verified GitHub Release assets.
 - Private repository / fork note: CI skips HACS validation because HACS only supports public GitHub repositories.
+- Maintainer-only `break-glass verify-only` / `non-publish rehearsal` flows live in `docs/MAINTAINER_RELEASE_RUNBOOK.md`; they verify release gates without relaxing public support or release-trust promises.
 
 ## Supported Versions / Support Lifecycle
 

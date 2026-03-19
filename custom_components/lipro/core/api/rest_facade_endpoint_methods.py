@@ -1,7 +1,7 @@
-"""Public endpoint-forwarding surface for `LiproRestFacade`.
+"""Public endpoint-operation surface for `LiproRestFacade`.
 
-Forwarding lives here as static bound methods so the composition root does
-not have to carry every explicit endpoint wrapper implementation.
+Endpoint operations live here as static bound methods so the composition root
+does not have to carry every explicit endpoint wrapper implementation.
 """
 
 from __future__ import annotations

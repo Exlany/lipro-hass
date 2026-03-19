@@ -70,7 +70,7 @@ def runtime_deps(mock_client, confirmation_tracker):
     trigger_reauth = AsyncMock()
 
     builder = CommandBuilder(debug_mode=True)
-    sender = CommandSender(client=mock_client)
+    sender = CommandSender(protocol=mock_client)
     retry = RetryStrategy()
     confirmation = ConfirmationManager(
         confirmation_tracker=confirmation_tracker,
@@ -166,7 +166,7 @@ class TestCommandSender:
     @pytest.mark.asyncio
     async def test_send_command_success(self, mock_client, mock_device):
         """Test successful command send."""
-        sender = CommandSender(client=mock_client)
+        sender = CommandSender(protocol=mock_client)
         trace: dict[str, Any] = {}
 
         with patch("custom_components.lipro.core.coordinator.runtime.command.sender.execute_command_plan_with_trace") as mock_exec:
@@ -184,7 +184,7 @@ class TestCommandSender:
     @pytest.mark.asyncio
     async def test_verify_command_delivery_timeout(self, mock_client, mock_device):
         """Test command delivery verification timeout."""
-        sender = CommandSender(client=mock_client)
+        sender = CommandSender(protocol=mock_client)
         trace: dict[str, Any] = {}
 
         # Mock to always return None (no result)
@@ -203,7 +203,7 @@ class TestCommandSender:
     @pytest.mark.asyncio
     async def test_verify_command_delivery_confirmed_result(self, mock_client, mock_device):
         """Test command delivery with confirmed classification."""
-        sender = CommandSender(client=mock_client)
+        sender = CommandSender(protocol=mock_client)
         trace: dict[str, Any] = {}
 
         async def mock_query_once(*args, **kwargs):
@@ -230,7 +230,7 @@ class TestCommandSender:
     @pytest.mark.asyncio
     async def test_verify_command_delivery_failed_result(self, mock_client, mock_device):
         """Test command delivery with failed classification."""
-        sender = CommandSender(client=mock_client)
+        sender = CommandSender(protocol=mock_client)
         trace: dict[str, Any] = {}
 
         async def mock_query_once(*args, **kwargs):
@@ -257,7 +257,7 @@ class TestCommandSender:
     @pytest.mark.asyncio
     async def test_verify_command_delivery_pending_classification(self, mock_client, mock_device):
         """Test command delivery with pending classification that times out."""
-        sender = CommandSender(client=mock_client)
+        sender = CommandSender(protocol=mock_client)
         trace: dict[str, Any] = {}
 
         async def mock_query_once(*args, **kwargs):
@@ -528,7 +528,7 @@ class TestCommandRuntime:
 
 @pytest.mark.asyncio
 async def test_verify_command_delivery_auth_errors_bubble(mock_client, mock_device):
-    sender = CommandSender(client=mock_client)
+    sender = CommandSender(protocol=mock_client)
     trace: dict[str, Any] = {}
 
     with (

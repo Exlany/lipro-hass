@@ -3,26 +3,28 @@
 from __future__ import annotations
 
 from types import SimpleNamespace
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.lipro.const.base import DOMAIN
-from custom_components.lipro.core import LiproApiError, LiproAuthError
+from custom_components.lipro.core import (
+    LiproApiError,
+    LiproAuthError,
+    LiproRefreshTokenExpiredError,
+)
 from custom_components.lipro.core.coordinator.services.auth_service import (
     CoordinatorAuthService,
 )
 from custom_components.lipro.services.schedule import (
-    async_call_schedule_client,
+    async_execute_schedule_operation,
     get_mesh_context,
     normalize_schedule_row,
 )
 
 
-def test_normalize_schedule_row_uses_empty_schedule_when_schedule_field_invalid() -> (
-    None
-):
+def test_normalize_schedule_row_uses_empty_schedule_when_schedule_field_invalid() -> None:
     """Non-dict ``schedule`` values should fallback to an empty schedule."""
     result = normalize_schedule_row({"id": 10, "schedule": "invalid"})
 
@@ -59,7 +61,7 @@ def test_normalize_schedule_row_drops_unpaired_or_invalid_time_events() -> None:
 
 
 @pytest.mark.asyncio
-async def test_async_call_schedule_client_maps_lipro_api_error() -> None:
+async def test_async_execute_schedule_operation_maps_lipro_api_error() -> None:
     """LiproApiError should be logged and mapped via raise_service_error."""
     device = SimpleNamespace(
         iot_device_id="03ab0000000000a1",
@@ -67,21 +69,21 @@ async def test_async_call_schedule_client_maps_lipro_api_error() -> None:
         extra_data={"gateway_device_id": "", "group_member_ids": []},
     )
     api_error = LiproApiError("boom", 500)
-    client_call = AsyncMock(side_effect=api_error)
+    protocol_call = AsyncMock(side_effect=api_error)
     logger = MagicMock()
     raise_service_error = MagicMock(side_effect=RuntimeError("mapped"))
 
     with pytest.raises(RuntimeError, match="mapped"):
-        await async_call_schedule_client(
+        await async_execute_schedule_operation(
             device,
-            client_call,
+            protocol_call,
             error_log="API error getting schedules: %s",
             error_translation_key="schedule_fetch_failed",
             logger=logger,
             raise_service_error=raise_service_error,
         )
 
-    client_call.assert_awaited_once_with(
+    protocol_call.assert_awaited_once_with(
         "03ab0000000000a1",
         "0x1032",
         mesh_gateway_id="",
@@ -92,7 +94,55 @@ async def test_async_call_schedule_client_maps_lipro_api_error() -> None:
 
 
 @pytest.mark.asyncio
-async def test_async_call_schedule_client_with_real_auth_service_maps_auth_error(
+async def test_async_execute_schedule_operation_delegates_to_shared_executor() -> None:
+    """Coordinator-backed schedule calls should delegate into the shared executor."""
+    device = SimpleNamespace(
+        iot_device_id="03ab0000000000a1",
+        device_type_hex="0x1032",
+        extra_data={"gateway_device_id": "", "group_member_ids": []},
+        ir_remote_gateway_device_id=None,
+    )
+    coordinator = MagicMock()
+    protocol_call = AsyncMock(return_value={"ok": True})
+    logger = MagicMock()
+    raise_service_error = MagicMock()
+
+    async def _fake_execute(*_args, call, **_kwargs):
+        return await call()
+
+    with patch(
+        "custom_components.lipro.services.schedule.async_execute_coordinator_call",
+        AsyncMock(side_effect=_fake_execute),
+    ) as shared_executor:
+        result = await async_execute_schedule_operation(
+            device,
+            protocol_call,
+            coordinator=coordinator,
+            error_log="API error getting schedules: %s",
+            error_translation_key="schedule_fetch_failed",
+            logger=logger,
+            raise_service_error=raise_service_error,
+        )
+
+    assert result == {"ok": True}
+    shared_executor.assert_awaited_once()
+    await_args = shared_executor.await_args
+    if await_args is None:
+        raise AssertionError("shared executor should capture await args")
+    assert await_args.args == (coordinator,)
+    assert callable(await_args.kwargs["call"])
+    assert await_args.kwargs["raise_service_error"] is raise_service_error
+    assert callable(await_args.kwargs["handle_api_error"])
+    protocol_call.assert_awaited_once_with(
+        "03ab0000000000a1",
+        "0x1032",
+        mesh_gateway_id="",
+        mesh_member_ids=[],
+    )
+
+
+@pytest.mark.asyncio
+async def test_async_execute_schedule_operation_with_real_auth_service_maps_auth_error(
     hass,
 ) -> None:
     """Coordinator auth flow should reauth first, then map schedule service errors."""
@@ -111,14 +161,14 @@ async def test_async_call_schedule_client_with_real_auth_service_maps_auth_error
         device_type_hex="0x1032",
         extra_data={"gateway_device_id": "", "group_member_ids": []},
     )
-    client_call = AsyncMock(side_effect=LiproAuthError("bad credentials"))
+    protocol_call = AsyncMock(side_effect=LiproAuthError("bad credentials"))
     logger = MagicMock()
     raise_service_error = MagicMock(side_effect=RuntimeError("mapped"))
 
     with pytest.raises(RuntimeError, match="mapped"):
-        await async_call_schedule_client(
+        await async_execute_schedule_operation(
             device,
-            client_call,
+            protocol_call,
             coordinator=coordinator,
             error_log="API error getting schedules: %s",
             error_translation_key="schedule_fetch_failed",
@@ -129,6 +179,46 @@ async def test_async_call_schedule_client_with_real_auth_service_maps_auth_error
     entry.async_start_reauth.assert_called_once_with(hass)
     assert raise_service_error.call_args.args == ("auth_error",)
     assert "error" in raise_service_error.call_args.kwargs["translation_placeholders"]
+
+
+@pytest.mark.asyncio
+async def test_async_execute_schedule_operation_with_real_auth_service_maps_refresh_token_expired(
+    hass,
+) -> None:
+    """Refresh-token expiry should reuse the shared executor translation path."""
+    entry = MockConfigEntry(domain=DOMAIN, data={})
+    entry.add_to_hass(hass)
+    entry.async_start_reauth = MagicMock()
+    coordinator = SimpleNamespace(
+        auth_service=CoordinatorAuthService(
+            hass=hass,
+            auth_manager=MagicMock(async_ensure_authenticated=AsyncMock()),
+            config_entry=entry,
+        )
+    )
+    device = SimpleNamespace(
+        iot_device_id="03ab0000000000a1",
+        device_type_hex="0x1032",
+        extra_data={"gateway_device_id": "", "group_member_ids": []},
+        ir_remote_gateway_device_id=None,
+    )
+    protocol_call = AsyncMock(side_effect=LiproRefreshTokenExpiredError("expired"))
+    logger = MagicMock()
+    raise_service_error = MagicMock(side_effect=RuntimeError("mapped"))
+
+    with pytest.raises(RuntimeError, match="mapped"):
+        await async_execute_schedule_operation(
+            device,
+            protocol_call,
+            coordinator=coordinator,
+            error_log="API error getting schedules: %s",
+            error_translation_key="schedule_fetch_failed",
+            logger=logger,
+            raise_service_error=raise_service_error,
+        )
+
+    entry.async_start_reauth.assert_called_once_with(hass)
+    assert raise_service_error.call_args.args == ("auth_expired",)
 
 
 def test_get_mesh_context_normalizes_member_ids_and_gateway() -> None:

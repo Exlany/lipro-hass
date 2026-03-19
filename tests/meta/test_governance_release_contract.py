@@ -34,6 +34,7 @@ from .test_governance_guards import (
 )
 
 _CODEQL_WORKFLOW = _ROOT / ".github" / "workflows" / "codeql.yml"
+_GOVERNANCE_REGISTRY = _ROOT / ".planning" / "baseline" / "GOVERNANCE_REGISTRY.json"
 
 
 def test_ci_and_release_workflows_share_governance_and_version_gates() -> None:
@@ -372,6 +373,19 @@ def test_support_and_issue_routing_are_consistent() -> None:
     assert "verified GitHub Release assets" in support_text
     assert "Best effort" in security_text or "best effort" in security_text
     assert "verified GitHub Release assets" in security_text
+
+
+def test_runbook_and_pr_template_capture_break_glass_and_rehearsal_truth() -> None:
+    registry = _load_json(_GOVERNANCE_REGISTRY)
+    runbook_text = _RUNBOOK.read_text(encoding="utf-8")
+    pr_text = _PR_TEMPLATE.read_text(encoding="utf-8")
+
+    for token in (
+        registry["release"]["break_glass_verify_only_phrase"],
+        registry["release"]["non_publish_rehearsal_phrase"],
+    ):
+        assert token in runbook_text
+        assert token in pr_text
 
 
 def test_quality_scale_and_devcontainer_truth_are_in_sync() -> None:

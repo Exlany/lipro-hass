@@ -9,17 +9,17 @@ from typing import Any, NoReturn, Protocol, TypeVar, cast
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.exceptions import ServiceValidationError
 
-from ..core.api.errors import (
-    LiproApiError,
-    LiproAuthError,
-    LiproRefreshTokenExpiredError,
-)
+from ..core.api.errors import LiproApiError
 from ..core.api.schedule_codec import coerce_int_list
 from ..core.api.types import ScheduleTimingRow
 from ..core.utils.identifiers import normalize_iot_device_id
-from ..core.utils.log_safety import safe_error_placeholder
 from ..core.utils.redaction import redact_identifier as _redact_identifier
 from ..runtime_types import ProtocolServiceLike
+from .execution import (
+    AuthenticatedCoordinator,
+    ServiceErrorRaiser,
+    async_execute_coordinator_call,
+)
 
 _ResultT = TypeVar("_ResultT")
 _NormalizedSchedule = dict[str, object]
@@ -28,29 +28,6 @@ GetDeviceAndCoordinator = Callable[
     [HomeAssistant, ServiceCall],
     Awaitable[tuple[Any, Any]],
 ]
-
-
-class CoordinatorAuthSurface(Protocol):
-    """Formal runtime-auth surface used by schedule services."""
-
-    async def async_ensure_authenticated(self) -> None:
-        """Validate runtime auth state before a schedule service call."""
-
-    async def async_trigger_reauth(self, reason: str) -> None:
-        """Start the Home Assistant reauth flow for one failure reason."""
-
-
-class ServiceErrorRaiser(Protocol):
-    """Callable that raises translated Home Assistant schedule service errors."""
-
-    def __call__(
-        self,
-        translation_key: str,
-        *,
-        err: Exception | None = None,
-        translation_placeholders: Mapping[str, str] | None = None,
-    ) -> NoReturn:
-        """Raise a translated Home Assistant service error."""
 
 
 class ScheduleDevice(Protocol):
@@ -63,43 +40,12 @@ class ScheduleDevice(Protocol):
     ir_remote_gateway_device_id: str | None
 
 
-class ScheduleCoordinator(Protocol):
+class ScheduleCoordinator(AuthenticatedCoordinator, Protocol):
     """Coordinator contract used by schedule services."""
-
-    @property
-    def auth_service(self) -> CoordinatorAuthSurface:
-        """Return the formal coordinator auth surface."""
 
     @property
     def protocol_service(self) -> ProtocolServiceLike:
         """Return the formal runtime-owned protocol capability service."""
-
-
-async def _async_execute_schedule_coordinator_call(
-    coordinator: ScheduleCoordinator,
-    *,
-    call: Callable[[], Awaitable[_ResultT]],
-    raise_service_error: ServiceErrorRaiser,
-    handle_api_error: Callable[[LiproApiError], NoReturn] | None = None,
-) -> _ResultT:
-    """Execute one schedule call through shared auth and error handling."""
-    try:
-        await coordinator.auth_service.async_ensure_authenticated()
-        return await call()
-    except LiproRefreshTokenExpiredError as err:
-        await coordinator.auth_service.async_trigger_reauth("auth_expired")
-        raise_service_error("auth_expired", err=err)
-    except LiproAuthError as err:
-        await coordinator.auth_service.async_trigger_reauth("auth_error")
-        raise_service_error(
-            "auth_error",
-            err=err,
-            translation_placeholders={"error": safe_error_placeholder(err)},
-        )
-    except LiproApiError as err:
-        if handle_api_error is not None:
-            handle_api_error(err)
-        raise
 
 
 def format_schedule_time(seconds: int) -> str | None:
@@ -174,9 +120,9 @@ def get_mesh_context(device: ScheduleDevice) -> tuple[str, list[str]]:
     return mesh_gateway_id, mesh_member_ids
 
 
-async def async_call_schedule_client(
+async def async_execute_schedule_operation(
     device: ScheduleDevice,
-    client_call: Callable[..., Awaitable[_ResultT]],
+    protocol_call: Callable[..., Awaitable[_ResultT]],
     *args: object,
     coordinator: ScheduleCoordinator | None = None,
     error_log: str,
@@ -184,11 +130,11 @@ async def async_call_schedule_client(
     logger: logging.Logger,
     raise_service_error: ServiceErrorRaiser,
 ) -> _ResultT:
-    """Call a schedule API with optional coordinator-authenticated execution."""
+    """Call one schedule protocol operation with shared auth and error mapping."""
     mesh_gateway_id, mesh_member_ids = get_mesh_context(device)
 
-    async def _call_client() -> _ResultT:
-        return await client_call(
+    async def _call_protocol_operation() -> _ResultT:
+        return await protocol_call(
             device.iot_device_id,
             device.device_type_hex,
             *args,
@@ -202,15 +148,15 @@ async def async_call_schedule_client(
             logger.warning(error_log, err)
             raise_service_error(error_translation_key, err=err)
 
-        return await _async_execute_schedule_coordinator_call(
+        return await async_execute_coordinator_call(
             coordinator,
-            call=_call_client,
+            call=_call_protocol_operation,
             raise_service_error=raise_service_error,
             handle_api_error=_handle_api_error,
         )
 
     try:
-        return await _call_client()
+        return await _call_protocol_operation()
     except LiproApiError as err:
         logger.warning(error_log, err)
         raise_service_error(error_translation_key, err=err)
@@ -220,7 +166,7 @@ async def async_call_schedule_service(
     coordinator: ScheduleCoordinator,
     device: ScheduleDevice,
     *,
-    client_call: Callable[..., Awaitable[_ResultT]],
+    protocol_call: Callable[..., Awaitable[_ResultT]],
     call_args: tuple[object, ...] = (),
     service_log: str | None = None,
     service_log_args: tuple[object, ...] = (),
@@ -229,7 +175,7 @@ async def async_call_schedule_service(
     logger: logging.Logger,
     raise_service_error: ServiceErrorRaiser,
 ) -> _ResultT:
-    """Invoke a schedule client method with shared logging and error mapping."""
+    """Invoke a schedule protocol operation with shared logging and error mapping."""
     if service_log is not None:
         logger.info(
             service_log,
@@ -237,9 +183,9 @@ async def async_call_schedule_service(
             *service_log_args,
         )
 
-    return await async_call_schedule_client(
+    return await async_execute_schedule_operation(
         device,
-        client_call,
+        protocol_call,
         *call_args,
         coordinator=coordinator,
         error_log=error_log,
@@ -265,7 +211,7 @@ async def async_handle_get_schedules(
     schedules: ScheduleRows = await async_call_schedule_service(
         coordinator,
         device,
-        client_call=coordinator.protocol_service.async_get_device_schedules,
+        protocol_call=coordinator.protocol_service.async_get_device_schedules,
         service_log="Service call: get_schedules for %s",
         error_log="API error getting schedules: %s",
         error_translation_key="schedule_fetch_failed",
@@ -315,7 +261,7 @@ async def async_handle_add_schedule(
     schedules: ScheduleRows = await async_call_schedule_service(
         coordinator,
         device,
-        client_call=coordinator.protocol_service.async_add_device_schedule,
+        protocol_call=coordinator.protocol_service.async_add_device_schedule,
         call_args=(days, times, events),
         service_log=(
             "Service call: add_schedule for %s (days=%s, times=%s, events=%s)"
@@ -356,7 +302,7 @@ async def async_handle_delete_schedules(
     remaining: ScheduleRows = await async_call_schedule_service(
         coordinator,
         device,
-        client_call=coordinator.protocol_service.async_delete_device_schedules,
+        protocol_call=coordinator.protocol_service.async_delete_device_schedules,
         call_args=(schedule_ids,),
         service_log="Service call: delete_schedules for %s (ids=%s)",
         service_log_args=(

@@ -1,6 +1,6 @@
 # Project: Lipro-HASS North Star Evolution
 
-**Status:** Active follow-through — `v1.4` 已于 `2026-03-19` 完成 milestone archive promotion；当前已开启 `v1.5 / Phase 40`，继续收口 governance truth layering、runtime-access read-model 与 shared service execution contract。
+**Status:** Active closeout — `Phase 40` 已于 `2026-03-19` 完成执行与验证；`v1.5` 当前进入 milestone closeout-ready，下一步建议 `$gsd-complete-milestone v1.5`。
 **Goal:** 以 `v1.4` 归档真相为稳定基线，完成 post-archive governance consolidation、control-plane read-model convergence 与 service execution unification，不留下 placeholder、compat folklore 或 second-story drift。
 
 
@@ -17,8 +17,8 @@
 - 不让 control/services 重新各自复制 runtime locator / device read-model / auth-error semantics
 - 不用“兼容壳保留”来掩盖 stale naming、forwarding residue 或 governance drift
 
-**Phase range:** `Phase 40 -> ...`
-**Current status:** `Phase 40 planned`（GSD planning requested on `2026-03-19`）
+**Phase range:** `Phase 40`
+**Current status:** `Phase 40 complete`（seven executable plans executed and verified on `2026-03-19`; next action is `$gsd-complete-milestone v1.5`）
 **Primary closeout targets:** authority layering、machine-readable governance truth、runtime-access read-model convergence、shared service execution contract、touched naming residue 收口。
 
 ## Archived Milestone (v1.4)
@@ -466,33 +466,30 @@ v1.1 进入执行期后，新增演进必须额外满足：
 ## Primary Sources
 
 1. `docs/NORTH_STAR_TARGET_ARCHITECTURE.md`
-2. `.planning/MILESTONES.md`
-3. `.planning/milestones/v1.0-ROADMAP.md`
-4. `.planning/milestones/v1.0-REQUIREMENTS.md`
-5. `.planning/milestones/v1.1-ROADMAP.md`
-6. `.planning/milestones/v1.1-REQUIREMENTS.md`
-7. `.planning/milestones/v1.2-ROADMAP.md`
-8. `.planning/milestones/v1.2-REQUIREMENTS.md`
-9. `.planning/ROADMAP.md`
-10. `.planning/REQUIREMENTS.md`
-11. `.planning/STATE.md`
-12. `.planning/baseline/*.md`
-13. `.planning/reviews/*.md`
+2. `.planning/PROJECT.md`
+3. `.planning/ROADMAP.md`
+4. `.planning/REQUIREMENTS.md`
+5. `.planning/STATE.md`
+6. `.planning/baseline/*.md` 与 `.planning/baseline/GOVERNANCE_REGISTRY.json`
+7. `.planning/reviews/*.md`
+8. `docs/developer_architecture.md`
+9. `AGENTS.md`
+10. `CLAUDE.md`
+11. `.planning/MILESTONES.md` 与 `.planning/milestones/*.md` 等历史归档证据
 
 ## Current Execution Workspace Inputs
 
-- `.planning/phases/34-continuity-and-hard-release-gates/34-VERIFICATION.md`
-- `.planning/phases/35-protocol-hotspot-final-slimming/35-VERIFICATION.md`
-- `.planning/phases/36-runtime-root-and-exception-burn-down/36-VERIFICATION.md`
-- `.planning/phases/37-test-topology-and-derived-truth-convergence/37-VERIFICATION.md`
-- `.planning/phases/38-external-boundary-residual-retirement-and-quality-signal-hardening/38-VERIFICATION.md`
+- `.planning/phases/40-governance-truth-consolidation-runtime-access-convergence-and-service-execution-unification/40-VERIFICATION.md`
+- `.planning/phases/40-governance-truth-consolidation-runtime-access-convergence-and-service-execution-unification/40-SUMMARY.md`
 - `.planning/phases/39-governance-current-story-convergence-control-home-clarification-and-mega-test-decomposition/39-VERIFICATION.md`
 - `.planning/phases/39-governance-current-story-convergence-control-home-clarification-and-mega-test-decomposition/39-SUMMARY.md`
+- `.planning/phases/38-external-boundary-residual-retirement-and-quality-signal-hardening/38-VERIFICATION.md`
+- `.planning/phases/38-external-boundary-residual-retirement-and-quality-signal-hardening/38-SUMMARY.md`
 - `.planning/reviews/V1_4_EVIDENCE_INDEX.md`
 - `.planning/v1.4-MILESTONE-AUDIT.md`
 - `.planning/milestones/v1.4-ROADMAP.md`
 - `.planning/milestones/v1.4-REQUIREMENTS.md`
 
-- 当前工作区输入以 `v1.4` archive bundle 与 Phase `34 -> 39` closeout evidence 为主；phase 目录资产仍默认是执行证据，只有被 `ROADMAP.md`、baseline docs、review ledgers 或 milestone audit 显式提升时，才成为长期治理真源。
+- 当前工作区输入以 `Phase 40` promoted evidence 与 `v1.4` archive bundle 为主；phase 目录资产仍默认是执行证据，只有被 `ROADMAP.md`、baseline docs、review ledgers 或 milestone audit 显式提升时，才成为长期治理真源。
 
-*Last updated: 2026-03-19 after v1.4 milestone archive and closeout promotion*
+*Last updated: 2026-03-19 after Phase 40 execution verification and v1.5 closeout-ready promotion*

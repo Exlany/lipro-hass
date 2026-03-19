@@ -68,6 +68,7 @@ _CI_WORKFLOW = _ROOT / ".github" / "workflows" / "ci.yml"
 _RELEASE_WORKFLOW = _ROOT / ".github" / "workflows" / "release.yml"
 
 _ISSUE_CONFIG = _ROOT / ".github" / "ISSUE_TEMPLATE" / "config.yml"
+_GOVERNANCE_REGISTRY = _ROOT / ".planning" / "baseline" / "GOVERNANCE_REGISTRY.json"
 
 
 def test_file_matrix_covers_workspace_python_inventory() -> None:
@@ -177,15 +178,34 @@ def _assert_state_preserves_phase_17_closeout_history(state_text: str) -> None:
         )
         return
 
-    assert "milestone: v1.4" in state_text
-    assert "milestone_name: Sustainment, Trust Gates & Final Hotspot Burn-down" in state_text
+    if "milestone: v1.4" in state_text:
+        assert "milestone_name: Sustainment, Trust Gates & Final Hotspot Burn-down" in state_text
+        assert (
+            "**Current milestone:** `v1.4 Sustainment, Trust Gates & Final Hotspot Burn-down`"
+            in state_text
+        )
+        assert re.search(
+            r"\*\*Current mode:\*\* `Phase 3[4-9](?:\.\d+)? [a-z][a-z0-9_ -]+`",
+            state_text,
+        )
+        return
+
+    assert "milestone: v1.5" in state_text
     assert (
-        "**Current milestone:** `v1.4 Sustainment, Trust Gates & Final Hotspot Burn-down`"
+        "milestone_name: Governance Truth Consolidation & Control-Surface Finalization"
         in state_text
     )
-    assert re.search(
-        r"\*\*Current mode:\*\* `Phase 3[4-9](?:\.\d+)? [a-z][a-z0-9_ -]+`",
-        state_text,
+    assert (
+        "**Current milestone:** `v1.5 Governance Truth Consolidation & Control-Surface Finalization`"
+        in state_text
+    )
+    assert (
+        "**Current mode:** `Phase 40 execution-ready`" in state_text
+        or re.search(
+            r"\*\*Current mode:\*\* `Phase 4\d(?:\.\d+)? [a-z][a-z0-9_ -]+`",
+            state_text,
+        )
+        is not None
     )
 
 

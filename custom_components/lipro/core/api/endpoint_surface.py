@@ -1,5 +1,5 @@
 # ruff: noqa: D102,D107,SLF001
-"""Endpoint-forwarding collaborator for the REST child façade."""
+"""endpoint operations collaborator for the REST child façade."""
 
 from __future__ import annotations
 
@@ -18,21 +18,21 @@ class _RestEndpointSurfacePort(Protocol):
 
 
 class RestEndpointSurface:
-    """Group endpoint forwarding away from the REST façade root body."""
+    """Group endpoint operations away from the REST façade root body."""
 
-    def __init__(self, client: _RestEndpointSurfacePort) -> None:
-        self._client = client
+    def __init__(self, port: _RestEndpointSurfacePort) -> None:
+        self._port = port
 
     async def get_devices(self, offset: int = 0, limit: int = 100) -> DeviceListResponse:
         return cast(
             DeviceListResponse,
-            await self._client._device_endpoints.get_devices(offset=offset, limit=limit),
+            await self._port._device_endpoints.get_devices(offset=offset, limit=limit),
         )
 
     async def get_product_configs(self) -> list[dict[str, Any]]:
         return cast(
             list[dict[str, Any]],
-            await self._client._device_endpoints.get_product_configs(),
+            await self._port._device_endpoints.get_product_configs(),
         )
 
     async def query_device_status(
@@ -44,7 +44,7 @@ class RestEndpointSurface:
     ) -> list[dict[str, Any]]:
         return cast(
             list[dict[str, Any]],
-            await self._client._status_endpoints.query_device_status(
+            await self._port._status_endpoints.query_device_status(
             device_ids,
             max_devices_per_query=max_devices_per_query,
             on_batch_metric=on_batch_metric,
@@ -57,13 +57,13 @@ class RestEndpointSurface:
     ) -> list[dict[str, Any]]:
         return cast(
             list[dict[str, Any]],
-            await self._client._status_endpoints.query_mesh_group_status(group_ids),
+            await self._port._status_endpoints.query_mesh_group_status(group_ids),
         )
 
     async def query_connect_status(self, device_ids: list[str]) -> dict[str, bool]:
         return cast(
             dict[str, bool],
-            await self._client._status_endpoints.query_connect_status(device_ids),
+            await self._port._status_endpoints.query_connect_status(device_ids),
         )
 
     async def send_command(
@@ -76,7 +76,7 @@ class RestEndpointSurface:
     ) -> dict[str, Any]:
         return cast(
             dict[str, Any],
-            await self._client._command_endpoints.send_command(
+            await self._port._command_endpoints.send_command(
             device_id=device_id,
             command=command,
             device_type=device_type,
@@ -95,7 +95,7 @@ class RestEndpointSurface:
     ) -> dict[str, Any]:
         return cast(
             dict[str, Any],
-            await self._client._command_endpoints.send_group_command(
+            await self._port._command_endpoints.send_group_command(
             group_id=group_id,
             command=command,
             device_type=device_type,
@@ -105,12 +105,12 @@ class RestEndpointSurface:
         )
 
     async def get_mqtt_config(self) -> dict[str, Any]:
-        return cast(dict[str, Any], await self._client._misc_endpoints.get_mqtt_config())
+        return cast(dict[str, Any], await self._port._misc_endpoints.get_mqtt_config())
 
     async def fetch_outlet_power_info(self, device_id: str) -> OutletPowerInfoResult:
         return cast(
             OutletPowerInfoResult,
-            await self._client._misc_endpoints.fetch_outlet_power_info(device_id),
+            await self._port._misc_endpoints.fetch_outlet_power_info(device_id),
         )
 
     async def query_command_result(
@@ -122,7 +122,7 @@ class RestEndpointSurface:
     ) -> dict[str, Any]:
         return cast(
             dict[str, Any],
-            await self._client._misc_endpoints.query_command_result(
+            await self._port._misc_endpoints.query_command_result(
             msg_sn=msg_sn,
             device_id=device_id,
             device_type=device_type,
@@ -130,12 +130,12 @@ class RestEndpointSurface:
         )
 
     async def get_city(self) -> dict[str, Any]:
-        return cast(dict[str, Any], await self._client._misc_endpoints.get_city())
+        return cast(dict[str, Any], await self._port._misc_endpoints.get_city())
 
     async def query_user_cloud(self) -> dict[str, Any]:
         return cast(
             dict[str, Any],
-            await self._client._misc_endpoints.query_user_cloud(),
+            await self._port._misc_endpoints.query_user_cloud(),
         )
 
     async def query_ota_info(
@@ -148,7 +148,7 @@ class RestEndpointSurface:
     ) -> list[OtaInfoRow]:
         return cast(
             list[OtaInfoRow],
-            await self._client._misc_endpoints.query_ota_info(
+            await self._port._misc_endpoints.query_ota_info(
             device_id=device_id,
             device_type=device_type,
             iot_name=iot_name,
@@ -165,7 +165,7 @@ class RestEndpointSurface:
     ) -> dict[str, Any]:
         return cast(
             dict[str, Any],
-            await self._client._misc_endpoints.fetch_body_sensor_history(
+            await self._port._misc_endpoints.fetch_body_sensor_history(
             device_id=device_id,
             device_type=device_type,
             sensor_device_id=sensor_device_id,
@@ -182,7 +182,7 @@ class RestEndpointSurface:
     ) -> dict[str, Any]:
         return cast(
             dict[str, Any],
-            await self._client._misc_endpoints.fetch_door_sensor_history(
+            await self._port._misc_endpoints.fetch_door_sensor_history(
             device_id=device_id,
             device_type=device_type,
             sensor_device_id=sensor_device_id,
@@ -200,7 +200,7 @@ class RestEndpointSurface:
     ) -> list[ScheduleTimingRow]:
         return cast(
             list[ScheduleTimingRow],
-            await self._client._schedule_endpoints.get_device_schedules(
+            await self._port._schedule_endpoints.get_device_schedules(
             device_id=device_id,
             device_type=device_type,
             mesh_gateway_id=mesh_gateway_id,
@@ -221,7 +221,7 @@ class RestEndpointSurface:
     ) -> list[ScheduleTimingRow]:
         return cast(
             list[ScheduleTimingRow],
-            await self._client._schedule_endpoints.add_device_schedule(
+            await self._port._schedule_endpoints.add_device_schedule(
             device_id=device_id,
             device_type=device_type,
             days=days,
@@ -243,7 +243,7 @@ class RestEndpointSurface:
     ) -> list[ScheduleTimingRow]:
         return cast(
             list[ScheduleTimingRow],
-            await self._client._schedule_endpoints.delete_device_schedules(
+            await self._port._schedule_endpoints.delete_device_schedules(
             device_id=device_id,
             device_type=device_type,
             schedule_ids=schedule_ids,

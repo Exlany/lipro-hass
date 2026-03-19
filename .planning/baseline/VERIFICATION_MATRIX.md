@@ -2,16 +2,17 @@
 
 **Purpose:** 建立 requirement → artifact → test → doc → phase acceptance / handoff 的统一验证闭环。
 **Status:** Formal baseline asset (`BASE-03` phase acceptance truth source)
-**Updated:** 2026-03-18 (Phase 32 truth-convergence closeout aligned)
+**Updated:** 2026-03-19 (Phase 40 governance registry and current-truth alignment)
 
 ## Formal Role
 
 - 本文件是 `Phase 1.5` 及其下游 phases 的正式 acceptance truth；phase docs / summaries 只能引用、实例化或扩展，不得平行定义 exit contract。
 - 任一 phase 只有同时交付 requirement evidence、artifact updates、verification proof 与 governance disposition，才可宣称完成。
-- 若新增、降级或删除正式 public surface，改变 dependency truth，扩展 authority family，或新增 architecture policy rule family / CI gate，必须先回写对应 baseline doc，再更新实现、测试与 summary。
+- 若新增、降级或删除正式 public surface，改变 dependency truth，扩展 authority family，新增 machine-readable governance truth，或新增 architecture policy rule family / CI gate，必须先回写对应 baseline doc / registry，再更新实现、测试与 summary。
 - `.planning/baseline/ARCHITECTURE_POLICY.md` 是 verification gate 的正式 policy companion；phase exit contract 与 runnable proof 只能引用或实例化它，不能绕开它自立规则。
 - 若 `.planning/reviews/FILE_MATRIX.md`、`.planning/reviews/RESIDUAL_LEDGER.md`、`.planning/reviews/KILL_LIST.md` 无变化，phase summary 也必须明确写出“为何无变化”。
 - `.planning/codebase/*.md` 若被保留，必须通过 `README.md`、统一 derived collaboration map disclaimer、snapshot/freshness/authority 头部与治理守卫声明其从属身份，不能越权成为第二条 authority chain。
+- `.planning/baseline/GOVERNANCE_REGISTRY.json` 若更新，必须同步 public docs / contributor templates / release-contract tests，并明确 `break-glass verify-only` 与 `non-publish rehearsal` 是否新增或变更。
 
 ## Requirement-to-Acceptance Mapping
 
@@ -190,7 +191,7 @@
 ## Phase 35 Protocol Hotspot Final Slimming Contract
 
 - **Required artifacts:** `custom_components/lipro/core/api/{client.py,rest_facade.py,request_gateway.py,rest_facade_request_methods.py,rest_facade_endpoint_methods.py,transport_executor.py,endpoint_surface.py}`、`custom_components/lipro/core/protocol/{facade.py,rest_port.py,mqtt_facade.py}`、`tests/core/api/{test_api_command_surface.py,test_api_transport_and_schedule.py,test_auth_recovery_telemetry.py,test_protocol_contract_matrix.py}`、`.planning/baseline/{PUBLIC_SURFACES,DEPENDENCY_MATRIX,VERIFICATION_MATRIX}.md`、`.planning/reviews/{FILE_MATRIX,RESIDUAL_LEDGER}.md`、`35-01~35-03-SUMMARY.md`、`35-SUMMARY.md`、`35-VERIFICATION.md`。
-- **Required governance proof:** `LiproProtocolFacade` 与 `LiproRestFacade` 继续是唯一 formal protocol/root story；request pipeline、endpoint forwarding 与 MQTT child façade 复杂度已 inward 到 localized collaborators，没有新增 package export 或 second-root seam。
+- **Required governance proof:** `LiproProtocolFacade` 与 `LiproRestFacade` 继续是唯一 formal protocol/root story；request pipeline、endpoint operations 与 MQTT child façade 复杂度已 inward 到 localized collaborators，没有新增 package export 或 second-root seam。
 - **Required runnable proof:** `uv run pytest -q tests/core/api/test_api_command_surface.py tests/core/api/test_api_transport_and_schedule.py tests/core/api/test_auth_recovery_telemetry.py tests/core/api/test_protocol_contract_matrix.py tests/meta/test_public_surface_guards.py`、`uv run pytest -q tests/meta/test_dependency_guards.py tests/meta/test_governance*.py tests/meta/test_toolchain_truth.py tests/meta/test_version_sync.py tests/meta/test_public_surface_guards.py`、`uv run ruff check custom_components/lipro/core/api/client.py custom_components/lipro/core/api/rest_facade.py custom_components/lipro/core/api/request_gateway.py custom_components/lipro/core/api/rest_facade_request_methods.py custom_components/lipro/core/api/rest_facade_endpoint_methods.py custom_components/lipro/core/api/transport_executor.py custom_components/lipro/core/api/endpoint_surface.py custom_components/lipro/core/protocol/facade.py custom_components/lipro/core/protocol/rest_port.py custom_components/lipro/core/protocol/mqtt_facade.py tests/core/api/test_protocol_contract_matrix.py` 通过。
 - **Unblock effect:** `HOT-09` / `RES-07` 获得更薄的 protocol root/body、稳定回归与同步治理真相；后续 runtime hardening 不再背负 protocol hotspot ballast。
 
@@ -207,3 +208,11 @@
 - **Required governance proof:** init/runtime/governance mega-tests 已 topicize 成稳定专题套件；`.planning/codebase/*` freshness、testing topology、verification guidance 与实际命令/文件布局已重新对齐，并有 drift guards 约束。
 - **Required runnable proof:** `uv run pytest -q tests/core/test_init*.py tests/meta/test_governance_phase_history*.py`、`uv run pytest -q tests/meta/test_governance*.py tests/meta/test_toolchain_truth.py tests/meta/test_version_sync.py tests/meta/test_public_surface_guards.py`、`uv run python scripts/check_file_matrix.py --check`、`uv run ruff check .` 通过。
 - **Unblock effect:** `TST-06` / `GOV-30` / `QLT-09` 获得稳定的测试拓扑、较低噪音的治理守卫与可审计的 derived-truth baseline，为后续 fresh audit 提供干净起点。
+
+## Phase 40 Governance Truth / Runtime-Access / Execution Convergence Contract
+
+- **Required artifacts:** `AGENTS.md`、`docs/README.md`、`README.md`、`README_zh.md`、`CONTRIBUTING.md`、`SUPPORT.md`、`SECURITY.md`、`docs/TROUBLESHOOTING.md`、`docs/MAINTAINER_RELEASE_RUNBOOK.md`、`.github/ISSUE_TEMPLATE/bug.yml`、`.github/pull_request_template.md`、`.planning/baseline/{GOVERNANCE_REGISTRY,AUTHORITY_MATRIX,DEPENDENCY_MATRIX,PUBLIC_SURFACES,VERIFICATION_MATRIX}.md`、`custom_components/lipro/control/{runtime_access.py,diagnostics_surface.py}`、`custom_components/lipro/services/{device_lookup.py,maintenance.py,execution.py,schedule.py}`、`custom_components/lipro/core/api/{auth_service.py,endpoint_surface.py,rest_facade_endpoint_methods.py}`、`custom_components/lipro/core/coordinator/runtime/{command/sender.py,device/snapshot.py}`、`.planning/reviews/{FILE_MATRIX,RESIDUAL_LEDGER,KILL_LIST}.md`、`40-SUMMARY.md`、`40-VERIFICATION.md`。
+- **Required governance proof:** governance registry、current-story docs、runtime-access helper home、shared service execution contract 与 touched naming cleanup 必须讲同一条正式故事；`custom_components/lipro/services/execution.py` 必须继续被登记为 formal service execution facade，而不是 active residual / kill target。
+- **Required runnable proof:** `uv run ruff check .`、`uv run mypy`、`uv run python scripts/check_architecture_policy.py --check`、`uv run python scripts/check_file_matrix.py --check`、`uv run python scripts/check_translations.py`、`uv run pytest -q tests/meta/test_governance*.py tests/meta/test_public_surface_guards.py tests/meta/test_version_sync.py tests/meta/test_toolchain_truth.py tests/core/test_control_plane.py tests/core/test_diagnostics.py tests/core/test_system_health.py tests/services/test_device_lookup.py tests/services/test_maintenance.py tests/services/test_execution.py tests/services/test_services_schedule.py tests/services/test_service_resilience.py tests/core/api/test_api_transport_and_schedule.py` 与 `uv run pytest -q tests/ --ignore=tests/benchmarks` 通过。
+- **Unblock effect:** `GOV-33` / `QLT-11` / `CTRL-09` / `ERR-10` / `RES-10` 同步完成；`v1.5` current-truth、runtime read-model 与 shared execution contract 达到 clean-closeout 状态。
+

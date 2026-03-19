@@ -1,4 +1,4 @@
-"""Auth endpoint service for Lipro API client."""
+"""Auth endpoint service for the Lipro REST façade."""
 
 from __future__ import annotations
 
@@ -10,8 +10,8 @@ from ...const.api import PATH_LOGIN, PATH_REFRESH_TOKEN
 from .types import ApiResponse, LoginResponse
 
 
-class AuthClient(Protocol):
-    """Minimal client surface consumed by the auth endpoint service."""
+class AuthPort(Protocol):
+    """Minimal auth port surface consumed by the auth endpoint service."""
 
     access_token: str | None
     refresh_token: str | None
@@ -35,20 +35,20 @@ class AuthClient(Protocol):
         user_id: int | None = None,
         biz_id: str | None = None,
     ) -> None:
-        """Persist freshly issued auth/session fields onto client state."""
+        """Persist freshly issued auth/session fields onto port state."""
 
 
 class AuthApiService:
-    """Auth endpoints extracted from the formal REST facade."""
+    """Auth endpoints extracted from the formal REST façade."""
 
     def __init__(
         self,
-        client: AuthClient,
+        auth_port: AuthPort,
         auth_error_cls: type[Exception],
         logger: logging.Logger,
     ) -> None:
         """Initialize auth endpoint service."""
-        self._client = client
+        self._auth_port = auth_port
         self._auth_error_cls = auth_error_cls
         self._logger = logger
 
@@ -76,10 +76,10 @@ class AuthApiService:
         raise self._auth_error_cls(msg)
 
     def _persist_session_state(self, result: ApiResponse, *, context: str) -> None:
-        """Persist normalized auth/session fields onto the client."""
+        """Persist normalized auth/session fields onto the auth port."""
         access_token, refresh_token = self._require_tokens(result, context=context)
         raw_biz_id = result.get("bizId")
-        self._client.set_tokens(
+        self._auth_port.set_tokens(
             access_token=access_token,
             refresh_token=refresh_token,
             user_id=self._coerce_user_id(result.get("userId")),
@@ -87,13 +87,15 @@ class AuthApiService:
         )
 
     def _build_login_response(self) -> LoginResponse:
-        """Return the normalized auth payload exposed by the REST facade."""
+        """Return the normalized auth payload exposed by the REST façade."""
         return {
-            "access_token": self._client.access_token or "",
-            "refresh_token": self._client.refresh_token or "",
+            "access_token": self._auth_port.access_token or "",
+            "refresh_token": self._auth_port.refresh_token or "",
             "expires_in": 0,
-            "user_id": 0 if self._client.user_id is None else self._client.user_id,
-            "biz_id": self._client.biz_id,
+            "user_id": (
+                0 if self._auth_port.user_id is None else self._auth_port.user_id
+            ),
+            "biz_id": self._auth_port.biz_id,
         }
 
     async def login(
@@ -110,7 +112,7 @@ class AuthApiService:
             else hashlib.md5(password.encode("utf-8"), usedforsecurity=False).hexdigest()
         )
 
-        result = await self._client.smart_home_request(
+        result = await self._auth_port.smart_home_request(
             PATH_LOGIN,
             {
                 "phone": phone,
@@ -125,14 +127,14 @@ class AuthApiService:
 
     async def refresh_access_token(self) -> LoginResponse:
         """Refresh access token."""
-        if not self._client.refresh_token:
+        if not self._auth_port.refresh_token:
             msg = "No refresh token available"
             raise self._auth_error_cls(msg)
 
-        result = await self._client.smart_home_request(
+        result = await self._auth_port.smart_home_request(
             PATH_REFRESH_TOKEN,
             {
-                "refreshToken": self._client.refresh_token,
+                "refreshToken": self._auth_port.refresh_token,
                 "model": "HomeAssistant",
             },
             require_auth=False,

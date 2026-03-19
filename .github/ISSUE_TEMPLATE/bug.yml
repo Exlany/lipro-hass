@@ -18,6 +18,9 @@ body:
         若仓库或 fork 为私有，CI 会跳过 HACS validation，因为 HACS 只支持公开 GitHub 仓库。
         If this repository or fork is private, CI skips HACS validation because HACS only supports public GitHub repositories.
 
+        若安装脚本以 remote 模式运行且未显式指定 archive/tag，则默认会解析最新 tagged release（`latest`）；若你使用了 `ARCHIVE_TAG=main` / branch fallback / mirror 之类预览路径，请在报告里明确写出。
+        If the installer runs in remote mode without a pinned archive/tag, it resolves the latest tagged release (`latest`) by default; if you used `ARCHIVE_TAG=main`, branch fallback, or a mirror-backed preview path, say so explicitly in the report.
+
         若你还没开始系统排障，请先阅读 `docs/TROUBLESHOOTING.md`；若问题涉及发版/打包，请维护者参考 `docs/MAINTAINER_RELEASE_RUNBOOK.md`。
         If you have not started structured troubleshooting yet, read `docs/TROUBLESHOOTING.md` first; maintainer-only release/package issues belong in `docs/MAINTAINER_RELEASE_RUNBOOK.md`.
 

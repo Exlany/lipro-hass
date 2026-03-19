@@ -746,11 +746,14 @@ Plans:
   1. `PROJECT / ROADMAP / REQUIREMENTS / STATE`、`docs/README.md` 与 baseline 三件套对 authority precedence、active truth、archive snapshot 与 promoted phase assets 讲同一条 current story，并吸收 `V1_4_EVIDENCE_INDEX.md` / `v1.4-MILESTONE-AUDIT.md` / `Phase 38-39` closeout contract。
   2. continuity / release-trust / install-path / support-routing 事实收口到 machine-readable governance registry；README、README_zh、CONTRIBUTING、SUPPORT、SECURITY、TROUBLESHOOTING、runbook 与 issue/PR templates 由守卫强制同步，且补齐 break-glass verify-only / non-publish rehearsal 语义。
   3. `runtime_access` 成为 control/services 的单一 runtime read-model：diagnostics/device lookup/maintenance 不再各自复制 coordinator 枚举或设备读取逻辑；`schedule.py` 复用 shared service execution auth/error chain；touched `client` / `forwarding` / `mixin` terminology 收口到 `protocol` / `port` / `facade` / `operations` 语义。
-**Status**: Planned (`2026-03-19`)
-**Plans**: 4 plans
+**Status**: Complete (`2026-03-19`)
+**Plans**: 7/7 complete
 
 Plans:
-- [ ] 40-01: align active truth, archive identity, and v1.4 baseline/evidence pointers
-- [ ] 40-02: add governance registry plus continuity/release/install drift guards
-- [ ] 40-03: converge runtime-access read model across diagnostics, device lookup, and maintenance
-- [ ] 40-04: unify shared service execution and retire touched naming residue
+- [x] 40-01: align current-story docs with active truth and archive identity
+- [x] 40-02: sync baseline authority and governance guards with v1.5 truth
+- [x] 40-03: add governance registry and release/support/runbook truth
+- [x] 40-04: sync contributor templates and drift guards to registry-backed truth
+- [x] 40-05: converge runtime-access read model and harden runtime-only guards
+- [x] 40-06: unify shared service execution contract for schedule flows
+- [x] 40-07: retire touched naming residue and finalize review-guard sync

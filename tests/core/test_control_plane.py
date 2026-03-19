@@ -141,6 +141,51 @@ def test_iter_runtime_entries_preserves_live_entry_identity(hass) -> None:
     assert runtime_entry is entry
 
 
+def test_iter_runtime_entry_coordinators_preserves_entry_coordinator_pairs(hass) -> None:
+    from custom_components.lipro.control.runtime_access import (
+        iter_runtime_entry_coordinators,
+    )
+
+    entry = MockConfigEntry(domain=DOMAIN, options={})
+    coordinator = MagicMock(name="runtime")
+    entry.runtime_data = coordinator
+    entry.add_to_hass(hass)
+
+    assert iter_runtime_entry_coordinators(hass) == [(entry, coordinator)]
+
+
+def test_find_runtime_device_ignores_magicmock_ghost_lookup_and_uses_mapping() -> None:
+    from custom_components.lipro.control.runtime_access import find_runtime_device
+
+    device = MagicMock(name="device")
+    coordinator = MagicMock()
+    coordinator.devices = {"03ab0000000000a1": device}
+
+    assert find_runtime_device(coordinator, "03ab0000000000a1") is device
+
+
+def test_find_runtime_device_and_coordinator_prefers_formal_lookup_helpers(hass) -> None:
+    from custom_components.lipro.control.runtime_access import (
+        find_runtime_device_and_coordinator,
+    )
+
+    device = MagicMock(name="device")
+    entry = MockConfigEntry(domain=DOMAIN, options={})
+    coordinator = MagicMock(name="runtime")
+    coordinator.get_device = MagicMock(return_value=None)
+    coordinator.get_device_by_id = MagicMock(return_value=device)
+    coordinator.devices = {}
+    entry.runtime_data = coordinator
+    entry.add_to_hass(hass)
+
+    assert find_runtime_device_and_coordinator(hass, device_id="alias") == (
+        device,
+        coordinator,
+    )
+    coordinator.get_device.assert_called_once_with("alias")
+    coordinator.get_device_by_id.assert_called_once_with("alias")
+
+
 def test_build_single_runtime_coordinator_iterator_returns_stable_singleton(
     hass,
 ) -> None:

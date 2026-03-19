@@ -28,6 +28,9 @@ def _get_explicit_member(obj: object | None, name: str) -> object | None:
     if isinstance(obj_dict, dict):
         if name in obj_dict:
             return cast(object, obj_dict[name])
+        mock_children = obj_dict.get("_mock_children")
+        if isinstance(mock_children, dict) and name in mock_children:
+            return cast(object, mock_children[name])
         descriptor = vars(type(obj)).get(name)
         if descriptor is not None:
             return cast(object | None, getattr(obj, name, None))
@@ -124,6 +127,9 @@ class RuntimeEntryLike(Protocol):
     options: Mapping[str, object]
 
 
+type RuntimeEntryCoordinator = tuple[RuntimeEntryLike, LiproCoordinator]
+
+
 @runtime_checkable
 class _MqttServiceLike(Protocol):
     """Minimal MQTT service surface needed for snapshots."""
@@ -169,6 +175,65 @@ def iter_runtime_coordinators(
         if coordinator is not None:
             coordinators.append(coordinator)
     return coordinators
+
+
+def iter_runtime_entry_coordinators(
+    hass: HomeAssistant,
+    *,
+    entry_id: str | None = None,
+) -> list[RuntimeEntryCoordinator]:
+    """Return loaded runtime entry/coordinator pairs for the Lipro domain."""
+    pairs: list[RuntimeEntryCoordinator] = []
+    for entry in iter_runtime_entries(hass, entry_id=entry_id):
+        coordinator = get_entry_runtime_coordinator(entry)
+        if coordinator is not None:
+            pairs.append((entry, coordinator))
+    return pairs
+
+
+def _call_runtime_device_getter(
+    coordinator: LiproCoordinator,
+    *,
+    getter_name: str,
+    device_id: str,
+) -> LiproDevice | None:
+    """Call one explicit runtime device getter without MagicMock ghost leakage."""
+    getter = _get_explicit_member(coordinator, getter_name)
+    if not callable(getter):
+        return None
+
+    device = cast("LiproDevice | None", getter(device_id))
+    return device if device is not None else None
+
+
+def find_runtime_device(
+    coordinator: LiproCoordinator,
+    device_id: str,
+) -> LiproDevice | None:
+    """Return one runtime device via formal lookup helpers or mapping fallback."""
+    for getter_name in ("get_device", "get_device_by_id"):
+        device = _call_runtime_device_getter(
+            coordinator,
+            getter_name=getter_name,
+            device_id=device_id,
+        )
+        if device is not None:
+            return device
+    return get_runtime_device_mapping(coordinator).get(device_id)
+
+
+def find_runtime_device_and_coordinator(
+    hass: HomeAssistant,
+    *,
+    device_id: str,
+    entry_id: str | None = None,
+) -> tuple[LiproDevice, LiproCoordinator] | None:
+    """Return the runtime device plus owning coordinator when available."""
+    for _entry, coordinator in iter_runtime_entry_coordinators(hass, entry_id=entry_id):
+        device = find_runtime_device(coordinator, device_id)
+        if device is not None:
+            return device, coordinator
+    return None
 
 
 def find_runtime_entry_for_coordinator(
@@ -238,6 +303,13 @@ def get_runtime_device_mapping(
     """Return a safe device mapping view for one runtime coordinator."""
     devices = coordinator.devices
     return devices if isinstance(devices, Mapping) else {}
+
+
+def is_runtime_device_mapping_degraded(
+    coordinator: LiproCoordinator,
+) -> bool:
+    """Return whether the runtime device projection is degraded for one coordinator."""
+    return not isinstance(_get_explicit_member(coordinator, "devices"), Mapping)
 
 
 def _coerce_device_count(
