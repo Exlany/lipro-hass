@@ -74,14 +74,14 @@ def build_headless_boot_context(
     seed: AuthBootstrapSeed,
     session: aiohttp.ClientSession,
     *,
-    client_factory: type[LiproProtocolFacade],
+    protocol_factory: type[LiproProtocolFacade],
     auth_manager_factory: type[LiproAuthManager],
 ) -> HeadlessBootContext:
     """Build one local headless boot context from the host-neutral seed."""
     protocol, auth_manager = build_protocol_auth_context(
         seed,
         session,
-        client_factory=client_factory,
+        protocol_factory=protocol_factory,
         auth_manager_factory=auth_manager_factory,
     )
     return HeadlessBootContext(

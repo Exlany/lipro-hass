@@ -115,7 +115,13 @@ class Debouncer:
             self._last_error = None
         except asyncio.CancelledError:
             _LOGGER.debug("Debounced call cancelled")
-        except Exception as err:
+        except (
+            AttributeError,
+            LookupError,
+            RuntimeError,
+            TypeError,
+            ValueError,
+        ) as err:
             self._last_error = err
             _LOGGER.error(
                 "Error in debounced call (%s)",
@@ -125,7 +131,13 @@ class Debouncer:
             if self._on_error is not None:
                 try:
                     self._on_error(err)
-                except Exception as callback_err:
+                except (
+                    AttributeError,
+                    LookupError,
+                    RuntimeError,
+                    TypeError,
+                    ValueError,
+                ) as callback_err:
                     _LOGGER.error(
                         "Debounce error callback failed (%s)",
                         safe_error_placeholder(callback_err),

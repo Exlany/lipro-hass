@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections.abc import Callable, Sequence
 from typing import Protocol, TypedDict, cast
 
-from ..api.client_auth_recovery import AuthRecoveryCoordinator
+from ..api.auth_recovery import RestAuthRecoveryCoordinator
 from ..api.endpoints.connect_status import coerce_connect_status
 from ..api.endpoints.payloads import EndpointPayloadNormalizers
 from ..api.schedule_codec import (
@@ -186,7 +186,7 @@ class CanonicalProtocolContracts:
     ) -> None:
         """Bind the protocol root to one boundary decoder registry instance."""
         self._boundary_registry = boundary_registry or build_protocol_boundary_registry(
-            is_success_code=AuthRecoveryCoordinator.is_success_code,
+            is_success_code=RestAuthRecoveryCoordinator.is_success_code,
         )
 
     def describe_boundary_decoders(self) -> tuple[BoundaryDecoderDescriptor, ...]:

@@ -52,7 +52,7 @@ def test_build_entry_auth_context_reuses_shared_headless_boot_contract(hass) -> 
             hass,
             entry,
             get_client_session=lambda _: MagicMock(name="session"),
-            client_factory=LiproProtocolFacade,
+            protocol_factory=LiproProtocolFacade,
             auth_manager_factory=LiproAuthManager,
             logger=_TEST_LOGGER,
         )
@@ -83,7 +83,7 @@ async def test_refresh_token_persists_config_entry_tokens(hass) -> None:
         hass,
         entry,
         get_client_session=lambda _: MagicMock(),
-        client_factory=LiproProtocolFacade,
+        protocol_factory=LiproProtocolFacade,
         auth_manager_factory=LiproAuthManager,
         logger=_TEST_LOGGER,
     )

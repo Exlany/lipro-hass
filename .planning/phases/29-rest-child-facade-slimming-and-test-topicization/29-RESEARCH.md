@@ -18,7 +18,7 @@
 
 ### 1. `transport/auth/result-arbitration bridge` 是最高优先级
 
-`client.py` 的 `_request_smart_home_mapping` / `_request_iot_mapping` / `_iot_request` 与 `client_transport.py`、`client_auth_recovery.py`、`endpoints/payloads.py` 之间仍有重叠，导致 `LiproRestFacade` 继续像万能适配器。
+`client.py` 的 `_request_smart_home_mapping` / `_request_iot_mapping` / `_iot_request` 与 `transport_executor.py`、`auth_recovery.py`、`endpoints/payloads.py` 之间仍有重叠，导致 `LiproRestFacade` 继续像万能适配器。
 
 ### 2. `command pacing / busy-retry cluster` 是第二优先级
 
@@ -40,8 +40,8 @@
 
 **File focus:**
 - `custom_components/lipro/core/api/client.py`
-- `custom_components/lipro/core/api/client_transport.py`
-- `custom_components/lipro/core/api/client_auth_recovery.py`
+- `custom_components/lipro/core/api/transport_executor.py`
+- `custom_components/lipro/core/api/auth_recovery.py`
 - `custom_components/lipro/core/api/endpoints/payloads.py`
 - `tests/core/api/test_api.py`
 
@@ -72,7 +72,7 @@
 
 ## Validation Architecture
 
-- `uv run pytest -q tests/core/api/test_api.py tests/core/api/test_api_client_transport.py tests/core/api/test_auth_recovery_telemetry.py`
+- `uv run pytest -q tests/core/api/test_api.py tests/core/api/test_api_transport_executor.py tests/core/api/test_auth_recovery_telemetry.py`
 - `uv run pytest -q tests/core/api/test_api.py tests/core/test_command_dispatch.py -k "command or pacing or busy"`
 - `uv run pytest -q tests/core/api/test_api_diagnostics_service.py tests/core/api/test_api_schedule_service.py tests/core/api/test_api_schedule_endpoints.py tests/meta/test_public_surface_guards.py tests/meta/test_modularization_surfaces.py tests/meta/test_governance_closeout_guards.py`
 - `uv run python scripts/check_file_matrix.py --check`

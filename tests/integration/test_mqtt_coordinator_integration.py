@@ -1,4 +1,4 @@
-"""Integration tests for coordinator MQTT wiring with the refactored client."""
+"""Integration tests for coordinator MQTT wiring with the refactored transport façade."""
 
 from __future__ import annotations
 
@@ -24,8 +24,8 @@ _CONFIG_ENTRY_DATA = {
 }
 
 
-class _FakeMqttClient:
-    """Capture lifecycle callbacks while emulating a connected MQTT client."""
+class _FakeMqttTransport:
+    """Capture lifecycle callbacks while emulating a connected MQTT transport."""
 
     def __init__(
         self,
@@ -78,24 +78,24 @@ class _FakeMqttFacade(LiproMqttFacade):
     """Test façade with explicit callback emit helpers."""
 
     def __init__(self, **kwargs: Any) -> None:
-        self._fake_client = _FakeMqttClient(**kwargs)
-        self._client = cast(MqttTransportFacade, self._fake_client)
+        self._fake_transport = _FakeMqttTransport(**kwargs)
+        self._transport = cast(MqttTransportFacade, self._fake_transport)
         self._session_state = MagicMock()
         self._telemetry = MagicMock()
         self._diagnostics_context = MagicMock()
 
     def emit_message(self, device_id: str, payload: dict[str, str]) -> None:
-        callback = self._fake_client.on_message
+        callback = self._fake_transport.on_message
         assert callback is not None
         callback(device_id, payload)
 
     def emit_disconnect(self) -> None:
-        callback = self._fake_client.on_disconnect
+        callback = self._fake_transport.on_disconnect
         assert callback is not None
         callback()
 
     def emit_connect(self) -> None:
-        callback = self._fake_client.on_connect
+        callback = self._fake_transport.on_connect
         assert callback is not None
         callback()
 
@@ -141,7 +141,7 @@ def coordinator(hass, mock_lipro_api_client, mock_auth_manager):
 
 
 @pytest.mark.asyncio
-async def test_async_setup_mqtt_builds_refactored_client(
+async def test_async_setup_mqtt_builds_refactored_facade(
     coordinator, mock_lipro_api_client
 ) -> None:
     coordinator._state.devices = {
@@ -159,8 +159,8 @@ async def test_async_setup_mqtt_builds_refactored_client(
             side_effect=["ak", "sk"],
         ),
     ):
-        mock_client = MagicMock()
-        mock_lipro_api_client.build_mqtt_facade = MagicMock(return_value=mock_client)
+        mock_facade = MagicMock()
+        mock_lipro_api_client.build_mqtt_facade = MagicMock(return_value=mock_facade)
 
         mock_runtime = MagicMock()
         mock_runtime.has_transport = False
@@ -172,13 +172,13 @@ async def test_async_setup_mqtt_builds_refactored_client(
         ok = await coordinator.mqtt_service.async_setup()
 
     assert ok is True
-    mock_runtime.bind_transport.assert_called_once_with(mock_client)
+    mock_runtime.bind_transport.assert_called_once_with(mock_facade)
     mock_runtime.connect.assert_awaited_once_with(device_ids=["mesh_group_1"])
-    mqtt_client_kwargs = mock_lipro_api_client.build_mqtt_facade.call_args.kwargs
-    assert callable(mqtt_client_kwargs["on_message"])
-    assert callable(mqtt_client_kwargs["on_connect"])
-    assert callable(mqtt_client_kwargs["on_disconnect"])
-    assert callable(mqtt_client_kwargs["on_error"])
+    mqtt_facade_kwargs = mock_lipro_api_client.build_mqtt_facade.call_args.kwargs
+    assert callable(mqtt_facade_kwargs["on_message"])
+    assert callable(mqtt_facade_kwargs["on_connect"])
+    assert callable(mqtt_facade_kwargs["on_disconnect"])
+    assert callable(mqtt_facade_kwargs["on_error"])
 
 
 @pytest.mark.asyncio
@@ -335,7 +335,7 @@ async def test_async_setup_mqtt_returns_false_on_unexpected_error(
 
 
 @pytest.mark.asyncio
-async def test_coordinator_mqtt_service_sync_and_stop_use_client_runtime(
+async def test_coordinator_mqtt_service_sync_and_stop_use_transport_runtime(
     coordinator,
 ) -> None:
     mock_mqtt_runtime = AsyncMock()
@@ -389,12 +389,12 @@ async def test_async_setup_mqtt_message_callback_bridges_to_runtime_and_coordina
         ok = await coordinator.async_setup_mqtt()
 
     assert ok is True
-    mqtt_client = coordinator._runtimes.mqtt._mqtt_client
-    assert mqtt_client is not None
-    assert isinstance(mqtt_client, LiproMqttFacade)
-    assert isinstance(mqtt_client, _FakeMqttFacade)
+    mqtt_facade = coordinator._runtimes.mqtt._mqtt_transport
+    assert mqtt_facade is not None
+    assert isinstance(mqtt_facade, LiproMqttFacade)
+    assert isinstance(mqtt_facade, _FakeMqttFacade)
 
-    mqtt_client.emit_message(device.serial, {"connectState": "1"})
+    mqtt_facade.emit_message(device.serial, {"connectState": "1"})
     await asyncio.gather(*tuple(coordinator._state.background_task_manager.tasks))
 
     coordinator._runtimes.state.apply_properties_update.assert_awaited_once_with(
@@ -402,7 +402,9 @@ async def test_async_setup_mqtt_message_callback_bridges_to_runtime_and_coordina
         {"connectState": "1"},
         source="mqtt",
     )
-    coordinator.async_set_updated_data.assert_called_with(coordinator.devices)
+    assert coordinator.async_set_updated_data.call_args.args == (
+        coordinator._state.devices,
+    )
     assert not coordinator._state.background_task_manager.tasks
 
 
@@ -440,11 +442,11 @@ async def test_async_setup_mqtt_message_callback_records_bridge_failures(
         ok = await coordinator.async_setup_mqtt()
 
     assert ok is True
-    mqtt_client = coordinator._runtimes.mqtt._mqtt_client
-    assert mqtt_client is not None
-    assert isinstance(mqtt_client, _FakeMqttFacade)
+    mqtt_facade = coordinator._runtimes.mqtt._mqtt_transport
+    assert mqtt_facade is not None
+    assert isinstance(mqtt_facade, _FakeMqttFacade)
 
-    mqtt_client.emit_message(device.serial, {"connectState": "1"})
+    mqtt_facade.emit_message(device.serial, {"connectState": "1"})
     await asyncio.gather(
         *tuple(coordinator._state.background_task_manager.tasks),
         return_exceptions=True,
@@ -457,7 +459,7 @@ async def test_async_setup_mqtt_message_callback_records_bridge_failures(
 
 
 @pytest.mark.asyncio
-async def test_async_setup_mqtt_client_callbacks_drive_runtime_connection_state(
+async def test_async_setup_mqtt_facade_callbacks_drive_runtime_connection_state(
     coordinator,
     mock_lipro_api_client,
 ) -> None:
@@ -486,17 +488,17 @@ async def test_async_setup_mqtt_client_callbacks_drive_runtime_connection_state(
         ok = await coordinator.async_setup_mqtt()
 
     assert ok is True
-    mqtt_client = coordinator._runtimes.mqtt._mqtt_client
-    assert mqtt_client is not None
-    assert isinstance(mqtt_client, LiproMqttFacade)
-    assert isinstance(mqtt_client, _FakeMqttFacade)
+    mqtt_facade = coordinator._runtimes.mqtt._mqtt_transport
+    assert mqtt_facade is not None
+    assert isinstance(mqtt_facade, LiproMqttFacade)
+    assert isinstance(mqtt_facade, _FakeMqttFacade)
     assert coordinator._runtimes.mqtt is not None
     assert coordinator._runtimes.mqtt.is_connected
 
-    mqtt_client.emit_disconnect()
+    mqtt_facade.emit_disconnect()
     assert coordinator._runtimes.mqtt is not None
     assert not coordinator._runtimes.mqtt.is_connected
 
-    mqtt_client.emit_connect()
+    mqtt_facade.emit_connect()
     assert coordinator._runtimes.mqtt is not None
     assert coordinator._runtimes.mqtt.is_connected

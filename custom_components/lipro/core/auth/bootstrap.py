@@ -44,32 +44,32 @@ def build_protocol_auth_context(
     seed: AuthBootstrapSeed,
     session: aiohttp.ClientSession,
     *,
-    client_factory: type[LiproProtocolFacade],
+    protocol_factory: type[LiproProtocolFacade],
     auth_manager_factory: type[LiproAuthManager],
 ) -> tuple[LiproProtocolFacade, LiproAuthManager]:
     """Build one protocol/auth pair from the host-neutral bootstrap seed."""
     if seed.request_timeout is not None and seed.entry_id is not None:
-        client = client_factory(
+        protocol = protocol_factory(
             seed.phone_id,
             session,
             request_timeout=seed.request_timeout,
             entry_id=seed.entry_id,
         )
     elif seed.request_timeout is not None:
-        client = client_factory(
+        protocol = protocol_factory(
             seed.phone_id,
             session,
             request_timeout=seed.request_timeout,
         )
     elif seed.entry_id is not None:
-        client = client_factory(
+        protocol = protocol_factory(
             seed.phone_id,
             session,
             entry_id=seed.entry_id,
         )
     else:
-        client = client_factory(seed.phone_id, session)
-    auth_manager = auth_manager_factory(client)
+        protocol = protocol_factory(seed.phone_id, session)
+    auth_manager = auth_manager_factory(protocol)
 
     if seed.has_token_pair:
         auth_manager.set_tokens(
@@ -87,14 +87,14 @@ def build_protocol_auth_context(
             password_is_hashed=True,
         )
 
-    return client, auth_manager
+    return protocol, auth_manager
 
 
 async def async_login_with_password_hash(
     seed: AuthBootstrapSeed,
     session: aiohttp.ClientSession,
     *,
-    client_factory: type[LiproProtocolFacade],
+    protocol_factory: type[LiproProtocolFacade],
     auth_manager_factory: type[LiproAuthManager],
 ) -> AuthSessionSnapshot:
     """Authenticate using the host-neutral seed and return the formal session."""
@@ -105,7 +105,7 @@ async def async_login_with_password_hash(
     _, auth_manager = build_protocol_auth_context(
         seed,
         session,
-        client_factory=client_factory,
+        protocol_factory=protocol_factory,
         auth_manager_factory=auth_manager_factory,
     )
     return await auth_manager.login(

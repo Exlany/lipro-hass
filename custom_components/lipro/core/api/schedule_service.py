@@ -77,7 +77,14 @@ async def execute_mesh_schedule_candidate_request(
             getattr(err, "code", None),
         )
         return False, None, err
-    except Exception as err:  # noqa: BLE001
+    except (
+        AttributeError,
+        LookupError,
+        OSError,
+        RuntimeError,
+        TypeError,
+        ValueError,
+    ) as err:
         logger.debug(
             "Mesh schedule %s failed for %s (error=%s)",
             operation,

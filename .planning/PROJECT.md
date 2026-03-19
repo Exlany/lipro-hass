@@ -111,7 +111,7 @@
 
 ## Phase 35 Protocol Hotspot Slimming Update
 
-`Phase 35` 已于 `2026-03-18` 完成：`LiproRestFacade` 现通过 `ClientRequestGateway` 与 `ClientEndpointSurface` inward 收口 request/endpoint 复杂度；`LiproProtocolFacade` 则通过 `rest_port.py` 与 `mqtt_facade.py` 保持 single protocol-root story，同时没有引入新的 package-level public surface。
+`Phase 35` 已于 `2026-03-18` 完成：`LiproRestFacade` 现通过 `RestTransportExecutor` 与 `RestEndpointSurface` inward 收口 request/endpoint 复杂度；`LiproProtocolFacade` 则通过 `rest_port.py` 与 `mqtt_facade.py` 保持 single protocol-root story，同时没有引入新的 package-level public surface。
 
 ## Phase 36 Runtime Root Burn-Down Update
 
@@ -191,7 +191,7 @@
 ### 8. Phase 13 显式领域表面 / 治理守卫 / 热点边界收口已完成
 
 - `core/device/device.py`、`state.py` 与相关测试已移除动态 `__getattr__`，设备域正式表面变成显式 property / method 集合
-- `core/coordinator/orchestrator.py`、`core/api/status_service.py` 与 `core/coordinator/mqtt_lifecycle.py` 已进一步拆成更小 helper，runtime 内部协议协作者术语继续向 `protocol` 收口
+- `core/coordinator/orchestrator.py`、`core/coordinator/lifecycle.py`、`core/api/status_service.py` 与 `control/service_router_{handlers,support}.py` 已进一步拆成更小 helper，runtime/control 内部协作者术语继续向正式 surface 收口
 - README / README_zh / CONTRIBUTING / SUPPORT / CODEOWNERS / quality-scale / devcontainer 已被 meta guards 结构化校验，治理入口不再只靠文案约定
 
 ### 9. Phase 14 旧 API Spine 终局收口与治理真源归一已完成
@@ -217,7 +217,7 @@
 ### 12. Phase 17 最终残留退役 / 类型契约收紧 / 里程碑收官已完成
 
 - `Phase 17` 的 `3 waves / 4 plans` 已全部执行完成：API residual spine 已物理退场，`_ClientTransportMixin`、endpoint legacy mixin family、`LiproMqttClient` legacy naming、`get_auth_data()` compat projection 与 synthetic outlet-power wrapper 均已退出正式故事线。
-- `client_base.py` 现只保留 `ClientSessionState`；`client_transport.py` 现只保留 `TransportExecutor` 与显式 transport helpers；`core/mqtt` concrete transport 名称统一到 `MqttTransportClient`，并由 no-export ban / locality guard fail-fast 锁定。
+- `session_state.py` 现只保留 `RestSessionState`；`transport_executor.py` 现只保留 `RestTransportExecutor` 与显式 transport helpers；`core/mqtt` concrete transport 名称统一到 `MqttTransport`，并由 no-export ban / locality guard fail-fast 锁定。
 - `ROADMAP / REQUIREMENTS / STATE / baseline / review ledgers / AGENTS / developer_architecture / milestone audit` 已统一到同一条 final closeout story；`v1.1` 当前达到 archive-ready 水位。
 - `Phase 17` 的最终裁决继续遵守同一禁令：不重开第二条正式主链、不把 cleanup 伪装成新架构、不留下 silent defer。
 

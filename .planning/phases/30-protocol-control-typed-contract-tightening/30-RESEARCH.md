@@ -18,7 +18,7 @@
 
 ### 1. REST typed spine 是第一优先
 
-- `client_auth_recovery.py`、`client_transport.py`、`endpoints/payloads.py`、`request_codec.py` 是 `Any` 与宽口 result-code/payload unwrap 的根源。
+- `auth_recovery.py`、`transport_executor.py`、`endpoints/payloads.py`、`request_codec.py` 是 `Any` 与宽口 result-code/payload unwrap 的根源。
 - `client.py` 本身更像签名回写和桥接 home，不应在本 phase 继续做结构拆根；那是 `Phase 29` 的事。
 
 ### 2. protocol boundary/root 是第二优先
@@ -36,8 +36,8 @@
 ### Plan 30-01 — REST response/result spine tightening
 
 **File focus:**
-- `custom_components/lipro/core/api/client_auth_recovery.py`
-- `custom_components/lipro/core/api/client_transport.py`
+- `custom_components/lipro/core/api/auth_recovery.py`
+- `custom_components/lipro/core/api/transport_executor.py`
 - `custom_components/lipro/core/api/endpoints/payloads.py`
 - `custom_components/lipro/core/api/request_codec.py`
 - `custom_components/lipro/core/api/client.py`

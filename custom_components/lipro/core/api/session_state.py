@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 
 
 @dataclass(slots=True)
-class ClientSessionState:
+class RestSessionState:
     """State owned by the formal REST facade session boundary."""
 
     phone_id: str
@@ -46,4 +46,4 @@ class ClientSessionState:
         self.session = None
 
 
-__all__ = ["ClientSessionState"]
+__all__ = ["RestSessionState"]

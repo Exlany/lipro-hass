@@ -3,18 +3,17 @@
 from __future__ import annotations
 
 import asyncio
-from collections.abc import Awaitable, Callable
+from collections.abc import Awaitable, Callable, Coroutine
 from dataclasses import dataclass
 from functools import partial
 import logging
-from typing import Any, Literal, Protocol, cast
+from typing import Any, Protocol, cast
 
 from aiohttp import ClientSession
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
 
 from ..const.config import (
     CONF_SCAN_INTERVAL,
@@ -24,10 +23,20 @@ from ..const.config import (
 )
 from ..coordinator_entry import Coordinator
 from ..core import LiproAuthManager, LiproProtocolFacade
+from .entry_lifecycle_failures import (
+    DEGRADABLE_UNLOAD_EXCEPTIONS,
+    RELOAD_FAILURE_EXCEPTIONS,
+    SETUP_FAILURE_EXCEPTIONS,
+    LifecycleFailureContract,
+    SetupLifecycleFailure,
+    classify_reload_failure,
+    classify_setup_failure,
+    classify_unload_failure,
+)
 from .service_registry import ServiceRegistry
 
 type EntryLike = ConfigEntry[Coordinator | None]
-type ClientFactory = Callable[..., LiproProtocolFacade]
+type ProtocolFactory = Callable[..., LiproProtocolFacade]
 type AuthManagerFactory = Callable[[LiproProtocolFacade], LiproAuthManager]
 type GetClientSession = Callable[[HomeAssistant], ClientSession]
 type BuildEntryAuthContext = Callable[..., tuple[LiproProtocolFacade, LiproAuthManager]]
@@ -40,34 +49,13 @@ type RemoveEntryOptionsSnapshot = Callable[[HomeAssistant, str], None]
 type ReloadEntryIfOptionsChanged = Callable[[HomeAssistant, EntryLike], Awaitable[None]]
 type EnsureRuntimeInfra = Callable[..., Awaitable[None]]
 type RemoveDeviceRegistryListener = Callable[[HomeAssistant], None]
-type LifecycleStage = Literal["setup", "unload", "reload"]
-type LifecycleHandlingPolicy = Literal[
-    "cleanup_and_raise",
-    "log_and_continue",
-    "propagate",
-]
-type LifecycleContractName = Literal[
-    "setup_auth_failed",
-    "setup_failed",
-    "setup_not_ready",
-    "unload_shutdown_degraded",
-    "reload_auth_failed",
-    "reload_failed",
-    "reload_not_ready",
-]
-
-
-_DEGRADABLE_UNLOAD_EXCEPTIONS = (RuntimeError, OSError, TimeoutError, ValueError, LookupError)
-
 
 @dataclass(frozen=True, slots=True)
-class LifecycleFailureContract:
-    """Named lifecycle failure contract for one control-plane branch."""
+class EntrySetupArtifacts:
+    """Prepared setup collaborators for one config entry."""
 
-    stage: LifecycleStage
-    contract_name: LifecycleContractName
-    handling_policy: LifecycleHandlingPolicy
-    error_type: str
+    auth_manager: LiproAuthManager
+    coordinator: Coordinator
 
 
 class SetupDeviceRegistryListener(Protocol):
@@ -118,7 +106,7 @@ class EntryLifecycleController:
         logger: logging.Logger,
         domain: str,
         platforms: list[Platform],
-        client_factory: ClientFactory,
+        protocol_factory: ProtocolFactory,
         auth_manager_factory: AuthManagerFactory,
         coordinator_factory: CoordinatorFactory,
         get_client_session: GetClientSession,
@@ -140,7 +128,7 @@ class EntryLifecycleController:
         self._logger = logger
         self._domain = domain
         self._platforms = platforms
-        self._client_factory = client_factory
+        self._protocol_factory = protocol_factory
         self._auth_manager_factory = auth_manager_factory
         self._coordinator_factory = coordinator_factory
         self._get_client_session = get_client_session
@@ -167,6 +155,22 @@ class EntryLifecycleController:
             logger=self._logger,
         )
 
+    def _build_reload_options_listener(
+        self,
+    ) -> Callable[[HomeAssistant, ConfigEntry[Any]], Coroutine[Any, Any, None]]:
+        """Build the stable update-listener bridge for options reloads."""
+
+        async def _reload_options_bridge(
+            bridge_hass: HomeAssistant,
+            bridge_entry: ConfigEntry[Any],
+        ) -> None:
+            await self._async_reload_entry_if_options_changed(
+                bridge_hass,
+                cast(EntryLike, bridge_entry),
+            )
+
+        return _reload_options_bridge
+
     async def _async_ensure_runtime_infra_ready(self, hass: HomeAssistant) -> None:
         """Ensure shared runtime services and listeners are ready before entry work."""
         await self._async_ensure_runtime_infra(
@@ -175,15 +179,46 @@ class EntryLifecycleController:
             setup_device_registry_listener=self._build_setup_listener(),
         )
 
-    async def _async_abort_setup(
+    def _resolve_scan_interval(self, entry: EntryLike) -> int:
+        """Resolve one entry scan interval through the shared option coercion path."""
+        return self._get_entry_int_option(
+            entry,
+            option_name=CONF_SCAN_INTERVAL,
+            default=DEFAULT_SCAN_INTERVAL,
+            min_value=MIN_SCAN_INTERVAL,
+            max_value=MAX_SCAN_INTERVAL,
+            logger=self._logger,
+        )
+
+    async def _async_prepare_entry_setup(
         self,
-        *,
+        hass: HomeAssistant,
         entry: EntryLike,
-        coordinator: CoordinatorRuntimeLike,
-    ) -> None:
-        """Shut down partially started runtime state before re-raising setup errors."""
-        await coordinator.async_shutdown()
-        self._clear_entry_runtime_data(entry)
+    ) -> EntrySetupArtifacts:
+        """Prepare one entry until a coordinator is ready for activation."""
+        await self._async_ensure_runtime_infra_ready(hass)
+
+        protocol, auth_manager = self._build_entry_auth_context(
+            hass,
+            entry,
+            get_client_session=self._get_client_session,
+            protocol_factory=self._protocol_factory,
+            auth_manager_factory=self._auth_manager_factory,
+            logger=self._logger,
+        )
+        await self._async_authenticate_entry(auth_manager)
+
+        coordinator = self._coordinator_factory(
+            hass,
+            protocol,
+            auth_manager,
+            entry,
+            update_interval=self._resolve_scan_interval(entry),
+        )
+        return EntrySetupArtifacts(
+            auth_manager=auth_manager,
+            coordinator=coordinator,
+        )
 
     async def _async_complete_setup(
         self,
@@ -199,17 +234,105 @@ class EntryLifecycleController:
         self._persist_entry_tokens_if_changed(hass, entry, auth_manager)
         await hass.config_entries.async_forward_entry_setups(entry, self._platforms)
 
-    async def _async_abort_setup_for_error(
+    def _attach_entry_lifecycle_hooks(
+        self,
+        hass: HomeAssistant,
+        entry: EntryLike,
+    ) -> None:
+        """Persist entry hooks only after setup activation has fully succeeded."""
+        self._store_entry_options_snapshot(hass, entry)
+        entry.async_on_unload(
+            entry.add_update_listener(self._build_reload_options_listener())
+        )
+
+    async def _async_activate_entry_setup(
         self,
         *,
+        hass: HomeAssistant,
+        entry: EntryLike,
+        setup_artifacts: EntrySetupArtifacts,
+    ) -> None:
+        """Activate one prepared entry and attach shared lifecycle hooks."""
+        await self._async_complete_setup(
+            hass=hass,
+            entry=entry,
+            coordinator=setup_artifacts.coordinator,
+            auth_manager=setup_artifacts.auth_manager,
+        )
+        await self._service_registry.async_sync_with_lock(hass)
+        self._attach_entry_lifecycle_hooks(hass, entry)
+
+    async def _async_abort_setup(
+        self,
+        *,
+        hass: HomeAssistant,
         entry: EntryLike,
         coordinator: CoordinatorRuntimeLike,
-        error: Exception,
     ) -> None:
-        """Abort setup after one non-cancellation failure while preserving cleanup."""
-        contract = self._classify_setup_failure(error)
-        self._log_lifecycle_contract(contract)
-        await self._async_abort_setup(entry=entry, coordinator=coordinator)
+        """Shut down partially started runtime state before re-raising setup errors."""
+        await coordinator.async_shutdown()
+        self._clear_entry_runtime_data(entry)
+        self._remove_entry_options_snapshot(hass, entry.entry_id)
+
+    async def _async_run_entry_activation(
+        self,
+        *,
+        hass: HomeAssistant,
+        entry: EntryLike,
+        setup_artifacts: EntrySetupArtifacts,
+    ) -> None:
+        """Run prepared setup activation with typed contracts and guaranteed cleanup."""
+        activation_completed = False
+        lifecycle_failure: SetupLifecycleFailure | None = None
+
+        try:
+            await self._async_activate_entry_setup(
+                hass=hass,
+                entry=entry,
+                setup_artifacts=setup_artifacts,
+            )
+            activation_completed = True
+        except asyncio.CancelledError:
+            raise
+        except SETUP_FAILURE_EXCEPTIONS as err:
+            lifecycle_failure = err
+            raise
+        finally:
+            if not activation_completed:
+                if lifecycle_failure is not None:
+                    self._log_lifecycle_contract(
+                        classify_setup_failure(lifecycle_failure)
+                    )
+                await self._async_abort_setup(
+                    hass=hass,
+                    entry=entry,
+                    coordinator=setup_artifacts.coordinator,
+                )
+
+    async def _async_cleanup_unloaded_entry(
+        self,
+        hass: HomeAssistant,
+        entry: EntryLike,
+    ) -> None:
+        """Release one unloaded entry runtime and option snapshot state."""
+        coordinator = getattr(entry, "runtime_data", None)
+        if coordinator is not None:
+            await self._async_shutdown_on_unload(coordinator)
+        self._clear_entry_runtime_data(entry)
+        self._remove_entry_options_snapshot(hass, entry.entry_id)
+
+    async def _async_sync_services_after_unload(
+        self,
+        hass: HomeAssistant,
+        entry_id: str,
+    ) -> None:
+        """Reconcile shared service state after one entry unload."""
+        if not self._has_other_runtime_entries(hass, exclude_entry_id=entry_id):
+            self._service_registry.remove_all(hass)
+            self._remove_device_registry_listener(hass)
+            return
+
+        await self._service_registry.async_sync_with_lock(hass)
 
     def _log_lifecycle_contract(
         self,
@@ -227,53 +350,6 @@ class EntryLifecycleController:
             contract.error_type,
         )
 
-    def _classify_setup_failure(
-        self,
-        error: Exception,
-    ) -> LifecycleFailureContract:
-        """Classify one setup failure into a named arbitration contract."""
-        if isinstance(error, ConfigEntryAuthFailed):
-            contract_name: LifecycleContractName = "setup_auth_failed"
-        elif isinstance(error, ConfigEntryNotReady):
-            contract_name = "setup_not_ready"
-        else:
-            contract_name = "setup_failed"
-        return LifecycleFailureContract(
-            stage="setup",
-            contract_name=contract_name,
-            handling_policy="cleanup_and_raise",
-            error_type=type(error).__name__,
-        )
-
-    def _classify_unload_failure(
-        self,
-        error: Exception,
-    ) -> LifecycleFailureContract:
-        """Classify one unload degradation into a named arbitration contract."""
-        return LifecycleFailureContract(
-            stage="unload",
-            contract_name="unload_shutdown_degraded",
-            handling_policy="log_and_continue",
-            error_type=type(error).__name__,
-        )
-
-    def _classify_reload_failure(
-        self,
-        error: Exception,
-    ) -> LifecycleFailureContract:
-        """Classify one reload failure into a named arbitration contract."""
-        if isinstance(error, ConfigEntryAuthFailed):
-            contract_name: LifecycleContractName = "reload_auth_failed"
-        elif isinstance(error, ConfigEntryNotReady):
-            contract_name = "reload_not_ready"
-        else:
-            contract_name = "reload_failed"
-        return LifecycleFailureContract(
-            stage="reload",
-            contract_name=contract_name,
-            handling_policy="propagate",
-            error_type=type(error).__name__,
-        )
 
     async def _async_shutdown_on_unload(
         self,
@@ -284,9 +360,11 @@ class EntryLifecycleController:
             await coordinator.async_shutdown()
         except asyncio.CancelledError:
             raise
-        except _DEGRADABLE_UNLOAD_EXCEPTIONS as err:
-            contract = self._classify_unload_failure(err)
-            self._log_lifecycle_contract(contract, warning=True)
+        except DEGRADABLE_UNLOAD_EXCEPTIONS as err:
+            self._log_lifecycle_contract(
+                classify_unload_failure(err),
+                warning=True,
+            )
 
     async def async_setup_component(self, hass: HomeAssistant, config: object) -> bool:
         """Set up shared runtime infrastructure for the integration."""
@@ -296,65 +374,19 @@ class EntryLifecycleController:
 
     async def async_setup_entry(self, hass: HomeAssistant, entry: EntryLike) -> bool:
         """Set up one Lipro config entry."""
-        await self._async_ensure_runtime_infra_ready(hass)
-
-        protocol, auth_manager = self._build_entry_auth_context(
-            hass,
-            entry,
-            get_client_session=self._get_client_session,
-            client_factory=self._client_factory,
-            auth_manager_factory=self._auth_manager_factory,
-            logger=self._logger,
-        )
-        await self._async_authenticate_entry(auth_manager)
-
-        scan_interval = self._get_entry_int_option(
-            entry,
-            option_name=CONF_SCAN_INTERVAL,
-            default=DEFAULT_SCAN_INTERVAL,
-            min_value=MIN_SCAN_INTERVAL,
-            max_value=MAX_SCAN_INTERVAL,
-            logger=self._logger,
-        )
-        coordinator = self._coordinator_factory(
-            hass,
-            protocol,
-            auth_manager,
-            entry,
-            update_interval=scan_interval,
-        )
-
         try:
-            await self._async_complete_setup(
-                hass=hass,
-                entry=entry,
-                coordinator=coordinator,
-                auth_manager=auth_manager,
-            )
+            setup_artifacts = await self._async_prepare_entry_setup(hass, entry)
         except asyncio.CancelledError:
-            await self._async_abort_setup(entry=entry, coordinator=coordinator)
             raise
-        except Exception as err:
-            await self._async_abort_setup_for_error(
-                entry=entry,
-                coordinator=coordinator,
-                error=err,
-            )
+        except SETUP_FAILURE_EXCEPTIONS as err:
+            self._log_lifecycle_contract(classify_setup_failure(err))
             raise
 
-        self._store_entry_options_snapshot(hass, entry)
-
-        async def _reload_options_bridge(
-            bridge_hass: HomeAssistant,
-            bridge_entry: ConfigEntry[Any],
-        ) -> None:
-            await self._async_reload_entry_if_options_changed(
-                bridge_hass,
-                cast(EntryLike, bridge_entry),
-            )
-
-        entry.async_on_unload(entry.add_update_listener(_reload_options_bridge))
-        await self._service_registry.async_sync_with_lock(hass)
+        await self._async_run_entry_activation(
+            hass=hass,
+            entry=entry,
+            setup_artifacts=setup_artifacts,
+        )
         return True
 
     async def async_unload_entry(self, hass: HomeAssistant, entry: EntryLike) -> bool:
@@ -362,23 +394,12 @@ class EntryLifecycleController:
         result = await hass.config_entries.async_unload_platforms(
             entry, self._platforms
         )
-        if result:
-            coordinator = getattr(entry, "runtime_data", None)
-            if coordinator is not None:
-                await self._async_shutdown_on_unload(coordinator)
-            self._clear_entry_runtime_data(entry)
-            self._remove_entry_options_snapshot(hass, entry.entry_id)
+        if not result:
+            return False
 
-        if result:
-            if not self._has_other_runtime_entries(
-                hass, exclude_entry_id=entry.entry_id
-            ):
-                self._service_registry.remove_all(hass)
-                self._remove_device_registry_listener(hass)
-            else:
-                await self._service_registry.async_sync_with_lock(hass)
-
-        return result
+        await self._async_cleanup_unloaded_entry(hass, entry)
+        await self._async_sync_services_after_unload(hass, entry.entry_id)
+        return True
 
     async def async_reload_entry(self, hass: HomeAssistant, entry: EntryLike) -> None:
         """Reload one config entry."""
@@ -386,7 +407,6 @@ class EntryLifecycleController:
             await hass.config_entries.async_reload(entry.entry_id)
         except asyncio.CancelledError:
             raise
-        except Exception as err:
-            contract = self._classify_reload_failure(err)
-            self._log_lifecycle_contract(contract)
+        except RELOAD_FAILURE_EXCEPTIONS as err:
+            self._log_lifecycle_contract(classify_reload_failure(err))
             raise

@@ -26,4 +26,4 @@ status: passed
 
 ## Notes
 
-- `ClientRequestGateway` 与 `ClientEndpointSurface` 是 localized collaborators，不是新 public roots。
+- `RestTransportExecutor` 与 `RestEndpointSurface` 是 localized collaborators，不是新 public roots。

@@ -36,10 +36,10 @@ async def _teardown_failed_mqtt_setup(
     *,
     protocol: LiproProtocolFacade,
     mqtt_runtime: MqttRuntime,
-    mqtt_client: LiproMqttFacade | None,
+    mqtt_facade: LiproMqttFacade | None,
 ) -> None:
     """Detach a partially constructed MQTT transport after setup failure."""
-    if mqtt_client is not None:
+    if mqtt_facade is not None:
         try:
             await mqtt_runtime.disconnect()
         except asyncio.CancelledError:
@@ -139,7 +139,7 @@ def _bind_mqtt_transport(
     phone_id: str,
 ) -> LiproMqttFacade:
     """Build and bind the active protocol-owned MQTT child façade."""
-    mqtt_client = protocol.build_mqtt_facade(
+    mqtt_facade = protocol.build_mqtt_facade(
         access_key=access_key,
         secret_key=secret_key,
         biz_id=biz_id,
@@ -152,15 +152,15 @@ def _bind_mqtt_transport(
         on_disconnect=mqtt_runtime.on_transport_disconnected,
         on_error=mqtt_runtime.handle_transport_error,
     )
-    mqtt_runtime.bind_transport(mqtt_client)
-    return mqtt_client
+    mqtt_runtime.bind_transport(mqtt_facade)
+    return mqtt_facade
 
 
 async def _async_connect_bound_mqtt_transport(
     *,
     protocol: LiproProtocolFacade,
     mqtt_runtime: MqttRuntime,
-    mqtt_client: LiproMqttFacade,
+    mqtt_facade: LiproMqttFacade,
     device_ids: list[str],
 ) -> bool:
     """Connect a bound MQTT transport under the setup timeout budget."""
@@ -179,18 +179,18 @@ async def _async_connect_bound_mqtt_transport(
         await _teardown_failed_mqtt_setup(
             protocol=protocol,
             mqtt_runtime=mqtt_runtime,
-            mqtt_client=mqtt_client,
+            mqtt_facade=mqtt_facade,
         )
         return False
 
     if connected and mqtt_runtime.is_connected:
         return True
 
-    _LOGGER.warning("MQTT client not connected after setup")
+    _LOGGER.warning("MQTT transport not connected after setup")
     await _teardown_failed_mqtt_setup(
         protocol=protocol,
         mqtt_runtime=mqtt_runtime,
-        mqtt_client=mqtt_client,
+        mqtt_facade=mqtt_facade,
     )
     return False
 
@@ -204,7 +204,7 @@ async def async_setup_mqtt(
     mqtt_runtime: MqttRuntime,
 ) -> tuple[LiproMqttFacade, str] | None:
     """Create and bind one protocol-owned MQTT façade to the existing runtime."""
-    mqtt_client: LiproMqttFacade | None = None
+    mqtt_facade: LiproMqttFacade | None = None
 
     try:
         mqtt_config = await _async_fetch_mqtt_config(
@@ -228,7 +228,7 @@ async def async_setup_mqtt(
         if device_ids is None:
             return None
 
-        mqtt_client = _bind_mqtt_transport(
+        mqtt_facade = _bind_mqtt_transport(
             protocol=protocol,
             mqtt_runtime=mqtt_runtime,
             background_task_manager=background_task_manager,
@@ -240,11 +240,11 @@ async def async_setup_mqtt(
         if not await _async_connect_bound_mqtt_transport(
             protocol=protocol,
             mqtt_runtime=mqtt_runtime,
-            mqtt_client=mqtt_client,
+            mqtt_facade=mqtt_facade,
             device_ids=device_ids,
         ):
             return None
-        return mqtt_client, biz_id
+        return mqtt_facade, biz_id
 
     except asyncio.CancelledError:
         raise
@@ -262,7 +262,7 @@ async def async_setup_mqtt(
         await _teardown_failed_mqtt_setup(
             protocol=protocol,
             mqtt_runtime=mqtt_runtime,
-            mqtt_client=mqtt_client,
+            mqtt_facade=mqtt_facade,
         )
         _LOGGER.exception("Failed to setup MQTT")
         return None

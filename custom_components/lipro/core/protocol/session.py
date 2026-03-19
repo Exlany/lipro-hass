@@ -7,7 +7,7 @@ from typing import TypedDict
 
 import aiohttp
 
-from ..api.client_base import ClientSessionState
+from ..api.session_state import RestSessionState
 
 
 class ProtocolSessionSnapshot(TypedDict):
@@ -30,7 +30,7 @@ class ProtocolSessionState:
     the protocol root owns the canonical access surface exposed to upper planes.
     """
 
-    rest_state: ClientSessionState
+    rest_state: RestSessionState
     mqtt_biz_id: str | None = None
 
     @property

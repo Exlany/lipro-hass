@@ -18,8 +18,8 @@
 
 ### 1. `_ClientTransportMixin` is effectively dead residual
 
-- `custom_components/lipro/core/api/client_transport.py` 中的 `_ClientTransportMixin` 仍然存在，但仓内已无生产或测试消费者。
-- `LiproRestFacade` 早已直接装配 `TransportExecutor`，并自行暴露所需 transport-facing methods。
+- `custom_components/lipro/core/api/transport_executor.py` 中的 `_ClientTransportMixin` 仍然存在，但仓内已无生产或测试消费者。
+- `LiproRestFacade` 早已直接装配 `RestTransportExecutor`，并自行暴露所需 transport-facing methods。
 - 这类仅剩“定义 + 导出”的 compat shell 会制造旧 transport mixin 仍然有效的认知债。
 
 **Implication:** 可低风险物理删除，并同步 residual / kill / public-surface wording。

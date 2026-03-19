@@ -241,16 +241,37 @@ OVERRIDES: dict[str, FileGovernanceRow] = {
     "custom_components/lipro/control/service_router.py": FileGovernanceRow(
         path="custom_components/lipro/control/service_router.py",
         area="Control",
-        owner_phase="Phase 3 / 14 / 15",
+        owner_phase="Phase 3 / 14 / 15 / 37",
         fate="保留",
-        residual="public handler home; upload/report glue kept out-of-line",
+        residual="public router shell over focused handler/support collaborators",
     ),
-    "custom_components/lipro/core/api/client_base.py": FileGovernanceRow(
-        path="custom_components/lipro/core/api/client_base.py",
+    "custom_components/lipro/control/service_router_handlers.py": FileGovernanceRow(
+        path="custom_components/lipro/control/service_router_handlers.py",
+        area="Control",
+        owner_phase="Phase 37",
+        fate="保留",
+        residual="private control-plane handler implementations home",
+    ),
+    "custom_components/lipro/control/service_router_support.py": FileGovernanceRow(
+        path="custom_components/lipro/control/service_router_support.py",
+        area="Control",
+        owner_phase="Phase 37",
+        fate="保留",
+        residual="router lookup/logging/runtime-iterator helper home",
+    ),
+    "custom_components/lipro/core/api/auth_recovery.py": FileGovernanceRow(
+        path="custom_components/lipro/core/api/auth_recovery.py",
+        area="Protocol",
+        owner_phase="Phase 2 / 35",
+        fate="重构",
+        residual="REST auth-recovery collaborator home",
+    ),
+    "custom_components/lipro/core/api/session_state.py": FileGovernanceRow(
+        path="custom_components/lipro/core/api/session_state.py",
         area="Protocol",
         owner_phase="Phase 2 / 15 / 17",
         fate="重构",
-        residual="ClientSessionState formal REST session-state home",
+        residual="RestSessionState formal REST session-state home",
     ),
     "custom_components/lipro/core/api/schedule_service.py": FileGovernanceRow(
         path="custom_components/lipro/core/api/schedule_service.py",
@@ -279,6 +300,13 @@ OVERRIDES: dict[str, FileGovernanceRow] = {
         owner_phase="Phase 5 / 14 / 36",
         fate="重构",
         residual="HA-facing runtime façade with polling ballast reduced",
+    ),
+    "custom_components/lipro/core/coordinator/lifecycle.py": FileGovernanceRow(
+        path="custom_components/lipro/core/coordinator/lifecycle.py",
+        area="Runtime",
+        owner_phase="Phase 36 / 37",
+        fate="保留",
+        residual="update-cycle / MQTT-setup / shutdown lifecycle helper home",
     ),
     "custom_components/lipro/core/coordinator/services/protocol_service.py": FileGovernanceRow(
         path="custom_components/lipro/core/coordinator/services/protocol_service.py",
@@ -315,15 +343,15 @@ OVERRIDES: dict[str, FileGovernanceRow] = {
         fate="保留",
         residual="REST decoder canonicalization helper home",
     ),
-    "custom_components/lipro/core/api/client_request_gateway.py": FileGovernanceRow(
-        path="custom_components/lipro/core/api/client_request_gateway.py",
+    "custom_components/lipro/core/api/transport_executor.py": FileGovernanceRow(
+        path="custom_components/lipro/core/api/transport_executor.py",
         area="Protocol",
-        owner_phase="Phase 35",
-        fate="保留",
-        residual="REST request-pipeline collaborator home",
+        owner_phase="Phase 2 / 35",
+        fate="重构",
+        residual="REST request-pipeline + signed transport execution home",
     ),
-    "custom_components/lipro/core/api/client_endpoint_surface.py": FileGovernanceRow(
-        path="custom_components/lipro/core/api/client_endpoint_surface.py",
+    "custom_components/lipro/core/api/endpoint_surface.py": FileGovernanceRow(
+        path="custom_components/lipro/core/api/endpoint_surface.py",
         area="Protocol",
         owner_phase="Phase 35",
         fate="保留",
@@ -469,12 +497,12 @@ OVERRIDES: dict[str, FileGovernanceRow] = {
         fate="保留",
         residual="topology closeout phase-history topic home",
     ),
-    "custom_components/lipro/core/mqtt/mqtt_client.py": FileGovernanceRow(
-        path="custom_components/lipro/core/mqtt/mqtt_client.py",
+    "custom_components/lipro/core/mqtt/transport.py": FileGovernanceRow(
+        path="custom_components/lipro/core/mqtt/transport.py",
         area="Protocol",
         owner_phase="Phase 2.5 / 15",
         fate="重构",
-        residual="direct transport residual; locality limited to core/mqtt + protocol seam",
+        residual="concrete MQTT transport home; package no-export keeps locality explicit",
     ),
 }
 
@@ -615,6 +643,8 @@ def _classify_test_path(path: str) -> FileGovernanceRow | None:
         return _row_for_path(path, "Protocol", "Phase 7.4")
     if path == "tests/core/mqtt/test_protocol_replay_mqtt.py":
         return _row_for_path(path, "Protocol", "Phase 7.4")
+    if path.startswith("tests/core/mqtt/"):
+        return _row_for_path(path, "Protocol", "Phase 2.5 / 6")
     if (
         path.startswith(("tests/core/coordinator/", "tests/integration/"))
         or path in runtime_test_files
@@ -630,6 +660,8 @@ def _classify_test_path(path: str) -> FileGovernanceRow | None:
         return _row_for_path(path, "Control", "Phase 27")
     if path.startswith(control_test_prefixes) or path == "tests/core/test_init.py":
         return _row_for_path(path, "Control", "Phase 3 / 7")
+    if path == "tests/core/test_auth_bootstrap.py":
+        return _row_for_path(path, "Cross-cutting", "Phase 18")
     if path.startswith("tests/helpers/") or path in {
         "tests/conftest.py",
         "tests/conftest_shared.py",

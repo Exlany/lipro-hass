@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import asyncio
-from collections.abc import Awaitable, Callable, Mapping
+from collections.abc import Mapping
 from contextlib import suppress
 from datetime import timedelta
 import logging
@@ -11,20 +11,20 @@ from types import MappingProxyType
 from typing import TYPE_CHECKING
 
 from homeassistant.exceptions import ConfigEntryAuthFailed
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
 from ...const.config import DEFAULT_SCAN_INTERVAL
-from ..api import (
-    LiproApiError,
-    LiproAuthError,
-    LiproConnectionError,
-    LiproRefreshTokenExpiredError,
-)
 from ..protocol import LiproProtocolFacade
-from .mqtt.setup import build_mqtt_subscription_device_ids
-from .mqtt_lifecycle import async_setup_mqtt as setup_mqtt_lifecycle
+from .lifecycle import (
+    async_refresh_snapshot_if_needed as coordinator_async_refresh_snapshot_if_needed,
+    async_run_status_polling_if_needed as coordinator_async_run_status_polling_if_needed,
+    async_run_update_cycle as coordinator_async_run_update_cycle,
+    async_setup_mqtt as coordinator_async_setup_mqtt,
+    async_setup_mqtt_if_needed as coordinator_async_setup_mqtt_if_needed,
+    async_shutdown as coordinator_async_shutdown,
+    async_update_data as coordinator_async_update_data,
+)
 from .orchestrator import RuntimeOrchestrator
-from .runtime.device.snapshot import RuntimeSnapshotRefreshRejectedError
 from .runtime_context import RuntimeContext
 from .services import (
     CoordinatorAuthService,
@@ -48,24 +48,6 @@ if TYPE_CHECKING:
     from .types import PropertyDict
 
 _LOGGER = logging.getLogger(__name__)
-
-
-async def _async_run_best_effort_shutdown_step(
-    *,
-    label: str,
-    operation: Callable[[], Awaitable[object]],
-) -> None:
-    """Run one shutdown step with explicit best-effort semantics."""
-    try:
-        await operation()
-    except asyncio.CancelledError:
-        raise
-    except Exception as err:  # noqa: BLE001
-        _LOGGER.warning(
-            "%s failed during best-effort shutdown (%s)",
-            label,
-            type(err).__name__,
-        )
 
 
 class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
@@ -246,7 +228,7 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
 
     @property
     def devices(self) -> Mapping[str, LiproDevice]:
-        """Return one read-only view of the runtime device registry."""
+        """Return the canonical runtime device registry view."""
         return MappingProxyType(self._state.devices)
 
     # Public methods for entity integration
@@ -380,60 +362,24 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
         await self._polling_service.async_run_outlet_power_polling()
 
     async def async_setup_mqtt(self) -> bool:
-        """Set up MQTT client for real-time updates.
-
-        This method delegates to the mqtt_lifecycle module for setup.
-
-        Returns:
-            True if setup succeeded, False otherwise
-        """
-        if self.config_entry is None:
-            _LOGGER.error("Cannot setup MQTT: config_entry is None")
-            return False
-
-        device_ids = build_mqtt_subscription_device_ids(self._state.devices)
-        if not device_ids:
-            return False
-
-        mqtt_runtime = self._runtimes.mqtt
-        if mqtt_runtime.has_transport:
-            if mqtt_runtime.is_connected:
-                await mqtt_runtime.sync_subscriptions(device_ids)
-                return True
-            return await mqtt_runtime.connect(device_ids=device_ids)
-
-        result = await setup_mqtt_lifecycle(
+        """Set up MQTT client for real-time updates."""
+        return await coordinator_async_setup_mqtt(
             protocol=self.protocol,
             config_entry=self.config_entry,
-            background_task_manager=self._state.background_task_manager,
             devices=self._state.devices,
-            mqtt_runtime=mqtt_runtime,
+            background_task_manager=self._state.background_task_manager,
+            mqtt_runtime=self._runtimes.mqtt,
         )
-        return result is not None
 
     async def async_shutdown(self) -> None:
         """Release coordinator-owned MQTT and background resources."""
-        await _async_run_best_effort_shutdown_step(
-            label="MQTT disconnect notification cleanup",
-            operation=self._runtimes.mqtt.clear_disconnect_notification,
+        await coordinator_async_shutdown(
+            protocol=self.protocol,
+            mqtt_runtime=self._runtimes.mqtt,
+            device_runtime=self._runtimes.device,
+            background_task_manager=self._state.background_task_manager,
+            shutdown_command_service=self.command_service.async_shutdown,
         )
-        await _async_run_best_effort_shutdown_step(
-            label="Command service shutdown",
-            operation=self.command_service.async_shutdown,
-        )
-        await _async_run_best_effort_shutdown_step(
-            label="MQTT runtime shutdown",
-            operation=self._runtimes.mqtt.disconnect,
-        )
-        await _async_run_best_effort_shutdown_step(
-            label="Background task shutdown",
-            operation=self._state.background_task_manager.cancel_all,
-        )
-
-        self.protocol.attach_mqtt_facade(None)
-        self._runtimes.mqtt.detach_transport()
-        self._runtimes.mqtt.reset()
-        self._runtimes.device.reset()
         await super().async_shutdown()
 
     async def _async_refresh_device_snapshot(
@@ -454,90 +400,45 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
 
     async def _async_refresh_snapshot_if_needed(self) -> None:
         """Refresh the canonical device snapshot when runtime policy requests it."""
-        if not self._runtimes.device.should_refresh_device_list():
-            return
-        async with asyncio.timeout(10):
-            await self._async_refresh_device_snapshot(
+        await coordinator_async_refresh_snapshot_if_needed(
+            should_refresh_device_list=self._runtimes.device.should_refresh_device_list,
+            refresh_device_snapshot=lambda: self._async_refresh_device_snapshot(
                 force=True,
                 mqtt_timeout_seconds=5,
-            )
+            ),
+        )
 
     async def _async_setup_mqtt_if_needed(self) -> None:
         """Attach MQTT transport when devices exist and no transport is bound yet."""
-        if self._runtimes.mqtt.has_transport or not self._state.devices:
-            return
-        async with asyncio.timeout(5):
-            await self.async_setup_mqtt()
+        await coordinator_async_setup_mqtt_if_needed(
+            has_transport=self._runtimes.mqtt.has_transport,
+            has_devices=bool(self._state.devices),
+            setup_mqtt=self.async_setup_mqtt,
+        )
 
     async def _async_run_status_polling_if_needed(self) -> None:
         """Run adaptive status polling only when devices are currently tracked."""
-        if not self._state.devices:
-            return
-        async with asyncio.timeout(10):
-            await self._async_run_status_polling()
+        await coordinator_async_run_status_polling_if_needed(
+            has_devices=bool(self._state.devices),
+            run_status_polling=self._async_run_status_polling,
+        )
 
     async def _async_run_update_cycle(self) -> None:
         """Run the coordinator's scheduled update stages inside the global timeout."""
-        async with asyncio.timeout(30):
-            await self.auth_service.async_ensure_authenticated()
-            await self._async_refresh_snapshot_if_needed()
-            await self._async_setup_mqtt_if_needed()
-            await self._async_run_status_polling_if_needed()
+        await coordinator_async_run_update_cycle(
+            ensure_authenticated=self.auth_service.async_ensure_authenticated,
+            refresh_snapshot_if_needed=self._async_refresh_snapshot_if_needed,
+            setup_mqtt_if_needed=self._async_setup_mqtt_if_needed,
+            run_status_polling_if_needed=self._async_run_status_polling_if_needed,
+        )
 
     async def _async_update_data(self) -> dict[str, LiproDevice]:
-        """Fetch data from API.
-
-        This is called by Home Assistant's DataUpdateCoordinator on the
-        configured update interval.
-
-        Returns:
-            Updated device dictionary
-
-        Raises:
-            UpdateFailed: If update fails
-        """
-        try:
-            await self._async_run_update_cycle()
-            self.telemetry_service.record_update_success()
-            return self._state.devices
-
-        except asyncio.CancelledError:
-            raise
-        except TimeoutError:
-            self.telemetry_service.record_update_failure(
-                TimeoutError("Update timeout"),
-                stage="timeout",
-            )
-            _LOGGER.error("Update data timeout after 30 seconds")
-            raise UpdateFailed("Update timeout") from None
-
-        except (
-            LiproRefreshTokenExpiredError,
-            LiproAuthError,
-        ) as err:
-            self.telemetry_service.record_update_failure(err, stage="auth")
-            _LOGGER.error("Authentication failed: %s", err)
-            error_message = f"Authentication failed: {err}"
-            raise ConfigEntryAuthFailed(error_message) from err
-
-        except (
-            LiproConnectionError,
-            LiproApiError,
-        ) as err:
-            self.telemetry_service.record_update_failure(err, stage="protocol")
-            _LOGGER.error("Update failed: %s", err)
-            error_message = f"Update failed: {err}"
-            raise UpdateFailed(error_message) from err
-
-        except RuntimeSnapshotRefreshRejectedError as err:
-            self.telemetry_service.record_update_failure(err, stage="runtime")
-            _LOGGER.warning("Device snapshot refresh rejected: %s", err)
-            raise UpdateFailed(str(err)) from err
-
-        except Exception as err:
-            self.telemetry_service.record_update_failure(err, stage="unexpected")
-            _LOGGER.exception("Unexpected update failure")
-            raise UpdateFailed("Unexpected update failure") from err
+        """Fetch data from API for one scheduled update cycle."""
+        return await coordinator_async_update_data(
+            run_update_cycle=self._async_run_update_cycle,
+            telemetry_service=self.telemetry_service,
+            devices=self._state.devices,
+        )
 
 
 __all__ = ["Coordinator"]

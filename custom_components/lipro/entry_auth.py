@@ -131,17 +131,17 @@ def build_entry_auth_context(
     entry: ConfigEntryLike,
     *,
     get_client_session: Callable[[HomeAssistant], aiohttp.ClientSession],
-    client_factory: type[LiproProtocolFacade],
+    protocol_factory: type[LiproProtocolFacade],
     auth_manager_factory: type[LiproAuthManager],
     logger: logging.Logger,
 ) -> tuple[LiproProtocolFacade, LiproAuthManager]:
-    """Build API client and auth manager from config entry data."""
+    """Build protocol facade and auth manager from config entry data."""
     seed = _build_entry_auth_seed(entry, logger=logger)
     session = get_client_session(hass)
     boot_context = build_headless_boot_context(
         seed,
         session,
-        client_factory=client_factory,
+        protocol_factory=protocol_factory,
         auth_manager_factory=auth_manager_factory,
     )
     boot_context.auth_manager.set_tokens_updated_callback(

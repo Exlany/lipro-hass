@@ -1115,7 +1115,7 @@ class TestClientObservabilityScope:
             )
 
         monkeypatch.setattr(
-            "custom_components.lipro.core.api.client_auth_recovery._record_api_error",
+            "custom_components.lipro.core.api.auth_recovery._record_api_error",
             _capture,
         )
         client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000", entry_id="entry-2")

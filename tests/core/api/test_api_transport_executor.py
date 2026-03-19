@@ -10,15 +10,13 @@ import aiohttp
 import pytest
 
 from custom_components.lipro.core.api import LiproApiError
-from custom_components.lipro.core.api.client_auth_recovery import (
-    AuthRecoveryCoordinator,
-)
-from custom_components.lipro.core.api.client_base import ClientSessionState
-from custom_components.lipro.core.api.client_transport import TransportExecutor
+from custom_components.lipro.core.api.auth_recovery import RestAuthRecoveryCoordinator
 from custom_components.lipro.core.api.request_policy import RequestPolicy
 from custom_components.lipro.core.api.response_safety import (
     INVALID_JSON_BODY_READ_MAX_BYTES,
 )
+from custom_components.lipro.core.api.session_state import RestSessionState
+from custom_components.lipro.core.api.transport_executor import RestTransportExecutor
 
 
 class _DummyContent:
@@ -68,15 +66,15 @@ class _DummyRequestCtx:
         return False
 
 
-def _build_executor() -> TransportExecutor:
-    state = ClientSessionState(
+def _build_executor() -> RestTransportExecutor:
+    state = RestSessionState(
         phone_id="test_phone_id",
         session=MagicMock(spec=aiohttp.ClientSession),
         request_timeout=30,
     )
     policy = RequestPolicy()
-    auth_recovery = AuthRecoveryCoordinator(state)
-    return TransportExecutor(state, auth_recovery, policy)
+    auth_recovery = RestAuthRecoveryCoordinator(state)
+    return RestTransportExecutor(state, auth_recovery, policy)
 
 
 @pytest.mark.asyncio
@@ -161,3 +159,12 @@ async def test_iot_request_returns_empty_mapping_for_null_success_data() -> None
         result = await executor.iot_request("/v2/test", {"deviceId": "03ab5ccd7c000001"})
 
     assert result == {}
+
+
+def test_to_device_type_hex_accepts_decimal_strings_and_rejects_invalid_format() -> None:
+    executor = _build_executor()
+
+    assert executor.to_device_type_hex("1") == "ff000001"
+
+    with pytest.raises(ValueError, match="Invalid deviceType format"):
+        executor.to_device_type_hex("bad-type")

@@ -58,7 +58,7 @@ class _EntryAuthModule(Protocol):
         entry: LiproConfigEntry,
         *,
         get_client_session: Callable[[HomeAssistant], object],
-        client_factory: object,
+        protocol_factory: object,
         auth_manager_factory: object,
         logger: logging.Logger,
     ) -> tuple[object, object]: ...
@@ -208,7 +208,7 @@ def _build_entry_auth_context(
     entry: LiproConfigEntry,
     *,
     get_client_session: Callable[[HomeAssistant], object],
-    client_factory: object,
+    protocol_factory: object,
     auth_manager_factory: object,
     logger: logging.Logger,
 ) -> tuple[object, object]:
@@ -217,7 +217,7 @@ def _build_entry_auth_context(
         hass,
         entry,
         get_client_session=get_client_session,
-        client_factory=client_factory,
+        protocol_factory=protocol_factory,
         auth_manager_factory=auth_manager_factory,
         logger=logger,
     )
@@ -283,7 +283,7 @@ def build_entry_auth_context(
     entry: LiproConfigEntry,
     *,
     get_client_session: Callable[[HomeAssistant], object],
-    client_factory: object,
+    protocol_factory: object,
     auth_manager_factory: object,
     logger: logging.Logger,
 ) -> tuple[object, object]:
@@ -292,7 +292,7 @@ def build_entry_auth_context(
         hass,
         entry,
         get_client_session=get_client_session,
-        client_factory=client_factory,
+        protocol_factory=protocol_factory,
         auth_manager_factory=auth_manager_factory,
         logger=logger,
     )
@@ -377,7 +377,7 @@ def _build_entry_lifecycle_controller() -> _EntryLifecycleControllerLike:
         logger=_LOGGER,
         domain=DOMAIN,
         platforms=PLATFORMS,
-        client_factory=LiproProtocolFacade,
+        protocol_factory=LiproProtocolFacade,
         auth_manager_factory=LiproAuthManager,
         coordinator_factory=Coordinator,
         get_client_session=async_get_clientsession,

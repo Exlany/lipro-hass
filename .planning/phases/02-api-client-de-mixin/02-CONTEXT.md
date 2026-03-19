@@ -73,7 +73,7 @@
 - `custom_components/lipro/core/api/request_codec.py`、`request_policy.py`、`transport_core.py`、`transport_retry.py`、`transport_signing.py`、`response_safety.py`：具备保留/重构价值，可作为显式执行链基座
 - `custom_components/lipro/core/api/endpoints/*.py`：天然适合演进为显式 endpoint collaborators
 - `tests/core/api/test_protocol_contract_matrix.py`：继续作为协议重构的行为护栏
-- `tests/core/api/test_api_client_transport.py`：适合验证 transport/auth/pacing 协作边界
+- `tests/core/api/test_api_transport_executor.py`：适合验证 transport/auth/pacing 协作边界
 - `tests/core/api/test_api.py` 与 service tests：适合验证 façade 与 endpoint/service 公开面
 
 ### Established Patterns

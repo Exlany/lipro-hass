@@ -16,7 +16,6 @@ from ...const.api import (
 )
 from ..utils.log_safety import safe_error_placeholder
 from . import response_safety as _response_safety
-from .client_base import ClientSessionState
 from .errors import (
     LiproApiError,
     LiproAuthError,
@@ -24,6 +23,7 @@ from .errors import (
     LiproRefreshTokenExpiredError,
 )
 from .observability import record_api_error as _record_api_error
+from .session_state import RestSessionState
 from .types import JsonObject, JsonValue
 
 # Use the same logger instance as custom_components.lipro.core.api.client._LOGGER
@@ -49,10 +49,10 @@ class AuthRecoveryTelemetrySnapshot(TypedDict):
     last_refresh_error_type: str | None
 
 
-class AuthRecoveryCoordinator:
+class RestAuthRecoveryCoordinator:
     """Explicit owner for auth classification, refresh, and replay decisions."""
 
-    def __init__(self, state: ClientSessionState) -> None:
+    def __init__(self, state: RestSessionState) -> None:
         """Initialize auth-recovery bookkeeping around shared session state."""
         self._state = state
         self._auth_error_count = 0
@@ -327,4 +327,4 @@ class AuthRecoveryCoordinator:
                 raise
 
 
-__all__ = ["AuthRecoveryCoordinator", "AuthRecoveryTelemetrySnapshot"]
+__all__ = ["AuthRecoveryTelemetrySnapshot", "RestAuthRecoveryCoordinator"]

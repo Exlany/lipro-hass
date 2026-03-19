@@ -11,13 +11,13 @@ status: passed
 
 - Phase 资产：`29-CONTEXT.md`、`29-RESEARCH.md`、`29-VALIDATION.md`
 - 已生成 summaries：`29-01-SUMMARY.md`、`29-02-SUMMARY.md`、`29-03-SUMMARY.md`
-- synced truth：`custom_components/lipro/core/api/{client.py,client_transport.py,client_auth_recovery.py,endpoints/payloads.py}`、`tests/core/api/{test_api.py,test_api_client_transport.py,test_auth_recovery_telemetry.py,test_api_request_policy.py,test_api_diagnostics_service.py,test_api_schedule_service.py,test_api_schedule_endpoints.py}`、`tests/core/test_command_dispatch.py`、`tests/meta/{test_public_surface_guards.py,test_modularization_surfaces.py,test_governance_closeout_guards.py}`、`.planning/reviews/FILE_MATRIX.md`、`scripts/check_file_matrix.py`
+- synced truth：`custom_components/lipro/core/api/{client.py,transport_executor.py,auth_recovery.py,endpoints/payloads.py}`、`tests/core/api/{test_api.py,test_api_transport_executor.py,test_auth_recovery_telemetry.py,test_api_request_policy.py,test_api_diagnostics_service.py,test_api_schedule_service.py,test_api_schedule_endpoints.py}`、`tests/core/test_command_dispatch.py`、`tests/meta/{test_public_surface_guards.py,test_modularization_surfaces.py,test_governance_closeout_guards.py}`、`.planning/reviews/FILE_MATRIX.md`、`scripts/check_file_matrix.py`
 
 ## Must-Haves
 
 - **1. REST child façade visibly slimmer without a second root — PASS**
   - `client.py` 保持 `LiproRestFacade` 作为唯一正式 REST child façade。
-  - request/auth/result handling 明确下沉到 `client_transport.py`、`client_auth_recovery.py` 与 endpoint adapter；未引入 compat façade 或 parallel boundary pipeline。
+  - request/auth/result handling 明确下沉到 `transport_executor.py`、`auth_recovery.py` 与 endpoint adapter；未引入 compat façade 或 parallel boundary pipeline。
 
 - **2. Command / pacing story anchored on focused owner homes — PASS**
   - busy-retry / pacing 继续由 `RequestPolicy` 与 command family 持有，`client.py` 只保留最薄 bridge。
@@ -29,10 +29,10 @@ status: passed
 
 ## Evidence
 
-- `uv run pytest -q tests/core/api/test_api.py tests/core/api/test_auth_recovery_telemetry.py tests/core/api/test_api_request_policy.py tests/core/api/test_api_command_service.py tests/core/api/test_helper_modules.py tests/core/api/test_api_client_transport.py` → `185 passed`
+- `uv run pytest -q tests/core/api/test_api.py tests/core/api/test_auth_recovery_telemetry.py tests/core/api/test_api_request_policy.py tests/core/api/test_api_command_service.py tests/core/api/test_helper_modules.py tests/core/api/test_api_transport_executor.py` → `185 passed`
 - `uv run pytest -q tests/core/api/test_api.py tests/core/test_command_dispatch.py tests/core/api/test_protocol_contract_matrix.py -k "command or pacing or busy"` → `34 passed, 139 deselected`
 - `uv run pytest -q tests/core/api/test_api_diagnostics_service.py tests/core/api/test_api_schedule_service.py tests/core/api/test_api_schedule_endpoints.py tests/core/api/test_api.py tests/meta/test_public_surface_guards.py tests/meta/test_modularization_surfaces.py tests/meta/test_governance_closeout_guards.py` → `171 passed`
-- `uv run pytest -q tests/core/api/test_api.py tests/core/api/test_api_client_transport.py tests/core/api/test_auth_recovery_telemetry.py tests/core/test_command_dispatch.py tests/core/api/test_protocol_contract_matrix.py tests/core/api/test_api_diagnostics_service.py tests/core/api/test_api_schedule_service.py tests/core/api/test_api_schedule_endpoints.py tests/meta/test_public_surface_guards.py tests/meta/test_modularization_surfaces.py tests/meta/test_governance_closeout_guards.py && uv run python scripts/check_file_matrix.py --check` → `238 passed`
+- `uv run pytest -q tests/core/api/test_api.py tests/core/api/test_api_transport_executor.py tests/core/api/test_auth_recovery_telemetry.py tests/core/test_command_dispatch.py tests/core/api/test_protocol_contract_matrix.py tests/core/api/test_api_diagnostics_service.py tests/core/api/test_api_schedule_service.py tests/core/api/test_api_schedule_endpoints.py tests/meta/test_public_surface_guards.py tests/meta/test_modularization_surfaces.py tests/meta/test_governance_closeout_guards.py && uv run python scripts/check_file_matrix.py --check` → `238 passed`
 
 ## Risks / Notes
 

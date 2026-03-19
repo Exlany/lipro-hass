@@ -333,7 +333,7 @@ Phase 20 的验证必须至少把以下两类测试一起纳入：
 
 ### MQTT-focused loop
 
-- `uv run pytest -q tests/core/api/test_protocol_contract_matrix.py tests/core/mqtt/test_mqtt.py tests/core/mqtt/test_topic_builder.py tests/core/mqtt/test_mqtt_payload.py tests/core/mqtt/test_message_processor.py tests/core/mqtt/test_client_refactored.py tests/core/mqtt/test_protocol_replay_mqtt.py`
+- `uv run pytest -q tests/core/api/test_protocol_contract_matrix.py tests/core/mqtt/test_mqtt.py tests/core/mqtt/test_topic_builder.py tests/core/mqtt/test_mqtt_payload.py tests/core/mqtt/test_message_processor.py tests/core/mqtt/test_transport_refactored.py tests/core/mqtt/test_protocol_replay_mqtt.py`
 
 ### Replay / asset loop
 

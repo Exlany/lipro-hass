@@ -90,12 +90,12 @@ class HeadlessConsumerHarness:
         self,
         *,
         session: aiohttp.ClientSession,
-        client_factory: type[LiproProtocolFacade] = LiproProtocolFacade,
+        protocol_factory: type[LiproProtocolFacade] = LiproProtocolFacade,
         auth_manager_factory: type[LiproAuthManager] = LiproAuthManager,
         capability_registry: CapabilityRegistry | None = None,
     ) -> None:
         self._session = session
-        self._client_factory = client_factory
+        self._protocol_factory = protocol_factory
         self._auth_manager_factory = auth_manager_factory
         self._capability_registry = capability_registry or CapabilityRegistry()
 
@@ -104,7 +104,7 @@ class HeadlessConsumerHarness:
         boot_context: HeadlessBootContext = build_headless_boot_context(
             seed,
             self._session,
-            client_factory=self._client_factory,
+            protocol_factory=self._protocol_factory,
             auth_manager_factory=self._auth_manager_factory,
         )
         auth_session = await self._async_authenticate(boot_context, seed)

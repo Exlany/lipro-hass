@@ -24,6 +24,7 @@ NO_COLOR='\033[0m'
 
 ARCHIVE_URL=""
 ARCHIVE_MODE="remote"
+MIN_PYTHON_VERSION="3.14.2"
 
 declare haPath
 haPath=""
@@ -125,6 +126,25 @@ resolve_python_bin() {
     return 1
 }
 
+assert_min_python_version() {
+    local pythonBin requiredVersion
+    pythonBin="$1"
+    requiredVersion="${2:-$MIN_PYTHON_VERSION}"
+
+    "$pythonBin" - "$requiredVersion" <<'PY'
+import sys
+
+required = tuple(int(part) for part in sys.argv[1].split('.'))
+current = sys.version_info[:3]
+if current < required:
+    print(
+        f"Python {sys.version.split()[0]} is too old; need >= {sys.argv[1]}",
+        file=sys.stderr,
+    )
+    sys.exit(2)
+PY
+}
+
 python_preflight_scan_zip() {
     local zipPath
     zipPath="$1"
@@ -133,8 +153,10 @@ python_preflight_scan_zip() {
     pythonBin="$(resolve_python_bin || true)"
 
     if [ -z "$pythonBin" ]; then
-        error "Python not found; cannot safely validate archive (symlink/size/path checks). Please install python3 or python."
+        error "Python not found; cannot safely validate archive (symlink/size/path checks). Please install python3 or python 3.14.2+."
     fi
+
+    assert_min_python_version "$pythonBin"
 
     # This scan rejects dangerous paths and symlink/device-type entries before unzip runs.
     # It also caps file counts/sizes to reduce zip-bomb risk.
@@ -226,8 +248,10 @@ python_verify_release_checksum() {
     local pythonBin
     pythonBin="$(resolve_python_bin || true)"
     if [ -z "$pythonBin" ]; then
-        error "Python not found; cannot verify archive checksum with hashlib."
+        error "Python not found; cannot verify archive checksum with hashlib. Please install python3 or python 3.14.2+."
     fi
+
+    assert_min_python_version "$pythonBin"
 
     "$pythonBin" - "$archivePath" "$checksumPath" "$expectedName" <<'PY'
 import hashlib

@@ -77,13 +77,13 @@
 LiproProtocolFacade
     ├── LiproRestFacade
     ├── LiproMqttFacade
-    ├── ClientSessionState
-    ├── TransportExecutor
+    ├── RestSessionState
+    ├── RestTransportExecutor
     │   ├── RequestSigner
     │   ├── RetryPolicy
     │   ├── RateLimitPolicy
     │   └── ResponseGuard
-    ├── AuthRecoveryCoordinator
+    ├── RestAuthRecoveryCoordinator
     ├── EndpointCollaborators
     ├── PayloadNormalizers
     └── CompatAdapters
@@ -176,12 +176,12 @@ class LiproProtocolFacade:
 
 ```python
 @dataclass(slots=True)
-class ClientSessionState:
+class RestSessionState:
     access_token: str | None = None
     refresh_token: str | None = None
     user_id: str | None = None
 
-class TransportExecutor:
+class RestTransportExecutor:
     async def request_iot(self, path: str, body: dict[str, object]) -> dict[str, object]:
         ...
 ```
@@ -190,7 +190,7 @@ class TransportExecutor:
 
 ```python
 class StatusEndpoints:
-    def __init__(self, transport: TransportExecutor, normalize: PayloadNormalizers) -> None:
+    def __init__(self, transport: RestTransportExecutor, normalize: PayloadNormalizers) -> None:
         self._transport = transport
         self._normalize = normalize
 

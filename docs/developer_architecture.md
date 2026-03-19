@@ -21,8 +21,8 @@
 | Service 层 | `core/coordinator/services/` | API 稳定边界层 |
 | 数据容器 | `core/coordinator/factory.py` | CoordinatorRuntimes + StateContainers |
 | 设备模型 | `core/device/device.py` | LiproDevice 薄 facade |
-| API Client | `core/api/client.py` | REST API 客户端 |
-| MQTT Client | `core/mqtt/mqtt_client.py` | MQTT 实时通信 |
+| REST Child Façade | `core/api/client.py` | 统一协议根下的 REST formal façade |
+| MQTT Transport | `core/mqtt/transport.py` | MQTT 实时通信 |
 | 实体基类 | `entities/base.py` | 防抖 + 乐观更新 + CoordinatorEntity |
 | 描述符 | `entities/descriptors.py` | 声明式属性描述符 |
 | 命令对象 | `entities/commands.py` | 声明式命令（CQRS-lite 写侧） |
@@ -249,7 +249,7 @@ Coordinator
 - `core/command/result_policy.py`：承接 command-result classification / retry / delayed-refresh policy；`result.py` 保留 patch-friendly arbitration seam 与 failure trace writing。
 - `schedule_service.py`：仅保留 focused schedule helpers；`ScheduleApiService` 已退出正式故事线，schedule truth 固定为 `ScheduleEndpoints` + helper modules
 - `status_service.py` / `status_fallback.py`：`status_service.py` 保留 public orchestration，binary-split fallback kernel 下沉到 `status_fallback.py`
-- `core/mqtt/`：MQTT transport collaborators 与 `MqttTransportClient` 已作为 `LiproMqttFacade` child façade 挂到统一协议根，生产路径通过 `LiproProtocolFacade` / `MqttTransportFacade` contract 协作
+- `core/mqtt/`：MQTT transport collaborators 与 `MqttTransport` 已作为 `LiproMqttFacade` child façade 挂到统一协议根，生产路径通过 `LiproProtocolFacade` / `MqttTransportFacade` contract 协作
 - `core/auth/`：`LiproAuthManager` + `AuthSessionSnapshot`；HA adapters 通过 formal auth/session contract 协作，而不是解析 raw login dict
 - `transport_core.py` / `transport_retry.py` / `transport_signing.py`：请求核心/重试/签名
 - `endpoints/`：按域拆分端点（auth / status / devices / commands / ...）
@@ -387,7 +387,7 @@ Coordinator._async_update_data() (首次)
     → async_setup_mqtt()
         → mqtt_lifecycle.setup_mqtt_lifecycle()
             → 解密 MQTT 凭证
-            → 创建 `MqttTransportClient` concrete transport（localized concrete transport；formal root 仍是 `LiproProtocolFacade`）
+            → 创建 `MqttTransport` concrete transport（localized concrete transport；formal root 仍是 `LiproProtocolFacade`）
             → 创建 MqttRuntime (with RuntimeContext)
             → 替换 _runtimes.mqtt
 ```
@@ -454,7 +454,7 @@ custom_components/lipro/
 │   │   ├── endpoints/             # 按域拆分端点
 │   │   └── transport_*.py         # 请求核心/重试/签名
 │   ├── mqtt/                      # MQTT protocol slice（child façade under LiproProtocolFacade）
-│   │   ├── mqtt_client.py
+│   │   ├── transport.py
 │   │   ├── connection_manager.py
 │   │   └── subscription_manager.py
 │   ├── device/                    # Device 领域模型

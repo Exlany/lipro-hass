@@ -51,7 +51,7 @@ See: `.planning/PROJECT.md`
 - `v1.2` 里程碑 closeout bundle 已按 reopened truth 回写：`.planning/reviews/V1_2_EVIDENCE_INDEX.md`、`.planning/v1.2-MILESTONE-AUDIT.md` 与 `.planning/v1.3-HANDOFF.md` 继续构成 archive-ready / handoff-ready bundle。
 - `Phase 25` 已从单一 tranche 改为 v1.3 的总计划母相；`25.1 / 25.2 / 26 / 27` 路线已完成 seed routing，并显式排除了“把 vendor-defined MD5 登录路径误记为仓库弱密码学债”的错误口径。
 - `Phase 34` 已完成：single-maintainer continuity 已被 formal custody / freeze / restoration contract 固化，release path 已具备 tagged `CodeQL` hard gate、keyless `cosign` signing bundles 与 provenance verification；public docs、runbook、CODEOWNERS 与 guard truth 已统一收口。
-- `Phase 35` 已完成：protocol hotspot 继续 inward 到 `client_request_gateway.py` / `client_endpoint_surface.py` / `rest_port.py` / `mqtt_facade.py`；single protocol-root story 与定向回归/治理真相同步保持稳定。
+- `Phase 35` 已完成：protocol hotspot 继续 inward 到 `transport_executor.py` / `endpoint_surface.py` / `rest_port.py` / `mqtt_facade.py`；single protocol-root story 与定向回归/治理真相同步保持稳定。
 - `Phase 36` 已完成：`CoordinatorPollingService` 已承接 polling/status/outlet/snapshot orchestration；runtime mainline broad catches 已进一步收口到 typed arbitration / fail-closed semantics，并同步 phase31 no-growth budget。
 - `Phase 37` 已完成：init/runtime/governance mega-tests 已 topicize 成 `tests/core/test_init_service_handlers*.py`、`tests/core/test_init_runtime*.py` 与 `tests/meta/test_governance_phase_history*.py`；derived maps、verification guidance 与 drift guards 也已对齐到真实拓扑。
 - `Phase 38` 已完成：external-boundary advisory naming residual 已关闭；firmware trust-root/advisory 语义、coverage-diff / benchmark truth 与 governance closeout anchors 已统一到 fresh-audit baseline。
@@ -89,7 +89,7 @@ See: `.planning/PROJECT.md`
 - telemetry/replay/evidence 都只能 pull 正式真源，不得反向定义第二套事实
 - 未来 CLI / 其他宿主若要复用，只能建立在 host-neutral boundary/auth/device contracts 之上，而不是把 HA runtime 抽成 second root
 - `.planning/codebase/*.md` 只作为 derived collaboration maps / 协作图谱；若与 north-star、baseline 或 review truth 冲突，必须优先修正图谱而非倒逼真源
-- `MqttTransportClient` 继续只是 localized concrete transport，不得被回抬为 protocol root 或 public surface
+- `MqttTransport` 继续只是 localized concrete transport，不得被回抬为 protocol root 或 public surface
 
 ## Accumulated Context
 

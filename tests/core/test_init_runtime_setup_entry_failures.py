@@ -128,6 +128,72 @@ class TestInitSetupEntryFailureBehavior(_InitRuntimeBehaviorBase):
         entry.add_update_listener.assert_not_called()
         entry.async_on_unload.assert_not_called()
 
+    async def test_async_setup_entry_programming_error_during_hook_binding_cleans_up(
+        self,
+        hass,
+    ) -> None:
+        """Unexpected hook-binding errors should clean up without claiming a lifecycle contract."""
+        entry = MockConfigEntry(
+            domain=DOMAIN,
+            data={
+                CONF_PHONE_ID: "phone-id",
+                CONF_PHONE: "13800000000",
+                CONF_PASSWORD_HASH: "hashed-password",
+                CONF_ACCESS_TOKEN: "old_access",
+                CONF_REFRESH_TOKEN: "old_refresh",
+            },
+        )
+        entry.add_to_hass(hass)
+        entry.add_update_listener = MagicMock(side_effect=TypeError("bad listener"))
+        entry.async_on_unload = MagicMock()
+
+        mock_auth = MagicMock()
+        mock_auth.set_tokens = MagicMock()
+        mock_auth.set_credentials = MagicMock()
+        mock_auth.ensure_valid_token = AsyncMock()
+        mock_auth.get_auth_session.return_value = AuthSessionSnapshot(
+            access_token="new_access",
+            refresh_token="new_refresh",
+            user_id=None,
+            expires_at=1234567890,
+            phone_id="phone-id",
+            biz_id=None,
+        )
+
+        mock_coordinator = MagicMock()
+        mock_coordinator.async_config_entry_first_refresh = AsyncMock()
+        mock_coordinator.async_shutdown = AsyncMock()
+
+        with (
+            patch(
+                "custom_components.lipro.async_get_clientsession",
+                return_value=MagicMock(),
+            ),
+            patch(
+                "custom_components.lipro.LiproProtocolFacade", return_value=MagicMock()
+            ),
+            patch("custom_components.lipro.LiproAuthManager", return_value=mock_auth),
+            patch(
+                "custom_components.lipro.Coordinator",
+                return_value=mock_coordinator,
+            ),
+            patch.object(
+                hass.config_entries,
+                "async_forward_entry_setups",
+                AsyncMock(return_value=True),
+            ),
+            patch.object(hass.config_entries, "async_update_entry"),
+            patch("custom_components.lipro._LOGGER.debug") as mock_debug,
+            pytest.raises(TypeError, match="bad listener"),
+        ):
+            await async_setup_entry(hass, entry)
+
+        mock_coordinator.async_shutdown.assert_awaited_once()
+        mock_debug.assert_not_called()
+        assert getattr(entry, "runtime_data", None) is None
+        assert entry.entry_id not in hass.data[DOMAIN]["options_snapshots"]
+        entry.async_on_unload.assert_not_called()
+
     async def test_async_setup_entry_forward_setup_cancelled_rolls_back_runtime_data(
         self,
         hass,
@@ -346,9 +412,17 @@ class TestInitSetupEntryFailureBehavior(_InitRuntimeBehaviorBase):
                 "custom_components.lipro.LiproProtocolFacade", return_value=MagicMock()
             ),
             patch("custom_components.lipro.LiproAuthManager", return_value=mock_auth),
+            patch("custom_components.lipro._LOGGER.debug") as mock_debug,
             pytest.raises(ConfigEntryAuthFailed),
         ):
             await async_setup_entry(hass, entry)
+
+        assert mock_debug.call_args.args[1:] == (
+            "setup",
+            "setup_auth_failed",
+            "cleanup_and_raise",
+            "ConfigEntryAuthFailed",
+        )
 
     async def test_async_setup_entry_coerces_invalid_persisted_options(
         self, hass
@@ -443,7 +517,15 @@ class TestInitSetupEntryFailureBehavior(_InitRuntimeBehaviorBase):
                 "custom_components.lipro.LiproProtocolFacade", return_value=MagicMock()
             ),
             patch("custom_components.lipro.LiproAuthManager", return_value=mock_auth),
+            patch("custom_components.lipro._LOGGER.debug") as mock_debug,
             pytest.raises(ConfigEntryNotReady),
         ):
             await async_setup_entry(hass, entry)
+
+        assert mock_debug.call_args.args[1:] == (
+            "setup",
+            "setup_not_ready",
+            "cleanup_and_raise",
+            "ConfigEntryNotReady",
+        )
 

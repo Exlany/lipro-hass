@@ -70,7 +70,7 @@ class MqttRuntime:
         self,
         *,
         hass: HomeAssistant,
-        mqtt_client: MqttTransportFacade | None,
+        mqtt_transport: MqttTransportFacade | None,
         base_scan_interval: int,
         polling_updater: PollingIntervalUpdater,
         device_resolver: DeviceResolverProtocol,
@@ -88,7 +88,7 @@ class MqttRuntime:
 
         Args:
             hass: Home Assistant instance
-            mqtt_client: MQTT client instance (can be None initially)
+            mqtt_transport: MQTT transport instance (can be None initially)
             base_scan_interval: Base polling interval in seconds
             device_resolver: Device resolution protocol implementation
             property_applier: Property application protocol implementation
@@ -102,7 +102,7 @@ class MqttRuntime:
             background_task_manager: Optional background task manager for tracking tasks
         """
         self._hass = hass
-        self._mqtt_client = mqtt_client
+        self._mqtt_transport = mqtt_transport
         self._base_scan_interval = base_scan_interval
         self._background_task_manager = background_task_manager
         self._last_transport_error: Exception | None = None
@@ -156,21 +156,21 @@ class MqttRuntime:
             _LOGGER.exception("MQTT %s failed", action)
             return False, None
 
-    def bind_transport(self, mqtt_client: MqttTransportFacade) -> None:
+    def bind_transport(self, mqtt_transport: MqttTransportFacade) -> None:
         """Bind one protocol-owned MQTT transport to this runtime."""
-        self._mqtt_client = mqtt_client
+        self._mqtt_transport = mqtt_transport
         self._last_transport_error = None
         self._last_transport_error_stage = None
         self._failure_summary = empty_failure_summary()
 
     def detach_transport(self) -> None:
         """Detach the currently bound MQTT transport from this runtime."""
-        self._mqtt_client = None
+        self._mqtt_transport = None
 
     @property
     def has_transport(self) -> bool:
         """Return whether one MQTT transport is currently bound."""
-        return self._mqtt_client is not None
+        return self._mqtt_transport is not None
 
     def _create_message_handler(self) -> MqttMessageHandler:
         """Create message handler with injected dependencies."""
@@ -197,16 +197,16 @@ class MqttRuntime:
             True if startup succeeded and the broker handshake completed.
         """
 
-        if self._mqtt_client is None:
-            _LOGGER.error("MQTT client not initialized")
+        if self._mqtt_transport is None:
+            _LOGGER.error("MQTT transport not initialized")
             return False
 
-        mqtt_client = self._mqtt_client
+        mqtt_transport = self._mqtt_transport
 
         async def _connect_sequence() -> bool:
-            await mqtt_client.start(device_ids)
-            await mqtt_client.sync_subscriptions(set(device_ids))
-            return await mqtt_client.wait_until_connected()
+            await mqtt_transport.start(device_ids)
+            await mqtt_transport.sync_subscriptions(set(device_ids))
+            return await mqtt_transport.wait_until_connected()
 
         ok, connected = await self._async_run_transport_operation(
             stage="connect",
@@ -225,13 +225,13 @@ class MqttRuntime:
 
     async def sync_subscriptions(self, device_ids: list[str] | set[str]) -> bool:
         """Synchronize the desired MQTT subscription set without reconnecting."""
-        if self._mqtt_client is None:
+        if self._mqtt_transport is None:
             return False
 
-        mqtt_client = self._mqtt_client
+        mqtt_transport = self._mqtt_transport
 
         async def _sync_operation() -> None:
-            await mqtt_client.sync_subscriptions(set(device_ids))
+            await mqtt_transport.sync_subscriptions(set(device_ids))
 
         ok, _ = await self._async_run_transport_operation(
             stage="sync_subscriptions",
@@ -245,14 +245,14 @@ class MqttRuntime:
 
     async def disconnect(self) -> None:
         """Stop the MQTT background loop."""
-        if self._mqtt_client is None:
+        if self._mqtt_transport is None:
             return
 
         try:
             await self._async_run_transport_operation(
                 stage="disconnect",
                 action="disconnect",
-                operation=self._mqtt_client.stop,
+                operation=self._mqtt_transport.stop,
             )
         finally:
             self.on_transport_disconnected()

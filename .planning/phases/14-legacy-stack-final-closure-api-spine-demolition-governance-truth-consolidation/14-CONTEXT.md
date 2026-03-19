@@ -38,6 +38,6 @@
 ## Deferred Ideas
 
 - `LiproMqttClient` 的物理 rename；
-- `client_base.py` 的彻底文件级拆除；
+- `session_state.py` 的彻底文件级拆除；
 - `service_router.py` 的进一步 handler family 物理拆文件。
 </deferred>

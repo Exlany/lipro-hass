@@ -14,8 +14,8 @@ Thank you for your interest in contributing to the Lipro Smart Home integration!
 ### Version Truth / 版本真源
 
 - Canonical minimum supported Home Assistant version: `2026.3.1` from `pyproject.toml` (`homeassistant==2026.3.1`).
-- Canonical Python toolchain truth: Python `3.14` (`requires-python`, `mypy`, `ruff`, `pre-commit`, devcontainer, and CI all align here).
-- 唯一 Python 工具链真相：Python `3.14`（`requires-python`、`mypy`、`ruff`、`pre-commit`、devcontainer 与 CI 全部对齐到这里）。
+- Canonical Python toolchain truth: minimum Python `3.14.2`, with development / CI targeting Python `3.14` (`requires-python`, `mypy`, `ruff`, `pre-commit`, devcontainer, and CI stay aligned under that contract).
+- 唯一 Python 工具链真相：最低 Python `3.14.2`，开发 / CI 目标为 Python `3.14`（`requires-python`、`mypy`、`ruff`、`pre-commit`、devcontainer 与 CI 都遵守这条契约）。
 - 唯一最低支持 Home Assistant 版本真源：`pyproject.toml` 中的 `homeassistant==2026.3.1`。
 - Private repository / fork note: CI skips HACS validation because HACS only supports public GitHub repositories.
 - 私有仓库 / fork 说明：CI 会跳过 HACS validation，因为 HACS 只支持公开 GitHub 仓库。
@@ -85,8 +85,11 @@ We use [Ruff](https://docs.astral.sh/ruff/) for linting and formatting:
 我们使用 [Ruff](https://docs.astral.sh/ruff/) 进行代码检查和格式化：
 
 ```bash
-# Run linting / 运行代码检查
+# Run local static/security checks / 运行本地静态+安全检查
 ./scripts/lint
+
+# Run the full CI-like local matrix / 运行接近 CI 的完整本地矩阵
+./scripts/lint --full
 
 # Auto-fix issues / 自动修复问题
 uv run ruff check . --fix
@@ -101,12 +104,14 @@ uv run mypy
 Notes:
 说明：
 
-- `./scripts/lint` runs `pip-audit` against exported runtime requirements by default.
-  `./scripts/lint` 默认仅对导出的 runtime 依赖运行 `pip-audit`。
-- `./scripts/lint` 是本地便捷包装；CI 的正式裁决仍以下面的显式 `uv run ...` 命令为准。
-  `./scripts/lint` is a local convenience wrapper; the canonical CI contract remains the explicit `uv run ...` commands below.
+- `./scripts/lint` 默认运行本地 static + translation + shell + runtime security smoke；它**不会**默认运行 governance 或 pytest。
+  `./scripts/lint` runs local static + translation + shell + runtime security smoke by default; it does **not** run governance or pytest unless asked.
+- `./scripts/lint --full` 会在默认检查之上补跑 architecture/file-matrix、governance guards、完整测试覆盖率门禁，以及 coverage/refactor floor 校验。
+  `./scripts/lint --full` extends the default checks with architecture/file-matrix validation, governance guards, the full test coverage gate, and coverage/refactor floor validation.
 - To also audit dev dependencies locally (may be noisy), set `PIP_AUDIT_INCLUDE_DEV=1`; the dev audit checks the installed environment so security overrides are honored.
   如需在本地额外审计 dev 依赖（可能较吵），可设置 `PIP_AUDIT_INCLUDE_DEV=1`；dev 审计会检查已安装环境，以便安全覆盖版本生效。
+- CI 的正式裁决仍以下面的显式 `uv run ...` 命令分组为准；`./scripts/lint` 只是维护者入口，不再暗示“默认已跑完整矩阵”。
+  The canonical CI contract remains the explicit grouped `uv run ...` commands below; `./scripts/lint` is only a maintainer entrypoint and no longer implies the full matrix by default.
 
 ### Testing / 测试
 

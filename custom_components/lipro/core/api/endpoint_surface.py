@@ -9,7 +9,7 @@ from .power_service import OutletPowerInfoResult
 from .types import DeviceListResponse, OtaInfoRow, ScheduleTimingRow
 
 
-class _EndpointSurfacePort(Protocol):
+class _RestEndpointSurfacePort(Protocol):
     _device_endpoints: Any
     _status_endpoints: Any
     _command_endpoints: Any
@@ -17,10 +17,10 @@ class _EndpointSurfacePort(Protocol):
     _schedule_endpoints: Any
 
 
-class ClientEndpointSurface:
+class RestEndpointSurface:
     """Group endpoint forwarding away from the REST façade root body."""
 
-    def __init__(self, client: _EndpointSurfacePort) -> None:
+    def __init__(self, client: _RestEndpointSurfacePort) -> None:
         self._client = client
 
     async def get_devices(self, offset: int = 0, limit: int = 100) -> DeviceListResponse:
@@ -253,4 +253,4 @@ class ClientEndpointSurface:
         )
 
 
-__all__ = ["ClientEndpointSurface"]
+__all__ = ["RestEndpointSurface"]

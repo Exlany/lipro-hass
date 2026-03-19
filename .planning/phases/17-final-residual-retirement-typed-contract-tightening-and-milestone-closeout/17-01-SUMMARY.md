@@ -3,14 +3,14 @@
 ## Outcome
 
 - Removed `_ClientTransportMixin` from production truth and collapsed the legacy endpoint mixin family into explicit collaborator composition.
-- Reduced `custom_components/lipro/core/api/client_base.py` to the single formal state carrier `ClientSessionState`; `_ClientBase` no longer acts as a pseudo-skeleton.
+- Reduced `custom_components/lipro/core/api/session_state.py` to the single formal state carrier `RestSessionState`; `_ClientBase` no longer acts as a pseudo-skeleton.
 - Rewired endpoint payload collaborators onto local typed ports so the REST child façade expresses one explicit composition story instead of a residual inheritance spine.
 
 ## Key Files
 
 - `custom_components/lipro/core/api/client.py`
-- `custom_components/lipro/core/api/client_base.py`
-- `custom_components/lipro/core/api/client_transport.py`
+- `custom_components/lipro/core/api/session_state.py`
+- `custom_components/lipro/core/api/transport_executor.py`
 - `custom_components/lipro/core/api/endpoints/auth.py`
 - `custom_components/lipro/core/api/endpoints/commands.py`
 - `custom_components/lipro/core/api/endpoints/devices.py`

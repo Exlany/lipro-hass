@@ -11,15 +11,13 @@ from custom_components.lipro.core.api import (
     LiproConnectionError,
     LiproRefreshTokenExpiredError,
 )
-from custom_components.lipro.core.api.client_auth_recovery import (
-    AuthRecoveryCoordinator,
-)
-from custom_components.lipro.core.api.client_base import ClientSessionState
+from custom_components.lipro.core.api.auth_recovery import RestAuthRecoveryCoordinator
 from custom_components.lipro.core.api.errors import LiproAuthError
+from custom_components.lipro.core.api.session_state import RestSessionState
 
 
-def _state() -> ClientSessionState:
-    return ClientSessionState(
+def _state() -> RestSessionState:
+    return RestSessionState(
         phone_id="13800000000",
         session=MagicMock(spec=aiohttp.ClientSession),
         request_timeout=30,
@@ -31,7 +29,7 @@ def _state() -> ClientSessionState:
 async def test_auth_recovery_telemetry_tracks_success_and_reuse() -> None:
     state = _state()
     state.access_token = "old-token"
-    coordinator = AuthRecoveryCoordinator(state)
+    coordinator = RestAuthRecoveryCoordinator(state)
 
     async def refresh() -> None:
         state.access_token = "new-token"
@@ -53,7 +51,7 @@ async def test_auth_recovery_telemetry_tracks_success_and_reuse() -> None:
 async def test_auth_recovery_telemetry_tracks_auth_failure() -> None:
     state = _state()
     state.access_token = "old-token"
-    coordinator = AuthRecoveryCoordinator(state)
+    coordinator = RestAuthRecoveryCoordinator(state)
 
     async def refresh() -> None:
         raise LiproAuthError("bad token", "token_expired")
@@ -74,7 +72,7 @@ async def test_auth_recovery_telemetry_tracks_auth_failure() -> None:
 async def test_auth_recovery_without_refresh_callback_returns_false() -> None:
     state = _state()
     state.access_token = "access"
-    coordinator = AuthRecoveryCoordinator(state)
+    coordinator = RestAuthRecoveryCoordinator(state)
 
     assert await coordinator.handle_401_with_refresh("access") is False
 
@@ -83,7 +81,7 @@ async def test_auth_recovery_without_refresh_callback_returns_false() -> None:
 async def test_auth_recovery_without_token_update_returns_false() -> None:
     state = _state()
     state.access_token = "old-token"
-    coordinator = AuthRecoveryCoordinator(state)
+    coordinator = RestAuthRecoveryCoordinator(state)
     refresh = AsyncMock()
     coordinator.set_token_refresh_callback(refresh)
 
@@ -95,7 +93,7 @@ async def test_auth_recovery_without_token_update_returns_false() -> None:
 async def test_auth_recovery_connection_error_bubbles() -> None:
     state = _state()
     state.access_token = "access"
-    coordinator = AuthRecoveryCoordinator(state)
+    coordinator = RestAuthRecoveryCoordinator(state)
     coordinator.set_token_refresh_callback(
         AsyncMock(side_effect=LiproConnectionError("timeout"))
     )
@@ -108,7 +106,7 @@ async def test_auth_recovery_connection_error_bubbles() -> None:
 async def test_auth_recovery_refresh_token_expired_bubbles() -> None:
     state = _state()
     state.access_token = "access"
-    coordinator = AuthRecoveryCoordinator(state)
+    coordinator = RestAuthRecoveryCoordinator(state)
     coordinator.set_token_refresh_callback(
         AsyncMock(side_effect=LiproRefreshTokenExpiredError("expired"))
     )
@@ -121,7 +119,7 @@ async def test_auth_recovery_refresh_token_expired_bubbles() -> None:
 async def test_auth_recovery_refresh_auth_error_returns_false() -> None:
     state = _state()
     state.access_token = "access"
-    coordinator = AuthRecoveryCoordinator(state)
+    coordinator = RestAuthRecoveryCoordinator(state)
     coordinator.set_token_refresh_callback(
         AsyncMock(side_effect=LiproAuthError("invalid"))
     )

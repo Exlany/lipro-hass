@@ -40,7 +40,7 @@ Home Assistant entry / flow / service / entity
   -> custom_components/lipro/core/protocol/facade.py
       -> custom_components/lipro/core/api/client.py
       -> custom_components/lipro/core/protocol/mqtt_facade.py
-          -> custom_components/lipro/core/mqtt/mqtt_client.py
+          -> custom_components/lipro/core/mqtt/transport.py
   -> custom_components/lipro/core/protocol/contracts.py
   -> custom_components/lipro/core/protocol/boundary/*.py
   -> vendor REST / IoT / MQTT
@@ -56,7 +56,7 @@ Home Assistant entry / flow / service / entity
 - Assurance truth：`custom_components/lipro/core/telemetry/exporter.py`、`tests/meta/*.py`、`tests/harness/**`
 
 ## 2.1 Phase 35-38 Sustainment Delta
-- protocol plane 已进一步收口为 `LiproProtocolFacade -> _RestFacadePort/LiproMqttFacade -> LiproRestFacade/MqttTransportClient`：`client_request_gateway.py` 与 `client_endpoint_surface.py` 只是 `LiproRestFacade` 的 localized collaborators，`rest_port.py` 与 `mqtt_facade.py` 只是 formal root 下的 child-facade contract/home，不构成新的 package-level root。
+- protocol plane 已进一步收口为 `LiproProtocolFacade -> _RestFacadePort/LiproMqttFacade -> LiproRestFacade/MqttTransport`：`transport_executor.py` 与 `endpoint_surface.py` 只是 `LiproRestFacade` 的 localized collaborators，`rest_port.py` 与 `mqtt_facade.py` 只是 formal root 下的 child-facade contract/home，不构成新的 package-level root。
 - runtime plane 继续沿既有 home 收薄：`CoordinatorPollingService` 现承接 snapshot refresh / status polling / outlet power polling orchestration；`Coordinator` 仍是唯一 runtime root，只保留 HA-facing public entrypoints 与 root-owned wiring。
 - assurance plane 在 `Phase 37` 继续 topicize：`tests/core/test_init_service_handlers*.py`、`tests/core/test_init_runtime*.py` 与 `tests/meta/test_governance_phase_history*.py` 已成为稳定专题套件，聚合文件只保留极小 shared helpers，不再承载 mega-test 主体。
 - `Phase 38` 未引入新的 active residual family：external-boundary advisory naming 已完成 closeout，当前残留主要回到热点体量与命名认知负担，而不是主链归属漂移。
@@ -108,7 +108,7 @@ Home Assistant entry / flow / service / entity
 
 ### 5.4 MQTT flow
 1. `Coordinator.async_setup_mqtt()` 通过 `LiproProtocolFacade.build_mqtt_facade()` 建立 protocol child façade。
-2. `custom_components/lipro/core/mqtt/mqtt_client.py` 仍是 concrete transport class，但只能作为 `LiproMqttFacade` 内部协作者。
+2. `custom_components/lipro/core/mqtt/transport.py` 仍是 concrete transport class，但只能作为 `LiproMqttFacade` 内部协作者。
 3. MQTT payload 先经 `custom_components/lipro/core/protocol/boundary/mqtt_decoder.py` 与 `CanonicalProtocolContracts` 归一化。
 4. runtime 再由 `custom_components/lipro/core/coordinator/runtime/mqtt/**` 与 `mqtt_lifecycle.py` 应用到设备状态。
 5. `tests/core/mqtt/test_protocol_replay_mqtt.py` 与 `tests/core/api/test_protocol_contract_matrix.py` 明确要求走 boundary public path，而非 runtime 自解码。
@@ -134,13 +134,13 @@ Home Assistant entry / flow / service / entity
 
 ## 7. Compatibility Residuals And Leftovers
 正式登记且仍活跃的残留主要有（不含已关闭 seam）：
-- `client_*` collaborator cluster：`custom_components/lipro/core/api/client.py`、`custom_components/lipro/core/api/client_auth_recovery.py`、`custom_components/lipro/core/api/client_request_gateway.py`、`custom_components/lipro/core/api/client_endpoint_surface.py`、`custom_components/lipro/core/api/client_transport.py`、`custom_components/lipro/core/api/endpoints/*.py`。这些模块仍保留“mega client 拆片后”的历史命名，但都已退回 `LiproRestFacade` 的局部协作者。
-- localized transport naming：`custom_components/lipro/core/mqtt/mqtt_client.py` 中的 `MqttTransportClient`。它是 concrete transport，不是 protocol root，但文件名仍会让新读者误判层级。
+- REST collaborator cluster：`custom_components/lipro/core/api/client.py`、`custom_components/lipro/core/api/auth_recovery.py`、`custom_components/lipro/core/api/session_state.py`、`custom_components/lipro/core/api/transport_executor.py`、`custom_components/lipro/core/api/endpoint_surface.py`、`custom_components/lipro/core/api/endpoints/*.py`。命名已基本显式化，剩余热点主要是 `client.py` 的 façade 体量，而不是协作者命名。
+- `custom_components/lipro/core/mqtt/transport.py` 中的 `MqttTransport` 现在是显式 concrete transport home；配合 package no-export，它不再构成 active naming residual。
 - proof-only bootstrap seam：`custom_components/lipro/headless/boot.py`。它被 `custom_components/lipro/config_flow.py` 复用做登录 bootstrap，但模块头部已显式声明自己是 local/proof-only seam，不构成第二 runtime/control story。
 
 与治理文档一致的判断：
 - `.planning/reviews/RESIDUAL_LEDGER.md` 把上述对象定义为显式 residual family，而不是正式 root；`custom_components/lipro/services/execution.py` 的 coordinator 私有 auth seam 已在 Phase 5 关闭，当前只保留正式 service execution facade。
-- `.planning/reviews/KILL_LIST.md` 当前仍把 `client_*` collaborator naming / helper shells 与 localized transport naming 视为 delete-gated cleanup 目标，但这类对象不再拥有 public-root 资格。
+- `.planning/reviews/KILL_LIST.md` 当前主要把 giant-root ballast / helper shells 视为 delete-gated cleanup 目标；MQTT concrete transport naming 已完成收口。
 - `custom_components/lipro/core/api/status_fallback.py` 与 `custom_components/lipro/control/developer_router_support.py` 已被治理文档明确定义为 helper home，不属于 public surface，也不属于新的正式 root。
 
 额外的代码级观察：
@@ -153,6 +153,6 @@ Home Assistant entry / flow / service / entity
 - 正式主链已经稳定：`control -> runtime -> protocol -> canonical boundary -> vendor`
 - 目录归属已经与五平面基本对齐：control、runtime、protocol、domain、assurance 各有明确 home
 - public surface 已由 baseline + meta guards 固化，不再依赖历史导出习惯
-- 兼容层已被压缩到少量可计数 residual：`client_*` collaborator naming、localized `MqttTransportClient` transport naming、少数 proof/helper seams
+- 兼容层已被压缩到少量可计数 residual：`client.py` / `facade.py` 热点体量，以及少数 proof/helper seams
 
 一句话裁决：**`lipro-hass` 当前是“正式主链成立、兼容残留可数、保障面强约束”的北极星收尾态，而不是仍处于双架构并存态。**

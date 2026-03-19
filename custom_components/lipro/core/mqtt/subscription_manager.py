@@ -1,4 +1,4 @@
-"""Subscription lifecycle helpers extracted from the MQTT client."""
+"""Subscription lifecycle helpers extracted from the MQTT transport."""
 
 from __future__ import annotations
 

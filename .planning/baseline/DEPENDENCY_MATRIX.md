@@ -85,7 +85,7 @@
 
 ## Phase 35 Protocol Hotspot Clarifications
 
-- `custom_components/lipro/core/api/client.py` 允许 inward 依赖 `client_request_gateway.py` 与 `client_endpoint_surface.py`；这两者只属于 `LiproRestFacade` 内部 collaborator family，runtime/control/tests 不得把它们当作对外 contract。
+- `custom_components/lipro/core/api/client.py` 允许 inward 依赖 `transport_executor.py` 与 `endpoint_surface.py`；这两者只属于 `LiproRestFacade` 内部 collaborator family，runtime/control/tests 不得把它们当作对外 contract。
 - `custom_components/lipro/core/protocol/facade.py` 允许 inward 依赖 `rest_port.py` 与 `mqtt_facade.py`；`_RestFacadePort` 只是 typed child-façade port，`LiproMqttFacade` 只是 protocol root 下的 MQTT child façade，control/runtime 不得绕过 `LiproProtocolFacade` 直摸这些 internals。
 - protocol hotspot slimming 允许 root/body 继续变薄，但不允许把 forwarding glue 迁移成新的 external package export 或 dependency shortcut。
 

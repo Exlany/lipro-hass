@@ -29,7 +29,7 @@
 
 - 测试栈完整：`pytest`、`pytest-asyncio`、`pytest-cov`、`pytest-homeassistant-custom-component`、`pytest-benchmark`、`syrupy`、`mypy`、`xdist` 全部进入 dev 依赖。证据：`pyproject.toml:33`。
 - CI 把质量拆成 `lint`、`governance`、`security`、`test`、`benchmark`、`validate` 六道门，release 先复用 CI，再做版本校验与打包。证据：`.github/workflows/ci.yml:22`, `.github/workflows/release.yml:25`, `tests/meta/test_governance_guards.py:185`。
-- 当前仓库共有 `181` 个 `test_*.py` 文件；其中 `21` 个 meta guard、`5` 个 integration、`4` 个 benchmark、`4` 个 snapshot 文件；另有 `5` 个 fixture family readme 维护 authority/用途说明。
+- 当前仓库共有 `183` 个 `test_*.py` 文件；其中 `21` 个 meta guard、`5` 个 integration、`4` 个 benchmark、`4` 个 snapshot 文件；另有 `5` 个 fixture family readme 维护 authority/用途说明。
 - Coverage gate 是硬门槛：主测试 job 以 `95%` 为下限，snapshot coverage 已包含在主 `tests/` lane 中；`coverage_diff.py` 默认执行 floor-only check，只有显式提供 baseline 才会产出 diff；benchmark 则作为 advisory-with-artifact lane 产出 `.benchmarks/benchmark.json`。证据：`.github/workflows/ci.yml:177`, `CONTRIBUTING.md:94`。
 
 ## 3. 测试分层图谱

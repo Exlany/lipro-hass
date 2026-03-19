@@ -15,8 +15,8 @@ created: 2026-03-17
 |----------|-------|
 | **Framework** | pytest API suites + REST public-surface/modularization guards + file-matrix tooling |
 | **Config file** | `pyproject.toml` |
-| **Quick run command** | `uv run pytest -q tests/core/api/test_api_client_transport.py tests/core/api/test_auth_recovery_telemetry.py tests/core/api/test_api_diagnostics_service.py tests/core/api/test_api_schedule_service.py tests/core/api/test_api_schedule_endpoints.py` |
-| **Phase gate command** | `uv run pytest -q tests/core/api/test_api.py tests/core/api/test_api_client_transport.py tests/core/api/test_auth_recovery_telemetry.py tests/core/test_command_dispatch.py tests/core/api/test_protocol_contract_matrix.py tests/core/api/test_api_diagnostics_service.py tests/core/api/test_api_schedule_service.py tests/core/api/test_api_schedule_endpoints.py tests/meta/test_public_surface_guards.py tests/meta/test_modularization_surfaces.py tests/meta/test_governance_closeout_guards.py && uv run python scripts/check_file_matrix.py --check` |
+| **Quick run command** | `uv run pytest -q tests/core/api/test_api_transport_executor.py tests/core/api/test_auth_recovery_telemetry.py tests/core/api/test_api_diagnostics_service.py tests/core/api/test_api_schedule_service.py tests/core/api/test_api_schedule_endpoints.py` |
+| **Phase gate command** | `uv run pytest -q tests/core/api/test_api.py tests/core/api/test_api_transport_executor.py tests/core/api/test_auth_recovery_telemetry.py tests/core/test_command_dispatch.py tests/core/api/test_protocol_contract_matrix.py tests/core/api/test_api_diagnostics_service.py tests/core/api/test_api_schedule_service.py tests/core/api/test_api_schedule_endpoints.py tests/meta/test_public_surface_guards.py tests/meta/test_modularization_surfaces.py tests/meta/test_governance_closeout_guards.py && uv run python scripts/check_file_matrix.py --check` |
 | **Estimated runtime** | ~30-90 seconds |
 
 ## Wave Structure
@@ -29,13 +29,13 @@ created: 2026-03-17
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | Status |
 |---------|------|------|-------------|-----------|-------------------|--------|
-| 29-01-01 | 01 | 1 | HOT-06, RES-05 | focused | `uv run pytest -q tests/core/api/test_api.py tests/core/api/test_api_client_transport.py tests/core/api/test_auth_recovery_telemetry.py` | ✅ passed |
-| 29-01-02 | 01 | 1 | HOT-06, TST-03 | focused | `uv run pytest -q tests/core/api/test_api.py tests/core/api/test_api_client_transport.py tests/core/api/test_auth_recovery_telemetry.py` | ✅ passed |
+| 29-01-01 | 01 | 1 | HOT-06, RES-05 | focused | `uv run pytest -q tests/core/api/test_api.py tests/core/api/test_api_transport_executor.py tests/core/api/test_auth_recovery_telemetry.py` | ✅ passed |
+| 29-01-02 | 01 | 1 | HOT-06, TST-03 | focused | `uv run pytest -q tests/core/api/test_api.py tests/core/api/test_api_transport_executor.py tests/core/api/test_auth_recovery_telemetry.py` | ✅ passed |
 | 29-02-01 | 02 | 2 | HOT-06, TST-03 | focused | `uv run pytest -q tests/core/api/test_api.py tests/core/test_command_dispatch.py -k "command or pacing or busy"` | ✅ passed |
 | 29-02-02 | 02 | 2 | TST-03 | focused | `uv run pytest -q tests/core/api/test_api.py tests/core/test_command_dispatch.py tests/core/api/test_protocol_contract_matrix.py -k "command or pacing or busy"` | ✅ passed |
 | 29-03-01 | 03 | 3 | HOT-06, RES-05 | focused | `uv run pytest -q tests/core/api/test_api_diagnostics_service.py tests/core/api/test_api_schedule_service.py tests/core/api/test_api_schedule_endpoints.py tests/core/api/test_api.py -k "schedule or mqtt or diagnostics or power"` | ✅ passed |
 | 29-03-02 | 03 | 3 | RES-05, TST-03 | focused | `uv run pytest -q tests/core/api/test_api_diagnostics_service.py tests/core/api/test_api_schedule_service.py tests/core/api/test_api_schedule_endpoints.py tests/meta/test_public_surface_guards.py tests/meta/test_modularization_surfaces.py tests/meta/test_governance_closeout_guards.py && uv run python scripts/check_file_matrix.py --check` | ✅ passed |
-| 29-phase-gate | all | all | HOT-06, RES-05, TST-03 | final | `uv run pytest -q tests/core/api/test_api.py tests/core/api/test_api_client_transport.py tests/core/api/test_auth_recovery_telemetry.py tests/core/test_command_dispatch.py tests/core/api/test_protocol_contract_matrix.py tests/core/api/test_api_diagnostics_service.py tests/core/api/test_api_schedule_service.py tests/core/api/test_api_schedule_endpoints.py tests/meta/test_public_surface_guards.py tests/meta/test_modularization_surfaces.py tests/meta/test_governance_closeout_guards.py && uv run python scripts/check_file_matrix.py --check` | ✅ passed |
+| 29-phase-gate | all | all | HOT-06, RES-05, TST-03 | final | `uv run pytest -q tests/core/api/test_api.py tests/core/api/test_api_transport_executor.py tests/core/api/test_auth_recovery_telemetry.py tests/core/test_command_dispatch.py tests/core/api/test_protocol_contract_matrix.py tests/core/api/test_api_diagnostics_service.py tests/core/api/test_api_schedule_service.py tests/core/api/test_api_schedule_endpoints.py tests/meta/test_public_surface_guards.py tests/meta/test_modularization_surfaces.py tests/meta/test_governance_closeout_guards.py && uv run python scripts/check_file_matrix.py --check` | ✅ passed |
 
 ## Manual-Only Verifications
 

@@ -143,11 +143,11 @@ def test_phase_15_execution_truth_is_consistent() -> None:
     assert "## Phase 15 Residual Delta" in residual_text
     assert "## Phase 15 Status Update" in kill_text
     assert "## Phase 15 Policy Follow-Through" in architecture_policy_text
-    assert "custom_components/lipro/core/api/client_base.py" in file_matrix_text
-    assert "ClientSessionState formal REST session-state home" in file_matrix_text
-    assert "custom_components/lipro/core/mqtt/mqtt_client.py" in file_matrix_text
+    assert "custom_components/lipro/core/api/session_state.py" in file_matrix_text
+    assert "RestSessionState formal REST session-state home" in file_matrix_text
+    assert "custom_components/lipro/core/mqtt/transport.py" in file_matrix_text
     assert (
-        "direct transport residual; locality limited to core/mqtt + protocol seam"
+        "concrete MQTT transport home; package no-export keeps locality explicit"
         in file_matrix_text
     )
 
@@ -323,5 +323,5 @@ def test_phase_35_execution_evidence_is_consistent() -> None:
     assert "status: passed" in validation_text
     assert "35-01-01" in validation_text and "✅ passed" in validation_text
     assert "# Phase 35 Verification" in verification_text
-    assert "ClientRequestGateway" in verification_text
+    assert "RestTransportExecutor" in verification_text
     assert "phase: 35" in summary_text

@@ -40,7 +40,7 @@
 
 ### 3.1 模块/类命名是架构角色编码
 
-- 生产代码大量使用角色后缀命名：`*Facade`、`*Runtime`、`*Service`、`*Router`、`*Registry`、`*Controller`、`*Surface`、`*Manager`。这不是装饰性命名，而是为了把协议面、运行面、控制面、服务面切清楚。证据：`custom_components/lipro/__init__.py:68`, `custom_components/lipro/services/registry.py:16`, `custom_components/lipro/control/service_router.py:138`, `custom_components/lipro/core/api/client_transport.py:47`, `docs/developer_architecture.md:303`。
+- 生产代码大量使用角色后缀命名：`*Facade`、`*Runtime`、`*Service`、`*Router`、`*Registry`、`*Controller`、`*Surface`、`*Manager`。这不是装饰性命名，而是为了把协议面、运行面、控制面、服务面切清楚。证据：`custom_components/lipro/__init__.py:68`, `custom_components/lipro/services/registry.py:16`, `custom_components/lipro/control/service_router.py:138`, `custom_components/lipro/core/api/transport_executor.py:47`, `docs/developer_architecture.md:303`。
 - Home Assistant 根模块保持薄适配，不允许回长成业务根。证据：`AGENTS.md:101`, `AGENTS.md:119`, `AGENTS.md:124`。
 - 协程公开入口统一使用 `async_*` 命名：`async_setup_entry`、`async_unload_entry`、`async_handle_send_command`、`async_call_optional_capability` 等风格高度一致。证据：`custom_components/lipro/__init__.py:111`, `custom_components/lipro/control/service_router.py:138`, `custom_components/lipro/control/developer_router_support.py:96`。
 - 领域与实体表面已转向显式 property / method 集，不再依赖动态委托；`LiproDevice` 通过显式 facade 暴露 identity/capabilities/state/extras。证据：`custom_components/lipro/core/device/device.py:36`, `custom_components/lipro/core/device/device.py:71`, `custom_components/lipro/core/device/device.py:171`, `.planning/reviews/RESIDUAL_LEDGER.md:18`, `.planning/reviews/RESIDUAL_LEDGER.md:163`。
@@ -57,7 +57,7 @@
 - 类型别名直接表达 runtime/config-entry 合同，避免裸 `ConfigEntry` 在 HA 根模块漂移。证据：`custom_components/lipro/__init__.py:62`。
 - `@dataclass(slots=True)`、显式 field、显式 property 是当前领域模型主流，而不是“弱类型 dict 贯穿一切”。证据：`custom_components/lipro/core/device/device.py:36`, `custom_components/lipro/services/registry.py:16`。
 - 描述符层用 `Generic[T] + @overload` 维持 mypy 可推断性；这是实体投影层的正式模式。证据：`custom_components/lipro/entities/descriptors.py:35`, `custom_components/lipro/entities/descriptors.py:72`, `docs/developer_architecture.md:284`。
-- 协议边界优先做 canonicalization：Smart Home envelope 解包、IoT body 编码、`deviceType` 规范化、response code 归一化都停留在 protocol plane。证据：`custom_components/lipro/core/api/request_codec.py:9`, `custom_components/lipro/core/api/request_codec.py:33`, `custom_components/lipro/core/api/request_codec.py:42`, `custom_components/lipro/core/api/client_transport.py:91`, `custom_components/lipro/core/api/client_transport.py:117`, `custom_components/lipro/core/api/response_safety.py:83`, `AGENTS.md:85`。
+- 协议边界优先做 canonicalization：Smart Home envelope 解包、IoT body 编码、`deviceType` 规范化、response code 归一化都停留在 protocol plane。证据：`custom_components/lipro/core/api/request_codec.py:9`, `custom_components/lipro/core/api/request_codec.py:33`, `custom_components/lipro/core/api/request_codec.py:42`, `custom_components/lipro/core/api/transport_executor.py:91`, `custom_components/lipro/core/api/transport_executor.py:117`, `custom_components/lipro/core/api/response_safety.py:83`, `AGENTS.md:85`。
 - raw vendor payload 不应穿透到 runtime/domain/entity；这条规则既写在北极星，也落到 architecture policy。证据：`AGENTS.md:67`, `docs/NORTH_STAR_TARGET_ARCHITECTURE.md:45`, `.planning/baseline/ARCHITECTURE_POLICY.md:22`。
 
 ## 5. 异常语义与日志模式
@@ -77,9 +77,9 @@
 
 ## 7. 缺口与风险
 
-- **宽异常仍存在**：`config_flow` 与 `EntryLifecycleController` 仍保留 `except Exception` 收口，虽能保证清理/降级，但也可能掩盖过宽的错误域。证据：`custom_components/lipro/config_flow.py:139`, `custom_components/lipro/control/entry_lifecycle_controller.py:125`, `custom_components/lipro/control/entry_lifecycle_controller.py:134`, `custom_components/lipro/control/entry_lifecycle_controller.py:161`。
-- **control seam 的静态类型仍偏松**：`RuntimeAccess` 多处对 `entry` / `coordinator` 使用 `Any`，说明 HA 边界被收口了，但 host-side typing 还不够尖锐。证据：`custom_components/lipro/control/runtime_access.py:17`, `custom_components/lipro/control/runtime_access.py:27`, `custom_components/lipro/control/runtime_access.py:53`, `custom_components/lipro/control/runtime_access.py:106`。
-- **compat / mixin residual 仍未完全出清**：`_ClientTransportMixin` 仍在 `core/api` 内作为 compatibility adapter 存在，且 residual ledger 仍把 `_Client*Mixin` helper spine 登记为 active residual。证据：`custom_components/lipro/core/api/client_transport.py:327`, `.planning/reviews/RESIDUAL_LEDGER.md:8`, `.planning/reviews/RESIDUAL_LEDGER.md:166`。
+- **宽异常预算已被机器守卫限制在少数 sanctioned points**：`config_flow` 的 broad catch 已随登录/提交 helper 下沉而收口；当前只剩 `core/coordinator/lifecycle.py` 与 `EntryLifecycleController` 等 fail-closed / cleanup branches，并由 `tests/meta/test_phase31_runtime_budget_guards.py` 约束 no-growth。证据：`custom_components/lipro/core/coordinator/lifecycle.py:42`, `custom_components/lipro/core/coordinator/lifecycle.py:212`, `custom_components/lipro/control/entry_lifecycle_controller.py:337`, `custom_components/lipro/control/entry_lifecycle_controller.py:389`, `tests/meta/test_phase31_runtime_budget_guards.py:73`。
+- **host glue 仍有跨文件跳转成本**：`__init__.py` 仍需串起 `runtime_infra`、`runtime_types` 与 `EntryLifecycleController`；比旧 multi-root 清晰得多，但对新贡献者仍有心智切换成本。证据：`custom_components/lipro/__init__.py:22`, `custom_components/lipro/__init__.py:370`, `custom_components/lipro/runtime_infra.py:73`, `custom_components/lipro/runtime_types.py:1`。
+- **API collaborator 命名残留已缩窄但未归零**：`LiproRestFacade` 的正式协作者已经显式化为 `RestAuthRecoveryCoordinator` / `RestTransportExecutor` / `RestEndpointSurface`，不过 `client.py` 与 `client_pacing.py` 仍保留早期 mega-client 时代的命名余味。证据：`custom_components/lipro/core/api/client.py:37`, `custom_components/lipro/core/api/client_pacing.py:1`, `.planning/reviews/RESIDUAL_LEDGER.md:201`。
 - **复杂度更多靠架构拆分与评审，而非 lint 硬拦**：Ruff 开启 `ALL`，但显式放宽了 `PLR0911/12/13/15` 等复杂度规则；`Coordinator` 文档仍被标注为热点大文件。证据：`pyproject.toml:170`, `docs/developer_architecture.md:187`。
 
 ## 8. Maintainer Checklist

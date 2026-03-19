@@ -12,7 +12,6 @@ import pytest
 
 from custom_components.lipro.const.api import PATH_GET_CITY, PATH_QUERY_USER_CLOUD
 from custom_components.lipro.core.api.client import LiproRestFacade
-from custom_components.lipro.core.api.client_base import ClientSessionState
 from custom_components.lipro.core.api.diagnostics_api_service import (
     get_city,
     query_user_cloud,
@@ -20,6 +19,7 @@ from custom_components.lipro.core.api.diagnostics_api_service import (
 from custom_components.lipro.core.api.mqtt_api_service import (
     _extract_mqtt_config_payload,
 )
+from custom_components.lipro.core.api.session_state import RestSessionState
 from custom_components.lipro.core.api.types import JsonObject
 from custom_components.lipro.core.protocol import LiproProtocolFacade
 from custom_components.lipro.core.protocol.boundary import (
@@ -143,7 +143,7 @@ def test_lipro_rest_facade_is_available_as_phase_2_rest_child_facade() -> None:
 def _build_mqtt_facade(client: MagicMock) -> tuple[LiproMqttFacade, ProtocolTelemetry]:
     telemetry = ProtocolTelemetry()
     session_state = ProtocolSessionState(
-        ClientSessionState(
+        RestSessionState(
             phone_id="test-phone-id",
             session=None,
             request_timeout=30,
@@ -261,7 +261,7 @@ def test_protocol_root_file_keeps_rest_port_and_mqtt_child_out_of_root_body() ->
 
 
 def test_rest_child_facade_file_uses_local_request_and_endpoint_collaborators() -> None:
-    module_text = (
+    client_module_text = (
         Path(__file__).resolve().parents[3]
         / "custom_components"
         / "lipro"
@@ -269,9 +269,20 @@ def test_rest_child_facade_file_uses_local_request_and_endpoint_collaborators() 
         / "api"
         / "client.py"
     ).read_text(encoding="utf-8")
+    facade_module_text = (
+        Path(__file__).resolve().parents[3]
+        / "custom_components"
+        / "lipro"
+        / "core"
+        / "api"
+        / "rest_facade.py"
+    ).read_text(encoding="utf-8")
 
-    assert "ClientRequestGateway" in module_text
-    assert "ClientEndpointSurface" in module_text
+    assert "from .rest_facade import LiproRestFacade" in client_module_text
+    assert "RestAuthRecoveryCoordinator" in facade_module_text
+    assert "RestTransportExecutor" in facade_module_text
+    assert "RestEndpointSurface" in facade_module_text
+    assert "RestSessionState" in facade_module_text
 
 
 @pytest.mark.parametrize(

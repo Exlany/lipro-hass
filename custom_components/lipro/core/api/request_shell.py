@@ -1,4 +1,10 @@
-"""Request-pipeline collaborator for the REST child façade."""
+"""Compatibility request shell for the formal REST facade.
+
+This module isolates the remaining retry-aware request helpers that still exist
+for compatibility and patch seams. The formal `LiproRestFacade` stays the only
+public REST root; this shell simply keeps legacy helper semantics explicit and
+contained.
+"""
 
 from __future__ import annotations
 
@@ -7,14 +13,7 @@ from typing import Any, Protocol, TypeVar
 
 import aiohttp
 
-from ...const.api import (
-    CONTENT_TYPE_FORM,
-    HEADER_CONTENT_TYPE,
-    HEADER_USER_AGENT,
-    IOT_API_URL,
-    SMART_HOME_API_URL,
-    USER_AGENT,
-)
+from ...const.api import CONTENT_TYPE_FORM, IOT_API_URL, SMART_HOME_API_URL
 from ...const.base import APP_VERSION_CODE, APP_VERSION_NAME
 from .errors import LiproAuthError
 from .request_codec import (
@@ -22,44 +21,34 @@ from .request_codec import (
     encode_iot_request_body,
     extract_smart_home_success_payload,
 )
-from .request_policy import RequestPolicy
 
-_MappingPayloadT = TypeVar("_MappingPayloadT")
 MappingRequestSender = Callable[[], Awaitable[tuple[int, Any, dict[str, str], str | None]]]
+_MappingPayloadT = TypeVar("_MappingPayloadT")
 
 
-class _ClientRequestPort(Protocol):
-    @property
-    def access_token(self) -> str | None:
-        """Return the current access token."""
-
-    @property
-    def phone_id(self) -> str:
-        """Return the current phone identifier."""
+class RestRequestCompatFacade(Protocol):
+    """Minimal facade contract consumed by the compatibility request shell."""
 
     @property
-    def request_timeout(self) -> int:
-        """Return the configured request timeout."""
+    def access_token(self) -> str | None: ...
 
     @property
-    def request_policy(self) -> RequestPolicy:
-        """Return the active request policy."""
+    def phone_id(self) -> str: ...
 
-    async def get_session(self) -> aiohttp.ClientSession:
-        """Return the active aiohttp session."""
+    @property
+    def request_timeout(self) -> int: ...
 
-    def smart_home_sign(self) -> str:
-        """Return one Smart Home signature."""
+    async def get_session(self) -> aiohttp.ClientSession: ...
 
-    def get_timestamp_ms(self) -> int:
-        """Return the current timestamp in milliseconds."""
+    def smart_home_sign(self) -> str: ...
+
+    def get_timestamp_ms(self) -> int: ...
 
     async def execute_request(
         self,
         request_ctx: Any,
         path: str,
-    ) -> tuple[int, dict[str, Any], dict[str, str]]:
-        """Execute one low-level request context."""
+    ) -> tuple[int, dict[str, Any], dict[str, str]]: ...
 
     async def execute_mapping_request_with_rate_limit(
         self,
@@ -67,19 +56,16 @@ class _ClientRequestPort(Protocol):
         path: str,
         retry_count: int,
         send_request: MappingRequestSender,
-    ) -> tuple[int, dict[str, Any], str | None]:
-        """Execute one mapping request with rate-limit policy."""
+    ) -> tuple[int, dict[str, Any], str | None]: ...
 
-    def build_iot_headers(self, body: str) -> dict[str, str]:
-        """Build the signed headers for one IoT payload."""
+    def build_iot_headers(self, body: str) -> dict[str, str]: ...
 
     async def handle_auth_error_and_retry(
         self,
         path: str,
         request_token: str | None,
         is_retry: bool,
-    ) -> bool:
-        """Handle auth errors and indicate whether replay is safe."""
+    ) -> bool: ...
 
     async def finalize_mapping_result(
         self,
@@ -91,20 +77,18 @@ class _ClientRequestPort(Protocol):
         retry_on_auth_error: bool,
         retry_request: Callable[[], Awaitable[_MappingPayloadT]] | None,
         success_payload: Callable[[dict[str, Any]], _MappingPayloadT],
-    ) -> _MappingPayloadT:
-        """Finalize one mapping response with auth-aware retry semantics."""
+    ) -> _MappingPayloadT: ...
 
     @staticmethod
-    def unwrap_iot_success_payload(result: dict[str, Any]) -> Any:
-        """Extract the canonical success payload from one IoT response."""
+    def unwrap_iot_success_payload(result: dict[str, Any]) -> Any: ...
 
 
-class ClientRequestGateway:
-    """Localize request-pipeline complexity away from `LiproRestFacade`."""
+class RestRequestCompatShell:
+    """Host the remaining retry-aware request helpers behind an explicit seam."""
 
-    def __init__(self, client: _ClientRequestPort) -> None:
-        """Initialize the request gateway around one explicit client port."""
-        self._client = client
+    def __init__(self, facade: RestRequestCompatFacade) -> None:
+        """Bind the shell to the canonical REST facade instance."""
+        self._facade = facade
 
     async def request_smart_home_mapping(
         self,
@@ -112,43 +96,42 @@ class ClientRequestGateway:
         data: dict[str, Any],
         require_auth: bool = True,
         *,
+        is_retry: bool = False,
         retry_count: int = 0,
     ) -> tuple[dict[str, Any], str | None]:
-        """Request one Smart Home mapping payload while preserving retry context."""
+        """Return the raw Smart Home mapping payload plus request token."""
+        del is_retry
+        facade = self._facade
         url = f"{SMART_HOME_API_URL}{path}"
 
         async def _send_request() -> tuple[int, Any, dict[str, str], str | None]:
-            request_token = self._client.access_token
+            request_token = facade.access_token
             if require_auth and not request_token:
                 msg = "No access token available"
                 raise LiproAuthError(msg)
 
             request_data = build_smart_home_request_data(
-                sign=self._client.smart_home_sign(),
-                phone_id=self._client.phone_id,
-                timestamp_ms=self._client.get_timestamp_ms(),
+                sign=facade.smart_home_sign(),
+                phone_id=facade.phone_id,
+                timestamp_ms=facade.get_timestamp_ms(),
                 app_version_name=APP_VERSION_NAME,
                 app_version_code=APP_VERSION_CODE,
                 data=data,
                 access_token=request_token if require_auth else None,
             )
-
-            session = await self._client.get_session()
-            status, result, headers = await self._client.execute_request(
+            session = await facade.get_session()
+            status, result, headers = await facade.execute_request(
                 session.post(
                     url,
                     data=request_data,
-                    headers={
-                        HEADER_CONTENT_TYPE: CONTENT_TYPE_FORM,
-                        HEADER_USER_AGENT: USER_AGENT,
-                    },
-                    timeout=aiohttp.ClientTimeout(total=self._client.request_timeout),
+                    headers={"Content-Type": CONTENT_TYPE_FORM},
+                    timeout=aiohttp.ClientTimeout(total=facade.request_timeout),
                 ),
                 path,
             )
             return status, result, headers, request_token
 
-        _, result, request_token = await self._client.execute_mapping_request_with_rate_limit(
+        _, result, request_token = await facade.execute_mapping_request_with_rate_limit(
             path=path,
             retry_count=retry_count,
             send_request=_send_request,
@@ -160,18 +143,19 @@ class ClientRequestGateway:
         path: str,
         data: dict[str, Any],
         require_auth: bool = True,
-        *,
         is_retry: bool = False,
         retry_count: int = 0,
     ) -> Any:
-        """Execute one Smart Home request and finalize mapping semantics."""
+        """Finalize one Smart Home request through the explicit auth path."""
+        facade = self._facade
         result, request_token = await self.request_smart_home_mapping(
             path,
             data,
             require_auth=require_auth,
+            is_retry=is_retry,
             retry_count=retry_count,
         )
-        return await self._client.finalize_mapping_result(
+        return await facade.finalize_mapping_result(
             path=path,
             result=result,
             request_token=request_token,
@@ -180,7 +164,7 @@ class ClientRequestGateway:
             retry_request=lambda: self.smart_home_request(
                 path,
                 data,
-                require_auth,
+                require_auth=require_auth,
                 is_retry=True,
             ),
             success_payload=extract_smart_home_success_payload,
@@ -194,36 +178,35 @@ class ClientRequestGateway:
         is_retry: bool = False,
         retry_count: int = 0,
     ) -> tuple[dict[str, Any], str | None]:
-        """Request one raw IoT mapping payload while preserving retry context."""
+        """Return the raw IoT mapping payload plus request token."""
+        facade = self._facade
         url = f"{IOT_API_URL}{path}"
 
         async def _send_request() -> tuple[int, Any, dict[str, str], str | None]:
-            request_token = self._client.access_token
+            request_token = facade.access_token
             if not request_token:
                 msg = "No access token available"
                 raise LiproAuthError(msg)
 
-            session = await self._client.get_session()
-            req_headers = self._client.build_iot_headers(body)
-            status, result, resp_headers = await self._client.execute_request(
+            session = await facade.get_session()
+            status, result, response_headers = await facade.execute_request(
                 session.post(
                     url,
                     data=body,
-                    headers=req_headers,
-                    timeout=aiohttp.ClientTimeout(total=self._client.request_timeout),
+                    headers=facade.build_iot_headers(body),
+                    timeout=aiohttp.ClientTimeout(total=facade.request_timeout),
                 ),
                 path,
             )
-            return status, result, resp_headers, request_token
+            return status, result, response_headers, request_token
 
-        status, result, request_token = await self._client.execute_mapping_request_with_rate_limit(
+        status, result, request_token = await facade.execute_mapping_request_with_rate_limit(
             path=path,
             retry_count=retry_count,
             send_request=_send_request,
         )
-
         if status == 401:
-            if await self._client.handle_auth_error_and_retry(path, request_token, is_retry):
+            if await facade.handle_auth_error_and_retry(path, request_token, is_retry):
                 return await self.request_iot_mapping_raw(
                     path,
                     body,
@@ -231,7 +214,6 @@ class ClientRequestGateway:
                 )
             msg = "HTTP 401 Unauthorized"
             raise LiproAuthError(msg, 401)
-
         return result, request_token
 
     async def request_iot_mapping(
@@ -242,11 +224,10 @@ class ClientRequestGateway:
         is_retry: bool = False,
         retry_count: int = 0,
     ) -> tuple[dict[str, Any], str | None]:
-        """Encode and request one IoT mapping payload."""
-        body = encode_iot_request_body(body_data)
+        """Encode and dispatch one IoT mapping request."""
         return await self.request_iot_mapping_raw(
             path,
-            body,
+            encode_iot_request_body(body_data),
             is_retry=is_retry,
             retry_count=retry_count,
         )
@@ -255,46 +236,60 @@ class ClientRequestGateway:
         self,
         path: str,
         body_data: dict[str, Any],
-        *,
         is_retry: bool = False,
         retry_count: int = 0,
     ) -> Any:
-        """Execute one IoT request and finalize mapping semantics."""
+        """Finalize one IoT request through the explicit auth path."""
+        facade = self._facade
         result, request_token = await self.request_iot_mapping(
             path,
             body_data,
             is_retry=is_retry,
             retry_count=retry_count,
         )
-        return await self._client.finalize_mapping_result(
+        return await facade.finalize_mapping_result(
             path=path,
             result=result,
             request_token=request_token,
             is_retry=is_retry,
             retry_on_auth_error=True,
             retry_request=lambda: self.iot_request(path, body_data, is_retry=True),
-            success_payload=self._client.unwrap_iot_success_payload,
+            success_payload=facade.unwrap_iot_success_payload,
         )
 
-    async def iot_request_with_busy_retry(
+    async def dispatch_retry_aware_call(
+        self,
+        call: Callable[..., Awaitable[_MappingPayloadT]],
+        *args: object,
+        is_retry: bool = False,
+        retry_count: int = 0,
+    ) -> _MappingPayloadT:
+        """Dispatch one retry-aware helper while preserving patch seams."""
+        if not is_retry and not retry_count:
+            return await call(*args)
+        return await call(*args, is_retry=is_retry, retry_count=retry_count)
+
+    async def dispatch_retry_aware_smart_home_call(
         self,
         path: str,
-        body_data: dict[str, Any],
+        data: dict[str, Any],
         *,
-        target_id: str,
-        command: str,
-        logger: Any,
-    ) -> dict[str, Any]:
-        """Execute one IoT command with the formal busy-retry policy."""
-        result = await self._client.request_policy.iot_request_with_busy_retry(
+        require_auth: bool,
+        is_retry: bool = False,
+        retry_count: int = 0,
+    ) -> Any:
+        """Dispatch Smart Home calls while preserving retry semantics."""
+        if not is_retry and not retry_count:
+            if require_auth:
+                return await self.smart_home_request(path, data)
+            return await self.smart_home_request(path, data, require_auth=False)
+        return await self.smart_home_request(
             path,
-            body_data,
-            target_id=target_id,
-            command=command,
-            iot_request=self.iot_request,
-            logger=logger,
+            data,
+            require_auth=require_auth,
+            is_retry=is_retry,
+            retry_count=retry_count,
         )
-        return dict(result)
 
 
-__all__ = ["ClientRequestGateway"]
+__all__ = ["RestRequestCompatShell"]

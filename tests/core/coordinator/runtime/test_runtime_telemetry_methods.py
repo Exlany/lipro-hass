@@ -56,7 +56,7 @@ def test_command_runtime_exposes_recent_traces_and_metrics() -> None:
 def test_mqtt_runtime_exposes_runtime_metrics() -> None:
     runtime = MqttRuntime(
         hass=MagicMock(),
-        mqtt_client=None,
+        mqtt_transport=None,
         base_scan_interval=15,
         polling_updater=MagicMock(),
         device_resolver=_DeviceResolver(),

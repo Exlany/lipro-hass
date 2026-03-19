@@ -164,7 +164,13 @@ class MqttMessageProcessor:
         except (json.JSONDecodeError, UnicodeError) as err:
             set_last_error(err)
             _LOGGER.exception("Failed to decode MQTT payload")
-        except Exception as err:
+        except (
+            AttributeError,
+            LookupError,
+            RuntimeError,
+            TypeError,
+            ValueError,
+        ) as err:
             set_last_error(err)
             topic = str(getattr(message, "topic", "unknown"))
             topic_result = _boundary_decoder_module().decode_mqtt_topic_payload(

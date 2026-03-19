@@ -1,4 +1,8 @@
 # Technology Stack
+> Snapshot: `2026-03-19`
+> Freshness: 基于 `AGENTS.md`、`docs/NORTH_STAR_TARGET_ARCHITECTURE.md`、`.planning/{PROJECT,STATE,ROADMAP,REQUIREMENTS}.md`、`.planning/baseline/*.md`、`.planning/reviews/*.md`、`docs/developer_architecture.md`、`pyproject.toml`、`.github/workflows/*.yml`、`custom_components/lipro/**` 与 `tests/meta/*.py` 的当前截面成立。真源变更后，本图谱必须同步刷新或标记过时。
+> Derived collaboration map: 本文件是受约束的协作图谱 / 派生视图，仅用于导航、审阅与后续实现对齐。
+> Authority: 若与 `docs/NORTH_STAR_TARGET_ARCHITECTURE.md`、`.planning/{ROADMAP,REQUIREMENTS,STATE}.md`、`.planning/baseline/*.md`、`.planning/reviews/*.md` 或 `docs/developer_architecture.md` 冲突，以后者为准；本图谱不得反向充当当前治理真源，且必须同步回写、标记为过时，或注明历史观察。
 
 **Analysis Date:** 2026-03-19
 

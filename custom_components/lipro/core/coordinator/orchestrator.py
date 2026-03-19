@@ -216,7 +216,7 @@ class RuntimeOrchestrator:
     ) -> MqttRuntime:
         return MqttRuntime(
             hass=self.hass,
-            mqtt_client=None,
+            mqtt_transport=None,
             base_scan_interval=self.update_interval,
             polling_updater=polling_updater,
             device_resolver=_DeviceResolverPort(context),

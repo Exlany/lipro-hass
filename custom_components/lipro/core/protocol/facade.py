@@ -8,8 +8,8 @@ import aiohttp
 
 from ...const.api import REQUEST_TIMEOUT
 from ..api.client import LiproRestFacade
-from ..api.client_base import ClientSessionState
 from ..api.request_policy import RequestPolicy
+from ..api.session_state import RestSessionState
 from ..api.types import (
     DeviceListResponse,
     JsonObject,
@@ -46,12 +46,12 @@ class LiproProtocolFacade:
         request_timeout: int = REQUEST_TIMEOUT,
         *,
         entry_id: str | None = None,
-        session_state: ClientSessionState | None = None,
+        session_state: RestSessionState | None = None,
         request_policy: RequestPolicy | None = None,
         rest_facade_factory: type[LiproRestFacade] = LiproRestFacade,
     ) -> None:
         """Create the unified protocol root and inject shared child collaborators."""
-        rest_state = session_state or ClientSessionState(
+        rest_state = session_state or RestSessionState(
             phone_id=phone_id,
             session=session,
             request_timeout=request_timeout,

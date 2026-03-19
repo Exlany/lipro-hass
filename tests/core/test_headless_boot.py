@@ -65,7 +65,7 @@ def test_build_headless_boot_context_reuses_bootstrap_context() -> None:
     session = MagicMock(name='session')
     protocol = MagicMock(name='protocol')
     auth_manager = MagicMock(name='auth_manager')
-    client_factory = MagicMock(name='client_factory')
+    protocol_factory = MagicMock(name='protocol_factory')
     auth_manager_factory = MagicMock(name='auth_manager_factory')
     seed = _seed()
 
@@ -76,7 +76,7 @@ def test_build_headless_boot_context_reuses_bootstrap_context() -> None:
         context = build_headless_boot_context(
             seed,
             session,
-            client_factory=client_factory,
+            protocol_factory=protocol_factory,
             auth_manager_factory=auth_manager_factory,
         )
 
@@ -87,7 +87,7 @@ def test_build_headless_boot_context_reuses_bootstrap_context() -> None:
     mock_build.assert_called_once_with(
         seed,
         session,
-        client_factory=client_factory,
+        protocol_factory=protocol_factory,
         auth_manager_factory=auth_manager_factory,
     )
 

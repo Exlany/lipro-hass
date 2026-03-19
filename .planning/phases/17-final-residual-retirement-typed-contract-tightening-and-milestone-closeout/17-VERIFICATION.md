@@ -4,7 +4,7 @@ status: passed
 
 - `RES-03`: `_ClientTransportMixin`、`_ClientBase` skeleton 与 endpoint legacy mixin family 已从 production truth 退场；formal REST path 只剩显式 collaborator composition + local typed ports。
 - `TYP-05`: token persistence 只消费 `AuthSessionSnapshot`；outlet-power helper/runtime formal path 只承认 explicit `row | list[row]` contract，不再生成 synthetic `{"data": rows}`。
-- `MQT-01`: legacy `LiproMqttClient` naming 已退出治理与生产主线；`MqttTransportClient` 只保留为 localized concrete transport，并受 no-export bans 与 locality guard 约束。
+- `MQT-01`: legacy `LiproMqttClient` naming 已退出治理与生产主线；`MqttTransport` 只保留为 localized concrete transport，并受 no-export bans 与 locality guard 约束。
 - `GOV-15`: `ROADMAP`、`REQUIREMENTS`、`STATE`、baseline、review ledgers、Phase 17 artifacts 与 `v1.1` milestone audit 已讲同一条 closeout story；未发现新的 silent defer。
 
 ## Final Audit Summary

@@ -35,8 +35,8 @@
 - `.planning/REQUIREMENTS.md` — `TYP-06`, `ERR-04`
 - `.planning/STATE.md` — continuation truth
 - `.planning/v1.3-HANDOFF.md` — typed backlog baseline / separation rules
-- `custom_components/lipro/core/api/client_auth_recovery.py`
-- `custom_components/lipro/core/api/client_transport.py`
+- `custom_components/lipro/core/api/auth_recovery.py`
+- `custom_components/lipro/core/api/transport_executor.py`
 - `custom_components/lipro/core/api/endpoints/payloads.py`
 - `custom_components/lipro/core/api/request_codec.py`
 - `custom_components/lipro/core/protocol/facade.py`

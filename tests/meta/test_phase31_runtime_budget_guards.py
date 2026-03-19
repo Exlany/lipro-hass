@@ -25,6 +25,7 @@ class _BroadCatchBudgetEntry(TypedDict):
 
 _TYPE_GUARD_TARGETS = {
     "core/coordinator/coordinator.py",
+    "core/coordinator/lifecycle.py",
     "core/coordinator/runtime/mqtt_runtime.py",
     "core/coordinator/mqtt_lifecycle.py",
     "core/coordinator/runtime/device/filter.py",
@@ -73,8 +74,8 @@ _ANY_BUDGET: dict[str, _AnyBudgetEntry] = {
 }
 
 _BROAD_CATCH_BUDGET: dict[str, _BroadCatchBudgetEntry] = {
-    "core/coordinator/coordinator.py": {
-        "expected_count": 2,
+    "core/coordinator/lifecycle.py": {
+        "expected_count": 0,
         "semantic_markers": {
             "failed during best-effort shutdown": 1,
             '_LOGGER.exception("Unexpected update failure")': 1,

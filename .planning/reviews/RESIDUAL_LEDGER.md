@@ -22,7 +22,7 @@
 
 - `API mixin inheritance` 已在 Phase 17 关闭：`_ClientBase`、`_ClientPacingMixin`、`_ClientAuthRecoveryMixin`、`_ClientTransportMixin` 与 endpoint legacy mixin family 已完成 physical retirement 或 truthful demotion。
 
-- `Split-root protocol surfaces` 已在 Phase 17 关闭：legacy `LiproMqttClient` naming 已退场，`MqttTransportClient` 仅保留为 localized concrete transport。
+- `Split-root protocol surfaces` 已在 Phase 17 关闭：legacy `LiproMqttClient` naming 已退场，`MqttTransport` 仅保留为 localized concrete transport。
 
 - `Auth/session compat projection` 已在 Phase 17 关闭：token persistence 只消费 `AuthSessionSnapshot`，`get_auth_data()` compat projection 已删除。
 
@@ -187,7 +187,7 @@
 
 - 本 phase **无新增 residual family**：收口的是既有 support/governance/tooling truth，而不是引入新的 compat 层。
 - `_ClientBase` / helper mixin family 继续仅作为 `core/api` 本地 residual；`FILE_MATRIX` 与 `PUBLIC_SURFACES` 已显式写明 locality / ownership。
-- `LiproMqttClient` 继续仅作为 `core/mqtt` direct transport residual；Phase 15 只加固 guard-backed wording，不重开 physical rename story。
+- `LiproMqttClient` direct-transport residual 已完成 physical rename closeout；`core/mqtt/transport.py` + package no-export 现为唯一有效故事。
 - `coverage_diff.py`、benchmark lane 与 dev `pip-audit` 现已被裁决为明确工具语义 / advisory policy，而不是 residual family。
 
 ## Phase 16 Residual Delta
@@ -198,8 +198,8 @@
 
 | Item | Disposition | Owner | Phase | Delete gate | Evidence |
 |------|-------------|-------|-------|-------------|----------|
-| `_ClientBase` / `_Client*Mixin` typing spine | 保留为本地 residual | `core/api` | Phase 16 closeout | 当 helper consumers 全部收敛到显式 typed helpers，且不再存在 legacy mixin import 需求时删除 | `custom_components/lipro/core/api/client_base.py`, `.planning/reviews/KILL_LIST.md`, `.planning/baseline/PUBLIC_SURFACES.md` |
-| `LiproMqttClient` legacy transport name | 保留为局部 legacy naming residual | `core/mqtt` | Phase 16 closeout | 当 transport-facing tests / imports 不再需要 concrete transport legacy name 时重命名/退场 | `custom_components/lipro/core/mqtt/mqtt_client.py`, `.planning/reviews/KILL_LIST.md` |
+| `_ClientBase` / `_Client*Mixin` typing spine | 保留为本地 residual | `core/api` | Phase 16 closeout | 当 helper consumers 全部收敛到显式 typed helpers，且不再存在 legacy mixin import 需求时删除 | `custom_components/lipro/core/api/session_state.py`, `.planning/reviews/KILL_LIST.md`, `.planning/baseline/PUBLIC_SURFACES.md` |
+| `LiproMqttClient` legacy transport name | 保留为局部 legacy naming residual | `core/mqtt` | Phase 16 closeout | 当 transport-facing tests / imports 不再需要 concrete transport legacy name 时重命名/退场 | `custom_components/lipro/core/mqtt/transport.py`, `.planning/reviews/KILL_LIST.md` |
 | `get_auth_data()` fallback in `persist_entry_tokens_if_changed()` | 保留为狭义 compatibility fallback | `entry_auth` | Phase 16 closeout | 当所有调用者 / test doubles 都以 `AuthSessionSnapshot` 为唯一正式契约时删除 | `custom_components/lipro/entry_auth.py`, `tests/core/test_init.py` |
 | helper-level compatibility envelope (`power_service.py`) | 保留为低风险 helper-level compatibility | `core/api` | Phase 16 closeout | 当 power payload shape 只剩单一正式 contract，且 outlet-power callers 不再需要旧 shape 容忍时删除 | `custom_components/lipro/core/api/power_service.py`, `custom_components/lipro/core/coordinator/outlet_power.py` |
 
@@ -207,7 +207,7 @@
 ## Phase 17 Residual Delta
 
 - `_ClientBase` / `_ClientPacingMixin` / `_ClientAuthRecoveryMixin` / `_ClientTransportMixin` 与 endpoint legacy mixin family 已完成 final disposition：production truth 不再把它们当作合法 skeleton / compat spine。
-- `MqttTransportClient` 现为唯一 canonical concrete transport naming；legacy `LiproMqttClient` naming 已退出治理真源、package export 与 production/test mainline。
+- `MqttTransport` 现为唯一 canonical concrete transport naming；legacy `LiproMqttClient` naming 已退出治理真源、package export 与 production/test mainline。
 - `get_auth_data()` compat projection 与 helper-level outlet-power synthetic wrapper 已物理退场；`AuthSessionSnapshot` 与 explicit `OutletPowerInfoRow | list[OutletPowerInfoRow]` 成为唯一正式 typed contract。
 - v1.1 remaining active residual 现只保留明确 de-scope / out-of-scope debt：external-boundary advisory naming、boundary family coverage 与 representative replay coverage。
 
@@ -277,7 +277,7 @@
 
 ## Phase 35 Residual Delta
 
-- `client.py` / `facade.py` 的热点已继续 inward 到 localized collaborators：`client_request_gateway.py`、`client_endpoint_surface.py`、`rest_port.py` 与 `mqtt_facade.py` 现在承接具体复杂度，但它们都没有升级成新的 public root 或 compat shell。
+- `client.py` / `facade.py` 的热点已继续 inward 到 localized collaborators：`transport_executor.py`、`endpoint_surface.py`、`rest_port.py` 与 `mqtt_facade.py` 现在承接具体复杂度，但它们都没有升级成新的 public root 或 compat shell。
 - `LiproRestFacade` / `LiproProtocolFacade` 仍保留为 formal child/root story；remaining residual 仅是后续可继续优化的 body-size maintainability debt，不再是 public-surface honesty seam。
 - 本 phase **无新增 active residual family / second-root story / export growth**；关闭的是 protocol hotspot ballast 与 forwarding glue 漂浮。
 

@@ -11,7 +11,7 @@ import aiohttp
 import aiomqtt
 
 from ..api.types import JsonObject
-from ..mqtt.mqtt_client import MqttTransportClient
+from ..mqtt.transport import MqttTransport
 from .contracts import MqttTransportFacade
 from .diagnostics_context import ProtocolDiagnosticsContext
 from .session import ProtocolSessionState
@@ -24,17 +24,17 @@ _TransportResultT = TypeVar("_TransportResultT")
 
 
 class LiproMqttFacade:
-    """Protocol child façade wrapping the concrete MQTT transport client."""
+    """Protocol child façade wrapping one concrete MQTT transport."""
 
     def __init__(
         self,
-        client: MqttTransportFacade,
+        transport: MqttTransportFacade,
         *,
         session_state: ProtocolSessionState,
         telemetry: ProtocolTelemetry,
         diagnostics_context: ProtocolDiagnosticsContext,
     ) -> None:
-        self._client = client
+        self._transport = transport
         self._session_state = session_state
         self._telemetry = telemetry
         self._diagnostics_context = diagnostics_context
@@ -58,7 +58,7 @@ class LiproMqttFacade:
     ) -> LiproMqttFacade:
         session_state.bind_mqtt_biz_id(biz_id)
         return cls(
-            MqttTransportClient(
+            MqttTransport(
                 access_key=access_key,
                 secret_key=secret_key,
                 biz_id=biz_id,
@@ -87,19 +87,19 @@ class LiproMqttFacade:
 
     @property
     def is_connected(self) -> bool:
-        return self._client.is_connected
+        return self._transport.is_connected
 
     @property
     def subscribed_devices(self) -> set[str]:
-        return self._client.subscribed_devices
+        return self._transport.subscribed_devices
 
     @property
     def subscribed_count(self) -> int:
-        return self._client.subscribed_count
+        return self._transport.subscribed_count
 
     @property
     def last_error(self) -> Exception | None:
-        err = self._client.last_error
+        err = self._transport.last_error
         if err is not None:
             self._telemetry.record_mqtt_error(err, stage="transport")
         return err
@@ -128,30 +128,33 @@ class LiproMqttFacade:
         self._telemetry.record_mqtt_start()
         await self._run_transport_stage(
             stage="start",
-            operation=lambda: self._client.start(device_ids),
+            operation=lambda: self._transport.start(device_ids),
         )
 
     async def stop(self) -> None:
         self._telemetry.record_mqtt_stop()
         await self._run_transport_stage(
             stage="stop",
-            operation=self._client.stop,
+            operation=self._transport.stop,
         )
 
     async def sync_subscriptions(self, device_ids: set[str]) -> None:
         self._telemetry.record_mqtt_sync()
         await self._run_transport_stage(
             stage="sync_subscriptions",
-            operation=lambda: self._client.sync_subscriptions(device_ids),
+            operation=lambda: self._transport.sync_subscriptions(device_ids),
         )
 
     async def wait_until_connected(self, timeout: float | None = None) -> bool:
         connected = await self._run_transport_stage(
             stage="wait_until_connected",
-            operation=lambda: self._client.wait_until_connected(timeout=timeout),
+            operation=lambda: self._transport.wait_until_connected(timeout=timeout),
         )
-        if self._client.last_error is not None:
-            self._telemetry.record_mqtt_error(self._client.last_error, stage="transport")
+        if self._transport.last_error is not None:
+            self._telemetry.record_mqtt_error(
+                self._transport.last_error,
+                stage="transport",
+            )
         return connected
 
 

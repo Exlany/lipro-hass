@@ -1,4 +1,4 @@
-"""Topic-building helpers extracted from the MQTT client."""
+"""Topic-building helpers extracted from the MQTT transport."""
 
 from __future__ import annotations
 

@@ -1,4 +1,4 @@
-"""MQTT client for Lipro real-time device status updates."""
+"""Localized MQTT transport implementation for Lipro real-time device state."""
 
 from __future__ import annotations
 
@@ -10,18 +10,18 @@ from typing import Any, Final
 import aiomqtt
 
 from ...const.api import MQTT_RECONNECT_MIN_DELAY
-from .client_runtime import MqttClientRuntime
 from .connection_manager import MqttConnectionManager
 from .credentials import MqttCredentials
 from .message_processor import MqttMessageProcessor, decode_payload_text
 from .subscription_manager import MqttSubscriptionManager
 from .topic_builder import MqttTopicBuilder
+from .transport_runtime import MqttTransportRuntime
 
 _MQTT_SUBSCRIPTION_BATCH_SIZE: Final[int] = 50
 
 
-class MqttTransportClient:
-    """Thin MQTT facade composed from focused runtime helpers."""
+class MqttTransport:
+    """Concrete MQTT transport composed from focused runtime helpers."""
 
     def __init__(
         self,
@@ -34,7 +34,7 @@ class MqttTransportClient:
         on_disconnect: Callable[[], None] | None = None,
         on_error: Callable[[Exception], None] | None = None,
     ) -> None:
-        """Initialize the composed MQTT facade and bind runtime helpers."""
+        """Initialize the transport and bind its focused runtime helpers."""
         self._credentials = MqttCredentials.create(
             access_key, secret_key, biz_id, phone_id
         )
@@ -45,7 +45,7 @@ class MqttTransportClient:
         self._on_error = on_error
         self._subscribed_devices: set[str] = set()
         self._pending_unsubscribe: set[str] = set()
-        self._client: aiomqtt.Client | None = None
+        self._broker_client: aiomqtt.Client | None = None
         self._task: asyncio.Task[None] | None = None
         self._last_error: Exception | None = None
         self._running = False
@@ -62,24 +62,26 @@ class MqttTransportClient:
             on_connect, on_disconnect, on_error
         )
         self._subscription_manager = MqttSubscriptionManager(self._topic_builder)
-        runtime = MqttClientRuntime(self)
-        self._build_topic_pairs = runtime.build_topic_pairs
-        self._batched_topic_pairs = runtime.batched_topic_pairs
-        self._set_last_error = runtime.set_last_error
-        self._clear_last_error = runtime.clear_last_error
-        self._invoke_callback = runtime.invoke_callback
-        self._handle_disconnect = runtime.handle_disconnect
-        self._process_message = runtime.process_message
-        self._async_finalize_connection_task = runtime.async_finalize_connection_task
-        self._connect_and_listen = runtime.connect_and_listen
-        self._connection_loop = runtime.connection_loop
+        transport_runtime = MqttTransportRuntime(self)
+        self._build_topic_pairs = transport_runtime.build_topic_pairs
+        self._batched_topic_pairs = transport_runtime.batched_topic_pairs
+        self._set_last_error = transport_runtime.set_last_error
+        self._clear_last_error = transport_runtime.clear_last_error
+        self._invoke_callback = transport_runtime.invoke_callback
+        self._handle_disconnect = transport_runtime.handle_disconnect
+        self._process_message = transport_runtime.process_message
+        self._async_finalize_connection_task = (
+            transport_runtime.async_finalize_connection_task
+        )
+        self._connect_and_listen = transport_runtime.connect_and_listen
+        self._connection_loop = transport_runtime.connection_loop
 
     @property
     def is_connected(self) -> bool:
         """Return whether the MQTT transport is currently connected.
 
-        Note: This is a synchronous property that reads _connected without locking.
-        For critical decisions, use async methods that acquire the lock.
+        Note: This is a synchronous property that reads `_connected` without
+        locking. For critical decisions, use async methods that acquire the lock.
         """
         return self._connected
 
@@ -125,7 +127,7 @@ class MqttTransportClient:
         async with self._connected_lock:
             self._connected = False
             self._connected_event.clear()
-        self._client = None
+        self._broker_client = None
         self._tls_context = None
         self._subscribed_devices.clear()
         self._pending_unsubscribe.clear()
@@ -133,7 +135,7 @@ class MqttTransportClient:
     async def sync_subscriptions(self, device_ids: set[str]) -> None:
         """Synchronize tracked subscriptions to match the desired device set."""
         await self._subscription_manager.sync_subscriptions(
-            client=self._client,
+            client=self._broker_client,
             connected=self._connected,
             subscribed_devices=self._subscribed_devices,
             pending_unsubscribe=self._pending_unsubscribe,
@@ -173,4 +175,4 @@ class MqttTransportClient:
         return decode_payload_text(raw_payload, device_id)
 
 
-__all__ = ["MqttTransportClient"]
+__all__ = ["MqttTransport"]

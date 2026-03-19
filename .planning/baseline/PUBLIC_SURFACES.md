@@ -44,7 +44,7 @@
 
 ## Phase 35 Protocol Hotspot Final Slimming Notes
 
-- `LiproRestFacade` 仍是唯一 canonical REST child façade，但 request pipeline 与 endpoint forwarding 复杂度已正式下沉到 `client_request_gateway.py` 与 `client_endpoint_surface.py`；它们只是 localized collaborators，不是新 public roots。
+- `LiproRestFacade` 仍是唯一 canonical REST child façade，但 request pipeline 与 endpoint forwarding 复杂度已正式下沉到 `transport_executor.py` 与 `endpoint_surface.py`；它们只是 localized collaborators，不是新 public roots。
 - `LiproProtocolFacade` 继续是唯一 protocol-plane root；`rest_port.py` 只是 typed REST child-façade port，`mqtt_facade.py` 只是 MQTT child façade home，二者都不得被上层当作 package-level alternative root。
 - 本 phase 只切薄 formal root / child façade body，不新增 package export、不回流 `__getattr__` 式隐式扩面，也不改变外部 formal import story。
 
@@ -68,10 +68,10 @@
 
 ## Phase 17 Final Residual Retirement Notes
 
-- `custom_components/lipro/core/api/client_base.py` 现在只保留 `ClientSessionState` formal REST session state；`_ClientBase` 已从 production truth 退场。
-- `custom_components/lipro/core/api/client_transport.py` 现在只保留 `TransportExecutor` / explicit transport helpers；`_ClientTransportMixin` 已退场。
+- `custom_components/lipro/core/api/session_state.py` 现在只保留 `RestSessionState` formal REST session state；`_ClientBase` 已从 production truth 退场。
+- `custom_components/lipro/core/api/transport_executor.py` 现在只保留 `RestTransportExecutor` / explicit transport helpers；`_ClientTransportMixin` 已退场。
 - REST endpoint legacy mixin family 已退场；formal collaborator set 固定为 `AuthEndpoints`、`CommandEndpoints`、`DeviceEndpoints`、`MiscEndpoints`、`ScheduleEndpoints`、`StatusEndpoints` 与 `_EndpointAdapter` local typed port。
-- `MqttTransportClient` 是 canonical MQTT concrete transport，但不是 public surface；只允许停留在 `core/mqtt` + `core/protocol`。
+- `MqttTransport` 是 canonical MQTT concrete transport，但不是 public surface；只允许停留在 `core/mqtt` + `core/protocol`。
 - token persistence 只消费 `AuthSessionSnapshot`；`get_auth_data()` compatibility projection 已从正式路径退场。
 - outlet-power 正式 contract 只承认 `OutletPowerInfoRow | list[OutletPowerInfoRow]`；synthetic `{"data": rows}` 已退出 formal path。
 
@@ -140,16 +140,16 @@
 | `ENF-SURFACE-PROTOCOL-EXPORTS` | `core/protocol/__init__.py` 不导出 boundary decoder internals | `boundary/*` 维持 protocol-local collaborator 身份 |
 | `ENF-BACKDOOR-COORDINATOR-PROPERTIES` | `Coordinator` 不暴露 runtime internals properties | 防止 runtime surface 变宽 |
 | `ENF-BACKDOOR-SERVICE-AUTH` | service execution 不再回退到 coordinator 私有 auth seam | backdoor ban |
-| `ENF-IMP-API-LEGACY-SPINE-LOCALITY` | `client_base.py` / `client_pacing.py` / `client_auth_recovery.py` / `client_transport.py` 只能继续局部停留在 `core/api` | local helper/session modules 不得扩散到生产其它平面 |
-| `ENF-IMP-MQTT-TRANSPORT-LOCALITY` | `MqttTransportClient` 不能新增 direct production consumers | concrete transport 继续局限在 protocol/mqtt seam |
+| `ENF-IMP-API-LEGACY-SPINE-LOCALITY` | `session_state.py` / `client_pacing.py` / `auth_recovery.py` / `transport_executor.py` 只能继续局部停留在 `core/api` | local helper/session modules 不得扩散到生产其它平面 |
+| `ENF-IMP-MQTT-TRANSPORT-LOCALITY` | `MqttTransport` 不能新增 direct production consumers | concrete transport 继续局限在 protocol/mqtt seam |
 | `ENF-IMP-NUCLEUS-NO-HOMEASSISTANT-IMPORT` | `core/auth` / `core/capability` / `core/device` nucleus homes 不得直接 import `homeassistant` | host-neutral nucleus 不得吸入宿主生命周期语义 |
 | `ENF-IMP-NUCLEUS-NO-PLATFORM-BACKFLOW` | nucleus homes 不得反向依赖 `helpers/platform.py` | adapter-only HA platform projection 不能定义 domain truth |
 | `ENF-IMP-ASSURANCE-NO-PRODUCTION-BACKFLOW` | assurance-only artifacts 不得被 production path 反向依赖 | replay / evidence 继续保持 pull-only / assurance-only |
 | `ENF-GOV-RELEASE-CI-REUSE` | `release.yml` 必须复用 `ci.yml` 并保持 validate gate | 发布链不得旁路治理与版本守卫 |
-| `ENF-COMPAT-ROOT-NO-LEGACY-CLIENT` | root adapter 不得重新绑定 legacy names 或 concrete transport exports | `LiproClient` / `LiproMqttClient` / `MqttTransportClient` 都不得回流 |
+| `ENF-COMPAT-ROOT-NO-LEGACY-CLIENT` | root adapter 不得重新绑定 legacy names 或 concrete transport exports | `LiproClient` / `LiproMqttClient` / `MqttTransport` 都不得回流 |
 | `ENF-COMPAT-CONFIG-FLOW-NO-LEGACY-CLIENT` | config flow 只使用 `LiproProtocolFacade`，不得回流 legacy client names 或 concrete transport | Phase 9 compat export ban + Phase 17 no-concrete-export follow-through |
 | `ENF-COMPAT-CORE-PACKAGE-NO-LEGACY-CLIENTS` | `core/__init__.py` 不得重新导出 legacy client names、`Coordinator` 或 concrete transport | package-level compat/runtime-home demotion guard |
-| `ENF-COMPAT-MQTT-PACKAGE-NO-LEGACY-CLIENT` | `core/mqtt/__init__.py` 不得重新暴露 `LiproMqttClient` 或 `MqttTransportClient` | MQTT package no-concrete-transport-export guard |
+| `ENF-COMPAT-MQTT-PACKAGE-NO-LEGACY-CLIENT` | `core/mqtt/__init__.py` 不得重新暴露 `LiproMqttClient` 或 `MqttTransport` | MQTT package no-concrete-transport-export guard |
 | `ENF-ADAPTER-CONFIG-FLOW-USES-AUTH-PROJECTION` | `config_flow.py` 必须通过 shared auth bootstrap + entry projection 组织登录路径 | HA adapter 不得重建第二套 auth truth |
 | `ENF-ADAPTER-ENTRY-AUTH-USES-BOOTSTRAP` | `entry_auth.py` 必须复用 shared bootstrap wiring，而不是手工拼装 token / credential glue | outward seam 稳定，内部装配统一 |
 | `ENF-HOSTPROJ-CATEGORIES-NO-HA-PLATFORMS` | `const/categories.py` 不得重新长回 HA platform mapping symbols | category truth 保持 host-neutral |

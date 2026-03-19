@@ -24,8 +24,7 @@ from ...const.api import (
 )
 from ...const.base import APP_VERSION_CODE, APP_VERSION_NAME
 from ...const.device_types import DEVICE_TYPE_MAP
-from .client_auth_recovery import AuthRecoveryCoordinator
-from .client_base import ClientSessionState
+from .auth_recovery import RestAuthRecoveryCoordinator
 from .errors import LiproAuthError
 from .request_codec import (
     build_smart_home_request_data,
@@ -34,6 +33,7 @@ from .request_codec import (
 )
 from .request_policy import RequestPolicy
 from .response_safety import DEVICE_TYPE_HEX_PATTERN as _DEVICE_TYPE_HEX_PATTERN
+from .session_state import RestSessionState
 from .transport_core import TransportCore
 from .transport_retry import TransportRetry
 from .transport_signing import TransportSigning
@@ -48,13 +48,13 @@ MappingRequestSender = Callable[
 ]
 
 
-class TransportExecutor:
+class RestTransportExecutor:
     """Explicit owner for signed request execution and transport retries."""
 
     def __init__(
         self,
-        state: ClientSessionState,
-        auth_recovery: AuthRecoveryCoordinator,
+        state: RestSessionState,
+        auth_recovery: RestAuthRecoveryCoordinator,
         request_policy: RequestPolicy,
     ) -> None:
         """Initialize transport execution collaborators around shared session state."""
@@ -328,4 +328,4 @@ class TransportExecutor:
         )
 
 
-__all__ = ["TransportExecutor"]
+__all__ = ["RestTransportExecutor"]

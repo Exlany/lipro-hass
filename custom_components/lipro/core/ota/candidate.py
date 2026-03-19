@@ -319,7 +319,13 @@ def resolve_update_available(
 
     try:
         return bool(is_version_newer(latest, installed))
-    except Exception as err:  # noqa: BLE001
+    except (
+        AttributeError,
+        LookupError,
+        RuntimeError,
+        TypeError,
+        ValueError,
+    ) as err:
         _LOGGER.debug(
             "Unable to compare firmware versions (%s -> %s): %s",
             installed,

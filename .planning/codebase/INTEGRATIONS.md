@@ -1,10 +1,8 @@
-# External Integrations
-
-**Analysis Date:** 2026-03-19
-
-> Freshness: 基于 `AGENTS.md`、`docs/NORTH_STAR_TARGET_ARCHITECTURE.md`、`.planning/{PROJECT,STATE,ROADMAP,REQUIREMENTS}.md`、`.planning/baseline/*.md`、`.planning/reviews/*.md`、`docs/developer_architecture.md`、`custom_components/lipro/**`、`.github/workflows/*.yml`、`tests/fixtures/**` 与 `tests/meta/*.py` 的当前截面。
+# INTEGRATIONS
+> Snapshot: `2026-03-19`
+> Freshness: Phase 38 + 本次外部边界/治理终极审阅对齐刷新；仅按 `AGENTS.md`、`docs/NORTH_STAR_TARGET_ARCHITECTURE.md`、`.planning/{PROJECT,STATE,ROADMAP,REQUIREMENTS}.md`、`.planning/baseline/*.md`、`.planning/reviews/*.md`、`docs/developer_architecture.md`、`custom_components/lipro/**`、`.github/workflows/*.yml`、`tests/fixtures/**` 与 `tests/meta/*.py` 的当前截面成立。真源变更后，本图谱必须同步刷新或标记过时。
 > Derived collaboration map: 本文件是受约束的协作图谱 / 派生视图，仅用于导航、审阅与集成边界核对。
-> Authority: 若与 `docs/NORTH_STAR_TARGET_ARCHITECTURE.md`、`.planning/baseline/AUTHORITY_MATRIX.md`、`.planning/phases/02.6-external-boundary-convergence/02.6-BOUNDARY-INVENTORY.md`、`.planning/reviews/*.md` 或 `docs/developer_architecture.md` 冲突，以后者为准。
+> Authority: 若与 `docs/NORTH_STAR_TARGET_ARCHITECTURE.md`、`.planning/baseline/AUTHORITY_MATRIX.md`、`.planning/phases/02.6-external-boundary-convergence/02.6-BOUNDARY-INVENTORY.md`、`.planning/reviews/*.md` 或 `docs/developer_architecture.md` 冲突，以后者为准；本图谱不得反向充当当前治理真源，且必须同步回写、标记为过时，或注明历史观察。
 
 ## APIs & External Services
 
@@ -29,7 +27,7 @@
 
 **Vendor MQTT:**
 - Aliyun MQTT broker - 提供实时设备状态推送。
-  - SDK/Client: `aiomqtt` + `custom_components/lipro/core/protocol/mqtt_facade.py` + `custom_components/lipro/core/mqtt/{mqtt_client,client_runtime,connection_manager,subscription_manager,message_processor,topics}.py`。
+  - SDK/Client: `aiomqtt` + `custom_components/lipro/core/protocol/mqtt_facade.py` + `custom_components/lipro/core/mqtt/{transport,transport_runtime,connection_manager,subscription_manager,message_processor,topic_builder}.py`。
   - Auth: 先通过 REST `get_aliyun_mqtt_config` 获取配置，再在 `custom_components/lipro/core/mqtt/credentials.py` 中解密 `accessKey` / `secretKey` 并派生 MQTT 凭证；无环境变量。
 - MQTT 边界版本化与回放验证 - 用于验证主题和消息 envelope 的 canonical contract。
   - SDK/Client: `custom_components/lipro/core/protocol/boundary/mqtt_decoder.py`、`tests/fixtures/protocol_boundary/`、`tests/fixtures/protocol_replay/`、`tests/integration/test_protocol_replay_harness.py`。
@@ -60,7 +58,7 @@
 **Caching:**
 - None 外部缓存服务；仅有进程内缓存。
 - 远端固件 advisory TTL 缓存在 `custom_components/lipro/firmware_manifest.py`。
-- MQTT 连接/订阅状态缓存在 `custom_components/lipro/core/mqtt/mqtt_client.py`。
+- MQTT 连接/订阅状态缓存在 `custom_components/lipro/core/mqtt/transport.py`。
 - 命令 pacing / 重试状态缓存在 `custom_components/lipro/core/api/request_policy.py`。
 - 分享 worker token / upload 窗口缓存在 `custom_components/lipro/core/anonymous_share/share_client.py`。
 
@@ -116,7 +114,7 @@
 
 **Outgoing:**
 - Vendor REST 调用从 `custom_components/lipro/core/api/client.py` 发往 `custom_components/lipro/const/api.py` 中定义的 `https://api-hilbert.lipro.com` 与 `https://api-mlink.lipro.com`。
-- Vendor MQTT TLS 连接从 `custom_components/lipro/core/mqtt/client_runtime.py` 发往 `custom_components/lipro/const/api.py` 中定义的 `post-cn-li93yvd5304.mqtt.aliyuncs.com:8883`。
+- Vendor MQTT TLS 连接从 `custom_components/lipro/core/mqtt/transport_runtime.py` 发往 `custom_components/lipro/const/api.py` 中定义的 `post-cn-li93yvd5304.mqtt.aliyuncs.com:8883`。
 - 分享与支持上报从 `custom_components/lipro/core/anonymous_share/share_client.py` 发往 `https://lipro-share.lany.me/api/report` 与 `https://lipro-share.lany.me/api/token/refresh`。
 - 远端固件 advisory 从 `custom_components/lipro/firmware_manifest.py` 拉取 `https://lipro-share.lany.me/api/firmware-support` 与 `https://lipro-share.lany.me/firmware_support_manifest.json`；最终 `certified` 真相仍以 `custom_components/lipro/firmware_support_manifest.json` 为准。
 - GitHub release / attestation / code scanning 由 `.github/workflows/release.yml` 与 `.github/workflows/codeql.yml` 发起。

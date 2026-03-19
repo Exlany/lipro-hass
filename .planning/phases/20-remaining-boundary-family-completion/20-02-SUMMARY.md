@@ -23,5 +23,5 @@
 
 ## Validation
 
-- `uv run pytest -q tests/core/mqtt/test_mqtt.py tests/core/mqtt/test_topic_builder.py tests/core/mqtt/test_mqtt_payload.py tests/core/mqtt/test_message_processor.py tests/core/mqtt/test_client_refactored.py tests/core/mqtt/test_protocol_replay_mqtt.py tests/integration/test_protocol_replay_harness.py tests/meta/test_protocol_replay_assets.py`
+- `uv run pytest -q tests/core/mqtt/test_mqtt.py tests/core/mqtt/test_topic_builder.py tests/core/mqtt/test_mqtt_payload.py tests/core/mqtt/test_message_processor.py tests/core/mqtt/test_transport_refactored.py tests/core/mqtt/test_protocol_replay_mqtt.py tests/integration/test_protocol_replay_harness.py tests/meta/test_protocol_replay_assets.py`
 - `uv run ruff check custom_components/lipro/core/mqtt/message_processor.py custom_components/lipro/core/mqtt/payload.py custom_components/lipro/core/protocol/boundary/mqtt_decoder.py tests/core/mqtt/test_mqtt_payload.py tests/core/mqtt/test_protocol_replay_mqtt.py tests/harness/protocol/replay_models.py tests/harness/protocol/replay_driver.py tests/integration/test_protocol_replay_harness.py tests/meta/test_protocol_replay_assets.py`

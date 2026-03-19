@@ -122,7 +122,13 @@ class LiproAuthManager:
             return
         try:
             self._on_tokens_updated()
-        except Exception as err:  # noqa: BLE001
+        except (
+            AttributeError,
+            LookupError,
+            RuntimeError,
+            TypeError,
+            ValueError,
+        ) as err:
             _LOGGER.debug(
                 "Token-updated callback failed (%s)",
                 safe_error_placeholder(err),

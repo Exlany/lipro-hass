@@ -36,8 +36,8 @@
 - `.planning/STATE.md` — continuation route and next-focus truth
 - `.planning/v1.3-HANDOFF.md` — maintained residual / typed-budget boundaries
 - `custom_components/lipro/core/api/client.py` — current REST hotspot
-- `custom_components/lipro/core/api/client_transport.py` — transport bridge collaborator
-- `custom_components/lipro/core/api/client_auth_recovery.py` — auth/result arbitration collaborator
+- `custom_components/lipro/core/api/transport_executor.py` — transport bridge collaborator
+- `custom_components/lipro/core/api/auth_recovery.py` — auth/result arbitration collaborator
 - `custom_components/lipro/core/api/request_policy.py` — pacing / retry policy home
 - `custom_components/lipro/core/api/command_api_service.py` — command family focused home
 - `custom_components/lipro/core/api/schedule_service.py`, `diagnostics_api_service.py`, `mqtt_api_service.py`, `power_service.py`

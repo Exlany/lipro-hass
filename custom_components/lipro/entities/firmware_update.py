@@ -239,7 +239,13 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
             return
         try:
             self._on_error(err)
-        except Exception as callback_err:
+        except (
+            AttributeError,
+            LookupError,
+            RuntimeError,
+            TypeError,
+            ValueError,
+        ) as callback_err:
             _LOGGER.error(
                 "OTA error callback failed (%s)",
                 safe_error_placeholder(callback_err),

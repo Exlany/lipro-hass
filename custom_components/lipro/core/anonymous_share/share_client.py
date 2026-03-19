@@ -240,7 +240,7 @@ class ShareWorkerClient:
             _LOGGER.warning("%s upload failed: %s", label, safe_error_placeholder(err))
             return False
         except (OSError, ValueError) as err:
-            with suppress(Exception):
+            with suppress(AttributeError, RuntimeError, TypeError, ValueError):
                 err.args = (safe_error_placeholder(err),)
             _LOGGER.exception("Unexpected error during %s upload", label.lower())
             return False

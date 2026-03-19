@@ -135,7 +135,7 @@ class TestInitSetupEntryBehavior(_InitRuntimeBehaviorBase):
                 hass,
                 entry,
                 get_client_session=lambda _: MagicMock(),
-                client_factory=LiproProtocolFacade,
+                protocol_factory=LiproProtocolFacade,
                 auth_manager_factory=LiproAuthManager,
                 logger=_TEST_LOGGER,
             )
@@ -154,7 +154,7 @@ class TestInitSetupEntryBehavior(_InitRuntimeBehaviorBase):
                 hass,
                 entry,
                 get_client_session=lambda _: MagicMock(),
-                client_factory=LiproProtocolFacade,
+                protocol_factory=LiproProtocolFacade,
                 auth_manager_factory=LiproAuthManager,
                 logger=_TEST_LOGGER,
             )

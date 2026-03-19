@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections.abc import Awaitable, Callable
 from typing import Protocol
 
-from ..api.client_auth_recovery import AuthRecoveryTelemetrySnapshot
+from ..api.auth_recovery import AuthRecoveryTelemetrySnapshot
 from ..api.types import (
     DeviceListResponse,
     JsonObject,

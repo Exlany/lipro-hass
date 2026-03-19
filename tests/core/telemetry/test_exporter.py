@@ -57,6 +57,19 @@ class _RuntimeSource:
         }
 
 
+class _RuntimeOnlyEntrySource:
+    def get_runtime_telemetry_snapshot(self) -> dict[str, object]:
+        return {
+            "entry_id": "entry-runtime-only",
+            "message": "x" * 128,
+            "nested": {
+                "refresh_token": "secret",
+                "device_id": "03ab5ccd7c654321",
+                "notes": "y" * 128,
+            },
+        }
+
+
 def test_exporter_redacts_sensitive_fields_and_pseudonymizes_ids() -> None:
     exporter = RuntimeTelemetryExporter(
         protocol_source=_ProtocolSource(),
@@ -94,3 +107,39 @@ def test_exporter_builds_stable_views_from_one_snapshot() -> None:
     assert views.system_health["command_trace_count"] == 1
     assert views.developer["entry_ref"].startswith("entry_")
     assert views.ci["summary"]["connect_state_event_count"] == 12
+
+
+def test_exporter_falls_back_when_report_id_factory_rejects_length_argument() -> None:
+    def _factory_without_length() -> str:
+        return "report-no-arg"
+
+    exporter = RuntimeTelemetryExporter(
+        protocol_source=_ProtocolSource(),
+        runtime_source=_RuntimeSource(),
+        report_id_factory=_factory_without_length,
+    )
+
+    snapshot = exporter.export_snapshot()
+
+    assert snapshot.report_id == "report-no-arg"
+
+
+def test_exporter_uses_runtime_entry_id_when_protocol_entry_id_is_missing() -> None:
+    class _ProtocolWithoutEntry:
+        def get_protocol_telemetry_snapshot(self) -> dict[str, object]:
+            return {"session": {"access_token_present": True}}
+
+    exporter = RuntimeTelemetryExporter(
+        protocol_source=_ProtocolWithoutEntry(),
+        runtime_source=_RuntimeOnlyEntrySource(),
+        cardinality_budget=CardinalityBudget(max_string_length=24),
+        report_id_factory=lambda *_: "report-c",
+    )
+
+    snapshot = exporter.export_snapshot()
+
+    assert snapshot.entry_ref is not None
+    assert snapshot.runtime["nested"]["device_ref"].startswith("device_")
+    assert "refresh_token" not in snapshot.runtime["nested"]
+    assert snapshot.runtime["message"] == "x" * 24
+    assert snapshot.runtime["nested"]["notes"] == "y" * 24

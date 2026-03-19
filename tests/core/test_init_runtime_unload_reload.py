@@ -199,6 +199,31 @@ class TestInitUnloadAndReloadBehavior(_InitRuntimeBehaviorBase):
             "ConfigEntryNotReady",
         )
 
+    async def test_async_reload_entry_reraises_programming_error_without_contract(
+        self,
+        hass,
+    ) -> None:
+        """Unexpected reload errors should bubble up without being classified."""
+        entry = MockConfigEntry(
+            domain=DOMAIN,
+            data={"phone": "13800000000"},
+            options={CONF_DEBUG_MODE: True},
+        )
+        entry.add_to_hass(hass)
+
+        with (
+            patch.object(
+                hass.config_entries,
+                "async_reload",
+                AsyncMock(side_effect=TypeError("buggy reload")),
+            ),
+            patch("custom_components.lipro._LOGGER.debug") as mock_debug,
+            pytest.raises(TypeError, match="buggy reload"),
+        ):
+            await async_reload_entry(hass, entry)
+
+        mock_debug.assert_not_called()
+
     async def test_async_unload_entry_removes_services_when_only_non_runtime_entries_remain(
         self, hass
     ) -> None:

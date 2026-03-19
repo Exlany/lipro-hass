@@ -109,7 +109,7 @@ def test_phase_17_surface_notes_capture_final_residual_retirement() -> None:
     assert "## Phase 17 Final Residual Retirement Notes" in public_surfaces
     assert "`_ClientBase` 已从 production truth 退场" in public_surfaces
     assert "`_ClientTransportMixin` 已退场" in public_surfaces
-    assert "`MqttTransportClient` 是 canonical MQTT concrete transport" in public_surfaces
+    assert "`MqttTransport` 是 canonical MQTT concrete transport" in public_surfaces
     assert "`get_auth_data()` compatibility projection 已从正式路径退场" in public_surfaces
     assert 'synthetic `{"data": rows}` 已退出 formal path' in public_surfaces
 
@@ -253,14 +253,14 @@ def test_service_execution_uses_formal_auth_surface_instead_of_private_backdoor(
 
 
 def test_runtime_power_surface_stays_read_only_and_formalized() -> None:
-    coordinator_text = (_ROOT / "custom_components" / "lipro" / "core" / "coordinator" / "coordinator.py").read_text(encoding="utf-8")
+    state_reader_text = (_ROOT / "custom_components" / "lipro" / "core" / "coordinator" / "runtime" / "state" / "reader.py").read_text(encoding="utf-8")
     outlet_power_text = (_ROOT / "custom_components" / "lipro" / "core" / "coordinator" / "outlet_power.py").read_text(encoding="utf-8")
     runtime_text = (_ROOT / "custom_components" / "lipro" / "core" / "coordinator" / "runtime" / "outlet_power_runtime.py").read_text(encoding="utf-8")
     diagnostics_text = (_ROOT / "custom_components" / "lipro" / "control" / "diagnostics_surface.py").read_text(encoding="utf-8")
     power_service_text = (_ROOT / "custom_components" / "lipro" / "core" / "api" / "power_service.py").read_text(encoding="utf-8")
     sensor_text = (_ROOT / "custom_components" / "lipro" / "sensor.py").read_text(encoding="utf-8")
 
-    assert "MappingProxyType" in coordinator_text
+    assert "MappingProxyType" in state_reader_text
     assert 'extra_data["power_info"]' not in outlet_power_text
     assert 'extra_data.get("power_info")' not in sensor_text
     assert "outlet_power_info" in diagnostics_text
@@ -272,12 +272,12 @@ def test_phase_30_control_contracts_stay_private_and_system_health_minimal() -> 
     control_exports = set(
         extract_all(_ROOT / "custom_components" / "lipro" / "control" / "__init__.py", root=_ROOT)
     )
-    controller_text = (
+    failure_policy_text = (
         _ROOT
         / "custom_components"
         / "lipro"
         / "control"
-        / "entry_lifecycle_controller.py"
+        / "entry_lifecycle_failures.py"
     ).read_text(encoding="utf-8")
     system_health_text = (
         _ROOT
@@ -297,7 +297,7 @@ def test_phase_30_control_contracts_stay_private_and_system_health_minimal() -> 
         "reload_not_ready",
         "reload_failed",
     ):
-        assert token in controller_text
+        assert token in failure_policy_text
 
     assert "FailureEntry" in system_health_text
     assert "SystemHealthPayload" in system_health_text
