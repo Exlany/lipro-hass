@@ -196,7 +196,7 @@ def test_phase_21_to_24_execution_truth_is_consistent() -> None:
             and "| Complete |" in requirements_text
         )
     assert "milestone: v1.4" in state_text
-    assert "closeout-ready" in state_text
+    assert "status: archived" in state_text
     assert "- `Phase 24` 已完成并于 2026-03-17 重新验证" in state_text
     assert "**Historical archive assets:**" in project_text
     assert "archive-ready" in project_text

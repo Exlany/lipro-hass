@@ -1,13 +1,13 @@
 # Project: Lipro-HASS North Star Evolution
 
-**Status:** Active current story converged — `v1.4 / Phase 39` 已完成并通过 hard gates，当前处于 closeout-ready；`v1.2` 继续保持 archive-ready，`v1.3` 保持历史 closeout-eligible 语义。
-**Goal:** 把 continuity / release trust、protocol/runtime hotspot slimming、typed exception hardening、control-home clarification、authority naming honesty、governance closeout 与 mega-test topology 全部统一到 `v1.4` 当前里程碑，并以单一北极星主链完成最终收口。
+**Status:** Shipped and archived — `v1.4` 已于 `2026-03-19` 完成 milestone audit、archive snapshots、`V1_4_EVIDENCE_INDEX.md` 与本地 tag `v1.4`；`v1.2` 继续保持 archive-ready，`v1.3` 保持历史 closeout-eligible 语义。
+**Goal:** 保持 `v1.4` 归档后的单一北极星主链真相，为下一里程碑提供干净、可审计、无 placeholder 的起点。
 
-## Current Milestone (v1.4)
+## Archived Milestone (v1.4)
 
 **Name:** `v1.4 Sustainment, Trust Gates & Final Hotspot Burn-down`
 
-**Why now:** `v1.3` 的 formal gap 已关闭，但显式 retained tech debt 仍值得以新里程碑继续推进；`Phase 34 -> 39` 已把 continuity、release trust、protocol/runtime root、quality-signal、governance current story 与 mega-test topology 全部推进到 closeout-ready。
+**Why it mattered:** `v1.3` 的 formal gap 虽已关闭，但显式 retained tech debt 仍需要一次独立里程碑来完成最终收口；`Phase 34 -> 39` 已把 continuity、release trust、protocol/runtime root、quality-signal、governance current story 与 mega-test topology 全部推进到 shipped / archived。
 
 **North-star fit:** 当前里程碑继续沿单一正式主链推进：
 
@@ -24,9 +24,9 @@
 
 **Phase range:** `Phase 34 -> 39`
 
-**Execution status:** `Phase 34-39` complete
-**Closeout assets:** `.planning/phases/39-governance-current-story-convergence-control-home-clarification-and-mega-test-decomposition/39-SUMMARY.md`, `.planning/phases/39-governance-current-story-convergence-control-home-clarification-and-mega-test-decomposition/39-VERIFICATION.md`, `.planning/phases/39-governance-current-story-convergence-control-home-clarification-and-mega-test-decomposition/39-VALIDATION.md`
-**Historical archive assets:** `.planning/milestones/v1.1-ROADMAP.md`, `.planning/milestones/v1.1-REQUIREMENTS.md`, `.planning/milestones/v1.2-ROADMAP.md`, `.planning/milestones/v1.2-REQUIREMENTS.md`
+**Execution status:** `Phase 34-39 complete / archived`
+**Archive assets:** `.planning/v1.4-MILESTONE-AUDIT.md`, `.planning/reviews/V1_4_EVIDENCE_INDEX.md`, `.planning/milestones/v1.4-ROADMAP.md`, `.planning/milestones/v1.4-REQUIREMENTS.md`, `.planning/phases/39-governance-current-story-convergence-control-home-clarification-and-mega-test-decomposition/39-SUMMARY.md`, `.planning/phases/39-governance-current-story-convergence-control-home-clarification-and-mega-test-decomposition/39-VERIFICATION.md`, local tag `v1.4`
+**Historical archive assets:** `.planning/milestones/v1.1-ROADMAP.md`, `.planning/milestones/v1.1-REQUIREMENTS.md`, `.planning/milestones/v1.2-ROADMAP.md`, `.planning/milestones/v1.2-REQUIREMENTS.md`, `.planning/milestones/v1.4-ROADMAP.md`, `.planning/milestones/v1.4-REQUIREMENTS.md`
 
 ## v1.3 Closeout & Post-closeout Continuation
 
@@ -101,7 +101,7 @@
 5. `Phase 38` — external-boundary residual retirement and quality-signal hardening
 6. `Phase 39` — governance current-story convergence, control-home clarification, and mega-test decomposition
 
-**Default next step:** `$gsd-complete-milestone v1.4`
+**Default next step:** `$gsd-new-milestone`
 
 ## Phase 34 Seed Hardening Update
 
@@ -125,7 +125,7 @@
 
 ## Phase 39 Governance Current-Story & Mega-Test Closeout Update
 
-`Phase 39` 已于 `2026-03-19` 完成：`ROADMAP / REQUIREMENTS / STATE / PROJECT` 现共同承认 `v1.4 / Phase 39 complete / closeout-ready` 当前故事；`docs/NORTH_STAR_TARGET_ARCHITECTURE.md` 与 `docs/developer_architecture.md` 已刷新 control-home truth；`custom_components/lipro/core/protocol/compat.py` 已删除；authority fixtures / replay manifests / guards 已完成单命名收口；device / mqtt / flows / anonymous-share / governance 套件继续 topicize，并留下 promoted closeout evidence。
+`Phase 39` 已于 `2026-03-19` 完成并在同日完成 milestone archive promotion：`ROADMAP / REQUIREMENTS / STATE / PROJECT` 的 current story 已从 `closeout-ready` 升格为 shipped / archived；`docs/NORTH_STAR_TARGET_ARCHITECTURE.md` 与 `docs/developer_architecture.md` 已刷新 control-home truth；`custom_components/lipro/core/protocol/compat.py` 已删除；authority fixtures / replay manifests / guards 已完成单命名收口；device / mqtt / flows / anonymous-share / governance 套件继续 topicize，并留下 promoted closeout evidence。
 
 ## Why This Milestone Exists
 
@@ -463,16 +463,18 @@ v1.1 进入执行期后，新增演进必须额外满足：
 
 ## Current Execution Workspace Inputs
 
-- `.planning/phases/21-replay-exception-taxonomy-hardening/21-VERIFICATION.md`
-- `.planning/phases/22-observability-surface-convergence-and-signal-exposure/22-VERIFICATION.md`
-- `.planning/phases/23-governance-convergence-contributor-docs-and-release-evidence-closure/23-VERIFICATION.md`
-- `.planning/phases/24-final-milestone-audit-archive-readiness-and-v1-3-handoff-prep/24-VERIFICATION.md`
+- `.planning/phases/34-continuity-and-hard-release-gates/34-VERIFICATION.md`
+- `.planning/phases/35-protocol-hotspot-final-slimming/35-VERIFICATION.md`
+- `.planning/phases/36-runtime-root-and-exception-burn-down/36-VERIFICATION.md`
+- `.planning/phases/37-test-topology-and-derived-truth-convergence/37-VERIFICATION.md`
 - `.planning/phases/38-external-boundary-residual-retirement-and-quality-signal-hardening/38-VERIFICATION.md`
-- `.planning/phases/38-external-boundary-residual-retirement-and-quality-signal-hardening/38-SUMMARY.md`
-- `.planning/reviews/V1_2_EVIDENCE_INDEX.md`
-- `.planning/v1.2-MILESTONE-AUDIT.md`
-- `.planning/v1.3-HANDOFF.md`
+- `.planning/phases/39-governance-current-story-convergence-control-home-clarification-and-mega-test-decomposition/39-VERIFICATION.md`
+- `.planning/phases/39-governance-current-story-convergence-control-home-clarification-and-mega-test-decomposition/39-SUMMARY.md`
+- `.planning/reviews/V1_4_EVIDENCE_INDEX.md`
+- `.planning/v1.4-MILESTONE-AUDIT.md`
+- `.planning/milestones/v1.4-ROADMAP.md`
+- `.planning/milestones/v1.4-REQUIREMENTS.md`
 
-- 当前工作区输入以 `v1.2` closeout bundle 与 `v1.3` handoff assets 为主；phase 目录资产仍默认是执行证据，只有被 `ROADMAP.md`、baseline docs、review ledgers 或 milestone audit 显式提升时，才成为长期治理真源。
+- 当前工作区输入以 `v1.4` archive bundle 与 Phase `34 -> 39` closeout evidence 为主；phase 目录资产仍默认是执行证据，只有被 `ROADMAP.md`、baseline docs、review ledgers 或 milestone audit 显式提升时，才成为长期治理真源。
 
-*Last updated: 2026-03-18 after Phase 38 external-boundary / quality-signal closeout and verification sync*
+*Last updated: 2026-03-19 after v1.4 milestone archive and closeout promotion*

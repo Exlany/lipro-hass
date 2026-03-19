@@ -2,7 +2,7 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Sustainment, Trust Gates & Final Hotspot Burn-down
-status: closeout_ready
+status: archived
 last_updated: "2026-03-19T23:59:00Z"
 progress:
   total_phases: 6
@@ -19,7 +19,7 @@ See: `.planning/PROJECT.md`
 
 **Current milestone:** `v1.4 Sustainment, Trust Gates & Final Hotspot Burn-down`
 **Core value:** 在不回退 `LiproProtocolFacade` / `Coordinator` 单一正式主链的前提下，把 continuity / release trust、protocol/runtime hotspots、typed exception hardening、control-home truth、authority naming、governance current story 与 mega-test topology 收口成一条可验证、可归档的正式能力链。
-**Current mode:** `Phase 39 complete`；`Phase 34 -> 39` 已于 `2026-03-19` 全部执行完成并通过 fresh hard gates，`v1.4` 当前处于 closeout-ready。`v1.2` 继续保持 archive-ready / handoff-ready，`v1.3` 继续保持 closeout-eligible 历史语义；当前默认 next action 是 `$gsd-complete-milestone v1.4`，而不是继续计划 `Phase 39`。
+**Current mode:** `Phase 39 complete`；`Phase 34 -> 39` 已于 `2026-03-19` 全部执行完成并通过 fresh hard gates，`v1.4` 已完成 milestone archive promotion，当前状态为 archived / shipped。`v1.2` 继续保持 archive-ready / handoff-ready，`v1.3` 继续保持 closeout-eligible 历史语义；当前默认 next action 是 `$gsd-new-milestone`。
 
 ## Current Position
 
@@ -138,17 +138,17 @@ See: `.planning/PROJECT.md`
 - **Milestone:** `v1.4 Sustainment, Trust Gates & Final Hotspot Burn-down`
 - **Phase range:** `34 -> 39`
 - **Completed so far:** `Phase 34` 到 `Phase 39`
-- **Closeout state:** `closeout-ready`（hard gates refreshed `2026-03-19`）
-- **Closeout assets:** `.planning/phases/39-governance-current-story-convergence-control-home-clarification-and-mega-test-decomposition/39-SUMMARY.md`, `.planning/phases/39-governance-current-story-convergence-control-home-clarification-and-mega-test-decomposition/39-VERIFICATION.md`, `.planning/phases/39-governance-current-story-convergence-control-home-clarification-and-mega-test-decomposition/39-VALIDATION.md`
-- **Historical archives:** `.planning/milestones/v1.2-ROADMAP.md`, `.planning/milestones/v1.2-REQUIREMENTS.md`
-- **Next focus:** `$gsd-complete-milestone v1.4`——归档当前里程碑并提升 Phase 39 closeout 资产；若只想复核当前 tranche，可运行 hard-gate 命令或 `$gsd-progress` 查看最终状态。
+- **Archive state:** `archived / shipped`（milestone audit passed and snapshots promoted `2026-03-19`）
+- **Archive assets:** `.planning/v1.4-MILESTONE-AUDIT.md`, `.planning/reviews/V1_4_EVIDENCE_INDEX.md`, `.planning/milestones/v1.4-ROADMAP.md`, `.planning/milestones/v1.4-REQUIREMENTS.md`, `.planning/phases/39-governance-current-story-convergence-control-home-clarification-and-mega-test-decomposition/39-SUMMARY.md`, `.planning/phases/39-governance-current-story-convergence-control-home-clarification-and-mega-test-decomposition/39-VERIFICATION.md`, local tag `v1.4`
+- **Historical archives:** `.planning/milestones/v1.2-ROADMAP.md`, `.planning/milestones/v1.2-REQUIREMENTS.md`, `.planning/milestones/v1.4-ROADMAP.md`, `.planning/milestones/v1.4-REQUIREMENTS.md`
+- **Next focus:** `$gsd-new-milestone`——启动下一轮 requirements / roadmap，而不是回写 `Phase 39` placeholder；若只想复核归档结果，可运行 hard-gate 命令或 `$gsd-progress` 查看当前状态。
 
 ## Recommended Next Command
 
-1. `$gsd-complete-milestone v1.4` —— 归档当前里程碑并把 `Phase 39` closeout 资产提升为正式里程碑证据
-2. `$gsd-progress` —— 查看 `v1.4 / Phase 39 complete` 当前状态与 traceability
-3. `uv run ruff check . && uv run mypy && uv run pytest -q tests/meta/test_governance*.py tests/meta/test_public_surface_guards.py tests/meta/test_version_sync.py tests/meta/test_toolchain_truth.py` —— 作为 post-closeout recheck snapshot
-4. `$gsd-plan-milestone-gaps` —— 仅当新的 repo audit 发现真实缺口时使用；不得把已完成的 `Phase 39` 回写成 placeholder
+1. `$gsd-new-milestone` —— 以 `v1.4` 归档基线启动下一轮 requirements / roadmap
+2. `$gsd-progress` —— 查看 `v1.4 archived` 当前状态与 traceability
+3. `uv run ruff check . && uv run mypy && uv run pytest -q tests/meta/test_governance*.py tests/meta/test_public_surface_guards.py tests/meta/test_version_sync.py tests/meta/test_toolchain_truth.py` —— 作为 post-archive recheck snapshot
+4. `$gsd-plan-milestone-gaps` —— 仅当新的 repo audit 发现真实缺口时使用；不得重写已归档的 `v1.4` 故事
 
 **Historical launch pointer:** `$gsd-execute-phase 29`
 

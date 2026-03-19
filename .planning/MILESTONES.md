@@ -52,3 +52,25 @@
 - `.planning/milestones/v1.2-REQUIREMENTS.md`
 
 ---
+
+## v1.4 Sustainment, Trust Gates & Final Hotspot Burn-down (Shipped: 2026-03-19)
+
+**Phase range:** `34 -> 39`
+**Phases completed:** 6 phases, 19 plans, 0 tasks
+**Status:** archived / evidence-ready
+
+**Key accomplishments:**
+- formalized continuity / custody / freeze contract，并补齐 tagged `CodeQL` hard gate、keyless `cosign` signing 与 provenance verification
+- 完成 protocol/runtime hotspot 最后一轮瘦身，把 exception / typed budget 与 child-façade seams 收回正式主链
+- 完成 mega-test 第三波 topicization、derived-truth convergence 与 final external-boundary residual retirement
+- 完成 governance current-story convergence、control-home clarification、dead-shell retirement 与 full hard-gate closeout promotion
+
+**Closeout assets:**
+- `.planning/v1.4-MILESTONE-AUDIT.md`
+- `.planning/reviews/V1_4_EVIDENCE_INDEX.md`
+- `.planning/milestones/v1.4-ROADMAP.md`
+- `.planning/milestones/v1.4-REQUIREMENTS.md`
+- `.planning/phases/39-governance-current-story-convergence-control-home-clarification-and-mega-test-decomposition/39-SUMMARY.md`
+- `.planning/phases/39-governance-current-story-convergence-control-home-clarification-and-mega-test-decomposition/39-VERIFICATION.md`
+
+---

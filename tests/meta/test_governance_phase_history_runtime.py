@@ -259,7 +259,7 @@ def test_phase_19_execution_truth_is_consistent() -> None:
     validation_text = (phase_root / "19-VALIDATION.md").read_text(encoding="utf-8")
     verification_text = (phase_root / "19-VERIFICATION.md").read_text(encoding="utf-8")
 
-    assert "## Current Milestone (v1.4)" in project_text
+    assert "## Archived Milestone (v1.4)" in project_text
     assert "**Historical archive assets:**" in project_text
     assert "## Current Milestone" in roadmap_text
     assert "### Phase 19: Headless Consumer Proof & Adapter Demotion" in roadmap_text
@@ -268,7 +268,7 @@ def test_phase_19_execution_truth_is_consistent() -> None:
     assert "**Plans**: 4/4 complete" in roadmap_text
     assert "# Requirements: Lipro-HASS" in requirements_text
     assert (
-        "*Last updated: 2026-03-19 after Phase 39 current-story convergence and closeout hardening*"
+        "*Last updated: 2026-03-19 after v1.4 milestone archive and closeout promotion*"
         in requirements_text
     )
     assert "## Archived Milestone (v1.2)" in requirements_text

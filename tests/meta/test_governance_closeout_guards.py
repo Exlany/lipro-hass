@@ -222,6 +222,8 @@ def test_milestone_archive_snapshots_exist_and_are_referenced() -> None:
         _ROOT / ".planning" / "milestones" / "v1.1-REQUIREMENTS.md",
         _ROOT / ".planning" / "milestones" / "v1.2-ROADMAP.md",
         _ROOT / ".planning" / "milestones" / "v1.2-REQUIREMENTS.md",
+        _ROOT / ".planning" / "milestones" / "v1.4-ROADMAP.md",
+        _ROOT / ".planning" / "milestones" / "v1.4-REQUIREMENTS.md",
     )
 
     for path in archive_paths:
@@ -232,6 +234,8 @@ def test_milestone_archive_snapshots_exist_and_are_referenced() -> None:
         "v1.1-REQUIREMENTS.md",
         "v1.2-ROADMAP.md",
         "v1.2-REQUIREMENTS.md",
+        "v1.4-ROADMAP.md",
+        "v1.4-REQUIREMENTS.md",
     ):
         assert needle in roadmap_text
         assert needle in requirements_text or needle in project_text or needle in milestones_text
@@ -240,6 +244,8 @@ def test_milestone_archive_snapshots_exist_and_are_referenced() -> None:
     assert "archived / evidence-ready" in milestones_text
     assert "archived snapshots created / handoff-ready" in milestones_text
     assert "revalidated 2026-03-17" in milestones_text
+    assert ".planning/v1.4-MILESTONE-AUDIT.md" in milestones_text
+    assert "V1_4_EVIDENCE_INDEX.md" in milestones_text
 
     v1_1_archive_text = (
         _ROOT / ".planning" / "milestones" / "v1.1-ROADMAP.md"
@@ -360,7 +366,7 @@ def test_phase_32_completion_truth_is_consistent() -> None:
     assert "`Phase 32` — truth convergence, gate honesty, and quality-10 closeout" in project_text
     assert "## Recommended Next Command" in state_text
     assert "$gsd-plan-milestone-gaps" in state_text
-    assert "$gsd-complete-milestone v1.4" in state_text
+    assert "$gsd-new-milestone" in state_text
     assert "$gsd-progress" in state_text
 
 
@@ -412,7 +418,7 @@ def test_phase_33_planning_truth_is_consistent() -> None:
     assert "**Execution promise:**" in project_text
     assert "## Recommended Next Command" in state_text
     assert "$gsd-plan-milestone-gaps" in state_text
-    assert "$gsd-complete-milestone v1.4" in state_text
+    assert "$gsd-new-milestone" in state_text
     assert "$gsd-progress" in state_text
 
 
@@ -451,7 +457,7 @@ def test_phase_34_planning_truth_is_consistent() -> None:
     assert "## Recommended Next Command" in state_text
     assert "$gsd-progress" in state_text
     assert "$gsd-plan-milestone-gaps" in state_text
-    assert "$gsd-complete-milestone v1.4" in state_text
+    assert "$gsd-new-milestone" in state_text
 
 
 def test_phase_35_planning_truth_is_consistent() -> None:
@@ -528,9 +534,9 @@ def test_phase_37_planning_truth_is_consistent() -> None:
     assert "| GOV-30 | Phase 37 | Complete |" in requirements_text
     assert "| QLT-09 | Phase 37 | Complete |" in requirements_text
     assert "## Phase 37 Test Topology & Derived-Truth Update" in project_text
-    assert "**Default next step:** `$gsd-complete-milestone v1.4`" in project_text
+    assert "**Default next step:** `$gsd-new-milestone`" in project_text
     assert "## Recommended Next Command" in state_text
-    assert "$gsd-complete-milestone v1.4" in state_text
+    assert "$gsd-new-milestone" in state_text
 
 
 def test_phase_38_planning_truth_is_consistent() -> None:
@@ -556,9 +562,9 @@ def test_phase_38_planning_truth_is_consistent() -> None:
     assert "| QLT-10 | Phase 38 | Complete |" in requirements_text
     assert "| GOV-31 | Phase 38 | Complete |" in requirements_text
     assert "## Phase 38 External-Boundary Residual & Quality-Signal Hardening Update" in project_text
-    assert "**Default next step:** `$gsd-complete-milestone v1.4`" in project_text
+    assert "**Default next step:** `$gsd-new-milestone`" in project_text
     assert "`Phase 39 complete`" in state_text
-    assert "$gsd-complete-milestone v1.4" in state_text
+    assert "$gsd-new-milestone" in state_text
     assert "| _None_ | — | — | — | Phase 38 已关闭最后一条已登记 residual family。 |" in residual_text
     assert "## Phase 38 Residual Delta" in residual_text
 
@@ -595,10 +601,10 @@ def test_phase_39_planning_truth_is_consistent() -> None:
     ):
         assert needle in requirements_text
 
-    assert "## Current Milestone (v1.4)" in project_text
+    assert "## Archived Milestone (v1.4)" in project_text
     assert "## Phase 39 Governance Current-Story & Mega-Test Closeout Update" in project_text
-    assert "**Default next step:** `$gsd-complete-milestone v1.4`" in project_text
+    assert "**Default next step:** `$gsd-new-milestone`" in project_text
     assert "`Phase 39 complete`" in state_text
-    assert "$gsd-complete-milestone v1.4" in state_text
+    assert "$gsd-new-milestone" in state_text
     assert "## Phase 39 Residual Delta" in residual_text
     assert "## Phase 39 Status Update" in kill_text

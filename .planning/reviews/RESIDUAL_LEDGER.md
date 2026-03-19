@@ -298,4 +298,4 @@
 - `custom_components/lipro/core/protocol/compat.py` dead shell 已物理删除；Phase 39 不再保留任何“空 compat 壳也算合法存在”的 folklore。
 - `get_device_list.envelope.json` 现被固定为唯一 authority asset；相关 replay manifests、tests、readmes 与 guards 已完成单命名收口，不再存在 compat / wrapped / envelope 并行叙事。
 - `custom_components/lipro/control/` 已在 north-star、developer docs、review ledgers 与治理守卫中被统一确认为 formal control-plane home；`custom_components/lipro/services/` 只再承担 service declarations / adapters / helpers 身份。
-- governance current-story placeholder 已关闭：`v1.4 / Phase 39 complete / closeout-ready` 成为唯一 active story，本 phase **无新增 active residual family**。
+- governance current-story placeholder 已关闭：`v1.4` 已完成 milestone archive promotion，`Phase 39 complete` 作为 historical closeout evidence 保留，本 phase **无新增 active residual family**。

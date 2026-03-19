@@ -1,6 +1,6 @@
 # Requirements: Lipro-HASS
 
-> Archived milestone snapshots: `.planning/milestones/v1.1-REQUIREMENTS.md`, `.planning/milestones/v1.2-REQUIREMENTS.md`
+> Archived milestone snapshots: `.planning/milestones/v1.1-REQUIREMENTS.md`, `.planning/milestones/v1.2-REQUIREMENTS.md`, `.planning/milestones/v1.4-REQUIREMENTS.md`
 
 ## Core Requirements
 
@@ -233,7 +233,7 @@
 - mapped to phases: 65
 - unmapped: 0 ✓
 
-*Last updated: 2026-03-19 after Phase 39 current-story convergence and closeout hardening*
+*Last updated: 2026-03-19 after v1.4 milestone archive and closeout promotion*
 
 
 ## Archived Milestone (v1.2)
@@ -411,9 +411,9 @@
 - Current pending: 0
 - Current unmapped: 0 ✓
 
-## Current Milestone (v1.4)
+## Archived Milestone (v1.4)
 
-> `v1.3` 的 milestone audit 已确认 `closeout-eligible`；以下 requirements 代表 `v1.4` 当前里程碑对 retained tech debt、fresh-audit follow-through 与 governance current-story convergence 的正式收口，而不是把 `v1.3` 回写成失败补洞。
+> `v1.4` 已于 `2026-03-19` 完成归档；以下 requirements / traceability 保留 `Phase 34 -> 39` 的最终 fulfilled contract，归档快照见 `.planning/milestones/v1.4-REQUIREMENTS.md`，审计裁决见 `.planning/v1.4-MILESTONE-AUDIT.md`，证据入口见 `.planning/reviews/V1_4_EVIDENCE_INDEX.md`。
 
 ### Continuity & Release Trust
 
