@@ -6,6 +6,7 @@
 - ✅ **v1.1 Protocol Fidelity & Operability** - Phases 7.1-17 complete; final audit complete; milestone snapshots archived at `.planning/milestones/v1.1-ROADMAP.md` / `.planning/milestones/v1.1-REQUIREMENTS.md` (updated 2026-03-16)
 - ✅ **v1.2 Host-Neutral Core & Replay Completion** - Phases 18-24 complete after Phase 24 reopen revalidation; 24 plans complete; milestone snapshots archived at `.planning/milestones/v1.2-ROADMAP.md` / `.planning/milestones/v1.2-REQUIREMENTS.md`; `v1.3` handoff-ready (revalidated 2026-03-17)
 - ✅ **v1.4 Sustainment, Trust Gates & Final Hotspot Burn-down** - Phases 34-39 shipped 2026-03-19; milestone audit: `.planning/v1.4-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_4_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.4-ROADMAP.md` / `.planning/milestones/v1.4-REQUIREMENTS.md`; local tag: `v1.4`
+- 🚧 **v1.5 Governance Truth Consolidation & Control-Surface Finalization** - starts with Phase 40 on 2026-03-19; focuses on authority layering, machine-readable governance truth, runtime-access convergence, and shared service execution closure
 
 ## Required Phase Outputs
 
@@ -730,3 +731,26 @@ Plans:
 - [x] 39-04: topicize device mqtt config-flow and anonymous-share mega-tests (completed 2026-03-19)
 - [x] 39-05: topicize governance mega-tests and promote phase 39 closeout evidence (completed 2026-03-19)
 - [x] 39-06: run phase-39 full validation gates and finalize closeout evidence (completed 2026-03-19)
+
+
+## v1.5: Governance Truth Consolidation & Control-Surface Finalization
+
+> `v1.4` 已归档，但 fresh audit 仍留下三类高价值尾债：governance truth layering 漂移、control-plane runtime read-model 分叉，以及 service auth/error 执行链重复。`v1.5` 从 `Phase 40` 起，继续沿单一北极星主链做最后一轮 current-truth 与 read-model 收口，不回退 compat/legacy 第二故事线。
+
+### Phase 40: Governance truth consolidation, runtime-access convergence, and service execution unification
+
+**Goal:** 把 active truth / archive snapshot / derived map / compatibility note 的资产分层重新收口到单一 current story；把 control/services 对 runtime 的读取统一回 `runtime_access`；把 schedule/service auth-error 执行链收敛到正式 shared executor，并顺手清理 touched naming residue 与 stale terminology。
+**Requirements**: [GOV-33, CTRL-09, ERR-10, RES-10, QLT-11]
+**Depends on:** Phase 39
+**Draft Success Criteria**:
+  1. `PROJECT / ROADMAP / REQUIREMENTS / STATE`、`docs/README.md` 与 baseline 三件套对 authority precedence、active truth、archive snapshot 与 promoted phase assets 讲同一条 current story，并吸收 `V1_4_EVIDENCE_INDEX.md` / `v1.4-MILESTONE-AUDIT.md` / `Phase 38-39` closeout contract。
+  2. continuity / release-trust / install-path / support-routing 事实收口到 machine-readable governance registry；README、README_zh、CONTRIBUTING、SUPPORT、SECURITY、TROUBLESHOOTING、runbook 与 issue/PR templates 由守卫强制同步，且补齐 break-glass verify-only / non-publish rehearsal 语义。
+  3. `runtime_access` 成为 control/services 的单一 runtime read-model：diagnostics/device lookup/maintenance 不再各自复制 coordinator 枚举或设备读取逻辑；`schedule.py` 复用 shared service execution auth/error chain；touched `client` / `forwarding` / `mixin` terminology 收口到 `protocol` / `port` / `facade` / `operations` 语义。
+**Status**: Planned (`2026-03-19`)
+**Plans**: 4 plans
+
+Plans:
+- [ ] 40-01: align active truth, archive identity, and v1.4 baseline/evidence pointers
+- [ ] 40-02: add governance registry plus continuity/release/install drift guards
+- [ ] 40-03: converge runtime-access read model across diagnostics, device lookup, and maintenance
+- [ ] 40-04: unify shared service execution and retire touched naming residue

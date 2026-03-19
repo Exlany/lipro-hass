@@ -1,14 +1,14 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.4
-milestone_name: Sustainment, Trust Gates & Final Hotspot Burn-down
-status: archived
-last_updated: "2026-03-19T23:59:00Z"
+milestone: v1.5
+milestone_name: Governance Truth Consolidation & Control-Surface Finalization
+status: active
+last_updated: "2026-03-19T23:59:59Z"
 progress:
-  total_phases: 6
-  completed_phases: 6
-  total_plans: 19
-  completed_plans: 19
+  total_phases: 1
+  completed_phases: 0
+  total_plans: 4
+  completed_plans: 0
 ---
 
 # Project State
@@ -17,9 +17,9 @@ progress:
 
 See: `.planning/PROJECT.md`
 
-**Current milestone:** `v1.4 Sustainment, Trust Gates & Final Hotspot Burn-down`
-**Core value:** 在不回退 `LiproProtocolFacade` / `Coordinator` 单一正式主链的前提下，把 continuity / release trust、protocol/runtime hotspots、typed exception hardening、control-home truth、authority naming、governance current story 与 mega-test topology 收口成一条可验证、可归档的正式能力链。
-**Current mode:** `Phase 39 complete`；`Phase 34 -> 39` 已于 `2026-03-19` 全部执行完成并通过 fresh hard gates，`v1.4` 已完成 milestone archive promotion，当前状态为 archived / shipped。`v1.2` 继续保持 archive-ready / handoff-ready，`v1.3` 继续保持 closeout-eligible 历史语义；当前默认 next action 是 `$gsd-new-milestone`。
+**Current milestone:** `v1.5 Governance Truth Consolidation & Control-Surface Finalization`
+**Core value:** 在不回退 `LiproProtocolFacade` / `Coordinator` 单一正式主链的前提下，把 authority layering、machine-readable governance truth、runtime-access read-model 与 shared service execution contract 收口成更诚实、更可守护的 current story。
+**Current mode:** `Phase 40 planning`；`v1.4` 已于 `2026-03-19` 完成 archive promotion，当前正在把 fresh-audit follow-through 路由到 `Phase 40`，默认 next action 为 `$gsd-plan-phase 40`。
 
 ## Current Position
 
@@ -135,20 +135,19 @@ See: `.planning/PROJECT.md`
 
 ## Current Milestone Status
 
-- **Milestone:** `v1.4 Sustainment, Trust Gates & Final Hotspot Burn-down`
-- **Phase range:** `34 -> 39`
-- **Completed so far:** `Phase 34` 到 `Phase 39`
-- **Archive state:** `archived / shipped`（milestone audit passed and snapshots promoted `2026-03-19`）
-- **Archive assets:** `.planning/v1.4-MILESTONE-AUDIT.md`, `.planning/reviews/V1_4_EVIDENCE_INDEX.md`, `.planning/milestones/v1.4-ROADMAP.md`, `.planning/milestones/v1.4-REQUIREMENTS.md`, `.planning/phases/39-governance-current-story-convergence-control-home-clarification-and-mega-test-decomposition/39-SUMMARY.md`, `.planning/phases/39-governance-current-story-convergence-control-home-clarification-and-mega-test-decomposition/39-VERIFICATION.md`, local tag `v1.4`
-- **Historical archives:** `.planning/milestones/v1.2-ROADMAP.md`, `.planning/milestones/v1.2-REQUIREMENTS.md`, `.planning/milestones/v1.4-ROADMAP.md`, `.planning/milestones/v1.4-REQUIREMENTS.md`
-- **Next focus:** `$gsd-new-milestone`——启动下一轮 requirements / roadmap，而不是回写 `Phase 39` placeholder；若只想复核归档结果，可运行 hard-gate 命令或 `$gsd-progress` 查看当前状态。
+- **Milestone:** `v1.5 Governance Truth Consolidation & Control-Surface Finalization`
+- **Phase range:** `40 -> ...`
+- **Completed so far:** `none`（`Phase 40` pending planning/execution）
+- **Starting baseline:** `v1.4` archive assets remain authoritative historical snapshots: `.planning/v1.4-MILESTONE-AUDIT.md`, `.planning/reviews/V1_4_EVIDENCE_INDEX.md`, `.planning/milestones/v1.4-ROADMAP.md`, `.planning/milestones/v1.4-REQUIREMENTS.md`, local tag `v1.4`
+- **Historical archives:** `.planning/milestones/v1.1-ROADMAP.md`, `.planning/milestones/v1.1-REQUIREMENTS.md`, `.planning/milestones/v1.2-ROADMAP.md`, `.planning/milestones/v1.2-REQUIREMENTS.md`, `.planning/milestones/v1.4-ROADMAP.md`, `.planning/milestones/v1.4-REQUIREMENTS.md`
+- **Next focus:** `$gsd-plan-phase 40`——先固化 plan，再执行 fresh-audit follow-through；不得回写 `Phase 39` placeholder，也不得把 archive snapshot 误升为 current truth。
 
 ## Recommended Next Command
 
-1. `$gsd-new-milestone` —— 以 `v1.4` 归档基线启动下一轮 requirements / roadmap
-2. `$gsd-progress` —— 查看 `v1.4 archived` 当前状态与 traceability
-3. `uv run ruff check . && uv run mypy && uv run pytest -q tests/meta/test_governance*.py tests/meta/test_public_surface_guards.py tests/meta/test_version_sync.py tests/meta/test_toolchain_truth.py` —— 作为 post-archive recheck snapshot
-4. `$gsd-plan-milestone-gaps` —— 仅当新的 repo audit 发现真实缺口时使用；不得重写已归档的 `v1.4` 故事
+1. `$gsd-plan-phase 40` —— 为 `v1.5` 的 first tranche 固化 plan / verification loop
+2. `$gsd-execute-phase 40` —— 执行 governance truth + runtime-access + shared execution 收口
+3. `$gsd-progress` —— 查看 `v1.5 / Phase 40` 当前状态与 traceability
+4. `uv run ruff check . && uv run mypy && uv run pytest -q tests/meta/test_governance*.py tests/meta/test_public_surface_guards.py tests/meta/test_version_sync.py tests/meta/test_toolchain_truth.py` —— 作为 phase-40 planning / execution snapshot
 
 **Historical launch pointer:** `$gsd-execute-phase 29`
 

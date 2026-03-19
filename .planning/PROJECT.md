@@ -1,7 +1,25 @@
 # Project: Lipro-HASS North Star Evolution
 
-**Status:** Shipped and archived — `v1.4` 已于 `2026-03-19` 完成 milestone audit、archive snapshots、`V1_4_EVIDENCE_INDEX.md` 与本地 tag `v1.4`；`v1.2` 继续保持 archive-ready，`v1.3` 保持历史 closeout-eligible 语义。
-**Goal:** 保持 `v1.4` 归档后的单一北极星主链真相，为下一里程碑提供干净、可审计、无 placeholder 的起点。
+**Status:** Active follow-through — `v1.4` 已于 `2026-03-19` 完成 milestone archive promotion；当前已开启 `v1.5 / Phase 40`，继续收口 governance truth layering、runtime-access read-model 与 shared service execution contract。
+**Goal:** 以 `v1.4` 归档真相为稳定基线，完成 post-archive governance consolidation、control-plane read-model convergence 与 service execution unification，不留下 placeholder、compat folklore 或 second-story drift。
+
+
+## Active Milestone (v1.5)
+
+**Name:** `v1.5 Governance Truth Consolidation & Control-Surface Finalization`
+
+**Why now:** `v1.4` 已经把 release trust、control-home truth、热点瘦身与 mega-test 拆分推进到 archived / evidence-ready，但 fresh audit 仍发现两类仍值得正式路由的尾债：一是 authority precedence / archive snapshot / derived-map identity 的口径没有完全同步；二是 `runtime_access` / diagnostics / device lookup / maintenance / schedule execution 之间还残留少量 duplicated read-model 与 auth/error chain。
+
+**North-star fit:** `v1.5` 不是新架构，而是继续沿现有单一正式主链推进：
+
+- 不重开 `compat shell`、`legacy client` 或第二 protocol/runtime/control root
+- 不把 `.planning/milestones/*.md` 或 `.planning/codebase/*.md` 误升为 active truth
+- 不让 control/services 重新各自复制 runtime locator / device read-model / auth-error semantics
+- 不用“兼容壳保留”来掩盖 stale naming、forwarding residue 或 governance drift
+
+**Phase range:** `Phase 40 -> ...`
+**Current status:** `Phase 40 planned`（GSD planning requested on `2026-03-19`）
+**Primary closeout targets:** authority layering、machine-readable governance truth、runtime-access read-model convergence、shared service execution contract、touched naming residue 收口。
 
 ## Archived Milestone (v1.4)
 
@@ -101,7 +119,7 @@
 5. `Phase 38` — external-boundary residual retirement and quality-signal hardening
 6. `Phase 39` — governance current-story convergence, control-home clarification, and mega-test decomposition
 
-**Default next step:** `$gsd-new-milestone`
+**Default next step:** `$gsd-plan-phase 40` → `$gsd-execute-phase 40`
 
 ## Phase 34 Seed Hardening Update
 
