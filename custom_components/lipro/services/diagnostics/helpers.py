@@ -42,6 +42,7 @@ from .types import (
 _LOGGER = logging.getLogger(__name__)
 _ResultT = TypeVar("_ResultT")
 _CoordinatorT = TypeVar("_CoordinatorT")
+_CAPABILITY_PROJECTION_ERRORS = (RuntimeError, ValueError, TypeError, LookupError)
 
 
 # Parameter extraction utilities
@@ -119,7 +120,9 @@ def _collect_coordinator_capability_results(
             results.append(collector(coordinator))
         except asyncio.CancelledError:
             raise
-        except Exception as err:  # noqa: BLE001
+        except HomeAssistantError:
+            raise
+        except _CAPABILITY_PROJECTION_ERRORS as err:
             _LOGGER.warning(
                 "Skip one %s capability due to error (%s)",
                 capability,
@@ -145,7 +148,7 @@ async def _async_get_first_coordinator_capability_result(
             raise
         except LiproApiError as err:
             last_api_error = err
-        except Exception as err:  # noqa: BLE001
+        except _CAPABILITY_PROJECTION_ERRORS as err:
             _LOGGER.warning(
                 "Skip one %s capability due to unexpected error (%s)",
                 capability,
@@ -178,7 +181,7 @@ async def _async_get_first_authenticated_coordinator_capability_result(
             await coordinator.auth_service.async_trigger_reauth("auth_error")
         except LiproApiError as err:
             last_api_error = err
-        except Exception as err:  # noqa: BLE001
+        except _CAPABILITY_PROJECTION_ERRORS as err:
             _LOGGER.warning(
                 "Skip one %s capability due to unexpected error (%s)",
                 capability,
@@ -201,7 +204,9 @@ def collect_developer_reports(
                 reports.append(dict(exporter_report))
         except asyncio.CancelledError:
             raise
-        except Exception as err:  # noqa: BLE001
+        except HomeAssistantError:
+            raise
+        except _CAPABILITY_PROJECTION_ERRORS as err:
             _LOGGER.warning(
                 "Skip one %s capability due to error (%s)",
                 "coordinator developer report",

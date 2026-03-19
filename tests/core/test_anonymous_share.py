@@ -1022,7 +1022,7 @@ class TestScopedAnonymousShareManager:
     """Tests for scoped anonymous-share managers."""
 
     def test_explicit_entry_scopes_do_not_pollute_each_other(self, monkeypatch):
-        monkeypatch.setattr(manager_module, "_share_manager", None)
+        manager_module._get_root_manager.cache_clear()
         hass = MagicMock()
         hass.data = {}
 
@@ -1055,7 +1055,7 @@ class TestObservabilityScope:
     def test_default_observability_path_still_records_to_default_scope(
         self, monkeypatch
     ):
-        monkeypatch.setattr(manager_module, "_share_manager", None)
+        manager_module._get_root_manager.cache_clear()
         manager = get_anonymous_share_manager()
         manager.set_enabled(True, error_reporting=True, installation_id="default")
 
@@ -1068,7 +1068,7 @@ class TestObservabilityScope:
         assert errors[0]["endpoint"] == "/api/default"
 
     def test_observability_entry_scope_targets_matching_manager(self, monkeypatch):
-        monkeypatch.setattr(manager_module, "_share_manager", None)
+        manager_module._get_root_manager.cache_clear()
         hass = MagicMock()
         hass.data = {}
 

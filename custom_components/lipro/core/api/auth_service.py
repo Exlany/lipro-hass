@@ -1,5 +1,4 @@
 """Auth endpoint service for Lipro API client."""
-# ruff: noqa: SLF001
 
 from __future__ import annotations
 
@@ -14,19 +13,29 @@ from .types import ApiResponse, LoginResponse
 class AuthClient(Protocol):
     """Minimal client surface consumed by the auth endpoint service."""
 
-    _access_token: str | None
-    _refresh_token: str | None
-    _user_id: int | None
-    _biz_id: str | None
+    access_token: str | None
+    refresh_token: str | None
+    user_id: int | None
+    biz_id: str | None
 
-    async def _smart_home_request(
+    async def smart_home_request(
         self,
         path: str,
         data: dict[str, Any],
         require_auth: bool = True,
         is_retry: bool = False,
         retry_count: int = 0,
-    ) -> ApiResponse: ...
+    ) -> ApiResponse:
+        """Execute one Smart Home request through the formal REST surface."""
+
+    def set_tokens(
+        self,
+        access_token: str,
+        refresh_token: str,
+        user_id: int | None = None,
+        biz_id: str | None = None,
+    ) -> None:
+        """Persist freshly issued auth/session fields onto client state."""
 
 
 class AuthApiService:
@@ -69,11 +78,23 @@ class AuthApiService:
     def _persist_session_state(self, result: ApiResponse, *, context: str) -> None:
         """Persist normalized auth/session fields onto the client."""
         access_token, refresh_token = self._require_tokens(result, context=context)
-        self._client._access_token = access_token
-        self._client._refresh_token = refresh_token
-        self._client._user_id = self._coerce_user_id(result.get("userId"))
         raw_biz_id = result.get("bizId")
-        self._client._biz_id = raw_biz_id if isinstance(raw_biz_id, str) else None
+        self._client.set_tokens(
+            access_token=access_token,
+            refresh_token=refresh_token,
+            user_id=self._coerce_user_id(result.get("userId")),
+            biz_id=raw_biz_id if isinstance(raw_biz_id, str) else None,
+        )
+
+    def _build_login_response(self) -> LoginResponse:
+        """Return the normalized auth payload exposed by the REST facade."""
+        return {
+            "access_token": self._client.access_token or "",
+            "refresh_token": self._client.refresh_token or "",
+            "expires_in": 0,
+            "user_id": 0 if self._client.user_id is None else self._client.user_id,
+            "biz_id": self._client.biz_id,
+        }
 
     async def login(
         self,
@@ -89,7 +110,7 @@ class AuthApiService:
             else hashlib.md5(password.encode("utf-8"), usedforsecurity=False).hexdigest()
         )
 
-        result = await self._client._smart_home_request(
+        result = await self._client.smart_home_request(
             PATH_LOGIN,
             {
                 "phone": phone,
@@ -100,24 +121,18 @@ class AuthApiService:
 
         self._persist_session_state(result, context="Login")
         self._logger.info("Login successful")
-        return {
-            "access_token": self._client._access_token or "",
-            "refresh_token": self._client._refresh_token or "",
-            "expires_in": 0,
-            "user_id": 0 if self._client._user_id is None else self._client._user_id,
-            "biz_id": self._client._biz_id,
-        }
+        return self._build_login_response()
 
     async def refresh_access_token(self) -> LoginResponse:
         """Refresh access token."""
-        if not self._client._refresh_token:
+        if not self._client.refresh_token:
             msg = "No refresh token available"
             raise self._auth_error_cls(msg)
 
-        result = await self._client._smart_home_request(
+        result = await self._client.smart_home_request(
             PATH_REFRESH_TOKEN,
             {
-                "refreshToken": self._client._refresh_token,
+                "refreshToken": self._client.refresh_token,
                 "model": "HomeAssistant",
             },
             require_auth=False,
@@ -125,10 +140,4 @@ class AuthApiService:
 
         self._persist_session_state(result, context="Refresh")
         self._logger.info("Token refreshed successfully")
-        return {
-            "access_token": self._client._access_token or "",
-            "refresh_token": self._client._refresh_token or "",
-            "expires_in": 0,
-            "user_id": 0 if self._client._user_id is None else self._client._user_id,
-            "biz_id": self._client._biz_id,
-        }
+        return self._build_login_response()

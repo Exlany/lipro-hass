@@ -159,6 +159,28 @@ async def test_connection_manager_run_connection_loop_stops_on_cancelled_error()
 
 
 @pytest.mark.asyncio
+async def test_connection_manager_run_connection_loop_reraises_programming_error() -> None:
+    manager = MqttConnectionManager()
+    set_last_error = MagicMock()
+    handle_disconnect = MagicMock()
+    sleep = AsyncMock()
+
+    with pytest.raises(TypeError, match="bad callback"):
+        await manager.run_connection_loop(
+            is_running=lambda: True,
+            connect_and_listen=AsyncMock(side_effect=TypeError("bad callback")),
+            set_last_error=set_last_error,
+            handle_disconnect=handle_disconnect,
+            sleep=sleep,
+            jitter_source=lambda _low, _high: 0.0,
+        )
+
+    set_last_error.assert_not_called()
+    handle_disconnect.assert_not_called()
+    sleep.assert_not_awaited()
+
+
+@pytest.mark.asyncio
 async def test_connection_manager_run_connection_loop_resets_backoff_after_success() -> None:
     manager = MqttConnectionManager()
     set_last_error = MagicMock()

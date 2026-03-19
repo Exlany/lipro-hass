@@ -52,6 +52,19 @@ Thank you for your interest in contributing to the Lipro Smart Home integration!
    Access Home Assistant at http://localhost:8123
    在 http://localhost:8123 访问 Home Assistant
 
+### 10-Minute Contribution Path / 10 分钟贡献路径
+
+For a focused contribution loop, use this order:
+如需走最短贡献闭环，建议按这个顺序执行：
+
+1. `./scripts/setup`
+2. `uv run pytest -q <targeted-tests>` for the files you changed / 针对改动文件先跑定向测试
+3. `uv run ruff check . && uv run mypy` before opening a PR / 提交 PR 前至少跑一次静态检查
+4. Run the full CI-equivalent suite only when the change touches shared runtime, protocol, governance, or release paths / 仅当改动触及共享 runtime、protocol、governance、release 路径时，再补全量验证
+
+Need routing help? Use `SUPPORT.md`. Need maintainer continuity or release custody context? Use `docs/MAINTAINER_RELEASE_RUNBOOK.md`.
+如需支持路由，请看 `SUPPORT.md`；如需维护者连续性或发版托管上下文，请看 `docs/MAINTAINER_RELEASE_RUNBOOK.md`。
+
 ## Documentation & Maintainer Entry Points / 文档与维护入口
 
 - Public entry docs: `README.md`, `README_zh.md`, `CONTRIBUTING.md`

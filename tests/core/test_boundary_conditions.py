@@ -293,7 +293,7 @@ class TestSignatureEdgeCases:
         from custom_components.lipro.core.api import LiproRestFacade
 
         client = LiproRestFacade(phone_id="test_id")
-        client._access_token = "test_token"
+        client.access_token = "test_token"
         signature = client._iot_sign(1000167890, "")
         assert len(signature) == 32  # MD5 produces 32 hex chars
 
@@ -302,7 +302,7 @@ class TestSignatureEdgeCases:
         from custom_components.lipro.core.api import LiproRestFacade
 
         client = LiproRestFacade(phone_id="test_id")
-        client._access_token = "test_token"
+        client.access_token = "test_token"
         nonce = 1000167890
         sig_trimmed = client._iot_sign(nonce, '{"key": "value"}')
         sig_padded = client._iot_sign(nonce, '  {"key": "value"}  ')

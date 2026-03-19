@@ -452,6 +452,38 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
         """Run adaptive REST status polling via StatusRuntime."""
         await self._polling_service.async_run_status_polling()
 
+    async def _async_refresh_snapshot_if_needed(self) -> None:
+        """Refresh the canonical device snapshot when runtime policy requests it."""
+        if not self._runtimes.device.should_refresh_device_list():
+            return
+        async with asyncio.timeout(10):
+            await self._async_refresh_device_snapshot(
+                force=True,
+                mqtt_timeout_seconds=5,
+            )
+
+    async def _async_setup_mqtt_if_needed(self) -> None:
+        """Attach MQTT transport when devices exist and no transport is bound yet."""
+        if self._runtimes.mqtt.has_transport or not self._state.devices:
+            return
+        async with asyncio.timeout(5):
+            await self.async_setup_mqtt()
+
+    async def _async_run_status_polling_if_needed(self) -> None:
+        """Run adaptive status polling only when devices are currently tracked."""
+        if not self._state.devices:
+            return
+        async with asyncio.timeout(10):
+            await self._async_run_status_polling()
+
+    async def _async_run_update_cycle(self) -> None:
+        """Run the coordinator's scheduled update stages inside the global timeout."""
+        async with asyncio.timeout(30):
+            await self.auth_service.async_ensure_authenticated()
+            await self._async_refresh_snapshot_if_needed()
+            await self._async_setup_mqtt_if_needed()
+            await self._async_run_status_polling_if_needed()
+
     async def _async_update_data(self) -> dict[str, LiproDevice]:
         """Fetch data from API.
 
@@ -465,29 +497,7 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
             UpdateFailed: If update fails
         """
         try:
-            # Add total timeout protection (30 seconds)
-            async with asyncio.timeout(30):
-                # Ensure authentication is valid (no specific timeout, uses API timeout)
-                await self.auth_service.async_ensure_authenticated()
-
-                # Refresh device list if needed (10 seconds timeout)
-                if self._runtimes.device.should_refresh_device_list():
-                    async with asyncio.timeout(10):
-                        await self._async_refresh_device_snapshot(
-                            force=True,
-                            mqtt_timeout_seconds=5,
-                        )
-
-                # Schedule MQTT setup if needed (5 seconds timeout)
-                if not self._runtimes.mqtt.has_transport and self._state.devices:
-                    async with asyncio.timeout(5):
-                        await self.async_setup_mqtt()
-
-                # Run adaptive status polling.
-                if self._state.devices:
-                    async with asyncio.timeout(10):
-                        await self._async_run_status_polling()
-
+            await self._async_run_update_cycle()
             self.telemetry_service.record_update_success()
             return self._state.devices
 

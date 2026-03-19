@@ -17,6 +17,8 @@ from ...const.api import (
 )
 
 _LOGGER = logging.getLogger(__package__ or __name__)
+_CALLBACK_BOUNDARY_EXCEPTIONS = (RuntimeError, ValueError, LookupError)
+_RECOVERABLE_LOOP_EXCEPTIONS = (RuntimeError, LookupError)
 
 
 @dataclass(slots=True)
@@ -39,7 +41,7 @@ class MqttConnectionManager:
             return True
         try:
             callback(*args)
-        except Exception as err:
+        except _CALLBACK_BOUNDARY_EXCEPTIONS as err:
             set_last_error(err)
             _LOGGER.exception(
                 "MQTT %s callback failed (%s)",
@@ -61,7 +63,7 @@ class MqttConnectionManager:
             return
         try:
             self.on_error(err)
-        except Exception as callback_err:
+        except _CALLBACK_BOUNDARY_EXCEPTIONS as callback_err:
             _LOGGER.exception(
                 "MQTT error callback failed (%s)",
                 type(callback_err).__name__,
@@ -145,7 +147,7 @@ class MqttConnectionManager:
             except ValueError as err:
                 set_last_error(err)
                 handle_disconnect(f"MQTT value error: {err}")
-            except Exception as err:
+            except _RECOVERABLE_LOOP_EXCEPTIONS as err:
                 _LOGGER.exception(
                     "Unexpected MQTT loop error (%s)",
                     type(err).__name__,

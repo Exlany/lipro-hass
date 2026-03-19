@@ -57,6 +57,9 @@ type LifecycleContractName = Literal[
 ]
 
 
+_DEGRADABLE_UNLOAD_EXCEPTIONS = (RuntimeError, OSError, TimeoutError, ValueError, LookupError)
+
+
 @dataclass(frozen=True, slots=True)
 class LifecycleFailureContract:
     """Named lifecycle failure contract for one control-plane branch."""
@@ -281,7 +284,7 @@ class EntryLifecycleController:
             await coordinator.async_shutdown()
         except asyncio.CancelledError:
             raise
-        except Exception as err:  # noqa: BLE001
+        except _DEGRADABLE_UNLOAD_EXCEPTIONS as err:
             contract = self._classify_unload_failure(err)
             self._log_lifecycle_contract(contract, warning=True)
 

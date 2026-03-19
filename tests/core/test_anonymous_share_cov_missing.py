@@ -60,8 +60,8 @@ def test_manager_get_pending_report_includes_method_prefix_and_count_suffix() ->
 def test_get_anonymous_share_manager_without_hass_creates_singleton_when_missing(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """manager.py:340 - branch when global singleton is missing."""
-    monkeypatch.setattr(manager_module, "_share_manager", None)
+    """manager.py - cached root manager should be recreated when cache is cleared."""
+    manager_module._get_root_manager.cache_clear()
 
     mgr1 = manager_module.get_anonymous_share_manager()
     mgr2 = manager_module.get_anonymous_share_manager()
@@ -76,7 +76,7 @@ def test_get_anonymous_share_manager_with_corrupt_domain_data_does_not_crash(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """manager.py - corrupted hass domain data falls back to root-scoped views."""
-    monkeypatch.setattr(manager_module, "_share_manager", None)
+    manager_module._get_root_manager.cache_clear()
 
     hass = MagicMock()
     hass.data = {DOMAIN: "not-a-dict"}

@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import asyncio
 from dataclasses import dataclass, field
+from functools import lru_cache
 import logging
 import time
 from typing import TYPE_CHECKING
@@ -363,6 +364,64 @@ class AnonymousShareManager:
             return None
         return self.build_report()
 
+    async def _async_submit_share_payload(
+        self,
+        session: aiohttp.ClientSession,
+        report: dict[str, object],
+        *,
+        label: str,
+    ) -> bool:
+        """Submit one prepared payload through the current scope's share client."""
+        return await self._share_client.submit_share_payload(
+            session,
+            report,
+            label=label,
+            ensure_loaded=self.async_ensure_loaded,
+        )
+
+    def _has_pending_report_data(self) -> bool:
+        """Return whether the current scope has reportable pending data."""
+        if self._collector.devices or self._collector.errors:
+            return True
+        _LOGGER.debug("No anonymous share data to report")
+        return False
+
+    def _should_skip_report_submission(self, *, force: bool) -> bool:
+        """Return whether the current scope should skip one upload attempt."""
+        if force:
+            return False
+        elapsed = time.time() - self._last_upload_time
+        if elapsed >= MIN_UPLOAD_INTERVAL:
+            return False
+        _LOGGER.debug(
+            "Skipping anonymous share upload, last upload was %d seconds ago",
+            int(elapsed),
+        )
+        return True
+
+    async def _async_finalize_successful_submit(self) -> None:
+        """Finalize a successful current-scope anonymous-share submission."""
+        device_count, error_count = self.pending_count
+        _LOGGER.info(
+            "Anonymous share report submitted: %d devices, %d errors",
+            device_count,
+            error_count,
+        )
+        self._last_upload_time = time.time()
+        for device in self._collector.devices.values():
+            self._reported_device_keys.add(device.iot_name)
+        await asyncio.to_thread(self._save_reported_devices)
+        self.clear()
+
+    def _should_submit_if_needed(self) -> bool:
+        """Return whether automatic submission thresholds are currently met."""
+        device_count, error_count = self.pending_count
+        return (
+            device_count >= MAX_PENDING_DEVICES
+            or error_count >= MAX_PENDING_ERRORS
+            or (time.time() - self._last_upload_time) > AUTO_UPLOAD_INTERVAL
+        )
+
     async def submit_developer_feedback(
         self, session: aiohttp.ClientSession, feedback: dict[str, object]
     ) -> bool:
@@ -395,37 +454,19 @@ class AnonymousShareManager:
             return success
         if not self._collector.is_enabled:
             return False
-        if not self._collector.devices and not self._collector.errors:
-            _LOGGER.debug("No anonymous share data to report")
+        if not self._has_pending_report_data():
             return True
-        if not force:
-            elapsed = time.time() - self._last_upload_time
-            if elapsed < MIN_UPLOAD_INTERVAL:
-                _LOGGER.debug(
-                    "Skipping anonymous share upload, last upload was %d seconds ago",
-                    int(elapsed),
-                )
-                return True
+        if self._should_skip_report_submission(force=force):
+            return True
         async with self._state.upload_lock:
             report = self.build_report()
-            if not await self._share_client.submit_share_payload(
+            if not await self._async_submit_share_payload(
                 session,
                 report,
                 label="Anonymous share",
-                ensure_loaded=self.async_ensure_loaded,
             ):
                 return False
-            device_count, error_count = self.pending_count
-            _LOGGER.info(
-                "Anonymous share report submitted: %d devices, %d errors",
-                device_count,
-                error_count,
-            )
-            self._last_upload_time = time.time()
-            for device in self._collector.devices.values():
-                self._reported_device_keys.add(device.iot_name)
-            await asyncio.to_thread(self._save_reported_devices)
-            self.clear()
+            await self._async_finalize_successful_submit()
             return True
 
     async def submit_if_needed(self, session: aiohttp.ClientSession) -> bool:
@@ -437,25 +478,15 @@ class AnonymousShareManager:
             return success
         if not self._collector.is_enabled:
             return True
-        device_count, error_count = self.pending_count
-        should_upload = (
-            device_count >= MAX_PENDING_DEVICES
-            or error_count >= MAX_PENDING_ERRORS
-            or (time.time() - self._last_upload_time) > AUTO_UPLOAD_INTERVAL
-        )
-        if should_upload:
+        if self._should_submit_if_needed():
             return await self.submit_report(session)
         return True
 
 
-_share_manager: AnonymousShareManager | None = None
-
-
+@lru_cache(maxsize=1)
 def _get_root_manager() -> AnonymousShareManager:
-    global _share_manager  # noqa: PLW0603
-    if _share_manager is None:
-        _share_manager = AnonymousShareManager(_aggregate=True)
-    return _share_manager
+    """Return the default process-local root manager shared outside HA scope."""
+    return AnonymousShareManager(_aggregate=True)
 
 
 def get_anonymous_share_manager(

@@ -1,2 +1,3 @@
-# Continuity contract / 连续性合同：the maintainer listed here is the primary triage owner and release custodian. No documented delegate exists today; if unavailable, freeze new tagged releases and new release promises, keep support/security intake active, and restore custody only after CODEOWNERS + runbook record a real successor or delegate.
+# Primary triage owner and release custodian. See `SUPPORT.md` and `docs/MAINTAINER_RELEASE_RUNBOOK.md`.
+# No documented delegate exists today; freeze new tagged releases and restore custody only after it is recorded there.
 * @Exlany

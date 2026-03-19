@@ -53,7 +53,7 @@ class TestLiproRestFacadeInit:
         client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
 
         assert client.phone_id == "550e8400-e29b-41d4-a716-446655440000"
-        assert client._session is None
+        assert client.session is None
 
 
 class TestLiproRestFacadeTokens:
@@ -79,7 +79,7 @@ class TestLiproRestFacadeTokens:
         callback = AsyncMock()
         client.set_token_refresh_callback(callback)
 
-        assert client._on_token_refresh is callback
+        assert client.on_token_refresh is callback
 
 
 class TestLiproRestFacadeSignature:

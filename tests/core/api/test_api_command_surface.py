@@ -845,14 +845,14 @@ class TestLiproRestFacadeBizId:
             biz_id="lip_biz001",
         )
 
-        assert client._biz_id == "lip_biz001"
+        assert client.biz_id == "lip_biz001"
 
     def test_biz_id_default(self):
         """Test that biz_id defaults to None."""
         client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("access", "refresh")
 
-        assert client._biz_id is None
+        assert client.biz_id is None
 
     @pytest.mark.asyncio
     async def test_429_with_huge_retry_after_is_capped(self):

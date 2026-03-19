@@ -275,8 +275,8 @@ class LiproLightGearSelect(LiproSelect):
     _entity_suffix = "gear"
 
     @staticmethod
-    def _coerce_gear_int(value: object) -> int | None:
-        """Convert one gear field value to int safely."""
+    def _coerce_int_like(value: object) -> int | None:
+        """Convert one int-like gear field value safely."""
         if value is None:
             return None
         if isinstance(value, bool):
@@ -295,17 +295,87 @@ class LiproLightGearSelect(LiproSelect):
                 return None
         return None
 
+    @staticmethod
+    def _coerce_gear_int(value: object) -> int | None:
+        """Backward-compatible alias for int-like gear coercion."""
+        return LiproLightGearSelect._coerce_int_like(value)
+
     @classmethod
     def _extract_gear_values(cls, gear: object) -> tuple[int, int] | None:
         """Extract (brightness, temperature_percent) from one gear payload."""
         if not isinstance(gear, dict):
             return None
 
-        brightness = cls._coerce_gear_int(gear.get("brightness"))
-        temp_pct = cls._coerce_gear_int(gear.get("temperature"))
+        brightness = cls._coerce_int_like(gear.get("brightness"))
+        temp_pct = cls._coerce_int_like(gear.get("temperature"))
         if brightness is None or temp_pct is None:
             return None
         return brightness, temp_pct
+
+    def _iter_valid_gear_presets(self) -> list[tuple[int, object, int, int]]:
+        """Return valid gear presets while preserving the original gear index."""
+        presets: list[tuple[int, object, int, int]] = []
+        for gear_index, gear in enumerate(self.device.extras.gear_list[:_MAX_GEAR_COUNT]):
+            values = self._extract_gear_values(gear)
+            if values is None:
+                continue
+            brightness, temp_pct = values
+            presets.append((gear_index, gear, brightness, temp_pct))
+        return presets
+
+    def _resolve_current_gear_option(self) -> str | None:
+        """Resolve the current option by exact brightness/temperature match."""
+        current_brightness = self.device.state.brightness
+        current_temp_pct = self.device.state.get_int_property(PROP_TEMPERATURE, -1)
+        for gear_index, _gear, brightness, temp_pct in self._iter_valid_gear_presets():
+            if current_brightness == brightness and current_temp_pct == temp_pct:
+                return GEAR_OPTIONS[gear_index]
+        return None
+
+    def _build_gear_attributes(self) -> dict[str, object]:
+        """Build extra-state attributes describing available gear presets."""
+        attrs: dict[str, object] = {}
+        for gear_index, _gear, brightness, temp_pct in self._iter_valid_gear_presets():
+            temp_k = self.device.state.percent_to_kelvin_for_device(temp_pct)
+            attrs[f"preset_{_GEAR_PRESET_NAMES[gear_index]}"] = (
+                f"{brightness}% / {temp_k}K"
+            )
+
+        if self.capabilities.supports_color_temp:
+            min_k = self.capabilities.min_color_temp_kelvin
+            max_k = self.capabilities.max_color_temp_kelvin
+            attrs["color_temp_range"] = f"{min_k}K - {max_k}K"
+        return attrs
+
+    def _resolve_selected_gear(
+        self,
+        option: str,
+    ) -> tuple[int, object, int, int] | None:
+        """Resolve one selected option into the raw preset payload and values."""
+        try:
+            gear_index = GEAR_OPTIONS.index(option)
+        except ValueError:
+            _LOGGER.warning("Invalid gear option: %s", option)
+            return None
+
+        gear_list = self.device.extras.gear_list
+        if gear_index >= len(gear_list):
+            _LOGGER.warning("Gear index %d out of range", gear_index)
+            return None
+
+        gear = gear_list[gear_index]
+        values = self._extract_gear_values(gear)
+        if values is None:
+            _LOGGER.warning(
+                "Invalid gear preset at index %d for %s: %r",
+                gear_index,
+                self.device.name,
+                gear,
+            )
+            return None
+
+        brightness, temp_pct = values
+        return gear_index, gear, brightness, temp_pct
 
     @property
     def options(self) -> list[str]:
@@ -319,82 +389,26 @@ class LiproLightGearSelect(LiproSelect):
 
     @property
     def current_option(self) -> str | None:
-        """Return the current gear based on exact brightness and temperature match.
-
-        Uses exact matching of brightness and temperature percentage values.
-        Returns None if current values don't match any preset (custom state).
-        """
-        gear_list = self.device.extras.gear_list
-        if not gear_list:
+        """Return the current gear based on exact brightness and temperature match."""
+        if not self.device.extras.gear_list:
             return None
-
-        current_brightness = self.device.state.brightness
-        current_temp_pct = self.device.state.get_int_property(PROP_TEMPERATURE, -1)
-
-        for i, gear in enumerate(gear_list[:_MAX_GEAR_COUNT]):
-            values = self._extract_gear_values(gear)
-            if values is None:
-                continue
-            gear_brightness, gear_temp_pct = values
-
-            if (
-                current_brightness == gear_brightness
-                and current_temp_pct == gear_temp_pct
-            ):
-                return GEAR_OPTIONS[i]
-
-        return None
+        return self._resolve_current_gear_option()
 
     @property
     def extra_state_attributes(self) -> dict[str, object]:
         """Return extra state attributes showing gear details."""
-        attrs: dict[str, object] = {}
-        gear_list = self.device.extras.gear_list
-
-        for i, gear in enumerate(gear_list[:_MAX_GEAR_COUNT]):
-            values = self._extract_gear_values(gear)
-            if values is None:
-                continue
-            brightness, temp_pct = values
-            temp_k = self.device.state.percent_to_kelvin_for_device(temp_pct)
-            attrs[f"preset_{_GEAR_PRESET_NAMES[i]}"] = f"{brightness}% / {temp_k}K"
-
-        if self.capabilities.supports_color_temp:
-            min_k = self.capabilities.min_color_temp_kelvin
-            max_k = self.capabilities.max_color_temp_kelvin
-            attrs["color_temp_range"] = f"{min_k}K - {max_k}K"
-
-        return attrs
+        return self._build_gear_attributes()
 
     async def async_select_option(self, option: str) -> None:
         """Apply the selected gear preset."""
-        gear_list = self.device.extras.gear_list
-        if not gear_list:
+        if not self.device.extras.gear_list:
             _LOGGER.warning("No gear presets available for %s", self.device.name)
             return
 
-        try:
-            gear_index = GEAR_OPTIONS.index(option)
-        except ValueError:
-            _LOGGER.warning("Invalid gear option: %s", option)
+        resolved = self._resolve_selected_gear(option)
+        if resolved is None:
             return
-
-        if gear_index >= len(gear_list):
-            _LOGGER.warning("Gear index %d out of range", gear_index)
-            return
-
-        gear = gear_list[gear_index]
-        values = self._extract_gear_values(gear)
-        if values is None:
-            _LOGGER.warning(
-                "Invalid gear preset at index %d for %s: %r",
-                gear_index,
-                self.device.name,
-                gear,
-            )
-            return
-
-        brightness, temp_pct = values
+        gear_index, _gear, brightness, temp_pct = resolved
 
         _LOGGER.debug(
             "Applying gear %d to %s: brightness=%d%%, temperature=%d%%(%dK)",

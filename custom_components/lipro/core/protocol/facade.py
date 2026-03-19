@@ -415,13 +415,28 @@ class LiproProtocolFacade:
             mesh_member_ids=mesh_member_ids,
         )
 
+    def _bind_active_mqtt_facade(self, mqtt_facade: LiproMqttFacade | None) -> None:
+        """Bind one MQTT child façade and synchronize shared protocol state."""
+        self._mqtt = mqtt_facade
+        mqtt_biz_id = (
+            mqtt_facade.protocol_session_state.biz_id
+            if mqtt_facade is not None
+            else None
+        )
+        self._session_state.bind_mqtt_biz_id(mqtt_biz_id)
+
+    def _build_protocol_diagnostics_snapshot(self) -> dict[str, object]:
+        """Build one root-owned diagnostics snapshot from active child state."""
+        mqtt = self._mqtt
+        return self._diagnostics_context.snapshot(
+            mqtt_connected=mqtt.is_connected if mqtt is not None else None,
+            subscribed_count=mqtt.subscribed_count if mqtt is not None else None,
+            auth_recovery=self._rest.auth_recovery_telemetry_snapshot(),
+        )
+
     def attach_mqtt_facade(self, mqtt_facade: LiproMqttFacade | None) -> None:
         """Attach or clear the active MQTT child façade."""
-        self._mqtt = mqtt_facade
-        if mqtt_facade is None:
-            self._session_state.bind_mqtt_biz_id(None)
-            return
-        self._session_state.bind_mqtt_biz_id(mqtt_facade.protocol_session_state.biz_id)
+        self._bind_active_mqtt_facade(mqtt_facade)
 
     def build_mqtt_facade(
         self,
@@ -449,17 +464,12 @@ class LiproProtocolFacade:
             on_disconnect=on_disconnect,
             on_error=on_error,
         )
-        self.attach_mqtt_facade(mqtt_facade)
+        self._bind_active_mqtt_facade(mqtt_facade)
         return mqtt_facade
 
     def protocol_diagnostics_snapshot(self) -> dict[str, object]:
         """Return one root-owned diagnostics snapshot."""
-        mqtt = self._mqtt
-        return self._diagnostics_context.snapshot(
-            mqtt_connected=mqtt.is_connected if mqtt is not None else None,
-            subscribed_count=mqtt.subscribed_count if mqtt is not None else None,
-            auth_recovery=self._rest.auth_recovery_telemetry_snapshot(),
-        )
+        return self._build_protocol_diagnostics_snapshot()
 
 
 __all__ = ["LiproMqttFacade", "LiproProtocolFacade"]

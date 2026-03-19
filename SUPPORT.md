@@ -2,10 +2,12 @@
 
 ## Start Here
 
-- Troubleshooting first: `docs/TROUBLESHOOTING.md`
-- Usage/help routing: GitHub Discussions or Issues, depending on whether the problem is a question or a confirmed bug
-- Security reports: follow `SECURITY.md` and use private disclosure first
-- Maintainer-only release flow: `docs/MAINTAINER_RELEASE_RUNBOOK.md`
+| If you need... | Go here first | Notes |
+| --- | --- | --- |
+| Usage help / expected behavior | `docs/TROUBLESHOOTING.md`, then GitHub Discussions | Start here for setup questions and “is this expected?” checks |
+| Confirmed bug / regression | GitHub Issues | Include diagnostics first; add developer report only when diagnostics are insufficient |
+| Security-sensitive report | `SECURITY.md` | Use private disclosure, not a public Issue |
+| Maintainer release / packaging flow | `docs/MAINTAINER_RELEASE_RUNBOOK.md` | Maintainer-only; do not bypass release gates |
 
 ## Version & Validation Truth
 

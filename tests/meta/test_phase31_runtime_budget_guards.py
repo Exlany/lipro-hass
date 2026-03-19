@@ -109,7 +109,7 @@ _BROAD_CATCH_BUDGET: dict[str, _BroadCatchBudgetEntry] = {
         },
     },
     "services/diagnostics/helpers.py": {
-        "expected_count": 4,
+        "expected_count": 0,
         "semantic_markers": {
             "Skip one %s capability due to error (%s)": 2,
             "Skip one %s capability due to unexpected error (%s)": 2,

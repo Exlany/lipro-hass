@@ -48,6 +48,22 @@ async def test_async_reload_entry_if_options_changed_returns_when_domain_data_no
 
 
 @pytest.mark.asyncio
+async def test_async_unload_entry_reraises_programming_error_from_shutdown(hass) -> None:
+    entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+    entry.add_to_hass(hass)
+    coordinator = MagicMock()
+    coordinator.async_shutdown = AsyncMock(side_effect=TypeError("bad shutdown"))
+    entry.runtime_data = coordinator
+
+    with patch.object(
+        hass.config_entries, "async_unload_platforms", new_callable=AsyncMock
+    ) as unload_platforms:
+        unload_platforms.return_value = True
+        with pytest.raises(TypeError, match="bad shutdown"):
+            await async_unload_entry(hass, entry)
+
+
+@pytest.mark.asyncio
 async def test_async_unload_entry_reraises_cancelled_error_from_shutdown(hass) -> None:
     entry = MockConfigEntry(domain=DOMAIN)
     entry.add_to_hass(hass)

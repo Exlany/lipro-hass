@@ -168,7 +168,7 @@ class TestLiproRestFacadeClose:
         await client.close()
 
         # Session reference should be cleared (HA manages session lifecycle)
-        assert client._session is None
+        assert client.session is None
 
     @pytest.mark.asyncio
     async def test_close_external_session(self):

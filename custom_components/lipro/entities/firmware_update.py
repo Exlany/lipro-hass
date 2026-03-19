@@ -349,7 +349,7 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
         """Compare versions with HA helper, fallback to conservative False."""
         try:
             return self.version_is_newer(candidate, current)
-        except Exception as err:  # noqa: BLE001
+        except (ValueError, TypeError) as err:
             _LOGGER.debug(
                 "Unable to compare certification versions (%s -> %s): %s",
                 current,

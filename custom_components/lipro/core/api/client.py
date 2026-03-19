@@ -82,6 +82,33 @@ class LiproRestFacade:
         return self._session_state.phone_id
 
     @property
+    def session(self) -> aiohttp.ClientSession | None:
+        """Return the injected aiohttp session reference."""
+        return self._session_state.session
+
+    @session.setter
+    def session(self, value: aiohttp.ClientSession | None) -> None:
+        self._transport_executor.sync_session(value)
+
+    @property
+    def request_timeout(self) -> int:
+        """Return the configured request timeout in seconds."""
+        return self._session_state.request_timeout
+
+    @request_timeout.setter
+    def request_timeout(self, value: int) -> None:
+        self._session_state.request_timeout = value
+
+    @property
+    def entry_id(self) -> str | None:
+        """Return the owning config-entry identifier when available."""
+        return self._session_state.entry_id
+
+    @entry_id.setter
+    def entry_id(self, value: str | None) -> None:
+        self._session_state.entry_id = value
+
+    @property
     def access_token(self) -> str | None:
         """Return the current access token stored in session state."""
         return self._session_state.access_token
@@ -118,79 +145,22 @@ class LiproRestFacade:
         self._session_state.biz_id = value
 
     @property
-    def _phone_id(self) -> str:
-        return self._session_state.phone_id
-
-    @_phone_id.setter
-    def _phone_id(self, value: str) -> None:
-        self._session_state.phone_id = value
+    def request_policy(self) -> RequestPolicy:
+        """Return the canonical retry/rate-limit policy for REST calls."""
+        return self._request_policy
 
     @property
-    def _session(self) -> aiohttp.ClientSession | None:
-        return self._session_state.session
-
-    @_session.setter
-    def _session(self, value: aiohttp.ClientSession | None) -> None:
-        self._transport_executor.sync_session(value)
-
-    @property
-    def _request_timeout(self) -> int:
-        return self._session_state.request_timeout
-
-    @_request_timeout.setter
-    def _request_timeout(self, value: int) -> None:
-        self._session_state.request_timeout = value
-
-    @property
-    def _access_token(self) -> str | None:
-        return self._session_state.access_token
-
-    @_access_token.setter
-    def _access_token(self, value: str | None) -> None:
-        self._session_state.access_token = value
-
-    @property
-    def _refresh_token(self) -> str | None:
-        return self._session_state.refresh_token
-
-    @_refresh_token.setter
-    def _refresh_token(self, value: str | None) -> None:
-        self._session_state.refresh_token = value
-
-    @property
-    def _user_id(self) -> int | None:
-        return self._session_state.user_id
-
-    @_user_id.setter
-    def _user_id(self, value: int | None) -> None:
-        self._session_state.user_id = value
-
-    @property
-    def _biz_id(self) -> str | None:
-        return self._session_state.biz_id
-
-    @_biz_id.setter
-    def _biz_id(self, value: str | None) -> None:
-        self._session_state.biz_id = value
-
-    @property
-    def _entry_id(self) -> str | None:
-        return self._session_state.entry_id
-
-    @_entry_id.setter
-    def _entry_id(self, value: str | None) -> None:
-        self._session_state.entry_id = value
-
-    @property
-    def _refresh_lock(self) -> asyncio.Lock:
+    def refresh_lock(self) -> asyncio.Lock:
+        """Return the shared refresh lock guarding token refresh."""
         return self._session_state.refresh_lock
 
     @property
-    def _on_token_refresh(self) -> TokenRefreshCallback | None:
+    def on_token_refresh(self) -> TokenRefreshCallback | None:
+        """Return the registered token-refresh callback."""
         return self._session_state.on_token_refresh
 
-    @_on_token_refresh.setter
-    def _on_token_refresh(self, value: TokenRefreshCallback | None) -> None:
+    @on_token_refresh.setter
+    def on_token_refresh(self, value: TokenRefreshCallback | None) -> None:
         self._session_state.on_token_refresh = value
 
     def set_tokens(
@@ -233,6 +203,75 @@ class LiproRestFacade:
     async def refresh_access_token(self) -> LoginResponse:
         """Compatibility refresh entrypoint for auth-manager consumers."""
         return await self._auth_endpoints.refresh_access_token()
+
+    async def get_session(self) -> aiohttp.ClientSession:
+        """Return the active aiohttp session through the legacy thin shell."""
+        return await self._get_session()
+
+    def smart_home_sign(self) -> str:
+        """Return one Smart Home signature through the legacy thin shell."""
+        return self._smart_home_sign()
+
+    def get_timestamp_ms(self) -> int:
+        """Return the current timestamp via the legacy thin shell."""
+        return self._get_timestamp_ms()
+
+    async def execute_request(
+        self,
+        request_ctx: Any,
+        path: str,
+    ) -> tuple[int, dict[str, Any], dict[str, str]]:
+        """Execute one low-level request through the legacy thin shell."""
+        return await self._execute_request(request_ctx, path)
+
+    async def execute_mapping_request_with_rate_limit(
+        self,
+        *,
+        path: str,
+        retry_count: int,
+        send_request: MappingRequestSender,
+    ) -> tuple[int, dict[str, Any], str | None]:
+        """Execute one mapping request via the legacy rate-limit shell."""
+        return await self._execute_mapping_request_with_rate_limit(
+            path=path,
+            retry_count=retry_count,
+            send_request=send_request,
+        )
+
+    def build_iot_headers(self, body: str) -> dict[str, str]:
+        """Build IoT headers through the legacy thin shell."""
+        return self._build_iot_headers(body)
+
+    async def handle_auth_error_and_retry(
+        self,
+        path: str,
+        request_token: str | None,
+        is_retry: bool,
+    ) -> bool:
+        """Handle auth errors through the legacy thin shell."""
+        return await self._handle_auth_error_and_retry(path, request_token, is_retry)
+
+    async def finalize_mapping_result(
+        self,
+        *,
+        path: str,
+        result: dict[str, Any],
+        request_token: str | None,
+        is_retry: bool,
+        retry_on_auth_error: bool,
+        retry_request: Callable[[], Awaitable[_MappingPayloadT]] | None,
+        success_payload: Callable[[dict[str, Any]], _MappingPayloadT],
+    ) -> _MappingPayloadT:
+        """Finalize one mapping response via the legacy auth shell."""
+        return await self._finalize_mapping_result(
+            path=path,
+            result=result,
+            request_token=request_token,
+            is_retry=is_retry,
+            retry_on_auth_error=retry_on_auth_error,
+            retry_request=retry_request,
+            success_payload=success_payload,
+        )
 
     async def _get_session(self) -> aiohttp.ClientSession:
         return await self._transport_executor.get_session()
@@ -422,6 +461,40 @@ class LiproRestFacade:
     def _is_invalid_param_error_code(code: Any) -> bool:
         return AuthRecoveryCoordinator.is_invalid_param_error_code(code)
 
+    async def _dispatch_retry_aware_call(
+        self,
+        call: Callable[..., Awaitable[_MappingPayloadT]],
+        *args: object,
+        is_retry: bool = False,
+        retry_count: int = 0,
+    ) -> _MappingPayloadT:
+        """Dispatch one retry-aware helper while preserving legacy thin shells."""
+        if not is_retry and not retry_count:
+            return await call(*args)
+        return await call(*args, is_retry=is_retry, retry_count=retry_count)
+
+    async def _dispatch_retry_aware_smart_home_call(
+        self,
+        path: str,
+        data: dict[str, Any],
+        *,
+        require_auth: bool,
+        is_retry: bool = False,
+        retry_count: int = 0,
+    ) -> Any:
+        """Dispatch Smart Home requests while preserving retry semantics."""
+        if not is_retry and not retry_count:
+            if require_auth is True:
+                return await self._smart_home_request(path, data)
+            return await self._smart_home_request(path, data, require_auth=False)
+        return await self._smart_home_request(
+            path,
+            data,
+            require_auth=require_auth,
+            is_retry=is_retry,
+            retry_count=retry_count,
+        )
+
     async def smart_home_request(
         self,
         path: str,
@@ -431,9 +504,7 @@ class LiproRestFacade:
         retry_count: int = 0,
     ) -> Any:
         """Execute one Smart Home request through the formal transport pipeline."""
-        if require_auth is True and not is_retry and not retry_count:
-            return await self._smart_home_request(path, data)
-        return await self._smart_home_request(
+        return await self._dispatch_retry_aware_smart_home_call(
             path,
             data,
             require_auth=require_auth,
@@ -449,9 +520,8 @@ class LiproRestFacade:
         retry_count: int = 0,
     ) -> Any:
         """Execute one IoT request through the formal transport pipeline."""
-        if not is_retry and not retry_count:
-            return await self._iot_request(path, body_data)
-        return await self._iot_request(
+        return await self._dispatch_retry_aware_call(
+            self._iot_request,
             path,
             body_data,
             is_retry=is_retry,
@@ -467,9 +537,8 @@ class LiproRestFacade:
         retry_count: int = 0,
     ) -> tuple[dict[str, Any], str | None]:
         """Request one IoT mapping payload with retry context preserved."""
-        if not is_retry and not retry_count:
-            return await self._request_iot_mapping(path, body_data)
-        return await self._request_iot_mapping(
+        return await self._dispatch_retry_aware_call(
+            self._request_iot_mapping,
             path,
             body_data,
             is_retry=is_retry,
@@ -485,9 +554,8 @@ class LiproRestFacade:
         retry_count: int = 0,
     ) -> tuple[dict[str, Any], str | None]:
         """Request one raw IoT mapping payload without result finalization."""
-        if not is_retry and not retry_count:
-            return await self._request_iot_mapping_raw(path, body)
-        return await self._request_iot_mapping_raw(
+        return await self._dispatch_retry_aware_call(
+            self._request_iot_mapping_raw,
             path,
             body,
             is_retry=is_retry,

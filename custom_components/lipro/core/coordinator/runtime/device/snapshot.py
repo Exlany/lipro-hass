@@ -208,12 +208,12 @@ class SnapshotBuilder:
         self._device_identity_index = device_identity_index
         self._device_filter = device_filter
 
-    async def build_full_snapshot(
+    async def _collect_snapshot_pages(
         self,
         *,
-        max_pages: int = 50,
-    ) -> FetchedDeviceSnapshot:
-        """Build complete device snapshot from paginated API."""
+        max_pages: int,
+    ) -> list[tuple[int, DeviceRow]]:
+        """Collect paginated device rows while preserving page provenance."""
         all_devices: list[tuple[int, DeviceRow]] = []
         page = 1
         has_more = False
@@ -252,6 +252,73 @@ class SnapshotBuilder:
                 page=max_pages,
                 cause_type="max_pages",
             )
+        return all_devices
+
+    @staticmethod
+    def _build_index_identity_aliases(
+        normalized_row: DeviceRow,
+        device: LiproDevice,
+    ) -> set[str]:
+        """Build the identity aliases used by runtime lookup indexes."""
+        raw_identity_aliases = normalized_row.get("identityAliases")
+        identity_aliases = (
+            {
+                alias
+                for alias in raw_identity_aliases
+                if isinstance(alias, str) and alias.strip()
+            }
+            if isinstance(raw_identity_aliases, list)
+            else set()
+        )
+        identity_aliases.add(device.serial)
+        if device.iot_device_id:
+            identity_aliases.add(device.iot_device_id)
+        return identity_aliases
+
+    def _record_snapshot_device(
+        self,
+        *,
+        normalized_row: DeviceRow,
+        device: LiproDevice,
+        devices: dict[str, LiproDevice],
+        device_by_id: dict[str, LiproDevice],
+        identity_mapping: dict[str, LiproDevice],
+        iot_ids: list[str],
+        group_ids: list[str],
+        outlet_ids: list[str],
+        cloud_serials: set[str],
+        diagnostic_gateway_devices: dict[str, LiproDevice],
+    ) -> None:
+        """Record one normalized device into runtime snapshot buckets."""
+        if device.capabilities.is_gateway:
+            diagnostic_gateway_devices[device.serial] = device
+            return
+
+        devices[device.serial] = device
+        device.extra_data["identity_aliases"] = [device.serial]
+
+        for identity_alias in self._build_index_identity_aliases(normalized_row, device):
+            device_by_id[identity_alias] = device
+            identity_mapping[identity_alias] = device
+
+        cloud_serials.add(device.serial)
+
+        if device.is_group:
+            if device.iot_device_id:
+                group_ids.append(device.iot_device_id)
+        elif device.capabilities.is_outlet:
+            if device.iot_device_id:
+                outlet_ids.append(device.iot_device_id)
+        elif device.iot_device_id:
+            iot_ids.append(device.iot_device_id)
+
+    async def build_full_snapshot(
+        self,
+        *,
+        max_pages: int = 50,
+    ) -> FetchedDeviceSnapshot:
+        """Build complete device snapshot from paginated API."""
+        all_devices = await self._collect_snapshot_pages(max_pages=max_pages)
 
         devices: dict[str, LiproDevice] = {}
         device_by_id: dict[str, LiproDevice] = {}
@@ -280,43 +347,18 @@ class SnapshotBuilder:
                     cause_type=type(err).__name__,
                 ) from err
 
-            if device.capabilities.is_gateway:
-                diagnostic_gateway_devices[device.serial] = device
-                continue
-
-            devices[device.serial] = device
-
-            raw_identity_aliases = normalized_row.get("identityAliases")
-            display_identity_aliases = {device.serial}
-            device.extra_data["identity_aliases"] = sorted(display_identity_aliases)
-
-            index_identity_aliases = (
-                {
-                    alias
-                    for alias in raw_identity_aliases
-                    if isinstance(alias, str) and alias.strip()
-                }
-                if isinstance(raw_identity_aliases, list)
-                else set()
+            self._record_snapshot_device(
+                normalized_row=normalized_row,
+                device=device,
+                devices=devices,
+                device_by_id=device_by_id,
+                identity_mapping=identity_mapping,
+                iot_ids=iot_ids,
+                group_ids=group_ids,
+                outlet_ids=outlet_ids,
+                cloud_serials=cloud_serials,
+                diagnostic_gateway_devices=diagnostic_gateway_devices,
             )
-            index_identity_aliases.update(display_identity_aliases)
-            if device.iot_device_id:
-                index_identity_aliases.add(device.iot_device_id)
-
-            for identity_alias in index_identity_aliases:
-                device_by_id[identity_alias] = device
-                identity_mapping[identity_alias] = device
-
-            cloud_serials.add(device.serial)
-
-            if device.is_group:
-                if device.iot_device_id:
-                    group_ids.append(device.iot_device_id)
-            elif device.capabilities.is_outlet:
-                if device.iot_device_id:
-                    outlet_ids.append(device.iot_device_id)
-            elif device.iot_device_id:
-                iot_ids.append(device.iot_device_id)
 
         await self._async_enrich_mesh_group_metadata(
             device_by_id=device_by_id,
