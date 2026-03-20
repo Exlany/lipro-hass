@@ -7,7 +7,7 @@ last_updated: "2026-03-20T00:00:00Z"
 progress:
   total_phases: 4
   completed_phases: 1
-  total_plans: 4
+  total_plans: 16
   completed_plans: 4
 ---
 
@@ -19,13 +19,13 @@ See: `.planning/PROJECT.md`
 
 **Current milestone:** `v1.6 Delivery Trust Hardening, Runtime Boundary Decoupling & Maintainability Closure`
 **Core value:** 在不回退 `LiproProtocolFacade` / `Coordinator` 单一正式主链的前提下，先把 delivery trust 与 continuity gate 变成真实可执行合同，再完成 runtime read-model typed 化、control/services 解耦、治理资产降噪与热点拆薄。
-**Current mode:** `Phase 42 complete`；`v1.5` 继续作为最新 shipped archive baseline，`Phase 41` remediation route 已完成第一跳执行：continuity truth、release artifact install smoke、total + changed-surface coverage gates、compatibility preview lane 均已于 `2026-03-20` 落地，当前默认 next action 为 `$gsd-plan-phase 43`。
+**Current mode:** `Phase 43 planning-ready`；`Phase 42` 已于 `2026-03-20` 完成，`Phase 43 -> 45` 的 `CONTEXT / RESEARCH / PLAN` 资产已于同日补齐，共 `12` 个 executable plans；当前默认 next action 为 `$gsd-execute-phase 43`。
 
 ## Current Position
 
 - `v1.5` 已完成 milestone audit、archive promotion 与 local tag：`.planning/v1.5-MILESTONE-AUDIT.md`、`.planning/milestones/v1.5-ROADMAP.md`、`.planning/milestones/v1.5-REQUIREMENTS.md` 继续作为最新 shipped archive baseline。
 - `Phase 41` 全仓审计已完成，并把 remediation 结论固化到 `.planning/phases/41-full-spectrum-architecture-code-quality-and-open-source-audit/41-REMEDIATION-ROADMAP.md`；该资产保持 execution trace 身份，不直接充当 active truth。
-- `v1.6 / Phase 42 -> 45` 已于 `2026-03-20` 正式路由，且 `Phase 42` 已完成：delivery trust / validation hardening 先落地，下一步进入 runtime-control decoupling、governance asset pruning 与 hotspot decomposition。
+- `v1.6 / Phase 42 -> 45` 已于 `2026-03-20` 正式路由；`Phase 42` 已完成，且 `Phase 43 -> 45` 的 planning assets（`12` 个 executable plans）也已补齐，下一步进入 `$gsd-execute-phase 43`。
 - `v1.0` 已归档到 `.planning/MILESTONES.md` 与 `.planning/milestones/v1.0-*.md`
 - `v1.1` 已完成全部计划执行：`15 phases / 58 plans` 全绿落表
 - `v1.1` / `v1.2` 的 roadmap / requirements archive snapshots 已落入 `.planning/milestones/`，后续里程碑可停止复用同一份历史 planning truth
@@ -142,14 +142,15 @@ See: `.planning/PROJECT.md`
 - **Milestone:** `v1.6 Delivery Trust Hardening, Runtime Boundary Decoupling & Maintainability Closure`
 - **Phase range:** `42 -> 45`
 - **Completed so far:** `Phase 42 complete`（4/4 plans complete on `2026-03-20`：continuity truth、release artifact install smoke、total + changed-surface coverage gates、compatibility preview lane 已全部落地）
+- **Planned next:** `Phase 43 -> 45 ready`（`2026-03-20` 已创建 `43-01~43-04`、`44-01~44-04`、`45-01~45-04` 共 `12` 个 executable plans）
 - **Starting baseline:** `v1.5` archive assets remain authoritative shipped snapshots: `.planning/v1.5-MILESTONE-AUDIT.md`, `.planning/reviews/V1_5_EVIDENCE_INDEX.md`, `.planning/milestones/v1.5-ROADMAP.md`, `.planning/milestones/v1.5-REQUIREMENTS.md`, local tag `v1.5`
 - **Route source:** `.planning/phases/41-full-spectrum-architecture-code-quality-and-open-source-audit/41-REMEDIATION-ROADMAP.md`
 - **Historical archives:** `.planning/milestones/v1.1-ROADMAP.md`, `.planning/milestones/v1.1-REQUIREMENTS.md`, `.planning/milestones/v1.2-ROADMAP.md`, `.planning/milestones/v1.2-REQUIREMENTS.md`, `.planning/milestones/v1.4-ROADMAP.md`, `.planning/milestones/v1.4-REQUIREMENTS.md`, `.planning/milestones/v1.5-ROADMAP.md`, `.planning/milestones/v1.5-REQUIREMENTS.md`
-- **Next focus:** `$gsd-plan-phase 43`——在 Phase 42 完成态上继续规划 control/services decoupling 与 typed runtime access。
+- **Next focus:** `$gsd-execute-phase 43`——开始执行 typed runtime access、maintenance formal-home relocation 与 control/services 单向依赖收敛。
 
 ## Recommended Next Command
 
-1. `$gsd-plan-phase 43` —— 基于已完成的 Phase 42，进入 control/services decoupling 与 typed runtime access 正式规划
+1. `$gsd-execute-phase 43` —— 运行 `43-01` 到 `43-04`，开始 typed runtime access、maintenance runtime-infra relocation 与 control/services boundary decoupling
 2. `$gsd-progress` —— 查看当前 `v1.6 / Phase 42 -> 45` 的计划与后续承接关系
 3. `uv run pytest -q tests/meta/test_governance*.py tests/meta/test_public_surface_guards.py tests/meta/test_version_sync.py tests/meta/test_toolchain_truth.py` —— 复核新 current truth 与历史 archive truth 的双层守卫
 4. `uv run ruff check . && uv run mypy` —— 复核静态质量基线
