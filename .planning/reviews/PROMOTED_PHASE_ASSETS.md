@@ -123,6 +123,12 @@ phases:
   45-hotspot-decomposition-and-typed-failure-semantics:
     - 45-SUMMARY.md
     - 45-VERIFICATION.md
+  46-exhaustive-repository-audit-standards-conformance-and-remediation-routing:
+    - 46-AUDIT.md
+    - 46-SCORE-MATRIX.md
+    - 46-REMEDIATION-ROADMAP.md
+    - 46-SUMMARY.md
+    - 46-VERIFICATION.md
 ---
 
 # Promoted Phase Assets

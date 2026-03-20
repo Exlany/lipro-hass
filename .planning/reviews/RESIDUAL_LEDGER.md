@@ -325,3 +325,10 @@
 - `custom_components/lipro/core/protocol/boundary/rest_decoder_support.py` 已沿 localized helper seams 继续瘦身；`rest_decoder.py` 现拥有 schedule/MQTT endpoint-scoped decode logic，但 formal decoder boundary 与 public surface 未扩张。
 - diagnostics/share/message touched-zone 现已共享 typed `OperationOutcome` / reason-code 语义；旧 bool wrappers 只保留为兼容薄壳，不再代表 active truth。
 - benchmark lane 现已拥有 baseline manifest 与 threshold semantics，同时继续保持 `schedule` / `workflow_dispatch` maintainer-facing 边界；本 phase **无新增 active residual family / second governance story**。
+
+
+## Phase 47 Residual Delta
+
+- 本轮 **无新增 active residual family**；关闭的是 docs/tooling discoverability 与 release-signature identity 过宽 contract，而不是开启新的架构故事线。
+- `scripts/agent_worker.py` 与 `scripts/orchestrator.py` 仍保留为 explicit retired compatibility stubs，但它们现在只是 fail-fast deprecation entry，不再伪装成可继续成功执行的 active tooling。
+- runtime hotspot、mega-test topicization 与 REST typed-surface debt 仍已诚实路由到 `Phase 48 -> 50`，不作为 silent defer 继续漂浮。

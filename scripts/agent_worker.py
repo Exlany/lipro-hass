@@ -1,4 +1,4 @@
-"""Compatibility stub for the retired refactoring worker script."""
+"""Retired compatibility stub kept only to fail fast with a migration hint."""
 
 from __future__ import annotations
 
@@ -38,11 +38,12 @@ def main() -> int:
     logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
     parser = build_parser()
     args = parser.parse_args()
-    LOGGER.info("%s", _DEPRECATION_MESSAGE)
-    LOGGER.info("base_dir=%s agent_id=%s", args.base_dir, args.agent_id or "<none>")
+    LOGGER.error("%s", _DEPRECATION_MESSAGE)
+    LOGGER.error("Use docs/README.md and CONTRIBUTING.md for the active tooling entrypoints: ./scripts/setup, ./scripts/develop, ./scripts/lint")
+    LOGGER.error("base_dir=%s agent_id=%s", args.base_dir, args.agent_id or "<none>")
     if args.task_file is not None:
-        LOGGER.info("task_file=%s", args.task_file)
-    return 0
+        LOGGER.error("task_file=%s", args.task_file)
+    return 2
 
 
 if __name__ == "__main__":

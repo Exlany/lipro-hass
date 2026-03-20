@@ -152,6 +152,20 @@ def test_governance_registry_tracks_version_and_install_defaults() -> None:
     assert 'ARCHIVE_TAG="latest"' in install_text
 
 
+def test_docs_index_route_is_consistent() -> None:
+    registry = _load_governance_registry()
+    issue_config = _load_yaml(_ISSUE_CONFIG)
+    pyproject = tomllib.loads(_PYPROJECT.read_text(encoding="utf-8"))
+    docs_link = next(
+        link for link in issue_config["contact_links"] if "Documentation" in link["name"]
+    )
+
+    assert registry["docs"]["index_route"] == "docs/README.md"
+    assert registry["support"]["documentation_route"] == "docs/README.md"
+    assert pyproject["project"]["urls"]["Documentation"].endswith("/docs/README.md")
+    assert docs_link["url"].endswith("/docs/README.md")
+
+
 def test_bug_report_template_keeps_developer_report_as_optional_escalation_path() -> (
     None
 ):
@@ -301,21 +315,21 @@ def test_release_docs_capture_supply_chain_posture_and_firmware_defer() -> None:
     assert "45-VERIFICATION.md" in evidence_text
 
 
-def test_issue_config_routes_docs_to_troubleshooting() -> None:
-    """Issue contact links should route documentation requests to troubleshooting."""
+def test_issue_config_routes_docs_to_index() -> None:
+    """Issue contact links should route documentation requests to the docs index."""
     config = _load_yaml(_ISSUE_CONFIG)
     doc_link = next(
         link for link in config["contact_links"] if "Documentation" in link["name"]
     )
 
-    assert doc_link["url"].endswith("docs/TROUBLESHOOTING.md")
+    assert doc_link["url"].endswith("docs/README.md")
 
 
 def test_project_urls_expose_public_entrypoints() -> None:
     pyproject = tomllib.loads(_PYPROJECT.read_text(encoding="utf-8"))
     urls = pyproject["project"]["urls"]
 
-    assert urls["Documentation"].endswith("README.md")
+    assert urls["Documentation"].endswith("docs/README.md")
     assert urls["Support"].endswith("SUPPORT.md")
     assert urls["Security"].endswith("SECURITY.md")
     assert urls["Discussions"].endswith("/discussions")

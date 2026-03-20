@@ -27,7 +27,9 @@
     "usage_route": "docs/TROUBLESHOOTING.md -> GitHub Discussions",
     "bug_route": "GitHub Issues",
     "security_route": "SECURITY.md",
-    "maintainer_release_route": "docs/MAINTAINER_RELEASE_RUNBOOK.md"
+    "maintainer_release_route": "docs/MAINTAINER_RELEASE_RUNBOOK.md",
+    "documentation_route": "docs/README.md",
+    "feature_route": "GitHub Discussions (preferred) / feature_request issue form"
   },
   "release": {
     "identity_artifacts": [
@@ -54,6 +56,37 @@
     "maintainer_model": "single-maintainer",
     "documented_delegate": false,
     "freeze_phrase": "freeze new tagged releases and new release promises",
-    "restore_phrase": "restore custody only after"
+    "restore_phrase": "restore custody only after",
+    "sync_sources": [
+      "SUPPORT.md",
+      "SECURITY.md",
+      "docs/MAINTAINER_RELEASE_RUNBOOK.md",
+      ".github/CODEOWNERS",
+      ".planning/baseline/GOVERNANCE_REGISTRY.json"
+    ]
+  },
+  "docs": {
+    "index_route": "docs/README.md",
+    "public_fast_path": [
+      "README.md",
+      "README_zh.md",
+      "CONTRIBUTING.md",
+      "docs/TROUBLESHOOTING.md",
+      "SUPPORT.md",
+      "SECURITY.md"
+    ],
+    "maintainer_appendix": "docs/MAINTAINER_RELEASE_RUNBOOK.md"
+  },
+  "tooling": {
+    "active_entrypoints": [
+      "./scripts/setup",
+      "./scripts/develop",
+      "./scripts/lint"
+    ],
+    "compatibility_stubs": [
+      "scripts/agent_worker.py",
+      "scripts/orchestrator.py"
+    ],
+    "retired_stub_exit_code": 2
   }
 }

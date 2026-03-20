@@ -273,14 +273,14 @@
 | `custom_components/lipro/system_health.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/update.py` | Domain | Phase 4 | 保留 | - |
 | `scripts/__init__.py` | Assurance | Phase 6 / 7 | 保留 | - |
-| `scripts/agent_worker.py` | Assurance | Phase 6 / 7 | 保留 | - |
+| `scripts/agent_worker.py` | Assurance | Phase 6 / 7 / 47 | 保留 | retired compatibility stub; fail-fast deprecation entry only |
 | `scripts/check_architecture_policy.py` | Assurance | Phase 7.2 | 保留 | - |
 | `scripts/check_benchmark_baseline.py` | Assurance | Phase 45 | 保留 | benchmark baseline contract checker |
-| `scripts/check_file_matrix.py` | Assurance | Phase 6 / 7 | 保留 | - |
+| `scripts/check_file_matrix.py` | Assurance | Phase 6 / 7 / 47 | 保留 | active governance checker; verification-matrix path drift guard |
 | `scripts/check_translations.py` | Assurance | Phase 6 / 7 | 保留 | - |
 | `scripts/coverage_diff.py` | Assurance | Phase 6 / 7 | 保留 | - |
 | `scripts/export_ai_debug_evidence_pack.py` | Assurance | Phase 8 | 保留 | - |
-| `scripts/orchestrator.py` | Assurance | Phase 6 / 7 | 保留 | - |
+| `scripts/orchestrator.py` | Assurance | Phase 6 / 7 / 47 | 保留 | retired compatibility stub; fail-fast deprecation entry only |
 | `scripts/refactor_tools.py` | Assurance | Phase 6 / 7 | 保留 | - |
 | `tests/__init__.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `tests/benchmarks/__init__.py` | Cross-cutting | Phase 7 | 保留 | - |

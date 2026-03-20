@@ -101,7 +101,7 @@ Home Assistant 集成，用于控制 Lipro 智能家居设备。
 # 可选的本地校验（安装脚本内部也会用 Python/hashlib 再校验一次）
 cosign verify-blob ./lipro-hass-v1.0.0.zip \
   --bundle ./lipro-hass-v1.0.0.zip.sigstore.json \
-  --certificate-identity-regexp "^https://github.com/Exlany/lipro-hass/.github/workflows/release\.yml@.*$" \
+  --certificate-identity-regexp "^https://github.com/Exlany/lipro-hass/.github/workflows/release\.yml@refs/tags/v1\.0\.0$" \
   --certificate-oidc-issuer https://token.actions.githubusercontent.com
 sha256sum -c SHA256SUMS --ignore-missing
 

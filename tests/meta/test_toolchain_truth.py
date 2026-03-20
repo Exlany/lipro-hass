@@ -474,9 +474,60 @@ def test_governance_registry_keeps_continuity_truth_machine_readable() -> None:
 
     assert registry["continuity"]["maintainer_model"] == "single-maintainer"
     assert registry["continuity"]["documented_delegate"] is False
+    assert registry["docs"]["index_route"] == "docs/README.md"
+    assert registry["tooling"]["retired_stub_exit_code"] == 2
+    for token in registry["continuity"]["sync_sources"]:
+        assert token in {
+            "SUPPORT.md",
+            "SECURITY.md",
+            "docs/MAINTAINER_RELEASE_RUNBOOK.md",
+            ".github/CODEOWNERS",
+            ".planning/baseline/GOVERNANCE_REGISTRY.json",
+        }
     for text in (support_text, security_text, runbook_text):
         assert registry["continuity"]["maintainer_model"] in text
         assert registry["continuity"]["freeze_phrase"] in text
+
+
+def test_docs_index_and_retired_tooling_contract_are_machine_readable() -> None:
+    registry = _load_governance_registry()
+    docs_text = (_ROOT / "docs" / "README.md").read_text(encoding="utf-8")
+    contributing_text = (_ROOT / "CONTRIBUTING.md").read_text(encoding="utf-8")
+    issue_config = _load_yaml(_ROOT / ".github" / "ISSUE_TEMPLATE" / "config.yml")
+    pyproject = tomllib.loads(_PYPROJECT.read_text(encoding="utf-8"))
+    worker_text = (_ROOT / "scripts" / "agent_worker.py").read_text(encoding="utf-8")
+    orchestrator_text = (_ROOT / "scripts" / "orchestrator.py").read_text(encoding="utf-8")
+
+    docs_link = next(
+        link for link in issue_config["contact_links"] if "Documentation" in link["name"]
+    )
+
+    assert registry["support"]["documentation_route"] == "docs/README.md"
+    assert registry["docs"]["index_route"] == "docs/README.md"
+    assert registry["support"]["feature_route"].startswith("GitHub Discussions")
+    assert pyproject["project"]["urls"]["Documentation"].endswith("/docs/README.md")
+    assert docs_link["url"].endswith("/docs/README.md")
+    for token in registry["tooling"]["active_entrypoints"]:
+        assert token in docs_text
+    for token in registry["tooling"]["compatibility_stubs"]:
+        assert token in docs_text
+    assert "docs/README.md" in contributing_text
+    assert "return 2" in worker_text
+    assert "return 2" in orchestrator_text
+    assert "Use docs/README.md and CONTRIBUTING.md" in worker_text
+    assert "Use docs/README.md and CONTRIBUTING.md" in orchestrator_text
+
+
+def test_verification_matrix_and_checker_guard_active_path_truth() -> None:
+    verification_text = (_ROOT / ".planning" / "baseline" / "VERIFICATION_MATRIX.md").read_text(
+        encoding="utf-8"
+    )
+    checker_text = (_ROOT / "scripts" / "check_file_matrix.py").read_text(encoding="utf-8")
+
+    assert "tests/core/anonymous_share/test_manager_submission.py" in verification_text
+    assert "tests/core/test_anonymous_share.py" not in verification_text
+    assert "VERIFICATION_MATRIX_PATH" in checker_text
+    assert "validate_verification_matrix_paths" in checker_text
 
 
 def test_develop_script_smoke_mode_preserves_other_integrations(

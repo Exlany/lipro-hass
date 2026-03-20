@@ -1,4 +1,4 @@
-"""Compatibility stub for the retired refactoring orchestrator script."""
+"""Retired compatibility stub kept only to fail fast with a migration hint."""
 
 from __future__ import annotations
 
@@ -38,9 +38,10 @@ def main() -> int:
     """Print the deprecation notice and exit successfully."""
     logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
     args = build_parser().parse_args()
-    LOGGER.info("%s", _DEPRECATION_MESSAGE)
-    LOGGER.info("command=%s base_dir=%s", args.command, args.base_dir)
-    return 0
+    LOGGER.error("%s", _DEPRECATION_MESSAGE)
+    LOGGER.error("Use docs/README.md and CONTRIBUTING.md for the active tooling entrypoints: ./scripts/setup, ./scripts/develop, ./scripts/lint")
+    LOGGER.error("command=%s base_dir=%s", args.command, args.base_dir)
+    return 2
 
 
 if __name__ == "__main__":

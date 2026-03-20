@@ -25,6 +25,7 @@ PROJECT_PATH = Path(".planning/PROJECT.md")
 ROADMAP_PATH = Path(".planning/ROADMAP.md")
 STATE_PATH = Path(".planning/STATE.md")
 REQUIREMENTS_PATH = Path(".planning/REQUIREMENTS.md")
+VERIFICATION_MATRIX_PATH = Path(".planning/baseline/VERIFICATION_MATRIX.md")
 AGENTS_PATH = Path("AGENTS.md")
 CLAUDE_COMPAT_PATH = Path("CLAUDE.md")
 GITIGNORE_PATH = Path(".gitignore")
@@ -843,6 +844,29 @@ def validate_active_source_paths(root: Path) -> list[str]:
     return errors
 
 
+def _looks_like_repo_path(candidate: str) -> bool:
+    if candidate == "refs/tags/${RELEASE_TAG}" or " " in candidate:
+        return False
+    if "{" in candidate or "}" in candidate:
+        return False
+    prefixes = (".planning/", "custom_components/", "tests/", "docs/", ".github/", "scripts/")
+    return candidate.endswith((".py", ".md", ".yml", ".yaml", ".json", ".toml", ".sh")) and candidate.startswith(prefixes)
+
+
+def validate_verification_matrix_paths(root: Path) -> list[str]:
+    """Validate that verification-matrix path references still exist."""
+    errors: list[str] = []
+    text = (root / VERIFICATION_MATRIX_PATH).read_text(encoding="utf-8")
+    for candidate in BACKTICK_TOKEN_PATTERN.findall(text):
+        if not _looks_like_repo_path(candidate):
+            continue
+        if not _path_exists_or_matches(root, candidate):
+            errors.append(
+                f"{VERIFICATION_MATRIX_PATH} references missing runnable/source path: {candidate}"
+            )
+    return errors
+
+
 def validate_codebase_map_policy(root: Path) -> list[str]:
     """Validate that local codebase maps stay explicitly derived and non-authoritative."""
     errors: list[str] = []
@@ -910,6 +934,7 @@ def run_checks(root: Path) -> list[str]:
     errors.extend(validate_active_doc_counts(root))
     errors.extend(validate_doc_authority(root))
     errors.extend(validate_active_source_paths(root))
+    errors.extend(validate_verification_matrix_paths(root))
     errors.extend(validate_codebase_map_policy(root))
     return errors
 

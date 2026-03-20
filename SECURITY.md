@@ -36,8 +36,8 @@ This repository currently follows a single-maintainer security review model; ack
 If your report is not security-sensitive, use `docs/TROUBLESHOOTING.md` and `SUPPORT.md` instead of the private disclosure path.
 若问题并非安全敏感，请优先使用 `docs/TROUBLESHOOTING.md` 与 `SUPPORT.md`，不要占用私密披露通道。
 
-The disclosure fast path ends above. The continuity section below is a maintainer appendix for custody / delegate / freeze truth.
-上面的内容已经覆盖公开披露快路径；下面的连续性章节属于维护者附录，用于记录 custody / delegate / freeze 真相。
+The disclosure fast path ends above. The continuity section below is a maintainer appendix for custody / delegate / freeze truth; the public documentation index lives in `docs/README.md`.
+上面的内容已经覆盖公开披露快路径；下面的连续性章节属于维护者附录，用于记录 custody / delegate / freeze 真相；公开文档总索引见 `docs/README.md`。
 
 ## Maintainer Appendix / Triage & Continuity Truth / 维护者附录：分流与连续性真相
 

@@ -99,7 +99,7 @@ uv run pytest -q tests/meta/test_governance*.py tests/meta/test_toolchain_truth.
 - Confirm the GitHub release points at the expected tag.
 - Download the zip once and verify it contains only `custom_components/lipro` under the release root.
 - Download `SHA256SUMS`, `install.sh`, the published `SBOM`, the release identity manifest, and the matching `.sigstore.json` bundles, then confirm the release page also exposes the GitHub artifact attestation / provenance record.
-- Spot-check one asset with `cosign verify-blob --bundle ...` and confirm the certificate identity matches `.github/workflows/release.yml` for the tagged release path (or the audited manual-dispatch ref when rerunning an existing tag).
+- Spot-check one asset with `cosign verify-blob --bundle ...` and confirm the certificate identity matches `.github/workflows/release.yml` for the tagged release path only, even when the workflow was manually re-run for that same tag.
 - Spot-check README / README_zh / CONTRIBUTING / SUPPORT / SECURITY links on the rendered release page.
 - Review the workflow summary and confirm the release artifact install smoke passed against the temporary Home Assistant-style target tree before trusting the published zip/install pair.
 - If the release contains troubleshooting, public-entry, or runbook changes, ensure those docs still point at each other, at `.planning/reviews/V1_6_EVIDENCE_INDEX.md`, and at the canonical public entry points.

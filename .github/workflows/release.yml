@@ -310,7 +310,7 @@ jobs:
         run: |
           set -euo pipefail
 
-          identity_regex="^https://github.com/${GITHUB_REPOSITORY}/.github/workflows/release.yml@refs/(tags/${RELEASE_TAG}|heads/.+)$"
+          identity_regex="^https://github.com/${GITHUB_REPOSITORY}/.github/workflows/release.yml@refs/tags/${RELEASE_TAG}$"
 
           for artifact in \
             "dist/lipro-hass-${RELEASE_TAG}.zip" \

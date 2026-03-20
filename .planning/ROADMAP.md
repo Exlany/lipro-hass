@@ -8,6 +8,7 @@
 - ✅ **v1.4 Sustainment, Trust Gates & Final Hotspot Burn-down** - Phases 34-39 shipped 2026-03-19; milestone audit: `.planning/v1.4-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_4_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.4-ROADMAP.md` / `.planning/milestones/v1.4-REQUIREMENTS.md`; local tag: `v1.4`
 - ✅ **v1.5 Governance Truth Consolidation & Control-Surface Finalization** - Phase 40 shipped 2026-03-19; milestone audit: `.planning/v1.5-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_5_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.5-ROADMAP.md` / `.planning/milestones/v1.5-REQUIREMENTS.md`; local tag: `v1.5`
 - ✅ **v1.6 Delivery Trust Hardening, Runtime Boundary Decoupling & Maintainability Closure** - Phases 42-45 closed out on 2026-03-20 from the formal `41-REMEDIATION-ROADMAP.md` route; milestone audit: `.planning/v1.6-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_6_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.6-ROADMAP.md` / `.planning/milestones/v1.6-REQUIREMENTS.md`
+- 🟢 **v1.7 Full-Spectrum Repository Audit, Open-Source Maturity & Remediation Routing** - Phase 46 audit executed on 2026-03-20 with promoted audit package; `Phase 47 -> 50` are now formalized from `.planning/phases/46-exhaustive-repository-audit-standards-conformance-and-remediation-routing/46-REMEDIATION-ROADMAP.md`
 
 ## Required Phase Outputs
 
@@ -846,3 +847,94 @@ Plans:
 - [x] 45-02: slim diagnostics-share hotspots and replace weak bool-fail paths with typed outcomes (completed 2026-03-20)
 - [x] 45-03: give MQTT message handling typed outcomes and a no-growth typed-budget guard (completed 2026-03-20)
 - [x] 45-04: upgrade benchmark evidence into governed baseline threshold and no-regression truth (completed 2026-03-20)
+
+## v1.7: Full-Spectrum Repository Audit, Open-Source Maturity & Remediation Routing
+
+> `v1.7` 以 `.planning/v1.6-MILESTONE-AUDIT.md`、`.planning/reviews/V1_6_EVIDENCE_INDEX.md` 与 archived snapshots 为 shipped baseline；首个目标不是立刻再开大规模重构，而是完成一轮覆盖全仓 Python / docs / config / tests / governance assets 的正式终极审阅，并把结论压成 `Phase 47+` 的可执行整改路线。
+
+**Milestone status:** `Phase 46 audit complete / evidence-ready (2026-03-20)`
+**Default next command:** `$gsd-new-milestone`（以 `46-REMEDIATION-ROADMAP.md` 作为 follow-up route source）
+
+### Phase 46: Exhaustive repository audit, standards conformance, and remediation routing
+
+**Goal:** 以北极星主链、国际开源最佳实践与高级维护性标准，对 `lipro-hass` 的全部 Python 代码、测试、文档、配置与治理资产做一次不留盲点的 repo-wide 审阅，形成文件级证据、架构评分、热点定位与 `Phase 47+` 正式整改路线。
+**Requirements**: [GOV-36, ARC-05, DOC-05, RES-12, TST-08, TYP-11, QLT-16]
+**Depends on:** Phase 45
+**Draft Success Criteria**:
+  1. 每个 Python / docs / config / workflow / planning truth 文件都被纳入 file-level 审阅范围，并按 formal root / adapter / helper / test / governance / archive 等身份分类，给出 strengths / gaps / action verdict。
+  2. formal root hotspots、命名规范、目录结构、mega-test topology、typed debt、broad exception 使用、OSS contributor surface 与 release/support/security paths 都完成可追溯评分，并对照 north-star 与优秀开源案例给出清晰优先级。
+  3. `Phase 46` 产出 promoted audit evidence、全仓审阅总报告与 `Phase 47+` remediation roadmap；后续整改不再依赖零散记忆或 conversation-only 结论。
+**Status**: Complete (`2026-03-20`)
+**Plans**: 4/4 complete
+**Promoted audit package**: `46-AUDIT.md`, `46-SCORE-MATRIX.md`, `46-REMEDIATION-ROADMAP.md`, `46-SUMMARY.md`, `46-VERIFICATION.md`
+**Follow-up route source**: `.planning/phases/46-exhaustive-repository-audit-standards-conformance-and-remediation-routing/46-REMEDIATION-ROADMAP.md`
+**Formalized execution route**: `$gsd-plan-phase 47` → `$gsd-execute-phase 47`
+
+### Phase 47: Continuity contract, governance entrypoint compression, and tooling discoverability
+
+**Goal:** 把 `Phase 46` 审阅中仍分散的 continuity / docs index / tooling discoverability 问题压成单一正式合同：公开入口与维护者附录分层更清晰，scripts active-vs-deprecated 可发现，release custody / delegate / freeze / restoration 真相在 docs / templates / registry / metadata 中一致。
+**Depends on:** Phase 46
+**Requirements**: [GOV-37, DOC-06]
+**Success Criteria**:
+  1. `SUPPORT.md`、`SECURITY.md`、`docs/MAINTAINER_RELEASE_RUNBOOK.md`、`.github/CODEOWNERS`、issue/PR templates 与 governance registry 对 continuity / custody / delegate / freeze / restoration 讲同一条故事线，且不暗示 hidden delegate。
+  2. `docs/README.md` 成为更显式的 documentation index；`project.urls.Documentation` 与公开文档入口对齐；maintainer-only 文档不再在 public fast path 第一层与普通用户入口混层。
+  3. `scripts/` active tooling 与 retired compatibility stubs 有明确索引或自描述；stable-vs-preview wording 继续诚实，不削弱 verified release assets contract。
+**Plans**: 4 plans
+
+Plans:
+- [ ] 47-01: formalize continuity truth across support, security, runbook, and CODEOWNERS
+- [ ] 47-02: compress public documentation entrypoints and bilingual routing discoverability
+- [ ] 47-03: classify active tooling versus retired compatibility stubs and sync package metadata
+- [ ] 47-04: add governance guards for continuity, docs index, and tooling discoverability
+
+### Phase 48: Runtime-access and formal-root hotspot decomposition without public-surface drift
+
+**Goal:** 沿现有正式 seams 继续给 `RuntimeAccess`、`Coordinator`、`__init__.py` 与 `EntryLifecycleController` 限流，减少 decision density，同时保持 lazy wiring、public surface 与 control/runtime boundary guard 不漂移。
+**Depends on:** Phase 47
+**Requirements**: [RUN-08, ARC-06]
+**Success Criteria**:
+  1. `control/runtime_access.py` 的 read-model / telemetry / system-health 逻辑被 topicize，控制面消费者继续通过正式入口读取 runtime 状态。
+  2. `Coordinator`、`__init__.py` 与 `EntryLifecycleController` 决策密度下降，但不恢复 eager binding、第二 orchestration root 或 compat folklore。
+  3. dependency/public-surface guards 继续覆盖 lazy wiring 与 boundary truth，不允许 formal root 热点反弹。
+**Plans**: 4 plans
+
+Plans:
+- [ ] 48-01: topicize runtime access projections and system-health helpers
+- [ ] 48-02: continue coordinator inward decomposition without changing public surface
+- [ ] 48-03: slim init and entry-lifecycle wiring while preserving lazy composition
+- [ ] 48-04: harden dependency and public-surface guards around the formal roots
+
+### Phase 49: Mega-test topicization and failure-localization hardening
+
+**Goal:** 拆分治理 megaguards、runtime-root megatests 与 platform megatests，让失败直接命中具体 concern / facet / phase token，而不是让维护者继续在巨石测试里手工剥洋葱。
+**Depends on:** Phase 48
+**Requirements**: [TST-09, QLT-17]
+**Success Criteria**:
+  1. `tests/meta/test_governance_closeout_guards.py`、`tests/core/test_coordinator.py`、`tests/core/test_diagnostics.py` 与 `tests/platforms/test_update.py` 完成 concern/topic 切分。
+  2. stray top-level tests 进入更自然的 domain home；assertion ids / parameterization 会报出实际 `(phase, doc, token)` 或 runtime facet。
+  3. failure-localization 提升不以牺牲 coverage / guard honesty 为代价。
+**Plans**: 4 plans
+
+Plans:
+- [ ] 49-01: split governance megaguards by concern and evidence family
+- [ ] 49-02: topicize coordinator and diagnostics test surfaces
+- [ ] 49-03: decompose update-platform megatests and re-home stray top-level tests
+- [ ] 49-04: tighten assertion ids and failure summaries for faster localization
+
+### Phase 50: REST typed-surface reduction and command/result ownership convergence
+
+**Goal:** 收紧 REST child façade family 的 `Any` / helper honesty，并把 command-result policy 与 diagnostics auth-error duplication 收敛到单一 formal home，在不扩张 public surface 的前提下继续压缩 conceptual ownership drift。
+**Depends on:** Phase 49
+**Requirements**: [TYP-12, ARC-07]
+**Success Criteria**:
+  1. `endpoint_surface.py`、`rest_facade.py`、`request_gateway.py` 与 related helpers 的 sanctioned-vs-backlog `Any` 分类更窄、更诚实。
+  2. duplicated command/result policy logic 收敛到共享 formal home；diagnostics/helper auth-error duplication 向 `services/execution.py` 方向回收。
+  3. REST public surface 与 command/query contract 保持稳定，typed budget guards 可验证 no-growth / net-reduction。
+**Plans**: 4 plans
+
+Plans:
+- [ ] 50-01: reduce REST request and endpoint helper Any surfaces
+- [ ] 50-02: narrow sanctioned-versus-backlog Any classifications
+- [ ] 50-03: converge command-result policy ownership into one formal home
+- [ ] 50-04: close diagnostics auth-error duplication and harden typed-budget guards
+

@@ -6,8 +6,8 @@ body:
   - type: markdown
     attributes:
       value: |
-        感谢你的建议！请描述你希望添加的功能。
-        Thanks for suggesting a new feature!
+        感谢你的建议！开放式想法与使用讨论优先走 GitHub Discussions；若你已经有明确、可执行的改进提案，再使用这个表单。
+        Thanks for suggesting a new feature! Prefer GitHub Discussions for open-ended ideas and usage discussion; use this form when you already have a concrete, actionable proposal.
 
   - type: checkboxes
     attributes:

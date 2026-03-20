@@ -4,12 +4,12 @@
 
 | If you need... | Go here first | Notes |
 | --- | --- | --- |
+| Repository / documentation map | `docs/README.md` | First hop for docs index, contributor routing, and bilingual boundary |
 | Usage help / expected behavior | `docs/TROUBLESHOOTING.md`, then GitHub Discussions | Start here for setup questions and “is this expected?” checks |
 | Confirmed bug / regression | GitHub Issues | Include diagnostics first; add developer report only when diagnostics are insufficient |
 | Security-sensitive report | `SECURITY.md` | Use private disclosure, not a public Issue |
-| Maintainer release / packaging flow | `docs/MAINTAINER_RELEASE_RUNBOOK.md` | Maintainer-only; do not bypass release gates |
 
-If you only need public user / contributor routing, the table above plus `docs/TROUBLESHOOTING.md` / `SECURITY.md` is the fast path. The continuity section below is the maintainer appendix.
+If you only need public user / contributor routing, the table above is the fast path. Maintainer-only release / packaging / custody work lives in `docs/MAINTAINER_RELEASE_RUNBOOK.md`; keep that appendix out of the public first hop unless you are actively maintaining releases.
 
 ## Version & Validation Truth
 

@@ -101,7 +101,7 @@ If `install.sh` runs in remote mode without a pinned archive/tag, it resolves th
 # Optional local verification (the installer also verifies with Python/hashlib)
 cosign verify-blob ./lipro-hass-v1.0.0.zip \
   --bundle ./lipro-hass-v1.0.0.zip.sigstore.json \
-  --certificate-identity-regexp "^https://github.com/Exlany/lipro-hass/.github/workflows/release\.yml@.*$" \
+  --certificate-identity-regexp "^https://github.com/Exlany/lipro-hass/.github/workflows/release\.yml@refs/tags/v1\.0\.0$" \
   --certificate-oidc-issuer https://token.actions.githubusercontent.com
 sha256sum -c SHA256SUMS --ignore-missing
 

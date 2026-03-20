@@ -1,8 +1,8 @@
 # Project: Lipro-HASS North Star Evolution
 
-**Status:** Shipped and archived — `v1.6` 已于 `2026-03-20` 完成 milestone audit 与 archive promotion；当前状态为 `archived / evidence-ready`，下一步建议 `$gsd-new-milestone`。
+**Status:** Shipped baseline archived — `v1.6` 仍是最新已发货真源；`v1.7` follow-up route 已从 `Phase 46` audit package 正式化，当前默认执行入口为 `Phase 47`。
 **Goal:** 以 `v1.6` 归档真相为最新已发货基线；下一轮只允许在 `.planning/v1.6-MILESTONE-AUDIT.md`、`.planning/reviews/V1_6_EVIDENCE_INDEX.md` 与 `.planning/milestones/v1.6-*.md` 之上定义 fresh milestone，不回流 `Phase 41` execution trace 或 `v1.5` 为 active story。
-**Default next step:** `$gsd-new-milestone`
+**Default next step:** `$gsd-plan-phase 47` → `$gsd-execute-phase 47`
 
 
 ## Archived Milestone (v1.6)
@@ -22,6 +22,28 @@
 **Current status:** `Phase 42 -> 45 archived / evidence-ready`（`16/16` 个执行 plans 已完成，`.planning/v1.6-MILESTONE-AUDIT.md`、`.planning/reviews/V1_6_EVIDENCE_INDEX.md`、`.planning/milestones/v1.6-ROADMAP.md` 与 `.planning/milestones/v1.6-REQUIREMENTS.md` 已落盘；next action is `$gsd-new-milestone`）
 **Archive assets:** `.planning/v1.6-MILESTONE-AUDIT.md`, `.planning/reviews/V1_6_EVIDENCE_INDEX.md`, `.planning/milestones/v1.6-ROADMAP.md`, `.planning/milestones/v1.6-REQUIREMENTS.md`, `.planning/phases/45-hotspot-decomposition-and-typed-failure-semantics/45-SUMMARY.md`, `.planning/phases/45-hotspot-decomposition-and-typed-failure-semantics/45-VERIFICATION.md`
 **Primary closeout targets:** delivery trust hardening、typed runtime read-model、control/services decoupling、governance asset pruning、terminology convergence、hotspot decomposition、typed failure semantics。
+
+## Planned Milestone (v1.7)
+
+**Name:** `v1.7 Full-Spectrum Repository Audit, Open-Source Maturity & Remediation Routing`
+
+**Why now:** `v1.6` 已把 delivery trust、boundary decoupling、governance noise 与热点拆薄推进到 archived / evidence-ready，但在顶级架构师视角下，仓库仍值得做一次 repo-wide exhaustive review：formal root 热点仍偏大、若干 mega-tests 仍不利于审阅、typed/exception budget 仍有 future sustainment debt，且对外开源入口与长期维护成本仍需更系统的国际最佳实践对标。
+
+**North-star fit:** `v1.7` 不是新架构，而是在 `v1.6` archive truth 之上做一次终极审阅与正式整改路由：
+
+- 不恢复第二套合法架构故事线，只审阅单一北极星主链的先进性、缺陷与残留
+- 不把 phase workspace 执行痕迹误升为 authority truth，只提升最终 promoted audit evidence
+- 不把“审阅”降格成泛泛点评，而是把每个代码/文档/config 面向 formal root、naming、test topology、typed debt、OSS maturity 拉成可执行整改路线
+- 先完成全仓审阅与证据定格，再决定 `Phase 47+` 的具体 refactor / topicization / governance compression 顺序
+
+**Phase range:** `Phase 46 -> 50`
+**Current status:** `Phase 46 executed / evidence-ready (2026-03-20)`（inventory、architecture/code audit、docs/toolchain/governance audit、master audit、score matrix、remediation roadmap、summary 与 verification 均已落盘）
+**Formalized follow-up route:** `Phase 47 -> 50`（由 `46-REMEDIATION-ROADMAP.md` 升格为正式 roadmap entries）
+**Default execution route:** `$gsd-plan-phase 47` → `$gsd-execute-phase 47`
+**Immediate focus:** continuity contract、documentation index、tooling active/deprecated discoverability
+**Promoted audit package:** `.planning/phases/46-exhaustive-repository-audit-standards-conformance-and-remediation-routing/46-AUDIT.md`, `.planning/phases/46-exhaustive-repository-audit-standards-conformance-and-remediation-routing/46-SCORE-MATRIX.md`, `.planning/phases/46-exhaustive-repository-audit-standards-conformance-and-remediation-routing/46-REMEDIATION-ROADMAP.md`, `.planning/phases/46-exhaustive-repository-audit-standards-conformance-and-remediation-routing/46-SUMMARY.md`, `.planning/phases/46-exhaustive-repository-audit-standards-conformance-and-remediation-routing/46-VERIFICATION.md`
+**Next route source:** `.planning/phases/46-exhaustive-repository-audit-standards-conformance-and-remediation-routing/46-REMEDIATION-ROADMAP.md`
+**Seed focus:** continuity contract、formal root / hotspot 限流、mega-test topicization、REST typed-surface reduction、OSS maturity follow-through。
 
 ## Archived Milestone (v1.5)
 

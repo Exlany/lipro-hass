@@ -1,4 +1,5 @@
 # Primary triage owner and release custodian. See `SUPPORT.md`, `SECURITY.md`, and `docs/MAINTAINER_RELEASE_RUNBOOK.md`.
 # No documented delegate exists today; freeze new tagged releases and new release promises, and restore custody only after the real successor or delegate is recorded there.
 # Public issue traffic or private advisories do not transfer custody; maintainer-only continuity actions stay in those truth sources.
+# If continuity wording changes, sync `SUPPORT.md`, `SECURITY.md`, `docs/MAINTAINER_RELEASE_RUNBOOK.md`, and `.planning/baseline/GOVERNANCE_REGISTRY.json` together.
 * @Exlany

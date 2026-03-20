@@ -169,6 +169,17 @@ def test_ci_and_release_workflows_share_governance_and_version_gates() -> None:
     assert "pyproject.toml" in version_guard
     assert "RELEASE_TAG" in version_guard
 
+    signature_verify = next(
+        step["run"]
+        for step in build_job["steps"]
+        if step.get("name") == "Verify release signatures"
+    )
+    assert (
+        'identity_regex="^https://github.com/${GITHUB_REPOSITORY}/.github/workflows/release.yml@refs/tags/${RELEASE_TAG}$"'
+        in signature_verify
+    )
+    assert "heads/.+" not in signature_verify
+
     install_smoke = next(
         step["run"]
         for step in build_job["steps"]

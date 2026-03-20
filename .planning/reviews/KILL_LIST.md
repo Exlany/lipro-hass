@@ -236,3 +236,9 @@
 - 本 phase **无新增 active kill target**；decoder hotspot slimming、typed outcome vocabulary 收口与 benchmark governance hardening 都是 formal home refinement，不是新的 delete campaign。
 - `scripts/check_benchmark_baseline.py` 与 `tests/benchmarks/benchmark_baselines.json` 现已被确认为正式 benchmark governance artifacts，不是临时实验脚手架。
 - `45-SUMMARY.md` 与 `45-VERIFICATION.md` 已提升为长期证据；其余 `45-0x-SUMMARY.md` 与 plan/context/research 资产继续保持 execution-trace 身份。
+
+
+## Phase 47 Status Update
+
+- 本 phase **无新增 active kill target**；docs index formalization、signature-regex tighten 与 verification-matrix drift guard 都属于 current-truth hardening，不是新的 delete campaign。
+- `scripts/agent_worker.py` 与 `scripts/orchestrator.py` 暂仍保留，因为需要为潜在历史自动化提供显式失败与迁移指引；它们不是 active tooling，也不得继续被当作成功路径。

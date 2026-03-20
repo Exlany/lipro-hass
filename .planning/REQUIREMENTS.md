@@ -413,6 +413,70 @@
 
 
 
+## Planned Milestone (v1.7)
+
+> `v1.7` 以 `v1.6` archive truth 为 shipped baseline；`Phase 46` 已完成覆盖全仓代码 / 文档 / 配置 / 治理资产的终极审阅与正式整改路由，后续 follow-up phases 的正式化来源为 `46-REMEDIATION-ROADMAP.md`。
+
+### Full-Spectrum Repository Audit, Open-Source Maturity & Remediation Routing
+
+- [x] **GOV-36**: 所有 Python 代码、测试、文档、配置、工作流与 `.planning` 治理真源都必须进入可追溯的 file-level 审阅范围，不能留下未被定性的盲区。
+- [x] **ARC-05**: formal roots、public surfaces、dependency direction、control/runtime/protocol/service ownership 与 hotspot seams 必须按北极星架构与优秀开源案例完成系统审阅，并给出 keep / split / forbid / defer 裁决。
+- [x] **DOC-05**: 开源项目入口、README/README_zh、CONTRIBUTING、SUPPORT、SECURITY、runbook、issue/PR templates 与 bilingual boundary 必须完成国际化可维护性审阅，明确 strengths、gaps 与改进优先级。
+- [x] **RES-12**: 重构后的代码与老旧术语/旧残留风险必须被重新盘点，明确哪些是历史遗留、哪些是 future sustainment debt、哪些必须在后续 phase 物理清退。
+- [x] **TST-08**: 巨石测试、验证拓扑、回归半径与失败定位体验必须完成 repo-wide 审阅，并输出下一轮 topicization / contract-hardening 路线。
+- [x] **TYP-11**: `Any`、`type: ignore`、broad exception、typed budget 守卫覆盖范围与异常语义一致性必须完成量化盘点，并形成后续 no-growth / reduction 策略。
+- [x] **QLT-16**: 必须形成机器可审计的终极审阅报告、评分矩阵、优先级排序与 `Phase 47+` remediation roadmap，使质量改进可以被持续执行与验证。
+
+## Traceability for planned v1.7 route
+
+| Requirement | Planned Phase | Status |
+|-------------|---------------|--------|
+| GOV-36 | Phase 46 | Complete |
+| ARC-05 | Phase 46 | Complete |
+| DOC-05 | Phase 46 | Complete |
+| RES-12 | Phase 46 | Complete |
+| TST-08 | Phase 46 | Complete |
+| TYP-11 | Phase 46 | Complete |
+| QLT-16 | Phase 46 | Complete |
+
+**Coverage:**
+- v1.7 routed requirements: 7 total
+- Current mapped: 7
+- Current complete: 7
+- Current pending: 0
+- Current unmapped: 0 ✓
+
+## Formalized follow-up route from Phase 46
+
+- [ ] **GOV-37**: `SUPPORT.md`、`SECURITY.md`、`docs/MAINTAINER_RELEASE_RUNBOOK.md`、`.github/CODEOWNERS`、issue/PR templates 与 `.planning/baseline/GOVERNANCE_REGISTRY.json` 必须对 continuity / custody / delegate / freeze / restoration 讲同一条单维护者合同故事线。
+- [ ] **DOC-06**: `docs/README.md` 与 package metadata 必须把 documentation index 暴露成对外正式入口；public fast path、maintainer appendix 与双语边界不得继续视觉混层。
+- [ ] **RUN-08**: `RuntimeAccess` 必须继续按 projection / telemetry / system-health concern 拆薄；control consumers 不得恢复对 `entry.runtime_data` 或 coordinator internals 的散点读取。
+- [ ] **ARC-06**: `Coordinator`、`__init__.py` 与 `EntryLifecycleController` 必须继续 inward decomposition，降低 hotspot density，同时保持 lazy wiring 与单一正式主链。
+- [ ] **TST-09**: 治理 megaguards、runtime-root megatests 与 platform megatests 必须按 concern topicize，减少 giant-file failure triage 成本。
+- [ ] **QLT-17**: 测试与治理守卫的 failure localization 必须直接标出 phase / doc / token / runtime facet，避免“一个断言管全仓”的模糊失败面。
+- [ ] **TYP-12**: REST child façade family 的 `Any` / typed helper budget 必须继续收紧，并把 sanctioned-vs-backlog debt 分类压缩到更小、更诚实的边界。
+- [ ] **ARC-07**: command/result policy 与 diagnostics auth-error duplication 必须收敛到单一 formal home，不得让 ownership drift 继续散落在 helper / service / API family 之间。
+
+## Traceability for formalized v1.7 follow-up route
+
+| Requirement | Planned Phase | Status |
+|-------------|---------------|--------|
+| GOV-37 | Phase 47 | Planned |
+| DOC-06 | Phase 47 | Planned |
+| RUN-08 | Phase 48 | Planned |
+| ARC-06 | Phase 48 | Planned |
+| TST-09 | Phase 49 | Planned |
+| QLT-17 | Phase 49 | Planned |
+| TYP-12 | Phase 50 | Planned |
+| ARC-07 | Phase 50 | Planned |
+
+**Follow-up coverage:**
+- formalized requirements: 8 total
+- Current mapped: 8
+- Current complete: 0
+- Current pending: 8
+- Current unmapped: 0 ✓
+
 ## Archived Milestone (v1.6)
 
 > `v1.6` 已于 `2026-03-20` 完成归档；以下 requirements / traceability 保留 `Phase 42 -> 45` 的最终 fulfilled contract，归档快照见 `.planning/milestones/v1.6-REQUIREMENTS.md`，审计裁决见 `.planning/v1.6-MILESTONE-AUDIT.md`，证据入口见 `.planning/reviews/V1_6_EVIDENCE_INDEX.md`。

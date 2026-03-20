@@ -65,6 +65,9 @@ For a focused contribution loop, use this order:
 Need routing help? Use `SUPPORT.md`. Need maintainer continuity or release custody context? Use `docs/MAINTAINER_RELEASE_RUNBOOK.md`.
 如需支持路由，请看 `SUPPORT.md`；如需维护者连续性或发版托管上下文，请看 `docs/MAINTAINER_RELEASE_RUNBOOK.md`。
 
+Need the full docs map or bilingual boundary? Start with `docs/README.md`. Retired compatibility stubs such as `scripts/agent_worker.py` and `scripts/orchestrator.py` are no longer supported entrypoints.
+如需文档总索引或双语边界，请先看 `docs/README.md`。`scripts/agent_worker.py` 与 `scripts/orchestrator.py` 之类退役兼容壳已不再是受支持入口。
+
 ## Navigation Boundaries / 导航边界
 
 ### Public contributor path / 对外贡献主链

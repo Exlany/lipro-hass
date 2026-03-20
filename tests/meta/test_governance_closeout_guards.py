@@ -920,3 +920,121 @@ def test_phase_45_closeout_assets_exist_and_are_promoted() -> None:
     assert "## Phase 45 Residual Delta" in residual_text
     assert "## Phase 45 Status Update" in kill_text
 
+
+def test_phase_46_audit_assets_exist_and_are_promoted() -> None:
+    _assert_promoted_phase_assets(
+        "46-exhaustive-repository-audit-standards-conformance-and-remediation-routing",
+        "46-AUDIT.md",
+        "46-SCORE-MATRIX.md",
+        "46-REMEDIATION-ROADMAP.md",
+        "46-SUMMARY.md",
+        "46-VERIFICATION.md",
+    )
+
+    reviews_text = (_ROOT / ".planning" / "reviews" / "README.md").read_text(
+        encoding="utf-8"
+    )
+    verification_text = (
+        _ROOT
+        / ".planning"
+        / "phases"
+        / "46-exhaustive-repository-audit-standards-conformance-and-remediation-routing"
+        / "46-VERIFICATION.md"
+    ).read_text(encoding="utf-8")
+
+    assert "promoted audit package" in reviews_text
+    assert "46-AUDIT.md" in reviews_text
+    assert "46-REMEDIATION-ROADMAP.md" in reviews_text
+    assert "status:" in verification_text
+
+
+def test_phase_46_audit_truth_is_consistent() -> None:
+    roadmap_text = (_ROOT / ".planning" / "ROADMAP.md").read_text(encoding="utf-8")
+    requirements_text = (_ROOT / ".planning" / "REQUIREMENTS.md").read_text(
+        encoding="utf-8"
+    )
+    project_text = (_ROOT / ".planning" / "PROJECT.md").read_text(encoding="utf-8")
+    state_text = (_ROOT / ".planning" / "STATE.md").read_text(encoding="utf-8")
+
+    assert "## v1.7: Full-Spectrum Repository Audit, Open-Source Maturity & Remediation Routing" in roadmap_text
+    assert "**Milestone status:** `Phase 46 audit complete / evidence-ready (2026-03-20)`" in roadmap_text
+    assert "**Status**: Complete (`2026-03-20`)" in roadmap_text
+    assert "**Promoted audit package**: `46-AUDIT.md`, `46-SCORE-MATRIX.md`, `46-REMEDIATION-ROADMAP.md`, `46-SUMMARY.md`, `46-VERIFICATION.md`" in roadmap_text
+    assert "**Follow-up route source**: `.planning/phases/46-exhaustive-repository-audit-standards-conformance-and-remediation-routing/46-REMEDIATION-ROADMAP.md`" in roadmap_text
+
+    for needle in (
+        "| GOV-36 | Phase 46 | Complete |",
+        "| ARC-05 | Phase 46 | Complete |",
+        "| DOC-05 | Phase 46 | Complete |",
+        "| RES-12 | Phase 46 | Complete |",
+        "| TST-08 | Phase 46 | Complete |",
+        "| TYP-11 | Phase 46 | Complete |",
+        "| QLT-16 | Phase 46 | Complete |",
+        "- v1.7 routed requirements: 7 total",
+        "- Current mapped: 7",
+        "- Current complete: 7",
+        "- Current pending: 0",
+    ):
+        assert needle in requirements_text
+
+    assert "**Current status:** `Phase 46 executed / evidence-ready (2026-03-20)`" in project_text
+    assert "**Promoted audit package:** `.planning/phases/46-exhaustive-repository-audit-standards-conformance-and-remediation-routing/46-AUDIT.md`" in project_text
+    assert "**Next route source:** `.planning/phases/46-exhaustive-repository-audit-standards-conformance-and-remediation-routing/46-REMEDIATION-ROADMAP.md`" in project_text
+
+    assert "`Phase 46` 已于 `2026-03-20` 执行完成" in state_text
+    assert "46-REMEDIATION-ROADMAP.md" in state_text
+    assert "$gsd-new-milestone" in state_text
+
+
+
+def test_phase_47_route_is_formalized_and_planning_ready() -> None:
+    roadmap_text = (_ROOT / ".planning" / "ROADMAP.md").read_text(encoding="utf-8")
+    requirements_text = (_ROOT / ".planning" / "REQUIREMENTS.md").read_text(
+        encoding="utf-8"
+    )
+    project_text = (_ROOT / ".planning" / "PROJECT.md").read_text(encoding="utf-8")
+    state_text = (_ROOT / ".planning" / "STATE.md").read_text(encoding="utf-8")
+    phase_root = (
+        _ROOT
+        / ".planning"
+        / "phases"
+        / "47-continuity-contract-governance-entrypoint-compression-and-tooling-discoverability"
+    )
+
+    for needle in (
+        "### Phase 47: Continuity contract, governance entrypoint compression, and tooling discoverability",
+        "### Phase 48: Runtime-access and formal-root hotspot decomposition without public-surface drift",
+        "### Phase 49: Mega-test topicization and failure-localization hardening",
+        "### Phase 50: REST typed-surface reduction and command/result ownership convergence",
+        "**Formalized execution route**: `$gsd-plan-phase 47` → `$gsd-execute-phase 47`",
+    ):
+        assert needle in roadmap_text
+
+    for needle in (
+        "- [ ] **GOV-37**:",
+        "- [ ] **DOC-06**:",
+        "- [ ] **RUN-08**:",
+        "- [ ] **ARC-06**:",
+        "- [ ] **TST-09**:",
+        "- [ ] **QLT-17**:",
+        "- [ ] **TYP-12**:",
+        "- [ ] **ARC-07**:",
+        "## Traceability for formalized v1.7 follow-up route",
+        "| GOV-37 | Phase 47 | Planned |",
+        "| ARC-07 | Phase 50 | Planned |",
+    ):
+        assert needle in requirements_text
+
+    assert "**Default next step:** `$gsd-plan-phase 47` → `$gsd-execute-phase 47`" in project_text
+    assert "**Default execution route:** `$gsd-plan-phase 47` → `$gsd-execute-phase 47`" in project_text
+    assert "$gsd-plan-phase 47" in state_text
+    assert "$gsd-execute-phase 47" in state_text
+
+    for filename in (
+        "47-CONTEXT.md",
+        "47-01-PLAN.md",
+        "47-02-PLAN.md",
+        "47-03-PLAN.md",
+        "47-04-PLAN.md",
+    ):
+        assert (phase_root / filename).exists()

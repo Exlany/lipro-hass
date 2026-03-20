@@ -26,7 +26,8 @@ See: `.planning/PROJECT.md`
 - `v1.6` 已完成 milestone audit、archive promotion 与 closeout evidence registration：`.planning/v1.6-MILESTONE-AUDIT.md`、`.planning/reviews/V1_6_EVIDENCE_INDEX.md`、`.planning/milestones/v1.6-ROADMAP.md` 与 `.planning/milestones/v1.6-REQUIREMENTS.md` 继续作为最新 shipped archive baseline。
 - `v1.5` 仍保留为上一个 shipped archive baseline：`.planning/v1.5-MILESTONE-AUDIT.md`、`.planning/reviews/V1_5_EVIDENCE_INDEX.md` 与 `.planning/milestones/v1.5-*.md` 继续承担历史追溯 / continuity 身份，不再充当 latest pointer。
 - `Phase 41` 全仓审计已完成，并把 remediation 结论固化到 `.planning/phases/41-full-spectrum-architecture-code-quality-and-open-source-audit/41-REMEDIATION-ROADMAP.md`；该资产保持 execution trace 身份，不直接充当 active truth。
-- `v1.6 / Phase 42 -> 45` 已于 `2026-03-20` 全部执行完成并完成 archive promotion；下一步是用 `$gsd-new-milestone` 定义 fresh route，而不是继续保留 closeout-ready story。
+- `Phase 46` 已于 `2026-03-20` 执行完成：file-level inventory、architecture/code audit、docs/toolchain/governance audit、master audit、score matrix、remediation roadmap、summary 与 verification 均已落盘；active shipped baseline 仍保持 `v1.6 archived`，而 follow-up route source 已切换到 `46-REMEDIATION-ROADMAP.md`。
+- `Phase 47 -> 50` 已从 `46-REMEDIATION-ROADMAP.md` 正式化到 `.planning/ROADMAP.md` 与 `.planning/REQUIREMENTS.md`；当前推荐执行入口已收敛到 `Phase 47`，但 `$gsd-new-milestone` 仍保留为通用 transition 命令。
 - `v1.0` 已归档到 `.planning/MILESTONES.md` 与 `.planning/milestones/v1.0-*.md`
 - `v1.1` 已完成全部计划执行：`15 phases / 58 plans` 全绿落表
 - `v1.1` / `v1.2` 的 roadmap / requirements archive snapshots 已落入 `.planning/milestones/`，后续里程碑可停止复用同一份历史 planning truth
@@ -143,18 +144,20 @@ See: `.planning/PROJECT.md`
 - **Milestone:** `v1.6 Delivery Trust Hardening, Runtime Boundary Decoupling & Maintainability Closure`
 - **Phase range:** `42 -> 45`
 - **Completed so far:** `Phase 42 -> 45 archived`（`2026-03-20` 共完成 `16/16` plans：delivery trust、typed runtime access、terminology convergence、phase-asset governance、hotspot decomposition、typed failure semantics 与 benchmark no-regression contract 均已落地，并已完成 archive promotion）
-- **Planned next:** `$gsd-new-milestone`（以 `v1.6` 审计 / 证据 / 快照为 starting baseline，创建 fresh milestone）
+- **Planned next:** `$gsd-plan-phase 47`（`Phase 47 -> 50` 已 formalized；仍保留 `$gsd-new-milestone` 作为通用 transition 命令）
 - **Starting baseline:** `v1.6` archive assets remain authoritative shipped snapshots: `.planning/v1.6-MILESTONE-AUDIT.md`, `.planning/reviews/V1_6_EVIDENCE_INDEX.md`, `.planning/milestones/v1.6-ROADMAP.md`, `.planning/milestones/v1.6-REQUIREMENTS.md`
-- **Route source:** `.planning/phases/41-full-spectrum-architecture-code-quality-and-open-source-audit/41-REMEDIATION-ROADMAP.md`
+- **Route source:** `.planning/phases/46-exhaustive-repository-audit-standards-conformance-and-remediation-routing/46-REMEDIATION-ROADMAP.md`
 - **Historical archives:** `.planning/milestones/v1.1-ROADMAP.md`, `.planning/milestones/v1.1-REQUIREMENTS.md`, `.planning/milestones/v1.2-ROADMAP.md`, `.planning/milestones/v1.2-REQUIREMENTS.md`, `.planning/milestones/v1.4-ROADMAP.md`, `.planning/milestones/v1.4-REQUIREMENTS.md`, `.planning/milestones/v1.5-ROADMAP.md`, `.planning/milestones/v1.5-REQUIREMENTS.md`
-- **Next focus:** `$gsd-new-milestone`——基于 `v1.6` archive truth 启动下一轮正式路由。
+- **Next focus:** `$gsd-plan-phase 47`——先落 continuity contract、documentation index 与 tooling discoverability；完成后接 `$gsd-execute-phase 47`。
 
 ## Recommended Next Command
 
-1. `$gsd-new-milestone` —— 以 `v1.6` 审计 / 证据 / 快照为已发货基线，启动下一轮正式规划
-2. `$gsd-progress` —— 查看当前 `v1.6 archived / evidence-ready` 状态与 closeout 资产
-3. `uv run pytest -q tests/meta/test_governance_closeout_guards.py tests/meta/test_governance_phase_history.py tests/meta/test_governance_phase_history_runtime.py tests/meta/test_toolchain_truth.py tests/meta/test_governance_release_contract.py tests/meta/test_version_sync.py` —— 复核 archived closeout 当前故事
-4. `uv run ruff check . && uv run mypy` —— 复核静态质量基线
+1. `$gsd-plan-phase 47` —— 为 continuity contract、docs index 与 tooling discoverability 生成正式计划
+2. `$gsd-execute-phase 47` —— 执行 `Phase 47` 的 docs / governance / tooling discoverability 收口
+3. `$gsd-progress` —— 查看当前 `v1.6 archived` shipped baseline、`Phase 46` audit package 与已 formalized 的 `47 -> 50` route
+4. `$gsd-new-milestone` —— 通用 transition 命令（当前已不再必需，但保留为 GSD 通用入口）
+5. `uv run pytest -q tests/meta/test_governance_closeout_guards.py tests/meta/test_governance_phase_history.py tests/meta/test_governance_phase_history_runtime.py tests/meta/test_toolchain_truth.py tests/meta/test_governance_release_contract.py tests/meta/test_version_sync.py` —— 复核 archived baseline + Phase 46 / 47 governance story
+6. `uv run ruff check . && uv run mypy` —— 复核静态质量基线
 
 **Historical launch pointer:** `$gsd-execute-phase 29`
 
@@ -166,13 +169,15 @@ If resuming, read in this order:
 3. `.planning/ROADMAP.md`
 4. `.planning/REQUIREMENTS.md`
 5. `.planning/STATE.md`
-6. `.planning/reviews/V1_6_EVIDENCE_INDEX.md`
-7. `.planning/v1.6-MILESTONE-AUDIT.md`
-8. `.planning/milestones/v1.6-ROADMAP.md`
-9. `.planning/milestones/v1.6-REQUIREMENTS.md`
-10. `.planning/reviews/V1_5_EVIDENCE_INDEX.md`
-11. `.planning/v1.5-MILESTONE-AUDIT.md`
-12. `.planning/baseline/GOVERNANCE_REGISTRY.json`
-13. `.planning/baseline/AUTHORITY_MATRIX.md`
-14. `.planning/baseline/PUBLIC_SURFACES.md`
-15. `.planning/baseline/DEPENDENCY_MATRIX.md`
+6. `.planning/phases/46-exhaustive-repository-audit-standards-conformance-and-remediation-routing/46-AUDIT.md`
+7. `.planning/phases/46-exhaustive-repository-audit-standards-conformance-and-remediation-routing/46-SCORE-MATRIX.md`
+8. `.planning/phases/46-exhaustive-repository-audit-standards-conformance-and-remediation-routing/46-REMEDIATION-ROADMAP.md`
+9. `.planning/phases/46-exhaustive-repository-audit-standards-conformance-and-remediation-routing/46-VERIFICATION.md`
+10. `.planning/reviews/V1_6_EVIDENCE_INDEX.md`
+11. `.planning/v1.6-MILESTONE-AUDIT.md`
+12. `.planning/milestones/v1.6-ROADMAP.md`
+13. `.planning/milestones/v1.6-REQUIREMENTS.md`
+14. `.planning/baseline/GOVERNANCE_REGISTRY.json`
+15. `.planning/baseline/AUTHORITY_MATRIX.md`
+16. `.planning/baseline/PUBLIC_SURFACES.md`
+17. `.planning/baseline/DEPENDENCY_MATRIX.md`
