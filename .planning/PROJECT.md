@@ -1,9 +1,26 @@
 # Project: Lipro-HASS North Star Evolution
 
-**Status:** Shipped and archived — `v1.5` 已于 `2026-03-19` 完成 milestone audit 与 archive promotion；当前没有 active milestone，默认下一步是 `$gsd-new-milestone`。
-**Goal:** 以 `v1.5` 归档真相为最新 shipped baseline，保持 governance truth、runtime read-model 与 shared service execution contract 的单一裁决，并为下一轮 milestone 提供干净起点。
-**Default next step:** `$gsd-new-milestone`
+**Status:** Active routing — `v1.6` 已于 `2026-03-20` 从 `Phase 41` 审阅整改路线正式化为当前里程碑；下一步建议 `$gsd-plan-phase 42` → `$gsd-execute-phase 42`。
+**Goal:** 以 `v1.5` 归档真相为已发货基线，优先补齐 delivery trust / coverage / compatibility 真实门禁，再完成 control/services 解耦、typed runtime read-model、治理资产降噪与热点拆薄。
+**Default next step:** `$gsd-plan-phase 42` → `$gsd-execute-phase 42`
 
+
+## Active Milestone (v1.6)
+
+**Name:** `v1.6 Delivery Trust Hardening, Runtime Boundary Decoupling & Maintainability Closure`
+
+**Why now:** `Phase 41` 审阅证明主链已经成熟，但仍存在五类值得正式路由的高杠杆尾债：release/install 缺少真实 artifact smoke、coverage/diff/local-CI parity 仍不足、`control/` ↔ `services/` 边界继续发黏、`RuntimeAccess` 仍带反射式读模型、`.planning/phases/**` 与术语/贡献入口噪音正在侵蚀 current truth 清晰度。
+
+**North-star fit:** `v1.6` 继续沿单一正式主链推进：
+
+- 先补 delivery truth 与 continuity hard gate，再做架构解耦，不重开第二主链
+- 不把 `Phase 41` 审计 execution trace 误升为长期治理真源
+- 不让 control/services/runtime 长回双向 helper / locator / infra story
+- 热点拆分只沿正式 seams 收口，不扩张 public surface 或 compatibility folklore
+
+**Phase range:** `Phase 42 -> 45`
+**Current status:** `Phase 42 routing-ready`（formal route promoted on `2026-03-20` from `.planning/phases/41-full-spectrum-architecture-code-quality-and-open-source-audit/41-REMEDIATION-ROADMAP.md`; next action is `$gsd-plan-phase 42` → `$gsd-execute-phase 42`）
+**Primary closeout targets:** delivery trust hardening、typed runtime read-model、control/services decoupling、governance asset pruning、terminology convergence、hotspot decomposition、typed failure semantics。
 
 ## Archived Milestone (v1.5)
 
@@ -493,6 +510,6 @@ v1.1 进入执行期后，新增演进必须额外满足：
 - `.planning/milestones/v1.4-ROADMAP.md`
 - `.planning/milestones/v1.4-REQUIREMENTS.md`
 
-- 当前 handoff / archive 输入以 `v1.5` audit + archive bundle 为主；`Phase 40` promoted evidence 与 `v1.4` archive bundle 共同构成下一里程碑的历史基线。phase 目录资产仍默认是执行证据，只有被 `ROADMAP.md`、baseline docs、review ledgers 或 milestone audit 显式提升时，才成为长期治理真源。
+- 当前 handoff / archive 输入以 `v1.5` audit + archive bundle 为 shipped baseline，`.planning/phases/41-full-spectrum-architecture-code-quality-and-open-source-audit/41-REMEDIATION-ROADMAP.md` 则是 `v1.6 / Phase 42 -> 45` 的正式路由来源。phase 目录资产仍默认是执行证据，只有被 `ROADMAP.md`、baseline docs、review ledgers 或 milestone audit 显式提升时，才成为长期治理真源。
 
-*Last updated: 2026-03-19 after v1.5 milestone archive, audit, and tag promotion*
+*Last updated: 2026-03-20 after formalizing the v1.6 / Phase 42-45 route from the Phase 41 remediation roadmap*

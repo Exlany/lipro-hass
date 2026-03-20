@@ -1,14 +1,14 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.5
-milestone_name: Governance Truth Consolidation & Control-Surface Finalization
-status: archived
-last_updated: "2026-03-19T14:40:02Z"
+milestone: v1.6
+milestone_name: Delivery Trust Hardening, Runtime Boundary Decoupling & Maintainability Closure
+status: active
+last_updated: "2026-03-20T00:00:00Z"
 progress:
-  total_phases: 1
-  completed_phases: 1
-  total_plans: 7
-  completed_plans: 7
+  total_phases: 4
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
 ---
 
 # Project State
@@ -17,13 +17,15 @@ progress:
 
 See: `.planning/PROJECT.md`
 
-**Current milestone:** `v1.5 Governance Truth Consolidation & Control-Surface Finalization`
-**Core value:** 在不回退 `LiproProtocolFacade` / `Coordinator` 单一正式主链的前提下，把 authority layering、machine-readable governance truth、runtime-access read-model 与 shared service execution contract 收口成更诚实、更可守护的 current story。
-**Current mode:** `Phase 40 complete and archived`；`v1.5` 已完成 milestone audit 与 archive promotion，当前默认 next action 为 `$gsd-new-milestone`。
+**Current milestone:** `v1.6 Delivery Trust Hardening, Runtime Boundary Decoupling & Maintainability Closure`
+**Core value:** 在不回退 `LiproProtocolFacade` / `Coordinator` 单一正式主链的前提下，先把 delivery trust 与 continuity gate 变成真实可执行合同，再完成 runtime read-model typed 化、control/services 解耦、治理资产降噪与热点拆薄。
+**Current mode:** `Phase 42 routing-ready`；`v1.5` 已保持最新 shipped archive baseline，`Phase 41` 审计整改路线已于 `2026-03-20` 正式提升为 `v1.6 / Phase 42 -> 45`，当前默认 next action 为 `$gsd-plan-phase 42`。
 
 ## Current Position
 
-- `v1.5` 已完成 milestone audit、archive promotion 与 local tag：`.planning/v1.5-MILESTONE-AUDIT.md`、`.planning/milestones/v1.5-ROADMAP.md`、`.planning/milestones/v1.5-REQUIREMENTS.md` 现为最新 archive baseline。
+- `v1.5` 已完成 milestone audit、archive promotion 与 local tag：`.planning/v1.5-MILESTONE-AUDIT.md`、`.planning/milestones/v1.5-ROADMAP.md`、`.planning/milestones/v1.5-REQUIREMENTS.md` 继续作为最新 shipped archive baseline。
+- `Phase 41` 全仓审计已完成，并把 remediation 结论固化到 `.planning/phases/41-full-spectrum-architecture-code-quality-and-open-source-audit/41-REMEDIATION-ROADMAP.md`；该资产保持 execution trace 身份，不直接充当 active truth。
+- `v1.6 / Phase 42 -> 45` 已于 `2026-03-20` 正式路由：先做 delivery trust / validation hardening，再做 runtime-control decoupling、governance asset pruning 与 hotspot decomposition。
 - `v1.0` 已归档到 `.planning/MILESTONES.md` 与 `.planning/milestones/v1.0-*.md`
 - `v1.1` 已完成全部计划执行：`15 phases / 58 plans` 全绿落表
 - `v1.1` / `v1.2` 的 roadmap / requirements archive snapshots 已落入 `.planning/milestones/`，后续里程碑可停止复用同一份历史 planning truth
@@ -137,20 +139,21 @@ See: `.planning/PROJECT.md`
 
 ## Current Milestone Status
 
-- **Milestone:** `v1.5 Governance Truth Consolidation & Control-Surface Finalization`
-- **Phase range:** `40`
-- **Completed so far:** `Phase 40`（7/7 plans executed, validated, audited, and archived）
-- **Closeout assets:** `.planning/v1.5-MILESTONE-AUDIT.md`, `.planning/reviews/V1_5_EVIDENCE_INDEX.md`, `.planning/milestones/v1.5-ROADMAP.md`, `.planning/milestones/v1.5-REQUIREMENTS.md`, `.planning/phases/40-governance-truth-consolidation-runtime-access-convergence-and-service-execution-unification/40-SUMMARY.md`, `.planning/phases/40-governance-truth-consolidation-runtime-access-convergence-and-service-execution-unification/40-VERIFICATION.md`, `.planning/phases/40-governance-truth-consolidation-runtime-access-convergence-and-service-execution-unification/40-VALIDATION.md`, local tag `v1.5`
-- **Starting baseline:** `v1.4` archive assets remain authoritative historical snapshots: `.planning/v1.4-MILESTONE-AUDIT.md`, `.planning/reviews/V1_4_EVIDENCE_INDEX.md`, `.planning/milestones/v1.4-ROADMAP.md`, `.planning/milestones/v1.4-REQUIREMENTS.md`, local tag `v1.4`
+- **Milestone:** `v1.6 Delivery Trust Hardening, Runtime Boundary Decoupling & Maintainability Closure`
+- **Phase range:** `42 -> 45`
+- **Completed so far:** `None`（formal route seeded; planning/execution not started）
+- **Starting baseline:** `v1.5` archive assets remain authoritative shipped snapshots: `.planning/v1.5-MILESTONE-AUDIT.md`, `.planning/reviews/V1_5_EVIDENCE_INDEX.md`, `.planning/milestones/v1.5-ROADMAP.md`, `.planning/milestones/v1.5-REQUIREMENTS.md`, local tag `v1.5`
+- **Route source:** `.planning/phases/41-full-spectrum-architecture-code-quality-and-open-source-audit/41-REMEDIATION-ROADMAP.md`
 - **Historical archives:** `.planning/milestones/v1.1-ROADMAP.md`, `.planning/milestones/v1.1-REQUIREMENTS.md`, `.planning/milestones/v1.2-ROADMAP.md`, `.planning/milestones/v1.2-REQUIREMENTS.md`, `.planning/milestones/v1.4-ROADMAP.md`, `.planning/milestones/v1.4-REQUIREMENTS.md`, `.planning/milestones/v1.5-ROADMAP.md`, `.planning/milestones/v1.5-REQUIREMENTS.md`
-- **Next focus:** `$gsd-new-milestone`——定义下一轮 active milestone / requirements / roadmap，保持 archive/current truth 单一分层。
+- **Next focus:** `$gsd-plan-phase 42` → `$gsd-execute-phase 42`——先落 delivery trust / validation hardening，再继续后续解耦与收口。
 
 ## Recommended Next Command
 
-1. `$gsd-new-milestone` —— 启动下一轮 milestone，定义 fresh requirements / roadmap / state
-2. `$gsd-progress` —— 查看当前 archived status 与 latest closeout traceability
-3. `uv run pytest -q tests/meta/test_governance*.py tests/meta/test_public_surface_guards.py tests/meta/test_version_sync.py tests/meta/test_toolchain_truth.py` —— 复核 archive truth 与 latest closeout pointer
-4. `uv run ruff check . && uv run mypy` —— 复核静态质量基线
+1. `$gsd-plan-phase 42` —— 为 `Phase 42` 生成 delivery trust / validation hardening 的正式执行计划
+2. `$gsd-execute-phase 42` —— 执行 `Phase 42`，补齐 release smoke、delegate/fallback、diff coverage 与 preview lane
+3. `$gsd-progress` —— 查看当前 `v1.6 / Phase 42 -> 45` 的路由状态与后续承接关系
+4. `uv run pytest -q tests/meta/test_governance*.py tests/meta/test_public_surface_guards.py tests/meta/test_version_sync.py tests/meta/test_toolchain_truth.py` —— 复核新 current truth 与历史 archive truth 的双层守卫
+5. `uv run ruff check . && uv run mypy` —— 复核静态质量基线
 
 **Historical launch pointer:** `$gsd-execute-phase 29`
 

@@ -233,7 +233,7 @@
 - mapped to phases: 65
 - unmapped: 0 ✓
 
-*Last updated: 2026-03-19 after v1.5 milestone archive and closeout promotion*
+*Last updated: 2026-03-20 after formalizing the v1.6 / Phase 42-45 route from the Phase 41 remediation roadmap*
 
 
 ## Archived Milestone (v1.2)
@@ -411,6 +411,54 @@
 - Current pending: 0
 - Current unmapped: 0 ✓
 
+
+
+## Active Milestone (v1.6)
+
+> `v1.6 / Phase 42 -> 45` 以 `v1.5` archive truth 为 shipped baseline，正式接管 `Phase 41` 审计的 remediation roadmap；执行顺序固定为 delivery trust → runtime/control decoupling → governance/doc noise reduction → hotspot decomposition，不得跳步重开第二故事线。
+
+### Delivery Trust, Boundary Decoupling & Maintainability Closure
+
+- [ ] **GOV-34**: maintainer delegate、security fallback、`.github/CODEOWNERS`、issue/PR templates 与 maintainer runbook 必须形成单一 continuity truth，不能继续依赖单点隐性记忆。
+- [ ] **QLT-12**: release workflow 必须对发布产物运行 install / uninstall smoke，验证 release asset 在临时 HA 目录中的真实可用性。
+- [ ] **QLT-13**: 质量门禁必须同时约束 total coverage 与 changed-surface diff coverage，并保持 local/CI 命令语义一致。
+- [ ] **QLT-14**: 必须引入 scheduled compatibility / deprecation preview lane，提前暴露 Home Assistant 或依赖漂移。
+- [ ] **ARC-04**: `control/` 与 `services/` 必须收敛为单向依赖合同，禁止 helper / runtime / locator 双向缠绕回流。
+- [ ] **CTRL-10**: runtime infra 与 service helper 的 formal home 必须明确；`services/maintenance.py` 不得继续承载 runtime truth。
+- [ ] **RUN-07**: `RuntimeAccess` 必须提供 typed public read-model API；生产消费者不得依赖反射、`MagicMock` 形状或私有字段。
+- [ ] **GOV-35**: `.planning/phases/**` 默认仅是 execution trace；只有 promoted allowlist 资产可进入长期治理 / CI truth。
+- [ ] **RES-11**: `client / mixin / forwarding` 等旧术语必须退出 current docs、ADR 与注释，只允许留在历史资产或 residual ledger。
+- [ ] **DOC-04**: contributor fast-path、maintainer appendix 与双语边界策略必须显式化、可链接、可守卫。
+- [ ] **HOT-11**: 高复杂度热点文件与长函数必须沿现有正式 seams 切薄，且不得扩张 public surface。
+- [ ] **ERR-11**: 布尔失败返回必须升级为 typed result / reason code，并可被 diagnostics / share / message 路径消费。
+- [ ] **TYP-10**: runtime / diagnostics / share / message touched-zone 的 typed budget 必须继续收紧，并设 no-growth guard。
+- [ ] **QLT-15**: benchmark 必须从“留证据”升级为“防回退”门禁，具备基线比较与阈值告警。
+
+## Traceability for v1.6 route
+
+| Requirement | Planned Phase | Status |
+|-------------|---------------|--------|
+| GOV-34 | Phase 42 | Planned |
+| QLT-12 | Phase 42 | Planned |
+| QLT-13 | Phase 42 | Planned |
+| QLT-14 | Phase 42 | Planned |
+| ARC-04 | Phase 43 | Planned |
+| CTRL-10 | Phase 43 | Planned |
+| RUN-07 | Phase 43 | Planned |
+| GOV-35 | Phase 44 | Planned |
+| RES-11 | Phase 44 | Planned |
+| DOC-04 | Phase 44 | Planned |
+| HOT-11 | Phase 45 | Planned |
+| ERR-11 | Phase 45 | Planned |
+| TYP-10 | Phase 45 | Planned |
+| QLT-15 | Phase 45 | Planned |
+
+**Coverage:**
+- v1.6 routed requirements: 14 total
+- Current mapped: 14
+- Current complete: 0
+- Current pending: 14
+- Current unmapped: 0 ✓
 
 ## Archived Milestone (v1.5)
 

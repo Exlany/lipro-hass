@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import re
+
 from .test_governance_closeout_guards import _assert_promoted_phase_assets
 from .test_governance_guards import (
     _ROOT,
@@ -195,7 +197,7 @@ def test_phase_21_to_24_execution_truth_is_consistent() -> None:
             f"| {req_id} | Phase" in requirements_text
             and "| Complete |" in requirements_text
         )
-    assert any(marker in state_text for marker in ("milestone: v1.4", "milestone: v1.5"))
+    assert re.search(r"milestone: v1\.\d+", state_text) is not None
     assert any(
         marker in state_text
         for marker in (
@@ -203,6 +205,7 @@ def test_phase_21_to_24_execution_truth_is_consistent() -> None:
             "status: active",
             "archive promotion",
             "$gsd-execute-phase 40",
+            "$gsd-plan-phase 42",
         )
     )
     assert "- `Phase 24` 已完成并于 2026-03-17 重新验证" in state_text

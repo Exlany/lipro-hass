@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from functools import lru_cache
+import re
 from pathlib import Path
 
 from scripts.check_file_matrix import repo_root
@@ -13,35 +14,32 @@ from .test_governance_guards import _load_frontmatter
 def _assert_state_keeps_forward_progress_commands(state_text: str) -> None:
     assert "## Recommended Next Command" in state_text
     assert "$gsd-progress" in state_text
-    assert any(
-        command in state_text
-        for command in (
-            "$gsd-plan-milestone-gaps",
-            "$gsd-new-milestone",
-            "$gsd-execute-phase 40",
-            "$gsd-complete-milestone v1.5",
-        )
+    assert (
+        "$gsd-plan-milestone-gaps" in state_text
+        or "$gsd-new-milestone" in state_text
+        or re.search(r"\$gsd-(?:plan|execute)-phase \d+(?:\.\d+)?", state_text)
+        or re.search(r"\$gsd-complete-milestone v\d+\.\d+", state_text)
     )
 
 
 def _assert_project_allows_post_v1_4_next_step(project_text: str) -> None:
-    assert any(
-        marker in project_text
-        for marker in (
-            "**Default next step:** `$gsd-new-milestone`",
-            "**Default next step:** `$gsd-plan-phase 40` → `$gsd-execute-phase 40`",
+    assert (
+        "**Default next step:** `$gsd-new-milestone`" in project_text
+        or re.search(
+            r"\*\*Default next step:\*\* `\$gsd-plan-phase \d+(?:\.\d+)?` → `\$gsd-execute-phase \d+(?:\.\d+)?`",
+            project_text,
         )
+        is not None
     )
 
 
 def _assert_state_reflects_post_v1_4_continuation(state_text: str) -> None:
     assert (
         "`Phase 39 complete`" in state_text
-        or "Phase 40 execution-ready" in state_text
-        or "Phase 40 complete" in state_text
-        or "v1.5 archived" in state_text
-        or "$gsd-execute-phase 40" in state_text
-        or "$gsd-complete-milestone v1.5" in state_text
+        or re.search(r"Phase \d+(?:\.\d+)? (?:execution-ready|complete|routing-ready|planning-ready)", state_text)
+        or re.search(r"v1\.\d+ archived", state_text)
+        or re.search(r"\$gsd-(?:plan|execute)-phase \d+(?:\.\d+)?", state_text)
+        or re.search(r"\$gsd-complete-milestone v\d+\.\d+", state_text)
         or "$gsd-new-milestone" in state_text
     )
 
@@ -713,15 +711,14 @@ def test_phase_40_closeout_truth_is_consistent() -> None:
         "- Current mapped: 5",
         "- Current complete: 5",
         "- Current pending: 0",
-        "## Next Milestone Seed",
     ):
         assert needle in requirements_text
 
     assert "## Archived Milestone (v1.5)" in project_text
-    assert "**Default next step:** `$gsd-new-milestone`" in project_text
+    _assert_project_allows_post_v1_4_next_step(project_text)
     assert ".planning/reviews/V1_5_EVIDENCE_INDEX.md" in project_text
 
-    assert "milestone: v1.5" in state_text
-    assert "status: archived" in state_text
-    assert "**Current mode:** `Phase 40 complete and archived`" in state_text
-    assert "$gsd-new-milestone" in state_text
+    assert ".planning/v1.5-MILESTONE-AUDIT.md" in state_text
+    assert ".planning/reviews/V1_5_EVIDENCE_INDEX.md" in state_text
+    _assert_state_reflects_post_v1_4_continuation(state_text)
+    _assert_state_keeps_forward_progress_commands(state_text)

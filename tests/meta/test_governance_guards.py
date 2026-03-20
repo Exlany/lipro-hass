@@ -151,7 +151,7 @@ def _assert_current_mode_tracks_phase_lifecycle(state_text: str) -> None:
             state_text,
         )
         is not None
-        or "**Current mode:** `v1.5 archived`" in state_text
+        or re.search(r"\*\*Current mode:\*\* `v1\.\d+ archived`", state_text) is not None
     )
 
 
@@ -159,7 +159,15 @@ def _assert_state_preserves_phase_17_closeout_history(state_text: str) -> None:
     assert "`v1.1` 已完成全部计划执行：`15 phases / 58 plans` 全绿落表" in state_text
     assert "- `Phase 17` 已完成：" in state_text
 
-    if "milestone: v1.1" in state_text:
+    state_frontmatter = _load_frontmatter(_ROOT / ".planning" / "STATE.md")
+    milestone = state_frontmatter["milestone"]
+    milestone_name = state_frontmatter["milestone_name"]
+
+    assert f"milestone: {milestone}" in state_text
+    assert f"milestone_name: {milestone_name}" in state_text
+    assert f"**Current milestone:** `{milestone} {milestone_name}`" in state_text
+
+    if milestone == "v1.1":
         assert re.search(
             r"\*\*Current mode:\*\* `Phase 17 (?:complete|milestone audit complete)`",
             state_text,
@@ -170,49 +178,21 @@ def _assert_state_preserves_phase_17_closeout_history(state_text: str) -> None:
         assert "completed_plans: 58" in state_text
         return
 
-    if "milestone: v1.2" in state_text:
-        assert "milestone_name: Host-Neutral Core & Replay Completion" in state_text
-        assert (
-            "**Current milestone:** `v1.2 Host-Neutral Core & Replay Completion`"
-            in state_text
-        )
+    if milestone == "v1.2":
         assert re.search(
             r"\*\*Current mode:\*\* `Phase (?:1[89]|[2-9]\d)(?:\.\d+)? [a-z][a-z0-9_ -]+`",
             state_text,
         )
         return
 
-    if "milestone: v1.4" in state_text:
-        assert "milestone_name: Sustainment, Trust Gates & Final Hotspot Burn-down" in state_text
-        assert (
-            "**Current milestone:** `v1.4 Sustainment, Trust Gates & Final Hotspot Burn-down`"
-            in state_text
-        )
+    if milestone == "v1.4":
         assert re.search(
             r"\*\*Current mode:\*\* `Phase 3[4-9](?:\.\d+)? [a-z][a-z0-9_ -]+`",
             state_text,
         )
         return
 
-    assert "milestone: v1.5" in state_text
-    assert (
-        "milestone_name: Governance Truth Consolidation & Control-Surface Finalization"
-        in state_text
-    )
-    assert (
-        "**Current milestone:** `v1.5 Governance Truth Consolidation & Control-Surface Finalization`"
-        in state_text
-    )
-    assert (
-        "**Current mode:** `Phase 40 execution-ready`" in state_text
-        or "**Current mode:** `Phase 40 complete`" in state_text
-        or "**Current mode:** `v1.5 archived`" in state_text
-        or re.search(
-            r"\*\*Current mode:\*\* `Phase 4\d(?:\.\d+)? [a-z][a-z0-9_ -]+`",
-            state_text,
-        )
-        is not None
-    )
+    _assert_current_mode_tracks_phase_lifecycle(state_text)
 
 
 def test_governance_checker_reports_no_drift() -> None:

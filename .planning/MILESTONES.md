@@ -98,3 +98,22 @@
 - `.planning/phases/40-governance-truth-consolidation-runtime-access-convergence-and-service-execution-unification/40-VALIDATION.md`
 
 ---
+
+
+## v1.6 Delivery Trust Hardening, Runtime Boundary Decoupling & Maintainability Closure (Planned: 2026-03-20)
+
+**Phase range:** `42 -> 45`
+**Phases completed:** 0 phases, 0 plans, 0 tasks
+**Status:** active / routing-ready
+
+**Planned focus:**
+- formalize maintainer delegate / security fallback、release artifact install smoke、diff coverage 与 preview validation lane
+- decouple `control/` ↔ `services/`、type `RuntimeAccess`、move runtime infra back to the correct formal home
+- prune `.planning/phases/**` truth noise、converge façade-era terminology、separate contributor fast-path from maintainer appendix
+- decompose hotspot files, introduce typed failure semantics, and turn benchmark evidence into anti-regression signals
+
+**Route source:**
+- `.planning/phases/41-full-spectrum-architecture-code-quality-and-open-source-audit/41-REMEDIATION-ROADMAP.md`
+- `.planning/phases/41-full-spectrum-architecture-code-quality-and-open-source-audit/41-AUDIT.md`
+
+---

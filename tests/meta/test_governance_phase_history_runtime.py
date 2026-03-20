@@ -268,10 +268,7 @@ def test_phase_19_execution_truth_is_consistent() -> None:
     assert "**Status**: Complete (`2026-03-16`)" in roadmap_text
     assert "**Plans**: 4/4 complete" in roadmap_text
     assert "# Requirements: Lipro-HASS" in requirements_text
-    assert (
-        "*Last updated: 2026-03-19 after v1.5 milestone archive and closeout promotion*"
-        in requirements_text
-    )
+    assert "*Last updated:" in requirements_text
     assert "## Archived Milestone (v1.2)" in requirements_text
     assert "| CORE-02 | Phase 19 | Complete |" in requirements_text
     assert "- `Phase 24` 已完成并于 2026-03-17 重新验证" in state_text

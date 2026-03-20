@@ -7,7 +7,7 @@
 - ✅ **v1.2 Host-Neutral Core & Replay Completion** - Phases 18-24 complete after Phase 24 reopen revalidation; 24 plans complete; milestone snapshots archived at `.planning/milestones/v1.2-ROADMAP.md` / `.planning/milestones/v1.2-REQUIREMENTS.md`; `v1.3` handoff-ready (revalidated 2026-03-17)
 - ✅ **v1.4 Sustainment, Trust Gates & Final Hotspot Burn-down** - Phases 34-39 shipped 2026-03-19; milestone audit: `.planning/v1.4-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_4_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.4-ROADMAP.md` / `.planning/milestones/v1.4-REQUIREMENTS.md`; local tag: `v1.4`
 - ✅ **v1.5 Governance Truth Consolidation & Control-Surface Finalization** - Phase 40 shipped 2026-03-19; milestone audit: `.planning/v1.5-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_5_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.5-ROADMAP.md` / `.planning/milestones/v1.5-REQUIREMENTS.md`; local tag: `v1.5`
-- 💤 **No active milestone** - next route should begin with `$gsd-new-milestone` and fresh requirements definition
+- 🟢 **v1.6 Delivery Trust Hardening, Runtime Boundary Decoupling & Maintainability Closure** - Phases 42-45 formally routed on 2026-03-20 from `41-REMEDIATION-ROADMAP.md`; next action: `$gsd-plan-phase 42` → `$gsd-execute-phase 42`
 
 ## Required Phase Outputs
 
@@ -774,6 +774,54 @@ Plans:
 **Milestone status:** `Archived / evidence-ready`
 **Closeout assets:** `.planning/v1.5-MILESTONE-AUDIT.md`, `.planning/reviews/V1_5_EVIDENCE_INDEX.md`, `.planning/milestones/v1.5-ROADMAP.md`, `.planning/milestones/v1.5-REQUIREMENTS.md`, `.planning/phases/40-governance-truth-consolidation-runtime-access-convergence-and-service-execution-unification/40-VALIDATION.md`, local tag `v1.5`
 
-## Next Milestone Seed
+## v1.6: Delivery Trust Hardening, Runtime Boundary Decoupling & Maintainability Closure
 
-> `v1.5` 已完成归档；后续任何新 work 都必须从 `$gsd-new-milestone` 开始，不得继续在 `v1.5` current story 上追加隐式 phase。
+> `Phase 41` 审计已把 delivery trust、boundary decoupling、governance hygiene 与 hotspot decomposition 压成正式整改路线；`v1.6` 从 `Phase 42` 起按“先治理验证、后边界解耦、再治理降噪、最后热点拆薄”的顺序推进，把 current truth 从“架构已对”提升到“交付可信、边界更薄、仓库更静、协作更稳”。
+
+**Milestone status:** `Active / routing-ready (2026-03-20)`
+**Route source:** `.planning/phases/41-full-spectrum-architecture-code-quality-and-open-source-audit/41-REMEDIATION-ROADMAP.md`
+**Default next command:** `$gsd-plan-phase 42` → `$gsd-execute-phase 42`
+
+### Phase 42: Delivery trust gates and validation hardening
+
+**Goal:** 补齐 maintainer delegate / security fallback、release artifact install smoke、total + diff coverage 双门禁、local-vs-CI parity 与 compatibility / deprecation preview lane，让“仓库能发布”升级为“产物可验证、流程可接班、漂移可前探”。
+**Requirements**: [GOV-34, QLT-12, QLT-13, QLT-14]
+**Depends on:** Phase 40
+**Draft Success Criteria**:
+  1. `SUPPORT.md`、`SECURITY.md`、`.github/CODEOWNERS`、runbook 与 issue/PR templates 对 maintainer delegate / fallback / freeze escalation 讲同一条故事。
+  2. release workflow 对 release zip 运行 install/uninstall smoke；coverage gate 同时约束 total coverage 与 changed-surface diff coverage；本地与 CI 命令矩阵语义一致。
+  3. scheduled preview lane 能提前暴露 HA / dependency deprecation drift，并形成 machine-readable warning signal。
+**Status**: Planned
+
+### Phase 43: Control-services boundary decoupling and typed runtime access
+
+**Goal:** 解开 `control/` ↔ `services/` 双向缠绕，把 `RuntimeAccess` 升级为 typed read-model contract，并把 `services/maintenance.py` 承载的 runtime infra 迁回正确 formal home。
+**Requirements**: [ARC-04, CTRL-10, RUN-07]
+**Depends on:** Phase 42
+**Draft Success Criteria**:
+  1. `control/` 与 `services/` 收敛为单向依赖合同；helper surface 不再反客为主或反向定义 runtime truth。
+  2. `RuntimeAccess` 暴露 typed public read-model API；diagnostics / system health / maintenance / lookup 消费者不再依赖反射、`MagicMock` 形状或私有字段。
+  3. runtime infra 与 service helper 各回 formal home；`maintenance.py` 不再承担 entry reload / listener / coordinator-traversal 等跨层职责。
+**Status**: Planned
+
+### Phase 44: Governance asset pruning and terminology convergence
+
+**Goal:** 收紧 `.planning/phases/**` 的 execution-trace / promoted-asset 边界，统一 façade 时代官方术语，拆 contributor fast-path 与 maintainer appendix，并把双语边界策略明文化。
+**Requirements**: [GOV-35, RES-11, DOC-04]
+**Depends on:** Phase 43
+**Draft Success Criteria**:
+  1. `.planning/phases/**` 默认仅是 execution trace，只有 allowlist 资产进入长期治理 / CI truth；文档、review ledgers 与守卫不再把 trace 误写成 authority。
+  2. current docs / ADR / comments 完成 `client / mixin / forwarding` → `protocol / facade / operations` 术语收口，旧术语只留在历史资产或 residual ledger。
+  3. contributor fast-path、maintainer appendix 与 bilingual policy 可链接、可守卫、低噪声，减少外部贡献者过早接触维护者治理术语。
+**Status**: Planned
+
+### Phase 45: Hotspot decomposition and typed failure semantics
+
+**Goal:** 拆 `rest_decoder_support.py`、`diagnostics_api_service.py`、`share_client.py`、`message_processor.py` 等高复杂度热点，压缩 forwarding 链，并把 bool-fail 升级为 typed result / reason code，同时把 benchmark 从“留证据”升级为“防回退”。
+**Requirements**: [HOT-11, ERR-11, TYP-10, QLT-15]
+**Depends on:** Phase 44
+**Draft Success Criteria**:
+  1. 高复杂度热点沿现有正式 seams 切薄；长函数、弱语义 fallback 与多层 forwarding 链明显下降，且 public surface 不扩张。
+  2. diagnostics / share / message / protocol touched-zone 改用 typed result / reason code；失败语义可被日志、diagnostics 与测试稳定消费。
+  3. benchmark 具备 baseline compare / threshold warning / no-regression gate 语义，不再只是上传产物。
+**Status**: Planned
