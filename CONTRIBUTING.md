@@ -107,8 +107,8 @@ Notes:
 
 - `./scripts/lint` 默认运行本地 static + translation + shell + runtime security smoke；它**不会**默认运行 governance 或 pytest。
   `./scripts/lint` runs local static + translation + shell + runtime security smoke by default; it does **not** run governance or pytest unless asked.
-- `./scripts/lint --full` 会在默认检查之上补跑 architecture/file-matrix、governance guards、完整测试覆盖率门禁，以及 coverage/refactor floor 校验。
-  `./scripts/lint --full` extends the default checks with architecture/file-matrix validation, governance guards, the full test coverage gate, and coverage/refactor floor validation.
+- `./scripts/lint --full` 会在默认检查之上补跑 architecture/file-matrix、governance guards、完整测试覆盖率门禁，以及 total + changed-surface coverage / refactor floor 校验。
+  `./scripts/lint --full` extends the default checks with architecture/file-matrix validation, governance guards, the full test coverage gate, plus total + changed-surface coverage and refactor floor validation.
 - To also audit dev dependencies locally (may be noisy), set `PIP_AUDIT_INCLUDE_DEV=1`; the dev audit checks the installed environment so security overrides are honored.
   如需在本地额外审计 dev 依赖（可能较吵），可设置 `PIP_AUDIT_INCLUDE_DEV=1`；dev 审计会检查已安装环境，以便安全覆盖版本生效。
 - CI 的正式裁决仍以下面的显式 `uv run ...` 命令分组为准；`./scripts/lint` 只是维护者入口，不再暗示“默认已跑完整矩阵”。
@@ -124,6 +124,12 @@ Run tests with `uv` (same as CI):
 uv run pytest tests/ -v --ignore=tests/benchmarks --cov=custom_components/lipro --cov-fail-under=95 --cov-report=json --cov-report=xml --cov-report=term-missing
 
 # Snapshot coverage is already included above / snapshot 覆盖已包含在上面的命令中
+
+# Prepare the changed coverage surface (same contract as CI) / 生成与 CI 一致的 changed coverage surface
+git diff --name-only --diff-filter=AMRT "$(git merge-base origin/main HEAD)...HEAD" > .coverage-changed-files
+
+# Total + changed-surface coverage gates (same as CI) / 总覆盖率 + changed-surface 覆盖率门禁（与 CI 一致）
+uv run python scripts/coverage_diff.py coverage.json --minimum 95 --changed-files .coverage-changed-files --changed-minimum 95
 
 # Quick local run (no coverage gate) / 本地快速跑（不含覆盖率门禁）
 uv run pytest tests/
@@ -150,9 +156,10 @@ Use the same command groups as GitHub Actions:
 
 - **lint**: `uv run ruff check .`、`uv run ruff format --check .`、`uv run mypy`、`uv run python scripts/check_translations.py`；translation truth 属于 blocking lint lane，不再只是“改到文案时可选”
 - **governance**: `uv run python scripts/check_architecture_policy.py --check`、`uv run python scripts/check_file_matrix.py --check`、`uv run pytest -q -x tests/meta/test_dependency_guards.py tests/meta/test_public_surface_guards.py tests/meta/test_governance*.py tests/meta/test_toolchain_truth.py tests/meta/test_version_sync.py`
-- **test**: `uv run pytest tests/ -v --ignore=tests/benchmarks --cov=custom_components/lipro --cov-fail-under=95 --cov-report=json --cov-report=xml --cov-report=term-missing`、`uv run python scripts/coverage_diff.py coverage.json --minimum 95`（始终执行 coverage floor；只有显式提供 `--baseline` 才比较 diff）、`uv run python scripts/refactor_tools.py --coverage-json coverage.json --minimum-coverage 95`；snapshot coverage 已包含在 `tests/` 主阻塞 lane 中，不再单独重复执行
+- **test**: `uv run pytest tests/ -v --ignore=tests/benchmarks --cov=custom_components/lipro --cov-fail-under=95 --cov-report=json --cov-report=xml --cov-report=term-missing`、`uv run python scripts/coverage_diff.py coverage.json --minimum 95 --changed-files .coverage-changed-files --changed-minimum 95`（total coverage 与 changed measured files 都是 blocking gate；只有显式提供 `--baseline` 才额外比较 total diff）、`uv run python scripts/refactor_tools.py --coverage-json coverage.json --minimum-coverage 95`；snapshot coverage 已包含在 `tests/` 主阻塞 lane 中，不再单独重复执行；本地可直接用 `./scripts/lint --full` 自动解析 `.coverage-changed-files`
 - **security**: GitHub Actions 会在每个 PR 上运行 blocking runtime `pip-audit` 门禁；tag release 还会额外运行 tagged release security gate，并要求 tagged `CodeQL` analysis 已完成且 open alerts 为零。dev dependency audit 仅在 `schedule` / `workflow_dispatch` 作为 advisory、non-blocking 运行；GitHub artifact attestation / provenance 仍不是 signing，请不要把 attestation / pip-audit 混写成 artifact signing。
 - **benchmark**: `uv run pytest tests/benchmarks/ -v --benchmark-only --benchmark-json=.benchmarks/benchmark.json`；当前是 advisory-with-artifact lane，仅在性能敏感改动或手动对齐 `schedule` / `workflow_dispatch` 时需要；对齐 CI 时保留 `.benchmarks/benchmark.json` 作为可审计 artifact，对预算/基线的对照仍由后续人工或专门 phase 收紧
+- **preview**: `schedule` / `workflow_dispatch` 专用 compatibility preview lane 会升级 Home Assistant preview dependency set，并在 `DeprecationWarning` / `PendingDeprecationWarning` 提升为错误的条件下运行定向 smoke；它只提供 maintainer-facing advisory signal，不会改变 stable PR / release / support contract
 - **shellcheck**: 若修改 `install.sh` / `scripts/*` shell 脚本，请运行 `shellcheck install.sh scripts/develop scripts/lint scripts/setup`（CI 的 `lint` job 也会执行）
 - **validate**: GitHub Actions 会额外运行 `HACS` 与 `Hassfest` 校验；若仓库或 fork 为 private，CI 会跳过 HACS validation，因为 HACS 只支持公开 GitHub 仓库；本地通常不必手动复刻，但提交前应确保仓库元数据仍符合这些约束
 - **release**: tag release 先复用 `.github/workflows/ci.yml`，再由 `.github/workflows/release.yml` 在 `refs/tags/${RELEASE_TAG}` 上运行 tagged release security gate 与 tagged `CodeQL` gate，发布 `SHA256SUMS` / `SBOM` / GitHub artifact attestation / provenance / keyless `cosign` signature bundles，并写出 release identity manifest。attestation / provenance 是 release identity 证据，`cosign` bundle 才是 artifact signing；维护者操作手册见 `docs/MAINTAINER_RELEASE_RUNBOOK.md`。若本次属于 maintainer-only `break-glass verify-only` 或 `non-publish rehearsal`，必须显式记录为不发布资产的验证演练，不能旁路门禁直接发版
@@ -194,7 +201,8 @@ async def async_turn_on(self, **kwargs: Any) -> None:
    uv run python scripts/check_file_matrix.py --check
    uv run pytest -q -x tests/meta/test_dependency_guards.py tests/meta/test_public_surface_guards.py tests/meta/test_governance_guards.py tests/meta/test_governance_closeout_guards.py tests/meta/test_toolchain_truth.py tests/meta/test_version_sync.py
    uv run pytest tests/ -v --ignore=tests/benchmarks --cov=custom_components/lipro --cov-fail-under=95 --cov-report=json --cov-report=xml --cov-report=term-missing
-   uv run python scripts/coverage_diff.py coverage.json --minimum 95  # coverage floor; diff only with explicit --baseline
+   git diff --name-only --diff-filter=AMRT "$(git merge-base origin/main HEAD)...HEAD" > .coverage-changed-files
+   uv run python scripts/coverage_diff.py coverage.json --minimum 95 --changed-files .coverage-changed-files --changed-minimum 95  # total + changed-surface coverage; add --baseline only for optional total diff
    uv run python scripts/refactor_tools.py --coverage-json coverage.json --minimum-coverage 95
 
    # If shell scripts changed / 若改到 shell 脚本

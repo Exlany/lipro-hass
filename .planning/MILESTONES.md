@@ -103,8 +103,8 @@
 ## v1.6 Delivery Trust Hardening, Runtime Boundary Decoupling & Maintainability Closure (Planned: 2026-03-20)
 
 **Phase range:** `42 -> 45`
-**Phases completed:** 0 phases, 0 plans, 0 tasks
-**Status:** active / routing-ready
+**Phases completed:** 1 phase, 4 plans, 0 tasks
+**Status:** active / phase-42-complete
 
 **Planned focus:**
 - formalize maintainer delegate / security fallback、release artifact install smoke、diff coverage 与 preview validation lane

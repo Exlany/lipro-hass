@@ -41,12 +41,14 @@ If your report is not security-sensitive, use `docs/TROUBLESHOOTING.md` and `SUP
 - Security triage owner: the maintainer listed in `.github/CODEOWNERS`.
 - Documented delegate: none currently; do not imply hidden backup maintainers or unpublished emergency access.
 - Release custody remains centralized; if the maintainer is unavailable, freeze new tagged releases and new release promises, keep the private advisory path plus best-effort support intake active, and do not bypass CI / security gates.
+- Public bug reports, private advisories, issue/PR template text, one-click feedback, or diagnostics escalations do not by themselves transfer release custody or establish an undocumented delegate; only `.github/CODEOWNERS` + `docs/MAINTAINER_RELEASE_RUNBOOK.md` may record that change.
 - Custody restoration: update `.github/CODEOWNERS` and `docs/MAINTAINER_RELEASE_RUNBOOK.md` before resuming tagged releases under a new custodian or real delegate.
 - Best effort does **not** mean silent defer: unresolved high-risk issues must still be recorded explicitly.
 
 - 安全分流 owner：`.github/CODEOWNERS` 中列出的维护者。
 - 当前没有已记录的 delegate；不要暗示存在隐藏的备用维护者或未公开的紧急访问。
 - 发版 custody 仍集中在当前单维护者模型；若维护者不可用，应冻结新的 tagged release 与 release 承诺，保持私密 advisory 路径与 best-effort support intake 可用，并且不要绕过 CI / security gate。
+- 公开 bug、private advisory、issue/PR 模板文案、一键反馈或 diagnostics 升级本身都不会转移 release custody，也不能建立未文档化的 delegate；只有 `.github/CODEOWNERS` 与 `docs/MAINTAINER_RELEASE_RUNBOOK.md` 可以记录这种变更。
 - custody 恢复条件：只有在 `.github/CODEOWNERS` 与 `docs/MAINTAINER_RELEASE_RUNBOOK.md` 先记录新的 custodian 或真实 delegate 后，才可恢复 tagged release。
 - best effort **不等于** silent defer：未解决的高风险问题仍必须显式登记。
 

@@ -159,6 +159,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
@@ -184,15 +186,45 @@ jobs:
           --cov-report=xml
           --cov-report=term-missing
 
+      - name: Resolve changed coverage surface
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if { [ "${GITHUB_REF_NAME}" = "main" ] || [ "${GITHUB_EVENT_NAME}" = "schedule" ] || [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ] || [ "${GITHUB_EVENT_NAME}" = "workflow_call" ]; } \
+            && git rev-parse --verify HEAD^ >/dev/null 2>&1; then
+            git diff --name-only --diff-filter=AMRT HEAD^...HEAD > .coverage-changed-files
+          elif git rev-parse --verify origin/main >/dev/null 2>&1; then
+            merge_base="$(git merge-base origin/main HEAD)"
+            git diff --name-only --diff-filter=AMRT "${merge_base}...HEAD" > .coverage-changed-files
+          elif git rev-parse --verify HEAD^ >/dev/null 2>&1; then
+            git diff --name-only --diff-filter=AMRT HEAD^...HEAD > .coverage-changed-files
+          else
+            : > .coverage-changed-files
+          fi
+
+          sed -i '/^$/d' .coverage-changed-files
+          echo "changed coverage surface file: .coverage-changed-files" >> "$GITHUB_STEP_SUMMARY"
+          if [[ -s .coverage-changed-files ]]; then
+            echo "changed coverage surface:" >> "$GITHUB_STEP_SUMMARY"
+            sed 's/^/- /' .coverage-changed-files >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "changed coverage surface: none detected" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
       - name: Record test lane contract
         if: always()
         run: |
           echo "snapshot coverage: included in the main tests/ lane; no separate snapshot rerun" >> "$GITHUB_STEP_SUMMARY"
           echo "benchmark coverage: excluded from the blocking test lane and handled by the advisory benchmark lane" >> "$GITHUB_STEP_SUMMARY"
-          echo "coverage diff: floor is always enforced; diff only runs when an explicit baseline is provided" >> "$GITHUB_STEP_SUMMARY"
+          echo "coverage gates: total floor is blocking; changed measured files must meet the changed-surface floor; explicit baseline diff remains opt-in" >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Check coverage floor / explicit baseline diff
-        run: uv run python scripts/coverage_diff.py coverage.json --minimum 95
+      - name: Check total + changed-surface coverage gates
+        run: >-
+          uv run python scripts/coverage_diff.py coverage.json
+          --minimum 95
+          --changed-files .coverage-changed-files
+          --changed-minimum 95
 
       - name: Run refactor tool smoke check
         run: uv run python scripts/refactor_tools.py --coverage-json coverage.json --minimum-coverage 95
@@ -255,6 +287,58 @@ jobs:
           else
             echo "benchmark artifact: missing" >> "$GITHUB_STEP_SUMMARY"
           fi
+
+  compatibility_preview:
+    name: Compatibility Preview
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
+        with:
+          python-version: "3.14"
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@0ca8f610542aa7f4acaf39e65cf4eb3c35091883
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --frozen --extra dev
+
+      - name: Upgrade Home Assistant preview dependency set
+        id: ha_preview_upgrade
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          uv run python -m pip install --upgrade --pre "homeassistant>=2026.3.1"
+          uv run python -c "import homeassistant; print(homeassistant.__version__)"
+
+      - name: Run compatibility preview smoke
+        id: compatibility_preview_smoke
+        if: steps.ha_preview_upgrade.outcome == 'success'
+        continue-on-error: true
+        env:
+          PYTHONWARNINGS: error::DeprecationWarning,error::PendingDeprecationWarning
+        run: >-
+          uv run pytest -q
+          tests/core/test_init.py
+          tests/core/test_diagnostics.py
+          tests/core/test_system_health.py
+          tests/services/test_services_registry.py
+
+      - name: Record compatibility preview posture
+        if: always()
+        run: |
+          echo "compatibility preview lane: advisory only; schedule/workflow_dispatch only; stable PR + release contract unchanged" >> "$GITHUB_STEP_SUMMARY"
+          echo "preview upgrade outcome: ${{ steps.ha_preview_upgrade.outcome }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "preview smoke outcome: ${{ steps.compatibility_preview_smoke.outcome || 'skipped' }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "preview warning posture: DeprecationWarning/PendingDeprecationWarning promoted to errors" >> "$GITHUB_STEP_SUMMARY"
+
 
   validate:
     name: Validate

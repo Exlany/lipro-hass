@@ -111,6 +111,9 @@ phases:
   40-governance-truth-consolidation-runtime-access-convergence-and-service-execution-unification:
     - 40-SUMMARY.md
     - 40-VERIFICATION.md
+  42-delivery-trust-gates-and-validation-hardening:
+    - 42-SUMMARY.md
+    - 42-VERIFICATION.md
 ---
 
 # Promoted Phase Assets

@@ -1,8 +1,8 @@
 # Project: Lipro-HASS North Star Evolution
 
-**Status:** Active planning — `Phase 42` 计划资产已于 `2026-03-20` 生成；下一步建议 `$gsd-execute-phase 42`。
+**Status:** Active execution — `Phase 42` 已于 `2026-03-20` 完成；下一步建议 `$gsd-plan-phase 43`。
 **Goal:** 以 `v1.5` 归档真相为已发货基线，优先补齐 delivery trust / coverage / compatibility 真实门禁，再完成 control/services 解耦、typed runtime read-model、治理资产降噪与热点拆薄。
-**Default next step:** `$gsd-execute-phase 42`
+**Default next step:** `$gsd-plan-phase 43`
 
 
 ## Active Milestone (v1.6)
@@ -19,7 +19,7 @@
 - 热点拆分只沿正式 seams 收口，不扩张 public surface 或 compatibility folklore
 
 **Phase range:** `Phase 42 -> 45`
-**Current status:** `Phase 42 planning-ready`（route promoted and plan assets created on `2026-03-20`; next action is `$gsd-execute-phase 42`）
+**Current status:** `Phase 42 complete`（delivery trust / continuity truth、release artifact install smoke、total + changed-surface coverage gates、compatibility preview lane 已于 `2026-03-20` 落地；next action is `$gsd-plan-phase 43`）
 **Primary closeout targets:** delivery trust hardening、typed runtime read-model、control/services decoupling、governance asset pruning、terminology convergence、hotspot decomposition、typed failure semantics。
 
 ## Archived Milestone (v1.5)
@@ -512,4 +512,4 @@ v1.1 进入执行期后，新增演进必须额外满足：
 
 - 当前 handoff / archive 输入以 `v1.5` audit + archive bundle 为 shipped baseline，`.planning/phases/41-full-spectrum-architecture-code-quality-and-open-source-audit/41-REMEDIATION-ROADMAP.md` 则是 `v1.6 / Phase 42 -> 45` 的正式路由来源。phase 目录资产仍默认是执行证据，只有被 `ROADMAP.md`、baseline docs、review ledgers 或 milestone audit 显式提升时，才成为长期治理真源。
 
-*Last updated: 2026-03-20 after formalizing the v1.6 / Phase 42-45 route from the Phase 41 remediation roadmap*
+*Last updated: 2026-03-20 after completing Phase 42 delivery-trust hardening and promoting the current truth to phase-42-complete*

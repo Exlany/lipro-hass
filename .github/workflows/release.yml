@@ -42,6 +42,11 @@ jobs:
           ref: refs/tags/${{ env.RELEASE_TAG }}
           fetch-depth: 0
 
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
+        with:
+          python-version: "3.14"
+
       - name: Set up uv
         uses: astral-sh/setup-uv@0ca8f610542aa7f4acaf39e65cf4eb3c35091883
         with:
@@ -195,6 +200,28 @@ jobs:
             sha256sum "lipro-hass-${tag}.zip" > "SHA256SUMS"
           )
 
+      - name: Smoke-test release artifact install
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          smoke_root="$(mktemp -d)"
+          trap 'rm -rf "${smoke_root}"' EXIT
+
+          mkdir -p "${smoke_root}/.storage"
+          : > "${smoke_root}/configuration.yaml"
+
+          (
+            cd "${smoke_root}"
+            bash "${GITHUB_WORKSPACE}/dist/install.sh" \
+              --archive-file "${GITHUB_WORKSPACE}/dist/lipro-hass-${RELEASE_TAG}.zip" \
+              --checksum-file "${GITHUB_WORKSPACE}/dist/SHA256SUMS"
+          )
+
+          test -f "${smoke_root}/custom_components/lipro/manifest.json"
+          rm -rf "${smoke_root}/custom_components/lipro"
+          test ! -e "${smoke_root}/custom_components/lipro"
+
       - name: Export SBOM
         shell: bash
         env:
@@ -251,6 +278,9 @@ jobs:
             echo "signing_verification=cosign verify-blob --bundle"
             echo "code_scanning=GitHub CodeQL hard gate"
             echo "code_scanning_verification=tagged ref analysis required + zero open alerts"
+            echo "compatibility_preview_lane=ci.yml schedule/workflow_dispatch advisory"
+            echo "compatibility_preview_semantics=signal-only; stable release and support guarantees stay unchanged"
+            echo "deprecation_signal=DeprecationWarning/PendingDeprecationWarning promoted to errors in preview smoke"
             echo "workflow_run=${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
           } > "${manifest}"
 

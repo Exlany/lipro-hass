@@ -24,6 +24,7 @@ _CI_WORKFLOW = _ROOT / ".github" / "workflows" / "ci.yml"
 _RELEASE_WORKFLOW = _ROOT / ".github" / "workflows" / "release.yml"
 _CODEQL_WORKFLOW = _ROOT / ".github" / "workflows" / "codeql.yml"
 _DEVELOP_SCRIPT = _ROOT / "scripts" / "develop"
+_LINT_SCRIPT = _ROOT / "scripts" / "lint"
 _SETUP_PYTHON = "actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405"
 _UPLOAD_ARTIFACT = "actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02"
 _README = _ROOT / "README.md"
@@ -57,6 +58,7 @@ def _load_devcontainer() -> dict[str, Any]:
     loaded = json.loads(_DEVCONTAINER.read_text(encoding="utf-8"))
     assert isinstance(loaded, dict)
     return loaded
+
 
 def _load_governance_registry() -> dict[str, Any]:
     loaded = json.loads(_GOVERNANCE_REGISTRY.read_text(encoding="utf-8"))
@@ -239,18 +241,37 @@ def test_ci_test_and_benchmark_lanes_keep_one_snapshot_story() -> None:
     test_steps = ci["jobs"]["test"]["steps"]
     test_step_names = {step["name"] for step in test_steps}
     assert "Run snapshot tests" not in test_step_names
+    assert "Resolve changed coverage surface" in test_step_names
     contract_step = next(
         step for step in test_steps if step.get("name") == "Record test lane contract"
     )
     assert "snapshot coverage: included in the main tests/ lane" in contract_step["run"]
-    assert "coverage diff: floor is always enforced; diff only runs when an explicit baseline is provided" in contract_step["run"]
+    assert (
+        "coverage gates: total floor is blocking; changed measured files must meet the changed-surface floor; explicit baseline diff remains opt-in"
+        in contract_step["run"]
+    )
 
     coverage_step = next(
-        step for step in test_steps if step.get("name") == "Check coverage floor / explicit baseline diff"
+        step
+        for step in test_steps
+        if step.get("name") == "Check total + changed-surface coverage gates"
     )
-    assert "uv run python scripts/coverage_diff.py coverage.json --minimum 95" in coverage_step["run"]
-    coverage_diff_script = (_ROOT / "scripts" / "coverage_diff.py").read_text(encoding="utf-8")
-    assert "Coverage diff: skipped (no baseline provided)" in coverage_diff_script
+    assert (
+        "uv run python scripts/coverage_diff.py coverage.json" in coverage_step["run"]
+    )
+    assert "--changed-files .coverage-changed-files" in coverage_step["run"]
+    assert "--changed-minimum 95" in coverage_step["run"]
+    coverage_diff_script = (_ROOT / "scripts" / "coverage_diff.py").read_text(
+        encoding="utf-8"
+    )
+    assert (
+        "Changed-surface coverage: skipped (no changed file list provided)"
+        in coverage_diff_script
+    )
+    assert (
+        "Changed-surface coverage: skipped (no measured files in change set)"
+        in coverage_diff_script
+    )
 
     benchmark_steps = ci["jobs"]["benchmark"]["steps"]
     benchmark_run = next(
@@ -277,6 +298,15 @@ def test_ci_test_and_benchmark_lanes_keep_one_snapshot_story() -> None:
     )
     assert "advisory-with-artifact" in summary_step["run"]
     assert "steps.benchmark_run.outcome" in summary_step["run"]
+
+
+def test_scripts_lint_full_mode_matches_ci_coverage_contract() -> None:
+    lint_text = _LINT_SCRIPT.read_text(encoding="utf-8")
+
+    assert "total + changed-surface coverage" in lint_text
+    assert "resolve_changed_coverage_surface" in lint_text
+    assert '--changed-files "$tmp_changed_coverage_surface"' in lint_text
+    assert "--changed-minimum 95" in lint_text
 
 
 def test_pytest_marker_contract_has_no_dead_declarations() -> None:

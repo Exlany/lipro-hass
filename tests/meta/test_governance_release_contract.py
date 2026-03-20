@@ -59,7 +59,8 @@ def test_ci_and_release_workflows_share_governance_and_version_gates() -> None:
     test_step_names = {step["name"] for step in test_job["steps"]}
     assert "Run snapshot tests" not in test_step_names
     assert "Record test lane contract" in test_step_names
-    assert "Check coverage floor / explicit baseline diff" in test_step_names
+    assert "Resolve changed coverage surface" in test_step_names
+    assert "Check total + changed-surface coverage gates" in test_step_names
 
     benchmark_job = ci_workflow["jobs"]["benchmark"]
     benchmark_steps = benchmark_job["steps"]
@@ -99,7 +100,17 @@ def test_ci_and_release_workflows_share_governance_and_version_gates() -> None:
     assert security_gate["needs"] == "validate"
     security_gate_steps = {step["name"] for step in security_gate["steps"]}
     assert "Checkout tagged release ref" in security_gate_steps
+    assert "Set up Python" in security_gate_steps
     assert "Run pip-audit (runtime, tagged release)" in security_gate_steps
+
+    security_setup = next(
+        step for step in security_gate["steps"] if step.get("name") == "Set up Python"
+    )
+    assert (
+        security_setup["uses"]
+        == "actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405"
+    )
+    assert security_setup["with"]["python-version"] == "3.14"
 
     code_scanning_gate = release_workflow["jobs"]["code_scanning_gate"]
     assert code_scanning_gate["needs"] == "validate"
@@ -114,11 +125,16 @@ def test_ci_and_release_workflows_share_governance_and_version_gates() -> None:
     assert release_workflow["permissions"]["security-events"] == "read"
 
     build_job = release_workflow["jobs"]["build"]
-    assert set(build_job["needs"]) == {"validate", "security_gate", "code_scanning_gate"}
+    assert set(build_job["needs"]) == {
+        "validate",
+        "security_gate",
+        "code_scanning_gate",
+    }
     step_names = {step["name"] for step in build_job["steps"]}
     assert "Checkout tagged release ref" in step_names
     assert "Verify tag matches project version" in step_names
     assert "Build zip, installer, and checksums" in step_names
+    assert "Smoke-test release artifact install" in step_names
     assert "Export SBOM" in step_names
     assert "Generate artifact attestation" in step_names
     assert "Verify generated artifact attestations" in step_names
@@ -145,6 +161,20 @@ def test_ci_and_release_workflows_share_governance_and_version_gates() -> None:
     assert "pyproject.toml" in version_guard
     assert "RELEASE_TAG" in version_guard
 
+    install_smoke = next(
+        step["run"]
+        for step in build_job["steps"]
+        if step.get("name") == "Smoke-test release artifact install"
+    )
+    for token in (
+        "--archive-file",
+        "--checksum-file",
+        "configuration.yaml",
+        ".storage",
+        "custom_components/lipro/manifest.json",
+    ):
+        assert token in install_smoke
+
     publish_release = next(
         step
         for step in build_job["steps"]
@@ -168,7 +198,9 @@ def test_ci_and_release_workflows_share_governance_and_version_gates() -> None:
     assert "push" in codeql_on
     assert "v*" in codeql_on["push"]["tags"]
     assert codeql_workflow["permissions"]["security-events"] == "write"
-    codeql_steps = {step["name"] for step in codeql_workflow["jobs"]["analyze"]["steps"]}
+    codeql_steps = {
+        step["name"] for step in codeql_workflow["jobs"]["analyze"]["steps"]
+    }
     assert "Initialize CodeQL" in codeql_steps
     assert "Perform CodeQL Analysis" in codeql_steps
 
@@ -218,6 +250,8 @@ def test_contributor_contract_matches_ci_language() -> None:
     assert "--ignore=tests/benchmarks" in contributing_bullets["test"]
     assert "tests/snapshots/" not in contributing_bullets["test"]
     assert "snapshot coverage" in contributing_bullets["test"]
+    assert "changed measured files" in contributing_bullets["test"]
+    assert "--changed-files .coverage-changed-files" in contributing_bullets["test"]
     assert "--baseline" in contributing_bullets["test"]
     assert "tests/benchmarks/" in contributing_bullets["benchmark"]
     assert ".benchmarks/benchmark.json" in contributing_bullets["benchmark"]
@@ -343,7 +377,13 @@ def test_release_runbook_and_support_docs_expose_continuity_truth() -> None:
     security_text = _SECURITY.read_text(encoding="utf-8")
     codeowners_text = _CODEOWNERS.read_text(encoding="utf-8")
 
-    for token in ("single-maintainer", "release custody", "freeze", "best effort", "delegate"):
+    for token in (
+        "single-maintainer",
+        "release custody",
+        "freeze",
+        "best effort",
+        "delegate",
+    ):
         assert token in runbook_text
     assert "Continuity Drill Checklist" in runbook_text
     assert "triage owner" in support_text
@@ -373,6 +413,81 @@ def test_support_and_issue_routing_are_consistent() -> None:
     assert "verified GitHub Release assets" in support_text
     assert "Best effort" in security_text or "best effort" in security_text
     assert "verified GitHub Release assets" in security_text
+
+
+def test_templates_and_governance_docs_keep_continuity_contract() -> None:
+    bug_text = (_ROOT / ".github" / "ISSUE_TEMPLATE" / "bug.yml").read_text(
+        encoding="utf-8"
+    )
+    pr_text = _PR_TEMPLATE.read_text(encoding="utf-8")
+    support_text = _SUPPORT.read_text(encoding="utf-8")
+    security_text = _SECURITY.read_text(encoding="utf-8")
+    codeowners_text = _CODEOWNERS.read_text(encoding="utf-8")
+
+    assert "do not transfer release custody" in bug_text
+    assert "undocumented delegate" in bug_text
+    assert "freeze new tagged releases and new release promises" in bug_text
+    assert "do not transfer release custody" in support_text
+    assert "do not by themselves transfer release custody" in security_text
+    assert "issue/PR template text" in security_text
+    assert "undocumented delegate" in pr_text
+    assert "freeze new tagged releases and new release promises" in pr_text
+    assert "do not transfer custody" in codeowners_text
+
+
+def test_preview_lane_and_release_identity_keep_stable_contract_separate() -> None:
+    ci_workflow = _load_yaml(_CI_WORKFLOW)
+    release_workflow = _load_yaml(_RELEASE_WORKFLOW)
+    support_text = _SUPPORT.read_text(encoding="utf-8")
+    contributing_text = _CONTRIBUTING.read_text(encoding="utf-8")
+    runbook_text = _RUNBOOK.read_text(encoding="utf-8")
+
+    preview_job = ci_workflow["jobs"]["compatibility_preview"]
+    assert (
+        preview_job["if"]
+        == "github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'"
+    )
+    preview_steps = {step["name"] for step in preview_job["steps"]}
+    assert "Upgrade Home Assistant preview dependency set" in preview_steps
+    assert "Run compatibility preview smoke" in preview_steps
+    assert "Record compatibility preview posture" in preview_steps
+
+    preview_summary = next(
+        step["run"]
+        for step in preview_job["steps"]
+        if step.get("name") == "Record compatibility preview posture"
+    )
+    assert "advisory only" in preview_summary
+    assert "stable PR + release contract unchanged" in preview_summary
+    assert (
+        "DeprecationWarning/PendingDeprecationWarning promoted to errors"
+        in preview_summary
+    )
+
+    release_manifest = next(
+        step["run"]
+        for step in release_workflow["jobs"]["build"]["steps"]
+        if step.get("name") == "Write release identity manifest"
+    )
+    assert (
+        "compatibility_preview_lane=ci.yml schedule/workflow_dispatch advisory"
+        in release_manifest
+    )
+    assert (
+        "compatibility_preview_semantics=signal-only; stable release and support guarantees stay unchanged"
+        in release_manifest
+    )
+    assert (
+        "deprecation_signal=DeprecationWarning/PendingDeprecationWarning promoted to errors in preview smoke"
+        in release_manifest
+    )
+
+    for text_block in (support_text, contributing_text, runbook_text):
+        lowered = text_block.lower()
+        assert "compatibility preview" in lowered
+        assert "schedule" in lowered
+        assert "workflow_dispatch" in lowered
+        assert "advisory" in lowered
 
 
 def test_runbook_and_pr_template_capture_break_glass_and_rehearsal_truth() -> None:

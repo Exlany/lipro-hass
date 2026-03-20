@@ -233,7 +233,7 @@
 - mapped to phases: 65
 - unmapped: 0 ✓
 
-*Last updated: 2026-03-20 after formalizing the v1.6 / Phase 42-45 route from the Phase 41 remediation roadmap*
+*Last updated: 2026-03-20 after completing Phase 42 delivery-trust hardening and promoting the current truth to phase-42-complete*
 
 
 ## Archived Milestone (v1.2)
@@ -419,10 +419,10 @@
 
 ### Delivery Trust, Boundary Decoupling & Maintainability Closure
 
-- [ ] **GOV-34**: maintainer delegate、security fallback、`.github/CODEOWNERS`、issue/PR templates 与 maintainer runbook 必须形成单一 continuity truth，不能继续依赖单点隐性记忆。
-- [ ] **QLT-12**: release workflow 必须对发布产物运行 install / uninstall smoke，验证 release asset 在临时 HA 目录中的真实可用性。
-- [ ] **QLT-13**: 质量门禁必须同时约束 total coverage 与 changed-surface diff coverage，并保持 local/CI 命令语义一致。
-- [ ] **QLT-14**: 必须引入 scheduled compatibility / deprecation preview lane，提前暴露 Home Assistant 或依赖漂移。
+- [x] **GOV-34**: maintainer delegate、security fallback、`.github/CODEOWNERS`、issue/PR templates 与 maintainer runbook 必须形成单一 continuity truth，不能继续依赖单点隐性记忆。
+- [x] **QLT-12**: release workflow 必须对发布产物运行 install / uninstall smoke，验证 release asset 在临时 HA 目录中的真实可用性。
+- [x] **QLT-13**: 质量门禁必须同时约束 total coverage 与 changed-surface diff coverage，并保持 local/CI 命令语义一致。
+- [x] **QLT-14**: 必须引入 scheduled compatibility / deprecation preview lane，提前暴露 Home Assistant 或依赖漂移。
 - [ ] **ARC-04**: `control/` 与 `services/` 必须收敛为单向依赖合同，禁止 helper / runtime / locator 双向缠绕回流。
 - [ ] **CTRL-10**: runtime infra 与 service helper 的 formal home 必须明确；`services/maintenance.py` 不得继续承载 runtime truth。
 - [ ] **RUN-07**: `RuntimeAccess` 必须提供 typed public read-model API；生产消费者不得依赖反射、`MagicMock` 形状或私有字段。
@@ -438,10 +438,10 @@
 
 | Requirement | Planned Phase | Status |
 |-------------|---------------|--------|
-| GOV-34 | Phase 42 | Planned |
-| QLT-12 | Phase 42 | Planned |
-| QLT-13 | Phase 42 | Planned |
-| QLT-14 | Phase 42 | Planned |
+| GOV-34 | Phase 42 | Completed |
+| QLT-12 | Phase 42 | Completed |
+| QLT-13 | Phase 42 | Completed |
+| QLT-14 | Phase 42 | Completed |
 | ARC-04 | Phase 43 | Planned |
 | CTRL-10 | Phase 43 | Planned |
 | RUN-07 | Phase 43 | Planned |
@@ -456,8 +456,8 @@
 **Coverage:**
 - v1.6 routed requirements: 14 total
 - Current mapped: 14
-- Current complete: 0
-- Current pending: 14
+- Current complete: 4
+- Current pending: 10
 - Current unmapped: 0 ✓
 
 ## Archived Milestone (v1.5)

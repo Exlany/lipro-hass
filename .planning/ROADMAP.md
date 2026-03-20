@@ -7,7 +7,7 @@
 - ✅ **v1.2 Host-Neutral Core & Replay Completion** - Phases 18-24 complete after Phase 24 reopen revalidation; 24 plans complete; milestone snapshots archived at `.planning/milestones/v1.2-ROADMAP.md` / `.planning/milestones/v1.2-REQUIREMENTS.md`; `v1.3` handoff-ready (revalidated 2026-03-17)
 - ✅ **v1.4 Sustainment, Trust Gates & Final Hotspot Burn-down** - Phases 34-39 shipped 2026-03-19; milestone audit: `.planning/v1.4-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_4_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.4-ROADMAP.md` / `.planning/milestones/v1.4-REQUIREMENTS.md`; local tag: `v1.4`
 - ✅ **v1.5 Governance Truth Consolidation & Control-Surface Finalization** - Phase 40 shipped 2026-03-19; milestone audit: `.planning/v1.5-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_5_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.5-ROADMAP.md` / `.planning/milestones/v1.5-REQUIREMENTS.md`; local tag: `v1.5`
-- 🟢 **v1.6 Delivery Trust Hardening, Runtime Boundary Decoupling & Maintainability Closure** - Phases 42-45 formally routed on 2026-03-20 from `41-REMEDIATION-ROADMAP.md`; next action: `$gsd-plan-phase 42` → `$gsd-execute-phase 42`
+- 🟢 **v1.6 Delivery Trust Hardening, Runtime Boundary Decoupling & Maintainability Closure** - Phases 42-45 formally routed on 2026-03-20 from `41-REMEDIATION-ROADMAP.md`; Phase 42 completed on 2026-03-20; next action: `$gsd-plan-phase 43`
 
 ## Required Phase Outputs
 
@@ -778,20 +778,25 @@ Plans:
 
 > `Phase 41` 审计已把 delivery trust、boundary decoupling、governance hygiene 与 hotspot decomposition 压成正式整改路线；`v1.6` 从 `Phase 42` 起按“先治理验证、后边界解耦、再治理降噪、最后热点拆薄”的顺序推进，把 current truth 从“架构已对”提升到“交付可信、边界更薄、仓库更静、协作更稳”。
 
-**Milestone status:** `Active / routing-ready (2026-03-20)`
+**Milestone status:** `Active / phase-42-complete (2026-03-20)`
 **Route source:** `.planning/phases/41-full-spectrum-architecture-code-quality-and-open-source-audit/41-REMEDIATION-ROADMAP.md`
-**Default next command:** `$gsd-plan-phase 42` → `$gsd-execute-phase 42`
+**Default next command:** `$gsd-plan-phase 43`
 
 ### Phase 42: Delivery trust gates and validation hardening
 
-**Goal:** 补齐 maintainer delegate / security fallback、release artifact install smoke、total + diff coverage 双门禁、local-vs-CI parity 与 compatibility / deprecation preview lane，让“仓库能发布”升级为“产物可验证、流程可接班、漂移可前探”。
+**Goal:** 补齐 maintainer delegate / security fallback、release artifact install smoke、total + changed-surface coverage 双门禁、local-vs-CI parity 与 compatibility / deprecation preview lane，让“仓库能发布”升级为“产物可验证、流程可接班、漂移可前探”。
 **Requirements**: [GOV-34, QLT-12, QLT-13, QLT-14]
 **Depends on:** Phase 40
 **Draft Success Criteria**:
   1. `SUPPORT.md`、`SECURITY.md`、`.github/CODEOWNERS`、runbook 与 issue/PR templates 对 maintainer delegate / fallback / freeze escalation 讲同一条故事。
-  2. release workflow 对 release zip 运行 install/uninstall smoke；coverage gate 同时约束 total coverage 与 changed-surface diff coverage；本地与 CI 命令矩阵语义一致。
+  2. release workflow 对 release zip 运行 install/uninstall smoke；coverage gate 同时约束 total coverage 与 changed-surface coverage；本地与 CI 命令矩阵语义一致。
   3. scheduled preview lane 能提前暴露 HA / dependency deprecation drift，并形成 machine-readable warning signal。
-**Status**: Planned
+**Status**: Complete (`2026-03-20`)
+**Plans**: 4/4 complete
+- [x] 42-01: align continuity ownership and fallback disclosure truth (completed 2026-03-20)
+- [x] 42-02: add release artifact install smoke and tagged-Python parity (completed 2026-03-20)
+- [x] 42-03: enforce total-plus-diff coverage and local/CI parity (completed 2026-03-20)
+- [x] 42-04: add compatibility preview lane and deprecation signal truth (completed 2026-03-20)
 
 ### Phase 43: Control-services boundary decoupling and typed runtime access
 

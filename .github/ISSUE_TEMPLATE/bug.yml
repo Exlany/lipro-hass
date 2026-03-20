@@ -24,6 +24,12 @@ body:
         若你还没开始系统排障，请先阅读 `docs/TROUBLESHOOTING.md`；若问题涉及发版/打包，请维护者参考 `docs/MAINTAINER_RELEASE_RUNBOOK.md`。
         If you have not started structured troubleshooting yet, read `docs/TROUBLESHOOTING.md` first; maintainer-only release/package issues belong in `docs/MAINTAINER_RELEASE_RUNBOOK.md`.
 
+        公开 Bug、Discussion、diagnostics 升级与 developer report 只会增加排障证据，不会自动转移 release custody，也不代表存在未公开的 delegate。
+        Public bugs, Discussions, diagnostics escalations, and developer reports increase debugging evidence only; they do not transfer release custody or imply an undocumented delegate.
+
+        本仓库当前仍采用 single-maintainer 模式；若维护者暂不可用，将冻结新的 tagged release 与新的 release promises，但公开 bug intake 与私密安全披露路径仍保持诚实可见。
+        This repository still follows a single-maintainer model; if the maintainer is unavailable, freeze new tagged releases and new release promises, but keep public bug intake and the private security path visibly honest.
+
         对大多数公开 Bug 报告，diagnostics 就是第一优先证据；developer report / 一键反馈是升级排障路径，而不是硬门槛。
         For most public bug reports, diagnostics are the first-line evidence; developer report / one-click feedback is an escalation path, not a hard gate.
 

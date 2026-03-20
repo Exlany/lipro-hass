@@ -4,7 +4,7 @@
 
 This repository currently follows a single-maintainer release model. Every tagged release must reuse `.github/workflows/ci.yml`; `.github/workflows/release.yml` is only the tagged security / packaging / publishing tail of that same gate.
 
-> Continuity note / 连续性说明：do not imply hidden backup maintainers. No documented delegate exists today; if the maintainer is unavailable, freeze new tagged releases and freeze new release promises, keep `SUPPORT.md` / `SECURITY.md` routing honest, and restore custody only after CODEOWNERS + runbook record the real successor or delegate.
+> Continuity note / 连续性说明：do not imply hidden backup maintainers. No documented delegate exists today; if the maintainer is unavailable, freeze new tagged releases and freeze new release promises, keep `SUPPORT.md` / `SECURITY.md` / issue / PR template routing honest, and restore custody only after CODEOWNERS + runbook record the real successor or delegate.
 
 ## Truth Sources
 
@@ -30,11 +30,13 @@ Currently enforced release hardening in this repository:
 - fail-closed tagged `CodeQL` gate: the tag must have a completed `CodeQL` analysis and zero open alerts before publish
 - release archive checksum publication via `dist/SHA256SUMS`
 - published `install.sh` release asset for verified local installs
+- release artifact install smoke against a temporary Home Assistant-style target tree (`configuration.yaml` + `.storage`) using `bash dist/install.sh --archive-file dist/lipro-hass-vX.Y.Z.zip --checksum-file dist/SHA256SUMS`
 - published `SBOM` asset (`dist/lipro-hass-vX.Y.Z.spdx.json`)
 - GitHub artifact `attestation` / `provenance` for released assets (release identity evidence, not artifact signing)
 - machine verification of that provenance evidence via `gh attestation verify`
 - keyless `cosign sign-blob` signatures for published assets plus machine verification via `cosign verify-blob --bundle`
 - published release identity manifest (`dist/lipro-hass-vX.Y.Z.release-identity.txt`)
+- scheduled / manually-runnable compatibility preview lane in `ci.yml` that upgrades preview Home Assistant dependencies, promotes deprecation warnings (`DeprecationWarning` / `PendingDeprecationWarning`) to errors, and records advisory-only outcomes without weakening the stable release contract
 
 Still deferred beyond this phase (must stay recorded, not implied):
 
@@ -65,7 +67,7 @@ uv run pytest -q tests/meta/test_governance*.py tests/meta/test_toolchain_truth.
 
 - **Release custody:** release custody remains centralized in the current maintainer listed by `.github/CODEOWNERS`; no documented delegate exists today, so do not imply backup maintainer redundancy that does not yet exist.
 - **Custody restoration:** only resume tagged releases after `.github/CODEOWNERS`, `SUPPORT.md`, `SECURITY.md`, and this runbook record the real successor or delegate.
-- **Freeze conditions:** do not cut or republish a tag if CI reuse, the tagged release security gate, the tagged `CodeQL` gate, signature verification, release identity verification, or public support/security wording is out of sync.
+- **Freeze conditions:** do not cut or republish a tag if CI reuse, the tagged release security gate, the tagged `CodeQL` gate, signature verification, release identity verification, or public support/security wording is out of sync. Compatibility preview failures are advisory signals for the next tag, not silent permission to weaken the stable contract.
 - **Rollback posture:** do not use `git push --force` or `git reset --hard` as a release recovery strategy; supersede a bad tag with a follow-up release and explicit notes instead.
 - **Maintainer unavailable:** if the maintainer is unavailable, freeze new tagged releases and freeze new release promises, keep security disclosure paths active, and record the continuity gap explicitly rather than silently bypassing gates; support triage may continue only as best effort.
 
@@ -73,7 +75,7 @@ uv run pytest -q tests/meta/test_governance*.py tests/meta/test_toolchain_truth.
 
 - **`break-glass verify-only`**: maintainer-only path to rerun governance, security, signing, and identity verification on a tagged tree without publishing or republishing public assets.
 - **`non-publish rehearsal`**: maintainer-only dry run of the release sequence that proves CI reuse, security/code-scanning gates, artifact generation, and release-identity writing while stopping before public asset publication.
-- These modes never relax the stable install contract, support-routing truth, or release-trust gates; they only validate that the same gates would pass for a real tagged release.
+- These modes never relax the stable install contract, support-routing truth, or release-trust gates; they only validate that the same gates would pass for a real tagged release. The separate compatibility preview lane in `ci.yml` remains `schedule` / `workflow_dispatch` only and advisory.
 - If a rehearsal or verify-only run discovers a blocker, record it explicitly; do not silently downgrade to preview paths or publish partially verified assets.
 
 ## Release Path
@@ -83,11 +85,12 @@ uv run pytest -q tests/meta/test_governance*.py tests/meta/test_toolchain_truth.
 3. Push the tag, or run `workflow_dispatch` with an already-existing tag.
 4. Let `.github/workflows/release.yml` run:
    - `validate` reuses `.github/workflows/ci.yml`
-   - `security_gate` reruns blocking runtime `pip-audit` on the tagged source
+   - `security_gate` sets up the tagged Python runtime explicitly, then reruns blocking runtime `pip-audit` on the tagged source
    - `code_scanning_gate` waits for a tagged `CodeQL` analysis and fails if open alerts remain
    - `build` checks out `refs/tags/${RELEASE_TAG}`
    - the workflow verifies the tag matches `pyproject.toml`
    - assets are built from the tagged tree, not an arbitrary branch HEAD
+   - the workflow smoke-tests the published install path by running `bash dist/install.sh --archive-file dist/lipro-hass-vX.Y.Z.zip --checksum-file dist/SHA256SUMS` inside a temporary Home Assistant-style target tree (`configuration.yaml` + `.storage`)
    - the workflow generates GitHub artifact attestations, verifies them with `gh attestation verify`, signs assets with `cosign sign-blob`, verifies signatures with `cosign verify-blob --bundle`, and writes the release identity manifest
 5. Verify that the workflow uploads `dist/lipro-hass-vX.Y.Z.zip`, `dist/install.sh`, `dist/SHA256SUMS`, `dist/lipro-hass-vX.Y.Z.spdx.json`, `dist/lipro-hass-vX.Y.Z.release-identity.txt`, plus their matching `.sigstore.json` bundles.
 
@@ -98,6 +101,7 @@ uv run pytest -q tests/meta/test_governance*.py tests/meta/test_toolchain_truth.
 - Download `SHA256SUMS`, `install.sh`, the published `SBOM`, the release identity manifest, and the matching `.sigstore.json` bundles, then confirm the release page also exposes the GitHub artifact attestation / provenance record.
 - Spot-check one asset with `cosign verify-blob --bundle ...` and confirm the certificate identity matches `.github/workflows/release.yml` for the tagged release path (or the audited manual-dispatch ref when rerunning an existing tag).
 - Spot-check README / README_zh / CONTRIBUTING / SUPPORT / SECURITY links on the rendered release page.
+- Review the workflow summary and confirm the release artifact install smoke passed against the temporary Home Assistant-style target tree before trusting the published zip/install pair.
 - If the release contains troubleshooting, public-entry, or runbook changes, ensure those docs still point at each other, at `.planning/reviews/V1_5_EVIDENCE_INDEX.md`, and at the canonical public entry points.
 
 ## Continuity Drill Checklist
@@ -106,6 +110,7 @@ uv run pytest -q tests/meta/test_governance*.py tests/meta/test_toolchain_truth.
 2. Confirm no documented delegate has been added silently; if none exists, keep single-maintainer wording intact.
 3. If the maintainer is unavailable, freeze new tagged releases and freeze new release promises, keep `SECURITY.md` private disclosure routing active, and avoid promising recovery dates in public support channels.
 4. Restore release custody only after `.github/CODEOWNERS` and this runbook both document the delegate and the recovery path.
+5. Confirm `.github/ISSUE_TEMPLATE/bug.yml` and `.github/pull_request_template.md` still preserve the same single-maintainer / no-hidden-delegate wording; do not imply unpublished backup maintainers or custody transfer paths there.
 
 ## Continuity / Incident Procedures
 

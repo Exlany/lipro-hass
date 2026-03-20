@@ -15,8 +15,41 @@ Default mode:
 
 --full:
   Extends the default checks with governance guards, full test coverage,
-  coverage floor validation, and refactor coverage validation.
+  total + changed-surface coverage validation, and refactor coverage validation.
 USAGE
+}
+
+resolve_changed_coverage_surface() {
+    local output_path
+    output_path="$1"
+
+    if ! command -v git >/dev/null 2>&1 || ! git rev-parse --verify HEAD >/dev/null 2>&1; then
+        : > "$output_path"
+        return 0
+    fi
+
+    local current_ref
+    current_ref="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "")"
+
+    if { [ "${GITHUB_REF_NAME:-}" = "main" ] || [ "$current_ref" = "main" ] || [ "${GITHUB_EVENT_NAME:-}" = "schedule" ] || [ "${GITHUB_EVENT_NAME:-}" = "workflow_dispatch" ] || [ "${GITHUB_EVENT_NAME:-}" = "workflow_call" ]; } \
+        && git rev-parse --verify HEAD^ >/dev/null 2>&1; then
+        git diff --name-only --diff-filter=AMRT HEAD^...HEAD > "$output_path"
+        return 0
+    fi
+
+    if git rev-parse --verify origin/main >/dev/null 2>&1; then
+        local merge_base
+        merge_base="$(git merge-base origin/main HEAD)"
+        git diff --name-only --diff-filter=AMRT "${merge_base}...HEAD" > "$output_path"
+        return 0
+    fi
+
+    if git rev-parse --verify HEAD^ >/dev/null 2>&1; then
+        git diff --name-only --diff-filter=AMRT HEAD^...HEAD > "$output_path"
+        return 0
+    fi
+
+    : > "$output_path"
 }
 
 full_mode=0
@@ -52,7 +85,7 @@ if [ "$full_mode" = "1" ]; then
     echo "Running lint in full mode (static + governance + tests)..."
 else
     echo "Running lint in default mode (static + security smoke only)..."
-    echo "Tip: use ./scripts/lint --full for governance + pytest + coverage."
+    echo "Tip: use ./scripts/lint --full for governance + pytest + total/changed-surface coverage."
 fi
 
 echo ""
@@ -85,7 +118,8 @@ echo "Running pip-audit..."
 tmp_requirements_runtime="$(mktemp)"
 tmp_requirements_dev=""
 tmp_pip_audit_cache=""
-trap 'rm -f "$tmp_requirements_runtime" "${tmp_requirements_dev:-}"; if [ -n "${tmp_pip_audit_cache:-}" ]; then rm -rf "$tmp_pip_audit_cache"; fi' EXIT
+tmp_changed_coverage_surface=""
+trap 'rm -f "$tmp_requirements_runtime" "${tmp_requirements_dev:-}" "${tmp_changed_coverage_surface:-}"; if [ -n "${tmp_pip_audit_cache:-}" ]; then rm -rf "$tmp_pip_audit_cache"; fi' EXIT
 
 uv export \
     --format requirements.txt \
@@ -151,9 +185,20 @@ if [ "$full_mode" = "1" ]; then
         --cov-report=xml \
         --cov-report=term-missing
 
+    tmp_changed_coverage_surface="$(mktemp)"
+    resolve_changed_coverage_surface "$tmp_changed_coverage_surface"
+
     echo ""
-    echo "Checking coverage floor..."
-    uv run python scripts/coverage_diff.py coverage.json --minimum 95
+    echo "Resolved changed coverage surface..."
+    if [ -s "$tmp_changed_coverage_surface" ]; then
+        sed 's/^/  - /' "$tmp_changed_coverage_surface"
+    else
+        echo "  (none detected)"
+    fi
+
+    echo ""
+    echo "Checking total + changed-surface coverage gates..."
+    uv run python scripts/coverage_diff.py coverage.json --minimum 95 --changed-files "$tmp_changed_coverage_surface" --changed-minimum 95
 
     echo ""
     echo "Checking refactor coverage floor..."

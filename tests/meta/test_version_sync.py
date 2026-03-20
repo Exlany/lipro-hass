@@ -60,6 +60,7 @@ def _load_yaml(path: Path) -> dict[str, Any]:
     assert isinstance(loaded, dict)
     return loaded
 
+
 def _load_governance_registry() -> dict[str, Any]:
     registry = json.loads(_GOVERNANCE_REGISTRY.read_text(encoding="utf-8"))
     assert isinstance(registry, dict)
@@ -147,7 +148,7 @@ def test_governance_registry_tracks_version_and_install_defaults() -> None:
     assert registry["python"]["requires_python"] == _read_python_requires()
     assert registry["install"]["remote_default_archive_tag"] == "latest"
     assert registry["install"]["private_repo_skips_hacs_validation"] is True
-    assert "ARCHIVE_TAG=\"latest\"" in install_text
+    assert 'ARCHIVE_TAG="latest"' in install_text
 
 
 def test_bug_report_template_keeps_developer_report_as_optional_escalation_path() -> (
@@ -246,6 +247,38 @@ def test_runbook_and_contributing_capture_blocking_release_security_gate() -> No
     assert "release identity manifest" in contributing_text
 
 
+def test_runbook_captures_release_artifact_install_smoke_contract() -> None:
+    runbook_text = _RUNBOOK.read_text(encoding="utf-8")
+
+    for token in (
+        "release artifact install smoke",
+        "temporary Home Assistant-style target tree",
+        "configuration.yaml",
+        ".storage",
+        "--archive-file",
+        "--checksum-file",
+    ):
+        assert token in runbook_text
+
+
+def test_preview_lane_docs_keep_stable_contract_honest() -> None:
+    support_text = _SUPPORT.read_text(encoding="utf-8")
+    contributing_text = _CONTRIBUTING.read_text(encoding="utf-8")
+    runbook_text = _RUNBOOK.read_text(encoding="utf-8")
+
+    for text in (support_text, contributing_text, runbook_text):
+        lowered = text.lower()
+        assert "compatibility preview" in lowered
+        assert "schedule" in lowered
+        assert "workflow_dispatch" in lowered
+        assert "advisory" in lowered
+    assert "stable support target" in support_text
+    assert "stable PR / release / support contract" in contributing_text
+    assert "stable release contract" in runbook_text
+    assert "DeprecationWarning" in contributing_text
+    assert "deprecationwarning" in runbook_text.lower()
+
+
 def test_release_docs_capture_supply_chain_posture_and_firmware_defer() -> None:
     """Runbook and closeout index should keep current hardening plus archived defer truth visible."""
     runbook_text = _RUNBOOK.read_text(encoding="utf-8")
@@ -254,6 +287,7 @@ def test_release_docs_capture_supply_chain_posture_and_firmware_defer() -> None:
     for token in ("SHA256SUMS", "provenance", "SBOM", "signing"):
         assert token in runbook_text
         assert token in evidence_text
+    assert "release artifact install smoke" in runbook_text
     assert "CodeQL" in runbook_text
     assert "code scanning" in evidence_text
     assert "cosign" in runbook_text
