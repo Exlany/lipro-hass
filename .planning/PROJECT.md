@@ -1,8 +1,8 @@
 # Project: Lipro-HASS North Star Evolution
 
-**Status:** Active routing — `v1.6` 已于 `2026-03-20` 从 `Phase 41` 审阅整改路线正式化为当前里程碑；下一步建议 `$gsd-plan-phase 42` → `$gsd-execute-phase 42`。
+**Status:** Active planning — `Phase 42` 计划资产已于 `2026-03-20` 生成；下一步建议 `$gsd-execute-phase 42`。
 **Goal:** 以 `v1.5` 归档真相为已发货基线，优先补齐 delivery trust / coverage / compatibility 真实门禁，再完成 control/services 解耦、typed runtime read-model、治理资产降噪与热点拆薄。
-**Default next step:** `$gsd-plan-phase 42` → `$gsd-execute-phase 42`
+**Default next step:** `$gsd-execute-phase 42`
 
 
 ## Active Milestone (v1.6)
@@ -19,7 +19,7 @@
 - 热点拆分只沿正式 seams 收口，不扩张 public surface 或 compatibility folklore
 
 **Phase range:** `Phase 42 -> 45`
-**Current status:** `Phase 42 routing-ready`（formal route promoted on `2026-03-20` from `.planning/phases/41-full-spectrum-architecture-code-quality-and-open-source-audit/41-REMEDIATION-ROADMAP.md`; next action is `$gsd-plan-phase 42` → `$gsd-execute-phase 42`）
+**Current status:** `Phase 42 planning-ready`（route promoted and plan assets created on `2026-03-20`; next action is `$gsd-execute-phase 42`）
 **Primary closeout targets:** delivery trust hardening、typed runtime read-model、control/services decoupling、governance asset pruning、terminology convergence、hotspot decomposition、typed failure semantics。
 
 ## Archived Milestone (v1.5)

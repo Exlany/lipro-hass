@@ -19,7 +19,7 @@ See: `.planning/PROJECT.md`
 
 **Current milestone:** `v1.6 Delivery Trust Hardening, Runtime Boundary Decoupling & Maintainability Closure`
 **Core value:** 在不回退 `LiproProtocolFacade` / `Coordinator` 单一正式主链的前提下，先把 delivery trust 与 continuity gate 变成真实可执行合同，再完成 runtime read-model typed 化、control/services 解耦、治理资产降噪与热点拆薄。
-**Current mode:** `Phase 42 routing-ready`；`v1.5` 已保持最新 shipped archive baseline，`Phase 41` 审计整改路线已于 `2026-03-20` 正式提升为 `v1.6 / Phase 42 -> 45`，当前默认 next action 为 `$gsd-plan-phase 42`。
+**Current mode:** `Phase 42 planning-ready`；`v1.5` 已保持最新 shipped archive baseline，`Phase 41` 审计整改路线已于 `2026-03-20` 正式提升为 `v1.6 / Phase 42 -> 45`，且 `42-CONTEXT / 42-RESEARCH / 42-0x-PLAN.md` 已生成，当前默认 next action 为 `$gsd-execute-phase 42`。
 
 ## Current Position
 
@@ -141,19 +141,19 @@ See: `.planning/PROJECT.md`
 
 - **Milestone:** `v1.6 Delivery Trust Hardening, Runtime Boundary Decoupling & Maintainability Closure`
 - **Phase range:** `42 -> 45`
-- **Completed so far:** `None`（formal route seeded; planning/execution not started）
+- **Completed so far:** `Planning only`（`42-CONTEXT.md`、`42-RESEARCH.md`、`42-01..04-PLAN.md` 已生成；execution not started）
 - **Starting baseline:** `v1.5` archive assets remain authoritative shipped snapshots: `.planning/v1.5-MILESTONE-AUDIT.md`, `.planning/reviews/V1_5_EVIDENCE_INDEX.md`, `.planning/milestones/v1.5-ROADMAP.md`, `.planning/milestones/v1.5-REQUIREMENTS.md`, local tag `v1.5`
 - **Route source:** `.planning/phases/41-full-spectrum-architecture-code-quality-and-open-source-audit/41-REMEDIATION-ROADMAP.md`
 - **Historical archives:** `.planning/milestones/v1.1-ROADMAP.md`, `.planning/milestones/v1.1-REQUIREMENTS.md`, `.planning/milestones/v1.2-ROADMAP.md`, `.planning/milestones/v1.2-REQUIREMENTS.md`, `.planning/milestones/v1.4-ROADMAP.md`, `.planning/milestones/v1.4-REQUIREMENTS.md`, `.planning/milestones/v1.5-ROADMAP.md`, `.planning/milestones/v1.5-REQUIREMENTS.md`
-- **Next focus:** `$gsd-plan-phase 42` → `$gsd-execute-phase 42`——先落 delivery trust / validation hardening，再继续后续解耦与收口。
+- **Next focus:** `$gsd-execute-phase 42`——执行已完成规划的 delivery trust / validation hardening，然后再继续后续解耦与收口。
 
 ## Recommended Next Command
 
-1. `$gsd-plan-phase 42` —— 为 `Phase 42` 生成 delivery trust / validation hardening 的正式执行计划
-2. `$gsd-execute-phase 42` —— 执行 `Phase 42`，补齐 release smoke、delegate/fallback、diff coverage 与 preview lane
-3. `$gsd-progress` —— 查看当前 `v1.6 / Phase 42 -> 45` 的路由状态与后续承接关系
-4. `uv run pytest -q tests/meta/test_governance*.py tests/meta/test_public_surface_guards.py tests/meta/test_version_sync.py tests/meta/test_toolchain_truth.py` —— 复核新 current truth 与历史 archive truth 的双层守卫
-5. `uv run ruff check . && uv run mypy` —— 复核静态质量基线
+1. `$gsd-execute-phase 42` —— 执行已规划好的 Phase 42，补齐 release smoke、delegate/fallback、diff coverage 与 preview lane
+2. `$gsd-progress` —— 查看当前 `v1.6 / Phase 42 -> 45` 的计划与后续承接关系
+3. `uv run pytest -q tests/meta/test_governance*.py tests/meta/test_public_surface_guards.py tests/meta/test_version_sync.py tests/meta/test_toolchain_truth.py` —— 复核新 current truth 与历史 archive truth 的双层守卫
+4. `uv run ruff check . && uv run mypy` —— 复核静态质量基线
+5. `$gsd-plan-phase 43` —— 在 Phase 42 完成后进入 control/services decoupling 与 typed runtime access 规划
 
 **Historical launch pointer:** `$gsd-execute-phase 29`
 
@@ -175,6 +175,9 @@ If resuming, read in this order:
 13. `.planning/baseline/DEPENDENCY_MATRIX.md`
 14. `.planning/baseline/VERIFICATION_MATRIX.md`
 15. `.planning/reviews/PROMOTED_PHASE_ASSETS.md`
+16. `.planning/phases/42-delivery-trust-gates-and-validation-hardening/42-CONTEXT.md`
+17. `.planning/phases/42-delivery-trust-gates-and-validation-hardening/42-RESEARCH.md`
+18. `.planning/phases/42-delivery-trust-gates-and-validation-hardening/42-01-PLAN.md`
 16. `.planning/reviews/FILE_MATRIX.md`
 17. `.planning/reviews/RESIDUAL_LEDGER.md`
 18. `.planning/reviews/KILL_LIST.md`
