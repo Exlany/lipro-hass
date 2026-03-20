@@ -2,10 +2,9 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable, Mapping, Sequence
+from collections.abc import Mapping, Sequence
 from typing import TYPE_CHECKING, Any, cast
 
-from ...api.schedule_codec import parse_mesh_schedule_json
 from ...api.types import DevicePropertyMap, JsonObject
 from ...utils.identifiers import normalize_iot_device_id, normalize_mesh_group_id
 from ...utils.property_normalization import normalize_properties
@@ -18,8 +17,6 @@ if TYPE_CHECKING:
         CanonicalListEnvelope,
         CanonicalMeshGroupMember,
         CanonicalMeshGroupStatusRow,
-        CanonicalMqttConfig,
-        CanonicalScheduleJson,
     )
 
 _DEVICE_ROW_ID_KEYS = (
@@ -44,6 +41,17 @@ _STATUS_META_KEYS = {
     "success",
     "data",
 }
+_CATALOG_OPTIONAL_FIELDS = (
+    ("roomId", "roomId"),
+    ("roomName", "roomName"),
+    ("productId", "productId"),
+    ("physicalModel", "physicalModel"),
+    ("model", "model"),
+    ("online", "online"),
+    ("category", "category"),
+    ("homeId", "homeId"),
+    ("homeName", "homeName"),
+)
 
 
 def _build_payload_fingerprint(payload: object) -> str:
@@ -173,6 +181,53 @@ def _build_identity_aliases(row: Mapping[str, Any]) -> list[str]:
     return aliases
 
 
+def _resolve_device_catalog_number(row: Mapping[str, Any]) -> object:
+    device_number: object = row.get("deviceId")
+    if isinstance(device_number, str):
+        return _normalize_identifier(device_number) or _normalize_string(device_number)
+    if device_number is None:
+        return _normalize_identifier(row.get("id") or row.get("groupId")) or row.get(
+            "id", 0
+        )
+    return device_number
+
+
+def _copy_catalog_optional_fields(
+    row: Mapping[str, Any],
+    *,
+    target: dict[str, object],
+) -> None:
+    for source_key, target_key in _CATALOG_OPTIONAL_FIELDS:
+        if source_key in row:
+            target[target_key] = row[source_key]
+
+
+def _extract_status_identifier(row: Mapping[str, Any]) -> str | None:
+    for key in _STATUS_ROW_ID_KEYS:
+        device_id = _normalize_identifier(row.get(key))
+        if device_id is not None:
+            return device_id
+    return None
+
+
+def _normalize_mesh_group_members(
+    raw_members: object,
+) -> list[CanonicalMeshGroupMember]:
+    members: list[CanonicalMeshGroupMember] = []
+    seen_member_ids: set[str] = set()
+    if not isinstance(raw_members, list):
+        return members
+    for member in raw_members:
+        if not isinstance(member, Mapping):
+            continue
+        member_id = _normalize_identifier(member.get("deviceId") or member.get("id"))
+        if member_id is None or member_id in seen_member_ids:
+            continue
+        seen_member_ids.add(member_id)
+        members.append({"deviceId": member_id})
+    return members
+
+
 def _normalize_device_catalog_row(
     row: Mapping[str, Any],
 ) -> CanonicalDeviceListItem | None:
@@ -181,15 +236,8 @@ def _normalize_device_catalog_row(
     if serial is None:
         return None
 
-    device_number = row.get("deviceId")
-    if isinstance(device_number, str):
-        device_number = _normalize_identifier(device_number) or _normalize_string(device_number)
-    if device_number is None:
-        device_number = _normalize_identifier(row.get("id") or row.get("groupId")) or row.get("id", 0)
-
-    properties = _normalize_properties_payload(row.get("properties"))
     canonical_data: dict[str, object] = {
-        "deviceId": device_number,
+        "deviceId": _resolve_device_catalog_number(row),
         "serial": serial,
         "deviceName": _normalize_string(row.get("deviceName") or row.get("name"))
         or "Unknown",
@@ -197,45 +245,11 @@ def _normalize_device_catalog_row(
         "iotName": _normalize_string(row.get("iotName")) or "",
         "isGroup": _coerce_bool(row.get("isGroup") or row.get("group"))
         or normalize_mesh_group_id(serial) is not None,
-        "properties": properties,
+        "properties": _normalize_properties_payload(row.get("properties")),
         "identityAliases": identity_aliases,
     }
-    for source_key, target_key in (
-        ("roomId", "roomId"),
-        ("roomName", "roomName"),
-        ("productId", "productId"),
-        ("physicalModel", "physicalModel"),
-        ("model", "model"),
-        ("online", "online"),
-        ("category", "category"),
-        ("homeId", "homeId"),
-        ("homeName", "homeName"),
-    ):
-        if source_key in row:
-            canonical_data[target_key] = row[source_key]
+    _copy_catalog_optional_fields(row, target=canonical_data)
     return cast("CanonicalDeviceListItem", canonical_data)
-
-
-def _extract_mqtt_config_mapping(
-    result: object,
-    *,
-    is_success_code: Callable[[object], bool],
-) -> CanonicalMqttConfig | None:
-    """Extract the canonical MQTT-config mapping from known REST envelopes."""
-    if not isinstance(result, dict):
-        return None
-
-    if "accessKey" in result and "secretKey" in result:
-        return cast("CanonicalMqttConfig", dict(result))
-
-    payload = result.get("data")
-    if not isinstance(payload, dict):
-        return None
-    if "accessKey" not in payload or "secretKey" not in payload:
-        return None
-    if "code" not in result or is_success_code(result.get("code")):
-        return cast("CanonicalMqttConfig", dict(payload))
-    return None
 
 
 def _decode_list_envelope_canonical(
@@ -262,37 +276,6 @@ def _decode_list_envelope_canonical(
     canonical["total"] = total
     canonical["has_more"] = offset + len(rows) < total
     return canonical
-
-
-def _extract_schedule_json_source(payload: object) -> object:
-    if not isinstance(payload, Mapping):
-        return payload
-    if "scheduleJson" in payload:
-        return payload.get("scheduleJson")
-    if "payload" in payload:
-        return payload.get("payload")
-    return payload
-
-
-def _decode_schedule_json_canonical(payload: object) -> CanonicalScheduleJson:
-    parsed = parse_mesh_schedule_json(
-        _extract_schedule_json_source(payload),
-        mask_sensitive_data=lambda value: value,
-    )
-    return {
-        "days": parsed["days"],
-        "time": parsed["time"],
-        "evt": parsed["evt"],
-    }
-
-
-def _build_schedule_json_fingerprint(payload: object) -> str:
-    canonical = _decode_schedule_json_canonical(payload)
-    return (
-        f"days:{len(canonical['days'])}|"
-        f"time:{len(canonical['time'])}|"
-        f"evt:{len(canonical['evt'])}"
-    )
 
 
 def _decode_device_list_canonical(
@@ -325,11 +308,7 @@ def _decode_device_status_canonical(payload: object) -> list[CanonicalDeviceStat
     rows = rows_value if isinstance(rows_value, list) else []
     canonical_rows: list[CanonicalDeviceStatusRow] = []
     for row in rows:
-        device_id = None
-        for key in _STATUS_ROW_ID_KEYS:
-            device_id = _normalize_identifier(row.get(key))
-            if device_id is not None:
-                break
+        device_id = _extract_status_identifier(row)
         if device_id is None:
             continue
 
@@ -360,18 +339,7 @@ def _decode_mesh_group_status_canonical(
             continue
 
         gateway_device_id = _normalize_identifier(row.get("gatewayDeviceId"))
-        members: list[CanonicalMeshGroupMember] = []
-        seen_member_ids: set[str] = set()
-        raw_members = row.get("devices")
-        if isinstance(raw_members, list):
-            for member in raw_members:
-                if not isinstance(member, Mapping):
-                    continue
-                member_id = _normalize_identifier(member.get("deviceId") or member.get("id"))
-                if member_id is None or member_id in seen_member_ids:
-                    continue
-                seen_member_ids.add(member_id)
-                members.append({"deviceId": member_id})
+        members = _normalize_mesh_group_members(row.get("devices"))
 
         properties = _normalize_properties_payload(
             row.get("properties"),
@@ -391,11 +359,8 @@ def _decode_mesh_group_status_canonical(
 
 __all__ = [
     "_build_payload_fingerprint",
-    "_build_schedule_json_fingerprint",
     "_decode_device_list_canonical",
     "_decode_device_status_canonical",
     "_decode_list_envelope_canonical",
     "_decode_mesh_group_status_canonical",
-    "_decode_schedule_json_canonical",
-    "_extract_mqtt_config_mapping",
 ]

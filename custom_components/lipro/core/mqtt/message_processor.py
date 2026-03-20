@@ -9,6 +9,11 @@ import json
 import logging
 from typing import TYPE_CHECKING, Any, Protocol, cast
 
+from ..telemetry.models import (
+    OperationOutcome,
+    build_operation_outcome,
+    build_operation_outcome_from_exception,
+)
 from ..utils.redaction import redact_identifier as _redact_identifier
 from .payload import (
     _MAX_MQTT_LOG_CHARS,
@@ -22,6 +27,7 @@ if TYPE_CHECKING:
     from custom_components.lipro.core.protocol.boundary import BoundaryDecodeResult
 
 _LOGGER = logging.getLogger(__package__ or __name__)
+_MQTT_PROCESSOR_ORIGIN = "mqtt.message_processor"
 
 
 class _BoundaryDecoderModule(Protocol):
@@ -112,7 +118,7 @@ class MqttMessageProcessor:
         invoke_callback: Callable[..., bool],
         set_last_error: Callable[[Exception], None],
         clear_last_error: Callable[[], None],
-    ) -> None:
+    ) -> OperationOutcome:
         """Parse one MQTT message and forward flattened properties."""
         try:
             topic = str(message.topic)
@@ -124,16 +130,25 @@ class MqttMessageProcessor:
 
             if not device_id:
                 self.log_invalid_topic(topic)
-                return
+                return build_operation_outcome(
+                    kind="skipped",
+                    reason_code="invalid_topic",
+                )
 
             device_id_log = _redact_identifier(device_id) or "***"
             if not message.payload:
                 _LOGGER.debug("MQTT [%s]: empty payload, skipping", device_id_log)
-                return
+                return build_operation_outcome(
+                    kind="skipped",
+                    reason_code="empty_payload",
+                )
 
             payload_text = decode_payload_text(message.payload, device_id)
             if payload_text is None:
-                return
+                return build_operation_outcome(
+                    kind="skipped",
+                    reason_code="payload_unavailable",
+                )
 
             payload = json.loads(payload_text)
             if not isinstance(payload, dict):
@@ -142,7 +157,10 @@ class MqttMessageProcessor:
                     device_id_log,
                     type(payload).__name__,
                 )
-                return
+                return build_operation_outcome(
+                    kind="skipped",
+                    reason_code="unexpected_payload_type",
+                )
 
             if _LOGGER.isEnabledFor(logging.DEBUG):
                 _LOGGER.debug(
@@ -152,18 +170,40 @@ class MqttMessageProcessor:
                 )
 
             properties = parse_payload(payload)
-            if properties and not invoke_callback(
+            if not properties:
+                clear_last_error()
+                return build_operation_outcome(
+                    kind="skipped",
+                    reason_code="empty_properties",
+                )
+
+            if not invoke_callback(
                 on_message,
                 "on_message",
                 device_id,
                 properties,
             ):
-                return
+                return build_operation_outcome(
+                    kind="failed",
+                    reason_code="callback_failed",
+                )
 
             clear_last_error()
+            return build_operation_outcome(
+                kind="success",
+                reason_code="processed",
+            )
         except (json.JSONDecodeError, UnicodeError) as err:
             set_last_error(err)
             _LOGGER.exception("Failed to decode MQTT payload")
+            return build_operation_outcome_from_exception(
+                err,
+                kind="failed",
+                reason_code="payload_decode_error",
+                failure_origin=_MQTT_PROCESSOR_ORIGIN,
+                failure_category="protocol",
+                handling_policy="inspect",
+            )
         except (
             AttributeError,
             LookupError,
@@ -187,6 +227,13 @@ class MqttMessageProcessor:
                 "Error processing MQTT message (%s, error=%s)",
                 topic_context,
                 type(err).__name__,
+            )
+            return build_operation_outcome_from_exception(
+                err,
+                kind="failed",
+                reason_code="message_processing_error",
+                failure_origin=_MQTT_PROCESSOR_ORIGIN,
+                handling_policy="inspect",
             )
 
 

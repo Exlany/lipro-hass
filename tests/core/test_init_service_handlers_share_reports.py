@@ -10,8 +10,9 @@ from custom_components.lipro.control.service_router import (
     async_handle_get_anonymous_share_report,
     async_handle_submit_anonymous_share,
 )
+from custom_components.lipro.core.telemetry.models import build_operation_outcome
 from custom_components.lipro.services.contracts import ATTR_ENTRY_ID
-from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
+from homeassistant.exceptions import ServiceValidationError
 from tests.helpers.service_call import service_call
 
 from .test_init_service_handlers import _InitServiceHandlerBase
@@ -66,6 +67,7 @@ class TestInitServiceHandlerAnonymousShare(_InitServiceHandlerBase):
         share_manager = MagicMock()
         share_manager.is_enabled = True
         share_manager.pending_count = (1, 0)
+        share_manager.last_submit_outcome = None
         share_manager.submit_report = AsyncMock(return_value=True)
 
         with patch(
@@ -82,6 +84,8 @@ class TestInitServiceHandlerAnonymousShare(_InitServiceHandlerBase):
             "success": True,
             "devices": 1,
             "errors": 0,
+            "outcome_kind": "success",
+            "reason_code": "submitted",
             "requested_entry_id": "entry-2",
         }
 
@@ -114,6 +118,7 @@ class TestInitServiceHandlerAnonymousShare(_InitServiceHandlerBase):
             "requested_entry_id": "entry-3",
         }
 
+
 class TestInitServiceHandlerAnonymousShareEdges(_InitServiceHandlerBase):
     """Tests for anonymous-share edge contracts."""
 
@@ -136,23 +141,50 @@ class TestInitServiceHandlerAnonymousShareEdges(_InitServiceHandlerBase):
             "message": "No data to submit",
             "devices": 0,
             "errors": 0,
+            "outcome_kind": "skipped",
+            "reason_code": "no_pending_data",
         }
 
-    async def test_submit_anonymous_share_submit_failed_raises(self, hass) -> None:
-        """submit_anonymous_share raises when upload fails."""
+    async def test_submit_anonymous_share_submit_failed_returns_typed_payload(
+        self, hass
+    ) -> None:
+        """submit_anonymous_share returns typed failure metadata when upload fails."""
         share_manager = MagicMock()
         share_manager.is_enabled = True
         share_manager.pending_count = (1, 1)
+        share_manager.last_submit_outcome = build_operation_outcome(
+            kind="failed",
+            reason_code="rate_limited",
+            failure_origin="anonymous_share.submit_share_payload",
+            error_type="RateLimitError",
+            failure_category="network",
+            handling_policy="retry",
+            http_status=429,
+            retry_after_seconds=30.0,
+        )
         share_manager.submit_report = AsyncMock(return_value=False)
 
-        with (
-            patch(
-                "custom_components.lipro.control.service_router.get_anonymous_share_manager",
-                return_value=share_manager,
-            ),
-            pytest.raises(HomeAssistantError),
+        with patch(
+            "custom_components.lipro.control.service_router.get_anonymous_share_manager",
+            return_value=share_manager,
         ):
-            await async_handle_submit_anonymous_share(hass, service_call(hass, {}))
+            result = await async_handle_submit_anonymous_share(hass, service_call(hass, {}))
+
+        assert result == {
+            "success": False,
+            "devices": 1,
+            "errors": 1,
+            "outcome_kind": "failed",
+            "reason_code": "rate_limited",
+            "failure_summary": {
+                "failure_category": "network",
+                "failure_origin": "anonymous_share.submit_share_payload",
+                "handling_policy": "retry",
+                "error_type": "RateLimitError",
+            },
+            "http_status": 429,
+            "retry_after_seconds": 30.0,
+        }
 
     async def test_get_anonymous_share_report_returns_empty(self, hass) -> None:
         """get_anonymous_share_report returns empty payload when no report."""

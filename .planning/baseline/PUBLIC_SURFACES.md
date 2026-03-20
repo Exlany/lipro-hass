@@ -2,7 +2,7 @@
 
 **Purpose:** 定义各平面的 canonical public surfaces、过渡公开面与禁止作为正式入口的对象。
 **Status:** Formal baseline asset (`BASE-01` public-surface truth source)
-**Updated:** 2026-03-19 (Phase 40 governance truth and active/archive identity aligned)
+**Updated:** 2026-03-20 (Phase 43 control/runtime/service boundary aligned)
 
 ## Formal Role
 
@@ -18,7 +18,7 @@
 |---------------|-------------------|-------------|-------|
 | Protocol | `LiproProtocolFacade` | target-state formal protocol root | 终态唯一正式协议根；formal contract 由显式 methods/properties 定义，不再由 child `__getattr__` / `__dir__` 隐式扩面 |
 | Protocol (REST child) | `LiproRestFacade` | canonical REST child façade | formal REST child surface；必须始终收敛到 `LiproProtocolFacade` |
-| Runtime | `Coordinator` + runtime services/public surface | runtime orchestration root + stable service surface | protocol-facing runtime ops 统一经 `CoordinatorProtocolService` / `coordinator.protocol_service` 收口；schedule / diagnostics / OTA consumers 不再经 coordinator 顶层 pure forwarders 取能力；`devices` 只允许以 read-only mapping 暴露；outlet power 真源收口到 `LiproDevice.outlet_power_info` |
+| Runtime | `Coordinator` + runtime services/public surface | runtime orchestration root + stable service surface | protocol-facing runtime ops 统一经 `CoordinatorProtocolService` / `coordinator.protocol_service` 收口；schedule / diagnostics / OTA consumers 不再经 coordinator 顶层 passthrough operations 取能力；`devices` 只允许以 read-only mapping 暴露；outlet power 真源收口到 `LiproDevice.outlet_power_info` |
 | Domain | `CapabilityRegistry` / `CapabilitySnapshot` / `LiproDevice` + `DeviceState` explicit surface / command contracts | domain truth surface family | `custom_components/lipro/core/capability/` 与 `custom_components/lipro/core/device/` 共同定义显式设备域真源；动态 `__getattr__` 不再合法化；HA platform strings / config-entry projection 只允许停留在 adapter seams |
 | Control | `EntryLifecycleController`、`ServiceRegistry`、`service_router`、`DiagnosticsSurface`、`SystemHealthSurface`、`telemetry_surface` bridge helpers | control-plane formal surface set | `custom_components/lipro/control/` 为正式内部控制面 home；HA 根模块只保留 adapter 职责 |
 | Assurance | contract suites、invariant suites、meta guards、ledgers、`RuntimeTelemetryExporter` / telemetry contracts、replay harness/report surfaces、`V1_1_EVIDENCE_INDEX.md`、`V1_2_EVIDENCE_INDEX.md`、`tests/harness/evidence_pack/*`、`scripts/export_ai_debug_evidence_pack.py`、`v1.2-MILESTONE-AUDIT.md`、`v1.3-HANDOFF.md` | assurance arbitration surface set | exporter / replay / evidence index / milestone audit / handoff tooling 只作为 assurance-only 或 pull-only truth consumers，不得反向成为 runtime/control/public root |
@@ -38,6 +38,13 @@
 - `custom_components/lipro/services/execution.py` 同时保持 `formal shared service execution facade` 身份；`schedule.py` 复用它的 shared executor，而不是维护第二条 auth/error 执行链。
 - `docs/README.md` 只负责解释当前可读入口与 active-vs-archive 边界，不得把 milestone snapshots 或 phase workspace assets 重新讲成对外 current source。
 
+## Phase 43 Control / Runtime Boundary Notes
+
+- `custom_components/lipro/control/runtime_access.py` 现在同时固定 typed diagnostics/system-health projection 与 entry-scoped runtime lookup；control consumers 不再混搭 coordinator internals / ad-hoc mapping reads。
+- `custom_components/lipro/control/service_router_support.py` 是 service callback 热路径里唯一正式 `(device, coordinator)` bridge；`custom_components/lipro/services/device_lookup.py` 只保留 service-facing `device_id` resolution，不再拥有 runtime truth。
+- `custom_components/lipro/runtime_infra.py` 成为 device-registry listener、pending reload task cleanup 与 reload coordination 的正式 home；`custom_components/lipro/services/maintenance.py` 只保留 `refresh_devices` thin adapter。
+- `custom_components/lipro/control/service_router.py` 继续是 public callback home；`services/registrations.py` 仅做 HA service declaration binding，没有第二条 service-ownership story。
+
 ## Transitional Public Surfaces
 
 | Surface | Allowed Until | Exit Condition |
@@ -47,7 +54,7 @@
 ## Phase 25.2 Telemetry Formal-Surface Closure Notes
 
 - `runtime_types.LiproCoordinator` 现显式暴露 bridge 真正需要的 `protocol` 与 `telemetry_service`；`Coordinator.client` 不再被视为 control-plane formal surface。
-- `custom_components/lipro/control/telemetry_surface.py` 现在只通过 `runtime_access.get_entry_runtime_coordinator()` + `Coordinator.protocol` 构建 protocol telemetry source，不再合法化 legacy `client` seam。
+- `custom_components/lipro/control/telemetry_surface.py` 现在只通过 `runtime_access.get_entry_runtime_coordinator()` + `Coordinator.protocol` 构建 protocol telemetry source，不再合法化 legacy protocol-handle seam (`Coordinator.client`)。
 - 本 phase 只关闭 source-binding honesty seam；`RuntimeTelemetryExporter` schema / sink payload 保持稳定，未引入第二条 telemetry root。
 
 ## Phase 35 Protocol Hotspot Final Slimming Notes
@@ -70,15 +77,15 @@
 
 ## Phase 27 Hotspot Slimming & Residual-Honesty Notes
 
-- `runtime_types.LiproCoordinator` 现显式暴露 `protocol_service`：schedule / diagnostics / OTA capability consumers 只能 pull `coordinator.protocol_service`，不再把 coordinator 顶层 `async_*` pure forwarders 当 formal runtime surface。
-- `custom_components/lipro/core/coordinator/coordinator.py` 已删除 schedule / diagnostics / OTA / outlet-power pure forwarder cluster；保留的 `get_device` / `register_entity` / `get_device_lock` 仍属于 entity-facing runtime helper，而不是 protocol passthrough。
+- `runtime_types.LiproCoordinator` 现显式暴露 `protocol_service`：schedule / diagnostics / OTA capability consumers 只能 pull `coordinator.protocol_service`，不再把 coordinator 顶层 `async_*` passthrough operations 当 formal runtime surface。
+- `custom_components/lipro/core/coordinator/coordinator.py` 已删除 schedule / diagnostics / OTA / outlet-power passthrough operation cluster；保留的 `get_device` / `register_entity` / `get_device_lock` 仍属于 entity-facing runtime helper，而不是 protocol passthrough。
 - runtime 正式代码已清理 `Phase C` / `Phase H4` 这类历史迁移叙事；若未来继续切薄 hotspot，必须沿现有 service / child-façade home 下沉，而不是新增第二 root。
 
 ## Phase 17 Final Residual Retirement Notes
 
 - `custom_components/lipro/core/api/session_state.py` 现在只保留 `RestSessionState` formal REST session state；`_ClientBase` 已从 production truth 退场。
 - `custom_components/lipro/core/api/transport_executor.py` 现在只保留 `RestTransportExecutor` / explicit transport helpers；`_ClientTransportMixin` 已退场。
-- REST endpoint legacy mixin family 已退场；formal collaborator set 固定为 `AuthEndpoints`、`CommandEndpoints`、`DeviceEndpoints`、`MiscEndpoints`、`ScheduleEndpoints`、`StatusEndpoints` 与 `_EndpointAdapter` local typed port。
+- REST endpoint legacy inheritance-aggregate family 已退场；formal collaborator set 固定为 `AuthEndpoints`、`CommandEndpoints`、`DeviceEndpoints`、`MiscEndpoints`、`ScheduleEndpoints`、`StatusEndpoints` 与 `_EndpointAdapter` local typed port。
 - `MqttTransport` 是 canonical MQTT concrete transport，但不是 public surface；只允许停留在 `core/mqtt` + `core/protocol`。
 - token persistence 只消费 `AuthSessionSnapshot`；`get_auth_data()` compatibility projection 已从正式路径退场。
 - outlet-power 正式 contract 只承认 `OutletPowerInfoRow | list[OutletPowerInfoRow]`；synthetic `{"data": rows}` 已退出 formal path。
@@ -133,7 +140,7 @@
 
 ## Forbidden As Formal Roots
 
-- mixin-based mega client
+- inheritance-driven mega aggregate
 - direct transport/auth objects exposed to entity/control plane
 - concrete MQTT transport object as runtime/entity public truth
 - raw vendor payloads as domain/runtime public contracts

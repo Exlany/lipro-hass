@@ -3,15 +3,13 @@
 from __future__ import annotations
 
 import re
-from unittest.mock import MagicMock, patch
 
 import pytest
-from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.lipro.services.device_lookup import (
     _normalize_entity_ids,
     extract_device_id_from_entity_ids,
-    get_device_and_coordinator,
+    resolve_device_id_from_service_call,
 )
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers import entity_registry as er
@@ -59,46 +57,52 @@ def test_extract_device_id_skips_missing_entry_and_non_lipro_unique_id(hass) -> 
     assert result == "03ab0000000000a1"
 
 
-@pytest.mark.asyncio
-async def test_get_device_and_coordinator_raises_device_not_found(hass) -> None:
-    """Raise a translated validation error when no coordinator owns the device."""
-    entry = MockConfigEntry(domain="lipro", data={"phone": "13800000000"})
-    entry.add_to_hass(hass)
+def test_resolve_device_id_from_service_call_prefers_explicit_device_id(hass) -> None:
+    """An explicit device_id should win before entity-target resolution."""
+    resolved = resolve_device_id_from_service_call(
+        hass,
+        service_call(hass, {"device_id": " 03ab0000000000a1 "}),
+        domain="lipro",
+        serial_pattern=_SERIAL_PATTERN,
+        attr_device_id="device_id",
+    )
 
-    coordinator = MagicMock()
-    coordinator.get_device.return_value = None
-    coordinator.get_device_by_id.return_value = None
-    entry.runtime_data = coordinator
+    assert resolved == "03ab0000000000a1"
 
+
+def test_resolve_device_id_from_service_call_reads_target_entity_ids(hass) -> None:
+    """ServiceCall.target.entity_id should feed the service-facing resolver."""
+    entity_id = (
+        er.async_get(hass)
+        .async_get_or_create(
+            "light",
+            "lipro",
+            "lipro_03ab0000000000a1_light",
+            suggested_object_id="lookup_target_lipro",
+        )
+        .entity_id
+    )
+
+    resolved = resolve_device_id_from_service_call(
+        hass,
+        service_call(hass, {}, target_entity_ids=[entity_id]),
+        domain="lipro",
+        serial_pattern=_SERIAL_PATTERN,
+        attr_device_id="device_id",
+    )
+
+    assert resolved == "03ab0000000000a1"
+
+
+def test_resolve_device_id_from_service_call_raises_when_missing_targets(hass) -> None:
+    """The service-facing resolver should still reject empty targets."""
     with pytest.raises(ServiceValidationError) as exc_info:
-        await get_device_and_coordinator(
+        resolve_device_id_from_service_call(
             hass,
-            service_call(hass, {"device_id": "03ab0000000000a1"}),
+            service_call(hass, {}),
             domain="lipro",
             serial_pattern=_SERIAL_PATTERN,
             attr_device_id="device_id",
         )
 
-    assert exc_info.value.translation_key == "device_not_found"
-
-
-@pytest.mark.asyncio
-async def test_get_device_and_coordinator_delegates_to_runtime_access_helper(hass) -> None:
-    """Service lookup should delegate runtime traversal to runtime_access."""
-    device = MagicMock()
-    coordinator = MagicMock()
-
-    with patch(
-        "custom_components.lipro.services.device_lookup.find_runtime_device_and_coordinator",
-        return_value=(device, coordinator),
-    ) as runtime_lookup:
-        resolved = await get_device_and_coordinator(
-            hass,
-            service_call(hass, {"device_id": "03ab0000000000a1"}),
-            domain="lipro",
-            serial_pattern=_SERIAL_PATTERN,
-            attr_device_id="device_id",
-        )
-
-    assert resolved == (device, coordinator)
-    runtime_lookup.assert_called_once_with(hass, device_id="03ab0000000000a1")
+    assert exc_info.value.translation_key == "no_device_specified"

@@ -9,19 +9,19 @@ import re
 from typing import cast
 
 from homeassistant.core import HomeAssistant, ServiceCall
+from homeassistant.exceptions import ServiceValidationError
 
 from ..core import LiproDevice
 from ..runtime_types import LiproCoordinator
 from ..services.command import SendCommandLogger
 from ..services.contracts import ServicePropertySummary
-from ..services.device_lookup import (
-    get_device_and_coordinator as _get_device_and_coordinator_service,
-)
+from ..services.device_lookup import resolve_device_id_from_service_call
 from ..services.diagnostics.types import RuntimeCoordinatorIterator
 from .developer_router_support import (
     build_developer_runtime_coordinator_iterator as _build_developer_runtime_coordinator_iterator,
     get_developer_device_and_coordinator as _get_developer_device_and_coordinator_support,
 )
+from .runtime_access import find_runtime_device_and_coordinator
 
 type DeviceAndCoordinatorGetter = Callable[
     [HomeAssistant, ServiceCall],
@@ -120,12 +120,22 @@ async def async_get_device_and_coordinator(
     attr_device_id: str,
 ) -> tuple[LiproDevice, LiproCoordinator]:
     """Resolve one device/coordinator pair from a service call."""
-    return await _get_device_and_coordinator_service(
+    device_id = resolve_device_id_from_service_call(
         hass,
         call,
         domain=domain,
         serial_pattern=serial_pattern,
         attr_device_id=attr_device_id,
+    )
+
+    resolved = find_runtime_device_and_coordinator(hass, device_id=device_id)
+    if resolved is not None:
+        return resolved
+
+    raise ServiceValidationError(
+        translation_domain=domain,
+        translation_key="device_not_found",
+        translation_placeholders={"device_id": device_id},
     )
 
 

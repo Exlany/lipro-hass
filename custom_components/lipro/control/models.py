@@ -27,3 +27,12 @@ class RuntimeCoordinatorSnapshot:
     last_update_success: bool
     mqtt_connected: bool | None
     failure_summary: FailureSummary
+
+
+@dataclass(frozen=True, slots=True)
+class RuntimeDiagnosticsProjection:
+    """Typed diagnostics projection derived from one runtime snapshot."""
+
+    snapshot: RuntimeCoordinatorSnapshot
+    update_interval: str
+    degraded_fields: tuple[str, ...] = ()

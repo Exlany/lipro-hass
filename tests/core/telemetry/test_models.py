@@ -10,6 +10,8 @@ from custom_components.lipro.core.telemetry import (
 )
 from custom_components.lipro.core.telemetry.models import (
     build_failure_summary,
+    build_operation_outcome,
+    build_operation_outcome_from_exception,
     extract_failure_summary,
 )
 
@@ -104,4 +106,37 @@ def test_extract_failure_summary_prefers_explicit_payload_and_raw_fallback() -> 
         "failure_origin": "protocol.mqtt",
         "handling_policy": "retry",
         "error_type": "TimeoutError",
+    }
+
+
+def test_build_operation_outcome_omits_empty_failure_summary_from_payload() -> None:
+    outcome = build_operation_outcome(kind="success", reason_code="submitted")
+
+    assert outcome.to_dict() == {
+        "outcome_kind": "success",
+        "reason_code": "submitted",
+    }
+
+
+def test_build_operation_outcome_from_exception_reuses_failure_taxonomy() -> None:
+    outcome = build_operation_outcome_from_exception(
+        TimeoutError(),
+        kind="failed",
+        reason_code="timeout",
+        failure_origin="protocol.mqtt",
+        failure_category="network",
+        handling_policy="retry",
+        http_status=504,
+    )
+
+    assert outcome.to_dict() == {
+        "outcome_kind": "failed",
+        "reason_code": "timeout",
+        "failure_summary": {
+            "failure_category": "network",
+            "failure_origin": "protocol.mqtt",
+            "handling_policy": "retry",
+            "error_type": "TimeoutError",
+        },
+        "http_status": 504,
     }

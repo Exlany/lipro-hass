@@ -7,7 +7,7 @@
 - ✅ **v1.2 Host-Neutral Core & Replay Completion** - Phases 18-24 complete after Phase 24 reopen revalidation; 24 plans complete; milestone snapshots archived at `.planning/milestones/v1.2-ROADMAP.md` / `.planning/milestones/v1.2-REQUIREMENTS.md`; `v1.3` handoff-ready (revalidated 2026-03-17)
 - ✅ **v1.4 Sustainment, Trust Gates & Final Hotspot Burn-down** - Phases 34-39 shipped 2026-03-19; milestone audit: `.planning/v1.4-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_4_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.4-ROADMAP.md` / `.planning/milestones/v1.4-REQUIREMENTS.md`; local tag: `v1.4`
 - ✅ **v1.5 Governance Truth Consolidation & Control-Surface Finalization** - Phase 40 shipped 2026-03-19; milestone audit: `.planning/v1.5-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_5_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.5-ROADMAP.md` / `.planning/milestones/v1.5-REQUIREMENTS.md`; local tag: `v1.5`
-- 🟢 **v1.6 Delivery Trust Hardening, Runtime Boundary Decoupling & Maintainability Closure** - Phases 42-45 formally routed on 2026-03-20 from `41-REMEDIATION-ROADMAP.md`; Phase 42 completed on 2026-03-20; Phases 43-45 planning assets created on 2026-03-20 (`12` executable plans); next action: `$gsd-execute-phase 43`
+- 🟢 **v1.6 Delivery Trust Hardening, Runtime Boundary Decoupling & Maintainability Closure** - Phases 42-45 completed on 2026-03-20 from the formal `41-REMEDIATION-ROADMAP.md` route; `16` executable plans complete; promoted evidence: `.planning/phases/45-hotspot-decomposition-and-typed-failure-semantics/45-SUMMARY.md` / `45-VERIFICATION.md`; current status: closeout-ready; next action: `$gsd-complete-milestone v1.6`
 
 ## Required Phase Outputs
 
@@ -778,9 +778,9 @@ Plans:
 
 > `Phase 41` 审计已把 delivery trust、boundary decoupling、governance hygiene 与 hotspot decomposition 压成正式整改路线；`v1.6` 从 `Phase 42` 起按“先治理验证、后边界解耦、再治理降噪、最后热点拆薄”的顺序推进，把 current truth 从“架构已对”提升到“交付可信、边界更薄、仓库更静、协作更稳”。
 
-**Milestone status:** `Active / phase-43-planning-ready (2026-03-20)`
+**Milestone status:** `Active / phase-45-complete-closeout-ready (2026-03-20)`
 **Route source:** `.planning/phases/41-full-spectrum-architecture-code-quality-and-open-source-audit/41-REMEDIATION-ROADMAP.md`
-**Default next command:** `$gsd-execute-phase 43`
+**Default next command:** `$gsd-complete-milestone v1.6`
 
 ### Phase 42: Delivery trust gates and validation hardening
 
@@ -807,12 +807,12 @@ Plans:
   1. `control/` 与 `services/` 收敛为单向依赖合同；helper surface 不再反客为主或反向定义 runtime truth。
   2. `RuntimeAccess` 暴露 typed public read-model API；diagnostics / system health / maintenance / lookup 消费者不再依赖反射、`MagicMock` 形状或私有字段。
   3. runtime infra 与 service helper 各回 formal home；`maintenance.py` 不再承担 entry reload / listener / coordinator-traversal 等跨层职责。
-**Status**: Planned (`2026-03-20`; 4 executable plans defined)
-**Plans**: 4 planned
-- [ ] 43-01: tighten RuntimeAccess into a typed public read-model
-- [ ] 43-02: relocate maintenance-owned runtime infra to formal control homes
-- [ ] 43-03: converge control-services collaboration onto a one-way dependency contract
-- [ ] 43-04: codify the new control-runtime-service boundary in docs and guards
+**Status**: Complete (`2026-03-20`)
+**Plans**: 4/4 complete
+- [x] 43-01: tighten RuntimeAccess into a typed public read-model (completed 2026-03-20)
+- [x] 43-02: relocate maintenance-owned runtime infra to formal control homes (completed 2026-03-20)
+- [x] 43-03: converge control-services collaboration onto a one-way dependency contract (completed 2026-03-20)
+- [x] 43-04: codify the new control-runtime-service boundary in docs and guards (completed 2026-03-20)
 
 ### Phase 44: Governance asset pruning and terminology convergence
 
@@ -823,12 +823,12 @@ Plans:
   1. `.planning/phases/**` 默认仅是 execution trace，只有 allowlist 资产进入长期治理 / CI truth；文档、review ledgers 与守卫不再把 trace 误写成 authority。
   2. current docs / ADR / comments 完成 `client / mixin / forwarding` → `protocol / facade / operations` 术语收口，旧术语只留在历史资产或 residual ledger。
   3. contributor fast-path、maintainer appendix 与 bilingual policy 可链接、可守卫、低噪声，减少外部贡献者过早接触维护者治理术语。
-**Status**: Planned (`2026-03-20`; 4 executable plans defined)
-**Plans**: 4 planned
-- [ ] 44-01: tighten phase-asset promotion and authority boundaries
-- [ ] 44-02: converge current repository terminology onto protocol-facade-operations language
-- [ ] 44-03: split contributor fast-path from maintainer appendices and codify bilingual boundaries
-- [ ] 44-04: close the governance story across ledgers indexes and guards
+**Status**: Complete (`2026-03-20`)
+**Plans**: 4/4 complete
+- [x] 44-01: tighten phase-asset promotion and authority boundaries (completed 2026-03-20)
+- [x] 44-02: converge current repository terminology onto protocol-facade-operations language (completed 2026-03-20)
+- [x] 44-03: split contributor fast-path from maintainer appendices and codify bilingual boundaries (completed 2026-03-20)
+- [x] 44-04: close the governance story across ledgers indexes and guards (completed 2026-03-20)
 
 ### Phase 45: Hotspot decomposition and typed failure semantics
 
@@ -839,9 +839,9 @@ Plans:
   1. 高复杂度热点沿现有正式 seams 切薄；长函数、弱语义 fallback 与多层 forwarding 链明显下降，且 public surface 不扩张。
   2. diagnostics / share / message / protocol touched-zone 改用 typed result / reason code；失败语义可被日志、diagnostics 与测试稳定消费。
   3. benchmark 具备 baseline compare / threshold warning / no-regression gate 语义，不再只是上传产物。
-**Status**: Planned (`2026-03-20`; 4 executable plans defined)
-**Plans**: 4 planned
-- [ ] 45-01: decompose the protocol decoder hotspot without expanding public surface
-- [ ] 45-02: slim diagnostics-share hotspots and replace weak bool-fail paths with typed outcomes
-- [ ] 45-03: give MQTT message handling typed outcomes and a no-growth typed-budget guard
-- [ ] 45-04: upgrade benchmark evidence into governed baseline threshold and no-regression truth
+**Status**: Complete (`2026-03-20`)
+**Plans**: 4/4 complete
+- [x] 45-01: decompose the protocol decoder hotspot without expanding public surface (completed 2026-03-20)
+- [x] 45-02: slim diagnostics-share hotspots and replace weak bool-fail paths with typed outcomes (completed 2026-03-20)
+- [x] 45-03: give MQTT message handling typed outcomes and a no-growth typed-budget guard (completed 2026-03-20)
+- [x] 45-04: upgrade benchmark evidence into governed baseline threshold and no-regression truth (completed 2026-03-20)

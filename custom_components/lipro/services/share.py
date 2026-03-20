@@ -10,6 +10,7 @@ from aiohttp import ClientSession
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.exceptions import ServiceValidationError
 
+from ..core.telemetry.models import OperationOutcome, build_operation_outcome
 from .execution import ServiceErrorRaiser
 
 type SharePreviewReport = Mapping[str, object]
@@ -23,6 +24,11 @@ class ShareSubmitResponse(TypedDict, total=False):
     errors: int
     message: str
     requested_entry_id: str
+    outcome_kind: str
+    reason_code: str
+    failure_summary: dict[str, str | None]
+    http_status: int
+    retry_after_seconds: float
 
 
 class SharePreviewResponse(TypedDict, total=False):
@@ -44,6 +50,10 @@ class AnonymousShareManager(Protocol):
 
     is_enabled: bool
     pending_count: tuple[int, int]
+
+    @property
+    def last_submit_outcome(self) -> OperationOutcome | None:
+        """Return the latest typed submit outcome when available."""
 
     async def submit_report(self, session: ClientSession, *, force: bool) -> bool:
         """Submit one report payload."""
@@ -91,18 +101,30 @@ def _resolve_share_manager(
     )
 
 
+def _coerce_submit_outcome(value: object) -> OperationOutcome | None:
+    """Normalize one optional manager-reported submit outcome."""
+    return value if isinstance(value, OperationOutcome) else None
+
+
 def build_submit_anonymous_share_response(
     *,
+    success: bool = True,
     device_count: int,
     error_count: int,
     requested_entry_id: str | None = None,
+    outcome: OperationOutcome | None = None,
 ) -> ShareSubmitResponse:
-    """Build the canonical submit_anonymous_share success payload."""
+    """Build the canonical submit_anonymous_share service payload."""
+    normalized_outcome = outcome or build_operation_outcome(
+        kind=("success" if success else "failed"),
+        reason_code=("submitted" if success else "submit_failed"),
+    )
     result: ShareSubmitResponse = {
-        "success": True,
+        "success": success,
         "devices": device_count,
         "errors": error_count,
     }
+    result.update(normalized_outcome.to_dict())
     if requested_entry_id:
         result["requested_entry_id"] = requested_entry_id
     return result
@@ -150,6 +172,7 @@ async def async_handle_submit_anonymous_share(
     attr_entry_id: str,
 ) -> ShareSubmitResponse:
     """Handle submit_anonymous_share service."""
+    del raise_service_error
     share_manager = _resolve_share_manager(
         hass,
         call,
@@ -166,22 +189,27 @@ async def async_handle_submit_anonymous_share(
     requested_entry_id = _resolve_requested_entry_id(call, attr_entry_id)
     if device_count == 0 and error_count == 0:
         result = build_submit_anonymous_share_response(
+            success=True,
             device_count=0,
             error_count=0,
             requested_entry_id=requested_entry_id,
+            outcome=build_operation_outcome(
+                kind="skipped",
+                reason_code="no_pending_data",
+            ),
         )
         result["message"] = "No data to submit"
         return result
 
     session = get_client_session(hass)
     success = await share_manager.submit_report(session, force=True)
-    if not success:
-        raise_service_error("anonymous_share_submit_failed")
-
+    outcome = _coerce_submit_outcome(getattr(share_manager, "last_submit_outcome", None))
     return build_submit_anonymous_share_response(
+        success=success,
         device_count=device_count,
         error_count=error_count,
         requested_entry_id=requested_entry_id,
+        outcome=outcome,
     )
 
 

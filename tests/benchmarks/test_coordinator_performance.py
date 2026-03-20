@@ -52,6 +52,7 @@ def device_runtime(mock_client, mock_auth_manager, device_identity_index):
     )
 
 
+@pytest.mark.benchmark(group="coordinator-performance")
 def test_device_identity_index_registration(
     benchmark, device_identity_index, make_device
 ):
@@ -67,6 +68,7 @@ def test_device_identity_index_registration(
     assert device_identity_index.get("test_device_001") is device
 
 
+@pytest.mark.benchmark(group="coordinator-performance")
 def test_device_identity_index_lookup(benchmark, device_identity_index, make_device):
     """Benchmark device identity index lookup performance."""
     # Populate identity index
@@ -81,6 +83,7 @@ def test_device_identity_index_lookup(benchmark, device_identity_index, make_dev
     assert result is not None
 
 
+@pytest.mark.benchmark(group="coordinator-performance")
 def test_device_runtime_refresh_check(benchmark, device_runtime):
     """Benchmark device list refresh decision."""
 
@@ -91,6 +94,7 @@ def test_device_runtime_refresh_check(benchmark, device_runtime):
     assert result is True
 
 
+@pytest.mark.benchmark(group="coordinator-performance")
 def test_normalize_device_key_performance(benchmark):
     """Benchmark device key normalization."""
 
@@ -104,6 +108,7 @@ def test_normalize_device_key_performance(benchmark):
     assert result == "device_123"
 
 
+@pytest.mark.benchmark(group="coordinator-performance")
 def test_device_identity_index_bulk_registration(
     benchmark, device_identity_index, make_device
 ):
@@ -121,6 +126,7 @@ def test_device_identity_index_bulk_registration(
     assert device_identity_index.get("bulk_049") is devices[49]
 
 
+@pytest.mark.benchmark(group="coordinator-performance")
 def test_device_identity_index_bulk_lookup(
     benchmark, device_identity_index, make_device
 ):

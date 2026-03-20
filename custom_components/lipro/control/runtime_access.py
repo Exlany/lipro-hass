@@ -15,7 +15,12 @@ from ..runtime_types import LiproCoordinator, ProtocolTelemetryFacadeLike
 
 if TYPE_CHECKING:
     from ..core.device import LiproDevice
-from .models import FailureSummary, RuntimeCoordinatorSnapshot, empty_failure_summary
+from .models import (
+    FailureSummary,
+    RuntimeCoordinatorSnapshot,
+    RuntimeDiagnosticsProjection,
+    empty_failure_summary,
+)
 
 type RuntimeTelemetryView = dict[str, object]
 
@@ -36,6 +41,16 @@ def _get_explicit_member(obj: object | None, name: str) -> object | None:
             return cast(object | None, getattr(obj, name, None))
         return None
     return cast(object | None, getattr(obj, name, None))
+
+
+def _has_explicit_runtime_member(obj: object | None, name: str) -> bool:
+    """Return whether a runtime-facing attribute is explicitly bound on the object."""
+    if obj is None:
+        return False
+    obj_dict = getattr(obj, "__dict__", None)
+    if isinstance(obj_dict, dict) and name in obj_dict:
+        return True
+    return name in vars(type(obj))
 
 
 class _ProtocolFacadeTelemetrySource(ProtocolTelemetrySource):
@@ -108,11 +123,11 @@ def _build_entry_telemetry_exporter(
 
 def _coerce_runtime_entry_view(entry: object) -> RuntimeEntryLike | None:
     """Return the live config entry when it exposes the formal runtime shape."""
-    if not hasattr(entry, "runtime_data"):
+    if not _has_explicit_runtime_member(entry, "runtime_data"):
         return None
 
-    entry_id = getattr(entry, "entry_id", None)
-    options = getattr(entry, "options", None)
+    entry_id = _get_explicit_member(entry, "entry_id")
+    options = _get_explicit_member(entry, "options")
     if not isinstance(entry_id, str) or not isinstance(options, Mapping):
         return None
 
@@ -297,11 +312,32 @@ def build_entry_system_health_view(
     return dict(exporter.export_views().system_health)
 
 
+def iter_runtime_devices_for_entry(
+    entry: RuntimeEntryLike | object,
+) -> list[LiproDevice]:
+    """Return all runtime devices for one entry through the formal helper surface."""
+    coordinator = get_entry_runtime_coordinator(entry)
+    if coordinator is None:
+        return []
+    return list(get_runtime_device_mapping(coordinator).values())
+
+
+def find_runtime_device_for_entry(
+    entry: RuntimeEntryLike | object,
+    device_id: str,
+) -> LiproDevice | None:
+    """Return one runtime device for an entry through the formal helper surface."""
+    coordinator = get_entry_runtime_coordinator(entry)
+    if coordinator is None:
+        return None
+    return find_runtime_device(coordinator, device_id)
+
+
 def get_runtime_device_mapping(
     coordinator: LiproCoordinator,
 ) -> Mapping[str, LiproDevice]:
     """Return a safe device mapping view for one runtime coordinator."""
-    devices = coordinator.devices
+    devices = _get_explicit_member(coordinator, "devices")
     return devices if isinstance(devices, Mapping) else {}
 
 
@@ -322,6 +358,11 @@ def _coerce_device_count(
     return len(get_runtime_device_mapping(coordinator))
 
 
+def _coerce_update_interval(coordinator: LiproCoordinator) -> str:
+    update_interval = _get_explicit_member(coordinator, "update_interval")
+    return "" if update_interval is None else str(update_interval)
+
+
 def _coerce_mqtt_connected(
     telemetry_view: RuntimeTelemetryView,
     coordinator: LiproCoordinator,
@@ -329,7 +370,7 @@ def _coerce_mqtt_connected(
     mqtt_connected = telemetry_view.get("mqtt_connected")
     if isinstance(mqtt_connected, bool):
         return mqtt_connected
-    mqtt_service = getattr(coordinator, "mqtt_service", None)
+    mqtt_service = _get_explicit_member(coordinator, "mqtt_service")
     if not isinstance(mqtt_service, _MqttServiceLike):
         return None
     connected = mqtt_service.connected
@@ -343,7 +384,8 @@ def _coerce_last_update_success(
     last_update_success = telemetry_view.get("last_update_success")
     if isinstance(last_update_success, bool):
         return last_update_success
-    return coordinator.last_update_success
+    last_update_success = _get_explicit_member(coordinator, "last_update_success")
+    return last_update_success if isinstance(last_update_success, bool) else False
 
 
 def _coerce_entry_ref(telemetry_view: RuntimeTelemetryView) -> str | None:
@@ -385,6 +427,33 @@ def build_runtime_snapshot(
         last_update_success=_coerce_last_update_success(telemetry_view, coordinator),
         mqtt_connected=_coerce_mqtt_connected(telemetry_view, coordinator),
         failure_summary=_coerce_failure_summary(telemetry_view),
+    )
+
+
+def build_runtime_diagnostics_projection(
+    entry: RuntimeEntryLike | object,
+) -> RuntimeDiagnosticsProjection | None:
+    """Build the typed diagnostics-facing runtime projection for one config entry."""
+    runtime_entry = _coerce_runtime_entry_view(entry)
+    if runtime_entry is None:
+        return None
+
+    coordinator = get_entry_runtime_coordinator(runtime_entry)
+    if coordinator is None:
+        return None
+
+    snapshot = build_runtime_snapshot(runtime_entry)
+    if snapshot is None:
+        return None
+
+    degraded_fields: list[str] = []
+    if is_runtime_device_mapping_degraded(coordinator):
+        degraded_fields.append("devices")
+
+    return RuntimeDiagnosticsProjection(
+        snapshot=snapshot,
+        update_interval=_coerce_update_interval(coordinator),
+        degraded_fields=tuple(degraded_fields),
     )
 
 

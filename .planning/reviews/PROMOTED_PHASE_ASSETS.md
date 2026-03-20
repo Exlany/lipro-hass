@@ -114,6 +114,15 @@ phases:
   42-delivery-trust-gates-and-validation-hardening:
     - 42-SUMMARY.md
     - 42-VERIFICATION.md
+  43-control-services-boundary-decoupling-and-typed-runtime-access:
+    - 43-SUMMARY.md
+    - 43-VERIFICATION.md
+  44-governance-asset-pruning-and-terminology-convergence:
+    - 44-SUMMARY.md
+    - 44-VERIFICATION.md
+  45-hotspot-decomposition-and-typed-failure-semantics:
+    - 45-SUMMARY.md
+    - 45-VERIFICATION.md
 ---
 
 # Promoted Phase Assets
@@ -121,5 +130,5 @@ phases:
 此白名单是 `.planning/phases/**` 的显式提升登记册。
 
 - 仅 frontmatter `phases` 下列出的 phase 资产，才视为长期治理 / CI 证据。
-- 未列出的 `*-PLAN.md`、`*-CONTEXT.md`、`*-RESEARCH.md`、`*-PRD.md`、`*-ARCHITECTURE.md`、`*-UAT.md` 默认仍是执行痕迹。
+- 未列出的 `*-PLAN.md`、`*-CONTEXT.md`、`*-RESEARCH.md`、`*-PRD.md`、`*-ARCHITECTURE.md`、`*-UAT.md`，以及未被 allowlist 显式列出的 `*-SUMMARY.md`、`*-VERIFICATION.md`、`*-VALIDATION.md`，默认仍是执行痕迹。
 - 若未来要把新的 phase 资产纳入长期守卫，必须先在 `ROADMAP` / `VERIFICATION_MATRIX` / 里程碑文档 / reviews 文档中显式拉升，再更新此清单。

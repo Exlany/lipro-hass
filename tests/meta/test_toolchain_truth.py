@@ -33,8 +33,14 @@ _SUPPORT = _ROOT / "SUPPORT.md"
 _SECURITY = _ROOT / "SECURITY.md"
 _TROUBLESHOOTING = _ROOT / "docs" / "TROUBLESHOOTING.md"
 _RUNBOOK = _ROOT / "docs" / "MAINTAINER_RELEASE_RUNBOOK.md"
+_DOCS_README = _ROOT / "docs" / "README.md"
 _GOVERNANCE_REGISTRY = _ROOT / ".planning" / "baseline" / "GOVERNANCE_REGISTRY.json"
 _CODEBASE_DIR = _ROOT / ".planning" / "codebase"
+_ADR_README = _ROOT / "docs" / "adr" / "README.md"
+_ADR_0004 = _ROOT / "docs" / "adr" / "0004-explicit-lightweight-boundaries.md"
+_PUBLIC_SURFACES = _ROOT / ".planning" / "baseline" / "PUBLIC_SURFACES.md"
+_DEPENDENCY_MATRIX = _ROOT / ".planning" / "baseline" / "DEPENDENCY_MATRIX.md"
+_RESIDUAL_LEDGER = _ROOT / ".planning" / "reviews" / "RESIDUAL_LEDGER.md"
 
 _TESTING_MAP = _ROOT / ".planning" / "codebase" / "TESTING.md"
 _TESTING_COUNTS_RE = re.compile(
@@ -200,10 +206,63 @@ def test_bilingual_readmes_capture_release_asset_identity_truth() -> None:
         ):
             assert token in text
 
-    assert "single-maintainer model" in readme_text
-    assert "no documented delegate currently exists" in readme_text
-    assert "单维护者模型" in readme_zh_text
-    assert "当前没有已记录的 delegate" in readme_zh_text
+    assert "Contributor Fast Path" in readme_text
+    assert "docs/README.md" in readme_text
+    assert "贡献快速路径" in readme_zh_text
+    assert "docs/README.md" in readme_zh_text
+    assert "single-maintainer model" not in readme_text
+    assert "单维护者模型" not in readme_zh_text
+
+
+def test_active_docs_keep_facade_era_terminology_quarantining_legacy_terms() -> None:
+    active_docs = {
+        _ADR_README: (
+            "Entity / Service / Runtime / Client",
+            "API Client 去 mixin 化",
+        ),
+        _ADR_0004: (
+            "Entity -> Service -> Runtime -> Client",
+            "`API Client`",
+            "mixin 聚合",
+        ),
+        _PUBLIC_SURFACES: (
+            "mixin-based mega client",
+            "legacy `client` seam",
+            "pure forwarders",
+            "pure forwarder cluster",
+        ),
+        _DEPENDENCY_MATRIX: (
+            "MQTT client",
+            "`client`、`entry.runtime_data`",
+            "pure forwarders",
+        ),
+    }
+
+    for path, forbidden_tokens in active_docs.items():
+        text = path.read_text(encoding="utf-8")
+        for token in forbidden_tokens:
+            assert token not in text, f"{path.as_posix()} still contains {token!r}"
+
+    residual_text = _RESIDUAL_LEDGER.read_text(encoding="utf-8")
+    assert "legacy `Client` / `Mixin` / compat symbol 名称" in residual_text
+    assert "archive / delete-gate / symbol-identity" in residual_text
+
+
+def test_docs_index_makes_public_fast_path_and_bilingual_boundary_explicit() -> None:
+    docs_text = _DOCS_README.read_text(encoding="utf-8")
+
+    for token in (
+        "Public Fast Path",
+        "Bilingual Boundary",
+        "Maintainer Appendix",
+        "README.md",
+        "README_zh.md",
+        "CONTRIBUTING.md",
+        "SUPPORT.md",
+        "SECURITY.md",
+        "docs/MAINTAINER_RELEASE_RUNBOOK.md",
+    ):
+        assert token in docs_text
 
 
 def test_pre_push_contract_runs_translation_and_governance_truth_early() -> None:
@@ -235,7 +294,7 @@ def test_pre_push_contract_runs_translation_and_governance_truth_early() -> None
 
 
 def test_ci_test_and_benchmark_lanes_keep_one_snapshot_story() -> None:
-    """CI should avoid duplicate snapshot cost and keep benchmark evidence advisory."""
+    """CI should avoid duplicate snapshot cost and keep benchmark evidence governed."""
     ci = _load_yaml(_CI_WORKFLOW)
 
     test_steps = ci["jobs"]["test"]["steps"]
@@ -277,27 +336,43 @@ def test_ci_test_and_benchmark_lanes_keep_one_snapshot_story() -> None:
     benchmark_run = next(
         step
         for step in benchmark_steps
-        if step.get("name") == "Run advisory benchmarks"
+        if step.get("name") == "Run benchmark suite"
     )
-    assert benchmark_run["continue-on-error"] is True
+    assert benchmark_run.get("continue-on-error") in (None, False)
     assert benchmark_run["id"] == "benchmark_run"
     assert "--benchmark-json=.benchmarks/benchmark.json" in benchmark_run["run"]
 
     upload_step = next(
         step
         for step in benchmark_steps
-        if step.get("name") == "Upload advisory benchmark artifact"
+        if step.get("name") == "Upload benchmark artifact"
     )
     assert upload_step["uses"] == _UPLOAD_ARTIFACT
     assert upload_step["with"]["path"] == ".benchmarks/benchmark.json"
 
+    compare_step = next(
+        step
+        for step in benchmark_steps
+        if step.get("name") == "Compare benchmark results against baseline manifest"
+    )
+    assert "scripts/check_benchmark_baseline.py" in compare_step["run"]
+    assert "tests/benchmarks/benchmark_baselines.json" in compare_step["run"]
+
     summary_step = next(
         step
         for step in benchmark_steps
-        if step.get("name") == "Record benchmark advisory posture"
+        if step.get("name") == "Record benchmark governed posture"
     )
-    assert "advisory-with-artifact" in summary_step["run"]
+    assert "threshold warning" in summary_step["run"]
+    assert "no-regression gate" in summary_step["run"]
     assert "steps.benchmark_run.outcome" in summary_step["run"]
+    assert "steps.benchmark_contract.outcome" in summary_step["run"]
+
+    benchmark_script = (_ROOT / "scripts" / "check_benchmark_baseline.py").read_text(
+        encoding="utf-8"
+    )
+    assert "Benchmark contract: warnings only" in benchmark_script
+    assert "blocking regression" in benchmark_script
 
 
 def test_scripts_lint_full_mode_matches_ci_coverage_contract() -> None:

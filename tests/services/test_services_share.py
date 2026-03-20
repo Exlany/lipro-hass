@@ -7,6 +7,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
+from custom_components.lipro.core.telemetry.models import build_operation_outcome
 from custom_components.lipro.services.share import (
     async_handle_get_anonymous_share_report,
     async_handle_submit_anonymous_share,
@@ -25,6 +26,10 @@ async def test_async_handle_submit_anonymous_share_success_returns_counts() -> N
     share_manager = MagicMock()
     share_manager.is_enabled = True
     share_manager.pending_count = (2, 1)
+    share_manager.last_submit_outcome = build_operation_outcome(
+        kind="success",
+        reason_code="submitted_lite_payload",
+    )
     share_manager.submit_report = AsyncMock(return_value=True)
 
     result = await async_handle_submit_anonymous_share(
@@ -41,6 +46,8 @@ async def test_async_handle_submit_anonymous_share_success_returns_counts() -> N
         "success": True,
         "devices": 2,
         "errors": 1,
+        "outcome_kind": "success",
+        "reason_code": "submitted_lite_payload",
     }
 
 
@@ -51,6 +58,7 @@ async def test_async_handle_submit_anonymous_share_forwards_entry_id() -> None:
     share_manager = MagicMock()
     share_manager.is_enabled = True
     share_manager.pending_count = (1, 0)
+    share_manager.last_submit_outcome = None
     share_manager.submit_report = AsyncMock(return_value=True)
     get_anonymous_share_manager = MagicMock(return_value=share_manager)
 
@@ -69,6 +77,52 @@ async def test_async_handle_submit_anonymous_share_forwards_entry_id() -> None:
         "support_payload",
         "submit_anonymous_share_response.json",
     )
+
+
+@pytest.mark.asyncio
+async def test_async_handle_submit_anonymous_share_failure_returns_typed_outcome() -> None:
+    hass = cast(HomeAssistant, MagicMock())
+
+    share_manager = MagicMock()
+    share_manager.is_enabled = True
+    share_manager.pending_count = (1, 1)
+    share_manager.last_submit_outcome = build_operation_outcome(
+        kind="failed",
+        reason_code="rate_limited",
+        failure_origin="anonymous_share.submit_share_payload",
+        error_type="RateLimitError",
+        failure_category="network",
+        handling_policy="retry",
+        http_status=429,
+        retry_after_seconds=30.0,
+    )
+    share_manager.submit_report = AsyncMock(return_value=False)
+
+    result = await async_handle_submit_anonymous_share(
+        hass,
+        service_call(hass, {}),
+        get_anonymous_share_manager=MagicMock(return_value=share_manager),
+        get_client_session=MagicMock(return_value=object()),
+        raise_service_error=MagicMock(),
+        domain="lipro",
+        attr_entry_id="entry_id",
+    )
+
+    assert result == {
+        "success": False,
+        "devices": 1,
+        "errors": 1,
+        "outcome_kind": "failed",
+        "reason_code": "rate_limited",
+        "failure_summary": {
+            "failure_category": "network",
+            "failure_origin": "anonymous_share.submit_share_payload",
+            "handling_policy": "retry",
+            "error_type": "RateLimitError",
+        },
+        "http_status": 429,
+        "retry_after_seconds": 30.0,
+    }
 
 
 @pytest.mark.asyncio

@@ -65,18 +65,30 @@ For a focused contribution loop, use this order:
 Need routing help? Use `SUPPORT.md`. Need maintainer continuity or release custody context? Use `docs/MAINTAINER_RELEASE_RUNBOOK.md`.
 如需支持路由，请看 `SUPPORT.md`；如需维护者连续性或发版托管上下文，请看 `docs/MAINTAINER_RELEASE_RUNBOOK.md`。
 
-## Documentation & Maintainer Entry Points / 文档与维护入口
+## Navigation Boundaries / 导航边界
 
-- Public entry docs: `README.md`, `README_zh.md`, `CONTRIBUTING.md`
-- User / contributor troubleshooting: `docs/TROUBLESHOOTING.md`
-- Maintainer release flow: `docs/MAINTAINER_RELEASE_RUNBOOK.md`
-- Registry-backed governance truth: `.planning/baseline/GOVERNANCE_REGISTRY.json`
-- Support routing and response expectations: `SUPPORT.md`
+### Public contributor path / 对外贡献主链
+
+- Public overview and install contract: `README.md`, `README_zh.md`
+- Contributor workflow and PR contract: `CONTRIBUTING.md` → `.github/pull_request_template.md`
+- Troubleshooting and routing: `docs/TROUBLESHOOTING.md` → `SUPPORT.md`
 - Private vulnerability disclosure: `SECURITY.md`
-- If you touch `README.md` / `README_zh.md` / `CONTRIBUTING.md` / `SUPPORT.md` / `SECURITY.md` / `.github/*` / release workflow, update these entry points together, keep `.planning/baseline/GOVERNANCE_REGISTRY.json` aligned, and do not leave silent defer behind.
+
+### Maintainer appendix / 维护者附录
+
+- Release / rehearsal / custody continuity: `docs/MAINTAINER_RELEASE_RUNBOOK.md`
+- Registry-backed governance truth: `.planning/baseline/GOVERNANCE_REGISTRY.json`
+
+### Bilingual Boundary / 双语边界
+
+- `README.md` 与 `README_zh.md` 必须保持镜像的 public entry navigation / release-install contract。
+- `CONTRIBUTING.md`、`SUPPORT.md` 与 `SECURITY.md` 必须保持等价的 contributor/support/security guidance，即使具体实现为单文件双语结构。
+- `docs/MAINTAINER_RELEASE_RUNBOOK.md` 与 `.planning/*` 可保持 maintainer-only，但公共入口需要在需要时显式链接过去。
+
+- If you touch `README.md` / `README_zh.md` / `CONTRIBUTING.md` / `SUPPORT.md` / `SECURITY.md` / `.github/*` / release workflow, update `docs/README.md`, `docs/TROUBLESHOOTING.md`, `docs/MAINTAINER_RELEASE_RUNBOOK.md`, and `.planning/baseline/GOVERNANCE_REGISTRY.json` together, and do not leave silent defer behind.
 - Public bug reports should start with diagnostics; developer report / one-click feedback is an escalation path only when diagnostics are insufficient or a maintainer explicitly asks for deeper debugging.
 - Supported shell/manual install docs now start from verified release assets (`install.sh` + release zip + `SHA256SUMS`); `ARCHIVE_TAG=main` and mirror/branch fallback paths are preview-only and should not be documented as stable support routes.
-- Continuity truth: triage and release custody remain single-maintainer; no documented delegate exists today, so if that maintainer is unavailable, freeze new tagged releases and new release promises until `.github/CODEOWNERS` plus `docs/MAINTAINER_RELEASE_RUNBOOK.md` record the real successor or delegate.
+- Continuity / custody truth stays in `SUPPORT.md`, `SECURITY.md`, and `docs/MAINTAINER_RELEASE_RUNBOOK.md`; do not duplicate the full maintainer appendix in root overview docs.
 
 ## Code Standards / 代码规范
 
@@ -158,7 +170,7 @@ Use the same command groups as GitHub Actions:
 - **governance**: `uv run python scripts/check_architecture_policy.py --check`、`uv run python scripts/check_file_matrix.py --check`、`uv run pytest -q -x tests/meta/test_dependency_guards.py tests/meta/test_public_surface_guards.py tests/meta/test_governance*.py tests/meta/test_toolchain_truth.py tests/meta/test_version_sync.py`
 - **test**: `uv run pytest tests/ -v --ignore=tests/benchmarks --cov=custom_components/lipro --cov-fail-under=95 --cov-report=json --cov-report=xml --cov-report=term-missing`、`uv run python scripts/coverage_diff.py coverage.json --minimum 95 --changed-files .coverage-changed-files --changed-minimum 95`（total coverage 与 changed measured files 都是 blocking gate；只有显式提供 `--baseline` 才额外比较 total diff）、`uv run python scripts/refactor_tools.py --coverage-json coverage.json --minimum-coverage 95`；snapshot coverage 已包含在 `tests/` 主阻塞 lane 中，不再单独重复执行；本地可直接用 `./scripts/lint --full` 自动解析 `.coverage-changed-files`
 - **security**: GitHub Actions 会在每个 PR 上运行 blocking runtime `pip-audit` 门禁；tag release 还会额外运行 tagged release security gate，并要求 tagged `CodeQL` analysis 已完成且 open alerts 为零。dev dependency audit 仅在 `schedule` / `workflow_dispatch` 作为 advisory、non-blocking 运行；GitHub artifact attestation / provenance 仍不是 signing，请不要把 attestation / pip-audit 混写成 artifact signing。
-- **benchmark**: `uv run pytest tests/benchmarks/ -v --benchmark-only --benchmark-json=.benchmarks/benchmark.json`；当前是 advisory-with-artifact lane，仅在性能敏感改动或手动对齐 `schedule` / `workflow_dispatch` 时需要；对齐 CI 时保留 `.benchmarks/benchmark.json` 作为可审计 artifact，对预算/基线的对照仍由后续人工或专门 phase 收紧
+- **benchmark**: `uv run pytest tests/benchmarks/ -v --benchmark-only --benchmark-json=.benchmarks/benchmark.json`、`uv run python scripts/check_benchmark_baseline.py .benchmarks/benchmark.json --manifest tests/benchmarks/benchmark_baselines.json`；benchmark lane 只在 `schedule` / `workflow_dispatch` 运行，不进入 PR blocking lane；threshold warning 只发维护者信号，failure threshold 才作为该 lane 的 no-regression gate
 - **preview**: `schedule` / `workflow_dispatch` 专用 compatibility preview lane 会升级 Home Assistant preview dependency set，并在 `DeprecationWarning` / `PendingDeprecationWarning` 提升为错误的条件下运行定向 smoke；它只提供 maintainer-facing advisory signal，不会改变 stable PR / release / support contract
 - **shellcheck**: 若修改 `install.sh` / `scripts/*` shell 脚本，请运行 `shellcheck install.sh scripts/develop scripts/lint scripts/setup`（CI 的 `lint` job 也会执行）
 - **validate**: GitHub Actions 会额外运行 `HACS` 与 `Hassfest` 校验；若仓库或 fork 为 private，CI 会跳过 HACS validation，因为 HACS 只支持公开 GitHub 仓库；本地通常不必手动复刻，但提交前应确保仓库元数据仍符合这些约束

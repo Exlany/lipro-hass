@@ -2,9 +2,12 @@
 
 from __future__ import annotations
 
+import pytest
+
 from custom_components.lipro.core.device import LiproDevice
 
 
+@pytest.mark.benchmark(group="device-refresh")
 def test_device_update_properties_benchmark(benchmark) -> None:
     device = LiproDevice(
         device_number=1,

@@ -216,7 +216,7 @@ jobs:
         if: always()
         run: |
           echo "snapshot coverage: included in the main tests/ lane; no separate snapshot rerun" >> "$GITHUB_STEP_SUMMARY"
-          echo "benchmark coverage: excluded from the blocking test lane and handled by the advisory benchmark lane" >> "$GITHUB_STEP_SUMMARY"
+          echo "benchmark coverage: excluded from the blocking test lane and handled by the schedule/manual benchmark contract lane" >> "$GITHUB_STEP_SUMMARY"
           echo "coverage gates: total floor is blocking; changed measured files must meet the changed-surface floor; explicit baseline diff remains opt-in" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Check total + changed-surface coverage gates
@@ -260,28 +260,36 @@ jobs:
       - name: Install dependencies
         run: uv sync --frozen --extra dev
 
-      - name: Run advisory benchmarks
+      - name: Run benchmark suite
         id: benchmark_run
-        continue-on-error: true
         run: >-
           uv run pytest tests/benchmarks/
           -v
           --benchmark-only
           --benchmark-json=.benchmarks/benchmark.json
 
-      - name: Upload advisory benchmark artifact
+      - name: Upload benchmark artifact
         if: always() && hashFiles('.benchmarks/benchmark.json') != ''
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: advisory-benchmark-json-${{ github.run_id }}
+          name: benchmark-json-${{ github.run_id }}
           path: .benchmarks/benchmark.json
           if-no-files-found: error
 
-      - name: Record benchmark advisory posture
+      - name: Compare benchmark results against baseline manifest
+        id: benchmark_contract
+        if: always() && hashFiles('.benchmarks/benchmark.json') != ''
+        run: >-
+          uv run python scripts/check_benchmark_baseline.py .benchmarks/benchmark.json
+          --manifest tests/benchmarks/benchmark_baselines.json
+
+      - name: Record benchmark governed posture
         if: always()
         run: |
-          echo "benchmark lane: advisory-with-artifact, non-blocking on PRs, and only runs on schedule/workflow_dispatch" >> "$GITHUB_STEP_SUMMARY"
-          echo "benchmark outcome: ${{ steps.benchmark_run.outcome }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "benchmark lane: baseline compare + threshold warning + no-regression gate; still only runs on schedule/workflow_dispatch" >> "$GITHUB_STEP_SUMMARY"
+          echo "benchmark run outcome: ${{ steps.benchmark_run.outcome }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "benchmark contract outcome: ${{ steps.benchmark_contract.outcome }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "benchmark manifest: tests/benchmarks/benchmark_baselines.json" >> "$GITHUB_STEP_SUMMARY"
           if [[ -f .benchmarks/benchmark.json ]]; then
             echo "benchmark artifact: .benchmarks/benchmark.json" >> "$GITHUB_STEP_SUMMARY"
           else

@@ -39,7 +39,7 @@ def test_message_processor_logs_invalid_topic_without_leaking_topic(caplog) -> N
     message.payload = b'{"light": {"powerState": "1"}}'
 
     with caplog.at_level(logging.DEBUG):
-        processor.process_message(
+        outcome = processor.process_message(
             message,
             parse_payload=lambda payload: payload,
             on_message=None,
@@ -50,6 +50,8 @@ def test_message_processor_logs_invalid_topic_without_leaking_topic(caplog) -> N
 
     assert "Invalid topic format (count=1, len=7), skipping message" in caplog.text
     assert "topic=invalid" not in caplog.text
+    assert outcome.kind == "skipped"
+    assert outcome.reason_code == "invalid_topic"
 
 
 def test_message_processor_forwards_valid_properties() -> None:
@@ -59,7 +61,7 @@ def test_message_processor_forwards_valid_properties() -> None:
     message.payload = b'{"light": {"powerState": "1"}}'
     on_message = MagicMock()
 
-    processor.process_message(
+    outcome = processor.process_message(
         message,
         parse_payload=lambda _payload: {"powerState": "1"},
         on_message=on_message,
@@ -72,6 +74,8 @@ def test_message_processor_forwards_valid_properties() -> None:
         "03ab5ccd7cxxxxxx",
         {"powerState": "1"},
     )
+    assert outcome.kind == "success"
+    assert outcome.reason_code == "processed"
 
 
 def test_message_processor_accepts_protocol_boundary_fixture() -> None:
@@ -92,7 +96,7 @@ def test_message_processor_accepts_protocol_boundary_fixture() -> None:
     message.payload = json.dumps(payload).encode("utf-8")
     on_message = MagicMock()
 
-    processor.process_message(
+    outcome = processor.process_message(
         message,
         parse_payload=payload_module.parse_mqtt_payload,
         on_message=on_message,
@@ -102,3 +106,24 @@ def test_message_processor_accepts_protocol_boundary_fixture() -> None:
     )
 
     on_message.assert_called_once_with(device_id, canonical)
+    assert outcome.kind == "success"
+    assert outcome.reason_code == "processed"
+
+
+def test_message_processor_returns_callback_failed_outcome() -> None:
+    processor = MqttMessageProcessor("biz001")
+    message = MagicMock()
+    message.topic = "Topic_Device_State/biz001/03ab5ccd7cxxxxxx"
+    message.payload = b'{"light": {"powerState": "1"}}'
+
+    outcome = processor.process_message(
+        message,
+        parse_payload=lambda _payload: {"powerState": "1"},
+        on_message=MagicMock(),
+        invoke_callback=lambda *_args: False,
+        set_last_error=lambda err: None,
+        clear_last_error=lambda: None,
+    )
+
+    assert outcome.kind == "failed"
+    assert outcome.reason_code == "callback_failed"

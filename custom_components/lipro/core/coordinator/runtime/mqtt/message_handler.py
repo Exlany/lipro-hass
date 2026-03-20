@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING, Protocol
 
 from .....const.properties import PROP_CONNECT_STATE
 from ....mqtt.message import is_online_connect_state
+from ....telemetry.models import OperationOutcome, build_operation_outcome
 from ...types import PropertyDict, PropertyValue
 
 if TYPE_CHECKING:
@@ -86,28 +87,40 @@ class MqttMessageHandler:
         properties: Mapping[str, PropertyValue],
         *,
         current_time: float | None = None,
-    ) -> bool:
+    ) -> OperationOutcome:
         """Handle incoming MQTT message with device status update."""
         device = self._device_resolver.get_device_by_id(device_id)
         if device is None:
             self._logger.debug(
                 "Ignoring MQTT message for unknown device: %s", device_id
             )
-            return False
+            return build_operation_outcome(
+                kind="skipped",
+                reason_code="unknown_device",
+            )
 
         if not properties:
-            return False
+            return build_operation_outcome(
+                kind="skipped",
+                reason_code="empty_properties",
+            )
 
         applied = await self._property_applier.apply_properties_update(
             device,
             dict(properties),
         )
         if not applied:
-            return False
+            return build_operation_outcome(
+                kind="skipped",
+                reason_code="no_applied_properties",
+            )
 
         now = monotonic() if current_time is None else current_time
         self._after_properties_applied(device, applied, current_time=now)
-        return True
+        return build_operation_outcome(
+            kind="success",
+            reason_code="applied",
+        )
 
     def _after_properties_applied(
         self,

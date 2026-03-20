@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 from functools import lru_cache
-import re
 from pathlib import Path
+import re
 
 from scripts.check_file_matrix import repo_root
 
@@ -84,6 +84,13 @@ def _assert_phase_assets_not_promoted(phase_dir_name: str, *filenames: str) -> N
 def test_promoted_phase_assets_manifest_enforces_explicit_ci_evidence() -> None:
     roadmap_text = (_ROOT / ".planning" / "ROADMAP.md").read_text(encoding="utf-8")
     state_text = (_ROOT / ".planning" / "STATE.md").read_text(encoding="utf-8")
+    authority_text = (
+        _ROOT / ".planning" / "baseline" / "AUTHORITY_MATRIX.md"
+    ).read_text(encoding="utf-8")
+    verification_text = (
+        _ROOT / ".planning" / "baseline" / "VERIFICATION_MATRIX.md"
+    ).read_text(encoding="utf-8")
+    manifest_text = _PROMOTED_PHASE_ASSETS.read_text(encoding="utf-8")
     manifest = _load_frontmatter(_PROMOTED_PHASE_ASSETS)
     policy = manifest["policy"]
 
@@ -95,6 +102,9 @@ def test_promoted_phase_assets_manifest_enforces_explicit_ci_evidence() -> None:
     assert ".planning/reviews/*.md" in policy["promotion_sources"]
     assert ".planning/reviews/PROMOTED_PHASE_ASSETS.md" in roadmap_text
     assert ".planning/reviews/PROMOTED_PHASE_ASSETS.md" in state_text
+    assert "promoted phase evidence allowlist" in authority_text
+    assert ".planning/reviews/PROMOTED_PHASE_ASSETS.md" in verification_text
+    assert "未被 allowlist 显式列出的 `*-SUMMARY.md`、`*-VERIFICATION.md`、`*-VALIDATION.md`" in manifest_text
 
     for phase_dir_name, filenames in _load_promoted_phase_assets().items():
         for filename in filenames:
@@ -162,6 +172,19 @@ def test_promoted_phase_assets_manifest_enforces_explicit_ci_evidence() -> None:
         "40-06-PLAN.md",
         "40-07-PLAN.md",
         "40-VALIDATION.md",
+    )
+    _assert_phase_assets_not_promoted(
+        "43-control-services-boundary-decoupling-and-typed-runtime-access",
+        "43-CONTEXT.md",
+        "43-RESEARCH.md",
+        "43-01-PLAN.md",
+        "43-02-PLAN.md",
+        "43-03-PLAN.md",
+        "43-04-PLAN.md",
+        "43-01-SUMMARY.md",
+        "43-02-SUMMARY.md",
+        "43-03-SUMMARY.md",
+        "43-04-SUMMARY.md",
     )
 
 
@@ -722,3 +745,77 @@ def test_phase_40_closeout_truth_is_consistent() -> None:
     assert ".planning/reviews/V1_5_EVIDENCE_INDEX.md" in state_text
     _assert_state_reflects_post_v1_4_continuation(state_text)
     _assert_state_keeps_forward_progress_commands(state_text)
+
+def test_phase_43_closeout_assets_exist_and_are_promoted() -> None:
+    _assert_promoted_phase_assets(
+        "43-control-services-boundary-decoupling-and-typed-runtime-access",
+        "43-SUMMARY.md",
+        "43-VERIFICATION.md",
+    )
+
+    verification_text = (
+        _ROOT / ".planning" / "baseline" / "VERIFICATION_MATRIX.md"
+    ).read_text(encoding="utf-8")
+    residual_text = (
+        _ROOT / ".planning" / "reviews" / "RESIDUAL_LEDGER.md"
+    ).read_text(encoding="utf-8")
+    kill_text = (_ROOT / ".planning" / "reviews" / "KILL_LIST.md").read_text(
+        encoding="utf-8"
+    )
+
+    assert "## Phase 43 Control / Runtime / Service Boundary Contract" in verification_text
+    assert "## Phase 43 Residual Delta" in residual_text
+    assert "## Phase 43 Status Update" in kill_text
+
+
+def test_phase_44_closeout_assets_exist_and_are_promoted() -> None:
+    _assert_promoted_phase_assets(
+        "44-governance-asset-pruning-and-terminology-convergence",
+        "44-SUMMARY.md",
+        "44-VERIFICATION.md",
+    )
+
+    docs_text = (_ROOT / "docs" / "README.md").read_text(encoding="utf-8")
+    file_matrix_text = (
+        _ROOT / ".planning" / "reviews" / "FILE_MATRIX.md"
+    ).read_text(encoding="utf-8")
+    residual_text = (
+        _ROOT / ".planning" / "reviews" / "RESIDUAL_LEDGER.md"
+    ).read_text(encoding="utf-8")
+    kill_text = (_ROOT / ".planning" / "reviews" / "KILL_LIST.md").read_text(
+        encoding="utf-8"
+    )
+
+    assert "Public Fast Path" in docs_text
+    assert "Bilingual Boundary" in docs_text
+    assert "tests/meta/test_governance_closeout_guards.py" in file_matrix_text
+    assert "tests/meta/test_toolchain_truth.py" in file_matrix_text
+    assert "## Phase 44 Residual Delta" in residual_text
+    assert "## Phase 44 Status Update" in kill_text
+
+def test_phase_45_closeout_assets_exist_and_are_promoted() -> None:
+    _assert_promoted_phase_assets(
+        "45-hotspot-decomposition-and-typed-failure-semantics",
+        "45-SUMMARY.md",
+        "45-VERIFICATION.md",
+    )
+
+    verification_text = (
+        _ROOT / ".planning" / "baseline" / "VERIFICATION_MATRIX.md"
+    ).read_text(encoding="utf-8")
+    file_matrix_text = (
+        _ROOT / ".planning" / "reviews" / "FILE_MATRIX.md"
+    ).read_text(encoding="utf-8")
+    residual_text = (
+        _ROOT / ".planning" / "reviews" / "RESIDUAL_LEDGER.md"
+    ).read_text(encoding="utf-8")
+    kill_text = (_ROOT / ".planning" / "reviews" / "KILL_LIST.md").read_text(
+        encoding="utf-8"
+    )
+
+    assert "## Phase 45 Hotspot / Typed Failure / Benchmark Contract" in verification_text
+    assert "scripts/check_benchmark_baseline.py" in file_matrix_text
+    assert "tests/meta/test_phase45_hotspot_budget_guards.py" in file_matrix_text
+    assert "## Phase 45 Residual Delta" in residual_text
+    assert "## Phase 45 Status Update" in kill_text
+

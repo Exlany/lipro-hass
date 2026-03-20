@@ -307,10 +307,12 @@ class TestMqttRuntimeMessageHandling:
             serial=device_id, name="Device 1", is_group=False
         )
 
-        await mqtt_runtime.handle_message(device_id, properties)
+        outcome = await mqtt_runtime.handle_message(device_id, properties)
 
         listener_notifier = cast(Mock, mqtt_runtime._listener_notifier)
         listener_notifier.schedule_listener_update.assert_called_once()
+        assert outcome.kind == "success"
+        assert outcome.reason_code == "applied"
 
     async def test_handle_message_duplicate(self, mqtt_runtime: MqttRuntime) -> None:
         """Test duplicate message is ignored."""
@@ -322,21 +324,27 @@ class TestMqttRuntimeMessageHandling:
             serial=device_id, name="Device 1", is_group=False
         )
 
-        await mqtt_runtime.handle_message(device_id, properties)
-        await mqtt_runtime.handle_message(device_id, properties)
+        first = await mqtt_runtime.handle_message(device_id, properties)
+        second = await mqtt_runtime.handle_message(device_id, properties)
 
         listener_notifier = cast(Mock, mqtt_runtime._listener_notifier)
         assert listener_notifier.schedule_listener_update.call_count == 1
+        assert first.kind == "success"
+        assert first.reason_code == "applied"
+        assert second.kind == "skipped"
+        assert second.reason_code == "duplicate_message"
 
     async def test_handle_message_device_not_found(self, mqtt_runtime: MqttRuntime) -> None:
         """Test message for unknown device is ignored."""
         resolver = cast(Mock, mqtt_runtime._device_resolver)
         resolver.get_device_by_id.return_value = None
 
-        await mqtt_runtime.handle_message("unknown_device", _property_dict(test="value"))
+        outcome = await mqtt_runtime.handle_message("unknown_device", _property_dict(test="value"))
 
         property_applier = cast(AsyncMock, mqtt_runtime._property_applier)
         property_applier.assert_not_called()
+        assert outcome.kind == "skipped"
+        assert outcome.reason_code == "unknown_device"
 
     async def test_handle_message_with_connect_state(self, mqtt_runtime: MqttRuntime) -> None:
         """Test message with connectState triggers tracking."""
@@ -348,10 +356,12 @@ class TestMqttRuntimeMessageHandling:
             serial=device_id, name="Device 1", is_group=False
         )
 
-        await mqtt_runtime.handle_message(device_id, properties)
+        outcome = await mqtt_runtime.handle_message(device_id, properties)
 
         connect_state_tracker = cast(Mock, mqtt_runtime._connect_state_tracker)
         connect_state_tracker.record_connect_state.assert_called_once()
+        assert outcome.kind == "success"
+        assert outcome.reason_code == "applied"
 
     async def test_handle_message_group_online(self, mqtt_runtime: MqttRuntime) -> None:
         """Test group device coming online triggers reconciliation."""
@@ -363,10 +373,30 @@ class TestMqttRuntimeMessageHandling:
             serial=device_id, name="Group 1", is_group=True
         )
 
-        await mqtt_runtime.handle_message(device_id, properties)
+        outcome = await mqtt_runtime.handle_message(device_id, properties)
 
         group_reconciler = cast(Mock, mqtt_runtime._group_reconciler)
         group_reconciler.schedule_group_reconciliation.assert_called_once()
+        assert outcome.kind == "success"
+        assert outcome.reason_code == "applied"
+
+
+    async def test_handle_message_without_applied_properties_returns_typed_skip(
+        self, mqtt_runtime: MqttRuntime
+    ) -> None:
+        """Test messages with no applied properties report explicit skip reason."""
+        device_id = "device1"
+        resolver = cast(Mock, mqtt_runtime._device_resolver)
+        resolver.get_device_by_id.return_value = Mock(
+            serial=device_id, name="Device 1", is_group=False
+        )
+        property_applier = cast(AsyncMock, mqtt_runtime._property_applier)
+        property_applier.return_value = False
+
+        outcome = await mqtt_runtime.handle_message(device_id, _property_dict(power=True))
+
+        assert outcome.kind == "skipped"
+        assert outcome.reason_code == "no_applied_properties"
 
 
 class TestMqttRuntimeReconnection:

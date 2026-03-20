@@ -65,32 +65,40 @@ def test_ci_and_release_workflows_share_governance_and_version_gates() -> None:
     benchmark_job = ci_workflow["jobs"]["benchmark"]
     benchmark_steps = benchmark_job["steps"]
     benchmark_step_names = {step["name"] for step in benchmark_steps}
-    assert "Run advisory benchmarks" in benchmark_step_names
-    assert "Upload advisory benchmark artifact" in benchmark_step_names
-    assert "Record benchmark advisory posture" in benchmark_step_names
+    assert "Run benchmark suite" in benchmark_step_names
+    assert "Upload benchmark artifact" in benchmark_step_names
+    assert "Compare benchmark results against baseline manifest" in benchmark_step_names
+    assert "Record benchmark governed posture" in benchmark_step_names
     benchmark_run = next(
         step
         for step in benchmark_steps
-        if step.get("name") == "Run advisory benchmarks"
+        if step.get("name") == "Run benchmark suite"
     )
-    assert benchmark_run["continue-on-error"] is True
+    assert benchmark_run.get("continue-on-error") in (None, False)
     assert benchmark_run["id"] == "benchmark_run"
     upload_step = next(
         step
         for step in benchmark_steps
-        if step.get("name") == "Upload advisory benchmark artifact"
+        if step.get("name") == "Upload benchmark artifact"
     )
     assert (
         upload_step["uses"]
         == "actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02"
     )
     assert upload_step["with"]["path"] == ".benchmarks/benchmark.json"
+    compare_step = next(
+        step
+        for step in benchmark_steps
+        if step.get("name") == "Compare benchmark results against baseline manifest"
+    )
+    assert "scripts/check_benchmark_baseline.py" in compare_step["run"]
+    assert "tests/benchmarks/benchmark_baselines.json" in compare_step["run"]
     benchmark_summary = next(
         step
         for step in benchmark_steps
-        if step.get("name") == "Record benchmark advisory posture"
+        if step.get("name") == "Record benchmark governed posture"
     )
-    assert "advisory-with-artifact" in benchmark_summary["run"]
+    assert "no-regression gate" in benchmark_summary["run"]
 
     validate_job = release_workflow["jobs"]["validate"]
     assert validate_job["uses"] == "./.github/workflows/ci.yml"
@@ -255,7 +263,10 @@ def test_contributor_contract_matches_ci_language() -> None:
     assert "--baseline" in contributing_bullets["test"]
     assert "tests/benchmarks/" in contributing_bullets["benchmark"]
     assert ".benchmarks/benchmark.json" in contributing_bullets["benchmark"]
-    assert "advisory-with-artifact" in contributing_bullets["benchmark"]
+    assert "scripts/check_benchmark_baseline.py" in contributing_bullets["benchmark"]
+    assert "benchmark_baselines.json" in contributing_bullets["benchmark"]
+    assert "threshold warning" in contributing_bullets["benchmark"]
+    assert "no-regression gate" in contributing_bullets["benchmark"]
 
 
 def test_supported_shell_installer_path_uses_verified_release_assets() -> None:
@@ -358,6 +369,7 @@ def test_readme_exposes_community_and_governance_entrypoints() -> None:
             "SUPPORT.md",
             "SECURITY.md",
             "CODE_OF_CONDUCT.md",
+            "docs/README.md",
             "custom_components/lipro/quality_scale.yaml",
             ".devcontainer.json",
         ):
@@ -430,8 +442,10 @@ def test_templates_and_governance_docs_keep_continuity_contract() -> None:
     assert "do not transfer release custody" in support_text
     assert "do not by themselves transfer release custody" in security_text
     assert "issue/PR template text" in security_text
+    assert "docs/README.md" in pr_text
+    assert "docs/MAINTAINER_RELEASE_RUNBOOK.md" in pr_text
+    assert ".github/CODEOWNERS" in pr_text
     assert "undocumented delegate" in pr_text
-    assert "freeze new tagged releases and new release promises" in pr_text
     assert "do not transfer custody" in codeowners_text
 
 

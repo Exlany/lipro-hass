@@ -2,19 +2,17 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Protocol, TypeVar
+from typing import TYPE_CHECKING, Protocol, TypeVar, cast
 
+from ...api.schedule_codec import parse_mesh_schedule_json
 from .rest_decoder_support import (
     _build_payload_fingerprint,
-    _build_schedule_json_fingerprint,
     _decode_device_list_canonical,
     _decode_device_status_canonical,
     _decode_list_envelope_canonical,
     _decode_mesh_group_status_canonical,
-    _decode_schedule_json_canonical,
-    _extract_mqtt_config_mapping,
 )
 from .result import BoundaryDecodeResult, BoundaryDecoderKey
 
@@ -49,6 +47,57 @@ _REST_LIST_ENVELOPE_AUTHORITY = "tests/fixtures/api_contracts/get_device_list.*.
 _REST_SCHEDULE_JSON_FAMILY = "rest.schedule-json"
 _REST_SCHEDULE_JSON_VERSION = "v1"
 _REST_SCHEDULE_JSON_AUTHORITY = "tests/fixtures/api_contracts/query_mesh_schedule_json.v1.json"
+
+
+def _extract_mqtt_config_mapping(
+    payload: object,
+    *,
+    is_success_code: Callable[[object], bool],
+) -> CanonicalMqttConfig | None:
+    if not isinstance(payload, dict):
+        return None
+    if "accessKey" in payload and "secretKey" in payload:
+        return cast("CanonicalMqttConfig", dict(payload))
+
+    data = payload.get("data")
+    if not isinstance(data, dict):
+        return None
+    if "accessKey" not in data or "secretKey" not in data:
+        return None
+    if "code" not in payload or is_success_code(payload.get("code")):
+        return cast("CanonicalMqttConfig", dict(data))
+    return None
+
+
+def _extract_schedule_json_source(payload: object) -> object:
+    if not isinstance(payload, Mapping):
+        return payload
+    if "scheduleJson" in payload:
+        return payload.get("scheduleJson")
+    if "payload" in payload:
+        return payload.get("payload")
+    return payload
+
+
+def _decode_schedule_json_canonical(payload: object) -> CanonicalScheduleJson:
+    parsed = parse_mesh_schedule_json(
+        _extract_schedule_json_source(payload),
+        mask_sensitive_data=lambda value: value,
+    )
+    return {
+        "days": parsed["days"],
+        "time": parsed["time"],
+        "evt": parsed["evt"],
+    }
+
+
+def _build_schedule_json_fingerprint(payload: object) -> str:
+    canonical = _decode_schedule_json_canonical(payload)
+    return (
+        f"days:{len(canonical['days'])}|"
+        f"time:{len(canonical['time'])}|"
+        f"evt:{len(canonical['evt'])}"
+    )
 
 
 @dataclass(frozen=True, slots=True)

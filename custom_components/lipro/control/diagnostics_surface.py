@@ -5,14 +5,11 @@ from __future__ import annotations
 from collections.abc import Callable, Mapping
 from typing import TYPE_CHECKING, Protocol
 
-from ..runtime_types import LiproCoordinator
 from .models import empty_failure_summary
 from .runtime_access import (
-    build_runtime_snapshot,
-    find_runtime_device,
-    get_entry_runtime_coordinator,
-    get_runtime_device_mapping,
-    is_runtime_device_mapping_degraded,
+    build_runtime_diagnostics_projection,
+    find_runtime_device_for_entry,
+    iter_runtime_devices_for_entry,
 )
 from .telemetry_surface import build_entry_diagnostics_view
 
@@ -92,28 +89,27 @@ def extract_device_serial(device: DeviceEntry, *, domain: str) -> str | None:
 
 def _build_coordinator_view(
     entry: LiproConfigEntry,
-    coordinator: LiproCoordinator,
-) -> tuple[DiagnosticsPayload, list[str]]:
-    snapshot = build_runtime_snapshot(entry)
-    degraded: list[str] = []
-    if is_runtime_device_mapping_degraded(coordinator):
-        degraded.append("devices")
+) -> tuple[DiagnosticsPayload, bool]:
+    projection = build_runtime_diagnostics_projection(entry)
+    if projection is None:
+        return {
+            "last_update_success": False,
+            "update_interval": "",
+            "device_count": 0,
+            "mqtt_connected": None,
+            "failure_summary": empty_failure_summary(),
+        }, False
 
-    failure_summary = (
-        dict(snapshot.failure_summary)
-        if snapshot is not None
-        else empty_failure_summary()
-    )
     view: DiagnosticsPayload = {
-        "last_update_success": bool(
-            snapshot.last_update_success if snapshot is not None else False
-        ),
-        "update_interval": str(getattr(coordinator, "update_interval", "")),
-        "device_count": snapshot.device_count if snapshot is not None else 0,
-        "mqtt_connected": snapshot.mqtt_connected if snapshot is not None else None,
-        "failure_summary": failure_summary,
+        "last_update_success": projection.snapshot.last_update_success,
+        "update_interval": projection.update_interval,
+        "device_count": projection.snapshot.device_count,
+        "mqtt_connected": projection.snapshot.mqtt_connected,
+        "failure_summary": dict(projection.snapshot.failure_summary),
     }
-    return view, degraded
+    if projection.degraded_fields:
+        view["degraded_fields"] = list(projection.degraded_fields)
+    return view, True
 
 
 def _build_anonymous_share_view(
@@ -155,16 +151,15 @@ async def async_get_config_entry_diagnostics(
     options_to_redact: set[str],
 ) -> DiagnosticsPayload:
     """Return diagnostics payload for one config entry."""
-    coordinator = get_entry_runtime_coordinator(entry)
-    if coordinator is None:
+    coordinator_view, runtime_loaded = _build_coordinator_view(entry)
+    if not runtime_loaded:
         return {"error": "entry_not_loaded"}
 
     devices_info = [
         build_device_diagnostics_fn(device)
-        for device in get_runtime_device_mapping(coordinator).values()
+        for device in iter_runtime_devices_for_entry(entry)
     ]
     share_manager = get_anonymous_share_manager(hass, entry_id=entry.entry_id)
-    coordinator_view, degraded_runtime = _build_coordinator_view(entry, coordinator)
     anonymous_share_view, degraded_share = _build_anonymous_share_view(share_manager)
     telemetry_view = build_entry_diagnostics_view(entry)
 
@@ -178,8 +173,6 @@ async def async_get_config_entry_diagnostics(
         "anonymous_share": anonymous_share_view,
         "devices": devices_info,
     }
-    if degraded_runtime:
-        coordinator_view["degraded_fields"] = degraded_runtime
     if telemetry_view is not None:
         payload["telemetry"] = telemetry_view
     if degraded_share:
@@ -202,20 +195,19 @@ async def async_get_device_diagnostics(
 ) -> DiagnosticsPayload:
     """Return diagnostics payload for one device entry."""
     del hass
-    coordinator = get_entry_runtime_coordinator(entry)
-    if coordinator is None:
+    coordinator_view, runtime_loaded = _build_coordinator_view(entry)
+    if not runtime_loaded:
         return {"error": "entry_not_loaded"}
     serial = extract_device_serial_fn(device)
     if serial is None:
         return {"error": "device_not_in_lipro_domain"}
 
-    lipro_device = find_runtime_device(coordinator, serial)
+    lipro_device = find_runtime_device_for_entry(entry, serial)
     if lipro_device is None:
-        if is_runtime_device_mapping_degraded(coordinator):
+        if "degraded_fields" in coordinator_view:
             return {"error": "device_cache_unavailable"}
         return {"error": "device_not_found"}
 
-    coordinator_view, degraded_runtime = _build_coordinator_view(entry, coordinator)
     payload: DiagnosticsPayload = {
         "entry": {
             "title": redact_entry_title(entry.title),
@@ -225,6 +217,4 @@ async def async_get_device_diagnostics(
         "coordinator": coordinator_view,
         "device": build_device_diagnostics_fn(lipro_device),
     }
-    if degraded_runtime:
-        coordinator_view["degraded_fields"] = degraded_runtime
     return payload

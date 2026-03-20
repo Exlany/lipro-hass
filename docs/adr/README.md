@@ -23,7 +23,7 @@
 
 | ID | 标题 | 状态 | 说明 |
 |---|---|---|---|
-| [ADR-0001](./0001-coordinator-as-single-orchestration-root.md) | Coordinator 作为唯一编排根 | Accepted | 固化 Entity / Service / Runtime / Client 的主边界 |
+| [ADR-0001](./0001-coordinator-as-single-orchestration-root.md) | Coordinator 作为唯一编排根 | Accepted | 固化 Entity / Service / Runtime / Protocol façade 的主边界 |
 | [ADR-0002](./0002-unified-refresh-primitives.md) | 统一刷新与重同步原语 | Accepted | 固化显式刷新、周期刷新与设备快照对齐方式 |
 | [ADR-0003](./0003-confirmation-first-state-ingress.md) | 外部状态写入先确认再落状态 | Accepted | 固化 MQTT / REST / confirmation / stale filter 的裁决规则 |
 | [ADR-0004](./0004-explicit-lightweight-boundaries.md) | 保持显式、轻量、可审计的边界 | Accepted | 固化当前技术选型与“不引入重型框架”的边界 |
@@ -44,7 +44,7 @@
 1. **协议契约测试**：把 REST / MQTT payload 固化为 golden fixtures，降低上游协议漂移风险
 2. **可观测性**：为命令确认延迟、刷新耗时、MQTT 恢复时间补结构化指标
 3. **边界层 schema 校验**：如果 payload 复杂度继续上升，只在外部边界评估更强 schema 工具
-4. **API Client 去 mixin 化**：目标态应与其他层保持同一标准，采用显式 facade + collaborators，而不是多重继承聚合
+4. **REST façade 继续去继承聚合化**：目标态应与其他层保持同一标准，采用显式 façade + collaborators，而不是继承驱动聚合
 5. **统一跨层标准**：任何层的历史混搭都只视为待清理偏差，不构成双标准
 
 ## 使用约定

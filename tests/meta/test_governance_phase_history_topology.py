@@ -535,3 +535,20 @@ def test_phase_38_execution_evidence_is_consistent() -> None:
     assert "# Phase 38 Verification" in verification_text
     assert "advisory-with-artifact" in verification_text
     assert "phase: 38" in summary_text
+
+def test_phase_asset_promotion_topology_stays_explicit() -> None:
+    authority_text = (
+        _ROOT / ".planning" / "baseline" / "AUTHORITY_MATRIX.md"
+    ).read_text(encoding="utf-8")
+    verification_text = (
+        _ROOT / ".planning" / "baseline" / "VERIFICATION_MATRIX.md"
+    ).read_text(encoding="utf-8")
+    manifest_text = (
+        _ROOT / ".planning" / "reviews" / "PROMOTED_PHASE_ASSETS.md"
+    ).read_text(encoding="utf-8")
+
+    assert "promoted phase evidence allowlist" in authority_text
+    assert ".planning/reviews/PROMOTED_PHASE_ASSETS.md" in verification_text
+    assert "default_identity: execution-trace" in manifest_text
+    assert "未被 allowlist 显式列出的 `*-SUMMARY.md`、`*-VERIFICATION.md`、`*-VALIDATION.md`" in manifest_text
+

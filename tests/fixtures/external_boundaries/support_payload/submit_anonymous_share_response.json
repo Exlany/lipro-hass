@@ -2,5 +2,7 @@
   "success": true,
   "devices": 1,
   "errors": 0,
+  "outcome_kind": "success",
+  "reason_code": "submitted",
   "requested_entry_id": "entry-2"
 }

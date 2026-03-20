@@ -369,10 +369,14 @@ This integration is implemented by reverse engineering the Lipro cloud API and i
 
 - Stable support targets: the latest tagged release and the matching HACS install
 - Preview paths (`ARCHIVE_TAG=main`, branch fallback, mirror installs): best effort only
-- Maintainer-only `break-glass verify-only` / `non-publish rehearsal` procedures live in `docs/MAINTAINER_RELEASE_RUNBOOK.md`; they verify gates without relaxing the public release contract or stable install routes
-- Triage and release custody follow a single-maintainer model; no documented delegate currently exists, so if the maintainer is unavailable, freeze new tagged releases and new release promises, keep support/security intake active, and never imply hidden redundancy
-- Release custody resumes only after `.github/CODEOWNERS` and `docs/MAINTAINER_RELEASE_RUNBOOK.md` record the real successor or delegate
-- Deep-doc continuity follows the same story: `SUPPORT.md`, `SECURITY.md`, `docs/TROUBLESHOOTING.md`, and `docs/MAINTAINER_RELEASE_RUNBOOK.md` must stay aligned on custody / freeze truth
+- Continuity / release custody detail lives in `SUPPORT.md`, `SECURITY.md`, `docs/TROUBLESHOOTING.md`, and `docs/MAINTAINER_RELEASE_RUNBOOK.md`; the root README keeps only the public routing layer
+
+## Contributor Fast Path
+
+- Start with `CONTRIBUTING.md` for setup, targeted tests, CI command groups, and PR expectations
+- Use `docs/README.md` for the documentation map and bilingual boundary
+- Use `SUPPORT.md` for routing questions and `SECURITY.md` for private disclosure
+- Use `docs/MAINTAINER_RELEASE_RUNBOOK.md` only for maintainer-only release / rehearsal / custody work
 
 ## Contributing
 
@@ -383,7 +387,7 @@ This integration is implemented by reverse engineering the Lipro cloud API and i
 
 ## Documentation
 
-- `docs/README.md` - canonical documentation map and archive guide
+- `docs/README.md` - canonical documentation map, contributor fast path, and bilingual boundary
 - `docs/NORTH_STAR_TARGET_ARCHITECTURE.md` - target architecture and authority baseline
 - `docs/developer_architecture.md` - current package layout and runtime/control/protocol flow
 - `docs/TROUBLESHOOTING.md` - canonical troubleshooting and diagnostics path
@@ -393,15 +397,5 @@ This integration is implemented by reverse engineering the Lipro cloud API and i
 - `SUPPORT.md` - support routing, triage expectations, and question handling
 - `SECURITY.md` - private vulnerability disclosure policy
 - `CODE_OF_CONDUCT.md` - community behavior expectations
-- `custom_components/lipro/quality_scale.yaml` - Home Assistant quality-scale mapping
-- `.devcontainer.json` - reproducible development container settings
-- `AGENTS.md` - canonical cross-agent repository contract
-- `CLAUDE.md` - Claude Code compatibility entry, always defers to `AGENTS.md`
-
-## License
-
-MIT License
-
----
-
-**If this project helps you, please give it a ⭐ Star!**
+- `.devcontainer.json` - recommended devcontainer / Codespaces profile
+- `custom_components/lipro/quality_scale.yaml` - Home Assistant quality-scale declaration

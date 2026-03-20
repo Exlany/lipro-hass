@@ -2,9 +2,12 @@
 
 from __future__ import annotations
 
+import pytest
+
 from custom_components.lipro.core.command.result import classify_command_result_payload
 
 
+@pytest.mark.benchmark(group="command")
 def test_command_result_classifier_benchmark(benchmark) -> None:
     payload = {
         "code": 0,

@@ -1,8 +1,8 @@
 # Project: Lipro-HASS North Star Evolution
 
-**Status:** Active execution — `Phase 42` 已于 `2026-03-20` 完成，`Phase 43 -> 45` 已完成正式规划；下一步建议 `$gsd-execute-phase 43`。
+**Status:** Active closeout — `Phase 45` 已于 `2026-03-20` 完成，`v1.6` 进入 closeout-ready；下一步建议 `$gsd-complete-milestone v1.6`。
 **Goal:** 以 `v1.5` 归档真相为已发货基线，优先补齐 delivery trust / coverage / compatibility 真实门禁，再完成 control/services 解耦、typed runtime read-model、治理资产降噪与热点拆薄。
-**Default next step:** `$gsd-execute-phase 43`
+**Default next step:** `$gsd-complete-milestone v1.6`
 
 
 ## Active Milestone (v1.6)
@@ -19,7 +19,7 @@
 - 热点拆分只沿正式 seams 收口，不扩张 public surface 或 compatibility folklore
 
 **Phase range:** `Phase 42 -> 45`
-**Current status:** `Phase 43 planning-ready`（`Phase 42` 已完成；`Phase 43 -> 45` 的 `CONTEXT / RESEARCH / PLAN` 资产已于 `2026-03-20` 补齐，共 `12` 个执行 plans；next action is `$gsd-execute-phase 43`）
+**Current status:** `Phase 45 complete / v1.6 closeout-ready`（`Phase 42 -> 45` 已完成，共 `16/16` 个执行 plans 通过；`45-SUMMARY.md` / `45-VERIFICATION.md` 已形成 promoted closeout evidence；next action is `$gsd-complete-milestone v1.6`）
 **Primary closeout targets:** delivery trust hardening、typed runtime read-model、control/services decoupling、governance asset pruning、terminology convergence、hotspot decomposition、typed failure semantics。
 
 ## Archived Milestone (v1.5)

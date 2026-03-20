@@ -120,9 +120,12 @@ def test_phase_40_schedule_services_use_shared_execution_contract() -> None:
     assert "async_execute_coordinator_call" in execution_text
 
 
-def test_phase_40_runtime_readers_stay_on_runtime_access_helpers() -> None:
+def test_phase_43_control_service_boundary_stays_one_way_and_explicit() -> None:
     diagnostics_text = (
         _ROOT / "custom_components" / "lipro" / "control" / "diagnostics_surface.py"
+    ).read_text(encoding="utf-8")
+    service_router_support_text = (
+        _ROOT / "custom_components" / "lipro" / "control" / "service_router_support.py"
     ).read_text(encoding="utf-8")
     device_lookup_text = (
         _ROOT / "custom_components" / "lipro" / "services" / "device_lookup.py"
@@ -130,18 +133,45 @@ def test_phase_40_runtime_readers_stay_on_runtime_access_helpers() -> None:
     maintenance_text = (
         _ROOT / "custom_components" / "lipro" / "services" / "maintenance.py"
     ).read_text(encoding="utf-8")
+    runtime_infra_text = (
+        _ROOT / "custom_components" / "lipro" / "runtime_infra.py"
+    ).read_text(encoding="utf-8")
+    dependency_text = (
+        _ROOT / ".planning" / "baseline" / "DEPENDENCY_MATRIX.md"
+    ).read_text(encoding="utf-8")
 
-    assert "find_runtime_device" in diagnostics_text
+    assert "## Phase 43 Control / Service Boundary Clarifications" in dependency_text
+    assert "service_router_support.py" in dependency_text
+    assert "runtime_infra.py" in dependency_text
+
+    assert "build_runtime_diagnostics_projection" in diagnostics_text
+    assert "find_runtime_device_for_entry" in diagnostics_text
     assert "_get_device_from_runtime" not in diagnostics_text
     assert "get_runtime_device_mapping(coordinator).get(" not in diagnostics_text
 
-    assert "find_runtime_device_and_coordinator" in device_lookup_text
+    assert "resolve_device_id_from_service_call" in service_router_support_text
+    assert "find_runtime_device_and_coordinator" in service_router_support_text
+    assert "iter_runtime_entries" not in service_router_support_text
+    assert "get_entry_runtime_coordinator" not in service_router_support_text
+
+    assert "resolve_device_id_from_service_call" in device_lookup_text
+    assert "find_runtime_device_and_coordinator" not in device_lookup_text
     assert "iter_runtime_entries" not in device_lookup_text
     assert "get_entry_runtime_coordinator" not in device_lookup_text
 
     assert "iter_runtime_entry_coordinators" in maintenance_text
-    assert "iter_runtime_entries" not in maintenance_text
-    assert "get_entry_runtime_coordinator" not in maintenance_text
+    assert "device_registry_updated" not in maintenance_text
+    assert "async_setup_device_registry_listener" not in maintenance_text
 
-    for runtime_reader_text in (diagnostics_text, device_lookup_text, maintenance_text):
+    assert "async_setup_device_registry_listener" in runtime_infra_text
+    assert "device_registry_updated" in runtime_infra_text
+    assert "async_handle_refresh_devices" not in runtime_infra_text
+
+    for runtime_reader_text in (
+        diagnostics_text,
+        service_router_support_text,
+        device_lookup_text,
+        maintenance_text,
+        runtime_infra_text,
+    ):
         assert ".runtime_data" not in runtime_reader_text

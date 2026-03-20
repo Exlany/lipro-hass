@@ -370,10 +370,14 @@ data:
 
 - 稳定支持目标：最新标签版本与与其一致的 HACS 安装
 - 预览路径（`ARCHIVE_TAG=main`、branch fallback、mirror 安装）：仅属 best effort
-- 维护者专用的 `break-glass verify-only` / `non-publish rehearsal` 流程位于 `docs/MAINTAINER_RELEASE_RUNBOOK.md`；它们只用于验证门禁，不会放宽公开 release 契约或稳定安装路径
-- 分流与发版 custody 仍遵循单维护者模型；当前没有已记录的 delegate，因此若维护者不可用，应冻结新的 tagged release 与 release 承诺，保持 `SUPPORT.md` / `SECURITY.md` intake 有效，绝不暗示存在隐藏冗余
-- 只有当 `.github/CODEOWNERS` 与 `docs/MAINTAINER_RELEASE_RUNBOOK.md` 记录了真实 successor / delegate 后，release custody 才能恢复
-- 深层文档也必须讲同一条故事：`SUPPORT.md`、`SECURITY.md`、`docs/TROUBLESHOOTING.md` 与 `docs/MAINTAINER_RELEASE_RUNBOOK.md` 需要持续对齐 custody / freeze 真相
+- 连续性 / release custody 细节统一放在 `SUPPORT.md`、`SECURITY.md`、`docs/TROUBLESHOOTING.md` 与 `docs/MAINTAINER_RELEASE_RUNBOOK.md`；根 README 只保留公开导航层
+
+## 贡献快速路径
+
+- 先看 `CONTRIBUTING.md`，获取环境搭建、定向测试、CI 命令组与 PR 约定
+- 需要文档地图或双语边界说明时，查看 `docs/README.md`
+- 需要支持路由时，查看 `SUPPORT.md`；需要私密披露时，查看 `SECURITY.md`
+- `docs/MAINTAINER_RELEASE_RUNBOOK.md` 仅供维护者处理发版 / rehearsal / custody 工作
 
 ## 贡献
 
@@ -384,7 +388,7 @@ data:
 
 ## 文档入口
 
-- `docs/README.md` - 文档总索引与历史归档说明
+- `docs/README.md` - 文档总索引、贡献快速路径与双语边界
 - `docs/NORTH_STAR_TARGET_ARCHITECTURE.md` - 目标架构与权威基线
 - `docs/developer_architecture.md` - 当前代码布局与 runtime/control/protocol 主链说明
 - `docs/TROUBLESHOOTING.md` - 规范排障与诊断入口
@@ -394,15 +398,5 @@ data:
 - `SUPPORT.md` - 支持路由、分流预期与提问方式
 - `SECURITY.md` - 私密漏洞披露策略
 - `CODE_OF_CONDUCT.md` - 社区行为约定
-- `custom_components/lipro/quality_scale.yaml` - Home Assistant 质量等级映射
-- `.devcontainer.json` - 可复现的开发容器配置
-- `AGENTS.md` - 仓库统一执行契约
-- `CLAUDE.md` - Claude Code 兼容入口，始终以 `AGENTS.md` 为准
-
-## 许可证
-
-MIT License
-
----
-
-**如果这个项目对您有帮助，请给个 ⭐ Star！**
+- `.devcontainer.json` - 推荐的 devcontainer / Codespaces 配置
+- `custom_components/lipro/quality_scale.yaml` - Home Assistant quality scale 声明

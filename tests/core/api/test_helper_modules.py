@@ -5,6 +5,8 @@ from __future__ import annotations
 from typing import cast
 from unittest.mock import AsyncMock, Mock
 
+from pathlib import Path
+
 import pytest
 
 from custom_components.lipro.core.api.endpoints.payloads import (
@@ -185,3 +187,33 @@ async def test_get_mqtt_config_raises_default_error_for_non_mapping_response() -
             lipro_api_error=DummyApiError,
             path_get_mqtt_config="/mqtt/config",
         )
+
+
+def test_rest_decoder_family_helpers_stay_near_decoder_homes() -> None:
+    root = Path(__file__).resolve().parents[3]
+    support_text = (
+        root
+        / "custom_components"
+        / "lipro"
+        / "core"
+        / "protocol"
+        / "boundary"
+        / "rest_decoder_support.py"
+    ).read_text(encoding="utf-8")
+    decoder_text = (
+        root
+        / "custom_components"
+        / "lipro"
+        / "core"
+        / "protocol"
+        / "boundary"
+        / "rest_decoder.py"
+    ).read_text(encoding="utf-8")
+
+    assert "_extract_mqtt_config_mapping" not in support_text
+    assert "_build_schedule_json_fingerprint" not in support_text
+    assert "parse_mesh_schedule_json" not in support_text
+    assert "_decode_list_envelope_canonical" in support_text
+    assert "_extract_mqtt_config_mapping" in decoder_text
+    assert "_build_schedule_json_fingerprint" in decoder_text
+    assert "parse_mesh_schedule_json" in decoder_text

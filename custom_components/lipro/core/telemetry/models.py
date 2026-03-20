@@ -11,6 +11,7 @@ SCHEMA_VERSION = "telemetry.v1"
 type FailureCategory = Literal["auth", "network", "protocol", "runtime", "unexpected"]
 type HandlingPolicy = Literal["reauth", "retry", "inspect", "escalate"]
 type FailureSummary = dict[str, str | None]
+type OutcomeKind = Literal["success", "skipped", "degraded", "failed"]
 
 _BLOCKED_KEYS = frozenset(
     {
@@ -223,6 +224,106 @@ def extract_failure_summary(
 
 
 @dataclass(frozen=True, slots=True)
+class OperationOutcome:
+    """Typed, machine-consumable operation result shared across hotspots."""
+
+    kind: OutcomeKind
+    reason_code: str
+    failure_summary: FailureSummary = field(default_factory=empty_failure_summary)
+    http_status: int | None = None
+    retry_after_seconds: float | None = None
+
+    @property
+    def is_success(self) -> bool:
+        """Return whether the outcome represents one successful operation."""
+        return self.kind == "success"
+
+    def to_dict(self) -> dict[str, Any]:
+        """Return the canonical mapping form used by service responses/tests."""
+        result: dict[str, Any] = {
+            "outcome_kind": self.kind,
+            "reason_code": self.reason_code,
+        }
+        if any(value is not None for value in self.failure_summary.values()):
+            result["failure_summary"] = dict(self.failure_summary)
+        if self.http_status is not None:
+            result["http_status"] = self.http_status
+        if self.retry_after_seconds is not None:
+            result["retry_after_seconds"] = self.retry_after_seconds
+        return result
+
+
+def build_operation_outcome(
+    *,
+    kind: OutcomeKind,
+    reason_code: str,
+    failure_summary: FailureSummary | None = None,
+    error_type: str | None = None,
+    failure_origin: str | None = None,
+    failure_category: str | None = None,
+    handling_policy: str | None = None,
+    http_status: int | None = None,
+    retry_after_seconds: float | None = None,
+) -> OperationOutcome:
+    """Build the canonical typed outcome payload."""
+    if failure_summary is None:
+        has_failure_context = any(
+            value is not None
+            for value in (
+                error_type,
+                failure_origin,
+                failure_category,
+                handling_policy,
+            )
+        )
+        normalized_failure_summary = (
+            build_failure_summary(
+                error_type=error_type,
+                failure_origin=failure_origin,
+                failure_category=failure_category,
+                handling_policy=handling_policy,
+            )
+            if has_failure_context
+            else empty_failure_summary()
+        )
+    else:
+        normalized_failure_summary = dict(failure_summary)
+    return OperationOutcome(
+        kind=kind,
+        reason_code=reason_code,
+        failure_summary=normalized_failure_summary,
+        http_status=http_status,
+        retry_after_seconds=retry_after_seconds,
+    )
+
+
+def build_operation_outcome_from_exception(
+    err: BaseException,
+    *,
+    kind: OutcomeKind,
+    reason_code: str,
+    failure_origin: str,
+    failure_category: str | None = None,
+    handling_policy: str | None = None,
+    http_status: int | None = None,
+    retry_after_seconds: float | None = None,
+) -> OperationOutcome:
+    """Build one typed outcome from a concrete exception instance."""
+    return OperationOutcome(
+        kind=kind,
+        reason_code=reason_code,
+        failure_summary=build_failure_summary_from_exception(
+            err,
+            failure_origin=failure_origin,
+            failure_category=failure_category,
+            handling_policy=handling_policy,
+        ),
+        http_status=http_status,
+        retry_after_seconds=retry_after_seconds,
+    )
+
+
+@dataclass(frozen=True, slots=True)
 class TelemetrySensitivity:
     """Sensitivity contract used by the exporter."""
 
@@ -303,11 +404,15 @@ __all__ = [
     "FailureCategory",
     "FailureSummary",
     "HandlingPolicy",
+    "OperationOutcome",
+    "OutcomeKind",
     "TelemetrySensitivity",
     "TelemetrySnapshot",
     "TelemetryViews",
     "build_failure_summary",
     "build_failure_summary_from_exception",
+    "build_operation_outcome",
+    "build_operation_outcome_from_exception",
     "classify_failure_category",
     "empty_failure_summary",
     "extract_failure_summary",

@@ -2,7 +2,7 @@
 
 **Purpose:** 定义允许/禁止的跨平面依赖方向，并作为 architecture guards 的语义真源。
 **Status:** Baseline reference
-**Updated:** 2026-03-19 (Phase 40 governance-truth and runtime-access boundary aligned)
+**Updated:** 2026-03-20 (Phase 43 control/service/runtime boundary aligned)
 
 ## Formal Role
 
@@ -23,7 +23,7 @@
 
 | From | Must Not Depend On | Why |
 |------|--------------------|-----|
-| Entity / Platform | raw protocol internals, `core/protocol/boundary/*`, MQTT client, REST transport | 破坏边界与测试隔离 |
+| Entity / Platform | raw protocol internals, `core/protocol/boundary/*`, concrete MQTT transport, REST transport | 破坏边界与测试隔离 |
 | Control plane | protocol internals, `core/protocol/boundary/*`, runtime internals bypassing public surface | 容易形成 backdoor 与 split-root 回流；`control/` 只能通过正式 runtime/public surfaces 协作，且不得依赖 child façade roots |
 | Domain | HA lifecycle, auth/retry/network recovery | 会污染领域真源 |
 | Protocol | coordinator, entity, platform, diagnostics UI semantics | 协议层不应感知宿主上层语义 |
@@ -32,9 +32,16 @@
 ## Phase 40 Governance Truth Boundary
 
 - `.planning/baseline/GOVERNANCE_REGISTRY.json` 只允许被 governance docs / contributor templates / meta guards pull 取；production code、runtime orchestration 与 service execution 不得把它当作运行时配置源。
-- `custom_components/lipro/control/runtime_access.py` 继续是 control/services 读取 runtime read-model 的唯一 helper home；diagnostics / maintenance / device lookup 不得再散落 `runtime_data`、ad hoc coordinator iteration 或 direct device lookup 读取。
-- `custom_components/lipro/control/diagnostics_surface.py`、`custom_components/lipro/services/device_lookup.py` 与 `custom_components/lipro/services/maintenance.py` 只允许通过 `runtime_access.iter_runtime_entry_coordinators()`、`find_runtime_device()` 与 `find_runtime_device_and_coordinator()` 消费 runtime readers；不得重新长回本地 locator helper。
+- `custom_components/lipro/control/runtime_access.py` 继续是 control/runtime typed read-model 的唯一 helper home；diagnostics / service_router_support / maintenance 不得散落 `runtime_data`、ad hoc coordinator iteration 或 direct device mapping 读取。
+- `custom_components/lipro/services/device_lookup.py` 只允许处理 service-facing target → device-id resolution；最终 `(device, coordinator)` bridge 必须由 `custom_components/lipro/control/service_router_support.py` 通过 `RuntimeAccess` 完成。
+- `custom_components/lipro/services/maintenance.py` 只允许通过 `runtime_access.iter_runtime_entry_coordinators()` 实现 `refresh_devices`；device-registry listener / pending reload task ownership 必须固定在 `custom_components/lipro/runtime_infra.py`。
 - `custom_components/lipro/services/execution.py` 是唯一 shared auth/error execution home；`custom_components/lipro/services/schedule.py` 只允许提供 schedule-specific 参数封装、日志与翻译 key，不得复制独立 coordinator auth chain 或 reauth story。
+
+## Phase 43 Control / Service Boundary Clarifications
+
+- Control → services 只允许 pull service-facing shaping helpers；services 不得通过 helper surface 反向定义 runtime truth、control ownership 或 lifecycle listener 归属。
+- `custom_components/lipro/control/diagnostics_surface.py` 只能消费 typed runtime projection 与 entry-scoped runtime lookup；`custom_components/lipro/control/service_router_support.py` 只能组合 service target resolution + runtime_access bridge；`custom_components/lipro/runtime_infra.py` 负责 listener/reload lifecycle。
+- `custom_components/lipro/services/device_lookup.py` 与 `custom_components/lipro/services/maintenance.py` 都不得重新长回最终 `(device, coordinator)` 裁决、listener/pending-task state 或 direct coordinator traversal story。
 
 ## Architecture Policy Mapping
 
@@ -75,12 +82,12 @@
 ## Phase 25.2 Telemetry Formal-Surface Closure Clarifications
 
 - `custom_components/lipro/control/telemetry_surface.py` 现在只允许 pull `Coordinator.protocol` 与 `telemetry_service` 这两个正式 observer surfaces；`coordinator.client` 不再是 allowed dependency / bridge input。
-- `runtime_types.LiproCoordinator` 已显式承认 telemetry bridge 真实需要的 `protocol` / `telemetry_service` surfaces；任何 consumer 若继续依赖 `client`、`entry.runtime_data` 或 coordinator private fields，应视为 regression。
+- `runtime_types.LiproCoordinator` 已显式承认 telemetry bridge 真实需要的 `protocol` / `telemetry_service` surfaces；任何 consumer 若继续依赖 `Coordinator.client`、`entry.runtime_data` 或 coordinator private fields，应视为 regression。
 - `.planning/codebase/STRUCTURE.md` 等 codebase maps 继续只是 derived collaboration views；它们可以记录 telemetry bridge wiring，但不能重新定义 authority/dependency truth。
 
 ## Phase 27 Protocol-Service Convergence Clarifications
 
-- `custom_components/lipro/services/schedule.py`、`custom_components/lipro/services/diagnostics/*` 与 `custom_components/lipro/entities/firmware_update.py` 现在只允许 pull `runtime_types.LiproCoordinator.protocol_service` 这一个 runtime-owned protocol capability port；不得继续依赖 coordinator 顶层 schedule / diagnostics / OTA pure forwarders。
+- `custom_components/lipro/services/schedule.py`、`custom_components/lipro/services/diagnostics/*` 与 `custom_components/lipro/entities/firmware_update.py` 现在只允许 pull `runtime_types.LiproCoordinator.protocol_service` 这一个 runtime-owned protocol capability port；不得继续依赖 coordinator 顶层 schedule / diagnostics / OTA passthrough operations。
 - `custom_components/lipro/core/coordinator/services/protocol_service.py` 是 runtime 与 protocol root 之间的唯一 formal capability bridge；它可以依赖 `LiproProtocolFacade`，但 control/entity/platform 不得反向绕过它摸 runtime internals。
 - outlet-power polling 允许在 coordinator 内部通过 `self.protocol_service.async_fetch_outlet_power_info` 完成 runtime wiring；这属于 runtime 内部实现，不构成新的 external public surface。
 

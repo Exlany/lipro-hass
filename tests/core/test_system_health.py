@@ -9,6 +9,7 @@ import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.lipro.const.base import DOMAIN, VERSION
+from custom_components.lipro.control.runtime_access import get_entry_runtime_coordinator
 from custom_components.lipro.system_health import async_register, system_health_info
 
 
@@ -245,3 +246,12 @@ def test_runtime_access_rejects_partial_foreign_entry() -> None:
     assert is_debug_mode_enabled_for_entry(entry) is False
     assert not hasattr(entry, "entry_id")
     assert not hasattr(entry, "options")
+
+
+def test_runtime_access_rejects_magicmock_runtime_ghost() -> None:
+    """Runtime access should ignore implicit MagicMock runtime_data ghosts."""
+    entry = MagicMock()
+    entry.entry_id = "entry-1"
+    entry.options = {}
+
+    assert get_entry_runtime_coordinator(entry) is None

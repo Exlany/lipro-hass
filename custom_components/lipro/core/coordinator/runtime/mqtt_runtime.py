@@ -22,7 +22,9 @@ from ....const.api import MQTT_DISCONNECT_NOTIFY_THRESHOLD
 from ....const.base import DOMAIN
 from ...telemetry.models import (
     FailureSummary,
+    OperationOutcome,
     build_failure_summary_from_exception,
+    build_operation_outcome,
     empty_failure_summary,
 )
 from .mqtt.adapters import (
@@ -261,22 +263,25 @@ class MqttRuntime:
         self,
         device_id: str,
         properties: Mapping[str, PropertyValue],
-    ) -> None:
-        """Handle incoming MQTT message.
-
-        Args:
-            device_id: Device identifier from MQTT topic
-            properties: Property updates from message payload
-        """
+    ) -> OperationOutcome:
+        """Handle incoming MQTT message and return one typed application outcome."""
         current_time = monotonic()
 
         if self._dedup_manager.is_duplicate(
             device_id, properties, current_time=current_time
         ):
-            return
+            return build_operation_outcome(
+                kind="skipped",
+                reason_code="duplicate_message",
+            )
 
-        await self._message_handler.handle_message(device_id, properties, current_time=current_time)
+        outcome = await self._message_handler.handle_message(
+            device_id,
+            properties,
+            current_time=current_time,
+        )
         self._dedup_manager.cleanup(current_time=current_time)
+        return outcome
 
     def on_transport_connected(self) -> None:
         """Apply coordinator-facing state changes after a real broker handshake."""

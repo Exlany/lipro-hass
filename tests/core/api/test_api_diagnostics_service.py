@@ -19,6 +19,7 @@ from custom_components.lipro.core.api.diagnostics_api_service import (
     _ota_row_dedupe_key,
     fetch_sensor_history,
     query_ota_info,
+    query_ota_info_with_outcome,
     query_user_cloud,
 )
 from custom_components.lipro.core.api.types import JsonObject, OtaInfoRow
@@ -284,6 +285,32 @@ async def test_query_ota_info_raises_last_error_when_v1_and_v2_both_fail() -> No
 
 
 @pytest.mark.asyncio
+async def test_query_ota_info_with_outcome_reports_primary_failure() -> None:
+    iot_request = AsyncMock(
+        side_effect=[
+            DummyApiError("v1 failed", code=500),
+            DummyApiError("v2 failed", code=503),
+        ]
+    )
+
+    result = await query_ota_info_with_outcome(
+        iot_request=iot_request,
+        extract_data_list=_extract_rows,
+        is_invalid_param_error_code=lambda code: code == "100000",
+        to_device_type_hex=lambda value: str(value),
+        lipro_api_error=DummyApiError,
+        device_id="mesh_group_1",
+        device_type="ff000001",
+    )
+
+    assert result.rows == []
+    assert isinstance(result.error, DummyApiError)
+    assert str(result.error) == "v2 failed"
+    assert result.outcome.kind == "failed"
+    assert result.outcome.reason_code == "primary_endpoints_failed"
+
+
+@pytest.mark.asyncio
 async def test_query_ota_info_handles_invalid_param_on_richer_v2_payload() -> None:
     iot_request = AsyncMock(
         side_effect=[
@@ -307,6 +334,35 @@ async def test_query_ota_info_handles_invalid_param_on_richer_v2_payload() -> No
     )
 
     assert result == []
+
+
+@pytest.mark.asyncio
+async def test_query_ota_info_with_outcome_reports_rich_v2_invalid_param() -> None:
+    iot_request = AsyncMock(
+        side_effect=[
+            {"rows": []},
+            {"rows": []},
+            DummyApiError("bad richer payload", code="100000"),
+            {"rows": []},
+        ]
+    )
+
+    result = await query_ota_info_with_outcome(
+        iot_request=iot_request,
+        extract_data_list=_extract_rows,
+        is_invalid_param_error_code=lambda code: code == "100000",
+        to_device_type_hex=lambda value: str(value),
+        lipro_api_error=DummyApiError,
+        device_id="mesh_group_1",
+        device_type="ff000001",
+        iot_name="21P3",
+        allow_rich_v2_fallback=True,
+    )
+
+    assert result.rows == []
+    assert result.error is None
+    assert result.outcome.kind == "degraded"
+    assert result.outcome.reason_code == "rich_v2_invalid_param"
 
 
 @pytest.mark.asyncio
@@ -359,6 +415,33 @@ async def test_query_ota_info_degrades_when_controller_invalid_param() -> None:
     )
 
     assert result == [row]
+
+
+@pytest.mark.asyncio
+async def test_query_ota_info_with_outcome_reports_controller_invalid_param() -> None:
+    row = {"deviceType": "ff000001", "latestVersion": "1.0.1"}
+    iot_request = AsyncMock(
+        side_effect=[
+            {"rows": [row]},
+            {"rows": []},
+            DummyApiError("invalid param", code="100000"),
+        ]
+    )
+
+    result = await query_ota_info_with_outcome(
+        iot_request=iot_request,
+        extract_data_list=_extract_rows,
+        is_invalid_param_error_code=lambda code: code == "100000",
+        to_device_type_hex=lambda value: str(value),
+        lipro_api_error=DummyApiError,
+        device_id="mesh_group_1",
+        device_type="ff000001",
+    )
+
+    assert result.rows == [row]
+    assert result.error is None
+    assert result.outcome.kind == "degraded"
+    assert result.outcome.reason_code == "controller_invalid_param"
 
 
 @pytest.mark.asyncio

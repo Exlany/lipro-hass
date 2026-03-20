@@ -1,6 +1,6 @@
 # Lipro Home Assistant Integration - Developer Architecture
 
-> **Last aligned through**: `Phase 39` (`2026-03-19`)
+> **Last aligned through**: `Phase 43` (`2026-03-20`)
 > **Role**: 描述当前正式实现拓扑、目录归属与开发者入口。
 >
 > 本文档是 **current-topology guide**，不是 phase 日志、评分快照或覆盖率公告板。  
@@ -22,7 +22,7 @@
 | Runtime service layer | `custom_components/lipro/core/coordinator/services/` | runtime-facing public collaborators |
 | Domain truth | `custom_components/lipro/core/device/`, `custom_components/lipro/core/capability/` | device aggregate 与 capability truth |
 | Control formal home | `custom_components/lipro/control/` | lifecycle / service router / runtime access / diagnostics / system health |
-| Control service adapters | `custom_components/lipro/services/` | service declarations、request shaping、handler helpers |
+| Control service adapters | `custom_components/lipro/services/` | service declarations、request shaping、thin service helpers |
 | Platform adapters | `custom_components/lipro/*.py` platform files | entity projection / HA platform binding |
 | Assurance | `tests/`, `scripts/`, `.planning/baseline/`, `.planning/reviews/` | tests / guards / governance truth |
 
@@ -60,13 +60,16 @@
 ### Control plane
 
 - `custom_components/lipro/control/` 是 formal home。
-- `ServiceRouter` 是 service callback home；`RuntimeAccess` 是 control → runtime 的正式定位入口。
+- `ServiceRouter` 是 service callback home；`RuntimeAccess` 是 control → runtime 的 typed read-model 与 runtime locator。
 - `DiagnosticsSurface` / `SystemHealthSurface` / `EntryLifecycleController` 是 formal control collaborators。
+- `custom_components/lipro/runtime_infra.py` 是 device-registry listener、pending reload coordination 与 runtime listener ownership 的正式 home。
 - 根层 `__init__.py`、`diagnostics.py`、`system_health.py`、`config_flow.py` 继续保持 thin adapter 身份。
 - `custom_components/lipro/services/` 不再承载“legacy carrier”身份；它的正式角色是：
   - HA service declaration / registration
-  - request shaping / lookup / error translation helpers
-  - diagnostics/share/schedule/maintenance handler helpers
+  - request shaping / device-id resolution / error translation helpers
+  - diagnostics/share/schedule/maintenance thin adapters
+- `services/device_lookup.py` 只负责 service-facing target → `device_id` 解析；最终 `(device, coordinator)` 裁决只允许停留在 `control/service_router_support.py`。
+- `services/maintenance.py` 只负责 `refresh_devices` service adapter；device-registry listener 不得回流到 services。
 
 ### Assurance plane
 

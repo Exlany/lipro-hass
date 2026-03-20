@@ -29,8 +29,8 @@
 
 - 测试栈完整：`pytest`、`pytest-asyncio`、`pytest-cov`、`pytest-homeassistant-custom-component`、`pytest-benchmark`、`syrupy`、`mypy`、`xdist` 全部进入 dev 依赖。证据：`pyproject.toml:33`。
 - CI 把质量拆成 `lint`、`governance`、`security`、`test`、`benchmark`、`validate` 六道门，release 先复用 CI，再做版本校验与打包。证据：`.github/workflows/ci.yml:22`, `.github/workflows/release.yml:25`, `tests/meta/test_governance_guards.py:185`。
-- 当前仓库共有 `198` 个 `test_*.py` 文件；其中 `21` 个 meta guard、`5` 个 integration、`4` 个 benchmark、`4` 个 snapshot 文件；另有 `5` 个 fixture family readme 维护 authority/用途说明。
-- Coverage gate 是硬门槛：主测试 job 以 `95%` 为下限，snapshot coverage 已包含在主 `tests/` lane 中；`coverage_diff.py` 默认执行 floor-only check，只有显式提供 baseline 才会产出 diff；benchmark 则作为 advisory-with-artifact lane 产出 `.benchmarks/benchmark.json`。证据：`.github/workflows/ci.yml:177`, `CONTRIBUTING.md:94`。
+- 当前仓库共有 `199` 个 `test_*.py` 文件；其中 `22` 个 meta guard、`5` 个 integration、`4` 个 benchmark、`4` 个 snapshot 文件；另有 `5` 个 fixture family readme 维护 authority/用途说明。
+- Coverage gate 是硬门槛：主测试 job 以 `95%` 为下限，snapshot coverage 已包含在主 `tests/` lane 中；`coverage_diff.py` 默认执行 floor-only check，只有显式提供 baseline 才会产出 diff；benchmark 则作为 baseline-governed artifact lane 产出 `.benchmarks/benchmark.json`，并区分 threshold warning 与 no-regression gate。证据：`.github/workflows/ci.yml:177`, `CONTRIBUTING.md:94`。
 
 ## 3. 测试分层图谱
 
@@ -82,7 +82,7 @@
 ### 6.3 Benchmark
 
 - benchmark 覆盖 command classification、device property update、MQTT message processing、identity index / device runtime hotspot，并且大多附带 correctness assertion。证据：`tests/benchmarks/test_command_benchmark.py:8`, `tests/benchmarks/test_device_refresh_benchmark.py:8`, `tests/benchmarks/test_mqtt_benchmark.py:10`, `tests/benchmarks/test_coordinator_performance.py:55`。
-- benchmark job 默认只在 `schedule` / `workflow_dispatch` 运行，不阻塞普通 PR。证据：`.github/workflows/ci.yml:206`, `CONTRIBUTING.md:98`。
+- benchmark job 默认只在 `schedule` / `workflow_dispatch` 运行，不阻塞普通 PR，但 lane 内已经执行 baseline compare、threshold warning 与 no-regression gate。证据：`.github/workflows/ci.yml:206`, `CONTRIBUTING.md:98`。
 
 ## 7. Bright Spots
 
@@ -95,7 +95,7 @@
 ## 8. Gaps 与改进空间
 
 - **pytest marker registry 已 truthfully 退场**：`pyproject.toml` 不再声明 dead markers；当前套件切分主要靠目录与 CI lane，而不是伪选择器。证据：`pyproject.toml:73`, `tests/meta/test_toolchain_truth.py:268`。
-- **benchmark 仍然不是 hard gate**：CI 只在 schedule/manual 跑 benchmark，并输出 `.benchmarks/benchmark.json` artifact；当前仍没有 PR 级别性能阈值，只提供可审计产物供后续对照。证据：`.github/workflows/ci.yml:206`, `.github/workflows/ci.yml:228`。
+- **benchmark 不是 PR hard gate，但已是受治理的独立 lane**：CI 只在 `schedule` / `workflow_dispatch` 跑 benchmark，并输出 `.benchmarks/benchmark.json` artifact；lane 内会对 baseline manifest 做比对，threshold warning 只提供维护者信号，failure threshold 则触发 no-regression gate。证据：`.github/workflows/ci.yml:206`, `.github/workflows/ci.yml:228`。
 - **coverage diff 语义已显式化**：CI 调用 `scripts/coverage_diff.py` 时默认只传 `--minimum 95`，因此这是 floor-only check；只有显式提供 baseline 文件时才比较“相对退步”。证据：`.github/workflows/ci.yml:191`, `scripts/coverage_diff.py:46`。
 - 上述测试文件统计与 scripts/tests 边界由 `tests/meta/test_toolchain_truth.py`、`tests/meta/test_public_surface_guards.py` 与 `tests/meta/test_evidence_pack_authority.py` 显式守护；新增测试目录或 helper-only / pull-only 例外时，必须同步刷新本图谱。
 - **工具依赖有前瞻性，但尚未 fully exploited**：`pytest-mypy-plugins` 与 `pytest-xdist` 已进入 dev 依赖，但仓库内没有对应 type-checking plugin case，也未在 CI 中并行运行测试。证据：`pyproject.toml:45`, `pyproject.toml:46`, `.github/workflows/ci.yml:177`。
@@ -108,4 +108,4 @@
 - Control-plane / flow / services 变更：至少覆盖 `tests/core/test_control_plane.py`、`tests/core/test_init*.py`、`tests/core/test_init_runtime_bootstrap.py`、`tests/core/test_init_service_handlers*.py`、`tests/core/test_diagnostics.py`、`tests/core/test_system_health.py`、`tests/services/**`、`tests/flows/**`；若改动 governance phase-history closeout，还应补跑 `tests/meta/test_governance_phase_history*.py`。证据：`AGENTS.md:243`, `CONTRIBUTING.md:85`。
 - 架构/治理/public-surface 变更：先跑 meta guards，再跑全量。证据：`AGENTS.md:246`, `CONTRIBUTING.md:95`, `.github/workflows/ci.yml:88`。
 - Milestone closeout / archive / handoff 真相变更：至少覆盖 `tests/meta/test_governance*.py`（其中包含 `tests/meta/test_governance_closeout_guards.py`）与 `tests/meta/test_toolchain_truth.py`，并同步 `FILE_MATRIX.md` / `TESTING.md`。
-- 性能相关改动：只在性能是需求的一部分时追加 benchmark；当前 benchmark 不是默认 PR gate。证据：`CONTRIBUTING.md:98`, `.github/workflows/ci.yml:206`。
+- 性能相关改动：只在性能是需求的一部分时追加 benchmark；若运行 benchmark，应同时检查 baseline manifest compare、threshold warning 与 no-regression gate 结果。证据：`CONTRIBUTING.md:98`, `.github/workflows/ci.yml:206`。

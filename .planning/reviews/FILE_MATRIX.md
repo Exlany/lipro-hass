@@ -1,6 +1,6 @@
 # File Matrix
 
-**Python files total:** 515
+**Python files total:** 517
 **Status:** File-level governance authority
 **Rule:** workspace inventory excluding caches / virtual env / tooling artifacts
 
@@ -27,11 +27,11 @@
 | `custom_components/lipro/control/entry_lifecycle_failures.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/control/models.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/control/redaction.py` | Control | Phase 3 | 保留 | - |
-| `custom_components/lipro/control/runtime_access.py` | Control | Phase 3 / 40 | 保留 | formal runtime read-model home |
+| `custom_components/lipro/control/runtime_access.py` | Control | Phase 3 / 40 / 43 | 保留 | typed runtime read-model + diagnostics projection home |
 | `custom_components/lipro/control/service_registry.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/control/service_router.py` | Control | Phase 3 / 14 / 15 / 37 | 保留 | public router shell over focused handler/support collaborators |
 | `custom_components/lipro/control/service_router_handlers.py` | Control | Phase 37 | 保留 | private control-plane handler implementations home |
-| `custom_components/lipro/control/service_router_support.py` | Control | Phase 37 | 保留 | router lookup/logging/runtime-iterator helper home |
+| `custom_components/lipro/control/service_router_support.py` | Control | Phase 37 / 43 | 保留 | control-owned device/coordinator bridge + router helper home |
 | `custom_components/lipro/control/system_health_surface.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/control/telemetry_surface.py` | Control | Phase 7.3 | 保留 | - |
 | `custom_components/lipro/coordinator_entry.py` | Control | Phase 3 | 保留 | - |
@@ -250,21 +250,21 @@
 | `custom_components/lipro/helpers/__init__.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/helpers/platform.py` | Domain | Phase 4 | 保留 | - |
 | `custom_components/lipro/light.py` | Domain | Phase 4 | 保留 | - |
-| `custom_components/lipro/runtime_infra.py` | Control | Phase 3 | 保留 | - |
+| `custom_components/lipro/runtime_infra.py` | Control | Phase 3 / 43 | 保留 | device-registry listener + pending reload ownership home |
 | `custom_components/lipro/runtime_types.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/select.py` | Domain | Phase 4 | 保留 | - |
 | `custom_components/lipro/sensor.py` | Domain | Phase 4 | 保留 | - |
 | `custom_components/lipro/services/__init__.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/services/command.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/services/contracts.py` | Control | Phase 3 | 保留 | - |
-| `custom_components/lipro/services/device_lookup.py` | Control | Phase 3 / 40 | 保留 | runtime_access-backed device/coordinator lookup |
+| `custom_components/lipro/services/device_lookup.py` | Control | Phase 3 / 43 | 保留 | service-facing target -> device_id resolver only |
 | `custom_components/lipro/services/diagnostics/__init__.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/services/diagnostics/handlers.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/services/diagnostics/helpers.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/services/diagnostics/types.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/services/errors.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/services/execution.py` | Control | Phase 3 / 5 / 7 | 保留 | formal service execution facade; private auth seam closed |
-| `custom_components/lipro/services/maintenance.py` | Control | Phase 3 / 40 | 保留 | runtime_access-backed entry/coordinator refresh enumeration |
+| `custom_components/lipro/services/maintenance.py` | Control | Phase 3 / 40 / 43 | 保留 | refresh_devices thin adapter over runtime_access entry/coordinator pairs |
 | `custom_components/lipro/services/registrations.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/services/registry.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/services/schedule.py` | Control | Phase 3 / 40 | 保留 | schedule service surface routed through shared execution facade |
@@ -275,6 +275,7 @@
 | `scripts/__init__.py` | Assurance | Phase 6 / 7 | 保留 | - |
 | `scripts/agent_worker.py` | Assurance | Phase 6 / 7 | 保留 | - |
 | `scripts/check_architecture_policy.py` | Assurance | Phase 7.2 | 保留 | - |
+| `scripts/check_benchmark_baseline.py` | Assurance | Phase 45 | 保留 | benchmark baseline contract checker |
 | `scripts/check_file_matrix.py` | Assurance | Phase 6 / 7 | 保留 | - |
 | `scripts/check_translations.py` | Assurance | Phase 6 / 7 | 保留 | - |
 | `scripts/coverage_diff.py` | Assurance | Phase 6 / 7 | 保留 | - |
@@ -283,6 +284,7 @@
 | `scripts/refactor_tools.py` | Assurance | Phase 6 / 7 | 保留 | - |
 | `tests/__init__.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `tests/benchmarks/__init__.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `tests/benchmarks/benchmark_baselines.json` | Cross-cutting | Phase 45 | 保留 | benchmark baseline manifest |
 | `tests/benchmarks/test_command_benchmark.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `tests/benchmarks/test_coordinator_performance.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `tests/benchmarks/test_device_refresh_benchmark.py` | Cross-cutting | Phase 7 | 保留 | - |
@@ -476,19 +478,20 @@
 | `tests/meta/test_external_boundary_authority.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_external_boundary_fixtures.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_firmware_support_manifest_repo_asset.py` | Assurance | Phase 6 | 保留 | - |
-| `tests/meta/test_governance_closeout_guards.py` | Assurance | Phase 27 | 保留 | - |
+| `tests/meta/test_governance_closeout_guards.py` | Assurance | Phase 27 / 44 | 保留 | promoted-asset / execution-trace closeout topic root |
 | `tests/meta/test_governance_guards.py` | Assurance | Phase 33 | 保留 | inventory / policy governance topic root |
-| `tests/meta/test_governance_phase_history.py` | Assurance | Phase 33 / 37 | 保留 | phase-history planning/closeout topic root |
+| `tests/meta/test_governance_phase_history.py` | Assurance | Phase 33 / 37 / 44 | 保留 | phase-history planning/closeout + contributor-boundary topic root |
 | `tests/meta/test_governance_phase_history_runtime.py` | Assurance | Phase 37 | 保留 | runtime closeout phase-history topic home |
 | `tests/meta/test_governance_phase_history_topology.py` | Assurance | Phase 37 | 保留 | topology closeout phase-history topic home |
-| `tests/meta/test_governance_release_contract.py` | Assurance | Phase 33 | 保留 | release / contributor contract governance topic home |
+| `tests/meta/test_governance_release_contract.py` | Assurance | Phase 33 / 44 | 保留 | release / contributor contract + navigation-boundary governance topic home |
 | `tests/meta/test_install_sh_guards.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_modularization_surfaces.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_phase31_runtime_budget_guards.py` | Assurance | Phase 6 | 保留 | - |
+| `tests/meta/test_phase45_hotspot_budget_guards.py` | Assurance | Phase 45 | 保留 | diagnostics/share/message typed-budget no-growth guard |
 | `tests/meta/test_protocol_replay_assets.py` | Assurance | Phase 7.4 | 保留 | - |
 | `tests/meta/test_public_surface_guards.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_service_translation_sync.py` | Assurance | Phase 6 | 保留 | - |
-| `tests/meta/test_toolchain_truth.py` | Assurance | Phase 16 | 保留 | - |
+| `tests/meta/test_toolchain_truth.py` | Assurance | Phase 16 / 44 | 保留 | toolchain + docs navigation + terminology truth guard home |
 | `tests/meta/test_translation_tree_sync.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_version_sync.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/platforms/__init__.py` | Domain | Phase 4 | 保留 | - |

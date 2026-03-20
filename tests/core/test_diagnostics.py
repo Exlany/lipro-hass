@@ -317,12 +317,16 @@ class TestAsyncGetConfigEntryDiagnostics:
 
         with (
             patch(
-                "custom_components.lipro.control.diagnostics_surface.build_runtime_snapshot",
+                "custom_components.lipro.control.diagnostics_surface.build_runtime_diagnostics_projection",
                 return_value=MagicMock(
-                    last_update_success=False,
-                    device_count=0,
-                    mqtt_connected=False,
-                    failure_summary=failure_summary,
+                    snapshot=MagicMock(
+                        last_update_success=False,
+                        device_count=0,
+                        mqtt_connected=False,
+                        failure_summary=failure_summary,
+                    ),
+                    update_interval="0:00:30",
+                    degraded_fields=(),
                 ),
             ),
             patch(
@@ -704,11 +708,11 @@ class TestAsyncGetDeviceDiagnostics:
         device_entry.identifiers = {(DOMAIN, "03ab5ccd7c111111")}
 
         with patch(
-            "custom_components.lipro.control.diagnostics_surface.find_runtime_device",
+            "custom_components.lipro.control.diagnostics_surface.find_runtime_device_for_entry",
             return_value=device,
         ) as runtime_lookup:
             result = await async_get_device_diagnostics(hass, entry, device_entry)
 
-        runtime_lookup.assert_called_once_with(coordinator, "03ab5ccd7c111111")
+        runtime_lookup.assert_called_once_with(entry, "03ab5ccd7c111111")
         assert result["device"]
 

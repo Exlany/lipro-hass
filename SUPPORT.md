@@ -9,6 +9,8 @@
 | Security-sensitive report | `SECURITY.md` | Use private disclosure, not a public Issue |
 | Maintainer release / packaging flow | `docs/MAINTAINER_RELEASE_RUNBOOK.md` | Maintainer-only; do not bypass release gates |
 
+If you only need public user / contributor routing, the table above plus `docs/TROUBLESHOOTING.md` / `SECURITY.md` is the fast path. The continuity section below is the maintainer appendix.
+
 ## Version & Validation Truth
 
 - Minimum supported Home Assistant version: `2026.3.1` (canonical source: `pyproject.toml`).
@@ -30,7 +32,7 @@
 - Older tagged releases: best effort only unless the issue is a still-open security or data-loss regression
 - `main` / preview installer flows: best effort only, not a stable support target
 
-## Maintainer Model / Triage Ownership
+## Maintainer Appendix / Triage Ownership
 
 This repository currently follows a single-maintainer review model. No documented delegate or backup maintainer exists today in `.github/CODEOWNERS`, so triage and release timing may be asynchronous; high-risk issues must still be recorded explicitly rather than silently deferred.
 

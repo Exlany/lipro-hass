@@ -1,4 +1,4 @@
-"""Device/coordinator lookup helpers for Lipro services."""
+"""Device-id resolution helpers for Lipro services."""
 
 from __future__ import annotations
 
@@ -10,10 +10,6 @@ from homeassistant.const import ATTR_ENTITY_ID
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers import entity_registry as er
-
-from ..control.runtime_access import find_runtime_device_and_coordinator
-from ..core.device import LiproDevice
-from ..runtime_types import LiproCoordinator
 
 
 @runtime_checkable
@@ -120,31 +116,3 @@ def resolve_device_id_from_service_call(
         )
 
     return resolved_device_id
-
-
-async def get_device_and_coordinator(
-    hass: HomeAssistant,
-    call: ServiceCall,
-    *,
-    domain: str,
-    serial_pattern: Pattern[str],
-    attr_device_id: str,
-) -> tuple[LiproDevice, LiproCoordinator]:
-    """Resolve one runtime device and its owning coordinator from a service call."""
-    device_id = resolve_device_id_from_service_call(
-        hass,
-        call,
-        domain=domain,
-        serial_pattern=serial_pattern,
-        attr_device_id=attr_device_id,
-    )
-
-    resolved = find_runtime_device_and_coordinator(hass, device_id=device_id)
-    if resolved is not None:
-        return resolved
-
-    raise ServiceValidationError(
-        translation_domain=domain,
-        translation_key="device_not_found",
-        translation_placeholders={"device_id": device_id},
-    )

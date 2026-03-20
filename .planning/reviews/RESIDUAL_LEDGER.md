@@ -36,6 +36,7 @@
 - 每条 residual 至少要给出 **当前样本、owner、exit condition**，否则不算正式登记。
 - 任何 residual 若进入第二个 phase 仍未收敛，必须解释为何继续存在。
 - compat / mixin / legacy public-name residual 只允许存在于显式 compat shell / adapters 中，不得继续散落在正式 public surface 与业务逻辑内部。
+- 本账本允许保留 legacy `Client` / `Mixin` / compat symbol 名称，但仅用于 archive / delete-gate / symbol-identity 说明；它们不得回流为当前架构术语。
 
 ## Phase 01 Closeout Review
 
@@ -188,7 +189,7 @@
 - 本 phase **无新增 residual family**：收口的是既有 support/governance/tooling truth，而不是引入新的 compat 层。
 - `_ClientBase` / helper mixin family 继续仅作为 `core/api` 本地 residual；`FILE_MATRIX` 与 `PUBLIC_SURFACES` 已显式写明 locality / ownership。
 - `LiproMqttClient` direct-transport residual 已完成 physical rename closeout；`core/mqtt/transport.py` + package no-export 现为唯一有效故事。
-- `coverage_diff.py`、benchmark lane 与 dev `pip-audit` 现已被裁决为明确工具语义 / advisory policy，而不是 residual family。
+- `coverage_diff.py`、benchmark baseline/threshold lane 与 dev `pip-audit` 现已被裁决为明确工具语义 / governed quality policy，而不是 residual family。
 
 ## Phase 16 Residual Delta
 
@@ -306,3 +307,21 @@
 - `custom_components/lipro/services/execution.py` 继续明确保持为 formal service execution facade；`schedule.py` 现已复用 shared executor，不再维护局部 auth/error chain，也不会回流为 active residual / kill target。
 - `custom_components/lipro/core/api/endpoint_surface.py` 与 `rest_facade_endpoint_methods.py` 的 touched 语义继续收口到 endpoint operations / façade wording；历史 `forwarding` 只保留在归档语境，不再作为当前架构口径。
 - 本 phase **无新增 active residual family / compat shell / second-root story**；关闭的是 governance truth layering、runtime read-model 散点与 schedule execution duplication。
+
+## Phase 43 Residual Delta
+
+- `custom_components/lipro/control/runtime_access.py` 现已承接 typed diagnostics/system-health projection；`diagnostics_surface.py` 不再混搭 coordinator internals 与 ad-hoc runtime mapping 读取。
+- `custom_components/lipro/runtime_infra.py` 现已收回 device-registry listener / pending reload task ownership；`services/maintenance.py` 只保留 `refresh_devices` thin adapter。
+- `custom_components/lipro/services/device_lookup.py` 已降为 service-facing device-id resolver；`control/service_router_support.py` 成为最终 `(device, coordinator)` bridge。本 phase **无新增 active residual family / second control root**；关闭的是 helper-owned runtime truth 与 listener ownership 混淆。
+
+## Phase 44 Residual Delta
+
+- legacy `Client` / `Mixin` / `forwarding` symbol 名称现已被明确隔离到 residual / archive 语境；active ADR、baseline 与 docs index 统一改讲 `protocol` / `façade` / `operations` 语言。
+- contributor fast-path、maintainer appendix 与 bilingual boundary 现已在 `README.md` / `README_zh.md`、`CONTRIBUTING.md`、`docs/README.md`、`SUPPORT.md`、`SECURITY.md` 与 PR template 中显式分层；维护者 continuity 真相继续保留在深层附录，不再压回根入口。
+- 本 phase **无新增 active residual family / compat shell / future kill target**；收口的是 governance 噪音、术语漂移与入口边界，而不是新增 delete campaign。
+
+## Phase 45 Residual Delta
+
+- `custom_components/lipro/core/protocol/boundary/rest_decoder_support.py` 已沿 localized helper seams 继续瘦身；`rest_decoder.py` 现拥有 schedule/MQTT endpoint-scoped decode logic，但 formal decoder boundary 与 public surface 未扩张。
+- diagnostics/share/message touched-zone 现已共享 typed `OperationOutcome` / reason-code 语义；旧 bool wrappers 只保留为兼容薄壳，不再代表 active truth。
+- benchmark lane 现已拥有 baseline manifest 与 threshold semantics，同时继续保持 `schedule` / `workflow_dispatch` maintainer-facing 边界；本 phase **无新增 active residual family / second governance story**。

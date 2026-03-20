@@ -141,7 +141,7 @@
 
 - 本 phase **无新增 file-level kill target**；developer feedback/upload truth、governance/source-path truth 与 tooling semantics 只做裁决与收口。
 - `_ClientBase` 与 `LiproMqttClient` 的 delete gate 维持不变，但 `FILE_MATRIX` / `PUBLIC_SURFACES` / `RESIDUAL_LEDGER` 现已明确写出 locality / ownership。
-- `coverage_diff.py` 被保留为 coverage floor + optional baseline diff 工具；benchmark 与 dev `pip-audit` 被明确为 advisory lanes，不进入 kill list。
+- `coverage_diff.py` 被保留为 coverage floor + optional baseline diff 工具；benchmark baseline/threshold lane 与 dev `pip-audit` 都已有明确治理语义，不进入 kill list。
 
 ## Phase 16 Status Update
 
@@ -218,3 +218,21 @@
 
 - `custom_components/lipro/services/execution.py` 明确保留为 formal service execution facade；Phase 40 只允许围绕 shared execution contract 收口，不得把它重新登记为 active kill target。
 - 本 phase **无新增 active kill target**；`runtime_access` helpers、governance registry truth 与 endpoint-operations wording 都是 formal truth closure，不是新的 delete campaign。
+
+## Phase 43 Status Update
+
+- 本 phase **无新增 active kill target**；typed runtime projection、maintenance demotion 与 service-router boundary 收敛都是 formal truth closeout，不是新增 delete campaign。
+- `custom_components/lipro/services/device_lookup.py` 与 `custom_components/lipro/services/maintenance.py` 继续保留，但仅作为 service-facing helper / thin adapter；它们不是 future kill target，也不得回流为 runtime/control ownership home。
+- `custom_components/lipro/runtime_infra.py` 与 `custom_components/lipro/control/service_router_support.py` 当前是正式 ownership homes；后续若继续优化，只能做局部收敛，不能重新打开第二条 helper-owned listener/runtime story。
+
+## Phase 44 Status Update
+
+- 本 phase **无新增 active kill target**；`README.md` / `README_zh.md`、`CONTRIBUTING.md`、`docs/README.md`、`SUPPORT.md`、`SECURITY.md` 与 PR template 都是正式入口契约，不是临时治理脚手架。
+- `.planning/reviews/PROMOTED_PHASE_ASSETS.md` 继续明确保持 promoted allowlist 身份；`44-SUMMARY.md` 与 `44-VERIFICATION.md` 被提升为长期证据，其余 `44-0x-SUMMARY.md` 与 plan/context/research 资产继续保持 execution-trace 身份。
+- 旧术语的剩余承载点现只允许停留在 residual / archive 语境；这是一条 boundary hygiene contract，不是新的 file-delete campaign。
+
+## Phase 45 Status Update
+
+- 本 phase **无新增 active kill target**；decoder hotspot slimming、typed outcome vocabulary 收口与 benchmark governance hardening 都是 formal home refinement，不是新的 delete campaign。
+- `scripts/check_benchmark_baseline.py` 与 `tests/benchmarks/benchmark_baselines.json` 现已被确认为正式 benchmark governance artifacts，不是临时实验脚手架。
+- `45-SUMMARY.md` 与 `45-VERIFICATION.md` 已提升为长期证据；其余 `45-0x-SUMMARY.md` 与 plan/context/research 资产继续保持 execution-trace 身份。

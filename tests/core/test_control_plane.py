@@ -14,6 +14,7 @@ from custom_components.lipro import (
     async_unload_entry,
 )
 from custom_components.lipro.const.base import DOMAIN
+from tests.helpers.service_call import service_call
 
 
 @pytest.mark.asyncio
@@ -186,6 +187,76 @@ def test_find_runtime_device_and_coordinator_prefers_formal_lookup_helpers(hass)
     coordinator.get_device_by_id.assert_called_once_with("alias")
 
 
+@pytest.mark.asyncio
+async def test_service_router_support_resolves_device_via_service_and_runtime_bridges(
+    hass,
+) -> None:
+    import re
+
+    from custom_components.lipro.control.service_router_support import (
+        async_get_device_and_coordinator,
+    )
+
+    call = service_call(hass, {})
+    serial_pattern = re.compile(r"03ab[0-9a-f]{12}", re.IGNORECASE)
+    device = MagicMock(name="device")
+    coordinator = MagicMock(name="runtime")
+
+    with patch(
+        "custom_components.lipro.control.service_router_support.resolve_device_id_from_service_call",
+        return_value="03ab0000000000a1",
+    ) as resolve_device_id, patch(
+        "custom_components.lipro.control.service_router_support.find_runtime_device_and_coordinator",
+        return_value=(device, coordinator),
+    ) as runtime_lookup:
+        resolved = await async_get_device_and_coordinator(
+            hass,
+            call,
+            domain=DOMAIN,
+            serial_pattern=serial_pattern,
+            attr_device_id="device_id",
+        )
+
+    assert resolved == (device, coordinator)
+    resolve_device_id.assert_called_once_with(
+        hass,
+        call,
+        domain=DOMAIN,
+        serial_pattern=serial_pattern,
+        attr_device_id="device_id",
+    )
+    runtime_lookup.assert_called_once_with(hass, device_id="03ab0000000000a1")
+
+
+@pytest.mark.asyncio
+async def test_service_router_support_raises_when_runtime_device_is_missing(hass) -> None:
+    import re
+
+    from custom_components.lipro.control.service_router_support import (
+        async_get_device_and_coordinator,
+    )
+    from homeassistant.exceptions import ServiceValidationError
+
+    serial_pattern = re.compile(r"03ab[0-9a-f]{12}", re.IGNORECASE)
+
+    with patch(
+        "custom_components.lipro.control.service_router_support.resolve_device_id_from_service_call",
+        return_value="03ab0000000000a1",
+    ), patch(
+        "custom_components.lipro.control.service_router_support.find_runtime_device_and_coordinator",
+        return_value=None,
+    ), pytest.raises(ServiceValidationError) as exc_info:
+        await async_get_device_and_coordinator(
+            hass,
+            service_call(hass, {}),
+            domain=DOMAIN,
+            serial_pattern=serial_pattern,
+            attr_device_id="device_id",
+        )
+
+    assert exc_info.value.translation_key == "device_not_found"
+
+
 def test_build_single_runtime_coordinator_iterator_returns_stable_singleton(
     hass,
 ) -> None:
@@ -221,3 +292,42 @@ def test_runtime_access_filters_debug_runtime_coordinators(hass) -> None:
 
     assert coordinators == [debug_entry.runtime_data]
     assert has_debug_mode_runtime_entry(hass) is True
+
+
+def test_runtime_diagnostics_projection_exposes_typed_projection() -> None:
+    from custom_components.lipro.control.runtime_access import (
+        build_runtime_diagnostics_projection,
+    )
+
+    coordinator = MagicMock()
+    coordinator.last_update_success = False
+    coordinator.update_interval = "0:00:30"
+    coordinator.devices = {}
+    entry = MagicMock()
+    entry.entry_id = "entry-1"
+    entry.options = {}
+    entry.runtime_data = coordinator
+
+    with patch(
+        "custom_components.lipro.control.runtime_access.build_entry_system_health_view",
+        return_value={
+            "entry_ref": "entry_deadbeef",
+            "device_count": 5,
+            "mqtt_connected": True,
+            "last_update_success": True,
+            "failure_summary": {
+                "failure_category": "network",
+                "failure_origin": "protocol.mqtt",
+                "handling_policy": "retry",
+                "error_type": "TimeoutError",
+            },
+        },
+    ):
+        projection = build_runtime_diagnostics_projection(entry)
+
+    assert projection is not None
+    assert projection.snapshot.entry_ref == "entry_deadbeef"
+    assert projection.snapshot.device_count == 5
+    assert projection.snapshot.mqtt_connected is True
+    assert projection.update_interval == "0:00:30"
+    assert projection.degraded_fields == ()

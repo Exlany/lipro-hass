@@ -12,9 +12,9 @@
 
 ## 决策
 
-1. 保持显式依赖方向：`Entity -> Service -> Runtime -> Client`
+1. 保持显式依赖方向：`Entity -> Service -> Runtime -> Protocol façade`
 2. 保持 `RuntimeContext` 作为 coordinator 回调注入协议
-3. 组合优于继承适用于所有层；`API Client`、`Diagnostics`、`Flow` 也不以 mixin 聚合作为正式架构
+3. 组合优于继承适用于所有层；协议 façade、`Diagnostics`、`Flow` 也不以继承驱动聚合作为正式架构
 4. 保持 `dataclasses` + TypedDict / 类型别名作为默认类型建模方式
 5. 保持 `uv + ruff + mypy + pytest` 作为默认验证栈
 6. 重型技术只允许在边界层、且必须有明确触发条件时再评估
@@ -36,7 +36,7 @@
 
 - 通用 DI 容器：当前依赖图规模不足以证明收益
 - 事件总线替代显式调用链：会削弱可追踪性与可调试性
-- 以“某一层特殊”为理由继续保留 mixin 聚合：会制造双标准并增加理解成本
+- 以“某一层特殊”为理由继续保留继承驱动聚合：会制造双标准并增加理解成本
 - 全域 `pydantic` 化：样板与运行时成本偏高，不适合当前体量
 - 本地状态持久化 / 仓储模式：当前以内存协调状态为主，复杂度不匹配
 
@@ -44,7 +44,7 @@
 
 - 架构仍有提升空间，但优先级应落在 ADR、契约测试、可观测性、边界 schema，而不是大规模技术换血
 - 若未来要引入更强类型库，例如 `pydantic v2` 或 `msgspec`，应限定在外部协议边界，而非全域替换
-- `API Client` 的目标态也应是显式 facade + collaborators；任何 mixin 聚合都只应被视为迁移残留
+- `REST / protocol façade` 的目标态也应是显式 façade + collaborators；任何继承驱动聚合都只应被视为迁移残留
 
 ## 重议触发器
 

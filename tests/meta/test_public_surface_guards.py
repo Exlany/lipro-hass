@@ -402,3 +402,12 @@ def test_phase_40_ledgers_keep_service_execution_formal_and_non_delete_target() 
     assert "formal service execution facade" in kill_text
     assert "active kill target" in kill_text
 
+def test_phase_43_public_surface_notes_capture_typed_runtime_and_thin_helpers() -> None:
+    public_surfaces = _PUBLIC_SURFACES.read_text(encoding="utf-8")
+
+    assert "## Phase 43 Control / Runtime Boundary Notes" in public_surfaces
+    assert "typed diagnostics/system-health projection" in public_surfaces
+    assert "control/service_router_support.py" in public_surfaces
+    assert "services/device_lookup.py` 只保留 service-facing `device_id` resolution" in public_surfaces
+    assert "runtime_infra.py` 成为 device-registry listener" in public_surfaces
+

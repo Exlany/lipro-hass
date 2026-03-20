@@ -13,11 +13,11 @@ from custom_components.lipro.const.base import DOMAIN
 from custom_components.lipro.control.runtime_access import (
     iter_runtime_entry_coordinators,
 )
-from custom_components.lipro.services.maintenance import (
+from custom_components.lipro.runtime_infra import (
     _iter_lipro_config_entry_ids_for_device,
-    async_handle_refresh_devices,
     async_setup_device_registry_listener,
 )
+from custom_components.lipro.services.maintenance import async_handle_refresh_devices
 from tests.helpers.service_call import service_call
 
 
@@ -90,7 +90,7 @@ def test_device_registry_listener_ignores_invalid_device_id() -> None:
     )
     callback = hass.bus.async_listen.call_args.args[1]
 
-    with patch("custom_components.lipro.services.maintenance.dr.async_get") as dr_get:
+    with patch("custom_components.lipro.runtime_infra.dr.async_get") as dr_get:
         callback(
             SimpleNamespace(
                 data={
@@ -128,7 +128,7 @@ def test_device_registry_listener_ignores_unchanged_disabled_state() -> None:
     registry.async_get.return_value = device_entry
 
     with patch(
-        "custom_components.lipro.services.maintenance.dr.async_get",
+        "custom_components.lipro.runtime_infra.dr.async_get",
         return_value=registry,
     ):
         callback(
@@ -179,7 +179,7 @@ def test_device_registry_listener_skips_entry_already_pending_reload() -> None:
     hass.async_create_task = MagicMock(side_effect=_capture_task)
 
     with patch(
-        "custom_components.lipro.services.maintenance.dr.async_get",
+        "custom_components.lipro.runtime_infra.dr.async_get",
         return_value=registry,
     ):
         event = SimpleNamespace(
@@ -232,7 +232,7 @@ def test_device_registry_listener_cancels_pending_reload_tasks_on_unsubscribe() 
     callback = hass.bus.async_listen.call_args.args[1]
 
     with patch(
-        "custom_components.lipro.services.maintenance.dr.async_get",
+        "custom_components.lipro.runtime_infra.dr.async_get",
         return_value=registry,
     ):
         callback(
@@ -291,7 +291,7 @@ def test_device_registry_listener_clears_failed_reload_tasks() -> None:
     callback = hass.bus.async_listen.call_args.args[1]
 
     with patch(
-        "custom_components.lipro.services.maintenance.dr.async_get",
+        "custom_components.lipro.runtime_infra.dr.async_get",
         return_value=registry,
     ):
         event = SimpleNamespace(

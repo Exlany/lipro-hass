@@ -4,9 +4,12 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock
 
+import pytest
+
 from custom_components.lipro.core.mqtt.message_processor import MqttMessageProcessor
 
 
+@pytest.mark.benchmark(group="mqtt")
 def test_mqtt_message_processing_benchmark(benchmark) -> None:
     processor = MqttMessageProcessor("biz001")
     message = MagicMock(

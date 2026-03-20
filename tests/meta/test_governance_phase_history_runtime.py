@@ -6,6 +6,7 @@ from .test_governance_closeout_guards import _assert_promoted_phase_assets
 from .test_governance_guards import (
     _AGENTS,
     _ROOT,
+    _assert_current_mode_tracks_phase_lifecycle,
     _assert_state_preserves_phase_17_closeout_history,
 )
 
@@ -323,3 +324,67 @@ def test_phase_36_execution_evidence_is_consistent() -> None:
     assert "# Phase 36 Verification" in verification_text
     assert "CoordinatorPollingService" in verification_text
     assert "phase: 36" in summary_text
+
+def test_phase_43_execution_truth_is_consistent() -> None:
+    phase_root = (
+        _ROOT
+        / ".planning"
+        / "phases"
+        / "43-control-services-boundary-decoupling-and-typed-runtime-access"
+    )
+    roadmap_text = (_ROOT / ".planning" / "ROADMAP.md").read_text(encoding="utf-8")
+    requirements_text = (_ROOT / ".planning" / "REQUIREMENTS.md").read_text(
+        encoding="utf-8"
+    )
+    state_text = (_ROOT / ".planning" / "STATE.md").read_text(encoding="utf-8")
+    public_text = (_ROOT / ".planning" / "baseline" / "PUBLIC_SURFACES.md").read_text(
+        encoding="utf-8"
+    )
+    dependency_text = (
+        _ROOT / ".planning" / "baseline" / "DEPENDENCY_MATRIX.md"
+    ).read_text(encoding="utf-8")
+    verification_matrix_text = (
+        _ROOT / ".planning" / "baseline" / "VERIFICATION_MATRIX.md"
+    ).read_text(encoding="utf-8")
+    file_matrix_text = (_ROOT / ".planning" / "reviews" / "FILE_MATRIX.md").read_text(
+        encoding="utf-8"
+    )
+    residual_text = (_ROOT / ".planning" / "reviews" / "RESIDUAL_LEDGER.md").read_text(
+        encoding="utf-8"
+    )
+    kill_text = (_ROOT / ".planning" / "reviews" / "KILL_LIST.md").read_text(
+        encoding="utf-8"
+    )
+    summary_text = (phase_root / "43-SUMMARY.md").read_text(encoding="utf-8")
+    verification_text = (phase_root / "43-VERIFICATION.md").read_text(
+        encoding="utf-8"
+    )
+
+    _assert_promoted_phase_assets(
+        "43-control-services-boundary-decoupling-and-typed-runtime-access",
+        "43-SUMMARY.md",
+        "43-VERIFICATION.md",
+    )
+
+    assert "### Phase 43: Control-services boundary decoupling and typed runtime access" in roadmap_text
+    assert "**Status**: Complete (`2026-03-20`)" in roadmap_text
+    assert "**Plans**: 4/4 complete" in roadmap_text
+    for req_id in ("ARC-04", "CTRL-10", "RUN-07"):
+        assert f"| {req_id} | Phase 43 | Completed |" in requirements_text
+    _assert_current_mode_tracks_phase_lifecycle(state_text)
+    assert "Phase 45 complete closeout-ready" in state_text
+    assert "$gsd-complete-milestone v1.6" in state_text
+    assert "## Phase 43 Control / Runtime Boundary Notes" in public_text
+    assert "## Phase 43 Control / Service Boundary Clarifications" in dependency_text
+    assert "## Phase 43 Control / Runtime / Service Boundary Contract" in verification_matrix_text
+    assert "custom_components/lipro/runtime_infra.py" in file_matrix_text
+    assert "custom_components/lipro/control/service_router_support.py" in file_matrix_text
+    assert "## Phase 43 Residual Delta" in residual_text
+    assert "## Phase 43 Status Update" in kill_text
+    assert "phase: 43" in summary_text
+    assert "status: passed" in summary_text
+    assert "171 passed" in summary_text
+    assert "# Phase 43 Verification" in verification_text
+    assert "status: passed" in verification_text
+    assert "typed `RuntimeAccess`" in verification_text
+

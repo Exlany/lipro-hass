@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from custom_components.lipro.control import service_router
+from custom_components.lipro.control import service_router, service_router_support
 from custom_components.lipro.services.registrations import SERVICE_REGISTRATIONS
 from custom_components.lipro.services.registry import (
     ServiceRegistration,
@@ -50,4 +50,11 @@ def test_service_registrations_bind_formal_router_handlers() -> None:
     assert all(
         registration.handler.__module__ == service_router.__name__
         for registration in SERVICE_REGISTRATIONS
+    )
+
+
+def test_service_router_device_getter_stays_control_owned() -> None:
+    """The router-bound device getter must stay in the control plane."""
+    assert service_router._get_device_and_coordinator.func.__module__ == (
+        service_router_support.__name__
     )

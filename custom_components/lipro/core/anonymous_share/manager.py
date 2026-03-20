@@ -17,12 +17,14 @@ from __future__ import annotations
 
 import asyncio
 from dataclasses import dataclass, field
+from inspect import isawaitable
 import logging
 import time
 from typing import TYPE_CHECKING
 
 import aiohttp
 
+from ..telemetry.models import OperationOutcome, build_operation_outcome
 from .collector import AnonymousShareCollector
 from .const import (
     AUTO_UPLOAD_INTERVAL,
@@ -59,6 +61,7 @@ class _ScopeState:
     storage_path: str | None = None
     cache_loaded: bool = True
     storage_key: str = _DEFAULT_SCOPE
+    last_submit_outcome: OperationOutcome | None = None
 
 
 class AnonymousShareManager:
@@ -221,6 +224,11 @@ class AnonymousShareManager:
         return device_total, error_total
 
     @property
+    def last_submit_outcome(self) -> OperationOutcome | None:
+        """Return the latest typed submit outcome for this manager view."""
+        return self._state.last_submit_outcome
+
+    @property
     def _install_token(self) -> str | None:
         """Expose install-token state for tests (never persisted)."""
         return self._share_client.install_token
@@ -355,6 +363,42 @@ class AnonymousShareManager:
             return None
         return self.build_report()
 
+    async def _submit_share_payload_with_outcome(
+        self,
+        session: aiohttp.ClientSession,
+        report: dict[str, object],
+        *,
+        label: str,
+    ) -> OperationOutcome:
+        """Submit one payload while bridging bool-only mocks to typed outcomes."""
+        submit_with_outcome = getattr(
+            self._share_client,
+            "submit_share_payload_with_outcome",
+            None,
+        )
+        if callable(submit_with_outcome):
+            maybe_outcome = submit_with_outcome(
+                session,
+                report,
+                label=label,
+                ensure_loaded=self.async_ensure_loaded,
+            )
+            if isawaitable(maybe_outcome):
+                resolved_outcome = await maybe_outcome
+                if isinstance(resolved_outcome, OperationOutcome):
+                    return resolved_outcome
+
+        success = await self._share_client.submit_share_payload(
+            session,
+            report,
+            label=label,
+            ensure_loaded=self.async_ensure_loaded,
+        )
+        return build_operation_outcome(
+            kind=("success" if success else "failed"),
+            reason_code=("submitted" if success else "submit_failed"),
+        )
+
     async def _async_submit_share_payload(
         self,
         session: aiohttp.ClientSession,
@@ -363,12 +407,13 @@ class AnonymousShareManager:
         label: str,
     ) -> bool:
         """Submit one prepared payload through the current scope's share client."""
-        return await self._share_client.submit_share_payload(
+        outcome = await self._submit_share_payload_with_outcome(
             session,
             report,
             label=label,
-            ensure_loaded=self.async_ensure_loaded,
         )
+        self._state.last_submit_outcome = outcome
+        return outcome.is_success
 
     def _has_pending_report_data(self) -> bool:
         """Return whether the current scope has reportable pending data."""
@@ -424,12 +469,13 @@ class AnonymousShareManager:
                 ha_version=state.ha_version,
                 feedback=feedback,
             )
-            if not await state.share_client.submit_share_payload(
+            outcome = await self._submit_share_payload_with_outcome(
                 session,
                 report,
                 label="Developer feedback",
-                ensure_loaded=self.async_ensure_loaded,
-            ):
+            )
+            state.last_submit_outcome = outcome
+            if not outcome.is_success:
                 return False
             _LOGGER.info("Developer feedback report submitted")
             return True
@@ -440,8 +486,19 @@ class AnonymousShareManager:
         """Submit the anonymous share report to the server."""
         if self._aggregate:
             success = True
+            aggregate_outcome: OperationOutcome | None = None
             for manager in self._iter_managers():
-                success = await manager.submit_report(session, force=force) and success
+                child_success = await manager.submit_report(session, force=force)
+                success = child_success and success
+                child_outcome = manager.last_submit_outcome
+                if child_outcome is None:
+                    continue
+                if aggregate_outcome is None:
+                    aggregate_outcome = child_outcome
+            self._state.last_submit_outcome = aggregate_outcome or build_operation_outcome(
+                kind=("success" if success else "failed"),
+                reason_code=("submitted" if success else "submit_failed"),
+            )
             return success
         if not self._collector.is_enabled:
             return False
