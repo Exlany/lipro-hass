@@ -295,6 +295,8 @@ def test_milestone_archive_snapshots_exist_and_are_referenced() -> None:
         _ROOT / ".planning" / "milestones" / "v1.4-REQUIREMENTS.md",
         _ROOT / ".planning" / "milestones" / "v1.5-ROADMAP.md",
         _ROOT / ".planning" / "milestones" / "v1.5-REQUIREMENTS.md",
+        _ROOT / ".planning" / "milestones" / "v1.6-ROADMAP.md",
+        _ROOT / ".planning" / "milestones" / "v1.6-REQUIREMENTS.md",
     )
 
     for path in archive_paths:
@@ -309,6 +311,8 @@ def test_milestone_archive_snapshots_exist_and_are_referenced() -> None:
         "v1.4-REQUIREMENTS.md",
         "v1.5-ROADMAP.md",
         "v1.5-REQUIREMENTS.md",
+        "v1.6-ROADMAP.md",
+        "v1.6-REQUIREMENTS.md",
     ):
         assert needle in roadmap_text
         assert needle in requirements_text or needle in project_text or needle in milestones_text
@@ -677,6 +681,103 @@ def test_phase_39_planning_truth_is_consistent() -> None:
     assert "## Phase 39 Status Update" in kill_text
 
 
+
+
+def test_v1_6_closeout_assets_exist_and_are_pull_only() -> None:
+    evidence_index = _ROOT / ".planning" / "reviews" / "V1_6_EVIDENCE_INDEX.md"
+    milestone_audit = _ROOT / ".planning" / "v1.6-MILESTONE-AUDIT.md"
+
+    assert evidence_index.exists()
+    assert milestone_audit.exists()
+    assert (_ROOT / ".planning" / "milestones" / "v1.6-ROADMAP.md").exists()
+    assert (_ROOT / ".planning" / "milestones" / "v1.6-REQUIREMENTS.md").exists()
+    _assert_promoted_phase_assets(
+        "42-delivery-trust-gates-and-validation-hardening",
+        "42-SUMMARY.md",
+        "42-VERIFICATION.md",
+    )
+    _assert_promoted_phase_assets(
+        "43-control-services-boundary-decoupling-and-typed-runtime-access",
+        "43-SUMMARY.md",
+        "43-VERIFICATION.md",
+    )
+    _assert_promoted_phase_assets(
+        "44-governance-asset-pruning-and-terminology-convergence",
+        "44-SUMMARY.md",
+        "44-VERIFICATION.md",
+    )
+    _assert_promoted_phase_assets(
+        "45-hotspot-decomposition-and-typed-failure-semantics",
+        "45-SUMMARY.md",
+        "45-VERIFICATION.md",
+    )
+
+    evidence_text = evidence_index.read_text(encoding="utf-8")
+    assert "## Pull Contract" in evidence_text
+    assert "42-VERIFICATION.md" in evidence_text
+    assert "43-VERIFICATION.md" in evidence_text
+    assert "44-VERIFICATION.md" in evidence_text
+    assert "45-VERIFICATION.md" in evidence_text
+    assert "archive-ready / shipped" in evidence_text
+    assert "V1_6_EVIDENCE_INDEX.md" in evidence_text
+
+
+def test_governance_truth_registers_v1_6_closeout_assets() -> None:
+    authority_text = (
+        _ROOT / ".planning" / "baseline" / "AUTHORITY_MATRIX.md"
+    ).read_text(encoding="utf-8")
+    public_text = (
+        _ROOT / ".planning" / "baseline" / "PUBLIC_SURFACES.md"
+    ).read_text(encoding="utf-8")
+    milestones_text = (_ROOT / ".planning" / "MILESTONES.md").read_text(encoding="utf-8")
+
+    assert "V1_6_EVIDENCE_INDEX.md" in authority_text
+    assert "v1.6-MILESTONE-AUDIT.md" in authority_text
+    assert "V1_6_EVIDENCE_INDEX.md" in public_text
+    assert "## v1.6 Delivery Trust Hardening, Runtime Boundary Decoupling & Maintainability Closure" in milestones_text
+
+
+def test_phase_42_to_45_closeout_truth_is_consistent() -> None:
+    roadmap_text = (_ROOT / ".planning" / "ROADMAP.md").read_text(encoding="utf-8")
+    requirements_text = (_ROOT / ".planning" / "REQUIREMENTS.md").read_text(encoding="utf-8")
+    project_text = (_ROOT / ".planning" / "PROJECT.md").read_text(encoding="utf-8")
+    state_text = (_ROOT / ".planning" / "STATE.md").read_text(encoding="utf-8")
+
+    assert "## v1.6: Delivery Trust Hardening, Runtime Boundary Decoupling & Maintainability Closure" in roadmap_text
+    assert "**Archive status:** `archived / evidence-ready (2026-03-20)`" in roadmap_text
+    assert "45-VERIFICATION.md" in roadmap_text
+
+    for needle in (
+        "| GOV-34 | Phase 42 | Completed |",
+        "| QLT-12 | Phase 42 | Completed |",
+        "| QLT-13 | Phase 42 | Completed |",
+        "| QLT-14 | Phase 42 | Completed |",
+        "| ARC-04 | Phase 43 | Completed |",
+        "| CTRL-10 | Phase 43 | Completed |",
+        "| RUN-07 | Phase 43 | Completed |",
+        "| GOV-35 | Phase 44 | Completed |",
+        "| RES-11 | Phase 44 | Completed |",
+        "| DOC-04 | Phase 44 | Completed |",
+        "| HOT-11 | Phase 45 | Completed |",
+        "| ERR-11 | Phase 45 | Completed |",
+        "| TYP-10 | Phase 45 | Completed |",
+        "| QLT-15 | Phase 45 | Completed |",
+        "- v1.6 routed requirements: 14 total",
+        "- Current mapped: 14",
+        "- Current complete: 14",
+        "- Current pending: 0",
+    ):
+        assert needle in requirements_text
+
+    assert "## Archived Milestone (v1.6)" in project_text
+    assert ".planning/reviews/V1_6_EVIDENCE_INDEX.md" in project_text
+    assert "$gsd-new-milestone" in project_text
+
+    assert ".planning/v1.6-MILESTONE-AUDIT.md" in state_text
+    assert ".planning/reviews/V1_6_EVIDENCE_INDEX.md" in state_text
+    assert "$gsd-new-milestone" in state_text
+    _assert_state_reflects_post_v1_4_continuation(state_text)
+    _assert_state_keeps_forward_progress_commands(state_text)
 def test_v1_5_closeout_assets_exist_and_are_pull_only() -> None:
     evidence_index = _ROOT / ".planning" / "reviews" / "V1_5_EVIDENCE_INDEX.md"
     milestone_audit = _ROOT / ".planning" / "v1.5-MILESTONE-AUDIT.md"

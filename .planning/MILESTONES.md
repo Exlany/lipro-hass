@@ -100,20 +100,24 @@
 ---
 
 
-## v1.6 Delivery Trust Hardening, Runtime Boundary Decoupling & Maintainability Closure (Planned: 2026-03-20)
+## v1.6 Delivery Trust Hardening, Runtime Boundary Decoupling & Maintainability Closure (Closeout: 2026-03-20)
 
 **Phase range:** `42 -> 45`
-**Phases completed:** 1 phase, 4 plans, 0 tasks
-**Status:** active / phase-42-complete
+**Phases completed:** 4 phases, 16 plans, 0 tasks
+**Status:** archived / evidence-ready
 
-**Planned focus:**
-- formalize maintainer delegate / security fallback、release artifact install smoke、diff coverage 与 preview validation lane
-- decouple `control/` ↔ `services/`、type `RuntimeAccess`、move runtime infra back to the correct formal home
-- prune `.planning/phases/**` truth noise、converge façade-era terminology、separate contributor fast-path from maintainer appendix
-- decompose hotspot files, introduce typed failure semantics, and turn benchmark evidence into anti-regression signals
+**Key accomplishments:**
+- formalized maintainer continuity, release artifact install smoke, dual coverage gates, and compatibility preview truth
+- decoupled `control/` ↔ `services/`, typed `RuntimeAccess`, and moved runtime infra back to their formal homes
+- pruned phase-trace authority noise, converged façade-era terminology, and clarified contributor fast-path / bilingual boundary
+- decomposed hotspot files, introduced typed failure semantics, and upgraded benchmark evidence into anti-regression truth
 
-**Route source:**
-- `.planning/phases/41-full-spectrum-architecture-code-quality-and-open-source-audit/41-REMEDIATION-ROADMAP.md`
-- `.planning/phases/41-full-spectrum-architecture-code-quality-and-open-source-audit/41-AUDIT.md`
+**Closeout assets:**
+- `.planning/v1.6-MILESTONE-AUDIT.md`
+- `.planning/reviews/V1_6_EVIDENCE_INDEX.md`
+- `.planning/milestones/v1.6-ROADMAP.md`
+- `.planning/milestones/v1.6-REQUIREMENTS.md`
+- `.planning/phases/45-hotspot-decomposition-and-typed-failure-semantics/45-SUMMARY.md`
+- `.planning/phases/45-hotspot-decomposition-and-typed-failure-semantics/45-VERIFICATION.md`
 
 ---

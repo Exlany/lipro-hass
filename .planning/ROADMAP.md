@@ -7,7 +7,7 @@
 - ✅ **v1.2 Host-Neutral Core & Replay Completion** - Phases 18-24 complete after Phase 24 reopen revalidation; 24 plans complete; milestone snapshots archived at `.planning/milestones/v1.2-ROADMAP.md` / `.planning/milestones/v1.2-REQUIREMENTS.md`; `v1.3` handoff-ready (revalidated 2026-03-17)
 - ✅ **v1.4 Sustainment, Trust Gates & Final Hotspot Burn-down** - Phases 34-39 shipped 2026-03-19; milestone audit: `.planning/v1.4-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_4_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.4-ROADMAP.md` / `.planning/milestones/v1.4-REQUIREMENTS.md`; local tag: `v1.4`
 - ✅ **v1.5 Governance Truth Consolidation & Control-Surface Finalization** - Phase 40 shipped 2026-03-19; milestone audit: `.planning/v1.5-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_5_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.5-ROADMAP.md` / `.planning/milestones/v1.5-REQUIREMENTS.md`; local tag: `v1.5`
-- 🟢 **v1.6 Delivery Trust Hardening, Runtime Boundary Decoupling & Maintainability Closure** - Phases 42-45 completed on 2026-03-20 from the formal `41-REMEDIATION-ROADMAP.md` route; `16` executable plans complete; promoted evidence: `.planning/phases/45-hotspot-decomposition-and-typed-failure-semantics/45-SUMMARY.md` / `45-VERIFICATION.md`; current status: closeout-ready; next action: `$gsd-complete-milestone v1.6`
+- ✅ **v1.6 Delivery Trust Hardening, Runtime Boundary Decoupling & Maintainability Closure** - Phases 42-45 closed out on 2026-03-20 from the formal `41-REMEDIATION-ROADMAP.md` route; milestone audit: `.planning/v1.6-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_6_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.6-ROADMAP.md` / `.planning/milestones/v1.6-REQUIREMENTS.md`
 
 ## Required Phase Outputs
 
@@ -328,7 +328,7 @@ Plans:
 
 **Execution Scope:** `Phase 40`（1 phase / 7 plans）
 
-**Current Status:** `Phase 40` 已于 `2026-03-19` 完成执行、验证、审计与 archive promotion；归档快照已写入 `.planning/milestones/v1.5-ROADMAP.md` / `.planning/milestones/v1.5-REQUIREMENTS.md`，`V1_5_EVIDENCE_INDEX.md` 已成为最新 pull-only closeout pointer，本地 tag `v1.5` 已创建。当前默认下一步是执行 `$gsd-new-milestone`。
+**Current Status:** `Phase 40` 已于 `2026-03-19` 完成执行、验证、审计与 archive promotion；归档快照已写入 `.planning/milestones/v1.5-ROADMAP.md` / `.planning/milestones/v1.5-REQUIREMENTS.md`，`V1_5_EVIDENCE_INDEX.md` 继续作为 `v1.5` 的 pull-only closeout pointer，本地 tag `v1.5` 已创建。当前默认下一步是执行 `$gsd-new-milestone`。
 
 **Milestone Outcomes:**
 1. authority precedence、archive identity、promoted phase assets 与 derived collaboration maps 已统一到单一 current story。
@@ -776,11 +776,12 @@ Plans:
 
 ## v1.6: Delivery Trust Hardening, Runtime Boundary Decoupling & Maintainability Closure
 
-> `Phase 41` 审计已把 delivery trust、boundary decoupling、governance hygiene 与 hotspot decomposition 压成正式整改路线；`v1.6` 从 `Phase 42` 起按“先治理验证、后边界解耦、再治理降噪、最后热点拆薄”的顺序推进，把 current truth 从“架构已对”提升到“交付可信、边界更薄、仓库更静、协作更稳”。
+> `v1.6` 已于 `2026-03-20` 完成 milestone audit 与 archive promotion；以下保留 `Phase 42 -> 45` 的最终路线快照，archive snapshots 见 `.planning/milestones/v1.6-ROADMAP.md` / `.planning/milestones/v1.6-REQUIREMENTS.md`，审计裁决见 `.planning/v1.6-MILESTONE-AUDIT.md`，证据入口见 `.planning/reviews/V1_6_EVIDENCE_INDEX.md`。
 
-**Milestone status:** `Active / phase-45-complete-closeout-ready (2026-03-20)`
+**Archive status:** `archived / evidence-ready (2026-03-20)`
 **Route source:** `.planning/phases/41-full-spectrum-architecture-code-quality-and-open-source-audit/41-REMEDIATION-ROADMAP.md`
-**Default next command:** `$gsd-complete-milestone v1.6`
+**Default next command:** `$gsd-new-milestone`
+**Closeout assets:** `.planning/v1.6-MILESTONE-AUDIT.md`, `.planning/reviews/V1_6_EVIDENCE_INDEX.md`, `.planning/milestones/v1.6-ROADMAP.md`, `.planning/milestones/v1.6-REQUIREMENTS.md`, `.planning/phases/45-hotspot-decomposition-and-typed-failure-semantics/45-SUMMARY.md`, `.planning/phases/45-hotspot-decomposition-and-typed-failure-semantics/45-VERIFICATION.md`
 
 ### Phase 42: Delivery trust gates and validation hardening
 

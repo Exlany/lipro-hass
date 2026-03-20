@@ -33,7 +33,7 @@
 ## Phase 40 Governance Truth Surface Notes
 
 - `.planning/baseline/GOVERNANCE_REGISTRY.json` 是 governance-only 的 machine-readable baseline asset：它只承载 active governance facts（版本、安装、support routing、release trust、continuity），不是 runtime / control / protocol 的 public API。
-- `.planning/MILESTONES.md`、`.planning/milestones/*.md`、`.planning/v1.5-MILESTONE-AUDIT.md` 与 `V1_5_EVIDENCE_INDEX.md` 继续只承担 archive / audit / handoff 身份；它们可以作为历史证据被引用，但不得回流为 current governance truth。
+- `.planning/MILESTONES.md`、`.planning/milestones/*.md`、`.planning/v1.5-MILESTONE-AUDIT.md`、`.planning/v1.6-MILESTONE-AUDIT.md` 与 `V1_5_EVIDENCE_INDEX.md` / `V1_6_EVIDENCE_INDEX.md` 继续只承担 archive / audit / handoff 身份；它们可以作为历史证据被引用，但不得回流为 current governance truth。
 - `custom_components/lipro/control/runtime_access.py` 是 control/services 读取 runtime entry 枚举、device lookup 与 snapshot projection 的唯一正式 read-model home。
 - `custom_components/lipro/services/execution.py` 同时保持 `formal shared service execution facade` 身份；`schedule.py` 复用它的 shared executor，而不是维护第二条 auth/error 执行链。
 - `docs/README.md` 只负责解释当前可读入口与 active-vs-archive 边界，不得把 milestone snapshots 或 phase workspace assets 重新讲成对外 current source。

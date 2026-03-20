@@ -47,10 +47,12 @@
 
 - `.planning/MILESTONES.md`
 - `.planning/milestones/*.md`
+- `.planning/v1.6-MILESTONE-AUDIT.md`
+- `.planning/reviews/V1_6_EVIDENCE_INDEX.md`
 - `.planning/v1.5-MILESTONE-AUDIT.md`
 - `.planning/reviews/V1_5_EVIDENCE_INDEX.md`
 
-## Phase Asset Identity and Open Source Governance
+## Phase 资产身份与开源治理 / Phase Asset Identity and Open Source Governance
 
 - **默认身份**：`.planning/phases/**` 是 phase 执行工作区；`*-PLAN.md`、`*-CONTEXT.md`、`*-RESEARCH.md` 与临时过程文件默认属于执行痕迹，不自动升级为长期治理真源。
 - **提升条件**：只有被 `.planning/ROADMAP.md`、`.planning/baseline/VERIFICATION_MATRIX.md`、`.planning/milestones/*.md` 或 `.planning/reviews/*.md` 显式引用的 phase 证据，才作为长期跟踪资产保留。

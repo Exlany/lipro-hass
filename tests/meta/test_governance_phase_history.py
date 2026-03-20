@@ -341,10 +341,10 @@ def test_phase_44_execution_evidence_is_consistent() -> None:
     for req_id in ("GOV-35", "RES-11", "DOC-04"):
         assert f"| {req_id} | Phase 44 | Completed |" in requirements_text
     _assert_current_mode_tracks_phase_lifecycle(state_text)
-    assert "Phase 45 complete closeout-ready" in state_text
-    assert "$gsd-complete-milestone v1.6" in state_text
-    assert "Phase 45 complete" in project_text
-    assert "v1.6 closeout-ready" in project_text
+    assert "v1.6 archived" in state_text
+    assert "$gsd-new-milestone" in state_text
+    assert "## Archived Milestone (v1.6)" in project_text
+    assert ".planning/reviews/V1_6_EVIDENCE_INDEX.md" in project_text
     assert "Public Fast Path" in docs_text
     assert "Bilingual Boundary" in docs_text
     assert "tests/meta/test_governance_release_contract.py" in file_matrix_text
@@ -401,10 +401,10 @@ def test_phase_45_execution_evidence_is_consistent() -> None:
     for req_id in ("HOT-11", "ERR-11", "TYP-10", "QLT-15"):
         assert f"| {req_id} | Phase 45 | Completed |" in requirements_text
     _assert_current_mode_tracks_phase_lifecycle(state_text)
-    assert "Phase 45 complete closeout-ready" in state_text
-    assert "$gsd-complete-milestone v1.6" in state_text
-    assert "Phase 45 complete" in project_text
-    assert "v1.6 closeout-ready" in project_text
+    assert "v1.6 archived" in state_text
+    assert "$gsd-new-milestone" in state_text
+    assert "## Archived Milestone (v1.6)" in project_text
+    assert ".planning/reviews/V1_6_EVIDENCE_INDEX.md" in project_text
     assert "16/16" in project_text
     assert "## Phase 45 Hotspot / Typed Failure / Benchmark Contract" in verification_matrix_text
     assert "scripts/check_benchmark_baseline.py" in file_matrix_text

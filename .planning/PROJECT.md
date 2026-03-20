@@ -1,11 +1,11 @@
 # Project: Lipro-HASS North Star Evolution
 
-**Status:** Active closeout — `Phase 45` 已于 `2026-03-20` 完成，`v1.6` 进入 closeout-ready；下一步建议 `$gsd-complete-milestone v1.6`。
-**Goal:** 以 `v1.5` 归档真相为已发货基线，优先补齐 delivery trust / coverage / compatibility 真实门禁，再完成 control/services 解耦、typed runtime read-model、治理资产降噪与热点拆薄。
-**Default next step:** `$gsd-complete-milestone v1.6`
+**Status:** Shipped and archived — `v1.6` 已于 `2026-03-20` 完成 milestone audit 与 archive promotion；当前状态为 `archived / evidence-ready`，下一步建议 `$gsd-new-milestone`。
+**Goal:** 以 `v1.6` 归档真相为最新已发货基线；下一轮只允许在 `.planning/v1.6-MILESTONE-AUDIT.md`、`.planning/reviews/V1_6_EVIDENCE_INDEX.md` 与 `.planning/milestones/v1.6-*.md` 之上定义 fresh milestone，不回流 `Phase 41` execution trace 或 `v1.5` 为 active story。
+**Default next step:** `$gsd-new-milestone`
 
 
-## Active Milestone (v1.6)
+## Archived Milestone (v1.6)
 
 **Name:** `v1.6 Delivery Trust Hardening, Runtime Boundary Decoupling & Maintainability Closure`
 
@@ -19,7 +19,8 @@
 - 热点拆分只沿正式 seams 收口，不扩张 public surface 或 compatibility folklore
 
 **Phase range:** `Phase 42 -> 45`
-**Current status:** `Phase 45 complete / v1.6 closeout-ready`（`Phase 42 -> 45` 已完成，共 `16/16` 个执行 plans 通过；`45-SUMMARY.md` / `45-VERIFICATION.md` 已形成 promoted closeout evidence；next action is `$gsd-complete-milestone v1.6`）
+**Current status:** `Phase 42 -> 45 archived / evidence-ready`（`16/16` 个执行 plans 已完成，`.planning/v1.6-MILESTONE-AUDIT.md`、`.planning/reviews/V1_6_EVIDENCE_INDEX.md`、`.planning/milestones/v1.6-ROADMAP.md` 与 `.planning/milestones/v1.6-REQUIREMENTS.md` 已落盘；next action is `$gsd-new-milestone`）
+**Archive assets:** `.planning/v1.6-MILESTONE-AUDIT.md`, `.planning/reviews/V1_6_EVIDENCE_INDEX.md`, `.planning/milestones/v1.6-ROADMAP.md`, `.planning/milestones/v1.6-REQUIREMENTS.md`, `.planning/phases/45-hotspot-decomposition-and-typed-failure-semantics/45-SUMMARY.md`, `.planning/phases/45-hotspot-decomposition-and-typed-failure-semantics/45-VERIFICATION.md`
 **Primary closeout targets:** delivery trust hardening、typed runtime read-model、control/services decoupling、governance asset pruning、terminology convergence、hotspot decomposition、typed failure semantics。
 
 ## Archived Milestone (v1.5)
@@ -498,6 +499,12 @@ v1.1 进入执行期后，新增演进必须额外满足：
 
 ## Current Execution Workspace Inputs
 
+- `.planning/reviews/V1_6_EVIDENCE_INDEX.md`
+- `.planning/v1.6-MILESTONE-AUDIT.md`
+- `.planning/milestones/v1.6-ROADMAP.md`
+- `.planning/milestones/v1.6-REQUIREMENTS.md`
+- `.planning/phases/45-hotspot-decomposition-and-typed-failure-semantics/45-VERIFICATION.md`
+- `.planning/phases/45-hotspot-decomposition-and-typed-failure-semantics/45-SUMMARY.md`
 - `.planning/reviews/V1_5_EVIDENCE_INDEX.md`
 - `.planning/v1.5-MILESTONE-AUDIT.md`
 - `.planning/milestones/v1.5-ROADMAP.md`
@@ -510,6 +517,6 @@ v1.1 进入执行期后，新增演进必须额外满足：
 - `.planning/milestones/v1.4-ROADMAP.md`
 - `.planning/milestones/v1.4-REQUIREMENTS.md`
 
-- 当前 handoff / archive 输入以 `v1.5` audit + archive bundle 为 shipped baseline，`.planning/phases/41-full-spectrum-architecture-code-quality-and-open-source-audit/41-REMEDIATION-ROADMAP.md` 则是 `v1.6 / Phase 42 -> 45` 的正式路由来源。phase 目录资产仍默认是执行证据，只有被 `ROADMAP.md`、baseline docs、review ledgers 或 milestone audit 显式提升时，才成为长期治理真源。
+- 当前 handoff / archive 输入以 `v1.6` audit + archive bundle 为最新 shipped baseline；`.planning/phases/41-full-spectrum-architecture-code-quality-and-open-source-audit/41-REMEDIATION-ROADMAP.md` 保留为 `v1.6 / Phase 42 -> 45` 的历史路由来源。phase 目录资产仍默认是执行证据，只有被 `ROADMAP.md`、baseline docs、review ledgers 或 milestone audit 显式提升时，才成为长期治理真源。
 
-*Last updated: 2026-03-20 after completing Phase 42 delivery-trust hardening and promoting the current truth to phase-42-complete*
+*Last updated: 2026-03-20 after archiving the v1.6 milestone closeout evidence*

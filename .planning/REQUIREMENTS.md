@@ -1,6 +1,6 @@
 # Requirements: Lipro-HASS
 
-> Archived milestone snapshots: `.planning/milestones/v1.1-REQUIREMENTS.md`, `.planning/milestones/v1.2-REQUIREMENTS.md`, `.planning/milestones/v1.4-REQUIREMENTS.md`, `.planning/milestones/v1.5-REQUIREMENTS.md`
+> Archived milestone snapshots: `.planning/milestones/v1.1-REQUIREMENTS.md`, `.planning/milestones/v1.2-REQUIREMENTS.md`, `.planning/milestones/v1.4-REQUIREMENTS.md`, `.planning/milestones/v1.5-REQUIREMENTS.md`, `.planning/milestones/v1.6-REQUIREMENTS.md`
 
 ## Core Requirements
 
@@ -413,9 +413,9 @@
 
 
 
-## Active Milestone (v1.6)
+## Archived Milestone (v1.6)
 
-> `v1.6 / Phase 42 -> 45` 以 `v1.5` archive truth 为 shipped baseline，正式接管 `Phase 41` 审计的 remediation roadmap；执行顺序固定为 delivery trust → runtime/control decoupling → governance/doc noise reduction → hotspot decomposition，不得跳步重开第二故事线。
+> `v1.6` 已于 `2026-03-20` 完成归档；以下 requirements / traceability 保留 `Phase 42 -> 45` 的最终 fulfilled contract，归档快照见 `.planning/milestones/v1.6-REQUIREMENTS.md`，审计裁决见 `.planning/v1.6-MILESTONE-AUDIT.md`，证据入口见 `.planning/reviews/V1_6_EVIDENCE_INDEX.md`。
 
 ### Delivery Trust, Boundary Decoupling & Maintainability Closure
 
@@ -434,7 +434,7 @@
 - [x] **TYP-10**: runtime / diagnostics / share / message touched-zone 的 typed budget 必须继续收紧，并设 no-growth guard。
 - [x] **QLT-15**: benchmark 必须从“留证据”升级为“防回退”门禁，具备基线比较与阈值告警。
 
-## Traceability for v1.6 route
+## Traceability for archived v1.6 route
 
 | Requirement | Planned Phase | Status |
 |-------------|---------------|--------|
