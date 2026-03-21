@@ -41,6 +41,16 @@ The disclosure fast path ends above. The continuity section below is a maintaine
 
 ## Maintainer Appendix / Triage & Continuity Truth / 维护者附录：分流与连续性真相
 
+### Maintainer-Unavailable Drill / 维护者不可用演练
+
+The maintainer-unavailable drill is the repeatable continuity contract for custody / freeze / restoration truth.
+维护者不可用演练是 custody / freeze / restoration 真相的可重复连续性合同。
+
+1. Freeze new tagged releases and new release promises if the maintainer is unavailable.
+2. Keep the private advisory path plus honest public intake visible; reports do not by themselves transfer release custody or establish an undocumented delegate.
+3. Record the continuity gap explicitly rather than implying a hidden delegate, unpublished emergency access, or a softer trust path.
+4. Restore custody only after `.github/CODEOWNERS` and `docs/MAINTAINER_RELEASE_RUNBOOK.md` record the real successor or delegate.
+
 - Security triage owner: the maintainer listed in `.github/CODEOWNERS`.
 - Documented delegate: none currently; do not imply hidden backup maintainers or unpublished emergency access.
 - Release custody remains centralized; if the maintainer is unavailable, freeze new tagged releases and new release promises, keep the private advisory path plus best-effort support intake active, and do not bypass CI / security gates.

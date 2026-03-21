@@ -30,6 +30,11 @@ def _assert_project_allows_post_v1_4_next_step(project_text: str) -> None:
             project_text,
         )
         is not None
+        or re.search(
+            r"\*\*Default next step:\*\* `\$gsd-execute-phase \d+(?:\.\d+)?`",
+            project_text,
+        )
+        is not None
     )
 
 

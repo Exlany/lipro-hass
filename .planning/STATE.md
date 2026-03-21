@@ -1,14 +1,14 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.6
-milestone_name: Delivery Trust Hardening, Runtime Boundary Decoupling & Maintainability Closure
-status: archived
+milestone: v1.8
+milestone_name: Operational Continuity Automation, Formal-Root Sustainment & Hotspot Round 2
+status: active
 last_updated: "2026-03-21T00:00:00Z"
 progress:
-  total_phases: 4
-  completed_phases: 4
-  total_plans: 16
-  completed_plans: 16
+  total_phases: 5
+  completed_phases: 1
+  total_plans: 3
+  completed_plans: 3
 ---
 
 # Project State
@@ -17,12 +17,15 @@ progress:
 
 See: `.planning/PROJECT.md`
 
-**Current milestone:** `v1.6 Delivery Trust Hardening, Runtime Boundary Decoupling & Maintainability Closure`
-**Core value:** 在不回退 `LiproProtocolFacade` / `Coordinator` 单一正式主链的前提下，先把 delivery trust 与 continuity gate 变成真实可执行合同，再完成 runtime read-model typed 化、control/services 解耦、治理资产降噪与热点拆薄。
-**Current mode:** `v1.6 archived`；shipped baseline 仍保持归档真相，但 `v1.7` formalized follow-up route `Phase 46 -> 50` 已于 `2026-03-21` 完成并提升 closeout evidence；当前默认 next action 为 `$gsd-progress`。
+**Current milestone:** `v1.8 Operational Continuity Automation, Formal-Root Sustainment & Hotspot Round 2`
+**Core value:** 在不回退 `LiproProtocolFacade` / `Coordinator` 单一正式主链的前提下，先把 continuity automation、governance-registry projection 与 release rehearsal resilience 变成低摩擦合同，再推进 canonical formal roots / helper hotspots / mega-tests 的 second-round sustainment。
+**Current mode:** `Phase 51 complete`；`v1.6` 仍是 latest shipped archive baseline，`v1.7` formalized follow-up route 已 completed closeout，而 `v1.8` 已把 continuity automation / registry projection / release rehearsal hardening 收口为 closeout evidence。
 
 ## Current Position
 
+- `v1.8` 已于 `2026-03-21` 从 `.planning/reviews/V1_8_MILESTONE_SEED.md` 正式化为 current milestone，并在同日完成 `Phase 51` closeout：continuity drill、registry projection、verify-only release rehearsal 与 change-type validation guidance 已落盘为 promoted evidence，当前下一动作为 `$gsd-plan-phase 52`。
+- `Phase 51` 已执行完成：`SUPPORT.md`、`SECURITY.md`、`docs/MAINTAINER_RELEASE_RUNBOOK.md`、`.github/CODEOWNERS`、GitHub templates、`.planning/baseline/GOVERNANCE_REGISTRY.json`、`CONTRIBUTING.md`、`docs/README.md` 与 `.github/workflows/release.yml` 现在讲同一条 continuity / projection / rehearsal 故事线；`Phase 52 -> 55` 继续作为 protocol-root、runtime-root、helper-hotspot、mega-test/typing sustainment 的正式 routed follow-up。
+- `v1.7` 已于 `2026-03-21` 完成 closeout：`Phase 46` audit package 与 `Phase 47 -> 50` promoted closeout evidence 继续构成 post-archive follow-up truth，但不再是 active milestone。
 - `v1.6` 已完成 milestone audit、archive promotion 与 closeout evidence registration：`.planning/v1.6-MILESTONE-AUDIT.md`、`.planning/reviews/V1_6_EVIDENCE_INDEX.md`、`.planning/milestones/v1.6-ROADMAP.md` 与 `.planning/milestones/v1.6-REQUIREMENTS.md` 继续作为最新 shipped archive baseline。
 - `v1.5` 仍保留为上一个 shipped archive baseline：`.planning/v1.5-MILESTONE-AUDIT.md`、`.planning/reviews/V1_5_EVIDENCE_INDEX.md` 与 `.planning/milestones/v1.5-*.md` 继续承担历史追溯 / continuity 身份，不再充当 latest pointer。
 - `Phase 41` 全仓审计已完成，并把 remediation 结论固化到 `.planning/phases/41-full-spectrum-architecture-code-quality-and-open-source-audit/41-REMEDIATION-ROADMAP.md`；该资产保持 execution trace 身份，不直接充当 active truth。
@@ -143,20 +146,21 @@ See: `.planning/PROJECT.md`
 
 ## Current Milestone Status
 
-- **Milestone:** `v1.6 Delivery Trust Hardening, Runtime Boundary Decoupling & Maintainability Closure`
-- **Phase range:** `42 -> 45`
-- **Completed so far:** `Phase 42 -> 45 archived`（`2026-03-20` 共完成 `16/16` plans：delivery trust、typed runtime access、terminology convergence、phase-asset governance、hotspot decomposition、typed failure semantics 与 benchmark no-regression contract 均已落地，并已完成 archive promotion）
-- **Planned next:** `$gsd-progress`（`Phase 50` 已 complete/promoted；当前 formalized route 已闭环）
+- **Milestone:** `v1.8 Operational Continuity Automation, Formal-Root Sustainment & Hotspot Round 2`
+- **Phase range:** `51 -> 55`
+- **Completed so far:** `Phase 51 complete`（`2026-03-21` 已完成 continuity drill / registry projection / release rehearsal closeout，并生成 `51-SUMMARY.md` / `51-VERIFICATION.md`）
+- **Planned next:** `$gsd-plan-phase 52`（protocol-root second-round slimming 是下一条 routed follow-up）
 - **Starting baseline:** `v1.6` archive assets remain authoritative shipped snapshots: `.planning/v1.6-MILESTONE-AUDIT.md`, `.planning/reviews/V1_6_EVIDENCE_INDEX.md`, `.planning/milestones/v1.6-ROADMAP.md`, `.planning/milestones/v1.6-REQUIREMENTS.md`
-- **Route source:** `.planning/phases/46-exhaustive-repository-audit-standards-conformance-and-remediation-routing/46-REMEDIATION-ROADMAP.md`
-- **Historical archives:** `.planning/milestones/v1.1-ROADMAP.md`, `.planning/milestones/v1.1-REQUIREMENTS.md`, `.planning/milestones/v1.2-ROADMAP.md`, `.planning/milestones/v1.2-REQUIREMENTS.md`, `.planning/milestones/v1.4-ROADMAP.md`, `.planning/milestones/v1.4-REQUIREMENTS.md`, `.planning/milestones/v1.5-ROADMAP.md`, `.planning/milestones/v1.5-REQUIREMENTS.md`
-- **Next focus:** `$gsd-new-milestone`——基于 `Phase 46 -> 50` closeout evidence 选择下一轮 repo-level 审阅/重构路线。
+- **Closeout evidence source:** `.planning/phases/46-exhaustive-repository-audit-standards-conformance-and-remediation-routing/46-AUDIT.md`, `.planning/phases/50-rest-typed-surface-reduction-and-command-result-ownership-convergence/50-SUMMARY.md`, `.planning/phases/50-rest-typed-surface-reduction-and-command-result-ownership-convergence/50-VERIFICATION.md`
+- **Route seed:** `.planning/reviews/V1_8_MILESTONE_SEED.md`
+- **Historical archives:** `.planning/milestones/v1.1-ROADMAP.md`, `.planning/milestones/v1.1-REQUIREMENTS.md`, `.planning/milestones/v1.2-ROADMAP.md`, `.planning/milestones/v1.2-REQUIREMENTS.md`, `.planning/milestones/v1.4-ROADMAP.md`, `.planning/milestones/v1.4-REQUIREMENTS.md`, `.planning/milestones/v1.5-ROADMAP.md`, `.planning/milestones/v1.5-REQUIREMENTS.md`, `.planning/milestones/v1.6-ROADMAP.md`, `.planning/milestones/v1.6-REQUIREMENTS.md`
+- **Next focus:** `$gsd-plan-phase 52`——先 formalize protocol-root second-round slimming，再继续推进 `Phase 53 -> 55`。
 
 ## Recommended Next Command
 
-1. `$gsd-progress` —— 查看 `Phase 46 -> 50` closeout 后的整体路线状态
-2. `$gsd-new-milestone` —— 启动下一轮正式路线 / repo-wide follow-up 审阅
-3. `uv run pytest -q tests/meta/test_governance*.py tests/meta/test_toolchain_truth.py tests/meta/test_version_sync.py` —— 复核 archived baseline + `Phase 46 -> 50` governance story
+1. `$gsd-plan-phase 52` —— formalize protocol-root second-round slimming and request-policy isolation
+2. `$gsd-progress` —— 查看 `v1.8` route、`Phase 51` closeout 与 `Phase 52` 下一步
+3. `uv run pytest -q tests/meta/test_governance*.py tests/meta/test_toolchain_truth.py tests/meta/test_version_sync.py` —— 复核 `Phase 51` closeout truth
 4. `uv run ruff check . && uv run mypy` —— 复核静态质量基线
 
 **Historical launch pointer:** `$gsd-execute-phase 29`
@@ -169,21 +173,28 @@ If resuming, read in this order:
 3. `.planning/ROADMAP.md`
 4. `.planning/REQUIREMENTS.md`
 5. `.planning/STATE.md`
-6. `.planning/phases/50-rest-typed-surface-reduction-and-command-result-ownership-convergence/50-SUMMARY.md`
-7. `.planning/phases/50-rest-typed-surface-reduction-and-command-result-ownership-convergence/50-VERIFICATION.md`
-8. `.planning/phases/48-runtime-access-and-formal-root-hotspot-decomposition-without-public-surface-drift/48-SUMMARY.md`
-9. `.planning/phases/48-runtime-access-and-formal-root-hotspot-decomposition-without-public-surface-drift/48-VERIFICATION.md`
-10. `.planning/phases/47-continuity-contract-governance-entrypoint-compression-and-tooling-discoverability/47-SUMMARY.md`
-11. `.planning/phases/47-continuity-contract-governance-entrypoint-compression-and-tooling-discoverability/47-VERIFICATION.md`
-12. `.planning/phases/46-exhaustive-repository-audit-standards-conformance-and-remediation-routing/46-AUDIT.md`
-11. `.planning/phases/46-exhaustive-repository-audit-standards-conformance-and-remediation-routing/46-SCORE-MATRIX.md`
-12. `.planning/phases/46-exhaustive-repository-audit-standards-conformance-and-remediation-routing/46-REMEDIATION-ROADMAP.md`
-13. `.planning/phases/46-exhaustive-repository-audit-standards-conformance-and-remediation-routing/46-VERIFICATION.md`
-14. `.planning/reviews/V1_6_EVIDENCE_INDEX.md`
-15. `.planning/v1.6-MILESTONE-AUDIT.md`
-16. `.planning/milestones/v1.6-ROADMAP.md`
-17. `.planning/milestones/v1.6-REQUIREMENTS.md`
-18. `.planning/baseline/GOVERNANCE_REGISTRY.json`
-19. `.planning/baseline/AUTHORITY_MATRIX.md`
-20. `.planning/baseline/PUBLIC_SURFACES.md`
-21. `.planning/baseline/DEPENDENCY_MATRIX.md`
+6. `.planning/reviews/V1_8_MILESTONE_SEED.md`
+7. `.planning/phases/51-continuity-automation-governance-registry-projection-and-release-rehearsal-hardening/51-SUMMARY.md`
+8. `.planning/phases/51-continuity-automation-governance-registry-projection-and-release-rehearsal-hardening/51-VERIFICATION.md`
+9. `.planning/phases/51-continuity-automation-governance-registry-projection-and-release-rehearsal-hardening/51-VALIDATION.md`
+10. `.planning/phases/51-continuity-automation-governance-registry-projection-and-release-rehearsal-hardening/51-CONTEXT.md`
+11. `.planning/phases/51-continuity-automation-governance-registry-projection-and-release-rehearsal-hardening/51-RESEARCH.md`
+12. `.planning/phases/51-continuity-automation-governance-registry-projection-and-release-rehearsal-hardening/51-01-PLAN.md`
+13. `.planning/phases/51-continuity-automation-governance-registry-projection-and-release-rehearsal-hardening/51-02-PLAN.md`
+14. `.planning/phases/51-continuity-automation-governance-registry-projection-and-release-rehearsal-hardening/51-03-PLAN.md`
+15. `.planning/phases/50-rest-typed-surface-reduction-and-command-result-ownership-convergence/50-SUMMARY.md`
+16. `.planning/phases/50-rest-typed-surface-reduction-and-command-result-ownership-convergence/50-VERIFICATION.md`
+17. `.planning/phases/47-continuity-contract-governance-entrypoint-compression-and-tooling-discoverability/47-SUMMARY.md`
+18. `.planning/phases/47-continuity-contract-governance-entrypoint-compression-and-tooling-discoverability/47-VERIFICATION.md`
+19. `.planning/phases/46-exhaustive-repository-audit-standards-conformance-and-remediation-routing/46-AUDIT.md`
+20. `.planning/phases/46-exhaustive-repository-audit-standards-conformance-and-remediation-routing/46-SCORE-MATRIX.md`
+21. `.planning/phases/46-exhaustive-repository-audit-standards-conformance-and-remediation-routing/46-REMEDIATION-ROADMAP.md`
+22. `.planning/phases/46-exhaustive-repository-audit-standards-conformance-and-remediation-routing/46-VERIFICATION.md`
+23. `.planning/reviews/V1_6_EVIDENCE_INDEX.md`
+24. `.planning/v1.6-MILESTONE-AUDIT.md`
+25. `.planning/milestones/v1.6-ROADMAP.md`
+26. `.planning/milestones/v1.6-REQUIREMENTS.md`
+27. `.planning/baseline/GOVERNANCE_REGISTRY.json`
+28. `.planning/baseline/AUTHORITY_MATRIX.md`
+29. `.planning/baseline/PUBLIC_SURFACES.md`
+30. `.planning/baseline/DEPENDENCY_MATRIX.md`

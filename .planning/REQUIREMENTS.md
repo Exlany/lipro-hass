@@ -413,9 +413,44 @@
 
 
 
-## Planned Milestone (v1.7)
+## Planned Milestone (v1.8)
 
-> `v1.7` 以 `v1.6` archive truth 为 shipped baseline；`Phase 46` 已完成覆盖全仓代码 / 文档 / 配置 / 治理资产的终极审阅与正式整改路由，后续 follow-up phases 的正式化来源为 `46-REMEDIATION-ROADMAP.md`。
+> `v1.8` 以 `v1.6` archive truth 为 shipped baseline，以 `v1.7` promoted audit/closeout evidence 为 immediate route seed；当前重点是 continuity automation、formal-root sustainment 与 hotspot round 2，而不是重开 `v1.7`。
+
+### Operational Continuity Automation, Formal-Root Sustainment & Hotspot Round 2
+
+- [x] **GOV-38**: maintainer-unavailable / delegate / custody / freeze / restoration drill 已从 prose agreement 升级为可执行、低摩擦、可重复演练的 continuity contract。
+- [x] **GOV-39**: `.planning/baseline/GOVERNANCE_REGISTRY.json` 已进一步承担下游 maintainer/public metadata projection truth，降低 docs / templates / contributor guidance 的手工同步漂移。
+- [x] **QLT-18**: release chain 已支持 verify-only / non-publish rehearsal，并为 docs-only / governance-only / release-only 等 change type 提供最小充分验证矩阵。
+- [ ] **ARC-08**: `LiproProtocolFacade` 必须继续 inward decomposition，同时保持其作为唯一 protocol-plane root 的正式身份不变。
+- [ ] **HOT-12**: `Coordinator`、`__init__.py` 与 `EntryLifecycleController` 必须继续沿现有 seams 限流，降低 orchestration density。
+- [ ] **HOT-13**: `AnonymousShareManager`、diagnostics API helper family 与 request-policy companions 必须继续切薄，而不新增 public wrapper / helper-owned truth。
+- [ ] **TST-10**: second-wave mega-tests 必须继续按 concern topicize，让 API/MQTT/platform 大套件失败直接命中局部语义。
+- [ ] **TYP-13**: repo-wide typing truth 必须区分 production debt 与 test/guard literal debt，并继续压缩非 REST 区域的 `Any` 集中区。
+
+## Traceability for planned v1.8 route
+
+| Requirement | Planned Phase | Status |
+|-------------|---------------|--------|
+| GOV-38 | Phase 51 | Complete |
+| GOV-39 | Phase 51 | Complete |
+| QLT-18 | Phase 51 | Complete |
+| ARC-08 | Phase 52 | Planned |
+| HOT-12 | Phase 53 | Planned |
+| HOT-13 | Phase 54 | Planned |
+| TST-10 | Phase 55 | Planned |
+| TYP-13 | Phase 55 | Planned |
+
+**Coverage:**
+- v1.8 routed requirements: 8 total
+- Current mapped: 8
+- Current complete: 3
+- Current pending: 5
+- Current unmapped: 0 ✓
+
+## Completed Milestone (v1.7)
+
+> `v1.7` 以 `v1.6` archive truth 为 shipped baseline；`Phase 46` 完成了 repo-wide 审阅，`Phase 47 -> 50` 则把 high-value follow-up route 全部正式落地并收束为 promoted closeout evidence。
 
 ### Full-Spectrum Repository Audit, Open-Source Maturity & Remediation Routing
 
@@ -427,7 +462,7 @@
 - [x] **TYP-11**: `Any`、`type: ignore`、broad exception、typed budget 守卫覆盖范围与异常语义一致性必须完成量化盘点，并形成后续 no-growth / reduction 策略。
 - [x] **QLT-16**: 必须形成机器可审计的终极审阅报告、评分矩阵、优先级排序与 `Phase 47+` remediation roadmap，使质量改进可以被持续执行与验证。
 
-## Traceability for planned v1.7 route
+## Traceability for completed v1.7 audit route
 
 | Requirement | Planned Phase | Status |
 |-------------|---------------|--------|

@@ -141,6 +141,9 @@ phases:
   50-rest-typed-surface-reduction-and-command-result-ownership-convergence:
     - 50-SUMMARY.md
     - 50-VERIFICATION.md
+  51-continuity-automation-governance-registry-projection-and-release-rehearsal-hardening:
+    - 51-SUMMARY.md
+    - 51-VERIFICATION.md
 ---
 
 # Promoted Phase Assets

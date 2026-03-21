@@ -81,6 +81,7 @@ Need the full docs map or bilingual boundary? Start with `docs/README.md`. Retir
 
 - Release / rehearsal / custody continuity: `docs/MAINTAINER_RELEASE_RUNBOOK.md`
 - Registry-backed governance truth: `.planning/baseline/GOVERNANCE_REGISTRY.json`
+- The maintainer-routing facts in this appendix are projected from `.planning/baseline/GOVERNANCE_REGISTRY.json` to reduce drift across `CONTRIBUTING.md`, `docs/README.md`, and GitHub templates.
 
 ### Bilingual Boundary / 双语边界
 
@@ -178,6 +179,16 @@ Use the same command groups as GitHub Actions:
 - **shellcheck**: 若修改 `install.sh` / `scripts/*` shell 脚本，请运行 `shellcheck install.sh scripts/develop scripts/lint scripts/setup`（CI 的 `lint` job 也会执行）
 - **validate**: GitHub Actions 会额外运行 `HACS` 与 `Hassfest` 校验；若仓库或 fork 为 private，CI 会跳过 HACS validation，因为 HACS 只支持公开 GitHub 仓库；本地通常不必手动复刻，但提交前应确保仓库元数据仍符合这些约束
 - **release**: tag release 先复用 `.github/workflows/ci.yml`，再由 `.github/workflows/release.yml` 在 `refs/tags/${RELEASE_TAG}` 上运行 tagged release security gate 与 tagged `CodeQL` gate，发布 `SHA256SUMS` / `SBOM` / GitHub artifact attestation / provenance / keyless `cosign` signature bundles，并写出 release identity manifest。attestation / provenance 是 release identity 证据，`cosign` bundle 才是 artifact signing；维护者操作手册见 `docs/MAINTAINER_RELEASE_RUNBOOK.md`。若本次属于 maintainer-only `break-glass verify-only` 或 `non-publish rehearsal`，必须显式记录为不发布资产的验证演练，不能旁路门禁直接发版
+
+### Minimal Validation by Change Type / 按变更类型最小验证
+
+Choose the smallest lane that still matches the changed surface; do not invent a shadow CI story.
+请选择仍能覆盖改动面的最小验证路径，不要再造一套影子 CI 故事线。
+
+- **docs-only**: `uv run pytest -q tests/meta/test_toolchain_truth.py tests/meta/test_version_sync.py`
+- **governance-only**: `uv run pytest -q tests/meta/test_governance_release_contract.py tests/meta/test_toolchain_truth.py tests/meta/test_version_sync.py`
+- **release-only**: `uv run pytest -q tests/meta/test_governance*.py tests/meta/test_toolchain_truth.py tests/meta/test_version_sync.py`
+- **maintainer-only verify-only / non-publish rehearsal**: trigger `.github/workflows/release.yml` via `workflow_dispatch` with `tag=<existing-tag>` and `publish_assets=false`; this validates the release path without publishing public assets
 
 ### Type Hints / 类型提示
 

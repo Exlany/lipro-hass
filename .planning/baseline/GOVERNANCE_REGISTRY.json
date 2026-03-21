@@ -63,6 +63,13 @@
       "docs/MAINTAINER_RELEASE_RUNBOOK.md",
       ".github/CODEOWNERS",
       ".planning/baseline/GOVERNANCE_REGISTRY.json"
+    ],
+    "drill_name": "maintainer-unavailable drill",
+    "projection_targets": [
+      "CONTRIBUTING.md",
+      "docs/README.md",
+      ".github/ISSUE_TEMPLATE/config.yml",
+      ".github/pull_request_template.md"
     ]
   },
   "docs": {

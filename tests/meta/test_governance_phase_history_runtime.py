@@ -2,7 +2,11 @@
 
 from __future__ import annotations
 
-from .test_governance_closeout_guards import _assert_promoted_phase_assets
+from .test_governance_closeout_guards import (
+    _assert_promoted_phase_assets,
+    _assert_state_keeps_forward_progress_commands,
+    _assert_state_reflects_post_v1_4_continuation,
+)
 from .test_governance_guards import (
     _AGENTS,
     _ROOT,
@@ -372,8 +376,8 @@ def test_phase_43_execution_truth_is_consistent() -> None:
     for req_id in ("ARC-04", "CTRL-10", "RUN-07"):
         assert f"| {req_id} | Phase 43 | Completed |" in requirements_text
     _assert_current_mode_tracks_phase_lifecycle(state_text)
-    assert "v1.6 archived" in state_text
-    assert "$gsd-new-milestone" in state_text
+    _assert_state_reflects_post_v1_4_continuation(state_text)
+    _assert_state_keeps_forward_progress_commands(state_text)
     assert "## Phase 43 Control / Runtime Boundary Notes" in public_text
     assert "## Phase 43 Control / Service Boundary Clarifications" in dependency_text
     assert "## Phase 43 Control / Runtime / Service Boundary Contract" in verification_matrix_text

@@ -409,12 +409,16 @@ def test_release_runbook_and_support_docs_expose_continuity_truth() -> None:
     ):
         assert token in runbook_text
     assert "Continuity Drill Checklist" in runbook_text
+    assert "maintainer-unavailable drill" in runbook_text.lower()
     assert "triage owner" in support_text
     assert "best effort" in support_text
     assert "no documented delegate exists today" in support_text
+    assert "maintainer-unavailable drill" in support_text.lower()
     assert "freeze new tagged releases" in security_text
     assert "Documented delegate: none currently" in security_text
+    assert "maintainer-unavailable drill" in security_text.lower()
     assert "release custodian" in codeowners_text
+    assert "maintainer-unavailable drill" in codeowners_text.lower()
     assert "restore custody only after" in codeowners_text
 
 
@@ -456,6 +460,8 @@ def test_templates_and_governance_docs_keep_continuity_contract() -> None:
     assert "docs/README.md" in pr_text
     assert "docs/MAINTAINER_RELEASE_RUNBOOK.md" in pr_text
     assert ".github/CODEOWNERS" in pr_text
+    assert "maintainer-unavailable drill" in bug_text.lower()
+    assert "maintainer-unavailable drill" in pr_text.lower()
     assert "undocumented delegate" in pr_text
     assert "do not transfer custody" in codeowners_text
 
@@ -489,6 +495,11 @@ def test_preview_lane_and_release_identity_keep_stable_contract_separate() -> No
         in preview_summary
     )
 
+    dispatch_inputs = release_workflow["on"]["workflow_dispatch"]["inputs"]
+    assert dispatch_inputs["publish_assets"]["type"] == "boolean"
+    assert dispatch_inputs["publish_assets"]["default"] is False
+    assert "verify-only" in dispatch_inputs["publish_assets"]["description"]
+
     release_manifest = next(
         step["run"]
         for step in release_workflow["jobs"]["build"]["steps"]
@@ -506,6 +517,20 @@ def test_preview_lane_and_release_identity_keep_stable_contract_separate() -> No
         "deprecation_signal=DeprecationWarning/PendingDeprecationWarning promoted to errors in preview smoke"
         in release_manifest
     )
+
+    record_mode = next(
+        step["run"]
+        for step in release_workflow["jobs"]["build"]["steps"]
+        if step.get("name") == "Record release mode"
+    )
+    publish_step = next(
+        step
+        for step in release_workflow["jobs"]["build"]["steps"]
+        if step.get("name") == "Publish release assets"
+    )
+    assert "release_mode=verify-only" in record_mode
+    assert "Non-publish rehearsal" in record_mode
+    assert publish_step["if"] == "${{ github.event_name == 'push' || github.event.inputs.publish_assets == 'true' }}"
 
     for text_block in (support_text, contributing_text, runbook_text):
         lowered = text_block.lower()
@@ -526,6 +551,18 @@ def test_runbook_and_pr_template_capture_break_glass_and_rehearsal_truth() -> No
     ):
         assert token in runbook_text
         assert token in pr_text
+
+
+def test_change_type_validation_guidance_is_consistent() -> None:
+    contributing_text = _CONTRIBUTING.read_text(encoding="utf-8")
+    support_text = _SUPPORT.read_text(encoding="utf-8")
+    runbook_text = _RUNBOOK.read_text(encoding="utf-8")
+
+    for token in ("docs-only", "governance-only", "release-only"):
+        assert token in contributing_text
+    assert "publish_assets=false" in contributing_text
+    assert "publish_assets=false" in runbook_text
+    assert "release-only" in support_text
 
 
 def test_quality_scale_and_devcontainer_truth_are_in_sync() -> None:

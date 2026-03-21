@@ -476,6 +476,7 @@ def test_governance_registry_keeps_continuity_truth_machine_readable() -> None:
     runbook_text = _RUNBOOK.read_text(encoding="utf-8")
 
     assert registry["continuity"]["maintainer_model"] == "single-maintainer"
+    assert registry["continuity"]["drill_name"] == "maintainer-unavailable drill"
     assert registry["continuity"]["documented_delegate"] is False
     assert registry["docs"]["index_route"] == "docs/README.md"
     assert registry["tooling"]["retired_stub_exit_code"] == 2
@@ -490,6 +491,7 @@ def test_governance_registry_keeps_continuity_truth_machine_readable() -> None:
     for text in (support_text, security_text, runbook_text):
         assert registry["continuity"]["maintainer_model"] in text
         assert registry["continuity"]["freeze_phrase"] in text
+        assert registry["continuity"]["drill_name"] in text.lower()
 
 
 def test_docs_index_and_retired_tooling_contract_are_machine_readable() -> None:
@@ -505,11 +507,19 @@ def test_docs_index_and_retired_tooling_contract_are_machine_readable() -> None:
         link for link in issue_config["contact_links"] if "Documentation" in link["name"]
     )
 
+    assert registry["continuity"]["projection_targets"] == [
+        "CONTRIBUTING.md",
+        "docs/README.md",
+        ".github/ISSUE_TEMPLATE/config.yml",
+        ".github/pull_request_template.md",
+    ]
     assert registry["support"]["documentation_route"] == "docs/README.md"
     assert registry["docs"]["index_route"] == "docs/README.md"
     assert registry["support"]["feature_route"].startswith("GitHub Discussions")
     assert pyproject["project"]["urls"]["Documentation"].endswith("/docs/README.md")
     assert docs_link["url"].endswith("/docs/README.md")
+    assert ".planning/baseline/GOVERNANCE_REGISTRY.json" in docs_text
+    assert ".planning/baseline/GOVERNANCE_REGISTRY.json" in contributing_text
     for token in registry["tooling"]["active_entrypoints"]:
         assert token in docs_text
     for token in registry["tooling"]["compatibility_stubs"]:

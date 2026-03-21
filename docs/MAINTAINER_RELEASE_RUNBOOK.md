@@ -4,7 +4,7 @@
 
 This repository currently follows a single-maintainer release model. Every tagged release must reuse `.github/workflows/ci.yml`; `.github/workflows/release.yml` is only the tagged security / packaging / publishing tail of that same gate.
 
-> Continuity note / 连续性说明：do not imply hidden backup maintainers. No documented delegate exists today; if the maintainer is unavailable, freeze new tagged releases and freeze new release promises, keep `SUPPORT.md` / `SECURITY.md` / issue / PR template routing honest, and restore custody only after CODEOWNERS + runbook record the real successor or delegate.
+> Continuity note / 连续性说明：this runbook defines the maintainer-unavailable drill. Do not imply hidden backup maintainers. No documented delegate exists today; if the maintainer is unavailable, freeze new tagged releases and freeze new release promises, keep `SUPPORT.md` / `SECURITY.md` / issue / PR template routing honest, and restore custody only after CODEOWNERS + runbook record the real successor or delegate.
 
 ## Truth Sources
 
@@ -75,6 +75,7 @@ uv run pytest -q tests/meta/test_governance*.py tests/meta/test_toolchain_truth.
 
 - **`break-glass verify-only`**: maintainer-only path to rerun governance, security, signing, and identity verification on a tagged tree without publishing or republishing public assets.
 - **`non-publish rehearsal`**: maintainer-only dry run of the release sequence that proves CI reuse, security/code-scanning gates, artifact generation, and release-identity writing while stopping before public asset publication.
+- Manual `workflow_dispatch` runs of `.github/workflows/release.yml` default to verify-only / non-publish rehearsal; leave `publish_assets=false` to validate the full path without public publication, and set it to `true` only when intentionally publishing an already-existing tag after the same gates pass.
 - These modes never relax the stable install contract, support-routing truth, or release-trust gates; they only validate that the same gates would pass for a real tagged release. The separate compatibility preview lane in `ci.yml` remains `schedule` / `workflow_dispatch` only and advisory.
 - If a rehearsal or verify-only run discovers a blocker, record it explicitly; do not silently downgrade to preview paths or publish partially verified assets.
 
@@ -82,7 +83,7 @@ uv run pytest -q tests/meta/test_governance*.py tests/meta/test_toolchain_truth.
 
 1. Prepare the release commit and confirm changelog/release notes inputs.
 2. Create the tag as `vX.Y.Z` so it matches `project.version` exactly.
-3. Push the tag, or run `workflow_dispatch` with an already-existing tag.
+3. Push the tag, or run `workflow_dispatch` with an already-existing tag (`publish_assets=false` keeps the run in verify-only / non-publish rehearsal mode; set `publish_assets=true` only when you explicitly intend to publish that existing tag).
 4. Let `.github/workflows/release.yml` run:
    - `validate` reuses `.github/workflows/ci.yml`
    - `security_gate` sets up the tagged Python runtime explicitly, then reruns blocking runtime `pip-audit` on the tagged source
@@ -104,7 +105,7 @@ uv run pytest -q tests/meta/test_governance*.py tests/meta/test_toolchain_truth.
 - Review the workflow summary and confirm the release artifact install smoke passed against the temporary Home Assistant-style target tree before trusting the published zip/install pair.
 - If the release contains troubleshooting, public-entry, or runbook changes, ensure those docs still point at each other, at `.planning/reviews/V1_6_EVIDENCE_INDEX.md`, and at the canonical public entry points.
 
-## Continuity Drill Checklist
+## Maintainer-Unavailable Drill / Continuity Drill Checklist
 
 1. Confirm the primary custodian is still the maintainer listed in `.github/CODEOWNERS`.
 2. Confirm no documented delegate has been added silently; if none exists, keep single-maintainer wording intact.

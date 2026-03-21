@@ -18,6 +18,8 @@
 
 - `docs/MAINTAINER_RELEASE_RUNBOOK.md`：维护者专用的发版 / rehearsal / custody 附录。  
   Maintainer-only release, rehearsal, and custody appendix.
+- `.planning/baseline/GOVERNANCE_REGISTRY.json`：registry-backed maintainer routing / rehearsal metadata，会投影到 contributor docs 与 GitHub templates 以降低 drift。  
+  Registry-backed maintainer routing / rehearsal metadata projected into contributor docs and GitHub templates to reduce drift.
 - `.planning/*`：治理、审阅、archive 与 evidence 真源。  
   Governance, review, archive, and evidence truth sources.
 

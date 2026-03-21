@@ -10,6 +10,11 @@ on:
         description: Release tag (for example `v1.0.0`)
         required: true
         type: string
+      publish_assets:
+        description: Publish GitHub Release assets? `false` runs verify-only / non-publish rehearsal
+        required: true
+        default: false
+        type: boolean
 
 concurrency:
   group: release-${{ github.event.inputs.tag || github.ref }}
@@ -324,7 +329,23 @@ jobs:
               --certificate-oidc-issuer "https://token.actions.githubusercontent.com"
           done
 
+      - name: Record release mode
+        shell: bash
+        env:
+          PUBLISH_ASSETS: ${{ github.event.inputs.publish_assets || 'false' }}
+        run: |
+          set -euo pipefail
+
+          if [[ "${GITHUB_EVENT_NAME}" == "push" || "${PUBLISH_ASSETS}" == "true" ]]; then
+            echo "release_mode=publish" >> "$GITHUB_STEP_SUMMARY"
+            echo "This run is allowed to publish public assets after all gates pass." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "release_mode=verify-only" >> "$GITHUB_STEP_SUMMARY"
+            echo "Non-publish rehearsal: all gates and build steps ran, but public assets will not be published." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
       - name: Publish release assets
+        if: ${{ github.event_name == 'push' || github.event.inputs.publish_assets == 'true' }}
         uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b
         with:
           tag_name: ${{ env.RELEASE_TAG }}

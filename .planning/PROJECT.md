@@ -1,8 +1,8 @@
 # Project: Lipro-HASS North Star Evolution
 
-**Status:** Shipped and archived — `v1.6` 仍是最新已发货真源；`v1.7` formalized follow-up route `Phase 46 -> 50` 已于 `2026-03-21` 完成并通过验证。
-**Goal:** 以 `v1.6` 归档真相为最新已发货基线；下一轮只允许在 `.planning/v1.6-MILESTONE-AUDIT.md`、`.planning/reviews/V1_6_EVIDENCE_INDEX.md` 与 `.planning/milestones/v1.6-*.md` 之上定义 fresh milestone，不回流 `Phase 41` execution trace 或 `v1.5` 为 active story。
-**Default next step:** `$gsd-progress` → `$gsd-new-milestone`
+**Status:** Shipped and archived — `v1.6` 仍是最新已发货真源；`v1.7` formalized follow-up route `Phase 46 -> 50` 已于 `2026-03-21` 完成 closeout；`v1.8` 已正式启动并完成 `Phase 51` closeout。
+**Goal:** 以 `v1.6` 归档真相为最新已发货基线；后续路线必须建立在 `v1.7` promoted audit/closeout evidence 与正式 milestone docs 之上，不回流 `Phase 41` execution trace、conversation-only 结论或旧 archived story。
+**Default next step:** `$gsd-plan-phase 52`
 
 
 ## Archived Milestone (v1.6)
@@ -23,28 +23,42 @@
 **Archive assets:** `.planning/v1.6-MILESTONE-AUDIT.md`, `.planning/reviews/V1_6_EVIDENCE_INDEX.md`, `.planning/milestones/v1.6-ROADMAP.md`, `.planning/milestones/v1.6-REQUIREMENTS.md`, `.planning/phases/45-hotspot-decomposition-and-typed-failure-semantics/45-SUMMARY.md`, `.planning/phases/45-hotspot-decomposition-and-typed-failure-semantics/45-VERIFICATION.md`
 **Primary closeout targets:** delivery trust hardening、typed runtime read-model、control/services decoupling、governance asset pruning、terminology convergence、hotspot decomposition、typed failure semantics。
 
-## Planned Milestone (v1.7)
+## Planned Milestone (v1.8)
+
+**Name:** `v1.8 Operational Continuity Automation, Formal-Root Sustainment & Hotspot Round 2`
+
+**Why now:** `Phase 46 -> 50` 已证明仓库主链正确且可持续精修；当前最高杠杆问题已不再是“再做一次大审计”，而是把 continuity automation、governance-registry projection、verify-only release rehearsal，以及 canonical formal roots / helper hotspots / mega-tests 的 second-round sustainment 路线正式化。
+
+**North-star fit:** `v1.8` 继续沿单一正式主链推进：
+
+- 不恢复第二套 root / public surface / compat shell，只继续 inward slimming canonical homes
+- 先补 continuity automation、registry projection 与 release rehearsal resilience，再继续 formal-root / helper hotspot 限流
+- 不把 helper hotspot 或 mega-test topicization 讲成新架构；只是把现有 formal home 收得更窄、更稳
+- typing / tests 继续作为 machine-checkable sustainment contract，而不是 prose-only aspiration
+
+**Phase range:** `Phase 51 -> 55`
+**Current status:** `Phase 51 complete (2026-03-21)`（`GOV-38 / GOV-39 / QLT-18` 已通过 governance/docs/workflow closeout 收口；`ARC-08 / HOT-12 / HOT-13 / TST-10 / TYP-13` 继续映射到 `Phase 52 -> 55`）
+**Seed input:** `.planning/reviews/V1_8_MILESTONE_SEED.md`
+**Phase 51 planning assets:** `.planning/phases/51-continuity-automation-governance-registry-projection-and-release-rehearsal-hardening/51-CONTEXT.md`, `.planning/phases/51-continuity-automation-governance-registry-projection-and-release-rehearsal-hardening/51-RESEARCH.md`, `.planning/phases/51-continuity-automation-governance-registry-projection-and-release-rehearsal-hardening/51-VALIDATION.md`, `.planning/phases/51-continuity-automation-governance-registry-projection-and-release-rehearsal-hardening/51-01-PLAN.md`, `.planning/phases/51-continuity-automation-governance-registry-projection-and-release-rehearsal-hardening/51-02-PLAN.md`, `.planning/phases/51-continuity-automation-governance-registry-projection-and-release-rehearsal-hardening/51-03-PLAN.md`
+**Phase 51 closeout:** `.planning/phases/51-continuity-automation-governance-registry-projection-and-release-rehearsal-hardening/51-SUMMARY.md`, `.planning/phases/51-continuity-automation-governance-registry-projection-and-release-rehearsal-hardening/51-VERIFICATION.md`
+**Immediate focus after closeout:** prepare protocol-root second-round slimming via `Phase 52` planning
+**Requirements basket:** `GOV-38`, `GOV-39`, `QLT-18`, `ARC-08`, `HOT-12`, `HOT-13`, `TST-10`, `TYP-13`
+**Next route after Phase 51:** `$gsd-plan-phase 52`
+
+## Completed Follow-up Milestone (v1.7)
 
 **Name:** `v1.7 Full-Spectrum Repository Audit, Open-Source Maturity & Remediation Routing`
 
-**Why now:** `v1.6` 已把 delivery trust、boundary decoupling、governance noise 与热点拆薄推进到 archived / evidence-ready，但在顶级架构师视角下，仓库仍值得做一次 repo-wide exhaustive review：formal root 热点仍偏大、若干 mega-tests 仍不利于审阅、typed/exception budget 仍有 future sustainment debt，且对外开源入口与长期维护成本仍需更系统的国际最佳实践对标。
+**Why it mattered:** `v1.6` 已把 delivery trust、boundary decoupling、governance noise 与热点拆薄推进到 archived / evidence-ready；`v1.7` 则完成覆盖全仓 Python / docs / config / tests / governance assets 的终极审阅，并把高价值整改路线正式化为 `Phase 47 -> 50`。
 
-**North-star fit:** `v1.7` 不是新架构，而是在 `v1.6` archive truth 之上做一次终极审阅与正式整改路由：
-
-- 不恢复第二套合法架构故事线，只审阅单一北极星主链的先进性、缺陷与残留
-- 不把 phase workspace 执行痕迹误升为 authority truth，只提升最终 promoted audit evidence
-- 不把“审阅”降格成泛泛点评，而是把每个代码/文档/config 面向 formal root、naming、test topology、typed debt、OSS maturity 拉成可执行整改路线
-- 先完成全仓审阅与证据定格，再决定 `Phase 47+` 的具体 refactor / topicization / governance compression 顺序
+**North-star fit:** `v1.7` 没有引入新架构，而是用 promoted audit evidence + focused follow-up phases 继续验证单一北极星主链的先进性、缺陷与 sustainment debt。
 
 **Phase range:** `Phase 46 -> 50`
 **Current status:** `Phase 46 -> 50 complete (2026-03-21)`（`Phase 46` audit package、`Phase 47` continuity/docs/tooling closeout、`Phase 48` formal-root hotspot decomposition、`Phase 49` mega-test topicization/failure-localization hardening 与 `Phase 50` REST typed-surface / ownership convergence 均已落盘并通过验证）
 **Formalized follow-up route:** `Phase 47 -> 50`（由 `46-REMEDIATION-ROADMAP.md` 升格为正式 roadmap entries）
-**Default execution route:** `$gsd-progress` → `$gsd-new-milestone`
-**Immediate focus:** 基于 `Phase 46 -> 50` closeout evidence 选择下一轮 repo-wide follow-up 审阅 / 重构路线
 **Promoted audit package:** `.planning/phases/46-exhaustive-repository-audit-standards-conformance-and-remediation-routing/46-AUDIT.md`, `.planning/phases/46-exhaustive-repository-audit-standards-conformance-and-remediation-routing/46-SCORE-MATRIX.md`, `.planning/phases/46-exhaustive-repository-audit-standards-conformance-and-remediation-routing/46-REMEDIATION-ROADMAP.md`, `.planning/phases/46-exhaustive-repository-audit-standards-conformance-and-remediation-routing/46-SUMMARY.md`, `.planning/phases/46-exhaustive-repository-audit-standards-conformance-and-remediation-routing/46-VERIFICATION.md`
 **Promoted follow-up closeout:** `.planning/phases/47-continuity-contract-governance-entrypoint-compression-and-tooling-discoverability/47-SUMMARY.md`, `.planning/phases/47-continuity-contract-governance-entrypoint-compression-and-tooling-discoverability/47-VERIFICATION.md`, `.planning/phases/48-runtime-access-and-formal-root-hotspot-decomposition-without-public-surface-drift/48-SUMMARY.md`, `.planning/phases/48-runtime-access-and-formal-root-hotspot-decomposition-without-public-surface-drift/48-VERIFICATION.md`, `.planning/phases/49-mega-test-topicization-and-failure-localization-hardening/49-SUMMARY.md`, `.planning/phases/49-mega-test-topicization-and-failure-localization-hardening/49-VERIFICATION.md`, `.planning/phases/50-rest-typed-surface-reduction-and-command-result-ownership-convergence/50-SUMMARY.md`, `.planning/phases/50-rest-typed-surface-reduction-and-command-result-ownership-convergence/50-VERIFICATION.md`
 **Next route source:** `.planning/phases/46-exhaustive-repository-audit-standards-conformance-and-remediation-routing/46-REMEDIATION-ROADMAP.md`
-**Seed focus:** 从 `Phase 46 -> 50` closeout evidence 中挑选下一轮 repo-wide remediation / refactor 主题，并保持单一北极星主链。
 
 ## Archived Milestone (v1.5)
 

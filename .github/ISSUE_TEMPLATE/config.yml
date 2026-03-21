@@ -5,7 +5,7 @@ contact_links:
     about: Report vulnerabilities privately before any public disclosure / 安全漏洞请先按私密流程披露
   - name: 📖 Documentation / 文档
     url: https://github.com/Exlany/lipro-hass/blob/main/docs/README.md
-    about: Start with the documentation index before opening an issue / 提交问题前先从文档总索引进入
+    about: Start with the documentation index before opening an issue; this is the registry-backed public fast path / 提交问题前先从文档总索引进入；这是 registry-backed 的公开快速路径
   - name: 💬 Discussions / 讨论
     url: https://github.com/Exlany/lipro-hass/discussions
     about: Ask questions and share ideas / 提问和分享想法

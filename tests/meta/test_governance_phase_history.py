@@ -4,7 +4,12 @@ from __future__ import annotations
 
 import re
 
-from .test_governance_closeout_guards import _assert_promoted_phase_assets
+from .test_governance_closeout_guards import (
+    _assert_project_allows_post_v1_4_next_step,
+    _assert_promoted_phase_assets,
+    _assert_state_keeps_forward_progress_commands,
+    _assert_state_reflects_post_v1_4_continuation,
+)
 from .test_governance_guards import (
     _ROOT,
     _assert_current_mode_tracks_phase_lifecycle,
@@ -341,9 +346,10 @@ def test_phase_44_execution_evidence_is_consistent() -> None:
     for req_id in ("GOV-35", "RES-11", "DOC-04"):
         assert f"| {req_id} | Phase 44 | Completed |" in requirements_text
     _assert_current_mode_tracks_phase_lifecycle(state_text)
-    assert "v1.6 archived" in state_text
-    assert "$gsd-new-milestone" in state_text
+    _assert_state_reflects_post_v1_4_continuation(state_text)
+    _assert_state_keeps_forward_progress_commands(state_text)
     assert "## Archived Milestone (v1.6)" in project_text
+    _assert_project_allows_post_v1_4_next_step(project_text)
     assert ".planning/reviews/V1_6_EVIDENCE_INDEX.md" in project_text
     assert "Public Fast Path" in docs_text
     assert "Bilingual Boundary" in docs_text
@@ -401,9 +407,10 @@ def test_phase_45_execution_evidence_is_consistent() -> None:
     for req_id in ("HOT-11", "ERR-11", "TYP-10", "QLT-15"):
         assert f"| {req_id} | Phase 45 | Completed |" in requirements_text
     _assert_current_mode_tracks_phase_lifecycle(state_text)
-    assert "v1.6 archived" in state_text
-    assert "$gsd-new-milestone" in state_text
+    _assert_state_reflects_post_v1_4_continuation(state_text)
+    _assert_state_keeps_forward_progress_commands(state_text)
     assert "## Archived Milestone (v1.6)" in project_text
+    _assert_project_allows_post_v1_4_next_step(project_text)
     assert ".planning/reviews/V1_6_EVIDENCE_INDEX.md" in project_text
     assert "16/16" in project_text
     assert "## Phase 45 Hotspot / Typed Failure / Benchmark Contract" in verification_matrix_text
@@ -417,4 +424,46 @@ def test_phase_45_execution_evidence_is_consistent() -> None:
     assert "# Phase 45 Verification" in verification_text
     assert "status: passed" in verification_text
     assert "HOT-11" in verification_text
+
+def test_phase_51_execution_evidence_is_consistent() -> None:
+    roadmap_text = (_ROOT / ".planning" / "ROADMAP.md").read_text(encoding="utf-8")
+    requirements_text = (_ROOT / ".planning" / "REQUIREMENTS.md").read_text(encoding="utf-8")
+    state_text = (_ROOT / ".planning" / "STATE.md").read_text(encoding="utf-8")
+    project_text = (_ROOT / ".planning" / "PROJECT.md").read_text(encoding="utf-8")
+
+    phase_root = (
+        _ROOT
+        / ".planning"
+        / "phases"
+        / "51-continuity-automation-governance-registry-projection-and-release-rehearsal-hardening"
+    )
+    summary_text = (phase_root / "51-SUMMARY.md").read_text(encoding="utf-8")
+    verification_text = (phase_root / "51-VERIFICATION.md").read_text(encoding="utf-8")
+    validation_text = (phase_root / "51-VALIDATION.md").read_text(encoding="utf-8")
+
+    _assert_promoted_phase_assets(
+        "51-continuity-automation-governance-registry-projection-and-release-rehearsal-hardening",
+        "51-SUMMARY.md",
+        "51-VERIFICATION.md",
+    )
+
+    assert "### Phase 51: Continuity automation, governance-registry projection, and release rehearsal hardening" in roadmap_text
+    assert "**Status**: Complete (`2026-03-21`)" in roadmap_text
+    assert "**Plans**: 3/3 complete" in roadmap_text
+    assert "**Promoted closeout package**: `51-SUMMARY.md`, `51-VERIFICATION.md`" in roadmap_text
+    for req_id in ("GOV-38", "GOV-39", "QLT-18"):
+        assert f"| {req_id} | Phase 51 | Complete |" in requirements_text
+    _assert_current_mode_tracks_phase_lifecycle(state_text)
+    _assert_state_reflects_post_v1_4_continuation(state_text)
+    _assert_state_keeps_forward_progress_commands(state_text)
+    assert "## Planned Milestone (v1.8)" in project_text
+    assert "$gsd-plan-phase 52" in project_text
+    assert "phase: 51" in summary_text
+    assert "status: passed" in summary_text
+    assert "51-03" in summary_text
+    assert "# Phase 51 Verification" in verification_text
+    assert "status: passed" in verification_text
+    assert "GOV-38" in verification_text
+    assert "status: passed" in validation_text
+    assert "✅ passed" in validation_text
 

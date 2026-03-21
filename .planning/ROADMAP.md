@@ -8,7 +8,8 @@
 - ✅ **v1.4 Sustainment, Trust Gates & Final Hotspot Burn-down** - Phases 34-39 shipped 2026-03-19; milestone audit: `.planning/v1.4-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_4_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.4-ROADMAP.md` / `.planning/milestones/v1.4-REQUIREMENTS.md`; local tag: `v1.4`
 - ✅ **v1.5 Governance Truth Consolidation & Control-Surface Finalization** - Phase 40 shipped 2026-03-19; milestone audit: `.planning/v1.5-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_5_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.5-ROADMAP.md` / `.planning/milestones/v1.5-REQUIREMENTS.md`; local tag: `v1.5`
 - ✅ **v1.6 Delivery Trust Hardening, Runtime Boundary Decoupling & Maintainability Closure** - Phases 42-45 closed out on 2026-03-20 from the formal `41-REMEDIATION-ROADMAP.md` route; milestone audit: `.planning/v1.6-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_6_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.6-ROADMAP.md` / `.planning/milestones/v1.6-REQUIREMENTS.md`
-- 🟢 **v1.7 Full-Spectrum Repository Audit, Open-Source Maturity & Remediation Routing** - Phase 46 audit executed on 2026-03-20; Phase 47 -> 50 completed on 2026-03-21 with promoted closeout evidence; formalized follow-up route complete
+- ✅ **v1.7 Full-Spectrum Repository Audit, Open-Source Maturity & Remediation Routing** - Phase 46 audit executed on 2026-03-20; Phase 47 -> 50 completed on 2026-03-21 with promoted closeout evidence; formalized follow-up route complete
+- 🟢 **v1.8 Operational Continuity Automation, Formal-Root Sustainment & Hotspot Round 2** - formal milestone opened on 2026-03-21 from post-Phase-50 audit arbitration; Phase 51 completed on 2026-03-21 with promoted closeout evidence, phases 52 -> 55 remain routed
 
 ## Required Phase Outputs
 
@@ -946,3 +947,72 @@ Plans:
 - [x] 50-03: converge command-result policy ownership into one formal home (completed 2026-03-21)
 - [x] 50-04: close diagnostics auth-error duplication and harden typed-budget guards (completed 2026-03-21)
 
+## v1.8: Operational Continuity Automation, Formal-Root Sustainment & Hotspot Round 2
+
+> `v1.8` 以 `v1.6` archived shipped truth 与 `v1.7` promoted audit/closeout evidence 为基线；目标不是重开审阅，而是把 continuity automation、formal-root second-round slimming、helper-hotspot formalization 与 mega-test/typing sustainment 变成更低摩擦、可执行、可验证的新里程碑。
+
+**Milestone status:** `Phase 51 complete; phases 52 -> 55 routed (2026-03-21)`
+**Default next command:** `$gsd-plan-phase 52`（`Phase 51` 已完成并留下 promoted closeout evidence）
+**Seed input:** `.planning/reviews/V1_8_MILESTONE_SEED.md`
+
+### Phase 51: Continuity automation, governance-registry projection, and release rehearsal hardening
+
+**Goal:** 把 maintainer continuity / delegate / custody / freeze / restoration 真相升级为可演练合同，并继续降低 governance-registry 到 docs/templates/workflow 的手工同步成本，同时补齐 verify-only / non-publish release rehearsal 与按变更类型切分的最小充分验证矩阵。
+**Depends on:** Phase 50
+**Requirements**: [GOV-38, GOV-39, QLT-18]
+**Success Criteria**:
+  1. `SUPPORT.md`、`SECURITY.md`、`docs/MAINTAINER_RELEASE_RUNBOOK.md`、`.github/CODEOWNERS`、issue/PR templates 与 governance registry 形成单一、可演练、无 hidden delegate 的 continuity contract。
+  2. governance-registry truth 能稳定投影到 contributor / maintainer-facing metadata surfaces，减少 docs/templates/manual sync drift。
+  3. release chain 支持 verify-only / non-publish rehearsal，且 contributor docs 能按 docs-only / governance-only / release-only 等 change type 提供最小充分验证 guidance。
+**Status**: Complete (`2026-03-21`)
+**Plans**: 3/3 complete
+**Promoted closeout package**: `51-SUMMARY.md`, `51-VERIFICATION.md`
+
+Plans:
+- [x] 51-01: formalize the maintainer-unavailable drill across support, security, runbook, CODEOWNERS, and contributor handoff surfaces (completed 2026-03-21)
+- [x] 51-02: project governance-registry maintenance metadata into lower-drift docs, templates, and contributor guidance (completed 2026-03-21)
+- [x] 51-03: add verify-only release rehearsal and change-type validation guidance without weakening publish guards (completed 2026-03-21)
+
+### Phase 52: Protocol-root second-round slimming and request-policy isolation
+
+**Goal:** 继续 inward decomposition `LiproProtocolFacade` 与 request-policy collaborator family，在不改变唯一 protocol-plane root 真相的前提下降低 decision density。
+**Depends on:** Phase 51
+**Requirements**: [ARC-08]
+**Draft Success Criteria**:
+  1. `LiproProtocolFacade` 的 login/status/command/OTA/schedule/MQTT-attach concern 进一步 inward topicize，而不是被新 façade 或 wrapper 替代。
+  2. request pacing / retry / 429 / busy semantics 拥有更窄、更清晰的 collaborator seams。
+  3. protocol child/root public truth、boundary direction 与 contract suites 维持不漂移。
+**Status**: Routed
+
+### Phase 53: Runtime and entry-root second-round throttling
+
+**Goal:** 沿现有 seams 继续给 `Coordinator`、`__init__.py` 与 `EntryLifecycleController` 限流，降低 orchestration density，同时保持 lazy wiring 与单一正式主链。
+**Depends on:** Phase 52
+**Requirements**: [HOT-12]
+**Draft Success Criteria**:
+  1. runtime/entry 决策继续 inward decomposition，而不是回流 adapter folklore。
+  2. activation / reload / unload / bootstrap concern 更清晰地各回 formal home。
+  3. public behavior、dependency direction 与 wiring laziness 保持稳定。
+**Status**: Routed
+
+### Phase 54: Helper-hotspot formalization for anonymous-share and diagnostics helper families
+
+**Goal:** 把 `AnonymousShareManager`、diagnostics API helper family 与 request-policy companions 继续切薄，降低 helper-owned truth 与 privacy-sensitive decision density。
+**Depends on:** Phase 53
+**Requirements**: [HOT-13]
+**Draft Success Criteria**:
+  1. `anonymous_share` manager/client/report builder concern 分层更清晰，不新增第二 public story。
+  2. diagnostics API helper flows decision density 下降，service/privacy contract 仍稳定。
+  3. request-policy companion seams 不回流新的 helper-owned truth。
+**Status**: Routed
+
+### Phase 55: Mega-test topicization round 2 and repo-wide typing-metric stratification
+
+**Goal:** 继续 topicize API/MQTT/platform mega-tests，并把 repo-wide typing truth 从 touched-zone 守卫提升到 production-vs-test-literal 分层指标。
+**Depends on:** Phase 54
+**Requirements**: [TST-10, TYP-13]
+**Draft Success Criteria**:
+  1. `test_api_command_surface`、`test_transport_runtime` 与 platform entity megas 继续按 concern 拆解。
+  2. repo-wide typing metrics 能区分 production debt 与 test/guard literal debt。
+  3. no-growth guard posture 扩展到更诚实、更可解释的范围，而不是重回 giant meta-guard。
+**Status**: Routed

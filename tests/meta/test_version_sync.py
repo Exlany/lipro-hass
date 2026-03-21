@@ -162,8 +162,22 @@ def test_docs_index_route_is_consistent() -> None:
 
     assert registry["docs"]["index_route"] == "docs/README.md"
     assert registry["support"]["documentation_route"] == "docs/README.md"
+    assert registry["continuity"]["drill_name"] == "maintainer-unavailable drill"
     assert pyproject["project"]["urls"]["Documentation"].endswith("/docs/README.md")
     assert docs_link["url"].endswith("/docs/README.md")
+
+
+def test_governance_registry_projection_targets_are_current() -> None:
+    registry = _load_governance_registry()
+
+    assert registry["continuity"]["projection_targets"] == [
+        "CONTRIBUTING.md",
+        "docs/README.md",
+        ".github/ISSUE_TEMPLATE/config.yml",
+        ".github/pull_request_template.md",
+    ]
+    for relative_path in registry["continuity"]["projection_targets"]:
+        assert (_ROOT / relative_path).exists()
 
 
 def test_bug_report_template_keeps_developer_report_as_optional_escalation_path() -> (

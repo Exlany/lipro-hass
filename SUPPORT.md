@@ -23,6 +23,7 @@ If you only need public user / contributor routing, the table above is the fast 
 - Remote installer default tag: `latest` when no archive/tag is pinned; this is convenience for maintainer-led remote installs, while stable public guidance still prefers HACS or verified GitHub Release assets.
 - Private repository / fork note: CI skips HACS validation because HACS only supports public GitHub repositories.
 - Maintainer-only `break-glass verify-only` / `non-publish rehearsal` flows live in `docs/MAINTAINER_RELEASE_RUNBOOK.md`; they verify release gates without relaxing public support or release-trust promises.
+- Change-type validation guidance lives in `CONTRIBUTING.md`: `docs-only` and `governance-only` changes can use smaller guard sets, while maintainer-only `release-only` rehearsals continue through `workflow_dispatch` verify-only / non-publish runs that never publish public assets.
 - Compatibility preview lane: `schedule` / `workflow_dispatch`-only advisory signal for maintainers. This compatibility preview lane upgrades preview Home Assistant dependencies and promotes deprecation warnings to errors, but it does not make preview installs or `main` a stable support target.
 
 ## Supported Versions / Support Lifecycle
@@ -36,10 +37,17 @@ If you only need public user / contributor routing, the table above is the fast 
 
 This repository currently follows a single-maintainer review model. No documented delegate or backup maintainer exists today in `.github/CODEOWNERS`, so triage and release timing may be asynchronous; high-risk issues must still be recorded explicitly rather than silently deferred.
 
+### Maintainer-Unavailable Drill / 维护者不可用演练
+
+1. When the maintainer is unavailable, freeze new tagged releases and new release promises.
+2. Keep the public bug intake and the private security path visibly honest; incoming evidence does not transfer release custody or create an undocumented delegate.
+3. Record the continuity gap explicitly in maintainer-facing truth instead of silently promising recovery dates.
+4. Restore custody only after `.github/CODEOWNERS` and `docs/MAINTAINER_RELEASE_RUNBOOK.md` record the real successor or delegate.
+
 - triage owner: the maintainer listed in `.github/CODEOWNERS`
 - release custody: centralized to the same single-maintainer model; no documented delegate exists today
-- public Issues, Discussions, diagnostics escalations, developer reports, and PR summaries increase evidence depth but do not transfer release custody or create an undocumented delegate; maintainer-only continuity actions stay in `docs/MAINTAINER_RELEASE_RUNBOOK.md`
-- maintainer unavailable posture: freeze new tagged releases and new release promises, keep the private security path active, and continue support triage only as best effort
+- public Issues, Discussions, diagnostics escalations, developer reports, and PR summaries increase evidence depth but do not transfer release custody or create an undocumented delegate; the maintainer-unavailable drill stays in `docs/MAINTAINER_RELEASE_RUNBOOK.md`
+- maintainer unavailable posture: the maintainer-unavailable drill says to freeze new tagged releases and new release promises, keep the private security path active, and allow support triage only as best effort
 - custody restoration: only after `.github/CODEOWNERS` and `docs/MAINTAINER_RELEASE_RUNBOOK.md` record the real successor or delegate
 
 ## What Helps Most
