@@ -4,7 +4,7 @@
 
 | Family | Current example | Owner phase | Residual owner | Exit condition |
 |--------|------------------|-------------|----------------|----------------|
-| `Generic backoff helper leak` | `custom_components/lipro/core/api/request_policy.py` 中的 `compute_exponential_retry_wait_time()` 仍被 `core/command/result_policy.py`、`core/coordinator/runtime/command/retry.py` 与 `core/mqtt/setup_backoff.py` 复用 | Phase 52 | Phase 54 | 把 generic backoff helper 迁入 neutral shared backoff home，或改为各 plane 自持 wrapper；关闭前禁止新增非 API caller 继续从 `request_policy.py` 引用它。 |
+| `Generic backoff helper leak` | `custom_components/lipro/core/api/request_policy.py` 中的 `compute_exponential_retry_wait_time()` 仍被 `core/command/result_policy.py`、`core/coordinator/runtime/command/retry.py` 与 `core/mqtt/setup_backoff.py` 复用 | Phase 52 | Phase 56+ | Phase 54 已把 pacing/backoff mechanics inward 到 `request_policy_support.py`，但为避免在同一轮 helper-hotspot phase 扩散 cross-plane import churn，compat export 仍暂留在 `request_policy.py`；关闭前需迁入 neutral shared backoff home，且禁止新增非 API caller 继续从 `request_policy.py` 引用它。 |
 
 ## Closed Residual Families
 

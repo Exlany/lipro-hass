@@ -224,6 +224,31 @@ class TestStateIndexManager:
 
         assert state_runtime.get_entity_count() == 1
 
+    def test_unregister_entity_instance_keeps_active_entity_until_matching_instance_removed(
+        self,
+        state_runtime: StateRuntime,
+        mock_device: LiproDevice,
+        mock_entity: MagicMock,
+    ) -> None:
+        active_entity = MagicMock()
+        active_entity.entity_id = mock_entity.entity_id
+        active_entity.device = mock_device
+        stale_entity = MagicMock()
+        stale_entity.entity_id = mock_entity.entity_id
+        stale_entity.device = mock_device
+
+        state_runtime.register_entity(active_entity, mock_device.serial)
+        state_runtime.unregister_entity_instance(stale_entity)
+
+        assert state_runtime.get_entity_count() == 1
+        assert state_runtime.get_entities_for_device(mock_device.serial) == [active_entity]
+
+        state_runtime.unregister_entity_instance(active_entity)
+
+        assert state_runtime.get_entity_count() == 0
+        assert state_runtime.get_entities_for_device(mock_device.serial) == []
+
+
     def test_register_entity_ignores_objects_without_entity_id(
         self,
         state_runtime: StateRuntime,
@@ -245,6 +270,23 @@ class TestStateIndexManager:
 
         assert state_runtime.get_entity_count() == 1
         assert entities == [mock_entity]
+
+    def test_register_entity_replaces_prior_instance_for_same_entity_id(
+        self,
+        state_runtime: StateRuntime,
+        mock_device: LiproDevice,
+        mock_entity: MagicMock,
+    ) -> None:
+        replacement = MagicMock()
+        replacement.entity_id = mock_entity.entity_id
+
+        state_runtime.register_entity(replacement, mock_device.serial)
+
+        entities = state_runtime.get_entities_for_device(mock_device.serial)
+
+        assert state_runtime.get_entity_count() == 1
+        assert entities == [replacement]
+
 
     def test_register_entity_creates_bucket_for_new_device_key(
         self,

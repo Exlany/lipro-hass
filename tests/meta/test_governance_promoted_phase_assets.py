@@ -127,3 +127,67 @@ def test_phase_52_closeout_assets_exist_and_are_promoted() -> None:
     assert "## Phase 52 Residual Delta" in residual_text
     assert "## Phase 52 Status Update" in kill_text
 
+
+def test_phase_53_closeout_assets_exist_and_are_promoted() -> None:
+    _assert_promoted_phase_assets(
+        "53-runtime-and-entry-root-second-round-throttling",
+        "53-SUMMARY.md",
+        "53-VERIFICATION.md",
+    )
+
+    verification_text = (
+        _ROOT / ".planning" / "baseline" / "VERIFICATION_MATRIX.md"
+    ).read_text(encoding="utf-8")
+    file_matrix_text = (
+        _ROOT / ".planning" / "reviews" / "FILE_MATRIX.md"
+    ).read_text(encoding="utf-8")
+
+    assert "## Phase 53 Runtime and Entry-Root Second-Round Throttling Contract" in verification_text
+    assert "custom_components/lipro/control/entry_root_wiring.py" in file_matrix_text
+    assert "custom_components/lipro/core/coordinator/runtime_wiring.py" in file_matrix_text
+
+
+def test_phase_54_closeout_assets_exist_and_are_promoted() -> None:
+    _assert_promoted_phase_assets(
+        "54-helper-hotspot-formalization-for-anonymous-share-and-diagnostics-helper-families",
+        "54-SUMMARY.md",
+        "54-VERIFICATION.md",
+    )
+
+    verification_text = (
+        _ROOT / ".planning" / "baseline" / "VERIFICATION_MATRIX.md"
+    ).read_text(encoding="utf-8")
+    residual_text = (
+        _ROOT / ".planning" / "reviews" / "RESIDUAL_LEDGER.md"
+    ).read_text(encoding="utf-8")
+    kill_text = (_ROOT / ".planning" / "reviews" / "KILL_LIST.md").read_text(
+        encoding="utf-8"
+    )
+
+    assert "## Phase 54 Helper-Hotspot Formalization Contract" in verification_text
+    assert "Phase 56+" in residual_text
+    assert "## Phase 54 Status Update" in kill_text
+
+
+def test_phase_55_closeout_assets_exist_and_are_promoted() -> None:
+    _assert_promoted_phase_assets(
+        "55-mega-test-topicization-round-2-and-repo-wide-typing-metric-stratification",
+        "55-SUMMARY.md",
+        "55-VERIFICATION.md",
+    )
+
+    verification_text = (
+        _ROOT / ".planning" / "baseline" / "VERIFICATION_MATRIX.md"
+    ).read_text(encoding="utf-8")
+    testing_text = (_ROOT / ".planning" / "codebase" / "TESTING.md").read_text(
+        encoding="utf-8"
+    )
+    file_matrix_text = (
+        _ROOT / ".planning" / "reviews" / "FILE_MATRIX.md"
+    ).read_text(encoding="utf-8")
+
+    assert "## Phase 55 Mega-Test Topicization and Typing Stratification Contract" in verification_text
+    assert "production_any" in testing_text
+    assert "test_switch_behavior.py" in file_matrix_text
+    assert "test_transport_runtime_lifecycle.py" in file_matrix_text
+

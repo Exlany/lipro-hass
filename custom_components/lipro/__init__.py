@@ -13,7 +13,10 @@ from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .const.base import DOMAIN
-from .control.service_registry import ServiceRegistry
+from .control.entry_root_wiring import (
+    build_entry_lifecycle_controller_kwargs as _build_entry_lifecycle_controller_kwargs_impl,
+    build_service_registry as _build_service_registry_impl,
+)
 from .entry_options import (
     async_reload_entry_if_options_changed as _async_reload_entry_if_options_changed_impl,
     remove_entry_options_snapshot,
@@ -287,44 +290,40 @@ store_entry_options_snapshot = _store_entry_options_snapshot
 async_reload_entry_if_options_changed = _async_reload_entry_if_options_changed
 
 
-def _build_service_registry() -> ServiceRegistry:
-    registrations = _service_registrations_module()
-    return ServiceRegistry(
+def _build_service_registry() -> object:
+    return _build_service_registry_impl(
         domain=DOMAIN,
-        public_registrations=registrations.PUBLIC_SERVICE_REGISTRATIONS,
-        developer_registrations=registrations.DEVELOPER_SERVICE_REGISTRATIONS,
-        service_registrations=registrations.SERVICE_REGISTRATIONS,
+        registrations=_service_registrations_module(),
         async_setup_services=async_setup_services,
         remove_services=remove_services,
-        has_debug_mode_runtime_entry=registrations.has_debug_mode_runtime_entry,
         get_runtime_infra_lock=get_runtime_infra_lock,
     )
 
 
 def _build_entry_lifecycle_controller_kwargs() -> dict[str, object]:
     """Build the stable collaborator set for one lifecycle-controller instance."""
-    return {
-        "logger": _LOGGER,
-        "domain": DOMAIN,
-        "platforms": PLATFORMS,
-        "protocol_factory": LiproProtocolFacade,
-        "auth_manager_factory": LiproAuthManager,
-        "coordinator_factory": Coordinator,
-        "get_client_session": async_get_clientsession,
-        "build_entry_auth_context": build_entry_auth_context,
-        "async_authenticate_entry": async_authenticate_entry,
-        "clear_entry_runtime_data": clear_entry_runtime_data,
-        "get_entry_int_option": get_entry_int_option,
-        "persist_entry_tokens_if_changed": persist_entry_tokens_if_changed,
-        "store_entry_options_snapshot": store_entry_options_snapshot,
-        "remove_entry_options_snapshot": remove_entry_options_snapshot,
-        "async_reload_entry_if_options_changed": async_reload_entry_if_options_changed,
-        "async_ensure_runtime_infra": async_ensure_runtime_infra,
-        "setup_device_registry_listener": setup_device_registry_listener,
-        "remove_device_registry_listener": remove_device_registry_listener,
-        "has_other_runtime_entries": has_other_runtime_entries,
-        "service_registry": _build_service_registry(),
-    }
+    return _build_entry_lifecycle_controller_kwargs_impl(
+        logger=_LOGGER,
+        domain=DOMAIN,
+        platforms=PLATFORMS,
+        protocol_factory=LiproProtocolFacade,
+        auth_manager_factory=LiproAuthManager,
+        coordinator_factory=Coordinator,
+        get_client_session=async_get_clientsession,
+        build_entry_auth_context=build_entry_auth_context,
+        async_authenticate_entry=async_authenticate_entry,
+        clear_entry_runtime_data=clear_entry_runtime_data,
+        get_entry_int_option=get_entry_int_option,
+        persist_entry_tokens_if_changed=persist_entry_tokens_if_changed,
+        store_entry_options_snapshot=store_entry_options_snapshot,
+        remove_entry_options_snapshot=remove_entry_options_snapshot,
+        async_reload_entry_if_options_changed=async_reload_entry_if_options_changed,
+        async_ensure_runtime_infra=async_ensure_runtime_infra,
+        setup_device_registry_listener=setup_device_registry_listener,
+        remove_device_registry_listener=remove_device_registry_listener,
+        has_other_runtime_entries=has_other_runtime_entries,
+        service_registry=_build_service_registry(),
+    )
 
 
 def _build_entry_lifecycle_controller() -> _EntryLifecycleControllerLike:

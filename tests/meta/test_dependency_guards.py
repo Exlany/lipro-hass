@@ -18,15 +18,23 @@ _RULES = load_structural_rules(_ROOT)
 
 def _violations_for_rule(rule_id: str) -> list[str]:
     rule = _RULES[rule_id]
-    governed_paths, missing_governed = resolve_policy_paths(rule.governed_targets, root=_ROOT)
+    governed_paths, missing_governed = resolve_policy_paths(
+        rule.governed_targets, root=_ROOT
+    )
     allowed_paths, missing_allowed = resolve_policy_paths(
         rule.allowed_or_required_signals,
         root=_ROOT,
     )
 
     missing = [
-        *[f"{rule_id} unresolved governed path pattern: {pattern}" for pattern in missing_governed],
-        *[f"{rule_id} unresolved allowed path pattern: {pattern}" for pattern in missing_allowed],
+        *[
+            f"{rule_id} unresolved governed path pattern: {pattern}"
+            for pattern in missing_governed
+        ],
+        *[
+            f"{rule_id} unresolved allowed path pattern: {pattern}"
+            for pattern in missing_allowed
+        ],
     ]
     if missing:
         return missing
@@ -74,7 +82,9 @@ def test_host_neutral_nucleus_does_not_depend_on_adapter_platform_projection() -
     assert not _violations_for_rule("ENF-IMP-NUCLEUS-NO-PLATFORM-BACKFLOW")
 
 
-def test_mqtt_transport_imports_stay_localized_to_protocol_and_transport_modules() -> None:
+def test_mqtt_transport_imports_stay_localized_to_protocol_and_transport_modules() -> (
+    None
+):
     assert not _violations_for_rule("ENF-IMP-MQTT-TRANSPORT-LOCALITY")
 
 
@@ -120,8 +130,12 @@ def test_phase_40_schedule_services_use_shared_execution_contract() -> None:
     assert "async_execute_coordinator_call" in execution_text
 
 
-def test_phase_48_dependency_notes_capture_support_only_helper_and_update_cycle() -> None:
-    dependency_text = (_ROOT / ".planning" / "baseline" / "DEPENDENCY_MATRIX.md").read_text(encoding="utf-8")
+def test_phase_48_dependency_notes_capture_support_only_helper_and_update_cycle() -> (
+    None
+):
+    dependency_text = (
+        _ROOT / ".planning" / "baseline" / "DEPENDENCY_MATRIX.md"
+    ).read_text(encoding="utf-8")
 
     assert "## Phase 48 Formal-Root Decomposition Clarifications" in dependency_text
     assert "runtime_access_support.py" in dependency_text
@@ -207,11 +221,17 @@ def test_phase_43_control_service_boundary_stays_one_way_and_explicit() -> None:
         assert ".runtime_data" not in runtime_reader_text
 
 
+def test_phase_49_verification_matrix_tracks_topicized_runtime_and_diagnostics_proof() -> (
+    None
+):
+    verification_text = (
+        _ROOT / ".planning" / "baseline" / "VERIFICATION_MATRIX.md"
+    ).read_text(encoding="utf-8")
 
-def test_phase_49_verification_matrix_tracks_topicized_runtime_and_diagnostics_proof() -> None:
-    verification_text = (_ROOT / ".planning" / "baseline" / "VERIFICATION_MATRIX.md").read_text(encoding="utf-8")
-
-    assert "## Phase 49 Mega-Test Topicization and Failure Localization Hardening" in verification_text
+    assert (
+        "## Phase 49 Mega-Test Topicization and Failure Localization Hardening"
+        in verification_text
+    )
     assert "tests/core/test_coordinator_entry.py" in verification_text
     assert "tests/core/test_diagnostics*.py" in verification_text
     assert "tests/meta/test_governance_promoted_phase_assets.py" in verification_text
@@ -220,28 +240,76 @@ def test_phase_49_verification_matrix_tracks_topicized_runtime_and_diagnostics_p
     assert "tests/test_coordinator_public.py" not in verification_text
     assert "tests/test_coordinator_runtime.py" not in verification_text
 
+
 def test_phase_50_diagnostics_helpers_reuse_shared_execution_auth_chain() -> None:
     helpers_text = (
-        _ROOT / "custom_components" / "lipro" / "services" / "diagnostics" / "helpers.py"
+        _ROOT
+        / "custom_components"
+        / "lipro"
+        / "services"
+        / "diagnostics"
+        / "helpers.py"
+    ).read_text(encoding="utf-8")
+    helper_support_text = (
+        _ROOT
+        / "custom_components"
+        / "lipro"
+        / "services"
+        / "diagnostics"
+        / "helper_support.py"
     ).read_text(encoding="utf-8")
     execution_text = (
         _ROOT / "custom_components" / "lipro" / "services" / "execution.py"
     ).read_text(encoding="utf-8")
 
-    assert "async_capture_coordinator_call" in helpers_text
     assert "async_execute_coordinator_call" in helpers_text
+    assert "async_capture_coordinator_call" not in helpers_text
+    assert "async_capture_coordinator_call" in helper_support_text
     assert "auth_service.async_ensure_authenticated()" not in helpers_text
     assert "auth_service.async_trigger_reauth(" not in helpers_text
     assert "async_capture_coordinator_call" in execution_text
     assert "async_execute_coordinator_call" in execution_text
 
-def test_phase_52_request_policy_and_protocol_root_dependency_story_is_explicit() -> None:
+
+def test_phase_53_dependency_story_keeps_runtime_and_entry_support_helpers_internal() -> (
+    None
+):
     dependency_text = (
         _ROOT / ".planning" / "baseline" / "DEPENDENCY_MATRIX.md"
     ).read_text(encoding="utf-8")
-    residual_text = (
-        _ROOT / ".planning" / "reviews" / "RESIDUAL_LEDGER.md"
+    runtime_wiring_text = (
+        _ROOT
+        / "custom_components"
+        / "lipro"
+        / "core"
+        / "coordinator"
+        / "runtime_wiring.py"
     ).read_text(encoding="utf-8")
+    lifecycle_support_text = (
+        _ROOT / "custom_components" / "lipro" / "control" / "entry_lifecycle_support.py"
+    ).read_text(encoding="utf-8")
+    entry_root_wiring_text = (
+        _ROOT / "custom_components" / "lipro" / "control" / "entry_root_wiring.py"
+    ).read_text(encoding="utf-8")
+
+    assert "## Phase 53 Runtime / Entry-Root Clarifications" in dependency_text
+    assert "runtime_wiring.py" in dependency_text
+    assert "entry_lifecycle_support.py" in dependency_text
+    assert "entry_root_wiring.py" in dependency_text
+    assert "support-only" in runtime_wiring_text.lower()
+    assert "support-only" in lifecycle_support_text.lower()
+    assert "support-only" in entry_root_wiring_text.lower()
+
+
+def test_phase_52_request_policy_and_protocol_root_dependency_story_is_explicit() -> (
+    None
+):
+    dependency_text = (
+        _ROOT / ".planning" / "baseline" / "DEPENDENCY_MATRIX.md"
+    ).read_text(encoding="utf-8")
+    residual_text = (_ROOT / ".planning" / "reviews" / "RESIDUAL_LEDGER.md").read_text(
+        encoding="utf-8"
+    )
     request_policy_text = (
         _ROOT / "custom_components" / "lipro" / "core" / "api" / "request_policy.py"
     ).read_text(encoding="utf-8")
@@ -255,10 +323,17 @@ def test_phase_52_request_policy_and_protocol_root_dependency_story_is_explicit(
         _ROOT / "custom_components" / "lipro" / "core" / "api" / "transport_retry.py"
     ).read_text(encoding="utf-8")
     protocol_rest_methods_text = (
-        _ROOT / "custom_components" / "lipro" / "core" / "protocol" / "protocol_facade_rest_methods.py"
+        _ROOT
+        / "custom_components"
+        / "lipro"
+        / "core"
+        / "protocol"
+        / "protocol_facade_rest_methods.py"
     ).read_text(encoding="utf-8")
 
-    assert "## Phase 52 Request-Policy / Protocol-Root Clarifications" in dependency_text
+    assert (
+        "## Phase 52 Request-Policy / Protocol-Root Clarifications" in dependency_text
+    )
     assert "protocol_facade_rest_methods.py" in dependency_text
     assert "RequestPolicy" in dependency_text
     assert "RestRequestGateway" in dependency_text
@@ -267,6 +342,99 @@ def test_phase_52_request_policy_and_protocol_root_dependency_story_is_explicit(
     assert "localized collaborator, not a second" in request_gateway_text
     assert "policy-owned 429 decisions" in transport_executor_text
     assert "policy-owned rate-limit decisions" in transport_retry_text
-    assert "support-only rest child-facing method surface" in protocol_rest_methods_text.lower()
+    assert (
+        "support-only rest child-facing method surface"
+        in protocol_rest_methods_text.lower()
+    )
     assert "compute_exponential_retry_wait_time()" in residual_text
+
+
+def test_phase_54_helper_hotspot_dependency_story_is_explicit() -> None:
+    dependency_text = (
+        _ROOT / ".planning" / "baseline" / "DEPENDENCY_MATRIX.md"
+    ).read_text(encoding="utf-8")
+    manager_support_text = (
+        _ROOT
+        / "custom_components"
+        / "lipro"
+        / "core"
+        / "anonymous_share"
+        / "manager_support.py"
+    ).read_text(encoding="utf-8")
+    share_client_support_text = (
+        _ROOT
+        / "custom_components"
+        / "lipro"
+        / "core"
+        / "anonymous_share"
+        / "share_client_support.py"
+    ).read_text(encoding="utf-8")
+    helper_support_text = (
+        _ROOT
+        / "custom_components"
+        / "lipro"
+        / "services"
+        / "diagnostics"
+        / "helper_support.py"
+    ).read_text(encoding="utf-8")
+    request_policy_support_text = (
+        _ROOT
+        / "custom_components"
+        / "lipro"
+        / "core"
+        / "api"
+        / "request_policy_support.py"
+    ).read_text(encoding="utf-8")
+    request_policy_text = (
+        _ROOT / "custom_components" / "lipro" / "core" / "api" / "request_policy.py"
+    ).read_text(encoding="utf-8")
+
+    assert "## Phase 54 Helper-Hotspot Clarifications" in dependency_text
+    assert "manager_support.py" in dependency_text
+    assert "share_client_support.py" in dependency_text
+    assert "helper_support.py" in dependency_text
+    assert "request_policy_support.py" in dependency_text
+    assert "support-only" in manager_support_text.lower()
+    assert "support-only" in share_client_support_text.lower()
+    assert "support-only" in helper_support_text.lower()
+    assert "support-only" in request_policy_support_text.lower()
+    assert "explicit policy-owned pacing" in request_policy_text
+
+
+def test_phase_55_verification_and_testing_story_are_explicit() -> None:
+    verification_text = (
+        _ROOT / ".planning" / "baseline" / "VERIFICATION_MATRIX.md"
+    ).read_text(encoding="utf-8")
+    testing_text = (_ROOT / ".planning" / "codebase" / "TESTING.md").read_text(
+        encoding="utf-8"
+    )
+
+    assert "## Phase 55 Mega-Test Topicization and Typing Stratification Contract" in verification_text
+    for needle in (
+        "test_api_command_surface_commands.py",
+        "test_api_command_surface_responses.py",
+        "test_transport_runtime_lifecycle.py",
+        "test_transport_runtime_subscriptions.py",
+        "test_light_model_and_commands.py",
+        "test_fan_entity_behavior.py",
+        "test_select_models.py",
+        "test_switch_behavior.py",
+        "production_any",
+        "production_type_ignore",
+        "tests_any_non_meta",
+        "meta_guard_any_literals",
+        "tests_type_ignore",
+    ):
+        assert needle in verification_text
+
+    for needle in (
+        "production_any",
+        "production_type_ignore",
+        "tests_any_non_meta",
+        "meta_guard_any_literals",
+        "meta_support_any",
+        "tests_type_ignore",
+        "meta_guard_type_ignore_literals",
+    ):
+        assert needle in testing_text
 

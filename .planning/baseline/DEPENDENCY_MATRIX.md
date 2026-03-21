@@ -141,3 +141,16 @@
 - `custom_components/lipro/headless/boot.py` 是 local proof seam：它只能依赖 host-neutral auth/protocol truth，不能导入 `homeassistant`、`Coordinator`、`custom_components/lipro/control/*` 或 `helpers/platform.py`。
 - platform `async_setup_entry()` 壳只允许通过 `helpers/platform.add_entry_entities()` 把 `entry.runtime_data` 投影为实体列表；它们不得导入 `custom_components/lipro/control/runtime_access.py` 或其他 control locator。
 
+
+
+## Phase 53 Runtime / Entry-Root Clarifications
+
+- `custom_components/lipro/core/coordinator/runtime_wiring.py` 可以依赖 runtime services / lifecycle collaborators 以承接 bootstrapping mechanics，但它不能成为第二 runtime root、package export 或 control-facing capability surface。
+- `custom_components/lipro/control/entry_lifecycle_support.py` 只能被 `EntryLifecycleController` inward 使用；`runtime_infra.py` 继续只承载 shared infra/listener truth，不能反向接管 lifecycle ownership。
+- `custom_components/lipro/control/entry_root_wiring.py` 只能被 `custom_components/lipro/__init__.py` 作为 lazy wiring helper 使用；HA root adapter 继续保持 lazy alias seam，不得回退到 eager binding / singleton controller story。
+
+## Phase 54 Helper-Hotspot Clarifications
+
+- `custom_components/lipro/core/anonymous_share/registry.py`、diagnostics services 与 share-service flows 只允许经 `manager.py` / `share_client.py` / `helpers.py` 读取正式 story；`manager_support.py`、`share_client_support.py` 与 `helper_support.py` 只能被对应 formal homes inward 依赖。
+- `custom_components/lipro/core/api/request_policy.py` 可以 inward 依赖 `request_policy_support.py` 承接 pacing/backoff mechanics；`transport_retry.py`、`core/command/result_policy.py`、`core/coordinator/runtime/command/retry.py` 与 `core/mqtt/setup_backoff.py` 若仍复用 `compute_exponential_retry_wait_time()`，只能继续经 `request_policy.py` 这一 compat surface 读取，不得直连 `request_policy_support.py`。
+- `custom_components/lipro/control/service_router.py` 的 diagnostics callback truth 不变；helpers/support splitting 不得让 services / tests / docs 绕过 router 讲出第二 public callback story。

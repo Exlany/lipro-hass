@@ -147,6 +147,15 @@ phases:
   52-protocol-root-second-round-slimming-and-request-policy-isolation:
     - 52-SUMMARY.md
     - 52-VERIFICATION.md
+  53-runtime-and-entry-root-second-round-throttling:
+    - 53-SUMMARY.md
+    - 53-VERIFICATION.md
+  54-helper-hotspot-formalization-for-anonymous-share-and-diagnostics-helper-families:
+    - 54-SUMMARY.md
+    - 54-VERIFICATION.md
+  55-mega-test-topicization-round-2-and-repo-wide-typing-metric-stratification:
+    - 55-SUMMARY.md
+    - 55-VERIFICATION.md
 ---
 
 # Promoted Phase Assets

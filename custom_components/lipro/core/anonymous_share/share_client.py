@@ -22,6 +22,14 @@ from ..utils.log_safety import safe_error_placeholder
 from ..utils.retry_after import parse_retry_after as parse_http_retry_after
 from .const import SHARE_API_KEY, SHARE_REPORT_URL, SHARE_TOKEN_REFRESH_URL
 from .report_builder import build_lite_report
+from .share_client_support import (
+    backoff_active,
+    build_submit_variants,
+    has_valid_installation_id,
+    refresh_due,
+    schedule_retry_deadline,
+    submit_failure_reason_code,
+)
 
 _LOGGER = logging.getLogger(__package__ or __name__)
 
@@ -110,7 +118,7 @@ class ShareWorkerClient:
         """Parse Retry-After seconds (best-effort) via shared HTTP helper."""
         try:
             seconds = parse_http_retry_after(headers)
-        except (AttributeError, TypeError, ValueError):
+        except AttributeError, TypeError, ValueError:
             return None
         if seconds is None:
             return None
@@ -161,7 +169,9 @@ class ShareWorkerClient:
                 kind="skipped",
                 reason_code="missing_install_token",
             )
-        if time.time() < self.next_upload_attempt_at:
+        if backoff_active(
+            next_upload_attempt_at=self.next_upload_attempt_at, now=time.time
+        ):
             return build_operation_outcome(
                 kind="skipped",
                 reason_code="backoff_active",
@@ -205,8 +215,12 @@ class ShareWorkerClient:
 
                 if response.status == 429:
                     retry_after = self.parse_retry_after(response.headers)
-                    if retry_after is not None:
-                        self.next_upload_attempt_at = time.time() + min(60.0, retry_after)
+                    retry_deadline = schedule_retry_deadline(
+                        retry_after_seconds=retry_after,
+                        now=time.time,
+                    )
+                    if retry_deadline is not None:
+                        self.next_upload_attempt_at = retry_deadline
                     return _rate_limited_outcome(
                         failure_origin=_TOKEN_REFRESH_ORIGIN,
                         retry_after_seconds=retry_after,
@@ -268,14 +282,15 @@ class ShareWorkerClient:
         """Submit one payload to the share endpoint with typed failure semantics."""
         await ensure_loaded()
 
-        if time.time() < self.next_upload_attempt_at:
+        if backoff_active(
+            next_upload_attempt_at=self.next_upload_attempt_at, now=time.time
+        ):
             return build_operation_outcome(
                 kind="skipped",
                 reason_code="backoff_active",
             )
 
-        installation_id = report.get("installation_id")
-        if not isinstance(installation_id, str) or not installation_id:
+        if not has_valid_installation_id(report):
             _LOGGER.warning("%s upload skipped: missing installation_id", label)
             return build_operation_outcome(
                 kind="failed",
@@ -286,26 +301,27 @@ class ShareWorkerClient:
                 handling_policy="inspect",
             )
 
-        if self.install_token:
-            now_sec = int(time.time())
-            if (self.token_refresh_after and now_sec >= self.token_refresh_after) or (
-                self.token_expires_at and (self.token_expires_at - now_sec) <= 60
-            ):
-                await self.refresh_install_token(session)
-
-        token_attempts: list[str | None] = (
-            [self.install_token, None] if self.install_token else [None]
-        )
+        if refresh_due(
+            install_token=self.install_token,
+            token_refresh_after=self.token_refresh_after,
+            token_expires_at=self.token_expires_at,
+            now_seconds=int(time.time()),
+        ):
+            await self.refresh_install_token(session)
 
         try:
-            payload_variants = [report, build_lite_report(report)]
+            submit_variants = build_submit_variants(
+                report,
+                install_token=self.install_token,
+                build_lite_variant=build_lite_report,
+            )
             last_status: int | None = None
 
-            for variant_index, report_variant in enumerate(payload_variants):
-                for token in token_attempts:
+            for submit_variant in submit_variants:
+                for token in submit_variant.token_attempts:
                     async with session.post(
                         SHARE_REPORT_URL,
-                        json=report_variant,
+                        json=submit_variant.payload,
                         headers=self.build_upload_headers(install_token=token),
                         timeout=aiohttp.ClientTimeout(total=30),
                     ) as response:
@@ -317,27 +333,33 @@ class ShareWorkerClient:
                                 self.apply_token_payload(payload)
                             return build_operation_outcome(
                                 kind="success",
-                                reason_code=(
-                                    "submitted_lite_payload"
-                                    if variant_index == 1
-                                    else "submitted"
-                                ),
+                                reason_code=submit_variant.success_reason_code,
                             )
 
                         code = payload.get("code") if payload else None
                         if response.status == 429:
                             retry_after = self.parse_retry_after(response.headers)
-                            if retry_after is not None:
-                                self.next_upload_attempt_at = time.time() + min(60.0, retry_after)
+                            retry_deadline = schedule_retry_deadline(
+                                retry_after_seconds=retry_after,
+                                now=time.time,
+                            )
+                            if retry_deadline is not None:
+                                self.next_upload_attempt_at = retry_deadline
                             return _rate_limited_outcome(
                                 failure_origin=_SHARE_SUBMIT_ORIGIN,
                                 retry_after_seconds=retry_after,
                             )
 
-                        if response.status == 413 and variant_index == 0:
+                        if (
+                            response.status == 413
+                            and submit_variant.fallback_on_payload_too_large
+                        ):
                             break
 
-                        if response.status == 401 and code in _SUBMIT_TOKEN_REJECT_CODES:
+                        if (
+                            response.status == 401
+                            and code in _SUBMIT_TOKEN_REJECT_CODES
+                        ):
                             if token:
                                 self.clear_install_token()
                                 continue
@@ -370,9 +392,7 @@ class ShareWorkerClient:
             return _http_failure_outcome(
                 failure_origin=_SHARE_SUBMIT_ORIGIN,
                 http_status=last_status,
-                reason_code=(
-                    "payload_too_large" if last_status == 413 else "http_error"
-                ),
+                reason_code=submit_failure_reason_code(last_status),
             )
         except TimeoutError as err:
             _LOGGER.warning("%s upload timed out", label)

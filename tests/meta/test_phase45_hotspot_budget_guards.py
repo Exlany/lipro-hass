@@ -1,4 +1,4 @@
-"""Phase 45 typed-budget guards for diagnostics/share/message hotspots."""
+"""Phase 45 production-hotspot typed-budget guards for diagnostics/share/message hotspots."""
 
 from __future__ import annotations
 
@@ -85,7 +85,7 @@ def _count_matching_lines(path: Path, pattern: re.Pattern[str]) -> int:
     return sum(1 for line in path.read_text(encoding="utf-8").splitlines() if pattern.search(line))
 
 
-def test_phase45_touched_zone_any_budget_is_explicitly_classified() -> None:
+def test_phase45_production_hotspot_any_budget_is_explicitly_classified() -> None:
     classified_paths = set(_ANY_BUDGET)
 
     for relative_path, budget in _ANY_BUDGET.items():
@@ -104,7 +104,7 @@ def test_phase45_touched_zone_any_budget_is_explicitly_classified() -> None:
         assert _count_matching_lines(_resolve_target(relative_path), _ANY_LINE_RE) == 0
 
 
-def test_phase45_touched_zone_broad_catch_budget_is_no_growth() -> None:
+def test_phase45_production_hotspot_broad_catch_budget_is_no_growth() -> None:
     for relative_path, budget in _BROAD_CATCH_BUDGET.items():
         path = _resolve_target(relative_path)
         text = path.read_text(encoding="utf-8")
@@ -113,7 +113,7 @@ def test_phase45_touched_zone_broad_catch_budget_is_no_growth() -> None:
             assert text.count(marker) == expected, f"{relative_path} marker drift: {marker}"
 
 
-def test_phase45_touched_zone_production_files_remain_type_ignore_free() -> None:
+def test_phase45_production_hotspot_files_remain_type_ignore_free() -> None:
     for relative_path in sorted(_TYPE_GUARD_TARGETS):
         path = _resolve_target(relative_path)
         assert "type: ignore" not in path.read_text(encoding="utf-8")

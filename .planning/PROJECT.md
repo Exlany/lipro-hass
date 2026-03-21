@@ -1,8 +1,8 @@
 # Project: Lipro-HASS North Star Evolution
 
-**Status:** Shipped and archived — `v1.6` 仍是最新已发货真源；`v1.7` formalized follow-up route `Phase 46 -> 50` 已于 `2026-03-21` 完成 closeout；`v1.8` 已正式启动并完成 `Phase 51 -> 52` closeout。
+**Status:** Shipped and archived — `v1.6` 仍是最新已发货真源；`v1.7` formalized follow-up route `Phase 46 -> 50` 已于 `2026-03-21` 完成 closeout；`v1.8` 已正式启动并完成 `Phase 51 -> 55` closeout。
 **Goal:** 以 `v1.6` 归档真相为最新已发货基线；后续路线必须建立在 `v1.7` promoted audit/closeout evidence 与正式 milestone docs 之上，不回流 `Phase 41` execution trace、conversation-only 结论或旧 archived story。
-**Default next step:** `$gsd-plan-phase 53`
+**Default next step:** `$gsd-new-milestone`
 
 
 ## Archived Milestone (v1.6)
@@ -37,15 +37,21 @@
 - typing / tests 继续作为 machine-checkable sustainment contract，而不是 prose-only aspiration
 
 **Phase range:** `Phase 51 -> 55`
-**Current status:** `Phase 52 complete (2026-03-21)`（`GOV-38 / GOV-39 / QLT-18 / ARC-08` 已通过 governance/docs/workflow/protocol closeout 收口；`HOT-12 / HOT-13 / TST-10 / TYP-13` 继续映射到 `Phase 53 -> 55`）
+**Current status:** `Phase 51 -> 55 complete (2026-03-21)`（`GOV-38 / GOV-39 / QLT-18 / ARC-08 / HOT-12 / HOT-13 / TST-10 / TYP-13` 已全部通过 governance/docs/workflow/protocol/runtime/helper/test/typing closeout 收口）
 **Seed input:** `.planning/reviews/V1_8_MILESTONE_SEED.md`
 **Phase 51 planning assets:** `.planning/phases/51-continuity-automation-governance-registry-projection-and-release-rehearsal-hardening/51-CONTEXT.md`, `.planning/phases/51-continuity-automation-governance-registry-projection-and-release-rehearsal-hardening/51-RESEARCH.md`, `.planning/phases/51-continuity-automation-governance-registry-projection-and-release-rehearsal-hardening/51-VALIDATION.md`, `.planning/phases/51-continuity-automation-governance-registry-projection-and-release-rehearsal-hardening/51-01-PLAN.md`, `.planning/phases/51-continuity-automation-governance-registry-projection-and-release-rehearsal-hardening/51-02-PLAN.md`, `.planning/phases/51-continuity-automation-governance-registry-projection-and-release-rehearsal-hardening/51-03-PLAN.md`
 **Phase 51 closeout:** `.planning/phases/51-continuity-automation-governance-registry-projection-and-release-rehearsal-hardening/51-SUMMARY.md`, `.planning/phases/51-continuity-automation-governance-registry-projection-and-release-rehearsal-hardening/51-VERIFICATION.md`
 **Phase 52 planning assets:** `.planning/phases/52-protocol-root-second-round-slimming-and-request-policy-isolation/52-CONTEXT.md`, `.planning/phases/52-protocol-root-second-round-slimming-and-request-policy-isolation/52-RESEARCH.md`, `.planning/phases/52-protocol-root-second-round-slimming-and-request-policy-isolation/52-VALIDATION.md`, `.planning/phases/52-protocol-root-second-round-slimming-and-request-policy-isolation/52-01-PLAN.md`, `.planning/phases/52-protocol-root-second-round-slimming-and-request-policy-isolation/52-02-PLAN.md`, `.planning/phases/52-protocol-root-second-round-slimming-and-request-policy-isolation/52-03-PLAN.md`
 **Phase 52 closeout:** `.planning/phases/52-protocol-root-second-round-slimming-and-request-policy-isolation/52-SUMMARY.md`, `.planning/phases/52-protocol-root-second-round-slimming-and-request-policy-isolation/52-VERIFICATION.md`
-**Immediate focus after closeout:** prepare runtime and entry-root second-round throttling via `Phase 53` planning
+**Phase 53 planning assets:** `.planning/phases/53-runtime-and-entry-root-second-round-throttling/53-CONTEXT.md`, `.planning/phases/53-runtime-and-entry-root-second-round-throttling/53-RESEARCH.md`, `.planning/phases/53-runtime-and-entry-root-second-round-throttling/53-VALIDATION.md`, `.planning/phases/53-runtime-and-entry-root-second-round-throttling/53-01-PLAN.md`, `.planning/phases/53-runtime-and-entry-root-second-round-throttling/53-02-PLAN.md`, `.planning/phases/53-runtime-and-entry-root-second-round-throttling/53-03-PLAN.md`
+**Phase 53 closeout:** `.planning/phases/53-runtime-and-entry-root-second-round-throttling/53-SUMMARY.md`, `.planning/phases/53-runtime-and-entry-root-second-round-throttling/53-VERIFICATION.md`
+**Phase 54 planning assets:** `.planning/phases/54-helper-hotspot-formalization-for-anonymous-share-and-diagnostics-helper-families/54-CONTEXT.md`, `.planning/phases/54-helper-hotspot-formalization-for-anonymous-share-and-diagnostics-helper-families/54-RESEARCH.md`, `.planning/phases/54-helper-hotspot-formalization-for-anonymous-share-and-diagnostics-helper-families/54-VALIDATION.md`, `.planning/phases/54-helper-hotspot-formalization-for-anonymous-share-and-diagnostics-helper-families/54-01-PLAN.md`, `.planning/phases/54-helper-hotspot-formalization-for-anonymous-share-and-diagnostics-helper-families/54-02-PLAN.md`, `.planning/phases/54-helper-hotspot-formalization-for-anonymous-share-and-diagnostics-helper-families/54-03-PLAN.md`, `.planning/phases/54-helper-hotspot-formalization-for-anonymous-share-and-diagnostics-helper-families/54-04-PLAN.md`
+**Phase 54 closeout:** `.planning/phases/54-helper-hotspot-formalization-for-anonymous-share-and-diagnostics-helper-families/54-SUMMARY.md`, `.planning/phases/54-helper-hotspot-formalization-for-anonymous-share-and-diagnostics-helper-families/54-VERIFICATION.md`
+**Phase 55 planning assets:** `.planning/phases/55-mega-test-topicization-round-2-and-repo-wide-typing-metric-stratification/55-CONTEXT.md`, `.planning/phases/55-mega-test-topicization-round-2-and-repo-wide-typing-metric-stratification/55-RESEARCH.md`, `.planning/phases/55-mega-test-topicization-round-2-and-repo-wide-typing-metric-stratification/55-VALIDATION.md`, `.planning/phases/55-mega-test-topicization-round-2-and-repo-wide-typing-metric-stratification/55-01-PLAN.md`, `.planning/phases/55-mega-test-topicization-round-2-and-repo-wide-typing-metric-stratification/55-02-PLAN.md`, `.planning/phases/55-mega-test-topicization-round-2-and-repo-wide-typing-metric-stratification/55-03-PLAN.md`, `.planning/phases/55-mega-test-topicization-round-2-and-repo-wide-typing-metric-stratification/55-04-PLAN.md`, `.planning/phases/55-mega-test-topicization-round-2-and-repo-wide-typing-metric-stratification/55-05-PLAN.md`
+**Phase 55 closeout:** `.planning/phases/55-mega-test-topicization-round-2-and-repo-wide-typing-metric-stratification/55-SUMMARY.md`, `.planning/phases/55-mega-test-topicization-round-2-and-repo-wide-typing-metric-stratification/55-VERIFICATION.md`
+**Immediate focus after closeout:** archive `v1.8` or seed the next milestone from the completed evidence bundle
 **Requirements basket:** `GOV-38`, `GOV-39`, `QLT-18`, `ARC-08`, `HOT-12`, `HOT-13`, `TST-10`, `TYP-13`
-**Next route after Phase 52:** `$gsd-plan-phase 53`
+**Next route after Phase 55:** `$gsd-new-milestone`
 
 ## Completed Follow-up Milestone (v1.7)
 

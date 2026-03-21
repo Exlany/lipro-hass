@@ -31,3 +31,14 @@ def test_coordinator_runtime_home_is_localized_to_coordinator_entry() -> None:
     assert hasattr(coordinator, "Coordinator")
     assert not hasattr(core, "LiproDataUpdateCoordinator")
     assert not hasattr(coordinator, "LiproDataUpdateCoordinator")
+
+
+def test_phase_53_support_modules_are_not_promoted_to_public_packages() -> None:
+    """Support-only seams introduced in Phase 53 must stay internal."""
+    from custom_components.lipro import control
+    from custom_components.lipro.core import coordinator
+
+    assert not hasattr(control, "EntryLifecycleSupport")
+    assert not hasattr(control, "build_entry_lifecycle_controller_kwargs")
+    assert not hasattr(coordinator, "CoordinatorServiceLayer")
+

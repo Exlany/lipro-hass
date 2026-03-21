@@ -9,7 +9,7 @@
 - ✅ **v1.5 Governance Truth Consolidation & Control-Surface Finalization** - Phase 40 shipped 2026-03-19; milestone audit: `.planning/v1.5-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_5_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.5-ROADMAP.md` / `.planning/milestones/v1.5-REQUIREMENTS.md`; local tag: `v1.5`
 - ✅ **v1.6 Delivery Trust Hardening, Runtime Boundary Decoupling & Maintainability Closure** - Phases 42-45 closed out on 2026-03-20 from the formal `41-REMEDIATION-ROADMAP.md` route; milestone audit: `.planning/v1.6-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_6_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.6-ROADMAP.md` / `.planning/milestones/v1.6-REQUIREMENTS.md`
 - ✅ **v1.7 Full-Spectrum Repository Audit, Open-Source Maturity & Remediation Routing** - Phase 46 audit executed on 2026-03-20; Phase 47 -> 50 completed on 2026-03-21 with promoted closeout evidence; formalized follow-up route complete
-- 🟢 **v1.8 Operational Continuity Automation, Formal-Root Sustainment & Hotspot Round 2** - formal milestone opened on 2026-03-21 from post-Phase-50 audit arbitration; Phases 51 -> 52 completed on 2026-03-21 with promoted closeout evidence, phases 53 -> 55 remain routed
+- 🟢 **v1.8 Operational Continuity Automation, Formal-Root Sustainment & Hotspot Round 2** - formal milestone opened on 2026-03-21 from post-Phase-50 audit arbitration; Phases 51 -> 55 completed on 2026-03-21 with promoted closeout evidence and ready for archive / next-milestone arbitration
 
 ## Required Phase Outputs
 
@@ -951,8 +951,8 @@ Plans:
 
 > `v1.8` 以 `v1.6` archived shipped truth 与 `v1.7` promoted audit/closeout evidence 为基线；目标不是重开审阅，而是把 continuity automation、formal-root second-round slimming、helper-hotspot formalization 与 mega-test/typing sustainment 变成更低摩擦、可执行、可验证的新里程碑。
 
-**Milestone status:** `Phase 52 complete; phases 53 -> 55 routed (2026-03-21)`
-**Default next command:** `$gsd-plan-phase 53`（`Phase 52` 已完成并留下 promoted closeout evidence）
+**Milestone status:** `Phase 51 -> 55 complete (2026-03-21)`
+**Default next command:** `$gsd-progress`（`Phase 55` 已完成；里程碑已具备 archive / next-milestone arbitration 条件）
 **Seed input:** `.planning/reviews/V1_8_MILESTONE_SEED.md`
 
 ### Phase 51: Continuity automation, governance-registry projection, and release rehearsal hardening
@@ -996,30 +996,54 @@ Plans:
 **Goal:** 沿现有 seams 继续给 `Coordinator`、`__init__.py` 与 `EntryLifecycleController` 限流，降低 orchestration density，同时保持 lazy wiring 与单一正式主链。
 **Depends on:** Phase 52
 **Requirements**: [HOT-12]
-**Draft Success Criteria**:
+**Success Criteria**:
   1. runtime/entry 决策继续 inward decomposition，而不是回流 adapter folklore。
   2. activation / reload / unload / bootstrap concern 更清晰地各回 formal home。
   3. public behavior、dependency direction 与 wiring laziness 保持稳定。
-**Status**: Routed
+**Status**: Complete (`2026-03-21`)
+**Plans**: 3/3 complete
+**Promoted closeout package**: `53-SUMMARY.md`, `53-VERIFICATION.md`
+
+Plans:
+- [x] 53-01: narrow coordinator bootstrapping ballast without changing the single-runtime-root story (completed 2026-03-21)
+- [x] 53-02: split entry lifecycle mechanics into controller-private support operations (completed 2026-03-21)
+- [x] 53-03: compress HA root adapter wiring and freeze lazy-composition truth (completed 2026-03-21)
 
 ### Phase 54: Helper-hotspot formalization for anonymous-share and diagnostics helper families
 
 **Goal:** 把 `AnonymousShareManager`、diagnostics API helper family 与 request-policy companions 继续切薄，降低 helper-owned truth 与 privacy-sensitive decision density。
 **Depends on:** Phase 53
 **Requirements**: [HOT-13]
-**Draft Success Criteria**:
+**Success Criteria**:
   1. `anonymous_share` manager/client/report builder concern 分层更清晰，不新增第二 public story。
   2. diagnostics API helper flows decision density 下降，service/privacy contract 仍稳定。
   3. request-policy companion seams 不回流新的 helper-owned truth。
-**Status**: Routed
+**Status**: Complete (`2026-03-21`)
+**Plans**: 4/4 complete
+**Promoted closeout package**: `54-SUMMARY.md`, `54-VERIFICATION.md`
+
+Plans:
+- [x] 54-01: slim anonymous-share manager along scope-state and report-submission seams (completed 2026-03-21)
+- [x] 54-02: split share-client token and transport outcome mechanics without changing worker contract (completed 2026-03-21)
+- [x] 54-03: topicize diagnostics helper family without changing the control-plane public home (completed 2026-03-21)
+- [x] 54-04: close request-policy companion residuals and freeze helper-hotspot truth (completed 2026-03-21)
 
 ### Phase 55: Mega-test topicization round 2 and repo-wide typing-metric stratification
 
 **Goal:** 继续 topicize API/MQTT/platform mega-tests，并把 repo-wide typing truth 从 touched-zone 守卫提升到 production-vs-test-literal 分层指标。
 **Depends on:** Phase 54
 **Requirements**: [TST-10, TYP-13]
-**Draft Success Criteria**:
+**Success Criteria**:
   1. `test_api_command_surface`、`test_transport_runtime` 与 platform entity megas 继续按 concern 拆解。
   2. repo-wide typing metrics 能区分 production debt 与 test/guard literal debt。
   3. no-growth guard posture 扩展到更诚实、更可解释的范围，而不是重回 giant meta-guard。
-**Status**: Routed
+**Status**: Complete (`2026-03-21`)
+**Plans**: 5/5 complete
+**Promoted closeout package**: `55-SUMMARY.md`, `55-VERIFICATION.md`
+
+Plans:
+- [x] 55-01: topicize API command-surface mega tests by payload, auth, retry, and branch family (completed 2026-03-21)
+- [x] 55-02: topicize MQTT transport mega tests by lifecycle, ingress, sync, and loop concerns (completed 2026-03-21)
+- [x] 55-03: split light and fan platform megas into model, command, and behavior topics (completed 2026-03-21)
+- [x] 55-04: split select and switch platform megas into entity-behavior topic families (completed 2026-03-21)
+- [x] 55-05: stratify repo-wide typing metrics by production, tests, and meta-literal buckets (completed 2026-03-21)

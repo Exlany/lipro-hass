@@ -6,9 +6,9 @@ status: active
 last_updated: "2026-03-21T00:00:00Z"
 progress:
   total_phases: 5
-  completed_phases: 2
-  total_plans: 6
-  completed_plans: 6
+  completed_phases: 5
+  total_plans: 18
+  completed_plans: 18
 ---
 
 # Project State
@@ -19,12 +19,12 @@ See: `.planning/PROJECT.md`
 
 **Current milestone:** `v1.8 Operational Continuity Automation, Formal-Root Sustainment & Hotspot Round 2`
 **Core value:** 在不回退 `LiproProtocolFacade` / `Coordinator` 单一正式主链的前提下，先把 continuity automation、governance-registry projection 与 release rehearsal resilience 变成低摩擦合同，再推进 canonical formal roots / helper hotspots / mega-tests 的 second-round sustainment。
-**Current mode:** `Phase 52 complete`；`v1.6` 仍是 latest shipped archive baseline，`v1.7` formalized follow-up route 已 completed closeout，而 `v1.8` 已把 continuity automation / registry projection / release rehearsal hardening 与 protocol-root/request-policy first sustainment 收口为 closeout evidence。
+**Current mode:** `Phase 55 complete`；`v1.6` 仍是 latest shipped archive baseline，`v1.7` formalized follow-up route 已 completed closeout，而 `v1.8` 已把 continuity / registry / release rehearsal / protocol-root / runtime-root / helper-hotspot / mega-test / typing sustainment 全部收口为 closeout evidence。
 
 ## Current Position
 
-- `v1.8` 已于 `2026-03-21` 从 `.planning/reviews/V1_8_MILESTONE_SEED.md` 正式化为 current milestone，并在同日完成 `Phase 51 -> 52` closeout：continuity drill、registry projection、verify-only release rehearsal，以及 protocol-root/request-policy ownership freeze 都已落盘为 promoted evidence，当前下一动作为 `$gsd-plan-phase 53`。
-- `Phase 52` 已执行完成：`custom_components/lipro/core/protocol/{facade.py,rest_port.py,mqtt_facade.py,protocol_facade_rest_methods.py}` 与 `custom_components/lipro/core/api/{request_policy.py,request_gateway.py,transport_executor.py,transport_retry.py,rest_facade.py,rest_facade_request_methods.py,command_api_service.py}` 现在讲同一条 single-root / single-policy / single-request-ownership 故事线；`Phase 53 -> 55` 继续作为 runtime-root、helper-hotspot、mega-test/typing sustainment 的正式 routed follow-up。
+- `v1.8` 已于 `2026-03-21` 从 `.planning/reviews/V1_8_MILESTONE_SEED.md` 正式化为 current milestone，并在同日完成 `Phase 51 -> 55` closeout：continuity drill、registry projection、verify-only release rehearsal、protocol-root/request-policy ownership freeze、runtime/entry-root throttling、helper-hotspot formalization，以及 mega-test/typing truth freeze 都已落盘为 promoted evidence；当前可进入 `$gsd-progress` / `$gsd-complete-milestone v1.8` / `$gsd-new-milestone` 仲裁。
+- `Phase 53 -> 55` 已执行完成：runtime/entry-root throttling、anonymous-share / diagnostics / request-policy helper formalization，以及 API/MQTT/platform mega-test topicization 与 repo-wide typing-bucket truth freeze 都已通过验证并形成 `53-SUMMARY.md` / `53-VERIFICATION.md`、`54-SUMMARY.md` / `54-VERIFICATION.md`、`55-SUMMARY.md` / `55-VERIFICATION.md`。
 - `v1.7` 已于 `2026-03-21` 完成 closeout：`Phase 46` audit package 与 `Phase 47 -> 50` promoted closeout evidence 继续构成 post-archive follow-up truth，但不再是 active milestone。
 - `v1.6` 已完成 milestone audit、archive promotion 与 closeout evidence registration：`.planning/v1.6-MILESTONE-AUDIT.md`、`.planning/reviews/V1_6_EVIDENCE_INDEX.md`、`.planning/milestones/v1.6-ROADMAP.md` 与 `.planning/milestones/v1.6-REQUIREMENTS.md` 继续作为最新 shipped archive baseline。
 - `v1.5` 仍保留为上一个 shipped archive baseline：`.planning/v1.5-MILESTONE-AUDIT.md`、`.planning/reviews/V1_5_EVIDENCE_INDEX.md` 与 `.planning/milestones/v1.5-*.md` 继续承担历史追溯 / continuity 身份，不再充当 latest pointer。
@@ -148,20 +148,21 @@ See: `.planning/PROJECT.md`
 
 - **Milestone:** `v1.8 Operational Continuity Automation, Formal-Root Sustainment & Hotspot Round 2`
 - **Phase range:** `51 -> 55`
-- **Completed so far:** `Phase 52 complete`（`2026-03-21` 已完成 continuity drill / registry projection / release rehearsal closeout，以及 protocol-root / request-policy ownership closeout，并生成 `51-SUMMARY.md` / `51-VERIFICATION.md` 与 `52-SUMMARY.md` / `52-VERIFICATION.md`）
-- **Planned next:** `$gsd-plan-phase 53`（runtime and entry-root second-round throttling 是下一条 routed follow-up）
+- **Completed so far:** `Phase 55 complete`（`2026-03-21` 已完成 continuity / registry / release rehearsal、protocol-root / request-policy isolation、runtime / entry-root throttling、helper-hotspot formalization，以及 mega-test / typing truth freeze，并生成 `51-SUMMARY.md` / `51-VERIFICATION.md` 至 `55-SUMMARY.md` / `55-VERIFICATION.md`）
+- **Planned next:** `$gsd-complete-milestone v1.8`（若要先归档当前里程碑）；`$gsd-new-milestone`（若要直接基于已完成证据种下下一里程碑）
 - **Starting baseline:** `v1.6` archive assets remain authoritative shipped snapshots: `.planning/v1.6-MILESTONE-AUDIT.md`, `.planning/reviews/V1_6_EVIDENCE_INDEX.md`, `.planning/milestones/v1.6-ROADMAP.md`, `.planning/milestones/v1.6-REQUIREMENTS.md`
-- **Closeout evidence source:** `.planning/phases/46-exhaustive-repository-audit-standards-conformance-and-remediation-routing/46-AUDIT.md`, `.planning/phases/51-continuity-automation-governance-registry-projection-and-release-rehearsal-hardening/51-SUMMARY.md`, `.planning/phases/51-continuity-automation-governance-registry-projection-and-release-rehearsal-hardening/51-VERIFICATION.md`, `.planning/phases/52-protocol-root-second-round-slimming-and-request-policy-isolation/52-SUMMARY.md`, `.planning/phases/52-protocol-root-second-round-slimming-and-request-policy-isolation/52-VERIFICATION.md`
+- **Closeout evidence source:** `.planning/phases/46-exhaustive-repository-audit-standards-conformance-and-remediation-routing/46-AUDIT.md`, `.planning/phases/51-continuity-automation-governance-registry-projection-and-release-rehearsal-hardening/51-SUMMARY.md`, `.planning/phases/51-continuity-automation-governance-registry-projection-and-release-rehearsal-hardening/51-VERIFICATION.md`, `.planning/phases/52-protocol-root-second-round-slimming-and-request-policy-isolation/52-SUMMARY.md`, `.planning/phases/52-protocol-root-second-round-slimming-and-request-policy-isolation/52-VERIFICATION.md`, `.planning/phases/53-runtime-and-entry-root-second-round-throttling/53-SUMMARY.md`, `.planning/phases/53-runtime-and-entry-root-second-round-throttling/53-VERIFICATION.md`, `.planning/phases/54-helper-hotspot-formalization-for-anonymous-share-and-diagnostics-helper-families/54-SUMMARY.md`, `.planning/phases/54-helper-hotspot-formalization-for-anonymous-share-and-diagnostics-helper-families/54-VERIFICATION.md`, `.planning/phases/55-mega-test-topicization-round-2-and-repo-wide-typing-metric-stratification/55-SUMMARY.md`, `.planning/phases/55-mega-test-topicization-round-2-and-repo-wide-typing-metric-stratification/55-VERIFICATION.md`
 - **Route seed:** `.planning/reviews/V1_8_MILESTONE_SEED.md`
 - **Historical archives:** `.planning/milestones/v1.1-ROADMAP.md`, `.planning/milestones/v1.1-REQUIREMENTS.md`, `.planning/milestones/v1.2-ROADMAP.md`, `.planning/milestones/v1.2-REQUIREMENTS.md`, `.planning/milestones/v1.4-ROADMAP.md`, `.planning/milestones/v1.4-REQUIREMENTS.md`, `.planning/milestones/v1.5-ROADMAP.md`, `.planning/milestones/v1.5-REQUIREMENTS.md`, `.planning/milestones/v1.6-ROADMAP.md`, `.planning/milestones/v1.6-REQUIREMENTS.md`
-- **Next focus:** `$gsd-plan-phase 53`——先 formalize runtime and entry-root second-round throttling，再继续推进 `Phase 54 -> 55`。
+- **Next focus:** `$gsd-progress`——查看已完成的 `v1.8` route，并决定执行 `$gsd-complete-milestone v1.8` 还是 `$gsd-new-milestone`。
 
 ## Recommended Next Command
 
-1. `$gsd-plan-phase 53` —— formalize runtime and entry-root second-round throttling
-2. `$gsd-progress` —— 查看 `v1.8` route、`Phase 52` closeout 与 `Phase 53` 下一步
-3. `uv run pytest -q tests/core/api/test_protocol_contract_matrix.py tests/core/api/test_api_request_policy.py tests/meta/test_public_surface_guards.py tests/meta/test_dependency_guards.py` —— 复核 `Phase 52` closeout truth
-4. `uv run ruff check . && uv run mypy` —— 复核静态质量基线
+1. `$gsd-progress` —— 查看 `v1.8` completed route、promoted closeout evidence 与下一步仲裁
+2. `$gsd-complete-milestone v1.8` —— 若要先把当前 milestone 正式归档 / closeout
+3. `$gsd-new-milestone` —— 若要直接从 `v1.8` completed evidence 种出下一 milestone
+4. `uv run pytest -q tests/core/api/test_api_command_surface*.py tests/core/mqtt/test_transport_runtime*.py tests/platforms/test_light*.py tests/platforms/test_fan*.py tests/platforms/test_select*.py tests/platforms/test_switch*.py tests/meta/test_phase31_runtime_budget_guards.py tests/meta/test_phase45_hotspot_budget_guards.py tests/meta/test_phase50_rest_typed_budget_guards.py tests/meta/test_public_surface_guards.py tests/meta/test_dependency_guards.py` —— 复核 `Phase 55` closeout truth
+5. `uv run ruff check . && uv run mypy` —— 复核静态质量基线
 
 **Historical launch pointer:** `$gsd-execute-phase 29`
 

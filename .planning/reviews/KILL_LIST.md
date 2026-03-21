@@ -248,3 +248,8 @@
 - 本 phase **无新增 active kill target**；`protocol_facade_rest_methods.py`、`ProtocolRestPortFamily`、`RequestPolicy`、`RestRequestGateway` 与 `RestTransportExecutor` 的当前动作都是 formal ownership / boundary closure，而不是新的 delete campaign。
 - `Generic backoff helper leak` 已在 `RESIDUAL_LEDGER.md` 中登记为 deferred residual，但它当前不是 file-level kill target；后续若继续收口，只允许迁往更诚实的 shared backoff home，不得借机把现有 protocol/API homes 误删或降格。
 
+## Phase 54 Status Update
+
+- 本 phase **无新增 active kill target**；`manager_support.py`、`share_client_support.py`、`helper_support.py` 与 `request_policy_support.py` 都属于 support-only inward decomposition，不是新的 delete campaign。
+- `Generic backoff helper leak` 在本 phase 只完成了 companion formalization 与 residual honesty 冻结；它仍不是 file-level kill target，后续只允许迁往更诚实的 shared backoff home。
+

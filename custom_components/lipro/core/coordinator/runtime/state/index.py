@@ -63,6 +63,21 @@ class StateIndexManager:
             len(devices),
         )
 
+    def _remove_entity_from_device_buckets(
+        self,
+        entity: LiproEntityProtocol,
+    ) -> None:
+        """Remove one entity instance from all device buckets."""
+        empty_device_keys: list[str] = []
+        for device_key, device_entities in self._entities_by_device.items():
+            while entity in device_entities:
+                device_entities.remove(entity)
+            if not device_entities:
+                empty_device_keys.append(device_key)
+
+        for device_key in empty_device_keys:
+            del self._entities_by_device[device_key]
+
     def register_entity(
         self,
         entity: object,
@@ -80,12 +95,13 @@ class StateIndexManager:
             return
 
         typed_entity = cast(LiproEntityProtocol, entity)
-
-        if entity_id in self._entities:
+        current_entity = self._entities.get(entity_id)
+        if current_entity is not None and current_entity is not typed_entity:
             _LOGGER.warning(
                 "Entity %s already registered, replacing",
                 entity_id,
             )
+            self._remove_entity_from_device_buckets(current_entity)
 
         self._entities[entity_id] = typed_entity
 
@@ -101,7 +117,7 @@ class StateIndexManager:
         )
 
     def unregister_entity(self, entity_id: str) -> None:
-        """Unregister an entity.
+        """Unregister the active entity instance for one entity ID.
 
         Args:
             entity_id: Entity identifier to remove
@@ -110,11 +126,19 @@ class StateIndexManager:
         if entity is None:
             return
 
-        for device_entities in self._entities_by_device.values():
-            if entity in device_entities:
-                device_entities.remove(entity)
-
+        self._remove_entity_from_device_buckets(entity)
         _LOGGER.debug("Unregistered entity %s", entity_id)
+
+    def unregister_entity_instance(self, entity: object) -> None:
+        """Remove one entity instance without blindly dropping the active mapping."""
+        entity_id = getattr(entity, "entity_id", None)
+        if not isinstance(entity_id, str) or not entity_id:
+            return
+
+        typed_entity = cast(LiproEntityProtocol, entity)
+        if self._entities.get(entity_id) is typed_entity:
+            self._entities.pop(entity_id, None)
+        self._remove_entity_from_device_buckets(typed_entity)
 
     def get_entity_count(self) -> int:
         """Get total registered entity count."""

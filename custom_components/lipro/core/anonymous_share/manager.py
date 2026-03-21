@@ -16,7 +16,6 @@ calls (developer feedback). Reports can be previewed locally before upload.
 from __future__ import annotations
 
 import asyncio
-from dataclasses import dataclass, field
 from inspect import isawaitable
 import logging
 import time
@@ -26,42 +25,28 @@ import aiohttp
 
 from ..telemetry.models import OperationOutcome, build_operation_outcome
 from .collector import AnonymousShareCollector
-from .const import (
-    AUTO_UPLOAD_INTERVAL,
-    MAX_PENDING_DEVICES,
-    MAX_PENDING_ERRORS,
-    MIN_UPLOAD_INTERVAL,
+from .manager_support import (
+    _ScopeState,
+    build_aggregate_report_payload,
+    build_scope_report_payload,
+    get_scope_state,
+    has_pending_report_data,
+    iter_scope_states,
+    load_reported_device_keys_for_state,
+    mark_reported_devices,
+    primary_scope_state,
+    save_reported_device_keys_for_state,
+    should_skip_report_submission,
+    should_submit_if_needed,
 )
-from .models import SharedDevice, SharedError
-from .report_builder import (
-    build_anonymous_share_report,
-    build_developer_feedback_report,
-)
+from .report_builder import build_developer_feedback_report
 from .share_client import ShareWorkerClient
-from .storage import load_reported_device_keys, save_reported_device_keys
 
 if TYPE_CHECKING:
     from ..device import LiproDevice
-    from .models import SharedDevice, SharedError
 
 _LOGGER = logging.getLogger(__package__ or __name__)
 _DEFAULT_SCOPE = "__default__"
-
-@dataclass(slots=True)
-class _ScopeState:
-    """Mutable anonymous-share state for a single logical scope."""
-
-    collector: AnonymousShareCollector = field(default_factory=AnonymousShareCollector)
-    last_upload_time: float = 0.0
-    upload_lock: asyncio.Lock = field(default_factory=asyncio.Lock)
-    installation_id: str | None = None
-    ha_version: str | None = None
-    share_client: ShareWorkerClient = field(default_factory=ShareWorkerClient)
-    reported_device_keys: set[str] = field(default_factory=set)
-    storage_path: str | None = None
-    cache_loaded: bool = True
-    storage_key: str = _DEFAULT_SCOPE
-    last_submit_outcome: OperationOutcome | None = None
 
 
 class AnonymousShareManager:
@@ -96,27 +81,20 @@ class AnonymousShareManager:
         return manager
 
     def _get_scope_state(self, scope_key: str) -> _ScopeState:
-        state = self._registry.get(scope_key)
-        if state is None:
-            state = _ScopeState(storage_key=scope_key)
-            self._registry[scope_key] = state
-        return state
+        return get_scope_state(self._registry, scope_key)
 
     @property
     def _state(self) -> _ScopeState:
         return self._get_scope_state(self._scope_key)
 
     def _iter_scope_states(self) -> list[tuple[str, _ScopeState]]:
-        return list(self._registry.items())
+        return iter_scope_states(self._registry)
 
     def _iter_managers(self) -> list[AnonymousShareManager]:
         return [self.for_scope(scope_key) for scope_key, _ in self._iter_scope_states()]
 
     def _primary_state(self) -> _ScopeState:
-        for _, state in self._iter_scope_states():
-            if state.collector.is_enabled or state.collector.pending_count != (0, 0):
-                return state
-        return self._get_scope_state(_DEFAULT_SCOPE)
+        return primary_scope_state(self._registry)
 
     @property
     def _collector(self) -> AnonymousShareCollector:
@@ -251,28 +229,13 @@ class AnonymousShareManager:
 
     def _load_reported_devices(self) -> None:
         """Load previously reported device keys from storage."""
-        storage_path = self._storage_path
-        if not storage_path:
-            return
-        loaded, keys = load_reported_device_keys(
-            storage_path,
-            logger=_LOGGER,
-            cache_key=self._state.storage_key,
-        )
-        if loaded:
+        keys = load_reported_device_keys_for_state(self._state, logger=_LOGGER)
+        if keys is not None:
             self._reported_device_keys = keys
 
     def _save_reported_devices(self) -> None:
         """Save reported device keys to storage."""
-        storage_path = self._storage_path
-        if not storage_path:
-            return
-        save_reported_device_keys(
-            storage_path,
-            self._reported_device_keys,
-            logger=_LOGGER,
-            cache_key=self._state.storage_key,
-        )
+        save_reported_device_keys_for_state(self._state, logger=_LOGGER)
 
     def record_device(self, device: LiproDevice) -> None:
         """Record device information for the current scope."""
@@ -332,30 +295,8 @@ class AnonymousShareManager:
     def build_report(self) -> dict[str, object]:
         """Build the anonymous share report."""
         if not self._aggregate:
-            return build_anonymous_share_report(
-                installation_id=self._installation_id,
-                ha_version=self._ha_version,
-                devices=self._collector.devices,
-                errors=list(self._collector.errors),
-            )
-        devices: dict[str, SharedDevice] = {}
-        errors: list[SharedError] = []
-        for scope_key, state in self._iter_scope_states():
-            devices.update(
-                {
-                    f"{scope_key}:{key}": value
-                    for key, value in state.collector.devices.items()
-                }
-            )
-            errors.extend(state.collector.errors)
-        primary = self._primary_state()
-        installation_id = primary.installation_id if len(self._registry) == 1 else None
-        return build_anonymous_share_report(
-            installation_id=installation_id,
-            ha_version=primary.ha_version,
-            devices=devices,
-            errors=errors,
-        )
+            return build_scope_report_payload(self._state)
+        return build_aggregate_report_payload(self._registry)
 
     def get_pending_report(self) -> dict[str, object] | None:
         """Get pending report data for user review."""
@@ -417,23 +358,15 @@ class AnonymousShareManager:
 
     def _has_pending_report_data(self) -> bool:
         """Return whether the current scope has reportable pending data."""
-        if self._collector.devices or self._collector.errors:
-            return True
-        _LOGGER.debug("No anonymous share data to report")
-        return False
+        return has_pending_report_data(self._state, logger=_LOGGER)
 
     def _should_skip_report_submission(self, *, force: bool) -> bool:
         """Return whether the current scope should skip one upload attempt."""
-        if force:
-            return False
-        elapsed = time.time() - self._last_upload_time
-        if elapsed >= MIN_UPLOAD_INTERVAL:
-            return False
-        _LOGGER.debug(
-            "Skipping anonymous share upload, last upload was %d seconds ago",
-            int(elapsed),
+        return should_skip_report_submission(
+            last_upload_time=self._last_upload_time,
+            force=force,
+            logger=_LOGGER,
         )
-        return True
 
     async def _async_finalize_successful_submit(self) -> None:
         """Finalize a successful current-scope anonymous-share submission."""
@@ -444,18 +377,15 @@ class AnonymousShareManager:
             error_count,
         )
         self._last_upload_time = time.time()
-        for device in self._collector.devices.values():
-            self._reported_device_keys.add(device.iot_name)
+        mark_reported_devices(self._state)
         await asyncio.to_thread(self._save_reported_devices)
         self.clear()
 
     def _should_submit_if_needed(self) -> bool:
         """Return whether automatic submission thresholds are currently met."""
-        device_count, error_count = self.pending_count
-        return (
-            device_count >= MAX_PENDING_DEVICES
-            or error_count >= MAX_PENDING_ERRORS
-            or (time.time() - self._last_upload_time) > AUTO_UPLOAD_INTERVAL
+        return should_submit_if_needed(
+            pending_count=self.pending_count,
+            last_upload_time=self._last_upload_time,
         )
 
     async def submit_developer_feedback(
@@ -495,9 +425,12 @@ class AnonymousShareManager:
                     continue
                 if aggregate_outcome is None:
                     aggregate_outcome = child_outcome
-            self._state.last_submit_outcome = aggregate_outcome or build_operation_outcome(
-                kind=("success" if success else "failed"),
-                reason_code=("submitted" if success else "submit_failed"),
+            self._state.last_submit_outcome = (
+                aggregate_outcome
+                or build_operation_outcome(
+                    kind=("success" if success else "failed"),
+                    reason_code=("submitted" if success else "submit_failed"),
+                )
             )
             return success
         if not self._collector.is_enabled:

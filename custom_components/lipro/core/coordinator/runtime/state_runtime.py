@@ -127,8 +127,12 @@ class StateRuntime:
         self._index_manager.register_entity(entity, device_serial)
 
     def unregister_entity(self, entity_id: str) -> None:
-        """Unregister an entity."""
+        """Unregister the active entity for one entity ID."""
         self._index_manager.unregister_entity(entity_id)
+
+    def unregister_entity_instance(self, entity: object) -> None:
+        """Remove one entity instance while preserving active-instance semantics."""
+        self._index_manager.unregister_entity_instance(entity)
 
     def get_entity_count(self) -> int:
         """Get total registered entity count."""

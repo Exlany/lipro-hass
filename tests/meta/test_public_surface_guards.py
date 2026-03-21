@@ -21,9 +21,7 @@ _ALLOWED_SCRIPT_TEST_IMPORT_PREFIXES = {
         "tests.helpers.architecture_policy",
         "tests.helpers.ast_guard_utils",
     ),
-    "scripts/export_ai_debug_evidence_pack.py": (
-        "tests.harness.evidence_pack",
-    ),
+    "scripts/export_ai_debug_evidence_pack.py": ("tests.harness.evidence_pack",),
 }
 
 
@@ -31,7 +29,11 @@ def _iter_test_imports(path: Path) -> set[str]:
     tree = ast.parse(path.read_text(encoding="utf-8"), filename=path.as_posix())
     modules: set[str] = set()
     for node in ast.walk(tree):
-        if isinstance(node, ast.ImportFrom) and node.module and node.module.startswith("tests."):
+        if (
+            isinstance(node, ast.ImportFrom)
+            and node.module
+            and node.module.startswith("tests.")
+        ):
             modules.add(node.module)
         elif isinstance(node, ast.Import):
             for alias in node.names:
@@ -62,7 +64,9 @@ def test_public_surface_baseline_references_architecture_policy() -> None:
     assert "ENF-PROOF-HEADLESS-BOOT-NO-SECOND-ROOT-BACKFLOW" in public_surfaces
 
 
-def test_public_surface_baseline_registers_assurance_only_replay_and_evidence_surfaces() -> None:
+def test_public_surface_baseline_registers_assurance_only_replay_and_evidence_surfaces() -> (
+    None
+):
     public_surfaces = _PUBLIC_SURFACES.read_text(encoding="utf-8")
 
     assert "tests/harness/protocol/*" in public_surfaces
@@ -71,8 +75,12 @@ def test_public_surface_baseline_registers_assurance_only_replay_and_evidence_su
 
 
 def test_root_adapter_uses_runtime_types_for_runtime_coordinator_truth() -> None:
-    root_adapter_text = (_ROOT / "custom_components" / "lipro" / "__init__.py").read_text(encoding="utf-8")
-    runtime_types_text = (_ROOT / "custom_components" / "lipro" / "runtime_types.py").read_text(encoding="utf-8")
+    root_adapter_text = (
+        _ROOT / "custom_components" / "lipro" / "__init__.py"
+    ).read_text(encoding="utf-8")
+    runtime_types_text = (
+        _ROOT / "custom_components" / "lipro" / "runtime_types.py"
+    ).read_text(encoding="utf-8")
 
     assert "from .runtime_types import LiproRuntimeCoordinator" in root_adapter_text
     assert "class LiproRuntimeCoordinator(Protocol):" not in root_adapter_text
@@ -110,7 +118,9 @@ def test_phase_17_surface_notes_capture_final_residual_retirement() -> None:
     assert "`_ClientBase` 已从 production truth 退场" in public_surfaces
     assert "`_ClientTransportMixin` 已退场" in public_surfaces
     assert "`MqttTransport` 是 canonical MQTT concrete transport" in public_surfaces
-    assert "`get_auth_data()` compatibility projection 已从正式路径退场" in public_surfaces
+    assert (
+        "`get_auth_data()` compatibility projection 已从正式路径退场" in public_surfaces
+    )
     assert 'synthetic `{"data": rows}` 已退出 formal path' in public_surfaces
 
 
@@ -138,7 +148,9 @@ def test_coordinator_entry_exports_only_runtime_surface_symbol() -> None:
     rule = _RULES["ENF-SURFACE-COORDINATOR-ENTRY"]
     file_path = _ROOT / rule.governed_targets[0]
 
-    assert set(extract_all(file_path, root=_ROOT)) == set(rule.allowed_or_required_signals)
+    assert set(extract_all(file_path, root=_ROOT)) == set(
+        rule.allowed_or_required_signals
+    )
 
 
 def test_core_api_package_keeps_transport_internals_out_of_public_exports() -> None:
@@ -159,8 +171,9 @@ def test_protocol_root_keeps_boundary_decoder_exports_internal() -> None:
     assert public_symbols.isdisjoint(rule.forbidden_signals)
 
 
-
-def test_protocol_root_rest_child_and_mqtt_child_do_not_reintroduce_implicit_surface_delegation() -> None:
+def test_protocol_root_rest_child_and_mqtt_child_do_not_reintroduce_implicit_surface_delegation() -> (
+    None
+):
     from custom_components.lipro.core.api import LiproRestFacade
     from custom_components.lipro.core.protocol.facade import (
         LiproMqttFacade,
@@ -210,13 +223,23 @@ def test_phase_19_headless_proof_bans_keep_boot_local_and_non_public() -> None:
         assert signal not in boot_text
 
 
-def test_phase_40_review_ledgers_keep_shared_execution_facade_out_of_residual_and_kill() -> None:
-    file_matrix_text = (_ROOT / ".planning" / "reviews" / "FILE_MATRIX.md").read_text(encoding="utf-8")
-    residual_text = (_ROOT / ".planning" / "reviews" / "RESIDUAL_LEDGER.md").read_text(encoding="utf-8")
-    kill_text = (_ROOT / ".planning" / "reviews" / "KILL_LIST.md").read_text(encoding="utf-8")
+def test_phase_40_review_ledgers_keep_shared_execution_facade_out_of_residual_and_kill() -> (
+    None
+):
+    file_matrix_text = (_ROOT / ".planning" / "reviews" / "FILE_MATRIX.md").read_text(
+        encoding="utf-8"
+    )
+    residual_text = (_ROOT / ".planning" / "reviews" / "RESIDUAL_LEDGER.md").read_text(
+        encoding="utf-8"
+    )
+    kill_text = (_ROOT / ".planning" / "reviews" / "KILL_LIST.md").read_text(
+        encoding="utf-8"
+    )
 
     assert "custom_components/lipro/services/execution.py" in file_matrix_text
-    assert "formal service execution facade; private auth seam closed" in file_matrix_text
+    assert (
+        "formal service execution facade; private auth seam closed" in file_matrix_text
+    )
     assert "## Phase 40 Residual Delta" in residual_text
     assert "schedule.py" in residual_text
     assert "formal service execution facade" in residual_text
@@ -249,13 +272,17 @@ def test_core_package_does_not_reexport_runtime_home_symbols() -> None:
 def test_coordinator_runtime_surface_stays_service_oriented() -> None:
     rule = _RULES["ENF-BACKDOOR-COORDINATOR-PROPERTIES"]
     relative_path, class_name = rule.governed_targets[0].split("::", maxsplit=1)
-    property_names = extract_property_names(_ROOT / relative_path, class_name, root=_ROOT)
+    property_names = extract_property_names(
+        _ROOT / relative_path, class_name, root=_ROOT
+    )
 
     assert set(rule.allowed_or_required_signals).issubset(property_names)
     assert property_names.isdisjoint(rule.forbidden_signals)
 
 
-def test_service_execution_uses_formal_auth_surface_instead_of_private_backdoor() -> None:
+def test_service_execution_uses_formal_auth_surface_instead_of_private_backdoor() -> (
+    None
+):
     rule = _RULES["ENF-BACKDOOR-SERVICE-AUTH"]
     file_path = _ROOT / rule.governed_targets[0]
     execution_text = file_path.read_text(encoding="utf-8")
@@ -267,12 +294,42 @@ def test_service_execution_uses_formal_auth_surface_instead_of_private_backdoor(
 
 
 def test_runtime_power_surface_stays_read_only_and_formalized() -> None:
-    state_reader_text = (_ROOT / "custom_components" / "lipro" / "core" / "coordinator" / "runtime" / "state" / "reader.py").read_text(encoding="utf-8")
-    outlet_power_text = (_ROOT / "custom_components" / "lipro" / "core" / "coordinator" / "outlet_power.py").read_text(encoding="utf-8")
-    runtime_text = (_ROOT / "custom_components" / "lipro" / "core" / "coordinator" / "runtime" / "outlet_power_runtime.py").read_text(encoding="utf-8")
-    diagnostics_text = (_ROOT / "custom_components" / "lipro" / "control" / "diagnostics_surface.py").read_text(encoding="utf-8")
-    power_service_text = (_ROOT / "custom_components" / "lipro" / "core" / "api" / "power_service.py").read_text(encoding="utf-8")
-    sensor_text = (_ROOT / "custom_components" / "lipro" / "sensor.py").read_text(encoding="utf-8")
+    state_reader_text = (
+        _ROOT
+        / "custom_components"
+        / "lipro"
+        / "core"
+        / "coordinator"
+        / "runtime"
+        / "state"
+        / "reader.py"
+    ).read_text(encoding="utf-8")
+    outlet_power_text = (
+        _ROOT
+        / "custom_components"
+        / "lipro"
+        / "core"
+        / "coordinator"
+        / "outlet_power.py"
+    ).read_text(encoding="utf-8")
+    runtime_text = (
+        _ROOT
+        / "custom_components"
+        / "lipro"
+        / "core"
+        / "coordinator"
+        / "runtime"
+        / "outlet_power_runtime.py"
+    ).read_text(encoding="utf-8")
+    diagnostics_text = (
+        _ROOT / "custom_components" / "lipro" / "control" / "diagnostics_surface.py"
+    ).read_text(encoding="utf-8")
+    power_service_text = (
+        _ROOT / "custom_components" / "lipro" / "core" / "api" / "power_service.py"
+    ).read_text(encoding="utf-8")
+    sensor_text = (_ROOT / "custom_components" / "lipro" / "sensor.py").read_text(
+        encoding="utf-8"
+    )
 
     assert "MappingProxyType" in state_reader_text
     assert 'extra_data["power_info"]' not in outlet_power_text
@@ -284,7 +341,10 @@ def test_runtime_power_surface_stays_read_only_and_formalized() -> None:
 
 def test_phase_30_control_contracts_stay_private_and_system_health_minimal() -> None:
     control_exports = set(
-        extract_all(_ROOT / "custom_components" / "lipro" / "control" / "__init__.py", root=_ROOT)
+        extract_all(
+            _ROOT / "custom_components" / "lipro" / "control" / "__init__.py",
+            root=_ROOT,
+        )
     )
     failure_policy_text = (
         _ROOT
@@ -294,11 +354,7 @@ def test_phase_30_control_contracts_stay_private_and_system_health_minimal() -> 
         / "entry_lifecycle_failures.py"
     ).read_text(encoding="utf-8")
     system_health_text = (
-        _ROOT
-        / "custom_components"
-        / "lipro"
-        / "control"
-        / "system_health_surface.py"
+        _ROOT / "custom_components" / "lipro" / "control" / "system_health_surface.py"
     ).read_text(encoding="utf-8")
 
     assert "LifecycleFailureContract" not in control_exports
@@ -329,7 +385,10 @@ def test_phase_30_control_contracts_stay_private_and_system_health_minimal() -> 
     ):
         assert token not in control_exports
 
-def test_phase_48_public_surface_notes_capture_support_only_helper_and_update_cycle() -> None:
+
+def test_phase_48_public_surface_notes_capture_support_only_helper_and_update_cycle() -> (
+    None
+):
     public_surfaces = _PUBLIC_SURFACES.read_text(encoding="utf-8")
 
     assert "## Phase 48 Formal-Root Hotspot Decomposition Notes" in public_surfaces
@@ -339,13 +398,29 @@ def test_phase_48_public_surface_notes_capture_support_only_helper_and_update_cy
     assert "module-level alias seam" in public_surfaces
 
 
-def test_phase_40_public_surface_notes_capture_runtime_access_and_shared_execution() -> None:
+def test_phase_53_public_surface_notes_capture_support_only_runtime_and_entry_root_helpers() -> (
+    None
+):
+    public_surfaces = _PUBLIC_SURFACES.read_text(encoding="utf-8")
+
+    assert "## Phase 53 Runtime / Entry-Root Throttling Notes" in public_surfaces
+    assert "runtime_wiring.py" in public_surfaces
+    assert "entry_lifecycle_support.py" in public_surfaces
+    assert "entry_root_wiring.py" in public_surfaces
+    assert "support-only" in public_surfaces
+    assert "lazy composition" in public_surfaces
+
+
+def test_phase_40_public_surface_notes_capture_runtime_access_and_shared_execution() -> (
+    None
+):
     public_surfaces = _PUBLIC_SURFACES.read_text(encoding="utf-8")
 
     assert "## Phase 40 Governance Truth Surface Notes" in public_surfaces
     assert "GOVERNANCE_REGISTRY.json" in public_surfaces
     assert "唯一正式 read-model home" in public_surfaces
     assert "formal shared service execution facade" in public_surfaces
+
 
 def test_phase_40_touched_hotspots_keep_port_protocol_and_operation_wording() -> None:
     auth_text = (
@@ -396,12 +471,12 @@ def test_phase_40_touched_hotspots_keep_port_protocol_and_operation_wording() ->
 
 
 def test_phase_40_ledgers_keep_service_execution_formal_and_non_delete_target() -> None:
-    file_matrix_text = (
-        _ROOT / ".planning" / "reviews" / "FILE_MATRIX.md"
-    ).read_text(encoding="utf-8")
-    residual_text = (
-        _ROOT / ".planning" / "reviews" / "RESIDUAL_LEDGER.md"
-    ).read_text(encoding="utf-8")
+    file_matrix_text = (_ROOT / ".planning" / "reviews" / "FILE_MATRIX.md").read_text(
+        encoding="utf-8"
+    )
+    residual_text = (_ROOT / ".planning" / "reviews" / "RESIDUAL_LEDGER.md").read_text(
+        encoding="utf-8"
+    )
     kill_text = (_ROOT / ".planning" / "reviews" / "KILL_LIST.md").read_text(
         encoding="utf-8"
     )
@@ -413,20 +488,24 @@ def test_phase_40_ledgers_keep_service_execution_formal_and_non_delete_target() 
     assert "formal service execution facade" in kill_text
     assert "active kill target" in kill_text
 
+
 def test_phase_43_public_surface_notes_capture_typed_runtime_and_thin_helpers() -> None:
     public_surfaces = _PUBLIC_SURFACES.read_text(encoding="utf-8")
 
     assert "## Phase 43 Control / Runtime Boundary Notes" in public_surfaces
     assert "typed diagnostics/system-health projection" in public_surfaces
     assert "control/service_router_support.py" in public_surfaces
-    assert "services/device_lookup.py` 只保留 service-facing `device_id` resolution" in public_surfaces
+    assert (
+        "services/device_lookup.py` 只保留 service-facing `device_id` resolution"
+        in public_surfaces
+    )
     assert "runtime_infra.py` 成为 device-registry listener" in public_surfaces
 
 
-
-
 def test_phase_49_file_matrix_tracks_topicized_test_topology() -> None:
-    file_matrix_text = (_ROOT / ".planning" / "reviews" / "FILE_MATRIX.md").read_text(encoding="utf-8")
+    file_matrix_text = (_ROOT / ".planning" / "reviews" / "FILE_MATRIX.md").read_text(
+        encoding="utf-8"
+    )
 
     for path in (
         "tests/core/test_coordinator_entry.py",
@@ -446,16 +525,19 @@ def test_phase_49_file_matrix_tracks_topicized_test_topology() -> None:
     assert "tests/test_coordinator_public.py" not in file_matrix_text
     assert "tests/test_coordinator_runtime.py" not in file_matrix_text
 
-def test_phase_50_rest_child_facade_and_shared_execution_truth_remain_singular() -> None:
+
+def test_phase_50_rest_child_facade_and_shared_execution_truth_remain_singular() -> (
+    None
+):
     request_gateway_text = (
         _ROOT / "custom_components" / "lipro" / "core" / "api" / "request_gateway.py"
     ).read_text(encoding="utf-8")
     endpoint_text = (
         _ROOT / "custom_components" / "lipro" / "core" / "api" / "endpoint_surface.py"
     ).read_text(encoding="utf-8")
-    file_matrix_text = (
-        _ROOT / ".planning" / "reviews" / "FILE_MATRIX.md"
-    ).read_text(encoding="utf-8")
+    file_matrix_text = (_ROOT / ".planning" / "reviews" / "FILE_MATRIX.md").read_text(
+        encoding="utf-8"
+    )
     public_surfaces = _PUBLIC_SURFACES.read_text(encoding="utf-8")
 
     assert "canonical REST child façade" in public_surfaces
@@ -467,28 +549,51 @@ def test_phase_50_rest_child_facade_and_shared_execution_truth_remain_singular()
     assert "forwarding" not in endpoint_text
     assert "REST endpoint operations collaborator home" in file_matrix_text
     assert "REST request-gateway collaborator home" in file_matrix_text
-    assert "diagnostics optional-capability helper reusing shared execution auth chain" in file_matrix_text
+    assert (
+        "diagnostics optional-capability helper reusing shared execution auth chain"
+        in file_matrix_text
+    )
     assert "formal service execution facade" in file_matrix_text
 
-def test_phase_52_public_surface_notes_keep_single_protocol_root_and_request_policy_truth() -> None:
-    public_surfaces = _PUBLIC_SURFACES.read_text(encoding="utf-8")
-    file_matrix_text = (
-        _ROOT / ".planning" / "reviews" / "FILE_MATRIX.md"
-    ).read_text(encoding="utf-8")
-    residual_text = (
-        _ROOT / ".planning" / "reviews" / "RESIDUAL_LEDGER.md"
-    ).read_text(encoding="utf-8")
 
-    assert "## Phase 52 Protocol Root / Request Policy Isolation Notes" in public_surfaces
-    assert "protocol_facade_rest_methods.py` 只是 support-only REST child-facing method surface" in public_surfaces
-    assert "request_policy.py` 现成为 `429` / busy / pacing decision 的 formal truth" in public_surfaces
+def test_phase_52_public_surface_notes_keep_single_protocol_root_and_request_policy_truth() -> (
+    None
+):
+    public_surfaces = _PUBLIC_SURFACES.read_text(encoding="utf-8")
+    file_matrix_text = (_ROOT / ".planning" / "reviews" / "FILE_MATRIX.md").read_text(
+        encoding="utf-8"
+    )
+    residual_text = (_ROOT / ".planning" / "reviews" / "RESIDUAL_LEDGER.md").read_text(
+        encoding="utf-8"
+    )
+
+    assert (
+        "## Phase 52 Protocol Root / Request Policy Isolation Notes" in public_surfaces
+    )
+    assert (
+        "protocol_facade_rest_methods.py` 只是 support-only REST child-facing method surface"
+        in public_surfaces
+    )
+    assert (
+        "request_policy.py` 现成为 `429` / busy / pacing decision 的 formal truth"
+        in public_surfaces
+    )
     assert "protocol_facade_rest_methods.py" in file_matrix_text
-    assert "support-only REST child-facing method surface for protocol root" in file_matrix_text
+    assert (
+        "support-only REST child-facing method surface for protocol root"
+        in file_matrix_text
+    )
     assert "formal 429 / busy / pacing policy home" in file_matrix_text
-    assert "REST signed transport execution + response normalization home" in file_matrix_text
+    assert (
+        "REST signed transport execution + response normalization home"
+        in file_matrix_text
+    )
     assert "Generic backoff helper leak" in residual_text
 
-def test_phase_52_internal_request_helpers_do_not_surface_as_top_level_bindings() -> None:
+
+def test_phase_52_internal_request_helpers_do_not_surface_as_top_level_bindings() -> (
+    None
+):
     forbidden = {"RequestPolicy", "RestRequestGateway", "RestTransportExecutor"}
 
     for relative_path in (
@@ -499,3 +604,76 @@ def test_phase_52_internal_request_helpers_do_not_surface_as_top_level_bindings(
         bindings = set(extract_top_level_bindings(_ROOT / relative_path, root=_ROOT))
         assert bindings.isdisjoint(forbidden)
 
+
+def test_phase_54_helper_hotspot_notes_keep_single_public_homes() -> None:
+    public_surfaces = _PUBLIC_SURFACES.read_text(encoding="utf-8")
+    file_matrix_text = (_ROOT / ".planning" / "reviews" / "FILE_MATRIX.md").read_text(
+        encoding="utf-8"
+    )
+    residual_text = (_ROOT / ".planning" / "reviews" / "RESIDUAL_LEDGER.md").read_text(
+        encoding="utf-8"
+    )
+
+    assert "## Phase 54 Helper-Hotspot Formalization Notes" in public_surfaces
+    assert (
+        "manager_support.py` 只允许作为 scope-state / cache / report-submit mechanics 的 support-only seam"
+        in public_surfaces
+    )
+    assert (
+        "share_client_support.py` 只承接 token / submit-attempt / outcome mechanics"
+        in public_surfaces
+    )
+    assert (
+        "helper_support.py` 只能作为 report / feedback / capability / response mechanics seam inward 使用"
+        in public_surfaces
+    )
+    assert (
+        "request_policy_support.py` 只允许作为 pacing/backoff support seam 存在"
+        in public_surfaces
+    )
+    assert "manager_support.py" in file_matrix_text
+    assert "share_client_support.py" in file_matrix_text
+    assert "helper_support.py" in file_matrix_text
+    assert "request_policy_support.py" in file_matrix_text
+    assert "Phase 56+" in residual_text
+
+
+def test_phase_55_topicized_test_matrix_tracks_thin_shells_and_named_suites() -> None:
+    file_matrix_text = (_ROOT / ".planning" / "reviews" / "FILE_MATRIX.md").read_text(
+        encoding="utf-8"
+    )
+    testing_text = (_ROOT / ".planning" / "codebase" / "TESTING.md").read_text(
+        encoding="utf-8"
+    )
+
+    for needle in (
+        "tests/core/api/test_api_command_surface_commands.py",
+        "tests/core/api/test_api_command_surface_misc.py",
+        "tests/core/api/test_api_command_surface_rate_limits.py",
+        "tests/core/api/test_api_command_surface_responses.py",
+        "tests/core/mqtt/test_transport_runtime_connection_loop.py",
+        "tests/core/mqtt/test_transport_runtime_ingress.py",
+        "tests/core/mqtt/test_transport_runtime_lifecycle.py",
+        "tests/core/mqtt/test_transport_runtime_subscriptions.py",
+        "tests/platforms/test_light_entity_behavior.py",
+        "tests/platforms/test_light_model_and_commands.py",
+        "tests/platforms/test_fan_entity_behavior.py",
+        "tests/platforms/test_fan_model_and_commands.py",
+        "tests/platforms/test_select_behavior.py",
+        "tests/platforms/test_select_models.py",
+        "tests/platforms/test_switch_behavior.py",
+        "tests/platforms/test_switch_models.py",
+    ):
+        assert needle in file_matrix_text
+
+    for needle in (
+        "thin shell after command-surface topicization",
+        "thin shell after transport-runtime topicization",
+        "thin shell after light topic extraction",
+        "thin shell after fan topic extraction",
+        "thin shell after select topic extraction",
+        "thin shell after switch topic extraction",
+    ):
+        assert needle in file_matrix_text
+
+    assert "当前仓库共有 `228` 个 `test_*.py` 文件" in testing_text

@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import asyncio
 from collections.abc import Mapping
-from contextlib import suppress
 from datetime import timedelta
 import logging
 from types import MappingProxyType
@@ -16,22 +15,20 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from ...const.config import DEFAULT_SCAN_INTERVAL
 from ..protocol import LiproProtocolFacade
 from .lifecycle import (
-    CoordinatorUpdateCycle,
     async_setup_mqtt as coordinator_async_setup_mqtt,
     async_shutdown as coordinator_async_shutdown,
 )
 from .orchestrator import RuntimeOrchestrator
-from .runtime_context import RuntimeContext
+from .runtime_wiring import (
+    build_runtime_context,
+    build_update_cycle,
+    initialize_service_layer,
+)
 from .services import (
     CoordinatorAuthService,
     CoordinatorCommandService,
-    CoordinatorDeviceRefreshService,
-    CoordinatorMqttService,
-    CoordinatorPollingService,
     CoordinatorProtocolService,
     CoordinatorSignalService,
-    CoordinatorStateService,
-    CoordinatorTelemetryService,
 )
 
 if TYPE_CHECKING:
@@ -44,6 +41,9 @@ if TYPE_CHECKING:
     from .types import PropertyDict
 
 _LOGGER = logging.getLogger(__name__)
+
+# Preserve the historical patch seam for focused runtime-root tests.
+_PATCHABLE_RUNTIME_SERVICE_TYPES = (CoordinatorCommandService,)
 
 
 class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
@@ -110,14 +110,55 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
 
         # Build runtime components
         self._runtimes = orchestrator.build_runtimes(
-            context=self._build_runtime_context(),
+            context=build_runtime_context(
+                get_device_by_id=self._get_device_by_id,
+                apply_properties_update=self._apply_properties_update,
+                schedule_listener_update=self._schedule_listener_update,
+                signal_service=self.signal_service,
+                request_refresh=self.async_request_refresh,
+                trigger_reauth=self.auth_service.async_trigger_reauth,
+                is_mqtt_connected=self._is_mqtt_connected,
+            ),
             state=self._state,
             polling_updater=self,
         )
 
-        # Initialize service layer
-        self._init_service_layer()
-        self._update_cycle = self._build_update_cycle()
+        service_layer = initialize_service_layer(
+            runtimes=self._runtimes,
+            state=self._state,
+            protocol_service=self.protocol_service,
+            async_setup_mqtt=self.async_setup_mqtt,
+            replace_devices=self._replace_devices,
+            publish_updated_data=lambda devices: self.async_set_updated_data(devices),
+            get_device_by_id=self.get_device_by_id,
+            async_refresh_devices=self.async_refresh_devices,
+            update_interval_seconds_getter=lambda: (
+                int(self.update_interval.total_seconds())
+                if self.update_interval is not None
+                else None
+            ),
+            logger=_LOGGER,
+        )
+        self.command_service = service_layer.command_service
+        self.mqtt_service = service_layer.mqtt_service
+        self.state_service = service_layer.state_service
+        self._polling_service = service_layer.polling_service
+        self.device_refresh_service = service_layer.device_refresh_service
+        self.telemetry_service = service_layer.telemetry_service
+        self._update_cycle = build_update_cycle(
+            ensure_authenticated=self.auth_service.async_ensure_authenticated,
+            should_refresh_device_list=self._runtimes.device.should_refresh_device_list,
+            refresh_device_snapshot=lambda: self._async_refresh_device_snapshot(
+                force=True,
+                mqtt_timeout_seconds=5,
+            ),
+            has_mqtt_transport=lambda: self._runtimes.mqtt.has_transport,
+            has_devices=lambda: bool(self._state.devices),
+            setup_mqtt=self.async_setup_mqtt,
+            run_status_polling=self._async_run_status_polling,
+            telemetry_service=self.telemetry_service,
+            devices_getter=lambda: self._state.devices,
+        )
 
     # RuntimeContext callback methods (injected into all runtimes)
     def _get_device_by_id(self, device_id: str) -> LiproDevice | None:
@@ -167,79 +208,6 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
         self._state.devices.clear()
         self._state.devices.update(devices)
 
-    def _build_runtime_context(self) -> RuntimeContext:
-        """Build the unified runtime context consumed by collaborators."""
-        return RuntimeContext(
-            get_device_by_id=self._get_device_by_id,
-            apply_properties_update=self._apply_properties_update,
-            schedule_listener_update=self._schedule_listener_update,
-            record_connect_state=self.signal_service,
-            request_group_reconciliation=self.signal_service,
-            request_refresh=self.async_request_refresh,
-            trigger_reauth=self.auth_service.async_trigger_reauth,
-            is_mqtt_connected=self._is_mqtt_connected,
-        )
-
-    def _build_update_cycle(self) -> CoordinatorUpdateCycle:
-        """Build the lifecycle collaborator that owns scheduled update orchestration."""
-        return CoordinatorUpdateCycle(
-            ensure_authenticated=self.auth_service.async_ensure_authenticated,
-            should_refresh_device_list=self._runtimes.device.should_refresh_device_list,
-            refresh_device_snapshot=lambda: self._async_refresh_device_snapshot(
-                force=True,
-                mqtt_timeout_seconds=5,
-            ),
-            has_mqtt_transport=lambda: self._runtimes.mqtt.has_transport,
-            has_devices=lambda: bool(self._state.devices),
-            setup_mqtt=self.async_setup_mqtt,
-            run_status_polling=self._async_run_status_polling,
-            telemetry_service=self.telemetry_service,
-            devices_getter=lambda: self._state.devices,
-        )
-
-    def _init_service_layer(self) -> None:
-        """Initialize formal runtime service surfaces."""
-        self.command_service = CoordinatorCommandService(
-            command_runtime=self._runtimes.command,
-            tuning_runtime=self._runtimes.tuning,
-        )
-        self.mqtt_service = CoordinatorMqttService(
-            devices_getter=lambda: self._state.devices,
-            mqtt_runtime_getter=lambda: self._runtimes.mqtt,
-            setup_callback=self.async_setup_mqtt,
-        )
-        self.state_service = CoordinatorStateService(state_runtime=self._runtimes.state)
-        self._polling_service = CoordinatorPollingService(
-            device_runtime=self._runtimes.device,
-            status_runtime=self._runtimes.status,
-            tuning_runtime=self._runtimes.tuning,
-            protocol_service=self.protocol_service,
-            mqtt_service=self.mqtt_service,
-            devices_getter=lambda: self._state.devices,
-            replace_devices=self._replace_devices,
-            publish_updated_data=lambda devices: self.async_set_updated_data(devices),
-            get_device_by_id=self.get_device_by_id,
-            has_mqtt_transport_getter=lambda: self._runtimes.mqtt.has_transport,
-            logger=_LOGGER,
-        )
-        self.device_refresh_service = CoordinatorDeviceRefreshService(
-            device_runtime=self._runtimes.device,
-            state_runtime=self._runtimes.state,
-            refresh_callback=self.async_refresh_devices,
-        )
-        self.telemetry_service = CoordinatorTelemetryService(
-            mqtt_service=self.mqtt_service,
-            command_runtime=self._runtimes.command,
-            status_runtime=self._runtimes.status,
-            tuning_runtime=self._runtimes.tuning,
-            mqtt_runtime_getter=lambda: self._runtimes.mqtt,
-            device_count_getter=lambda: len(self._state.devices),
-            polling_interval_seconds_getter=lambda: (
-                int(self.update_interval.total_seconds())
-                if self.update_interval is not None
-                else None
-            ),
-        )
 
     @property
     def devices(self) -> Mapping[str, LiproDevice]:
@@ -270,53 +238,21 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
         return self.state_service.get_device_by_id(device_id)
 
     def register_entity(self, entity: LiproEntityProtocol) -> None:
-        """Register entity for debounce protection tracking.
-
-        Args:
-            entity: Entity to register
-        """
-        # Skip entities without entity_id
+        """Register entity for debounce protection tracking."""
         if not entity.entity_id:
             return
 
-        # Register in state runtime for debounce protection
         self._runtimes.state.register_entity(
             entity=entity,
             device_serial=entity.device.serial,
         )
 
-        # Keep the entity index in sync with runtime state
-        self._state.entities[entity.entity_id] = entity
-        device_serial = entity.device.serial
-        if device_serial not in self._state.entities_by_device:
-            self._state.entities_by_device[device_serial] = []
-        if entity not in self._state.entities_by_device[device_serial]:
-            self._state.entities_by_device[device_serial].append(entity)
-
     def unregister_entity(self, entity: LiproEntityProtocol) -> None:
-        """Unregister entity from debounce protection tracking.
-
-        Args:
-            entity: Entity to unregister
-        """
-        # Skip entities without entity_id
+        """Unregister entity from debounce protection tracking."""
         if not entity.entity_id:
             return
 
-        # Only unregister through the shared runtime if this is still
-        # the active entity instance for the entity_id.
-        should_unregister_from_runtime = (
-            self._state.entities.get(entity.entity_id) is entity
-        )
-        if should_unregister_from_runtime:
-            self._runtimes.state.unregister_entity(entity.entity_id)
-
-        device_serial = entity.device.serial
-        if device_serial in self._state.entities_by_device:
-            with suppress(ValueError):
-                self._state.entities_by_device[device_serial].remove(entity)
-            if not self._state.entities_by_device[device_serial]:
-                del self._state.entities_by_device[device_serial]
+        self._runtimes.state.unregister_entity_instance(entity)
 
     def get_device_lock(self, device_serial: str) -> asyncio.Lock:
         """Get the lock for a specific device.

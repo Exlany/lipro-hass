@@ -498,13 +498,141 @@ def test_phase_52_execution_evidence_is_consistent() -> None:
     _assert_state_reflects_post_v1_4_continuation(state_text)
     _assert_state_keeps_forward_progress_commands(state_text)
     assert "## Planned Milestone (v1.8)" in project_text
-    assert "$gsd-plan-phase 53" in project_text
+    assert "$gsd-new-milestone" in project_text
     assert "phase: 52" in summary_text
     assert "status: passed" in summary_text
     assert "52-03" in summary_text
     assert "# Phase 52 Verification" in verification_text
     assert "status: passed" in verification_text
     assert "ARC-08" in verification_text
+    assert "status: passed" in validation_text
+    assert "✅ passed" in validation_text
+
+
+def test_phase_53_execution_evidence_is_consistent() -> None:
+    roadmap_text = (_ROOT / ".planning" / "ROADMAP.md").read_text(encoding="utf-8")
+    requirements_text = (_ROOT / ".planning" / "REQUIREMENTS.md").read_text(encoding="utf-8")
+    state_text = (_ROOT / ".planning" / "STATE.md").read_text(encoding="utf-8")
+    project_text = (_ROOT / ".planning" / "PROJECT.md").read_text(encoding="utf-8")
+
+    phase_root = (
+        _ROOT
+        / ".planning"
+        / "phases"
+        / "53-runtime-and-entry-root-second-round-throttling"
+    )
+    summary_text = (phase_root / "53-SUMMARY.md").read_text(encoding="utf-8")
+    verification_text = (phase_root / "53-VERIFICATION.md").read_text(encoding="utf-8")
+    validation_text = (phase_root / "53-VALIDATION.md").read_text(encoding="utf-8")
+
+    _assert_promoted_phase_assets(
+        "53-runtime-and-entry-root-second-round-throttling",
+        "53-SUMMARY.md",
+        "53-VERIFICATION.md",
+    )
+
+    assert "### Phase 53: Runtime and entry-root second-round throttling" in roadmap_text
+    assert "**Status**: Complete (`2026-03-21`)" in roadmap_text
+    assert "**Plans**: 3/3 complete" in roadmap_text
+    assert "**Promoted closeout package**: `53-SUMMARY.md`, `53-VERIFICATION.md`" in roadmap_text
+    assert "| HOT-12 | Phase 53 | Complete |" in requirements_text
+    _assert_current_mode_tracks_phase_lifecycle(state_text)
+    _assert_state_reflects_post_v1_4_continuation(state_text)
+    _assert_state_keeps_forward_progress_commands(state_text)
+    assert "## Planned Milestone (v1.8)" in project_text
+    assert "53-SUMMARY.md" in project_text
+    assert "phase: 53" in summary_text
+    assert "status: passed" in summary_text
+    assert "53-03" in summary_text
+    assert "# Phase 53 Verification" in verification_text
+    assert "status: passed" in verification_text
+    assert "HOT-12" in verification_text
+    assert "status: passed" in validation_text
+    assert "Approval:" in validation_text
+
+
+def test_phase_54_execution_evidence_is_consistent() -> None:
+    roadmap_text = (_ROOT / ".planning" / "ROADMAP.md").read_text(encoding="utf-8")
+    requirements_text = (_ROOT / ".planning" / "REQUIREMENTS.md").read_text(encoding="utf-8")
+    state_text = (_ROOT / ".planning" / "STATE.md").read_text(encoding="utf-8")
+    project_text = (_ROOT / ".planning" / "PROJECT.md").read_text(encoding="utf-8")
+
+    phase_root = (
+        _ROOT
+        / ".planning"
+        / "phases"
+        / "54-helper-hotspot-formalization-for-anonymous-share-and-diagnostics-helper-families"
+    )
+    summary_text = (phase_root / "54-SUMMARY.md").read_text(encoding="utf-8")
+    verification_text = (phase_root / "54-VERIFICATION.md").read_text(encoding="utf-8")
+    validation_text = (phase_root / "54-VALIDATION.md").read_text(encoding="utf-8")
+
+    _assert_promoted_phase_assets(
+        "54-helper-hotspot-formalization-for-anonymous-share-and-diagnostics-helper-families",
+        "54-SUMMARY.md",
+        "54-VERIFICATION.md",
+    )
+
+    assert "### Phase 54: Helper-hotspot formalization for anonymous-share and diagnostics helper families" in roadmap_text
+    assert "**Status**: Complete (`2026-03-21`)" in roadmap_text
+    assert "**Plans**: 4/4 complete" in roadmap_text
+    assert "**Promoted closeout package**: `54-SUMMARY.md`, `54-VERIFICATION.md`" in roadmap_text
+    assert "| HOT-13 | Phase 54 | Complete |" in requirements_text
+    _assert_current_mode_tracks_phase_lifecycle(state_text)
+    _assert_state_reflects_post_v1_4_continuation(state_text)
+    _assert_state_keeps_forward_progress_commands(state_text)
+    assert "## Planned Milestone (v1.8)" in project_text
+    assert "54-SUMMARY.md" in project_text
+    assert "phase: 54" in summary_text
+    assert "status: passed" in summary_text
+    assert "54-04" in summary_text
+    assert "# Phase 54 Verification" in verification_text
+    assert "status: passed" in verification_text
+    assert "HOT-13" in verification_text
+    assert "status: passed" in validation_text
+    assert "✅ passed" in validation_text
+
+
+def test_phase_55_execution_evidence_is_consistent() -> None:
+    roadmap_text = (_ROOT / ".planning" / "ROADMAP.md").read_text(encoding="utf-8")
+    requirements_text = (_ROOT / ".planning" / "REQUIREMENTS.md").read_text(encoding="utf-8")
+    state_text = (_ROOT / ".planning" / "STATE.md").read_text(encoding="utf-8")
+    project_text = (_ROOT / ".planning" / "PROJECT.md").read_text(encoding="utf-8")
+
+    phase_root = (
+        _ROOT
+        / ".planning"
+        / "phases"
+        / "55-mega-test-topicization-round-2-and-repo-wide-typing-metric-stratification"
+    )
+    summary_text = (phase_root / "55-SUMMARY.md").read_text(encoding="utf-8")
+    verification_text = (phase_root / "55-VERIFICATION.md").read_text(encoding="utf-8")
+    validation_text = (phase_root / "55-VALIDATION.md").read_text(encoding="utf-8")
+
+    _assert_promoted_phase_assets(
+        "55-mega-test-topicization-round-2-and-repo-wide-typing-metric-stratification",
+        "55-SUMMARY.md",
+        "55-VERIFICATION.md",
+    )
+
+    assert "### Phase 55: Mega-test topicization round 2 and repo-wide typing-metric stratification" in roadmap_text
+    assert "**Status**: Complete (`2026-03-21`)" in roadmap_text
+    assert "**Plans**: 5/5 complete" in roadmap_text
+    assert "**Promoted closeout package**: `55-SUMMARY.md`, `55-VERIFICATION.md`" in roadmap_text
+    assert "| TST-10 | Phase 55 | Complete |" in requirements_text
+    assert "| TYP-13 | Phase 55 | Complete |" in requirements_text
+    _assert_current_mode_tracks_phase_lifecycle(state_text)
+    _assert_state_reflects_post_v1_4_continuation(state_text)
+    _assert_state_keeps_forward_progress_commands(state_text)
+    assert "## Planned Milestone (v1.8)" in project_text
+    assert "55-SUMMARY.md" in project_text
+    assert "phase: 55" in summary_text
+    assert "status: passed" in summary_text
+    assert "55-05" in summary_text
+    assert "# Phase 55 Verification" in verification_text
+    assert "status: passed" in verification_text
+    assert "TST-10" in verification_text
+    assert "TYP-13" in verification_text
     assert "status: passed" in validation_text
     assert "✅ passed" in validation_text
 

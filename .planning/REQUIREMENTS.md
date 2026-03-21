@@ -423,12 +423,12 @@
 - [x] **GOV-39**: `.planning/baseline/GOVERNANCE_REGISTRY.json` 已进一步承担下游 maintainer/public metadata projection truth，降低 docs / templates / contributor guidance 的手工同步漂移。
 - [x] **QLT-18**: release chain 已支持 verify-only / non-publish rehearsal，并为 docs-only / governance-only / release-only 等 change type 提供最小充分验证矩阵。
 - [x] **ARC-08**: `LiproProtocolFacade` 已继续 inward decomposition，并保持其作为唯一 protocol-plane root 的正式身份不变。
-- [ ] **HOT-12**: `Coordinator`、`__init__.py` 与 `EntryLifecycleController` 必须继续沿现有 seams 限流，降低 orchestration density。
-- [ ] **HOT-13**: `AnonymousShareManager`、diagnostics API helper family 与 request-policy companions 必须继续切薄，而不新增 public wrapper / helper-owned truth。
-- [ ] **TST-10**: second-wave mega-tests 必须继续按 concern topicize，让 API/MQTT/platform 大套件失败直接命中局部语义。
-- [ ] **TYP-13**: repo-wide typing truth 必须区分 production debt 与 test/guard literal debt，并继续压缩非 REST 区域的 `Any` 集中区。
+- [x] **HOT-12**: `Coordinator`、`__init__.py` 与 `EntryLifecycleController` 必须继续沿现有 seams 限流，降低 orchestration density。
+- [x] **HOT-13**: `AnonymousShareManager`、diagnostics API helper family 与 request-policy companions 必须继续切薄，而不新增 public wrapper / helper-owned truth。
+- [x] **TST-10**: second-wave mega-tests 必须继续按 concern topicize，让 API/MQTT/platform 大套件失败直接命中局部语义。
+- [x] **TYP-13**: repo-wide typing truth 必须区分 production debt 与 test/guard literal debt，并继续压缩非 REST 区域的 `Any` 集中区。
 
-## Traceability for planned v1.8 route
+## Traceability for completed v1.8 route
 
 | Requirement | Planned Phase | Status |
 |-------------|---------------|--------|
@@ -436,16 +436,16 @@
 | GOV-39 | Phase 51 | Complete |
 | QLT-18 | Phase 51 | Complete |
 | ARC-08 | Phase 52 | Complete |
-| HOT-12 | Phase 53 | Planned |
-| HOT-13 | Phase 54 | Planned |
-| TST-10 | Phase 55 | Planned |
-| TYP-13 | Phase 55 | Planned |
+| HOT-12 | Phase 53 | Complete |
+| HOT-13 | Phase 54 | Complete |
+| TST-10 | Phase 55 | Complete |
+| TYP-13 | Phase 55 | Complete |
 
 **Coverage:**
 - v1.8 routed requirements: 8 total
 - Current mapped: 8
-- Current complete: 4
-- Current pending: 4
+- Current complete: 8
+- Current pending: 0
 - Current unmapped: 0 ✓
 
 ## Completed Milestone (v1.7)

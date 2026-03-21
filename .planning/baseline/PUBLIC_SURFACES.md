@@ -219,3 +219,18 @@
 - shared `failure_summary` / `failure_entries` 语义属于 assurance/control consumer contract 的投影结果，不构成新的 public root，也不允许绕过 exporter / telemetry truth 直接定义正式 surface。
 - `V1_2_EVIDENCE_INDEX.md`、`v1.2-MILESTONE-AUDIT.md` 与 `v1.3-HANDOFF.md` 都是 pull-only governance / handoff assets：它们消费既有 north-star / baseline / review truth，但不替代这些真源。
 - `Phase 21-24` 对 public surfaces 的裁决是 **no new root / no new authority**：closeout 只允许同步 story 与 consumer wording，不允许把 replay、evidence、runbook 或 handoff 提升为第二业务入口。
+
+
+## Phase 53 Runtime / Entry-Root Throttling Notes
+
+- `custom_components/lipro/core/coordinator/runtime_wiring.py` 只允许作为 `Coordinator` 的 support-only bootstrapping seam 存在；`Coordinator` 继续是唯一 runtime orchestration root 与 public import home。
+- `custom_components/lipro/control/entry_lifecycle_support.py` 只承接 setup / activate / rollback / unload mechanics；`EntryLifecycleController` 继续是 setup / unload / reload 的唯一 control-plane owner。
+- `custom_components/lipro/control/entry_root_wiring.py` 只承接 `custom_components/lipro/__init__.py` 的 controller/service-registry mechanical assembly；HA root adapter 继续以 module-level alias seam + thin delegate 保持 lazy composition。
+- `custom_components/lipro/__init__.py`、`custom_components/lipro/coordinator_entry.py` 与 `custom_components/lipro/runtime_types.py` 的 formal-home truth 不变；support-only seams 不得被 tests/docs/imports 讲成第二 root。
+
+## Phase 54 Helper-Hotspot Formalization Notes
+
+- `custom_components/lipro/core/anonymous_share/manager.py` 继续是 aggregate/scoped anonymous-share public home；`custom_components/lipro/core/anonymous_share/manager_support.py` 只允许作为 scope-state / cache / report-submit mechanics 的 support-only seam 存在。
+- `custom_components/lipro/core/anonymous_share/share_client.py` 继续是 worker transport home；`custom_components/lipro/core/anonymous_share/share_client_support.py` 只承接 token / submit-attempt / outcome mechanics，不得被讲成第二 transport story。
+- `custom_components/lipro/control/service_router.py` 继续是 diagnostics public handler home；`custom_components/lipro/services/diagnostics/helpers.py` 只保留 focused diagnostics import home 身份，而 `custom_components/lipro/services/diagnostics/helper_support.py` 只能作为 report / feedback / capability / response mechanics seam inward 使用。
+- `custom_components/lipro/core/api/request_policy.py` 继续是 `429` / busy / pacing truth 的 formal home；`custom_components/lipro/core/api/request_policy_support.py` 只允许作为 pacing/backoff support seam 存在，generic `compute_exponential_retry_wait_time()` cross-plane leak 若继续保留，必须继续在 residual ledger 显式登记。
