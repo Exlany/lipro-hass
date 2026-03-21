@@ -278,79 +278,13 @@ async def _async_reload_entry_if_options_changed(
     await _async_reload_entry_if_options_changed_impl(hass, entry)
 
 
-def build_entry_auth_context(
-    hass: HomeAssistant,
-    entry: LiproConfigEntry,
-    *,
-    get_client_session: Callable[[HomeAssistant], object],
-    protocol_factory: object,
-    auth_manager_factory: object,
-    logger: logging.Logger,
-) -> tuple[object, object]:
-    """Public patch seam for entry-auth context wiring."""
-    return _build_entry_auth_context(
-        hass,
-        entry,
-        get_client_session=get_client_session,
-        protocol_factory=protocol_factory,
-        auth_manager_factory=auth_manager_factory,
-        logger=logger,
-    )
-
-
-async def async_authenticate_entry(auth_manager: object) -> None:
-    """Public patch seam for entry authentication."""
-    await _async_authenticate_entry(auth_manager)
-
-
-def clear_entry_runtime_data(entry: LiproConfigEntry) -> None:
-    """Public patch seam for runtime-data cleanup."""
-    _clear_entry_runtime_data(entry)
-
-
-def get_entry_int_option(
-    entry: LiproConfigEntry,
-    *,
-    option_name: str,
-    default: int,
-    min_value: int,
-    max_value: int,
-    logger: logging.Logger,
-) -> int:
-    """Public patch seam for typed integer option coercion."""
-    return _get_entry_int_option(
-        entry,
-        option_name=option_name,
-        default=default,
-        min_value=min_value,
-        max_value=max_value,
-        logger=logger,
-    )
-
-
-def persist_entry_tokens_if_changed(
-    hass: HomeAssistant,
-    entry: LiproConfigEntry,
-    auth_manager: object,
-) -> None:
-    """Public patch seam for token persistence."""
-    _persist_entry_tokens_if_changed(hass, entry, auth_manager)
-
-
-def store_entry_options_snapshot(
-    hass: HomeAssistant,
-    entry: LiproConfigEntry,
-) -> None:
-    """Public patch seam for options snapshot persistence."""
-    _store_entry_options_snapshot(hass, entry)
-
-
-async def async_reload_entry_if_options_changed(
-    hass: HomeAssistant,
-    entry: LiproConfigEntry,
-) -> None:
-    """Public patch seam for options-driven reloads."""
-    await _async_reload_entry_if_options_changed(hass, entry)
+build_entry_auth_context = _build_entry_auth_context
+async_authenticate_entry = _async_authenticate_entry
+clear_entry_runtime_data = _clear_entry_runtime_data
+get_entry_int_option = _get_entry_int_option
+persist_entry_tokens_if_changed = _persist_entry_tokens_if_changed
+store_entry_options_snapshot = _store_entry_options_snapshot
+async_reload_entry_if_options_changed = _async_reload_entry_if_options_changed
 
 
 def _build_service_registry() -> ServiceRegistry:
@@ -367,34 +301,39 @@ def _build_service_registry() -> ServiceRegistry:
     )
 
 
+def _build_entry_lifecycle_controller_kwargs() -> dict[str, object]:
+    """Build the stable collaborator set for one lifecycle-controller instance."""
+    return {
+        "logger": _LOGGER,
+        "domain": DOMAIN,
+        "platforms": PLATFORMS,
+        "protocol_factory": LiproProtocolFacade,
+        "auth_manager_factory": LiproAuthManager,
+        "coordinator_factory": Coordinator,
+        "get_client_session": async_get_clientsession,
+        "build_entry_auth_context": build_entry_auth_context,
+        "async_authenticate_entry": async_authenticate_entry,
+        "clear_entry_runtime_data": clear_entry_runtime_data,
+        "get_entry_int_option": get_entry_int_option,
+        "persist_entry_tokens_if_changed": persist_entry_tokens_if_changed,
+        "store_entry_options_snapshot": store_entry_options_snapshot,
+        "remove_entry_options_snapshot": remove_entry_options_snapshot,
+        "async_reload_entry_if_options_changed": async_reload_entry_if_options_changed,
+        "async_ensure_runtime_infra": async_ensure_runtime_infra,
+        "setup_device_registry_listener": setup_device_registry_listener,
+        "remove_device_registry_listener": remove_device_registry_listener,
+        "has_other_runtime_entries": has_other_runtime_entries,
+        "service_registry": _build_service_registry(),
+    }
+
+
 def _build_entry_lifecycle_controller() -> _EntryLifecycleControllerLike:
     controller_module = cast(
         _EntryLifecycleControllerModule,
         _load_module("custom_components.lipro.control.entry_lifecycle_controller"),
     )
     controller_factory = controller_module.EntryLifecycleController
-    return controller_factory(
-        logger=_LOGGER,
-        domain=DOMAIN,
-        platforms=PLATFORMS,
-        protocol_factory=LiproProtocolFacade,
-        auth_manager_factory=LiproAuthManager,
-        coordinator_factory=Coordinator,
-        get_client_session=async_get_clientsession,
-        build_entry_auth_context=build_entry_auth_context,
-        async_authenticate_entry=async_authenticate_entry,
-        clear_entry_runtime_data=clear_entry_runtime_data,
-        get_entry_int_option=get_entry_int_option,
-        persist_entry_tokens_if_changed=persist_entry_tokens_if_changed,
-        store_entry_options_snapshot=store_entry_options_snapshot,
-        remove_entry_options_snapshot=remove_entry_options_snapshot,
-        async_reload_entry_if_options_changed=async_reload_entry_if_options_changed,
-        async_ensure_runtime_infra=async_ensure_runtime_infra,
-        setup_device_registry_listener=setup_device_registry_listener,
-        remove_device_registry_listener=remove_device_registry_listener,
-        has_other_runtime_entries=has_other_runtime_entries,
-        service_registry=_build_service_registry(),
-    )
+    return controller_factory(**_build_entry_lifecycle_controller_kwargs())
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:

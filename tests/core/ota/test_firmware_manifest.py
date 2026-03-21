@@ -50,6 +50,83 @@ def _reset_remote_manifest_state() -> Generator[None]:
     firmware_manifest._REMOTE_MANIFEST_LOCK = asyncio.Lock()
 
 
+
+def test_parse_remote_manifest_payload_ignores_summary_wrapper() -> None:
+    """Remote payload should ignore stale summary and use firmware_list only."""
+    versions, versions_by_type = firmware_manifest.parse_verified_firmware_manifest_payload(
+        {
+            "updated_at": "2026-02-27T00:00:00Z",
+            "summary": {
+                "verified_versions": ["7.10.9"],
+                "verified_versions_by_type": {"ff000001": ["7.10.9"]},
+            },
+            "firmware_list": [
+                {
+                    "firmwareVersion": "7.10.8",
+                    "certified": True,
+                    "deviceType": "ff000001",
+                    "iotName": "21P3",
+                    "physicalModel": "light",
+                }
+            ],
+        }
+    )
+
+    assert versions == frozenset({"7.10.8"})
+    assert versions_by_type["21p3"] == frozenset({"7.10.8"})
+
+
+def test_parse_remote_manifest_payload_derives_from_firmware_list() -> None:
+    """Remote payload should fallback to firmware_list when summary is missing."""
+    versions, versions_by_type = firmware_manifest.parse_verified_firmware_manifest_payload(
+        {
+            "firmware_list": [
+                {
+                    "firmwareVersion": "7.10.9",
+                    "certified": True,
+                    "deviceType": "ff000001",
+                    "iotName": "21P3",
+                    "physicalModel": "light",
+                },
+                {
+                    "version": "9.9.9",
+                    "certified": True,
+                },
+                {
+                    "version": "7.10.8",
+                    "certified": False,
+                },
+                {
+                    "version": "7.10.7",
+                },
+            ]
+        }
+    )
+
+    assert versions == frozenset({"7.10.9", "9.9.9"})
+    assert versions_by_type["21p3"] == frozenset({"7.10.9"})
+
+
+def test_parse_remote_manifest_payload_derives_type_keys_without_certification_key() -> None:
+    """Rows without certification_key/source should still derive type keys from metadata."""
+    versions, versions_by_type = firmware_manifest.parse_verified_firmware_manifest_payload(
+        {
+            "firmware_list": [
+                {
+                    "version": "7.10.9",
+                    "certified": True,
+                    "deviceType": "ff000001",
+                    "iotName": "21P3",
+                    "physicalModel": "light",
+                }
+            ]
+        }
+    )
+
+    assert versions == frozenset({"7.10.9"})
+    assert versions_by_type["21p3"] == frozenset({"7.10.9"})
+
+
 def test_load_verified_firmware_manifest_uses_lru_cache() -> None:
     expected = (frozenset({"8.0.0"}), {"light": frozenset({"8.0.0"})})
 

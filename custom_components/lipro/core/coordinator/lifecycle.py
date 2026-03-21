@@ -29,6 +29,69 @@ from .services import CoordinatorTelemetryService
 _LOGGER = logging.getLogger(__name__)
 
 
+class CoordinatorUpdateCycle:
+    """Own the coordinator's scheduled update orchestration without becoming a root."""
+
+    def __init__(
+        self,
+        *,
+        ensure_authenticated: Callable[[], Awaitable[None]],
+        should_refresh_device_list: Callable[[], bool],
+        refresh_device_snapshot: Callable[[], Awaitable[None]],
+        has_mqtt_transport: Callable[[], bool],
+        has_devices: Callable[[], bool],
+        setup_mqtt: Callable[[], Awaitable[bool]],
+        run_status_polling: Callable[[], Awaitable[None]],
+        telemetry_service: CoordinatorTelemetryService,
+        devices_getter: Callable[[], dict[str, LiproDevice]],
+    ) -> None:
+        """Capture the callables and state needed for one coordinator update cycle."""
+        self._ensure_authenticated = ensure_authenticated
+        self._should_refresh_device_list = should_refresh_device_list
+        self._refresh_device_snapshot = refresh_device_snapshot
+        self._has_mqtt_transport = has_mqtt_transport
+        self._has_devices = has_devices
+        self._setup_mqtt = setup_mqtt
+        self._run_status_polling = run_status_polling
+        self._telemetry_service = telemetry_service
+        self._devices_getter = devices_getter
+
+    async def _async_refresh_snapshot_if_needed(self) -> None:
+        await async_refresh_snapshot_if_needed(
+            should_refresh_device_list=self._should_refresh_device_list,
+            refresh_device_snapshot=self._refresh_device_snapshot,
+        )
+
+    async def _async_setup_mqtt_if_needed(self) -> None:
+        await async_setup_mqtt_if_needed(
+            has_transport=self._has_mqtt_transport(),
+            has_devices=self._has_devices(),
+            setup_mqtt=self._setup_mqtt,
+        )
+
+    async def _async_run_status_polling_if_needed(self) -> None:
+        await async_run_status_polling_if_needed(
+            has_devices=self._has_devices(),
+            run_status_polling=self._run_status_polling,
+        )
+
+    async def _async_run_update_cycle(self) -> None:
+        await async_run_update_cycle(
+            ensure_authenticated=self._ensure_authenticated,
+            refresh_snapshot_if_needed=self._async_refresh_snapshot_if_needed,
+            setup_mqtt_if_needed=self._async_setup_mqtt_if_needed,
+            run_status_polling_if_needed=self._async_run_status_polling_if_needed,
+        )
+
+    async def async_update_data(self) -> dict[str, LiproDevice]:
+        """Run the scheduled update cycle and return the canonical device mapping."""
+        return await async_update_data(
+            run_update_cycle=self._async_run_update_cycle,
+            telemetry_service=self._telemetry_service,
+            devices=self._devices_getter(),
+        )
+
+
 async def _async_run_best_effort_shutdown_step(
     *,
     label: str,
@@ -229,6 +292,7 @@ async def async_update_data(
 
 
 __all__ = [
+    "CoordinatorUpdateCycle",
     "async_refresh_snapshot_if_needed",
     "async_run_status_polling_if_needed",
     "async_run_update_cycle",

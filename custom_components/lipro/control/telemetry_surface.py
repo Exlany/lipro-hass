@@ -3,14 +3,14 @@
 from __future__ import annotations
 
 from ..core.telemetry import RuntimeTelemetryExporter, TelemetrySnapshot, TelemetryViews
-from .runtime_access import _build_entry_telemetry_exporter
+from .runtime_access import build_entry_telemetry_exporter
 
 type TelemetryPayload = dict[str, object]
 
 
 def get_entry_telemetry_exporter(entry: object) -> RuntimeTelemetryExporter | None:
     """Return a telemetry exporter for one config entry, when available."""
-    return _build_entry_telemetry_exporter(entry)
+    return build_entry_telemetry_exporter(entry)
 
 
 def build_entry_telemetry_snapshot(entry: object) -> TelemetrySnapshot | None:
@@ -29,6 +29,19 @@ def build_entry_telemetry_views(entry: object) -> TelemetryViews | None:
     return exporter.export_views()
 
 
+def _select_telemetry_view(
+    views: TelemetryViews,
+    sink_name: str,
+) -> TelemetryPayload | None:
+    """Return one named telemetry sink from an exported view bundle."""
+    return {
+        "diagnostics": views.diagnostics,
+        "system_health": views.system_health,
+        "developer": views.developer,
+        "ci": views.ci,
+    }.get(sink_name)
+
+
 def get_entry_telemetry_view(
     entry: object,
     sink_name: str,
@@ -37,12 +50,7 @@ def get_entry_telemetry_view(
     views = build_entry_telemetry_views(entry)
     if views is None:
         return None
-    return {
-        "diagnostics": views.diagnostics,
-        "system_health": views.system_health,
-        "developer": views.developer,
-        "ci": views.ci,
-    }.get(sink_name)
+    return _select_telemetry_view(views, sink_name)
 
 
 def build_entry_system_health_view(entry: object) -> TelemetryPayload | None:

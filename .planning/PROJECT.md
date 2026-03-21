@@ -1,8 +1,8 @@
 # Project: Lipro-HASS North Star Evolution
 
-**Status:** Shipped baseline archived — `v1.6` 仍是最新已发货真源；`v1.7` follow-up route 已从 `Phase 46` audit package 正式化，当前默认执行入口为 `Phase 47`。
+**Status:** Shipped and archived — `v1.6` 仍是最新已发货真源；`v1.7` follow-up route 现已完成 `Phase 48` formal-root hotspot slim-down，当前默认执行入口切到 `Phase 50`。
 **Goal:** 以 `v1.6` 归档真相为最新已发货基线；下一轮只允许在 `.planning/v1.6-MILESTONE-AUDIT.md`、`.planning/reviews/V1_6_EVIDENCE_INDEX.md` 与 `.planning/milestones/v1.6-*.md` 之上定义 fresh milestone，不回流 `Phase 41` execution trace 或 `v1.5` 为 active story。
-**Default next step:** `$gsd-plan-phase 47` → `$gsd-execute-phase 47`
+**Default next step:** `$gsd-plan-phase 50` → `$gsd-execute-phase 50`
 
 
 ## Archived Milestone (v1.6)
@@ -37,13 +37,14 @@
 - 先完成全仓审阅与证据定格，再决定 `Phase 47+` 的具体 refactor / topicization / governance compression 顺序
 
 **Phase range:** `Phase 46 -> 50`
-**Current status:** `Phase 46 executed / evidence-ready (2026-03-20)`（inventory、architecture/code audit、docs/toolchain/governance audit、master audit、score matrix、remediation roadmap、summary 与 verification 均已落盘）
+**Current status:** `Phase 46 -> 49 complete / Phase 50 ready (2026-03-21)`（`Phase 46` audit package、`Phase 47` continuity/docs/tooling closeout、`Phase 48` formal-root hotspot decomposition 与 `Phase 49` mega-test topicization/failure-localization hardening 均已落盘并通过验证）
 **Formalized follow-up route:** `Phase 47 -> 50`（由 `46-REMEDIATION-ROADMAP.md` 升格为正式 roadmap entries）
-**Default execution route:** `$gsd-plan-phase 47` → `$gsd-execute-phase 47`
-**Immediate focus:** continuity contract、documentation index、tooling active/deprecated discoverability
+**Default execution route:** `$gsd-plan-phase 49` → `$gsd-execute-phase 49`
+**Immediate focus:** REST typed-surface reduction and command/result ownership convergence
 **Promoted audit package:** `.planning/phases/46-exhaustive-repository-audit-standards-conformance-and-remediation-routing/46-AUDIT.md`, `.planning/phases/46-exhaustive-repository-audit-standards-conformance-and-remediation-routing/46-SCORE-MATRIX.md`, `.planning/phases/46-exhaustive-repository-audit-standards-conformance-and-remediation-routing/46-REMEDIATION-ROADMAP.md`, `.planning/phases/46-exhaustive-repository-audit-standards-conformance-and-remediation-routing/46-SUMMARY.md`, `.planning/phases/46-exhaustive-repository-audit-standards-conformance-and-remediation-routing/46-VERIFICATION.md`
+**Promoted follow-up closeout:** `.planning/phases/47-continuity-contract-governance-entrypoint-compression-and-tooling-discoverability/47-SUMMARY.md`, `.planning/phases/47-continuity-contract-governance-entrypoint-compression-and-tooling-discoverability/47-VERIFICATION.md`, `.planning/phases/48-runtime-access-and-formal-root-hotspot-decomposition-without-public-surface-drift/48-SUMMARY.md`, `.planning/phases/48-runtime-access-and-formal-root-hotspot-decomposition-without-public-surface-drift/48-VERIFICATION.md`, `.planning/phases/49-mega-test-topicization-and-failure-localization-hardening/49-SUMMARY.md`, `.planning/phases/49-mega-test-topicization-and-failure-localization-hardening/49-VERIFICATION.md`
 **Next route source:** `.planning/phases/46-exhaustive-repository-audit-standards-conformance-and-remediation-routing/46-REMEDIATION-ROADMAP.md`
-**Seed focus:** continuity contract、formal root / hotspot 限流、mega-test topicization、REST typed-surface reduction、OSS maturity follow-through。
+**Seed focus:** mega-test topicization、failure-localization hardening、REST typed-surface reduction。
 
 ## Archived Milestone (v1.5)
 

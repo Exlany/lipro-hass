@@ -45,6 +45,13 @@
 - `custom_components/lipro/runtime_infra.py` 成为 device-registry listener、pending reload task cleanup 与 reload coordination 的正式 home；`custom_components/lipro/services/maintenance.py` 只保留 `refresh_devices` thin adapter。
 - `custom_components/lipro/control/service_router.py` 继续是 public callback home；`services/registrations.py` 仅做 HA service declaration binding，没有第二条 service-ownership story。
 
+## Phase 48 Formal-Root Hotspot Decomposition Notes
+
+- `custom_components/lipro/control/runtime_access.py` 继续是唯一正式 import home；`custom_components/lipro/control/runtime_access_support.py` 只是 support-only helper seam，不构成新的 control public surface。
+- `custom_components/lipro/control/telemetry_surface.py` 继续只暴露 observer-only exporter / view helpers；`build_entry_telemetry_exporter` 只允许经 `runtime_access.py` 进入，不得被 `control/__init__.py` 或 support helper 重新讲成 public bridge。
+- `custom_components/lipro/core/coordinator/lifecycle.py` 中的 `CoordinatorUpdateCycle` 只是 `Coordinator` 的 internal collaborator；它不能成为第二 runtime root、package export 或 control-facing capability surface。
+- `custom_components/lipro/__init__.py` 继续以 module-level alias seam + `_build_entry_lifecycle_controller()` 保持 lazy composition；`EntryLifecycleController` 仍是 setup / unload / reload 的唯一 control-plane owner。
+
 ## Transitional Public Surfaces
 
 | Surface | Allowed Until | Exit Condition |

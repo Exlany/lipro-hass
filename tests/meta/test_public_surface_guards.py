@@ -215,7 +215,7 @@ def test_phase_40_review_ledgers_keep_shared_execution_facade_out_of_residual_an
     residual_text = (_ROOT / ".planning" / "reviews" / "RESIDUAL_LEDGER.md").read_text(encoding="utf-8")
     kill_text = (_ROOT / ".planning" / "reviews" / "KILL_LIST.md").read_text(encoding="utf-8")
 
-    assert "REST endpoint operations collaborator home" in file_matrix_text
+    assert "custom_components/lipro/services/execution.py" in file_matrix_text
     assert "formal service execution facade; private auth seam closed" in file_matrix_text
     assert "## Phase 40 Residual Delta" in residual_text
     assert "schedule.py" in residual_text
@@ -322,11 +322,22 @@ def test_phase_30_control_contracts_stay_private_and_system_health_minimal() -> 
         "RuntimeCoordinatorSnapshot",
         "iter_runtime_entries",
         "iter_runtime_coordinators",
+        "build_entry_telemetry_exporter",
         "build_entry_telemetry_snapshot",
         "build_entry_telemetry_views",
         "get_entry_telemetry_exporter",
     ):
         assert token not in control_exports
+
+def test_phase_48_public_surface_notes_capture_support_only_helper_and_update_cycle() -> None:
+    public_surfaces = _PUBLIC_SURFACES.read_text(encoding="utf-8")
+
+    assert "## Phase 48 Formal-Root Hotspot Decomposition Notes" in public_surfaces
+    assert "runtime_access_support.py" in public_surfaces
+    assert "support-only helper seam" in public_surfaces
+    assert "CoordinatorUpdateCycle" in public_surfaces
+    assert "module-level alias seam" in public_surfaces
+
 
 def test_phase_40_public_surface_notes_capture_runtime_access_and_shared_execution() -> None:
     public_surfaces = _PUBLIC_SURFACES.read_text(encoding="utf-8")
@@ -411,3 +422,26 @@ def test_phase_43_public_surface_notes_capture_typed_runtime_and_thin_helpers() 
     assert "services/device_lookup.py` 只保留 service-facing `device_id` resolution" in public_surfaces
     assert "runtime_infra.py` 成为 device-registry listener" in public_surfaces
 
+
+
+
+def test_phase_49_file_matrix_tracks_topicized_test_topology() -> None:
+    file_matrix_text = (_ROOT / ".planning" / "reviews" / "FILE_MATRIX.md").read_text(encoding="utf-8")
+
+    for path in (
+        "tests/core/test_coordinator_entry.py",
+        "tests/core/test_diagnostics_config_entry.py",
+        "tests/core/test_diagnostics_device.py",
+        "tests/core/test_diagnostics_redaction.py",
+        "tests/meta/test_governance_promoted_phase_assets.py",
+        "tests/meta/test_governance_followup_route.py",
+        "tests/meta/test_governance_milestone_archives.py",
+        "tests/platforms/test_update_entity_refresh.py",
+        "tests/platforms/test_update_install_flow.py",
+        "tests/platforms/test_update_certification_policy.py",
+        "tests/platforms/test_update_background_tasks.py",
+    ):
+        assert path in file_matrix_text
+
+    assert "tests/test_coordinator_public.py" not in file_matrix_text
+    assert "tests/test_coordinator_runtime.py" not in file_matrix_text

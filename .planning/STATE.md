@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v1.6
 milestone_name: Delivery Trust Hardening, Runtime Boundary Decoupling & Maintainability Closure
 status: archived
-last_updated: "2026-03-20T00:00:00Z"
+last_updated: "2026-03-21T00:00:00Z"
 progress:
   total_phases: 4
   completed_phases: 4
@@ -19,7 +19,7 @@ See: `.planning/PROJECT.md`
 
 **Current milestone:** `v1.6 Delivery Trust Hardening, Runtime Boundary Decoupling & Maintainability Closure`
 **Core value:** 在不回退 `LiproProtocolFacade` / `Coordinator` 单一正式主链的前提下，先把 delivery trust 与 continuity gate 变成真实可执行合同，再完成 runtime read-model typed 化、control/services 解耦、治理资产降噪与热点拆薄。
-**Current mode:** `v1.6 archived`；`Phase 42 -> 45` 的 milestone audit、evidence index 与 archive snapshots 已落盘；当前默认 next action 为 `$gsd-new-milestone`。
+**Current mode:** `v1.6 archived`；shipped baseline 仍保持归档真相，但 `v1.7` follow-up route 已完成 `Phase 48` formal-root hotspot 收口；当前默认 next action 为 `$gsd-plan-phase 50`。
 
 ## Current Position
 
@@ -27,7 +27,9 @@ See: `.planning/PROJECT.md`
 - `v1.5` 仍保留为上一个 shipped archive baseline：`.planning/v1.5-MILESTONE-AUDIT.md`、`.planning/reviews/V1_5_EVIDENCE_INDEX.md` 与 `.planning/milestones/v1.5-*.md` 继续承担历史追溯 / continuity 身份，不再充当 latest pointer。
 - `Phase 41` 全仓审计已完成，并把 remediation 结论固化到 `.planning/phases/41-full-spectrum-architecture-code-quality-and-open-source-audit/41-REMEDIATION-ROADMAP.md`；该资产保持 execution trace 身份，不直接充当 active truth。
 - `Phase 46` 已于 `2026-03-20` 执行完成：file-level inventory、architecture/code audit、docs/toolchain/governance audit、master audit、score matrix、remediation roadmap、summary 与 verification 均已落盘；active shipped baseline 仍保持 `v1.6 archived`，而 follow-up route source 已切换到 `46-REMEDIATION-ROADMAP.md`。
-- `Phase 47 -> 50` 已从 `46-REMEDIATION-ROADMAP.md` 正式化到 `.planning/ROADMAP.md` 与 `.planning/REQUIREMENTS.md`；当前推荐执行入口已收敛到 `Phase 47`，但 `$gsd-new-milestone` 仍保留为通用 transition 命令。
+- `Phase 47` 已于 `2026-03-21` 执行完成：continuity contract、docs index、tooling discoverability、tagged-signature identity 与 verification-matrix drift guard 已收口，并形成 `47-SUMMARY.md` / `47-VERIFICATION.md` closeout evidence。
+- `Phase 48` 已于 `2026-03-21` 执行完成：runtime-access support-only helper topicization、Coordinator update-cycle inward delegation、lazy root adapter alias seam 与 lifecycle-state cleanup helper 均已收口，并形成 `48-SUMMARY.md` / `48-VERIFICATION.md` closeout evidence。
+- `Phase 47 -> 50` 已从 `46-REMEDIATION-ROADMAP.md` 正式化到 `.planning/ROADMAP.md` 与 `.planning/REQUIREMENTS.md`；其中 `Phase 47` 与 `Phase 48` 均已于 `2026-03-21` 完成并通过守卫验证，下一执行入口切到 `Phase 50`。
 - `v1.0` 已归档到 `.planning/MILESTONES.md` 与 `.planning/milestones/v1.0-*.md`
 - `v1.1` 已完成全部计划执行：`15 phases / 58 plans` 全绿落表
 - `v1.1` / `v1.2` 的 roadmap / requirements archive snapshots 已落入 `.planning/milestones/`，后续里程碑可停止复用同一份历史 planning truth
@@ -144,19 +146,19 @@ See: `.planning/PROJECT.md`
 - **Milestone:** `v1.6 Delivery Trust Hardening, Runtime Boundary Decoupling & Maintainability Closure`
 - **Phase range:** `42 -> 45`
 - **Completed so far:** `Phase 42 -> 45 archived`（`2026-03-20` 共完成 `16/16` plans：delivery trust、typed runtime access、terminology convergence、phase-asset governance、hotspot decomposition、typed failure semantics 与 benchmark no-regression contract 均已落地，并已完成 archive promotion）
-- **Planned next:** `$gsd-plan-phase 47`（`Phase 47 -> 50` 已 formalized；仍保留 `$gsd-new-milestone` 作为通用 transition 命令）
+- **Planned next:** `$gsd-plan-phase 50`（`Phase 49` 已 complete/promoted；`Phase 50` 现为默认 formalized next step）
 - **Starting baseline:** `v1.6` archive assets remain authoritative shipped snapshots: `.planning/v1.6-MILESTONE-AUDIT.md`, `.planning/reviews/V1_6_EVIDENCE_INDEX.md`, `.planning/milestones/v1.6-ROADMAP.md`, `.planning/milestones/v1.6-REQUIREMENTS.md`
 - **Route source:** `.planning/phases/46-exhaustive-repository-audit-standards-conformance-and-remediation-routing/46-REMEDIATION-ROADMAP.md`
 - **Historical archives:** `.planning/milestones/v1.1-ROADMAP.md`, `.planning/milestones/v1.1-REQUIREMENTS.md`, `.planning/milestones/v1.2-ROADMAP.md`, `.planning/milestones/v1.2-REQUIREMENTS.md`, `.planning/milestones/v1.4-ROADMAP.md`, `.planning/milestones/v1.4-REQUIREMENTS.md`, `.planning/milestones/v1.5-ROADMAP.md`, `.planning/milestones/v1.5-REQUIREMENTS.md`
-- **Next focus:** `$gsd-plan-phase 47`——先落 continuity contract、documentation index 与 tooling discoverability；完成后接 `$gsd-execute-phase 47`。
+- **Next focus:** `$gsd-plan-phase 50`——继续收紧 REST typed-surface / helper honesty，并把 command-result ownership 与 diagnostics auth-error duplication 向单一 formal home 收口。
 
 ## Recommended Next Command
 
-1. `$gsd-plan-phase 47` —— 为 continuity contract、docs index 与 tooling discoverability 生成正式计划
-2. `$gsd-execute-phase 47` —— 执行 `Phase 47` 的 docs / governance / tooling discoverability 收口
-3. `$gsd-progress` —— 查看当前 `v1.6 archived` shipped baseline、`Phase 46` audit package 与已 formalized 的 `47 -> 50` route
+1. `$gsd-plan-phase 50` —— 为 REST typed-surface reduction / command-result ownership convergence 生成正式计划
+2. `$gsd-execute-phase 50` —— 执行 `Phase 50` 的 REST typed-surface / ownership 收口
+3. `$gsd-progress` —— 查看当前 `v1.6 archived` shipped baseline、`Phase 46` audit package、`Phase 47 -> 49` closeout evidence 与已 formalized 的 `50` route
 4. `$gsd-new-milestone` —— 通用 transition 命令（当前已不再必需，但保留为 GSD 通用入口）
-5. `uv run pytest -q tests/meta/test_governance_closeout_guards.py tests/meta/test_governance_phase_history.py tests/meta/test_governance_phase_history_runtime.py tests/meta/test_toolchain_truth.py tests/meta/test_governance_release_contract.py tests/meta/test_version_sync.py` —— 复核 archived baseline + Phase 46 / 47 governance story
+5. `uv run pytest -q tests/meta/test_governance*.py tests/meta/test_toolchain_truth.py tests/meta/test_version_sync.py` —— 复核 archived baseline + Phase 46 -> 49 governance story
 6. `uv run ruff check . && uv run mypy` —— 复核静态质量基线
 
 **Historical launch pointer:** `$gsd-execute-phase 29`
@@ -169,15 +171,19 @@ If resuming, read in this order:
 3. `.planning/ROADMAP.md`
 4. `.planning/REQUIREMENTS.md`
 5. `.planning/STATE.md`
-6. `.planning/phases/46-exhaustive-repository-audit-standards-conformance-and-remediation-routing/46-AUDIT.md`
-7. `.planning/phases/46-exhaustive-repository-audit-standards-conformance-and-remediation-routing/46-SCORE-MATRIX.md`
-8. `.planning/phases/46-exhaustive-repository-audit-standards-conformance-and-remediation-routing/46-REMEDIATION-ROADMAP.md`
-9. `.planning/phases/46-exhaustive-repository-audit-standards-conformance-and-remediation-routing/46-VERIFICATION.md`
-10. `.planning/reviews/V1_6_EVIDENCE_INDEX.md`
-11. `.planning/v1.6-MILESTONE-AUDIT.md`
-12. `.planning/milestones/v1.6-ROADMAP.md`
-13. `.planning/milestones/v1.6-REQUIREMENTS.md`
-14. `.planning/baseline/GOVERNANCE_REGISTRY.json`
-15. `.planning/baseline/AUTHORITY_MATRIX.md`
-16. `.planning/baseline/PUBLIC_SURFACES.md`
-17. `.planning/baseline/DEPENDENCY_MATRIX.md`
+6. `.planning/phases/48-runtime-access-and-formal-root-hotspot-decomposition-without-public-surface-drift/48-SUMMARY.md`
+7. `.planning/phases/48-runtime-access-and-formal-root-hotspot-decomposition-without-public-surface-drift/48-VERIFICATION.md`
+8. `.planning/phases/47-continuity-contract-governance-entrypoint-compression-and-tooling-discoverability/47-SUMMARY.md`
+9. `.planning/phases/47-continuity-contract-governance-entrypoint-compression-and-tooling-discoverability/47-VERIFICATION.md`
+10. `.planning/phases/46-exhaustive-repository-audit-standards-conformance-and-remediation-routing/46-AUDIT.md`
+11. `.planning/phases/46-exhaustive-repository-audit-standards-conformance-and-remediation-routing/46-SCORE-MATRIX.md`
+12. `.planning/phases/46-exhaustive-repository-audit-standards-conformance-and-remediation-routing/46-REMEDIATION-ROADMAP.md`
+13. `.planning/phases/46-exhaustive-repository-audit-standards-conformance-and-remediation-routing/46-VERIFICATION.md`
+14. `.planning/reviews/V1_6_EVIDENCE_INDEX.md`
+15. `.planning/v1.6-MILESTONE-AUDIT.md`
+16. `.planning/milestones/v1.6-ROADMAP.md`
+17. `.planning/milestones/v1.6-REQUIREMENTS.md`
+18. `.planning/baseline/GOVERNANCE_REGISTRY.json`
+19. `.planning/baseline/AUTHORITY_MATRIX.md`
+20. `.planning/baseline/PUBLIC_SURFACES.md`
+21. `.planning/baseline/DEPENDENCY_MATRIX.md`

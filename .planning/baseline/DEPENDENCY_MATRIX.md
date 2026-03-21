@@ -85,6 +85,13 @@
 - `runtime_types.LiproCoordinator` 已显式承认 telemetry bridge 真实需要的 `protocol` / `telemetry_service` surfaces；任何 consumer 若继续依赖 `Coordinator.client`、`entry.runtime_data` 或 coordinator private fields，应视为 regression。
 - `.planning/codebase/STRUCTURE.md` 等 codebase maps 继续只是 derived collaboration views；它们可以记录 telemetry bridge wiring，但不能重新定义 authority/dependency truth。
 
+## Phase 48 Formal-Root Decomposition Clarifications
+
+- `custom_components/lipro/control/runtime_access_support.py` 只是 `runtime_access.py` 的 support-only helper cluster；control / diagnostics / system-health / telemetry consumers 仍必须经 `runtime_access.py` 读取正式 runtime truth。
+- `custom_components/lipro/control/telemetry_surface.py` 只能通过 `runtime_access.build_entry_telemetry_exporter()` 取得 exporter；它不得重新导入 private support helper、直接 coordinator lookup 或 `entry.runtime_data`。
+- `custom_components/lipro/core/coordinator/lifecycle.py` 可以承接 `CoordinatorUpdateCycle` 这类 internal collaborator，但 `Coordinator` 仍是唯一 runtime orchestration root；lifecycle helper 不得变成第二入口或 package export。
+- `custom_components/lipro/__init__.py` 继续只保留 lazy alias seam 与 `_build_entry_lifecycle_controller()` 组装入口；`EntryLifecycleController` 仍是 setup / unload / reload 的唯一 control-plane owner。
+
 ## Phase 27 Protocol-Service Convergence Clarifications
 
 - `custom_components/lipro/services/schedule.py`、`custom_components/lipro/services/diagnostics/*` 与 `custom_components/lipro/entities/firmware_update.py` 现在只允许 pull `runtime_types.LiproCoordinator.protocol_service` 这一个 runtime-owned protocol capability port；不得继续依赖 coordinator 顶层 schedule / diagnostics / OTA passthrough operations。

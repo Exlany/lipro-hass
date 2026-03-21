@@ -121,6 +121,35 @@ class TestInitSetupEntryBehavior(_InitRuntimeBehaviorBase):
         assert hass.services.has_service(DOMAIN, SERVICE_FETCH_BODY_SENSOR_HISTORY)
         assert hass.services.has_service(DOMAIN, SERVICE_FETCH_DOOR_SENSOR_HISTORY)
 
+    async def test_async_setup_entry_wires_runtime_data_to_coordinator(self, hass) -> None:
+        """Runtime setup should store the constructed coordinator on entry.runtime_data."""
+        entry = MockConfigEntry(domain=DOMAIN, data={"phone_id": "test-phone-id"})
+        entry.add_to_hass(hass)
+        client = MagicMock()
+        auth_manager = MagicMock()
+        coordinator = MagicMock()
+        coordinator.async_config_entry_first_refresh = AsyncMock()
+        coordinator.async_shutdown = AsyncMock()
+
+        with (
+            patch("custom_components.lipro.async_ensure_runtime_infra", new=AsyncMock()),
+            patch(
+                "custom_components.lipro.build_entry_auth_context",
+                return_value=(client, auth_manager),
+            ),
+            patch("custom_components.lipro.async_authenticate_entry", new=AsyncMock()),
+            patch("custom_components.lipro.get_entry_int_option", return_value=30),
+            patch("custom_components.lipro.Coordinator", return_value=coordinator) as ctor,
+            patch("custom_components.lipro.persist_entry_tokens_if_changed"),
+            patch.object(hass.config_entries, "async_forward_entry_setups", new=AsyncMock()),
+            patch("custom_components.lipro.store_entry_options_snapshot"),
+        ):
+            assert await async_setup_entry(hass, entry) is True
+
+        assert entry.runtime_data is coordinator
+        coordinator.async_config_entry_first_refresh.assert_awaited_once_with()
+        assert ctor.call_count == 1
+
     def test_build_entry_auth_context_missing_phone_id_raises(self, hass) -> None:
         """Missing required keys in entry.data should raise ConfigEntryAuthFailed."""
         entry = MockConfigEntry(

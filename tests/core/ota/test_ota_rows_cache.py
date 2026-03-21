@@ -154,3 +154,53 @@ async def test_async_get_rows_with_shared_cache_refreshes_stale_entry() -> None:
     assert from_cache is False
     fetcher.assert_awaited_once()
     assert rows_cache._OTA_ROWS_CACHE[cache_key].rows == fresh_rows
+
+
+
+@pytest.mark.asyncio
+async def test_async_get_rows_with_shared_cache_rechecks_cache_inside_lock() -> None:
+    now = datetime(2025, 1, 1, 0, 0, 0, tzinfo=UTC)
+    cache_key = (object(), "model_a", "type_a", 1)
+    cached_rows: rows_cache.OtaRows = [{"latestVersion": "1.1.0"}]
+    fetcher = AsyncMock(return_value=[{"latestVersion": "9.9.9"}])
+
+    async with rows_cache._OTA_ROWS_CACHE_LOCK:
+        task = asyncio.create_task(
+            rows_cache.async_get_rows_with_shared_cache(
+                cache_key,
+                fetcher=fetcher,
+                now=lambda: now,
+            )
+        )
+        await asyncio.sleep(0)
+        rows_cache._OTA_ROWS_CACHE[cache_key] = rows_cache.OtaRowsCacheEntry(
+            time=now,
+            rows=cached_rows,
+        )
+
+    rows, from_cache = await task
+
+    assert rows == cached_rows
+    assert from_cache is True
+    fetcher.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+async def test_async_get_rows_with_shared_cache_prunes_overflow_when_storing_new_entry() -> None:
+    now = datetime(2025, 1, 1, 0, 0, 0, tzinfo=UTC)
+    for idx in range(rows_cache.OTA_SHARED_ROWS_CACHE_MAX_ENTRIES + 3):
+        rows_cache._OTA_ROWS_CACHE[(object(), f"model_{idx}", f"type_{idx}", idx)] = (
+            rows_cache.OtaRowsCacheEntry(time=now, rows=[])
+        )
+
+    cache_key = (object(), "model_current", "type_current", 999)
+    rows, from_cache = await rows_cache.async_get_rows_with_shared_cache(
+        cache_key,
+        fetcher=AsyncMock(return_value=[{"latestVersion": "1.1.0"}]),
+        now=lambda: now,
+    )
+
+    assert rows == [{"latestVersion": "1.1.0"}]
+    assert from_cache is False
+    assert len(rows_cache._OTA_ROWS_CACHE) == rows_cache.OTA_SHARED_ROWS_CACHE_MAX_ENTRIES
+    assert cache_key in rows_cache._OTA_ROWS_CACHE

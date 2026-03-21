@@ -411,6 +411,9 @@ def test_testing_map_counts_and_script_boundary_notes_match_repo_facts() -> None
     assert "tests/meta/test_governance_phase_history_runtime.py" in testing_text
     assert "tests/meta/test_governance_phase_history_topology.py" in testing_text
     assert "tests/meta/test_governance_closeout_guards.py" in testing_text
+    assert "tests/meta/test_governance_promoted_phase_assets.py" in testing_text
+    assert "tests/meta/test_governance_followup_route.py" in testing_text
+    assert "tests/meta/test_governance_milestone_archives.py" in testing_text
     assert "helper-only / pull-only" in testing_text
     assert "tests/meta/test_toolchain_truth.py" in testing_text
 
@@ -525,7 +528,11 @@ def test_verification_matrix_and_checker_guard_active_path_truth() -> None:
     checker_text = (_ROOT / "scripts" / "check_file_matrix.py").read_text(encoding="utf-8")
 
     assert "tests/core/anonymous_share/test_manager_submission.py" in verification_text
+    assert "tests/core/test_coordinator_entry.py" in verification_text
+    assert "tests/core/test_diagnostics*.py" in verification_text
     assert "tests/core/test_anonymous_share.py" not in verification_text
+    assert "tests/test_coordinator_public.py" not in verification_text
+    assert "tests/test_coordinator_runtime.py" not in verification_text
     assert "VERIFICATION_MATRIX_PATH" in checker_text
     assert "validate_verification_matrix_paths" in checker_text
 

@@ -448,12 +448,12 @@
 
 ## Formalized follow-up route from Phase 46
 
-- [ ] **GOV-37**: `SUPPORT.md`、`SECURITY.md`、`docs/MAINTAINER_RELEASE_RUNBOOK.md`、`.github/CODEOWNERS`、issue/PR templates 与 `.planning/baseline/GOVERNANCE_REGISTRY.json` 必须对 continuity / custody / delegate / freeze / restoration 讲同一条单维护者合同故事线。
-- [ ] **DOC-06**: `docs/README.md` 与 package metadata 必须把 documentation index 暴露成对外正式入口；public fast path、maintainer appendix 与双语边界不得继续视觉混层。
-- [ ] **RUN-08**: `RuntimeAccess` 必须继续按 projection / telemetry / system-health concern 拆薄；control consumers 不得恢复对 `entry.runtime_data` 或 coordinator internals 的散点读取。
-- [ ] **ARC-06**: `Coordinator`、`__init__.py` 与 `EntryLifecycleController` 必须继续 inward decomposition，降低 hotspot density，同时保持 lazy wiring 与单一正式主链。
-- [ ] **TST-09**: 治理 megaguards、runtime-root megatests 与 platform megatests 必须按 concern topicize，减少 giant-file failure triage 成本。
-- [ ] **QLT-17**: 测试与治理守卫的 failure localization 必须直接标出 phase / doc / token / runtime facet，避免“一个断言管全仓”的模糊失败面。
+- [x] **GOV-37**: `SUPPORT.md`、`SECURITY.md`、`docs/MAINTAINER_RELEASE_RUNBOOK.md`、`.github/CODEOWNERS`、issue/PR templates 与 `.planning/baseline/GOVERNANCE_REGISTRY.json` 必须对 continuity / custody / delegate / freeze / restoration 讲同一条单维护者合同故事线。
+- [x] **DOC-06**: `docs/README.md` 与 package metadata 必须把 documentation index 暴露成对外正式入口；public fast path、maintainer appendix 与双语边界不得继续视觉混层。
+- [x] **RUN-08**: `RuntimeAccess` 必须继续按 projection / telemetry / system-health concern 拆薄；control consumers 不得恢复对 `entry.runtime_data` 或 coordinator internals 的散点读取。
+- [x] **ARC-06**: `Coordinator`、`__init__.py` 与 `EntryLifecycleController` 必须继续 inward decomposition，降低 hotspot density，同时保持 lazy wiring 与单一正式主链。
+- [x] **TST-09**: 治理 megaguards、runtime-root megatests 与 platform megatests 必须按 concern topicize，减少 giant-file failure triage 成本。
+- [x] **QLT-17**: 测试与治理守卫的 failure localization 必须直接标出 phase / doc / token / runtime facet，避免“一个断言管全仓”的模糊失败面。
 - [ ] **TYP-12**: REST child façade family 的 `Any` / typed helper budget 必须继续收紧，并把 sanctioned-vs-backlog debt 分类压缩到更小、更诚实的边界。
 - [ ] **ARC-07**: command/result policy 与 diagnostics auth-error duplication 必须收敛到单一 formal home，不得让 ownership drift 继续散落在 helper / service / API family 之间。
 
@@ -461,20 +461,20 @@
 
 | Requirement | Planned Phase | Status |
 |-------------|---------------|--------|
-| GOV-37 | Phase 47 | Planned |
-| DOC-06 | Phase 47 | Planned |
-| RUN-08 | Phase 48 | Planned |
-| ARC-06 | Phase 48 | Planned |
-| TST-09 | Phase 49 | Planned |
-| QLT-17 | Phase 49 | Planned |
+| GOV-37 | Phase 47 | Complete |
+| DOC-06 | Phase 47 | Complete |
+| RUN-08 | Phase 48 | Complete |
+| ARC-06 | Phase 48 | Complete |
+| TST-09 | Phase 49 | Complete |
+| QLT-17 | Phase 49 | Complete |
 | TYP-12 | Phase 50 | Planned |
 | ARC-07 | Phase 50 | Planned |
 
 **Follow-up coverage:**
 - formalized requirements: 8 total
 - Current mapped: 8
-- Current complete: 0
-- Current pending: 8
+- Current complete: 4
+- Current pending: 4
 - Current unmapped: 0 ✓
 
 ## Archived Milestone (v1.6)

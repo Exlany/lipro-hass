@@ -76,6 +76,23 @@ async def test_async_reload_entry_delegates_to_entry_lifecycle_controller(hass) 
     controller.async_reload_entry.assert_awaited_once_with(hass, entry)
 
 
+def test_get_entry_telemetry_exporter_delegates_to_runtime_access_formal_home() -> None:
+    from custom_components.lipro.control.telemetry_surface import (
+        get_entry_telemetry_exporter,
+    )
+
+    entry = object()
+    exporter = MagicMock()
+
+    with patch(
+        "custom_components.lipro.control.telemetry_surface.build_entry_telemetry_exporter",
+        return_value=exporter,
+    ) as runtime_access_exporter:
+        assert get_entry_telemetry_exporter(entry) is exporter
+
+    runtime_access_exporter.assert_called_once_with(entry)
+
+
 def test_runtime_snapshot_uses_telemetry_surface_projection() -> None:
     from custom_components.lipro.control.runtime_access import build_runtime_snapshot
 

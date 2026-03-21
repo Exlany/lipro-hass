@@ -120,9 +120,28 @@ def test_phase_40_schedule_services_use_shared_execution_contract() -> None:
     assert "async_execute_coordinator_call" in execution_text
 
 
+def test_phase_48_dependency_notes_capture_support_only_helper_and_update_cycle() -> None:
+    dependency_text = (_ROOT / ".planning" / "baseline" / "DEPENDENCY_MATRIX.md").read_text(encoding="utf-8")
+
+    assert "## Phase 48 Formal-Root Decomposition Clarifications" in dependency_text
+    assert "runtime_access_support.py" in dependency_text
+    assert "build_entry_telemetry_exporter()" in dependency_text
+    assert "CoordinatorUpdateCycle" in dependency_text
+    assert "lazy alias seam" in dependency_text
+
+
 def test_phase_43_control_service_boundary_stays_one_way_and_explicit() -> None:
     diagnostics_text = (
         _ROOT / "custom_components" / "lipro" / "control" / "diagnostics_surface.py"
+    ).read_text(encoding="utf-8")
+    telemetry_surface_text = (
+        _ROOT / "custom_components" / "lipro" / "control" / "telemetry_surface.py"
+    ).read_text(encoding="utf-8")
+    system_health_surface_text = (
+        _ROOT / "custom_components" / "lipro" / "control" / "system_health_surface.py"
+    ).read_text(encoding="utf-8")
+    control_init_text = (
+        _ROOT / "custom_components" / "lipro" / "control" / "__init__.py"
     ).read_text(encoding="utf-8")
     service_router_support_text = (
         _ROOT / "custom_components" / "lipro" / "control" / "service_router_support.py"
@@ -149,6 +168,15 @@ def test_phase_43_control_service_boundary_stays_one_way_and_explicit() -> None:
     assert "_get_device_from_runtime" not in diagnostics_text
     assert "get_runtime_device_mapping(coordinator).get(" not in diagnostics_text
 
+    assert "build_entry_telemetry_exporter" in telemetry_surface_text
+    assert "_build_entry_telemetry_exporter" not in telemetry_surface_text
+    assert "runtime_access_support" not in telemetry_surface_text
+    assert "get_entry_runtime_coordinator" not in telemetry_surface_text
+    assert "build_runtime_snapshots" in system_health_surface_text
+    assert "iter_runtime_entries" in system_health_surface_text
+    assert "get_entry_runtime_coordinator" not in system_health_surface_text
+    assert "build_entry_telemetry_exporter" not in control_init_text
+
     assert "resolve_device_id_from_service_call" in service_router_support_text
     assert "find_runtime_device_and_coordinator" in service_router_support_text
     assert "iter_runtime_entries" not in service_router_support_text
@@ -169,9 +197,25 @@ def test_phase_43_control_service_boundary_stays_one_way_and_explicit() -> None:
 
     for runtime_reader_text in (
         diagnostics_text,
+        telemetry_surface_text,
+        system_health_surface_text,
         service_router_support_text,
         device_lookup_text,
         maintenance_text,
         runtime_infra_text,
     ):
         assert ".runtime_data" not in runtime_reader_text
+
+
+
+def test_phase_49_verification_matrix_tracks_topicized_runtime_and_diagnostics_proof() -> None:
+    verification_text = (_ROOT / ".planning" / "baseline" / "VERIFICATION_MATRIX.md").read_text(encoding="utf-8")
+
+    assert "## Phase 49 Mega-Test Topicization and Failure Localization Hardening" in verification_text
+    assert "tests/core/test_coordinator_entry.py" in verification_text
+    assert "tests/core/test_diagnostics*.py" in verification_text
+    assert "tests/meta/test_governance_promoted_phase_assets.py" in verification_text
+    assert "tests/platforms/test_update_entity_refresh.py" in verification_text
+    assert "tests/platforms/test_update_install_flow.py" in verification_text
+    assert "tests/test_coordinator_public.py" not in verification_text
+    assert "tests/test_coordinator_runtime.py" not in verification_text

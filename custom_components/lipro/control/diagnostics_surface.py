@@ -38,6 +38,22 @@ class _AnonymousShareManagerLike(Protocol):
 type AnonymousShareManagerFactory = Callable[..., _AnonymousShareManagerLike]
 
 
+def _build_entry_view(
+    entry: LiproConfigEntry,
+    *,
+    async_redact_data: RedactDataFn,
+    redact_entry_title: RedactTitleFn,
+    to_redact: set[str],
+    options_to_redact: set[str],
+) -> DiagnosticsPayload:
+    """Build the redacted config-entry payload shared by diagnostics views."""
+    return {
+        "title": redact_entry_title(entry.title),
+        "data": async_redact_data(entry.data, to_redact),
+        "options": async_redact_data(entry.options, options_to_redact),
+    }
+
+
 def build_device_diagnostics(
     device: LiproDevice,
     *,
@@ -164,11 +180,13 @@ async def async_get_config_entry_diagnostics(
     telemetry_view = build_entry_diagnostics_view(entry)
 
     payload: DiagnosticsPayload = {
-        "entry": {
-            "title": redact_entry_title(entry.title),
-            "data": async_redact_data(entry.data, to_redact),
-            "options": async_redact_data(entry.options, options_to_redact),
-        },
+        "entry": _build_entry_view(
+            entry,
+            async_redact_data=async_redact_data,
+            redact_entry_title=redact_entry_title,
+            to_redact=to_redact,
+            options_to_redact=options_to_redact,
+        ),
         "coordinator": coordinator_view,
         "anonymous_share": anonymous_share_view,
         "devices": devices_info,
@@ -209,11 +227,13 @@ async def async_get_device_diagnostics(
         return {"error": "device_not_found"}
 
     payload: DiagnosticsPayload = {
-        "entry": {
-            "title": redact_entry_title(entry.title),
-            "data": async_redact_data(entry.data, to_redact),
-            "options": async_redact_data(entry.options, options_to_redact),
-        },
+        "entry": _build_entry_view(
+            entry,
+            async_redact_data=async_redact_data,
+            redact_entry_title=redact_entry_title,
+            to_redact=to_redact,
+            options_to_redact=options_to_redact,
+        ),
         "coordinator": coordinator_view,
         "device": build_device_diagnostics_fn(lipro_device),
     }

@@ -245,6 +245,15 @@ class EntryLifecycleController:
             entry.add_update_listener(self._build_reload_options_listener())
         )
 
+    def _clear_entry_lifecycle_state(
+        self,
+        hass: HomeAssistant,
+        entry: EntryLike,
+    ) -> None:
+        """Clear runtime data and option snapshots for one entry-owned lifecycle state."""
+        self._clear_entry_runtime_data(entry)
+        self._remove_entry_options_snapshot(hass, entry.entry_id)
+
     async def _async_activate_entry_setup(
         self,
         *,
@@ -271,8 +280,7 @@ class EntryLifecycleController:
     ) -> None:
         """Shut down partially started runtime state before re-raising setup errors."""
         await coordinator.async_shutdown()
-        self._clear_entry_runtime_data(entry)
-        self._remove_entry_options_snapshot(hass, entry.entry_id)
+        self._clear_entry_lifecycle_state(hass, entry)
 
     async def _async_run_entry_activation(
         self,
@@ -318,8 +326,7 @@ class EntryLifecycleController:
         coordinator = getattr(entry, "runtime_data", None)
         if coordinator is not None:
             await self._async_shutdown_on_unload(coordinator)
-        self._clear_entry_runtime_data(entry)
-        self._remove_entry_options_snapshot(hass, entry.entry_id)
+        self._clear_entry_lifecycle_state(hass, entry)
 
     async def _async_sync_services_after_unload(
         self,

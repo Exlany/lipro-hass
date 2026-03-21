@@ -16,13 +16,9 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from ...const.config import DEFAULT_SCAN_INTERVAL
 from ..protocol import LiproProtocolFacade
 from .lifecycle import (
-    async_refresh_snapshot_if_needed as coordinator_async_refresh_snapshot_if_needed,
-    async_run_status_polling_if_needed as coordinator_async_run_status_polling_if_needed,
-    async_run_update_cycle as coordinator_async_run_update_cycle,
+    CoordinatorUpdateCycle,
     async_setup_mqtt as coordinator_async_setup_mqtt,
-    async_setup_mqtt_if_needed as coordinator_async_setup_mqtt_if_needed,
     async_shutdown as coordinator_async_shutdown,
-    async_update_data as coordinator_async_update_data,
 )
 from .orchestrator import RuntimeOrchestrator
 from .runtime_context import RuntimeContext
@@ -112,27 +108,16 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
             device_refresh_service_getter=lambda: self.device_refresh_service,
         )
 
-        # Build runtime context (unified dependency injection)
-        context = RuntimeContext(
-            get_device_by_id=self._get_device_by_id,
-            apply_properties_update=self._apply_properties_update,
-            schedule_listener_update=self._schedule_listener_update,
-            record_connect_state=self.signal_service,
-            request_group_reconciliation=self.signal_service,
-            request_refresh=self.async_request_refresh,
-            trigger_reauth=self.auth_service.async_trigger_reauth,
-            is_mqtt_connected=self._is_mqtt_connected,
-        )
-
         # Build runtime components
         self._runtimes = orchestrator.build_runtimes(
-            context=context,
+            context=self._build_runtime_context(),
             state=self._state,
             polling_updater=self,
         )
 
         # Initialize service layer
         self._init_service_layer()
+        self._update_cycle = self._build_update_cycle()
 
     # RuntimeContext callback methods (injected into all runtimes)
     def _get_device_by_id(self, device_id: str) -> LiproDevice | None:
@@ -181,6 +166,36 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
         """Replace the canonical device registry in place to preserve shared references."""
         self._state.devices.clear()
         self._state.devices.update(devices)
+
+    def _build_runtime_context(self) -> RuntimeContext:
+        """Build the unified runtime context consumed by collaborators."""
+        return RuntimeContext(
+            get_device_by_id=self._get_device_by_id,
+            apply_properties_update=self._apply_properties_update,
+            schedule_listener_update=self._schedule_listener_update,
+            record_connect_state=self.signal_service,
+            request_group_reconciliation=self.signal_service,
+            request_refresh=self.async_request_refresh,
+            trigger_reauth=self.auth_service.async_trigger_reauth,
+            is_mqtt_connected=self._is_mqtt_connected,
+        )
+
+    def _build_update_cycle(self) -> CoordinatorUpdateCycle:
+        """Build the lifecycle collaborator that owns scheduled update orchestration."""
+        return CoordinatorUpdateCycle(
+            ensure_authenticated=self.auth_service.async_ensure_authenticated,
+            should_refresh_device_list=self._runtimes.device.should_refresh_device_list,
+            refresh_device_snapshot=lambda: self._async_refresh_device_snapshot(
+                force=True,
+                mqtt_timeout_seconds=5,
+            ),
+            has_mqtt_transport=lambda: self._runtimes.mqtt.has_transport,
+            has_devices=lambda: bool(self._state.devices),
+            setup_mqtt=self.async_setup_mqtt,
+            run_status_polling=self._async_run_status_polling,
+            telemetry_service=self.telemetry_service,
+            devices_getter=lambda: self._state.devices,
+        )
 
     def _init_service_layer(self) -> None:
         """Initialize formal runtime service surfaces."""
@@ -398,47 +413,9 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
         """Run adaptive REST status polling via StatusRuntime."""
         await self._polling_service.async_run_status_polling()
 
-    async def _async_refresh_snapshot_if_needed(self) -> None:
-        """Refresh the canonical device snapshot when runtime policy requests it."""
-        await coordinator_async_refresh_snapshot_if_needed(
-            should_refresh_device_list=self._runtimes.device.should_refresh_device_list,
-            refresh_device_snapshot=lambda: self._async_refresh_device_snapshot(
-                force=True,
-                mqtt_timeout_seconds=5,
-            ),
-        )
-
-    async def _async_setup_mqtt_if_needed(self) -> None:
-        """Attach MQTT transport when devices exist and no transport is bound yet."""
-        await coordinator_async_setup_mqtt_if_needed(
-            has_transport=self._runtimes.mqtt.has_transport,
-            has_devices=bool(self._state.devices),
-            setup_mqtt=self.async_setup_mqtt,
-        )
-
-    async def _async_run_status_polling_if_needed(self) -> None:
-        """Run adaptive status polling only when devices are currently tracked."""
-        await coordinator_async_run_status_polling_if_needed(
-            has_devices=bool(self._state.devices),
-            run_status_polling=self._async_run_status_polling,
-        )
-
-    async def _async_run_update_cycle(self) -> None:
-        """Run the coordinator's scheduled update stages inside the global timeout."""
-        await coordinator_async_run_update_cycle(
-            ensure_authenticated=self.auth_service.async_ensure_authenticated,
-            refresh_snapshot_if_needed=self._async_refresh_snapshot_if_needed,
-            setup_mqtt_if_needed=self._async_setup_mqtt_if_needed,
-            run_status_polling_if_needed=self._async_run_status_polling_if_needed,
-        )
-
     async def _async_update_data(self) -> dict[str, LiproDevice]:
         """Fetch data from API for one scheduled update cycle."""
-        return await coordinator_async_update_data(
-            run_update_cycle=self._async_run_update_cycle,
-            telemetry_service=self.telemetry_service,
-            devices=self._state.devices,
-        )
+        return await self._update_cycle.async_update_data()
 
 
 __all__ = ["Coordinator"]

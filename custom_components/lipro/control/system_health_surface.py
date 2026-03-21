@@ -28,6 +28,45 @@ def _build_failure_entries(
     ]
 
 
+def _count_mqtt_connected_entries(
+    snapshots: list[RuntimeCoordinatorSnapshot],
+) -> int | None:
+    """Count entries with an explicit MQTT connected signal."""
+    mqtt_connected_values = [
+        snapshot.mqtt_connected
+        for snapshot in snapshots
+        if isinstance(snapshot.mqtt_connected, bool)
+    ]
+    if not mqtt_connected_values:
+        return None
+    return sum(mqtt_connected_values)
+
+
+def _build_system_health_payload(
+    *,
+    version: str,
+    logged_accounts: int,
+    snapshots: list[RuntimeCoordinatorSnapshot],
+) -> SystemHealthPayload:
+    """Build the stable system-health payload from runtime snapshots."""
+    health_info: SystemHealthPayload = {
+        "component_version": version,
+        "can_reach_server": any(snapshot.last_update_success for snapshot in snapshots),
+        "logged_accounts": logged_accounts,
+        "total_devices": sum(snapshot.device_count for snapshot in snapshots),
+    }
+
+    mqtt_connected_entries = _count_mqtt_connected_entries(snapshots)
+    if mqtt_connected_entries is not None:
+        health_info["mqtt_connected_entries"] = mqtt_connected_entries
+
+    failure_entries = _build_failure_entries(snapshots)
+    if failure_entries:
+        health_info["failure_entries"] = failure_entries
+
+    return health_info
+
+
 async def async_register(
     hass: HomeAssistant,
     register: system_health.SystemHealthRegistration,
@@ -45,23 +84,8 @@ async def system_health_info(
     entries = iter_runtime_entries(hass)
     snapshots = build_runtime_snapshots(hass)
 
-    health_info: SystemHealthPayload = {
-        "component_version": version,
-        "can_reach_server": any(snapshot.last_update_success for snapshot in snapshots),
-        "logged_accounts": len(entries),
-        "total_devices": sum(snapshot.device_count for snapshot in snapshots),
-    }
-
-    mqtt_connected_values = [
-        snapshot.mqtt_connected
-        for snapshot in snapshots
-        if isinstance(snapshot.mqtt_connected, bool)
-    ]
-    if mqtt_connected_values:
-        health_info["mqtt_connected_entries"] = sum(mqtt_connected_values)
-
-    failure_entries = _build_failure_entries(snapshots)
-    if failure_entries:
-        health_info["failure_entries"] = failure_entries
-
-    return health_info
+    return _build_system_health_payload(
+        version=version,
+        logged_accounts=len(entries),
+        snapshots=snapshots,
+    )

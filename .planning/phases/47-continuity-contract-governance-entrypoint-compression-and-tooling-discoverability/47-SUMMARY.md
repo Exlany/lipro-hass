@@ -37,3 +37,9 @@ verification: .planning/phases/47-continuity-contract-governance-entrypoint-comp
 - `Phase 48`: runtime-access / coordinator / entry-lifecycle hotspot decomposition
 - `Phase 49`: governance mega-test / runtime megatest topicization and failure-localization hardening
 - `Phase 50`: REST typed-surface reduction and command/result ownership convergence
+
+
+## Promotion
+
+- `47-SUMMARY.md` 与 `47-VERIFICATION.md` 已登记到 `.planning/reviews/PROMOTED_PHASE_ASSETS.md`，作为 `Phase 47` 的长期 closeout evidence。
+- `47-CONTEXT.md` 与 `47-0x-PLAN.md` 继续保持 execution-trace 身份，不自动升级为长期治理真源。

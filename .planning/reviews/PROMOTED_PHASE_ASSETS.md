@@ -129,6 +129,15 @@ phases:
     - 46-REMEDIATION-ROADMAP.md
     - 46-SUMMARY.md
     - 46-VERIFICATION.md
+  47-continuity-contract-governance-entrypoint-compression-and-tooling-discoverability:
+    - 47-SUMMARY.md
+    - 47-VERIFICATION.md
+  48-runtime-access-and-formal-root-hotspot-decomposition-without-public-surface-drift:
+    - 48-SUMMARY.md
+    - 48-VERIFICATION.md
+  49-mega-test-topicization-and-failure-localization-hardening:
+    - 49-SUMMARY.md
+    - 49-VERIFICATION.md
 ---
 
 # Promoted Phase Assets

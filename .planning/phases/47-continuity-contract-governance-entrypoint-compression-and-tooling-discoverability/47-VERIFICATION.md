@@ -22,5 +22,5 @@ status: passed
 
 ## Notes
 
-- 本次 `47-SUMMARY.md` / `47-VERIFICATION.md` 当前仍保持 execution-trace 身份；如后续需要把 `Phase 47` 升格为长期治理证据，应再同步 `ROADMAP.md`、`REQUIREMENTS.md`、`PROMOTED_PHASE_ASSETS.md` 与 reviews docs 的 promoted allowlist。
+- `47-SUMMARY.md` / `47-VERIFICATION.md` 已于本轮被提升进 `PROMOTED_PHASE_ASSETS.md`，当前已具备长期治理 / CI closeout evidence 身份；`47-CONTEXT.md` 与 `47-0x-PLAN.md` 继续保持 execution-trace 身份。
 - `Phase 48 -> 50` 仍保持已 formalized 的 planned route；本轮未触碰 runtime hotspot、mega-test topicization 与 REST typed-surface reduction。

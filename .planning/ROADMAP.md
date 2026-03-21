@@ -8,7 +8,7 @@
 - ✅ **v1.4 Sustainment, Trust Gates & Final Hotspot Burn-down** - Phases 34-39 shipped 2026-03-19; milestone audit: `.planning/v1.4-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_4_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.4-ROADMAP.md` / `.planning/milestones/v1.4-REQUIREMENTS.md`; local tag: `v1.4`
 - ✅ **v1.5 Governance Truth Consolidation & Control-Surface Finalization** - Phase 40 shipped 2026-03-19; milestone audit: `.planning/v1.5-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_5_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.5-ROADMAP.md` / `.planning/milestones/v1.5-REQUIREMENTS.md`; local tag: `v1.5`
 - ✅ **v1.6 Delivery Trust Hardening, Runtime Boundary Decoupling & Maintainability Closure** - Phases 42-45 closed out on 2026-03-20 from the formal `41-REMEDIATION-ROADMAP.md` route; milestone audit: `.planning/v1.6-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_6_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.6-ROADMAP.md` / `.planning/milestones/v1.6-REQUIREMENTS.md`
-- 🟢 **v1.7 Full-Spectrum Repository Audit, Open-Source Maturity & Remediation Routing** - Phase 46 audit executed on 2026-03-20 with promoted audit package; `Phase 47 -> 50` are now formalized from `.planning/phases/46-exhaustive-repository-audit-standards-conformance-and-remediation-routing/46-REMEDIATION-ROADMAP.md`
+- 🟢 **v1.7 Full-Spectrum Repository Audit, Open-Source Maturity & Remediation Routing** - Phase 46 audit executed on 2026-03-20; Phase 47 and Phase 48 completed on 2026-03-21 with promoted closeout evidence; next formal step: `Phase 50`
 
 ## Required Phase Outputs
 
@@ -852,8 +852,8 @@ Plans:
 
 > `v1.7` 以 `.planning/v1.6-MILESTONE-AUDIT.md`、`.planning/reviews/V1_6_EVIDENCE_INDEX.md` 与 archived snapshots 为 shipped baseline；首个目标不是立刻再开大规模重构，而是完成一轮覆盖全仓 Python / docs / config / tests / governance assets 的正式终极审阅，并把结论压成 `Phase 47+` 的可执行整改路线。
 
-**Milestone status:** `Phase 46 audit complete / evidence-ready (2026-03-20)`
-**Default next command:** `$gsd-new-milestone`（以 `46-REMEDIATION-ROADMAP.md` 作为 follow-up route source）
+**Milestone status:** `Phase 46 audit complete; Phase 47 -> 49 complete / Phase 50 ready (2026-03-21)`
+**Default next command:** `$gsd-plan-phase 49`（`Phase 48` 已完成并提升 closeout evidence）
 
 ### Phase 46: Exhaustive repository audit, standards conformance, and remediation routing
 
@@ -879,13 +879,15 @@ Plans:
   1. `SUPPORT.md`、`SECURITY.md`、`docs/MAINTAINER_RELEASE_RUNBOOK.md`、`.github/CODEOWNERS`、issue/PR templates 与 governance registry 对 continuity / custody / delegate / freeze / restoration 讲同一条故事线，且不暗示 hidden delegate。
   2. `docs/README.md` 成为更显式的 documentation index；`project.urls.Documentation` 与公开文档入口对齐；maintainer-only 文档不再在 public fast path 第一层与普通用户入口混层。
   3. `scripts/` active tooling 与 retired compatibility stubs 有明确索引或自描述；stable-vs-preview wording 继续诚实，不削弱 verified release assets contract。
-**Plans**: 4 plans
+**Status**: Complete (`2026-03-21`)
+**Plans**: 4/4 complete
+**Promoted closeout package**: `47-SUMMARY.md`, `47-VERIFICATION.md`
 
 Plans:
-- [ ] 47-01: formalize continuity truth across support, security, runbook, and CODEOWNERS
-- [ ] 47-02: compress public documentation entrypoints and bilingual routing discoverability
-- [ ] 47-03: classify active tooling versus retired compatibility stubs and sync package metadata
-- [ ] 47-04: add governance guards for continuity, docs index, and tooling discoverability
+- [x] 47-01: formalize continuity truth across support, security, runbook, and CODEOWNERS (completed 2026-03-21)
+- [x] 47-02: compress public documentation entrypoints and bilingual routing discoverability (completed 2026-03-21)
+- [x] 47-03: classify active tooling versus retired compatibility stubs and sync package metadata (completed 2026-03-21)
+- [x] 47-04: add governance guards for continuity, docs index, and tooling discoverability (completed 2026-03-21)
 
 ### Phase 48: Runtime-access and formal-root hotspot decomposition without public-surface drift
 
@@ -896,13 +898,15 @@ Plans:
   1. `control/runtime_access.py` 的 read-model / telemetry / system-health 逻辑被 topicize，控制面消费者继续通过正式入口读取 runtime 状态。
   2. `Coordinator`、`__init__.py` 与 `EntryLifecycleController` 决策密度下降，但不恢复 eager binding、第二 orchestration root 或 compat folklore。
   3. dependency/public-surface guards 继续覆盖 lazy wiring 与 boundary truth，不允许 formal root 热点反弹。
-**Plans**: 4 plans
+**Status**: Complete (`2026-03-21`)
+**Plans**: 4/4 complete
+**Promoted closeout package**: `48-SUMMARY.md`, `48-VERIFICATION.md`
 
 Plans:
-- [ ] 48-01: topicize runtime access projections and system-health helpers
-- [ ] 48-02: continue coordinator inward decomposition without changing public surface
-- [ ] 48-03: slim init and entry-lifecycle wiring while preserving lazy composition
-- [ ] 48-04: harden dependency and public-surface guards around the formal roots
+- [x] 48-01: topicize runtime access projections and system-health helpers (completed 2026-03-21)
+- [x] 48-02: continue coordinator inward decomposition without changing public surface (completed 2026-03-21)
+- [x] 48-03: slim init and entry-lifecycle wiring while preserving lazy composition (completed 2026-03-21)
+- [x] 48-04: harden dependency and public-surface guards around the formal roots (completed 2026-03-21)
 
 ### Phase 49: Mega-test topicization and failure-localization hardening
 
@@ -913,13 +917,15 @@ Plans:
   1. `tests/meta/test_governance_closeout_guards.py`、`tests/core/test_coordinator.py`、`tests/core/test_diagnostics.py` 与 `tests/platforms/test_update.py` 完成 concern/topic 切分。
   2. stray top-level tests 进入更自然的 domain home；assertion ids / parameterization 会报出实际 `(phase, doc, token)` 或 runtime facet。
   3. failure-localization 提升不以牺牲 coverage / guard honesty 为代价。
-**Plans**: 4 plans
+**Status**: Complete (`2026-03-21`)
+**Plans**: 4/4 complete
+**Promoted closeout package**: `49-SUMMARY.md`, `49-VERIFICATION.md`
 
 Plans:
-- [ ] 49-01: split governance megaguards by concern and evidence family
-- [ ] 49-02: topicize coordinator and diagnostics test surfaces
-- [ ] 49-03: decompose update-platform megatests and re-home stray top-level tests
-- [ ] 49-04: tighten assertion ids and failure summaries for faster localization
+- [x] 49-01: split governance megaguards by concern and evidence family (completed 2026-03-21)
+- [x] 49-02: topicize coordinator and diagnostics test surfaces (completed 2026-03-21)
+- [x] 49-03: decompose update-platform megatests and re-home stray top-level tests (completed 2026-03-21)
+- [x] 49-04: tighten assertion ids and failure summaries for faster localization (completed 2026-03-21)
 
 ### Phase 50: REST typed-surface reduction and command/result ownership convergence
 

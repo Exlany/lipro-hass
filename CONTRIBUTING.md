@@ -150,12 +150,12 @@ uv run python scripts/coverage_diff.py coverage.json --minimum 95 --changed-file
 uv run pytest tests/
 
 # Diagnostics focused tests (used by pre-push hook)
-uv run pytest tests/core/test_diagnostics.py::TestAsyncGetConfigEntryDiagnostics::test_collects_and_redacts_diagnostics
-uv run pytest tests/core/test_diagnostics.py::TestAsyncGetConfigEntryDiagnostics::test_handles_no_devices
-uv run pytest tests/core/test_diagnostics.py::TestAsyncGetConfigEntryDiagnostics::test_diagnostics_snapshot
+uv run pytest tests/core/test_diagnostics_config_entry.py::TestAsyncGetConfigEntryDiagnostics::test_collects_and_redacts_diagnostics
+uv run pytest tests/core/test_diagnostics_config_entry.py::TestAsyncGetConfigEntryDiagnostics::test_handles_no_devices
+uv run pytest tests/core/test_diagnostics_config_entry.py::TestAsyncGetConfigEntryDiagnostics::test_diagnostics_snapshot
 
 # Targeted protocol/auth/control public-surface regression / 定向 protocol/auth/control public-surface 回归
-uv run pytest -q tests/core/api/test_protocol_contract_matrix.py tests/core/test_auth.py tests/flows/test_flow_schemas.py tests/flows/test_config_flow_user.py tests/flows/test_config_flow_reauth.py tests/flows/test_config_flow_reconfigure.py tests/flows/test_options_flow.py tests/meta/test_public_surface_guards.py tests/test_coordinator_public.py
+uv run pytest -q tests/core/api/test_protocol_contract_matrix.py tests/core/test_auth.py tests/flows/test_flow_schemas.py tests/flows/test_config_flow_user.py tests/flows/test_config_flow_reauth.py tests/flows/test_config_flow_reconfigure.py tests/flows/test_options_flow.py tests/meta/test_public_surface_guards.py tests/core/test_coordinator_entry.py
 ```
 
 Notes:
@@ -214,7 +214,7 @@ async def async_turn_on(self, **kwargs: Any) -> None:
    uv run python scripts/check_translations.py
    uv run python scripts/check_architecture_policy.py --check
    uv run python scripts/check_file_matrix.py --check
-   uv run pytest -q -x tests/meta/test_dependency_guards.py tests/meta/test_public_surface_guards.py tests/meta/test_governance_guards.py tests/meta/test_governance_closeout_guards.py tests/meta/test_toolchain_truth.py tests/meta/test_version_sync.py
+   uv run pytest -q -x tests/meta/test_dependency_guards.py tests/meta/test_public_surface_guards.py tests/meta/test_governance*.py tests/meta/test_toolchain_truth.py tests/meta/test_version_sync.py
    uv run pytest tests/ -v --ignore=tests/benchmarks --cov=custom_components/lipro --cov-fail-under=95 --cov-report=json --cov-report=xml --cov-report=term-missing
    git diff --name-only --diff-filter=AMRT "$(git merge-base origin/main HEAD)...HEAD" > .coverage-changed-files
    uv run python scripts/coverage_diff.py coverage.json --minimum 95 --changed-files .coverage-changed-files --changed-minimum 95  # total + changed-surface coverage; add --baseline only for optional total diff
