@@ -246,6 +246,17 @@ def test_protocol_root_owns_shared_rest_session_and_request_policy() -> None:
     assert client.rest._request_policy is client.request_policy
 
 
+def test_protocol_root_keeps_request_gateway_and_transport_executor_inside_rest_child() -> None:
+    client = LiproProtocolFacade("test-phone-id")
+
+    assert client.rest.request_policy is client.request_policy
+    assert client.rest._transport_executor._request_policy is client.request_policy
+    assert hasattr(client.rest, "_request_gateway")
+    assert hasattr(client.rest, "_transport_executor")
+    assert not hasattr(client, "_request_gateway")
+    assert not hasattr(client, "_transport_executor")
+
+
 def test_protocol_root_file_keeps_rest_port_and_mqtt_child_out_of_root_body() -> None:
     module_text = (
         Path(__file__).resolve().parents[3]
@@ -260,6 +271,53 @@ def test_protocol_root_file_keeps_rest_port_and_mqtt_child_out_of_root_body() ->
     assert "from .rest_port import" in module_text
     assert "class LiproMqttFacade:" not in module_text
     assert "class _RestFacadePort(" not in module_text
+    assert "self._rest_port." not in module_text
+    assert "bind_protocol_rest_port_family" in module_text
+
+
+def test_rest_port_file_exposes_concern_local_ports_instead_of_one_wide_port() -> None:
+    module_text = (
+        Path(__file__).resolve().parents[3]
+        / "custom_components"
+        / "lipro"
+        / "core"
+        / "protocol"
+        / "rest_port.py"
+    ).read_text(encoding="utf-8")
+
+    assert "class _RestFacadePort(" not in module_text
+    assert "class _RestAuthPort(" in module_text
+    assert "class _RestStatusPort(" in module_text
+    assert "class _RestCommandPort(" in module_text
+    assert "class _RestSchedulePort(" in module_text
+    assert "class ProtocolRestPortFamily:" in module_text
+
+
+def test_protocol_rest_method_support_file_stays_bound_to_single_root_story() -> None:
+    method_text = (
+        Path(__file__).resolve().parents[3]
+        / "custom_components"
+        / "lipro"
+        / "core"
+        / "protocol"
+        / "protocol_facade_rest_methods.py"
+    ).read_text(encoding="utf-8")
+    facade_text = (
+        Path(__file__).resolve().parents[3]
+        / "custom_components"
+        / "lipro"
+        / "core"
+        / "protocol"
+        / "facade.py"
+    ).read_text(encoding="utf-8")
+
+    assert "class LiproProtocolFacade" not in method_text
+    assert "class LiproRestFacade" not in method_text
+    assert "self._rest_ports.auth." in method_text
+    assert "self._rest_ports.schedule." in method_text
+    assert "from . import protocol_facade_rest_methods as _rest_methods" in facade_text
+    assert "login = _rest_methods.login" in facade_text
+    assert "query_device_status = _rest_methods.query_device_status" in facade_text
 
 
 def test_rest_child_facade_file_uses_local_request_and_endpoint_collaborators() -> None:

@@ -268,11 +268,12 @@ class RestRequestGateway:
         *args: object,
         is_retry: bool = False,
         retry_count: int = 0,
+        **kwargs: object,
     ) -> _MappingPayloadT:
         """Dispatch one retry-aware helper while preserving patch seams."""
         if not is_retry and not retry_count:
-            return await call(*args)
-        return await call(*args, is_retry=is_retry, retry_count=retry_count)
+            return await call(*args, **kwargs)
+        return await call(*args, is_retry=is_retry, retry_count=retry_count, **kwargs)
 
     async def dispatch_retry_aware_smart_home_call(
         self,

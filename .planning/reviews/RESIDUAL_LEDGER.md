@@ -4,7 +4,7 @@
 
 | Family | Current example | Owner phase | Residual owner | Exit condition |
 |--------|------------------|-------------|----------------|----------------|
-| _None_ | — | — | — | Phase 38 已关闭最后一条已登记 residual family。 |
+| `Generic backoff helper leak` | `custom_components/lipro/core/api/request_policy.py` 中的 `compute_exponential_retry_wait_time()` 仍被 `core/command/result_policy.py`、`core/coordinator/runtime/command/retry.py` 与 `core/mqtt/setup_backoff.py` 复用 | Phase 52 | Phase 54 | 把 generic backoff helper 迁入 neutral shared backoff home，或改为各 plane 自持 wrapper；关闭前禁止新增非 API caller 继续从 `request_policy.py` 引用它。 |
 
 ## Closed Residual Families
 
@@ -332,3 +332,10 @@
 - 本轮 **无新增 active residual family**；关闭的是 docs/tooling discoverability 与 release-signature identity 过宽 contract，而不是开启新的架构故事线。
 - `scripts/agent_worker.py` 与 `scripts/orchestrator.py` 仍保留为 explicit retired compatibility stubs，但它们现在只是 fail-fast deprecation entry，不再伪装成可继续成功执行的 active tooling。
 - runtime hotspot、mega-test topicization 与 REST typed-surface debt 仍已诚实路由到 `Phase 48 -> 50`，不作为 silent defer 继续漂浮。
+
+## Phase 52 Residual Delta
+
+- `LiproProtocolFacade` 仍是唯一 formal protocol root；`protocol_facade_rest_methods.py`、`rest_port.py` 与 `mqtt_facade.py` 只是在统一主线下继续 inward slimming，没有新增 second-root residual。
+- `RequestPolicy` / `RestRequestGateway` / `RestTransportExecutor` 的 ownership 现已被代码、guards 与 baseline truth 对齐：busy / pacing / 429 决策回到 policy home，mapping/auth-aware retry-context orchestration 留在 gateway，executor 只再承担 transport execution。
+- 本 phase 新增的是对 `compute_exponential_retry_wait_time()` cross-plane leak 的显式登记：它从 silent defer 变成可审计 deferred residual；后续若继续清理，只能迁往更诚实的 shared backoff home，而不是把 `request_policy.py` 再讲成跨平面 utility root。
+

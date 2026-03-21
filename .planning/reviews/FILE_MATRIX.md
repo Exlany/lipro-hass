@@ -1,6 +1,6 @@
 # File Matrix
 
-**Python files total:** 532
+**Python files total:** 533
 **Status:** File-level governance authority
 **Rule:** workspace inventory excluding caches / virtual env / tooling artifacts
 
@@ -70,12 +70,12 @@
 | `custom_components/lipro/core/api/observability.py` | Protocol | Phase 2 | 重构 | - |
 | `custom_components/lipro/core/api/power_service.py` | Protocol | Phase 2 | 重构 | - |
 | `custom_components/lipro/core/api/request_codec.py` | Protocol | Phase 2 | 重构 | - |
-| `custom_components/lipro/core/api/request_gateway.py` | Protocol | Phase 2 / 50 | 重构 | REST request-gateway collaborator home |
-| `custom_components/lipro/core/api/request_policy.py` | Protocol | Phase 2 | 重构 | - |
+| `custom_components/lipro/core/api/request_gateway.py` | Protocol | Phase 2 / 50 / 52 | 重构 | REST request-gateway collaborator home with retry-context ownership |
+| `custom_components/lipro/core/api/request_policy.py` | Protocol | Phase 2 / 52 | 重构 | formal 429 / busy / pacing policy home |
 | `custom_components/lipro/core/api/response_safety.py` | Protocol | Phase 2 | 重构 | - |
-| `custom_components/lipro/core/api/rest_facade.py` | Protocol | Phase 2 | 重构 | - |
+| `custom_components/lipro/core/api/rest_facade.py` | Protocol | Phase 2 / 52 | 重构 | formal REST child-façade composition root |
 | `custom_components/lipro/core/api/rest_facade_endpoint_methods.py` | Protocol | Phase 2 | 重构 | - |
-| `custom_components/lipro/core/api/rest_facade_request_methods.py` | Protocol | Phase 2 | 重构 | - |
+| `custom_components/lipro/core/api/rest_facade_request_methods.py` | Protocol | Phase 2 / 52 | 重构 | explicit REST request/auth method surface delegating via localized collaborators |
 | `custom_components/lipro/core/api/schedule_codec.py` | Protocol | Phase 2 | 重构 | - |
 | `custom_components/lipro/core/api/schedule_endpoint.py` | Protocol | Phase 2 | 重构 | - |
 | `custom_components/lipro/core/api/schedule_service.py` | Protocol | Phase 2 / 14 | 重构 | helper-only schedule support |
@@ -83,8 +83,8 @@
 | `custom_components/lipro/core/api/status_fallback.py` | Protocol | Phase 14 | 保留 | status fallback kernel home |
 | `custom_components/lipro/core/api/status_service.py` | Protocol | Phase 2 / 13 / 14 | 重构 | public status orchestration home |
 | `custom_components/lipro/core/api/transport_core.py` | Protocol | Phase 2 | 重构 | - |
-| `custom_components/lipro/core/api/transport_executor.py` | Protocol | Phase 2 / 35 | 重构 | REST request-pipeline + signed transport execution home |
-| `custom_components/lipro/core/api/transport_retry.py` | Protocol | Phase 2 | 重构 | - |
+| `custom_components/lipro/core/api/transport_executor.py` | Protocol | Phase 2 / 35 / 52 | 重构 | REST signed transport execution + response normalization home |
+| `custom_components/lipro/core/api/transport_retry.py` | Protocol | Phase 2 / 52 | 重构 | 429 replay loop with injected policy callback |
 | `custom_components/lipro/core/api/transport_signing.py` | Protocol | Phase 2 | 重构 | - |
 | `custom_components/lipro/core/api/types.py` | Protocol | Phase 2 | 重构 | - |
 | `custom_components/lipro/core/auth/__init__.py` | Cross-cutting | Phase 7 | 保留 | - |
@@ -207,9 +207,10 @@
 | `custom_components/lipro/core/protocol/boundary/schema_registry.py` | Protocol | Phase 7.1 | 保留 | - |
 | `custom_components/lipro/core/protocol/contracts.py` | Protocol | Phase 2.5 | 保留 | - |
 | `custom_components/lipro/core/protocol/diagnostics_context.py` | Protocol | Phase 2.5 | 保留 | - |
-| `custom_components/lipro/core/protocol/facade.py` | Protocol | Phase 2 / 35 | 重构 | formal protocol root with localized REST/MQTT child-façade wiring |
-| `custom_components/lipro/core/protocol/mqtt_facade.py` | Protocol | Phase 35 | 保留 | MQTT child façade home under the unified protocol root |
-| `custom_components/lipro/core/protocol/rest_port.py` | Protocol | Phase 35 | 保留 | typed REST child-façade port home |
+| `custom_components/lipro/core/protocol/facade.py` | Protocol | Phase 2 / 35 / 52 | 重构 | formal protocol root with localized REST/MQTT child-façade wiring |
+| `custom_components/lipro/core/protocol/protocol_facade_rest_methods.py` | Protocol | Phase 52 | 保留 | support-only REST child-facing method surface for protocol root |
+| `custom_components/lipro/core/protocol/mqtt_facade.py` | Protocol | Phase 35 / 52 | 保留 | MQTT child façade home under the unified protocol root |
+| `custom_components/lipro/core/protocol/rest_port.py` | Protocol | Phase 35 / 52 | 保留 | typed REST child-façade port family home |
 | `custom_components/lipro/core/protocol/session.py` | Protocol | Phase 2.5 | 保留 | - |
 | `custom_components/lipro/core/protocol/telemetry.py` | Protocol | Phase 2.5 | 保留 | - |
 | `custom_components/lipro/core/telemetry/__init__.py` | Assurance | Phase 7.3 | 保留 | - |
@@ -301,11 +302,11 @@
 | `tests/core/anonymous_share/test_sanitize.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `tests/core/api/__init__.py` | Protocol | Phase 2 | 保留 | - |
 | `tests/core/api/test_api.py` | Protocol | Phase 33 | 保留 | topic root for auth/init REST regressions |
-| `tests/core/api/test_api_command_service.py` | Protocol | Phase 2 | 保留 | - |
-| `tests/core/api/test_api_command_surface.py` | Protocol | Phase 33 | 保留 | topicized command / request-edge regression home |
+| `tests/core/api/test_api_command_service.py` | Protocol | Phase 2 / 52 | 保留 | command payload shaping + busy-retry delegation regression home |
+| `tests/core/api/test_api_command_surface.py` | Protocol | Phase 33 / 50 / 52 | 保留 | topicized command / request-edge regression home |
 | `tests/core/api/test_api_device_surface.py` | Protocol | Phase 33 | 保留 | topicized device / capability regression home |
 | `tests/core/api/test_api_diagnostics_service.py` | Protocol | Phase 2 | 保留 | - |
-| `tests/core/api/test_api_request_policy.py` | Protocol | Phase 2 | 保留 | - |
+| `tests/core/api/test_api_request_policy.py` | Protocol | Phase 2 / 52 | 保留 | request-policy pacing / rate-limit / busy-retry regression home |
 | `tests/core/api/test_api_schedule_candidate_mutations.py` | Protocol | Phase 2 | 保留 | - |
 | `tests/core/api/test_api_schedule_candidate_queries.py` | Protocol | Phase 2 | 保留 | - |
 | `tests/core/api/test_api_schedule_endpoints.py` | Protocol | Phase 2 | 保留 | - |
@@ -313,12 +314,12 @@
 | `tests/core/api/test_api_status_endpoints.py` | Protocol | Phase 2 | 保留 | - |
 | `tests/core/api/test_api_status_service.py` | Protocol | Phase 2 | 保留 | - |
 | `tests/core/api/test_api_status_service_regressions.py` | Protocol | Phase 2 | 保留 | - |
-| `tests/core/api/test_api_transport_and_schedule.py` | Protocol | Phase 33 | 保留 | topicized transport / schedule regression home |
-| `tests/core/api/test_api_transport_executor.py` | Protocol | Phase 2 | 保留 | - |
+| `tests/core/api/test_api_transport_and_schedule.py` | Protocol | Phase 33 / 52 | 保留 | topicized transport / schedule regression home |
+| `tests/core/api/test_api_transport_executor.py` | Protocol | Phase 2 / 52 | 保留 | transport-executor rate-limit boundary regression home |
 | `tests/core/api/test_api_types_smoke.py` | Protocol | Phase 2 | 保留 | - |
 | `tests/core/api/test_auth_recovery_telemetry.py` | Protocol | Phase 2 | 保留 | - |
 | `tests/core/api/test_helper_modules.py` | Protocol | Phase 2 | 保留 | - |
-| `tests/core/api/test_protocol_contract_matrix.py` | Protocol | Phase 2 | 保留 | - |
+| `tests/core/api/test_protocol_contract_matrix.py` | Protocol | Phase 2 / 52 | 保留 | protocol root / child-façade contract matrix home |
 | `tests/core/api/test_protocol_replay_rest.py` | Protocol | Phase 7.4 | 保留 | - |
 | `tests/core/api/test_request_codec.py` | Protocol | Phase 2 | 保留 | - |
 | `tests/core/api/test_response_safety.py` | Protocol | Phase 2 | 保留 | - |
@@ -481,7 +482,7 @@
 | `tests/integration/test_telemetry_exporter_integration.py` | Runtime | Phase 7.3 | 保留 | - |
 | `tests/meta/__init__.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_blueprints.py` | Assurance | Phase 6 | 保留 | - |
-| `tests/meta/test_dependency_guards.py` | Assurance | Phase 6 | 保留 | - |
+| `tests/meta/test_dependency_guards.py` | Assurance | Phase 6 / 52 | 保留 | dependency-policy truth guard home |
 | `tests/meta/test_evidence_pack_authority.py` | Assurance | Phase 8 | 保留 | - |
 | `tests/meta/test_external_boundary_authority.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_external_boundary_fixtures.py` | Assurance | Phase 6 | 保留 | - |
@@ -501,7 +502,7 @@
 | `tests/meta/test_phase45_hotspot_budget_guards.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_phase50_rest_typed_budget_guards.py` | Assurance | Phase 50 | 保留 | phase-50 rest typed-budget guard |
 | `tests/meta/test_protocol_replay_assets.py` | Assurance | Phase 7.4 | 保留 | - |
-| `tests/meta/test_public_surface_guards.py` | Assurance | Phase 6 | 保留 | - |
+| `tests/meta/test_public_surface_guards.py` | Assurance | Phase 6 / 52 | 保留 | public-surface truth guard home |
 | `tests/meta/test_service_translation_sync.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_toolchain_truth.py` | Assurance | Phase 16 | 保留 | - |
 | `tests/meta/test_translation_tree_sync.py` | Assurance | Phase 6 | 保留 | - |

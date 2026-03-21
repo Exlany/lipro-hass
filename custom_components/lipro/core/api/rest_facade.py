@@ -297,14 +297,6 @@ class LiproRestFacade:
     async def _handle_401_with_refresh(self, request_token: str | None) -> bool:
         return await self._auth_recovery.handle_401_with_refresh(request_token)
 
-    async def _handle_rate_limit(
-        self,
-        path: str,
-        headers: dict[str, str],
-        retry_count: int,
-    ) -> float:
-        return await self._request_policy.handle_rate_limit(path, headers, retry_count)
-
     @staticmethod
     def _resolve_error_code(code: object, error_code: object) -> int | str | None:
         return RestAuthRecoveryCoordinator.resolve_error_code(code, error_code)
@@ -416,39 +408,5 @@ class LiproRestFacade:
     @staticmethod
     def _is_invalid_param_error_code(code: object) -> bool:
         return RestAuthRecoveryCoordinator.is_invalid_param_error_code(code)
-
-    async def _dispatch_retry_aware_call(
-        self,
-        call: Callable[..., Awaitable[_MappingPayloadT]],
-        *args: object,
-        is_retry: bool = False,
-        retry_count: int = 0,
-    ) -> _MappingPayloadT:
-        """Dispatch one retry-aware helper while preserving retry semantics."""
-        if not is_retry and not retry_count:
-            return await call(*args)
-        return await call(*args, is_retry=is_retry, retry_count=retry_count)
-
-    async def _dispatch_retry_aware_smart_home_call(
-        self,
-        path: str,
-        data: JsonObject,
-        *,
-        require_auth: bool,
-        is_retry: bool = False,
-        retry_count: int = 0,
-    ) -> JsonValue:
-        """Dispatch Smart Home requests while preserving retry semantics."""
-        if not is_retry and not retry_count:
-            if require_auth is True:
-                return await self._smart_home_request(path, data)
-            return await self._smart_home_request(path, data, require_auth=False)
-        return await self._smart_home_request(
-            path,
-            data,
-            require_auth=require_auth,
-            is_retry=is_retry,
-            retry_count=retry_count,
-        )
 
 __all__ = ["LiproRestFacade"]

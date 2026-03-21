@@ -6,7 +6,7 @@ import asyncio
 from collections.abc import Awaitable, Callable
 import logging
 from time import monotonic
-from typing import Final, Protocol
+from typing import Final
 
 from ...const.api import (
     ERROR_DEVICE_BUSY,
@@ -30,35 +30,6 @@ COMMAND_PACING_CACHE_MAX_SIZE: Final = 256
 
 type SleepFn = Callable[[float], Awaitable[None]]
 
-
-class IoTBusyRetryService(Protocol):
-    """Callable contract for the busy-retry command helper."""
-
-    async def __call__(
-        self,
-        *,
-        path: str,
-        body_data: dict[str, object],
-        target_id: str,
-        command: str,
-        attempt_limit: int,
-        base_delay_seconds: float,
-        iot_request: Callable[[str, dict[str, object]], Awaitable[object]],
-        throttle_change_state: Callable[[str, str], Awaitable[None]],
-        record_change_state_success: Callable[[str, str], Awaitable[None]],
-        is_command_busy_error: Callable[[Exception], bool],
-        lipro_api_error: type[Exception],
-        record_change_state_busy: Callable[[str, str], Awaitable[tuple[float, int]]],
-        sleep: SleepFn,
-        logger: logging.Logger,
-    ) -> dict[str, object]:
-        """Execute one IoT request with explicit busy-retry policy."""
-
-
-def _get_iot_busy_retry_service() -> IoTBusyRetryService:
-    from .command_api_service import iot_request_with_busy_retry  # noqa: PLC0415
-
-    return iot_request_with_busy_retry
 
 
 def is_change_state_command(command: str) -> bool:
@@ -426,24 +397,46 @@ class RequestPolicy:
         logger: logging.Logger = _LOGGER,
     ) -> dict[str, object]:
         """Execute one IoT command request with explicit policy-owned pacing."""
-        iot_busy_retry_service = _get_iot_busy_retry_service()
+        for attempt in range(COMMAND_BUSY_RETRY_MAX_ATTEMPTS + 1):
+            await self.throttle_change_state(target_id, command)
+            try:
+                result = await iot_request(path, body_data)
+                await self.record_change_state_success(target_id, command)
+                if isinstance(result, dict):
+                    return result
+                return {}
+            except LiproApiError as err:
+                if not self.is_command_busy_error(err):
+                    raise
 
-        return await iot_busy_retry_service(
-            path=path,
-            body_data=body_data,
-            target_id=target_id,
-            command=command,
-            attempt_limit=COMMAND_BUSY_RETRY_MAX_ATTEMPTS,
-            base_delay_seconds=COMMAND_BUSY_RETRY_BASE_DELAY_SECONDS,
-            iot_request=iot_request,
-            throttle_change_state=self.throttle_change_state,
-            record_change_state_success=self.record_change_state_success,
-            is_command_busy_error=self.is_command_busy_error,
-            lipro_api_error=LiproApiError,
-            record_change_state_busy=self.record_change_state_busy,
-            sleep=asyncio.sleep,
-            logger=logger,
-        )
+                adaptive_interval, busy_count = await self.record_change_state_busy(
+                    target_id,
+                    command,
+                )
+                if attempt >= COMMAND_BUSY_RETRY_MAX_ATTEMPTS:
+                    raise
+
+                wait_time = compute_exponential_retry_wait_time(
+                    retry_count=attempt,
+                    base_delay_seconds=COMMAND_BUSY_RETRY_BASE_DELAY_SECONDS,
+                )
+                logger.debug(
+                    (
+                        "Command %s to %s busy (code=%s), retrying in %.2fs "
+                        "(%d/%d), adaptive_interval=%.2fs busy_count=%d"
+                    ),
+                    command,
+                    target_id,
+                    getattr(err, "code", None),
+                    wait_time,
+                    attempt + 1,
+                    COMMAND_BUSY_RETRY_MAX_ATTEMPTS,
+                    adaptive_interval,
+                    busy_count,
+                )
+                await asyncio.sleep(wait_time)
+
+        return {}
 
 
 __all__ = [

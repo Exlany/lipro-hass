@@ -136,7 +136,8 @@ async def smart_home_request(
     retry_count: int = 0,
 ) -> JsonValue:
     """Execute one Smart Home request through the formal transport pipeline."""
-    return await self._dispatch_retry_aware_smart_home_call(
+    return await self._request_gateway.dispatch_retry_aware_call(
+        self._smart_home_request,
         path,
         data,
         require_auth=require_auth,
@@ -153,7 +154,7 @@ async def iot_request(
     retry_count: int = 0,
 ) -> JsonValue:
     """Execute one IoT request through the formal transport pipeline."""
-    return await self._dispatch_retry_aware_call(
+    return await self._request_gateway.dispatch_retry_aware_call(
         self._iot_request,
         path,
         body_data,
@@ -171,7 +172,7 @@ async def request_iot_mapping(
     retry_count: int = 0,
 ) -> tuple[JsonObject, str | None]:
     """Request one IoT mapping payload with retry context preserved."""
-    return await self._dispatch_retry_aware_call(
+    return await self._request_gateway.dispatch_retry_aware_call(
         self._request_iot_mapping,
         path,
         body_data,
@@ -189,7 +190,7 @@ async def request_iot_mapping_raw(
     retry_count: int = 0,
 ) -> tuple[JsonObject, str | None]:
     """Request one raw IoT mapping payload without result finalization."""
-    return await self._dispatch_retry_aware_call(
+    return await self._request_gateway.dispatch_retry_aware_call(
         self._request_iot_mapping_raw,
         path,
         body,

@@ -10,6 +10,7 @@ from typing import TypeVar
 import aiohttp
 import aiomqtt
 
+from ..api.auth_recovery import AuthRecoveryTelemetrySnapshot
 from ..api.types import JsonObject
 from ..mqtt.transport import MqttTransport
 from .contracts import MqttTransportFacade
@@ -158,9 +159,42 @@ class LiproMqttFacade:
         return connected
 
 
+def bind_active_protocol_mqtt_facade(
+    session_state: ProtocolSessionState,
+    mqtt_facade: LiproMqttFacade | None,
+) -> LiproMqttFacade | None:
+    """Bind or clear the active MQTT façade on protocol-owned session state."""
+    mqtt_biz_id = (
+        mqtt_facade.protocol_session_state.biz_id
+        if mqtt_facade is not None
+        else None
+    )
+    session_state.bind_mqtt_biz_id(mqtt_biz_id)
+    return mqtt_facade
+
+
+
+def build_protocol_diagnostics_snapshot(
+    *,
+    diagnostics_context: ProtocolDiagnosticsContext,
+    mqtt_facade: LiproMqttFacade | None,
+    auth_recovery: AuthRecoveryTelemetrySnapshot,
+) -> dict[str, object]:
+    """Build one protocol-owned diagnostics snapshot from active child state."""
+    return diagnostics_context.snapshot(
+        mqtt_connected=mqtt_facade.is_connected if mqtt_facade is not None else None,
+        subscribed_count=(
+            mqtt_facade.subscribed_count if mqtt_facade is not None else None
+        ),
+        auth_recovery=auth_recovery,
+    )
+
+
 __all__ = [
     "LiproMqttFacade",
     "MqttErrorCallback",
     "MqttMessageCallback",
     "MqttSignalCallback",
+    "bind_active_protocol_mqtt_facade",
+    "build_protocol_diagnostics_snapshot",
 ]

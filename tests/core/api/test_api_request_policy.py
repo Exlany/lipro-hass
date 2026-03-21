@@ -358,3 +358,64 @@ async def test_iot_request_with_busy_retry_non_mapping_success_returns_empty() -
     )
 
     assert result == {}
+
+
+@pytest.mark.asyncio
+async def test_iot_request_with_busy_retry_retries_then_succeeds() -> None:
+    policy = RequestPolicy()
+    iot_request = AsyncMock(
+        side_effect=[
+            LiproApiError("busy", code=250001),
+            {"pushSuccess": True},
+        ]
+    )
+
+    with patch(
+        "custom_components.lipro.core.api.request_policy.asyncio.sleep",
+        new=AsyncMock(),
+    ) as sleep:
+        result = await policy.iot_request_with_busy_retry(
+            "/v2/device/send",
+            {"command": "CHANGE_STATE"},
+            target_id="mesh_group_10001",
+            command="CHANGE_STATE",
+            iot_request=iot_request,
+            logger=MagicMock(),
+        )
+
+    assert result == {"pushSuccess": True}
+    assert iot_request.await_count == 2
+    assert any(call.args == (0.25,) for call in sleep.await_args_list)
+
+
+@pytest.mark.asyncio
+async def test_iot_request_with_busy_retry_non_busy_error_raises() -> None:
+    policy = RequestPolicy()
+
+    with pytest.raises(LiproApiError, match="offline"):
+        await policy.iot_request_with_busy_retry(
+            "/v2/device/send",
+            {"command": "POWER_ON"},
+            target_id="03ab5ccd7caaaaaa",
+            command="POWER_ON",
+            iot_request=AsyncMock(side_effect=LiproApiError("offline", code=140003)),
+            logger=MagicMock(),
+        )
+
+
+@pytest.mark.asyncio
+async def test_iot_request_with_busy_retry_exhausted_raises() -> None:
+    policy = RequestPolicy()
+    iot_request = AsyncMock(side_effect=LiproApiError("busy", code=250001))
+
+    with pytest.raises(LiproApiError, match="busy"):
+        await policy.iot_request_with_busy_retry(
+            "/v2/device/send",
+            {"command": "CHANGE_STATE"},
+            target_id="mesh_group_10001",
+            command="CHANGE_STATE",
+            iot_request=iot_request,
+            logger=MagicMock(),
+        )
+
+    assert iot_request.await_count == 4

@@ -66,15 +66,14 @@ class _DummyRequestCtx:
         return False
 
 
-def _build_executor() -> RestTransportExecutor:
+def _build_executor(policy: RequestPolicy | None = None) -> RestTransportExecutor:
     state = RestSessionState(
         phone_id="test_phone_id",
         session=MagicMock(spec=aiohttp.ClientSession),
         request_timeout=30,
     )
-    policy = RequestPolicy()
     auth_recovery = RestAuthRecoveryCoordinator(state)
-    return RestTransportExecutor(state, auth_recovery, policy)
+    return RestTransportExecutor(state, auth_recovery, policy or RequestPolicy())
 
 
 @pytest.mark.asyncio
@@ -134,31 +133,31 @@ async def test_execute_request_logs_response_when_debug_enabled(caplog) -> None:
 
 
 @pytest.mark.asyncio
-async def test_smart_home_request_returns_typed_value_payload() -> None:
-    executor = _build_executor()
+async def test_execute_mapping_request_with_rate_limit_uses_request_policy_home() -> None:
+    policy = RequestPolicy()
+    executor = _build_executor(policy)
+    send_request = AsyncMock(
+        side_effect=[
+            (429, {"retry": True}, {"Retry-After": "1"}, "token-1"),
+            (200, {"ok": True}, {}, "token-1"),
+        ]
+    )
 
     with patch.object(
-        executor,
-        "request_smart_home_mapping",
-        new=AsyncMock(return_value=({"code": 0, "typedValue": [1, 2, 3]}, "token")),
-    ):
-        result = await executor.smart_home_request("/v2/test", {"scope": "all"})
+        policy,
+        "handle_rate_limit",
+        new=AsyncMock(return_value=1.0),
+    ) as handle_rate_limit:
+        status, result, request_token = await executor.execute_mapping_request_with_rate_limit(
+            path="/v2/test",
+            retry_count=0,
+            send_request=send_request,
+        )
 
-    assert result == [1, 2, 3]
-
-
-@pytest.mark.asyncio
-async def test_iot_request_returns_empty_mapping_for_null_success_data() -> None:
-    executor = _build_executor()
-
-    with patch.object(
-        executor,
-        "request_iot_mapping",
-        new=AsyncMock(return_value=({"code": 0, "data": None}, "token")),
-    ):
-        result = await executor.iot_request("/v2/test", {"deviceId": "03ab5ccd7c000001"})
-
-    assert result == {}
+    assert status == 200
+    assert result == {"ok": True}
+    assert request_token == "token-1"
+    handle_rate_limit.assert_awaited_once_with("/v2/test", {"Retry-After": "1"}, 0)
 
 
 def test_to_device_type_hex_accepts_decimal_strings_and_rejects_invalid_format() -> None:

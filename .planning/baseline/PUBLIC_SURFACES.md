@@ -52,6 +52,12 @@
 - `custom_components/lipro/core/coordinator/lifecycle.py` 中的 `CoordinatorUpdateCycle` 只是 `Coordinator` 的 internal collaborator；它不能成为第二 runtime root、package export 或 control-facing capability surface。
 - `custom_components/lipro/__init__.py` 继续以 module-level alias seam + `_build_entry_lifecycle_controller()` 保持 lazy composition；`EntryLifecycleController` 仍是 setup / unload / reload 的唯一 control-plane owner。
 
+## Phase 52 Protocol Root / Request Policy Isolation Notes
+
+- `custom_components/lipro/core/protocol/facade.py` 继续是唯一 formal protocol root；`protocol_facade_rest_methods.py` 只是 support-only REST child-facing method surface，用于把 root body 继续收窄，但它不是新的 façade、wrapper 或 public root。
+- `custom_components/lipro/core/api/request_policy.py` 现成为 `429` / busy / pacing decision 的 formal truth；`custom_components/lipro/core/api/request_gateway.py` 只拥有 mapping/auth-aware retry-context orchestration，`custom_components/lipro/core/api/transport_executor.py` 只保留 signed transport execution 与 response normalization。
+- `custom_components/lipro/core/api/transport_retry.py` 只再承担 replay loop；`rest_port.py`、`mqtt_facade.py` 与 `protocol_facade_rest_methods.py` 都只是 inward seams，不得被 package export、docs 或 tests 升格成 second root / alternative public contract。
+
 ## Transitional Public Surfaces
 
 | Surface | Allowed Until | Exit Condition |

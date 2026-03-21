@@ -2,36 +2,24 @@
 
 from __future__ import annotations
 
-from typing import cast
-
 import aiohttp
 
 from ...const.api import REQUEST_TIMEOUT
 from ..api.client import LiproRestFacade
 from ..api.request_policy import RequestPolicy
 from ..api.session_state import RestSessionState
-from ..api.types import (
-    DeviceListResponse,
-    JsonObject,
-    LoginResponse,
-    OtaInfoRow,
-    ScheduleTimingRow,
-)
-from .contracts import (
-    CanonicalDeviceStatusRow,
-    CanonicalMeshGroupStatusRow,
-    CanonicalMqttConfig,
-    CanonicalProtocolContracts,
-    OutletPowerInfoResult,
-)
+from . import protocol_facade_rest_methods as _rest_methods
+from .contracts import CanonicalProtocolContracts
 from .diagnostics_context import ProtocolDiagnosticsContext
 from .mqtt_facade import (
     LiproMqttFacade,
     MqttErrorCallback,
     MqttMessageCallback,
     MqttSignalCallback,
+    bind_active_protocol_mqtt_facade,
+    build_protocol_diagnostics_snapshot,
 )
-from .rest_port import StatusBatchMetric, TokenRefreshCallback, _RestFacadePort
+from .rest_port import ProtocolRestPortFamily, bind_protocol_rest_port_family
 from .session import ProtocolSessionState
 from .telemetry import ProtocolTelemetry
 
@@ -76,7 +64,9 @@ class LiproProtocolFacade:
             session_state=rest_state,
             request_policy=policy,
         )
-        self._rest_port = cast(_RestFacadePort, self._rest)
+        self._rest_ports: ProtocolRestPortFamily = bind_protocol_rest_port_family(
+            self._rest
+        )
         self._mqtt: LiproMqttFacade | None = None
 
     @property
@@ -175,263 +165,39 @@ class LiproProtocolFacade:
         """Return the canonical contract helpers owned by the protocol root."""
         return self._contracts
 
-    def set_tokens(
-        self,
-        access_token: str,
-        refresh_token: str,
-        user_id: int | None = None,
-        biz_id: str | None = None,
-    ) -> None:
-        """Set protocol tokens through the formal REST child façade."""
-        self._rest_port.set_tokens(
-            access_token,
-            refresh_token,
-            user_id=user_id,
-            biz_id=biz_id,
-        )
-
-    def set_token_refresh_callback(self, callback: TokenRefreshCallback) -> None:
-        """Register one token-refresh callback on the formal REST child façade."""
-        self._rest_port.set_token_refresh_callback(callback)
-
-    async def login(
-        self,
-        phone: str,
-        password: str,
-        *,
-        password_is_hashed: bool = False,
-    ) -> LoginResponse:
-        """Run the formal login call through the REST child façade."""
-        return await self._rest_port.login(
-            phone,
-            password,
-            password_is_hashed=password_is_hashed,
-        )
-
-    async def refresh_access_token(self) -> LoginResponse:
-        """Refresh access token through the REST child façade."""
-        return await self._rest_port.refresh_access_token()
-
-    async def get_devices(self, offset: int = 0, limit: int = 100) -> DeviceListResponse:
-        """Return canonical device rows from the REST child façade."""
-        return await self._rest_port.get_devices(offset=offset, limit=limit)
-
-    async def get_product_configs(self) -> list[JsonObject]:
-        """Return canonical product-configuration rows."""
-        return await self._rest_port.get_product_configs()
-
-    async def query_device_status(
-        self,
-        device_ids: list[str],
-        *,
-        max_devices_per_query: int = 100,
-        on_batch_metric: StatusBatchMetric | None = None,
-    ) -> list[CanonicalDeviceStatusRow]:
-        """Query device status through the REST child façade."""
-        return await self._rest_port.query_device_status(
-            device_ids,
-            max_devices_per_query=max_devices_per_query,
-            on_batch_metric=on_batch_metric,
-        )
-
-    async def query_mesh_group_status(
-        self,
-        group_ids: list[str],
-    ) -> list[CanonicalMeshGroupStatusRow]:
-        """Query mesh-group status through the REST child façade."""
-        return await self._rest_port.query_mesh_group_status(group_ids)
-
-    async def query_connect_status(self, device_ids: list[str]) -> dict[str, bool]:
-        """Query device connectivity through the REST child façade."""
-        return await self._rest_port.query_connect_status(device_ids)
-
-    async def send_command(
-        self,
-        device_id: str,
-        command: str,
-        device_type: int | str,
-        properties: list[dict[str, str]] | None = None,
-        iot_name: str = "",
-    ) -> JsonObject:
-        """Send one device command through the REST child façade."""
-        return await self._rest_port.send_command(
-            device_id,
-            command,
-            device_type,
-            properties=properties,
-            iot_name=iot_name,
-        )
-
-    async def send_group_command(
-        self,
-        group_id: str,
-        command: str,
-        device_type: int | str,
-        properties: list[dict[str, str]] | None = None,
-        iot_name: str = "",
-    ) -> JsonObject:
-        """Send one group command through the REST child façade."""
-        return await self._rest_port.send_group_command(
-            group_id,
-            command,
-            device_type,
-            properties=properties,
-            iot_name=iot_name,
-        )
-
-    async def get_mqtt_config(self) -> CanonicalMqttConfig:
-        """Fetch MQTT credentials through the REST child façade."""
-        return await self._rest_port.get_mqtt_config()
-
-    async def fetch_outlet_power_info(self, device_id: str) -> OutletPowerInfoResult:
-        """Fetch outlet power info through the REST child façade."""
-        return await self._rest_port.fetch_outlet_power_info(device_id)
-
-    async def query_command_result(
-        self,
-        *,
-        msg_sn: str,
-        device_id: str,
-        device_type: int | str,
-    ) -> JsonObject:
-        """Query one command-result payload through the REST child façade."""
-        return await self._rest_port.query_command_result(
-            msg_sn=msg_sn,
-            device_id=device_id,
-            device_type=device_type,
-        )
-
-    async def get_city(self) -> JsonObject:
-        """Fetch city metadata through the REST child façade."""
-        return await self._rest_port.get_city()
-
-    async def query_user_cloud(self) -> JsonObject:
-        """Fetch user-cloud diagnostics through the REST child façade."""
-        return await self._rest_port.query_user_cloud()
-
-    async def query_ota_info(
-        self,
-        device_id: str,
-        device_type: int | str,
-        *,
-        iot_name: str | None = None,
-        allow_rich_v2_fallback: bool = False,
-    ) -> list[OtaInfoRow]:
-        """Fetch OTA info through the REST child façade."""
-        return await self._rest_port.query_ota_info(
-            device_id,
-            device_type,
-            iot_name=iot_name,
-            allow_rich_v2_fallback=allow_rich_v2_fallback,
-        )
-
-    async def fetch_body_sensor_history(
-        self,
-        device_id: str,
-        device_type: int | str,
-        sensor_device_id: str,
-        mesh_type: str,
-    ) -> JsonObject:
-        """Fetch body-sensor history through the REST child façade."""
-        return await self._rest_port.fetch_body_sensor_history(
-            device_id,
-            device_type,
-            sensor_device_id,
-            mesh_type,
-        )
-
-    async def fetch_door_sensor_history(
-        self,
-        device_id: str,
-        device_type: int | str,
-        sensor_device_id: str,
-        mesh_type: str,
-    ) -> JsonObject:
-        """Fetch door-sensor history through the REST child façade."""
-        return await self._rest_port.fetch_door_sensor_history(
-            device_id,
-            device_type,
-            sensor_device_id,
-            mesh_type,
-        )
-
-    async def get_device_schedules(
-        self,
-        device_id: str,
-        device_type: int | str,
-        *,
-        mesh_gateway_id: str = "",
-        mesh_member_ids: list[str] | None = None,
-    ) -> list[ScheduleTimingRow]:
-        """Fetch device schedules through the REST child façade."""
-        return await self._rest_port.get_device_schedules(
-            device_id,
-            device_type,
-            mesh_gateway_id=mesh_gateway_id,
-            mesh_member_ids=mesh_member_ids,
-        )
-
-    async def add_device_schedule(
-        self,
-        device_id: str,
-        device_type: int | str,
-        days: list[int],
-        times: list[int],
-        events: list[int],
-        group_id: str = "",
-        *,
-        mesh_gateway_id: str = "",
-        mesh_member_ids: list[str] | None = None,
-    ) -> list[ScheduleTimingRow]:
-        """Add one device schedule through the REST child façade."""
-        return await self._rest_port.add_device_schedule(
-            device_id,
-            device_type,
-            days,
-            times,
-            events,
-            group_id,
-            mesh_gateway_id=mesh_gateway_id,
-            mesh_member_ids=mesh_member_ids,
-        )
-
-    async def delete_device_schedules(
-        self,
-        device_id: str,
-        device_type: int | str,
-        schedule_ids: list[int],
-        group_id: str = "",
-        *,
-        mesh_gateway_id: str = "",
-        mesh_member_ids: list[str] | None = None,
-    ) -> list[ScheduleTimingRow]:
-        """Delete device schedules through the REST child façade."""
-        return await self._rest_port.delete_device_schedules(
-            device_id,
-            device_type,
-            schedule_ids,
-            group_id,
-            mesh_gateway_id=mesh_gateway_id,
-            mesh_member_ids=mesh_member_ids,
-        )
+    set_tokens = _rest_methods.set_tokens
+    set_token_refresh_callback = _rest_methods.set_token_refresh_callback
+    login = _rest_methods.login
+    refresh_access_token = _rest_methods.refresh_access_token
+    get_devices = _rest_methods.get_devices
+    get_product_configs = _rest_methods.get_product_configs
+    query_device_status = _rest_methods.query_device_status
+    query_mesh_group_status = _rest_methods.query_mesh_group_status
+    query_connect_status = _rest_methods.query_connect_status
+    send_command = _rest_methods.send_command
+    send_group_command = _rest_methods.send_group_command
+    get_mqtt_config = _rest_methods.get_mqtt_config
+    fetch_outlet_power_info = _rest_methods.fetch_outlet_power_info
+    query_command_result = _rest_methods.query_command_result
+    get_city = _rest_methods.get_city
+    query_user_cloud = _rest_methods.query_user_cloud
+    query_ota_info = _rest_methods.query_ota_info
+    fetch_body_sensor_history = _rest_methods.fetch_body_sensor_history
+    fetch_door_sensor_history = _rest_methods.fetch_door_sensor_history
+    get_device_schedules = _rest_methods.get_device_schedules
+    add_device_schedule = _rest_methods.add_device_schedule
+    delete_device_schedules = _rest_methods.delete_device_schedules
 
     def _bind_active_mqtt_facade(self, mqtt_facade: LiproMqttFacade | None) -> None:
         """Bind one MQTT child façade and synchronize shared protocol state."""
-        self._mqtt = mqtt_facade
-        mqtt_biz_id = (
-            mqtt_facade.protocol_session_state.biz_id
-            if mqtt_facade is not None
-            else None
-        )
-        self._session_state.bind_mqtt_biz_id(mqtt_biz_id)
+        self._mqtt = bind_active_protocol_mqtt_facade(self._session_state, mqtt_facade)
 
     def _build_protocol_diagnostics_snapshot(self) -> dict[str, object]:
         """Build one root-owned diagnostics snapshot from active child state."""
-        mqtt = self._mqtt
-        return self._diagnostics_context.snapshot(
-            mqtt_connected=mqtt.is_connected if mqtt is not None else None,
-            subscribed_count=mqtt.subscribed_count if mqtt is not None else None,
-            auth_recovery=self._rest.auth_recovery_telemetry_snapshot(),
+        return build_protocol_diagnostics_snapshot(
+            diagnostics_context=self._diagnostics_context,
+            mqtt_facade=self._mqtt,
+            auth_recovery=self._rest_ports.diagnostics.auth_recovery_telemetry_snapshot(),
         )
 
     def attach_mqtt_facade(self, mqtt_facade: LiproMqttFacade | None) -> None:

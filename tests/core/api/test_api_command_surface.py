@@ -964,6 +964,35 @@ class TestLiproRestFacadeAdditionalBranchCoverage:
             require_auth=False,
         )
 
+    @pytest.mark.asyncio
+    async def test_smart_home_request_public_wrapper_routes_through_request_gateway(self):
+        """Public smart_home_request should route retry semantics via request gateway."""
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
+        expected = {"ok": True}
+
+        with patch.object(
+            client._request_gateway,
+            "dispatch_retry_aware_call",
+            new=AsyncMock(return_value=expected),
+        ) as dispatch:
+            result = await client.smart_home_request(
+                "/test",
+                {"scope": "all"},
+                require_auth=False,
+                is_retry=True,
+                retry_count=3,
+            )
+
+        assert result == expected
+        dispatch.assert_awaited_once_with(
+            client._smart_home_request,
+            "/test",
+            {"scope": "all"},
+            require_auth=False,
+            is_retry=True,
+            retry_count=3,
+        )
+
     def test_normalize_iot_device_id_non_string(self):
         """Non-string IDs should be rejected by IoT ID normalizer."""
         from custom_components.lipro.core.utils.identifiers import (

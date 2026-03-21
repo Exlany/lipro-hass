@@ -242,3 +242,9 @@
 
 - 本 phase **无新增 active kill target**；docs index formalization、signature-regex tighten 与 verification-matrix drift guard 都属于 current-truth hardening，不是新的 delete campaign。
 - `scripts/agent_worker.py` 与 `scripts/orchestrator.py` 暂仍保留，因为需要为潜在历史自动化提供显式失败与迁移指引；它们不是 active tooling，也不得继续被当作成功路径。
+
+## Phase 52 Status Update
+
+- 本 phase **无新增 active kill target**；`protocol_facade_rest_methods.py`、`ProtocolRestPortFamily`、`RequestPolicy`、`RestRequestGateway` 与 `RestTransportExecutor` 的当前动作都是 formal ownership / boundary closure，而不是新的 delete campaign。
+- `Generic backoff helper leak` 已在 `RESIDUAL_LEDGER.md` 中登记为 deferred residual，但它当前不是 file-level kill target；后续若继续收口，只允许迁往更诚实的 shared backoff home，不得借机把现有 protocol/API homes 误删或降格。
+

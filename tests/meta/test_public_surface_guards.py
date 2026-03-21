@@ -470,3 +470,32 @@ def test_phase_50_rest_child_facade_and_shared_execution_truth_remain_singular()
     assert "diagnostics optional-capability helper reusing shared execution auth chain" in file_matrix_text
     assert "formal service execution facade" in file_matrix_text
 
+def test_phase_52_public_surface_notes_keep_single_protocol_root_and_request_policy_truth() -> None:
+    public_surfaces = _PUBLIC_SURFACES.read_text(encoding="utf-8")
+    file_matrix_text = (
+        _ROOT / ".planning" / "reviews" / "FILE_MATRIX.md"
+    ).read_text(encoding="utf-8")
+    residual_text = (
+        _ROOT / ".planning" / "reviews" / "RESIDUAL_LEDGER.md"
+    ).read_text(encoding="utf-8")
+
+    assert "## Phase 52 Protocol Root / Request Policy Isolation Notes" in public_surfaces
+    assert "protocol_facade_rest_methods.py` 只是 support-only REST child-facing method surface" in public_surfaces
+    assert "request_policy.py` 现成为 `429` / busy / pacing decision 的 formal truth" in public_surfaces
+    assert "protocol_facade_rest_methods.py" in file_matrix_text
+    assert "support-only REST child-facing method surface for protocol root" in file_matrix_text
+    assert "formal 429 / busy / pacing policy home" in file_matrix_text
+    assert "REST signed transport execution + response normalization home" in file_matrix_text
+    assert "Generic backoff helper leak" in residual_text
+
+def test_phase_52_internal_request_helpers_do_not_surface_as_top_level_bindings() -> None:
+    forbidden = {"RequestPolicy", "RestRequestGateway", "RestTransportExecutor"}
+
+    for relative_path in (
+        "custom_components/lipro/core/api/__init__.py",
+        "custom_components/lipro/core/__init__.py",
+        "custom_components/lipro/core/protocol/__init__.py",
+    ):
+        bindings = set(extract_top_level_bindings(_ROOT / relative_path, root=_ROOT))
+        assert bindings.isdisjoint(forbidden)
+

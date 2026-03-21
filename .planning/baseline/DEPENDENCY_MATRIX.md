@@ -122,6 +122,12 @@
 - `.planning/codebase/*` 可以记录这些 topic suites 的新布局，但它们仍不得反向定义 dependency / authority truth；真正的依赖仲裁继续以 baseline + guards 为准。
 - governance/toolchain tests 允许依赖 split topical suites 与 generated file-matrix truth；production planes 不得反向依赖测试拓扑或派生映射。
 
+## Phase 52 Request-Policy / Protocol-Root Clarifications
+
+- `custom_components/lipro/core/protocol/facade.py` 可以 inward 依赖 `protocol_facade_rest_methods.py`、`rest_port.py` 与 `mqtt_facade.py`；它们分别只承担 support-only bound methods、typed REST child ports 与 MQTT child façade home，不得被 runtime/control/tests 讲成 alternative root。
+- `custom_components/lipro/core/api/rest_facade.py` 与 `rest_facade_request_methods.py` 允许 inward 依赖 `request_gateway.py`、`transport_executor.py` 与 `request_policy.py`；其中 `RequestPolicy` 持有 `429` / busy / pacing truth，`RestRequestGateway` 持有 mapping/auth-aware retry-context orchestration，`RestTransportExecutor` 只保留 signed transport execution / response normalization，不得反向长回 second request owner。
+- `custom_components/lipro/core/api/transport_retry.py` 只允许通过 injected `handle_rate_limit` 回调向 `RequestPolicy` 请求决策；`compute_exponential_retry_wait_time()` 若仍被 strict request-policy family 之外的 protocol/runtime/MQTT helpers 共享，必须继续在 residual ledger 中显式登记，直到迁入更诚实的 shared backoff home。
+
 ## Review Checklist
 
 - [ ] 新增依赖是否符合 allowed matrix
