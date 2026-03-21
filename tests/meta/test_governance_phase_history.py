@@ -457,13 +457,54 @@ def test_phase_51_execution_evidence_is_consistent() -> None:
     _assert_state_reflects_post_v1_4_continuation(state_text)
     _assert_state_keeps_forward_progress_commands(state_text)
     assert "## Planned Milestone (v1.8)" in project_text
-    assert "$gsd-plan-phase 52" in project_text
+    assert "52-SUMMARY.md" in project_text
     assert "phase: 51" in summary_text
     assert "status: passed" in summary_text
     assert "51-03" in summary_text
     assert "# Phase 51 Verification" in verification_text
     assert "status: passed" in verification_text
     assert "GOV-38" in verification_text
+    assert "status: passed" in validation_text
+    assert "✅ passed" in validation_text
+
+def test_phase_52_execution_evidence_is_consistent() -> None:
+    roadmap_text = (_ROOT / ".planning" / "ROADMAP.md").read_text(encoding="utf-8")
+    requirements_text = (_ROOT / ".planning" / "REQUIREMENTS.md").read_text(encoding="utf-8")
+    state_text = (_ROOT / ".planning" / "STATE.md").read_text(encoding="utf-8")
+    project_text = (_ROOT / ".planning" / "PROJECT.md").read_text(encoding="utf-8")
+
+    phase_root = (
+        _ROOT
+        / ".planning"
+        / "phases"
+        / "52-protocol-root-second-round-slimming-and-request-policy-isolation"
+    )
+    summary_text = (phase_root / "52-SUMMARY.md").read_text(encoding="utf-8")
+    verification_text = (phase_root / "52-VERIFICATION.md").read_text(encoding="utf-8")
+    validation_text = (phase_root / "52-VALIDATION.md").read_text(encoding="utf-8")
+
+    _assert_promoted_phase_assets(
+        "52-protocol-root-second-round-slimming-and-request-policy-isolation",
+        "52-SUMMARY.md",
+        "52-VERIFICATION.md",
+    )
+
+    assert "### Phase 52: Protocol-root second-round slimming and request-policy isolation" in roadmap_text
+    assert "**Status**: Complete (`2026-03-21`)" in roadmap_text
+    assert "**Plans**: 3/3 complete" in roadmap_text
+    assert "**Promoted closeout package**: `52-SUMMARY.md`, `52-VERIFICATION.md`" in roadmap_text
+    assert "| ARC-08 | Phase 52 | Complete |" in requirements_text
+    _assert_current_mode_tracks_phase_lifecycle(state_text)
+    _assert_state_reflects_post_v1_4_continuation(state_text)
+    _assert_state_keeps_forward_progress_commands(state_text)
+    assert "## Planned Milestone (v1.8)" in project_text
+    assert "$gsd-plan-phase 53" in project_text
+    assert "phase: 52" in summary_text
+    assert "status: passed" in summary_text
+    assert "52-03" in summary_text
+    assert "# Phase 52 Verification" in verification_text
+    assert "status: passed" in verification_text
+    assert "ARC-08" in verification_text
     assert "status: passed" in validation_text
     assert "✅ passed" in validation_text
 

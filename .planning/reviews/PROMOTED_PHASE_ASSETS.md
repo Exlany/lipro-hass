@@ -144,6 +144,9 @@ phases:
   51-continuity-automation-governance-registry-projection-and-release-rehearsal-hardening:
     - 51-SUMMARY.md
     - 51-VERIFICATION.md
+  52-protocol-root-second-round-slimming-and-request-policy-isolation:
+    - 52-SUMMARY.md
+    - 52-VERIFICATION.md
 ---
 
 # Promoted Phase Assets

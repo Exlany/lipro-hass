@@ -1,7 +1,7 @@
 ---
 phase: 52
 slug: protocol-root-second-round-slimming-and-request-policy-isolation
-status: draft
+status: passed
 nyquist_compliant: true
 wave_0_complete: true
 created: 2026-03-21
@@ -30,12 +30,12 @@ created: 2026-03-21
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | Status |
 |---------|------|------|-------------|-----------|-------------------|--------|
-| 52-01-01 | 01 | 1 | ARC-08 | protocol-root contract / public identity | `uv run pytest -q tests/core/api/test_protocol_contract_matrix.py tests/meta/test_public_surface_guards.py` | ⬜ pending |
-| 52-01-02 | 01 | 1 | ARC-08 | MQTT attach / diagnostics root behavior | `uv run pytest -q tests/core/api/test_protocol_contract_matrix.py tests/core/api/test_api_transport_and_schedule.py` | ⬜ pending |
-| 52-02-01 | 02 | 2 | ARC-08 | 429 / rate-limit ownership | `uv run pytest -q tests/core/api/test_api_request_policy.py tests/core/api/test_api_command_surface.py -k "429 or rate_limit"` | ⬜ pending |
-| 52-02-02 | 02 | 2 | ARC-08 | busy / pacing ownership | `uv run pytest -q tests/core/api/test_api_request_policy.py tests/core/api/test_api_command_service.py -k "busy or CHANGE_STATE or pacing"` | ⬜ pending |
-| 52-02-03 | 02 | 2 | ARC-08 | mapping/auth-aware request ownership | `uv run pytest -q tests/core/api/test_api_transport_executor.py tests/core/api/test_api_command_surface.py` | ⬜ pending |
-| 52-03-01 | 03 | 3 | ARC-08 | protocol/API truth freeze + dependency/public-surface guards | `uv run pytest -q tests/core/api/test_protocol_contract_matrix.py tests/meta/test_public_surface_guards.py tests/meta/test_dependency_guards.py && uv run python scripts/check_file_matrix.py --check` | ⬜ pending |
+| 52-01-01 | 01 | 1 | ARC-08 | protocol-root contract / public identity | `uv run pytest -q tests/core/api/test_protocol_contract_matrix.py tests/meta/test_public_surface_guards.py` | ✅ passed |
+| 52-01-02 | 01 | 1 | ARC-08 | MQTT attach / diagnostics root behavior | `uv run pytest -q tests/core/api/test_protocol_contract_matrix.py tests/core/api/test_api_transport_and_schedule.py` | ✅ passed |
+| 52-02-01 | 02 | 2 | ARC-08 | 429 / rate-limit ownership | `uv run pytest -q tests/core/api/test_api_request_policy.py tests/core/api/test_api_command_surface.py -k "429 or rate_limit"` | ✅ passed |
+| 52-02-02 | 02 | 2 | ARC-08 | busy / pacing ownership | `uv run pytest -q tests/core/api/test_api_request_policy.py tests/core/api/test_api_command_service.py -k "busy or CHANGE_STATE or pacing"` | ✅ passed |
+| 52-02-03 | 02 | 2 | ARC-08 | mapping/auth-aware request ownership | `uv run pytest -q tests/core/api/test_api_transport_executor.py tests/core/api/test_api_command_surface.py` | ✅ passed |
+| 52-03-01 | 03 | 3 | ARC-08 | protocol/API truth freeze + dependency/public-surface guards | `uv run pytest -q tests/core/api/test_protocol_contract_matrix.py tests/meta/test_public_surface_guards.py tests/meta/test_dependency_guards.py && uv run python scripts/check_file_matrix.py --check` | ✅ passed |
 
 ## Wave Commands
 
@@ -63,6 +63,6 @@ created: 2026-03-21
 - [x] Commands use `uv run ...` consistently.
 - [x] Wave order follows `protocol-root slimming -> request-policy isolation -> truth freeze`.
 - [x] `nyquist_compliant: true` set in frontmatter.
-- [ ] Execution evidence pending.
+- [x] Execution evidence recorded.
 
-**Approval:** ready for plan generation and plan-check verification
+**Approval:** execution verified and promoted.

@@ -1,8 +1,8 @@
 # Project: Lipro-HASS North Star Evolution
 
-**Status:** Shipped and archived — `v1.6` 仍是最新已发货真源；`v1.7` formalized follow-up route `Phase 46 -> 50` 已于 `2026-03-21` 完成 closeout；`v1.8` 已正式启动并完成 `Phase 51` closeout。
+**Status:** Shipped and archived — `v1.6` 仍是最新已发货真源；`v1.7` formalized follow-up route `Phase 46 -> 50` 已于 `2026-03-21` 完成 closeout；`v1.8` 已正式启动并完成 `Phase 51 -> 52` closeout。
 **Goal:** 以 `v1.6` 归档真相为最新已发货基线；后续路线必须建立在 `v1.7` promoted audit/closeout evidence 与正式 milestone docs 之上，不回流 `Phase 41` execution trace、conversation-only 结论或旧 archived story。
-**Default next step:** `$gsd-plan-phase 52`
+**Default next step:** `$gsd-plan-phase 53`
 
 
 ## Archived Milestone (v1.6)
@@ -37,13 +37,15 @@
 - typing / tests 继续作为 machine-checkable sustainment contract，而不是 prose-only aspiration
 
 **Phase range:** `Phase 51 -> 55`
-**Current status:** `Phase 51 complete (2026-03-21)`（`GOV-38 / GOV-39 / QLT-18` 已通过 governance/docs/workflow closeout 收口；`ARC-08 / HOT-12 / HOT-13 / TST-10 / TYP-13` 继续映射到 `Phase 52 -> 55`）
+**Current status:** `Phase 52 complete (2026-03-21)`（`GOV-38 / GOV-39 / QLT-18 / ARC-08` 已通过 governance/docs/workflow/protocol closeout 收口；`HOT-12 / HOT-13 / TST-10 / TYP-13` 继续映射到 `Phase 53 -> 55`）
 **Seed input:** `.planning/reviews/V1_8_MILESTONE_SEED.md`
 **Phase 51 planning assets:** `.planning/phases/51-continuity-automation-governance-registry-projection-and-release-rehearsal-hardening/51-CONTEXT.md`, `.planning/phases/51-continuity-automation-governance-registry-projection-and-release-rehearsal-hardening/51-RESEARCH.md`, `.planning/phases/51-continuity-automation-governance-registry-projection-and-release-rehearsal-hardening/51-VALIDATION.md`, `.planning/phases/51-continuity-automation-governance-registry-projection-and-release-rehearsal-hardening/51-01-PLAN.md`, `.planning/phases/51-continuity-automation-governance-registry-projection-and-release-rehearsal-hardening/51-02-PLAN.md`, `.planning/phases/51-continuity-automation-governance-registry-projection-and-release-rehearsal-hardening/51-03-PLAN.md`
 **Phase 51 closeout:** `.planning/phases/51-continuity-automation-governance-registry-projection-and-release-rehearsal-hardening/51-SUMMARY.md`, `.planning/phases/51-continuity-automation-governance-registry-projection-and-release-rehearsal-hardening/51-VERIFICATION.md`
-**Immediate focus after closeout:** prepare protocol-root second-round slimming via `Phase 52` planning
+**Phase 52 planning assets:** `.planning/phases/52-protocol-root-second-round-slimming-and-request-policy-isolation/52-CONTEXT.md`, `.planning/phases/52-protocol-root-second-round-slimming-and-request-policy-isolation/52-RESEARCH.md`, `.planning/phases/52-protocol-root-second-round-slimming-and-request-policy-isolation/52-VALIDATION.md`, `.planning/phases/52-protocol-root-second-round-slimming-and-request-policy-isolation/52-01-PLAN.md`, `.planning/phases/52-protocol-root-second-round-slimming-and-request-policy-isolation/52-02-PLAN.md`, `.planning/phases/52-protocol-root-second-round-slimming-and-request-policy-isolation/52-03-PLAN.md`
+**Phase 52 closeout:** `.planning/phases/52-protocol-root-second-round-slimming-and-request-policy-isolation/52-SUMMARY.md`, `.planning/phases/52-protocol-root-second-round-slimming-and-request-policy-isolation/52-VERIFICATION.md`
+**Immediate focus after closeout:** prepare runtime and entry-root second-round throttling via `Phase 53` planning
 **Requirements basket:** `GOV-38`, `GOV-39`, `QLT-18`, `ARC-08`, `HOT-12`, `HOT-13`, `TST-10`, `TYP-13`
-**Next route after Phase 51:** `$gsd-plan-phase 52`
+**Next route after Phase 52:** `$gsd-plan-phase 53`
 
 ## Completed Follow-up Milestone (v1.7)
 
@@ -556,4 +558,4 @@ v1.1 进入执行期后，新增演进必须额外满足：
 
 - 当前 handoff / archive 输入以 `v1.6` audit + archive bundle 为最新 shipped baseline；`.planning/phases/41-full-spectrum-architecture-code-quality-and-open-source-audit/41-REMEDIATION-ROADMAP.md` 保留为 `v1.6 / Phase 42 -> 45` 的历史路由来源。phase 目录资产仍默认是执行证据，只有被 `ROADMAP.md`、baseline docs、review ledgers 或 milestone audit 显式提升时，才成为长期治理真源。
 
-*Last updated: 2026-03-20 after archiving the v1.6 milestone closeout evidence*
+*Last updated: 2026-03-21 after completing the Phase 52 closeout and promoting the current v1.8 truth*

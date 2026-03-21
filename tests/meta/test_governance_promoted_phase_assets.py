@@ -105,3 +105,25 @@ def test_phase_46_audit_assets_exist_and_are_promoted() -> None:
     assert "46-AUDIT.md" in reviews_text
     assert "46-REMEDIATION-ROADMAP.md" in reviews_text
     assert "status:" in verification_text
+
+def test_phase_52_closeout_assets_exist_and_are_promoted() -> None:
+    _assert_promoted_phase_assets(
+        "52-protocol-root-second-round-slimming-and-request-policy-isolation",
+        "52-SUMMARY.md",
+        "52-VERIFICATION.md",
+    )
+
+    verification_text = (
+        _ROOT / ".planning" / "baseline" / "VERIFICATION_MATRIX.md"
+    ).read_text(encoding="utf-8")
+    residual_text = (
+        _ROOT / ".planning" / "reviews" / "RESIDUAL_LEDGER.md"
+    ).read_text(encoding="utf-8")
+    kill_text = (_ROOT / ".planning" / "reviews" / "KILL_LIST.md").read_text(
+        encoding="utf-8"
+    )
+
+    assert "## Phase 52 Protocol-Root Second-Round Slimming and Request-Policy Isolation Contract" in verification_text
+    assert "## Phase 52 Residual Delta" in residual_text
+    assert "## Phase 52 Status Update" in kill_text
+

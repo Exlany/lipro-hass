@@ -233,7 +233,7 @@
 - mapped to phases: 65
 - unmapped: 0 ✓
 
-*Last updated: 2026-03-20 after completing Phase 42 delivery-trust hardening and promoting the current truth to phase-42-complete*
+*Last updated: 2026-03-21 after completing Phase 52 protocol-root/request-policy closeout and promoting the current v1.8 truth*
 
 
 ## Archived Milestone (v1.2)
@@ -422,7 +422,7 @@
 - [x] **GOV-38**: maintainer-unavailable / delegate / custody / freeze / restoration drill 已从 prose agreement 升级为可执行、低摩擦、可重复演练的 continuity contract。
 - [x] **GOV-39**: `.planning/baseline/GOVERNANCE_REGISTRY.json` 已进一步承担下游 maintainer/public metadata projection truth，降低 docs / templates / contributor guidance 的手工同步漂移。
 - [x] **QLT-18**: release chain 已支持 verify-only / non-publish rehearsal，并为 docs-only / governance-only / release-only 等 change type 提供最小充分验证矩阵。
-- [ ] **ARC-08**: `LiproProtocolFacade` 必须继续 inward decomposition，同时保持其作为唯一 protocol-plane root 的正式身份不变。
+- [x] **ARC-08**: `LiproProtocolFacade` 已继续 inward decomposition，并保持其作为唯一 protocol-plane root 的正式身份不变。
 - [ ] **HOT-12**: `Coordinator`、`__init__.py` 与 `EntryLifecycleController` 必须继续沿现有 seams 限流，降低 orchestration density。
 - [ ] **HOT-13**: `AnonymousShareManager`、diagnostics API helper family 与 request-policy companions 必须继续切薄，而不新增 public wrapper / helper-owned truth。
 - [ ] **TST-10**: second-wave mega-tests 必须继续按 concern topicize，让 API/MQTT/platform 大套件失败直接命中局部语义。
@@ -435,7 +435,7 @@
 | GOV-38 | Phase 51 | Complete |
 | GOV-39 | Phase 51 | Complete |
 | QLT-18 | Phase 51 | Complete |
-| ARC-08 | Phase 52 | Planned |
+| ARC-08 | Phase 52 | Complete |
 | HOT-12 | Phase 53 | Planned |
 | HOT-13 | Phase 54 | Planned |
 | TST-10 | Phase 55 | Planned |
@@ -444,8 +444,8 @@
 **Coverage:**
 - v1.8 routed requirements: 8 total
 - Current mapped: 8
-- Current complete: 3
-- Current pending: 5
+- Current complete: 4
+- Current pending: 4
 - Current unmapped: 0 ✓
 
 ## Completed Milestone (v1.7)

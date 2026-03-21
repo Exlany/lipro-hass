@@ -9,7 +9,7 @@
 - ✅ **v1.5 Governance Truth Consolidation & Control-Surface Finalization** - Phase 40 shipped 2026-03-19; milestone audit: `.planning/v1.5-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_5_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.5-ROADMAP.md` / `.planning/milestones/v1.5-REQUIREMENTS.md`; local tag: `v1.5`
 - ✅ **v1.6 Delivery Trust Hardening, Runtime Boundary Decoupling & Maintainability Closure** - Phases 42-45 closed out on 2026-03-20 from the formal `41-REMEDIATION-ROADMAP.md` route; milestone audit: `.planning/v1.6-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_6_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.6-ROADMAP.md` / `.planning/milestones/v1.6-REQUIREMENTS.md`
 - ✅ **v1.7 Full-Spectrum Repository Audit, Open-Source Maturity & Remediation Routing** - Phase 46 audit executed on 2026-03-20; Phase 47 -> 50 completed on 2026-03-21 with promoted closeout evidence; formalized follow-up route complete
-- 🟢 **v1.8 Operational Continuity Automation, Formal-Root Sustainment & Hotspot Round 2** - formal milestone opened on 2026-03-21 from post-Phase-50 audit arbitration; Phase 51 completed on 2026-03-21 with promoted closeout evidence, phases 52 -> 55 remain routed
+- 🟢 **v1.8 Operational Continuity Automation, Formal-Root Sustainment & Hotspot Round 2** - formal milestone opened on 2026-03-21 from post-Phase-50 audit arbitration; Phases 51 -> 52 completed on 2026-03-21 with promoted closeout evidence, phases 53 -> 55 remain routed
 
 ## Required Phase Outputs
 
@@ -951,8 +951,8 @@ Plans:
 
 > `v1.8` 以 `v1.6` archived shipped truth 与 `v1.7` promoted audit/closeout evidence 为基线；目标不是重开审阅，而是把 continuity automation、formal-root second-round slimming、helper-hotspot formalization 与 mega-test/typing sustainment 变成更低摩擦、可执行、可验证的新里程碑。
 
-**Milestone status:** `Phase 51 complete; phases 52 -> 55 routed (2026-03-21)`
-**Default next command:** `$gsd-plan-phase 52`（`Phase 51` 已完成并留下 promoted closeout evidence）
+**Milestone status:** `Phase 52 complete; phases 53 -> 55 routed (2026-03-21)`
+**Default next command:** `$gsd-plan-phase 53`（`Phase 52` 已完成并留下 promoted closeout evidence）
 **Seed input:** `.planning/reviews/V1_8_MILESTONE_SEED.md`
 
 ### Phase 51: Continuity automation, governance-registry projection, and release rehearsal hardening
@@ -978,11 +978,18 @@ Plans:
 **Goal:** 继续 inward decomposition `LiproProtocolFacade` 与 request-policy collaborator family，在不改变唯一 protocol-plane root 真相的前提下降低 decision density。
 **Depends on:** Phase 51
 **Requirements**: [ARC-08]
-**Draft Success Criteria**:
+**Success Criteria**:
   1. `LiproProtocolFacade` 的 login/status/command/OTA/schedule/MQTT-attach concern 进一步 inward topicize，而不是被新 façade 或 wrapper 替代。
   2. request pacing / retry / 429 / busy semantics 拥有更窄、更清晰的 collaborator seams。
   3. protocol child/root public truth、boundary direction 与 contract suites 维持不漂移。
-**Status**: Routed
+**Status**: Complete (`2026-03-21`)
+**Plans**: 3/3 complete
+**Promoted closeout package**: `52-SUMMARY.md`, `52-VERIFICATION.md`
+
+Plans:
+- [x] 52-01: narrow protocol root body with support-only REST method seams, concern-local REST ports, and MQTT child-façade localization (completed 2026-03-21)
+- [x] 52-02: isolate `429` / busy / pacing truth inside `RequestPolicy` and narrow gateway/executor ownership (completed 2026-03-21)
+- [x] 52-03: freeze ownership via focused regressions, governance baselines, and explicit residual honesty (completed 2026-03-21)
 
 ### Phase 53: Runtime and entry-root second-round throttling
 
