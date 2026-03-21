@@ -1,6 +1,6 @@
 # File Matrix
 
-**Python files total:** 531
+**Python files total:** 532
 **Status:** File-level governance authority
 **Rule:** workspace inventory excluding caches / virtual env / tooling artifacts
 
@@ -55,7 +55,7 @@
 | `custom_components/lipro/core/api/client_pacing.py` | Protocol | Phase 2 | 重构 | - |
 | `custom_components/lipro/core/api/command_api_service.py` | Protocol | Phase 2 | 重构 | - |
 | `custom_components/lipro/core/api/diagnostics_api_service.py` | Protocol | Phase 2 | 重构 | - |
-| `custom_components/lipro/core/api/endpoint_surface.py` | Protocol | Phase 35 | 保留 | REST endpoint forwarding collaborator home |
+| `custom_components/lipro/core/api/endpoint_surface.py` | Protocol | Phase 35 / 50 | 保留 | REST endpoint operations collaborator home |
 | `custom_components/lipro/core/api/endpoints/__init__.py` | Protocol | Phase 2 | 重构 | - |
 | `custom_components/lipro/core/api/endpoints/auth.py` | Protocol | Phase 2 | 重构 | - |
 | `custom_components/lipro/core/api/endpoints/commands.py` | Protocol | Phase 2 | 重构 | - |
@@ -70,7 +70,7 @@
 | `custom_components/lipro/core/api/observability.py` | Protocol | Phase 2 | 重构 | - |
 | `custom_components/lipro/core/api/power_service.py` | Protocol | Phase 2 | 重构 | - |
 | `custom_components/lipro/core/api/request_codec.py` | Protocol | Phase 2 | 重构 | - |
-| `custom_components/lipro/core/api/request_gateway.py` | Protocol | Phase 2 | 重构 | - |
+| `custom_components/lipro/core/api/request_gateway.py` | Protocol | Phase 2 / 50 | 重构 | REST request-gateway collaborator home |
 | `custom_components/lipro/core/api/request_policy.py` | Protocol | Phase 2 | 重构 | - |
 | `custom_components/lipro/core/api/response_safety.py` | Protocol | Phase 2 | 重构 | - |
 | `custom_components/lipro/core/api/rest_facade.py` | Protocol | Phase 2 | 重构 | - |
@@ -261,7 +261,7 @@
 | `custom_components/lipro/services/device_lookup.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/services/diagnostics/__init__.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/services/diagnostics/handlers.py` | Control | Phase 3 | 保留 | - |
-| `custom_components/lipro/services/diagnostics/helpers.py` | Control | Phase 3 | 保留 | - |
+| `custom_components/lipro/services/diagnostics/helpers.py` | Control | Phase 3 / 50 | 保留 | diagnostics optional-capability helper reusing shared execution auth chain |
 | `custom_components/lipro/services/diagnostics/types.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/services/errors.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/services/execution.py` | Control | Phase 3 / 5 / 7 | 保留 | formal service execution facade; private auth seam closed |
@@ -499,6 +499,7 @@
 | `tests/meta/test_modularization_surfaces.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_phase31_runtime_budget_guards.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_phase45_hotspot_budget_guards.py` | Assurance | Phase 6 | 保留 | - |
+| `tests/meta/test_phase50_rest_typed_budget_guards.py` | Assurance | Phase 50 | 保留 | phase-50 rest typed-budget guard |
 | `tests/meta/test_protocol_replay_assets.py` | Assurance | Phase 7.4 | 保留 | - |
 | `tests/meta/test_public_surface_guards.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_service_translation_sync.py` | Assurance | Phase 6 | 保留 | - |

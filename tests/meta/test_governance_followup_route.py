@@ -443,7 +443,7 @@ def test_phase_42_to_45_closeout_truth_is_consistent() -> None:
 
     assert ".planning/v1.6-MILESTONE-AUDIT.md" in state_text
     assert ".planning/reviews/V1_6_EVIDENCE_INDEX.md" in state_text
-    assert "$gsd-plan-phase 50" in state_text
+    assert "$gsd-progress" in state_text
     _assert_state_reflects_post_v1_4_continuation(state_text)
     _assert_state_keeps_forward_progress_commands(state_text)
 
@@ -457,7 +457,7 @@ def test_phase_46_audit_truth_is_consistent() -> None:
     state_text = (_ROOT / ".planning" / "STATE.md").read_text(encoding="utf-8")
 
     assert "## v1.7: Full-Spectrum Repository Audit, Open-Source Maturity & Remediation Routing" in roadmap_text
-    assert "**Milestone status:** `Phase 46 audit complete; Phase 47 -> 49 complete / Phase 50 ready (2026-03-21)`" in roadmap_text
+    assert "**Milestone status:** `Phase 46 audit complete; Phase 47 -> 50 complete (2026-03-21)`" in roadmap_text
     assert "**Status**: Complete (`2026-03-20`)" in roadmap_text
     assert "**Promoted audit package**: `46-AUDIT.md`, `46-SCORE-MATRIX.md`, `46-REMEDIATION-ROADMAP.md`, `46-SUMMARY.md`, `46-VERIFICATION.md`" in roadmap_text
     assert "**Follow-up route source**: `.planning/phases/46-exhaustive-repository-audit-standards-conformance-and-remediation-routing/46-REMEDIATION-ROADMAP.md`" in roadmap_text
@@ -477,9 +477,12 @@ def test_phase_46_audit_truth_is_consistent() -> None:
     ):
         assert needle in requirements_text
 
-    assert "**Current status:** `Phase 46 -> 49 complete / Phase 50 ready (2026-03-21)`" in project_text
+    assert "**Current status:** `Phase 46 -> 50 complete (2026-03-21)`" in project_text
     assert "**Promoted audit package:** `.planning/phases/46-exhaustive-repository-audit-standards-conformance-and-remediation-routing/46-AUDIT.md`" in project_text
     assert "**Next route source:** `.planning/phases/46-exhaustive-repository-audit-standards-conformance-and-remediation-routing/46-REMEDIATION-ROADMAP.md`" in project_text
+    assert ".planning/phases/50-rest-typed-surface-reduction-and-command-result-ownership-convergence/50-SUMMARY.md" in project_text
+    assert ".planning/phases/50-rest-typed-surface-reduction-and-command-result-ownership-convergence/50-VERIFICATION.md" in project_text
+    assert "**Default execution route:** `$gsd-progress` → `$gsd-new-milestone`" in project_text
 
     assert "`Phase 46` 已于 `2026-03-20` 执行完成" in state_text
     assert "46-REMEDIATION-ROADMAP.md" in state_text

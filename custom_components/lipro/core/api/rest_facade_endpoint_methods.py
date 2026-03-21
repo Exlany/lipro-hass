@@ -6,10 +6,19 @@ does not have to carry every explicit endpoint wrapper implementation.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from .power_service import OutletPowerInfoResult
-from .types import DeviceListResponse, OtaInfoRow, ScheduleTimingRow
+from .status_fallback import RecordStatusBatchMetric
+from .types import (
+    CommandResultApiResponse,
+    DeviceListResponse,
+    DeviceStatusItem,
+    JsonObject,
+    MqttConfigResponse,
+    OtaInfoRow,
+    ScheduleTimingRow,
+)
 
 if TYPE_CHECKING:
     from .rest_facade import LiproRestFacade
@@ -24,7 +33,7 @@ async def get_devices(
     return await self._endpoint_surface.get_devices(offset=offset, limit=limit)
 
 
-async def get_product_configs(self: LiproRestFacade) -> list[dict[str, Any]]:
+async def get_product_configs(self: LiproRestFacade) -> list[JsonObject]:
     """Return canonical product configuration rows."""
     return await self._endpoint_surface.get_product_configs()
 
@@ -34,8 +43,8 @@ async def query_device_status(
     device_ids: list[str],
     *,
     max_devices_per_query: int = 100,
-    on_batch_metric: Any = None,
-) -> list[dict[str, Any]]:
+    on_batch_metric: RecordStatusBatchMetric | None = None,
+) -> list[DeviceStatusItem]:
     """Return canonical device-status rows through the explicit status endpoint."""
     return await self._endpoint_surface.query_device_status(
         device_ids,
@@ -47,7 +56,7 @@ async def query_device_status(
 async def query_mesh_group_status(
     self: LiproRestFacade,
     group_ids: list[str],
-) -> list[dict[str, Any]]:
+) -> list[JsonObject]:
     """Return canonical mesh-group status rows."""
     return await self._endpoint_surface.query_mesh_group_status(group_ids)
 
@@ -67,7 +76,7 @@ async def send_command(
     device_type: int | str,
     properties: list[dict[str, str]] | None = None,
     iot_name: str = "",
-) -> dict[str, Any]:
+) -> JsonObject:
     """Send one device command through the explicit command endpoint."""
     return await self._endpoint_surface.send_command(
         device_id=device_id,
@@ -85,7 +94,7 @@ async def send_group_command(
     device_type: int | str,
     properties: list[dict[str, str]] | None = None,
     iot_name: str = "",
-) -> dict[str, Any]:
+) -> JsonObject:
     """Send one group command through the explicit command endpoint."""
     return await self._endpoint_surface.send_group_command(
         group_id=group_id,
@@ -96,7 +105,7 @@ async def send_group_command(
     )
 
 
-async def get_mqtt_config(self: LiproRestFacade) -> dict[str, Any]:
+async def get_mqtt_config(self: LiproRestFacade) -> MqttConfigResponse:
     """Return MQTT configuration through the explicit misc endpoint."""
     return await self._endpoint_surface.get_mqtt_config()
 
@@ -115,7 +124,7 @@ async def query_command_result(
     msg_sn: str,
     device_id: str,
     device_type: int | str,
-) -> dict[str, Any]:
+) -> CommandResultApiResponse:
     """Return the command-result payload for one message serial number."""
     return await self._endpoint_surface.query_command_result(
         msg_sn=msg_sn,
@@ -124,12 +133,12 @@ async def query_command_result(
     )
 
 
-async def get_city(self: LiproRestFacade) -> dict[str, Any]:
+async def get_city(self: LiproRestFacade) -> JsonObject:
     """Return the current city capability payload."""
     return await self._endpoint_surface.get_city()
 
 
-async def query_user_cloud(self: LiproRestFacade) -> dict[str, Any]:
+async def query_user_cloud(self: LiproRestFacade) -> JsonObject:
     """Return the user-cloud capability payload."""
     return await self._endpoint_surface.query_user_cloud()
 
@@ -157,7 +166,7 @@ async def fetch_body_sensor_history(
     device_type: int | str,
     sensor_device_id: str,
     mesh_type: str,
-) -> dict[str, Any]:
+) -> JsonObject:
     """Return body-sensor history through the explicit misc endpoint."""
     return await self._endpoint_surface.fetch_body_sensor_history(
         device_id=device_id,
@@ -173,7 +182,7 @@ async def fetch_door_sensor_history(
     device_type: int | str,
     sensor_device_id: str,
     mesh_type: str,
-) -> dict[str, Any]:
+) -> JsonObject:
     """Return door-sensor history through the explicit misc endpoint."""
     return await self._endpoint_surface.fetch_door_sensor_history(
         device_id=device_id,

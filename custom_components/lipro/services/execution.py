@@ -66,6 +66,25 @@ async def _async_trigger_reauth(
     await coordinator.auth_service.async_trigger_reauth(reason)
 
 
+async def async_capture_coordinator_call(
+    coordinator: AuthenticatedCoordinator,
+    *,
+    call: Callable[[], Awaitable[_ResultT]],
+) -> tuple[bool, _ResultT | None, LiproApiError | None]:
+    """Execute one coordinator call and capture auth/API errors after reauth handling."""
+    try:
+        await _async_ensure_authenticated(coordinator)
+        return True, await call(), None
+    except LiproRefreshTokenExpiredError as err:
+        await _async_trigger_reauth(coordinator, "auth_expired")
+        return False, None, err
+    except LiproAuthError as err:
+        await _async_trigger_reauth(coordinator, "auth_error")
+        return False, None, err
+    except LiproApiError as err:
+        return False, None, err
+
+
 async def async_execute_coordinator_call(
     coordinator: AuthenticatedCoordinator,
     *,
@@ -99,5 +118,6 @@ __all__ = [
     "CoordinatorAuthSurface",
     "LiproApiErrorHandler",
     "ServiceErrorRaiser",
+    "async_capture_coordinator_call",
     "async_execute_coordinator_call",
 ]

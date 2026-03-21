@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 from collections.abc import Awaitable, Callable
 import logging
-from typing import Any, TypeVar
+from typing import TypeVar
 
 import aiohttp
 
@@ -14,7 +14,7 @@ from . import (
     rest_facade_endpoint_methods as _endpoint_methods,
     rest_facade_request_methods as _request_methods,
 )
-from .auth_recovery import RestAuthRecoveryCoordinator
+from .auth_recovery import AuthRecoveryTelemetrySnapshot, RestAuthRecoveryCoordinator
 from .auth_service import AuthApiService
 from .endpoint_surface import RestEndpointSurface
 from .endpoints import (
@@ -26,13 +26,13 @@ from .endpoints import (
     StatusEndpoints,
 )
 from .errors import LiproAuthError
-from .request_gateway import RestRequestGateway
+from .request_gateway import MappingRequestSender, RestRequestGateway
 from .request_policy import RequestPolicy
 from .session_state import RestSessionState
 from .transport_executor import RestTransportExecutor
+from .types import JsonObject, JsonValue, ResponseHeaders, ValidatedMappingResult
 
 _LOGGER = logging.getLogger(__name__)
-MappingRequestSender = Callable[[], Awaitable[tuple[int, Any, dict[str, str], str | None]]]
 TokenRefreshCallback = Callable[[], Awaitable[None]]
 _MappingPayloadT = TypeVar("_MappingPayloadT")
 
@@ -183,9 +183,9 @@ class LiproRestFacade:
         """Register the async callback used to refresh access tokens."""
         self._auth_recovery.set_token_refresh_callback(callback)
 
-    def auth_recovery_telemetry_snapshot(self) -> dict[str, Any]:
+    def auth_recovery_telemetry_snapshot(self) -> AuthRecoveryTelemetrySnapshot:
         """Return sanitized auth-recovery telemetry for protocol diagnostics."""
-        return dict(self._auth_recovery.telemetry_snapshot())
+        return self._auth_recovery.telemetry_snapshot()
 
     # Static method binding keeps the façade explicit without reintroducing
     # mixin aggregation or dynamic delegation.
@@ -242,9 +242,9 @@ class LiproRestFacade:
 
     async def _execute_request(
         self,
-        request_ctx: Any,
+        request_ctx: object,
         path: str,
-    ) -> tuple[int, dict[str, Any], dict[str, str]]:
+    ) -> tuple[int, JsonObject, ResponseHeaders]:
         return await self._transport_executor.execute_request(request_ctx, path)
 
     async def _execute_mapping_request_with_rate_limit(
@@ -253,7 +253,7 @@ class LiproRestFacade:
         path: str,
         retry_count: int,
         send_request: MappingRequestSender,
-    ) -> tuple[int, dict[str, Any], str | None]:
+    ) -> ValidatedMappingResult:
         return await self._transport_executor.execute_mapping_request_with_rate_limit(
             path=path,
             retry_count=retry_count,
@@ -277,12 +277,12 @@ class LiproRestFacade:
         self,
         *,
         path: str,
-        result: dict[str, Any],
+        result: JsonObject,
         request_token: str | None,
         is_retry: bool,
         retry_on_auth_error: bool,
         retry_request: Callable[[], Awaitable[_MappingPayloadT]] | None,
-        success_payload: Callable[[dict[str, Any]], _MappingPayloadT],
+        success_payload: Callable[[JsonObject], _MappingPayloadT],
     ) -> _MappingPayloadT:
         return await self._auth_recovery.finalize_mapping_result(
             path=path,
@@ -306,11 +306,11 @@ class LiproRestFacade:
         return await self._request_policy.handle_rate_limit(path, headers, retry_count)
 
     @staticmethod
-    def _resolve_error_code(code: Any, error_code: Any) -> int | str | None:
+    def _resolve_error_code(code: object, error_code: object) -> int | str | None:
         return RestAuthRecoveryCoordinator.resolve_error_code(code, error_code)
 
     @staticmethod
-    def _unwrap_iot_success_payload(result: dict[str, Any]) -> Any:
+    def _unwrap_iot_success_payload(result: JsonObject) -> JsonValue:
         return RestAuthRecoveryCoordinator.unwrap_iot_success_payload(result)
 
     @staticmethod
@@ -332,12 +332,12 @@ class LiproRestFacade:
     async def _request_smart_home_mapping(
         self,
         path: str,
-        data: dict[str, Any],
+        data: JsonObject,
         require_auth: bool = True,
         *,
         is_retry: bool = False,
         retry_count: int = 0,
-    ) -> tuple[dict[str, Any], str | None]:
+    ) -> tuple[JsonObject, str | None]:
         return await self._request_gateway.request_smart_home_mapping(
             path,
             data,
@@ -349,11 +349,11 @@ class LiproRestFacade:
     async def _smart_home_request(
         self,
         path: str,
-        data: dict[str, Any],
+        data: JsonObject,
         require_auth: bool = True,
         is_retry: bool = False,
         retry_count: int = 0,
-    ) -> Any:
+    ) -> JsonValue:
         return await self._request_gateway.smart_home_request(
             path,
             data,
@@ -369,7 +369,7 @@ class LiproRestFacade:
         *,
         is_retry: bool = False,
         retry_count: int = 0,
-    ) -> tuple[dict[str, Any], str | None]:
+    ) -> tuple[JsonObject, str | None]:
         return await self._request_gateway.request_iot_mapping_raw(
             path,
             body,
@@ -380,11 +380,11 @@ class LiproRestFacade:
     async def _request_iot_mapping(
         self,
         path: str,
-        body_data: dict[str, Any],
+        body_data: JsonObject,
         *,
         is_retry: bool = False,
         retry_count: int = 0,
-    ) -> tuple[dict[str, Any], str | None]:
+    ) -> tuple[JsonObject, str | None]:
         return await self._request_gateway.request_iot_mapping(
             path,
             body_data,
@@ -395,10 +395,10 @@ class LiproRestFacade:
     async def _iot_request(
         self,
         path: str,
-        body_data: dict[str, Any],
+        body_data: JsonObject,
         is_retry: bool = False,
         retry_count: int = 0,
-    ) -> Any:
+    ) -> JsonValue:
         return await self._request_gateway.iot_request(
             path,
             body_data,
@@ -410,11 +410,11 @@ class LiproRestFacade:
         return self._transport_executor.to_device_type_hex(device_type)
 
     @staticmethod
-    def _require_mapping_response(path: str, result: Any) -> dict[str, Any]:
+    def _require_mapping_response(path: str, result: object) -> JsonObject:
         return RestTransportExecutor.require_mapping_response(path, result)
 
     @staticmethod
-    def _is_invalid_param_error_code(code: Any) -> bool:
+    def _is_invalid_param_error_code(code: object) -> bool:
         return RestAuthRecoveryCoordinator.is_invalid_param_error_code(code)
 
     async def _dispatch_retry_aware_call(
@@ -432,12 +432,12 @@ class LiproRestFacade:
     async def _dispatch_retry_aware_smart_home_call(
         self,
         path: str,
-        data: dict[str, Any],
+        data: JsonObject,
         *,
         require_auth: bool,
         is_retry: bool = False,
         retry_count: int = 0,
-    ) -> Any:
+    ) -> JsonValue:
         """Dispatch Smart Home requests while preserving retry semantics."""
         if not is_retry and not retry_count:
             if require_auth is True:

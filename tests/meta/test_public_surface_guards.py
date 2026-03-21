@@ -445,3 +445,28 @@ def test_phase_49_file_matrix_tracks_topicized_test_topology() -> None:
 
     assert "tests/test_coordinator_public.py" not in file_matrix_text
     assert "tests/test_coordinator_runtime.py" not in file_matrix_text
+
+def test_phase_50_rest_child_facade_and_shared_execution_truth_remain_singular() -> None:
+    request_gateway_text = (
+        _ROOT / "custom_components" / "lipro" / "core" / "api" / "request_gateway.py"
+    ).read_text(encoding="utf-8")
+    endpoint_text = (
+        _ROOT / "custom_components" / "lipro" / "core" / "api" / "endpoint_surface.py"
+    ).read_text(encoding="utf-8")
+    file_matrix_text = (
+        _ROOT / ".planning" / "reviews" / "FILE_MATRIX.md"
+    ).read_text(encoding="utf-8")
+    public_surfaces = _PUBLIC_SURFACES.read_text(encoding="utf-8")
+
+    assert "canonical REST child façade" in public_surfaces
+    assert "formal shared service execution facade" in public_surfaces
+    assert "localized collaborator" in request_gateway_text
+    assert "not a second" in request_gateway_text
+    assert "public root" in request_gateway_text
+    assert "endpoint operations collaborator" in endpoint_text
+    assert "forwarding" not in endpoint_text
+    assert "REST endpoint operations collaborator home" in file_matrix_text
+    assert "REST request-gateway collaborator home" in file_matrix_text
+    assert "diagnostics optional-capability helper reusing shared execution auth chain" in file_matrix_text
+    assert "formal service execution facade" in file_matrix_text
+

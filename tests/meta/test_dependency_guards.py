@@ -219,3 +219,19 @@ def test_phase_49_verification_matrix_tracks_topicized_runtime_and_diagnostics_p
     assert "tests/platforms/test_update_install_flow.py" in verification_text
     assert "tests/test_coordinator_public.py" not in verification_text
     assert "tests/test_coordinator_runtime.py" not in verification_text
+
+def test_phase_50_diagnostics_helpers_reuse_shared_execution_auth_chain() -> None:
+    helpers_text = (
+        _ROOT / "custom_components" / "lipro" / "services" / "diagnostics" / "helpers.py"
+    ).read_text(encoding="utf-8")
+    execution_text = (
+        _ROOT / "custom_components" / "lipro" / "services" / "execution.py"
+    ).read_text(encoding="utf-8")
+
+    assert "async_capture_coordinator_call" in helpers_text
+    assert "async_execute_coordinator_call" in helpers_text
+    assert "auth_service.async_ensure_authenticated()" not in helpers_text
+    assert "auth_service.async_trigger_reauth(" not in helpers_text
+    assert "async_capture_coordinator_call" in execution_text
+    assert "async_execute_coordinator_call" in execution_text
+

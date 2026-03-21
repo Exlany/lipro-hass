@@ -892,6 +892,78 @@ class TestLiproRestFacadeBizId:
 class TestLiproRestFacadeAdditionalBranchCoverage:
     """Additional branch-focused tests for API client helpers and edge paths."""
 
+    @pytest.mark.asyncio
+    async def test_request_iot_mapping_public_wrapper_preserves_retry_context(self):
+        """Public request_iot_mapping should forward retry context unchanged."""
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
+        expected = ({"ok": True}, "access_token")
+
+        with patch.object(
+            client, "_request_iot_mapping", new_callable=AsyncMock
+        ) as mock_request:
+            mock_request.return_value = expected
+            result = await client.request_iot_mapping(
+                "/iot",
+                {"deviceId": "03ab5ccd7caaaaaa"},
+                is_retry=True,
+                retry_count=2,
+            )
+
+        assert result == expected
+        mock_request.assert_awaited_once_with(
+            "/iot",
+            {"deviceId": "03ab5ccd7caaaaaa"},
+            is_retry=True,
+            retry_count=2,
+        )
+
+    @pytest.mark.asyncio
+    async def test_request_iot_mapping_raw_public_wrapper_preserves_retry_context(self):
+        """Public request_iot_mapping_raw should forward raw body and retry state."""
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
+        expected = ({"ok": True}, "access_token")
+
+        with patch.object(
+            client, "_request_iot_mapping_raw", new_callable=AsyncMock
+        ) as mock_request:
+            mock_request.return_value = expected
+            result = await client.request_iot_mapping_raw(
+                "/iot",
+                '{"deviceId":"03ab5ccd7caaaaaa"}',
+                is_retry=True,
+                retry_count=1,
+            )
+
+        assert result == expected
+        mock_request.assert_awaited_once_with(
+            "/iot",
+            '{"deviceId":"03ab5ccd7caaaaaa"}',
+            is_retry=True,
+            retry_count=1,
+        )
+
+    @pytest.mark.asyncio
+    async def test_smart_home_request_public_wrapper_preserves_require_auth_false(self):
+        """Public smart_home_request should preserve opt-out auth semantics."""
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
+
+        with patch.object(
+            client, "_smart_home_request", new_callable=AsyncMock
+        ) as mock_request:
+            mock_request.return_value = {"ok": True}
+            result = await client.smart_home_request(
+                "/test",
+                {"scope": "all"},
+                require_auth=False,
+            )
+
+        assert result == {"ok": True}
+        mock_request.assert_awaited_once_with(
+            "/test",
+            {"scope": "all"},
+            require_auth=False,
+        )
+
     def test_normalize_iot_device_id_non_string(self):
         """Non-string IDs should be rejected by IoT ID normalizer."""
         from custom_components.lipro.core.utils.identifiers import (

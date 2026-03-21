@@ -2,11 +2,16 @@
 
 from __future__ import annotations
 
+from types import SimpleNamespace
 from unittest.mock import ANY, AsyncMock, MagicMock
 
 import pytest
 
-from custom_components.lipro.core.api import status_fallback as status_fallback_module
+from custom_components.lipro.core.api import (
+    rest_facade_endpoint_methods,
+    status_fallback as status_fallback_module,
+)
+from custom_components.lipro.core.api.endpoint_surface import RestEndpointSurface
 from custom_components.lipro.core.api.status_fallback import (
     _query_items_by_binary_split,
     _resolve_device_status_batch_size,
@@ -257,6 +262,77 @@ async def test_query_device_status_reports_batch_metrics_with_fallback_depth() -
     assert metrics[0][0] == 2
     assert metrics[0][1] >= 0.0
     assert metrics[0][2] == 1
+
+
+@pytest.mark.asyncio
+async def test_rest_endpoint_surface_forwards_typed_batch_metric_callback() -> None:
+    rows = [{"deviceId": "a"}]
+    on_batch_metric = MagicMock()
+    port = SimpleNamespace(
+        _status_endpoints=SimpleNamespace(
+            query_device_status=AsyncMock(return_value=rows)
+        )
+    )
+
+    result = await RestEndpointSurface(port).query_device_status(
+        ["a"],
+        max_devices_per_query=7,
+        on_batch_metric=on_batch_metric,
+    )
+
+    assert result == rows
+    port._status_endpoints.query_device_status.assert_awaited_once_with(
+        ["a"],
+        max_devices_per_query=7,
+        on_batch_metric=on_batch_metric,
+    )
+
+
+@pytest.mark.asyncio
+async def test_rest_facade_misc_endpoint_wrappers_preserve_payload_contracts() -> None:
+    mqtt_payload = {"accessKey": "ak", "secretKey": "sk", "endpoint": "mqtt"}
+    command_result_payload = {
+        "code": "0000",
+        "message": "success",
+        "success": True,
+    }
+    city_payload = {"province": "广东省", "city": "江门市", "zone": "蓬江区"}
+    user_cloud_payload = {
+        "data": [{"appName": "assistant", "enabled": True}],
+        "success": True,
+    }
+    surface = SimpleNamespace(
+        get_mqtt_config=AsyncMock(return_value=mqtt_payload),
+        query_command_result=AsyncMock(return_value=command_result_payload),
+        get_city=AsyncMock(return_value=city_payload),
+        query_user_cloud=AsyncMock(return_value=user_cloud_payload),
+    )
+    facade = SimpleNamespace(_endpoint_surface=surface)
+
+    assert await rest_facade_endpoint_methods.get_mqtt_config(facade) == mqtt_payload
+    assert (
+        await rest_facade_endpoint_methods.query_command_result(
+            facade,
+            msg_sn="msg-1",
+            device_id="mesh_group_1",
+            device_type="ff000001",
+        )
+        == command_result_payload
+    )
+    assert await rest_facade_endpoint_methods.get_city(facade) == city_payload
+    assert (
+        await rest_facade_endpoint_methods.query_user_cloud(facade)
+        == user_cloud_payload
+    )
+
+    surface.get_mqtt_config.assert_awaited_once_with()
+    surface.query_command_result.assert_awaited_once_with(
+        msg_sn="msg-1",
+        device_id="mesh_group_1",
+        device_type="ff000001",
+    )
+    surface.get_city.assert_awaited_once_with()
+    surface.query_user_cloud.assert_awaited_once_with()
 
 
 def test_resolve_device_status_batch_size_for_non_positive_total_devices() -> None:

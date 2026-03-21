@@ -8,7 +8,7 @@
 - ✅ **v1.4 Sustainment, Trust Gates & Final Hotspot Burn-down** - Phases 34-39 shipped 2026-03-19; milestone audit: `.planning/v1.4-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_4_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.4-ROADMAP.md` / `.planning/milestones/v1.4-REQUIREMENTS.md`; local tag: `v1.4`
 - ✅ **v1.5 Governance Truth Consolidation & Control-Surface Finalization** - Phase 40 shipped 2026-03-19; milestone audit: `.planning/v1.5-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_5_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.5-ROADMAP.md` / `.planning/milestones/v1.5-REQUIREMENTS.md`; local tag: `v1.5`
 - ✅ **v1.6 Delivery Trust Hardening, Runtime Boundary Decoupling & Maintainability Closure** - Phases 42-45 closed out on 2026-03-20 from the formal `41-REMEDIATION-ROADMAP.md` route; milestone audit: `.planning/v1.6-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_6_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.6-ROADMAP.md` / `.planning/milestones/v1.6-REQUIREMENTS.md`
-- 🟢 **v1.7 Full-Spectrum Repository Audit, Open-Source Maturity & Remediation Routing** - Phase 46 audit executed on 2026-03-20; Phase 47 and Phase 48 completed on 2026-03-21 with promoted closeout evidence; next formal step: `Phase 50`
+- 🟢 **v1.7 Full-Spectrum Repository Audit, Open-Source Maturity & Remediation Routing** - Phase 46 audit executed on 2026-03-20; Phase 47 -> 50 completed on 2026-03-21 with promoted closeout evidence; formalized follow-up route complete
 
 ## Required Phase Outputs
 
@@ -852,8 +852,8 @@ Plans:
 
 > `v1.7` 以 `.planning/v1.6-MILESTONE-AUDIT.md`、`.planning/reviews/V1_6_EVIDENCE_INDEX.md` 与 archived snapshots 为 shipped baseline；首个目标不是立刻再开大规模重构，而是完成一轮覆盖全仓 Python / docs / config / tests / governance assets 的正式终极审阅，并把结论压成 `Phase 47+` 的可执行整改路线。
 
-**Milestone status:** `Phase 46 audit complete; Phase 47 -> 49 complete / Phase 50 ready (2026-03-21)`
-**Default next command:** `$gsd-plan-phase 49`（`Phase 48` 已完成并提升 closeout evidence）
+**Milestone status:** `Phase 46 audit complete; Phase 47 -> 50 complete (2026-03-21)`
+**Default next command:** `$gsd-progress`（`Phase 50` 已完成并提升 closeout evidence；formalized route 已闭环）
 
 ### Phase 46: Exhaustive repository audit, standards conformance, and remediation routing
 
@@ -936,11 +936,13 @@ Plans:
   1. `endpoint_surface.py`、`rest_facade.py`、`request_gateway.py` 与 related helpers 的 sanctioned-vs-backlog `Any` 分类更窄、更诚实。
   2. duplicated command/result policy logic 收敛到共享 formal home；diagnostics/helper auth-error duplication 向 `services/execution.py` 方向回收。
   3. REST public surface 与 command/query contract 保持稳定，typed budget guards 可验证 no-growth / net-reduction。
-**Plans**: 4 plans
+**Status**: Complete (`2026-03-21`)
+**Plans**: 4/4 complete
+**Promoted closeout package**: `50-SUMMARY.md`, `50-VERIFICATION.md`
 
 Plans:
-- [ ] 50-01: reduce REST request and endpoint helper Any surfaces
-- [ ] 50-02: narrow sanctioned-versus-backlog Any classifications
-- [ ] 50-03: converge command-result policy ownership into one formal home
-- [ ] 50-04: close diagnostics auth-error duplication and harden typed-budget guards
+- [x] 50-01: reduce REST request and endpoint helper Any surfaces (completed 2026-03-21)
+- [x] 50-02: narrow sanctioned-versus-backlog Any classifications (completed 2026-03-21)
+- [x] 50-03: converge command-result policy ownership into one formal home (completed 2026-03-21)
+- [x] 50-04: close diagnostics auth-error duplication and harden typed-budget guards (completed 2026-03-21)
 

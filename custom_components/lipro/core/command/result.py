@@ -2,11 +2,9 @@
 
 from __future__ import annotations
 
-import asyncio
-from collections.abc import Awaitable, Callable, Sequence
+from collections.abc import Callable
 from typing import Protocol
 
-from ..api.request_policy import compute_exponential_retry_wait_time
 from ..utils.redaction import redact_identifier
 from .result_policy import (
     CommandFailurePayload,
@@ -20,12 +18,15 @@ from .result_policy import (
     TracePayload,
     _extract_command_result_code,
     _extract_command_result_message,
+    build_progressive_retry_delays,
     classify_command_result_payload,
     compute_adaptive_post_refresh_delay,
     extract_msg_sn,
     is_command_push_failed,
+    poll_command_result_state,
     query_command_result_once,
     resolve_delayed_refresh_delay,
+    run_delayed_refresh,
     should_schedule_delayed_refresh,
     should_skip_immediate_post_refresh,
 )
@@ -39,79 +40,6 @@ class ApiErrorLike(Protocol):
 
 type UpdateTraceWithException = Callable[..., None]
 
-
-def build_progressive_retry_delays(
-    *,
-    base_delay_seconds: float,
-    time_budget_seconds: float,
-    max_attempts: int,
-) -> tuple[float, ...]:
-    """Build bounded exponential retry delays within one total time budget."""
-    if max_attempts <= 1 or time_budget_seconds <= 0:
-        return ()
-
-    delays: list[float] = []
-    elapsed = 0.0
-    for retry_count in range(max_attempts - 1):
-        remaining_budget = time_budget_seconds - elapsed
-        if remaining_budget <= 0:
-            break
-        wait_time = min(
-            remaining_budget,
-            compute_exponential_retry_wait_time(
-                retry_count=retry_count,
-                base_delay_seconds=base_delay_seconds,
-                max_delay_seconds=remaining_budget,
-            ),
-        )
-        if wait_time <= 0:
-            break
-        delays.append(wait_time)
-        elapsed += wait_time
-    return tuple(delays)
-
-
-async def run_delayed_refresh(
-    *,
-    delay_seconds: float,
-    request_refresh: Callable[[], Awaitable[object]],
-) -> None:
-    """Run one delayed refresh after a command to absorb API status lag."""
-    try:
-        await asyncio.sleep(delay_seconds)
-        await request_refresh()
-    except asyncio.CancelledError:
-        return
-
-
-async def poll_command_result_state(
-    *,
-    query_once: QueryCommandResultAttempt,
-    classify_payload: CommandResultClassifier,
-    retry_delays_seconds: Sequence[float],
-    on_attempt: Callable[[int, str], None] | None = None,
-) -> tuple[str, int, CommandResultPayload | None]:
-    """Poll until the command result is confirmed/failed or the retry budget ends."""
-    retry_delays = tuple(max(0.0, float(delay)) for delay in retry_delays_seconds)
-    attempt_limit = len(retry_delays) + 1
-    last_payload: CommandResultPayload | None = None
-    for attempt in range(1, attempt_limit + 1):
-        payload = await query_once(attempt)
-        if payload is None:
-            if attempt < attempt_limit:
-                await asyncio.sleep(retry_delays[attempt - 1])
-            continue
-
-        last_payload = payload
-        state = classify_payload(payload)
-        if on_attempt is not None:
-            on_attempt(attempt, state)
-        if state in {"confirmed", "failed"}:
-            return state, attempt, payload
-        if attempt < attempt_limit:
-            await asyncio.sleep(retry_delays[attempt - 1])
-
-    return "unconfirmed", attempt_limit, last_payload
 
 def apply_command_result_rejected(
     *,

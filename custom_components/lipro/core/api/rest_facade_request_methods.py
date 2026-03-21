@@ -8,19 +8,25 @@ from __future__ import annotations
 
 from collections.abc import Awaitable, Callable
 import logging
-from typing import TYPE_CHECKING, Any, TypeVar, cast
+from typing import TYPE_CHECKING, TypeVar, cast
 
 import aiohttp
 
 from .auth_recovery import RestAuthRecoveryCoordinator
+from .request_gateway import MappingRequestSender
 from .transport_executor import RestTransportExecutor
-from .types import LoginResponse
+from .types import (
+    JsonObject,
+    JsonValue,
+    LoginResponse,
+    ResponseHeaders,
+    ValidatedMappingResult,
+)
 
 if TYPE_CHECKING:
     from .rest_facade import LiproRestFacade
 
 _LOGGER = logging.getLogger("custom_components.lipro.core.api")
-MappingRequestSender = Callable[[], Awaitable[tuple[int, Any, dict[str, str], str | None]]]
 _MappingPayloadT = TypeVar("_MappingPayloadT")
 
 
@@ -61,9 +67,9 @@ def get_timestamp_ms(self: LiproRestFacade) -> int:
 
 async def execute_request(
     self: LiproRestFacade,
-    request_ctx: Any,
+    request_ctx: object,
     path: str,
-) -> tuple[int, dict[str, Any], dict[str, str]]:
+) -> tuple[int, JsonObject, ResponseHeaders]:
     """Execute one low-level request through the transport pipeline."""
     return await self._execute_request(request_ctx, path)
 
@@ -74,7 +80,7 @@ async def execute_mapping_request_with_rate_limit(
     path: str,
     retry_count: int,
     send_request: MappingRequestSender,
-) -> tuple[int, dict[str, Any], str | None]:
+) -> ValidatedMappingResult:
     """Execute one mapping request via the canonical rate-limit pipeline."""
     return await self._execute_mapping_request_with_rate_limit(
         path=path,
@@ -102,12 +108,12 @@ async def finalize_mapping_result(
     self: LiproRestFacade,
     *,
     path: str,
-    result: dict[str, Any],
+    result: JsonObject,
     request_token: str | None,
     is_retry: bool,
     retry_on_auth_error: bool,
     retry_request: Callable[[], Awaitable[_MappingPayloadT]] | None,
-    success_payload: Callable[[dict[str, Any]], _MappingPayloadT],
+    success_payload: Callable[[JsonObject], _MappingPayloadT],
 ) -> _MappingPayloadT:
     """Finalize one mapping response via the canonical auth-recovery pipeline."""
     return await self._finalize_mapping_result(
@@ -124,11 +130,11 @@ async def finalize_mapping_result(
 async def smart_home_request(
     self: LiproRestFacade,
     path: str,
-    data: dict[str, Any],
+    data: JsonObject,
     require_auth: bool = True,
     is_retry: bool = False,
     retry_count: int = 0,
-) -> Any:
+) -> JsonValue:
     """Execute one Smart Home request through the formal transport pipeline."""
     return await self._dispatch_retry_aware_smart_home_call(
         path,
@@ -142,10 +148,10 @@ async def smart_home_request(
 async def iot_request(
     self: LiproRestFacade,
     path: str,
-    body_data: dict[str, Any],
+    body_data: JsonObject,
     is_retry: bool = False,
     retry_count: int = 0,
-) -> Any:
+) -> JsonValue:
     """Execute one IoT request through the formal transport pipeline."""
     return await self._dispatch_retry_aware_call(
         self._iot_request,
@@ -159,11 +165,11 @@ async def iot_request(
 async def request_iot_mapping(
     self: LiproRestFacade,
     path: str,
-    body_data: dict[str, Any],
+    body_data: JsonObject,
     *,
     is_retry: bool = False,
     retry_count: int = 0,
-) -> tuple[dict[str, Any], str | None]:
+) -> tuple[JsonObject, str | None]:
     """Request one IoT mapping payload with retry context preserved."""
     return await self._dispatch_retry_aware_call(
         self._request_iot_mapping,
@@ -181,7 +187,7 @@ async def request_iot_mapping_raw(
     *,
     is_retry: bool = False,
     retry_count: int = 0,
-) -> tuple[dict[str, Any], str | None]:
+) -> tuple[JsonObject, str | None]:
     """Request one raw IoT mapping payload without result finalization."""
     return await self._dispatch_retry_aware_call(
         self._request_iot_mapping_raw,
@@ -195,13 +201,13 @@ async def request_iot_mapping_raw(
 async def iot_request_with_busy_retry(
     self: LiproRestFacade,
     path: str,
-    body_data: dict[str, Any],
+    body_data: JsonObject,
     *,
     target_id: str,
     command: str,
-) -> dict[str, Any]:
+) -> dict[str, object]:
     """Execute one IoT command with the formal busy-retry policy."""
-    result = await self._request_policy.iot_request_with_busy_retry(
+    return await self._request_policy.iot_request_with_busy_retry(
         path,
         cast(dict[str, object], body_data),
         target_id=target_id,
@@ -212,7 +218,6 @@ async def iot_request_with_busy_retry(
         ),
         logger=_LOGGER,
     )
-    return cast(dict[str, Any], result)
 
 
 def to_device_type_hex(self: LiproRestFacade, device_type: int | str) -> str:
@@ -220,21 +225,21 @@ def to_device_type_hex(self: LiproRestFacade, device_type: int | str) -> str:
     return self._to_device_type_hex(device_type)
 
 
-def is_success_code(code: Any) -> bool:
+def is_success_code(code: object) -> bool:
     """Return whether one vendor response code represents success."""
     return RestAuthRecoveryCoordinator.is_success_code(code)
 
 
-def unwrap_iot_success_payload(result: dict[str, Any]) -> Any:
+def unwrap_iot_success_payload(result: JsonObject) -> JsonValue:
     """Extract the canonical success payload from one IoT response."""
     return RestAuthRecoveryCoordinator.unwrap_iot_success_payload(result)
 
 
-def require_mapping_response(path: str, result: Any) -> dict[str, Any]:
+def require_mapping_response(path: str, result: object) -> JsonObject:
     """Require one mapping response payload to be a JSON object."""
     return RestTransportExecutor.require_mapping_response(path, result)
 
 
-def is_invalid_param_error_code(code: Any) -> bool:
+def is_invalid_param_error_code(code: object) -> bool:
     """Return whether one response code indicates an invalid-parameter error."""
     return RestAuthRecoveryCoordinator.is_invalid_param_error_code(code)

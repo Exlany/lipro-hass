@@ -8,7 +8,7 @@ public root.
 from __future__ import annotations
 
 from collections.abc import Awaitable, Callable
-from typing import Any, Protocol, TypeVar
+from typing import Protocol, TypeVar
 
 import aiohttp
 
@@ -20,8 +20,15 @@ from .request_codec import (
     encode_iot_request_body,
     extract_smart_home_success_payload,
 )
+from .types import (
+    JsonObject,
+    JsonValue,
+    ResponseHeaders,
+    SanctionedRawMappingResult,
+    ValidatedMappingResult,
+)
 
-MappingRequestSender = Callable[[], Awaitable[tuple[int, Any, dict[str, str], str | None]]]
+MappingRequestSender = Callable[[], Awaitable[SanctionedRawMappingResult]]
 _MappingPayloadT = TypeVar("_MappingPayloadT")
 
 
@@ -45,9 +52,9 @@ class RestRequestGatewayFacade(Protocol):
 
     async def execute_request(
         self,
-        request_ctx: Any,
+        request_ctx: object,
         path: str,
-    ) -> tuple[int, dict[str, Any], dict[str, str]]: ...
+    ) -> tuple[int, JsonObject, ResponseHeaders]: ...
 
     async def execute_mapping_request_with_rate_limit(
         self,
@@ -55,7 +62,7 @@ class RestRequestGatewayFacade(Protocol):
         path: str,
         retry_count: int,
         send_request: MappingRequestSender,
-    ) -> tuple[int, dict[str, Any], str | None]: ...
+    ) -> ValidatedMappingResult: ...
 
     def build_iot_headers(self, body: str) -> dict[str, str]: ...
 
@@ -70,15 +77,15 @@ class RestRequestGatewayFacade(Protocol):
         self,
         *,
         path: str,
-        result: dict[str, Any],
+        result: JsonObject,
         request_token: str | None,
         is_retry: bool,
         retry_on_auth_error: bool,
         retry_request: Callable[[], Awaitable[_MappingPayloadT]] | None,
-        success_payload: Callable[[dict[str, Any]], _MappingPayloadT],
+        success_payload: Callable[[JsonObject], _MappingPayloadT],
     ) -> _MappingPayloadT: ...
 
-    def unwrap_iot_success_payload(self, result: dict[str, Any]) -> Any: ...
+    def unwrap_iot_success_payload(self, result: JsonObject) -> JsonValue: ...
 
 
 class RestRequestGateway:
@@ -91,18 +98,18 @@ class RestRequestGateway:
     async def request_smart_home_mapping(
         self,
         path: str,
-        data: dict[str, Any],
+        data: JsonObject,
         require_auth: bool = True,
         *,
         is_retry: bool = False,
         retry_count: int = 0,
-    ) -> tuple[dict[str, Any], str | None]:
+    ) -> tuple[JsonObject, str | None]:
         """Return the raw Smart Home mapping payload plus request token."""
         del is_retry
         facade = self._facade
         url = f"{SMART_HOME_API_URL}{path}"
 
-        async def _send_request() -> tuple[int, Any, dict[str, str], str | None]:
+        async def _send_request() -> SanctionedRawMappingResult:
             request_token = facade.access_token
             if require_auth and not request_token:
                 msg = "No access token available"
@@ -139,11 +146,11 @@ class RestRequestGateway:
     async def smart_home_request(
         self,
         path: str,
-        data: dict[str, Any],
+        data: JsonObject,
         require_auth: bool = True,
         is_retry: bool = False,
         retry_count: int = 0,
-    ) -> Any:
+    ) -> JsonValue:
         """Finalize one Smart Home request through the explicit auth path."""
         facade = self._facade
         result, request_token = await self.request_smart_home_mapping(
@@ -175,12 +182,12 @@ class RestRequestGateway:
         *,
         is_retry: bool = False,
         retry_count: int = 0,
-    ) -> tuple[dict[str, Any], str | None]:
+    ) -> tuple[JsonObject, str | None]:
         """Return the raw IoT mapping payload plus request token."""
         facade = self._facade
         url = f"{IOT_API_URL}{path}"
 
-        async def _send_request() -> tuple[int, Any, dict[str, str], str | None]:
+        async def _send_request() -> SanctionedRawMappingResult:
             request_token = facade.access_token
             if not request_token:
                 msg = "No access token available"
@@ -217,11 +224,11 @@ class RestRequestGateway:
     async def request_iot_mapping(
         self,
         path: str,
-        body_data: dict[str, Any],
+        body_data: JsonObject,
         *,
         is_retry: bool = False,
         retry_count: int = 0,
-    ) -> tuple[dict[str, Any], str | None]:
+    ) -> tuple[JsonObject, str | None]:
         """Encode and dispatch one IoT mapping request."""
         return await self.request_iot_mapping_raw(
             path,
@@ -233,10 +240,10 @@ class RestRequestGateway:
     async def iot_request(
         self,
         path: str,
-        body_data: dict[str, Any],
+        body_data: JsonObject,
         is_retry: bool = False,
         retry_count: int = 0,
-    ) -> Any:
+    ) -> JsonValue:
         """Finalize one IoT request through the explicit auth path."""
         facade = self._facade
         result, request_token = await self.request_iot_mapping(
@@ -270,12 +277,12 @@ class RestRequestGateway:
     async def dispatch_retry_aware_smart_home_call(
         self,
         path: str,
-        data: dict[str, Any],
+        data: JsonObject,
         *,
         require_auth: bool,
         is_retry: bool = False,
         retry_count: int = 0,
-    ) -> Any:
+    ) -> JsonValue:
         """Dispatch Smart Home calls while preserving retry semantics."""
         if not is_retry and not retry_count:
             if require_auth:

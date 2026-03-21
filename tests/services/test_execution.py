@@ -19,6 +19,7 @@ from custom_components.lipro.core.coordinator.services.auth_service import (
 from custom_components.lipro.services.execution import (
     _async_ensure_authenticated,
     _async_trigger_reauth,
+    async_capture_coordinator_call,
     async_execute_coordinator_call,
 )
 
@@ -35,6 +36,42 @@ async def test_async_ensure_authenticated_and_trigger_reauth_delegate_to_auth_se
     await _async_trigger_reauth(coordinator, "auth_error")
 
     coordinator.auth_service.async_ensure_authenticated.assert_awaited_once_with()
+    coordinator.auth_service.async_trigger_reauth.assert_awaited_once_with("auth_error")
+
+
+@pytest.mark.asyncio
+async def test_async_capture_coordinator_call_returns_result_after_auth() -> None:
+    coordinator = Mock()
+    coordinator.auth_service = Mock(async_ensure_authenticated=AsyncMock())
+
+    has_result, result, captured_error = await async_capture_coordinator_call(
+        coordinator,
+        call=AsyncMock(return_value={"ok": True}),
+    )
+
+    assert has_result is True
+    assert result == {"ok": True}
+    assert captured_error is None
+    coordinator.auth_service.async_ensure_authenticated.assert_awaited_once_with()
+
+
+@pytest.mark.asyncio
+async def test_async_capture_coordinator_call_triggers_reauth_and_returns_auth_error() -> None:
+    coordinator = Mock()
+    coordinator.auth_service = Mock(
+        async_ensure_authenticated=AsyncMock(),
+        async_trigger_reauth=AsyncMock(),
+    )
+    auth_error = LiproAuthError("bad credentials")
+
+    has_result, result, captured_error = await async_capture_coordinator_call(
+        coordinator,
+        call=AsyncMock(side_effect=auth_error),
+    )
+
+    assert has_result is False
+    assert result is None
+    assert captured_error is auth_error
     coordinator.auth_service.async_trigger_reauth.assert_awaited_once_with("auth_error")
 
 

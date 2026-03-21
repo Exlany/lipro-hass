@@ -138,6 +138,9 @@ phases:
   49-mega-test-topicization-and-failure-localization-hardening:
     - 49-SUMMARY.md
     - 49-VERIFICATION.md
+  50-rest-typed-surface-reduction-and-command-result-ownership-convergence:
+    - 50-SUMMARY.md
+    - 50-VERIFICATION.md
 ---
 
 # Promoted Phase Assets

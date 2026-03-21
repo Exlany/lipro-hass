@@ -20,12 +20,16 @@ from ...control import telemetry_surface as _telemetry_surface
 from ...control.runtime_access import (
     find_runtime_entry_for_coordinator as _find_runtime_entry_for_coordinator,
 )
-from ...core import LiproApiError, LiproAuthError, LiproRefreshTokenExpiredError
+from ...core import LiproApiError
 from ...core.anonymous_share.report_builder import project_developer_feedback_upload
 from ...core.api.types import DiagnosticsApiResponse
 from ...core.utils.log_safety import safe_error_placeholder
 from ...runtime_types import LiproCoordinator
-from ..execution import ServiceErrorRaiser, async_execute_coordinator_call
+from ..execution import (
+    ServiceErrorRaiser,
+    async_capture_coordinator_call,
+    async_execute_coordinator_call,
+)
 from .types import (
     AnonymousShareManagerFactory,
     ClientSessionGetter,
@@ -167,20 +171,18 @@ async def _async_get_first_authenticated_coordinator_capability_result(
     last_api_error: LiproApiError | None = None
     for coordinator in coordinators:
         try:
-            await coordinator.auth_service.async_ensure_authenticated()
-            return True, await collector(coordinator), None
+            has_result, result, captured_error = await async_capture_coordinator_call(
+                coordinator,
+                call=lambda coordinator=coordinator: collector(coordinator),
+            )
+            if has_result:
+                return True, result, None
+            if captured_error is not None:
+                last_api_error = captured_error
         except asyncio.CancelledError:
             raise
         except HomeAssistantError:
             raise
-        except LiproRefreshTokenExpiredError as err:
-            last_api_error = err
-            await coordinator.auth_service.async_trigger_reauth("auth_expired")
-        except LiproAuthError as err:
-            last_api_error = err
-            await coordinator.auth_service.async_trigger_reauth("auth_error")
-        except LiproApiError as err:
-            last_api_error = err
         except _CAPABILITY_PROJECTION_ERRORS as err:
             _LOGGER.warning(
                 "Skip one %s capability due to unexpected error (%s)",

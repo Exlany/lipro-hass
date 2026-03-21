@@ -249,7 +249,7 @@ def test_build_progressive_retry_delays_returns_empty_sequence_when_budget_is_ze
 
 def test_build_progressive_retry_delays_stops_when_policy_returns_zero_wait() -> None:
     with patch(
-        "custom_components.lipro.core.command.result.compute_exponential_retry_wait_time",
+        "custom_components.lipro.core.command.result_policy.compute_exponential_retry_wait_time",
         return_value=0.0,
     ):
         assert (
@@ -334,7 +334,7 @@ async def test_run_delayed_refresh_swallows_task_cancellation() -> None:
     request_refresh = AsyncMock()
 
     with patch(
-        "custom_components.lipro.core.command.result.asyncio.sleep",
+        "custom_components.lipro.core.command.result_policy.asyncio.sleep",
         new=AsyncMock(side_effect=asyncio.CancelledError()),
     ):
         await run_delayed_refresh(
@@ -381,7 +381,7 @@ async def test_poll_command_result_state_retries_when_payload_is_none() -> None:
     sleep_mock = AsyncMock()
 
     with patch(
-        "custom_components.lipro.core.command.result.asyncio.sleep", new=sleep_mock
+        "custom_components.lipro.core.command.result_policy.asyncio.sleep", new=sleep_mock
     ):
         state, attempt, payload = await poll_command_result_state(
             query_once=query_once,
@@ -405,7 +405,7 @@ async def test_poll_command_result_state_returns_unconfirmed_after_pending_budge
     sleep_mock = AsyncMock()
 
     with patch(
-        "custom_components.lipro.core.command.result.asyncio.sleep", new=sleep_mock
+        "custom_components.lipro.core.command.result_policy.asyncio.sleep", new=sleep_mock
     ):
         state, attempt, payload = await poll_command_result_state(
             query_once=query_once,

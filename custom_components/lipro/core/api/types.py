@@ -7,6 +7,15 @@ from typing import TypedDict
 type JsonScalar = str | int | float | bool | None
 type JsonValue = JsonScalar | list[JsonValue] | dict[str, JsonValue]
 type JsonObject = dict[str, JsonValue]
+type ResponseHeaders = dict[str, str]
+type SanctionedBoundaryPayload = object
+type SanctionedRawMappingResult = tuple[
+    int,
+    SanctionedBoundaryPayload,
+    ResponseHeaders,
+    str | None,
+]
+type ValidatedMappingResult = tuple[int, JsonObject, str | None]
 
 type ApiResponseData = JsonValue | list[JsonObject] | JsonObject
 type DevicePropertyMap = dict[str, JsonValue]
@@ -160,6 +169,10 @@ __all__ = [
     "LoginResponse",
     "MqttConfigResponse",
     "OtaInfoRow",
+    "ResponseHeaders",
+    "SanctionedBoundaryPayload",
+    "SanctionedRawMappingResult",
     "ScheduleApiResponse",
     "ScheduleTimingRow",
+    "ValidatedMappingResult",
 ]
