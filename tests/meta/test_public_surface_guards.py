@@ -740,3 +740,19 @@ def test_phase_57_typed_command_result_notes_keep_contract_inside_command_family
     assert "COMMAND_FAILURE_REASON_COMMAND_RESULT_FAILED" in result_text
     assert "COMMAND_RESULT_STATE_PENDING" in sender_text
     assert "state: CommandResultPollingState" in diagnostics_types_text
+
+
+def test_phase_58_audit_refresh_notes_keep_public_surface_truth_stable() -> None:
+    public_surfaces = _PUBLIC_SURFACES.read_text(encoding="utf-8")
+    architecture_audit_text = (
+        _ROOT
+        / ".planning"
+        / "phases"
+        / "58-repository-audit-refresh-and-next-wave-routing"
+        / "58-01-ARCHITECTURE-CODE-AUDIT.md"
+    ).read_text(encoding="utf-8")
+
+    assert "## Phase 58 Repository Audit Refresh Notes" in public_surfaces
+    assert "Phase 58` 不新增 formal root / public surface" in public_surfaces
+    assert "## Top Strengths" in architecture_audit_text
+    assert "## Hotspot Census" in architecture_audit_text

@@ -167,3 +167,8 @@
 - `custom_components/lipro/core/command/result_policy.py` 与 `custom_components/lipro/core/command/result.py` 共同组成 command-result formal contract family：前者负责 classification / polling / typed state truth，后者负责 failure arbitration / stable export truth。
 - `custom_components/lipro/core/coordinator/runtime/command/sender.py` 只能经 `custom_components/lipro/core/command/result.py` 读取 shared typed command-result contract，不得维护本地 duplicated literals。
 - `custom_components/lipro/services/diagnostics/types.py` 与 diagnostics handlers 只允许复用 shared command-result state contract；diagnostics `query_command_result` response 不得继续把 `state` 讲成 bare `str` folklore。
+
+## Phase 58 Repository Audit Refresh Clarifications
+
+- `Phase 58` 不引入新的 dependency-direction rule；它确认当前 `protocol -> runtime -> control/adapter` 主线仍成立。
+- next-wave route 优先处理的是 guard/test localization 与 tooling maintainability，而不是用 dependency-law 名义重做已关闭主线。

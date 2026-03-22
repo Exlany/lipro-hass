@@ -247,3 +247,8 @@
 - `custom_components/lipro/core/command/result_policy.py` 继续是 command-result classification / polling truth home，并正式承接 typed state vocabulary（`confirmed / failed / pending / unknown / unconfirmed`）与 terminal-state judgment。
 - `custom_components/lipro/core/command/result.py` 继续是 stable export / failure arbitration home，并正式承接 shared failure-reason vocabulary（`command_result_failed` / `command_result_unconfirmed` / `push_failed` / `api_error`）。
 - `custom_components/lipro/core/coordinator/runtime/command/sender.py` 与 `custom_components/lipro/services/diagnostics/types.py` 只允许消费 shared contract；它们不得继续各自维护 raw command-result literals 或第二套 outcome story。
+
+## Phase 58 Repository Audit Refresh Notes
+
+- `Phase 58` 不新增 formal root / public surface；它刷新的是对 current public homes、naming clarity 与 directory semantics 的 verdict。
+- refreshed audit 结论承认当前 production mainline 依然正确：后续 follow-up 应围绕 verification localization、tooling maintainability 与 thick formal-home slimming，而不是重开 second-root folklore。

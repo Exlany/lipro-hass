@@ -343,3 +343,10 @@ _None currently registered._
 - `RequestPolicy` / `RestRequestGateway` / `RestTransportExecutor` 的 ownership 现已被代码、guards 与 baseline truth 对齐：busy / pacing / 429 决策回到 policy home，mapping/auth-aware retry-context orchestration 留在 gateway，executor 只再承担 transport execution。
 - 本 phase 新增的是对 `compute_exponential_retry_wait_time()` cross-plane leak 的显式登记：它从 silent defer 变成可审计 deferred residual；后续若继续清理，只能迁往更诚实的 shared backoff home，而不是把 `request_policy.py` 再讲成跨平面 utility root。
 
+
+
+## Phase 58 Status Update
+
+- 本 phase **无新增 active residual family**；它刷新的是 repo-wide verdict 与 route truth，而不是新开 residual campaign。
+- refreshed audit 明确认可：active residual ledger 当前仍为空；后续 follow-up 主要是 maintainability precision，而不是历史错根回潮。
+- `58-REMEDIATION-ROADMAP.md` 现承担 `Phase 59+` route seed 身份；它不是 archive artifact，也不是新的 baseline root。

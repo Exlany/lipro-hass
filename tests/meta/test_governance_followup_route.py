@@ -576,7 +576,37 @@ def test_v1_8_closeout_and_v1_9_current_milestone_truth_are_consistent() -> None
     assert ".planning/phases/57-command-result-typed-outcome-and-reason-code-hardening/57-SUMMARY.md" in project_text
     assert "$gsd-complete-milestone v1.10" in project_text
 
-    assert "**Current milestone:** `v1.10 Command-Result Typed Outcome & Reason-Code Hardening`" in state_text
-    assert "**Current mode:** `Phase 57 complete`" in state_text
-    assert "$gsd-complete-milestone v1.10" in state_text
-    assert ".planning/reviews/V1_10_MILESTONE_SEED.md" in state_text
+    assert "## v1.11: Repository Audit Refresh & Next-Wave Remediation Routing" in roadmap_text
+    assert "**Milestone status:** `Phase 58 complete (2026-03-22)`" in roadmap_text
+    assert "**Default next command:** `$gsd-complete-milestone v1.11`" in roadmap_text
+    assert "### Phase 58: Repository audit refresh and next-wave routing" in roadmap_text
+    assert "**Plans**: 3/3 complete" in roadmap_text
+    assert "**Promoted closeout package**: `58-SUMMARY.md`, `58-VERIFICATION.md`" in roadmap_text
+
+    for needle in (
+        "- [x] **AUD-03**",
+        "- [x] **ARC-10**",
+        "- [x] **OSS-06**",
+        "- [x] **GOV-42**",
+        "| AUD-03 | Phase 58 | Complete |",
+        "| ARC-10 | Phase 58 | Complete |",
+        "| OSS-06 | Phase 58 | Complete |",
+        "| GOV-42 | Phase 58 | Complete |",
+        "- v1.11 routed requirements: 4 total",
+        "- Current mapped: 4",
+        "- Current complete: 4",
+        "- Current pending: 0",
+    ):
+        assert needle in requirements_text
+
+    assert "## Planned Milestone (v1.11)" in project_text
+    assert "**Current status:** `Phase 58 complete (2026-03-22)`" in project_text
+    assert ".planning/reviews/V1_11_MILESTONE_SEED.md" in project_text
+    assert ".planning/phases/58-repository-audit-refresh-and-next-wave-routing/58-01-PLAN.md" in project_text
+    assert ".planning/phases/58-repository-audit-refresh-and-next-wave-routing/58-SUMMARY.md" in project_text
+    assert "$gsd-complete-milestone v1.11" in project_text
+
+    assert "**Current milestone:** `v1.11 Repository Audit Refresh & Next-Wave Remediation Routing`" in state_text
+    assert "**Current mode:** `Phase 58 complete`" in state_text
+    assert "$gsd-complete-milestone v1.11" in state_text
+    assert ".planning/reviews/V1_11_MILESTONE_SEED.md" in state_text

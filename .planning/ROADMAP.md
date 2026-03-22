@@ -11,7 +11,8 @@
 - ✅ **v1.7 Full-Spectrum Repository Audit, Open-Source Maturity & Remediation Routing** - Phase 46 audit executed on 2026-03-20; Phase 47 -> 50 completed on 2026-03-21 with promoted closeout evidence; formalized follow-up route complete
 - ✅ **v1.8 Operational Continuity Automation, Formal-Root Sustainment & Hotspot Round 2** - formal milestone opened on 2026-03-21 from post-Phase-50 audit arbitration; Phases 51 -> 55 completed on 2026-03-21 with promoted closeout evidence and ready for archive / next-milestone arbitration
 - ✅ **v1.9 Shared Backoff Neutralization & Cross-Plane Retry Hygiene** - formal milestone opened on 2026-03-22 from the explicit Phase 56+ residual carry-forward; Phase 56 completed on 2026-03-22 with promoted closeout evidence and now serves as the closeout-ready seed baseline for v1.10
-- 🟢 **v1.10 Command-Result Typed Outcome & Reason-Code Hardening** - formal milestone opened on 2026-03-22 from the Phase 56 deferred follow-up route; Phase 57 completed on 2026-03-22 with promoted closeout evidence and ready for milestone closeout
+- 🟢 **v1.11 Repository Audit Refresh & Next-Wave Remediation Routing** - formal milestone opened on 2026-03-22 from the renewed full-repository audit request; Phase 58 completed on 2026-03-22 with refreshed repo-wide audit evidence and the milestone is now closeout-ready
+- ✅ **v1.10 Command-Result Typed Outcome & Reason-Code Hardening** - formal milestone opened on 2026-03-22 from the Phase 56 deferred follow-up route; Phase 57 completed on 2026-03-22 with promoted closeout evidence and now serves as the closeout-ready seed baseline for v1.11
 
 ## Required Phase Outputs
 
@@ -1101,4 +1102,30 @@ Plans:
 - [x] 57-01: define one shared typed command-result vocabulary inside the formal command family (completed 2026-03-22)
 - [x] 57-02: align runtime sender and diagnostics response typing to the shared command-result contract (completed 2026-03-22)
 - [x] 57-03: freeze typed command-result truth in governance notes guards and promoted evidence (completed 2026-03-22)
+
+## v1.11: Repository Audit Refresh & Next-Wave Remediation Routing
+
+> `v1.11` 不把新的全仓终极审阅硬塞回 `v1.10` 的 command-result scope，而是以 `Phase 46` 审计资产、`v1.8 -> v1.10` closeout evidence 与当前用户指令为输入，重新刷新整仓 verdict，并把后续整改路由成 `Phase 59+` 的正式真相。
+
+**Milestone status:** `Phase 58 complete (2026-03-22)`
+**Default next command:** `$gsd-complete-milestone v1.11`（single-phase refreshed audit milestone 已具备 closeout 条件）
+**Seed input:** `.planning/reviews/V1_11_MILESTONE_SEED.md`
+
+### Phase 58: Repository audit refresh and next-wave routing
+
+**Goal:** 以当前仓库真相为准，重新审阅所有 Python / docs / config / governance surfaces，对架构、代码质量、命名、目录结构、旧新代码边界、开源成熟度与验证可维护性给出刷新后的 file-level verdict，并把结论正式路由成 `Phase 59+`。
+**Depends on:** Phase 57
+**Requirements**: [AUD-03, ARC-10, OSS-06, GOV-42]
+**Success Criteria**:
+  1. refreshed audit package 覆盖 `custom_components` / `tests` / `scripts` / docs / root config / governance truth，明确 strengths、risks、hotspots、naming/directory verdicts 与 blind-spot disposition。
+  2. refreshed open-source/governance audit 对 README / docs / support / security / contributing / packaging / tooling truth 给出当前 verdict，并说明与国际优秀开源实践相比的优点与不足。
+  3. `.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE}.md` 与 promoted phase evidence 明确承认 `v1.11 / Phase 58` 作为新的 audit-routing truth，并给出 `Phase 59+` remediation route。
+**Status**: Complete (`2026-03-22`)
+**Plans**: 3/3 complete
+**Promoted closeout package**: `58-SUMMARY.md`, `58-VERIFICATION.md`
+
+Plans:
+- [x] 58-01: refresh the architecture and code audit with file-level current-state evidence (completed 2026-03-22)
+- [x] 58-02: refresh governance and open-source audit, then synthesize the next-wave remediation route (completed 2026-03-22)
+- [x] 58-03: freeze `v1.11 / Phase 58` in current-story docs, guards, and promoted evidence (completed 2026-03-22)
 

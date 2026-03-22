@@ -1,7 +1,7 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.10
-milestone_name: Command-Result Typed Outcome & Reason-Code Hardening
+milestone: v1.11
+milestone_name: Repository Audit Refresh & Next-Wave Remediation Routing
 status: active
 last_updated: "2026-03-22T00:00:00Z"
 progress:
@@ -17,13 +17,14 @@ progress:
 
 See: `.planning/PROJECT.md`
 
-**Current milestone:** `v1.10 Command-Result Typed Outcome & Reason-Code Hardening`
-**Core value:** 在不重开 retry ownership 或第二故事线的前提下，把 command-result family 的 state / verification / failure-reason strings 收口为 shared typed contract，并让 runtime sender 与 diagnostics consumers 共享同一 vocabulary。
-**Current mode:** `Phase 57 complete`；`v1.6` 仍是 latest shipped archive baseline，`v1.7` formalized follow-up route 与 `v1.8` sustainment tranche 均已 completed closeout，`v1.9` 已完成 single-phase residual closeout，而 `v1.10` 已把 command-result typed outcome / reason-code contract 收口为 current promoted evidence。
+**Current milestone:** `v1.11 Repository Audit Refresh & Next-Wave Remediation Routing`
+**Core value:** 以当前仓库真相为准，重新审视所有 Python / docs / config / governance surfaces，把 refreshed audit 结论转成正式 remediation route，而不是继续依赖旧审计快照。
+**Current mode:** `Phase 58 complete`；`v1.6` 仍是 latest shipped archive baseline，`v1.7` / `v1.8` / `v1.9` 均已 completed closeout，`v1.10` 已完成 scoped command-result hardening 并保持 closeout-ready，而 `v1.11` 已把 refreshed audit verdict 收口为 current promoted evidence。
 
 ## Current Position
 
-- `v1.10` 已于 `2026-03-22` 从 `.planning/reviews/V1_10_MILESTONE_SEED.md` 正式化为 current milestone，并在同日完成 opening `Phase 57`：`custom_components/lipro/core/command/result_policy.py` / `result.py` 现已共享 typed command-result state / verification / failure-reason contract，runtime sender 与 diagnostics `query_command_result` response typing 不再依赖 scattered literals，而 baseline / review truth / meta guards 也已同步冻结 `Phase 57` closeout。
+- `v1.11` 已于 `2026-03-22` 从 `.planning/reviews/V1_11_MILESTONE_SEED.md` 正式化为 current milestone，并在同日完成 opening `Phase 58`：refreshed architecture/code audit、governance/open-source audit、`Phase 59+` remediation roadmap 与 current-story truth freeze 均已落盘。
+- `v1.10` 已于 `2026-03-22` 从 `.planning/reviews/V1_10_MILESTONE_SEED.md` 正式化为 prior closeout-ready milestone，并在同日完成 opening `Phase 57`：`custom_components/lipro/core/command/result_policy.py` / `result.py` 现已共享 typed command-result state / verification / failure-reason contract，runtime sender 与 diagnostics `query_command_result` response typing 不再依赖 scattered literals，而 baseline / review truth / meta guards 也已同步冻结 `Phase 57` closeout。
 - `v1.9` 已于 `2026-03-22` 从 `.planning/reviews/V1_9_MILESTONE_SEED.md` 正式化为 current milestone，并在同日完成 opening `Phase 56`：generic exponential backoff primitive 现已迁到 `custom_components/lipro/core/utils/backoff.py`，`RequestPolicy` 不再作为 cross-plane utility export，而 baseline / review truth / meta guards 也已同步关闭 `Generic backoff helper leak` residual。
 - `v1.8` 已于 `2026-03-21` 从 `.planning/reviews/V1_8_MILESTONE_SEED.md` 正式化为 current milestone，并在同日完成 `Phase 51 -> 55` closeout：continuity drill、registry projection、verify-only release rehearsal、protocol-root/request-policy ownership freeze、runtime/entry-root throttling、helper-hotspot formalization，以及 mega-test/typing truth freeze 都已落盘为 promoted evidence；当前可进入 `$gsd-progress` / `$gsd-complete-milestone v1.8` / `$gsd-new-milestone` 仲裁。
 - `Phase 53 -> 55` 已执行完成：runtime/entry-root throttling、anonymous-share / diagnostics / request-policy helper formalization，以及 API/MQTT/platform mega-test topicization 与 repo-wide typing-bucket truth freeze 都已通过验证并形成 `53-SUMMARY.md` / `53-VERIFICATION.md`、`54-SUMMARY.md` / `54-VERIFICATION.md`、`55-SUMMARY.md` / `55-VERIFICATION.md`。
@@ -156,7 +157,7 @@ See: `.planning/PROJECT.md`
 - **Closeout evidence source:** `.planning/phases/57-command-result-typed-outcome-and-reason-code-hardening/57-SUMMARY.md`, `.planning/phases/57-command-result-typed-outcome-and-reason-code-hardening/57-VERIFICATION.md`
 - **Route seed:** `.planning/reviews/V1_10_MILESTONE_SEED.md`
 - **Historical archives:** `.planning/milestones/v1.1-ROADMAP.md`, `.planning/milestones/v1.1-REQUIREMENTS.md`, `.planning/milestones/v1.2-ROADMAP.md`, `.planning/milestones/v1.2-REQUIREMENTS.md`, `.planning/milestones/v1.4-ROADMAP.md`, `.planning/milestones/v1.4-REQUIREMENTS.md`, `.planning/milestones/v1.5-ROADMAP.md`, `.planning/milestones/v1.5-REQUIREMENTS.md`, `.planning/milestones/v1.6-ROADMAP.md`, `.planning/milestones/v1.6-REQUIREMENTS.md`
-- **Next focus:** `$gsd-complete-milestone v1.10`——归档当前单相位里程碑，或基于已冻结的 typed command-result baseline 继续种下一里程碑。
+- **Next focus:** `$gsd-complete-milestone v1.11`——归档当前单相位 refreshed-audit milestone，或基于 `58-REMEDIATION-ROADMAP.md` 继续种下一轮整改里程碑。
 
 ## Recommended Next Command
 

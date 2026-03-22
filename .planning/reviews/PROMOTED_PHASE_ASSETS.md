@@ -162,6 +162,9 @@ phases:
   57-command-result-typed-outcome-and-reason-code-hardening:
     - 57-SUMMARY.md
     - 57-VERIFICATION.md
+  58-repository-audit-refresh-and-next-wave-routing:
+    - 58-SUMMARY.md
+    - 58-VERIFICATION.md
 ---
 
 # Promoted Phase Assets

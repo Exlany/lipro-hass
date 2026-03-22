@@ -413,6 +413,34 @@
 
 
 
+## Planned Milestone (v1.11)
+
+> `v1.11` 以 `Phase 46` audit package、`v1.8 -> v1.10` closeout evidence 与当前 refreshed audit request 为 immediate seed；当前重点不是再猜测下一块代码该改哪里，而是先把整个仓库的 current-state verdict 重新刷新并正式路由。
+
+### Repository Audit Refresh & Next-Wave Remediation Routing
+
+- [x] **AUD-03**: refreshed audit 必须覆盖所有仓库 Python / docs / config / governance surfaces，并对每个区域给出显式 verdict 或范围说明，不能留下 silent blind spot。
+- [x] **ARC-10**: current formal roots、热点、命名、目录结构、旧新代码边界与 refactor residue 必须基于现状代码重做架构裁决，而不是继续沿用旧快照假设。
+- [x] **OSS-06**: README / docs / SUPPORT / SECURITY / CONTRIBUTING / manifest / packaging / tooling surfaces 必须按当前开源项目最佳实践重新审阅，明确优点、不足与改进方向。
+- [x] **GOV-42**: refreshed audit 结论必须固化到 current-story docs 与 promoted phase evidence，并明确路由成 `Phase 59+` remediation truth。
+
+## Traceability for completed v1.11 route
+
+| Requirement | Planned Phase | Status |
+|-------------|---------------|--------|
+| AUD-03 | Phase 58 | Complete |
+| ARC-10 | Phase 58 | Complete |
+| OSS-06 | Phase 58 | Complete |
+| GOV-42 | Phase 58 | Complete |
+
+**Coverage:**
+- v1.11 routed requirements: 4 total
+- Current mapped: 4
+- Current complete: 4
+- Current pending: 0
+- Current unmapped: 0 ✓
+
+
 ## Planned Milestone (v1.10)
 
 > `v1.10` 以 `v1.9` closeout evidence 为 immediate seed；当前重点不是重开 backoff ownership，而是把 command-result family 从 scattered literals 收口到一套 shared typed outcome / reason-code contract。

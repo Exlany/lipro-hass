@@ -299,3 +299,10 @@
 - **Required governance proof:** command-result state / verification / failure-reason vocabulary 只承认 `result_policy.py` / `result.py` formal family；runtime sender 与 diagnostics `query_command_result` response typing 只消费 shared contract；current-story docs 与 promoted evidence 同步承认 `Phase 57` closeout。
 - **Required runnable proof:** `uv run pytest -q tests/core/test_command_result.py tests/core/coordinator/runtime/test_command_runtime.py tests/core/test_init_service_handlers_debug_queries.py tests/meta/test_public_surface_guards.py tests/meta/test_dependency_guards.py tests/meta/test_governance_followup_route.py tests/meta/test_governance_phase_history.py`、`uv run python scripts/check_file_matrix.py --check`、`uv run ruff check .` 通过。
 - **Unblock effect:** command-result family 不再是 stringly-typed 特例；后续若继续推进 retry-budget stratification 或 broader typed-outcome follow-through，可直接建立在统一 command-result contract baseline 上。
+
+## Phase 58 Repository Audit Refresh
+
+- **Required artifacts:** `58-01-ARCHITECTURE-CODE-AUDIT.md`、`58-02-GOVERNANCE-OPEN-SOURCE-AUDIT.md`、`58-REMEDIATION-ROADMAP.md`、`58-SUMMARY.md`、`58-VERIFICATION.md`、`.planning/{PROJECT.md,ROADMAP.md,REQUIREMENTS.md,STATE.md}`、touched meta guards。
+- **Required governance proof:** current-story docs、baseline/review notes 与 promoted evidence 必须共同承认 `v1.11 / Phase 58` 作为 refreshed audit-routing truth，而不是继续把 `Phase 46` 旧 verdict 当成 current snapshot。
+- **Required runnable proof:** `uv run pytest -q tests/meta/test_public_surface_guards.py tests/meta/test_dependency_guards.py tests/meta/test_governance_followup_route.py tests/meta/test_governance_phase_history.py`、`uv run python scripts/check_file_matrix.py --check` 通过。
+- **Unblock effect:** next-wave remediation can start from current verdicts instead of stale audit assumptions.

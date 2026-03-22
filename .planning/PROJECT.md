@@ -1,8 +1,8 @@
 # Project: Lipro-HASS North Star Evolution
 
-**Status:** Shipped and archived — `v1.6` 仍是最新已发货真源；`v1.7` formalized follow-up route `Phase 46 -> 50` 已于 `2026-03-21` 完成 closeout；`v1.8` 已完成 `Phase 51 -> 55` closeout；`v1.9` 已完成单相位 residual closeout，而 `v1.10` 已正式启动并完成 opening `Phase 57`，当前处于 closeout-ready。
+**Status:** Shipped and archived — `v1.6` 仍是最新已发货真源；`v1.7` formalized follow-up route `Phase 46 -> 50` 已于 `2026-03-21` 完成 closeout；`v1.8` 已完成 `Phase 51 -> 55` closeout；`v1.9` 已完成单相位 residual closeout；`v1.10` 已完成 scoped command-result hardening 并保持 closeout-ready，而 `v1.11` 已完成 refreshed audit opening phase，当前处于 closeout-ready。
 **Goal:** 以 `v1.6` 归档真相为最新已发货基线；后续路线必须建立在 `v1.7` promoted audit/closeout evidence 与正式 milestone docs 之上，不回流 `Phase 41` execution trace、conversation-only 结论或旧 archived story。
-**Default next step:** `$gsd-complete-milestone v1.10`
+**Default next step:** `$gsd-complete-milestone v1.11`
 
 
 ## Archived Milestone (v1.6)
@@ -22,6 +22,29 @@
 **Current status:** `Phase 42 -> 45 archived / evidence-ready`（`16/16` 个执行 plans 已完成，`.planning/v1.6-MILESTONE-AUDIT.md`、`.planning/reviews/V1_6_EVIDENCE_INDEX.md`、`.planning/milestones/v1.6-ROADMAP.md` 与 `.planning/milestones/v1.6-REQUIREMENTS.md` 已落盘；next action is `$gsd-new-milestone`）
 **Archive assets:** `.planning/v1.6-MILESTONE-AUDIT.md`, `.planning/reviews/V1_6_EVIDENCE_INDEX.md`, `.planning/milestones/v1.6-ROADMAP.md`, `.planning/milestones/v1.6-REQUIREMENTS.md`, `.planning/phases/45-hotspot-decomposition-and-typed-failure-semantics/45-SUMMARY.md`, `.planning/phases/45-hotspot-decomposition-and-typed-failure-semantics/45-VERIFICATION.md`
 **Primary closeout targets:** delivery trust hardening、typed runtime read-model、control/services decoupling、governance asset pruning、terminology convergence、hotspot decomposition、typed failure semantics。
+
+## Planned Milestone (v1.11)
+
+**Name:** `v1.11 Repository Audit Refresh & Next-Wave Remediation Routing`
+
+**Why now:** `v1.10` 已完成其单一 scoped command-result 目标，但契约者当前要求一轮覆盖所有 Python / docs / config / governance surfaces 的终极审阅。最诚实的动作不是继续扩写 `v1.10`，而是把这轮 refreshed audit 本身立成新 milestone。
+
+**North-star fit:** `v1.11` 继续沿单一正式主链推进：
+
+- 不把旧 audit 文档误当永久权威，而是以它们为 baseline 重新核对当前代码真相
+- 不为“找问题”而虚构 residual；只登记当前仍成立的风险、噪音与后续价值点
+- 先形成 refreshed master verdict 与 remediation route，再决定后续局部重构
+- 执行痕迹默认继续留在 phase 目录，只有显式 promoted 资产进入长期治理真源
+
+**Phase range:** `Phase 58`
+**Current status:** `Phase 58 complete (2026-03-22)`（architecture/code audit、governance/open-source audit、remediation roadmap 与 truth freeze 已完成）
+**Seed input:** `.planning/reviews/V1_11_MILESTONE_SEED.md`
+**Phase 58 PRD:** `.planning/phases/58-repository-audit-refresh-and-next-wave-routing/58-PRD.md`
+**Phase 58 planning assets:** `.planning/phases/58-repository-audit-refresh-and-next-wave-routing/58-CONTEXT.md`, `.planning/phases/58-repository-audit-refresh-and-next-wave-routing/58-RESEARCH.md`, `.planning/phases/58-repository-audit-refresh-and-next-wave-routing/58-VALIDATION.md`, `.planning/phases/58-repository-audit-refresh-and-next-wave-routing/58-01-PLAN.md`, `.planning/phases/58-repository-audit-refresh-and-next-wave-routing/58-02-PLAN.md`, `.planning/phases/58-repository-audit-refresh-and-next-wave-routing/58-03-PLAN.md`
+**Phase 58 closeout:** `.planning/phases/58-repository-audit-refresh-and-next-wave-routing/58-SUMMARY.md`, `.planning/phases/58-repository-audit-refresh-and-next-wave-routing/58-VERIFICATION.md`
+**Requirements basket:** `AUD-03`, `ARC-10`, `OSS-06`, `GOV-42`
+**Immediate focus after closeout:** archive `v1.11` or seed the next remediation milestone from `58-REMEDIATION-ROADMAP.md`
+**Next route after Phase 58:** `$gsd-complete-milestone v1.11`
 
 ## Planned Milestone (v1.10)
 

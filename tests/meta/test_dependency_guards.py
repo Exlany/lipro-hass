@@ -516,3 +516,21 @@ def test_phase_57_typed_command_result_dependency_story_is_explicit() -> None:
     assert "COMMAND_VERIFICATION_RESULT_TIMEOUT" in result_text
     assert "COMMAND_VERIFICATION_RESULT_TIMEOUT" in sender_text
     assert "CommandResultPollingState" in diagnostics_types_text
+
+
+def test_phase_58_audit_refresh_clarifies_route_without_reopening_dependency_story() -> None:
+    dependency_text = _DEPENDENCY_MATRIX.read_text(encoding="utf-8")
+    residual_text = (_ROOT / ".planning" / "reviews" / "RESIDUAL_LEDGER.md").read_text(encoding="utf-8")
+    route_text = (
+        _ROOT
+        / ".planning"
+        / "phases"
+        / "58-repository-audit-refresh-and-next-wave-routing"
+        / "58-REMEDIATION-ROADMAP.md"
+    ).read_text(encoding="utf-8")
+
+    assert "## Phase 58 Repository Audit Refresh Clarifications" in dependency_text
+    assert "Phase 58` 不引入新的 dependency-direction rule" in dependency_text
+    assert "本 phase **无新增 active residual family**" in residual_text
+    assert "## Recommended Phase Seeds" in route_text
+    assert "Phase 59" in route_text
