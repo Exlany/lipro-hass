@@ -413,9 +413,47 @@
 
 
 
-## Planned Milestone (v1.12)
+## Planned Milestone (v1.13)
 
-> `v1.12` 承接 `Phase 58` 的 refreshed remediation route；当前最有价值的后续不是立即开更大的 tooling / production surgery，而是先把 verification localization 做对，让 megaguards / megasuites 的 failure radius、ownership 与运行入口更窄、更诚实。
+> `v1.13` 承接 `v1.12` 的 localized verification archive 与 `Phase 58` 的 refreshed remediation route；当前最高价值的后续是先把 tooling truth hotspot inward decomposition 做扎实，再继续瘦身 large-but-correct formal homes，最后把 naming / support-seam / public discoverability 噪音一起收口。
+
+### Tooling Truth Decomposition, Formal-Home Slimming & Naming/Discoverability Convergence
+
+- [x] **HOT-14**: `scripts/check_file_matrix.py` 与相关 file-governance tooling truth 必须沿 existing truth families inward decomposition，保留稳定 CLI / import contract，不再让单个巨石脚本承担全部 inventory / classifier / validator / render story。
+- [x] **TST-12**: `tests/meta/test_toolchain_truth.py` 与相关 toolchain / governance megaguards 必须 topicize 成更小、更诚实的 focused suites 或 thin runnable roots，降低 daily failure radius。
+- [x] **GOV-44**: `.planning/reviews/FILE_MATRIX.md`、`.planning/baseline/VERIFICATION_MATRIX.md`、`.planning/codebase/TESTING.md` 与 current-story docs 必须在 tooling decomposition 后继续讲同一条 ownership / no-growth 故事。
+- [ ] **HOT-15**: `anonymous_share`、diagnostics API、OTA candidate 与 `select` 等 large-but-correct production homes 必须继续沿现有 formal seams 切薄，而不新增长期 public root / compat shell。
+- [ ] **QLT-20**: production hotspot slimming 必须同步带来 family-level focused regressions、no-growth budget 或 maintainability evidence，而不是只留下美观层重排。
+- [ ] **TYP-15**: 由 hotspot slimming 引入的 collaborator / projection seams 必须保持显式 typed contract，不能回流动态字典、宽布尔失败或 helper-owned truth。
+- [ ] **RES-14**: `*_support.py` / `*_surface.py` 与相关命名残留必须收口到诚实角色语义；support-only seams 不得继续暗示 public / formal root 身份。
+- [ ] **DOC-07**: README、docs index、contributor fast path、retired tooling discoverability 与双语入口必须在 naming cleanup 后继续讲一条低噪声 public story。
+- [ ] **GOV-45**: current-story docs、review ledgers 与 public-surface / dependency guards 必须冻结 post-slimming naming/discoverability topology，并阻止 stale terminology 回流。
+
+## Traceability for planned v1.13 route
+
+| Requirement | Planned Phase | Status |
+|-------------|---------------|--------|
+| HOT-14 | Phase 60 | Complete |
+| TST-12 | Phase 60 | Complete |
+| GOV-44 | Phase 60 | Complete |
+| HOT-15 | Phase 61 | Planned |
+| QLT-20 | Phase 61 | Planned |
+| TYP-15 | Phase 61 | Planned |
+| RES-14 | Phase 62 | Planned |
+| DOC-07 | Phase 62 | Planned |
+| GOV-45 | Phase 62 | Planned |
+
+**Coverage:**
+- v1.13 routed requirements: 9 total
+- Current mapped: 9
+- Current complete: 3
+- Current pending: 6
+- Current unmapped: 0 ✓
+
+
+## Archived Milestone (v1.12)
+
+> `v1.12` 已于 `2026-03-22` 完成归档；以下 requirement / traceability 反映 `Phase 59` 的 fulfilled contract。归档快照已写入 `.planning/milestones/v1.12-REQUIREMENTS.md`，审计裁决见 `.planning/v1.12-MILESTONE-AUDIT.md`，证据入口见 `.planning/reviews/V1_12_EVIDENCE_INDEX.md`。
 
 ### Verification Localization & Governance Guard Topicization
 
@@ -423,7 +461,7 @@
 - [x] **QLT-19**: localized verification topology 已提供更小的 focused runnable suites 与更诚实的 failure-localization contract，split 过程中未丢 coverage、未丢 guard semantics，也未引入新的 helper-owned truth。
 - [x] **GOV-43**: `.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE}.md`、`.planning/baseline/VERIFICATION_MATRIX.md`、`.planning/codebase/TESTING.md` 与相关 review truth 已显式记录 `Phase 59` 的 localized verification route、ownership boundary 与 no-growth story。
 
-## Traceability for planned v1.12 route
+## Traceability for archived v1.12 route
 
 | Requirement | Planned Phase | Status |
 |-------------|---------------|--------|

@@ -356,3 +356,9 @@ _None currently registered._
 - 本 phase **无新增 active residual family**；它冻结的是 localized verification topology，而不是新开 residual campaign。
 - thin-shell meta roots、truth-family submodules 与 split `device_refresh` suites 现都属于正式 verification topology，不是临时 compat story。
 - `59-SUMMARY.md` 与 `59-VERIFICATION.md` 已作为 Phase 59 closeout evidence promoted；`59-PRD.md`、`59-CONTEXT.md`、`59-RESEARCH.md`、`59-VALIDATION.md` 与 `59-0x-PLAN.md` 继续保持 execution-trace 身份。
+
+
+## Phase 60 Residual Delta
+
+- `scripts/check_file_matrix.py` 与 `tests/meta/test_toolchain_truth.py` 现已分别收敛成 thin roots；关闭的是 giant tooling/test truth hotspot，而不是创建新的 helper-owned authority。
+- sibling modules 现承接 inventory/classifier/markdown/validation 与 python/release/docs/CI/testing/checker truth families；current-story docs 与 review/baseline truth 已同步，无新增 active residual family。

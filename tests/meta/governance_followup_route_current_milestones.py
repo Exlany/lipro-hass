@@ -114,8 +114,9 @@ def test_v1_8_closeout_and_v1_9_current_milestone_truth_are_consistent() -> None
         assert needle in requirements_text
 
     assert "## v1.12: Verification Localization & Governance Guard Topicization" in roadmap_text
-    assert "**Milestone status:** `Phase 59 complete (2026-03-22)`" in roadmap_text
-    assert "**Default next command:** `$gsd-complete-milestone v1.12`" in roadmap_text
+    assert "**Archive status:** `archived / evidence-ready (2026-03-22)`" in roadmap_text
+    assert ".planning/v1.12-MILESTONE-AUDIT.md" in roadmap_text
+    assert ".planning/reviews/V1_12_EVIDENCE_INDEX.md" in roadmap_text
     assert "### Phase 59: Verification localization and governance guard topicization" in roadmap_text
     assert "**Plans**: 3/3 complete" in roadmap_text
     assert "**Promoted closeout package**: `59-SUMMARY.md`, `59-VERIFICATION.md`" in roadmap_text
@@ -134,6 +135,26 @@ def test_v1_8_closeout_and_v1_9_current_milestone_truth_are_consistent() -> None
     ):
         assert needle in requirements_text
 
+    assert "## v1.13: Tooling Truth Decomposition, Formal-Home Slimming & Naming/Discoverability Convergence" in roadmap_text
+    assert "**Milestone status:** `Phase 60 complete / Phase 61 planning-ready`" in roadmap_text
+    assert "**Default next command:** `$gsd-plan-phase 61`" in roadmap_text
+    assert "### Phase 60: Tooling truth decomposition and file-governance maintainability" in roadmap_text
+    assert "**Plans**: 3 completed" in roadmap_text
+    assert "60-01: decompose the file-matrix checker into thin root and internal truth families" in roadmap_text
+    assert "60-02: topicize toolchain truth guards by stable concern family" in roadmap_text
+    assert "60-03: freeze tooling topology in governance truth and focused guards" in roadmap_text
+
+    for needle in (
+        "- [x] **HOT-14**",
+        "- [x] **TST-12**",
+        "- [x] **GOV-44**",
+        "- v1.13 routed requirements: 9 total",
+        "- Current mapped: 9",
+        "- Current complete: 3",
+        "- Current pending: 6",
+    ):
+        assert needle in requirements_text
+
     assert "## Planned Milestone (v1.11)" in project_text
     assert "**Current status:** `Phase 58 complete (2026-03-22)`" in project_text
     assert ".planning/reviews/V1_11_MILESTONE_SEED.md" in project_text
@@ -141,14 +162,20 @@ def test_v1_8_closeout_and_v1_9_current_milestone_truth_are_consistent() -> None
     assert ".planning/phases/58-repository-audit-refresh-and-next-wave-routing/58-SUMMARY.md" in project_text
     assert "$gsd-complete-milestone v1.11" in project_text
 
-    assert "## Planned Milestone (v1.12)" in project_text
-    assert "**Current status:** `Phase 59 complete (2026-03-22)`" in project_text
-    assert ".planning/reviews/V1_12_MILESTONE_SEED.md" in project_text
+    assert "## Archived Milestone (v1.12)" in project_text
+    assert "**Current status:** `archived / evidence-ready (2026-03-22)`" in project_text
+    assert ".planning/v1.12-MILESTONE-AUDIT.md" in project_text
+    assert ".planning/reviews/V1_12_EVIDENCE_INDEX.md" in project_text
     assert ".planning/phases/59-verification-localization-and-governance-guard-topicization/59-SUMMARY.md" in project_text
     assert ".planning/phases/59-verification-localization-and-governance-guard-topicization/59-VERIFICATION.md" in project_text
-    assert "$gsd-complete-milestone v1.12" in project_text
 
-    assert "**Current milestone:** `v1.12 Verification Localization & Governance Guard Topicization`" in state_text
-    assert "**Current mode:** `Phase 59 complete`" in state_text
-    assert "$gsd-complete-milestone v1.12" in state_text
-    assert ".planning/reviews/V1_12_MILESTONE_SEED.md" in state_text
+    assert "## Planned Milestone (v1.13)" in project_text
+    assert "**Current status:** `Phase 60 complete / Phase 61 planning-ready (2026-03-22)`" in project_text
+    assert "$gsd-plan-phase 61" in project_text
+    assert ".planning/phases/60-tooling-truth-decomposition-and-file-governance-maintainability/60-01-PLAN.md" not in project_text
+
+    assert "**Current milestone:** `v1.13 Tooling Truth Decomposition, Formal-Home Slimming & Naming/Discoverability Convergence`" in state_text
+    assert "**Current mode:** `Phase 60 complete`" in state_text
+    assert "$gsd-plan-phase 61" in state_text
+    assert ".planning/v1.12-MILESTONE-AUDIT.md" in state_text
+    assert ".planning/reviews/V1_12_EVIDENCE_INDEX.md" in state_text

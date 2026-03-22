@@ -132,7 +132,7 @@ _BROAD_CATCH_BUDGET: dict[str, _BroadCatchBudgetEntry] = {
 }
 
 _REPO_WIDE_PRODUCTION_ANY_EXPECTED = 371
-_REPO_WIDE_TESTS_ANY_NON_META_EXPECTED = 145
+_REPO_WIDE_TESTS_ANY_NON_META_EXPECTED = 142
 
 _TESTS_TYPE_IGNORE_BUDGET = {
     "tests/core/coordinator/runtime/test_status_runtime.py": 1,
@@ -145,14 +145,13 @@ _TESTS_TYPE_IGNORE_BUDGET = {
 _META_GUARD_ANY_LITERAL_BUDGET = {
     "tests/meta/test_phase31_runtime_budget_guards.py": 14,
     "tests/meta/test_phase45_hotspot_budget_guards.py": 8,
-    "tests/meta/test_public_surface_guards.py": 1,
 }
 
 _META_SUPPORT_ANY_BUDGET = {
     "tests/meta/test_blueprints.py": 3,
     "tests/meta/test_evidence_pack_authority.py": 2,
+    "tests/meta/public_surface_runtime_contracts.py": 1,
     "tests/meta/test_governance_guards.py": 4,
-    "tests/meta/test_toolchain_truth.py": 5,
     "tests/meta/test_version_sync.py": 3,
 }
 

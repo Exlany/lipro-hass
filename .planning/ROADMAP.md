@@ -11,7 +11,8 @@
 - ✅ **v1.7 Full-Spectrum Repository Audit, Open-Source Maturity & Remediation Routing** - Phase 46 audit executed on 2026-03-20; Phase 47 -> 50 completed on 2026-03-21 with promoted closeout evidence; formalized follow-up route complete
 - ✅ **v1.8 Operational Continuity Automation, Formal-Root Sustainment & Hotspot Round 2** - formal milestone opened on 2026-03-21 from post-Phase-50 audit arbitration; Phases 51 -> 55 completed on 2026-03-21 with promoted closeout evidence and ready for archive / next-milestone arbitration
 - ✅ **v1.9 Shared Backoff Neutralization & Cross-Plane Retry Hygiene** - formal milestone opened on 2026-03-22 from the explicit Phase 56+ residual carry-forward; Phase 56 completed on 2026-03-22 with promoted closeout evidence and now serves as the closeout-ready seed baseline for v1.10
-- ✅ **v1.12 Verification Localization & Governance Guard Topicization** - formal milestone opened on 2026-03-22 from the `Phase 58` remediation route; `Phase 59` completed on 2026-03-22 with promoted closeout evidence and the milestone is now closeout-ready
+- 🚧 **v1.13 Tooling Truth Decomposition, Formal-Home Slimming & Naming/Discoverability Convergence** - formal milestone opened on 2026-03-22 from the archived `v1.12` localized verification baseline; `Phase 60` completed on 2026-03-22 as the tooling truth closeout, and `Phase 61 -> 62` remain the active remediation chain
+- ✅ **v1.12 Verification Localization & Governance Guard Topicization** - `Phase 59` archived on 2026-03-22; milestone audit: `.planning/v1.12-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_12_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.12-ROADMAP.md` / `.planning/milestones/v1.12-REQUIREMENTS.md`
 - ✅ **v1.11 Repository Audit Refresh & Next-Wave Remediation Routing** - formal milestone opened on 2026-03-22 from the renewed full-repository audit request; Phase 58 completed on 2026-03-22 with refreshed repo-wide audit evidence and now serves as the closeout-ready seed baseline for v1.12
 - ✅ **v1.10 Command-Result Typed Outcome & Reason-Code Hardening** - formal milestone opened on 2026-03-22 from the Phase 56 deferred follow-up route; Phase 57 completed on 2026-03-22 with promoted closeout evidence and now serves as the closeout-ready seed baseline for v1.11
 
@@ -346,7 +347,7 @@ Plans:
 **Goal**: 把 boundary/auth/device 方向中已成熟的 host-neutral nucleus 从 HA adapter 语义中继续抽离，但不新建第二条 runtime story。
 **Depends on**: Phase 17
 **Requirements**: [CORE-01, CORE-03]
-**Draft Success Criteria**:
+**Success Criteria**:
   1. host-neutral nucleus 不再引用 HA entry/runtime adapter 类型。
   2. `LiproProtocolFacade` / `Coordinator` 仍保持正式根身份，提取只发生在 helper/service/nucleus 层。
   3. meta guards 能阻断 HA-specific imports 重新回流到 nucleus。
@@ -362,7 +363,7 @@ Plans:
 **Goal**: 证明同一套 nucleus 能被 headless / CLI-style consumer 复用，而不是复制第二实现。
 **Depends on**: Phase 18
 **Requirements**: [CORE-02]
-**Draft Success Criteria**:
+**Success Criteria**:
   1. headless composition root 能走通 auth + device discovery + replay/evidence proof。
   2. HA adapter 继续只是 adapter，不再携带可复用业务根语义。
   3. 不出现 “CLI root / HA root” 双合法入口。
@@ -379,7 +380,7 @@ Plans:
 **Goal**: 把 `rest.list-envelope.v1`、`rest.schedule-json.v1`、`mqtt.topic.v1`、`mqtt.message-envelope.v1` 全部升级为 registry-backed boundary families。
 **Depends on**: Phase 19
 **Requirements**: [SIM-03, SIM-05]
-**Draft Success Criteria**:
+**Success Criteria**:
   1. 上述 families 全部具备 authority source、fixtures、decoder registry 与 drift assertions。
   2. inventory / authority / fixtures / manifests 不再把这些 families 记为 partial/de-scope。
   3. helper-level ad-hoc handling 进一步减少。
@@ -471,7 +472,7 @@ Plans:
 **Goal**: 把终极复审中的全部关键问题制度化：逐项映射到 `25.1 / 25.2 / 26 / 27`，锁定边界、优先级、success gates 与显式排除项，确保没有任何 remaining item 继续停留在口头共识里。
 **Depends on**: Phase 24
 **Requirements**: [GOV-19]
-**Draft Success Criteria**:
+**Success Criteria**:
   1. 终极复审中的全部 P0 / P1 / P2 项，要么被路由到 `25.1 / 25.2 / 26 / 27`，要么被显式裁决为外部约束 / 非当前 debt，而不是 silent defer。
   2. `25.1 / 25.2 / 26 / 27` 的范围不互相踩踏：不把 trust chain、snapshot correctness、telemetry seam、hotspot slimming 混成一个黑洞 phase。
   3. reverse-engineered vendor `MD5` 登录哈希路径被记录为协议约束，而不是被误登记为仓库内部可独立消灭的密码学重构债。
@@ -488,7 +489,7 @@ Plans:
 **Goal**: 消灭“部分失败覆盖全量状态”的设备快照风险，定义 refresh rejection / last-known-good / structured degraded 的正式仲裁语义。
 **Depends on**: Phase 25
 **Requirements**: [RUN-06, ERR-03]
-**Draft Success Criteria**:
+**Success Criteria**:
   1. page N 抓取失败时，partial snapshot 不会被当作新的全量 truth 发布到 coordinator state。
   2. refresh failure 的处理语义可判定、可测试，并沿正式 runtime 主链暴露，而不是靠 debug log 猜测。
   3. 与 snapshot 主链直接相关的 broad-catch / 灰区 side effects 得到收窄或结构化说明。
@@ -504,7 +505,7 @@ Plans:
 **Goal**: 干掉 `coordinator.client` ghost seam，让 telemetry / diagnostics / system health / planning truth 统一到正式 `protocol` surface 与诚实的 residual/derived-map 叙事。
 **Depends on**: Phase 25.1
 **Requirements**: [OBS-04, GOV-20]
-**Draft Success Criteria**:
+**Success Criteria**:
   1. control/exporter/diagnostics/system-health consumer 不再把 `Coordinator.client` 当合法 surface。
   2. touched authority docs、residual ledgers 与 `.planning/codebase/*` derived maps 对 closed seam 讲同一条故事。
   3. 过渡命名 / 历史 phase 叙事在 touched seam 上继续下降，不再让 formal surface 与旧术语并存。
@@ -520,7 +521,7 @@ Plans:
 **Goal**: 把安装/发布 trust chain、support/version policy、双语与维护者冗余这些“国际成熟开源项目”要求收口成正式交付，而不再只停留在 runbook defer note。
 **Depends on**: Phase 25.2
 **Requirements**: [GOV-21, QLT-03]
-**Draft Success Criteria**:
+**Success Criteria**:
   1. 默认安装故事线从 `wget | bash` 转向“下载 release 资产 → 校验 → 安装”；release 具备更强的 provenance / signing / SBOM / attestation 路径或等价强身份保证。
   2. `README` / `README_zh` / `CONTRIBUTING` / `SUPPORT` / `SECURITY` / runbook / `CODEOWNERS` 对支持矩阵、维护者冗余、双语策略与产品化入口讲同一条故事。
   3. 依赖 / 兼容 / 支持策略更诚实：运行依赖、版本窗口、升级边界与支持政策被显式写明并可验证。
@@ -537,7 +538,7 @@ Plans:
 **Goal**: 在不引入第二 root 的前提下，继续切薄 giant roots 与纯转发层，清理过渡命名/phase residue，分裂测试巨石，并收口次级可靠性与可观测性 debt。
 **Depends on**: Phase 26
 **Requirements**: [HOT-05, RES-04, TST-02]
-**Draft Success Criteria**:
+**Success Criteria**:
   1. `Coordinator` / `LiproRestFacade` / forwarding layers 沿现有 `services/`、`boundary/`、child façade 继续切薄，而不是重建新 root。
   2. 过渡命名、历史 phase 注释、残留叙事噪声、次级 broad-catch 与 local persistence/observability follow-through 被继续收口。
   3. `tests/core/test_init.py`、`tests/meta/test_governance_guards.py` 一类巨石套件被拆成更稳定的专题回归面，同时维持治理门禁强度。
@@ -554,7 +555,7 @@ Plans:
 **Goal**: 把“诚实记录”继续推进为“制度化 hardening”：在不虚构第二维护者的前提下，补齐 maintainer continuity、release signing / scanning gate 与对外支持生命周期的机器化与可审计化。
 **Depends on**: Phase 27
 **Requirements**: [GOV-22, QLT-04]
-**Draft Success Criteria**:
+**Success Criteria**:
   1. release trust chain 继续从 attestation 走向更硬的 identity posture（如 signing、code-scanning gate 或等价 machine gate），并形成一致的本地/CI/runbook story。
   2. maintainer continuity、emergency access、support window / EOL / triage responsibility 被制度化到 docs/workflows，而不是只停留在“single-maintainer 现实说明”。
   3. public docs、release workflow、CODEOWNERS/runbook 与 support/security policy 对新的 continuity / trust posture 讲同一条故事。
@@ -570,7 +571,7 @@ Plans:
 **Goal**: 沿北极星单一 protocol 主链继续切薄 `LiproRestFacade`，把 remaining hotspot 拆成更聚焦的 child collaborators / services，并把与这些热点耦合的 mega-tests 继续拆成稳定专题面。
 **Depends on**: Phase 28
 **Requirements**: [HOT-06, RES-05, TST-03]
-**Draft Success Criteria**:
+**Success Criteria**:
   1. `LiproRestFacade` 继续瘦身，但不会生成第二 protocol root、DI 容器或 bus story。
   2. high-churn REST families 被下沉到更清晰的 child homes，formal public surface 不因此膨胀。
   3. 与 REST hotspot 强耦合的 API mega-tests 继续按 `transport/auth`、`command/pacing`、`capability wrappers` 专题拆薄，且 touched baseline/review/test truth 对 child-façade decomposition 与 maintainability debt 讲实话。
@@ -581,7 +582,7 @@ Plans:
 **Goal**: 先在 protocol/control 这条高杠杆主链上继续收口 typed debt 与 broad-catch debt，把最靠近 boundary 与 child-façade 的宽口 contract 收回到正式 typed arbitration。
 **Depends on**: Phase 29
 **Requirements**: [TYP-06, ERR-04]
-**Draft Success Criteria**:
+**Success Criteria**:
   1. `core/api`、`core/protocol`、`control` touched hotspots 中的 `Any` / `type: ignore` / 宽口 contract 明显下降，并改用正式 typed ports、aliases 或 boundary contracts。
   2. 上述 touched hotspots 中 remaining broad-catch 改为 typed arbitration、documented failure contract 或显式 deferred truth，而不是继续吞掉错误语义。
   3. 这轮 tightening 不引入第二真源，也不把 helper/collaborator 回抬成 root。
@@ -592,7 +593,7 @@ Plans:
 **Goal**: 完成 repo-wide typed hardening 的第二半场，把 runtime/service/platform 剩余 typed backlog 与 broad-catch debt 收敛成可量化预算、明确语义与 no-growth guards。
 **Depends on**: Phase 30
 **Requirements**: [TYP-07, ERR-05, GOV-23]
-**Draft Success Criteria**:
+**Success Criteria**:
   1. 基于 handoff 基线 `Any=614`、`except Exception=36`、`type: ignore=12`，为 runtime/service/platform touched zones 建立预算并显著下降。
   2. remaining runtime/service broad-catch 只保留 documented fail-closed / degraded semantics；新增 catch-all regression 会被 meta guards 或 governance scripts 拦截。
   3. typed/exception budget、phase closeout truth 与 daily governance gates 形成同源 no-growth story，而不是继续依赖人工补漏。
@@ -603,7 +604,7 @@ Plans:
 **Goal**: 把 `Phase 25 -> 31` 完成后仍残留的 planning truth 分叉、gate 口径漂移、derived-map freshness 与 hotspot/typed/exception/residual follow-through 统一收束成 final quality-10 closeout，不给下一轮再留 silent defer。
 **Depends on**: Phase 31
 **Requirements**: [GOV-24, QLT-05, GOV-25, GOV-26, HOT-07, TST-04, TYP-08, ERR-06, RES-06]
-**Draft Success Criteria**:
+**Success Criteria**:
   1. active planning truth（`PROJECT` / `ROADMAP` / `REQUIREMENTS` / `STATE`）与 retained handoff/audit pointers 对 `Phase 25 -> 31` complete + `Phase 32` pending 讲同一条故事，不再残留 stale continuation claim。
   2. repo-wide gate story 必须诚实：`ruff` / `mypy` / CI / contributor docs 的口径与实际执行范围一致；release identity / code-scanning / maintainer continuity surface 不再相互漂移。
   3. `.planning/codebase/*`、双语 public docs、giant roots/tests、typed/exception budgets 与 fallback/legacy residue 全部要么落到显式执行项，要么落到显式 defer truth，不再有口头约定。
@@ -624,7 +625,7 @@ Plans:
 **Goal**: 把 `8.8/10` 终审仍残留的 runtime contract 双真源、control 去回路、giant roots / forwarding layers、broad-catch、CI/perf gate 漂移与深层开源产品化短板统一收束成下一轮 quality-10 hardening tranche，在不引入第二 root 的前提下把仓库从“高阶工程仓库”继续推进到“国际成熟开源产品”水位。
 **Depends on**: Phase 32
 **Requirements**: [ARC-03, CTRL-07, HOT-08, ERR-07, TST-05, QLT-06, GOV-27, GOV-28, QLT-07]
-**Draft Success Criteria**:
+**Success Criteria**:
   1. runtime public surface 真源统一到单一合同；control-plane locator / telemetry / read-model 变为 acyclic、port-based、snapshot-pure story。
   2. `LiproRestFacade` / `LiproProtocolFacade` / `Coordinator` / `Snapshot` / `CommandResult` 等 giant roots 或 giant helpers 继续沿现有 seams 切薄，而不是长出第二 orchestration root 或 helper folklore。
   3. broad-catch、local/CI/pre-push/perf gates、release evidence posture 与 dependency/compatibility story 收敛为 machine-checkable truth，不再残留重复测试、迟到反馈或文档强于现实的 drift。
@@ -648,7 +649,7 @@ Plans:
 **Goal**: 把单维护者连续性与 release trust 从“诚实说明”推进到“可演练、可阻断、可审计”：建立真实的 continuity / custody / freeze contract，并为 artifact signing 与 hard code-scanning gate 做最终路由。
 **Depends on**: Phase 33
 **Requirements**: [GOV-29, QLT-08]
-**Draft Success Criteria**:
+**Success Criteria**:
   1. 未签名或未通过新增 hard gate 的 release asset 不能被包装成稳定 release；release workflow、README / README_zh、SUPPORT、SECURITY 与 runbook 对 trust posture 口径完全一致。
   2. maintainer continuity 不再只有“单维护者现实”的诚实记录，而是具备 delegate / custody / freeze escalation 的正式合同与证据。
   3. continuity / release truth 至少形成一轮可追溯的 drill、checklist 或 guard 证据，而不是只存在于叙述性文档。
@@ -664,7 +665,7 @@ Plans:
 **Goal**: 继续拆薄 `LiproRestFacade` 与 `LiproProtocolFacade` 两个协议热点，但严格沿现有 protocol seams 下沉职责，不长出第二 root，不把 forwarding glue 合法化成永久结构。
 **Depends on**: Phase 34
 **Requirements**: [HOT-09, RES-07]
-**Draft Success Criteria**:
+**Success Criteria**:
   1. `custom_components/lipro/core/api/client.py` 与 `custom_components/lipro/core/protocol/facade.py` 继续显著瘦身，职责按 transport / auth / command / capability 等协作者切开。
   2. public surface 只减不增；protocol / API 定向回归与 surface guards 继续全绿。
   3. compat / forwarding residue、反射/私有实现细节依赖与命名残留被进一步删除、隔离或显式下沉，不再在 root façade 层漂浮。
@@ -680,7 +681,7 @@ Plans:
 **Goal**: 收薄 `Coordinator` 运行根，并把生产宽异常从当前存量压到可守护阈值；所有新增失败语义都必须落到 typed arbitration、documented degraded contract 或 fail-closed path。
 **Depends on**: Phase 35
 **Requirements**: [HOT-10, ERR-08, TYP-09]
-**Draft Success Criteria**:
+**Success Criteria**:
   1. `custom_components/lipro/core/coordinator/coordinator.py` 显著瘦身，runtime/service clusters 的 home 更明确，但正式 runtime root 仍只有一条。
   2. 生产 `except Exception` 存量明显下降，核心热点清零或收敛到 machine-guarded no-growth budget。
   3. runtime/service/platform touched-zone 的 typed budget 与 exception policy 继续统一到单一治理故事。
@@ -696,7 +697,7 @@ Plans:
 **Goal**: 完成巨石测试第三波 topicization，并把 `.planning/codebase/*`、测试策略、verification truth 与实际套件布局重新拉回单一故事，避免 derived-map 再漂移。
 **Depends on**: Phase 36
 **Requirements**: [TST-06, GOV-30, QLT-09]
-**Draft Success Criteria**:
+**Success Criteria**:
   1. 剩余巨石测试被拆成更稳定、可局部执行的专题套件，失败定位速度明显提升。
   2. `.planning/codebase/*`、测试策略文档、verification matrix、public docs entry topology 与实际命令/目录结构保持一致，并有 drift guard 约束。
   3. benchmark 形成预算或基线语义，governance tests 降低 prose-coupled 高噪音断言，最终 closeout 证据完整，为后续 fresh audit 奠定稳定基线。
@@ -712,7 +713,7 @@ Plans:
 **Goal**: 关闭最后一条 external-boundary naming residual，并把 quality-signal / governance closeout truth 收紧到更诚实、可机审的单一故事线。
 **Depends on**: Phase 37
 **Requirements**: [RES-08, QLT-10, GOV-31]
-**Draft Success Criteria**:
+**Success Criteria**:
   1. firmware external-boundary 语义统一为 bundled local trust-root asset + remote advisory payload，保留历史文件名但不再误导 authority truth。
   2. `coverage_diff.py` / CI / `CONTRIBUTING.md` / `.planning/codebase/TESTING.md` 讲同一条质量故事：coverage floor 始终 blocking、diff 仅在显式 baseline 下执行、benchmark 继续 advisory 但以 artifact 形式可审计。
   3. governance closeout / phase-history guards 进一步偏向 `ROADMAP` / `REQUIREMENTS` / command anchors，减少对 `PROJECT` / `STATE` 句型复述的耦合，并形成 fresh-audit baseline。
@@ -729,7 +730,7 @@ Plans:
 **Goal:** 把 current-story canonical docs、control/services formal role、dead protocol shell、authority asset naming、governance closeout evidence 与剩余 mega-test topology 全部收口到一条诚实、可验证、可归档的 `v1.4` 故事。
 **Requirements**: [GOV-32, DOC-03, CTRL-08, RES-09, TST-07]
 **Depends on:** Phase 38
-**Draft Success Criteria**:
+**Success Criteria**:
   1. `ROADMAP / REQUIREMENTS / STATE / PROJECT` 对 `v1.4 / Phase 39 complete / next command` 讲同一条 current story，coverage / traceability 算术无误。
   2. `docs/NORTH_STAR_TARGET_ARCHITECTURE.md`、`docs/developer_architecture.md`、review ledgers 与 promoted assets 清楚承认 `custom_components/lipro/control/` 是 formal control-plane home，`services/` 只承担 declarations / adapters / helpers。
   3. `custom_components/lipro/core/protocol/compat.py` 退场，authority fixtures / replay manifests / guards / readmes 完成单命名收口；remaining mega-tests topicize 成低噪声专题面并通过完整 hard gates。
@@ -757,7 +758,7 @@ Plans:
 **Goal:** 把 active truth / archive snapshot / derived map / compatibility note 的资产分层重新收口到单一 current story；把 control/services 对 runtime 的读取统一回 `runtime_access`；把 schedule/service auth-error 执行链收敛到正式 shared executor，并顺手清理 touched naming residue 与 stale terminology。
 **Requirements**: [GOV-33, CTRL-09, ERR-10, RES-10, QLT-11]
 **Depends on:** Phase 39
-**Draft Success Criteria**:
+**Success Criteria**:
   1. `PROJECT / ROADMAP / REQUIREMENTS / STATE`、`docs/README.md` 与 baseline 三件套对 authority precedence、active truth、archive snapshot 与 promoted phase assets 讲同一条 current story，并吸收 `V1_4_EVIDENCE_INDEX.md` / `v1.4-MILESTONE-AUDIT.md` / `Phase 38-39` closeout contract。
   2. continuity / release-trust / install-path / support-routing 事实收口到 machine-readable governance registry；README、README_zh、CONTRIBUTING、SUPPORT、SECURITY、TROUBLESHOOTING、runbook 与 issue/PR templates 由守卫强制同步，且补齐 break-glass verify-only / non-publish rehearsal 语义。
   3. `runtime_access` 成为 control/services 的单一 runtime read-model：diagnostics/device lookup/maintenance 不再各自复制 coordinator 枚举或设备读取逻辑；`schedule.py` 复用 shared service execution auth/error chain；touched `client` / `forwarding` / `mixin` terminology 收口到 `protocol` / `port` / `facade` / `operations` 语义。
@@ -793,7 +794,7 @@ Plans:
 **Goal:** 补齐 maintainer delegate / security fallback、release artifact install smoke、total + changed-surface coverage 双门禁、local-vs-CI parity 与 compatibility / deprecation preview lane，让“仓库能发布”升级为“产物可验证、流程可接班、漂移可前探”。
 **Requirements**: [GOV-34, QLT-12, QLT-13, QLT-14]
 **Depends on:** Phase 40
-**Draft Success Criteria**:
+**Success Criteria**:
   1. `SUPPORT.md`、`SECURITY.md`、`.github/CODEOWNERS`、runbook 与 issue/PR templates 对 maintainer delegate / fallback / freeze escalation 讲同一条故事。
   2. release workflow 对 release zip 运行 install/uninstall smoke；coverage gate 同时约束 total coverage 与 changed-surface coverage；本地与 CI 命令矩阵语义一致。
   3. scheduled preview lane 能提前暴露 HA / dependency deprecation drift，并形成 machine-readable warning signal。
@@ -809,7 +810,7 @@ Plans:
 **Goal:** 解开 `control/` ↔ `services/` 双向缠绕，把 `RuntimeAccess` 升级为 typed read-model contract，并把 `services/maintenance.py` 承载的 runtime infra 迁回正确 formal home。
 **Requirements**: [ARC-04, CTRL-10, RUN-07]
 **Depends on:** Phase 42
-**Draft Success Criteria**:
+**Success Criteria**:
   1. `control/` 与 `services/` 收敛为单向依赖合同；helper surface 不再反客为主或反向定义 runtime truth。
   2. `RuntimeAccess` 暴露 typed public read-model API；diagnostics / system health / maintenance / lookup 消费者不再依赖反射、`MagicMock` 形状或私有字段。
   3. runtime infra 与 service helper 各回 formal home；`maintenance.py` 不再承担 entry reload / listener / coordinator-traversal 等跨层职责。
@@ -825,7 +826,7 @@ Plans:
 **Goal:** 收紧 `.planning/phases/**` 的 execution-trace / promoted-asset 边界，统一 façade 时代官方术语，拆 contributor fast-path 与 maintainer appendix，并把双语边界策略明文化。
 **Requirements**: [GOV-35, RES-11, DOC-04]
 **Depends on:** Phase 43
-**Draft Success Criteria**:
+**Success Criteria**:
   1. `.planning/phases/**` 默认仅是 execution trace，只有 allowlist 资产进入长期治理 / CI truth；文档、review ledgers 与守卫不再把 trace 误写成 authority。
   2. current docs / ADR / comments 完成 `client / mixin / forwarding` → `protocol / facade / operations` 术语收口，旧术语只留在历史资产或 residual ledger。
   3. contributor fast-path、maintainer appendix 与 bilingual policy 可链接、可守卫、低噪声，减少外部贡献者过早接触维护者治理术语。
@@ -841,7 +842,7 @@ Plans:
 **Goal:** 拆 `rest_decoder_support.py`、`diagnostics_api_service.py`、`share_client.py`、`message_processor.py` 等高复杂度热点，压缩 forwarding 链，并把 bool-fail 升级为 typed result / reason code，同时把 benchmark 从“留证据”升级为“防回退”。
 **Requirements**: [HOT-11, ERR-11, TYP-10, QLT-15]
 **Depends on:** Phase 44
-**Draft Success Criteria**:
+**Success Criteria**:
   1. 高复杂度热点沿现有正式 seams 切薄；长函数、弱语义 fallback 与多层 forwarding 链明显下降，且 public surface 不扩张。
   2. diagnostics / share / message / protocol touched-zone 改用 typed result / reason code；失败语义可被日志、diagnostics 与测试稳定消费。
   3. benchmark 具备 baseline compare / threshold warning / no-regression gate 语义，不再只是上传产物。
@@ -864,7 +865,7 @@ Plans:
 **Goal:** 以北极星主链、国际开源最佳实践与高级维护性标准，对 `lipro-hass` 的全部 Python 代码、测试、文档、配置与治理资产做一次不留盲点的 repo-wide 审阅，形成文件级证据、架构评分、热点定位与 `Phase 47+` 正式整改路线。
 **Requirements**: [GOV-36, ARC-05, DOC-05, RES-12, TST-08, TYP-11, QLT-16]
 **Depends on:** Phase 45
-**Draft Success Criteria**:
+**Success Criteria**:
   1. 每个 Python / docs / config / workflow / planning truth 文件都被纳入 file-level 审阅范围，并按 formal root / adapter / helper / test / governance / archive 等身份分类，给出 strengths / gaps / action verdict。
   2. formal root hotspots、命名规范、目录结构、mega-test topology、typed debt、broad exception 使用、OSS contributor surface 与 release/support/security paths 都完成可追溯评分，并对照 north-star 与优秀开源案例给出清晰优先级。
   3. `Phase 46` 产出 promoted audit evidence、全仓审阅总报告与 `Phase 47+` remediation roadmap；后续整改不再依赖零散记忆或 conversation-only 结论。
@@ -1130,13 +1131,62 @@ Plans:
 - [x] 58-02: refresh governance and open-source audit, then synthesize the next-wave remediation route (completed 2026-03-22)
 - [x] 58-03: freeze `v1.11 / Phase 58` in current-story docs, guards, and promoted evidence (completed 2026-03-22)
 
+## v1.13: Tooling Truth Decomposition, Formal-Home Slimming & Naming/Discoverability Convergence
+
+> `v1.13` 承接 `v1.12` 已归档的 localized verification baseline：先把 tooling truth / file-governance hotspot inward decomposition 做对，再继续瘦身 large-but-correct production homes，最后收口 support-seam naming 与 public discoverability 噪音。
+
+**Milestone status:** `Phase 60 complete / Phase 61 planning-ready`
+**Default next command:** `$gsd-plan-phase 61`（`Phase 60` 已完成并冻结 tooling truth；下一步规划 production formal-home slimming）
+**Starting baseline:** `.planning/v1.12-MILESTONE-AUDIT.md`, `.planning/reviews/V1_12_EVIDENCE_INDEX.md`, `.planning/phases/58-repository-audit-refresh-and-next-wave-routing/58-REMEDIATION-ROADMAP.md`, `.planning/phases/59-verification-localization-and-governance-guard-topicization/59-SUMMARY.md`, `.planning/phases/59-verification-localization-and-governance-guard-topicization/59-VERIFICATION.md`
+
+### Phase 60: Tooling truth decomposition and file-governance maintainability
+
+**Goal:** 把 `scripts/check_file_matrix.py` 与 `tests/meta/test_toolchain_truth.py` 按 truth family inward decomposition 成更窄的 internal homes / focused suites，同时保持 CLI、import contract、authority chain 与 daily runnable roots 稳定。
+**Depends on:** Phase 59
+**Requirements**: [HOT-14, TST-12, GOV-44]
+**Success Criteria**:
+  1. `scripts/check_file_matrix.py` 退成 thin CLI root；inventory / classifier / validators / render / overrides 等 internal truth families 有了更清晰的 home，且既有 public import contract 不漂移。
+  2. `tests/meta/test_toolchain_truth.py` 已 topicize 成更小的 focused suites 或 thin runnable roots；toolchain / release / docs / governance 断言不再混成单个 giant bucket。
+  3. `.planning/reviews/FILE_MATRIX.md`、`.planning/baseline/VERIFICATION_MATRIX.md`、`.planning/codebase/TESTING.md` 与 current-story docs 全部准确记录新的 tooling truth topology 与 no-growth story。
+**Status**: Complete (2026-03-22)
+**Plans**: 3 completed
+
+Plans:
+- [x] 60-01: decompose the file-matrix checker into thin root and internal truth families (completed 2026-03-22)
+- [x] 60-02: topicize toolchain truth guards by stable concern family (completed 2026-03-22)
+- [x] 60-03: freeze tooling topology in governance truth and focused guards (completed 2026-03-22)
+**Closeout evidence:** `.planning/phases/60-tooling-truth-decomposition-and-file-governance-maintainability/60-SUMMARY.md`, `.planning/phases/60-tooling-truth-decomposition-and-file-governance-maintainability/60-VERIFICATION.md`
+
+### Phase 61: Formal-home slimming for large-but-correct production modules
+
+**Goal:** 沿现有 formal seams 继续切薄 `anonymous_share`、diagnostics API、OTA candidate 与 `select` 等 architecturally-correct 但仍偏厚的 production homes，提升 collaborator clarity、typed seams 与 focused verification。
+**Depends on:** Phase 60
+**Requirements**: [HOT-15, QLT-20, TYP-15]
+**Success Criteria**:
+  1. `anonymous_share`、diagnostics API、OTA / select touched homes 只做 inward split，不新增 public root、compat shell 或 helper-owned second story。
+  2. 新形成的 collaborator / projection seams 继续保持 typed contract、honest ownership 与 plane boundary clarity，而不是以动态 fallback 掩盖复杂度。
+  3. family-level focused regressions 与 maintainability evidence 能独立运行，证明 refactor 带来真实 failure-localization / readability 收益。
+**Status**: Complete (2026-03-22)
+**Plans**: pending future planning
+
+### Phase 62: Naming clarity, support-seam governance, and public discoverability
+
+**Goal:** 继续收口 `*_support.py` / `*_surface.py` 命名语义、retired tooling discoverability 与 contributor/public fast path，让 support-only seams、public docs 与 governance guards 对“谁是 formal home”给出更低噪声答案。
+**Depends on:** Phase 61
+**Requirements**: [RES-14, DOC-07, GOV-45]
+**Success Criteria**:
+  1. `support` / `surface` 术语只留给真实角色；stale helper/public wording 不再让 internal backing seam 看起来像第二 formal root。
+  2. README、docs index、contributor fast path、retired tooling discoverability 与 bilingual public entry 继续讲一条低噪声 story。
+  3. current-story docs、review ledgers 与 grep/meta guards 都能阻止 stale terminology、duplicate discoverability route 与第二 helper/public story 回流。
+**Status**: Complete (2026-03-22)
+**Plans**: pending future planning
+
 ## v1.12: Verification Localization & Governance Guard Topicization
 
-> `v1.12` 不急着打开更重的 tooling / production surgery，而是先把 `Phase 58` 路由出的 megaguards / megasuites 收窄到更诚实的 verification topology：public-surface / governance-history / follow-up-route roots 变成 thin shell + named truth-family modules，`device_refresh` 也不再维持 giant bucket。
+> `v1.12` 现已完成 milestone audit 与 archive promotion：它的职责是先把 `Phase 58` 路由出的 megaguards / megasuites 收窄到更诚实的 verification topology，再把 localized route 冻结成 archived closeout evidence，作为 `v1.13` 的低噪声起点。
 
-**Milestone status:** `Phase 59 complete (2026-03-22)`
-**Default next command:** `$gsd-complete-milestone v1.12`（opening phase 已完成；当前里程碑已具备 closeout 条件）
-**Seed input:** `.planning/reviews/V1_12_MILESTONE_SEED.md`
+**Archive status:** `archived / evidence-ready (2026-03-22)`
+**Archive assets:** `.planning/v1.12-MILESTONE-AUDIT.md`, `.planning/reviews/V1_12_EVIDENCE_INDEX.md`, `.planning/milestones/v1.12-ROADMAP.md`, `.planning/milestones/v1.12-REQUIREMENTS.md`, `.planning/phases/59-verification-localization-and-governance-guard-topicization/59-SUMMARY.md`, `.planning/phases/59-verification-localization-and-governance-guard-topicization/59-VERIFICATION.md`
 
 ### Phase 59: Verification localization and governance guard topicization
 

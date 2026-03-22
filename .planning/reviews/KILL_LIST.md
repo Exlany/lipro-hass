@@ -278,3 +278,9 @@
 - 本 phase **无新增 active kill target**；verification topicization 与 current-story freeze 都属于 formal truth closeout，不是新的 delete campaign。
 - `tests/core/test_device_refresh.py` 的退场已在本 phase 完成，后续若继续优化 verification topology，只允许围绕当前 focused suites 收口，不得再恢复新的 mega-suite folklore。
 - thin-shell meta roots 与 truth-family submodules 现已是正式 verification topology；后续若继续拆分，只能延续 same-story inward decomposition，而不能重新长出 second governance story。
+
+
+## Phase 60 Status Update
+
+- 本 phase **无新增 active kill target**；tooling hotspot 通过 inward decomposition closeout，而不是 file deletion campaign。
+- `scripts/check_file_matrix.py` / `tests/meta/test_toolchain_truth.py` 继续保留 formal root 身份；新 sibling modules 只缩窄 ownership，不制造新的 delete folklore。

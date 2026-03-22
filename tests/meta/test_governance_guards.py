@@ -334,3 +334,20 @@ def test_project_primary_sources_do_not_include_phase_workspace_assets() -> None
 
     assert ".planning/phases/" not in primary_sources
     assert "Current Execution Workspace Inputs" in project_text
+
+
+def test_phase_60_tooling_closeout_is_frozen_in_current_story_truth() -> None:
+    project_text = (_ROOT / ".planning" / "PROJECT.md").read_text(encoding="utf-8")
+    roadmap_text = (_ROOT / ".planning" / "ROADMAP.md").read_text(encoding="utf-8")
+    requirements_text = (_ROOT / ".planning" / "REQUIREMENTS.md").read_text(encoding="utf-8")
+    state_text = (_ROOT / ".planning" / "STATE.md").read_text(encoding="utf-8")
+    file_matrix_text = _FILE_MATRIX.read_text(encoding="utf-8")
+
+    assert "Phase 60 complete / Phase 61 planning-ready" in project_text
+    assert "**Milestone status:** `Phase 60 complete / Phase 61 planning-ready`" in roadmap_text
+    assert "| HOT-14 | Phase 60 | Complete |" in requirements_text
+    assert "| TST-12 | Phase 60 | Complete |" in requirements_text
+    assert "| GOV-44 | Phase 60 | Complete |" in requirements_text
+    assert "`$gsd-plan-phase 61`" in state_text
+    assert "scripts/check_file_matrix_inventory.py" in file_matrix_text
+    assert "tests/meta/toolchain_truth_python_stack.py" in file_matrix_text

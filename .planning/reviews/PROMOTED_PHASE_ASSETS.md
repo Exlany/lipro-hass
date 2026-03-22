@@ -168,6 +168,9 @@ phases:
   59-verification-localization-and-governance-guard-topicization:
     - 59-SUMMARY.md
     - 59-VERIFICATION.md
+  60-tooling-truth-decomposition-and-file-governance-maintainability:
+    - 60-SUMMARY.md
+    - 60-VERIFICATION.md
 ---
 
 # Promoted Phase Assets

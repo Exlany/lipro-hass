@@ -121,3 +121,24 @@
 - `.planning/phases/45-hotspot-decomposition-and-typed-failure-semantics/45-VERIFICATION.md`
 
 ---
+
+## v1.12 Verification Localization & Governance Guard Topicization (Closeout: 2026-03-22)
+
+**Phase range:** `59`
+**Phases completed:** 1 phase, 3 plans, 0 tasks
+**Status:** archived / evidence-ready
+
+**Key accomplishments:**
+- public-surface / governance-history / follow-up-route megaguards 退成 thin shell runnable roots，并按 truth family localized
+- `device_refresh` giant suite 已拆成 parsing / filter / snapshot / runtime focused verification topology
+- current-story docs、verification matrix、testing map 与 review ledgers 已冻结 localized verification / no-growth story
+
+**Closeout assets:**
+- `.planning/v1.12-MILESTONE-AUDIT.md`
+- `.planning/reviews/V1_12_EVIDENCE_INDEX.md`
+- `.planning/milestones/v1.12-ROADMAP.md`
+- `.planning/milestones/v1.12-REQUIREMENTS.md`
+- `.planning/phases/59-verification-localization-and-governance-guard-topicization/59-SUMMARY.md`
+- `.planning/phases/59-verification-localization-and-governance-guard-topicization/59-VERIFICATION.md`
+
+---

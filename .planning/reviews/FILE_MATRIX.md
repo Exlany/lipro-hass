@@ -1,6 +1,6 @@
 # File Matrix
 
-**Python files total:** 569
+**Python files total:** 579
 **Status:** File-level governance authority
 **Rule:** workspace inventory excluding caches / virtual env / tooling artifacts
 
@@ -286,7 +286,11 @@
 | `scripts/agent_worker.py` | Assurance | Phase 6 / 7 | 保留 | - |
 | `scripts/check_architecture_policy.py` | Assurance | Phase 7.2 | 保留 | - |
 | `scripts/check_benchmark_baseline.py` | Assurance | Phase 6 / 7 | 保留 | - |
-| `scripts/check_file_matrix.py` | Assurance | Phase 6 / 7 | 保留 | - |
+| `scripts/check_file_matrix.py` | Assurance | Phase 6 / 7 / 60 | 保留 | thin governance checker root; sibling modules own inventory/classification/markdown/validation truth families |
+| `scripts/check_file_matrix_inventory.py` | Assurance | Phase 60 | 保留 | checker inventory walk and repo-root helper home |
+| `scripts/check_file_matrix_markdown.py` | Assurance | Phase 60 | 保留 | FILE_MATRIX render and parse helper home |
+| `scripts/check_file_matrix_registry.py` | Assurance | Phase 60 | 保留 | file-governance row registry and classification override home |
+| `scripts/check_file_matrix_validation.py` | Assurance | Phase 60 | 保留 | file-governance drift validators and run_checks home |
 | `scripts/check_translations.py` | Assurance | Phase 6 / 7 | 保留 | - |
 | `scripts/coverage_diff.py` | Assurance | Phase 6 / 7 | 保留 | - |
 | `scripts/export_ai_debug_evidence_pack.py` | Assurance | Phase 8 | 保留 | - |
@@ -532,9 +536,15 @@
 | `tests/meta/test_protocol_replay_assets.py` | Assurance | Phase 7.4 | 保留 | - |
 | `tests/meta/test_public_surface_guards.py` | Assurance | Phase 6 | 保留 | thin shell after public-surface topicization |
 | `tests/meta/test_service_translation_sync.py` | Assurance | Phase 6 | 保留 | - |
-| `tests/meta/test_toolchain_truth.py` | Assurance | Phase 16 | 保留 | - |
+| `tests/meta/test_toolchain_truth.py` | Assurance | Phase 16 / 60 | 保留 | thin daily runnable shell for topicized toolchain truth suites |
 | `tests/meta/test_translation_tree_sync.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_version_sync.py` | Assurance | Phase 6 | 保留 | - |
+| `tests/meta/toolchain_truth_checker_paths.py` | Assurance | Phase 60 | 保留 | checker-path and local-develop smoke truth family |
+| `tests/meta/toolchain_truth_ci_contract.py` | Assurance | Phase 60 | 保留 | CI lane, pre-push, lint, and pytest contract truth family |
+| `tests/meta/toolchain_truth_docs_fast_path.py` | Assurance | Phase 60 | 保留 | docs fast-path, continuity, and machine-readable governance truth family |
+| `tests/meta/toolchain_truth_python_stack.py` | Assurance | Phase 60 | 保留 | Python pin, devcontainer, and pre-commit toolchain truth family |
+| `tests/meta/toolchain_truth_release_contract.py` | Assurance | Phase 60 | 保留 | release workflow and identity-evidence truth family |
+| `tests/meta/toolchain_truth_testing_governance.py` | Assurance | Phase 60 | 保留 | testing-map and derived-governance topology truth family |
 | `tests/platforms/__init__.py` | Domain | Phase 4 | 保留 | - |
 | `tests/platforms/test_binary_sensor.py` | Domain | Phase 4 | 保留 | - |
 | `tests/platforms/test_climate.py` | Domain | Phase 4 | 保留 | - |
