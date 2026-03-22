@@ -154,3 +154,10 @@
 - `custom_components/lipro/core/anonymous_share/registry.py`、diagnostics services 与 share-service flows 只允许经 `manager.py` / `share_client.py` / `helpers.py` 读取正式 story；`manager_support.py`、`share_client_support.py` 与 `helper_support.py` 只能被对应 formal homes inward 依赖。
 - `custom_components/lipro/core/api/request_policy.py` 可以 inward 依赖 `request_policy_support.py` 承接 pacing/backoff mechanics；`transport_retry.py`、`core/command/result_policy.py`、`core/coordinator/runtime/command/retry.py` 与 `core/mqtt/setup_backoff.py` 若仍复用 `compute_exponential_retry_wait_time()`，只能继续经 `request_policy.py` 这一 compat surface 读取，不得直连 `request_policy_support.py`。
 - `custom_components/lipro/control/service_router.py` 的 diagnostics callback truth 不变；helpers/support splitting 不得让 services / tests / docs 绕过 router 讲出第二 public callback story。
+
+
+## Phase 56 Neutral Backoff Clarifications
+
+- `custom_components/lipro/core/utils/backoff.py` 是 neutral shared exponential-backoff primitive home；它只承接 pure delay math，不承担 plane-local retry policy。
+- `custom_components/lipro/core/api/request_policy.py` 已停止导出 `compute_exponential_retry_wait_time()`；API plane 只保留 `429` / busy / pacing decision truth。
+- `custom_components/lipro/core/command/result_policy.py`、`custom_components/lipro/core/coordinator/runtime/command/retry.py` 与 `custom_components/lipro/core/mqtt/setup_backoff.py` 现统一从 `core/utils/backoff.py` import primitive，同时继续保留各自的 local retry semantics。

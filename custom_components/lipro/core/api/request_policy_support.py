@@ -6,6 +6,7 @@ import asyncio
 from collections.abc import Awaitable, Callable
 
 from ...const.api import MAX_RATE_LIMIT_RETRIES
+from ..utils.backoff import compute_exponential_retry_wait_time
 
 SleepFn = Callable[[float], Awaitable[None]]
 
@@ -209,20 +210,6 @@ async def throttle_change_state(
                 command_pacing_target_locks=command_pacing_target_locks,
             )
 
-
-def compute_exponential_retry_wait_time(
-    *,
-    retry_count: int,
-    base_delay_seconds: float,
-    max_delay_seconds: float | None = None,
-    min_delay_seconds: float = 0.1,
-) -> float:
-    """Compute one exponential retry delay with optional min/max caps."""
-    min_delay = float(max(0.0, min_delay_seconds))
-    wait_time = float(max(min_delay, base_delay_seconds * (2**retry_count)))
-    if max_delay_seconds is None:
-        return wait_time
-    return float(min(max_delay_seconds, wait_time))
 
 
 def compute_rate_limit_wait_time(

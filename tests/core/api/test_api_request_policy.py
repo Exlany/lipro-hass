@@ -54,6 +54,10 @@ async def test_request_policy_handle_rate_limit_waits_for_computed_backoff() -> 
     sleep.assert_awaited_once_with(1.25)
 
 
+def test_request_policy_module_does_not_export_generic_backoff_helper() -> None:
+    assert hasattr(request_policy_module, "compute_exponential_retry_wait_time") is False
+
+
 def test_request_policy_is_command_busy_error_false_for_empty_message() -> None:
     assert RequestPolicy.is_command_busy_error(LiproApiError("", code=500)) is False
 

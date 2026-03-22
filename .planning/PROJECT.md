@@ -1,8 +1,8 @@
 # Project: Lipro-HASS North Star Evolution
 
-**Status:** Shipped and archived — `v1.6` 仍是最新已发货真源；`v1.7` formalized follow-up route `Phase 46 -> 50` 已于 `2026-03-21` 完成 closeout；`v1.8` 已正式启动并完成 `Phase 51 -> 55` closeout。
+**Status:** Shipped and archived — `v1.6` 仍是最新已发货真源；`v1.7` formalized follow-up route `Phase 46 -> 50` 已于 `2026-03-21` 完成 closeout；`v1.8` 已完成 `Phase 51 -> 55` closeout；`v1.9` 已正式启动并完成 opening `Phase 56`，当前处于 closeout-ready。
 **Goal:** 以 `v1.6` 归档真相为最新已发货基线；后续路线必须建立在 `v1.7` promoted audit/closeout evidence 与正式 milestone docs 之上，不回流 `Phase 41` execution trace、conversation-only 结论或旧 archived story。
-**Default next step:** `$gsd-new-milestone`
+**Default next step:** `$gsd-complete-milestone v1.9`
 
 
 ## Archived Milestone (v1.6)
@@ -22,6 +22,28 @@
 **Current status:** `Phase 42 -> 45 archived / evidence-ready`（`16/16` 个执行 plans 已完成，`.planning/v1.6-MILESTONE-AUDIT.md`、`.planning/reviews/V1_6_EVIDENCE_INDEX.md`、`.planning/milestones/v1.6-ROADMAP.md` 与 `.planning/milestones/v1.6-REQUIREMENTS.md` 已落盘；next action is `$gsd-new-milestone`）
 **Archive assets:** `.planning/v1.6-MILESTONE-AUDIT.md`, `.planning/reviews/V1_6_EVIDENCE_INDEX.md`, `.planning/milestones/v1.6-ROADMAP.md`, `.planning/milestones/v1.6-REQUIREMENTS.md`, `.planning/phases/45-hotspot-decomposition-and-typed-failure-semantics/45-SUMMARY.md`, `.planning/phases/45-hotspot-decomposition-and-typed-failure-semantics/45-VERIFICATION.md`
 **Primary closeout targets:** delivery trust hardening、typed runtime read-model、control/services decoupling、governance asset pruning、terminology convergence、hotspot decomposition、typed failure semantics。
+
+## Planned Milestone (v1.9)
+
+**Name:** `v1.9 Shared Backoff Neutralization & Cross-Plane Retry Hygiene`
+
+**Why now:** `v1.8` 已完成 second-round sustainment，而当前唯一仍在 active residual ledger 中显式挂到 `Phase 56+` 的 carry-forward，是 generic exponential backoff helper leak。此时最正确的动作不是重开大扫除，而是把这条 ownership lie 关掉：`RequestPolicy` 只保留 API-local policy truth，pure backoff primitive 回到 neutral shared home。
+
+**North-star fit:** `v1.9` 继续沿单一正式主链推进：
+
+- 不把 neutral helper 升格成 shared retry manager、second root 或新 public surface
+- 不把 command/runtime/MQTT 的 retry semantics 强行统一，只共享一个 honest primitive
+- 不改写 `RequestPolicy` 的 API-local `429` / busy / pacing ownership，只纠正它的 cross-plane utility leakage
+- 以 baseline / review / meta guard 关闭 residual，而不是只在代码里“修一下”
+
+**Phase range:** `Phase 56`
+**Current status:** `Phase 56 complete (2026-03-22)`（`RES-13 / ARC-09 / GOV-40` 已全部通过 code / governance closeout 收口）
+**Seed input:** `.planning/reviews/V1_9_MILESTONE_SEED.md`
+**Phase 56 planning assets:** `.planning/phases/56-shared-backoff-neutralization-and-cross-plane-retry-hygiene/56-CONTEXT.md`, `.planning/phases/56-shared-backoff-neutralization-and-cross-plane-retry-hygiene/56-RESEARCH.md`, `.planning/phases/56-shared-backoff-neutralization-and-cross-plane-retry-hygiene/56-VALIDATION.md`, `.planning/phases/56-shared-backoff-neutralization-and-cross-plane-retry-hygiene/56-01-PLAN.md`, `.planning/phases/56-shared-backoff-neutralization-and-cross-plane-retry-hygiene/56-02-PLAN.md`, `.planning/phases/56-shared-backoff-neutralization-and-cross-plane-retry-hygiene/56-03-PLAN.md`
+**Phase 56 closeout:** `.planning/phases/56-shared-backoff-neutralization-and-cross-plane-retry-hygiene/56-SUMMARY.md`, `.planning/phases/56-shared-backoff-neutralization-and-cross-plane-retry-hygiene/56-VERIFICATION.md`
+**Immediate focus after closeout:** archive `v1.9` or seed the next milestone from the updated residual ledger
+**Requirements basket:** `RES-13`, `ARC-09`, `GOV-40`
+**Next route after Phase 56:** `$gsd-complete-milestone v1.9`
 
 ## Planned Milestone (v1.8)
 
@@ -564,4 +586,4 @@ v1.1 进入执行期后，新增演进必须额外满足：
 
 - 当前 handoff / archive 输入以 `v1.6` audit + archive bundle 为最新 shipped baseline；`.planning/phases/41-full-spectrum-architecture-code-quality-and-open-source-audit/41-REMEDIATION-ROADMAP.md` 保留为 `v1.6 / Phase 42 -> 45` 的历史路由来源。phase 目录资产仍默认是执行证据，只有被 `ROADMAP.md`、baseline docs、review ledgers 或 milestone audit 显式提升时，才成为长期治理真源。
 
-*Last updated: 2026-03-21 after completing the Phase 52 closeout and promoting the current v1.8 truth*
+*Last updated: 2026-03-22 after completing Phase 56 neutral-backoff closeout and promoting the current v1.9 truth*

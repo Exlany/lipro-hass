@@ -234,3 +234,10 @@
 - `custom_components/lipro/core/anonymous_share/share_client.py` 继续是 worker transport home；`custom_components/lipro/core/anonymous_share/share_client_support.py` 只承接 token / submit-attempt / outcome mechanics，不得被讲成第二 transport story。
 - `custom_components/lipro/control/service_router.py` 继续是 diagnostics public handler home；`custom_components/lipro/services/diagnostics/helpers.py` 只保留 focused diagnostics import home 身份，而 `custom_components/lipro/services/diagnostics/helper_support.py` 只能作为 report / feedback / capability / response mechanics seam inward 使用。
 - `custom_components/lipro/core/api/request_policy.py` 继续是 `429` / busy / pacing truth 的 formal home；`custom_components/lipro/core/api/request_policy_support.py` 只允许作为 pacing/backoff support seam 存在，generic `compute_exponential_retry_wait_time()` cross-plane leak 若继续保留，必须继续在 residual ledger 显式登记。
+
+
+## Phase 56 Neutral Backoff Home Notes
+
+- `custom_components/lipro/core/utils/backoff.py` 是 neutral shared exponential-backoff primitive home；它不是新 public root、retry manager 或跨平面 strategy owner。
+- `custom_components/lipro/core/api/request_policy.py` 继续只拥有 API-local `429` / busy / pacing truth，并已停止导出 generic backoff helper。
+- `custom_components/lipro/core/command/result_policy.py`、runtime `RetryStrategy` 与 `custom_components/lipro/core/mqtt/setup_backoff.py` 只共享 neutral primitive，不共享 `RequestPolicy` ownership story。

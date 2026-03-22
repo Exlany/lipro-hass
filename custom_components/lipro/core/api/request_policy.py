@@ -14,11 +14,13 @@ from ...const.api import (
     MAX_RATE_LIMIT_RETRIES,
     MAX_RETRY_AFTER,
 )
+from ..utils.backoff import (
+    compute_exponential_retry_wait_time as _compute_exponential_retry_wait_time,
+)
 from ..utils.retry_after import parse_retry_after as _parse_retry_after_util
 from . import response_safety as _response_safety
 from .errors import LiproApiError, LiproRateLimitError
 from .request_policy_support import (
-    compute_exponential_retry_wait_time as _support_compute_exponential_retry_wait_time,
     compute_rate_limit_wait_time as _support_compute_rate_limit_wait_time,
     enforce_command_pacing_cache_limit as _support_enforce_command_pacing_cache_limit,
     is_change_state_command as _support_is_change_state_command,
@@ -166,21 +168,6 @@ def compute_rate_limit_wait_time(
         max_retry_after=max_retry_after,
     )
 
-
-def compute_exponential_retry_wait_time(
-    *,
-    retry_count: int,
-    base_delay_seconds: float,
-    max_delay_seconds: float | None = None,
-    min_delay_seconds: float = 0.1,
-) -> float:
-    """Compute one exponential retry delay with optional min/max caps."""
-    return _support_compute_exponential_retry_wait_time(
-        retry_count=retry_count,
-        base_delay_seconds=base_delay_seconds,
-        max_delay_seconds=max_delay_seconds,
-        min_delay_seconds=min_delay_seconds,
-    )
 
 
 class RequestPolicy:
@@ -345,7 +332,7 @@ class RequestPolicy:
                 if attempt >= COMMAND_BUSY_RETRY_MAX_ATTEMPTS:
                     raise
 
-                wait_time = compute_exponential_retry_wait_time(
+                wait_time = _compute_exponential_retry_wait_time(
                     retry_count=attempt,
                     base_delay_seconds=COMMAND_BUSY_RETRY_BASE_DELAY_SECONDS,
                 )
@@ -373,7 +360,6 @@ __all__ = [
     "COMMAND_BUSY_RETRY_MAX_ATTEMPTS",
     "COMMAND_PACING_CACHE_MAX_SIZE",
     "RequestPolicy",
-    "compute_exponential_retry_wait_time",
     "compute_rate_limit_wait_time",
     "enforce_command_pacing_cache_limit",
     "is_change_state_command",

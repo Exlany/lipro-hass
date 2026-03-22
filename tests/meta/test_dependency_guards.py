@@ -401,6 +401,47 @@ def test_phase_54_helper_hotspot_dependency_story_is_explicit() -> None:
     assert "explicit policy-owned pacing" in request_policy_text
 
 
+def test_phase_56_neutral_backoff_dependency_story_is_explicit() -> None:
+    dependency_text = (
+        _ROOT / ".planning" / "baseline" / "DEPENDENCY_MATRIX.md"
+    ).read_text(encoding="utf-8")
+    residual_text = (_ROOT / ".planning" / "reviews" / "RESIDUAL_LEDGER.md").read_text(
+        encoding="utf-8"
+    )
+    request_policy_text = (
+        _ROOT / "custom_components" / "lipro" / "core" / "api" / "request_policy.py"
+    ).read_text(encoding="utf-8")
+    backoff_text = (
+        _ROOT / "custom_components" / "lipro" / "core" / "utils" / "backoff.py"
+    ).read_text(encoding="utf-8")
+    result_policy_text = (
+        _ROOT / "custom_components" / "lipro" / "core" / "command" / "result_policy.py"
+    ).read_text(encoding="utf-8")
+    runtime_retry_text = (
+        _ROOT
+        / "custom_components"
+        / "lipro"
+        / "core"
+        / "coordinator"
+        / "runtime"
+        / "command"
+        / "retry.py"
+    ).read_text(encoding="utf-8")
+    mqtt_backoff_text = (
+        _ROOT / "custom_components" / "lipro" / "core" / "mqtt" / "setup_backoff.py"
+    ).read_text(encoding="utf-8")
+
+    assert "## Phase 56 Neutral Backoff Clarifications" in dependency_text
+    assert "core/utils/backoff.py" in dependency_text
+    assert "def compute_exponential_retry_wait_time" not in request_policy_text
+    assert "Neutral shared exponential backoff helpers" in backoff_text
+    assert "from ..utils.backoff import compute_exponential_retry_wait_time" in result_policy_text
+    assert "from ....utils.backoff import compute_exponential_retry_wait_time" in runtime_retry_text
+    assert "from ..utils.backoff import compute_exponential_retry_wait_time" in mqtt_backoff_text
+    assert "Generic backoff helper leak" in residual_text
+    assert "已在 Phase 56 关闭" in residual_text
+
+
 def test_phase_55_verification_and_testing_story_are_explicit() -> None:
     verification_text = (
         _ROOT / ".planning" / "baseline" / "VERIFICATION_MATRIX.md"

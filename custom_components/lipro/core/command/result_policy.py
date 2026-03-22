@@ -6,8 +6,8 @@ import asyncio
 from collections.abc import Awaitable, Callable, Mapping, Sequence
 from typing import Protocol
 
-from ..api.request_policy import compute_exponential_retry_wait_time
 from ..api.response_safety import normalize_response_code
+from ..utils.backoff import compute_exponential_retry_wait_time
 from ..utils.log_safety import safe_error_placeholder
 from ..utils.redaction import redact_identifier
 

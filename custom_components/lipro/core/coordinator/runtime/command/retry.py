@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Final
 
-from ....api.request_policy import compute_exponential_retry_wait_time
+from ....utils.backoff import compute_exponential_retry_wait_time
 
 
 class RetryStrategy:

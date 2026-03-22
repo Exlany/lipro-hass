@@ -9,7 +9,8 @@
 - ✅ **v1.5 Governance Truth Consolidation & Control-Surface Finalization** - Phase 40 shipped 2026-03-19; milestone audit: `.planning/v1.5-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_5_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.5-ROADMAP.md` / `.planning/milestones/v1.5-REQUIREMENTS.md`; local tag: `v1.5`
 - ✅ **v1.6 Delivery Trust Hardening, Runtime Boundary Decoupling & Maintainability Closure** - Phases 42-45 closed out on 2026-03-20 from the formal `41-REMEDIATION-ROADMAP.md` route; milestone audit: `.planning/v1.6-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_6_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.6-ROADMAP.md` / `.planning/milestones/v1.6-REQUIREMENTS.md`
 - ✅ **v1.7 Full-Spectrum Repository Audit, Open-Source Maturity & Remediation Routing** - Phase 46 audit executed on 2026-03-20; Phase 47 -> 50 completed on 2026-03-21 with promoted closeout evidence; formalized follow-up route complete
-- 🟢 **v1.8 Operational Continuity Automation, Formal-Root Sustainment & Hotspot Round 2** - formal milestone opened on 2026-03-21 from post-Phase-50 audit arbitration; Phases 51 -> 55 completed on 2026-03-21 with promoted closeout evidence and ready for archive / next-milestone arbitration
+- ✅ **v1.8 Operational Continuity Automation, Formal-Root Sustainment & Hotspot Round 2** - formal milestone opened on 2026-03-21 from post-Phase-50 audit arbitration; Phases 51 -> 55 completed on 2026-03-21 with promoted closeout evidence and ready for archive / next-milestone arbitration
+- 🟢 **v1.9 Shared Backoff Neutralization & Cross-Plane Retry Hygiene** - formal milestone opened on 2026-03-22 from the explicit Phase 56+ residual carry-forward; Phase 56 completed on 2026-03-22 with promoted closeout evidence and ready for milestone closeout
 
 ## Required Phase Outputs
 
@@ -324,19 +325,18 @@ Plans:
 
 ## Current Milestone
 
-### ✅ v1.5: Governance Truth Consolidation & Control-Surface Finalization
+### 🟢 v1.9: Shared Backoff Neutralization & Cross-Plane Retry Hygiene
 
-**Milestone Goal:** 在不回退 `LiproProtocolFacade` / `Coordinator` 单一正式主链、也不把 archive snapshot 误升为 active truth 的前提下，完成 governance truth layering、runtime-access read-model 与 shared service execution contract 的最终收口，并将其归档为 `v1.5` 历史基线。
+**Milestone Goal:** 在不重开第二条 root / retry-policy story 的前提下，把 generic exponential backoff primitive 从 `request_policy.py` 的跨平面 utility 泄漏中抽离，迁入 neutral shared helper home，并将 residual closeout 固化为 machine-checkable current truth。
 
-**Execution Scope:** `Phase 40`（1 phase / 7 plans）
+**Execution Scope:** `Phase 56`（1 phase / 3 plans）
 
-**Current Status:** `Phase 40` 已于 `2026-03-19` 完成执行、验证、审计与 archive promotion；归档快照已写入 `.planning/milestones/v1.5-ROADMAP.md` / `.planning/milestones/v1.5-REQUIREMENTS.md`，`V1_5_EVIDENCE_INDEX.md` 继续作为 `v1.5` 的 pull-only closeout pointer，本地 tag `v1.5` 已创建。当前默认下一步是执行 `$gsd-new-milestone`。
+**Current Status:** `Phase 56` 已于 `2026-03-22` 完成执行与验证；`custom_components/lipro/core/utils/backoff.py` 现成为 neutral shared exponential-backoff primitive home，`RequestPolicy` 只再承担 API-local `429` / busy / pacing truth，而 `command` / `runtime` / `mqtt` callers 已切断对 `request_policy.py` 的 generic helper 依赖。默认下一步是执行 `$gsd-complete-milestone v1.9`。
 
 **Milestone Outcomes:**
-1. authority precedence、archive identity、promoted phase assets 与 derived collaboration maps 已统一到单一 current story。
-2. machine-readable governance registry 已成为 continuity / release / install / support truth 的正式补充真源。
-3. `runtime_access` 已成为 control/services 的唯一 runtime read-model home。
-4. `schedule.py` 已并回 shared service execution contract，并完成 touched naming residue 收口。
+1. `Generic backoff helper leak` 已从 active residual family 转为 closed residual，且关闭理由已写回 baseline / review truth。
+2. `RequestPolicy` 的 ownership 更诚实：API policy truth 留在 API plane，neutral primitive 则进入 `core/utils/backoff.py`。
+3. `v1.9` 当前故事、promoted phase assets 与 focused meta guards 已同步收口到 `Phase 56` closeout。
 
 
 ### Phase 18: Host-Neutral Boundary Nucleus Extraction
@@ -1047,3 +1047,30 @@ Plans:
 - [x] 55-03: split light and fan platform megas into model, command, and behavior topics (completed 2026-03-21)
 - [x] 55-04: split select and switch platform megas into entity-behavior topic families (completed 2026-03-21)
 - [x] 55-05: stratify repo-wide typing metrics by production, tests, and meta-literal buckets (completed 2026-03-21)
+
+
+## v1.9: Shared Backoff Neutralization & Cross-Plane Retry Hygiene
+
+> `v1.9` 不重开大规模审阅或新架构路线，而是把 `Phase 52/54` 已显式登记的最后一条 active residual family 收口为诚实的 shared-primitive truth：generic exponential backoff 迁出 `RequestPolicy`，回到 neutral helper home。
+
+**Milestone status:** `Phase 56 complete (2026-03-22)`
+**Default next command:** `$gsd-complete-milestone v1.9`（opening phase 已完成；当前里程碑已具备 closeout 条件）
+**Seed input:** `.planning/reviews/V1_9_MILESTONE_SEED.md`
+
+### Phase 56: Shared backoff neutralization and cross-plane retry hygiene
+
+**Goal:** 把 generic exponential backoff primitive 从 `request_policy.py` 迁到 neutral shared helper home，切断 command/runtime/MQTT 对 API policy home 的跨平面 import，同时保持 `RequestPolicy` 的 API-local `429` / busy / pacing truth 不漂移。
+**Depends on:** Phase 55
+**Requirements**: [RES-13, ARC-09, GOV-40]
+**Success Criteria**:
+  1. `custom_components/lipro/core/utils/backoff.py` 成为 neutral shared exponential-backoff primitive home；`request_policy.py` 不再导出 generic helper。
+  2. `result_policy.py`、runtime `RetryStrategy` 与 `MqttSetupBackoff` 全部改从 neutral helper import primitive，但 plane-local retry semantics、caps、jitter 与 budgets 保持不变。
+  3. `.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE}.md`、baseline/review docs、promoted assets 与 focused meta guards 全部承认 residual 已在 `Phase 56` 关闭。
+**Status**: Complete (`2026-03-22`)
+**Plans**: 3/3 complete
+**Promoted closeout package**: `56-SUMMARY.md`, `56-VERIFICATION.md`
+
+Plans:
+- [x] 56-01: create a neutral shared backoff helper home without changing API policy truth (completed 2026-03-22)
+- [x] 56-02: rewire command runtime and MQTT callers to the neutral helper without changing plane semantics (completed 2026-03-22)
+- [x] 56-03: freeze residual closure in baselines review ledgers and current milestone truth (completed 2026-03-22)

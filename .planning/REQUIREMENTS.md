@@ -233,7 +233,7 @@
 - mapped to phases: 65
 - unmapped: 0 ✓
 
-*Last updated: 2026-03-21 after completing Phase 52 protocol-root/request-policy closeout and promoting the current v1.8 truth*
+*Last updated: 2026-03-22 after completing Phase 56 neutral-backoff closeout and promoting the current v1.9 truth*
 
 
 ## Archived Milestone (v1.2)
@@ -411,6 +411,32 @@
 - Current pending: 0
 - Current unmapped: 0 ✓
 
+
+
+## Planned Milestone (v1.9)
+
+> `v1.9` 以 `v1.8` promoted closeout evidence 为 immediate seed；当前重点不是重开 broad audit，而是关闭唯一明确登记到 `Phase 56+` 的 active residual family：generic backoff helper leak。
+
+### Shared Backoff Neutralization & Cross-Plane Retry Hygiene
+
+- [x] **RES-13**: generic exponential backoff primitive 必须迁到 neutral shared helper home；`request_policy.py` 不得继续充当 command/runtime/MQTT 的 cross-plane utility export。
+- [x] **ARC-09**: command-result polling、runtime command verification 与 MQTT setup backoff 只允许共享 neutral primitive；各自的 retry semantics、caps、jitter 与 budget 必须继续留在 plane-local home。
+- [x] **GOV-40**: baseline/review docs、file inventory、promoted assets 与 focused meta guards 必须显式记录 neutral backoff home 与 residual closeout truth。
+
+## Traceability for completed v1.9 route
+
+| Requirement | Planned Phase | Status |
+|-------------|---------------|--------|
+| RES-13 | Phase 56 | Complete |
+| ARC-09 | Phase 56 | Complete |
+| GOV-40 | Phase 56 | Complete |
+
+**Coverage:**
+- v1.9 routed requirements: 3 total
+- Current mapped: 3
+- Current complete: 3
+- Current pending: 0
+- Current unmapped: 0 ✓
 
 
 ## Planned Milestone (v1.8)

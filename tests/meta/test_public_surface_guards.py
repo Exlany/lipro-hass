@@ -635,7 +635,34 @@ def test_phase_54_helper_hotspot_notes_keep_single_public_homes() -> None:
     assert "share_client_support.py" in file_matrix_text
     assert "helper_support.py" in file_matrix_text
     assert "request_policy_support.py" in file_matrix_text
-    assert "Phase 56+" in residual_text
+    assert "已在 Phase 56 关闭" in residual_text
+
+
+def test_phase_56_neutral_backoff_notes_keep_request_policy_local_and_non_api_callers_off_it() -> None:
+    public_surfaces = _PUBLIC_SURFACES.read_text(encoding="utf-8")
+    file_matrix_text = (_ROOT / ".planning" / "reviews" / "FILE_MATRIX.md").read_text(
+        encoding="utf-8"
+    )
+    request_policy_text = (
+        _ROOT / "custom_components" / "lipro" / "core" / "api" / "request_policy.py"
+    ).read_text(encoding="utf-8")
+    backoff_text = (
+        _ROOT / "custom_components" / "lipro" / "core" / "utils" / "backoff.py"
+    ).read_text(encoding="utf-8")
+
+    assert "## Phase 56 Neutral Backoff Home Notes" in public_surfaces
+    assert (
+        "core/utils/backoff.py` 是 neutral shared exponential-backoff primitive home"
+        in public_surfaces
+    )
+    assert (
+        "request_policy.py` 继续只拥有 API-local `429` / busy / pacing truth"
+        in public_surfaces
+    )
+    assert "custom_components/lipro/core/utils/backoff.py" in file_matrix_text
+    assert "neutral shared exponential backoff helper home" in file_matrix_text
+    assert "def compute_exponential_retry_wait_time" not in request_policy_text
+    assert "Neutral shared exponential backoff helpers" in backoff_text
 
 
 def test_phase_55_topicized_test_matrix_tracks_thin_shells_and_named_suites() -> None:

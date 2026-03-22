@@ -156,6 +156,9 @@ phases:
   55-mega-test-topicization-round-2-and-repo-wide-typing-metric-stratification:
     - 55-SUMMARY.md
     - 55-VERIFICATION.md
+  56-shared-backoff-neutralization-and-cross-plane-retry-hygiene:
+    - 56-SUMMARY.md
+    - 56-VERIFICATION.md
 ---
 
 # Promoted Phase Assets

@@ -253,3 +253,10 @@
 - 本 phase **无新增 active kill target**；`manager_support.py`、`share_client_support.py`、`helper_support.py` 与 `request_policy_support.py` 都属于 support-only inward decomposition，不是新的 delete campaign。
 - `Generic backoff helper leak` 在本 phase 只完成了 companion formalization 与 residual honesty 冻结；它仍不是 file-level kill target，后续只允许迁往更诚实的 shared backoff home。
 
+
+
+## Phase 56 Status Update
+
+- 本 phase **无新增 active kill target**；`custom_components/lipro/core/utils/backoff.py` 是正式 neutral helper home，不是新的 delete campaign。
+- `Generic backoff helper leak` 已在 Phase 56 关闭：动作是 owner-truth 纠偏与 neutral helper migration，而不是删除 `RequestPolicy` / `RetryStrategy` / `MqttSetupBackoff` 这些 formal homes。
+- 后续若继续优化 retry semantics，只允许围绕 plane-local semantics 或 typed outcome 收敛，不能以“共享 helper”名义重新打开 file-level delete folklore。

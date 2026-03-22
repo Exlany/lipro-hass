@@ -4,9 +4,11 @@
 
 | Family | Current example | Owner phase | Residual owner | Exit condition |
 |--------|------------------|-------------|----------------|----------------|
-| `Generic backoff helper leak` | `custom_components/lipro/core/api/request_policy.py` 中的 `compute_exponential_retry_wait_time()` 仍被 `core/command/result_policy.py`、`core/coordinator/runtime/command/retry.py` 与 `core/mqtt/setup_backoff.py` 复用 | Phase 52 | Phase 56+ | Phase 54 已把 pacing/backoff mechanics inward 到 `request_policy_support.py`，但为避免在同一轮 helper-hotspot phase 扩散 cross-plane import churn，compat export 仍暂留在 `request_policy.py`；关闭前需迁入 neutral shared backoff home，且禁止新增非 API caller 继续从 `request_policy.py` 引用它。 |
+_None currently registered._
 
 ## Closed Residual Families
+
+- `Generic backoff helper leak` 已在 Phase 56 关闭：`compute_exponential_retry_wait_time()` 现已迁到 `custom_components/lipro/core/utils/backoff.py`，command/runtime/MQTT callers 不再从 `request_policy.py` 取用 generic helper，而 `RequestPolicy` 只继续拥有 API-local `429` / busy / pacing truth。
 
 - `External-boundary advisory naming` 已在 Phase 38 关闭：firmware external-boundary 现统一为 local trust-root / remote advisory 语义；历史资产文件名 `firmware_support_manifest.json` 被保留，但不再被表述成 advisory truth。
 

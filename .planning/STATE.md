@@ -1,14 +1,14 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.8
-milestone_name: Operational Continuity Automation, Formal-Root Sustainment & Hotspot Round 2
+milestone: v1.9
+milestone_name: Shared Backoff Neutralization & Cross-Plane Retry Hygiene
 status: active
-last_updated: "2026-03-21T00:00:00Z"
+last_updated: "2026-03-22T00:00:00Z"
 progress:
-  total_phases: 5
-  completed_phases: 5
-  total_plans: 18
-  completed_plans: 18
+  total_phases: 1
+  completed_phases: 1
+  total_plans: 3
+  completed_plans: 3
 ---
 
 # Project State
@@ -17,12 +17,13 @@ progress:
 
 See: `.planning/PROJECT.md`
 
-**Current milestone:** `v1.8 Operational Continuity Automation, Formal-Root Sustainment & Hotspot Round 2`
+**Current milestone:** `v1.9 Shared Backoff Neutralization & Cross-Plane Retry Hygiene`
 **Core value:** 在不回退 `LiproProtocolFacade` / `Coordinator` 单一正式主链的前提下，先把 continuity automation、governance-registry projection 与 release rehearsal resilience 变成低摩擦合同，再推进 canonical formal roots / helper hotspots / mega-tests 的 second-round sustainment。
-**Current mode:** `Phase 55 complete`；`v1.6` 仍是 latest shipped archive baseline，`v1.7` formalized follow-up route 已 completed closeout，而 `v1.8` 已把 continuity / registry / release rehearsal / protocol-root / runtime-root / helper-hotspot / mega-test / typing sustainment 全部收口为 closeout evidence。
+**Current mode:** `Phase 56 complete`；`v1.6` 仍是 latest shipped archive baseline，`v1.7` formalized follow-up route 与 `v1.8` sustainment tranche 均已 completed closeout，而 `v1.9` 已把 neutral backoff home / cross-plane retry hygiene 收口为 current promoted evidence。
 
 ## Current Position
 
+- `v1.9` 已于 `2026-03-22` 从 `.planning/reviews/V1_9_MILESTONE_SEED.md` 正式化为 current milestone，并在同日完成 opening `Phase 56`：generic exponential backoff primitive 现已迁到 `custom_components/lipro/core/utils/backoff.py`，`RequestPolicy` 不再作为 cross-plane utility export，而 baseline / review truth / meta guards 也已同步关闭 `Generic backoff helper leak` residual。
 - `v1.8` 已于 `2026-03-21` 从 `.planning/reviews/V1_8_MILESTONE_SEED.md` 正式化为 current milestone，并在同日完成 `Phase 51 -> 55` closeout：continuity drill、registry projection、verify-only release rehearsal、protocol-root/request-policy ownership freeze、runtime/entry-root throttling、helper-hotspot formalization，以及 mega-test/typing truth freeze 都已落盘为 promoted evidence；当前可进入 `$gsd-progress` / `$gsd-complete-milestone v1.8` / `$gsd-new-milestone` 仲裁。
 - `Phase 53 -> 55` 已执行完成：runtime/entry-root throttling、anonymous-share / diagnostics / request-policy helper formalization，以及 API/MQTT/platform mega-test topicization 与 repo-wide typing-bucket truth freeze 都已通过验证并形成 `53-SUMMARY.md` / `53-VERIFICATION.md`、`54-SUMMARY.md` / `54-VERIFICATION.md`、`55-SUMMARY.md` / `55-VERIFICATION.md`。
 - `v1.7` 已于 `2026-03-21` 完成 closeout：`Phase 46` audit package 与 `Phase 47 -> 50` promoted closeout evidence 继续构成 post-archive follow-up truth，但不再是 active milestone。
@@ -146,25 +147,23 @@ See: `.planning/PROJECT.md`
 
 ## Current Milestone Status
 
-- **Milestone:** `v1.8 Operational Continuity Automation, Formal-Root Sustainment & Hotspot Round 2`
-- **Phase range:** `51 -> 55`
-- **Completed so far:** `Phase 55 complete`（`2026-03-21` 已完成 continuity / registry / release rehearsal、protocol-root / request-policy isolation、runtime / entry-root throttling、helper-hotspot formalization，以及 mega-test / typing truth freeze，并生成 `51-SUMMARY.md` / `51-VERIFICATION.md` 至 `55-SUMMARY.md` / `55-VERIFICATION.md`）
-- **Planned next:** `$gsd-complete-milestone v1.8`（若要先归档当前里程碑）；`$gsd-new-milestone`（若要直接基于已完成证据种下下一里程碑）
-- **Starting baseline:** `v1.6` archive assets remain authoritative shipped snapshots: `.planning/v1.6-MILESTONE-AUDIT.md`, `.planning/reviews/V1_6_EVIDENCE_INDEX.md`, `.planning/milestones/v1.6-ROADMAP.md`, `.planning/milestones/v1.6-REQUIREMENTS.md`
-- **Closeout evidence source:** `.planning/phases/46-exhaustive-repository-audit-standards-conformance-and-remediation-routing/46-AUDIT.md`, `.planning/phases/51-continuity-automation-governance-registry-projection-and-release-rehearsal-hardening/51-SUMMARY.md`, `.planning/phases/51-continuity-automation-governance-registry-projection-and-release-rehearsal-hardening/51-VERIFICATION.md`, `.planning/phases/52-protocol-root-second-round-slimming-and-request-policy-isolation/52-SUMMARY.md`, `.planning/phases/52-protocol-root-second-round-slimming-and-request-policy-isolation/52-VERIFICATION.md`, `.planning/phases/53-runtime-and-entry-root-second-round-throttling/53-SUMMARY.md`, `.planning/phases/53-runtime-and-entry-root-second-round-throttling/53-VERIFICATION.md`, `.planning/phases/54-helper-hotspot-formalization-for-anonymous-share-and-diagnostics-helper-families/54-SUMMARY.md`, `.planning/phases/54-helper-hotspot-formalization-for-anonymous-share-and-diagnostics-helper-families/54-VERIFICATION.md`, `.planning/phases/55-mega-test-topicization-round-2-and-repo-wide-typing-metric-stratification/55-SUMMARY.md`, `.planning/phases/55-mega-test-topicization-round-2-and-repo-wide-typing-metric-stratification/55-VERIFICATION.md`
-- **Route seed:** `.planning/reviews/V1_8_MILESTONE_SEED.md`
+- **Milestone:** `v1.9 Shared Backoff Neutralization & Cross-Plane Retry Hygiene`
+- **Phase range:** `56`
+- **Completed so far:** `Phase 56 complete`（`2026-03-22` 已完成 neutral helper home / cross-plane import cleanup / residual-governance closeout，并生成 `56-SUMMARY.md` / `56-VERIFICATION.md`）
+- **Planned next:** `$gsd-complete-milestone v1.9`（若要先归档当前 milestone）；`$gsd-new-milestone`（若要直接以已关闭 residual truth 种出下一里程碑）
+- **Starting baseline:** `v1.6` archive assets remain authoritative shipped snapshots，`v1.8` closeout evidence remains the immediate sustainment baseline
+- **Closeout evidence source:** `.planning/phases/56-shared-backoff-neutralization-and-cross-plane-retry-hygiene/56-SUMMARY.md`, `.planning/phases/56-shared-backoff-neutralization-and-cross-plane-retry-hygiene/56-VERIFICATION.md`
+- **Route seed:** `.planning/reviews/V1_9_MILESTONE_SEED.md`
 - **Historical archives:** `.planning/milestones/v1.1-ROADMAP.md`, `.planning/milestones/v1.1-REQUIREMENTS.md`, `.planning/milestones/v1.2-ROADMAP.md`, `.planning/milestones/v1.2-REQUIREMENTS.md`, `.planning/milestones/v1.4-ROADMAP.md`, `.planning/milestones/v1.4-REQUIREMENTS.md`, `.planning/milestones/v1.5-ROADMAP.md`, `.planning/milestones/v1.5-REQUIREMENTS.md`, `.planning/milestones/v1.6-ROADMAP.md`, `.planning/milestones/v1.6-REQUIREMENTS.md`
-- **Next focus:** `$gsd-progress`——查看已完成的 `v1.8` route，并决定执行 `$gsd-complete-milestone v1.8` 还是 `$gsd-new-milestone`。
+- **Next focus:** `$gsd-complete-milestone v1.9`——归档当前单相位里程碑，或基于已清理的 residual truth 继续种下一里程碑。
 
 ## Recommended Next Command
 
-1. `$gsd-progress` —— 查看 `v1.8` completed route、promoted closeout evidence 与下一步仲裁
-2. `$gsd-complete-milestone v1.8` —— 若要先把当前 milestone 正式归档 / closeout
-3. `$gsd-new-milestone` —— 若要直接从 `v1.8` completed evidence 种出下一 milestone
-4. `uv run pytest -q tests/core/api/test_api_command_surface*.py tests/core/mqtt/test_transport_runtime*.py tests/platforms/test_light*.py tests/platforms/test_fan*.py tests/platforms/test_select*.py tests/platforms/test_switch*.py tests/meta/test_phase31_runtime_budget_guards.py tests/meta/test_phase45_hotspot_budget_guards.py tests/meta/test_phase50_rest_typed_budget_guards.py tests/meta/test_public_surface_guards.py tests/meta/test_dependency_guards.py` —— 复核 `Phase 55` closeout truth
-5. `uv run ruff check . && uv run mypy` —— 复核静态质量基线
-
-**Historical launch pointer:** `$gsd-execute-phase 29`
+1. `$gsd-complete-milestone v1.9` —— 归档当前里程碑并冻结 `Phase 56` closeout truth
+2. `$gsd-progress` —— 查看更新后的 `v1.9` current route 与 promoted evidence
+3. `$gsd-new-milestone` —— 若要直接基于已关闭 residual 种出下一里程碑
+4. `uv run pytest -q tests/core/api/test_api_request_policy.py tests/core/mqtt/test_mqtt_backoff.py tests/core/test_command_result.py tests/meta/test_public_surface_guards.py tests/meta/test_dependency_guards.py tests/meta/test_governance_followup_route.py tests/meta/test_governance_phase_history.py tests/meta/test_governance_guards.py` —— 复核 `Phase 56` closeout truth
+5. `uv run ruff check . && uv run python scripts/check_file_matrix.py --check` —— 复核静态质量与 file-matrix 基线
 
 ## Session Continuity
 
@@ -174,23 +173,14 @@ If resuming, read in this order:
 3. `.planning/ROADMAP.md`
 4. `.planning/REQUIREMENTS.md`
 5. `.planning/STATE.md`
-6. `.planning/reviews/V1_8_MILESTONE_SEED.md`
-7. `.planning/phases/52-protocol-root-second-round-slimming-and-request-policy-isolation/52-SUMMARY.md`
-8. `.planning/phases/52-protocol-root-second-round-slimming-and-request-policy-isolation/52-VERIFICATION.md`
-9. `.planning/phases/52-protocol-root-second-round-slimming-and-request-policy-isolation/52-VALIDATION.md`
-10. `.planning/phases/52-protocol-root-second-round-slimming-and-request-policy-isolation/52-CONTEXT.md`
-11. `.planning/phases/52-protocol-root-second-round-slimming-and-request-policy-isolation/52-RESEARCH.md`
-12. `.planning/phases/52-protocol-root-second-round-slimming-and-request-policy-isolation/52-01-PLAN.md`
-13. `.planning/phases/52-protocol-root-second-round-slimming-and-request-policy-isolation/52-02-PLAN.md`
-14. `.planning/phases/52-protocol-root-second-round-slimming-and-request-policy-isolation/52-03-PLAN.md`
-15. `.planning/phases/51-continuity-automation-governance-registry-projection-and-release-rehearsal-hardening/51-SUMMARY.md`
-16. `.planning/phases/51-continuity-automation-governance-registry-projection-and-release-rehearsal-hardening/51-VERIFICATION.md`
-17. `.planning/phases/51-continuity-automation-governance-registry-projection-and-release-rehearsal-hardening/51-VALIDATION.md`
-18. `.planning/phases/51-continuity-automation-governance-registry-projection-and-release-rehearsal-hardening/51-CONTEXT.md`
-19. `.planning/phases/51-continuity-automation-governance-registry-projection-and-release-rehearsal-hardening/51-RESEARCH.md`
-20. `.planning/phases/51-continuity-automation-governance-registry-projection-and-release-rehearsal-hardening/51-01-PLAN.md`
-21. `.planning/phases/51-continuity-automation-governance-registry-projection-and-release-rehearsal-hardening/51-02-PLAN.md`
-22. `.planning/phases/51-continuity-automation-governance-registry-projection-and-release-rehearsal-hardening/51-03-PLAN.md`
-23. `.planning/phases/50-rest-typed-surface-reduction-and-command-result-ownership-convergence/50-SUMMARY.md`
-24. `.planning/phases/50-rest-typed-surface-reduction-and-command-result-ownership-convergence/50-VERIFICATION.md`
-
+6. `.planning/reviews/V1_9_MILESTONE_SEED.md`
+7. `.planning/phases/56-shared-backoff-neutralization-and-cross-plane-retry-hygiene/56-CONTEXT.md`
+8. `.planning/phases/56-shared-backoff-neutralization-and-cross-plane-retry-hygiene/56-RESEARCH.md`
+9. `.planning/phases/56-shared-backoff-neutralization-and-cross-plane-retry-hygiene/56-VALIDATION.md`
+10. `.planning/phases/56-shared-backoff-neutralization-and-cross-plane-retry-hygiene/56-01-PLAN.md`
+11. `.planning/phases/56-shared-backoff-neutralization-and-cross-plane-retry-hygiene/56-02-PLAN.md`
+12. `.planning/phases/56-shared-backoff-neutralization-and-cross-plane-retry-hygiene/56-03-PLAN.md`
+13. `.planning/phases/56-shared-backoff-neutralization-and-cross-plane-retry-hygiene/56-SUMMARY.md`
+14. `.planning/phases/56-shared-backoff-neutralization-and-cross-plane-retry-hygiene/56-VERIFICATION.md`
+15. `.planning/phases/55-mega-test-topicization-round-2-and-repo-wide-typing-metric-stratification/55-SUMMARY.md`
+16. `.planning/phases/55-mega-test-topicization-round-2-and-repo-wide-typing-metric-stratification/55-VERIFICATION.md`

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 
-from ..api.request_policy import compute_exponential_retry_wait_time
+from ..utils.backoff import compute_exponential_retry_wait_time
 
 
 def _zero_jitter() -> float:

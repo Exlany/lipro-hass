@@ -436,6 +436,13 @@ OVERRIDES: dict[str, FileGovernanceRow] = {
         fate="重构",
         residual="REST auth-recovery collaborator home",
     ),
+    "custom_components/lipro/core/utils/backoff.py": FileGovernanceRow(
+        path="custom_components/lipro/core/utils/backoff.py",
+        area="Cross-cutting",
+        owner_phase="Phase 56",
+        fate="保留",
+        residual="neutral shared exponential backoff helper home",
+    ),
     "custom_components/lipro/core/api/session_state.py": FileGovernanceRow(
         path="custom_components/lipro/core/api/session_state.py",
         area="Protocol",

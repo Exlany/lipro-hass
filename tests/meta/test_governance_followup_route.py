@@ -327,7 +327,7 @@ def test_phase_38_planning_truth_is_consistent() -> None:
     _assert_project_allows_post_v1_4_next_step(project_text)
     _assert_state_reflects_post_v1_4_continuation(state_text)
     _assert_state_keeps_forward_progress_commands(state_text)
-    assert "| `Generic backoff helper leak` |" in residual_text
+    assert "`Generic backoff helper leak` 已在 Phase 56 关闭" in residual_text
     assert "## Phase 38 Residual Delta" in residual_text
     assert "## Phase 38 Residual Delta" in residual_text
 
@@ -491,7 +491,7 @@ def test_phase_46_audit_truth_is_consistent() -> None:
 
 
 
-def test_v1_8_milestone_planning_truth_is_consistent() -> None:
+def test_v1_8_closeout_and_v1_9_current_milestone_truth_are_consistent() -> None:
     roadmap_text = (_ROOT / ".planning" / "ROADMAP.md").read_text(encoding="utf-8")
     requirements_text = (_ROOT / ".planning" / "REQUIREMENTS.md").read_text(
         encoding="utf-8"
@@ -502,12 +502,6 @@ def test_v1_8_milestone_planning_truth_is_consistent() -> None:
     assert "## v1.8: Operational Continuity Automation, Formal-Root Sustainment & Hotspot Round 2" in roadmap_text
     assert "**Milestone status:** `Phase 51 -> 55 complete (2026-03-21)`" in roadmap_text
     assert "**Default next command:** `$gsd-progress`" in roadmap_text
-    assert "### Phase 51: Continuity automation, governance-registry projection, and release rehearsal hardening" in roadmap_text
-    assert "**Status**: Complete (`2026-03-21`)" in roadmap_text
-    assert "**Plans**: 3/3 complete" in roadmap_text
-    assert "**Promoted closeout package**: `51-SUMMARY.md`, `51-VERIFICATION.md`" in roadmap_text
-    assert "### Phase 52: Protocol-root second-round slimming and request-policy isolation" in roadmap_text
-    assert "**Promoted closeout package**: `52-SUMMARY.md`, `52-VERIFICATION.md`" in roadmap_text
     assert "### Phase 55: Mega-test topicization round 2 and repo-wide typing-metric stratification" in roadmap_text
 
     for needle in (
@@ -520,31 +514,41 @@ def test_v1_8_milestone_planning_truth_is_consistent() -> None:
         "- [x] **TST-10**",
         "- [x] **TYP-13**",
         "| GOV-38 | Phase 51 | Complete |",
-        "| GOV-39 | Phase 51 | Complete |",
-        "| QLT-18 | Phase 51 | Complete |",
-        "| ARC-08 | Phase 52 | Complete |",
-        "| HOT-12 | Phase 53 | Complete |",
-        "| HOT-13 | Phase 54 | Complete |",
-        "| TST-10 | Phase 55 | Complete |",
         "| TYP-13 | Phase 55 | Complete |",
         "- v1.8 routed requirements: 8 total",
-        "- Current mapped: 8",
-        "- Current complete: 8",
+    ):
+        assert needle in requirements_text
+
+    assert "## v1.9: Shared Backoff Neutralization & Cross-Plane Retry Hygiene" in roadmap_text
+    assert "**Milestone status:** `Phase 56 complete (2026-03-22)`" in roadmap_text
+    assert "**Default next command:** `$gsd-complete-milestone v1.9`" in roadmap_text
+    assert "### Phase 56: Shared backoff neutralization and cross-plane retry hygiene" in roadmap_text
+    assert "**Plans**: 3/3 complete" in roadmap_text
+    assert "**Promoted closeout package**: `56-SUMMARY.md`, `56-VERIFICATION.md`" in roadmap_text
+
+    for needle in (
+        "- [x] **RES-13**",
+        "- [x] **ARC-09**",
+        "- [x] **GOV-40**",
+        "| RES-13 | Phase 56 | Complete |",
+        "| ARC-09 | Phase 56 | Complete |",
+        "| GOV-40 | Phase 56 | Complete |",
+        "- v1.9 routed requirements: 3 total",
+        "- Current mapped: 3",
+        "- Current complete: 3",
         "- Current pending: 0",
     ):
         assert needle in requirements_text
 
     assert "## Planned Milestone (v1.8)" in project_text
-    assert "**Current status:** `Phase 51 -> 55 complete (2026-03-21)`" in project_text
-    assert "**Phase 51 closeout:** `.planning/phases/51-continuity-automation-governance-registry-projection-and-release-rehearsal-hardening/51-SUMMARY.md`, `.planning/phases/51-continuity-automation-governance-registry-projection-and-release-rehearsal-hardening/51-VERIFICATION.md`" in project_text
-    assert "**Phase 52 closeout:** `.planning/phases/52-protocol-root-second-round-slimming-and-request-policy-isolation/52-SUMMARY.md`, `.planning/phases/52-protocol-root-second-round-slimming-and-request-policy-isolation/52-VERIFICATION.md`" in project_text
-    assert ".planning/phases/51-continuity-automation-governance-registry-projection-and-release-rehearsal-hardening/51-01-PLAN.md" in project_text
-    assert ".planning/phases/51-continuity-automation-governance-registry-projection-and-release-rehearsal-hardening/51-02-PLAN.md" in project_text
-    assert ".planning/phases/51-continuity-automation-governance-registry-projection-and-release-rehearsal-hardening/51-03-PLAN.md" in project_text
-    assert "$gsd-new-milestone" in project_text
+    assert "## Planned Milestone (v1.9)" in project_text
+    assert "**Current status:** `Phase 56 complete (2026-03-22)`" in project_text
+    assert ".planning/reviews/V1_9_MILESTONE_SEED.md" in project_text
+    assert ".planning/phases/56-shared-backoff-neutralization-and-cross-plane-retry-hygiene/56-01-PLAN.md" in project_text
+    assert ".planning/phases/56-shared-backoff-neutralization-and-cross-plane-retry-hygiene/56-SUMMARY.md" in project_text
+    assert "$gsd-complete-milestone v1.9" in project_text
 
-    assert "**Current milestone:** `v1.8 Operational Continuity Automation, Formal-Root Sustainment & Hotspot Round 2`" in state_text
-    assert "**Current mode:** `Phase 55 complete`" in state_text
-    assert "$gsd-progress" in state_text
-    assert ".planning/phases/52-protocol-root-second-round-slimming-and-request-policy-isolation/52-SUMMARY.md" in state_text
-    assert ".planning/reviews/V1_8_MILESTONE_SEED.md" in state_text
+    assert "**Current milestone:** `v1.9 Shared Backoff Neutralization & Cross-Plane Retry Hygiene`" in state_text
+    assert "**Current mode:** `Phase 56 complete`" in state_text
+    assert "$gsd-complete-milestone v1.9" in state_text
+    assert ".planning/reviews/V1_9_MILESTONE_SEED.md" in state_text
