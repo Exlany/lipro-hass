@@ -1,8 +1,8 @@
 # Project: Lipro-HASS North Star Evolution
 
-**Status:** Shipped and archived — `v1.6` 仍是最新已发货真源；`v1.7` formalized follow-up route `Phase 46 -> 50` 已于 `2026-03-21` 完成 closeout；`v1.8` 已完成 `Phase 51 -> 55` closeout；`v1.9` 已完成单相位 residual closeout；`v1.10` 已完成 scoped command-result hardening 并保持 closeout-ready，而 `v1.11` 已完成 refreshed audit opening phase，当前处于 closeout-ready。
+**Status:** Shipped and archived — `v1.6` 仍是最新已发货真源；`v1.7` formalized follow-up route `Phase 46 -> 50` 已于 `2026-03-21` 完成 closeout；`v1.8` 已完成 `Phase 51 -> 55` closeout；`v1.9` 已完成单相位 residual closeout；`v1.10` 与 `v1.11` 均保持 closeout-ready，而 `v1.12` 已承接 refreshed audit route 进入 `Phase 59` planning-ready。
 **Goal:** 以 `v1.6` 归档真相为最新已发货基线；后续路线必须建立在 `v1.7` promoted audit/closeout evidence 与正式 milestone docs 之上，不回流 `Phase 41` execution trace、conversation-only 结论或旧 archived story。
-**Default next step:** `$gsd-complete-milestone v1.11`
+**Default next step:** `$gsd-execute-phase 59`
 
 
 ## Archived Milestone (v1.6)
@@ -22,6 +22,28 @@
 **Current status:** `Phase 42 -> 45 archived / evidence-ready`（`16/16` 个执行 plans 已完成，`.planning/v1.6-MILESTONE-AUDIT.md`、`.planning/reviews/V1_6_EVIDENCE_INDEX.md`、`.planning/milestones/v1.6-ROADMAP.md` 与 `.planning/milestones/v1.6-REQUIREMENTS.md` 已落盘；next action is `$gsd-new-milestone`）
 **Archive assets:** `.planning/v1.6-MILESTONE-AUDIT.md`, `.planning/reviews/V1_6_EVIDENCE_INDEX.md`, `.planning/milestones/v1.6-ROADMAP.md`, `.planning/milestones/v1.6-REQUIREMENTS.md`, `.planning/phases/45-hotspot-decomposition-and-typed-failure-semantics/45-SUMMARY.md`, `.planning/phases/45-hotspot-decomposition-and-typed-failure-semantics/45-VERIFICATION.md`
 **Primary closeout targets:** delivery trust hardening、typed runtime read-model、control/services decoupling、governance asset pruning、terminology convergence、hotspot decomposition、typed failure semantics。
+
+## Planned Milestone (v1.12)
+
+**Name:** `v1.12 Verification Localization & Governance Guard Topicization`
+
+**Why now:** `Phase 58` 已经把全仓 refreshed audit 与 `Phase 59+` remediation route 固化为 current truth；下一步最高杠杆工作不再是重做 broad audit，也不是马上拆 `Phase 60` tooling hotspot，而是先把 megaguards / megasuites 的 failure radius 缩小，让后续整改能在更窄、更诚实的验证边界上推进。
+
+**North-star fit:** `v1.12` 继续沿单一正式主链推进：
+
+- 不新增 public surface / second helper root / second governance story
+- 只沿现有 verification truth seams topicize meta guards 与 core mega suite
+- 先降低 failure localization 半径，再进入更重的 tooling 或 production hotspot surgery
+- 所有 test/topic split 都必须同步回 current-story docs 与 verification truth，而不是停留在 conversation-only 建议
+
+**Phase range:** `Phase 59`
+**Current status:** `Phase 59 planning-ready (2026-03-22)`（`59-PRD / CONTEXT / RESEARCH / VALIDATION / 01-03 PLAN` 已落盘，等待执行）
+**Seed input:** `.planning/reviews/V1_12_MILESTONE_SEED.md`
+**Phase 59 PRD:** `.planning/phases/59-verification-localization-and-governance-guard-topicization/59-PRD.md`
+**Phase 59 planning assets:** `.planning/phases/59-verification-localization-and-governance-guard-topicization/59-CONTEXT.md`, `.planning/phases/59-verification-localization-and-governance-guard-topicization/59-RESEARCH.md`, `.planning/phases/59-verification-localization-and-governance-guard-topicization/59-VALIDATION.md`, `.planning/phases/59-verification-localization-and-governance-guard-topicization/59-01-PLAN.md`, `.planning/phases/59-verification-localization-and-governance-guard-topicization/59-02-PLAN.md`, `.planning/phases/59-verification-localization-and-governance-guard-topicization/59-03-PLAN.md`
+**Requirements basket:** `TST-11`, `QLT-19`, `GOV-43`
+**Immediate focus after planning:** execute `Phase 59`，把大守卫 / 大套件 topicize 成更窄的 verification topology
+**Next route after Phase 59:** `$gsd-execute-phase 59`
 
 ## Planned Milestone (v1.11)
 

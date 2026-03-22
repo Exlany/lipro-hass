@@ -11,7 +11,8 @@
 - ✅ **v1.7 Full-Spectrum Repository Audit, Open-Source Maturity & Remediation Routing** - Phase 46 audit executed on 2026-03-20; Phase 47 -> 50 completed on 2026-03-21 with promoted closeout evidence; formalized follow-up route complete
 - ✅ **v1.8 Operational Continuity Automation, Formal-Root Sustainment & Hotspot Round 2** - formal milestone opened on 2026-03-21 from post-Phase-50 audit arbitration; Phases 51 -> 55 completed on 2026-03-21 with promoted closeout evidence and ready for archive / next-milestone arbitration
 - ✅ **v1.9 Shared Backoff Neutralization & Cross-Plane Retry Hygiene** - formal milestone opened on 2026-03-22 from the explicit Phase 56+ residual carry-forward; Phase 56 completed on 2026-03-22 with promoted closeout evidence and now serves as the closeout-ready seed baseline for v1.10
-- 🟢 **v1.11 Repository Audit Refresh & Next-Wave Remediation Routing** - formal milestone opened on 2026-03-22 from the renewed full-repository audit request; Phase 58 completed on 2026-03-22 with refreshed repo-wide audit evidence and the milestone is now closeout-ready
+- 🟢 **v1.12 Verification Localization & Governance Guard Topicization** - formal milestone opened on 2026-03-22 from the `Phase 58` remediation route; `Phase 59` planning assets completed on 2026-03-22 and the tranche is now execution-ready
+- ✅ **v1.11 Repository Audit Refresh & Next-Wave Remediation Routing** - formal milestone opened on 2026-03-22 from the renewed full-repository audit request; Phase 58 completed on 2026-03-22 with refreshed repo-wide audit evidence and now serves as the closeout-ready seed baseline for v1.12
 - ✅ **v1.10 Command-Result Typed Outcome & Reason-Code Hardening** - formal milestone opened on 2026-03-22 from the Phase 56 deferred follow-up route; Phase 57 completed on 2026-03-22 with promoted closeout evidence and now serves as the closeout-ready seed baseline for v1.11
 
 ## Required Phase Outputs
@@ -1128,4 +1129,30 @@ Plans:
 - [x] 58-01: refresh the architecture and code audit with file-level current-state evidence (completed 2026-03-22)
 - [x] 58-02: refresh governance and open-source audit, then synthesize the next-wave remediation route (completed 2026-03-22)
 - [x] 58-03: freeze `v1.11 / Phase 58` in current-story docs, guards, and promoted evidence (completed 2026-03-22)
+
+## v1.12: Verification Localization & Governance Guard Topicization
+
+> `v1.12` 承接 `Phase 58` 的 refreshed route，但不直接跳进 `Phase 60` 的 tooling surgery。先把 megaguards / megasuites topicize 成更窄、更诚实的 failure-localization topology，后续 remediation 才不会继续建立在 giant verification buckets 上。
+
+**Milestone status:** `Phase 59 planning-ready (2026-03-22)`
+**Default next command:** `$gsd-execute-phase 59`（planning assets 与 validation contract 已就绪）
+**Seed input:** `.planning/reviews/V1_12_MILESTONE_SEED.md`
+
+### Phase 59: Verification localization and governance guard topicization
+
+**Goal:** 把 public-surface / governance-history / follow-up-route megaguards 与 `test_device_refresh.py` topicize 成按 truth-family / concern boundary 划分的更窄套件，同时把新的 runnable topology 冻结回 verification / governance docs。
+**Depends on:** Phase 58
+**Requirements**: [TST-11, QLT-19, GOV-43]
+**Success Criteria**:
+  1. `tests/meta/test_public_surface_guards.py`、`tests/meta/test_governance_phase_history.py`、`tests/meta/test_governance_followup_route.py` 与 `tests/core/test_device_refresh.py` 按稳定 concern boundary topicize，failure radius 明显缩小。
+  2. topicization 只沿现有 truth seams inward 推进，不新增新的 helper root、duplicate truth file 或 second governance story。
+  3. `.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE}.md` 与 verification-related truth docs 记录新的 localized suite topology、focused commands 与 no-growth contract。
+**Status**: Planning-ready (`2026-03-22`)
+**Plans**: 3 prepared
+**Planning package**: `59-PRD.md`, `59-CONTEXT.md`, `59-RESEARCH.md`, `59-VALIDATION.md`, `59-01-PLAN.md`, `59-02-PLAN.md`, `59-03-PLAN.md`
+
+Plans:
+- [ ] 59-01: topicize governance and public-surface meta guards by stable truth family
+- [ ] 59-02: split `test_device_refresh.py` by config parsing, filter semantics, and runtime behavior concerns
+- [ ] 59-03: freeze localized verification topology in matrices, current-story docs, and focused follow-up guards
 

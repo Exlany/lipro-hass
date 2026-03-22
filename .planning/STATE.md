@@ -1,14 +1,14 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.11
-milestone_name: Repository Audit Refresh & Next-Wave Remediation Routing
+milestone: v1.12
+milestone_name: Verification Localization & Governance Guard Topicization
 status: active
 last_updated: "2026-03-22T00:00:00Z"
 progress:
   total_phases: 1
-  completed_phases: 1
+  completed_phases: 0
   total_plans: 3
-  completed_plans: 3
+  completed_plans: 0
 ---
 
 # Project State
@@ -17,116 +17,24 @@ progress:
 
 See: `.planning/PROJECT.md`
 
-**Current milestone:** `v1.11 Repository Audit Refresh & Next-Wave Remediation Routing`
-**Core value:** 以当前仓库真相为准，重新审视所有 Python / docs / config / governance surfaces，把 refreshed audit 结论转成正式 remediation route，而不是继续依赖旧审计快照。
-**Current mode:** `Phase 58 complete`；`v1.6` 仍是 latest shipped archive baseline，`v1.7` / `v1.8` / `v1.9` 均已 completed closeout，`v1.10` 已完成 scoped command-result hardening 并保持 closeout-ready，而 `v1.11` 已把 refreshed audit verdict 收口为 current promoted evidence。
+**Current milestone:** `v1.12 Verification Localization & Governance Guard Topicization`
+**Core value:** 先把 giant verification buckets topicize 成更窄、更诚实的 runnable topology，让后续 remediation 建立在低噪声验证边界上，而不是继续依赖 broad suites。
+**Current mode:** `Phase 59 planning-ready`；`v1.6` 仍是 latest shipped archive baseline，`v1.10` / `v1.11` 保持 closeout-ready，而 `v1.12` 已作为当前 remediation tranche 进入 execution-ready planning 状态。
 
 ## Current Position
 
-- `v1.11` 已于 `2026-03-22` 从 `.planning/reviews/V1_11_MILESTONE_SEED.md` 正式化为 current milestone，并在同日完成 opening `Phase 58`：refreshed architecture/code audit、governance/open-source audit、`Phase 59+` remediation roadmap 与 current-story truth freeze 均已落盘。
-- `v1.10` 已于 `2026-03-22` 从 `.planning/reviews/V1_10_MILESTONE_SEED.md` 正式化为 prior closeout-ready milestone，并在同日完成 opening `Phase 57`：`custom_components/lipro/core/command/result_policy.py` / `result.py` 现已共享 typed command-result state / verification / failure-reason contract，runtime sender 与 diagnostics `query_command_result` response typing 不再依赖 scattered literals，而 baseline / review truth / meta guards 也已同步冻结 `Phase 57` closeout。
-- `v1.9` 已于 `2026-03-22` 从 `.planning/reviews/V1_9_MILESTONE_SEED.md` 正式化为 current milestone，并在同日完成 opening `Phase 56`：generic exponential backoff primitive 现已迁到 `custom_components/lipro/core/utils/backoff.py`，`RequestPolicy` 不再作为 cross-plane utility export，而 baseline / review truth / meta guards 也已同步关闭 `Generic backoff helper leak` residual。
-- `v1.8` 已于 `2026-03-21` 从 `.planning/reviews/V1_8_MILESTONE_SEED.md` 正式化为 current milestone，并在同日完成 `Phase 51 -> 55` closeout：continuity drill、registry projection、verify-only release rehearsal、protocol-root/request-policy ownership freeze、runtime/entry-root throttling、helper-hotspot formalization，以及 mega-test/typing truth freeze 都已落盘为 promoted evidence；当前可进入 `$gsd-progress` / `$gsd-complete-milestone v1.8` / `$gsd-new-milestone` 仲裁。
-- `Phase 53 -> 55` 已执行完成：runtime/entry-root throttling、anonymous-share / diagnostics / request-policy helper formalization，以及 API/MQTT/platform mega-test topicization 与 repo-wide typing-bucket truth freeze 都已通过验证并形成 `53-SUMMARY.md` / `53-VERIFICATION.md`、`54-SUMMARY.md` / `54-VERIFICATION.md`、`55-SUMMARY.md` / `55-VERIFICATION.md`。
+- `v1.12` 已于 `2026-03-22` 从 `.planning/reviews/V1_12_MILESTONE_SEED.md` 正式化为 current milestone，并在同日完成 `Phase 59` planning package：`59-PRD.md`、`59-CONTEXT.md`、`59-RESEARCH.md`、`59-VALIDATION.md` 与 `59-01 -> 59-03 PLAN` 已全部落盘；下一步是 `$gsd-execute-phase 59`。
+- `v1.11` 已于 `2026-03-22` 完成 opening `Phase 58`：refreshed architecture/code audit、governance/open-source audit、`Phase 59+` remediation roadmap 与 current-story truth freeze 均已落盘；它现在作为 `v1.12` 的 closeout-ready seed baseline 保留。
+- `v1.10` 已于 `2026-03-22` 完成 opening `Phase 57`：typed command-result state / reason-code truth 已与 runtime sender、diagnostics query consumer 与 governance truth 对齐；当前保持 prior closeout-ready milestone 身份。
+- `v1.9` 已于 `2026-03-22` 完成 opening `Phase 56`：generic exponential backoff primitive 已迁往 neutral helper home，并关闭 `Generic backoff helper leak` residual。
+- `v1.8` 已于 `2026-03-21` 完成 `Phase 51 -> 55` closeout：continuity drill、registry projection、verify-only release rehearsal、formal-root sustainment、helper-hotspot formalization 与 mega-test/typing truth freeze 均已形成 promoted evidence。
 - `v1.7` 已于 `2026-03-21` 完成 closeout：`Phase 46` audit package 与 `Phase 47 -> 50` promoted closeout evidence 继续构成 post-archive follow-up truth，但不再是 active milestone。
 - `v1.6` 已完成 milestone audit、archive promotion 与 closeout evidence registration：`.planning/v1.6-MILESTONE-AUDIT.md`、`.planning/reviews/V1_6_EVIDENCE_INDEX.md`、`.planning/milestones/v1.6-ROADMAP.md` 与 `.planning/milestones/v1.6-REQUIREMENTS.md` 继续作为最新 shipped archive baseline。
 - `v1.5` 仍保留为上一个 shipped archive baseline：`.planning/v1.5-MILESTONE-AUDIT.md`、`.planning/reviews/V1_5_EVIDENCE_INDEX.md` 与 `.planning/milestones/v1.5-*.md` 继续承担历史追溯 / continuity 身份，不再充当 latest pointer。
-- `Phase 41` 全仓审计已完成，并把 remediation 结论固化到 `.planning/phases/41-full-spectrum-architecture-code-quality-and-open-source-audit/41-REMEDIATION-ROADMAP.md`；该资产保持 execution trace 身份，不直接充当 active truth。
-- `Phase 46` 已于 `2026-03-20` 执行完成：file-level inventory、architecture/code audit、docs/toolchain/governance audit、master audit、score matrix、remediation roadmap、summary 与 verification 均已落盘；active shipped baseline 仍保持 `v1.6 archived`，而 follow-up route source 已切换到 `46-REMEDIATION-ROADMAP.md`。
-- `Phase 47` 已于 `2026-03-21` 执行完成：continuity contract、docs index、tooling discoverability、tagged-signature identity 与 verification-matrix drift guard 已收口，并形成 `47-SUMMARY.md` / `47-VERIFICATION.md` closeout evidence。
-- `Phase 48` 已于 `2026-03-21` 执行完成：runtime-access support-only helper topicization、Coordinator update-cycle inward delegation、lazy root adapter alias seam 与 lifecycle-state cleanup helper 均已收口，并形成 `48-SUMMARY.md` / `48-VERIFICATION.md` closeout evidence。
-- `Phase 47 -> 50` 已从 `46-REMEDIATION-ROADMAP.md` 正式化到 `.planning/ROADMAP.md` 与 `.planning/REQUIREMENTS.md`；`Phase 47 -> 50` 均已于 `2026-03-21` 完成并通过守卫验证，formalized v1.7 follow-up route 已闭环。
-- `v1.0` 已归档到 `.planning/MILESTONES.md` 与 `.planning/milestones/v1.0-*.md`
-- `v1.1` 已完成全部计划执行：`15 phases / 58 plans` 全绿落表
-- `v1.1` / `v1.2` 的 roadmap / requirements archive snapshots 已落入 `.planning/milestones/`，后续里程碑可停止复用同一份历史 planning truth
-- `Phase 7.1` 已完成：boundary inventory / decoder skeleton / representative REST+MQTT pipeline / replay-ready fixtures / governance handoff
-- `Phase 7.2` 已完成：architecture policy baseline、shared policy helpers、architecture script、meta guards refactor、CI fail-fast ordering 与 verification evidence 已落地
-- `Phase 7.3` 已完成：exporter formal home、真实运行信号、consumer convergence、black-box evidence 与治理回写均已落地
-- `Phase 7.4` 已完成：authority-indexed replay manifests、deterministic driver、REST/MQTT replay assertions、replay run summary 与 meta guards 已形成 assurance 资产
-- `Phase 7.5` 已完成：governance matrix sync、`V1_1_EVIDENCE_INDEX.md`、`07.5-SUMMARY.md`、residual/delete gate closeout arbitration 已落地
-- `Phase 8` 已完成：AI debug evidence pack formal home、唯一 exporter entrypoint、integration/meta guards 与 governance handoff 已全部落地
-- `Phase 9` 已完成：production residual closure 与 legacy test convergence addendum 已落地；API mega-test、runtime/platform/integration tests 与治理文档已对齐到正式架构
-- `Phase 10` 已完成：boundary family 与 canonical contracts 已正式落地，`AuthSessionSnapshot` 成为 formal auth/session truth，`core/__init__.py` 已不再导出 `Coordinator`
-- `Phase 11` 已完成：control router formalization、wiring compat demotion、REST/runtime surface convergence、runtime-access hardening、entity/platform truth convergence、firmware-update hotspot slimming 与 governance/open-source coherence 已统一收口
-- `Phase 12` 已完成：typed surface convergence、compat narrowing、hotspot decomposition 与 contributor-facing governance hygiene 已全部落地并通过治理回写
-- `Phase 13` 已完成：explicit domain surface、runtime/status hotspot boundary decomposition 与 governance guard hardening 已全部落地并通过治理回写
-- `Phase 14` 已完成：`CoordinatorProtocolService`、schedule residual closeout、`status_fallback.py` / `developer_router_support.py` helper-home extraction 与 governance truth consolidation 已全部落地并通过治理回写
-- `Phase 15` 已完成：developer feedback upload contract、governance/source-path truth、README/support/version truth、support hotspot typing narrowing 与 tooling/residual arbitration 已全部落地并通过治理回写
-- `Phase 16` 已完成：post-audit truth alignment、toolchain/DX truth、control/service contract、protocol/runtime hotspot decomposition、domain/entity/OTA rationalization 与 test-layer/docs follow-through `6 plans / 3 waves` 已全部落地
-- `Phase 17` 已完成：API residual spine 物理退场、auth/outlet-power typed contract 收口、MQTT canonical naming/no-export guard、governance closeout 与 final repo audit 已全部落地
-- `Phase 18` 已完成：host-neutral boundary nucleus、shared auth bootstrap、device/capability truth 与 adapter projection guards 已全部落地。
-- `Phase 19` 已完成：headless proof boot seam、single-chain device/replay/evidence proof、platform thin-shell demotion 与 second-root guards 已全部落地。
-- `Phase 20` 已完成：remaining REST/MQTT boundary families、authority/replay fixtures、inventory/governance closeout 与 full gate evidence 已全部落地。
-- `Phase 21` 已完成：remaining families replay/evidence coverage、shared failure taxonomy、broad-catch arbitration tightening 与 replay/evidence failure contract 已全部落地。
-- `Phase 22` 已完成：diagnostics / system health / developer / support / evidence consumers 的 shared `failure_summary` vocabulary 收口与 governance sync 已全部落地。
-- `Phase 23` 已完成：baseline/reviews/lifecycle truth、contributor docs/templates 与 release evidence pointer 已统一到 v1.2 最终故事线。
-- `Phase 24` 已完成并于 2026-03-17 重新验证：final repo audit、milestone audit、evidence index、archive-ready bundle 与 `v1.3` handoff 已再次通过 fresh gates。
-- `v1.2` 里程碑 closeout bundle 已按 reopened truth 回写：`.planning/reviews/V1_2_EVIDENCE_INDEX.md`、`.planning/v1.2-MILESTONE-AUDIT.md` 与 `.planning/v1.3-HANDOFF.md` 继续构成 archive-ready / handoff-ready bundle。
-- `Phase 25` 已从单一 tranche 改为 v1.3 的总计划母相；`25.1 / 25.2 / 26 / 27` 路线已完成 seed routing，并显式排除了“把 vendor-defined MD5 登录路径误记为仓库弱密码学债”的错误口径。
-- `Phase 34` 已完成：single-maintainer continuity 已被 formal custody / freeze / restoration contract 固化，release path 已具备 tagged `CodeQL` hard gate、keyless `cosign` signing bundles 与 provenance verification；public docs、runbook、CODEOWNERS 与 guard truth 已统一收口。
-- `Phase 35` 已完成：protocol hotspot 继续 inward 到 `transport_executor.py` / `endpoint_surface.py` / `rest_port.py` / `mqtt_facade.py`；single protocol-root story 与定向回归/治理真相同步保持稳定。
-- `Phase 36` 已完成：`CoordinatorPollingService` 已承接 polling/status/outlet/snapshot orchestration；runtime mainline broad catches 已进一步收口到 typed arbitration / fail-closed semantics，并同步 phase31 no-growth budget。
-- `Phase 37` 已完成：init/runtime/governance mega-tests 已 topicize 成 `tests/core/test_init_service_handlers*.py`、`tests/core/test_init_runtime*.py` 与 `tests/meta/test_governance_phase_history*.py`；derived maps、verification guidance 与 drift guards 也已对齐到真实拓扑。
-- `Phase 38` 已完成：external-boundary advisory naming residual 已关闭；firmware trust-root/advisory 语义、coverage-diff / benchmark truth 与 governance closeout anchors 已统一到 fresh-audit baseline。
-- `Phase 25` 已完成：总计划母相已冻结 routed requirements、child-phase boundaries、no-return rules 与 next-command handoff；`.planning/codebase/*` 对本轮仍只保留 derived-map 身份。
-- `Phase 25.1` 已完成：snapshot refresh 现采用 atomic rejection + last-known-good arbitration；coordinator fail-closed 主链与相关测试切片已全部转成正式语义。
-- `Phase 25.2` 已完成：telemetry bridge 现只 pull `Coordinator.protocol` / `telemetry_service` formal surfaces；touched authority / residual / derived-map docs 已完成诚实同步。
-- `Phase 26` 已完成：默认支持安装链已切到 verified release assets，release tail 现发布 installer / SBOM / provenance attestation，support/security/product metadata 也已统一到诚实口径。
-- `Phase 27` 已完成：`protocol_service` formal capability port、coordinator pure forwarder retirement、phase residue cleanup 与测试巨石拆分/治理图谱同步已全部落地。
-- `Phase 28` 已完成：tagged release security gate、artifact attestation verification、release identity manifest 与 maintainer continuity/support lifecycle truth 已全部落地。
-- `Phase 29` 已完成：`LiproRestFacade` remaining hotspot 已沿 child-façade 主链继续切薄，REST tests 也已按 `transport/auth`、`command/pacing`、`capability wrappers` 专题化并通过 file-matrix / public-surface truth。
-- `Phase 30` 已完成：REST response/result spine、protocol boundary contracts 与 control lifecycle named failure contracts 已全部收口；phase gate `293 passed` 且 protocol/control/static truth 全绿。
-- `Phase 30-03` 已完成：control lifecycle setup/unload/reload named failure contracts 已冻结为 `setup_auth_failed/setup_not_ready/setup_failed`、`unload_shutdown_degraded`、`reload_auth_failed/reload_not_ready/reload_failed`；system health 仍只同步 shared `failure_summary` 最小载荷，未扩成 diagnostics payload cleanup；Phase 31 继续独占 runtime/service/platform typed budget 与 broad-catch closeout。
-- `Phase 31` 已完成：runtime/service/platform touched zones 的 typed budget、warning cleanup、broad-catch closure 与 governance/toolchain truth 已全部收口；phase gate `445 passed` + touched-zone `mypy` 全绿。
-- `Phase 32` 已执行完成：planning truth convergence、repo-wide gate honesty、release/maintainer/docs convergence、derived-map freshness 与 hotspot / test / typed / exception / residue follow-through 已全部完成收口；`uv run ruff check .` 与 `uv run mypy` 均已 repo-wide 真绿。
-- `Phase 33` 已于 `2026-03-18` 执行完成：runtime contract dual-truth、control 去回路、giant hotspots / broad-catch / gate drift / dependency posture / deep-doc continuity / mega-test topicization 已全部收口；`uv run ruff check .` 全绿，`uv run python scripts/check_translations.py && uv run python scripts/check_file_matrix.py --check` 全绿，family 回归与 governance/public-surface closeout 合计 `656 passed`。
-- `Phase 34` 已于 `2026-03-18` 执行完成：continuity/custody/freeze contract、tagged `CodeQL` hard gate、keyless `cosign` signing bundles、release identity manifest truth 与 planning/governance 回写均已收口。
-
-## Completed Milestone Scope
-
-- `Phase 18`：Host-Neutral Boundary Nucleus Extraction（complete）
-- `Phase 19`：Headless Consumer Proof & Adapter Demotion（complete）
-- `Phase 20`：Remaining Boundary Family Completion（complete）
-- `Phase 21`：Replay Coverage & Exception Taxonomy Hardening（complete）
-- `Phase 22`：Observability Surface Convergence & Signal Exposure（complete）
-- `Phase 23`：Governance convergence, contributor docs and release evidence closure（complete）
-- `Phase 24`：Final milestone audit, archive readiness and v1.3 handoff prep（complete）
-
-## Carry-Forward Truths
-
-- 正式协议根仍是 `LiproProtocolFacade`
-- 正式 runtime root 仍是 `Coordinator`
-- `Coordinator` 的正式 home 继续固定在 `custom_components/lipro/coordinator_entry.py`
-- compat/residual 仍必须显式登记，不能重新合法化
-- canonical normalization 仍必须在 protocol boundary 完成
-- telemetry/replay/evidence 都只能 pull 正式真源，不得反向定义第二套事实
-- 未来 CLI / 其他宿主若要复用，只能建立在 host-neutral boundary/auth/device contracts 之上，而不是把 HA runtime 抽成 second root
-- `.planning/codebase/*.md` 只作为 derived collaboration maps / 协作图谱；若与 north-star、baseline 或 review truth 冲突，必须优先修正图谱而非倒逼真源
-- `MqttTransport` 继续只是 localized concrete transport，不得被回抬为 protocol root 或 public surface
-
-## Accumulated Context
-
-### Roadmap Evolution
-
-- Phase 23 added: Governance convergence, contributor docs and release evidence closure
-- Phase 24 added: Final milestone audit, archive readiness and v1.3 handoff prep
-- Phase 32 added: Truth convergence, gate honesty, and quality-10 closeout
-- Phase 33 added: Contract-truth unification, hotspot slimming, and productization hardening
-- Phase 38 added: External-boundary residual retirement and quality-signal hardening
-- Phase 39 added: Governance current-story convergence, control-home clarification, and mega-test decomposition
-
-- Phase 10 executed and completed: API Drift Isolation & Core Boundary Prep
-- Phase 11 executed and completed: Control Router Formalization & Wiring Residual Demotion
-- Phase 11 audit-expansion addendum executed and closed
-- Phase 12 completed: Type Contract Alignment, Residual Cleanup & Governance Hygiene (5 plans / 3 waves)
-- Phase 13 added and completed: Explicit Domain Surface, Governance Guard Hardening & Hotspot Boundary Decomposition (3 plans / 2 waves)
-- Phase 14 added and completed: Legacy Stack Final Closure, API Spine Demolition & Governance Truth Consolidation (4 plans / 3 waves)
-- Phase 15 completed: Support feedback contract hardening, governance truth repair, and maintainability follow-through (5 plans / 3 waves)
-- Phase 16 completed: Post-audit truth alignment, hotspot decomposition, and residual endgame (all 6 plans complete; second-pass audit recorded)
-- Phase 17 completed: Final residual retirement, typed-contract tightening, governance closeout, and final repo audit (4 plans / 3 waves)
-- Phase 18-24 completed and revalidated: host-neutral nucleus -> headless proof -> remaining-family completion -> replay / observability / governance / milestone closeout 全链条在 2026-03-17 fresh gates 下再次收官。
-- Phase 38 completed: external-boundary residual retirement、quality-signal hardening 与 fresh-audit governance baseline alignment 已全部落地。
-- Phase 39 completed: canonical current-story convergence、control-home clarification、dead-shell retirement、authority naming sync、governance guard topicization 与 closeout evidence promotion 已全部落地。
+- `Phase 24` 已完成并于 2026-03-17 重新验证：host-neutral nucleus -> headless proof -> remaining-family completion -> replay / observability / governance / milestone closeout 全链条在 fresh gates 下再次收官。
+- `Phase 46` 已于 `2026-03-20` 执行完成：file-level inventory、architecture/code audit、docs/toolchain/governance audit、master audit、score matrix、`46-REMEDIATION-ROADMAP.md`、summary 与 verification 均已落盘。
+- `v1.1` 已完成全部计划执行：`15 phases / 58 plans` 全绿落表。
+- `Phase 17` 已完成：final residual retirement、typed-contract tightening、governance closeout 与 final repo audit 均已形成稳定历史真相。
 
 ## Governance Truth Sources
 
@@ -149,23 +57,23 @@ See: `.planning/PROJECT.md`
 
 ## Current Milestone Status
 
-- **Milestone:** `v1.10 Command-Result Typed Outcome & Reason-Code Hardening`
-- **Phase range:** `57`
-- **Completed so far:** `Phase 57 complete`（`2026-03-22` 已完成 typed command-result contract、runtime/diagnostics consumer alignment 与 governance closeout，并生成 `57-SUMMARY.md` / `57-VERIFICATION.md`）
-- **Planned next:** `$gsd-complete-milestone v1.10`（若要先归档当前 milestone）；`$gsd-progress`（若要查看更新后的 promoted evidence 与 current route）
-- **Starting baseline:** `v1.6` archive assets remain authoritative shipped snapshots，`v1.9` closeout evidence remains the immediate typed-contract baseline
-- **Closeout evidence source:** `.planning/phases/57-command-result-typed-outcome-and-reason-code-hardening/57-SUMMARY.md`, `.planning/phases/57-command-result-typed-outcome-and-reason-code-hardening/57-VERIFICATION.md`
-- **Route seed:** `.planning/reviews/V1_10_MILESTONE_SEED.md`
+- **Milestone:** `v1.12 Verification Localization & Governance Guard Topicization`
+- **Phase range:** `59`
+- **Completed so far:** `Phase 59 planning-ready`（`2026-03-22` 已完成 PRD、context、research、validation 与 3 份 executable plans）
+- **Planned next:** `$gsd-execute-phase 59`（执行当前 tranche）；`$gsd-progress`（查看 updated route 与 evidence anchors）
+- **Starting baseline:** `v1.11` refreshed audit evidence remains the immediate route baseline；`v1.6` archive assets remain the authoritative shipped snapshots
+- **Planning sources:** `.planning/reviews/V1_12_MILESTONE_SEED.md`, `.planning/phases/58-repository-audit-refresh-and-next-wave-routing/58-REMEDIATION-ROADMAP.md`, `.planning/phases/58-repository-audit-refresh-and-next-wave-routing/58-SUMMARY.md`, `.planning/phases/58-repository-audit-refresh-and-next-wave-routing/58-VERIFICATION.md`
 - **Historical archives:** `.planning/milestones/v1.1-ROADMAP.md`, `.planning/milestones/v1.1-REQUIREMENTS.md`, `.planning/milestones/v1.2-ROADMAP.md`, `.planning/milestones/v1.2-REQUIREMENTS.md`, `.planning/milestones/v1.4-ROADMAP.md`, `.planning/milestones/v1.4-REQUIREMENTS.md`, `.planning/milestones/v1.5-ROADMAP.md`, `.planning/milestones/v1.5-REQUIREMENTS.md`, `.planning/milestones/v1.6-ROADMAP.md`, `.planning/milestones/v1.6-REQUIREMENTS.md`
-- **Next focus:** `$gsd-complete-milestone v1.11`——归档当前单相位 refreshed-audit milestone，或基于 `58-REMEDIATION-ROADMAP.md` 继续种下一轮整改里程碑。
+- **Next focus:** `$gsd-execute-phase 59`——收窄 megaguards / megasuites 的 failure radius，并把 localized verification topology 冻结为正式 current truth。
 
 ## Recommended Next Command
 
-1. `$gsd-complete-milestone v1.10` —— 归档当前里程碑并冻结 `Phase 57` closeout truth
-2. `$gsd-progress` —— 查看更新后的 `v1.10` current route 与 promoted evidence
-3. `$gsd-new-milestone` —— 若要直接基于已冻结的 typed command-result baseline 种出下一里程碑
-4. `uv run pytest -q tests/core/test_command_result.py tests/core/coordinator/runtime/test_command_runtime.py tests/core/test_init_service_handlers_debug_queries.py tests/meta/test_public_surface_guards.py tests/meta/test_dependency_guards.py tests/meta/test_governance_followup_route.py tests/meta/test_governance_phase_history.py` —— 复核 `Phase 57` closeout truth
-5. `uv run ruff check . && uv run python scripts/check_file_matrix.py --check` —— 复核静态质量与 file-matrix 基线
+1. `$gsd-execute-phase 59` —— 执行当前 verification-localization tranche
+2. `$gsd-progress` —— 查看 `v1.12` 当前 route、plan package 与 promoted evidence anchors
+3. `$gsd-complete-milestone v1.11` —— 若要先把 refreshed audit milestone 归档成历史快照
+4. `$gsd-new-milestone` —— 若要跳过本 tranche，直接从当前 route 仲裁下一轮 milestone
+5. `uv run pytest -q tests/meta/test_public_surface_guards.py tests/meta/test_governance_phase_history.py tests/meta/test_governance_followup_route.py tests/core/test_device_refresh.py` —— 复核 `Phase 59` 目标热点的当前 failure radius
+6. `uv run python scripts/check_file_matrix.py --check` —— 复核 file-matrix truth 没有额外漂移
 
 ## Session Continuity
 
@@ -175,15 +83,15 @@ If resuming, read in this order:
 3. `.planning/ROADMAP.md`
 4. `.planning/REQUIREMENTS.md`
 5. `.planning/STATE.md`
-6. `.planning/reviews/V1_10_MILESTONE_SEED.md`
-7. `.planning/phases/57-command-result-typed-outcome-and-reason-code-hardening/57-CONTEXT.md`
-8. `.planning/phases/57-command-result-typed-outcome-and-reason-code-hardening/57-RESEARCH.md`
-9. `.planning/phases/57-command-result-typed-outcome-and-reason-code-hardening/57-VALIDATION.md`
-10. `.planning/phases/57-command-result-typed-outcome-and-reason-code-hardening/57-01-PLAN.md`
-11. `.planning/phases/57-command-result-typed-outcome-and-reason-code-hardening/57-02-PLAN.md`
-12. `.planning/phases/57-command-result-typed-outcome-and-reason-code-hardening/57-03-PLAN.md`
-13. `.planning/phases/57-command-result-typed-outcome-and-reason-code-hardening/57-SUMMARY.md`
-14. `.planning/phases/57-command-result-typed-outcome-and-reason-code-hardening/57-VERIFICATION.md`
-15. `.planning/reviews/V1_9_MILESTONE_SEED.md`
-16. `.planning/phases/56-shared-backoff-neutralization-and-cross-plane-retry-hygiene/56-SUMMARY.md`
-17. `.planning/phases/56-shared-backoff-neutralization-and-cross-plane-retry-hygiene/56-VERIFICATION.md`
+6. `.planning/reviews/V1_12_MILESTONE_SEED.md`
+7. `.planning/phases/59-verification-localization-and-governance-guard-topicization/59-PRD.md`
+8. `.planning/phases/59-verification-localization-and-governance-guard-topicization/59-CONTEXT.md`
+9. `.planning/phases/59-verification-localization-and-governance-guard-topicization/59-RESEARCH.md`
+10. `.planning/phases/59-verification-localization-and-governance-guard-topicization/59-VALIDATION.md`
+11. `.planning/phases/59-verification-localization-and-governance-guard-topicization/59-01-PLAN.md`
+12. `.planning/phases/59-verification-localization-and-governance-guard-topicization/59-02-PLAN.md`
+13. `.planning/phases/59-verification-localization-and-governance-guard-topicization/59-03-PLAN.md`
+14. `.planning/reviews/V1_11_MILESTONE_SEED.md`
+15. `.planning/phases/58-repository-audit-refresh-and-next-wave-routing/58-SUMMARY.md`
+16. `.planning/phases/58-repository-audit-refresh-and-next-wave-routing/58-VERIFICATION.md`
+17. `.planning/phases/58-repository-audit-refresh-and-next-wave-routing/58-REMEDIATION-ROADMAP.md`

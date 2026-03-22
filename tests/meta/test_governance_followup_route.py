@@ -599,6 +599,27 @@ def test_v1_8_closeout_and_v1_9_current_milestone_truth_are_consistent() -> None
     ):
         assert needle in requirements_text
 
+    assert "## v1.12: Verification Localization & Governance Guard Topicization" in roadmap_text
+    assert "**Milestone status:** `Phase 59 planning-ready (2026-03-22)`" in roadmap_text
+    assert "**Default next command:** `$gsd-execute-phase 59`" in roadmap_text
+    assert "### Phase 59: Verification localization and governance guard topicization" in roadmap_text
+    assert "**Plans**: 3 prepared" in roadmap_text
+    assert "`59-PRD.md`, `59-CONTEXT.md`, `59-RESEARCH.md`, `59-VALIDATION.md`, `59-01-PLAN.md`, `59-02-PLAN.md`, `59-03-PLAN.md`" in roadmap_text
+
+    for needle in (
+        "- [ ] **TST-11**",
+        "- [ ] **QLT-19**",
+        "- [ ] **GOV-43**",
+        "| TST-11 | Phase 59 | Planned |",
+        "| QLT-19 | Phase 59 | Planned |",
+        "| GOV-43 | Phase 59 | Planned |",
+        "- v1.12 routed requirements: 3 total",
+        "- Current mapped: 3",
+        "- Current complete: 0",
+        "- Current pending: 3",
+    ):
+        assert needle in requirements_text
+
     assert "## Planned Milestone (v1.11)" in project_text
     assert "**Current status:** `Phase 58 complete (2026-03-22)`" in project_text
     assert ".planning/reviews/V1_11_MILESTONE_SEED.md" in project_text
@@ -606,7 +627,14 @@ def test_v1_8_closeout_and_v1_9_current_milestone_truth_are_consistent() -> None
     assert ".planning/phases/58-repository-audit-refresh-and-next-wave-routing/58-SUMMARY.md" in project_text
     assert "$gsd-complete-milestone v1.11" in project_text
 
-    assert "**Current milestone:** `v1.11 Repository Audit Refresh & Next-Wave Remediation Routing`" in state_text
-    assert "**Current mode:** `Phase 58 complete`" in state_text
-    assert "$gsd-complete-milestone v1.11" in state_text
-    assert ".planning/reviews/V1_11_MILESTONE_SEED.md" in state_text
+    assert "## Planned Milestone (v1.12)" in project_text
+    assert "**Current status:** `Phase 59 planning-ready (2026-03-22)`" in project_text
+    assert ".planning/reviews/V1_12_MILESTONE_SEED.md" in project_text
+    assert ".planning/phases/59-verification-localization-and-governance-guard-topicization/59-01-PLAN.md" in project_text
+    assert ".planning/phases/59-verification-localization-and-governance-guard-topicization/59-03-PLAN.md" in project_text
+    assert "$gsd-execute-phase 59" in project_text
+
+    assert "**Current milestone:** `v1.12 Verification Localization & Governance Guard Topicization`" in state_text
+    assert "**Current mode:** `Phase 59 planning-ready`" in state_text
+    assert "$gsd-execute-phase 59" in state_text
+    assert ".planning/reviews/V1_12_MILESTONE_SEED.md" in state_text

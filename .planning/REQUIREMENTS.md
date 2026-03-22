@@ -413,6 +413,32 @@
 
 
 
+## Planned Milestone (v1.12)
+
+> `v1.12` 承接 `Phase 58` 的 refreshed remediation route；当前最有价值的后续不是立即开更大的 tooling / production surgery，而是先把 verification localization 做对，让 megaguards / megasuites 的 failure radius、ownership 与运行入口更窄、更诚实。
+
+### Verification Localization & Governance Guard Topicization
+
+- [ ] **TST-11**: `tests/meta/test_public_surface_guards.py`、`tests/meta/test_governance_phase_history.py`、`tests/meta/test_governance_followup_route.py` 与 `tests/core/test_device_refresh.py` 必须按 stable truth family / concern boundary topicize，避免继续维持 giant verification buckets。
+- [ ] **QLT-19**: localized verification topology 必须提供更小的 focused runnable suites 与更诚实的 failure-localization contract，不能在 split 过程中丢 coverage、丢 guard semantics 或引入新的 helper-owned truth。
+- [ ] **GOV-43**: `.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE}.md`、`.planning/baseline/VERIFICATION_MATRIX.md` 与相关 review truth 必须显式记录 `Phase 59` 的 localized verification route、ownership boundary 与 no-growth story。
+
+## Traceability for planned v1.12 route
+
+| Requirement | Planned Phase | Status |
+|-------------|---------------|--------|
+| TST-11 | Phase 59 | Planned |
+| QLT-19 | Phase 59 | Planned |
+| GOV-43 | Phase 59 | Planned |
+
+**Coverage:**
+- v1.12 routed requirements: 3 total
+- Current mapped: 3
+- Current complete: 0
+- Current pending: 3
+- Current unmapped: 0 ✓
+
+
 ## Planned Milestone (v1.11)
 
 > `v1.11` 以 `Phase 46` audit package、`v1.8 -> v1.10` closeout evidence 与当前 refreshed audit request 为 immediate seed；当前重点不是再猜测下一块代码该改哪里，而是先把整个仓库的 current-state verdict 重新刷新并正式路由。
