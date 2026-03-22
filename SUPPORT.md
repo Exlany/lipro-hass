@@ -9,7 +9,7 @@
 | Confirmed bug / regression | GitHub Issues | Include diagnostics first; add developer report only when diagnostics are insufficient |
 | Security-sensitive report | `SECURITY.md` | Use private disclosure, not a public Issue |
 
-If you only need public user / contributor routing, the table above is the fast path. Maintainer-only release / packaging / custody work lives in `docs/MAINTAINER_RELEASE_RUNBOOK.md`; keep that appendix out of the public first hop unless you are actively maintaining releases.
+If you only need public user / contributor routing, stop at the table above: `docs/README.md` is the docs map, `docs/TROUBLESHOOTING.md` handles troubleshooting, and `SECURITY.md` handles private disclosure. `docs/MAINTAINER_RELEASE_RUNBOOK.md` stays maintainer-only for release / packaging / custody work.
 
 ## Version & Validation Truth
 
@@ -64,7 +64,7 @@ This repository currently follows a single-maintainer review model. No documente
 - Usage questions or “is this expected?”: start with `docs/TROUBLESHOOTING.md`, then GitHub Discussions.
 - Confirmed bugs/regressions: use the bug template and include diagnostics first; add developer report / one-click feedback plus `failure_summary` / `failure_entries` when diagnostics are insufficient or those fields are available.
 - Security-sensitive reports: use the private path in `SECURITY.md`, not a public Issue.
-- Release/packaging questions for maintainers: `docs/MAINTAINER_RELEASE_RUNBOOK.md`.
+- Maintainer-only release / packaging / custody work: `docs/MAINTAINER_RELEASE_RUNBOOK.md` (not part of the public first hop).
 
 ## Response Expectations
 

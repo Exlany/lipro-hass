@@ -5,8 +5,8 @@
 
 ## Public Fast Path / 对外快速路径
 
-- `README.md` / `README_zh.md`：公开概览、安装契约与贡献/支持/安全入口。  
-  Public overview, install contract, and the first-hop links for contribution / support / security.
+- `README.md` / `README_zh.md` → `docs/README.md`：公开 first hop；从概览进入 canonical docs map 与 bilingual boundary。  
+  Public first hop from overview into the canonical docs map and bilingual boundary.
 - `CONTRIBUTING.md` → `.github/pull_request_template.md`：贡献闭环、CI 契约与 PR 约定。  
   Contribution workflow, CI contract, and PR expectations.
 - `docs/TROUBLESHOOTING.md` → `SUPPORT.md`：排障、diagnostics 与支持分流。  
@@ -16,8 +16,8 @@
 
 ## Maintainer Appendix / 维护者附录
 
-- `docs/MAINTAINER_RELEASE_RUNBOOK.md`：维护者专用的发版 / rehearsal / custody 附录。  
-  Maintainer-only release, rehearsal, and custody appendix.
+- `docs/MAINTAINER_RELEASE_RUNBOOK.md`：维护者专用的发版 / rehearsal / custody 附录，不属于 public first hop。  
+  Maintainer-only release, rehearsal, and custody appendix; not part of the public first hop.
 - `.planning/baseline/GOVERNANCE_REGISTRY.json`：registry-backed maintainer routing / rehearsal metadata，会投影到 contributor docs 与 GitHub templates 以降低 drift。  
   Registry-backed maintainer routing / rehearsal metadata projected into contributor docs and GitHub templates to reduce drift.
 - `.planning/*`：治理、审阅、archive 与 evidence 真源。  
@@ -27,7 +27,7 @@
 
 - **Active local entrypoints / 现役入口**：`./scripts/setup`、`./scripts/develop`、`./scripts/lint`
 - **Explicit Python/CI commands / 显式命令真源**：`CONTRIBUTING.md` 中的 `uv run ...` 分组命令
-- **Retired compatibility stubs / 退役兼容壳**：`scripts/agent_worker.py`、`scripts/orchestrator.py` —— 仅保留为 fail-fast deprecation 入口，不再是正式工具链
+- **Retired compatibility stubs / 退役兼容壳**：`scripts/agent_worker.py`、`scripts/orchestrator.py` —— 仅保留为 unsupported 的 fail-fast deprecation 入口；请改走 `docs/README.md` 与 `CONTRIBUTING.md`
 
 ## Current Docs / 当前文档
 
@@ -48,8 +48,8 @@
   `README.md` and `README_zh.md` must keep equivalent public-entry navigation, install contract, and outbound links.
 - **必须保持等价指导的入口**：`CONTRIBUTING.md`、`SUPPORT.md`、`SECURITY.md`、`.github/pull_request_template.md` 与 `.github/ISSUE_TEMPLATE/*.yml` 必须给出一致的 contributor / support / security routing，即使具体实现为双语单文件。  
   Contributor / support / security routing must stay equivalent across these surfaces even when implemented as bilingual single files.
-- **允许 maintainer-only 的附录**：`docs/MAINTAINER_RELEASE_RUNBOOK.md`、`.planning/*`、milestone audit 与 phase evidence 索引可以保持维护者取向，但公开入口需要在需要时显式链接过去。  
-  Maintainer-only appendices may stay maintainer-facing, but public entrypoints must link there explicitly when needed.
+- **允许 maintainer-only 的附录**：`docs/MAINTAINER_RELEASE_RUNBOOK.md`、`.planning/*`、milestone audit 与 phase evidence 索引可以保持维护者取向；公开入口可按需显式链接过去，但不得让其取代 public first hop。  
+  Maintainer-only appendices may stay maintainer-facing, but public entrypoints may link there only when needed and must not let them replace the public first hop.
 
 ## Maintainer Truth Sources / 维护者真源
 

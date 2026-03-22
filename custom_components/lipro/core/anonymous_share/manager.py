@@ -25,6 +25,11 @@ import aiohttp
 
 from ..telemetry.models import OperationOutcome, build_operation_outcome
 from .collector import AnonymousShareCollector
+from .manager_submission import (
+    submit_developer_feedback as _submit_developer_feedback_flow,
+    submit_if_needed as _submit_if_needed_flow,
+    submit_report as _submit_report_flow,
+)
 from .manager_support import (
     _ScopeState,
     build_aggregate_report_payload,
@@ -39,7 +44,6 @@ from .manager_support import (
     should_skip_report_submission,
     should_submit_if_needed,
 )
-from .report_builder import build_developer_feedback_report
 from .share_client import ShareWorkerClient
 
 if TYPE_CHECKING:
@@ -392,76 +396,22 @@ class AnonymousShareManager:
         self, session: aiohttp.ClientSession, feedback: dict[str, object]
     ) -> bool:
         """Submit one developer-feedback payload immediately."""
-        state = self._primary_state() if self._aggregate else self._state
-        async with state.upload_lock:
-            report = build_developer_feedback_report(
-                installation_id=state.installation_id,
-                ha_version=state.ha_version,
-                feedback=feedback,
-            )
-            outcome = await self._submit_share_payload_with_outcome(
-                session,
-                report,
-                label="Developer feedback",
-            )
-            state.last_submit_outcome = outcome
-            if not outcome.is_success:
-                return False
-            _LOGGER.info("Developer feedback report submitted")
-            return True
+        return await _submit_developer_feedback_flow(
+            self,
+            session,
+            feedback,
+            logger=_LOGGER,
+        )
 
     async def submit_report(
         self, session: aiohttp.ClientSession, force: bool = False
     ) -> bool:
         """Submit the anonymous share report to the server."""
-        if self._aggregate:
-            success = True
-            aggregate_outcome: OperationOutcome | None = None
-            for manager in self._iter_managers():
-                child_success = await manager.submit_report(session, force=force)
-                success = child_success and success
-                child_outcome = manager.last_submit_outcome
-                if child_outcome is None:
-                    continue
-                if aggregate_outcome is None:
-                    aggregate_outcome = child_outcome
-            self._state.last_submit_outcome = (
-                aggregate_outcome
-                or build_operation_outcome(
-                    kind=("success" if success else "failed"),
-                    reason_code=("submitted" if success else "submit_failed"),
-                )
-            )
-            return success
-        if not self._collector.is_enabled:
-            return False
-        if not self._has_pending_report_data():
-            return True
-        if self._should_skip_report_submission(force=force):
-            return True
-        async with self._state.upload_lock:
-            report = self.build_report()
-            if not await self._async_submit_share_payload(
-                session,
-                report,
-                label="Anonymous share",
-            ):
-                return False
-            await self._async_finalize_successful_submit()
-            return True
+        return await _submit_report_flow(self, session, force=force)
 
     async def submit_if_needed(self, session: aiohttp.ClientSession) -> bool:
         """Submit report if thresholds are met."""
-        if self._aggregate:
-            success = True
-            for manager in self._iter_managers():
-                success = await manager.submit_if_needed(session) and success
-            return success
-        if not self._collector.is_enabled:
-            return True
-        if self._should_submit_if_needed():
-            return await self.submit_report(session)
-        return True
+        return await _submit_if_needed_flow(self, session)
 
 
 from .registry import _get_root_manager, get_anonymous_share_manager  # noqa: E402

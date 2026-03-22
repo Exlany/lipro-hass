@@ -172,3 +172,10 @@
 
 - `Phase 58` 不引入新的 dependency-direction rule；它确认当前 `protocol -> runtime -> control/adapter` 主线仍成立。
 - next-wave route 优先处理的是 guard/test localization 与 tooling maintainability，而不是用 dependency-law 名义重做已关闭主线。
+
+## Phase 62 Naming / Discoverability Clarifications
+
+- `custom_components/lipro/core/device/extras_payloads.py` 与 `extras_features.py` 允许 inward 依赖 `extras_support.py` 承接 payload / panel parsing helpers；其他 domain/runtime/platform consumers 不得把它当作对外 contract。
+- `custom_components/lipro/core/api/endpoint_surface.py` 继续允许被 `rest_facade.py` inward 依赖承接 endpoint operations collaborator mechanics；runtime/control/tests/docs 不得把它讲成 public route 或第二 façade。
+- diagnostics services / tests / docs 继续只能经 `helpers.py` 与 router/public callback story 读取正式 diagnostics import truth；`feedback_handlers.py`、`command_result_handlers.py`、`capability_handlers.py` 与 `helper_support.py` 只允许由 diagnostics formal homes inward 依赖。
+- `manager_submission.py`、`share_client_flows.py`、`candidate_support.py` 与 `select_internal/gear.py` 的 inward-only posture 在 Phase 62 继续保持；命名 / discoverability 收口不得把它们提升成第二 formal root。

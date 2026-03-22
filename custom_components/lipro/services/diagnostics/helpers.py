@@ -1,7 +1,7 @@
 """Helper utilities for diagnostics services.
 
-This module contains utility functions for parameter extraction,
-capability collection, error handling, and result building.
+This module keeps the stable helper home for diagnostics while delegating the
+heavier developer-report / feedback flow to focused internal collaborators.
 """
 
 from __future__ import annotations
@@ -24,17 +24,19 @@ from ...core.api.types import DiagnosticsApiResponse
 from ...core.utils.log_safety import safe_error_placeholder
 from ...runtime_types import LiproCoordinator
 from ..execution import ServiceErrorRaiser, async_execute_coordinator_call
+from .feedback_handlers import (
+    async_handle_get_developer_report as _async_handle_get_developer_report_flow,
+    async_handle_submit_developer_feedback as _async_handle_submit_developer_feedback_flow,
+    build_developer_feedback_payload as _build_developer_feedback_payload_flow,
+)
 from .helper_support import (
     _async_get_first_authenticated_coordinator_capability_result as _support_async_get_first_authenticated_coordinator_capability_result,
     _async_get_first_coordinator_capability_result as _support_async_get_first_coordinator_capability_result,
-    _build_feedback_envelope as _support_build_feedback_envelope,
     _coerce_service_float as _support_coerce_service_float,
     _coerce_service_int as _support_coerce_service_int,
     _get_optional_note as _support_get_optional_note,
     _get_optional_service_string as _support_get_optional_service_string,
     _get_required_service_string as _support_get_required_service_string,
-    _project_feedback_reports as _support_project_feedback_reports,
-    build_developer_feedback_payload as _support_build_developer_feedback_payload,
     build_sensor_history_result as _support_build_sensor_history_result,
 )
 from .types import (
@@ -56,9 +58,6 @@ _CoordinatorT = TypeVar("_CoordinatorT")
 _CAPABILITY_PROJECTION_ERRORS = (RuntimeError, ValueError, TypeError, LookupError)
 
 
-# Parameter extraction utilities
-
-
 def _get_optional_service_string(call: ServiceCall, key: str) -> str | None:
     return _support_get_optional_service_string(call, key)
 
@@ -77,23 +76,6 @@ def _coerce_service_int(call: ServiceCall, key: str, default: int) -> int:
 
 def _coerce_service_float(call: ServiceCall, key: str, default: float) -> float:
     return _support_coerce_service_float(call, key, default)
-
-
-# Capability collection utilities
-
-
-def _collect_exporter_developer_report(
-    hass: HomeAssistant,
-    coordinator: LiproCoordinator,
-) -> DeveloperReport | None:
-    """Return the exporter-backed developer report for one runtime entry."""
-    entry = _find_runtime_entry_for_coordinator(hass, coordinator)
-    if entry is None:
-        return None
-    view = _telemetry_surface.get_entry_telemetry_view(entry, "developer")
-    if isinstance(view, dict):
-        return view
-    return None
 
 
 def _collect_coordinator_capability_results(
@@ -148,6 +130,20 @@ async def _async_get_first_authenticated_coordinator_capability_result(
     )
 
 
+def _collect_exporter_developer_report(
+    hass: HomeAssistant,
+    coordinator: LiproCoordinator,
+) -> DeveloperReport | None:
+    """Return the exporter-backed developer report for one runtime entry."""
+    entry = _find_runtime_entry_for_coordinator(hass, coordinator)
+    if entry is None:
+        return None
+    view = _telemetry_surface.get_entry_telemetry_view(entry, "developer")
+    if isinstance(view, dict):
+        return view
+    return None
+
+
 def collect_developer_reports(
     hass: HomeAssistant,
     *,
@@ -173,29 +169,6 @@ def collect_developer_reports(
     return reports
 
 
-def _project_feedback_reports(
-    reports: list[DeveloperReport],
-) -> list[DeveloperReport]:
-    return _support_project_feedback_reports(reports)
-
-
-def _build_feedback_envelope(
-    *,
-    entry_count: int,
-    note: str,
-    domain: str,
-    service_name: str,
-    requested_entry_id: str | None,
-) -> DeveloperFeedbackPayload:
-    return _support_build_feedback_envelope(
-        entry_count=entry_count,
-        note=note,
-        domain=domain,
-        service_name=service_name,
-        requested_entry_id=requested_entry_id,
-    )
-
-
 def build_developer_feedback_payload(
     *,
     reports: list[DeveloperReport],
@@ -205,7 +178,7 @@ def build_developer_feedback_payload(
     requested_entry_id: str | None,
 ) -> DeveloperFeedbackPayload:
     """Build the canonical developer-feedback service payload."""
-    return _support_build_developer_feedback_payload(
+    return _build_developer_feedback_payload_flow(
         reports=reports,
         note=note,
         domain=domain,
@@ -214,7 +187,6 @@ def build_developer_feedback_payload(
     )
 
 
-# Service handlers
 async def async_handle_get_developer_report(
     hass: HomeAssistant,
     call: ServiceCall,
@@ -223,17 +195,13 @@ async def async_handle_get_developer_report(
     attr_entry_id: str,
 ) -> DeveloperReportResponse:
     """Handle the get_developer_report service."""
-    requested_entry_id = _get_optional_service_string(call, attr_entry_id)
-    result: DeveloperReportResponse = {
-        "entry_count": 0,
-        "reports": [],
-    }
-    reports = collect_reports(hass, requested_entry_id=requested_entry_id)
-    result["entry_count"] = len(reports)
-    result["reports"] = reports
-    if requested_entry_id is not None:
-        result["requested_entry_id"] = requested_entry_id
-    return result
+    return await _async_handle_get_developer_report_flow(
+        hass,
+        call,
+        collect_reports=collect_reports,
+        get_optional_service_string=_get_optional_service_string,
+        attr_entry_id=attr_entry_id,
+    )
 
 
 async def async_handle_submit_developer_feedback(
@@ -250,44 +218,22 @@ async def async_handle_submit_developer_feedback(
     raise_service_error: ServiceErrorRaiser,
 ) -> DeveloperFeedbackResponse:
     """Handle the submit_developer_feedback service."""
-    requested_entry_id = _get_optional_service_string(call, attr_entry_id)
-    reports = collect_reports(hass, requested_entry_id=requested_entry_id)
-    if not reports:
-        result: DeveloperFeedbackResponse = {
-            "success": False,
-            "message": "No active Lipro config entries",
-            "submitted_entries": 0,
-        }
-        if requested_entry_id is not None:
-            result["requested_entry_id"] = requested_entry_id
-        return result
-
-    feedback_payload = build_developer_feedback_payload(
-        reports=reports,
-        note=_get_optional_note(call, attr_note),
+    return await _async_handle_submit_developer_feedback_flow(
+        hass,
+        call,
+        collect_reports=collect_reports,
+        get_anonymous_share_manager=get_anonymous_share_manager,
+        get_client_session=get_client_session,
+        get_optional_service_string=_get_optional_service_string,
+        get_optional_note=_get_optional_note,
         domain=domain,
-        service_name=service_submit_developer_feedback,
-        requested_entry_id=requested_entry_id,
+        service_submit_developer_feedback=service_submit_developer_feedback,
+        attr_note=attr_note,
+        attr_entry_id=attr_entry_id,
+        raise_service_error=raise_service_error,
     )
 
-    share_manager = get_anonymous_share_manager(hass, entry_id=requested_entry_id)
-    success = await share_manager.submit_developer_feedback(
-        get_client_session(hass),
-        feedback_payload,
-    )
-    if not success:
-        raise_service_error("developer_feedback_submit_failed")
 
-    success_result: DeveloperFeedbackResponse = {
-        "success": True,
-        "submitted_entries": len(reports),
-    }
-    if requested_entry_id is not None:
-        success_result["requested_entry_id"] = requested_entry_id
-    return success_result
-
-
-# Error handling utilities
 def raise_optional_capability_error(
     capability: str,
     err: LiproApiError,
@@ -337,7 +283,6 @@ async def async_call_optional_capability(
         raise_optional_error(capability, err)
 
 
-# Result building utilities
 def build_sensor_history_result(
     serial: str,
     sensor_device_id: str,

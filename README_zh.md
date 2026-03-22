@@ -360,7 +360,7 @@ data:
 - 若可获取，请把 `failure_summary` / `failure_entries` 与 diagnostics 一并提供，便于维护者快速判型
 - `lipro.get_anonymous_share_report` - 脱敏匿名分享报告
 
-另见：`SUPPORT.md`（问题分流）、`SECURITY.md`（私密漏洞披露）与 `docs/MAINTAINER_RELEASE_RUNBOOK.md`（维护者发版问题）。
+另见：`SUPPORT.md`（公开问题分流）与 `SECURITY.md`（私密漏洞披露）。`docs/MAINTAINER_RELEASE_RUNBOOK.md` 仅供维护者处理发版 / rehearsal / custody 工作。
 
 ## 免责声明
 
@@ -370,13 +370,14 @@ data:
 
 - 稳定支持目标：最新标签版本与与其一致的 HACS 安装
 - 预览路径（`ARCHIVE_TAG=main`、branch fallback、mirror 安装）：仅属 best effort
-- 连续性 / release custody 细节统一放在 `SUPPORT.md`、`SECURITY.md`、`docs/TROUBLESHOOTING.md` 与 `docs/MAINTAINER_RELEASE_RUNBOOK.md`；根 README 只保留公开导航层
+- 公开路由保持单一路径：`docs/README.md` → `CONTRIBUTING.md` / `docs/TROUBLESHOOTING.md` / `SUPPORT.md` / `SECURITY.md`
+- maintainer continuity 与 release custody 统一留在 `docs/MAINTAINER_RELEASE_RUNBOOK.md`，不回流根 README 的 public first hop
 
 ## 贡献快速路径
 
-- 先看 `CONTRIBUTING.md`，获取环境搭建、定向测试、CI 命令组与 PR 约定
-- 需要文档地图或双语边界说明时，查看 `docs/README.md`
-- 需要支持路由时，查看 `SUPPORT.md`；需要私密披露时，查看 `SECURITY.md`
+- 先看 `docs/README.md`，获取 canonical docs map 与双语边界
+- 再看 `CONTRIBUTING.md`，获取环境搭建、定向测试、CI 命令组与 PR 约定
+- 公开排障 / 分流请走 `docs/TROUBLESHOOTING.md` → `SUPPORT.md`；私密披露请走 `SECURITY.md`
 - `docs/MAINTAINER_RELEASE_RUNBOOK.md` 仅供维护者处理发版 / rehearsal / custody 工作
 
 ## 贡献
@@ -388,15 +389,12 @@ data:
 
 ## 文档入口
 
-- `docs/README.md` - 文档总索引、贡献快速路径与双语边界
-- `docs/NORTH_STAR_TARGET_ARCHITECTURE.md` - 目标架构与权威基线
-- `docs/developer_architecture.md` - 当前代码布局与 runtime/control/protocol 主链说明
-- `docs/TROUBLESHOOTING.md` - 规范排障与诊断入口
-- `docs/MAINTAINER_RELEASE_RUNBOOK.md` - 维护者发版 / 打包 / 标签流程
-- `docs/adr/README.md` - 长期架构决策与取舍记录
+- `docs/README.md` - canonical docs map、公开快速路径与双语边界
 - `CONTRIBUTING.md` - 贡献流程、CI 契约与评审预期
+- `docs/TROUBLESHOOTING.md` - 规范排障、诊断与安全分享入口
 - `SUPPORT.md` - 支持路由、分流预期与提问方式
 - `SECURITY.md` - 私密漏洞披露策略
-- `CODE_OF_CONDUCT.md` - 社区行为约定
-- `.devcontainer.json` - 推荐的 devcontainer / Codespaces 配置
-- `custom_components/lipro/quality_scale.yaml` - Home Assistant quality scale 声明
+- `docs/NORTH_STAR_TARGET_ARCHITECTURE.md` / `docs/developer_architecture.md` - 权威架构基线与当前代码布局
+- `docs/adr/README.md` - 长期架构决策与取舍记录
+- `docs/MAINTAINER_RELEASE_RUNBOOK.md` - 维护者专用的发版 / rehearsal / custody 附录
+- `CODE_OF_CONDUCT.md`、`.devcontainer.json`、`custom_components/lipro/quality_scale.yaml` - 社区约定、开发环境与 quality-scale 声明

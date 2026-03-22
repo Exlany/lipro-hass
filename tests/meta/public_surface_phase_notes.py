@@ -425,3 +425,20 @@ def test_phase_58_audit_refresh_notes_keep_public_surface_truth_stable() -> None
     assert "Phase 58` 不新增 formal root / public surface" in public_surfaces
     assert "## Top Strengths" in architecture_audit_text
     assert "## Hotspot Census" in architecture_audit_text
+
+
+def test_phase_62_naming_discoverability_notes_are_explicit() -> None:
+    public_surfaces = _PUBLIC_SURFACES.read_text(encoding="utf-8")
+    file_matrix_text = (_ROOT / ".planning" / "reviews" / "FILE_MATRIX.md").read_text(
+        encoding="utf-8"
+    )
+
+    assert "## Phase 62 Naming / Discoverability Convergence Notes" in public_surfaces
+    assert "extras_support.py` 只承接 payload / panel parsing support mechanics" in public_surfaces
+    assert "endpoint_surface.py` 继续只作为 REST endpoint operations localized collaborator" in public_surfaces
+    assert "feedback_handlers.py" in public_surfaces
+    assert "command_result_handlers.py" in public_surfaces
+    assert "capability_handlers.py" in public_surfaces
+    assert "custom_components/lipro/core/device/extras_support.py" in file_matrix_text
+    assert "DeviceExtras payload / panel parsing support helper home" in file_matrix_text
+    assert "diagnostics service mechanics support seam" in file_matrix_text

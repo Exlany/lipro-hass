@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v1.13
 milestone_name: Tooling Truth Decomposition, Formal-Home Slimming & Naming/Discoverability Convergence
-status: active
-last_updated: "2026-03-22T00:00:00Z"
+status: archived
+last_updated: "2026-03-22T17:36:00.000Z"
 progress:
-  total_phases: 3
-  completed_phases: 1
-  total_plans: 3
-  completed_plans: 3
+  total_phases: 61
+  completed_phases: 47
+  total_plans: 234
+  completed_plans: 205
 ---
 
 # Project State
@@ -18,12 +18,12 @@ progress:
 See: `.planning/PROJECT.md`
 
 **Current milestone:** `v1.13 Tooling Truth Decomposition, Formal-Home Slimming & Naming/Discoverability Convergence`
-**Core value:** 以 `v1.12` 已归档的 localized verification baseline 为低噪声起点，继续 inward decomposition tooling truth、large-but-correct formal homes 与 naming/discoverability friction，而不重开第二主链。
-**Current mode:** `Phase 60 complete`；`v1.12` 已 archive-ready，`v1.10` / `v1.11` 仍保留为 refreshed route 历史 seed，而 `v1.6` 继续承担 latest shipped archive baseline。
+**Core value:** 以 `v1.12` 已归档的 localized verification baseline 为低噪声起点，完成 tooling truth / formal-home / naming discoverability 三段收口后，把结果提升为可供下一里程碑复用的 archived evidence。
+**Current mode:** `v1.13 archived`；`.planning/v1.13-MILESTONE-AUDIT.md`、`.planning/reviews/V1_13_EVIDENCE_INDEX.md` 与 `.planning/milestones/v1.13-*.md` 已落盘，下一步应经 `$gsd-new-milestone` 打开新的正式路线。
 
 ## Current Position
 
-- `v1.13` 已于 `2026-03-22` 完成 `Phase 60`：`scripts/check_file_matrix.py` 已收敛成 thin checker root 并 outward 保留 CLI/import contract，`tests/meta/test_toolchain_truth.py` 已收敛成 thin daily root + `6` 个 truth-family modules，`FILE_MATRIX / VERIFICATION_MATRIX / TESTING / current-story docs` 也已冻结同一条 tooling no-growth story；下一步是规划 `$gsd-plan-phase 61`。
+- `v1.13` 已于 `2026-03-22` 完成 archive-ready closeout：`.planning/v1.13-MILESTONE-AUDIT.md`、`.planning/reviews/V1_13_EVIDENCE_INDEX.md`、`.planning/milestones/v1.13-ROADMAP.md` 与 `.planning/milestones/v1.13-REQUIREMENTS.md` 已落盘；`60-SUMMARY.md` / `60-VERIFICATION.md`、`61-SUMMARY.md` / `61-VERIFICATION.md` 与 `62-SUMMARY.md` / `62-VERIFICATION.md` 继续作为 promoted closeout evidence。
 - `v1.12` 已于 `2026-03-22` 完成 archive-ready closeout：`.planning/v1.12-MILESTONE-AUDIT.md`、`.planning/reviews/V1_12_EVIDENCE_INDEX.md`、`.planning/milestones/v1.12-ROADMAP.md` 与 `.planning/milestones/v1.12-REQUIREMENTS.md` 已落盘；`59-SUMMARY.md` / `59-VERIFICATION.md` 继续作为 promoted closeout evidence。
 - `v1.11` 已于 `2026-03-22` 完成 opening `Phase 58`：refreshed architecture/code audit、governance/open-source audit、`Phase 59+` remediation roadmap 与 current-story truth freeze 均已落盘；它继续作为 `v1.12 -> v1.13` 的 refreshed route baseline。
 - `v1.10` 已于 `2026-03-22` 完成 opening `Phase 57`：typed command-result state / reason-code truth 已与 runtime sender、diagnostics query consumer 与 governance truth 对齐；当前保持 prior closeout-ready milestone 身份。
@@ -60,18 +60,18 @@ See: `.planning/PROJECT.md`
 
 - **Milestone:** `v1.13 Tooling Truth Decomposition, Formal-Home Slimming & Naming/Discoverability Convergence`
 - **Phase range:** `60 -> 62`
-- **Completed so far:** `milestone opened; Phase 60 completed (3/3 plans)`
-- **Planned next:** `$gsd-plan-phase 61`（规划 formal-home slimming 的下一相位）
+- **Completed so far:** `milestone archived; Phase 60 -> 62 completed (11/11 plans)`
+- **Archive assets:** `.planning/v1.13-MILESTONE-AUDIT.md`, `.planning/reviews/V1_13_EVIDENCE_INDEX.md`, `.planning/milestones/v1.13-ROADMAP.md`, `.planning/milestones/v1.13-REQUIREMENTS.md`
 - **Starting baseline:** `.planning/v1.12-MILESTONE-AUDIT.md`, `.planning/reviews/V1_12_EVIDENCE_INDEX.md`, `.planning/phases/58-repository-audit-refresh-and-next-wave-routing/58-REMEDIATION-ROADMAP.md`, `.planning/phases/59-verification-localization-and-governance-guard-topicization/59-SUMMARY.md`, `.planning/phases/59-verification-localization-and-governance-guard-topicization/59-VERIFICATION.md`
-- **Historical archives:** `.planning/milestones/v1.1-ROADMAP.md`, `.planning/milestones/v1.1-REQUIREMENTS.md`, `.planning/milestones/v1.2-ROADMAP.md`, `.planning/milestones/v1.2-REQUIREMENTS.md`, `.planning/milestones/v1.4-ROADMAP.md`, `.planning/milestones/v1.4-REQUIREMENTS.md`, `.planning/milestones/v1.5-ROADMAP.md`, `.planning/milestones/v1.5-REQUIREMENTS.md`, `.planning/milestones/v1.6-ROADMAP.md`, `.planning/milestones/v1.6-REQUIREMENTS.md`, `.planning/milestones/v1.12-ROADMAP.md`, `.planning/milestones/v1.12-REQUIREMENTS.md`
-- **Next focus:** `$gsd-plan-phase 61`——在已冻结的 tooling baseline 上规划 production formal-home slimming。
+- **Historical archives:** `.planning/milestones/v1.1-ROADMAP.md`, `.planning/milestones/v1.1-REQUIREMENTS.md`, `.planning/milestones/v1.2-ROADMAP.md`, `.planning/milestones/v1.2-REQUIREMENTS.md`, `.planning/milestones/v1.4-ROADMAP.md`, `.planning/milestones/v1.4-REQUIREMENTS.md`, `.planning/milestones/v1.5-ROADMAP.md`, `.planning/milestones/v1.5-REQUIREMENTS.md`, `.planning/milestones/v1.6-ROADMAP.md`, `.planning/milestones/v1.6-REQUIREMENTS.md`, `.planning/milestones/v1.12-ROADMAP.md`, `.planning/milestones/v1.12-REQUIREMENTS.md`, `.planning/milestones/v1.13-ROADMAP.md`, `.planning/milestones/v1.13-REQUIREMENTS.md`
+- **Next focus:** `$gsd-new-milestone`——从 `v1.13` archived evidence 启动下一轮正式里程碑。
 
 ## Recommended Next Command
 
-1. `$gsd-plan-phase 61` —— 规划 `anonymous_share` / diagnostics API / OTA candidate / `select` 的 formal-home slimming
+1. `$gsd-new-milestone` —— 从 `v1.13` archived evidence 打开新的正式 milestone
 2. `uv run python scripts/check_file_matrix.py --check` —— 复核 file-governance baseline 与 inventory truth
-3. `uv run pytest -q tests/meta/test_toolchain_truth.py tests/meta/test_governance_guards.py tests/meta/test_dependency_guards.py tests/meta/test_version_sync.py` —— 复核 toolchain / governance focused baseline
-4. `$gsd-progress` —— 查看 `v1.13` 当前执行位置与 `Phase 61/62` 后续 route anchors
+3. `uv run pytest -q tests/meta/test_governance_guards.py tests/meta/test_governance_followup_route.py tests/meta/test_public_surface_guards.py tests/meta/test_dependency_guards.py tests/meta/test_phase62_naming_discoverability_guards.py tests/meta/test_governance_release_contract.py tests/meta/test_version_sync.py` —— 复核 archive-ready current-story truth
+4. `$gsd-progress` —— 查看归档后的里程碑位置与下一条 route anchors
 
 ## Session Continuity
 
@@ -81,14 +81,16 @@ If resuming, read in this order:
 3. `.planning/ROADMAP.md`
 4. `.planning/REQUIREMENTS.md`
 5. `.planning/STATE.md`
-6. `.planning/v1.12-MILESTONE-AUDIT.md`
-7. `.planning/reviews/V1_12_EVIDENCE_INDEX.md`
-8. `.planning/milestones/v1.12-ROADMAP.md`
-9. `.planning/milestones/v1.12-REQUIREMENTS.md`
-10. `.planning/phases/60-tooling-truth-decomposition-and-file-governance-maintainability/60-SUMMARY.md`
-11. `.planning/phases/60-tooling-truth-decomposition-and-file-governance-maintainability/60-VERIFICATION.md`
-12. `.planning/phases/59-verification-localization-and-governance-guard-topicization/59-SUMMARY.md`
-13. `.planning/phases/59-verification-localization-and-governance-guard-topicization/59-VERIFICATION.md`
-14. `.planning/phases/58-repository-audit-refresh-and-next-wave-routing/58-REMEDIATION-ROADMAP.md`
-15. `.planning/phases/58-repository-audit-refresh-and-next-wave-routing/58-SUMMARY.md`
-16. `.planning/phases/58-repository-audit-refresh-and-next-wave-routing/58-VERIFICATION.md`
+6. `.planning/v1.13-MILESTONE-AUDIT.md`
+7. `.planning/reviews/V1_13_EVIDENCE_INDEX.md`
+8. `.planning/milestones/v1.13-ROADMAP.md`
+9. `.planning/milestones/v1.13-REQUIREMENTS.md`
+10. `.planning/phases/62-naming-clarity-support-seam-governance-and-public-discoverability/62-SUMMARY.md`
+11. `.planning/phases/62-naming-clarity-support-seam-governance-and-public-discoverability/62-VERIFICATION.md`
+12. `.planning/phases/61-formal-home-slimming-for-large-but-correct-production-modules/61-SUMMARY.md`
+13. `.planning/phases/61-formal-home-slimming-for-large-but-correct-production-modules/61-VERIFICATION.md`
+14. `.planning/phases/60-tooling-truth-decomposition-and-file-governance-maintainability/60-SUMMARY.md`
+15. `.planning/phases/60-tooling-truth-decomposition-and-file-governance-maintainability/60-VERIFICATION.md`
+16. `.planning/v1.12-MILESTONE-AUDIT.md`
+17. `.planning/reviews/V1_12_EVIDENCE_INDEX.md`
+18. `.planning/phases/58-repository-audit-refresh-and-next-wave-routing/58-REMEDIATION-ROADMAP.md`

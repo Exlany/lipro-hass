@@ -65,29 +65,31 @@ For a focused contribution loop, use this order:
 Need routing help? Use `SUPPORT.md`. Need maintainer continuity or release custody context? Use `docs/MAINTAINER_RELEASE_RUNBOOK.md`.
 如需支持路由，请看 `SUPPORT.md`；如需维护者连续性或发版托管上下文，请看 `docs/MAINTAINER_RELEASE_RUNBOOK.md`。
 
-Need the full docs map or bilingual boundary? Start with `docs/README.md`. Retired compatibility stubs such as `scripts/agent_worker.py` and `scripts/orchestrator.py` are no longer supported entrypoints.
-如需文档总索引或双语边界，请先看 `docs/README.md`。`scripts/agent_worker.py` 与 `scripts/orchestrator.py` 之类退役兼容壳已不再是受支持入口。
+Need the full docs map or bilingual boundary? Start with `docs/README.md`. Public troubleshooting / support routing stays on `docs/TROUBLESHOOTING.md` → `SUPPORT.md`, while `docs/MAINTAINER_RELEASE_RUNBOOK.md` remains a maintainer-only appendix.
+如需文档总索引或双语边界，请先看 `docs/README.md`。公开排障 / 支持分流统一走 `docs/TROUBLESHOOTING.md` → `SUPPORT.md`，`docs/MAINTAINER_RELEASE_RUNBOOK.md` 则继续保持 maintainer-only appendix 身份。
+
+Retired compatibility stubs such as `scripts/agent_worker.py` and `scripts/orchestrator.py` remain unsupported fail-fast entrypoints.
+`scripts/agent_worker.py` 与 `scripts/orchestrator.py` 之类退役兼容壳继续作为 unsupported 的 fail-fast 入口保留。
 
 ## Navigation Boundaries / 导航边界
 
 ### Public contributor path / 对外贡献主链
 
-- Public overview and install contract: `README.md`, `README_zh.md`
+- Public overview and first hop: `README.md`, `README_zh.md` → `docs/README.md`
 - Contributor workflow and PR contract: `CONTRIBUTING.md` → `.github/pull_request_template.md`
 - Troubleshooting and routing: `docs/TROUBLESHOOTING.md` → `SUPPORT.md`
 - Private vulnerability disclosure: `SECURITY.md`
 
 ### Maintainer appendix / 维护者附录
 
-- Release / rehearsal / custody continuity: `docs/MAINTAINER_RELEASE_RUNBOOK.md`
-- Registry-backed governance truth: `.planning/baseline/GOVERNANCE_REGISTRY.json`
-- The maintainer-routing facts in this appendix are projected from `.planning/baseline/GOVERNANCE_REGISTRY.json` to reduce drift across `CONTRIBUTING.md`, `docs/README.md`, and GitHub templates.
+- Release / rehearsal / custody continuity: `docs/MAINTAINER_RELEASE_RUNBOOK.md` (maintainer-only, not a public first hop)
+- Registry-backed governance truth: `.planning/baseline/GOVERNANCE_REGISTRY.json`, projected into `CONTRIBUTING.md`, `docs/README.md`, and GitHub templates to reduce drift
 
 ### Bilingual Boundary / 双语边界
 
 - `README.md` 与 `README_zh.md` 必须保持镜像的 public entry navigation / release-install contract。
 - `CONTRIBUTING.md`、`SUPPORT.md` 与 `SECURITY.md` 必须保持等价的 contributor/support/security guidance，即使具体实现为单文件双语结构。
-- `docs/MAINTAINER_RELEASE_RUNBOOK.md` 与 `.planning/*` 可保持 maintainer-only，但公共入口需要在需要时显式链接过去。
+- `docs/MAINTAINER_RELEASE_RUNBOOK.md` 与 `.planning/*` 可保持 maintainer-only；公开入口可按需显式链接过去，但不得取代 public first hop。
 
 - If you touch `README.md` / `README_zh.md` / `CONTRIBUTING.md` / `SUPPORT.md` / `SECURITY.md` / `.github/*` / release workflow, update `docs/README.md`, `docs/TROUBLESHOOTING.md`, `docs/MAINTAINER_RELEASE_RUNBOOK.md`, and `.planning/baseline/GOVERNANCE_REGISTRY.json` together, and do not leave silent defer behind.
 - Public bug reports should start with diagnostics; developer report / one-click feedback is an escalation path only when diagnostics are insufficient or a maintainer explicitly asks for deeper debugging.

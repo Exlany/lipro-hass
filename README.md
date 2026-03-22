@@ -359,7 +359,7 @@ If diagnostics are not enough, or a maintainer asks for deeper debugging, you ca
 - When available, include `failure_summary` / `failure_entries` alongside diagnostics so maintainers can classify the failure path faster
 - `lipro.get_anonymous_share_report` - sanitized anonymous-share payload
 
-See also: `SUPPORT.md` for routing, `SECURITY.md` for private vulnerability disclosure, and `docs/MAINTAINER_RELEASE_RUNBOOK.md` for maintainer-only release issues.
+See also: `SUPPORT.md` for public routing and `SECURITY.md` for private vulnerability disclosure. `docs/MAINTAINER_RELEASE_RUNBOOK.md` stays maintainer-only for release / rehearsal / custody work.
 
 ## Disclaimer
 
@@ -369,13 +369,14 @@ This integration is implemented by reverse engineering the Lipro cloud API and i
 
 - Stable support targets: the latest tagged release and the matching HACS install
 - Preview paths (`ARCHIVE_TAG=main`, branch fallback, mirror installs): best effort only
-- Continuity / release custody detail lives in `SUPPORT.md`, `SECURITY.md`, `docs/TROUBLESHOOTING.md`, and `docs/MAINTAINER_RELEASE_RUNBOOK.md`; the root README keeps only the public routing layer
+- Public routing stays on one path: `docs/README.md` → `CONTRIBUTING.md` / `docs/TROUBLESHOOTING.md` / `SUPPORT.md` / `SECURITY.md`
+- Maintainer continuity and release custody stay in `docs/MAINTAINER_RELEASE_RUNBOOK.md`, not in the root public first hop
 
 ## Contributor Fast Path
 
-- Start with `CONTRIBUTING.md` for setup, targeted tests, CI command groups, and PR expectations
-- Use `docs/README.md` for the documentation map and bilingual boundary
-- Use `SUPPORT.md` for routing questions and `SECURITY.md` for private disclosure
+- Start with `docs/README.md` for the canonical docs map and bilingual boundary
+- Use `CONTRIBUTING.md` for setup, targeted tests, CI command groups, and PR expectations
+- Use `docs/TROUBLESHOOTING.md` → `SUPPORT.md` for public troubleshooting / routing, and `SECURITY.md` for private disclosure
 - Use `docs/MAINTAINER_RELEASE_RUNBOOK.md` only for maintainer-only release / rehearsal / custody work
 
 ## Contributing
@@ -387,15 +388,12 @@ This integration is implemented by reverse engineering the Lipro cloud API and i
 
 ## Documentation
 
-- `docs/README.md` - canonical documentation map, contributor fast path, and bilingual boundary
-- `docs/NORTH_STAR_TARGET_ARCHITECTURE.md` - target architecture and authority baseline
-- `docs/developer_architecture.md` - current package layout and runtime/control/protocol flow
-- `docs/TROUBLESHOOTING.md` - canonical troubleshooting and diagnostics path
-- `docs/MAINTAINER_RELEASE_RUNBOOK.md` - maintainer release/tag/package workflow
-- `docs/adr/README.md` - long-lived architecture decisions and trade-offs
+- `docs/README.md` - canonical docs map, public fast path, and bilingual boundary
 - `CONTRIBUTING.md` - contributor workflow, CI contract, and review expectations
+- `docs/TROUBLESHOOTING.md` - troubleshooting, diagnostics, and safe-sharing path
 - `SUPPORT.md` - support routing, triage expectations, and question handling
 - `SECURITY.md` - private vulnerability disclosure policy
-- `CODE_OF_CONDUCT.md` - community behavior expectations
-- `.devcontainer.json` - recommended devcontainer / Codespaces profile
-- `custom_components/lipro/quality_scale.yaml` - Home Assistant quality-scale declaration
+- `docs/NORTH_STAR_TARGET_ARCHITECTURE.md` / `docs/developer_architecture.md` - authority baseline and current package layout
+- `docs/adr/README.md` - long-lived architecture decisions and trade-offs
+- `docs/MAINTAINER_RELEASE_RUNBOOK.md` - maintainer-only release / rehearsal / custody appendix
+- `CODE_OF_CONDUCT.md`, `.devcontainer.json`, `custom_components/lipro/quality_scale.yaml` - community expectations, dev environment, and quality-scale declaration

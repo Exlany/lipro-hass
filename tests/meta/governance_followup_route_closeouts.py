@@ -250,4 +250,4 @@ def test_phase_46_audit_truth_is_consistent() -> None:
 
     assert "`Phase 46` 已于 `2026-03-20` 执行完成" in state_text
     assert "46-REMEDIATION-ROADMAP.md" in state_text
-    assert ("$gsd-new-milestone" in state_text or "$gsd-plan-phase 60" in state_text or "$gsd-execute-phase 60" in state_text or "$gsd-plan-phase 61" in state_text)
+    assert ("$gsd-new-milestone" in state_text or "$gsd-plan-phase 60" in state_text or "$gsd-execute-phase 60" in state_text or "$gsd-plan-phase 61" in state_text or "$gsd-plan-phase 62" in state_text or "$gsd-complete-milestone v1.13" in state_text)

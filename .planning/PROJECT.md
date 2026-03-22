@@ -1,8 +1,8 @@
 # Project: Lipro-HASS North Star Evolution
 
-**Status:** Shipped and archived — `v1.6` 仍是最新已发货真源；`v1.12` 已于 `2026-03-22` 完成 archive-ready closeout；`v1.13` 已完成 `Phase 60` tooling truth closeout 并进入 `Phase 61` planning-ready 状态；`v1.10` / `v1.11` 继续作为 refreshed route 的历史 seed 保留。
-**Goal:** 以 `v1.6` 归档真相为最新已发货基线；当前活跃路线建立在 `v1.12` localized verification archive、`v1.11` refreshed audit evidence 与正式 milestone docs 之上，继续推进 tooling truth / formal-home / naming discoverability 收敛，不回流 execution-trace 或 conversation-only 结论。
-**Default next step:** `$gsd-plan-phase 61`
+**Status:** Shipped and archived — `v1.6` 仍是最新已发货真源；`v1.12` 与 `v1.13` 已于 `2026-03-22` 完成 archive-ready closeout；`v1.10` / `v1.11` 继续作为 refreshed route 的历史 seed 保留。
+**Goal:** 以 `v1.6` 归档真相为最新已发货基线；当前无 active milestone，下一轮路线必须建立在 `v1.13` archived evidence、`v1.12` localized verification archive 与 `v1.11` refreshed audit baseline 之上，不回流 execution-trace 或 conversation-only 结论。
+**Default next step:** `$gsd-new-milestone`
 
 
 ## Archived Milestone (v1.6)
@@ -23,26 +23,28 @@
 **Archive assets:** `.planning/v1.6-MILESTONE-AUDIT.md`, `.planning/reviews/V1_6_EVIDENCE_INDEX.md`, `.planning/milestones/v1.6-ROADMAP.md`, `.planning/milestones/v1.6-REQUIREMENTS.md`, `.planning/phases/45-hotspot-decomposition-and-typed-failure-semantics/45-SUMMARY.md`, `.planning/phases/45-hotspot-decomposition-and-typed-failure-semantics/45-VERIFICATION.md`
 **Primary closeout targets:** delivery trust hardening、typed runtime read-model、control/services decoupling、governance asset pruning、terminology convergence、hotspot decomposition、typed failure semantics。
 
-## Planned Milestone (v1.13)
+## Archived Milestone (v1.13)
 
 **Name:** `v1.13 Tooling Truth Decomposition, Formal-Home Slimming & Naming/Discoverability Convergence`
 
-**Why now:** `Phase 58` 已把 refreshed remediation route 明确写成 `Phase 59 -> 62`，而 `Phase 59` 又先完成了 verification localization。现在最高杠杆的后续不再是重开 broad audit 或 runtime-root surgery，而是沿低噪声验证基线继续处理 tooling hotspot、large-but-correct formal homes 与 naming/discoverability 摩擦。
+**Why now:** `Phase 58` 已把 refreshed remediation route 明确写成 `Phase 59 -> 62`，而 `Phase 59` 又先完成了 verification localization。`v1.13` 的职责就是沿低噪声验证基线依次完成 tooling hotspot、large-but-correct formal homes 与 naming/discoverability 收口，并把结果提升为可供下一里程碑复用的 archive truth。
 
-**North-star fit:** `v1.13` 继续沿单一正式主链推进：
+**North-star fit:** `v1.13` 沿单一正式主链完成 closeout：
 
 - 先拆 tooling truth hotspot，再瘦 large-but-correct production homes，最后收口命名 / discoverability 噪音
-- `FILE_MATRIX / VERIFICATION_MATRIX / TESTING / current-story docs` 继续保持单一 authority chain，不重开第二治理故事
+- `FILE_MATRIX / VERIFICATION_MATRIX / TESTING / current-story docs` 始终保持单一 authority chain，不重开第二治理故事
 - production refactor 只做 inward split，不恢复 compat shell、public wrapper 或第二 formal root
-- public docs / discoverability follow-through 必须建立在代码与治理真相已经收敛之后，而不是反向定义架构
+- public docs / discoverability follow-through 建立在代码与治理真相已经收敛之后，而不是反向定义架构
 
 **Phase range:** `Phase 60 -> 62`
-**Current status:** `Phase 60 complete / Phase 61 planning-ready (2026-03-22)`
+**Current status:** `archived / evidence-ready (2026-03-22)`
+**Archive assets:** `.planning/v1.13-MILESTONE-AUDIT.md`, `.planning/reviews/V1_13_EVIDENCE_INDEX.md`, `.planning/milestones/v1.13-ROADMAP.md`, `.planning/milestones/v1.13-REQUIREMENTS.md`, `.planning/phases/60-tooling-truth-decomposition-and-file-governance-maintainability/60-SUMMARY.md`, `.planning/phases/60-tooling-truth-decomposition-and-file-governance-maintainability/60-VERIFICATION.md`, `.planning/phases/61-formal-home-slimming-for-large-but-correct-production-modules/61-SUMMARY.md`, `.planning/phases/61-formal-home-slimming-for-large-but-correct-production-modules/61-VERIFICATION.md`, `.planning/phases/62-naming-clarity-support-seam-governance-and-public-discoverability/62-SUMMARY.md`, `.planning/phases/62-naming-clarity-support-seam-governance-and-public-discoverability/62-VERIFICATION.md`
 **Starting baseline:** `.planning/v1.12-MILESTONE-AUDIT.md`, `.planning/reviews/V1_12_EVIDENCE_INDEX.md`, `.planning/phases/58-repository-audit-refresh-and-next-wave-routing/58-REMEDIATION-ROADMAP.md`, `.planning/phases/59-verification-localization-and-governance-guard-topicization/59-SUMMARY.md`, `.planning/phases/59-verification-localization-and-governance-guard-topicization/59-VERIFICATION.md`
 **Requirements basket:** `HOT-14`, `TST-12`, `GOV-44`, `HOT-15`, `QLT-20`, `TYP-15`, `RES-14`, `DOC-07`, `GOV-45`
 **Phase 60 delivered:** thin `scripts/check_file_matrix.py` root + `4` 个 tooling truth siblings、thin `tests/meta/test_toolchain_truth.py` root + `6` 个 truth-family modules，以及回写到 `FILE_MATRIX / VERIFICATION_MATRIX / TESTING / current-story docs` 的正式 freeze。
-**Immediate focus after Phase 60:** 规划 `$gsd-plan-phase 61`，沿 formal seams 继续瘦身 large-but-correct production homes，而不重开第二主链
-**Next route after Phase 60:** `$gsd-plan-phase 61`
+**Phase 61 delivered:** `anonymous_share` / diagnostics / OTA / select formal homes 现已 thin-root + focused collaborators，`test_select_behavior.py` 与 `.planning/reviews/FILE_MATRIX.md` 也已同步冻结新的 maintainability story。
+**Phase 62 delivered:** `DeviceExtras` support helper 已与 `extras*` family 对齐，README/docs/CONTRIBUTING/SUPPORT public fast path 已压成单一路由，baseline/review truth 与 focused Phase 62 guards 也已冻结命名 / discoverability closeout。
+**Follow-through after closeout:** 下一轮 milestone 应从 `v1.13` archived evidence 出发，经 `$gsd-new-milestone` 重新立项；`v1.12` / `v1.11` 继续保留为 refreshed route 历史基线。
 
 ## Archived Milestone (v1.12)
 

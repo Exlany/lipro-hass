@@ -10,7 +10,7 @@ from ...const.properties import (
     PROP_PANEL_INFO,
     PROP_RC_LIST,
 )
-from .extra_support import load_json_dict_list, load_json_list
+from .extras_support import load_json_dict_list, load_json_list
 
 if TYPE_CHECKING:
     from .extras import DeviceExtras

@@ -11,7 +11,7 @@
 - ✅ **v1.7 Full-Spectrum Repository Audit, Open-Source Maturity & Remediation Routing** - Phase 46 audit executed on 2026-03-20; Phase 47 -> 50 completed on 2026-03-21 with promoted closeout evidence; formalized follow-up route complete
 - ✅ **v1.8 Operational Continuity Automation, Formal-Root Sustainment & Hotspot Round 2** - formal milestone opened on 2026-03-21 from post-Phase-50 audit arbitration; Phases 51 -> 55 completed on 2026-03-21 with promoted closeout evidence and ready for archive / next-milestone arbitration
 - ✅ **v1.9 Shared Backoff Neutralization & Cross-Plane Retry Hygiene** - formal milestone opened on 2026-03-22 from the explicit Phase 56+ residual carry-forward; Phase 56 completed on 2026-03-22 with promoted closeout evidence and now serves as the closeout-ready seed baseline for v1.10
-- 🚧 **v1.13 Tooling Truth Decomposition, Formal-Home Slimming & Naming/Discoverability Convergence** - formal milestone opened on 2026-03-22 from the archived `v1.12` localized verification baseline; `Phase 60` completed on 2026-03-22 as the tooling truth closeout, and `Phase 61 -> 62` remain the active remediation chain
+- ✅ **v1.13 Tooling Truth Decomposition, Formal-Home Slimming & Naming/Discoverability Convergence** - `Phase 60 -> 62` archived on 2026-03-22; milestone audit: `.planning/v1.13-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_13_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.13-ROADMAP.md` / `.planning/milestones/v1.13-REQUIREMENTS.md`
 - ✅ **v1.12 Verification Localization & Governance Guard Topicization** - `Phase 59` archived on 2026-03-22; milestone audit: `.planning/v1.12-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_12_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.12-ROADMAP.md` / `.planning/milestones/v1.12-REQUIREMENTS.md`
 - ✅ **v1.11 Repository Audit Refresh & Next-Wave Remediation Routing** - formal milestone opened on 2026-03-22 from the renewed full-repository audit request; Phase 58 completed on 2026-03-22 with refreshed repo-wide audit evidence and now serves as the closeout-ready seed baseline for v1.12
 - ✅ **v1.10 Command-Result Typed Outcome & Reason-Code Hardening** - formal milestone opened on 2026-03-22 from the Phase 56 deferred follow-up route; Phase 57 completed on 2026-03-22 with promoted closeout evidence and now serves as the closeout-ready seed baseline for v1.11
@@ -1133,11 +1133,11 @@ Plans:
 
 ## v1.13: Tooling Truth Decomposition, Formal-Home Slimming & Naming/Discoverability Convergence
 
-> `v1.13` 承接 `v1.12` 已归档的 localized verification baseline：先把 tooling truth / file-governance hotspot inward decomposition 做对，再继续瘦身 large-but-correct production homes，最后收口 support-seam naming 与 public discoverability 噪音。
+> `v1.13` 已于 `2026-03-22` 完成 milestone audit 与 archive promotion：它承接 `v1.12` 的 localized verification baseline，先完成 tooling truth / file-governance hotspot inward decomposition，再收薄 large-but-correct production homes，最后把 support-seam naming 与 public discoverability 噪音冻结为 archived evidence。
 
-**Milestone status:** `Phase 60 complete / Phase 61 planning-ready`
-**Default next command:** `$gsd-plan-phase 61`（`Phase 60` 已完成并冻结 tooling truth；下一步规划 production formal-home slimming）
-**Starting baseline:** `.planning/v1.12-MILESTONE-AUDIT.md`, `.planning/reviews/V1_12_EVIDENCE_INDEX.md`, `.planning/phases/58-repository-audit-refresh-and-next-wave-routing/58-REMEDIATION-ROADMAP.md`, `.planning/phases/59-verification-localization-and-governance-guard-topicization/59-SUMMARY.md`, `.planning/phases/59-verification-localization-and-governance-guard-topicization/59-VERIFICATION.md`
+**Archive status:** `archived / evidence-ready (2026-03-22)`
+**Archive assets:** `.planning/v1.13-MILESTONE-AUDIT.md`, `.planning/reviews/V1_13_EVIDENCE_INDEX.md`, `.planning/milestones/v1.13-ROADMAP.md`, `.planning/milestones/v1.13-REQUIREMENTS.md`, `.planning/phases/60-tooling-truth-decomposition-and-file-governance-maintainability/60-SUMMARY.md`, `.planning/phases/60-tooling-truth-decomposition-and-file-governance-maintainability/60-VERIFICATION.md`, `.planning/phases/61-formal-home-slimming-for-large-but-correct-production-modules/61-SUMMARY.md`, `.planning/phases/61-formal-home-slimming-for-large-but-correct-production-modules/61-VERIFICATION.md`, `.planning/phases/62-naming-clarity-support-seam-governance-and-public-discoverability/62-SUMMARY.md`, `.planning/phases/62-naming-clarity-support-seam-governance-and-public-discoverability/62-VERIFICATION.md`
+**Default next command:** `$gsd-new-milestone`
 
 ### Phase 60: Tooling truth decomposition and file-governance maintainability
 
@@ -1167,7 +1167,14 @@ Plans:
   2. 新形成的 collaborator / projection seams 继续保持 typed contract、honest ownership 与 plane boundary clarity，而不是以动态 fallback 掩盖复杂度。
   3. family-level focused regressions 与 maintainability evidence 能独立运行，证明 refactor 带来真实 failure-localization / readability 收益。
 **Status**: Complete (2026-03-22)
-**Plans**: pending future planning
+**Plans**: 4/4 complete
+
+Plans:
+- [x] 61-01: slim anonymous-share formal homes into orchestration-only roots and focused submit collaborators (completed 2026-03-22)
+- [x] 61-02: slim diagnostics service helpers and handlers behind the stable diagnostics public surface (completed 2026-03-22)
+- [x] 61-03: slim OTA candidate certification and install-policy helpers while preserving candidate.py as the outward home (completed 2026-03-22)
+- [x] 61-04: slim select platform internals and add focused maintainability evidence without changing select.py as the HA root (completed 2026-03-22)
+**Closeout evidence:** `.planning/phases/61-formal-home-slimming-for-large-but-correct-production-modules/61-SUMMARY.md`, `.planning/phases/61-formal-home-slimming-for-large-but-correct-production-modules/61-VERIFICATION.md`
 
 ### Phase 62: Naming clarity, support-seam governance, and public discoverability
 
@@ -1179,7 +1186,14 @@ Plans:
   2. README、docs index、contributor fast path、retired tooling discoverability 与 bilingual public entry 继续讲一条低噪声 story。
   3. current-story docs、review ledgers 与 grep/meta guards 都能阻止 stale terminology、duplicate discoverability route 与第二 helper/public story 回流。
 **Status**: Complete (2026-03-22)
-**Plans**: pending future planning
+**Plans**: 4/4 complete
+
+Plans:
+- [x] 62-01: freeze keep-vs-rename decisions and land only the low-fanout DeviceExtras support rename (completed 2026-03-22)
+- [x] 62-02: converge bilingual README and public docs fast path without reintroducing maintainer-only first hops (completed 2026-03-22)
+- [x] 62-03: freeze post-Phase-61 naming and discoverability truth in baselines, ledgers, and verification governance (completed 2026-03-22)
+- [x] 62-04: add anti-regression guards and close out current-story docs for naming and discoverability convergence (completed 2026-03-22)
+**Closeout evidence:** `.planning/phases/62-naming-clarity-support-seam-governance-and-public-discoverability/62-SUMMARY.md`, `.planning/phases/62-naming-clarity-support-seam-governance-and-public-discoverability/62-VERIFICATION.md`
 
 ## v1.12: Verification Localization & Governance Guard Topicization
 

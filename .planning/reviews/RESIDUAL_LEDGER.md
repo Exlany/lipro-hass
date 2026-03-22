@@ -362,3 +362,9 @@ _None currently registered._
 
 - `scripts/check_file_matrix.py` 与 `tests/meta/test_toolchain_truth.py` 现已分别收敛成 thin roots；关闭的是 giant tooling/test truth hotspot，而不是创建新的 helper-owned authority。
 - sibling modules 现承接 inventory/classifier/markdown/validation 与 python/release/docs/CI/testing/checker truth families；current-story docs 与 review/baseline truth 已同步，无新增 active residual family。
+
+## Phase 61 Residual Delta
+
+- `anonymous_share`、diagnostics、OTA candidate 与 `select` 现都保持单一 outward roots；`manager_submission.py`、`share_client_flows.py`、`candidate_support.py` 与 `select_internal/gear.py` 均为 inward collaborators，而不是新的 public roots / compat shells。
+- 本 phase **无新增 active residual family**：收口的是既有 large-but-correct production hotspots，而不是引入新的 helper-owned authority。
+- `tests/meta/test_phase61_formal_home_budget_guards.py` 与更新后的 `.planning/reviews/FILE_MATRIX.md` 已冻结新的 no-growth / support-locality posture，防止 support seam 回流成第二正式故事。

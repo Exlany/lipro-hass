@@ -14,7 +14,7 @@ from ...const.properties import (
 )
 from ..utils.coerce import coerce_boollike
 from ..utils.identifiers import is_valid_iot_device_id
-from .extra_support import (
+from .extras_support import (
     _IOT_REMOTE_ID_PREFIX,
     _IR_REMOTE_DEVICE_DRIVER_ID,
     _IR_REMOTE_GATEWAY_SERIAL_PREFIX,

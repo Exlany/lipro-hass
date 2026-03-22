@@ -534,3 +534,44 @@ def test_phase_58_audit_refresh_clarifies_route_without_reopening_dependency_sto
     assert "本 phase **无新增 active residual family**" in residual_text
     assert "## Recommended Phase Seeds" in route_text
     assert "Phase 59" in route_text
+
+
+def test_phase_62_naming_discoverability_dependency_story_is_explicit() -> None:
+    dependency_text = (
+        _ROOT / ".planning" / "baseline" / "DEPENDENCY_MATRIX.md"
+    ).read_text(encoding="utf-8")
+    extras_support_text = (
+        _ROOT
+        / "custom_components"
+        / "lipro"
+        / "core"
+        / "device"
+        / "extras_support.py"
+    ).read_text(encoding="utf-8")
+    endpoint_surface_text = (
+        _ROOT
+        / "custom_components"
+        / "lipro"
+        / "core"
+        / "api"
+        / "endpoint_surface.py"
+    ).read_text(encoding="utf-8")
+    helper_support_text = (
+        _ROOT
+        / "custom_components"
+        / "lipro"
+        / "services"
+        / "diagnostics"
+        / "helper_support.py"
+    ).read_text(encoding="utf-8")
+
+    assert "## Phase 62 Naming / Discoverability Clarifications" in dependency_text
+    assert "extras_support.py" in dependency_text
+    assert "endpoint_surface.py" in dependency_text
+    assert "feedback_handlers.py" in dependency_text
+    assert "command_result_handlers.py" in dependency_text
+    assert "capability_handlers.py" in dependency_text
+    assert "DeviceExtras" in extras_support_text
+    assert "Support helpers" in extras_support_text
+    assert "endpoint operations collaborator" in endpoint_surface_text
+    assert "support-only" in helper_support_text.lower()

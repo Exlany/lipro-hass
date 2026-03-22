@@ -171,6 +171,16 @@ phases:
   60-tooling-truth-decomposition-and-file-governance-maintainability:
     - 60-SUMMARY.md
     - 60-VERIFICATION.md
+  61-formal-home-slimming-for-large-but-correct-production-modules:
+    - 61-SUMMARY.md
+    - 61-VERIFICATION.md
+  62-naming-clarity-support-seam-governance-and-public-discoverability:
+    - 62-01-SUMMARY.md
+    - 62-02-SUMMARY.md
+    - 62-03-SUMMARY.md
+    - 62-04-SUMMARY.md
+    - 62-SUMMARY.md
+    - 62-VERIFICATION.md
 ---
 
 # Promoted Phase Assets

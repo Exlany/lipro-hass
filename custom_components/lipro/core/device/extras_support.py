@@ -1,4 +1,4 @@
-"""Support helpers for `DeviceExtras`."""
+"""Support helpers for the `DeviceExtras` family."""
 
 from __future__ import annotations
 
