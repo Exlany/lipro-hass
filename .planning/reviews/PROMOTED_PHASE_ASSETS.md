@@ -165,6 +165,9 @@ phases:
   58-repository-audit-refresh-and-next-wave-routing:
     - 58-SUMMARY.md
     - 58-VERIFICATION.md
+  59-verification-localization-and-governance-guard-topicization:
+    - 59-SUMMARY.md
+    - 59-VERIFICATION.md
 ---
 
 # Promoted Phase Assets

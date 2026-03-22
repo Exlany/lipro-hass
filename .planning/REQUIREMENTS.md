@@ -419,23 +419,23 @@
 
 ### Verification Localization & Governance Guard Topicization
 
-- [ ] **TST-11**: `tests/meta/test_public_surface_guards.py`、`tests/meta/test_governance_phase_history.py`、`tests/meta/test_governance_followup_route.py` 与 `tests/core/test_device_refresh.py` 必须按 stable truth family / concern boundary topicize，避免继续维持 giant verification buckets。
-- [ ] **QLT-19**: localized verification topology 必须提供更小的 focused runnable suites 与更诚实的 failure-localization contract，不能在 split 过程中丢 coverage、丢 guard semantics 或引入新的 helper-owned truth。
-- [ ] **GOV-43**: `.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE}.md`、`.planning/baseline/VERIFICATION_MATRIX.md` 与相关 review truth 必须显式记录 `Phase 59` 的 localized verification route、ownership boundary 与 no-growth story。
+- [x] **TST-11**: `tests/meta/test_public_surface_guards.py`、`tests/meta/test_governance_phase_history.py`、`tests/meta/test_governance_followup_route.py` 已收敛为 thin shell + stable truth-family modules，`tests/core/test_device_refresh_{parsing,filter,snapshot,runtime}.py` 也已形成 focused suites，giant verification buckets 不再维持。
+- [x] **QLT-19**: localized verification topology 已提供更小的 focused runnable suites 与更诚实的 failure-localization contract，split 过程中未丢 coverage、未丢 guard semantics，也未引入新的 helper-owned truth。
+- [x] **GOV-43**: `.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE}.md`、`.planning/baseline/VERIFICATION_MATRIX.md`、`.planning/codebase/TESTING.md` 与相关 review truth 已显式记录 `Phase 59` 的 localized verification route、ownership boundary 与 no-growth story。
 
 ## Traceability for planned v1.12 route
 
 | Requirement | Planned Phase | Status |
 |-------------|---------------|--------|
-| TST-11 | Phase 59 | Planned |
-| QLT-19 | Phase 59 | Planned |
-| GOV-43 | Phase 59 | Planned |
+| TST-11 | Phase 59 | Complete |
+| QLT-19 | Phase 59 | Complete |
+| GOV-43 | Phase 59 | Complete |
 
 **Coverage:**
 - v1.12 routed requirements: 3 total
 - Current mapped: 3
-- Current complete: 0
-- Current pending: 3
+- Current complete: 3
+- Current pending: 0
 - Current unmapped: 0 ✓
 
 

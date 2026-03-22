@@ -11,7 +11,7 @@
 - ✅ **v1.7 Full-Spectrum Repository Audit, Open-Source Maturity & Remediation Routing** - Phase 46 audit executed on 2026-03-20; Phase 47 -> 50 completed on 2026-03-21 with promoted closeout evidence; formalized follow-up route complete
 - ✅ **v1.8 Operational Continuity Automation, Formal-Root Sustainment & Hotspot Round 2** - formal milestone opened on 2026-03-21 from post-Phase-50 audit arbitration; Phases 51 -> 55 completed on 2026-03-21 with promoted closeout evidence and ready for archive / next-milestone arbitration
 - ✅ **v1.9 Shared Backoff Neutralization & Cross-Plane Retry Hygiene** - formal milestone opened on 2026-03-22 from the explicit Phase 56+ residual carry-forward; Phase 56 completed on 2026-03-22 with promoted closeout evidence and now serves as the closeout-ready seed baseline for v1.10
-- 🟢 **v1.12 Verification Localization & Governance Guard Topicization** - formal milestone opened on 2026-03-22 from the `Phase 58` remediation route; `Phase 59` planning assets completed on 2026-03-22 and the tranche is now execution-ready
+- ✅ **v1.12 Verification Localization & Governance Guard Topicization** - formal milestone opened on 2026-03-22 from the `Phase 58` remediation route; `Phase 59` completed on 2026-03-22 with promoted closeout evidence and the milestone is now closeout-ready
 - ✅ **v1.11 Repository Audit Refresh & Next-Wave Remediation Routing** - formal milestone opened on 2026-03-22 from the renewed full-repository audit request; Phase 58 completed on 2026-03-22 with refreshed repo-wide audit evidence and now serves as the closeout-ready seed baseline for v1.12
 - ✅ **v1.10 Command-Result Typed Outcome & Reason-Code Hardening** - formal milestone opened on 2026-03-22 from the Phase 56 deferred follow-up route; Phase 57 completed on 2026-03-22 with promoted closeout evidence and now serves as the closeout-ready seed baseline for v1.11
 
@@ -1132,10 +1132,10 @@ Plans:
 
 ## v1.12: Verification Localization & Governance Guard Topicization
 
-> `v1.12` 承接 `Phase 58` 的 refreshed route，但不直接跳进 `Phase 60` 的 tooling surgery。先把 megaguards / megasuites topicize 成更窄、更诚实的 failure-localization topology，后续 remediation 才不会继续建立在 giant verification buckets 上。
+> `v1.12` 不急着打开更重的 tooling / production surgery，而是先把 `Phase 58` 路由出的 megaguards / megasuites 收窄到更诚实的 verification topology：public-surface / governance-history / follow-up-route roots 变成 thin shell + named truth-family modules，`device_refresh` 也不再维持 giant bucket。
 
-**Milestone status:** `Phase 59 planning-ready (2026-03-22)`
-**Default next command:** `$gsd-execute-phase 59`（planning assets 与 validation contract 已就绪）
+**Milestone status:** `Phase 59 complete (2026-03-22)`
+**Default next command:** `$gsd-complete-milestone v1.12`（opening phase 已完成；当前里程碑已具备 closeout 条件）
 **Seed input:** `.planning/reviews/V1_12_MILESTONE_SEED.md`
 
 ### Phase 59: Verification localization and governance guard topicization
@@ -1144,15 +1144,14 @@ Plans:
 **Depends on:** Phase 58
 **Requirements**: [TST-11, QLT-19, GOV-43]
 **Success Criteria**:
-  1. `tests/meta/test_public_surface_guards.py`、`tests/meta/test_governance_phase_history.py`、`tests/meta/test_governance_followup_route.py` 与 `tests/core/test_device_refresh.py` 按稳定 concern boundary topicize，failure radius 明显缩小。
+  1. `tests/meta/test_public_surface_guards.py`、`tests/meta/test_governance_phase_history.py`、`tests/meta/test_governance_followup_route.py` 已收敛为 thin shell roots，`tests/core/test_device_refresh_{parsing,filter,snapshot,runtime}.py` 已形成 focused suites，failure radius 明显缩小。
   2. topicization 只沿现有 truth seams inward 推进，不新增新的 helper root、duplicate truth file 或 second governance story。
-  3. `.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE}.md` 与 verification-related truth docs 记录新的 localized suite topology、focused commands 与 no-growth contract。
-**Status**: Planning-ready (`2026-03-22`)
-**Plans**: 3 prepared
-**Planning package**: `59-PRD.md`, `59-CONTEXT.md`, `59-RESEARCH.md`, `59-VALIDATION.md`, `59-01-PLAN.md`, `59-02-PLAN.md`, `59-03-PLAN.md`
+  3. `.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE}.md`、verification matrix、`TESTING.md` 与 review truth 全部准确记录 localized verification topology、ownership boundary 与 no-growth story。
+**Status**: Complete (`2026-03-22`)
+**Plans**: 3/3 complete
+**Promoted closeout package**: `59-SUMMARY.md`, `59-VERIFICATION.md`
 
 Plans:
-- [ ] 59-01: topicize governance and public-surface meta guards by stable truth family
-- [ ] 59-02: split `test_device_refresh.py` by config parsing, filter semantics, and runtime behavior concerns
-- [ ] 59-03: freeze localized verification topology in matrices, current-story docs, and focused follow-up guards
-
+- [x] 59-01: topicize governance and public-surface megaguards by stable truth family (completed 2026-03-22)
+- [x] 59-02: split `test_device_refresh.py` by parsing, filter semantics, snapshot building, and runtime behavior concerns (completed 2026-03-22)
+- [x] 59-03: freeze localized verification topology in matrices, current-story docs, and focused guards (completed 2026-03-22)

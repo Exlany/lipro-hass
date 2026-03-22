@@ -350,3 +350,9 @@ _None currently registered._
 - 本 phase **无新增 active residual family**；它刷新的是 repo-wide verdict 与 route truth，而不是新开 residual campaign。
 - refreshed audit 明确认可：active residual ledger 当前仍为空；后续 follow-up 主要是 maintainability precision，而不是历史错根回潮。
 - `58-REMEDIATION-ROADMAP.md` 现承担 `Phase 59+` route seed 身份；它不是 archive artifact，也不是新的 baseline root。
+
+## Phase 59 Status Update
+
+- 本 phase **无新增 active residual family**；它冻结的是 localized verification topology，而不是新开 residual campaign。
+- thin-shell meta roots、truth-family submodules 与 split `device_refresh` suites 现都属于正式 verification topology，不是临时 compat story。
+- `59-SUMMARY.md` 与 `59-VERIFICATION.md` 已作为 Phase 59 closeout evidence promoted；`59-PRD.md`、`59-CONTEXT.md`、`59-RESEARCH.md`、`59-VALIDATION.md` 与 `59-0x-PLAN.md` 继续保持 execution-trace 身份。

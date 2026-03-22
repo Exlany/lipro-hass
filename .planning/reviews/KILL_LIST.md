@@ -272,3 +272,9 @@
 
 - 本 phase **无新增 active kill target**；repo-wide refreshed audit 关注的是 verdict refresh、route synthesis 与 truth freeze，不是新的 delete campaign。
 - 后续若继续处理 megaguards / tooling hotspots / thick formal homes，只能以 inward decomposition、topicization 或 naming clarity 方式推进，不得虚构 file-level delete folklore。
+
+## Phase 59 Status Update
+
+- 本 phase **无新增 active kill target**；verification topicization 与 current-story freeze 都属于 formal truth closeout，不是新的 delete campaign。
+- `tests/core/test_device_refresh.py` 的退场已在本 phase 完成，后续若继续优化 verification topology，只允许围绕当前 focused suites 收口，不得再恢复新的 mega-suite folklore。
+- thin-shell meta roots 与 truth-family submodules 现已是正式 verification topology；后续若继续拆分，只能延续 same-story inward decomposition，而不能重新长出 second governance story。

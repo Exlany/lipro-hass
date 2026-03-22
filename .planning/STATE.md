@@ -6,9 +6,9 @@ status: active
 last_updated: "2026-03-22T00:00:00Z"
 progress:
   total_phases: 1
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 3
-  completed_plans: 0
+  completed_plans: 3
 ---
 
 # Project State
@@ -19,11 +19,11 @@ See: `.planning/PROJECT.md`
 
 **Current milestone:** `v1.12 Verification Localization & Governance Guard Topicization`
 **Core value:** 先把 giant verification buckets topicize 成更窄、更诚实的 runnable topology，让后续 remediation 建立在低噪声验证边界上，而不是继续依赖 broad suites。
-**Current mode:** `Phase 59 planning-ready`；`v1.6` 仍是 latest shipped archive baseline，`v1.10` / `v1.11` 保持 closeout-ready，而 `v1.12` 已作为当前 remediation tranche 进入 execution-ready planning 状态。
+**Current mode:** `Phase 59 complete`；`v1.6` 仍是 latest shipped archive baseline，`v1.10` / `v1.11` 保持 closeout-ready，而 `v1.12` 已完成 opening remediation tranche，当前处于 milestone closeout-ready 状态。
 
 ## Current Position
 
-- `v1.12` 已于 `2026-03-22` 从 `.planning/reviews/V1_12_MILESTONE_SEED.md` 正式化为 current milestone，并在同日完成 `Phase 59` planning package：`59-PRD.md`、`59-CONTEXT.md`、`59-RESEARCH.md`、`59-VALIDATION.md` 与 `59-01 -> 59-03 PLAN` 已全部落盘；下一步是 `$gsd-execute-phase 59`。
+- `v1.12` 已于 `2026-03-22` 从 `.planning/reviews/V1_12_MILESTONE_SEED.md` 正式化为 current milestone，并在同日完成 `Phase 59`：meta megaguards 已 topicize 成 thin shell + truth-family modules，`device_refresh` 已拆成四个 focused suites，current-story / matrix / review truth 也已冻结；`59-SUMMARY.md` 与 `59-VERIFICATION.md` 已落盘，下一步是 `$gsd-complete-milestone v1.12`。
 - `v1.11` 已于 `2026-03-22` 完成 opening `Phase 58`：refreshed architecture/code audit、governance/open-source audit、`Phase 59+` remediation roadmap 与 current-story truth freeze 均已落盘；它现在作为 `v1.12` 的 closeout-ready seed baseline 保留。
 - `v1.10` 已于 `2026-03-22` 完成 opening `Phase 57`：typed command-result state / reason-code truth 已与 runtime sender、diagnostics query consumer 与 governance truth 对齐；当前保持 prior closeout-ready milestone 身份。
 - `v1.9` 已于 `2026-03-22` 完成 opening `Phase 56`：generic exponential backoff primitive 已迁往 neutral helper home，并关闭 `Generic backoff helper leak` residual。
@@ -59,21 +59,21 @@ See: `.planning/PROJECT.md`
 
 - **Milestone:** `v1.12 Verification Localization & Governance Guard Topicization`
 - **Phase range:** `59`
-- **Completed so far:** `Phase 59 planning-ready`（`2026-03-22` 已完成 PRD、context、research、validation 与 3 份 executable plans）
-- **Planned next:** `$gsd-execute-phase 59`（执行当前 tranche）；`$gsd-progress`（查看 updated route 与 evidence anchors）
+- **Completed so far:** `Phase 59 complete`（`2026-03-22` 已完成 `3/3` executable plans，并落盘 `59-SUMMARY.md` / `59-VERIFICATION.md`）
+- **Planned next:** `$gsd-complete-milestone v1.12`（归档当前 milestone）；`$gsd-progress`（查看 updated route 与 evidence anchors）
 - **Starting baseline:** `v1.11` refreshed audit evidence remains the immediate route baseline；`v1.6` archive assets remain the authoritative shipped snapshots
 - **Planning sources:** `.planning/reviews/V1_12_MILESTONE_SEED.md`, `.planning/phases/58-repository-audit-refresh-and-next-wave-routing/58-REMEDIATION-ROADMAP.md`, `.planning/phases/58-repository-audit-refresh-and-next-wave-routing/58-SUMMARY.md`, `.planning/phases/58-repository-audit-refresh-and-next-wave-routing/58-VERIFICATION.md`
 - **Historical archives:** `.planning/milestones/v1.1-ROADMAP.md`, `.planning/milestones/v1.1-REQUIREMENTS.md`, `.planning/milestones/v1.2-ROADMAP.md`, `.planning/milestones/v1.2-REQUIREMENTS.md`, `.planning/milestones/v1.4-ROADMAP.md`, `.planning/milestones/v1.4-REQUIREMENTS.md`, `.planning/milestones/v1.5-ROADMAP.md`, `.planning/milestones/v1.5-REQUIREMENTS.md`, `.planning/milestones/v1.6-ROADMAP.md`, `.planning/milestones/v1.6-REQUIREMENTS.md`
-- **Next focus:** `$gsd-execute-phase 59`——收窄 megaguards / megasuites 的 failure radius，并把 localized verification topology 冻结为正式 current truth。
+- **Next focus:** `$gsd-complete-milestone v1.12`——保留 localized verification topology 作为当前真相，并把本 tranche 正式归档为 closeout evidence。
 
 ## Recommended Next Command
 
-1. `$gsd-execute-phase 59` —— 执行当前 verification-localization tranche
-2. `$gsd-progress` —— 查看 `v1.12` 当前 route、plan package 与 promoted evidence anchors
-3. `$gsd-complete-milestone v1.11` —— 若要先把 refreshed audit milestone 归档成历史快照
-4. `$gsd-new-milestone` —— 若要跳过本 tranche，直接从当前 route 仲裁下一轮 milestone
-5. `uv run pytest -q tests/meta/test_public_surface_guards.py tests/meta/test_governance_phase_history.py tests/meta/test_governance_followup_route.py tests/core/test_device_refresh.py` —— 复核 `Phase 59` 目标热点的当前 failure radius
-6. `uv run python scripts/check_file_matrix.py --check` —— 复核 file-matrix truth 没有额外漂移
+1. `$gsd-complete-milestone v1.12` —— 归档当前 verification-localization milestone
+2. `$gsd-progress` —— 查看 `v1.12` closeout-ready 状态、promoted evidence anchors 与后续 route
+3. `$gsd-new-milestone` —— 从 `Phase 59` 的 localized verification baseline 仲裁下一轮 milestone
+4. `uv run pytest -q tests/meta/test_public_surface_guards.py tests/meta/test_governance_phase_history.py tests/meta/test_governance_followup_route.py tests/meta/test_dependency_guards.py tests/meta/test_governance_closeout_guards.py tests/meta/test_version_sync.py tests/core/test_device_refresh_parsing.py tests/core/test_device_refresh_filter.py tests/core/test_device_refresh_snapshot.py tests/core/test_device_refresh_runtime.py` —— 复核 `Phase 59` focused verification topology
+5. `uv run python scripts/check_file_matrix.py --check` —— 复核 file-matrix truth 没有额外漂移
+6. `$gsd-complete-milestone v1.11` —— 若要把 refreshed audit seed milestone 一并归档为历史快照
 
 ## Session Continuity
 
@@ -84,14 +84,16 @@ If resuming, read in this order:
 4. `.planning/REQUIREMENTS.md`
 5. `.planning/STATE.md`
 6. `.planning/reviews/V1_12_MILESTONE_SEED.md`
-7. `.planning/phases/59-verification-localization-and-governance-guard-topicization/59-PRD.md`
-8. `.planning/phases/59-verification-localization-and-governance-guard-topicization/59-CONTEXT.md`
-9. `.planning/phases/59-verification-localization-and-governance-guard-topicization/59-RESEARCH.md`
-10. `.planning/phases/59-verification-localization-and-governance-guard-topicization/59-VALIDATION.md`
-11. `.planning/phases/59-verification-localization-and-governance-guard-topicization/59-01-PLAN.md`
-12. `.planning/phases/59-verification-localization-and-governance-guard-topicization/59-02-PLAN.md`
-13. `.planning/phases/59-verification-localization-and-governance-guard-topicization/59-03-PLAN.md`
-14. `.planning/reviews/V1_11_MILESTONE_SEED.md`
-15. `.planning/phases/58-repository-audit-refresh-and-next-wave-routing/58-SUMMARY.md`
-16. `.planning/phases/58-repository-audit-refresh-and-next-wave-routing/58-VERIFICATION.md`
-17. `.planning/phases/58-repository-audit-refresh-and-next-wave-routing/58-REMEDIATION-ROADMAP.md`
+7. `.planning/phases/59-verification-localization-and-governance-guard-topicization/59-SUMMARY.md`
+8. `.planning/phases/59-verification-localization-and-governance-guard-topicization/59-VERIFICATION.md`
+9. `.planning/phases/59-verification-localization-and-governance-guard-topicization/59-PRD.md`
+10. `.planning/phases/59-verification-localization-and-governance-guard-topicization/59-CONTEXT.md`
+11. `.planning/phases/59-verification-localization-and-governance-guard-topicization/59-RESEARCH.md`
+12. `.planning/phases/59-verification-localization-and-governance-guard-topicization/59-VALIDATION.md`
+13. `.planning/phases/59-verification-localization-and-governance-guard-topicization/59-01-PLAN.md`
+14. `.planning/phases/59-verification-localization-and-governance-guard-topicization/59-02-PLAN.md`
+15. `.planning/phases/59-verification-localization-and-governance-guard-topicization/59-03-PLAN.md`
+16. `.planning/reviews/V1_11_MILESTONE_SEED.md`
+17. `.planning/phases/58-repository-audit-refresh-and-next-wave-routing/58-SUMMARY.md`
+18. `.planning/phases/58-repository-audit-refresh-and-next-wave-routing/58-VERIFICATION.md`
+19. `.planning/phases/58-repository-audit-refresh-and-next-wave-routing/58-REMEDIATION-ROADMAP.md`

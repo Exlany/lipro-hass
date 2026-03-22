@@ -1,6 +1,6 @@
 # File Matrix
 
-**Python files total:** 557
+**Python files total:** 569
 **Status:** File-level governance authority
 **Rule:** workspace inventory excluding caches / virtual env / tooling artifacts
 
@@ -103,8 +103,8 @@
 | `custom_components/lipro/core/command/dispatch.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/core/command/expectation.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/core/command/post_refresh.py` | Cross-cutting | Phase 7 | 保留 | - |
-| `custom_components/lipro/core/command/result.py` | Cross-cutting | Phase 7 / 57 | 保留 | stable export / failure arbitration home for typed command-result contract |
-| `custom_components/lipro/core/command/result_policy.py` | Cross-cutting | Phase 33 / 57 | 保留 | typed state vocabulary + command-result classification / retry / delayed-refresh policy home |
+| `custom_components/lipro/core/command/result.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `custom_components/lipro/core/command/result_policy.py` | Cross-cutting | Phase 33 | 保留 | typed command-result contract classification / retry / delayed-refresh policy home |
 | `custom_components/lipro/core/command/trace.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/core/coordinator/__init__.py` | Runtime | Phase 5 | 重构 | - |
 | `custom_components/lipro/core/coordinator/coordinator.py` | Runtime | Phase 5 / 14 / 36 | 重构 | HA-facing runtime façade with polling ballast reduced |
@@ -121,7 +121,7 @@
 | `custom_components/lipro/core/coordinator/runtime/command/builder.py` | Runtime | Phase 5 | 重构 | - |
 | `custom_components/lipro/core/coordinator/runtime/command/confirmation.py` | Runtime | Phase 5 | 重构 | - |
 | `custom_components/lipro/core/coordinator/runtime/command/retry.py` | Runtime | Phase 5 | 重构 | - |
-| `custom_components/lipro/core/coordinator/runtime/command/sender.py` | Runtime | Phase 5 / 57 | 重构 | shares typed verification vocabulary with command-result contract |
+| `custom_components/lipro/core/coordinator/runtime/command/sender.py` | Runtime | Phase 5 | 重构 | - |
 | `custom_components/lipro/core/coordinator/runtime/command_runtime.py` | Runtime | Phase 5 | 重构 | - |
 | `custom_components/lipro/core/coordinator/runtime/device/__init__.py` | Runtime | Phase 5 | 重构 | - |
 | `custom_components/lipro/core/coordinator/runtime/device/batch_optimizer.py` | Runtime | Phase 5 | 重构 | - |
@@ -271,7 +271,7 @@
 | `custom_components/lipro/services/diagnostics/handlers.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/services/diagnostics/helper_support.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/services/diagnostics/helpers.py` | Control | Phase 3 | 保留 | diagnostics optional-capability helper reusing shared execution auth chain |
-| `custom_components/lipro/services/diagnostics/types.py` | Control | Phase 3 / 57 | 保留 | diagnostics query_command_result typed state contract |
+| `custom_components/lipro/services/diagnostics/types.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/services/errors.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/services/execution.py` | Control | Phase 3 / 5 / 7 | 保留 | formal service execution facade; private auth seam closed |
 | `custom_components/lipro/services/maintenance.py` | Control | Phase 3 | 保留 | - |
@@ -343,7 +343,7 @@
 | `tests/core/coordinator/conftest.py` | Runtime | Phase 49 | 保留 | shared coordinator fixture home |
 | `tests/core/coordinator/mqtt/__init__.py` | Runtime | Phase 5 / 6 | 保留 | - |
 | `tests/core/coordinator/runtime/__init__.py` | Runtime | Phase 5 / 6 | 保留 | - |
-| `tests/core/coordinator/runtime/test_command_runtime.py` | Runtime | Phase 5 / 6 / 57 | 保留 | runtime sender / command-result typed contract coverage |
+| `tests/core/coordinator/runtime/test_command_runtime.py` | Runtime | Phase 5 / 6 | 保留 | - |
 | `tests/core/coordinator/runtime/test_device_runtime.py` | Runtime | Phase 5 / 6 | 保留 | - |
 | `tests/core/coordinator/runtime/test_mqtt_runtime.py` | Runtime | Phase 5 / 6 | 保留 | - |
 | `tests/core/coordinator/runtime/test_runtime_telemetry_methods.py` | Runtime | Phase 5 / 6 | 保留 | - |
@@ -411,7 +411,7 @@
 | `tests/core/test_categories.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `tests/core/test_command_confirmation_helpers.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `tests/core/test_command_dispatch.py` | Cross-cutting | Phase 7 | 保留 | - |
-| `tests/core/test_command_result.py` | Cross-cutting | Phase 7 / 57 | 保留 | typed command-result contract coverage |
+| `tests/core/test_command_result.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `tests/core/test_command_trace.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `tests/core/test_control_plane.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `tests/core/test_coordinator.py` | Runtime | Phase 5 / 49 | 保留 | service / entity-lifecycle smoke shell |
@@ -419,7 +419,10 @@
 | `tests/core/test_coordinator_integration.py` | Runtime | Phase 5 / 6 | 保留 | - |
 | `tests/core/test_debounce.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `tests/core/test_device_list_snapshot.py` | Cross-cutting | Phase 7 | 保留 | - |
-| `tests/core/test_device_refresh.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `tests/core/test_device_refresh_filter.py` | Cross-cutting | Phase 7 | 保留 | device-refresh filter-semantics topic home |
+| `tests/core/test_device_refresh_parsing.py` | Cross-cutting | Phase 7 | 保留 | device-refresh parsing/normalization topic home |
+| `tests/core/test_device_refresh_runtime.py` | Cross-cutting | Phase 7 | 保留 | device-refresh runtime decision topic home |
+| `tests/core/test_device_refresh_snapshot.py` | Cross-cutting | Phase 7 | 保留 | device-refresh snapshot-builder topic home |
 | `tests/core/test_diagnostics.py` | Control | Phase 3 / 49 | 保留 | shared helper / cross-surface smoke anchor |
 | `tests/core/test_diagnostics_config_entry.py` | Control | Phase 49 | 保留 | config-entry diagnostics topic suite |
 | `tests/core/test_diagnostics_device.py` | Control | Phase 49 | 保留 | device diagnostics topic suite |
@@ -441,7 +444,7 @@
 | `tests/core/test_init_schema_validation.py` | Control | Phase 33 | 保留 | schema-focused init regression home |
 | `tests/core/test_init_service_handlers.py` | Control | Phase 27 / 37 | 保留 | shared helper root for topicized init service-handler regressions |
 | `tests/core/test_init_service_handlers_commands.py` | Control | Phase 37 | 保留 | command-dispatch topic home |
-| `tests/core/test_init_service_handlers_debug_queries.py` | Control | Phase 37 / 57 | 保留 | debug-query topic home + query_command_result typed state coverage |
+| `tests/core/test_init_service_handlers_debug_queries.py` | Control | Phase 37 | 保留 | debug-query topic home |
 | `tests/core/test_init_service_handlers_device_resolution.py` | Control | Phase 37 | 保留 | device-resolution topic home |
 | `tests/core/test_init_service_handlers_schedules.py` | Control | Phase 37 | 保留 | schedule-validation topic home |
 | `tests/core/test_init_service_handlers_sensor_feedback.py` | Cross-cutting | Phase 7 | 保留 | - |
@@ -497,6 +500,15 @@
 | `tests/integration/test_protocol_replay_harness.py` | Assurance | Phase 7.4 | 保留 | - |
 | `tests/integration/test_telemetry_exporter_integration.py` | Runtime | Phase 7.3 | 保留 | - |
 | `tests/meta/__init__.py` | Assurance | Phase 6 | 保留 | - |
+| `tests/meta/governance_followup_route_closeouts.py` | Assurance | Phase 59 | 保留 | followup-route closeout topic home |
+| `tests/meta/governance_followup_route_continuation.py` | Assurance | Phase 59 | 保留 | followup-route continuation topic home |
+| `tests/meta/governance_followup_route_current_milestones.py` | Assurance | Phase 59 | 保留 | followup-route current-milestone topic home |
+| `tests/meta/governance_phase_history_archive_execution.py` | Assurance | Phase 59 | 保留 | phase-history archive/execution topic home |
+| `tests/meta/governance_phase_history_current_milestones.py` | Assurance | Phase 59 | 保留 | phase-history current-milestone topic home |
+| `tests/meta/governance_phase_history_mid_closeouts.py` | Assurance | Phase 59 | 保留 | phase-history mid-closeout topic home |
+| `tests/meta/public_surface_architecture_policy.py` | Assurance | Phase 59 | 保留 | public-surface architecture/policy topic home |
+| `tests/meta/public_surface_phase_notes.py` | Assurance | Phase 59 | 保留 | public-surface phase-note topic home |
+| `tests/meta/public_surface_runtime_contracts.py` | Assurance | Phase 59 | 保留 | public-surface runtime-contract topic home |
 | `tests/meta/test_blueprints.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_dependency_guards.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_evidence_pack_authority.py` | Assurance | Phase 8 | 保留 | - |
@@ -504,10 +516,10 @@
 | `tests/meta/test_external_boundary_fixtures.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_firmware_support_manifest_repo_asset.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_governance_closeout_guards.py` | Assurance | Phase 27 / 44 / 49 | 保留 | helper + promoted-manifest smoke anchor |
-| `tests/meta/test_governance_followup_route.py` | Assurance | Phase 49 | 保留 | followup-route topic suite |
+| `tests/meta/test_governance_followup_route.py` | Assurance | Phase 49 | 保留 | thin shell after followup-route topicization |
 | `tests/meta/test_governance_guards.py` | Assurance | Phase 33 | 保留 | inventory / policy governance topic root |
 | `tests/meta/test_governance_milestone_archives.py` | Assurance | Phase 49 | 保留 | milestone-archive topic suite |
-| `tests/meta/test_governance_phase_history.py` | Assurance | Phase 33 / 37 | 保留 | phase-history planning/closeout topic root |
+| `tests/meta/test_governance_phase_history.py` | Assurance | Phase 33 / 37 | 保留 | thin shell after phase-history topicization |
 | `tests/meta/test_governance_phase_history_runtime.py` | Assurance | Phase 37 | 保留 | runtime closeout phase-history topic home |
 | `tests/meta/test_governance_phase_history_topology.py` | Assurance | Phase 37 | 保留 | topology closeout phase-history topic home |
 | `tests/meta/test_governance_promoted_phase_assets.py` | Assurance | Phase 49 | 保留 | promoted-asset topic suite |
@@ -518,7 +530,7 @@
 | `tests/meta/test_phase45_hotspot_budget_guards.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_phase50_rest_typed_budget_guards.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_protocol_replay_assets.py` | Assurance | Phase 7.4 | 保留 | - |
-| `tests/meta/test_public_surface_guards.py` | Assurance | Phase 6 | 保留 | - |
+| `tests/meta/test_public_surface_guards.py` | Assurance | Phase 6 | 保留 | thin shell after public-surface topicization |
 | `tests/meta/test_service_translation_sync.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_toolchain_truth.py` | Assurance | Phase 16 | 保留 | - |
 | `tests/meta/test_translation_tree_sync.py` | Assurance | Phase 6 | 保留 | - |
