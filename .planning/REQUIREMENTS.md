@@ -413,6 +413,32 @@
 
 
 
+## Planned Milestone (v1.10)
+
+> `v1.10` 以 `v1.9` closeout evidence 为 immediate seed；当前重点不是重开 backoff ownership，而是把 command-result family 从 scattered literals 收口到一套 shared typed outcome / reason-code contract。
+
+### Command-Result Typed Outcome & Reason-Code Hardening
+
+- [x] **ERR-12**: command-result polling 与 failure arbitration 必须共享 typed outcome / reason-code vocabulary，而不是继续散落 `confirmed / failed / pending / unknown / unconfirmed` 与 raw failure-reason strings。
+- [x] **TYP-14**: runtime sender traces 与 diagnostics `query_command_result` response typing 必须复用同一 command-result state contract，不能继续裸 `str` 漂移。
+- [x] **GOV-41**: current-story docs、baseline/review notes、promoted assets 与 focused meta guards 必须显式记录 command-result typed contract home 与 closeout truth。
+
+## Traceability for completed v1.10 route
+
+| Requirement | Planned Phase | Status |
+|-------------|---------------|--------|
+| ERR-12 | Phase 57 | Complete |
+| TYP-14 | Phase 57 | Complete |
+| GOV-41 | Phase 57 | Complete |
+
+**Coverage:**
+- v1.10 routed requirements: 3 total
+- Current mapped: 3
+- Current complete: 3
+- Current pending: 0
+- Current unmapped: 0 ✓
+
+
 ## Planned Milestone (v1.9)
 
 > `v1.9` 以 `v1.8` promoted closeout evidence 为 immediate seed；当前重点不是重开 broad audit，而是关闭唯一明确登记到 `Phase 56+` 的 active residual family：generic backoff helper leak。

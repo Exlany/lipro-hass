@@ -14,6 +14,12 @@ from custom_components.lipro.core.command.confirmation_tracker import (
     CommandConfirmationTracker,
 )
 from custom_components.lipro.core.command.expectation import PendingCommandExpectation
+from custom_components.lipro.core.command.result import (
+    COMMAND_RESULT_STATE_CONFIRMED,
+    COMMAND_RESULT_STATE_FAILED,
+    COMMAND_RESULT_STATE_PENDING,
+    COMMAND_VERIFICATION_RESULT_TIMEOUT,
+)
 from custom_components.lipro.core.coordinator.runtime.command import (
     CommandBuilder,
     CommandSender,
@@ -197,7 +203,7 @@ class TestCommandSender:
             )
 
             assert verified is False
-            assert trace["verification_result"] == "timeout"
+            assert trace["verification_result"] == COMMAND_VERIFICATION_RESULT_TIMEOUT
             assert classification is None
 
     @pytest.mark.asyncio
@@ -216,7 +222,7 @@ class TestCommandSender:
             ),
             patch(
                 "custom_components.lipro.core.coordinator.runtime.command.sender.classify_command_result_payload",
-                return_value="confirmed",
+                return_value=COMMAND_RESULT_STATE_CONFIRMED,
             ),
         ):
             verified, classification = await sender.verify_command_delivery(
@@ -224,8 +230,8 @@ class TestCommandSender:
             )
 
             assert verified is True
-            assert trace["verification_result"] == "confirmed"
-            assert classification == "confirmed"
+            assert trace["verification_result"] == COMMAND_RESULT_STATE_CONFIRMED
+            assert classification == COMMAND_RESULT_STATE_CONFIRMED
 
     @pytest.mark.asyncio
     async def test_verify_command_delivery_failed_result(self, mock_client, mock_device):
@@ -243,7 +249,7 @@ class TestCommandSender:
             ),
             patch(
                 "custom_components.lipro.core.coordinator.runtime.command.sender.classify_command_result_payload",
-                return_value="failed",
+                return_value=COMMAND_RESULT_STATE_FAILED,
             ),
         ):
             verified, classification = await sender.verify_command_delivery(
@@ -251,8 +257,8 @@ class TestCommandSender:
             )
 
             assert verified is False
-            assert trace["verification_result"] == "failed"
-            assert classification == "failed"
+            assert trace["verification_result"] == COMMAND_RESULT_STATE_FAILED
+            assert classification == COMMAND_RESULT_STATE_FAILED
 
     @pytest.mark.asyncio
     async def test_verify_command_delivery_pending_classification(self, mock_client, mock_device):
@@ -270,7 +276,7 @@ class TestCommandSender:
             ),
             patch(
                 "custom_components.lipro.core.coordinator.runtime.command.sender.classify_command_result_payload",
-                return_value="pending",
+                return_value=COMMAND_RESULT_STATE_PENDING,
             ),
         ):
             verified, classification = await sender.verify_command_delivery(
@@ -278,7 +284,7 @@ class TestCommandSender:
             )
 
             assert verified is False
-            assert trace["verification_result"] == "timeout"
+            assert trace["verification_result"] == COMMAND_VERIFICATION_RESULT_TIMEOUT
             assert classification is None
 
 

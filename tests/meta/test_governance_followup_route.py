@@ -548,7 +548,35 @@ def test_v1_8_closeout_and_v1_9_current_milestone_truth_are_consistent() -> None
     assert ".planning/phases/56-shared-backoff-neutralization-and-cross-plane-retry-hygiene/56-SUMMARY.md" in project_text
     assert "$gsd-complete-milestone v1.9" in project_text
 
-    assert "**Current milestone:** `v1.9 Shared Backoff Neutralization & Cross-Plane Retry Hygiene`" in state_text
-    assert "**Current mode:** `Phase 56 complete`" in state_text
-    assert "$gsd-complete-milestone v1.9" in state_text
-    assert ".planning/reviews/V1_9_MILESTONE_SEED.md" in state_text
+    assert "## v1.10: Command-Result Typed Outcome & Reason-Code Hardening" in roadmap_text
+    assert "**Milestone status:** `Phase 57 complete (2026-03-22)`" in roadmap_text
+    assert "**Default next command:** `$gsd-complete-milestone v1.10`" in roadmap_text
+    assert "### Phase 57: Command-result typed outcome and reason-code hardening" in roadmap_text
+    assert "**Plans**: 3/3 complete" in roadmap_text
+    assert "**Promoted closeout package**: `57-SUMMARY.md`, `57-VERIFICATION.md`" in roadmap_text
+
+    for needle in (
+        "- [x] **ERR-12**",
+        "- [x] **TYP-14**",
+        "- [x] **GOV-41**",
+        "| ERR-12 | Phase 57 | Complete |",
+        "| TYP-14 | Phase 57 | Complete |",
+        "| GOV-41 | Phase 57 | Complete |",
+        "- v1.10 routed requirements: 3 total",
+        "- Current mapped: 3",
+        "- Current complete: 3",
+        "- Current pending: 0",
+    ):
+        assert needle in requirements_text
+
+    assert "## Planned Milestone (v1.10)" in project_text
+    assert "**Current status:** `Phase 57 complete (2026-03-22)`" in project_text
+    assert ".planning/reviews/V1_10_MILESTONE_SEED.md" in project_text
+    assert ".planning/phases/57-command-result-typed-outcome-and-reason-code-hardening/57-01-PLAN.md" in project_text
+    assert ".planning/phases/57-command-result-typed-outcome-and-reason-code-hardening/57-SUMMARY.md" in project_text
+    assert "$gsd-complete-milestone v1.10" in project_text
+
+    assert "**Current milestone:** `v1.10 Command-Result Typed Outcome & Reason-Code Hardening`" in state_text
+    assert "**Current mode:** `Phase 57 complete`" in state_text
+    assert "$gsd-complete-milestone v1.10" in state_text
+    assert ".planning/reviews/V1_10_MILESTONE_SEED.md" in state_text

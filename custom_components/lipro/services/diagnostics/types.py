@@ -14,7 +14,7 @@ from aiohttp import ClientSession
 from homeassistant.core import HomeAssistant, ServiceCall
 
 from ...core.api.types import DiagnosticsApiResponse
-from ...core.command.result import CommandResultPayload
+from ...core.command.result import CommandResultPayload, CommandResultPollingState
 from ...core.device import LiproDevice
 from ...runtime_types import LiproCoordinator
 
@@ -76,7 +76,7 @@ class QueryCommandResultResponse(TypedDict, total=False):
     msg_sn: str
     max_attempts: int
     time_budget_seconds: float
-    state: str
+    state: CommandResultPollingState
     attempts: int
     attempt_limit: int
     retry_delays_seconds: list[float]

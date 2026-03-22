@@ -241,3 +241,9 @@
 - `custom_components/lipro/core/utils/backoff.py` 是 neutral shared exponential-backoff primitive home；它不是新 public root、retry manager 或跨平面 strategy owner。
 - `custom_components/lipro/core/api/request_policy.py` 继续只拥有 API-local `429` / busy / pacing truth，并已停止导出 generic backoff helper。
 - `custom_components/lipro/core/command/result_policy.py`、runtime `RetryStrategy` 与 `custom_components/lipro/core/mqtt/setup_backoff.py` 只共享 neutral primitive，不共享 `RequestPolicy` ownership story。
+
+## Phase 57 Typed Command-Result Contract Notes
+
+- `custom_components/lipro/core/command/result_policy.py` 继续是 command-result classification / polling truth home，并正式承接 typed state vocabulary（`confirmed / failed / pending / unknown / unconfirmed`）与 terminal-state judgment。
+- `custom_components/lipro/core/command/result.py` 继续是 stable export / failure arbitration home，并正式承接 shared failure-reason vocabulary（`command_result_failed` / `command_result_unconfirmed` / `push_failed` / `api_error`）。
+- `custom_components/lipro/core/coordinator/runtime/command/sender.py` 与 `custom_components/lipro/services/diagnostics/types.py` 只允许消费 shared contract；它们不得继续各自维护 raw command-result literals 或第二套 outcome story。

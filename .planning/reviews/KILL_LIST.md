@@ -260,3 +260,9 @@
 - 本 phase **无新增 active kill target**；`custom_components/lipro/core/utils/backoff.py` 是正式 neutral helper home，不是新的 delete campaign。
 - `Generic backoff helper leak` 已在 Phase 56 关闭：动作是 owner-truth 纠偏与 neutral helper migration，而不是删除 `RequestPolicy` / `RetryStrategy` / `MqttSetupBackoff` 这些 formal homes。
 - 后续若继续优化 retry semantics，只允许围绕 plane-local semantics 或 typed outcome 收敛，不能以“共享 helper”名义重新打开 file-level delete folklore。
+
+## Phase 57 Status Update
+
+- 本 phase **无新增 active kill target**；typed command-result contract hardening 属于 formal-home convergence，不是新的 delete campaign。
+- `Command-result stringly-typed outcome contract` 已在 Phase 57 关闭：动作是 typed vocabulary convergence，而不是删除 `result_policy.py` / `result.py` / runtime sender / diagnostics handlers 这些 formal homes。
+- 后续若继续优化 retry budgets 或 broader outcome reuse，只允许围绕 shared contract 继续收口，不能以 typed cleanup 名义重新打开 file-level delete folklore。

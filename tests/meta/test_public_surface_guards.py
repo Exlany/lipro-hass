@@ -704,3 +704,39 @@ def test_phase_55_topicized_test_matrix_tracks_thin_shells_and_named_suites() ->
         assert needle in file_matrix_text
 
     assert "当前仓库共有 `228` 个 `test_*.py` 文件" in testing_text
+
+
+def test_phase_57_typed_command_result_notes_keep_contract_inside_command_family() -> None:
+    public_surfaces = _PUBLIC_SURFACES.read_text(encoding="utf-8")
+    file_matrix_text = (_ROOT / ".planning" / "reviews" / "FILE_MATRIX.md").read_text(
+        encoding="utf-8"
+    )
+    result_policy_text = (
+        _ROOT / "custom_components" / "lipro" / "core" / "command" / "result_policy.py"
+    ).read_text(encoding="utf-8")
+    result_text = (
+        _ROOT / "custom_components" / "lipro" / "core" / "command" / "result.py"
+    ).read_text(encoding="utf-8")
+    sender_text = (
+        _ROOT
+        / "custom_components"
+        / "lipro"
+        / "core"
+        / "coordinator"
+        / "runtime"
+        / "command"
+        / "sender.py"
+    ).read_text(encoding="utf-8")
+    diagnostics_types_text = (
+        _ROOT / "custom_components" / "lipro" / "services" / "diagnostics" / "types.py"
+    ).read_text(encoding="utf-8")
+
+    assert "## Phase 57 Typed Command-Result Contract Notes" in public_surfaces
+    assert "result_policy.py` 继续是 command-result classification / polling truth home" in public_surfaces
+    assert "result.py` 继续是 stable export / failure arbitration home" in public_surfaces
+    assert "typed command-result contract" in file_matrix_text
+    assert 'type CommandResultState = Literal["confirmed", "failed", "pending", "unknown"]' in result_policy_text
+    assert "type CommandFailureReason = Literal[" in result_policy_text
+    assert "COMMAND_FAILURE_REASON_COMMAND_RESULT_FAILED" in result_text
+    assert "COMMAND_RESULT_STATE_PENDING" in sender_text
+    assert "state: CommandResultPollingState" in diagnostics_types_text

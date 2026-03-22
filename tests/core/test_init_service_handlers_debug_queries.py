@@ -16,6 +16,7 @@ from custom_components.lipro.control.service_router import (
     async_handle_query_user_cloud,
 )
 from custom_components.lipro.core import LiproApiError
+from custom_components.lipro.core.command.result import COMMAND_RESULT_STATE_CONFIRMED
 from custom_components.lipro.services.contracts import (
     ATTR_DEVICE_ID,
     ATTR_ENTRY_ID,
@@ -167,7 +168,7 @@ class TestInitServiceHandlerDeveloperDebug(_InitServiceHandlerBase):
         assert result["msg_sn"] == "682550445474"
         assert result["max_attempts"] == 6
         assert result["time_budget_seconds"] == 3.0
-        assert result["state"] == "confirmed"
+        assert result["state"] == COMMAND_RESULT_STATE_CONFIRMED
         assert result["attempts"] == 1
         assert result["attempt_limit"] == 5
         assert result["retry_delays_seconds"] == pytest.approx((0.35, 0.7, 1.4, 0.55))
@@ -227,7 +228,7 @@ class TestInitServiceHandlerDeveloperDebug(_InitServiceHandlerBase):
 
         sleep_mock = AsyncMock()
         with patch(
-            "custom_components.lipro.core.command.result.asyncio.sleep",
+            "custom_components.lipro.core.command.result_policy.asyncio.sleep",
             new=sleep_mock,
         ):
             result = await async_handle_query_command_result(
@@ -238,7 +239,7 @@ class TestInitServiceHandlerDeveloperDebug(_InitServiceHandlerBase):
                 ),
             )
 
-        assert result["state"] == "confirmed"
+        assert result["state"] == COMMAND_RESULT_STATE_CONFIRMED
         assert result["attempts"] == 3
         assert result["attempt_limit"] == 5
         assert result["result"] == {

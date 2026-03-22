@@ -681,3 +681,48 @@ def test_phase_56_execution_evidence_is_consistent() -> None:
     assert "GOV-40" in verification_text
     assert "status: passed" in validation_text
     assert "Approval:" in validation_text
+
+
+def test_phase_57_execution_evidence_is_consistent() -> None:
+    roadmap_text = (_ROOT / ".planning" / "ROADMAP.md").read_text(encoding="utf-8")
+    requirements_text = (_ROOT / ".planning" / "REQUIREMENTS.md").read_text(encoding="utf-8")
+    state_text = (_ROOT / ".planning" / "STATE.md").read_text(encoding="utf-8")
+    project_text = (_ROOT / ".planning" / "PROJECT.md").read_text(encoding="utf-8")
+
+    phase_root = (
+        _ROOT
+        / ".planning"
+        / "phases"
+        / "57-command-result-typed-outcome-and-reason-code-hardening"
+    )
+    summary_text = (phase_root / "57-SUMMARY.md").read_text(encoding="utf-8")
+    verification_text = (phase_root / "57-VERIFICATION.md").read_text(encoding="utf-8")
+    validation_text = (phase_root / "57-VALIDATION.md").read_text(encoding="utf-8")
+
+    _assert_promoted_phase_assets(
+        "57-command-result-typed-outcome-and-reason-code-hardening",
+        "57-SUMMARY.md",
+        "57-VERIFICATION.md",
+    )
+
+    assert "### Phase 57: Command-result typed outcome and reason-code hardening" in roadmap_text
+    assert "**Status**: Complete (`2026-03-22`)" in roadmap_text
+    assert "**Plans**: 3/3 complete" in roadmap_text
+    assert "**Promoted closeout package**: `57-SUMMARY.md`, `57-VERIFICATION.md`" in roadmap_text
+    assert "| ERR-12 | Phase 57 | Complete |" in requirements_text
+    assert "| TYP-14 | Phase 57 | Complete |" in requirements_text
+    assert "| GOV-41 | Phase 57 | Complete |" in requirements_text
+    _assert_current_mode_tracks_phase_lifecycle(state_text)
+    _assert_state_reflects_post_v1_4_continuation(state_text)
+    _assert_state_keeps_forward_progress_commands(state_text)
+    assert "## Planned Milestone (v1.10)" in project_text
+    assert "57-SUMMARY.md" in project_text
+    assert "phase: 57" in summary_text
+    assert "status: passed" in summary_text
+    assert "57-03" in summary_text
+    assert "# Phase 57 Verification" in verification_text
+    assert "status: passed" in verification_text
+    assert "ERR-12" in verification_text
+    assert "GOV-41" in verification_text
+    assert "status: passed" in validation_text
+    assert "Approval:" in validation_text

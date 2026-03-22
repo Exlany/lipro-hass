@@ -103,8 +103,8 @@
 | `custom_components/lipro/core/command/dispatch.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/core/command/expectation.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/core/command/post_refresh.py` | Cross-cutting | Phase 7 | 保留 | - |
-| `custom_components/lipro/core/command/result.py` | Cross-cutting | Phase 7 | 保留 | - |
-| `custom_components/lipro/core/command/result_policy.py` | Cross-cutting | Phase 33 | 保留 | command-result classification / retry / delayed-refresh policy home |
+| `custom_components/lipro/core/command/result.py` | Cross-cutting | Phase 7 / 57 | 保留 | stable export / failure arbitration home for typed command-result contract |
+| `custom_components/lipro/core/command/result_policy.py` | Cross-cutting | Phase 33 / 57 | 保留 | typed state vocabulary + command-result classification / retry / delayed-refresh policy home |
 | `custom_components/lipro/core/command/trace.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/core/coordinator/__init__.py` | Runtime | Phase 5 | 重构 | - |
 | `custom_components/lipro/core/coordinator/coordinator.py` | Runtime | Phase 5 / 14 / 36 | 重构 | HA-facing runtime façade with polling ballast reduced |
@@ -121,7 +121,7 @@
 | `custom_components/lipro/core/coordinator/runtime/command/builder.py` | Runtime | Phase 5 | 重构 | - |
 | `custom_components/lipro/core/coordinator/runtime/command/confirmation.py` | Runtime | Phase 5 | 重构 | - |
 | `custom_components/lipro/core/coordinator/runtime/command/retry.py` | Runtime | Phase 5 | 重构 | - |
-| `custom_components/lipro/core/coordinator/runtime/command/sender.py` | Runtime | Phase 5 | 重构 | - |
+| `custom_components/lipro/core/coordinator/runtime/command/sender.py` | Runtime | Phase 5 / 57 | 重构 | shares typed verification vocabulary with command-result contract |
 | `custom_components/lipro/core/coordinator/runtime/command_runtime.py` | Runtime | Phase 5 | 重构 | - |
 | `custom_components/lipro/core/coordinator/runtime/device/__init__.py` | Runtime | Phase 5 | 重构 | - |
 | `custom_components/lipro/core/coordinator/runtime/device/batch_optimizer.py` | Runtime | Phase 5 | 重构 | - |
@@ -271,7 +271,7 @@
 | `custom_components/lipro/services/diagnostics/handlers.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/services/diagnostics/helper_support.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/services/diagnostics/helpers.py` | Control | Phase 3 | 保留 | diagnostics optional-capability helper reusing shared execution auth chain |
-| `custom_components/lipro/services/diagnostics/types.py` | Control | Phase 3 | 保留 | - |
+| `custom_components/lipro/services/diagnostics/types.py` | Control | Phase 3 / 57 | 保留 | diagnostics query_command_result typed state contract |
 | `custom_components/lipro/services/errors.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/services/execution.py` | Control | Phase 3 / 5 / 7 | 保留 | formal service execution facade; private auth seam closed |
 | `custom_components/lipro/services/maintenance.py` | Control | Phase 3 | 保留 | - |
@@ -343,7 +343,7 @@
 | `tests/core/coordinator/conftest.py` | Runtime | Phase 49 | 保留 | shared coordinator fixture home |
 | `tests/core/coordinator/mqtt/__init__.py` | Runtime | Phase 5 / 6 | 保留 | - |
 | `tests/core/coordinator/runtime/__init__.py` | Runtime | Phase 5 / 6 | 保留 | - |
-| `tests/core/coordinator/runtime/test_command_runtime.py` | Runtime | Phase 5 / 6 | 保留 | - |
+| `tests/core/coordinator/runtime/test_command_runtime.py` | Runtime | Phase 5 / 6 / 57 | 保留 | runtime sender / command-result typed contract coverage |
 | `tests/core/coordinator/runtime/test_device_runtime.py` | Runtime | Phase 5 / 6 | 保留 | - |
 | `tests/core/coordinator/runtime/test_mqtt_runtime.py` | Runtime | Phase 5 / 6 | 保留 | - |
 | `tests/core/coordinator/runtime/test_runtime_telemetry_methods.py` | Runtime | Phase 5 / 6 | 保留 | - |
@@ -411,7 +411,7 @@
 | `tests/core/test_categories.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `tests/core/test_command_confirmation_helpers.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `tests/core/test_command_dispatch.py` | Cross-cutting | Phase 7 | 保留 | - |
-| `tests/core/test_command_result.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `tests/core/test_command_result.py` | Cross-cutting | Phase 7 / 57 | 保留 | typed command-result contract coverage |
 | `tests/core/test_command_trace.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `tests/core/test_control_plane.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `tests/core/test_coordinator.py` | Runtime | Phase 5 / 49 | 保留 | service / entity-lifecycle smoke shell |
@@ -441,7 +441,7 @@
 | `tests/core/test_init_schema_validation.py` | Control | Phase 33 | 保留 | schema-focused init regression home |
 | `tests/core/test_init_service_handlers.py` | Control | Phase 27 / 37 | 保留 | shared helper root for topicized init service-handler regressions |
 | `tests/core/test_init_service_handlers_commands.py` | Control | Phase 37 | 保留 | command-dispatch topic home |
-| `tests/core/test_init_service_handlers_debug_queries.py` | Control | Phase 37 | 保留 | debug-query topic home |
+| `tests/core/test_init_service_handlers_debug_queries.py` | Control | Phase 37 / 57 | 保留 | debug-query topic home + query_command_result typed state coverage |
 | `tests/core/test_init_service_handlers_device_resolution.py` | Control | Phase 37 | 保留 | device-resolution topic home |
 | `tests/core/test_init_service_handlers_schedules.py` | Control | Phase 37 | 保留 | schedule-validation topic home |
 | `tests/core/test_init_service_handlers_sensor_feedback.py` | Cross-cutting | Phase 7 | 保留 | - |

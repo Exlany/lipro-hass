@@ -3,17 +3,25 @@
 from __future__ import annotations
 
 import asyncio
-from typing import Any, cast
+from typing import cast
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-import custom_components.lipro.core.command.result as command_result
 from custom_components.lipro.core.command.result import (
+    COMMAND_FAILURE_REASON_COMMAND_RESULT_FAILED,
+    COMMAND_FAILURE_REASON_COMMAND_RESULT_UNCONFIRMED,
+    COMMAND_RESULT_POLLING_STATE_UNCONFIRMED,
+    COMMAND_RESULT_STATE_CONFIRMED,
+    COMMAND_RESULT_STATE_FAILED,
+    COMMAND_RESULT_STATE_PENDING,
+    COMMAND_RESULT_STATE_UNKNOWN,
+    COMMAND_RESULT_TRACE_STATE_QUERY_ERROR,
     build_progressive_retry_delays,
     classify_command_result_payload,
     extract_msg_sn,
     is_command_push_failed,
+    is_terminal_command_result_state,
     poll_command_result_state,
     query_command_result_once,
     resolve_delayed_refresh_delay,
@@ -22,6 +30,10 @@ from custom_components.lipro.core.command.result import (
     should_schedule_delayed_refresh,
     should_skip_immediate_post_refresh,
 )
+from custom_components.lipro.core.command.result_policy import (
+    extract_command_result_code,
+    extract_command_result_message,
+)
 
 
 def test_resolve_polled_command_result_confirmed() -> None:
@@ -29,7 +41,7 @@ def test_resolve_polled_command_result_confirmed() -> None:
     trace: dict[str, object] = {}
 
     verified, failure = resolve_polled_command_result(
-        state="confirmed",
+        state=COMMAND_RESULT_STATE_CONFIRMED,
         trace=trace,
         route="device_direct",
         msg_sn="abc",
@@ -56,7 +68,7 @@ def test_resolve_polled_command_result_failed() -> None:
     trace: dict[str, object] = {}
 
     verified, failure = resolve_polled_command_result(
-        state="failed",
+        state=COMMAND_RESULT_STATE_FAILED,
         trace=trace,
         route="group_direct",
         msg_sn="abc",
@@ -70,8 +82,8 @@ def test_resolve_polled_command_result_failed() -> None:
 
     assert verified is False
     assert failure == {
-        "reason": "command_result_failed",
-        "code": "command_result_failed",
+        "reason": COMMAND_FAILURE_REASON_COMMAND_RESULT_FAILED,
+        "code": COMMAND_FAILURE_REASON_COMMAND_RESULT_FAILED,
         "route": "group_direct",
         "msg_sn": "abc",
         "device_id": "03ab111111111111",
@@ -84,7 +96,7 @@ def test_resolve_polled_command_result_unconfirmed_uses_last_state() -> None:
     trace: dict[str, object] = {}
 
     verified, failure = resolve_polled_command_result(
-        state="unconfirmed",
+        state=COMMAND_RESULT_POLLING_STATE_UNCONFIRMED,
         trace=trace,
         route="group_direct",
         msg_sn="abc",
@@ -98,7 +110,7 @@ def test_resolve_polled_command_result_unconfirmed_uses_last_state() -> None:
 
     assert verified is False
     assert failure == {
-        "reason": "command_result_unconfirmed",
+        "reason": COMMAND_FAILURE_REASON_COMMAND_RESULT_UNCONFIRMED,
         "code": "100000",
         "route": "group_direct",
         "msg_sn": "abc",
@@ -109,7 +121,7 @@ def test_resolve_polled_command_result_unconfirmed_uses_last_state() -> None:
         "verified": False,
         "attempts": 3,
         "msg_sn": "abc",
-        "last_state": "pending",
+        "last_state": COMMAND_RESULT_STATE_PENDING,
         "last_code": "100000",
     }
 
@@ -119,7 +131,7 @@ def test_resolve_polled_command_result_unconfirmed_preserves_last_code_and_messa
     trace: dict[str, object] = {}
 
     verified, failure = resolve_polled_command_result(
-        state="unconfirmed",
+        state=COMMAND_RESULT_POLLING_STATE_UNCONFIRMED,
         trace=trace,
         route="group_direct",
         msg_sn="abc",
@@ -133,7 +145,7 @@ def test_resolve_polled_command_result_unconfirmed_preserves_last_code_and_messa
 
     assert verified is False
     assert failure == {
-        "reason": "command_result_unconfirmed",
+        "reason": COMMAND_FAILURE_REASON_COMMAND_RESULT_UNCONFIRMED,
         "code": "140006",
         "message": "设备未响应",
         "route": "group_direct",
@@ -145,9 +157,43 @@ def test_resolve_polled_command_result_unconfirmed_preserves_last_code_and_messa
         "verified": False,
         "attempts": 3,
         "msg_sn": "abc",
-        "last_state": "pending",
+        "last_state": COMMAND_RESULT_STATE_PENDING,
         "last_code": "140006",
         "last_message": "设备未响应",
+    }
+
+
+def test_resolve_polled_command_result_unconfirmed_without_payload_uses_query_error_state() -> None:
+    """Unconfirmed state without payload should record the query-error trace state."""
+    trace: dict[str, object] = {}
+
+    verified, failure = resolve_polled_command_result(
+        state=COMMAND_RESULT_POLLING_STATE_UNCONFIRMED,
+        trace=trace,
+        route="group_direct",
+        msg_sn="abc",
+        device_serial="03ab111111111111",
+        attempt=3,
+        attempt_limit=3,
+        last_payload=None,
+        elapsed_seconds=0.3,
+        logger=MagicMock(),
+    )
+
+    assert verified is False
+    assert failure == {
+        "reason": COMMAND_FAILURE_REASON_COMMAND_RESULT_UNCONFIRMED,
+        "code": COMMAND_FAILURE_REASON_COMMAND_RESULT_UNCONFIRMED,
+        "route": "group_direct",
+        "msg_sn": "abc",
+        "device_id": "03ab111111111111",
+    }
+    assert trace["command_result_verify"] == {
+        "enabled": True,
+        "verified": False,
+        "attempts": 3,
+        "msg_sn": "abc",
+        "last_state": COMMAND_RESULT_TRACE_STATE_QUERY_ERROR,
     }
 
 
@@ -157,7 +203,7 @@ def test_resolve_polled_command_result_failed_preserves_code_and_message() -> No
     trace: dict[str, object] = {}
 
     verified, failure = resolve_polled_command_result(
-        state="failed",
+        state=COMMAND_RESULT_STATE_FAILED,
         trace=trace,
         route="group_direct",
         msg_sn="abc",
@@ -171,7 +217,7 @@ def test_resolve_polled_command_result_failed_preserves_code_and_message() -> No
 
     assert verified is False
     assert failure == {
-        "reason": "command_result_failed",
+        "reason": COMMAND_FAILURE_REASON_COMMAND_RESULT_FAILED,
         "code": "140005",
         "message": "参数错误",
         "route": "group_direct",
@@ -183,7 +229,7 @@ def test_resolve_polled_command_result_failed_preserves_code_and_message() -> No
         "verified": False,
         "attempts": 2,
         "msg_sn": "abc",
-        "state": "failed",
+        "state": COMMAND_RESULT_STATE_FAILED,
         "code": "140005",
         "message": "参数错误",
     }
@@ -216,19 +262,19 @@ def test_is_command_push_failed_accepts_bool_like_payloads() -> None:
 
 
 def test_classify_command_result_payload_uses_verified_success_contract() -> None:
-    assert classify_command_result_payload({"success": "true"}) == "confirmed"
-    assert classify_command_result_payload({"success": "0"}) == "failed"
-    assert classify_command_result_payload({"code": "0000"}) == "confirmed"
-    assert classify_command_result_payload({"code": "140004", "success": False}) == "failed"
+    assert classify_command_result_payload({"success": "true"}) == COMMAND_RESULT_STATE_CONFIRMED
+    assert classify_command_result_payload({"success": "0"}) == COMMAND_RESULT_STATE_FAILED
+    assert classify_command_result_payload({"code": "0000"}) == COMMAND_RESULT_STATE_CONFIRMED
+    assert classify_command_result_payload({"code": "140004", "success": False}) == COMMAND_RESULT_STATE_FAILED
 
 
 def test_classify_command_result_payload_returns_unknown_when_no_match() -> None:
-    assert classify_command_result_payload({"message": "waiting"}) == "unknown"
+    assert classify_command_result_payload({"message": "waiting"}) == COMMAND_RESULT_STATE_UNKNOWN
 
 
 def test_classify_command_result_payload_treats_retryable_codes_as_pending() -> None:
-    assert classify_command_result_payload({"code": "100000", "success": False}) == "pending"
-    assert classify_command_result_payload({"code": "140006", "success": False}) == "pending"
+    assert classify_command_result_payload({"code": "100000", "success": False}) == COMMAND_RESULT_STATE_PENDING
+    assert classify_command_result_payload({"code": "140006", "success": False}) == COMMAND_RESULT_STATE_PENDING
 
 
 def test_build_progressive_retry_delays_clips_exponential_backoff_to_budget() -> None:
@@ -263,8 +309,15 @@ def test_build_progressive_retry_delays_stops_when_policy_returns_zero_wait() ->
 
 
 def test_extract_command_result_code_and_message_return_none_for_non_mapping() -> None:
-    assert cast(Any, command_result)._extract_command_result_code(None) is None
-    assert cast(Any, command_result)._extract_command_result_message(None) is None
+    assert extract_command_result_code(None) is None
+    assert extract_command_result_message(None) is None
+
+
+def test_is_terminal_command_result_state_only_accepts_final_states() -> None:
+    assert is_terminal_command_result_state(COMMAND_RESULT_STATE_CONFIRMED) is True
+    assert is_terminal_command_result_state(COMMAND_RESULT_STATE_FAILED) is True
+    assert is_terminal_command_result_state(COMMAND_RESULT_STATE_PENDING) is False
+    assert is_terminal_command_result_state(COMMAND_RESULT_STATE_UNKNOWN) is False
 
 
 def test_should_skip_immediate_post_refresh_returns_false_without_valid_key() -> None:
@@ -304,7 +357,7 @@ def test_should_skip_immediate_post_refresh_returns_false_for_non_change_state()
 
 
 def test_classify_command_result_payload_treats_other_codes_as_failed() -> None:
-    assert classify_command_result_payload({"code": "140005"}) == "failed"
+    assert classify_command_result_payload({"code": "140005"}) == COMMAND_RESULT_STATE_FAILED
 
 
 def test_should_schedule_and_resolve_delayed_refresh_cover_mqtt_and_pending_rules() -> (
@@ -390,11 +443,11 @@ async def test_poll_command_result_state_retries_when_payload_is_none() -> None:
             on_attempt=on_attempt,
         )
 
-    assert state == "confirmed"
+    assert state == COMMAND_RESULT_STATE_CONFIRMED
     assert attempt == 2
     assert payload == {"success": True}
     sleep_mock.assert_awaited_once_with(0.25)
-    on_attempt.assert_called_once_with(2, "confirmed")
+    on_attempt.assert_called_once_with(2, COMMAND_RESULT_STATE_CONFIRMED)
 
 
 @pytest.mark.asyncio
@@ -413,7 +466,7 @@ async def test_poll_command_result_state_returns_unconfirmed_after_pending_budge
             retry_delays_seconds=(0.1,),
         )
 
-    assert state == "unconfirmed"
+    assert state == COMMAND_RESULT_POLLING_STATE_UNCONFIRMED
     assert attempt == 2
     assert payload == {"message": "still waiting"}
 

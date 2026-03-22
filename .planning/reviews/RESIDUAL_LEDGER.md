@@ -8,6 +8,8 @@ _None currently registered._
 
 ## Closed Residual Families
 
+- `Command-result stringly-typed outcome contract` 已在 Phase 57 关闭：`custom_components/lipro/core/command/result_policy.py` / `result.py` 现已共享 typed state / verification / failure-reason vocabulary，runtime sender 与 diagnostics `query_command_result` response typing 也不再依赖 scattered raw strings。
+
 - `Generic backoff helper leak` 已在 Phase 56 关闭：`compute_exponential_retry_wait_time()` 现已迁到 `custom_components/lipro/core/utils/backoff.py`，command/runtime/MQTT callers 不再从 `request_policy.py` 取用 generic helper，而 `RequestPolicy` 只继续拥有 API-local `429` / busy / pacing truth。
 
 - `External-boundary advisory naming` 已在 Phase 38 关闭：firmware external-boundary 现统一为 local trust-root / remote advisory 语义；历史资产文件名 `firmware_support_manifest.json` 被保留，但不再被表述成 advisory truth。

@@ -10,7 +10,8 @@
 - ✅ **v1.6 Delivery Trust Hardening, Runtime Boundary Decoupling & Maintainability Closure** - Phases 42-45 closed out on 2026-03-20 from the formal `41-REMEDIATION-ROADMAP.md` route; milestone audit: `.planning/v1.6-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_6_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.6-ROADMAP.md` / `.planning/milestones/v1.6-REQUIREMENTS.md`
 - ✅ **v1.7 Full-Spectrum Repository Audit, Open-Source Maturity & Remediation Routing** - Phase 46 audit executed on 2026-03-20; Phase 47 -> 50 completed on 2026-03-21 with promoted closeout evidence; formalized follow-up route complete
 - ✅ **v1.8 Operational Continuity Automation, Formal-Root Sustainment & Hotspot Round 2** - formal milestone opened on 2026-03-21 from post-Phase-50 audit arbitration; Phases 51 -> 55 completed on 2026-03-21 with promoted closeout evidence and ready for archive / next-milestone arbitration
-- 🟢 **v1.9 Shared Backoff Neutralization & Cross-Plane Retry Hygiene** - formal milestone opened on 2026-03-22 from the explicit Phase 56+ residual carry-forward; Phase 56 completed on 2026-03-22 with promoted closeout evidence and ready for milestone closeout
+- ✅ **v1.9 Shared Backoff Neutralization & Cross-Plane Retry Hygiene** - formal milestone opened on 2026-03-22 from the explicit Phase 56+ residual carry-forward; Phase 56 completed on 2026-03-22 with promoted closeout evidence and now serves as the closeout-ready seed baseline for v1.10
+- 🟢 **v1.10 Command-Result Typed Outcome & Reason-Code Hardening** - formal milestone opened on 2026-03-22 from the Phase 56 deferred follow-up route; Phase 57 completed on 2026-03-22 with promoted closeout evidence and ready for milestone closeout
 
 ## Required Phase Outputs
 
@@ -1074,3 +1075,30 @@ Plans:
 - [x] 56-01: create a neutral shared backoff helper home without changing API policy truth (completed 2026-03-22)
 - [x] 56-02: rewire command runtime and MQTT callers to the neutral helper without changing plane semantics (completed 2026-03-22)
 - [x] 56-03: freeze residual closure in baselines review ledgers and current milestone truth (completed 2026-03-22)
+
+## v1.10: Command-Result Typed Outcome & Reason-Code Hardening
+
+> `v1.10` 不重开 retry ownership 或 broad audit，而是把 `Phase 56` 明确递延的 command-result typed outcome / reason-code endgame 收口为 command-family typed contract：`result_policy.py` / `result.py` / runtime sender / diagnostics query consumers 共享同一 vocabulary，不再散落 raw strings。
+
+**Milestone status:** `Phase 57 complete (2026-03-22)`
+**Default next command:** `$gsd-complete-milestone v1.10`（opening phase 已完成；当前里程碑已具备 closeout 条件）
+**Seed input:** `.planning/reviews/V1_10_MILESTONE_SEED.md`
+
+### Phase 57: Command-result typed outcome and reason-code hardening
+
+**Goal:** 把 command-result family 的 state / verification / failure-reason raw strings 收口为 shared typed contract，让 `result_policy.py` / `result.py` / runtime sender / diagnostics query consumers 复用同一 vocabulary，同时保持 outward behavior 与 ownership truth 稳定。
+**Depends on:** Phase 56
+**Requirements**: [ERR-12, TYP-14, GOV-41]
+**Success Criteria**:
+  1. `custom_components/lipro/core/command/result_policy.py` 与 `custom_components/lipro/core/command/result.py` 共享 typed command-result state / verification / failure-reason contract，classification/polling 与 failure arbitration ownership 不漂移。
+  2. runtime sender 与 diagnostics `query_command_result` response typing 全部改为消费 shared contract，而 public payload shape 与 timeout semantics 保持稳定。
+  3. `.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE}.md`、baseline/review docs、promoted assets 与 focused meta guards 全部承认 command-result typed contract 已在 `Phase 57` formalized closeout。
+**Status**: Complete (`2026-03-22`)
+**Plans**: 3/3 complete
+**Promoted closeout package**: `57-SUMMARY.md`, `57-VERIFICATION.md`
+
+Plans:
+- [x] 57-01: define one shared typed command-result vocabulary inside the formal command family (completed 2026-03-22)
+- [x] 57-02: align runtime sender and diagnostics response typing to the shared command-result contract (completed 2026-03-22)
+- [x] 57-03: freeze typed command-result truth in governance notes guards and promoted evidence (completed 2026-03-22)
+

@@ -7,22 +7,42 @@ from typing import Protocol
 
 from ..utils.redaction import redact_identifier
 from .result_policy import (
+    COMMAND_FAILURE_CODE_MISSING_MSGSN,
+    COMMAND_FAILURE_REASON_API_ERROR,
+    COMMAND_FAILURE_REASON_COMMAND_RESULT_FAILED,
+    COMMAND_FAILURE_REASON_COMMAND_RESULT_UNCONFIRMED,
+    COMMAND_FAILURE_REASON_PUSH_FAILED,
+    COMMAND_RESULT_POLLING_STATE_UNCONFIRMED,
+    COMMAND_RESULT_STATE_CONFIRMED,
+    COMMAND_RESULT_STATE_FAILED,
+    COMMAND_RESULT_STATE_PENDING,
+    COMMAND_RESULT_STATE_UNKNOWN,
+    COMMAND_RESULT_TRACE_STATE_QUERY_ERROR,
+    COMMAND_VERIFICATION_RESULT_CONFIRMED,
+    COMMAND_VERIFICATION_RESULT_FAILED,
+    COMMAND_VERIFICATION_RESULT_TIMEOUT,
     CommandFailurePayload,
+    CommandFailureReason,
     CommandResultClassifier,
     CommandResultPayload,
+    CommandResultPollingState,
+    CommandResultState,
+    CommandResultVerifyTrace,
+    CommandVerificationResult,
     LoggerLike,
     PendingExpectations,
     QueryCommandResult,
     QueryCommandResultAttempt,
     ShouldReraiseCommandResultError,
     TracePayload,
-    _extract_command_result_code,
-    _extract_command_result_message,
     build_progressive_retry_delays,
     classify_command_result_payload,
     compute_adaptive_post_refresh_delay,
+    extract_command_result_code,
+    extract_command_result_message,
     extract_msg_sn,
     is_command_push_failed,
+    is_terminal_command_result_state,
     poll_command_result_state,
     query_command_result_once,
     resolve_delayed_refresh_delay,
@@ -41,6 +61,10 @@ class ApiErrorLike(Protocol):
 type UpdateTraceWithException = Callable[..., None]
 
 
+_PUSH_FAILURE_TRACE_MESSAGE = "pushSuccess=false"
+
+
+
 def apply_command_result_rejected(
     *,
     trace: TracePayload,
@@ -53,14 +77,14 @@ def apply_command_result_rejected(
     logger: LoggerLike,
 ) -> CommandFailurePayload:
     """Populate trace/failure fields for a rejected query_command_result response."""
-    result_code = _extract_command_result_code(payload)
-    result_message = _extract_command_result_message(payload)
-    command_result_verify: dict[str, object] = {
+    result_code = extract_command_result_code(payload)
+    result_message = extract_command_result_message(payload)
+    command_result_verify: CommandResultVerifyTrace = {
         "enabled": True,
         "verified": False,
         "attempts": attempt,
         "msg_sn": msg_sn,
-        "state": "failed",
+        "state": COMMAND_RESULT_STATE_FAILED,
     }
     if result_code is not None:
         command_result_verify["code"] = result_code
@@ -70,7 +94,7 @@ def apply_command_result_rejected(
     trace["route"] = route
     trace["success"] = False
     trace["error"] = "CommandResultRejected"
-    trace["error_message"] = "command_result_failed"
+    trace["error_message"] = COMMAND_FAILURE_REASON_COMMAND_RESULT_FAILED
     trace["command_result_verify"] = command_result_verify
     safe_device_serial = redact_identifier(device_serial) or "***"
     safe_msg_sn = redact_identifier(msg_sn) or "***"
@@ -84,8 +108,8 @@ def apply_command_result_rejected(
         result_code,
     )
     failure: CommandFailurePayload = {
-        "reason": "command_result_failed",
-        "code": result_code or "command_result_failed",
+        "reason": COMMAND_FAILURE_REASON_COMMAND_RESULT_FAILED,
+        "code": result_code or COMMAND_FAILURE_REASON_COMMAND_RESULT_FAILED,
         "route": route,
         "msg_sn": msg_sn,
         "device_id": device_serial,
@@ -107,9 +131,9 @@ def apply_command_result_unconfirmed(
     logger: LoggerLike,
 ) -> CommandFailurePayload:
     """Populate trace/failure fields for unconfirmed command-result polling."""
-    last_code = _extract_command_result_code(last_payload)
-    last_message = _extract_command_result_message(last_payload)
-    command_result_verify: dict[str, object] = {
+    last_code = extract_command_result_code(last_payload)
+    last_message = extract_command_result_message(last_payload)
+    command_result_verify: CommandResultVerifyTrace = {
         "enabled": True,
         "verified": False,
         "attempts": attempt_limit,
@@ -117,7 +141,7 @@ def apply_command_result_unconfirmed(
         "last_state": (
             classify_command_result_payload(last_payload)
             if isinstance(last_payload, dict)
-            else "query_error"
+            else COMMAND_RESULT_TRACE_STATE_QUERY_ERROR
         ),
     }
     if last_code is not None:
@@ -128,7 +152,7 @@ def apply_command_result_unconfirmed(
     trace["route"] = route
     trace["success"] = False
     trace["error"] = "CommandResultUnconfirmed"
-    trace["error_message"] = "command_result_unconfirmed"
+    trace["error_message"] = COMMAND_FAILURE_REASON_COMMAND_RESULT_UNCONFIRMED
     trace["command_result_verify"] = command_result_verify
     safe_device_serial = redact_identifier(device_serial) or "***"
     safe_msg_sn = redact_identifier(msg_sn) or "***"
@@ -143,8 +167,8 @@ def apply_command_result_unconfirmed(
         last_code,
     )
     failure: CommandFailurePayload = {
-        "reason": "command_result_unconfirmed",
-        "code": last_code or "command_result_unconfirmed",
+        "reason": COMMAND_FAILURE_REASON_COMMAND_RESULT_UNCONFIRMED,
+        "code": last_code or COMMAND_FAILURE_REASON_COMMAND_RESULT_UNCONFIRMED,
         "route": route,
         "msg_sn": msg_sn,
         "device_id": device_serial,
@@ -164,12 +188,13 @@ def apply_command_result_confirmed(
     logger: LoggerLike,
 ) -> None:
     """Populate trace fields for polling classified as confirmed."""
-    trace["command_result_verify"] = {
+    command_result_verify: CommandResultVerifyTrace = {
         "enabled": True,
         "verified": True,
         "attempts": attempt,
         "msg_sn": msg_sn,
     }
+    trace["command_result_verify"] = command_result_verify
     safe_device_serial = redact_identifier(device_serial) or "***"
     safe_msg_sn = redact_identifier(msg_sn) or "***"
     logger.debug(
@@ -194,12 +219,12 @@ def apply_missing_msg_sn_failure(
     trace["route"] = route
     trace["success"] = False
     trace["error"] = "CommandResultMissingMsgSn"
-    trace["error_message"] = "command_result_missing_msgsn"
-    trace["command_result_verify"] = {
-        "enabled": True,
-        "verified": False,
-        "attempts": 0,
-    }
+    trace["error_message"] = COMMAND_FAILURE_CODE_MISSING_MSGSN
+    trace["command_result_verify"] = CommandResultVerifyTrace(
+        enabled=True,
+        verified=False,
+        attempts=0,
+    )
     safe_device_serial = redact_identifier(device_serial) or "***"
     logger.warning(
         "Command sent but msgSn missing for verification (command=%s, device=%s, route=%s, device_id=%s)",
@@ -209,8 +234,8 @@ def apply_missing_msg_sn_failure(
         safe_device_serial,
     )
     return {
-        "reason": "command_result_unconfirmed",
-        "code": "command_result_missing_msgsn",
+        "reason": COMMAND_FAILURE_REASON_COMMAND_RESULT_UNCONFIRMED,
+        "code": COMMAND_FAILURE_CODE_MISSING_MSGSN,
         "route": route,
         "device_id": device_serial,
         "command": command,
@@ -219,7 +244,7 @@ def apply_missing_msg_sn_failure(
 
 def resolve_polled_command_result(
     *,
-    state: str,
+    state: CommandResultPollingState,
     trace: TracePayload,
     route: str,
     msg_sn: str,
@@ -231,7 +256,7 @@ def resolve_polled_command_result(
     logger: LoggerLike,
 ) -> tuple[bool, CommandFailurePayload | None]:
     """Resolve polled command-result state into success flag and failure payload."""
-    if state == "confirmed":
+    if state == COMMAND_RESULT_STATE_CONFIRMED:
         apply_command_result_confirmed(
             trace=trace,
             msg_sn=msg_sn,
@@ -241,7 +266,7 @@ def resolve_polled_command_result(
             logger=logger,
         )
         return True, None
-    if state == "failed":
+    if state == COMMAND_RESULT_STATE_FAILED:
         failure = apply_command_result_rejected(
             route=route,
             msg_sn=msg_sn,
@@ -280,7 +305,7 @@ def apply_push_failure(
     trace["route"] = route
     trace["success"] = False
     trace["error"] = "PushFailed"
-    trace["error_message"] = "pushSuccess=false"
+    trace["error_message"] = _PUSH_FAILURE_TRACE_MESSAGE
     safe_device_serial = redact_identifier(device_serial) or "***"
     logger.warning(
         "Command push failed (command=%s, device=%s, route=%s, device_id=%s)",
@@ -290,8 +315,8 @@ def apply_push_failure(
         safe_device_serial,
     )
     return {
-        "reason": "push_failed",
-        "code": "push_failed",
+        "reason": COMMAND_FAILURE_REASON_PUSH_FAILED,
+        "code": COMMAND_FAILURE_REASON_PUSH_FAILED,
         "route": route,
         "device_id": device_serial,
         "command": command,
@@ -309,7 +334,7 @@ def build_command_api_error_failure(
     """Update trace and return normalized failure payload for API command errors."""
     update_trace_with_exception(trace, route=route, err=err)
     return {
-        "reason": "api_error",
+        "reason": COMMAND_FAILURE_REASON_API_ERROR,
         "code": err.code,
         "message": str(err),
         "route": route,
@@ -334,10 +359,29 @@ def apply_successful_command_trace(
 
 
 __all__ = [
+    "COMMAND_FAILURE_CODE_MISSING_MSGSN",
+    "COMMAND_FAILURE_REASON_API_ERROR",
+    "COMMAND_FAILURE_REASON_COMMAND_RESULT_FAILED",
+    "COMMAND_FAILURE_REASON_COMMAND_RESULT_UNCONFIRMED",
+    "COMMAND_FAILURE_REASON_PUSH_FAILED",
+    "COMMAND_RESULT_POLLING_STATE_UNCONFIRMED",
+    "COMMAND_RESULT_STATE_CONFIRMED",
+    "COMMAND_RESULT_STATE_FAILED",
+    "COMMAND_RESULT_STATE_PENDING",
+    "COMMAND_RESULT_STATE_UNKNOWN",
+    "COMMAND_RESULT_TRACE_STATE_QUERY_ERROR",
+    "COMMAND_VERIFICATION_RESULT_CONFIRMED",
+    "COMMAND_VERIFICATION_RESULT_FAILED",
+    "COMMAND_VERIFICATION_RESULT_TIMEOUT",
     "ApiErrorLike",
     "CommandFailurePayload",
+    "CommandFailureReason",
     "CommandResultClassifier",
     "CommandResultPayload",
+    "CommandResultPollingState",
+    "CommandResultState",
+    "CommandResultVerifyTrace",
+    "CommandVerificationResult",
     "LoggerLike",
     "PendingExpectations",
     "QueryCommandResult",
@@ -357,6 +401,7 @@ __all__ = [
     "compute_adaptive_post_refresh_delay",
     "extract_msg_sn",
     "is_command_push_failed",
+    "is_terminal_command_result_state",
     "poll_command_result_state",
     "query_command_result_once",
     "resolve_delayed_refresh_delay",

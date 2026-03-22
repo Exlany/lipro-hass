@@ -1,7 +1,7 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.9
-milestone_name: Shared Backoff Neutralization & Cross-Plane Retry Hygiene
+milestone: v1.10
+milestone_name: Command-Result Typed Outcome & Reason-Code Hardening
 status: active
 last_updated: "2026-03-22T00:00:00Z"
 progress:
@@ -17,12 +17,13 @@ progress:
 
 See: `.planning/PROJECT.md`
 
-**Current milestone:** `v1.9 Shared Backoff Neutralization & Cross-Plane Retry Hygiene`
-**Core value:** 在不回退 `LiproProtocolFacade` / `Coordinator` 单一正式主链的前提下，先把 continuity automation、governance-registry projection 与 release rehearsal resilience 变成低摩擦合同，再推进 canonical formal roots / helper hotspots / mega-tests 的 second-round sustainment。
-**Current mode:** `Phase 56 complete`；`v1.6` 仍是 latest shipped archive baseline，`v1.7` formalized follow-up route 与 `v1.8` sustainment tranche 均已 completed closeout，而 `v1.9` 已把 neutral backoff home / cross-plane retry hygiene 收口为 current promoted evidence。
+**Current milestone:** `v1.10 Command-Result Typed Outcome & Reason-Code Hardening`
+**Core value:** 在不重开 retry ownership 或第二故事线的前提下，把 command-result family 的 state / verification / failure-reason strings 收口为 shared typed contract，并让 runtime sender 与 diagnostics consumers 共享同一 vocabulary。
+**Current mode:** `Phase 57 complete`；`v1.6` 仍是 latest shipped archive baseline，`v1.7` formalized follow-up route 与 `v1.8` sustainment tranche 均已 completed closeout，`v1.9` 已完成 single-phase residual closeout，而 `v1.10` 已把 command-result typed outcome / reason-code contract 收口为 current promoted evidence。
 
 ## Current Position
 
+- `v1.10` 已于 `2026-03-22` 从 `.planning/reviews/V1_10_MILESTONE_SEED.md` 正式化为 current milestone，并在同日完成 opening `Phase 57`：`custom_components/lipro/core/command/result_policy.py` / `result.py` 现已共享 typed command-result state / verification / failure-reason contract，runtime sender 与 diagnostics `query_command_result` response typing 不再依赖 scattered literals，而 baseline / review truth / meta guards 也已同步冻结 `Phase 57` closeout。
 - `v1.9` 已于 `2026-03-22` 从 `.planning/reviews/V1_9_MILESTONE_SEED.md` 正式化为 current milestone，并在同日完成 opening `Phase 56`：generic exponential backoff primitive 现已迁到 `custom_components/lipro/core/utils/backoff.py`，`RequestPolicy` 不再作为 cross-plane utility export，而 baseline / review truth / meta guards 也已同步关闭 `Generic backoff helper leak` residual。
 - `v1.8` 已于 `2026-03-21` 从 `.planning/reviews/V1_8_MILESTONE_SEED.md` 正式化为 current milestone，并在同日完成 `Phase 51 -> 55` closeout：continuity drill、registry projection、verify-only release rehearsal、protocol-root/request-policy ownership freeze、runtime/entry-root throttling、helper-hotspot formalization，以及 mega-test/typing truth freeze 都已落盘为 promoted evidence；当前可进入 `$gsd-progress` / `$gsd-complete-milestone v1.8` / `$gsd-new-milestone` 仲裁。
 - `Phase 53 -> 55` 已执行完成：runtime/entry-root throttling、anonymous-share / diagnostics / request-policy helper formalization，以及 API/MQTT/platform mega-test topicization 与 repo-wide typing-bucket truth freeze 都已通过验证并形成 `53-SUMMARY.md` / `53-VERIFICATION.md`、`54-SUMMARY.md` / `54-VERIFICATION.md`、`55-SUMMARY.md` / `55-VERIFICATION.md`。
@@ -147,22 +148,22 @@ See: `.planning/PROJECT.md`
 
 ## Current Milestone Status
 
-- **Milestone:** `v1.9 Shared Backoff Neutralization & Cross-Plane Retry Hygiene`
-- **Phase range:** `56`
-- **Completed so far:** `Phase 56 complete`（`2026-03-22` 已完成 neutral helper home / cross-plane import cleanup / residual-governance closeout，并生成 `56-SUMMARY.md` / `56-VERIFICATION.md`）
-- **Planned next:** `$gsd-complete-milestone v1.9`（若要先归档当前 milestone）；`$gsd-new-milestone`（若要直接以已关闭 residual truth 种出下一里程碑）
-- **Starting baseline:** `v1.6` archive assets remain authoritative shipped snapshots，`v1.8` closeout evidence remains the immediate sustainment baseline
-- **Closeout evidence source:** `.planning/phases/56-shared-backoff-neutralization-and-cross-plane-retry-hygiene/56-SUMMARY.md`, `.planning/phases/56-shared-backoff-neutralization-and-cross-plane-retry-hygiene/56-VERIFICATION.md`
-- **Route seed:** `.planning/reviews/V1_9_MILESTONE_SEED.md`
+- **Milestone:** `v1.10 Command-Result Typed Outcome & Reason-Code Hardening`
+- **Phase range:** `57`
+- **Completed so far:** `Phase 57 complete`（`2026-03-22` 已完成 typed command-result contract、runtime/diagnostics consumer alignment 与 governance closeout，并生成 `57-SUMMARY.md` / `57-VERIFICATION.md`）
+- **Planned next:** `$gsd-complete-milestone v1.10`（若要先归档当前 milestone）；`$gsd-progress`（若要查看更新后的 promoted evidence 与 current route）
+- **Starting baseline:** `v1.6` archive assets remain authoritative shipped snapshots，`v1.9` closeout evidence remains the immediate typed-contract baseline
+- **Closeout evidence source:** `.planning/phases/57-command-result-typed-outcome-and-reason-code-hardening/57-SUMMARY.md`, `.planning/phases/57-command-result-typed-outcome-and-reason-code-hardening/57-VERIFICATION.md`
+- **Route seed:** `.planning/reviews/V1_10_MILESTONE_SEED.md`
 - **Historical archives:** `.planning/milestones/v1.1-ROADMAP.md`, `.planning/milestones/v1.1-REQUIREMENTS.md`, `.planning/milestones/v1.2-ROADMAP.md`, `.planning/milestones/v1.2-REQUIREMENTS.md`, `.planning/milestones/v1.4-ROADMAP.md`, `.planning/milestones/v1.4-REQUIREMENTS.md`, `.planning/milestones/v1.5-ROADMAP.md`, `.planning/milestones/v1.5-REQUIREMENTS.md`, `.planning/milestones/v1.6-ROADMAP.md`, `.planning/milestones/v1.6-REQUIREMENTS.md`
-- **Next focus:** `$gsd-complete-milestone v1.9`——归档当前单相位里程碑，或基于已清理的 residual truth 继续种下一里程碑。
+- **Next focus:** `$gsd-complete-milestone v1.10`——归档当前单相位里程碑，或基于已冻结的 typed command-result baseline 继续种下一里程碑。
 
 ## Recommended Next Command
 
-1. `$gsd-complete-milestone v1.9` —— 归档当前里程碑并冻结 `Phase 56` closeout truth
-2. `$gsd-progress` —— 查看更新后的 `v1.9` current route 与 promoted evidence
-3. `$gsd-new-milestone` —— 若要直接基于已关闭 residual 种出下一里程碑
-4. `uv run pytest -q tests/core/api/test_api_request_policy.py tests/core/mqtt/test_mqtt_backoff.py tests/core/test_command_result.py tests/meta/test_public_surface_guards.py tests/meta/test_dependency_guards.py tests/meta/test_governance_followup_route.py tests/meta/test_governance_phase_history.py tests/meta/test_governance_guards.py` —— 复核 `Phase 56` closeout truth
+1. `$gsd-complete-milestone v1.10` —— 归档当前里程碑并冻结 `Phase 57` closeout truth
+2. `$gsd-progress` —— 查看更新后的 `v1.10` current route 与 promoted evidence
+3. `$gsd-new-milestone` —— 若要直接基于已冻结的 typed command-result baseline 种出下一里程碑
+4. `uv run pytest -q tests/core/test_command_result.py tests/core/coordinator/runtime/test_command_runtime.py tests/core/test_init_service_handlers_debug_queries.py tests/meta/test_public_surface_guards.py tests/meta/test_dependency_guards.py tests/meta/test_governance_followup_route.py tests/meta/test_governance_phase_history.py` —— 复核 `Phase 57` closeout truth
 5. `uv run ruff check . && uv run python scripts/check_file_matrix.py --check` —— 复核静态质量与 file-matrix 基线
 
 ## Session Continuity
@@ -173,14 +174,15 @@ If resuming, read in this order:
 3. `.planning/ROADMAP.md`
 4. `.planning/REQUIREMENTS.md`
 5. `.planning/STATE.md`
-6. `.planning/reviews/V1_9_MILESTONE_SEED.md`
-7. `.planning/phases/56-shared-backoff-neutralization-and-cross-plane-retry-hygiene/56-CONTEXT.md`
-8. `.planning/phases/56-shared-backoff-neutralization-and-cross-plane-retry-hygiene/56-RESEARCH.md`
-9. `.planning/phases/56-shared-backoff-neutralization-and-cross-plane-retry-hygiene/56-VALIDATION.md`
-10. `.planning/phases/56-shared-backoff-neutralization-and-cross-plane-retry-hygiene/56-01-PLAN.md`
-11. `.planning/phases/56-shared-backoff-neutralization-and-cross-plane-retry-hygiene/56-02-PLAN.md`
-12. `.planning/phases/56-shared-backoff-neutralization-and-cross-plane-retry-hygiene/56-03-PLAN.md`
-13. `.planning/phases/56-shared-backoff-neutralization-and-cross-plane-retry-hygiene/56-SUMMARY.md`
-14. `.planning/phases/56-shared-backoff-neutralization-and-cross-plane-retry-hygiene/56-VERIFICATION.md`
-15. `.planning/phases/55-mega-test-topicization-round-2-and-repo-wide-typing-metric-stratification/55-SUMMARY.md`
-16. `.planning/phases/55-mega-test-topicization-round-2-and-repo-wide-typing-metric-stratification/55-VERIFICATION.md`
+6. `.planning/reviews/V1_10_MILESTONE_SEED.md`
+7. `.planning/phases/57-command-result-typed-outcome-and-reason-code-hardening/57-CONTEXT.md`
+8. `.planning/phases/57-command-result-typed-outcome-and-reason-code-hardening/57-RESEARCH.md`
+9. `.planning/phases/57-command-result-typed-outcome-and-reason-code-hardening/57-VALIDATION.md`
+10. `.planning/phases/57-command-result-typed-outcome-and-reason-code-hardening/57-01-PLAN.md`
+11. `.planning/phases/57-command-result-typed-outcome-and-reason-code-hardening/57-02-PLAN.md`
+12. `.planning/phases/57-command-result-typed-outcome-and-reason-code-hardening/57-03-PLAN.md`
+13. `.planning/phases/57-command-result-typed-outcome-and-reason-code-hardening/57-SUMMARY.md`
+14. `.planning/phases/57-command-result-typed-outcome-and-reason-code-hardening/57-VERIFICATION.md`
+15. `.planning/reviews/V1_9_MILESTONE_SEED.md`
+16. `.planning/phases/56-shared-backoff-neutralization-and-cross-plane-retry-hygiene/56-SUMMARY.md`
+17. `.planning/phases/56-shared-backoff-neutralization-and-cross-plane-retry-hygiene/56-VERIFICATION.md`

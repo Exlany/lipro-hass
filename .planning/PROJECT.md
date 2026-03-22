@@ -1,8 +1,8 @@
 # Project: Lipro-HASS North Star Evolution
 
-**Status:** Shipped and archived — `v1.6` 仍是最新已发货真源；`v1.7` formalized follow-up route `Phase 46 -> 50` 已于 `2026-03-21` 完成 closeout；`v1.8` 已完成 `Phase 51 -> 55` closeout；`v1.9` 已正式启动并完成 opening `Phase 56`，当前处于 closeout-ready。
+**Status:** Shipped and archived — `v1.6` 仍是最新已发货真源；`v1.7` formalized follow-up route `Phase 46 -> 50` 已于 `2026-03-21` 完成 closeout；`v1.8` 已完成 `Phase 51 -> 55` closeout；`v1.9` 已完成单相位 residual closeout，而 `v1.10` 已正式启动并完成 opening `Phase 57`，当前处于 closeout-ready。
 **Goal:** 以 `v1.6` 归档真相为最新已发货基线；后续路线必须建立在 `v1.7` promoted audit/closeout evidence 与正式 milestone docs 之上，不回流 `Phase 41` execution trace、conversation-only 结论或旧 archived story。
-**Default next step:** `$gsd-complete-milestone v1.9`
+**Default next step:** `$gsd-complete-milestone v1.10`
 
 
 ## Archived Milestone (v1.6)
@@ -22,6 +22,28 @@
 **Current status:** `Phase 42 -> 45 archived / evidence-ready`（`16/16` 个执行 plans 已完成，`.planning/v1.6-MILESTONE-AUDIT.md`、`.planning/reviews/V1_6_EVIDENCE_INDEX.md`、`.planning/milestones/v1.6-ROADMAP.md` 与 `.planning/milestones/v1.6-REQUIREMENTS.md` 已落盘；next action is `$gsd-new-milestone`）
 **Archive assets:** `.planning/v1.6-MILESTONE-AUDIT.md`, `.planning/reviews/V1_6_EVIDENCE_INDEX.md`, `.planning/milestones/v1.6-ROADMAP.md`, `.planning/milestones/v1.6-REQUIREMENTS.md`, `.planning/phases/45-hotspot-decomposition-and-typed-failure-semantics/45-SUMMARY.md`, `.planning/phases/45-hotspot-decomposition-and-typed-failure-semantics/45-VERIFICATION.md`
 **Primary closeout targets:** delivery trust hardening、typed runtime read-model、control/services decoupling、governance asset pruning、terminology convergence、hotspot decomposition、typed failure semantics。
+
+## Planned Milestone (v1.10)
+
+**Name:** `v1.10 Command-Result Typed Outcome & Reason-Code Hardening`
+
+**Why now:** `v1.9` 已把 generic backoff residual 收口为 neutral helper truth；当前最高价值的 follow-up 不再是 retry ownership，而是把 command-result family 从 scattered literals 收口到 typed outcome / reason-code contract，让 `result_policy.py` / `result.py` / runtime sender / diagnostics query consumers 讲同一条故事。
+
+**North-star fit:** `v1.10` 继续沿单一正式主链推进：
+
+- 不新增 command helper root、compat shell 或第二套 outcome vocabulary
+- 保持 `result_policy.py` 作为 classification/polling home、`result.py` 作为 stable export / failure arbitration home
+- 不改变 diagnostics/runtime outward behavior，只提高内部 contract honesty 与 typeability
+- 以 baseline / review / meta guard 冻结 typed command-result truth，而不是停留在 conversation-only improvement
+
+**Phase range:** `Phase 57`
+**Current status:** `Phase 57 complete (2026-03-22)`（`ERR-12 / TYP-14 / GOV-41` 已全部通过 code / typing / governance closeout 收口）
+**Seed input:** `.planning/reviews/V1_10_MILESTONE_SEED.md`
+**Phase 57 planning assets:** `.planning/phases/57-command-result-typed-outcome-and-reason-code-hardening/57-CONTEXT.md`, `.planning/phases/57-command-result-typed-outcome-and-reason-code-hardening/57-RESEARCH.md`, `.planning/phases/57-command-result-typed-outcome-and-reason-code-hardening/57-VALIDATION.md`, `.planning/phases/57-command-result-typed-outcome-and-reason-code-hardening/57-01-PLAN.md`, `.planning/phases/57-command-result-typed-outcome-and-reason-code-hardening/57-02-PLAN.md`, `.planning/phases/57-command-result-typed-outcome-and-reason-code-hardening/57-03-PLAN.md`
+**Phase 57 closeout:** `.planning/phases/57-command-result-typed-outcome-and-reason-code-hardening/57-SUMMARY.md`, `.planning/phases/57-command-result-typed-outcome-and-reason-code-hardening/57-VERIFICATION.md`
+**Immediate focus after closeout:** archive `v1.10` or seed the next milestone from the updated command-result contract baseline
+**Requirements basket:** `ERR-12`, `TYP-14`, `GOV-41`
+**Next route after Phase 57:** `$gsd-complete-milestone v1.10`
 
 ## Planned Milestone (v1.9)
 

@@ -161,3 +161,9 @@
 - `custom_components/lipro/core/utils/backoff.py` 是 neutral shared exponential-backoff primitive home；它只承接 pure delay math，不承担 plane-local retry policy。
 - `custom_components/lipro/core/api/request_policy.py` 已停止导出 `compute_exponential_retry_wait_time()`；API plane 只保留 `429` / busy / pacing decision truth。
 - `custom_components/lipro/core/command/result_policy.py`、`custom_components/lipro/core/coordinator/runtime/command/retry.py` 与 `custom_components/lipro/core/mqtt/setup_backoff.py` 现统一从 `core/utils/backoff.py` import primitive，同时继续保留各自的 local retry semantics。
+
+## Phase 57 Typed Command-Result Contract Clarifications
+
+- `custom_components/lipro/core/command/result_policy.py` 与 `custom_components/lipro/core/command/result.py` 共同组成 command-result formal contract family：前者负责 classification / polling / typed state truth，后者负责 failure arbitration / stable export truth。
+- `custom_components/lipro/core/coordinator/runtime/command/sender.py` 只能经 `custom_components/lipro/core/command/result.py` 读取 shared typed command-result contract，不得维护本地 duplicated literals。
+- `custom_components/lipro/services/diagnostics/types.py` 与 diagnostics handlers 只允许复用 shared command-result state contract；diagnostics `query_command_result` response 不得继续把 `state` 讲成 bare `str` folklore。

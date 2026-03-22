@@ -159,6 +159,9 @@ phases:
   56-shared-backoff-neutralization-and-cross-plane-retry-hygiene:
     - 56-SUMMARY.md
     - 56-VERIFICATION.md
+  57-command-result-typed-outcome-and-reason-code-hardening:
+    - 57-SUMMARY.md
+    - 57-VERIFICATION.md
 ---
 
 # Promoted Phase Assets

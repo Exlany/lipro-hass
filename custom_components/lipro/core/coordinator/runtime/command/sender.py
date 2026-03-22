@@ -10,7 +10,14 @@ from typing import TYPE_CHECKING
 from ....api import LiproApiError, LiproAuthError, LiproConnectionError
 from ....command.dispatch import execute_command_plan_with_trace
 from ....command.result import (
+    COMMAND_RESULT_STATE_CONFIRMED,
+    COMMAND_RESULT_STATE_FAILED,
+    COMMAND_RESULT_STATE_PENDING,
+    COMMAND_VERIFICATION_RESULT_CONFIRMED,
+    COMMAND_VERIFICATION_RESULT_FAILED,
+    COMMAND_VERIFICATION_RESULT_TIMEOUT,
     CommandResultPayload,
+    CommandResultState,
     classify_command_result_payload,
     query_command_result_once,
 )
@@ -77,7 +84,7 @@ class CommandSender:
         retry_delays: list[float],
         trace: CommandTrace,
         device: LiproDevice,
-    ) -> tuple[bool, str | None]:
+    ) -> tuple[bool, CommandResultState | None]:
         """Verify command delivery via result polling with retries."""
         attempt = 0
         for delay in retry_delays:
@@ -110,22 +117,22 @@ class CommandSender:
 
             classification = classify_command_result_payload(result)
 
-            if classification == "pending":
+            if classification == COMMAND_RESULT_STATE_PENDING:
                 continue
 
-            if classification == "confirmed":
+            if classification == COMMAND_RESULT_STATE_CONFIRMED:
                 trace["verification_attempts"] = attempt
-                trace["verification_result"] = "confirmed"
+                trace["verification_result"] = COMMAND_VERIFICATION_RESULT_CONFIRMED
                 return True, classification
 
-            if classification == "failed":
+            if classification == COMMAND_RESULT_STATE_FAILED:
                 trace["verification_attempts"] = attempt
-                trace["verification_result"] = "failed"
+                trace["verification_result"] = COMMAND_VERIFICATION_RESULT_FAILED
                 trace["verification_classification"] = classification
                 return False, classification
 
         trace["verification_attempts"] = attempt
-        trace["verification_result"] = "timeout"
+        trace["verification_result"] = COMMAND_VERIFICATION_RESULT_TIMEOUT
         return False, None
 
 

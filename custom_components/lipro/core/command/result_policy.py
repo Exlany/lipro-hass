@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import asyncio
 from collections.abc import Awaitable, Callable, Mapping, Sequence
-from typing import Protocol
+from typing import Final, Literal, Protocol, TypedDict
 
 from ..api.response_safety import normalize_response_code
 from ..utils.backoff import compute_exponential_retry_wait_time
@@ -14,11 +14,49 @@ from ..utils.redaction import redact_identifier
 type CommandResultPayload = Mapping[str, object]
 type TracePayload = dict[str, object]
 type PendingExpectations = dict[str, object]
-type CommandFailurePayload = dict[str, object]
+type CommandResultState = Literal["confirmed", "failed", "pending", "unknown"]
+type CommandResultPollingState = CommandResultState | Literal["unconfirmed"]
+type CommandResultTraceState = CommandResultState | Literal["query_error"]
+type CommandVerificationResult = Literal["confirmed", "failed", "timeout"]
+type CommandFailureReason = Literal[
+    "api_error",
+    "command_result_failed",
+    "command_result_unconfirmed",
+    "push_failed",
+]
+
+
+class CommandFailurePayload(TypedDict, total=False):
+    """Structured failure payload shared by command-result helpers."""
+
+    reason: CommandFailureReason
+    code: object
+    route: str
+    msg_sn: str
+    device_id: str
+    message: str
+    command: str
+
+
+class CommandResultVerifyTrace(TypedDict, total=False):
+    """Structured trace payload for command-result verification details."""
+
+    enabled: bool
+    verified: bool
+    attempts: int
+    msg_sn: str
+    state: CommandResultState
+    code: object
+    message: str
+    last_state: CommandResultTraceState
+    last_code: object
+    last_message: str
+
+
 type QueryCommandResult = Callable[..., Awaitable[Mapping[str, object]]]
 type QueryCommandResultAttempt = Callable[[int], Awaitable[CommandResultPayload | None]]
 type ShouldReraiseCommandResultError = Callable[[Exception], bool]
-type CommandResultClassifier = Callable[[CommandResultPayload], str]
+type CommandResultClassifier = Callable[[CommandResultPayload], CommandResultState]
 
 
 class LoggerLike(Protocol):
@@ -36,6 +74,30 @@ _BOOL_CONFIRMED_VALUES: tuple[object, ...] = (True, 1, "1", "true", "TRUE")
 _BOOL_FAILED_VALUES: tuple[object, ...] = (False, 0, "0", "false", "FALSE")
 _COMMAND_RESULT_PENDING_CODES = frozenset((100000, 140006))
 _COMMAND_RESULT_SUCCESS_CODES = frozenset((0,))
+
+COMMAND_RESULT_STATE_CONFIRMED: Final[CommandResultState] = "confirmed"
+COMMAND_RESULT_STATE_FAILED: Final[CommandResultState] = "failed"
+COMMAND_RESULT_STATE_PENDING: Final[CommandResultState] = "pending"
+COMMAND_RESULT_STATE_UNKNOWN: Final[CommandResultState] = "unknown"
+COMMAND_RESULT_POLLING_STATE_UNCONFIRMED: Final[CommandResultPollingState] = (
+    "unconfirmed"
+)
+COMMAND_RESULT_TRACE_STATE_QUERY_ERROR: Final[CommandResultTraceState] = "query_error"
+COMMAND_VERIFICATION_RESULT_CONFIRMED: Final[CommandVerificationResult] = "confirmed"
+COMMAND_VERIFICATION_RESULT_FAILED: Final[CommandVerificationResult] = "failed"
+COMMAND_VERIFICATION_RESULT_TIMEOUT: Final[CommandVerificationResult] = "timeout"
+COMMAND_FAILURE_REASON_API_ERROR: Final[CommandFailureReason] = "api_error"
+COMMAND_FAILURE_REASON_COMMAND_RESULT_FAILED: Final[CommandFailureReason] = (
+    "command_result_failed"
+)
+COMMAND_FAILURE_REASON_COMMAND_RESULT_UNCONFIRMED: Final[CommandFailureReason] = (
+    "command_result_unconfirmed"
+)
+COMMAND_FAILURE_REASON_PUSH_FAILED: Final[CommandFailureReason] = "push_failed"
+COMMAND_FAILURE_CODE_MISSING_MSGSN: Final[str] = "command_result_missing_msgsn"
+_TERMINAL_COMMAND_RESULT_STATES = frozenset(
+    (COMMAND_RESULT_STATE_CONFIRMED, COMMAND_RESULT_STATE_FAILED)
+)
 
 
 def is_command_push_failed(result: object) -> bool:
@@ -65,12 +127,12 @@ def extract_msg_sn(result: object) -> str | None:
 
 
 
-def _classify_bool_state(value: object) -> str | None:
-    """Classify one boolean-like payload field into confirmed/failed/None."""
+def _classify_bool_state(value: object) -> CommandResultState | None:
+    """Classify one boolean-like payload field into one typed command-result state."""
     if value in _BOOL_CONFIRMED_VALUES:
-        return "confirmed"
+        return COMMAND_RESULT_STATE_CONFIRMED
     if value in _BOOL_FAILED_VALUES:
-        return "failed"
+        return COMMAND_RESULT_STATE_FAILED
     return None
 
 
@@ -97,6 +159,15 @@ def _extract_command_result_message(payload: CommandResultPayload | None) -> str
     normalized = value.strip()
     return normalized or None
 
+
+def extract_command_result_code(payload: CommandResultPayload | None) -> object | None:
+    """Return the normalized backend code helper for command-result consumers."""
+    return _extract_command_result_code(payload)
+
+
+def extract_command_result_message(payload: CommandResultPayload | None) -> str | None:
+    """Return the normalized backend message helper for command-result consumers."""
+    return _extract_command_result_message(payload)
 
 
 def build_progressive_retry_delays(
@@ -131,22 +202,27 @@ def build_progressive_retry_delays(
 
 
 
-def classify_command_result_payload(payload: CommandResultPayload) -> str:
-    """Classify a polled command-result payload using the observed contract."""
+def classify_command_result_payload(payload: CommandResultPayload) -> CommandResultState:
+    """Classify a polled command-result payload using the shared typed contract."""
     normalized_code = normalize_response_code(_extract_command_result_code(payload))
     if normalized_code in _COMMAND_RESULT_PENDING_CODES:
-        return "pending"
+        return COMMAND_RESULT_STATE_PENDING
 
     success_state = _classify_bool_state(payload.get("success"))
     if success_state is not None:
         return success_state
 
     if normalized_code in _COMMAND_RESULT_SUCCESS_CODES:
-        return "confirmed"
+        return COMMAND_RESULT_STATE_CONFIRMED
     if normalized_code is not None:
-        return "failed"
-    return "unknown"
+        return COMMAND_RESULT_STATE_FAILED
+    return COMMAND_RESULT_STATE_UNKNOWN
 
+
+
+def is_terminal_command_result_state(state: CommandResultState) -> bool:
+    """Return whether one classified command-result state should stop polling."""
+    return state in _TERMINAL_COMMAND_RESULT_STATES
 
 
 def should_skip_immediate_post_refresh(
@@ -273,8 +349,8 @@ async def poll_command_result_state(
     query_once: QueryCommandResultAttempt,
     classify_payload: CommandResultClassifier,
     retry_delays_seconds: Sequence[float],
-    on_attempt: Callable[[int, str], None] | None = None,
-) -> tuple[str, int, CommandResultPayload | None]:
+    on_attempt: Callable[[int, CommandResultState], None] | None = None,
+) -> tuple[CommandResultPollingState, int, CommandResultPayload | None]:
     """Poll until the command result is confirmed/failed or the retry budget ends."""
     retry_delays = tuple(max(0.0, float(delay)) for delay in retry_delays_seconds)
     attempt_limit = len(retry_delays) + 1
@@ -290,18 +366,38 @@ async def poll_command_result_state(
         state = classify_payload(payload)
         if on_attempt is not None:
             on_attempt(attempt, state)
-        if state in {"confirmed", "failed"}:
+        if is_terminal_command_result_state(state):
             return state, attempt, payload
         if attempt < attempt_limit:
             await asyncio.sleep(retry_delays[attempt - 1])
 
-    return "unconfirmed", attempt_limit, last_payload
+    return COMMAND_RESULT_POLLING_STATE_UNCONFIRMED, attempt_limit, last_payload
 
 
 __all__ = [
+    "COMMAND_FAILURE_CODE_MISSING_MSGSN",
+    "COMMAND_FAILURE_REASON_API_ERROR",
+    "COMMAND_FAILURE_REASON_COMMAND_RESULT_FAILED",
+    "COMMAND_FAILURE_REASON_COMMAND_RESULT_UNCONFIRMED",
+    "COMMAND_FAILURE_REASON_PUSH_FAILED",
+    "COMMAND_RESULT_POLLING_STATE_UNCONFIRMED",
+    "COMMAND_RESULT_STATE_CONFIRMED",
+    "COMMAND_RESULT_STATE_FAILED",
+    "COMMAND_RESULT_STATE_PENDING",
+    "COMMAND_RESULT_STATE_UNKNOWN",
+    "COMMAND_RESULT_TRACE_STATE_QUERY_ERROR",
+    "COMMAND_VERIFICATION_RESULT_CONFIRMED",
+    "COMMAND_VERIFICATION_RESULT_FAILED",
+    "COMMAND_VERIFICATION_RESULT_TIMEOUT",
     "CommandFailurePayload",
+    "CommandFailureReason",
     "CommandResultClassifier",
     "CommandResultPayload",
+    "CommandResultPollingState",
+    "CommandResultState",
+    "CommandResultTraceState",
+    "CommandResultVerifyTrace",
+    "CommandVerificationResult",
     "LoggerLike",
     "PendingExpectations",
     "QueryCommandResult",
@@ -313,6 +409,7 @@ __all__ = [
     "compute_adaptive_post_refresh_delay",
     "extract_msg_sn",
     "is_command_push_failed",
+    "is_terminal_command_result_state",
     "poll_command_result_state",
     "query_command_result_once",
     "resolve_delayed_refresh_delay",
