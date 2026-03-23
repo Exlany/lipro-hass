@@ -60,6 +60,9 @@ from .developer_router_support import (
     collect_developer_reports as _collect_developer_reports,
     raise_optional_capability_error as _raise_optional_capability_error,
 )
+from .runtime_access import (
+    iter_runtime_entry_coordinators as _iter_runtime_entry_coordinators,
+)
 from .service_router_support import (
     DeviceAndCoordinatorGetter as RuntimeDeviceAndCoordinatorGetter,
 )
@@ -334,6 +337,7 @@ async def async_handle_refresh_devices(
         call,
         domain=DOMAIN,
         attr_entry_id=_contracts.ATTR_ENTRY_ID,
+        iter_runtime_entry_coordinators=_iter_runtime_entry_coordinators,
     )
 
 

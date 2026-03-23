@@ -42,8 +42,8 @@
 
 - `custom_components/lipro/control/runtime_access.py` 现在同时固定 typed diagnostics/system-health projection 与 entry-scoped runtime lookup；control consumers 不再混搭 coordinator internals / ad-hoc mapping reads。
 - `custom_components/lipro/control/service_router_support.py` 是 service callback 热路径里唯一正式 `(device, coordinator)` bridge；`custom_components/lipro/services/device_lookup.py` 只保留 service-facing `device_id` resolution，不再拥有 runtime truth。
-- `custom_components/lipro/runtime_infra.py` 成为 device-registry listener、pending reload task cleanup 与 reload coordination 的正式 home；`custom_components/lipro/services/maintenance.py` 只保留 `refresh_devices` thin adapter。
-- `custom_components/lipro/control/service_router.py` 继续是 public callback home；`services/registrations.py` 仅做 HA service declaration binding，没有第二条 service-ownership story。
+- `custom_components/lipro/runtime_infra.py` 成为 device-registry listener、pending reload task cleanup 与 reload coordination 的正式 home；`custom_components/lipro/services/maintenance.py` 只保留消费 control 注入 runtime provider 的 `refresh_devices` thin adapter。
+- `custom_components/lipro/control/service_router.py` 继续是 public callback home；`custom_components/lipro/control/service_registry.py` 现在也是正式 service-registration owner，而 `services/registrations.py` 只保留 compat import/binding 身份，没有第二条 service-ownership story。
 
 ## Phase 48 Formal-Root Hotspot Decomposition Notes
 
@@ -147,7 +147,7 @@
 
 ## Phase 11 Control / Surface Closeout Notes
 
-- `custom_components/lipro/control/service_router.py` 已成为 control-plane 唯一正式 service callback home；`custom_components/lipro/services/registrations.py` 只做 HA service declaration 绑定。
+- `custom_components/lipro/control/service_router.py` 已成为 control-plane 唯一正式 service callback home；`custom_components/lipro/control/service_registry.py` 负责 registration tables / debug gating，而 `custom_components/lipro/services/registrations.py` 只做 compat import/binding。
 - legacy wiring compat shell 已正式删除，不再属于 transitional public surface，也不得作为 patch / import truth 回流。
 - `custom_components/lipro/control/runtime_access.py` 继续是 control-plane runtime locator；control adapters 不得再旁路读取 coordinator internals。
 
@@ -232,7 +232,7 @@
 
 - `custom_components/lipro/core/anonymous_share/manager.py` 继续是 aggregate/scoped anonymous-share public home；`custom_components/lipro/core/anonymous_share/manager_support.py` 只允许作为 scope-state / cache / report-submit mechanics 的 support-only seam 存在。
 - `custom_components/lipro/core/anonymous_share/share_client.py` 继续是 worker transport home；`custom_components/lipro/core/anonymous_share/share_client_support.py` 只承接 token / submit-attempt / outcome mechanics，不得被讲成第二 transport story。
-- `custom_components/lipro/control/service_router.py` 继续是 diagnostics public handler home；`custom_components/lipro/services/diagnostics/helpers.py` 只保留 focused diagnostics import home 身份，而 `custom_components/lipro/services/diagnostics/helper_support.py` 只能作为 report / feedback / capability / response mechanics seam inward 使用。
+- `custom_components/lipro/control/service_router.py` 继续是 diagnostics public handler home；`custom_components/lipro/services/diagnostics/helpers.py` 只保留 focused diagnostics import home 身份，并只消费 control 注入的 runtime-entry / telemetry ports；`custom_components/lipro/services/diagnostics/helper_support.py` 只能作为 report / feedback / capability / response mechanics seam inward 使用。
 - `custom_components/lipro/core/api/request_policy.py` 继续是 `429` / busy / pacing truth 的 formal home；`custom_components/lipro/core/api/request_policy_support.py` 只允许作为 pacing/backoff support seam 存在，generic `compute_exponential_retry_wait_time()` cross-plane leak 若继续保留，必须继续在 residual ledger 显式登记。
 
 

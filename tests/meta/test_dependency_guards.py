@@ -166,6 +166,18 @@ def test_phase_43_control_service_boundary_stays_one_way_and_explicit() -> None:
     maintenance_text = (
         _ROOT / "custom_components" / "lipro" / "services" / "maintenance.py"
     ).read_text(encoding="utf-8")
+    registrations_text = (
+        _ROOT / "custom_components" / "lipro" / "services" / "registrations.py"
+    ).read_text(encoding="utf-8")
+    diagnostics_helpers_text = (
+        _ROOT / "custom_components" / "lipro" / "services" / "diagnostics" / "helpers.py"
+    ).read_text(encoding="utf-8")
+    diagnostics_feedback_handlers_text = (
+        _ROOT / "custom_components" / "lipro" / "services" / "diagnostics" / "feedback_handlers.py"
+    ).read_text(encoding="utf-8")
+    control_service_registry_text = (
+        _ROOT / "custom_components" / "lipro" / "control" / "service_registry.py"
+    ).read_text(encoding="utf-8")
     runtime_infra_text = (
         _ROOT / "custom_components" / "lipro" / "runtime_infra.py"
     ).read_text(encoding="utf-8")
@@ -202,8 +214,18 @@ def test_phase_43_control_service_boundary_stays_one_way_and_explicit() -> None:
     assert "get_entry_runtime_coordinator" not in device_lookup_text
 
     assert "iter_runtime_entry_coordinators" in maintenance_text
+    assert "control.runtime_access" not in maintenance_text
     assert "device_registry_updated" not in maintenance_text
     assert "async_setup_device_registry_listener" not in maintenance_text
+
+    assert "control.service_registry" in registrations_text
+    assert "control.service_router" not in registrations_text
+    assert "control.runtime_access" not in diagnostics_helpers_text
+    assert "import_module(" not in diagnostics_helpers_text
+    assert "control.runtime_access" not in diagnostics_feedback_handlers_text
+    assert "import_module(" not in diagnostics_feedback_handlers_text
+    assert "PUBLIC_SERVICE_REGISTRATIONS" in control_service_registry_text
+    assert "SERVICE_REGISTRATIONS" in control_service_registry_text
 
     assert "async_setup_device_registry_listener" in runtime_infra_text
     assert "device_registry_updated" in runtime_infra_text

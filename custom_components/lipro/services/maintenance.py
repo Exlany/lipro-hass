@@ -1,12 +1,41 @@
-"""Maintenance service handlers for the Lipro integration."""
+"""Maintenance service helpers for the Lipro integration."""
 
 from __future__ import annotations
+
+from typing import Protocol
 
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.exceptions import ServiceValidationError
 
-from ..control.runtime_access import iter_runtime_entry_coordinators
 from .contracts import RefreshDevicesResult
+
+
+class DeviceRefreshServiceLike(Protocol):
+    """Minimal refresh-service contract consumed by maintenance helpers."""
+
+    async def async_refresh_devices(self) -> None:
+        """Refresh the devices owned by one runtime coordinator."""
+
+
+class RefreshCoordinatorLike(Protocol):
+    """Coordinator contract needed by refresh_devices."""
+
+    device_refresh_service: DeviceRefreshServiceLike
+
+
+type RuntimeEntryCoordinator = tuple[object, RefreshCoordinatorLike]
+
+
+class RuntimeEntryCoordinatorProvider(Protocol):
+    """Runtime entry/coordinator reader injected by the control plane."""
+
+    def __call__(
+        self,
+        hass: HomeAssistant,
+        *,
+        entry_id: str | None = None,
+    ) -> list[RuntimeEntryCoordinator]:
+        """Return loaded runtime entry/coordinator pairs."""
 
 
 async def async_handle_refresh_devices(
@@ -15,6 +44,7 @@ async def async_handle_refresh_devices(
     *,
     domain: str,
     attr_entry_id: str,
+    iter_runtime_entry_coordinators: RuntimeEntryCoordinatorProvider,
 ) -> RefreshDevicesResult:
     """Handle refresh_devices service call."""
     raw_entry_id = call.data.get(attr_entry_id)
@@ -40,3 +70,9 @@ async def async_handle_refresh_devices(
     if requested_entry_id:
         result["requested_entry_id"] = requested_entry_id
     return result
+
+
+__all__ = [
+    "RuntimeEntryCoordinatorProvider",
+    "async_handle_refresh_devices",
+]

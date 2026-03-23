@@ -4,7 +4,9 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Final
+
+from ..telemetry.models import OperationOutcome, build_operation_outcome
 
 
 @dataclass(frozen=True, slots=True)
@@ -86,3 +88,125 @@ def build_submit_variants(
 def submit_failure_reason_code(http_status: int | None) -> str:
     """Return the canonical submit failure reason code for a terminal status."""
     return "payload_too_large" if http_status == 413 else "http_error"
+
+
+TOKEN_INVALID_CODES: Final[set[str]] = {
+    "TOKEN_EXPIRED",
+    "TOKEN_REVOKED",
+    "TOKEN_VERSION_REVOKED",
+    "TOKEN_KEY_NOT_FOUND",
+    "TOKEN_SIGNATURE_INVALID",
+    "TOKEN_CLAIMS_INVALID",
+    "TOKEN_STATE_MISSING",
+}
+
+SUBMIT_TOKEN_REJECT_CODES: Final[set[str]] = {
+    "TOKEN_VERSION_REVOKED",
+    "TOKEN_REVOKED",
+    "TOKEN_EXPIRED",
+    "TOKEN_REQUIRED",
+    "TOKEN_MISSING",
+    "TOKEN_STATE_MISSING",
+    "TOKEN_KEY_NOT_FOUND",
+    "TOKEN_SIGNATURE_INVALID",
+    "TOKEN_CLAIMS_INVALID",
+    "TOKEN_INSTALLATION_MISMATCH",
+}
+
+
+def build_http_failure_outcome(
+    *,
+    failure_origin: str,
+    http_status: int | None,
+    reason_code: str = "http_error",
+) -> OperationOutcome:
+    """Build the canonical HTTP-failure outcome for share-client flows."""
+    return build_operation_outcome(
+        kind="failed",
+        reason_code=reason_code,
+        failure_origin=failure_origin,
+        error_type=(f"HttpStatus{http_status}" if http_status is not None else None),
+        failure_category="protocol",
+        handling_policy="inspect",
+        http_status=http_status,
+    )
+
+
+def build_rate_limited_outcome(
+    *,
+    failure_origin: str,
+    retry_after_seconds: float | None,
+) -> OperationOutcome:
+    """Build the canonical rate-limited outcome for share-client flows."""
+    return build_operation_outcome(
+        kind="failed",
+        reason_code="rate_limited",
+        failure_origin=failure_origin,
+        error_type="RateLimitError",
+        failure_category="network",
+        handling_policy="retry",
+        http_status=429,
+        retry_after_seconds=retry_after_seconds,
+    )
+
+
+def build_invalid_refresh_payload_outcome(*, failure_origin: str) -> OperationOutcome:
+    """Build the invalid-refresh-payload outcome."""
+    return build_operation_outcome(
+        kind="failed",
+        reason_code="invalid_refresh_payload",
+        failure_origin=failure_origin,
+        error_type="InvalidTokenPayload",
+        failure_category="protocol",
+        handling_policy="inspect",
+        http_status=200,
+    )
+
+
+def build_token_invalid_outcome(*, failure_origin: str) -> OperationOutcome:
+    """Build the canonical token-invalid outcome."""
+    return build_operation_outcome(
+        kind="failed",
+        reason_code="token_invalid",
+        failure_origin=failure_origin,
+        error_type="InstallTokenRejected",
+        failure_category="auth",
+        handling_policy="reauth",
+        http_status=401,
+    )
+
+
+def build_token_rejected_outcome(*, failure_origin: str) -> OperationOutcome:
+    """Build the canonical token-rejected outcome."""
+    return build_operation_outcome(
+        kind="failed",
+        reason_code="token_rejected",
+        failure_origin=failure_origin,
+        error_type="InstallTokenRejected",
+        failure_category="auth",
+        handling_policy="reauth",
+        http_status=401,
+    )
+
+
+def build_invalid_schema_outcome(*, failure_origin: str) -> OperationOutcome:
+    """Build the canonical invalid-schema outcome."""
+    return build_operation_outcome(
+        kind="failed",
+        reason_code="invalid_schema",
+        failure_origin=failure_origin,
+        error_type="InvalidSchema",
+        failure_category="protocol",
+        handling_policy="inspect",
+        http_status=400,
+    )
+
+
+def is_refresh_token_invalid(*, http_status: int, code: object) -> bool:
+    """Return whether one refresh response invalidates the install token."""
+    return http_status == 401 and isinstance(code, str) and code in TOKEN_INVALID_CODES
+
+
+def is_submit_token_rejected(*, http_status: int, code: object) -> bool:
+    """Return whether one submit response rejects the current install token."""
+    return http_status == 401 and isinstance(code, str) and code in SUBMIT_TOKEN_REJECT_CODES

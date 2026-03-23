@@ -2,88 +2,27 @@
 
 from __future__ import annotations
 
-import asyncio
-from importlib import import_module
 from typing import TYPE_CHECKING
 
 from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import HomeAssistantError
 
-from ...runtime_types import LiproCoordinator
 from .helper_support import (
     build_developer_feedback_payload as _support_build_developer_feedback_payload,
 )
 from .types import (
     DeveloperFeedbackResponse,
-    DeveloperReport,
     DeveloperReportCollector,
     DeveloperReportResponse,
-    RuntimeCoordinatorIterator,
 )
 
 if TYPE_CHECKING:
-    from logging import Logger
-
     from homeassistant.core import ServiceCall
 
-    from .types import AnonymousShareManagerFactory, ClientSessionGetter
-
-_CAPABILITY_PROJECTION_ERRORS = (RuntimeError, ValueError, TypeError, LookupError)
-
-
-def _find_runtime_entry_for_coordinator(
-    hass: HomeAssistant,
-    coordinator: LiproCoordinator,
-):
-    """Resolve one runtime entry via the formal control-plane runtime access."""
-    runtime_access = import_module("custom_components.lipro.control.runtime_access")
-    return runtime_access.find_runtime_entry_for_coordinator(hass, coordinator)
-
-
-def _get_entry_telemetry_view(entry: object, sink: str) -> object:
-    """Resolve one telemetry view via the formal control-plane surface."""
-    telemetry_surface = import_module("custom_components.lipro.control.telemetry_surface")
-    return telemetry_surface.get_entry_telemetry_view(entry, sink)
-
-
-def _collect_exporter_developer_report(
-    hass: HomeAssistant,
-    coordinator: LiproCoordinator,
-) -> DeveloperReport | None:
-    """Return the exporter-backed developer report for one runtime entry."""
-    entry = _find_runtime_entry_for_coordinator(hass, coordinator)
-    if entry is None:
-        return None
-    view = _get_entry_telemetry_view(entry, "developer")
-    if isinstance(view, dict):
-        return view
-    return None
-
-
-def collect_developer_reports(
-    hass: HomeAssistant,
-    *,
-    iter_runtime_coordinators: RuntimeCoordinatorIterator,
-    logger: Logger,
-) -> list[DeveloperReport]:
-    """Collect exporter-backed developer reports from active config entries."""
-    reports: list[DeveloperReport] = []
-    for coordinator in iter_runtime_coordinators(hass):
-        try:
-            exporter_report = _collect_exporter_developer_report(hass, coordinator)
-            if exporter_report is not None:
-                reports.append(dict(exporter_report))
-        except asyncio.CancelledError:
-            raise
-        except HomeAssistantError:
-            raise
-        except _CAPABILITY_PROJECTION_ERRORS as err:
-            logger.warning(
-                "Skip one %s capability due to error (%s)",
-                "coordinator developer report",
-                type(err).__name__,
-            )
-    return reports
+    from .types import (
+        AnonymousShareManagerFactory,
+        ClientSessionGetter,
+        DeveloperReport,
+    )
 
 
 def build_developer_feedback_payload(

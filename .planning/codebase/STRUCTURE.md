@@ -94,7 +94,7 @@
 
 判断：
 - 本目录现在更像 control-plane leaf collaborator cluster，而不是独立一层。
-- `registrations.py` + `registry.py` 负责 HA service declaration / register mechanics；真正 handler 已统一路由到 `control/service_router.py`。
+- `control/service_registry.py` + `services/registry.py` 负责 HA service declaration / register mechanics；`services/registrations.py` 退化为 compat import shell，真正 handler 已统一路由到 `control/service_router.py`。
 - `execution.py` 的名称仍偏宽泛，但其当前职责已收敛为正式 service execution facade；Phase 5 已关闭 coordinator 私有 auth seam，不应再把它写成 active residual。
 
 ### 4.4 `custom_components/lipro/core/`
@@ -122,7 +122,7 @@
 | `custom_components/lipro/core/device/` | 中高 | `core/device/device.py`、`state.py`、`device_factory.py` | 动态委托已清理，但 façade leaf surface 仍偏宽 |
 | `custom_components/lipro/core/api/` | 中 | `core/api/client.py`、`rest_facade.py`、`request_gateway.py`、`transport_executor.py`、`endpoint_surface.py`、`endpoints/*.py` | collaborator 命名已基本显式化；剩余主要成本集中在 `rest_facade.py` 作为 formal façade 组合根的体量 |
 | `custom_components/lipro/core/mqtt/` | 中高 | `core/mqtt/transport.py` | `transport.py` + package no-export 让 concrete transport 的局部家园更直白 |
-| `custom_components/lipro/services/` | 中 | `services/execution.py`、`services/registrations.py` | 归属正确，但“support cluster”特征强于“层” |
+| `custom_components/lipro/services/` | 中 | `services/execution.py`、`services/registrations.py` | 以 helper/support cluster 为主；`services/registrations.py` 已降为 compat import shell |
 | `custom_components/lipro/entities/` + platform 根文件 | 高 | `entities/base.py`、`helpers/platform.py`、各 platform `async_setup_entry()` | 领域投影关系清楚 |
 
 ## 6. Naming Assessment

@@ -134,7 +134,7 @@ custom_components/lipro/
 
 ### 3. 控制面调用
 
-1. HA service declaration 由 `custom_components/lipro/services/registrations.py` 注册
+1. HA service declaration 由 `custom_components/lipro/control/service_registry.py` 作为正式 owner 注册；`custom_components/lipro/services/registrations.py` 仅保留 compat import shell
 2. `control/service_router.py` 接管 public callback
 3. `control/service_router_handlers.py` / support helpers 组合 request shaping、runtime lookup、error translation
 4. runtime formal surface 完成实际行为
@@ -142,7 +142,7 @@ custom_components/lipro/
 ## 为什么 `control/` 与 `services/` 同时存在
 
 - `control/` 负责 **formal ownership**：callback home、runtime access、diagnostics/system-health surfaces、lifecycle orchestration。
-- `services/` 负责 **service adapter helpers**：schema/contract constants、service registration、request shaping、diagnostics/share/schedule helper implementations。
+- `services/` 负责 **service adapter helpers**：schema/contract constants、request shaping、diagnostics/share/schedule helper implementations；service registration formal owner 已收口到 `control/service_registry.py`。
 - 两者不是“双主链”，而是 **formal home + helper surface** 的关系；任何文档或测试不得再把 `services/` 讲成 legacy carrier 或第二 control root。
 
 ## 演进约束

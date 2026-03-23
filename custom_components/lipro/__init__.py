@@ -202,7 +202,7 @@ def _service_registrations_module() -> _ServiceRegistrationsModule:
     """Load service registration tables lazily for the control-plane adapter."""
     return cast(
         _ServiceRegistrationsModule,
-        _load_module("custom_components.lipro.services.registrations"),
+        _load_module("custom_components.lipro.control.service_registry"),
     )
 
 

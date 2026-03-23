@@ -8,7 +8,6 @@ from __future__ import annotations
 
 import asyncio
 from collections.abc import Awaitable, Callable, Iterator
-from importlib import import_module
 import logging
 from typing import NoReturn, TypeVar
 
@@ -45,7 +44,9 @@ from .types import (
     DeveloperReportCollector,
     DeveloperReportResponse,
     DiagnosticsCoordinator,
+    EntryTelemetryViewGetter,
     RuntimeCoordinatorIterator,
+    RuntimeEntryResolver,
     SensorHistoryResponse,
 )
 
@@ -53,21 +54,6 @@ _LOGGER = logging.getLogger(__name__)
 _ResultT = TypeVar("_ResultT")
 _CoordinatorT = TypeVar("_CoordinatorT")
 _CAPABILITY_PROJECTION_ERRORS = (RuntimeError, ValueError, TypeError, LookupError)
-
-
-def _find_runtime_entry_for_coordinator(
-    hass: HomeAssistant,
-    coordinator: LiproCoordinator,
-):
-    """Resolve one runtime entry via the formal control-plane runtime access."""
-    runtime_access = import_module("custom_components.lipro.control.runtime_access")
-    return runtime_access.find_runtime_entry_for_coordinator(hass, coordinator)
-
-
-def _get_entry_telemetry_view(entry: object, sink: str) -> object:
-    """Resolve one telemetry view via the formal control-plane surface."""
-    telemetry_surface = import_module("custom_components.lipro.control.telemetry_surface")
-    return telemetry_surface.get_entry_telemetry_view(entry, sink)
 
 
 def _get_optional_service_string(call: ServiceCall, key: str) -> str | None:
@@ -145,12 +131,15 @@ async def _async_get_first_authenticated_coordinator_capability_result(
 def _collect_exporter_developer_report(
     hass: HomeAssistant,
     coordinator: LiproCoordinator,
+    *,
+    find_runtime_entry_for_coordinator: RuntimeEntryResolver,
+    get_entry_telemetry_view: EntryTelemetryViewGetter,
 ) -> DeveloperReport | None:
     """Return the exporter-backed developer report for one runtime entry."""
-    entry = _find_runtime_entry_for_coordinator(hass, coordinator)
+    entry = find_runtime_entry_for_coordinator(hass, coordinator)
     if entry is None:
         return None
-    view = _get_entry_telemetry_view(entry, "developer")
+    view = get_entry_telemetry_view(entry, "developer")
     if isinstance(view, dict):
         return view
     return None
@@ -160,12 +149,19 @@ def collect_developer_reports(
     hass: HomeAssistant,
     *,
     iter_runtime_coordinators: RuntimeCoordinatorIterator,
+    find_runtime_entry_for_coordinator: RuntimeEntryResolver,
+    get_entry_telemetry_view: EntryTelemetryViewGetter,
 ) -> list[DeveloperReport]:
     """Collect exporter-backed developer reports from active config entries."""
     reports: list[DeveloperReport] = []
     for coordinator in iter_runtime_coordinators(hass):
         try:
-            exporter_report = _collect_exporter_developer_report(hass, coordinator)
+            exporter_report = _collect_exporter_developer_report(
+                hass,
+                coordinator,
+                find_runtime_entry_for_coordinator=find_runtime_entry_for_coordinator,
+                get_entry_telemetry_view=get_entry_telemetry_view,
+            )
             if exporter_report is not None:
                 reports.append(dict(exporter_report))
         except asyncio.CancelledError:

@@ -10,6 +10,8 @@
 
 Home Assistant integration for controlling Lipro Smart Home devices.
 
+Release trust signals: blocking CI + architecture/governance guards, CodeQL, SBOM/attestation/cosign-backed release pipeline, and explicit security/support fast paths.
+
 ## Features
 
 - 🔌 Support for multiple Lipro device types

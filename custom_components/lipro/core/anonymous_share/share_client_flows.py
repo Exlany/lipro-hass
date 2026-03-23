@@ -1,4 +1,3 @@
-
 """Internal token-refresh and submit-flow helpers for the share worker client."""
 
 from __future__ import annotations
@@ -6,7 +5,7 @@ from __future__ import annotations
 from collections.abc import Awaitable, Callable
 from contextlib import suppress
 import json
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Protocol
 
 import aiohttp
 
@@ -20,8 +19,16 @@ from .const import SHARE_REPORT_URL, SHARE_TOKEN_REFRESH_URL
 from .share_client_support import (
     SubmitVariant,
     backoff_active,
+    build_http_failure_outcome,
+    build_invalid_refresh_payload_outcome,
+    build_invalid_schema_outcome,
+    build_rate_limited_outcome,
     build_submit_variants,
+    build_token_invalid_outcome,
+    build_token_rejected_outcome,
     has_valid_installation_id,
+    is_refresh_token_invalid,
+    is_submit_token_rejected,
     refresh_due,
     schedule_retry_deadline,
     submit_failure_reason_code,
@@ -30,65 +37,46 @@ from .share_client_support import (
 if TYPE_CHECKING:
     from logging import Logger
 
-    from .share_client import ShareWorkerClient
+
+class ShareWorkerClientLike(Protocol):
+    """Share-client surface consumed by token-refresh and submit flows."""
+
+    install_token: str | None
+    token_expires_at: int
+    token_refresh_after: int
+    next_upload_attempt_at: float
+
+    def build_upload_headers(
+        self,
+        *,
+        install_token: str | None = None,
+    ) -> dict[str, str]:
+        """Build request headers for one upload attempt."""
+
+    def parse_retry_after(self, headers: Any) -> float | None:
+        """Parse Retry-After seconds from one response header bag."""
+
+    def clear_install_token(self) -> None:
+        """Clear cached install-token state."""
+
+    def apply_token_payload(self, payload: dict[str, Any]) -> bool:
+        """Apply one token payload to the client cache."""
+
+    async def safe_read_json(
+        self,
+        response: aiohttp.ClientResponse,
+    ) -> dict[str, Any] | None:
+        """Best-effort response JSON parsing."""
+
+    async def refresh_install_token(
+        self,
+        session: aiohttp.ClientSession,
+    ) -> bool:
+        """Refresh the install token when the submit flow requests it."""
+
 
 _TOKEN_REFRESH_ORIGIN = "anonymous_share.refresh_install_token"
 _SHARE_SUBMIT_ORIGIN = "anonymous_share.submit_share_payload"
-_TOKEN_INVALID_CODES = {
-    "TOKEN_EXPIRED",
-    "TOKEN_REVOKED",
-    "TOKEN_VERSION_REVOKED",
-    "TOKEN_KEY_NOT_FOUND",
-    "TOKEN_SIGNATURE_INVALID",
-    "TOKEN_CLAIMS_INVALID",
-    "TOKEN_STATE_MISSING",
-}
-_SUBMIT_TOKEN_REJECT_CODES = {
-    "TOKEN_VERSION_REVOKED",
-    "TOKEN_REVOKED",
-    "TOKEN_EXPIRED",
-    "TOKEN_REQUIRED",
-    "TOKEN_MISSING",
-    "TOKEN_STATE_MISSING",
-    "TOKEN_KEY_NOT_FOUND",
-    "TOKEN_SIGNATURE_INVALID",
-    "TOKEN_CLAIMS_INVALID",
-    "TOKEN_INSTALLATION_MISMATCH",
-}
-
-
-def _http_failure_outcome(
-    *,
-    failure_origin: str,
-    http_status: int | None,
-    reason_code: str = "http_error",
-) -> OperationOutcome:
-    return build_operation_outcome(
-        kind="failed",
-        reason_code=reason_code,
-        failure_origin=failure_origin,
-        error_type=(f"HttpStatus{http_status}" if http_status is not None else None),
-        failure_category="protocol",
-        handling_policy="inspect",
-        http_status=http_status,
-    )
-
-
-def _rate_limited_outcome(
-    *,
-    failure_origin: str,
-    retry_after_seconds: float | None,
-) -> OperationOutcome:
-    return build_operation_outcome(
-        kind="failed",
-        reason_code="rate_limited",
-        failure_origin=failure_origin,
-        error_type="RateLimitError",
-        failure_category="network",
-        handling_policy="retry",
-        http_status=429,
-        retry_after_seconds=retry_after_seconds,
-    )
 
 
 async def safe_read_json(
@@ -115,7 +103,7 @@ async def safe_read_json(
 
 
 async def refresh_install_token_with_outcome(
-    client: ShareWorkerClient,
+    client: ShareWorkerClientLike,
     session: aiohttp.ClientSession,
     *,
     logger: Logger,
@@ -136,41 +124,35 @@ async def refresh_install_token_with_outcome(
             payload = await client.safe_read_json(response)
             if response.status == 200 and payload:
                 if client.apply_token_payload(payload):
-                    return build_operation_outcome(kind="success", reason_code="refresh_success")
-                return build_operation_outcome(
-                    kind="failed",
-                    reason_code="invalid_refresh_payload",
+                    return build_operation_outcome(
+                        kind="success",
+                        reason_code="refresh_success",
+                    )
+                return build_invalid_refresh_payload_outcome(
                     failure_origin=_TOKEN_REFRESH_ORIGIN,
-                    error_type="InvalidTokenPayload",
-                    failure_category="protocol",
-                    handling_policy="inspect",
-                    http_status=200,
                 )
 
             code = payload.get("code") if payload else None
-            if response.status == 401 and code in _TOKEN_INVALID_CODES:
+            if is_refresh_token_invalid(http_status=response.status, code=code):
                 client.clear_install_token()
-                return build_operation_outcome(
-                    kind="failed",
-                    reason_code="token_invalid",
+                return build_token_invalid_outcome(
                     failure_origin=_TOKEN_REFRESH_ORIGIN,
-                    error_type="InstallTokenRejected",
-                    failure_category="auth",
-                    handling_policy="reauth",
-                    http_status=401,
                 )
 
             if response.status == 429:
                 retry_after = client.parse_retry_after(response.headers)
-                retry_deadline = schedule_retry_deadline(retry_after_seconds=retry_after, now=now)
+                retry_deadline = schedule_retry_deadline(
+                    retry_after_seconds=retry_after,
+                    now=now,
+                )
                 if retry_deadline is not None:
                     client.next_upload_attempt_at = retry_deadline
-                return _rate_limited_outcome(
+                return build_rate_limited_outcome(
                     failure_origin=_TOKEN_REFRESH_ORIGIN,
                     retry_after_seconds=retry_after,
                 )
 
-            return _http_failure_outcome(
+            return build_http_failure_outcome(
                 failure_origin=_TOKEN_REFRESH_ORIGIN,
                 http_status=response.status,
             )
@@ -212,8 +194,53 @@ async def refresh_install_token_with_outcome(
         )
 
 
+async def _preflight_submit_share_payload(
+    client: ShareWorkerClientLike,
+    report: dict[str, Any],
+    *,
+    label: str,
+    ensure_loaded: Callable[[], Awaitable[None]],
+    logger: Logger,
+    now: Callable[[], float],
+) -> OperationOutcome | None:
+    """Run the shared preflight checks before the submit attempt loop."""
+    await ensure_loaded()
+
+    if backoff_active(next_upload_attempt_at=client.next_upload_attempt_at, now=now):
+        return build_operation_outcome(kind="skipped", reason_code="backoff_active")
+
+    if has_valid_installation_id(report):
+        return None
+
+    logger.warning("%s upload skipped: missing installation_id", label)
+    return build_operation_outcome(
+        kind="failed",
+        reason_code="missing_installation_id",
+        failure_origin=_SHARE_SUBMIT_ORIGIN,
+        error_type="MissingInstallationId",
+        failure_category="protocol",
+        handling_policy="inspect",
+    )
+
+
+async def _refresh_submit_token_if_due(
+    client: ShareWorkerClientLike,
+    session: aiohttp.ClientSession,
+    *,
+    now: Callable[[], float],
+) -> None:
+    """Refresh the install token when the cached schedule says it is due."""
+    if refresh_due(
+        install_token=client.install_token,
+        token_refresh_after=client.token_refresh_after,
+        token_expires_at=client.token_expires_at,
+        now_seconds=int(now()),
+    ):
+        await client.refresh_install_token(session)
+
+
 async def submit_share_payload_with_outcome(
-    client: ShareWorkerClient,
+    client: ShareWorkerClientLike,
     session: aiohttp.ClientSession,
     report: dict[str, Any],
     *,
@@ -224,29 +251,18 @@ async def submit_share_payload_with_outcome(
     build_lite_variant: Callable[[dict[str, Any]], dict[str, Any]],
 ) -> OperationOutcome:
     """Submit one payload to the share endpoint with typed failure semantics."""
-    await ensure_loaded()
+    preflight_outcome = await _preflight_submit_share_payload(
+        client,
+        report,
+        label=label,
+        ensure_loaded=ensure_loaded,
+        logger=logger,
+        now=now,
+    )
+    if preflight_outcome is not None:
+        return preflight_outcome
 
-    if backoff_active(next_upload_attempt_at=client.next_upload_attempt_at, now=now):
-        return build_operation_outcome(kind="skipped", reason_code="backoff_active")
-
-    if not has_valid_installation_id(report):
-        logger.warning("%s upload skipped: missing installation_id", label)
-        return build_operation_outcome(
-            kind="failed",
-            reason_code="missing_installation_id",
-            failure_origin=_SHARE_SUBMIT_ORIGIN,
-            error_type="MissingInstallationId",
-            failure_category="protocol",
-            handling_policy="inspect",
-        )
-
-    if refresh_due(
-        install_token=client.install_token,
-        token_refresh_after=client.token_refresh_after,
-        token_expires_at=client.token_expires_at,
-        now_seconds=int(now()),
-    ):
-        await client.refresh_install_token(session)
+    await _refresh_submit_token_if_due(client, session, now=now)
 
     try:
         submit_variants = build_submit_variants(
@@ -254,36 +270,21 @@ async def submit_share_payload_with_outcome(
             install_token=client.install_token,
             build_lite_variant=build_lite_variant,
         )
-        last_status: int | None = None
-
-        for submit_variant in submit_variants:
-            for token in submit_variant.token_attempts:
-                last_status, response_headers, payload = await _submit_variant_token_attempt(
-                    client,
-                    session,
-                    submit_variant=submit_variant,
-                    token=token,
-                )
-                outcome, advance_to_next_variant = _resolve_submit_attempt_outcome(
-                    client,
-                    submit_variant=submit_variant,
-                    token=token,
-                    http_status=last_status,
-                    response_headers=response_headers,
-                    payload=payload,
-                    now=now,
-                )
-                if outcome is not None:
-                    return outcome
-                if advance_to_next_variant:
-                    break
+        outcome, last_status = await _submit_report_variants(
+            client,
+            session,
+            submit_variants=submit_variants,
+            now=now,
+        )
+        if outcome is not None:
+            return outcome
 
         logger.warning(
             "%s upload failed with status %s",
             label,
             last_status if last_status is not None else "?",
         )
-        return _http_failure_outcome(
+        return build_http_failure_outcome(
             failure_origin=_SHARE_SUBMIT_ORIGIN,
             http_status=last_status,
             reason_code=submit_failure_reason_code(last_status),
@@ -334,8 +335,61 @@ async def submit_share_payload_with_outcome(
         )
 
 
+async def _submit_report_variants(
+    client: ShareWorkerClientLike,
+    session: aiohttp.ClientSession,
+    *,
+    submit_variants: tuple[SubmitVariant, ...],
+    now: Callable[[], float],
+) -> tuple[OperationOutcome | None, int | None]:
+    """Submit all report variants until one returns a terminal outcome."""
+    last_status: int | None = None
+    for submit_variant in submit_variants:
+        outcome, last_status = await _submit_one_variant(
+            client,
+            session,
+            submit_variant=submit_variant,
+            now=now,
+        )
+        if outcome is not None:
+            return outcome, last_status
+    return None, last_status
+
+
+async def _submit_one_variant(
+    client: ShareWorkerClientLike,
+    session: aiohttp.ClientSession,
+    *,
+    submit_variant: SubmitVariant,
+    now: Callable[[], float],
+) -> tuple[OperationOutcome | None, int | None]:
+    """Submit one variant across its token attempts until a terminal outcome emerges."""
+    last_status: int | None = None
+    for token in submit_variant.token_attempts:
+        last_status, response_headers, payload = await _submit_variant_token_attempt(
+            client,
+            session,
+            submit_variant=submit_variant,
+            token=token,
+        )
+        outcome, advance_to_next_variant = _resolve_submit_attempt_outcome(
+            client,
+            submit_variant=submit_variant,
+            token=token,
+            http_status=last_status,
+            response_headers=response_headers,
+            payload=payload,
+            now=now,
+        )
+        if outcome is not None:
+            return outcome, last_status
+        if advance_to_next_variant:
+            break
+    return None, last_status
+
+
 async def _submit_variant_token_attempt(
-    client: ShareWorkerClient,
+    client: ShareWorkerClientLike,
     session: aiohttp.ClientSession,
     *,
     submit_variant: SubmitVariant,
@@ -353,7 +407,7 @@ async def _submit_variant_token_attempt(
 
 
 def _resolve_submit_attempt_outcome(
-    client: ShareWorkerClient,
+    client: ShareWorkerClientLike,
     *,
     submit_variant: SubmitVariant,
     token: str | None,
@@ -388,33 +442,21 @@ def _resolve_submit_attempt_outcome(
     if http_status == 413 and submit_variant.fallback_on_payload_too_large:
         return None, True
 
-    if http_status == 401 and code in _SUBMIT_TOKEN_REJECT_CODES:
+    if is_submit_token_rejected(http_status=http_status, code=code):
         if token:
             client.clear_install_token()
             return None, False
         return (
-            build_operation_outcome(
-                kind="failed",
-                reason_code="token_rejected",
+            build_token_rejected_outcome(
                 failure_origin=_SHARE_SUBMIT_ORIGIN,
-                error_type="InstallTokenRejected",
-                failure_category="auth",
-                handling_policy="reauth",
-                http_status=401,
             ),
             False,
         )
 
     if http_status == 400 and code == "INVALID_SCHEMA":
         return (
-            build_operation_outcome(
-                kind="failed",
-                reason_code="invalid_schema",
+            build_invalid_schema_outcome(
                 failure_origin=_SHARE_SUBMIT_ORIGIN,
-                error_type="InvalidSchema",
-                failure_category="protocol",
-                handling_policy="inspect",
-                http_status=400,
             ),
             False,
         )
@@ -423,7 +465,7 @@ def _resolve_submit_attempt_outcome(
 
 
 def _build_rate_limited_submit_outcome(
-    client: ShareWorkerClient,
+    client: ShareWorkerClientLike,
     *,
     headers: Any,
     now: Callable[[], float],
@@ -433,7 +475,7 @@ def _build_rate_limited_submit_outcome(
     retry_deadline = schedule_retry_deadline(retry_after_seconds=retry_after, now=now)
     if retry_deadline is not None:
         client.next_upload_attempt_at = retry_deadline
-    return _rate_limited_outcome(
+    return build_rate_limited_outcome(
         failure_origin=_SHARE_SUBMIT_ORIGIN,
         retry_after_seconds=retry_after,
     )

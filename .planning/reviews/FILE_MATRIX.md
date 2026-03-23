@@ -31,7 +31,7 @@
 | `custom_components/lipro/control/redaction.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/control/runtime_access.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/control/runtime_access_support.py` | Control | Phase 3 | 保留 | - |
-| `custom_components/lipro/control/service_registry.py` | Control | Phase 3 | 保留 | - |
+| `custom_components/lipro/control/service_registry.py` | Control | Phase 3 | 保留 | formal service-registry + registration-table owner |
 | `custom_components/lipro/control/service_router.py` | Control | Phase 3 / 14 / 15 / 37 | 保留 | public router shell over focused handler/support collaborators |
 | `custom_components/lipro/control/service_router_handlers.py` | Control | Phase 37 | 保留 | private control-plane handler implementations home |
 | `custom_components/lipro/control/service_router_support.py` | Control | Phase 37 | 保留 | router lookup/logging/runtime-iterator helper home |
@@ -276,15 +276,15 @@
 | `custom_components/lipro/services/diagnostics/__init__.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/services/diagnostics/capability_handlers.py` | Control | Phase 3 | 保留 | diagnostics optional-capability handler cluster |
 | `custom_components/lipro/services/diagnostics/command_result_handlers.py` | Control | Phase 3 | 保留 | diagnostics command-result handler cluster |
-| `custom_components/lipro/services/diagnostics/feedback_handlers.py` | Control | Phase 3 | 保留 | diagnostics developer-feedback handler cluster |
+| `custom_components/lipro/services/diagnostics/feedback_handlers.py` | Control | Phase 3 | 保留 | diagnostics developer-feedback handler cluster; no hidden control import |
 | `custom_components/lipro/services/diagnostics/handlers.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/services/diagnostics/helper_support.py` | Control | Phase 3 | 保留 | diagnostics service mechanics support seam |
-| `custom_components/lipro/services/diagnostics/helpers.py` | Control | Phase 3 | 保留 | diagnostics optional-capability helper reusing shared execution auth chain |
+| `custom_components/lipro/services/diagnostics/helpers.py` | Control | Phase 3 | 保留 | diagnostics optional-capability helper reusing shared execution auth chain; injected runtime-entry / telemetry ports |
 | `custom_components/lipro/services/diagnostics/types.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/services/errors.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/services/execution.py` | Control | Phase 3 / 5 / 7 | 保留 | formal service execution facade; private auth seam closed |
-| `custom_components/lipro/services/maintenance.py` | Control | Phase 3 | 保留 | - |
-| `custom_components/lipro/services/registrations.py` | Control | Phase 3 | 保留 | - |
+| `custom_components/lipro/services/maintenance.py` | Control | Phase 3 | 保留 | refresh_devices thin adapter over injected runtime provider |
+| `custom_components/lipro/services/registrations.py` | Control | Phase 3 | 保留 | compat import shell for control-owned registration tables |
 | `custom_components/lipro/services/registry.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/services/schedule.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/services/share.py` | Control | Phase 3 | 保留 | - |

@@ -159,7 +159,7 @@ _None currently registered._
 
 ## Phase 11 Residual Delta
 
-- `custom_components/lipro/control/service_router.py` 已成为真实 formal router implementation home；`services/registrations.py` 继续绑定 control-plane handler。
+- `custom_components/lipro/control/service_router.py` 已成为真实 formal router implementation home；`control/service_registry.py` 现为正式 registration-table owner，而 `services/registrations.py` 已降为 compat import shell。
 - 仓库内测试已迁移到 `custom_components.lipro.control.service_router`，不再把 `services/wiring.py` 当成 patch-first truth。
 - `custom_components/lipro/services/wiring.py` compat shell 已删除，`Legacy service wiring carrier` residual family 已关闭。
 - `custom_components/lipro/core/api/endpoints/__init__.py` 不再导出 `_ClientEndpointsMixin`；`API mixin inheritance` residual 现只覆盖 remaining helper mixin / typing anchors。

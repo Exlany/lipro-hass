@@ -34,14 +34,14 @@
 - `.planning/baseline/GOVERNANCE_REGISTRY.json` 只允许被 governance docs / contributor templates / meta guards pull 取；production code、runtime orchestration 与 service execution 不得把它当作运行时配置源。
 - `custom_components/lipro/control/runtime_access.py` 继续是 control/runtime typed read-model 的唯一 helper home；diagnostics / service_router_support / maintenance 不得散落 `runtime_data`、ad hoc coordinator iteration 或 direct device mapping 读取。
 - `custom_components/lipro/services/device_lookup.py` 只允许处理 service-facing target → device-id resolution；最终 `(device, coordinator)` bridge 必须由 `custom_components/lipro/control/service_router_support.py` 通过 `RuntimeAccess` 完成。
-- `custom_components/lipro/services/maintenance.py` 只允许通过 `runtime_access.iter_runtime_entry_coordinators()` 实现 `refresh_devices`；device-registry listener / pending reload task ownership 必须固定在 `custom_components/lipro/runtime_infra.py`。
+- `custom_components/lipro/services/maintenance.py` 只允许消费由 control plane 注入的 `iter_runtime_entry_coordinators` provider 实现 `refresh_devices`；runtime traversal truth 仍由 `custom_components/lipro/control/runtime_access.py` 持有，device-registry listener / pending reload task ownership 必须固定在 `custom_components/lipro/runtime_infra.py`。
 - `custom_components/lipro/services/execution.py` 是唯一 shared auth/error execution home；`custom_components/lipro/services/schedule.py` 只允许提供 schedule-specific 参数封装、日志与翻译 key，不得复制独立 coordinator auth chain 或 reauth story。
 
 ## Phase 43 Control / Service Boundary Clarifications
 
 - Control → services 只允许 pull service-facing shaping helpers；services 不得通过 helper surface 反向定义 runtime truth、control ownership 或 lifecycle listener 归属。
 - `custom_components/lipro/control/diagnostics_surface.py` 只能消费 typed runtime projection 与 entry-scoped runtime lookup；`custom_components/lipro/control/service_router_support.py` 只能组合 service target resolution + runtime_access bridge；`custom_components/lipro/runtime_infra.py` 负责 listener/reload lifecycle。
-- `custom_components/lipro/services/device_lookup.py` 与 `custom_components/lipro/services/maintenance.py` 都不得重新长回最终 `(device, coordinator)` 裁决、listener/pending-task state 或 direct coordinator traversal story。
+- `custom_components/lipro/services/device_lookup.py` 与 `custom_components/lipro/services/maintenance.py` 都不得重新长回最终 `(device, coordinator)` 裁决、listener/pending-task state、direct coordinator traversal story 或反向 control lookup；`custom_components/lipro/services/diagnostics/helpers.py` / `feedback_handlers.py` 也不得再以 hidden import 方式依赖 control。
 
 ## Architecture Policy Mapping
 

@@ -26,6 +26,7 @@ from ..services.diagnostics.types import (
     SensorHistoryResponse,
 )
 from ..services.errors import raise_service_error as _raise_service_error
+from . import telemetry_surface as _telemetry_surface
 from .runtime_access import (
     find_runtime_entry_for_coordinator as _find_runtime_entry_for_coordinator,
     get_entry_runtime_coordinator as _get_entry_runtime_coordinator,
@@ -123,6 +124,8 @@ def collect_developer_reports(
                 iter_runtime_coordinators=build_single_runtime_coordinator_iterator(
                     coordinator
                 ),
+                find_runtime_entry_for_coordinator=_find_runtime_entry_for_coordinator,
+                get_entry_telemetry_view=_telemetry_surface.get_entry_telemetry_view,
             )
 
         raise ServiceValidationError(
@@ -135,6 +138,8 @@ def collect_developer_reports(
     return _collect_developer_reports_service(
         hass,
         iter_runtime_coordinators=lambda _hass: iter(coordinators),
+        find_runtime_entry_for_coordinator=_find_runtime_entry_for_coordinator,
+        get_entry_telemetry_view=_telemetry_surface.get_entry_telemetry_view,
     )
 
 
