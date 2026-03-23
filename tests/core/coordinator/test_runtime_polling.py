@@ -6,8 +6,9 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from custom_components.lipro.core.coordinator.runtime.device.snapshot import \
-    RuntimeSnapshotRefreshRejectedError
+from custom_components.lipro.core.coordinator.runtime.device.snapshot import (
+    RuntimeSnapshotRefreshRejectedError,
+)
 from tests.conftest_shared import (
     make_api_device,
     make_device_page,

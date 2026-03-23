@@ -3,14 +3,13 @@
 from __future__ import annotations
 
 from datetime import timedelta
-from types import MappingProxyType
+from types import MappingProxyType, SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 import pytest
 
 from custom_components.lipro.const.base import DOMAIN
 from custom_components.lipro.diagnostics import async_get_device_diagnostics
-from tests.core.test_diagnostics import _make_coordinator, _make_device_entry, _make_entry
 
 
 class TestAsyncGetDeviceDiagnostics:
@@ -48,7 +47,7 @@ class TestAsyncGetDeviceDiagnostics:
         coordinator.get_device = MagicMock(return_value=device)
         coordinator.last_update_success = True
         coordinator.update_interval = timedelta(seconds=30)
-        coordinator.mqtt_service.connected = True
+        coordinator.mqtt_service = SimpleNamespace(connected=True)
 
         entry = MagicMock()
         entry.entry_id = "entry-1"

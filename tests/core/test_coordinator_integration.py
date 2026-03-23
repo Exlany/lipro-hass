@@ -18,11 +18,20 @@ from tests.conftest_shared import (
     make_device_page,
     refresh_and_sync_devices,
 )
-
-from tests.core.coordinator.conftest import (  # noqa: F401
-    coordinator,
-    patch_anonymous_share_manager,
+from tests.core.coordinator.conftest import (
+    coordinator as _coordinator_source,  # noqa: F401
+    patch_anonymous_share_manager as _patch_anonymous_share_manager_source,  # noqa: F401
 )
+
+
+@pytest.fixture(name="coordinator")
+def coordinator_fixture(request: pytest.FixtureRequest):
+    return request.getfixturevalue("_coordinator_source")
+
+
+@pytest.fixture(name="patch_anonymous_share_manager")
+def patch_anonymous_share_manager_fixture(request: pytest.FixtureRequest):
+    return request.getfixturevalue("_patch_anonymous_share_manager_source")
 
 
 class TestCoordinatorUpdateFlow:

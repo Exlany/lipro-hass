@@ -103,12 +103,13 @@ def test_apply_token_payload_and_clear_install_token() -> None:
 async def test_safe_read_json_handles_missing_reader_and_reader_errors() -> None:
     client = ShareWorkerClient()
 
-    assert await client._safe_read_json(cast(aiohttp.ClientResponse, object())) is None
+    assert await client.safe_read_json(cast(aiohttp.ClientResponse, object())) is None
 
     bad_response = _response(status=200, json_side_effect=ValueError("bad-json"))
-    assert await client._safe_read_json(bad_response) is None
+    assert await client.safe_read_json(bad_response) is None
 
     list_response = _response(status=200, payload=[1, 2, 3], async_json=False)
+    assert await client.safe_read_json(list_response) is None
     assert await client._safe_read_json(list_response) is None
 
 

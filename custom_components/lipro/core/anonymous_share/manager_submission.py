@@ -1,4 +1,3 @@
-# ruff: noqa: SLF001
 
 """Internal submit-flow helpers for anonymous-share manager formal homes."""
 
@@ -25,19 +24,23 @@ async def submit_developer_feedback(
     logger: Logger,
 ) -> bool:
     """Submit one developer-feedback payload through the manager formal home."""
-    state = manager._primary_state() if manager._aggregate else manager._state
+    state = (
+        manager.get_primary_submit_state()
+        if manager.is_aggregate_view()
+        else manager.get_submit_state()
+    )
     async with state.upload_lock:
         report = build_developer_feedback_report(
             installation_id=state.installation_id,
             ha_version=state.ha_version,
             feedback=feedback,
         )
-        outcome = await manager._submit_share_payload_with_outcome(
+        outcome = await manager.async_submit_share_payload_with_outcome(
             session,
             report,
             label="Developer feedback",
         )
-        state.last_submit_outcome = outcome
+        manager.set_last_submit_outcome(outcome)
         if not outcome.is_success:
             return False
         logger.info("Developer feedback report submitted")
@@ -51,10 +54,10 @@ async def submit_report(
     force: bool,
 ) -> bool:
     """Submit the anonymous-share payload(s) through the manager formal home."""
-    if manager._aggregate:
+    if manager.is_aggregate_view():
         success = True
         aggregate_outcome: OperationOutcome | None = None
-        for child_manager in manager._iter_managers():
+        for child_manager in manager.iter_scoped_managers():
             child_success = await child_manager.submit_report(session, force=force)
             success = child_success and success
             child_outcome = child_manager.last_submit_outcome
@@ -62,7 +65,7 @@ async def submit_report(
                 continue
             if aggregate_outcome is None:
                 aggregate_outcome = child_outcome
-        manager._state.last_submit_outcome = (
+        manager.set_last_submit_outcome(
             aggregate_outcome
             or build_operation_outcome(
                 kind=("success" if success else "failed"),
@@ -71,22 +74,22 @@ async def submit_report(
         )
         return success
 
-    if not manager._collector.is_enabled:
+    if not manager.is_enabled:
         return False
-    if not manager._has_pending_report_data():
+    if not manager.has_pending_report_data():
         return True
-    if manager._should_skip_report_submission(force=force):
+    if manager.should_skip_report_submission(force=force):
         return True
 
-    async with manager._state.upload_lock:
+    async with manager.get_submit_state().upload_lock:
         report = manager.build_report()
-        if not await manager._async_submit_share_payload(
+        if not await manager.async_submit_share_payload(
             session,
             report,
             label="Anonymous share",
         ):
             return False
-        await manager._async_finalize_successful_submit()
+        await manager.async_finalize_successful_submit()
         return True
 
 
@@ -95,13 +98,13 @@ async def submit_if_needed(
     session: aiohttp.ClientSession,
 ) -> bool:
     """Submit the anonymous-share payload only when thresholds are met."""
-    if manager._aggregate:
+    if manager.is_aggregate_view():
         success = True
-        for child_manager in manager._iter_managers():
+        for child_manager in manager.iter_scoped_managers():
             success = await child_manager.submit_if_needed(session) and success
         return success
-    if not manager._collector.is_enabled:
+    if not manager.is_enabled:
         return True
-    if manager._should_submit_if_needed():
+    if manager.should_submit_if_needed():
         return await manager.submit_report(session)
     return True

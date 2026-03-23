@@ -48,6 +48,7 @@ from .share_client import ShareWorkerClient
 
 if TYPE_CHECKING:
     from ..device import LiproDevice
+    from .manager_support import _ScopeState
 
 _LOGGER = logging.getLogger(__package__ or __name__)
 _DEFAULT_SCOPE = "__default__"
@@ -73,6 +74,10 @@ class AnonymousShareManager:
         """Return an aggregate view sharing the same registry."""
         return AnonymousShareManager(_registry=self._registry, _aggregate=True)
 
+    def is_aggregate_view(self) -> bool:
+        """Return whether this manager represents the aggregate submission view."""
+        return self._aggregate
+
     def for_scope(self, scope_key: str) -> AnonymousShareManager:
         """Return a manager bound to one explicit scope key."""
         manager = self._scoped_views.get(scope_key)
@@ -97,8 +102,20 @@ class AnonymousShareManager:
     def _iter_managers(self) -> list[AnonymousShareManager]:
         return [self.for_scope(scope_key) for scope_key, _ in self._iter_scope_states()]
 
+    def iter_scoped_managers(self) -> list[AnonymousShareManager]:
+        """Return scoped managers participating in aggregate submission."""
+        return self._iter_managers()
+
     def _primary_state(self) -> _ScopeState:
         return primary_scope_state(self._registry)
+
+    def get_submit_state(self) -> _ScopeState:
+        """Return the current scope state for submit-flow helpers."""
+        return self._state
+
+    def get_primary_submit_state(self) -> _ScopeState:
+        """Return the preferred state for aggregate-only submit helpers."""
+        return self._primary_state()
 
     @property
     def _collector(self) -> AnonymousShareCollector:
@@ -209,6 +226,10 @@ class AnonymousShareManager:
     def last_submit_outcome(self) -> OperationOutcome | None:
         """Return the latest typed submit outcome for this manager view."""
         return self._state.last_submit_outcome
+
+    def set_last_submit_outcome(self, outcome: OperationOutcome | None) -> None:
+        """Persist the latest typed submit outcome for this manager view."""
+        self._state.last_submit_outcome = outcome
 
     @property
     def _install_token(self) -> str | None:
@@ -344,6 +365,20 @@ class AnonymousShareManager:
             reason_code=("submitted" if success else "submit_failed"),
         )
 
+    async def async_submit_share_payload_with_outcome(
+        self,
+        session: aiohttp.ClientSession,
+        report: dict[str, object],
+        *,
+        label: str,
+    ) -> OperationOutcome:
+        """Submit one prepared payload and return the typed outcome."""
+        return await self._submit_share_payload_with_outcome(
+            session,
+            report,
+            label=label,
+        )
+
     async def _async_submit_share_payload(
         self,
         session: aiohttp.ClientSession,
@@ -360,9 +395,23 @@ class AnonymousShareManager:
         self._state.last_submit_outcome = outcome
         return outcome.is_success
 
+    async def async_submit_share_payload(
+        self,
+        session: aiohttp.ClientSession,
+        report: dict[str, object],
+        *,
+        label: str,
+    ) -> bool:
+        """Submit one prepared payload through the current scope's share client."""
+        return await self._async_submit_share_payload(session, report, label=label)
+
     def _has_pending_report_data(self) -> bool:
         """Return whether the current scope has reportable pending data."""
         return has_pending_report_data(self._state, logger=_LOGGER)
+
+    def has_pending_report_data(self) -> bool:
+        """Return whether the current scope has reportable pending data."""
+        return self._has_pending_report_data()
 
     def _should_skip_report_submission(self, *, force: bool) -> bool:
         """Return whether the current scope should skip one upload attempt."""
@@ -371,6 +420,10 @@ class AnonymousShareManager:
             force=force,
             logger=_LOGGER,
         )
+
+    def should_skip_report_submission(self, *, force: bool) -> bool:
+        """Return whether the current scope should skip one upload attempt."""
+        return self._should_skip_report_submission(force=force)
 
     async def _async_finalize_successful_submit(self) -> None:
         """Finalize a successful current-scope anonymous-share submission."""
@@ -385,12 +438,20 @@ class AnonymousShareManager:
         await asyncio.to_thread(self._save_reported_devices)
         self.clear()
 
+    async def async_finalize_successful_submit(self) -> None:
+        """Finalize one successful current-scope anonymous-share submission."""
+        await self._async_finalize_successful_submit()
+
     def _should_submit_if_needed(self) -> bool:
         """Return whether automatic submission thresholds are currently met."""
         return should_submit_if_needed(
             pending_count=self.pending_count,
             last_upload_time=self._last_upload_time,
         )
+
+    def should_submit_if_needed(self) -> bool:
+        """Return whether automatic submission thresholds are currently met."""
+        return self._should_submit_if_needed()
 
     async def submit_developer_feedback(
         self, session: aiohttp.ClientSession, feedback: dict[str, object]

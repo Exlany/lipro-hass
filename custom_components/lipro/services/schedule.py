@@ -36,8 +36,9 @@ class ScheduleDevice(Protocol):
     iot_device_id: str
     device_type_hex: str
     serial: str
-    extra_data: object
     ir_remote_gateway_device_id: str | None
+    mesh_gateway_device_id: str | None
+    mesh_group_member_ids: list[str]
 
 
 class ScheduleCoordinator(AuthenticatedCoordinator, Protocol):
@@ -97,25 +98,19 @@ def normalize_schedule_row(schedule: object) -> _NormalizedSchedule | None:
 
 def get_mesh_context(device: ScheduleDevice) -> tuple[str, list[str]]:
     """Extract mesh gateway and member IDs from device metadata."""
-    extra_data = getattr(device, "extra_data", None)
-    if not isinstance(extra_data, Mapping):
-        extra_data = {}
-
-    gateway_candidate = extra_data.get("gateway_device_id")
+    gateway_candidate = getattr(device, "mesh_gateway_device_id", None)
     if gateway_candidate is None:
         gateway_candidate = getattr(device, "ir_remote_gateway_device_id", None)
     mesh_gateway_id = normalize_iot_device_id(gateway_candidate) or ""
 
     mesh_member_ids: list[str] = []
     seen_member_ids: set[str] = set()
-    raw_mesh_member_ids = extra_data.get("group_member_ids")
-    if isinstance(raw_mesh_member_ids, list):
-        for member_id in raw_mesh_member_ids:
-            normalized = normalize_iot_device_id(member_id)
-            if normalized is None or normalized in seen_member_ids:
-                continue
-            seen_member_ids.add(normalized)
-            mesh_member_ids.append(normalized)
+    for member_id in getattr(device, "mesh_group_member_ids", []):
+        normalized = normalize_iot_device_id(member_id)
+        if normalized is None or normalized in seen_member_ids:
+            continue
+        seen_member_ids.add(normalized)
+        mesh_member_ids.append(normalized)
 
     return mesh_gateway_id, mesh_member_ids
 

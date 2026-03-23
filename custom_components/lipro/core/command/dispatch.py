@@ -104,14 +104,11 @@ def resolve_group_fallback_member_id(
     ):
         return None
 
-    member_ids = device.extra_data.get("group_member_ids")
-    if not isinstance(member_ids, list) or len(member_ids) != 1:
+    member_ids = device.mesh_group_member_ids
+    if len(member_ids) != 1:
         return None
 
     only_member = member_ids[0]
-    if not isinstance(only_member, str):
-        return None
-
     member_id = only_member.strip().lower()
     if not member_id or not is_valid_iot_device_id(member_id):
         return None

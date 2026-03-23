@@ -1,4 +1,3 @@
-# ruff: noqa: SLF001
 
 """Internal token-refresh and submit-flow helpers for the share worker client."""
 
@@ -19,6 +18,7 @@ from ..telemetry.models import (
 from ..utils.log_safety import safe_error_placeholder
 from .const import SHARE_REPORT_URL, SHARE_TOKEN_REFRESH_URL
 from .share_client_support import (
+    SubmitVariant,
     backoff_active,
     build_submit_variants,
     has_valid_installation_id,
@@ -133,7 +133,7 @@ async def refresh_install_token_with_outcome(
             headers=client.build_upload_headers(install_token=client.install_token),
             timeout=aiohttp.ClientTimeout(total=30),
         ) as response:
-            payload = await client._safe_read_json(response)
+            payload = await client.safe_read_json(response)
             if response.status == 200 and payload:
                 if client.apply_token_payload(payload):
                     return build_operation_outcome(kind="success", reason_code="refresh_success")
@@ -258,67 +258,25 @@ async def submit_share_payload_with_outcome(
 
         for submit_variant in submit_variants:
             for token in submit_variant.token_attempts:
-                async with session.post(
-                    SHARE_REPORT_URL,
-                    json=submit_variant.payload,
-                    headers=client.build_upload_headers(install_token=token),
-                    timeout=aiohttp.ClientTimeout(total=30),
-                ) as response:
-                    last_status = response.status
-                    payload = await client._safe_read_json(response)
-
-                    if response.status == 200:
-                        if payload:
-                            client.apply_token_payload(payload)
-                        return build_operation_outcome(
-                            kind="success",
-                            reason_code=submit_variant.success_reason_code,
-                        )
-
-                    code = payload.get("code") if payload else None
-                    if response.status == 429:
-                        retry_after = client.parse_retry_after(response.headers)
-                        retry_deadline = schedule_retry_deadline(
-                            retry_after_seconds=retry_after,
-                            now=now,
-                        )
-                        if retry_deadline is not None:
-                            client.next_upload_attempt_at = retry_deadline
-                        return _rate_limited_outcome(
-                            failure_origin=_SHARE_SUBMIT_ORIGIN,
-                            retry_after_seconds=retry_after,
-                        )
-
-                    if (
-                        response.status == 413
-                        and submit_variant.fallback_on_payload_too_large
-                    ):
-                        break
-
-                    if response.status == 401 and code in _SUBMIT_TOKEN_REJECT_CODES:
-                        if token:
-                            client.clear_install_token()
-                            continue
-                        return build_operation_outcome(
-                            kind="failed",
-                            reason_code="token_rejected",
-                            failure_origin=_SHARE_SUBMIT_ORIGIN,
-                            error_type="InstallTokenRejected",
-                            failure_category="auth",
-                            handling_policy="reauth",
-                            http_status=401,
-                        )
-
-                    if response.status == 400 and code == "INVALID_SCHEMA":
-                        return build_operation_outcome(
-                            kind="failed",
-                            reason_code="invalid_schema",
-                            failure_origin=_SHARE_SUBMIT_ORIGIN,
-                            error_type="InvalidSchema",
-                            failure_category="protocol",
-                            handling_policy="inspect",
-                            http_status=400,
-                        )
+                last_status, response_headers, payload = await _submit_variant_token_attempt(
+                    client,
+                    session,
+                    submit_variant=submit_variant,
+                    token=token,
+                )
+                outcome, advance_to_next_variant = _resolve_submit_attempt_outcome(
+                    client,
+                    submit_variant=submit_variant,
+                    token=token,
+                    http_status=last_status,
+                    response_headers=response_headers,
+                    payload=payload,
+                    now=now,
+                )
+                if outcome is not None:
+                    return outcome
+                if advance_to_next_variant:
+                    break
 
         logger.warning(
             "%s upload failed with status %s",
@@ -374,3 +332,108 @@ async def submit_share_payload_with_outcome(
             failure_category="protocol",
             handling_policy="inspect",
         )
+
+
+async def _submit_variant_token_attempt(
+    client: ShareWorkerClient,
+    session: aiohttp.ClientSession,
+    *,
+    submit_variant: SubmitVariant,
+    token: str | None,
+) -> tuple[int, Any, dict[str, Any] | None]:
+    """Submit one payload/token attempt and return the raw HTTP result."""
+    async with session.post(
+        SHARE_REPORT_URL,
+        json=submit_variant.payload,
+        headers=client.build_upload_headers(install_token=token),
+        timeout=aiohttp.ClientTimeout(total=30),
+    ) as response:
+        payload = await client.safe_read_json(response)
+        return response.status, response.headers, payload
+
+
+def _resolve_submit_attempt_outcome(
+    client: ShareWorkerClient,
+    *,
+    submit_variant: SubmitVariant,
+    token: str | None,
+    http_status: int,
+    response_headers: Any,
+    payload: dict[str, Any] | None,
+    now: Callable[[], float],
+) -> tuple[OperationOutcome | None, bool]:
+    """Resolve one submit attempt into an outcome or loop-control decision."""
+    if http_status == 200:
+        if payload:
+            client.apply_token_payload(payload)
+        return (
+            build_operation_outcome(
+                kind="success",
+                reason_code=submit_variant.success_reason_code,
+            ),
+            False,
+        )
+
+    code = payload.get("code") if payload else None
+    if http_status == 429:
+        return (
+            _build_rate_limited_submit_outcome(
+                client,
+                headers=response_headers,
+                now=now,
+            ),
+            False,
+        )
+
+    if http_status == 413 and submit_variant.fallback_on_payload_too_large:
+        return None, True
+
+    if http_status == 401 and code in _SUBMIT_TOKEN_REJECT_CODES:
+        if token:
+            client.clear_install_token()
+            return None, False
+        return (
+            build_operation_outcome(
+                kind="failed",
+                reason_code="token_rejected",
+                failure_origin=_SHARE_SUBMIT_ORIGIN,
+                error_type="InstallTokenRejected",
+                failure_category="auth",
+                handling_policy="reauth",
+                http_status=401,
+            ),
+            False,
+        )
+
+    if http_status == 400 and code == "INVALID_SCHEMA":
+        return (
+            build_operation_outcome(
+                kind="failed",
+                reason_code="invalid_schema",
+                failure_origin=_SHARE_SUBMIT_ORIGIN,
+                error_type="InvalidSchema",
+                failure_category="protocol",
+                handling_policy="inspect",
+                http_status=400,
+            ),
+            False,
+        )
+
+    return None, False
+
+
+def _build_rate_limited_submit_outcome(
+    client: ShareWorkerClient,
+    *,
+    headers: Any,
+    now: Callable[[], float],
+) -> OperationOutcome:
+    """Project one rate-limited submit response into the canonical outcome."""
+    retry_after = client.parse_retry_after(headers)
+    retry_deadline = schedule_retry_deadline(retry_after_seconds=retry_after, now=now)
+    if retry_deadline is not None:
+        client.next_upload_attempt_at = retry_deadline
+    return _rate_limited_outcome(
+        failure_origin=_SHARE_SUBMIT_ORIGIN,
+        retry_after_seconds=retry_after,
+    )

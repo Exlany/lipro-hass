@@ -104,6 +104,8 @@ class LiproDevice:
     fan_speed_range: tuple[int, int]
     is_ir_remote_device: bool
     ir_remote_gateway_device_id: str | None
+    mesh_gateway_device_id: str | None
+    mesh_group_member_ids: list[str]
     rc_list: list[dict[str, Any]]
     supports_ir_switch: bool
 

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
+import inspect
 from typing import TYPE_CHECKING, Protocol, cast, runtime_checkable
 
 from homeassistant.core import HomeAssistant
@@ -17,32 +18,35 @@ if TYPE_CHECKING:
     from ..core.device import LiproDevice
 
 
+_MISSING = object()
+
+
+def _get_static_member(obj: object, name: str) -> object:
+    """Return one explicitly defined member without invoking dynamic fallback."""
+    try:
+        return inspect.getattr_static(obj, name)
+    except AttributeError:
+        return _MISSING
+
+
 def _get_explicit_member(obj: object | None, name: str) -> object | None:
     """Return one explicitly bound member without triggering MagicMock ghosts."""
     if obj is None:
         return None
-    obj_dict = getattr(obj, "__dict__", None)
-    if isinstance(obj_dict, dict):
-        if name in obj_dict:
-            return cast(object, obj_dict[name])
-        mock_children = obj_dict.get("_mock_children")
-        if isinstance(mock_children, dict) and name in mock_children:
-            return cast(object, mock_children[name])
-        descriptor = vars(type(obj)).get(name)
-        if descriptor is not None:
-            return cast(object | None, getattr(obj, name, None))
+    member = _get_static_member(obj, name)
+    if member is _MISSING:
         return None
-    return cast(object | None, getattr(obj, name, None))
+    if hasattr(member, "__get__"):
+        try:
+            return cast(object | None, getattr(obj, name, None))
+        except AttributeError:
+            return None
+    return cast(object | None, member)
 
 
 def _has_explicit_runtime_member(obj: object | None, name: str) -> bool:
     """Return whether a runtime-facing attribute is explicitly bound on the object."""
-    if obj is None:
-        return False
-    obj_dict = getattr(obj, "__dict__", None)
-    if isinstance(obj_dict, dict) and name in obj_dict:
-        return True
-    return name in vars(type(obj))
+    return obj is not None and _get_static_member(obj, name) is not _MISSING
 
 
 class _ProtocolFacadeTelemetrySource(ProtocolTelemetrySource):

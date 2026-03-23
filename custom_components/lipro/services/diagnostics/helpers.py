@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import asyncio
 from collections.abc import Awaitable, Callable, Iterator
+from importlib import import_module
 import logging
 from typing import NoReturn, TypeVar
 
@@ -15,10 +16,6 @@ from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.exceptions import HomeAssistantError
 
 from ...const.base import DOMAIN
-from ...control import telemetry_surface as _telemetry_surface
-from ...control.runtime_access import (
-    find_runtime_entry_for_coordinator as _find_runtime_entry_for_coordinator,
-)
 from ...core import LiproApiError
 from ...core.api.types import DiagnosticsApiResponse
 from ...core.utils.log_safety import safe_error_placeholder
@@ -56,6 +53,21 @@ _LOGGER = logging.getLogger(__name__)
 _ResultT = TypeVar("_ResultT")
 _CoordinatorT = TypeVar("_CoordinatorT")
 _CAPABILITY_PROJECTION_ERRORS = (RuntimeError, ValueError, TypeError, LookupError)
+
+
+def _find_runtime_entry_for_coordinator(
+    hass: HomeAssistant,
+    coordinator: LiproCoordinator,
+):
+    """Resolve one runtime entry via the formal control-plane runtime access."""
+    runtime_access = import_module("custom_components.lipro.control.runtime_access")
+    return runtime_access.find_runtime_entry_for_coordinator(hass, coordinator)
+
+
+def _get_entry_telemetry_view(entry: object, sink: str) -> object:
+    """Resolve one telemetry view via the formal control-plane surface."""
+    telemetry_surface = import_module("custom_components.lipro.control.telemetry_surface")
+    return telemetry_surface.get_entry_telemetry_view(entry, sink)
 
 
 def _get_optional_service_string(call: ServiceCall, key: str) -> str | None:
@@ -138,7 +150,7 @@ def _collect_exporter_developer_report(
     entry = _find_runtime_entry_for_coordinator(hass, coordinator)
     if entry is None:
         return None
-    view = _telemetry_surface.get_entry_telemetry_view(entry, "developer")
+    view = _get_entry_telemetry_view(entry, "developer")
     if isinstance(view, dict):
         return view
     return None

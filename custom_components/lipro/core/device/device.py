@@ -164,6 +164,8 @@ class LiproDevice:
     ir_remote_gateway_device_id = _component_property(
         "extras", "ir_remote_gateway_device_id"
     )
+    mesh_gateway_device_id = _component_property("extras", "mesh_gateway_device_id")
+    mesh_group_member_ids = _component_property("extras", "mesh_group_member_ids")
     rc_list = _component_property("extras", "rc_list")
     supports_ir_switch = _component_property("extras", "supports_ir_switch")
 

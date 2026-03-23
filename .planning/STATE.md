@@ -23,7 +23,7 @@ See: `.planning/PROJECT.md`
 
 ## Current Position
 
-- `v1.13` 已于 `2026-03-22` 完成 archive-ready closeout：`.planning/v1.13-MILESTONE-AUDIT.md`、`.planning/reviews/V1_13_EVIDENCE_INDEX.md`、`.planning/milestones/v1.13-ROADMAP.md` 与 `.planning/milestones/v1.13-REQUIREMENTS.md` 已落盘；`60-SUMMARY.md` / `60-VERIFICATION.md`、`61-SUMMARY.md` / `61-VERIFICATION.md` 与 `62-SUMMARY.md` / `62-VERIFICATION.md` 继续作为 promoted closeout evidence。
+- `v1.13` 已于 `2026-03-22` 完成 archive-ready closeout：`.planning/v1.13-MILESTONE-AUDIT.md`、`.planning/reviews/V1_13_EVIDENCE_INDEX.md`、`.planning/milestones/v1.13-ROADMAP.md` 与 `.planning/milestones/v1.13-REQUIREMENTS.md` 已落盘；archive snapshots 已落入 `.planning/milestones/`；`60-SUMMARY.md` / `60-VERIFICATION.md`、`61-SUMMARY.md` / `61-VERIFICATION.md` 与 `62-SUMMARY.md` / `62-VERIFICATION.md` 继续作为 promoted closeout evidence。
 - `v1.12` 已于 `2026-03-22` 完成 archive-ready closeout：`.planning/v1.12-MILESTONE-AUDIT.md`、`.planning/reviews/V1_12_EVIDENCE_INDEX.md`、`.planning/milestones/v1.12-ROADMAP.md` 与 `.planning/milestones/v1.12-REQUIREMENTS.md` 已落盘；`59-SUMMARY.md` / `59-VERIFICATION.md` 继续作为 promoted closeout evidence。
 - `v1.11` 已于 `2026-03-22` 完成 opening `Phase 58`：refreshed architecture/code audit、governance/open-source audit、`Phase 59+` remediation roadmap 与 current-story truth freeze 均已落盘；它继续作为 `v1.12 -> v1.13` 的 refreshed route baseline。
 - `v1.10` 已于 `2026-03-22` 完成 opening `Phase 57`：typed command-result state / reason-code truth 已与 runtime sender、diagnostics query consumer 与 governance truth 对齐；当前保持 prior closeout-ready milestone 身份。

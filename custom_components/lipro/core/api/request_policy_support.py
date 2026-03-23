@@ -27,10 +27,15 @@ def enforce_command_pacing_cache_limit(
     last_change_state_at: dict[str, float],
     change_state_min_interval: dict[str, float],
     change_state_busy_count: dict[str, int],
+    command_pacing_target_users: dict[str, int],
     command_pacing_target_locks: dict[str, asyncio.Lock],
 ) -> None:
     """Keep per-target pacing caches bounded."""
-    tracked_targets = set(last_change_state_at) | set(change_state_min_interval)
+    tracked_targets = (
+        set(last_change_state_at)
+        | set(change_state_min_interval)
+        | set(change_state_busy_count)
+    )
     while len(tracked_targets) > command_pacing_cache_max_size:
         if last_change_state_at:
             oldest_target = min(last_change_state_at.items(), key=lambda item: item[1])[
@@ -42,14 +47,26 @@ def enforce_command_pacing_cache_limit(
         last_change_state_at.pop(oldest_target, None)
         change_state_min_interval.pop(oldest_target, None)
         change_state_busy_count.pop(oldest_target, None)
-        lock = command_pacing_target_locks.get(oldest_target)
-        has_waiters = False
-        if lock is not None:
-            has_waiters = bool(getattr(lock, "_waiters", None))
+        active_users = command_pacing_target_users.get(oldest_target, 0)
+        if active_users <= 0:
+            command_pacing_target_users.pop(oldest_target, None)
 
-        if lock is not None and not lock.locked() and not has_waiters:
+        lock = command_pacing_target_locks.get(oldest_target)
+        if active_users <= 0 and lock is not None and not lock.locked():
             command_pacing_target_locks.pop(oldest_target, None)
         tracked_targets.discard(oldest_target)
+
+    for target in tuple(command_pacing_target_locks):
+        if target in last_change_state_at or target in change_state_min_interval:
+            continue
+        if target in change_state_busy_count:
+            continue
+        if command_pacing_target_users.get(target, 0) > 0:
+            continue
+        command_pacing_target_users.pop(target, None)
+        lock = command_pacing_target_locks.get(target)
+        if lock is not None and not lock.locked():
+            command_pacing_target_locks.pop(target, None)
 
 
 async def record_change_state_busy(
@@ -60,6 +77,7 @@ async def record_change_state_busy(
     change_state_min_interval: dict[str, float],
     change_state_busy_count: dict[str, int],
     last_change_state_at: dict[str, float],
+    command_pacing_target_users: dict[str, int],
     command_pacing_target_locks: dict[str, asyncio.Lock],
     change_state_min_interval_seconds: float,
     change_state_max_interval_seconds: float,
@@ -95,6 +113,7 @@ async def record_change_state_busy(
             last_change_state_at=last_change_state_at,
             change_state_min_interval=change_state_min_interval,
             change_state_busy_count=change_state_busy_count,
+            command_pacing_target_users=command_pacing_target_users,
             command_pacing_target_locks=command_pacing_target_locks,
         )
         return next_interval, busy_count
@@ -108,6 +127,7 @@ async def record_change_state_success(
     change_state_min_interval: dict[str, float],
     change_state_busy_count: dict[str, int],
     last_change_state_at: dict[str, float],
+    command_pacing_target_users: dict[str, int],
     command_pacing_target_locks: dict[str, asyncio.Lock],
     change_state_min_interval_seconds: float,
     change_state_recovery_multiplier: float,
@@ -140,6 +160,7 @@ async def record_change_state_success(
             last_change_state_at=last_change_state_at,
             change_state_min_interval=change_state_min_interval,
             change_state_busy_count=change_state_busy_count,
+            command_pacing_target_users=command_pacing_target_users,
             command_pacing_target_locks=command_pacing_target_locks,
         )
 
@@ -153,6 +174,7 @@ async def throttle_change_state(
     last_change_state_at: dict[str, float],
     change_state_min_interval: dict[str, float],
     change_state_busy_count: dict[str, int],
+    command_pacing_target_users: dict[str, int],
     monotonic: Callable[[], float],
     sleep: SleepFn,
     change_state_min_interval_seconds: float,
@@ -171,42 +193,66 @@ async def throttle_change_state(
         if target_lock is None:
             target_lock = asyncio.Lock()
             command_pacing_target_locks[normalized_target] = target_lock
+        command_pacing_target_users[normalized_target] = (
+            command_pacing_target_users.get(normalized_target, 0) + 1
+        )
 
-    async with target_lock:
+    try:
         async with command_pacing_lock:
-            now = monotonic()
-            last = last_change_state_at.get(normalized_target)
-            min_interval = max(
-                change_state_min_interval_seconds,
-                change_state_min_interval.get(
-                    normalized_target,
+            target_lock = command_pacing_target_locks[normalized_target]
+
+        async with target_lock:
+            async with command_pacing_lock:
+                now = monotonic()
+                last = last_change_state_at.get(normalized_target)
+                min_interval = max(
                     change_state_min_interval_seconds,
-                ),
-            )
-            wait_time = 0.0
-            if last is not None:
-                wait_time = min_interval - (now - last)
-            if wait_time <= 0:
-                last_change_state_at[normalized_target] = now
+                    change_state_min_interval.get(
+                        normalized_target,
+                        change_state_min_interval_seconds,
+                    ),
+                )
+                wait_time = 0.0
+                if last is not None:
+                    wait_time = min_interval - (now - last)
+                if wait_time <= 0:
+                    last_change_state_at[normalized_target] = now
+                    enforce_command_pacing_cache_limit(
+                        command_pacing_cache_max_size=command_pacing_cache_max_size,
+                        last_change_state_at=last_change_state_at,
+                        change_state_min_interval=change_state_min_interval,
+                        change_state_busy_count=change_state_busy_count,
+                        command_pacing_target_users=command_pacing_target_users,
+                        command_pacing_target_locks=command_pacing_target_locks,
+                    )
+                    return
+
+            sleep_fn = sleep if sleep is not None else asyncio.sleep
+            await sleep_fn(wait_time)
+
+            async with command_pacing_lock:
+                last_change_state_at[normalized_target] = monotonic()
                 enforce_command_pacing_cache_limit(
                     command_pacing_cache_max_size=command_pacing_cache_max_size,
                     last_change_state_at=last_change_state_at,
                     change_state_min_interval=change_state_min_interval,
                     change_state_busy_count=change_state_busy_count,
+                    command_pacing_target_users=command_pacing_target_users,
                     command_pacing_target_locks=command_pacing_target_locks,
                 )
-                return
-
-        sleep_fn = sleep if sleep is not None else asyncio.sleep
-        await sleep_fn(wait_time)
-
+    finally:
         async with command_pacing_lock:
-            last_change_state_at[normalized_target] = monotonic()
+            active_users = command_pacing_target_users.get(normalized_target, 0) - 1
+            if active_users > 0:
+                command_pacing_target_users[normalized_target] = active_users
+            else:
+                command_pacing_target_users.pop(normalized_target, None)
             enforce_command_pacing_cache_limit(
                 command_pacing_cache_max_size=command_pacing_cache_max_size,
                 last_change_state_at=last_change_state_at,
                 change_state_min_interval=change_state_min_interval,
                 change_state_busy_count=change_state_busy_count,
+                command_pacing_target_users=command_pacing_target_users,
                 command_pacing_target_locks=command_pacing_target_locks,
             )
 

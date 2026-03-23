@@ -3,15 +3,12 @@
 from __future__ import annotations
 
 import asyncio
+from importlib import import_module
 from typing import TYPE_CHECKING
 
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 
-from ...control import telemetry_surface as _telemetry_surface
-from ...control.runtime_access import (
-    find_runtime_entry_for_coordinator as _find_runtime_entry_for_coordinator,
-)
 from ...runtime_types import LiproCoordinator
 from .helper_support import (
     build_developer_feedback_payload as _support_build_developer_feedback_payload,
@@ -34,6 +31,21 @@ if TYPE_CHECKING:
 _CAPABILITY_PROJECTION_ERRORS = (RuntimeError, ValueError, TypeError, LookupError)
 
 
+def _find_runtime_entry_for_coordinator(
+    hass: HomeAssistant,
+    coordinator: LiproCoordinator,
+):
+    """Resolve one runtime entry via the formal control-plane runtime access."""
+    runtime_access = import_module("custom_components.lipro.control.runtime_access")
+    return runtime_access.find_runtime_entry_for_coordinator(hass, coordinator)
+
+
+def _get_entry_telemetry_view(entry: object, sink: str) -> object:
+    """Resolve one telemetry view via the formal control-plane surface."""
+    telemetry_surface = import_module("custom_components.lipro.control.telemetry_surface")
+    return telemetry_surface.get_entry_telemetry_view(entry, sink)
+
+
 def _collect_exporter_developer_report(
     hass: HomeAssistant,
     coordinator: LiproCoordinator,
@@ -42,7 +54,7 @@ def _collect_exporter_developer_report(
     entry = _find_runtime_entry_for_coordinator(hass, coordinator)
     if entry is None:
         return None
-    view = _telemetry_surface.get_entry_telemetry_view(entry, "developer")
+    view = _get_entry_telemetry_view(entry, "developer")
     if isinstance(view, dict):
         return view
     return None

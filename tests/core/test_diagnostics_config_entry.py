@@ -3,13 +3,12 @@
 from __future__ import annotations
 
 from datetime import timedelta
-from types import MappingProxyType
+from types import MappingProxyType, SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 import pytest
 
 from custom_components.lipro.diagnostics import async_get_config_entry_diagnostics
-from tests.core.test_diagnostics import _make_entry, _make_share_manager, _patch_share_manager
 
 
 class TestAsyncGetConfigEntryDiagnostics:
@@ -55,7 +54,7 @@ class TestAsyncGetConfigEntryDiagnostics:
         coordinator.devices = MappingProxyType({device.serial: device})
         coordinator.last_update_success = True
         coordinator.update_interval = timedelta(seconds=30)
-        coordinator.mqtt_service.connected = True
+        coordinator.mqtt_service = SimpleNamespace(connected=True)
 
         entry = MagicMock()
         entry.entry_id = "entry-1"
@@ -121,7 +120,7 @@ class TestAsyncGetConfigEntryDiagnostics:
         coordinator.devices = MappingProxyType({})
         coordinator.last_update_success = False
         coordinator.update_interval = timedelta(seconds=30)
-        coordinator.mqtt_service.connected = False
+        coordinator.mqtt_service = SimpleNamespace(connected=False)
 
         entry = MagicMock()
         entry.entry_id = "entry-1"
@@ -175,7 +174,7 @@ class TestAsyncGetConfigEntryDiagnostics:
         coordinator.devices = object()
         coordinator.last_update_success = False
         coordinator.update_interval = timedelta(seconds=60)
-        coordinator.mqtt_service.connected = "unknown"
+        coordinator.mqtt_service = SimpleNamespace(connected="unknown")
 
         entry = MagicMock()
         entry.entry_id = "entry-1"
@@ -208,7 +207,7 @@ class TestAsyncGetConfigEntryDiagnostics:
         coordinator.devices = MappingProxyType({})
         coordinator.last_update_success = False
         coordinator.update_interval = timedelta(seconds=60)
-        coordinator.mqtt_service.connected = False
+        coordinator.mqtt_service = SimpleNamespace(connected=False)
 
         entry = MagicMock()
         entry.entry_id = "entry-1"
@@ -251,7 +250,7 @@ class TestAsyncGetConfigEntryDiagnostics:
         coordinator.devices = MappingProxyType({device.serial: device})
         coordinator.last_update_success = True
         coordinator.update_interval = timedelta(seconds=30)
-        coordinator.mqtt_service.connected = True
+        coordinator.mqtt_service = SimpleNamespace(connected=True)
 
         entry = MagicMock()
         entry.entry_id = "entry-1"
@@ -303,7 +302,7 @@ class TestAsyncGetConfigEntryDiagnostics:
         coordinator.devices = MappingProxyType({device.serial: device})
         coordinator.last_update_success = True
         coordinator.update_interval = timedelta(seconds=45)
-        coordinator.mqtt_service.connected = True
+        coordinator.mqtt_service = SimpleNamespace(connected=True)
 
         entry = MagicMock()
         entry.entry_id = "entry-1"

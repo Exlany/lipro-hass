@@ -66,7 +66,9 @@ async def test_async_execute_schedule_operation_maps_lipro_api_error() -> None:
     device = SimpleNamespace(
         iot_device_id="03ab0000000000a1",
         device_type_hex="0x1032",
-        extra_data={"gateway_device_id": "", "group_member_ids": []},
+        mesh_gateway_device_id="",
+        mesh_group_member_ids=[],
+        ir_remote_gateway_device_id=None,
     )
     api_error = LiproApiError("boom", 500)
     protocol_call = AsyncMock(side_effect=api_error)
@@ -99,7 +101,8 @@ async def test_async_execute_schedule_operation_delegates_to_shared_executor() -
     device = SimpleNamespace(
         iot_device_id="03ab0000000000a1",
         device_type_hex="0x1032",
-        extra_data={"gateway_device_id": "", "group_member_ids": []},
+        mesh_gateway_device_id="",
+        mesh_group_member_ids=[],
         ir_remote_gateway_device_id=None,
     )
     coordinator = MagicMock()
@@ -159,7 +162,9 @@ async def test_async_execute_schedule_operation_with_real_auth_service_maps_auth
     device = SimpleNamespace(
         iot_device_id="03ab0000000000a1",
         device_type_hex="0x1032",
-        extra_data={"gateway_device_id": "", "group_member_ids": []},
+        mesh_gateway_device_id="",
+        mesh_group_member_ids=[],
+        ir_remote_gateway_device_id=None,
     )
     protocol_call = AsyncMock(side_effect=LiproAuthError("bad credentials"))
     logger = MagicMock()
@@ -199,7 +204,8 @@ async def test_async_execute_schedule_operation_with_real_auth_service_maps_refr
     device = SimpleNamespace(
         iot_device_id="03ab0000000000a1",
         device_type_hex="0x1032",
-        extra_data={"gateway_device_id": "", "group_member_ids": []},
+        mesh_gateway_device_id="",
+        mesh_group_member_ids=[],
         ir_remote_gateway_device_id=None,
     )
     protocol_call = AsyncMock(side_effect=LiproRefreshTokenExpiredError("expired"))
@@ -224,10 +230,8 @@ async def test_async_execute_schedule_operation_with_real_auth_service_maps_refr
 def test_get_mesh_context_normalizes_member_ids_and_gateway() -> None:
     """Mesh context should canonicalize IDs before schedule calls."""
     device = SimpleNamespace(
-        extra_data={
-            "gateway_device_id": " 03AB0000000000A1 ",
-            "group_member_ids": ["03ab0000000000a2", " 03AB0000000000A2 ", "bad"],
-        },
+        mesh_gateway_device_id=" 03AB0000000000A1 ",
+        mesh_group_member_ids=["03ab0000000000a2", " 03AB0000000000A2 ", "bad"],
         ir_remote_gateway_device_id=None,
     )
 
@@ -240,7 +244,8 @@ def test_get_mesh_context_normalizes_member_ids_and_gateway() -> None:
 def test_get_mesh_context_falls_back_to_ir_remote_gateway_property() -> None:
     """IR remote devices should not require extra_data hand-filling."""
     device = SimpleNamespace(
-        extra_data={},
+        mesh_gateway_device_id=None,
+        mesh_group_member_ids=[],
         ir_remote_gateway_device_id=" 03AB0000000000A9 ",
     )
 

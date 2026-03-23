@@ -99,3 +99,24 @@ def test_device_extras_resolves_gateway_id_from_remote_id_prefix() -> None:
     )
 
     assert extras.ir_remote_gateway_device_id == "03ab5ccd7c000999"
+
+
+def test_device_extras_normalizes_mesh_gateway_and_member_ids() -> None:
+    extras = DeviceExtras(
+        properties={},
+        extra_data={
+            "gateway_device_id": " 03AB5CCD7C000999 ",
+            "group_member_ids": [
+                "03ab5ccd7c000001",
+                " 03AB5CCD7C000001 ",
+                "invalid",
+                123,
+            ],
+        },
+        serial="mesh_group_10001",
+        iot_name="lipro_led",
+        physical_model="light",
+    )
+
+    assert extras.mesh_gateway_device_id == "03ab5ccd7c000999"
+    assert extras.mesh_group_member_ids == ["03ab5ccd7c000001"]

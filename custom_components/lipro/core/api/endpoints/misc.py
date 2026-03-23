@@ -29,7 +29,7 @@ type ResponseMapping = JsonObject
 
 
 class MiscEndpoints(_EndpointAdapter):
-    """Legacy misc endpoint mixin retained for focused helper tests."""
+    """Focused misc endpoint collaborator for the REST facade."""
 
     async def get_mqtt_config(self) -> dict[str, Any]:
         """Get MQTT configuration information."""

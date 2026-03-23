@@ -172,11 +172,13 @@ def test_enforce_command_pacing_cache_limit_handles_empty_last_change_state_at_a
     policy.change_state_min_interval[target] = 0.2
     policy.change_state_busy_count[target] = 1
     policy.command_pacing_target_locks[target] = asyncio.Lock()
+    policy.command_pacing_target_users[target] = 0
 
     policy.enforce_command_pacing_cache_limit()
 
     assert target not in policy.change_state_min_interval
     assert target not in policy.change_state_busy_count
+    assert target not in policy.command_pacing_target_users
     assert target not in policy.command_pacing_target_locks
 
 
@@ -199,7 +201,7 @@ def test_enforce_command_pacing_cache_limit_drops_oldest_targets() -> None:
 
 
 @pytest.mark.asyncio
-async def test_enforce_command_pacing_cache_limit_keeps_lock_with_waiters() -> None:
+async def test_enforce_command_pacing_cache_limit_keeps_lock_with_active_target_users() -> None:
     policy = RequestPolicy()
     total = COMMAND_PACING_CACHE_MAX_SIZE + 1
     for idx in range(total):
@@ -209,21 +211,12 @@ async def test_enforce_command_pacing_cache_limit_keeps_lock_with_waiters() -> N
         policy.change_state_busy_count[key] = 1
 
     lock = asyncio.Lock()
-    await lock.acquire()
-    waiter = asyncio.create_task(lock.acquire())
-    await asyncio.sleep(0)
-    lock.release()
-
-    assert lock.locked() is False
-    assert bool(getattr(lock, "_waiters", None)) is True
-
     policy.command_pacing_target_locks["target_0"] = lock
+    policy.command_pacing_target_users["target_0"] = 1
     policy.enforce_command_pacing_cache_limit()
 
     assert policy.command_pacing_target_locks["target_0"] is lock
-
-    await waiter
-    lock.release()
+    assert policy.command_pacing_target_users["target_0"] == 1
 
 
 @pytest.mark.asyncio

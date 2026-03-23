@@ -10,7 +10,7 @@ from .payloads import _EndpointAdapter
 
 
 class DeviceEndpoints(_EndpointAdapter):
-    """Legacy device endpoint mixin retained for focused helper tests."""
+    """Focused device endpoint collaborator for the REST facade."""
 
     async def get_devices(self, offset: int = 0, limit: int = 100) -> DeviceListResponse:
         """Get all devices.

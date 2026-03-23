@@ -13,7 +13,7 @@ from ...const.properties import (
     PROP_WAKE_UP_ENABLE,
 )
 from ..utils.coerce import coerce_boollike
-from ..utils.identifiers import is_valid_iot_device_id
+from ..utils.identifiers import is_valid_iot_device_id, normalize_iot_device_id
 from .extras_support import (
     _IOT_REMOTE_ID_PREFIX,
     _IR_REMOTE_DEVICE_DRIVER_ID,
@@ -69,6 +69,28 @@ def ir_remote_gateway_device_id(self: DeviceExtras) -> str | None:
     return None
 
 
+def mesh_gateway_device_id(self: DeviceExtras) -> str | None:
+    """Return the mesh gateway device id when learned from group status."""
+    return normalize_iot_device_id(self._extra_data.get("gateway_device_id"))
+
+
+def mesh_group_member_ids(self: DeviceExtras) -> list[str]:
+    """Return normalized mesh-group member ids learned from group status."""
+    raw_member_ids = self._extra_data.get("group_member_ids")
+    if not isinstance(raw_member_ids, list):
+        return []
+
+    member_ids: list[str] = []
+    seen: set[str] = set()
+    for member_id in raw_member_ids:
+        normalized = normalize_iot_device_id(member_id)
+        if normalized is None or normalized in seen:
+            continue
+        seen.add(normalized)
+        member_ids.append(normalized)
+    return member_ids
+
+
 def supports_ir_switch(self: DeviceExtras) -> bool:
     """Return whether IR switch capability should be exposed."""
     if PROP_IS_SUPPORT_IR_SWITCH in self._properties:
@@ -89,6 +111,8 @@ __all__ = [
     "has_sleep_wake_features",
     "ir_remote_gateway_device_id",
     "is_ir_remote_device",
+    "mesh_gateway_device_id",
+    "mesh_group_member_ids",
     "panel_type",
     "supports_ir_switch",
 ]

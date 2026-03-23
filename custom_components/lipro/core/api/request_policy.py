@@ -59,6 +59,7 @@ def enforce_command_pacing_cache_limit(
     last_change_state_at: dict[str, float],
     change_state_min_interval: dict[str, float],
     change_state_busy_count: dict[str, int],
+    command_pacing_target_users: dict[str, int],
     command_pacing_target_locks: dict[str, asyncio.Lock],
 ) -> None:
     """Keep per-target pacing caches bounded."""
@@ -67,6 +68,7 @@ def enforce_command_pacing_cache_limit(
         last_change_state_at=last_change_state_at,
         change_state_min_interval=change_state_min_interval,
         change_state_busy_count=change_state_busy_count,
+        command_pacing_target_users=command_pacing_target_users,
         command_pacing_target_locks=command_pacing_target_locks,
     )
 
@@ -79,6 +81,7 @@ async def record_change_state_busy(
     change_state_min_interval: dict[str, float],
     change_state_busy_count: dict[str, int],
     last_change_state_at: dict[str, float],
+    command_pacing_target_users: dict[str, int],
     command_pacing_target_locks: dict[str, asyncio.Lock],
 ) -> tuple[float, int]:
     """Increase adaptive pacing interval when CHANGE_STATE hits busy error."""
@@ -89,6 +92,7 @@ async def record_change_state_busy(
         change_state_min_interval=change_state_min_interval,
         change_state_busy_count=change_state_busy_count,
         last_change_state_at=last_change_state_at,
+        command_pacing_target_users=command_pacing_target_users,
         command_pacing_target_locks=command_pacing_target_locks,
         change_state_min_interval_seconds=CHANGE_STATE_MIN_INTERVAL_SECONDS,
         change_state_max_interval_seconds=CHANGE_STATE_MAX_INTERVAL_SECONDS,
@@ -105,6 +109,7 @@ async def record_change_state_success(
     change_state_min_interval: dict[str, float],
     change_state_busy_count: dict[str, int],
     last_change_state_at: dict[str, float],
+    command_pacing_target_users: dict[str, int],
     command_pacing_target_locks: dict[str, asyncio.Lock],
 ) -> None:
     """Recover adaptive pacing interval after successful CHANGE_STATE command."""
@@ -115,6 +120,7 @@ async def record_change_state_success(
         change_state_min_interval=change_state_min_interval,
         change_state_busy_count=change_state_busy_count,
         last_change_state_at=last_change_state_at,
+        command_pacing_target_users=command_pacing_target_users,
         command_pacing_target_locks=command_pacing_target_locks,
         change_state_min_interval_seconds=CHANGE_STATE_MIN_INTERVAL_SECONDS,
         change_state_recovery_multiplier=CHANGE_STATE_RECOVERY_MULTIPLIER,
@@ -131,6 +137,7 @@ async def throttle_change_state(
     last_change_state_at: dict[str, float],
     change_state_min_interval: dict[str, float],
     change_state_busy_count: dict[str, int],
+    command_pacing_target_users: dict[str, int],
     monotonic: Callable[[], float],
     sleep: SleepFn,
 ) -> None:
@@ -143,6 +150,7 @@ async def throttle_change_state(
         last_change_state_at=last_change_state_at,
         change_state_min_interval=change_state_min_interval,
         change_state_busy_count=change_state_busy_count,
+        command_pacing_target_users=command_pacing_target_users,
         monotonic=monotonic,
         sleep=sleep,
         change_state_min_interval_seconds=CHANGE_STATE_MIN_INTERVAL_SECONDS,
@@ -192,6 +200,7 @@ class RequestPolicy:
         """Initialize mutable pacing state owned by the request policy."""
         self.command_pacing_lock = asyncio.Lock()
         self.command_pacing_target_locks: dict[str, asyncio.Lock] = {}
+        self.command_pacing_target_users: dict[str, int] = {}
         self.last_change_state_at: dict[str, float] = {}
         self.change_state_min_interval: dict[str, float] = {}
         self.change_state_busy_count: dict[str, int] = {}
@@ -202,6 +211,7 @@ class RequestPolicy:
             last_change_state_at=self.last_change_state_at,
             change_state_min_interval=self.change_state_min_interval,
             change_state_busy_count=self.change_state_busy_count,
+            command_pacing_target_users=self.command_pacing_target_users,
             command_pacing_target_locks=self.command_pacing_target_locks,
         )
 
@@ -273,6 +283,7 @@ class RequestPolicy:
             change_state_min_interval=self.change_state_min_interval,
             change_state_busy_count=self.change_state_busy_count,
             last_change_state_at=self.last_change_state_at,
+            command_pacing_target_users=self.command_pacing_target_users,
             command_pacing_target_locks=self.command_pacing_target_locks,
         )
 
@@ -285,6 +296,7 @@ class RequestPolicy:
             change_state_min_interval=self.change_state_min_interval,
             change_state_busy_count=self.change_state_busy_count,
             last_change_state_at=self.last_change_state_at,
+            command_pacing_target_users=self.command_pacing_target_users,
             command_pacing_target_locks=self.command_pacing_target_locks,
         )
 
@@ -298,6 +310,7 @@ class RequestPolicy:
             last_change_state_at=self.last_change_state_at,
             change_state_min_interval=self.change_state_min_interval,
             change_state_busy_count=self.change_state_busy_count,
+            command_pacing_target_users=self.command_pacing_target_users,
             monotonic=monotonic,
             sleep=asyncio.sleep,
         )

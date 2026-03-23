@@ -49,6 +49,8 @@ class DeviceExtras:
     has_floor_lamp_features = property(extras_features.has_floor_lamp_features)
     is_ir_remote_device = property(extras_features.is_ir_remote_device)
     ir_remote_gateway_device_id = property(extras_features.ir_remote_gateway_device_id)
+    mesh_gateway_device_id = property(extras_features.mesh_gateway_device_id)
+    mesh_group_member_ids = property(extras_features.mesh_group_member_ids)
     supports_ir_switch = property(extras_features.supports_ir_switch)
     panel_type = property(extras_features.panel_type)
 

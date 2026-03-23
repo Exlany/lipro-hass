@@ -22,6 +22,7 @@ from .share_client_flows import (
 
 _LOGGER = logging.getLogger(__package__ or __name__)
 
+
 class ShareWorkerClient:
     """HTTP client for submitting anonymous share payloads to the Worker."""
 
@@ -70,12 +71,19 @@ class ShareWorkerClient:
         self.token_refresh_after = int(payload.get("token_refresh_after") or 0)
         return True
 
-    async def _safe_read_json(
+    async def safe_read_json(
         self,
         response: aiohttp.ClientResponse,
     ) -> dict[str, Any] | None:
         """Best-effort JSON parsing for Worker responses."""
         return await _safe_read_json_flow(response)
+
+    async def _safe_read_json(
+        self,
+        response: aiohttp.ClientResponse,
+    ) -> dict[str, Any] | None:
+        """Backward-compatible alias for the formal JSON reader method."""
+        return await self.safe_read_json(response)
 
     async def refresh_install_token_with_outcome(
         self, session: aiohttp.ClientSession
