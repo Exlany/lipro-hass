@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.14
 milestone_name: Governance Truth Realignment, Typed Runtime Access & Final Hidden-Root Closure
 status: unknown
-last_updated: "2026-03-23T08:37:37.921Z"
+last_updated: "2026-03-23T09:29:57Z"
 progress:
-  total_phases: 1
-  completed_phases: 1
-  total_plans: 5
-  completed_plans: 5
+  total_phases: 2
+  completed_phases: 2
+  total_plans: 8
+  completed_plans: 8
 ---
 
 # Project State
@@ -18,12 +18,12 @@ progress:
 See: `.planning/PROJECT.md`
 
 **Current milestone:** `v1.14 Governance Truth Realignment, Typed Runtime Access & Final Hidden-Root Closure`
-**Core value:** 以 `v1.13` archived evidence 为基线，优先修复治理真相指针 / latest closeout pointer / archive route drift，然后把 `RuntimeAccess`、`__init__.py`、tooling/test hidden-root 与 typed follow-through 收口为下一轮可复用的正式 truth。
-**Current mode:** `Phase 63 governance truth realignment typed runtime access and final hidden root closure complete`；`63-01 -> 63-05` 已全部落盘 summary，当前进入 milestone closeout 准备态。
+**Core value:** 以 `v1.13` archived evidence 为基线，先完成治理真相指针 / latest closeout pointer / archive route drift，再把 telemetry / schedule / diagnostics 剩余 hotspots 沿 typed / thin formal homes 做最后一轮根因级收口。
+**Current mode:** `Phase 64 telemetry typing schedule contracts and diagnostics hotspot slimming complete`。
 
 ## Current Position
 
-- `v1.14` 已于 `2026-03-23` 从 `v1.13` archived evidence 打开：当前 active route 固定为 `Phase 63`，目标是统一 governance latest-pointer truth、typed runtime-access/read-model、HA root slimming、tooling/test hidden-root 收口与 command/share typed tighten。
+- `v1.14` 已于 `2026-03-23` 从 `v1.13` archived evidence 打开，并已完成 `Phase 63` 与 `Phase 64`：governance latest-pointer truth、typed runtime-access/read-model、HA root slimming、telemetry typed contracts、schedule formal contracts 与 diagnostics hotspot slimming 均已收口，当前仅剩 milestone closeout。
 - `v1.13` 继续保持 `archived / evidence-ready (2026-03-22)`：`.planning/v1.13-MILESTONE-AUDIT.md`、`.planning/reviews/V1_13_EVIDENCE_INDEX.md`、`.planning/milestones/v1.13-ROADMAP.md` 与 `.planning/milestones/v1.13-REQUIREMENTS.md` 仍是最近 archive-ready baseline。
 - `v1.12` 继续保持 localized verification archive baseline：`.planning/v1.12-MILESTONE-AUDIT.md`、`.planning/reviews/V1_12_EVIDENCE_INDEX.md`、`59-SUMMARY.md` 与 `59-VERIFICATION.md` 继续作为 promoted closeout evidence。
 - `v1.11` 继续保留为 refreshed audit seed baseline：`.planning/reviews/V1_11_MILESTONE_SEED.md`、`Phase 58` audit package 与 `58-REMEDIATION-ROADMAP.md` 仍是 `v1.14` follow-through 的历史输入，而不是新的 active milestone。
@@ -39,12 +39,12 @@ See: `.planning/PROJECT.md`
 ## Current Milestone Status
 
 - **Milestone:** `v1.14 Governance Truth Realignment, Typed Runtime Access & Final Hidden-Root Closure`
-- **Phase range:** `63`
-- **Planned execution:** `5 executable plans / 4 waves`
-- **Completed so far:** `63-01 -> 63-05 complete`
-- **Starting baseline:** `.planning/v1.13-MILESTONE-AUDIT.md`, `.planning/reviews/V1_13_EVIDENCE_INDEX.md`, `.planning/milestones/v1.13-ROADMAP.md`, `.planning/milestones/v1.13-REQUIREMENTS.md`, `.planning/phases/58-repository-audit-refresh-and-next-wave-routing/58-REMEDIATION-ROADMAP.md`
-- **Context & plans:** `.planning/phases/63-governance-truth-realignment-typed-runtime-access-and-hidden-root-closure/63-CONTEXT.md`, `63-01-PLAN.md`, `63-02-PLAN.md`, `63-03-PLAN.md`, `63-04-PLAN.md`, `63-05-PLAN.md`
-- **Executed evidence:** `.planning/phases/63-governance-truth-realignment-typed-runtime-access-and-hidden-root-closure/63-01-SUMMARY.md`, `.planning/phases/63-governance-truth-realignment-typed-runtime-access-and-hidden-root-closure/63-02-SUMMARY.md`, `.planning/phases/63-governance-truth-realignment-typed-runtime-access-and-hidden-root-closure/63-03-SUMMARY.md`, `.planning/phases/63-governance-truth-realignment-typed-runtime-access-and-hidden-root-closure/63-04-SUMMARY.md`, `.planning/phases/63-governance-truth-realignment-typed-runtime-access-and-hidden-root-closure/63-05-SUMMARY.md`
+- **Phase range:** `63 -> 64`
+- **Planned execution:** `Phase 63 -> 64 complete (8/8 plans)`
+- **Completed so far:** `63-01 -> 63-05 complete; 64-01 -> 64-03 complete`
+- **Starting baseline:** `.planning/v1.13-MILESTONE-AUDIT.md`, `.planning/reviews/V1_13_EVIDENCE_INDEX.md`, `.planning/milestones/v1.13-ROADMAP.md`, `.planning/milestones/v1.13-REQUIREMENTS.md`, `.planning/phases/58-repository-audit-refresh-and-next-wave-routing/58-REMEDIATION-ROADMAP.md`, `.planning/phases/63-governance-truth-realignment-typed-runtime-access-and-hidden-root-closure/63-SUMMARY.md`
+- **Context & plans:** `.planning/phases/63-governance-truth-realignment-typed-runtime-access-and-hidden-root-closure/63-CONTEXT.md`, `63-01-PLAN.md`, `63-02-PLAN.md`, `63-03-PLAN.md`, `63-04-PLAN.md`, `63-05-PLAN.md`; `.planning/phases/64-telemetry-typing-schedule-contracts-and-diagnostics-hotspot-slimming/64-CONTEXT.md`, `64-01-PLAN.md`, `64-02-PLAN.md`, `64-03-PLAN.md`
+- **Executed evidence:** `.planning/phases/63-governance-truth-realignment-typed-runtime-access-and-hidden-root-closure/63-01-SUMMARY.md`, `.planning/phases/63-governance-truth-realignment-typed-runtime-access-and-hidden-root-closure/63-02-SUMMARY.md`, `.planning/phases/63-governance-truth-realignment-typed-runtime-access-and-hidden-root-closure/63-03-SUMMARY.md`, `.planning/phases/63-governance-truth-realignment-typed-runtime-access-and-hidden-root-closure/63-04-SUMMARY.md`, `.planning/phases/63-governance-truth-realignment-typed-runtime-access-and-hidden-root-closure/63-05-SUMMARY.md`, `.planning/phases/63-governance-truth-realignment-typed-runtime-access-and-hidden-root-closure/63-SUMMARY.md`, `.planning/phases/64-telemetry-typing-schedule-contracts-and-diagnostics-hotspot-slimming/64-01-SUMMARY.md`, `.planning/phases/64-telemetry-typing-schedule-contracts-and-diagnostics-hotspot-slimming/64-02-SUMMARY.md`, `.planning/phases/64-telemetry-typing-schedule-contracts-and-diagnostics-hotspot-slimming/64-03-SUMMARY.md`, `.planning/phases/64-telemetry-typing-schedule-contracts-and-diagnostics-hotspot-slimming/64-SUMMARY.md`
 - **Next focus:** `$gsd-complete-milestone`
 
 ## Latest Archived Baseline (v1.13)
@@ -59,10 +59,10 @@ See: `.planning/PROJECT.md`
 
 ## Recommended Next Command
 
-1. `$gsd-complete-milestone` —— 若确认 `Phase 63` summary 与验证已齐备，进入 `v1.14` milestone audit / archive 准备
-2. `$gsd-plan-phase 63` —— 若需要继续扩写 `Phase 63` follow-up plan，可沿当前 context/summaries 补新计划
-3. `$gsd-execute-phase 63` —— 若新增 follow-up plan 或需要重放 Phase 63 执行波次，仍沿当前 phase 目录继续执行
-4. `$gsd-progress` —— 复核当前 milestone 是否还有额外 follow-up phase 需要插入
+1. `$gsd-complete-milestone` —— 对 `v1.14` 执行 milestone audit / archive closeout
+2. `$gsd-progress` —— 复核 closeout-ready 状态、archive pull 与下一里程碑路由
+3. `$gsd-plan-phase 64 --gaps` —— 若 closeout verification 回吐缺口，再按 gap-closure 回路补齐
+4. `uv run pytest -q` —— 在 closeout 前再做一轮全量回归
 5. `uv run python scripts/check_file_matrix.py --check` —— 复核 tooling/file-governance truth
 6. `uv run pytest -q tests/meta/test_governance_guards.py tests/meta/governance_followup_route_current_milestones.py tests/meta/test_governance_phase_history_runtime.py tests/meta/test_governance_phase_history_topology.py tests/meta/test_governance_milestone_archives.py tests/meta/test_governance_release_contract.py tests/meta/test_version_sync.py` —— 复核治理真相与 phase-history continuity 收口
 7. `uv run pytest -q` —— 运行全量仓库回归

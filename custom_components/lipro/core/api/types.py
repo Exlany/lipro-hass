@@ -101,6 +101,14 @@ class CommandResultApiResponse(TypedDict, total=False):
     pushTimestamp: str | int
 
 
+class SchedulePayload(TypedDict, total=False):
+    """Normalized schedule payload arrays used by schedule rows."""
+
+    days: list[int]
+    time: list[int]
+    evt: list[int]
+
+
 class ScheduleTimingRow(TypedDict, total=False):
     """One normalized schedule timing row."""
 
@@ -114,7 +122,7 @@ class ScheduleTimingRow(TypedDict, total=False):
     actionData: str
     deviceId: str
     scheduleJson: str
-    schedule: dict[str, list[int]]
+    schedule: SchedulePayload
     active: bool
 
 
@@ -173,6 +181,7 @@ __all__ = [
     "SanctionedBoundaryPayload",
     "SanctionedRawMappingResult",
     "ScheduleApiResponse",
+    "SchedulePayload",
     "ScheduleTimingRow",
     "ValidatedMappingResult",
 ]

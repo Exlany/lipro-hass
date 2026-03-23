@@ -2,17 +2,22 @@
 
 from __future__ import annotations
 
-from typing import Any
-
 from .models import (
+    CITelemetrySummary,
+    CITelemetryView,
+    DeveloperTelemetryView,
+    DiagnosticsTelemetryView,
     FailureSummary,
+    ProtocolSessionFlags,
+    SystemHealthTelemetryView,
+    TelemetryHeaderPayload,
     TelemetrySnapshot,
     empty_failure_summary,
     extract_failure_summary,
 )
 
 
-def _header(snapshot: TelemetrySnapshot) -> dict[str, Any]:
+def _header(snapshot: TelemetrySnapshot) -> TelemetryHeaderPayload:
     return {
         "schema_version": snapshot.schema_version,
         "report_id": snapshot.report_id,
@@ -45,7 +50,7 @@ class DiagnosticsTelemetrySink:
 
     name = "diagnostics"
 
-    def build_view(self, snapshot: TelemetrySnapshot) -> dict[str, Any]:
+    def build_view(self, snapshot: TelemetrySnapshot) -> DiagnosticsTelemetryView:
         """Return the diagnostics projection for one snapshot."""
         return {
             **_header(snapshot),
@@ -60,7 +65,7 @@ class SystemHealthTelemetrySink:
 
     name = "system_health"
 
-    def build_view(self, snapshot: TelemetrySnapshot) -> dict[str, Any]:
+    def build_view(self, snapshot: TelemetrySnapshot) -> SystemHealthTelemetryView:
         """Return the system-health projection for one snapshot."""
         runtime_mqtt = snapshot.runtime.get("mqtt")
         runtime_signals = snapshot.runtime.get("signals")
@@ -152,27 +157,28 @@ class DeveloperTelemetrySink:
 
     name = "developer"
 
-    def build_view(self, snapshot: TelemetrySnapshot) -> dict[str, Any]:
+    def build_view(self, snapshot: TelemetrySnapshot) -> DeveloperTelemetryView:
         """Return the developer projection for one snapshot."""
         protocol_session = snapshot.protocol.get("session")
+        protocol_session_flags: ProtocolSessionFlags = (
+            {
+                key: protocol_session.get(key)
+                for key in (
+                    "access_token_present",
+                    "refresh_token_present",
+                    "request_timeout",
+                )
+                if key in protocol_session
+            }
+            if isinstance(protocol_session, dict)
+            else {}
+        )
         return {
             **_header(snapshot),
             "failure_summary": _build_failure_summary(snapshot),
             "protocol": snapshot.protocol,
             "runtime": snapshot.runtime,
-            "protocol_session_flags": (
-                {
-                    key: protocol_session.get(key)
-                    for key in (
-                        "access_token_present",
-                        "refresh_token_present",
-                        "request_timeout",
-                    )
-                    if key in protocol_session
-                }
-                if isinstance(protocol_session, dict)
-                else {}
-            ),
+            "protocol_session_flags": protocol_session_flags,
         }
 
 
@@ -181,28 +187,29 @@ class CITelemetrySink:
 
     name = "ci"
 
-    def build_view(self, snapshot: TelemetrySnapshot) -> dict[str, Any]:
+    def build_view(self, snapshot: TelemetrySnapshot) -> CITelemetryView:
         """Return the CI/replay projection for one snapshot."""
         system_health = SystemHealthTelemetrySink().build_view(snapshot)
+        summary: CITelemetrySummary = {
+            "device_count": system_health.get("device_count", 0),
+            "mqtt_connected": system_health.get("mqtt_connected"),
+            "command_trace_count": system_health.get("command_trace_count", 0),
+            "connect_state_event_count": system_health.get(
+                "connect_state_event_count", 0
+            ),
+            "command_confirmation_timeout_total": system_health.get(
+                "command_confirmation_timeout_total", 0
+            ),
+            "refresh_avg_latency_seconds": system_health.get(
+                "refresh_avg_latency_seconds"
+            ),
+            "auth_refresh_success_count": system_health.get(
+                "auth_refresh_success_count", 0
+            ),
+        }
         return {
             **_header(snapshot),
-            "summary": {
-                "device_count": system_health.get("device_count", 0),
-                "mqtt_connected": system_health.get("mqtt_connected"),
-                "command_trace_count": system_health.get("command_trace_count", 0),
-                "connect_state_event_count": system_health.get(
-                    "connect_state_event_count", 0
-                ),
-                "command_confirmation_timeout_total": system_health.get(
-                    "command_confirmation_timeout_total", 0
-                ),
-                "refresh_avg_latency_seconds": system_health.get(
-                    "refresh_avg_latency_seconds"
-                ),
-                "auth_refresh_success_count": system_health.get(
-                    "auth_refresh_success_count", 0
-                ),
-            },
+            "summary": summary,
         }
 
 

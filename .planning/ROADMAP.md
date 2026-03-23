@@ -1224,9 +1224,9 @@ Plans:
 
 ### 🚧 v1.14 Governance Truth Realignment, Typed Runtime Access & Final Hidden-Root Closure
 
-**Milestone Goal:** 以 `v1.13` archived evidence 为起点，先统一 governance latest-pointer / archive-route truth 与 anti-drift guards，再把 `RuntimeAccess` / `__init__.py` / tooling-test hidden-root / command-share typed seams 收口到更诚实、更薄、更可验证的正式主链。
+**Milestone Goal:** 以 `v1.13` archived evidence 为起点，先统一 governance latest-pointer / archive-route truth 与 anti-drift guards，再把 `RuntimeAccess` / `__init__.py` / tooling-test hidden-root / command-share typed seams，以及 telemetry / schedule / diagnostics 剩余 formal-contract hotspots 收口到更诚实、更薄、更可验证的正式主链。
 
-**Current Status:** `5 plans / 4 waves complete (2026-03-23)`；governance pointer、typed runtime access、tooling/test hidden-root closure 与 command/share follow-through 已全部落盘 summary。
+**Current Status:** `Phase 63 -> 64 complete (2026-03-23)`；governance pointer、typed runtime access、tooling/test hidden-root closure、telemetry typed contracts、schedule formal contracts 与 diagnostics hotspot follow-through 均已落盘 summary，`v1.14` 当前进入 milestone closeout-ready 状态。
 
 ### Phase 63: Governance truth realignment, typed runtime access, and hidden-root closure
 
@@ -1245,4 +1245,22 @@ Plans:
 - [x] 63-03: decompose file-matrix/tooling truth and unify local-vs-CI command contracts (completed 2026-03-23)
 - [x] 63-04: close topic-suite hidden roots in API and governance/meta tests (completed 2026-03-23)
 - [x] 63-05: tighten command failure summaries and anonymous-share transport typing (completed 2026-03-23)
+
+### Phase 64: Telemetry typing, schedule contracts, and diagnostics hotspot slimming
+
+**Goal:** 继续把 assurance/service/API 三个剩余热点收口到 typed / thin formal homes：让 telemetry exporter / ports / sinks 使用显式 JSON-safe contracts，让 schedule service 消除 `Any` + dynamic mesh-context 主逻辑，让 diagnostics API 退成 thin outward home 并把 OTA/history/query helpers inward split。
+**Depends on:** Phase 63
+**Requirements**: [ARC-11, HOT-18, HOT-19, TYP-17, TST-14, GOV-48, QLT-22]
+**Success Criteria**:
+  1. telemetry family（`models.py` / `ports.py` / `exporter.py` / `sinks.py`）以显式 JSON-safe typed contracts 讲同一条 story；`Any` 不再充当 formal exporter truth。
+  2. `services/schedule.py` 的 mesh-context / normalized row / protocol-call contract 完成 formalization；service 主逻辑不再依赖 broad `Any` / `getattr`。
+  3. `diagnostics_api_service.py` 退成 thin outward home，OTA / sensor-history / misc query helpers inward split；focused tests + `FILE_MATRIX` / current-story docs 同轮更新。
+**Status**: Complete (2026-03-23)
+**Plans**: 3/3 complete
+
+Plans:
+- [x] 64-01: converge telemetry exporter family onto explicit JSON-safe typed contracts (completed 2026-03-23)
+- [x] 64-02: formalize schedule service contracts and remove dynamic mesh-context probing from the main path (completed 2026-03-23)
+- [x] 64-03: split diagnostics API concerns inward while syncing current-story docs and file-matrix truth (completed 2026-03-23)
+**Closeout evidence:** `.planning/phases/64-telemetry-typing-schedule-contracts-and-diagnostics-hotspot-slimming/64-SUMMARY.md`, `.planning/phases/64-telemetry-typing-schedule-contracts-and-diagnostics-hotspot-slimming/64-VERIFICATION.md`
 

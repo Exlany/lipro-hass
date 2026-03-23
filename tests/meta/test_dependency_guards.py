@@ -101,8 +101,8 @@ def test_phase_40_schedule_services_reuse_shared_execution_contract() -> None:
         _ROOT / "custom_components" / "lipro" / "services" / "schedule.py"
     ).read_text(encoding="utf-8")
 
-    assert "from .execution import (" in schedule_text
-    assert "AuthenticatedCoordinator" in schedule_text
+    assert "from .execution import" in schedule_text
+    assert ("AuthenticatedCoordinator" in schedule_text) or ("LiproCoordinator" in schedule_text)
     assert "async_execute_coordinator_call" in schedule_text
     assert "_async_execute_schedule_coordinator_call" not in schedule_text
     assert "protocol_call" in schedule_text

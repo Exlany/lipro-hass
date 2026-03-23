@@ -6,13 +6,19 @@ from collections.abc import Callable, Mapping, Sequence
 from hashlib import sha256
 from secrets import token_hex
 from time import time
-from typing import Any
+from typing import cast
 
 from .models import (
     SCHEMA_VERSION,
     CardinalityBudget,
+    CITelemetryView,
+    DeveloperTelemetryView,
+    DiagnosticsTelemetryView,
+    SystemHealthTelemetryView,
+    TelemetryJsonValue,
     TelemetrySensitivity,
     TelemetrySnapshot,
+    TelemetrySourcePayload,
     TelemetryViews,
 )
 from .ports import ProtocolTelemetrySource, RuntimeTelemetrySource, TelemetrySink
@@ -68,13 +74,16 @@ class RuntimeTelemetryExporter:
     def export_views(self) -> TelemetryViews:
         """Export all stable sink projections from one shared snapshot."""
         snapshot = self.export_snapshot()
-        rendered = {sink.name: dict(sink.build_view(snapshot)) for sink in self._sinks}
+        rendered = {sink.name: sink.build_view(snapshot) for sink in self._sinks}
         return TelemetryViews(
             snapshot=snapshot,
-            diagnostics=rendered["diagnostics"],
-            system_health=rendered["system_health"],
-            developer=rendered["developer"],
-            ci=rendered["ci"],
+            diagnostics=cast(DiagnosticsTelemetryView, rendered["diagnostics"]),
+            system_health=cast(
+                SystemHealthTelemetryView,
+                rendered["system_health"],
+            ),
+            developer=cast(DeveloperTelemetryView, rendered["developer"]),
+            ci=cast(CITelemetryView, rendered["ci"]),
         )
 
     def _new_report_id(self) -> str:
@@ -87,14 +96,14 @@ class RuntimeTelemetryExporter:
     def _resolve_entry_ref(
         self,
         *,
-        protocol_raw: Mapping[str, Any],
-        runtime_raw: Mapping[str, Any],
+        protocol_raw: Mapping[str, TelemetryJsonValue],
+        runtime_raw: Mapping[str, TelemetryJsonValue],
         report_id: str,
     ) -> str | None:
         entry_id = protocol_raw.get("entry_id")
         if not isinstance(entry_id, str):
             session = protocol_raw.get("session")
-            if isinstance(session, Mapping):
+            if isinstance(session, dict):
                 nested = session.get("entry_id")
                 if isinstance(nested, str):
                     entry_id = nested
@@ -108,11 +117,11 @@ class RuntimeTelemetryExporter:
 
     def _sanitize_mapping(
         self,
-        payload: Mapping[str, Any],
+        payload: Mapping[str, TelemetryJsonValue],
         *,
         report_id: str,
-    ) -> dict[str, Any]:
-        sanitized: dict[str, Any] = {}
+    ) -> TelemetrySourcePayload:
+        sanitized: TelemetrySourcePayload = {}
         for key, value in payload.items():
             key_text = str(key)
             if len(sanitized) >= self._cardinality_budget.max_mapping_items:
@@ -135,15 +144,19 @@ class RuntimeTelemetryExporter:
             sanitized[key_text] = sanitized_value
         return sanitized
 
-    def _sanitize_value(self, value: Any, *, key: str | None, report_id: str) -> Any:
+    def _sanitize_value(
+        self,
+        value: TelemetryJsonValue,
+        *,
+        key: str | None,
+        report_id: str,
+    ) -> TelemetryJsonValue | object:
         if key is not None and self._sensitivity.is_blocked(key):
             return _SKIP
-        if isinstance(value, Mapping):
+        if isinstance(value, dict):
             return self._sanitize_mapping(value, report_id=report_id)
-        if isinstance(value, Sequence) and not isinstance(
-            value, (str, bytes, bytearray)
-        ):
-            result: list[Any] = []
+        if isinstance(value, list):
+            result: list[TelemetryJsonValue] = []
             for item in value[: self._cardinality_budget.max_sequence_items]:
                 sanitized_item = self._sanitize_value(
                     item,
@@ -161,7 +174,12 @@ class RuntimeTelemetryExporter:
             return value[: self._cardinality_budget.max_string_length]
         return value
 
-    def _build_reference(self, alias: str, value: Any, report_id: str) -> str | None:
+    def _build_reference(
+        self,
+        alias: str,
+        value: TelemetryJsonValue,
+        report_id: str,
+    ) -> str | None:
         if value is None:
             return None
         raw = str(value)

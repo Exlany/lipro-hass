@@ -4,10 +4,11 @@ from __future__ import annotations
 
 from custom_components.lipro.core.telemetry import CardinalityBudget
 from custom_components.lipro.core.telemetry.exporter import RuntimeTelemetryExporter
+from custom_components.lipro.core.telemetry.models import TelemetrySourcePayload
 
 
 class _ProtocolSource:
-    def get_protocol_telemetry_snapshot(self) -> dict[str, object]:
+    def get_protocol_telemetry_snapshot(self) -> TelemetrySourcePayload:
         return {
             "entry_id": "entry-1",
             "session": {
@@ -24,7 +25,7 @@ class _ProtocolSource:
 
 
 class _RuntimeSource:
-    def get_runtime_telemetry_snapshot(self) -> dict[str, object]:
+    def get_runtime_telemetry_snapshot(self) -> TelemetrySourcePayload:
         return {
             "entry_id": "entry-1",
             "device_count": 3,
@@ -58,7 +59,7 @@ class _RuntimeSource:
 
 
 class _RuntimeOnlyEntrySource:
-    def get_runtime_telemetry_snapshot(self) -> dict[str, object]:
+    def get_runtime_telemetry_snapshot(self) -> TelemetrySourcePayload:
         return {
             "entry_id": "entry-runtime-only",
             "message": "x" * 128,
@@ -126,7 +127,7 @@ def test_exporter_falls_back_when_report_id_factory_rejects_length_argument() ->
 
 def test_exporter_uses_runtime_entry_id_when_protocol_entry_id_is_missing() -> None:
     class _ProtocolWithoutEntry:
-        def get_protocol_telemetry_snapshot(self) -> dict[str, object]:
+        def get_protocol_telemetry_snapshot(self) -> TelemetrySourcePayload:
             return {"session": {"access_token_present": True}}
 
     exporter = RuntimeTelemetryExporter(

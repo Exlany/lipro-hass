@@ -250,3 +250,14 @@ def test_get_mesh_context_falls_back_to_ir_remote_gateway_property() -> None:
     )
 
     assert get_mesh_context(device) == ("03ab0000000000a9", [])
+
+
+def test_get_mesh_context_preserves_blank_mesh_gateway_without_ir_override() -> None:
+    """IR fallback should remain an explicit None-only branch."""
+    device = SimpleNamespace(
+        mesh_gateway_device_id="",
+        mesh_group_member_ids=[],
+        ir_remote_gateway_device_id=" 03AB0000000000A9 ",
+    )
+
+    assert get_mesh_context(device) == ("", [])

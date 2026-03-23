@@ -140,19 +140,29 @@
 
 ### Governance Truth & Pointer Closure
 
-- [ ] **GOV-46**: `PROJECT / STATE / ROADMAP / REQUIREMENTS / MILESTONES / docs index / release runbook` 必须共同承认 `v1.13` 是当前最新 archive-ready closeout pointer，且 active milestone 已切到 `v1.14`。
-- [ ] **GOV-47**: milestone/archive/version guards 必须阻止 `latest closeout pointer`、`MILESTONES` 缺项与 stale next-route 回流；不得再把 `v1.6` 或 `v1.11` 误写成 current pointer。
+- [x] **GOV-46**: `PROJECT / STATE / ROADMAP / REQUIREMENTS / MILESTONES / docs index / release runbook` 必须共同承认 `v1.13` 是当前最新 archive-ready closeout pointer，且 active milestone 已切到 `v1.14`。
+- [x] **GOV-47**: milestone/archive/version guards 必须阻止 `latest closeout pointer`、`MILESTONES` 缺项与 stale next-route 回流；不得再把 `v1.6` 或 `v1.11` 误写成 current pointer。
 
 ### Hotspot & Typed Runtime Closure
 
-- [ ] **HOT-16**: `RuntimeAccess` 与 `custom_components/lipro/__init__.py` 必须继续沿现有 formal seams 变薄：runtime 读取改走 typed read-model / explicit port，HA root adapter 只保留 thin entry wiring。
-- [ ] **HOT-17**: `scripts/check_file_matrix_registry.py`、topicized API/meta hidden roots 与相关 tooling truth families 必须继续 inward decomposition，消除 second truth / hidden helper root。
+- [x] **HOT-16**: `RuntimeAccess` 与 `custom_components/lipro/__init__.py` 必须继续沿现有 formal seams 变薄：runtime 读取改走 typed read-model / explicit port，HA root adapter 只保留 thin entry wiring。
+- [x] **HOT-17**: `scripts/check_file_matrix_registry.py`、topicized API/meta hidden roots 与相关 tooling truth families 必须继续 inward decomposition，消除 second truth / hidden helper root。
 
 ### Verification & Typed Follow-Through
 
-- [ ] **TST-13**: API suites 与 governance/meta suites 的 topicized files 不得继续通过 `test_api.py` / `test_governance_guards.py` 充当隐式主根；共享 fixtures/helpers 必须显式 home 化，failure localization 继续下降。
-- [ ] **TYP-16**: command failure / anonymous-share follow-through 必须继续收紧到 typed summary / typed request-response contract；coordinator 与 share flows 不得继续依赖 stringly / `Any` 漏口决定主逻辑。
-- [ ] **QLT-21**: touched docs / baselines / review ledgers / focused guards / validation commands 必须同步更新并形成 no-growth evidence，证明 `v1.14` 不是 conversation-only cleanup。
+- [x] **TST-13**: API suites 与 governance/meta suites 的 topicized files 不得继续通过 `test_api.py` / `test_governance_guards.py` 充当隐式主根；共享 fixtures/helpers 必须显式 home 化，failure localization 继续下降。
+- [x] **TYP-16**: command failure / anonymous-share follow-through 必须继续收紧到 typed summary / typed request-response contract；coordinator 与 share flows 不得继续依赖 stringly / `Any` 漏口决定主逻辑。
+- [x] **QLT-21**: touched docs / baselines / review ledgers / focused guards / validation commands 必须同步更新并形成 no-growth evidence，证明 `v1.14` 不是 conversation-only cleanup。
+
+### Telemetry / Schedule / Diagnostics Formal-Contract Follow-Through
+
+- [x] **ARC-11**: telemetry / diagnostics / schedule formal homes 必须继续 obey 单一主链：telemetry truth 不得被 `Any`-centric exporter plumbing 重新定义，schedule service 不得借 raw protocol/device sidecar 形成第二 contract，diagnostics API outward home 只能做 thin composition。
+- [x] **HOT-18**: `custom_components/lipro/core/api/diagnostics_api_service.py` 必须继续 inward split 成更小的 OTA / history / misc collaborators，同时保留现有 outward import home 与行为契约。
+- [x] **HOT-19**: telemetry family（`models.py` / `ports.py` / `exporter.py` / `sinks.py`）与 schedule service hotspots 必须沿 formal seams 继续切薄，不得长期合法化为 `Any`/mega-home。
+- [x] **TYP-17**: telemetry / diagnostics / schedule touched-zone 的 `Any`、mixed tuple contract 与 dynamic attribute probing 必须继续收紧到 explicit typed aliases / protocols / JSON-safe payload contracts。
+- [x] **TST-14**: diagnostics API、schedule service 与 telemetry exporter/sinks 的 hotspot refactor 必须伴随 focused regression suites，保持 failure localization 与局部可执行性。
+- [x] **GOV-48**: `PROJECT / ROADMAP / REQUIREMENTS / STATE / FILE_MATRIX` 必须冻结 telemetry/schedule/diagnostics 的新 topology truth，阻止 stale hotspot narrative 与旧 ownership wording 回流。
+- [x] **QLT-22**: 本轮 hotspot slimming 必须在 `ruff`、architecture policy、file matrix 与 targeted/full pytest 下同时通过，证明不是外观式重排。
 
 ## Active Traceability (v1.14)
 
@@ -165,6 +175,13 @@
 | TST-13 | Phase 63 | Completed |
 | TYP-16 | Phase 63 | Completed |
 | QLT-21 | Phase 63 | Completed |
+| ARC-11 | Phase 64 | Completed |
+| HOT-18 | Phase 64 | Completed |
+| HOT-19 | Phase 64 | Completed |
+| TYP-17 | Phase 64 | Completed |
+| TST-14 | Phase 64 | Completed |
+| GOV-48 | Phase 64 | Completed |
+| QLT-22 | Phase 64 | Completed |
 
 ## Future Requirements
 

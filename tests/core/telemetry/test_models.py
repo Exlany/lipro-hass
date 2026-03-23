@@ -9,6 +9,14 @@ from custom_components.lipro.core.telemetry import (
     TelemetryViews,
 )
 from custom_components.lipro.core.telemetry.models import (
+    CITelemetryView,
+    DeveloperTelemetryView,
+    DiagnosticsTelemetryView,
+    FailureSummary,
+    ProtocolSessionFlags,
+    SystemHealthTelemetryView,
+    TelemetrySnapshotPayload,
+    TelemetryViewsPayload,
     build_failure_summary,
     build_operation_outcome,
     build_operation_outcome_from_exception,
@@ -54,6 +62,83 @@ def test_snapshot_and_views_are_json_friendly() -> None:
     assert snapshot.to_dict()["entry_ref"] == "entry_deadbeef"
     assert views.to_dict()["snapshot"]["report_id"] == "report_1"
     assert views.to_dict()["ci"]["summary"]["device_count"] == 2
+
+
+def test_typed_payload_contracts_keep_stable_required_keys() -> None:
+    assert FailureSummary.__required_keys__ == {
+        "failure_category",
+        "failure_origin",
+        "handling_policy",
+        "error_type",
+    }
+    assert TelemetrySnapshotPayload.__required_keys__ == {
+        "schema_version",
+        "report_id",
+        "generated_at",
+        "entry_ref",
+        "protocol",
+        "runtime",
+    }
+    assert DiagnosticsTelemetryView.__required_keys__ == {
+        "schema_version",
+        "report_id",
+        "generated_at",
+        "entry_ref",
+        "failure_summary",
+        "protocol",
+        "runtime",
+    }
+    assert SystemHealthTelemetryView.__required_keys__ == {
+        "schema_version",
+        "report_id",
+        "generated_at",
+        "entry_ref",
+        "failure_summary",
+        "device_count",
+        "polling_interval_seconds",
+        "last_update_success",
+        "mqtt_connected",
+        "mqtt_disconnect_notified",
+        "mqtt_last_transport_error",
+        "command_trace_count",
+        "command_confirmation_avg_latency_seconds",
+        "command_confirmation_timeout_total",
+        "connect_state_event_count",
+        "group_reconciliation_request_count",
+        "refresh_avg_latency_seconds",
+        "protocol_mqtt_last_error_type",
+        "auth_refresh_success_count",
+        "auth_refresh_failure_count",
+    }
+    assert DeveloperTelemetryView.__required_keys__ == {
+        "schema_version",
+        "report_id",
+        "generated_at",
+        "entry_ref",
+        "failure_summary",
+        "protocol",
+        "runtime",
+        "protocol_session_flags",
+    }
+    assert ProtocolSessionFlags.__optional_keys__ == {
+        "access_token_present",
+        "refresh_token_present",
+        "request_timeout",
+    }
+    assert CITelemetryView.__required_keys__ == {
+        "schema_version",
+        "report_id",
+        "generated_at",
+        "entry_ref",
+        "summary",
+    }
+    assert TelemetryViewsPayload.__required_keys__ == {
+        "snapshot",
+        "diagnostics",
+        "system_health",
+        "developer",
+        "ci",
+    }
 
 
 def test_cardinality_budget_defaults_stay_bounded() -> None:

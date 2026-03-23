@@ -2,50 +2,52 @@
 
 from __future__ import annotations
 
-from collections.abc import Awaitable, Callable, Mapping
+from collections.abc import Awaitable, Callable
 import logging
-from typing import Any, NoReturn, Protocol, TypeVar, cast
+from typing import NoReturn, TypedDict, TypeGuard, TypeVar
 
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.exceptions import ServiceValidationError
 
 from ..core.api.errors import LiproApiError
+from ..core.api.types import SchedulePayload, ScheduleTimingRow
+from ..core.device import LiproDevice
 from ..core.utils.identifiers import normalize_iot_device_id
 from ..core.utils.redaction import redact_identifier as _redact_identifier
-from ..runtime_types import ProtocolServiceLike
-from .execution import (
-    AuthenticatedCoordinator,
-    ServiceErrorRaiser,
-    async_execute_coordinator_call,
-)
+from ..runtime_types import LiproCoordinator
+from .execution import ServiceErrorRaiser, async_execute_coordinator_call
 
 _ResultT = TypeVar("_ResultT")
-_NormalizedSchedule = dict[str, object]
-type ScheduleTimingRow = dict[str, object]
-ScheduleRows = list[ScheduleTimingRow]
+
+
+class NormalizedScheduleRow(TypedDict):
+    """Schedule row shape returned by the schedule service."""
+
+    id: object
+    active: object
+    days: list[int]
+    times: list[str]
+    events: list[int]
+
+
+type ScheduleRows = list[ScheduleTimingRow]
+type NormalizedScheduleRows = list[NormalizedScheduleRow]
+type ScheduleDevice = LiproDevice
+type ScheduleCoordinator = LiproCoordinator
 GetDeviceAndCoordinator = Callable[
     [HomeAssistant, ServiceCall],
-    Awaitable[tuple[Any, Any]],
+    Awaitable[tuple[ScheduleDevice, ScheduleCoordinator]],
 ]
 
 
-class ScheduleDevice(Protocol):
-    """Service-layer schedule device contract."""
-
-    iot_device_id: str
-    device_type_hex: str
-    serial: str
-    ir_remote_gateway_device_id: str | None
-    mesh_gateway_device_id: str | None
-    mesh_group_member_ids: list[str]
+def _is_schedule_payload(value: object) -> TypeGuard[SchedulePayload]:
+    """Return whether one raw value can be treated as a schedule payload."""
+    return isinstance(value, dict)
 
 
-class ScheduleCoordinator(AuthenticatedCoordinator, Protocol):
-    """Coordinator contract used by schedule services."""
-
-    @property
-    def protocol_service(self) -> ProtocolServiceLike:
-        """Return the formal runtime-owned protocol capability service."""
+def _is_schedule_timing_row(value: object) -> TypeGuard[ScheduleTimingRow]:
+    """Return whether one raw value can be treated as a schedule row."""
+    return isinstance(value, dict)
 
 
 def _coerce_schedule_int_item(item: object) -> int | None:
@@ -88,7 +90,9 @@ def format_schedule_time(seconds: int) -> str | None:
     return f"{hours:02d}:{minutes:02d}"
 
 
-def _normalize_schedule_time_events(sched_info: Mapping[str, Any]) -> tuple[list[str], list[int]]:
+def _normalize_schedule_time_events(
+    sched_info: SchedulePayload,
+) -> tuple[list[str], list[int]]:
     """Normalize schedule time/event pairs while preserving pair alignment."""
     times = _coerce_schedule_int_list(sched_info.get("time"))
     events = _coerce_schedule_int_list(sched_info.get("evt"))
@@ -104,13 +108,13 @@ def _normalize_schedule_time_events(sched_info: Mapping[str, Any]) -> tuple[list
     return normalized_times, normalized_events
 
 
-def normalize_schedule_row(schedule: object) -> _NormalizedSchedule | None:
+def normalize_schedule_row(schedule: object) -> NormalizedScheduleRow | None:
     """Normalize a raw schedule row into service response format."""
-    if not isinstance(schedule, dict):
+    if not _is_schedule_timing_row(schedule):
         return None
 
     sched_info = schedule.get("schedule")
-    if not isinstance(sched_info, dict):
+    if not _is_schedule_payload(sched_info):
         sched_info = {}
 
     time_strs, events = _normalize_schedule_time_events(sched_info)
@@ -127,14 +131,14 @@ def normalize_schedule_row(schedule: object) -> _NormalizedSchedule | None:
 
 def get_mesh_context(device: ScheduleDevice) -> tuple[str, list[str]]:
     """Extract mesh gateway and member IDs from device metadata."""
-    gateway_candidate = getattr(device, "mesh_gateway_device_id", None)
+    gateway_candidate = device.mesh_gateway_device_id
     if gateway_candidate is None:
-        gateway_candidate = getattr(device, "ir_remote_gateway_device_id", None)
+        gateway_candidate = device.ir_remote_gateway_device_id
     mesh_gateway_id = normalize_iot_device_id(gateway_candidate) or ""
 
     mesh_member_ids: list[str] = []
     seen_member_ids: set[str] = set()
-    for member_id in getattr(device, "mesh_group_member_ids", []):
+    for member_id in device.mesh_group_member_ids:
         normalized = normalize_iot_device_id(member_id)
         if normalized is None or normalized in seen_member_ids:
             continue
@@ -228,9 +232,7 @@ async def async_handle_get_schedules(
     logger: logging.Logger,
 ) -> dict[str, object]:
     """Handle the get_schedules service call."""
-    raw_device, raw_coordinator = await get_device_and_coordinator(hass, call)
-    device = cast(ScheduleDevice, raw_device)
-    coordinator = cast(ScheduleCoordinator, raw_coordinator)
+    device, coordinator = await get_device_and_coordinator(hass, call)
 
     schedules: ScheduleRows = await async_call_schedule_service(
         coordinator,
@@ -243,7 +245,7 @@ async def async_handle_get_schedules(
         raise_service_error=raise_service_error,
     )
 
-    formatted = [
+    formatted: NormalizedScheduleRows = [
         normalized
         for schedule in schedules
         if (normalized := normalize_schedule_row(schedule)) is not None
@@ -268,9 +270,7 @@ async def async_handle_add_schedule(
     attr_events: str,
 ) -> dict[str, object]:
     """Handle the add_schedule service call."""
-    raw_device, raw_coordinator = await get_device_and_coordinator(hass, call)
-    device = cast(ScheduleDevice, raw_device)
-    coordinator = cast(ScheduleCoordinator, raw_coordinator)
+    device, coordinator = await get_device_and_coordinator(hass, call)
 
     days = call.data[attr_days]
     times = call.data[attr_times]
@@ -318,9 +318,7 @@ async def async_handle_delete_schedules(
     attr_schedule_ids: str,
 ) -> dict[str, object]:
     """Handle the delete_schedules service call."""
-    raw_device, raw_coordinator = await get_device_and_coordinator(hass, call)
-    device = cast(ScheduleDevice, raw_device)
-    coordinator = cast(ScheduleCoordinator, raw_coordinator)
+    device, coordinator = await get_device_and_coordinator(hass, call)
     schedule_ids = call.data[attr_schedule_ids]
 
     remaining: ScheduleRows = await async_call_schedule_service(

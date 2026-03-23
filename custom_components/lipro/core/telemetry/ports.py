@@ -2,16 +2,15 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping
-from typing import Any, Protocol
+from typing import Protocol
 
-from .models import TelemetrySnapshot
+from .models import TelemetrySinkPayload, TelemetrySnapshot, TelemetrySourcePayload
 
 
 class ProtocolTelemetrySource(Protocol):
     """Protocol-plane source consumed by the exporter."""
 
-    def get_protocol_telemetry_snapshot(self) -> Mapping[str, Any]:
+    def get_protocol_telemetry_snapshot(self) -> TelemetrySourcePayload:
         """Return a protocol-owned snapshot."""
         ...
 
@@ -19,7 +18,7 @@ class ProtocolTelemetrySource(Protocol):
 class RuntimeTelemetrySource(Protocol):
     """Runtime-plane source consumed by the exporter."""
 
-    def get_runtime_telemetry_snapshot(self) -> Mapping[str, Any]:
+    def get_runtime_telemetry_snapshot(self) -> TelemetrySourcePayload:
         """Return a runtime-owned snapshot."""
         ...
 
@@ -29,7 +28,7 @@ class TelemetrySink(Protocol):
 
     name: str
 
-    def build_view(self, snapshot: TelemetrySnapshot) -> Mapping[str, Any]:
+    def build_view(self, snapshot: TelemetrySnapshot) -> TelemetrySinkPayload:
         """Build one projection from the shared snapshot."""
         ...
 

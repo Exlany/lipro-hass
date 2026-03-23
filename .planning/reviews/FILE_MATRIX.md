@@ -1,6 +1,6 @@
 # File Matrix
 
-**Python files total:** 596
+**Python files total:** 599
 **Status:** File-level governance authority
 **Rule:** workspace inventory excluding caches / virtual env / tooling artifacts
 
@@ -61,7 +61,10 @@
 | `custom_components/lipro/core/api/client.py` | Protocol | Phase 2 / 7 / 12 / 14 / 35 | 重构 | thin REST child-façade composition root |
 | `custom_components/lipro/core/api/client_pacing.py` | Protocol | Phase 2 | 重构 | - |
 | `custom_components/lipro/core/api/command_api_service.py` | Protocol | Phase 2 | 重构 | - |
-| `custom_components/lipro/core/api/diagnostics_api_service.py` | Protocol | Phase 2 | 重构 | - |
+| `custom_components/lipro/core/api/diagnostics_api_history.py` | Protocol | Phase 64 | 保留 | diagnostics sensor-history collaborator behind `diagnostics_api_service.py` |
+| `custom_components/lipro/core/api/diagnostics_api_ota.py` | Protocol | Phase 64 | 保留 | diagnostics OTA collaborator behind `diagnostics_api_service.py` |
+| `custom_components/lipro/core/api/diagnostics_api_queries.py` | Protocol | Phase 64 | 保留 | diagnostics misc-query collaborator behind `diagnostics_api_service.py` |
+| `custom_components/lipro/core/api/diagnostics_api_service.py` | Protocol | Phase 2 / 64 | 重构 | thin diagnostics outward home; OTA/history/query concerns split into local collaborators |
 | `custom_components/lipro/core/api/endpoint_surface.py` | Protocol | Phase 35 | 保留 | REST endpoint operations collaborator home |
 | `custom_components/lipro/core/api/endpoints/__init__.py` | Protocol | Phase 2 | 重构 | - |
 | `custom_components/lipro/core/api/endpoints/auth.py` | Protocol | Phase 2 | 重构 | - |
@@ -224,10 +227,10 @@
 | `custom_components/lipro/core/protocol/session.py` | Protocol | Phase 2.5 | 保留 | - |
 | `custom_components/lipro/core/protocol/telemetry.py` | Protocol | Phase 2.5 | 保留 | - |
 | `custom_components/lipro/core/telemetry/__init__.py` | Assurance | Phase 7.3 | 保留 | - |
-| `custom_components/lipro/core/telemetry/exporter.py` | Assurance | Phase 7.3 | 保留 | - |
-| `custom_components/lipro/core/telemetry/models.py` | Assurance | Phase 7.3 | 保留 | - |
-| `custom_components/lipro/core/telemetry/ports.py` | Assurance | Phase 7.3 | 保留 | - |
-| `custom_components/lipro/core/telemetry/sinks.py` | Assurance | Phase 7.3 | 保留 | - |
+| `custom_components/lipro/core/telemetry/exporter.py` | Assurance | Phase 7.3 / 64 | 保留 | typed telemetry exporter consuming the shared JSON-safe contract family |
+| `custom_components/lipro/core/telemetry/models.py` | Assurance | Phase 7.3 / 64 | 保留 | telemetry JSON-safe payload, outcome, and view contract home |
+| `custom_components/lipro/core/telemetry/ports.py` | Assurance | Phase 7.3 / 64 | 保留 | telemetry source/sink protocol contract home |
+| `custom_components/lipro/core/telemetry/sinks.py` | Assurance | Phase 7.3 / 64 | 保留 | diagnostics/system-health/developer/CI sink projections on shared typed contracts |
 | `custom_components/lipro/core/utils/__init__.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/core/utils/background_task_manager.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/core/utils/backoff.py` | Cross-cutting | Phase 56 | 保留 | neutral shared exponential backoff helper home |
@@ -287,7 +290,7 @@
 | `custom_components/lipro/services/maintenance.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/services/registrations.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/services/registry.py` | Control | Phase 3 | 保留 | - |
-| `custom_components/lipro/services/schedule.py` | Control | Phase 3 | 保留 | - |
+| `custom_components/lipro/services/schedule.py` | Control | Phase 3 / 64 | 保留 | outward schedule service home with typed row normalization and mesh-context contracts |
 | `custom_components/lipro/services/share.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/switch.py` | Domain | Phase 4 | 保留 | - |
 | `custom_components/lipro/system_health.py` | Control | Phase 3 | 保留 | - |

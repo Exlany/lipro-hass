@@ -170,15 +170,16 @@
 
 ## v1.14 Governance Truth Realignment, Typed Runtime Access & Final Hidden-Root Closure (Opened: 2026-03-23)
 
-**Phase range:** `63`
-**Phases completed:** 0 phases, 0 plans, 0 tasks
-**Status:** active / planning
-**Route truth:** only active milestone route = `v1.14 / Phase 63`；archive pull 继续从 `.planning/reviews/V1_13_EVIDENCE_INDEX.md` 起步
+**Phase range:** `63 -> 64`
+**Phases completed:** 2 phases complete, 8 total plans tracked (`8` complete / `0` pending)
+**Status:** active / Phase 64 complete; milestone closeout pending
+**Route truth:** only active milestone route = `v1.14 / Phase 64`；`Phase 63` 与 `Phase 64` 均已完成，下一步进入 `$gsd-complete-milestone` closeout 回路，archive pull 继续从 `.planning/reviews/V1_13_EVIDENCE_INDEX.md` 起步
 
 **Target outcomes:**
 - 统一 `latest closeout pointer`、archive route、`MILESTONES` 与 governance guards 的 current truth
 - 把 `RuntimeAccess` / `__init__.py` 继续收口到 typed read-model 与 thin HA adapter
 - 继续关闭 tooling/test hidden-root 与 command/share typed 漏口
+- 补齐 telemetry / schedule / diagnostics 剩余 formal-contract hotspots，避免 `Any` / mixed-concern mega-home 长期合法化
 
 **Seed inputs:**
 - `.planning/v1.13-MILESTONE-AUDIT.md`

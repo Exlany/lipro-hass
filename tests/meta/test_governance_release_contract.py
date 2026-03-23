@@ -370,13 +370,13 @@ def test_latest_closeout_pointer_and_active_route_stay_current() -> None:
     runbook_text = _RUNBOOK.read_text(encoding="utf-8")
 
     assert ".planning/reviews/V1_13_EVIDENCE_INDEX.md" in docs_text
-    assert "v1.14 / Phase 63" in docs_text
+    assert "v1.14 / Phase 64" in docs_text
     assert "V1_13_EVIDENCE_INDEX.md" in runbook_text
     assert "V1_6_EVIDENCE_INDEX.md" not in runbook_text
-    assert "$gsd-plan-phase 63" in project_text
-    assert "$gsd-plan-phase 63" in state_text
+    assert "$gsd-complete-milestone" in project_text
+    assert "$gsd-complete-milestone" in state_text
     assert "## v1.14 Governance Truth Realignment, Typed Runtime Access & Final Hidden-Root Closure" in milestones_text
-    assert "only active milestone route = `v1.14 / Phase 63`" in milestones_text
+    assert "only active milestone route = `v1.14 / Phase 64`" in milestones_text
     assert "v1.11" not in docs_text
     assert "v1.11" not in runbook_text
 
