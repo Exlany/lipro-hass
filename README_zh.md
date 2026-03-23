@@ -402,4 +402,5 @@ data:
 - `docs/NORTH_STAR_TARGET_ARCHITECTURE.md` / `docs/developer_architecture.md` - 权威架构基线与当前代码布局
 - `docs/adr/README.md` - 长期架构决策与取舍记录
 - `docs/MAINTAINER_RELEASE_RUNBOOK.md` - 维护者专用的发版 / rehearsal / custody 附录
+- 发版清理：GitHub 公开文档集仅保留上述入口；本地缓存、coverage、benchmark 输出与 scratch 残渣不属于 release tree
 - `CODE_OF_CONDUCT.md`、`.devcontainer.json`、`custom_components/lipro/quality_scale.yaml` - 社区约定、开发环境与 quality-scale 声明

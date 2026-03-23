@@ -401,4 +401,5 @@ This integration is implemented by reverse engineering the Lipro cloud API and i
 - `docs/NORTH_STAR_TARGET_ARCHITECTURE.md` / `docs/developer_architecture.md` - authority baseline and current package layout
 - `docs/adr/README.md` - long-lived architecture decisions and trade-offs
 - `docs/MAINTAINER_RELEASE_RUNBOOK.md` - maintainer-only release / rehearsal / custody appendix
+- Release hygiene: public GitHub docs stay on the files above; local caches / coverage / benchmark outputs / scratch artifacts are not part of the release tree
 - `CODE_OF_CONDUCT.md`, `.devcontainer.json`, `custom_components/lipro/quality_scale.yaml` - community expectations, dev environment, and quality-scale declaration

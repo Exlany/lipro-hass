@@ -14,6 +14,15 @@
 - `SECURITY.md`：私密漏洞披露。  
   Private vulnerability disclosure.
 
+## Release Hygiene / 发版清理
+
+- **GitHub-facing release tree / GitHub 发布可见树**：根目录公开入口以 `README.md` / `README_zh.md`、`CONTRIBUTING.md`、`SUPPORT.md`、`SECURITY.md`、`CHANGELOG.md`、`LICENSE` 与 `docs/` 当前文档为准；`.planning/*` 继续保持 maintainer-facing governance / evidence 身份，不作为 public first hop。  
+  Public GitHub release surfaces stay on the root public docs plus current `docs/` pages; `.planning/*` remains maintainer-facing governance/evidence rather than a public first hop.
+- **Must not ride along / 不应随发版混入**：本地生成的 `coverage.*`、`.benchmarks/`、`.mypy_cache/`、`.pytest_cache/`、`.ruff_cache/`、`.venv/`、`__pycache__/`、`*.egg-info/`、scratch files 与一次性 research 输出必须在合并主线 / 发版前清走。  
+  Local generated artifacts, caches, scratch files, and one-off research output must be removed before merge/release.
+- **Execution traces / 执行痕迹**：`.planning/phases/**` 中未被 promoted / referenced 的 `PLAN / CONTEXT / RESEARCH` 仍只是执行痕迹；公开文档不应把它们当作对外发布文档集的一部分。  
+  Non-promoted `PLAN / CONTEXT / RESEARCH` phase assets remain execution traces and must not be treated as part of the public release doc set.
+
 ## Maintainer Appendix / 维护者附录
 
 - `docs/MAINTAINER_RELEASE_RUNBOOK.md`：维护者专用的发版 / rehearsal / custody 附录，不属于 public first hop。  
