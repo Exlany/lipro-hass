@@ -17,6 +17,7 @@ from ..telemetry.models import (
 from ..utils.log_safety import safe_error_placeholder
 from .const import SHARE_REPORT_URL, SHARE_TOKEN_REFRESH_URL
 from .share_client_support import (
+    JsonReadableResponse,
     ResponseHeadersLike,
     SharePayload,
     SubmitVariant,
@@ -57,7 +58,7 @@ class ShareWorkerClientLike(Protocol):
     ) -> dict[str, str]:
         """Build request headers for one upload attempt."""
 
-    def parse_retry_after(self, headers: ResponseHeadersLike) -> float | None:
+    def parse_retry_after(self, headers: object) -> float | None:
         """Parse Retry-After seconds from one response header bag."""
 
     def clear_install_token(self) -> None:
@@ -68,7 +69,7 @@ class ShareWorkerClientLike(Protocol):
 
     async def safe_read_json(
         self,
-        response: aiohttp.ClientResponse,
+        response: JsonReadableResponse,
     ) -> WorkerResponsePayload | None:
         """Best-effort response JSON parsing."""
 
@@ -84,7 +85,7 @@ _SHARE_SUBMIT_ORIGIN = "anonymous_share.submit_share_payload"
 
 
 async def safe_read_json(
-    response: aiohttp.ClientResponse,
+    response: JsonReadableResponse,
 ) -> WorkerResponsePayload | None:
     """Best-effort JSON parsing for Worker responses."""
     try:

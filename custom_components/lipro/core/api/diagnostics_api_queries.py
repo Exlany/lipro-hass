@@ -11,6 +11,7 @@ ResponseMapping = JsonObject
 RequestIotMapping = Callable[..., Awaitable[tuple[JsonObject, str | None]]]
 RequestIotMappingRaw = Callable[..., Awaitable[tuple[JsonObject, str | None]]]
 RequireMappingResponse = Callable[[str, object], JsonObject]
+IotRequest = Callable[..., Awaitable[object]]
 DeviceTypeHexResolver = Callable[[int | str], str]
 
 
@@ -37,7 +38,7 @@ async def query_command_result(
 
 async def get_city(
     *,
-    iot_request,
+    iot_request: IotRequest,
     require_mapping_response: RequireMappingResponse,
 ) -> ResponseMapping:
     """Get current city metadata from IoT backend."""

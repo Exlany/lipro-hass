@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from types import SimpleNamespace
+from typing import cast
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -15,6 +17,8 @@ from custom_components.lipro import (
     async_unload_entry,
 )
 from custom_components.lipro.const.base import DOMAIN
+from custom_components.lipro.control.runtime_access_types import RuntimeEntryPort
+from custom_components.lipro.runtime_types import LiproCoordinator
 from tests.helpers.service_call import service_call
 
 
@@ -177,7 +181,7 @@ def test_build_runtime_entry_view_materializes_typed_read_model() -> None:
     entry = SimpleNamespace(
         entry_id="entry-1",
         options={"debug_mode": True},
-        runtime_data=coordinator,
+        runtime_data=cast(LiproCoordinator, coordinator),
     )
 
     view = build_runtime_entry_view(entry)
@@ -196,10 +200,20 @@ def test_build_runtime_entry_view_materializes_typed_read_model() -> None:
 def test_build_runtime_entry_view_accepts_slots_backed_runtime_ports() -> None:
     from custom_components.lipro.control.runtime_access import build_runtime_entry_view
 
-    class SlotBackedEntry:
+    class SlotBackedEntry(RuntimeEntryPort):
         __slots__ = ("entry_id", "options", "runtime_data")
 
-        def __init__(self, *, entry_id: str, options: dict[str, object], runtime_data: object) -> None:
+        entry_id: str
+        options: Mapping[str, object]
+        runtime_data: LiproCoordinator | None
+
+        def __init__(
+            self,
+            *,
+            entry_id: str,
+            options: Mapping[str, object],
+            runtime_data: LiproCoordinator | None,
+        ) -> None:
             self.entry_id = entry_id
             self.options = options
             self.runtime_data = runtime_data
@@ -212,10 +226,10 @@ def test_build_runtime_entry_view_accepts_slots_backed_runtime_ports() -> None:
         telemetry_service=SimpleNamespace(build_snapshot=lambda: {"slot": "ok"}),
         devices={},
     )
-    entry = SlotBackedEntry(
+    entry: RuntimeEntryPort = SlotBackedEntry(
         entry_id="entry-slot",
         options={"debug_mode": False},
-        runtime_data=coordinator,
+        runtime_data=cast(LiproCoordinator, coordinator),
     )
 
     view = build_runtime_entry_view(entry)

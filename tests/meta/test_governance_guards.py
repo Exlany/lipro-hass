@@ -349,6 +349,6 @@ def test_phase_60_tooling_closeout_is_frozen_in_current_story_truth() -> None:
     assert "| TST-12 | Phase 60 | Complete |" in requirements_text
     assert "| GOV-44 | Phase 60 | Complete |" in requirements_text
     assert ".planning/v1.13-MILESTONE-AUDIT.md" in state_text
-    assert "$gsd-new-milestone" in state_text
+    assert "$gsd-complete-milestone v1.15" in state_text
     assert "scripts/check_file_matrix_inventory.py" in file_matrix_text
     assert "tests/meta/toolchain_truth_python_stack.py" in file_matrix_text

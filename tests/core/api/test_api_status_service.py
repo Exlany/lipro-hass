@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from types import SimpleNamespace
+from typing import TYPE_CHECKING, cast
 from unittest.mock import ANY, AsyncMock, MagicMock
 
 import pytest
@@ -21,6 +22,9 @@ from custom_components.lipro.core.api.status_service import (
     query_connect_status,
     query_device_status,
 )
+
+if TYPE_CHECKING:
+    from custom_components.lipro.core.api.rest_facade import LiproRestFacade
 
 
 class DummyApiError(Exception):
@@ -268,20 +272,24 @@ async def test_query_device_status_reports_batch_metrics_with_fallback_depth() -
 async def test_rest_endpoint_surface_forwards_typed_batch_metric_callback() -> None:
     rows = [{"deviceId": "a"}]
     on_batch_metric = MagicMock()
-    port = SimpleNamespace(
-        _status_endpoints=SimpleNamespace(
-            query_device_status=AsyncMock(return_value=rows)
-        )
+    status_endpoints = SimpleNamespace(
+        query_device_status=AsyncMock(return_value=rows)
     )
 
-    result = await RestEndpointSurface(port).query_device_status(
+    result = await RestEndpointSurface(
+        device_endpoints=MagicMock(),
+        status_endpoints=status_endpoints,
+        command_endpoints=MagicMock(),
+        misc_endpoints=MagicMock(),
+        schedule_endpoints=MagicMock(),
+    ).query_device_status(
         ["a"],
         max_devices_per_query=7,
         on_batch_metric=on_batch_metric,
     )
 
     assert result == rows
-    port._status_endpoints.query_device_status.assert_awaited_once_with(
+    status_endpoints.query_device_status.assert_awaited_once_with(
         ["a"],
         max_devices_per_query=7,
         on_batch_metric=on_batch_metric,
@@ -307,21 +315,24 @@ async def test_rest_facade_misc_endpoint_wrappers_preserve_payload_contracts() -
         get_city=AsyncMock(return_value=city_payload),
         query_user_cloud=AsyncMock(return_value=user_cloud_payload),
     )
-    facade = SimpleNamespace(_endpoint_surface=surface)
+    facade = cast(
+        object,
+        SimpleNamespace(_endpoint_surface=surface),
+    )
 
-    assert await rest_facade_endpoint_methods.get_mqtt_config(facade) == mqtt_payload
+    assert await rest_facade_endpoint_methods.get_mqtt_config(cast("LiproRestFacade", facade)) == mqtt_payload
     assert (
         await rest_facade_endpoint_methods.query_command_result(
-            facade,
+            cast("LiproRestFacade", facade),
             msg_sn="msg-1",
             device_id="mesh_group_1",
             device_type="ff000001",
         )
         == command_result_payload
     )
-    assert await rest_facade_endpoint_methods.get_city(facade) == city_payload
+    assert await rest_facade_endpoint_methods.get_city(cast("LiproRestFacade", facade)) == city_payload
     assert (
-        await rest_facade_endpoint_methods.query_user_cloud(facade)
+        await rest_facade_endpoint_methods.query_user_cloud(cast("LiproRestFacade", facade))
         == user_cloud_payload
     )
 

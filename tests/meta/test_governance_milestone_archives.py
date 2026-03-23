@@ -150,7 +150,7 @@ def test_milestone_archive_snapshots_exist_and_are_referenced() -> None:
         assert needle in requirements_text or needle in project_text or needle in milestones_text
 
     assert "v1.13-MILESTONE-AUDIT.md" in state_text
-    assert "$gsd-new-milestone" in state_text
+    assert "$gsd-complete-milestone v1.15" in state_text
     assert "archived / evidence-ready" in milestones_text
     assert "archived snapshots created / handoff-ready" in milestones_text
     assert "revalidated 2026-03-17" in milestones_text
@@ -327,7 +327,7 @@ def test_governance_truth_registers_v1_14_archive_lineage() -> None:
     assert "## v1.14 Governance Truth Realignment, Typed Runtime Access & Final Hidden-Root Closure" in milestones_text
     assert ".planning/reviews/V1_14_EVIDENCE_INDEX.md" in milestones_text
     assert ".planning/reviews/V1_14_EVIDENCE_INDEX.md" in docs_text
-    assert "当前无 active milestone route" in docs_text
+    assert "当前 active milestone route：`v1.15 / Phase 67`" in docs_text
     assert "V1_14_EVIDENCE_INDEX.md" in runbook_text
-    assert "$gsd-new-milestone" in project_text
-    assert "$gsd-new-milestone" in state_text
+    assert "$gsd-complete-milestone v1.15" in project_text
+    assert "$gsd-complete-milestone v1.15" in state_text

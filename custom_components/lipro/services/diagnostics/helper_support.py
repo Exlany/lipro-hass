@@ -134,9 +134,14 @@ async def _async_get_first_authenticated_coordinator_capability_result(
     last_api_error: LiproApiError | None = None
     for coordinator in coordinators:
         try:
+            def _collector_call(
+                coordinator_ref: DiagnosticsCoordinator = coordinator,
+            ) -> Awaitable[_ResultT]:
+                return collector(coordinator_ref)
+
             has_result, result, captured_error = await async_capture_coordinator_call(
                 coordinator,
-                call=lambda coordinator=coordinator: collector(coordinator),
+                call=_collector_call,
             )
             if has_result:
                 return True, result, None

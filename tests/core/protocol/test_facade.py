@@ -2,11 +2,14 @@
 
 from __future__ import annotations
 
-from typing import ClassVar
+from collections.abc import Mapping
+from typing import Any, ClassVar, cast
 from unittest.mock import AsyncMock, MagicMock, patch
 
+import aiohttp
 import pytest
 
+from custom_components.lipro.core.api.client import LiproRestFacade
 from custom_components.lipro.core.api.request_policy import RequestPolicy
 from custom_components.lipro.core.api.session_state import RestSessionState
 from custom_components.lipro.core.protocol.diagnostics_context import (
@@ -16,6 +19,11 @@ from custom_components.lipro.core.protocol.facade import LiproProtocolFacade
 from custom_components.lipro.core.protocol.mqtt_facade import LiproMqttFacade
 from custom_components.lipro.core.protocol.session import ProtocolSessionState
 from custom_components.lipro.core.protocol.telemetry import ProtocolTelemetry
+
+
+def _as_mapping(value: object) -> Mapping[str, object]:
+    assert isinstance(value, Mapping)
+    return value
 
 
 class _FakeRestFacade:
@@ -81,7 +89,7 @@ def _build_mqtt_facade(
 def test_protocol_facade_builds_rest_child_from_shared_state_and_policy() -> None:
     _FakeRestFacade.created.clear()
     request_policy = RequestPolicy()
-    session = object()
+    session = cast(aiohttp.ClientSession, MagicMock(spec=aiohttp.ClientSession))
     session_state = RestSessionState(
         phone_id="test-phone-id",
         session=None,
@@ -96,11 +104,11 @@ def test_protocol_facade_builds_rest_child_from_shared_state_and_policy() -> Non
         entry_id="entry-1",
         session_state=session_state,
         request_policy=request_policy,
-        rest_facade_factory=_FakeRestFacade,
+        rest_facade_factory=cast(type[LiproRestFacade], _FakeRestFacade),
     )
 
     rest = _FakeRestFacade.created[-1]
-    assert facade.rest is rest
+    assert cast(object, facade.rest) is rest
     assert rest.phone_id == "test-phone-id"
     assert rest.session is session
     assert rest.request_timeout == 45
@@ -125,7 +133,7 @@ def test_attach_mqtt_facade_updates_active_child_and_diagnostics_snapshot() -> N
     facade = LiproProtocolFacade(
         "test-phone-id",
         entry_id="entry-1",
-        rest_facade_factory=_FakeRestFacade,
+        rest_facade_factory=cast(type[LiproRestFacade], _FakeRestFacade),
     )
     mqtt_facade = _build_mqtt_facade()
 
@@ -135,9 +143,12 @@ def test_attach_mqtt_facade_updates_active_child_and_diagnostics_snapshot() -> N
     assert facade.mqtt is mqtt_facade
     assert facade.biz_id == "mqtt-biz"
     assert snapshot["entry_id"] == "entry-1"
-    assert snapshot["session"]["biz_id"] == "mqtt-biz"
-    assert snapshot["telemetry"]["mqtt_connected"] is True
-    assert snapshot["telemetry"]["mqtt_subscribed_count"] == 2
+    session_snapshot = _as_mapping(snapshot["session"])
+    telemetry_snapshot = _as_mapping(snapshot["telemetry"])
+
+    assert session_snapshot["biz_id"] == "mqtt-biz"
+    assert telemetry_snapshot["mqtt_connected"] is True
+    assert telemetry_snapshot["mqtt_subscribed_count"] == 2
     assert snapshot["auth_recovery"] == {"refresh_attempts": 2}
 
 
@@ -145,7 +156,7 @@ def test_build_mqtt_facade_uses_shared_protocol_state() -> None:
     facade = LiproProtocolFacade(
         "test-phone-id",
         entry_id="entry-1",
-        rest_facade_factory=_FakeRestFacade,
+        rest_facade_factory=cast(type[LiproRestFacade], _FakeRestFacade),
     )
     fake_mqtt = MagicMock()
     fake_mqtt.protocol_session_state.biz_id = "biz-77"
@@ -196,6 +207,6 @@ async def test_mqtt_facade_wait_until_connected_records_transport_error_after_su
     connected = await mqtt_facade.wait_until_connected(timeout=3.0)
 
     assert connected is True
-    mqtt_facade._transport.wait_until_connected.assert_awaited_once_with(timeout=3.0)
+    cast(Any, mqtt_facade._transport.wait_until_connected).assert_awaited_once_with(timeout=3.0)
     assert mqtt_facade.telemetry.mqtt_last_error_type == "RuntimeError"
     assert mqtt_facade.telemetry.mqtt_last_error_stage == "transport"

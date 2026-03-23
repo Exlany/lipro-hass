@@ -16,6 +16,7 @@
 - ✅ **v1.11 Repository Audit Refresh & Next-Wave Remediation Routing** - formal milestone opened on 2026-03-22 from the renewed full-repository audit request; Phase 58 completed on 2026-03-22 with refreshed repo-wide audit evidence and now serves as the closeout-ready seed baseline for v1.12
 - ✅ **v1.10 Command-Result Typed Outcome & Reason-Code Hardening** - formal milestone opened on 2026-03-22 from the Phase 56 deferred follow-up route; Phase 57 completed on 2026-03-22 with promoted closeout evidence and now serves as the closeout-ready seed baseline for v1.11
 
+- 🚧 **v1.15 Typed Contract Convergence, Tooling Kernel Hardening & Mypy Closure** - opened on 2026-03-23 from `v1.14` archived evidence; active route starts at `Phase 67`; default next command: `$gsd-complete-milestone v1.15`
 - ✅ **v1.14 Governance Truth Realignment, Typed Runtime Access & Final Hidden-Root Closure** - `Phase 63 -> 66` archived on 2026-03-23; milestone audit: `.planning/v1.14-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_14_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.14-ROADMAP.md` / `.planning/milestones/v1.14-REQUIREMENTS.md`
 
 ## Required Phase Outputs
@@ -1221,6 +1222,37 @@ Plans:
 - [x] 59-01: topicize governance and public-surface megaguards by stable truth family (completed 2026-03-22)
 - [x] 59-02: split `test_device_refresh.py` by parsing, filter semantics, snapshot building, and runtime behavior concerns (completed 2026-03-22)
 - [x] 59-03: freeze localized verification topology in matrices, current-story docs, and focused guards (completed 2026-03-22)
+
+## v1.15: Typed Contract Convergence, Tooling Kernel Hardening & Mypy Closure
+
+**Milestone Goal:** 以 `v1.14` archived evidence 为起点，把 telemetry / REST / anonymous-share / control telemetry surface / service-handler fixtures / YAML-meta helpers 的 typed contract 漂移沿正式主链一次性收口，并让 `uv run mypy` 与既有 `ruff / pytest / architecture policy / file matrix` 同轮恢复绿色。
+
+> `v1.15` 于 `2026-03-23` 打开；当前 `uv run mypy --follow-imports=silent .` 已归零，说明 typed contract 主缝已收口；本里程碑剩余职责是把 Phase 67 的执行证据、governance current-story 与 repo-wide quality gates 一并冻结，而不是让 docs/tests 停留在 `v1.14 archived` 的旧叙事。
+
+**Current status:** `Phase 67 complete (2026-03-23)`
+**Starting baseline:** `.planning/v1.14-MILESTONE-AUDIT.md`, `.planning/reviews/V1_14_EVIDENCE_INDEX.md`, `.planning/milestones/v1.14-ROADMAP.md`, `.planning/milestones/v1.14-REQUIREMENTS.md`
+**Requirements basket:** `GOV-51`, `TYP-19`, `ARC-14`, `HOT-23`, `TST-17`, `QLT-25`
+**Default next command:** `$gsd-complete-milestone v1.15`
+
+### Phase 67: Typed contract convergence, telemetry/toolchain hardening, and mypy closure
+
+**Goal:** 把 telemetry failure-summary / sink / exporter、REST endpoint ports、anonymous-share submit manager、RuntimeAccess telemetry bridges、toolchain YAML readers 与 service-handler test fixtures 收口到显式 typed contracts；`uv run mypy` 必须 zero-error，同时保持 `ruff`、architecture policy、file matrix 与全量回归继续全绿。
+**Depends on:** Phase 66
+**Requirements**: [GOV-51, TYP-19, ARC-14, HOT-23, TST-17, QLT-25]
+**Success Criteria**:
+  1. `uv run mypy` returns `Success: no issues found`，且 telemetry / REST / anonymous-share / toolchain / test-helper seams 不再依赖 broad `object`、untyped YAML 或 union indexing folklore。
+  2. `custom_components/lipro/core/telemetry/*`、`custom_components/lipro/core/api/rest_facade.py`、`custom_components/lipro/core/anonymous_share/*`、`custom_components/lipro/control/*` 与相关 tests 通过 Protocol / TypedDict / typed helper 达成单一 contract truth，而不是增加新的 compat shell。
+  3. `uv run ruff check .`、`uv run python scripts/check_architecture_policy.py --check`、`uv run python scripts/check_file_matrix.py --check`、focused pytest 与 `uv run pytest -q` 同轮通过，证明 closeout 不是 type-only 消音。
+**Status**: Complete (`2026-03-23`)
+**Plans**: 6/6 complete
+
+Plans:
+- [x] 67-01: converge telemetry failure-summary, sinks, runtime-control bridges, and exporter/replay test narrowing
+- [x] 67-02: normalize REST/auth ports and anonymous-share submit contracts
+- [x] 67-03: replace broad service-handler test doubles with localized typed fixture surfaces
+- [x] 67-04: tighten runtime/control wiring callable annotations and focused adapter tests
+- [x] 67-05: harden toolchain, release, and blueprint typing with localized YAML loaders and narrowing helpers
+- [x] 67-06: freeze v1.15 current-story truth and prove repo-wide gate closure
 
 ## v1.14: Governance Truth Realignment, Typed Runtime Access & Final Hidden-Root Closure
 

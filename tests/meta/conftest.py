@@ -56,6 +56,33 @@ def _load_json(path: Path) -> dict[str, object]:
     return loaded
 
 
+def _as_mapping(value: object) -> dict[str, object]:
+    assert isinstance(value, dict)
+    return value
+
+
+def _as_mapping_list(value: object) -> list[dict[str, object]]:
+    assert isinstance(value, list)
+    assert all(isinstance(item, dict) for item in value)
+    return value
+
+
+def _as_str(value: object) -> str:
+    assert isinstance(value, str)
+    return value
+
+
+def _as_bool(value: object) -> bool:
+    assert isinstance(value, bool)
+    return value
+
+
+def _as_str_list(value: object) -> list[str]:
+    assert isinstance(value, list)
+    assert all(isinstance(item, str) for item in value)
+    return value
+
+
 
 def _extract_markdown_section(text: str, heading_fragment: str) -> str:
     match = re.search(
@@ -177,6 +204,11 @@ __all__ = [
     "_SECURITY",
     "_SUPPORT",
     "_TROUBLESHOOTING",
+    "_as_bool",
+    "_as_mapping",
+    "_as_mapping_list",
+    "_as_str",
+    "_as_str_list",
     "_assert_current_mode_tracks_phase_lifecycle",
     "_assert_state_preserves_phase_17_closeout_history",
     "_count_numbered_markdown_items",

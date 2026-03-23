@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable
+from collections.abc import Awaitable, Callable
 from typing import NoReturn
 
 from homeassistant.core import HomeAssistant, ServiceCall
 
 from ...core import LiproApiError
 from .types import (
+    CapabilityPayload,
     CapabilityResponse,
     DiagnosticsCoordinator,
     GetDeviceAndCoordinator,
@@ -19,6 +20,9 @@ from .types import (
     SensorHistoryResultBuilder,
 )
 
+CapabilityResultGetter = Callable[..., Awaitable[tuple[bool, CapabilityPayload | None, LiproApiError | None]]]
+RequiredServiceStringGetter = Callable[[ServiceCall, str], str]
+
 
 async def async_handle_get_city(
     hass: HomeAssistant,
@@ -26,7 +30,7 @@ async def async_handle_get_city(
     *,
     iter_runtime_coordinators: RuntimeCoordinatorIterator,
     raise_optional_error: Callable[[str, LiproApiError], NoReturn],
-    async_get_first_authenticated_coordinator_capability_result,
+    async_get_first_authenticated_coordinator_capability_result: CapabilityResultGetter,
     service_get_city: str,
 ) -> CapabilityResponse:
     """Handle the get_city service."""
@@ -49,7 +53,7 @@ async def async_handle_query_user_cloud(
     *,
     iter_runtime_coordinators: RuntimeCoordinatorIterator,
     raise_optional_error: Callable[[str, LiproApiError], NoReturn],
-    async_get_first_authenticated_coordinator_capability_result,
+    async_get_first_authenticated_coordinator_capability_result: CapabilityResultGetter,
     service_query_user_cloud: str,
 ) -> CapabilityResponse:
     """Handle the query_user_cloud service."""
@@ -73,7 +77,7 @@ async def _async_handle_fetch_sensor_history(
     get_device_and_coordinator: GetDeviceAndCoordinator,
     async_call_optional_capability: OptionalCapabilityCaller,
     build_sensor_history_result: SensorHistoryResultBuilder,
-    get_required_service_string,
+    get_required_service_string: RequiredServiceStringGetter,
     attr_sensor_device_id: str,
     attr_mesh_type: str,
     service_name: str,
@@ -107,7 +111,7 @@ async def async_handle_fetch_body_sensor_history(
     get_device_and_coordinator: GetDeviceAndCoordinator,
     async_call_optional_capability: OptionalCapabilityCaller,
     build_sensor_history_result: SensorHistoryResultBuilder,
-    get_required_service_string,
+    get_required_service_string: RequiredServiceStringGetter,
     attr_sensor_device_id: str,
     attr_mesh_type: str,
     service_fetch_body_sensor_history: str,
@@ -136,7 +140,7 @@ async def async_handle_fetch_door_sensor_history(
     get_device_and_coordinator: GetDeviceAndCoordinator,
     async_call_optional_capability: OptionalCapabilityCaller,
     build_sensor_history_result: SensorHistoryResultBuilder,
-    get_required_service_string,
+    get_required_service_string: RequiredServiceStringGetter,
     attr_sensor_device_id: str,
     attr_mesh_type: str,
     service_fetch_door_sensor_history: str,

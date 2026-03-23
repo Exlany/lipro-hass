@@ -177,33 +177,35 @@ def test_to_device_type_hex_accepts_decimal_strings_and_rejects_invalid_format()
 def test_sync_session_updates_state_and_transport_core() -> None:
     executor = _build_executor()
     new_session = MagicMock(spec=aiohttp.ClientSession)
-    executor._transport_core.set_session = MagicMock()
 
-    executor.sync_session(new_session)
+    with patch.object(executor._transport_core, "set_session") as set_session:
+        executor.sync_session(new_session)
 
     assert executor._state.session is new_session
-    executor._transport_core.set_session.assert_called_once_with(new_session)
+    set_session.assert_called_once_with(new_session)
 
 
 def test_close_clears_state_and_transport_core_session() -> None:
     executor = _build_executor()
-    executor._transport_core.close_session = MagicMock()
 
-    executor.close()
+    with patch.object(executor._transport_core, "close_session") as close_session:
+        executor.close()
 
     assert executor._state.session is None
-    executor._transport_core.close_session.assert_called_once_with()
+    close_session.assert_called_once_with()
 
 
 def test_build_iot_headers_uses_current_token_nonce_and_signature() -> None:
     executor = _build_executor()
     executor._state.access_token = "access-token"
-    executor.get_timestamp_ms = MagicMock(return_value=1234567890)
-    executor.iot_sign = MagicMock(return_value="signed-payload")
 
-    headers = executor.build_iot_headers('{"hello":"world"}')
+    with (
+        patch.object(executor, "get_timestamp_ms", return_value=1234567890),
+        patch.object(executor, "iot_sign", return_value="signed-payload") as iot_sign,
+    ):
+        headers = executor.build_iot_headers('{"hello":"world"}')
 
     assert headers[HEADER_ACCESS_TOKEN] == "access-token"
     assert headers[HEADER_NONCE] == "1234567890"
     assert headers[HEADER_SIGN] == "signed-payload"
-    executor.iot_sign.assert_called_once_with(1234567890, '{"hello":"world"}')
+    iot_sign.assert_called_once_with(1234567890, '{"hello":"world"}')

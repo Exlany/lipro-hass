@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from typing import Protocol
 
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.exceptions import ServiceValidationError
 
+from ..runtime_types import LiproCoordinator
 from .contracts import RefreshDevicesResult
 
 
@@ -23,7 +25,7 @@ class RefreshCoordinatorLike(Protocol):
     device_refresh_service: DeviceRefreshServiceLike
 
 
-type RuntimeEntryCoordinator = tuple[object, RefreshCoordinatorLike]
+type RuntimeEntryCoordinator = tuple[object, LiproCoordinator]
 
 
 class RuntimeEntryCoordinatorProvider(Protocol):
@@ -34,7 +36,7 @@ class RuntimeEntryCoordinatorProvider(Protocol):
         hass: HomeAssistant,
         *,
         entry_id: str | None = None,
-    ) -> list[RuntimeEntryCoordinator]:
+    ) -> Sequence[RuntimeEntryCoordinator]:
         """Return loaded runtime entry/coordinator pairs."""
 
 

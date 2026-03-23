@@ -1,9 +1,28 @@
 # Project: Lipro-HASS North Star Evolution
 
-**Status:** Shipped and archived — 当前无 active milestone；`v1.14` 已于 `2026-03-23` 完成 archive promotion，最新 archive-ready closeout pointer 已提升为 `v1.14`。下一轮正式路线必须从 `.planning/reviews/V1_14_EVIDENCE_INDEX.md` 与 `.planning/milestones/v1.14-*.md` 打开；`v1.13` 退为上一条 archive baseline，`v1.6` 仅保留为最近 shipped release historical baseline。
-**Goal:** 以 `v1.14` archived evidence 为新的 closeout baseline，下一轮只允许通过 fresh milestone route 继续推进，不重开已归档的 governance/runtime/share/protocol hotspots。
-**Default next step:** `$gsd-new-milestone`
-**Audit verdict:** `.planning/v1.14-MILESTONE-AUDIT.md`、`.planning/reviews/V1_14_EVIDENCE_INDEX.md` 与 `.planning/milestones/v1.14-{ROADMAP,REQUIREMENTS}.md` 已落盘，当前状态为 `archived / evidence-ready`。
+**Status:** Active milestone — `v1.15` 已完成 `Phase 67` 全部执行与门禁归绿；当前正式状态是 milestone closeout-ready，等待归档到新的 archived evidence。
+**Goal:** 以 `.planning/v1.14-MILESTONE-AUDIT.md`、`.planning/reviews/V1_14_EVIDENCE_INDEX.md` 与 `.planning/milestones/v1.14-{ROADMAP,REQUIREMENTS}.md` 为起点，沿单一正式主链完成 repo-wide mypy closure、formal port/type contract convergence、测试夹具 typed narrowing 与 governance current-story 冻结。
+**Default next step:** `$gsd-complete-milestone v1.15`
+**Active baseline:** `v1.14` 继续作为 latest archived baseline；`v1.15` 只允许通过新的 milestone / phase route 推进，不重开已归档的 `63 -> 66` closeout 叙事。
+
+## Current Milestone (v1.15)
+
+**Name:** `v1.15 Typed Contract Convergence, Tooling Kernel Hardening & Mypy Closure`
+
+**Why now:** 最新全仓复审已证明 lint、architecture policy、file matrix 与 full pytest 都已恢复绿色，但 `uv run mypy` 仍报告 `339` 个错误，集中暴露了 telemetry typed dict / JSON-safe sink、REST endpoint ports、anonymous-share submit manager、control telemetry surface、service-handler 测试夹具与 YAML/meta/toolchain 解析辅助的 formal contract 漂移。只要这些裂隙继续存在，`v1.14` 的 archive-ready story 仍缺少“类型系统真相”这一最后硬门。
+
+**North-star fit:** `v1.15` 继续沿单一正式主链推进：
+
+- typed contract 必须收口到 protocol/runtime/control/test/tooling 的显式 formal ports，而不是继续允许 `object` / broad `dict[str, object]` / implicit union indexing 充当真源
+- telemetry / anonymous-share / REST hotspots 只允许 inward tighten，不得引入新 public surface、compat shell 或 second root
+- 测试夹具与 meta/toolchain helpers 只允许通过 Protocol、typed loader、narrowing helper 收口，不得继续依赖“运行时能跑即可”的弱类型 folklore
+- 本轮 closeout 必须让 `mypy + ruff + architecture policy + file matrix + targeted pytest + full pytest` 同轮全绿，证明不是表面消音
+
+**Phase range:** `Phase 67 -> 67`
+**Current status:** `Phase 67 complete (2026-03-23); milestone closeout-ready`
+**Starting baseline:** `.planning/v1.14-MILESTONE-AUDIT.md`, `.planning/reviews/V1_14_EVIDENCE_INDEX.md`, `.planning/milestones/v1.14-ROADMAP.md`, `.planning/milestones/v1.14-REQUIREMENTS.md`
+**Requirements basket:** `GOV-51`, `TYP-19`, `ARC-14`, `HOT-23`, `TST-17`, `QLT-25`
+**Default next command:** `$gsd-complete-milestone v1.15`
 
 ## Latest Archived Milestone (v1.14)
 

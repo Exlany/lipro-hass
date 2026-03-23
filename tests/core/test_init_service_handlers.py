@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock
 
 from custom_components.lipro.core.device import LiproDevice
+from tests.conftest import _CoordinatorDouble
 
 
 class _InitServiceHandlerBase:
@@ -23,29 +24,21 @@ class _InitServiceHandlerBase:
         )
 
     @staticmethod
-    def _materialize_runtime_lookup_surface(coordinator: object) -> object:
-        """Bind explicit runtime lookup members so runtime-access sees one honest coordinator."""
-        members = vars(coordinator)
-        if "devices" not in members:
-            coordinator.devices = {}
-        if "get_device" not in members:
-            coordinator.get_device = MagicMock(return_value=None)
-        if "get_device_by_id" not in members:
-            coordinator.get_device_by_id = MagicMock(return_value=None)
-        return coordinator
-
-    @classmethod
-    def _create_runtime_coordinator(cls) -> object:
+    def _create_runtime_coordinator() -> _CoordinatorDouble:
         """Create one explicit runtime coordinator test double."""
-        return cls._materialize_runtime_lookup_surface(MagicMock())
+        return _CoordinatorDouble()
 
     @classmethod
-    def _attach_auth_service(cls, coordinator: object) -> object:
-        """Attach the formal async auth and protocol surfaces expected by services."""
-        coordinator = cls._materialize_runtime_lookup_surface(coordinator)
-        coordinator.auth_service = MagicMock(
-            async_ensure_authenticated=AsyncMock(),
-            async_trigger_reauth=AsyncMock(),
+    def _attach_auth_service(
+        cls,
+        coordinator: _CoordinatorDouble | object | None = None,
+    ) -> _CoordinatorDouble:
+        """Attach the formal async auth surface expected by service handlers."""
+        runtime = (
+            coordinator
+            if isinstance(coordinator, _CoordinatorDouble)
+            else cls._create_runtime_coordinator()
         )
-        coordinator.protocol_service = MagicMock()
-        return coordinator
+        runtime.auth_service.async_ensure_authenticated = AsyncMock()
+        runtime.auth_service.async_trigger_reauth = AsyncMock()
+        return runtime

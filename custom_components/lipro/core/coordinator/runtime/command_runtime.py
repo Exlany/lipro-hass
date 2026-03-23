@@ -4,12 +4,13 @@ from __future__ import annotations
 
 from collections import deque
 import logging
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 from ...api import LiproApiError, LiproAuthError, LiproRefreshTokenExpiredError
 from ...command.result import (
     COMMAND_FAILURE_REASON_COMMAND_RESULT_FAILED,
     COMMAND_FAILURE_REASON_COMMAND_RESULT_UNCONFIRMED,
+    CommandFailurePayload,
     apply_missing_msg_sn_failure,
     apply_push_failure,
     apply_successful_command_trace,
@@ -46,12 +47,12 @@ def _coerce_error_type(trace: CommandTrace) -> str | None:
 def _copy_summary(
     summary: CommandFailureSummary | None,
 ) -> CommandFailureSummary | None:
-    return dict(summary) if summary else None
+    return cast(CommandFailureSummary, dict(summary)) if summary else None
 
 
 def _build_failure_summary(
     *,
-    failure: dict[str, Any],
+    failure: CommandFailurePayload,
     error_type: str | None,
     reauth_reason: CommandReauthReason | None = None,
 ) -> CommandFailureSummary:
@@ -147,7 +148,7 @@ class CommandRuntime:
         self,
         *,
         trace: CommandTrace,
-        failure: dict[str, Any],
+        failure: CommandFailurePayload,
         error_type: str | None,
         reauth_reason: CommandReauthReason | None = None,
     ) -> CommandFailureSummary:
@@ -160,7 +161,7 @@ class CommandRuntime:
         self._last_failure = trace
         self._last_failure_summary = summary
         self._record_trace(trace)
-        return dict(summary)
+        return cast(CommandFailureSummary, dict(summary))
 
     def filter_pending_state_properties(
         self,

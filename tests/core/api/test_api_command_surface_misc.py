@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from custom_components.lipro.core.api.types import JsonObject
+
 from .conftest import (
     AsyncMock,
     LiproApiError,
@@ -250,7 +252,7 @@ class TestLiproRestFacadeAdditionalBranchCoverage:
 
     def test_unwrap_iot_success_payload_without_data_returns_original(self):
         """IoT success unwrapping should keep original payload when data key is absent."""
-        payload = {"code": 200, "message": "ok"}
+        payload: JsonObject = {"code": 200, "message": "ok"}
         assert LiproRestFacade._unwrap_iot_success_payload(payload) == payload
 
     @pytest.mark.asyncio

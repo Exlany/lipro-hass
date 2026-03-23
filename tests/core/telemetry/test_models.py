@@ -20,6 +20,7 @@ from custom_components.lipro.core.telemetry.models import (
     build_failure_summary,
     build_operation_outcome,
     build_operation_outcome_from_exception,
+    empty_failure_summary,
     extract_failure_summary,
 )
 
@@ -51,12 +52,65 @@ def test_snapshot_and_views_are_json_friendly() -> None:
         protocol={"telemetry": {"mqtt_connected": True}},
         runtime={"device_count": 2},
     )
+    failure_summary = empty_failure_summary()
     views = TelemetryViews(
         snapshot=snapshot,
-        diagnostics={"schema_version": "telemetry.v1"},
-        system_health={"device_count": 2},
-        developer={"debug": True},
-        ci={"summary": {"device_count": 2}},
+        diagnostics={
+            "schema_version": "telemetry.v1",
+            "report_id": "report_1",
+            "generated_at": 123.0,
+            "entry_ref": "entry_deadbeef",
+            "failure_summary": failure_summary,
+            "protocol": snapshot.protocol,
+            "runtime": snapshot.runtime,
+        },
+        system_health={
+            "schema_version": "telemetry.v1",
+            "report_id": "report_1",
+            "generated_at": 123.0,
+            "entry_ref": "entry_deadbeef",
+            "failure_summary": failure_summary,
+            "device_count": 2,
+            "polling_interval_seconds": None,
+            "last_update_success": None,
+            "mqtt_connected": None,
+            "mqtt_disconnect_notified": None,
+            "mqtt_last_transport_error": None,
+            "command_trace_count": 0,
+            "command_confirmation_avg_latency_seconds": None,
+            "command_confirmation_timeout_total": 0,
+            "connect_state_event_count": 0,
+            "group_reconciliation_request_count": 0,
+            "refresh_avg_latency_seconds": None,
+            "protocol_mqtt_last_error_type": None,
+            "auth_refresh_success_count": 0,
+            "auth_refresh_failure_count": 0,
+        },
+        developer={
+            "schema_version": "telemetry.v1",
+            "report_id": "report_1",
+            "generated_at": 123.0,
+            "entry_ref": "entry_deadbeef",
+            "failure_summary": failure_summary,
+            "protocol": snapshot.protocol,
+            "runtime": snapshot.runtime,
+            "protocol_session_flags": {},
+        },
+        ci={
+            "schema_version": "telemetry.v1",
+            "report_id": "report_1",
+            "generated_at": 123.0,
+            "entry_ref": "entry_deadbeef",
+            "summary": {
+                "device_count": 2,
+                "mqtt_connected": None,
+                "command_trace_count": 0,
+                "connect_state_event_count": 0,
+                "command_confirmation_timeout_total": 0,
+                "refresh_avg_latency_seconds": None,
+                "auth_refresh_success_count": 0,
+            },
+        },
     )
 
     assert snapshot.to_dict()["entry_ref"] == "entry_deadbeef"

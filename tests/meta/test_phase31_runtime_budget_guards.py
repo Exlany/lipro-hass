@@ -131,8 +131,8 @@ _BROAD_CATCH_BUDGET: dict[str, _BroadCatchBudgetEntry] = {
     },
 }
 
-_REPO_WIDE_PRODUCTION_ANY_EXPECTED = 328
-_REPO_WIDE_TESTS_ANY_NON_META_EXPECTED = 142
+_REPO_WIDE_PRODUCTION_ANY_EXPECTED = 318
+_REPO_WIDE_TESTS_ANY_NON_META_EXPECTED = 163
 
 _TESTS_TYPE_IGNORE_BUDGET = {
     "tests/core/coordinator/runtime/test_status_runtime.py": 1,

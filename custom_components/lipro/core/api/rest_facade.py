@@ -74,7 +74,13 @@ class LiproRestFacade:
         self._command_endpoints = CommandEndpoints(self)
         self._misc_endpoints = MiscEndpoints(self)
         self._schedule_endpoints = ScheduleEndpoints(self)
-        self._endpoint_surface = RestEndpointSurface(self)
+        self._endpoint_surface = RestEndpointSurface(
+            device_endpoints=self._device_endpoints,
+            status_endpoints=self._status_endpoints,
+            command_endpoints=self._command_endpoints,
+            misc_endpoints=self._misc_endpoints,
+            schedule_endpoints=self._schedule_endpoints,
+        )
         self._request_gateway = RestRequestGateway(self)
 
     @property

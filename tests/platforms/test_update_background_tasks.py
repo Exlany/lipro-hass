@@ -23,6 +23,13 @@ def _clear_shared_ota_rows_cache():
     rows_cache.clear_shared_ota_rows_cache()
 
 
+def _read_ota_refresh_task(
+    entity: LiproFirmwareUpdateEntity,
+) -> asyncio.Task[None] | None:
+    """Return the current OTA refresh task with an explicit typed read."""
+    return entity._ota_refresh_task
+
+
 @pytest.mark.asyncio
 async def test_async_added_to_hass_loads_manifest_and_schedules_refresh(
     mock_coordinator, make_device
@@ -78,7 +85,7 @@ async def test_async_will_remove_from_hass_logs_task_exception_from_cancel(
     ):
         await entity.async_will_remove_from_hass()
 
-    assert entity._ota_refresh_task is None
+    assert _read_ota_refresh_task(entity) is None
     debug.assert_called_once()
     assert debug.call_args.args[0] == "OTA refresh task failed during removal (%s)"
     assert debug.call_args.args[1] == "RuntimeError"
@@ -148,7 +155,7 @@ async def test_async_finalize_refresh_task_returns_early_when_no_error(
 
         entity._async_finalize_refresh_task(task)
 
-    assert entity._ota_refresh_task is None
+    assert _read_ota_refresh_task(entity) is None
     write_state.assert_not_called()
 
 

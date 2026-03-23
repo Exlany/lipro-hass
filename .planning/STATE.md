@@ -1,14 +1,14 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.14
-milestone_name: Governance Truth Realignment, Typed Runtime Access & Final Hidden-Root Closure
-status: archived
-last_updated: "2026-03-23T18:00:00Z"
+milestone: v1.15
+milestone_name: Typed Contract Convergence, Tooling Kernel Hardening & Mypy Closure
+status: complete
+last_updated: "2026-03-23T23:30:00Z"
 progress:
-  total_phases: 4
-  completed_phases: 4
-  total_plans: 15
-  completed_plans: 15
+  total_phases: 1
+  completed_phases: 0
+  total_plans: 6
+  completed_plans: 6
 ---
 
 # Project State
@@ -17,14 +17,15 @@ progress:
 
 See: `.planning/PROJECT.md`
 
-**Current milestone:** `v1.14 Governance Truth Realignment, Typed Runtime Access & Final Hidden-Root Closure` (archived)
-**Core value:** 以 `v1.13` archived evidence 为基线，先完成治理真相指针 / latest closeout pointer / archive route drift，再把 runtime-access 去反射化、device extras / runtime alias 显式投影、anonymous-share outcome-native submit 契约做成最后一轮根因级收口。
-**Current mode:** `v1.14 archived`。
+**Current milestone:** `v1.15 Typed Contract Convergence, Tooling Kernel Hardening & Mypy Closure`
+**Core value:** 以 `v1.14` archived evidence 为基线，把 telemetry / REST / anonymous-share / control telemetry surface / toolchain-meta helpers / service-handler fixture 的 formal types 一次性收束到诚实、可验证、JSON-safe 的显式契约；`mypy` 必须与既有 `ruff / pytest / architecture policy / file matrix` 同轮归绿。
+**Current mode:** `Phase 67 complete`。
 
 ## Current Position
 
-- `v1.14` 已于 `2026-03-23` 完成 milestone audit、evidence-index closeout 与 archive promotion：`.planning/v1.14-MILESTONE-AUDIT.md`、`.planning/reviews/V1_14_EVIDENCE_INDEX.md`、`.planning/milestones/v1.14-ROADMAP.md` 与 `.planning/milestones/v1.14-REQUIREMENTS.md` 已构成最新 archive-ready baseline。
-- `.planning/v1.14-MILESTONE-AUDIT.md` 给出 `archive_ready / milestone audit passed` 裁决，`.planning/reviews/V1_14_EVIDENCE_INDEX.md` 负责 pull-only closeout indexing；下一步应执行 `$gsd-new-milestone` 打开新的正式路线，而不是重开已归档热点。
+- `v1.15` 已于 `2026-03-23` 从 `v1.14` archived evidence 正式打开；当前 phase route 为 `67-typed-contract-convergence-toolchain-hardening-and-mypy-closure`；`67-01 -> 67-06` 已全部完成，`mypy / ruff / architecture policy / file matrix / governance bundle / full pytest` 已在同轮归绿。
+- `uv run mypy --follow-imports=silent .`、`uv run ruff check .`、`uv run python scripts/check_architecture_policy.py --check`、`uv run python scripts/check_file_matrix.py --check` 与 `uv run pytest -q` 已全部通过；current-story 已冻结到 `v1.15 / Phase 67 complete`。
+- `.planning/phases/67-typed-contract-convergence-toolchain-hardening-and-mypy-closure/67-CONTEXT.md` 已冻结本轮 design boundary、locked decisions 与 canonical refs；对应的 `67-01-PLAN.md` -> `67-06-PLAN.md` 已生成并执行完成；`67-06-SUMMARY.md` 记录了本轮 freeze 与 gate closure。
 - `v1.13` 继续保持 `archived / evidence-ready (2026-03-22)`：`.planning/v1.13-MILESTONE-AUDIT.md`、`.planning/reviews/V1_13_EVIDENCE_INDEX.md`、`.planning/milestones/v1.13-ROADMAP.md` 与 `.planning/milestones/v1.13-REQUIREMENTS.md` 现在作为上一条 archive baseline 保留。
 - `v1.12` 继续保持 localized verification archive baseline：`.planning/v1.12-MILESTONE-AUDIT.md`、`.planning/reviews/V1_12_EVIDENCE_INDEX.md`、`59-SUMMARY.md` 与 `59-VERIFICATION.md` 继续作为 promoted closeout evidence。
 - `v1.11` 继续保留为 refreshed audit seed baseline：`.planning/reviews/V1_11_MILESTONE_SEED.md`、`Phase 58` audit package 与 `58-REMEDIATION-ROADMAP.md` 仍是 `v1.14` follow-through 的历史输入，而不是新的 active milestone。
@@ -47,7 +48,7 @@ See: `.planning/PROJECT.md`
 - **Context & plans:** `.planning/phases/63-governance-truth-realignment-typed-runtime-access-and-hidden-root-closure/63-CONTEXT.md`, `63-01-PLAN.md`, `63-02-PLAN.md`, `63-03-PLAN.md`, `63-04-PLAN.md`, `63-05-PLAN.md`; `.planning/phases/64-telemetry-typing-schedule-contracts-and-diagnostics-hotspot-slimming/64-CONTEXT.md`, `64-01-PLAN.md`, `64-02-PLAN.md`, `64-03-PLAN.md`; `.planning/phases/65-runtime-access-de-reflection-and-anonymous-share-hotspot-closure/65-CONTEXT.md`, `65-01-PLAN.md`, `65-02-PLAN.md`, `65-03-PLAN.md`; `.planning/phases/66-release-target-fidelity-adapter-root-cleanup-and-focused-protocol-coverage-hardening/66-CONTEXT.md`, `66-01-PLAN.md`, `66-02-PLAN.md`, `66-03-PLAN.md`, `66-04-PLAN.md`
 - **Executed evidence:** `.planning/phases/63-governance-truth-realignment-typed-runtime-access-and-hidden-root-closure/63-01-SUMMARY.md`, `.planning/phases/63-governance-truth-realignment-typed-runtime-access-and-hidden-root-closure/63-02-SUMMARY.md`, `.planning/phases/63-governance-truth-realignment-typed-runtime-access-and-hidden-root-closure/63-03-SUMMARY.md`, `.planning/phases/63-governance-truth-realignment-typed-runtime-access-and-hidden-root-closure/63-04-SUMMARY.md`, `.planning/phases/63-governance-truth-realignment-typed-runtime-access-and-hidden-root-closure/63-05-SUMMARY.md`, `.planning/phases/63-governance-truth-realignment-typed-runtime-access-and-hidden-root-closure/63-SUMMARY.md`, `.planning/phases/64-telemetry-typing-schedule-contracts-and-diagnostics-hotspot-slimming/64-01-SUMMARY.md`, `.planning/phases/64-telemetry-typing-schedule-contracts-and-diagnostics-hotspot-slimming/64-02-SUMMARY.md`, `.planning/phases/64-telemetry-typing-schedule-contracts-and-diagnostics-hotspot-slimming/64-03-SUMMARY.md`, `.planning/phases/64-telemetry-typing-schedule-contracts-and-diagnostics-hotspot-slimming/64-SUMMARY.md`, `.planning/phases/65-runtime-access-de-reflection-and-anonymous-share-hotspot-closure/65-01-SUMMARY.md`, `.planning/phases/65-runtime-access-de-reflection-and-anonymous-share-hotspot-closure/65-02-SUMMARY.md`, `.planning/phases/65-runtime-access-de-reflection-and-anonymous-share-hotspot-closure/65-03-SUMMARY.md`, `.planning/phases/65-runtime-access-de-reflection-and-anonymous-share-hotspot-closure/65-SUMMARY.md`, `.planning/phases/66-release-target-fidelity-adapter-root-cleanup-and-focused-protocol-coverage-hardening/66-01-SUMMARY.md`, `.planning/phases/66-release-target-fidelity-adapter-root-cleanup-and-focused-protocol-coverage-hardening/66-02-SUMMARY.md`, `.planning/phases/66-release-target-fidelity-adapter-root-cleanup-and-focused-protocol-coverage-hardening/66-03-SUMMARY.md`, `.planning/phases/66-release-target-fidelity-adapter-root-cleanup-and-focused-protocol-coverage-hardening/66-04-SUMMARY.md`, `.planning/phases/66-release-target-fidelity-adapter-root-cleanup-and-focused-protocol-coverage-hardening/66-SUMMARY.md`
 - **Archive assets:** `.planning/v1.14-MILESTONE-AUDIT.md`, `.planning/reviews/V1_14_EVIDENCE_INDEX.md`, `.planning/milestones/v1.14-ROADMAP.md`, `.planning/milestones/v1.14-REQUIREMENTS.md`
-- **Next focus:** `$gsd-new-milestone`
+- **Next focus:** `v1.15 milestone closeout / archive preparation`
 
 ## Latest Archived Baseline (v1.14)
 
@@ -62,13 +63,13 @@ See: `.planning/PROJECT.md`
 
 ## Recommended Next Command
 
-1. `$gsd-new-milestone` —— 以 `v1.14` archived evidence 打开下一轮正式 milestone
-2. `$gsd-progress` —— 复核 archived baseline、archive pull 与下一里程碑路由
-3. `uv run python scripts/check_architecture_policy.py --check` —— 复核北极星依赖与 formal-home 约束
-4. `uv run python scripts/check_file_matrix.py --check` —— 复核 tooling/file-governance truth
-5. `uv run pytest -q tests/meta/test_governance_guards.py tests/meta/governance_followup_route_current_milestones.py tests/meta/test_governance_phase_history_runtime.py tests/meta/test_governance_phase_history_topology.py tests/meta/test_governance_milestone_archives.py tests/meta/test_governance_release_contract.py tests/meta/test_version_sync.py` —— 复核治理真相与 phase-history continuity 收口
-6. `uv run pytest -q` —— 运行全量仓库回归
-7. `uv run pytest -q` —— 在 closeout 前再次确认全仓库回归保持全绿
+1. `$gsd-complete-milestone v1.15` —— 归档 `Phase 67` 证据并生成 `v1.15` milestone closeout
+2. `$gsd-progress` —— 复核 active route、archived baseline 与下一步 closeout 路由
+3. `uv run mypy --follow-imports=silent .` —— 复核 repo-wide typed contract 仍保持绿色
+4. `uv run ruff check .` —— 复核全仓 lint 真相
+5. `uv run python scripts/check_architecture_policy.py --check` —— 复核北极星依赖与 formal-home 约束
+6. `uv run python scripts/check_file_matrix.py --check` —— 复核 tooling/file-governance truth
+7. `uv run pytest -q` —— 复核全量仓库回归
 
 ## Session Continuity
 

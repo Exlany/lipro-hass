@@ -14,6 +14,7 @@ from ...const.api import (
 )
 from ..telemetry.models import (
     OperationOutcome,
+    OutcomeKind,
     build_operation_outcome,
     build_operation_outcome_from_exception,
 )
@@ -47,11 +48,11 @@ def _valid_ota_rows(rows: Sequence[object]) -> list[OtaInfoRow]:
 
 
 def _build_rich_ota_v2_payload(
-    ota_payload: Mapping[str, object],
+    ota_payload: Mapping[str, JsonValue],
     *,
     iot_name: str | None,
     allow_rich_v2_fallback: bool,
-) -> dict[str, object] | None:
+) -> RequestPayload | None:
     """Build richer OTA v2 payload for devices that benefit from hasMacRule."""
     if not allow_rich_v2_fallback:
         return None
@@ -107,10 +108,15 @@ def _extract_http_status_from_error(err: Exception) -> int | None:
     return code if isinstance(code, int) else None
 
 
-def _api_error_outcome(err: Exception, *, kind: str, reason_code: str) -> OperationOutcome:
+def _api_error_outcome(
+    err: Exception,
+    *,
+    kind: OutcomeKind,
+    reason_code: str,
+) -> OperationOutcome:
     return build_operation_outcome_from_exception(
         err,
-        kind=cast(object, kind),
+        kind=kind,
         reason_code=reason_code,
         failure_origin=_OTA_FAILURE_ORIGIN,
         failure_category="protocol",

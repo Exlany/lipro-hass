@@ -59,8 +59,8 @@ def _make_entry(
     runtime_data,
     entry_id: str = "entry-1",
     title="Lipro (13800000000)",
-    data: dict | None = None,
-    options: dict | None = None,
+    data: dict[str, object] | None = None,
+    options: dict[str, object] | None = None,
 ):
     entry = MagicMock()
     entry.entry_id = entry_id

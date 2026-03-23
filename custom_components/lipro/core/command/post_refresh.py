@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import asyncio
-from collections.abc import Callable, Coroutine
+from collections.abc import Awaitable, Callable, Coroutine
 from typing import Any, Protocol
 
 from .result import resolve_delayed_refresh_delay, run_delayed_refresh
@@ -14,6 +14,11 @@ class TrackBackgroundTask(Protocol):
 
     def __call__(self, coro: Coroutine[Any, Any, Any]) -> asyncio.Task[Any]:
         """Track and return a scheduled background task."""
+
+
+async def _await_refresh(request_refresh: Callable[[], Awaitable[object]]) -> object:
+    """Adapt one refresh awaitable into a coroutine for task tracking."""
+    return await request_refresh()
 
 
 def on_post_command_refresh_task_done(
@@ -30,7 +35,7 @@ def on_post_command_refresh_task_done(
 def schedule_post_command_refresh(
     *,
     track_background_task: TrackBackgroundTask,
-    request_refresh: Callable[[], Coroutine[Any, Any, Any]],
+    request_refresh: Callable[[], Awaitable[object]],
     post_command_refresh_tasks: dict[str, asyncio.Task[Any]],
     mqtt_connected: bool,
     device_serial: str | None,
@@ -40,7 +45,7 @@ def schedule_post_command_refresh(
 ) -> None:
     """Schedule immediate refresh and optional delayed refresh after a command."""
     if not skip_immediate:
-        track_background_task(request_refresh())
+        track_background_task(_await_refresh(request_refresh))
 
     delay_seconds = resolve_delayed_refresh_delay(
         mqtt_connected=mqtt_connected,

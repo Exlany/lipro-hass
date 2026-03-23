@@ -3,9 +3,8 @@
 from __future__ import annotations
 
 from ..core.telemetry import RuntimeTelemetryExporter, TelemetrySnapshot, TelemetryViews
+from ..core.telemetry.models import TelemetrySinkPayload
 from .runtime_access import build_entry_telemetry_exporter
-
-type TelemetryPayload = dict[str, object]
 
 
 def get_entry_telemetry_exporter(entry: object) -> RuntimeTelemetryExporter | None:
@@ -32,20 +31,23 @@ def build_entry_telemetry_views(entry: object) -> TelemetryViews | None:
 def _select_telemetry_view(
     views: TelemetryViews,
     sink_name: str,
-) -> TelemetryPayload | None:
+) -> TelemetrySinkPayload | None:
     """Return one named telemetry sink from an exported view bundle."""
-    return {
-        "diagnostics": views.diagnostics,
-        "system_health": views.system_health,
-        "developer": views.developer,
-        "ci": views.ci,
-    }.get(sink_name)
+    if sink_name == "diagnostics":
+        return views.diagnostics
+    if sink_name == "system_health":
+        return views.system_health
+    if sink_name == "developer":
+        return views.developer
+    if sink_name == "ci":
+        return views.ci
+    return None
 
 
 def get_entry_telemetry_view(
     entry: object,
     sink_name: str,
-) -> TelemetryPayload | None:
+) -> TelemetrySinkPayload | None:
     """Return one named telemetry sink view for a config entry."""
     views = build_entry_telemetry_views(entry)
     if views is None:
@@ -53,12 +55,12 @@ def get_entry_telemetry_view(
     return _select_telemetry_view(views, sink_name)
 
 
-def build_entry_system_health_view(entry: object) -> TelemetryPayload | None:
+def build_entry_system_health_view(entry: object) -> TelemetrySinkPayload | None:
     """Return the system-health telemetry projection for one entry."""
     return get_entry_telemetry_view(entry, "system_health")
 
 
-def build_entry_diagnostics_view(entry: object) -> TelemetryPayload | None:
+def build_entry_diagnostics_view(entry: object) -> TelemetrySinkPayload | None:
     """Return the diagnostics telemetry projection for one entry."""
     return get_entry_telemetry_view(entry, "diagnostics")
 

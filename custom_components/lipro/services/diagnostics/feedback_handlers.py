@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from typing import TYPE_CHECKING
 
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, ServiceCall
 
+from ..execution import ServiceErrorRaiser
 from .helper_support import (
     build_developer_feedback_payload as _support_build_developer_feedback_payload,
 )
@@ -16,13 +18,14 @@ from .types import (
 )
 
 if TYPE_CHECKING:
-    from homeassistant.core import ServiceCall
-
     from .types import (
         AnonymousShareManagerFactory,
         ClientSessionGetter,
         DeveloperReport,
     )
+
+OptionalServiceStringGetter = Callable[[ServiceCall, str], str | None]
+OptionalNoteGetter = Callable[[ServiceCall, str], str]
 
 
 def build_developer_feedback_payload(
@@ -48,7 +51,7 @@ async def async_handle_get_developer_report(
     call: ServiceCall,
     *,
     collect_reports: DeveloperReportCollector,
-    get_optional_service_string,
+    get_optional_service_string: OptionalServiceStringGetter,
     attr_entry_id: str,
 ) -> DeveloperReportResponse:
     """Handle the get_developer_report service."""
@@ -72,13 +75,13 @@ async def async_handle_submit_developer_feedback(
     collect_reports: DeveloperReportCollector,
     get_anonymous_share_manager: AnonymousShareManagerFactory,
     get_client_session: ClientSessionGetter,
-    get_optional_service_string,
-    get_optional_note,
+    get_optional_service_string: OptionalServiceStringGetter,
+    get_optional_note: OptionalNoteGetter,
     domain: str,
     service_submit_developer_feedback: str,
     attr_note: str,
     attr_entry_id: str,
-    raise_service_error,
+    raise_service_error: ServiceErrorRaiser,
 ) -> DeveloperFeedbackResponse:
     """Handle the submit_developer_feedback service."""
     requested_entry_id = get_optional_service_string(call, attr_entry_id)

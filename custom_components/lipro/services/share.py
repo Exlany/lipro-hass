@@ -10,7 +10,11 @@ from aiohttp import ClientSession
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.exceptions import ServiceValidationError
 
-from ..core.telemetry.models import OperationOutcome, build_operation_outcome
+from ..core.telemetry.models import (
+    FailureSummary,
+    OperationOutcome,
+    build_operation_outcome,
+)
 from .execution import ServiceErrorRaiser
 
 type SharePreviewReport = Mapping[str, object]
@@ -26,7 +30,7 @@ class ShareSubmitResponse(TypedDict, total=False):
     requested_entry_id: str
     outcome_kind: str
     reason_code: str
-    failure_summary: dict[str, str | None]
+    failure_summary: FailureSummary
     http_status: int
     retry_after_seconds: float
 
@@ -124,7 +128,18 @@ def build_submit_anonymous_share_response(
         "devices": device_count,
         "errors": error_count,
     }
-    result.update(normalized_outcome.to_dict())
+    outcome_payload = normalized_outcome.to_dict()
+    result["outcome_kind"] = outcome_payload["outcome_kind"]
+    result["reason_code"] = outcome_payload["reason_code"]
+    failure_summary = outcome_payload.get("failure_summary")
+    if failure_summary is not None:
+        result["failure_summary"] = failure_summary
+    http_status = outcome_payload.get("http_status")
+    if http_status is not None:
+        result["http_status"] = http_status
+    retry_after_seconds = outcome_payload.get("retry_after_seconds")
+    if retry_after_seconds is not None:
+        result["retry_after_seconds"] = retry_after_seconds
     if requested_entry_id:
         result["requested_entry_id"] = requested_entry_id
     return result

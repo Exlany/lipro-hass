@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable
+from collections.abc import Awaitable, Callable
 import logging
 from typing import TYPE_CHECKING, Protocol, cast
 
@@ -27,12 +27,13 @@ class DeviceResolverProtocol(Protocol):
 class PropertyApplierProtocol(Protocol):
     """Protocol for property application."""
 
-    async def __call__(
+    def __call__(
         self,
         device: LiproDevice,
         properties: PropertyDict,
         source: str,
-    ) -> bool:
+        /,
+    ) -> Awaitable[bool]:
         """Apply properties update to device."""
 
 

@@ -30,6 +30,7 @@ from .request_policy_support import (
     record_change_state_success as _support_record_change_state_success,
     throttle_change_state as _support_throttle_change_state,
 )
+from .types import JsonObject, JsonValue
 
 _LOGGER = logging.getLogger("custom_components.lipro.core.api")
 
@@ -318,13 +319,13 @@ class RequestPolicy:
     async def iot_request_with_busy_retry(
         self,
         path: str,
-        body_data: dict[str, object],
+        body_data: JsonObject,
         *,
         target_id: str,
         command: str,
-        iot_request: Callable[[str, dict[str, object]], Awaitable[object]],
+        iot_request: Callable[[str, JsonObject], Awaitable[JsonValue]],
         logger: logging.Logger = _LOGGER,
-    ) -> dict[str, object]:
+    ) -> JsonObject:
         """Execute one IoT command request with explicit policy-owned pacing."""
         for attempt in range(COMMAND_BUSY_RETRY_MAX_ATTEMPTS + 1):
             await self.throttle_change_state(target_id, command)

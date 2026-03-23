@@ -1,4 +1,4 @@
-# ruff: noqa: D102,D107,SLF001
+# ruff: noqa: D102, D107
 """endpoint operations collaborator for the REST child façade."""
 
 from __future__ import annotations
@@ -138,25 +138,30 @@ class _ScheduleEndpointsPort(Protocol):
     ) -> list[ScheduleTimingRow]: ...
 
 
-class _RestEndpointSurfacePort(Protocol):
-    _device_endpoints: _DeviceEndpointsPort
-    _status_endpoints: _StatusEndpointsPort
-    _command_endpoints: _CommandEndpointsPort
-    _misc_endpoints: _MiscEndpointsPort
-    _schedule_endpoints: _ScheduleEndpointsPort
-
 
 class RestEndpointSurface:
     """Group endpoint operations away from the REST façade root body."""
 
-    def __init__(self, port: _RestEndpointSurfacePort) -> None:
-        self._port = port
+    def __init__(
+        self,
+        *,
+        device_endpoints: _DeviceEndpointsPort,
+        status_endpoints: _StatusEndpointsPort,
+        command_endpoints: _CommandEndpointsPort,
+        misc_endpoints: _MiscEndpointsPort,
+        schedule_endpoints: _ScheduleEndpointsPort,
+    ) -> None:
+        self._device_endpoints = device_endpoints
+        self._status_endpoints = status_endpoints
+        self._command_endpoints = command_endpoints
+        self._misc_endpoints = misc_endpoints
+        self._schedule_endpoints = schedule_endpoints
 
     async def get_devices(self, offset: int = 0, limit: int = 100) -> DeviceListResponse:
-        return await self._port._device_endpoints.get_devices(offset=offset, limit=limit)
+        return await self._device_endpoints.get_devices(offset=offset, limit=limit)
 
     async def get_product_configs(self) -> list[JsonObject]:
-        return await self._port._device_endpoints.get_product_configs()
+        return await self._device_endpoints.get_product_configs()
 
     async def query_device_status(
         self,
@@ -165,7 +170,7 @@ class RestEndpointSurface:
         max_devices_per_query: int = 100,
         on_batch_metric: RecordStatusBatchMetric | None = None,
     ) -> list[DeviceStatusItem]:
-        return await self._port._status_endpoints.query_device_status(
+        return await self._status_endpoints.query_device_status(
             device_ids,
             max_devices_per_query=max_devices_per_query,
             on_batch_metric=on_batch_metric,
@@ -175,10 +180,10 @@ class RestEndpointSurface:
         self,
         group_ids: list[str],
     ) -> list[JsonObject]:
-        return await self._port._status_endpoints.query_mesh_group_status(group_ids)
+        return await self._status_endpoints.query_mesh_group_status(group_ids)
 
     async def query_connect_status(self, device_ids: list[str]) -> dict[str, bool]:
-        return await self._port._status_endpoints.query_connect_status(device_ids)
+        return await self._status_endpoints.query_connect_status(device_ids)
 
     async def send_command(
         self,
@@ -188,7 +193,7 @@ class RestEndpointSurface:
         properties: list[dict[str, str]] | None = None,
         iot_name: str = "",
     ) -> JsonObject:
-        return await self._port._command_endpoints.send_command(
+        return await self._command_endpoints.send_command(
             device_id=device_id,
             command=command,
             device_type=device_type,
@@ -204,7 +209,7 @@ class RestEndpointSurface:
         properties: list[dict[str, str]] | None = None,
         iot_name: str = "",
     ) -> JsonObject:
-        return await self._port._command_endpoints.send_group_command(
+        return await self._command_endpoints.send_group_command(
             group_id=group_id,
             command=command,
             device_type=device_type,
@@ -213,10 +218,10 @@ class RestEndpointSurface:
         )
 
     async def get_mqtt_config(self) -> MqttConfigResponse:
-        return await self._port._misc_endpoints.get_mqtt_config()
+        return await self._misc_endpoints.get_mqtt_config()
 
     async def fetch_outlet_power_info(self, device_id: str) -> OutletPowerInfoResult:
-        return await self._port._misc_endpoints.fetch_outlet_power_info(device_id)
+        return await self._misc_endpoints.fetch_outlet_power_info(device_id)
 
     async def query_command_result(
         self,
@@ -225,17 +230,17 @@ class RestEndpointSurface:
         device_id: str,
         device_type: int | str,
     ) -> CommandResultApiResponse:
-        return await self._port._misc_endpoints.query_command_result(
+        return await self._misc_endpoints.query_command_result(
             msg_sn=msg_sn,
             device_id=device_id,
             device_type=device_type,
         )
 
     async def get_city(self) -> JsonObject:
-        return await self._port._misc_endpoints.get_city()
+        return await self._misc_endpoints.get_city()
 
     async def query_user_cloud(self) -> JsonObject:
-        return await self._port._misc_endpoints.query_user_cloud()
+        return await self._misc_endpoints.query_user_cloud()
 
     async def query_ota_info(
         self,
@@ -245,7 +250,7 @@ class RestEndpointSurface:
         iot_name: str | None = None,
         allow_rich_v2_fallback: bool = False,
     ) -> list[OtaInfoRow]:
-        return await self._port._misc_endpoints.query_ota_info(
+        return await self._misc_endpoints.query_ota_info(
             device_id=device_id,
             device_type=device_type,
             iot_name=iot_name,
@@ -259,7 +264,7 @@ class RestEndpointSurface:
         sensor_device_id: str,
         mesh_type: str,
     ) -> JsonObject:
-        return await self._port._misc_endpoints.fetch_body_sensor_history(
+        return await self._misc_endpoints.fetch_body_sensor_history(
             device_id=device_id,
             device_type=device_type,
             sensor_device_id=sensor_device_id,
@@ -273,7 +278,7 @@ class RestEndpointSurface:
         sensor_device_id: str,
         mesh_type: str,
     ) -> JsonObject:
-        return await self._port._misc_endpoints.fetch_door_sensor_history(
+        return await self._misc_endpoints.fetch_door_sensor_history(
             device_id=device_id,
             device_type=device_type,
             sensor_device_id=sensor_device_id,
@@ -288,7 +293,7 @@ class RestEndpointSurface:
         mesh_gateway_id: str = "",
         mesh_member_ids: list[str] | None = None,
     ) -> list[ScheduleTimingRow]:
-        return await self._port._schedule_endpoints.get_device_schedules(
+        return await self._schedule_endpoints.get_device_schedules(
             device_id=device_id,
             device_type=device_type,
             mesh_gateway_id=mesh_gateway_id,
@@ -306,7 +311,7 @@ class RestEndpointSurface:
         mesh_gateway_id: str = "",
         mesh_member_ids: list[str] | None = None,
     ) -> list[ScheduleTimingRow]:
-        return await self._port._schedule_endpoints.add_device_schedule(
+        return await self._schedule_endpoints.add_device_schedule(
             device_id=device_id,
             device_type=device_type,
             days=days,
@@ -325,7 +330,7 @@ class RestEndpointSurface:
         mesh_gateway_id: str = "",
         mesh_member_ids: list[str] | None = None,
     ) -> list[ScheduleTimingRow]:
-        return await self._port._schedule_endpoints.delete_device_schedules(
+        return await self._schedule_endpoints.delete_device_schedules(
             device_id=device_id,
             device_type=device_type,
             schedule_ids=schedule_ids,

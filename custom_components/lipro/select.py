@@ -36,6 +36,7 @@ from .select_internal.gear import (
     resolve_gear_option_index,
 )
 from .select_internal.mapped_property import (
+    MappedPropertySnapshot,
     build_mapped_property_snapshot,
     coerce_mapped_value,
 )
@@ -127,7 +128,7 @@ class LiproMappedPropertySelect(LiproSelect):
         """Return the raw normalized property value for this select."""
         return self.device.properties.get(self._property_key)
 
-    def _mapped_snapshot(self):
+    def _mapped_snapshot(self) -> MappedPropertySnapshot:
         """Return the normalized mapped-property snapshot for this select."""
         return build_mapped_property_snapshot(
             self.device.properties,

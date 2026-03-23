@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from collections.abc import Awaitable, Callable
 import logging
-from typing import TYPE_CHECKING, TypeVar, cast
+from typing import TYPE_CHECKING, TypeVar
 
 import aiohttp
 
@@ -206,17 +206,14 @@ async def iot_request_with_busy_retry(
     *,
     target_id: str,
     command: str,
-) -> dict[str, object]:
+) -> JsonObject:
     """Execute one IoT command with the formal busy-retry policy."""
     return await self._request_policy.iot_request_with_busy_retry(
         path,
-        cast(dict[str, object], body_data),
+        body_data,
         target_id=target_id,
         command=command,
-        iot_request=cast(
-            Callable[[str, dict[str, object]], Awaitable[object]],
-            self._iot_request,
-        ),
+        iot_request=self._iot_request,
         logger=_LOGGER,
     )
 

@@ -141,7 +141,7 @@ class RuntimeTelemetryExporter:
             )
             if sanitized_value is _SKIP:
                 continue
-            sanitized[key_text] = sanitized_value
+            sanitized[key_text] = cast(TelemetryJsonValue, sanitized_value)
         return sanitized
 
     def _sanitize_value(
@@ -165,7 +165,7 @@ class RuntimeTelemetryExporter:
                 )
                 if sanitized_item is _SKIP:
                     continue
-                result.append(sanitized_item)
+                result.append(cast(TelemetryJsonValue, sanitized_item))
             return result
         if (
             isinstance(value, str)

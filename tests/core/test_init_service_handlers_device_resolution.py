@@ -49,7 +49,7 @@ class TestInitServiceHandlerDeviceTargeting(_InitServiceHandlerBase):
         got_device, got_coordinator = await _get_device_and_coordinator(hass, call)
 
         assert got_device is device
-        assert got_coordinator is coordinator
+        assert got_coordinator is entry.runtime_data
 
     async def test_get_device_from_target_entity_id(self, hass) -> None:
         """Resolve device via ServiceCall.target.entity_id."""
@@ -80,7 +80,7 @@ class TestInitServiceHandlerDeviceTargeting(_InitServiceHandlerBase):
         got_device, got_coordinator = await _get_device_and_coordinator(hass, call)
 
         assert got_device is device
-        assert got_coordinator is coordinator
+        assert got_coordinator is entry.runtime_data
 
     async def test_get_device_from_multiple_entity_targets_same_device_resolves(
         self, hass
@@ -118,7 +118,7 @@ class TestInitServiceHandlerDeviceTargeting(_InitServiceHandlerBase):
         )
 
         assert got_device is device
-        assert got_coordinator is coordinator
+        assert got_coordinator is entry.runtime_data
 
     async def test_get_device_from_multiple_entity_targets_different_devices_raises(
         self, hass
@@ -176,7 +176,7 @@ class TestInitServiceHandlerDeviceTargeting(_InitServiceHandlerBase):
         got_device, got_coordinator = await _get_device_and_coordinator(hass, call)
 
         assert got_device is device
-        assert got_coordinator is coordinator
+        assert got_coordinator is entry.runtime_data
         coordinator.get_device.assert_called_once_with("03AB5CCD7C716177")
         coordinator.get_device_by_id.assert_called_once_with("03AB5CCD7C716177")
 

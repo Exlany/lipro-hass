@@ -1,7 +1,7 @@
 """Worker client for anonymous sharing uploads."""
 from __future__ import annotations
 
-from collections.abc import Awaitable, Callable
+from collections.abc import Awaitable, Callable, Mapping
 import logging
 import time
 
@@ -18,7 +18,7 @@ from .share_client_flows import (
     submit_share_payload_with_outcome as _submit_share_payload_with_outcome_flow,
 )
 from .share_client_support import (
-    ResponseHeadersLike,
+    JsonReadableResponse,
     SharePayload,
     WorkerResponsePayload,
     extract_token_payload,
@@ -48,10 +48,17 @@ class ShareWorkerClient:
         return headers
 
     @staticmethod
-    def parse_retry_after(headers: ResponseHeadersLike) -> float | None:
+    def parse_retry_after(headers: object) -> float | None:
         """Parse Retry-After seconds (best-effort) via shared HTTP helper."""
+        if not isinstance(headers, Mapping):
+            return None
+        normalized_headers = {
+            key: value
+            for key, value in headers.items()
+            if isinstance(key, str) and isinstance(value, str)
+        }
         try:
-            seconds = parse_http_retry_after(dict(headers))
+            seconds = parse_http_retry_after(normalized_headers)
         except (AttributeError, TypeError, ValueError):
             return None
         if seconds is None:
@@ -74,11 +81,11 @@ class ShareWorkerClient:
         self.token_refresh_after = token_payload.get("token_refresh_after", 0)
         return True
 
-    async def safe_read_json(self, response: aiohttp.ClientResponse) -> WorkerResponsePayload | None:
+    async def safe_read_json(self, response: JsonReadableResponse) -> WorkerResponsePayload | None:
         """Best-effort JSON parsing for Worker responses."""
         return await _safe_read_json_flow(response)
 
-    async def _safe_read_json(self, response: aiohttp.ClientResponse) -> WorkerResponsePayload | None:
+    async def _safe_read_json(self, response: JsonReadableResponse) -> WorkerResponsePayload | None:
         """Backward-compatible alias for the formal JSON reader method."""
         return await self.safe_read_json(response)
 

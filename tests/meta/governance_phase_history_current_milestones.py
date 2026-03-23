@@ -84,7 +84,7 @@ def test_phase_52_execution_evidence_is_consistent() -> None:
     _assert_state_reflects_post_v1_4_continuation(state_text)
     _assert_state_keeps_forward_progress_commands(state_text)
     assert "## Planned Milestone (v1.8)" in project_text
-    assert "$gsd-new-milestone" in project_text
+    assert "$gsd-complete-milestone v1.15" in project_text
     assert "phase: 52" in summary_text
     assert "status: passed" in summary_text
     assert "52-03" in summary_text

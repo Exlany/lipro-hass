@@ -14,7 +14,12 @@ from typing import Protocol, cast
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 
-from .service_registry import ServiceRegistry
+from .service_registry import (
+    GetRuntimeInfraLockFn,
+    RemoveServicesFn,
+    ServiceRegistry,
+    SetupServicesFn,
+)
 
 
 class ServiceRegistrationsLike(Protocol):
@@ -57,9 +62,9 @@ def build_service_registry(
     *,
     domain: str,
     registrations: ServiceRegistrationsLike,
-    async_setup_services: Callable[..., object],
-    remove_services: Callable[..., object],
-    get_runtime_infra_lock: Callable[[HomeAssistant], object],
+    async_setup_services: SetupServicesFn,
+    remove_services: RemoveServicesFn,
+    get_runtime_infra_lock: GetRuntimeInfraLockFn,
 ) -> ServiceRegistry:
     """Build the service-registry collaborator consumed by the lifecycle owner."""
     return ServiceRegistry(

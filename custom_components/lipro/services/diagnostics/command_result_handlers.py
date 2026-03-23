@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 import logging
 
 from homeassistant.core import HomeAssistant, ServiceCall
@@ -28,6 +29,10 @@ _LOGGER = logging.getLogger(__name__)
 _QUERY_COMMAND_RESULT_DIAGNOSTIC_BASE_DELAY_SECONDS = 0.35
 _DEFAULT_QUERY_COMMAND_RESULT_MAX_ATTEMPTS = 6
 _DEFAULT_QUERY_COMMAND_RESULT_TIME_BUDGET_SECONDS = 3.0
+
+RequiredServiceStringGetter = Callable[[ServiceCall, str], str]
+CoerceServiceInt = Callable[[ServiceCall, str, int], int]
+CoerceServiceFloat = Callable[[ServiceCall, str, float], float]
 
 
 def _build_api_failure_summary(err: LiproApiError) -> FailureSummaryPayload:
@@ -144,9 +149,9 @@ async def async_handle_query_command_result(
     call: ServiceCall,
     *,
     get_device_and_coordinator: GetDeviceAndCoordinator,
-    get_required_service_string,
-    coerce_service_int,
-    coerce_service_float,
+    get_required_service_string: RequiredServiceStringGetter,
+    coerce_service_int: CoerceServiceInt,
+    coerce_service_float: CoerceServiceFloat,
     attr_msg_sn: str,
     attr_max_attempts: str,
     attr_time_budget_seconds: str,

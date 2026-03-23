@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from types import SimpleNamespace
+from dataclasses import dataclass
+from typing import cast
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -17,11 +18,60 @@ from custom_components.lipro.core import (
 from custom_components.lipro.core.coordinator.services.auth_service import (
     CoordinatorAuthService,
 )
+from custom_components.lipro.core.device import LiproDevice
 from custom_components.lipro.services.schedule import (
     async_execute_schedule_operation,
     get_mesh_context,
     normalize_schedule_row,
 )
+from tests.conftest import _CoordinatorDouble
+
+
+@dataclass
+class _ScheduleDeviceDouble:
+    """Schedule-facing device projection used only by helper tests."""
+
+    serial: str = "03ab5ccd7c111111"
+    iot_device_id: str = "03ab0000000000a1"
+    device_type_hex: str = "0x1032"
+    mesh_gateway_device_id: str | None = ""
+    mesh_group_member_ids: list[str] | None = None
+    ir_remote_gateway_device_id: str | None = None
+
+    def __post_init__(self) -> None:
+        self.mesh_group_member_ids = list(self.mesh_group_member_ids or [])
+
+
+def _make_schedule_device(
+    *,
+    serial: str = "03ab5ccd7c111111",
+    iot_device_id: str = "03ab0000000000a1",
+    device_type_hex: str = "0x1032",
+    mesh_gateway_device_id: str | None = "",
+    mesh_group_member_ids: list[str] | None = None,
+    ir_remote_gateway_device_id: str | None = None,
+) -> LiproDevice:
+    """Create one explicit LiproDevice double for schedule helper tests."""
+    return cast(
+        LiproDevice,
+        _ScheduleDeviceDouble(
+            serial=serial,
+            iot_device_id=iot_device_id,
+            device_type_hex=device_type_hex,
+            mesh_gateway_device_id=mesh_gateway_device_id,
+            mesh_group_member_ids=mesh_group_member_ids,
+            ir_remote_gateway_device_id=ir_remote_gateway_device_id,
+        ),
+    )
+
+
+class _ScheduleCoordinatorDouble(_CoordinatorDouble):
+    """Coordinator double for schedule helper tests."""
+
+    def __init__(self, *, auth_service: object | None = None) -> None:
+        super().__init__()
+        if auth_service is not None:
+            self.auth_service = auth_service
 
 
 def test_normalize_schedule_row_uses_empty_schedule_when_schedule_field_invalid() -> None:
@@ -63,13 +113,7 @@ def test_normalize_schedule_row_drops_unpaired_or_invalid_time_events() -> None:
 @pytest.mark.asyncio
 async def test_async_execute_schedule_operation_maps_lipro_api_error() -> None:
     """LiproApiError should be logged and mapped via raise_service_error."""
-    device = SimpleNamespace(
-        iot_device_id="03ab0000000000a1",
-        device_type_hex="0x1032",
-        mesh_gateway_device_id="",
-        mesh_group_member_ids=[],
-        ir_remote_gateway_device_id=None,
-    )
+    device = _make_schedule_device()
     api_error = LiproApiError("boom", 500)
     protocol_call = AsyncMock(side_effect=api_error)
     logger = MagicMock()
@@ -98,14 +142,8 @@ async def test_async_execute_schedule_operation_maps_lipro_api_error() -> None:
 @pytest.mark.asyncio
 async def test_async_execute_schedule_operation_delegates_to_shared_executor() -> None:
     """Coordinator-backed schedule calls should delegate into the shared executor."""
-    device = SimpleNamespace(
-        iot_device_id="03ab0000000000a1",
-        device_type_hex="0x1032",
-        mesh_gateway_device_id="",
-        mesh_group_member_ids=[],
-        ir_remote_gateway_device_id=None,
-    )
-    coordinator = MagicMock()
+    device = _make_schedule_device()
+    coordinator = _ScheduleCoordinatorDouble()
     protocol_call = AsyncMock(return_value={"ok": True})
     logger = MagicMock()
     raise_service_error = MagicMock()
@@ -152,20 +190,14 @@ async def test_async_execute_schedule_operation_with_real_auth_service_maps_auth
     entry = MockConfigEntry(domain=DOMAIN, data={})
     entry.add_to_hass(hass)
     entry.async_start_reauth = MagicMock()
-    coordinator = SimpleNamespace(
+    coordinator = _ScheduleCoordinatorDouble(
         auth_service=CoordinatorAuthService(
             hass=hass,
             auth_manager=MagicMock(async_ensure_authenticated=AsyncMock()),
             config_entry=entry,
         )
     )
-    device = SimpleNamespace(
-        iot_device_id="03ab0000000000a1",
-        device_type_hex="0x1032",
-        mesh_gateway_device_id="",
-        mesh_group_member_ids=[],
-        ir_remote_gateway_device_id=None,
-    )
+    device = _make_schedule_device()
     protocol_call = AsyncMock(side_effect=LiproAuthError("bad credentials"))
     logger = MagicMock()
     raise_service_error = MagicMock(side_effect=RuntimeError("mapped"))
@@ -194,20 +226,14 @@ async def test_async_execute_schedule_operation_with_real_auth_service_maps_refr
     entry = MockConfigEntry(domain=DOMAIN, data={})
     entry.add_to_hass(hass)
     entry.async_start_reauth = MagicMock()
-    coordinator = SimpleNamespace(
+    coordinator = _ScheduleCoordinatorDouble(
         auth_service=CoordinatorAuthService(
             hass=hass,
             auth_manager=MagicMock(async_ensure_authenticated=AsyncMock()),
             config_entry=entry,
         )
     )
-    device = SimpleNamespace(
-        iot_device_id="03ab0000000000a1",
-        device_type_hex="0x1032",
-        mesh_gateway_device_id="",
-        mesh_group_member_ids=[],
-        ir_remote_gateway_device_id=None,
-    )
+    device = _make_schedule_device()
     protocol_call = AsyncMock(side_effect=LiproRefreshTokenExpiredError("expired"))
     logger = MagicMock()
     raise_service_error = MagicMock(side_effect=RuntimeError("mapped"))
@@ -229,7 +255,7 @@ async def test_async_execute_schedule_operation_with_real_auth_service_maps_refr
 
 def test_get_mesh_context_normalizes_member_ids_and_gateway() -> None:
     """Mesh context should canonicalize IDs before schedule calls."""
-    device = SimpleNamespace(
+    device = _make_schedule_device(
         mesh_gateway_device_id=" 03AB0000000000A1 ",
         mesh_group_member_ids=["03ab0000000000a2", " 03AB0000000000A2 ", "bad"],
         ir_remote_gateway_device_id=None,
@@ -243,7 +269,7 @@ def test_get_mesh_context_normalizes_member_ids_and_gateway() -> None:
 
 def test_get_mesh_context_falls_back_to_ir_remote_gateway_property() -> None:
     """IR remote devices should not require extra_data hand-filling."""
-    device = SimpleNamespace(
+    device = _make_schedule_device(
         mesh_gateway_device_id=None,
         mesh_group_member_ids=[],
         ir_remote_gateway_device_id=" 03AB0000000000A9 ",
@@ -254,7 +280,7 @@ def test_get_mesh_context_falls_back_to_ir_remote_gateway_property() -> None:
 
 def test_get_mesh_context_preserves_blank_mesh_gateway_without_ir_override() -> None:
     """IR fallback should remain an explicit None-only branch."""
-    device = SimpleNamespace(
+    device = _make_schedule_device(
         mesh_gateway_device_id="",
         mesh_group_member_ids=[],
         ir_remote_gateway_device_id=" 03AB0000000000A9 ",

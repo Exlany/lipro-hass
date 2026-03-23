@@ -255,7 +255,9 @@ def classify_failure_category(error_type: str | None) -> FailureCategory | None:
     return "unexpected"
 
 
-def handling_policy_for_category(category: str | None) -> HandlingPolicy | None:
+def handling_policy_for_category(
+    category: FailureCategory | None,
+) -> HandlingPolicy | None:
     """Return the preferred handling policy for one normalized category."""
     if category == "auth":
         return "reauth"
@@ -268,6 +270,38 @@ def handling_policy_for_category(category: str | None) -> HandlingPolicy | None:
     return None
 
 
+def _normalize_failure_category(
+    category: str | None,
+) -> FailureCategory | None:
+    """Return one accepted failure category literal when the input matches it."""
+    if category == "auth":
+        return "auth"
+    if category == "network":
+        return "network"
+    if category == "protocol":
+        return "protocol"
+    if category == "runtime":
+        return "runtime"
+    if category == "unexpected":
+        return "unexpected"
+    return None
+
+
+def _normalize_handling_policy(
+    handling_policy: str | None,
+) -> HandlingPolicy | None:
+    """Return one accepted handling-policy literal when the input matches it."""
+    if handling_policy == "reauth":
+        return "reauth"
+    if handling_policy == "retry":
+        return "retry"
+    if handling_policy == "inspect":
+        return "inspect"
+    if handling_policy == "escalate":
+        return "escalate"
+    return None
+
+
 def build_failure_summary(
     *,
     error_type: str | None,
@@ -276,10 +310,12 @@ def build_failure_summary(
     handling_policy: str | None = None,
 ) -> FailureSummary:
     """Build the canonical failure-summary payload."""
-    normalized_category = failure_category or classify_failure_category(error_type)
-    normalized_policy = handling_policy or handling_policy_for_category(
-        normalized_category
-    )
+    normalized_category = _normalize_failure_category(
+        failure_category
+    ) or classify_failure_category(error_type)
+    normalized_policy = _normalize_handling_policy(
+        handling_policy
+    ) or handling_policy_for_category(normalized_category)
     normalized_origin = failure_origin if error_type is not None else None
     if normalized_category is None and error_type is None:
         normalized_origin = None
@@ -365,7 +401,7 @@ class OperationOutcome:
             "reason_code": self.reason_code,
         }
         if any(value is not None for value in self.failure_summary.values()):
-            result["failure_summary"] = dict(self.failure_summary)
+            result["failure_summary"] = self.failure_summary
         if self.http_status is not None:
             result["http_status"] = self.http_status
         if self.retry_after_seconds is not None:
@@ -407,7 +443,7 @@ def build_operation_outcome(
             else empty_failure_summary()
         )
     else:
-        normalized_failure_summary = dict(failure_summary)
+        normalized_failure_summary = failure_summary
     return OperationOutcome(
         kind=kind,
         reason_code=reason_code,

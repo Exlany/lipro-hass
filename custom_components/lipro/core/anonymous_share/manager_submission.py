@@ -3,10 +3,15 @@
 from __future__ import annotations
 
 import asyncio
+from collections.abc import Sequence
+import logging
 from typing import Protocol
+
+import aiohttp
 
 from ..telemetry.models import OperationOutcome, build_operation_outcome
 from .report_builder import build_developer_feedback_report
+from .share_client_support import SharePayload
 
 
 class SubmitStateLike(Protocol):
@@ -31,7 +36,7 @@ class AnonymousShareSubmitManagerLike(Protocol):
     def is_aggregate_view(self) -> bool:
         """Return whether this manager represents an aggregate view."""
 
-    def iter_scoped_managers(self) -> list[AnonymousShareSubmitManagerLike]:
+    def iter_scoped_managers(self) -> Sequence[AnonymousShareSubmitManagerLike]:
         """Return child managers participating in aggregate submission."""
 
     def get_submit_state(self) -> SubmitStateLike:
@@ -52,13 +57,13 @@ class AnonymousShareSubmitManagerLike(Protocol):
     def should_submit_if_needed(self) -> bool:
         """Return whether threshold-driven submission should run."""
 
-    def build_report(self) -> dict[str, object]:
+    def build_report(self) -> SharePayload:
         """Build the anonymous-share payload for this manager."""
 
     async def async_submit_share_payload_with_outcome(
         self,
-        session,
-        report: dict[str, object],
+        session: aiohttp.ClientSession,
+        report: SharePayload,
         *,
         label: str,
     ) -> OperationOutcome:
@@ -67,19 +72,21 @@ class AnonymousShareSubmitManagerLike(Protocol):
     async def async_finalize_successful_submit(self) -> None:
         """Finalize one successful submit by updating manager state."""
 
-    async def submit_report(self, session, *, force: bool = False) -> bool:
+    async def submit_report(
+        self, session: aiohttp.ClientSession, *, force: bool = False
+    ) -> bool:
         """Submit the manager report, optionally forcing a send."""
 
-    async def submit_if_needed(self, session) -> bool:
+    async def submit_if_needed(self, session: aiohttp.ClientSession) -> bool:
         """Submit the manager report only when thresholds are met."""
 
 
 async def _submit_developer_feedback_locked(
     manager: AnonymousShareSubmitManagerLike,
-    session,
+    session: aiohttp.ClientSession,
     feedback: dict[str, object],
     *,
-    logger,
+    logger: logging.Logger,
 ) -> bool:
     """Submit one developer-feedback payload while holding the scope lock."""
     state = (
@@ -107,10 +114,10 @@ async def _submit_developer_feedback_locked(
 
 async def submit_developer_feedback(
     manager: AnonymousShareSubmitManagerLike,
-    session,
+    session: aiohttp.ClientSession,
     feedback: dict[str, object],
     *,
-    logger,
+    logger: logging.Logger,
 ) -> bool:
     """Submit one developer-feedback payload through the manager formal home."""
     return await _submit_developer_feedback_locked(
@@ -140,7 +147,7 @@ def _collapse_aggregate_submit_outcome(
 
 async def _submit_aggregate_report(
     manager: AnonymousShareSubmitManagerLike,
-    session,
+    session: aiohttp.ClientSession,
     *,
     force: bool,
 ) -> bool:
@@ -165,7 +172,7 @@ async def _submit_aggregate_report(
 
 async def _submit_scoped_report(
     manager: AnonymousShareSubmitManagerLike,
-    session,
+    session: aiohttp.ClientSession,
     *,
     force: bool,
 ) -> bool:
@@ -193,7 +200,7 @@ async def _submit_scoped_report(
 
 async def submit_report(
     manager: AnonymousShareSubmitManagerLike,
-    session,
+    session: aiohttp.ClientSession,
     *,
     force: bool,
 ) -> bool:
@@ -205,7 +212,7 @@ async def submit_report(
 
 async def _submit_if_needed_for_aggregate(
     manager: AnonymousShareSubmitManagerLike,
-    session,
+    session: aiohttp.ClientSession,
 ) -> bool:
     """Submit aggregate child managers only when their thresholds are met."""
     success = True
@@ -226,7 +233,7 @@ async def _submit_if_needed_for_aggregate(
 
 async def submit_if_needed(
     manager: AnonymousShareSubmitManagerLike,
-    session,
+    session: aiohttp.ClientSession,
 ) -> bool:
     """Submit the anonymous-share payload only when thresholds are met."""
     if manager.is_aggregate_view():

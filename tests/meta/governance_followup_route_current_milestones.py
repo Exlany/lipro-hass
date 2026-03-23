@@ -211,8 +211,8 @@ def test_v1_8_closeout_through_v1_14_current_milestone_truth_are_consistent() ->
     ):
         assert needle in requirements_text
 
-    assert "**Current milestone:** `v1.14 Governance Truth Realignment, Typed Runtime Access & Final Hidden-Root Closure` (archived)" in state_text
-    assert "**Current mode:** `v1.14 archived`" in state_text
-    assert "$gsd-new-milestone" in state_text
+    assert "**Current milestone:** `v1.15 Typed Contract Convergence, Tooling Kernel Hardening & Mypy Closure`" in state_text
+    assert "**Current mode:** `Phase 67 complete`" in state_text
+    assert "$gsd-complete-milestone v1.15" in state_text
     assert ".planning/v1.14-MILESTONE-AUDIT.md" in state_text
     assert ".planning/reviews/V1_14_EVIDENCE_INDEX.md" in state_text

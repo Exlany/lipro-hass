@@ -11,6 +11,7 @@ from .models import (
     ProtocolSessionFlags,
     SystemHealthTelemetryView,
     TelemetryHeaderPayload,
+    TelemetryJsonValue,
     TelemetrySnapshot,
     empty_failure_summary,
     extract_failure_summary,
@@ -45,6 +46,40 @@ def _build_failure_summary(snapshot: TelemetrySnapshot) -> FailureSummary:
     return empty_failure_summary()
 
 
+def _as_mapping(value: TelemetryJsonValue) -> dict[str, TelemetryJsonValue] | None:
+    if isinstance(value, dict):
+        return value
+    return None
+
+
+def _get_int(value: TelemetryJsonValue, default: int = 0) -> int:
+    if isinstance(value, bool):
+        return int(value)
+    if isinstance(value, int):
+        return value
+    return default
+
+
+def _get_number(value: TelemetryJsonValue) -> int | float | None:
+    if isinstance(value, bool):
+        return int(value)
+    if isinstance(value, (int, float)):
+        return value
+    return None
+
+
+def _get_bool(value: TelemetryJsonValue) -> bool | None:
+    if isinstance(value, bool):
+        return value
+    return None
+
+
+def _get_str(value: TelemetryJsonValue) -> str | None:
+    if isinstance(value, str):
+        return value
+    return None
+
+
 class DiagnosticsTelemetrySink:
     """Diagnostics-oriented sink with full exporter truth."""
 
@@ -67,86 +102,90 @@ class SystemHealthTelemetrySink:
 
     def build_view(self, snapshot: TelemetrySnapshot) -> SystemHealthTelemetryView:
         """Return the system-health projection for one snapshot."""
-        runtime_mqtt = snapshot.runtime.get("mqtt")
-        runtime_signals = snapshot.runtime.get("signals")
-        runtime_command = snapshot.runtime.get("command")
-        runtime_tuning = snapshot.runtime.get("tuning")
-        protocol_telemetry = snapshot.protocol.get("telemetry")
-        protocol_auth_recovery = snapshot.protocol.get("auth_recovery")
+        runtime_mqtt = _as_mapping(snapshot.runtime.get("mqtt"))
+        runtime_signals = _as_mapping(snapshot.runtime.get("signals"))
+        runtime_command = _as_mapping(snapshot.runtime.get("command"))
+        runtime_tuning = _as_mapping(snapshot.runtime.get("tuning"))
+        protocol_telemetry = _as_mapping(snapshot.protocol.get("telemetry"))
+        protocol_auth_recovery = _as_mapping(snapshot.protocol.get("auth_recovery"))
         command_confirmation = (
-            runtime_command.get("confirmation")
-            if isinstance(runtime_command, dict)
+            _as_mapping(runtime_command.get("confirmation"))
+            if runtime_command is not None
             else None
         )
         tuning_metrics = (
-            runtime_tuning.get("metrics") if isinstance(runtime_tuning, dict) else None
+            _as_mapping(runtime_tuning.get("metrics"))
+            if runtime_tuning is not None
+            else None
         )
         return {
             **_header(snapshot),
             "failure_summary": _build_failure_summary(snapshot),
-            "device_count": snapshot.runtime.get("device_count", 0),
-            "polling_interval_seconds": snapshot.runtime.get(
-                "polling_interval_seconds"
+            "device_count": _get_int(snapshot.runtime.get("device_count"), 0),
+            "polling_interval_seconds": _get_number(
+                snapshot.runtime.get("polling_interval_seconds")
             ),
-            "last_update_success": snapshot.runtime.get("last_update_success"),
+            "last_update_success": _get_bool(
+                snapshot.runtime.get("last_update_success")
+            ),
             "mqtt_connected": (
-                runtime_mqtt.get("connected")
-                if isinstance(runtime_mqtt, dict)
+                _get_bool(runtime_mqtt.get("connected"))
+                if runtime_mqtt is not None
                 else None
             ),
             "mqtt_disconnect_notified": (
-                runtime_mqtt.get("disconnect_notified")
-                if isinstance(runtime_mqtt, dict)
+                _get_bool(runtime_mqtt.get("disconnect_notified"))
+                if runtime_mqtt is not None
                 else None
             ),
             "mqtt_last_transport_error": (
-                runtime_mqtt.get("last_transport_error")
-                if isinstance(runtime_mqtt, dict)
+                _get_str(runtime_mqtt.get("last_transport_error"))
+                if runtime_mqtt is not None
                 else None
             ),
             "command_trace_count": (
-                runtime_command.get("trace_count")
-                if isinstance(runtime_command, dict)
+                _get_int(runtime_command.get("trace_count"), 0)
+                if runtime_command is not None
                 else 0
             ),
             "command_confirmation_avg_latency_seconds": (
-                command_confirmation.get("avg_latency_seconds")
-                if isinstance(command_confirmation, dict)
+                _get_number(command_confirmation.get("avg_latency_seconds"))
+                if command_confirmation is not None
                 else None
             ),
             "command_confirmation_timeout_total": (
-                command_confirmation.get("timeout_total")
-                if isinstance(command_confirmation, dict)
+                _get_int(command_confirmation.get("timeout_total"), 0)
+                if command_confirmation is not None
                 else 0
             ),
             "connect_state_event_count": (
-                runtime_signals.get("connect_state_event_count")
-                if isinstance(runtime_signals, dict)
+                _get_int(runtime_signals.get("connect_state_event_count"), 0)
+                if runtime_signals is not None
                 else 0
             ),
             "group_reconciliation_request_count": (
-                runtime_signals.get("group_reconciliation_request_count")
-                if isinstance(runtime_signals, dict)
+                _get_int(runtime_signals.get("group_reconciliation_request_count"), 0)
+                if runtime_signals is not None
                 else 0
             ),
             "refresh_avg_latency_seconds": (
-                tuning_metrics.get("avg_latency")
-                if isinstance(tuning_metrics, dict)
+                _get_number(tuning_metrics.get("avg_latency"))
+                if tuning_metrics is not None
                 else None
             ),
             "protocol_mqtt_last_error_type": (
-                protocol_telemetry.get("mqtt_last_error_type")
-                if isinstance(protocol_telemetry, dict)
+                _get_str(protocol_telemetry.get("mqtt_last_error_type"))
+                if protocol_telemetry is not None
                 else None
             ),
             "auth_refresh_success_count": (
-                protocol_auth_recovery.get("refresh_success_count")
-                if isinstance(protocol_auth_recovery, dict)
+                _get_int(protocol_auth_recovery.get("refresh_success_count"), 0)
+                if protocol_auth_recovery is not None
                 else 0
             ),
             "auth_refresh_failure_count": (
-                protocol_auth_recovery.get("refresh_failure_count")
-                if isinstance(protocol_auth_recovery, dict)
+                _get_int(protocol_auth_recovery.get("refresh_failure_count"), 0)
+                if protocol_auth_recovery is not None
                 else 0
             ),
         }
@@ -159,20 +198,18 @@ class DeveloperTelemetrySink:
 
     def build_view(self, snapshot: TelemetrySnapshot) -> DeveloperTelemetryView:
         """Return the developer projection for one snapshot."""
-        protocol_session = snapshot.protocol.get("session")
-        protocol_session_flags: ProtocolSessionFlags = (
-            {
-                key: protocol_session.get(key)
-                for key in (
-                    "access_token_present",
-                    "refresh_token_present",
-                    "request_timeout",
-                )
-                if key in protocol_session
-            }
-            if isinstance(protocol_session, dict)
-            else {}
-        )
+        protocol_session = _as_mapping(snapshot.protocol.get("session"))
+        protocol_session_flags: ProtocolSessionFlags = {}
+        if protocol_session is not None:
+            access_token_present = _get_bool(protocol_session.get("access_token_present"))
+            refresh_token_present = _get_bool(protocol_session.get("refresh_token_present"))
+            request_timeout = _get_number(protocol_session.get("request_timeout"))
+            if access_token_present is not None:
+                protocol_session_flags["access_token_present"] = access_token_present
+            if refresh_token_present is not None:
+                protocol_session_flags["refresh_token_present"] = refresh_token_present
+            if request_timeout is not None:
+                protocol_session_flags["request_timeout"] = request_timeout
         return {
             **_header(snapshot),
             "failure_summary": _build_failure_summary(snapshot),
@@ -191,21 +228,13 @@ class CITelemetrySink:
         """Return the CI/replay projection for one snapshot."""
         system_health = SystemHealthTelemetrySink().build_view(snapshot)
         summary: CITelemetrySummary = {
-            "device_count": system_health.get("device_count", 0),
-            "mqtt_connected": system_health.get("mqtt_connected"),
-            "command_trace_count": system_health.get("command_trace_count", 0),
-            "connect_state_event_count": system_health.get(
-                "connect_state_event_count", 0
-            ),
-            "command_confirmation_timeout_total": system_health.get(
-                "command_confirmation_timeout_total", 0
-            ),
-            "refresh_avg_latency_seconds": system_health.get(
-                "refresh_avg_latency_seconds"
-            ),
-            "auth_refresh_success_count": system_health.get(
-                "auth_refresh_success_count", 0
-            ),
+            "device_count": system_health["device_count"],
+            "mqtt_connected": system_health["mqtt_connected"],
+            "command_trace_count": system_health["command_trace_count"],
+            "connect_state_event_count": system_health["connect_state_event_count"],
+            "command_confirmation_timeout_total": system_health["command_confirmation_timeout_total"],
+            "refresh_avg_latency_seconds": system_health["refresh_avg_latency_seconds"],
+            "auth_refresh_success_count": system_health["auth_refresh_success_count"],
         }
         return {
             **_header(snapshot),
@@ -219,11 +248,3 @@ DEFAULT_TELEMETRY_SINKS = (
     DeveloperTelemetrySink(),
     CITelemetrySink(),
 )
-
-__all__ = [
-    "DEFAULT_TELEMETRY_SINKS",
-    "CITelemetrySink",
-    "DeveloperTelemetrySink",
-    "DiagnosticsTelemetrySink",
-    "SystemHealthTelemetrySink",
-]

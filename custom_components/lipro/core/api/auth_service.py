@@ -4,10 +4,10 @@ from __future__ import annotations
 
 import hashlib
 import logging
-from typing import Any, Protocol
+from typing import Protocol
 
 from ...const.api import PATH_LOGIN, PATH_REFRESH_TOKEN
-from .types import ApiResponse, LoginResponse
+from .types import JsonObject, JsonValue, LoginResponse
 
 
 class AuthPort(Protocol):
@@ -21,11 +21,11 @@ class AuthPort(Protocol):
     async def smart_home_request(
         self,
         path: str,
-        data: dict[str, Any],
+        data: JsonObject,
         require_auth: bool = True,
         is_retry: bool = False,
         retry_count: int = 0,
-    ) -> ApiResponse:
+    ) -> JsonValue:
         """Execute one Smart Home request through the formal REST surface."""
 
     def set_tokens(
@@ -65,24 +65,33 @@ class AuthApiService:
                 return 0
         return 0
 
-    def _require_tokens(self, result: ApiResponse, *, context: str) -> tuple[str, str]:
+    def _require_result_mapping(self, result: JsonValue, *, context: str) -> JsonObject:
+        """Return the auth response as one mapping payload or raise one auth error."""
+        if isinstance(result, dict):
+            return result
+        msg = f"{context} response must be a JSON object"
+        raise self._auth_error_cls(msg)
+
+    def _require_tokens(self, result: JsonValue, *, context: str) -> tuple[str, str]:
         """Return access/refresh tokens or raise one auth error."""
-        access_token = result.get("access_token")
-        refresh_token = result.get("refresh_token")
+        payload = self._require_result_mapping(result, context=context)
+        access_token = payload.get("access_token")
+        refresh_token = payload.get("refresh_token")
         if isinstance(access_token, str) and isinstance(refresh_token, str):
             if access_token and refresh_token:
                 return access_token, refresh_token
         msg = f"{context} response missing access_token or refresh_token"
         raise self._auth_error_cls(msg)
 
-    def _persist_session_state(self, result: ApiResponse, *, context: str) -> None:
+    def _persist_session_state(self, result: JsonValue, *, context: str) -> None:
         """Persist normalized auth/session fields onto the auth port."""
-        access_token, refresh_token = self._require_tokens(result, context=context)
-        raw_biz_id = result.get("bizId")
+        payload = self._require_result_mapping(result, context=context)
+        access_token, refresh_token = self._require_tokens(payload, context=context)
+        raw_biz_id = payload.get("bizId")
         self._auth_port.set_tokens(
             access_token=access_token,
             refresh_token=refresh_token,
-            user_id=self._coerce_user_id(result.get("userId")),
+            user_id=self._coerce_user_id(payload.get("userId")),
             biz_id=raw_biz_id if isinstance(raw_biz_id, str) else None,
         )
 

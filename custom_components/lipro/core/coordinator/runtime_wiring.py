@@ -6,14 +6,22 @@ construction mechanics and service-layer bootstrapping into one support-only sea
 
 from __future__ import annotations
 
-from collections.abc import Awaitable, Callable, Mapping
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 import logging
 
 from ..device import LiproDevice
 from .factory import CoordinatorRuntimes, CoordinatorStateContainers
 from .lifecycle import CoordinatorUpdateCycle
-from .runtime_context import RuntimeContext
+from .runtime_context import (
+    DeviceResolverProtocol,
+    ListenerNotifierProtocol,
+    MqttConnectedProviderProtocol,
+    PropertyApplierProtocol,
+    ReauthTriggerProtocol,
+    RefreshRequestProtocol,
+    RuntimeContext,
+)
 from .services import (
     CoordinatorCommandService,
     CoordinatorDeviceRefreshService,
@@ -24,7 +32,6 @@ from .services import (
 )
 from .services.protocol_service import CoordinatorProtocolService
 from .services.telemetry_service import CoordinatorSignalService
-from .types import PropertyDict
 
 
 @dataclass(frozen=True, slots=True)
@@ -41,13 +48,13 @@ class CoordinatorServiceLayer:
 
 def build_runtime_context(
     *,
-    get_device_by_id: Callable[[str], LiproDevice | None],
-    apply_properties_update: Callable[[LiproDevice, PropertyDict, str], Awaitable[bool]],
-    schedule_listener_update: Callable[[], None],
+    get_device_by_id: DeviceResolverProtocol,
+    apply_properties_update: PropertyApplierProtocol,
+    schedule_listener_update: ListenerNotifierProtocol,
     signal_service: CoordinatorSignalService,
-    request_refresh: Callable[[], Awaitable[None]],
-    trigger_reauth: Callable[[str], Awaitable[None]],
-    is_mqtt_connected: Callable[[], bool],
+    request_refresh: RefreshRequestProtocol,
+    trigger_reauth: ReauthTriggerProtocol,
+    is_mqtt_connected: MqttConnectedProviderProtocol,
 ) -> RuntimeContext:
     """Build the unified runtime context consumed by coordinator runtimes."""
     return RuntimeContext(
@@ -133,7 +140,7 @@ def build_update_cycle(
     setup_mqtt: Callable[[], Awaitable[bool]],
     run_status_polling: Callable[[], Awaitable[None]],
     telemetry_service: CoordinatorTelemetryService,
-    devices_getter: Callable[[], Mapping[str, LiproDevice]],
+    devices_getter: Callable[[], dict[str, LiproDevice]],
 ) -> CoordinatorUpdateCycle:
     """Build the coordinator update-cycle collaborator from explicit callbacks."""
     return CoordinatorUpdateCycle(

@@ -37,6 +37,8 @@ from .services.registry import async_setup_services, remove_services
 if TYPE_CHECKING:
     from homeassistant.helpers.typing import ConfigType
 
+    from .control.service_registry import ServiceRegistry
+
 
 class _CoreModule(Protocol):
     """Runtime-loaded core module surface used by this adapter."""
@@ -255,7 +257,7 @@ store_entry_options_snapshot = _store_entry_options_snapshot
 async_reload_entry_if_options_changed = _async_reload_entry_if_options_changed
 
 
-def _build_service_registry() -> object:
+def _build_service_registry() -> ServiceRegistry:
     return _build_service_registry_impl(
         domain=DOMAIN,
         registrations=_service_registrations_module(),

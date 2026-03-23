@@ -16,6 +16,7 @@ calls (developer feedback). Reports can be previewed locally before upload.
 from __future__ import annotations
 
 import asyncio
+from collections.abc import Sequence
 import logging
 import time
 from typing import TYPE_CHECKING
@@ -101,7 +102,7 @@ class AnonymousShareManager:
     def _iter_managers(self) -> list[AnonymousShareManager]:
         return [self.for_scope(scope_key) for scope_key, _ in self._iter_scope_states()]
 
-    def iter_scoped_managers(self) -> list[AnonymousShareManager]:
+    def iter_scoped_managers(self) -> Sequence[AnonymousShareManager]:
         """Return scoped managers participating in aggregate submission."""
         return self._iter_managers()
 

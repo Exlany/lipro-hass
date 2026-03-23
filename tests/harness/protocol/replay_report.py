@@ -6,6 +6,8 @@ from collections.abc import Mapping, Sequence
 from typing import Any
 
 from custom_components.lipro.core.telemetry.models import (
+    FailureSummary,
+    TelemetryJsonValue,
     TelemetryViews,
     extract_failure_summary,
 )
@@ -35,6 +37,25 @@ def _dedupe_strings(values: Sequence[str]) -> list[str]:
         seen.add(value)
         ordered.append(value)
     return ordered
+
+
+def _as_mapping(value: TelemetryJsonValue) -> dict[str, TelemetryJsonValue]:
+    assert isinstance(value, dict)
+    return value
+
+
+def _as_list(value: TelemetryJsonValue) -> list[TelemetryJsonValue]:
+    assert isinstance(value, list)
+    return value
+
+
+def _failure_summary_payload(summary: FailureSummary) -> dict[str, str | None]:
+    return {
+        "failure_category": summary["failure_category"],
+        "failure_origin": summary["failure_origin"],
+        "handling_policy": summary["handling_policy"],
+        "error_type": summary["error_type"],
+    }
 
 
 def _scenario_projection(scenario: Mapping[str, Any]) -> dict[str, Any]:
@@ -130,8 +151,8 @@ def _scenario_failure_summary(
         failure_summary["failure_category"] is None
         and failure_summary["error_type"] is None
     ):
-        return dict(result.failure_summary)
-    return dict(failure_summary)
+        return _failure_summary_payload(result.failure_summary)
+    return _failure_summary_payload(failure_summary)
 
 
 def build_replay_scenario_summary(
@@ -140,7 +161,8 @@ def build_replay_scenario_summary(
     telemetry_views: TelemetryViews,
 ) -> dict[str, Any]:
     """Build one replay scenario summary row."""
-    trace = telemetry_views.diagnostics["runtime"]["recent_command_traces"][0]
+    recent_command_traces = _as_list(telemetry_views.diagnostics["runtime"]["recent_command_traces"])
+    trace = _as_mapping(recent_command_traces[0])
     failure_summary = _scenario_failure_summary(result, telemetry_views=telemetry_views)
     return {
         "scenario_id": result.manifest.scenario_id,

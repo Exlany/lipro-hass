@@ -6,7 +6,7 @@ from collections.abc import Awaitable, Callable
 from functools import partial
 import logging
 import re
-from typing import cast
+from typing import Protocol, cast
 
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.exceptions import ServiceValidationError
@@ -23,11 +23,22 @@ from .developer_router_support import (
 )
 from .runtime_access import find_runtime_device_and_coordinator
 
-type DeviceAndCoordinatorGetter = Callable[
-    [HomeAssistant, ServiceCall],
-    Awaitable[tuple[LiproDevice, LiproCoordinator]],
-]
+
+class BoundDeviceAndCoordinatorGetter(Protocol):
+    """Partial-backed async device getter bound by the control plane."""
+
+    func: Callable[..., object]
+
+    def __call__(
+        self,
+        hass: HomeAssistant,
+        call: ServiceCall,
+        /,
+    ) -> Awaitable[tuple[LiproDevice, LiproCoordinator]]: ...
+
+
 type IdentifierRedactor = Callable[[str | None], str | None]
+DeviceAndCoordinatorGetter = BoundDeviceAndCoordinatorGetter
 
 
 def build_serial_pattern(iot_device_id_prefix: str) -> re.Pattern[str]:
@@ -144,10 +155,10 @@ def build_device_and_coordinator_getter(
     domain: str,
     serial_pattern: re.Pattern[str],
     attr_device_id: str,
-) -> DeviceAndCoordinatorGetter:
+) -> BoundDeviceAndCoordinatorGetter:
     """Bind the public device resolver for router handler reuse."""
     return cast(
-        DeviceAndCoordinatorGetter,
+        BoundDeviceAndCoordinatorGetter,
         partial(
             async_get_device_and_coordinator,
             domain=domain,
@@ -173,10 +184,10 @@ async def async_get_developer_device_and_coordinator(
 
 def build_developer_device_and_coordinator_getter(
     get_device_and_coordinator: DeviceAndCoordinatorGetter,
-) -> DeviceAndCoordinatorGetter:
+) -> BoundDeviceAndCoordinatorGetter:
     """Bind developer-mode gating on top of the public device resolver."""
     return cast(
-        DeviceAndCoordinatorGetter,
+        BoundDeviceAndCoordinatorGetter,
         partial(
             async_get_developer_device_and_coordinator,
             get_device_and_coordinator=get_device_and_coordinator,

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
+from typing import cast
 
 from ....const.api import PATH_GET_MQTT_CONFIG, PATH_QUERY_OUTLET_POWER
 from ..diagnostics_api_service import (
@@ -20,7 +20,7 @@ from ..power_service import (
     OutletPowerInfoResult,
     fetch_outlet_power_info as fetch_outlet_power_info_service,
 )
-from ..types import JsonObject, OtaInfoRow
+from ..types import CommandResultApiResponse, JsonObject, MqttConfigResponse, OtaInfoRow
 from .payloads import _EndpointAdapter
 
 _LOGGER = logging.getLogger("custom_components.lipro.core.api")
@@ -28,19 +28,29 @@ _LOGGER = logging.getLogger("custom_components.lipro.core.api")
 type ResponseMapping = JsonObject
 
 
+def _as_mqtt_config_response(payload: JsonObject) -> MqttConfigResponse:
+    """Project one normalized JSON mapping onto the MQTT config response contract."""
+    return cast(MqttConfigResponse, payload)
+
+
+def _as_command_result_response(payload: JsonObject) -> CommandResultApiResponse:
+    """Project one normalized JSON mapping onto the command-result response contract."""
+    return cast(CommandResultApiResponse, payload)
+
+
 class MiscEndpoints(_EndpointAdapter):
     """Focused misc endpoint collaborator for the REST facade."""
 
-    async def get_mqtt_config(self) -> dict[str, Any]:
+    async def get_mqtt_config(self) -> MqttConfigResponse:
         """Get MQTT configuration information."""
-        return await get_mqtt_config_service(
+        return _as_mqtt_config_response(await get_mqtt_config_service(
             request_iot_mapping=self._request_iot_mapping,
             is_success_code=self._is_success_code,
             unwrap_iot_success_payload=self._unwrap_iot_success_payload,
             require_mapping_response=self._require_mapping_response,
             lipro_api_error=LiproApiError,
             path_get_mqtt_config=PATH_GET_MQTT_CONFIG,
-        )
+        ))
 
     async def fetch_outlet_power_info(self, device_id: str) -> OutletPowerInfoResult:
         """Fetch power information for outlet devices."""
@@ -61,16 +71,16 @@ class MiscEndpoints(_EndpointAdapter):
         msg_sn: str,
         device_id: str,
         device_type: int | str,
-    ) -> ResponseMapping:
+    ) -> CommandResultApiResponse:
         """Query command result status."""
-        return await query_command_result_service(
+        return _as_command_result_response(await query_command_result_service(
             msg_sn=msg_sn,
             device_id=device_id,
             device_type=device_type,
             request_iot_mapping=self._request_iot_mapping,
             require_mapping_response=self._require_mapping_response,
             to_device_type_hex=self._to_device_type_hex,
-        )
+        ))
 
     async def get_city(self) -> ResponseMapping:
         """Get city information used for schedules/weather context."""

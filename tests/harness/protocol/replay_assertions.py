@@ -7,6 +7,7 @@ from typing import Any
 
 from custom_components.lipro.core.telemetry.exporter import RuntimeTelemetryExporter
 from custom_components.lipro.core.telemetry.models import (
+    TelemetryJsonValue,
     TelemetryViews,
     empty_failure_summary,
 )
@@ -27,6 +28,21 @@ class _ReplayRuntimeSource:
 
     def get_runtime_telemetry_snapshot(self) -> dict[str, Any]:
         return dict(self._snapshot)
+
+
+def _as_mapping(value: TelemetryJsonValue) -> dict[str, TelemetryJsonValue]:
+    assert isinstance(value, dict)
+    return value
+
+
+def _as_list(value: TelemetryJsonValue) -> list[TelemetryJsonValue]:
+    assert isinstance(value, list)
+    return value
+
+
+def _as_str(value: TelemetryJsonValue) -> str:
+    assert isinstance(value, str)
+    return value
 
 
 def assert_replay_canonical_contract(
@@ -148,7 +164,8 @@ def assert_exporter_backed_replay_telemetry(
     views = build_replay_exporter_views(manifest, result)
     diagnostics = views.diagnostics
     system_health = views.system_health
-    trace = diagnostics["runtime"]["recent_command_traces"][0]
+    recent_command_traces = _as_list(diagnostics["runtime"]["recent_command_traces"])
+    trace = _as_mapping(recent_command_traces[0])
 
     assert diagnostics["schema_version"] == "telemetry.v1"
     assert diagnostics["failure_summary"] == result.failure_summary
@@ -163,7 +180,7 @@ def assert_exporter_backed_replay_telemetry(
     assert system_health["mqtt_connected"] is (manifest.channel == "mqtt")
     assert "device_serial" not in trace
     assert "device_id" not in trace
-    assert trace["device_ref"].startswith("device_")
+    assert _as_str(trace["device_ref"]).startswith("device_")
     return views
 
 

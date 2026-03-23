@@ -2,15 +2,22 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable, Mapping
+from collections.abc import Awaitable, Callable, Mapping
 from dataclasses import dataclass
-from typing import Final, TypedDict
+from typing import Final, Protocol, TypedDict
 
 from ..telemetry.models import OperationOutcome, build_operation_outcome
 
 type SharePayload = dict[str, object]
 type WorkerResponsePayload = dict[str, object]
 type ResponseHeadersLike = Mapping[str, str]
+
+
+class JsonReadableResponse(Protocol):
+    """Minimal response surface for best-effort worker JSON reads."""
+
+    def json(self, *, content_type: str | None = None) -> Awaitable[object] | object:
+        """Return the decoded payload or one awaitable producing it."""
 
 
 class TokenPayload(TypedDict, total=False):
@@ -35,10 +42,19 @@ def _coerce_int(value: object) -> int:
     """Normalize one token timestamp field into an int."""
     if value is None or isinstance(value, bool):
         return 0
-    try:
+    if isinstance(value, int):
+        return value
+    if isinstance(value, float):
         return int(value)
-    except (TypeError, ValueError):
-        return 0
+    if isinstance(value, str):
+        text = value.strip()
+        if not text:
+            return 0
+        try:
+            return int(text)
+        except ValueError:
+            return 0
+    return 0
 
 
 def _coerce_text(value: object) -> str | None:

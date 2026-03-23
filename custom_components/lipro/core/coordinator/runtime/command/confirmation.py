@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import asyncio
-from collections.abc import Callable, Coroutine
+from collections.abc import Awaitable, Callable
 from typing import TYPE_CHECKING, Any
 
 from ....command.post_refresh import TrackBackgroundTask, schedule_post_command_refresh
@@ -25,7 +25,7 @@ class ConfirmationManager:
         device_state_latency_seconds: dict[str, float],
         post_command_refresh_tasks: dict[str, asyncio.Task[Any]],
         track_background_task: TrackBackgroundTask,
-        request_refresh: Callable[[], Coroutine[Any, Any, Any]],
+        request_refresh: Callable[[], Awaitable[object]],
         mqtt_connected_provider: Callable[[], bool],
     ) -> None:
         """Initialize confirmation manager."""

@@ -55,6 +55,8 @@ def test_service_registrations_bind_formal_router_handlers() -> None:
 
 def test_service_router_device_getter_stays_control_owned() -> None:
     """The router-bound device getter must stay in the control plane."""
-    assert service_router._get_device_and_coordinator.func.__module__ == (
+    getter = service_router._get_device_and_coordinator
+
+    assert getter.func.__module__ == (
         service_router_support.__name__
     )

@@ -13,10 +13,11 @@ from __future__ import annotations
 
 import asyncio
 from collections.abc import Generator, Mapping
+from datetime import timedelta
 import pathlib
 from types import MappingProxyType
 from typing import Any
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import DEFAULT, AsyncMock, MagicMock, patch
 
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry  # noqa: F401
@@ -111,14 +112,21 @@ def make_device():
 
 
 class _CoordinatorDouble:
-    """Coordinator test double with a read-only public device surface."""
+    """Coordinator test double aligned with the formal runtime surface."""
 
     def __init__(self) -> None:
         self._devices_store: dict[str, Any] = {}
         self._devices_view = MappingProxyType(self._devices_store)
         self._device_locks: dict[str, asyncio.Lock] = {}
+        self.config_entry: Any | None = None
+        self.update_interval: timedelta | None = None
         self.last_update_success = True
-        self.async_send_command = AsyncMock(return_value=True)
+        self.async_send_command: Any = AsyncMock(return_value=True)
+        self.async_request_refresh: Any = AsyncMock()
+        self.async_update_listeners: Any = MagicMock()
+        self.register_entity: Any = MagicMock()
+        self.unregister_entity: Any = MagicMock()
+        self.async_add_listener: Any = MagicMock(return_value=lambda: None)
 
         async def _async_command_service_send_command(
             device: Any,
@@ -127,19 +135,23 @@ class _CoordinatorDouble:
         ) -> Any:
             return await self.async_send_command(device, command, properties)
 
-        self.command_service = MagicMock(last_failure=None)
+        self.command_service: Any = MagicMock(last_failure=None)
         self.command_service.async_send_command = AsyncMock(
             side_effect=_async_command_service_send_command
         )
-        self.async_request_refresh = AsyncMock()
-        self.async_update_listeners = MagicMock()
-        self.register_entity = MagicMock()
-        self.unregister_entity = MagicMock()
-        self.get_device = MagicMock(
-            side_effect=lambda serial: self._devices_store.get(serial)
+
+        self.get_device: Any = MagicMock()
+        self.get_device.side_effect = self._lookup_get_device
+        self.get_device_by_id: Any = MagicMock()
+        self.get_device_by_id.side_effect = self._lookup_get_device_by_id
+        self.get_device_lock: Any = MagicMock(side_effect=self._get_device_lock)
+
+        self.auth_service: Any = MagicMock(
+            async_ensure_authenticated=AsyncMock(),
+            async_trigger_reauth=AsyncMock(),
         )
-        self.get_device_lock = MagicMock(side_effect=self._get_device_lock)
-        self.protocol = MagicMock()
+
+        self.protocol: Any = MagicMock()
         self.protocol.query_ota_info = AsyncMock(return_value=[])
         self.protocol.get_device_schedules = AsyncMock(return_value=[])
         self.protocol.add_device_schedule = AsyncMock(return_value=[])
@@ -149,6 +161,8 @@ class _CoordinatorDouble:
         self.protocol.query_user_cloud = AsyncMock(return_value={})
         self.protocol.fetch_body_sensor_history = AsyncMock(return_value={})
         self.protocol.fetch_door_sensor_history = AsyncMock(return_value={})
+        self.protocol.protocol_diagnostics_snapshot = MagicMock(return_value={})
+        self.protocol.diagnostics_context = MagicMock(snapshot=MagicMock(return_value={}))
 
         async def _async_query_ota_info(**kwargs: Any) -> Any:
             return await self.protocol.query_ota_info(**kwargs)
@@ -189,7 +203,8 @@ class _CoordinatorDouble:
         self.async_fetch_door_sensor_history = AsyncMock(
             side_effect=_async_fetch_door_sensor_history
         )
-        self.protocol_service = MagicMock()
+
+        self.protocol_service: Any = MagicMock()
         self.protocol_service.async_get_device_schedules = AsyncMock(
             side_effect=_async_get_device_schedules
         )
@@ -216,6 +231,21 @@ class _CoordinatorDouble:
             side_effect=_async_fetch_door_sensor_history
         )
 
+        self.device_refresh_service: Any = MagicMock()
+        self.device_refresh_service.devices = self.devices
+        self.device_refresh_service.get_device_by_id = self.get_device_by_id
+        self.device_refresh_service.request_force_refresh = MagicMock()
+        self.device_refresh_service.request_group_reconciliation = MagicMock()
+        self.device_refresh_service.async_refresh_devices = AsyncMock()
+
+        self.mqtt_service: Any = MagicMock(connected=True)
+        self.mqtt_service.async_setup = AsyncMock(return_value=True)
+        self.mqtt_service.async_stop = AsyncMock()
+        self.mqtt_service.async_sync_subscriptions = AsyncMock()
+
+        self.telemetry_service: Any = MagicMock()
+        self.telemetry_service.build_snapshot = MagicMock(return_value={})
+
     @property
     def devices(self) -> Mapping[str, Any]:
         return self._devices_view
@@ -224,12 +254,24 @@ class _CoordinatorDouble:
     def devices(self, value: Mapping[str, Any]) -> None:
         self._devices_store = dict(value)
         self._devices_view = MappingProxyType(self._devices_store)
+        self.device_refresh_service.devices = self._devices_view
+
+    def _lookup_get_device(self, serial: str) -> Any:
+        if self.get_device._mock_return_value is not DEFAULT:
+            return self.get_device._mock_return_value
+        return self._devices_store.get(serial)
+
+    def _lookup_get_device_by_id(self, device_id: str) -> Any:
+        if self.get_device_by_id._mock_return_value is not DEFAULT:
+            return self.get_device_by_id._mock_return_value
+        return self._devices_store.get(device_id)
 
     def _get_device_lock(self, serial: str) -> asyncio.Lock:
         return self._device_locks.setdefault(serial, asyncio.Lock())
 
     def set_device(self, device: Any) -> None:
         self._devices_store[device.serial] = device
+        self.device_refresh_service.devices = self._devices_view
 
     def set_devices(self, *devices: Any) -> None:
         self.devices = {device.serial: device for device in devices}

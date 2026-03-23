@@ -3,12 +3,18 @@
 from __future__ import annotations
 
 from custom_components.lipro.core.telemetry import TelemetrySnapshot
+from custom_components.lipro.core.telemetry.models import TelemetryJsonValue
 from custom_components.lipro.core.telemetry.sinks import (
     CITelemetrySink,
     DeveloperTelemetrySink,
     DiagnosticsTelemetrySink,
     SystemHealthTelemetrySink,
 )
+
+
+def _as_mapping(value: TelemetryJsonValue) -> dict[str, TelemetryJsonValue]:
+    assert isinstance(value, dict)
+    return value
 
 
 def _snapshot() -> TelemetrySnapshot:
@@ -73,7 +79,9 @@ def test_diagnostics_sink_keeps_full_snapshot_shape() -> None:
         "handling_policy": "retry",
         "error_type": "TimeoutError",
     }
-    assert view["protocol"]["telemetry"]["mqtt_last_error_type"] == "TimeoutError"
+    protocol = _as_mapping(view["protocol"])
+    telemetry = _as_mapping(protocol["telemetry"])
+    assert telemetry["mqtt_last_error_type"] == "TimeoutError"
     assert view["runtime"]["device_count"] == 3
 
 

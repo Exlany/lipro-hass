@@ -12,8 +12,11 @@ Design principles:
 
 from __future__ import annotations
 
+from collections.abc import Awaitable
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Protocol
+from typing import TYPE_CHECKING, Protocol
+
+from .types import PropertyDict
 
 if TYPE_CHECKING:
     from ..device import LiproDevice
@@ -22,7 +25,7 @@ if TYPE_CHECKING:
 class DeviceResolverProtocol(Protocol):
     """Protocol for resolving device by ID."""
 
-    def __call__(self, device_id: str) -> LiproDevice | None:
+    def __call__(self, device_id: str, /) -> LiproDevice | None:
         """Resolve device by ID."""
         ...
 
@@ -30,12 +33,13 @@ class DeviceResolverProtocol(Protocol):
 class PropertyApplierProtocol(Protocol):
     """Protocol for applying property updates to device."""
 
-    async def __call__(
+    def __call__(
         self,
         device: LiproDevice,
-        properties: dict[str, Any],
+        properties: PropertyDict,
         source: str,
-    ) -> bool:
+        /,
+    ) -> Awaitable[bool]:
         """Apply property updates to device."""
         ...
 
@@ -71,7 +75,7 @@ class GroupReconciliationProtocol(Protocol):
 class RefreshRequestProtocol(Protocol):
     """Protocol for requesting coordinator refresh."""
 
-    async def __call__(self) -> None:
+    def __call__(self, /) -> Awaitable[None]:
         """Request coordinator to refresh device states."""
         ...
 
@@ -87,7 +91,7 @@ class MqttConnectedProviderProtocol(Protocol):
 class ReauthTriggerProtocol(Protocol):
     """Protocol for triggering re-authentication flow."""
 
-    async def __call__(self, reason: str) -> None:
+    def __call__(self, reason: str, /) -> Awaitable[None]:
         """Trigger re-authentication flow."""
         ...
 
@@ -105,22 +109,13 @@ class RuntimeContext:
     All ports are immutable references to formal coordinator-owned service objects or callbacks.
     """
 
-    # Device resolution
     get_device_by_id: DeviceResolverProtocol
-
-    # State management
     apply_properties_update: PropertyApplierProtocol
     schedule_listener_update: ListenerNotifierProtocol
-
-    # Runtime signals
     record_connect_state: ConnectStateRecorderProtocol
     request_group_reconciliation: GroupReconciliationProtocol
-
-    # Coordinator orchestration
     request_refresh: RefreshRequestProtocol
     trigger_reauth: ReauthTriggerProtocol
-
-    # MQTT status
     is_mqtt_connected: MqttConnectedProviderProtocol
 
     def __post_init__(self) -> None:

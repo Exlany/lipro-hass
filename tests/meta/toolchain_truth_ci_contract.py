@@ -5,9 +5,9 @@ from __future__ import annotations
 from pathlib import Path
 import tomllib
 
-import yaml
-
 from tests.helpers.repo_root import repo_root
+
+from .conftest import _as_mapping, _as_mapping_list, _as_str, _load_yaml
 
 _ROOT = repo_root(Path(__file__))
 
@@ -43,15 +43,6 @@ def _load_pyproject() -> dict[str, object]:
 
 
 
-def _load_yaml(path: Path) -> dict[str, object]:
-    loaded = yaml.safe_load(path.read_text(encoding="utf-8"))
-    assert isinstance(loaded, dict)
-    if True in loaded and "on" not in loaded:
-        loaded["on"] = loaded.pop(True)
-    return loaded
-
-
-
 def _assert_tokens(text: str, tokens: tuple[str, ...]) -> None:
     for token in tokens:
         assert token in text
@@ -61,28 +52,29 @@ def _assert_tokens(text: str, tokens: tuple[str, ...]) -> None:
 def test_pre_push_contract_runs_translation_and_governance_truth_early() -> None:
     """Local pre-push should mirror the focused truth gates CI relies on."""
     pre_commit = _load_yaml(_PRE_COMMIT)
-    hooks = pre_commit["repos"][0]["hooks"]
-    hook_by_id = {hook["id"]: hook for hook in hooks}
+    repos = _as_mapping_list(pre_commit["repos"])
+    hooks = _as_mapping_list(repos[0]["hooks"])
+    hook_by_id = {_as_str(hook["id"]): hook for hook in hooks}
 
     assert (
-        hook_by_id["translations-truth"]["entry"]
+        _as_str(hook_by_id["translations-truth"]["entry"])
         == "uv run --extra dev python scripts/check_translations.py"
     )
     assert (
-        hook_by_id["architecture-policy"]["entry"]
+        _as_str(hook_by_id["architecture-policy"]["entry"])
         == "uv run --extra dev python scripts/check_architecture_policy.py --check"
     )
     assert (
-        hook_by_id["file-matrix"]["entry"]
+        _as_str(hook_by_id["file-matrix"]["entry"])
         == "uv run --extra dev python scripts/check_file_matrix.py --check"
     )
 
-    diagnostics_entry = hook_by_id["pytest-gate"]["entry"]
+    diagnostics_entry = _as_str(hook_by_id["pytest-gate"]["entry"])
     assert "uv run --extra dev pytest -q -x" in diagnostics_entry
     _assert_tokens(diagnostics_entry, _DIAGNOSTICS_PRE_PUSH_TESTS)
     assert "tests/core/test_diagnostics.py::" not in diagnostics_entry
 
-    governance_entry = hook_by_id["pytest-governance-gate"]["entry"]
+    governance_entry = _as_str(hook_by_id["pytest-governance-gate"]["entry"])
     assert "uv run --extra dev pytest -q -x" in governance_entry
     _assert_tokens(governance_entry, _GOVERNANCE_GUARD_TESTS)
 
@@ -91,34 +83,38 @@ def test_pre_push_contract_runs_translation_and_governance_truth_early() -> None
 def test_ci_governance_lane_records_same_focused_truths() -> None:
     """CI governance lane should publish the same checker and pytest story local flows mirror."""
     ci = _load_yaml(_CI_WORKFLOW)
-    governance_steps = ci["jobs"]["governance"]["steps"]
+    ci_jobs = _as_mapping(ci["jobs"])
+    governance_job = _as_mapping(ci_jobs["governance"])
+    governance_steps = _as_mapping_list(governance_job["steps"])
 
     architecture_step = next(
         step for step in governance_steps if step.get("name") == "Check architecture policy"
     )
-    assert architecture_step["run"] == "uv run python scripts/check_architecture_policy.py --check"
+    assert _as_str(architecture_step["run"]) == "uv run python scripts/check_architecture_policy.py --check"
 
     file_matrix_step = next(
         step
         for step in governance_steps
         if step.get("name") == "Check file matrix and active authority docs"
     )
-    assert file_matrix_step["run"] == "uv run python scripts/check_file_matrix.py --check"
+    assert _as_str(file_matrix_step["run"]) == "uv run python scripts/check_file_matrix.py --check"
 
     governance_pytest_step = next(
         step
         for step in governance_steps
         if step.get("name") == "Run governance and architecture guards"
     )
-    assert "uv run pytest -q -x" in governance_pytest_step["run"]
-    _assert_tokens(governance_pytest_step["run"], _GOVERNANCE_GUARD_TESTS)
+    governance_pytest_run = _as_str(governance_pytest_step["run"])
+    assert "uv run pytest -q -x" in governance_pytest_run
+    _assert_tokens(governance_pytest_run, _GOVERNANCE_GUARD_TESTS)
 
     contract_step = next(
         step for step in governance_steps if step.get("name") == "Record governance lane contract"
     )
-    assert "governance checker roots:" in contract_step["run"]
-    assert "governance pytest suite:" in contract_step["run"]
-    assert "./scripts/lint --full reuses the same focused guard list" in contract_step["run"]
+    contract_run = _as_str(contract_step["run"])
+    assert "governance checker roots:" in contract_run
+    assert "governance pytest suite:" in contract_run
+    assert "./scripts/lint --full reuses the same focused guard list" in contract_run
 
 
 
@@ -126,17 +122,20 @@ def test_ci_test_and_benchmark_lanes_keep_one_snapshot_story() -> None:
     """CI should avoid duplicate snapshot cost and keep benchmark evidence governed."""
     ci = _load_yaml(_CI_WORKFLOW)
 
-    test_steps = ci["jobs"]["test"]["steps"]
-    test_step_names = {step["name"] for step in test_steps}
+    ci_jobs = _as_mapping(ci["jobs"])
+    test_job = _as_mapping(ci_jobs["test"])
+    test_steps = _as_mapping_list(test_job["steps"])
+    test_step_names = {_as_str(step["name"]) for step in test_steps}
     assert "Run snapshot tests" not in test_step_names
     assert "Resolve changed coverage surface" in test_step_names
     contract_step = next(
         step for step in test_steps if step.get("name") == "Record test lane contract"
     )
-    assert "snapshot coverage: included in the main tests/ lane" in contract_step["run"]
+    contract_run = _as_str(contract_step["run"])
+    assert "snapshot coverage: included in the main tests/ lane" in contract_run
     assert (
         "coverage gates: total floor is blocking; changed measured files must meet the changed-surface floor; explicit baseline diff remains opt-in"
-        in contract_step["run"]
+        in contract_run
     )
 
     coverage_step = next(
@@ -144,9 +143,10 @@ def test_ci_test_and_benchmark_lanes_keep_one_snapshot_story() -> None:
         for step in test_steps
         if step.get("name") == "Check total + changed-surface coverage gates"
     )
-    assert "uv run python scripts/coverage_diff.py coverage.json" in coverage_step["run"]
-    assert "--changed-files .coverage-changed-files" in coverage_step["run"]
-    assert "--changed-minimum 95" in coverage_step["run"]
+    coverage_run = _as_str(coverage_step["run"])
+    assert "uv run python scripts/coverage_diff.py coverage.json" in coverage_run
+    assert "--changed-files .coverage-changed-files" in coverage_run
+    assert "--changed-minimum 95" in coverage_run
     coverage_diff_script = (_ROOT / "scripts" / "coverage_diff.py").read_text(
         encoding="utf-8"
     )
@@ -159,41 +159,45 @@ def test_ci_test_and_benchmark_lanes_keep_one_snapshot_story() -> None:
         in coverage_diff_script
     )
 
-    benchmark_steps = ci["jobs"]["benchmark"]["steps"]
+    benchmark_job = _as_mapping(ci_jobs["benchmark"])
+    benchmark_steps = _as_mapping_list(benchmark_job["steps"])
     benchmark_run = next(
         step
         for step in benchmark_steps
         if step.get("name") == "Run benchmark suite"
     )
     assert benchmark_run.get("continue-on-error") in (None, False)
-    assert benchmark_run["id"] == "benchmark_run"
-    assert "--benchmark-json=.benchmarks/benchmark.json" in benchmark_run["run"]
+    assert _as_str(benchmark_run["id"]) == "benchmark_run"
+    assert "--benchmark-json=.benchmarks/benchmark.json" in _as_str(benchmark_run["run"])
 
     upload_step = next(
         step
         for step in benchmark_steps
         if step.get("name") == "Upload benchmark artifact"
     )
-    assert upload_step["uses"] == _UPLOAD_ARTIFACT
-    assert upload_step["with"]["path"] == ".benchmarks/benchmark.json"
+    assert _as_str(upload_step["uses"]) == _UPLOAD_ARTIFACT
+    upload_with = _as_mapping(upload_step["with"])
+    assert _as_str(upload_with["path"]) == ".benchmarks/benchmark.json"
 
     compare_step = next(
         step
         for step in benchmark_steps
         if step.get("name") == "Compare benchmark results against baseline manifest"
     )
-    assert "scripts/check_benchmark_baseline.py" in compare_step["run"]
-    assert "tests/benchmarks/benchmark_baselines.json" in compare_step["run"]
+    compare_run = _as_str(compare_step["run"])
+    assert "scripts/check_benchmark_baseline.py" in compare_run
+    assert "tests/benchmarks/benchmark_baselines.json" in compare_run
 
     summary_step = next(
         step
         for step in benchmark_steps
         if step.get("name") == "Record benchmark governed posture"
     )
-    assert "threshold warning" in summary_step["run"]
-    assert "no-regression gate" in summary_step["run"]
-    assert "steps.benchmark_run.outcome" in summary_step["run"]
-    assert "steps.benchmark_contract.outcome" in summary_step["run"]
+    summary_run = _as_str(summary_step["run"])
+    assert "threshold warning" in summary_run
+    assert "no-regression gate" in summary_run
+    assert "steps.benchmark_run.outcome" in summary_run
+    assert "steps.benchmark_contract.outcome" in summary_run
 
     benchmark_script = (_ROOT / "scripts" / "check_benchmark_baseline.py").read_text(
         encoding="utf-8"

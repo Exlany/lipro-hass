@@ -4,7 +4,25 @@ from __future__ import annotations
 
 from custom_components.lipro.core.telemetry import CardinalityBudget
 from custom_components.lipro.core.telemetry.exporter import RuntimeTelemetryExporter
-from custom_components.lipro.core.telemetry.models import TelemetrySourcePayload
+from custom_components.lipro.core.telemetry.models import (
+    TelemetryJsonValue,
+    TelemetrySourcePayload,
+)
+
+
+def _as_mapping(value: TelemetryJsonValue) -> dict[str, TelemetryJsonValue]:
+    assert isinstance(value, dict)
+    return value
+
+
+def _as_list(value: TelemetryJsonValue) -> list[TelemetryJsonValue]:
+    assert isinstance(value, list)
+    return value
+
+
+def _as_str(value: TelemetryJsonValue) -> str:
+    assert isinstance(value, str)
+    return value
 
 
 class _ProtocolSource:
@@ -80,16 +98,22 @@ def test_exporter_redacts_sensitive_fields_and_pseudonymizes_ids() -> None:
     )
 
     snapshot = exporter.export_snapshot()
+    protocol_session = _as_mapping(snapshot.protocol["session"])
+    runtime_mqtt = _as_mapping(snapshot.runtime["mqtt"])
+    recent_command_traces = _as_list(snapshot.runtime["recent_command_traces"])
+    recent_trace = _as_mapping(recent_command_traces[0])
+    runtime_signals = _as_mapping(snapshot.runtime["signals"])
+    recent_events = _as_list(runtime_signals["recent_connect_state_events"])
 
     assert snapshot.schema_version == "telemetry.v1"
     assert snapshot.report_id == "report-a"
     assert snapshot.entry_ref is not None
-    assert snapshot.protocol["session"]["access_token_present"] is True
-    assert "phone_id" not in snapshot.protocol["session"]
-    assert snapshot.runtime["mqtt"]["device_ref"].startswith("device_")
-    assert "device_id" not in snapshot.runtime["mqtt"]
-    assert "password_hash" not in snapshot.runtime["recent_command_traces"][0]
-    assert len(snapshot.runtime["signals"]["recent_connect_state_events"]) == 10
+    assert protocol_session["access_token_present"] is True
+    assert "phone_id" not in protocol_session
+    assert _as_str(runtime_mqtt["device_ref"]).startswith("device_")
+    assert "device_id" not in runtime_mqtt
+    assert "password_hash" not in recent_trace
+    assert len(recent_events) == 10
 
 
 def test_exporter_builds_stable_views_from_one_snapshot() -> None:
@@ -100,14 +124,17 @@ def test_exporter_builds_stable_views_from_one_snapshot() -> None:
     )
 
     views = exporter.export_views()
+    developer_entry_ref = views.developer["entry_ref"]
+    ci_summary = views.ci["summary"]
 
     assert views.snapshot.schema_version == "telemetry.v1"
     assert views.diagnostics["schema_version"] == "telemetry.v1"
     assert views.system_health["device_count"] == 3
     assert views.system_health["mqtt_connected"] is True
     assert views.system_health["command_trace_count"] == 1
-    assert views.developer["entry_ref"].startswith("entry_")
-    assert views.ci["summary"]["connect_state_event_count"] == 12
+    assert isinstance(developer_entry_ref, str)
+    assert developer_entry_ref.startswith("entry_")
+    assert ci_summary["connect_state_event_count"] == 12
 
 
 def test_exporter_falls_back_when_report_id_factory_rejects_length_argument() -> None:
@@ -138,9 +165,10 @@ def test_exporter_uses_runtime_entry_id_when_protocol_entry_id_is_missing() -> N
     )
 
     snapshot = exporter.export_snapshot()
+    nested = _as_mapping(snapshot.runtime["nested"])
 
     assert snapshot.entry_ref is not None
-    assert snapshot.runtime["nested"]["device_ref"].startswith("device_")
-    assert "refresh_token" not in snapshot.runtime["nested"]
+    assert _as_str(nested["device_ref"]).startswith("device_")
+    assert "refresh_token" not in nested
     assert snapshot.runtime["message"] == "x" * 24
-    assert snapshot.runtime["nested"]["notes"] == "y" * 24
+    assert nested["notes"] == "y" * 24
