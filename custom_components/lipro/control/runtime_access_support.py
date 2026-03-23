@@ -3,9 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-import inspect
 from typing import TYPE_CHECKING, cast
-from unittest.mock import DEFAULT
 
 from homeassistant.core import HomeAssistant
 
@@ -29,99 +27,44 @@ _MISSING = object()
 type RuntimeEntryCoordinator = tuple[RuntimeEntryPort, LiproCoordinator]
 
 
-def _get_static_member(obj: object, name: str) -> object:
-    """Return one explicitly defined member without invoking dynamic fallback."""
-    try:
-        return inspect.getattr_static(obj, name)
-    except AttributeError:
-        return _MISSING
-
-
-
-def _get_instance_dict(obj: object) -> dict[str, object] | None:
-    """Return the raw instance dict without invoking dynamic attribute fallback."""
-    try:
-        instance_dict = object.__getattribute__(obj, "__dict__")
-    except AttributeError:
+def _instance_members(obj: object | None) -> dict[str, object] | None:
+    """Return explicit instance members for one object when available."""
+    if obj is None:
         return None
-    return instance_dict if isinstance(instance_dict, dict) else None
+    try:
+        members = vars(obj)
+    except TypeError:
+        return None
+    return members if isinstance(members, dict) else None
 
 
-
-def _is_explicit_materialized_mock(member: object, *, _seen: set[int] | None = None) -> bool:
-    """Return whether one materialized mock child carries explicit configuration."""
-    instance_dict = _get_instance_dict(member)
-    if instance_dict is None or not any(key.startswith("_mock_") for key in instance_dict):
-        return False
-
-    if instance_dict.get("_mock_return_value", DEFAULT) is not DEFAULT:
-        return True
-    if instance_dict.get("_mock_side_effect") is not None:
-        return True
-    if instance_dict.get("_mock_wraps") is not None:
-        return True
-    if any(
-        key != "method_calls"
-        and not key.startswith("_mock_")
-        and not key.startswith("_spec_")
-        for key in instance_dict
-    ):
-        return True
-
-    seen = _seen or set()
-    marker = id(member)
-    if marker in seen:
-        return False
-    seen.add(marker)
-
-    mock_children = instance_dict.get("_mock_children")
-    if not isinstance(mock_children, dict):
-        return False
-    return any(
-        _is_explicit_materialized_mock(child, _seen=seen)
-        for child in mock_children.values()
-    )
+def _has_instance_member(obj: object | None, name: str) -> bool:
+    """Return whether one member is explicitly bound on the instance."""
+    members = _instance_members(obj)
+    return members is not None and name in members
 
 
-
-def _get_materialized_mock_child(obj: object, name: str) -> object:
-    """Return one configured materialized mock child without generic getattr fallback."""
-    instance_dict = _get_instance_dict(obj)
-    if instance_dict is None:
-        return _MISSING
-
-    mock_children = instance_dict.get("_mock_children")
-    if not isinstance(mock_children, dict):
-        return _MISSING
-
-    child = mock_children.get(name, _MISSING)
-    if child is _MISSING or not _is_explicit_materialized_mock(child):
-        return _MISSING
-    return child
-
+def _has_class_member(obj: object | None, name: str) -> bool:
+    """Return whether one member is declared on the object's type."""
+    return obj is not None and hasattr(type(obj), name)
 
 
 def _get_explicit_member(obj: object | None, name: str) -> object | None:
-    """Return one explicitly bound member without triggering MagicMock ghosts."""
+    """Return one explicitly declared instance/class member without mock-ghost probing."""
     if obj is None:
         return None
-    member = _get_static_member(obj, name)
-    if member is _MISSING:
-        member = _get_materialized_mock_child(obj, name)
-        if member is _MISSING:
-            return None
-    if hasattr(member, "__get__"):
-        try:
-            return cast(object | None, getattr(obj, name, None))
-        except AttributeError:
-            return None
-    return cast(object | None, member)
+    if not (_has_instance_member(obj, name) or _has_class_member(obj, name)):
+        return None
+    try:
+        return cast(object | None, getattr(obj, name))
+    except AttributeError:
+        return None
 
 
 
 def _has_explicit_runtime_member(obj: object | None, name: str) -> bool:
     """Return whether a runtime-facing attribute is explicitly bound on the object."""
-    return obj is not None and _get_static_member(obj, name) is not _MISSING
+    return _has_instance_member(obj, name) or _has_class_member(obj, name)
 
 
 class _ProtocolFacadeTelemetrySource(ProtocolTelemetrySource):
@@ -356,7 +299,10 @@ def find_runtime_device(
     coordinator: LiproCoordinator,
     device_id: str,
 ) -> LiproDevice | None:
-    """Return one runtime device via formal lookup helpers or mapping fallback."""
+    """Return one runtime device via mapping first, then explicit lookup helpers."""
+    mapped_device = get_runtime_device_mapping(coordinator).get(device_id)
+    if mapped_device is not None:
+        return mapped_device
     for getter_name in ("get_device", "get_device_by_id"):
         device = _call_runtime_device_getter(
             coordinator,
@@ -365,7 +311,7 @@ def find_runtime_device(
         )
         if device is not None:
             return device
-    return get_runtime_device_mapping(coordinator).get(device_id)
+    return None
 
 
 
@@ -389,7 +335,7 @@ def find_runtime_entry_for_coordinator(
     coordinator: LiproCoordinator,
 ) -> RuntimeEntryPort | None:
     """Return the config entry that owns one active coordinator."""
-    config_entry = coordinator.config_entry
+    config_entry = _get_explicit_member(coordinator, "config_entry")
     runtime_entry = build_runtime_entry_view(config_entry)
     if runtime_entry is not None and runtime_entry.coordinator is not None:
         if runtime_entry.coordinator.coordinator is coordinator:

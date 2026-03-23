@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections.abc import Callable, Mapping
 from typing import TYPE_CHECKING, Protocol
 
+from ..core.device.extras_features import diagnostic_gateway_projection
 from .models import empty_failure_summary
 from .runtime_access import (
     build_runtime_diagnostics_projection,
@@ -89,7 +90,8 @@ def build_device_diagnostics(
     if outlet_power_info is not None:
         device_info["outlet_power_info"] = dict(outlet_power_info)
 
-    if device.extra_data and "gateway_device_id" in device.extra_data:
+    gateway_projection = diagnostic_gateway_projection(device.extras)
+    if gateway_projection is not None:
         device_info["extra_data"] = {"gateway_device_id": "**REDACTED**"}
 
     return device_info

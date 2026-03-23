@@ -1,14 +1,14 @@
 # Project: Lipro-HASS North Star Evolution
 
-**Status:** Active milestone `v1.14` 已继续推进；当前最新 archive-ready closeout pointer 已固定为 `v1.13`；`Phase 63` 与 `Phase 64` 均已完成，`v1.14` 已进入 milestone closeout-ready 状态。`v1.6` 仅保留为最近 shipped release archive baseline，`v1.11` 仅保留为 refreshed audit 历史 seed baseline。
-**Goal:** 以 `v1.13` archived evidence 为起点，完成治理真相指针、typed runtime access、HA root slimming、tooling/test hidden-root 收口，并继续把 telemetry / schedule / diagnostics formal-contract hotspots 做根因级收口，不回流第二 formal root、conversation-only 结论或 archive drift。
+**Status:** Active milestone `v1.14` 已继续推进；当前最新 archive-ready closeout pointer 已固定为 `v1.13`；`Phase 63`、`Phase 64` 与 `Phase 65` 均已完成，`v1.14` 已回到 milestone closeout-ready 状态。`v1.6` 仅保留为最近 shipped release archive baseline，`v1.11` 仅保留为 refreshed audit 历史 seed baseline。
+**Goal:** 以 `v1.13` archived evidence 为起点，完成治理真相指针、typed runtime access、HA root slimming、tooling/test hidden-root 收口，并把 runtime-access 去反射化、device extras / runtime alias 显式投影、anonymous-share outcome-native submit contract 一次性收口，不回流第二 formal root、raw sidecar second truth 或 bool-only compat story。
 **Default next step:** `$gsd-complete-milestone`
 
 ## Active Milestone (v1.14)
 
 **Name:** `v1.14 Governance Truth Realignment, Typed Runtime Access & Final Hidden-Root Closure`
 
-**Why now:** `v1.13` 已把 tooling truth、large-but-correct formal homes 与 naming/discoverability 收口到 archive-ready；`Phase 63` 又已把 governance truth、typed runtime access、tooling/test hidden-root 与 command/share follow-through 收口完毕。但 renewed review 仍指出三类高杠杆尾债：telemetry exporter family 仍由 `Any`-centric contracts 主导、schedule service 仍存在 service-layer dynamic mesh-context probing、`diagnostics_api_service.py` 仍是正确但偏厚的 mixed-concern outward home。
+**Why now:** `v1.13` 已把 tooling truth、large-but-correct formal homes 与 naming/discoverability 收口到 archive-ready；`Phase 63 -> 64` 又已把 governance truth、typed runtime access、tooling/test hidden-root、telemetry / schedule / diagnostics hotspots 收口完毕。但 renewed review 仍指出三类最后高杠杆尾债：`runtime_access_support.py` 仍带 mock-aware probing 痕迹、runtime identity 仍借 alias sidecar 输送真相、anonymous-share submit path 仍保留 bool-only bridge 与 aggregate outcome 漂移。
 
 **North-star fit:** `v1.14` 继续沿单一正式主链推进：
 
@@ -18,10 +18,10 @@
 - tooling / tests 的目标是消灭 hidden-root 与 second truth，不是再造 helper folklore
 - command failure / anonymous-share 只做 inward typed tightening，不引入新的 public surface 或 compat shell
 
-**Phase range:** `Phase 63 -> 64`
-**Current status:** `Phase 63 -> 64 complete (2026-03-23)`
+**Phase range:** `Phase 63 -> 65`
+**Current status:** `Phase 63 -> 65 complete (2026-03-23)`
 **Starting baseline:** `.planning/v1.13-MILESTONE-AUDIT.md`, `.planning/reviews/V1_13_EVIDENCE_INDEX.md`, `.planning/milestones/v1.13-ROADMAP.md`, `.planning/milestones/v1.13-REQUIREMENTS.md`, `.planning/phases/58-repository-audit-refresh-and-next-wave-routing/58-REMEDIATION-ROADMAP.md`, `.planning/phases/63-governance-truth-realignment-typed-runtime-access-and-hidden-root-closure/63-SUMMARY.md`
-**Requirements basket:** `GOV-46`, `GOV-47`, `HOT-16`, `HOT-17`, `TST-13`, `TYP-16`, `QLT-21`, `ARC-11`, `HOT-18`, `HOT-19`, `TYP-17`, `TST-14`, `GOV-48`, `QLT-22`
+**Requirements basket:** `GOV-46`, `GOV-47`, `HOT-16`, `HOT-17`, `TST-13`, `TYP-16`, `QLT-21`, `ARC-11`, `HOT-18`, `HOT-19`, `TYP-17`, `TST-14`, `GOV-48`, `QLT-22`, `ARC-12`, `HOT-20`, `HOT-21`, `TYP-18`, `TST-15`, `GOV-49`, `QLT-23`
 **Default next command:** `$gsd-complete-milestone`
 **Phase follow-up command:** `$gsd-complete-milestone`
 

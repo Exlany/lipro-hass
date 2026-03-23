@@ -109,3 +109,23 @@ async def test_diagnostics_surfaces_report_entry_not_loaded_consistently(
         )
 
     assert result == {"error": "entry_not_loaded"}
+
+
+@pytest.mark.asyncio
+async def test_config_entry_diagnostics_redacts_ir_gateway_projection(
+    hass, make_device
+) -> None:
+    """IR remote gateway projections should redact via the typed helper path."""
+    device = make_device(
+        "light",
+        serial="rmt_id_appremote_realremote_03abdeadbeefcafe",
+        physical_model="irRemote",
+        properties={"powerState": "1"},
+    )
+    coordinator = _make_coordinator(devices={device.serial: device})
+    entry = _make_entry(runtime_data=coordinator)
+
+    with _patch_share_manager(_make_share_manager()):
+        result = await async_get_config_entry_diagnostics(hass, entry)
+
+    assert result["devices"][0]["extra_data"] == {"gateway_device_id": "**REDACTED**"}

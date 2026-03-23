@@ -31,6 +31,11 @@
 3. residual ledger 已关闭对应条目。
 4. summary 明确记录是“正式删除”还是“仅登记、不删除”。
 
+## Phase 65 Status Update
+
+- 本 phase **无新增 file-level kill target**：本轮收口的是 `runtime_access_support.py` 反射味、runtime alias sidecar 与 anonymous-share bool-only submit bridge，这些都在原正式 home 内被消解，而不是通过新增删除门槛维持。
+- `RESIDUAL_LEDGER.md` 已同步登记三个 closeout family；`KILL_LIST` 继续保持“无新增待删文件”的 truthful 状态。
+
 ## Phase 01 Closeout Review
 
 - 已检查 kill list 与 Phase 01 baseline 产物的关系，本次**无新增删除项**。

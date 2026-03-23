@@ -8,6 +8,12 @@ _None currently registered._
 
 ## Closed Residual Families
 
+- `Runtime-access reflective probing` 已在 Phase 65 关闭：`custom_components/lipro/control/runtime_access_support.py` 现只承认显式 instance/class members 与 typed runtime views，`MagicMock` 幽灵成员不再定义生产真相。
+
+- `Runtime identity alias extras sidecar` 已在 Phase 65 关闭：`custom_components/lipro/core/coordinator/runtime/device/snapshot.py` 现把 alias 真相投影为 `FetchedDeviceSnapshot.identity_aliases_by_serial`，`state/index.py` 也不再读取 `device.extra_data["identity_aliases"]`。
+
+- `Anonymous-share bool-only submit bridge` 已在 Phase 65 关闭：`custom_components/lipro/core/anonymous_share/{manager.py,manager_submission.py}` 现统一走 `OperationOutcome` submit contract，aggregate/scoped submit 也不再以 bool-only 路径充当主真相。
+
 - `Command-result stringly-typed outcome contract` 已在 Phase 57 关闭：`custom_components/lipro/core/command/result_policy.py` / `result.py` 现已共享 typed state / verification / failure-reason vocabulary，runtime sender 与 diagnostics `query_command_result` response typing 也不再依赖 scattered raw strings。
 
 - `Generic backoff helper leak` 已在 Phase 56 关闭：`compute_exponential_retry_wait_time()` 现已迁到 `custom_components/lipro/core/utils/backoff.py`，command/runtime/MQTT callers 不再从 `request_policy.py` 取用 generic helper，而 `RequestPolicy` 只继续拥有 API-local `429` / busy / pacing truth；它也是被显式 carry-forward 到 `Phase 56+` 的唯一 helper-home residual，现已完成 closeout。

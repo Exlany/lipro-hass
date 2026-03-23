@@ -94,6 +94,13 @@
 - **Required runnable proof:** `uv run ruff check .`、`uv run mypy`、`uv run python scripts/check_architecture_policy.py --check`、`uv run python scripts/check_file_matrix.py --check`、`uv run pytest -q tests/core/test_report_builder.py tests/core/anonymous_share/test_manager_submission.py tests/core/test_control_plane.py tests/services/test_services_diagnostics.py tests/meta/test_governance_guards.py tests/meta/test_public_surface_guards.py tests/meta/test_version_sync.py` 与 `uv run python scripts/coverage_diff.py coverage.json --minimum 95` 通过。
 - **Unblock effect:** `v1.1` 已具备 milestone audit / closeout 输入；remaining residual 只允许继续本地化与 delete-gated 收口。
 
+## Phase 65 Exit Contract
+
+- **Required artifacts:** `custom_components/lipro/control/runtime_access_support.py`、`custom_components/lipro/control/diagnostics_surface.py`、`custom_components/lipro/core/coordinator/runtime/{device/snapshot.py,device/snapshot_models.py,state/index.py,state_runtime.py}`、`custom_components/lipro/core/device/extras_features.py`、`custom_components/lipro/core/anonymous_share/{manager.py,manager_submission.py}`、`65-01~65-03-SUMMARY.md`、`65-SUMMARY.md`、`65-VERIFICATION.md` 与更新后的 current-story / review docs。
+- **Required governance proof:** `PROJECT.md`、`ROADMAP.md`、`REQUIREMENTS.md`、`STATE.md`、`MILESTONES.md`、`FILE_MATRIX.md`、`RESIDUAL_LEDGER.md`、`KILL_LIST.md` 与 `PROMOTED_PHASE_ASSETS.md` 必须共同承认 Phase 65 已关闭 runtime-access reflection、runtime alias extras sidecar 与 anonymous-share bool-only submit bridge，且不回流 mock-driven / sidecar-driven / helper-owned second truth。
+- **Required runnable proof:** `uv run ruff check .`、`uv run python scripts/check_architecture_policy.py --check`、`uv run python scripts/check_file_matrix.py --check`、`uv run pytest -q tests/core/test_control_plane.py tests/core/test_system_health.py tests/core/test_diagnostics.py tests/core/test_diagnostics_config_entry.py tests/core/test_diagnostics_device.py tests/core/coordinator/runtime/test_device_runtime.py tests/core/coordinator/runtime/test_state_runtime.py tests/core/anonymous_share/test_manager_submission.py tests/core/test_anonymous_share_cov_missing.py tests/core/test_share_client.py`、`uv run pytest -q tests/meta/test_dependency_guards.py tests/meta/test_public_surface_guards.py tests/meta/test_governance*.py` 与 `uv run pytest -q` 通过。
+- **Unblock effect:** `v1.14` 重新回到 milestone closeout-ready 状态；后续若再开 phase，只能来自 closeout audit 的显式 gap route，而不是对已关闭 residual 的回流叙事。
+
 ## Phase 16 Governance / Toolchain Entry Contract
 
 - **Required governance proof:** `.planning/codebase/README.md` 必须存在；`.planning/codebase/*.md` 必须带 derived collaboration map disclaimer；`.gitignore` 必须允许 track `.planning/codebase/*.md`。

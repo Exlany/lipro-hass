@@ -28,7 +28,7 @@ class TestInitServiceHandlerCommandDispatch(_InitServiceHandlerBase):
     async def test_send_command_handler_success(self, hass) -> None:
         """send_command returns success payload on coordinator success."""
         device = self._create_device()
-        coordinator = MagicMock()
+        coordinator = self._create_runtime_coordinator()
         coordinator.get_device.return_value = device
         command_service = MagicMock()
         command_service.async_send_command = AsyncMock(return_value=True)
@@ -67,7 +67,7 @@ class TestInitServiceHandlerCommandDispatch(_InitServiceHandlerBase):
         group_device = self._create_device(serial="mesh_group_10001")
         group_device.is_group = True
 
-        coordinator = MagicMock()
+        coordinator = self._create_runtime_coordinator()
         coordinator.get_device.return_value = None
         coordinator.get_device_by_id.return_value = group_device
         command_service = MagicMock()
@@ -111,7 +111,7 @@ class TestInitServiceHandlerCommandDispatch(_InitServiceHandlerBase):
     async def test_send_command_handler_failure_raises(self, hass) -> None:
         """send_command raises HomeAssistantError when coordinator reports failure."""
         device = self._create_device()
-        coordinator = MagicMock()
+        coordinator = self._create_runtime_coordinator()
         coordinator.get_device.return_value = device
         command_service = MagicMock()
         command_service.async_send_command = AsyncMock(return_value=False)
@@ -140,7 +140,7 @@ class TestInitServiceHandlerCommandDispatch(_InitServiceHandlerBase):
     ) -> None:
         """pushSuccess=false style failures should use push_failed translation key."""
         device = self._create_device()
-        coordinator = MagicMock()
+        coordinator = self._create_runtime_coordinator()
         coordinator.get_device.return_value = device
         command_service = MagicMock()
         command_service.async_send_command = AsyncMock(return_value=False)
@@ -173,7 +173,7 @@ class TestInitServiceHandlerCommandDispatch(_InitServiceHandlerBase):
     ) -> None:
         """140004 failures should use device-not-connected translation key."""
         device = self._create_device()
-        coordinator = MagicMock()
+        coordinator = self._create_runtime_coordinator()
         coordinator.get_device.return_value = device
         command_service = MagicMock()
         command_service.async_send_command = AsyncMock(return_value=False)
@@ -201,7 +201,7 @@ class TestInitServiceHandlerCommandDispatch(_InitServiceHandlerBase):
     async def test_send_command_handler_busy_code_maps_translation(self, hass) -> None:
         """250001 failures should use device-busy translation key."""
         device = self._create_device()
-        coordinator = MagicMock()
+        coordinator = self._create_runtime_coordinator()
         coordinator.get_device.return_value = device
         command_service = MagicMock()
         command_service.async_send_command = AsyncMock(return_value=False)
@@ -229,7 +229,7 @@ class TestInitServiceHandlerCommandDispatch(_InitServiceHandlerBase):
     async def test_send_command_handler_api_error_raises(self, hass) -> None:
         """send_command maps API errors to HomeAssistantError."""
         device = self._create_device()
-        coordinator = MagicMock()
+        coordinator = self._create_runtime_coordinator()
         coordinator.get_device.return_value = device
         command_service = MagicMock()
         command_service.async_send_command = AsyncMock(
@@ -259,7 +259,7 @@ class TestInitServiceHandlerCommandDispatch(_InitServiceHandlerBase):
     ) -> None:
         """API error 140003 should map to device-offline translation key."""
         device = self._create_device()
-        coordinator = MagicMock()
+        coordinator = self._create_runtime_coordinator()
         coordinator.get_device.return_value = device
         command_service = MagicMock()
         command_service.async_send_command = AsyncMock(
@@ -290,7 +290,7 @@ class TestInitServiceHandlerCommandDispatch(_InitServiceHandlerBase):
     ) -> None:
         """API error 250001 should map to device-busy translation key."""
         device = self._create_device()
-        coordinator = MagicMock()
+        coordinator = self._create_runtime_coordinator()
         coordinator.get_device.return_value = device
         command_service = MagicMock()
         command_service.async_send_command = AsyncMock(
@@ -321,7 +321,7 @@ class TestInitServiceHandlerCommandDispatch(_InitServiceHandlerBase):
     ) -> None:
         """API error 140013 should map to device-offline translation key."""
         device = self._create_device()
-        coordinator = MagicMock()
+        coordinator = self._create_runtime_coordinator()
         coordinator.get_device.return_value = device
         command_service = MagicMock()
         command_service.async_send_command = AsyncMock(

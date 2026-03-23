@@ -259,12 +259,12 @@ class SnapshotBuilder:
     def _build_index_identity_aliases(
         normalized_row: DeviceRow,
         device: LiproDevice,
-    ) -> set[str]:
-        """Build the identity aliases used by runtime lookup indexes."""
+    ) -> tuple[str, ...]:
+        """Build the explicit identity aliases used by runtime lookup indexes."""
         raw_identity_aliases = normalized_row.get("identityAliases")
         identity_aliases = (
             {
-                alias
+                alias.strip()
                 for alias in raw_identity_aliases
                 if isinstance(alias, str) and alias.strip()
             }
@@ -274,7 +274,7 @@ class SnapshotBuilder:
         identity_aliases.add(device.serial)
         if device.iot_device_id:
             identity_aliases.add(device.iot_device_id)
-        return identity_aliases
+        return tuple(sorted(identity_aliases))
 
     def _record_snapshot_device(
         self,
@@ -284,6 +284,7 @@ class SnapshotBuilder:
         devices: dict[str, LiproDevice],
         device_by_id: dict[str, LiproDevice],
         identity_mapping: dict[str, LiproDevice],
+        identity_aliases_by_serial: dict[str, tuple[str, ...]],
         iot_ids: list[str],
         group_ids: list[str],
         outlet_ids: list[str],
@@ -296,9 +297,10 @@ class SnapshotBuilder:
             return
 
         devices[device.serial] = device
-        device.extra_data["identity_aliases"] = [device.serial]
+        identity_aliases = self._build_index_identity_aliases(normalized_row, device)
+        identity_aliases_by_serial[device.serial] = identity_aliases
 
-        for identity_alias in self._build_index_identity_aliases(normalized_row, device):
+        for identity_alias in identity_aliases:
             device_by_id[identity_alias] = device
             identity_mapping[identity_alias] = device
 
@@ -324,6 +326,7 @@ class SnapshotBuilder:
         devices: dict[str, LiproDevice] = {}
         device_by_id: dict[str, LiproDevice] = {}
         identity_mapping: dict[str, LiproDevice] = {}
+        identity_aliases_by_serial: dict[str, tuple[str, ...]] = {}
         iot_ids: list[str] = []
         group_ids: list[str] = []
         outlet_ids: list[str] = []
@@ -354,6 +357,7 @@ class SnapshotBuilder:
                 devices=devices,
                 device_by_id=device_by_id,
                 identity_mapping=identity_mapping,
+                identity_aliases_by_serial=identity_aliases_by_serial,
                 iot_ids=iot_ids,
                 group_ids=group_ids,
                 outlet_ids=outlet_ids,
@@ -382,6 +386,7 @@ class SnapshotBuilder:
             iot_ids=iot_ids,
             group_ids=group_ids,
             outlet_ids=outlet_ids,
+            identity_aliases_by_serial=identity_aliases_by_serial,
             cloud_serials=cloud_serials,
             diagnostic_gateway_devices=diagnostic_gateway_devices,
         )

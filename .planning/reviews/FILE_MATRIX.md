@@ -22,7 +22,7 @@
 | `custom_components/lipro/const/properties.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/control/__init__.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/control/developer_router_support.py` | Control | Phase 14 / 15 | 保留 | developer diagnostics glue + typed helper home |
-| `custom_components/lipro/control/diagnostics_surface.py` | Control | Phase 3 | 保留 | - |
+| `custom_components/lipro/control/diagnostics_surface.py` | Control | Phase 3 | 保留 | diagnostics formal-home shell; gateway redaction now hangs off typed `diagnostic_gateway_projection(...)` instead of raw extras probing |
 | `custom_components/lipro/control/entry_lifecycle_controller.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/control/entry_lifecycle_failures.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/control/entry_lifecycle_support.py` | Control | Phase 3 | 保留 | - |
@@ -30,7 +30,7 @@
 | `custom_components/lipro/control/models.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/control/redaction.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/control/runtime_access.py` | Control | Phase 3 | 保留 | - |
-| `custom_components/lipro/control/runtime_access_support.py` | Control | Phase 3 | 保留 | - |
+| `custom_components/lipro/control/runtime_access_support.py` | Control | Phase 3 | 保留 | runtime-access helper home; explicit entry/coordinator member projection, no mock-child / `__dict__` truth |
 | `custom_components/lipro/control/runtime_access_types.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/control/service_registry.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/control/service_router.py` | Control | Phase 3 / 14 / 15 / 37 | 保留 | public router shell over focused handler/support collaborators |
@@ -44,8 +44,8 @@
 | `custom_components/lipro/core/anonymous_share/capabilities.py` | Protocol | Phase 2.6 | 保留 | - |
 | `custom_components/lipro/core/anonymous_share/collector.py` | Protocol | Phase 2.6 | 保留 | - |
 | `custom_components/lipro/core/anonymous_share/const.py` | Protocol | Phase 2.6 | 保留 | - |
-| `custom_components/lipro/core/anonymous_share/manager.py` | Protocol | Phase 2.6 | 保留 | - |
-| `custom_components/lipro/core/anonymous_share/manager_submission.py` | Protocol | Phase 2.6 | 保留 | - |
+| `custom_components/lipro/core/anonymous_share/manager.py` | Protocol | Phase 2.6 | 保留 | anonymous-share formal home; submit path now consumes typed share-client outcomes only |
+| `custom_components/lipro/core/anonymous_share/manager_submission.py` | Protocol | Phase 2.6 | 保留 | scoped/aggregate submit-flow helper home; outcome collapse stays single-track and failure-truthful |
 | `custom_components/lipro/core/anonymous_share/manager_support.py` | Protocol | Phase 2.6 | 保留 | - |
 | `custom_components/lipro/core/anonymous_share/models.py` | Protocol | Phase 2.6 | 保留 | - |
 | `custom_components/lipro/core/anonymous_share/registry.py` | Protocol | Phase 2.6 | 保留 | - |
@@ -133,8 +133,8 @@
 | `custom_components/lipro/core/coordinator/runtime/device/batch_optimizer.py` | Runtime | Phase 5 | 重构 | - |
 | `custom_components/lipro/core/coordinator/runtime/device/filter.py` | Runtime | Phase 5 | 重构 | - |
 | `custom_components/lipro/core/coordinator/runtime/device/refresh_strategy.py` | Runtime | Phase 5 | 重构 | - |
-| `custom_components/lipro/core/coordinator/runtime/device/snapshot.py` | Runtime | Phase 5 | 重构 | - |
-| `custom_components/lipro/core/coordinator/runtime/device/snapshot_models.py` | Runtime | Phase 33 | 保留 | typed snapshot container + rejection contract home |
+| `custom_components/lipro/core/coordinator/runtime/device/snapshot.py` | Runtime | Phase 5 | 重构 | snapshot builder now emits explicit `identity_aliases_by_serial` runtime projection instead of extras sidecar writes |
+| `custom_components/lipro/core/coordinator/runtime/device/snapshot_models.py` | Runtime | Phase 33 | 保留 | typed snapshot container + rejection contract home + runtime identity-alias projection contract |
 | `custom_components/lipro/core/coordinator/runtime/device_runtime.py` | Runtime | Phase 5 | 重构 | - |
 | `custom_components/lipro/core/coordinator/runtime/mqtt/__init__.py` | Runtime | Phase 5 | 重构 | - |
 | `custom_components/lipro/core/coordinator/runtime/mqtt/adapters.py` | Runtime | Phase 33 | 保留 | MQTT callback adapter helper home |
@@ -145,10 +145,10 @@
 | `custom_components/lipro/core/coordinator/runtime/mqtt_runtime.py` | Runtime | Phase 5 | 重构 | - |
 | `custom_components/lipro/core/coordinator/runtime/outlet_power_runtime.py` | Runtime | Phase 5 | 重构 | - |
 | `custom_components/lipro/core/coordinator/runtime/state/__init__.py` | Runtime | Phase 5 | 重构 | - |
-| `custom_components/lipro/core/coordinator/runtime/state/index.py` | Runtime | Phase 5 | 重构 | - |
+| `custom_components/lipro/core/coordinator/runtime/state/index.py` | Runtime | Phase 5 | 重构 | identity-index rebuild home; accepts explicit runtime alias projection rather than extras sidecar truth |
 | `custom_components/lipro/core/coordinator/runtime/state/reader.py` | Runtime | Phase 5 | 重构 | - |
 | `custom_components/lipro/core/coordinator/runtime/state/updater.py` | Runtime | Phase 5 | 重构 | - |
-| `custom_components/lipro/core/coordinator/runtime/state_runtime.py` | Runtime | Phase 5 | 重构 | - |
+| `custom_components/lipro/core/coordinator/runtime/state_runtime.py` | Runtime | Phase 5 | 重构 | public runtime shell for state/index services; forwards explicit alias projection to index rebuild |
 | `custom_components/lipro/core/coordinator/runtime/status/__init__.py` | Runtime | Phase 5 | 重构 | - |
 | `custom_components/lipro/core/coordinator/runtime/status/executor.py` | Runtime | Phase 5 | 重构 | - |
 | `custom_components/lipro/core/coordinator/runtime/status/scheduler.py` | Runtime | Phase 5 | 重构 | - |
@@ -178,7 +178,7 @@
 | `custom_components/lipro/core/device/device_snapshots.py` | Domain | Phase 4 | 重构 | - |
 | `custom_components/lipro/core/device/device_views.py` | Domain | Phase 4 | 重构 | - |
 | `custom_components/lipro/core/device/extras.py` | Domain | Phase 4 | 重构 | - |
-| `custom_components/lipro/core/device/extras_features.py` | Domain | Phase 4 | 重构 | - |
+| `custom_components/lipro/core/device/extras_features.py` | Domain | Phase 4 | 重构 | typed `DeviceExtras` feature home; diagnostics gateway projection stays explicit and localized |
 | `custom_components/lipro/core/device/extras_payloads.py` | Domain | Phase 4 | 重构 | - |
 | `custom_components/lipro/core/device/extras_support.py` | Domain | Phase 4 | 重构 | DeviceExtras payload / panel parsing support helper home |
 | `custom_components/lipro/core/device/group_status.py` | Domain | Phase 4 | 重构 | - |

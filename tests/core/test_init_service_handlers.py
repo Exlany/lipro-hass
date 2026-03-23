@@ -23,8 +23,26 @@ class _InitServiceHandlerBase:
         )
 
     @staticmethod
-    def _attach_auth_service(coordinator: MagicMock) -> MagicMock:
+    def _materialize_runtime_lookup_surface(coordinator: object) -> object:
+        """Bind explicit runtime lookup members so runtime-access sees one honest coordinator."""
+        members = vars(coordinator)
+        if "devices" not in members:
+            coordinator.devices = {}
+        if "get_device" not in members:
+            coordinator.get_device = MagicMock(return_value=None)
+        if "get_device_by_id" not in members:
+            coordinator.get_device_by_id = MagicMock(return_value=None)
+        return coordinator
+
+    @classmethod
+    def _create_runtime_coordinator(cls) -> object:
+        """Create one explicit runtime coordinator test double."""
+        return cls._materialize_runtime_lookup_surface(MagicMock())
+
+    @classmethod
+    def _attach_auth_service(cls, coordinator: object) -> object:
         """Attach the formal async auth and protocol surfaces expected by services."""
+        coordinator = cls._materialize_runtime_lookup_surface(coordinator)
         coordinator.auth_service = MagicMock(
             async_ensure_authenticated=AsyncMock(),
             async_trigger_reauth=AsyncMock(),

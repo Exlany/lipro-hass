@@ -114,9 +114,16 @@ class StateRuntime:
         return await self._updater.batch_update_properties(updates, source=source)
 
     # Index manager methods
-    def rebuild_device_index(self, devices: dict[str, LiproDevice]) -> None:
+    def rebuild_device_index(
+        self,
+        devices: dict[str, LiproDevice],
+        identity_aliases_by_serial: Mapping[str, tuple[str, ...]] | None = None,
+    ) -> None:
         """Rebuild device identity index from current device snapshot."""
-        self._index_manager.rebuild_device_index(devices)
+        self._index_manager.rebuild_device_index(
+            devices,
+            identity_aliases_by_serial,
+        )
 
     def register_entity(
         self,

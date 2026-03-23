@@ -175,6 +175,8 @@ async def test_aggregate_submit_report_combines_scoped_results() -> None:
     result = await aggregate.submit_report(MagicMock(spec=aiohttp.ClientSession), force=True)
 
     assert result is False
+    assert aggregate.last_submit_outcome is not None
+    assert aggregate.last_submit_outcome.reason_code == "submit_failed"
     manager_one.submit_report.assert_awaited_once()
     manager_two.submit_report.assert_awaited_once()
 
@@ -192,5 +194,7 @@ async def test_aggregate_submit_if_needed_combines_scoped_results() -> None:
     result = await aggregate.submit_if_needed(MagicMock(spec=aiohttp.ClientSession))
 
     assert result is False
+    assert aggregate.last_submit_outcome is not None
+    assert aggregate.last_submit_outcome.reason_code == "submit_failed"
     manager_one.submit_if_needed.assert_awaited_once()
     manager_two.submit_if_needed.assert_awaited_once()

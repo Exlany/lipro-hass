@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, cast
 from ...entity_protocol import LiproEntityProtocol
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
+    from collections.abc import Callable, Mapping
 
     from ....device import LiproDevice
     from ....device.identity_index import DeviceIdentityIndex
@@ -39,22 +39,25 @@ class StateIndexManager:
         self._entities_by_device = entities_by_device
         self._normalize_device_key = normalize_device_key
 
-    def rebuild_device_index(self, devices: dict[str, LiproDevice]) -> None:
+    def rebuild_device_index(
+        self,
+        devices: dict[str, LiproDevice],
+        identity_aliases_by_serial: Mapping[str, tuple[str, ...]] | None = None,
+    ) -> None:
         """Rebuild device identity index from current device snapshot.
 
         Args:
             devices: Current device dictionary
+            identity_aliases_by_serial: Explicit runtime alias projection keyed by serial
         """
+        runtime_aliases = identity_aliases_by_serial or {}
         identity_mapping: dict[str, LiproDevice] = {}
         for device in devices.values():
             identity_mapping[device.serial] = device
             if device.iot_device_id:
                 identity_mapping[device.iot_device_id] = device
-            aliases = device.extra_data.get("identity_aliases")
-            if isinstance(aliases, list):
-                for alias in aliases:
-                    if isinstance(alias, str) and alias.strip():
-                        identity_mapping[alias.strip()] = device
+            for alias in runtime_aliases.get(device.serial, ()):
+                identity_mapping[alias] = device
 
         self._device_identity_index.replace(identity_mapping)
 

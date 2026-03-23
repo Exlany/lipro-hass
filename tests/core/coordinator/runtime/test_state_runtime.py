@@ -331,3 +331,30 @@ class TestStateIndexManager:
 
         state_runtime.rebuild_device_index(devices)
         assert state_runtime.has_device(new_device.serial) is True
+
+
+    def test_rebuild_device_index_accepts_explicit_runtime_alias_projection(
+        self,
+        state_runtime: StateRuntime,
+        mock_device: LiproDevice,
+    ) -> None:
+        """Explicit runtime alias projections should rebuild lookups without extras sidecars."""
+        projected_device = LiproDevice(
+            device_number=3,
+            serial="TEST003",
+            name="Projected Device",
+            device_type=1,
+            iot_name="lipro_led",
+            physical_model="light",
+            room_id=3,
+            properties={"connectState": "1"},
+        )
+        devices = {mock_device.serial: mock_device, projected_device.serial: projected_device}
+
+        state_runtime.rebuild_device_index(
+            devices,
+            {projected_device.serial: ("mesh_group_alias", "03ab5ccd7c000003")},
+        )
+
+        assert state_runtime.get_device_by_id("mesh_group_alias") is projected_device
+        assert state_runtime.get_device_by_id("03AB5CCD7C000003") is projected_device

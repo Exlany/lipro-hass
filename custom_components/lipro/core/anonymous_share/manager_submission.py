@@ -64,15 +64,6 @@ class AnonymousShareSubmitManagerLike(Protocol):
     ) -> OperationOutcome:
         """Submit one payload and return the structured outcome."""
 
-    async def async_submit_share_payload(
-        self,
-        session,
-        report: dict[str, object],
-        *,
-        label: str,
-    ) -> bool:
-        """Submit one payload with bool compatibility."""
-
     async def async_finalize_successful_submit(self) -> None:
         """Finalize one successful submit by updating manager state."""
 
@@ -130,6 +121,23 @@ async def submit_developer_feedback(
     )
 
 
+def _collapse_aggregate_submit_outcome(
+    *,
+    success: bool,
+    child_outcomes: list[OperationOutcome],
+) -> OperationOutcome:
+    """Return one aggregate submit outcome without hiding child failures."""
+    for child_outcome in child_outcomes:
+        if not child_outcome.is_success:
+            return child_outcome
+    if child_outcomes:
+        return child_outcomes[0]
+    return build_operation_outcome(
+        kind=("success" if success else "failed"),
+        reason_code=("submitted" if success else "submit_failed"),
+    )
+
+
 async def _submit_aggregate_report(
     manager: AnonymousShareSubmitManagerLike,
     session,
@@ -138,21 +146,18 @@ async def _submit_aggregate_report(
 ) -> bool:
     """Submit all scoped reports for one aggregate manager view."""
     success = True
-    aggregate_outcome: OperationOutcome | None = None
+    child_outcomes: list[OperationOutcome] = []
     for child_manager in manager.iter_scoped_managers():
         child_success = await child_manager.submit_report(session, force=force)
         success = child_success and success
         child_outcome = child_manager.last_submit_outcome
-        if child_outcome is None:
-            continue
-        if aggregate_outcome is None:
-            aggregate_outcome = child_outcome
+        if child_outcome is not None:
+            child_outcomes.append(child_outcome)
 
     manager.set_last_submit_outcome(
-        aggregate_outcome
-        or build_operation_outcome(
-            kind=("success" if success else "failed"),
-            reason_code=("submitted" if success else "submit_failed"),
+        _collapse_aggregate_submit_outcome(
+            success=success,
+            child_outcomes=child_outcomes,
         )
     )
     return success
@@ -174,11 +179,13 @@ async def _submit_scoped_report(
 
     async with manager.get_submit_state().upload_lock:
         report = manager.build_report()
-        if not await manager.async_submit_share_payload(
+        outcome = await manager.async_submit_share_payload_with_outcome(
             session,
             report,
             label="Anonymous share",
-        ):
+        )
+        manager.set_last_submit_outcome(outcome)
+        if not outcome.is_success:
             return False
         await manager.async_finalize_successful_submit()
         return True
@@ -202,8 +209,18 @@ async def _submit_if_needed_for_aggregate(
 ) -> bool:
     """Submit aggregate child managers only when their thresholds are met."""
     success = True
+    child_outcomes: list[OperationOutcome] = []
     for child_manager in manager.iter_scoped_managers():
         success = await child_manager.submit_if_needed(session) and success
+        child_outcome = child_manager.last_submit_outcome
+        if child_outcome is not None:
+            child_outcomes.append(child_outcome)
+    manager.set_last_submit_outcome(
+        _collapse_aggregate_submit_outcome(
+            success=success,
+            child_outcomes=child_outcomes,
+        )
+    )
     return success
 
 

@@ -87,6 +87,7 @@ class FetchedDeviceSnapshot:
     iot_ids: list[str]
     group_ids: list[str]
     outlet_ids: list[str]
+    identity_aliases_by_serial: dict[str, tuple[str, ...]] = field(default_factory=dict)
     cloud_serials: set[str] = field(default_factory=set)
     diagnostic_gateway_devices: dict[str, LiproDevice] = field(default_factory=dict)
 

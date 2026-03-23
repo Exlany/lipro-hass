@@ -16,7 +16,7 @@
 - ✅ **v1.11 Repository Audit Refresh & Next-Wave Remediation Routing** - formal milestone opened on 2026-03-22 from the renewed full-repository audit request; Phase 58 completed on 2026-03-22 with refreshed repo-wide audit evidence and now serves as the closeout-ready seed baseline for v1.12
 - ✅ **v1.10 Command-Result Typed Outcome & Reason-Code Hardening** - formal milestone opened on 2026-03-22 from the Phase 56 deferred follow-up route; Phase 57 completed on 2026-03-22 with promoted closeout evidence and now serves as the closeout-ready seed baseline for v1.11
 
-- 🚧 **v1.14 Governance Truth Realignment, Typed Runtime Access & Final Hidden-Root Closure** - formal milestone opened on 2026-03-23 from `v1.13` archived evidence; `Phase 63` seeded for governance pointer sync, typed runtime-access / HA-root slimming, tooling/test hidden-root closure, and typed command/share follow-through
+- 🚧 **v1.14 Governance Truth Realignment, Typed Runtime Access & Final Hidden-Root Closure** - formal milestone opened on 2026-03-23 from `v1.13` archived evidence; `Phase 63 -> 65` completed on 2026-03-23 and returned the milestone to closeout-ready status after runtime-access de-reflection, runtime alias projection, and anonymous-share outcome-contract closure
 
 ## Required Phase Outputs
 
@@ -1226,7 +1226,7 @@ Plans:
 
 **Milestone Goal:** 以 `v1.13` archived evidence 为起点，先统一 governance latest-pointer / archive-route truth 与 anti-drift guards，再把 `RuntimeAccess` / `__init__.py` / tooling-test hidden-root / command-share typed seams，以及 telemetry / schedule / diagnostics 剩余 formal-contract hotspots 收口到更诚实、更薄、更可验证的正式主链。
 
-**Current Status:** `Phase 63 -> 64 complete (2026-03-23)`；governance pointer、typed runtime access、tooling/test hidden-root closure、telemetry typed contracts、schedule formal contracts 与 diagnostics hotspot follow-through 均已落盘 summary，`v1.14` 当前进入 milestone closeout-ready 状态。
+**Current Status:** `Phase 63 -> 65 complete (2026-03-23)`；governance pointer、typed runtime access、tooling/test hidden-root closure、telemetry / schedule / diagnostics follow-through、runtime-access 去反射化、runtime alias 显式投影与 anonymous-share outcome-native submit contract 已完成，`v1.14` 当前回到 milestone closeout-ready 状态。
 
 ### Phase 63: Governance truth realignment, typed runtime access, and hidden-root closure
 
@@ -1264,3 +1264,21 @@ Plans:
 - [x] 64-03: split diagnostics API concerns inward while syncing current-story docs and file-matrix truth (completed 2026-03-23)
 **Closeout evidence:** `.planning/phases/64-telemetry-typing-schedule-contracts-and-diagnostics-hotspot-slimming/64-SUMMARY.md`, `.planning/phases/64-telemetry-typing-schedule-contracts-and-diagnostics-hotspot-slimming/64-VERIFICATION.md`
 
+
+### Phase 65: Runtime-access de-reflection and anonymous-share hotspot closure
+
+**Goal:** 把 `control/runtime_access_support.py` 从测试驱动的反射/Mock-ghost 防御收口回显式 runtime read-model，并把 `DeviceExtras` 的 identity/mesh projections 与 `anonymous_share` 的 submit contract 继续 formalize：生产主路径不再为 `MagicMock` 或 bool-only test doubles 牺牲 contract honesty，raw `extra_data` 读取只保留在本地 mutator/compat 边界。
+**Depends on:** Phase 64
+**Requirements**: [ARC-12, HOT-20, HOT-21, TYP-18, TST-15, GOV-49, QLT-23]
+**Success Criteria**:
+  1. `custom_components/lipro/control/runtime_access_support.py` 不再依赖 mock-child / instance-dict introspection 充当正式 runtime truth；runtime-access focused tests 改用显式 fake entry/coordinator ports，public helper surface 保持稳定。
+  2. `DeviceExtras` 对 identity aliases 与 mesh/IR gateway projections 提供正式读取面，control/runtime consumers 不再在生产路径直接读取 `device.extra_data` 决策主逻辑；raw side-car 仅保留在 localized mutator / legacy fallback 边界。
+  3. `custom_components/lipro/core/anonymous_share/manager.py` / `manager_submission.py` / related tests 统一到 outcome-native submit contract，不再通过动态方法探测或 bool-only mock bridge 维持主路径；governance docs 与 file matrix 同轮冻结新 topology。
+**Plans**: 3 total / 3 completed / 0 pending
+
+Plans:
+- [x] 65-01: de-reflect runtime access and replace ghost-prone mocks with explicit runtime fakes (completed 2026-03-23)
+- [x] 65-02: formalize device extras projections and remove raw extra-data reads from production consumers (completed 2026-03-23)
+- [x] 65-03: converge anonymous-share submission onto one typed outcome contract and freeze Phase 65 truth (completed 2026-03-23)
+**Focused evidence:** `.planning/phases/65-runtime-access-de-reflection-and-anonymous-share-hotspot-closure/65-01-SUMMARY.md`, `.planning/phases/65-runtime-access-de-reflection-and-anonymous-share-hotspot-closure/65-02-SUMMARY.md`, `.planning/phases/65-runtime-access-de-reflection-and-anonymous-share-hotspot-closure/65-03-SUMMARY.md`
+**Closeout evidence:** `.planning/phases/65-runtime-access-de-reflection-and-anonymous-share-hotspot-closure/65-SUMMARY.md`, `.planning/phases/65-runtime-access-de-reflection-and-anonymous-share-hotspot-closure/65-VERIFICATION.md`

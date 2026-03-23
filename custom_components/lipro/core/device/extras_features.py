@@ -91,6 +91,21 @@ def mesh_group_member_ids(self: DeviceExtras) -> list[str]:
     return member_ids
 
 
+def diagnostic_gateway_projection(self: DeviceExtras) -> dict[str, object] | None:
+    """Return the explicit diagnostics projection for gateway/member topology."""
+    gateway_device_id = mesh_gateway_device_id(self) or ir_remote_gateway_device_id(self)
+    group_member_ids = mesh_group_member_ids(self)
+    if gateway_device_id is None and not group_member_ids:
+        return None
+
+    projection: dict[str, object] = {}
+    if gateway_device_id is not None:
+        projection["gateway_device_id"] = gateway_device_id
+    if group_member_ids:
+        projection["group_member_ids"] = group_member_ids
+    return projection
+
+
 def supports_ir_switch(self: DeviceExtras) -> bool:
     """Return whether IR switch capability should be exposed."""
     if PROP_IS_SUPPORT_IR_SWITCH in self._properties:
@@ -107,6 +122,7 @@ def panel_type(self: DeviceExtras) -> int:
 
 
 __all__ = [
+    "diagnostic_gateway_projection",
     "has_floor_lamp_features",
     "has_sleep_wake_features",
     "ir_remote_gateway_device_id",

@@ -14,6 +14,7 @@ from custom_components.lipro.core.anonymous_share.const import (
 )
 from custom_components.lipro.core.anonymous_share.manager import AnonymousShareManager
 from custom_components.lipro.core.anonymous_share.share_client import ShareWorkerClient
+from custom_components.lipro.core.telemetry.models import build_operation_outcome
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -233,8 +234,12 @@ async def test_submit_developer_feedback_matches_boundary_fixture() -> None:
     mgr.set_enabled(True, error_reporting=True, installation_id="install-001")
     mgr._ha_version = "2026.3.0"
     session = MagicMock()
-    submit_share_payload = AsyncMock(return_value=True)
-    mgr._share_client = MagicMock(submit_share_payload=submit_share_payload)
+    submit_share_payload_with_outcome = AsyncMock(
+        return_value=build_operation_outcome(kind="success", reason_code="submitted")
+    )
+    mgr._share_client = MagicMock(
+        submit_share_payload_with_outcome=submit_share_payload_with_outcome
+    )
 
     result = await mgr.submit_developer_feedback(
         session,
@@ -282,8 +287,8 @@ async def test_submit_developer_feedback_matches_boundary_fixture() -> None:
     )
 
     assert result is True
-    assert submit_share_payload.await_args is not None
-    report = submit_share_payload.await_args.args[1]
+    assert submit_share_payload_with_outcome.await_args is not None
+    report = submit_share_payload_with_outcome.await_args.args[1]
     assert canonicalize_generated_payload(report) == load_external_boundary_fixture(
         "share_worker",
         "developer_feedback_report.canonical.json",

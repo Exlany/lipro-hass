@@ -137,9 +137,9 @@ class TestAsyncGetDeviceDiagnostics:
         assert result == {"error": "device_not_found"}
 
     @pytest.mark.asyncio
-    async def test_device_diagnostics_delegates_device_lookup_to_runtime_access(self, hass):
+    async def test_device_diagnostics_delegates_device_lookup_to_runtime_access(self, hass, make_device):
         """Device diagnostics should reuse runtime_access lookup helpers."""
-        device = MagicMock()
+        device = make_device("light", properties={"powerState": "1"})
         coordinator = MagicMock()
         coordinator.devices = MappingProxyType({})
 

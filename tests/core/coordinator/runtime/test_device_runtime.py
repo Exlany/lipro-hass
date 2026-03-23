@@ -468,7 +468,9 @@ class TestDeviceRuntimeIntegration:
         # Verify snapshot structure
         assert len(snapshot.devices) == 1
         assert snapshot.device_by_id["serial1"] is snapshot.devices["serial1"]
-        assert snapshot.devices["serial1"].extra_data["identity_aliases"] == ["serial1"]
+        assert snapshot.device_by_id["dev1"] is snapshot.devices["serial1"]
+        assert snapshot.identity_aliases_by_serial["serial1"] == ("dev1", "serial1")
+        assert "identity_aliases" not in snapshot.devices["serial1"].extra_data
         assert snapshot.cloud_serials == {"serial1"}
 
         snapshot = await device_runtime.refresh_devices()

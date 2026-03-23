@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from unittest.mock import MagicMock
-
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
@@ -25,7 +23,7 @@ class TestInitServiceHandlerDeviceTargeting(_InitServiceHandlerBase):
     async def test_get_device_from_entity_target(self, hass) -> None:
         """Resolve target entity unique_id to device serial."""
         device = self._create_device()
-        coordinator = MagicMock()
+        coordinator = self._create_runtime_coordinator()
         coordinator.get_device.return_value = device
 
         entry = MockConfigEntry(
@@ -56,7 +54,7 @@ class TestInitServiceHandlerDeviceTargeting(_InitServiceHandlerBase):
     async def test_get_device_from_target_entity_id(self, hass) -> None:
         """Resolve device via ServiceCall.target.entity_id."""
         device = self._create_device()
-        coordinator = MagicMock()
+        coordinator = self._create_runtime_coordinator()
         coordinator.get_device.return_value = device
 
         entry = MockConfigEntry(
@@ -89,7 +87,7 @@ class TestInitServiceHandlerDeviceTargeting(_InitServiceHandlerBase):
     ) -> None:
         """Multiple entities that map to one device should resolve successfully."""
         device = self._create_device()
-        coordinator = MagicMock()
+        coordinator = self._create_runtime_coordinator()
         coordinator.get_device.return_value = device
 
         entry = MockConfigEntry(
@@ -128,7 +126,7 @@ class TestInitServiceHandlerDeviceTargeting(_InitServiceHandlerBase):
         """Multiple entities from different devices should still be rejected."""
         first_device = self._create_device(serial="03ab5ccd7c123456")
         second_device = self._create_device(serial="03ab5ccd7c654321")
-        coordinator = MagicMock()
+        coordinator = self._create_runtime_coordinator()
         coordinator.get_device.side_effect = [first_device, second_device]
 
         entry = MockConfigEntry(
@@ -162,7 +160,7 @@ class TestInitServiceHandlerDeviceTargeting(_InitServiceHandlerBase):
     async def test_get_device_falls_back_to_get_device_by_id(self, hass) -> None:
         """Fallback to coordinator alias lookup when serial lookup misses."""
         device = self._create_device(serial="mesh_group_10001")
-        coordinator = MagicMock()
+        coordinator = self._create_runtime_coordinator()
         coordinator.get_device.return_value = None
         coordinator.get_device_by_id.return_value = device
 

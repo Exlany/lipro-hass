@@ -164,6 +164,16 @@
 - [x] **GOV-48**: `PROJECT / ROADMAP / REQUIREMENTS / STATE / FILE_MATRIX` 必须冻结 telemetry/schedule/diagnostics 的新 topology truth，阻止 stale hotspot narrative 与旧 ownership wording 回流。
 - [x] **QLT-22**: 本轮 hotspot slimming 必须在 `ruff`、architecture policy、file matrix 与 targeted/full pytest 下同时通过，证明不是外观式重排。
 
+### Runtime Projection / Device Extras / Anonymous-Share Residual Closure
+
+- [x] **ARC-12**: control/runtime/device/share touched homes 必须继续 obey 单一正式主链：runtime-access、device extras 与 anonymous-share 只能收口到更诚实的 read-model / outcome contract，不能再长出 mock-driven compat story、raw sidecar second truth 或 helper-owned second root。
+- [x] **HOT-20**: `custom_components/lipro/control/runtime_access_support.py` 与相关 control-plane runtime readers 必须退出 MagicMock-aware reflection / materialized-member probing，改由显式 entry/coordinator projection 与 honest adapter contract 讲一条 runtime truth。
+- [x] **HOT-21**: `custom_components/lipro/core/anonymous_share/{manager.py,manager_submission.py,share_client_flows.py}` 必须继续 inward decomposition，降低跨文件私有状态耦合与 orchestration hotspot 半径，同时保持 aggregate/scoped submit semantics 与 outward service behavior 稳定。
+- [x] **TYP-18**: touched runtime/device/share zones 的 residual raw `extra_data` reads、implicit alias sidecars、broad casts 与 dynamic probing 必须继续收敛到 explicit typed projections / local contracts。
+- [x] **TST-15**: runtime-access、diagnostics/device extras 与 anonymous-share touched hotspots 必须伴随 focused regression suites 或夹具收口，证明去反射化 / 去 sidecar 化不会破坏既有行为。
+- [x] **GOV-49**: `PROJECT / ROADMAP / REQUIREMENTS / STATE / MILESTONES / FILE_MATRIX` 必须共同冻结 runtime-access、device-extras 与 anonymous-share 的新 topology truth，阻止 stale hotspot 与 closeout-ready 叙事回流。
+- [x] **QLT-23**: 本轮 residual closure 必须在 `ruff`、architecture policy、file matrix、focused pytest 与 full pytest 下同时通过，证明不是测试夹具特判或表面重排。
+
 ## Active Traceability (v1.14)
 
 | Requirement | Phase | Status |
@@ -182,6 +192,13 @@
 | TST-14 | Phase 64 | Completed |
 | GOV-48 | Phase 64 | Completed |
 | QLT-22 | Phase 64 | Completed |
+| ARC-12 | Phase 65 | Completed |
+| HOT-20 | Phase 65 | Completed |
+| HOT-21 | Phase 65 | Completed |
+| TYP-18 | Phase 65 | Completed |
+| TST-15 | Phase 65 | Completed |
+| GOV-49 | Phase 65 | Completed |
+| QLT-23 | Phase 65 | Completed |
 
 ## Future Requirements
 

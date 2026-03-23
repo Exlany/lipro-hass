@@ -35,7 +35,7 @@ class TestInitServiceHandlerScheduleValidation(_InitServiceHandlerBase):
     async def test_add_schedule_times_events_mismatch_raises(self, hass) -> None:
         """Mismatched lengths in add_schedule should fail validation."""
         device = self._create_device()
-        coordinator = MagicMock()
+        coordinator = self._create_runtime_coordinator()
         coordinator.get_device.return_value = device
 
         entry = MockConfigEntry(

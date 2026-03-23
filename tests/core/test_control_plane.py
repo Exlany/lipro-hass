@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -162,21 +163,22 @@ def test_iter_runtime_entries_preserves_live_entry_identity(hass) -> None:
 def test_build_runtime_entry_view_materializes_typed_read_model() -> None:
     from custom_components.lipro.control.runtime_access import build_runtime_entry_view
 
-    protocol = MagicMock()
-    telemetry_service = MagicMock()
-    telemetry_service.build_snapshot.return_value = {"runtime": "ok"}
-    coordinator = MagicMock()
-    coordinator.update_interval = None
-    coordinator.last_update_success = True
-    coordinator.mqtt_service.connected = False
-    coordinator.protocol = protocol
-    coordinator.telemetry_service = telemetry_service
-    coordinator.devices = {"device-1": MagicMock()}
+    protocol = SimpleNamespace()
+    telemetry_service = SimpleNamespace(build_snapshot=lambda: {"runtime": "ok"})
+    coordinator = SimpleNamespace(
+        update_interval=None,
+        last_update_success=True,
+        mqtt_service=SimpleNamespace(connected=False),
+        protocol=protocol,
+        telemetry_service=telemetry_service,
+        devices={"device-1": object()},
+    )
 
-    entry = MagicMock()
-    entry.entry_id = "entry-1"
-    entry.options = {"debug_mode": True}
-    entry.runtime_data = coordinator
+    entry = SimpleNamespace(
+        entry_id="entry-1",
+        options={"debug_mode": True},
+        runtime_data=coordinator,
+    )
 
     view = build_runtime_entry_view(entry)
 
@@ -204,12 +206,11 @@ def test_iter_runtime_entry_coordinators_preserves_entry_coordinator_pairs(hass)
     assert iter_runtime_entry_coordinators(hass) == [(entry, coordinator)]
 
 
-def test_find_runtime_device_ignores_magicmock_ghost_lookup_and_uses_mapping() -> None:
+def test_find_runtime_device_prefers_mapping_when_device_is_already_indexed() -> None:
     from custom_components.lipro.control.runtime_access import find_runtime_device
 
-    device = MagicMock(name="device")
-    coordinator = MagicMock()
-    coordinator.devices = {"03ab0000000000a1": device}
+    device = object()
+    coordinator = SimpleNamespace(devices={"03ab0000000000a1": device})
 
     assert find_runtime_device(coordinator, "03ab0000000000a1") is device
 
@@ -219,12 +220,16 @@ def test_find_runtime_device_and_coordinator_prefers_formal_lookup_helpers(hass)
         find_runtime_device_and_coordinator,
     )
 
-    device = MagicMock(name="device")
+    device = object()
     entry = MockConfigEntry(domain=DOMAIN, options={})
-    coordinator = MagicMock(name="runtime")
-    coordinator.get_device = MagicMock(return_value=None)
-    coordinator.get_device_by_id = MagicMock(return_value=device)
-    coordinator.devices = {}
+    get_device = MagicMock(return_value=None)
+    get_device_by_id = MagicMock(return_value=device)
+    coordinator = SimpleNamespace(
+        config_entry=entry,
+        get_device=get_device,
+        get_device_by_id=get_device_by_id,
+        devices={},
+    )
     entry.runtime_data = coordinator
     entry.add_to_hass(hass)
 
@@ -232,23 +237,27 @@ def test_find_runtime_device_and_coordinator_prefers_formal_lookup_helpers(hass)
         device,
         coordinator,
     )
-    coordinator.get_device.assert_called_once_with("alias")
-    coordinator.get_device_by_id.assert_called_once_with("alias")
+    get_device.assert_called_once_with("alias")
+    get_device_by_id.assert_called_once_with("alias")
 
 
-def test_find_runtime_device_and_coordinator_accepts_configured_materialized_mock_children(
+def test_find_runtime_device_and_coordinator_uses_explicit_runtime_stub_methods(
     hass,
 ) -> None:
     from custom_components.lipro.control.runtime_access import (
         find_runtime_device_and_coordinator,
     )
 
-    device = MagicMock(name="device")
+    device = object()
     entry = MockConfigEntry(domain=DOMAIN, options={})
-    coordinator = MagicMock(name="runtime")
-    coordinator.get_device.return_value = None
-    coordinator.get_device_by_id.return_value = device
-    coordinator.devices = {}
+    get_device = MagicMock(return_value=None)
+    get_device_by_id = MagicMock(return_value=device)
+    coordinator = SimpleNamespace(
+        config_entry=entry,
+        get_device=get_device,
+        get_device_by_id=get_device_by_id,
+        devices={},
+    )
     entry.runtime_data = coordinator
     entry.add_to_hass(hass)
 
@@ -256,8 +265,8 @@ def test_find_runtime_device_and_coordinator_accepts_configured_materialized_moc
         device,
         coordinator,
     )
-    coordinator.get_device.assert_called_once_with("alias")
-    coordinator.get_device_by_id.assert_called_once_with("alias")
+    get_device.assert_called_once_with("alias")
+    get_device_by_id.assert_called_once_with("alias")
 
 
 @pytest.mark.asyncio
@@ -372,14 +381,12 @@ def test_runtime_diagnostics_projection_exposes_typed_projection() -> None:
         build_runtime_diagnostics_projection,
     )
 
-    coordinator = MagicMock()
-    coordinator.last_update_success = False
-    coordinator.update_interval = "0:00:30"
-    coordinator.devices = {}
-    entry = MagicMock()
-    entry.entry_id = "entry-1"
-    entry.options = {}
-    entry.runtime_data = coordinator
+    coordinator = SimpleNamespace(
+        last_update_success=False,
+        update_interval="0:00:30",
+        devices={},
+    )
+    entry = SimpleNamespace(entry_id="entry-1", options={}, runtime_data=coordinator)
 
     with patch(
         "custom_components.lipro.control.runtime_access.build_entry_system_health_view",

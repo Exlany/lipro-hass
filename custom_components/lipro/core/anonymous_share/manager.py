@@ -16,14 +16,13 @@ calls (developer feedback). Reports can be previewed locally before upload.
 from __future__ import annotations
 
 import asyncio
-from inspect import isawaitable
 import logging
 import time
 from typing import TYPE_CHECKING
 
 import aiohttp
 
-from ..telemetry.models import OperationOutcome, build_operation_outcome
+from ..telemetry.models import OperationOutcome
 from .collector import AnonymousShareCollector
 from .manager_submission import (
     submit_developer_feedback as _submit_developer_feedback_flow,
@@ -336,33 +335,12 @@ class AnonymousShareManager:
         *,
         label: str,
     ) -> OperationOutcome:
-        """Submit one payload while bridging bool-only mocks to typed outcomes."""
-        submit_with_outcome = getattr(
-            self._share_client,
-            "submit_share_payload_with_outcome",
-            None,
-        )
-        if callable(submit_with_outcome):
-            maybe_outcome = submit_with_outcome(
-                session,
-                report,
-                label=label,
-                ensure_loaded=self.async_ensure_loaded,
-            )
-            if isawaitable(maybe_outcome):
-                resolved_outcome = await maybe_outcome
-                if isinstance(resolved_outcome, OperationOutcome):
-                    return resolved_outcome
-
-        success = await self._share_client.submit_share_payload(
+        """Submit one payload through the typed share-client outcome contract."""
+        return await self._share_client.submit_share_payload_with_outcome(
             session,
             report,
             label=label,
             ensure_loaded=self.async_ensure_loaded,
-        )
-        return build_operation_outcome(
-            kind=("success" if success else "failed"),
-            reason_code=("submitted" if success else "submit_failed"),
         )
 
     async def async_submit_share_payload_with_outcome(

@@ -166,13 +166,14 @@ def test_v1_8_closeout_through_v1_14_current_milestone_truth_are_consistent() ->
     assert ".planning/phases/60-tooling-truth-decomposition-and-file-governance-maintainability/60-01-PLAN.md" not in project_text
 
     assert "## Active Milestone (v1.14)" in project_text
-    assert "**Current status:** `Phase 63 -> 64 complete (2026-03-23)`" in project_text
+    assert "**Current status:** `Phase 63 -> 65 complete (2026-03-23)`" in project_text
     assert "**Default next command:** `$gsd-complete-milestone`" in project_text
 
     assert "### 🚧 v1.14 Governance Truth Realignment, Typed Runtime Access & Final Hidden-Root Closure" in roadmap_text
-    assert "**Current Status:** `Phase 63 -> 64 complete (2026-03-23)`" in roadmap_text
+    assert "**Current Status:** `Phase 63 -> 65 complete (2026-03-23)`" in roadmap_text
     assert "### Phase 63: Governance truth realignment, typed runtime access, and hidden-root closure" in roadmap_text
     assert "### Phase 64: Telemetry typing, schedule contracts, and diagnostics hotspot slimming" in roadmap_text
+    assert "### Phase 65: Runtime-access de-reflection and anonymous-share hotspot closure" in roadmap_text
     assert "**Plans**: 5 total / 5 completed / 0 pending" in roadmap_text
     assert "**Plans**: 3/3 complete" in roadmap_text
     assert "63-01: align governance latest-pointer truth, latest closeout docs, and anti-drift guards" in roadmap_text
@@ -193,11 +194,18 @@ def test_v1_8_closeout_through_v1_14_current_milestone_truth_are_consistent() ->
         "| TST-14 | Phase 64 | Completed |",
         "| GOV-48 | Phase 64 | Completed |",
         "| QLT-22 | Phase 64 | Completed |",
+        "| ARC-12 | Phase 65 | Completed |",
+        "| HOT-20 | Phase 65 | Completed |",
+        "| HOT-21 | Phase 65 | Completed |",
+        "| TYP-18 | Phase 65 | Completed |",
+        "| TST-15 | Phase 65 | Completed |",
+        "| GOV-49 | Phase 65 | Completed |",
+        "| QLT-23 | Phase 65 | Completed |",
     ):
         assert needle in requirements_text
 
     assert "**Current milestone:** `v1.14 Governance Truth Realignment, Typed Runtime Access & Final Hidden-Root Closure`" in state_text
-    assert "**Current mode:** `Phase 64 telemetry typing schedule contracts and diagnostics hotspot slimming complete`" in state_text
+    assert "**Current mode:** `Phase 65 runtime-access de-reflection and anonymous-share hotspot closure complete`" in state_text
     assert "$gsd-complete-milestone" in state_text
     assert ".planning/v1.13-MILESTONE-AUDIT.md" in state_text
     assert ".planning/reviews/V1_13_EVIDENCE_INDEX.md" in state_text

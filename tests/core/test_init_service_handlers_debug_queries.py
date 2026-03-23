@@ -33,7 +33,7 @@ class TestInitServiceHandlerDeveloperDebug(_InitServiceHandlerBase):
 
     async def test_get_developer_report_returns_entry_reports(self, hass) -> None:
         """get_developer_report returns exporter-backed diagnostics per config entry."""
-        coordinator = MagicMock()
+        coordinator = self._create_runtime_coordinator()
 
         entry = MockConfigEntry(
             domain=DOMAIN,
@@ -56,8 +56,8 @@ class TestInitServiceHandlerDeveloperDebug(_InitServiceHandlerBase):
 
     async def test_get_developer_report_filters_by_entry_id(self, hass) -> None:
         """get_developer_report scopes diagnostics to one requested config entry."""
-        first = MagicMock()
-        second = MagicMock()
+        first = self._create_runtime_coordinator()
+        second = self._create_runtime_coordinator()
 
         entry_1 = MockConfigEntry(
             domain=DOMAIN,
@@ -96,7 +96,7 @@ class TestInitServiceHandlerDeveloperDebug(_InitServiceHandlerBase):
 
     async def test_get_developer_report_rejects_non_debug_entry(self, hass) -> None:
         """Scoped developer report should reject entries without debug opt-in."""
-        coordinator = MagicMock()
+        coordinator = self._create_runtime_coordinator()
         entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
         entry.add_to_hass(hass)
         entry.runtime_data = coordinator

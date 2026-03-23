@@ -181,6 +181,26 @@ phases:
     - 62-04-SUMMARY.md
     - 62-SUMMARY.md
     - 62-VERIFICATION.md
+  63-governance-truth-realignment-typed-runtime-access-and-hidden-root-closure:
+    - 63-01-SUMMARY.md
+    - 63-02-SUMMARY.md
+    - 63-03-SUMMARY.md
+    - 63-04-SUMMARY.md
+    - 63-05-SUMMARY.md
+    - 63-SUMMARY.md
+    - 63-VERIFICATION.md
+  64-telemetry-typing-schedule-contracts-and-diagnostics-hotspot-slimming:
+    - 64-01-SUMMARY.md
+    - 64-02-SUMMARY.md
+    - 64-03-SUMMARY.md
+    - 64-SUMMARY.md
+    - 64-VERIFICATION.md
+  65-runtime-access-de-reflection-and-anonymous-share-hotspot-closure:
+    - 65-01-SUMMARY.md
+    - 65-02-SUMMARY.md
+    - 65-03-SUMMARY.md
+    - 65-SUMMARY.md
+    - 65-VERIFICATION.md
 ---
 
 # Promoted Phase Assets
