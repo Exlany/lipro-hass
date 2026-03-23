@@ -16,7 +16,7 @@
 - ✅ **v1.11 Repository Audit Refresh & Next-Wave Remediation Routing** - formal milestone opened on 2026-03-22 from the renewed full-repository audit request; Phase 58 completed on 2026-03-22 with refreshed repo-wide audit evidence and now serves as the closeout-ready seed baseline for v1.12
 - ✅ **v1.10 Command-Result Typed Outcome & Reason-Code Hardening** - formal milestone opened on 2026-03-22 from the Phase 56 deferred follow-up route; Phase 57 completed on 2026-03-22 with promoted closeout evidence and now serves as the closeout-ready seed baseline for v1.11
 
-- 🚧 **v1.14 Governance Truth Realignment, Typed Runtime Access & Final Hidden-Root Closure** - formal milestone opened on 2026-03-23 from `v1.13` archived evidence; `Phase 63 -> 66` completed on 2026-03-23 and returned the milestone to closeout-ready status after governance latest-pointer / release-target fidelity alignment, adapter-root cleanup, runtime-access de-reflection, runtime alias projection, anonymous-share outcome-contract closure, and focused protocol seam hardening
+- 🚧 **v1.14 Governance Truth Realignment, Typed Runtime Access & Final Hidden-Root Closure** - formal milestone opened on 2026-03-23 from `v1.13` archived evidence; `Phase 63 -> 66` completed on 2026-03-23 and returned the milestone to closeout-ready status after governance latest-pointer / release-target fidelity alignment, adapter-root cleanup, runtime-access de-reflection, runtime alias projection, anonymous-share outcome-contract closure, and focused protocol seam hardening; milestone audit now recorded at `.planning/v1.14-MILESTONE-AUDIT.md`
 
 ## Required Phase Outputs
 
@@ -1227,6 +1227,7 @@ Plans:
 **Milestone Goal:** 以 `v1.13` archived evidence 为起点，先统一 governance latest-pointer / archive-route truth 与 anti-drift guards，再把 `RuntimeAccess` / `__init__.py` / tooling-test hidden-root / command-share typed seams，以及 telemetry / schedule / diagnostics 剩余 formal-contract hotspots 收口到更诚实、更薄、更可验证的正式主链。
 
 **Current Status:** `Phase 63 -> 66 complete (2026-03-23)`；governance pointer / release-target fidelity、typed runtime access、tooling/test hidden-root closure、telemetry / schedule / diagnostics follow-through、runtime-access 去反射化、adapter-root cleanup、runtime alias 显式投影、anonymous-share outcome-native submit contract 与 focused protocol seam hardening 已完成，`v1.14` 当前回到 milestone closeout-ready 状态。
+**Milestone audit:** `.planning/v1.14-MILESTONE-AUDIT.md` → `archive_ready / milestone audit passed`。
 
 ### Phase 63: Governance truth realignment, typed runtime access, and hidden-root closure
 

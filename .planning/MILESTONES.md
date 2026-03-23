@@ -174,6 +174,7 @@
 **Phases completed:** 4 phases complete, 15 total plans tracked (`15` complete / `0` pending)
 **Status:** active / Phase 66 complete; milestone closeout pending
 **Route truth:** only active milestone route = `v1.14 / Phase 66`；`Phase 63`、`Phase 64`、`Phase 65` 与 `Phase 66` 均已完成，下一步进入 `$gsd-complete-milestone` closeout 回路，archive pull 继续从 `.planning/reviews/V1_13_EVIDENCE_INDEX.md` 起步
+**Milestone audit:** `.planning/v1.14-MILESTONE-AUDIT.md` (`archive_ready`, audited 2026-03-23)
 
 **Target outcomes:**
 - 统一 `latest closeout pointer`、archive route、`MILESTONES` 与 governance guards 的 current truth

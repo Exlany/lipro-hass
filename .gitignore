@@ -85,8 +85,7 @@ assets/
 !.planning/PROJECT.md
 !.planning/REQUIREMENTS.md
 !.planning/MILESTONES.md
-!.planning/v1.5-MILESTONE-AUDIT.md
-!.planning/v1.6-MILESTONE-AUDIT.md
+!.planning/v*-MILESTONE-AUDIT.md
 !.planning/milestones/
 .planning/milestones/*
 !.planning/milestones/*.md

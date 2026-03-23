@@ -24,6 +24,7 @@ See: `.planning/PROJECT.md`
 ## Current Position
 
 - `v1.14` 已于 `2026-03-23` 从 `v1.13` archived evidence 打开，并已完成 `Phase 63`、`Phase 64`、`Phase 65` 与 `Phase 66`：governance latest-pointer / release-target fidelity、typed runtime access、adapter-root cleanup、runtime alias projection、anonymous-share outcome-native submit contract 与 focused protocol seam coverage 均已收口，当前里程碑重新回到 milestone closeout-ready。
+- `.planning/v1.14-MILESTONE-AUDIT.md` 已完成并给出 `archive_ready / milestone audit passed` 裁决：27/27 in-scope requirements satisfied，4/4 phases complete，cross-phase integration 与 E2E flows 无 critical gap，下一步可直接执行 `$gsd-complete-milestone`。
 - `v1.13` 继续保持 `archived / evidence-ready (2026-03-22)`：`.planning/v1.13-MILESTONE-AUDIT.md`、`.planning/reviews/V1_13_EVIDENCE_INDEX.md`、`.planning/milestones/v1.13-ROADMAP.md` 与 `.planning/milestones/v1.13-REQUIREMENTS.md` 仍是最近 archive-ready baseline。
 - `v1.12` 继续保持 localized verification archive baseline：`.planning/v1.12-MILESTONE-AUDIT.md`、`.planning/reviews/V1_12_EVIDENCE_INDEX.md`、`59-SUMMARY.md` 与 `59-VERIFICATION.md` 继续作为 promoted closeout evidence。
 - `v1.11` 继续保留为 refreshed audit seed baseline：`.planning/reviews/V1_11_MILESTONE_SEED.md`、`Phase 58` audit package 与 `58-REMEDIATION-ROADMAP.md` 仍是 `v1.14` follow-through 的历史输入，而不是新的 active milestone。

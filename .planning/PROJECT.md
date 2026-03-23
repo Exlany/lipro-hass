@@ -3,6 +3,7 @@
 **Status:** Active milestone `v1.14` 已继续推进；当前最新 archive-ready closeout pointer 已固定为 `v1.13`；`Phase 63`、`Phase 64`、`Phase 65` 与 fresh audit 路由出的 `Phase 66` 已全部完成，当前里程碑重新回到 milestone closeout-ready。`v1.6` 仅保留为最近 shipped release archive baseline，`v1.11` 仅保留为 refreshed audit 历史 seed baseline。
 **Goal:** 以 `v1.13` archived evidence 为起点，完成治理真相指针、typed runtime access、HA root slimming、tooling/test hidden-root 收口，并把 runtime-access 去反射化、device extras / runtime alias 显式投影、anonymous-share outcome-native submit contract 一次性收口，不回流第二 formal root、raw sidecar second truth 或 bool-only compat story。
 **Default next step:** `$gsd-complete-milestone`
+**Audit verdict:** `.planning/v1.14-MILESTONE-AUDIT.md` 已落盘，当前状态为 `archive_ready / milestone audit passed`。
 
 ## Active Milestone (v1.14)
 
