@@ -191,3 +191,29 @@ def test_phase_55_closeout_assets_exist_and_are_promoted() -> None:
     assert "test_switch_behavior.py" in file_matrix_text
     assert "test_transport_runtime_lifecycle.py" in file_matrix_text
 
+
+
+def test_phase_66_closeout_assets_exist_and_are_promoted() -> None:
+    _assert_promoted_phase_assets(
+        "66-release-target-fidelity-adapter-root-cleanup-and-focused-protocol-coverage-hardening",
+        "66-01-SUMMARY.md",
+        "66-02-SUMMARY.md",
+        "66-03-SUMMARY.md",
+        "66-04-SUMMARY.md",
+        "66-SUMMARY.md",
+        "66-VERIFICATION.md",
+    )
+
+    verification_text = (
+        _ROOT / ".planning" / "baseline" / "VERIFICATION_MATRIX.md"
+    ).read_text(encoding="utf-8")
+    residual_text = (
+        _ROOT / ".planning" / "reviews" / "RESIDUAL_LEDGER.md"
+    ).read_text(encoding="utf-8")
+    kill_text = (_ROOT / ".planning" / "reviews" / "KILL_LIST.md").read_text(
+        encoding="utf-8"
+    )
+
+    assert "## Phase 66 Exit Contract" in verification_text
+    assert "## Phase 66 Residual Delta" in residual_text
+    assert "## Phase 66 Status Update" in kill_text

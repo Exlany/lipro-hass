@@ -102,7 +102,12 @@ def test_ci_and_release_workflows_share_governance_and_version_gates() -> None:
 
     validate_job = release_workflow["jobs"]["validate"]
     assert validate_job["uses"] == "./.github/workflows/ci.yml"
+    assert validate_job["with"]["ref"] == "refs/tags/${{ env.RELEASE_TAG }}"
     assert validate_job["secrets"] == "inherit"
+
+    workflow_call = ci_workflow["on"]["workflow_call"]
+    assert workflow_call["inputs"]["ref"]["required"] is False
+    assert workflow_call["inputs"]["ref"]["default"] == ""
 
     security_gate = release_workflow["jobs"]["security_gate"]
     assert security_gate["needs"] == "validate"
@@ -291,13 +296,15 @@ def test_supported_shell_installer_path_uses_verified_release_assets() -> None:
     assert "ARCHIVE_TAG=latest bash -" not in readme_text
     assert "ARCHIVE_TAG=latest bash -" not in readme_zh_text
     assert (
-        "bash ./install.sh --archive-file ./lipro-hass-v1.0.0.zip --checksum-file ./SHA256SUMS"
+        "bash ./install.sh --archive-file ./lipro-hass-<release-tag>.zip --checksum-file ./SHA256SUMS"
         in readme_text
     )
     assert (
-        "bash ./install.sh --archive-file ./lipro-hass-v1.0.0.zip --checksum-file ./SHA256SUMS"
+        "bash ./install.sh --archive-file ./lipro-hass-<release-tag>.zip --checksum-file ./SHA256SUMS"
         in readme_zh_text
     )
+    assert "v1.0.0" not in readme_text
+    assert "v1.0.0" not in readme_zh_text
     assert "verified GitHub Release assets" in troubleshooting_text
     assert "ARCHIVE_TAG=main" in readme_text
     assert "ARCHIVE_TAG=main" in readme_zh_text
@@ -370,13 +377,13 @@ def test_latest_closeout_pointer_and_active_route_stay_current() -> None:
     runbook_text = _RUNBOOK.read_text(encoding="utf-8")
 
     assert ".planning/reviews/V1_13_EVIDENCE_INDEX.md" in docs_text
-    assert "v1.14 / Phase 65" in docs_text
+    assert "v1.14 / Phase 66" in docs_text
     assert "V1_13_EVIDENCE_INDEX.md" in runbook_text
     assert "V1_6_EVIDENCE_INDEX.md" not in runbook_text
     assert "$gsd-complete-milestone" in project_text
     assert "$gsd-complete-milestone" in state_text
     assert "## v1.14 Governance Truth Realignment, Typed Runtime Access & Final Hidden-Root Closure" in milestones_text
-    assert "only active milestone route = `v1.14 / Phase 65`" in milestones_text
+    assert "only active milestone route = `v1.14 / Phase 66`" in milestones_text
     assert "v1.11" not in docs_text
     assert "v1.11" not in runbook_text
 

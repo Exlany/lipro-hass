@@ -289,3 +289,10 @@
 
 - 本 phase **无新增 active kill target**；tooling hotspot 通过 inward decomposition closeout，而不是 file deletion campaign。
 - `scripts/check_file_matrix.py` / `tests/meta/test_toolchain_truth.py` 继续保留 formal root 身份；新 sibling modules 只缩窄 ownership，不制造新的 delete folklore。
+
+
+## Phase 66 Status Update
+
+- 本 phase **无新增 active kill target**；release-target fidelity、adapter-root cleanup 与 focused protocol coverage hardening 都沿现有正式 home 收口，没有再造临时 delete-gated 第三故事线。
+- `custom_components/lipro/__init__.py` 的 duplicated runtime-loaded stub block 与 `sensor.py` / `select.py` 的 runtime-only dynamic import folklore 已完成退场，不再保留为 carry-forward delete gate。
+- stale release-example / active-route drift 已作为治理真相问题关闭；后续若再变更 release/docs/current-story，只允许沿现有 authority chain 更新，不得重新创造临时 cleanup backlog。

@@ -201,6 +201,13 @@ phases:
     - 65-03-SUMMARY.md
     - 65-SUMMARY.md
     - 65-VERIFICATION.md
+  66-release-target-fidelity-adapter-root-cleanup-and-focused-protocol-coverage-hardening:
+    - 66-01-SUMMARY.md
+    - 66-02-SUMMARY.md
+    - 66-03-SUMMARY.md
+    - 66-04-SUMMARY.md
+    - 66-SUMMARY.md
+    - 66-VERIFICATION.md
 ---
 
 # Promoted Phase Assets

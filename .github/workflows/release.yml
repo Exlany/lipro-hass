@@ -33,6 +33,8 @@ jobs:
   validate:
     name: Reuse CI Gates
     uses: ./.github/workflows/ci.yml
+    with:
+      ref: refs/tags/${{ env.RELEASE_TAG }}
     secrets: inherit
 
   security_gate:

@@ -93,24 +93,25 @@ Home Assistant 集成，用于控制 Lipro 智能家居设备。
 ### 脚本安装（校验后的 Release 资产）
 
 ```shell
-# 先从 GitHub Releases 下载以下资产：
+# 先从 GitHub Releases 下载以下资产。
+# 请将 <release-tag> 替换为你实际下载的 tag（例如 v1.14.0）：
 #   - install.sh
-#   - lipro-hass-v1.0.0.zip
+#   - lipro-hass-<release-tag>.zip
 #   - SHA256SUMS
 # 可选的本地签名 bundle：
-#   - lipro-hass-v1.0.0.zip.sigstore.json
+#   - lipro-hass-<release-tag>.zip.sigstore.json
 #   - install.sh.sigstore.json
 #   - SHA256SUMS.sigstore.json
 
 # 可选的本地校验（安装脚本内部也会用 Python/hashlib 再校验一次）
-cosign verify-blob ./lipro-hass-v1.0.0.zip \
-  --bundle ./lipro-hass-v1.0.0.zip.sigstore.json \
-  --certificate-identity-regexp "^https://github.com/Exlany/lipro-hass/.github/workflows/release\.yml@refs/tags/v1\.0\.0$" \
+cosign verify-blob ./lipro-hass-<release-tag>.zip \
+  --bundle ./lipro-hass-<release-tag>.zip.sigstore.json \
+  --certificate-identity-regexp "^https://github.com/Exlany/lipro-hass/.github/workflows/release\.yml@refs/tags/<release-tag>$" \
   --certificate-oidc-issuer https://token.actions.githubusercontent.com
 sha256sum -c SHA256SUMS --ignore-missing
 
 # 默认支持的脚本安装路径
-bash ./install.sh --archive-file ./lipro-hass-v1.0.0.zip --checksum-file ./SHA256SUMS
+bash ./install.sh --archive-file ./lipro-hass-<release-tag>.zip --checksum-file ./SHA256SUMS
 ```
 
 说明：默认支持的脚本安装路径现在从已下载的 GitHub Release 资产开始。安装脚本会自行校验压缩包摘要，并在 zip 或 `SHA256SUMS` 缺失/不匹配时 fail-closed。
@@ -136,13 +137,13 @@ ARCHIVE_TAG=main LIPRO_ALLOW_MIRROR=1 HUB_DOMAIN=ghfast.top bash ./install.sh
 
 ### shell_command 服务
 
-1. 先把 `install.sh`、`lipro-hass-v1.0.0.zip` 与 `SHA256SUMS` 下载到本地稳定目录（例如 `/config/lipro-release/`）。
+1. 先把 `install.sh`、`lipro-hass-<release-tag>.zip` 与 `SHA256SUMS` 下载到本地稳定目录（例如 `/config/lipro-release/`）。
 2. 将以下内容添加到 `configuration.yaml`：
     ```yaml
     shell_command:
       update_lipro: >-
         bash /config/lipro-release/install.sh
-        --archive-file /config/lipro-release/lipro-hass-v1.0.0.zip
+        --archive-file /config/lipro-release/lipro-hass-<release-tag>.zip
         --checksum-file /config/lipro-release/SHA256SUMS
     ```
 3. 重启 Home Assistant
@@ -151,7 +152,7 @@ ARCHIVE_TAG=main LIPRO_ALLOW_MIRROR=1 HUB_DOMAIN=ghfast.top bash ./install.sh
 
 ### 手动安装
 
-1. 从 [Releases](https://github.com/Exlany/lipro-hass/releases) 下载 `lipro-hass-v1.0.0.zip`
+1. 从 [Releases](https://github.com/Exlany/lipro-hass/releases) 下载 `lipro-hass-<release-tag>.zip`
 2. 使用 `SHA256SUMS` 校验压缩包
 3. 解压后将 `custom_components/lipro` 复制到 `config/custom_components/` 目录
 4. 重启 Home Assistant

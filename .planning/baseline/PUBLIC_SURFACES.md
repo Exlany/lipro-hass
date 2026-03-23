@@ -2,7 +2,7 @@
 
 **Purpose:** 定义各平面的 canonical public surfaces、过渡公开面与禁止作为正式入口的对象。
 **Status:** Formal baseline asset (`BASE-01` public-surface truth source)
-**Updated:** 2026-03-20 (Phase 43 control/runtime/service boundary aligned)
+**Updated:** 2026-03-23 (Phase 66 release-target fidelity and active-route freshness aligned)
 
 ## Formal Role
 
@@ -34,7 +34,7 @@
 
 - `.planning/baseline/GOVERNANCE_REGISTRY.json` 是 governance-only 的 machine-readable baseline asset：它只承载 active governance facts（版本、安装、support routing、release trust、continuity），不是 runtime / control / protocol 的 public API。
 - `.planning/MILESTONES.md`、`.planning/milestones/*.md`、`.planning/v1.12-MILESTONE-AUDIT.md`、`.planning/v1.13-MILESTONE-AUDIT.md`、`.planning/v1.6-MILESTONE-AUDIT.md` 与 `V1_12_EVIDENCE_INDEX.md` / `V1_13_EVIDENCE_INDEX.md` / `V1_6_EVIDENCE_INDEX.md` / `V1_5_EVIDENCE_INDEX.md` 继续只承担 archive / audit / handoff 身份；它们可以作为历史证据被引用，但不得回流为 current governance truth。
-- `docs/README.md` 与 `docs/MAINTAINER_RELEASE_RUNBOOK.md` 可以显式引用 `V1_13_EVIDENCE_INDEX.md` 作为 latest archive-ready closeout pointer，但 active route 仍只认 `.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE}.md` 中的 `v1.14 / Phase 63`。
+- `docs/README.md` 与 `docs/MAINTAINER_RELEASE_RUNBOOK.md` 可以显式引用 `V1_13_EVIDENCE_INDEX.md` 作为 latest archive-ready closeout pointer，但 active route 仍只认 `.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE}.md` 中的 `v1.14 / Phase 66`。
 - `custom_components/lipro/control/runtime_access.py` 是 control/services 读取 runtime entry 枚举、device lookup 与 snapshot projection 的唯一正式 read-model home。
 - `custom_components/lipro/services/execution.py` 同时保持 `formal shared service execution facade` 身份；`schedule.py` 复用它的 shared executor，而不是维护第二条 auth/error 执行链。
 - `docs/README.md` 只负责解释当前可读入口与 active-vs-archive 边界，不得把 milestone snapshots 或 phase workspace assets 重新讲成对外 current source。

@@ -317,7 +317,7 @@ def test_governance_truth_registers_v1_13_archive_lineage_and_v1_14_active_route
     assert "## v1.14 Governance Truth Realignment, Typed Runtime Access & Final Hidden-Root Closure" in milestones_text
     assert ".planning/reviews/V1_13_EVIDENCE_INDEX.md" in milestones_text
     assert ".planning/reviews/V1_13_EVIDENCE_INDEX.md" in docs_text
-    assert "v1.14 / Phase 65" in docs_text
+    assert "v1.14 / Phase 66" in docs_text
     assert "V1_13_EVIDENCE_INDEX.md" in runbook_text
     assert "$gsd-complete-milestone" in project_text
     assert "$gsd-complete-milestone" in state_text

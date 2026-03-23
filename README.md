@@ -93,24 +93,25 @@ If `install.sh` runs in remote mode without a pinned archive/tag, it resolves th
 ### Shell (Verified Release Assets)
 
 ```shell
-# Download these release assets from GitHub Releases first:
+# Download these release assets from GitHub Releases first.
+# Replace <release-tag> with the actual tag you downloaded (for example v1.14.0):
 #   - install.sh
-#   - lipro-hass-v1.0.0.zip
+#   - lipro-hass-<release-tag>.zip
 #   - SHA256SUMS
 # Optional signature bundles for local verification:
-#   - lipro-hass-v1.0.0.zip.sigstore.json
+#   - lipro-hass-<release-tag>.zip.sigstore.json
 #   - install.sh.sigstore.json
 #   - SHA256SUMS.sigstore.json
 
 # Optional local verification (the installer also verifies with Python/hashlib)
-cosign verify-blob ./lipro-hass-v1.0.0.zip \
-  --bundle ./lipro-hass-v1.0.0.zip.sigstore.json \
-  --certificate-identity-regexp "^https://github.com/Exlany/lipro-hass/.github/workflows/release\.yml@refs/tags/v1\.0\.0$" \
+cosign verify-blob ./lipro-hass-<release-tag>.zip \
+  --bundle ./lipro-hass-<release-tag>.zip.sigstore.json \
+  --certificate-identity-regexp "^https://github.com/Exlany/lipro-hass/.github/workflows/release\.yml@refs/tags/<release-tag>$" \
   --certificate-oidc-issuer https://token.actions.githubusercontent.com
 sha256sum -c SHA256SUMS --ignore-missing
 
 # Supported shell install path
-bash ./install.sh --archive-file ./lipro-hass-v1.0.0.zip --checksum-file ./SHA256SUMS
+bash ./install.sh --archive-file ./lipro-hass-<release-tag>.zip --checksum-file ./SHA256SUMS
 ```
 
 Note: the supported shell installer path now starts from downloaded GitHub Release assets. The installer verifies the archive checksum itself and fails closed when the zip or `SHA256SUMS` is missing or mismatched.
@@ -136,13 +137,13 @@ Note: `ARCHIVE_TAG=main`, branch fallback, and mirror installs are preview / uns
 
 ### shell_command Service
 
-1. Download `install.sh`, `lipro-hass-v1.0.0.zip`, and `SHA256SUMS` into a stable local directory first (for example `/config/lipro-release/`).
+1. Download `install.sh`, `lipro-hass-<release-tag>.zip`, and `SHA256SUMS` into a stable local directory first (for example `/config/lipro-release/`).
 2. Add the following to your `configuration.yaml`:
     ```yaml
     shell_command:
       update_lipro: >-
         bash /config/lipro-release/install.sh
-        --archive-file /config/lipro-release/lipro-hass-v1.0.0.zip
+        --archive-file /config/lipro-release/lipro-hass-<release-tag>.zip
         --checksum-file /config/lipro-release/SHA256SUMS
     ```
 3. Restart Home Assistant
@@ -151,7 +152,7 @@ Note: `ARCHIVE_TAG=main`, branch fallback, and mirror installs are preview / uns
 
 ### Manual Installation
 
-1. Download `lipro-hass-v1.0.0.zip` from [Releases](https://github.com/Exlany/lipro-hass/releases)
+1. Download `lipro-hass-<release-tag>.zip` from [Releases](https://github.com/Exlany/lipro-hass/releases)
 2. Verify it against `SHA256SUMS`
 3. Extract the archive and copy `custom_components/lipro` to your `config/custom_components/` directory
 4. Restart Home Assistant

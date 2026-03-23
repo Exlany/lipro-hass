@@ -329,7 +329,7 @@ def test_phase_55_topicized_test_matrix_tracks_thin_shells_and_named_suites() ->
     ):
         assert needle in file_matrix_text
 
-    assert "当前仓库共有 `233` 个 `test_*.py` 文件" in testing_text
+    assert "当前仓库共有 `235` 个 `test_*.py` 文件" in testing_text
 
 
 def test_phase_59_localized_verification_notes_track_topicized_meta_and_device_refresh_suites() -> None:

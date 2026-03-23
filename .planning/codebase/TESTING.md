@@ -29,7 +29,7 @@
 
 - 测试栈完整：`pytest`、`pytest-asyncio`、`pytest-cov`、`pytest-homeassistant-custom-component`、`pytest-benchmark`、`syrupy`、`mypy`、`xdist` 全部进入 dev 依赖。证据：`pyproject.toml:33`。
 - CI 把质量拆成 `lint`、`governance`、`security`、`test`、`benchmark`、`validate` 六道门，release 先复用 CI，再做版本校验与打包。证据：`.github/workflows/ci.yml:22`, `.github/workflows/release.yml:25`, `tests/meta/test_governance_guards.py:185`。
-- 当前仓库共有 `233` 个 `test_*.py` 文件；其中 `28` 个 meta guard、`5` 个 integration、`4` 个 benchmark、`4` 个 snapshot 文件；另有 `5` 个 fixture family readme 维护 authority/用途说明。
+- 当前仓库共有 `235` 个 `test_*.py` 文件；其中 `28` 个 meta guard、`5` 个 integration、`4` 个 benchmark、`4` 个 snapshot 文件；另有 `5` 个 fixture family readme 维护 authority/用途说明。
 - Coverage gate 是硬门槛：主测试 job 以 `95%` 为下限，snapshot coverage 已包含在主 `tests/` lane 中；`coverage_diff.py` 默认执行 floor-only check，只有显式提供 baseline 才会产出 diff；benchmark 则作为 baseline-governed artifact lane 产出 `.benchmarks/benchmark.json`，并区分 threshold warning 与 no-regression gate。证据：`.github/workflows/ci.yml:177`, `CONTRIBUTING.md:94`。
 - `Phase 55` 已把 `test_api_command_surface.py`、`test_transport_runtime.py`、`test_{light,fan,select,switch}.py` 收敛成 thin shell，并引入 `16` 个 named topic files，failure localization 直接落到 command/response、MQTT lifecycle/subscription、以及各平台 model/behavior concern。
 - `Phase 59` 再把 `tests/meta/{test_public_surface_guards.py,test_governance_phase_history.py,test_governance_followup_route.py}` 收窄成 thin shell roots，并引入 `9` 个 named truth-family modules；同时让 `tests/core/test_device_refresh.py` 退场，由 `tests/core/test_device_refresh_{parsing,filter,snapshot,runtime}.py` 承接 focused verification。

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Final, cast
+from typing import TYPE_CHECKING, Final
 
 from homeassistant.components.sensor import (
     SensorDeviceClass,
@@ -17,6 +17,7 @@ from homeassistant.const import (
     UnitOfPower,
 )
 
+from .entities.base import LiproEntity
 from .helpers.platform import (
     add_entry_entities,
     build_device_entities_from_rules,
@@ -24,50 +25,12 @@ from .helpers.platform import (
 )
 
 if TYPE_CHECKING:
-    from collections.abc import Mapping
-
     from homeassistant.core import HomeAssistant
     from homeassistant.helpers.entity_platform import AddEntitiesCallback
-    from homeassistant.helpers.update_coordinator import (
-        CoordinatorEntity,
-        DataUpdateCoordinator,
-    )
 
     from . import LiproConfigEntry
-    from .core.capability import CapabilitySnapshot
     from .core.device import LiproDevice
     from .runtime_types import LiproRuntimeCoordinator
-
-    class _LiproEntityBase(CoordinatorEntity[DataUpdateCoordinator[dict[str, object]]]):
-        def __init__(
-            self,
-            coordinator: LiproRuntimeCoordinator,
-            device: LiproDevice,
-            entity_suffix: str = "",
-        ) -> None: ...
-
-        @property
-        def device(self) -> LiproDevice: ...
-
-        @property
-        def capabilities(self) -> CapabilitySnapshot: ...
-
-        async def async_change_state(
-            self,
-            properties: Mapping[str, object],
-            *,
-            optimistic_state: Mapping[str, object] | None = None,
-            debounced: bool = False,
-        ) -> bool | None: ...
-
-else:
-    _LiproEntityBase = cast(
-        type[object],
-        __import__(
-            "custom_components.lipro.entities.base",
-            fromlist=["LiproEntity"],
-        ).LiproEntity,
-    )
 
 # No parallel update limit needed for read-only sensors using coordinator
 PARALLEL_UPDATES = 0
@@ -139,7 +102,7 @@ def _build_device_sensors(
     )
 
 
-class LiproSensor(_LiproEntityBase, SensorEntity):
+class LiproSensor(LiproEntity, SensorEntity):
     """Base class for Lipro sensors."""
 
     @staticmethod

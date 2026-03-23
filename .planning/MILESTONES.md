@@ -170,10 +170,10 @@
 
 ## v1.14 Governance Truth Realignment, Typed Runtime Access & Final Hidden-Root Closure (Opened: 2026-03-23)
 
-**Phase range:** `63 -> 65`
-**Phases completed:** 3 phases complete, 11 total plans tracked (`11` complete / `0` pending)
-**Status:** active / Phase 65 complete; milestone closeout pending
-**Route truth:** only active milestone route = `v1.14 / Phase 65`；`Phase 63`、`Phase 64` 与 `Phase 65` 均已完成，下一步进入 `$gsd-complete-milestone` closeout 回路，archive pull 继续从 `.planning/reviews/V1_13_EVIDENCE_INDEX.md` 起步
+**Phase range:** `63 -> 66`
+**Phases completed:** 4 phases complete, 15 total plans tracked (`15` complete / `0` pending)
+**Status:** active / Phase 66 complete; milestone closeout pending
+**Route truth:** only active milestone route = `v1.14 / Phase 66`；`Phase 63`、`Phase 64`、`Phase 65` 与 `Phase 66` 均已完成，下一步进入 `$gsd-complete-milestone` closeout 回路，archive pull 继续从 `.planning/reviews/V1_13_EVIDENCE_INDEX.md` 起步
 
 **Target outcomes:**
 - 统一 `latest closeout pointer`、archive route、`MILESTONES` 与 governance guards 的 current truth

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Final, Protocol, cast
+from typing import TYPE_CHECKING, Final
 
 from homeassistant.components.select import SelectEntity
 
@@ -18,6 +18,7 @@ from .const.properties import (
     WIND_DIRECTION_AUTO,
     WIND_DIRECTION_FIX,
 )
+from .entities.base import LiproEntity
 from .helpers.platform import (
     add_entry_entities,
     build_device_entities_from_rules,
@@ -40,54 +41,12 @@ from .select_internal.mapped_property import (
 )
 
 if TYPE_CHECKING:
-    from collections.abc import Mapping
-
     from homeassistant.core import HomeAssistant
     from homeassistant.helpers.entity_platform import AddEntitiesCallback
-    from homeassistant.helpers.update_coordinator import (
-        CoordinatorEntity,
-        DataUpdateCoordinator,
-    )
 
     from . import LiproConfigEntry
-    from .core.capability import CapabilitySnapshot
     from .core.device import LiproDevice
     from .runtime_types import LiproRuntimeCoordinator
-
-    class _LiproEntityBase(CoordinatorEntity[DataUpdateCoordinator[dict[str, object]]]):
-        def __init__(
-            self,
-            coordinator: LiproRuntimeCoordinator,
-            device: LiproDevice,
-            entity_suffix: str = "",
-        ) -> None: ...
-
-        @property
-        def device(self) -> LiproDevice: ...
-
-        @property
-        def capabilities(self) -> CapabilitySnapshot: ...
-
-        async def async_change_state(
-            self,
-            properties: Mapping[str, object],
-            *,
-            optimistic_state: Mapping[str, object] | None = None,
-            debounced: bool = False,
-        ) -> bool | None: ...
-
-else:
-    class _EntityBaseModule(Protocol):
-        LiproEntity: type[object]
-
-    _entity_base_module = cast(
-        _EntityBaseModule,
-        __import__(
-            "custom_components.lipro.entities.base",
-            fromlist=["LiproEntity"],
-        ),
-    )
-    _LiproEntityBase = _entity_base_module.LiproEntity
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -147,7 +106,7 @@ def _build_device_select_entities(
     )
 
 
-class LiproSelect(_LiproEntityBase, SelectEntity):
+class LiproSelect(LiproEntity, SelectEntity):
     """Base class for Lipro select entities."""
 
 

@@ -174,6 +174,15 @@
 - [x] **GOV-49**: `PROJECT / ROADMAP / REQUIREMENTS / STATE / MILESTONES / FILE_MATRIX` 必须共同冻结 runtime-access、device-extras 与 anonymous-share 的新 topology truth，阻止 stale hotspot 与 closeout-ready 叙事回流。
 - [x] **QLT-23**: 本轮 residual closure 必须在 `ruff`、architecture policy、file matrix、focused pytest 与 full pytest 下同时通过，证明不是测试夹具特判或表面重排。
 
+### Release Fidelity, Adapter-Root Cleanup & Focused Protocol Coverage
+
+- [x] **GOV-50**: tagged release 与 `workflow_dispatch` rehearsal 必须校验并构建同一 release ref；baseline / reviews / docs 的 active-route 与 freshness metadata 必须保持单一 current-story。
+- [x] **OSS-07**: 对外 release/install 文档必须使用 freshness-safe 的 release example truth，不得再由 stale hard-coded tag 充当公开安装指南。
+- [x] **ARC-13**: HA 根适配器与 platform roots 必须优先使用显式 formal imports / contracts；duplicated runtime-loaded stubs 与 adapter-owned second truth 不得继续留在 `__init__.py`、`sensor.py`、`select.py`。
+- [x] **HOT-22**: release/governance 与 adapter-root touched hotspots 必须继续 slimming，而不是保留 hidden-root / dynamic-import folklore 作为长期合法实现。
+- [x] **TST-16**: `RestTransportExecutor`、`CoordinatorProtocolService`、`LiproProtocolFacade` 与 `LiproMqttFacade` 必须拥有 focused regression suites；mega matrix 不得再独占这些 seam 的主要验证责任。
+- [x] **QLT-24**: 本轮 hardening 必须在 `ruff`、architecture policy、file matrix、focused governance/protocol suites 与 full pytest 下同时通过。
+
 ## Active Traceability (v1.14)
 
 | Requirement | Phase | Status |
@@ -199,6 +208,12 @@
 | TST-15 | Phase 65 | Completed |
 | GOV-49 | Phase 65 | Completed |
 | QLT-23 | Phase 65 | Completed |
+| GOV-50 | Phase 66 | Completed |
+| OSS-07 | Phase 66 | Completed |
+| ARC-13 | Phase 66 | Completed |
+| HOT-22 | Phase 66 | Completed |
+| TST-16 | Phase 66 | Completed |
+| QLT-24 | Phase 66 | Completed |
 
 ## Future Requirements
 

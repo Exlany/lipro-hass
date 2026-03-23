@@ -40,6 +40,18 @@ _None currently registered._
 
 - `Replay scenario coverage` 已在 Phase 21 关闭：remaining families 现已获得 explicit replay / evidence assurance coverage，不再保留 v1.1 de-scope carry-forward 叙事。
 
+- `Release-target / active-route freshness drift` 已在 Phase 66 关闭：`.github/workflows/{ci,release}.yml`、`README*`、`docs/README.md`、baseline/review docs 与 `tests/meta/test_governance_release_contract.py` 现在共同承认同一 tagged ref / current-story truth。
+
+- `Adapter-root duplicated stub and dynamic-import folklore` 已在 Phase 66 关闭：`custom_components/lipro/__init__.py` 删除 duplicated Protocol stub block，`sensor.py` / `select.py` 改为显式导入 `entities.base.LiproEntity` formal home。
+
+- `Protocol seam focused-coverage gap` 已在 Phase 66 关闭：`RestTransportExecutor`、`CoordinatorProtocolService`、`LiproProtocolFacade` 与 `LiproMqttFacade` 现拥有 dedicated focused regression suites，不再主要依赖 mega-matrix tests 才能发现 seam 破坏。
+
+## Phase 66 Residual Delta
+
+- 无新增 active residual family。
+- 本 phase 显式关闭了 stale release-example / active-route drift、adapter-root duplicated stub folklore 与 protocol seam focused-coverage gap。
+- 若后续 closeout audit 再发现问题，只允许以新的 explicit residual family 重新登记，不得借 archive/docs wording 静默回流。
+
 ## Rules
 
 - 新发现的 residual 必须登记，不能只在对话中提到。

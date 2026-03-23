@@ -1,6 +1,6 @@
 # File Matrix
 
-**Python files total:** 599
+**Python files total:** 602
 **Status:** File-level governance authority
 **Rule:** workspace inventory excluding caches / virtual env / tooling artifacts
 
@@ -8,7 +8,7 @@
 
 | Path | Area | Owner phase | Fate | Residual / delete gate |
 |------|------|-------------|------|-------------------------|
-| `custom_components/lipro/__init__.py` | Control | Phase 3 | 保留 | - |
+| `custom_components/lipro/__init__.py` | Control | Phase 3 / 66 | 保留 | thin HA root adapter; lazy patchable constructor home |
 | `custom_components/lipro/binary_sensor.py` | Domain | Phase 4 | 保留 | - |
 | `custom_components/lipro/climate.py` | Domain | Phase 4 | 保留 | - |
 | `custom_components/lipro/config_flow.py` | Control | Phase 3 | 保留 | - |
@@ -268,11 +268,11 @@
 | `custom_components/lipro/light.py` | Domain | Phase 4 | 保留 | - |
 | `custom_components/lipro/runtime_infra.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/runtime_types.py` | Cross-cutting | Phase 7 | 保留 | - |
-| `custom_components/lipro/select.py` | Domain | Phase 4 | 保留 | - |
+| `custom_components/lipro/select.py` | Domain | Phase 4 / 66 | 保留 | thin platform adapter using explicit `entities.base.LiproEntity` formal home |
 | `custom_components/lipro/select_internal/__init__.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/select_internal/gear.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/select_internal/mapped_property.py` | Cross-cutting | Phase 7 | 保留 | - |
-| `custom_components/lipro/sensor.py` | Domain | Phase 4 | 保留 | - |
+| `custom_components/lipro/sensor.py` | Domain | Phase 4 / 66 | 保留 | thin platform adapter using explicit `entities.base.LiproEntity` formal home |
 | `custom_components/lipro/services/__init__.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/services/command.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/services/contracts.py` | Control | Phase 3 | 保留 | - |
@@ -345,7 +345,7 @@
 | `tests/core/api/test_api_status_service.py` | Protocol | Phase 2 | 保留 | - |
 | `tests/core/api/test_api_status_service_regressions.py` | Protocol | Phase 2 | 保留 | - |
 | `tests/core/api/test_api_transport_and_schedule.py` | Protocol | Phase 33 | 保留 | topicized transport / schedule regression home |
-| `tests/core/api/test_api_transport_executor.py` | Protocol | Phase 2 | 保留 | - |
+| `tests/core/api/test_api_transport_executor.py` | Protocol | Phase 2 / 66 | 保留 | focused transport-executor seam coverage |
 | `tests/core/api/test_api_types_smoke.py` | Protocol | Phase 2 | 保留 | - |
 | `tests/core/api/test_auth_recovery_telemetry.py` | Protocol | Phase 2 | 保留 | - |
 | `tests/core/api/test_helper_modules.py` | Protocol | Phase 2 | 保留 | - |
@@ -374,6 +374,7 @@
 | `tests/core/coordinator/services/test_device_refresh_service.py` | Runtime | Phase 5 / 6 | 保留 | - |
 | `tests/core/coordinator/services/test_mqtt_service.py` | Runtime | Phase 5 / 6 | 保留 | - |
 | `tests/core/coordinator/services/test_polling_service.py` | Runtime | Phase 36 | 保留 | polling-service regression home |
+| `tests/core/coordinator/services/test_protocol_service.py` | Runtime | Phase 66 | 保留 | focused runtime protocol-service seam coverage |
 | `tests/core/coordinator/services/test_state_service.py` | Runtime | Phase 5 / 6 | 保留 | - |
 | `tests/core/coordinator/services/test_telemetry_service.py` | Runtime | Phase 5 / 6 | 保留 | - |
 | `tests/core/coordinator/test_entity_protocol.py` | Runtime | Phase 5 / 6 | 保留 | - |
@@ -416,6 +417,8 @@
 | `tests/core/ota/test_ota_row_selector.py` | Domain | Phase 4 / 49 | 保留 | core ota row-selector helper home |
 | `tests/core/ota/test_ota_rows_cache.py` | Domain | Phase 4 / 49 | 保留 | core ota rows-cache helper home |
 | `tests/core/ota/test_ota_utils.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `tests/core/protocol/__init__.py` | Protocol | Phase 66 | 保留 | focused protocol seam regression test package home |
+| `tests/core/protocol/test_facade.py` | Protocol | Phase 66 | 保留 | focused unified protocol-root and MQTT child-façade seam coverage |
 | `tests/core/telemetry/__init__.py` | Assurance | Phase 7.3 | 保留 | - |
 | `tests/core/telemetry/test_exporter.py` | Assurance | Phase 7.3 | 保留 | - |
 | `tests/core/telemetry/test_models.py` | Assurance | Phase 7.3 | 保留 | - |

@@ -16,7 +16,7 @@
 - ✅ **v1.11 Repository Audit Refresh & Next-Wave Remediation Routing** - formal milestone opened on 2026-03-22 from the renewed full-repository audit request; Phase 58 completed on 2026-03-22 with refreshed repo-wide audit evidence and now serves as the closeout-ready seed baseline for v1.12
 - ✅ **v1.10 Command-Result Typed Outcome & Reason-Code Hardening** - formal milestone opened on 2026-03-22 from the Phase 56 deferred follow-up route; Phase 57 completed on 2026-03-22 with promoted closeout evidence and now serves as the closeout-ready seed baseline for v1.11
 
-- 🚧 **v1.14 Governance Truth Realignment, Typed Runtime Access & Final Hidden-Root Closure** - formal milestone opened on 2026-03-23 from `v1.13` archived evidence; `Phase 63 -> 65` completed on 2026-03-23 and returned the milestone to closeout-ready status after runtime-access de-reflection, runtime alias projection, and anonymous-share outcome-contract closure
+- 🚧 **v1.14 Governance Truth Realignment, Typed Runtime Access & Final Hidden-Root Closure** - formal milestone opened on 2026-03-23 from `v1.13` archived evidence; `Phase 63 -> 66` completed on 2026-03-23 and returned the milestone to closeout-ready status after governance latest-pointer / release-target fidelity alignment, adapter-root cleanup, runtime-access de-reflection, runtime alias projection, anonymous-share outcome-contract closure, and focused protocol seam hardening
 
 ## Required Phase Outputs
 
@@ -1226,7 +1226,7 @@ Plans:
 
 **Milestone Goal:** 以 `v1.13` archived evidence 为起点，先统一 governance latest-pointer / archive-route truth 与 anti-drift guards，再把 `RuntimeAccess` / `__init__.py` / tooling-test hidden-root / command-share typed seams，以及 telemetry / schedule / diagnostics 剩余 formal-contract hotspots 收口到更诚实、更薄、更可验证的正式主链。
 
-**Current Status:** `Phase 63 -> 65 complete (2026-03-23)`；governance pointer、typed runtime access、tooling/test hidden-root closure、telemetry / schedule / diagnostics follow-through、runtime-access 去反射化、runtime alias 显式投影与 anonymous-share outcome-native submit contract 已完成，`v1.14` 当前回到 milestone closeout-ready 状态。
+**Current Status:** `Phase 63 -> 66 complete (2026-03-23)`；governance pointer / release-target fidelity、typed runtime access、tooling/test hidden-root closure、telemetry / schedule / diagnostics follow-through、runtime-access 去反射化、adapter-root cleanup、runtime alias 显式投影、anonymous-share outcome-native submit contract 与 focused protocol seam hardening 已完成，`v1.14` 当前回到 milestone closeout-ready 状态。
 
 ### Phase 63: Governance truth realignment, typed runtime access, and hidden-root closure
 
@@ -1282,3 +1282,23 @@ Plans:
 - [x] 65-03: converge anonymous-share submission onto one typed outcome contract and freeze Phase 65 truth (completed 2026-03-23)
 **Focused evidence:** `.planning/phases/65-runtime-access-de-reflection-and-anonymous-share-hotspot-closure/65-01-SUMMARY.md`, `.planning/phases/65-runtime-access-de-reflection-and-anonymous-share-hotspot-closure/65-02-SUMMARY.md`, `.planning/phases/65-runtime-access-de-reflection-and-anonymous-share-hotspot-closure/65-03-SUMMARY.md`
 **Closeout evidence:** `.planning/phases/65-runtime-access-de-reflection-and-anonymous-share-hotspot-closure/65-SUMMARY.md`, `.planning/phases/65-runtime-access-de-reflection-and-anonymous-share-hotspot-closure/65-VERIFICATION.md`
+
+### Phase 66: Release target fidelity, adapter-root cleanup, and focused protocol coverage hardening
+
+**Goal:** 统一 tagged release / workflow_dispatch 校验对象与 active-governance freshness truth，并继续清理 HA 根适配器的 duplicated stub / dynamic import 残留，同时为 protocol transport / service / root hotspots 铺设 focused regression coverage，避免 mega matrix 继续独占这些 seam 的验证责任。
+**Depends on:** Phase 65
+**Requirements**: [GOV-50, OSS-07, ARC-13, HOT-22, TST-16, QLT-24]
+**Success Criteria**:
+  1. `.github/workflows/release.yml` 的 validate/release 路径对同一 tagged ref 讲同一条故事；`README*`、baseline、reviews 与 meta guards 不再保留 stale active-route / stale release-example drift。
+  2. `custom_components/lipro/__init__.py`、`sensor.py` 与 `select.py` 继续压回 thin explicit adapter story；duplicated stub blocks、runtime-only dynamic import folklore 不再承担正式 contract。
+  3. `transport_executor.py`、`protocol_service.py`、`protocol/facade.py` 与 `protocol/mqtt_facade.py` 获得 focused regression coverage；协议根链与 transport seam 不再主要依赖 mega matrix 守护。
+**Status**: Complete (2026-03-23)
+**Plans**: 4 total / 4 completed / 0 pending
+
+Plans:
+- [x] 66-01: align release-target validation with tagged refs and remove stale current-story install/governance drift (completed 2026-03-23)
+- [x] 66-02: remove duplicated adapter-root stubs and replace platform dynamic-import folklore with explicit formal imports (completed 2026-03-23)
+- [x] 66-03: add focused regression suites for transport executor, coordinator protocol service, and protocol root seams (completed 2026-03-23)
+- [x] 66-04: freeze Phase 66 current-story, verification, and residual ledgers after execution (completed 2026-03-23)
+**Focused evidence:** `.planning/phases/66-release-target-fidelity-adapter-root-cleanup-and-focused-protocol-coverage-hardening/66-01-SUMMARY.md`, `.planning/phases/66-release-target-fidelity-adapter-root-cleanup-and-focused-protocol-coverage-hardening/66-02-SUMMARY.md`, `.planning/phases/66-release-target-fidelity-adapter-root-cleanup-and-focused-protocol-coverage-hardening/66-03-SUMMARY.md`, `.planning/phases/66-release-target-fidelity-adapter-root-cleanup-and-focused-protocol-coverage-hardening/66-04-SUMMARY.md`
+**Closeout evidence:** `.planning/phases/66-release-target-fidelity-adapter-root-cleanup-and-focused-protocol-coverage-hardening/66-SUMMARY.md`, `.planning/phases/66-release-target-fidelity-adapter-root-cleanup-and-focused-protocol-coverage-hardening/66-VERIFICATION.md`

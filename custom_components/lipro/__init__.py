@@ -38,68 +38,11 @@ if TYPE_CHECKING:
     from homeassistant.helpers.typing import ConfigType
 
 
-
 class _CoreModule(Protocol):
     """Runtime-loaded core module surface used by this adapter."""
 
     LiproAuthManager: Callable[..., object]
     LiproProtocolFacade: Callable[..., object]
-
-
-class _CoordinatorModule(Protocol):
-    """Runtime-loaded coordinator module surface used by this adapter."""
-
-    Coordinator: Callable[..., object]
-
-
-class _EntryAuthModule(Protocol):
-    """Runtime-loaded config-entry auth helpers used by this adapter."""
-
-    async def async_authenticate_entry(self, auth_manager: object) -> None: ...
-
-    def build_entry_auth_context(
-        self,
-        hass: HomeAssistant,
-        entry: LiproConfigEntry,
-        *,
-        get_client_session: Callable[[HomeAssistant], object],
-        protocol_factory: object,
-        auth_manager_factory: object,
-        logger: logging.Logger,
-    ) -> tuple[object, object]: ...
-
-    def clear_entry_runtime_data(self, entry: LiproConfigEntry) -> None: ...
-
-    def get_entry_int_option(
-        self,
-        entry: LiproConfigEntry,
-        *,
-        option_name: str,
-        default: int,
-        min_value: int,
-        max_value: int,
-        logger: logging.Logger,
-    ) -> int: ...
-
-    def persist_entry_tokens_if_changed(
-        self,
-        hass: HomeAssistant,
-        entry: LiproConfigEntry,
-        auth_manager: object,
-    ) -> None: ...
-
-
-class _ServiceRegistrationsModule(Protocol):
-    """Runtime-loaded service registration table surface."""
-
-    PUBLIC_SERVICE_REGISTRATIONS: Sequence[object]
-    DEVELOPER_SERVICE_REGISTRATIONS: Sequence[object]
-    SERVICE_REGISTRATIONS: Sequence[object]
-
-    def has_debug_mode_runtime_entry(self, hass: HomeAssistant) -> bool: ...
-
-
-LiproProtocolFacade: Callable[..., object]
 
 
 class _CoordinatorModule(Protocol):
