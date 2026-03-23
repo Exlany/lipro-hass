@@ -1,11 +1,11 @@
 # Project: Lipro-HASS North Star Evolution
 
-**Status:** Active milestone `v1.14` 已继续推进；当前最新 archive-ready closeout pointer 已固定为 `v1.13`；`Phase 63`、`Phase 64`、`Phase 65` 与 fresh audit 路由出的 `Phase 66` 已全部完成，当前里程碑重新回到 milestone closeout-ready。`v1.6` 仅保留为最近 shipped release archive baseline，`v1.11` 仅保留为 refreshed audit 历史 seed baseline。
-**Goal:** 以 `v1.13` archived evidence 为起点，完成治理真相指针、typed runtime access、HA root slimming、tooling/test hidden-root 收口，并把 runtime-access 去反射化、device extras / runtime alias 显式投影、anonymous-share outcome-native submit contract 一次性收口，不回流第二 formal root、raw sidecar second truth 或 bool-only compat story。
-**Default next step:** `$gsd-complete-milestone`
-**Audit verdict:** `.planning/v1.14-MILESTONE-AUDIT.md` 已落盘，当前状态为 `archive_ready / milestone audit passed`。
+**Status:** Shipped and archived — 当前无 active milestone；`v1.14` 已于 `2026-03-23` 完成 archive promotion，最新 archive-ready closeout pointer 已提升为 `v1.14`。下一轮正式路线必须从 `.planning/reviews/V1_14_EVIDENCE_INDEX.md` 与 `.planning/milestones/v1.14-*.md` 打开；`v1.13` 退为上一条 archive baseline，`v1.6` 仅保留为最近 shipped release historical baseline。
+**Goal:** 以 `v1.14` archived evidence 为新的 closeout baseline，下一轮只允许通过 fresh milestone route 继续推进，不重开已归档的 governance/runtime/share/protocol hotspots。
+**Default next step:** `$gsd-new-milestone`
+**Audit verdict:** `.planning/v1.14-MILESTONE-AUDIT.md`、`.planning/reviews/V1_14_EVIDENCE_INDEX.md` 与 `.planning/milestones/v1.14-{ROADMAP,REQUIREMENTS}.md` 已落盘，当前状态为 `archived / evidence-ready`。
 
-## Active Milestone (v1.14)
+## Latest Archived Milestone (v1.14)
 
 **Name:** `v1.14 Governance Truth Realignment, Typed Runtime Access & Final Hidden-Root Closure`
 
@@ -20,11 +20,11 @@
 - command failure / anonymous-share 只做 inward typed tightening，不引入新的 public surface 或 compat shell
 
 **Phase range:** `Phase 63 -> 66`
-**Current status:** `Phase 63 -> 66 complete (2026-03-23)`
+**Current status:** `archived / evidence-ready (2026-03-23)`
 **Starting baseline:** `.planning/v1.13-MILESTONE-AUDIT.md`, `.planning/reviews/V1_13_EVIDENCE_INDEX.md`, `.planning/milestones/v1.13-ROADMAP.md`, `.planning/milestones/v1.13-REQUIREMENTS.md`, `.planning/phases/58-repository-audit-refresh-and-next-wave-routing/58-REMEDIATION-ROADMAP.md`, `.planning/phases/63-governance-truth-realignment-typed-runtime-access-and-hidden-root-closure/63-SUMMARY.md`
 **Requirements basket:** `GOV-46`, `GOV-47`, `HOT-16`, `HOT-17`, `TST-13`, `TYP-16`, `QLT-21`, `ARC-11`, `HOT-18`, `HOT-19`, `TYP-17`, `TST-14`, `GOV-48`, `QLT-22`, `ARC-12`, `HOT-20`, `HOT-21`, `TYP-18`, `TST-15`, `GOV-49`, `QLT-23`, `GOV-50`, `OSS-07`, `ARC-13`, `HOT-22`, `TST-16`, `QLT-24`
-**Default next command:** `$gsd-complete-milestone`
-**Phase follow-up command:** `$gsd-complete-milestone`
+**Archive assets:** `.planning/v1.14-MILESTONE-AUDIT.md`, `.planning/reviews/V1_14_EVIDENCE_INDEX.md`, `.planning/milestones/v1.14-ROADMAP.md`, `.planning/milestones/v1.14-REQUIREMENTS.md`, `.planning/phases/63-governance-truth-realignment-typed-runtime-access-and-hidden-root-closure/63-SUMMARY.md`, `.planning/phases/64-telemetry-typing-schedule-contracts-and-diagnostics-hotspot-slimming/64-SUMMARY.md`, `.planning/phases/65-runtime-access-de-reflection-and-anonymous-share-hotspot-closure/65-SUMMARY.md`, `.planning/phases/66-release-target-fidelity-adapter-root-cleanup-and-focused-protocol-coverage-hardening/66-SUMMARY.md`
+**Default next command:** `$gsd-new-milestone`
 
 ## Archived Milestone (v1.6)
 

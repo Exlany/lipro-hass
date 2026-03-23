@@ -149,7 +149,7 @@
 **Phase range:** `60 -> 62`
 **Phases completed:** 3 phases, 11 plans, 0 tasks
 **Status:** archived / evidence-ready
-**Route truth:** latest archive-ready closeout pointer = `.planning/reviews/V1_13_EVIDENCE_INDEX.md`
+**Route truth:** prior archive-ready closeout baseline = `.planning/reviews/V1_13_EVIDENCE_INDEX.md`
 
 **Key accomplishments:**
 - 完成 tooling truth / file-governance hotspot inward decomposition，并冻结 `FILE_MATRIX / VERIFICATION_MATRIX / TESTING` 的 current story
@@ -168,24 +168,26 @@
 ---
 
 
-## v1.14 Governance Truth Realignment, Typed Runtime Access & Final Hidden-Root Closure (Opened: 2026-03-23)
+## v1.14 Governance Truth Realignment, Typed Runtime Access & Final Hidden-Root Closure (Closeout: 2026-03-23)
 
 **Phase range:** `63 -> 66`
-**Phases completed:** 4 phases complete, 15 total plans tracked (`15` complete / `0` pending)
-**Status:** active / Phase 66 complete; milestone closeout pending
-**Route truth:** only active milestone route = `v1.14 / Phase 66`；`Phase 63`、`Phase 64`、`Phase 65` 与 `Phase 66` 均已完成，下一步进入 `$gsd-complete-milestone` closeout 回路，archive pull 继续从 `.planning/reviews/V1_13_EVIDENCE_INDEX.md` 起步
-**Milestone audit:** `.planning/v1.14-MILESTONE-AUDIT.md` (`archive_ready`, audited 2026-03-23)
+**Phases completed:** 4 phases, 15 plans, 0 tasks
+**Status:** archived / evidence-ready
+**Route truth:** latest archive-ready closeout pointer = `.planning/reviews/V1_14_EVIDENCE_INDEX.md`
 
-**Target outcomes:**
-- 统一 `latest closeout pointer`、archive route、`MILESTONES` 与 governance guards 的 current truth
-- 把 `RuntimeAccess` / `__init__.py` 继续收口到 typed read-model 与 thin HA adapter
-- 继续关闭 tooling/test hidden-root 与 command/share typed 漏口
-- 补齐 runtime-access 去反射化、runtime alias 显式投影与 anonymous-share outcome-native submit 剩余 hotspot，避免 mock-driven / sidecar / bool-bridge 第二故事线长期合法化
+**Key accomplishments:**
+- 完成 governance latest-pointer / release-target fidelity 对齐，并把 `PROJECT / ROADMAP / REQUIREMENTS / STATE / MILESTONES / docs / runbook` 收束到同一 archive story
+- 把 `RuntimeAccess`、telemetry / schedule / diagnostics、runtime alias / device extras 与 anonymous-share submit contract 全部收口到更诚实的 typed formal seams
+- 清理 HA root adapter folklore，并为 `transport_executor` / `protocol_service` / `protocol facade` 铺设 focused seam regressions，结束 mega-matrix 独占验证
 
-**Seed inputs:**
-- `.planning/v1.13-MILESTONE-AUDIT.md`
-- `.planning/reviews/V1_13_EVIDENCE_INDEX.md`
-- `.planning/phases/58-repository-audit-refresh-and-next-wave-routing/58-REMEDIATION-ROADMAP.md`
-- `.planning/phases/63-governance-truth-realignment-typed-runtime-access-and-hidden-root-closure/63-CONTEXT.md`
+**Closeout assets:**
+- `.planning/v1.14-MILESTONE-AUDIT.md`
+- `.planning/reviews/V1_14_EVIDENCE_INDEX.md`
+- `.planning/milestones/v1.14-ROADMAP.md`
+- `.planning/milestones/v1.14-REQUIREMENTS.md`
+- `.planning/phases/63-governance-truth-realignment-typed-runtime-access-and-hidden-root-closure/63-SUMMARY.md`
+- `.planning/phases/64-telemetry-typing-schedule-contracts-and-diagnostics-hotspot-slimming/64-SUMMARY.md`
+- `.planning/phases/65-runtime-access-de-reflection-and-anonymous-share-hotspot-closure/65-SUMMARY.md`
+- `.planning/phases/66-release-target-fidelity-adapter-root-cleanup-and-focused-protocol-coverage-hardening/66-SUMMARY.md`
 
 ---

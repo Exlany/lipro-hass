@@ -37,7 +37,7 @@ def _coerce_int(value: object) -> int:
         return 0
     try:
         return int(value)
-    except TypeError, ValueError:
+    except (TypeError, ValueError):
         return 0
 
 

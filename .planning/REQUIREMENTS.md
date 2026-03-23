@@ -134,9 +134,9 @@
 - `15` 锁定 developer feedback contract、governance truth repair、contributor/install docs sync、support hotspot follow-through 与 testing/tooling gate clarification；不得因修补支持面问题而重开第二条正式主链
 - `16` 锁定 post-audit truth alignment、hotspot decomposition、type/exception tightening、residual endgame、domain/entity/OTA rationalization 与 contributor DX follow-through；不得因为收尾改进而重开第二条正式主链、第二套 protocol/runtime story 或无 gate rename campaign
 
-## Active Milestone (v1.14)
+## Archived Milestone (v1.14)
 
-> `v1.14` 从 `v1.13` archived evidence 打开，目标不是再做一轮 broad audit，而是把 fresh audit 仍指出的高杠杆尾债一次性路由成可执行收口：治理真相指针、typed runtime access / HA root slimming、tooling/test hidden-root 关闭，以及 command/share typed follow-through。
+> `v1.14` 已于 `2026-03-23` 完成归档；以下 requirements / traceability 保留 `Phase 63 -> 66` 的最终 fulfilled contract，归档快照见 `.planning/milestones/v1.14-REQUIREMENTS.md`，审计裁决见 `.planning/v1.14-MILESTONE-AUDIT.md`，证据索引见 `.planning/reviews/V1_14_EVIDENCE_INDEX.md`。
 
 ### Governance Truth & Pointer Closure
 
@@ -183,7 +183,7 @@
 - [x] **TST-16**: `RestTransportExecutor`、`CoordinatorProtocolService`、`LiproProtocolFacade` 与 `LiproMqttFacade` 必须拥有 focused regression suites；mega matrix 不得再独占这些 seam 的主要验证责任。
 - [x] **QLT-24**: 本轮 hardening 必须在 `ruff`、architecture policy、file matrix、focused governance/protocol suites 与 full pytest 下同时通过。
 
-## Active Traceability (v1.14)
+## Traceability for archived v1.14 route
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
@@ -214,6 +214,13 @@
 | HOT-22 | Phase 66 | Completed |
 | TST-16 | Phase 66 | Completed |
 | QLT-24 | Phase 66 | Completed |
+
+**Coverage:**
+- v1.14 routed requirements: 27 total
+- Current mapped: 27
+- Current complete: 27
+- Current pending: 0
+- Current unmapped: 0 ✓
 
 ## Future Requirements
 

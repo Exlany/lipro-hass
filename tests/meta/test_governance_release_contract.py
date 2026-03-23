@@ -376,14 +376,14 @@ def test_latest_closeout_pointer_and_active_route_stay_current() -> None:
     docs_text = _DOCS_README.read_text(encoding="utf-8")
     runbook_text = _RUNBOOK.read_text(encoding="utf-8")
 
-    assert ".planning/reviews/V1_13_EVIDENCE_INDEX.md" in docs_text
-    assert "v1.14 / Phase 66" in docs_text
-    assert "V1_13_EVIDENCE_INDEX.md" in runbook_text
+    assert ".planning/reviews/V1_14_EVIDENCE_INDEX.md" in docs_text
+    assert "当前无 active milestone route" in docs_text
+    assert "V1_14_EVIDENCE_INDEX.md" in runbook_text
     assert "V1_6_EVIDENCE_INDEX.md" not in runbook_text
-    assert "$gsd-complete-milestone" in project_text
-    assert "$gsd-complete-milestone" in state_text
+    assert "$gsd-new-milestone" in project_text
+    assert "$gsd-new-milestone" in state_text
     assert "## v1.14 Governance Truth Realignment, Typed Runtime Access & Final Hidden-Root Closure" in milestones_text
-    assert "only active milestone route = `v1.14 / Phase 66`" in milestones_text
+    assert "latest archive-ready closeout pointer = `.planning/reviews/V1_14_EVIDENCE_INDEX.md`" in milestones_text
     assert "v1.11" not in docs_text
     assert "v1.11" not in runbook_text
 

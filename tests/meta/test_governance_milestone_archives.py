@@ -121,6 +121,8 @@ def test_milestone_archive_snapshots_exist_and_are_referenced() -> None:
         _ROOT / ".planning" / "milestones" / "v1.12-REQUIREMENTS.md",
         _ROOT / ".planning" / "milestones" / "v1.13-ROADMAP.md",
         _ROOT / ".planning" / "milestones" / "v1.13-REQUIREMENTS.md",
+        _ROOT / ".planning" / "milestones" / "v1.14-ROADMAP.md",
+        _ROOT / ".planning" / "milestones" / "v1.14-REQUIREMENTS.md",
     )
 
     for path in archive_paths:
@@ -141,12 +143,14 @@ def test_milestone_archive_snapshots_exist_and_are_referenced() -> None:
         "v1.12-REQUIREMENTS.md",
         "v1.13-ROADMAP.md",
         "v1.13-REQUIREMENTS.md",
+        "v1.14-ROADMAP.md",
+        "v1.14-REQUIREMENTS.md",
     ):
         assert needle in roadmap_text
         assert needle in requirements_text or needle in project_text or needle in milestones_text
 
     assert "v1.13-MILESTONE-AUDIT.md" in state_text
-    assert "$gsd-complete-milestone" in state_text
+    assert "$gsd-new-milestone" in state_text
     assert "archived / evidence-ready" in milestones_text
     assert "archived snapshots created / handoff-ready" in milestones_text
     assert "revalidated 2026-03-17" in milestones_text
@@ -262,40 +266,46 @@ def test_governance_truth_registers_v1_6_closeout_assets() -> None:
     assert "## v1.6 Delivery Trust Hardening, Runtime Boundary Decoupling & Maintainability Closure" in milestones_text
 
 
-def test_v1_13_closeout_assets_exist_and_are_pull_only() -> None:
-    evidence_index = _ROOT / ".planning" / "reviews" / "V1_13_EVIDENCE_INDEX.md"
-    milestone_audit = _ROOT / ".planning" / "v1.13-MILESTONE-AUDIT.md"
+def test_v1_14_closeout_assets_exist_and_are_pull_only() -> None:
+    evidence_index = _ROOT / ".planning" / "reviews" / "V1_14_EVIDENCE_INDEX.md"
+    milestone_audit = _ROOT / ".planning" / "v1.14-MILESTONE-AUDIT.md"
 
     assert evidence_index.exists()
     assert milestone_audit.exists()
-    assert (_ROOT / ".planning" / "milestones" / "v1.13-ROADMAP.md").exists()
-    assert (_ROOT / ".planning" / "milestones" / "v1.13-REQUIREMENTS.md").exists()
+    assert (_ROOT / ".planning" / "milestones" / "v1.14-ROADMAP.md").exists()
+    assert (_ROOT / ".planning" / "milestones" / "v1.14-REQUIREMENTS.md").exists()
     _assert_promoted_phase_assets(
-        "60-tooling-truth-decomposition-and-file-governance-maintainability",
-        "60-SUMMARY.md",
-        "60-VERIFICATION.md",
+        "63-governance-truth-realignment-typed-runtime-access-and-hidden-root-closure",
+        "63-SUMMARY.md",
+        "63-VERIFICATION.md",
     )
     _assert_promoted_phase_assets(
-        "61-formal-home-slimming-for-large-but-correct-production-modules",
-        "61-SUMMARY.md",
-        "61-VERIFICATION.md",
+        "64-telemetry-typing-schedule-contracts-and-diagnostics-hotspot-slimming",
+        "64-SUMMARY.md",
+        "64-VERIFICATION.md",
     )
     _assert_promoted_phase_assets(
-        "62-naming-clarity-support-seam-governance-and-public-discoverability",
-        "62-SUMMARY.md",
-        "62-VERIFICATION.md",
+        "65-runtime-access-de-reflection-and-anonymous-share-hotspot-closure",
+        "65-SUMMARY.md",
+        "65-VERIFICATION.md",
+    )
+    _assert_promoted_phase_assets(
+        "66-release-target-fidelity-adapter-root-cleanup-and-focused-protocol-coverage-hardening",
+        "66-SUMMARY.md",
+        "66-VERIFICATION.md",
     )
 
     evidence_text = evidence_index.read_text(encoding="utf-8")
     assert "## Pull Contract" in evidence_text
-    assert "60-VERIFICATION.md" in evidence_text
-    assert "61-VERIFICATION.md" in evidence_text
-    assert "62-VERIFICATION.md" in evidence_text
+    assert "63-VERIFICATION.md" in evidence_text
+    assert "64-VERIFICATION.md" in evidence_text
+    assert "65-VERIFICATION.md" in evidence_text
+    assert "66-VERIFICATION.md" in evidence_text
     assert "archived / evidence-ready" in evidence_text
-    assert "V1_13_EVIDENCE_INDEX.md" in evidence_text
+    assert "V1_14_EVIDENCE_INDEX.md" in evidence_text
 
 
-def test_governance_truth_registers_v1_13_archive_lineage_and_v1_14_active_route() -> None:
+def test_governance_truth_registers_v1_14_archive_lineage() -> None:
     authority_text = (
         _ROOT / ".planning" / "baseline" / "AUTHORITY_MATRIX.md"
     ).read_text(encoding="utf-8")
@@ -310,14 +320,14 @@ def test_governance_truth_registers_v1_13_archive_lineage_and_v1_14_active_route
         encoding="utf-8"
     )
 
-    assert "V1_13_EVIDENCE_INDEX.md" in authority_text
-    assert "v1.13-MILESTONE-AUDIT.md" in authority_text
-    assert "V1_13_EVIDENCE_INDEX.md" in public_text
+    assert "V1_14_EVIDENCE_INDEX.md" in authority_text
+    assert "v1.14-MILESTONE-AUDIT.md" in authority_text
+    assert "V1_14_EVIDENCE_INDEX.md" in public_text
     assert "## v1.13 Tooling Truth Decomposition, Formal-Home Slimming & Naming/Discoverability Convergence" in milestones_text
     assert "## v1.14 Governance Truth Realignment, Typed Runtime Access & Final Hidden-Root Closure" in milestones_text
-    assert ".planning/reviews/V1_13_EVIDENCE_INDEX.md" in milestones_text
-    assert ".planning/reviews/V1_13_EVIDENCE_INDEX.md" in docs_text
-    assert "v1.14 / Phase 66" in docs_text
-    assert "V1_13_EVIDENCE_INDEX.md" in runbook_text
-    assert "$gsd-complete-milestone" in project_text
-    assert "$gsd-complete-milestone" in state_text
+    assert ".planning/reviews/V1_14_EVIDENCE_INDEX.md" in milestones_text
+    assert ".planning/reviews/V1_14_EVIDENCE_INDEX.md" in docs_text
+    assert "当前无 active milestone route" in docs_text
+    assert "V1_14_EVIDENCE_INDEX.md" in runbook_text
+    assert "$gsd-new-milestone" in project_text
+    assert "$gsd-new-milestone" in state_text
