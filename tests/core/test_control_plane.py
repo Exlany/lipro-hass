@@ -193,6 +193,41 @@ def test_build_runtime_entry_view_materializes_typed_read_model() -> None:
     assert view.coordinator.runtime_telemetry_snapshot == {"runtime": "ok"}
 
 
+def test_build_runtime_entry_view_accepts_slots_backed_runtime_ports() -> None:
+    from custom_components.lipro.control.runtime_access import build_runtime_entry_view
+
+    class SlotBackedEntry:
+        __slots__ = ("entry_id", "options", "runtime_data")
+
+        def __init__(self, *, entry_id: str, options: dict[str, object], runtime_data: object) -> None:
+            self.entry_id = entry_id
+            self.options = options
+            self.runtime_data = runtime_data
+
+    coordinator = SimpleNamespace(
+        update_interval=None,
+        last_update_success=True,
+        mqtt_service=SimpleNamespace(connected=True),
+        protocol=None,
+        telemetry_service=SimpleNamespace(build_snapshot=lambda: {"slot": "ok"}),
+        devices={},
+    )
+    entry = SlotBackedEntry(
+        entry_id="entry-slot",
+        options={"debug_mode": False},
+        runtime_data=coordinator,
+    )
+
+    view = build_runtime_entry_view(entry)
+
+    assert view is not None
+    assert view.entry is entry
+    assert view.entry_id == "entry-slot"
+    assert view.coordinator is not None
+    assert view.coordinator.mqtt_connected is True
+    assert view.coordinator.runtime_telemetry_snapshot == {"slot": "ok"}
+
+
 def test_iter_runtime_entry_coordinators_preserves_entry_coordinator_pairs(hass) -> None:
     from custom_components.lipro.control.runtime_access import (
         iter_runtime_entry_coordinators,

@@ -14,7 +14,7 @@
 - `uv run python scripts/check_architecture_policy.py --check` → passed
 - `uv run python scripts/check_file_matrix.py --check` → passed
 - `uv run pytest -q tests/meta/test_dependency_guards.py tests/meta/test_public_surface_guards.py tests/meta/test_governance*.py tests/meta/test_version_sync.py` → `176 passed in 5.91s`
-- `uv run pytest -q` → `2511 passed in 48.21s`
+- `uv run pytest -q` → `2512 passed in 47.81s`
 
 ## Verdict
 

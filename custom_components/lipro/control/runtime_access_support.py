@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
+from inspect import getattr_static
 from typing import TYPE_CHECKING, cast
 
 from homeassistant.core import HomeAssistant
@@ -27,33 +28,19 @@ _MISSING = object()
 type RuntimeEntryCoordinator = tuple[RuntimeEntryPort, LiproCoordinator]
 
 
-def _instance_members(obj: object | None) -> dict[str, object] | None:
-    """Return explicit instance members for one object when available."""
+def _get_static_member(obj: object | None, name: str) -> object:
+    """Return one statically declared member without triggering dynamic fallback."""
     if obj is None:
-        return None
+        return _MISSING
     try:
-        members = vars(obj)
-    except TypeError:
-        return None
-    return members if isinstance(members, dict) else None
-
-
-def _has_instance_member(obj: object | None, name: str) -> bool:
-    """Return whether one member is explicitly bound on the instance."""
-    members = _instance_members(obj)
-    return members is not None and name in members
-
-
-def _has_class_member(obj: object | None, name: str) -> bool:
-    """Return whether one member is declared on the object's type."""
-    return obj is not None and hasattr(type(obj), name)
+        return getattr_static(obj, name)
+    except AttributeError:
+        return _MISSING
 
 
 def _get_explicit_member(obj: object | None, name: str) -> object | None:
     """Return one explicitly declared instance/class member without mock-ghost probing."""
-    if obj is None:
-        return None
-    if not (_has_instance_member(obj, name) or _has_class_member(obj, name)):
+    if _get_static_member(obj, name) is _MISSING:
         return None
     try:
         return cast(object | None, getattr(obj, name))
@@ -61,10 +48,9 @@ def _get_explicit_member(obj: object | None, name: str) -> object | None:
         return None
 
 
-
 def _has_explicit_runtime_member(obj: object | None, name: str) -> bool:
     """Return whether a runtime-facing attribute is explicitly bound on the object."""
-    return _has_instance_member(obj, name) or _has_class_member(obj, name)
+    return _get_static_member(obj, name) is not _MISSING
 
 
 class _ProtocolFacadeTelemetrySource(ProtocolTelemetrySource):
