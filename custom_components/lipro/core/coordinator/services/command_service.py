@@ -6,7 +6,7 @@ from dataclasses import dataclass
 import logging
 from typing import TYPE_CHECKING
 
-from ..types import CommandTrace
+from ..types import CommandFailureSummary, CommandTrace
 
 if TYPE_CHECKING:
     from ...device import LiproDevice
@@ -24,9 +24,19 @@ class CoordinatorCommandService:
     tuning_runtime: TuningRuntime
 
     @property
-    def last_failure(self) -> CommandTrace | None:
-        """Return the latest command failure payload, if any."""
+    def last_failure(self) -> CommandFailureSummary | None:
+        """Return the latest normalized command failure summary, if any."""
+        return self.command_runtime.last_command_failure_summary
+
+    @property
+    def last_failure_trace(self) -> CommandTrace | None:
+        """Return the latest raw command failure trace for diagnostics-only callers."""
         return self.command_runtime.last_command_failure
+
+    @property
+    def last_failure_summary(self) -> CommandFailureSummary | None:
+        """Backward-compatible alias for the normalized failure summary."""
+        return self.last_failure
 
     async def async_send_command(
         self,

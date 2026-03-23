@@ -8,7 +8,7 @@ import re
 
 from scripts.check_file_matrix import repo_root
 
-from .test_governance_guards import _load_frontmatter
+from .conftest import _load_frontmatter
 
 
 def _assert_state_keeps_forward_progress_commands(state_text: str) -> None:

@@ -16,6 +16,8 @@
 - ✅ **v1.11 Repository Audit Refresh & Next-Wave Remediation Routing** - formal milestone opened on 2026-03-22 from the renewed full-repository audit request; Phase 58 completed on 2026-03-22 with refreshed repo-wide audit evidence and now serves as the closeout-ready seed baseline for v1.12
 - ✅ **v1.10 Command-Result Typed Outcome & Reason-Code Hardening** - formal milestone opened on 2026-03-22 from the Phase 56 deferred follow-up route; Phase 57 completed on 2026-03-22 with promoted closeout evidence and now serves as the closeout-ready seed baseline for v1.11
 
+- 🚧 **v1.14 Governance Truth Realignment, Typed Runtime Access & Final Hidden-Root Closure** - formal milestone opened on 2026-03-23 from `v1.13` archived evidence; `Phase 63` seeded for governance pointer sync, typed runtime-access / HA-root slimming, tooling/test hidden-root closure, and typed command/share follow-through
+
 ## Required Phase Outputs
 
 每个 phase 完成时，除了代码与测试，还必须显式更新或确认以下输出：
@@ -1219,3 +1221,28 @@ Plans:
 - [x] 59-01: topicize governance and public-surface megaguards by stable truth family (completed 2026-03-22)
 - [x] 59-02: split `test_device_refresh.py` by parsing, filter semantics, snapshot building, and runtime behavior concerns (completed 2026-03-22)
 - [x] 59-03: freeze localized verification topology in matrices, current-story docs, and focused guards (completed 2026-03-22)
+
+### 🚧 v1.14 Governance Truth Realignment, Typed Runtime Access & Final Hidden-Root Closure
+
+**Milestone Goal:** 以 `v1.13` archived evidence 为起点，先统一 governance latest-pointer / archive-route truth 与 anti-drift guards，再把 `RuntimeAccess` / `__init__.py` / tooling-test hidden-root / command-share typed seams 收口到更诚实、更薄、更可验证的正式主链。
+
+**Current Status:** `5 plans / 4 waves complete (2026-03-23)`；governance pointer、typed runtime access、tooling/test hidden-root closure 与 command/share follow-through 已全部落盘 summary。
+
+### Phase 63: Governance truth realignment, typed runtime access, and hidden-root closure
+
+**Goal:** 修复 milestone/latest-pointer truth drift，继续把 `RuntimeAccess` 与 `__init__.py` 压回 typed / thin formal homes，并关闭 file-matrix、API/meta topic suites、command/share flows 中仍然存在的 hidden-root、stringly 与 `Any` 漏口。
+**Depends on:** Phase 62
+**Requirements**: [GOV-46, GOV-47, HOT-16, HOT-17, TST-13, TYP-16, QLT-21]
+**Success Criteria**:
+  1. `PROJECT / STATE / ROADMAP / REQUIREMENTS / MILESTONES / docs index / runbook / tests` 共同承认 `v1.13` latest archive-ready pointer 与 `v1.14` active route，CI guards 能阻止 stale pointer / stale route 回流。
+  2. `RuntimeAccess` / `__init__.py` 继续走 typed read-model + thin adapter 收口；control/runtime truth 不再依赖 broad introspection helper 或根层动态聚合。
+  3. `file-matrix` / API-meta topic suites / command-share follow-through 的 hidden-root、stringly 与 `Any` 漏口得到 inward closure，并以 focused tests + governance truth 同轮验证。
+**Plans**: 5 total / 5 completed / 0 pending
+
+Plans:
+- [x] 63-01: align governance latest-pointer truth, latest closeout docs, and anti-drift guards (completed 2026-03-23)
+- [x] 63-02: converge RuntimeAccess onto typed read-model ports and thin the HA root adapter (completed 2026-03-23)
+- [x] 63-03: decompose file-matrix/tooling truth and unify local-vs-CI command contracts (completed 2026-03-23)
+- [x] 63-04: close topic-suite hidden roots in API and governance/meta tests (completed 2026-03-23)
+- [x] 63-05: tighten command failure summaries and anonymous-share transport typing (completed 2026-03-23)
+

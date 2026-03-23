@@ -15,7 +15,9 @@ from custom_components.lipro.core.coordinator.services.command_service import (
 @pytest.mark.asyncio
 async def test_command_service_runs_command_flow() -> None:
     command_runtime = MagicMock()
-    command_runtime.send_device_command = AsyncMock(return_value=(True, "device_direct"))
+    command_runtime.send_device_command = AsyncMock(
+        return_value=(True, "device_direct")
+    )
     tuning_runtime = MagicMock()
     service = CoordinatorCommandService(
         command_runtime=command_runtime,
@@ -45,7 +47,9 @@ async def test_command_service_runs_command_flow() -> None:
 @pytest.mark.asyncio
 async def test_command_service_skips_follow_up_side_effects_on_failure() -> None:
     command_runtime = MagicMock()
-    command_runtime.send_device_command = AsyncMock(return_value=(False, "device_direct"))
+    command_runtime.send_device_command = AsyncMock(
+        return_value=(False, "device_direct")
+    )
     tuning_runtime = MagicMock()
     service = CoordinatorCommandService(
         command_runtime=command_runtime,
@@ -66,7 +70,9 @@ async def test_command_service_skips_follow_up_side_effects_on_failure() -> None
 @pytest.mark.asyncio
 async def test_command_service_ignores_typed_tuning_metric_failures() -> None:
     command_runtime = MagicMock()
-    command_runtime.send_device_command = AsyncMock(return_value=(True, "device_direct"))
+    command_runtime.send_device_command = AsyncMock(
+        return_value=(True, "device_direct")
+    )
     tuning_runtime = MagicMock()
     tuning_runtime.record_user_action.side_effect = RuntimeError("metric boom")
     service = CoordinatorCommandService(
@@ -91,7 +97,9 @@ async def test_command_service_ignores_typed_tuning_metric_failures() -> None:
 @pytest.mark.asyncio
 async def test_command_service_handles_api_error_via_runtime() -> None:
     command_runtime = MagicMock()
-    command_runtime.send_device_command = AsyncMock(side_effect=LiproApiError("boom", code="500"))
+    command_runtime.send_device_command = AsyncMock(
+        side_effect=LiproApiError("boom", code="500")
+    )
     service = CoordinatorCommandService(
         command_runtime=command_runtime,
         tuning_runtime=MagicMock(),
@@ -114,9 +122,16 @@ async def test_command_service_shutdown_is_idempotent() -> None:
     await service.async_shutdown()
 
 
-def test_command_service_exposes_last_failure_trace() -> None:
+def test_command_service_exposes_last_failure_summary_and_trace() -> None:
     command_runtime = MagicMock()
-    trace = MagicMock()
+    summary = {
+        "reason": "api_error",
+        "code": "140401",
+        "error_type": "LiproAuthError",
+        "reauth_reason": "auth_error",
+    }
+    trace = {"error": "LiproAuthError", "error_code": "140401"}
+    command_runtime.last_command_failure_summary = summary
     command_runtime.last_command_failure = trace
 
     service = CoordinatorCommandService(
@@ -124,4 +139,5 @@ def test_command_service_exposes_last_failure_trace() -> None:
         tuning_runtime=MagicMock(),
     )
 
-    assert service.last_failure is trace
+    assert service.last_failure is summary
+    assert service.last_failure_trace is trace

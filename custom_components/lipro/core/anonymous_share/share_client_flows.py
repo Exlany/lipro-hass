@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections.abc import Awaitable, Callable
 from contextlib import suppress
 import json
-from typing import TYPE_CHECKING, Any, Protocol
+from typing import TYPE_CHECKING, Protocol
 
 import aiohttp
 
@@ -17,7 +17,10 @@ from ..telemetry.models import (
 from ..utils.log_safety import safe_error_placeholder
 from .const import SHARE_REPORT_URL, SHARE_TOKEN_REFRESH_URL
 from .share_client_support import (
+    ResponseHeadersLike,
+    SharePayload,
     SubmitVariant,
+    WorkerResponsePayload,
     backoff_active,
     build_http_failure_outcome,
     build_invalid_refresh_payload_outcome,
@@ -26,6 +29,7 @@ from .share_client_support import (
     build_submit_variants,
     build_token_invalid_outcome,
     build_token_rejected_outcome,
+    extract_response_code,
     has_valid_installation_id,
     is_refresh_token_invalid,
     is_submit_token_rejected,
@@ -53,19 +57,19 @@ class ShareWorkerClientLike(Protocol):
     ) -> dict[str, str]:
         """Build request headers for one upload attempt."""
 
-    def parse_retry_after(self, headers: Any) -> float | None:
+    def parse_retry_after(self, headers: ResponseHeadersLike) -> float | None:
         """Parse Retry-After seconds from one response header bag."""
 
     def clear_install_token(self) -> None:
         """Clear cached install-token state."""
 
-    def apply_token_payload(self, payload: dict[str, Any]) -> bool:
+    def apply_token_payload(self, payload: WorkerResponsePayload) -> bool:
         """Apply one token payload to the client cache."""
 
     async def safe_read_json(
         self,
         response: aiohttp.ClientResponse,
-    ) -> dict[str, Any] | None:
+    ) -> WorkerResponsePayload | None:
         """Best-effort response JSON parsing."""
 
     async def refresh_install_token(
@@ -81,7 +85,7 @@ _SHARE_SUBMIT_ORIGIN = "anonymous_share.submit_share_payload"
 
 async def safe_read_json(
     response: aiohttp.ClientResponse,
-) -> dict[str, Any] | None:
+) -> WorkerResponsePayload | None:
     """Best-effort JSON parsing for Worker responses."""
     try:
         json_reader = getattr(response, "json", None)
@@ -111,7 +115,9 @@ async def refresh_install_token_with_outcome(
 ) -> OperationOutcome:
     """Refresh the install token via `/api/token/refresh` with typed outcome."""
     if not client.install_token:
-        return build_operation_outcome(kind="skipped", reason_code="missing_install_token")
+        return build_operation_outcome(
+            kind="skipped", reason_code="missing_install_token"
+        )
     if backoff_active(next_upload_attempt_at=client.next_upload_attempt_at, now=now):
         return build_operation_outcome(kind="skipped", reason_code="backoff_active")
 
@@ -132,7 +138,7 @@ async def refresh_install_token_with_outcome(
                     failure_origin=_TOKEN_REFRESH_ORIGIN,
                 )
 
-            code = payload.get("code") if payload else None
+            code = extract_response_code(payload)
             if is_refresh_token_invalid(http_status=response.status, code=code):
                 client.clear_install_token()
                 return build_token_invalid_outcome(
@@ -196,7 +202,7 @@ async def refresh_install_token_with_outcome(
 
 async def _preflight_submit_share_payload(
     client: ShareWorkerClientLike,
-    report: dict[str, Any],
+    report: SharePayload,
     *,
     label: str,
     ensure_loaded: Callable[[], Awaitable[None]],
@@ -242,13 +248,13 @@ async def _refresh_submit_token_if_due(
 async def submit_share_payload_with_outcome(
     client: ShareWorkerClientLike,
     session: aiohttp.ClientSession,
-    report: dict[str, Any],
+    report: SharePayload,
     *,
     label: str,
     ensure_loaded: Callable[[], Awaitable[None]],
     logger: Logger,
     now: Callable[[], float],
-    build_lite_variant: Callable[[dict[str, Any]], dict[str, Any]],
+    build_lite_variant: Callable[[SharePayload], SharePayload],
 ) -> OperationOutcome:
     """Submit one payload to the share endpoint with typed failure semantics."""
     preflight_outcome = await _preflight_submit_share_payload(
@@ -394,7 +400,7 @@ async def _submit_variant_token_attempt(
     *,
     submit_variant: SubmitVariant,
     token: str | None,
-) -> tuple[int, Any, dict[str, Any] | None]:
+) -> tuple[int, ResponseHeadersLike, WorkerResponsePayload | None]:
     """Submit one payload/token attempt and return the raw HTTP result."""
     async with session.post(
         SHARE_REPORT_URL,
@@ -412,8 +418,8 @@ def _resolve_submit_attempt_outcome(
     submit_variant: SubmitVariant,
     token: str | None,
     http_status: int,
-    response_headers: Any,
-    payload: dict[str, Any] | None,
+    response_headers: ResponseHeadersLike,
+    payload: WorkerResponsePayload | None,
     now: Callable[[], float],
 ) -> tuple[OperationOutcome | None, bool]:
     """Resolve one submit attempt into an outcome or loop-control decision."""
@@ -428,7 +434,7 @@ def _resolve_submit_attempt_outcome(
             False,
         )
 
-    code = payload.get("code") if payload else None
+    code = extract_response_code(payload)
     if http_status == 429:
         return (
             _build_rate_limited_submit_outcome(
@@ -467,7 +473,7 @@ def _resolve_submit_attempt_outcome(
 def _build_rate_limited_submit_outcome(
     client: ShareWorkerClientLike,
     *,
-    headers: Any,
+    headers: ResponseHeadersLike,
     now: Callable[[], float],
 ) -> OperationOutcome:
     """Project one rate-limited submit response into the canonical outcome."""

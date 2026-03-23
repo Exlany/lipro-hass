@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
+from .conftest import _ROOT, _assert_current_mode_tracks_phase_lifecycle
 from .test_governance_closeout_guards import (
     _assert_project_allows_post_v1_4_next_step,
     _assert_promoted_phase_assets,
     _assert_state_keeps_forward_progress_commands,
     _assert_state_reflects_post_v1_4_continuation,
 )
-from .test_governance_guards import _ROOT, _assert_current_mode_tracks_phase_lifecycle
 
 
 def test_phase_34_execution_evidence_is_consistent() -> None:

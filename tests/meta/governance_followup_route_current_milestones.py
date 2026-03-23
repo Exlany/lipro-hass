@@ -5,7 +5,7 @@ from __future__ import annotations
 from .test_governance_closeout_guards import _ROOT
 
 
-def test_v1_8_closeout_and_v1_9_current_milestone_truth_are_consistent() -> None:
+def test_v1_8_closeout_through_v1_14_current_milestone_truth_are_consistent() -> None:
     roadmap_text = (_ROOT / ".planning" / "ROADMAP.md").read_text(encoding="utf-8")
     requirements_text = (_ROOT / ".planning" / "REQUIREMENTS.md").read_text(
         encoding="utf-8"
@@ -141,7 +141,6 @@ def test_v1_8_closeout_and_v1_9_current_milestone_truth_are_consistent() -> None
     assert ".planning/reviews/V1_13_EVIDENCE_INDEX.md" in roadmap_text
     assert ".planning/milestones/v1.13-ROADMAP.md" in roadmap_text
     assert ".planning/milestones/v1.13-REQUIREMENTS.md" in roadmap_text
-    assert "**Default next command:** `$gsd-new-milestone`" in roadmap_text
     assert "### Phase 60: Tooling truth decomposition and file-governance maintainability" in roadmap_text
     assert "**Plans**: 3 completed" in roadmap_text
     assert "60-01: decompose the file-matrix checker into thin root and internal truth families" in roadmap_text
@@ -159,30 +158,37 @@ def test_v1_8_closeout_and_v1_9_current_milestone_truth_are_consistent() -> None
     ):
         assert needle in requirements_text
 
-    assert "## Planned Milestone (v1.11)" in project_text
-    assert "**Current status:** `Phase 58 complete (2026-03-22)`" in project_text
-    assert ".planning/reviews/V1_11_MILESTONE_SEED.md" in project_text
-    assert ".planning/phases/58-repository-audit-refresh-and-next-wave-routing/58-01-PLAN.md" in project_text
-    assert ".planning/phases/58-repository-audit-refresh-and-next-wave-routing/58-SUMMARY.md" in project_text
-    assert "$gsd-complete-milestone v1.11" in project_text
-
-    assert "## Archived Milestone (v1.12)" in project_text
-    assert "**Current status:** `archived / evidence-ready (2026-03-22)`" in project_text
-    assert ".planning/v1.12-MILESTONE-AUDIT.md" in project_text
-    assert ".planning/reviews/V1_12_EVIDENCE_INDEX.md" in project_text
-    assert ".planning/phases/59-verification-localization-and-governance-guard-topicization/59-SUMMARY.md" in project_text
-    assert ".planning/phases/59-verification-localization-and-governance-guard-topicization/59-VERIFICATION.md" in project_text
-
     assert "## Archived Milestone (v1.13)" in project_text
     assert "**Current status:** `archived / evidence-ready (2026-03-22)`" in project_text
     assert ".planning/v1.13-MILESTONE-AUDIT.md" in project_text
     assert ".planning/reviews/V1_13_EVIDENCE_INDEX.md" in project_text
     assert ".planning/milestones/v1.13-ROADMAP.md" in project_text
-    assert "$gsd-new-milestone" in project_text
     assert ".planning/phases/60-tooling-truth-decomposition-and-file-governance-maintainability/60-01-PLAN.md" not in project_text
 
-    assert "**Current milestone:** `v1.13 Tooling Truth Decomposition, Formal-Home Slimming & Naming/Discoverability Convergence`" in state_text
-    assert "**Current mode:** `v1.13 archived`" in state_text
-    assert "$gsd-new-milestone" in state_text
+    assert "## Active Milestone (v1.14)" in project_text
+    assert "**Current status:** `5 plans / 4 waves complete (2026-03-23)`" in project_text
+    assert "**Default next command:** `$gsd-complete-milestone`" in project_text
+
+    assert "### 🚧 v1.14 Governance Truth Realignment, Typed Runtime Access & Final Hidden-Root Closure" in roadmap_text
+    assert "**Current Status:** `5 plans / 4 waves complete (2026-03-23)`" in roadmap_text
+    assert "### Phase 63: Governance truth realignment, typed runtime access, and hidden-root closure" in roadmap_text
+    assert "**Plans**: 5 total / 5 completed / 0 pending" in roadmap_text
+    assert "63-01: align governance latest-pointer truth, latest closeout docs, and anti-drift guards" in roadmap_text
+    assert "63-05: tighten command failure summaries and anonymous-share transport typing" in roadmap_text
+
+    for needle in (
+        "| GOV-46 | Phase 63 | Completed |",
+        "| GOV-47 | Phase 63 | Completed |",
+        "| HOT-16 | Phase 63 | Completed |",
+        "| HOT-17 | Phase 63 | Completed |",
+        "| TST-13 | Phase 63 | Completed |",
+        "| TYP-16 | Phase 63 | Completed |",
+        "| QLT-21 | Phase 63 | Completed |",
+    ):
+        assert needle in requirements_text
+
+    assert "**Current milestone:** `v1.14 Governance Truth Realignment, Typed Runtime Access & Final Hidden-Root Closure`" in state_text
+    assert "**Current mode:** `Phase 63 governance truth realignment typed runtime access and final hidden root closure complete`" in state_text
+    assert "$gsd-execute-phase 63" in state_text
     assert ".planning/v1.13-MILESTONE-AUDIT.md" in state_text
     assert ".planning/reviews/V1_13_EVIDENCE_INDEX.md" in state_text

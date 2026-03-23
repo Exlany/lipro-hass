@@ -72,8 +72,14 @@
 
 以下资产保留 archive / evidence / continuity 身份，供维护者审计、追溯与 handoff 使用，但**不是**当前治理真源：
 
+- 最新 archive-ready governance baseline：`.planning/v1.13-MILESTONE-AUDIT.md`、`.planning/reviews/V1_13_EVIDENCE_INDEX.md`
+- 当前 active milestone route：以 `.planning/PROJECT.md`、`.planning/ROADMAP.md`、`.planning/REQUIREMENTS.md` 与 `.planning/STATE.md` 中的 `v1.14 / Phase 63` 为准
 - `.planning/MILESTONES.md`
 - `.planning/milestones/*.md`
+- `.planning/v1.13-MILESTONE-AUDIT.md`
+- `.planning/reviews/V1_13_EVIDENCE_INDEX.md`
+- `.planning/v1.12-MILESTONE-AUDIT.md`
+- `.planning/reviews/V1_12_EVIDENCE_INDEX.md`
 - `.planning/v1.6-MILESTONE-AUDIT.md`
 - `.planning/reviews/V1_6_EVIDENCE_INDEX.md`
 - `.planning/v1.5-MILESTONE-AUDIT.md`

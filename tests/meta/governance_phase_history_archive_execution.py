@@ -4,12 +4,12 @@ from __future__ import annotations
 
 import re
 
-from .test_governance_closeout_guards import _assert_promoted_phase_assets
-from .test_governance_guards import (
+from .conftest import (
     _ROOT,
     _assert_current_mode_tracks_phase_lifecycle,
     _assert_state_preserves_phase_17_closeout_history,
 )
+from .test_governance_closeout_guards import _assert_promoted_phase_assets
 
 
 def test_phase_7_5_planning_truth_is_consistent() -> None:

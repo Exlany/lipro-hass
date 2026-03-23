@@ -94,6 +94,13 @@ jobs:
           tests/meta/test_toolchain_truth.py
           tests/meta/test_version_sync.py
 
+      - name: Record governance lane contract
+        if: always()
+        run: |
+          echo "governance checker roots: uv run python scripts/check_architecture_policy.py --check + uv run python scripts/check_file_matrix.py --check" >> "$GITHUB_STEP_SUMMARY"
+          echo "governance pytest suite: tests/meta/test_dependency_guards.py tests/meta/test_public_surface_guards.py tests/meta/test_governance*.py tests/meta/test_toolchain_truth.py tests/meta/test_version_sync.py" >> "$GITHUB_STEP_SUMMARY"
+          echo "local mirrors: pre-push governance hook uses the same pytest suite; ./scripts/lint --full reuses the same focused guard list" >> "$GITHUB_STEP_SUMMARY"
+
   security:
     name: Runtime Dependency Security Gate
     runs-on: ubuntu-latest

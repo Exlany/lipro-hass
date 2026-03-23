@@ -159,6 +159,38 @@ def test_iter_runtime_entries_preserves_live_entry_identity(hass) -> None:
     assert runtime_entry is entry
 
 
+def test_build_runtime_entry_view_materializes_typed_read_model() -> None:
+    from custom_components.lipro.control.runtime_access import build_runtime_entry_view
+
+    protocol = MagicMock()
+    telemetry_service = MagicMock()
+    telemetry_service.build_snapshot.return_value = {"runtime": "ok"}
+    coordinator = MagicMock()
+    coordinator.update_interval = None
+    coordinator.last_update_success = True
+    coordinator.mqtt_service.connected = False
+    coordinator.protocol = protocol
+    coordinator.telemetry_service = telemetry_service
+    coordinator.devices = {"device-1": MagicMock()}
+
+    entry = MagicMock()
+    entry.entry_id = "entry-1"
+    entry.options = {"debug_mode": True}
+    entry.runtime_data = coordinator
+
+    view = build_runtime_entry_view(entry)
+
+    assert view is not None
+    assert view.entry is entry
+    assert view.entry_id == "entry-1"
+    assert view.options == {"debug_mode": True}
+    assert view.coordinator is not None
+    assert view.coordinator.coordinator is coordinator
+    assert view.coordinator.last_update_success is True
+    assert view.coordinator.mqtt_connected is False
+    assert view.coordinator.runtime_telemetry_snapshot == {"runtime": "ok"}
+
+
 def test_iter_runtime_entry_coordinators_preserves_entry_coordinator_pairs(hass) -> None:
     from custom_components.lipro.control.runtime_access import (
         iter_runtime_entry_coordinators,

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from .test_api import (
+from .conftest import (
     PATH_FETCH_BODY_SENSOR_HISTORY,
     PATH_FETCH_DOOR_SENSOR_HISTORY,
     PATH_GET_CITY,

@@ -30,6 +30,7 @@ _ISSUE_CONFIG = _ROOT / ".github" / "ISSUE_TEMPLATE" / "config.yml"
 _V1_2_EVIDENCE_INDEX = _ROOT / ".planning" / "reviews" / "V1_2_EVIDENCE_INDEX.md"
 _V1_5_EVIDENCE_INDEX = _ROOT / ".planning" / "reviews" / "V1_5_EVIDENCE_INDEX.md"
 _V1_6_EVIDENCE_INDEX = _ROOT / ".planning" / "reviews" / "V1_6_EVIDENCE_INDEX.md"
+_V1_13_EVIDENCE_INDEX = _ROOT / ".planning" / "reviews" / "V1_13_EVIDENCE_INDEX.md"
 _GOVERNANCE_REGISTRY = _ROOT / ".planning" / "baseline" / "GOVERNANCE_REGISTRY.json"
 _PHASE_15_PRD = (
     _ROOT
@@ -251,14 +252,15 @@ def test_private_repo_hacs_caveat_is_consistent() -> None:
         _assert_contains_private_repo_hacs_caveat(path)
 
 
-def test_release_runbook_references_v1_6_evidence_index() -> None:
+def test_release_runbook_references_v1_13_evidence_index() -> None:
     """Maintainer runbook should point at the canonical latest closeout evidence index."""
     runbook_text = _RUNBOOK.read_text(encoding="utf-8")
-    evidence_text = _V1_6_EVIDENCE_INDEX.read_text(encoding="utf-8")
+    evidence_text = _V1_13_EVIDENCE_INDEX.read_text(encoding="utf-8")
 
-    assert "V1_6_EVIDENCE_INDEX.md" in runbook_text
+    assert "V1_13_EVIDENCE_INDEX.md" in runbook_text
+    assert "V1_6_EVIDENCE_INDEX.md" not in runbook_text
     assert "## Pull Contract" in evidence_text
-    assert "archive-ready" in evidence_text
+    assert "evidence-ready" in evidence_text
 
 
 def test_runbook_and_contributing_capture_blocking_release_security_gate() -> None:
@@ -308,25 +310,22 @@ def test_preview_lane_docs_keep_stable_contract_honest() -> None:
     assert "deprecationwarning" in runbook_text.lower()
 
 
-def test_release_docs_capture_supply_chain_posture_and_firmware_defer() -> None:
-    """Runbook and closeout index should keep current hardening plus archived defer truth visible."""
+def test_release_docs_capture_supply_chain_posture_and_latest_closeout_contract() -> None:
+    """Runbook keeps release hardening truth while the latest closeout index stays honest about v1.13 scope."""
     runbook_text = _RUNBOOK.read_text(encoding="utf-8")
-    evidence_text = _V1_6_EVIDENCE_INDEX.read_text(encoding="utf-8")
+    evidence_text = _V1_13_EVIDENCE_INDEX.read_text(encoding="utf-8")
 
     for token in ("SHA256SUMS", "provenance", "SBOM", "signing"):
         assert token in runbook_text
+    for token in ("60-SUMMARY.md", "61-SUMMARY.md", "62-SUMMARY.md", "evidence-ready"):
         assert token in evidence_text
     assert "release artifact install smoke" in runbook_text
     assert "CodeQL" in runbook_text
-    assert "code scanning" in evidence_text
     assert "cosign" in runbook_text
     assert "gh attestation verify" in runbook_text
     assert "release identity manifest" in runbook_text
     assert "tagged release security gate" in runbook_text
     assert "firmware_support_manifest.json" in runbook_text
-    assert "firmware manifest metadata" in evidence_text
-    assert "SHA256SUMS" in evidence_text
-    assert "45-VERIFICATION.md" in evidence_text
 
 
 def test_issue_config_routes_docs_to_index() -> None:

@@ -134,6 +134,38 @@
 - `15` 锁定 developer feedback contract、governance truth repair、contributor/install docs sync、support hotspot follow-through 与 testing/tooling gate clarification；不得因修补支持面问题而重开第二条正式主链
 - `16` 锁定 post-audit truth alignment、hotspot decomposition、type/exception tightening、residual endgame、domain/entity/OTA rationalization 与 contributor DX follow-through；不得因为收尾改进而重开第二条正式主链、第二套 protocol/runtime story 或无 gate rename campaign
 
+## Active Milestone (v1.14)
+
+> `v1.14` 从 `v1.13` archived evidence 打开，目标不是再做一轮 broad audit，而是把 fresh audit 仍指出的高杠杆尾债一次性路由成可执行收口：治理真相指针、typed runtime access / HA root slimming、tooling/test hidden-root 关闭，以及 command/share typed follow-through。
+
+### Governance Truth & Pointer Closure
+
+- [ ] **GOV-46**: `PROJECT / STATE / ROADMAP / REQUIREMENTS / MILESTONES / docs index / release runbook` 必须共同承认 `v1.13` 是当前最新 archive-ready closeout pointer，且 active milestone 已切到 `v1.14`。
+- [ ] **GOV-47**: milestone/archive/version guards 必须阻止 `latest closeout pointer`、`MILESTONES` 缺项与 stale next-route 回流；不得再把 `v1.6` 或 `v1.11` 误写成 current pointer。
+
+### Hotspot & Typed Runtime Closure
+
+- [ ] **HOT-16**: `RuntimeAccess` 与 `custom_components/lipro/__init__.py` 必须继续沿现有 formal seams 变薄：runtime 读取改走 typed read-model / explicit port，HA root adapter 只保留 thin entry wiring。
+- [ ] **HOT-17**: `scripts/check_file_matrix_registry.py`、topicized API/meta hidden roots 与相关 tooling truth families 必须继续 inward decomposition，消除 second truth / hidden helper root。
+
+### Verification & Typed Follow-Through
+
+- [ ] **TST-13**: API suites 与 governance/meta suites 的 topicized files 不得继续通过 `test_api.py` / `test_governance_guards.py` 充当隐式主根；共享 fixtures/helpers 必须显式 home 化，failure localization 继续下降。
+- [ ] **TYP-16**: command failure / anonymous-share follow-through 必须继续收紧到 typed summary / typed request-response contract；coordinator 与 share flows 不得继续依赖 stringly / `Any` 漏口决定主逻辑。
+- [ ] **QLT-21**: touched docs / baselines / review ledgers / focused guards / validation commands 必须同步更新并形成 no-growth evidence，证明 `v1.14` 不是 conversation-only cleanup。
+
+## Active Traceability (v1.14)
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| GOV-46 | Phase 63 | Completed |
+| GOV-47 | Phase 63 | Completed |
+| HOT-16 | Phase 63 | Completed |
+| HOT-17 | Phase 63 | Completed |
+| TST-13 | Phase 63 | Completed |
+| TYP-16 | Phase 63 | Completed |
+| QLT-21 | Phase 63 | Completed |
+
 ## Future Requirements
 
 - **OBS-05**: 如需要外部监控对接，再评估 Prometheus / OpenTelemetry sink

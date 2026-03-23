@@ -1,9 +1,29 @@
 # Project: Lipro-HASS North Star Evolution
 
-**Status:** Shipped and archived — `v1.6` 仍是最新已发货真源；`v1.12` 与 `v1.13` 已于 `2026-03-22` 完成 archive-ready closeout；`v1.10` / `v1.11` 继续作为 refreshed route 的历史 seed 保留。
-**Goal:** 以 `v1.6` 归档真相为最新已发货基线；当前无 active milestone，下一轮路线必须建立在 `v1.13` archived evidence、`v1.12` localized verification archive 与 `v1.11` refreshed audit baseline 之上，不回流 execution-trace 或 conversation-only 结论。
-**Default next step:** `$gsd-new-milestone`
+**Status:** Active milestone `v1.14` 已开启；当前最新 archive-ready closeout pointer 已固定为 `v1.13`；`v1.6` 仅保留为最近 shipped release archive baseline，`v1.11` 仅保留为 refreshed audit 历史 seed baseline。
+**Goal:** 以 `v1.13` archived evidence 为起点，完成治理真相指针、typed runtime access、HA root slimming、tooling/test hidden-root 收口与 typed follow-through，不回流第二 formal root、conversation-only 结论或 archive drift。
+**Default next step:** `$gsd-complete-milestone`
 
+## Active Milestone (v1.14)
+
+**Name:** `v1.14 Governance Truth Realignment, Typed Runtime Access & Final Hidden-Root Closure`
+
+**Why now:** `v1.13` 已把 tooling truth、large-but-correct formal homes 与 naming/discoverability 收口到 archive-ready，但 fresh audit 仍暴露出几类高杠杆尾债：`MILESTONES` / latest closeout pointer / archive route truth 仍有漂移；`RuntimeAccess` 与 `__init__.py` 仍带 typed-read-model 与 thin-adapter 不够彻底的旧味；`file-matrix` / topicized API-meta suites 仍残留 hidden-root；command failure 与 anonymous-share 仍有 stringly / Any 漏口。
+
+**North-star fit:** `v1.14` 继续沿单一正式主链推进：
+
+- 先修治理真相指针与 anti-drift guards，再做热点 inward split
+- `RuntimeAccess` 只允许收口到 typed read-model，不得扩张成第二 runtime root
+- `__init__.py` 只允许继续变薄，把 wiring/context 继续下沉到 `control/` formal homes
+- tooling / tests 的目标是消灭 hidden-root 与 second truth，不是再造 helper folklore
+- command failure / anonymous-share 只做 inward typed tightening，不引入新的 public surface 或 compat shell
+
+**Phase range:** `Phase 63`
+**Current status:** `5 plans / 4 waves complete (2026-03-23)`
+**Starting baseline:** `.planning/v1.13-MILESTONE-AUDIT.md`, `.planning/reviews/V1_13_EVIDENCE_INDEX.md`, `.planning/milestones/v1.13-ROADMAP.md`, `.planning/milestones/v1.13-REQUIREMENTS.md`, `.planning/phases/58-repository-audit-refresh-and-next-wave-routing/58-REMEDIATION-ROADMAP.md`
+**Requirements basket:** `GOV-46`, `GOV-47`, `HOT-16`, `HOT-17`, `TST-13`, `TYP-16`, `QLT-21`
+**Default next command:** `$gsd-complete-milestone`
+**Phase follow-up command:** `$gsd-plan-phase 63`
 
 ## Archived Milestone (v1.6)
 

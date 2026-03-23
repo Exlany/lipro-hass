@@ -1,11 +1,9 @@
 """Worker client for anonymous sharing uploads."""
-
 from __future__ import annotations
 
 from collections.abc import Awaitable, Callable
 import logging
 import time
-from typing import Any
 
 import aiohttp
 
@@ -19,9 +17,14 @@ from .share_client_flows import (
     safe_read_json as _safe_read_json_flow,
     submit_share_payload_with_outcome as _submit_share_payload_with_outcome_flow,
 )
+from .share_client_support import (
+    ResponseHeadersLike,
+    SharePayload,
+    WorkerResponsePayload,
+    extract_token_payload,
+)
 
 _LOGGER = logging.getLogger(__package__ or __name__)
-
 
 class ShareWorkerClient:
     """HTTP client for submitting anonymous share payloads to the Worker."""
@@ -45,11 +48,11 @@ class ShareWorkerClient:
         return headers
 
     @staticmethod
-    def parse_retry_after(headers: Any) -> float | None:
+    def parse_retry_after(headers: ResponseHeadersLike) -> float | None:
         """Parse Retry-After seconds (best-effort) via shared HTTP helper."""
         try:
-            seconds = parse_http_retry_after(headers)
-        except AttributeError, TypeError, ValueError:
+            seconds = parse_http_retry_after(dict(headers))
+        except (AttributeError, TypeError, ValueError):
             return None
         if seconds is None:
             return None
@@ -61,33 +64,25 @@ class ShareWorkerClient:
         self.token_expires_at = 0
         self.token_refresh_after = 0
 
-    def apply_token_payload(self, payload: dict[str, Any]) -> bool:
+    def apply_token_payload(self, payload: WorkerResponsePayload) -> bool:
         """Update local token state from response payload."""
-        token = payload.get("install_token")
-        if not isinstance(token, str) or not token:
+        token_payload = extract_token_payload(payload)
+        if token_payload is None:
             return False
-        self.install_token = token
-        self.token_expires_at = int(payload.get("token_expires_at") or 0)
-        self.token_refresh_after = int(payload.get("token_refresh_after") or 0)
+        self.install_token = token_payload["install_token"]
+        self.token_expires_at = token_payload.get("token_expires_at", 0)
+        self.token_refresh_after = token_payload.get("token_refresh_after", 0)
         return True
 
-    async def safe_read_json(
-        self,
-        response: aiohttp.ClientResponse,
-    ) -> dict[str, Any] | None:
+    async def safe_read_json(self, response: aiohttp.ClientResponse) -> WorkerResponsePayload | None:
         """Best-effort JSON parsing for Worker responses."""
         return await _safe_read_json_flow(response)
 
-    async def _safe_read_json(
-        self,
-        response: aiohttp.ClientResponse,
-    ) -> dict[str, Any] | None:
+    async def _safe_read_json(self, response: aiohttp.ClientResponse) -> WorkerResponsePayload | None:
         """Backward-compatible alias for the formal JSON reader method."""
         return await self.safe_read_json(response)
 
-    async def refresh_install_token_with_outcome(
-        self, session: aiohttp.ClientSession
-    ) -> OperationOutcome:
+    async def refresh_install_token_with_outcome(self, session: aiohttp.ClientSession) -> OperationOutcome:
         """Refresh install token via `/api/token/refresh` with typed outcome."""
         return await _refresh_install_token_with_outcome_flow(
             self,
@@ -103,7 +98,7 @@ class ShareWorkerClient:
     async def submit_share_payload_with_outcome(
         self,
         session: aiohttp.ClientSession,
-        report: dict[str, Any],
+        report: SharePayload,
         *,
         label: str,
         ensure_loaded: Callable[[], Awaitable[None]],
@@ -123,7 +118,7 @@ class ShareWorkerClient:
     async def submit_share_payload(
         self,
         session: aiohttp.ClientSession,
-        report: dict[str, Any],
+        report: SharePayload,
         *,
         label: str,
         ensure_loaded: Callable[[], Awaitable[None]],

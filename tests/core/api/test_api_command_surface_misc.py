@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from .test_api import (
+from .conftest import (
     AsyncMock,
     LiproApiError,
     LiproAuthError,

@@ -7,7 +7,7 @@ type safety across the coordinator components.
 from __future__ import annotations
 
 from collections.abc import Awaitable, Callable
-from typing import Any, TypedDict
+from typing import Any, Literal, TypedDict
 
 # Property value types
 type PropertyScalar = int | float | str | bool | None
@@ -38,7 +38,29 @@ between coordinator runtimes and the lower-level command helpers.
 """
 
 
+type CommandFailureCategory = Literal["auth", "protocol", "runtime", "unexpected"]
+"""Normalized command-failure category exposed to runtime/control consumers."""
+
+
+type CommandReauthReason = Literal["auth_expired", "auth_error"]
+"""Canonical reauthentication reasons surfaced by command arbitration."""
+
+
+class CommandFailureSummary(TypedDict, total=False):
+    """Normalized command failure details exposed to coordinator consumers."""
+
+    reason: str
+    code: int | str
+    route: str
+    device_id: str
+    message: str
+    error_type: str
+    failure_category: CommandFailureCategory
+    reauth_reason: CommandReauthReason
+
+
 # MQTT types
+
 
 class MqttCredentials(TypedDict):
     """MQTT connection credentials."""
@@ -97,9 +119,7 @@ class ApiSuccessResponse(TypedDict):
 type DeviceUpdateCallback = Callable[[], None]
 """Callback for device state updates."""
 
-type PropertyUpdateCallback = Callable[
-    [str, PropertyDict], Awaitable[None] | None
-]
+type PropertyUpdateCallback = Callable[[str, PropertyDict], Awaitable[None] | None]
 """Callback for property updates with device_id and properties."""
 
 type ReauthCallback = Callable[[str], Awaitable[None]]
@@ -128,7 +148,7 @@ class RuntimeMetrics(TypedDict, total=False):
     # CommandRuntime metrics
     command_count: int
     success_rate: float
-    last_failure: CommandTrace | None
+    last_failure: CommandFailureSummary | None
 
     # StateRuntime metrics
     device_count: int
@@ -191,7 +211,10 @@ class RefreshStrategy(TypedDict):
 __all__ = [
     "ApiErrorResponse",
     "ApiSuccessResponse",
+    "CommandFailureCategory",
+    "CommandFailureSummary",
     "CommandPayload",
+    "CommandReauthReason",
     "CommandTrace",
     "DeviceApiData",
     "DeviceFilter",

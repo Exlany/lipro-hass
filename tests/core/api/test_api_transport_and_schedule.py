@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from .test_api import (
+from .conftest import (
     PATH_BLE_SCHEDULE_ADD,
     PATH_BLE_SCHEDULE_DELETE,
     PATH_BLE_SCHEDULE_GET,

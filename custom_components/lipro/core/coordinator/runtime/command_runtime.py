@@ -8,6 +8,8 @@ from typing import TYPE_CHECKING, Any
 
 from ...api import LiproApiError, LiproAuthError, LiproRefreshTokenExpiredError
 from ...command.result import (
+    COMMAND_FAILURE_REASON_COMMAND_RESULT_FAILED,
+    COMMAND_FAILURE_REASON_COMMAND_RESULT_UNCONFIRMED,
     apply_missing_msg_sn_failure,
     apply_push_failure,
     apply_successful_command_trace,
@@ -16,7 +18,12 @@ from ...command.result import (
     is_command_push_failed,
 )
 from ...command.trace import build_command_trace, update_trace_with_exception
-from ..types import CommandTrace, ReauthCallback
+from ..types import (
+    CommandFailureSummary,
+    CommandReauthReason,
+    CommandTrace,
+    ReauthCallback,
+)
 
 if TYPE_CHECKING:
     from ...device import LiproDevice
@@ -29,6 +36,46 @@ if TYPE_CHECKING:
 
 _LOGGER = logging.getLogger(__name__)
 _MAX_TRACES = 100
+
+
+def _coerce_error_type(trace: CommandTrace) -> str | None:
+    value = trace.get("error")
+    return value if isinstance(value, str) and value else None
+
+
+def _copy_summary(
+    summary: CommandFailureSummary | None,
+) -> CommandFailureSummary | None:
+    return dict(summary) if summary else None
+
+
+def _build_failure_summary(
+    *,
+    failure: dict[str, Any],
+    error_type: str | None,
+    reauth_reason: CommandReauthReason | None = None,
+) -> CommandFailureSummary:
+    summary: CommandFailureSummary = {}
+
+    for key in ("reason", "route", "device_id", "message"):
+        value = failure.get(key)
+        if isinstance(value, str) and value:
+            summary[key] = value
+
+    code = failure.get("code")
+    if isinstance(code, (int, str)) and not isinstance(code, bool):
+        summary["code"] = code
+
+    if error_type is not None:
+        summary["error_type"] = error_type
+
+    if reauth_reason is not None:
+        summary["reauth_reason"] = reauth_reason
+        summary["failure_category"] = "auth"
+    elif error_type is not None or summary:
+        summary["failure_category"] = "protocol"
+
+    return summary
 
 
 class CommandRuntime:
@@ -53,11 +100,17 @@ class CommandRuntime:
         self._debug_mode = debug_mode
         self._traces: deque[CommandTrace] = deque(maxlen=_MAX_TRACES)
         self._last_failure: CommandTrace | None = None
+        self._last_failure_summary: CommandFailureSummary | None = None
 
     @property
     def last_command_failure(self) -> CommandTrace | None:
-        """Get latest command failure."""
+        """Get latest command failure trace."""
         return dict(self._last_failure) if self._last_failure else None
+
+    @property
+    def last_command_failure_summary(self) -> CommandFailureSummary | None:
+        """Get latest normalized command failure summary."""
+        return _copy_summary(self._last_failure_summary)
 
     def get_recent_traces(self, *, limit: int | None = None) -> list[CommandTrace]:
         """Return recent command traces in newest-first order."""
@@ -68,16 +121,20 @@ class CommandRuntime:
 
     def get_runtime_metrics(self) -> dict[str, Any]:
         """Return lightweight command-runtime telemetry."""
-        confirmation_metrics_getter = getattr(self._confirmation, "get_runtime_metrics", None)
+        confirmation_metrics_getter = getattr(
+            self._confirmation, "get_runtime_metrics", None
+        )
         confirmation_metrics = (
-            confirmation_metrics_getter() if callable(confirmation_metrics_getter) else {}
+            confirmation_metrics_getter()
+            if callable(confirmation_metrics_getter)
+            else {}
         )
         if not isinstance(confirmation_metrics, dict):
             confirmation_metrics = {}
         return {
             "debug_enabled": self._debug_mode,
             "trace_count": len(self._traces),
-            "last_failure": self.last_command_failure,
+            "last_failure": self.last_command_failure_summary,
             "confirmation": confirmation_metrics,
         }
 
@@ -85,6 +142,25 @@ class CommandRuntime:
         """Record trace if debug enabled."""
         if self._debug_mode:
             self._traces.append(trace)
+
+    def _record_failure(
+        self,
+        *,
+        trace: CommandTrace,
+        failure: dict[str, Any],
+        error_type: str | None,
+        reauth_reason: CommandReauthReason | None = None,
+    ) -> CommandFailureSummary:
+        """Persist the latest failure trace plus a normalized consumer summary."""
+        summary = _build_failure_summary(
+            failure=failure,
+            error_type=error_type,
+            reauth_reason=reauth_reason,
+        )
+        self._last_failure = trace
+        self._last_failure_summary = summary
+        self._record_trace(trace)
+        return dict(summary)
 
     def filter_pending_state_properties(
         self,
@@ -163,7 +239,7 @@ class CommandRuntime:
             )
 
         if is_command_push_failed(result):
-            apply_push_failure(
+            failure = apply_push_failure(
                 trace=trace,
                 route=route,
                 command=command,
@@ -171,13 +247,16 @@ class CommandRuntime:
                 device_serial=device.serial,
                 logger=_LOGGER,
             )
-            self._last_failure = trace
-            self._record_trace(trace)
+            self._record_failure(
+                trace=trace,
+                failure=failure,
+                error_type=_coerce_error_type(trace),
+            )
             return False, route, trace
 
         msg_sn = extract_msg_sn(result)
         if not msg_sn:
-            apply_missing_msg_sn_failure(
+            failure = apply_missing_msg_sn_failure(
                 trace=trace,
                 route=route,
                 command=command,
@@ -185,16 +264,20 @@ class CommandRuntime:
                 device_serial=device.serial,
                 logger=_LOGGER,
             )
-            self._last_failure = trace
-            self._record_trace(trace)
+            self._record_failure(
+                trace=trace,
+                failure=failure,
+                error_type=_coerce_error_type(trace),
+            )
             return False, route, trace
 
-        if not await self._verify_delivery(
+        verified, _failure_summary = await self._verify_delivery(
             trace=trace,
             route=route,
             msg_sn=msg_sn,
             device=device,
-        ):
+        )
+        if not verified:
             return False, route, trace
 
         self._finalize_success(
@@ -213,13 +296,46 @@ class CommandRuntime:
         route: str,
         msg_sn: str,
         device: LiproDevice,
-    ) -> bool:
-        """Verify command delivery via polling."""
+    ) -> tuple[bool, CommandFailureSummary | None]:
+        """Verify command delivery via polling and normalize non-success outcomes."""
         retry_delays = self._retry.build_retry_delays()
-        verified, _ = await self._sender.verify_command_delivery(
-            msg_sn=msg_sn, retry_delays=retry_delays, trace=trace, device=device
+        verified, command_result_state = await self._sender.verify_command_delivery(
+            msg_sn=msg_sn,
+            retry_delays=retry_delays,
+            trace=trace,
+            device=device,
         )
-        return verified
+        if verified:
+            return True, None
+
+        trace["route"] = route
+        trace["success"] = False
+        if command_result_state == "failed":
+            trace["error"] = "CommandResultRejected"
+            trace["error_message"] = COMMAND_FAILURE_REASON_COMMAND_RESULT_FAILED
+            return False, self._record_failure(
+                trace=trace,
+                failure={
+                    "reason": COMMAND_FAILURE_REASON_COMMAND_RESULT_FAILED,
+                    "code": COMMAND_FAILURE_REASON_COMMAND_RESULT_FAILED,
+                    "route": route,
+                    "device_id": device.serial,
+                },
+                error_type="CommandResultRejected",
+            )
+
+        trace["error"] = "CommandResultUnconfirmed"
+        trace["error_message"] = COMMAND_FAILURE_REASON_COMMAND_RESULT_UNCONFIRMED
+        return False, self._record_failure(
+            trace=trace,
+            failure={
+                "reason": COMMAND_FAILURE_REASON_COMMAND_RESULT_UNCONFIRMED,
+                "code": COMMAND_FAILURE_REASON_COMMAND_RESULT_UNCONFIRMED,
+                "route": route,
+                "device_id": device.serial,
+            },
+            error_type="CommandResultUnconfirmed",
+        )
 
     def _finalize_success(
         self,
@@ -251,6 +367,7 @@ class CommandRuntime:
         )
         self._record_trace(trace)
         self._last_failure = None
+        self._last_failure_summary = None
 
     async def _handle_api_error(
         self,
@@ -261,21 +378,27 @@ class CommandRuntime:
         err: LiproApiError,
     ) -> bool:
         """Handle API errors."""
-        build_command_api_error_failure(
+        failure = build_command_api_error_failure(
             trace=trace,
             route=route,
             device_serial=device.serial,
             err=err,
             update_trace_with_exception=update_trace_with_exception,
         )
-        self._last_failure = trace
-        self._record_trace(trace)
-        if isinstance(err, LiproRefreshTokenExpiredError | LiproAuthError):
-            await self._trigger_reauth(
-                "auth_expired"
-                if isinstance(err, LiproRefreshTokenExpiredError)
-                else "auth_error"
-            )
+        reauth_reason: CommandReauthReason | None = None
+        if isinstance(err, LiproRefreshTokenExpiredError):
+            reauth_reason = "auth_expired"
+        elif isinstance(err, LiproAuthError):
+            reauth_reason = "auth_error"
+
+        self._record_failure(
+            trace=trace,
+            failure=failure,
+            error_type=type(err).__name__,
+            reauth_reason=reauth_reason,
+        )
+        if reauth_reason is not None:
+            await self._trigger_reauth(reauth_reason)
         return False
 
 

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import re
 
-from .test_governance_guards import (
+from .conftest import (
     _AGENTS,
     _CI_WORKFLOW,
     _CODEOWNERS,
@@ -360,6 +360,25 @@ def test_troubleshooting_and_runbook_navigation_is_consistent() -> None:
         assert "docs/TROUBLESHOOTING.md" in path.read_text(encoding="utf-8")
     for path in runbook_targets:
         assert "docs/MAINTAINER_RELEASE_RUNBOOK.md" in path.read_text(encoding="utf-8")
+
+
+def test_latest_closeout_pointer_and_active_route_stay_current() -> None:
+    project_text = (_ROOT / ".planning" / "PROJECT.md").read_text(encoding="utf-8")
+    state_text = (_ROOT / ".planning" / "STATE.md").read_text(encoding="utf-8")
+    milestones_text = (_ROOT / ".planning" / "MILESTONES.md").read_text(encoding="utf-8")
+    docs_text = _DOCS_README.read_text(encoding="utf-8")
+    runbook_text = _RUNBOOK.read_text(encoding="utf-8")
+
+    assert ".planning/reviews/V1_13_EVIDENCE_INDEX.md" in docs_text
+    assert "v1.14 / Phase 63" in docs_text
+    assert "V1_13_EVIDENCE_INDEX.md" in runbook_text
+    assert "V1_6_EVIDENCE_INDEX.md" not in runbook_text
+    assert "$gsd-plan-phase 63" in project_text
+    assert "$gsd-plan-phase 63" in state_text
+    assert "## v1.14 Governance Truth Realignment, Typed Runtime Access & Final Hidden-Root Closure" in milestones_text
+    assert "only active milestone route = `v1.14 / Phase 63`" in milestones_text
+    assert "v1.11" not in docs_text
+    assert "v1.11" not in runbook_text
 
 
 def test_security_disclosure_path_is_present() -> None:

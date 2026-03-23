@@ -10,6 +10,7 @@ from scripts.check_file_matrix_markdown import (
     extract_reported_total,
     parse_file_matrix_paths,
 )
+from scripts.check_file_matrix_registry import OVERRIDES, iter_override_truth_families
 
 FILE_MATRIX_PATH = Path(".planning/reviews/FILE_MATRIX.md")
 
@@ -224,6 +225,62 @@ def validate_verification_matrix_paths(root: Path) -> list[str]:
 
 
 
+def validate_registry_truth_families() -> list[str]:
+    """Validate that registry overrides stay decomposed into focused truth families."""
+    errors: list[str] = []
+    families = iter_override_truth_families()
+
+    if len(families) < 6:
+        errors.append(
+            "check_file_matrix_registry.py override truth families collapsed below maintainability floor"
+        )
+
+    family_keys: set[str] = set()
+    duplicate_family_keys: set[str] = set()
+    family_paths: set[str] = set()
+    duplicate_paths: set[str] = set()
+    tooling_family_paths: set[str] | None = None
+
+    for family in families:
+        family_key = f"{family.owner_phase}|{family.area}|{family.fate}"
+        if family_key in family_keys:
+            duplicate_family_keys.add(family_key)
+        family_keys.add(family_key)
+
+        current_paths = {path for path, _ in family.rows}
+        overlap = family_paths & current_paths
+        duplicate_paths.update(overlap)
+        family_paths.update(current_paths)
+
+        if family.area == "Assurance" and family.owner_phase == "Phase 60":
+            tooling_family_paths = current_paths
+
+    if duplicate_family_keys:
+        joined = ", ".join(sorted(duplicate_family_keys))
+        errors.append(f"check_file_matrix_registry.py has duplicate truth-family keys: {joined}")
+
+    if duplicate_paths:
+        joined = ", ".join(sorted(duplicate_paths))
+        errors.append(f"check_file_matrix_registry.py duplicates override paths across families: {joined}")
+
+    if len(family_paths) != len(OVERRIDES):
+        errors.append(
+            "check_file_matrix_registry.py truth-family path total no longer matches OVERRIDES"
+        )
+
+    required_tooling_paths = {
+        "scripts/check_file_matrix_registry.py",
+        "tests/meta/toolchain_truth_ci_contract.py",
+    }
+    if tooling_family_paths is None or not required_tooling_paths.issubset(tooling_family_paths):
+        errors.append(
+            "check_file_matrix_registry.py lost the Phase 60 tooling truth family contract"
+        )
+
+    return errors
+
+
+
 def validate_codebase_map_policy(root: Path) -> list[str]:
     """Validate that local codebase maps stay explicitly derived and non-authoritative."""
     errors: list[str] = []
@@ -293,5 +350,6 @@ def run_checks(root: Path) -> list[str]:
     errors.extend(validate_doc_authority(root))
     errors.extend(validate_active_source_paths(root))
     errors.extend(validate_verification_matrix_paths(root))
+    errors.extend(validate_registry_truth_families())
     errors.extend(validate_codebase_map_policy(root))
     return errors

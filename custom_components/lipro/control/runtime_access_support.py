@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 import inspect
-from typing import TYPE_CHECKING, Protocol, cast, runtime_checkable
+from typing import TYPE_CHECKING, cast
 from unittest.mock import DEFAULT
 
 from homeassistant.core import HomeAssistant
@@ -14,12 +14,19 @@ from ..const.config import CONF_DEBUG_MODE, DEFAULT_DEBUG_MODE
 from ..core.telemetry import RuntimeTelemetryExporter
 from ..core.telemetry.ports import ProtocolTelemetrySource, RuntimeTelemetrySource
 from ..runtime_types import LiproCoordinator, ProtocolTelemetryFacadeLike
+from .runtime_access_types import (
+    RuntimeCoordinatorView,
+    RuntimeEntryPort,
+    RuntimeEntryView,
+)
 
 if TYPE_CHECKING:
     from ..core.device import LiproDevice
 
 
 _MISSING = object()
+
+type RuntimeEntryCoordinator = tuple[RuntimeEntryPort, LiproCoordinator]
 
 
 def _get_static_member(obj: object, name: str) -> object:
@@ -30,6 +37,7 @@ def _get_static_member(obj: object, name: str) -> object:
         return _MISSING
 
 
+
 def _get_instance_dict(obj: object) -> dict[str, object] | None:
     """Return the raw instance dict without invoking dynamic attribute fallback."""
     try:
@@ -37,6 +45,7 @@ def _get_instance_dict(obj: object) -> dict[str, object] | None:
     except AttributeError:
         return None
     return instance_dict if isinstance(instance_dict, dict) else None
+
 
 
 def _is_explicit_materialized_mock(member: object, *, _seen: set[int] | None = None) -> bool:
@@ -52,7 +61,9 @@ def _is_explicit_materialized_mock(member: object, *, _seen: set[int] | None = N
     if instance_dict.get("_mock_wraps") is not None:
         return True
     if any(
-        key != "method_calls" and not key.startswith("_mock_") and not key.startswith("_spec_")
+        key != "method_calls"
+        and not key.startswith("_mock_")
+        and not key.startswith("_spec_")
         for key in instance_dict
     ):
         return True
@@ -72,6 +83,7 @@ def _is_explicit_materialized_mock(member: object, *, _seen: set[int] | None = N
     )
 
 
+
 def _get_materialized_mock_child(obj: object, name: str) -> object:
     """Return one configured materialized mock child without generic getattr fallback."""
     instance_dict = _get_instance_dict(obj)
@@ -86,6 +98,7 @@ def _get_materialized_mock_child(obj: object, name: str) -> object:
     if child is _MISSING or not _is_explicit_materialized_mock(child):
         return _MISSING
     return child
+
 
 
 def _get_explicit_member(obj: object | None, name: str) -> object | None:
@@ -103,6 +116,7 @@ def _get_explicit_member(obj: object | None, name: str) -> object | None:
         except AttributeError:
             return None
     return cast(object | None, member)
+
 
 
 def _has_explicit_runtime_member(obj: object | None, name: str) -> bool:
@@ -134,43 +148,59 @@ class _ProtocolFacadeTelemetrySource(ProtocolTelemetrySource):
 class _CoordinatorTelemetrySource(RuntimeTelemetrySource):
     """Adapter exposing runtime telemetry through an explicit source port."""
 
-    def __init__(self, coordinator: LiproCoordinator, *, entry_id: str | None) -> None:
+    def __init__(self, coordinator: RuntimeCoordinatorView, *, entry_id: str | None) -> None:
         self._coordinator = coordinator
         self._entry_id = entry_id
 
     def get_runtime_telemetry_snapshot(self) -> Mapping[str, object]:
-        telemetry_service = _get_explicit_member(self._coordinator, "telemetry_service")
-        build_snapshot = _get_explicit_member(telemetry_service, "build_snapshot")
-        if callable(build_snapshot):
-            snapshot = build_snapshot()
-            if isinstance(snapshot, Mapping):
-                payload = dict(snapshot)
-                if self._entry_id:
-                    return {"entry_id": self._entry_id, **payload}
-                return payload
-        return {"entry_id": self._entry_id} if self._entry_id else {}
+        payload = dict(self._coordinator.runtime_telemetry_snapshot)
+        if self._entry_id:
+            return {"entry_id": self._entry_id, **payload}
+        return payload
 
 
-class RuntimeEntryLike(Protocol):
-    """Minimal config-entry surface consumed by control runtime access."""
 
-    entry_id: str
-    runtime_data: LiproCoordinator | None
-    options: Mapping[str, object]
-
-
-type RuntimeEntryCoordinator = tuple[RuntimeEntryLike, LiproCoordinator]
-
-
-@runtime_checkable
-class MqttServiceLike(Protocol):
-    """Minimal MQTT service surface needed for snapshots."""
-
-    connected: bool
+def _build_runtime_telemetry_snapshot(coordinator: LiproCoordinator) -> Mapping[str, object]:
+    """Return a normalized runtime telemetry snapshot for one coordinator."""
+    telemetry_service = _get_explicit_member(coordinator, "telemetry_service")
+    build_snapshot = _get_explicit_member(telemetry_service, "build_snapshot")
+    if callable(build_snapshot):
+        snapshot = build_snapshot()
+        if isinstance(snapshot, Mapping):
+            return dict(snapshot)
+    return {}
 
 
-def _coerce_runtime_entry_view(entry: object) -> RuntimeEntryLike | None:
-    """Return the live config entry when it exposes the formal runtime shape."""
+
+def _build_runtime_coordinator_view(
+    coordinator: LiproCoordinator,
+) -> RuntimeCoordinatorView:
+    """Build the explicit runtime read-model for one coordinator."""
+    update_interval = _get_explicit_member(coordinator, "update_interval")
+    last_update_success = _get_explicit_member(coordinator, "last_update_success")
+    mqtt_service = _get_explicit_member(coordinator, "mqtt_service")
+    mqtt_connected = _get_explicit_member(mqtt_service, "connected")
+    protocol = _get_explicit_member(coordinator, "protocol")
+    devices = _get_explicit_member(coordinator, "devices")
+
+    return RuntimeCoordinatorView(
+        coordinator=coordinator,
+        update_interval=None if update_interval is None else str(update_interval),
+        last_update_success=(
+            last_update_success if isinstance(last_update_success, bool) else False
+        ),
+        mqtt_connected=mqtt_connected if isinstance(mqtt_connected, bool) else None,
+        protocol=(
+            cast(ProtocolTelemetryFacadeLike, protocol) if protocol is not None else None
+        ),
+        runtime_telemetry_snapshot=_build_runtime_telemetry_snapshot(coordinator),
+        devices=devices if isinstance(devices, Mapping) else None,
+    )
+
+
+
+def _coerce_runtime_entry_port(entry: object) -> RuntimeEntryPort | None:
+    """Return the live config entry when it exposes the runtime-entry port."""
     if not _has_explicit_runtime_member(entry, "runtime_data"):
         return None
 
@@ -179,60 +209,95 @@ def _coerce_runtime_entry_view(entry: object) -> RuntimeEntryLike | None:
     if not isinstance(entry_id, str) or not isinstance(options, Mapping):
         return None
 
-    return cast(RuntimeEntryLike, entry)
+    return cast(RuntimeEntryPort, entry)
 
 
-def _build_entry_telemetry_exporter(
-    entry: RuntimeEntryLike | object,
-) -> RuntimeTelemetryExporter | None:
-    """Build one explicit telemetry exporter for a runtime entry when available."""
-    runtime_entry = _coerce_runtime_entry_view(entry)
+
+def build_runtime_entry_view(
+    entry: RuntimeEntryPort | object,
+) -> RuntimeEntryView | None:
+    """Build the typed runtime-entry read-model for control-plane consumers."""
+    runtime_entry = _coerce_runtime_entry_port(entry)
     if runtime_entry is None:
         return None
 
-    coordinator = get_entry_runtime_coordinator(runtime_entry)
-    if coordinator is None:
+    coordinator = runtime_entry.runtime_data
+    return RuntimeEntryView(
+        entry=runtime_entry,
+        entry_id=runtime_entry.entry_id,
+        options=runtime_entry.options,
+        coordinator=(
+            _build_runtime_coordinator_view(coordinator)
+            if coordinator is not None
+            else None
+        ),
+    )
+
+
+
+def _build_entry_telemetry_exporter(
+    entry: RuntimeEntryPort | object,
+) -> RuntimeTelemetryExporter | None:
+    """Build one explicit telemetry exporter for a runtime entry when available."""
+    runtime_entry = build_runtime_entry_view(entry)
+    if runtime_entry is None or runtime_entry.coordinator is None:
         return None
 
-    protocol = _get_explicit_member(coordinator, "protocol")
+    protocol = runtime_entry.coordinator.protocol
     if protocol is None:
         return None
 
     return RuntimeTelemetryExporter(
-        protocol_source=_ProtocolFacadeTelemetrySource(
-            cast(ProtocolTelemetryFacadeLike, protocol)
-        ),
+        protocol_source=_ProtocolFacadeTelemetrySource(protocol),
         runtime_source=_CoordinatorTelemetrySource(
-            coordinator,
+            runtime_entry.coordinator,
             entry_id=runtime_entry.entry_id or None,
         ),
     )
 
 
+
 def get_entry_runtime_coordinator(
-    entry: RuntimeEntryLike | object,
+    entry: RuntimeEntryPort | object,
 ) -> LiproCoordinator | None:
     """Return the coordinator attached to a config entry, if loaded."""
-    runtime_entry = _coerce_runtime_entry_view(entry)
-    if runtime_entry is None:
+    runtime_entry = build_runtime_entry_view(entry)
+    if runtime_entry is None or runtime_entry.coordinator is None:
         return None
-    return runtime_entry.runtime_data
+    return runtime_entry.coordinator.coordinator
+
 
 
 def iter_runtime_entries(
     hass: HomeAssistant,
     *,
     entry_id: str | None = None,
-) -> list[RuntimeEntryLike]:
+) -> list[RuntimeEntryPort]:
     """Return live Lipro config entries, optionally scoped to one entry id."""
-    entries: list[RuntimeEntryLike] = []
+    entries: list[RuntimeEntryPort] = []
     for entry in hass.config_entries.async_entries(DOMAIN):
-        runtime_entry = _coerce_runtime_entry_view(entry)
+        runtime_entry = _coerce_runtime_entry_port(entry)
         if runtime_entry is None:
             continue
         if entry_id is None or runtime_entry.entry_id == entry_id:
             entries.append(runtime_entry)
     return entries
+
+
+
+def iter_runtime_entry_views(
+    hass: HomeAssistant,
+    *,
+    entry_id: str | None = None,
+) -> list[RuntimeEntryView]:
+    """Return typed runtime-entry read-models for active Lipro entries."""
+    views: list[RuntimeEntryView] = []
+    for entry in iter_runtime_entries(hass, entry_id=entry_id):
+        view = build_runtime_entry_view(entry)
+        if view is not None:
+            views.append(view)
+    return views
+
 
 
 def iter_runtime_coordinators(
@@ -241,12 +306,12 @@ def iter_runtime_coordinators(
     entry_id: str | None = None,
 ) -> list[LiproCoordinator]:
     """Return loaded runtime coordinators for the Lipro domain."""
-    coordinators: list[LiproCoordinator] = []
-    for entry in iter_runtime_entries(hass, entry_id=entry_id):
-        coordinator = get_entry_runtime_coordinator(entry)
-        if coordinator is not None:
-            coordinators.append(coordinator)
-    return coordinators
+    return [
+        view.coordinator.coordinator
+        for view in iter_runtime_entry_views(hass, entry_id=entry_id)
+        if view.coordinator is not None
+    ]
+
 
 
 def iter_runtime_entry_coordinators(
@@ -256,11 +321,11 @@ def iter_runtime_entry_coordinators(
 ) -> list[RuntimeEntryCoordinator]:
     """Return loaded runtime entry/coordinator pairs for the Lipro domain."""
     pairs: list[RuntimeEntryCoordinator] = []
-    for entry in iter_runtime_entries(hass, entry_id=entry_id):
-        coordinator = get_entry_runtime_coordinator(entry)
-        if coordinator is not None:
-            pairs.append((entry, coordinator))
+    for view in iter_runtime_entry_views(hass, entry_id=entry_id):
+        if view.coordinator is not None:
+            pairs.append((view.entry, view.coordinator.coordinator))
     return pairs
+
 
 
 def _call_runtime_device_getter(
@@ -278,12 +343,13 @@ def _call_runtime_device_getter(
     return device if device is not None else None
 
 
+
 def get_runtime_device_mapping(
     coordinator: LiproCoordinator,
 ) -> Mapping[str, LiproDevice]:
     """Return a safe device mapping view for one runtime coordinator."""
-    devices = _get_explicit_member(coordinator, "devices")
-    return devices if isinstance(devices, Mapping) else {}
+    return _build_runtime_coordinator_view(coordinator).devices or {}
+
 
 
 def find_runtime_device(
@@ -302,6 +368,7 @@ def find_runtime_device(
     return get_runtime_device_mapping(coordinator).get(device_id)
 
 
+
 def find_runtime_device_and_coordinator(
     hass: HomeAssistant,
     *,
@@ -316,36 +383,41 @@ def find_runtime_device_and_coordinator(
     return None
 
 
+
 def find_runtime_entry_for_coordinator(
     hass: HomeAssistant,
     coordinator: LiproCoordinator,
-) -> RuntimeEntryLike | None:
+) -> RuntimeEntryPort | None:
     """Return the config entry that owns one active coordinator."""
     config_entry = coordinator.config_entry
-    runtime_entry = _coerce_runtime_entry_view(config_entry)
-    if runtime_entry is not None and get_entry_runtime_coordinator(config_entry) is coordinator:
-        return runtime_entry
+    runtime_entry = build_runtime_entry_view(config_entry)
+    if runtime_entry is not None and runtime_entry.coordinator is not None:
+        if runtime_entry.coordinator.coordinator is coordinator:
+            return runtime_entry.entry
     for entry in iter_runtime_entries(hass):
         if get_entry_runtime_coordinator(entry) is coordinator:
             return entry
     return None
 
 
-def is_debug_mode_enabled_for_entry(entry: RuntimeEntryLike | object) -> bool:
+
+def is_debug_mode_enabled_for_entry(entry: RuntimeEntryPort | object) -> bool:
     """Return whether one config entry explicitly opts into debug services."""
-    runtime_entry = _coerce_runtime_entry_view(entry)
+    runtime_entry = build_runtime_entry_view(entry)
     if runtime_entry is None:
         return DEFAULT_DEBUG_MODE
     return bool(runtime_entry.options.get(CONF_DEBUG_MODE, DEFAULT_DEBUG_MODE))
 
 
+
 def has_debug_mode_runtime_entry(hass: HomeAssistant) -> bool:
     """Return True when any loaded runtime entry opts into debug mode."""
     return any(
-        is_debug_mode_enabled_for_entry(entry)
-        and get_entry_runtime_coordinator(entry) is not None
-        for entry in iter_runtime_entries(hass)
+        is_debug_mode_enabled_for_entry(view.entry)
+        and view.coordinator is not None
+        for view in iter_runtime_entry_views(hass)
     )
+
 
 
 def is_developer_runtime_coordinator(
@@ -357,27 +429,30 @@ def is_developer_runtime_coordinator(
     return entry is not None and is_debug_mode_enabled_for_entry(entry)
 
 
+
 def iter_developer_runtime_coordinators(hass: HomeAssistant) -> list[LiproCoordinator]:
     """Return runtime coordinators that explicitly opted into debug mode."""
     return [
-        coordinator
-        for coordinator in iter_runtime_coordinators(hass)
-        if is_developer_runtime_coordinator(hass, coordinator)
+        view.coordinator.coordinator
+        for view in iter_runtime_entry_views(hass)
+        if view.coordinator is not None and is_debug_mode_enabled_for_entry(view.entry)
     ]
 
 
+
 def iter_runtime_devices_for_entry(
-    entry: RuntimeEntryLike | object,
+    entry: RuntimeEntryPort | object,
 ) -> list[LiproDevice]:
     """Return all runtime devices for one entry through the formal helper surface."""
-    coordinator = get_entry_runtime_coordinator(entry)
-    if coordinator is None:
+    runtime_entry = build_runtime_entry_view(entry)
+    if runtime_entry is None or runtime_entry.coordinator is None:
         return []
-    return list(get_runtime_device_mapping(coordinator).values())
+    return list((runtime_entry.coordinator.devices or {}).values())
+
 
 
 def find_runtime_device_for_entry(
-    entry: RuntimeEntryLike | object,
+    entry: RuntimeEntryPort | object,
     device_id: str,
 ) -> LiproDevice | None:
     """Return one runtime device for an entry through the formal helper surface."""
@@ -387,8 +462,9 @@ def find_runtime_device_for_entry(
     return find_runtime_device(coordinator, device_id)
 
 
+
 def is_runtime_device_mapping_degraded(
     coordinator: LiproCoordinator,
 ) -> bool:
     """Return whether the runtime device projection is degraded for one coordinator."""
-    return not isinstance(_get_explicit_member(coordinator, "devices"), Mapping)
+    return _build_runtime_coordinator_view(coordinator).devices is None

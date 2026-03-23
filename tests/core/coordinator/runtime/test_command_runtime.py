@@ -118,7 +118,9 @@ class TestCommandBuilder:
     def test_build_trace(self, mock_device):
         """Test trace building."""
         builder = CommandBuilder()
-        trace = builder.build_trace(device=mock_device, command="POWER_ON", properties=None)
+        trace = builder.build_trace(
+            device=mock_device, command="POWER_ON", properties=None
+        )
 
         assert trace["device_serial"] == "test_serial_123"
         assert trace["device_name"] == "Test Device"
@@ -131,14 +133,24 @@ class TestCommandBuilder:
         builder = CommandBuilder()
         properties = [{"key": "brightness", "value": "50"}]
 
-        assert builder.should_skip_immediate_refresh(command="CHANGE_STATE", properties=properties) is True
+        assert (
+            builder.should_skip_immediate_refresh(
+                command="CHANGE_STATE", properties=properties
+            )
+            is True
+        )
 
     def test_should_skip_immediate_refresh_power(self):
         """Test no skip for power command."""
         builder = CommandBuilder()
         properties = [{"key": "powerState", "value": "1"}]
 
-        assert builder.should_skip_immediate_refresh(command="CHANGE_STATE", properties=properties) is False
+        assert (
+            builder.should_skip_immediate_refresh(
+                command="CHANGE_STATE", properties=properties
+            )
+            is False
+        )
 
 
 class TestRetryStrategy:
@@ -175,12 +187,22 @@ class TestCommandSender:
         sender = CommandSender(protocol=mock_client)
         trace: dict[str, Any] = {}
 
-        with patch("custom_components.lipro.core.coordinator.runtime.command.sender.execute_command_plan_with_trace") as mock_exec:
+        with patch(
+            "custom_components.lipro.core.coordinator.runtime.command.sender.execute_command_plan_with_trace"
+        ) as mock_exec:
             mock_plan = Mock()
-            mock_exec.return_value = (mock_plan, {"pushSuccess": True, "msgSn": "12345"}, "iot")
+            mock_exec.return_value = (
+                mock_plan,
+                {"pushSuccess": True, "msgSn": "12345"},
+                "iot",
+            )
 
             result, route = await sender.send_command(
-                device=mock_device, command="POWER_ON", properties=None, fallback_device_id=None, trace=trace
+                device=mock_device,
+                command="POWER_ON",
+                properties=None,
+                fallback_device_id=None,
+                trace=trace,
             )
 
             assert isinstance(result, dict)
@@ -197,7 +219,10 @@ class TestCommandSender:
         async def mock_query_once(*args, **kwargs):
             return None
 
-        with patch("custom_components.lipro.core.coordinator.runtime.command.sender.query_command_result_once", side_effect=mock_query_once):
+        with patch(
+            "custom_components.lipro.core.coordinator.runtime.command.sender.query_command_result_once",
+            side_effect=mock_query_once,
+        ):
             verified, classification = await sender.verify_command_delivery(
                 msg_sn="12345", retry_delays=[0.001], trace=trace, device=mock_device
             )
@@ -207,7 +232,9 @@ class TestCommandSender:
             assert classification is None
 
     @pytest.mark.asyncio
-    async def test_verify_command_delivery_confirmed_result(self, mock_client, mock_device):
+    async def test_verify_command_delivery_confirmed_result(
+        self, mock_client, mock_device
+    ):
         """Test command delivery with confirmed classification."""
         sender = CommandSender(protocol=mock_client)
         trace: dict[str, Any] = {}
@@ -234,7 +261,9 @@ class TestCommandSender:
             assert classification == COMMAND_RESULT_STATE_CONFIRMED
 
     @pytest.mark.asyncio
-    async def test_verify_command_delivery_failed_result(self, mock_client, mock_device):
+    async def test_verify_command_delivery_failed_result(
+        self, mock_client, mock_device
+    ):
         """Test command delivery with failed classification."""
         sender = CommandSender(protocol=mock_client)
         trace: dict[str, Any] = {}
@@ -261,7 +290,9 @@ class TestCommandSender:
             assert classification == COMMAND_RESULT_STATE_FAILED
 
     @pytest.mark.asyncio
-    async def test_verify_command_delivery_pending_classification(self, mock_client, mock_device):
+    async def test_verify_command_delivery_pending_classification(
+        self, mock_client, mock_device
+    ):
         """Test command delivery with pending classification that times out."""
         sender = CommandSender(protocol=mock_client)
         trace: dict[str, Any] = {}
@@ -305,7 +336,9 @@ class TestConfirmationManager:
         )
 
         properties = [{"key": "powerState", "value": "1"}]
-        manager.track_command_expectation(device_serial="test_123", command="CHANGE_STATE", properties=properties)
+        manager.track_command_expectation(
+            device_serial="test_123", command="CHANGE_STATE", properties=properties
+        )
 
         assert "test_123" in pending_expectations
         assert pending_expectations["test_123"].expected == {"powerState": "1"}
@@ -330,7 +363,10 @@ class TestConfirmationManager:
     def test_filter_pending_command_mismatches_delegates_to_tracker(self):
         """Test stale-state filtering delegates to the shared confirmation tracker."""
         tracker = Mock()
-        tracker.filter_pending_command_mismatches.return_value = ({"powerState": "1"}, {"brightness"})
+        tracker.filter_pending_command_mismatches.return_value = (
+            {"powerState": "1"},
+            {"brightness"},
+        )
         manager = ConfirmationManager(
             confirmation_tracker=tracker,
             pending_expectations={},
@@ -410,7 +446,9 @@ class TestConfirmationManager:
             mqtt_connected_provider=Mock(return_value=True),
         )
 
-        manager.schedule_post_command_refresh(skip_immediate=False, device_serial="test_123")
+        manager.schedule_post_command_refresh(
+            skip_immediate=False, device_serial="test_123"
+        )
         assert track_background_task_called is True
         await asyncio.sleep(0.01)  # Let tasks complete
 
@@ -436,71 +474,163 @@ class TestCommandRuntime:
         assert failure == {"reason": "test"}
         assert failure is not command_runtime._last_failure
 
+    def test_last_command_failure_summary_returns_copy(self, command_runtime):
+        """Test last_command_failure_summary returns copy."""
+        command_runtime._last_failure_summary = {
+            "reason": "api_error",
+            "error_type": "LiproAuthError",
+            "reauth_reason": "auth_error",
+            "failure_category": "auth",
+        }
+        summary = command_runtime.last_command_failure_summary
+
+        assert summary == {
+            "reason": "api_error",
+            "error_type": "LiproAuthError",
+            "reauth_reason": "auth_error",
+            "failure_category": "auth",
+        }
+        assert summary is not command_runtime._last_failure_summary
 
     @pytest.mark.asyncio
-    async def test_send_device_command_push_failed(self, command_runtime, mock_device, runtime_deps):
+    async def test_send_device_command_push_failed(
+        self, command_runtime, mock_device, runtime_deps
+    ):
         """Test send_device_command with push failure."""
         with patch.object(command_runtime._sender, "send_command") as mock_send:
             mock_send.return_value = ({"pushSuccess": False}, "iot")
 
             success, route = await command_runtime.send_device_command(
-                device=mock_device, command="POWER_ON", properties=None, fallback_device_id=None
+                device=mock_device,
+                command="POWER_ON",
+                properties=None,
+                fallback_device_id=None,
             )
 
             assert success is False
             assert route == "iot"
             assert command_runtime._last_failure is not None
+            assert command_runtime.last_command_failure_summary == {
+                "reason": "push_failed",
+                "code": "push_failed",
+                "route": "iot",
+                "device_id": mock_device.serial,
+                "error_type": "PushFailed",
+                "failure_category": "protocol",
+            }
 
     @pytest.mark.asyncio
-    async def test_send_device_command_missing_msg_sn(self, command_runtime, mock_device):
+    async def test_send_device_command_missing_msg_sn(
+        self, command_runtime, mock_device
+    ):
         """Test send_device_command with missing msgSn."""
         with patch.object(command_runtime._sender, "send_command") as mock_send:
             mock_send.return_value = ({"pushSuccess": True}, "iot")
 
             success, _route = await command_runtime.send_device_command(
-                device=mock_device, command="POWER_ON", properties=None, fallback_device_id=None
+                device=mock_device,
+                command="POWER_ON",
+                properties=None,
+                fallback_device_id=None,
             )
 
             assert success is False
             assert command_runtime._last_failure is not None
 
     @pytest.mark.asyncio
-    async def test_send_device_command_api_error(self, command_runtime, mock_device, runtime_deps):
+    async def test_send_device_command_api_error(
+        self, command_runtime, mock_device, runtime_deps
+    ):
         """Test send_device_command with API error."""
         with patch.object(command_runtime._sender, "send_command") as mock_send:
             mock_send.side_effect = LiproApiError("API Error")
 
             success, _route = await command_runtime.send_device_command(
-                device=mock_device, command="POWER_ON", properties=None, fallback_device_id=None
+                device=mock_device,
+                command="POWER_ON",
+                properties=None,
+                fallback_device_id=None,
             )
 
             assert success is False
             assert command_runtime._last_failure is not None
 
     @pytest.mark.asyncio
-    async def test_send_device_command_auth_error_triggers_reauth(self, command_runtime, mock_device, runtime_deps):
+    async def test_send_device_command_auth_error_triggers_reauth(
+        self, command_runtime, mock_device, runtime_deps
+    ):
         """Test send_device_command with auth error triggers reauth."""
         with patch.object(command_runtime._sender, "send_command") as mock_send:
             mock_send.side_effect = LiproAuthError("Auth failed")
 
             success, _route = await command_runtime.send_device_command(
-                device=mock_device, command="POWER_ON", properties=None, fallback_device_id=None
+                device=mock_device,
+                command="POWER_ON",
+                properties=None,
+                fallback_device_id=None,
             )
 
             assert success is False
+            assert command_runtime.last_command_failure_summary == {
+                "reason": "api_error",
+                "route": "unknown",
+                "device_id": mock_device.serial,
+                "message": "Auth failed",
+                "error_type": "LiproAuthError",
+                "failure_category": "auth",
+                "reauth_reason": "auth_error",
+            }
             runtime_deps["trigger_reauth"].assert_called_once_with("auth_error")
 
     @pytest.mark.asyncio
-    async def test_send_device_command_success_flow(self, command_runtime, mock_device, runtime_deps):
+    async def test_send_device_command_command_result_failure_sets_summary(
+        self, command_runtime, mock_device
+    ):
+        """Failed command-result verification should publish a normalized summary."""
+        with (
+            patch.object(command_runtime._sender, "send_command") as mock_send,
+            patch.object(
+                command_runtime._sender,
+                "verify_command_delivery",
+                new=AsyncMock(return_value=(False, COMMAND_RESULT_STATE_FAILED)),
+            ),
+        ):
+            mock_send.return_value = ({"pushSuccess": True, "msgSn": "12345"}, "iot")
+
+            success, route = await command_runtime.send_device_command(
+                device=mock_device,
+                command="POWER_ON",
+                properties=None,
+                fallback_device_id=None,
+            )
+
+            assert success is False
+            assert route == "iot"
+            assert command_runtime.last_command_failure_summary == {
+                "reason": "command_result_failed",
+                "code": "command_result_failed",
+                "route": "iot",
+                "device_id": mock_device.serial,
+                "error_type": "CommandResultRejected",
+                "failure_category": "protocol",
+            }
+
+    @pytest.mark.asyncio
+    async def test_send_device_command_success_flow(
+        self, command_runtime, mock_device, runtime_deps
+    ):
         """Test successful command send flow."""
         with patch.object(command_runtime._sender, "send_command") as mock_send:
             mock_send.return_value = ({"pushSuccess": True, "msgSn": "12345"}, "iot")
 
             with patch.object(command_runtime, "_verify_delivery") as mock_verify:
-                mock_verify.return_value = True
+                mock_verify.return_value = (True, None)
 
                 success, route = await command_runtime.send_device_command(
-                    device=mock_device, command="POWER_ON", properties=None, fallback_device_id=None
+                    device=mock_device,
+                    command="POWER_ON",
+                    properties=None,
+                    fallback_device_id=None,
                 )
 
                 assert success is True
@@ -545,8 +675,8 @@ async def test_verify_command_delivery_auth_errors_bubble(mock_client, mock_devi
         pytest.raises(LiproAuthError, match="auth boom"),
     ):
         await sender.verify_command_delivery(
-                msg_sn="12345",
-                retry_delays=[0.001],
-                trace=trace,
-                device=mock_device,
-            )
+            msg_sn="12345",
+            retry_delays=[0.001],
+            trace=trace,
+            device=mock_device,
+        )

@@ -99,6 +99,24 @@ def test_apply_token_payload_and_clear_install_token() -> None:
     assert client.token_refresh_after == 0
 
 
+def test_apply_token_payload_coerces_invalid_timestamps_safely() -> None:
+    client = ShareWorkerClient()
+
+    assert (
+        client.apply_token_payload(
+            {
+                "install_token": "tok-3",
+                "token_expires_at": "bad",
+                "token_refresh_after": True,
+            }
+        )
+        is True
+    )
+    assert client.install_token == "tok-3"
+    assert client.token_expires_at == 0
+    assert client.token_refresh_after == 0
+
+
 @pytest.mark.asyncio
 async def test_safe_read_json_handles_missing_reader_and_reader_errors() -> None:
     client = ShareWorkerClient()

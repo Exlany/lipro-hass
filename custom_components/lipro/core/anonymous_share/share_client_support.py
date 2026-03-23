@@ -2,21 +2,73 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass
-from typing import Any, Final
+from typing import Final, TypedDict
 
 from ..telemetry.models import OperationOutcome, build_operation_outcome
+
+type SharePayload = dict[str, object]
+type WorkerResponsePayload = dict[str, object]
+type ResponseHeadersLike = Mapping[str, str]
+
+
+class TokenPayload(TypedDict, total=False):
+    """Normalized token fields accepted from Worker responses."""
+
+    install_token: str
+    token_expires_at: int
+    token_refresh_after: int
 
 
 @dataclass(frozen=True, slots=True)
 class SubmitVariant:
     """One payload-variant submit plan."""
 
-    payload: dict[str, Any]
+    payload: SharePayload
     success_reason_code: str
     token_attempts: tuple[str | None, ...]
     fallback_on_payload_too_large: bool = False
+
+
+def _coerce_int(value: object) -> int:
+    """Normalize one token timestamp field into an int."""
+    if value is None or isinstance(value, bool):
+        return 0
+    try:
+        return int(value)
+    except TypeError, ValueError:
+        return 0
+
+
+def _coerce_text(value: object) -> str | None:
+    """Normalize one payload field into a non-empty string."""
+    if not isinstance(value, str):
+        return None
+    text = value.strip()
+    return text or None
+
+
+def extract_token_payload(payload: Mapping[str, object]) -> TokenPayload | None:
+    """Return normalized install-token fields from one Worker payload."""
+    token = payload.get("install_token")
+    if not isinstance(token, str) or not token:
+        return None
+
+    normalized: TokenPayload = {"install_token": token}
+    normalized["token_expires_at"] = _coerce_int(payload.get("token_expires_at"))
+    normalized["token_refresh_after"] = _coerce_int(payload.get("token_refresh_after"))
+    return normalized
+
+
+def extract_response_code(payload: WorkerResponsePayload | None) -> str | None:
+    """Return the canonical Worker response code from one payload."""
+    if payload is None:
+        return None
+    code = payload.get("code")
+    if isinstance(code, int):
+        return str(code)
+    return _coerce_text(code)
 
 
 def backoff_active(
@@ -39,7 +91,7 @@ def schedule_retry_deadline(
     return now() + min(60.0, retry_after_seconds)
 
 
-def has_valid_installation_id(report: dict[str, Any]) -> bool:
+def has_valid_installation_id(report: Mapping[str, object]) -> bool:
     """Return whether the payload contains a usable installation id."""
     installation_id = report.get("installation_id")
     return isinstance(installation_id, str) and bool(installation_id)
@@ -63,10 +115,10 @@ def refresh_due(
 
 
 def build_submit_variants(
-    report: dict[str, Any],
+    report: SharePayload,
     *,
     install_token: str | None,
-    build_lite_variant: Callable[[dict[str, Any]], dict[str, Any]],
+    build_lite_variant: Callable[[SharePayload], SharePayload],
 ) -> tuple[SubmitVariant, ...]:
     """Build full/lite submit variants with the correct token attempts."""
     token_attempts = (install_token, None) if install_token else (None,)
@@ -209,4 +261,8 @@ def is_refresh_token_invalid(*, http_status: int, code: object) -> bool:
 
 def is_submit_token_rejected(*, http_status: int, code: object) -> bool:
     """Return whether one submit response rejects the current install token."""
-    return http_status == 401 and isinstance(code, str) and code in SUBMIT_TOKEN_REJECT_CODES
+    return (
+        http_status == 401
+        and isinstance(code, str)
+        and code in SUBMIT_TOKEN_REJECT_CODES
+    )

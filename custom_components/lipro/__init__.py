@@ -14,6 +14,8 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .const.base import DOMAIN
 from .control.entry_root_wiring import (
+    EntryLifecycleControllerLike as _EntryLifecycleControllerLike,
+    build_entry_lifecycle_controller as _build_entry_lifecycle_controller_impl,
     build_entry_lifecycle_controller_kwargs as _build_entry_lifecycle_controller_kwargs_impl,
     build_service_registry as _build_service_registry_impl,
 )
@@ -97,40 +99,60 @@ class _ServiceRegistrationsModule(Protocol):
     def has_debug_mode_runtime_entry(self, hass: HomeAssistant) -> bool: ...
 
 
-class _EntryLifecycleControllerLike(Protocol):
-    """Minimal lifecycle-controller surface consumed by HA root adapters."""
+LiproProtocolFacade: Callable[..., object]
 
-    async def async_setup_component(self, hass: HomeAssistant, config: object) -> bool: ...
 
-    async def async_setup_entry(
+class _CoordinatorModule(Protocol):
+    """Runtime-loaded coordinator module surface used by this adapter."""
+
+    Coordinator: Callable[..., object]
+
+
+class _EntryAuthModule(Protocol):
+    """Runtime-loaded config-entry auth helpers used by this adapter."""
+
+    async def async_authenticate_entry(self, auth_manager: object) -> None: ...
+
+    def build_entry_auth_context(
         self,
         hass: HomeAssistant,
         entry: LiproConfigEntry,
-    ) -> bool: ...
+        *,
+        get_client_session: Callable[[HomeAssistant], object],
+        protocol_factory: object,
+        auth_manager_factory: object,
+        logger: logging.Logger,
+    ) -> tuple[object, object]: ...
 
-    async def async_unload_entry(
+    def clear_entry_runtime_data(self, entry: LiproConfigEntry) -> None: ...
+
+    def get_entry_int_option(
+        self,
+        entry: LiproConfigEntry,
+        *,
+        option_name: str,
+        default: int,
+        min_value: int,
+        max_value: int,
+        logger: logging.Logger,
+    ) -> int: ...
+
+    def persist_entry_tokens_if_changed(
         self,
         hass: HomeAssistant,
         entry: LiproConfigEntry,
-    ) -> bool: ...
-
-    async def async_reload_entry(
-        self,
-        hass: HomeAssistant,
-        entry: LiproConfigEntry,
+        auth_manager: object,
     ) -> None: ...
 
 
-class _EntryLifecycleControllerFactory(Protocol):
-    """Runtime-loaded controller constructor surface."""
+class _ServiceRegistrationsModule(Protocol):
+    """Runtime-loaded service registration table surface."""
 
-    def __call__(self, **kwargs: object) -> _EntryLifecycleControllerLike: ...
+    PUBLIC_SERVICE_REGISTRATIONS: Sequence[object]
+    DEVELOPER_SERVICE_REGISTRATIONS: Sequence[object]
+    SERVICE_REGISTRATIONS: Sequence[object]
 
-
-class _EntryLifecycleControllerModule(Protocol):
-    """Runtime-loaded lifecycle-controller module surface."""
-
-    EntryLifecycleController: _EntryLifecycleControllerFactory
+    def has_debug_mode_runtime_entry(self, hass: HomeAssistant) -> bool: ...
 
 
 LiproProtocolFacade: Callable[..., object]
@@ -327,12 +349,11 @@ def _build_entry_lifecycle_controller_kwargs() -> dict[str, object]:
 
 
 def _build_entry_lifecycle_controller() -> _EntryLifecycleControllerLike:
-    controller_module = cast(
-        _EntryLifecycleControllerModule,
-        _load_module("custom_components.lipro.control.entry_lifecycle_controller"),
+    return _build_entry_lifecycle_controller_impl(
+        load_module=_load_module,
+        controller_module_name="custom_components.lipro.control.entry_lifecycle_controller",
+        controller_kwargs=_build_entry_lifecycle_controller_kwargs(),
     )
-    controller_factory = controller_module.EntryLifecycleController
-    return controller_factory(**_build_entry_lifecycle_controller_kwargs())
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:

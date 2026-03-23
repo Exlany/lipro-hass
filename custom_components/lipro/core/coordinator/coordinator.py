@@ -208,7 +208,6 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
         self._state.devices.clear()
         self._state.devices.update(devices)
 
-
     @property
     def devices(self) -> Mapping[str, LiproDevice]:
         """Return the canonical runtime device registry view."""
@@ -290,13 +289,14 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
         if success:
             return True
 
-        last_failure = self.command_service.last_failure
-        if isinstance(last_failure, dict):
-            error_type = last_failure.get("error")
-            if error_type == "LiproRefreshTokenExpiredError":
-                raise ConfigEntryAuthFailed("auth_expired")
-            if error_type == "LiproAuthError":
-                raise ConfigEntryAuthFailed("auth_error")
+        failure_summary = self.command_service.last_failure
+        reauth_reason = (
+            failure_summary.get("reauth_reason")
+            if isinstance(failure_summary, dict)
+            else None
+        )
+        if isinstance(reauth_reason, str) and reauth_reason:
+            raise ConfigEntryAuthFailed(reauth_reason)
 
         return False
 

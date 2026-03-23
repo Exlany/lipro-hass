@@ -1,6 +1,6 @@
 # File Matrix
 
-**Python files total:** 593
+**Python files total:** 596
 **Status:** File-level governance authority
 **Rule:** workspace inventory excluding caches / virtual env / tooling artifacts
 
@@ -31,7 +31,8 @@
 | `custom_components/lipro/control/redaction.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/control/runtime_access.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/control/runtime_access_support.py` | Control | Phase 3 | 保留 | - |
-| `custom_components/lipro/control/service_registry.py` | Control | Phase 3 | 保留 | formal service-registry + registration-table owner |
+| `custom_components/lipro/control/runtime_access_types.py` | Control | Phase 3 | 保留 | - |
+| `custom_components/lipro/control/service_registry.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/control/service_router.py` | Control | Phase 3 / 14 / 15 / 37 | 保留 | public router shell over focused handler/support collaborators |
 | `custom_components/lipro/control/service_router_handlers.py` | Control | Phase 37 | 保留 | private control-plane handler implementations home |
 | `custom_components/lipro/control/service_router_support.py` | Control | Phase 37 | 保留 | router lookup/logging/runtime-iterator helper home |
@@ -44,14 +45,14 @@
 | `custom_components/lipro/core/anonymous_share/collector.py` | Protocol | Phase 2.6 | 保留 | - |
 | `custom_components/lipro/core/anonymous_share/const.py` | Protocol | Phase 2.6 | 保留 | - |
 | `custom_components/lipro/core/anonymous_share/manager.py` | Protocol | Phase 2.6 | 保留 | - |
-| `custom_components/lipro/core/anonymous_share/manager_submission.py` | Protocol | Phase 2.6 | 保留 | anonymous-share submit lifecycle collaborator home |
+| `custom_components/lipro/core/anonymous_share/manager_submission.py` | Protocol | Phase 2.6 | 保留 | - |
 | `custom_components/lipro/core/anonymous_share/manager_support.py` | Protocol | Phase 2.6 | 保留 | - |
 | `custom_components/lipro/core/anonymous_share/models.py` | Protocol | Phase 2.6 | 保留 | - |
 | `custom_components/lipro/core/anonymous_share/registry.py` | Protocol | Phase 2.6 | 保留 | - |
 | `custom_components/lipro/core/anonymous_share/report_builder.py` | Protocol | Phase 2.6 | 保留 | - |
 | `custom_components/lipro/core/anonymous_share/sanitize.py` | Protocol | Phase 2.6 | 保留 | - |
 | `custom_components/lipro/core/anonymous_share/share_client.py` | Protocol | Phase 2.6 | 保留 | - |
-| `custom_components/lipro/core/anonymous_share/share_client_flows.py` | Protocol | Phase 2.6 | 保留 | anonymous-share token refresh / submit flow collaborator home |
+| `custom_components/lipro/core/anonymous_share/share_client_flows.py` | Protocol | Phase 2.6 | 保留 | - |
 | `custom_components/lipro/core/anonymous_share/share_client_support.py` | Protocol | Phase 2.6 | 保留 | - |
 | `custom_components/lipro/core/anonymous_share/storage.py` | Protocol | Phase 2.6 | 保留 | - |
 | `custom_components/lipro/core/api/__init__.py` | Protocol | Phase 2.5 / 12 | 重构 | - |
@@ -176,7 +177,7 @@
 | `custom_components/lipro/core/device/extras.py` | Domain | Phase 4 | 重构 | - |
 | `custom_components/lipro/core/device/extras_features.py` | Domain | Phase 4 | 重构 | - |
 | `custom_components/lipro/core/device/extras_payloads.py` | Domain | Phase 4 | 重构 | - |
-| `custom_components/lipro/core/device/extras_support.py` | Domain | Phase 4 / 62 | 重构 | DeviceExtras payload / panel parsing support helper home |
+| `custom_components/lipro/core/device/extras_support.py` | Domain | Phase 4 | 重构 | DeviceExtras payload / panel parsing support helper home |
 | `custom_components/lipro/core/device/group_status.py` | Domain | Phase 4 | 重构 | - |
 | `custom_components/lipro/core/device/identity.py` | Domain | Phase 4 | 重构 | - |
 | `custom_components/lipro/core/device/identity_index.py` | Domain | Phase 4 | 重构 | - |
@@ -203,7 +204,7 @@
 | `custom_components/lipro/core/mqtt/transport_runtime.py` | Protocol | Phase 2.5 | 重构 | - |
 | `custom_components/lipro/core/ota/__init__.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/core/ota/candidate.py` | Cross-cutting | Phase 7 | 保留 | - |
-| `custom_components/lipro/core/ota/candidate_support.py` | Cross-cutting | Phase 7 | 保留 | OTA certification / install-policy collaborator home |
+| `custom_components/lipro/core/ota/candidate_support.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/core/ota/manifest.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/core/ota/row_selector.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/core/ota/rows_cache.py` | Cross-cutting | Phase 7 | 保留 | - |
@@ -266,7 +267,7 @@
 | `custom_components/lipro/runtime_types.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/select.py` | Domain | Phase 4 | 保留 | - |
 | `custom_components/lipro/select_internal/__init__.py` | Cross-cutting | Phase 7 | 保留 | - |
-| `custom_components/lipro/select_internal/gear.py` | Cross-cutting | Phase 7 | 保留 | select gear-preset collaborator home |
+| `custom_components/lipro/select_internal/gear.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/select_internal/mapped_property.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/sensor.py` | Domain | Phase 4 | 保留 | - |
 | `custom_components/lipro/services/__init__.py` | Control | Phase 3 | 保留 | - |
@@ -274,17 +275,17 @@
 | `custom_components/lipro/services/contracts.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/services/device_lookup.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/services/diagnostics/__init__.py` | Control | Phase 3 | 保留 | - |
-| `custom_components/lipro/services/diagnostics/capability_handlers.py` | Control | Phase 3 | 保留 | diagnostics optional-capability handler cluster |
-| `custom_components/lipro/services/diagnostics/command_result_handlers.py` | Control | Phase 3 | 保留 | diagnostics command-result handler cluster |
-| `custom_components/lipro/services/diagnostics/feedback_handlers.py` | Control | Phase 3 | 保留 | diagnostics developer-feedback handler cluster; no hidden control import |
+| `custom_components/lipro/services/diagnostics/capability_handlers.py` | Control | Phase 3 | 保留 | - |
+| `custom_components/lipro/services/diagnostics/command_result_handlers.py` | Control | Phase 3 | 保留 | - |
+| `custom_components/lipro/services/diagnostics/feedback_handlers.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/services/diagnostics/handlers.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/services/diagnostics/helper_support.py` | Control | Phase 3 | 保留 | diagnostics service mechanics support seam |
-| `custom_components/lipro/services/diagnostics/helpers.py` | Control | Phase 3 | 保留 | diagnostics optional-capability helper reusing shared execution auth chain; injected runtime-entry / telemetry ports |
+| `custom_components/lipro/services/diagnostics/helpers.py` | Control | Phase 3 | 保留 | diagnostics optional-capability helper reusing shared execution auth chain |
 | `custom_components/lipro/services/diagnostics/types.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/services/errors.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/services/execution.py` | Control | Phase 3 / 5 / 7 | 保留 | formal service execution facade; private auth seam closed |
-| `custom_components/lipro/services/maintenance.py` | Control | Phase 3 | 保留 | refresh_devices thin adapter over injected runtime provider |
-| `custom_components/lipro/services/registrations.py` | Control | Phase 3 | 保留 | compat import shell for control-owned registration tables |
+| `custom_components/lipro/services/maintenance.py` | Control | Phase 3 | 保留 | - |
+| `custom_components/lipro/services/registrations.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/services/registry.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/services/schedule.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/services/share.py` | Control | Phase 3 | 保留 | - |
@@ -322,6 +323,7 @@
 | `tests/core/anonymous_share/test_observability.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `tests/core/anonymous_share/test_sanitize.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `tests/core/api/__init__.py` | Protocol | Phase 2 | 保留 | - |
+| `tests/core/api/conftest.py` | Protocol | Phase 2 | 保留 | - |
 | `tests/core/api/test_api.py` | Protocol | Phase 33 | 保留 | topic root for auth/init REST regressions |
 | `tests/core/api/test_api_command_service.py` | Protocol | Phase 2 | 保留 | - |
 | `tests/core/api/test_api_command_surface.py` | Protocol | Phase 33 | 保留 | thin shell after command-surface topicization |
@@ -513,6 +515,7 @@
 | `tests/integration/test_protocol_replay_harness.py` | Assurance | Phase 7.4 | 保留 | - |
 | `tests/integration/test_telemetry_exporter_integration.py` | Runtime | Phase 7.3 | 保留 | - |
 | `tests/meta/__init__.py` | Assurance | Phase 6 | 保留 | - |
+| `tests/meta/conftest.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/governance_followup_route_closeouts.py` | Assurance | Phase 59 | 保留 | followup-route closeout topic home |
 | `tests/meta/governance_followup_route_continuation.py` | Assurance | Phase 59 | 保留 | followup-route continuation topic home |
 | `tests/meta/governance_followup_route_current_milestones.py` | Assurance | Phase 59 | 保留 | followup-route current-milestone topic home |
@@ -543,7 +546,7 @@
 | `tests/meta/test_phase45_hotspot_budget_guards.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_phase50_rest_typed_budget_guards.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_phase61_formal_home_budget_guards.py` | Assurance | Phase 6 | 保留 | - |
-| `tests/meta/test_phase62_naming_discoverability_guards.py` | Assurance | Phase 62 | 保留 | focused naming / discoverability anti-regression guard |
+| `tests/meta/test_phase62_naming_discoverability_guards.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_protocol_replay_assets.py` | Assurance | Phase 7.4 | 保留 | - |
 | `tests/meta/test_public_surface_guards.py` | Assurance | Phase 6 | 保留 | thin shell after public-surface topicization |
 | `tests/meta/test_service_translation_sync.py` | Assurance | Phase 6 | 保留 | - |

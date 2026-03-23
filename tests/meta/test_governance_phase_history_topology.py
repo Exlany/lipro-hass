@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from .test_governance_guards import (
+from .conftest import (
     _ROOT,
     _assert_current_mode_tracks_phase_lifecycle,
     _extract_markdown_section,

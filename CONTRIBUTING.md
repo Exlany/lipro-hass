@@ -152,10 +152,10 @@ uv run python scripts/coverage_diff.py coverage.json --minimum 95 --changed-file
 # Quick local run (no coverage gate) / 本地快速跑（不含覆盖率门禁）
 uv run pytest tests/
 
-# Diagnostics focused tests (used by pre-push hook)
-uv run pytest tests/core/test_diagnostics_config_entry.py::TestAsyncGetConfigEntryDiagnostics::test_collects_and_redacts_diagnostics
-uv run pytest tests/core/test_diagnostics_config_entry.py::TestAsyncGetConfigEntryDiagnostics::test_handles_no_devices
-uv run pytest tests/core/test_diagnostics_config_entry.py::TestAsyncGetConfigEntryDiagnostics::test_diagnostics_snapshot
+# Diagnostics focused tests (same target as pre-push hook)
+uv run pytest -q -x tests/core/test_diagnostics_config_entry.py::TestAsyncGetConfigEntryDiagnostics::test_collects_and_redacts_diagnostics
+uv run pytest -q -x tests/core/test_diagnostics_config_entry.py::TestAsyncGetConfigEntryDiagnostics::test_handles_no_devices
+uv run pytest -q -x tests/core/test_diagnostics_config_entry.py::TestAsyncGetConfigEntryDiagnostics::test_diagnostics_snapshot
 
 # Targeted protocol/auth/control public-surface regression / 定向 protocol/auth/control public-surface 回归
 uv run pytest -q tests/core/api/test_protocol_contract_matrix.py tests/core/test_auth.py tests/flows/test_flow_schemas.py tests/flows/test_config_flow_user.py tests/flows/test_config_flow_reauth.py tests/flows/test_config_flow_reconfigure.py tests/flows/test_options_flow.py tests/meta/test_public_surface_guards.py tests/core/test_coordinator_entry.py
@@ -174,6 +174,7 @@ Use the same command groups as GitHub Actions:
 
 - **lint**: `uv run ruff check .`、`uv run ruff format --check .`、`uv run mypy`、`uv run python scripts/check_translations.py`；translation truth 属于 blocking lint lane，不再只是“改到文案时可选”
 - **governance**: `uv run python scripts/check_architecture_policy.py --check`、`uv run python scripts/check_file_matrix.py --check`、`uv run pytest -q -x tests/meta/test_dependency_guards.py tests/meta/test_public_surface_guards.py tests/meta/test_governance*.py tests/meta/test_toolchain_truth.py tests/meta/test_version_sync.py`
+- **pre-push**: `uv run --extra dev python scripts/check_translations.py`、`uv run --extra dev python scripts/check_architecture_policy.py --check`、`uv run --extra dev python scripts/check_file_matrix.py --check`、`uv run --extra dev pytest -q -x tests/core/test_diagnostics_config_entry.py::TestAsyncGetConfigEntryDiagnostics::test_collects_and_redacts_diagnostics tests/core/test_diagnostics_config_entry.py::TestAsyncGetConfigEntryDiagnostics::test_handles_no_devices tests/core/test_diagnostics_config_entry.py::TestAsyncGetConfigEntryDiagnostics::test_diagnostics_snapshot`、`uv run --extra dev pytest -q -x tests/meta/test_dependency_guards.py tests/meta/test_public_surface_guards.py tests/meta/test_governance*.py tests/meta/test_toolchain_truth.py tests/meta/test_version_sync.py`；pre-push 只保留 focused local mirrors，不再指向旧 diagnostics mega-file
 - **test**: `uv run pytest tests/ -v --ignore=tests/benchmarks --cov=custom_components/lipro --cov-fail-under=95 --cov-report=json --cov-report=xml --cov-report=term-missing`、`uv run python scripts/coverage_diff.py coverage.json --minimum 95 --changed-files .coverage-changed-files --changed-minimum 95`（total coverage 与 changed measured files 都是 blocking gate；只有显式提供 `--baseline` 才额外比较 total diff）、`uv run python scripts/refactor_tools.py --coverage-json coverage.json --minimum-coverage 95`；snapshot coverage 已包含在 `tests/` 主阻塞 lane 中，不再单独重复执行；本地可直接用 `./scripts/lint --full` 自动解析 `.coverage-changed-files`
 - **security**: GitHub Actions 会在每个 PR 上运行 blocking runtime `pip-audit` 门禁；tag release 还会额外运行 tagged release security gate，并要求 tagged `CodeQL` analysis 已完成且 open alerts 为零。dev dependency audit 仅在 `schedule` / `workflow_dispatch` 作为 advisory、non-blocking 运行；GitHub artifact attestation / provenance 仍不是 signing，请不要把 attestation / pip-audit 混写成 artifact signing。
 - **benchmark**: `uv run pytest tests/benchmarks/ -v --benchmark-only --benchmark-json=.benchmarks/benchmark.json`、`uv run python scripts/check_benchmark_baseline.py .benchmarks/benchmark.json --manifest tests/benchmarks/benchmark_baselines.json`；benchmark lane 只在 `schedule` / `workflow_dispatch` 运行，不进入 PR blocking lane；threshold warning 只发维护者信号，failure threshold 才作为该 lane 的 no-regression gate

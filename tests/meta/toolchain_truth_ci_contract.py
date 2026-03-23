@@ -12,23 +12,38 @@ from tests.helpers.repo_root import repo_root
 _ROOT = repo_root(Path(__file__))
 
 _PYPROJECT = _ROOT / "pyproject.toml"
-
 _PRE_COMMIT = _ROOT / ".pre-commit-config.yaml"
-
 _CI_WORKFLOW = _ROOT / ".github" / "workflows" / "ci.yml"
-
-_UPLOAD_ARTIFACT = "actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02"
-
+_CONTRIBUTING = _ROOT / "CONTRIBUTING.md"
 _LINT_SCRIPT = _ROOT / "scripts" / "lint"
 
+_UPLOAD_ARTIFACT = "actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02"
+_GOVERNANCE_GUARD_TESTS = (
+    "tests/meta/test_dependency_guards.py",
+    "tests/meta/test_public_surface_guards.py",
+    "tests/meta/test_governance*.py",
+    "tests/meta/test_toolchain_truth.py",
+    "tests/meta/test_version_sync.py",
+)
+_DIAGNOSTICS_PRE_PUSH_TESTS = (
+    "tests/core/test_diagnostics_config_entry.py::TestAsyncGetConfigEntryDiagnostics::test_collects_and_redacts_diagnostics",
+    "tests/core/test_diagnostics_config_entry.py::TestAsyncGetConfigEntryDiagnostics::test_handles_no_devices",
+    "tests/core/test_diagnostics_config_entry.py::TestAsyncGetConfigEntryDiagnostics::test_diagnostics_snapshot",
+)
+_CHANGED_SURFACE_COMMAND = (
+    'git diff --name-only --diff-filter=AMRT "$(git merge-base origin/main HEAD)...HEAD" > .coverage-changed-files'
+)
+_COVERAGE_GATES_COMMAND = (
+    "uv run python scripts/coverage_diff.py coverage.json --minimum 95 --changed-files .coverage-changed-files --changed-minimum 95"
+)
 
 
-def _load_pyproject():
+def _load_pyproject() -> dict[str, object]:
     return tomllib.loads(_PYPROJECT.read_text(encoding="utf-8"))
 
 
 
-def _load_yaml(path: Path):
+def _load_yaml(path: Path) -> dict[str, object]:
     loaded = yaml.safe_load(path.read_text(encoding="utf-8"))
     assert isinstance(loaded, dict)
     if True in loaded and "on" not in loaded:
@@ -37,8 +52,14 @@ def _load_yaml(path: Path):
 
 
 
+def _assert_tokens(text: str, tokens: tuple[str, ...]) -> None:
+    for token in tokens:
+        assert token in text
+
+
+
 def test_pre_push_contract_runs_translation_and_governance_truth_early() -> None:
-    """Local pre-push should surface the same translation/governance drift CI blocks on."""
+    """Local pre-push should mirror the focused truth gates CI relies on."""
     pre_commit = _load_yaml(_PRE_COMMIT)
     hooks = pre_commit["repos"][0]["hooks"]
     hook_by_id = {hook["id"]: hook for hook in hooks}
@@ -55,14 +76,49 @@ def test_pre_push_contract_runs_translation_and_governance_truth_early() -> None
         hook_by_id["file-matrix"]["entry"]
         == "uv run --extra dev python scripts/check_file_matrix.py --check"
     )
-    assert (
-        "tests/meta/test_governance*.py"
-        in hook_by_id["pytest-governance-gate"]["entry"]
+
+    diagnostics_entry = hook_by_id["pytest-gate"]["entry"]
+    assert "uv run --extra dev pytest -q -x" in diagnostics_entry
+    _assert_tokens(diagnostics_entry, _DIAGNOSTICS_PRE_PUSH_TESTS)
+    assert "tests/core/test_diagnostics.py::" not in diagnostics_entry
+
+    governance_entry = hook_by_id["pytest-governance-gate"]["entry"]
+    assert "uv run --extra dev pytest -q -x" in governance_entry
+    _assert_tokens(governance_entry, _GOVERNANCE_GUARD_TESTS)
+
+
+
+def test_ci_governance_lane_records_same_focused_truths() -> None:
+    """CI governance lane should publish the same checker and pytest story local flows mirror."""
+    ci = _load_yaml(_CI_WORKFLOW)
+    governance_steps = ci["jobs"]["governance"]["steps"]
+
+    architecture_step = next(
+        step for step in governance_steps if step.get("name") == "Check architecture policy"
     )
-    assert (
-        "tests/meta/test_toolchain_truth.py"
-        in hook_by_id["pytest-governance-gate"]["entry"]
+    assert architecture_step["run"] == "uv run python scripts/check_architecture_policy.py --check"
+
+    file_matrix_step = next(
+        step
+        for step in governance_steps
+        if step.get("name") == "Check file matrix and active authority docs"
     )
+    assert file_matrix_step["run"] == "uv run python scripts/check_file_matrix.py --check"
+
+    governance_pytest_step = next(
+        step
+        for step in governance_steps
+        if step.get("name") == "Run governance and architecture guards"
+    )
+    assert "uv run pytest -q -x" in governance_pytest_step["run"]
+    _assert_tokens(governance_pytest_step["run"], _GOVERNANCE_GUARD_TESTS)
+
+    contract_step = next(
+        step for step in governance_steps if step.get("name") == "Record governance lane contract"
+    )
+    assert "governance checker roots:" in contract_step["run"]
+    assert "governance pytest suite:" in contract_step["run"]
+    assert "./scripts/lint --full reuses the same focused guard list" in contract_step["run"]
 
 
 
@@ -88,9 +144,7 @@ def test_ci_test_and_benchmark_lanes_keep_one_snapshot_story() -> None:
         for step in test_steps
         if step.get("name") == "Check total + changed-surface coverage gates"
     )
-    assert (
-        "uv run python scripts/coverage_diff.py coverage.json" in coverage_step["run"]
-    )
+    assert "uv run python scripts/coverage_diff.py coverage.json" in coverage_step["run"]
     assert "--changed-files .coverage-changed-files" in coverage_step["run"]
     assert "--changed-minimum 95" in coverage_step["run"]
     coverage_diff_script = (_ROOT / "scripts" / "coverage_diff.py").read_text(
@@ -152,10 +206,26 @@ def test_ci_test_and_benchmark_lanes_keep_one_snapshot_story() -> None:
 def test_scripts_lint_full_mode_matches_ci_coverage_contract() -> None:
     lint_text = _LINT_SCRIPT.read_text(encoding="utf-8")
 
+    assert "governance_guard_tests=(" in lint_text
+    assert 'uv run pytest -q -x "${governance_guard_tests[@]}"' in lint_text
+    _assert_tokens(lint_text, _GOVERNANCE_GUARD_TESTS)
     assert "total + changed-surface coverage" in lint_text
     assert "resolve_changed_coverage_surface" in lint_text
     assert '--changed-files "$tmp_changed_coverage_surface"' in lint_text
     assert "--changed-minimum 95" in lint_text
+
+
+
+def test_contributing_docs_keep_command_manifest_in_sync() -> None:
+    docs_text = _CONTRIBUTING.read_text(encoding="utf-8")
+
+    assert "**pre-push**:" in docs_text
+    assert "uv run --extra dev python scripts/check_file_matrix.py --check" in docs_text
+    assert "uv run --extra dev pytest -q -x tests/core/test_diagnostics_config_entry.py::TestAsyncGetConfigEntryDiagnostics::test_collects_and_redacts_diagnostics" in docs_text
+    assert "uv run --extra dev pytest -q -x tests/meta/test_dependency_guards.py tests/meta/test_public_surface_guards.py tests/meta/test_governance*.py tests/meta/test_toolchain_truth.py tests/meta/test_version_sync.py" in docs_text
+    assert _CHANGED_SURFACE_COMMAND in docs_text
+    assert _COVERAGE_GATES_COMMAND in docs_text
+    assert "tests/core/test_diagnostics.py::TestAsyncGetConfigEntryDiagnostics" not in docs_text
 
 
 

@@ -1,3 +1,4 @@
+# ruff: noqa: D102
 """Support-only wiring helpers for the HA root adapter.
 
 `custom_components.lipro.__init__` remains the only HA root adapter home; this
@@ -8,7 +9,7 @@ from __future__ import annotations
 
 from collections.abc import Callable, Sequence
 import logging
-from typing import Protocol
+from typing import Protocol, cast
 
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
@@ -25,6 +26,31 @@ class ServiceRegistrationsLike(Protocol):
 
     def has_debug_mode_runtime_entry(self, hass: HomeAssistant) -> bool:
         """Return whether at least one runtime entry is in debug mode."""
+
+
+class EntryLifecycleControllerLike(Protocol):
+    """Minimal lifecycle-controller surface consumed by HA root adapters."""
+
+    async def async_setup_component(self, hass: HomeAssistant, config: object) -> bool: ...
+
+    async def async_setup_entry(self, hass: HomeAssistant, entry: object) -> bool: ...
+
+    async def async_unload_entry(self, hass: HomeAssistant, entry: object) -> bool: ...
+
+    async def async_reload_entry(self, hass: HomeAssistant, entry: object) -> None: ...
+
+
+class EntryLifecycleControllerFactory(Protocol):
+    """Runtime-loaded controller constructor surface."""
+
+    def __call__(self, **kwargs: object) -> EntryLifecycleControllerLike: ...
+
+
+class EntryLifecycleControllerModule(Protocol):
+    """Runtime-loaded lifecycle-controller module surface."""
+
+    EntryLifecycleController: EntryLifecycleControllerFactory
+
 
 
 def build_service_registry(
@@ -46,6 +72,7 @@ def build_service_registry(
         has_debug_mode_runtime_entry=registrations.has_debug_mode_runtime_entry,
         get_runtime_infra_lock=get_runtime_infra_lock,
     )
+
 
 
 def build_entry_lifecycle_controller_kwargs(
@@ -96,8 +123,26 @@ def build_entry_lifecycle_controller_kwargs(
     }
 
 
+
+def build_entry_lifecycle_controller(
+    *,
+    load_module: Callable[[str], object],
+    controller_module_name: str,
+    controller_kwargs: dict[str, object],
+) -> EntryLifecycleControllerLike:
+    """Build the runtime lifecycle controller outside the HA root adapter."""
+    controller_module = cast(
+        EntryLifecycleControllerModule,
+        load_module(controller_module_name),
+    )
+    controller_factory = controller_module.EntryLifecycleController
+    return controller_factory(**controller_kwargs)
+
+
 __all__ = [
+    "EntryLifecycleControllerLike",
     "ServiceRegistrationsLike",
+    "build_entry_lifecycle_controller",
     "build_entry_lifecycle_controller_kwargs",
     "build_service_registry",
 ]

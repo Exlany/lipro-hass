@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from .test_api import AsyncMock, LiproRestFacade, patch, pytest
+from .conftest import AsyncMock, LiproRestFacade, patch, pytest
 
 
 class TestLiproRestFacadeCommands:

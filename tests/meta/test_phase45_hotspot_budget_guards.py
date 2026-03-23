@@ -33,16 +33,6 @@ _TYPE_GUARD_TARGETS = {
 }
 
 _ANY_BUDGET: dict[str, _AnyBudgetEntry] = {
-    "core/anonymous_share/share_client.py": {
-        "sanctioned_any": {
-            "from typing import Any": 1,
-            "def parse_retry_after(headers: Any) -> float | None:": 1,
-            "def apply_token_payload(self, payload: dict[str, Any]) -> bool:": 1,
-            ") -> dict[str, Any] | None:": 2,
-            "report: dict[str, Any],": 2,
-        },
-        "backlog_any": {},
-    },
     "core/mqtt/message_processor.py": {
         "sanctioned_any": {
             "from typing import TYPE_CHECKING, Any, Protocol, cast": 1,

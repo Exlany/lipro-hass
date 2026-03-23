@@ -142,3 +142,48 @@
 - `.planning/phases/59-verification-localization-and-governance-guard-topicization/59-VERIFICATION.md`
 
 ---
+
+
+## v1.13 Tooling Truth Decomposition, Formal-Home Slimming & Naming/Discoverability Convergence (Closeout: 2026-03-22)
+
+**Phase range:** `60 -> 62`
+**Phases completed:** 3 phases, 11 plans, 0 tasks
+**Status:** archived / evidence-ready
+**Route truth:** latest archive-ready closeout pointer = `.planning/reviews/V1_13_EVIDENCE_INDEX.md`
+
+**Key accomplishments:**
+- 完成 tooling truth / file-governance hotspot inward decomposition，并冻结 `FILE_MATRIX / VERIFICATION_MATRIX / TESTING` 的 current story
+- 继续切薄 `anonymous_share` / diagnostics / OTA / `select` 等 large-but-correct formal homes，并补齐 focused maintainability evidence
+- 收口 support-seam naming、public docs fast path 与 discoverability / anti-regression governance truth
+
+**Closeout assets:**
+- `.planning/v1.13-MILESTONE-AUDIT.md`
+- `.planning/reviews/V1_13_EVIDENCE_INDEX.md`
+- `.planning/milestones/v1.13-ROADMAP.md`
+- `.planning/milestones/v1.13-REQUIREMENTS.md`
+- `.planning/phases/60-tooling-truth-decomposition-and-file-governance-maintainability/60-SUMMARY.md`
+- `.planning/phases/61-formal-home-slimming-for-large-but-correct-production-modules/61-SUMMARY.md`
+- `.planning/phases/62-naming-clarity-support-seam-governance-and-public-discoverability/62-SUMMARY.md`
+
+---
+
+
+## v1.14 Governance Truth Realignment, Typed Runtime Access & Final Hidden-Root Closure (Opened: 2026-03-23)
+
+**Phase range:** `63`
+**Phases completed:** 0 phases, 0 plans, 0 tasks
+**Status:** active / planning
+**Route truth:** only active milestone route = `v1.14 / Phase 63`；archive pull 继续从 `.planning/reviews/V1_13_EVIDENCE_INDEX.md` 起步
+
+**Target outcomes:**
+- 统一 `latest closeout pointer`、archive route、`MILESTONES` 与 governance guards 的 current truth
+- 把 `RuntimeAccess` / `__init__.py` 继续收口到 typed read-model 与 thin HA adapter
+- 继续关闭 tooling/test hidden-root 与 command/share typed 漏口
+
+**Seed inputs:**
+- `.planning/v1.13-MILESTONE-AUDIT.md`
+- `.planning/reviews/V1_13_EVIDENCE_INDEX.md`
+- `.planning/phases/58-repository-audit-refresh-and-next-wave-routing/58-REMEDIATION-ROADMAP.md`
+- `.planning/phases/63-governance-truth-realignment-typed-runtime-access-and-hidden-root-closure/63-CONTEXT.md`
+
+---

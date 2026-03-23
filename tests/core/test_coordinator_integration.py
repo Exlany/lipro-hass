@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from unittest.mock import AsyncMock, MagicMock
+
 import pytest
 
 from custom_components.lipro.const.api import MAX_DEVICES_PER_QUERY
@@ -255,8 +257,8 @@ class TestCoordinatorErrorHandling:
         self, coordinator, mock_auth_manager
     ):
         """Connection errors should raise UpdateFailed."""
-        mock_auth_manager.async_ensure_authenticated.side_effect = (
-            LiproConnectionError("timeout")
+        mock_auth_manager.async_ensure_authenticated.side_effect = LiproConnectionError(
+            "timeout"
         )
 
         with pytest.raises(UpdateFailed):
@@ -287,6 +289,31 @@ class TestCoordinatorErrorHandling:
 
         with pytest.raises(ConfigEntryAuthFailed):
             await coordinator._async_update_data()
+
+    @pytest.mark.asyncio
+    async def test_async_send_command_uses_typed_failure_summary_for_reauth(
+        self,
+        coordinator,
+        mock_lipro_api_client,
+        patch_anonymous_share_manager,
+    ):
+        """Coordinator command dispatch should honor typed reauth summaries."""
+        serial = "03ab5ccd7c000099"
+        mock_lipro_api_client.get_devices.return_value = make_device_page(
+            [make_api_device(serial=serial)]
+        )
+
+        await refresh_and_sync_devices(coordinator)
+
+        device = coordinator.get_device(serial)
+        assert device is not None
+        coordinator.command_service = MagicMock(
+            async_send_command=AsyncMock(return_value=False),
+            last_failure={"reauth_reason": "auth_error"},
+        )
+
+        with pytest.raises(ConfigEntryAuthFailed, match="auth_error"):
+            await coordinator.async_send_command(device, "POWER_ON")
 
     @pytest.mark.asyncio
     async def test_rejected_refresh_keeps_last_known_good_state(
