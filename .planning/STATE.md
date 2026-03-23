@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.14
 milestone_name: Governance Truth Realignment, Typed Runtime Access & Final Hidden-Root Closure
 status: unknown
-last_updated: "2026-03-23T07:25:18.730Z"
+last_updated: "2026-03-23T08:37:37.921Z"
 progress:
-  total_phases: 62
-  completed_phases: 49
-  total_plans: 239
-  completed_plans: 216
+  total_phases: 1
+  completed_phases: 1
+  total_plans: 5
+  completed_plans: 5
 ---
 
 # Project State
