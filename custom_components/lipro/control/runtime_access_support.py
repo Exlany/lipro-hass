@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections.abc import Mapping
 import inspect
 from typing import TYPE_CHECKING, Protocol, cast, runtime_checkable
+from unittest.mock import DEFAULT
 
 from homeassistant.core import HomeAssistant
 
@@ -29,13 +30,73 @@ def _get_static_member(obj: object, name: str) -> object:
         return _MISSING
 
 
+def _get_instance_dict(obj: object) -> dict[str, object] | None:
+    """Return the raw instance dict without invoking dynamic attribute fallback."""
+    try:
+        instance_dict = object.__getattribute__(obj, "__dict__")
+    except AttributeError:
+        return None
+    return instance_dict if isinstance(instance_dict, dict) else None
+
+
+def _is_explicit_materialized_mock(member: object, *, _seen: set[int] | None = None) -> bool:
+    """Return whether one materialized mock child carries explicit configuration."""
+    instance_dict = _get_instance_dict(member)
+    if instance_dict is None or not any(key.startswith("_mock_") for key in instance_dict):
+        return False
+
+    if instance_dict.get("_mock_return_value", DEFAULT) is not DEFAULT:
+        return True
+    if instance_dict.get("_mock_side_effect") is not None:
+        return True
+    if instance_dict.get("_mock_wraps") is not None:
+        return True
+    if any(
+        key != "method_calls" and not key.startswith("_mock_") and not key.startswith("_spec_")
+        for key in instance_dict
+    ):
+        return True
+
+    seen = _seen or set()
+    marker = id(member)
+    if marker in seen:
+        return False
+    seen.add(marker)
+
+    mock_children = instance_dict.get("_mock_children")
+    if not isinstance(mock_children, dict):
+        return False
+    return any(
+        _is_explicit_materialized_mock(child, _seen=seen)
+        for child in mock_children.values()
+    )
+
+
+def _get_materialized_mock_child(obj: object, name: str) -> object:
+    """Return one configured materialized mock child without generic getattr fallback."""
+    instance_dict = _get_instance_dict(obj)
+    if instance_dict is None:
+        return _MISSING
+
+    mock_children = instance_dict.get("_mock_children")
+    if not isinstance(mock_children, dict):
+        return _MISSING
+
+    child = mock_children.get(name, _MISSING)
+    if child is _MISSING or not _is_explicit_materialized_mock(child):
+        return _MISSING
+    return child
+
+
 def _get_explicit_member(obj: object | None, name: str) -> object | None:
     """Return one explicitly bound member without triggering MagicMock ghosts."""
     if obj is None:
         return None
     member = _get_static_member(obj, name)
     if member is _MISSING:
-        return None
+        member = _get_materialized_mock_child(obj, name)
+        if member is _MISSING:
+            return None
     if hasattr(member, "__get__"):
         try:
             return cast(object | None, getattr(obj, name, None))

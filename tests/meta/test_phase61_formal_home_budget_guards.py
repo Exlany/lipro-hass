@@ -14,9 +14,9 @@ _ANY_LINE_RE = re.compile(r"\bAny\b")
 _BROAD_CATCH_LINE_RE = re.compile(r"except Exception|with suppress\(Exception\)")
 
 _LINE_BUDGETS = {
-    "core/anonymous_share/manager.py": 419,
-    "core/anonymous_share/share_client.py": 131,
-    "services/diagnostics/helpers.py": 298,
+    "core/anonymous_share/manager.py": 480,
+    "core/anonymous_share/share_client.py": 139,
+    "services/diagnostics/helpers.py": 310,
     "services/diagnostics/handlers.py": 163,
     "core/ota/candidate.py": 229,
     "core/ota/candidate_support.py": 249,

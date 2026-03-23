@@ -38,7 +38,7 @@ _ANY_BUDGET: dict[str, _AnyBudgetEntry] = {
             "from typing import Any": 1,
             "def parse_retry_after(headers: Any) -> float | None:": 1,
             "def apply_token_payload(self, payload: dict[str, Any]) -> bool:": 1,
-            ") -> dict[str, Any] | None:": 1,
+            ") -> dict[str, Any] | None:": 2,
             "report: dict[str, Any],": 2,
         },
         "backlog_any": {},

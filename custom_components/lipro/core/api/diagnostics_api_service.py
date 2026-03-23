@@ -7,8 +7,6 @@ from dataclasses import dataclass
 import logging
 from typing import cast
 
-from custom_components.lipro.core.api.types import JsonObject, JsonValue, OtaInfoRow
-
 from ...const.api import (
     PATH_FETCH_BODY_SENSOR_HISTORY,
     PATH_FETCH_DOOR_SENSOR_HISTORY,
@@ -25,6 +23,7 @@ from ..telemetry.models import (
     build_operation_outcome_from_exception,
 )
 from ..utils.log_safety import safe_error_placeholder
+from .types import JsonObject, JsonValue, OtaInfoRow
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -153,6 +152,105 @@ def _resolve_ota_query_outcome(
     return build_operation_outcome(kind="success", reason_code="ota_query_complete")
 
 
+async def _query_ota_rows(
+    *,
+    iot_request: IotRequest,
+    extract_data_list: ExtractDataList,
+    lipro_api_error: type[Exception],
+    path: str,
+    payload: RequestPayload,
+) -> tuple[list[OtaInfoRow], Exception | None]:
+    """Query one OTA endpoint and normalize rows plus terminal error."""
+    try:
+        result = await iot_request(path, payload)
+    except lipro_api_error as err:
+        _LOGGER.debug(
+            "OTA endpoint %s failed (%s)",
+            path,
+            safe_error_placeholder(err),
+        )
+        return [], err
+    return _valid_ota_rows(extract_data_list(result)), None
+
+
+async def _query_rich_v2_ota_rows(
+    *,
+    iot_request: IotRequest,
+    extract_data_list: ExtractDataList,
+    is_invalid_param_error_code: InvalidParamCodeChecker,
+    lipro_api_error: type[Exception],
+    payload: RequestPayload,
+) -> tuple[list[OtaInfoRow], OperationOutcome | None, Exception | None]:
+    """Query the richer OTA v2 payload and classify degraded outcomes."""
+    try:
+        result = await iot_request(PATH_QUERY_OTA_INFO_V2, payload)
+    except lipro_api_error as err:
+        code = getattr(err, "code", None)
+        if is_invalid_param_error_code(code):
+            _LOGGER.debug(
+                "OTA endpoint %s rejected richer payload (code=%s, err=%s)",
+                PATH_QUERY_OTA_INFO_V2,
+                code,
+                safe_error_placeholder(err),
+            )
+            return [], _api_error_outcome(
+                err,
+                kind="degraded",
+                reason_code="rich_v2_invalid_param",
+            ), err
+
+        _LOGGER.debug(
+            "OTA endpoint %s richer payload failed (%s)",
+            PATH_QUERY_OTA_INFO_V2,
+            safe_error_placeholder(err),
+        )
+        return [], _api_error_outcome(
+            err,
+            kind="degraded",
+            reason_code="rich_v2_failed",
+        ), err
+
+    return _valid_ota_rows(extract_data_list(result)), None, None
+
+
+async def _query_controller_ota_rows(
+    *,
+    iot_request: IotRequest,
+    extract_data_list: ExtractDataList,
+    is_invalid_param_error_code: InvalidParamCodeChecker,
+    lipro_api_error: type[Exception],
+) -> tuple[list[OtaInfoRow], OperationOutcome | None]:
+    """Query controller OTA rows and classify degraded fallback outcomes."""
+    try:
+        controller_result = await iot_request(PATH_QUERY_CONTROLLER_OTA, {})
+    except lipro_api_error as err:
+        code = getattr(err, "code", None)
+        if is_invalid_param_error_code(code):
+            _LOGGER.debug(
+                "Controller OTA endpoint rejected payload (code=%s, err=%s)",
+                code,
+                safe_error_placeholder(err),
+            )
+            return [], _api_error_outcome(
+                err,
+                kind="degraded",
+                reason_code="controller_invalid_param",
+            )
+
+        _LOGGER.debug(
+            "Controller OTA endpoint %s failed (%s)",
+            PATH_QUERY_CONTROLLER_OTA,
+            safe_error_placeholder(err),
+        )
+        return [], _api_error_outcome(
+            err,
+            kind="degraded",
+            reason_code="controller_failed",
+        )
+
+    return _valid_ota_rows(extract_data_list(controller_result)), None
+
+
 async def query_command_result(
     *,
     request_iot_mapping: RequestIotMapping,
@@ -230,69 +328,47 @@ async def query_ota_info_with_outcome(
     rich_v2_outcome: OperationOutcome | None = None
     controller_outcome: OperationOutcome | None = None
 
-    try:
-        result = await iot_request(PATH_QUERY_OTA_INFO, ota_payload)
-    except lipro_api_error as err:
-        ota_error = err
+    v1_rows, v1_error = await _query_ota_rows(
+        iot_request=iot_request,
+        extract_data_list=extract_data_list,
+        lipro_api_error=lipro_api_error,
+        path=PATH_QUERY_OTA_INFO,
+        payload=ota_payload,
+    )
+    if v1_error is not None:
+        ota_error = v1_error
         v1_failed = True
-        _LOGGER.debug(
-            "OTA endpoint %s failed (%s)",
-            PATH_QUERY_OTA_INFO,
-            safe_error_placeholder(err),
-        )
     else:
-        v1_rows = _valid_ota_rows(extract_data_list(result))
         _merge_ota_rows(merged_rows, seen_keys, v1_rows)
         ota_success = True
 
-    try:
-        result = await iot_request(PATH_QUERY_OTA_INFO_V2, ota_payload)
-    except lipro_api_error as err:
-        ota_error = err
+    v2_rows, v2_error = await _query_ota_rows(
+        iot_request=iot_request,
+        extract_data_list=extract_data_list,
+        lipro_api_error=lipro_api_error,
+        path=PATH_QUERY_OTA_INFO_V2,
+        payload=ota_payload,
+    )
+    if v2_error is not None:
+        ota_error = v2_error
         v2_failed = True
-        _LOGGER.debug(
-            "OTA endpoint %s failed (%s)",
-            PATH_QUERY_OTA_INFO_V2,
-            safe_error_placeholder(err),
-        )
     else:
         ota_success = True
-        v2_rows = _valid_ota_rows(extract_data_list(result))
         _merge_ota_rows(merged_rows, seen_keys, v2_rows)
         if not v1_rows and not v2_rows and rich_v2_payload is not None:
-            try:
-                rich_v2_result = await iot_request(PATH_QUERY_OTA_INFO_V2, rich_v2_payload)
-            except lipro_api_error as err:
-                ota_error = err
-                code = getattr(err, "code", None)
-                if is_invalid_param_error_code(code):
-                    _LOGGER.debug(
-                        "OTA endpoint %s rejected richer payload (code=%s, err=%s)",
-                        PATH_QUERY_OTA_INFO_V2,
-                        code,
-                        safe_error_placeholder(err),
-                    )
-                    rich_v2_outcome = _api_error_outcome(
-                        err,
-                        kind="degraded",
-                        reason_code="rich_v2_invalid_param",
-                    )
-                else:
-                    _LOGGER.debug(
-                        "OTA endpoint %s richer payload failed (%s)",
-                        PATH_QUERY_OTA_INFO_V2,
-                        safe_error_placeholder(err),
-                    )
-                    rich_v2_outcome = _api_error_outcome(
-                        err,
-                        kind="degraded",
-                        reason_code="rich_v2_failed",
-                    )
-            else:
+            rich_v2_rows, rich_v2_outcome, rich_v2_error = await _query_rich_v2_ota_rows(
+                iot_request=iot_request,
+                extract_data_list=extract_data_list,
+                is_invalid_param_error_code=is_invalid_param_error_code,
+                lipro_api_error=lipro_api_error,
+                payload=rich_v2_payload,
+            )
+            if rich_v2_error is None:
                 ota_success = True
-                rich_v2_rows = _valid_ota_rows(extract_data_list(rich_v2_result))
                 _merge_ota_rows(merged_rows, seen_keys, rich_v2_rows)
                 rich_v2_recovered = bool(rich_v2_rows)
+            else:
+                ota_error = rich_v2_error
 
     if not ota_success and ota_error is not None:
         return OtaQueryResult(
@@ -305,34 +381,13 @@ async def query_ota_info_with_outcome(
             error=ota_error,
         )
 
-    try:
-        controller_result = await iot_request(PATH_QUERY_CONTROLLER_OTA, {})
-    except lipro_api_error as err:
-        code = getattr(err, "code", None)
-        if is_invalid_param_error_code(code):
-            _LOGGER.debug(
-                "Controller OTA endpoint rejected payload (code=%s, err=%s)",
-                code,
-                safe_error_placeholder(err),
-            )
-            controller_outcome = _api_error_outcome(
-                err,
-                kind="degraded",
-                reason_code="controller_invalid_param",
-            )
-        else:
-            _LOGGER.debug(
-                "Controller OTA endpoint %s failed (%s)",
-                PATH_QUERY_CONTROLLER_OTA,
-                safe_error_placeholder(err),
-            )
-            controller_outcome = _api_error_outcome(
-                err,
-                kind="degraded",
-                reason_code="controller_failed",
-            )
-    else:
-        _merge_ota_rows(merged_rows, seen_keys, extract_data_list(controller_result))
+    controller_rows, controller_outcome = await _query_controller_ota_rows(
+        iot_request=iot_request,
+        extract_data_list=extract_data_list,
+        is_invalid_param_error_code=is_invalid_param_error_code,
+        lipro_api_error=lipro_api_error,
+    )
+    _merge_ota_rows(merged_rows, seen_keys, controller_rows)
 
     outcome = _resolve_ota_query_outcome(
         primary_failure_recovered=(v1_failed or v2_failed) and ota_success,

@@ -10,8 +10,6 @@ from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.exceptions import ServiceValidationError
 
 from ..core.api.errors import LiproApiError
-from ..core.api.schedule_codec import coerce_int_list
-from ..core.api.types import ScheduleTimingRow
 from ..core.utils.identifiers import normalize_iot_device_id
 from ..core.utils.redaction import redact_identifier as _redact_identifier
 from ..runtime_types import ProtocolServiceLike
@@ -23,6 +21,7 @@ from .execution import (
 
 _ResultT = TypeVar("_ResultT")
 _NormalizedSchedule = dict[str, object]
+type ScheduleTimingRow = dict[str, object]
 ScheduleRows = list[ScheduleTimingRow]
 GetDeviceAndCoordinator = Callable[
     [HomeAssistant, ServiceCall],
@@ -49,6 +48,36 @@ class ScheduleCoordinator(AuthenticatedCoordinator, Protocol):
         """Return the formal runtime-owned protocol capability service."""
 
 
+def _coerce_schedule_int_item(item: object) -> int | None:
+    """Coerce one schedule payload item into an integer when safe."""
+    if isinstance(item, bool):
+        return None
+    if isinstance(item, int):
+        return item
+    if isinstance(item, float):
+        return int(item) if item.is_integer() else None
+    if isinstance(item, str):
+        normalized = item.strip()
+        if normalized.lstrip("+-").isdigit():
+            try:
+                return int(normalized)
+            except ValueError:
+                return None
+    return None
+
+
+def _coerce_schedule_int_list(value: object) -> list[int]:
+    """Convert mixed schedule payload lists into a clean integer list."""
+    if not isinstance(value, list):
+        return []
+
+    result: list[int] = []
+    for item in value:
+        if (coerced := _coerce_schedule_int_item(item)) is not None:
+            result.append(coerced)
+    return result
+
+
 def format_schedule_time(seconds: int) -> str | None:
     """Convert seconds since midnight to HH:MM, ignoring invalid values."""
     if seconds < 0 or seconds >= 86400:
@@ -61,8 +90,8 @@ def format_schedule_time(seconds: int) -> str | None:
 
 def _normalize_schedule_time_events(sched_info: Mapping[str, Any]) -> tuple[list[str], list[int]]:
     """Normalize schedule time/event pairs while preserving pair alignment."""
-    times = coerce_int_list(sched_info.get("time"))
-    events = coerce_int_list(sched_info.get("evt"))
+    times = _coerce_schedule_int_list(sched_info.get("time"))
+    events = _coerce_schedule_int_list(sched_info.get("evt"))
 
     normalized_times: list[str] = []
     normalized_events: list[int] = []
@@ -85,7 +114,7 @@ def normalize_schedule_row(schedule: object) -> _NormalizedSchedule | None:
         sched_info = {}
 
     time_strs, events = _normalize_schedule_time_events(sched_info)
-    days = coerce_int_list(sched_info.get("days"))
+    days = _coerce_schedule_int_list(sched_info.get("days"))
 
     return {
         "id": schedule.get("id"),

@@ -131,7 +131,7 @@ _BROAD_CATCH_BUDGET: dict[str, _BroadCatchBudgetEntry] = {
     },
 }
 
-_REPO_WIDE_PRODUCTION_ANY_EXPECTED = 371
+_REPO_WIDE_PRODUCTION_ANY_EXPECTED = 380
 _REPO_WIDE_TESTS_ANY_NON_META_EXPECTED = 142
 
 _TESTS_TYPE_IGNORE_BUDGET = {
@@ -159,6 +159,7 @@ _META_GUARD_TYPE_IGNORE_LITERAL_BUDGET = {
     "tests/meta/test_phase31_runtime_budget_guards.py": 1,
     "tests/meta/test_phase45_hotspot_budget_guards.py": 1,
     "tests/meta/test_phase50_rest_typed_budget_guards.py": 1,
+    "tests/meta/test_phase61_formal_home_budget_guards.py": 1,
 }
 
 

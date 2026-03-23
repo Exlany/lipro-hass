@@ -204,6 +204,30 @@ def test_find_runtime_device_and_coordinator_prefers_formal_lookup_helpers(hass)
     coordinator.get_device_by_id.assert_called_once_with("alias")
 
 
+def test_find_runtime_device_and_coordinator_accepts_configured_materialized_mock_children(
+    hass,
+) -> None:
+    from custom_components.lipro.control.runtime_access import (
+        find_runtime_device_and_coordinator,
+    )
+
+    device = MagicMock(name="device")
+    entry = MockConfigEntry(domain=DOMAIN, options={})
+    coordinator = MagicMock(name="runtime")
+    coordinator.get_device.return_value = None
+    coordinator.get_device_by_id.return_value = device
+    coordinator.devices = {}
+    entry.runtime_data = coordinator
+    entry.add_to_hass(hass)
+
+    assert find_runtime_device_and_coordinator(hass, device_id="alias") == (
+        device,
+        coordinator,
+    )
+    coordinator.get_device.assert_called_once_with("alias")
+    coordinator.get_device_by_id.assert_called_once_with("alias")
+
+
 @pytest.mark.asyncio
 async def test_service_router_support_resolves_device_via_service_and_runtime_bridges(
     hass,
