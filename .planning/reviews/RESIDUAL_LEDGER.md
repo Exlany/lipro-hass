@@ -8,6 +8,12 @@ _None currently registered._
 
 ## Closed Residual Families
 
+- `Runtime-access mixed helper cluster` 已在 Phase 70 关闭：`custom_components/lipro/control/runtime_access_support.py` 已 inward split 为 `runtime_access_support_{members,telemetry,views,devices}.py`，而 `runtime_access.py` 继续保持唯一 outward runtime read home。
+
+- `Anonymous-share / OTA duplicated query-selection choreography` 已在 Phase 70 关闭：`share_client_flows.py` 现仅保留薄 orchestration shell，`share_client_{ports,refresh,submit}.py` 与 `core/ota/query_support.py` 吸收了 shared submit/refresh/query truth，`firmware_update.py` 也不再保留 entity-local OTA arbitration choreography。
+
+- `Archive-vs-current version truth drift and governance mega-test sprawl` 已在 Phase 70 关闭：`test_version_sync.py` 不再读取 archived phase/evidence 内容，`governance_contract_helpers.py` 与 topicized current-milestone/archive suites 继续把 latest-evidence pointer 与 active-route truth 固定到 current docs / runbook / registry。
+
 - `Runtime-access reflective probing` 已在 Phase 65 关闭：`custom_components/lipro/control/runtime_access_support.py` 现只承认显式 instance/class members 与 typed runtime views，`MagicMock` 幽灵成员不再定义生产真相。
 
 - `Runtime identity alias extras sidecar` 已在 Phase 65 关闭：`custom_components/lipro/core/coordinator/runtime/device/snapshot.py` 现把 alias 真相投影为 `FetchedDeviceSnapshot.identity_aliases_by_serial`，`state/index.py` 也不再读取 `device.extra_data["identity_aliases"]`。

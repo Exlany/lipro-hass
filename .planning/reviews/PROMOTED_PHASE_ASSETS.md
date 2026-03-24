@@ -237,6 +237,15 @@ phases:
     - 69-SUMMARY.md
     - 69-VERIFICATION.md
     - 69-VALIDATION.md
+  70-support-seam-slimming-ota-resolver-consolidation-and-governance-test-topicization:
+    - 70-01-SUMMARY.md
+    - 70-02-SUMMARY.md
+    - 70-03-SUMMARY.md
+    - 70-04-SUMMARY.md
+    - 70-05-SUMMARY.md
+    - 70-SUMMARY.md
+    - 70-VERIFICATION.md
+    - 70-VALIDATION.md
 
 ---
 

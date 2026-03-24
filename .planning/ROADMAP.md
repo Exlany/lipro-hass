@@ -144,7 +144,7 @@ Plans:
   2. runtime 对设备集合的对外访问不再暴露 live mutable dict；平台/diagnostics/helpers 改走只读 view 或正式 service contract。
   3. outlet power 不再通过 `device.extra_data["power_info"]` 旁写作为正式路径；实体/diagnostics/runtime 共用同一正式 primitive，并保留必要迁移兼容与回归证明。
   4. compat exports、governance matrices、residual/delete gate 与 meta/public-surface guards 全部同步，防止 residual surface 回流。
-**Plans**: 5 plans
+**Plans**: 5/5 complete
 
 Plans:
 - [x] 09-01: 收窄 protocol root surface 与 compat exports
@@ -334,19 +334,18 @@ Plans:
 
 ## Current Milestone
 
-### 🟢 v1.9: Shared Backoff Neutralization & Cross-Plane Retry Hygiene
+### 🟢 v1.18: Support-Seam Slimming, OTA Resolver Consolidation & Governance Test Topicization
 
-**Milestone Goal:** 在不重开第二条 root / retry-policy story 的前提下，把 generic exponential backoff primitive 从 `request_policy.py` 的跨平面 utility 泄漏中抽离，迁入 neutral shared helper home，并将 residual closeout 固化为 machine-checkable current truth。
+**Milestone Goal:** 基于 `v1.17` archived baseline，把 repo-wide 终审锁定的剩余热点继续 inward split：收瘦 `runtime_access_support.py` 的反射 read-model seam、拆解 `share_client_flows.py`、统一 OTA query/selection helper，冻结 archive 与 current-doc version truth 的边界，并把治理 mega-tests 进一步 topicize 到 concern-oriented contracts。
 
-**Execution Scope:** `Phase 56`（1 phase / 3 plans）
+**Execution Scope:** `Phase 70`（1 phase / 5 plans）
 
-**Current Status:** `Phase 56` 已于 `2026-03-22` 完成执行与验证；`custom_components/lipro/core/utils/backoff.py` 现成为 neutral shared exponential-backoff primitive home，`RequestPolicy` 只再承担 API-local `429` / busy / pacing truth，而 `command` / `runtime` / `mqtt` callers 已切断对 `request_policy.py` 的 generic helper 依赖。默认下一步是执行 `$gsd-complete-milestone v1.9`。
+**Current Status:** `Phase 70` complete / closeout-ready（2026-03-24）；默认下一步是 `$gsd-next`。
 
 **Milestone Outcomes:**
-1. `Generic backoff helper leak` 已从 active residual family 转为 closed residual，且关闭理由已写回 baseline / review truth。
-2. `RequestPolicy` 的 ownership 更诚实：API policy truth 留在 API plane，neutral primitive 则进入 `core/utils/backoff.py`。
-3. `v1.9` 当前故事、promoted phase assets 与 focused meta guards 已同步收口到 `Phase 56` closeout。
-
+1. runtime-entry access、anonymous-share submit flow 与 OTA query/selection helper 会继续 inward split，而不会重开第二 root / second story。
+2. archive / latest-evidence / version-sync 守卫会只绑定 current mutable docs，历史 phase/evidence 资产真正冻结。
+3. 治理 mega-tests 与 release/archive assertions 会进一步 concern-oriented topicization，降低 maintenance blast radius。
 
 ### Phase 18: Host-Neutral Boundary Nucleus Extraction
 **Goal**: 把 boundary/auth/device 方向中已成熟的 host-neutral nucleus 从 HA adapter 语义中继续抽离，但不新建第二条 runtime story。
@@ -1290,6 +1289,25 @@ Plans:
 - [x] 69-03: rebalance checker coverage, integration depth, and meta-shell maintainability (completed 2026-03-24)
 - [x] 69-04: align honest open-source metadata, docs, and continuity contract (completed 2026-03-24)
 - [x] 69-05: freeze v1.17 governance and verification truth without rewriting Phase 68 (completed 2026-03-24)
+
+### Phase 70: Support-seam slimming, OTA resolver consolidation, and governance test topicization
+
+**Goal:** 基于 `v1.17` archived baseline，把 runtime-access、anonymous-share 与 OTA 的剩余高密度 helper families 再 inward split 一轮，同时冻结 archive-vs-current version truth 的边界，并把治理 mega-tests 继续 topicize 到更可维护的 concern-oriented contracts。
+**Depends on:** Phase 69
+**Requirements**: [GOV-54, ARC-17, HOT-28, HOT-29, OSS-10, TST-20, QLT-28]
+**Success Criteria**:
+  1. `runtime_access_support.py`、`share_client_flows.py` 与 OTA query/selection helper 的 decision density 明显下降，且不引入新的 outward root / second story。
+  2. `test_version_sync.py` 只守 current mutable version truth，archive frozen contract 回归 archive/milestone test families；release/archive/version concern 的重复断言得到 topicization。
+  3. planning / baseline / review / docs 真源与 focused gates 同轮更新并全绿，证明本轮 closeout 可验证而非 conversation-only cleanup。
+**Status**: Complete (`2026-03-24`)
+**Plans**: 5 plans
+
+Plans:
+- [x] 70-01: freeze the audit, validation contract, and phase-70 hotspot/governance guards (completed 2026-03-24)
+- [x] 70-02: inward split runtime-access support helpers without reopening second roots (completed 2026-03-24)
+- [x] 70-03: decompose anonymous-share submit flows and converge OTA shared helpers (completed 2026-03-24)
+- [x] 70-04: topicize governance tests and freeze archive-vs-current version truth boundaries (completed 2026-03-24)
+- [x] 70-05: sync planning-baseline truths and run the final phase gate (completed 2026-03-24)
 
 ## v1.15: Typed Contract Convergence, Tooling Kernel Hardening & Mypy Closure
 

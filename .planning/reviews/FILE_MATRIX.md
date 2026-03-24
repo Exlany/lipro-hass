@@ -1,6 +1,6 @@
 # File Matrix
 
-**Python files total:** 606
+**Python files total:** 616
 **Status:** File-level governance authority
 **Rule:** workspace inventory excluding caches / virtual env / tooling artifacts
 
@@ -31,6 +31,10 @@
 | `custom_components/lipro/control/redaction.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/control/runtime_access.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/control/runtime_access_support.py` | Control | Phase 3 | 保留 | runtime-access helper home; explicit entry/coordinator member projection, no mock-child / `__dict__` truth |
+| `custom_components/lipro/control/runtime_access_support_devices.py` | Control | Phase 70 | 保留 | runtime device lookup / debug-mode helper home |
+| `custom_components/lipro/control/runtime_access_support_members.py` | Control | Phase 70 | 保留 | explicit runtime-member probe helper home |
+| `custom_components/lipro/control/runtime_access_support_telemetry.py` | Control | Phase 70 | 保留 | runtime/protocol telemetry projection helper home |
+| `custom_components/lipro/control/runtime_access_support_views.py` | Control | Phase 70 | 保留 | runtime entry/coordinator view builder home |
 | `custom_components/lipro/control/runtime_access_types.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/control/service_registry.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/control/service_router.py` | Control | Phase 3 / 14 / 15 / 37 | 保留 | public router shell over focused handler/support collaborators |
@@ -53,6 +57,9 @@
 | `custom_components/lipro/core/anonymous_share/sanitize.py` | Protocol | Phase 2.6 | 保留 | - |
 | `custom_components/lipro/core/anonymous_share/share_client.py` | Protocol | Phase 2.6 | 保留 | - |
 | `custom_components/lipro/core/anonymous_share/share_client_flows.py` | Protocol | Phase 2.6 | 保留 | - |
+| `custom_components/lipro/core/anonymous_share/share_client_ports.py` | Protocol | Phase 70 | 保留 | typed share-client callable / attempt port home |
+| `custom_components/lipro/core/anonymous_share/share_client_refresh.py` | Protocol | Phase 70 | 保留 | token refresh orchestration helper home |
+| `custom_components/lipro/core/anonymous_share/share_client_submit.py` | Protocol | Phase 70 | 保留 | submit attempt / outcome resolution helper home |
 | `custom_components/lipro/core/anonymous_share/share_client_support.py` | Protocol | Phase 2.6 | 保留 | - |
 | `custom_components/lipro/core/anonymous_share/storage.py` | Protocol | Phase 2.6 | 保留 | - |
 | `custom_components/lipro/core/api/__init__.py` | Protocol | Phase 2.5 / 12 | 重构 | - |
@@ -209,6 +216,7 @@
 | `custom_components/lipro/core/ota/candidate.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/core/ota/candidate_support.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/core/ota/manifest.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `custom_components/lipro/core/ota/query_support.py` | Cross-cutting | Phase 70 | 保留 | shared OTA query merge / dedupe helper home |
 | `custom_components/lipro/core/ota/row_selector.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/core/ota/rows_cache.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/core/protocol/__init__.py` | Protocol | Phase 2.5 | 保留 | - |
@@ -524,6 +532,7 @@
 | `tests/integration/test_telemetry_exporter_integration.py` | Runtime | Phase 7.3 | 保留 | - |
 | `tests/meta/__init__.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/conftest.py` | Assurance | Phase 6 | 保留 | - |
+| `tests/meta/governance_contract_helpers.py` | Assurance | Phase 70 | 保留 | shared latest-evidence / runbook assertion helper home |
 | `tests/meta/governance_followup_route_closeouts.py` | Assurance | Phase 59 | 保留 | followup-route closeout topic home |
 | `tests/meta/governance_followup_route_continuation.py` | Assurance | Phase 59 | 保留 | followup-route continuation topic home |
 | `tests/meta/governance_followup_route_current_milestones.py` | Assurance | Phase 59 | 保留 | followup-route current-milestone topic home |
@@ -557,6 +566,7 @@
 | `tests/meta/test_phase62_naming_discoverability_guards.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_phase68_hotspot_budget_guards.py` | Assurance | Phase 68 | 保留 | review-fed hotspot regrowth and MQTT authority guard bundle |
 | `tests/meta/test_phase69_support_budget_guards.py` | Assurance | Phase 69 | 保留 | Phase 69 residual locality / no-growth guard bundle |
+| `tests/meta/test_phase70_governance_hotspot_guards.py` | Assurance | Phase 70 | 保留 | Phase 70 hotspot / helper-locality / archive-freeze guard bundle |
 | `tests/meta/test_protocol_replay_assets.py` | Assurance | Phase 7.4 | 保留 | - |
 | `tests/meta/test_public_surface_guards.py` | Assurance | Phase 6 | 保留 | thin shell after public-surface topicization |
 | `tests/meta/test_service_translation_sync.py` | Assurance | Phase 6 | 保留 | - |

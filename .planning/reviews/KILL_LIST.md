@@ -36,6 +36,11 @@
 - 本 phase **无新增 file-level kill target**：本轮收口的是 `runtime_access_support.py` 反射味、runtime alias sidecar 与 anonymous-share bool-only submit bridge，这些都在原正式 home 内被消解，而不是通过新增删除门槛维持。
 - `RESIDUAL_LEDGER.md` 已同步登记三个 closeout family；`KILL_LIST` 继续保持“无新增待删文件”的 truthful 状态。
 
+## Phase 70 Status Update
+
+- 本 phase **无新增 file-level kill target**：`runtime_access_support_{members,telemetry,views,devices}.py`、`share_client_{ports,refresh,submit}.py` 与 `core/ota/query_support.py` 都是既有 formal homes 的 inward helper cluster，不是 future delete campaign 的权宜 compat shell。
+- archive/version/governance 的收口通过 authority / tests / docs freeze 完成，没有为了“看起来在清理”而伪造新的 delete gate。
+
 ## Phase 01 Closeout Review
 
 - 已检查 kill list 与 Phase 01 baseline 产物的关系，本次**无新增删除项**。

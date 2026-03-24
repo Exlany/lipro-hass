@@ -28,14 +28,10 @@ from ..core.ota.candidate import (
     has_pending_confirmation,
     project_candidate,
 )
-from ..core.ota.row_selector import (
-    OtaDeviceFingerprint,
-    arbitrate_rows,
-    build_device_fingerprint,
-)
+from ..core.ota.row_selector import OtaDeviceFingerprint, build_device_fingerprint
 from ..core.ota.rows_cache import (
     OtaRowsCacheKey,
-    async_get_rows_with_shared_cache,
+    async_select_row_with_shared_cache,
     build_ota_rows_cache_key,
     normalize_ota_rows,
 )
@@ -289,14 +285,6 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
         )
         return normalize_ota_rows(rows)
 
-    async def _query_ota_rows_with_shared_cache(self) -> tuple[list[OtaRow], bool]:
-        """Fetch OTA rows through the shared cache without local arbitration."""
-        return await async_get_rows_with_shared_cache(
-            self._ota_rows_cache_key(),
-            fetcher=self._query_ota_rows_from_cloud,
-            now=dt_util.utcnow,
-        )
-
     async def _async_refresh_ota(self, *, force: bool) -> None:
         """Refresh OTA metadata from cloud."""
         if not force and not self._should_refresh_ota():
@@ -304,20 +292,12 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
 
         async with _OTA_REFRESH_SEMAPHORE:
             try:
-                rows, from_cache = await self._query_ota_rows_with_shared_cache()
-                arbitration = arbitrate_rows(
-                    rows,
+                selected_row = await async_select_row_with_shared_cache(
+                    self._ota_rows_cache_key(),
+                    fetcher=self._query_ota_rows_from_cloud,
+                    now=dt_util.utcnow,
                     fingerprint=self._ota_device_fingerprint(),
-                    from_cache=from_cache,
                 )
-                if arbitration.should_retry_without_cache:
-                    rows = await self._query_ota_rows_from_cloud()
-                    arbitration = arbitrate_rows(
-                        rows,
-                        fingerprint=self._ota_device_fingerprint(),
-                        from_cache=False,
-                    )
-                selected_row = arbitration.selected_row
             except LiproApiError as err:
                 _LOGGER.debug(
                     "Failed to refresh OTA info for %s: %s",

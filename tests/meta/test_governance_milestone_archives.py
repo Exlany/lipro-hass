@@ -2,6 +2,10 @@
 
 from __future__ import annotations
 
+from .governance_contract_helpers import (
+    assert_pull_only_evidence_index,
+    assert_runbook_points_to_latest_evidence,
+)
 from .test_governance_closeout_guards import _ROOT, _assert_promoted_phase_assets
 
 
@@ -162,7 +166,8 @@ def test_milestone_archive_snapshots_exist_and_are_referenced() -> None:
         assert needle in requirements_text or needle in project_text or needle in milestones_text
 
     assert "v1.16-MILESTONE-AUDIT.md" in state_text
-    assert "$gsd-new-milestone" in state_text
+    assert "$gsd-next" in state_text
+    assert "v1.18 / Phase 70" in state_text
     assert "archived / evidence-ready" in milestones_text
     assert "archived snapshots created / handoff-ready" in milestones_text
     assert "revalidated 2026-03-17" in milestones_text
@@ -331,13 +336,14 @@ def test_v1_15_closeout_assets_exist_and_are_pull_only() -> None:
         "67-VERIFICATION.md",
     )
 
-    evidence_text = evidence_index.read_text(encoding="utf-8")
-    assert "## Pull Contract" in evidence_text
-    assert "67-SUMMARY.md" in evidence_text
-    assert "67-VERIFICATION.md" in evidence_text
-    assert "67-VALIDATION.md" in evidence_text
-    assert "archived / evidence-ready" in evidence_text
-    assert "V1_15_EVIDENCE_INDEX.md" in evidence_text
+    assert_pull_only_evidence_index(
+        evidence_index,
+        "67-SUMMARY.md",
+        "67-VERIFICATION.md",
+        "67-VALIDATION.md",
+        "archived / evidence-ready",
+        "V1_15_EVIDENCE_INDEX.md",
+    )
 
 
 def test_v1_16_closeout_assets_exist_and_are_pull_only() -> None:
@@ -354,13 +360,14 @@ def test_v1_16_closeout_assets_exist_and_are_pull_only() -> None:
         "68-VERIFICATION.md",
     )
 
-    evidence_text = evidence_index.read_text(encoding="utf-8")
-    assert "## Pull Contract" in evidence_text
-    assert "68-SUMMARY.md" in evidence_text
-    assert "68-VERIFICATION.md" in evidence_text
-    assert "68-VALIDATION.md" in evidence_text
-    assert "carry-forward" in evidence_text
-    assert "V1_16_EVIDENCE_INDEX.md" in evidence_text
+    assert_pull_only_evidence_index(
+        evidence_index,
+        "68-SUMMARY.md",
+        "68-VERIFICATION.md",
+        "68-VALIDATION.md",
+        "carry-forward",
+        "V1_16_EVIDENCE_INDEX.md",
+    )
 
 
 def test_v1_17_closeout_assets_exist_and_are_pull_only() -> None:
@@ -377,13 +384,14 @@ def test_v1_17_closeout_assets_exist_and_are_pull_only() -> None:
         "69-VERIFICATION.md",
     )
 
-    evidence_text = evidence_index.read_text(encoding="utf-8")
-    assert "## Pull Contract" in evidence_text
-    assert "69-SUMMARY.md" in evidence_text
-    assert "69-VERIFICATION.md" in evidence_text
-    assert "69-VALIDATION.md" in evidence_text
-    assert "archived / evidence-ready" in evidence_text
-    assert "V1_17_EVIDENCE_INDEX.md" in evidence_text
+    assert_pull_only_evidence_index(
+        evidence_index,
+        "69-SUMMARY.md",
+        "69-VERIFICATION.md",
+        "69-VALIDATION.md",
+        "archived / evidence-ready",
+        "V1_17_EVIDENCE_INDEX.md",
+    )
 
 
 def test_governance_truth_registers_v1_14_archive_lineage() -> None:
@@ -426,10 +434,13 @@ def test_governance_truth_registers_v1_17_latest_archive_pointer() -> None:
     assert "## v1.17 Residual Formalization, Quality-Balance Hardening & Open-Source Contract Closure" in milestones_text
     assert ".planning/reviews/V1_17_EVIDENCE_INDEX.md" in milestones_text
     assert ".planning/reviews/V1_17_EVIDENCE_INDEX.md" in docs_text
-    assert "当前无 active milestone route" in docs_text
-    assert "v1.17 / Phase 69" not in docs_text
-    assert "V1_17_EVIDENCE_INDEX.md" in runbook_text
-    assert "$gsd-new-milestone" in project_text
-    assert "$gsd-new-milestone" in state_text
-    assert "No active milestone route" in project_text
-    assert "**Current mode:** `v1.17 archived`" in state_text
+    assert "v1.18 / Phase 70" in docs_text
+    assert_runbook_points_to_latest_evidence(
+        runbook_text,
+        "V1_17_EVIDENCE_INDEX.md",
+        deprecated=("V1_6_EVIDENCE_INDEX.md",),
+    )
+    assert "$gsd-next" in project_text
+    assert "$gsd-next" in state_text
+    assert "Current Milestone (v1.18)" in project_text
+    assert "**Current mode:** `v1.18 active / Phase 70 complete / closeout-ready`" in state_text

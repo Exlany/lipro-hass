@@ -1,9 +1,28 @@
 # Project: Lipro-HASS North Star Evolution
 
-**Status:** No active milestone route；latest archived closeout pointer = `.planning/reviews/V1_17_EVIDENCE_INDEX.md`.
-**Goal:** 保持 `v1.17` 的 archived closeout evidence、milestone snapshots 与 `Phase 69` closeout package 作为当前最新治理基线，等待下一条明确 scope 的 milestone route，而不是重开 `Phase 69` 或回写 `v1.16`。
-**Default next step:** `$gsd-new-milestone`
-**Active baseline:** 当前无 active milestone；`v1.17` 是 latest archived baseline，`v1.16` 退为 previous archive baseline。
+**Status:** Active milestone route = `v1.18 / Phase 70`; latest archived closeout pointer = `.planning/reviews/V1_17_EVIDENCE_INDEX.md`.
+**Goal:** 基于 `v1.17` archived baseline 完成本轮终极审阅的高价值 follow-through：继续 inward split support-only hotspots、统一 OTA query/selection helper、冻结 archive vs current version truth 边界，并把治理 mega-tests 再次 topicize 到更易维护的 concern-oriented 契约面。
+**Default next step:** `$gsd-next`
+**Active baseline:** `v1.18` 是当前 active milestone；`v1.17` 是 latest archived baseline，`v1.16` 退为 previous archive baseline。
+
+## Current Milestone (v1.18)
+
+**Name:** `v1.18 Support-Seam Slimming, OTA Resolver Consolidation & Governance Test Topicization`
+
+**Why now:** 本轮 repo-wide 终审已经把剩余高杠杆问题锁定得很清楚：`custom_components/lipro/control/runtime_access_support.py` 仍混合 explicit probing、telemetry coercion、runtime view build 与 device/debug lookup；`custom_components/lipro/core/anonymous_share/share_client_flows.py` 仍把 refresh/submit/outcome resolution 塞进一个 formal home；OTA query / dedupe / selection 逻辑仍横跨 `core/api/diagnostics_api_ota.py`、`core/ota/rows_cache.py` 与 `entities/firmware_update.py`；与此同时，archive/latest-evidence/version truth 与治理 mega-tests 仍存在可观测的 current-story drift 与 failure-localization 成本。`v1.18 / Phase 70` 的正确动作不是重开大扫除，而是沿既有 north-star seams 对这些剩余热点做一次彻底、诚实、可验证的收口。
+
+**North-star fit:** `v1.18` 继续坚持单一正式主链与 inward decomposition：
+
+- `runtime_access.py` 继续维持唯一 outward runtime home；`runtime_access_support.py` 只允许退成更窄的 inward helper cluster，而不是 shadow API shell。
+- anonymous-share 与 OTA 只允许 `keep formal home + split inward + converge helper truth`，不得新增第二条 protocol/runtime story。
+- archive / version / release docs 只允许 current docs 承担可变真源；历史 evidence / phase 文档必须真正冻结，不能继续被版本 bump 拖着走。
+- 治理 meta tests 要从“按 phase 编年史堆断言”继续收口到按 concern/topic 组织的权责结构，降低 failure radius。
+
+**Phase range:** `Phase 70 -> 70`
+**Current status:** `active / Phase 70 complete / closeout-ready (2026-03-24)`
+**Starting baseline:** `.planning/v1.17-MILESTONE-AUDIT.md`, `.planning/reviews/V1_17_EVIDENCE_INDEX.md`, `.planning/milestones/v1.17-ROADMAP.md`, `.planning/milestones/v1.17-REQUIREMENTS.md`, `.planning/phases/69-residual-read-model-quality-balance-and-open-source-contract-closure/69-SUMMARY.md`, `.planning/phases/69-residual-read-model-quality-balance-and-open-source-contract-closure/69-VERIFICATION.md`, `.planning/phases/69-residual-read-model-quality-balance-and-open-source-contract-closure/69-VALIDATION.md`
+**Requirements basket:** `GOV-54`, `ARC-17`, `HOT-28`, `HOT-29`, `OSS-10`, `TST-20`, `QLT-28`
+**Default next command:** `$gsd-next`
 
 ## Latest Archived Milestone (v1.17)
 

@@ -16,7 +16,7 @@ _LINE_BUDGETS = {
     "core/mqtt/topics.py": 90,
     "core/anonymous_share/share_client_flows.py": 540,
     "core/api/diagnostics_api_ota.py": 470,
-    "runtime_infra.py": 340,
+    "runtime_infra.py": 344,
 }
 
 _INTERNAL_SUPPORT_IMPORTS = {

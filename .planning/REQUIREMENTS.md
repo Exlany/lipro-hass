@@ -190,7 +190,37 @@
 - [x] **TST-18**: 本轮必须为 hotspot decomposition 与 docs contract drift 增加 focused regression/guard coverage，并通过 `$gsd-review` 把 cross-AI plan feedback 正式回灌到执行计划中；review 不得停留为一次性口头意见。
 - [x] **QLT-26**: touched scope 必须在 `uv run ruff check .`、`uv run mypy --follow-imports=silent .`、`uv run python scripts/check_architecture_policy.py --check`、`uv run python scripts/check_file_matrix.py --check`、focused pytest 与必要的 repo-wide pytest 下继续绿色，证明本轮不是 aesthetic cleanup。
 
+## Current Milestone (v1.18)
+
+- [x] **GOV-54**: `PROJECT / ROADMAP / REQUIREMENTS / STATE / validation assets / version guards` 现共同承认 `v1.18 / Phase 70` 已 complete / closeout-ready，同时把 archive / latest-evidence / version truth 的可变边界限制在 current docs / registry / runbook，不再让历史 phase/evidence 资产承担版本同步义务。
+- [x] **ARC-17**: `runtime_access.py` 继续作为唯一 outward runtime home；`runtime_access_support.py` 已 inward split 为更窄的 typed helper clusters，OTA query/selection 与 anonymous-share submit/refresh/outcome 也已沿 formal homes 完成 helper convergence，没有长出第二 root。
+- [x] **HOT-28**: `custom_components/lipro/control/runtime_access_support.py`、`custom_components/lipro/core/anonymous_share/share_client_flows.py`、`custom_components/lipro/core/api/diagnostics_api_ota.py` 与 `custom_components/lipro/entities/firmware_update.py` 已降低 decision density，并通过 shared helper / selector / response-resolution seams 缩小回归面。
+- [x] **HOT-29**: 治理 mega-tests、archive assertions 与 release-doc guards 已进一步 topicization；重复断言已抽成 shared helpers / concern-oriented contracts，避免 single giant test 承担多个 concern。
+- [x] **OSS-10**: `docs/README.md`、`SUPPORT.md`、`SECURITY.md`、`docs/MAINTAINER_RELEASE_RUNBOOK.md`、`pyproject.toml`、`manifest.json` 与 governance registry 继续讲同一条 honest open-source contract，明确 public first-hop、live-docs reality、archive freeze boundary 与 maintainer continuity limitation。
+- [x] **TST-20**: 新增或重构的治理 / hotspot guards 已提升 failure localization、domain naming 与 test ownership clarity，不再把 phase 编年史壳层当作长期测试拓扑的唯一 discoverability 入口。
+- [x] **QLT-28**: touched scope 已在 `uv run ruff check .`、`uv run mypy --follow-imports=silent .`、`uv run python scripts/check_architecture_policy.py --check`、`uv run python scripts/check_file_matrix.py --check`、focused pytest 与必要的 repo-wide governance/test suites 下保持绿色。
+
+## Traceability for current v1.18 route
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| GOV-54 | Phase 70 | Completed |
+| ARC-17 | Phase 70 | Completed |
+| HOT-28 | Phase 70 | Completed |
+| HOT-29 | Phase 70 | Completed |
+| OSS-10 | Phase 70 | Completed |
+| TST-20 | Phase 70 | Completed |
+| QLT-28 | Phase 70 | Completed |
+
+**Coverage:**
+- v1.18 routed requirements: 7 total
+- Current mapped: 7
+- Current complete: 7
+- Current pending: 0
+- Current unmapped: 0 ✓
+
 ## Traceability for archived v1.16 route
+
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
