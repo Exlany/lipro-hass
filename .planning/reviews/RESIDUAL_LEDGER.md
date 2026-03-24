@@ -408,4 +408,10 @@ _None currently registered._
 
 - 无新增 active residual family。
 - `runtime_access` outward home、schedule/protocol service seam、checker/integration balance 与 honest open-source contract 已在本 phase 完成收口；后续若继续优化，只允许沿既有 formal homes / governance chain 细化，不得重开第二故事线。
-- 历史 archived baseline 已提升到 `v1.17`；当前无 active milestone route，且 `Phase 69` 不追加 ownerless carry-forward。
+- 历史 archived baseline 已进一步提升到 `v1.18`；当前无 active milestone route，且 `Phase 70` 不追加 ownerless carry-forward。
+
+## Phase 70 Residual Delta
+
+- 无新增 active residual family。
+- runtime support helper decomposition、anonymous-share / OTA shared-helper convergence 与 archive-vs-current truth freeze 已在本 phase 完成收口；后续若继续优化，只允许沿既有 formal homes / governance chain 细化，不得重开第二故事线。
+- latest archived baseline 已提升到 `v1.18`；当前无 active milestone route，且 `Phase 70` 不追加 ownerless carry-forward。

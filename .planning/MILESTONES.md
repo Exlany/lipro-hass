@@ -234,7 +234,7 @@
 **Phase range:** `68`
 **Phases completed:** 1 phase, 6 plans, 0 tasks
 **Status:** archived / evidence-ready with carry-forward
-**Route truth:** latest archive-ready closeout pointer = `.planning/reviews/V1_16_EVIDENCE_INDEX.md`
+**Route truth (at v1.16 closeout):** latest archive-ready closeout pointer = `.planning/reviews/V1_16_EVIDENCE_INDEX.md`
 
 **Key accomplishments:**
 - 完成 refreshed repo-wide audit follow-through，继续 inward split telemetry / MQTT / anonymous-share / OTA / runtime hotspots，并冻结 regrowth budget 与 no-growth story
@@ -257,7 +257,7 @@
 **Phase range:** `69`
 **Phases completed:** 1 phase, 5 plans, 0 tasks
 **Status:** archived / evidence-ready
-**Route truth:** latest archive-ready closeout pointer = `.planning/reviews/V1_17_EVIDENCE_INDEX.md`
+**Route truth (at v1.17 closeout):** latest archive-ready closeout pointer = `.planning/reviews/V1_17_EVIDENCE_INDEX.md`
 
 **Key accomplishments:**
 - formalize `runtime_access` read-model seams、继续 thin `runtime_access_support.py` / `runtime_infra.py`，并保持 single outward runtime home 不漂移
@@ -272,5 +272,28 @@
 - `.planning/phases/69-residual-read-model-quality-balance-and-open-source-contract-closure/69-SUMMARY.md`
 - `.planning/phases/69-residual-read-model-quality-balance-and-open-source-contract-closure/69-VERIFICATION.md`
 - `.planning/phases/69-residual-read-model-quality-balance-and-open-source-contract-closure/69-VALIDATION.md`
+
+---
+
+## v1.18 Support-Seam Slimming, OTA Resolver Consolidation & Governance Test Topicization (Closeout: 2026-03-24)
+
+**Phase range:** `70`
+**Phases completed:** 1 phase, 5 plans, 0 tasks
+**Status:** archived / evidence-ready
+**Route truth:** latest archive-ready closeout pointer = `.planning/reviews/V1_18_EVIDENCE_INDEX.md`
+
+**Key accomplishments:**
+- 将 `runtime_access_support.py` inward split 为更窄的 support-only helper cluster，并继续保持 `runtime_access.py` 唯一 outward runtime home
+- 收口 anonymous-share submit/refresh/outcome 与 OTA query/selection shared helper truth，避免 helper-owned second story 与 entity-local choreography 回流
+- 冻结 archive-vs-current version truth、topicize governance mega-tests，并在同一轮通过 focused gates、`ruff`、`mypy`、architecture policy 与 file-matrix
+
+**Closeout assets:**
+- `.planning/v1.18-MILESTONE-AUDIT.md`
+- `.planning/reviews/V1_18_EVIDENCE_INDEX.md`
+- `.planning/milestones/v1.18-ROADMAP.md`
+- `.planning/milestones/v1.18-REQUIREMENTS.md`
+- `.planning/phases/70-support-seam-slimming-ota-resolver-consolidation-and-governance-test-topicization/70-SUMMARY.md`
+- `.planning/phases/70-support-seam-slimming-ota-resolver-consolidation-and-governance-test-topicization/70-VERIFICATION.md`
+- `.planning/phases/70-support-seam-slimming-ota-resolver-consolidation-and-governance-test-topicization/70-VALIDATION.md`
 
 ---

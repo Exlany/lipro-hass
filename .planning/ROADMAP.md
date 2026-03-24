@@ -19,7 +19,8 @@
 - ✅ **v1.15 Typed Contract Convergence, Tooling Kernel Hardening & Mypy Closure** - `Phase 67` archived on 2026-03-24; milestone audit: `.planning/v1.15-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_15_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.15-ROADMAP.md` / `.planning/milestones/v1.15-REQUIREMENTS.md`
 - ✅ **v1.14 Governance Truth Realignment, Typed Runtime Access & Final Hidden-Root Closure** - `Phase 63 -> 66` archived on 2026-03-23; milestone audit: `.planning/v1.14-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_14_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.14-ROADMAP.md` / `.planning/milestones/v1.14-REQUIREMENTS.md`
 - ✅ **v1.16 Master Audit Follow-Through, Hotspot Finalization & Docs Contract Hardening** - `Phase 68` archived on 2026-03-24; milestone audit: `.planning/v1.16-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_16_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.16-ROADMAP.md` / `.planning/milestones/v1.16-REQUIREMENTS.md`; non-blocking residual formally carried forward to `v1.17 / Phase 69`
-- ✅ **v1.17 Residual Formalization, Quality-Balance Hardening & Open-Source Contract Closure** - `Phase 69` archived on 2026-03-24; milestone audit: `.planning/v1.17-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_17_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.17-ROADMAP.md` / `.planning/milestones/v1.17-REQUIREMENTS.md`; current state is `no active milestone route`
+- ✅ **v1.17 Residual Formalization, Quality-Balance Hardening & Open-Source Contract Closure** - `Phase 69` archived on 2026-03-24; milestone audit: `.planning/v1.17-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_17_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.17-ROADMAP.md` / `.planning/milestones/v1.17-REQUIREMENTS.md`; served as the starting archived baseline for `v1.18 / Phase 70`
+- ✅ **v1.18 Support-Seam Slimming, OTA Resolver Consolidation & Governance Test Topicization** - `Phase 70` archived on 2026-03-24; milestone audit: `.planning/v1.18-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_18_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.18-ROADMAP.md` / `.planning/milestones/v1.18-REQUIREMENTS.md`; current state is `no active milestone route`
 
 ## Required Phase Outputs
 
@@ -334,18 +335,19 @@ Plans:
 
 ## Current Milestone
 
-### 🟢 v1.18: Support-Seam Slimming, OTA Resolver Consolidation & Governance Test Topicization
+### ✅ v1.18: Support-Seam Slimming, OTA Resolver Consolidation & Governance Test Topicization
 
 **Milestone Goal:** 基于 `v1.17` archived baseline，把 repo-wide 终审锁定的剩余热点继续 inward split：收瘦 `runtime_access_support.py` 的反射 read-model seam、拆解 `share_client_flows.py`、统一 OTA query/selection helper，冻结 archive 与 current-doc version truth 的边界，并把治理 mega-tests 进一步 topicize 到 concern-oriented contracts。
 
 **Execution Scope:** `Phase 70`（1 phase / 5 plans）
 
-**Current Status:** `Phase 70` complete / closeout-ready（2026-03-24）；默认下一步是 `$gsd-next`。
+**Current Status:** `archived / evidence-ready（2026-03-24）`；当前无 active milestone route，默认下一步是 `$gsd-new-milestone`。
 
 **Milestone Outcomes:**
 1. runtime-entry access、anonymous-share submit flow 与 OTA query/selection helper 会继续 inward split，而不会重开第二 root / second story。
 2. archive / latest-evidence / version-sync 守卫会只绑定 current mutable docs，历史 phase/evidence 资产真正冻结。
 3. 治理 mega-tests 与 release/archive assertions 会进一步 concern-oriented topicization，降低 maintenance blast radius。
+
 
 ### Phase 18: Host-Neutral Boundary Nucleus Extraction
 **Goal**: 把 boundary/auth/device 方向中已成熟的 host-neutral nucleus 从 HA adapter 语义中继续抽离，但不新建第二条 runtime story。
@@ -1262,7 +1264,7 @@ Plans:
 
 **Milestone Goal:** 以 `Phase 68` 已验证通过的 code/docs/governance closeout 为起点，把 remaining non-blocking residual 压成一条更窄的后续路线：formalize `runtime_access_support.py` 的 read-model seam、继续下压 schedule/protocol-shaped choreography 与 wrapper/lazy-import residue、补足 checker coverage 与 integration balance、并把 release-aware docs URL / HA support metadata / maintainer continuity truth 收口到诚实可验证的 open-source contract。
 
-> `v1.17` 已于 `2026-03-24` 完成 milestone audit、evidence-index closeout 与 archive promotion：它承接 `v1.16` 的 archived evidence，完成 runtime read-model residual formalization、schedule/service de-protocolization、checker/integration balance hardening、honest open-source contract sync 与 final archive promotion，并把治理状态切换为 latest archived baseline / no active milestone route。
+> `v1.17` 已于 `2026-03-24` 完成 milestone audit、evidence-index closeout 与 archive promotion：它承接 `v1.16` 的 archived evidence，完成 runtime read-model residual formalization、schedule/service de-protocolization、checker/integration balance hardening、honest open-source contract sync 与 final archive promotion，并作为 `v1.18` 的 starting archived baseline 保留。
 
 **Archive status:** `archived / evidence-ready (2026-03-24)`
 **Starting baseline:** `.planning/v1.16-MILESTONE-AUDIT.md`, `.planning/reviews/V1_16_EVIDENCE_INDEX.md`, `.planning/milestones/v1.16-ROADMAP.md`, `.planning/milestones/v1.16-REQUIREMENTS.md`, `.planning/phases/68-master-audit-follow-through-hotspot-finalization-and-docs-contract-hardening/68-SUMMARY.md`, `.planning/phases/68-master-audit-follow-through-hotspot-finalization-and-docs-contract-hardening/68-VERIFICATION.md`, `.planning/phases/68-master-audit-follow-through-hotspot-finalization-and-docs-contract-hardening/68-VALIDATION.md`
@@ -1275,39 +1277,46 @@ Plans:
 **Goal:** 把 `Phase 68` 明确保留的 non-blocking residual 继续收口：`runtime_access_support.py` 退回更诚实的 read-model helper family，schedule/service path 继续去协议化，wrapper/shim/lazy-import/naming residue 进一步消隐，测试与 checker gate 补上更均衡的 behavior/integration coverage，同时把 release-aware docs URL、machine-readable HA support 与 maintainer continuity truth 对齐为同一条 honest open-source story。
 **Depends on:** Phase 68
 **Requirements**: [GOV-53, ARC-16, HOT-26, HOT-27, OSS-09, TST-19, QLT-27]
-**Success Criteria**:
-  1. `custom_components/lipro/control/runtime_access_support.py`、`custom_components/lipro/runtime_infra.py` 与 schedule/protocol wrapper chain 继续沿既有 formal seams inward slimming；control outward home、protocol root 与 public import story 不被重开。
-  2. `scripts/check_*.py`、CI coverage/diff gate、focused integration suites 与 meta guards 形成更平衡的质量门：不再主要依赖 budget/meta shells 来承担行为验证。
-  3. `pyproject.toml`、`manifest.json`、`docs/README.md`、`SECURITY.md`、`.github/CODEOWNERS`、templates 与 governance docs 对 release-docs URL、HA support truth 与 maintainer continuity 讲同一条 honest contract story。
 **Status**: Complete (`2026-03-24`)
 **Plans**: 5/5 complete
 **Promoted closeout package**: `69-SUMMARY.md`, `69-VERIFICATION.md`, `69-VALIDATION.md`
 
 Plans:
-- [x] 69-01: formalize runtime-access read models and shrink runtime infra support density (completed 2026-03-24)
-- [x] 69-02: de-protocolize schedule/service wrapper paths without reopening roots (completed 2026-03-24)
-- [x] 69-03: rebalance checker coverage, integration depth, and meta-shell maintainability (completed 2026-03-24)
-- [x] 69-04: align honest open-source metadata, docs, and continuity contract (completed 2026-03-24)
-- [x] 69-05: freeze v1.17 governance and verification truth without rewriting Phase 68 (completed 2026-03-24)
+- [x] 69-01: formalize runtime-access read models and shrink runtime infra support density
+- [x] 69-02: de-protocolize schedule/service wrapper paths without reopening roots
+- [x] 69-03: rebalance checker coverage, integration depth, and meta-shell maintainability
+- [x] 69-04: align honest open-source metadata, docs, and continuity contract
+- [x] 69-05: freeze v1.17 governance and verification truth without rewriting Phase 68
+
+## v1.18: Support-Seam Slimming, OTA Resolver Consolidation & Governance Test Topicization
+
+**Milestone Goal:** 基于 `v1.17` archived baseline，把 runtime-access、anonymous-share 与 OTA 的剩余高密度 helper families 再 inward split 一轮，同时冻结 archive-vs-current version truth 的边界，并把治理 mega-tests 继续 topicize 到更可维护的 concern-oriented contracts。
+
+> `v1.18` 已于 `2026-03-24` 完成 milestone audit、evidence-index closeout 与 archive promotion：它承接 `v1.17` 的 archived evidence，完成 runtime support helper decomposition、anonymous-share / OTA shared-helper convergence、archive-vs-current truth freeze 与 governance topicization，并把当前治理状态切换为“latest archived baseline / no active milestone route”。
+
+**Archive status:** `archived / evidence-ready (2026-03-24)`
+**Starting baseline:** `.planning/v1.17-MILESTONE-AUDIT.md`, `.planning/reviews/V1_17_EVIDENCE_INDEX.md`, `.planning/milestones/v1.17-ROADMAP.md`, `.planning/milestones/v1.17-REQUIREMENTS.md`, `.planning/phases/69-residual-read-model-quality-balance-and-open-source-contract-closure/69-SUMMARY.md`, `.planning/phases/69-residual-read-model-quality-balance-and-open-source-contract-closure/69-VERIFICATION.md`, `.planning/phases/69-residual-read-model-quality-balance-and-open-source-contract-closure/69-VALIDATION.md`
+**Requirements basket:** `GOV-54`, `ARC-17`, `HOT-28`, `HOT-29`, `OSS-10`, `TST-20`, `QLT-28`
+**Archive assets:** `.planning/v1.18-MILESTONE-AUDIT.md`, `.planning/reviews/V1_18_EVIDENCE_INDEX.md`, `.planning/milestones/v1.18-ROADMAP.md`, `.planning/milestones/v1.18-REQUIREMENTS.md`, `.planning/phases/70-support-seam-slimming-ota-resolver-consolidation-and-governance-test-topicization/70-SUMMARY.md`, `.planning/phases/70-support-seam-slimming-ota-resolver-consolidation-and-governance-test-topicization/70-VERIFICATION.md`, `.planning/phases/70-support-seam-slimming-ota-resolver-consolidation-and-governance-test-topicization/70-VALIDATION.md`
+**Default next command:** `$gsd-new-milestone`
 
 ### Phase 70: Support-seam slimming, OTA resolver consolidation, and governance test topicization
 
 **Goal:** 基于 `v1.17` archived baseline，把 runtime-access、anonymous-share 与 OTA 的剩余高密度 helper families 再 inward split 一轮，同时冻结 archive-vs-current version truth 的边界，并把治理 mega-tests 继续 topicize 到更可维护的 concern-oriented contracts。
 **Depends on:** Phase 69
 **Requirements**: [GOV-54, ARC-17, HOT-28, HOT-29, OSS-10, TST-20, QLT-28]
-**Success Criteria**:
-  1. `runtime_access_support.py`、`share_client_flows.py` 与 OTA query/selection helper 的 decision density 明显下降，且不引入新的 outward root / second story。
-  2. `test_version_sync.py` 只守 current mutable version truth，archive frozen contract 回归 archive/milestone test families；release/archive/version concern 的重复断言得到 topicization。
-  3. planning / baseline / review / docs 真源与 focused gates 同轮更新并全绿，证明本轮 closeout 可验证而非 conversation-only cleanup。
 **Status**: Complete (`2026-03-24`)
-**Plans**: 5 plans
+**Plans**: 5/5 complete
+**Promoted closeout package**: `70-SUMMARY.md`, `70-VERIFICATION.md`, `70-VALIDATION.md`
 
 Plans:
-- [x] 70-01: freeze the audit, validation contract, and phase-70 hotspot/governance guards (completed 2026-03-24)
-- [x] 70-02: inward split runtime-access support helpers without reopening second roots (completed 2026-03-24)
-- [x] 70-03: decompose anonymous-share submit flows and converge OTA shared helpers (completed 2026-03-24)
-- [x] 70-04: topicize governance tests and freeze archive-vs-current version truth boundaries (completed 2026-03-24)
-- [x] 70-05: sync planning-baseline truths and run the final phase gate (completed 2026-03-24)
+- [x] 70-01: freeze the audit, validation contract, and phase-70 hotspot/governance guards
+- [x] 70-02: inward split runtime-access support helpers without reopening second roots
+- [x] 70-03: decompose anonymous-share submit flows and converge OTA shared helpers
+- [x] 70-04: topicize governance tests and freeze archive-vs-current version truth boundaries
+- [x] 70-05: sync planning-baseline truths and run the final phase gate
+
+
 
 ## v1.15: Typed Contract Convergence, Tooling Kernel Hardening & Mypy Closure
 

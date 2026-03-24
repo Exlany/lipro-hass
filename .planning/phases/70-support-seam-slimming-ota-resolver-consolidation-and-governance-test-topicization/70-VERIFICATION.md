@@ -2,7 +2,7 @@
 
 ## Status
 
-Passed on `2026-03-24`. Phase `70` execution、governance sync 与 closeout gate 已全部完成。
+Passed on `2026-03-24`. Phase `70` execution、governance sync 与 archive-promotion gate 已全部完成。
 
 ## Wave Proof
 
@@ -25,4 +25,4 @@ Passed on `2026-03-24`. Phase `70` execution、governance sync 与 closeout gate
 ## Notes
 
 - 本 phase 没有引入新的 active residual family 或 active kill target。
-- `$gsd-next` 在当前状态下应路由到 `$gsd-complete-milestone v1.18`；本次执行停在 closeout-ready，不自动触发带 archive / commit / tag 副作用的 milestone workflow。
+- 本次执行的归档提升现已完成；当前治理状态为 `no active milestone route / latest archived baseline = v1.18`，后续动作应为 `$gsd-new-milestone`。

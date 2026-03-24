@@ -165,17 +165,17 @@ def test_v1_8_closeout_through_v1_15_archived_truth_are_consistent() -> None:
     assert ".planning/milestones/v1.13-ROADMAP.md" in project_text
     assert ".planning/phases/60-tooling-truth-decomposition-and-file-governance-maintainability/60-01-PLAN.md" not in project_text
 
-    assert "**Status:** Active milestone route = `v1.18 / Phase 70`; latest archived closeout pointer = `.planning/reviews/V1_17_EVIDENCE_INDEX.md`." in project_text
-    assert "## Current Milestone (v1.18)" in project_text
-    assert "**Current status:** `active / Phase 70 complete / closeout-ready (2026-03-24)`" in project_text
-    assert "**Default next command:** `$gsd-next`" in project_text
-    assert "## Latest Archived Milestone (v1.17)" in project_text
+    assert "**Status:** No active milestone route；latest archived closeout pointer = `.planning/reviews/V1_18_EVIDENCE_INDEX.md`." in project_text
+    assert "## Latest Archived Milestone (v1.18)" in project_text
+    assert "**Current status:** `archived / evidence-ready (2026-03-24)`" in project_text
+    assert "**Default next command:** `$gsd-new-milestone`" in project_text
+    assert "## Archived Milestone (v1.17)" in project_text
     assert "## Archived Milestone (v1.16)" in project_text
     assert "**Current status:** `archived / evidence-ready with carry-forward (2026-03-24)`" in project_text
     assert "## Archived Milestone (v1.15)" in project_text
 
-    assert "### 🟢 v1.18: Support-Seam Slimming, OTA Resolver Consolidation & Governance Test Topicization" in roadmap_text
-    assert "**Current Status:** `Phase 70` complete / closeout-ready（2026-03-24）；默认下一步是 `$gsd-next`。" in roadmap_text
+    assert "### ✅ v1.18: Support-Seam Slimming, OTA Resolver Consolidation & Governance Test Topicization" in roadmap_text
+    assert "**Current Status:** `archived / evidence-ready（2026-03-24）`；当前无 active milestone route，默认下一步是 `$gsd-new-milestone`。" in roadmap_text
     assert "### Phase 70: Support-seam slimming, OTA resolver consolidation, and governance test topicization" in roadmap_text
     assert "Plans:" in roadmap_text
     assert "70-05: sync planning-baseline truths and run the final phase gate" in roadmap_text
@@ -206,8 +206,8 @@ def test_v1_8_closeout_through_v1_15_archived_truth_are_consistent() -> None:
     ):
         assert needle in requirements_text
 
-    assert "**Current milestone:** `v1.18 Support-Seam Slimming, OTA Resolver Consolidation & Governance Test Topicization`" in state_text
-    assert "**Current mode:** `v1.18 active / Phase 70 complete / closeout-ready`" in state_text
-    assert "$gsd-next" in state_text
-    assert ".planning/v1.17-MILESTONE-AUDIT.md" in state_text
-    assert ".planning/reviews/V1_17_EVIDENCE_INDEX.md" in state_text
+    assert "**Current milestone:** `No active milestone route`" in state_text
+    assert "**Current mode:** `no active milestone route / latest archived baseline = v1.18`" in state_text
+    assert "$gsd-new-milestone" in state_text
+    assert ".planning/v1.18-MILESTONE-AUDIT.md" in state_text
+    assert ".planning/reviews/V1_18_EVIDENCE_INDEX.md" in state_text

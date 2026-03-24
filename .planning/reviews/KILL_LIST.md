@@ -314,4 +314,4 @@
 
 - 本 phase **无新增 active kill target**；typed runtime-access wrappers、schedule/protocol service narrowing、checker balance hardening 与 current-story governance freeze 都沿既有正式 home 收口，没有制造新的 delete-gated 过渡物。
 - `custom_components/lipro/control/runtime_access_support.py`、`custom_components/lipro/runtime_infra.py` 与 related helper mirrors 继续只承担 localized support seam 身份，不是未来 cleanup campaign 的临时借口。
-- `v1.17` archive promotion 已完成；当前无 active milestone route，且不得把 `Phase 69` 结果回退成 planned residual。
+- `v1.18` archive promotion 已完成；当前无 active milestone route，且不得把 `Phase 70` 结果回退成 planned residual。

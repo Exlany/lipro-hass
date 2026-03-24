@@ -151,7 +151,13 @@ def _assert_current_mode_tracks_phase_lifecycle(state_text: str) -> None:
             state_text,
         )
         is not None
-        or re.search(r"\*\*Current mode:\*\* `v1\.\d+ archived`", state_text) is not None
+        or re.search(r"\*\*Current mode:\*\* `v1\.\d+ archived`", state_text)
+        is not None
+        or re.search(
+            r"\*\*Current mode:\*\* `no active milestone route / latest archived baseline = v1\.\d+`",
+            state_text,
+        )
+        is not None
     )
 
 
@@ -165,7 +171,14 @@ def _assert_state_preserves_phase_17_closeout_history(state_text: str) -> None:
 
     assert f"milestone: {milestone}" in state_text
     assert f"milestone_name: {milestone_name}" in state_text
-    assert f"**Current milestone:** `{milestone} {milestone_name}`" in state_text
+    if "**Current milestone:** `No active milestone route`" in state_text:
+        assert re.search(
+            rf"\*\*Current mode:\*\* `no active milestone route / latest archived baseline = {re.escape(str(milestone))}`",
+            state_text,
+        )
+        assert str(milestone_name) in state_text
+    else:
+        assert f"**Current milestone:** `{milestone} {milestone_name}`" in state_text
 
     if milestone == "v1.1":
         assert re.search(

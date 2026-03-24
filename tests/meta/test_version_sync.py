@@ -236,13 +236,13 @@ def test_private_repo_hacs_caveat_is_consistent() -> None:
         _assert_contains_private_repo_hacs_caveat(path)
 
 
-def test_release_runbook_references_v1_17_evidence_index() -> None:
+def test_release_runbook_references_v1_18_evidence_index() -> None:
     """Maintainer runbook should point at the canonical latest closeout evidence index."""
     runbook_text = _RUNBOOK.read_text(encoding="utf-8")
 
     assert_runbook_points_to_latest_evidence(
         runbook_text,
-        "V1_17_EVIDENCE_INDEX.md",
+        "V1_18_EVIDENCE_INDEX.md",
         deprecated=("V1_6_EVIDENCE_INDEX.md",),
     )
 
@@ -302,7 +302,7 @@ def test_release_docs_capture_supply_chain_posture_and_latest_closeout_contract(
         assert token in runbook_text
     assert_runbook_points_to_latest_evidence(
         runbook_text,
-        "V1_17_EVIDENCE_INDEX.md",
+        "V1_18_EVIDENCE_INDEX.md",
         deprecated=("V1_6_EVIDENCE_INDEX.md",),
     )
     assert "release artifact install smoke" in runbook_text

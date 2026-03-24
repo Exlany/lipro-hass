@@ -166,8 +166,8 @@ def test_milestone_archive_snapshots_exist_and_are_referenced() -> None:
         assert needle in requirements_text or needle in project_text or needle in milestones_text
 
     assert "v1.16-MILESTONE-AUDIT.md" in state_text
-    assert "$gsd-next" in state_text
-    assert "v1.18 / Phase 70" in state_text
+    assert "$gsd-new-milestone" in state_text
+    assert "no active milestone route" in state_text
     assert "archived / evidence-ready" in milestones_text
     assert "archived snapshots created / handoff-ready" in milestones_text
     assert "revalidated 2026-03-17" in milestones_text
@@ -394,6 +394,30 @@ def test_v1_17_closeout_assets_exist_and_are_pull_only() -> None:
     )
 
 
+def test_v1_18_closeout_assets_exist_and_are_pull_only() -> None:
+    evidence_index = _ROOT / ".planning" / "reviews" / "V1_18_EVIDENCE_INDEX.md"
+    milestone_audit = _ROOT / ".planning" / "v1.18-MILESTONE-AUDIT.md"
+
+    assert evidence_index.exists()
+    assert milestone_audit.exists()
+    assert (_ROOT / ".planning" / "milestones" / "v1.18-ROADMAP.md").exists()
+    assert (_ROOT / ".planning" / "milestones" / "v1.18-REQUIREMENTS.md").exists()
+    _assert_promoted_phase_assets(
+        "70-support-seam-slimming-ota-resolver-consolidation-and-governance-test-topicization",
+        "70-SUMMARY.md",
+        "70-VERIFICATION.md",
+    )
+
+    assert_pull_only_evidence_index(
+        evidence_index,
+        "70-SUMMARY.md",
+        "70-VERIFICATION.md",
+        "70-VALIDATION.md",
+        "archived / evidence-ready",
+        "V1_18_EVIDENCE_INDEX.md",
+    )
+
+
 def test_governance_truth_registers_v1_14_archive_lineage() -> None:
     authority_text = (
         _ROOT / ".planning" / "baseline" / "AUTHORITY_MATRIX.md"
@@ -411,7 +435,7 @@ def test_governance_truth_registers_v1_14_archive_lineage() -> None:
     assert ".planning/reviews/V1_14_EVIDENCE_INDEX.md" in milestones_text
 
 
-def test_governance_truth_registers_v1_17_latest_archive_pointer() -> None:
+def test_governance_truth_registers_v1_18_latest_archive_pointer() -> None:
     authority_text = (
         _ROOT / ".planning" / "baseline" / "AUTHORITY_MATRIX.md"
     ).read_text(encoding="utf-8")
@@ -426,21 +450,21 @@ def test_governance_truth_registers_v1_17_latest_archive_pointer() -> None:
         encoding="utf-8"
     )
 
-    assert "V1_16_EVIDENCE_INDEX.md" in authority_text
     assert "V1_17_EVIDENCE_INDEX.md" in authority_text
-    assert "v1.17-MILESTONE-AUDIT.md" in authority_text
-    assert "V1_17_EVIDENCE_INDEX.md" in public_text
-    assert "## v1.16 Master Audit Follow-Through, Hotspot Finalization & Docs Contract Hardening" in milestones_text
+    assert "V1_18_EVIDENCE_INDEX.md" in authority_text
+    assert "v1.18-MILESTONE-AUDIT.md" in authority_text
+    assert "V1_18_EVIDENCE_INDEX.md" in public_text
     assert "## v1.17 Residual Formalization, Quality-Balance Hardening & Open-Source Contract Closure" in milestones_text
-    assert ".planning/reviews/V1_17_EVIDENCE_INDEX.md" in milestones_text
-    assert ".planning/reviews/V1_17_EVIDENCE_INDEX.md" in docs_text
-    assert "v1.18 / Phase 70" in docs_text
+    assert "## v1.18 Support-Seam Slimming, OTA Resolver Consolidation & Governance Test Topicization" in milestones_text
+    assert ".planning/reviews/V1_18_EVIDENCE_INDEX.md" in milestones_text
+    assert ".planning/reviews/V1_18_EVIDENCE_INDEX.md" in docs_text
+    assert "当前无 active milestone route" in docs_text
     assert_runbook_points_to_latest_evidence(
         runbook_text,
-        "V1_17_EVIDENCE_INDEX.md",
+        "V1_18_EVIDENCE_INDEX.md",
         deprecated=("V1_6_EVIDENCE_INDEX.md",),
     )
-    assert "$gsd-next" in project_text
-    assert "$gsd-next" in state_text
-    assert "Current Milestone (v1.18)" in project_text
-    assert "**Current mode:** `v1.18 active / Phase 70 complete / closeout-ready`" in state_text
+    assert "$gsd-new-milestone" in project_text
+    assert "$gsd-new-milestone" in state_text
+    assert "Latest Archived Milestone (v1.18)" in project_text
+    assert "**Current mode:** `no active milestone route / latest archived baseline = v1.18`" in state_text

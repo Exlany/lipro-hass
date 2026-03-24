@@ -208,7 +208,7 @@ async def test_async_refresh_ota_returns_early_when_not_force_and_not_stale(
 
     with (
         patch.object(entity, "_should_refresh_ota", return_value=False),
-        patch.object(entity, "_query_ota_rows_with_shared_cache", new=query_rows),
+        patch("custom_components.lipro.entities.firmware_update.async_select_row_with_shared_cache", new=query_rows),
     ):
         await entity._async_refresh_ota(force=False)
 
@@ -251,7 +251,7 @@ async def test_async_refresh_ota_stores_error_when_shared_query_fails(
 
     with (
         patch.object(entity, "async_write_ha_state", write_state),
-        patch.object(entity, "_query_ota_rows_with_shared_cache", new=query_rows),
+        patch("custom_components.lipro.entities.firmware_update.async_select_row_with_shared_cache", new=query_rows),
     ):
         await entity._async_refresh_ota(force=True)
 
@@ -271,7 +271,10 @@ async def test_async_refresh_ota_stores_error_when_direct_query_after_cache_mism
 
     with (
         patch.object(entity, "async_write_ha_state", write_state),
-        patch.object(entity, "_query_ota_rows_with_shared_cache", new=query_rows),
+        patch(
+            "custom_components.lipro.core.ota.rows_cache.async_get_rows_with_shared_cache",
+            new=query_rows,
+        ),
         patch.object(entity, "_query_ota_rows_from_cloud", new=query_cloud),
     ):
         await entity._async_refresh_ota(force=True)
