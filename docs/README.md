@@ -81,12 +81,12 @@
 
 以下资产保留 archive / evidence / continuity 身份，供维护者审计、追溯与 handoff 使用，但**不是**当前治理真源：
 
-- 最新 archive-ready governance baseline：`.planning/v1.15-MILESTONE-AUDIT.md`、`.planning/reviews/V1_15_EVIDENCE_INDEX.md`
-- 当前 active milestone route：`v1.16 / Phase 68` 已完成 review-fed 执行并进入 milestone closeout-ready；latest archived closeout pointer 仍为 `.planning/reviews/V1_15_EVIDENCE_INDEX.md`，下一步治理动作是 `$gsd-complete-milestone v1.16`，current-story 仍以 `.planning/PROJECT.md`、`.planning/ROADMAP.md`、`.planning/REQUIREMENTS.md` 与 `.planning/STATE.md` 为准
+- 最新 archive-ready governance baseline：`.planning/v1.16-MILESTONE-AUDIT.md`、`.planning/reviews/V1_16_EVIDENCE_INDEX.md`、`.planning/milestones/v1.16-ROADMAP.md`、`.planning/milestones/v1.16-REQUIREMENTS.md`
+- 当前 active milestone route：`v1.17 / Phase 69` 已完成 context / validation / 5-plan breakdown 并成为唯一 current route；latest archived closeout pointer 已提升到 `.planning/reviews/V1_16_EVIDENCE_INDEX.md`，下一步治理动作是 `$gsd-execute-phase 69`，current-story 仍以 `.planning/PROJECT.md`、`.planning/ROADMAP.md`、`.planning/REQUIREMENTS.md` 与 `.planning/STATE.md` 为准
 - `.planning/MILESTONES.md`
 - `.planning/milestones/*.md`
-- `.planning/v1.15-MILESTONE-AUDIT.md`
-- `.planning/reviews/V1_15_EVIDENCE_INDEX.md`
+- `.planning/v1.16-MILESTONE-AUDIT.md`
+- `.planning/reviews/V1_16_EVIDENCE_INDEX.md`
 - `.planning/v1.12-MILESTONE-AUDIT.md`
 - `.planning/reviews/V1_12_EVIDENCE_INDEX.md`
 - `.planning/v1.6-MILESTONE-AUDIT.md`

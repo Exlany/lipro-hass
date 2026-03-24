@@ -1,7 +1,7 @@
 # Phase 69: Residual read-model closure, wrapper-path thinning, and quality-balance follow-through - Context
 
 Date: 2026-03-24
-Mode: Planned continuation after `v1.16 / Phase 68`
+Mode: Active current milestone after `v1.16` archive closeout
 
 ## Phase Boundary
 
@@ -42,7 +42,7 @@ Out of scope:
 ### Governance / current-story truth
 - `docs/NORTH_STAR_TARGET_ARCHITECTURE.md` — north-star plane/root/authority law
 - `AGENTS.md` — repo execution contract and documentation sync rules
-- `.planning/PROJECT.md` — active milestone + planned continuation story
+- `.planning/PROJECT.md` — active milestone + latest archived baseline story
 - `.planning/ROADMAP.md` — milestone/phase routing and future phase definition
 - `.planning/REQUIREMENTS.md` — residual requirement basket for `Phase 69`
 - `.planning/STATE.md` — current active milestone remains `v1.16`

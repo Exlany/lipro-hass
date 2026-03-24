@@ -165,41 +165,49 @@ def test_v1_8_closeout_through_v1_15_archived_truth_are_consistent() -> None:
     assert ".planning/milestones/v1.13-ROADMAP.md" in project_text
     assert ".planning/phases/60-tooling-truth-decomposition-and-file-governance-maintainability/60-01-PLAN.md" not in project_text
 
-    assert "## Current Milestone (v1.16)" in project_text
-    assert "**Current status:** `Phase 68 complete (2026-03-24)`" in project_text
-    assert "**Default next command:** `$gsd-complete-milestone v1.16`" in project_text
-    assert "## Latest Archived Milestone (v1.15)" in project_text
-    assert "**Current status:** `archived / evidence-ready (2026-03-24)`" in project_text
-    assert "## Archived Milestone (v1.14)" in project_text
+    assert "## Current Milestone (v1.17)" in project_text
+    assert "**Current status:** `Phase 69 planned / ready to execute (2026-03-24)`" in project_text
+    assert "**Default next command:** `$gsd-execute-phase 69`" in project_text
+    assert "## Latest Archived Milestone (v1.16)" in project_text
+    assert "**Current status:** `archived / evidence-ready with carry-forward (2026-03-24)`" in project_text
+    assert "## Archived Milestone (v1.15)" in project_text
 
     assert "## v1.16: Master Audit Follow-Through, Hotspot Finalization & Docs Contract Hardening" in roadmap_text
-    assert "**Milestone status:** `Phase 68 complete (2026-03-24)`" in roadmap_text
-    assert "**Default next command:** `$gsd-complete-milestone v1.16`" in roadmap_text
-    assert "### Phase 68: Repository-wide review follow-through, hotspot finalization, and docs contract hardening" in roadmap_text
-    assert "**Plans**: 6/6 complete" in roadmap_text
-    assert "**Promoted closeout package**: `68-SUMMARY.md`, `68-VERIFICATION.md`, `68-VALIDATION.md`" in roadmap_text
+    assert "**Archive status:** `archived / evidence-ready with carry-forward (2026-03-24)`" in roadmap_text
+    assert "**Carry-forward route:** `v1.17 / Phase 69`" in roadmap_text
+    assert "## v1.17: Residual Formalization, Quality-Balance Hardening & Open-Source Contract Closure" in roadmap_text
+    assert "**Milestone status:** `active / Phase 69 planned (ready to execute, 2026-03-24)`" in roadmap_text
+    assert "**Default next command:** `$gsd-execute-phase 69`" in roadmap_text
+    assert "### Phase 69: Residual read-model closure, wrapper-path thinning, and quality-balance follow-through" in roadmap_text
+    assert "**Plans**: 5 planned / 0 complete / 5 pending" in roadmap_text
 
     for needle in (
-        "- [x] **GOV-52**",
-        "- [x] **ARC-15**",
-        "- [x] **HOT-24**",
-        "- [x] **HOT-25**",
-        "- [x] **OSS-08**",
-        "- [x] **TST-18**",
-        "- [x] **QLT-26**",
+        "- [ ] **GOV-53**",
+        "- [ ] **ARC-16**",
+        "- [ ] **HOT-26**",
+        "- [ ] **HOT-27**",
+        "- [ ] **OSS-09**",
+        "- [ ] **TST-19**",
+        "- [ ] **QLT-27**",
+        "| GOV-53 | Phase 69 | Planned |",
+        "| ARC-16 | Phase 69 | Planned |",
+        "| HOT-26 | Phase 69 | Planned |",
+        "| HOT-27 | Phase 69 | Planned |",
+        "| OSS-09 | Phase 69 | Planned |",
+        "| TST-19 | Phase 69 | Planned |",
+        "| QLT-27 | Phase 69 | Planned |",
+        "- v1.17 routed requirements: 7 total",
+        "- Current mapped: 7",
+        "- Current complete: 0",
+        "- Current pending: 7",
+        "## Archived Milestone (v1.16)",
         "| GOV-52 | Phase 68 | Completed |",
-        "| ARC-15 | Phase 68 | Completed |",
-        "| HOT-24 | Phase 68 | Completed |",
-        "| HOT-25 | Phase 68 | Completed |",
-        "| OSS-08 | Phase 68 | Completed |",
-        "| TST-18 | Phase 68 | Completed |",
         "| QLT-26 | Phase 68 | Completed |",
-        "- v1.16 routed requirements: 7 total",
     ):
         assert needle in requirements_text
 
-    assert "**Current milestone:** `v1.16 Master Audit Follow-Through, Hotspot Finalization & Docs Contract Hardening`" in state_text
-    assert "**Current mode:** `Phase 68 complete`" in state_text
-    assert "$gsd-complete-milestone v1.16" in state_text
-    assert ".planning/v1.15-MILESTONE-AUDIT.md" in state_text
-    assert ".planning/reviews/V1_15_EVIDENCE_INDEX.md" in state_text
+    assert "**Current milestone:** `v1.17 Residual Formalization, Quality-Balance Hardening & Open-Source Contract Closure`" in state_text
+    assert "**Current mode:** `Phase 69 planned / ready to execute`" in state_text
+    assert "$gsd-execute-phase 69" in state_text
+    assert ".planning/v1.16-MILESTONE-AUDIT.md" in state_text
+    assert ".planning/reviews/V1_16_EVIDENCE_INDEX.md" in state_text
