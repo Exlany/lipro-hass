@@ -173,6 +173,42 @@
 - Current pending: 0
 - Current unmapped: 0 ✓
 
+## Planned Milestone (v1.17)
+
+> `v1.17` 承接 `Phase 68` 终审显式保留的 non-blocking residual：保持 `v1.16` closeout-ready evidence 不被重开，同时把 read-model residue、schedule/wrapper protocol-shaped path、quality-balance debt 与 honest open-source metadata contract 继续压向更薄、更稳定、更可验证的正式结构。
+
+### Residual Formalization & Hotspot Closure
+
+- [ ] **GOV-53**: `PROJECT / ROADMAP / REQUIREMENTS / STATE / phase context / verification assets` 必须共同区分 `v1.16` 的 closeout-ready baseline 身份与 `v1.17` 的 queued residual route，避免 future planning 重新污染已完成的 `Phase 68` current story。
+- [ ] **ARC-16**: `runtime_access.py` / `runtime_access_support.py`、`runtime_infra.py`、`services/schedule.py` 与 related protocol-service collaborators 必须继续向显式 read-model / runtime-intent seam 收口，不能继续依赖反射式 probing、protocol-shaped service choreography 或 broad wrapper chain 维持正式行为。
+- [ ] **HOT-26**: wrapper/shim/lazy-import residual（含 MQTT/support/API stable-import and helper mirrors）必须继续削减，只允许保留有明确 owner 与 delete-gate 的 localized seam。
+- [ ] **HOT-27**: 高复杂度 support-only families（如 `runtime_access_support.py`、`runtime_infra.py`、diagnostics helper mirrors）必须获得更清晰的 no-growth budget 与 discoverability contract，防止“support seam”继续长成隐性 subsystem。
+
+### Open-Source & Quality Balance
+
+- [ ] **OSS-09**: release-aware docs URL、machine-readable Home Assistant support truth、maintainer continuity wording 与 live-docs caveat 必须在 `pyproject.toml`、`manifest.json`、`docs/README.md`、`SECURITY.md`、templates 与 governance registry 中讲同一条 honest open-source contract，不得虚构 delegate 或 release-specific docs reality。
+- [ ] **TST-19**: 质量体系必须补足 `scripts/check_*.py` 的行为测试/coverage 视野、focused integration coverage 与 meta-shell 可导航性，避免后续 residual closure 继续主要依赖 budget/meta tests。
+- [ ] **QLT-27**: `v1.17` touched scope 必须在 `uv run ruff check .`、`uv run mypy --follow-imports=silent .`、`uv run python scripts/check_architecture_policy.py --check`、`uv run python scripts/check_file_matrix.py --check`、focused pytest 与必要的 repo-wide pytest 下继续绿色，并能解释为什么新的门禁比旧故事更平衡。
+
+## Traceability for planned v1.17 route
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| GOV-53 | Phase 69 | Planned |
+| ARC-16 | Phase 69 | Planned |
+| HOT-26 | Phase 69 | Planned |
+| HOT-27 | Phase 69 | Planned |
+| OSS-09 | Phase 69 | Planned |
+| TST-19 | Phase 69 | Planned |
+| QLT-27 | Phase 69 | Planned |
+
+**Coverage:**
+- v1.17 routed requirements: 7 total
+- Planned mapped: 7
+- Planned complete: 0
+- Planned pending: 7
+- Planned unmapped: 0 ✓
+
 ## Archived Milestone (v1.15)
 
 > `v1.15` 已于 `2026-03-24` 完成归档；以下 requirements / traceability 保留 `Phase 67` 的最终 fulfilled contract，归档快照见 `.planning/milestones/v1.15-REQUIREMENTS.md`，审计裁决见 `.planning/v1.15-MILESTONE-AUDIT.md`，证据索引见 `.planning/reviews/V1_15_EVIDENCE_INDEX.md`。
@@ -389,7 +425,7 @@
 - mapped to phases: 72
 - unmapped: 0 ✓
 
-*Last updated: 2026-03-24 after completing Phase 68 review-fed hotspot/docs closeout and freezing the current v1.16 truth*
+*Last updated: 2026-03-24 after completing Phase 68 closeout and seeding the planned v1.17 residual follow-through route*
 
 
 ## Archived Milestone (v1.2)

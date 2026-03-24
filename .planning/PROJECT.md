@@ -25,6 +25,26 @@
 **Primary route:** `Phase 68` 已把 refreshed repo-wide audit → PRD/context → cross-AI review → implementation/verification 串成单一 current story，并把 hotspot/docs/governance closeout 证据固化为下一步 milestone closeout 输入。
 **Default next command:** `$gsd-complete-milestone v1.16`
 
+## Planned Continuation after v1.16 closeout (v1.17)
+
+**Name:** `v1.17 Residual Formalization, Quality-Balance Hardening & Open-Source Contract Closure`
+
+**Why now:** `Phase 68` 的终极审阅已经把仓库从“系统性热点/漂移”压回到少数诚实、可枚举的 non-blocking residual：`runtime_access_support.py` 仍偏反射式 read-model、schedule/service path 仍夹带 protocol-shaped choreography、wrapper/shim/lazy-import 与 discoverability residue 还没完全消隐、测试质量门更偏 meta/governance 而非 checker coverage + integration balance、以及 release-aware docs URL / machine-readable HA support / maintainer continuity 仍可继续收口。这些问题已不适合重开 `v1.16`，但适合被压成下一条窄而诚实的 follow-through 路线。
+
+**North-star fit:** `v1.17` 继续沿单一正式主链推进：
+
+- `runtime_access.py` 继续是 control-plane outward home；对 `runtime_access_support.py` 的处理只能是 inward formalization / narrowing，不能长回第二 root
+- schedule、protocol-service 与 wrapper 链只能把协议细节继续往下压，不能以“收口”为名增加新的 facade / helper root
+- 质量改进必须补 behavior/integration/checker coverage，而不是只追加更多 prose-coupled meta guards
+- 开源治理只能写 honest contract：允许明确记录单维护者现实与 live-docs 限制，但不得虚构 delegate、support promise 或 release-aware story
+
+**Phase range:** `Phase 69 -> 69`
+**Current status:** `planned / ready for follow-through planning (2026-03-24)`
+**Starting baseline:** `.planning/phases/68-master-audit-follow-through-hotspot-finalization-and-docs-contract-hardening/68-SUMMARY.md`, `.planning/phases/68-master-audit-follow-through-hotspot-finalization-and-docs-contract-hardening/68-VERIFICATION.md`, `.planning/phases/68-master-audit-follow-through-hotspot-finalization-and-docs-contract-hardening/68-VALIDATION.md`, `.planning/reviews/V1_15_EVIDENCE_INDEX.md`
+**Requirements basket:** `GOV-53`, `ARC-16`, `HOT-26`, `HOT-27`, `OSS-09`, `TST-19`, `QLT-27`
+**Primary route:** `Phase 69` 预留给 post-Phase-68 residual closure：formalize runtime read-model seams、去协议化 schedule/wrapper path、补足 checker/integration quality balance，并把 open-source metadata / continuity truth 收回单一诚实故事线。
+**Default next command:** `$gsd-plan-phase 69`
+
 ## Latest Archived Milestone (v1.15)
 
 **Name:** `v1.15 Typed Contract Convergence, Tooling Kernel Hardening & Mypy Closure`
