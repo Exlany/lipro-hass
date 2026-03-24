@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections import deque
 import logging
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any, Literal, cast
 
 from ...api import LiproApiError, LiproAuthError, LiproRefreshTokenExpiredError
 from ...command.result import (
@@ -205,6 +205,85 @@ class CommandRuntime:
         )
         return success, route
 
+    async def _send_command_with_trace(
+        self,
+        *,
+        device: LiproDevice,
+        command: str,
+        properties: list[dict[str, str]] | None,
+        fallback_device_id: str | None,
+        trace: CommandTrace,
+    ) -> tuple[object | None, str]:
+        """Send one command and normalize API errors into the shared failure path."""
+        try:
+            return await self._sender.send_command(
+                device=device,
+                command=command,
+                properties=properties,
+                fallback_device_id=fallback_device_id,
+                trace=trace,
+            )
+        except LiproApiError as err:
+            await self._handle_api_error(
+                device=device,
+                trace=trace,
+                route="unknown",
+                err=err,
+            )
+            return None, "unknown"
+
+    def _record_push_delivery_failure(
+        self,
+        *,
+        trace: CommandTrace,
+        route: str,
+        command: str,
+        device: LiproDevice,
+    ) -> None:
+        """Record one push-stage command failure."""
+        failure = apply_push_failure(
+            trace=trace,
+            route=route,
+            command=command,
+            device_name=device.name,
+            device_serial=device.serial,
+            logger=_LOGGER,
+        )
+        self._record_failure(
+            trace=trace,
+            failure=failure,
+            error_type=_coerce_error_type(trace),
+        )
+
+    def _extract_msg_sn_or_record_failure(
+        self,
+        *,
+        result: object,
+        trace: CommandTrace,
+        route: str,
+        command: str,
+        device: LiproDevice,
+    ) -> str | None:
+        """Return one message serial number or record the canonical missing-msg failure."""
+        msg_sn = extract_msg_sn(result)
+        if msg_sn:
+            return msg_sn
+
+        failure = apply_missing_msg_sn_failure(
+            trace=trace,
+            route=route,
+            command=command,
+            device_name=device.name,
+            device_serial=device.serial,
+            logger=_LOGGER,
+        )
+        self._record_failure(
+            trace=trace,
+            failure=failure,
+            error_type=_coerce_error_type(trace),
+        )
+        return None
+
     async def _execute_device_command(
         self,
         *,
@@ -221,55 +300,32 @@ class CommandRuntime:
             fallback_device_id=fallback_device_id,
             redact_identifier=lambda x: x,
         )
-
-        try:
-            result, route = await self._sender.send_command(
-                device=device,
-                command=command,
-                properties=properties,
-                fallback_device_id=fallback_device_id,
-                trace=trace,
-            )
-        except LiproApiError as err:
-            return (
-                await self._handle_api_error(
-                    device=device, trace=trace, route="unknown", err=err
-                ),
-                "unknown",
-                trace,
-            )
-
+        result, route = await self._send_command_with_trace(
+            device=device,
+            command=command,
+            properties=properties,
+            fallback_device_id=fallback_device_id,
+            trace=trace,
+        )
+        if result is None:
+            return False, route, trace
         if is_command_push_failed(result):
-            failure = apply_push_failure(
+            self._record_push_delivery_failure(
                 trace=trace,
                 route=route,
                 command=command,
-                device_name=device.name,
-                device_serial=device.serial,
-                logger=_LOGGER,
-            )
-            self._record_failure(
-                trace=trace,
-                failure=failure,
-                error_type=_coerce_error_type(trace),
+                device=device,
             )
             return False, route, trace
 
-        msg_sn = extract_msg_sn(result)
-        if not msg_sn:
-            failure = apply_missing_msg_sn_failure(
-                trace=trace,
-                route=route,
-                command=command,
-                device_name=device.name,
-                device_serial=device.serial,
-                logger=_LOGGER,
-            )
-            self._record_failure(
-                trace=trace,
-                failure=failure,
-                error_type=_coerce_error_type(trace),
-            )
+        msg_sn = self._extract_msg_sn_or_record_failure(
+            result=result,
+            trace=trace,
+            route=route,
+            command=command,
+            device=device,
+        )
+        if msg_sn is None:
             return False, route, trace
 
         verified, _failure_summary = await self._verify_delivery(
@@ -290,6 +346,31 @@ class CommandRuntime:
         )
         return True, route, trace
 
+    def _record_command_result_failure(
+        self,
+        *,
+        trace: CommandTrace,
+        route: str,
+        device_serial: str,
+        reason: Literal["command_result_failed", "command_result_unconfirmed"],
+        error_type: Literal["CommandResultRejected", "CommandResultUnconfirmed"],
+    ) -> CommandFailureSummary:
+        """Record one normalized command-result verification failure."""
+        trace["route"] = route
+        trace["success"] = False
+        trace["error"] = error_type
+        trace["error_message"] = reason
+        return self._record_failure(
+            trace=trace,
+            failure={
+                "reason": reason,
+                "code": reason,
+                "route": route,
+                "device_id": device_serial,
+            },
+            error_type=error_type,
+        )
+
     async def _verify_delivery(
         self,
         *,
@@ -308,33 +389,19 @@ class CommandRuntime:
         )
         if verified:
             return True, None
-
-        trace["route"] = route
-        trace["success"] = False
         if command_result_state == "failed":
-            trace["error"] = "CommandResultRejected"
-            trace["error_message"] = COMMAND_FAILURE_REASON_COMMAND_RESULT_FAILED
-            return False, self._record_failure(
+            return False, self._record_command_result_failure(
                 trace=trace,
-                failure={
-                    "reason": COMMAND_FAILURE_REASON_COMMAND_RESULT_FAILED,
-                    "code": COMMAND_FAILURE_REASON_COMMAND_RESULT_FAILED,
-                    "route": route,
-                    "device_id": device.serial,
-                },
+                route=route,
+                device_serial=device.serial,
+                reason=COMMAND_FAILURE_REASON_COMMAND_RESULT_FAILED,
                 error_type="CommandResultRejected",
             )
-
-        trace["error"] = "CommandResultUnconfirmed"
-        trace["error_message"] = COMMAND_FAILURE_REASON_COMMAND_RESULT_UNCONFIRMED
-        return False, self._record_failure(
+        return False, self._record_command_result_failure(
             trace=trace,
-            failure={
-                "reason": COMMAND_FAILURE_REASON_COMMAND_RESULT_UNCONFIRMED,
-                "code": COMMAND_FAILURE_REASON_COMMAND_RESULT_UNCONFIRMED,
-                "route": route,
-                "device_id": device.serial,
-            },
+            route=route,
+            device_serial=device.serial,
+            reason=COMMAND_FAILURE_REASON_COMMAND_RESULT_UNCONFIRMED,
             error_type="CommandResultUnconfirmed",
         )
 

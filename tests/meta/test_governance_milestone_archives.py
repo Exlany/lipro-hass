@@ -6,6 +6,13 @@ from .governance_contract_helpers import (
     assert_pull_only_evidence_index,
     assert_runbook_points_to_latest_evidence,
 )
+from .governance_current_truth import (
+    CURRENT_MILESTONE_DEFAULT_NEXT,
+    CURRENT_MILESTONE_HEADER,
+    CURRENT_ROUTE_MODE,
+    LATEST_ARCHIVED_EVIDENCE_FILENAME,
+    LATEST_ARCHIVED_EVIDENCE_PATH,
+)
 from .test_governance_closeout_guards import _ROOT, _assert_promoted_phase_assets
 
 
@@ -457,14 +464,14 @@ def test_governance_truth_registers_v1_18_latest_archive_pointer() -> None:
     assert "## v1.17 Residual Formalization, Quality-Balance Hardening & Open-Source Contract Closure" in milestones_text
     assert "## v1.18 Support-Seam Slimming, OTA Resolver Consolidation & Governance Test Topicization" in milestones_text
     assert ".planning/reviews/V1_18_EVIDENCE_INDEX.md" in milestones_text
-    assert ".planning/reviews/V1_18_EVIDENCE_INDEX.md" in docs_text
-    assert "当前无 active milestone route" in docs_text
+    assert LATEST_ARCHIVED_EVIDENCE_PATH in docs_text
+    assert "v1.19 / Phase 71 complete / closeout-ready" in docs_text
     assert_runbook_points_to_latest_evidence(
         runbook_text,
-        "V1_18_EVIDENCE_INDEX.md",
+        LATEST_ARCHIVED_EVIDENCE_FILENAME,
         deprecated=("V1_6_EVIDENCE_INDEX.md",),
     )
-    assert "$gsd-new-milestone" in project_text
-    assert "$gsd-new-milestone" in state_text
-    assert "Latest Archived Milestone (v1.18)" in project_text
-    assert "**Current mode:** `no active milestone route / latest archived baseline = v1.18`" in state_text
+    assert CURRENT_MILESTONE_DEFAULT_NEXT in project_text
+    assert CURRENT_MILESTONE_DEFAULT_NEXT in state_text
+    assert CURRENT_MILESTONE_HEADER in project_text
+    assert f"**Current mode:** `{CURRENT_ROUTE_MODE}`" in state_text

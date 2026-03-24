@@ -1,0 +1,21 @@
+"""Shared current-route and latest-archive truth for governance tests."""
+
+from __future__ import annotations
+
+CURRENT_MILESTONE = "v1.19"
+CURRENT_MILESTONE_NAME = "Audit-Driven Final Hotspot Decomposition & Governance Truth Projection"
+CURRENT_MILESTONE_HEADER = f"## Current Milestone ({CURRENT_MILESTONE})"
+CURRENT_MILESTONE_STATUS = "Phase 71 complete / closeout-ready (2026-03-24)"
+CURRENT_MILESTONE_DEFAULT_NEXT = "$gsd-complete-milestone v1.19"
+CURRENT_PHASE = "71"
+CURRENT_PHASE_TITLE = "Audit-driven final hotspot decomposition, governance truth projection, and closeout routing"
+CURRENT_PHASE_HEADING = f"### Phase {CURRENT_PHASE}: {CURRENT_PHASE_TITLE}"
+CURRENT_PHASE_DIR = "71-audit-driven-final-hotspot-decomposition-and-governance-truth-projection"
+CURRENT_ROUTE_MODE = "Phase 71 audit-driven final hotspot decomposition and governance truth projection"
+LATEST_ARCHIVED_MILESTONE = "v1.18"
+LATEST_ARCHIVED_MILESTONE_NAME = "Support-Seam Slimming, OTA Resolver Consolidation & Governance Test Topicization"
+LATEST_ARCHIVED_PROJECT_HEADER = f"## Latest Archived Milestone ({LATEST_ARCHIVED_MILESTONE})"
+LATEST_ARCHIVED_EVIDENCE_FILENAME = "V1_18_EVIDENCE_INDEX.md"
+LATEST_ARCHIVED_EVIDENCE_PATH = ".planning/reviews/V1_18_EVIDENCE_INDEX.md"
+LATEST_ARCHIVED_AUDIT_FILENAME = "v1.18-MILESTONE-AUDIT.md"
+LATEST_ARCHIVED_AUDIT_PATH = ".planning/v1.18-MILESTONE-AUDIT.md"

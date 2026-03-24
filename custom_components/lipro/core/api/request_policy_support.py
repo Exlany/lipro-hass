@@ -165,6 +165,106 @@ async def record_change_state_success(
         )
 
 
+async def _register_pacing_target(
+    *,
+    target_id: str,
+    command: str,
+    command_pacing_lock: asyncio.Lock,
+    command_pacing_target_locks: dict[str, asyncio.Lock],
+    command_pacing_target_users: dict[str, int],
+) -> tuple[str, asyncio.Lock] | None:
+    """Return the normalized pacing target and its lock when pacing applies."""
+    if not is_change_state_command(command):
+        return None
+
+    normalized_target = normalize_pacing_target(target_id)
+    if not normalized_target:
+        return None
+
+    async with command_pacing_lock:
+        target_lock = command_pacing_target_locks.get(normalized_target)
+        if target_lock is None:
+            target_lock = asyncio.Lock()
+            command_pacing_target_locks[normalized_target] = target_lock
+        command_pacing_target_users[normalized_target] = (
+            command_pacing_target_users.get(normalized_target, 0) + 1
+        )
+    return normalized_target, target_lock
+
+
+def _resolve_change_state_wait_time(
+    *,
+    normalized_target: str,
+    last_change_state_at: dict[str, float],
+    change_state_min_interval: dict[str, float],
+    change_state_min_interval_seconds: float,
+    monotonic: Callable[[], float],
+) -> tuple[float, float]:
+    """Return the current timestamp and pacing wait time for one target."""
+    now = monotonic()
+    last = last_change_state_at.get(normalized_target)
+    min_interval = max(
+        change_state_min_interval_seconds,
+        change_state_min_interval.get(
+            normalized_target,
+            change_state_min_interval_seconds,
+        ),
+    )
+    wait_time = 0.0 if last is None else min_interval - (now - last)
+    return now, wait_time
+
+
+def _record_change_state_send(
+    *,
+    normalized_target: str,
+    timestamp: float,
+    last_change_state_at: dict[str, float],
+    change_state_min_interval: dict[str, float],
+    change_state_busy_count: dict[str, int],
+    command_pacing_target_users: dict[str, int],
+    command_pacing_target_locks: dict[str, asyncio.Lock],
+    command_pacing_cache_max_size: int,
+) -> None:
+    """Record one paced CHANGE_STATE send and trim caches."""
+    last_change_state_at[normalized_target] = timestamp
+    enforce_command_pacing_cache_limit(
+        command_pacing_cache_max_size=command_pacing_cache_max_size,
+        last_change_state_at=last_change_state_at,
+        change_state_min_interval=change_state_min_interval,
+        change_state_busy_count=change_state_busy_count,
+        command_pacing_target_users=command_pacing_target_users,
+        command_pacing_target_locks=command_pacing_target_locks,
+    )
+
+
+async def _release_pacing_target(
+    *,
+    normalized_target: str,
+    command_pacing_lock: asyncio.Lock,
+    last_change_state_at: dict[str, float],
+    change_state_min_interval: dict[str, float],
+    change_state_busy_count: dict[str, int],
+    command_pacing_target_users: dict[str, int],
+    command_pacing_target_locks: dict[str, asyncio.Lock],
+    command_pacing_cache_max_size: int,
+) -> None:
+    """Release one pacing-target user and trim caches."""
+    async with command_pacing_lock:
+        active_users = command_pacing_target_users.get(normalized_target, 0) - 1
+        if active_users > 0:
+            command_pacing_target_users[normalized_target] = active_users
+        else:
+            command_pacing_target_users.pop(normalized_target, None)
+        enforce_command_pacing_cache_limit(
+            command_pacing_cache_max_size=command_pacing_cache_max_size,
+            last_change_state_at=last_change_state_at,
+            change_state_min_interval=change_state_min_interval,
+            change_state_busy_count=change_state_busy_count,
+            command_pacing_target_users=command_pacing_target_users,
+            command_pacing_target_locks=command_pacing_target_locks,
+        )
+
+
 async def throttle_change_state(
     *,
     target_id: str,
@@ -181,80 +281,63 @@ async def throttle_change_state(
     command_pacing_cache_max_size: int,
 ) -> None:
     """Pace high-frequency CHANGE_STATE sends for the same target."""
-    if not is_change_state_command(command):
+    registered_target = await _register_pacing_target(
+        target_id=target_id,
+        command=command,
+        command_pacing_lock=command_pacing_lock,
+        command_pacing_target_locks=command_pacing_target_locks,
+        command_pacing_target_users=command_pacing_target_users,
+    )
+    if registered_target is None:
         return
 
-    normalized_target = normalize_pacing_target(target_id)
-    if not normalized_target:
-        return
-
-    async with command_pacing_lock:
-        target_lock = command_pacing_target_locks.get(normalized_target)
-        if target_lock is None:
-            target_lock = asyncio.Lock()
-            command_pacing_target_locks[normalized_target] = target_lock
-        command_pacing_target_users[normalized_target] = (
-            command_pacing_target_users.get(normalized_target, 0) + 1
-        )
-
+    normalized_target, target_lock = registered_target
     try:
-        async with command_pacing_lock:
-            target_lock = command_pacing_target_locks[normalized_target]
-
         async with target_lock:
             async with command_pacing_lock:
-                now = monotonic()
-                last = last_change_state_at.get(normalized_target)
-                min_interval = max(
-                    change_state_min_interval_seconds,
-                    change_state_min_interval.get(
-                        normalized_target,
-                        change_state_min_interval_seconds,
-                    ),
+                now, wait_time = _resolve_change_state_wait_time(
+                    normalized_target=normalized_target,
+                    last_change_state_at=last_change_state_at,
+                    change_state_min_interval=change_state_min_interval,
+                    change_state_min_interval_seconds=change_state_min_interval_seconds,
+                    monotonic=monotonic,
                 )
-                wait_time = 0.0
-                if last is not None:
-                    wait_time = min_interval - (now - last)
                 if wait_time <= 0:
-                    last_change_state_at[normalized_target] = now
-                    enforce_command_pacing_cache_limit(
-                        command_pacing_cache_max_size=command_pacing_cache_max_size,
+                    _record_change_state_send(
+                        normalized_target=normalized_target,
+                        timestamp=now,
                         last_change_state_at=last_change_state_at,
                         change_state_min_interval=change_state_min_interval,
                         change_state_busy_count=change_state_busy_count,
                         command_pacing_target_users=command_pacing_target_users,
                         command_pacing_target_locks=command_pacing_target_locks,
+                        command_pacing_cache_max_size=command_pacing_cache_max_size,
                     )
                     return
 
-            sleep_fn = sleep if sleep is not None else asyncio.sleep
-            await sleep_fn(wait_time)
-
+            await sleep(wait_time)
             async with command_pacing_lock:
-                last_change_state_at[normalized_target] = monotonic()
-                enforce_command_pacing_cache_limit(
-                    command_pacing_cache_max_size=command_pacing_cache_max_size,
+                _record_change_state_send(
+                    normalized_target=normalized_target,
+                    timestamp=monotonic(),
                     last_change_state_at=last_change_state_at,
                     change_state_min_interval=change_state_min_interval,
                     change_state_busy_count=change_state_busy_count,
                     command_pacing_target_users=command_pacing_target_users,
                     command_pacing_target_locks=command_pacing_target_locks,
+                    command_pacing_cache_max_size=command_pacing_cache_max_size,
                 )
     finally:
-        async with command_pacing_lock:
-            active_users = command_pacing_target_users.get(normalized_target, 0) - 1
-            if active_users > 0:
-                command_pacing_target_users[normalized_target] = active_users
-            else:
-                command_pacing_target_users.pop(normalized_target, None)
-            enforce_command_pacing_cache_limit(
-                command_pacing_cache_max_size=command_pacing_cache_max_size,
-                last_change_state_at=last_change_state_at,
-                change_state_min_interval=change_state_min_interval,
-                change_state_busy_count=change_state_busy_count,
-                command_pacing_target_users=command_pacing_target_users,
-                command_pacing_target_locks=command_pacing_target_locks,
-            )
+        await _release_pacing_target(
+            normalized_target=normalized_target,
+            command_pacing_lock=command_pacing_lock,
+            last_change_state_at=last_change_state_at,
+            change_state_min_interval=change_state_min_interval,
+            change_state_busy_count=change_state_busy_count,
+            command_pacing_target_users=command_pacing_target_users,
+            command_pacing_target_locks=command_pacing_target_locks,
+            command_pacing_cache_max_size=command_pacing_cache_max_size,
+        )
 
 
 

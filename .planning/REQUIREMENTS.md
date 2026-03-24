@@ -134,6 +134,39 @@
 - `15` 锁定 developer feedback contract、governance truth repair、contributor/install docs sync、support hotspot follow-through 与 testing/tooling gate clarification；不得因修补支持面问题而重开第二条正式主链
 - `16` 锁定 post-audit truth alignment、hotspot decomposition、type/exception tightening、residual endgame、domain/entity/OTA rationalization 与 contributor DX follow-through；不得因为收尾改进而重开第二条正式主链、第二套 protocol/runtime story 或无 gate rename campaign
 
+## Current Milestone (v1.19)
+
+> `v1.19` 已完成 `Phase 71` 执行并进入 closeout-ready；以下 requirement / traceability 反映 active current route 与 `v1.18` latest archived baseline 并行成立的最新真相。
+
+### Hotspot Decomposition & Truth Projection
+
+- [x] **GOV-55**: `PROJECT / ROADMAP / REQUIREMENTS / STATE / docs index / meta guards` 必须共同承认 `v1.19 / Phase 71 complete / closeout-ready` 是 active current route，同时继续把 `v1.18` 保留为 latest archived baseline 与 latest pull-only closeout pointer。
+- [x] **ARC-18**: `firmware_update.py`、`diagnostics_api_ota.py`、`share_client_submit.py`、`request_policy_support.py` 与 `command_runtime.py` 只能通过 inward helper decomposition 收口长流程；不得新增 outward root、compat shell 或 second story。
+- [x] **HOT-30**: OTA / firmware-install、anonymous-share submit、request pacing 与 command-runtime touched hotspots 必须显著降低单函数决策密度，并把 orchestration 切回更窄的 helper/home 边界。
+- [x] **HOT-31**: `Phase 71` 必须留下 focused hotspot/function budgets 与 route-truth guards，阻止 touched scope 的 long-flow density 与 current-route drift 回流。
+- [x] **TYP-20**: 本轮新拆出的 helper seams 必须继续使用显式 typed payload / outcome / pacing contracts，不得以 `object`、宽口 mapping 或弱化返回值取代正式协作者语义。
+- [x] **TST-21**: governance current-route / archive-pointer tests 必须共享单一 current-truth helper；热点守卫需提升 failure localization，而不是继续堆叠 phase-history prose 断言。
+- [x] **QLT-29**: `v1.19` touched scope 必须在 `uv run ruff check .`、`uv run mypy --follow-imports=silent .`、`uv run python scripts/check_architecture_policy.py --check`、`uv run python scripts/check_file_matrix.py --check` 与 focused pytest bundle 下保持绿色，并留下 closeout-ready 证据。
+
+## Traceability for v1.19 current route
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| GOV-55 | Phase 71 | Completed |
+| ARC-18 | Phase 71 | Completed |
+| HOT-30 | Phase 71 | Completed |
+| HOT-31 | Phase 71 | Completed |
+| TYP-20 | Phase 71 | Completed |
+| TST-21 | Phase 71 | Completed |
+| QLT-29 | Phase 71 | Completed |
+
+**Current Coverage:**
+- v1.19 routed requirements: 7 total
+- Current mapped: 7
+- Current complete: 7
+- Current pending: 0
+- Current unmapped: 0 ✓
+
 ## Archived Milestone (v1.18)
 
 > `v1.18` 已于 `2026-03-24` 完成归档；以下 requirements / traceability 保留 `Phase 70` 的最终 fulfilled contract，归档快照见 `.planning/milestones/v1.18-REQUIREMENTS.md`，审计裁决见 `.planning/v1.18-MILESTONE-AUDIT.md`，证据索引见 `.planning/reviews/V1_18_EVIDENCE_INDEX.md`。

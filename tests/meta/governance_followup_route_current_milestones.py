@@ -2,6 +2,16 @@
 
 from __future__ import annotations
 
+from .governance_current_truth import (
+    CURRENT_MILESTONE,
+    CURRENT_MILESTONE_HEADER,
+    CURRENT_MILESTONE_NAME,
+    CURRENT_PHASE_HEADING,
+    CURRENT_ROUTE_MODE,
+    LATEST_ARCHIVED_AUDIT_PATH,
+    LATEST_ARCHIVED_EVIDENCE_PATH,
+    LATEST_ARCHIVED_PROJECT_HEADER,
+)
 from .test_governance_closeout_guards import _ROOT
 
 
@@ -165,38 +175,40 @@ def test_v1_8_closeout_through_v1_15_archived_truth_are_consistent() -> None:
     assert ".planning/milestones/v1.13-ROADMAP.md" in project_text
     assert ".planning/phases/60-tooling-truth-decomposition-and-file-governance-maintainability/60-01-PLAN.md" not in project_text
 
-    assert "**Status:** No active milestone route；latest archived closeout pointer = `.planning/reviews/V1_18_EVIDENCE_INDEX.md`." in project_text
-    assert "## Latest Archived Milestone (v1.18)" in project_text
-    assert "**Current status:** `archived / evidence-ready (2026-03-24)`" in project_text
-    assert "**Default next command:** `$gsd-new-milestone`" in project_text
+    assert "**Status:** `v1.19 / Phase 71 complete / closeout-ready`；latest archived closeout pointer = `.planning/reviews/V1_18_EVIDENCE_INDEX.md`." in project_text
+    assert CURRENT_MILESTONE_HEADER in project_text
+    assert LATEST_ARCHIVED_PROJECT_HEADER in project_text
+    assert "**Current status:** `Phase 71 complete / closeout-ready (2026-03-24)`" in project_text
+    assert "**Default next command:** `$gsd-complete-milestone v1.19`" in project_text
     assert "## Archived Milestone (v1.17)" in project_text
     assert "## Archived Milestone (v1.16)" in project_text
     assert "**Current status:** `archived / evidence-ready with carry-forward (2026-03-24)`" in project_text
     assert "## Archived Milestone (v1.15)" in project_text
 
-    assert "### ✅ v1.18: Support-Seam Slimming, OTA Resolver Consolidation & Governance Test Topicization" in roadmap_text
-    assert "**Current Status:** `archived / evidence-ready（2026-03-24）`；当前无 active milestone route，默认下一步是 `$gsd-new-milestone`。" in roadmap_text
-    assert "### Phase 70: Support-seam slimming, OTA resolver consolidation, and governance test topicization" in roadmap_text
+    assert f"### 🚧 {CURRENT_MILESTONE}: {CURRENT_MILESTONE_NAME}" in roadmap_text
+    assert "**Milestone status:** `Phase 71 complete (2026-03-24)`" in roadmap_text
+    assert "**Default next command:** `$gsd-complete-milestone v1.19`" in roadmap_text
+    assert CURRENT_PHASE_HEADING in roadmap_text
     assert "Plans:" in roadmap_text
-    assert "70-05: sync planning-baseline truths and run the final phase gate" in roadmap_text
+    assert "71-05: sync baselines, promote phase assets, and run the final phase gate" in roadmap_text
     assert "### Phase 69: Residual read-model closure, wrapper-path thinning, and quality-balance follow-through" in roadmap_text
 
     for needle in (
-        "- [x] **GOV-54**",
-        "- [x] **ARC-17**",
-        "- [x] **HOT-28**",
-        "- [x] **HOT-29**",
-        "- [x] **OSS-10**",
-        "- [x] **TST-20**",
-        "- [x] **QLT-28**",
-        "| GOV-54 | Phase 70 | Completed |",
-        "| ARC-17 | Phase 70 | Completed |",
-        "| HOT-28 | Phase 70 | Completed |",
-        "| HOT-29 | Phase 70 | Completed |",
-        "| OSS-10 | Phase 70 | Completed |",
-        "| TST-20 | Phase 70 | Completed |",
-        "| QLT-28 | Phase 70 | Completed |",
-        "- v1.18 routed requirements: 7 total",
+        "- [x] **GOV-55**",
+        "- [x] **ARC-18**",
+        "- [x] **HOT-30**",
+        "- [x] **HOT-31**",
+        "- [x] **TYP-20**",
+        "- [x] **TST-21**",
+        "- [x] **QLT-29**",
+        "| GOV-55 | Phase 71 | Completed |",
+        "| ARC-18 | Phase 71 | Completed |",
+        "| HOT-30 | Phase 71 | Completed |",
+        "| HOT-31 | Phase 71 | Completed |",
+        "| TYP-20 | Phase 71 | Completed |",
+        "| TST-21 | Phase 71 | Completed |",
+        "| QLT-29 | Phase 71 | Completed |",
+        "- v1.19 routed requirements: 7 total",
         "- Current mapped: 7",
         "- Current complete: 7",
         "- Current pending: 0",
@@ -206,8 +218,8 @@ def test_v1_8_closeout_through_v1_15_archived_truth_are_consistent() -> None:
     ):
         assert needle in requirements_text
 
-    assert "**Current milestone:** `No active milestone route`" in state_text
-    assert "**Current mode:** `no active milestone route / latest archived baseline = v1.18`" in state_text
-    assert "$gsd-new-milestone" in state_text
-    assert ".planning/v1.18-MILESTONE-AUDIT.md" in state_text
-    assert ".planning/reviews/V1_18_EVIDENCE_INDEX.md" in state_text
+    assert f"**Current milestone:** `{CURRENT_MILESTONE} {CURRENT_MILESTONE_NAME}`" in state_text
+    assert f"**Current mode:** `{CURRENT_ROUTE_MODE}`" in state_text
+    assert "$gsd-complete-milestone v1.19" in state_text
+    assert LATEST_ARCHIVED_AUDIT_PATH in state_text
+    assert LATEST_ARCHIVED_EVIDENCE_PATH in state_text

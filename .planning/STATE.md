@@ -1,8 +1,8 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.18
-milestone_name: Support-Seam Slimming, OTA Resolver Consolidation & Governance Test Topicization
-status: archived
+milestone: v1.19
+milestone_name: Audit-Driven Final Hotspot Decomposition & Governance Truth Projection
+status: active
 last_updated: "2026-03-24T23:59:00Z"
 progress:
   total_phases: 1
@@ -17,22 +17,22 @@ progress:
 
 See: `.planning/PROJECT.md`
 
-**Current milestone:** `No active milestone route`
-**Core value:** 保持 `v1.18` archived closeout evidence、milestone snapshots 与 `Phase 70` closeout package 作为最新 archived baseline，并以此作为下一轮 milestone 的起点。
-**Current mode:** `no active milestone route / latest archived baseline = v1.18`
+**Current milestone:** `v1.19 Audit-Driven Final Hotspot Decomposition & Governance Truth Projection`
+**Core value:** 基于 `v1.18` archived closeout evidence，把 repo-wide terminal audit 指向的高收益热点与 current-route truth 漂移面切回更窄 helper homes，并把当前里程碑推进到单一步骤可归档的 closeout-ready 状态。
+**Current mode:** `Phase 71 audit-driven final hotspot decomposition and governance truth projection`
 
 ## Current Position
 
-- `v1.18` 已于 `2026-03-24` 完成 `Phase 70` closeout、`.planning/v1.18-MILESTONE-AUDIT.md` 审计、`.planning/reviews/V1_18_EVIDENCE_INDEX.md` 证据索引提升与 `.planning/milestones/v1.18-{ROADMAP,REQUIREMENTS}.md` archive snapshot promotion，并继续只承担 latest archived baseline 身份。
-- `v1.17` 退为 previous archived baseline；其 residual formalization、quality-balance hardening 与 open-source contract closure 结论不再回写 current route。
-- `v1.16` 继续承担更早一层 historical archived baseline 身份；其 carry-forward 问题已由 `v1.17` / `v1.18` 关闭。
-- 当前无 active milestone route；下一步治理动作应为 `$gsd-new-milestone`，而不是重开 `Phase 70` 或回写历史 closeout。 
+- `v1.19` 已在 `2026-03-24` 完成 `Phase 71` 的 `5/5` plans：OTA / firmware-install、anonymous-share submit、request pacing、command-runtime 与 current-route truth single-source 收口已全部落盘。
+- `v1.18` 继续承担 latest archived baseline 身份；latest archived closeout pointer 仍是 `.planning/reviews/V1_18_EVIDENCE_INDEX.md`。
+- `v1.17` 退为 previous archived baseline；其 residual formalization 与 quality-balance hardening 结论不再回写 current route。
+- 当前里程碑已达到 `closeout-ready`；下一步治理动作应为 `$gsd-complete-milestone v1.19`，而不是回滚到 `no active milestone route` 或重开 `Phase 70`。
 
-## No Active Milestone Route
+## Active Milestone Route
 
-- **Route status:** `no active milestone route (2026-03-24)`
+- **Route status:** `Phase 71 complete / closeout-ready (2026-03-24)`
 - **Latest archived baseline:** `v1.18 Support-Seam Slimming, OTA Resolver Consolidation & Governance Test Topicization`
-- **Next focus:** `start the next milestone from archived v1.18 evidence via $gsd-new-milestone`
+- **Next focus:** `promote v1.19 to archived / evidence-ready via $gsd-complete-milestone v1.19`
 
 ## Latest Archived Baseline (v1.18)
 
@@ -54,6 +54,31 @@ See: `.planning/PROJECT.md`
 - **Phase range:** `68`
 - **Archive status:** `archived / evidence-ready with carry-forward (2026-03-24)`
 - **Archive assets:** `.planning/v1.16-MILESTONE-AUDIT.md`, `.planning/reviews/V1_16_EVIDENCE_INDEX.md`, `.planning/milestones/v1.16-ROADMAP.md`, `.planning/milestones/v1.16-REQUIREMENTS.md`, `.planning/phases/68-master-audit-follow-through-hotspot-finalization-and-docs-contract-hardening/68-SUMMARY.md`, `.planning/phases/68-master-audit-follow-through-hotspot-finalization-and-docs-contract-hardening/68-VERIFICATION.md`, `.planning/phases/68-master-audit-follow-through-hotspot-finalization-and-docs-contract-hardening/68-VALIDATION.md`
+
+## Recommended Next Command
+
+1. `$gsd-complete-milestone v1.19` —— 将 `Phase 71` 的 closeout-ready current route 提升为 archived / evidence-ready 里程碑
+2. `$gsd-progress` —— 查看 `v1.19` closeout-ready 状态与 archive promotion 准备度
+3. `uv run python scripts/check_file_matrix.py --check` —— 复核 planning / baseline / promoted assets 与 file-matrix 契约
+4. `uv run pytest -q tests/meta/test_governance_release_contract.py tests/meta/test_governance_milestone_archives.py tests/meta/test_version_sync.py tests/meta/governance_followup_route_current_milestones.py tests/meta/test_phase71_hotspot_route_guards.py` —— 复核 active-route / latest-archive / hotspot-route guards
+
+## Session Continuity
+
+If resuming, read in this order:
+
+1. `docs/NORTH_STAR_TARGET_ARCHITECTURE.md`
+2. `.planning/PROJECT.md`
+3. `.planning/ROADMAP.md`
+4. `.planning/REQUIREMENTS.md`
+5. `.planning/STATE.md`
+6. `.planning/reviews/V1_19_TERMINAL_AUDIT.md`
+7. `.planning/phases/71-audit-driven-final-hotspot-decomposition-and-governance-truth-projection/71-CONTEXT.md`
+8. `.planning/phases/71-audit-driven-final-hotspot-decomposition-and-governance-truth-projection/71-RESEARCH.md`
+9. `.planning/phases/71-audit-driven-final-hotspot-decomposition-and-governance-truth-projection/71-SUMMARY.md`
+10. `.planning/phases/71-audit-driven-final-hotspot-decomposition-and-governance-truth-projection/71-VERIFICATION.md`
+11. `.planning/phases/71-audit-driven-final-hotspot-decomposition-and-governance-truth-projection/71-VALIDATION.md`
+12. `.planning/v1.18-MILESTONE-AUDIT.md`
+13. `.planning/reviews/V1_18_EVIDENCE_INDEX.md`
 
 ## Historical Continuity Anchors
 

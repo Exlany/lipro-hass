@@ -1,11 +1,34 @@
 # Project: Lipro-HASS North Star Evolution
 
-**Status:** No active milestone route；latest archived closeout pointer = `.planning/reviews/V1_18_EVIDENCE_INDEX.md`.
-**Goal:** 保持 `v1.18` 的 archived closeout evidence、milestone snapshots 与 `Phase 70` closeout package 作为当前最新治理基线，等待下一条明确 scope 的 milestone route，而不是回写 `Phase 70` 或重开 `v1.17`。
-**Default next step:** `$gsd-new-milestone`
-**Active baseline:** 当前无 active milestone；`v1.18` 是 latest archived baseline，`v1.17` 退为 previous archive baseline。
+**Status:** Active
+**Current route:** `v1.19 / Phase 71 complete / closeout-ready`；latest archived closeout pointer = `.planning/reviews/V1_18_EVIDENCE_INDEX.md`.
+**Legacy route-string compatibility:** **Status:** `v1.19 / Phase 71 complete / closeout-ready`；latest archived closeout pointer = `.planning/reviews/V1_18_EVIDENCE_INDEX.md`.
+**Goal:** 基于 `v1.18` archived baseline，把 repo-wide terminal audit 锁定的剩余高收益热点与 current-route truth 漂移面一次性压回 formal helper homes，并把当前里程碑推进到可归档的 closeout-ready 状态。
+**Default next step:** `$gsd-complete-milestone v1.19`
+**Active baseline:** 当前 active milestone = `v1.19`；latest archived baseline = `v1.18`；previous archived baseline = `v1.17`。
+
+## Current Milestone (v1.19)
+
+**Name:** `v1.19 Audit-Driven Final Hotspot Decomposition & Governance Truth Projection`
+
+**Why now:** `v1.18` 已把 support-seam、anonymous-share / OTA helper convergence、archive/current version truth freeze 与治理 topicization 收口到归档态；但 repo-wide terminal audit 仍识别出一组最适合继续 inward split 的热点：OTA diagnostics / firmware-install orchestration、anonymous-share submit outcome loop、request pacing / command-runtime long flow，以及 current-route / latest-archive truth 的多点字面同步。`Phase 71` 已将这些问题沿既有 north-star seams 收口，并把 current story 从 `no active milestone route` 提升到 `v1.19 / Phase 71 complete / closeout-ready`。
+
+**North-star fit:** `v1.19` current route 继续确认以下裁决：
+
+- OTA / firmware update / anonymous-share / request pacing / command runtime 只允许 inward decomposition，不得新增 outward root、compat shell 或 second story。
+- `PROJECT / ROADMAP / REQUIREMENTS / STATE / docs / meta guards` 必须共同承认 `v1.19` 是 active closeout-ready current route，同时保留 `v1.18` 为 latest archived baseline。
+- latest archived closeout pointer 继续绑定 `.planning/reviews/V1_18_EVIDENCE_INDEX.md`；archive evidence 只承担 pull-only/historical 身份，不反向定义 active story。
+- 本轮热点切薄必须留下 focused no-growth guards，防止 function-density 与 route drift 在 touched scope 回流。
+
+**Phase range:** `Phase 71 -> 71`
+**Current status:** `Phase 71 complete / closeout-ready (2026-03-24)`
+**Starting baseline:** `.planning/v1.18-MILESTONE-AUDIT.md`, `.planning/reviews/V1_18_EVIDENCE_INDEX.md`, `.planning/milestones/v1.18-ROADMAP.md`, `.planning/milestones/v1.18-REQUIREMENTS.md`, `.planning/phases/70-support-seam-slimming-ota-resolver-consolidation-and-governance-test-topicization/70-SUMMARY.md`, `.planning/phases/70-support-seam-slimming-ota-resolver-consolidation-and-governance-test-topicization/70-VERIFICATION.md`, `.planning/phases/70-support-seam-slimming-ota-resolver-consolidation-and-governance-test-topicization/70-VALIDATION.md`
+**Requirements basket:** `GOV-55`, `ARC-18`, `HOT-30`, `HOT-31`, `TYP-20`, `TST-21`, `QLT-29`
+**Execution assets:** `.planning/reviews/V1_19_TERMINAL_AUDIT.md`, `.planning/phases/71-audit-driven-final-hotspot-decomposition-and-governance-truth-projection/71-SUMMARY.md`, `.planning/phases/71-audit-driven-final-hotspot-decomposition-and-governance-truth-projection/71-VERIFICATION.md`, `.planning/phases/71-audit-driven-final-hotspot-decomposition-and-governance-truth-projection/71-VALIDATION.md`
+**Default next command:** `$gsd-complete-milestone v1.19`
 
 ## Latest Archived Milestone (v1.18)
+
 
 **Name:** `v1.18 Support-Seam Slimming, OTA Resolver Consolidation & Governance Test Topicization`
 

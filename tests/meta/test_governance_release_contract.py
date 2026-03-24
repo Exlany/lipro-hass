@@ -37,6 +37,11 @@ from .conftest import (
     _load_yaml,
     _parse_codeowners_handles,
 )
+from .governance_current_truth import (
+    CURRENT_MILESTONE_DEFAULT_NEXT,
+    LATEST_ARCHIVED_EVIDENCE_FILENAME,
+    LATEST_ARCHIVED_EVIDENCE_PATH,
+)
 
 _CODEQL_WORKFLOW = _ROOT / ".github" / "workflows" / "codeql.yml"
 _GOVERNANCE_REGISTRY = _ROOT / ".planning" / "baseline" / "GOVERNANCE_REGISTRY.json"
@@ -363,21 +368,21 @@ def test_troubleshooting_and_runbook_navigation_is_consistent() -> None:
         assert "docs/MAINTAINER_RELEASE_RUNBOOK.md" in path.read_text(encoding="utf-8")
 
 
-def test_latest_closeout_pointer_and_no_active_route_stay_current() -> None:
+def test_latest_closeout_pointer_and_active_route_stay_current() -> None:
     project_text = (_ROOT / ".planning" / "PROJECT.md").read_text(encoding="utf-8")
     state_text = (_ROOT / ".planning" / "STATE.md").read_text(encoding="utf-8")
     milestones_text = (_ROOT / ".planning" / "MILESTONES.md").read_text(encoding="utf-8")
     docs_text = _DOCS_README.read_text(encoding="utf-8")
     runbook_text = _RUNBOOK.read_text(encoding="utf-8")
 
-    assert ".planning/reviews/V1_18_EVIDENCE_INDEX.md" in docs_text
-    assert "当前无 active milestone route" in docs_text
-    assert "V1_18_EVIDENCE_INDEX.md" in runbook_text
+    assert LATEST_ARCHIVED_EVIDENCE_PATH in docs_text
+    assert "v1.19 / Phase 71 complete / closeout-ready" in docs_text
+    assert LATEST_ARCHIVED_EVIDENCE_FILENAME in runbook_text
     assert "V1_6_EVIDENCE_INDEX.md" not in runbook_text
-    assert "$gsd-new-milestone" in project_text
-    assert "$gsd-new-milestone" in state_text
+    assert CURRENT_MILESTONE_DEFAULT_NEXT in project_text
+    assert CURRENT_MILESTONE_DEFAULT_NEXT in state_text
     assert "## v1.18 Support-Seam Slimming, OTA Resolver Consolidation & Governance Test Topicization" in milestones_text
-    assert "latest archive-ready closeout pointer = `.planning/reviews/V1_18_EVIDENCE_INDEX.md`" in milestones_text
+    assert f"latest archive-ready closeout pointer = `{LATEST_ARCHIVED_EVIDENCE_PATH}`" in milestones_text
     assert "v1.11" not in docs_text
     assert "v1.11" not in runbook_text
 

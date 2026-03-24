@@ -86,14 +86,12 @@ COMMAND_RESULT_TRACE_STATE_QUERY_ERROR: Final[CommandResultTraceState] = "query_
 COMMAND_VERIFICATION_RESULT_CONFIRMED: Final[CommandVerificationResult] = "confirmed"
 COMMAND_VERIFICATION_RESULT_FAILED: Final[CommandVerificationResult] = "failed"
 COMMAND_VERIFICATION_RESULT_TIMEOUT: Final[CommandVerificationResult] = "timeout"
-COMMAND_FAILURE_REASON_API_ERROR: Final[CommandFailureReason] = "api_error"
-COMMAND_FAILURE_REASON_COMMAND_RESULT_FAILED: Final[CommandFailureReason] = (
-    "command_result_failed"
-)
-COMMAND_FAILURE_REASON_COMMAND_RESULT_UNCONFIRMED: Final[CommandFailureReason] = (
+COMMAND_FAILURE_REASON_API_ERROR: Final = "api_error"
+COMMAND_FAILURE_REASON_COMMAND_RESULT_FAILED: Final = "command_result_failed"
+COMMAND_FAILURE_REASON_COMMAND_RESULT_UNCONFIRMED: Final = (
     "command_result_unconfirmed"
 )
-COMMAND_FAILURE_REASON_PUSH_FAILED: Final[CommandFailureReason] = "push_failed"
+COMMAND_FAILURE_REASON_PUSH_FAILED: Final = "push_failed"
 COMMAND_FAILURE_CODE_MISSING_MSGSN: Final[str] = "command_result_missing_msgsn"
 _TERMINAL_COMMAND_RESULT_STATES = frozenset(
     (COMMAND_RESULT_STATE_CONFIRMED, COMMAND_RESULT_STATE_FAILED)

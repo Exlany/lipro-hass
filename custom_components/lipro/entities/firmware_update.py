@@ -143,20 +143,29 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
     ) -> None:
         """Install firmware update."""
         del backup, kwargs
+        command, properties = await self._async_prepare_install_command(version)
+        await self._async_execute_install_command(
+            command=command,
+            properties=properties,
+        )
+
+    async def _async_prepare_install_command(
+        self,
+        requested_version: str | None,
+    ) -> tuple[str, list[dict[str, str]] | None]:
+        """Refresh OTA state and return one validated install command payload."""
         await self._async_refresh_ota(force=True)
 
         install_eval = evaluate_install(
             self._ota_candidate,
-            requested_version=version,
+            requested_version=requested_version,
             confirm_until=self._unverified_confirm_until,
             now_monotonic=asyncio.get_running_loop().time(),
             confirmation_window_seconds=_UNVERIFIED_CONFIRM_WINDOW_SECONDS,
         )
         self._unverified_confirm_until = install_eval.confirm_until
         if install_eval.error_key is not None:
-            if install_eval.error_key == "firmware_unverified_confirm_required":
-                self.async_write_ha_state()
-            raise self._build_translated_error(
+            self._raise_install_error(
                 install_eval.error_key,
                 placeholders=install_eval.error_placeholders,
             )
@@ -164,14 +173,36 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
         install_command = install_eval.install_command
         if install_command is None:
             raise self._build_translated_error("firmware_install_unsupported")
+        return install_command.command, install_command.properties
 
+    def _raise_install_error(
+        self,
+        translation_key: str,
+        *,
+        placeholders: dict[str, str] | None = None,
+    ) -> None:
+        """Raise one translated install error after updating observable state."""
+        if translation_key == "firmware_unverified_confirm_required":
+            self.async_write_ha_state()
+        raise self._build_translated_error(
+            translation_key,
+            placeholders=placeholders,
+        )
+
+    async def _async_execute_install_command(
+        self,
+        *,
+        command: str,
+        properties: list[dict[str, str]] | None,
+    ) -> None:
+        """Execute one validated firmware install command and refresh state."""
         self._attr_in_progress = True
         self.async_write_ha_state()
         try:
             success = await self.coordinator.async_send_command(
                 self.device,
-                install_command.command,
-                install_command.properties,
+                command,
+                properties,
             )
             if not success:
                 raise self._build_translated_error("firmware_install_failed")

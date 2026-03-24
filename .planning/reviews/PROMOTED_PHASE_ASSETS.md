@@ -256,3 +256,13 @@ phases:
 - 仅 frontmatter `phases` 下列出的 phase 资产，才视为长期治理 / CI 证据。
 - 未列出的 `*-PLAN.md`、`*-CONTEXT.md`、`*-RESEARCH.md`、`*-PRD.md`、`*-ARCHITECTURE.md`、`*-UAT.md`，以及未被 allowlist 显式列出的 `*-SUMMARY.md`、`*-VERIFICATION.md`、`*-VALIDATION.md`，默认仍是执行痕迹。
 - 若未来要把新的 phase 资产纳入长期守卫，必须先在 `ROADMAP` / `VERIFICATION_MATRIX` / 里程碑文档 / reviews 文档中显式拉升，再更新此清单。
+
+  71-audit-driven-final-hotspot-decomposition-and-governance-truth-projection:
+    - 71-01-SUMMARY.md
+    - 71-02-SUMMARY.md
+    - 71-03-SUMMARY.md
+    - 71-04-SUMMARY.md
+    - 71-05-SUMMARY.md
+    - 71-SUMMARY.md
+    - 71-VERIFICATION.md
+    - 71-VALIDATION.md

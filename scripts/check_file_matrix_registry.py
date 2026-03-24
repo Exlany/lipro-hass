@@ -372,16 +372,64 @@ def _classify_component_path(path: str) -> FileGovernanceRow | None:
         "custom_components/lipro/update.py",
     }
 
+    if path == "custom_components/lipro/core/api/diagnostics_api_ota.py":
+        return _row_for_path(
+            path,
+            "Protocol",
+            "Phase 2",
+            "重构",
+            "OTA diagnostics outward helper home",
+        )
+    if path == "custom_components/lipro/core/api/diagnostics_api_ota_support.py":
+        return _row_for_path(
+            path,
+            "Protocol",
+            "Phase 2",
+            "重构",
+            "OTA diagnostics mechanics support seam",
+        )
     if path.startswith("custom_components/lipro/core/api/"):
         return _row_for_path(path, "Protocol", "Phase 2", "重构")
+    if path == "custom_components/lipro/core/protocol/boundary/mqtt_decoder.py":
+        return _row_for_path(
+            path,
+            "Protocol",
+            "Phase 7.1",
+            "保留",
+            "canonical MQTT topic/payload decode authority",
+        )
     if path.startswith("custom_components/lipro/core/protocol/boundary/"):
         return _row_for_path(path, "Protocol", "Phase 7.1")
     if path.startswith("custom_components/lipro/core/protocol/"):
         return _row_for_path(path, "Protocol", "Phase 2.5")
+    if path == "custom_components/lipro/core/mqtt/topics.py":
+        return _row_for_path(
+            path,
+            "Protocol",
+            "Phase 2.5",
+            "重构",
+            "MQTT boundary-backed topic adapter",
+        )
     if path.startswith("custom_components/lipro/core/mqtt/"):
         return _row_for_path(path, "Protocol", "Phase 2.5", "重构")
     if path.startswith("custom_components/lipro/core/anonymous_share/"):
         return _row_for_path(path, "Protocol", "Phase 2.6")
+    if path == "custom_components/lipro/core/telemetry/json_payloads.py":
+        return _row_for_path(
+            path,
+            "Assurance",
+            "Phase 7.3",
+            "保留",
+            "telemetry helper home for JSON-safe payload builders",
+        )
+    if path == "custom_components/lipro/core/telemetry/outcomes.py":
+        return _row_for_path(
+            path,
+            "Assurance",
+            "Phase 7.3",
+            "保留",
+            "telemetry helper home for outcome semantics",
+        )
     if path.startswith("custom_components/lipro/core/telemetry/"):
         return _row_for_path(path, "Assurance", "Phase 7.3")
     if path == "custom_components/lipro/control/telemetry_surface.py":
@@ -390,6 +438,14 @@ def _classify_component_path(path: str) -> FileGovernanceRow | None:
         return _row_for_path(path, "Control", "Phase 3")
     if path in control_root_files:
         return _row_for_path(path, "Control", "Phase 3")
+    if path == "custom_components/lipro/services/diagnostics/helper_support.py":
+        return _row_for_path(
+            path,
+            "Control",
+            "Phase 3",
+            "保留",
+            "diagnostics service mechanics support seam",
+        )
     if path.startswith("custom_components/lipro/services/"):
         return _row_for_path(path, "Control", "Phase 3")
     if path.startswith("custom_components/lipro/flow/"):
@@ -403,14 +459,6 @@ def _classify_component_path(path: str) -> FileGovernanceRow | None:
             "Phase 4",
             "重构",
             "DeviceExtras payload / panel parsing support helper home",
-        )
-    if path == "custom_components/lipro/services/diagnostics/helper_support.py":
-        return _row_for_path(
-            path,
-            "Control",
-            "Phase 3",
-            "保留",
-            "diagnostics service mechanics support seam",
         )
     if path.startswith("custom_components/lipro/core/device/"):
         return _row_for_path(path, "Domain", "Phase 4", "重构")

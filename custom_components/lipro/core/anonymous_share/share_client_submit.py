@@ -66,6 +66,28 @@ async def submit_share_payload_with_outcome(
     if refresh_outcome is not None:
         return refresh_outcome
 
+    return await _submit_share_report_variants(
+        client,
+        session,
+        report,
+        label=label,
+        logger=logger,
+        now=now,
+        build_lite_variant=build_lite_variant,
+    )
+
+
+async def _submit_share_report_variants(
+    client: ShareWorkerClientLike,
+    session: aiohttp.ClientSession,
+    report: SharePayload,
+    *,
+    label: str,
+    logger: Logger,
+    now: Callable[[], float],
+    build_lite_variant: Callable[[SharePayload], SharePayload],
+) -> OperationOutcome:
+    """Submit all share payload variants while preserving typed terminal outcomes."""
     try:
         submit_variants = build_submit_variants(
             report,
@@ -80,61 +102,107 @@ async def submit_share_payload_with_outcome(
         )
         if outcome is not None:
             return outcome
-
-        logger.warning(
-            "%s upload failed with status %s",
-            label,
-            last_status if last_status is not None else "?",
-        )
-        return build_http_failure_outcome(
-            failure_origin=_SHARE_SUBMIT_ORIGIN,
-            http_status=last_status,
-            reason_code=submit_failure_reason_code(last_status),
-        )
+        return _build_submit_http_failure(label=label, logger=logger, last_status=last_status)
     except TimeoutError as err:
-        logger.warning("%s upload timed out", label)
-        return build_operation_outcome_from_exception(
-            err,
-            kind="failed",
-            reason_code="timeout",
-            failure_origin=_SHARE_SUBMIT_ORIGIN,
-            failure_category="network",
-            handling_policy="retry",
-        )
+        return _build_timeout_submit_outcome(err, label=label, logger=logger)
     except aiohttp.ClientError as err:
-        logger.warning("%s upload failed: %s", label, safe_error_placeholder(err))
-        return build_operation_outcome_from_exception(
-            err,
-            kind="failed",
-            reason_code="client_error",
-            failure_origin=_SHARE_SUBMIT_ORIGIN,
-            failure_category="network",
-            handling_policy="retry",
-        )
+        return _build_client_error_submit_outcome(err, label=label, logger=logger)
     except OSError as err:
-        with suppress(AttributeError, RuntimeError, TypeError, ValueError):
-            err.args = (safe_error_placeholder(err),)
-        logger.exception("Unexpected error during %s upload", label.lower())
-        return build_operation_outcome_from_exception(
+        return _build_unexpected_submit_outcome(
             err,
-            kind="failed",
+            label=label,
+            logger=logger,
             reason_code="os_error",
-            failure_origin=_SHARE_SUBMIT_ORIGIN,
             failure_category="network",
             handling_policy="retry",
         )
     except ValueError as err:
-        with suppress(AttributeError, RuntimeError, TypeError, ValueError):
-            err.args = (safe_error_placeholder(err),)
-        logger.exception("Unexpected error during %s upload", label.lower())
-        return build_operation_outcome_from_exception(
+        return _build_unexpected_submit_outcome(
             err,
-            kind="failed",
+            label=label,
+            logger=logger,
             reason_code="value_error",
-            failure_origin=_SHARE_SUBMIT_ORIGIN,
             failure_category="protocol",
             handling_policy="inspect",
         )
+
+
+def _build_submit_http_failure(
+    *,
+    label: str,
+    logger: Logger,
+    last_status: int | None,
+) -> OperationOutcome:
+    """Translate a terminal HTTP status without a typed branch into the default outcome."""
+    logger.warning(
+        "%s upload failed with status %s",
+        label,
+        last_status if last_status is not None else "?",
+    )
+    return build_http_failure_outcome(
+        failure_origin=_SHARE_SUBMIT_ORIGIN,
+        http_status=last_status,
+        reason_code=submit_failure_reason_code(last_status),
+    )
+
+
+def _build_timeout_submit_outcome(
+    err: TimeoutError,
+    *,
+    label: str,
+    logger: Logger,
+) -> OperationOutcome:
+    """Translate one timeout into the canonical retryable submit outcome."""
+    logger.warning("%s upload timed out", label)
+    return build_operation_outcome_from_exception(
+        err,
+        kind="failed",
+        reason_code="timeout",
+        failure_origin=_SHARE_SUBMIT_ORIGIN,
+        failure_category="network",
+        handling_policy="retry",
+    )
+
+
+def _build_client_error_submit_outcome(
+    err: aiohttp.ClientError,
+    *,
+    label: str,
+    logger: Logger,
+) -> OperationOutcome:
+    """Translate one aiohttp client error into the canonical retryable outcome."""
+    logger.warning("%s upload failed: %s", label, safe_error_placeholder(err))
+    return build_operation_outcome_from_exception(
+        err,
+        kind="failed",
+        reason_code="client_error",
+        failure_origin=_SHARE_SUBMIT_ORIGIN,
+        failure_category="network",
+        handling_policy="retry",
+    )
+
+
+def _build_unexpected_submit_outcome(
+    err: Exception,
+    *,
+    label: str,
+    logger: Logger,
+    reason_code: str,
+    failure_category: str,
+    handling_policy: str,
+) -> OperationOutcome:
+    """Translate one unexpected submit exception after redacting its message."""
+    with suppress(AttributeError, RuntimeError, TypeError, ValueError):
+        err.args = (safe_error_placeholder(err),)
+    logger.exception("Unexpected error during %s upload", label.lower())
+    return build_operation_outcome_from_exception(
+        err,
+        kind="failed",
+        reason_code=reason_code,
+        failure_origin=_SHARE_SUBMIT_ORIGIN,
+        failure_category=failure_category,
+        handling_policy=handling_policy,
+    )
 
 
 async def _preflight_submit_share_payload(

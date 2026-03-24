@@ -13,6 +13,7 @@ import yaml
 from tests.helpers.repo_root import repo_root
 
 from .governance_contract_helpers import assert_runbook_points_to_latest_evidence
+from .governance_current_truth import LATEST_ARCHIVED_EVIDENCE_FILENAME
 
 _ROOT = repo_root(Path(__file__))
 _PYPROJECT = _ROOT / "pyproject.toml"
@@ -242,7 +243,7 @@ def test_release_runbook_references_v1_18_evidence_index() -> None:
 
     assert_runbook_points_to_latest_evidence(
         runbook_text,
-        "V1_18_EVIDENCE_INDEX.md",
+        LATEST_ARCHIVED_EVIDENCE_FILENAME,
         deprecated=("V1_6_EVIDENCE_INDEX.md",),
     )
 
@@ -302,7 +303,7 @@ def test_release_docs_capture_supply_chain_posture_and_latest_closeout_contract(
         assert token in runbook_text
     assert_runbook_points_to_latest_evidence(
         runbook_text,
-        "V1_18_EVIDENCE_INDEX.md",
+        LATEST_ARCHIVED_EVIDENCE_FILENAME,
         deprecated=("V1_6_EVIDENCE_INDEX.md",),
     )
     assert "release artifact install smoke" in runbook_text

@@ -12,6 +12,10 @@ _PUBLIC_SURFACES = _ROOT / ".planning" / "baseline" / "PUBLIC_SURFACES.md"
 _RULES = load_targeted_bans(_ROOT)
 
 
+def _test_file_count() -> int:
+    return len(sorted((_ROOT / "tests").rglob("test_*.py")))
+
+
 def test_phase_48_public_surface_notes_capture_support_only_helper_and_update_cycle() -> (
     None
 ):
@@ -329,7 +333,7 @@ def test_phase_55_topicized_test_matrix_tracks_thin_shells_and_named_suites() ->
     ):
         assert needle in file_matrix_text
 
-    assert "当前仓库共有 `238` 个 `test_*.py` 文件" in testing_text
+    assert f"当前仓库共有 `{_test_file_count()}` 个 `test_*.py` 文件" in testing_text
 
 
 def test_phase_59_localized_verification_notes_track_topicized_meta_and_device_refresh_suites() -> None:
