@@ -173,7 +173,7 @@
 **Phase range:** `63 -> 66`
 **Phases completed:** 4 phases, 15 plans, 0 tasks
 **Status:** archived / evidence-ready
-**Route truth:** latest archive-ready closeout pointer = `.planning/reviews/V1_14_EVIDENCE_INDEX.md`
+**Route truth:** prior archive-ready closeout baseline = `.planning/reviews/V1_14_EVIDENCE_INDEX.md`
 
 **Key accomplishments:**
 - 完成 governance latest-pointer / release-target fidelity 对齐，并把 `PROJECT / ROADMAP / REQUIREMENTS / STATE / MILESTONES / docs / runbook` 收束到同一 archive story
@@ -189,5 +189,27 @@
 - `.planning/phases/64-telemetry-typing-schedule-contracts-and-diagnostics-hotspot-slimming/64-SUMMARY.md`
 - `.planning/phases/65-runtime-access-de-reflection-and-anonymous-share-hotspot-closure/65-SUMMARY.md`
 - `.planning/phases/66-release-target-fidelity-adapter-root-cleanup-and-focused-protocol-coverage-hardening/66-SUMMARY.md`
+
+---
+
+## v1.15 Typed Contract Convergence, Tooling Kernel Hardening & Mypy Closure (Closeout: 2026-03-24)
+
+**Phase range:** `67`
+**Phases completed:** 1 phase, 6 plans, 0 tasks
+**Status:** archived / evidence-ready
+**Route truth:** latest archive-ready closeout pointer = `.planning/reviews/V1_15_EVIDENCE_INDEX.md`
+
+**Key accomplishments:**
+- 把 telemetry / REST / anonymous-share / control telemetry surface / service-handler fixtures 全部收口到更诚实的 typed formal seams，并让 `uv run mypy` 回到正式绿色
+- 统一 toolchain/governance payload narrowing、typed test doubles、runtime/control wiring callable truth，结束 broad `object` / stale route 双真相
+- 以 `PROJECT / ROADMAP / REQUIREMENTS / STATE / docs/README` 为核心冻结 `v1.15` closeout truth，并在同一轮通过 repo-wide quality gates
+
+**Closeout assets:**
+- `.planning/v1.15-MILESTONE-AUDIT.md`
+- `.planning/reviews/V1_15_EVIDENCE_INDEX.md`
+- `.planning/milestones/v1.15-ROADMAP.md`
+- `.planning/milestones/v1.15-REQUIREMENTS.md`
+- `.planning/phases/67-typed-contract-convergence-toolchain-hardening-and-mypy-closure/67-SUMMARY.md`
+- `.planning/phases/67-typed-contract-convergence-toolchain-hardening-and-mypy-closure/67-VERIFICATION.md`
 
 ---

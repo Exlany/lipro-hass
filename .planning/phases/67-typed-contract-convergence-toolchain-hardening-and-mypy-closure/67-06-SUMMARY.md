@@ -3,6 +3,10 @@ phase: 67-typed-contract-convergence-toolchain-hardening-and-mypy-closure
 plan: "06"
 status: completed
 completed_at: "2026-03-23T23:59:00Z"
+
+requirements_completed:
+  - GOV-51
+  - QLT-25
 verification:
   - uv run mypy --follow-imports=silent .
   - uv run ruff check .

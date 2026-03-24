@@ -5,7 +5,7 @@ from __future__ import annotations
 from .test_governance_closeout_guards import _ROOT
 
 
-def test_v1_8_closeout_through_v1_14_current_milestone_truth_are_consistent() -> None:
+def test_v1_8_closeout_through_v1_15_archived_truth_are_consistent() -> None:
     roadmap_text = (_ROOT / ".planning" / "ROADMAP.md").read_text(encoding="utf-8")
     requirements_text = (_ROOT / ".planning" / "REQUIREMENTS.md").read_text(
         encoding="utf-8"
@@ -138,7 +138,7 @@ def test_v1_8_closeout_through_v1_14_current_milestone_truth_are_consistent() ->
     assert "## v1.13: Tooling Truth Decomposition, Formal-Home Slimming & Naming/Discoverability Convergence" in roadmap_text
     assert "**Archive status:** `archived / evidence-ready (2026-03-22)`" in roadmap_text
     assert ".planning/v1.13-MILESTONE-AUDIT.md" in roadmap_text
-    assert ".planning/reviews/V1_14_EVIDENCE_INDEX.md" in roadmap_text
+    assert ".planning/reviews/V1_15_EVIDENCE_INDEX.md" in roadmap_text
     assert ".planning/milestones/v1.13-ROADMAP.md" in roadmap_text
     assert ".planning/milestones/v1.13-REQUIREMENTS.md" in roadmap_text
     assert "### Phase 60: Tooling truth decomposition and file-governance maintainability" in roadmap_text
@@ -161,13 +161,14 @@ def test_v1_8_closeout_through_v1_14_current_milestone_truth_are_consistent() ->
     assert "## Archived Milestone (v1.13)" in project_text
     assert "**Current status:** `archived / evidence-ready (2026-03-22)`" in project_text
     assert ".planning/v1.13-MILESTONE-AUDIT.md" in project_text
-    assert ".planning/reviews/V1_14_EVIDENCE_INDEX.md" in project_text
+    assert ".planning/reviews/V1_15_EVIDENCE_INDEX.md" in project_text
     assert ".planning/milestones/v1.13-ROADMAP.md" in project_text
     assert ".planning/phases/60-tooling-truth-decomposition-and-file-governance-maintainability/60-01-PLAN.md" not in project_text
 
-    assert "## Latest Archived Milestone (v1.14)" in project_text
-    assert "**Current status:** `archived / evidence-ready (2026-03-23)`" in project_text
+    assert "## Latest Archived Milestone (v1.15)" in project_text
+    assert "**Current status:** `archived / evidence-ready (2026-03-24)`" in project_text
     assert "**Default next command:** `$gsd-new-milestone`" in project_text
+    assert "## Archived Milestone (v1.14)" in project_text
 
     assert "## v1.14: Governance Truth Realignment, Typed Runtime Access & Final Hidden-Root Closure" in roadmap_text
     assert "**Archive status:** `archived / evidence-ready (2026-03-23)`" in roadmap_text
@@ -212,7 +213,7 @@ def test_v1_8_closeout_through_v1_14_current_milestone_truth_are_consistent() ->
         assert needle in requirements_text
 
     assert "**Current milestone:** `v1.15 Typed Contract Convergence, Tooling Kernel Hardening & Mypy Closure`" in state_text
-    assert "**Current mode:** `Phase 67 complete`" in state_text
-    assert "$gsd-complete-milestone v1.15" in state_text
-    assert ".planning/v1.14-MILESTONE-AUDIT.md" in state_text
-    assert ".planning/reviews/V1_14_EVIDENCE_INDEX.md" in state_text
+    assert "**Current mode:** `v1.15 archived`" in state_text
+    assert "$gsd-new-milestone" in state_text
+    assert ".planning/v1.15-MILESTONE-AUDIT.md" in state_text
+    assert ".planning/reviews/V1_15_EVIDENCE_INDEX.md" in state_text

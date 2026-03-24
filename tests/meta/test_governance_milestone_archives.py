@@ -150,7 +150,7 @@ def test_milestone_archive_snapshots_exist_and_are_referenced() -> None:
         assert needle in requirements_text or needle in project_text or needle in milestones_text
 
     assert "v1.13-MILESTONE-AUDIT.md" in state_text
-    assert "$gsd-complete-milestone v1.15" in state_text
+    assert "$gsd-new-milestone" in state_text
     assert "archived / evidence-ready" in milestones_text
     assert "archived snapshots created / handoff-ready" in milestones_text
     assert "revalidated 2026-03-17" in milestones_text
@@ -305,7 +305,47 @@ def test_v1_14_closeout_assets_exist_and_are_pull_only() -> None:
     assert "V1_14_EVIDENCE_INDEX.md" in evidence_text
 
 
+def test_v1_15_closeout_assets_exist_and_are_pull_only() -> None:
+    evidence_index = _ROOT / ".planning" / "reviews" / "V1_15_EVIDENCE_INDEX.md"
+    milestone_audit = _ROOT / ".planning" / "v1.15-MILESTONE-AUDIT.md"
+
+    assert evidence_index.exists()
+    assert milestone_audit.exists()
+    assert (_ROOT / ".planning" / "milestones" / "v1.15-ROADMAP.md").exists()
+    assert (_ROOT / ".planning" / "milestones" / "v1.15-REQUIREMENTS.md").exists()
+    _assert_promoted_phase_assets(
+        "67-typed-contract-convergence-toolchain-hardening-and-mypy-closure",
+        "67-SUMMARY.md",
+        "67-VERIFICATION.md",
+    )
+
+    evidence_text = evidence_index.read_text(encoding="utf-8")
+    assert "## Pull Contract" in evidence_text
+    assert "67-SUMMARY.md" in evidence_text
+    assert "67-VERIFICATION.md" in evidence_text
+    assert "67-VALIDATION.md" in evidence_text
+    assert "archived / evidence-ready" in evidence_text
+    assert "V1_15_EVIDENCE_INDEX.md" in evidence_text
+
+
 def test_governance_truth_registers_v1_14_archive_lineage() -> None:
+    authority_text = (
+        _ROOT / ".planning" / "baseline" / "AUTHORITY_MATRIX.md"
+    ).read_text(encoding="utf-8")
+    public_text = (
+        _ROOT / ".planning" / "baseline" / "PUBLIC_SURFACES.md"
+    ).read_text(encoding="utf-8")
+    milestones_text = (_ROOT / ".planning" / "MILESTONES.md").read_text(encoding="utf-8")
+
+    assert "V1_14_EVIDENCE_INDEX.md" in authority_text
+    assert "v1.14-MILESTONE-AUDIT.md" in authority_text
+    assert "V1_14_EVIDENCE_INDEX.md" in public_text
+    assert "## v1.13 Tooling Truth Decomposition, Formal-Home Slimming & Naming/Discoverability Convergence" in milestones_text
+    assert "## v1.14 Governance Truth Realignment, Typed Runtime Access & Final Hidden-Root Closure" in milestones_text
+    assert ".planning/reviews/V1_14_EVIDENCE_INDEX.md" in milestones_text
+
+
+def test_governance_truth_registers_v1_15_latest_archive_pointer() -> None:
     authority_text = (
         _ROOT / ".planning" / "baseline" / "AUTHORITY_MATRIX.md"
     ).read_text(encoding="utf-8")
@@ -320,14 +360,15 @@ def test_governance_truth_registers_v1_14_archive_lineage() -> None:
         encoding="utf-8"
     )
 
-    assert "V1_14_EVIDENCE_INDEX.md" in authority_text
-    assert "v1.14-MILESTONE-AUDIT.md" in authority_text
-    assert "V1_14_EVIDENCE_INDEX.md" in public_text
-    assert "## v1.13 Tooling Truth Decomposition, Formal-Home Slimming & Naming/Discoverability Convergence" in milestones_text
-    assert "## v1.14 Governance Truth Realignment, Typed Runtime Access & Final Hidden-Root Closure" in milestones_text
-    assert ".planning/reviews/V1_14_EVIDENCE_INDEX.md" in milestones_text
-    assert ".planning/reviews/V1_14_EVIDENCE_INDEX.md" in docs_text
-    assert "当前 active milestone route：`v1.15 / Phase 67`" in docs_text
-    assert "V1_14_EVIDENCE_INDEX.md" in runbook_text
-    assert "$gsd-complete-milestone v1.15" in project_text
-    assert "$gsd-complete-milestone v1.15" in state_text
+    assert "V1_15_EVIDENCE_INDEX.md" in authority_text
+    assert "v1.15-MILESTONE-AUDIT.md" in authority_text
+    assert "V1_15_EVIDENCE_INDEX.md" in public_text
+    assert "## v1.15 Typed Contract Convergence, Tooling Kernel Hardening & Mypy Closure" in milestones_text
+    assert ".planning/reviews/V1_15_EVIDENCE_INDEX.md" in milestones_text
+    assert ".planning/reviews/V1_15_EVIDENCE_INDEX.md" in docs_text
+    assert "当前无 active milestone route" in docs_text
+    assert "V1_15_EVIDENCE_INDEX.md" in runbook_text
+    assert "$gsd-new-milestone" in project_text
+    assert "$gsd-new-milestone" in state_text
+    assert "No active milestone route" in project_text
+    assert "**Current mode:** `v1.15 archived`" in state_text

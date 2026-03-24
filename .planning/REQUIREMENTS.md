@@ -134,9 +134,9 @@
 - `15` 锁定 developer feedback contract、governance truth repair、contributor/install docs sync、support hotspot follow-through 与 testing/tooling gate clarification；不得因修补支持面问题而重开第二条正式主链
 - `16` 锁定 post-audit truth alignment、hotspot decomposition、type/exception tightening、residual endgame、domain/entity/OTA rationalization 与 contributor DX follow-through；不得因为收尾改进而重开第二条正式主链、第二套 protocol/runtime story 或无 gate rename campaign
 
-## Current Milestone (v1.15)
+## Archived Milestone (v1.15)
 
-> `v1.15` 于 `2026-03-23` 从 `v1.14` archived evidence 打开；当前正式路线聚焦 repo-wide mypy closure、typed contract convergence 与 toolchain/test helper hardening。以下 requirement basket 由 `Phase 67` 承接，完成前不得把 `mypy` 继续视为 advisory。
+> `v1.15` 已于 `2026-03-24` 完成归档；以下 requirements / traceability 保留 `Phase 67` 的最终 fulfilled contract，归档快照见 `.planning/milestones/v1.15-REQUIREMENTS.md`，审计裁决见 `.planning/v1.15-MILESTONE-AUDIT.md`，证据索引见 `.planning/reviews/V1_15_EVIDENCE_INDEX.md`。
 
 - [x] **GOV-51**: `PROJECT / ROADMAP / REQUIREMENTS / STATE / phase context / verification artifacts` 必须共同承认 `v1.15` active route 与 `v1.14` latest archived baseline；current-story 不能继续停留在“仅需 `$gsd-new-milestone`”的归档叙事。
 - [x] **TYP-19**: telemetry failure-summary、sink payload、runtime/control telemetry bridge、exporter views 与 related tests 必须共享显式 JSON-safe typed truth；`FailureSummary` / `TelemetryJsonValue` / view payload 不得再由 broad `dict[str, object]` 或弱化 `str | None` 反向定义。
@@ -145,7 +145,7 @@
 - [x] **TST-17**: YAML / workflow / release / blueprint meta tests 与 telemetry/service handler focused suites 必须对 typed loader、union narrowing、fixture protocols 与 method patching 形成诚实回归；不允许靠 ignore 或 untyped import 回避验证。
 - [x] **QLT-25**: 本轮 residual closure 必须在 `uv run mypy`、`uv run ruff check .`、`uv run python scripts/check_architecture_policy.py --check`、`uv run python scripts/check_file_matrix.py --check`、focused pytest 与 `uv run pytest -q` 下同时通过。
 
-## Traceability for active v1.15 route
+## Traceability for archived v1.15 route
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|

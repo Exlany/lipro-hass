@@ -208,6 +208,16 @@ phases:
     - 66-04-SUMMARY.md
     - 66-SUMMARY.md
     - 66-VERIFICATION.md
+  67-typed-contract-convergence-toolchain-hardening-and-mypy-closure:
+    - 67-01-SUMMARY.md
+    - 67-02-SUMMARY.md
+    - 67-03-SUMMARY.md
+    - 67-04-SUMMARY.md
+    - 67-05-SUMMARY.md
+    - 67-06-SUMMARY.md
+    - 67-SUMMARY.md
+    - 67-VERIFICATION.md
+    - 67-VALIDATION.md
 ---
 
 # Promoted Phase Assets

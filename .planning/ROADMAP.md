@@ -16,7 +16,7 @@
 - ✅ **v1.11 Repository Audit Refresh & Next-Wave Remediation Routing** - formal milestone opened on 2026-03-22 from the renewed full-repository audit request; Phase 58 completed on 2026-03-22 with refreshed repo-wide audit evidence and now serves as the closeout-ready seed baseline for v1.12
 - ✅ **v1.10 Command-Result Typed Outcome & Reason-Code Hardening** - formal milestone opened on 2026-03-22 from the Phase 56 deferred follow-up route; Phase 57 completed on 2026-03-22 with promoted closeout evidence and now serves as the closeout-ready seed baseline for v1.11
 
-- 🚧 **v1.15 Typed Contract Convergence, Tooling Kernel Hardening & Mypy Closure** - opened on 2026-03-23 from `v1.14` archived evidence; active route starts at `Phase 67`; default next command: `$gsd-complete-milestone v1.15`
+- ✅ **v1.15 Typed Contract Convergence, Tooling Kernel Hardening & Mypy Closure** - `Phase 67` archived on 2026-03-24; milestone audit: `.planning/v1.15-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_15_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.15-ROADMAP.md` / `.planning/milestones/v1.15-REQUIREMENTS.md`
 - ✅ **v1.14 Governance Truth Realignment, Typed Runtime Access & Final Hidden-Root Closure** - `Phase 63 -> 66` archived on 2026-03-23; milestone audit: `.planning/v1.14-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_14_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.14-ROADMAP.md` / `.planning/milestones/v1.14-REQUIREMENTS.md`
 
 ## Required Phase Outputs
@@ -1227,12 +1227,13 @@ Plans:
 
 **Milestone Goal:** 以 `v1.14` archived evidence 为起点，把 telemetry / REST / anonymous-share / control telemetry surface / service-handler fixtures / YAML-meta helpers 的 typed contract 漂移沿正式主链一次性收口，并让 `uv run mypy` 与既有 `ruff / pytest / architecture policy / file matrix` 同轮恢复绿色。
 
-> `v1.15` 于 `2026-03-23` 打开；当前 `uv run mypy --follow-imports=silent .` 已归零，说明 typed contract 主缝已收口；本里程碑剩余职责是把 Phase 67 的执行证据、governance current-story 与 repo-wide quality gates 一并冻结，而不是让 docs/tests 停留在 `v1.14 archived` 的旧叙事。
+> `v1.15` 已于 `2026-03-24` 完成 milestone audit、evidence-index closeout 与 archive promotion：它承接 `v1.14` 的 archived baseline，完成 telemetry / REST / anonymous-share / control telemetry surface / service-handler fixtures / toolchain-governance 的 typed-contract convergence，并把 repo-wide `mypy` 拉回正式绿色。
 
-**Current status:** `Phase 67 complete (2026-03-23)`
+**Archive status:** `archived / evidence-ready (2026-03-24)`
 **Starting baseline:** `.planning/v1.14-MILESTONE-AUDIT.md`, `.planning/reviews/V1_14_EVIDENCE_INDEX.md`, `.planning/milestones/v1.14-ROADMAP.md`, `.planning/milestones/v1.14-REQUIREMENTS.md`
 **Requirements basket:** `GOV-51`, `TYP-19`, `ARC-14`, `HOT-23`, `TST-17`, `QLT-25`
-**Default next command:** `$gsd-complete-milestone v1.15`
+**Archive assets:** `.planning/v1.15-MILESTONE-AUDIT.md`, `.planning/reviews/V1_15_EVIDENCE_INDEX.md`, `.planning/milestones/v1.15-ROADMAP.md`, `.planning/milestones/v1.15-REQUIREMENTS.md`, `.planning/phases/67-typed-contract-convergence-toolchain-hardening-and-mypy-closure/67-SUMMARY.md`, `.planning/phases/67-typed-contract-convergence-toolchain-hardening-and-mypy-closure/67-VERIFICATION.md`, `.planning/phases/67-typed-contract-convergence-toolchain-hardening-and-mypy-closure/67-VALIDATION.md`
+**Default next command:** `$gsd-new-milestone`
 
 ### Phase 67: Typed contract convergence, telemetry/toolchain hardening, and mypy closure
 

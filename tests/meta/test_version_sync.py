@@ -31,7 +31,7 @@ _V1_2_EVIDENCE_INDEX = _ROOT / ".planning" / "reviews" / "V1_2_EVIDENCE_INDEX.md
 _V1_5_EVIDENCE_INDEX = _ROOT / ".planning" / "reviews" / "V1_5_EVIDENCE_INDEX.md"
 _V1_6_EVIDENCE_INDEX = _ROOT / ".planning" / "reviews" / "V1_6_EVIDENCE_INDEX.md"
 _V1_13_EVIDENCE_INDEX = _ROOT / ".planning" / "reviews" / "V1_13_EVIDENCE_INDEX.md"
-_V1_14_EVIDENCE_INDEX = _ROOT / ".planning" / "reviews" / "V1_14_EVIDENCE_INDEX.md"
+_V1_15_EVIDENCE_INDEX = _ROOT / ".planning" / "reviews" / "V1_15_EVIDENCE_INDEX.md"
 _GOVERNANCE_REGISTRY = _ROOT / ".planning" / "baseline" / "GOVERNANCE_REGISTRY.json"
 _PHASE_15_PRD = (
     _ROOT
@@ -253,12 +253,12 @@ def test_private_repo_hacs_caveat_is_consistent() -> None:
         _assert_contains_private_repo_hacs_caveat(path)
 
 
-def test_release_runbook_references_v1_13_evidence_index() -> None:
+def test_release_runbook_references_v1_15_evidence_index() -> None:
     """Maintainer runbook should point at the canonical latest closeout evidence index."""
     runbook_text = _RUNBOOK.read_text(encoding="utf-8")
-    evidence_text = _V1_14_EVIDENCE_INDEX.read_text(encoding="utf-8")
+    evidence_text = _V1_15_EVIDENCE_INDEX.read_text(encoding="utf-8")
 
-    assert "V1_14_EVIDENCE_INDEX.md" in runbook_text
+    assert "V1_15_EVIDENCE_INDEX.md" in runbook_text
     assert "V1_6_EVIDENCE_INDEX.md" not in runbook_text
     assert "## Pull Contract" in evidence_text
     assert "evidence-ready" in evidence_text
@@ -312,13 +312,13 @@ def test_preview_lane_docs_keep_stable_contract_honest() -> None:
 
 
 def test_release_docs_capture_supply_chain_posture_and_latest_closeout_contract() -> None:
-    """Runbook keeps release hardening truth while the latest closeout index stays honest about v1.14 scope."""
+    """Runbook keeps release hardening truth while the latest closeout index stays honest about v1.15 scope."""
     runbook_text = _RUNBOOK.read_text(encoding="utf-8")
-    evidence_text = _V1_14_EVIDENCE_INDEX.read_text(encoding="utf-8")
+    evidence_text = _V1_15_EVIDENCE_INDEX.read_text(encoding="utf-8")
 
     for token in ("SHA256SUMS", "provenance", "SBOM", "signing"):
         assert token in runbook_text
-    for token in ("63-SUMMARY.md", "64-SUMMARY.md", "65-SUMMARY.md", "66-SUMMARY.md", "evidence-ready"):
+    for token in ("67-SUMMARY.md", "67-VERIFICATION.md", "evidence-ready"):
         assert token in evidence_text
     assert "release artifact install smoke" in runbook_text
     assert "CodeQL" in runbook_text

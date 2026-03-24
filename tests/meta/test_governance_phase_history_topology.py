@@ -317,7 +317,12 @@ def test_phase_12_execution_truth_is_consistent() -> None:
 
     assert any(
         status in project_text
-        for status in ("**Status:** Active", "**Status:** Complete", "**Status:** Shipped and archived")
+        for status in (
+            "**Status:** Active",
+            "**Status:** Complete",
+            "**Status:** Shipped and archived",
+            "**Status:** No active milestone route",
+        )
     )
     assert "### 7. Phase 12 Type / Residual / Governance 收口已完成" in project_text
     assert (

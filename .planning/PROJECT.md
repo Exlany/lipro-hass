@@ -1,11 +1,11 @@
 # Project: Lipro-HASS North Star Evolution
 
-**Status:** Active milestone — `v1.15` 已完成 `Phase 67` 全部执行与门禁归绿；当前正式状态是 milestone closeout-ready，等待归档到新的 archived evidence。
-**Goal:** 以 `.planning/v1.14-MILESTONE-AUDIT.md`、`.planning/reviews/V1_14_EVIDENCE_INDEX.md` 与 `.planning/milestones/v1.14-{ROADMAP,REQUIREMENTS}.md` 为起点，沿单一正式主链完成 repo-wide mypy closure、formal port/type contract convergence、测试夹具 typed narrowing 与 governance current-story 冻结。
-**Default next step:** `$gsd-complete-milestone v1.15`
-**Active baseline:** `v1.14` 继续作为 latest archived baseline；`v1.15` 只允许通过新的 milestone / phase route 推进，不重开已归档的 `63 -> 66` closeout 叙事。
+**Status:** No active milestone route — latest archived closeout pointer = `.planning/reviews/V1_15_EVIDENCE_INDEX.md`；`v1.15` 已归档，下一轮正式路线只能通过 `$gsd-new-milestone` 打开。
+**Goal:** 当前 shipped baseline 是 `v1.15`；后续路线必须从 `.planning/v1.15-MILESTONE-AUDIT.md`、`.planning/reviews/V1_15_EVIDENCE_INDEX.md` 与 `.planning/milestones/v1.15-{ROADMAP,REQUIREMENTS}.md` 的 archived evidence 出发，而不是回扫对话记忆或临时执行痕迹。
+**Default next step:** `$gsd-new-milestone`
+**Active baseline:** 当前无 active milestone route；`v1.15` 现为 latest archived baseline，`v1.14` 退为上一条 archive baseline。
 
-## Current Milestone (v1.15)
+## Latest Archived Milestone (v1.15)
 
 **Name:** `v1.15 Typed Contract Convergence, Tooling Kernel Hardening & Mypy Closure`
 
@@ -19,12 +19,13 @@
 - 本轮 closeout 必须让 `mypy + ruff + architecture policy + file matrix + targeted pytest + full pytest` 同轮全绿，证明不是表面消音
 
 **Phase range:** `Phase 67 -> 67`
-**Current status:** `Phase 67 complete (2026-03-23); milestone closeout-ready`
+**Current status:** `archived / evidence-ready (2026-03-24)`
 **Starting baseline:** `.planning/v1.14-MILESTONE-AUDIT.md`, `.planning/reviews/V1_14_EVIDENCE_INDEX.md`, `.planning/milestones/v1.14-ROADMAP.md`, `.planning/milestones/v1.14-REQUIREMENTS.md`
 **Requirements basket:** `GOV-51`, `TYP-19`, `ARC-14`, `HOT-23`, `TST-17`, `QLT-25`
-**Default next command:** `$gsd-complete-milestone v1.15`
+**Archive assets:** `.planning/v1.15-MILESTONE-AUDIT.md`, `.planning/reviews/V1_15_EVIDENCE_INDEX.md`, `.planning/milestones/v1.15-ROADMAP.md`, `.planning/milestones/v1.15-REQUIREMENTS.md`, `.planning/phases/67-typed-contract-convergence-toolchain-hardening-and-mypy-closure/67-SUMMARY.md`, `.planning/phases/67-typed-contract-convergence-toolchain-hardening-and-mypy-closure/67-VERIFICATION.md`, `.planning/phases/67-typed-contract-convergence-toolchain-hardening-and-mypy-closure/67-VALIDATION.md`
+**Default next command:** `$gsd-new-milestone`
 
-## Latest Archived Milestone (v1.14)
+## Archived Milestone (v1.14)
 
 **Name:** `v1.14 Governance Truth Realignment, Typed Runtime Access & Final Hidden-Root Closure`
 
