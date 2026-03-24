@@ -18,10 +18,12 @@ from custom_components.lipro.core import (
 from custom_components.lipro.core.coordinator.services.auth_service import (
     CoordinatorAuthService,
 )
+from custom_components.lipro.core.coordinator.services.protocol_service import (
+    build_schedule_mesh_context,
+)
 from custom_components.lipro.core.device import LiproDevice
 from custom_components.lipro.services.schedule import (
     async_execute_schedule_operation,
-    get_mesh_context,
     normalize_schedule_row,
 )
 from tests.conftest import _CoordinatorDouble
@@ -129,12 +131,7 @@ async def test_async_execute_schedule_operation_maps_lipro_api_error() -> None:
             raise_service_error=raise_service_error,
         )
 
-    protocol_call.assert_awaited_once_with(
-        "03ab0000000000a1",
-        "0x1032",
-        mesh_gateway_id="",
-        mesh_member_ids=[],
-    )
+    protocol_call.assert_awaited_once_with(device)
     logger.warning.assert_called_once_with("API error getting schedules: %s", api_error)
     raise_service_error.assert_called_once_with("schedule_fetch_failed", err=api_error)
 
@@ -174,12 +171,7 @@ async def test_async_execute_schedule_operation_delegates_to_shared_executor() -
     assert callable(await_args.kwargs["call"])
     assert await_args.kwargs["raise_service_error"] is raise_service_error
     assert callable(await_args.kwargs["handle_api_error"])
-    protocol_call.assert_awaited_once_with(
-        "03ab0000000000a1",
-        "0x1032",
-        mesh_gateway_id="",
-        mesh_member_ids=[],
-    )
+    protocol_call.assert_awaited_once_with(device)
 
 
 @pytest.mark.asyncio
@@ -253,7 +245,7 @@ async def test_async_execute_schedule_operation_with_real_auth_service_maps_refr
     assert raise_service_error.call_args.args == ("auth_expired",)
 
 
-def test_get_mesh_context_normalizes_member_ids_and_gateway() -> None:
+def test_build_schedule_mesh_context_normalizes_member_ids_and_gateway() -> None:
     """Mesh context should canonicalize IDs before schedule calls."""
     device = _make_schedule_device(
         mesh_gateway_device_id=" 03AB0000000000A1 ",
@@ -261,13 +253,13 @@ def test_get_mesh_context_normalizes_member_ids_and_gateway() -> None:
         ir_remote_gateway_device_id=None,
     )
 
-    assert get_mesh_context(device) == (
+    assert build_schedule_mesh_context(device) == (
         "03ab0000000000a1",
         ["03ab0000000000a2"],
     )
 
 
-def test_get_mesh_context_falls_back_to_ir_remote_gateway_property() -> None:
+def test_build_schedule_mesh_context_falls_back_to_ir_remote_gateway_property() -> None:
     """IR remote devices should not require extra_data hand-filling."""
     device = _make_schedule_device(
         mesh_gateway_device_id=None,
@@ -275,10 +267,10 @@ def test_get_mesh_context_falls_back_to_ir_remote_gateway_property() -> None:
         ir_remote_gateway_device_id=" 03AB0000000000A9 ",
     )
 
-    assert get_mesh_context(device) == ("03ab0000000000a9", [])
+    assert build_schedule_mesh_context(device) == ("03ab0000000000a9", [])
 
 
-def test_get_mesh_context_preserves_blank_mesh_gateway_without_ir_override() -> None:
+def test_build_schedule_mesh_context_preserves_blank_mesh_gateway_without_ir_override() -> None:
     """IR fallback should remain an explicit None-only branch."""
     device = _make_schedule_device(
         mesh_gateway_device_id="",
@@ -286,4 +278,4 @@ def test_get_mesh_context_preserves_blank_mesh_gateway_without_ir_override() -> 
         ir_remote_gateway_device_id=" 03AB0000000000A9 ",
     )
 
-    assert get_mesh_context(device) == ("", [])
+    assert build_schedule_mesh_context(device) == ("", [])

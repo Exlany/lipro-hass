@@ -16,6 +16,7 @@ if TYPE_CHECKING:
     from .core.api.types import DiagnosticsApiResponse, OtaInfoRow, ScheduleTimingRow
     from .core.command.result import CommandResultPayload
     from .core.coordinator.entity_protocol import LiproEntityProtocol
+    from .core.coordinator.services.protocol_service import ScheduleMeshDeviceLike
     from .core.device import LiproDevice
 
 
@@ -105,6 +106,25 @@ class ProtocolServiceLike(Protocol):
         *,
         mesh_gateway_id: str = "",
         mesh_member_ids: list[str] | None = None,
+    ) -> list[ScheduleTimingRow]: ...
+
+    async def async_get_device_schedules_for_device(
+        self,
+        device: ScheduleMeshDeviceLike,
+    ) -> list[ScheduleTimingRow]: ...
+
+    async def async_add_device_schedule_for_device(
+        self,
+        device: ScheduleMeshDeviceLike,
+        days: list[int],
+        times: list[int],
+        events: list[int],
+    ) -> list[ScheduleTimingRow]: ...
+
+    async def async_delete_device_schedules_for_device(
+        self,
+        device: ScheduleMeshDeviceLike,
+        schedule_ids: list[int],
     ) -> list[ScheduleTimingRow]: ...
 
     async def async_query_command_result(

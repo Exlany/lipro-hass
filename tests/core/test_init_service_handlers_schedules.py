@@ -79,9 +79,9 @@ class TestInitServiceHandlerSchedules(_InitServiceHandlerBase):
         coordinator = self._attach_auth_service(MagicMock())
         coordinator.get_device.return_value = device
         coordinator.protocol = client
-        coordinator.protocol_service.async_get_device_schedules = client.get_device_schedules
-        coordinator.protocol_service.async_add_device_schedule = client.add_device_schedule
-        coordinator.protocol_service.async_delete_device_schedules = client.delete_device_schedules
+        coordinator.protocol_service.async_get_device_schedules_for_device = client.get_device_schedules
+        coordinator.protocol_service.async_add_device_schedule_for_device = client.add_device_schedule
+        coordinator.protocol_service.async_delete_device_schedules_for_device = client.delete_device_schedules
 
         entry = MockConfigEntry(
             domain=DOMAIN,
@@ -116,9 +116,9 @@ class TestInitServiceHandlerSchedules(_InitServiceHandlerBase):
         coordinator = self._attach_auth_service(MagicMock())
         coordinator.get_device.return_value = device
         coordinator.protocol = client
-        coordinator.protocol_service.async_get_device_schedules = client.get_device_schedules
-        coordinator.protocol_service.async_add_device_schedule = client.add_device_schedule
-        coordinator.protocol_service.async_delete_device_schedules = client.delete_device_schedules
+        coordinator.protocol_service.async_get_device_schedules_for_device = client.get_device_schedules
+        coordinator.protocol_service.async_add_device_schedule_for_device = client.add_device_schedule
+        coordinator.protocol_service.async_delete_device_schedules_for_device = client.delete_device_schedules
 
         entry = MockConfigEntry(
             domain=DOMAIN,
@@ -145,12 +145,7 @@ class TestInitServiceHandlerSchedules(_InitServiceHandlerBase):
 
         assert result == {"serial": device.serial, "schedules": []}
         coordinator.get_device.assert_called_once_with(device.serial)
-        client.get_device_schedules.assert_awaited_once_with(
-            device.iot_device_id,
-            device.device_type_hex,
-            mesh_gateway_id="",
-            mesh_member_ids=[],
-        )
+        client.get_device_schedules.assert_awaited_once_with(device)
 
     async def test_get_schedules_ignores_malformed_schedule_rows(self, hass) -> None:
         """Malformed schedule rows should be ignored instead of raising."""
@@ -173,9 +168,9 @@ class TestInitServiceHandlerSchedules(_InitServiceHandlerBase):
         coordinator = self._attach_auth_service(MagicMock())
         coordinator.get_device.return_value = device
         coordinator.protocol = client
-        coordinator.protocol_service.async_get_device_schedules = client.get_device_schedules
-        coordinator.protocol_service.async_add_device_schedule = client.add_device_schedule
-        coordinator.protocol_service.async_delete_device_schedules = client.delete_device_schedules
+        coordinator.protocol_service.async_get_device_schedules_for_device = client.get_device_schedules
+        coordinator.protocol_service.async_add_device_schedule_for_device = client.add_device_schedule
+        coordinator.protocol_service.async_delete_device_schedules_for_device = client.delete_device_schedules
 
         entry = MockConfigEntry(
             domain=DOMAIN,
@@ -203,7 +198,7 @@ class TestInitServiceHandlerSchedules(_InitServiceHandlerBase):
         }
 
     async def test_get_schedules_passes_mesh_context(self, hass) -> None:
-        """get_schedules should pass mesh gateway/member context to client."""
+        """get_schedules should delegate the device to protocol service context resolution."""
         device = self._create_device(serial="mesh_group_10001")
         device.extra_data["gateway_device_id"] = "03ab0000000000a1"
         device.extra_data["group_member_ids"] = ["03ab0000000000a2"]
@@ -213,9 +208,9 @@ class TestInitServiceHandlerSchedules(_InitServiceHandlerBase):
         coordinator = self._attach_auth_service(MagicMock())
         coordinator.get_device.return_value = device
         coordinator.protocol = client
-        coordinator.protocol_service.async_get_device_schedules = client.get_device_schedules
-        coordinator.protocol_service.async_add_device_schedule = client.add_device_schedule
-        coordinator.protocol_service.async_delete_device_schedules = client.delete_device_schedules
+        coordinator.protocol_service.async_get_device_schedules_for_device = client.get_device_schedules
+        coordinator.protocol_service.async_add_device_schedule_for_device = client.add_device_schedule
+        coordinator.protocol_service.async_delete_device_schedules_for_device = client.delete_device_schedules
 
         entry = MockConfigEntry(
             domain=DOMAIN,
@@ -229,15 +224,10 @@ class TestInitServiceHandlerSchedules(_InitServiceHandlerBase):
             hass, service_call(hass, {ATTR_DEVICE_ID: device.serial})
         )
 
-        client.get_device_schedules.assert_awaited_once_with(
-            device.iot_device_id,
-            device.device_type_hex,
-            mesh_gateway_id="03ab0000000000a1",
-            mesh_member_ids=["03ab0000000000a2"],
-        )
+        client.get_device_schedules.assert_awaited_once_with(device)
 
     async def test_add_schedule_passes_mesh_context(self, hass) -> None:
-        """add_schedule should pass mesh gateway/member context to client."""
+        """add_schedule should delegate the device to protocol service context resolution."""
         device = self._create_device(serial="mesh_group_10001")
         device.extra_data["gateway_device_id"] = "03ab0000000000a1"
         device.extra_data["group_member_ids"] = ["03ab0000000000a2"]
@@ -247,9 +237,9 @@ class TestInitServiceHandlerSchedules(_InitServiceHandlerBase):
         coordinator = self._attach_auth_service(MagicMock())
         coordinator.get_device.return_value = device
         coordinator.protocol = client
-        coordinator.protocol_service.async_get_device_schedules = client.get_device_schedules
-        coordinator.protocol_service.async_add_device_schedule = client.add_device_schedule
-        coordinator.protocol_service.async_delete_device_schedules = client.delete_device_schedules
+        coordinator.protocol_service.async_get_device_schedules_for_device = client.get_device_schedules
+        coordinator.protocol_service.async_add_device_schedule_for_device = client.add_device_schedule
+        coordinator.protocol_service.async_delete_device_schedules_for_device = client.delete_device_schedules
 
         entry = MockConfigEntry(
             domain=DOMAIN,
@@ -273,15 +263,7 @@ class TestInitServiceHandlerSchedules(_InitServiceHandlerBase):
         )
 
         assert result["schedule_count"] == 1
-        client.add_device_schedule.assert_awaited_once_with(
-            device.iot_device_id,
-            device.device_type_hex,
-            [1, 2, 3],
-            [3600],
-            [0],
-            mesh_gateway_id="03ab0000000000a1",
-            mesh_member_ids=["03ab0000000000a2"],
-        )
+        client.add_device_schedule.assert_awaited_once_with(device, [1, 2, 3], [3600], [0])
 
     async def test_add_schedule_resolves_device_from_entity_target(self, hass) -> None:
         """add_schedule should resolve target entity when device_id is omitted."""
@@ -291,9 +273,9 @@ class TestInitServiceHandlerSchedules(_InitServiceHandlerBase):
         coordinator = self._attach_auth_service(MagicMock())
         coordinator.get_device.return_value = device
         coordinator.protocol = client
-        coordinator.protocol_service.async_get_device_schedules = client.get_device_schedules
-        coordinator.protocol_service.async_add_device_schedule = client.add_device_schedule
-        coordinator.protocol_service.async_delete_device_schedules = client.delete_device_schedules
+        coordinator.protocol_service.async_get_device_schedules_for_device = client.get_device_schedules
+        coordinator.protocol_service.async_add_device_schedule_for_device = client.add_device_schedule
+        coordinator.protocol_service.async_delete_device_schedules_for_device = client.delete_device_schedules
 
         entry = MockConfigEntry(
             domain=DOMAIN,
@@ -333,15 +315,7 @@ class TestInitServiceHandlerSchedules(_InitServiceHandlerBase):
             "schedule_count": 1,
         }
         coordinator.get_device.assert_called_once_with(device.serial)
-        client.add_device_schedule.assert_awaited_once_with(
-            device.iot_device_id,
-            device.device_type_hex,
-            [1],
-            [3600],
-            [1],
-            mesh_gateway_id="",
-            mesh_member_ids=[],
-        )
+        client.add_device_schedule.assert_awaited_once_with(device, [1], [3600], [1])
 
     async def test_delete_schedules_returns_summary(self, hass) -> None:
         """delete_schedules returns remaining count on success."""
@@ -351,9 +325,9 @@ class TestInitServiceHandlerSchedules(_InitServiceHandlerBase):
         coordinator = self._attach_auth_service(MagicMock())
         coordinator.get_device.return_value = device
         coordinator.protocol = client
-        coordinator.protocol_service.async_get_device_schedules = client.get_device_schedules
-        coordinator.protocol_service.async_add_device_schedule = client.add_device_schedule
-        coordinator.protocol_service.async_delete_device_schedules = client.delete_device_schedules
+        coordinator.protocol_service.async_get_device_schedules_for_device = client.get_device_schedules
+        coordinator.protocol_service.async_add_device_schedule_for_device = client.add_device_schedule
+        coordinator.protocol_service.async_delete_device_schedules_for_device = client.delete_device_schedules
 
         entry = MockConfigEntry(
             domain=DOMAIN,
@@ -377,7 +351,7 @@ class TestInitServiceHandlerSchedules(_InitServiceHandlerBase):
         }
 
     async def test_delete_schedules_passes_mesh_context(self, hass) -> None:
-        """delete_schedules should pass mesh gateway/member context to client."""
+        """delete_schedules should delegate the device to protocol service context resolution."""
         device = self._create_device(serial="mesh_group_10001")
         device.extra_data["gateway_device_id"] = "03ab0000000000a1"
         device.extra_data["group_member_ids"] = ["03ab0000000000a2"]
@@ -387,9 +361,9 @@ class TestInitServiceHandlerSchedules(_InitServiceHandlerBase):
         coordinator = self._attach_auth_service(MagicMock())
         coordinator.get_device.return_value = device
         coordinator.protocol = client
-        coordinator.protocol_service.async_get_device_schedules = client.get_device_schedules
-        coordinator.protocol_service.async_add_device_schedule = client.add_device_schedule
-        coordinator.protocol_service.async_delete_device_schedules = client.delete_device_schedules
+        coordinator.protocol_service.async_get_device_schedules_for_device = client.get_device_schedules
+        coordinator.protocol_service.async_add_device_schedule_for_device = client.add_device_schedule
+        coordinator.protocol_service.async_delete_device_schedules_for_device = client.delete_device_schedules
 
         entry = MockConfigEntry(
             domain=DOMAIN,
@@ -407,13 +381,7 @@ class TestInitServiceHandlerSchedules(_InitServiceHandlerBase):
             ),
         )
 
-        client.delete_device_schedules.assert_awaited_once_with(
-            device.iot_device_id,
-            device.device_type_hex,
-            [1, 2],
-            mesh_gateway_id="03ab0000000000a1",
-            mesh_member_ids=["03ab0000000000a2"],
-        )
+        client.delete_device_schedules.assert_awaited_once_with(device, [1, 2])
 
     async def test_delete_schedules_resolves_device_from_entity_target(
         self, hass
@@ -425,9 +393,9 @@ class TestInitServiceHandlerSchedules(_InitServiceHandlerBase):
         coordinator = self._attach_auth_service(MagicMock())
         coordinator.get_device.return_value = device
         coordinator.protocol = client
-        coordinator.protocol_service.async_get_device_schedules = client.get_device_schedules
-        coordinator.protocol_service.async_add_device_schedule = client.add_device_schedule
-        coordinator.protocol_service.async_delete_device_schedules = client.delete_device_schedules
+        coordinator.protocol_service.async_get_device_schedules_for_device = client.get_device_schedules
+        coordinator.protocol_service.async_add_device_schedule_for_device = client.add_device_schedule
+        coordinator.protocol_service.async_delete_device_schedules_for_device = client.delete_device_schedules
 
         entry = MockConfigEntry(
             domain=DOMAIN,
@@ -462,10 +430,4 @@ class TestInitServiceHandlerSchedules(_InitServiceHandlerBase):
             "remaining_count": 0,
         }
         coordinator.get_device.assert_called_once_with(device.serial)
-        client.delete_device_schedules.assert_awaited_once_with(
-            device.iot_device_id,
-            device.device_type_hex,
-            [1, 2],
-            mesh_gateway_id="",
-            mesh_member_ids=[],
-        )
+        client.delete_device_schedules.assert_awaited_once_with(device, [1, 2])

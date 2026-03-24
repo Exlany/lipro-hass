@@ -158,7 +158,7 @@ def test_milestone_archive_snapshots_exist_and_are_referenced() -> None:
         assert needle in requirements_text or needle in project_text or needle in milestones_text
 
     assert "v1.16-MILESTONE-AUDIT.md" in state_text
-    assert "$gsd-execute-phase 69" in state_text
+    assert "$gsd-complete-milestone v1.17" in state_text
     assert "archived / evidence-ready" in milestones_text
     assert "archived snapshots created / handoff-ready" in milestones_text
     assert "revalidated 2026-03-17" in milestones_text
@@ -402,7 +402,7 @@ def test_governance_truth_registers_v1_16_latest_archive_pointer() -> None:
     assert "当前无 active milestone route" not in docs_text
     assert "v1.17 / Phase 69" in docs_text
     assert "V1_16_EVIDENCE_INDEX.md" in runbook_text
-    assert "$gsd-execute-phase 69" in project_text
+    assert "$gsd-complete-milestone v1.17" in project_text
     assert "$gsd-execute-phase 69" in state_text
     assert "Active milestone route = `v1.17 Residual Formalization, Quality-Balance Hardening & Open-Source Contract Closure`" in project_text
-    assert "**Current mode:** `Phase 69 planned / ready to execute`" in state_text
+    assert "**Current mode:** `Phase 69 complete / closeout-ready`" in state_text

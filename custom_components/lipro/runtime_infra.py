@@ -29,6 +29,7 @@ class _DeviceRegistryEntryLike(Protocol):
     disabled_by: object | None
 
 
+@runtime_checkable
 class _ConfigEntryCarrier(Protocol):
     """Minimal device-like surface that exposes config entries."""
 
@@ -65,9 +66,10 @@ def _iter_lipro_config_entry_ids_for_device(
     device_entry: _ConfigEntryCarrier | object,
 ) -> list[str]:
     """List Lipro config entries linked to one device-registry entry."""
-    config_entries = getattr(device_entry, "config_entries", None)
-    if not isinstance(config_entries, Iterable):
+    if not isinstance(device_entry, _ConfigEntryCarrier):
         return []
+
+    config_entries = device_entry.config_entries
 
     matched_entry_ids: list[str] = []
     for entry_id in config_entries:
@@ -290,6 +292,17 @@ def get_runtime_infra_lock(hass: HomeAssistant) -> asyncio.Lock | None:
     return lock
 
 
+async def _async_setup_runtime_infra_unlocked(
+    hass: HomeAssistant,
+    *,
+    setup_services: Callable[[HomeAssistant], Awaitable[None]],
+    setup_device_registry_listener: Callable[[HomeAssistant], None],
+) -> None:
+    """Set up shared services and registry listener without lock orchestration."""
+    await setup_services(hass)
+    setup_device_registry_listener(hass)
+
+
 async def async_ensure_runtime_infra(
     hass: HomeAssistant,
     *,
@@ -297,17 +310,21 @@ async def async_ensure_runtime_infra(
     setup_device_registry_listener: Callable[[HomeAssistant], None],
 ) -> None:
     """Ensure shared runtime infra (services/listener) is ready."""
-    async def _async_setup_runtime_infra_unlocked() -> None:
-        await setup_services(hass)
-        setup_device_registry_listener(hass)
-
     lock = get_runtime_infra_lock(hass)
     if lock is None:
-        await _async_setup_runtime_infra_unlocked()
+        await _async_setup_runtime_infra_unlocked(
+            hass,
+            setup_services=setup_services,
+            setup_device_registry_listener=setup_device_registry_listener,
+        )
         return
 
     async with lock:
-        await _async_setup_runtime_infra_unlocked()
+        await _async_setup_runtime_infra_unlocked(
+            hass,
+            setup_services=setup_services,
+            setup_device_registry_listener=setup_device_registry_listener,
+        )
 
 
 def has_other_runtime_entries(

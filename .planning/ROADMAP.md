@@ -19,7 +19,7 @@
 - ✅ **v1.15 Typed Contract Convergence, Tooling Kernel Hardening & Mypy Closure** - `Phase 67` archived on 2026-03-24; milestone audit: `.planning/v1.15-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_15_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.15-ROADMAP.md` / `.planning/milestones/v1.15-REQUIREMENTS.md`
 - ✅ **v1.14 Governance Truth Realignment, Typed Runtime Access & Final Hidden-Root Closure** - `Phase 63 -> 66` archived on 2026-03-23; milestone audit: `.planning/v1.14-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_14_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.14-ROADMAP.md` / `.planning/milestones/v1.14-REQUIREMENTS.md`
 - ✅ **v1.16 Master Audit Follow-Through, Hotspot Finalization & Docs Contract Hardening** - `Phase 68` archived on 2026-03-24; milestone audit: `.planning/v1.16-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_16_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.16-ROADMAP.md` / `.planning/milestones/v1.16-REQUIREMENTS.md`; non-blocking residual formally carried forward to `v1.17 / Phase 69`
-- 🚧 **v1.17 Residual Formalization, Quality-Balance Hardening & Open-Source Contract Closure** - activated on 2026-03-24 from the `v1.16` carry-forward closeout; `Phase 69` has context + validation + 5 plans on disk and is ready for execution via `$gsd-execute-phase 69`
+- 🚧 **v1.17 Residual Formalization, Quality-Balance Hardening & Open-Source Contract Closure** - activated on 2026-03-24 from the `v1.16` carry-forward closeout; `Phase 69` completed on 2026-03-24 with promoted closeout evidence and the milestone is now closeout-ready via `$gsd-complete-milestone v1.17`
 
 ## Required Phase Outputs
 
@@ -1236,7 +1236,7 @@ Plans:
 **Requirements basket:** `GOV-52`, `ARC-15`, `HOT-24`, `HOT-25`, `OSS-08`, `TST-18`, `QLT-26`
 **Archive assets:** `.planning/v1.16-MILESTONE-AUDIT.md`, `.planning/reviews/V1_16_EVIDENCE_INDEX.md`, `.planning/milestones/v1.16-ROADMAP.md`, `.planning/milestones/v1.16-REQUIREMENTS.md`, `.planning/phases/68-master-audit-follow-through-hotspot-finalization-and-docs-contract-hardening/68-SUMMARY.md`, `.planning/phases/68-master-audit-follow-through-hotspot-finalization-and-docs-contract-hardening/68-VERIFICATION.md`, `.planning/phases/68-master-audit-follow-through-hotspot-finalization-and-docs-contract-hardening/68-VALIDATION.md`
 **Carry-forward route:** `v1.17 / Phase 69`
-**Default next command:** `$gsd-execute-phase 69`
+**Default next command:** `$gsd-complete-milestone v1.17`
 
 ### Phase 68: Repository-wide review follow-through, hotspot finalization, and docs contract hardening
 
@@ -1265,11 +1265,11 @@ Plans:
 
 > `v1.17` 不是对 `v1.16` 的返工 reopen；它承接的是 `Phase 68` 明确保留的 non-blocking residual。目标不是再打一轮“大审计”，而是把这些剩余债务继续压缩成更少、更薄、更易验证的正式 seams，同时保持 `v1.16` 作为 latest archived baseline 的证据身份。
 
-**Milestone status:** `active / Phase 69 planned (ready to execute, 2026-03-24)`
+**Milestone status:** `active / Phase 69 complete (closeout-ready, 2026-03-24)`
 **Starting baseline:** `.planning/v1.16-MILESTONE-AUDIT.md`, `.planning/reviews/V1_16_EVIDENCE_INDEX.md`, `.planning/milestones/v1.16-ROADMAP.md`, `.planning/milestones/v1.16-REQUIREMENTS.md`, `.planning/phases/68-master-audit-follow-through-hotspot-finalization-and-docs-contract-hardening/68-SUMMARY.md`, `.planning/phases/68-master-audit-follow-through-hotspot-finalization-and-docs-contract-hardening/68-VERIFICATION.md`, `.planning/phases/68-master-audit-follow-through-hotspot-finalization-and-docs-contract-hardening/68-VALIDATION.md`
 **Requirements basket:** `GOV-53`, `ARC-16`, `HOT-26`, `HOT-27`, `OSS-09`, `TST-19`, `QLT-27`
-**Current route:** `Phase 69`
-**Default next command:** `$gsd-execute-phase 69`
+**Current route:** `Phase 69 complete`
+**Default next command:** `$gsd-complete-milestone v1.17`
 
 ### Phase 69: Residual read-model closure, wrapper-path thinning, and quality-balance follow-through
 
@@ -1280,15 +1280,16 @@ Plans:
   1. `custom_components/lipro/control/runtime_access_support.py`、`custom_components/lipro/runtime_infra.py` 与 schedule/protocol wrapper chain 继续沿既有 formal seams inward slimming；control outward home、protocol root 与 public import story 不被重开。
   2. `scripts/check_*.py`、CI coverage/diff gate、focused integration suites 与 meta guards 形成更平衡的质量门：不再主要依赖 budget/meta shells 来承担行为验证。
   3. `pyproject.toml`、`manifest.json`、`docs/README.md`、`SECURITY.md`、`.github/CODEOWNERS`、templates 与 governance docs 对 release-docs URL、HA support truth 与 maintainer continuity 讲同一条 honest contract story。
-**Status**: Planned / ready to execute (`2026-03-24`)
-**Plans**: 5 planned / 0 complete / 5 pending
+**Status**: Complete (`2026-03-24`)
+**Plans**: 5/5 complete
+**Promoted closeout package**: `69-SUMMARY.md`, `69-VERIFICATION.md`, `69-VALIDATION.md`
 
 Plans:
-- [ ] 69-01: formalize runtime-access read models and shrink runtime infra support density
-- [ ] 69-02: de-protocolize schedule/service wrapper paths without reopening roots
-- [ ] 69-03: rebalance checker coverage, integration depth, and meta-shell maintainability
-- [ ] 69-04: align honest open-source metadata, docs, and continuity contract
-- [ ] 69-05: freeze v1.17 governance and verification truth without rewriting Phase 68
+- [x] 69-01: formalize runtime-access read models and shrink runtime infra support density (completed 2026-03-24)
+- [x] 69-02: de-protocolize schedule/service wrapper paths without reopening roots (completed 2026-03-24)
+- [x] 69-03: rebalance checker coverage, integration depth, and meta-shell maintainability (completed 2026-03-24)
+- [x] 69-04: align honest open-source metadata, docs, and continuity contract (completed 2026-03-24)
+- [x] 69-05: freeze v1.17 governance and verification truth without rewriting Phase 68 (completed 2026-03-24)
 
 ## v1.15: Typed Contract Convergence, Tooling Kernel Hardening & Mypy Closure
 

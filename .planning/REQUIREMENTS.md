@@ -140,34 +140,34 @@
 
 ### Residual Formalization & Hotspot Closure
 
-- [ ] **GOV-53**: `PROJECT / ROADMAP / REQUIREMENTS / STATE / phase context / verification assets` 必须共同区分 `v1.16` 的 archived baseline 身份与 `v1.17` 的 active residual route，避免 future planning 重新污染已完成的 `Phase 68` current story。
-- [ ] **ARC-16**: `runtime_access.py` / `runtime_access_support.py`、`runtime_infra.py`、`services/schedule.py` 与 related protocol-service collaborators 必须继续向显式 read-model / runtime-intent seam 收口，不能继续依赖反射式 probing、protocol-shaped service choreography 或 broad wrapper chain 维持正式行为。
-- [ ] **HOT-26**: wrapper/shim/lazy-import residual（含 MQTT/support/API stable-import and helper mirrors）必须继续削减，只允许保留有明确 owner 与 delete-gate 的 localized seam。
-- [ ] **HOT-27**: 高复杂度 support-only families（如 `runtime_access_support.py`、`runtime_infra.py`、diagnostics helper mirrors）必须获得更清晰的 no-growth budget 与 discoverability contract，防止“support seam”继续长成隐性 subsystem。
+- [x] **GOV-53**: `PROJECT / ROADMAP / REQUIREMENTS / STATE / phase context / verification assets` 现在共同区分 `v1.16` 的 archived baseline 身份与 `v1.17 / Phase 69 complete` 的 closeout-ready current route，没有重写 `Phase 68` current story。
+- [x] **ARC-16**: `runtime_access.py` / `runtime_access_support.py`、`runtime_infra.py`、`services/schedule.py` 与 related protocol-service collaborators 已继续向显式 read-model / runtime-intent seam 收口；反射式 probing、protocol-shaped service choreography 与 broad wrapper chain 未被重新合法化。
+- [x] **HOT-26**: wrapper/shim/lazy-import residual（含 MQTT/support/API stable-import and helper mirrors）已继续削减；保留下来的 localized seam 均维持正式 owner / delete-gate / no-growth contract。
+- [x] **HOT-27**: 高复杂度 support-only families（如 `runtime_access_support.py`、`runtime_infra.py`、diagnostics helper mirrors）已获得更清晰的 no-growth budget 与 discoverability contract，没有继续长成隐性 subsystem。
 
 ### Open-Source & Quality Balance
 
-- [ ] **OSS-09**: release-aware docs URL、machine-readable Home Assistant support truth、maintainer continuity wording 与 live-docs caveat 必须在 `pyproject.toml`、`manifest.json`、`docs/README.md`、`SECURITY.md`、templates 与 governance registry 中讲同一条 honest open-source contract，不得虚构 delegate 或 release-specific docs reality。
-- [ ] **TST-19**: 质量体系必须补足 `scripts/check_*.py` 的行为测试/coverage 视野、focused integration coverage 与 meta-shell 可导航性，避免后续 residual closure 继续主要依赖 budget/meta tests。
-- [ ] **QLT-27**: `v1.17` touched scope 必须在 `uv run ruff check .`、`uv run mypy --follow-imports=silent .`、`uv run python scripts/check_architecture_policy.py --check`、`uv run python scripts/check_file_matrix.py --check`、focused pytest 与必要的 repo-wide pytest 下继续绿色，并能解释为什么新的门禁比旧故事更平衡。
+- [x] **OSS-09**: release-aware docs URL、machine-readable Home Assistant support truth、maintainer continuity wording 与 live-docs caveat 已在 `pyproject.toml`、`manifest.json`、`docs/README.md`、`SECURITY.md`、templates 与 governance docs 中讲同一条 honest open-source contract。
+- [x] **TST-19**: 质量体系已补足 `scripts/check_*.py` 的行为测试/coverage 视野、focused integration coverage 与 meta-shell 可导航性，后续 residual closure 不再主要依赖 budget/meta tests。
+- [x] **QLT-27**: `v1.17` touched scope 已在 `uv run ruff check .`、`uv run mypy --follow-imports=silent .`、`uv run python scripts/check_architecture_policy.py --check`、`uv run python scripts/check_file_matrix.py --check`、`uv run python scripts/check_translations.py` 与 final focused pytest bundle 下保持绿色，并留下可解释的平衡化门禁证据。
 
-## Traceability for active v1.17 route
+## Traceability for closeout-ready v1.17 route
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| GOV-53 | Phase 69 | Planned |
-| ARC-16 | Phase 69 | Planned |
-| HOT-26 | Phase 69 | Planned |
-| HOT-27 | Phase 69 | Planned |
-| OSS-09 | Phase 69 | Planned |
-| TST-19 | Phase 69 | Planned |
-| QLT-27 | Phase 69 | Planned |
+| GOV-53 | Phase 69 | Completed |
+| ARC-16 | Phase 69 | Completed |
+| HOT-26 | Phase 69 | Completed |
+| HOT-27 | Phase 69 | Completed |
+| OSS-09 | Phase 69 | Completed |
+| TST-19 | Phase 69 | Completed |
+| QLT-27 | Phase 69 | Completed |
 
 **Coverage:**
 - v1.17 routed requirements: 7 total
 - Current mapped: 7
-- Current complete: 0
-- Current pending: 7
+- Current complete: 7
+- Current pending: 0
 - Current unmapped: 0 ✓
 
 ## Archived Milestone (v1.16)

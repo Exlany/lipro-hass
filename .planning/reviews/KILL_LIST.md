@@ -303,3 +303,10 @@
 - 本 phase **无新增 active kill target**；hotspot inward split、MQTT authority 收束与 docs/metadata truth sync 都沿现有正式 home / governance chain 完成，没有制造新的 delete-gated 过渡物。
 - `custom_components/lipro/core/telemetry/outcomes.py`、`custom_components/lipro/core/telemetry/json_payloads.py` 与 `custom_components/lipro/control/runtime_access_support.py` 都只是 localized helper seams，不是未来 delete campaign 的权宜故事线。
 - docs/current-story drift 已通过 README/docs/manifest/pyproject/meta guards 同轮关闭；后续若再变更 public contract，只允许沿既有 authority chain 同步更新。
+
+
+## Phase 69 Status Update
+
+- 本 phase **无新增 active kill target**；typed runtime-access wrappers、schedule/protocol service narrowing、checker balance hardening 与 current-story governance freeze 都沿既有正式 home 收口，没有制造新的 delete-gated 过渡物。
+- `custom_components/lipro/control/runtime_access_support.py`、`custom_components/lipro/runtime_infra.py` 与 related helper mirrors 继续只承担 localized support seam 身份，不是未来 cleanup campaign 的临时借口。
+- 当前 closeout-ready 故事只允许继续执行 milestone archive / snapshot promotion；不得再把 `Phase 69` 结果回退成 planned residual。

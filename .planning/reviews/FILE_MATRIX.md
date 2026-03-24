@@ -1,6 +1,6 @@
 # File Matrix
 
-**Python files total:** 605
+**Python files total:** 606
 **Status:** File-level governance authority
 **Rule:** workspace inventory excluding caches / virtual env / tooling artifacts
 
@@ -556,6 +556,7 @@
 | `tests/meta/test_phase61_formal_home_budget_guards.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_phase62_naming_discoverability_guards.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_phase68_hotspot_budget_guards.py` | Assurance | Phase 68 | 保留 | review-fed hotspot regrowth and MQTT authority guard bundle |
+| `tests/meta/test_phase69_support_budget_guards.py` | Assurance | Phase 69 | 保留 | Phase 69 residual locality / no-growth guard bundle |
 | `tests/meta/test_protocol_replay_assets.py` | Assurance | Phase 7.4 | 保留 | - |
 | `tests/meta/test_public_surface_guards.py` | Assurance | Phase 6 | 保留 | thin shell after public-surface topicization |
 | `tests/meta/test_service_translation_sync.py` | Assurance | Phase 6 | 保留 | - |

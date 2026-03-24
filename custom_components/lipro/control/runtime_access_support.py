@@ -197,7 +197,7 @@ def _coerce_runtime_entry_port(entry: object) -> RuntimeEntryPort | None:
 
 
 
-def build_runtime_entry_view(
+def _build_runtime_entry_view_support(
     entry: RuntimeEntryPort | object,
 ) -> RuntimeEntryView | None:
     """Build the typed runtime-entry read-model for control-plane consumers."""
@@ -218,7 +218,7 @@ def build_entry_telemetry_exporter_support(
     entry: RuntimeEntryPort | object,
 ) -> RuntimeTelemetryExporter | None:
     """Build one explicit telemetry exporter for a runtime entry when available."""
-    runtime_entry = build_runtime_entry_view(entry)
+    runtime_entry = _build_runtime_entry_view_support(entry)
     if runtime_entry is None or runtime_entry.coordinator is None:
         return None
 
@@ -236,18 +236,18 @@ def build_entry_telemetry_exporter_support(
 
 
 
-def get_entry_runtime_coordinator(
+def _get_entry_runtime_coordinator_support(
     entry: RuntimeEntryPort | object,
 ) -> LiproCoordinator | None:
     """Return the coordinator attached to a config entry, if loaded."""
-    runtime_entry = build_runtime_entry_view(entry)
+    runtime_entry = _build_runtime_entry_view_support(entry)
     if runtime_entry is None or runtime_entry.coordinator is None:
         return None
     return runtime_entry.coordinator.coordinator
 
 
 
-def iter_runtime_entries(
+def _iter_runtime_entries_support(
     hass: HomeAssistant,
     *,
     entry_id: str | None = None,
@@ -264,22 +264,22 @@ def iter_runtime_entries(
 
 
 
-def iter_runtime_entry_views(
+def _iter_runtime_entry_views_support(
     hass: HomeAssistant,
     *,
     entry_id: str | None = None,
 ) -> list[RuntimeEntryView]:
     """Return typed runtime-entry read-models for active Lipro entries."""
     views: list[RuntimeEntryView] = []
-    for entry in iter_runtime_entries(hass, entry_id=entry_id):
-        view = build_runtime_entry_view(entry)
+    for entry in _iter_runtime_entries_support(hass, entry_id=entry_id):
+        view = _build_runtime_entry_view_support(entry)
         if view is not None:
             views.append(view)
     return views
 
 
 
-def iter_runtime_coordinators(
+def _iter_runtime_coordinators_support(
     hass: HomeAssistant,
     *,
     entry_id: str | None = None,
@@ -287,7 +287,7 @@ def iter_runtime_coordinators(
     """Return loaded runtime coordinators for the Lipro domain."""
     return [
         view.coordinator.coordinator
-        for view in iter_runtime_entry_views(hass, entry_id=entry_id)
+        for view in _iter_runtime_entry_views_support(hass, entry_id=entry_id)
         if view.coordinator is not None
     ]
 
@@ -302,14 +302,14 @@ def _build_runtime_entry_coordinator_pair(
 
 
 
-def iter_runtime_entry_coordinators(
+def _iter_runtime_entry_coordinators_support(
     hass: HomeAssistant,
     *,
     entry_id: str | None = None,
 ) -> list[RuntimeEntryCoordinator]:
     """Return loaded runtime entry/coordinator pairs for the Lipro domain."""
     pairs: list[RuntimeEntryCoordinator] = []
-    for view in iter_runtime_entry_views(hass, entry_id=entry_id):
+    for view in _iter_runtime_entry_views_support(hass, entry_id=entry_id):
         pair = _build_runtime_entry_coordinator_pair(view)
         if pair is not None:
             pairs.append(pair)
@@ -337,7 +337,7 @@ def _find_runtime_device_in_mapping(
     device_id: str,
 ) -> LiproDevice | None:
     """Return one runtime device from the explicit coordinator mapping."""
-    return get_runtime_device_mapping(coordinator).get(device_id)
+    return _get_runtime_device_mapping_support(coordinator).get(device_id)
 
 
 def _find_runtime_device_via_explicit_getters(
@@ -357,7 +357,7 @@ def _find_runtime_device_via_explicit_getters(
 
 
 
-def get_runtime_device_mapping(
+def _get_runtime_device_mapping_support(
     coordinator: LiproCoordinator,
 ) -> Mapping[str, LiproDevice]:
     """Return a safe device mapping view for one runtime coordinator."""
@@ -365,7 +365,7 @@ def get_runtime_device_mapping(
 
 
 
-def find_runtime_device(
+def _find_runtime_device_support(
     coordinator: LiproCoordinator,
     device_id: str,
 ) -> LiproDevice | None:
@@ -377,101 +377,101 @@ def find_runtime_device(
 
 
 
-def find_runtime_device_and_coordinator(
+def _find_runtime_device_and_coordinator_support(
     hass: HomeAssistant,
     *,
     device_id: str,
     entry_id: str | None = None,
 ) -> tuple[LiproDevice, LiproCoordinator] | None:
     """Return the runtime device plus owning coordinator when available."""
-    for _entry, coordinator in iter_runtime_entry_coordinators(hass, entry_id=entry_id):
-        device = find_runtime_device(coordinator, device_id)
+    for _entry, coordinator in _iter_runtime_entry_coordinators_support(hass, entry_id=entry_id):
+        device = _find_runtime_device_support(coordinator, device_id)
         if device is not None:
             return device, coordinator
     return None
 
 
 
-def find_runtime_entry_for_coordinator(
+def _find_runtime_entry_for_coordinator_support(
     hass: HomeAssistant,
     coordinator: LiproCoordinator,
 ) -> RuntimeEntryPort | None:
     """Return the config entry that owns one active coordinator."""
     config_entry = _get_explicit_member(coordinator, "config_entry")
-    runtime_entry = build_runtime_entry_view(config_entry)
+    runtime_entry = _build_runtime_entry_view_support(config_entry)
     if runtime_entry is not None and runtime_entry.coordinator is not None:
         if runtime_entry.coordinator.coordinator is coordinator:
             return runtime_entry.entry
-    for entry in iter_runtime_entries(hass):
-        if get_entry_runtime_coordinator(entry) is coordinator:
+    for entry in _iter_runtime_entries_support(hass):
+        if _get_entry_runtime_coordinator_support(entry) is coordinator:
             return entry
     return None
 
 
 
-def is_debug_mode_enabled_for_entry(entry: RuntimeEntryPort | object) -> bool:
+def _is_debug_mode_enabled_for_entry_support(entry: RuntimeEntryPort | object) -> bool:
     """Return whether one config entry explicitly opts into debug services."""
-    runtime_entry = build_runtime_entry_view(entry)
+    runtime_entry = _build_runtime_entry_view_support(entry)
     if runtime_entry is None:
         return DEFAULT_DEBUG_MODE
     return bool(runtime_entry.options.get(CONF_DEBUG_MODE, DEFAULT_DEBUG_MODE))
 
 
 
-def has_debug_mode_runtime_entry(hass: HomeAssistant) -> bool:
+def _has_debug_mode_runtime_entry_support(hass: HomeAssistant) -> bool:
     """Return True when any loaded runtime entry opts into debug mode."""
     return any(
-        is_debug_mode_enabled_for_entry(view.entry)
+        _is_debug_mode_enabled_for_entry_support(view.entry)
         and view.coordinator is not None
-        for view in iter_runtime_entry_views(hass)
+        for view in _iter_runtime_entry_views_support(hass)
     )
 
 
 
-def is_developer_runtime_coordinator(
+def _is_developer_runtime_coordinator_support(
     hass: HomeAssistant,
     coordinator: LiproCoordinator,
 ) -> bool:
     """Return whether the coordinator belongs to a debug-enabled entry."""
-    entry = find_runtime_entry_for_coordinator(hass, coordinator)
-    return entry is not None and is_debug_mode_enabled_for_entry(entry)
+    entry = _find_runtime_entry_for_coordinator_support(hass, coordinator)
+    return entry is not None and _is_debug_mode_enabled_for_entry_support(entry)
 
 
 
-def iter_developer_runtime_coordinators(hass: HomeAssistant) -> list[LiproCoordinator]:
+def _iter_developer_runtime_coordinators_support(hass: HomeAssistant) -> list[LiproCoordinator]:
     """Return runtime coordinators that explicitly opted into debug mode."""
     return [
         view.coordinator.coordinator
-        for view in iter_runtime_entry_views(hass)
-        if view.coordinator is not None and is_debug_mode_enabled_for_entry(view.entry)
+        for view in _iter_runtime_entry_views_support(hass)
+        if view.coordinator is not None and _is_debug_mode_enabled_for_entry_support(view.entry)
     ]
 
 
 
-def iter_runtime_devices_for_entry(
+def _iter_runtime_devices_for_entry_support(
     entry: RuntimeEntryPort | object,
 ) -> list[LiproDevice]:
     """Return all runtime devices for one entry through the formal helper surface."""
-    runtime_entry = build_runtime_entry_view(entry)
+    runtime_entry = _build_runtime_entry_view_support(entry)
     if runtime_entry is None or runtime_entry.coordinator is None:
         return []
     return list((runtime_entry.coordinator.devices or {}).values())
 
 
 
-def find_runtime_device_for_entry(
+def _find_runtime_device_for_entry_support(
     entry: RuntimeEntryPort | object,
     device_id: str,
 ) -> LiproDevice | None:
     """Return one runtime device for an entry through the formal helper surface."""
-    coordinator = get_entry_runtime_coordinator(entry)
+    coordinator = _get_entry_runtime_coordinator_support(entry)
     if coordinator is None:
         return None
-    return find_runtime_device(coordinator, device_id)
+    return _find_runtime_device_support(coordinator, device_id)
 
 
 
-def is_runtime_device_mapping_degraded(
+def _is_runtime_device_mapping_degraded_support(
     coordinator: LiproCoordinator,
 ) -> bool:
     """Return whether the runtime device projection is degraded for one coordinator."""

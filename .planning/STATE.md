@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.17
 milestone_name: Residual Formalization, Quality-Balance Hardening & Open-Source Contract Closure
 status: active
-last_updated: "2026-03-24T19:30:00Z"
+last_updated: "2026-03-24T21:20:00Z"
 progress:
   total_phases: 1
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 5
-  completed_plans: 0
+  completed_plans: 5
 ---
 
 # Project State
@@ -19,12 +19,12 @@ See: `.planning/PROJECT.md`
 
 **Current milestone:** `v1.17 Residual Formalization, Quality-Balance Hardening & Open-Source Contract Closure`
 **Core value:** 以 `v1.16` archived closeout evidence 为唯一起点，把 `Phase 68` 明确保留的 non-blocking residual 压成一条更窄、更诚实、更可验证的 current route。
-**Current mode:** `Phase 69 planned / ready to execute`
+**Current mode:** `Phase 69 complete / closeout-ready`
 
 ## Current Position
 
 - `v1.17` 已于 `2026-03-24` 从 `v1.16` archived closeout 正式接棒；唯一 starting baseline 现在是 `.planning/v1.16-MILESTONE-AUDIT.md`、`.planning/reviews/V1_16_EVIDENCE_INDEX.md` 与 `.planning/milestones/v1.16-{ROADMAP,REQUIREMENTS}.md`。
-- `Phase 69` 已完成 `69-CONTEXT.md`、`69-VALIDATION.md` 与 `69-01 -> 69-05` 计划拆解；下一步必须执行 `$gsd-execute-phase 69`，而不是回写第二条 `Phase 68` current story。
+- `Phase 69` 已完成 `69-01 -> 69-05` 执行、`69-SUMMARY.md` / `69-VERIFICATION.md` / `69-VALIDATION.md` 以及 final gate；下一步必须执行 `$gsd-complete-milestone v1.17`，而不是重开 `Phase 68` 或重复规划 `Phase 69`。
 - `v1.16` 已归档为 `archived / evidence-ready with carry-forward (2026-03-24)`；`Phase 68` 的 `6/6` closeout、focused proof、repo-wide gates 与 non-blocking residual ledger 都已冻结到 `.planning/v1.16-MILESTONE-AUDIT.md` 与 `.planning/reviews/V1_16_EVIDENCE_INDEX.md`。
 - latest archived closeout pointer 现已提升到 `.planning/reviews/V1_16_EVIDENCE_INDEX.md`；`v1.15` 退为 previous archive baseline，但仍保留完整 audit / evidence / snapshot lineage。
 - `v1.13`、`v1.12`、`v1.11`、`v1.10`、`v1.9`、`v1.8`、`v1.7`、`v1.6` 与 `v1.5` 继续只承担历史归档 / continuity 身份，不再承担 current pointer。
@@ -37,7 +37,7 @@ See: `.planning/PROJECT.md`
 - **Archive status:** `archived / evidence-ready with carry-forward (2026-03-24)`
 - **Completed route:** `68-01 -> 68-06 complete`
 - **Archive assets:** `.planning/v1.16-MILESTONE-AUDIT.md`, `.planning/reviews/V1_16_EVIDENCE_INDEX.md`, `.planning/milestones/v1.16-ROADMAP.md`, `.planning/milestones/v1.16-REQUIREMENTS.md`, `.planning/phases/68-master-audit-follow-through-hotspot-finalization-and-docs-contract-hardening/68-SUMMARY.md`, `.planning/phases/68-master-audit-follow-through-hotspot-finalization-and-docs-contract-hardening/68-VERIFICATION.md`, `.planning/phases/68-master-audit-follow-through-hotspot-finalization-and-docs-contract-hardening/68-VALIDATION.md`
-- **Next focus:** `execute v1.17 / Phase 69 without reopening Phase 68`
+- **Next focus:** `close out v1.17 without reopening Phase 68`
 
 ## Latest Archived Baseline (v1.16)
 
@@ -46,17 +46,17 @@ See: `.planning/PROJECT.md`
 - **Completed so far:** `milestone archived; Phase 68 completed (6/6 plans)`
 - **Archive assets:** `.planning/v1.16-MILESTONE-AUDIT.md`, `.planning/reviews/V1_16_EVIDENCE_INDEX.md`, `.planning/milestones/v1.16-ROADMAP.md`, `.planning/milestones/v1.16-REQUIREMENTS.md`, `.planning/phases/68-master-audit-follow-through-hotspot-finalization-and-docs-contract-hardening/68-SUMMARY.md`, `.planning/phases/68-master-audit-follow-through-hotspot-finalization-and-docs-contract-hardening/68-VERIFICATION.md`, `.planning/phases/68-master-audit-follow-through-hotspot-finalization-and-docs-contract-hardening/68-VALIDATION.md`
 - **Starting baseline:** `.planning/v1.15-MILESTONE-AUDIT.md`, `.planning/reviews/V1_15_EVIDENCE_INDEX.md`, `.planning/milestones/v1.15-ROADMAP.md`, `.planning/milestones/v1.15-REQUIREMENTS.md`, `.planning/phases/58-repository-audit-refresh-and-next-wave-routing/58-REMEDIATION-ROADMAP.md`, `.planning/phases/67-typed-contract-convergence-toolchain-hardening-and-mypy-closure/67-SUMMARY.md`
-- **Historical archives:** `.planning/milestones/v1.1-ROADMAP.md`, `.planning/milestones/v1.1-REQUIREMENTS.md`, `.planning/milestones/v1.2-ROADMAP.md`, `.planning/milestones/v1.2-REQUIREMENTS.md`, `.planning/milestones/v1.4-ROADMAP.md`, `.planning/milestones/v1.4-REQUIREMENTS.md`, `.planning/milestones/v1.5-ROADMAP.md`, `.planning/milestones/v1.5-REQUIREMENTS.md`, `.planning/milestones/v1.6-ROADMAP.md`, `.planning/milestones/v1.6-REQUIREMENTS.md`, `.planning/milestones/v1.12-ROADMAP.md`, `.planning/milestones/v1.12-REQUIREMENTS.md`, `.planning/milestones/v1.13-ROADMAP.md`, `.planning/milestones/v1.13-REQUIREMENTS.md`, `.planning/milestones/v1.14-ROADMAP.md`, `.planning/milestones/v1.14-REQUIREMENTS.md`, `.planning/milestones/v1.15-ROADMAP.md`, `.planning/milestones/v1.15-REQUIREMENTS.md`
+- **Historical archives:** `.planning/milestones/v1.1-ROADMAP.md`, `.planning/milestones/v1.1-REQUIREMENTS.md`, `.planning/milestones/v1.2-ROADMAP.md`, `.planning/milestones/v1.2-REQUIREMENTS.md`, `.planning/milestones/v1.4-ROADMAP.md`, `.planning/milestones/v1.4-REQUIREMENTS.md`, `.planning/milestones/v1.5-ROADMAP.md`, `.planning/milestones/v1.5-REQUIREMENTS.md`, `.planning/milestones/v1.6-ROADMAP.md`, `.planning/milestones/v1.6-REQUIREMENTS.md`, `.planning/v1.13-MILESTONE-AUDIT.md`, `.planning/reviews/V1_13_EVIDENCE_INDEX.md`, `.planning/milestones/v1.12-ROADMAP.md`, `.planning/milestones/v1.12-REQUIREMENTS.md`, `.planning/milestones/v1.13-ROADMAP.md`, `.planning/milestones/v1.13-REQUIREMENTS.md`, `.planning/milestones/v1.14-ROADMAP.md`, `.planning/milestones/v1.14-REQUIREMENTS.md`, `.planning/milestones/v1.15-ROADMAP.md`, `.planning/milestones/v1.15-REQUIREMENTS.md`
 - **Previous archive baseline:** `.planning/v1.15-MILESTONE-AUDIT.md`, `.planning/reviews/V1_15_EVIDENCE_INDEX.md`, `.planning/milestones/v1.15-ROADMAP.md`, `.planning/milestones/v1.15-REQUIREMENTS.md`
-- **Historical next step:** `$gsd-execute-phase 69` —— 从 `v1.16` archived evidence 推进下一轮正式 residual route。
+- **Historical next step:** `$gsd-execute-phase 69` —— 从 `v1.16` archived evidence 推进下一轮正式 residual route；更早的 tooling-governance continuity 在 `.planning/v1.13-MILESTONE-AUDIT.md` 中保留，其 archive handoff 路由仍明确记录 `$gsd-new-milestone`。
 
 ## Recommended Next Command
 
-1. `$gsd-execute-phase 69` —— 执行已规划完成的 `v1.17 / Phase 69` residual closure 路线
-2. `$gsd-progress` —— 复核 active route、archived baseline 与 carry-forward truth
-3. `uv run python scripts/check_file_matrix.py --check` —— 复核 archive / governance snapshots 已被 file-matrix 接纳
-4. `uv run pytest -q tests/meta/test_governance_milestone_archives.py tests/meta/governance_followup_route_current_milestones.py tests/meta/test_governance_release_contract.py tests/meta/test_version_sync.py` —— 复核 current-route 与 archive-lineage guards
-5. `uv run pytest -q` —— 在需要时复核全量仓库回归
+1. `$gsd-complete-milestone v1.17` —— 归档当前 active milestone，并提升 `v1.17` snapshots / audit / evidence pointers
+2. `$gsd-next` —— 自动路由到 `v1.17` closeout 流程，不重复执行已完成的 Phase 69
+3. `$gsd-progress` —— 复核 active route、archived baseline 与 carry-forward truth
+4. `uv run python scripts/check_file_matrix.py --check` —— 复核 governance snapshots 与 promoted phase assets 仍被 file-matrix / baseline contract 接纳
+5. `uv run pytest -q tests/meta/test_governance_milestone_archives.py tests/meta/governance_followup_route_current_milestones.py tests/meta/test_governance_release_contract.py tests/meta/test_version_sync.py` —— 复核 closeout-ready current-route 与 archive-lineage guards
 
 ## Session Continuity
 

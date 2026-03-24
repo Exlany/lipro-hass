@@ -166,8 +166,8 @@ def test_v1_8_closeout_through_v1_15_archived_truth_are_consistent() -> None:
     assert ".planning/phases/60-tooling-truth-decomposition-and-file-governance-maintainability/60-01-PLAN.md" not in project_text
 
     assert "## Current Milestone (v1.17)" in project_text
-    assert "**Current status:** `Phase 69 planned / ready to execute (2026-03-24)`" in project_text
-    assert "**Default next command:** `$gsd-execute-phase 69`" in project_text
+    assert "**Current status:** `Phase 69 complete / v1.17 closeout-ready (2026-03-24)`" in project_text
+    assert "**Default next command:** `$gsd-complete-milestone v1.17`" in project_text
     assert "## Latest Archived Milestone (v1.16)" in project_text
     assert "**Current status:** `archived / evidence-ready with carry-forward (2026-03-24)`" in project_text
     assert "## Archived Milestone (v1.15)" in project_text
@@ -176,30 +176,30 @@ def test_v1_8_closeout_through_v1_15_archived_truth_are_consistent() -> None:
     assert "**Archive status:** `archived / evidence-ready with carry-forward (2026-03-24)`" in roadmap_text
     assert "**Carry-forward route:** `v1.17 / Phase 69`" in roadmap_text
     assert "## v1.17: Residual Formalization, Quality-Balance Hardening & Open-Source Contract Closure" in roadmap_text
-    assert "**Milestone status:** `active / Phase 69 planned (ready to execute, 2026-03-24)`" in roadmap_text
-    assert "**Default next command:** `$gsd-execute-phase 69`" in roadmap_text
+    assert "**Milestone status:** `active / Phase 69 complete (closeout-ready, 2026-03-24)`" in roadmap_text
+    assert "**Default next command:** `$gsd-complete-milestone v1.17`" in roadmap_text
     assert "### Phase 69: Residual read-model closure, wrapper-path thinning, and quality-balance follow-through" in roadmap_text
-    assert "**Plans**: 5 planned / 0 complete / 5 pending" in roadmap_text
+    assert "**Plans**: 5/5 complete" in roadmap_text
 
     for needle in (
-        "- [ ] **GOV-53**",
-        "- [ ] **ARC-16**",
-        "- [ ] **HOT-26**",
-        "- [ ] **HOT-27**",
-        "- [ ] **OSS-09**",
-        "- [ ] **TST-19**",
-        "- [ ] **QLT-27**",
-        "| GOV-53 | Phase 69 | Planned |",
-        "| ARC-16 | Phase 69 | Planned |",
-        "| HOT-26 | Phase 69 | Planned |",
-        "| HOT-27 | Phase 69 | Planned |",
-        "| OSS-09 | Phase 69 | Planned |",
-        "| TST-19 | Phase 69 | Planned |",
-        "| QLT-27 | Phase 69 | Planned |",
+        "- [x] **GOV-53**",
+        "- [x] **ARC-16**",
+        "- [x] **HOT-26**",
+        "- [x] **HOT-27**",
+        "- [x] **OSS-09**",
+        "- [x] **TST-19**",
+        "- [x] **QLT-27**",
+        "| GOV-53 | Phase 69 | Completed |",
+        "| ARC-16 | Phase 69 | Completed |",
+        "| HOT-26 | Phase 69 | Completed |",
+        "| HOT-27 | Phase 69 | Completed |",
+        "| OSS-09 | Phase 69 | Completed |",
+        "| TST-19 | Phase 69 | Completed |",
+        "| QLT-27 | Phase 69 | Completed |",
         "- v1.17 routed requirements: 7 total",
         "- Current mapped: 7",
-        "- Current complete: 0",
-        "- Current pending: 7",
+        "- Current complete: 7",
+        "- Current pending: 0",
         "## Archived Milestone (v1.16)",
         "| GOV-52 | Phase 68 | Completed |",
         "| QLT-26 | Phase 68 | Completed |",
@@ -207,7 +207,7 @@ def test_v1_8_closeout_through_v1_15_archived_truth_are_consistent() -> None:
         assert needle in requirements_text
 
     assert "**Current milestone:** `v1.17 Residual Formalization, Quality-Balance Hardening & Open-Source Contract Closure`" in state_text
-    assert "**Current mode:** `Phase 69 planned / ready to execute`" in state_text
+    assert "**Current mode:** `Phase 69 complete / closeout-ready`" in state_text
     assert "$gsd-execute-phase 69" in state_text
     assert ".planning/v1.16-MILESTONE-AUDIT.md" in state_text
     assert ".planning/reviews/V1_16_EVIDENCE_INDEX.md" in state_text

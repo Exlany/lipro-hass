@@ -2,7 +2,7 @@
 
 **Status:** Active milestone route = `v1.17 Residual Formalization, Quality-Balance Hardening & Open-Source Contract Closure`；latest archived closeout pointer = `.planning/reviews/V1_16_EVIDENCE_INDEX.md`.
 **Goal:** 以 `v1.16` archived closeout evidence 为唯一起点，把 `Phase 68` 明确保留的 non-blocking residual 收口为更窄的正式路线：继续 formalize runtime read-model seams、去协议化 schedule/wrapper path、补齐 checker/integration balance，并把 open-source metadata / continuity truth 固定为同一条诚实故事。
-**Default next step:** `$gsd-execute-phase 69`
+**Default next step:** `$gsd-complete-milestone v1.17`
 **Active baseline:** `v1.17` 为 current route；`v1.16` 是 latest archived baseline，`v1.15` 退为 previous archive baseline。
 
 ## Current Milestone (v1.17)
@@ -19,11 +19,14 @@
 - 开源治理只能写 honest contract：允许明确记录单维护者现实与 live-docs 限制，但不得虚构 delegate、support promise 或 release-aware story
 
 **Phase range:** `Phase 69 -> 69`
-**Current status:** `Phase 69 planned / ready to execute (2026-03-24)`
+**Current status:** `Phase 69 complete / v1.17 closeout-ready (2026-03-24)`
 **Starting baseline:** `.planning/v1.16-MILESTONE-AUDIT.md`, `.planning/reviews/V1_16_EVIDENCE_INDEX.md`, `.planning/milestones/v1.16-ROADMAP.md`, `.planning/milestones/v1.16-REQUIREMENTS.md`, `.planning/phases/68-master-audit-follow-through-hotspot-finalization-and-docs-contract-hardening/68-SUMMARY.md`, `.planning/phases/68-master-audit-follow-through-hotspot-finalization-and-docs-contract-hardening/68-VERIFICATION.md`, `.planning/phases/68-master-audit-follow-through-hotspot-finalization-and-docs-contract-hardening/68-VALIDATION.md`
 **Requirements basket:** `GOV-53`, `ARC-16`, `HOT-26`, `HOT-27`, `OSS-09`, `TST-19`, `QLT-27`
-**Primary route:** `Phase 69` 已完成 context、validation 与 `69-01 -> 69-05` plan breakdown；下一步是沿既有 residual route 执行这些计划，而不是重开 `Phase 68` 完成史。
-**Default next command:** `$gsd-execute-phase 69`
+**Phase 69 closeout:** `.planning/phases/69-residual-read-model-quality-balance-and-open-source-contract-closure/69-SUMMARY.md`, `.planning/phases/69-residual-read-model-quality-balance-and-open-source-contract-closure/69-VERIFICATION.md`, `.planning/phases/69-residual-read-model-quality-balance-and-open-source-contract-closure/69-VALIDATION.md`
+**Primary route:** `Phase 69` 已完成 `69-01 -> 69-05` 执行、focused proof、repo-wide static gate 与 governance freeze；当前里程碑进入 closeout-ready，且无需重开 `Phase 68`。
+**Immediate focus after closeout:** archive `v1.17` 并提升 milestone snapshots / evidence pointers
+**Next route after Phase 69:** `$gsd-complete-milestone v1.17`
+**Default next command:** `$gsd-complete-milestone v1.17`
 
 ## Latest Archived Milestone (v1.16)
 
@@ -43,8 +46,8 @@
 **Starting baseline:** `.planning/v1.15-MILESTONE-AUDIT.md`, `.planning/reviews/V1_15_EVIDENCE_INDEX.md`, `.planning/milestones/v1.15-ROADMAP.md`, `.planning/milestones/v1.15-REQUIREMENTS.md`, `.planning/phases/58-repository-audit-refresh-and-next-wave-routing/58-REMEDIATION-ROADMAP.md`, `.planning/phases/67-typed-contract-convergence-toolchain-hardening-and-mypy-closure/67-SUMMARY.md`
 **Requirements basket:** `GOV-52`, `ARC-15`, `HOT-24`, `HOT-25`, `OSS-08`, `TST-18`, `QLT-26`
 **Archive assets:** `.planning/v1.16-MILESTONE-AUDIT.md`, `.planning/reviews/V1_16_EVIDENCE_INDEX.md`, `.planning/milestones/v1.16-ROADMAP.md`, `.planning/milestones/v1.16-REQUIREMENTS.md`, `.planning/phases/68-master-audit-follow-through-hotspot-finalization-and-docs-contract-hardening/68-SUMMARY.md`, `.planning/phases/68-master-audit-follow-through-hotspot-finalization-and-docs-contract-hardening/68-VERIFICATION.md`, `.planning/phases/68-master-audit-follow-through-hotspot-finalization-and-docs-contract-hardening/68-VALIDATION.md`
-**Carry-forward route:** `v1.17 / Phase 69`
-**Default next command:** `$gsd-execute-phase 69`
+**Carry-forward route:** `v1.17 / Phase 69 complete / closeout-ready`
+**Default next command:** `$gsd-complete-milestone v1.17`
 
 ## Archived Milestone (v1.15)
 

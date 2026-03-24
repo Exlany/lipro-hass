@@ -375,8 +375,8 @@ def test_latest_closeout_pointer_and_active_route_stay_current() -> None:
     assert "v1.17 / Phase 69" in docs_text
     assert "V1_16_EVIDENCE_INDEX.md" in runbook_text
     assert "V1_6_EVIDENCE_INDEX.md" not in runbook_text
-    assert "$gsd-execute-phase 69" in project_text
-    assert "$gsd-execute-phase 69" in state_text
+    assert "$gsd-complete-milestone v1.17" in project_text
+    assert "$gsd-complete-milestone v1.17" in state_text
     assert "## v1.16 Master Audit Follow-Through, Hotspot Finalization & Docs Contract Hardening" in milestones_text
     assert "latest archive-ready closeout pointer = `.planning/reviews/V1_16_EVIDENCE_INDEX.md`" in milestones_text
     assert "v1.11" not in docs_text

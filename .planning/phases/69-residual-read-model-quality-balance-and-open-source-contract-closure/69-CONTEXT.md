@@ -1,7 +1,7 @@
 # Phase 69: Residual read-model closure, wrapper-path thinning, and quality-balance follow-through - Context
 
 Date: 2026-03-24
-Mode: Active current milestone after `v1.16` archive closeout
+Mode: Active current milestone route for `v1.17`
 
 ## Phase Boundary
 
@@ -45,12 +45,13 @@ Out of scope:
 - `.planning/PROJECT.md` — active milestone + latest archived baseline story
 - `.planning/ROADMAP.md` — milestone/phase routing and future phase definition
 - `.planning/REQUIREMENTS.md` — residual requirement basket for `Phase 69`
-- `.planning/STATE.md` — current active milestone remains `v1.16`
+- `.planning/STATE.md` — current active milestone is `v1.17`, and `Phase 69` is the active execution route
 
 ### Closeout baseline to build from
 - `.planning/phases/68-master-audit-follow-through-hotspot-finalization-and-docs-contract-hardening/68-SUMMARY.md`
 - `.planning/phases/68-master-audit-follow-through-hotspot-finalization-and-docs-contract-hardening/68-VERIFICATION.md`
 - `.planning/phases/68-master-audit-follow-through-hotspot-finalization-and-docs-contract-hardening/68-VALIDATION.md`
+- `.planning/reviews/V1_16_EVIDENCE_INDEX.md`
 
 ### Residual hotspots and governance families
 - `custom_components/lipro/control/runtime_access.py`
@@ -71,8 +72,10 @@ Out of scope:
 - `pyproject.toml`
 - `custom_components/lipro/manifest.json`
 - `docs/README.md`
+- `SUPPORT.md`
 - `SECURITY.md`
 - `.github/CODEOWNERS`
+- `docs/MAINTAINER_RELEASE_RUNBOOK.md`
 
 ## Specific Ideas
 
@@ -87,9 +90,4 @@ Out of scope:
 - `v1.16` 的 milestone archive / complete 流程本身
 - 全仓统一重命名所有 historical stable-import homes
 - 全面替换所有 meta budget tests；本 phase 只做平衡与补强，不做推倒重来
-- 超出 residual family 的新功能、新集成或新的组织流程承诺
-
----
-
-*Phase: 69-residual-read-model-quality-balance-and-open-source-contract-closure*
-*Context gathered: 2026-03-24 via residual follow-through planning path*
+- 超出 residual family 的新功能、性能重写或 provider 扩展

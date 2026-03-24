@@ -228,6 +228,16 @@ phases:
     - 68-SUMMARY.md
     - 68-VERIFICATION.md
     - 68-VALIDATION.md
+  69-residual-read-model-quality-balance-and-open-source-contract-closure:
+    - 69-01-SUMMARY.md
+    - 69-02-SUMMARY.md
+    - 69-03-SUMMARY.md
+    - 69-04-SUMMARY.md
+    - 69-05-SUMMARY.md
+    - 69-SUMMARY.md
+    - 69-VERIFICATION.md
+    - 69-VALIDATION.md
+
 ---
 
 # Promoted Phase Assets

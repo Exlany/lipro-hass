@@ -396,3 +396,10 @@ _None currently registered._
 
 - 无新增 active residual family。
 - 本 phase 显式关闭了 MQTT authority ambiguity、docs/metadata current-story drift 与 hotspot regrowth risk；后续若继续优化，只允许沿现有 formal homes / baseline / review ledgers 收口，不得重新长出第二故事线。
+
+
+## Phase 69 Residual Delta
+
+- 无新增 active residual family。
+- `runtime_access` outward home、schedule/protocol service seam、checker/integration balance 与 honest open-source contract 已在本 phase 完成收口；后续若继续优化，只允许沿既有 formal homes / governance chain 细化，不得重开第二故事线。
+- 历史 archived baseline 仍保持 `v1.16`；`v1.17 / Phase 69` 当前只承担 closeout-ready current route 身份，不追加 ownerless carry-forward。

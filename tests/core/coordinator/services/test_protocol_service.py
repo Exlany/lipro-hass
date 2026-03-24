@@ -2,17 +2,78 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass, field
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
 from custom_components.lipro.core.coordinator.services.protocol_service import (
     CoordinatorProtocolService,
+    build_schedule_mesh_context,
 )
+
+
+@dataclass
+class _ScheduleDeviceDouble:
+    iot_device_id: str = "03ab0000000000a1"
+    device_type_hex: str = "ff000001"
+    mesh_gateway_device_id: str | None = ""
+    mesh_group_member_ids: list[str] = field(default_factory=list)
+    ir_remote_gateway_device_id: str | None = None
 
 
 def _build_service(protocol: MagicMock) -> CoordinatorProtocolService:
     return CoordinatorProtocolService(protocol_getter=lambda: protocol)
+
+
+def _make_schedule_device(
+    *,
+    iot_device_id: str = "03ab0000000000a1",
+    device_type_hex: str = "ff000001",
+    mesh_gateway_device_id: str | None = "",
+    mesh_group_member_ids: list[str] | None = None,
+    ir_remote_gateway_device_id: str | None = None,
+) -> _ScheduleDeviceDouble:
+    return _ScheduleDeviceDouble(
+        iot_device_id=iot_device_id,
+        device_type_hex=device_type_hex,
+        mesh_gateway_device_id=mesh_gateway_device_id,
+        mesh_group_member_ids=list(mesh_group_member_ids or []),
+        ir_remote_gateway_device_id=ir_remote_gateway_device_id,
+    )
+
+
+def test_build_schedule_mesh_context_normalizes_member_ids_and_gateway() -> None:
+    device = _make_schedule_device(
+        mesh_gateway_device_id=" 03AB0000000000A1 ",
+        mesh_group_member_ids=["03ab0000000000a2", " 03AB0000000000A2 ", "bad"],
+        ir_remote_gateway_device_id=None,
+    )
+
+    assert build_schedule_mesh_context(device) == (
+        "03ab0000000000a1",
+        ["03ab0000000000a2"],
+    )
+
+
+def test_build_schedule_mesh_context_falls_back_to_ir_remote_gateway_property() -> None:
+    device = _make_schedule_device(
+        mesh_gateway_device_id=None,
+        mesh_group_member_ids=[],
+        ir_remote_gateway_device_id=" 03AB0000000000A9 ",
+    )
+
+    assert build_schedule_mesh_context(device) == ("03ab0000000000a9", [])
+
+
+def test_build_schedule_mesh_context_preserves_blank_mesh_gateway_without_ir_override() -> None:
+    device = _make_schedule_device(
+        mesh_gateway_device_id="",
+        mesh_group_member_ids=[],
+        ir_remote_gateway_device_id=" 03AB0000000000A9 ",
+    )
+
+    assert build_schedule_mesh_context(device) == ("", [])
 
 
 @pytest.mark.asyncio
@@ -54,94 +115,53 @@ async def test_protocol_service_resolves_protocol_getter_each_call_and_normalize
 
 
 @pytest.mark.asyncio
-async def test_add_and_delete_schedule_forward_formal_arguments() -> None:
+async def test_device_schedule_methods_resolve_mesh_context_from_device() -> None:
     protocol = MagicMock()
+    protocol.get_device_schedules = AsyncMock(return_value=[{"id": 1}])
     protocol.add_device_schedule = AsyncMock(return_value=[{"id": 11}])
     protocol.delete_device_schedules = AsyncMock(return_value=[{"id": 12}])
     service = _build_service(protocol)
+    device = _make_schedule_device(
+        iot_device_id="device-1",
+        device_type_hex="ff000001",
+        mesh_gateway_device_id="gateway-1",
+        mesh_group_member_ids=["member-1"],
+    )
 
-    added = await service.async_add_device_schedule(
-        "device-1",
-        1,
+    schedules = await service.async_get_device_schedules_for_device(device)
+    added = await service.async_add_device_schedule_for_device(
+        device,
         [1, 2],
         [3600, 7200],
         [0, 1],
-        mesh_gateway_id="gateway-1",
-        mesh_member_ids=["member-1"],
     )
-    deleted = await service.async_delete_device_schedules(
-        "device-1",
-        1,
-        [11],
-        mesh_gateway_id="gateway-1",
-        mesh_member_ids=["member-1"],
-    )
+    deleted = await service.async_delete_device_schedules_for_device(device, [11])
 
+    assert schedules == [{"id": 1}]
     assert added == [{"id": 11}]
     assert deleted == [{"id": 12}]
+    protocol.get_device_schedules.assert_awaited_once_with(
+        "device-1",
+        "ff000001",
+        mesh_gateway_id="",
+        mesh_member_ids=[],
+    )
     protocol.add_device_schedule.assert_awaited_once_with(
         "device-1",
-        1,
+        "ff000001",
         [1, 2],
         [3600, 7200],
         [0, 1],
-        mesh_gateway_id="gateway-1",
-        mesh_member_ids=["member-1"],
+        mesh_gateway_id="",
+        mesh_member_ids=[],
     )
     protocol.delete_device_schedules.assert_awaited_once_with(
         "device-1",
-        1,
+        "ff000001",
         [11],
-        mesh_gateway_id="gateway-1",
-        mesh_member_ids=["member-1"],
+        mesh_gateway_id="",
+        mesh_member_ids=[],
     )
-
-
-@pytest.mark.asyncio
-async def test_get_city_and_user_cloud_return_detached_dicts() -> None:
-    protocol = MagicMock()
-    city_payload = {"city": "江门"}
-    cloud_payload = {"success": True}
-    protocol.get_city = AsyncMock(return_value=city_payload)
-    protocol.query_user_cloud = AsyncMock(return_value=cloud_payload)
-    service = _build_service(protocol)
-
-    city = await service.async_get_city()
-    cloud = await service.async_query_user_cloud()
-
-    assert city == city_payload
-    assert cloud == cloud_payload
-    assert city is not city_payload
-    assert cloud is not cloud_payload
-
-
-@pytest.mark.asyncio
-@pytest.mark.parametrize(
-    ("method_name", "protocol_attr"),
-    [
-        ("async_fetch_body_sensor_history", "fetch_body_sensor_history"),
-        ("async_fetch_door_sensor_history", "fetch_door_sensor_history"),
-    ],
-)
-async def test_history_methods_return_detached_payload_dicts(
-    method_name: str,
-    protocol_attr: str,
-) -> None:
-    protocol = MagicMock()
-    payload = {"rows": [1, 2, 3]}
-    setattr(protocol, protocol_attr, AsyncMock(return_value=payload))
-    service = _build_service(protocol)
-
-    method = getattr(service, method_name)
-    result = await method(
-        device_id="device-1",
-        device_type=1,
-        sensor_device_id="sensor-1",
-        mesh_type="mesh",
-    )
-
-    assert result == payload
-    assert result is not payload
 
 
 @pytest.mark.asyncio

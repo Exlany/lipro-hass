@@ -12,7 +12,6 @@ from homeassistant.exceptions import ServiceValidationError
 from ..core.api.errors import LiproApiError
 from ..core.api.types import SchedulePayload, ScheduleTimingRow
 from ..core.device import LiproDevice
-from ..core.utils.identifiers import normalize_iot_device_id
 from ..core.utils.redaction import redact_identifier as _redact_identifier
 from ..runtime_types import LiproCoordinator
 from .execution import ServiceErrorRaiser, async_execute_coordinator_call
@@ -129,25 +128,6 @@ def normalize_schedule_row(schedule: object) -> NormalizedScheduleRow | None:
     }
 
 
-def get_mesh_context(device: ScheduleDevice) -> tuple[str, list[str]]:
-    """Extract mesh gateway and member IDs from device metadata."""
-    gateway_candidate = device.mesh_gateway_device_id
-    if gateway_candidate is None:
-        gateway_candidate = device.ir_remote_gateway_device_id
-    mesh_gateway_id = normalize_iot_device_id(gateway_candidate) or ""
-
-    mesh_member_ids: list[str] = []
-    seen_member_ids: set[str] = set()
-    for member_id in device.mesh_group_member_ids:
-        normalized = normalize_iot_device_id(member_id)
-        if normalized is None or normalized in seen_member_ids:
-            continue
-        seen_member_ids.add(normalized)
-        mesh_member_ids.append(normalized)
-
-    return mesh_gateway_id, mesh_member_ids
-
-
 async def async_execute_schedule_operation(
     device: ScheduleDevice,
     protocol_call: Callable[..., Awaitable[_ResultT]],
@@ -159,16 +139,9 @@ async def async_execute_schedule_operation(
     raise_service_error: ServiceErrorRaiser,
 ) -> _ResultT:
     """Call one schedule protocol operation with shared auth and error mapping."""
-    mesh_gateway_id, mesh_member_ids = get_mesh_context(device)
 
     async def _call_protocol_operation() -> _ResultT:
-        return await protocol_call(
-            device.iot_device_id,
-            device.device_type_hex,
-            *args,
-            mesh_gateway_id=mesh_gateway_id,
-            mesh_member_ids=mesh_member_ids,
-        )
+        return await protocol_call(device, *args)
 
     if coordinator is not None:
 
@@ -237,7 +210,7 @@ async def async_handle_get_schedules(
     schedules: ScheduleRows = await async_call_schedule_service(
         coordinator,
         device,
-        protocol_call=coordinator.protocol_service.async_get_device_schedules,
+        protocol_call=coordinator.protocol_service.async_get_device_schedules_for_device,
         service_log="Service call: get_schedules for %s",
         error_log="API error getting schedules: %s",
         error_translation_key="schedule_fetch_failed",
@@ -285,7 +258,7 @@ async def async_handle_add_schedule(
     schedules: ScheduleRows = await async_call_schedule_service(
         coordinator,
         device,
-        protocol_call=coordinator.protocol_service.async_add_device_schedule,
+        protocol_call=coordinator.protocol_service.async_add_device_schedule_for_device,
         call_args=(days, times, events),
         service_log=(
             "Service call: add_schedule for %s (days=%s, times=%s, events=%s)"
@@ -324,7 +297,7 @@ async def async_handle_delete_schedules(
     remaining: ScheduleRows = await async_call_schedule_service(
         coordinator,
         device,
-        protocol_call=coordinator.protocol_service.async_delete_device_schedules,
+        protocol_call=coordinator.protocol_service.async_delete_device_schedules_for_device,
         call_args=(schedule_ids,),
         service_log="Service call: delete_schedules for %s (ids=%s)",
         service_log_args=(
