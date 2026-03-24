@@ -127,6 +127,8 @@ def test_milestone_archive_snapshots_exist_and_are_referenced() -> None:
         _ROOT / ".planning" / "milestones" / "v1.15-REQUIREMENTS.md",
         _ROOT / ".planning" / "milestones" / "v1.16-ROADMAP.md",
         _ROOT / ".planning" / "milestones" / "v1.16-REQUIREMENTS.md",
+        _ROOT / ".planning" / "milestones" / "v1.17-ROADMAP.md",
+        _ROOT / ".planning" / "milestones" / "v1.17-REQUIREMENTS.md",
     )
 
     for path in archive_paths:
@@ -153,12 +155,14 @@ def test_milestone_archive_snapshots_exist_and_are_referenced() -> None:
         "v1.15-REQUIREMENTS.md",
         "v1.16-ROADMAP.md",
         "v1.16-REQUIREMENTS.md",
+        "v1.17-ROADMAP.md",
+        "v1.17-REQUIREMENTS.md",
     ):
         assert needle in roadmap_text
         assert needle in requirements_text or needle in project_text or needle in milestones_text
 
     assert "v1.16-MILESTONE-AUDIT.md" in state_text
-    assert "$gsd-complete-milestone v1.17" in state_text
+    assert "$gsd-new-milestone" in state_text
     assert "archived / evidence-ready" in milestones_text
     assert "archived snapshots created / handoff-ready" in milestones_text
     assert "revalidated 2026-03-17" in milestones_text
@@ -359,6 +363,29 @@ def test_v1_16_closeout_assets_exist_and_are_pull_only() -> None:
     assert "V1_16_EVIDENCE_INDEX.md" in evidence_text
 
 
+def test_v1_17_closeout_assets_exist_and_are_pull_only() -> None:
+    evidence_index = _ROOT / ".planning" / "reviews" / "V1_17_EVIDENCE_INDEX.md"
+    milestone_audit = _ROOT / ".planning" / "v1.17-MILESTONE-AUDIT.md"
+
+    assert evidence_index.exists()
+    assert milestone_audit.exists()
+    assert (_ROOT / ".planning" / "milestones" / "v1.17-ROADMAP.md").exists()
+    assert (_ROOT / ".planning" / "milestones" / "v1.17-REQUIREMENTS.md").exists()
+    _assert_promoted_phase_assets(
+        "69-residual-read-model-quality-balance-and-open-source-contract-closure",
+        "69-SUMMARY.md",
+        "69-VERIFICATION.md",
+    )
+
+    evidence_text = evidence_index.read_text(encoding="utf-8")
+    assert "## Pull Contract" in evidence_text
+    assert "69-SUMMARY.md" in evidence_text
+    assert "69-VERIFICATION.md" in evidence_text
+    assert "69-VALIDATION.md" in evidence_text
+    assert "archived / evidence-ready" in evidence_text
+    assert "V1_17_EVIDENCE_INDEX.md" in evidence_text
+
+
 def test_governance_truth_registers_v1_14_archive_lineage() -> None:
     authority_text = (
         _ROOT / ".planning" / "baseline" / "AUTHORITY_MATRIX.md"
@@ -376,7 +403,7 @@ def test_governance_truth_registers_v1_14_archive_lineage() -> None:
     assert ".planning/reviews/V1_14_EVIDENCE_INDEX.md" in milestones_text
 
 
-def test_governance_truth_registers_v1_16_latest_archive_pointer() -> None:
+def test_governance_truth_registers_v1_17_latest_archive_pointer() -> None:
     authority_text = (
         _ROOT / ".planning" / "baseline" / "AUTHORITY_MATRIX.md"
     ).read_text(encoding="utf-8")
@@ -391,18 +418,18 @@ def test_governance_truth_registers_v1_16_latest_archive_pointer() -> None:
         encoding="utf-8"
     )
 
-    assert "V1_15_EVIDENCE_INDEX.md" in authority_text
     assert "V1_16_EVIDENCE_INDEX.md" in authority_text
-    assert "v1.16-MILESTONE-AUDIT.md" in authority_text
-    assert "V1_16_EVIDENCE_INDEX.md" in public_text
-    assert "## v1.15 Typed Contract Convergence, Tooling Kernel Hardening & Mypy Closure" in milestones_text
+    assert "V1_17_EVIDENCE_INDEX.md" in authority_text
+    assert "v1.17-MILESTONE-AUDIT.md" in authority_text
+    assert "V1_17_EVIDENCE_INDEX.md" in public_text
     assert "## v1.16 Master Audit Follow-Through, Hotspot Finalization & Docs Contract Hardening" in milestones_text
-    assert ".planning/reviews/V1_16_EVIDENCE_INDEX.md" in milestones_text
-    assert ".planning/reviews/V1_16_EVIDENCE_INDEX.md" in docs_text
-    assert "当前无 active milestone route" not in docs_text
-    assert "v1.17 / Phase 69" in docs_text
-    assert "V1_16_EVIDENCE_INDEX.md" in runbook_text
-    assert "$gsd-complete-milestone v1.17" in project_text
-    assert "$gsd-execute-phase 69" in state_text
-    assert "Active milestone route = `v1.17 Residual Formalization, Quality-Balance Hardening & Open-Source Contract Closure`" in project_text
-    assert "**Current mode:** `Phase 69 complete / closeout-ready`" in state_text
+    assert "## v1.17 Residual Formalization, Quality-Balance Hardening & Open-Source Contract Closure" in milestones_text
+    assert ".planning/reviews/V1_17_EVIDENCE_INDEX.md" in milestones_text
+    assert ".planning/reviews/V1_17_EVIDENCE_INDEX.md" in docs_text
+    assert "当前无 active milestone route" in docs_text
+    assert "v1.17 / Phase 69" not in docs_text
+    assert "V1_17_EVIDENCE_INDEX.md" in runbook_text
+    assert "$gsd-new-milestone" in project_text
+    assert "$gsd-new-milestone" in state_text
+    assert "No active milestone route" in project_text
+    assert "**Current mode:** `v1.17 archived`" in state_text

@@ -165,10 +165,11 @@ def test_v1_8_closeout_through_v1_15_archived_truth_are_consistent() -> None:
     assert ".planning/milestones/v1.13-ROADMAP.md" in project_text
     assert ".planning/phases/60-tooling-truth-decomposition-and-file-governance-maintainability/60-01-PLAN.md" not in project_text
 
-    assert "## Current Milestone (v1.17)" in project_text
-    assert "**Current status:** `Phase 69 complete / v1.17 closeout-ready (2026-03-24)`" in project_text
-    assert "**Default next command:** `$gsd-complete-milestone v1.17`" in project_text
-    assert "## Latest Archived Milestone (v1.16)" in project_text
+    assert "**Status:** No active milestone route；latest archived closeout pointer = `.planning/reviews/V1_17_EVIDENCE_INDEX.md`." in project_text
+    assert "## Latest Archived Milestone (v1.17)" in project_text
+    assert "**Current status:** `archived / evidence-ready (2026-03-24)`" in project_text
+    assert "**Default next command:** `$gsd-new-milestone`" in project_text
+    assert "## Archived Milestone (v1.16)" in project_text
     assert "**Current status:** `archived / evidence-ready with carry-forward (2026-03-24)`" in project_text
     assert "## Archived Milestone (v1.15)" in project_text
 
@@ -176,8 +177,8 @@ def test_v1_8_closeout_through_v1_15_archived_truth_are_consistent() -> None:
     assert "**Archive status:** `archived / evidence-ready with carry-forward (2026-03-24)`" in roadmap_text
     assert "**Carry-forward route:** `v1.17 / Phase 69`" in roadmap_text
     assert "## v1.17: Residual Formalization, Quality-Balance Hardening & Open-Source Contract Closure" in roadmap_text
-    assert "**Milestone status:** `active / Phase 69 complete (closeout-ready, 2026-03-24)`" in roadmap_text
-    assert "**Default next command:** `$gsd-complete-milestone v1.17`" in roadmap_text
+    assert "**Archive status:** `archived / evidence-ready (2026-03-24)`" in roadmap_text
+    assert "**Default next command:** `$gsd-new-milestone`" in roadmap_text
     assert "### Phase 69: Residual read-model closure, wrapper-path thinning, and quality-balance follow-through" in roadmap_text
     assert "**Plans**: 5/5 complete" in roadmap_text
 
@@ -207,7 +208,7 @@ def test_v1_8_closeout_through_v1_15_archived_truth_are_consistent() -> None:
         assert needle in requirements_text
 
     assert "**Current milestone:** `v1.17 Residual Formalization, Quality-Balance Hardening & Open-Source Contract Closure`" in state_text
-    assert "**Current mode:** `Phase 69 complete / closeout-ready`" in state_text
-    assert "$gsd-execute-phase 69" in state_text
-    assert ".planning/v1.16-MILESTONE-AUDIT.md" in state_text
-    assert ".planning/reviews/V1_16_EVIDENCE_INDEX.md" in state_text
+    assert "**Current mode:** `v1.17 archived`" in state_text
+    assert "$gsd-new-milestone" in state_text
+    assert ".planning/v1.17-MILESTONE-AUDIT.md" in state_text
+    assert ".planning/reviews/V1_17_EVIDENCE_INDEX.md" in state_text

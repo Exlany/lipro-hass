@@ -134,9 +134,9 @@
 - `15` 锁定 developer feedback contract、governance truth repair、contributor/install docs sync、support hotspot follow-through 与 testing/tooling gate clarification；不得因修补支持面问题而重开第二条正式主链
 - `16` 锁定 post-audit truth alignment、hotspot decomposition、type/exception tightening、residual endgame、domain/entity/OTA rationalization 与 contributor DX follow-through；不得因为收尾改进而重开第二条正式主链、第二套 protocol/runtime story 或无 gate rename campaign
 
-## Current Milestone (v1.17)
+## Archived Milestone (v1.17)
 
-> `v1.17` 承接 `Phase 68` 终审显式保留的 non-blocking residual：保持 `v1.16` archived closeout evidence 不被重开，同时把 read-model residue、schedule/wrapper protocol-shaped path、quality-balance debt 与 honest open-source metadata contract 继续压向更薄、更稳定、更可验证的正式结构。
+> `v1.17` 已于 `2026-03-24` 完成归档；以下 requirements / traceability 保留 `Phase 69` 的最终 fulfilled contract，归档快照见 `.planning/milestones/v1.17-REQUIREMENTS.md`，审计裁决见 `.planning/v1.17-MILESTONE-AUDIT.md`，证据索引见 `.planning/reviews/V1_17_EVIDENCE_INDEX.md`。
 
 ### Residual Formalization & Hotspot Closure
 
@@ -151,7 +151,7 @@
 - [x] **TST-19**: 质量体系已补足 `scripts/check_*.py` 的行为测试/coverage 视野、focused integration coverage 与 meta-shell 可导航性，后续 residual closure 不再主要依赖 budget/meta tests。
 - [x] **QLT-27**: `v1.17` touched scope 已在 `uv run ruff check .`、`uv run mypy --follow-imports=silent .`、`uv run python scripts/check_architecture_policy.py --check`、`uv run python scripts/check_file_matrix.py --check`、`uv run python scripts/check_translations.py` 与 final focused pytest bundle 下保持绿色，并留下可解释的平衡化门禁证据。
 
-## Traceability for closeout-ready v1.17 route
+## Traceability for archived v1.17 route
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|

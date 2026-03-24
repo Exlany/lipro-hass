@@ -363,22 +363,22 @@ def test_troubleshooting_and_runbook_navigation_is_consistent() -> None:
         assert "docs/MAINTAINER_RELEASE_RUNBOOK.md" in path.read_text(encoding="utf-8")
 
 
-def test_latest_closeout_pointer_and_active_route_stay_current() -> None:
+def test_latest_closeout_pointer_and_no_active_route_stay_current() -> None:
     project_text = (_ROOT / ".planning" / "PROJECT.md").read_text(encoding="utf-8")
     state_text = (_ROOT / ".planning" / "STATE.md").read_text(encoding="utf-8")
     milestones_text = (_ROOT / ".planning" / "MILESTONES.md").read_text(encoding="utf-8")
     docs_text = _DOCS_README.read_text(encoding="utf-8")
     runbook_text = _RUNBOOK.read_text(encoding="utf-8")
 
-    assert ".planning/reviews/V1_16_EVIDENCE_INDEX.md" in docs_text
-    assert "当前无 active milestone route" not in docs_text
-    assert "v1.17 / Phase 69" in docs_text
-    assert "V1_16_EVIDENCE_INDEX.md" in runbook_text
+    assert ".planning/reviews/V1_17_EVIDENCE_INDEX.md" in docs_text
+    assert "当前无 active milestone route" in docs_text
+    assert "v1.17 / Phase 69" not in docs_text
+    assert "V1_17_EVIDENCE_INDEX.md" in runbook_text
     assert "V1_6_EVIDENCE_INDEX.md" not in runbook_text
-    assert "$gsd-complete-milestone v1.17" in project_text
-    assert "$gsd-complete-milestone v1.17" in state_text
-    assert "## v1.16 Master Audit Follow-Through, Hotspot Finalization & Docs Contract Hardening" in milestones_text
-    assert "latest archive-ready closeout pointer = `.planning/reviews/V1_16_EVIDENCE_INDEX.md`" in milestones_text
+    assert "$gsd-new-milestone" in project_text
+    assert "$gsd-new-milestone" in state_text
+    assert "## v1.17 Residual Formalization, Quality-Balance Hardening & Open-Source Contract Closure" in milestones_text
+    assert "latest archive-ready closeout pointer = `.planning/reviews/V1_17_EVIDENCE_INDEX.md`" in milestones_text
     assert "v1.11" not in docs_text
     assert "v1.11" not in runbook_text
 

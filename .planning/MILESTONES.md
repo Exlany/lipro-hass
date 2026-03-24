@@ -251,3 +251,26 @@
 - `.planning/phases/68-master-audit-follow-through-hotspot-finalization-and-docs-contract-hardening/68-VALIDATION.md`
 
 ---
+
+## v1.17 Residual Formalization, Quality-Balance Hardening & Open-Source Contract Closure (Closeout: 2026-03-24)
+
+**Phase range:** `69`
+**Phases completed:** 1 phase, 5 plans, 0 tasks
+**Status:** archived / evidence-ready
+**Route truth:** latest archive-ready closeout pointer = `.planning/reviews/V1_17_EVIDENCE_INDEX.md`
+
+**Key accomplishments:**
+- formalize `runtime_access` read-model seams、继续 thin `runtime_access_support.py` / `runtime_infra.py`，并保持 single outward runtime home 不漂移
+- 把 schedule/service path 压回 typed device-context contract，去掉 protocol-shaped choreography 与多余 wrapper / shim / lazy-import 故事
+- 统一 checker、focused integration、open-source docs / metadata / continuity truth，并把里程碑切换到 latest archived baseline / no active milestone route
+
+**Closeout assets:**
+- `.planning/v1.17-MILESTONE-AUDIT.md`
+- `.planning/reviews/V1_17_EVIDENCE_INDEX.md`
+- `.planning/milestones/v1.17-ROADMAP.md`
+- `.planning/milestones/v1.17-REQUIREMENTS.md`
+- `.planning/phases/69-residual-read-model-quality-balance-and-open-source-contract-closure/69-SUMMARY.md`
+- `.planning/phases/69-residual-read-model-quality-balance-and-open-source-contract-closure/69-VERIFICATION.md`
+- `.planning/phases/69-residual-read-model-quality-balance-and-open-source-contract-closure/69-VALIDATION.md`
+
+---

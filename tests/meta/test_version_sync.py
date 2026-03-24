@@ -32,7 +32,7 @@ _V1_5_EVIDENCE_INDEX = _ROOT / ".planning" / "reviews" / "V1_5_EVIDENCE_INDEX.md
 _V1_6_EVIDENCE_INDEX = _ROOT / ".planning" / "reviews" / "V1_6_EVIDENCE_INDEX.md"
 _V1_13_EVIDENCE_INDEX = _ROOT / ".planning" / "reviews" / "V1_13_EVIDENCE_INDEX.md"
 _V1_15_EVIDENCE_INDEX = _ROOT / ".planning" / "reviews" / "V1_15_EVIDENCE_INDEX.md"
-_V1_16_EVIDENCE_INDEX = _ROOT / ".planning" / "reviews" / "V1_16_EVIDENCE_INDEX.md"
+_V1_17_EVIDENCE_INDEX = _ROOT / ".planning" / "reviews" / "V1_17_EVIDENCE_INDEX.md"
 _GOVERNANCE_REGISTRY = _ROOT / ".planning" / "baseline" / "GOVERNANCE_REGISTRY.json"
 _PHASE_15_PRD = (
     _ROOT
@@ -256,15 +256,15 @@ def test_private_repo_hacs_caveat_is_consistent() -> None:
         _assert_contains_private_repo_hacs_caveat(path)
 
 
-def test_release_runbook_references_v1_16_evidence_index() -> None:
+def test_release_runbook_references_v1_17_evidence_index() -> None:
     """Maintainer runbook should point at the canonical latest closeout evidence index."""
     runbook_text = _RUNBOOK.read_text(encoding="utf-8")
-    evidence_text = _V1_16_EVIDENCE_INDEX.read_text(encoding="utf-8")
+    evidence_text = _V1_17_EVIDENCE_INDEX.read_text(encoding="utf-8")
 
-    assert "V1_16_EVIDENCE_INDEX.md" in runbook_text
+    assert "V1_17_EVIDENCE_INDEX.md" in runbook_text
     assert "V1_6_EVIDENCE_INDEX.md" not in runbook_text
     assert "## Pull Contract" in evidence_text
-    assert "carry-forward" in evidence_text
+    assert "archived / evidence-ready" in evidence_text
 
 
 def test_runbook_and_contributing_capture_blocking_release_security_gate() -> None:
@@ -315,13 +315,13 @@ def test_preview_lane_docs_keep_stable_contract_honest() -> None:
 
 
 def test_release_docs_capture_supply_chain_posture_and_latest_closeout_contract() -> None:
-    """Runbook keeps release hardening truth while the latest closeout index stays honest about v1.16 scope."""
+    """Runbook keeps release hardening truth while the latest closeout index stays honest about v1.17 scope."""
     runbook_text = _RUNBOOK.read_text(encoding="utf-8")
-    evidence_text = _V1_16_EVIDENCE_INDEX.read_text(encoding="utf-8")
+    evidence_text = _V1_17_EVIDENCE_INDEX.read_text(encoding="utf-8")
 
     for token in ("SHA256SUMS", "provenance", "SBOM", "signing"):
         assert token in runbook_text
-    for token in ("68-SUMMARY.md", "68-VERIFICATION.md", "carry-forward"):
+    for token in ("69-SUMMARY.md", "69-VERIFICATION.md", "archived / evidence-ready"):
         assert token in evidence_text
     assert "release artifact install smoke" in runbook_text
     assert "CodeQL" in runbook_text

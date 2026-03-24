@@ -1,40 +1,37 @@
 # Project: Lipro-HASS North Star Evolution
 
-**Status:** Active milestone route = `v1.17 Residual Formalization, Quality-Balance Hardening & Open-Source Contract Closure`；latest archived closeout pointer = `.planning/reviews/V1_16_EVIDENCE_INDEX.md`.
-**Goal:** 以 `v1.16` archived closeout evidence 为唯一起点，把 `Phase 68` 明确保留的 non-blocking residual 收口为更窄的正式路线：继续 formalize runtime read-model seams、去协议化 schedule/wrapper path、补齐 checker/integration balance，并把 open-source metadata / continuity truth 固定为同一条诚实故事。
-**Default next step:** `$gsd-complete-milestone v1.17`
-**Active baseline:** `v1.17` 为 current route；`v1.16` 是 latest archived baseline，`v1.15` 退为 previous archive baseline。
+**Status:** No active milestone route；latest archived closeout pointer = `.planning/reviews/V1_17_EVIDENCE_INDEX.md`.
+**Goal:** 保持 `v1.17` 的 archived closeout evidence、milestone snapshots 与 `Phase 69` closeout package 作为当前最新治理基线，等待下一条明确 scope 的 milestone route，而不是重开 `Phase 69` 或回写 `v1.16`。
+**Default next step:** `$gsd-new-milestone`
+**Active baseline:** 当前无 active milestone；`v1.17` 是 latest archived baseline，`v1.16` 退为 previous archive baseline。
 
-## Current Milestone (v1.17)
+## Latest Archived Milestone (v1.17)
 
 **Name:** `v1.17 Residual Formalization, Quality-Balance Hardening & Open-Source Contract Closure`
 
-**Why now:** `v1.16` 已把系统性热点与 public contract drift 收束为 archive-ready closeout，而终审明确保留的 non-blocking residual 仍集中在几条更窄的 follow-through 路线：`runtime_access_support.py` 的 read-model formalization、schedule/service path 的去协议化、wrapper/shim/lazy-import residue 的继续削减、checker/integration quality balance 的补强，以及 release-aware docs URL / machine-readable Home Assistant support / maintainer continuity truth 的最后收口。
+**Why now:** `v1.16` 已把 refreshed repo-wide audit 的主干问题归档，但明确保留了一组 non-blocking residual：`runtime_access_support.py` 的 read-model formalization、schedule/service path 的去协议化、wrapper/shim/lazy-import residue 的继续削减、checker/integration quality balance 的补强，以及 release-aware docs URL / machine-readable HA support / maintainer continuity truth 的最后收口。`Phase 69` 已把这些 residual 进一步压向更窄的正式 seams，并在同一轮完成静态门禁、focused proof 与归档准备。
 
-**North-star fit:** `v1.17` 继续沿单一正式主链推进：
+**North-star fit:** `v1.17` 沿单一正式主链完成收口：
 
-- `runtime_access.py` 继续是 control-plane outward home；对 `runtime_access_support.py` 的处理只能是 inward formalization / narrowing，不能长回第二 root
-- schedule、protocol-service 与 wrapper 链只能把协议细节继续往下压，不能以“收口”为名增加新的 facade / helper root
-- 质量改进必须补 behavior/integration/checker coverage，而不是只追加更多 prose-coupled meta guards
-- 开源治理只能写 honest contract：允许明确记录单维护者现实与 live-docs 限制，但不得虚构 delegate、support promise 或 release-aware story
+- `runtime_access.py` 持续作为唯一 outward runtime home；`runtime_access_support.py` 与 `runtime_infra.py` 只保留 inward helper / read-model seam 身份
+- schedule、protocol-service 与 wrapper 链继续把协议细节往下压，没有借“收口”之名引入新的 facade / helper root
+- 质量门从“只靠 meta/budget story”回到 checker + behavior + integration 的平衡组合
+- 开源治理只记录 honest contract：允许诚实表达单维护者现实与 live-docs 限制，但不再让 stale pointer 与 active-route folklore 并存
 
 **Phase range:** `Phase 69 -> 69`
-**Current status:** `Phase 69 complete / v1.17 closeout-ready (2026-03-24)`
+**Current status:** `archived / evidence-ready (2026-03-24)`
 **Starting baseline:** `.planning/v1.16-MILESTONE-AUDIT.md`, `.planning/reviews/V1_16_EVIDENCE_INDEX.md`, `.planning/milestones/v1.16-ROADMAP.md`, `.planning/milestones/v1.16-REQUIREMENTS.md`, `.planning/phases/68-master-audit-follow-through-hotspot-finalization-and-docs-contract-hardening/68-SUMMARY.md`, `.planning/phases/68-master-audit-follow-through-hotspot-finalization-and-docs-contract-hardening/68-VERIFICATION.md`, `.planning/phases/68-master-audit-follow-through-hotspot-finalization-and-docs-contract-hardening/68-VALIDATION.md`
 **Requirements basket:** `GOV-53`, `ARC-16`, `HOT-26`, `HOT-27`, `OSS-09`, `TST-19`, `QLT-27`
-**Phase 69 closeout:** `.planning/phases/69-residual-read-model-quality-balance-and-open-source-contract-closure/69-SUMMARY.md`, `.planning/phases/69-residual-read-model-quality-balance-and-open-source-contract-closure/69-VERIFICATION.md`, `.planning/phases/69-residual-read-model-quality-balance-and-open-source-contract-closure/69-VALIDATION.md`
-**Primary route:** `Phase 69` 已完成 `69-01 -> 69-05` 执行、focused proof、repo-wide static gate 与 governance freeze；当前里程碑进入 closeout-ready，且无需重开 `Phase 68`。
-**Immediate focus after closeout:** archive `v1.17` 并提升 milestone snapshots / evidence pointers
-**Next route after Phase 69:** `$gsd-complete-milestone v1.17`
-**Default next command:** `$gsd-complete-milestone v1.17`
+**Archive assets:** `.planning/v1.17-MILESTONE-AUDIT.md`, `.planning/reviews/V1_17_EVIDENCE_INDEX.md`, `.planning/milestones/v1.17-ROADMAP.md`, `.planning/milestones/v1.17-REQUIREMENTS.md`, `.planning/phases/69-residual-read-model-quality-balance-and-open-source-contract-closure/69-SUMMARY.md`, `.planning/phases/69-residual-read-model-quality-balance-and-open-source-contract-closure/69-VERIFICATION.md`, `.planning/phases/69-residual-read-model-quality-balance-and-open-source-contract-closure/69-VALIDATION.md`
+**Default next command:** `$gsd-new-milestone`
 
-## Latest Archived Milestone (v1.16)
+## Archived Milestone (v1.16)
 
 **Name:** `v1.16 Master Audit Follow-Through, Hotspot Finalization & Docs Contract Hardening`
 
 **Why now:** 本轮终极审阅重新确认：主链架构已基本正确，但 remaining debt 仍集中在少数“正确但偏厚”的 formal homes 与对外文档/版本契约漂移——例如 `core/telemetry/models.py`、`core/mqtt/message_processor.py`、`core/anonymous_share/share_client_flows.py`、`core/api/diagnostics_api_ota.py`、`runtime_infra.py` 等仍承载过多 decision density；与此同时，`README*` / `manifest.json` / `pyproject.toml` / `CHANGELOG.md` / `.github/*` 之间的 first-hop、version-signal、release-example 与 docs navigation 也出现了可验证的 current-story drift。`Phase 68` 已把这些问题沿单一正式主链收口完毕，并把 non-blocking residual 正式登记为后续 carry-forward route。
 
-**North-star fit:** `v1.16` 在归档后继续承担 latest archived baseline 身份：
+**North-star fit:** `v1.16` 在归档后继续承担 previous archive baseline 身份：
 
 - remaining hotspots 只允许 `keep formal home + split inward + freeze budgets`，不得新建 public root / helper-owned second story / compat shell
 - review 结论必须转成 phase plan、cross-AI review、focused guards 与 verification evidence；不允许停留在对话式意见
@@ -46,8 +43,8 @@
 **Starting baseline:** `.planning/v1.15-MILESTONE-AUDIT.md`, `.planning/reviews/V1_15_EVIDENCE_INDEX.md`, `.planning/milestones/v1.15-ROADMAP.md`, `.planning/milestones/v1.15-REQUIREMENTS.md`, `.planning/phases/58-repository-audit-refresh-and-next-wave-routing/58-REMEDIATION-ROADMAP.md`, `.planning/phases/67-typed-contract-convergence-toolchain-hardening-and-mypy-closure/67-SUMMARY.md`
 **Requirements basket:** `GOV-52`, `ARC-15`, `HOT-24`, `HOT-25`, `OSS-08`, `TST-18`, `QLT-26`
 **Archive assets:** `.planning/v1.16-MILESTONE-AUDIT.md`, `.planning/reviews/V1_16_EVIDENCE_INDEX.md`, `.planning/milestones/v1.16-ROADMAP.md`, `.planning/milestones/v1.16-REQUIREMENTS.md`, `.planning/phases/68-master-audit-follow-through-hotspot-finalization-and-docs-contract-hardening/68-SUMMARY.md`, `.planning/phases/68-master-audit-follow-through-hotspot-finalization-and-docs-contract-hardening/68-VERIFICATION.md`, `.planning/phases/68-master-audit-follow-through-hotspot-finalization-and-docs-contract-hardening/68-VALIDATION.md`
-**Carry-forward route:** `v1.17 / Phase 69 complete / closeout-ready`
-**Default next command:** `$gsd-complete-milestone v1.17`
+**Carry-forward route result:** `closed by v1.17 archive (2026-03-24)`
+**Default next command:** `$gsd-new-milestone`
 
 ## Archived Milestone (v1.15)
 

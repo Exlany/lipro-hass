@@ -402,4 +402,4 @@ _None currently registered._
 
 - 无新增 active residual family。
 - `runtime_access` outward home、schedule/protocol service seam、checker/integration balance 与 honest open-source contract 已在本 phase 完成收口；后续若继续优化，只允许沿既有 formal homes / governance chain 细化，不得重开第二故事线。
-- 历史 archived baseline 仍保持 `v1.16`；`v1.17 / Phase 69` 当前只承担 closeout-ready current route 身份，不追加 ownerless carry-forward。
+- 历史 archived baseline 已提升到 `v1.17`；当前无 active milestone route，且 `Phase 69` 不追加 ownerless carry-forward。
